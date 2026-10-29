@@ -459,7 +459,7 @@
       reading.blocks=dn?[{label:c.diagnosis,text:pick(c,good?'flowOpen':'flowCare',dn)},{label:c.basis,text:reading.evidence},{label:c.action,text:gi>=0?pick(c,'godRules',dn)[gi]:pick(c,'strengthAction',dn)}]:[{label:c.observe,text:good?c.flowOpen:c.flowCare},{label:c.life,text:gi>=0?c.godLife[gi]:c.scenes[0]},{label:c.practice,text:gi>=0?c.godRules[gi]:c.strengthAction}];
       write(i===0?'dailyPanel':'monthlyPanel',(rich&&rich.daily(row,i,facts,model.mode))||markup(reading,model,true));
     });
-    if(section==='letter'||section==='all') {write('letterTitle',mode()==='neo'?esc(c.neo)+' · '+esc(model.letter.title):esc(c.yeon)+'의 '+esc(model.letter.title));write('letterContent',letterMarkup(model));}
+    if(section==='letter'||section==='all') {write('letterTitle',mode()==='neo'?esc(c.neo)+' · '+esc(model.letter.title):esc(c.yeon)+(locale()==='ko'?'의 ':' · ')+esc(model.letter.title));write('letterContent',letterMarkup(model));}
     renderHeader();
   }
   function refreshCopy() {

@@ -4115,5 +4115,19 @@
     "de": "Check your passes",
     "nl": "Check your passes",
     "ms": "Check your passes"
+  },
+  "featureMarketing.openMbtiModal.fallbackTitle": {
+    "ko": "🦁 MBTI 동물 궁합",
+    "en": "🦁 MBTI Animal Compatibility",
+    "ja": "🦁 MBTI動物の相性",
+    "zh-CN": "🦁 MBTI动物合盘",
+    "zh-TW": "🦁 MBTI動物合盤",
+    "vi": "🦁 MBTI Animal Compatibility",
+    "hi": "🦁 MBTI Animal Compatibility",
+    "es": "🦁 MBTI Animal Compatibility",
+    "fr": "🦁 MBTI Animal Compatibility",
+    "de": "🦁 MBTI Animal Compatibility",
+    "nl": "🦁 MBTI Animal Compatibility",
+    "ms": "🦁 MBTI Animal Compatibility"
   }
 }

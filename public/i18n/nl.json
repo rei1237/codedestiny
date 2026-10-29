@@ -1305,7 +1305,7 @@
       "lead": "Alleen kaarten die je direct zonder betaling kunt proberen."
     },
     "svcIndex": {
-      "kicker": "ALL SERVICES",
+      "kicker": "ALLE DIENSTEN",
       "title": "Alle poorten van de fortuin zijn hier",
       "lead": "Tarot, orakels, meditatie, premium rapporten — zoek of open de collecties hieronder.",
       "placeholder": "Diensten zoeken (bijv. tarot, match, droom)",
@@ -3055,7 +3055,7 @@
     "logout": "🔓 Uitloggen",
     "changePhone": "📱 Telefoonnummer wijzigen",
     "changePassword": "🔑 Wachtwoord wijzigen",
-    "passCheckingChip": "PASS CHECK",
+    "passCheckingChip": "Pas controleren",
     "adminSessionGreeting": "✦ Beheerderssessie",
     "adminAccessChip": "BEHEERDERTOEGANG",
     "adminName": "ADMIN",
@@ -6774,7 +6774,10 @@
     "se_9646_prop_title": "Geen berekeningsinformatie",
     "se_9647_prop_title": "Geen berekeningsinformatie",
     "se_9666_prop_label": "Zon",
-    "se_9668_prop_label": "Ascendant"
+    "se_9668_prop_label": "Ascendant",
+    "astro_swiss_unavailable_title": "Verbinding maken met de astrologie-engine",
+    "astro_swiss_unavailable_body": "De verbinding met de Swiss-bibliotheek voor nauwkeurige horoscoopberekeningen is mislukt.",
+    "astro_swiss_unavailable_retry": "Controleer je geboorteplaats en geboortetijd en probeer het opnieuw. Blijft het probleem bestaan, wacht dan even en open de pagina opnieuw."
   },
   "sajuQuantum": {
     "sq_10033_prop_title": "Een band die blijft als een oude belofte",
@@ -8462,7 +8465,7 @@
       "001": "Dierentotem Reading Resultaten"
     },
     "error": {
-      "001": "SwissEph loader failed."
+      "001": "SwissEph kon niet worden geladen."
     }
   },
   "lsd": {
@@ -8690,7 +8693,7 @@
   "rd": {
     "aria-label": {
       "001": "Selecteer Vier Pijlers (BaZi) vier-cut versie",
-      "002": "share hashtags"
+      "002": "Hashtags om te delen"
     },
     "cta": {
       "001": "🐾 Roep mijn beschermdier op",
@@ -9710,11 +9713,11 @@
       "ctaNote": "After payment, the twelve-palace chart and a consultation of at least 20,700 characters open.",
       "analysisSteps": {
         "0": {
-          "label": "Chart construction",
+          "label": "Construct the chart",
           "detail": "Places the main stars and Four Transformations in the twelve palaces using your birth date and time."
         },
         "1": {
-          "label": "Palace strength",
+          "label": "Assess palace strengths",
           "detail": "Identifies which palaces carry more strength and which are empty."
         },
         "2": {
@@ -9750,7 +9753,7 @@
           "a": "If you stay signed in, past consultations remain in your list and reopen with no extra charge."
         },
         "2": {
-          "q": "How long is it?",
+          "q": "How long is the reading?",
           "a": "The main text targets 20,700 characters. Its length may vary with your input and the consultation."
         }
       },
@@ -9797,7 +9800,8 @@
           "title": "The answer to your question",
           "detail": "Closes with an answer to the concern you wrote down and actions to try now."
         }
-      }
+      },
+      "fallbackTitle": "Zi Wei Dou Shu Expert Consultation"
     },
     "neo_operation_room": {
       "fallbackTitle": "Gather your scattered worries onto a single operations map.",
@@ -10047,7 +10051,8 @@
           "title": "Names to avoid, and the write-up",
           "detail": "Covers names to avoid and registration checks, and includes the original naming write-up."
         }
-      }
+      },
+      "fallbackTitle": "Hunminjeongeum Naming Studio"
     },
     "gotoSukuyoPremium": {
       "fallbackTitle": "Before good or bad, read the sense of distance between the two of you first.",
@@ -10221,7 +10226,7 @@
       },
       "valueCompare": {
         "0": {
-          "axis": "Subject",
+          "axis": "Focus",
           "premium": "Your individual chart calculated from the birth details you enter"
         },
         "1": {
@@ -10442,7 +10447,7 @@
           "detail": "Calculate the Rashi chart and lunar Nakshatra from your birth information."
         },
         "1": {
-          "label": "Dasha check",
+          "label": "Identifying the Dasha period",
           "detail": "Identify which planetary period you are currently moving through."
         },
         "2": {
@@ -10560,9 +10565,10 @@
       "premiumIntro": "Destiny Flower doesn't exaggerate the result -- it's an emotive interpretation that bundles your temperament and flow into a single symbol.",
       "fallbackCta": "View Destiny Flower",
       "feats": {
-        "0": "When you want to organize your temperament into a more sensory image",
-        "1": "When you want to see your Saju and star chart flow in a less rigid way",
-        "2": "When you need a single symbol that explains you right now"
+        "0": "Switch between four sources: Saju, astrology, Zi Wei Dou Shu and Sukuyo",
+        "1": "Get key badges, a flower narrative and keywords for each source",
+        "2": "Explore a color palette, flower meanings, and relationship and career guides",
+        "3": "Create image prompts, save records, copy summaries and share on Kakao"
       },
       "premiumAudience": {
         "0": "Those who want to keep their Saju in a visible form",
@@ -10587,9 +10593,10 @@
       "premiumIntro": "The astrology Destiny Flower doesn't predict the future -- it's an emotive interpretation that bundles the temperament drawn by your Sun, Moon, and Rising sign into a single symbol.",
       "fallbackCta": "View Astrology Flower",
       "feats": {
-        "0": "When you want to organize your star chart into a more sensory image",
-        "1": "When you're curious what impression your Sun/Moon/Rising combination gives",
-        "2": "When you want to see astrology comfortably instead of through rigid terms"
+        "0": "Find a destiny flower based on your Sun sign",
+        "1": "Add the mood of your Ascendant and Moon sign",
+        "2": "View a summary of the three placements with a nebula theme",
+        "3": "Use the same image prompt, save and share tools"
       },
       "premiumAudience": {
         "0": "Those who want to keep their star chart as an image",
@@ -10614,9 +10621,10 @@
       "premiumIntro": "The Ziwei Doushu Destiny Flower doesn't judge fortune as good or bad -- it's an emotive interpretation that bundles the temperament drawn by your Life Palace and main star into a single symbol.",
       "fallbackCta": "View Ziwei Doushu Flower",
       "feats": {
-        "0": "When you want to organize your chart into a more sensory image",
-        "1": "When you're curious what impression your Life Palace and main star combination gives",
-        "2": "When you want to see Ziwei Doushu comfortably instead of through a rigid chart table"
+        "0": "Match a flower using the principal-star rules",
+        "1": "Read an interpretation that includes Life Palace cues",
+        "2": "Reflect star brightness levels such as temple, prosperous, neutral and fallen",
+        "3": "Create a Zi Wei Dou Shu narrative, summary and image prompt"
       },
       "premiumAudience": {
         "0": "Those who want to see their 12-palace chart as a picture",
@@ -10641,9 +10649,10 @@
       "premiumIntro": "The Sukuyo Destiny Flower doesn't judge the result -- it's an emotive interpretation that bundles the temperament drawn by your 27-lodge and lunar phase into a single symbol.",
       "fallbackCta": "View Sukuyo Flower",
       "feats": {
-        "0": "When you want to organize your destiny into a more sensory image",
-        "1": "When you're curious what impression your 27-lodge and lunar phase give",
-        "2": "When you want to see Sukuyo comfortably instead of through a rigid table"
+        "0": "Match a flower using the index or name of your Sukuyo lunar mansion",
+        "1": "Adapt the theme to the lunar phase",
+        "2": "Read your Sukuyo group and guardian keywords",
+        "3": "Use summary, save, share and image prompt tools"
       },
       "premiumAudience": {
         "0": "Those curious what impression their Honmyoshuku gives",
@@ -10761,6 +10770,13 @@
           "title": "Anchoring & journaling",
           "detail": "Anchors the feeling in the present, then leaves what you saw today in the cosmic journal."
         }
+      },
+      "feats": {
+        "0": "Follow guided text and timers through each meditation stage",
+        "1": "Choose a 30-minute, five-stage course or a 60-minute, seven-stage course",
+        "2": "See colors and backgrounds for each stage and a sentence to guide today’s action",
+        "3": "Choose today’s intention: wealth, clarity, love or health",
+        "4": "Track completed sessions and streaks, with a Cosmic Journal saved in your browser"
       }
     },
     "openTarotLoveModal": {
@@ -10769,9 +10785,10 @@
       "premiumIntro": "Relationship Tarot doesn't judge things as simply good or bad -- it shows both the pull bringing you closer and the pull pushing you apart right now.",
       "fallbackCta": "Check the Relationship Flow",
       "feats": {
-        "0": "When what they say and what they do feel different",
-        "1": "When you're hesitant about whether to keep reaching out",
-        "2": "When you want to know how fast the relationship is getting closer"
+        "0": "Separate your view of the other person from the current relationship atmosphere",
+        "1": "Explore differences in emotional warmth and willingness through the cards",
+        "2": "Connect attraction, hesitation and practical factors across six cards",
+        "3": "Find words you might use now and boundaries to respect"
       },
       "premiumAudience": {
         "0": "Those confused because the other person's words and actions differ",
@@ -10835,55 +10852,55 @@
       }
     },
     "openTarotReunionModal": {
-      "tagline": "Five card seats trace everything from the warmth still left to the conditions for repairing the relationship, closing with a low-pressure opening line and a 7-day recovery routine.",
+      "tagline": "Five card positions explore the warmth of lingering feelings and the conditions for repairing a relationship. The reconciliation reading closes with a low-pressure opening message and a seven-day emotional recovery routine.",
       "feats": {
         "0": "A five-seat reading: warmth still left · their feelings now · why contact stopped · how close you can get again · conditions for repair",
-        "1": "Detailed interpretation reading every card along eight strands",
-        "2": "A standard for whether to move first, and a suggested low-pressure opening line",
-        "3": "A 7-day recovery routine and a reunion checklist"
+        "1": "Detailed readings of each card from eight angles",
+        "2": "Criteria to consider before reaching out and a low-pressure opening message",
+        "3": "A seven-day emotional recovery routine and reconciliation checklist"
       },
-      "premiumIntro": "This is not a reading that promises reunion. It separates the feelings still left and the conditions for getting close again into five seats, and works out the opening line with you.",
+      "premiumIntro": "This does not promise reconciliation. It uses five positions to explore lingering feelings and conditions for growing closer again, including a possible first message.",
       "premiumAudience": {
-        "0": "People whose feelings have not settled since the breakup",
-        "1": "People weighing when to start talking again",
-        "2": "People who want to check whether a reason to hold on remains"
+        "0": "For those still sorting through feelings after a breakup",
+        "1": "For those considering when to resume contact",
+        "2": "For those asking whether there is still a reason to hold on"
       },
       "premiumChapters": {
-        "0": "The cards on the five seats and the interpretation for each",
-        "1": "Your standard for reaching out again, and the opening line",
-        "2": "What to hold back for now",
-        "3": "A reunion checklist to keep for 7 days"
+        "0": "Cards in five positions and the reading for each",
+        "1": "Criteria for reaching out again and an opening message",
+        "2": "Words to hold back for now",
+        "3": "A reconciliation checklist for the next seven days"
       },
       "premiumOutcomes": {
-        "0": "Reunion outcomes are not guaranteed.",
+        "0": "Reconciliation is not guaranteed.",
         "1": "The interpretation is written from lines prepared for each card seat.",
         "2": "Card interpretations are for reference.",
         "3": "The existing payment policy applies."
       },
       "answersQuestions": {
-        "0": "Do they still have feelings for me?",
+        "0": "Might the other person still have feelings?",
         "1": "Would it be a good time to reach out?",
-        "2": "Can this relationship be picked up again?"
+        "2": "Could this relationship reconnect?"
       },
-      "fallbackCta": "Start the Reunion Lighthouse reading",
+      "fallbackCta": "Start the reconciliation reading",
       "analysisSteps": {
         "0": {
-          "label": "Settle your mind",
-          "detail": "The reading opens calmly, with a short breathing guide."
+          "label": "Settling your feelings",
+          "detail": "Begin calmly with a brief breathing guide."
         },
         "1": {
-          "label": "Open the five seats",
-          "detail": "A card is turned for each seat, from the feelings left to the conditions for repair."
+          "label": "Opening the five-position spread",
+          "detail": "Reveal each position’s card, from lingering feelings to the conditions for repair."
         },
         "2": {
-          "label": "Recovery guide",
-          "detail": "It closes with the opening line, what to hold back, the 7-day routine and the checklist."
+          "label": "Organizing the recovery guide",
+          "detail": "Finish with an opening message, words to hold back, a seven-day routine and a checklist."
         }
       },
       "faq": {
         "0": {
-          "q": "Do I have to enter a question or my birth date?",
-          "a": "No. The five-seat card reading starts straight away with no input."
+          "q": "Do I need to enter a question or birth date?",
+          "a": "No. The five-position card reading begins without any input."
         },
         "1": {
           "q": "Can I see the result again later?",
@@ -10933,27 +10950,28 @@
           "title": "Your words and a seven-day routine",
           "detail": "It closes with the opening line, what to hold back, and the checklist."
         }
-      }
+      },
+      "fallbackTitle": "🌊 Reunion Lighthouse Tarot"
     },
     "openTarotYearFortuneModal": {
       "tagline": "Twelve major cards are laid one per month and read alongside the guardian story paired with each month, organizing the flow across twelve fields plus turning points and lucky actions.",
       "feats": {
-        "0": "This year's core card and the yearly overview read as one continuous flow",
+        "0": "Read the year’s central card and overall outlook as one continuous pattern",
         "1": "A drill-down that reopens each monthly card, January to December, as three cards: cause, process, result",
-        "2": "Readings for twelve fields including money, work and business, love, and helpful people",
-        "3": "This year's turning points and lucky actions you can take right away",
+        "2": "Readings across twelve areas, including money, work and business, love, and helpful connections",
+        "3": "Identify the year’s turning points and small luck-themed actions to try now",
         "4": "Sign in and the result for that year is kept, so it picks up where you left off"
       },
-      "premiumIntro": "Rather than nailing the year down as prophecy, it organizes the flow that is easy to miss month by month, and the moments where a choice is made.",
+      "premiumIntro": "Rather than fixing the year as a prediction, use the cards to consider easily missed monthly patterns and moments of choice.",
       "premiumAudience": {
-        "0": "People who want to see the flow before planning their year",
-        "1": "People wondering which month to place an important event in",
-        "2": "People who want a deep reading with the guardian narrative"
+        "0": "For those wanting a broader view before planning the year",
+        "1": "For those deciding which month to choose for important plans",
+        "2": "For those wanting a deeper reading with a guardian-deity narrative"
       },
       "premiumChapters": {
-        "0": "An in-depth interpretation of this year's core card",
-        "1": "The twelve monthly cards and the flow by field",
-        "2": "Choices to be careful with, and this year's opportunities",
+        "0": "An in-depth reading of the year’s central card",
+        "1": "Twelve monthly cards and patterns across life areas",
+        "2": "Choices needing care and opportunities for the year",
         "3": "Picking up the same year's result when signed in"
       },
       "premiumOutcomes": {
@@ -10962,23 +10980,23 @@
         "2": "The existing payment policy applies."
       },
       "answersQuestions": {
-        "0": "Which period this year should I be most careful in?",
-        "1": "How will money and work or business flow?",
-        "2": "What opportunity is coming to me this year?"
+        "0": "Which period this year calls for the most care?",
+        "1": "How do the money, work and business patterns unfold?",
+        "2": "What opportunities might come my way this year?"
       },
-      "fallbackCta": "Start the Zodiac Year reading",
+      "fallbackCta": "Start the annual reading",
       "analysisSteps": {
         "0": {
-          "label": "Find your guardian",
+          "label": "Meeting the guardian deity",
           "detail": "The twelve guardians paired with the months are identified first. There is no birth date to enter."
         },
         "1": {
-          "label": "Lay the twelve cards",
-          "detail": "Twelve major cards are placed one per month."
+          "label": "Placing twelve cards",
+          "detail": "Place twelve Major Arcana cards, one for each month."
         },
         "2": {
-          "label": "Fields and turning points",
-          "detail": "The flow across the twelve fields, the turning points and the lucky actions are organized."
+          "label": "Organizing life areas and turning points",
+          "detail": "Summarize patterns in twelve life areas, turning points and luck-themed actions."
         }
       },
       "faq": {
@@ -10987,7 +11005,7 @@
           "a": "If you are signed in, the result for that year is kept and you can pick it up again when you return."
         },
         "1": {
-          "q": "How do I read the monthly readings?",
+          "q": "How do I view the monthly readings?",
           "a": "Opening a month's card reveals the three-card drill-down — cause, process, result — and the interpretation by field."
         }
       },
@@ -11034,23 +11052,24 @@
           "title": "Pick it up later",
           "detail": "If you are signed in, the result for that year is kept and you can open it again."
         }
-      }
+      },
+      "fallbackTitle": "🐉 Twelve Zodiac Spirits Tarot"
     },
     "openLoveSimulation": {
       "badge": "Love simulation",
       "headline": "See in which scenes your love pattern shines and in which it wavers.",
       "tagline": "Play through 20 scenes with any of 16 partner characters, and your choices change the date result and the relationship route.",
       "feats": {
-        "0": "16 partner characters · 20 scenes per character, with 3 choices in every scene",
+        "0": "Sixteen partner characters · twenty scenes per character · three choices per scene",
         "1": "Your choices change the date result (ending), the relationship route and the conversation-choice analysis",
         "2": "Saju compatibility is scored 0-100 on 5 axes: attraction, stability, communication, durability and conflict management",
         "3": "The three strongest grounds among day-stem unions and clashes, branch relations, five elements, ten gods and the peach-blossom and red-flame stars are shown with a risk note and a date tip"
       },
       "premiumIntro": "Browsing characters is free; the simulation starts after payment. The compatibility score is set by both of your saju charts, and the choices you make in each scene change the date result and the relationship route.",
       "premiumAudience": {
-        "0": "People who want to experience compatibility as scenes",
-        "1": "People who want to compare how it unfolds by partner type",
-        "2": "People who want to see the grounds behind a compatibility score"
+        "0": "For those wanting to experience compatibility through scenes",
+        "1": "For those wanting to compare how different partner types unfold",
+        "2": "For those wanting to see the reasoning behind compatibility scores"
       },
       "premiumChapters": {
         "0": "Start the simulation with any of the 16 partner characters",
@@ -11059,45 +11078,45 @@
         "3": "Saju compatibility scores on 5 axes, with the strongest grounds, a risk note and a date tip"
       },
       "premiumOutcomes": {
-        "0": "Compatibility is calculated inside the app, directly from the birth details you enter.",
+        "0": "Compatibility is calculated directly in the app from the birth details you enter.",
         "1": "It does not guarantee any actual relationship or outcome.",
-        "2": "Fortune results are for reference; please check important choices against practical judgement as well."
+        "2": "Fortune readings are for reference. Consider important choices alongside practical judgment."
       },
       "answersQuestions": {
         "0": "Which flows should I avoid with this person?",
-        "1": "What kinds of situations do we usually clash in?",
-        "2": "Is this a relationship that can last?"
+        "1": "In what situations do we tend to clash?",
+        "2": "Could this relationship last?"
       },
-      "fallbackCta": "Open Love Code",
+      "fallbackCta": "Open LOVE CODE",
       "analysisSteps": {
         "0": {
-          "label": "Choose a partner",
+          "label": "Choosing a partner",
           "detail": "Pick one of the 16 characters, or enter the other person's details to be matched with the closest character. Your own saju comes from your profile."
         },
         "1": {
-          "label": "Play the scenes",
+          "label": "Playing through scenes",
           "detail": "Pick one of 3 choices in each scene to move the story along."
         },
         "2": {
-          "label": "Signal extraction",
-          "detail": "Compatibility signals are drawn from both charts' day-stem unions and clashes, branch relations, useful and adverse elements, ten gods and the stars."
+          "label": "Extracting signals",
+          "detail": "Extract compatibility signals from both people’s Day Master combinations and clashes, earthly-branch relationships, favorable and unfavorable elements, Ten Gods and symbolic stars."
         },
         "3": {
-          "label": "Result",
+          "label": "Organizing the results",
           "detail": "Shows the 5-axis scores and the three strongest grounds, together with the date result and relationship route set by your choices."
         }
       },
       "valueCompare": {
         "0": {
-          "axis": "Play volume",
-          "premium": "16 partner characters · 20 scenes per character"
+          "axis": "Amount of content",
+          "premium": "Sixteen partner characters · twenty scenes each"
         },
         "1": {
-          "axis": "Compatibility result",
-          "premium": "5-axis scores, 0-100"
+          "axis": "Compatibility results",
+          "premium": "Five dimension scores, each from 0 to 100"
         },
         "2": {
-          "axis": "Grounds shown",
+          "axis": "Evidence display",
           "premium": "The three strongest saju grounds, a risk note and a date tip"
         }
       },
@@ -11111,8 +11130,8 @@
           "a": "Choices change the date result (ending), the relationship route and the conversation-choice analysis. The 5-axis saju compatibility score is set by both charts and stays the same whatever you choose."
         },
         "2": {
-          "q": "How many partners can I see?",
-          "a": "16 characters are available, and each one has its own 20 scenes."
+          "q": "How many partner characters are available?",
+          "a": "There are sixteen characters, each with twenty separate scenes."
         },
         "3": {
           "q": "Can I save or share the result?",
@@ -11162,7 +11181,8 @@
           "title": "Character stories",
           "detail": "Tabs for world, dating style, ending routes and missions, closing with Start over."
         }
-      }
+      },
+      "fallbackTitle": "💕 LOVE CODE"
     },
     "openDestinyBias": {
       "badge": "Photocard reading",
@@ -11230,7 +11250,8 @@
           "q": "What are the scores based on?",
           "a": "Signals from the two people’s Day Master and day-branch relationships, Five Elements balance and Ten Gods relationships are converted into five scores."
         }
-      }
+      },
+      "fallbackTitle": "✨ Idol Destiny"
     },
     "openPsychoDreamModal": {
       "fallbackTitle": "Calmly follow the emotional afterglow your dream left behind.",
@@ -11238,9 +11259,10 @@
       "premiumIntro": "Psychoanalytic dream interpretation doesn't judge the dream definitively -- it reads the symbol and emotional direction currently lingering in your mind.",
       "fallbackCta": "View Dream Reading",
       "feats": {
-        "0": "When a vivid dream keeps staying on your mind",
-        "1": "When you want to know how a scene in the dream connects to your current emotions",
-        "2": "When you want to organize a recurring symbol"
+        "0": "Explore dreams through Freudian desire and conflict and Jungian archetypes",
+        "1": "Gently explore desires, anxieties and recurring signals within the dream",
+        "2": "Use dream symbols to reflect on your current emotional patterns",
+        "3": "Turn themes found in your dream into small actions to try in daily life"
       },
       "premiumAudience": {
         "0": "Those who keep having the same dream",
@@ -11396,15 +11418,16 @@
           "title": "Get your action plan and save",
           "detail": "Check today's action items and save the result to your archive."
         }
-      }
+      },
+      "fallbackTitle": "🧸 Animal Totem"
     },
     "openKemetModal": {
-      "tagline": "Pick three cards yourself — past, present and future — from the twelve gods including Ra, Osiris, Isis and Horus, and the reading unfolds seat by seat and then as the union of the three gods, following the grain of your question.",
+      "tagline": "Choose three cards yourself for past, present, and future from twelve gods including Ra, Osiris, Isis, and Horus. Each position and the combination of the three gods are interpreted in the context of your question.",
       "feats": {
         "0": "Cards for twelve gods: Ra · Osiris · Isis · Horus · Thoth · Anubis and more",
-        "1": "Three seats — past · present · future — with all three cards chosen by you",
-        "2": "A combined reading of the union of the three gods, following the seat-by-seat interpretation",
-        "3": "A category reading matched to the grain of your question, read from where its focus lies"
+        "1": "Three positions — past · present · future — with all three cards chosen by you",
+        "2": "A combined reading of the union of the three gods, following the position-by-position interpretation",
+        "3": "A reading tailored to the category and focus of your question"
       },
       "premiumIntro": "The Nile Oracle does not draw for you. It is a rite in which you choose three cards yourself, standing before the cards of the twelve gods.",
       "premiumAudience": {
@@ -11413,10 +11436,10 @@
         "2": "People who want their situation organized as a flow of three cards"
       },
       "premiumChapters": {
-        "0": "What the gods on the three seats mean",
+        "0": "What the gods on the three positions mean",
         "1": "The narrative running from past to future",
         "2": "The direction the union of the three gods points to",
-        "3": "Advice matched to the grain of your question"
+        "3": "Advice tailored to your question"
       },
       "premiumOutcomes": {
         "0": "Oracle interpretations are for reference.",
@@ -11440,7 +11463,7 @@
         },
         "2": {
           "label": "Oracle reading",
-          "detail": "The answer is organized from the seat-by-seat interpretation and the union of the three gods."
+          "detail": "The answer is organized from the position-by-position interpretation and the union of the three gods."
         }
       },
       "faq": {
@@ -11450,7 +11473,7 @@
         },
         "1": {
           "q": "Can I see the result again?",
-          "a": "It isn't saved anywhere, so it's an oracle you check right there on the spot."
+          "a": "This oracle result is not saved separately, so review it on the result screen."
         }
       },
       "receives": {
@@ -11477,15 +11500,15 @@
       },
       "outline": {
         "0": {
-          "title": "Write your question",
-          "detail": "You write down a question of at least three characters."
+          "title": "Offer your question",
+          "detail": "You write the question on your mind, in three characters or more."
         },
         "1": {
           "title": "Shuffle the cards",
           "detail": "The twelve gods' cards are shuffled."
         },
         "2": {
-          "title": "Choose three cards yourself",
+          "title": "Choose three cards",
           "detail": "You pick, by hand, the cards for the past, present, and future positions."
         },
         "3": {
@@ -11496,7 +11519,10 @@
           "title": "The union of three gods",
           "detail": "You close with the combined answer of the three gods."
         }
-      }
+      },
+      "fallbackTitle": "𓂀 Egyptian Oracle",
+      "headline": "Choose three cards yourself from the twelve gods.",
+      "badge": "Symbolic reading"
     },
     "rpt_healthReportCard": {
       "fallbackTitle": "Find your Saju's inborn energy weak points and health biorhythm.",
@@ -11921,7 +11947,7 @@
         },
         "1": {
           "q": "Can I see the result again?",
-          "a": "It isn't saved anywhere, so it's a divination you check right there on the spot."
+          "a": "This divination result is not saved separately, so review it on the result screen."
         }
       },
       "receives": {
@@ -11931,7 +11957,7 @@
         },
         "1": {
           "title": "Substance and Function",
-          "detail": "The relation between the upper and lower trigrams shows the shape of the moment."
+          "detail": "Read the substance and function of the current situation through the relationship between the upper and lower trigrams."
         },
         "2": {
           "title": "Five Strands of Reading",
@@ -11939,7 +11965,7 @@
         },
         "3": {
           "title": "Push or Wait",
-          "detail": "You get a clear answer on whether now is the time to push ahead or to wait."
+          "detail": "Clarify whether the current situation calls for moving forward or waiting."
         },
         "4": {
           "title": "Checked on the Spot",
@@ -11948,11 +11974,11 @@
       },
       "outline": {
         "0": {
-          "title": "Write your question",
-          "detail": "You write down the question on your mind."
+          "title": "Offer your question",
+          "detail": "You write the question on your mind."
         },
         "1": {
-          "title": "The tortoise-shell rite",
+          "title": "The shell rite",
           "detail": "The tortoise shell cracks and one hexagram is decided."
         },
         "2": {
@@ -11967,7 +11993,10 @@
           "title": "Today's attitude",
           "detail": "You close by telling apart when to push and when to stop, into the attitude to take now."
         }
-      }
+      },
+      "fallbackTitle": "☯️ I Ching Turtle Divination",
+      "headline": "When you are unsure whether to act or wait, explore the situation and choices shown by an I Ching hexagram.",
+      "badge": "I Ching divination"
     },
     "openIfaOracle": {
       "tagline": "Following the West African Yoruba Ifá method, 16 base Odu pair up to form 256 oracles, and the story and taboos inside the one that opens become the answer to your situation.",
@@ -12027,11 +12056,11 @@
       },
       "receives": {
         "0": {
-          "title": "Choose a Strand",
+          "title": "Choose a strand",
           "detail": "You pick the strand of your question from overall, love, money, or health."
         },
         "1": {
-          "title": "Eight Positions Open",
+          "title": "Eight-position oracle",
           "detail": "The opele chain opens the eight positions one by one to form an Odu."
         },
         "2": {
@@ -12068,28 +12097,31 @@
           "title": "Save it",
           "detail": "You download the result as a text file from the result screen and keep it."
         }
-      }
+      },
+      "fallbackTitle": "🪬 IFÀ Oracle",
+      "headline": "Find questions for reflecting on your concerns in the stories told by Odu symbols.",
+      "badge": "Yoruba oracle"
     },
     "openRuneOracle": {
-      "badge": "Rune reading",
-      "headline": "Quietly lay out the rune symbols that surfaced before the choice in front of you.",
+      "badge": "Three rune stones",
+      "headline": "Reflect on your past, present, and upcoming choices through three runes.",
       "hubTagline": "An oracle reading that uses the symbols of the runic alphabet to read your present question and the grain of your next move.",
-      "tagline": "A 25-rune system — the 24 runes plus the blank rune Wyrd — reads the flow across three seats, past Urd · present Verdandi · future Skuld, splitting each rune into upright and reversed.",
+      "tagline": "A 25-rune system — the 24 runes plus the blank rune Wyrd — reads the flow across three positions, past Urd · present Verdandi · future Skuld, splitting each rune into upright and reversed.",
       "feats": {
         "0": "A 25-rune system: the 24 runes plus the blank rune Wyrd",
-        "1": "A three-seat layout of the three Norns: past Urd · present Verdandi · future Skuld",
+        "1": "A three-position layout of the three Norns: past Urd · present Verdandi · future Skuld",
         "2": "Upright and reversed interpretations, split for each rune",
         "3": "The special reading of the blank rune Wyrd — the signal that nothing is settled yet"
       },
-      "premiumIntro": "A three-rune reading does not nail the answer down; it lights up your present choice through the flow of three seats — past, present and future.",
+      "premiumIntro": "A three-rune reading does not nail the answer down; it lights up your present choice through the flow of three positions — past, present and future.",
       "premiumAudience": {
         "0": "People who want to experience a symbol system other than tarot",
         "1": "People who want the context before and after the flow",
-        "2": "People who want a short, dense three-seat reading"
+        "2": "Anyone who wants a concise, focused three-position reading"
       },
       "premiumChapters": {
-        "0": "The runes on the three seats and the interpretation for each",
-        "1": "The meanings that upright and reversed split apart",
+        "0": "The runes on the three positions and the interpretation for each",
+        "1": "The differing meanings of upright and reversed runes",
         "2": "The flow that runs from the past into the present",
         "3": "How to meet the road ahead"
       },
@@ -12107,15 +12139,15 @@
       "analysisSteps": {
         "0": {
           "label": "Check the spread",
-          "detail": "The reading runs on the three-seat layout: past · present · future."
+          "detail": "The reading runs on the three-position layout: past · present · future."
         },
         "1": {
           "label": "Open three runes",
-          "detail": "Runes are placed on the Urd, Verdandi and Skuld seats."
+          "detail": "Runes are placed on the Urd, Verdandi and Skuld positions."
         },
         "2": {
           "label": "Read the flow",
-          "detail": "You read the seat-by-seat interpretation and what upright or reversed means."
+          "detail": "You read the position-by-position interpretation and what upright or reversed means."
         }
       },
       "faq": {
@@ -12125,7 +12157,7 @@
         },
         "1": {
           "q": "Can I see the result again?",
-          "a": "It isn't saved anywhere, so you check the result right there on the spot."
+          "a": "This reading is not saved separately, so review it on the result screen."
         }
       },
       "receives": {
@@ -12168,10 +12200,11 @@
           "detail": "You read the flow from the past through the present to the road ahead."
         },
         "4": {
-          "title": "Share it",
+          "title": "Share It",
           "detail": "You can share the finished reading."
         }
-      }
+      },
+      "fallbackTitle": "ᚠ Stonehenge Rune Oracle"
     },
     "openGeomancyOracle": {
       "tagline": "Sixteen figures from Via to Populus build a 15-position shield chart running through Mothers, Daughters, Nieces and Witnesses to the Judge, and AI reads out cause, flow and oracle on the grounds of the figures alone.",
@@ -12225,7 +12258,7 @@
         },
         "1": {
           "q": "Can I see the result again?",
-          "a": "It isn't saved anywhere, so you check the result right there on the spot."
+          "a": "This reading is not saved separately, so review it on the result screen."
         }
       },
       "receives": {
@@ -12238,7 +12271,7 @@
           "detail": "Mother, Daughter, Niece, and Witness fill the chart through to the Judge — 15 positions in all."
         },
         "2": {
-          "title": "AI Full Reading",
+          "title": "AI combined reading",
           "detail": "The AI writes the cause, flow, and oracle message based only on the completed figures."
         },
         "3": {
@@ -12253,14 +12286,14 @@
       "outline": {
         "0": {
           "title": "Enter your question",
-          "detail": "You write down the question you want to weigh."
+          "detail": "You write the question you want cast."
         },
         "1": {
           "title": "Cast 16 lines",
           "detail": "Random points form the 16 lines."
         },
         "2": {
-          "title": "Build the shield chart",
+          "title": "Raise the shield chart",
           "detail": "Mother, Daughter, Niece, and Witness complete the 15-position shield chart."
         },
         "3": {
@@ -12268,29 +12301,32 @@
           "detail": "You first check the meaning of the Judge figure that decides the core answer."
         },
         "4": {
-          "title": "AI full reading",
+          "title": "AI combined reading",
           "detail": "You get the cause, flow, oracle message, and action steps based on the figures alone."
         }
-      }
+      },
+      "fallbackTitle": "⟁ Geomancy Earth Divination",
+      "headline": "Explore the conditions and patterns surrounding your question in a shield chart formed from dots.",
+      "badge": "Geomantic figures"
     },
     "openRoyalTeaOracle": {
       "tagline": "Fourteen tea-leaf shapes meet five question areas to make seventy strands of reading, and the cup's rim, wall and bottom divide the timing — a British tea-leaf reading.",
       "feats": {
         "0": "14 tea-leaf shapes × 5 question areas (love and bonds / work and career / money and wealth / relationships and family / change and choice) = 70 strands of reading",
-        "1": "Timing read across three seats: rim (now-2 weeks) · wall (2 weeks-3 months) · bottom (after 3 months)",
+        "1": "Timing read across three positions: rim (now-2 weeks) · wall (2 weeks-3 months) · bottom (after 3 months)",
         "2": "Feeling and practical advice that also weighs the four directions a shape sits in and its three levels of density",
         "3": "The same input gives the same cup for one day — a daily reading that is brewed anew when the date turns"
       },
-      "premiumIntro": "Tea-leaf reading is a European tradition that reads the traces left in a finished cup, taking the grain of the coming three months in three seats.",
+      "premiumIntro": "Tea-leaf reading is a European tradition that interprets traces left in a finished cup, exploring the coming three months through three positions.",
       "premiumAudience": {
         "0": "People curious about the flow of the near future",
         "1": "People who want one cup a day, read like a ritual",
         "2": "People who love the romance of British teatime"
       },
       "premiumChapters": {
-        "0": "The shapes formed in the cup and the reading for each seat",
+        "0": "The shapes formed in the cup and the reading for each position",
         "1": "Timing divided into rim · wall · bottom",
-        "2": "The grain that direction and density add",
+        "2": "The nuances added by direction and density",
         "3": "The practical advice today's cup offers"
       },
       "premiumOutcomes": {
@@ -12314,7 +12350,7 @@
           "detail": "The tea-leaf shapes form in today's cup."
         },
         "2": {
-          "label": "Read three seats",
+          "label": "Read three positions",
           "detail": "You read the shapes at the rim, wall and bottom, with their direction and density."
         }
       },
@@ -12330,7 +12366,7 @@
       },
       "receives": {
         "0": {
-          "title": "Choose Your Question Area",
+          "title": "Choose an area",
           "detail": "You pick one of five areas: love, work, money, relationships, or transitions."
         },
         "1": {
@@ -12357,7 +12393,7 @@
         },
         "1": {
           "title": "Brew the cup",
-          "detail": "Tea-leaf shapes form in today's cup."
+          "detail": "The tea-leaf shapes form in today's cup."
         },
         "2": {
           "title": "Check the three positions",
@@ -12365,19 +12401,22 @@
         },
         "3": {
           "title": "Read direction and density",
-          "detail": "You add the shape's direction and density to read the grain."
+          "detail": "Read the nuances with the shape's direction and density included."
         },
         "4": {
-          "title": "Share it",
+          "title": "Share It",
           "detail": "You share the finished cup on KakaoTalk."
         }
-      }
+      },
+      "fallbackTitle": "🫖 British Tea-Leaf Reading",
+      "headline": "Follow the positions and symbols of tea leaves to see the question on your mind from another angle.",
+      "badge": "Tea-leaf reading"
     },
     "openOlympusOracleModal": {
-      "tagline": "Each star sign has its own Greek god as guardian, and today's oracle opens anew each day on top of a planetary layout based on the Swiss Ephemeris.",
+      "tagline": "Connect astrology and Greek mythology to explore the traits of eight placements, partner compatibility, and an oracle selected by date-based rules.",
       "feats": {
         "0": "A fixed Greek guardian for each of the twelve signs — Hades, Kronos and Prometheus among them",
-        "1": "The positions of eight planets, calculated with the Swiss Ephemeris",
+        "1": "Eight placements including the Ascendant, with simplified calculation if precise calculation fails",
         "2": "Sections with names of their own: Hard Truth Alert · Aphrodite's Pick · Surviving the Olympus Office",
         "3": "Today's oracle, which changes with the date",
         "4": "Open it once and keep it for good — re-enter any time"
@@ -12386,13 +12425,13 @@
       "premiumAudience": {
         "0": "People who enjoy star-sign readings",
         "1": "People who want a reading with a humorous tone",
-        "2": "People who want new content every day"
+        "2": "Anyone who wants to reflect on their traits and relationships through mythology"
       },
       "premiumChapters": {
         "0": "Your sign's guardian profile and oracle",
-        "1": "The grain of today, lit by the planetary layout",
+        "1": "Today's patterns as reflected in the planetary placements",
         "2": "Pointed advice wrapped in humour",
-        "3": "A permanent unlock, with a new oracle each day"
+        "3": "Prepared oracle messages selected by date-based rules"
       },
       "premiumOutcomes": {
         "0": "The interpretation mixes in humour and is for reference.",
@@ -12404,7 +12443,7 @@
         "1": "What kind of day does today's planetary layout make for me?",
         "2": "What would my guardian say to me right now?"
       },
-      "fallbackCta": "Enter the temple for good",
+      "fallbackCta": "Enter the temple",
       "analysisSteps": {
         "0": {
           "label": "Find your sign",
@@ -12412,7 +12451,7 @@
         },
         "1": {
           "label": "Planetary layout",
-          "detail": "The positions of eight planets are calculated with the Swiss Ephemeris."
+          "detail": "Calculates eight placements, including the Sun, Moon, and Ascendant. Direct input uses Seoul and Korean time; simplified calculation is used if it fails."
         },
         "2": {
           "label": "Today's oracle",
@@ -12426,9 +12465,12 @@
         },
         "1": {
           "q": "If I pay once, can I keep viewing it?",
-          "a": "Yes. It is a permanent unlock, so you can re-enter any time, and the oracle opens anew with the date."
+          "a": "Yes. The unlock is permanent, so you can return any time. Oracle messages are selected by date-based rules, and the same text may appear again."
         }
-      }
+      },
+      "fallbackTitle": "⚡ Olympus Oracle",
+      "headline": "A witty, pointed oracle from the guardian of your star sign.",
+      "badge": "Greek oracle"
     },
     "openNevilleMeditationPage": {
       "tagline": "Choose a 30-minute, four-stage course or a 60-minute, five-stage course. Instructions appear in sequence on a second-by-second schedule.",
@@ -12454,7 +12496,7 @@
       "premiumOutcomes": {
         "0": "Meditation experiences can vary from person to person.",
         "1": "This does not replace medical or psychological treatment.",
-        "2": "The 30- and 60-minute courses have different prices."
+        "2": "Check the price of your selected course on the payment screen."
       },
       "answersQuestions": {
         "0": "What is the sequence for SATS?",
@@ -12504,14 +12546,14 @@
           "a": "Instructions appear at the scheduled times, so you can simply follow along."
         },
         "2": {
-          "q": "Do both courses cost the same?",
-          "a": "No. The 60-minute course costs more than the 30-minute course."
+          "q": "Where can I check the course price?",
+          "a": "After choosing a course, you can check its applicable price on the payment screen."
         }
       },
       "receives": {
         "0": {
           "title": "Choose the 30- or 60-minute course",
-          "detail": "Choose between the 30-minute course (4 stages, 3,000 KRW) and the 60-minute course (5 stages, 5,000 KRW)."
+          "detail": "Choose a 30-minute course with four stages or a 60-minute course with five stages. Check the price on the payment screen."
         },
         "1": {
           "title": "Guidance timed to the second",
@@ -12551,7 +12593,8 @@
           "title": "Settling and returning",
           "detail": "Fix the feeling in place and return to the present as the session ends."
         }
-      }
+      },
+      "fallbackTitle": "🧘 Neville Meditation Practice"
     },
     "openYogaGuru": {
       "tagline": "Choose 30 or 60 minutes to receive a complete movement sequence and breathing guide, from warm-up to final relaxation.",
@@ -12580,7 +12623,7 @@
       "premiumOutcomes": {
         "0": "This is not medical advice. Avoid movements that strain your body.",
         "1": "Check that each practice is safe for your current physical condition.",
-        "2": "The 30- and 60-minute sessions have different prices."
+        "2": "Check the price of your selected course on the payment screen."
       },
       "answersQuestions": {
         "0": "What sequence should I follow today?",
@@ -12641,7 +12684,7 @@
         },
         "1": {
           "title": "Choose 30 or 60 minutes",
-          "detail": "Choose between the 30-minute course (3,000 KRW) and the 60-minute course (5,000 KRW)."
+          "detail": "Choose a 30-minute or 60-minute course to suit your schedule. Check the price on the payment screen."
         },
         "2": {
           "title": "Detailed guidance for every pose",
@@ -12677,7 +12720,8 @@
           "title": "Close with the final mantra",
           "detail": "The session ends with a closing mantra."
         }
-      }
+      },
+      "fallbackTitle": "🪷 Divya Yoga"
     },
     "life_book_ai": {
       "fallbackTitle": "Opens the still-unturned pages of your life, engraved in the eight characters of your Saju.",
@@ -14302,30 +14346,33 @@
     },
     "openSibylModal": {
       "fallbackTitle": "Scan your Four Pillars precisely as a single system -- outputs your destiny coefficient as a number.",
-      "tagline": "From a Five-Elements color diagnosis to aptitude-sector assignment and a 10-year risk-coefficient graph -- a Saju system read through data.",
-      "premiumIntro": "The Sibyl System isn't emotional comfort -- it's a precise diagnosis that dissects your Four Pillars into numbers and graphs.",
-      "fallbackCta": "Start Destiny-Coefficient Scan",
+      "tagline": "Read your Saju alongside the selected year to explore strengths, periods that call for care and practical preparation.",
+      "premiumIntro": "Start with a preview of the year, then explore monthly cautions and actions for different areas of life in the in-depth report. Read the reasoning and limitations alongside the guidance.",
+      "fallbackCta": "Explore the year’s themes",
       "feats": {
-        "0": "When you want to confirm your aptitude and strengths with data",
-        "1": "When you want to see upcoming risk periods as a graph",
-        "2": "When you need a structural diagnosis instead of vague fortune-telling"
+        "0": "Review the selected year’s themes and your inherent strengths and cautions",
+        "1": "Explore monthly periods of caution and everyday signs in the in-depth report",
+        "2": "See preparation steps, conditions for revising a decision and the reasoning behind the reading",
+        "3": "Reopen the completed in-depth consultation from your archive"
       },
       "premiumAudience": {
-        "0": "Those more comfortable with numbers and graphs than emotional language",
-        "1": "Those who want to narrow their aptitude and job cluster with data",
-        "2": "Those who want to see upcoming risk periods ahead of time"
+        "0": "Those who want to use yearly themes when planning daily life",
+        "1": "Those who want to consider strengths and cautions together",
+        "2": "Those who want to clarify preparation steps and decision criteria"
       },
       "premiumChapters": {
-        "0": "Destiny Hue -- a Five-Elements distribution color diagnosis",
-        "1": "Aptitude-sector assignment and optimal job clusters",
-        "2": "Dominator -- a 10-year risk-coefficient graph",
-        "3": "A personalized fortune-improvement prescription"
+        "0": "Key themes of the selected year and the strengths and shadows of your temperament",
+        "1": "A monthly timeline of periods that call for care",
+        "2": "Everyday signs, preparation steps and decision criteria by life area",
+        "3": "Reading rationale, in-depth consultation chapters and access to the saved original"
       },
       "premiumOutcomes": {
-        "0": "The basic diagnosis is free.",
-        "1": "The Dominator deep report is ₩10,000.",
-        "2": "The analysis is for reference only."
-      }
+        "0": "The preview shows the basic themes.",
+        "1": "Before opening the in-depth report, check pass, Moonstone and one-time payment options on the existing screen.",
+        "2": "Saju readings are for reference and do not guarantee events or outcomes."
+      },
+      "badge": "Annual report",
+      "headline": "Explore the year ahead and prepare for your choices."
     },
     "openSajuGuardianPage": {
       "tagline": "Your birth-day pillar selects your guardian from the sixty stem-branch combinations. The same chart always summons the same appearance, alongside five reading panels and a talisman pouch.",
@@ -14425,7 +14472,8 @@
           "title": "The talisman pouch and practical guide",
           "detail": "Closes with today's colour, a summoning phrase, a small action, a time key, and a practical guide."
         }
-      }
+      },
+      "fallbackTitle": "🔮 Four Pillars Guardian Summoning Circle"
     },
     "openZiweiModal": {
       "fallbackTitle": "Unfolds the star-map of your destiny drawn by your Life Palace and Body Palace.",
@@ -14433,9 +14481,10 @@
       "premiumIntro": "The Ziwei Doushu chart doesn't threaten you with fortune or misfortune -- it shows, like a map, which palace each of your destiny's stars sits in and how.",
       "fallbackCta": "Unfold My Chart",
       "feats": {
-        "0": "When you're curious about the central axis of your inborn temperament",
-        "1": "When you want to know where your strength lies among work, money, and relationships",
-        "2": "When you want to see yourself from an angle different from Saju"
+        "0": "Use the Life and Body Palaces to explore temperament and how it plays out in daily life",
+        "1": "Read three core sections on the Career, Wealth and Spouse Palaces",
+        "2": "Summarize strengths and cautions through the Four Transformations",
+        "3": "Explore compatibility, all twelve palaces and decade cycles through separate optional sections"
       },
       "premiumAudience": {
         "0": "Those new to Ziwei Doushu who want to see the basics first",
@@ -14460,9 +14509,10 @@
       "premiumIntro": "The deep chart opens with no payment. If you want a longer commentary, you can choose the deep report separately at the bottom of the screen.",
       "fallbackCta": "Open the 12-Palace Strategy",
       "feats": {
-        "0": "When you need a deeper strategy beyond the basic chart",
-        "1": "When you want to know the opportune timing of your Decade and Yearly Fortune",
-        "2": "When you want to see the big picture of your life at a glance"
+        "0": "Read a focused answer and the reasoning for your selected question",
+        "1": "Explore the Life and Body Palaces, all twelve palaces, Four Transformations and decade cycles in fourteen chapters",
+        "2": "View principal and auxiliary stars, Four Transformations and linked palaces in a twelve-palace grid",
+        "3": "Get weekly and monthly action guidance and share a question-and-answer summary"
       },
       "premiumAudience": {
         "0": "Those who've seen the basic chart and want to go deeper",
@@ -14533,9 +14583,10 @@
       "premiumIntro": "The birth chart isn't a daily horoscope -- it shows the original map of you drawn by the sky at the moment you were born.",
       "fallbackCta": "View My Star Map",
       "feats": {
-        "0": "When you want to know a deeper self than a star sign alone",
-        "1": "When you're curious why your outside and inside feel different",
-        "2": "When you want to find your life's big direction in the sky"
+        "0": "See the reliability of your birth information and the calculation basis",
+        "1": "Read your Sun sign, Moon sign and Ascendant together",
+        "2": "Use the Midheaven to reflect on your public role and direction",
+        "3": "Explore two-chart comparisons through synastry compatibility"
       },
       "premiumAudience": {
         "0": "Those who've only known their star sign through the Sun",
@@ -14560,9 +14611,10 @@
       "premiumIntro": "Vedic astrology isn't a vague fortune -- it decodes, through the flow of time, how the karma of a past life is acting right now.",
       "fallbackCta": "Start Karma Decoding",
       "feats": {
-        "0": "When you're curious about the root of why the same thing keeps repeating",
-        "1": "When you want to know the timing of opportunity and crisis ahead of time",
-        "2": "When you want a depth different from Western astrology"
+        "0": "Explore your basic approach and temperament through Lagna and Rashi",
+        "1": "Read emotional and recurring patterns through the Moon’s nakshatra",
+        "2": "Compare the themes of different dasha planetary periods",
+        "3": "Read karma language as a symbol of recurring choices"
       },
       "premiumAudience": {
         "0": "Those who want to see a perspective different from Western astrology",
@@ -14721,10 +14773,10 @@
       "fallbackCta": "View the Compatibility Interpretation",
       "ctaNote": "The 20 chapters, calculated from both your charts, open.",
       "feats": {
-        "0": "Calculates each person's Saju natal chart and Zi Wei Dou Shu chart from both birth dates and times",
-        "1": "Reads each of you separately, then compares the contact points through day-master relations, ten-god interactions, and the combinations and clashes of the earthly branches",
-        "2": "Splits into chapters the mutual placement of the two charts, the cross-comparison of the spouse palaces, and the exchange of the four transformations",
-        "3": "Sets out your relationship DNA indicators and the next three years of relationship flow in their own chapters"
+        "0": "Calculate each person’s natal Four Pillars and Zi Wei Dou Shu charts from both birth dates and times",
+        "1": "Read each person separately, then compare their connections through Day Master relationships, Ten Gods interactions, and the combinations, clashes, punishments, breaks and harms of the earthly branches",
+        "2": "Give separate chapters to the two charts’ mutual placements, cross-comparisons of their Spouse Palaces and exchanges of the Four Transformations",
+        "3": "Present relationship DNA indicators and the next three years of relationship patterns in separate chapters"
       },
       "premiumAudience": {
         "0": "Those facing a big decision like marriage",
@@ -15486,20 +15538,20 @@
       "tagline": "Major cards are laid across eleven planetary seats, Chiron included, so love, work, money and health are read as separate axes in one extended cosmic tarot reading.",
       "feats": {
         "0": "A large spread laying major cards across eleven planetary seats",
-        "1": "Every card read through eight separate perspectives",
-        "2": "Four areas organized: love, work, money and health",
+        "1": "Each card interpreted from eight perspectives",
+        "2": "An overview of love, work, money and health",
         "3": "A tuning practice you can start today"
       },
-      "premiumIntro": "Celestial Harmony does not hand you a single answer. It spreads out where the different axes of your mind are sitting right now, following the planetary seats.",
+      "premiumIntro": "Celestial Harmony follows planetary positions to reveal how different dimensions of your inner life are arranged, rather than reducing them to one card’s answer.",
       "premiumAudience": {
-        "0": "People whose worry is not one thing but several at once",
-        "1": "People who always found short readings unsatisfying",
-        "2": "People who want feelings and practical reality read separately"
+        "0": "For those whose concerns run in several directions",
+        "1": "For those who always want more from a brief reading",
+        "2": "For those wanting to distinguish feelings from practical circumstances"
       },
       "premiumChapters": {
-        "0": "The full card interpretation for every planetary seat",
-        "1": "The axis acting on you most strongly right now",
-        "2": "The points where your feelings collide with each other",
+        "0": "Full card readings for each planetary position",
+        "1": "The dimension with the strongest influence now",
+        "2": "Points of inner tension",
         "3": "The tuning practice to start today"
       },
       "premiumOutcomes": {
@@ -15508,19 +15560,19 @@
         "2": "The existing payment policy applies."
       },
       "answersQuestions": {
-        "0": "Which axis is shaking me the most right now?",
-        "1": "Should I put my energy into love or into work?",
-        "2": "How should I spend the coming week?"
+        "0": "Which dimension is unsettling me most right now?",
+        "1": "Where should I place more energy: love or work?",
+        "2": "How might I approach the coming week?"
       },
       "fallbackCta": "Start Celestial Harmony",
       "analysisSteps": {
         "0": {
-          "label": "Card placement",
+          "label": "Placing the cards",
           "detail": "Major cards are placed on the eleven planetary seats."
         },
         "1": {
           "label": "AI integrated reading",
-          "detail": "AI ties the whole spread together and writes a long-form interpretation."
+          "detail": "AI draws the full layout together into an extended reading."
         },
         "2": {
           "label": "Areas and tuning",
@@ -15529,8 +15581,8 @@
       },
       "faq": {
         "0": {
-          "q": "How is the interpretation produced?",
-          "a": "AI ties the whole card spread together and writes the interpretation; if generation does not go smoothly, a prepared interpretation is used instead."
+          "q": "How is the interpretation created?",
+          "a": "AI interprets the complete card layout. If generation does not run smoothly, a prepared interpretation is used instead."
         },
         "1": {
           "q": "Can I see the result again?",
@@ -15580,7 +15632,8 @@
           "title": "Bring it back",
           "detail": "On the same device the most recent result is restored, and if you are signed in you can bring back a saved result."
         }
-      }
+      },
+      "fallbackTitle": "✨ Celestial Harmony"
     },
     "tarot_prompt_maker": {
       "badge": "Prompt builder",
@@ -15590,21 +15643,21 @@
       "feats": {
         "0": "Choose the structure yourself from 77 spreads",
         "1": "Pick cards yourself from the 78-card deck, and change the orientation drawn at random",
-        "2": "AI writes a real consultation from exactly the layout you chose",
+        "2": "AI writes the consultation from your selected layout",
         "3": "View and copy the original question text used for the consultation",
         "4": "Recast the question text you copy into three different forms"
       },
-      "premiumIntro": "The Tarot Prompt Library starts by sharpening the question, then carries the card layout you chose straight through into an AI consultation.",
+      "premiumIntro": "Tarot Oracle begins by refining your question, then turns the exact card layout you choose into an AI consultation.",
       "premiumAudience": {
-        "0": "People who read tarot often but find the answers shallow",
-        "1": "People who want a spread that fits their exact situation",
-        "2": "People who want to shape the reading lines themselves"
+        "0": "For frequent tarot readers who find the answers too shallow",
+        "1": "For those wanting a spread suited to their situation",
+        "2": "For those wanting to refine and reuse the reading text themselves"
       },
       "premiumChapters": {
-        "0": "An AI tarot consultation matched to your own layout",
-        "1": "Interpretation and practical advice reflecting position and orientation",
+        "0": "An AI tarot consultation tailored to your layout",
+        "1": "Interpretation and action advice reflecting card positions and orientations",
         "2": "The original question text used for the consultation, shown as it is",
-        "3": "Finished lines you can copy to keep your own consultation going"
+        "3": "Copy the completed text to continue your own consultation process"
       },
       "premiumOutcomes": {
         "0": "The consultation is written by AI and does not guarantee outcomes.",
@@ -15612,29 +15665,29 @@
         "2": "The existing payment policy applies."
       },
       "answersQuestions": {
-        "0": "Which spread fits this situation?",
-        "1": "What does the card layout I drew mean?",
-        "2": "How should I put this worry to the cards?"
+        "0": "Which spread suits this situation?",
+        "1": "What does my drawn card layout mean?",
+        "2": "How can I turn this concern into a question for the cards?"
       },
-      "fallbackCta": "Start the AI consultation",
+      "fallbackCta": "Start an AI consultation",
       "analysisSteps": {
         "0": {
-          "label": "Choose a spread",
-          "detail": "Pick the structure that fits your question from 77 options."
+          "label": "Choosing a spread",
+          "detail": "Choose a structure suited to your question from 77 spreads."
         },
         "1": {
-          "label": "Turn the cards yourself",
+          "label": "Revealing the cards yourself",
           "detail": "You choose your cards from the 78-card deck and check the orientation."
         },
         "2": {
-          "label": "AI writes the consultation",
+          "label": "Writing the AI consultation",
           "detail": "You receive a consultation reflecting the layout, plus the original question text."
         }
       },
       "faq": {
         "0": {
-          "q": "How is the price decided?",
-          "a": "The amount is set by the number of cards in the spread you chose, and you can check it first on the payment screen."
+          "q": "How is the price determined?",
+          "a": "The price depends on the number of cards in your chosen spread. You can review it on the payment screen before paying."
         },
         "1": {
           "q": "What happens if generation fails?",
@@ -15684,7 +15737,8 @@
           "title": "Copy the question text",
           "detail": "You can open the original question text used for the consultation and copy it as it is."
         }
-      }
+      },
+      "fallbackTitle": "💘 Tarot Prompt Library"
     },
     "animal_destiny_unlock": {
       "tagline": "Using the Korea Astronomy and Space Science Institute’s calendar system, calculate the twelve growth stages of your day pillar and identify your guardian among twelve animals—from the Sprout Deer to the Wise Owl—to explore personality, love, work and relationships.",
@@ -16137,7 +16191,9 @@
         "Where do we collide?",
         "What should we be careful about in this relationship?"
       ],
-      "fallbackCta": "See free compatibility"
+      "fallbackCta": "See free compatibility",
+      "headline": "Overlay two Four Pillars charts to see the shape of your relationship.",
+      "badge": "Free compatibility reading"
     },
     "saju": {
       "tagline": "A basic reading that calculates the eight characters of your saju and lays out your innate temperament and the large turns of your life. You can start for free.",
@@ -16157,7 +16213,9 @@
         "How does the broad arc of my life run?",
         "What kind of period am I in now?"
       ],
-      "fallbackCta": "See your saju free"
+      "fallbackCta": "See your saju free",
+      "headline": "Explore the broad patterns of your life through your birth date and time.",
+      "badge": "Start for free"
     },
     "tarot": {
       "tagline": "Basic tarot: settle on a question, draw the cards, and see how their symbolism reflects your current feelings and choices.",
@@ -16177,7 +16235,9 @@
         "Where will this choice lead?",
         "What am I missing?"
       ],
-      "fallbackCta": "Draw tarot for free"
+      "fallbackCta": "Draw tarot for free",
+      "headline": "Explore the question on your mind through a single card.",
+      "badge": "Start for free"
     },
     "ziwei": {
       "tagline": "A basic Zi Wei Dou Shu reading that builds your chart from your birth date and time and reads wealth and career flow from how the stars sit in the palaces.",
@@ -16197,7 +16257,9 @@
         "What kind of work suits me?",
         "What phase is my career luck in now?"
       ],
-      "fallbackCta": "See your chart for free"
+      "fallbackCta": "See your chart for free",
+      "headline": "Start with the wealth and career areas among your chart's twelve palaces.",
+      "badge": "Start for free"
     },
     "sukuyo": {
       "tagline": "A basic Sukuyo reading that calculates your birth mansion from your birth date and reads your innate rhythm and the distance you keep in relationships.",
@@ -16217,7 +16279,9 @@
         "What rhythm do I move to?",
         "What distance is comfortable for me in a relationship?"
       ],
-      "fallbackCta": "See your Sukuyo reading for free"
+      "fallbackCta": "See your Sukuyo reading for free",
+      "headline": "Explore your life's rhythm through the Moon's twenty-seven lunar mansions.",
+      "badge": "Start for free"
     },
     "vedic": {
       "tagline": "A basic Vedic astrology reading that calculates your lagna, your moon's placement, and your nakshatra, and shows your innate disposition alongside the period you are passing through.",
@@ -16237,7 +16301,9 @@
         "What period am I passing through now?",
         "What is my innate temperament like?"
       ],
-      "fallbackCta": "Calculate your Vedic chart"
+      "fallbackCta": "Calculate your Vedic chart",
+      "headline": "Locate where you are now on the timeline of Indian astrology.",
+      "badge": "Free chart"
     },
     "astrology": {
       "tagline": "A basic astrology reading that calculates your birth chart and reads your disposition and the flow of your relationships from the placements.",
@@ -16257,7 +16323,9 @@
         "What pattern repeats in my relationships?",
         "What is the current flow like?"
       ],
-      "fallbackCta": "See your birth chart for free"
+      "fallbackCta": "See your birth chart for free",
+      "headline": "Knowing your Sun, Moon, and Ascendant gives you more ways to describe yourself.",
+      "badge": "Start for free"
     },
     "human_design": {
       "tagline": "It calculates your type, strategy, inner authority, and defined centers from your date and time of birth, and shows how your way of deciding and of spending energy is designed.",
@@ -16345,7 +16413,9 @@
         "What are my innate qualities like?",
         "What direction suits me?"
       ],
-      "fallbackCta": "View your nakshatra"
+      "fallbackCta": "View your nakshatra",
+      "headline": "See familiar traits from a new angle through the lunar mansion occupied by the Moon at your birth.",
+      "badge": "Check access terms"
     },
     "maya": {
       "tagline": "Using the Tzolk'in calendar, it calculates the energy of your birth date and of today, and shows your innate seal alongside today's flow.",
@@ -16365,7 +16435,9 @@
         "What is my Mayan seal?",
         "What should I focus on today?"
       ],
-      "fallbackCta": "See your Mayan reading for free"
+      "fallbackCta": "See your Mayan reading for free",
+      "headline": "Each day in the Mayan calendar carries a different energy.",
+      "badge": "Start for free"
     },
     "daily_fortune": {
       "tagline": "It checks today's date against your birth date and gives you a short account of what to push on and what to hold off on for the day.",
@@ -16385,7 +16457,9 @@
         "What should I watch out for today?",
         "What would be good to do today?"
       ],
-      "fallbackCta": "See today's fortune"
+      "fallbackCta": "See today's fortune",
+      "headline": "Start with today's patterns; save the longer reading for later.",
+      "badge": "Free · Daily"
     },
     "today": {
       "tagline": "A hub that puts today's reading from three systems on one screen, so you can compare where the signals overlap and where they diverge.",
@@ -16405,7 +16479,9 @@
         "What signal do they all point at?",
         "What is today's priority?"
       ],
-      "fallbackCta": "See today's fortune"
+      "fallbackCta": "See today's fortune",
+      "headline": "Read today's Four Pillars, Sukuyo, and Vedic interpretations side by side for clues to reflect on your day.",
+      "badge": "Check access terms"
     },
     "physiognomy": {
       "tagline": "A face-reading interpretation that analyses the shape and balance of the features in your photo and lays out the temperament your impression conveys and the paths that suit it.",
@@ -16425,7 +16501,9 @@
         "What strengths show through?",
         "What kind of work suits me?"
       ],
-      "fallbackCta": "Read your face for free"
+      "fallbackCta": "Read your face for free",
+      "headline": "Explore your present self through the impression your face conveys.",
+      "badge": "Start for free"
     },
     "dream": {
       "tagline": "Dream interpretation: it unpacks the material and situations in your dream and explains how that symbolism touches your current state of mind and circumstances.",
@@ -16445,7 +16523,9 @@
         "Why do I keep having this dream?",
         "What state is my mind in right now?"
       ],
-      "fallbackCta": "Interpret your dream"
+      "fallbackCta": "Interpret your dream",
+      "headline": "Write down the scene that stayed with you from last night's dream, then explore its symbols and feelings.",
+      "badge": "Check access terms"
     },
     "psychotest": {
       "tagline": "A collection of psychological tests: answer a few short questions and it lays out your disposition and current state. No birth date needed.",
@@ -16465,7 +16545,9 @@
         "What state am I in right now?",
         "What kind of relationship suits me?"
       ],
-      "fallbackCta": "Take a free psychological test"
+      "fallbackCta": "Take a free psychological test",
+      "headline": "Answer a few light questions and discover new words for describing yourself.",
+      "badge": "Free"
     },
     "manse": {
       "tagline": "A Manseryeok tool: enter your birth date and time and it calculates your saju natal chart and luck cycles on solar-term boundaries, laid out as a table.",
@@ -16485,7 +16567,9 @@
         "When do my luck cycles change?",
         "Does my birth fall on a solar-term boundary?"
       ],
-      "fallbackCta": "Open the Manseryeok"
+      "fallbackCta": "Open the Manseryeok",
+      "headline": "Calculate your natal chart before reading an interpretation.",
+      "badge": "Free tool"
     },
     "insights_famous_saju": {
       "tagline": "Reading material that takes real people's charts as examples and works through which arrangements showed up as which shape of life.",
@@ -16505,14 +16589,17 @@
         "Why do the same characters produce different outcomes?",
         "What similarities are there with my own chart?"
       ],
-      "fallbackCta": "Read famous people's saju"
+      "fallbackCta": "Read famous people's saju",
+      "headline": "Explore Four Pillars principles through the charts of well-known people.",
+      "badge": "Free reading material"
     },
     "openMbtiModal": {
       "tagline": "It maps each person's type onto an animal totem and works through how that combination meshes as a relationship reading.",
       "feats": [
-        "When every MBTI compatibility table looks the same",
-        "When you want to understand the difference between you and someone else",
-        "When you want a compatibility reading without birth dates"
+        "See both MBTI types as animal totems",
+        "Compare where the two types connect and how their reactions differ",
+        "Explore likely points of friction and attitudes that can help",
+        "Use both MBTI types without entering birth dates"
       ],
       "premiumIntro": "It doesn't just hand you a compatibility score -- it separates out where the two types mesh and where they slip.",
       "premiumAudience": [
@@ -16525,7 +16612,10 @@
         "Where are we likely to collide?",
         "What does each of us need from the other?"
       ],
-      "fallbackCta": "See the MBTI animal compatibility"
+      "fallbackCta": "See the MBTI animal compatibility",
+      "headline": "Turn both MBTI types into animal totems and compare your similarities and different reactions.",
+      "badge": "Check access terms",
+      "fallbackTitle": "🦁 MBTI Animal Compatibility"
     },
     "openLuckSyncDiary": {
       "tagline": "A diary for recording today's flow and seeing it next to your past entries in a monthly planner.",
@@ -16545,7 +16635,9 @@
         "How closely did my records match the readings?",
         "What should I prepare for next month?"
       ],
-      "fallbackCta": "Open the luck-sync diary"
+      "fallbackCta": "Open the luck-sync diary",
+      "headline": "After reading your fortune, record how the day actually went.",
+      "badge": "Free diary"
     },
     "music": {
       "tagline": "A player with tracks created for Yeoni and Neo's world. You can play them in the background while reading your fortune.",
@@ -16565,7 +16657,9 @@
         "Can I play it while reading my fortune?",
         "How does it connect to the world of the service?"
       ],
-      "fallbackCta": "Open the moonlight player"
+      "fallbackCta": "Open the moonlight player",
+      "headline": "Let music help settle the feelings left after your reading.",
+      "badge": "Free listening"
     },
     "codedestiny_novel_html": {
       "tagline": "A light novel serialised in the world of the service. You can enjoy it as reading material quite apart from the fortune readings.",
@@ -16585,7 +16679,9 @@
         "Is it connected to the fortune readings?",
         "Where should I start reading?"
       ],
-      "fallbackCta": "Open the library of destiny"
+      "fallbackCta": "Open the library of destiny",
+      "headline": "Continue Yeoni and Neo's story in the Library of Destiny.",
+      "badge": "Free serial"
     },
     "points": {
       "tagline": "A moonlight pass lets you use paid features for a set period. You can check what you hold and how you've used it here.",
@@ -16605,7 +16701,9 @@
         "How much do I have left right now?",
         "How does it differ from a single payment?"
       ],
-      "fallbackCta": "Check your passes"
+      "fallbackCta": "Check your passes",
+      "headline": "If you use paid features often, you do not need to pay separately each time.",
+      "badge": "Pass information"
     },
     "openSukuyoModal": {
       "tagline": "We calculate each person's natal mansion among the 27 lunar mansions, identify the relationship type and distance, and organize practical relationship guidance and warning signs in one connection report.",
@@ -16820,49 +16918,49 @@
       }
     },
     "tarot_crystal_soul_reading": {
-      "tagline": "You wake one of twelve raw stones — the one your mind settles on — by rubbing it, then a five-position spread reads today's light apart from what it hides.",
-      "premiumIntro": "Change the stone and the grain of the reading changes with it. It begins wherever your hand stops today.",
-      "fallbackCta": "Choose a stone and begin",
+      "tagline": "Choose the crystal that holds your attention from twelve options and rub it to awaken it. A five-position spread then explores your present light and what may be hidden.",
+      "premiumIntro": "A different crystal brings a different texture to the reading. Begin where your hand comes to rest today.",
+      "fallbackCta": "Choose a crystal and begin",
       "premiumChapters": {
-        "0": "The full reading of all five positions",
-        "1": "The side that is hidden from you right now",
-        "2": "The warning the stone sends",
-        "3": "The crystal's remedy and the door its light opens"
+        "0": "The full five-position card reading",
+        "1": "What may be hidden right now",
+        "2": "The crystal’s cautionary message",
+        "3": "The crystal’s guidance and the door the light may open"
       },
       "premiumAudience": {
-        "0": "People who cannot pin their question down yet",
-        "1": "People who want today's energy read first",
-        "2": "People who want to know what to watch for in advance"
+        "0": "For those who have not yet found a clear question",
+        "1": "For those wanting to start with today’s energy",
+        "2": "For those wanting to notice potential cautions early"
       },
       "answersQuestions": {
-        "0": "What grain does the energy running through me have?",
-        "1": "What side of this am I not seeing?",
-        "2": "What should I watch for so the way opens?"
+        "0": "What character does my current energy have?",
+        "1": "What am I not seeing?",
+        "2": "What should I watch for to make room for a way forward?"
       },
       "feats": {
-        "0": "Pick the one stone of twelve where your hand stops",
-        "1": "An opening sequence that wakes the stone by rubbing it",
-        "2": "Five positions: first light · hidden side · warning · remedy · the door ahead",
-        "3": "The grain of the chosen stone is carried into the reading"
+        "0": "Choose the crystal that draws your hand from twelve options",
+        "1": "An opening interaction that awakens the crystal by rubbing it",
+        "2": "Five positions: first light, hidden side, warning, guidance and the door ahead",
+        "3": "Let the selected crystal’s character inform the interpretation"
       },
       "analysisSteps": {
         "0": {
-          "label": "Choose a stone",
-          "detail": "You pick the one of twelve where your hand stops and rub it awake."
+          "label": "Choosing a crystal",
+          "detail": "Choose one of twelve crystals and rub it to awaken it."
         },
         "1": {
-          "label": "Lay five cards",
-          "detail": "Cards go into five positions, from the first light to the door the light opens."
+          "label": "Placing five cards",
+          "detail": "Place cards in five positions, from the first light to the door that light may open."
         },
         "2": {
-          "label": "Draw it together",
-          "detail": "The stone's grain and the card positions are tied into a warning and a remedy."
+          "label": "Bringing the reading together",
+          "detail": "Combine the crystal’s character with the card layout to organize cautions and practical guidance."
         }
       },
       "faq": {
         "0": {
-          "q": "Can I choose a different stone?",
-          "a": "Start a new reading and you choose the stone again from the beginning."
+          "q": "Can I choose a different crystal?",
+          "a": "When you start a new reading, you can choose the crystal again."
         },
         "1": {
           "q": "Do I have to write a question?",
@@ -16920,30 +17018,30 @@
       }
     },
     "tarot_ijik": {
-      "tagline": "A fixed seven-position spread reads the flow if you stay apart from the conditions that open the door out, then sets out when to move and what to check before deciding.",
-      "premiumIntro": "Changing jobs is hard to settle on feeling alone. Staying and leaving are laid out side by side at equal weight.",
-      "fallbackCta": "Open the career cards",
+      "tagline": "A fixed seven-position spread compares staying with the conditions that could open a new job opportunity, then considers timing and what to check before deciding.",
+      "premiumIntro": "Changing jobs takes more than a feeling. Consider staying and moving with equal care before comparing them.",
+      "fallbackCta": "Open the career-change cards",
       "premiumChapters": {
-        "0": "A reading of the move itself",
-        "1": "When to make the move",
-        "2": "A reading of staying where you are",
-        "3": "What to confirm before you decide"
+        "0": "Career-change outlook",
+        "1": "Timing for action",
+        "2": "The outlook of staying in your current role",
+        "3": "Conditions to check before deciding"
       },
       "premiumAudience": {
-        "0": "People who have weighed a move for a long time",
-        "1": "People who want to know whether the timing is right",
-        "2": "People who want staying weighed too"
+        "0": "For those who have been considering a job change for some time",
+        "1": "For those wondering whether now is the right time",
+        "2": "For those who also want to weigh staying"
       },
       "answersQuestions": {
-        "0": "Is moving now the right call?",
-        "1": "When is the good window to move?",
+        "0": "Would changing jobs now make sense?",
+        "1": "When might be a good time to act?",
         "2": "What should I check before deciding?"
       },
       "feats": {
-        "0": "Positions that separate the flow of staying from the conditions that open the door out",
-        "1": "A position that names what you actually want to change",
-        "2": "The near flow after a move and the window that opens if you prepare",
-        "3": "A fixed seven-position spread ending in direction and timing"
+        "0": "Separate positions for the outlook of staying and conditions for a job change",
+        "1": "A position for what you truly want to change",
+        "2": "The near-term outlook after moving, and timing that preparation may open up",
+        "3": "A fixed seven-position spread including final direction and timing"
       },
       "analysisSteps": {
         "0": {
@@ -16951,12 +17049,12 @@
           "detail": "The seven-seat reading starts straight away, with nothing to fill in."
         },
         "1": {
-          "label": "Lay seven cards",
-          "detail": "Cards go into seven positions, from the flow of staying to the final direction."
+          "label": "Placing seven cards",
+          "detail": "Place cards in seven positions, from the outlook of staying to your final direction."
         },
         "2": {
-          "label": "Set out the result",
-          "detail": "It is split into the move, the timing, staying put, and what to confirm."
+          "label": "Organizing the results",
+          "detail": "Organize the reading into job-change outlook, timing, staying in your current role and conditions to verify."
         }
       },
       "faq": {
@@ -16965,7 +17063,7 @@
           "a": "Yes. You draw all seven yourself on one screen, in the order of STAGE 1, 2 and 3."
         },
         "1": {
-          "q": "What if the reading fails to open?",
+          "q": "What if the reading does not open?",
           "a": "You can open the same request again without paying again."
         }
       },
@@ -18332,7 +18430,7 @@
         "resultPrelude": "Moonlit Lotus Tea shows the next step that hurts least, there between longing and possibility.",
         "tarotRevealTitle": "A card has risen over the heart that hopes for reunion",
         "tarotBeforeLine": "The card does not hand down an answer yet. First let us hold it to the moonlight and see whether this heart is a place to bloom again, or one to fold away quietly.",
-        "visualMotif": "lotus, moon, pink mist"
+        "visualMotif": "lotus, maan, roze nevel"
       },
       "1": {
         "name": "Honey Peach Tea",
@@ -18366,7 +18464,7 @@
         "resultPrelude": "Honey Peach Tea shows the distance and the pace at which possibility can grow.",
         "tarotRevealTitle": "A card has risen over the scent of the flutter",
         "tarotBeforeLine": "This card reflects the temperature of a heart before anything begins. Let us see together whether it is a sign of fondness, or a moment that needs to ripen a little longer.",
-        "visualMotif": "peach, honey, soft heart"
+        "visualMotif": "perzik, honing, zacht hart"
       },
       "2": {
         "name": "Stardust Black Tea",
@@ -18400,7 +18498,7 @@
         "resultPrelude": "Stardust Black Tea shows calmly where the choice you make now will lead.",
         "tarotRevealTitle": "A card has risen over the road of the choice",
         "tarotBeforeLine": "The card first shows which road matches your own pace. Let us look at direction together, not at haste.",
-        "visualMotif": "stars, black tea, compass"
+        "visualMotif": "sterren, zwarte thee, kompas"
       },
       "3": {
         "name": "Golden Cinnamon Tea",
@@ -18434,7 +18532,7 @@
         "resultPrelude": "Golden Cinnamon Tea shows the practical opportunity you can take hold of now.",
         "tarotRevealTitle": "A card has risen over the flow of money",
         "tarotBeforeLine": "This card lights the actual flow before any vague luck. Let us look together at what is coming in and what is leaking away.",
-        "visualMotif": "gold, cinnamon, coin light"
+        "visualMotif": "goud, kaneel, muntglans"
       },
       "4": {
         "name": "White Lotus Healing Tea",
@@ -18468,7 +18566,7 @@
         "resultPrelude": "White Lotus Healing Tea lights the next step in the direction of hating yourself a little less.",
         "tarotRevealTitle": "A card has risen over the breath of recovery",
         "tarotBeforeLine": "The card shows the heart that needs tending before any answer you must overcome today. Let us open it slowly.",
-        "visualMotif": "white lotus, warm mist, healing"
+        "visualMotif": "witte lotus, warme nevel, herstel"
       },
       "5": {
         "name": "Black Moon Brown Rice Tea",
@@ -18502,7 +18600,7 @@
         "resultPrelude": "Black Moon Brown Rice Tea shows the measure of a decision that will not deepen the wound.",
         "tarotRevealTitle": "A card has risen over the night of the decision",
         "tarotBeforeLine": "The card will not tell you to cut it off coldly. It will only reveal, quietly, which measure is the one that keeps you safe.",
-        "visualMotif": "black moon, brown rice tea, quiet shadow"
+        "visualMotif": "zwarte maan, zilvervliesrijstthee, stille schaduw"
       }
     },
     "tenGods": {
@@ -20692,11 +20790,11 @@
       "ready": "Your selection is saved and will remain after payment.",
       "selectCount": "Selected",
       "terms": "Upright and reversed orientations are equally likely. Reversed does not always mean negative.",
-      "information": "Information for this reading",
-      "unknown": "Birth time unknown",
-      "solar": "Solar calendar",
-      "lunar": "Lunar calendar",
-      "leap": "Leap month"
+      "information": "Gegevens voor deze duiding",
+      "unknown": "Geboortetijd onbekend",
+      "solar": "Zonnekalender",
+      "lunar": "Maankalender",
+      "leap": "Schrikkelmaand"
     },
     "resultCompanion": {
       "title": "Conversations with Yeoni",
@@ -20724,54 +20822,54 @@
     },
     "spreadV2": {
       "yn_knot_three": {
-        "title": "Untangling the situation",
+        "title": "Een uitweg vinden",
         "reason": "Connect the main obstacle, available resources and your next action.",
         "positions": {
-          "knot": "The knot",
-          "resource": "Available resources",
-          "next_action": "Next action"
+          "knot": "De huidige knoop",
+          "resource": "Beschikbare middelen",
+          "next_action": "De volgende actie"
         }
       },
       "yn_contact_first": {
-        "title": "Should I reach out first?",
-        "reason": "Explore your intention, communication, obstacles and boundaries before choosing whether to reach out.",
+        "title": "Zal ik eerst contact zoeken?",
+        "reason": "Explore the wish to make contact separately from what may follow, then consider the action you can choose.",
         "positions": {
-          "my_wish": "What I hope for",
-          "current_communication": "Current communication",
-          "approach_barrier": "Barriers to contact",
-          "boundary": "Boundaries to respect",
-          "if_contact": "If I reach out"
+          "my_wish": "Waar ik op hoop",
+          "current_communication": "Huidige communicatie",
+          "approach_barrier": "Drempels voor toenadering",
+          "boundary": "Grenzen om te respecteren",
+          "if_contact": "Als ik contact zoek"
         }
       },
       "yn_new_bond_five": {
-        "title": "Making room for a new connection",
-        "reason": "Explore readiness, strengths, familiar patterns and practical ways to meet people.",
+        "title": "Openstaan voor een nieuwe relatie",
+        "reason": "Explore your readiness for a new connection, patterns to let go of and actions that could broaden your opportunities to meet people.",
         "positions": {
-          "readiness": "Readiness",
-          "charm": "Strengths to show",
-          "let_go": "Patterns to release",
-          "widen": "Broaden connections",
-          "begin_advice": "Advice for beginning"
+          "readiness": "Klaar voor een relatie",
+          "charm": "Kwaliteiten om te tonen",
+          "let_go": "Patronen om los te laten",
+          "widen": "Meer mensen ontmoeten",
+          "begin_advice": "Advies voor een nieuw begin"
         }
       },
       "yn_money_pattern_five": {
-        "title": "My patterns with money",
-        "reason": "Explore attitudes, resources, recurring spending and a manageable habit.",
+        "title": "Mijn patronen met geld",
+        "reason": "Explore your attitude toward money, recurring drains and habits you can put into practice.",
         "positions": {
-          "attitude": "Current attitude",
-          "resource_use": "Using resources",
-          "drain_pattern": "Recurring drains",
-          "missed_task": "Overlooked tasks",
-          "habit": "A practical habit"
+          "attitude": "Mijn houding",
+          "resource_use": "Middelen gebruiken",
+          "drain_pattern": "Patronen van uitputting",
+          "missed_task": "Vergeten beheertaken",
+          "habit": "Een gewoonte oefenen"
         }
       },
       "trad_past_present_future": {
-        "title": "Past, present and possible direction",
-        "reason": "Connect the background, present conditions and a possible direction.",
+        "title": "Verleden, heden en toekomst",
+        "reason": "A traditional spread that reads past patterns, the present and the near-term outlook in chronological order.",
         "positions": {
-          "past": "Past",
-          "present": "Present",
-          "future": "Possible direction"
+          "past": "Invloeden uit het verleden",
+          "present": "Het heden",
+          "future": "Mogelijke toekomstige richting"
         }
       }
     },
