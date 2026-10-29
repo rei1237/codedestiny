@@ -30,3 +30,12 @@ test('Fusion paid-access alias carries original body and request ID, and returns
  state.unavailable=true;const failed=await loaded.exports.runPaidAccessGate(options);assert.equal(failed.status,503);assert.deepEqual(failed.raw,{});assert.equal(failed.error.code,'TOSS_RELEASE_PENDING');
  delete globalThis.location;
 });
+
+for(const featureKey of ['life-book-ai-consultation','life-fortune-ai-consultation'])test(featureKey+' retains payload and request ID',async()=>{
+ globalThis.location={search:''};state.unavailable=false;state.calls=[];
+ const input={birthDate:'1990-01-01',focusArea:'overall'};
+ const result=await loaded.exports.runBillingCoinGate({featureKey,requestId:'original-life-request',resume:{args:{payload:JSON.stringify(input)}}});
+ assert.equal(result.ok,true);
+ assert.deepEqual(state.calls[0],{path:'/native/life-book/prepare',body:{input:{...input,requestId:'original-life-request'}}});
+ delete globalThis.location;
+});

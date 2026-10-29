@@ -85,6 +85,8 @@ function fixture(accessType = 'pass') {
       if (!doc.usageAppliedAt) { charges++; doc.usageAppliedAt = 'applied'; }
       if (applyLost) { applyLost = false; throw new Error('lost apply reply'); }
     },
+    nativeTossContext: () => null, bindNativeTossRequest: () => {},
+    nativeLifeBookStoredState: async () => clone(doc),
     LifeBookAiConsultation: model,
     buildSectionPlan: () => plan, buildSectionDigest: () => '', buildSectionPrompt: () => 'mock', pickSajuSlice: v => v,
     createLlmCacheStore: () => null,
@@ -399,4 +401,90 @@ for (const locale of AI_OUTPUT_LOCALES) test(`${locale}: resumes in the purchase
   const count = languages.length;
   await runWithAiLocale('ko', () => f.post());
   assert.equal(languages.length, count);
+});
+
+test('Toss original life-book waves use one bound order, saved chapters, recovery and revocation checks', async () => {
+  const { build } = require('esbuild');
+  const path = require('node:path'), Module = require('node:module');
+  const f = fixture('paid');
+  const auth = {_id:'identity',ownerId:'owner',userId:'owner',revision:1,userKey:'123',environment:'SANDBOX'};
+  const product = {approved:true,nativeService:'life-book',sku:'offline-life',featureKey:'life-book-ai-consultation',productId:'native:life-book:life-book-ai-consultation',approvedPriceKRW:6000,priceEvidence:'offline fixture'};
+  const input = {idempotencyKey:'original-paid-request',inputHash:'same-input',topic:'일생'};
+  const order = {orderId:'01900000-1111-7111-8111-000000000042',sku:product.sku,status:'PURCHASED'};
+  const state = {rows:[],purchases:[],catalog:[product],order,identity:true};
+  const chain = value => ({lean:async()=>value,sort(){return this;},limit(){return this;}});
+  state.models = {
+    TossNativeConsultation:{findOne:q=>chain(state.rows.find(r=>matches(r,q))||null),find:q=>chain(state.rows.filter(r=>matches(r,q))),
+      findOneAndUpdate:(q,u)=>{let row=state.rows.find(r=>matches(r,q));if(!row){row={...q,...u.$setOnInsert,createdAt:new Date(Date.now()-600000)};state.rows.push(row);}return chain(row);},
+      updateOne:async(q,u)=>{const row=state.rows.find(r=>matches(r,q));if(row)Object.assign(row,u.$set);}},
+    TossPurchase:{findOne:q=>chain(state.purchases.find(r=>matches(r,q))||null)},
+    TossIdentity:{findOne:()=>chain(state.identity?auth:null)},
+  };
+  state.transaction=async fn=>fn({assertIdentity:async()=>assert.ok(state.identity),purchase:async id=>state.purchases.find(r=>r._id===id),insertPurchase:async r=>state.purchases.push(r),nativeIntent:async id=>state.rows.find(r=>r._id===id),fundNativeIntent:async(id,owner,orderId)=>Object.assign(state.rows.find(r=>r._id===id),{orderId,status:'paid'}),assignPurchase:async(id,requestId)=>Object.assign(state.purchases.find(r=>r._id===id),{requestId})});
+  state.stored=async(_env,userId,id)=>f.doc&&f.doc.userId===userId&&[f.doc.id,f.doc.idempotencyKey].includes(id)?clone(f.doc):null;
+  state.handle=async(request,env)=>{
+    assert.equal(request.headers.get('Authorization'),null);assert.equal(request.headers.get('Cookie'),null);
+    if(state.stopBeforeCheckpoint){state.bootstrapInput=await request.json();return Response.json({ok:false},{status:503});}
+    try{return new URL(request.url).pathname.endsWith('/result')?await f.ctx.handleResult(request,env):await f.ctx.handleStart(request,env);}
+    catch(error){return Response.json({reason:error.code},{status:error.status||500});}
+  };
+  globalThis.__lifeNative = state;
+  const root = process.cwd();
+  const stubs={
+    'worker/lib/db.js':'export const withMongoRetry=async(e,f)=>f();',
+    'worker/toss/models.js':'export const {TossNativeConsultation,TossPurchase,TossIdentity}=globalThis.__lifeNative.models;',
+    'worker/toss/catalog.js':'export const APPROVED_TOSS_NATIVE_PRODUCTS=globalThis.__lifeNative.catalog;',
+    'worker/toss/partner.js':'export const lookupOrder=async()=>globalThis.__lifeNative.order;',
+    'worker/toss/purchases.js':'export const purchaseStore={transaction:globalThis.__lifeNative.transaction};export const recordTossRefund=async()=>{};',
+    'worker/toss/crypto.js':`import {createHash} from 'node:crypto';export const hash=async x=>createHash('sha256').update(x).digest('hex');export const unseal=async()=> '123';`,
+    'worker/lib/billing-feature-registry.js':'export const getBillingFeaturePricing=()=>({pricing:{amountKRW:6000}});',
+    'worker/routes/fortune-tea-house.js':'export const nativeTeaContract=()=>{};export const nativeTeaStoredState=()=>{};export const handleFortuneTeaHouseRoutes=()=>{};',
+    'worker/toss/native-fusion.js':'export const nativeFusionLibraryItem=()=>{};',
+    'worker/toss/native-neo.js':'export const nativeNeoLibraryItem=()=>{};',
+    'worker/routes/life-book-ai.js':`const s=globalThis.__lifeNative;
+      export const nativeLifeBookContract=input=>({requestId:input.idempotencyKey,resultId:input.idempotencyKey,featureKey:'life-book-ai-consultation',inputHash:input.inputHash,pricing:{amountKRW:6000}});
+      export const nativeLifeBookStoredState=s.stored,handleLifeBookAiRoutes=s.handle;`,
+  };
+  const bundle=await build({stdin:{contents:"export * from './worker/toss/native-life-book.js';export * from './worker/toss/native-context.js';export * from './worker/toss/native-consultation.js';",resolveDir:root},bundle:true,platform:'node',format:'cjs',write:false,plugins:[{name:'offline',setup(b){b.onLoad({filter:/\.js$/},args=>{const contents=stubs[path.relative(root,args.path).replaceAll('\\','/')];if(contents)return {contents,loader:'js'};});}}]});
+  const loaded=new Module(path.join(root,'native-life-book-test.cjs'));loaded.paths=Module._nodeModulePaths(root);loaded._compile(bundle.outputFiles[0].text,loaded.id);const api=loaded.exports;
+  f.ctx.nativeTossContext=api.nativeTossContext;f.ctx.bindNativeTossRequest=api.bindNativeTossRequest;
+  f.ctx.getOptionalUserFromRequest=async request=>{const native=api.nativeTossContext(request);assert.ok(native,'no web auth fallback');return native.auth;};
+  f.ctx.getConsultationFeatureKey=()=>product.featureKey;
+  f.ctx.readIdempotencyKey=(_r,body)=>body.idempotencyKey||body.requestId;
+  f.ctx.withMongoRetry=async(_e,fn)=>fn();
+  f.ctx.Payment={updateOne:()=>{throw Error('WEB_PAYMENT_FORBIDDEN');}};
+  f.ctx.normalizeConsultAccessType=x=>x;
+  f.ctx.claimRequestBillingEvidence=()=>{throw Error('WEB_CLAIM_FORBIDDEN');};
+  f.ctx.releaseRequestBillingEvidence=()=>{throw Error('WEB_RELEASE_FORBIDDEN');};
+  f.ctx.isStoredPaidResultRevoked=()=>{throw Error('WEB_REVOCATION_FORBIDDEN');};
+  load(f.ctx,'worker/routes/life-book-ai.js',['resolveStartAccess','applyUsageOnce','handleResult']);
+  const call=(suffix,body,who=auth)=>api.handleNativeLifeBook(new Request('https://example.invalid'+suffix,{method:body?'POST':'GET',headers:{Authorization:'forbidden',Cookie:'forbidden'},...(body?{body:JSON.stringify(body)}:{})}),{},who,suffix.split('?')[0]);
+  const prepared=await api.prepareNativeLifeBook({},auth,input);
+  assert.equal((await call('/generate',input)).status,402);
+  await assert.rejects(api.prepareNativeLifeBook({},auth,{...input,inputHash:'changed'}),/REQUEST_INPUT_MISMATCH/);
+  const args={store:{transaction:state.transaction},auth,order,product,requestId:prepared.id};
+  await api.grantNativeOrder(args);await api.grantNativeOrder(args);assert.equal(state.purchases.length,1);
+  state.catalog.length=0;
+  state.stopBeforeCheckpoint=true;
+  const boot=await api.bootstrapNativeLifeBookOrders({TOSS_RELEASE_READY:'true'},{now:Date.now(),deadline:Date.now()+240000});
+  assert.equal(boot[0].status,503);assert.deepEqual(state.bootstrapInput,input);assert.equal(f.doc,null);
+  assert.ok(state.rows[0].recoveryNextAt);state.stopBeforeCheckpoint=false;
+  const first=await call('/result');assert.equal(first.status,202);const virtual=(await first.json()).sessionId;
+  assert.equal((await call('/generate',{resumeSessionId:virtual,inputHash:'ignored'})).status,202);
+  assert.equal(f.doc.accessSource,'toss');assert.equal(f.doc.paymentId,order.orderId);
+  for(let i=0;i<10&&f.doc.status!=='completed';i++)assert.ok([200,202].includes((await call('/generate',{resumeSessionId:f.doc.id})).status));
+  assert.equal(f.doc.status,'completed');assert.equal(f.calls.length,15);assert.equal(f.charges,0);assert.equal(f.refunds,0);
+  assert.ok(f.doc.usageAppliedAt);const saved=clone(f.doc.messages);
+  assert.equal((await call('/generate',input)).status,200);
+  assert.deepEqual((await (await call('/result?attemptId='+virtual)).json()).messages,saved);assert.equal(f.calls.length,15);
+  assert.equal((await call('/generate',{...input,inputHash:'tampered'})).status,409);
+  for(const who of [{...auth,ownerId:'other',userId:'other'},{...auth,environment:'DEFAULT'}])assert.notEqual((await call('/result?attemptId='+f.doc.id,null,who)).status,200);
+  const recovery=new Request('https://internal.invalid');
+  assert.equal(await api.bindNativeLifeBookRecovery(recovery,{TOSS_RELEASE_READY:'true'},f.doc),true);
+  state.order={...order,status:'REFUNDED'};
+  assert.equal((await call('/result?attemptId='+f.doc.id)).status,409);
+  assert.equal((await call('/generate',{resumeSessionId:f.doc.id})).status,409);
+  state.order=order;state.identity=false;assert.equal((await call('/result?attemptId='+f.doc.id)).status,401);
+  assert.equal(f.calls.length,15);
+  delete globalThis.__lifeNative;
 });

@@ -76,3 +76,7 @@ implementation: in-progress
 현재 `apps/toss/src/release.ts`의 SERVICE_AVAILABLE=false, `worker/toss/catalog.js`의 APPROVED_TOSS_NATIVE_PRODUCTS=[]를 직접 확인했다. 승인 SKU·가격 근거·콘솔 검수·실기기 로그인/구매/복구 증거 없이 판매를 열지 않는다. 사용자가 다른 경로로 콘솔 로그인했다고 했지만 이 세션에서 승인 상태를 확인한 증거는 없다. 비밀값을 출력하지 않는다.
 
 단위마다 check:fast 계획/해당 검사→작은 커밋→check:pre-push→main push. CI는 다음 push 또는 최종 보고 직전 한 번 확인하고 폴링하지 않는다. 실패는 로그의 실제 원인만 수정한다. 생성 미러와 사이트맵은 생성기로 갱신한다. main push를 운영 배포/앱인토스 출시로 표현하지 않는다.
+
+## 최신 후속 인수인계
+
+2026-10-29 초융합 main 전달·CI 통과와 인생의 책 로컬 구현/검증을 진행했다. 최신 main의 별도 모바일 여정 CI 실패로 후속 전달이 차단되어 `docs/handoff/2026-10-29-toss-fusion-life-book-ci-blocked.md`를 최신 재개 기준으로 사용한다. 이 문서 위의 초융합 미구현 표는 이전 시점 기록이다.

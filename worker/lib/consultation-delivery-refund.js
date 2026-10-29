@@ -174,6 +174,8 @@ export async function settleFailedConsultationRefund(env, { service, id, userId 
   let doc;
   try {
     doc = await run(db => db.findOne(spec.model, { id: clean(id), userId: clean(userId) }));
+    // Native purchases must never enter web payment or monthly-credit refunds.
+    if (doc?.accessSource === 'toss') return { ok: false, refundStatus: 'manual_review', reason: 'TOSS_ORDER_REVIEW_REQUIRED', retryable: false };
     if (doc?.llmMeta?.supportRecovery && doc.llmMeta.supportRecovery.refundApproved !== true) {
       return { ok: false, refundStatus: consultationRefundState(doc), reason: 'REFUND_NOT_AUTHORIZED', retryable: false };
     }
@@ -264,7 +266,7 @@ export async function runPendingConsultationRefunds(env, options = {}) {
   const outcomes = [];
   for (const [service, base] of Object.entries(SERVICES)) {
     const model = options.models?.[service] || base.model;
-    const docs = await withDb(env, ctx, db => db.find(model, { status: 'generation_failed',
+    const docs = await withDb(env, ctx, db => db.find(model, { status: 'generation_failed', accessSource: { $ne: 'toss' },
       'llmMeta.supportRecovery.active': { $ne: true }, $and: [
         { $or: [{ 'llmMeta.deliveryRefund.status': 'pending' },
           { 'llmMeta.refundEligibleAt': { $exists: true }, 'llmMeta.deliveryRefund.status': { $exists: false } }] },
