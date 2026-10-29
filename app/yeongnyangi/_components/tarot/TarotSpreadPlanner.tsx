@@ -85,9 +85,9 @@ export default function TarotSpreadPlanner({locale='ko',question,onQuestion,plan
   <details className={styles.direct}>
    <summary>{copy.chooseDirect}</summary>
    <h4>{copy.groupOriginal}</h4>
-   <div className={styles.choices}>{yeongnyangiSpreads.filter(item=>item.source.kind!=='traditional').map(item=>spreadButton(item))}</div>
+   <div className={styles.choices}>{yeongnyangiSpreads.filter((item:{source:{kind:string}})=>item.source.kind!=='traditional').map((item:Parameters<typeof spreadButton>[0])=>spreadButton(item))}</div>
    <h4>{copy.groupTraditional}</h4>
-   <div className={styles.choices}>{yeongnyangiSpreads.filter(item=>item.source.kind==='traditional').map(item=>spreadButton(item))}</div>
+   <div className={styles.choices}>{yeongnyangiSpreads.filter((item:{source:{kind:string}})=>item.source.kind==='traditional').map((item:Parameters<typeof spreadButton>[0])=>spreadButton(item))}</div>
   </details>
   {notice&&<p className={styles.notice} role="status">{notice}</p>}</> }
 

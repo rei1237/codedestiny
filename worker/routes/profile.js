@@ -224,7 +224,7 @@ function buildProfileId(rawProfileId, fallbackIndex) {
   return `dp_${Date.now()}_${fallbackIndex}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
-function normalizeIncomingProfile(raw, index) {
+export function normalizeIncomingProfile(raw, index) {
   const source = raw && typeof raw === "object" ? raw : {};
   const birth = source.birth && typeof source.birth === "object" ? source.birth : {};
   const location = source.location && typeof source.location === "object" ? source.location : {};

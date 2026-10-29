@@ -16,7 +16,10 @@ const mocks={
 };
 globalThis.__tossRouteMocks=mocks;
 const stubMap={
+ 'worker/routes/profile.js':"export const normalizeIncomingProfile=x=>x;export const validateRequiredBirth=x=>({ok:!!x?.birth,birth:x?.birth});export const toClientProfile=x=>x;",
  'worker/toss/manse.js':"export const calculateTossManse=async()=>({stored:false});",
+ 'worker/yeongnyangi/fortune/question-sky.ts':"export const resolveCurrentLocation=x=>({latitude:x.latitude,longitude:x.longitude,timezone:'Asia/Seoul'});",
+ 'worker/yeongnyangi/retry.js':"export const retryFortune=(...args)=>globalThis.__tossRouteMocks.retry(...args);",
  'worker/toss/session.js':"import {TossError} from './policy.js';export const requireTossSession=async()=>{if(globalThis.__tossRouteMocks.denyAuth)throw new TossError('LOGIN_REQUIRED',401);return globalThis.__tossRouteMocks.auth();};export const createTossSession=()=>{};export const invalidateIdentity=()=>{};export const disconnectIdentity=()=>{};",
  'worker/toss/catalog.js':"export const APPROVED_TOSS_PRODUCTS=[];export const APPROVED_TOSS_TAROT_LIBRARY_PRODUCTS=globalThis.__tossRouteMocks.tarotProducts;export const approvedProduct=globalThis.__tossRouteMocks.product;",
  'worker/toss/models.js':"export const TossPurchase={findOne:(...args)=>globalThis.__tossRouteMocks.purchase(...args)};export const TossSession={};",
@@ -26,7 +29,7 @@ const stubMap={
  'worker/toss/purchases.js':"export const purchaseStore={};export const recordTossRefund=()=>{};",
  'worker/lib/models.js':"export const ProfileCard={updateOne:globalThis.__tossRouteMocks.profile};export const PaidExecutionRecord={findOne:()=>({lean:async()=>null})};",
  'worker/lib/rate-limit.js':"export const incrementRateLimit=async()=>({count:1});",
- 'worker/yeongnyangi/service.ts':"export const prepareFortune=globalThis.__tossRouteMocks.prepare;export const presentFortune=x=>x;export const drawTarotSpread=(...args)=>globalThis.__tossRouteMocks.draw(...args);",
+ 'worker/yeongnyangi/service.ts':"export const experienceCheckFortune=async()=>({check:null});export const prepareFortune=globalThis.__tossRouteMocks.prepare;export const presentFortune=x=>x;export const drawTarotSpread=(...args)=>globalThis.__tossRouteMocks.draw(...args);",
  'worker/yeongnyangi/repository.js':"export const readRequest=(...args)=>globalThis.__tossRouteMocks.read(...args);export const resumeRequest=()=>{};",
  'worker/yeongnyangi/queue.js':"export const enqueueConsultation=()=>{};",
  'worker/yeongnyangi/fortune/index.ts':"export const domains={};",
@@ -101,6 +104,32 @@ test('pair scope requires a second explicit target, preserves unknown time and n
  const body=calls.prepared[0].body;assert.equal(body.consultationKind,'compatibility');assert.notEqual(body.profileId,body.partnerProfileId);assert.equal(body.partnerTimeUnknown,true);assert.equal(calls.profiles.length,2);
 });
 test('followup without an owned purchase never reaches a generation call',async()=>{const r=await request({id:crypto.randomUUID(),question:'내 질문'},'/results/'+'a'.repeat(64)+'/conversation');assert.equal(r.status,404);assert.equal(calls.followups,0);});
+
+test('original result contract rereads the owner-bound saved result and rejects refunded orders',async()=>{
+ const previous={purchase:mocks.purchase,read:mocks.read,lookupOrder:mocks.lookupOrder};
+ const id='a'.repeat(64),orderId='01900000-1111-7111-8111-000000000042';
+ const saved={_id:id,productId:'saju_mackerel',state:'COMPLETED',snapshot:{},chapters:[{body:'서버에 저장된 원문'}]};
+ mocks.purchase=filter=>({lean:async()=>{assert.equal(filter.identityId,auth._id);assert.equal(filter.environment,auth.environment);assert.equal(filter.requestId,id);return {_id:orderId,sku:'saved-sku',productId:saved.productId,serviceId:'yeongnyangi'};}});
+ mocks.read=async(_env,owner,requestId)=>{assert.equal(owner,auth.userId);assert.equal(requestId,id);return saved;};
+ let status='PURCHASED';mocks.lookupOrder=async(_env,key)=>{assert.equal(key,auth.userKey);return {orderId,sku:'saved-sku',status};};
+ const get=()=>handleTossRoutes(new Request('https://code-destiny.com/api/toss/canonical/yeongnyangi/requests/'+id,{headers:{Origin:'https://ai-saju-studio.private-apps.tossmini.com'}}),{TOSS_RELEASE_READY:'true'});
+ try{
+  for(let count=0;count<2;count++){const response=await get();assert.equal(response.status,200);assert.deepEqual(await response.json(),{fortune:saved});}
+  status='REFUNDED';assert.equal((await get()).status,409);
+  status='CANCELLED';assert.equal((await get()).status,409);
+  mocks.denyAuth=true;assert.equal((await get()).status,401);
+ }finally{Object.assign(mocks,previous);mocks.denyAuth=false;}
+});
+
+test('original generation and followup routes cannot use a caller-selected unowned result',async()=>{
+ const previous=mocks.purchase;mocks.purchase=()=>({lean:async()=>null});
+ try{
+  for(const action of ['generate','activate','conversation']){
+   const response=await request({userId:'attacker'},'/canonical/yeongnyangi/requests/'+'a'.repeat(64)+'/'+action);
+   assert.equal(response.status,404);assert.equal(calls.followups,0);assert.equal(calls.prepared.length,0);
+  }
+ }finally{mocks.purchase=previous;}
+});
 test('flower requires verified Toss session before calculation and never writes profiles',async()=>{
  mocks.flowerCalls=0;mocks.denyAuth=true;
  try{const denied=await request({birth,userId:'attacker'},'/flower/match');assert.equal(denied.status,401);assert.equal(mocks.flowerCalls,0);}finally{mocks.denyAuth=false;}
