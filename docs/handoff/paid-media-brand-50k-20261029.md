@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-29
-next: 정상 네이버 광고 창의 연결을 확인하고 최신 main CI 실패가 해결된 뒤 검증한 추적 변경을 전달한다.
+next: Claude가 사용자 화면의 캠페인 고급옵션부터 이어받아 기존 광고 상태를 확인하고 광고그룹·소재를 등록한다. Codex 브라우저 재시도 금지.
 ---
 
 # 꿀꿀 운세 5만원 광고 실행
@@ -11,7 +11,23 @@ next: 정상 네이버 광고 창의 연결을 확인하고 최신 main CI 실�
 - 작업 디렉터리: `D:\Development\code-destiny\.codex-worktrees\paid-media-webtoon-20261028-215429`
 - 검증한 코드 커밋: `95a510cc5`. 이후 문서 커밋은 git log -1로 확인. push/운영 배포 미실행.
 - 최신 main `03c46893109c4bed46c675b3dc882599ae30896b`를 병합했지만 해당 main CI가 기존 토스 인수인계 frontmatter 누락으로 실패했다. https://github.com/rei1237/codedestiny/actions/runs/40792833469
-- 정상 대시보드 네이티브 창 462054는 보이지만 연결된 Chrome 탭 목록에는 없다. 창 재오픈 요청을 반복하지 말 것. 연결된 프로필로 제어하거나 사용자가 제공한 화면으로 수동 등록을 안내해야 한다.
+- 최신 사용자 요청은 Claude 대행 인계다. Codex는 브라우저를 더 제어하지 않는다. 이전 URL 식별 실패는 네이버 계정 차단의 증거가 아니다. Claude는 자신의 연결 상태를 확인하되 로그인/창 재오픈 요구를 반복하지 않는다.
+- 인계 직전 main CI 최신 조회는 `bad2656a5cd2d9126bf5320a0395dfc1a0847486`, 진행 중: https://github.com/rei1237/codedestiny/actions/runs/40797807959 . 이전 실패가 해결됐다고 주장하지 않는다. 최신 main은 아직 이 작업에 병합하지 않았다.
+
+## 사용자가 보고 있는 화면과 정정
+- 첨부 `D:\Development\Temp\codex-clipboard-74c3fe1f-033c-40d4-970f-2baca67305f7.png`는 **캠페인** 고급옵션이다. 기간(현재 종료일 없이 계속 노출 선택), 추적기능(현재 사용하지 않음 선택)만 보인다. 저장 완료 여부는 미확인이다.
+- Codex가 앞서 설명한 매체/가중치/일치검색/소재 노출 방식은 **광고그룹** 고급옵션이다. 화면을 잘못 구분한 안내였으며 사용자 실수가 아니다.
+- 기간은 실제 집행 시작일을 정한 뒤 종료일을 7~10일 이내로 지정한다. 심사/구매 추적 검증 전 캠페인 OFF 유지. 종료일은 5만원 비용 상한을 대신하지 않는다.
+- 추적 경유 사이트는 사용하지 않는다. 현재 '추적기능 사용하지 않음'을 유지해 준비된 수동 UTM으로 등록할 수 있다. 이 선택은 네이버 자동 URL 파라미터 설정이며 GA4 구매 추적 자체의 ON/OFF가 아니다. 자동 추적 URL 파라미터를 추가할 경우 기존 A/B UTM 보존과 구매 수신을 따로 검증한다.
+
+## Claude 등록 요약
+- 기존 캠페인 과거 ID `cmp-a001-01-000000011262693`, 계정 과거 ID `2614862`. 현재 상태는 미조회이므로 존재·중복부터 확인한다.
+- 캠페인 `꿀꿀운세_사이트홍보_5만원`, 사이트 `https://code-destiny.com/`, A그룹 `사이트_A_성냥팔이`, B그룹 `사이트_B_달빛상담`.
+- 시작 입찰 **100원 VAT 별도**, 가중치 전부 100%, 일치검색, 자동입찰/확장검색 OFF. 네이버 검색 PC·모바일만, 추천/콘텐츠/제휴 제외. A/B 공통 문구 1개씩(단일형), 동시에 ON 금지. 동일비중 노출은 그룹 간 또는 이미지의 무작위 배분 기능이 아니다.
+- 하루 실제 목표 약 3,000원: 입력란 VAT 별도면 2,700원, 포함이면 3,000원. 기존 잔액/다른 캠페인/자동충전/후불부터 확인. 1차 30,000원, 조건부 15,000원, 예비 5,000원 모두 VAT 포함. 누적 45,000원 이전 중단 목표는 완충 조치일 뿐 절대 상한 보장은 아니다.
+- 제목 `명리학자가 만든 꿀꿀운세`, 설명 `대통령 운세 공개 분석 기록부터 초융합·신년운세 상담 예시까지.`. 원문 증거 페이지 `/insights/presidential-saju-public-records/`. 적중률/결과 보장·미검증 경력 추가 금지.
+- 키워드·제외어·A/B URL은 아래 등록용 TXT/JSON에 있다. 현재 수치 미조회이므로 '최저 CPC/저경쟁 입증'으로 보고하지 않는다.
+- 이미지: `docs/marketing/yeongnyangi-paid-20261028/creative/story-A-square.png`(고등어를 파는 성냥팔이 영냥이), `consultation-B-square.png`(같은 폴더, 달빛 상담실). 글자 없는 정사각형 파일을 사용한다. 문구 있는 기존 세로 포스터로 대체하지 않는다.
 
 ## 검증
 - 이전 main 1877a2629 기반 check:fast 통과: Node 3,912 / Jest 7,090.
@@ -20,12 +36,12 @@ next: 정상 네이버 광고 창의 연결을 확인하고 최신 main CI 실�
 
 ## 남은 작업
 1. main 실패 해결 확인 후 최신 main 병합 및 check:pre-push, fast-forward push. 다른 main 체크아웃에 미커밋 결제 작업이 있으므로 강제 갱신 금지.
-2. 정상 네이버 계정의 기존 캠페인·잔액·자동충전·현재 심사 상태 확인. 중복 생성 금지.
+2. Claude가 정상 네이버 계정의 기존 캠페인·잔액·자동충전·현재 심사 상태 확인. 중복 생성 금지. Codex에는 제어 재시도를 맡기지 않는다.
 3. 키워드 도구 수치 조회, A/B 그룹 및 이미지 등록, 심사 결과 확인. 현재 등록 파일은 준비본이며 실제 업로드·심사 제출 아님.
 4. 추적 운영 반영과 실제 구매 수신, 환불 대사, 결과 재열람 확인 후 승인된 한도 내 활성화. 한도를 보장하지 못하면 OFF 유지.
 
 ## 정본
-`docs/marketing/ggulggul-brand-50k-20261028.md` / `brand-50k-config.json` / `naver-50k-ad-copy.txt`.
+`docs/marketing/ggulggul-brand-50k-20261028.md` / 같은 폴더의 `brand-50k-config.json`, `naver-50k-ad-copy.txt`, `naver-50k-keywords.txt`, `naver-50k-exclusions.txt`.
 
 ## 재개
-`D:\Development\code-destiny\.codex-worktrees\paid-media-webtoon-20261028-215429`에서 이 문서를 읽고 `95a510cc5`와 이후 문서 커밋을 확인한다. 정상 네이버 창 연결 및 main CI 실패 해결 확인부터 진행한다. 자기 워크트리는 전달과 광고 작업이 끝날 때 배수하고 다른 세션 작업은 보존한다.
+`D:\Development\code-destiny\.codex-worktrees\paid-media-webtoon-20261028-215429`에서 `D:\Development\code-destiny\.codex-worktrees\paid-media-webtoon-20261028-215429\docs\handoff\paid-media-brand-50k-20261029.md`를 읽는다. 인계 전 기준 커밋 `f37bed60dd1c514a6dc2c3dbfcc2945e1fdca96b` 및 이후 인계 문서 커밋을 git log -1로 확인한다. Claude가 캠페인 고급옵션 화면에서 기존 등록 상태 확인부터 이어간다. 소스 전달은 최신 main CI 확인 후 진행한다. 캠페인은 미완료이므로 문서 active/워크트리를 인계용으로 보존하며 전달과 광고 작업이 끝나면 배수한다.
