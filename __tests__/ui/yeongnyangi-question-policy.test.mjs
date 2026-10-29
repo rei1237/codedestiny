@@ -79,6 +79,9 @@ test('followup answers require explanation and action and reject guaranteed clai
  const valid={kind:'answer',answered:true,text:'내가 가능한 범위를 먼저 말해 보세요.',reason:'저장된 근거의 표현 패턴을 참고하되 실제 상황에 맞춰 조정해요.',action:'오늘은 가능한 시간과 어려운 범위를 한 문장씩 적어 보세요.',sources:['saju.pillars']};
  assert.match(p.validateFollowup(valid,new Set(valid.sources)).text,/한 문장씩/);
  for(const patch of [{reason:''},{action:''},{text:'무조건 재회 성공합니다.'}])assert.throws(()=>p.validateFollowup({...valid,...patch},new Set(valid.sources)));
+ // A long reply is cut at its last sentence end instead of being refused for length.
+ const long=p.validateFollowup({...valid,text:'오늘 할 일을 한 가지만 정해요. '.repeat(1500)},new Set(valid.sources)).text;
+ assert.ok(long.length<=20000&&long.length>10000&&long.endsWith('.'));
 });
 
 test('every system explains its own foundation and routes question chapters by intent',()=>{

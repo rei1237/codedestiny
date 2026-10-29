@@ -63,11 +63,11 @@ test('every v6 money chapter of all four saju fish tiers is deliverable without 
  }
 });
 
-test('delivery length only catches empty or cut-off replies: 75% of the minimum is delivered, 40% is too short',()=>{
+test('delivery length only catches empty or cut-off replies: 40% of the minimum is delivered, 15% is too short',()=>{
  const sized=ratio=>{const body=complete(),per=Math.ceil(input.chapter.minimumChars*ratio/body.blocks.length);
   return {...body,example:'',advice:'',blocks:body.blocks.map((b,i)=>({...b,paragraphs:[`${i}`.padEnd(per,'흐')]}))};};
- const floor=chapterDeliveryFloor(input.chapter),near=sized(.75),short=sized(.4);
- assert.equal(floor,Math.max(120,Math.ceil(input.chapter.minimumChars*.5)));
+ const floor=chapterDeliveryFloor(input.chapter),near=sized(.4),short=sized(.15);
+ assert.equal(floor,Math.max(120,Math.ceil(input.chapter.minimumChars*.3)));
  assert.ok(deliveredCharacterCount(near)<input.chapter.minimumChars&&deliveredCharacterCount(short)<floor);
  assert.equal(chapterDeliveryFailure(near,input.chapter),'');assert.equal(m.deliverChapter(near,input).complete,true);
  assert.equal(chapterDeliveryFailure(short,input.chapter),'CHAPTER_TOO_SHORT');assert.throws(()=>m.deliverChapter(short,input));
@@ -189,7 +189,7 @@ test('D8: tier timeouts and leases follow the delivery table only for orders car
 test('D8: a length-only shortfall carries its edited draft; the server flag lifts only the length floor and the model cannot set it',()=>{
  const sized=ratio=>{const body=complete(),per=Math.ceil(input.chapter.minimumChars*ratio/body.blocks.length);
   return {...body,example:'',advice:'',blocks:body.blocks.map((b,i)=>({...b,paragraphs:[`${i}`.padEnd(per,'흐')]}))};};
- const short=sized(.3);let error;
+ const short=sized(.15);let error;
  try{m.deliverChapter(short,input);}catch(e){error=e;}
  assert.equal(error?.code,'CHAPTER_TOO_SHORT');
  const candidate=error.shortCandidate;

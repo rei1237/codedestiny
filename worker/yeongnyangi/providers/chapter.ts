@@ -351,7 +351,7 @@ function previousYearClaims(previous:ChapterRequest['previous']){
 }
 /** Mackerel question chapters (QUESTION_LAYOUT_VERSION): one distinct task and scene per chapter, by ordinal. */
 const QUESTION_MACKEREL_TASKS=[
-  '타고난 기질과 지금 지나는 운의 흐름만 다룬다. 질문의 결론은 아직 내리지 않고, 이 사람이 고민을 대하는 방식을 한 장면으로 보여준다.',
+  '타고난 성향 총론과 지금 지나는 운의 흐름을 다룬다. 핵심 기질·감정과 관계의 반응·결정 습관·에너지를 채우는 방식을 근거와 함께 먼저 전반적으로 짚는다. 질문의 상세 결론은 다음 장에 맡기고, 이 사람이 고민을 대하는 방식을 한 장면으로 보여준다.',
   '강점과 그 그림자만 다룬다. 앞 장의 기질 설명을 반복하지 않고, 강점이 질문 상황에서 도움이 되는 조건과 부담이 되는 순간을 구분한다.',
   '질문에 대한 직접 답만 다룬다. 결론을 첫 문단에 쓰고 기본 장의 설명은 한 줄로만 참조한다.',
   '답을 뒷받침하거나 제한하는 근거와 판단이 바뀌는 조건만 다룬다. 앞 장의 결론 문장을 다시 쓰지 않는다.',
@@ -566,8 +566,11 @@ export class StructuredChapterProvider implements FortuneChapterProvider {
     const v7Parts=v7Chapter?buildV7ChapterPrompt({chapter:v7Chapter,facts:sourceIds.map(id=>({id,label:id,value:null})),
       previous:input.previous as V7Previous[],askFirstChapter:Boolean(askPrompt),questionCount,answerChars}):undefined;
     const baseTokens=isConciseReading(input.chapter)?input.chapter.outputTokens:isStructuredReading(input.chapter.version)&&input.chapter.tier?Math.max(input.chapter.outputTokens??0,readingPolicies[input.chapter.tier].outputTokens):input.chapter.outputTokens;
-    const v5Tokens=isConciseReading(input.chapter)?conciseOutputTokens(input.chapter,questionCount,answerChars):v7Parts?v7Parts.maxOutputTokens:Math.max(baseTokens || 0,tokensRequiredForChars((input.chapter.targetChars?.[1] || 0)+600+questionCount*answerChars));
-    if(hasReadingSections(input.chapter.version) && v5Tokens>24576)throw new FortuneError('CHAPTER_OUTPUT_BUDGET_EXCEEDED',503);
+    const plannedTokens=isConciseReading(input.chapter)?conciseOutputTokens(input.chapter,questionCount,answerChars):v7Parts?v7Parts.maxOutputTokens:Math.max(baseTokens || 0,tokensRequiredForChars((input.chapter.targetChars?.[1] || 0)+600+questionCount*answerChars));
+    // A long plan is capped, never refused: the paid chapter is still written within the cap.
+    const v5Tokens=hasReadingSections(input.chapter.version)?Math.min(plannedTokens,24576):plannedTokens;
+    // The retry after a draft cut at the cap gets twice the cap (up to 32,768) so it finishes instead of being cut again.
+    const truncatedRetry=(tokens:number|undefined)=>input.repair?.code==='CHAPTER_TRUNCATED'&&tokens?Math.max(tokens,Math.min(32768,tokens*2)):tokens;
     if (JSON.stringify(facts).length > 180000)
       throw new FortuneError("CHAPTER_CONTEXT_TOO_LARGE", 503);
     const languageContract=readingLanguageInstruction(locale,Boolean(sky||spirit));
@@ -689,7 +692,7 @@ export class StructuredChapterProvider implements FortuneChapterProvider {
       promptVersion: (v7Parts?v7Parts.promptVersion:askPrompt?'ask-chapter-v1':input.chapter.version===READING_V6_VERSION?"chapter-v6":hasReadingSections(input.chapter.version)?"chapter-v5":isStructuredReading(input.chapter.version)?PROMPT_VERSION:input.chapter.systems?"chapter-v3":"chapter-v2")+(!sky&&!spirit?`-${RECOGNITION_VERSION}`:"")+`-${READER_COUNSEL_VERSION}`+(purposeCounsel?`-${COUNSEL_VERSION}`:"")+(isConciseReading(input.chapter)?"-concise-20260930":"")+(hasPrevention(input.chapter)?`-${PREVENTION_VERSION}`:""),
       // Books keep their purchase-time manifest; a later cap increase must still reach retries of those chapters.
       ...(spirit||sky?{maxProviderAttempts:1}:{}),
-      maxOutputTokens:isConciseReading(input.chapter)||hasReadingSections(input.chapter.version)?v5Tokens:questionCount?Math.min(16384,Math.max(baseTokens || 8192,tokensRequiredForChars((input.chapter.targetChars?.[1] || 2000)+questionCount*answerChars))):baseTokens,
+      maxOutputTokens:truncatedRetry(isConciseReading(input.chapter)||hasReadingSections(input.chapter.version)?v5Tokens:questionCount?Math.min(16384,Math.max(baseTokens || 8192,tokensRequiredForChars((input.chapter.targetChars?.[1] || 2000)+questionCount*answerChars))):baseTokens),
     });
     const {request}=fitChapterFacts(facts,buildRequest);
     const response = await this.provider.generate(request);

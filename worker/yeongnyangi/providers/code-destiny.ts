@@ -43,7 +43,7 @@ export class CodeDestinyProvider implements LLMProvider {
   async analyzeQuestion(system: string, data: string): Promise<string> {
     if(getEnv(this.env,'LLM_DRY_RUN')==='true'||!getEnv(this.env,'GEMINIF_API_KEY'))throw new FortuneError('LLM_NOT_CONFIGURED',503);
     const response=await callGeminiText(this.env,data,{
-      systemPrompt:system,temperature:0,maxOutputTokens:1024,thinkingBudget:0,timeoutMs:15000,
+      systemPrompt:system,temperature:0,maxOutputTokens:4096,thinkingBudget:0,timeoutMs:15000,
       maxProviderAttempts:1,fallbackToWorkersAI:false,responseMimeType:'application/json',taskType:'yeongnyangi-ask-analysis',
       responseSchema:jsonSchemaFromExample({questions:[{questionId:'',category:'',needsTiming:false}]}),
       logContext:{...this.logContext,sectionGroup:'question-analysis'},

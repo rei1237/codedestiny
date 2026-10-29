@@ -45,7 +45,7 @@ test('every catalog chapter keeps its full goal, header, eight-question and thin
  assert.ok(chapters>2000);
 });
 test('a period ask first chapter with eight 700-char answers stays under the reading-section budget ceiling',()=>{
- // chapter.ts refuses a reading-section chapter above 24576 output tokens; the period answers must never reach it.
+ // chapter.ts caps a reading-section chapter at 24576 output tokens; the period answers must never need more.
  let cases=0;
  for(const product of products){
   const ask=consultationKinds[consultationDomain(product)].find(k=>k.id==='ask'&&supportsKind(product,k));
@@ -63,7 +63,7 @@ test('question analysis uses a short deterministic single provider call',async()
  setResponse({ok:true,text:'{"questions":[]}'});
  assert.equal(await provider.analyzeQuestion('classify','data'),'{"questions":[]}');
  assert.equal(getOptions().temperature,0);assert.equal(getOptions().maxProviderAttempts,1);
- assert.equal(getOptions().fallbackToWorkersAI,false);assert.equal(getOptions().maxOutputTokens,1024);
+ assert.equal(getOptions().fallbackToWorkersAI,false);assert.equal(getOptions().maxOutputTokens,4096);
  assert.equal(getOptions().thinkingBudget,0);
  setResponse({ok:true,text:'{}',truncated:true});await assert.rejects(provider.analyzeQuestion('classify','data'));
 });
