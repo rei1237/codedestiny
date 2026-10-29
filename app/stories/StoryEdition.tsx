@@ -14,7 +14,8 @@ function preferredEdition() {
   const params=new URLSearchParams(window.location.search);
   const cookie=(name:string)=>document.cookie.split(';').map(value=>value.trim()).find(value=>value.startsWith(name+'='))?.slice(name.length+1)||'';
   let saved='';try{saved=localStorage.getItem('cd:novel:language')||'';}catch{}
-  return resolveNovelLocale(params.get('novelLang')||saved||params.get('lang')||(cookie('cd_locale_explicit')==='1'?cookie('cd_locale'):'')||cookie('cd_geo_locale')||cookie('cd_locale')||navigator.language);
+  const nativeLanguage=(window as typeof window & {__cdAppLanguage?:string}).__cdAppLanguage;
+  return resolveNovelLocale(params.get('novelLang')||saved||nativeLanguage||params.get('lang')||(cookie('cd_locale_explicit')==='1'?cookie('cd_locale'):'')||cookie('cd_geo_locale')||cookie('cd_locale')||navigator.language);
 }
 
 export default function StoryEdition({ children, episodeId }: { children: ReactNode; episodeId?: string }) {
@@ -27,8 +28,20 @@ export default function StoryEdition({ children, episodeId }: { children: ReactN
   const [unavailable,setUnavailable]=useState(false);
   const [request,setRequest]=useState<string|null>(null);
   const [retry,setRetry]=useState(0);
+  const [siteRevision,setSiteRevision]=useState(0);
   const t=(source:string)=>locale==='ko'?source:dictionary[source]?.[copy.locales.indexOf(locale)]||source;
   const href=(id?:string)=>`/stories/${id?id+'/':''}?novelLang=${encodeURIComponent(locale)}`;
+
+  useEffect(()=>{
+    const changed=()=>{
+      // A separate novel choice always wins over a late country/native default.
+      if(new URLSearchParams(window.location.search).get('novelLang'))return;
+      try{if(localStorage.getItem('cd:novel:language'))return;}catch{}
+      setSiteRevision(value=>value+1);
+    };
+    window.addEventListener('cd:locale-ready',changed);
+    return ()=>window.removeEventListener('cd:locale-ready',changed);
+  },[]);
 
   useEffect(()=>{
     const controller=new AbortController();
@@ -64,7 +77,7 @@ export default function StoryEdition({ children, episodeId }: { children: ReactN
     };
     load().catch(()=>{if(!controller.signal.aborted)setError('소설 데이터를 불러오지 못했어요. 연결 상태를 확인한 뒤 다시 시도해 주세요.');}).finally(()=>{if(!controller.signal.aborted)setPending(false);});
     return ()=>controller.abort();
-  },[episodeId,request,retry]);
+  },[episodeId,request,retry,siteRevision]);
 
   const select=(value:string)=>{
     if(!available.includes(value))return;

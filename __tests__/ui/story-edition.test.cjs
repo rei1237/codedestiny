@@ -54,3 +54,17 @@ test('text reader preserves Korean and discloses unavailable editions',async()=>
   const f=await mount({available:['ko']});
   try{assert.equal(f.dom.window.document.querySelector('main').textContent,'한국어 원문');assert.match(f.dom.window.document.querySelector('[role=status]').textContent,/being prepared/);assert.equal(f.dom.window.document.querySelector('option[value=en]').disabled,true);}finally{await f.close();}
 });
+
+test('late native language updates the automatic edition but preserves a manual novel choice',async()=>{
+  const f=await mount();
+  try{
+    await React.act(async()=>{f.dom.window.__cdAppLanguage='ja';f.dom.window.dispatchEvent(new f.dom.window.Event('cd:locale-ready'));});
+    assert.ok(f.dom.window.document.querySelector('article').textContent.includes(f.first.translations.ja));
+    const select=f.dom.window.document.querySelector('select');
+    await React.act(async()=>{select.value='en';select.dispatchEvent(new f.dom.window.Event('change',{bubbles:true}));});
+    const requests=f.requested.length;
+    await React.act(async()=>f.dom.window.dispatchEvent(new f.dom.window.Event('cd:locale-ready')));
+    assert.equal(f.requested.length,requests);
+    assert.ok(f.dom.window.document.querySelector('article').textContent.includes(f.first.translations.en));
+  }finally{await f.close();}
+});

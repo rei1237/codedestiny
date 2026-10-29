@@ -40,6 +40,21 @@ test('unpublished translations cannot be selected and their absence is disclosed
   assert.equal(select.options.find(option=>option.value==='ja').disabled,true);
   assert.match(status.textContent,/being prepared/);assert.equal(requests.length,0);
 });
+
+test('late country default refreshes title-screen data without interrupting active reading', async()=>{
+  const {root}=setup({cookie:'cd_geo_locale=fr'});
+  root.S={screen:'main'};
+  root.NOVEL_ROOT_MANIFEST={availableLocales:['ko','en']};
+  root.NOVEL_EPISODE_LOADS={old:Promise.resolve()};
+  root._episodeLRU=[3];root.NOVEL_DATA_READY=Promise.resolve();
+  let loads=0;
+  root.initNovelData=async()=>{loads++;if(loads===2)root.NOVEL_LOCALE='en';};
+  await root.refreshNovelLocale();
+  assert.equal(loads,2);assert.equal(root.NOVEL_LOCALE,'en');assert.equal(root._episodeLRU.length,0);
+  root.S.screen='player';root.window.__cdAppLanguage='ko';
+  await root.refreshNovelLocale();
+  assert.equal(root.NOVEL_LOCALE,'en');assert.equal(root.document.documentElement.lang,'en');
+});
 test('localized runtime retains story and bookmark identities, replacing only display copy', () => {
   const runtime={sourceHash:'current',episodes:[{id:'ep-01',no:'EP.01',title:'제목',tag:'태그',rev:2,beats:[{id:'b1',t:'본문',bg:'room',s:'yeon'}]}]};
   const tr={schemaVersion:1,locale:'en',sourceHash:'current',episodes:[{id:'ep-01',no:'EP.01',title:'Title',tag:'Chapter',beats:[{id:'b1',t:'Story'}]}]};
