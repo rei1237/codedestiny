@@ -9065,80 +9065,80 @@
       "hubPremiumIntro": "A Saju reading doesn't scare you with fortune or misfortune -- it quietly surfaces the current flow and a standard for your choices."
     },
     "template_tarot": {
-      "tagline": "A reading that reads the flow closest to your current feelings and hints for a choice, short and clear.",
+      "tagline": "Une lecture concise des émotions présentes, des tendances proches et des pistes pour choisir.",
       "feats": [
-        "When your heart is urgent but the answer feels blurry",
-        "When you're curious about the other person's feelings or the flow nearby",
-        "When you want to sort your feelings out before a choice"
+        "Quand vous êtes pressé de savoir mais que la réponse reste floue",
+        "Quand vous vous interrogez sur ses sentiments ou l’évolution prochaine",
+        "Quand vous voulez clarifier vos émotions avant de choisir"
       ],
-      "premiumIntro": "A tarot reading doesn't fix an outcome -- it lights up the symbols and flow rising around your question right now.",
+      "premiumIntro": "Le tarot reflète les symboles et les tendances autour de votre question actuelle, sans fixer l’issue.",
       "premiumAudience": [
-        "Those who want to sort their feelings out first because the answer is blurry",
-        "Those curious about the other person's feelings or the flow nearby",
-        "Those who need short, clear advice"
+        "Pour clarifier vos émotions lorsque les réponses restent floues",
+        "Pour explorer ses sentiments ou l’évolution à court terme",
+        "Pour recevoir des conseils brefs et clairs"
       ],
       "premiumChapters": [
-        "A reading of the current mood",
-        "The temperature and flow of feeling",
-        "Reactions to be careful of",
-        "A hint for the next move"
+        "Lecture de l’atmosphère actuelle",
+        "Intensité et mouvement des émotions",
+        "Les réactions à surveiller",
+        "Des pistes pour la prochaine étape"
       ],
       "answersQuestions": [
-        "What is that person feeling right now?",
-        "Is it okay to reach out now?",
-        "Is it okay to push this choice through?"
+        "Que pourrait ressentir cette personne en ce moment ?",
+        "Est-ce le bon moment pour reprendre contact ?",
+        "Devrais-je poursuivre dans cette voie ?"
       ],
       "analysisSteps": [
         {
-          "label": "Sorting the question",
-          "detail": "Narrows down what you want to ask into one sentence."
+          "label": "Clarifier la question",
+          "detail": "Ramène ce que vous souhaitez demander à une seule phrase."
         },
         {
-          "label": "Laying the cards",
-          "detail": "Draws cards with a spread suited to the question and assigns meaning to each position."
+          "label": "Disposer les cartes",
+          "detail": "Tire les cartes selon une disposition adaptée à la question et attribue un sens à chaque position."
         },
         {
-          "label": "Reading the symbols",
-          "detail": "Connects the cards' symbols and positions' meanings to the current situation."
+          "label": "Interpréter les symboles",
+          "detail": "Relie les symboles des cartes et le sens de leurs positions à la situation actuelle."
         },
         {
-          "label": "Writing the reading",
-          "detail": "Puts together what to do and what to hold back, down to the sentence."
+          "label": "Rédiger la lecture",
+          "detail": "Formule clairement les actions possibles et ce qu’il vaut mieux retenir."
         }
       ],
       "valueCompare": [
         {
-          "axis": "Number of cards",
-          "premium": "The full spread suited to the question",
-          "free": "One card draw"
+          "axis": "Nombre de cartes",
+          "premium": "Un tirage complet adapté à la question",
+          "free": "Tirage d’une carte"
         },
         {
-          "axis": "Depth of reading",
-          "premium": "Down to each position's meaning and the relations between cards",
-          "free": "A card's basic meaning"
+          "axis": "Profondeur de l’interprétation",
+          "premium": "Sens des positions et liens entre les cartes",
+          "free": "Sens de base de la carte"
         },
         {
-          "axis": "Advice",
-          "premium": "Split between what to say now and what to hold back",
-          "free": "A short line"
+          "axis": "Conseils",
+          "premium": "Ce qu’il est utile de dire maintenant ou de garder pour soi",
+          "free": "Une courte phrase"
         }
       ],
       "faq": [
         {
-          "q": "Do I draw the cards myself?",
-          "a": "Yes. After payment you draw them yourself on screen, and the reading is built around what you drew."
+          "q": "Est-ce que je tire moi-même les cartes ?",
+          "a": "Oui. Après le paiement, vous tirez les cartes à l’écran et la lecture s’appuie sur ces cartes."
         },
         {
-          "q": "Can I ask the same question again?",
-          "a": "You can, but it's not recommended. Repeating it while the situation is unchanged only shakes the result and makes judgment harder."
+          "q": "Puis-je poser à nouveau la même question ?",
+          "a": "C’est possible, mais déconseillé. Répéter une lecture alors que la situation n’a pas changé peut donner des résultats variables et compliquer votre décision."
         },
         {
-          "q": "Does it fix the future?",
-          "a": "No. Tarot reads the direction visible in the current flow -- it doesn't fix an outcome."
+          "q": "L’avenir est-il fixé ?",
+          "a": "Non. Le tarot lit la direction suggérée par les tendances actuelles, sans déterminer l’issue."
         }
       ],
       "badge": "Card reading",
-      "headline": "Lay out the question still sitting in your mind through the symbols of the cards."
+      "headline": "Faut-il lâcher prise ou faire encore un pas vers l’autre ?"
     },
     "template_sukuyo": {
       "tagline": "A reading centered on relationship texture, conflict patterns, and the rhythm of a bond.",
@@ -10862,7 +10862,7 @@
       },
       "answersQuestions": {
         "0": "Do they still have feelings for me?",
-        "1": "Is it all right to contact them now?",
+        "1": "Est-ce le bon moment pour reprendre contact ?",
         "2": "Can this relationship be picked up again?"
       },
       "fallbackCta": "Start the Reunion Lighthouse reading",
@@ -12947,7 +12947,7 @@
         "2": "Pass, monthly-stone, and single-payment policy follows the existing standard."
       },
       "answersQuestions": {
-        "0": "What is that person feeling right now?",
+        "0": "Que pourrait ressentir cette personne en ce moment ?",
         "1": "What's the love pattern I keep repeating?",
         "2": "Is it okay to keep this relationship going?"
       },

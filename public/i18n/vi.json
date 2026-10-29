@@ -9065,80 +9065,80 @@
       "hubPremiumIntro": "A Saju reading doesn't scare you with fortune or misfortune -- it quietly surfaces the current flow and a standard for your choices."
     },
     "template_tarot": {
-      "tagline": "A reading that reads the flow closest to your current feelings and hints for a choice, short and clear.",
+      "tagline": "Bài đọc ngắn gọn, rõ ràng về cảm xúc hiện tại, diễn biến gần và gợi ý lựa chọn.",
       "feats": [
-        "When your heart is urgent but the answer feels blurry",
-        "When you're curious about the other person's feelings or the flow nearby",
-        "When you want to sort your feelings out before a choice"
+        "Khi lòng nóng vội nhưng câu trả lời vẫn mờ nhạt",
+        "Khi bạn tò mò về cảm xúc của đối phương hoặc diễn biến sắp tới",
+        "Khi bạn muốn sắp xếp cảm xúc trước khi lựa chọn"
       ],
-      "premiumIntro": "A tarot reading doesn't fix an outcome -- it lights up the symbols and flow rising around your question right now.",
+      "premiumIntro": "Tarot không khẳng định kết quả mà soi chiếu các biểu tượng và diễn biến quanh câu hỏi hiện tại.",
       "premiumAudience": [
-        "Those who want to sort their feelings out first because the answer is blurry",
-        "Those curious about the other person's feelings or the flow nearby",
-        "Those who need short, clear advice"
+        "Người muốn sắp xếp cảm xúc khi chưa thấy câu trả lời rõ ràng",
+        "Người muốn hiểu cảm xúc của đối phương hoặc diễn biến sắp tới",
+        "Người cần lời khuyên ngắn gọn và rõ ràng"
       ],
       "premiumChapters": [
-        "A reading of the current mood",
-        "The temperature and flow of feeling",
-        "Reactions to be careful of",
-        "A hint for the next move"
+        "Đọc bầu không khí hiện tại",
+        "Mức độ và chuyển động của cảm xúc",
+        "Những phản ứng cần lưu ý",
+        "Gợi ý cho bước tiếp theo"
       ],
       "answersQuestions": [
-        "What is that person feeling right now?",
-        "Is it okay to reach out now?",
-        "Is it okay to push this choice through?"
+        "Người ấy lúc này có thể đang cảm thấy thế nào?",
+        "Bây giờ liên lạc có phù hợp không?",
+        "Tôi có nên tiếp tục với lựa chọn này không?"
       ],
       "analysisSteps": [
         {
-          "label": "Sorting the question",
-          "detail": "Narrows down what you want to ask into one sentence."
+          "label": "Làm rõ câu hỏi",
+          "detail": "Thu gọn điều bạn muốn hỏi thành một câu."
         },
         {
-          "label": "Laying the cards",
-          "detail": "Draws cards with a spread suited to the question and assigns meaning to each position."
+          "label": "Trải bài",
+          "detail": "Rút bài theo sơ đồ phù hợp với câu hỏi, mỗi vị trí mang một ý nghĩa."
         },
         {
-          "label": "Reading the symbols",
-          "detail": "Connects the cards' symbols and positions' meanings to the current situation."
+          "label": "Giải nghĩa biểu tượng",
+          "detail": "Kết nối biểu tượng của lá bài và ý nghĩa vị trí với tình huống hiện tại."
         },
         {
-          "label": "Writing the reading",
-          "detail": "Puts together what to do and what to hold back, down to the sentence."
+          "label": "Viết bài luận giải",
+          "detail": "Viết rõ việc có thể làm và điều nên kiềm lại."
         }
       ],
       "valueCompare": [
         {
-          "axis": "Number of cards",
-          "premium": "The full spread suited to the question",
-          "free": "One card draw"
+          "axis": "Số lá bài",
+          "premium": "Toàn bộ trải bài phù hợp với câu hỏi",
+          "free": "Rút một lá"
         },
         {
-          "axis": "Depth of reading",
-          "premium": "Down to each position's meaning and the relations between cards",
-          "free": "A card's basic meaning"
+          "axis": "Độ sâu luận giải",
+          "premium": "Cả ý nghĩa từng vị trí và quan hệ giữa các lá bài",
+          "free": "Ý nghĩa cơ bản của lá bài"
         },
         {
-          "axis": "Advice",
-          "premium": "Split between what to say now and what to hold back",
-          "free": "A short line"
+          "axis": "Lời khuyên",
+          "premium": "Phân biệt điều nên nói ngay và điều nên giữ lại",
+          "free": "Một câu ngắn"
         }
       ],
       "faq": [
         {
-          "q": "Do I draw the cards myself?",
-          "a": "Yes. After payment you draw them yourself on screen, and the reading is built around what you drew."
+          "q": "Tôi có tự rút bài không?",
+          "a": "Có. Sau khi thanh toán, bạn tự rút bài trên màn hình và bài luận giải dựa vào những lá đã rút."
         },
         {
-          "q": "Can I ask the same question again?",
-          "a": "You can, but it's not recommended. Repeating it while the situation is unchanged only shakes the result and makes judgment harder."
+          "q": "Tôi có thể hỏi lại cùng một câu không?",
+          "a": "Có thể, nhưng không được khuyến khích. Khi tình huống chưa đổi, hỏi lặp lại có thể khiến kết quả thay đổi và việc cân nhắc khó hơn."
         },
         {
-          "q": "Does it fix the future?",
-          "a": "No. Tarot reads the direction visible in the current flow -- it doesn't fix an outcome."
+          "q": "Tương lai có được xác định chắc chắn không?",
+          "a": "Không. Tarot đọc hướng đi thể hiện trong diễn biến hiện tại, không ấn định kết quả."
         }
       ],
       "badge": "Card reading",
-      "headline": "Lay out the question still sitting in your mind through the symbols of the cards."
+      "headline": "Nên buông tay hay thử đến gần thêm một lần?"
     },
     "template_sukuyo": {
       "tagline": "A reading centered on relationship texture, conflict patterns, and the rhythm of a bond.",
@@ -10862,7 +10862,7 @@
       },
       "answersQuestions": {
         "0": "Do they still have feelings for me?",
-        "1": "Is it all right to contact them now?",
+        "1": "Bây giờ liên lạc có phù hợp không?",
         "2": "Can this relationship be picked up again?"
       },
       "fallbackCta": "Start the Reunion Lighthouse reading",
@@ -12947,7 +12947,7 @@
         "2": "Pass, monthly-stone, and single-payment policy follows the existing standard."
       },
       "answersQuestions": {
-        "0": "What is that person feeling right now?",
+        "0": "Người ấy lúc này có thể đang cảm thấy thế nào?",
         "1": "What's the love pattern I keep repeating?",
         "2": "Is it okay to keep this relationship going?"
       },

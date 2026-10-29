@@ -9065,80 +9065,80 @@
       "hubPremiumIntro": "A Saju reading doesn't scare you with fortune or misfortune -- it quietly surfaces the current flow and a standard for your choices."
     },
     "template_tarot": {
-      "tagline": "A reading that reads the flow closest to your current feelings and hints for a choice, short and clear.",
+      "tagline": "Een korte, heldere lezing van huidige emoties, komende ontwikkelingen en aanwijzingen voor je keuze.",
       "feats": [
-        "When your heart is urgent but the answer feels blurry",
-        "When you're curious about the other person's feelings or the flow nearby",
-        "When you want to sort your feelings out before a choice"
+        "Wanneer je haast voelt maar het antwoord onduidelijk blijft",
+        "Wanneer je je afvraagt wat de ander voelt of wat er binnenkort kan spelen",
+        "Wanneer je voor een keuze je gevoelens wilt ordenen"
       ],
-      "premiumIntro": "A tarot reading doesn't fix an outcome -- it lights up the symbols and flow rising around your question right now.",
+      "premiumIntro": "Tarot weerspiegelt de symbolen en patronen rond je vraag op dit moment, zonder de uitkomst vast te leggen.",
       "premiumAudience": [
-        "Those who want to sort their feelings out first because the answer is blurry",
-        "Those curious about the other person's feelings or the flow nearby",
-        "Those who need short, clear advice"
+        "Voor wie eerst gevoelens wil ordenen als antwoorden onduidelijk zijn",
+        "Voor wie nieuwsgierig is naar gevoelens of ontwikkelingen op korte termijn",
+        "Voor wie kort en helder advies nodig heeft"
       ],
       "premiumChapters": [
-        "A reading of the current mood",
-        "The temperature and flow of feeling",
-        "Reactions to be careful of",
-        "A hint for the next move"
+        "De huidige sfeer duiden",
+        "De intensiteit en beweging van emoties",
+        "Reacties om op te letten",
+        "Aanwijzingen voor je volgende stap"
       ],
       "answersQuestions": [
-        "What is that person feeling right now?",
-        "Is it okay to reach out now?",
-        "Is it okay to push this choice through?"
+        "Wat zou die persoon nu voelen?",
+        "Is dit een goed moment om contact op te nemen?",
+        "Kan ik met deze keuze doorgaan?"
       ],
       "analysisSteps": [
         {
-          "label": "Sorting the question",
-          "detail": "Narrows down what you want to ask into one sentence."
+          "label": "De vraag verduidelijken",
+          "detail": "Vat wat je wilt vragen samen in één zin."
         },
         {
-          "label": "Laying the cards",
-          "detail": "Draws cards with a spread suited to the question and assigns meaning to each position."
+          "label": "De kaarten leggen",
+          "detail": "Trekt kaarten in een legging die bij de vraag past en geeft elke positie een betekenis."
         },
         {
-          "label": "Reading the symbols",
-          "detail": "Connects the cards' symbols and positions' meanings to the current situation."
+          "label": "De symbolen duiden",
+          "detail": "Verbindt de kaartsymbolen en de betekenis van hun posities met de huidige situatie."
         },
         {
-          "label": "Writing the reading",
-          "detail": "Puts together what to do and what to hold back, down to the sentence."
+          "label": "De lezing schrijven",
+          "detail": "Verwoordt mogelijke acties en momenten waarop terughoudendheid helpt."
         }
       ],
       "valueCompare": [
         {
-          "axis": "Number of cards",
-          "premium": "The full spread suited to the question",
-          "free": "One card draw"
+          "axis": "Aantal kaarten",
+          "premium": "Een volledige legging afgestemd op je vraag",
+          "free": "Eén kaart trekken"
         },
         {
-          "axis": "Depth of reading",
-          "premium": "Down to each position's meaning and the relations between cards",
-          "free": "A card's basic meaning"
+          "axis": "Diepgang van de duiding",
+          "premium": "Positiebetekenissen en verbanden tussen kaarten",
+          "free": "De basisbetekenis van de kaart"
         },
         {
-          "axis": "Advice",
-          "premium": "Split between what to say now and what to hold back",
-          "free": "A short line"
+          "axis": "Advies",
+          "premium": "Wat je nu kunt zeggen en wat je beter kunt bewaren",
+          "free": "Eén korte zin"
         }
       ],
       "faq": [
         {
-          "q": "Do I draw the cards myself?",
-          "a": "Yes. After payment you draw them yourself on screen, and the reading is built around what you drew."
+          "q": "Trek ik zelf de kaarten?",
+          "a": "Ja. Na betaling trek je de kaarten op het scherm en wordt de lezing op die kaarten gebaseerd."
         },
         {
-          "q": "Can I ask the same question again?",
-          "a": "You can, but it's not recommended. Repeating it while the situation is unchanged only shakes the result and makes judgment harder."
+          "q": "Kan ik dezelfde vraag opnieuw stellen?",
+          "a": "Het kan, maar we raden het niet aan. Herhalen terwijl de situatie gelijk blijft kan wisselende resultaten geven en beslissen moeilijker maken."
         },
         {
-          "q": "Does it fix the future?",
-          "a": "No. Tarot reads the direction visible in the current flow -- it doesn't fix an outcome."
+          "q": "Staat de toekomst hiermee vast?",
+          "a": "Nee. Tarot duidt de richting die huidige patronen suggereren en bepaalt de uitkomst niet."
         }
       ],
       "badge": "Card reading",
-      "headline": "Lay out the question still sitting in your mind through the symbols of the cards."
+      "headline": "Moet ik loslaten of nog één keer toenadering zoeken?"
     },
     "template_sukuyo": {
       "tagline": "A reading centered on relationship texture, conflict patterns, and the rhythm of a bond.",
@@ -10862,7 +10862,7 @@
       },
       "answersQuestions": {
         "0": "Do they still have feelings for me?",
-        "1": "Is it all right to contact them now?",
+        "1": "Is dit een goed moment om contact op te nemen?",
         "2": "Can this relationship be picked up again?"
       },
       "fallbackCta": "Start the Reunion Lighthouse reading",
@@ -12947,7 +12947,7 @@
         "2": "Pass, monthly-stone, and single-payment policy follows the existing standard."
       },
       "answersQuestions": {
-        "0": "What is that person feeling right now?",
+        "0": "Wat zou die persoon nu voelen?",
         "1": "What's the love pattern I keep repeating?",
         "2": "Is it okay to keep this relationship going?"
       },
