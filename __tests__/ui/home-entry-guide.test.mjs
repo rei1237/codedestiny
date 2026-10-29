@@ -22,10 +22,10 @@ test('entry teaches both workflows without duplicating the primary destinations'
   const tutorials = [...doc.querySelectorAll('.consultation-tutorial__service')];
   assert.equal(tutorials.length, 2);
   for (const tutorial of tutorials) {
-    assert.equal(tutorial.querySelectorAll('ol > li').length, 3);
     assert.ok(tutorial.querySelector('.consultation-tutorial__result').textContent.includes('받게 되는 내용'));
     assert.ok(doc.getElementById(tutorial.getAttribute('aria-labelledby')));
   }
+  assert.equal(doc.querySelectorAll('.consultation-tutorial__flow ol > li').length, 3);
   assert.match(doc.querySelector('.consultation-tutorial__notes').textContent, /이용권·월정석·단건 결제/);
   assert.match(doc.querySelector('.consultation-tutorial__notes').textContent, /네오가 직접 읽고 작성·검수해 이메일/);
 });
