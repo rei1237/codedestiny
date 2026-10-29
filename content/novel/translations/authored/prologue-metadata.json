@@ -1,0 +1,12 @@
+{
+  "episodeId":"prologue",
+  "method":"directly authored; no translation API",
+  "sourceTitle":"이상한 앱이 깔렸다",
+  "sourceTag":"프롤로그 · 이상한 앱이 깔렸다",
+  "metadata":{
+    "en":{"title":"A Strange App Appeared","tag":"Prologue · A Strange App Appeared"},
+    "ja":{"title":"見知らぬアプリが入っていた","tag":"プロローグ · 見知らぬアプリが入っていた"},
+    "zh-CN":{"title":"手机里多了个奇怪的应用","tag":"序章 · 手机里多了个奇怪的应用"},
+    "zh-TW":{"title":"手機裡多了個奇怪的應用程式","tag":"序章 · 手機裡多了個奇怪的應用程式"}
+  }
+}
