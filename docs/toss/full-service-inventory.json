@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "d3f1ed91f9015324e63d19a981fbe682f8ad8a10",
+  "sourceCommit": "bad2656a5cd2d9126bf5320a0395dfc1a0847486",
   "scope": "Source discovery plus explicitly verified aliases; not a count of implemented services. Unmapped contracts are blocking work, not exclusions.",
   "sourceCounts": {
     "home": 63,
@@ -3701,12 +3701,12 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/manse",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "worker/toss/manse.js (canonical screen saju engine)",
+      "resultRenderer": "apps/toss/src/ManseReading.tsx",
+      "storageContract": "screen-only; web-profile-history-parity-pending"
     },
     {
       "id": "master-love-codex",
