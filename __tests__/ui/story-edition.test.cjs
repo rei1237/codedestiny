@@ -25,10 +25,10 @@ async function mount({stale=false,available=['ko','en','ja']}={}){
     else data={sourceHash:'current',id:'prologue',no:'PROLOGUE',title:'Opening',tag:'Chapter',beats:[{id:first.id,s:'n',t:first.translations[locale]}]};
     return {ok:true,json:async()=>data};
   };
-  const module={exports:{}};
-  vm.runInNewContext(compiled,{module,exports:module.exports,React,URL,URLSearchParams,AbortController,window:dom.window,document:dom.window.document,navigator:dom.window.navigator,localStorage:dom.window.localStorage,fetch,require:name=>name==='./StoryHubCopy'?{StoryHubLocaleProvider:({children})=>children}:name.endsWith('locales.mjs')?locales:name.endsWith('ui-copy.json')?require('../../content/novel/ui-copy.json'):require(name)});
+  const testModule={exports:{}};
+  vm.runInNewContext(compiled,{module:testModule,exports:testModule.exports,React,URL,URLSearchParams,AbortController,window:dom.window,document:dom.window.document,navigator:dom.window.navigator,localStorage:dom.window.localStorage,fetch,require:name=>name==='./StoryHubCopy'?{StoryHubLocaleProvider:({children})=>children}:name.endsWith('locales.mjs')?locales:name.endsWith('ui-copy.json')?require('../../content/novel/ui-copy.json'):require(name)});
   const {createRoot}=require('react-dom/client');const root=createRoot(dom.window.document.getElementById('root'));
-  await React.act(async()=>root.render(React.createElement(module.exports.default,{episodeId:'prologue'},React.createElement('main',null,'한국어 원문'))));
+  await React.act(async()=>root.render(React.createElement(testModule.exports.default,{episodeId:'prologue'},React.createElement('main',null,'한국어 원문'))));
   return {dom,first,requested,close:async()=>{await React.act(async()=>root.unmount());dom.window.close();global.window=saved.window;global.document=saved.document;global.IS_REACT_ACT_ENVIRONMENT=saved.act;}};
 }
 

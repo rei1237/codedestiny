@@ -4807,10 +4807,13 @@
         "fail": 2,
         "failNote": "Playwright Chromium 미설치 환경의 브라우저 테스트 2개(daily tarot, yeongnyangi hat prologue). 이번 변경과 무관"
       },
-      "checkFast": "paid-gate-suite에서 위 브라우저 테스트 2개로 중단; 이후 단계 중 typecheck·lint는 따로 통과"
+      "checkFast": "paid-gate-suite에서 위 브라우저 테스트 2개로 중단; 이후 단계 중 typecheck·lint는 따로 통과",
+      "postRebase": "origin/main 12f0b1831 위 재빌드는 upstream 5f2b10b55(js/faq-search.js ESM 파싱, 문의 Contact Us 마커)로 실패. 커밋 안 한 임시 우회로 adsense-readiness(문의 마커만 건너뜀)·home-identity·sitemap-canonical 통과 확인",
+      "staging": "실패: 런 40907636662, 위 upstream 원인. 스테이징 미반영"
     },
     "productionDeployed": false,
     "remaining": [
+      "upstream 5f2b10b55 빌드 실패 해결 뒤 verify:staging으로 스테이징 확인",
       "운영 배포·서치어드바이저/GSC sitemap 재제출·/fortune/2027/ 수집 요청은 사용자 승인 대기",
       "T1 자정 발행 지연(workflow 타임아웃·중복 디스패치), T2 무슬래시 308→301은 RED 승인 대기",
       "후속 목록: docs/handoff/seo-followups-20261029.md"

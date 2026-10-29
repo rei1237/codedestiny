@@ -13,16 +13,16 @@ const compiled = ts.transpileModule(fs.readFileSync(path.resolve(__dirname, '../
 }).outputText;
 
 function render(native, locale) {
-  const module = {exports: {}};
-  vm.runInNewContext(compiled, {module, exports: module.exports, require: name => {
+  const testModule = {exports: {}};
+  vm.runInNewContext(compiled, {module: testModule, exports: testModule.exports, require: name => {
     if (name.endsWith('/app-build-target')) return {IS_APP_BUILD: native};
     if (name.endsWith('/useT')) return {useLocale: () => locale};
     if (name.endsWith('/native-home-copy.json')) return copy;
     if (name.endsWith('/native-home-html.mjs')) return require('../../lib/i18n/native-home-html.mjs');
-    if (name === 'next/link') return props => React.createElement('a', props);
+    if (name === 'next/link') return function MockLink(props) { return React.createElement('a', props); };
     return require(name);
   }});
-  const {NativeHomeRoot: Root, NativeHomeText: Text, NativeHomeCardLink: Card} = module.exports;
+  const {NativeHomeRoot: Root, NativeHomeText: Text, NativeHomeCardLink: Card} = testModule.exports;
   const html = renderToStaticMarkup(React.createElement(Root, {className: 'approved-home'},
     React.createElement('h1', null, React.createElement(Text, null, '어떤 운세를 만나볼까요?')),
     React.createElement(Card, {href: '/ggulggul/', external: true, name: '꿀꿀 운세', action: '운세 골라보기', 'aria-describedby': 'yeoniCardTag'}),
