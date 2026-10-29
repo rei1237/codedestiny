@@ -532,7 +532,8 @@
 .neoLetterLockActions button,
 .ctaDeck a,
 .ctaDeck button,
-.stateCard a {
+.stateCard a,
+.stateCard button {
   display: inline-flex;
   gap: 8px;
   min-height: 50px;
@@ -874,11 +875,15 @@
   text-align: center;
 }
 
-.stateSeal {
-  width: 86px;
-  height: 86px;
-  background: transparent !important;
-  filter: drop-shadow(0 0 24px rgba(214, 188, 118, 0.48));
+.stateGuide {
+  width: clamp(88px, 24vw, 112px);
+  margin-inline: auto;
+}
+
+.stateCard a:focus-visible,
+.stateCard button:focus-visible {
+  outline: 2px solid var(--nr-gold);
+  outline-offset: 4px;
 }
 
 /* 생성 대기(폴링) 화면 — 전략실 네오가 작전을 짜는 듯한 상징 비주얼. */

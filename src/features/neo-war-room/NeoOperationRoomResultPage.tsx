@@ -415,7 +415,7 @@ function buildNeoSincereLetter(session: NeoResultSession, methodName: string, lo
   ).join("\n\n");
 }
 
-export default function NeoOperationRoomResultPage({ availability }: { availability?: { title: string; message: string } } = {}) {
+export default function NeoOperationRoomResultPage({ availability }: { availability?: { title: string; message: string; action?: { href: string; label: string } } } = {}) {
   const searchParams = useSearchParams();
   const attemptId = searchParams?.get("attemptId") || searchParams?.get("id") || "";
   const localPreviewEnabled = process.env.NODE_ENV !== "production";
@@ -446,7 +446,6 @@ export default function NeoOperationRoomResultPage({ availability }: { availabil
   });
   const [neoBenefitsUnlocked, setNeoBenefitsUnlocked] = useState(false);
   const documentRef = useRef<HTMLElement | null>(null);
-  const resultSealGate = useSpritePlaybackGate<HTMLDivElement>({ pauseWhenOffscreen: false });
 
   const selectedMethod = session?.selectedMethod || session?.initialBriefing?.selectedMethod || session?.refinedOrder?.selectedMethod;
   const selectedMethodDefinition = useMemo(
@@ -697,7 +696,6 @@ export default function NeoOperationRoomResultPage({ availability }: { availabil
     "--neo-bg-desktop": `url("${buildResizedAssetUrl(neoWarRoomAssets.backgrounds.desktop.src, { width: 1600, quality: 82 })}")`,
     "--neo-bg-mobile": `url("${buildResizedAssetUrl(neoWarRoomAssets.backgrounds.mobile.src, { width: 820, quality: 82 })}")`,
   } as CSSProperties;
-  const neoResultStampAsset = resultSealGate.isMobile ? neoWarRoomAssets.badges.resultStampMobile : neoWarRoomAssets.badges.resultStamp;
 
   useEffect(() => {
     if (!session || isGenerating || isFailed) {
@@ -769,11 +767,12 @@ export default function NeoOperationRoomResultPage({ availability }: { availabil
       ) : null}
 
       {isFailed ? (
-        <section className={styles.stateCard} aria-live="assertive">
-          <NeoWarRoomAssetImage asset={neoResultStampAsset} alt="" sizes="86px" className={styles.stateSeal} imageClassName={styles.decorImage} />
-          <h2>{availability?.title || resultCopy.failedTitle}</h2>
+        <section className={styles.stateCard} aria-live={availability ? "polite" : "assertive"} aria-labelledby="neo-result-state-title">
+          <div className={styles.stateGuide} aria-hidden="true"><NeoBriefingArt pose="explain" /></div>
+          <h2 id="neo-result-state-title">{availability?.title || resultCopy.failedTitle}</h2>
           <p>{error || session?.generationError?.message || resultCopy.failedDefaultMessage}</p>
-          <button type="button" onClick={() => setRecoveryEpoch(value => value + 1)}>{resultCopy.retryLink}</button>
+          {availability?.action ? <Link href={availability.action.href}>{availability.action.label}</Link>
+            : <button type="button" onClick={() => setRecoveryEpoch(value => value + 1)}>{resultCopy.retryLink}</button>}
         </section>
       ) : null}
 

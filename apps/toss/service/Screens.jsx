@@ -25,7 +25,7 @@ const Neo=lazy(()=>import('@/src/features/neo-war-room/NeoOperationRoomPage'));
 const NeoResult=lazy(()=>import('@/src/features/neo-war-room/NeoOperationRoomResultPage'));
 const NeoBooks=lazy(()=>import('@/src/features/neo-war-room/NeoStrategyBooksPage'));
 const Records=lazy(()=>import('@/app/records/RecordsClient'));
-const releaseAvailability={title:'출시 준비 중',message:'상품 등록과 검수가 완료되면 토스에서 상담 결과를 생성하고 보관할 수 있어요.'};
+const releaseAvailability={title:'출시 준비 중',message:'상품 등록과 검수가 완료되면 토스에서 상담 결과를 생성하고 보관할 수 있어요.',action:{href:'/neo-operation-room/',label:'전략실 둘러보기'}};
 let installed=false;
 function install(){if(installed)return;installed=true;window.fetch=createServiceFetch({nativeFetch:window.fetch.bind(window),send:canonicalResponse,origin:location.origin});}
 function PreparedCheckout(){
