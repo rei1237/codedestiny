@@ -66,3 +66,5 @@ next: 사용자 결정으로 운영 배포 보류. 광고 OFF 유지. c00b33d8e�
 
 ## 재개
 `D:\Development\code-destiny\.codex-worktrees\paid-media-webtoon-20261028-215429`에서 `D:\Development\code-destiny\.codex-worktrees\paid-media-webtoon-20261028-215429\docs\handoff\paid-media-brand-50k-20261029.md`를 읽는다. 인계 전 기준 커밋 `f37bed60dd1c514a6dc2c3dbfcc2945e1fdca96b` 및 이후 인계 문서 커밋을 git log -1로 확인한다. Claude가 캠페인 고급옵션 화면에서 기존 등록 상태 확인부터 이어간다. 소스 전달은 최신 main CI 확인 후 진행한다. 캠페인은 미완료이므로 문서 active/워크트리를 인계용으로 보존하며 전달과 광고 작업이 끝나면 배수한다.
+
+- 전달: 코드 커밋 `133e47ce6a9a5a5401877c2e902d605fa8b24a30` main push 완료. Node 31/Jest 48 및 check:pre-push 통과. 운영 승격은 사용자 결정으로 보류. 이 커밋의 main CI는 최종 보고 시 확인하며 이전 65a864b88의 성공으로 대체하지 않는다. 후속 순서: 정식 서버 refund 구현·동의/식별자/중복 방지 검증, 다른 작업 검토 후 운영 승인, 실제 GA 수신 및 네이버 심사/전환 연결 확인. 광고 OFF 유지.
