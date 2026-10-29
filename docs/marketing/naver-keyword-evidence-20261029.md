@@ -90,3 +90,7 @@
 - 초융합/신년운세 변경 3파일은 소개·가치 설명·FAQ뿐. 결제/가격/인증/API/DB 정책 변경 없음.
 - check:pre-push: home-service-registry 및 public-mirror-fresh 통과, sitemap-lastmod 원장 드리프트로 실패. 기존 sitemap:generate로 복구 후 재검증 필요.
 - 전체 check:fast는 이전 실행 미완료. 모바일 실화면/실결제/상담 보관함/GA4 실제 수신 미검증. 광고 OFF 해제 조건을 충족하지 못함.
+- 후속 결과: typecheck exit 0, 변경 3파일 ESLint exit 0 (기존 aria-pressed/listitem 경고 1건).
+- sitemap:generate로 원장 1항목 갱신 후 b5f7a54a4 커밋. check:pre-push 전체 exit 0: registry/public mirror/sitemap/llms/SEO entity 통과.
+- 원격 main 04780b8d54bbca7f32cef11a6fda06fd91643df0 CI 진행 중. 공유 체크아웃의 world/SEO/CSS 미커밋 작업 보존. 이번 코드 push/운영 반영 미실행.
+- 실제 GA4 G-FMHV4ZHY3G 수신 확인용 접근 요청. 환불 이벤트 및 실결제 대사는 완료 아님. 광고 OFF 유지.
