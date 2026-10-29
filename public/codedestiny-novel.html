@@ -543,6 +543,9 @@ body.novel-paused *{animation-play-state:paused!important}
 
 /* 성운 44개는 무한 애니메이션이라 불투명한 플레이어 뒤에서도 계속 합성된다. 플레이어가 떠 있는 동안 뺀다. */
 body.novel-playing #nebula{display:none}
+.novelLanguage{display:grid;gap:6px;max-width:100%;margin:16px 0;color:var(--gold);font:inherit}
+.novelLanguage select{font:inherit;min-height:44px;max-width:100%;width:100%;padding:8px 12px;background:#10182a;color:#fff;border:1px solid #b99b57;border-radius:8px}
+.novelLanguage small{font-size:.8rem;line-height:1.5;overflow-wrap:anywhere}
 </style>
 </head>
 <body>
@@ -576,6 +579,10 @@ body.novel-playing #nebula{display:none}
     <h2><span>연이의</span><span>운명 노벨</span></h2>
     <p class="tag">꽃돼지가 된 연이와 비밀을 품은 영냥이. 낯선 세계를 건너며, 정해진 운명 너머의 답을 함께 찾아가는 이야기.</p>
     <nav id="menu" aria-label="소설 읽기"></nav>
+    <label class="novelLanguage" for="novelLanguage"><span>언어 · Language</span>
+      <select id="novelLanguage"><option value="ko">한국어</option><option value="en">English</option><option value="ja">日本語</option><option value="zh-CN">简体中文</option><option value="zh-TW">繁體中文</option></select>
+      <small id="novelLanguageStatus" role="status" aria-live="polite"></small>
+    </label>
     <a class="novelWorld" href="/world/" aria-label="캐릭터와 세계관 페이지 보기">
       <svg class="novelWorldMark" aria-hidden="true" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="24" cy="24" r="16"/><ellipse cx="24" cy="24" rx="7" ry="16"/><path d="M8 24h32M12.5 15.5h23M12.5 32.5h23M24 2v8m0 28v8m-22-22h8m28 0h8"/><path d="m24 15 2.2 6.8L33 24l-6.8 2.2L24 33l-2.2-6.8L15 24l6.8-2.2L24 15Z" fill="currentColor" stroke="none"/></svg>
       <span class="novelWorldCopy"><strong>캐릭터와 세계관</strong><small>연이와 영냥이가 걷는 세계를 살펴보세요</small></span>
@@ -2254,6 +2261,40 @@ var NOVEL_MANIFEST=null;
 var NOVEL_DATA_READY=null;
 var NOVEL_EPISODE_LOADS={};
 var _episodeLRU=[];
+var NOVEL_LOCALE='ko';
+function requestedNovelLocale(){
+  var saved='';try{saved=localStorage.getItem('cd:novel:language')||'';}catch(_){}
+  var cookies=document.cookie.split(';').map(function(value){return value.trim();});
+  function cookie(name){var item=cookies.find(function(value){return value.indexOf(name+'=')===0;});return item?decodeURIComponent(item.slice(name.length+1)):'';}
+  var site=window.__cdAppLanguage||new URLSearchParams(location.search).get('lang')||(cookie('cd_locale_explicit')==='1'?cookie('cd_locale'):'')||cookie('cd_geo_locale')||cookie('cd_locale');
+  var tag=(new URLSearchParams(location.search).get('novelLang')||saved||site||navigator.language||'en').toLowerCase().replace(/_/g,'-');
+  if(/^ko(?:-|$)/.test(tag))return 'ko';if(/^ja(?:-|$)/.test(tag))return 'ja';
+  if(/^zh(?:-|$)/.test(tag))return /(?:^|-)(?:hant|tw|hk|mo)(?:-|$)/.test(tag)?'zh-TW':'zh-CN';
+  return 'en';
+}
+function selectNovelEdition(manifest){
+  var available=manifest.availableLocales||['ko'],requested=requestedNovelLocale();
+  var select=document.getElementById('novelLanguage'),status=document.getElementById('novelLanguageStatus');
+  NOVEL_LOCALE=available.indexOf(requested)>=0?requested:'ko';
+  if(select){
+    Array.from(select.options).forEach(function(option){option.disabled=available.indexOf(option.value)<0;});
+    select.value=NOVEL_LOCALE;
+    select.onchange=function(){
+      if(available.indexOf(select.value)<0)return;
+      try{localStorage.setItem('cd:novel:language',select.value);}catch(_){}
+      var url=new URL(location.href);url.searchParams.set('novelLang',select.value);url.hash='';location.assign(url.href);
+    };
+  }
+  if(status)status.textContent=requested!==NOVEL_LOCALE?'This edition is being prepared. The Korean original is shown.':'한국어 · English · 日本語 · 简体中文 · 繁體中文';
+  document.documentElement.lang=NOVEL_LOCALE;
+  if(NOVEL_LOCALE==='ko')return manifest;
+  return fetch('/data/novel/'+NOVEL_LOCALE+'/manifest.json',{cache:'no-cache'}).then(function(response){
+    if(!response.ok)throw new Error('Novel edition unavailable');return response.json();
+  }).then(function(translated){
+    if(translated.sourceHash!==manifest.sourceHash||translated.locale!==NOVEL_LOCALE)throw new Error('Novel edition is stale');
+    return translated;
+  });
+}
 function retainEpisode(index,episode){
   EPISODES[index]=episode;
   _episodeLRU=_episodeLRU.filter(function(i){return i!==index;});_episodeLRU.push(index);
@@ -2269,7 +2310,7 @@ function initNovelData(){
   NOVEL_DATA_READY=fetch("/data/novel/manifest.json",{cache:"no-cache"}).then(function(response){
     if(!response.ok)throw new Error("manifest HTTP "+response.status);
     return response.json();
-  }).then(function(manifest){
+  }).then(selectNovelEdition).then(function(manifest){
     if(!manifest||!Array.isArray(manifest.episodes)||!manifest.episodes.length)throw new Error("invalid manifest");
     // A fixed reading order, independent of previous reader selections.
     manifest.episodes=manifest.episodes.filter(function(episode){return !episode.branch||episode.branch==="reality";});
