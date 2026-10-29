@@ -169,7 +169,7 @@ export default function HomePage() {
         <ConsultationDiscovery />
         <div className={styles.discovery}>
           <section className={styles.section} aria-labelledby="homeServices">
-            <div className={styles.sectionHeading}><h2 id="homeServices">어떤 운세가 궁금하세요?</h2><p>익숙한 사주부터 새로운 별의 이야기까지.</p></div>
+            <div className={styles.sectionHeading}><h2 id="homeServices"><NativeHomeText>어떤 운세가 궁금하세요?</NativeHomeText></h2><p><NativeHomeText>익숙한 사주부터 새로운 별의 이야기까지.</NativeHomeText></p></div>
             <ul className={styles.serviceList}>
               {HOME_CATEGORIES.map(item => <li key={item.key}>
                 <Link href={item.href} {...discoveryTracking(item.key)}>
@@ -177,21 +177,21 @@ export default function HomePage() {
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img className={styles.methodArt} src={item.image} width={320} height={213} alt="" loading="lazy" decoding="async" />
                   </span>
-                  <div className={styles.methodCopy}><h3><NativeHomeText>{item.title}</NativeHomeText></h3><p>{item.description}</p></div>
+                  <div className={styles.methodCopy}><h3>{["saju", "tarot", "sukuyo", "vedic", "ziwei", "astrology"].includes(item.key) ? <NativeHomeDictionaryText translationKey={`home.nav.${item.key}`}>{item.title}</NativeHomeDictionaryText> : <NativeHomeText>{item.title}</NativeHomeText>}</h3><p><NativeHomeText>{item.description}</NativeHomeText></p></div>
                   <svg className={styles.linkArrow} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6" /></svg>
                 </Link>
               </li>)}
             </ul>
             <nav className={styles.quickLinks} aria-label="바로 확인하는 운세">
-              <Link href="/manse/" {...discoveryTracking("manse")}>만세력으로 명식 확인하기</Link>
-              <Link href="/fortune/tomorrow/" {...discoveryTracking("zodiac")}>내일 운세 보기</Link>
-              <Link href="/fortune/monthly/" {...discoveryTracking("zodiac")}>이번 달 운세 보기</Link>
+              <Link href="/manse/" {...discoveryTracking("manse")}><NativeHomeText>만세력으로 명식 확인하기</NativeHomeText></Link>
+              <Link href="/fortune/tomorrow/" {...discoveryTracking("zodiac")}><NativeHomeText>내일 운세 보기</NativeHomeText></Link>
+              <Link href="/fortune/monthly/" {...discoveryTracking("zodiac")}><NativeHomeText>이번 달 운세 보기</NativeHomeText></Link>
             </nav>
           </section>
           <section className={styles.section} aria-labelledby="homeConcerns">
-            <div className={styles.sectionHeading}><h2 id="homeConcerns">지금 마음에 걸리는 이야기</h2><p>연애·일·돈·관계, 질문에서 시작해도 좋아요.</p></div>
+            <div className={styles.sectionHeading}><h2 id="homeConcerns"><NativeHomeText>지금 마음에 걸리는 이야기</NativeHomeText></h2><p><NativeHomeText>연애·일·돈·관계, 질문에서 시작해도 좋아요.</NativeHomeText></p></div>
             <ul className={styles.concernList}>{HOME_CONCERNS.map(item => <li key={item.title}>
-              <Link href={item.href} {...discoveryTracking(item.key, "related")}><h3><NativeHomeText>{item.title}</NativeHomeText></h3><p>{item.description}</p></Link>
+              <Link href={item.href} {...discoveryTracking(item.key, "related")}><h3><NativeHomeText>{item.title}</NativeHomeText></h3><p><NativeHomeText>{item.description}</NativeHomeText></p></Link>
             </li>)}</ul>
             <div className={styles.advisers}>
               <Link href="/fortune-tea-house/" {...discoveryTracking("tea", "related")}>
