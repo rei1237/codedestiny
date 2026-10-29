@@ -191,11 +191,33 @@ test('switching supported languages keeps the active profile step without restar
 });
 
 test('an unsupported entry stays hidden and can later switch to a translated guide',async()=>{
- const ctx=setup(),{w}=ctx;w.document.documentElement.lang='fr';ctx.run();ctx.tick();
+ const ctx=setup(),{w}=ctx;w.document.documentElement.lang='it';ctx.run();ctx.tick();
  assert.equal(w.document.querySelector('.cd-first').hidden,true);
  assert.equal(w.document.querySelector('dialog').open,false);
  w.document.documentElement.lang='ja';await new Promise(resolve=>setImmediate(resolve));
  assert.equal(w.document.querySelector('.cd-first').hidden,false);
  assert.doesNotMatch(w.document.querySelector('.cd-first').textContent,/[가-힣]/);
  ctx.dom.window.close();
+});
+
+test('all supported languages render translated guidance without a network request',()=>{
+ for(const locale of ['ko','en','ja','zh-CN','zh-TW','vi','hi','es','fr','de','nl','ms']) {
+  const ctx=setup(),{w}=ctx;
+  w.document.documentElement.lang=locale;
+  w.fetch=()=>{throw new Error('The guide must not call an API');};
+  ctx.run();ctx.tick();
+  assert.equal(w.document.querySelector('.cd-first').hidden,false,locale);
+  const text=w.document.querySelector('dialog').textContent;
+  assert.ok(text.length>500,locale);
+  if(locale!=='ko')assert.doesNotMatch(text,/[가-힣]/,locale);
+  w.document.querySelector('[data-first-next]').click();
+  assert.ok(w.document.querySelector('.cd-first__story').textContent.length>30,locale);
+  ctx.dom.window.close();
+ }
+});
+
+test('Chinese regional and script tags select the matching guide',()=>{
+ const normalize=Function(copySource+';return firstVisitLocale;')();
+ for(const locale of ['zh-TW','zh-HK','zh-MO','zh-Hant','zh_Hant_TW'])assert.equal(normalize(locale),'zh-tw');
+ for(const locale of ['zh','zh-CN','zh-SG','zh-Hans','zh_Hans_CN'])assert.equal(normalize(locale),'zh-cn');
 });
