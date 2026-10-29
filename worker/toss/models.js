@@ -35,7 +35,7 @@ export const TossPurchase = model('TossPurchase', {
 export const TossNativeConsultation = model('TossNativeConsultation', {
   _id:String,identityId:{type:String,required:true},ownerId:{type:mongoose.Schema.Types.ObjectId,required:true},
   environment:{type:String,enum:['DEFAULT','SANDBOX'],required:true},
-  nativeService:{type:String,enum:['tea','neo','fusion'],required:true},
+  nativeService:{type:String,enum:['tea','neo','fusion','life-book'],required:true},
   requestId:{type:String,required:true},resultId:{type:String,required:true},
   featureKey:{type:String,required:true},inputHash:{type:String,required:true},
   input:{type:mongoose.Schema.Types.Mixed,required:true},

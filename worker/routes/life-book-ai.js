@@ -10,7 +10,7 @@ import { consultationRefundResponse } from "../lib/consultation-refund-state.js"
 import { tokensRequiredForChars } from "../lib/llm-budget.js";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { resolveForbiddenPatterns } from "../lib/llm-leak-guard.js";
-import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
+import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest as webOptionalUser, isAuthDbInfraError } from "../lib/auth.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
 import { LifeBookAiConsultation, MonthlyCreditLedger, PaidExecutionRecord, Payment, PointHistory, User } from "../lib/models.js";
@@ -30,6 +30,9 @@ import { canStripForbiddenText } from "../lib/llm-leak-guard.js";
 import {clampSyncLlmTimeoutMs, PAID_LLM_PARTS_PER_REQUEST } from "../lib/sync-llm-timeout.js";
 import { handleBillingRoutes, BILLING_SNAPSHOT_USER_PROJECTION } from "./billing.js";
 import { claimRequestBillingEvidence, evidenceClaimErrorBody, releaseRequestBillingEvidence } from "../lib/billing-evidence-claim.js";
+
+import { nativeTossContext, bindNativeTossRequest } from '../toss/native-context.js';
+const getOptionalUserFromRequest=(request,...args)=>nativeTossContext(request)?.auth||webOptionalUser(request,...args);
 
 const SERVICE_KEY = "life-book-ai";
 const FEATURE_KEY = "life-book-ai-consultation";
@@ -1894,6 +1897,10 @@ async function restoreBillingGateAccessOnFailure({ userId, access, reason = MESS
 async function applyUsageOnce({ request, env, auth, userId, sessionId, access, idempotencyKey, pricing, orderName = ORDER_NAME }) {
   const existing = await LifeBookAiConsultation.findOne({ id: sessionId, userId: clean(userId) }).select("usageAppliedAt llmMeta.pricingSnapshot").lean();
   if (!existing || !idempotencyKey) throw resultStorageUnavailable(sessionId);
+  if (nativeTossContext(request)) {
+    const stored = await LifeBookAiConsultation.findOne({ id: sessionId, userId: clean(userId) }).lean();
+    await nativeTossContext(request).assertStored(stored);
+  }
   if (existing?.usageAppliedAt) return true;
 
   if (normalizeConsultAccessType(access.accessType) === "pass") {
@@ -1911,7 +1918,7 @@ async function applyUsageOnce({ request, env, auth, userId, sessionId, access, i
     const error = new Error("A Payment Service access grant is required for monthly usage.");
     error.code = "PAYMENT_ACCESS_GRANT_REQUIRED";
     throw error;
-  } else if (access.accessType === "paid" && access.paymentId) {
+  } else if (!auth.tossNative && access.accessType === "paid" && access.paymentId) {
     await Payment.updateOne(
       { userId, featureKey: billingFeatureKeyOf(access), merchantUid: access.paymentId },
       {
@@ -2004,6 +2011,11 @@ async function handleEnsureAccess(request, env, route = "/api/life-book-ai/prepa
 
   logLifeBookAi("LLM Access Check Start", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "passed", access: "checking", env }));
   const pricing = { ...getPricing(normalized.input), env };
+  if (nativeTossContext(request)) {
+    const access = await nativeTossContext(request).access(body, normalized, idempotencyKey);
+    return access.ok ? json({ ok: true, accessType: 'paid' }) : json({ ok: false, reason: 'PAYMENT_REQUIRED',
+      paymentPayload: buildBillingGatePayload(pricing, idempotencyKey, normalized.input, normalized.inputHash) }, { status: 402 });
+  }
   if (isAdmin(auth)) {
     logLifeBookAction("entitlement_check", {
       route,
@@ -2077,6 +2089,7 @@ async function handleEnsureAccess(request, env, route = "/api/life-book-ai/prepa
 }
 
 async function resolveStartAccess({ request, env, auth, body, normalized, idempotencyKey }) {
+  if (nativeTossContext(request)) return nativeTossContext(request).access(body, normalized, idempotencyKey);
   const token = clean(body?.accessToken || request.headers.get("x-life-book-ai-access-token"));
   if (token) {
     try {
@@ -2163,8 +2176,9 @@ function hasRequiredLifeFortuneSaju(sajuResult, birthInfo = {}) {
 }
 
 async function restoreAccessBeforeGenerationFailure({ request, env, auth, userId, access, idempotencyKey, sessionId, error, orderName, reason = MESSAGES.llmFailed }) {
+  if (auth?.tossNative) return;
   // 본문을 못 받은 최종 실패다 — 증빙 claim 을 풀어 결제한 사용자가 새 시도로 다시 받게 한다.
-  await releaseRequestBillingEvidence(env, { userId: clean(userId), requestId: idempotencyKey, evidenceIds: [clean(access?.claimEvidenceId, 160)] }).catch(() => null);
+  if (!auth?.tossNative) await releaseRequestBillingEvidence(env, { userId: clean(userId), requestId: idempotencyKey, evidenceIds: [clean(access?.claimEvidenceId, 160)] }).catch(() => null);
   const deferredCanceled = await cancelDeferredBillingUsage({
     request,
     env,
@@ -2323,6 +2337,7 @@ async function handleResult(request, env, pathId = "") {
     });
     return json({ ok: false, reason: "RESULT_NOT_FOUND", message: MESSAGES.resultNotFound }, { status: 404 });
   }
+  if (nativeTossContext(request)) await nativeTossContext(request).assertStored(consultation);
   const refund = consultationRefundResponse(consultation);
   if (refund) return json(refund.body, { status: refund.status });
   if (["generating", "partial", "delivery_pending"].includes(consultation.status)) {
@@ -2356,7 +2371,7 @@ async function handleResult(request, env, pathId = "") {
     }, { status: 503 });
   }
 
-  if (await isStoredPaidResultRevoked(auth.userId, clean(consultation.featureKey, 80) || FEATURE_KEY, consultation)) {
+  if (!nativeTossContext(request) && await isStoredPaidResultRevoked(auth.userId, clean(consultation.featureKey, 80) || FEATURE_KEY, consultation)) {
     return json({ ok: false, reason: "PAYMENT_REVOKED", retryable: false }, { status: 403 });
   }
 
@@ -2396,6 +2411,7 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
     await connectDb(env);
     const stored = await LifeBookAiConsultation.findOne({ id: clean(body.resumeSessionId), userId: clean(resumeAuth.userId) }).lean();
     if (!stored) return invalidInput(MESSAGES.resultNotFound, 404);
+    if (nativeTossContext(request)) await nativeTossContext(request).assertStored(stored);
     const refund = consultationRefundResponse(stored);
     if (refund) return json(refund.body, { status: refund.status });
     if (stored.status === "completed") return json(publicSession(stored));
@@ -2404,7 +2420,9 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
     delete body.accessToken;
     const headers = new Headers(request.headers);
     headers.delete("x-life-book-ai-access-token");
+    const native = nativeTossContext(request);
     request = new Request(request.url, { method: "POST", headers, body: JSON.stringify(body) });
+    if (native) bindNativeTossRequest(request, native);
   }
   const idempotencyKey = readIdempotencyKey(request, body);
   logLifeBookAi("LLM Payload Received", safeLogPayload({ route, requestId: idempotencyKey, body, env }));
@@ -2432,6 +2450,10 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
     status: "received",
   });
 
+  if (nativeTossContext(request)) {
+    const access = await nativeTossContext(request).access(body, normalized, idempotencyKey);
+    if (!access.ok) return paymentVerifyFailed();
+  }
   const lockKey = `${clean(auth.userId)}:${idempotencyKey}`;
   if (startLocks.has(lockKey)) {
     logLifeBookAction("generate_reused", {
@@ -2454,6 +2476,7 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
     const orderName = getConsultationOrderName(normalized.input);
 
     const existing = await LifeBookAiConsultation.findOne({ userId: clean(auth.userId), idempotencyKey }).lean();
+    if (existing && nativeTossContext(request)) await nativeTossContext(request).assertStored(existing);
     const refund = consultationRefundResponse(existing);
     if (refund) return json(refund.body, { status: refund.status });
     if (existing && clean(existing.inputHash) !== normalized.inputHash) return invalidInput(MESSAGES.invalidInput, 409);
@@ -2506,8 +2529,10 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
       return json(publicSession(completed));
     }
     // 결제 증빙 1건 = 상담 1건. 이용권은 정산 때 이번 키로 차감하므로 claim 할 ID 가 없다.
-    const evidenceClaim = await claimRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds: [clean(access.claimEvidenceId, 160)], featureKey: clean(access.featureKey, 80) || getConsultationFeatureKey(normalized.input) });
-    if (!evidenceClaim.ok) return json(evidenceClaimErrorBody(evidenceClaim), { status: evidenceClaim.status });
+    if (!auth.tossNative) {
+      const evidenceClaim = await claimRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds: [clean(access.claimEvidenceId, 160)], featureKey: clean(access.featureKey, 80) || getConsultationFeatureKey(normalized.input) });
+      if (!evidenceClaim.ok) return json(evidenceClaimErrorBody(evidenceClaim), { status: evidenceClaim.status });
+    }
 
     let sajuResult = null;
     try {
@@ -2631,6 +2656,7 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
       } catch (error) {
         if (error?.code === 11000) {
           const duplicate = await LifeBookAiConsultation.findOne({ userId: clean(auth.userId), idempotencyKey }).lean();
+          if (duplicate && nativeTossContext(request)) await nativeTossContext(request).assertStored(duplicate);
           const refund = consultationRefundResponse(duplicate);
           if (refund) return json(refund.body, { status: refund.status });
           logLifeBookAction("generate_reused", {
@@ -2957,7 +2983,8 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
       if (["RESULT_STORAGE_UNAVAILABLE", "RESULT_DELIVERY_PENDING"].includes(error?.code)) return json({ ...resultStorageFailurePayload(error), reason: error.code, ...(error.code === "RESULT_DELIVERY_PENDING" ? { message: error.message } : {}) }, { status: 503 });
       if (clean(error?.code) === "PROVIDER_DUPLICATE_BLOCKED") {
         const duplicate = await LifeBookAiConsultation.findOne({ id: sessionId }).lean();
-        const refund = consultationRefundResponse(duplicate);
+        if (duplicate && nativeTossContext(request)) await nativeTossContext(request).assertStored(duplicate);
+          const refund = consultationRefundResponse(duplicate);
         if (refund) return json(refund.body, { status: refund.status });
         if (duplicate?.status === "completed") return json(publicSession(duplicate));
         if (duplicate?.status === "generation_failed") {
@@ -2987,7 +3014,7 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
         } } }, { new: true },
       ).lean().catch(() => null);
       if (!failedOwner) return json(resultStorageFailurePayload(resultStorageUnavailable(sessionId)), { status: 503 });
-      await releaseRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds: [clean(access?.claimEvidenceId, 160)] }).catch(() => null);
+      if (!auth?.tossNative) await releaseRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds: [clean(access?.claimEvidenceId, 160)] }).catch(() => null);
       const settlement = error.refundSettlement || (!error.lifeBookFailureClaimed ? await settleLifeBookFailureRefund(env, sessionId, auth.userId) : null);
       const restored = settlement?.refundStatus === "refunded";
       logLifeBookAi("Refund Or Restore", safeLogPayload({
@@ -3008,6 +3035,7 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
     }
   })().catch((error) => {
     if (["RESULT_STORAGE_UNAVAILABLE", "RESULT_DELIVERY_PENDING"].includes(error?.code)) return json({ ...resultStorageFailurePayload(error), reason: error.code, ...(error.code === "RESULT_DELIVERY_PENDING" ? { message: error.message } : {}) }, { status: 503 });
+    if (nativeTossContext(request) && error?.status) return json({ok:false,reason:error.code||"RESULT_NOT_AVAILABLE"},{status:error.status});
     logLifeBookAi("LLM Error", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "server_error", env, error }), "error");
     return serverError();
   }).finally(() => {
@@ -3040,6 +3068,7 @@ export async function handleLifeBookAiRoutes(request, env = {}) {
       message: clean(error?.message || error, 500),
       ...(isDevelopmentEnv(env) ? { stack: clean(error?.stack, 2000) } : {}),
     }, "error");
+    if (nativeTossContext(request) && error?.status) return json({ok:false,reason:error.code||"RESULT_NOT_AVAILABLE"},{status:error.status});
     // 풀 초기화 버스트/인증 조회 중 일시 DB 장애는 재시도 신호와 함께 503으로 — 하드 500 방지.
     // (surfaceDbInfraError로 재-throw된 인증 인프라 에러는 isAuthDbInfraError에만 걸리므로 함께 검사)
     if (isTransientMongoError(error) || isAuthDbInfraError(error)) {
@@ -3075,9 +3104,30 @@ export const __lifeBookAiTestUtils = {
 
 // Internal cron continuation: only a stored owner/id is accepted, never client input.
 // The normal handler rereads that owner's record and rechecks existing payment proof.
-export function resumeConsultationOnServer(env, doc) {
+export async function resumeConsultationOnServer(env, doc) {
   if (!doc?.userId || !doc.id) throw new Error("RECOVERY_doc.id_REQUIRED");
   const request = new Request("https://internal.invalid/api/life-book-ai/resume", { method: "POST", headers: { "content-type": "application/json" },
     body: JSON.stringify({ resumeSessionId: String(doc.id) }) });
-  return handleStart(request, env, undefined, { userId: String(doc.userId) });
+  const stored = await nativeLifeBookStoredState(env, String(doc.userId), String(doc.id));
+  if (stored?.accessSource === 'toss') {
+    const { bindNativeLifeBookRecovery } = await import('../toss/native-life-book.js');
+    if (!await bindNativeLifeBookRecovery(request, env, stored)) throw new Error('TOSS_RECOVERY_INTENT_MISSING');
+  }
+  return handleStart(request, env, undefined, nativeTossContext(request)?.auth || { userId: String(doc.userId) });
+}
+
+// Native orders freeze the exact original normalization and registered pricing.
+export function nativeLifeBookContract(body) {
+  const normalized = normalizeConsultationInput(body || {});
+  const requestId = clean(body?.idempotencyKey || body?.requestId, 180);
+  if (!normalized.ok || requestId.length < 12) throw Object.assign(new Error('상담 입력을 다시 확인해 주세요.'), { status: 400 });
+  return { requestId, resultId: requestId, featureKey: getConsultationFeatureKey(normalized.input), inputHash: normalized.inputHash, pricing: getPricing(normalized.input).pricing };
+}
+export async function nativeLifeBookStoredState(env, userId, resultId) {
+  return withMongoRetry(env, () => LifeBookAiConsultation.findOne({userId:String(userId), $or:[{id:resultId},{idempotencyKey:resultId}]}).lean());
+}
+
+export async function recoverUnstartedNativeConsultations(env, options) {
+  const { bootstrapNativeLifeBookOrders } = await import('../toss/native-life-book.js');
+  return bootstrapNativeLifeBookOrders(env, options);
 }
