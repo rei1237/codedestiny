@@ -1977,7 +1977,7 @@
       "packPass": "Pase de Yeongnyangi",
       "packTitle": "Pases de consulta de Yeongnyangi",
       "packName": "Lote {fish} de {total} usos",
-      "packScope": "Solo consultas {fish} · Sin caducidad de uso · {total} usos",
+      "packScope": "Solo consultas {fish} · {days} días · {total} usos",
       "packRemaining": "Quedan {remaining} de {total} usos",
       "packExpires": "Hasta {date}",
       "packOthers": "+{count} packs más",

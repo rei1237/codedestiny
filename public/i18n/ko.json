@@ -1826,7 +1826,7 @@
       "packPass": "영냥이 전용 이용권",
       "packTitle": "영냥이 전용 이용권",
       "packName": "{fish} 세트 {total}회",
-      "packScope": "{fish} 상담 전용 · 사용 기한 없음 · 총 {total}회",
+      "packScope": "{fish} 상담 전용 · {days}일 · 총 {total}회",
       "packRemaining": "{total}회 중 {remaining}회 남음",
       "packExpires": "{date}까지",
       "packOthers": "외 {count}개 세트 보유",

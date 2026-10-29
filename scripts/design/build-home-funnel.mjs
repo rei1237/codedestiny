@@ -1,3 +1,4 @@
+import { renderPassBenefits } from '../../lib/marketing/pass-benefits.mjs';
 import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
 import { CURRENT_PASS_PLANS, CURRENT_PASS_POLICY_VERSION } from '../../lib/payment/pass-policy.js';
@@ -271,7 +272,7 @@ vars.signature = `<section data-cd-funnel-section="signature_consult" class="cd-
   <a class="cd-sig__samples-link" href="/consultation-samples/"><svg class="cd-choice__moon" viewBox="0 0 64 64" aria-hidden="true"><circle class="cd-choice__moon-orbit" cx="31" cy="32" r="29"/><path class="cd-choice__moon-crescent" d="M36 9a24 24 0 1 0 20 35A27 27 0 0 1 36 9Z"/><path class="cd-choice__moon-star" d="m48 10 1.7 5.3L55 17l-5.3 1.7L48 24l-1.7-5.3L41 17l5.3-1.7Z"/><path class="cd-choice__moon-star cd-choice__moon-star--small" d="m54 29 1 3 3 1-3 1-1 3-1-3-3-1 3-1Z"/><path class="cd-choice__moon-orbit" d="M17 50c8 6 19 7 28 2"/><circle cx="37" cy="29" r=".8" fill="currentColor" stroke="none"/></svg><span class="cd-choice__samples-label"><span>상담별 구성과</span> <strong>예시 보기</strong></span><svg class="cd-choice__cta-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg></a>
 </section>`;
 
-vars.pass = `<section class="cdh-pass" aria-labelledby="cdhPassTitle" data-design-marker="moonlight-pass-banner-v20260626">
+vars.pass = '<link rel="stylesheet" href="/styles/pass-benefits.css">' + renderPassBenefits('honey','ggul-honey-pass') + `<section class="cdh-pass" data-cd-localized-pass aria-labelledby="cdhPassTitle" data-design-marker="moonlight-pass-banner-v20260626">
   <div class="cdh-pass__intro">
     <img class="cdh-pass__mascot" src="/images/home/yeoni-pass-mascot-240.webp" srcset="/images/home/yeoni-pass-mascot-240.webp 240w, /images/home/yeoni-pass-mascot-480.webp 480w" sizes="(max-width: 640px) 104px, 168px" alt="이용권 카드를 들고 웃는 꽃돼지 연이" data-cd-trans-attr="alt:home.gardenCopy.passMascotAlt" width="240" height="240" loading="lazy" decoding="async">
     <div class="cdh-pass__copy">
@@ -299,10 +300,10 @@ vars.pass = `<section class="cdh-pass" aria-labelledby="cdhPassTitle" data-desig
     return `
     <li class="cdh-pass__tier cdh-pass__tier--pack" data-pack-plan="${plan.planId}"><a class="cdh-pass__tier-link" href="/points/#fish-packs">
       <img class="cdh-pass__pack-art" src="/assets/yeongnyangi/service-packs/${plan.fishId}-gift-set-v2.webp" alt="" width="240" height="240" loading="lazy" decoding="async">
-      <span class="cdh-pass__tier-name" data-cd-trans="home.passCopy.packName" data-cd-vars='{"fish":"${fishKey}","total":"${plan.totalUses}"}'>${plan.label}</span>
+      <span class="cdh-pass__tier-name" data-cd-trans="home.passCopy.packName" data-cd-vars='{"fish":"${fishKey}","total":"${plan.totalUses}","days":"${plan.validityDays}"}'>${plan.label}</span>
       <strong class="cdh-pass__tier-price"><span data-cd-play-price data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars='{"amount":"${Number(plan.priceKRW).toLocaleString('en-US')}"}'>${won(plan.priceKRW)}</span></strong>
       <span class="cdh-pass__tier-line" data-cd-trans="home.passCopy.packPerUse" data-cd-vars='{"amount":"${Number(plan.unitPriceKRW).toLocaleString('en-US')}"}'>회당 ${won(plan.unitPriceKRW)} 상담</span>
-      <span class="cdh-pass__tier-line" data-cd-trans="home.passCopy.packScope" data-cd-vars='{"fish":"${fishKey}","total":"${plan.totalUses}"}'>${fishKo} 상담 전용 · 사용 기한 없음 · 총 ${plan.totalUses}회</span>
+      <span class="cdh-pass__tier-line" data-cd-trans="home.passCopy.packScope" data-cd-vars='{"fish":"${fishKey}","total":"${plan.totalUses}","days":"${plan.validityDays}"}'>${fishKo} 상담 전용 · ${plan.validityDays}일 · 총 ${plan.totalUses}회</span>
     </a></li>`;
   }).join('')}
   </ul>

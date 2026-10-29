@@ -16,7 +16,7 @@ import {loginForCurrentPage} from '@/app/yeongnyangi/_lib/api';
 import {products} from '@/worker/yeongnyangi/payments/catalog';
 import checkoutEntry from '@/js/core/checkout-entry.js';
 import {confirmPackOrderWithRecheck,consumeServicePack,loadPackPayMethodAvailability,PACK_PAY_METHODS,payPackOrder,preparePackPurchase,quoteServicePack,readPackCatalog,readPackWallet,readPendingPack,savePendingPack,resumePendingPackPurchase,samePackSnapshot,ServicePackError,type OwnedServicePack,type PackQuote,type ServicePackPlan} from './service-pack-client';
-import {packName,packText,servicePackCopy} from './service-pack-copy';
+import {packName,packText,servicePackCopy,packDuration,packScope,packExpiry} from './service-pack-copy';
 import styles from './service-packs.module.css';
 import {APPLIED_STAMP_IMAGES,SERVICE_PACK_IMAGES} from './service-pack-images';
 import {usablePacks,type PackWalletView} from './OwnedPassesSummary';
@@ -39,7 +39,7 @@ export function PackRows({packs,locale}:{packs:OwnedServicePack[];locale:Loading
  const copy=servicePackCopy(locale);
  return <ul className={styles.wallet}>{packs.map(pack=><li key={pack.entitlementId} data-pack-entitlement={pack.entitlementId}>
   <Image src={SERVICE_PACK_IMAGES[pack.fishId]} width={240} height={240} sizes="100px" alt="" loading="lazy"/>
-  <div><h4>{packName(pack,locale)}</h4><strong>{packText(copy.remaining,{total:pack.totalUses,remaining:pack.remainingUses})}</strong><p>{copy.validity}</p>
+  <div><h4>{packName(pack,locale)}</h4><strong>{packText(copy.remaining,{total:pack.totalUses,remaining:pack.remainingUses})}</strong><p>{packExpiry(pack,locale)}</p>
    <p>{eligibleNames(pack.eligibleFeatureKeys,locale)}</p>{!pack.available&&<p>{copy.inactive}</p>}</div>
   {pack.available&&<Link href="/yeongnyangi/fortune/" prefetch={false}>{copy.chooseConsultation}</Link>}
  </li>)}</ul>;
@@ -53,6 +53,7 @@ export function ServicePackShop({locale,overseasCharge=null,onWalletChange,conte
  const [catalog,setCatalog]=useState<{plans:ServicePackPlan[];error:boolean;loading:boolean;giftEnabled:boolean}>({plans:[],error:false,loading:true,giftEnabled:false});
  const [wallet,setWallet]=useState<{ownerId:string;packs:OwnedServicePack[];nextCursor:string|null;error:boolean;loading:boolean}>({ownerId:'',packs:[],nextCursor:null,error:false,loading:true});
  const [selected,setSelected]=useState<string>(''),[consent,setConsent]=useState(false),[busy,setBusy]=useState(false),[message,setMessage]=useState(''),[pendingOrder,setPendingOrder]=useState('');
+ const [referredPack]=useState(()=>typeof window==='undefined'?'':new URLSearchParams(window.location.search).get('pack')||'');
  const [resumeConsent,setResumeConsent]=useState(false),[,setPayMethodRevision]=useState(0);
  const [purchaseType,setPurchaseType]=useState<PackPurchaseType>('SELF'),[gift,setGift]=useState<PackGiftDraft>({senderName:'',recipientName:'',giftMessage:''});
  // 결제가 확정된 주문. 섹션 상단 완료 패널이 갱신된 보유 목록에서 남은 횟수·만료일을 찾는다.
@@ -70,6 +71,7 @@ export function ServicePackShop({locale,overseasCharge=null,onWalletChange,conte
   catch{if(scope.current===ownerId)setWallet(value=>({...value,ownerId,error:true,loading:false}));}
  },[ownerId]);
  useEffect(()=>{void refreshCatalog();},[refreshCatalog]);
+ useEffect(()=>{if(catalog.plans.some(item=>item.planId===referredPack))document.getElementById(referredPack)?.scrollIntoView({block:'center'});},[catalog.plans,referredPack]);
  useEffect(()=>{walletCallback.current?.(!ownerId?[]:wallet.ownerId!==ownerId?'loading':wallet.packs.length?wallet.packs:wallet.loading?'loading':wallet.error?'error':[]);},[ownerId,wallet]);
  useEffect(()=>{if(completed)completedRef.current?.scrollIntoView({behavior:'smooth',block:'center'});},[completed]);
  useEffect(()=>{recheck.current?.abort();setSelected('');setConsent(false);setResumeConsent(false);setMessage('');setPendingOrder('');setCompleted(null);if(ownerId){void refreshWallet();setPendingOrder(readPendingPack(ownerId)?.orderId||'');}},[ownerId,refreshWallet]);
@@ -159,7 +161,7 @@ export function ServicePackShop({locale,overseasCharge=null,onWalletChange,conte
  const footer=<>
   {pendingOrder&&<button type="button" className={`mt-4 ${ghost}`} disabled={busy} onClick={()=>void checkOrder(pendingOrder)}>{copy.recheck}</button>}
   {resumePlan&&pending&&<div className="moon-plan-card mt-4 rounded-[22px] p-4" data-pack-resume>
-   <h3 className="text-base font-black text-white">{packName(resumePlan,locale)} · {won(resumePlan.priceKRW,locale)} · {pending.purchaseType==='GIFT'?copy.giftPurchase:copy.selfPurchase}</h3>
+   <p>{packScope(resumePlan,locale)}</p><h3 className="text-base font-black text-white">{packName(resumePlan,locale)} · {won(resumePlan.priceKRW,locale)} · {pending.purchaseType==='GIFT'?copy.giftPurchase:copy.selfPurchase}</h3>
    <p className="mt-1 text-sm leading-relaxed text-[color:var(--moon-mist)]">{copy.resumeNotice}</p>
    <label className="mt-3 flex items-start gap-2 rounded-[14px] border border-[color:var(--sp-line)] bg-[color:var(--sp-raised)] px-3.5 py-3 text-[12px] font-bold text-[color:var(--sp-ink)]"><input type="checkbox" className="mt-0.5 h-4 w-4 flex-shrink-0 accent-[color:var(--sp-light)]" checked={resumeConsent} onChange={event=>setResumeConsent(event.target.checked)} disabled={busy}/><span>{copy.resumeConsent}</span></label>
    <p className="mt-2 text-sm"><a href={links.terms}>{policy.legalTerms}</a> · <a href={links.refund}>{policy.legalRefund}</a></p>
@@ -175,7 +177,7 @@ export function ServicePackShop({locale,overseasCharge=null,onWalletChange,conte
    </>}
   </div>
  </>;
- const salePlans=catalog.plans.filter(item=>item.totalUses===5&&(!contextual||Boolean(context&&item.eligibleFeatureKeys.includes(context.featureKey))));
+ const salePlans=catalog.plans.filter(item=>(!contextual||Boolean(context&&item.eligibleFeatureKeys.includes(context.featureKey))));
  const shopClass=styles.shop;
  const shopIntro=<div className={styles.shopIntro}>
    <Image src="/assets/yeongnyangi/original/hero-800.webp" alt="" width={800} height={800} sizes="(max-width: 640px) 88px, 160px" className={styles.shopGuide}/>
@@ -198,7 +200,7 @@ export function ServicePackShop({locale,overseasCharge=null,onWalletChange,conte
     <div className="min-w-0">
      <p className="text-base font-black leading-snug text-white [word-break:keep-all] [text-wrap:balance]">{completedName?packText(copy.appliedDone,{name:completedName}):copy.complete}</p>
      {completedName&&<p className="mt-1 text-sm font-bold text-[color:var(--moon-mist)]">{copy.complete}</p>}
-     {completedPack&&<p className="mt-1 flex flex-wrap gap-x-2 text-sm font-bold text-[color:var(--moon-teal)]"><span>{packText(copy.remaining,{total:completedPack.totalUses,remaining:completedPack.remainingUses})}</span><span className="text-[color:var(--moon-mist)]">{copy.validity}</span></p>}
+     {completedPack&&<p className="mt-1 flex flex-wrap gap-x-2 text-sm font-bold text-[color:var(--moon-teal)]"><span>{packText(copy.remaining,{total:completedPack.totalUses,remaining:completedPack.remainingUses})}</span><span className="text-[color:var(--moon-mist)]">{packExpiry(completedPack,locale)}</span></p>}
     </div>
    </div>
    <div className="mt-3 flex flex-wrap gap-2">
@@ -213,21 +215,21 @@ export function ServicePackShop({locale,overseasCharge=null,onWalletChange,conte
     <div className="grid gap-4">{plans.map(item=>{
      const savings=item.unitPriceKRW*item.totalUses-item.priceKRW;
      const owned=usable.filter(pack=>pack.planId===item.planId),ownedLeft=owned.reduce((sum,pack)=>sum+pack.remainingUses,0);
-     return <article key={item.planId} data-pack-plan={item.planId} className={styles.shopPlan}>
+     return <article key={item.planId} id={item.planId} data-pack-plan={item.planId} data-referred={item.planId===referredPack} className={styles.shopPlan}>
       <div className={styles.planLayout}>
-       <div className={styles.planArt}>
+       <button type="button" className={styles.planArt} aria-label={`${packName(item,locale)} ${copy.select}`} disabled={busy||Boolean(pendingOrder)||isMobileAppRuntime()} onClick={()=>openPurchase(item.planId,'SELF')}>
         <Image src={SERVICE_PACK_IMAGES[item.fishId]} alt="" width={240} height={240} sizes="(min-width: 640px) 128px, 112px" loading="lazy" className="h-full w-full object-contain"/>
         {owned.length?<Image src={APPLIED_STAMP_IMAGES.yeongnyangi} alt="" width={120} height={120} sizes="64px" loading="lazy" data-applied-stamp className="absolute -bottom-2 -right-4 h-16 w-16 object-contain drop-shadow-[0_4px_8px_rgba(3,4,18,0.42)]"/>:null}
-       </div>
+       </button>
        <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-2">
          <h4 className="text-lg font-black text-white">{packName(item,locale)}</h4>
          {owned.length>0&&<span data-pack-owned className="rounded-full bg-[rgba(94,234,212,0.14)] px-2.5 py-1 text-xs font-black text-[color:var(--moon-teal)]">{packText(copy.ownedBadge,{remaining:ownedLeft})}</span>}
         </div>
         <p className="mt-2 text-xs leading-relaxed text-[color:var(--moon-mist)]">{copy.eligible}: {eligibleNames(item.eligibleFeatureKeys,locale)}</p>
-        <p className={styles.planPrice}>{won(item.priceKRW,locale)}</p>
+        <p className={styles.planComparison}><s>{won(item.unitPriceKRW*item.totalUses,locale)}</s><span> → </span><strong>{won(item.priceKRW,locale)}</strong></p>
         <div className="mt-3 flex flex-wrap gap-2">
-         <span className={`${chip} text-[color:var(--moon-silver)]`}>{packText(copy.scope,{fish:localizedTier(item.fishId,locale),total:item.totalUses})}</span>
+         <span className={`${chip} text-[color:var(--moon-silver)]`}>{packScope(item,locale)}</span>
          <span className={`${chip} text-[color:var(--moon-mist)]`}>{packText(copy.perUse,{amount:won(Math.round(item.priceKRW/item.totalUses),locale)})}</span>
         </div>
         {savings>0&&<p className="mt-2 text-xs font-bold text-[color:var(--moon-gold)]">{packText(copy.savings,{total:item.totalUses,amount:won(savings,locale)})}</p>}
@@ -257,8 +259,8 @@ export function ServicePackShop({locale,overseasCharge=null,onWalletChange,conte
     <p className="mt-1 text-[12px] font-bold text-[color:var(--sp-light)]">{copy.wonOnly}</p>
     <div className="mt-4 rounded-[14px] border border-white/12 bg-white/[0.07] px-3.5 py-3 text-[12px] leading-relaxed text-slate-200">
      <p className="font-black text-white">{copy.conditionsTitle}</p>
-     <p className="mt-1">{packText(copy.scope,{fish:localizedTier(plan.fishId,locale),total:plan.totalUses})}</p>
-     <p className="mt-1">{purchaseType==='GIFT'?`${copy.giftComplete} ${copy.giftUsagePeriod}`:copy.selfActivation}</p>
+     <p className="mt-1">{packScope(plan,locale)}</p>
+     <p className="mt-1">{locale==='ko' ? (purchaseType==='GIFT'?'선물 수령 후 ':'결제 확인 후 ')+packDuration(plan,locale) : packDuration(plan,locale)}</p>
      <p className="mt-1 font-bold text-[color:var(--sp-light)]">{copy.eligible}: {eligibleNames(plan.eligibleFeatureKeys,locale)}</p>
      <p className="mt-1 flex flex-wrap gap-x-4">
       <a href={links.terms} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center font-black text-[color:var(--sp-light)] underline">{policy.legalTerms}</a>
@@ -362,7 +364,7 @@ export function ServicePackCheckout({requestId,featureKey,locale,disabled,onBusy
   {!failed&&!busy&&quote?.status==='available'&&quote.candidates.some(pack=>pack.available)&&<>
    <fieldset className={styles.choices}><legend>{copy.owned}</legend>{quote.candidates.filter(pack=>pack.available).map(pack=><label key={pack.entitlementId}>
     <input type="radio" name="service-pack-entitlement" value={pack.entitlementId} checked={selected===pack.entitlementId} onChange={()=>setSelected(pack.entitlementId)} disabled={disabled||checking}/>
-    <span><strong>{packName(pack,locale)}</strong><span>{packText(copy.remaining,{total:pack.totalUses,remaining:pack.remainingUses})}</span><span>{copy.validity}</span></span>
+    <span><strong>{packName(pack,locale)}</strong><span>{packText(copy.remaining,{total:pack.totalUses,remaining:pack.remainingUses})}</span><span>{packExpiry(pack,locale)}</span></span>
    </label>)}</fieldset>
    <button type="button" onClick={()=>void consume()} disabled={disabled||checking||!selected}>{copy.use}</button>
   </>}
