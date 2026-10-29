@@ -2026,6 +2026,12 @@ userSchema.index({ referralCode: 1 }, { sparse: true });
 export const User = scopedModel(mongoose.models.User || mongoose.model("User", userSchema));
 export const ProfileCard = scopedModel(mongoose.models.ProfileCard || mongoose.model("ProfileCard", profileCardSchema));
 export const Payment = scopedModel(mongoose.models.Payment || mongoose.model("Payment", paymentSchema));
+// Browser-scoped analytics withdrawal receipts. Never contains a GA/client/customer ID.
+const analyticsWithdrawalSchema = new mongoose.Schema({
+  _id: { type: String, required: true },
+  revokedAt: { type: Date, required: true },
+}, { versionKey: false });
+export const AnalyticsWithdrawal = scopedModel(mongoose.models.AnalyticsWithdrawal || mongoose.model("AnalyticsWithdrawal", analyticsWithdrawalSchema));
 export const PointHistory = scopedModel(mongoose.models.PointHistory || mongoose.model("PointHistory", pointHistorySchema));
 export const MonthlyCreditLedger = scopedModel(mongoose.models.MonthlyCreditLedger
   || mongoose.model("MonthlyCreditLedger", monthlyCreditLedgerSchema));

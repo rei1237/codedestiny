@@ -158,3 +158,15 @@
 - check:fast 전체는 paid-gate-suite 시작 후 결과 없이 장시간 대기하여 중단(exit 1); 전체 통과 아님. 개별 mock/정적 검증 통과와 구분한다.
 - 원격 d5cf9ede2의 Release Cloudflare Pages and Worker 실행 40838019271에서 Deploy staging 단계 실패 확인. PR CI는 조회 시 진행 중. 기존 실패 위에 push하지 않는 저장소 규칙에 따라 이번 커밋의 main push를 보류했다. https://github.com/rei1237/codedestiny/actions/runs/40838019271
 - 이 작업의 운영 배포/광고 활성화 없음. 별도 세션의 배포 작업을 이 세션의 승인·성공으로 간주하지 않는다. 후속 전달 및 미완료 운영 검증을 위해 워크트리 유지.
+
+## 2026-10-29 동의 철회·배포 실패 복구
+- 배포 40838019271 실패 원인 확인: apps/toss/test/service-runtime.test.mjs의 module 변수명이 Next lint 규칙 위반. canonicalModule로 변수/참조만 변경. 해당 lint 및 오프라인 검사 5/5 통과. 토스 기능/가격/출시 스위치 변경 없음.
+- 브라우저의 동의 상태와 256비트 철회 확인값을 기존 공통 analytics.js에서 관리. 거부/철회는 로컬에 즉시 적용하고 같은 출처의 서버에 전달. 실패 시 pending 쿠키를 유지하고 online/pageshow/다음 동의 변경에서 재시도한다. 확인 응답 전 재동의해도 이전 확인값은 재사용하지 않는다.
+- 서버는 확인값의 SHA-256 해시만 보관하며 해당 브라우저의 주문 분석 식별자를 제거한다. 로그인 없이 철회 가능, 타 출처 요청 거부. AnalyticsWithdrawal 기록으로 철회와 동시에 발급 중이던 주문도 이후 전송 차단. 결제 원장/고객 계정/상담 원문은 삭제하지 않는다.
+- 환불 전송은 PG 검증 전과 전송 직전에 철회를 재확인한다. 이미 Google로 발송된 요청을 취소하거나 과거 GA 데이터를 삭제하는 기능은 아니다. 오프라인 철회는 서버 접수 전까지 대기할 수 있으며 완료 응답 전 성공으로 집계하지 않는다. 쿠키 삭제 자체는 서버에 전달되는 철회 요청이 아니다.
+- 환경 검사에서 누락된 GA4_API_SECRET/GA4_MEASUREMENT_ID 선언을 발견해 config/env.contract.json에 이름·목적만 등록하고 기본 비활성 스위치도 문서화. 실제 비밀값/운영 설정은 변경하지 않음.
+- 검증: Node 환불/브라우저 동의/구매 43/43, Jest 결제 4스위트 51/51, 타입 검사, analytics-events, cron-mongo-op-coverage, worker-no-undef, no-nested-retry, env-parity 통과. 최신 수정 후 환불/동의 16/16 재통과. Worker dry-run 빌드는 exit 0이나 외부 로그 디렉터리 EPERM 경고가 있었음. 변경 파일 lint 오류 없음.
+- 공식 생성기로 analytics 미러와 셸 캐시 갱신. UI 문구·가격·환불 실행·지급·보관함 계약 유지. SEO 본문/경로 변경 없음.
+- 다른 작업 확인: 공유 main의 world/SEO/CSS 미커밋 작업은 보존. 앱인토스 이식과 이용권 화면 작업이 별도 세션에서 진행 중이며 그 미커밋 작업을 가져오지 않는다. 운영 Pages/Worker는 모두 bad2656a5cd2d9126bf5320a0395dfc1a0847486. 이때 HEAD 대비 285파일 변경으로, 광고 추적만 배포하는 묶음이 아니다. 최종 승격 전 SHA와 포함 범위를 다시 확정해야 한다.
+- GA4 계정 탭은 발견했지만 제어 연결이 시간 초과되어 로그인 referral 제외 설정은 변경하지 못했다. 실제 이벤트 수신은 운영 반영 뒤 검증 필요.
+- 운영 배포는 사용자 별도 승인 전 보류. VAT 포함 50,000원, 광고 OFF, 이번 광고비 지출 0원.

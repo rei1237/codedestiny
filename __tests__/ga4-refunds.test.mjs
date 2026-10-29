@@ -1,19 +1,21 @@
 import '../scripts/lib/mock-network-guard.cjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readGa4PurchaseContext,buildGa4RefundReceipts,sendPendingGa4Refunds} from '../worker/payments/ga4-refunds.js';
+import {readGa4PurchaseContext,buildGa4RefundReceipts,sendPendingGa4Refunds,withdrawGa4Consent} from '../worker/payments/ga4-refunds.js';
 const now=new Date('2026-10-29T10:00:00Z');
 const env={GA4_SERVER_REFUNDS_ENABLED:'true',GA4_MEASUREMENT_ID:'G-FIXTURE123',GA4_API_SECRET:'fixture-only-secret'};
-const context={version:1,consent:true,clientId:'123.456',capturedAt:new Date('2026-10-29T08:00:00Z')};
+const token='a'.repeat(64);
+const receiptHash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(token))),v=>v.toString(16).padStart(2,'0')).join('');
+const context={version:1,consent:true,clientId:'123.456',receiptHash,capturedAt:new Date('2026-10-29T08:00:00Z')};
 const order={merchantUid:'fixture-order',paymentAmount:5000,paidAt:new Date('2026-10-29T09:00:00Z'),metadata:{ga4PurchaseContext:context}};
 const cancellation={id:'cancel-fixture',status:'SUCCEEDED',totalAmount:5000,cancelledAt:'2026-10-29T09:50:00Z',reason:'PRIVATE QUESTION'};
 const pg={id:order.merchantUid,status:'CANCELLED',channel:{type:'LIVE'},currency:'KRW',amount:{total:5000,cancelled:5000},cancellations:[cancellation],customer:{email:'private@example.invalid'}};
-const request=cookie=>new Request('https://code-destiny.com/api/payments/prepare',{headers:{cookie}});
-test('requires opt-in configuration, accepted consent and a real GA cookie format',()=>{
-  assert.deepEqual(readGa4PurchaseContext(request('cd_cookie_consent=accepted; _ga=GA1.1.123.456'),env,context.capturedAt),context);
+const request=cookie=>new Request('https://code-destiny.com/api/payments/prepare',{headers:{cookie:cookie+'; cd_analytics_receipt='+token}});
+test('requires opt-in configuration, accepted consent and a real GA cookie format',async()=>{
+  assert.deepEqual(await readGa4PurchaseContext(request('cd_cookie_consent=accepted; _ga=GA1.1.123.456'),env,context.capturedAt),context);
   for(const cookie of ['_ga=GA1.1.123.456','cd_cookie_consent=essential; _ga=GA1.1.123.456','cd_cookie_consent=accepted; _ga=email@example.invalid',
-    'cd_cookie_consent=accepted; cd_cookie_consent=essential; _ga=GA1.1.123.456']) assert.equal(readGa4PurchaseContext(request(cookie),env,now),null);
-  assert.equal(readGa4PurchaseContext(request('cd_cookie_consent=accepted; _ga=GA1.1.123.456'),{},now),null);
+    'cd_cookie_consent=accepted; cd_cookie_consent=essential; _ga=GA1.1.123.456']) assert.equal(await readGa4PurchaseContext(request(cookie),env,now),null);
+  assert.equal(await readGa4PurchaseContext(request('cd_cookie_consent=accepted; _ga=GA1.1.123.456'),{},now),null);
 });
 test('actual PG timestamp and original transaction; no sensitive fields or advertising consent',()=>{
   const [receipt]=buildGa4RefundReceipts(order,pg,now);
@@ -47,7 +49,7 @@ test('invalid dates and contradictory full/partial cancellation states fail clos
 });
 function fixture(){
   const marks=new Map();let inDb=false;
-  const db={find:async()=>[order],updateOne:async(_model,filter,update)=>{
+  const db={findOne:async()=>null,find:async()=>[order],updateOne:async(_model,filter,update)=>{
     const key=Object.keys(filter).find(k=>k.startsWith('metadata.ga4RefundDeliveries.')&&!k.endsWith('.state'));
     if(key){if(marks.has(key))return {modifiedCount:0};marks.set(key,update.$set[key]);}
     for(const [path,value] of Object.entries(update.$set))if(path.endsWith('.state')){const key=path.slice(0,-6);marks.set(key,{...marks.get(key),state:value});}
@@ -58,6 +60,34 @@ function fixture(){
 test('disabled configuration does not read/write DB or send network requests',async()=>{
   const result=await sendPendingGa4Refunds({},()=>assert.fail('DB used'));
   assert.equal(result.enabled,false);
+});
+test('withdrawal works without login, stores only a hash, scrubs matching analytics and rejects cross-origin',async()=>{
+  const writes=[];
+  const db={updateOne:async(...args)=>writes.push(args),updateMany:async(...args)=>writes.push(args)};
+  const make=origin=>new Request('https://code-destiny.com/api/payments/analytics-withdrawal',{method:'POST',headers:{origin,'content-type':'application/json',cookie:'cd_analytics_receipt='+token}});
+  assert.equal((await withdrawGa4Consent(make('https://attacker.invalid'),db,now)).status,403);
+  assert.equal(writes.length,0);
+  assert.equal((await withdrawGa4Consent(make('https://code-destiny.com'),db,now)).status,204);
+  assert.deepEqual(writes[0][1],{_id:receiptHash});
+  assert.deepEqual(writes[1][1],{'metadata.ga4PurchaseContext.receiptHash':receiptHash});
+  assert.deepEqual(writes[1][2].$unset,{'metadata.ga4PurchaseContext.clientId':''});
+  assert.equal(writes[1][2].$set['metadata.ga4PurchaseContext.consent'],false);
+  assert.ok(!JSON.stringify(writes.map(row=>row.slice(1))).includes(token));
+});
+test('missing receipt and pending withdrawal cannot capture new analytics context',async()=>{
+  assert.equal(await readGa4PurchaseContext(new Request('https://code-destiny.com',{headers:{cookie:'cd_cookie_consent=accepted; _ga=GA1.1.123.456'}}),env),null);
+  assert.equal(await readGa4PurchaseContext(request('cd_cookie_consent=accepted; _ga=GA1.1.123.456; cd_analytics_revoke_pending=1'),env),null);
+});
+test('withdrawal before scan or during PG lookup blocks sending, even with stale order context',async()=>{
+  for(const revokeDuringPg of [false,true]) {
+    const f=fixture();let revoked=!revokeDuringPg;
+    const withDb=fn=>f.withDb(db=>fn({...db,findOne:async()=>revoked?{revokedAt:now}:null}));
+    const result=await sendPendingGa4Refunds(env,withDb,{now,
+      fetchPayment:async()=>{revoked=true;return {rawV2:pg};},
+      fetchImpl:async()=>assert.fail('withdrawn analytics sent'),
+    });
+    assert.equal(result.submitted,0);assert.equal(result.skipped,1);
+  }
 });
 test('persistent claim prevents repeat submission and network is outside DB slot',async()=>{
   const f=fixture();let sends=0;

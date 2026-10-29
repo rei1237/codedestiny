@@ -142,7 +142,7 @@ test.each([true, false])("GA refund context uses consent cookies, never client b
     paymentAmount:PRODUCT.priceKRW,coinPrice:PRODUCT.priceCoins,paymentMethod:"CARD",
     ga4PurchaseContext:{consent:true,clientId:"999.999"},
   },{env:{...ENV,GA4_SERVER_REFUNDS_ENABLED:"true",GA4_MEASUREMENT_ID:"G-FIXTURE123",GA4_API_SECRET:"fixture-only-secret"},
-    headers:{cookie:`cd_cookie_consent=${accepted ? "accepted" : "essential"}; _ga=GA1.1.123.456`}});
+    headers:{cookie:`cd_cookie_consent=${accepted ? "accepted" : "essential"}; _ga=GA1.1.123.456; cd_analytics_receipt=${"a".repeat(64)}`}});
   expect(response.status).toBe(201);
   const stored=db.rows.find(row=>row.merchantUid===payload.order.merchantUid);
   if(accepted) expect(stored.metadata.ga4PurchaseContext).toMatchObject({version:1,consent:true,clientId:"123.456"});

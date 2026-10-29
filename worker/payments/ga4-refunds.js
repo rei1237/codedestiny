@@ -1,11 +1,32 @@
 // Optional analytics only. Never changes a payment status, balance or entitlement.
-import { Payment } from '../lib/models.js';
+import { Payment, AnalyticsWithdrawal } from '../lib/models.js';
 import { fetchPortOnePayment } from '../lib/portone.js';
 
 export const GA4_REFUND_MAX_AGE_MS = 72 * 60 * 60_000;
 const CONTEXT_MAX_AGE_MS = 90 * 24 * 60 * 60_000;
 const CLIENT_ID = /^\d{1,20}\.\d{1,20}$/;
 const ORDER_ID = /^[a-zA-Z0-9_-]{1,160}$/;
+const RECEIPT_TOKEN = /^[a-f0-9]{64}$/;
+function cookieValue(request, name) {
+  const values=String(request?.headers?.get('cookie') || '').split(';').map(v=>v.trim()).filter(v=>v.startsWith(name+'='));
+  return values.length===1 ? values[0].slice(name.length+1) : '';
+}
+
+// Possession of the browser's 256-bit receipt authorizes only analytics withdrawal.
+// A durable tombstone also blocks an order preparation already in flight at withdrawal.
+export async function withdrawGa4Consent(request, db, now = new Date()) {
+  const origin=new URL(request.url).origin;
+  if (request.headers.get('origin')!==origin || request.headers.get('content-type')!=='application/json') return {status:403};
+  const token=cookieValue(request,'cd_analytics_receipt');
+  if (!RECEIPT_TOKEN.test(token)) return {status:204};
+  const hash=await receiptKey(token);
+  await db.updateOne(AnalyticsWithdrawal,{_id:hash},{$setOnInsert:{revokedAt:now}},{upsert:true});
+  await db.updateMany(Payment,{'metadata.ga4PurchaseContext.receiptHash':hash},{
+    $set:{'metadata.ga4PurchaseContext.consent':false},
+    $unset:{'metadata.ga4PurchaseContext.clientId':''},
+  });
+  return {status:204};
+}
 
 export function ga4RefundConfig(env) {
   if (env?.GA4_SERVER_REFUNDS_ENABLED !== 'true'
@@ -16,15 +37,17 @@ export function ga4RefundConfig(env) {
 
 // Use the existing consent cookie and existing GA identity; never manufacture an identity.
 // Disabled until server credentials and the production release are explicitly configured.
-export function readGa4PurchaseContext(request, env, now = new Date()) {
+export async function readGa4PurchaseContext(request, env, now = new Date()) {
   if (!ga4RefundConfig(env)) return null;
+  const token=cookieValue(request,'cd_analytics_receipt');
+  if (!RECEIPT_TOKEN.test(token) || cookieValue(request,'cd_analytics_revoke_pending')==='1') return null;
   const cookie=String(request?.headers?.get('cookie') || '');
   const values=name=>cookie.split(';').map(v=>v.trim()).filter(v=>v.startsWith(name+'=')).map(v=>v.slice(name.length+1));
   const consent=values('cd_cookie_consent'), ga=values('_ga');
   if (consent.length!==1 || consent[0]!=='accepted' || ga.length!==1) return null;
   const match=/^GA\d+\.\d+\.(\d{1,20}\.\d{1,20})$/.exec(ga[0]);
   if (!match) return null;
-  return {version:1,consent:true,clientId:match[1],capturedAt:new Date(now)};
+  return {version:1,consent:true,clientId:match[1],receiptHash:await receiptKey(token),capturedAt:new Date(now)};
 }
 
 // Return only validated, recent PG cancellation receipts. No customer/question/reason data.
@@ -32,6 +55,7 @@ export function buildGa4RefundReceipts(order, raw, now = new Date()) {
   const context=order?.metadata?.ga4PurchaseContext;
   const nowMs=+new Date(now),capturedMs=+new Date(context?.capturedAt || 0);
   if (context?.version!==1 || context.consent!==true || !CLIENT_ID.test(context.clientId || '')
+      || !RECEIPT_TOKEN.test(context.receiptHash || '')
       || !Number.isFinite(nowMs) || !Number.isFinite(capturedMs) || !capturedMs || capturedMs>nowMs || nowMs-capturedMs>CONTEXT_MAX_AGE_MS
       || !ORDER_ID.test(order?.merchantUid || '') || !order.paidAt
       || raw?.id!==order.merchantUid || raw.channel?.type!=='LIVE' || raw.currency!=='KRW'
@@ -81,6 +105,14 @@ export async function sendPendingGa4Refunds(env, withDb, deps = {}) {
   },{sort:{'metadata.ga4RefundCheckedAt':1},limit:5,projection:{merchantUid:1,paymentAmount:1,paidAt:1,'metadata.ga4PurchaseContext':1}}));
   for (const order of rows) {
     summary.scanned++;
+    const hash=order.metadata?.ga4PurchaseContext?.receiptHash;
+    if (!RECEIPT_TOKEN.test(hash || '') || await withDb(db=>db.findOne(AnalyticsWithdrawal,{_id:hash}))) {
+      // Includes a preparation that finished after the withdrawal cleanup.
+      await withDb(db=>db.updateOne(Payment,{merchantUid:order.merchantUid},{
+        $set:{'metadata.ga4PurchaseContext.consent':false},$unset:{'metadata.ga4PurchaseContext.clientId':''},
+      }));
+      summary.skipped++; continue;
+    }
     await withDb(db=>db.updateOne(Payment,{merchantUid:order.merchantUid},{$set:{'metadata.ga4RefundCheckedAt':now}}));
     let receipts;
     try { receipts=buildGa4RefundReceipts(order,(await (deps.fetchPayment || fetchPortOnePayment)(env,order.merchantUid)).rawV2,now); }
@@ -94,6 +126,11 @@ export async function sendPendingGa4Refunds(env, withDb, deps = {}) {
       if (claim?.modifiedCount!==1) { summary.skipped++; continue; }
       let state='review';
       try {
+        // Recheck after PG lookup and claim: withdrawal during either step must win.
+        if (await withDb(db=>db.findOne(AnalyticsWithdrawal,{_id:hash}))) {
+          await withDb(db=>db.updateOne(Payment,{merchantUid:order.merchantUid},{$set:{[path+'.state']:'withdrawn'}}));
+          summary.skipped++; continue;
+        }
         const url=new URL('https://www.google-analytics.com/mp/collect');
         url.searchParams.set('measurement_id',config.measurementId);
         url.searchParams.set('api_secret',config.secret);

@@ -430,13 +430,52 @@
    * 동의 배너에서 선택이 바뀐 뒤 호출된다(index.html 의 commit()).
    * 배너를 누른 그 순간부터 반영되어야 하므로 페이지를 새로 고칠 때까지 기다리지 않는다.
    */
+  var withdrawalInFlight = false;
+  function receiptCookie(name) {
+    var values=String(document.cookie || '').split(';').map(function(v){return v.trim();}).filter(function(v){return v.indexOf(name+'=')===0;});
+    return values.length===1 ? values[0].slice(name.length+1) : '';
+  }
+  function setReceiptCookie(name,value,age) {
+    document.cookie=name+'='+value+'; path=/; max-age='+age+'; SameSite=Strict; Secure';
+  }
+  function syncServerConsent() {
+    try {
+      var token=receiptCookie('cd_analytics_receipt');
+      var pending=receiptCookie('cd_analytics_revoke_pending')==='1';
+      if (readConsent()==='accepted' && !pending) {
+        if (!/^[a-f0-9]{64}$/.test(token)) {
+          var bytes=new Uint8Array(32); global.crypto.getRandomValues(bytes);
+          setReceiptCookie('cd_analytics_receipt',Array.from(bytes,function(v){return v.toString(16).padStart(2,'0');}).join(''),15552000);
+        }
+        return;
+      }
+      if (!/^[a-f0-9]{64}$/.test(token)) return;
+      setReceiptCookie('cd_analytics_revoke_pending','1',15552000);
+      if (withdrawalInFlight || typeof global.fetch!=='function') return;
+      withdrawalInFlight=true;
+      global.fetch('/api/payments/analytics-withdrawal',{
+        method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},
+        body:'{}',keepalive:true,signal:global.AbortSignal.timeout(10000),
+      }).then(function(response){
+        if (response.status===204 && receiptCookie('cd_analytics_receipt')===token) {
+          setReceiptCookie('cd_analytics_receipt','',0);
+          setReceiptCookie('cd_analytics_revoke_pending','',0);
+        }
+      }).catch(function(){ /* Keep pending for the next online/page/consent event. */ })
+        .finally(function(){withdrawalInFlight=false; if(readConsent()==='accepted' && receiptCookie('cd_analytics_revoke_pending')!=='1') syncServerConsent();});
+    } catch (_) { /* Local consent remains denied even if the server cannot be reached. */ }
+  }
   global.cdSyncConsent = function cdSyncConsent() {
+    syncServerConsent();
     try {
       global.gtag("consent", "update", { analytics_storage: analyticsStorageState() });
     } catch (_consentError) {
       /* 계측 실패는 무시한다 */
     }
   };
+  syncServerConsent();
+  global.addEventListener('online',syncServerConsent);
+  global.addEventListener('pageshow',syncServerConsent);
 
   // Search-entry CTA values are public catalogue values, never link queries or input text.
   var SEARCH_CTA_ROUTES = ["/", "/ggulggul/", "/yeongnyangi/", "/yeongnyangi/1000-won-fortune/", "/saju/", "/manse/", "/tarot/", "/tarot/reunion/", "/tarot/mindscan/", "/tarot/love/", "/ziwei/", "/sukuyo/", "/sukuyo/compatibility/", "/vedic/", "/astrology/", "/naming-ai/", "/fortune/", "/fortune/today/", "/fortune/tomorrow/", "/fortune/tomorrow/rat/", "/fortune/weekly/", "/fortune/monthly/", "/today/", "/compatibility/", "/love/", "/fortune-tea-house/", "/neo-operation-room/"];
