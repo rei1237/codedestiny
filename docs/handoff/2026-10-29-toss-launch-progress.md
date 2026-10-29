@@ -1,5 +1,5 @@
 ---
-status: active
+status: done
 updated: 2026-10-29
 next: 만세력 보관 동등성과 찻집·전략실 고유 계약 이식을 이어가고 토스 실기기 구매·복구를 검수한다.
 ---
@@ -9,7 +9,7 @@ next: 만세력 보관 동등성과 찻집·전략실 고유 계약 이식을 �
 사용자 요청: 달빛 예화 톤을 전체 화면에 적용하고 남은 기능 이식과 CI 오류를 마무리하며 출시 준비를 계속한다.
 
 작업 디렉터리: `D:\Development\code-destiny\.codex-worktrees\toss-launch-20261028`
-마지막 코드 전달: `4fac6d6f5aec76a590bf8d49dac36e5c660c7237`, origin/main push 완료. 다른 세션의 홈 변경 `98b7c0bfa`를 보존해 병합했다. PR 없음.
+마지막 코드 전달: `54be184a2`, origin/main push 완료. 다른 세션의 홈 변경 `98b7c0bfa`를 보존해 병합했다. PR 없음.
 정본: `docs/toss/2026-10-28-launch-plan.md`, `docs/toss/design-brief.md`.
 
 ## 구현·검증
@@ -43,3 +43,5 @@ next: 만세력 보관 동등성과 찻집·전략실 고유 계약 이식을 �
 - 로컬 main 워크트리에는 다른 세션의 8개 미커밋 수정이 있어 건드리지 않았다. 원격 main과 같은 기준의 현재 작업 브랜치에서 이번 커밋만 직접 main으로 전달한다. 이 기록은 최종 push/CI 증거를 대체하지 않는다.
 
 최종 로컬 검증: paid-gate-suite 90/90(전체 npm test 포함), 변경 lint·전체 lint·전체 typecheck·sitemap 통과. check:fast의 중복 test:node 단계에서 중단하고 원래 계획의 미실행 13개를 별도 실행해 모두 통과했다. 단일 check:fast 프로세스 완료 성공으로 표기하지 않는다. 최종 코드 커밋 54be184a2와 결제 보호 38ded5183, check:pre-push 통과. 운영 배포·실결제·실 LLM·운영 DB 쓰기 없음.
+
+이 인수인계의 재개 작업은 마쳤다. 전체 출시 준비는 docs/toss/2026-10-28-launch-plan.md에서 계속 추적하며 74개 잔여 기능의 완성이나 출시를 뜻하지 않는다. 검증된 세 커밋은 main be82cb739에 push 완료했다. 후속 CI는 최종 응답에서 조회 상태를 구분한다. 지정된 기존 워크트리와 이전 미리보기 서버는 다른 작업의 재개에 쓰이므로 보존하고 이번에 만든 서버·임시 파일만 정리한다.
