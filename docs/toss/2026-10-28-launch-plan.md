@@ -83,5 +83,8 @@ status: in-progress
 - 미니앱 테스트 103/103, 타입 검사, AIT 빌드, Worker dry-run, worker-no-undef, 중첩 재시도 검사, 디자인 정적 검사 통과. Worker 빌드 자체는 성공했으나 제한 환경의 사용자 로그 폴더 쓰기 경고가 있었다.
 - 360/390/430/1280px에서 입력·결과·공개 진입의 가로 넘침이 없었다. 주요 TDS 버튼 54px, 유형 선택 48px. 실제 TDS 날짜/시각 입력의 접근성 이름도 확인했다. 로컬 브라우저에는 토스 네이티브 safeAreaInsets가 없어 SDK 경고가 남으며 실기기 검증은 미완료다.
 - CI 오류 2건을 확인했다. Gift 검사: MongoDB 8과 Linux 6.19 이후 커널 충돌로 컨테이너가 즉시 종료됨. MongoDB 8을 유지하고 호환 커널의 Ubuntu 22.04 검증 환경으로 고정했다. Static guards: 과거 Toss 인수인계의 필수 frontmatter 누락. 이전 기록을 보존하면서 후속 계획으로 이관하고 문서 검사 242개 통과.
-- `npm run check:fast`의 확대 모의 검사는 실행 중이다. 완료 전에는 전체 통과로 간주하지 않는다. 새 커밋의 main CI 결과와 실제 콘솔 검수는 별도 확인한다.
+- `npm run check:fast`: paid-gate 90/90(전체 Jest/Node를 포함한 npm test 포함), 변경 lint, 전체 lint, typecheck, sitemap 통과. 뒤에서 같은 Node/Jest를 다시 실행하므로 이 세션 프로세스만 중지하고, 원래 계획의 아직 미실행 항목을 이어서 실행해 모두 통과했다. 단일 check:fast 프로세스의 완료 성공으로 보고하지 않는다. 병합된 홈 대상 검사도 4/4 통과. 최종 pre-push 통과.
 - 화면 증거: `D:\Development\code-destiny\outputs\toss-launch-20261029\moonlight-daily-390.jpg`, `daily-result-430.jpg`.
+
+- 최신 로컬 묶음: deploymentId `01a18525-68c3-78b3-979f-f9ff565e9181`, 1,866,981 bytes, SHA-256 `894AB76A5752EB00848AA0581C1AB7EE9D1DB72B32801724B684298D423A5EA2`. 보관본: `D:\Development\code-destiny\outputs\toss-launch-20261029\ai-saju-studio-01a18525.ait`. 업로드하지 않았다.
+- 기능/CI 수정은 main `4fac6d6f5aec76a590bf8d49dac36e5c660c7237`에 전달했다. [Gift transaction integrity](https://github.com/rei1237/codedestiny/actions/runs/40797077615) 성공. [PR CI](https://github.com/rei1237/codedestiny/actions/runs/40797077663)는 확인 시 진행 중이며 전체 CI 통과를 뜻하지 않는다.
