@@ -180,7 +180,8 @@
   function growthAttribution() {
     try {
       var key = 'cd:growth:campaign';
-      if (analyticsStorageState() !== 'granted') { global.sessionStorage.removeItem(key); return null; }
+      var returnKey = key + ':paid-return';
+      if (analyticsStorageState() !== 'granted') { global.sessionStorage.removeItem(key); global.localStorage.removeItem(returnKey); return null; }
       var allowed = /^(threads_[0-9]{8}_(saju|ziwei|vedic|numerology)|threads_queue_t[0-9]{2}_v1)$/;
       // growth-20261012-v2: 4주 캠페인(블로그·YouTube·TikTok·X). 원고 ID(B01_ko)는 공개 코드라 함께 둔다.
       var allowedV2 = /^growth_(20261012_(naver_blog|youtube|tiktok|x)|20261021_(naver_blog|youtube))$/;
@@ -200,8 +201,18 @@
         global.sessionStorage.setItem(key, JSON.stringify({campaignId:campaignV2,content:contentV2.test(content) ? content : '',until:Date.now()+1800000}));
       }
       var saved = JSON.parse(global.sessionStorage.getItem(key) || 'null');
+      // Consent-gated public campaign codes only. A new login/PG return tab may
+      // have no session storage; never replace an existing tab's attribution.
+      if (!saved) {
+        var returned = JSON.parse(global.localStorage.getItem(returnKey) || 'null');
+        if (returned && paidCampaigns.test(returned.campaignId) && Number.isFinite(returned.until) && returned.until > Date.now() && returned.until <= Date.now() + 1800000) saved = returned;
+      }
       var v2 = saved && allowedV2.test(saved.campaignId);
       var paid = saved && paidCampaigns.test(saved.campaignId);
+      if (paid && saved.until > Date.now()) {
+        global.localStorage.setItem(returnKey, JSON.stringify({campaignId:saved.campaignId,until:saved.until,
+          content:paidContent.test(saved.content || '') ? saved.content : '',keyword:paidKeyword.test(saved.keyword || '') ? saved.keyword : ''}));
+      }
       if (!saved || saved.until <= Date.now() || !(paid || v2 || allowed.test(saved.campaignId))) { global.sessionStorage.removeItem(key); return null; }
       var device = global.innerWidth < 768 ? 'mobile' : 'desktop';
       if (paid) return Object.assign({campaignId:saved.campaignId,consent:true,version:'paid-20261028-v1',device:device},paidContent.test(saved.content || '') ? {content:saved.content} : {},paidKeyword.test(saved.keyword || '') ? {keyword:saved.keyword} : {});

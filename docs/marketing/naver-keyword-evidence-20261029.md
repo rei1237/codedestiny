@@ -102,3 +102,10 @@
 - 최근 활동 99개 이벤트 목록에서 검색: refund, begin_checkout, consultation_completed는 결과 없음. 미발생/미배포/미수신의 원인은 아직 구분하지 못함.
 - 유입 보고서에서 nid.naver.com / referral과 paid / (not set)도 관찰. 로그인 후 출처 보존 및 UTM 정합성 추가 검증 필요.
 - 설정 변경, 테스트 purchase 주입, 결제, 광고 활성화 없음. VAT 포함 50,000원 유지. 구매 수신은 확인됐지만 출시 게이트는 미충족.
+
+## 2026-10-29 추적 수정 1차 및 주문 감사
+- 로그인/PG가 새 탭으로 복귀할 때 기존 sessionStorage가 없는 경우, 동의한 유료 캠페인의 공개 코드만 localStorage에서 복구하도록 수정. 30분 만료와 동의 철회 삭제 유지. 구매 이벤트를 임의로 생성하지 않음.
+- purchase-analytics + analytics-consent: 27/27 pass. sync:public 실행.
+- 실제 읽기 전용 audit-paid-consultation-delivery --db code_destiny: 신년운세 paid/fulfilled 7건, 인생 총운 fulfilled 1건. 두 서비스 모두 unlinkedPaidOrders=0, completeBodyMissing=0. 전체 기간/지원 2서비스 범위이며 GA4 지난 28일 14건과 동일 모집단 아님. 초융합/영냥이/환불 금액/테스트 주문 분리 대사는 아직 미완료.
+- begin_checkout: 기존 checkout_pg_opened와 React 결제 진입의 발화 시점 통일 및 중복 방지 필요. consultation_completed: 영냥이 외 신년/초융합 완료 저장 응답 연결 필요. refund: 주문 상세 호환 응답에 부분환불 금액 증빙이 없어 상태만으로 금액을 추측해 전송하면 안 됨. 실제 환불 원장/PG 검증된 금액 경로 확인 후 구현해야 함.
+- 이 항목들은 수정 완료가 아니다. 광고 OFF, VAT 포함 50,000원 유지. 운영 반영/실제 GA4 신규 수신 검증 미완료.

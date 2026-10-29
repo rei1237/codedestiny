@@ -351,3 +351,18 @@ test('S00 observes current receipt coverage of real paid, daily and insight shar
  assert.equal(publicLink.window.dataLayer.filter(row=>row[1]==='share_receive').length,1);
  publicLink.window.close();
 });
+
+test('consented paid campaign survives a fresh return tab but expires and clears on withdrawal',()=>{
+ const landing=boot('https://code-destiny.com/?utm_source=naver&utm_medium=cpc&utm_campaign=paid_20261028_brand&utm_content=A_ko',{consent:'accepted'});
+ landing.window.cdReadGrowthAttribution();
+ const key='cd:growth:campaign:paid-return';
+ const stored=landing.window.localStorage.getItem(key);
+ const returned=boot('https://code-destiny.com/checkout/',{consent:'accepted',stored:{[key]:stored}});
+ assert.equal(returned.window.cdReadGrowthAttribution().content,'A_ko');
+ returned.window.localStorage.setItem(key,JSON.stringify({...JSON.parse(stored),until:Date.now()-1}));
+ assert.equal(returned.window.cdReadGrowthAttribution(),null);
+ const denied=boot('https://code-destiny.com/',{consent:'essential',stored:{[key]:stored}});
+ assert.equal(denied.window.cdReadGrowthAttribution(),null);
+ assert.equal(denied.window.localStorage.getItem(key),null);
+ landing.window.close();returned.window.close();denied.window.close();
+});
