@@ -55,7 +55,14 @@ Google Billing 공식 https://developer.android.com/google/play/billing/test : �
 전달 준비:
 - 기능보완 커밋308aa5f0e, 이미지초안8634f00f7. 최신origin/main을 충돌 없이 병합한 검증 HEAD bd10daff4614f59297b52cfec2d8906e4f8379e3.
 - check:pre-push 통과: home registry63/public mirror/sitemap1020/llms/SEO entities62. node --check 변경JS4개 통과. Impeccable detect[]
-- 로컬main에는 다른 세션의 미전달13커밋 및 world/siteSeo/globals 미커밋 변경이 있어 이를 원격에 함께 밀지 않는다. 최신origin/main 기반의 이 작업 HEAD만 원격main으로 전달하고, 로컬main은 작업HEAD를 정상 병합해 보존한다.
+- 로컬main에는 다른 세션의 미전달13커밋 및 world/siteSeo/globals 미커밋 변경이 있어 이를 원격에 함께 밀지 않는다. 최신origin/main 기반의 이 작업 HEAD만 원격main으로 전달했다. 로컬main에 대한 merge-tree 사전 확인에서 해당 영역과 생성 미러 충돌이 확인되어 실제 병합은 시작하지 않았다. 다른 세션 파일과 미전달 커밋은 보존했다.
 - 검토묶음 ZIP: C:\Users\user\.codex\visualizations\2026\10\29\01a185c3-a6e9-76e0-9994-fb8c22613d80\store-portrait-12-locales.zip (102455057 bytes). 업로드 없음.
 
-남은 작업: 원격main 전달/최종CI 확인, 실제 잠금화면 사용자 확인, 앱 상단 겹침 원인 수정·재빌드 검증, 전체 주요경로의 번역/장문콘텐츠 누락 해소, 안전한 테스트API/DB에서 Play구매전주기 검증, 초안 승인 후 실제앱화면 중심 최종스토어 이미지 구성/적용. 앱54심사 결과는 아직 확인하지 않음. 운영 데이터 격리 미확정 상태의 실제 구매와 신규 이미지 적용은 진행하지 않음. 이 문서는 전체출시 완료 기록이 아님.
+전달 및 추가 콘텐츠 진단:
+- 원격main으로 caaa93bcd3f56a1a4c2babe0253ad175c49af3f1 push 성공. 해당 CI는 확인 시점 in_progress: https://github.com/rei1237/codedestiny/actions/runs/40819821359 . CI 통과로 표시하지 않는다.
+- 라이트노벨 현행 정본73화/7844비트. content/novel/translations에는 en/ja/zh-CN/zh-TW 초안만 있으며 모두 현행 원문과 hash/구조 불일치. verify-novel-locale-completeness는296건 실패. 기존4언어도 현재 서비스의 완성 번역으로 간주하지 않는다. vi/hi/es/fr/de/nl/ms 원본은 없다.
+- 기존 번역 README 역시 미발행·편집검수 전 초안이라고 명시한다. 기존파일을 덮어쓰거나 외부 번역/유료LLM을 호출하지 않았다. 12언어 UI 사전의 키 일치와 장문 본문 번역 완성은 별개의 검증이다.
+- verify-fortune-locale-completeness는 이 작업공간의 fortune/data 발행 산출물 부재로 실행 중단. 별자리 프로필 번역 파일도4개 외국어만 확인했으며 전체12언어 본문 검증 완료로 표시하지 않는다.
+- 검증용 scrcpy 실행 종료. 기기 잠금화면의 실제 육안 확인은 사용자 응답 대기.
+
+남은 작업: 공식CI 최종결과, 실제 잠금화면 사용자 확인, 앱 상단 겹침 원인 수정·재빌드 검증, 전체 주요경로의 번역/장문콘텐츠 누락 해소, 안전한 테스트API/DB에서 Play구매전주기 검증, 초안 승인 후 실제앱화면 중심 최종스토어 이미지 구성/적용. 앱54심사 결과는 아직 확인하지 않음. 운영 데이터 격리 미확정 상태의 실제 구매와 신규 이미지 적용은 진행하지 않음. 이 문서는 전체출시 완료 기록이 아님. 승인 후 이어갈 작업이 있으므로 이 작업공간은 보존한다.
