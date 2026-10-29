@@ -37,6 +37,15 @@ next: 기존 main CI 모바일 타로 실패 해소 후 검증한 계측 수정�
 - A/B 연결 URL의 `paid_20261028_brand`, `utm_source=naver`, `utm_medium=cpc`, `utm_content=A_ko/B_ko` 확인. 소재를 다시 등록해 심사를 초기화하지 않았다.
 - 남은 순서: 기존 CI 실패 해소 → 로컬 수정 main 전달/공식 CI → 변경 범위 설명 후 운영 승격 승인 → 자연 신규 주문과 GA 대사/경고 재평가 → 비즈채널·소재 심사 통과 및 네이버 전환 신청 재확인 → 최종 예산 확인 → **사용자의 별도 광고 ON 승인**. 아직 ON만 하면 되는 완료 상태가 아니다.
 
+### 이번 실행의 최종 보존 상태
+
+- 구현 커밋: `4c751e97e6d4384b57faf4fcbcadd2d186f14fb4` (`fix(analytics): retain purchase dedupe on consent`). 로컬에만 있으며 push하지 않았다. 문서 결과 기록 커밋은 이 뒤에 있으며 `git log -1 --format=%H`로 확인한다.
+- `npm run check:pre-push` → pass: home-service-registry, public-mirror-fresh, sitemap-drift(1,020 URL), llms.txt check, seo-entity-registry(62 profiles). `verify:payment-freeze` → pass(region 4/file 3/상한 2), `verify:entry-encoding -- --strict-core` → pass. 최종 관련 모의 검사 49/49 pass.
+- 마지막 원격 확인: `origin/main=8f32da62caf4a921f23ebcc54eba4db83631e875`, 공식 CI failure 유지. 전체 check:fast는 위 환경 오류로 실패한 실행만 존재하며 공식 CI로 대체 완료하지 않았다.
+- 수정 파일은 구현 2개(정본/public 미러), 회귀 검사 1개, 이 문서, 자동 생성 HTML 캐시 참조 8개다. 추적 파일의 미커밋 변경은 없고 기존 untracked 증거 2개는 보존한다. 새 작업용 임시 파일은 남기지 않았다. 미머지 커밋과 운영 승인 대기가 있어 워크트리를 삭제하지 않는다.
+- 재개 위치: `D:\Development\code-destiny\.codex-worktrees\paid-media-webtoon-20261028-215429`. 문서: `D:\Development\code-destiny\.codex-worktrees\paid-media-webtoon-20261028-215429\docs\handoff\ga4-tag-quality-20261029.md`.
+- 첫 다음 행동: 최신 main CI에서 모바일 타로 뒤로가기 실패가 해결됐는지 확인한다. 해결 전에는 push하지 않는다. 해결 후 공유 main의 다른 세션 변경을 보존하면서 구현 커밋을 통합하고 전달 검사를 수행한다. 이번 미배포 변경을 운영에 적용하기 전 별도 승인, 광고 ON에는 다시 별도 승인이 필요하다.
+
 ## 사용자 요청과 제한
 - 사용자는 긴 대화 대신 새 채팅에서 GA4 태그 품질 긴급 상태의 원인을 규명하고 품질을 개선하기를 요청했다.
 - 추가 결제 없이 가능한 검증을 완료한다. 실결제·실환불·유료 LLM·운영 결제 DB 쓰기는 하지 않는다. 과거 주문을 신규 purchase로 재전송하거나 경고를 숨기려고 거래번호를 바꾸지 않는다.
