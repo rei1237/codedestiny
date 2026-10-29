@@ -1,5 +1,10 @@
 {
-  "status": "prepared_not_registered",
+  "status": "partially_registered_campaign_off",
+  "executionEvidence": "naver-keyword-evidence-20261029.md",
+  "registeredAGroupKeywords20261029": ["이직사주", "직장운", "사주취업운", "사주결혼시기", "점성술상담", "베다점성술", "숙요점", "휴먼디자인", "자미두수", "신년운세", "사주", "연애궁합", "사업운세", "직업사주"],
+  "imageRegistrationStatus": "blocked_extension_file_url_permission",
+  "registeredBGroupNewKeywordCount20261029": 13,
+  "existingBGroupDuplicateKeyword20261029": "숙요점",
   "updated": "2026-10-29",
   "approval": {
     "source": "user: 일단 예산 5만원으로 진행해줘",
@@ -13,17 +18,17 @@
     "conditionalScaleAllInKRW": 15000,
     "reserveAllInKRW": 5000,
     "newSpendThisTurnKRW": 0,
-    "currentAccountBalanceKRW": null,
+    "currentAccountBalanceKRW": 0,
     "existingSpendKRW": null
   },
   "platform": "naver_powerlink",
   "campaignName": "꿀꿀운세_사이트홍보_5만원",
-  "reuseCampaignId": "cmp-a001-01-000000011262693",
+  "reuseCampaignId": "cmp-a001-01-000000011266816",
   "accountIdHistorical": "2614862",
   "landing": "https://code-destiny.com/",
   "settings": {
     "statusBeforeVerifiedLaunch": "OFF",
-    "dailyBudgetInputKRW": 3000,
+    "dailyBudgetInputKRW": 2700,
     "dailyBudgetVATBasis": "verify_in_account_before_funding",
     "baseBidExVATKRW": 100,
     "bidCeilingExVATKRW": 150,

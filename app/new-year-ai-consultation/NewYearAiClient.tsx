@@ -1953,7 +1953,7 @@ export default function NewYearAiConsultationPage() {
           <span className="nyai-eyebrow">서비스 소개</span>
           <h2><Moon size={20} aria-hidden="true" /> 신년운세 전문가 상담</h2>
           {copy === NEW_YEAR_AI_COPY.ko && <ProductMasterStrip label="신년운세 마스터" masters={productMasters.newYear} profileHref={!isBusy && messages.length === 0 ? "#new-year-master" : undefined} />}
-          <p>새해의 기운이 당신에게 건네는 첫 번째 조언을 명식과 세운의 흐름으로 차분히 살펴드립니다.</p>
+          <p>이직을 준비할 때, 관계를 돌아볼 때, 새해의 우선순위를 정하고 싶을 때. 내 사주와 한 해의 흐름을 함께 읽고, 월별로 살펴볼 점과 현실적인 행동 조언을 정리해 드립니다.</p>
           <div className="nyai-hero-badges" aria-label={copy.heroBadgesAria}>
             <span>사주 원국</span>
             <span>세운 분석</span>
