@@ -36,7 +36,7 @@ function fixture(route, featureKey, version = "flower-20260930", spent = 0, with
   const pricing = { featureKey, coinPrice: cost };
   const saved = { id: "session", userId: USER, idempotencyKey: "original-consultation-request", accessType: "pass", usageAppliedAt: null };
   const model = { findOne: () => chain(saved), updateOne: async () => { saved.usageAppliedAt = new Date(); } };
-  const context = vm.createContext({ nativeTossContext: () => null, Date, FEATURE_KEY: featureKey, ORDER_NAME: "상담", MESSAGES: {},
+  const context = vm.createContext({ Date, FEATURE_KEY: featureKey, ORDER_NAME: "상담", MESSAGES: {},
     clean: value => String(value || "").trim(), isAdmin: () => false,
     nativeTossContext, normalizeConsultAccessType, resolveCanonicalEntitlement, resolveFeatureAccessPolicy, passDenialCode,
     getPricing: () => pricing, getConsultationOrderName: () => "상담", getConsultationFeatureKey: () => featureKey,
