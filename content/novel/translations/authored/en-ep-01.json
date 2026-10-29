@@ -1,0 +1,1056 @@
+{
+  "locale": "en",
+  "episodeId": "ep-01",
+  "tag": "Episode 1 · I Became a Flower Pig",
+  "title": "I Became a Flower Pig",
+  "method": "directly authored; no translation API",
+  "status": "draft",
+  "beats": [
+    {
+      "id": "ep-01:1",
+      "source": "낙하가 어느 순간 부드러워지고, 빛이 몸을 감쌌다. 팔이 짧아지고, 손가락이 뭉툭해졌다. 그리고 눈을 떴을 때 — 연이는, 강 위에 뜬 커다란 연잎 배 한가운데 있었다.",
+      "sourceHash": "fabe7ca574d0cc51d248c492e8a4cc930e5dfe6190aeaf3c1b160e3d1b78d965",
+      "t": "At some point, the fall softened and light wrapped around Yeoni. Their arms shrank, their fingers grew blunt. When they opened their eyes, they were in the middle of an enormous lotus-leaf boat floating on a river."
+    },
+    {
+      "id": "ep-01:2",
+      "source": "나 돼지 됐잖아아아아!",
+      "sourceHash": "566e2970585d6f9d0dce98b2fbcea7f8b5ac9edcf890497f48577d76562f01da",
+      "t": "I TURNED INTO A PIIIIIG!"
+    },
+    {
+      "id": "ep-01:3",
+      "source": "비명이 밤하늘 같은 강 위로 길게 퍼졌다. 그러다 뚝, 끊겼다. 소리 지를 폐활량조차, 이 몸엔 얼마 남지 않았다.",
+      "sourceHash": "6cb483c855a10bd3d5fd35ec3cb4dfc688ad238acd6bc650e29fd591e8b1016d",
+      "t": "The scream carried across the night-dark river, then cut off. This body did not even have enough lung capacity left to keep screaming."
+    },
+    {
+      "id": "ep-01:4",
+      "source": "연잎은 믿기 힘들 만큼 컸다. 웬만한 원룸 침대보다 넓었고, 가장자리엔 이슬이 조명처럼 맺혀 있었다. 노도, 돛도, 엔진도 없었다. 그냥 거대한 연잎. 근데 떠 있었다. 심지어, 안정적으로.",
+      "sourceHash": "96c7020c13d21693479939cdbd75d420bbb37cb278994fb1093aaa2f2698da5d",
+      "t": "The lotus leaf was impossibly large, wider than a bed in most studio apartments, with dewdrops gleaming like lamps along its edge. No oars, no sail, no engine. Just a giant leaf. Yet it floated. Steadily, at that."
+    },
+    {
+      "id": "ep-01:5",
+      "source": "연이는 한참 자기 몸을 내려다봤다. 짧은 앞발. 동그란 배. 꼬불꼬불한 꼬리. 머리 위에 핀 작은 꽃. 분홍빛 몸은 아무리 봐도, 인간의 것이 아니었다.",
+      "sourceHash": "cec8f5dc4f2ea968f046d30058b77f43feb36e477324d7c8079fe31371994b9c",
+      "t": "Yeoni stared down at themself for a long time. Short forelegs. A round belly. A curly tail. A little flower blooming on their head. However they looked at it, this pink body was not human."
+    },
+    {
+      "id": "ep-01:6",
+      "source": "아니. …이 손으로, 과제는 어떻게 해.",
+      "sourceHash": "e5649c1a4f0f106f58b69b4a474d0b4608905faf146806678e69ca48c39259c0",
+      "t": "No. ...How am I supposed to do my assignments with these hands?"
+    },
+    {
+      "id": "ep-01:7",
+      "source": "그 순간, 말끝에 이상한 소리가 섞였다.",
+      "sourceHash": "6bc88eff6b3db8c076f0b8342481a21b2e98b953a5ee269102cd85fea675373d",
+      "t": "An odd sound slipped into the end of their next sentence."
+    },
+    {
+      "id": "ep-01:8",
+      "source": "이거 진짜 말이 안 되잖아, 꿀.",
+      "sourceHash": "0acfd36ffee1ec9c9b750a026e789297a832e98bf7655647e0b8924a2ad2f0f2",
+      "t": "This makes absolutely no sense, oink."
+    },
+    {
+      "id": "ep-01:9",
+      "source": "연이는 그 자리에서 얼어붙었다.",
+      "sourceHash": "3721c5aba603664713f42d811aaaae36493ec60e87363a3f824f4c1fa998822b",
+      "t": "Yeoni froze."
+    },
+    {
+      "id": "ep-01:10",
+      "source": "……방금 뭐야.",
+      "sourceHash": "7b96cb6f4d338e2a7cfab2abb8a2575f14ac58cfd9d5ac037703623b875402c1",
+      "t": "...What was that?"
+    },
+    {
+      "id": "ep-01:11",
+      "source": "안녕하세요. 저는, 인간입니다.",
+      "sourceHash": "047e975e9696fadf0f2bd7186ecb4cf0d56160079c5d3ba1aa7b4c9cbb0e4890",
+      "t": "Hello. I am a human being."
+    },
+    {
+      "id": "ep-01:12",
+      "source": "멀쩡했다. 연이는 아주 조금, 안도했다.",
+      "sourceHash": "7e5e622426dcc0e37cf946df4b2241b15a1e28df3fdfcb055358412d424c9edb",
+      "t": "That came out normally. Yeoni felt the tiniest bit relieved."
+    },
+    {
+      "id": "ep-01:13",
+      "source": "좋아. 말은 됨. 그나마 다행.",
+      "sourceHash": "35111c1e31258946c7e8f514269b9973d552d852dfaa8c57b4a1a15841faca6b",
+      "t": "Okay. I can talk. At least there's that."
+    },
+    {
+      "id": "ep-01:14",
+      "source": "하지만 곧, 앞발을 다시 봤다.",
+      "sourceHash": "4fae2be3bc9226e19541995ff050ccb92645ea199528988c900bfa716fa3892f",
+      "t": "But then they looked at their forelegs again."
+    },
+    {
+      "id": "ep-01:15",
+      "source": "…손가락이, 없어졌다.",
+      "sourceHash": "02c3aedb17277f5a0999c7e18b20ed0e9f9c884f4cd4b3dd382467f63c017fe5",
+      "t": "...My fingers are gone."
+    },
+    {
+      "id": "ep-01:16",
+      "source": "이건 명백한 다운그레이드야. 손가락 열 개짜리 인간에서, 앞발 두 개짜리 돼지로.",
+      "sourceHash": "b1bca1a5e0d867d2311abd2251b4669b7e8ea620ec5473939e499eb7d8b73712",
+      "t": "This is clearly a downgrade. From a human with ten fingers to a pig with two front hooves."
+    },
+    {
+      "id": "ep-01:17",
+      "source": "조금 전까지 연이는 자기 방에 있었다. 젖은 양말, 이상한 앱, 타로 문. 그리고 지금은 — 꽃 달린 돼지. 정확히는, 꽃돼지.",
+      "sourceHash": "6a0d8f82ca86264cad3d6bfadfb3797a6d8f81e1d80879e6575c0e2d00668a1d",
+      "t": "A moment ago, Yeoni had been in their room. Wet socks, a strange app, a tarot doorway. Now they were a pig with a flower. A flower pig, to be exact."
+    },
+    {
+      "id": "ep-01:18",
+      "source": "연이는 연잎 위에 털썩 주저앉았다. 말랑한 몸이 살짝 눌렸다 되돌아왔다. 그 감각이 너무 생생해서, 오히려 더 싫었다.",
+      "sourceHash": "34b9617bebed6884c3c76099136a65dc47bdcf7449ad4438c84ad08a53c56dcf",
+      "t": "Yeoni flopped onto the lotus leaf. Their soft body squished a little, then sprang back. The sensation was so vivid that it only made things worse."
+    },
+    {
+      "id": "ep-01:19",
+      "source": "오케이. 알겠어. …이거, 꿈이야.",
+      "sourceHash": "aa6b0b5232b1c4fbd959bed27a877fcf3dd813823c05594ff6ab495a704e6b95",
+      "t": "Okay. Got it. ...This is a dream."
+    },
+    {
+      "id": "ep-01:20",
+      "source": "당연했다. 사람이 앱 하나 잘못 눌렀다고 꽃돼지가 되는 건, 아무리 요즘 세상이 이상해도 선을 넘었다.",
+      "sourceHash": "075133fb4120ecdf40bc3582db6260997bd9bf0703c8851877bb85279d46f2bb",
+      "t": "Obviously. However weird the world had become, turning into a flower pig because you tapped the wrong app was going too far."
+    },
+    {
+      "id": "ep-01:21",
+      "source": "연이는 앞발로 연잎 바닥을 톡톡 쳤다. 촉감이, 있었다.",
+      "sourceHash": "50d042c5899159020a2cb15f245ddb004bed670d80d9c056b2c6aa1f531feb29",
+      "t": "Yeoni tapped the leaf with a front hoof. They could feel it."
+    },
+    {
+      "id": "ep-01:22",
+      "source": "꿈이면 꼬집어서 깨야 하는데. …앞발이, 얼굴에 안 닿아.",
+      "sourceHash": "213a9f339cc8a008d721698a0efe126aeca5aab9fd2be36f0a12144bdec37133",
+      "t": "If it's a dream, I should pinch myself awake. ...My hoof can't reach my face."
+    },
+    {
+      "id": "ep-01:23",
+      "source": "…그래픽 좋네.",
+      "sourceHash": "e3133f4c174b5a2793208c1835d18b76e13da87d7968c65e4a1532c3a51121c3",
+      "t": "...Nice graphics, though."
+    },
+    {
+      "id": "ep-01:24",
+      "source": "연이는 아주 진지하게 결론을 내렸다. 어제 새벽 세 시까지 한정 이벤트를 돌았으니, 이건 명백한 게임 후유증이라고.",
+      "sourceHash": "472c4642569f3ac0f106a422f04a6f99e6cddfb6902df066ac649962895d4ef9",
+      "t": "Yeoni reached a very serious conclusion. Having stayed up until three grinding a limited-time event, they were clearly suffering gaming aftereffects."
+    },
+    {
+      "id": "ep-01:25",
+      "source": "상태창.",
+      "sourceHash": "bdb4c5c6c7238e7846ce3c26607ac6b38e5e913f541e9e91bf7a5b5c41203c06",
+      "t": "Status window."
+    },
+    {
+      "id": "ep-01:26",
+      "source": "아무것도 뜨지 않았다.",
+      "sourceHash": "5ca8b99119a36dbd3357257458612130d909ab1f8bc15992c04cb19f080512e7",
+      "t": "Nothing appeared."
+    },
+    {
+      "id": "ep-01:27",
+      "source": "메뉴. …인벤토리.",
+      "sourceHash": "dff83cf88c65e8bf0857486fecdcf5b5dc93e4e26abbdaae55279d36830082dd",
+      "t": "Menu. ...Inventory."
+    },
+    {
+      "id": "ep-01:28",
+      "source": "바람만 지나갔다. 연이는 눈을 가늘게 떴다.",
+      "sourceHash": "7e903085691f404faa47d0590494e979f4053e2b86fd713c8d8781194af8d8df",
+      "t": "Only the wind passed. Yeoni narrowed their eyes."
+    },
+    {
+      "id": "ep-01:29",
+      "source": "…UI 불친절하네. 별점 하나.",
+      "sourceHash": "4327ed230999ce8879c0d02beaa705c72c9232ee3d7f93e19c493b2099056d06",
+      "t": "...Terrible UI. One star."
+    },
+    {
+      "id": "ep-01:30",
+      "source": "그때, 연잎 끝에서 낮은 목소리가 들렸다.",
+      "sourceHash": "b64a022610db54db203c068267ca5e7081f24b0c7ecd3a0d1953635be1cb42f3",
+      "t": "Then a low voice came from the edge of the leaf."
+    },
+    {
+      "id": "ep-01:31",
+      "source": "아직도 꿈 같아? 무리도 아니지.",
+      "sourceHash": "c0afa09bcbc2bc3c5e387dcc41d0c1ffe5fa102e34135b245e36fbc22a0476e9",
+      "t": "Still feels like a dream? Can't blame you."
+    },
+    {
+      "id": "ep-01:32",
+      "source": "연이는 그대로 굳었다. 천천히 고개를 돌렸다. 연잎 끝에, 무언가가 앉아 있었다.",
+      "sourceHash": "7a48f99eeea9dd3fe663fa6985346fc7e186f502dd43e562a96b69994bb68972",
+      "t": "Yeoni went rigid. Slowly, they turned their head. Something was sitting at the leaf's edge."
+    },
+    {
+      "id": "ep-01:33",
+      "source": "처음엔 그냥 흰 고양이인 줄 알았다. 몸집은 작고, 둥글고, 복슬복슬했다. 그런데 머리에 — 금빛 초승달이 달린 남색 마법사 모자가 있었다. 고양이인데, 모자라니.",
+      "sourceHash": "7e1ba2f49465893f06ef3ace85058e2086be36981fa0e8cc8ef022b9da891c5d",
+      "t": "At first they thought it was just a white cat. Small, round, fluffy. But on its head sat a navy wizard's hat with a golden crescent moon. A cat. Wearing a hat."
+    },
+    {
+      "id": "ep-01:34",
+      "source": "…너 뭐야.",
+      "sourceHash": "b12db9e70d1e7f109d2af2d1a652744fa599ba59a47bbdf722c953fdbafdf686",
+      "t": "...What are you?"
+    },
+    {
+      "id": "ep-01:35",
+      "source": "나는 영냥이.",
+      "sourceHash": "b0285bac71eaee4f8ff2779189789ee83b56c61b7a33f15069a16d8f35ede134",
+      "t": "I am Yeongnyangi."
+    },
+    {
+      "id": "ep-01:36",
+      "source": "고양이야?",
+      "sourceHash": "9944728efffd91c8d5c86d3e1ceaf8f66d4ec45564818323bc7e5f3a1587ef6b",
+      "t": "A cat?"
+    },
+    {
+      "id": "ep-01:37",
+      "source": "아니다.",
+      "sourceHash": "9e97b12e266448d8f9b26d642ae5ffa7ad855805d2002d434ee1857e097773be",
+      "t": "No."
+    },
+    {
+      "id": "ep-01:38",
+      "source": "그럼 뭔데? 아무리 봐도 모자 쓴 고양이잖아.",
+      "sourceHash": "7f6f0a6cc558d1af5ff687aa834d68c642da4f4a6db01220be26c71c77f3a2ec",
+      "t": "Then what? You look exactly like a cat in a hat."
+    },
+    {
+      "id": "ep-01:39",
+      "source": "굳이 말하자면, 평범한 고양이는 아니다.",
+      "sourceHash": "89a68eb9013666daf1800ed4145576b734a22dbfeda966e2d84416f3e2a059b0",
+      "t": "To be precise, I am not an ordinary cat."
+    },
+    {
+      "id": "ep-01:40",
+      "source": "근데 왜 이렇게 작아? 손바닥만 해.",
+      "sourceHash": "0a7c98efe5a99049ce062904dea5e9004880c14a8a8b8969055e0dff2974de7d",
+      "t": "Then why are you so tiny? You'd fit in my palm."
+    },
+    {
+      "id": "ep-01:41",
+      "source": "영냥이의 수염이 꿈틀했다.",
+      "sourceHash": "74352bc3b009450813087397f6eef03d36e0b7ada630e1093c105ea1b10f25dc",
+      "t": "Yeongnyangi's whiskers twitched."
+    },
+    {
+      "id": "ep-01:42",
+      "source": "…처음 보자마자 너무하는 거 아니야?",
+      "sourceHash": "bd1aa7ec329a6d6808d4455455990d7ed3a29c7cefce684f06814299997a9915",
+      "t": "...Isn't that a bit much for someone you just met?"
+    },
+    {
+      "id": "ep-01:43",
+      "source": "나는 방금 이세계 끌려와서 돼지 됐어. 오늘만큼은, 무례할 권리 있다고 봐.",
+      "sourceHash": "1ae61d30e96eed5378bbfc5a9183a5cef48ce9284b638ba29421fe4d9bf12e6b",
+      "t": "I just got dragged into another world and turned into a pig. Today, I think I've earned the right to be rude."
+    },
+    {
+      "id": "ep-01:44",
+      "source": "영냥이는 잠시 침묵했다.",
+      "sourceHash": "8b2acbd3465df41d3d3934f81fa3031b3455474fac06a9ab49ddbb83db210b0b",
+      "t": "Yeongnyangi fell silent for a moment."
+    },
+    {
+      "id": "ep-01:45",
+      "source": "…그건 인정할게.",
+      "sourceHash": "ae1ed2c9dcea662385d93ba83c503849044600635f3c079e0a4c40f7f3fc1608",
+      "t": "...Fair point."
+    },
+    {
+      "id": "ep-01:46",
+      "source": "너 NPC야?",
+      "sourceHash": "c99f594c6042b6c838e198004ad0aad49a01e906977e767832f2bcaa03efe0f3",
+      "t": "Are you an NPC?"
+    },
+    {
+      "id": "ep-01:47",
+      "source": "아니다.",
+      "sourceHash": "9e97b12e266448d8f9b26d642ae5ffa7ad855805d2002d434ee1857e097773be",
+      "t": "No."
+    },
+    {
+      "id": "ep-01:48",
+      "source": "NPC들이 원래 다 그렇게 말해.",
+      "sourceHash": "75282fa097e26376c552eede3a39d0b58dea391cdd381d178816351401d64efa",
+      "t": "That's what all NPCs say."
+    },
+    {
+      "id": "ep-01:49",
+      "source": "…듣고 보니 방금 말도 NPC 같네.",
+      "sourceHash": "ffe0558d15f8f67b037da413effe85422a789b4def7e0f39e054c7eb65073cf6",
+      "t": "...Now that you mention it, that did sound like an NPC."
+    },
+    {
+      "id": "ep-01:50",
+      "source": "나는 사주의 강을 지키는 가디언이다.",
+      "sourceHash": "8957b301874bf5cbc44dda4ea9179cfd0fb722dfd61956c55aa2b947e54799c6",
+      "t": "I am the guardian of the River of Four Pillars."
+    },
+    {
+      "id": "ep-01:51",
+      "source": "…설정 있는 NPC네.",
+      "sourceHash": "85be8972619eeab551147fe077013dae7a47d32fe6f238918d0b73a29375c8c8",
+      "t": "...An NPC with lore, then."
+    },
+    {
+      "id": "ep-01:52",
+      "source": "연이는 머리 위 꽃을 앞발로 눌렀다. 꽃잎이 작게 흔들렸다. 그 감촉이, 너무 또렷했다.",
+      "sourceHash": "f4bbc033afa7c9aefcb2945388572e73ddf7134832cddb9c615eb623a2b12146",
+      "t": "Yeoni pressed a hoof against the flower on their head. Its petals trembled. The sensation was far too distinct."
+    },
+    {
+      "id": "ep-01:53",
+      "source": "아. 디테일 미쳤다.",
+      "sourceHash": "ceb7e0fb57398466bd4903a6feac5f07b12527900ac9087717d419c8350eef68",
+      "t": "Wow. The detail is insane."
+    },
+    {
+      "id": "ep-01:54",
+      "source": "아픈가.",
+      "sourceHash": "524da683843326e296f648a02ce2c67521eaf058adbbc0b31ff61b19d18b738b",
+      "t": "Does it hurt?"
+    },
+    {
+      "id": "ep-01:55",
+      "source": "아프진 않은데, 기분이 이상해.",
+      "sourceHash": "c6dcb463453b29d24c76c8988eaf12b361acd6c9e6b65a65c53700a1adcb4a40",
+      "t": "No. It just feels weird."
+    },
+    {
+      "id": "ep-01:56",
+      "source": "그럼 현실이다.",
+      "sourceHash": "cc297cd125770d4ad2133fb81812e6898041277b985afaab22506004adbd583c",
+      "t": "Then it is real."
+    },
+    {
+      "id": "ep-01:57",
+      "source": "그 판정 너무 대충이잖아.",
+      "sourceHash": "c697bc5a7adfa718629916e63f2b00185ace0d625a548050b0ae0abccbe6de88",
+      "t": "That is a ridiculously sloppy test."
+    },
+    {
+      "id": "ep-01:58",
+      "source": "영냥이는 대답 대신 배 밖을 바라봤다. 연이도 따라 고개를 돌렸다. 그제야, 주변이 제대로 보였다.",
+      "sourceHash": "af5c7d486c1c81ceead1c84980e8739ab74f33a3b8bc32ea8bcf2236a766210b",
+      "t": "Instead of replying, Yeongnyangi looked over the side. Yeoni followed that gaze. Only then did they properly see their surroundings."
+    },
+    {
+      "id": "ep-01:59",
+      "source": "강이었다. 하지만 평범한 강이 아니었다. 물은 밤하늘처럼 검푸르렀고, 물결마다 별빛이 부서졌다. 물속엔 낯선 한자들이 물고기처럼 헤엄쳤다. 갑자, 을축, 병인, 정묘 — 시험 범위에 나오면 바로 포기하고 싶은 글자들이었다.",
+      "sourceHash": "cad2290bb93222fc494bdbfd4d66758b74158e950ef193620b241861e10f685c",
+      "t": "A river. But no ordinary river. Its water was as dark blue as the night sky, starlight breaking over every ripple. Strange Chinese characters swam beneath the surface like fish: Gapja, Eulchuk, Byeongin, Jeongmyo. The sort of characters that would make you give up if they appeared on an exam."
+    },
+    {
+      "id": "ep-01:60",
+      "source": "멀리엔 안개, 그 너머로 기둥 같은 것들이 흐릿하게 서 있었다. 하늘엔 큰 달. 달빛은 이상하게 차갑지 않았다. 예뻤다. 말도 안 되게. …그래서 더 무서웠다.",
+      "sourceHash": "b1f41a7d00fd86b89ace5abe9b9f303dd413d14892d0af7e2b7c49ca7de2c399",
+      "t": "Mist lay in the distance, with vague pillars rising beyond it. A great moon hung overhead. Its light was strangely free of cold. It was beautiful. Impossibly so. ...Which made it even more frightening."
+    },
+    {
+      "id": "ep-01:61",
+      "source": "꿈이면 깨면 된다. 게임이면 끄면 된다. 하지만 여긴, 깨는 법도 끄는 법도 모르는 꿈 같았다.",
+      "sourceHash": "59b62708cb2412d7ec660a5c8bbbbdc1680c7ac2d3d991a4c6b54d28b6c73423",
+      "t": "You could wake from a dream. You could switch off a game. But this place felt like a dream with no known way to wake or turn it off."
+    },
+    {
+      "id": "ep-01:62",
+      "source": "…여기 어디야.",
+      "sourceHash": "814bde9f74b3378e23e37d26c83529e9bd2a3982b5619da3a35d8ce8a4d8d6bf",
+      "t": "...Where is this?"
+    },
+    {
+      "id": "ep-01:63",
+      "source": "사주의 강.",
+      "sourceHash": "c38d0e3a4577314aafa00ef55f09f74c41c92bf471e81037818725e5cfaa90f8",
+      "t": "The River of Four Pillars."
+    },
+    {
+      "id": "ep-01:64",
+      "source": "사주?",
+      "sourceHash": "8a9895861e65641b36dd3707d040260a9cec735ce2e1a6b4693722668f9c824d",
+      "t": "Four Pillars? Like saju?"
+    },
+    {
+      "id": "ep-01:65",
+      "source": "사람의 운명 코드가 흘러가는 곳이다.",
+      "sourceHash": "87e0a28bd904463ff31d2806a284c2167a3e44cc2ecdc126d0b6b675dce1fe22",
+      "t": "The place where the codes of human destiny flow."
+    },
+    {
+      "id": "ep-01:66",
+      "source": "응. 하나도 모르겠어.",
+      "sourceHash": "4ce6e1c141911a9c5cdcf97f89a61db82d02140e6aa1934aaaa7bfe27e745aba",
+      "t": "Right. I understood none of that."
+    },
+    {
+      "id": "ep-01:67",
+      "source": "정상이다. 처음 온 인간은, 대부분 그렇다.",
+      "sourceHash": "6cbb2551b67c8755a76463b72afde227aa4263637f8b89c80f2a58e356d47a69",
+      "t": "That is normal. Most humans understand little on their first visit."
+    },
+    {
+      "id": "ep-01:68",
+      "source": "인간 아니게 됐는데.",
+      "sourceHash": "d8d6214e112d1981f181df5ae268599ac4a77f8f20dc80e213bba2f3120e6b74",
+      "t": "I'm not human anymore."
+    },
+    {
+      "id": "ep-01:69",
+      "source": "정확히는, 꽃돼지다.",
+      "sourceHash": "c4bdfb02921fa70e267a71c87a7fe58eaee1fa14c29b0794f71d31231af7fc74",
+      "t": "A flower pig, to be precise."
+    },
+    {
+      "id": "ep-01:70",
+      "source": "그 단어, 들을수록 기분 나빠져.",
+      "sourceHash": "82a65b2ab1fbe24aa3cbc356629a8a8b3720a0b7fdcb161f6482907222a2e75b",
+      "t": "I hate that word more every time I hear it."
+    },
+    {
+      "id": "ep-01:71",
+      "source": "그냥 돼지보다는, 낫지 않나.",
+      "sourceHash": "3be80a91a99efb092252ce84774d1dfe80ee2725ba5bf467b4b7aa76c6bace85",
+      "t": "Better than just a pig, isn't it?"
+    },
+    {
+      "id": "ep-01:72",
+      "source": "…그게 위로야?",
+      "sourceHash": "68483dc76cf2f4c72eeb8bb945324474e431bdfa96cb09ffd135f74d8d540842",
+      "t": "...Is that meant to comfort me?"
+    },
+    {
+      "id": "ep-01:73",
+      "source": "객관적인 분석이다.",
+      "sourceHash": "fd8a51f053cf376522a37f112f18c459e036d198c844b18252f54f25981e59e2",
+      "t": "An objective analysis."
+    },
+    {
+      "id": "ep-01:74",
+      "source": "연이는 깊게 숨을 들이마셨다. 작은 콧김이 나왔다. 꿀꿀. 너무 귀여운 소리였다. 제 입에서 그런 소리가 났다는 사실에, 갑자기 화가 치밀었다.",
+      "sourceHash": "6b01ca9009d5a83bd5d29b7de5d2db31b88ccc61eb22e66fdb649342fa1babc1",
+      "t": "Yeoni took a deep breath. A little snort escaped. Oink, oink. An unbearably cute sound. The fact that it had come from their own mouth made them suddenly furious."
+    },
+    {
+      "id": "ep-01:75",
+      "source": "왜 하필 돼지냐고! …그리고 여기 어디야, 나 집에 갈래.",
+      "sourceHash": "1626c134b5aca4710312232dc1586ccbd750cfb6f9d0195ea39efc52adee28bf",
+      "t": "Why a pig, of all things! ...And where am I? I want to go home."
+    },
+    {
+      "id": "ep-01:76",
+      "source": "쉽지 않다.",
+      "sourceHash": "9d4499f242cf0c169af2d3b9ed80b195455e23a2915a9454ffe0ec6e3a85d018",
+      "t": "That will not be easy."
+    },
+    {
+      "id": "ep-01:77",
+      "source": "쉬운 답, 기대도 안 했어.",
+      "sourceHash": "94a912de1657591b8eb5615216682187a1a58af10b552dcde1b93b1f5fa77bb7",
+      "t": "Wasn't expecting an easy answer."
+    },
+    {
+      "id": "ep-01:78",
+      "source": "영냥이가 연잎 위를 천천히 걸었다. 발을 디딜 때마다 바닥이 작게 빛났다. 분홍 발바닥 끝엔 별 모양 문양. 그냥 이상한 소리만 하는 고양이는, 아닌 것 같았다.",
+      "sourceHash": "7574344e848943eceae9bde7b7bdd3fcc6ded2eef546d25877a4064c226da63e",
+      "t": "Yeongnyangi walked slowly across the leaf. It glowed faintly under each step. Star-shaped markings tipped those pink paw pads. Apparently this was more than a cat that said strange things."
+    },
+    {
+      "id": "ep-01:79",
+      "source": "영냥이. 니가 여기 담당자야?",
+      "sourceHash": "d09c549a506943a0fa1b989a2ca3f44be76edeaa6f24b5b17afc0094fe7d5681",
+      "t": "Yeongnyangi. Are you in charge here?"
+    },
+    {
+      "id": "ep-01:80",
+      "source": "비슷하다.",
+      "sourceHash": "62dc3b10f64275bd2a7b136efe73682e00059aab8ca72513eeac46a45c9ab323",
+      "t": "Something like that."
+    },
+    {
+      "id": "ep-01:81",
+      "source": "그럼 민원 넣을게. 사람이 앱 눌렀다고 돼지 되는 거, 과하지 않아?",
+      "sourceHash": "cfc3794cf7108308247b873868312f2b7507f9046fcb5c8e3fba3374f68c5a8f",
+      "t": "Then I'd like to file a complaint. Turning someone into a pig for tapping an app seems a bit excessive."
+    },
+    {
+      "id": "ep-01:82",
+      "source": "나름 귀엽지 않나.",
+      "sourceHash": "00ee69dc384d625ab8a07651e6bbd64730bd0802c7ee6112b09eb9a201a5d000",
+      "t": "You are rather cute."
+    },
+    {
+      "id": "ep-01:83",
+      "source": "민원 추가. …그리고 내가 누른 건 앱이거든. Code 뭐시기 하는.",
+      "sourceHash": "b3c69bff3d19c1355097f1a62eee0edeb172370885fa685264cd468607af1e8e",
+      "t": "Adding that to the complaint. ...And what I tapped was an app. Code Something-or-other."
+    },
+    {
+      "id": "ep-01:84",
+      "source": "영냥이의 표정이 조금 굳었다.",
+      "sourceHash": "ed1eef5c83fe8fb4f3b72216beb011b2831914de65dbc115072b2d36ee705bf3",
+      "t": "Yeongnyangi's expression stiffened a little."
+    },
+    {
+      "id": "ep-01:85",
+      "source": "그건, 문이다.",
+      "sourceHash": "49702aa9c4dc1edaf19a4450cdec38f35c08b1dfc268ff5dd2757f41e373091e",
+      "t": "That was a door."
+    },
+    {
+      "id": "ep-01:86",
+      "source": "앱처럼 생겼던데.",
+      "sourceHash": "95f10191efe3efa8a947c64d0a54331933beab3fd7da50d1de76628959dadda2",
+      "t": "Looked like an app."
+    },
+    {
+      "id": "ep-01:87",
+      "source": "요즘 인간이 누르기 좋은 형태로 나타났을 뿐이다. 넌 문은 안 열어도, 앱은 누를 테니까.",
+      "sourceHash": "618adc72f50760cf08a5be9a53fa0733dd512ab28aaa3a9c3a4389939f845177",
+      "t": "It merely took a form humans today would readily tap. You might not open a door, but you would tap an app."
+    },
+    {
+      "id": "ep-01:88",
+      "source": "연이는 할 말을 잃었다. 맞는 말이라, 더 기분 나빴다.",
+      "sourceHash": "e01c6c70da05d43bb57bb6c1bfac0e73c4488243a7ded3b70f12ea03f6d8baf5",
+      "t": "Yeoni had no comeback. It was true, which made it more annoying."
+    },
+    {
+      "id": "ep-01:89",
+      "source": "그때, 배 아래 강물이 크게 흔들렸다. 첨벙. 연이는 반사적으로 몸을 낮췄다.",
+      "sourceHash": "628dac4798ad12eb4632f0bd4158159a837735f25bbd24e3f89162021d612c0c",
+      "t": "Then the water beneath the boat heaved. Splash. Yeoni instinctively ducked."
+    },
+    {
+      "id": "ep-01:90",
+      "source": "방금, 뭐야.",
+      "sourceHash": "a6f84a08665a601d80ff26f9b18348bc462178ce5115ccfd2c63420fe5d9dcee",
+      "t": "What was that?"
+    },
+    {
+      "id": "ep-01:91",
+      "source": "영냥이의 눈빛이 바뀌었다. 아까까진 귀찮은 고양이 같더니, 지금은 달랐다. 보랏빛 눈동자가 금빛으로 번지고, 모자의 초승달이 희미하게 타올랐다.",
+      "sourceHash": "30be5b6c7514c0f3f36a118a63b4bbabd96e2fe29696a6167bcb8df7975eff4e",
+      "t": "Yeongnyangi's eyes changed. A moment ago, this had seemed like an irritated cat. Now it was different. Violet irises flared gold, and the crescent on the hat began to burn faintly."
+    },
+    {
+      "id": "ep-01:92",
+      "source": "불운의 찌꺼기. …네 현실에서, 새어 나온 것들이다.",
+      "sourceHash": "e088936ee6e14c9b475eeeb0297652b479d5d3d002aead3d4815cbae038d8bc0",
+      "t": "The residue of misfortune. ...Things that leaked out of your reality."
+    },
+    {
+      "id": "ep-01:93",
+      "source": "내… 현실?",
+      "sourceHash": "ffb45885ce7da7681a8dd2975698c4f23c8aaf44335f5f89d20774b6c05a9159",
+      "t": "My... reality?"
+    },
+    {
+      "id": "ep-01:94",
+      "source": "영냥이는 강물 위, 검은 먹물이 번지는 곳을 가리켰다. 그 검은 물은 지나가는 글자를 하나씩 삼켰다. 빛나던 한자들이 검게 변하고, 형태가 비틀렸다.",
+      "sourceHash": "66f8c2e8dd09daccddb800279a3f68185dfc8e520833764ea993451a710ec11c",
+      "t": "Yeongnyangi pointed to black ink spreading across the river. The dark water swallowed the passing characters one by one. Their shining strokes blackened and twisted out of shape."
+    },
+    {
+      "id": "ep-01:95",
+      "source": "요즘, 운이 계속 꼬였지.",
+      "sourceHash": "d2eb049b12ecf6f514c03cfe023290d91f4437e95e7902fdff000da6fb419bf7",
+      "t": "Your luck has been going wrong lately."
+    },
+    {
+      "id": "ep-01:96",
+      "source": "안 울린 알람. 세 번 튕긴 카드. 속이 바뀐 삼각김밥. 손상된 과제 파일. 엎어진 약속. 지워지지 않던 앱. — 연이는 순간, 말문이 막혔다.",
+      "sourceHash": "60f474199d5db7b86aa8f1b48dfa6d369ebab91abd7d42afdab2f0055ab354f9",
+      "t": "The silent alarms. The card rejected three times. The rice triangle with the wrong filling. The corrupted assignment. The canceled plans. The app that would not go away. Yeoni suddenly had nothing to say."
+    },
+    {
+      "id": "ep-01:97",
+      "source": "전부 농담처럼 넘겼지만, 사실 마음 한구석에선 계속 신경 쓰였다. 왜 이렇게까지 꼬이지. 왜 나만 타이밍이 안 맞지. 왜 아무것도 아닌 일까지, 매번 나만 비껴가듯 어긋나지.",
+      "sourceHash": "af9519354f221818229a6c3ae9f22464a72b1d91e1d65a358f451a1f7ec087e6",
+      "t": "They had laughed it all off, but it had kept nagging at a corner of their mind. Why did everything go this wrong? Why was their timing always off? Why did even the smallest things seem to slip past them, every single time?"
+    },
+    {
+      "id": "ep-01:98",
+      "source": "그게… 여기랑, 관련 있어?",
+      "sourceHash": "9917fb7741987c9d6f5601c23f9c2fe3859c5c8dbdb1f888758996f9610fd4f4",
+      "t": "Does that... have something to do with this place?"
+    },
+    {
+      "id": "ep-01:99",
+      "source": "네 운명 코드가 훼손됐다. 네 사주 글자가, 흩어졌다는 뜻이다.",
+      "sourceHash": "77f72a1e82c707b4a186f2b2b8b9e95a1af2666996e38f772c74fd8609f79cea",
+      "t": "Your destiny code has been damaged. The characters of your Four Pillars have scattered."
+    },
+    {
+      "id": "ep-01:100",
+      "source": "내 사주를, 누가 건드렸다고? 왜. 거기 뭐가 있다고 굳이.",
+      "sourceHash": "500a50ff6aaff837940b78063d18ccb6f06fccfee87916b0cb9e2a79b235add0",
+      "t": "Someone messed with my saju? Why? What could possibly be worth the trouble?"
+    },
+    {
+      "id": "ep-01:101",
+      "source": "그걸 알아내려면, 네 글자를 먼저 되찾아야 한다.",
+      "sourceHash": "7b9a26dc0c84a71d41bb6c7f0c18fa32644b4f03ecc2717d7cbdac9a69ceac83",
+      "t": "To learn that, you must first reclaim your characters."
+    },
+    {
+      "id": "ep-01:102",
+      "source": "영냥이가 말을 끝내기 전에, 강 아래에서 검은 손이 솟았다. 손이라기엔 너무 길고, 그림자라기엔 너무 선명한. 검은 물로 된 손이, 연잎 가장자리를 붙잡으려 했다.",
+      "sourceHash": "45bdc1fdceae0add8b2ff0dcb2ca31367f9b5791c3f7ef8c305224aacf836501",
+      "t": "Before Yeongnyangi could finish, a black hand surged from the river. Too long to be a hand, too solid to be a shadow. Made of black water, it reached for the edge of the leaf."
+    },
+    {
+      "id": "ep-01:103",
+      "source": "연이는 얼어붙었다. 가슴이 철렁 내려앉았다. 방금까지 억지로 붙들던 농담이, 머릿속에서 싹 사라졌다. 저건 꿈의 장식이 아니었다. 무언가가, 자신을 잡으러 오고 있었다.",
+      "sourceHash": "639794bb2b8ada653d1c10502545b0ef8b5c6fb78a6336dff9c92155a3e20956",
+      "t": "Yeoni froze. Their heart dropped. Every joke they had been forcing themself to hold on to vanished. That was no piece of dream scenery. Something was coming to catch them."
+    },
+    {
+      "id": "ep-01:104",
+      "source": "저거… 나한테 오는 거야?",
+      "sourceHash": "545e4c9d90bcaa0f6166d9863bad3e6ccf81b60c5d2b87e472e88792d4803074",
+      "t": "Is that... coming for me?"
+    },
+    {
+      "id": "ep-01:105",
+      "source": "그렇다.",
+      "sourceHash": "12bf9f726164a3d01929d74bd0f4c9d2ed3628804e9e464adffe81a65e424b2b",
+      "t": "Yes."
+    },
+    {
+      "id": "ep-01:106",
+      "source": "왜.",
+      "sourceHash": "2d0c4328e35c27d195260a5977cd84356325af0a18d2481849ec97f2574c4a60",
+      "t": "Why?"
+    },
+    {
+      "id": "ep-01:107",
+      "source": "네가 표적이니까.",
+      "sourceHash": "3e004c4681fe1f2c251911a220aad46b3d91bf129e16be049b640788f200765f",
+      "t": "Because you are its target."
+    },
+    {
+      "id": "ep-01:108",
+      "source": "그걸 왜 그렇게 차분하게 말해!",
+      "sourceHash": "ba554e380d06f7f07c96526585e68298496dacea64b1c44427a9d3b1adac74a9",
+      "t": "How can you say that so calmly!"
+    },
+    {
+      "id": "ep-01:109",
+      "source": "검은 손이 배 위로 뻗어왔다. 연이는 물러나려 했지만, 몸이 아직 남의 것 같았다. 짧은 다리가 연잎 위에서 헛돌았다.",
+      "sourceHash": "439c52297717b85a66770adcdcac7d39b1c643bc7e0c2c0ca177950dfe535f80",
+      "t": "The black hand reached over the boat. Yeoni tried to retreat, but this body still felt borrowed. Their short legs scrambled uselessly on the leaf."
+    },
+    {
+      "id": "ep-01:110",
+      "source": "아니, 이 몸 조작감 왜 이렇게 구려!",
+      "sourceHash": "aa0e43b03d632e39bc8a0f3b688dc65cddcc6f7e53f1a0fda451247aef1cb442",
+      "t": "Why are this body's controls so awful!"
+    },
+    {
+      "id": "ep-01:111",
+      "source": "조작은, 익숙해지면 된다.",
+      "sourceHash": "b30aa5bdcb4025b951bdb23f61bfcf7da88819f8a329923b3dfa52946fc12aad",
+      "t": "You will get used to them."
+    },
+    {
+      "id": "ep-01:112",
+      "source": "검은 손이 연이를 붙잡으려는 순간 — 영냥이가 사라졌다. 아니, 사라진 것처럼 보였다. 금빛 선 하나가 공중을 갈랐다. 촤악. 검은 손이 반으로 갈라지고, 먹물 방울이 흩어졌다.",
+      "sourceHash": "09f310da18933e7eb93f024f0c06e3c0274cb01b9dc033277cff4ece81cec03d",
+      "t": "Just as the hand reached for Yeoni, Yeongnyangi vanished. Or seemed to. A golden line slashed through the air. Shhk. The hand split in two, scattering drops of ink."
+    },
+    {
+      "id": "ep-01:113",
+      "source": "영냥이는 연잎 끝에 착지했다. 작은 몸이었다. 하지만 방금 그 움직임은, 조금도 작지 않았다.",
+      "sourceHash": "3cbe73c0d218a9d891b27b5ca31954d91732ec6df43b867dd00188059934f9ba",
+      "t": "Yeongnyangi landed at the leaf's edge. A small body. But there had been nothing small about that movement."
+    },
+    {
+      "id": "ep-01:114",
+      "source": "…오.",
+      "sourceHash": "75c160c986252fb2053a7ee6682f93fcba542c3fd074199073d166b7f2f64f32",
+      "t": "...Oh."
+    },
+    {
+      "id": "ep-01:115",
+      "source": "이제 그냥 고양이라고 부르지 마라. 나는, 평범한 고양이가 아니다.",
+      "sourceHash": "f19d42e12baac1a543c7fba8efe58a4a62581bfab8b189fef6979caa958c7eed",
+      "t": "Do not call me just a cat again. I am no ordinary cat."
+    },
+    {
+      "id": "ep-01:116",
+      "source": "연이는 잠시 고민했다.",
+      "sourceHash": "d850ceecb483a1dbdeb2279a5aa1f83a25ef665887205b38c56707971ea349a0",
+      "t": "Yeoni considered that for a moment."
+    },
+    {
+      "id": "ep-01:117",
+      "source": "…전투 고양이?",
+      "sourceHash": "07f267d9f334c2c2dcd41bde8a6d6130a9e145f60ca51fe217af330e2d08a134",
+      "t": "...Combat cat?"
+    },
+    {
+      "id": "ep-01:118",
+      "source": "고양이의 눈이 가늘어졌다.",
+      "sourceHash": "dc52e946476c5ac580f199d30f822598c321f44c5f99a637db942791b814fc69",
+      "t": "The cat's eyes narrowed."
+    },
+    {
+      "id": "ep-01:119",
+      "source": "진짜 이름은… 말할 수 없다. 아무렇게나 불러라.",
+      "sourceHash": "144d6627c52117da8eed163c742075cf2ee0d405973d66df1df358d3d886cb05",
+      "t": "My real name... I cannot tell you. Call me whatever you like."
+    },
+    {
+      "id": "ep-01:120",
+      "source": "그럼 영냥이. 영험한 냥이니까. 작명 센스는 별 하나 걸게.",
+      "sourceHash": "490bdb7a7d0348818a8c1ef4464a80cfd04f14ccf970866c4f049721663445d8",
+      "t": "Then Yeongnyangi. A mystical kitty. I'll stake one star on my naming skills."
+    },
+    {
+      "id": "ep-01:121",
+      "source": "검은 손은 사라지지 않았다. 강 아래에서 더 많은 그림자가 올라왔다. 잘린 손들은 물속으로 녹아, 더 굵고 긴 형태로 다시 뭉쳤다.",
+      "sourceHash": "766b95dd01f334848b4c9b63b433da6fd537311f7f429c3510a6110a446d2881",
+      "t": "The black hands did not disappear. More shadows rose from the river. Severed hands melted back into the water and gathered again, thicker and longer."
+    },
+    {
+      "id": "ep-01:122",
+      "source": "영냥이가 연잎 바닥을 앞발로 쳤다. 툭. 가장자리에 투명한 물방울이 떠올라, 작은 방패처럼 둘러섰다. 검은 손이 방패를 긁었다. 끼이이익.",
+      "sourceHash": "796b42e132047bfd7ae019c23d6a5c9ce3be18ed709b8f3d6e8ba1e5afc0e2aa",
+      "t": "Yeongnyangi tapped the leaf with a paw. Tap. Clear droplets rose around its rim, forming little shields. A black hand scraped across them. Screeech."
+    },
+    {
+      "id": "ep-01:123",
+      "source": "…소리 최악.",
+      "sourceHash": "cf983e118eca7be1640b89be66a7c2b1263d0ecd2a822b779bde33dbbee85e01",
+      "t": "...Worst sound ever."
+    },
+    {
+      "id": "ep-01:124",
+      "source": "오래는 못 버틴다.",
+      "sourceHash": "8f78c0111cb70f9e0437e05b60142f73a99436802343810df72f79220f15ed48",
+      "t": "They will not hold for long."
+    },
+    {
+      "id": "ep-01:125",
+      "source": "그럼 어떡해.",
+      "sourceHash": "d32fdc1da1abe981635e6f080763fcefeaa4aafccc07b22dfa2c61a274abfaf8",
+      "t": "Then what do we do?"
+    },
+    {
+      "id": "ep-01:126",
+      "source": "…네 머리 위 꽃은, 살아 있다.",
+      "sourceHash": "d691ddf04995dc6324dbdff09ee027281d9b6a4a107a5f53e59dc3fcc7c589bc",
+      "t": "...The flower on your head is alive."
+    },
+    {
+      "id": "ep-01:127",
+      "source": "연이가 앞발로 머리 위 꽃을 만졌다. 꽃잎이 앞발 끝에 닿았다. 그 순간, 꽃이 아주 약하게 빛났다. 따뜻했다. 아주 작지만, 분명히.",
+      "sourceHash": "e021d85d0cce87016e8ce3d6574d83d00111618382962b954acf6670ef506f52",
+      "t": "Yeoni touched it with a hoof. A petal brushed the tip. At that moment the flower glowed, very faintly. It was warm. Barely, but unmistakably."
+    },
+    {
+      "id": "ep-01:128",
+      "source": "이건, 뭐야.",
+      "sourceHash": "4ce3895189877b8091f86600cfbdc94cb45eabd418919eddd7f58502644a5c64",
+      "t": "What is it?"
+    },
+    {
+      "id": "ep-01:129",
+      "source": "네 일간의 흔적. 너 자신을 나타내는, 중심 글자다.",
+      "sourceHash": "0397cfc15c44b8c7ea23bac74123b1515c06fddf3554221cb14554ef407bb7f8",
+      "t": "A trace of your Day Master. The central character that represents you."
+    },
+    {
+      "id": "ep-01:130",
+      "source": "연이는 바로 이해를 포기했다.",
+      "sourceHash": "84756264c6a475c009323e10da826386d634956cae1256ff9d9a74398f17e856",
+      "t": "Yeoni immediately gave up trying to understand."
+    },
+    {
+      "id": "ep-01:131",
+      "source": "좋아. 지금은 그냥, 내 꽃이 배터리라고 치자.",
+      "sourceHash": "eae5a83d70a4be83a1fdb86a96e1ae06fc66be55a98713c8781bb5e3825f4e11",
+      "t": "Fine. For now, let's just say my flower is a battery."
+    },
+    {
+      "id": "ep-01:132",
+      "source": "비슷하지 않다.",
+      "sourceHash": "e57c85fb892d7e51b6d95d4afd69700f70b038a2bcef2d90ef8a8b996e138467",
+      "t": "It is not."
+    },
+    {
+      "id": "ep-01:133",
+      "source": "내가 이해하기 쉽게 바꾼 거야.",
+      "sourceHash": "6e9e860152e9d2db84b42c7e03eae104ad49e7035a39fd3394d8f837dd9dd98d",
+      "t": "I'm putting it in terms I understand."
+    },
+    {
+      "id": "ep-01:134",
+      "source": "틀린 이해는, 위험하다.",
+      "sourceHash": "a68fa4d94a434263443317cfdc6b7fc94e9192122ea5ed3344775b81d9f4d6f9",
+      "t": "A mistaken understanding is dangerous."
+    },
+    {
+      "id": "ep-01:135",
+      "source": "너 설명하는 거, 꼭 교양 필수 교수님 같아.",
+      "sourceHash": "f542204747fc5c9b722ab052a38fe42b931695947f623c57076c4d1b9ce8db20",
+      "t": "You explain things exactly like a professor teaching a required elective."
+    },
+    {
+      "id": "ep-01:136",
+      "source": "검은 손들이 다시 다가왔다. 영냥이는 강 너머를 바라봤다. 안개 속에, 네 개의 빛이 떠올랐다.",
+      "sourceHash": "4b83fb936cbd7e747dc293e2cbcfa107853cad5597e5b286d39a346fbbf11de0",
+      "t": "The black hands approached again. Yeongnyangi looked across the river. Four lights emerged in the mist."
+    },
+    {
+      "id": "ep-01:137",
+      "source": "하나는 날카로운 푸른빛이었다. 하나는 따뜻한 불빛처럼 흔들렸다. 하나는 황금빛으로 번쩍였다. 마지막 하나는, 오래된 책장처럼 부드럽게 빛났다.",
+      "sourceHash": "4795b0b0d7f56acda43f231f03bc0af7e9bc07e183e4fa8d7d679c83dec39c17",
+      "t": "One was a sharp blue. One flickered like a warm flame. One flashed gold. The last shone as softly as an old bookshelf."
+    },
+    {
+      "id": "ep-01:138",
+      "source": "네 사주 글자는, 네 개의 섬에 흩어져 있다. 비겁의 섬. 식상의 섬. 재성의 섬. 인성의 도서관.",
+      "sourceHash": "25b7eef69d5eb262cdb74c1a154eaf8ae228883c3b8936b558d8db02490148c5",
+      "t": "The characters of your Four Pillars are scattered across four islands. The Island of Companions. The Island of Expression. The Island of Wealth. The Library of Resources."
+    },
+    {
+      "id": "ep-01:139",
+      "source": "연이는 네 개의 빛을 바라봤다. 꿈이라기엔 손에 잡힐 듯 선명했고, 게임이라기엔 등골이 서늘했다. 그런데 이상하게도, 저 빛들이 자신을 부르는 것 같았다. 마음 깊은 곳이, 조용히 흔들렸다.",
+      "sourceHash": "f6f59b3bd49d044c77db63ddf2c54baf942c39061c5e7ea452e006bdf41c1302",
+      "t": "Yeoni looked at the four lights. Too vivid to be a dream, too chilling to be a game. Yet strangely, they seemed to be calling. Something deep inside stirred quietly."
+    },
+    {
+      "id": "ep-01:140",
+      "source": "저걸 다 가야, 집에 갈 수 있다는 거지.",
+      "sourceHash": "3ef28c476b1fe0f6cfb39c548bb85303ab1303a68020e7c4a614e7b5ea155483",
+      "t": "I have to visit all of them before I can go home. Is that it?"
+    },
+    {
+      "id": "ep-01:141",
+      "source": "그렇다.",
+      "sourceHash": "12bf9f726164a3d01929d74bd0f4c9d2ed3628804e9e464adffe81a65e424b2b",
+      "t": "Yes."
+    },
+    {
+      "id": "ep-01:142",
+      "source": "잠깐. 나 약관 동의한 적, 없는데.",
+      "sourceHash": "aa94684ae3a6a056f29247c2a2a8a610dbe4f92d966672dff46e21a4b9ac5f88",
+      "t": "Hold on. I never agreed to any terms and conditions."
+    },
+    {
+      "id": "ep-01:143",
+      "source": "동의 절차는, 없다.",
+      "sourceHash": "4326974abfcae24a12b84be40b7ea302625f87800c6ef8d5470381e1fa7fa042",
+      "t": "There is no consent procedure."
+    },
+    {
+      "id": "ep-01:144",
+      "source": "중간에 환불은.",
+      "sourceHash": "3efd1f324317e39efebbfb7998fe0dad73eb6c3af3b1689ad855062c2b4611be",
+      "t": "Can I get a refund halfway through?"
+    },
+    {
+      "id": "ep-01:145",
+      "source": "없다.",
+      "sourceHash": "528ae90c45c937ef64424b0cd8530aa6c9722809f9ac1fb345ce3ea20493ceb7",
+      "t": "No."
+    },
+    {
+      "id": "ep-01:146",
+      "source": "문의 게시판은.",
+      "sourceHash": "5dce82c8f2173fa6f2148f97e7be4d8e1d34efd2531ad2b017c8f0485ff0e81b",
+      "t": "A help forum?"
+    },
+    {
+      "id": "ep-01:147",
+      "source": "없다.",
+      "sourceHash": "528ae90c45c937ef64424b0cd8530aa6c9722809f9ac1fb345ce3ea20493ceb7",
+      "t": "No."
+    },
+    {
+      "id": "ep-01:148",
+      "source": "고객센터는.",
+      "sourceHash": "7c7bad254e712fdf7ffb4ff61af4e63fa306213d5ff1a769f125d7b23b148695",
+      "t": "Customer support?"
+    },
+    {
+      "id": "ep-01:149",
+      "source": "…나름, 내가 있다.",
+      "sourceHash": "5958675fc15f9e9fb1fbbc679e86bbbab3a4503c5463291bcb7fcaf9dc7e44aa",
+      "t": "...There is me, more or less."
+    },
+    {
+      "id": "ep-01:150",
+      "source": "…뭔가 엄청 불안한데.",
+      "sourceHash": "759d151b5b27baea53387d2cb465eb16eb8464d0b0709435a040f877af14617b",
+      "t": "...That is deeply reassuring. And by reassuring, I mean terrifying."
+    },
+    {
+      "id": "ep-01:151",
+      "source": "불만은, 접수하지 않는다.",
+      "sourceHash": "008ec92d28b06c571ab34ccc5e0f0d4364016ba1dca1449f797c8a83f5fd4434",
+      "t": "Complaints are not accepted."
+    },
+    {
+      "id": "ep-01:152",
+      "source": "최악의 고객센터네.",
+      "sourceHash": "f5109c5755b1cb4414eb98648c78eeeeb2c0b1f0411043f7bf57fb2c9fd6c284",
+      "t": "Worst customer service ever."
+    },
+    {
+      "id": "ep-01:153",
+      "source": "별점도, 접수하지 않는다.",
+      "sourceHash": "fcf9db38894f72de2b264cbc247ba4fc06093b1539c2112ce5d2b75e691fbd54",
+      "t": "Neither are star ratings."
+    },
+    {
+      "id": "ep-01:154",
+      "source": "그때 검은 손 하나가, 방패를 뚫고 들어왔다.",
+      "sourceHash": "8a89a9a9e8fbb69a37ecb81da08d3b472fbf9ecb8d26b1709230993c88ca7934",
+      "t": "Then one black hand broke through the shield."
+    },
+    {
+      "id": "ep-01:155",
+      "source": "꿀악!",
+      "sourceHash": "fc3d388d569e0416ab8760c661ae6a6a2b6f63fc53c02a482845e8b50d1bdfd2",
+      "t": "OINK—AAH!"
+    },
+    {
+      "id": "ep-01:156",
+      "source": "연이는 바로 제 입을 막았다.",
+      "sourceHash": "c1af4ad3b6ab0d2cfb2bfe4b43a3a83aba47fcf17e00757e1087779c7ab78aff",
+      "t": "Yeoni immediately covered their mouth."
+    },
+    {
+      "id": "ep-01:157",
+      "source": "…방금 건, 놀라서 그런 거야.",
+      "sourceHash": "c03fd159d063c87b19a26d239c3b81d5c6c2dbc03de73a950698c8994b3d88f1",
+      "t": "...That was only because I got startled."
+    },
+    {
+      "id": "ep-01:158",
+      "source": "알고 있다.",
+      "sourceHash": "d0a0b1f53e465022b01de641e00372f7ecb797a268e19090c856ab8577abf695",
+      "t": "I know."
+    },
+    {
+      "id": "ep-01:159",
+      "source": "영냥이가 다시 뛰어올랐다. 발톱에 금빛 문양이 떠올랐다. — 사주성광. 앞발을 휘두르자, 별빛 칼날이 강물 위를 가르며 퍼졌다. 검은 손들이 한꺼번에 잘려 나갔다.",
+      "sourceHash": "817a3230f65209f90d176522d2a54899caeb161a1b097bf258b0f4ab5d4c9ac1",
+      "t": "Yeongnyangi sprang up again. Golden patterns appeared on those claws. Four Pillars Starlight. With a sweep of a paw, blades of starlight fanned across the river. The black hands were severed all at once."
+    },
+    {
+      "id": "ep-01:160",
+      "source": "연잎 배가 앞으로 밀려났다. 강물이 길을 열듯 갈라졌다. 영냥이는 착지하자마자, 낮게 말했다.",
+      "sourceHash": "66a6c93bf81c45a8fb47adb1295efed6eb9911c3ef3a40d66467ec325e7ead8a",
+      "t": "The lotus-leaf boat surged forward. The river parted as though opening a road. As soon as Yeongnyangi landed, a low murmur followed."
+    },
+    {
+      "id": "ep-01:this-time",
+      "source": "이번에는… 놓치지 않는다.",
+      "sourceHash": "a72c077d2621998af80729dde618849f798e380f190106c036653446d046df5e",
+      "t": "This time... I will not lose you."
+    },
+    {
+      "id": "ep-01:slip",
+      "source": "연이가 묻기 전에 영냥이는 먼저 안개 너머를 봤다. 처음 가는 길을 이미 아는 눈이었다.",
+      "sourceHash": "a4b317801d7d29f8fae3da4760d395c906bdaeb688ee6bed799281a183edbe68",
+      "t": "Before Yeoni could ask, Yeongnyangi was already looking beyond the mist, with the eyes of someone who knew a path they had never traveled."
+    },
+    {
+      "id": "ep-01:161",
+      "source": "첫 목적지는, 비겁의 섬이다.",
+      "sourceHash": "37f2ecb31a7f41f8f8ef0d97c338e7a54e2498df522897b4eee17434b6fae040",
+      "t": "Our first destination is the Island of Companions."
+    },
+    {
+      "id": "ep-01:162",
+      "source": "비겁?",
+      "sourceHash": "7408013b2b144b0c9e6417186e6cace5a22823bca6671f61e7d01da1d80fc635",
+      "t": "Companions?"
+    },
+    {
+      "id": "ep-01:163",
+      "source": "너와 닮은 것들이, 있는 섬이다.",
+      "sourceHash": "adace992c548da49a43f559c3bf6fe256f7c2af964459f900fd5a3a62639e61a",
+      "t": "An island of things that resemble you."
+    },
+    {
+      "id": "ep-01:164",
+      "source": "나랑 닮은 게, 또 있어?",
+      "sourceHash": "89f13651b6ceafb0d697ac4c59693026fb1cafc346e80db10da8dddc711f7b70",
+      "t": "There are more things like me?"
+    },
+    {
+      "id": "ep-01:165",
+      "source": "많다. 친구, 경쟁자, 자존심, 질투 — 그리고, 용기.",
+      "sourceHash": "c56fed4da1e42a6ed6800e5df4d20518189d8dfa023962c4000e290c5f351f1c",
+      "t": "Many. Friends, rivals, pride, jealousy—and courage."
+    },
+    {
+      "id": "ep-01:166",
+      "source": "연이는 말없이 안개 속 첫 번째 빛을 바라봤다. 그 빛은 아름답기보다, 유리처럼 날카로웠다. 가까이 가면, 베일 것 같았다.",
+      "sourceHash": "0eedbf9f98ae8f6031d8d43662522a9fc5b654444a20b6e0894f9826403af3c2",
+      "t": "Silently, Yeoni watched the first light in the mist. It was less beautiful than sharp, like glass. Getting close seemed likely to draw blood."
+    },
+    {
+      "id": "ep-01:167",
+      "source": "…왜 하필 첫 섬부터, 느낌이 별로야.",
+      "sourceHash": "3a437a8d801f5741bdf534c63a20cceb1d115dae42371256bad1702587433992",
+      "t": "...Why does the very first island already feel wrong?"
+    },
+    {
+      "id": "ep-01:168",
+      "source": "너 자신과 마주하는 일은, 원래 편하지 않다.",
+      "sourceHash": "bc2248f5a21397295b1a62c1f98303d3b5e6462a523dab6131d95903376c7793",
+      "t": "Facing yourself was never going to be comfortable."
+    },
+    {
+      "id": "ep-01:169",
+      "source": "…또 명언처럼 말하네.",
+      "sourceHash": "8f0e2c6776a97ac859aed30959d67274b26ae74de38e27f7012998c7e26f2544",
+      "t": "...There you go sounding like a quote again."
+    },
+    {
+      "id": "ep-01:170",
+      "source": "사실이니까.",
+      "sourceHash": "07dcb0099552ea50fe2b7dfd7a94f2e85e5edcda7b0297c45786355d57599cd6",
+      "t": "Because it is true."
+    },
+    {
+      "id": "ep-01:171",
+      "source": "연잎 배가 속도를 냈다. 뒤에선 검은 손들이 다시 강물을 찢고 올라왔다. 앞에선 안개가 짙어졌다. 그 너머로, 섬의 그림자가 조금씩 드러났다. 비겁의 섬.",
+      "sourceHash": "42f94af75870c307c829bc15873c375a82fc1f08c578251dc43a83a69ed080b0",
+      "t": "The lotus-leaf boat gathered speed. Behind them, black hands tore up through the river again. Ahead, the fog thickened. Beyond it, an island's silhouette slowly emerged. The Island of Companions."
+    },
+    {
+      "id": "ep-01:172",
+      "source": "섬 주변엔 수많은 작은 거울 조각이 떠 있었다. 그 거울마다 — 무언가가, 비쳤다.",
+      "sourceHash": "cfc7513e12cf28c53def8a9864ebed88f041a4460e0819e966183a086d69e0f4",
+      "t": "Countless tiny mirror shards floated around the island. In every one, something was reflected."
+    }
+  ],
+  "sourceTitle": "꽃돼지가 되었다",
+  "sourceTag": "제1화 · 꽃돼지가 되었다"
+}
