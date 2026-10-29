@@ -2273,7 +2273,10 @@
       "selected": "चयनित",
       "fishTitle": "यदि मुख्यतः Yeongnyangi उपयोग करते हैं",
       "fishTerms": "Yeongnyangi पास अलग उत्पाद हैं और Ggulggul Fortune पर मान्य नहीं हैं।",
-      "fishLink": "Yeongnyangi पास देखें →"
+      "fishLink": "Yeongnyangi पास देखें →",
+      "compactTitle": "हनी जार पास",
+      "conditions": "दायरा और उपयोग की शर्तें",
+      "otherServices": "अन्य सेवाओं के पास देखें"
     }
   },
   "terms": {

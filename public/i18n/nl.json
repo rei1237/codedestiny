@@ -2273,7 +2273,10 @@
       "selected": "Geselecteerd",
       "fishTitle": "Als je vooral Yeongnyangi gebruikt",
       "fishTerms": "Yeongnyangi-passen zijn apart en gelden niet voor Ggulggul Fortune.",
-      "fishLink": "Bekijk Yeongnyangi-passen →"
+      "fishLink": "Bekijk Yeongnyangi-passen →",
+      "compactTitle": "Honingpot-passen",
+      "conditions": "Dekking en voorwaarden",
+      "otherServices": "Passen voor andere diensten bekijken"
     }
   },
   "terms": {

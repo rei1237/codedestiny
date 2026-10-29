@@ -2273,7 +2273,10 @@
       "selected": "Selected",
       "fishTitle": "If you mainly use Yeongnyangi",
       "fishTerms": "Yeongnyangi passes are separate products and cannot be used on Ggulggul Fortune.",
-      "fishLink": "View Yeongnyangi passes →"
+      "fishLink": "View Yeongnyangi passes →",
+      "compactTitle": "Honey Jar passes",
+      "conditions": "Coverage and terms",
+      "otherServices": "Explore passes for other services"
     }
   },
   "terms": {

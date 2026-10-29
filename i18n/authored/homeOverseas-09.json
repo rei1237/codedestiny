@@ -404,5 +404,47 @@
     "de": "Yeongnyangi-Pässe ansehen →",
     "nl": "Bekijk Yeongnyangi-passen →",
     "ms": "Lihat pas Yeongnyangi →"
+  },
+  "home.benefitsCopy.compactTitle": {
+    "ko": "꿀단지 이용권",
+    "en": "Honey Jar passes",
+    "ja": "蜜壺パス",
+    "zh-CN": "蜜罐通行证",
+    "zh-TW": "蜜罐通行證",
+    "vi": "Vé Hũ Mật",
+    "hi": "हनी जार पास",
+    "es": "Pases Tarro de Miel",
+    "fr": "Pass Pot de Miel",
+    "de": "Honigtopf-Pässe",
+    "nl": "Honingpot-passen",
+    "ms": "Pas Balang Madu"
+  },
+  "home.benefitsCopy.conditions": {
+    "ko": "적용 범위와 이용 조건",
+    "en": "Coverage and terms",
+    "ja": "対象サービスと利用条件",
+    "zh-CN": "适用范围与使用条件",
+    "zh-TW": "適用範圍與使用條件",
+    "vi": "Phạm vi và điều kiện sử dụng",
+    "hi": "दायरा और उपयोग की शर्तें",
+    "es": "Cobertura y condiciones",
+    "fr": "Services inclus et conditions",
+    "de": "Leistungsumfang und Bedingungen",
+    "nl": "Dekking en voorwaarden",
+    "ms": "Liputan dan syarat penggunaan"
+  },
+  "home.benefitsCopy.otherServices": {
+    "ko": "다른 서비스 이용권도 살펴보기",
+    "en": "Explore passes for other services",
+    "ja": "ほかのサービスのパスを見る",
+    "zh-CN": "查看其他服务通行证",
+    "zh-TW": "查看其他服務通行證",
+    "vi": "Xem vé cho dịch vụ khác",
+    "hi": "अन्य सेवाओं के पास देखें",
+    "es": "Ver pases para otros servicios",
+    "fr": "Voir les pass des autres services",
+    "de": "Pässe für andere Dienste ansehen",
+    "nl": "Passen voor andere diensten bekijken",
+    "ms": "Lihat pas untuk perkhidmatan lain"
   }
 }
