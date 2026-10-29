@@ -15676,9 +15676,9 @@ html[data-cd-lang]:not([data-cd-lang="ko"]) #cdPickWhyJosa{display:none}
           var opener = event.target instanceof Element ? event.target.closest('[data-cd-open-collection]') : null;
           if (!opener) return;
           var openerAction = String(opener.getAttribute('data-action') || '').trim();
-          var openerCoinCost = Number(opener.getAttribute('data-coin-cost') || 0);
-          var openerLockCost = Number(opener.getAttribute('data-tile-lock-cost') || 0);
-          if (openerAction && (opener.getAttribute('data-pvw-bypass') || openerCoinCost > 0 || openerLockCost > 0)) return;
+          // 기능 바로가기는 공통 data-action 처리에 맡긴다. 컬렉션 토글까지 함께
+          // 클릭하면 모바일 중복 탭 방지가 원래 기능 클릭을 삼킬 수 있다.
+          if (openerAction) return;
           event.preventDefault();
           var id = String(opener.getAttribute('data-cd-open-collection') || '').trim();
           if (!id) return;
@@ -15697,23 +15697,6 @@ html[data-cd-lang]:not([data-cd-lang="ko"]) #cdPickWhyJosa{display:none}
           } catch (_) {}
           if (toggle && !isOpen) toggle.click();
           window.setTimeout(function(){ scrollToNode(collection || toggle); }, isOpen ? 0 : 120);
-          var action = openerAction;
-          var freeQuickActions = {
-            openTarotModal: true,
-            openTarotHealingModal: true,
-            openAstroModal: true,
-            openZiweiModal: true,
-            navigateToVedic: true
-          };
-          var coinCost = openerCoinCost;
-          var lockCost = openerLockCost;
-          if (action && freeQuickActions[action] && coinCost <= 0 && lockCost <= 0) {
-            window.setTimeout(function(){
-              if (typeof window[action] === 'function') {
-                try { window[action](); } catch (err) { console.error('[collection-open-action]', action, err); }
-              }
-            }, 160);
-          }
         }, true);
         document.addEventListener('change', function(event){
           var timeInput = event.target instanceof Element ? event.target.closest('#birthHour,#birthMinute') : null;
@@ -40345,7 +40328,13 @@ window.lazyOpenModal = function(tplId, modalId, openFn) {
   function mount(id) {
     if (!id) return document.getElementById(id);
     var entry = detached[id];
-    if (!entry) return document.getElementById(id);
+    if (!entry) {
+      var existing = document.getElementById(id);
+      // 사용자 요청이 유휴 detach보다 먼저 왔어도 사용 중인 노드다.
+      // 실제 열기는 다음 프레임에 실행될 수 있으므로 미리 보존한다.
+      if (existing) mountedOnce[id] = true;
+      return existing;
+    }
     // placeholder 가 문서 밖(고아 서브트리) 에 있으면 거기 붙여 봐야 렌더되지 않는다.
     // parentNode 만 보면 non-null 이라 아래 body 폴백이 영영 안 돌고, 모달이 "마운트 성공"으로
     // 기록된 채 화면에는 안 나온다(mountedOnce 가 서고 detached 가 지워져 복구도 못 한다).
