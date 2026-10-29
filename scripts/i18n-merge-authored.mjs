@@ -55,7 +55,8 @@ function setDeep(target, dottedKey, value) {
   let node = target;
   for (let i = 0; i < parts.length - 1; i += 1) {
     const key = parts[i];
-    if (typeof node[key] !== "object" || node[key] === null || Array.isArray(node[key])) node[key] = {};
+    // Numeric path segments may address an existing array. Keep its sibling entries.
+    if (typeof node[key] !== "object" || node[key] === null) node[key] = {};
     node = node[key];
   }
   node[parts[parts.length - 1]] = value;
