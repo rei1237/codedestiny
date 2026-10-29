@@ -1,3 +1,4 @@
+import {FloralInputWelcome} from './Brand';
 import {useState,type FormEvent} from 'react';
 import {Button} from './Button';
 import {BirthFields,emptyBirth,birthPayload} from './BirthFields';
@@ -33,7 +34,7 @@ export default function FlowerReading({loggedIn,onLogin,onError}:{loggedIn:boole
   return <section className="flower-reading"><p className="eyebrow">운명의 꽃</p><h1>당신의 결을 닮은<br/>꽃 한 송이</h1>
     <p>사주와 별자리, 자미두수와 숙요가 비추는 서로 다른 꽃의 이야기를 만나보세요.</p>
     <p className="muted">로그인 후 이용할 수 있어요. 이 꽃 결과는 보관함에 저장되지 않아요.</p>
-    {loggedIn?<form className="form" onSubmit={submit}><BirthFields value={birth} onChange={value=>{setBirth(value);setResult(null);}} title="꽃을 살펴볼 출생정보"/>
+    {loggedIn?<form className="form floral-form" onSubmit={submit}><FloralInputWelcome/><BirthFields value={birth} onChange={value=>{setBirth(value);setResult(null);}} title="꽃을 살펴볼 출생정보"/>
       <Button type="submit" display="block" loading={busy}>{loggedIn?'나의 꽃 살펴보기':'토스 로그인하고 살펴보기'}</Button>
     </form>:<Button display="block" onClick={onLogin}>토스 로그인하고 살펴보기</Button>}{busy&&<p role="status">입력한 정보로 각 체계의 꽃을 계산하고 있어요.</p>}{result&&<FlowerResults result={result}/>}
   </section>;

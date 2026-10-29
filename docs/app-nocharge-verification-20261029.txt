@@ -70,4 +70,11 @@ https://support.google.com/googleplay/android-developer/answer/9866151
 - 검증 시작 시 origin/main 86e7f1b71e10ac7127c344a7785249d7ea805ac3 공식 PR CI / CI required success 확인.
 - https://github.com/rei1237/codedestiny/actions/runs/40812739881
 - git merge-tree --write-tree --name-only HEAD origin/main: 충돌 없음. 실제 통합/이번 변경 CI 통과를 뜻하지 않는다.
-- 전체 로컬 검사·커밋·push 상태는 작업 종료 전에 아래에 확정 기록한다.
+- 개별 검사 총 170 passed. 부적 브라우저 모의 검증과 15장 이미지 규격 검사도 통과.
+- check:fast는 미통과: 내부 npm test가 646.2초 후 FAIL. 러너가 개별 실패 출력을 전체 90항목 종료 때까지 보류하여 원인 전문은 확보하지 못했다. 이어진 profile-current-switch 검사는 통과했지만 광범위 검사를 종료했다. 원인을 기존 결함으로 단정하지 않으며 전체 lint/typecheck/test 완료를 주장하지 않는다.
+- 원 작업 공간 check:pre-push는 다른 세션의 미커밋 문서 때문에 차단. 해당 문서를 보존하고 안전 작업 공간 app-nocharge-delivery-20261029-130700에서 커밋된 트리로 실행해 통과했다: registry 63개, public mirror, sitemap 1020 URL, llms, SEO entity 62개.
+- 0c0a1bec2: 무과금 부적 검증 스크립트. 8ecab342e: 5개 언어 초안·검증 기록.
+- main 동시 갱신으로 첫 push가 non-fast-forward 거절됨. 최신 3ccfddd5a8cd9624cbfb4e067826537621322311을 정상 병합하고 check:pre-push 재통과 후 31d4292c6을 origin/main에 push 완료. 강제 push/PR/운영 배포 없음.
+- 이번 변경의 최종 공식 CI는 최종 응답에서 별도 보고한다. 앞서 확인한 86e7f1b71의 성공을 이번 변경의 성공으로 재사용하지 않는다.
+- 원 작업 공간은 타 세션 미커밋 문서가 있어 삭제하지 않는다. 임시 전달 작업 공간만 원격 통합 확인 후 정리한다.
+- 디자인 스킬은 PRODUCT의 구형 형식과 디자인 메타데이터 불일치를 알렸다. 요청 밖 설정은 수정하지 않았다. 필요 시 별도 init/document 갱신으로 정리할 수 있다.

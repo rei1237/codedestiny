@@ -78,6 +78,11 @@ export async function handleTossRoutes(request,env) {
       if(path==='/daily/reading'&&request.method==='GET')return reply(await daily.getFreeReading(env,auth.userId,url.searchParams.get('category')));
       throw new TossError('NOT_FOUND',404);
     }
+    if(path==='/manse/calculate'&&request.method==='POST') {
+      await limit(env,auth._id,'manse',6);
+      const [{calculateTossManse},{domains}]=await Promise.all([import('./manse.js'),import('../yeongnyangi/fortune/index.ts')]);
+      return reply(await calculateTossManse(await bodyOf(request),domains.saju));
+    }
     if(path==='/flower/match'&&request.method==='POST') {
       await limit(env,auth._id,'flower',6);
       const [{matchTossFlowers},{domains}]=await Promise.all([import('./flower.js'),import('../yeongnyangi/fortune/index.ts')]);

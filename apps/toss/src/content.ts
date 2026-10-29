@@ -1,10 +1,10 @@
 import {questionScopes} from '../../../worker/yeongnyangi/fortune/ask/question-policy';
 export const birthSystems=[{id:'saju',name:'사주'},{id:'astrology',name:'서양 점성술'},{id:'ziwei',name:'자미두수'},{id:'vedic',name:'베다점'},{id:'sukuyo',name:'숙요점'},{id:'tarot',name:'타로'}] as const;
 const depths=[
-  {fish:'mackerel',name:'고등어 상담',tag:'한 가지 고민부터',description:questionScopes.mackerel},
-  {fish:'salmon',name:'연어 상담',tag:'선택의 조건 살펴보기',description:questionScopes.salmon},
-  {fish:'flounder',name:'광어 상담',tag:'두 사람의 관계 살펴보기',description:questionScopes.flounder},
-  {fish:'tuna',name:'참치 상담',tag:'장기 흐름과 전환 준비',description:questionScopes.tuna},
+  {fish:'mackerel',name:'한 가지 고민',tag:'지금의 상황과 나의 패턴',description:questionScopes.mackerel},
+  {fish:'salmon',name:'선택과 준비',tag:'선택의 조건 살펴보기',description:questionScopes.salmon},
+  {fish:'flounder',name:'두 사람의 관계',tag:'관계의 속도와 차이',description:questionScopes.flounder},
+  {fish:'tuna',name:'장기 흐름과 전환',tag:'변화를 준비하는 기준',description:questionScopes.tuna},
 ] as const;
 // Current question policy offers long-period transitions only for these three systems.
 const systemReadings=birthSystems.flatMap(system=>depths.filter(depth=>depth.fish!=='tuna'||['saju','ziwei','vedic'].includes(system.id)).map(depth=>({...depth,id:`${system.id}_${depth.fish}`,domain:system.id,systemName:system.name,name:`${system.name} ${depth.name}`})));
@@ -37,6 +37,7 @@ export const cities=[
   {label:'제주',lat:33.4996,lng:126.5312,tz:'Asia/Seoul'},
 ];
 export const errors:Record<string,string>={
+  GRANT_NOT_DURABLE:'구매한 권한의 저장 확인이 필요해요. 다시 결제하지 말고 구매 복구에서 확인해 주세요.',
   DAILY_PASS_REQUIRED:'오늘의 운세를 먼저 열어 주세요. 출석 화면에서 보유 멸치를 확인할 수 있어요.',
   ANCHOVY_REQUIRED:'오늘의 운세를 열 멸치가 부족해요. 출석으로 모은 뒤 다시 확인해 주세요.',
   FREE_READING_INPUT_FROZEN:'오늘 처음 저장한 출생정보로 결과가 보관되어 있어요. 저장된 이야기를 다시 확인해 주세요.',
