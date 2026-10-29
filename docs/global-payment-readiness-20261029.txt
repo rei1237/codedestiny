@@ -1,0 +1,173 @@
+Code Destiny 해외결제 출시 준비 점검
+status: done (요청한 로컬 준비 범위, 출시/운영 활성화는 제외)
+점검일: 2026-10-29 (한국시간)
+범위: 계정 읽기 전용 확인, 로컬 코드 보완, 모의 검증, 문의 초안
+상태: 로컬 구현 및 계정 점검 결과. 출시 승인 또는 실제 결제 성공 확인서가 아님.
+기준 소스: origin/main bad2656a5cd2d9126bf5320a0395dfc1a0847486
+로컬 구현 커밋: a2b767e39 / 3916405cd / 478626721
+공유 체크아웃과 별도의 작업 공간에 보존. 다른 세션의 변경은 섞지 않음.
+
+1. 계정에서 직접 확인한 내용
+
+PayPal
+- codedestiny 비즈니스 대시보드 로그인 확인.
+- 기본 통화 USD, 잔액 0, 최근 거래 내역 없음.
+- 자금/은행/카드 화면에 연결된 은행이나 카드 항목 없이 연결 안내가 표시됨.
+- API 액세스 화면에는 PayPal 결제 설정 및 사전 제작 결제 솔루션 안내가 표시됨.
+- 대시보드에 제한 배너가 없다는 사실만으로 제한 없음/업종 승인/PortOne 연결 완료를 확정하지 않음.
+- 운영 공개 GET /api/payments/config를 읽어 configured=true 및 PayPal 채널 존재를 확인. 키는 기록하지 않음.
+- 이 공개 설정은 실제 수취 가능, LIVE 연결, 판매자 온보딩 완료 또는 업종 심사 통과의 증거가 아님.
+- 은행 연결, API 권한 부여, 계약 동의, 주문 생성, 결제 및 환불을 실행하지 않음.
+
+Google Play Console
+- com.codedestiny.app / 꿀꿀운세. 조직 계정.
+- 프로덕션 54 (1.0.54), '꿀꿀운세 1.0.54 — 다국어 부적': 검토 중, 출시 진행률 0%.
+- 타겟팅 8개국: 대한민국, 일본, 미국, 영국, 캐나다, 오스트레일리아, 뉴질랜드, 아일랜드.
+- 대만/홍콩은 현재 타겟 목록에 없음. 중국어 지원과 판매 국가 설정은 별개.
+- 내부 테스트 49 (1.0.49). 이번 소스 수정이 이미 업로드된 버전에 포함됐다고 보장할 수 없음.
+- 일회성 상품 25개가 표시됨. 현행 v4 이용권과 신규 단건 상품은 등록돼 있음.
+- tier_10의 과거 표시명은 38,900원을 포함하지만 실제 구매 옵션은 KR 30,000원, US 21.99 USD, JP 3,840 JPY. 실제 가격을 바꿀 근거가 아니라 오래된 표시명을 정리할 근거임.
+- 상품별 모든 국가/모든 옵션의 실제 가격 전수 확인은 수행하지 않음.
+- 서비스 계정 권한, 결제 프로필 정산 상태, RTDN 전달 및 라이선스 테스터 설정은 이번 점검에서 확정하지 못함.
+
+2. 정책 판단
+
+- KG이니시스 일본결제는 일본어 사이트/일본 현지 기준 이용규약/특정상거래법 표시/개인정보 방침/JPY 등 별도 심사 요건이 있음.
+- PortOne 위험업종 목록은 KG이니시스 일본결제 심사 불가 항목에 점술을 포함함. 언어 구현만으로 재신청 통과를 예상하지 말고 해당 서비스의 정확한 업종 허용 여부를 서면 확인해야 함.
+- 법적 판매자나 이니시스 재팬 정보를 임의로 넣거나 일본법 준거 약관으로 자동 교체하지 않았음. 실제 계약 형태와 포트원 안내 확정 후 반영해야 함.
+- PayPal 한국 이용목적 제한 정책의 공개 목록에서 점술을 명시적으로 열거한 금지 조항은 발견하지 못함. 이 사실은 해당 계정/상품 승인이나 위험심사 면제를 뜻하지 않음. PayPal SPB와 Braintree 심사 정책을 혼동하지 않음.
+- 웹은 현재 구현된 PortOne PayPal SPB 경로를 우선 확인. 해외 사용자는 USD 최종 금액을 확인하며, 일본결제만을 위한 새 사이트를 즉시 만들 근거는 없음.
+- 일본결제 PG의 언어 요건을 Google Play에 그대로 적용할 수는 없음. 앱 내 디지털 콘텐츠 결제는 기본적으로 Google Play 결제 정책에 맞춰야 하며 별도 앱 심사를 통과해야 함.
+
+공식 출처
+https://help.portone.io/content/content200047
+https://help.portone.io/content/internationl-high-risk-industry
+https://www.paypal.com/kr/legalhub/paypal/acceptableuse-full?locale.x=ko_KR
+https://www.paypal.com/kr/legalhub/paypal/useragreement-full
+https://guide.portone.io/f1e11253-0732-4c76-833a-2443cdd05e44
+https://support.google.com/googleplay/android-developer/answer/9858738?hl=ko
+https://support.google.com/googleplay/android-developer/answer/9845334?hl=ko
+https://support.google.com/googleplay/android-developer/answer/13985936?hl=en
+
+3. 코드 보완
+
+- app/app/_lib/native-billing.ts: 요청하지 않은 상품, 표시 가격/통화 누락, 유효하지 않은 가격 또는 구독 상품은 구매 가능 목록에서 제외.
+- app/app/store/AppPassStoreClient.tsx: 실제 상품 정보나 판매 허용 상태가 없으면 구매 진입 차단. 조회 누락 시 기존 번역을 사용하는 재시도 안내 추가.
+- js/core/checkout-entry.js, public/js/core/checkout-entry.js: PayPal 창에서도 선택 언어의 약관/환불/개인정보/문의 링크를 제공. 새 탭으로 열어 진행 중인 주문 화면 유지.
+- app/layout.js 및 독립 HTML/홈 미러: 수정한 결제 런타임의 캐시 핀을 갱신하고 정식 정적 생성기로 미러를 동기화. 생성기가 현재 자산에서 계산한 이미지 핀도 동기화되었으며 이미지 자체는 변경하지 않음.
+- scripts/export-play-localized-listings.mjs: 현재 단건 10종+v4 이용권 3종의 한국어/영어/일본어/중국어 간체·번체 상품 문안 출력. 실제 콘솔 쓰기나 네트워크 기능 없음.
+- docs/play-localized-listings-review.json: 위 문안의 검토용 결과. 제목에서 현지 청구가와 혼동할 고정 원화 가격 제거. 이용권 한도는 기존 정책 정본에서 계산하고 구매 가격과 구분.
+- 상품 ID, 판매가, 이용권/월정석/단건 정책, 서버 결제 검증, 인증, DB 스키마는 변경하지 않음.
+- 기존 /en, /ja, /zh 및 번체 정책 경로를 재사용. 번체 문의는 기존 영어 문의 페이지로 연결.
+- Play Console 상품 문안 저장/가격 변경/국가 확대/출시 제출은 하지 않음.
+
+4. 출시 전 순서
+
+우선 웹
+1) PortOne에 점술 업종의 PayPal SPB 및 일본결제 허용 여부를 문의 초안으로 확인.
+2) PayPal 은행 연결/본인·사업자 확인/제한 상태, PortOne 판매자 온보딩과 LIVE 채널 연결을 계정 소유자가 확인. 추가 권한·약관 동의는 별도 진행.
+3) 준비된 다국어 구매창을 승인된 환경에서 통합 검증. USD 견적, 취소/대기/중복승인/복귀/웹훅/환불처리 절차 확인.
+4) 업종 승인과 통합 검증 후 배포 및 실제 결제 점검을 별도로 승인.
+
+앱
+1) 검토 중인 1.0.54 결과 확인. 보완 소스가 들어간 새 AAB를 빌드해 내부 테스트부터 진행. 이 작업에서는 빌드 업로드/출시 안 함.
+2) 다국어 상품 문안을 검토해 기존 상품의 텍스트만 갱신. 오래된 일괄 생성 스크립트를 실행해 과거 상품을 재활성화하지 말 것.
+3) 라이선스 테스터를 별도로 등록하고 실제 Android 기기에서 Play 테스트 결제: 성공/취소/보류→성공/앱 종료 후 복원/중복 콜백/다른 계정 토큰/소비 및 승인 실패를 검증.
+4) 최신 판매 SKU별 8개 출시 국가의 가용성·최종 가격을 대조. 언어별 가격은 화면 언어가 아니라 Play 결제 국가를 따르는지 확인.
+5) Play Developer API 서비스 계정 권한, 결제 프로필 정산/세금, RTDN와 환불·취소 통지 수신, 고객 지원 및 앱 내 AI 콘텐츠 신고 흐름을 최종 확인.
+6) 중국어 대상 국가 확대는 별도 판매 결정. 언어만 번역했다고 전세계 배포가 되는 것은 아님.
+
+5. 검증 및 미검증
+
+- npm run test:jest -- --runInBand __tests__/worker/app-store.google-billing.test.js __tests__/worker/payments-v2.paypal.test.js __tests__/billing/paypal-ui.test.js : 3 suites, 120 passed.
+- node --test __tests__/ui/native-billing-products.test.js __tests__/ui/play-localized-listings.test.mjs __tests__/ui/play-display-price.test.mjs __tests__/ui/app-pass-store-return.test.js : 21 passed.
+- 시각 확인: 외부 네트워크 차단 로컬 모의 PayPal 창, 영어/일본어/중국어 간체·번체, 데스크톱과 390x844 모바일. 잘림/겹침 없음, 닫기 동작 정상. 실제 PayPal iframe과 앱 실기기 화면은 미검증.
+- impeccable detect: 실행. 기존 checkout CSS의 타이포그래피 권고 존재. 이번 변경은 기존 스타일을 재사용하며 디자인 설정을 임의로 수정하지 않음.
+- git diff --check : 통과.
+- node node_modules/eslint/bin/eslint.js app/app/_lib/native-billing.ts app/app/store/AppPassStoreClient.tsx : 오류 0. 기존 /points/history/ 앵커 사용 경고 4건.
+- node --max-old-space-size=6144 node_modules/typescript/bin/tsc --noEmit : 통과.
+- node scripts/verify-payment-choice-parity.mjs 및 --self-test: 캐시 핀 수정 후 PASS. 10개 렌더러, 80개 문구 키 x 12개 언어, 25개 유료 진입 경로 확인.
+- npm run check:pre-push: 캐시 및 사이트맵 동기화 후 통과. URL 1,020개 유지, 레지스트리/미러/사이트맵/llms/SEO 검사 통과.
+- 최초 npm run check:fast: 90개 가드 중 84개 통과, 6개 실패로 중단. 이 안의 전체 Jest는 435 suites / 7,096 tests 모두 통과. Node는 3,885개 중 71개 실패.
+- 실패 중 캐시 핀 검사 2개는 수정 후 통과. deploy-base-guard, llm-generation-resilience, analysis-basis-contract는 임시 Git/로컬 통신 권한 문제였으며, 외부 통신 차단을 유지한 별도 재실행에서 각각 PASS / 1,275 checks / 96 checks 통과.
+- npm run test:node 재검증: 3,910개 중 3,909개 통과. yeongnyangi-hat-prologue.browser.test.mjs의 결과 이미지 naturalWidth 검사 1개 실패. 이 파일만 같은 외부 통신 차단 조건으로 재실행하면 1/1 통과(약 5.5초). 일괄 실행 시 이미지 로드 시점에 따른 간헐 실패 가능성이 남으며 해당 UI/테스트는 수정하지 않음.
+- 전체 check:fast를 통째로 다시 실행하지 않았으므로 전체 게이트 성공으로 표기하지 않음. 최초 실패 원인을 수정/권한 보완한 검사별 결과와 공식 CI를 구분함.
+- 배포 금지 요청에 따라 원격 push/CI 유발/배포를 하지 않음. 새 변경의 공식 GitHub CI, AAB 빌드, 실기기 및 실제 승인 결제는 미검증.
+
+6. PortOne 문의 초안 (발송하지 않음)
+
+받는 곳: pgs@portone.io
+제목: [CodeDestiny] 점술 업종의 일본결제 및 PayPal SPB 심사 가능 여부 확인
+
+안녕하세요. CodeDestiny 운영자입니다.
+서비스 URL은 https://code-destiny.com/ 입니다.
+
+일본어 구현 후 재신청하라는 안내를 받았습니다. 다만 포트원 공개 위험업종 가이드에는 KG이니시스 일본결제 심사 불가 항목으로 점술이 기재돼 있어, 구현과 재신청에 앞서 확인을 부탁드립니다.
+
+당사는 사주·타로·점성술 및 AI 운세·상담형 디지털 콘텐츠를 단건 결제와 이용권으로 제공합니다. 이 실제 서비스 유형을 기준으로 아래 내용을 답변 부탁드립니다.
+
+1) 당사 서비스가 KG이니시스 일본결제 심사 대상이 될 수 있는지, 가능하다면 공개 제한 목록과 달리 적용되는 조건 및 제외해야 하는 상품 범위가 무엇인지요?
+2) 일본어 구현 후 재신청 안내가 언어 요건에 한정된 안내인지, 업종 적격성까지 확인한 안내인지요?
+3) 기존 한국 PayPal 비즈니스 계정을 이용한 PortOne PayPal SPB 해외결제는 별도로 심사 가능한지요? 필요한 업종 사전 승인, 판매자 온보딩 및 추가 서류를 알려주세요.
+4) PayPal 경로에서도 별도 일본어 사이트가 필수인지, 동일 도메인의 영어·일본어·중국어 구매 흐름과 약관/환불/문의 페이지로 가능한지요?
+5) 일본결제가 가능하다면 특정상거래법 표시의 판매자 정보, 현지법 기준 약관, 표시·청구 통화에 관해 당사 계약에 적용할 정확한 기준을 부탁드립니다.
+
+본 메일은 사전 확인 요청이며, 계약 체결이나 심사비·연관리비 등 비용 발생에 대한 동의는 아닙니다. 가능 여부와 조건을 서면으로 회신 부탁드립니다.
+감사합니다.
+
+7. 수정 파일 전체 (캐시 핀/미러/날짜 생성물 포함)
+__tests__/billing/paypal-ui.test.js
+__tests__/ui/native-billing-products.test.js
+__tests__/ui/play-localized-listings.test.mjs
+app/app/_lib/native-billing.ts
+app/app/store/AppPassStoreClient.tsx
+app/layout.js
+celestial-harmony.html
+config/sitemap-lastmod.json
+cosmic-soul-meditation.html
+docs/play-localized-listings-review.json
+fortune-teller-fish.html
+geomancy-oracle-v4.html
+ifa_oracle_v2_full.html
+index.html
+js/core/checkout-entry.js
+neville-meditation.html
+pet-saju.html
+public/celestial-harmony.html
+public/cosmic-soul-meditation.html
+public/en/index.html
+public/fortune-teller-fish.html
+public/geomancy-oracle-v4.html
+public/ggulggul/index.html
+public/ifa-oracle.html
+public/index.html
+public/ja/index.html
+public/js/core/checkout-entry.js
+public/neville-meditation.html
+public/pet-saju.html
+public/royal-tea-oracle.html
+public/sitemap-en.xml
+public/sitemap-ja.xml
+public/sitemap-ko.xml
+public/sitemap-zh-tw.xml
+public/sitemap-zh.xml
+public/sitemap.xml
+public/static/geomancy-oracle-v4.html
+public/static/index.html
+public/tarot-ijik.html
+public/vedic-astrology.html
+public/yoga-guru.html
+public/zh-tw/index.html
+public/zh/index.html
+royal-tea-oracle.html
+scripts/export-play-localized-listings.mjs
+sitemap-en.xml
+sitemap-ja.xml
+sitemap-ko.xml
+sitemap-zh-tw.xml
+sitemap-zh.xml
+sitemap.xml
+tarot-ijik.html
+vedic-astrology.html
+yoga-guru.html
+docs/global-payment-readiness-20261029.txt
