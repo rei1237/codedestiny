@@ -14,6 +14,9 @@ production_deployed: false
 - 서버 읽기 전용 감사: 기존 report-revenue-funnel.mjs, --db=code_destiny --days=7. 2026-10-23 00:00~10-29 09:05 KST 관측. 결제 성공/후환불 포함 27건, 환불 1건, 신년운세 성공 6건. 영냥이 결제/이용권 증거가 있는 상담 14건은 모두 COMPLETED. PG 실패 기록 12건이 있으므로 원인·최근성 확인이 필요하며 전체 결제 정상이라고 단정하지 않는다.
 - 위 집계는 캠페인 성과가 아니다. admin role 자동 제외 대상이 0명으로 나왔고 비관리자 테스트 계정을 따로 제외하지 못했다. 순수 고객 매출·CAC·ROAS는 아직 미확정. 신규 실결제·DB 쓰기·환불·LLM 호출 0건.
 - 운영 구매 추적 수신, 환불 대사, 실제 보관함 재열람은 남은 실행 게이트다. 모의검사와 서버 상태 집계만으로 전체 결제 여정을 검증했다고 주장하지 않는다.
+- 최신 main 03c46893109c4bed46c675b3dc882599ae30896b를 병합했다. 생성 원장 충돌은 upstream 원장을 기준으로 공식 sitemap:generate로 재생성했다. 정적 미러 캐시도 sync:public으로 갱신했다.
+- 검증: 1877a2629 기반 check:fast 전체 통과(Node 3,912건, Jest 7,090건). 최신 main 병합 후 mock 네트워크 가드 아래 구매 추적/지급 Node 79건, 복원 Jest 186건, typecheck, check:pre-push 모두 통과. 최초 추가 검사에서 Jest 파일을 Node runner로 실행한 3건은 실행기 오류였으며 올바른 Jest runner로 재검증했다.
+- 원격 반영 보류: 최신 main의 CI https://github.com/rei1237/codedestiny/actions/runs/40792833469 실패. 원인은 docs/handoff/2026-10-08-toss-full-migration-in-progress.md의 frontmatter 누락이다. 이번 추적 변경은 아직 push/운영 배포하지 않았다. 다른 세션 문서를 임의 수정하지 않는다.
 
 ## 최신 지시와 승인
 - 기존 10만원 계획을 이번 실행 한도 **실제 청구액·VAT 포함 50,000원**으로 대체한다. 추가 예산·외부 유료 생성 API는 승인되지 않았다.
@@ -25,8 +28,8 @@ production_deployed: false
 ## 현재 실제 완료 / 미완료
 - 공식 네이버 정책 확인, 키워드 후보·광고 문구·50,000원 설정 JSON 작성.
 - 기존 성냥팔이 원본 직접 확인. 문자 포함 원본을 파워링크 이미지로 그대로 올리지 않는다.
-- 구매/캠페인 mock 테스트 21/21, typecheck, verify:analytics-events, verify:payment-freeze 통과.
-- check:fast는 sitemap-drift에서 중단. 홈 문구 임시 수정은 철회했고 sitemap-drift 재검사도 실패(lastmod/priority/원장 차이). 원인 확정 전 사이트맵 일괄 변경하지 않았다.
+- 구매/캠페인 mock 테스트 22/22, typecheck, verify:analytics-events, verify:payment-freeze 통과. 추가 통합 검증은 위 2026-10-29 기록 참조.
+- 기존 sitemap-drift 문제는 공식 생성기 재실행과 의존성 설명 검사로 해결했다. 홈 문구 임시 수정은 철회했으며 이번 작업은 추적·광고 자료에 한정했다.
 - 운영 PG 결제→상담 생성→보관함 재열람, GA4 실제 수신·서버 주문 대조·refund 순매출은 미완료. mock 통과를 운영 완료로 표시하지 않는다.
 - 브라우저 연결 목록에는 흰 화면의 ads.naver.com/manage 탭과 별도 네이티브 대시보드 창이 보인다. 별도 창의 계정 세부 상태 확인이 필요하다.
 - 이번 작업의 광고 충전/활성화/추가 광고비 집행 0원. 기존 계정의 현재 잔액과 누적 실적은 미조회(null).
