@@ -12,7 +12,7 @@ import { getSignProfile } from "../lib/fortune/sign-profiles";
 import LegacyHomeEntry from "./components/LegacyHomeEntry";
 import HomeCardDeck from "./components/HomeCardDeck";
 import HomeEntryState from "./components/HomeEntryState";
-import { NativeHomeRoot, NativeHomeText, NativeHomeCardLink } from "./components/NativeHomeCopy";
+import { NativeHomeRoot, NativeHomeText, NativeHomeCardLink, NativeHomeDictionaryText } from "./components/NativeHomeCopy";
 import { PriceBadge } from "./components/PriceBadge";
 import ConsultationDiscovery from "./components/ConsultationDiscovery";
 import ConsultationMethodGuide from "./components/ConsultationMethodGuide";
@@ -218,7 +218,7 @@ export default function HomePage() {
               <div><dt>타로와 고민 상담</dt><dd>타로는 질문과 카드의 상징을 통해 마음과 선택지를 읽어요. 영냥이 질문 상담과 운명의 찻집, 네오의 팩폭 전략실에서는 내 상황을 정리하고 실천할 조언을 찾아갈 수 있어요.</dd></div>
             </dl>
             <p className={styles.methodLink}>여러 체계를 함께 읽는 방식은 <Link href="/fusion-fortune/">초융합 운세 안내</Link>에서 확인할 수 있어요.</p>
-            <p className={styles.byline}><Link href="/about/#author">{FOOTER_BYLINE}</Link></p>
+            <p className={styles.byline}><Link href="/about/#author"><NativeHomeDictionaryText translationKey="footer.byline">{FOOTER_BYLINE}</NativeHomeDictionaryText></Link></p>
           </section>
           <section className={styles.section} aria-labelledby="homeFaq">
             <div className={styles.sectionHeading}><h2 id="homeFaq">시작하기 전에 궁금한 점</h2><p>꿀꿀 운세의 공식 홈페이지는 code-destiny.com이에요. CODE DESTINY(코드 데스티니)가 운영해요.</p></div>
@@ -233,11 +233,11 @@ export default function HomePage() {
 
       <footer className={styles.footer}>
         <nav className={styles.footerNav} aria-label="정책과 문의">
-          {FOOTER_LINKS.map(link => <Link key={link.href} href={link.href} className={link.strong ? styles.footerStrong : undefined}>{link.text}</Link>)}
+          {FOOTER_LINKS.map(link => <Link key={link.href} href={link.href} className={link.strong ? styles.footerStrong : undefined}><NativeHomeDictionaryText translationKey={link.trans}>{link.text}</NativeHomeDictionaryText></Link>)}
         </nav>
         {/* 둘째 줄(작게): dist/index.html 도 scripts/verify-adsense-readiness.mjs 의 신뢰 링크 8종 검사 대상이다. */}
         <nav className={`${styles.footerNav} ${styles.footerQuiet}`} aria-label="안내 페이지">
-          {FOOTER_TRUST_LINKS.map(link => <Link key={link.href} href={link.href}>{link.text}</Link>)}
+          {FOOTER_TRUST_LINKS.map(link => <Link key={link.href} href={link.href}><NativeHomeDictionaryText translationKey={link.trans}>{link.text}</NativeHomeDictionaryText></Link>)}
           {!IS_APP_BUILD && <button type="button" data-cd-cookie-settings className={styles.footerButton}>쿠키 설정</button>}
         </nav>
         <p className={styles.business}>
@@ -245,7 +245,7 @@ export default function HomePage() {
           <span>통신판매업 신고 {BUSINESS_IDENTITY.mailOrderNumber}</span><span>전화 {BUSINESS_IDENTITY.phone}</span><span>이메일 {BUSINESS_IDENTITY.email}</span>
           <span>주소 {BUSINESS_IDENTITY.address}</span>
         </p>
-        <p className={styles.notice}>{FOOTER_NOTICE}</p>
+        <p className={styles.notice}><NativeHomeDictionaryText translationKey="footer.disclaimerNote">{FOOTER_NOTICE}</NativeHomeDictionaryText></p>
       </footer>
     </NativeHomeRoot>
     <script type="application/ld+json" dangerouslySetInnerHTML={{__html:serializeJsonLd([webPageJsonLd, ...serviceJsonLd, buildFaqPageJsonLd(HOME_FAQS)])}} />

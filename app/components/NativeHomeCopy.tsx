@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import {createContext, useContext, type ReactNode} from 'react';
 import {IS_APP_BUILD} from '@/lib/app-build-target';
-import {useLocale} from '@/lib/i18n/useT';
+import {useLocale, useTPick} from '@/lib/i18n/useT';
 import type {RuntimeLocale} from '@/lib/i18n/dictionary';
 import copy from '@/lib/i18n/native-home-copy.json';
 import {localizeNativeHomeHtml} from '@/lib/i18n/native-home-html.mjs';
@@ -24,6 +24,12 @@ export function NativeHomeRoot({className, children}: {className: string; childr
 
 export function NativeHomeText({children}: {children: string}) {
   return translate(children, useContext(HomeLocale));
+}
+
+export function NativeHomeDictionaryText({translationKey, children}: {translationKey: string; children: string}) {
+  const locale = useContext(HomeLocale);
+  const pick = useTPick();
+  return locale === 'ko' ? children : pick(translationKey, children);
 }
 
 export function NativeHomeHtml({html, className}: {html: string; className?: string}) {

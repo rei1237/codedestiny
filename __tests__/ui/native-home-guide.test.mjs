@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {JSDOM} from 'jsdom';
 import {renderConsultationMethodGuide} from '../../lib/brand/consultation-methods.mjs';
+import {renderConsultationDiscovery} from '../../lib/marketing/consultation-discovery.mjs';
 import {localizeNativeHomeHtml} from '../../lib/i18n/native-home-html.mjs';
 const copy = JSON.parse(readFileSync(new URL('../../lib/i18n/native-home-copy.json', import.meta.url)));
 
@@ -27,4 +28,15 @@ test('translations are escaped and never alter destination attributes', () => {
   assert.equal(doc.querySelector('a').getAttribute('href'), '원문');
   assert.equal(doc.querySelector('img'), null);
   assert.equal(doc.querySelector('a').textContent, '<img src=x onerror=alert(1)>');
+});
+
+test('native consultation discovery preserves seven services and translates every visible sentence', () => {
+  const source = renderConsultationDiscovery();
+  const original = new JSDOM(source).window.document;
+  for (const locale of Object.keys(copy['어떤 방식으로'])) {
+    const doc = new JSDOM(localizeNativeHomeHtml(source, locale, copy)).window.document;
+    assert.equal(/[가-힣]/.test(doc.body.textContent), false, locale);
+    assert.deepEqual([...doc.querySelectorAll('[href]')].map(a => a.getAttribute('href')), [...original.querySelectorAll('[href]')].map(a => a.getAttribute('href')));
+    assert.equal(doc.querySelectorAll('li').length, 7);
+  }
 });
