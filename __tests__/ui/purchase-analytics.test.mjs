@@ -96,12 +96,24 @@ test('paid search rejects arbitrary creative and keyword text and clears on cons
  const dom=boot('https://code-destiny.com/?utm_source=naver&utm_medium=cpc&utm_campaign=paid_20261028_naver&utm_content=private&utm_term=private',{consent:'accepted'}),w=dom.window;
  assert.equal(w.cdReadGrowthAttribution().content,undefined);assert.equal(w.cdReadGrowthAttribution().keyword,undefined);
  assert.equal(w.sessionStorage.getItem('cd:growth:campaign').includes('private'),false);
+ w.cdTrack('page_view');
+ assert.equal(JSON.stringify(w.dataLayer).includes('private'),false);
  w.document.cookie='cd_cookie_consent=essential; path=/';
  assert.equal(w.cdReadGrowthAttribution(),null);assert.equal(w.sessionStorage.getItem('cd:growth:campaign'),null);
  const {normalizeGrowthAttribution:normalize}=await import('../../lib/marketing/growth-attribution.mjs');
  assert.equal(normalize({campaignId:'paid_20261028_naver',version:'paid-20261028-v1'}),undefined);
  assert.equal(normalize({campaignId:'paid_20261028_google',version:'paid-20261028-v1',consent:true}),undefined);
  assert.deepEqual(normalize({campaignId:'paid_20261028_naver',version:'paid-20261028-v1',consent:true,content:'private',keyword:'private'}),{campaignId:'paid_20261028_naver',version:'paid-20261028-v1',consent:true,device:'unknown'});
+ dom.window.close();
+});
+
+test('brand landing keeps public A/B codes but strips unknown UTM fields before GA config',()=>{
+ const dom=boot('https://code-destiny.com/?utm_source=naver&utm_medium=cpc&utm_campaign=paid_20261028_brand&utm_content=A_ko&utm_term=K01&utm_question=private&question=private',{consent:'accepted'}),w=dom.window;
+ const page=new URL(w.dataLayer.find(row=>row[0]==='config')[2].page_location);
+ assert.equal(page.searchParams.get('utm_content'),'A_ko');
+ assert.equal(page.searchParams.get('utm_term'),'K01');
+ assert.equal(page.searchParams.size,5);
+ assert.equal(JSON.stringify(w.dataLayer).includes('private'),false);
  dom.window.close();
 });
 

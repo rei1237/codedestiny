@@ -119,6 +119,20 @@
    *    (docs/analytics-kpi.md 2026-09-24 절). 원래 인코딩을 지키려고 파싱하지 않고 쌍 단위로 고른다.
    */
   function pageLocation() {
+    // Paid campaign URLs carry public codes only, including the initial GA config.
+    var paidQuery = new URLSearchParams(global.location.search || '');
+    if (/^paid_20261028_(naver|brand)$/.test(paidQuery.get('utm_campaign') || '')) {
+      var publicQuery = new URLSearchParams();
+      var publicFields = {
+        utm_source:/^naver$/,utm_medium:/^cpc$/,utm_campaign:/^paid_20261028_(naver|brand)$/,
+        utm_content:/^[A-E]_ko$/,utm_term:/^K(0[1-9]|10)$/
+      };
+      Object.keys(publicFields).forEach(function (key) {
+        var value = paidQuery.get(key) || '';
+        if (publicFields[key].test(value)) publicQuery.set(key,value);
+      });
+      return global.location.origin + global.location.pathname + '?' + publicQuery.toString();
+    }
     var campaign = String(global.location.search || "").replace(/^\?/, "").split("&").filter(function (pair) {
       return /^utm_[a-z_]+=./.test(pair);
     });
