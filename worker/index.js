@@ -1344,6 +1344,10 @@ const app = {
           const { handlePaymentsContext } = await import("./payments/index.js");
           return withCorsHeaders(request, env, await handlePaymentsContext(request, env, { prefix: "/api/payments" }));
         }
+        if (request.method === "POST" && url.pathname === "/api/payments/analytics-withdrawal") {
+          const { handlePaymentsContext } = await import("./payments/index.js");
+          return withCorsHeaders(request, env, await handlePaymentsContext(request, env, { prefix: "/api/payments" }));
+        }
         // 주문 발급 컷오버 — 구 prepare 봉투(평면 {message,idempotent,order})를 어댑터가 재현한다.
         if (request.method === "POST"
           && url.pathname === "/api/payments/prepare") {

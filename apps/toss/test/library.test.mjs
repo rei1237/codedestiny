@@ -35,3 +35,15 @@ test('tarot library purchase reads its paid execution and never reopens it as an
  assert.equal(page.purchases[0].state,'completed');
  assert.equal(page.purchases[0].completedSections,1);
 });
+
+test('original tea records retain their native result link and never use the generic reader',async()=>{
+ const native={...row(3),nativeService:'tea',serviceId:'yeoni'};
+ const forbidden=async()=>assert.fail('original tea must not use another result store');
+ const read=async()=>({state:'COMPLETED',href:'/fortune-tea-house/?resultId=original'});
+ const result=(await libraryPage([native],forbidden,forbidden,read)).purchases[0];
+ assert.equal(result.nativeService,'tea');assert.equal(result.completedSections,1);assert.equal(result.href,'/fortune-tea-house/?resultId=original');
+ const failed=(await libraryPage([native],forbidden,forbidden,async()=>{throw Error('unavailable');})).purchases[0];
+ assert.equal(failed.state,'READ_FAILED');assert.equal(failed.requestId,'saved');
+ const refunded=(await libraryPage([{...native,status:'REFUNDED'}],forbidden,forbidden,read)).purchases[0];
+ assert.equal(refunded.state,'REFUNDED');assert.equal(refunded.href,undefined);
+});

@@ -130,7 +130,7 @@ export async function createOrder(db, {
   profileId = "", contentKey = "", scope = "", returnPath = "", paymentMethod = "unknown",
   requestId = "", paidResume = null, env = {}, foreignCard = null, refundConsent = false,
   purchaseType = "SELF", giftDraft = null, moonstoneDiscount = null, paypalCharge = null,
-  partnerProfileId = "", birthIdentity = null,
+  partnerProfileId = "", birthIdentity = null, ga4PurchaseContext = null,
 }) {
   const uid = toObjectId(userId);
   if (!uid) throw paymentError("UNAUTHORIZED", "로그인이 필요합니다.");
@@ -181,7 +181,8 @@ export async function createOrder(db, {
           // prepare(payments.js)는 이 필드를 썼고 V2 로 넘어오며 빠졌다. 클라이언트가 requestId 와
           // idempotencyKey 를 다른 값으로 보내면 {requestId} 절이 영영 매칭되지 않는다.
           requestId: String(requestId || "").trim(),
-          ...((paypalCharge || paidResume || (product.fulfillmentType==='service_pack'&&giftDraft) || String(product.featureKey || '').startsWith('yeongnyangi-')) ? { metadata: {
+          ...((ga4PurchaseContext || paypalCharge || paidResume || (product.fulfillmentType==='service_pack'&&giftDraft) || String(product.featureKey || '').startsWith('yeongnyangi-')) ? { metadata: {
+            ...(ga4PurchaseContext ? {ga4PurchaseContext} : {}),
             ...(paidResume ? {paidResume} : {}),
             ...(paypalCharge ? {paypalCharge} : {}),
             ...(product.fulfillmentType==='service_pack'&&giftDraft?{giftDraft}:{}),

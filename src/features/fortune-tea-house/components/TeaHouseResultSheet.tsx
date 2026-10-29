@@ -13,7 +13,7 @@ import ConsultationShare from "@/components/fortune/ConsultationShare";
 import SavedRecordLink from "@/components/fortune/SavedRecordLink";
 import { teaHouseShareChoices } from "@/lib/consultation-sharing";
 import { useLazySpriteSource, useSpritePlaybackGate } from "@/src/hooks/useSpritePlaybackGate";
-import type { FortuneTeaHouseConsultResponse, FortuneTeaHouseHoneyDropsState, FortuneTeaHouseHoneyLetter } from "../data/consult";
+import type { FortuneTeaHouseConsultResponse, FortuneTeaHouseHoneyDropsState, FortuneTeaHouseHoneyLetter, FortuneTeaTarotSpreadCard } from "../data/consult";
 import { fortuneTeaHouseAssets } from "../data/assets";
 import { getTeaHouseCupById, teaHouseCups } from "../data/teaCups";
 import { majorArcanaCards } from "../data/tarotCards";
@@ -450,7 +450,7 @@ export default function TeaHouseResultSheet({
   const isSajuMode = consultationMode === "saju" || isSajuCompatMode;
   const isSukuyoMode = consultationMode === "sukuyo";
   const direction = result.tarot.orientation === "upright" ? copy.ko8qlqfx : copy.k2jfbomz;
-  const tarotSpreadCards = result.tarotSpreadCards?.length
+  const tarotSpreadCards: Omit<FortuneTeaTarotSpreadCard, 'source'>[] = result.tarotSpreadCards?.length
     ? result.tarotSpreadCards
     : [
         {

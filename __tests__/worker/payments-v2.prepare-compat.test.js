@@ -134,6 +134,22 @@ test("PointsClient 형 바디(멱등키 없음): 201 + 소비 키 전부 + 클�
   expect(second.payload.order.merchantUid).not.toBe(order.merchantUid);
 });
 
+test.each([true, false])("GA refund context uses consent cookies, never client body (consent=%s)", async (accepted) => {
+  const db = makeFakePaymentDb();
+  seedUser(db);
+  const {response,payload}=await postPrepare(db,{
+    paymentType:"digital_content",productId:PRODUCT.productId,featureKey:PRODUCT.featureKey,
+    paymentAmount:PRODUCT.priceKRW,coinPrice:PRODUCT.priceCoins,paymentMethod:"CARD",
+    ga4PurchaseContext:{consent:true,clientId:"999.999"},
+  },{env:{...ENV,GA4_SERVER_REFUNDS_ENABLED:"true",GA4_MEASUREMENT_ID:"G-FIXTURE123",GA4_API_SECRET:"fixture-only-secret"},
+    headers:{cookie:`cd_cookie_consent=${accepted ? "accepted" : "essential"}; _ga=GA1.1.123.456; cd_analytics_receipt=${"a".repeat(64)}`}});
+  expect(response.status).toBe(201);
+  const stored=db.rows.find(row=>row.merchantUid===payload.order.merchantUid);
+  if(accepted) expect(stored.metadata.ga4PurchaseContext).toMatchObject({version:1,consent:true,clientId:"123.456"});
+  else expect(stored.metadata?.ga4PurchaseContext).toBeUndefined();
+  expect(JSON.stringify(payload)).not.toContain("clientId");
+});
+
 test("셸 형 바디(Idempotency-Key 헤더): 같은 키 재호출은 같은 주문을 돌려준다", async () => {
   const db = makeFakePaymentDb();
   seedUser(db);
