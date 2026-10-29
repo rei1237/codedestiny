@@ -18,7 +18,9 @@ permissions:
   contents: read
 jobs:
   replica-transactions:
-    runs-on: ubuntu-latest
+    # MongoDB 8.0 cannot start on Linux 6.19–7.0.13 (SERVER-121912).
+    # Ubuntu 22.04 runners use the compatible 6.8 kernel; retain MongoDB 8 parity.
+    runs-on: ubuntu-22.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
@@ -29,6 +31,7 @@ jobs:
       - run: npm ci --ignore-scripts
       - name: Start isolated local replica set
         run: |
+          uname -r
           docker run -d --name gift-test-mongo -p 127.0.0.1:27029:27029 mongo:8.0 mongod --port 27029 --replSet gift-test --bind_ip_all --setParameter enableTestCommands=1
           for attempt in $(seq 1 30); do
             if docker exec gift-test-mongo mongosh --port 27029 --quiet --eval 'quit(db.adminCommand({ping:1}).ok === 1 ? 0 : 1)'; then
