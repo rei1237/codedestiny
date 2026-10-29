@@ -9,7 +9,7 @@ test('review export covers current products only and never embeds a local sellin
   assert.equal(result.mode, 'review-only');
   assert.deepEqual(result.products.map(p => p.productId).sort(), [...listAppContentTiers().map(p => p.productId), ...CURRENT_PASS_GOOGLE_PLAY_APPROVED_PRODUCT_IDS].sort());
   for (const product of result.products) {
-    assert.equal(Object.keys(product.listings).length, 5);
+    assert.deepEqual(Object.keys(product.listings).sort(), ['ko-KR','en-US','ja-JP','zh-CN','zh-TW','vi-VN','hi-IN','es-ES','fr-FR','de-DE','nl-NL','ms-MY'].sort());
     for (const { title, description } of Object.values(product.listings)) {
       assert.ok(title.length <= 55);
       assert.ok(description.length <= 200);

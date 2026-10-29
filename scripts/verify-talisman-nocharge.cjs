@@ -8,7 +8,7 @@ const { chromium } = require('playwright');
 
 async function main() {
   const root = path.resolve(__dirname, '..');
-  const output = path.join(root, 'docs/store-draft-20261029');
+  const output = path.resolve(process.argv[2] || path.join(root, '.tmp/talisman-nocharge'));
   fs.mkdirSync(output, { recursive: true });
   const bundle = await build({
     stdin: { contents: 'import React from "react"; import {createRoot} from "react-dom/client"; import Studio from "./app/app/talismans/TalismanStudio"; createRoot(document.getElementById("root")).render(<Studio/>);', resolveDir: root, loader: 'tsx' },
@@ -33,7 +33,7 @@ async function main() {
   const results = [];
   try {
     browser = await chromium.launch({ channel: 'chrome', headless: true });
-    for (const locale of ['ko', 'en', 'ja', 'zh-CN', 'zh-TW']) {
+    for (const locale of ['ko', 'en', 'ja', 'zh-CN', 'zh-TW', 'vi', 'hi', 'es', 'fr', 'de', 'nl', 'ms']) {
       const context = await browser.newContext({ viewport: { width: 412, height: 915 }, deviceScaleFactor: 2 });
       const denied = [];
       await context.route('**/*', route => {
@@ -96,7 +96,7 @@ async function main() {
       await context.close();
     }
     fs.writeFileSync(path.join(output, 'component-verification.json'), JSON.stringify({ status: 'passed', deviceVerified: false, results }, null, 2) + '\n');
-    console.log('PASS: 5 locales; lock target PNG export; 4 error states per locale; no overflow or external requests. Android bridge mocked.');
+    console.log('PASS: 12 locales; lock target PNG export; 4 error states per locale; no overflow or external requests. Android bridge mocked.');
   } finally {
     if (browser) await browser.close();
     await new Promise(resolve => server.close(resolve));

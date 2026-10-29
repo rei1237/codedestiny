@@ -368,7 +368,7 @@
 
       var label = document.createElement("div");
       label.setAttribute("data-cd-auth-progress-label", "");
-      label.textContent = String(message || "우주의 좌표를 동기화하는 중... 잠시만 기다려 주세요.");
+      label.textContent = String(message || nativeAppText("authPreparing"));
       label.style.cssText = "max-width:22rem";
 
       if (!document.getElementById("cdAppAuthProgressKeyframes")) {
@@ -411,12 +411,12 @@
   // (조용히 "알 수 없는 오류"로 뭉개면 다음 세션이 사유를 잃는다).
   function describeSocialError(reason) {
     var code = String(reason || "").trim();
-    if (/underage/i.test(code)) return "만 14세 미만은 가입할 수 없어요.";
-    if (/guardian/i.test(code)) return "법정대리인 동의가 필요해요. 웹에서 이어서 진행해 주세요.";
-    if (/database|temporarily unavailable|timeout/i.test(code)) return "서버가 잠시 불안정해요. 잠시 후 다시 시도해 주세요.";
-    if (/duplicate|already/i.test(code)) return "이미 처리된 로그인이에요. 다시 시도해 주세요.";
-    if (code === "google_token_exchange_failed") return "Google 로그인 연결을 완료하지 못했어요. 잠시 후 다시 시도해 주세요.";
-    return "로그인에 실패했습니다: " + code.slice(0, 80);
+    if (/underage/i.test(code)) return nativeAppText("authUnderage");
+    if (/guardian/i.test(code)) return nativeAppText("authGuardian");
+    if (/database|temporarily unavailable|timeout/i.test(code)) return nativeAppText("authServer");
+    if (/duplicate|already/i.test(code)) return nativeAppText("authDuplicate");
+    if (code === "google_token_exchange_failed") return nativeAppText("authGoogle");
+    return nativeAppText("authFailed") + code.slice(0, 80);
   }
 
   // 사용자에게 보이는 짧은 안내. 로그인 실패가 조용히 삼켜지지 않게 한다.
@@ -613,8 +613,8 @@
       if (!browser || !browser.open) {
         openAuthStartedAt = 0;
         trace("openAuth:noBrowserPlugin", { hasCapacitor: !!window.Capacitor, plugins: Object.keys(plugins() || {}) });
-        toast("앱 로그인 창을 열지 못했습니다. 앱을 다시 시작해 주세요.");
-        return { ok: false, code: "NATIVE_BROWSER_UNAVAILABLE", message: "앱 로그인 창을 열지 못했습니다. 앱을 다시 시작해 주세요." };
+        toast(nativeAppText("authUnavailable"));
+        return { ok: false, code: "NATIVE_BROWSER_UNAVAILABLE", message: nativeAppText("authUnavailable") };
       }
       trace("openAuth:open", { provider: provider, url: startUrl });
       // 커스텀탭이 뜨기 전과, 사용자가 탭을 닫고 돌아왔을 때 모두 이 화면이 깔려 있어야
@@ -626,8 +626,8 @@
         openAuthStartedAt = 0;
         hideAuthProgress();
         trace("openAuth:openFailed", { provider: provider, message: String(e && e.message || e) });
-        toast("앱 로그인 창을 열지 못했습니다.");
-        return { ok: false, code: "NATIVE_BROWSER_OPEN_FAILED", message: "앱 로그인 창을 열지 못했습니다." };
+        toast(nativeAppText("authUnavailable"));
+        return { ok: false, code: "NATIVE_BROWSER_OPEN_FAILED", message: nativeAppText("authUnavailable") };
       }
       return { ok: true, provider: provider };
     },
@@ -730,7 +730,7 @@
       if (!appUrl) return;
       openAuthStartedAt = 0;
       // 딥링크로 돌아온 직후 토큰 교환은 네트워크 왕복이다. 그 사이가 비어 있으면 멈춘 것처럼 보인다.
-      showAuthProgress("로그인 정보를 확인하는 중이에요...");
+      showAuthProgress(nativeAppText("authChecking"));
       completeMobileOAuth(appUrl)
         .then(function (handled) {
           // 우리 딥링크가 아니면(다른 앱 링크 등) 진행 화면을 남겨두면 안 된다.
@@ -751,7 +751,7 @@
           // 사유를 그대로 버리지 않는다 — 기기 트레이스에서 실제로 나온 실패는
           // 503 "Database is temporarily unavailable." 였고, 고정 문구로는 재시도해야 할지 알 수 없었다.
           toast(/abort|signal|timed? ?out/i.test(message)
-            ? "로그인 확인이 지연되고 있어요. 다시 시도해 주세요."
+            ? nativeAppText("authDelayed")
             : describeSocialError(message));
         });
     });
@@ -1022,6 +1022,248 @@
     return path === "" || path === "/" || path === "/ggulggul" || path === "/yeongnyangi" || path === "/app";
   }
 
+  // Bundled native UI must also translate before the page dictionary is available.
+  var nativeAppCopy = {
+    "ko": {
+      "exitHint": "뒤로가기를 한 번 더 누르면 종료돼요",
+      "talismans": "달빛 부적 · 배경화면",
+      "insights": "운세 인사이트",
+      "famousSaju": "연예인·인물 사주",
+      "offline": "인터넷 연결이 끊겼어요. 연결되면 이어서 볼 수 있어요.",
+      "retry": "다시 시도",
+      "authPreparing": "로그인을 준비하고 있어요. 잠시만 기다려 주세요.",
+      "authUnderage": "만 14세 미만은 가입할 수 없어요.",
+      "authGuardian": "법정대리인 동의가 필요해요. 웹에서 이어서 진행해 주세요.",
+      "authServer": "서버가 잠시 불안정해요. 잠시 후 다시 시도해 주세요.",
+      "authDuplicate": "이미 처리된 로그인이에요. 다시 시도해 주세요.",
+      "authGoogle": "Google 로그인 연결을 완료하지 못했어요. 잠시 후 다시 시도해 주세요.",
+      "authFailed": "로그인에 실패했습니다: ",
+      "authUnavailable": "앱 로그인 창을 열지 못했습니다. 앱을 다시 시작해 주세요.",
+      "authChecking": "로그인 정보를 확인하는 중이에요.",
+      "authDelayed": "로그인 확인이 지연되고 있어요. 다시 시도해 주세요.",
+      "close": "닫기"
+    },
+    "en": {
+      "exitHint": "Press Back again to exit",
+      "talismans": "Moonlight talismans · Wallpapers",
+      "insights": "Fortune insights",
+      "famousSaju": "Public figure Saju readings",
+      "offline": "You’re offline. You can continue when connected.",
+      "retry": "Try again",
+      "authPreparing": "Preparing sign-in. Please wait.",
+      "authUnderage": "You must be at least 14 to sign up.",
+      "authGuardian": "Guardian consent is required. Please continue on the website.",
+      "authServer": "The server is temporarily unavailable. Please try again shortly.",
+      "authDuplicate": "This sign-in has already been processed. Please try again.",
+      "authGoogle": "Google sign-in could not be completed. Please try again shortly.",
+      "authFailed": "Sign-in failed: ",
+      "authUnavailable": "Could not open sign-in. Please restart the app.",
+      "authChecking": "Checking your sign-in details.",
+      "authDelayed": "Sign-in verification is taking longer than expected. Please try again.",
+      "close": "Close"
+    },
+    "ja": {
+      "exitHint": "もう一度戻ると終了します",
+      "talismans": "月明かりのお守り・壁紙",
+      "insights": "運勢の読みもの",
+      "famousSaju": "有名人の四柱推命",
+      "offline": "オフラインです。接続後に続きをご覧いただけます。",
+      "retry": "再試行",
+      "authPreparing": "ログインを準備しています。しばらくお待ちください。",
+      "authUnderage": "14歳未満の方は登録できません。",
+      "authGuardian": "法定代理人の同意が必要です。ウェブサイトで続けてください。",
+      "authServer": "サーバーが一時的に利用できません。少し待ってから再試行してください。",
+      "authDuplicate": "このログインは処理済みです。再試行してください。",
+      "authGoogle": "Googleログインを完了できませんでした。少し待ってから再試行してください。",
+      "authFailed": "ログインに失敗しました: ",
+      "authUnavailable": "ログイン画面を開けませんでした。アプリを再起動してください。",
+      "authChecking": "ログイン情報を確認しています。",
+      "authDelayed": "ログイン確認に時間がかかっています。再試行してください。",
+      "close": "閉じる"
+    },
+    "zh-CN": {
+      "exitHint": "再按一次返回键即可退出",
+      "talismans": "月光护符 · 壁纸",
+      "insights": "运势阅读",
+      "famousSaju": "公众人物八字",
+      "offline": "网络已断开。连接后可继续查看。",
+      "retry": "重试",
+      "authPreparing": "正在准备登录，请稍候。",
+      "authUnderage": "未满14周岁不能注册。",
+      "authGuardian": "需要法定监护人同意，请前往网站继续。",
+      "authServer": "服务器暂时不可用，请稍后重试。",
+      "authDuplicate": "此次登录已处理，请重试。",
+      "authGoogle": "未能完成Google登录，请稍后重试。",
+      "authFailed": "登录失败：",
+      "authUnavailable": "无法打开登录页面，请重启应用。",
+      "authChecking": "正在确认登录信息。",
+      "authDelayed": "登录验证时间较长，请重试。",
+      "close": "关闭"
+    },
+    "zh-TW": {
+      "exitHint": "再按一次返回鍵即可離開",
+      "talismans": "月光護符 · 桌布",
+      "insights": "運勢閱讀",
+      "famousSaju": "公眾人物八字",
+      "offline": "網路已中斷。連線後可繼續查看。",
+      "retry": "重試",
+      "authPreparing": "正在準備登入，請稍候。",
+      "authUnderage": "未滿14歲不能註冊。",
+      "authGuardian": "需要法定代理人同意，請前往網站繼續。",
+      "authServer": "伺服器暫時無法使用，請稍後重試。",
+      "authDuplicate": "此次登入已處理，請重試。",
+      "authGoogle": "未能完成Google登入，請稍後重試。",
+      "authFailed": "登入失敗：",
+      "authUnavailable": "無法開啟登入頁面，請重新啟動應用程式。",
+      "authChecking": "正在確認登入資訊。",
+      "authDelayed": "登入驗證時間較長，請重試。",
+      "close": "關閉"
+    },
+    "vi": {
+      "exitHint": "Nhấn Quay lại lần nữa để thoát",
+      "talismans": "Bùa ánh trăng · Hình nền",
+      "insights": "Góc nhìn về vận mệnh",
+      "famousSaju": "Tứ trụ người nổi tiếng",
+      "offline": "Bạn đang ngoại tuyến. Có thể tiếp tục khi kết nối lại.",
+      "retry": "Thử lại",
+      "authPreparing": "Đang chuẩn bị đăng nhập. Vui lòng chờ.",
+      "authUnderage": "Bạn phải từ 14 tuổi trở lên để đăng ký.",
+      "authGuardian": "Cần sự đồng ý của người giám hộ. Vui lòng tiếp tục trên trang web.",
+      "authServer": "Máy chủ tạm thời không khả dụng. Vui lòng thử lại sau.",
+      "authDuplicate": "Lần đăng nhập này đã được xử lý. Vui lòng thử lại.",
+      "authGoogle": "Không thể hoàn tất đăng nhập Google. Vui lòng thử lại sau.",
+      "authFailed": "Đăng nhập thất bại: ",
+      "authUnavailable": "Không thể mở trang đăng nhập. Vui lòng khởi động lại ứng dụng.",
+      "authChecking": "Đang kiểm tra thông tin đăng nhập.",
+      "authDelayed": "Xác minh đăng nhập mất nhiều thời gian. Vui lòng thử lại.",
+      "close": "Đóng"
+    },
+    "hi": {
+      "exitHint": "बाहर निकलने के लिए फिर से वापस दबाएँ",
+      "talismans": "चाँदनी तावीज़ · वॉलपेपर",
+      "insights": "भाग्य संबंधी लेख",
+      "famousSaju": "प्रसिद्ध व्यक्तियों के साजू विश्लेषण",
+      "offline": "आप ऑफ़लाइन हैं। कनेक्शन आने पर जारी रख सकते हैं।",
+      "retry": "फिर कोशिश करें",
+      "authPreparing": "साइन इन की तैयारी हो रही है। कृपया प्रतीक्षा करें।",
+      "authUnderage": "पंजीकरण के लिए आयु कम से कम 14 वर्ष होनी चाहिए।",
+      "authGuardian": "अभिभावक की सहमति ज़रूरी है। कृपया वेबसाइट पर जारी रखें।",
+      "authServer": "सर्वर अभी उपलब्ध नहीं है। कृपया थोड़ी देर बाद कोशिश करें।",
+      "authDuplicate": "यह साइन इन पहले ही संसाधित हो चुका है। फिर कोशिश करें।",
+      "authGoogle": "Google साइन इन पूरा नहीं हुआ। कृपया थोड़ी देर बाद कोशिश करें।",
+      "authFailed": "साइन इन विफल: ",
+      "authUnavailable": "साइन इन पेज नहीं खुला। कृपया ऐप दोबारा शुरू करें।",
+      "authChecking": "साइन इन जानकारी की जाँच हो रही है।",
+      "authDelayed": "साइन इन सत्यापन में देर हो रही है। कृपया फिर कोशिश करें।",
+      "close": "बंद करें"
+    },
+    "es": {
+      "exitHint": "Pulsa Atrás otra vez para salir",
+      "talismans": "Talismanes lunares · Fondos",
+      "insights": "Artículos sobre astrología",
+      "famousSaju": "Saju de personajes públicos",
+      "offline": "Sin conexión. Podrás continuar cuando vuelva la conexión.",
+      "retry": "Reintentar",
+      "authPreparing": "Preparando el inicio de sesión. Espera un momento.",
+      "authUnderage": "Debes tener al menos 14 años para registrarte.",
+      "authGuardian": "Se requiere el consentimiento del tutor legal. Continúa en el sitio web.",
+      "authServer": "El servidor no está disponible temporalmente. Inténtalo más tarde.",
+      "authDuplicate": "Este inicio de sesión ya se ha procesado. Inténtalo de nuevo.",
+      "authGoogle": "No se pudo completar el acceso con Google. Inténtalo más tarde.",
+      "authFailed": "Error al iniciar sesión: ",
+      "authUnavailable": "No se pudo abrir el inicio de sesión. Reinicia la aplicación.",
+      "authChecking": "Comprobando tus datos de acceso.",
+      "authDelayed": "La verificación está tardando más de lo esperado. Inténtalo de nuevo.",
+      "close": "Cerrar"
+    },
+    "fr": {
+      "exitHint": "Appuyez encore sur Retour pour quitter",
+      "talismans": "Talismans lunaires · Fonds d’écran",
+      "insights": "Articles sur l’astrologie",
+      "famousSaju": "Saju de personnalités publiques",
+      "offline": "Vous êtes hors ligne. Vous pourrez reprendre après la reconnexion.",
+      "retry": "Réessayer",
+      "authPreparing": "Préparation de la connexion. Veuillez patienter.",
+      "authUnderage": "Vous devez avoir au moins 14 ans pour vous inscrire.",
+      "authGuardian": "L’accord du représentant légal est nécessaire. Continuez sur le site web.",
+      "authServer": "Le serveur est temporairement indisponible. Réessayez dans un instant.",
+      "authDuplicate": "Cette connexion a déjà été traitée. Veuillez réessayer.",
+      "authGoogle": "La connexion Google a échoué. Réessayez dans un instant.",
+      "authFailed": "Échec de la connexion : ",
+      "authUnavailable": "Impossible d’ouvrir la connexion. Redémarrez l’application.",
+      "authChecking": "Vérification de vos informations de connexion.",
+      "authDelayed": "La vérification prend plus de temps que prévu. Veuillez réessayer.",
+      "close": "Fermer"
+    },
+    "de": {
+      "exitHint": "Zum Beenden erneut Zurück drücken",
+      "talismans": "Mondlicht-Talismane · Hintergründe",
+      "insights": "Artikel zur Astrologie",
+      "famousSaju": "Saju bekannter Persönlichkeiten",
+      "offline": "Du bist offline. Sobald die Verbindung wieder da ist, geht es weiter.",
+      "retry": "Erneut versuchen",
+      "authPreparing": "Anmeldung wird vorbereitet. Bitte warten.",
+      "authUnderage": "Du musst mindestens 14 Jahre alt sein, um dich zu registrieren.",
+      "authGuardian": "Die Zustimmung einer erziehungsberechtigten Person ist nötig. Bitte auf der Website fortfahren.",
+      "authServer": "Der Server ist vorübergehend nicht verfügbar. Bitte später erneut versuchen.",
+      "authDuplicate": "Diese Anmeldung wurde bereits verarbeitet. Bitte erneut versuchen.",
+      "authGoogle": "Die Google-Anmeldung konnte nicht abgeschlossen werden. Bitte später erneut versuchen.",
+      "authFailed": "Anmeldung fehlgeschlagen: ",
+      "authUnavailable": "Die Anmeldung konnte nicht geöffnet werden. Bitte starte die App neu.",
+      "authChecking": "Deine Anmeldedaten werden geprüft.",
+      "authDelayed": "Die Anmeldeprüfung dauert länger. Bitte erneut versuchen.",
+      "close": "Schließen"
+    },
+    "nl": {
+      "exitHint": "Druk nogmaals op Terug om af te sluiten",
+      "talismans": "Maanlichttalismans · Achtergronden",
+      "insights": "Artikelen over astrologie",
+      "famousSaju": "Saju van bekende personen",
+      "offline": "Je bent offline. Je kunt verder zodra er weer verbinding is.",
+      "retry": "Opnieuw proberen",
+      "authPreparing": "Aanmelden wordt voorbereid. Even geduld.",
+      "authUnderage": "Je moet minstens 14 jaar zijn om je te registreren.",
+      "authGuardian": "Toestemming van een wettelijke vertegenwoordiger is nodig. Ga verder op de website.",
+      "authServer": "De server is tijdelijk niet beschikbaar. Probeer het straks opnieuw.",
+      "authDuplicate": "Deze aanmelding is al verwerkt. Probeer het opnieuw.",
+      "authGoogle": "Aanmelden met Google is niet voltooid. Probeer het straks opnieuw.",
+      "authFailed": "Aanmelden mislukt: ",
+      "authUnavailable": "De aanmelding kon niet worden geopend. Start de app opnieuw.",
+      "authChecking": "Je aanmeldgegevens worden gecontroleerd.",
+      "authDelayed": "De controle duurt langer dan verwacht. Probeer het opnieuw.",
+      "close": "Sluiten"
+    },
+    "ms": {
+      "exitHint": "Tekan Kembali sekali lagi untuk keluar",
+      "talismans": "Azimat cahaya bulan · Kertas dinding",
+      "insights": "Artikel ramalan",
+      "famousSaju": "Saju tokoh awam",
+      "offline": "Anda di luar talian. Teruskan selepas sambungan pulih.",
+      "retry": "Cuba lagi",
+      "authPreparing": "Sedang menyediakan log masuk. Sila tunggu.",
+      "authUnderage": "Anda mesti berumur sekurang-kurangnya 14 tahun untuk mendaftar.",
+      "authGuardian": "Persetujuan penjaga sah diperlukan. Sila teruskan di laman web.",
+      "authServer": "Pelayan tidak tersedia buat sementara waktu. Sila cuba sebentar lagi.",
+      "authDuplicate": "Log masuk ini sudah diproses. Sila cuba lagi.",
+      "authGoogle": "Log masuk Google tidak dapat diselesaikan. Sila cuba sebentar lagi.",
+      "authFailed": "Log masuk gagal: ",
+      "authUnavailable": "Halaman log masuk tidak dapat dibuka. Sila mulakan semula aplikasi.",
+      "authChecking": "Sedang menyemak maklumat log masuk.",
+      "authDelayed": "Pengesahan log masuk mengambil masa lebih lama. Sila cuba lagi.",
+      "close": "Tutup"
+    }
+  };
+
+  function nativeAppText(key) {
+    var language = window.__cdAppLanguage || document.documentElement.lang || "ko";
+    try {
+      if (!window.__cdAppLanguage && typeof window.cdGetCurrentLanguage === "function") language = window.cdGetCurrentLanguage();
+    } catch (e) { /* Use the page locale before its runtime is ready. */ }
+    var parts = String(language).toLowerCase().replace(/_/g, "-").split("-");
+    var locale = parts[0] === "zh" ? (parts.some(function (part) { return ["hant", "tw", "hk", "mo"].indexOf(part) >= 0; }) ? "zh-TW" : "zh-CN") : parts[0];
+    return (nativeAppCopy[locale] || nativeAppCopy.en)[key] || nativeAppCopy.en[key] || "";
+  }
+
   function showExitHint() {
     var existing = document.getElementById("cdAppExitHint");
     if (existing) return;
@@ -1029,7 +1271,7 @@
     hint.id = "cdAppExitHint";
     hint.setAttribute("role", "status");
     hint.setAttribute("aria-live", "polite");
-    hint.textContent = "뒤로가기를 한 번 더 누르면 종료돼요";
+    hint.textContent = nativeAppText("exitHint");
     hint.style.cssText = [
       "position:fixed", "left:50%", "transform:translateX(-50%)",
       "bottom:calc(88px + env(safe-area-inset-bottom,0px))",
@@ -1078,11 +1320,11 @@
     var message = document.createElement("span");
     message.style.cssText = "flex:1;min-width:0";
     // 연이 톤: 따뜻하게 상황만 알리고 단정하지 않는다.
-    message.textContent = cdAppText("app.offline.message", "인터넷 연결이 끊겼어요. 연결되면 이어서 볼 수 있어요.");
+    message.textContent = cdAppText("app.offline.message", nativeAppText("offline"));
 
     var retry = document.createElement("button");
     retry.type = "button";
-    retry.textContent = cdAppText("app.offline.retry", "다시 시도");
+    retry.textContent = cdAppText("app.offline.retry", nativeAppText("retry"));
     retry.style.cssText = [
       "flex:0 0 auto", "min-height:44px", "padding:0 14px", "border-radius:999px",
       "border:1px solid rgba(244,190,209,.5)", "background:transparent", "color:#ffd9e7",
@@ -1118,6 +1360,11 @@
   function installOfflineNotice() {
     window.addEventListener("online", syncOfflineNotice);
     window.addEventListener("offline", syncOfflineNotice);
+    window.addEventListener("cd:locale-ready", function () {
+      var bar = document.getElementById("cdAppOfflineNotice");
+      if (bar) bar.remove();
+      syncOfflineNotice();
+    });
     syncOfflineNotice();
   }
 
@@ -1322,7 +1569,7 @@
       + "overflow:auto;font:12px/1.6 ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap;word-break:break-all";
     var close = document.createElement("button");
     close.type = "button";
-    close.textContent = "닫기";
+    close.textContent = nativeAppText("close");
     close.style.cssText = "position:sticky;top:0;float:right;padding:8px 16px;border:0;border-radius:999px;"
       + "background:#b31955;color:#fffaf7;font-weight:800;font-size:13px";
     close.addEventListener("click", function () { box.remove(); });
@@ -1369,9 +1616,9 @@
     if (historyLink) {
       var previousItem = historyLink.closest("li");
       [
-        ["cdTalismanEntry", "/app/talismans/index.html", "달빛 부적 · 배경화면", "月明かりのお守り・壁紙"],
-        ["cdInsightsEntry", "/insights/index.html", "운세 인사이트", "運勢の読みもの"],
-        ["cdFamousEntry", "/insights/famous-saju/index.html", "연예인·인물 사주", "有名人の四柱推命"],
+        ["cdTalismanEntry", "/app/talismans/index.html", "talismans"],
+        ["cdInsightsEntry", "/insights/index.html", "insights"],
+        ["cdFamousEntry", "/insights/famous-saju/index.html", "famousSaju"],
       ].forEach(function (entry) {
         if (!previousItem || document.getElementById(entry[0])) return;
         var item = document.createElement("li");
@@ -1379,7 +1626,7 @@
         link.id = entry[0];
         link.href = entry[1];
         var syncLabel = function () {
-          link.textContent = document.documentElement.lang === "ja" ? entry[3] : entry[2];
+          link.textContent = nativeAppText(entry[2]);
         };
         syncLabel();
         window.addEventListener("cd:locale-ready", syncLabel);

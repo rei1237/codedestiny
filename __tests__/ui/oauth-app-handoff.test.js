@@ -78,10 +78,11 @@ test('Google invalid_grant is not retried with the same single-use authorization
 });
 
 const bridgeSource = ts.createSourceFile('app-native-bridge.js', fs.readFileSync(path.resolve(__dirname, '../../scripts/app-native-bridge.js'), 'utf8'), ts.ScriptTarget.Latest, true);
-const bridgeNames = ['completeMobileOAuth', 'storeAuthSession', 'describeSocialError', 'installAppUrlListener'];
+const bridgeNames = ['nativeAppCopy', 'nativeAppText', 'completeMobileOAuth', 'storeAuthSession', 'describeSocialError', 'installAppUrlListener'];
 const bridgeFunctions = new Map();
 (function collect(node) {
   if (ts.isFunctionDeclaration(node) && bridgeNames.includes(node.name?.text)) bridgeFunctions.set(node.name.text, node.getText(bridgeSource));
+  if (ts.isVariableDeclaration(node) && bridgeNames.includes(node.name?.text)) bridgeFunctions.set(node.name.text, 'var ' + node.getText(bridgeSource) + ';');
   ts.forEachChild(node, collect);
 })(bridgeSource);
 assert.equal(bridgeFunctions.size, bridgeNames.length);
@@ -91,6 +92,7 @@ function bridgeHarness(result) {
   const effects = { requests: [], events: [], toasts: [], cancelled: [], timers: [], moves: [], closes: 0, hidden: 0 };
   let listener;
   const context = vm.createContext({ URL, Date,
+    document: { documentElement: { lang: 'ko' } },
     localStorage: { setItem: (key, value) => storage.set(key, value) },
     CustomEvent: class { constructor(type, options) { this.type = type; this.detail = options.detail; } },
     window: {

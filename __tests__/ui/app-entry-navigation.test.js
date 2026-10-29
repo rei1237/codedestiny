@@ -6,10 +6,11 @@ const vm = require('node:vm');
 const ts = require('typescript');
 const { JSDOM } = require('jsdom');
 const source = ts.createSourceFile('bridge.js', fs.readFileSync(path.resolve(__dirname, '../../scripts/app-native-bridge.js'), 'utf8'), ts.ScriptTarget.Latest, true);
-const names = ['isRootScreen', 'installBackButton', 'resetExitIntent', 'dispatchAppBack', 'showExitHint', 'closeTopOverlay', 'closeOverlayNode', 'isOverlayVisible', 'dispatchEscapeKey'];
+const names = ['nativeAppCopy', 'nativeAppText', 'isRootScreen', 'installBackButton', 'resetExitIntent', 'dispatchAppBack', 'showExitHint', 'closeTopOverlay', 'closeOverlayNode', 'isOverlayVisible', 'dispatchEscapeKey'];
 const functions = new Map();
 function visit(node) {
   if (ts.isFunctionDeclaration(node) && names.includes(node.name?.text)) functions.set(node.name.text, node.getText(source));
+  if (ts.isVariableDeclaration(node) && names.includes(node.name?.text)) functions.set(node.name.text, 'var ' + node.getText(source) + ';');
   ts.forEachChild(node, visit);
 }
 visit(source);

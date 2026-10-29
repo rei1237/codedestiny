@@ -30,6 +30,41 @@ const locales = {
     passes: ['小蜂蜜罐', '中蜂蜜罐', '大蜂蜜罐'],
     pass: (coverage, limit) => `可使用單次價值不超過${coverage} KRW的適用內容，累計額度相當於${limit} KRW。使用額度不等於購買價格。無使用期限，額度用完後結束，不會自動續費。`,
   },
+  'vi-VN': {
+    title: 'Nội dung vận mệnh và tư vấn', one: 'Mua một lần nội dung vận mệnh hoặc tư vấn đã chọn. Kiểm tra số tiền cuối cùng trên Google Play trước khi thanh toán.',
+    passes: ['Hũ mật ong nhỏ', 'Hũ mật ong vừa', 'Hũ mật ong lớn'],
+    pass: (coverage, limit) => `Nội dung hợp lệ: tối đa ${coverage} KRW/lần; tổng hạn mức ${limit} KRW, không phải giá mua. Không giới hạn thời gian; hết khi dùng hết hạn mức. Không tự gia hạn.`,
+  },
+  'hi-IN': {
+    title: 'भाग्य और परामर्श सामग्री', one: 'चुनी गई भाग्य या परामर्श सामग्री की एकमुश्त खरीद। भुगतान से पहले Google Play पर अंतिम राशि देखें।',
+    passes: ['शहद का छोटा जार', 'शहद का मध्यम जार', 'शहद का बड़ा जार'],
+    pass: (coverage, limit) => `पात्र सामग्री: प्रति उपयोग ${coverage} KRW तक; कुल सीमा ${limit} KRW (खरीद मूल्य नहीं)। समय सीमा नहीं। उपयोग सीमा समाप्त होने पर बंद। स्वतः नवीनीकरण नहीं।`,
+  },
+  'es-ES': {
+    title: 'Contenido de astrología y consultas', one: 'Compra única del contenido de astrología o consulta seleccionado. Comprueba el importe final en Google Play antes de pagar.',
+    passes: ['Tarro de miel pequeño', 'Tarro de miel mediano', 'Tarro de miel grande'],
+    pass: (coverage, limit) => `Contenido elegible: hasta ${coverage} KRW por uso; límite total ${limit} KRW (no es el precio). Sin plazo. Finaliza al agotar el límite. Sin renovación automática.`,
+  },
+  'fr-FR': {
+    title: 'Contenus d’astrologie et de consultation', one: 'Achat unique du contenu d’astrologie ou de consultation choisi. Vérifiez le montant final dans Google Play avant de payer.',
+    passes: ['Petit pot de miel', 'Pot de miel moyen', 'Grand pot de miel'],
+    pass: (coverage, limit) => `Contenus éligibles : ${coverage} KRW max./usage ; plafond total ${limit} KRW (hors prix d’achat). Sans délai. Prend fin au plafond. Sans renouvellement automatique.`,
+  },
+  'de-DE': {
+    title: 'Astrologie- und Beratungsinhalte', one: 'Einmaliger Kauf des gewählten Astrologie- oder Beratungsinhalts. Prüfe den Endbetrag vor der Zahlung in Google Play.',
+    passes: ['Kleines Honigglas', 'Mittleres Honigglas', 'Großes Honigglas'],
+    pass: (coverage, limit) => `Berechtigte Inhalte: bis ${coverage} KRW/Nutzung; Gesamtlimit ${limit} KRW (nicht der Kaufpreis). Keine Zeitgrenze. Ende bei verbrauchtem Limit. Keine automatische Verlängerung.`,
+  },
+  'nl-NL': {
+    title: 'Astrologie- en consultinhoud', one: 'Eenmalige aankoop van de gekozen astrologie- of consultinhoud. Controleer het eindbedrag in Google Play voordat je betaalt.',
+    passes: ['Kleine honingpot', 'Middelgrote honingpot', 'Grote honingpot'],
+    pass: (coverage, limit) => `Geldige inhoud: tot ${coverage} KRW per gebruik; totaal ${limit} KRW (niet de koopprijs). Geen tijdslimiet. Stopt bij verbruik van de limiet. Geen automatische verlenging.`,
+  },
+  'ms-MY': {
+    title: 'Kandungan ramalan dan perundingan', one: 'Pembelian sekali bagi kandungan ramalan atau perundingan yang dipilih. Semak jumlah akhir di Google Play sebelum membayar.',
+    passes: ['Balang madu kecil', 'Balang madu sederhana', 'Balang madu besar'],
+    pass: (coverage, limit) => `Kandungan layak: sehingga ${coverage} KRW/gunaan; had jumlah ${limit} KRW (bukan harga belian). Tiada had masa. Tamat apabila had habis. Tiada pembaharuan automatik.`,
+  },
 };
 
 export function buildLocalizedListings() {
