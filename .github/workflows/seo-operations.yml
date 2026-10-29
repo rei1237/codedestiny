@@ -35,6 +35,11 @@ jobs:
       - name: Weekly evidence and outreach queue
         if: always() && (github.event.schedule == '19 23 * * 0' || inputs.cycle == 'weekly' || inputs.cycle == 'monthly' || github.event.schedule == '37 0 1 * *')
         run: node scripts/seo/growth-cycle.mjs
+      # Every year: this year's and next year's /fortune/{YYYY}/ pages plus the manual crawl checklist.
+      # Read-only GET probes; IndexNow stays with the production deploy.
+      - name: Weekly new-year season pages
+        if: always() && (github.event.schedule == '19 23 * * 0' || inputs.cycle == 'weekly' || inputs.cycle == 'monthly' || github.event.schedule == '37 0 1 * *')
+        run: node scripts/seo/new-year-season.mjs
       - name: Monthly full sitemap HTTP audit
         if: always() && (inputs.cycle == 'monthly' || github.event.schedule == '37 0 1 * *')
         run: node scripts/seo-audit.mjs --crawl-sitemap
@@ -54,4 +59,7 @@ jobs:
         run: |
           if [ -f seo-qa/operations/weekly.md ]; then
             cat seo-qa/operations/weekly.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+          if [ -f seo-qa/operations/new-year-season.md ]; then
+            cat seo-qa/operations/new-year-season.md >> "$GITHUB_STEP_SUMMARY"
           fi
