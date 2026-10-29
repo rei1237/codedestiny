@@ -1,0 +1,2494 @@
+{
+  "_comment": "Directly authored Japanese and Chinese readings from the Korean source. Existing English checked against the source. No translation API.",
+  "_direct": {
+    "yeon": [
+      "Yeoni",
+      "Yeoni",
+      "Yeoni"
+    ],
+    "neo": [
+      "Yeongnyangi",
+      "Yeongnyangi",
+      "Yeongnyangi"
+    ],
+    "garden": [
+      "Yeoniの月明かり四柱推命",
+      "Yeoni的月光四柱",
+      "Yeoni的月光四柱"
+    ],
+    "room": [
+      "Yeongnyangiの星明かりの屋根裏",
+      "Yeongnyangi的星光阁楼",
+      "Yeongnyangi的星光閣樓"
+    ],
+    "same": [
+      "基本の四柱推命はYeoniとYeongnyangiがご案内します。同じ計算結果をもとに、好きな案内役の解説を選んで読めます。",
+      "基础四柱由Yeoni与Yeongnyangi共同解读。以相同的计算依据为基础，选择您喜欢的讲解风格。",
+      "基礎四柱由Yeoni與Yeongnyangi共同解讀。以相同的計算依據為基礎，選擇您喜歡的講解風格。"
+    ],
+    "compareNeo": [
+      "Yeongnyangiの解説へ",
+      "切换到Yeongnyangi解读",
+      "切換到Yeongnyangi解讀"
+    ],
+    "compareYeon": [
+      "Yeoniの解説へ",
+      "切换到Yeoni解读",
+      "切換到Yeoni解讀"
+    ],
+    "observe": [
+      "Yeoniが見つけた手がかり",
+      "Yeoni发现的线索",
+      "Yeoni發現的線索"
+    ],
+    "life": [
+      "日常に表れる姿",
+      "日常生活中的表现",
+      "日常生活中的表現"
+    ],
+    "practice": [
+      "今日の小さな実践",
+      "今天的小行动",
+      "今天的小行動"
+    ],
+    "diagnosis": [
+      "Yeongnyangiが見る要点",
+      "Yeongnyangi指出的重点",
+      "Yeongnyangi指出的重點"
+    ],
+    "basis": [
+      "計算の根拠",
+      "计算依据",
+      "計算依據"
+    ],
+    "action": [
+      "行動の判断基準",
+      "行动依据",
+      "行動依據"
+    ],
+    "element": [
+      "五行の分布",
+      "五行分布",
+      "五行分布"
+    ],
+    "temperament": [
+      "生まれ持った気質",
+      "先天气质",
+      "先天氣質"
+    ],
+    "ten": [
+      "十神から読む役割",
+      "从十神看角色",
+      "從十神看角色"
+    ],
+    "climate": [
+      "調候・季節とのバランス",
+      "调候 · 季节的感受",
+      "調候 · 季節的感受"
+    ],
+    "strength": [
+      "扶抑・力の使い方",
+      "扶抑 · 运用力量的方式",
+      "扶抑 · 運用力量的方式"
+    ],
+    "flow": [
+      "今の流れ",
+      "当前走势",
+      "當前走勢"
+    ],
+    "letter": [
+      "お手紙",
+      "给您的信",
+      "給您的信"
+    ],
+    "names.0": [
+      "木",
+      "木",
+      "木"
+    ],
+    "names.1": [
+      "火",
+      "火",
+      "火"
+    ],
+    "names.2": [
+      "土",
+      "土",
+      "土"
+    ],
+    "names.3": [
+      "金",
+      "金",
+      "金"
+    ],
+    "names.4": [
+      "水",
+      "水",
+      "水"
+    ],
+    "traits.0": [
+      "新しいことを始め、方向を広げる力",
+      "开始新事物、拓展方向的力量",
+      "開始新事物、拓展方向的力量"
+    ],
+    "traits.1": [
+      "考えや感情を外へ表す力",
+      "向外表达想法与感受的力量",
+      "向外表達想法與感受的力量"
+    ],
+    "traits.2": [
+      "関係や仕事を安定して続ける力",
+      "稳定维系关系与事务的力量",
+      "穩定維繫關係與事務的力量"
+    ],
+    "traits.3": [
+      "基準を決め、不要なものを整理する力",
+      "建立标准、整理冗余的力量",
+      "建立標準、整理冗餘的力量"
+    ],
+    "traits.4": [
+      "情報を観察し、状況に応じて動く力",
+      "观察信息、顺应情境行动的力量",
+      "觀察資訊、順應情境行動的力量"
+    ],
+    "scenes.0": [
+      "関心が広く、いくつものことを始められるかもしれません。仕上げる余地も残すと、成長する力を生かしやすくなります。",
+      "兴趣广泛，可能同时开启几件事。也给收尾留出空间，成长的力量才能用得更好。",
+      "興趣廣泛，可能同時開啟幾件事。也給收尾留出空間，成長的力量才能用得更好。"
+    ],
+    "scenes.1": [
+      "会話に活気を添えられそうです。気持ちが先走るときは、相手が答える間も残してみましょう。",
+      "您可能为交谈带来活力。心情走在前面时，也给对方留一点回应的时间。",
+      "您可能為交談帶來活力。心情走在前面時，也給對方留一點回應的時間。"
+    ],
+    "scenes.2": [
+      "慣れた役割を守ると安心できるかもしれません。他の人の分まで背負っていないかも確かめてください。",
+      "守住熟悉的职责可能让您安心。也看看自己是否承担了本属于他人的部分。",
+      "守住熟悉的職責可能讓您安心。也看看自己是否承擔了本屬於他人的部分。"
+    ],
+    "scenes.3": [
+      "曖昧な状況でも基準を見つけられそうです。ただ、細かく決めすぎると、自分や周囲の余裕が減ることもあります。",
+      "您可能善于在模糊的情境中找到标准。但规则过密时，自己与他人的余裕也会减少。",
+      "您可能善於在模糊的情境中找到標準。但規則過密時，自己與他人的餘裕也會減少。"
+    ],
+    "scenes.4": [
+      "見過ごされがちな変化に気づけるかもしれません。考える時間が長くなったら、小さな行動で確かめましょう。",
+      "您可能察觉容易被忽略的变化。思考拖得太长时，不妨用一个小行动来验证。",
+      "您可能察覺容易被忽略的變化。思考拖得太長時，不妨用一個小行動來驗證。"
+    ],
+    "actions.0": [
+      "新しいことを増やす前に、進行中のことを一つ仕上げてみましょう。",
+      "增加新任务前，先完成一件正在进行的事。",
+      "增加新任務前，先完成一件正在進行的事。"
+    ],
+    "actions.1": [
+      "大切なことを伝えたら、相手の反応を待ってみましょう。",
+      "说完重要的话后，等一等对方的回应。",
+      "說完重要的話後，等一等對方的回應。"
+    ],
+    "actions.2": [
+      "今週の仕事で、自分が責任を持つ範囲を一行で書いてみましょう。",
+      "用一句话写下本周任务中自己负责的范围。",
+      "用一句話寫下本週任務中自己負責的範圍。"
+    ],
+    "actions.3": [
+      "必ず守る基準と、柔軟に変えられる基準を一つずつ分けてみましょう。",
+      "分清一项必须守住的标准和一项可以灵活调整的标准。",
+      "分清一項必須守住的標準和一項可以靈活調整的標準。"
+    ],
+    "actions.4": [
+      "さらに調べることと、今試すことを一つずつ決めてみましょう。",
+      "各选一件需要继续了解的事和现在就能尝试的事。",
+      "各選一件需要繼續了解的事和現在就能嘗試的事。"
+    ],
+    "rules.0": [
+      "目標と期限が決まったら進めてみよう。始めることばかり増えるなら、新しい課題を減らそう。",
+      "目标和期限明确后再推进。如果只开头、不收尾的事越来越多，就先减少新任务。",
+      "目標和期限明確後再推進。如果只開頭、不收尾的事越來越多，就先減少新任務。"
+    ],
+    "rules.1": [
+      "伝えたい内容と相手の余裕が合うときに話そう。気持ちが先走るときほど、返事を急かさないほうがいい。",
+      "要说的内容与对方的余裕合适时再开口。情绪上来时，更别急着催答复。",
+      "要說的內容與對方的餘裕合適時再開口。情緒上來時，更別急著催答覆。"
+    ],
+    "rules.2": [
+      "責任と使える資源が見合うときに引き受けよう。自分の負担が増え続けるなら、範囲を調整してみて。",
+      "责任与可用资源相称时再接下。自己的份额不断增加，就重新商量范围。",
+      "責任與可用資源相稱時再接下。自己的份額不斷增加，就重新商量範圍。"
+    ],
+    "rules.3": [
+      "目的に役立つ基準を使おう。完璧を求めて止まってしまうなら、最低限の条件から決めてみて。",
+      "标准能服务于目标时再用。若被完美拖住，就先定好最低可行条件。",
+      "標準能服務於目標時再用。若被完美拖住，就先定好最低可行條件。"
+    ],
+    "rules.4": [
+      "確かめたい問いがはっきりしたら調べよう。情報ばかり増えるなら、小さく試す日を先に決めてみて。",
+      "先明确要确认的问题再查资料。若只是信息越积越多，就先定一个小范围试行的日期。",
+      "先明確要確認的問題再查資料。若只是資訊越積越多，就先定一個小範圍試行的日期。"
+    ],
+    "godNames.0": [
+      "比肩・自分の基準",
+      "比肩 · 自我标准",
+      "比肩 · 自我標準"
+    ],
+    "godNames.1": [
+      "劫財・競争と協力",
+      "劫财 · 竞争与合作",
+      "劫財 · 競爭與合作"
+    ],
+    "godNames.2": [
+      "食神・着実な表現",
+      "食神 · 稳定表达",
+      "食神 · 穩定表達"
+    ],
+    "godNames.3": [
+      "傷官・問いと改善",
+      "伤官 · 质疑与改进",
+      "傷官 · 質疑與改進"
+    ],
+    "godNames.4": [
+      "偏財・機会と資源",
+      "偏财 · 机会与资源",
+      "偏財 · 機會與資源"
+    ],
+    "godNames.5": [
+      "正財・管理と蓄積",
+      "正财 · 管理与积累",
+      "正財 · 管理與累積"
+    ],
+    "godNames.6": [
+      "偏官・圧力への対応",
+      "偏官 · 压力与应对",
+      "偏官 · 壓力與應對"
+    ],
+    "godNames.7": [
+      "正官・責任と秩序",
+      "正官 · 责任与秩序",
+      "正官 · 責任與秩序"
+    ],
+    "godNames.8": [
+      "偏印・異なる視点",
+      "偏印 · 不同视角",
+      "偏印 · 不同視角"
+    ],
+    "godNames.9": [
+      "印綬・学びと支え",
+      "正印 · 学习与支持",
+      "正印 · 學習與支持"
+    ],
+    "godLife.0": [
+      "自分で決めると心地よいかもしれません。他の意見にも耳を傾けてみましょう。",
+      "自己做决定可能让您自在。也听听其他人的意见。",
+      "自己做決定可能讓您自在。也聽聽其他人的意見。"
+    ],
+    "godLife.1": [
+      "誰かと並んで取り組むと力が湧くかもしれません。比較で消耗していないかも見てください。",
+      "与他人并肩前行可能带来力量。也留意比较是否正在消耗自己。",
+      "與他人並肩前行可能帶來力量。也留意比較是否正在消耗自己。"
+    ],
+    "godLife.2": [
+      "慣れたことを繰り返し表現し、磨いていくことが強みになりそうです。",
+      "持续表达并打磨熟悉的事物，可能是您的长处。",
+      "持續表達並打磨熟悉的事物，可能是您的長處。"
+    ],
+    "godLife.3": [
+      "当たり前のルールにも問いを向けられそうです。変えたい理由を先に説明しましょう。",
+      "您可能愿意质疑习以为常的规则。先说明想改变的理由。",
+      "您可能願意質疑習以為常的規則。先說明想改變的理由。"
+    ],
+    "godLife.4": [
+      "いくつもの機会をつなぐことに関心が向くかもしれません。引き受けられる範囲も確かめてください。",
+      "您可能有兴趣把不同机会串联起来。也看看实际能够承受的范围。",
+      "您可能有興趣把不同機會串連起來。也看看實際能夠承受的範圍。"
+    ],
+    "godLife.5": [
+      "小さな収入や約束を大切にすることで、安定を感じられそうです。",
+      "守住小额收入与承诺，可能让您获得稳定感。",
+      "守住小額收入與承諾，可能讓您獲得穩定感。"
+    ],
+    "godLife.6": [
+      "難しい課題で集中力が高まるかもしれません。回復する時間も予定に入れましょう。",
+      "面对困难任务时，专注力可能被激发。也把恢复精力的时间排进去。",
+      "面對困難任務時，專注力可能被激發。也把恢復精力的時間排進去。"
+    ],
+    "godLife.7": [
+      "役割や基準が明確だと安心できそうです。基準が変わる状況にも少しずつ慣れてみましょう。",
+      "角色与标准明确时，您可能更安心。也练习应对标准变化的情境。",
+      "角色與標準明確時，您可能更安心。也練習應對標準變化的情境。"
+    ],
+    "godLife.8": [
+      "なじみのない視点を深く探れそうです。現実の経験で確かめる機会も作りましょう。",
+      "您可能深入探索陌生的视角。也创造机会，在实际生活中验证想法。",
+      "您可能深入探索陌生的視角。也創造機會，在實際生活中驗證想法。"
+    ],
+    "godLife.9": [
+      "学んだり助け合ったりすることで力を得られそうです。学びを小さく実践してみましょう。",
+      "学习与互相帮助可能让您获得力量。把学到的东西小小实践一下。",
+      "學習與互相幫助可能讓您獲得力量。把學到的東西小小實踐一下。"
+    ],
+    "godRules.0": [
+      "自分で決めることと共同で決めることを分け、相談が必要な場面では意見を確かめましょう。",
+      "分清个人决定与共同决定，需要协商的事先确认彼此意见。",
+      "分清個人決定與共同決定，需要協商的事先確認彼此意見。"
+    ],
+    "godRules.1": [
+      "競う前に費用と役割を合意しましょう。比較で目標が変わったら、一度止まってください。",
+      "竞争前先谈妥成本和角色。若比较让目标变了，就暂停一下。",
+      "競爭前先談妥成本和角色。若比較讓目標變了，就暫停一下。"
+    ],
+    "godRules.2": [
+      "続けられる分量から始めましょう。完成した成果を見て、次の段階を決めてください。",
+      "从可以持续的工作量开始。以完成的成果为依据，确定下一步。",
+      "從可以持續的工作量開始。以完成的成果為依據，確定下一步。"
+    ],
+    "godRules.3": [
+      "問題を指摘するときは代案も示しましょう。相手そのものを評価する言葉は避けてください。",
+      "指出问题时也提出替代方案，避免评价对方这个人。",
+      "指出問題時也提出替代方案，避免評價對方這個人。"
+    ],
+    "godRules.4": [
+      "機会ごとに必要な時間と損失の上限を書きましょう。範囲を超えるなら保留してください。",
+      "写下每个机会所需时间与可承受损失的上限，超出范围就暂缓。",
+      "寫下每個機會所需時間與可承受損失的上限，超出範圍就暫緩。"
+    ],
+    "godRules.5": [
+      "収支と約束を記録しましょう。安定を守るために、必要な変化まで先送りしないでください。",
+      "记录收支与承诺。别因为追求稳定，连必要的改变也一直推迟。",
+      "記錄收支與承諾。別因為追求穩定，連必要的改變也一直推遲。"
+    ],
+    "godRules.6": [
+      "負担を受け止める資源を先に確かめましょう。睡眠や回復が削られるなら、仕事を分けてください。",
+      "先确认自己应对压力的资源。若睡眠和恢复受到影响，就分担工作。",
+      "先確認自己應對壓力的資源。若睡眠和恢復受到影響，就分擔工作。"
+    ],
+    "godRules.7": [
+      "責任の範囲を先に確認しましょう。ルールが目的に反するなら、根拠を示して調整してください。",
+      "先确认责任范围。规则与目的相悖时，拿出依据进行调整。",
+      "先確認責任範圍。規則與目的相悖時，拿出依據進行調整。"
+    ],
+    "godRules.8": [
+      "直感は仮説として扱い、実例で確かめましょう。根拠なしに大きな決断をしないでください。",
+      "将直觉视为假设，用实际案例验证。不要在缺乏依据时做重大决定。",
+      "將直覺視為假設，用實際案例驗證。不要在缺乏依據時做重大決定。"
+    ],
+    "godRules.9": [
+      "学んだことを一つ実践しましょう。助けを得た場合も、最後の選択は自分で確かめてください。",
+      "亲自应用一项所学。即使获得帮助，也要检查最终选择。",
+      "親自應用一項所學。即使獲得幫助，也要檢查最終選擇。"
+    ],
+    "distribution": [
+      "月支の重みを含む既存の計算比率です。多い・少ないは優劣や成功確率ではありません。",
+      "这是包含月支权重的既有计算比例。多寡不代表优劣，也不是成功概率。",
+      "這是包含月支權重的既有計算比例。多寡不代表優劣，也不是成功機率。"
+    ],
+    "dominant": [
+      "{element}が{value}%と比較的目立ちます。{trait}を考える手がかりです。",
+      "{element}占{value}%，相对突出，可作为观察{trait}的线索。",
+      "{element}占{value}%，相對突出，可作為觀察{trait}的線索。"
+    ],
+    "balanced": [
+      "複数の五行が最大の割合を分け合っています。一つの性格にまとめず、状況によって表れる力を見てみましょう。",
+      "几个五行共同占据较大比例。不必用一种性格概括自己，可以看看不同情境中呈现的力量。",
+      "幾個五行共同占據較大比例。不必用一種性格概括自己，可以看看不同情境中呈現的力量。"
+    ],
+    "dayBasis": [
+      "日干{stem}・日支{branch}。日干は自分を読む基準の文字です。ここでは{element}の象徴を日常の言葉に置き換えます。",
+      "日干{stem} · 日支{branch}。日干是解读自我的基准，这里把{element}的象征转化为日常语言。",
+      "日干{stem} · 日支{branch}。日干是解讀自我的基準，這裡把{element}的象徵轉化為日常語言。"
+    ],
+    "godBasis": [
+      "この命式では{name}が{count}か所に表れています。日干と他の文字の関係を数えたもので、性格を確定する診断ではありません。",
+      "当前命盘中{name}出现在{count}处。这是日干与其他字之间关系的计数，不是确定性的人格诊断。",
+      "當前命盤中{name}出現在{count}處。這是日干與其他字之間關係的計數，不是確定性的人格診斷。"
+    ],
+    "unknown": [
+      "出生時刻不明：正午を代入した参考計算です。時柱や、時刻に左右される五行比率・強弱・時期の解釈は確定できません。",
+      "出生时间不详：以正午代入进行参考计算。时柱及受时间影响的五行比例、强弱与时机解读均无法确定。",
+      "出生時間不詳：以正午代入進行參考計算。時柱及受時間影響的五行比例、強弱與時機解讀均無法確定。"
+    ],
+    "cold": [
+      "調候は冷たい側の傾向です。活動前に心身を整える時間を確かめてみましょう。",
+      "调候信号偏寒。开始活动前，留意身心需要怎样的准备时间。",
+      "調候訊號偏寒。開始活動前，留意身心需要怎樣的準備時間。"
+    ],
+    "hot": [
+      "調候は暖かい側の傾向です。ペースを上げるときは、回復の間隔も考えましょう。",
+      "调候信号偏暖。加快节奏时，也留出恢复的间隔。",
+      "調候訊號偏暖。加快節奏時，也留出恢復的間隔。"
+    ],
+    "neutral": [
+      "温度の点数は中間です。一方向に補おうとせず、実際の生活リズムを観察してみましょう。",
+      "温度分数居中。与其一味朝某个方向补足，不如观察实际生活节奏。",
+      "溫度分數居中。與其一味朝某個方向補足，不如觀察實際生活節奏。"
+    ],
+    "climateBasis": [
+      "調候の温度点数{score}・湿のサイン{wet}／乾のサイン{dry}。季節と文字の象徴的な計算であり、健康診断ではありません。",
+      "调候温度分数{score} · 湿润信号{wet}／干燥信号{dry}。这是季节与干支的象征性计算，并非健康诊断。",
+      "調候溫度分數{score} · 濕潤訊號{wet}／乾燥訊號{dry}。這是季節與干支的象徵性計算，並非健康診斷。"
+    ],
+    "climateAction": [
+      "調子がよかった日の活動と休憩の間隔を記録しましょう。象徴的な点数より、実際の体調を基準に調整してください。",
+      "记录状态良好时的活动与休息间隔。调整时以实际感受为准，而非象征分数。",
+      "記錄狀態良好時的活動與休息間隔。調整時以實際感受為準，而非象徵分數。"
+    ],
+    "strong": [
+      "日干を支える力が比較的大きい構造です。自分で進める力と、分担する余裕の両方を考えてみましょう。",
+      "这是支持日干的力量相对较大的结构。既看看独立推进的力量，也留意分工合作的余裕。",
+      "這是支持日干的力量相對較大的結構。既看看獨立推進的力量，也留意分工合作的餘裕。"
+    ],
+    "weak": [
+      "日干の力に比べ、周囲の役割からの要求が大きい構造です。支えや準備時間を確保することが手がかりになります。",
+      "相较于日干的力量，周围角色的要求更大。如何争取帮助与准备时间，是值得探索的线索。",
+      "相較於日干的力量，周圍角色的要求更大。如何爭取幫助與準備時間，是值得探索的線索。"
+    ],
+    "jong": [
+      "一方向の勢いに従う従格の可能性が検討された構造です。通常の身強・身弱の助言をそのまま当てはめません。",
+      "此结构考虑了顺从单一气势的从格可能性，不能照搬一般身强、身弱的建议。",
+      "此結構考慮了順從單一氣勢的從格可能性，不能照搬一般身強、身弱的建議。"
+    ],
+    "strengthBasis": [
+      "既存の扶抑点数{score}・補う候補{support}。人の能力や価値を格付けする点数ではありません。",
+      "既有扶抑分数{score} · 调整候选{support}。分数不是衡量个人能力或价值的等级。",
+      "既有扶抑分數{score} · 調整候選{support}。分數不是衡量個人能力或價值的等級。"
+    ],
+    "strengthAction": [
+      "役割を増やす前に時間と支援を確認しましょう。選択後の集中・消耗・回復を記録し、基準を調整してください。",
+      "增加职责前先确认时间与支持。记录选择后的专注、消耗和恢复情况，再调整判断标准。",
+      "增加職責前先確認時間與支持。記錄選擇後的專注、消耗和恢復情況，再調整判斷標準。"
+    ],
+    "flowBasis": [
+      "{label} {stem}{branch}・既存の評価点数{score}。吉凶の確定予測ではなく、流れを比べる参考値です。",
+      "{label} {stem}{branch} · 既有评分{score}。这是比较走势的参考值，并非确定吉凶的预测。",
+      "{label} {stem}{branch} · 既有評分{score}。這是比較走勢的參考值，並非確定吉凶的預測。"
+    ],
+    "flowOpen": [
+      "既存の評価では、比較的進めやすい流れです。準備してきたことを小さな範囲で試してみましょう。",
+      "既有评估显示，这段走势相对顺畅。可以小范围试行已准备好的事情。",
+      "既有評估顯示，這段走勢相對順暢。可以小範圍試行已準備好的事情。"
+    ],
+    "flowCare": [
+      "既存の評価では、調整が必要な流れです。ペースを落とし、役割と予定を整えてみましょう。",
+      "既有评估显示，这段走势需要协调。不妨放慢节奏，整理职责与日程。",
+      "既有評估顯示，這段走勢需要協調。不妨放慢節奏，整理職責與日程。"
+    ],
+    "flowRuleOpen": [
+      "資源と計画が整ったら、小さな実践から始めましょう。点数が結果を保証するわけではありません。",
+      "资源与计划准备好后，从小行动开始。分数并不保证结果。",
+      "資源與計畫準備好後，從小行動開始。分數並不保證結果。"
+    ],
+    "flowRuleCare": [
+      "予定を調整し、選択肢を残しましょう。点数だけで関係・仕事・投資の結論を出さないでください。",
+      "调整日程，保留选择空间。不要仅凭分数决定关系、职业或投资。",
+      "調整日程，保留選擇空間。不要僅憑分數決定關係、職業或投資。"
+    ],
+    "period": [
+      "現在の大運",
+      "当前大运",
+      "當前大運"
+    ],
+    "year": [
+      "今年の年運",
+      "今年流年",
+      "今年流年"
+    ],
+    "more": [
+      "詳しく読む",
+      "详细阅读",
+      "詳細閱讀"
+    ],
+    "sample": [
+      "サンプル・架空の命式の解説例",
+      "示例 · 虚构命盘的解读",
+      "範例 · 虛構命盤的解讀"
+    ],
+    "sampleNote": [
+      "解説の形式を示す例であり、あなた個人の結果ではありません。",
+      "此例仅展示解读形式，并非您的个人结果。",
+      "此例僅展示解讀形式，並非您的個人結果。"
+    ],
+    "paidDifference": [
+      "入力した出生情報から計算した命式に合わせ、用意された解説を組み合わせます。無料の解説で見た気質をもとに、時期別の流れとテーマ別の解説を続けて読めます。",
+      "根据输入的出生信息计算命盘，再组合相应的既有解说。在免费解读的气质分析基础上，继续阅读各时期走势与主题解说。",
+      "根據輸入的出生資訊計算命盤，再組合相應的既有解說。在免費解讀的氣質分析基礎上，繼續閱讀各時期走勢與主題解說。"
+    ],
+    "paidDaeun": [
+      "十年ごとに変わる人生の流れと、年ごとの変化を一緒に読みます。仕事・関係・お金の解説から、今準備する選択を探りましょう。",
+      "结合每十年的生活走势与逐年变化，从工作、关系和财务解读中，看看现在可以为哪些选择做准备。",
+      "結合每十年的生活走勢與逐年變化，從工作、關係和財務解讀中，看看現在可以為哪些選擇做準備。"
+    ],
+    "paidSummary": [
+      "生まれ持った気質、五行・十神、性格と関係、人生の方針、今年と来年の助言を、あなたの命式からまとめます。",
+      "以您的命盘为依据，一起梳理先天气质、五行与十神、性格与关系、生活策略，以及今明两年的建议。",
+      "以您的命盤為依據，一起梳理先天氣質、五行與十神、性格與關係、生活策略，以及今明兩年的建議。"
+    ],
+    "recovery": [
+      "同じアカウントとプロフィールで命式を開き、解説の利用状態を確認してください。決済後に開けない場合は再購入せず、決済履歴を添えてサポートへお問い合わせください。",
+      "请用原账户与档案重新打开四柱结果，检查该解读的解锁状态。付款后仍打不开时，请勿重复购买，附上付款记录联系客服。",
+      "請用原帳戶與檔案重新打開四柱結果，檢查該解讀的解鎖狀態。付款後仍打不開時，請勿重複購買，附上付款紀錄聯絡客服。"
+    ],
+    "inputs": [
+      "この命式に入力済みの出生情報と計算値を使います。出生時刻が不明な場合、時刻に依存する解釈の参考範囲は限られます。",
+      "使用当前四柱中已输入的出生信息与计算值。出生时间不详时，依赖时辰的解读仅能有限参考。",
+      "使用當前四柱中已輸入的出生資訊與計算值。出生時間不詳時，依賴時辰的解讀僅能有限參考。"
+    ],
+    "pricePending": [
+      "料金を確認中",
+      "正在确认价格",
+      "正在確認價格"
+    ],
+    "priceUnavailable": [
+      "料金は決済案内でご確認ください",
+      "请在付款说明中确认价格",
+      "請在付款說明中確認價格"
+    ],
+    "paidRead": [
+      "解説を見る",
+      "查看解读",
+      "查看解讀"
+    ],
+    "catTitle": [
+      "Yeongnyangi相談",
+      "Yeongnyangi咨询",
+      "Yeongnyangi諮詢"
+    ],
+    "catPurpose": [
+      "猫の相談役と命式の流れを読む",
+      "与猫咪顾问一起探索命盘走势",
+      "與貓咪顧問一起探索命盤走勢"
+    ],
+    "catGo": [
+      "見てみる",
+      "查看",
+      "查看"
+    ],
+    "catPrice": [
+      "{price}から",
+      "{price}起",
+      "{price}起"
+    ],
+    "endYeon": [
+      "すべての言葉を自分に当てはめなくても大丈夫です。実際の自分につながる手がかりを一つ、ゆっくり見つめてみてください。",
+      "不必勉强把每句话都套在自己身上。从一条与真实经历相接的线索开始，慢慢看看就好。",
+      "不必勉強把每句話都套在自己身上。從一條與真實經歷相接的線索開始，慢慢看看就好。"
+    ],
+    "endNeo": [
+      "命式が選択を代わりに決めるわけじゃない。合う根拠と合わない解釈を分けて、今日試す行動を一つ決めよう。",
+      "命盘不会替你选择。分清有依据的部分与不符合经历的解读，选一个今天能验证的行动。",
+      "命盤不會替你選擇。分清有依據的部分與不符合經歷的解讀，選一個今天能驗證的行動。"
+    ],
+    "catFree": [
+      "無料の運勢",
+      "免费运势",
+      "免費運勢"
+    ],
+    "today": [
+      "今日の流れ",
+      "今日走势",
+      "今日走勢"
+    ],
+    "month": [
+      "今月の流れ",
+      "本月走势",
+      "本月走勢"
+    ],
+    "summaryTitle": [
+      "ライト四柱推命",
+      "轻量四柱解读",
+      "輕量四柱解讀"
+    ],
+    "daeunTitle": [
+      "大運分析・今から次の時期へ",
+      "大运分析 · 从现在到下一阶段",
+      "大運分析 · 從現在到下一階段"
+    ],
+    "graphTitle": [
+      "大運の流れを比較",
+      "大运走势比较",
+      "大運走勢比較"
+    ],
+    "godTraits.0": [
+      "自分で方向を決めたいほうだね。",
+      "你倾向于自己决定方向。",
+      "你傾向於自己決定方向。"
+    ],
+    "godTraits.1": [
+      "誰かと走ったり競ったりすると、力が湧くほうだね。",
+      "一起前行或切磋，反而可能让你更有力量。",
+      "一起前行或切磋，反而可能讓你更有力量。"
+    ],
+    "godTraits.2": [
+      "繰り返しながら表現を磨いていくほうだね。",
+      "你更擅长在反复练习中打磨表达。",
+      "你更擅長在反覆練習中打磨表達。"
+    ],
+    "godTraits.3": [
+      "慣れたルールも、一度考え直してみるほうだね。",
+      "即使是熟悉的规则，你也愿意重新审视。",
+      "即使是熟悉的規則，你也願意重新審視。"
+    ],
+    "godTraits.4": [
+      "いろいろな機会をつないでみたくなるかもしれないね。",
+      "你可能想把不同的机会连接起来。",
+      "你可能想把不同的機會連結起來。"
+    ],
+    "godTraits.5": [
+      "約束や資源をこつこつ大切にするほうだね。",
+      "你倾向于持续照看承诺与资源。",
+      "你傾向於持續照看承諾與資源。"
+    ],
+    "godTraits.6": [
+      "負担の大きな課題で、かえって集中できることもありそうだね。",
+      "面对压力较大的任务，你反而可能更专注。",
+      "面對壓力較大的任務，你反而可能更專注。"
+    ],
+    "godTraits.7": [
+      "役割と基準がはっきりしていると安心するほうだね。",
+      "角色与标准清晰时，你更容易安心。",
+      "角色與標準清晰時，你更容易安心。"
+    ],
+    "godTraits.8": [
+      "新しい視点に出会うと、深く掘り下げたくなるんだね。",
+      "遇到陌生视角时，你会想深入探索。",
+      "遇到陌生視角時，你會想深入探索。"
+    ],
+    "godTraits.9": [
+      "学んだり助け合ったりしながら、準備するほうだね。",
+      "你倾向于通过学习与互助做好准备。",
+      "你傾向於透過學習與互助做好準備。"
+    ]
+  },
+  "sajuReading.yeon": {
+    "ko": "연이",
+    "en": "Yeoni",
+    "ja": "Yeoni",
+    "zh-CN": "Yeoni",
+    "zh-TW": "Yeoni",
+    "vi": "Yeoni",
+    "hi": "Yeoni",
+    "es": "Yeoni",
+    "fr": "Yeoni",
+    "de": "Yeoni",
+    "nl": "Yeoni",
+    "ms": "Yeoni"
+  },
+  "sajuReading.neo": {
+    "ko": "영냥이",
+    "en": "Yeongnyangi",
+    "ja": "Yeongnyangi",
+    "zh-CN": "Yeongnyangi",
+    "zh-TW": "Yeongnyangi",
+    "vi": "Yeongnyangi",
+    "hi": "Yeongnyangi",
+    "es": "Yeongnyangi",
+    "fr": "Yeongnyangi",
+    "de": "Yeongnyangi",
+    "nl": "Yeongnyangi",
+    "ms": "Yeongnyangi"
+  },
+  "sajuReading.garden": {
+    "ko": "연이의 달빛 사주",
+    "en": "Yeoni’s moonlit saju",
+    "ja": "Yeoniの月明かり四柱推命",
+    "zh-CN": "Yeoni的月光四柱",
+    "zh-TW": "Yeoni的月光四柱",
+    "vi": "Yeoni’s moonlit saju",
+    "hi": "Yeoni’s moonlit saju",
+    "es": "Yeoni’s moonlit saju",
+    "fr": "Yeoni’s moonlit saju",
+    "de": "Yeoni’s moonlit saju",
+    "nl": "Yeoni’s moonlit saju",
+    "ms": "Yeoni’s moonlit saju"
+  },
+  "sajuReading.room": {
+    "ko": "영냥이의 별빛 다락방",
+    "en": "Yeongnyangi’s starlit attic",
+    "ja": "Yeongnyangiの星明かりの屋根裏",
+    "zh-CN": "Yeongnyangi的星光阁楼",
+    "zh-TW": "Yeongnyangi的星光閣樓",
+    "vi": "Yeongnyangi’s starlit attic",
+    "hi": "Yeongnyangi’s starlit attic",
+    "es": "Yeongnyangi’s starlit attic",
+    "fr": "Yeongnyangi’s starlit attic",
+    "de": "Yeongnyangi’s starlit attic",
+    "nl": "Yeongnyangi’s starlit attic",
+    "ms": "Yeongnyangi’s starlit attic"
+  },
+  "sajuReading.same": {
+    "ko": "기본 사주는 연이와 영냥이가 함께 맡아요. 같은 계산 근거를 바탕으로, 원하는 마스터의 해설을 골라 읽어보세요.",
+    "en": "Yeoni and Yeongnyangi both guide the basic saju reading. Choose the voice you prefer; both use the same chart calculations.",
+    "ja": "基本の四柱推命はYeoniとYeongnyangiがご案内します。同じ計算結果をもとに、好きな案内役の解説を選んで読めます。",
+    "zh-CN": "基础四柱由Yeoni与Yeongnyangi共同解读。以相同的计算依据为基础，选择您喜欢的讲解风格。",
+    "zh-TW": "基礎四柱由Yeoni與Yeongnyangi共同解讀。以相同的計算依據為基礎，選擇您喜歡的講解風格。",
+    "vi": "Yeoni and Yeongnyangi both guide the basic saju reading. Choose the voice you prefer; both use the same chart calculations.",
+    "hi": "Yeoni and Yeongnyangi both guide the basic saju reading. Choose the voice you prefer; both use the same chart calculations.",
+    "es": "Yeoni and Yeongnyangi both guide the basic saju reading. Choose the voice you prefer; both use the same chart calculations.",
+    "fr": "Yeoni and Yeongnyangi both guide the basic saju reading. Choose the voice you prefer; both use the same chart calculations.",
+    "de": "Yeoni and Yeongnyangi both guide the basic saju reading. Choose the voice you prefer; both use the same chart calculations.",
+    "nl": "Yeoni and Yeongnyangi both guide the basic saju reading. Choose the voice you prefer; both use the same chart calculations.",
+    "ms": "Yeoni and Yeongnyangi both guide the basic saju reading. Choose the voice you prefer; both use the same chart calculations."
+  },
+  "sajuReading.compareNeo": {
+    "ko": "영냥이 상담으로 전환하기",
+    "en": "Switch to Yeongnyangi’s reading",
+    "ja": "Yeongnyangiの解説へ",
+    "zh-CN": "切换到Yeongnyangi解读",
+    "zh-TW": "切換到Yeongnyangi解讀",
+    "vi": "Switch to Yeongnyangi’s reading",
+    "hi": "Switch to Yeongnyangi’s reading",
+    "es": "Switch to Yeongnyangi’s reading",
+    "fr": "Switch to Yeongnyangi’s reading",
+    "de": "Switch to Yeongnyangi’s reading",
+    "nl": "Switch to Yeongnyangi’s reading",
+    "ms": "Switch to Yeongnyangi’s reading"
+  },
+  "sajuReading.compareYeon": {
+    "ko": "연이 상담으로 전환하기",
+    "en": "Switch to Yeoni’s reading",
+    "ja": "Yeoniの解説へ",
+    "zh-CN": "切换到Yeoni解读",
+    "zh-TW": "切換到Yeoni解讀",
+    "vi": "Switch to Yeoni’s reading",
+    "hi": "Switch to Yeoni’s reading",
+    "es": "Switch to Yeoni’s reading",
+    "fr": "Switch to Yeoni’s reading",
+    "de": "Switch to Yeoni’s reading",
+    "nl": "Switch to Yeoni’s reading",
+    "ms": "Switch to Yeoni’s reading"
+  },
+  "sajuReading.observe": {
+    "ko": "연이가 발견한 단서",
+    "en": "What Yeoni notices",
+    "ja": "Yeoniが見つけた手がかり",
+    "zh-CN": "Yeoni发现的线索",
+    "zh-TW": "Yeoni發現的線索",
+    "vi": "What Yeoni notices",
+    "hi": "What Yeoni notices",
+    "es": "What Yeoni notices",
+    "fr": "What Yeoni notices",
+    "de": "What Yeoni notices",
+    "nl": "What Yeoni notices",
+    "ms": "What Yeoni notices"
+  },
+  "sajuReading.life": {
+    "ko": "생활에서 만나는 모습",
+    "en": "In everyday life",
+    "ja": "日常に表れる姿",
+    "zh-CN": "日常生活中的表现",
+    "zh-TW": "日常生活中的表現",
+    "vi": "In everyday life",
+    "hi": "In everyday life",
+    "es": "In everyday life",
+    "fr": "In everyday life",
+    "de": "In everyday life",
+    "nl": "In everyday life",
+    "ms": "In everyday life"
+  },
+  "sajuReading.practice": {
+    "ko": "오늘의 작은 실천",
+    "en": "One small practice",
+    "ja": "今日の小さな実践",
+    "zh-CN": "今天的小行动",
+    "zh-TW": "今天的小行動",
+    "vi": "One small practice",
+    "hi": "One small practice",
+    "es": "One small practice",
+    "fr": "One small practice",
+    "de": "One small practice",
+    "nl": "One small practice",
+    "ms": "One small practice"
+  },
+  "sajuReading.diagnosis": {
+    "ko": "영냥이가 짚은 핵심",
+    "en": "What Yeongnyangi notices",
+    "ja": "Yeongnyangiが見る要点",
+    "zh-CN": "Yeongnyangi指出的重点",
+    "zh-TW": "Yeongnyangi指出的重點",
+    "vi": "What Yeongnyangi notices",
+    "hi": "What Yeongnyangi notices",
+    "es": "What Yeongnyangi notices",
+    "fr": "What Yeongnyangi notices",
+    "de": "What Yeongnyangi notices",
+    "nl": "What Yeongnyangi notices",
+    "ms": "What Yeongnyangi notices"
+  },
+  "sajuReading.basis": {
+    "ko": "계산 근거",
+    "en": "Chart evidence",
+    "ja": "計算の根拠",
+    "zh-CN": "计算依据",
+    "zh-TW": "計算依據",
+    "vi": "Chart evidence",
+    "hi": "Chart evidence",
+    "es": "Chart evidence",
+    "fr": "Chart evidence",
+    "de": "Chart evidence",
+    "nl": "Chart evidence",
+    "ms": "Chart evidence"
+  },
+  "sajuReading.action": {
+    "ko": "행동 기준",
+    "en": "Decision criteria",
+    "ja": "行動の判断基準",
+    "zh-CN": "行动依据",
+    "zh-TW": "行動依據",
+    "vi": "Decision criteria",
+    "hi": "Decision criteria",
+    "es": "Decision criteria",
+    "fr": "Decision criteria",
+    "de": "Decision criteria",
+    "nl": "Decision criteria",
+    "ms": "Decision criteria"
+  },
+  "sajuReading.element": {
+    "ko": "오행의 분포",
+    "en": "Five-element balance",
+    "ja": "五行の分布",
+    "zh-CN": "五行分布",
+    "zh-TW": "五行分布",
+    "vi": "Five-element balance",
+    "hi": "Five-element balance",
+    "es": "Five-element balance",
+    "fr": "Five-element balance",
+    "de": "Five-element balance",
+    "nl": "Five-element balance",
+    "ms": "Five-element balance"
+  },
+  "sajuReading.temperament": {
+    "ko": "타고난 기질",
+    "en": "Natural temperament",
+    "ja": "生まれ持った気質",
+    "zh-CN": "先天气质",
+    "zh-TW": "先天氣質",
+    "vi": "Natural temperament",
+    "hi": "Natural temperament",
+    "es": "Natural temperament",
+    "fr": "Natural temperament",
+    "de": "Natural temperament",
+    "nl": "Natural temperament",
+    "ms": "Natural temperament"
+  },
+  "sajuReading.ten": {
+    "ko": "십성으로 읽는 역할",
+    "en": "Roles in the Ten Gods",
+    "ja": "十神から読む役割",
+    "zh-CN": "从十神看角色",
+    "zh-TW": "從十神看角色",
+    "vi": "Roles in the Ten Gods",
+    "hi": "Roles in the Ten Gods",
+    "es": "Roles in the Ten Gods",
+    "fr": "Roles in the Ten Gods",
+    "de": "Roles in the Ten Gods",
+    "nl": "Roles in the Ten Gods",
+    "ms": "Roles in the Ten Gods"
+  },
+  "sajuReading.climate": {
+    "ko": "조후 · 계절의 감각",
+    "en": "Seasonal balance",
+    "ja": "調候・季節とのバランス",
+    "zh-CN": "调候 · 季节的感受",
+    "zh-TW": "調候 · 季節的感受",
+    "vi": "Seasonal balance",
+    "hi": "Seasonal balance",
+    "es": "Seasonal balance",
+    "fr": "Seasonal balance",
+    "de": "Seasonal balance",
+    "nl": "Seasonal balance",
+    "ms": "Seasonal balance"
+  },
+  "sajuReading.strength": {
+    "ko": "억부 · 힘을 쓰는 방식",
+    "en": "How support is distributed",
+    "ja": "扶抑・力の使い方",
+    "zh-CN": "扶抑 · 运用力量的方式",
+    "zh-TW": "扶抑 · 運用力量的方式",
+    "vi": "How support is distributed",
+    "hi": "How support is distributed",
+    "es": "How support is distributed",
+    "fr": "How support is distributed",
+    "de": "How support is distributed",
+    "nl": "How support is distributed",
+    "ms": "How support is distributed"
+  },
+  "sajuReading.flow": {
+    "ko": "현재 흐름",
+    "en": "Current cycles",
+    "ja": "今の流れ",
+    "zh-CN": "当前走势",
+    "zh-TW": "當前走勢",
+    "vi": "Current cycles",
+    "hi": "Current cycles",
+    "es": "Current cycles",
+    "fr": "Current cycles",
+    "de": "Current cycles",
+    "nl": "Current cycles",
+    "ms": "Current cycles"
+  },
+  "sajuReading.letter": {
+    "ko": "편지",
+    "en": "A final note",
+    "ja": "お手紙",
+    "zh-CN": "给您的信",
+    "zh-TW": "給您的信",
+    "vi": "A final note",
+    "hi": "A final note",
+    "es": "A final note",
+    "fr": "A final note",
+    "de": "A final note",
+    "nl": "A final note",
+    "ms": "A final note"
+  },
+  "sajuReading.names.0": {
+    "ko": "목(木)",
+    "en": "Wood",
+    "ja": "木",
+    "zh-CN": "木",
+    "zh-TW": "木",
+    "vi": "Wood",
+    "hi": "Wood",
+    "es": "Wood",
+    "fr": "Wood",
+    "de": "Wood",
+    "nl": "Wood",
+    "ms": "Wood"
+  },
+  "sajuReading.names.1": {
+    "ko": "화(火)",
+    "en": "Fire",
+    "ja": "火",
+    "zh-CN": "火",
+    "zh-TW": "火",
+    "vi": "Fire",
+    "hi": "Fire",
+    "es": "Fire",
+    "fr": "Fire",
+    "de": "Fire",
+    "nl": "Fire",
+    "ms": "Fire"
+  },
+  "sajuReading.names.2": {
+    "ko": "토(土)",
+    "en": "Earth",
+    "ja": "土",
+    "zh-CN": "土",
+    "zh-TW": "土",
+    "vi": "Earth",
+    "hi": "Earth",
+    "es": "Earth",
+    "fr": "Earth",
+    "de": "Earth",
+    "nl": "Earth",
+    "ms": "Earth"
+  },
+  "sajuReading.names.3": {
+    "ko": "금(金)",
+    "en": "Metal",
+    "ja": "金",
+    "zh-CN": "金",
+    "zh-TW": "金",
+    "vi": "Metal",
+    "hi": "Metal",
+    "es": "Metal",
+    "fr": "Metal",
+    "de": "Metal",
+    "nl": "Metal",
+    "ms": "Metal"
+  },
+  "sajuReading.names.4": {
+    "ko": "수(水)",
+    "en": "Water",
+    "ja": "水",
+    "zh-CN": "水",
+    "zh-TW": "水",
+    "vi": "Water",
+    "hi": "Water",
+    "es": "Water",
+    "fr": "Water",
+    "de": "Water",
+    "nl": "Water",
+    "ms": "Water"
+  },
+  "sajuReading.traits.0": {
+    "ko": "새 일을 시작하고 방향을 넓혀 가는 힘",
+    "en": "starting and developing ideas",
+    "ja": "新しいことを始め、方向を広げる力",
+    "zh-CN": "开始新事物、拓展方向的力量",
+    "zh-TW": "開始新事物、拓展方向的力量",
+    "vi": "starting and developing ideas",
+    "hi": "starting and developing ideas",
+    "es": "starting and developing ideas",
+    "fr": "starting and developing ideas",
+    "de": "starting and developing ideas",
+    "nl": "starting and developing ideas",
+    "ms": "starting and developing ideas"
+  },
+  "sajuReading.traits.1": {
+    "ko": "생각과 감정을 밖으로 표현하는 힘",
+    "en": "expressing thoughts and feelings",
+    "ja": "考えや感情を外へ表す力",
+    "zh-CN": "向外表达想法与感受的力量",
+    "zh-TW": "向外表達想法與感受的力量",
+    "vi": "expressing thoughts and feelings",
+    "hi": "expressing thoughts and feelings",
+    "es": "expressing thoughts and feelings",
+    "fr": "expressing thoughts and feelings",
+    "de": "expressing thoughts and feelings",
+    "nl": "expressing thoughts and feelings",
+    "ms": "expressing thoughts and feelings"
+  },
+  "sajuReading.traits.2": {
+    "ko": "관계와 일을 안정적으로 이어 가는 힘",
+    "en": "sustaining commitments",
+    "ja": "関係や仕事を安定して続ける力",
+    "zh-CN": "稳定维系关系与事务的力量",
+    "zh-TW": "穩定維繫關係與事務的力量",
+    "vi": "sustaining commitments",
+    "hi": "sustaining commitments",
+    "es": "sustaining commitments",
+    "fr": "sustaining commitments",
+    "de": "sustaining commitments",
+    "nl": "sustaining commitments",
+    "ms": "sustaining commitments"
+  },
+  "sajuReading.traits.3": {
+    "ko": "기준을 세우고 불필요한 것을 정리하는 힘",
+    "en": "setting standards and simplifying",
+    "ja": "基準を決め、不要なものを整理する力",
+    "zh-CN": "建立标准、整理冗余的力量",
+    "zh-TW": "建立標準、整理冗餘的力量",
+    "vi": "setting standards and simplifying",
+    "hi": "setting standards and simplifying",
+    "es": "setting standards and simplifying",
+    "fr": "setting standards and simplifying",
+    "de": "setting standards and simplifying",
+    "nl": "setting standards and simplifying",
+    "ms": "setting standards and simplifying"
+  },
+  "sajuReading.traits.4": {
+    "ko": "정보를 살피고 상황에 맞춰 움직이는 힘",
+    "en": "observing and adapting",
+    "ja": "情報を観察し、状況に応じて動く力",
+    "zh-CN": "观察信息、顺应情境行动的力量",
+    "zh-TW": "觀察資訊、順應情境行動的力量",
+    "vi": "observing and adapting",
+    "hi": "observing and adapting",
+    "es": "observing and adapting",
+    "fr": "observing and adapting",
+    "de": "observing and adapting",
+    "nl": "observing and adapting",
+    "ms": "observing and adapting"
+  },
+  "sajuReading.scenes.0": {
+    "ko": "관심사가 많아 여러 일을 시작할 수 있어요. 끝맺을 자리를 남겨두면 성장의 힘이 더 잘 쓰입니다.",
+    "en": "You may start several things at once. Leave room to finish them.",
+    "ja": "関心が広く、いくつものことを始められるかもしれません。仕上げる余地も残すと、成長する力を生かしやすくなります。",
+    "zh-CN": "兴趣广泛，可能同时开启几件事。也给收尾留出空间，成长的力量才能用得更好。",
+    "zh-TW": "興趣廣泛，可能同時開啟幾件事。也給收尾留出空間，成長的力量才能用得更好。",
+    "vi": "You may start several things at once. Leave room to finish them.",
+    "hi": "You may start several things at once. Leave room to finish them.",
+    "es": "You may start several things at once. Leave room to finish them.",
+    "fr": "You may start several things at once. Leave room to finish them.",
+    "de": "You may start several things at once. Leave room to finish them.",
+    "nl": "You may start several things at once. Leave room to finish them.",
+    "ms": "You may start several things at once. Leave room to finish them."
+  },
+  "sajuReading.scenes.1": {
+    "ko": "대화에 생기를 더할 수 있어요. 마음이 앞설 때는 상대가 답할 틈도 함께 남겨보세요.",
+    "en": "You may bring energy to conversations. Give others time to respond.",
+    "ja": "会話に活気を添えられそうです。気持ちが先走るときは、相手が答える間も残してみましょう。",
+    "zh-CN": "您可能为交谈带来活力。心情走在前面时，也给对方留一点回应的时间。",
+    "zh-TW": "您可能為交談帶來活力。心情走在前面時，也給對方留一點回應的時間。",
+    "vi": "You may bring energy to conversations. Give others time to respond.",
+    "hi": "You may bring energy to conversations. Give others time to respond.",
+    "es": "You may bring energy to conversations. Give others time to respond.",
+    "fr": "You may bring energy to conversations. Give others time to respond.",
+    "de": "You may bring energy to conversations. Give others time to respond.",
+    "nl": "You may bring energy to conversations. Give others time to respond.",
+    "ms": "You may bring energy to conversations. Give others time to respond."
+  },
+  "sajuReading.scenes.2": {
+    "ko": "익숙한 역할을 지키는 데 마음이 놓일 수 있어요. 다른 사람의 몫까지 떠안고 있는지도 살펴보세요.",
+    "en": "Familiar responsibilities may feel reassuring. Check whether you are carrying someone else’s share.",
+    "ja": "慣れた役割を守ると安心できるかもしれません。他の人の分まで背負っていないかも確かめてください。",
+    "zh-CN": "守住熟悉的职责可能让您安心。也看看自己是否承担了本属于他人的部分。",
+    "zh-TW": "守住熟悉的職責可能讓您安心。也看看自己是否承擔了本屬於他人的部分。",
+    "vi": "Familiar responsibilities may feel reassuring. Check whether you are carrying someone else’s share.",
+    "hi": "Familiar responsibilities may feel reassuring. Check whether you are carrying someone else’s share.",
+    "es": "Familiar responsibilities may feel reassuring. Check whether you are carrying someone else’s share.",
+    "fr": "Familiar responsibilities may feel reassuring. Check whether you are carrying someone else’s share.",
+    "de": "Familiar responsibilities may feel reassuring. Check whether you are carrying someone else’s share.",
+    "nl": "Familiar responsibilities may feel reassuring. Check whether you are carrying someone else’s share.",
+    "ms": "Familiar responsibilities may feel reassuring. Check whether you are carrying someone else’s share."
+  },
+  "sajuReading.scenes.3": {
+    "ko": "모호한 상황에서 기준을 찾을 수 있어요. 기준이 너무 촘촘해지면 나와 타인의 여유가 줄기도 합니다.",
+    "en": "Clear standards may help with uncertainty. Too many rules can leave little room to breathe.",
+    "ja": "曖昧な状況でも基準を見つけられそうです。ただ、細かく決めすぎると、自分や周囲の余裕が減ることもあります。",
+    "zh-CN": "您可能善于在模糊的情境中找到标准。但规则过密时，自己与他人的余裕也会减少。",
+    "zh-TW": "您可能善於在模糊的情境中找到標準。但規則過密時，自己與他人的餘裕也會減少。",
+    "vi": "Clear standards may help with uncertainty. Too many rules can leave little room to breathe.",
+    "hi": "Clear standards may help with uncertainty. Too many rules can leave little room to breathe.",
+    "es": "Clear standards may help with uncertainty. Too many rules can leave little room to breathe.",
+    "fr": "Clear standards may help with uncertainty. Too many rules can leave little room to breathe.",
+    "de": "Clear standards may help with uncertainty. Too many rules can leave little room to breathe.",
+    "nl": "Clear standards may help with uncertainty. Too many rules can leave little room to breathe.",
+    "ms": "Clear standards may help with uncertainty. Too many rules can leave little room to breathe."
+  },
+  "sajuReading.scenes.4": {
+    "ko": "쉽게 지나치는 변화를 알아차릴 수 있어요. 생각이 길어질 때는 작은 실행으로 확인해 보세요.",
+    "en": "You may notice subtle changes. When reflection stretches on, try a small experiment.",
+    "ja": "見過ごされがちな変化に気づけるかもしれません。考える時間が長くなったら、小さな行動で確かめましょう。",
+    "zh-CN": "您可能察觉容易被忽略的变化。思考拖得太长时，不妨用一个小行动来验证。",
+    "zh-TW": "您可能察覺容易被忽略的變化。思考拖得太長時，不妨用一個小行動來驗證。",
+    "vi": "You may notice subtle changes. When reflection stretches on, try a small experiment.",
+    "hi": "You may notice subtle changes. When reflection stretches on, try a small experiment.",
+    "es": "You may notice subtle changes. When reflection stretches on, try a small experiment.",
+    "fr": "You may notice subtle changes. When reflection stretches on, try a small experiment.",
+    "de": "You may notice subtle changes. When reflection stretches on, try a small experiment.",
+    "nl": "You may notice subtle changes. When reflection stretches on, try a small experiment.",
+    "ms": "You may notice subtle changes. When reflection stretches on, try a small experiment."
+  },
+  "sajuReading.actions.0": {
+    "ko": "새 일을 더하기 전에 진행 중인 일 하나를 마무리해 보세요.",
+    "en": "Finish one existing task before adding another.",
+    "ja": "新しいことを増やす前に、進行中のことを一つ仕上げてみましょう。",
+    "zh-CN": "增加新任务前，先完成一件正在进行的事。",
+    "zh-TW": "增加新任務前，先完成一件正在進行的事。",
+    "vi": "Finish one existing task before adding another.",
+    "hi": "Finish one existing task before adding another.",
+    "es": "Finish one existing task before adding another.",
+    "fr": "Finish one existing task before adding another.",
+    "de": "Finish one existing task before adding another.",
+    "nl": "Finish one existing task before adding another.",
+    "ms": "Finish one existing task before adding another."
+  },
+  "sajuReading.actions.1": {
+    "ko": "중요한 말을 전한 뒤에는 상대의 반응을 기다려 보세요.",
+    "en": "Pause after an important message and listen to the response.",
+    "ja": "大切なことを伝えたら、相手の反応を待ってみましょう。",
+    "zh-CN": "说完重要的话后，等一等对方的回应。",
+    "zh-TW": "說完重要的話後，等一等對方的回應。",
+    "vi": "Pause after an important message and listen to the response.",
+    "hi": "Pause after an important message and listen to the response.",
+    "es": "Pause after an important message and listen to the response.",
+    "fr": "Pause after an important message and listen to the response.",
+    "de": "Pause after an important message and listen to the response.",
+    "nl": "Pause after an important message and listen to the response.",
+    "ms": "Pause after an important message and listen to the response."
+  },
+  "sajuReading.actions.2": {
+    "ko": "이번 주 맡은 일에서 내가 책임질 범위를 한 줄로 적어 보세요.",
+    "en": "Write down the boundary of one responsibility this week.",
+    "ja": "今週の仕事で、自分が責任を持つ範囲を一行で書いてみましょう。",
+    "zh-CN": "用一句话写下本周任务中自己负责的范围。",
+    "zh-TW": "用一句話寫下本週任務中自己負責的範圍。",
+    "vi": "Write down the boundary of one responsibility this week.",
+    "hi": "Write down the boundary of one responsibility this week.",
+    "es": "Write down the boundary of one responsibility this week.",
+    "fr": "Write down the boundary of one responsibility this week.",
+    "de": "Write down the boundary of one responsibility this week.",
+    "nl": "Write down the boundary of one responsibility this week.",
+    "ms": "Write down the boundary of one responsibility this week."
+  },
+  "sajuReading.actions.3": {
+    "ko": "꼭 지킬 기준 하나와 유연하게 바꿀 기준 하나를 나눠 보세요.",
+    "en": "Separate one essential standard from one flexible preference.",
+    "ja": "必ず守る基準と、柔軟に変えられる基準を一つずつ分けてみましょう。",
+    "zh-CN": "分清一项必须守住的标准和一项可以灵活调整的标准。",
+    "zh-TW": "分清一項必須守住的標準和一項可以靈活調整的標準。",
+    "vi": "Separate one essential standard from one flexible preference.",
+    "hi": "Separate one essential standard from one flexible preference.",
+    "es": "Separate one essential standard from one flexible preference.",
+    "fr": "Separate one essential standard from one flexible preference.",
+    "de": "Separate one essential standard from one flexible preference.",
+    "nl": "Separate one essential standard from one flexible preference.",
+    "ms": "Separate one essential standard from one flexible preference."
+  },
+  "sajuReading.actions.4": {
+    "ko": "더 알아볼 것과 지금 시험해 볼 것을 하나씩 정해 보세요.",
+    "en": "Choose one thing to research and one thing to test now.",
+    "ja": "さらに調べることと、今試すことを一つずつ決めてみましょう。",
+    "zh-CN": "各选一件需要继续了解的事和现在就能尝试的事。",
+    "zh-TW": "各選一件需要繼續了解的事和現在就能嘗試的事。",
+    "vi": "Choose one thing to research and one thing to test now.",
+    "hi": "Choose one thing to research and one thing to test now.",
+    "es": "Choose one thing to research and one thing to test now.",
+    "fr": "Choose one thing to research and one thing to test now.",
+    "de": "Choose one thing to research and one thing to test now.",
+    "nl": "Choose one thing to research and one thing to test now.",
+    "ms": "Choose one thing to research and one thing to test now."
+  },
+  "sajuReading.rules.0": {
+    "ko": "목표와 마감이 정해졌을 때 밀고 나가 봐. 시작만 자꾸 늘어난다면 새 과제부터 줄여 보자.",
+    "en": "Proceed with a clear goal and deadline. Reduce new tasks if unfinished work grows.",
+    "ja": "目標と期限が決まったら進めてみよう。始めることばかり増えるなら、新しい課題を減らそう。",
+    "zh-CN": "目标和期限明确后再推进。如果只开头、不收尾的事越来越多，就先减少新任务。",
+    "zh-TW": "目標和期限明確後再推進。如果只開頭、不收尾的事越來越多，就先減少新任務。",
+    "vi": "Proceed with a clear goal and deadline. Reduce new tasks if unfinished work grows.",
+    "hi": "Proceed with a clear goal and deadline. Reduce new tasks if unfinished work grows.",
+    "es": "Proceed with a clear goal and deadline. Reduce new tasks if unfinished work grows.",
+    "fr": "Proceed with a clear goal and deadline. Reduce new tasks if unfinished work grows.",
+    "de": "Proceed with a clear goal and deadline. Reduce new tasks if unfinished work grows.",
+    "nl": "Proceed with a clear goal and deadline. Reduce new tasks if unfinished work grows.",
+    "ms": "Proceed with a clear goal and deadline. Reduce new tasks if unfinished work grows."
+  },
+  "sajuReading.rules.1": {
+    "ko": "전할 내용과 상대의 여유가 맞을 때 꺼내 봐. 감정이 앞설 때는 답을 재촉하지 않는 편이 좋아.",
+    "en": "Speak when the message and the listener’s availability align. Do not press for an immediate answer.",
+    "ja": "伝えたい内容と相手の余裕が合うときに話そう。気持ちが先走るときほど、返事を急かさないほうがいい。",
+    "zh-CN": "要说的内容与对方的余裕合适时再开口。情绪上来时，更别急着催答复。",
+    "zh-TW": "要說的內容與對方的餘裕合適時再開口。情緒上來時，更別急著催答覆。",
+    "vi": "Speak when the message and the listener’s availability align. Do not press for an immediate answer.",
+    "hi": "Speak when the message and the listener’s availability align. Do not press for an immediate answer.",
+    "es": "Speak when the message and the listener’s availability align. Do not press for an immediate answer.",
+    "fr": "Speak when the message and the listener’s availability align. Do not press for an immediate answer.",
+    "de": "Speak when the message and the listener’s availability align. Do not press for an immediate answer.",
+    "nl": "Speak when the message and the listener’s availability align. Do not press for an immediate answer.",
+    "ms": "Speak when the message and the listener’s availability align. Do not press for an immediate answer."
+  },
+  "sajuReading.rules.2": {
+    "ko": "책임과 쓸 수 있는 자원이 맞을 때 맡는 게 좋아. 네 몫이 계속 늘어난다면 범위를 다시 맞춰 보자.",
+    "en": "Accept a role when resources match its demands. Renegotiate a growing workload.",
+    "ja": "責任と使える資源が見合うときに引き受けよう。自分の負担が増え続けるなら、範囲を調整してみて。",
+    "zh-CN": "责任与可用资源相称时再接下。自己的份额不断增加，就重新商量范围。",
+    "zh-TW": "責任與可用資源相稱時再接下。自己的份額不斷增加，就重新商量範圍。",
+    "vi": "Accept a role when resources match its demands. Renegotiate a growing workload.",
+    "hi": "Accept a role when resources match its demands. Renegotiate a growing workload.",
+    "es": "Accept a role when resources match its demands. Renegotiate a growing workload.",
+    "fr": "Accept a role when resources match its demands. Renegotiate a growing workload.",
+    "de": "Accept a role when resources match its demands. Renegotiate a growing workload.",
+    "nl": "Accept a role when resources match its demands. Renegotiate a growing workload.",
+    "ms": "Accept a role when resources match its demands. Renegotiate a growing workload."
+  },
+  "sajuReading.rules.3": {
+    "ko": "기준이 목적에 도움이 될 때 꺼내 써. 완벽하려다 멈춰 버린다면 최소 조건부터 정해 봐.",
+    "en": "Apply standards that serve the goal. Define a minimum if perfection stalls progress.",
+    "ja": "目的に役立つ基準を使おう。完璧を求めて止まってしまうなら、最低限の条件から決めてみて。",
+    "zh-CN": "标准能服务于目标时再用。若被完美拖住，就先定好最低可行条件。",
+    "zh-TW": "標準能服務於目標時再用。若被完美拖住，就先定好最低可行條件。",
+    "vi": "Apply standards that serve the goal. Define a minimum if perfection stalls progress.",
+    "hi": "Apply standards that serve the goal. Define a minimum if perfection stalls progress.",
+    "es": "Apply standards that serve the goal. Define a minimum if perfection stalls progress.",
+    "fr": "Apply standards that serve the goal. Define a minimum if perfection stalls progress.",
+    "de": "Apply standards that serve the goal. Define a minimum if perfection stalls progress.",
+    "nl": "Apply standards that serve the goal. Define a minimum if perfection stalls progress.",
+    "ms": "Apply standards that serve the goal. Define a minimum if perfection stalls progress."
+  },
+  "sajuReading.rules.4": {
+    "ko": "확인할 질문이 분명할 때 알아봐. 정보만 쌓인다면 작게 시험해 볼 날짜부터 정해 봐.",
+    "en": "Research a specific question. Set a small test deadline if information only accumulates.",
+    "ja": "確かめたい問いがはっきりしたら調べよう。情報ばかり増えるなら、小さく試す日を先に決めてみて。",
+    "zh-CN": "先明确要确认的问题再查资料。若只是信息越积越多，就先定一个小范围试行的日期。",
+    "zh-TW": "先明確要確認的問題再查資料。若只是資訊越積越多，就先定一個小範圍試行的日期。",
+    "vi": "Research a specific question. Set a small test deadline if information only accumulates.",
+    "hi": "Research a specific question. Set a small test deadline if information only accumulates.",
+    "es": "Research a specific question. Set a small test deadline if information only accumulates.",
+    "fr": "Research a specific question. Set a small test deadline if information only accumulates.",
+    "de": "Research a specific question. Set a small test deadline if information only accumulates.",
+    "nl": "Research a specific question. Set a small test deadline if information only accumulates.",
+    "ms": "Research a specific question. Set a small test deadline if information only accumulates."
+  },
+  "sajuReading.godNames.0": {
+    "ko": "비견 · 자기 기준",
+    "en": "Peer · autonomy",
+    "ja": "比肩・自分の基準",
+    "zh-CN": "比肩 · 自我标准",
+    "zh-TW": "比肩 · 自我標準",
+    "vi": "Peer · autonomy",
+    "hi": "Peer · autonomy",
+    "es": "Peer · autonomy",
+    "fr": "Peer · autonomy",
+    "de": "Peer · autonomy",
+    "nl": "Peer · autonomy",
+    "ms": "Peer · autonomy"
+  },
+  "sajuReading.godNames.1": {
+    "ko": "겁재 · 경쟁과 협력",
+    "en": "Competitor · cooperation",
+    "ja": "劫財・競争と協力",
+    "zh-CN": "劫财 · 竞争与合作",
+    "zh-TW": "劫財 · 競爭與合作",
+    "vi": "Competitor · cooperation",
+    "hi": "Competitor · cooperation",
+    "es": "Competitor · cooperation",
+    "fr": "Competitor · cooperation",
+    "de": "Competitor · cooperation",
+    "nl": "Competitor · cooperation",
+    "ms": "Competitor · cooperation"
+  },
+  "sajuReading.godNames.2": {
+    "ko": "식신 · 꾸준한 표현",
+    "en": "Expression · consistency",
+    "ja": "食神・着実な表現",
+    "zh-CN": "食神 · 稳定表达",
+    "zh-TW": "食神 · 穩定表達",
+    "vi": "Expression · consistency",
+    "hi": "Expression · consistency",
+    "es": "Expression · consistency",
+    "fr": "Expression · consistency",
+    "de": "Expression · consistency",
+    "nl": "Expression · consistency",
+    "ms": "Expression · consistency"
+  },
+  "sajuReading.godNames.3": {
+    "ko": "상관 · 질문과 개선",
+    "en": "Challenger · improvement",
+    "ja": "傷官・問いと改善",
+    "zh-CN": "伤官 · 质疑与改进",
+    "zh-TW": "傷官 · 質疑與改進",
+    "vi": "Challenger · improvement",
+    "hi": "Challenger · improvement",
+    "es": "Challenger · improvement",
+    "fr": "Challenger · improvement",
+    "de": "Challenger · improvement",
+    "nl": "Challenger · improvement",
+    "ms": "Challenger · improvement"
+  },
+  "sajuReading.godNames.4": {
+    "ko": "편재 · 기회와 자원",
+    "en": "Opportunity · resources",
+    "ja": "偏財・機会と資源",
+    "zh-CN": "偏财 · 机会与资源",
+    "zh-TW": "偏財 · 機會與資源",
+    "vi": "Opportunity · resources",
+    "hi": "Opportunity · resources",
+    "es": "Opportunity · resources",
+    "fr": "Opportunity · resources",
+    "de": "Opportunity · resources",
+    "nl": "Opportunity · resources",
+    "ms": "Opportunity · resources"
+  },
+  "sajuReading.godNames.5": {
+    "ko": "정재 · 관리와 축적",
+    "en": "Stewardship · accumulation",
+    "ja": "正財・管理と蓄積",
+    "zh-CN": "正财 · 管理与积累",
+    "zh-TW": "正財 · 管理與累積",
+    "vi": "Stewardship · accumulation",
+    "hi": "Stewardship · accumulation",
+    "es": "Stewardship · accumulation",
+    "fr": "Stewardship · accumulation",
+    "de": "Stewardship · accumulation",
+    "nl": "Stewardship · accumulation",
+    "ms": "Stewardship · accumulation"
+  },
+  "sajuReading.godNames.6": {
+    "ko": "편관 · 압박과 대응",
+    "en": "Pressure · response",
+    "ja": "偏官・圧力への対応",
+    "zh-CN": "偏官 · 压力与应对",
+    "zh-TW": "偏官 · 壓力與應對",
+    "vi": "Pressure · response",
+    "hi": "Pressure · response",
+    "es": "Pressure · response",
+    "fr": "Pressure · response",
+    "de": "Pressure · response",
+    "nl": "Pressure · response",
+    "ms": "Pressure · response"
+  },
+  "sajuReading.godNames.7": {
+    "ko": "정관 · 책임과 질서",
+    "en": "Responsibility · order",
+    "ja": "正官・責任と秩序",
+    "zh-CN": "正官 · 责任与秩序",
+    "zh-TW": "正官 · 責任與秩序",
+    "vi": "Responsibility · order",
+    "hi": "Responsibility · order",
+    "es": "Responsibility · order",
+    "fr": "Responsibility · order",
+    "de": "Responsibility · order",
+    "nl": "Responsibility · order",
+    "ms": "Responsibility · order"
+  },
+  "sajuReading.godNames.8": {
+    "ko": "편인 · 다른 관점",
+    "en": "Insight · perspective",
+    "ja": "偏印・異なる視点",
+    "zh-CN": "偏印 · 不同视角",
+    "zh-TW": "偏印 · 不同視角",
+    "vi": "Insight · perspective",
+    "hi": "Insight · perspective",
+    "es": "Insight · perspective",
+    "fr": "Insight · perspective",
+    "de": "Insight · perspective",
+    "nl": "Insight · perspective",
+    "ms": "Insight · perspective"
+  },
+  "sajuReading.godNames.9": {
+    "ko": "정인 · 학습과 지지",
+    "en": "Learning · support",
+    "ja": "印綬・学びと支え",
+    "zh-CN": "正印 · 学习与支持",
+    "zh-TW": "正印 · 學習與支持",
+    "vi": "Learning · support",
+    "hi": "Learning · support",
+    "es": "Learning · support",
+    "fr": "Learning · support",
+    "de": "Learning · support",
+    "nl": "Learning · support",
+    "ms": "Learning · support"
+  },
+  "sajuReading.godLife.0": {
+    "ko": "스스로 결정할 때 편안할 수 있어요. 다른 의견도 한 번 들어보세요.",
+    "en": "Making your own decisions may feel comfortable. Hear another view too.",
+    "ja": "自分で決めると心地よいかもしれません。他の意見にも耳を傾けてみましょう。",
+    "zh-CN": "自己做决定可能让您自在。也听听其他人的意见。",
+    "zh-TW": "自己做決定可能讓您自在。也聽聽其他人的意見。",
+    "vi": "Making your own decisions may feel comfortable. Hear another view too.",
+    "hi": "Making your own decisions may feel comfortable. Hear another view too.",
+    "es": "Making your own decisions may feel comfortable. Hear another view too.",
+    "fr": "Making your own decisions may feel comfortable. Hear another view too.",
+    "de": "Making your own decisions may feel comfortable. Hear another view too.",
+    "nl": "Making your own decisions may feel comfortable. Hear another view too.",
+    "ms": "Making your own decisions may feel comfortable. Hear another view too."
+  },
+  "sajuReading.godLife.1": {
+    "ko": "다른 사람과 나란히 달릴 때 힘이 날 수 있어요. 비교가 소모로 이어지는지도 살펴보세요.",
+    "en": "Working alongside others may energise you. Notice when comparison becomes draining.",
+    "ja": "誰かと並んで取り組むと力が湧くかもしれません。比較で消耗していないかも見てください。",
+    "zh-CN": "与他人并肩前行可能带来力量。也留意比较是否正在消耗自己。",
+    "zh-TW": "與他人並肩前行可能帶來力量。也留意比較是否正在消耗自己。",
+    "vi": "Working alongside others may energise you. Notice when comparison becomes draining.",
+    "hi": "Working alongside others may energise you. Notice when comparison becomes draining.",
+    "es": "Working alongside others may energise you. Notice when comparison becomes draining.",
+    "fr": "Working alongside others may energise you. Notice when comparison becomes draining.",
+    "de": "Working alongside others may energise you. Notice when comparison becomes draining.",
+    "nl": "Working alongside others may energise you. Notice when comparison becomes draining.",
+    "ms": "Working alongside others may energise you. Notice when comparison becomes draining."
+  },
+  "sajuReading.godLife.2": {
+    "ko": "익숙한 일을 꾸준히 표현하고 다듬는 데 강점이 있을 수 있어요.",
+    "en": "Regular practice and expression may help you develop a skill.",
+    "ja": "慣れたことを繰り返し表現し、磨いていくことが強みになりそうです。",
+    "zh-CN": "持续表达并打磨熟悉的事物，可能是您的长处。",
+    "zh-TW": "持續表達並打磨熟悉的事物，可能是您的長處。",
+    "vi": "Regular practice and expression may help you develop a skill.",
+    "hi": "Regular practice and expression may help you develop a skill.",
+    "es": "Regular practice and expression may help you develop a skill.",
+    "fr": "Regular practice and expression may help you develop a skill.",
+    "de": "Regular practice and expression may help you develop a skill.",
+    "nl": "Regular practice and expression may help you develop a skill.",
+    "ms": "Regular practice and expression may help you develop a skill."
+  },
+  "sajuReading.godLife.3": {
+    "ko": "당연한 규칙에도 질문을 던질 수 있어요. 바꾸려는 이유를 먼저 설명해 보세요.",
+    "en": "You may question familiar rules. Explain the reason for a proposed change.",
+    "ja": "当たり前のルールにも問いを向けられそうです。変えたい理由を先に説明しましょう。",
+    "zh-CN": "您可能愿意质疑习以为常的规则。先说明想改变的理由。",
+    "zh-TW": "您可能願意質疑習以為常的規則。先說明想改變的理由。",
+    "vi": "You may question familiar rules. Explain the reason for a proposed change.",
+    "hi": "You may question familiar rules. Explain the reason for a proposed change.",
+    "es": "You may question familiar rules. Explain the reason for a proposed change.",
+    "fr": "You may question familiar rules. Explain the reason for a proposed change.",
+    "de": "You may question familiar rules. Explain the reason for a proposed change.",
+    "nl": "You may question familiar rules. Explain the reason for a proposed change.",
+    "ms": "You may question familiar rules. Explain the reason for a proposed change."
+  },
+  "sajuReading.godLife.4": {
+    "ko": "여러 기회를 연결하는 데 관심이 갈 수 있어요. 감당할 수 있는 범위를 함께 살펴보세요.",
+    "en": "Connecting opportunities may interest you. Check what you can realistically manage.",
+    "ja": "いくつもの機会をつなぐことに関心が向くかもしれません。引き受けられる範囲も確かめてください。",
+    "zh-CN": "您可能有兴趣把不同机会串联起来。也看看实际能够承受的范围。",
+    "zh-TW": "您可能有興趣把不同機會串連起來。也看看實際能夠承受的範圍。",
+    "vi": "Connecting opportunities may interest you. Check what you can realistically manage.",
+    "hi": "Connecting opportunities may interest you. Check what you can realistically manage.",
+    "es": "Connecting opportunities may interest you. Check what you can realistically manage.",
+    "fr": "Connecting opportunities may interest you. Check what you can realistically manage.",
+    "de": "Connecting opportunities may interest you. Check what you can realistically manage.",
+    "nl": "Connecting opportunities may interest you. Check what you can realistically manage.",
+    "ms": "Connecting opportunities may interest you. Check what you can realistically manage."
+  },
+  "sajuReading.godLife.5": {
+    "ko": "작은 수입과 약속을 지키며 안정감을 얻을 수 있어요.",
+    "en": "Keeping small financial commitments and promises may bring stability.",
+    "ja": "小さな収入や約束を大切にすることで、安定を感じられそうです。",
+    "zh-CN": "守住小额收入与承诺，可能让您获得稳定感。",
+    "zh-TW": "守住小額收入與承諾，可能讓您獲得穩定感。",
+    "vi": "Keeping small financial commitments and promises may bring stability.",
+    "hi": "Keeping small financial commitments and promises may bring stability.",
+    "es": "Keeping small financial commitments and promises may bring stability.",
+    "fr": "Keeping small financial commitments and promises may bring stability.",
+    "de": "Keeping small financial commitments and promises may bring stability.",
+    "nl": "Keeping small financial commitments and promises may bring stability.",
+    "ms": "Keeping small financial commitments and promises may bring stability."
+  },
+  "sajuReading.godLife.6": {
+    "ko": "어려운 과제에서 집중력이 살아날 수 있어요. 회복할 시간도 일정에 넣어보세요.",
+    "en": "Demanding tasks may focus your attention. Make recovery part of the schedule.",
+    "ja": "難しい課題で集中力が高まるかもしれません。回復する時間も予定に入れましょう。",
+    "zh-CN": "面对困难任务时，专注力可能被激发。也把恢复精力的时间排进去。",
+    "zh-TW": "面對困難任務時，專注力可能被激發。也把恢復精力的時間排進去。",
+    "vi": "Demanding tasks may focus your attention. Make recovery part of the schedule.",
+    "hi": "Demanding tasks may focus your attention. Make recovery part of the schedule.",
+    "es": "Demanding tasks may focus your attention. Make recovery part of the schedule.",
+    "fr": "Demanding tasks may focus your attention. Make recovery part of the schedule.",
+    "de": "Demanding tasks may focus your attention. Make recovery part of the schedule.",
+    "nl": "Demanding tasks may focus your attention. Make recovery part of the schedule.",
+    "ms": "Demanding tasks may focus your attention. Make recovery part of the schedule."
+  },
+  "sajuReading.godLife.7": {
+    "ko": "역할과 기준이 분명할 때 편안할 수 있어요. 기준이 바뀌는 상황도 연습해 보세요.",
+    "en": "Clear roles may feel comfortable. Practise adjusting when expectations change.",
+    "ja": "役割や基準が明確だと安心できそうです。基準が変わる状況にも少しずつ慣れてみましょう。",
+    "zh-CN": "角色与标准明确时，您可能更安心。也练习应对标准变化的情境。",
+    "zh-TW": "角色與標準明確時，您可能更安心。也練習應對標準變化的情境。",
+    "vi": "Clear roles may feel comfortable. Practise adjusting when expectations change.",
+    "hi": "Clear roles may feel comfortable. Practise adjusting when expectations change.",
+    "es": "Clear roles may feel comfortable. Practise adjusting when expectations change.",
+    "fr": "Clear roles may feel comfortable. Practise adjusting when expectations change.",
+    "de": "Clear roles may feel comfortable. Practise adjusting when expectations change.",
+    "nl": "Clear roles may feel comfortable. Practise adjusting when expectations change.",
+    "ms": "Clear roles may feel comfortable. Practise adjusting when expectations change."
+  },
+  "sajuReading.godLife.8": {
+    "ko": "익숙하지 않은 관점을 깊이 살필 수 있어요. 생각을 현실에서 확인할 기회를 만들어 보세요.",
+    "en": "You may explore unfamiliar perspectives deeply. Test them against experience.",
+    "ja": "なじみのない視点を深く探れそうです。現実の経験で確かめる機会も作りましょう。",
+    "zh-CN": "您可能深入探索陌生的视角。也创造机会，在实际生活中验证想法。",
+    "zh-TW": "您可能深入探索陌生的視角。也創造機會，在實際生活中驗證想法。",
+    "vi": "You may explore unfamiliar perspectives deeply. Test them against experience.",
+    "hi": "You may explore unfamiliar perspectives deeply. Test them against experience.",
+    "es": "You may explore unfamiliar perspectives deeply. Test them against experience.",
+    "fr": "You may explore unfamiliar perspectives deeply. Test them against experience.",
+    "de": "You may explore unfamiliar perspectives deeply. Test them against experience.",
+    "nl": "You may explore unfamiliar perspectives deeply. Test them against experience.",
+    "ms": "You may explore unfamiliar perspectives deeply. Test them against experience."
+  },
+  "sajuReading.godLife.9": {
+    "ko": "배우거나 도움을 주고받으며 힘을 얻을 수 있어요. 배운 것을 작게 써보세요.",
+    "en": "Learning and support may renew your energy. Put one lesson into practice.",
+    "ja": "学んだり助け合ったりすることで力を得られそうです。学びを小さく実践してみましょう。",
+    "zh-CN": "学习与互相帮助可能让您获得力量。把学到的东西小小实践一下。",
+    "zh-TW": "學習與互相幫助可能讓您獲得力量。把學到的東西小小實踐一下。",
+    "vi": "Learning and support may renew your energy. Put one lesson into practice.",
+    "hi": "Learning and support may renew your energy. Put one lesson into practice.",
+    "es": "Learning and support may renew your energy. Put one lesson into practice.",
+    "fr": "Learning and support may renew your energy. Put one lesson into practice.",
+    "de": "Learning and support may renew your energy. Put one lesson into practice.",
+    "nl": "Learning and support may renew your energy. Put one lesson into practice.",
+    "ms": "Learning and support may renew your energy. Put one lesson into practice."
+  },
+  "sajuReading.godRules.0": {
+    "ko": "내 결정과 공동 결정을 구분하고, 협의가 필요한 일에는 의견을 확인하세요.",
+    "en": "Separate individual from shared decisions and consult where needed.",
+    "ja": "自分で決めることと共同で決めることを分け、相談が必要な場面では意見を確かめましょう。",
+    "zh-CN": "分清个人决定与共同决定，需要协商的事先确认彼此意见。",
+    "zh-TW": "分清個人決定與共同決定，需要協商的事先確認彼此意見。",
+    "vi": "Separate individual from shared decisions and consult where needed.",
+    "hi": "Separate individual from shared decisions and consult where needed.",
+    "es": "Separate individual from shared decisions and consult where needed.",
+    "fr": "Separate individual from shared decisions and consult where needed.",
+    "de": "Separate individual from shared decisions and consult where needed.",
+    "nl": "Separate individual from shared decisions and consult where needed.",
+    "ms": "Separate individual from shared decisions and consult where needed."
+  },
+  "sajuReading.godRules.1": {
+    "ko": "경쟁 전에 비용과 역할을 합의하세요. 비교가 목표를 바꾸면 잠시 멈추세요.",
+    "en": "Agree on costs and roles before competing. Pause if comparison replaces the goal.",
+    "ja": "競う前に費用と役割を合意しましょう。比較で目標が変わったら、一度止まってください。",
+    "zh-CN": "竞争前先谈妥成本和角色。若比较让目标变了，就暂停一下。",
+    "zh-TW": "競爭前先談妥成本和角色。若比較讓目標變了，就暫停一下。",
+    "vi": "Agree on costs and roles before competing. Pause if comparison replaces the goal.",
+    "hi": "Agree on costs and roles before competing. Pause if comparison replaces the goal.",
+    "es": "Agree on costs and roles before competing. Pause if comparison replaces the goal.",
+    "fr": "Agree on costs and roles before competing. Pause if comparison replaces the goal.",
+    "de": "Agree on costs and roles before competing. Pause if comparison replaces the goal.",
+    "nl": "Agree on costs and roles before competing. Pause if comparison replaces the goal.",
+    "ms": "Agree on costs and roles before competing. Pause if comparison replaces the goal."
+  },
+  "sajuReading.godRules.2": {
+    "ko": "반복할 수 있는 분량으로 시작하세요. 완성된 결과를 기준으로 다음 단계를 정하세요.",
+    "en": "Start with a repeatable workload. Use completed work to plan the next step.",
+    "ja": "続けられる分量から始めましょう。完成した成果を見て、次の段階を決めてください。",
+    "zh-CN": "从可以持续的工作量开始。以完成的成果为依据，确定下一步。",
+    "zh-TW": "從可以持續的工作量開始。以完成的成果為依據，確定下一步。",
+    "vi": "Start with a repeatable workload. Use completed work to plan the next step.",
+    "hi": "Start with a repeatable workload. Use completed work to plan the next step.",
+    "es": "Start with a repeatable workload. Use completed work to plan the next step.",
+    "fr": "Start with a repeatable workload. Use completed work to plan the next step.",
+    "de": "Start with a repeatable workload. Use completed work to plan the next step.",
+    "nl": "Start with a repeatable workload. Use completed work to plan the next step.",
+    "ms": "Start with a repeatable workload. Use completed work to plan the next step."
+  },
+  "sajuReading.godRules.3": {
+    "ko": "문제를 지적할 때 대안을 함께 제시하세요. 상대를 평가하는 말은 빼세요.",
+    "en": "Offer an alternative when identifying a problem. Avoid judging the person.",
+    "ja": "問題を指摘するときは代案も示しましょう。相手そのものを評価する言葉は避けてください。",
+    "zh-CN": "指出问题时也提出替代方案，避免评价对方这个人。",
+    "zh-TW": "指出問題時也提出替代方案，避免評價對方這個人。",
+    "vi": "Offer an alternative when identifying a problem. Avoid judging the person.",
+    "hi": "Offer an alternative when identifying a problem. Avoid judging the person.",
+    "es": "Offer an alternative when identifying a problem. Avoid judging the person.",
+    "fr": "Offer an alternative when identifying a problem. Avoid judging the person.",
+    "de": "Offer an alternative when identifying a problem. Avoid judging the person.",
+    "nl": "Offer an alternative when identifying a problem. Avoid judging the person.",
+    "ms": "Offer an alternative when identifying a problem. Avoid judging the person."
+  },
+  "sajuReading.godRules.4": {
+    "ko": "기회마다 필요한 시간과 손실 한도를 적으세요. 범위를 넘으면 보류하세요.",
+    "en": "List time and downside limits for each opportunity. Defer what exceeds them.",
+    "ja": "機会ごとに必要な時間と損失の上限を書きましょう。範囲を超えるなら保留してください。",
+    "zh-CN": "写下每个机会所需时间与可承受损失的上限，超出范围就暂缓。",
+    "zh-TW": "寫下每個機會所需時間與可承受損失的上限，超出範圍就暫緩。",
+    "vi": "List time and downside limits for each opportunity. Defer what exceeds them.",
+    "hi": "List time and downside limits for each opportunity. Defer what exceeds them.",
+    "es": "List time and downside limits for each opportunity. Defer what exceeds them.",
+    "fr": "List time and downside limits for each opportunity. Defer what exceeds them.",
+    "de": "List time and downside limits for each opportunity. Defer what exceeds them.",
+    "nl": "List time and downside limits for each opportunity. Defer what exceeds them.",
+    "ms": "List time and downside limits for each opportunity. Defer what exceeds them."
+  },
+  "sajuReading.godRules.5": {
+    "ko": "수입·지출과 약속을 기록하세요. 안정 때문에 필요한 변화까지 미루지는 마세요.",
+    "en": "Record income, costs and commitments. Do not let stability prevent necessary change.",
+    "ja": "収支と約束を記録しましょう。安定を守るために、必要な変化まで先送りしないでください。",
+    "zh-CN": "记录收支与承诺。别因为追求稳定，连必要的改变也一直推迟。",
+    "zh-TW": "記錄收支與承諾。別因為追求穩定，連必要的改變也一直推遲。",
+    "vi": "Record income, costs and commitments. Do not let stability prevent necessary change.",
+    "hi": "Record income, costs and commitments. Do not let stability prevent necessary change.",
+    "es": "Record income, costs and commitments. Do not let stability prevent necessary change.",
+    "fr": "Record income, costs and commitments. Do not let stability prevent necessary change.",
+    "de": "Record income, costs and commitments. Do not let stability prevent necessary change.",
+    "nl": "Record income, costs and commitments. Do not let stability prevent necessary change.",
+    "ms": "Record income, costs and commitments. Do not let stability prevent necessary change."
+  },
+  "sajuReading.godRules.6": {
+    "ko": "압박을 감당할 자원부터 확인하세요. 수면과 회복이 무너지면 일을 나누세요.",
+    "en": "Check resources before accepting pressure. Share work if rest suffers.",
+    "ja": "負担を受け止める資源を先に確かめましょう。睡眠や回復が削られるなら、仕事を分けてください。",
+    "zh-CN": "先确认自己应对压力的资源。若睡眠和恢复受到影响，就分担工作。",
+    "zh-TW": "先確認自己應對壓力的資源。若睡眠和恢復受到影響，就分擔工作。",
+    "vi": "Check resources before accepting pressure. Share work if rest suffers.",
+    "hi": "Check resources before accepting pressure. Share work if rest suffers.",
+    "es": "Check resources before accepting pressure. Share work if rest suffers.",
+    "fr": "Check resources before accepting pressure. Share work if rest suffers.",
+    "de": "Check resources before accepting pressure. Share work if rest suffers.",
+    "nl": "Check resources before accepting pressure. Share work if rest suffers.",
+    "ms": "Check resources before accepting pressure. Share work if rest suffers."
+  },
+  "sajuReading.godRules.7": {
+    "ko": "책임 범위를 먼저 확인하세요. 규칙이 목적과 어긋나면 근거를 들고 조정하세요.",
+    "en": "Clarify responsibility. Adjust rules with evidence when they undermine their purpose.",
+    "ja": "責任の範囲を先に確認しましょう。ルールが目的に反するなら、根拠を示して調整してください。",
+    "zh-CN": "先确认责任范围。规则与目的相悖时，拿出依据进行调整。",
+    "zh-TW": "先確認責任範圍。規則與目的相悖時，拿出依據進行調整。",
+    "vi": "Clarify responsibility. Adjust rules with evidence when they undermine their purpose.",
+    "hi": "Clarify responsibility. Adjust rules with evidence when they undermine their purpose.",
+    "es": "Clarify responsibility. Adjust rules with evidence when they undermine their purpose.",
+    "fr": "Clarify responsibility. Adjust rules with evidence when they undermine their purpose.",
+    "de": "Clarify responsibility. Adjust rules with evidence when they undermine their purpose.",
+    "nl": "Clarify responsibility. Adjust rules with evidence when they undermine their purpose.",
+    "ms": "Clarify responsibility. Adjust rules with evidence when they undermine their purpose."
+  },
+  "sajuReading.godRules.8": {
+    "ko": "직관은 가설로 두고 실제 사례로 확인하세요. 근거 없이 큰 결정을 내리지 마세요.",
+    "en": "Treat intuition as a hypothesis. Verify before making a major decision.",
+    "ja": "直感は仮説として扱い、実例で確かめましょう。根拠なしに大きな決断をしないでください。",
+    "zh-CN": "将直觉视为假设，用实际案例验证。不要在缺乏依据时做重大决定。",
+    "zh-TW": "將直覺視為假設，用實際案例驗證。不要在缺乏依據時做重大決定。",
+    "vi": "Treat intuition as a hypothesis. Verify before making a major decision.",
+    "hi": "Treat intuition as a hypothesis. Verify before making a major decision.",
+    "es": "Treat intuition as a hypothesis. Verify before making a major decision.",
+    "fr": "Treat intuition as a hypothesis. Verify before making a major decision.",
+    "de": "Treat intuition as a hypothesis. Verify before making a major decision.",
+    "nl": "Treat intuition as a hypothesis. Verify before making a major decision.",
+    "ms": "Treat intuition as a hypothesis. Verify before making a major decision."
+  },
+  "sajuReading.godRules.9": {
+    "ko": "배운 내용 하나를 직접 적용하세요. 도움을 받더라도 최종 선택은 점검하세요.",
+    "en": "Apply one lesson directly. Review the final choice even when receiving help.",
+    "ja": "学んだことを一つ実践しましょう。助けを得た場合も、最後の選択は自分で確かめてください。",
+    "zh-CN": "亲自应用一项所学。即使获得帮助，也要检查最终选择。",
+    "zh-TW": "親自應用一項所學。即使獲得幫助，也要檢查最終選擇。",
+    "vi": "Apply one lesson directly. Review the final choice even when receiving help.",
+    "hi": "Apply one lesson directly. Review the final choice even when receiving help.",
+    "es": "Apply one lesson directly. Review the final choice even when receiving help.",
+    "fr": "Apply one lesson directly. Review the final choice even when receiving help.",
+    "de": "Apply one lesson directly. Review the final choice even when receiving help.",
+    "nl": "Apply one lesson directly. Review the final choice even when receiving help.",
+    "ms": "Apply one lesson directly. Review the final choice even when receiving help."
+  },
+  "sajuReading.distribution": {
+    "ko": "월지 가중치를 포함한 기존 계산 비율입니다. 많고 적음은 우열이나 성공 확률이 아닙니다.",
+    "en": "Existing chart ratios include the month-branch weighting. A larger share is not a rank or a probability of success.",
+    "ja": "月支の重みを含む既存の計算比率です。多い・少ないは優劣や成功確率ではありません。",
+    "zh-CN": "这是包含月支权重的既有计算比例。多寡不代表优劣，也不是成功概率。",
+    "zh-TW": "這是包含月支權重的既有計算比例。多寡不代表優劣，也不是成功機率。",
+    "vi": "Existing chart ratios include the month-branch weighting. A larger share is not a rank or a probability of success.",
+    "hi": "Existing chart ratios include the month-branch weighting. A larger share is not a rank or a probability of success.",
+    "es": "Existing chart ratios include the month-branch weighting. A larger share is not a rank or a probability of success.",
+    "fr": "Existing chart ratios include the month-branch weighting. A larger share is not a rank or a probability of success.",
+    "de": "Existing chart ratios include the month-branch weighting. A larger share is not a rank or a probability of success.",
+    "nl": "Existing chart ratios include the month-branch weighting. A larger share is not a rank or a probability of success.",
+    "ms": "Existing chart ratios include the month-branch weighting. A larger share is not a rank or a probability of success."
+  },
+  "sajuReading.dominant": {
+    "ko": "{element} {value}%가 상대적으로 두드러집니다. {trait}을 살펴볼 단서예요.",
+    "en": "{element} at {value}% is relatively prominent: a clue to {trait}.",
+    "ja": "{element}が{value}%と比較的目立ちます。{trait}を考える手がかりです。",
+    "zh-CN": "{element}占{value}%，相对突出，可作为观察{trait}的线索。",
+    "zh-TW": "{element}占{value}%，相對突出，可作為觀察{trait}的線索。",
+    "vi": "{element} at {value}% is relatively prominent: a clue to {trait}.",
+    "hi": "{element} at {value}% is relatively prominent: a clue to {trait}.",
+    "es": "{element} at {value}% is relatively prominent: a clue to {trait}.",
+    "fr": "{element} at {value}% is relatively prominent: a clue to {trait}.",
+    "de": "{element} at {value}% is relatively prominent: a clue to {trait}.",
+    "nl": "{element} at {value}% is relatively prominent: a clue to {trait}.",
+    "ms": "{element} at {value}% is relatively prominent: a clue to {trait}."
+  },
+  "sajuReading.balanced": {
+    "ko": "가장 큰 비율이 여러 오행에 걸쳐 있습니다. 하나의 성향으로만 묶기보다 상황에 따라 달라지는 힘을 살펴보세요.",
+    "en": "Several elements share the largest proportion. Consider how different situations bring out different strengths.",
+    "ja": "複数の五行が最大の割合を分け合っています。一つの性格にまとめず、状況によって表れる力を見てみましょう。",
+    "zh-CN": "几个五行共同占据较大比例。不必用一种性格概括自己，可以看看不同情境中呈现的力量。",
+    "zh-TW": "幾個五行共同占據較大比例。不必用一種性格概括自己，可以看看不同情境中呈現的力量。",
+    "vi": "Several elements share the largest proportion. Consider how different situations bring out different strengths.",
+    "hi": "Several elements share the largest proportion. Consider how different situations bring out different strengths.",
+    "es": "Several elements share the largest proportion. Consider how different situations bring out different strengths.",
+    "fr": "Several elements share the largest proportion. Consider how different situations bring out different strengths.",
+    "de": "Several elements share the largest proportion. Consider how different situations bring out different strengths.",
+    "nl": "Several elements share the largest proportion. Consider how different situations bring out different strengths.",
+    "ms": "Several elements share the largest proportion. Consider how different situations bring out different strengths."
+  },
+  "sajuReading.dayBasis": {
+    "ko": "일간 {stem} · 일지 {branch}. 일간은 나를 읽는 기준 글자이며, 여기서는 {element}의 상징을 생활 언어로 풉니다.",
+    "en": "Day stem {stem} · day branch {branch}. The day stem is the reference for this reading; here its {element} symbolism is translated into daily life.",
+    "ja": "日干{stem}・日支{branch}。日干は自分を読む基準の文字です。ここでは{element}の象徴を日常の言葉に置き換えます。",
+    "zh-CN": "日干{stem} · 日支{branch}。日干是解读自我的基准，这里把{element}的象征转化为日常语言。",
+    "zh-TW": "日干{stem} · 日支{branch}。日干是解讀自我的基準，這裡把{element}的象徵轉化為日常語言。",
+    "vi": "Day stem {stem} · day branch {branch}. The day stem is the reference for this reading; here its {element} symbolism is translated into daily life.",
+    "hi": "Day stem {stem} · day branch {branch}. The day stem is the reference for this reading; here its {element} symbolism is translated into daily life.",
+    "es": "Day stem {stem} · day branch {branch}. The day stem is the reference for this reading; here its {element} symbolism is translated into daily life.",
+    "fr": "Day stem {stem} · day branch {branch}. The day stem is the reference for this reading; here its {element} symbolism is translated into daily life.",
+    "de": "Day stem {stem} · day branch {branch}. The day stem is the reference for this reading; here its {element} symbolism is translated into daily life.",
+    "nl": "Day stem {stem} · day branch {branch}. The day stem is the reference for this reading; here its {element} symbolism is translated into daily life.",
+    "ms": "Day stem {stem} · day branch {branch}. The day stem is the reference for this reading; here its {element} symbolism is translated into daily life."
+  },
+  "sajuReading.godBasis": {
+    "ko": "현재 명식에서 {name}이 {count}곳에 나타납니다. 일간과 다른 글자의 관계를 센 값이며 성격의 확정 진단은 아닙니다.",
+    "en": "{name} appears in {count} chart positions. This counts relationships to the day stem, not a definitive personality diagnosis.",
+    "ja": "この命式では{name}が{count}か所に表れています。日干と他の文字の関係を数えたもので、性格を確定する診断ではありません。",
+    "zh-CN": "当前命盘中{name}出现在{count}处。这是日干与其他字之间关系的计数，不是确定性的人格诊断。",
+    "zh-TW": "當前命盤中{name}出現在{count}處。這是日干與其他字之間關係的計數，不是確定性的人格診斷。",
+    "vi": "{name} appears in {count} chart positions. This counts relationships to the day stem, not a definitive personality diagnosis.",
+    "hi": "{name} appears in {count} chart positions. This counts relationships to the day stem, not a definitive personality diagnosis.",
+    "es": "{name} appears in {count} chart positions. This counts relationships to the day stem, not a definitive personality diagnosis.",
+    "fr": "{name} appears in {count} chart positions. This counts relationships to the day stem, not a definitive personality diagnosis.",
+    "de": "{name} appears in {count} chart positions. This counts relationships to the day stem, not a definitive personality diagnosis.",
+    "nl": "{name} appears in {count} chart positions. This counts relationships to the day stem, not a definitive personality diagnosis.",
+    "ms": "{name} appears in {count} chart positions. This counts relationships to the day stem, not a definitive personality diagnosis."
+  },
+  "sajuReading.unknown": {
+    "ko": "출생시간 미상: 정오를 대입한 참고 계산입니다. 시주와 시간에 영향을 받는 오행 비율·강약·시기 해석은 확정할 수 없어요.",
+    "en": "Birth time unknown: noon is used as a reference. The hour pillar and time-dependent ratios, strength and timing cannot be treated as certain.",
+    "ja": "出生時刻不明：正午を代入した参考計算です。時柱や、時刻に左右される五行比率・強弱・時期の解釈は確定できません。",
+    "zh-CN": "出生时间不详：以正午代入进行参考计算。时柱及受时间影响的五行比例、强弱与时机解读均无法确定。",
+    "zh-TW": "出生時間不詳：以正午代入進行參考計算。時柱及受時間影響的五行比例、強弱與時機解讀均無法確定。",
+    "vi": "Birth time unknown: noon is used as a reference. The hour pillar and time-dependent ratios, strength and timing cannot be treated as certain.",
+    "hi": "Birth time unknown: noon is used as a reference. The hour pillar and time-dependent ratios, strength and timing cannot be treated as certain.",
+    "es": "Birth time unknown: noon is used as a reference. The hour pillar and time-dependent ratios, strength and timing cannot be treated as certain.",
+    "fr": "Birth time unknown: noon is used as a reference. The hour pillar and time-dependent ratios, strength and timing cannot be treated as certain.",
+    "de": "Birth time unknown: noon is used as a reference. The hour pillar and time-dependent ratios, strength and timing cannot be treated as certain.",
+    "nl": "Birth time unknown: noon is used as a reference. The hour pillar and time-dependent ratios, strength and timing cannot be treated as certain.",
+    "ms": "Birth time unknown: noon is used as a reference. The hour pillar and time-dependent ratios, strength and timing cannot be treated as certain."
+  },
+  "sajuReading.cold": {
+    "ko": "차가운 쪽의 조후 신호입니다. 활동을 시작하기 전 몸과 마음이 준비될 시간을 살펴보세요.",
+    "en": "The seasonal score leans cooler. Notice what helps you prepare before starting an activity.",
+    "ja": "調候は冷たい側の傾向です。活動前に心身を整える時間を確かめてみましょう。",
+    "zh-CN": "调候信号偏寒。开始活动前，留意身心需要怎样的准备时间。",
+    "zh-TW": "調候訊號偏寒。開始活動前，留意身心需要怎樣的準備時間。",
+    "vi": "The seasonal score leans cooler. Notice what helps you prepare before starting an activity.",
+    "hi": "The seasonal score leans cooler. Notice what helps you prepare before starting an activity.",
+    "es": "The seasonal score leans cooler. Notice what helps you prepare before starting an activity.",
+    "fr": "The seasonal score leans cooler. Notice what helps you prepare before starting an activity.",
+    "de": "The seasonal score leans cooler. Notice what helps you prepare before starting an activity.",
+    "nl": "The seasonal score leans cooler. Notice what helps you prepare before starting an activity.",
+    "ms": "The seasonal score leans cooler. Notice what helps you prepare before starting an activity."
+  },
+  "sajuReading.hot": {
+    "ko": "따뜻한 쪽의 조후 신호입니다. 속도를 높일 때 회복할 간격도 함께 살펴보세요.",
+    "en": "The seasonal score leans warmer. Leave recovery intervals when increasing your pace.",
+    "ja": "調候は暖かい側の傾向です。ペースを上げるときは、回復の間隔も考えましょう。",
+    "zh-CN": "调候信号偏暖。加快节奏时，也留出恢复的间隔。",
+    "zh-TW": "調候訊號偏暖。加快節奏時，也留出恢復的間隔。",
+    "vi": "The seasonal score leans warmer. Leave recovery intervals when increasing your pace.",
+    "hi": "The seasonal score leans warmer. Leave recovery intervals when increasing your pace.",
+    "es": "The seasonal score leans warmer. Leave recovery intervals when increasing your pace.",
+    "fr": "The seasonal score leans warmer. Leave recovery intervals when increasing your pace.",
+    "de": "The seasonal score leans warmer. Leave recovery intervals when increasing your pace.",
+    "nl": "The seasonal score leans warmer. Leave recovery intervals when increasing your pace.",
+    "ms": "The seasonal score leans warmer. Leave recovery intervals when increasing your pace."
+  },
+  "sajuReading.neutral": {
+    "ko": "온도 점수가 가운데에 있습니다. 한 방향으로 보완하기보다 실제 생활 리듬을 관찰해 보세요.",
+    "en": "The temperature score is centred. Observe your actual routine rather than compensating in one direction.",
+    "ja": "温度の点数は中間です。一方向に補おうとせず、実際の生活リズムを観察してみましょう。",
+    "zh-CN": "温度分数居中。与其一味朝某个方向补足，不如观察实际生活节奏。",
+    "zh-TW": "溫度分數居中。與其一味朝某個方向補足，不如觀察實際生活節奏。",
+    "vi": "The temperature score is centred. Observe your actual routine rather than compensating in one direction.",
+    "hi": "The temperature score is centred. Observe your actual routine rather than compensating in one direction.",
+    "es": "The temperature score is centred. Observe your actual routine rather than compensating in one direction.",
+    "fr": "The temperature score is centred. Observe your actual routine rather than compensating in one direction.",
+    "de": "The temperature score is centred. Observe your actual routine rather than compensating in one direction.",
+    "nl": "The temperature score is centred. Observe your actual routine rather than compensating in one direction.",
+    "ms": "The temperature score is centred. Observe your actual routine rather than compensating in one direction."
+  },
+  "sajuReading.climateBasis": {
+    "ko": "조후 온도 점수 {score} · 습한 신호 {wet} / 건조한 신호 {dry}. 계절과 글자의 상징적 계산이며 건강 진단이 아닙니다.",
+    "en": "Temperature score {score} · moist signals {wet} / dry signals {dry}. These are symbolic seasonal calculations, not a medical assessment.",
+    "ja": "調候の温度点数{score}・湿のサイン{wet}／乾のサイン{dry}。季節と文字の象徴的な計算であり、健康診断ではありません。",
+    "zh-CN": "调候温度分数{score} · 湿润信号{wet}／干燥信号{dry}。这是季节与干支的象征性计算，并非健康诊断。",
+    "zh-TW": "調候溫度分數{score} · 濕潤訊號{wet}／乾燥訊號{dry}。這是季節與干支的象徵性計算，並非健康診斷。",
+    "vi": "Temperature score {score} · moist signals {wet} / dry signals {dry}. These are symbolic seasonal calculations, not a medical assessment.",
+    "hi": "Temperature score {score} · moist signals {wet} / dry signals {dry}. These are symbolic seasonal calculations, not a medical assessment.",
+    "es": "Temperature score {score} · moist signals {wet} / dry signals {dry}. These are symbolic seasonal calculations, not a medical assessment.",
+    "fr": "Temperature score {score} · moist signals {wet} / dry signals {dry}. These are symbolic seasonal calculations, not a medical assessment.",
+    "de": "Temperature score {score} · moist signals {wet} / dry signals {dry}. These are symbolic seasonal calculations, not a medical assessment.",
+    "nl": "Temperature score {score} · moist signals {wet} / dry signals {dry}. These are symbolic seasonal calculations, not a medical assessment.",
+    "ms": "Temperature score {score} · moist signals {wet} / dry signals {dry}. These are symbolic seasonal calculations, not a medical assessment."
+  },
+  "sajuReading.climateAction": {
+    "ko": "잘 지낸 날의 활동과 휴식 간격을 기록하세요. 상징 점수보다 실제 컨디션을 기준으로 조절하세요.",
+    "en": "Record activity and rest on days that went well. Adjust to actual wellbeing, not a symbolic score.",
+    "ja": "調子がよかった日の活動と休憩の間隔を記録しましょう。象徴的な点数より、実際の体調を基準に調整してください。",
+    "zh-CN": "记录状态良好时的活动与休息间隔。调整时以实际感受为准，而非象征分数。",
+    "zh-TW": "記錄狀態良好時的活動與休息間隔。調整時以實際感受為準，而非象徵分數。",
+    "vi": "Record activity and rest on days that went well. Adjust to actual wellbeing, not a symbolic score.",
+    "hi": "Record activity and rest on days that went well. Adjust to actual wellbeing, not a symbolic score.",
+    "es": "Record activity and rest on days that went well. Adjust to actual wellbeing, not a symbolic score.",
+    "fr": "Record activity and rest on days that went well. Adjust to actual wellbeing, not a symbolic score.",
+    "de": "Record activity and rest on days that went well. Adjust to actual wellbeing, not a symbolic score.",
+    "nl": "Record activity and rest on days that went well. Adjust to actual wellbeing, not a symbolic score.",
+    "ms": "Record activity and rest on days that went well. Adjust to actual wellbeing, not a symbolic score."
+  },
+  "sajuReading.strong": {
+    "ko": "일간을 지지하는 힘이 비교적 큰 구조입니다. 혼자 끌고 가는 힘과 나누어 맡기는 여유를 함께 살펴보세요.",
+    "en": "The day stem receives relatively strong support. Consider both independent effort and sharing responsibilities.",
+    "ja": "日干を支える力が比較的大きい構造です。自分で進める力と、分担する余裕の両方を考えてみましょう。",
+    "zh-CN": "这是支持日干的力量相对较大的结构。既看看独立推进的力量，也留意分工合作的余裕。",
+    "zh-TW": "這是支持日干的力量相對較大的結構。既看看獨立推進的力量，也留意分工合作的餘裕。",
+    "vi": "The day stem receives relatively strong support. Consider both independent effort and sharing responsibilities.",
+    "hi": "The day stem receives relatively strong support. Consider both independent effort and sharing responsibilities.",
+    "es": "The day stem receives relatively strong support. Consider both independent effort and sharing responsibilities.",
+    "fr": "The day stem receives relatively strong support. Consider both independent effort and sharing responsibilities.",
+    "de": "The day stem receives relatively strong support. Consider both independent effort and sharing responsibilities.",
+    "nl": "The day stem receives relatively strong support. Consider both independent effort and sharing responsibilities.",
+    "ms": "The day stem receives relatively strong support. Consider both independent effort and sharing responsibilities."
+  },
+  "sajuReading.weak": {
+    "ko": "일간의 힘에 비해 주변 역할의 요구가 큰 구조입니다. 도움과 준비 시간을 확보하는 방식이 단서가 됩니다.",
+    "en": "Surrounding demands are relatively large compared with support for the day stem. Preparation and help are useful questions to explore.",
+    "ja": "日干の力に比べ、周囲の役割からの要求が大きい構造です。支えや準備時間を確保することが手がかりになります。",
+    "zh-CN": "相较于日干的力量，周围角色的要求更大。如何争取帮助与准备时间，是值得探索的线索。",
+    "zh-TW": "相較於日干的力量，周圍角色的要求更大。如何爭取幫助與準備時間，是值得探索的線索。",
+    "vi": "Surrounding demands are relatively large compared with support for the day stem. Preparation and help are useful questions to explore.",
+    "hi": "Surrounding demands are relatively large compared with support for the day stem. Preparation and help are useful questions to explore.",
+    "es": "Surrounding demands are relatively large compared with support for the day stem. Preparation and help are useful questions to explore.",
+    "fr": "Surrounding demands are relatively large compared with support for the day stem. Preparation and help are useful questions to explore.",
+    "de": "Surrounding demands are relatively large compared with support for the day stem. Preparation and help are useful questions to explore.",
+    "nl": "Surrounding demands are relatively large compared with support for the day stem. Preparation and help are useful questions to explore.",
+    "ms": "Surrounding demands are relatively large compared with support for the day stem. Preparation and help are useful questions to explore."
+  },
+  "sajuReading.jong": {
+    "ko": "한 방향의 기세를 따르는 종격 가능성이 검토된 구조입니다. 일반 신강·신약 조언을 그대로 적용하지 않습니다.",
+    "en": "The engine considers a following structure. Ordinary strong/weak advice does not apply unchanged.",
+    "ja": "一方向の勢いに従う従格の可能性が検討された構造です。通常の身強・身弱の助言をそのまま当てはめません。",
+    "zh-CN": "此结构考虑了顺从单一气势的从格可能性，不能照搬一般身强、身弱的建议。",
+    "zh-TW": "此結構考慮了順從單一氣勢的從格可能性，不能照搬一般身強、身弱的建議。",
+    "vi": "The engine considers a following structure. Ordinary strong/weak advice does not apply unchanged.",
+    "hi": "The engine considers a following structure. Ordinary strong/weak advice does not apply unchanged.",
+    "es": "The engine considers a following structure. Ordinary strong/weak advice does not apply unchanged.",
+    "fr": "The engine considers a following structure. Ordinary strong/weak advice does not apply unchanged.",
+    "de": "The engine considers a following structure. Ordinary strong/weak advice does not apply unchanged.",
+    "nl": "The engine considers a following structure. Ordinary strong/weak advice does not apply unchanged.",
+    "ms": "The engine considers a following structure. Ordinary strong/weak advice does not apply unchanged."
+  },
+  "sajuReading.strengthBasis": {
+    "ko": "기존 억부 점수 {score} · 보완 후보 {support}. 점수는 사람의 능력이나 가치를 매기는 등급이 아닙니다.",
+    "en": "Existing support score {score} · balancing candidates {support}. This does not rank your ability or worth.",
+    "ja": "既存の扶抑点数{score}・補う候補{support}。人の能力や価値を格付けする点数ではありません。",
+    "zh-CN": "既有扶抑分数{score} · 调整候选{support}。分数不是衡量个人能力或价值的等级。",
+    "zh-TW": "既有扶抑分數{score} · 調整候選{support}。分數不是衡量個人能力或價值的等級。",
+    "vi": "Existing support score {score} · balancing candidates {support}. This does not rank your ability or worth.",
+    "hi": "Existing support score {score} · balancing candidates {support}. This does not rank your ability or worth.",
+    "es": "Existing support score {score} · balancing candidates {support}. This does not rank your ability or worth.",
+    "fr": "Existing support score {score} · balancing candidates {support}. This does not rank your ability or worth.",
+    "de": "Existing support score {score} · balancing candidates {support}. This does not rank your ability or worth.",
+    "nl": "Existing support score {score} · balancing candidates {support}. This does not rank your ability or worth.",
+    "ms": "Existing support score {score} · balancing candidates {support}. This does not rank your ability or worth."
+  },
+  "sajuReading.strengthAction": {
+    "ko": "역할을 늘리기 전에 시간과 지원을 확인하세요. 선택 후의 집중력·소모·회복을 기록해 기준을 조정하세요.",
+    "en": "Check time and support before adding a responsibility. Review focus, effort and recovery after the choice.",
+    "ja": "役割を増やす前に時間と支援を確認しましょう。選択後の集中・消耗・回復を記録し、基準を調整してください。",
+    "zh-CN": "增加职责前先确认时间与支持。记录选择后的专注、消耗和恢复情况，再调整判断标准。",
+    "zh-TW": "增加職責前先確認時間與支持。記錄選擇後的專注、消耗和恢復情況，再調整判斷標準。",
+    "vi": "Check time and support before adding a responsibility. Review focus, effort and recovery after the choice.",
+    "hi": "Check time and support before adding a responsibility. Review focus, effort and recovery after the choice.",
+    "es": "Check time and support before adding a responsibility. Review focus, effort and recovery after the choice.",
+    "fr": "Check time and support before adding a responsibility. Review focus, effort and recovery after the choice.",
+    "de": "Check time and support before adding a responsibility. Review focus, effort and recovery after the choice.",
+    "nl": "Check time and support before adding a responsibility. Review focus, effort and recovery after the choice.",
+    "ms": "Check time and support before adding a responsibility. Review focus, effort and recovery after the choice."
+  },
+  "sajuReading.flowBasis": {
+    "ko": "{label} {stem}{branch} · 기존 평가 점수 {score}. 길흉의 확정 예측이 아닌 흐름을 비교하는 참고값입니다.",
+    "en": "{label} {stem}{branch} · existing score {score}. A comparison aid, not a certain prediction.",
+    "ja": "{label} {stem}{branch}・既存の評価点数{score}。吉凶の確定予測ではなく、流れを比べる参考値です。",
+    "zh-CN": "{label} {stem}{branch} · 既有评分{score}。这是比较走势的参考值，并非确定吉凶的预测。",
+    "zh-TW": "{label} {stem}{branch} · 既有評分{score}。這是比較走勢的參考值，並非確定吉凶的預測。",
+    "vi": "{label} {stem}{branch} · existing score {score}. A comparison aid, not a certain prediction.",
+    "hi": "{label} {stem}{branch} · existing score {score}. A comparison aid, not a certain prediction.",
+    "es": "{label} {stem}{branch} · existing score {score}. A comparison aid, not a certain prediction.",
+    "fr": "{label} {stem}{branch} · existing score {score}. A comparison aid, not a certain prediction.",
+    "de": "{label} {stem}{branch} · existing score {score}. A comparison aid, not a certain prediction.",
+    "nl": "{label} {stem}{branch} · existing score {score}. A comparison aid, not a certain prediction.",
+    "ms": "{label} {stem}{branch} · existing score {score}. A comparison aid, not a certain prediction."
+  },
+  "sajuReading.flowOpen": {
+    "ko": "기존 평가에서 비교적 수월한 쪽으로 읽히는 흐름입니다. 준비해 온 일을 작은 범위에서 시험해 보세요.",
+    "en": "The existing assessment reads this as relatively supportive. Test a prepared idea on a small scale.",
+    "ja": "既存の評価では、比較的進めやすい流れです。準備してきたことを小さな範囲で試してみましょう。",
+    "zh-CN": "既有评估显示，这段走势相对顺畅。可以小范围试行已准备好的事情。",
+    "zh-TW": "既有評估顯示，這段走勢相對順暢。可以小範圍試行已準備好的事情。",
+    "vi": "The existing assessment reads this as relatively supportive. Test a prepared idea on a small scale.",
+    "hi": "The existing assessment reads this as relatively supportive. Test a prepared idea on a small scale.",
+    "es": "The existing assessment reads this as relatively supportive. Test a prepared idea on a small scale.",
+    "fr": "The existing assessment reads this as relatively supportive. Test a prepared idea on a small scale.",
+    "de": "The existing assessment reads this as relatively supportive. Test a prepared idea on a small scale.",
+    "nl": "The existing assessment reads this as relatively supportive. Test a prepared idea on a small scale.",
+    "ms": "The existing assessment reads this as relatively supportive. Test a prepared idea on a small scale."
+  },
+  "sajuReading.flowCare": {
+    "ko": "기존 평가에서 조율이 필요한 쪽으로 읽히는 흐름입니다. 속도를 낮추고 역할과 일정을 정돈해 보세요.",
+    "en": "The existing assessment suggests adjustment. Review pace, responsibilities and schedules.",
+    "ja": "既存の評価では、調整が必要な流れです。ペースを落とし、役割と予定を整えてみましょう。",
+    "zh-CN": "既有评估显示，这段走势需要协调。不妨放慢节奏，整理职责与日程。",
+    "zh-TW": "既有評估顯示，這段走勢需要協調。不妨放慢節奏，整理職責與日程。",
+    "vi": "The existing assessment suggests adjustment. Review pace, responsibilities and schedules.",
+    "hi": "The existing assessment suggests adjustment. Review pace, responsibilities and schedules.",
+    "es": "The existing assessment suggests adjustment. Review pace, responsibilities and schedules.",
+    "fr": "The existing assessment suggests adjustment. Review pace, responsibilities and schedules.",
+    "de": "The existing assessment suggests adjustment. Review pace, responsibilities and schedules.",
+    "nl": "The existing assessment suggests adjustment. Review pace, responsibilities and schedules.",
+    "ms": "The existing assessment suggests adjustment. Review pace, responsibilities and schedules."
+  },
+  "sajuReading.flowRuleOpen": {
+    "ko": "자원과 계획이 준비됐을 때 작은 실행부터 시작하세요. 점수가 결과를 보장하지는 않습니다.",
+    "en": "Start small when resources and plans are ready. A score does not guarantee an outcome.",
+    "ja": "資源と計画が整ったら、小さな実践から始めましょう。点数が結果を保証するわけではありません。",
+    "zh-CN": "资源与计划准备好后，从小行动开始。分数并不保证结果。",
+    "zh-TW": "資源與計畫準備好後，從小行動開始。分數並不保證結果。",
+    "vi": "Start small when resources and plans are ready. A score does not guarantee an outcome.",
+    "hi": "Start small when resources and plans are ready. A score does not guarantee an outcome.",
+    "es": "Start small when resources and plans are ready. A score does not guarantee an outcome.",
+    "fr": "Start small when resources and plans are ready. A score does not guarantee an outcome.",
+    "de": "Start small when resources and plans are ready. A score does not guarantee an outcome.",
+    "nl": "Start small when resources and plans are ready. A score does not guarantee an outcome.",
+    "ms": "Start small when resources and plans are ready. A score does not guarantee an outcome."
+  },
+  "sajuReading.flowRuleCare": {
+    "ko": "일정을 조정하고 선택지를 남기세요. 점수만으로 관계·직업·투자의 결론을 내리지 마세요.",
+    "en": "Adjust schedules and keep options open. Do not make relationship, career or investment decisions from a score alone.",
+    "ja": "予定を調整し、選択肢を残しましょう。点数だけで関係・仕事・投資の結論を出さないでください。",
+    "zh-CN": "调整日程，保留选择空间。不要仅凭分数决定关系、职业或投资。",
+    "zh-TW": "調整日程，保留選擇空間。不要僅憑分數決定關係、職業或投資。",
+    "vi": "Adjust schedules and keep options open. Do not make relationship, career or investment decisions from a score alone.",
+    "hi": "Adjust schedules and keep options open. Do not make relationship, career or investment decisions from a score alone.",
+    "es": "Adjust schedules and keep options open. Do not make relationship, career or investment decisions from a score alone.",
+    "fr": "Adjust schedules and keep options open. Do not make relationship, career or investment decisions from a score alone.",
+    "de": "Adjust schedules and keep options open. Do not make relationship, career or investment decisions from a score alone.",
+    "nl": "Adjust schedules and keep options open. Do not make relationship, career or investment decisions from a score alone.",
+    "ms": "Adjust schedules and keep options open. Do not make relationship, career or investment decisions from a score alone."
+  },
+  "sajuReading.period": {
+    "ko": "현재 대운",
+    "en": "Current ten-year cycle",
+    "ja": "現在の大運",
+    "zh-CN": "当前大运",
+    "zh-TW": "當前大運",
+    "vi": "Current ten-year cycle",
+    "hi": "Current ten-year cycle",
+    "es": "Current ten-year cycle",
+    "fr": "Current ten-year cycle",
+    "de": "Current ten-year cycle",
+    "nl": "Current ten-year cycle",
+    "ms": "Current ten-year cycle"
+  },
+  "sajuReading.year": {
+    "ko": "올해 세운",
+    "en": "Current annual cycle",
+    "ja": "今年の年運",
+    "zh-CN": "今年流年",
+    "zh-TW": "今年流年",
+    "vi": "Current annual cycle",
+    "hi": "Current annual cycle",
+    "es": "Current annual cycle",
+    "fr": "Current annual cycle",
+    "de": "Current annual cycle",
+    "nl": "Current annual cycle",
+    "ms": "Current annual cycle"
+  },
+  "sajuReading.more": {
+    "ko": "자세히 읽기",
+    "en": "Read more",
+    "ja": "詳しく読む",
+    "zh-CN": "详细阅读",
+    "zh-TW": "詳細閱讀",
+    "vi": "Read more",
+    "hi": "Read more",
+    "es": "Read more",
+    "fr": "Read more",
+    "de": "Read more",
+    "nl": "Read more",
+    "ms": "Read more"
+  },
+  "sajuReading.sample": {
+    "ko": "샘플 · 가상 명식의 설명 예시",
+    "en": "Sample · a fictional chart",
+    "ja": "サンプル・架空の命式の解説例",
+    "zh-CN": "示例 · 虚构命盘的解读",
+    "zh-TW": "範例 · 虛構命盤的解讀",
+    "vi": "Sample · a fictional chart",
+    "hi": "Sample · a fictional chart",
+    "es": "Sample · a fictional chart",
+    "fr": "Sample · a fictional chart",
+    "de": "Sample · a fictional chart",
+    "nl": "Sample · a fictional chart",
+    "ms": "Sample · a fictional chart"
+  },
+  "sajuReading.sampleNote": {
+    "ko": "설명 형식을 보여주는 예시이며 회원님의 결과가 아닙니다.",
+    "en": "An example of the format, not your personal result.",
+    "ja": "解説の形式を示す例であり、あなた個人の結果ではありません。",
+    "zh-CN": "此例仅展示解读形式，并非您的个人结果。",
+    "zh-TW": "此例僅展示解讀形式，並非您的個人結果。",
+    "vi": "An example of the format, not your personal result.",
+    "hi": "An example of the format, not your personal result.",
+    "es": "An example of the format, not your personal result.",
+    "fr": "An example of the format, not your personal result.",
+    "de": "An example of the format, not your personal result.",
+    "nl": "An example of the format, not your personal result.",
+    "ms": "An example of the format, not your personal result."
+  },
+  "sajuReading.paidDifference": {
+    "ko": "입력한 생년 정보로 계산한 명식에 맞춰 준비된 해설을 엮습니다. 무료 풀이에서 살펴본 기질을 바탕으로, 시기별 흐름과 주제별 해설을 이어 읽어보세요.",
+    "en": "Prepared explanations are matched to the chart calculated from your birth details. Build on the temperament covered in the free reading with longer-term cycles and themed interpretations.",
+    "ja": "入力した出生情報から計算した命式に合わせ、用意された解説を組み合わせます。無料の解説で見た気質をもとに、時期別の流れとテーマ別の解説を続けて読めます。",
+    "zh-CN": "根据输入的出生信息计算命盘，再组合相应的既有解说。在免费解读的气质分析基础上，继续阅读各时期走势与主题解说。",
+    "zh-TW": "根據輸入的出生資訊計算命盤，再組合相應的既有解說。在免費解讀的氣質分析基礎上，繼續閱讀各時期走勢與主題解說。",
+    "vi": "Prepared explanations are matched to the chart calculated from your birth details. Build on the temperament covered in the free reading with longer-term cycles and themed interpretations.",
+    "hi": "Prepared explanations are matched to the chart calculated from your birth details. Build on the temperament covered in the free reading with longer-term cycles and themed interpretations.",
+    "es": "Prepared explanations are matched to the chart calculated from your birth details. Build on the temperament covered in the free reading with longer-term cycles and themed interpretations.",
+    "fr": "Prepared explanations are matched to the chart calculated from your birth details. Build on the temperament covered in the free reading with longer-term cycles and themed interpretations.",
+    "de": "Prepared explanations are matched to the chart calculated from your birth details. Build on the temperament covered in the free reading with longer-term cycles and themed interpretations.",
+    "nl": "Prepared explanations are matched to the chart calculated from your birth details. Build on the temperament covered in the free reading with longer-term cycles and themed interpretations.",
+    "ms": "Prepared explanations are matched to the chart calculated from your birth details. Build on the temperament covered in the free reading with longer-term cycles and themed interpretations."
+  },
+  "sajuReading.paidDaeun": {
+    "ko": "10년마다 달라지는 삶의 흐름과 해마다의 변화를 함께 읽어요. 일·관계·재물 해설에서 지금 준비할 선택을 살펴보세요.",
+    "en": "Read how life shifts every ten years and from year to year, and see which choices to prepare for now in work, relationships and money.",
+    "ja": "十年ごとに変わる人生の流れと、年ごとの変化を一緒に読みます。仕事・関係・お金の解説から、今準備する選択を探りましょう。",
+    "zh-CN": "结合每十年的生活走势与逐年变化，从工作、关系和财务解读中，看看现在可以为哪些选择做准备。",
+    "zh-TW": "結合每十年的生活走勢與逐年變化，從工作、關係和財務解讀中，看看現在可以為哪些選擇做準備。",
+    "vi": "Read how life shifts every ten years and from year to year, and see which choices to prepare for now in work, relationships and money.",
+    "hi": "Read how life shifts every ten years and from year to year, and see which choices to prepare for now in work, relationships and money.",
+    "es": "Read how life shifts every ten years and from year to year, and see which choices to prepare for now in work, relationships and money.",
+    "fr": "Read how life shifts every ten years and from year to year, and see which choices to prepare for now in work, relationships and money.",
+    "de": "Read how life shifts every ten years and from year to year, and see which choices to prepare for now in work, relationships and money.",
+    "nl": "Read how life shifts every ten years and from year to year, and see which choices to prepare for now in work, relationships and money.",
+    "ms": "Read how life shifts every ten years and from year to year, and see which choices to prepare for now in work, relationships and money."
+  },
+  "sajuReading.paidSummary": {
+    "ko": "타고난 기질과 오행·십성, 성격과 관계, 삶의 전략, 올해와 내년의 처방까지 내 명식으로 한 번에 정리해 드려요.",
+    "en": "Your temperament, elements and Ten Gods, personality and relationships, life strategy, and guidance for this year and next, gathered into one reading of your chart.",
+    "ja": "生まれ持った気質、五行・十神、性格と関係、人生の方針、今年と来年の助言を、あなたの命式からまとめます。",
+    "zh-CN": "以您的命盘为依据，一起梳理先天气质、五行与十神、性格与关系、生活策略，以及今明两年的建议。",
+    "zh-TW": "以您的命盤為依據，一起梳理先天氣質、五行與十神、性格與關係、生活策略，以及今明兩年的建議。",
+    "vi": "Your temperament, elements and Ten Gods, personality and relationships, life strategy, and guidance for this year and next, gathered into one reading of your chart.",
+    "hi": "Your temperament, elements and Ten Gods, personality and relationships, life strategy, and guidance for this year and next, gathered into one reading of your chart.",
+    "es": "Your temperament, elements and Ten Gods, personality and relationships, life strategy, and guidance for this year and next, gathered into one reading of your chart.",
+    "fr": "Your temperament, elements and Ten Gods, personality and relationships, life strategy, and guidance for this year and next, gathered into one reading of your chart.",
+    "de": "Your temperament, elements and Ten Gods, personality and relationships, life strategy, and guidance for this year and next, gathered into one reading of your chart.",
+    "nl": "Your temperament, elements and Ten Gods, personality and relationships, life strategy, and guidance for this year and next, gathered into one reading of your chart.",
+    "ms": "Your temperament, elements and Ten Gods, personality and relationships, life strategy, and guidance for this year and next, gathered into one reading of your chart."
+  },
+  "sajuReading.recovery": {
+    "ko": "기존 계정과 프로필로 사주 결과를 다시 열고 해당 풀이의 해금 상태를 확인하세요. 결제 후 열리지 않으면 새로 결제하지 말고 결제 내역과 함께 고객센터에 문의하세요.",
+    "en": "Reopen the chart with the same account and profile and check access. If payment succeeded but access is missing, do not pay again; contact support with the payment record.",
+    "ja": "同じアカウントとプロフィールで命式を開き、解説の利用状態を確認してください。決済後に開けない場合は再購入せず、決済履歴を添えてサポートへお問い合わせください。",
+    "zh-CN": "请用原账户与档案重新打开四柱结果，检查该解读的解锁状态。付款后仍打不开时，请勿重复购买，附上付款记录联系客服。",
+    "zh-TW": "請用原帳戶與檔案重新打開四柱結果，檢查該解讀的解鎖狀態。付款後仍打不開時，請勿重複購買，附上付款紀錄聯絡客服。",
+    "vi": "Reopen the chart with the same account and profile and check access. If payment succeeded but access is missing, do not pay again; contact support with the payment record.",
+    "hi": "Reopen the chart with the same account and profile and check access. If payment succeeded but access is missing, do not pay again; contact support with the payment record.",
+    "es": "Reopen the chart with the same account and profile and check access. If payment succeeded but access is missing, do not pay again; contact support with the payment record.",
+    "fr": "Reopen the chart with the same account and profile and check access. If payment succeeded but access is missing, do not pay again; contact support with the payment record.",
+    "de": "Reopen the chart with the same account and profile and check access. If payment succeeded but access is missing, do not pay again; contact support with the payment record.",
+    "nl": "Reopen the chart with the same account and profile and check access. If payment succeeded but access is missing, do not pay again; contact support with the payment record.",
+    "ms": "Reopen the chart with the same account and profile and check access. If payment succeeded but access is missing, do not pay again; contact support with the payment record."
+  },
+  "sajuReading.inputs": {
+    "ko": "현재 사주에 입력한 생년 정보와 계산값을 사용합니다. 출생시간을 모르면 시간에 의존하는 해석은 참고 범위가 제한됩니다.",
+    "en": "Uses the birth information and calculations already entered for this chart. Unknown birth time limits time-dependent interpretation.",
+    "ja": "この命式に入力済みの出生情報と計算値を使います。出生時刻が不明な場合、時刻に依存する解釈の参考範囲は限られます。",
+    "zh-CN": "使用当前四柱中已输入的出生信息与计算值。出生时间不详时，依赖时辰的解读仅能有限参考。",
+    "zh-TW": "使用當前四柱中已輸入的出生資訊與計算值。出生時間不詳時，依賴時辰的解讀僅能有限參考。",
+    "vi": "Uses the birth information and calculations already entered for this chart. Unknown birth time limits time-dependent interpretation.",
+    "hi": "Uses the birth information and calculations already entered for this chart. Unknown birth time limits time-dependent interpretation.",
+    "es": "Uses the birth information and calculations already entered for this chart. Unknown birth time limits time-dependent interpretation.",
+    "fr": "Uses the birth information and calculations already entered for this chart. Unknown birth time limits time-dependent interpretation.",
+    "de": "Uses the birth information and calculations already entered for this chart. Unknown birth time limits time-dependent interpretation.",
+    "nl": "Uses the birth information and calculations already entered for this chart. Unknown birth time limits time-dependent interpretation.",
+    "ms": "Uses the birth information and calculations already entered for this chart. Unknown birth time limits time-dependent interpretation."
+  },
+  "sajuReading.pricePending": {
+    "ko": "가격 확인 중",
+    "en": "Checking price",
+    "ja": "料金を確認中",
+    "zh-CN": "正在确认价格",
+    "zh-TW": "正在確認價格",
+    "vi": "Checking price",
+    "hi": "Checking price",
+    "es": "Checking price",
+    "fr": "Checking price",
+    "de": "Checking price",
+    "nl": "Checking price",
+    "ms": "Checking price"
+  },
+  "sajuReading.priceUnavailable": {
+    "ko": "가격은 결제 안내에서 확인해 주세요",
+    "en": "Confirm the price in the payment information",
+    "ja": "料金は決済案内でご確認ください",
+    "zh-CN": "请在付款说明中确认价格",
+    "zh-TW": "請在付款說明中確認價格",
+    "vi": "Confirm the price in the payment information",
+    "hi": "Confirm the price in the payment information",
+    "es": "Confirm the price in the payment information",
+    "fr": "Confirm the price in the payment information",
+    "de": "Confirm the price in the payment information",
+    "nl": "Confirm the price in the payment information",
+    "ms": "Confirm the price in the payment information"
+  },
+  "sajuReading.paidRead": {
+    "ko": "풀이 확인하기",
+    "en": "View reading",
+    "ja": "解説を見る",
+    "zh-CN": "查看解读",
+    "zh-TW": "查看解讀",
+    "vi": "View reading",
+    "hi": "View reading",
+    "es": "View reading",
+    "fr": "View reading",
+    "de": "View reading",
+    "nl": "View reading",
+    "ms": "View reading"
+  },
+  "sajuReading.catTitle": {
+    "ko": "영냥이 상담",
+    "en": "Yeongnyangi readings",
+    "ja": "Yeongnyangi相談",
+    "zh-CN": "Yeongnyangi咨询",
+    "zh-TW": "Yeongnyangi諮詢",
+    "vi": "Yeongnyangi readings",
+    "hi": "Yeongnyangi readings",
+    "es": "Yeongnyangi readings",
+    "fr": "Yeongnyangi readings",
+    "de": "Yeongnyangi readings",
+    "nl": "Yeongnyangi readings",
+    "ms": "Yeongnyangi readings"
+  },
+  "sajuReading.catPurpose": {
+    "ko": "명식의 흐름을 고양이 상담사와",
+    "en": "Explore your chart with the cat guide",
+    "ja": "猫の相談役と命式の流れを読む",
+    "zh-CN": "与猫咪顾问一起探索命盘走势",
+    "zh-TW": "與貓咪顧問一起探索命盤走勢",
+    "vi": "Explore your chart with the cat guide",
+    "hi": "Explore your chart with the cat guide",
+    "es": "Explore your chart with the cat guide",
+    "fr": "Explore your chart with the cat guide",
+    "de": "Explore your chart with the cat guide",
+    "nl": "Explore your chart with the cat guide",
+    "ms": "Explore your chart with the cat guide"
+  },
+  "sajuReading.catGo": {
+    "ko": "살펴보기",
+    "en": "Explore",
+    "ja": "見てみる",
+    "zh-CN": "查看",
+    "zh-TW": "查看",
+    "vi": "Explore",
+    "hi": "Explore",
+    "es": "Explore",
+    "fr": "Explore",
+    "de": "Explore",
+    "nl": "Explore",
+    "ms": "Explore"
+  },
+  "sajuReading.catPrice": {
+    "ko": "{price}부터",
+    "en": "From {price}",
+    "ja": "{price}から",
+    "zh-CN": "{price}起",
+    "zh-TW": "{price}起",
+    "vi": "From {price}",
+    "hi": "From {price}",
+    "es": "From {price}",
+    "fr": "From {price}",
+    "de": "From {price}",
+    "nl": "From {price}",
+    "ms": "From {price}"
+  },
+  "sajuReading.endYeon": {
+    "ko": "오늘 읽은 모든 문장을 나에게 맞추려 애쓰지 않아도 괜찮아요. 실제 내 모습과 맞닿은 단서 하나부터 천천히 살펴보세요.",
+    "en": "You do not need to fit every sentence. Start with one clue that connects with your own experience.",
+    "ja": "すべての言葉を自分に当てはめなくても大丈夫です。実際の自分につながる手がかりを一つ、ゆっくり見つめてみてください。",
+    "zh-CN": "不必勉强把每句话都套在自己身上。从一条与真实经历相接的线索开始，慢慢看看就好。",
+    "zh-TW": "不必勉強把每句話都套在自己身上。從一條與真實經歷相接的線索開始，慢慢看看就好。",
+    "vi": "You do not need to fit every sentence. Start with one clue that connects with your own experience.",
+    "hi": "You do not need to fit every sentence. Start with one clue that connects with your own experience.",
+    "es": "You do not need to fit every sentence. Start with one clue that connects with your own experience.",
+    "fr": "You do not need to fit every sentence. Start with one clue that connects with your own experience.",
+    "de": "You do not need to fit every sentence. Start with one clue that connects with your own experience.",
+    "nl": "You do not need to fit every sentence. Start with one clue that connects with your own experience.",
+    "ms": "You do not need to fit every sentence. Start with one clue that connects with your own experience."
+  },
+  "sajuReading.endNeo": {
+    "ko": "명식은 선택을 대신해 주지 않아. 맞는 근거와 안 맞는 해석을 가려 보고, 오늘 확인해 볼 행동 하나만 정해 봐.",
+    "en": "A chart does not decide for you. Separate supported observations from mismatches and choose one action to test.",
+    "ja": "命式が選択を代わりに決めるわけじゃない。合う根拠と合わない解釈を分けて、今日試す行動を一つ決めよう。",
+    "zh-CN": "命盘不会替你选择。分清有依据的部分与不符合经历的解读，选一个今天能验证的行动。",
+    "zh-TW": "命盤不會替你選擇。分清有依據的部分與不符合經歷的解讀，選一個今天能驗證的行動。",
+    "vi": "A chart does not decide for you. Separate supported observations from mismatches and choose one action to test.",
+    "hi": "A chart does not decide for you. Separate supported observations from mismatches and choose one action to test.",
+    "es": "A chart does not decide for you. Separate supported observations from mismatches and choose one action to test.",
+    "fr": "A chart does not decide for you. Separate supported observations from mismatches and choose one action to test.",
+    "de": "A chart does not decide for you. Separate supported observations from mismatches and choose one action to test.",
+    "nl": "A chart does not decide for you. Separate supported observations from mismatches and choose one action to test.",
+    "ms": "A chart does not decide for you. Separate supported observations from mismatches and choose one action to test."
+  },
+  "sajuReading.catFree": {
+    "ko": "무료 운세",
+    "en": "Free fortune",
+    "ja": "無料の運勢",
+    "zh-CN": "免费运势",
+    "zh-TW": "免費運勢",
+    "vi": "Free fortune",
+    "hi": "Free fortune",
+    "es": "Free fortune",
+    "fr": "Free fortune",
+    "de": "Free fortune",
+    "nl": "Free fortune",
+    "ms": "Free fortune"
+  },
+  "sajuReading.today": {
+    "ko": "오늘의 흐름",
+    "en": "Today’s cycle",
+    "ja": "今日の流れ",
+    "zh-CN": "今日走势",
+    "zh-TW": "今日走勢",
+    "vi": "Today’s cycle",
+    "hi": "Today’s cycle",
+    "es": "Today’s cycle",
+    "fr": "Today’s cycle",
+    "de": "Today’s cycle",
+    "nl": "Today’s cycle",
+    "ms": "Today’s cycle"
+  },
+  "sajuReading.month": {
+    "ko": "이달의 흐름",
+    "en": "This month’s cycle",
+    "ja": "今月の流れ",
+    "zh-CN": "本月走势",
+    "zh-TW": "本月走勢",
+    "vi": "This month’s cycle",
+    "hi": "This month’s cycle",
+    "es": "This month’s cycle",
+    "fr": "This month’s cycle",
+    "de": "This month’s cycle",
+    "nl": "This month’s cycle",
+    "ms": "This month’s cycle"
+  },
+  "sajuReading.summaryTitle": {
+    "ko": "라이트 사주 풀이",
+    "en": "Light saju reading",
+    "ja": "ライト四柱推命",
+    "zh-CN": "轻量四柱解读",
+    "zh-TW": "輕量四柱解讀",
+    "vi": "Light saju reading",
+    "hi": "Light saju reading",
+    "es": "Light saju reading",
+    "fr": "Light saju reading",
+    "de": "Light saju reading",
+    "nl": "Light saju reading",
+    "ms": "Light saju reading"
+  },
+  "sajuReading.daeunTitle": {
+    "ko": "대운 분석 · 지금부터 다음 시기까지",
+    "en": "Ten-year cycles: from now to the next phase",
+    "ja": "大運分析・今から次の時期へ",
+    "zh-CN": "大运分析 · 从现在到下一阶段",
+    "zh-TW": "大運分析 · 從現在到下一階段",
+    "vi": "Ten-year cycles: from now to the next phase",
+    "hi": "Ten-year cycles: from now to the next phase",
+    "es": "Ten-year cycles: from now to the next phase",
+    "fr": "Ten-year cycles: from now to the next phase",
+    "de": "Ten-year cycles: from now to the next phase",
+    "nl": "Ten-year cycles: from now to the next phase",
+    "ms": "Ten-year cycles: from now to the next phase"
+  },
+  "sajuReading.graphTitle": {
+    "ko": "대운 흐름 비교",
+    "en": "Cycle comparison",
+    "ja": "大運の流れを比較",
+    "zh-CN": "大运走势比较",
+    "zh-TW": "大運走勢比較",
+    "vi": "Cycle comparison",
+    "hi": "Cycle comparison",
+    "es": "Cycle comparison",
+    "fr": "Cycle comparison",
+    "de": "Cycle comparison",
+    "nl": "Cycle comparison",
+    "ms": "Cycle comparison"
+  },
+  "sajuReading.godTraits.0": {
+    "ko": "스스로 방향을 정하고 싶어 하는 편이야.",
+    "en": "A preference for self-directed choices",
+    "ja": "自分で方向を決めたいほうだね。",
+    "zh-CN": "你倾向于自己决定方向。",
+    "zh-TW": "你傾向於自己決定方向。",
+    "vi": "A preference for self-directed choices",
+    "hi": "A preference for self-directed choices",
+    "es": "A preference for self-directed choices",
+    "fr": "A preference for self-directed choices",
+    "de": "A preference for self-directed choices",
+    "nl": "A preference for self-directed choices",
+    "ms": "A preference for self-directed choices"
+  },
+  "sajuReading.godTraits.1": {
+    "ko": "함께 뛰거나 겨룰 때 오히려 힘이 나는 편이야.",
+    "en": "Energy from cooperation and competition",
+    "ja": "誰かと走ったり競ったりすると、力が湧くほうだね。",
+    "zh-CN": "一起前行或切磋，反而可能让你更有力量。",
+    "zh-TW": "一起前行或切磋，反而可能讓你更有力量。",
+    "vi": "Energy from cooperation and competition",
+    "hi": "Energy from cooperation and competition",
+    "es": "Energy from cooperation and competition",
+    "fr": "Energy from cooperation and competition",
+    "de": "Energy from cooperation and competition",
+    "nl": "Energy from cooperation and competition",
+    "ms": "Energy from cooperation and competition"
+  },
+  "sajuReading.godTraits.2": {
+    "ko": "같은 걸 되풀이하면서 표현을 다듬어 가는 쪽이지.",
+    "en": "Expression refined through practice",
+    "ja": "繰り返しながら表現を磨いていくほうだね。",
+    "zh-CN": "你更擅长在反复练习中打磨表达。",
+    "zh-TW": "你更擅長在反覆練習中打磨表達。",
+    "vi": "Expression refined through practice",
+    "hi": "Expression refined through practice",
+    "es": "Expression refined through practice",
+    "fr": "Expression refined through practice",
+    "de": "Expression refined through practice",
+    "nl": "Expression refined through practice",
+    "ms": "Expression refined through practice"
+  },
+  "sajuReading.godTraits.3": {
+    "ko": "익숙한 규칙도 그냥 넘기지 않고 한 번 따져 보는 편이야.",
+    "en": "A habit of reviewing familiar rules",
+    "ja": "慣れたルールも、一度考え直してみるほうだね。",
+    "zh-CN": "即使是熟悉的规则，你也愿意重新审视。",
+    "zh-TW": "即使是熟悉的規則，你也願意重新審視。",
+    "vi": "A habit of reviewing familiar rules",
+    "hi": "A habit of reviewing familiar rules",
+    "es": "A habit of reviewing familiar rules",
+    "fr": "A habit of reviewing familiar rules",
+    "de": "A habit of reviewing familiar rules",
+    "nl": "A habit of reviewing familiar rules",
+    "ms": "A habit of reviewing familiar rules"
+  },
+  "sajuReading.godTraits.4": {
+    "ko": "여러 기회를 서로 이어 보고 싶어질 수 있어.",
+    "en": "Interest in connecting opportunities",
+    "ja": "いろいろな機会をつないでみたくなるかもしれないね。",
+    "zh-CN": "你可能想把不同的机会连接起来。",
+    "zh-TW": "你可能想把不同的機會連結起來。",
+    "vi": "Interest in connecting opportunities",
+    "hi": "Interest in connecting opportunities",
+    "es": "Interest in connecting opportunities",
+    "fr": "Interest in connecting opportunities",
+    "de": "Interest in connecting opportunities",
+    "nl": "Interest in connecting opportunities",
+    "ms": "Interest in connecting opportunities"
+  },
+  "sajuReading.godTraits.5": {
+    "ko": "약속과 자원을 꾸준히 챙기는 쪽이야.",
+    "en": "Steady attention to resources and commitments",
+    "ja": "約束や資源をこつこつ大切にするほうだね。",
+    "zh-CN": "你倾向于持续照看承诺与资源。",
+    "zh-TW": "你傾向於持續照看承諾與資源。",
+    "vi": "Steady attention to resources and commitments",
+    "hi": "Steady attention to resources and commitments",
+    "es": "Steady attention to resources and commitments",
+    "fr": "Steady attention to resources and commitments",
+    "de": "Steady attention to resources and commitments",
+    "nl": "Steady attention to resources and commitments",
+    "ms": "Steady attention to resources and commitments"
+  },
+  "sajuReading.godTraits.6": {
+    "ko": "부담이 큰 일 앞에서 오히려 집중이 살아날 수도 있어.",
+    "en": "Focus on demanding tasks",
+    "ja": "負担の大きな課題で、かえって集中できることもありそうだね。",
+    "zh-CN": "面对压力较大的任务，你反而可能更专注。",
+    "zh-TW": "面對壓力較大的任務，你反而可能更專注。",
+    "vi": "Focus on demanding tasks",
+    "hi": "Focus on demanding tasks",
+    "es": "Focus on demanding tasks",
+    "fr": "Focus on demanding tasks",
+    "de": "Focus on demanding tasks",
+    "nl": "Focus on demanding tasks",
+    "ms": "Focus on demanding tasks"
+  },
+  "sajuReading.godTraits.7": {
+    "ko": "역할과 기준이 분명할 때 마음이 놓이는 편이야.",
+    "en": "Attention to roles and standards",
+    "ja": "役割と基準がはっきりしていると安心するほうだね。",
+    "zh-CN": "角色与标准清晰时，你更容易安心。",
+    "zh-TW": "角色與標準清晰時，你更容易安心。",
+    "vi": "Attention to roles and standards",
+    "hi": "Attention to roles and standards",
+    "es": "Attention to roles and standards",
+    "fr": "Attention to roles and standards",
+    "de": "Attention to roles and standards",
+    "nl": "Attention to roles and standards",
+    "ms": "Attention to roles and standards"
+  },
+  "sajuReading.godTraits.8": {
+    "ko": "낯선 관점을 만나면 깊이 파고들고 싶어지지.",
+    "en": "Deep exploration of unfamiliar views",
+    "ja": "新しい視点に出会うと、深く掘り下げたくなるんだね。",
+    "zh-CN": "遇到陌生视角时，你会想深入探索。",
+    "zh-TW": "遇到陌生視角時，你會想深入探索。",
+    "vi": "Deep exploration of unfamiliar views",
+    "hi": "Deep exploration of unfamiliar views",
+    "es": "Deep exploration of unfamiliar views",
+    "fr": "Deep exploration of unfamiliar views",
+    "de": "Deep exploration of unfamiliar views",
+    "nl": "Deep exploration of unfamiliar views",
+    "ms": "Deep exploration of unfamiliar views"
+  },
+  "sajuReading.godTraits.9": {
+    "ko": "배우고 도움을 주고받으면서 준비하는 편이야.",
+    "en": "Preparation through learning and support",
+    "ja": "学んだり助け合ったりしながら、準備するほうだね。",
+    "zh-CN": "你倾向于通过学习与互助做好准备。",
+    "zh-TW": "你傾向於透過學習與互助做好準備。",
+    "vi": "Preparation through learning and support",
+    "hi": "Preparation through learning and support",
+    "es": "Preparation through learning and support",
+    "fr": "Preparation through learning and support",
+    "de": "Preparation through learning and support",
+    "nl": "Preparation through learning and support",
+    "ms": "Preparation through learning and support"
+  }
+}

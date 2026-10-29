@@ -59,6 +59,30 @@ test('new non-Korean copy does not fall back to Korean',()=>{
   }
 });
 
+test('all reading editions retain the full personal letter, chart variables and distinct voices',()=>{
+  for(const lang of ['en','ja','zh-CN','zh-TW','vi','hi','es','fr','de','nl','ms']){
+    const dictionary=JSON.parse(readFileSync(`public/i18n/${lang.toLowerCase()}.json`,'utf8'));
+    const translatedContext=vm.createContext({cdTranslate:key=>key.split('.').reduce((value,part)=>value?.[part],dictionary)||''});
+    vm.runInContext(readFileSync('js/core/saju/reading-personas.js','utf8'),translatedContext);
+    const presentation=translatedContext.SajuReadingPresentation;
+    const yeon=presentation.build({...fixture,name:'Alex'},'pig',lang).letter;
+    const cat=presentation.build({...fixture,name:'Alex'},'neo',lang).letter;
+    assert.equal(yeon.paragraphs.length,8,`${lang}: entire Yeoni letter`);
+    assert.equal(cat.paragraphs.length,5,`${lang}: entire Yeongnyangi letter`);
+    for(const letter of [yeon,cat]){
+      assert.match(letter.greeting,/Alex/);
+      assert.doesNotMatch(JSON.stringify(letter),/[가-힣]|undefined|\{(?:name|image|observation|verdict|scene|action)\}/u);
+      assert.ok(letter.paragraphs.every(paragraph=>typeof paragraph==='string'&&paragraph.length>30));
+    }
+    assert.match(yeon.paragraphs[1],/辛/);
+    assert.notEqual(yeon.signature,cat.signature);
+    if(!['en','ja','zh-CN','zh-TW'].includes(lang)){
+      const english=JSON.parse(readFileSync('public/i18n/en.json','utf8'));
+      assert.equal(dictionary.sajuReading.letterOpening,english.sajuReading.letterOpening);
+    }
+  }
+});
+
 test('seasonal assessment follows engine type, including the neutral band',()=>{
   const data=structuredClone(fixture);data.johu.score=1;data.johu.type='neutral';
   assert.equal(api.build(data,'neo','ko').climate.blocks[0].text,api.copy('ko').neutralNeo);

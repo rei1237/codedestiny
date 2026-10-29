@@ -9920,51 +9920,51 @@
     "openNamingPromptModal": {
       "tagline": "在8章結構的取名冊中提議5~7個新名字，還會連同做出這本取名冊的基準原文一併奉上。",
       "feats": {
-        "0": "The naming book is made up of eight chapters",
-        "1": "Proposes 5 to 7 candidate new names",
-        "2": "If you enter candidates of your own, it evaluates them and then proposes 3 to 5 more",
-        "3": "Checks each name's five-element makeup against the favorable and supporting elements",
-        "4": "Looks at the sound five-element flow and the four numerology frames together",
-        "5": "The main text runs to at least 5,000 characters",
+        "0": "起名冊分為八章",
+        "1": "提供五至七個新名字候選",
+        "2": "輸入自己想到的候選名字後，先進行評估，再追加三至五個建議",
+        "3": "以用神、喜神為標準，核對名字的五行",
+        "4": "結合音韻五行的流動與元亨利貞數理四格進行分析",
+        "5": "正文目標為5,000字",
         "6": "一併提供製作這本取名冊所依據的基準原文"
       },
       "premiumIntro": "輸入和初稿建議免費開放。付款會在您領取8章取名冊和基準原文時進行。",
       "premiumAudience": {
-        "0": "Those who want to settle on a child's name with reasons attached",
-        "1": "Those who want the candidates they were given checked",
-        "2": "Those who want the naming criteria left behind as a document"
+        "0": "希望有依據地為孩子取名的人",
+        "1": "想核驗已有候選名字是否合適的人",
+        "2": "希望將起名標準保留為文件的人"
       },
       "premiumChapters": {
-        "0": "An eight-chapter naming book",
-        "1": "5 to 7 proposed new names",
-        "2": "Evaluation of your own candidates plus 3 to 5 more proposals",
-        "3": "Checks by favorable element, sound five elements, and the four numerology frames",
+        "0": "八章起名冊",
+        "1": "提供五至七個新名字建議",
+        "2": "評估你的候選名字，並追加三至五個建議",
+        "3": "核驗用神、音韻五行與數理四格",
         "4": "提供基準原文"
       },
       "premiumOutcomes": {
-        "0": "Input and the free draft suggestions open for free.",
-        "1": "The existing payment check runs when you press the premium naming button.",
-        "2": "Naming results are for reference and need real-world checking before actual use."
+        "0": "資訊輸入與初步草案推薦可免費使用。",
+        "1": "點選開始高階起名按鈕時，將執行現有的付款確認。",
+        "2": "起名結果僅供參考，實際使用前需要結合現實情況確認。"
       },
       "answersQuestions": {
-        "0": "Does this name suit my child's Saju?",
-        "1": "What changes if I change the hanja?",
-        "2": "Why was this name recommended?"
+        "0": "這個名字適合我孩子的八字嗎？",
+        "1": "更換漢字會帶來什麼不同？",
+        "2": "為什麼推薦這個名字？"
       },
       "fallbackCta": "Start naming",
       "ctaNote": "付款後，8章取名冊和取名基準原文會一起開放。",
       "analysisSteps": {
         "0": {
-          "label": "Saju calculation",
-          "detail": "Builds the natal chart from your birth date and time and sorts out the favorable and supporting elements."
+          "label": "計算八字",
+          "detail": "根據出生年月日時排出原局，辨別用神與喜神。"
         },
         "1": {
-          "label": "Candidate generation",
-          "detail": "Creates 5 to 7 new names that fit those elements. If you entered candidates of your own, those are evaluated first."
+          "label": "生成候選名字",
+          "detail": "生成五至七個符合相應五行的新名字。如有自行輸入的候選名字，會先進行評估。"
         },
         "2": {
-          "label": "Name verification",
-          "detail": "Filters the candidates again through the sound five-element flow and the four numerology frames."
+          "label": "核驗名字",
+          "detail": "根據音韻五行的流動與元亨利貞數理四格，再次篩選候選名字。"
         },
         "3": {
           "label": "撰寫取名冊",
@@ -9973,13 +9973,13 @@
       },
       "valueCompare": {
         "0": {
-          "axis": "Scope of proposals",
-          "free": "Input and draft suggestions",
-          "premium": "5 to 7 new names, plus 3 to 5 more after evaluating your own candidates"
+          "axis": "建議範圍",
+          "free": "資訊輸入與初步草案推薦",
+          "premium": "五至七個新名字＋評估你的候選名字後再追加三至五個"
         },
         "1": {
-          "axis": "Verification axes",
-          "premium": "Favorable and supporting elements, sound five elements, and the four numerology frames"
+          "axis": "核驗維度",
+          "premium": "用神、喜神／音韻五行／元亨利貞數理四格"
         },
         "2": {
           "axis": "成果物",
@@ -9988,12 +9988,12 @@
       },
       "faq": {
         "0": {
-          "q": "How far can I go for free?",
-          "a": "Input and the draft suggestions open for free."
+          "q": "免費可以使用到哪一步？",
+          "a": "資訊輸入與初步草案推薦可免費使用。"
         },
         "1": {
-          "q": "Will you look at a name I thought of myself?",
-          "a": "If you enter candidates, they are evaluated first, and 3 to 5 more are proposed on top of them."
+          "q": "可以評估我自己想到的名字嗎？",
+          "a": "輸入候選名字後先進行評估，再追加三至五個建議。"
         },
         "2": {
           "q": "為什麼會提供基準原文？",
@@ -10176,10 +10176,10 @@
         "3": "另行整理太陽、月亮、上升與星盤主宰星",
         "4": "完成的諮詢可下載為PDF"
       },
-      "premiumIntro": "This is not a horoscope shared by the twelve signs -- it is written from your own chart, calculated from the birth details you enter.",
+      "premiumIntro": "以你輸入的出生資訊計算個人星盤，再據此撰寫，而不是十二星座通用運勢。",
       "premiumAudience": {
-        "0": "Those left wanting more by shared sun-sign horoscopes",
-        "1": "Those who want one proper look at their own chart",
+        "0": "覺得通用星座運勢不夠深入的人",
+        "1": "希望認真了解自己星盤的人",
         "2": "希望連依據一起確認著閱讀的人"
       },
       "premiumChapters": {
@@ -10190,21 +10190,21 @@
         "4": "PDF保存與再次開啟"
       },
       "premiumOutcomes": {
-        "0": "Chart-based features are affected by how accurate the birth time you enter is.",
-        "1": "The payment policy follows the existing pass, moonstone, and single-payment rules.",
+        "0": "星盤解讀會受到所填出生時間準確度的影響。",
+        "1": "付款遵循現有使用券、月精石與單次付款規則。",
         "2": "運勢結果僅供參考。"
       },
       "answersQuestions": {
-        "0": "Why do my feelings and my circumstances keep pulling apart?",
-        "1": "When is a good time to move?",
-        "2": "How do I look to other people?"
+        "0": "為什麼心情與現實總是不同步？",
+        "1": "什麼時候行動比較合適？",
+        "2": "別人眼中的我是什麼樣的？"
       },
-      "fallbackCta": "Open the astrology consultation",
+      "fallbackCta": "查看占星諮詢",
       "ctaNote": "付款後開啟以你本人出生星盤計算的諮詢文與星盤圖。",
       "analysisSteps": {
         "0": {
-          "label": "Birth chart calculation",
-          "detail": "Calculates planetary positions and houses from the birth details you enter."
+          "label": "計算出生星盤",
+          "detail": "根據輸入的出生資訊計算行星位置與宮位。"
         },
         "1": {
           "label": "確認主題與問題",
@@ -10222,7 +10222,7 @@
       "valueCompare": {
         "0": {
           "axis": "Subject",
-          "premium": "Your own chart, calculated from the birth details you enter"
+          "premium": "根據所填出生資訊計算的個人星盤"
         },
         "1": {
           "axis": "Length",
@@ -10239,8 +10239,8 @@
           "a": "可以設為不詳繼續進行。此時上升與宮位不予確定，只作有限的解讀。"
         },
         "1": {
-          "q": "How long is it?",
-          "a": "It comes out at at least 15,000 characters of main text."
+          "q": "篇幅有多長？",
+          "a": "正文以15,000字為目標。"
         },
         "2": {
           "q": "之後還能再看結果嗎？",
@@ -10404,82 +10404,82 @@
       }
     },
     "vedic_ai_consultation": {
-      "tagline": "The origins of karma, material achievement and dharma, bonds and soul partners, and your current dasha flow with its upaya -- at least 15,000 characters of main text.",
+      "tagline": "涵蓋業力的起源、物質成就與達摩、緣分與靈魂伴侶、當前達沙走勢與烏帕亞實踐，正文目標為15,000字。",
       "feats": {
-        "0": "Derives your Rasi chart and the Moon's nakshatra from the birth details you enter",
-        "1": "Writes across four topics: the origins of karma, material achievement and dharma, bonds and soul partners, and your current dasha flow with its upaya",
-        "2": "Fills each topic to at least 3,800 characters",
-        "3": "The main text runs to at least 15,000 characters",
-        "4": "Sets out separately the flow that the reading was based on"
+        "0": "根據輸入的出生資訊，計算拉希星盤與月亮星宿",
+        "1": "分為四個主題撰寫：業力起源、物質成就與達摩、緣分與靈魂伴侶、當前達沙走勢與烏帕亞實踐",
+        "2": "每個主題目標為3,800字",
+        "3": "正文目標為15,000字",
+        "4": "另行整理作為解讀依據的走勢，一併呈現"
       },
-      "premiumIntro": "Using the dasha (period) system of Indian astrology, it sets out which planet's period you are in now and what to do within it.",
+      "premiumIntro": "運用印度占星術的達沙週期體系，梳理當前處於哪顆行星主導的階段，以及這一時期適合做的事。",
       "premiumAudience": {
-        "0": "Those who want Indian astrology rather than Western astrology",
-        "1": "Those who want to know the character of the period they are in",
-        "2": "Those who want to see the reasoning as well"
+        "0": "希望了解印度占星術而非西方占星術的人",
+        "1": "想了解當前時期特徵的人",
+        "2": "希望同時了解解讀依據的人"
       },
       "premiumChapters": {
-        "0": "Rasi chart and nakshatra derivation",
-        "1": "A consultation across four topics",
+        "0": "計算拉希星盤與星宿",
+        "1": "四個主題的諮詢內容",
         "2": "正文以15,000字為目標",
-        "3": "A summary of the flow behind the reading"
+        "3": "梳理解讀依據的走勢"
       },
       "premiumOutcomes": {
         "0": "基於星盤的解讀會受到你輸入資訊準確度的影響。",
-        "1": "The payment policy follows the existing pass, moonstone, and single-payment rules.",
+        "1": "付款遵循現有使用券、月精石與單次付款規則。",
         "2": "運勢結果僅供參考。"
       },
       "answersQuestions": {
-        "0": "Does the decision I am making now fit the longer flow?",
-        "1": "Why does the timing of my effort keep missing?",
-        "2": "What should I be preparing for in this period?"
+        "0": "現在的決定符合長期趨勢嗎？",
+        "1": "為什麼努力的時機總是對不上？",
+        "2": "這段時期該做好哪些準備？"
       },
-      "fallbackCta": "Open the Vedic consultation",
-      "ctaNote": "After payment, a consultation grounded in your Rasi chart and dasha flow opens.",
+      "fallbackCta": "開啟吠陀諮詢",
+      "ctaNote": "付款後可閱讀以拉希星盤與達沙走勢為依據的諮詢內容。",
       "analysisSteps": {
         "0": {
-          "label": "Chart calculation",
-          "detail": "Derives the Rasi chart and the Moon's nakshatra from your birth details."
+          "label": "計算星盤",
+          "detail": "根據出生資訊計算拉希星盤與月亮星宿。"
         },
         "1": {
           "label": "Dasha check",
-          "detail": "Checks which planet's period you are currently passing through."
+          "detail": "確認當前正處於哪顆行星主導的時期。"
         },
         "2": {
-          "label": "Topic-by-topic writing",
-          "detail": "Splits the work into four topics and writes each to at least 3,800 characters."
+          "label": "按主題撰寫",
+          "detail": "分為四個主題，每個主題以3,800字為目標撰寫。"
         },
         "3": {
-          "label": "Reasoning summary",
-          "detail": "Sets out separately the flow that the reading was based on."
+          "label": "整理依據",
+          "detail": "另附一段總結，說明支持這一解讀的走勢依據。"
         }
       },
       "valueCompare": {
         "0": {
           "axis": "System",
-          "premium": "Rasi chart, nakshatra, and dasha"
+          "premium": "拉希星盤／星宿／達沙"
         },
         "1": {
           "axis": "Length",
-          "premium": "At least 15,000 characters of main text (at least 3,800 per topic)"
+          "premium": "正文目標15,000字（每個主題目標3,800字）"
         },
         "2": {
           "axis": "Structure",
-          "premium": "Four topics plus the flow behind the reading"
+          "premium": "四個主題＋解讀依據的走勢"
         }
       },
       "faq": {
         "0": {
-          "q": "How does this differ from Western astrology?",
-          "a": "It uses the Rasi chart, together with the dasha system that looks at which planet's period you are passing through."
+          "q": "與西方占星術有什麼不同？",
+          "a": "使用拉希星盤，並結合達沙體系，觀察當前正經歷哪顆行星主導的時期。"
         },
         "1": {
-          "q": "How long is it?",
-          "a": "At least 15,000 characters of main text, and at least 3,800 characters per topic."
+          "q": "篇幅有多長？",
+          "a": "正文目標為15,000字，每個主題目標為3,800字。"
         },
         "2": {
-          "q": "What is an upaya?",
-          "a": "It means a practice recommended in response to your current period. It is included in the fourth topic."
+          "q": "什麼是烏帕亞？",
+          "a": "指針對當前時期建議採取的實踐方法，包含在第四個主題中。"
         }
       },
       "receives": {
@@ -11167,68 +11167,68 @@
     "openDestinyBias": {
       "badge": "小卡解讀",
       "headline": "把你與本命之間浮現的氛圍與情感密碼，一張一張攤開來。",
-      "tagline": "It opens with sign-in alone, and produces five scores — total, emotion, fandom, longevity and support — along with a card image, right on the spot.",
+      "tagline": "確認單次付款或適用使用券後，即時生成總分、情感、粉絲互動、長期與支持五項評分，以及卡片圖片。",
       "feats": {
-        "0": "A free feature that opens with sign-in alone",
-        "1": "Produces five scores — total, emotion, fandom, longevity, support — and a destiny grade",
-        "2": "Draws an aura type and material, mood keywords and matching tags, and builds them into a photocard image",
-        "3": "Splits the result across five tabs: one-line chemistry · five-element compatibility · day-stem relation · branch chemistry · booster tips",
-        "4": "Shows your and your favorite's five-element distribution together with day-stem, day-branch and ten-god signals",
-        "5": "Relationship MBTI · past life · grade meme · hashtags come with it"
+        "0": "確認付款後計算結果",
+        "1": "給出總分、情感、粉絲互動、長期、支持五項評分與緣分等級",
+        "2": "選出氣場類型、質感、氛圍關鍵詞與配對標籤，製作成照片卡圖片",
+        "3": "分為一句話默契、五行契合度、日干關係、地支默契與助力提示五個分頁展示",
+        "4": "同時展示你與最愛之人的五行分布，以及日干、日支、十神訊號",
+        "5": "還會呈現關係MBTI、前世主題、等級趣梗與主題標籤"
       },
-      "premiumIntro": "Favorite-Person Destiny does not pronounce on your actual relationship; it organizes both charts' saju signals into scores and card lines. The same details give the same result.",
+      "premiumIntro": "最愛緣分不會斷定現實中的關係，而是將兩人的八字訊號整理為評分與卡片文字。輸入相同資訊，會得到相同結果。",
       "premiumAudience": {
-        "0": "People who want to keep their compatibility with a favorite as a card",
-        "1": "People who want the five-element and day-stem grounds shown too",
-        "2": "People looking for a light, free reading"
+        "0": "想把自己與最愛之人的契合度留在卡片上的人",
+        "1": "希望同時了解五行與日干依據的人",
+        "2": "正在尋找照片卡式解讀的人"
       },
       "premiumChapters": {
-        "0": "The five scores and the destiny grade",
-        "1": "A photocard reflecting the aura type and material",
-        "2": "Detail tabs for five-element compatibility, day-stem relation and branch chemistry",
-        "3": "Relationship MBTI and hashtags"
+        "0": "五項評分與緣分等級",
+        "1": "體現氣場類型與質感的照片卡",
+        "2": "五行契合度、日干關係與地支默契詳細分頁",
+        "3": "關係MBTI與主題標籤"
       },
       "premiumOutcomes": {
-        "0": "A free feature with no payment step beyond signing in.",
+        "0": "確認付款前不會計算結果。",
         "1": "不保證實際的關係發展或結果。",
-        "2": "Please take the reading as reference and for enjoyment."
+        "2": "請將解讀作為參考與娛樂內容。"
       },
       "answersQuestions": {
-        "0": "In what ways are my favorite and I alike?",
-        "1": "What type is my way of supporting them?",
-        "2": "Where does the chemistry between us come from?"
+        "0": "我和最愛之人在哪些特質上相似？",
+        "1": "我的支持方式屬於哪種類型？",
+        "2": "我們之間的默契來自哪裡？"
       },
-      "fallbackCta": "Open Favorite-Person Destiny",
+      "fallbackCta": "查看最愛緣分",
       "analysisSteps": {
         "0": {
-          "label": "Enter details",
-          "detail": "You enter your own and your favorite's birth details."
+          "label": "填寫資訊",
+          "detail": "輸入你與最愛之人的出生資訊。"
         },
         "1": {
-          "label": "Signal extraction",
-          "detail": "Compatibility signals are drawn from day-stem relation, day-branch relation, five-element balance and ten-god relations."
+          "label": "提取八字訊號",
+          "detail": "從日干關係、日支關係、五行平衡與十神關係中提取契合度訊號。"
         },
         "2": {
-          "label": "Scoring",
-          "detail": "The five scores — total, emotion, fandom, longevity, support — and the destiny grade are calculated."
+          "label": "計算評分",
+          "detail": "計算總分、情感、粉絲互動、長期、支持五項評分，以及緣分等級。"
         },
         "3": {
-          "label": "Card generation",
-          "detail": "The aura type and mood keywords are layered on to build the photocard image and the five detail tabs."
+          "label": "生成卡片",
+          "detail": "結合氣場類型與氛圍關鍵詞，生成照片卡圖片和五個詳細分頁。"
         }
       },
       "faq": {
         "0": {
-          "q": "Is it paid?",
-          "a": "No. It is a free feature that opens with sign-in alone."
+          "q": "使用價格是多少？",
+          "a": "每次5,000韓元，可在付款頁面確認適用使用券與付款方式。"
         },
         "1": {
-          "q": "Does the result change if I enter the same details again?",
-          "a": "The same input gives the same result."
+          "q": "再次輸入相同資訊，結果會變化嗎？",
+          "a": "相同輸入會得到相同結果。"
         },
         "2": {
-          "q": "What are the scores based on?",
-          "a": "Signals are drawn from the two charts' day-stem relation, day-branch relation, five-element balance and ten-god relations, and converted into the five scores."
+          "q": "評分依據是什麼？",
+          "a": "從兩人的日干關係、日支關係、五行平衡與十神關係中提取訊號，換算為五項評分。"
         }
       }
     },
@@ -12431,81 +12431,81 @@
       }
     },
     "openNevilleMeditationPage": {
-      "tagline": "Choose the 30-minute course in 4 stages or the 60-minute course in 5, and the guidance lines appear in order, on a second-by-second timetable.",
+      "tagline": "選擇30分鐘四階段或60分鐘五階段課程後，提示文字會按精確到秒的時間表依次出現。",
       "feats": {
-        "0": "Choose between the 30-minute course (4 stages) and the 60-minute course (5 stages)",
-        "1": "30 minutes: rapid relaxation → entering pure awareness → the core loop (SATS) → fixing it and returning",
-        "2": "60 minutes: preparation and alignment → progressive relaxation → the state of emptiness (SATS) → imagining from within the result → setting the feeling and returning",
-        "3": "Across both courses, 242 guidance lines are prepared on a second-by-second timetable",
+        "0": "內維爾・戈達德使用過的意識冥想方法",
+        "1": "練習感受彷彿已經擁有所期待的事物",
+        "2": "運用方法，在當下梳理負面信念模式",
+        "3": "30分鐘四階段或60分鐘五階段的完整引導，讓初學者也容易跟上",
         "4": "The background music changes with each stage"
       },
-      "premiumIntro": "It does not simply tell you what to imagine; it guides you second by second on what to do at which minute.",
+      "premiumIntro": "不僅說明想像什麼，也按秒提示何時進行哪一步。",
       "premiumAudience": {
-        "0": "People who want to follow SATS in order",
-        "1": "People whose flow breaks when practising alone",
-        "2": "People who want to finish the practice within a set time"
+        "0": "想按順序練習SATS的人",
+        "1": "獨自練習時容易中斷節奏的人",
+        "2": "希望在規定時間內完成練習的人"
       },
       "premiumChapters": {
-        "0": "The whole guided course, 30 minutes or 60",
-        "1": "Stage-by-stage guidance on a second-by-second timetable",
-        "2": "Background music that changes with the stage",
-        "3": "A session you simply follow, without watching the clock"
+        "0": "完整的30或60分鐘引導課程",
+        "1": "按秒級時間表提供分階段引導",
+        "2": "隨階段切換的背景音樂",
+        "3": "無需自己計時，跟隨引導即可進行"
       },
       "premiumOutcomes": {
-        "0": "The meditation experience can differ from person to person.",
-        "1": "It does not replace medical or psychological treatment.",
-        "2": "The 30-minute and 60-minute courses are priced differently."
+        "0": "每個人的冥想體驗可能不同。",
+        "1": "不能替代醫療或心理治療。",
+        "2": "30分鐘與60分鐘課程的價格不同。"
       },
       "answersQuestions": {
-        "0": "In what order do I do SATS?",
-        "1": "How long should one session be?",
-        "2": "What should I focus on at each stage?"
+        "0": "SATS按什麼順序進行？",
+        "1": "一次練習多長時間合適？",
+        "2": "每個階段應該關注什麼？"
       },
-      "fallbackCta": "Open the meditation practice",
+      "fallbackCta": "開啟冥想練習",
       "analysisSteps": {
         "0": {
-          "label": "Choose a course",
-          "detail": "You pick between 30 minutes (4 stages) and 60 minutes (5 stages)."
+          "label": "選擇課程",
+          "detail": "選擇30分鐘四階段或60分鐘五階段。"
         },
         "1": {
-          "label": "Relaxation",
-          "detail": "You are guided into letting the body go until awareness settles."
+          "label": "放鬆",
+          "detail": "引導你放鬆身體，讓意識逐漸沉靜。"
         },
         "2": {
-          "label": "SATS practice",
-          "detail": "The core stretch, in which you repeatedly picture the scene you want, in the state just before sleep."
+          "label": "SATS練習",
+          "detail": "核心階段是在臨睡前的朦朧狀態中，反覆描繪期待的場景。"
         },
         "3": {
-          "label": "Fixing and returning",
-          "detail": "You set that feeling and come back to waking awareness."
+          "label": "穩定感受並回歸",
+          "detail": "讓這份感受穩定下來，再回到清醒狀態。"
         }
       },
       "valueCompare": {
         "0": {
-          "axis": "Course length",
-          "premium": "30 minutes in 4 stages, or 60 minutes in 5"
+          "axis": "課程時長",
+          "premium": "30分鐘四階段或60分鐘五階段"
         },
         "1": {
-          "axis": "Guidance",
-          "premium": "Stage-by-stage lines on a second-by-second timetable"
+          "axis": "引導方式",
+          "premium": "按秒級時間表出現的分階段提示文字"
         },
         "2": {
-          "axis": "Background music",
-          "premium": "Switches automatically with each stage"
+          "axis": "背景音樂",
+          "premium": "隨階段自動切換"
         }
       },
       "faq": {
         "0": {
-          "q": "What is different between 30 and 60 minutes?",
-          "a": "30 minutes has 4 stages, 60 minutes has 5. The 60-minute course has a longer relaxation stretch and a separate stage for staying inside the result."
+          "q": "30分鐘與60分鐘有什麼不同？",
+          "a": "30分鐘課程為四階段，60分鐘為五階段。60分鐘課程的放鬆時間更長，並單獨設置停留在想像結果中的階段。"
         },
         "1": {
-          "q": "Is it all right if this is my first meditation?",
-          "a": "The guidance lines tell you what to do as the time passes, so you only need to follow along."
+          "q": "沒有冥想經驗也可以嗎？",
+          "a": "提示會按時間出現，跟隨說明進行即可。"
         },
         "2": {
-          "q": "Are the two courses the same price?",
-          "a": "No. The 60-minute course costs more than the 30-minute one."
+          "q": "兩個課程價格相同嗎？",
+          "a": "不同。60分鐘課程的價格高於30分鐘課程。"
         }
       },
       "receives": {
@@ -12554,84 +12554,84 @@
       }
     },
     "openYogaGuru": {
-      "tagline": "Choose 30 or 60 minutes and it builds one continuous piece — the order of the poses and the breathing guidance, from warm-up to closing relaxation.",
+      "tagline": "選擇30或60分鐘後，將生成一套從熱身到收尾放鬆的動作順序與呼吸指導。",
       "feats": {
-        "0": "Choose the session length: 30 minutes or 60",
-        "1": "The sequence is built in order: warm-up · asana · pranayama · meditation · relaxation",
-        "2": "Every pose shows its Sanskrit name, its English and Korean names, and the hold time",
-        "3": "Every pose comes with 3 lines of guidance, the breathing method, the physical effect, the mental meaning and cautions",
+        "0": "寫下當下心情，觀察與之相應的個人能量流動",
+        "1": "透過適合自己的體式，舒展當下感到的緊繃與停滯",
+        "2": "以脈輪為關注點，重新感受生活方向的冥想",
+        "3": "融入印度傳統瑜伽修習氛圍的完整引導練習",
         "4": "Difficulty (beginner · intermediate · advanced), the focus area and the chakra theme are set out together",
         "5": "The session closes with a final mantra",
         "6": "If the course cannot be generated, the amount used is refunded automatically"
       },
-      "premiumIntro": "This is not a list of pre-made videos; the sequence is built on the spot from the conditions you choose and shown to you as a document.",
+      "premiumIntro": "不是提供預製影片清單，而是根據你選擇的條件即時生成練習序列，以文件呈現。",
       "premiumAudience": {
-        "0": "People who want to follow a set order",
-        "1": "People who want to learn the pose names alongside the breathing",
-        "2": "People who want to practise within a fixed time"
+        "0": "希望按明確順序練習的人",
+        "1": "希望同時學習動作名稱與呼吸方式的人",
+        "2": "希望安排固定時長練習的人"
       },
       "premiumChapters": {
-        "0": "The full sequence, 30 minutes or 60",
-        "1": "Each pose's name, hold time and 3 lines of guidance",
-        "2": "Breathing methods and cautions",
-        "3": "Difficulty, focus area and chakra theme",
-        "4": "The closing mantra"
+        "0": "完整的30或60分鐘練習序列",
+        "1": "每個動作的名稱、保持時間與三行指導",
+        "2": "呼吸方法與注意事項",
+        "3": "難度、重點部位與脈輪主題",
+        "4": "結束真言"
       },
       "premiumOutcomes": {
-        "0": "This is not medical advice; please avoid straining into any pose.",
-        "1": "Please work safely, in line with the state of your body.",
-        "2": "The 30-minute and 60-minute sessions are priced differently."
+        "0": "這不是醫療建議，請避免勉強完成動作。",
+        "1": "請根據自身身體狀態，確認練習是否安全。",
+        "2": "30分鐘與60分鐘練習的價格不同。"
       },
       "answersQuestions": {
-        "0": "What order should I practise in today?",
-        "1": "How should I breathe in this pose?",
-        "2": "How far can I get in 30 minutes?"
+        "0": "今天適合按什麼順序練習？",
+        "1": "這個動作該如何配合呼吸？",
+        "2": "30分鐘內可以練習哪些內容？"
       },
-      "fallbackCta": "Open the yoga guide",
+      "fallbackCta": "開啟瑜伽指引",
       "analysisSteps": {
         "0": {
-          "label": "Choose conditions",
-          "detail": "You pick the session length (30 or 60 minutes) and the direction you want."
+          "label": "選擇條件",
+          "detail": "選擇練習時長（30或60分鐘）和希望側重的方向。"
         },
         "1": {
-          "label": "Build the sequence",
-          "detail": "The order of poses from warm-up to closing relaxation is laid out, with the hold time for each."
+          "label": "編排練習序列",
+          "detail": "編排從熱身到收尾放鬆的動作順序，以及每個動作的保持時間。"
         },
         "2": {
-          "label": "Write the guidance",
-          "detail": "Every pose gets 3 lines of guidance, the breathing method, the physical effect, the mental meaning and cautions."
+          "label": "撰寫指導",
+          "detail": "為每個動作附上三行指導、呼吸方法、身體作用、精神層面的意義和注意事項。"
         },
         "3": {
-          "label": "Close",
-          "detail": "Difficulty, focus area and chakra theme are set out, and the closing mantra ends the session."
+          "label": "收尾",
+          "detail": "整理難度、重點部位與脈輪主題，並以結束真言收尾。"
         }
       },
       "valueCompare": {
         "0": {
-          "axis": "Session length",
-          "premium": "30 minutes or 60"
+          "axis": "練習時長",
+          "premium": "30或60分鐘"
         },
         "1": {
-          "axis": "Structure",
-          "premium": "The full run: warm-up · asana · pranayama · meditation · relaxation"
+          "axis": "結構",
+          "premium": "熱身、體式、調息、冥想與放鬆的全部階段"
         },
         "2": {
-          "axis": "Pose guidance",
-          "premium": "Name · hold time · 3 lines of guidance · breathing · cautions"
+          "axis": "動作指導",
+          "premium": "名稱、保持時間、三行指導、呼吸方法與注意事項"
         }
       },
       "faq": {
         "0": {
-          "q": "Do I get the same order every time?",
-          "a": "It is built afresh each time, to the conditions you choose."
+          "q": "每次的順序都相同嗎？",
+          "a": "每次都會根據所選條件重新編排。"
         },
         "1": {
-          "q": "Is it all right if this is my first time doing yoga?",
-          "a": "Difficulty is marked beginner, intermediate or advanced, and every pose comes with its cautions."
+          "q": "沒有瑜伽經驗也可以嗎？",
+          "a": "難度會標為初級、中級或高級，每個動作都附有注意事項。"
         },
         "2": {
           "q": "產生失敗會如何處理？",
-          "a": "If the course cannot be built, the amount used is refunded automatically."
+          "a": "如果無法生成課程，已使用的金額將自動退回。"
         }
       },
       "receives": {
@@ -12681,71 +12681,71 @@
     },
     "life_book_ai": {
       "fallbackTitle": "開啟刻在你八字中、尚未翻開的人生篇章。",
-      "tagline": "出生那一刻便已註定的大方向與轉折點——把只屬於你的人生故事像一本書一樣展開的高級專家諮詢。",
-      "premiumIntro": "人生之書不是一頁摘要，而是把上述主題拆成十個章節，依序撰寫，讓前一章成為後一章的依據。",
+      "tagline": "從出生時的命盤解讀大趨勢與轉折，將你獨有的人生敘事鋪陳成書的高階專業諮詢。",
+      "premiumIntro": "人生之書並非一篇總述，而是將上述主題分為十章依次展開，讓前章成為後章的依據。",
       "fallbackCta": "翻開我的人生之書",
-      "ctaNote": "輸入出生年月日時後，會依序確認通行券、月光石、單次付款。",
+      "ctaNote": "輸入出生年月日時後，依次確認使用券、月精石和單次付款。",
       "feats": {
-        "0": "根據出生年月日時計算八字原局，依序撰寫十個章節",
-        "1": "分配內容不重複，讓前一章的依據延續到下一章",
-        "2": "以大運、歲運為依據，分別整理各時期的場景",
-        "3": "可在結果畫面中另存為PDF，日後重新查看"
+        "0": "根據出生年月日時計算八字原局，依次撰寫十章內容",
+        "1": "避免重複分配內容，讓前一章的依據延續到後一章",
+        "2": "依據大運與流年，分別梳理各時期的人生場景",
+        "3": "在結果頁面儲存為PDF，方便再次閱讀"
       },
       "premiumAudience": {
-        "0": "在30、40歲轉折點需要重新確立方向的人",
-        "1": "想從根本上確認同樣的失敗為何反覆出現的人",
-        "2": "不想只看短期運勢、想一次縱覽整個人生流向的人"
+        "0": "在三四十歲的人生轉折中需要重新定位的人",
+        "1": "想從根本理解同類挫折為何反覆出現的人",
+        "2": "希望完整縱覽人生走勢，而不滿足於簡短運勢的人"
       },
       "premiumChapters": {
-        "0": "天生八字的原型 / 性格與內心的運作方式",
-        "1": "才能與工作方向 / 愛情與緣分 / 財富與現實基礎",
-        "2": "人際關係與家庭篇章 / 健康與調候的平衡",
-        "3": "以大運看到的人生大場景",
-        "4": "近期的歲運建議",
+        "0": "先天八字原型／性格與內在運作方式",
+        "1": "才能與工作方向／愛情與緣分／財富與現實基礎",
+        "2": "人際關係與家庭篇／健康與調候平衡",
+        "3": "從大運看人生的重要階段",
+        "4": "近期流年建議",
         "5": "人生之書的最後一句話"
       },
       "premiumOutcomes": {
-        "0": "輸入出生年月日時後，會確認通行券、月光石或單次付款狀態。",
+        "0": "輸入出生年月日時後，確認使用券、月精石及單次付款的適用情況。",
         "1": "諮詢結果僅供參考。",
-        "2": "以伺服器登記價格為準。"
+        "2": "以伺服器登記的價格為準。"
       },
       "answersQuestions": {
-        "0": "我人生的大方向會如何流動？",
-        "1": "該在哪個時期準備什麼？",
-        "2": "這個反覆出現的模式從何而來？"
+        "0": "我的人生主線會如何展開？",
+        "1": "在什麼時期該做好哪些準備？",
+        "2": "這種反覆出現的模式源自哪裡？"
       },
       "valueCompare": {
         "0": {
-          "axis": "構成",
-          "free": "性向摘要",
-          "premium": "拆分成10個章節的一整本篇幅"
+          "axis": "結構",
+          "free": "傾向概要",
+          "premium": "分為十章的一冊內容"
         },
         "1": {
           "axis": "篇幅",
-          "premium": "10個章節合計15,000字以上"
+          "premium": "十章合計目標15,000字"
         },
         "2": {
-          "axis": "保存",
-          "free": "僅限畫面查看",
-          "premium": "另存為PDF供日後重讀"
+          "axis": "儲存",
+          "free": "僅在頁面查看",
+          "premium": "儲存為PDF後再次閱讀"
         }
       },
       "faq": {
         "0": {
-          "q": "為什麼叫「書」？",
-          "a": "因為它不是一次讀完的摘要，而是按章節順序閱讀的結構。要先了解前一章才能理解後一章。"
+          "q": "為什麼稱為「書」？",
+          "a": "因為它按章節編排，適合依次閱讀，而非一次看完的摘要。理解前一章，有助於讀懂後一章。"
         },
         "1": {
           "q": "生成需要多久？",
-          "a": "因篇幅較大需要時間，請不要關閉畫面，耐心等待。"
+          "a": "由於篇幅較長，需要一些時間。請保持頁面開啟並耐心等待。"
         },
         "2": {
-          "q": "可以存成PDF嗎？",
-          "a": "可以，在結果畫面中可以另存為PDF。"
+          "q": "可以儲存為PDF嗎？",
+          "a": "可在結果頁面儲存為PDF。"
         }
       },
-      "badge": "專家諮詢型",
-      "headline": "給自己一段時間，把人生的大流向好好整理一次。",
+      "badge": "AI解讀諮詢",
+      "headline": "以八字為依據，將工作與愛情中反覆出現的模式，讀成一本屬於你的故事。",
       "hubTagline": "以八字流向為基礎，用諮詢的形式梳理人生方向與反覆模式的高級功能。",
       "hubFeats": {
         "0": "想從大框架上梳理人生方向時",
@@ -12756,49 +12756,49 @@
       "receives": {
         "0": {
           "title": "十章人生敘事",
-          "detail": "從原型一直寫到最後一句，按順序展開。"
+          "detail": "從原型到最後一句，依次銜接展開。"
         },
         "1": {
-          "title": "核心深度解讀4篇",
-          "detail": "分別深入解讀氣質、五行補充、十神與大運抉擇。"
+          "title": "四篇核心解讀",
+          "detail": "分別深入解讀氣質、五行補足、十神與大運中的選擇。"
         },
         "2": {
-          "title": "大運·流年走勢",
-          "detail": "把人生的重大場景與近期建議一併呈現。"
+          "title": "大運與流年走勢",
+          "detail": "同時梳理人生的重要階段與近期建議。"
         },
         "3": {
-          "title": "保存為PDF",
-          "detail": "把完成的人生之書下載為PDF，方便日後再讀。"
+          "title": "儲存為PDF",
+          "detail": "將完成的人生之書下載為PDF，保存後再次閱讀。"
         },
         "4": {
           "title": "最後一句話",
-          "detail": "以把前九章收束成一個人的故事的一句話作結。"
+          "detail": "用一句話將前九章收束成一個人的故事。"
         }
       },
       "outline": {
         "0": {
-          "title": "與生俱來的八字原型與性格",
-          "detail": "由日干、月支、藏干確立原型，解讀內心運作的方式。"
+          "title": "先天八字原型與性格",
+          "detail": "透過日干、月支與地支藏干把握原型，解讀內心的運作方式。"
         },
         "1": {
-          "title": "才能與愛情之章",
-          "detail": "講述工作的方向，以及愛情中反覆出現的吸引力。"
+          "title": "才能與愛情篇",
+          "detail": "梳理工作方向與愛情中反覆出現的吸引模式。"
         },
         "2": {
-          "title": "財運與人際之章",
-          "detail": "整理金錢進出的節奏與在家庭中承擔的角色。"
+          "title": "財富與人際關係篇",
+          "detail": "梳理金錢流動的節奏，以及你在家庭中的角色。"
         },
         "3": {
-          "title": "健康與調候的平衡",
-          "detail": "查看身體最先反應的部位。"
+          "title": "健康與調候平衡",
+          "detail": "觀察身體可能先產生反應的地方。"
         },
         "4": {
-          "title": "大運·流年看時機",
-          "detail": "把人生的重大場景與近期建議連接起來。"
+          "title": "從大運與流年看時機",
+          "detail": "將人生的重要階段與近期建議銜接起來。"
         },
         "5": {
-          "title": "核心深度解讀4篇與最後一句",
-          "detail": "分別深入解讀四個主題，最後以一句話收尾。"
+          "title": "四篇核心解讀與最後一句話",
+          "detail": "分別深入解讀四個主題，最後用一句話收尾。"
         }
       }
     },
@@ -12923,10 +12923,10 @@
       "fallbackCta": "查看戀愛秘策",
       "ctaNote": "付款後將開啟完整的關係分析。",
       "feats": {
-        "0": "Reads your love style, strengths, weaknesses, and attachment pattern from your own chart, item by item",
-        "1": "Enter the other person's birth details and it also computes compatibility, ideal type, and emotional distance",
-        "2": "Presents this year's love fortune together with favorable dates picked from the calculated daily energy",
-        "3": "Sensitive topics — reunion conditions, infidelity, self-protection — are split into their own sections"
+        "0": "根據本人的命式，逐項解讀戀愛傾向、優點、弱點與依戀方式",
+        "1": "輸入對方出生資訊後，同時計算契合度、理想類型與情感距離",
+        "2": "同時呈現今年的戀愛運勢，以及根據計算出的每日干支選取的合適日期",
+        "3": "將復合條件、出軌傾向與自我保護等敏感主題分別設為獨立章節"
       },
       "premiumAudience": {
         "0": "因無法確認對方真心而感到疲憊的人",
@@ -13176,79 +13176,79 @@
     "saju_destiny_meeting_place": {
       "badge": "場所解讀",
       "headline": "看看你的緣分最容易停駐的那些場所，是什麼樣的質地。",
-      "tagline": "5 recommended places, 5 countries and 4 types of encounter, set out with the season, month and time band, and the items that draw a bond.",
+      "tagline": "整理五個推薦場所、五個國家、四種相遇類型，並結合季節、月份、時段與緣分物品。",
       "feats": {
-        "0": "Picks 5 recommended places and 5 recommended countries",
-        "1": "Suggests 4 types of encounter",
-        "2": "Narrows the lucky timing to 3 seasons · 4 months · 3 time bands",
-        "3": "Gives 5 bond-drawing items along with a styling guide",
-        "4": "Sets out separately the settings to avoid and an action plan",
+        "0": "選出五個推薦場所與五個推薦國家",
+        "1": "提供四種相遇類型",
+        "2": "將有利時機縮小為三個季節、四個月份與三個時段",
+        "3": "同時提供五種緣分物品與造型指南",
+        "4": "分別整理需要避開的場合與行動計畫",
         "5": "還附帶可直接交給其他AI使用的7張提示卡"
       },
-      "premiumIntro": "Instead of vague advice, it narrows place, country, type and timing into lists. The result is calculated from the birth details you enter.",
+      "premiumIntro": "將建議具體縮小為場所、國家、類型與時機清單。結果根據你填寫的出生資訊計算。",
       "premiumAudience": {
-        "0": "People who want to settle on a concrete setting for meeting someone",
-        "1": "People who want to narrow down when to move",
-        "2": "People who want what to bring and how to dress included"
+        "0": "希望具體決定相遇場所的人",
+        "1": "想縮小行動時機範圍的人",
+        "2": "希望同時獲得隨身物品與穿搭建議的人"
       },
       "premiumChapters": {
-        "0": "5 recommended places · 5 countries",
-        "1": "4 types of encounter and the lucky timing",
-        "2": "Bond-drawing items and the styling guide",
-        "3": "Settings to avoid and the action plan",
+        "0": "五個推薦場所／五個國家",
+        "1": "四種相遇類型與有利時機",
+        "2": "緣分物品與造型指南",
+        "3": "需要避開的場合與行動計畫",
         "4": "可詢問其他AI的7張提示卡"
       },
       "premiumOutcomes": {
-        "0": "It does not guarantee any actual meeting or outcome.",
-        "1": "The result is calculated from the birth details you enter.",
+        "0": "不保證實際相遇或結果。",
+        "1": "結果根據你填寫的出生資訊計算。",
         "2": "運勢結果僅供參考。"
       },
       "answersQuestions": {
-        "0": "In what kind of setting does a bond open up for me?",
-        "1": "When would be a good time to move?",
-        "2": "What should I carry to a meeting?"
+        "0": "我更可能在什麼場合結識有緣人？",
+        "1": "什麼時候行動比較合適？",
+        "2": "參加見面的場合時，適合隨身帶什麼？"
       },
-      "fallbackCta": "Open the places of destiny",
+      "fallbackCta": "查看緣分之地",
       "analysisSteps": {
         "0": {
-          "label": "Enter birth details",
-          "detail": "Your chart is calculated from your birth date and time."
+          "label": "輸入出生資訊",
+          "detail": "根據出生年月日時計算八字。"
         },
         "1": {
-          "label": "Read the energy",
-          "detail": "The direction and grain in which bonds open are drawn from the five-element layout."
+          "label": "梳理能量",
+          "detail": "從五行配置中提取有助於緣分展開的方向與特質。"
         },
         "2": {
-          "label": "Pick places and timing",
-          "detail": "5 places, 5 countries, 4 types and the season, month and time band matching that grain are chosen."
+          "label": "選擇場所與時機",
+          "detail": "選出符合這些特質的五個場所、五個國家、四種類型，以及季節、月份和時段。"
         },
         "3": {
-          "label": "Write the plan",
-          "detail": "The bond-drawing items, styling, settings to avoid and the action plan are set out together."
+          "label": "制定行動方案",
+          "detail": "一併整理緣分物品、造型、需要避開的場合與行動計畫。"
         }
       },
       "valueCompare": {
         "0": {
-          "axis": "Recommendation range",
-          "premium": "5 places · 5 countries · 4 types of encounter"
+          "axis": "推薦範圍",
+          "premium": "五個場所／五個國家／四種相遇類型"
         },
         "1": {
-          "axis": "Timing",
-          "premium": "3 seasons · 4 months · 3 time bands"
+          "axis": "時機",
+          "premium": "三個季節／四個月份／三個時段"
         },
         "2": {
-          "axis": "Preparation",
-          "premium": "5 items · styling · settings to avoid · action plan"
+          "axis": "行動準備",
+          "premium": "五種緣分物品／造型／需避開的場合／行動計畫"
         }
       },
       "faq": {
         "0": {
-          "q": "Does the result take long to arrive?",
-          "a": "There is no generation wait; it is calculated from the birth details you enter and shown straight away."
+          "q": "需要等很久才有結果嗎？",
+          "a": "無需另外等待生成，會直接根據出生資訊計算並顯示。"
         },
         "1": {
-          "q": "Do overseas places come up too?",
-          "a": "5 recommended countries come with it."
+          "q": "也會推薦海外地點嗎？",
+          "a": "會同時提供五個推薦國家。"
         },
         "2": {
           "q": "這些提示卡是做什麼用的？",
@@ -14328,58 +14328,58 @@
       }
     },
     "openSajuGuardianPage": {
-      "tagline": "The day pillar of your birth decides your guardian among the sixty jiazi, and the same chart always summons the same figure. Five panels of reading and a talisman pouch open with it.",
+      "tagline": "出生當天的日柱會從六十甲子中確定你的守護者，相同命式始終召喚出相同形象，並同時開啟五個解讀面板與護符袋。",
       "feats": {
-        "0": "60 guardian characters, following the sixty jiazi exactly",
-        "1": "The same chart, the same figure — your guardian drawn by AI",
-        "2": "Five panels: the core guardian seal · handling relationships, work and money · today's fortune-turning rite · the 7-day guardian mission · the practical guardian guide",
-        "3": "A talisman pouch holding today's colour · a summoning phrase · a small action · a time key"
+        "0": "對應六十甲子的60種守護者角色",
+        "1": "相同命式，相同形象——由AI繪製的專屬守護者圖片",
+        "2": "五個面板：核心守護印記、關係／工作／財富運用、今日開運儀式、七日守護者任務與實用守護指南",
+        "3": "裝有今日顏色、召喚咒語、小行動與時間鑰匙的護符袋"
       },
-      "premiumIntro": "The guardian carries saju terminology over into the language of a character, so you meet your chart as a being that protects it.",
+      "premiumIntro": "守護者將八字術語化為角色語言，讓你以守護命式的形象與它相遇。",
       "premiumAudience": {
         "0": "覺得四柱命理術語難懂的人",
-        "1": "People who want a guardian character of their own",
-        "2": "People who want a short fortune-turning routine"
+        "1": "想擁有專屬守護角色的人",
+        "2": "希望嘗試簡短開運日常的人"
       },
       "premiumChapters": {
-        "0": "Your day pillar's guardian and its AI image",
-        "1": "The core guardian seal, and handling relationships · work · money",
-        "2": "Today's fortune-turning rite and the 7-day guardian mission",
-        "3": "The talisman pouch — today's colour · summoning phrase · small action · time key"
+        "0": "日柱守護者與AI圖片",
+        "1": "核心守護印記與關係、工作、財富運用",
+        "2": "今日開運儀式與七日守護者任務",
+        "3": "護符袋——今日顏色、召喚咒語、小行動、時間鑰匙"
       },
       "premiumOutcomes": {
         "0": "解讀僅供參考。",
-        "1": "The character image is generated by AI.",
+        "1": "角色圖片由AI生成。",
         "2": "適用現行付款政策。"
       },
       "answersQuestions": {
-        "0": "What does my day pillar's guardian look like?",
-        "1": "How should I handle relationships, work and money?",
-        "2": "What rite protects me today?"
+        "0": "我的日柱守護者是什麼樣子？",
+        "1": "該如何經營關係、工作與財富？",
+        "2": "今天守護自己的儀式是什麼？"
       },
-      "fallbackCta": "Summon your guardian",
+      "fallbackCta": "召喚守護者",
       "analysisSteps": {
         "0": {
           "label": "排命盤",
-          "detail": "Your day pillar is set from your birth date and time."
+          "detail": "根據出生年月日時排出日柱。"
         },
         "1": {
-          "label": "Summon the guardian",
-          "detail": "Your guardian is decided from the sixty jiazi and appears in the same figure each time."
+          "label": "召喚守護者",
+          "detail": "從六十甲子中確定你的守護者，並以固定形象出現。"
         },
         "2": {
-          "label": "Reading and talisman",
-          "detail": "The five panels of reading and the talisman pouch open."
+          "label": "開啟解讀與護符",
+          "detail": "開啟五個解讀面板與護符袋。"
         }
       },
       "faq": {
         "0": {
-          "q": "Does the guardian change each time I look?",
-          "a": "No. The same chart always summons the same guardian in the same figure."
+          "q": "每次查看守護者都會變化嗎？",
+          "a": "不會。相同命式始終召喚相同守護者，形象也保持一致。"
         },
         "1": {
-          "q": "Do I have to sign in?",
-          "a": "You can use it without signing in."
+          "q": "需要登入嗎？",
+          "a": "無需登入即可使用。"
         }
       },
       "receives": {
@@ -14588,10 +14588,10 @@
       "fallbackCta": "查看戀愛解讀書",
       "ctaNote": "付款後全部20個章節將依序開啟。",
       "feats": {
-        "0": "Calculates both your Saju natal chart and your Zi Wei Dou Shu chart from your birth date and time",
-        "1": "Generates twenty chapters in order, using each chapter as the basis for the next",
-        "2": "States the basis in every chapter — day master, ten gods, the spouse palace, the travel palace",
-        "3": "Sets out your love DNA indicators and the next three years of relationship flow in their own chapters"
+        "0": "根據出生年月日時，同時計算八字原局與紫微斗數命盤",
+        "1": "依次生成二十章，以前一章作為後一章的依據",
+        "2": "每章明確標示日干、十神、夫妻宮、遷移宮等解讀依據",
+        "3": "以獨立章節整理戀愛DNA指標與未來三年的緣分走勢"
       },
       "premiumAudience": {
         "0": "想徹底整理一次戀愛模式的人",
@@ -14987,10 +14987,10 @@
       "fallbackCta": "開啟27宿諮詢",
       "ctaNote": "付款後兩個體系的解讀將一併開啟。",
       "feats": {
-        "0": "Calculates your 27-mansion birth mansion from your birth date, and with a birth time your nakshatra and Vimshottari dasha as well",
-        "1": "Writes five master-level Sukuyo pieces and six master-level Vedic pieces separately, each in its own tradition's language",
-        "2": "Ten fusion pieces set the two readings side by side and mark where they agree and where they part",
-        "3": "The final section gives the three things that matter most and what to do starting today"
+        "0": "透過現有確定性計算，確認宿曜本命宿與吠陀星宿及星宿分區",
+        "1": "以共同訊號、外在與內在、愛情、工作、陰影等九個提問式章節，交叉解讀",
+        "2": "不只羅列相同之處，也將兩種傳統呈現的不同視角整合為現實中的樣貌",
+        "3": "在最後的使用指南中，整理有利條件、警示訊號與三項實踐"
       },
       "premiumAudience": {
         "0": "想同時看宿曜與吠陀的人",
@@ -15359,82 +15359,82 @@
       }
     },
     "palm_reading": {
-      "tagline": "Checks 4 major lines, 9 minor lines, 7 mounts of the palm, and 6 special markings, then writes an overall reading aimed at around 3,000 characters.",
+      "tagline": "確認四條主要線、九類輔助線、七個掌丘與六類特殊紋樣，並以約3,000字為目標撰寫綜合解讀。",
       "feats": {
-        "0": "Works with just one hand; with both hands, each is read separately",
-        "1": "Reads the 4 major lines: life, head, heart, and fate",
-        "2": "Checks 9 minor lines and the 7 mounts of the palm as well",
-        "3": "Of the 6 special markings, only those confirmed in the photo are written up",
-        "4": "Ties lines, mounts, and markings together into one overall reading",
-        "5": "The reading aims for around 3,000 characters"
+        "0": "上傳一隻手即可分析；上傳雙手時會分別解讀",
+        "1": "解讀生命線、智慧線、感情線與命運線四條主要線",
+        "2": "同時確認九類輔助線與七個掌丘",
+        "3": "六類特殊紋樣只描述照片中能夠確認的部分",
+        "4": "將線條、掌丘與紋樣結合，整理成一份綜合諮詢解讀",
+        "5": "諮詢內容以約3,000字為目標撰寫"
       },
-      "premiumIntro": "Only the lines and markings confirmed in the photo are used as grounds. Lines that are blurred or not picked up are not written up as present.",
+      "premiumIntro": "只依據照片中確認的線條與紋樣進行解讀。模糊或未辨識出的線條，不會寫成確實存在。",
       "premiumAudience": {
-        "0": "Those who want their palm read with reasons attached",
-        "1": "Those who want to compare both hands",
-        "2": "Those who want their tendencies and life flow summed up in one reading"
+        "0": "希望了解手相解讀依據的人",
+        "1": "想比較雙手的人",
+        "2": "希望一次梳理個人傾向與走勢的人"
       },
       "premiumChapters": {
-        "0": "A line reading for each hand you upload",
-        "1": "A summary of 4 major lines, 9 minor lines, and 7 mounts",
-        "2": "An overall reading that ties lines, mounts, and markings together",
+        "0": "分別解讀上傳的每隻手的掌紋",
+        "1": "整理四條主要線、九類輔助線與七個掌丘",
+        "2": "結合線條、掌丘與紋樣的綜合解讀",
         "3": "以約3,000字為目標的解讀"
       },
       "premiumOutcomes": {
-        "0": "Analysis accuracy varies with image quality.",
-        "1": "Lines that could not be confirmed are not written into the result.",
-        "2": "This does not replace a health assessment."
+        "0": "分析準確度會受到圖片品質的影響。",
+        "1": "無法確認的線條不會寫入結果。",
+        "2": "不能替代健康狀況評估。"
       },
       "answersQuestions": {
-        "0": "Which line stands out most on my palm?",
-        "1": "Why do my two hands look different?",
-        "2": "What tendencies and flow does my palm show?"
+        "0": "我的掌紋中最明顯的是哪條線？",
+        "1": "為什麼雙手看起來不同？",
+        "2": "我的手相呈現出哪些傾向與走勢？"
       },
-      "fallbackCta": "Start the palm analysis",
+      "fallbackCta": "開始手相分析",
       "analysisSteps": {
         "0": {
-          "label": "Photo upload",
-          "detail": "Upload a photo of one hand or both. With both hands, the differences between them are read too."
+          "label": "上傳照片",
+          "detail": "上傳單手或雙手照片。上傳雙手時，也會比較兩隻手的差異。"
         },
         "1": {
-          "label": "Lines and mounts",
-          "detail": "Reads the uploaded hands and checks 4 major lines, 9 minor lines, 7 mounts, and 6 special markings."
+          "label": "解讀掌紋與掌丘",
+          "detail": "從上傳的手掌中確認四條主要線、九類輔助線、七個掌丘與六類特殊紋樣。"
         },
         "2": {
-          "label": "Scoring",
-          "detail": "Converts the reading into scores across 6 items."
+          "label": "整理評分",
+          "detail": "將解讀結果換算為六個項目的評分。"
         },
         "3": {
-          "label": "Writing the reading",
-          "detail": "Ties the reading together into an overall interpretation aimed at around 3,000 characters."
+          "label": "撰寫諮詢解讀",
+          "detail": "彙總辨識結果，以約3,000字為目標撰寫綜合解讀。"
         }
       },
       "valueCompare": {
         "0": {
-          "axis": "Reading scope",
-          "premium": "Each uploaded hand, 4 major lines, 9 minor lines, 7 mounts"
+          "axis": "解讀範圍",
+          "premium": "每隻上傳的手／四條主要線／九類輔助線／七個掌丘"
         },
         "1": {
-          "axis": "Reading length",
+          "axis": "解讀篇幅",
           "premium": "以約3,000字為目標的解讀"
         },
         "2": {
-          "axis": "Both-hand comparison",
-          "premium": "With both hands, reads the difference between the hand you were born with and the hand you have lived"
+          "axis": "雙手比較",
+          "premium": "上傳雙手後，解讀象徵先天傾向與後天經歷的兩手差異"
         }
       },
       "faq": {
         "0": {
-          "q": "Do I have to upload both hands?",
-          "a": "No. One hand is enough for an analysis. If you upload both hands together, each is read and compared."
+          "q": "必須上傳雙手嗎？",
+          "a": "不需要，上傳單手也可以分析。上傳雙手時，會分別解讀並進行比較。"
         },
         "1": {
-          "q": "What if the photo is blurry?",
-          "a": "Lines and markings that could not be confirmed are not written up as present. Please shoot in good light with the whole palm in frame."
+          "q": "照片模糊會怎樣？",
+          "a": "無法確認的線條或紋樣不會被寫成確實存在。請在光線充足處拍攝，讓整個手掌入鏡。"
         },
         "2": {
-          "q": "Can it tell me about my health?",
-          "a": "It does not make medical diagnoses. Palm readings are for reference."
+          "q": "能看出健康狀況嗎？",
+          "a": "不會進行醫學診斷。手相解讀僅供參考。"
         }
       },
       "receives": {
@@ -15687,59 +15687,59 @@
       }
     },
     "animal_destiny_unlock": {
-      "tagline": "Your day pillar's twelve life stages are set using the Korea Astronomy and Space Science Institute calendar, and your guardian animal is decided from twelve — from the Sprout Deer to the Sage Owl — unfolding personality, love, work and relationships.",
+      "tagline": "依據韓國天文研究院的曆法推算日柱十二長生，從萌芽小鹿到智者貓頭鷹等十二種動物中確定你的守護動物，解讀性格、戀愛、職業與關係。",
       "feats": {
-        "0": "The day pillar's twelve life stages, set by the Korea Astronomy and Space Science Institute calendar",
-        "1": "Twelve guardian animals including the Sprout Deer, Sun Lion and Sage Owl",
-        "2": "Readings for personality · love · work · relationships, plus today's mission",
-        "3": "A destiny compendium of all twelve animals and compatibility grades",
-        "4": "Save the result card as a high-resolution image"
+        "0": "依據韓國天文研究院曆法推算的日柱十二長生",
+        "1": "萌芽小鹿、太陽獅子、智者貓頭鷹等十二種守護動物",
+        "2": "性格、戀愛、職業、關係解讀與今日任務",
+        "3": "十二動物命運圖鑑與契合度等級",
+        "4": "將結果卡儲存為高畫質圖片"
       },
-      "premiumIntro": "The twelve life stages are the axis of saju that reads the growth stage of your energy. Those stages are carried over into twelve animal characters, so anyone can read them.",
+      "premiumIntro": "十二長生是八字中觀察氣之成長階段的一條軸線。將這些階段化作十二種動物角色，讓解讀更容易理解。",
       "premiumAudience": {
         "0": "覺得四柱命理術語難懂的人",
-        "1": "People who want to keep their disposition as a character",
-        "2": "People who want a light compatibility comparison with a partner or friend"
+        "1": "希望用角色留存個人特質的人",
+        "2": "想輕鬆比較與戀人或朋友契合度的人"
       },
       "premiumChapters": {
-        "0": "An in-depth reading of your guardian animal",
-        "1": "Interpretation along four strands: personality · love · work · relationships",
-        "2": "The twelve-animal destiny compendium and compatibility grades",
-        "3": "Saving the result card as a high-resolution image"
+        "0": "我的守護動物深度解讀",
+        "1": "性格、戀愛、職業、關係四方面解讀",
+        "2": "十二動物命運圖鑑與契合度等級",
+        "3": "儲存高畫質結果卡圖片"
       },
       "premiumOutcomes": {
         "0": "解讀僅供參考。",
-        "1": "It does not fix your future or your disposition.",
+        "1": "不會斷定未來或個性。",
         "2": "適用現行付款政策。"
       },
       "answersQuestions": {
-        "0": "What is my guardian animal?",
-        "1": "How does my disposition show up in love and at work?",
-        "2": "What is the compatibility grade between that person and me?"
+        "0": "我的守護動物是什麼？",
+        "1": "我的特質會如何表現在戀愛與工作中？",
+        "2": "我和那個人的契合度等級如何？"
       },
-      "fallbackCta": "Meet your guardian animal",
+      "fallbackCta": "認識我的守護動物",
       "analysisSteps": {
         "0": {
           "label": "排命盤",
-          "detail": "The day pillar and its twelve life stages are set using the Korea Astronomy and Space Science Institute calendar."
+          "detail": "依據韓國天文研究院的曆法，推算日柱與十二長生。"
         },
         "1": {
-          "label": "Guardian animal",
-          "detail": "Your guardian animal is decided from among the twelve."
+          "label": "確定守護動物",
+          "detail": "從十二種動物中確定你的守護動物。"
         },
         "2": {
-          "label": "Compendium and compatibility",
-          "detail": "The in-depth reading, the destiny compendium and the compatibility grades open."
+          "label": "開啟圖鑑與契合度",
+          "detail": "開啟深度解讀、命運圖鑑與契合度等級。"
         }
       },
       "faq": {
         "0": {
           "q": "付款一次後，還能繼續查看嗎？",
-          "a": "Yes. It is a permanent unlock, so you can open it again at any time."
+          "a": "可以。解鎖為永久解鎖，之後可隨時再次查看。"
         },
         "1": {
           "q": "可以儲存結果嗎？",
-          "a": "You can save the result card as a portrait high-resolution image."
+          "a": "可以將結果卡儲存為直式高畫質圖片。"
         }
       },
       "receives": {
@@ -15788,108 +15788,108 @@
       }
     },
     "fortune_tea_house": {
-      "tagline": "A conversational reading where Yeon-i listens to your story first, then blends tarot and saju symbolism to lay out where your heart is sitting right now and what the next single step could be.",
+      "tagline": "Yeoni先傾聽你的故事，再結合塔羅與四柱八字的象徵，透過對話整理當下心境與下一步。",
       "feats": [
-        "When there is nowhere you can say what you actually feel",
-        "When you need things sorted out before you need a verdict",
-        "When you want someone to listen, not to advise"
+        "難以向任何人說出心裡話時",
+        "比起結論，更需要先理清思緒時",
+        "比起建議，更需要有人傾聽時"
       ],
-      "premiumIntro": "Instead of handing you a flat verdict, it starts by naming what your feelings are caught on.",
+      "premiumIntro": "不急著下定論，先一起看看你的心正被什麼牽住。",
       "premiumAudience": [
-        "Anyone who wants to talk a worry through out loud",
-        "Anyone who prefers a warm, unhurried tone",
-        "Anyone who wants tarot and saju referenced together"
+        "想透過傾訴梳理煩惱的人",
+        "偏好溫暖諮詢語氣的人",
+        "想同時參考塔羅與四柱八字的人"
       ],
       "answersQuestions": [
-        "How should I make sense of what I'm feeling?",
-        "Is this a time to wait, or a time to move?",
-        "Is it all right to keep holding on to this relationship?"
+        "該如何整理這份心情？",
+        "現在該等待，還是行動？",
+        "我還該繼續挽留這段關係嗎？"
       ],
-      "fallbackCta": "Start a reading at the tea house",
+      "fallbackCta": "在茶館開始諮詢",
       "receives": {
         "0": {
-          "title": "從茶館儀式開始的諮詢",
-          "detail": "選擇茶杯並完成簡短的儀式，寫下問題後，妍伊會為你展開故事。"
+          "title": "以茶館儀式開始的諮詢",
+          "detail": "選擇茶杯，完成簡短儀式，再寫下問題，Yeoni便會展開解讀。"
         },
         "1": {
-          "title": "可選3張或5張牌陣",
-          "detail": "可選擇快速看重點的3張牌陣(5,000韓元)，或更深入的5張牌陣(5,000韓元)。"
+          "title": "選擇三張或五張牌陣",
+          "detail": "可選擇快速聚焦重點的三張牌（5,000韓元），或更深入解讀的五張牌（5,000韓元）。"
         },
         "2": {
-          "title": "貼合你問題的解讀",
-          "detail": "會依據你寫下的問題，對每張牌給出相互關聯的解讀。"
+          "title": "針對問題的專屬解讀",
+          "detail": "根據你親自寫下的問題，獲得相互關聯的逐張牌面解說。"
         },
         "3": {
-          "title": "結果可儲存、匯出PDF、分享",
-          "detail": "完成的諮詢結果可以儲存、下載為PDF，也可以依你喜歡的方式分享。"
+          "title": "儲存、PDF與分享",
+          "detail": "完成的諮詢結果可以儲存、下載為PDF，或以所需形式分享。"
         },
         "4": {
-          "title": "可重新查看過往諮詢",
-          "detail": "以前完成的諮詢紀錄隨時都能再次開啟查看。"
+          "title": "再次查看以往諮詢",
+          "detail": "隨時重新開啟已經完成的諮詢紀錄。"
         }
       },
       "outline": {
         "0": {
           "title": "進入茶館",
-          "detail": "進入茶館，為今天的諮詢準備氛圍。"
+          "detail": "走進茶館，準備好今天的諮詢氛圍。"
         },
         "1": {
           "title": "選擇茶杯",
-          "detail": "挑選一個喜歡的茶杯，開始諮詢。"
+          "detail": "挑選喜歡的茶杯，開始諮詢。"
         },
         "2": {
           "title": "茶杯儀式",
-          "detail": "用選好的茶杯完成簡短儀式，梳理你的問題。"
+          "detail": "用選好的茶杯完成簡短儀式，同時理清問題。"
         },
         "3": {
-          "title": "輸入問題並選擇牌陣",
-          "detail": "寫下想問的問題，並選擇3張或5張牌陣。"
+          "title": "填寫問題並選擇牌陣",
+          "detail": "寫下想了解的事，再選擇三張或五張牌陣。"
         },
         "4": {
-          "title": "揭示卡牌",
-          "detail": "在茶香瀰漫的等待之後，抽到的卡牌會依序展開。"
+          "title": "揭示牌面",
+          "detail": "等待茶香漸濃後，抽到的牌會依次展開。"
         },
         "5": {
           "title": "查看並儲存結果",
-          "detail": "查看每張牌的解讀與綜合建議，還可以儲存、匯出PDF、分享。"
+          "detail": "查看逐張牌的解釋與綜合建議，還可儲存、匯出PDF或分享。"
         }
       }
     },
     "fortune_chat": {
-      "tagline": "A reading where two voices, Yeon-i and Neo, take the same question from different angles and narrow the focus of your situation through the back-and-forth.",
+      "tagline": "Yeoni先關注感受，Neo先梳理判斷。依據選定的一套體系解讀問題，兩位顧問以不同順序呈現答案。",
       "feats": [
-        "When a one-line interpretation never gets you to an answer",
-        "When you're stuck on what to even ask",
-        "When you keep circling the same worry"
+        "面臨選擇，思緒複雜時",
+        "想知道答案背後的理由時",
+        "想理清現在該做什麼時"
       ],
-      "premiumIntro": "There is no fixed questionnaire -- you read an answer, then ask again, and the situation narrows from there.",
+      "premiumIntro": "先閱讀核心答案，再查看依據、趨勢、時機與行動建議。",
       "premiumAudience": [
-        "Anyone who thinks best by asking and answering",
-        "Anyone whose situation is too long for a fixed form",
-        "Anyone who wants both Yeon-i's and Neo's differing takes"
+        "想深入探討一個煩惱的人",
+        "想確認解讀依據的人",
+        "想重讀已儲存諮詢的人"
       ],
       "answersQuestions": [
-        "In my situation, which way is better?",
-        "What is the risk in this choice?",
-        "Is there something I'm missing right now?"
+        "在我的處境下，哪種選擇更合適？",
+        "這個選擇有什麼風險？",
+        "我現在是否忽略了什麼？"
       ],
-      "fallbackCta": "Start a destiny conversation",
+      "fallbackCta": "開始諮詢",
       "receives": {
         "0": {
-          "title": "與妍伊、尼奧對話式諮詢",
-          "detail": "可從八字、紫微斗數、吠陀占星、宿曜、西洋占星、塔羅中選擇主題，與妍伊或尼奧進行對話式諮詢。"
+          "title": "選擇Yeoni或Neo顧問",
+          "detail": "在同一付費服務中，選擇語氣與解讀順序不同的兩位顧問之一。"
         },
         "1": {
-          "title": "延續上下文的對話",
-          "detail": "會參考最近的對話內容(最多6則)，在同一脈絡下繼續回答。"
+          "title": "選定體系的解讀依據",
+          "detail": "從四柱八字、紫微斗數、宿曜、吠陀占星、西洋占星或塔羅中，選擇一種體系解讀問題。"
         },
         "2": {
-          "title": "每個帳號免費1次，之後按次付費",
-          "detail": "登入後每個帳號可免費對話1次，之後每往返一次需支付5,000韓元。"
+          "title": "針對一個問題的回答",
+          "detail": "登入後準備問題及所需資料，並在現有頁面確認使用條件。"
         },
         "3": {
-          "title": "對話自動儲存",
-          "detail": "聊天記錄會儲存在會話中，重新進入也能接續查看。"
+          "title": "按顧問分類的紀錄",
+          "detail": "重新閱讀已儲存的回答。新問題以新的諮詢進行準備。"
         },
         "4": {
           "title": "隨時切換主題",
@@ -15898,130 +15898,130 @@
       },
       "outline": {
         "0": {
-          "title": "選擇主題",
-          "detail": "從八字、紫微斗數、吠陀、宿曜、占星、塔羅中選擇想諮詢的主題。"
+          "title": "選擇體系與顧問",
+          "detail": "選擇解讀問題的體系，以及Yeoni或Neo。"
         },
         "1": {
-          "title": "選擇角色",
-          "detail": "決定與妍伊還是尼奧對話。"
+          "title": "準備諮詢資料",
+          "detail": "命盤諮詢需準備個人資料；塔羅只需準備問題，無須出生資料。"
         },
         "2": {
-          "title": "輸入第一個問題",
-          "detail": "寫下現在困擾你的情況，開始對話。"
+          "title": "輸入問題",
+          "detail": "在300字以內寫下此刻想了解的一件事。"
         },
         "3": {
-          "title": "查看回覆後繼續追問",
-          "detail": "看完回覆後可以繼續追問，回答會參考最近的對話內容。"
+          "title": "分章節閱讀回答",
+          "detail": "從已生成的章節開始，閱讀核心答案、依據與建議。"
         },
         "4": {
-          "title": "免費次數用完後付費繼續",
-          "detail": "用完帳號的1次免費額度後，可付費繼續對話。"
+          "title": "再次查看諮詢紀錄",
+          "detail": "在各顧問的紀錄中，重新開啟已儲存內容。"
         }
       }
     },
     "destiny_compass": {
-      "tagline": "A report-style reading that puts your saju flow next to the options in front of you and reads direction and timing as two separate things.",
+      "tagline": "將四柱八字的走勢與當前選項並列，分別解讀方向與時機的報告。",
       "feats": [
-        "When you have options but no standard to judge them by",
-        "When the direction is settled but the timing worries you",
-        "When every piece of advice you get says something different"
+        "有選項卻沒有判斷標準時",
+        "方向已定，卻對時機不安時",
+        "不同建議相互矛盾，讓你困惑時"
       ],
-      "premiumIntro": "Rather than picking the answer for you, it sets a standard for which way costs you less in the current flow.",
+      "premiumIntro": "不替你指定正確答案，而是建立標準，判斷在當前走勢中哪種選擇更少勉強。",
       "premiumAudience": [
-        "Anyone facing a big call -- a job move, a relocation, a career shift",
-        "Anyone who has been putting a decision off for a long time",
-        "Anyone who wants their reasoning written down"
+        "面臨轉職、搬家、發展方向等重大選擇的人",
+        "已經拖延決定很久的人",
+        "想把判斷標準記錄下來的人"
       ],
       "answersQuestions": [
-        "Is it all right to change direction now?",
-        "When would moving cost me the least?",
-        "What should I sort out first?"
+        "現在適合改變方向嗎？",
+        "什麼時候行動，負擔會較小？",
+        "應先整理什麼？"
       ],
-      "fallbackCta": "Open the compass reading",
+      "fallbackCta": "開啟指南針解讀",
       "receives": {
         "0": {
-          "title": "以煩惱為基礎的解讀",
-          "detail": "以你寫下的一句煩惱為基礎構成報告。"
+          "title": "圍繞煩惱展開的解讀",
+          "detail": "圍繞你用一句話寫下的煩惱，構成整份報告。"
         },
         "1": {
-          "title": "四體系原因分析",
-          "detail": "將四柱、紫微斗數、宿曜、塔羅四種體系合而為一，指出原因。"
+          "title": "四路原因分析",
+          "detail": "彙集四柱八字、紫微斗數、宿曜與塔羅四種體系，分析原因。"
         },
         "2": {
           "title": "變化時機提示",
-          "detail": "指出目前流勢何時會改變。"
+          "detail": "指出當前走勢可能轉變的時間。"
         },
         "3": {
           "title": "行動計畫",
-          "detail": "整理成從今天起可以執行的具體行動。"
+          "detail": "將從今天起可做的事，整理成具體行動。"
         },
         "4": {
           "title": "儲存為PDF",
-          "detail": "可將完成的報告儲存為PDF檔案。"
+          "detail": "可將完整報告儲存為PDF檔案留存。"
         }
       },
       "outline": {
         "0": {
-          "title": "確認目前座標",
-          "detail": "寫下煩惱後，先指出你目前所在的位置與流勢。"
+          "title": "確認當前座標",
+          "detail": "寫下煩惱後，先梳理你當前的位置與走勢。"
         },
         "1": {
           "title": "解讀原因",
-          "detail": "將四柱、紫微斗數、宿曜、塔羅四種體系合而為一，指出目前流勢的原因。"
+          "detail": "結合四柱八字、紫微斗數、宿曜與塔羅四路視角，分析當前走勢的成因。"
         },
         "2": {
           "title": "變化時機",
-          "detail": "指出流勢何時會改變。"
+          "detail": "指出走勢可能發生變化的時間。"
         },
         "3": {
-          "title": "機會與注意",
-          "detail": "分別指出現在該把握的機會與該迴避的時機。"
+          "title": "機會與注意事項",
+          "detail": "分別指出當下可把握的機會與應避開的時段。"
         },
         "4": {
-          "title": "行動計畫與總結",
-          "detail": "一次整理出從今天起的行動與整體結論。"
+          "title": "行動計畫與綜合總結",
+          "detail": "一併整理從今天起可採取的行動與整體結論。"
         },
         "5": {
           "title": "儲存為PDF",
-          "detail": "將完成的報告儲存為PDF檔案。"
+          "detail": "將完整報告儲存為PDF檔案。"
         }
       }
     },
     "saju_sibyl": {
-      "tagline": "An in-depth consultation-style reading that puts your natal chart next to the luck period you are passing through and traces the repeating patterns back to their root.",
+      "tagline": "查看選定年份需留意的時段與各領域依據，並落實為實際的改善行動。",
       "feats": [
-        "When the free summary always leaves you short",
-        "When the same problem has been repeating for years",
-        "When you want your saju explained properly"
+        "在重大決定前，需要檢查標準時",
+        "想了解關係與工作中反覆出現的模式時",
+        "想制定一整年的準備計畫時"
       ],
-      "premiumIntro": "Not a short description of your disposition -- it carries on to why things flow the way they do.",
+      "premiumIntro": "基礎版為規則分析，深入版為依據伺服器計算的AI諮詢。",
       "premiumAudience": [
-        "Anyone who has had saju readings several times already",
-        "Anyone who wants reasoning, not surface advice",
-        "Anyone laying out a long-term plan"
+        "需要按不同時期做準備的人",
+        "想了解自身氣質優點與不足的人",
+        "希望獲得實際行動計畫的人"
       ],
       "answersQuestions": [
-        "What is the core of my saju, in the end?",
-        "What phase is this period for me?",
-        "Where do I break the repeating pattern?"
+        "今年應優先為哪些事做準備？",
+        "什麼時期應檢查哪些事？",
+        "如何更好地運用自己的氣質？"
       ],
-      "fallbackCta": "Open the Sibyl in-depth reading",
+      "fallbackCta": "開始Sibyl年度準備分析",
       "receives": {
         "0": {
-          "title": "核心矩陣診斷",
-          "detail": "先用日干、五行、十神、風險/適性係數呈現整體圖景。"
+          "title": "年度簡報",
+          "detail": "閱讀選定年份應優先檢查的領域及其依據。"
         },
         "1": {
-          "title": "風險與適性精密分析",
-          "detail": "深入解析該係數的依據，直到五行失衡與刑衝破害。"
+          "title": "分領域準備",
+          "detail": "查看金錢、戀愛、人際關係、職場與工作的訊號及行動建議。"
         },
         "2": {
-          "title": "10年路線圖",
-          "detail": "追蹤逐年的風險與機會走勢，以及擴張、守備的時機。"
+          "title": "每月計畫",
+          "detail": "以節氣交接為基準，確認需留意的區間與應調整的條件。"
         },
         "3": {
-          "title": "月度風險規劃表",
-          "detail": "分別整理每月的風險、動力、儲備與應對方案。"
+          "title": "改善行動與再次閱讀",
+          "detail": "整理可執行的改善行動，並在收藏庫中重讀完整原文。"
         },
         "4": {
           "title": "人際·財運·職業策略",
@@ -16058,22 +16058,22 @@
     "tarot_numerology": {
       "tagline": "先算出生命數與今日數，再從以這些數字洗過的牌組中親手挑出五張，分成九個主題細讀的深度解讀。",
       "feats": [
-        "When a single card leaves the story unfinished",
-        "When you want today's flow read with a bit more grounding",
-        "When you want numbers and cards seen together"
+        "一張牌無法展開完整脈絡時",
+        "想更有依據地了解今日走勢時",
+        "想結合數字與牌面來解讀時"
       ],
       "premiumIntro": "不是隨機的一張牌，而是從出生年月日算出的數字洗過的牌組中，在二十二個位置裡親手挑出五張來讀。",
       "premiumAudience": [
-        "Anyone interested in numerology",
-        "Anyone who wants a read on the daily flow",
-        "Anyone who wants tarot with a bit more structure"
+        "對數字命理感興趣的人",
+        "想梳理每日走勢的人",
+        "想更有結構地閱讀塔羅的人"
       ],
       "answersQuestions": [
-        "What attitude do I need today?",
-        "What does my life number say?",
-        "Where is the current flow heading?"
+        "今天我需要採取怎樣的態度？",
+        "我的先天數字傳達什麼含義？",
+        "當前的走勢正朝向哪裡？"
       ],
-      "fallbackCta": "Open the 5-card numerology tarot",
+      "fallbackCta": "打開數字命理五張塔羅",
       "receives": [
         {
           "title": "生命數與今日數",
@@ -16120,164 +16120,164 @@
       ]
     },
     "compatibility": {
-      "tagline": "A free compatibility reading that calculates each person's chart and shows separately where your energies mesh and where they grind.",
+      "tagline": "分別計算兩人的命式，區分彼此氣質契合與碰撞之處的免費合盤。",
       "feats": [
-        "When all you're told is whether you match or not",
-        "When you keep colliding at the same point",
-        "When you need a clue for understanding the other person"
+        "只聽到合不合，卻沒有更多解釋時",
+        "總在同一個地方發生摩擦時",
+        "需要理解對方的線索時"
       ],
-      "premiumIntro": "It doesn't just score you -- it separates out which areas are strong and which call for care.",
+      "premiumIntro": "不只給分數，也分開說明關係的優勢與需要留意之處。",
       "premiumAudience": [
-        "Anyone who wants a read on a partner or spouse",
-        "Anyone trying to understand a recurring friction",
-        "Anyone who knows the other person's birth date"
+        "想了解與戀人或伴侶相處特點的人",
+        "想理解關係中反覆摩擦的人",
+        "知道對方出生日期的人"
       ],
       "answersQuestions": [
-        "Where do the two of us fit well?",
-        "Where do we collide?",
-        "What should we be careful about in this relationship?"
+        "我們在哪些方面合得來？",
+        "我們容易在哪些地方衝突？",
+        "這段關係中要留意什麼？"
       ],
-      "fallbackCta": "See the free compatibility reading"
+      "fallbackCta": "查看免費合盤"
     },
     "saju": {
-      "tagline": "A basic reading that calculates the eight characters of your saju and lays out your innate temperament and the large turns of your life. You can start for free.",
+      "tagline": "計算四柱八字，梳理先天氣質與人生大幅轉折的基礎解讀，可免費開始。",
       "feats": [
-        "When you can't put your own disposition into words",
-        "When you want to see the broad arc of your life once",
-        "When saju is new and you don't know where to start"
+        "難以用語言整理自己的傾向時",
+        "想看一看人生整體走勢時",
+        "第一次接觸四柱，不知從哪裡開始時"
       ],
-      "premiumIntro": "No scare-mongering about good and bad fortune -- it explains your innate grain and the current flow calmly.",
+      "premiumIntro": "不用吉凶製造恐懼，而是平實說明先天特點與當前走勢。",
       "premiumAudience": [
-        "Anyone reading their saju for the first time",
-        "Anyone who wants their temperament laid out",
-        "Anyone who wants to check the broad flow first"
+        "第一次看四柱的人",
+        "想梳理自身氣質的人",
+        "想先了解整體脈絡的人"
       ],
       "answersQuestions": [
-        "What is my innate disposition like?",
-        "How does the broad arc of my life run?",
-        "What kind of period am I in now?"
+        "我的先天傾向是怎樣的？",
+        "人生的整體脈絡如何發展？",
+        "我現在處於什麼時期？"
       ],
-      "fallbackCta": "Read your saju for free"
+      "fallbackCta": "免費看八字"
     },
     "tarot": {
-      "tagline": "Basic tarot: settle on a question, draw the cards, and see how their symbolism reflects your current feelings and choices.",
+      "tagline": "確定問題後抽牌，解讀卡牌象徵如何映照當下情緒與選擇的基礎塔羅。",
       "feats": [
-        "When your thoughts won't come together and it's frustrating",
-        "When you want to check where your heart is today",
-        "When tarot is new and feels hard to approach"
+        "思緒難以整理，感到煩悶時",
+        "想確認今天的心情時",
+        "初次接觸塔羅，覺得難入門時"
       ],
-      "premiumIntro": "It doesn't declare a verdict -- it attaches the cards' symbolism to your actual situation.",
+      "premiumIntro": "不對結果下定論，而是將牌的象徵與當前處境相連。",
       "premiumAudience": [
-        "Anyone reading tarot for the first time",
-        "Anyone who wants a read on today's mood",
-        "Anyone who wants to try a light question"
+        "第一次看塔羅的人",
+        "想了解今日心情的人",
+        "想輕鬆試著提問的人"
       ],
       "answersQuestions": [
-        "What state is my heart in right now?",
-        "Where will this choice lead?",
-        "What am I missing?"
+        "我現在的內心處於什麼狀態？",
+        "這個選擇可能帶來怎樣的結果？",
+        "我忽略了什麼？"
       ],
-      "fallbackCta": "Draw tarot for free"
+      "fallbackCta": "免費抽塔羅"
     },
     "ziwei": {
-      "tagline": "A basic Zi Wei Dou Shu reading that builds your chart from your birth date and time and reads wealth and career flow from how the stars sit in the palaces.",
+      "tagline": "以出生年月日時排命盤，從各宮星曜布局解讀財運與事業走勢的紫微斗數基礎解讀。",
       "feats": [
-        "When you want work and money read structurally",
-        "When you're curious about a reading from a different angle than saju",
-        "When even the word 'chart' is unfamiliar"
+        "想從結構上了解工作與金錢走勢時",
+        "想了解與四柱不同角度的解讀時",
+        "連命盤這個詞都還陌生時"
       ],
-      "premiumIntro": "Instead of listing star names, it explains what shape of daily life that arrangement shows up as.",
+      "premiumIntro": "不只羅列星名，也解釋這些布局可能如何體現在生活裡。",
       "premiumAudience": [
-        "Anyone curious about their wealth flow",
-        "Anyone new to Zi Wei Dou Shu",
-        "Anyone who wants to compare systems beyond saju"
+        "關心財運與事業走勢的人",
+        "第一次接觸紫微斗數的人",
+        "想比較四柱以外體系的人"
       ],
       "answersQuestions": [
-        "What is my wealth flow like?",
+        "我的財富走勢如何？",
         "什麼樣的工作適合我？",
-        "What phase is my career luck in now?"
+        "目前事業運處於什麼階段？"
       ],
-      "fallbackCta": "See your chart for free"
+      "fallbackCta": "免費查看命盤"
     },
     "sukuyo": {
-      "tagline": "A basic Sukuyo reading that calculates your birth mansion from your birth date and reads your innate rhythm and the distance you keep in relationships.",
+      "tagline": "依據出生日期計算本命宿，解讀先天節奏與關係距離感的宿曜基礎解讀。",
       "feats": [
-        "When you're not sure what your own pace is",
-        "When adjusting distance in relationships is hard",
-        "When you want an easy way into Eastern astrology"
+        "不清楚適合自己的步調時",
+        "難以調整關係中的距離時",
+        "想輕鬆入門東方占星時"
       ],
-      "premiumIntro": "Rather than sorting things into good and bad, it names what rhythm you move to.",
+      "premiumIntro": "與其區分好壞，更重視說明一個人的行動節奏。",
       "premiumAudience": [
-        "Anyone who wants to know their own rhythm",
-        "Anyone troubled by distance in relationships",
-        "Anyone new to Sukuyo"
+        "想了解自身節奏的人",
+        "為關係距離感苦惱的人",
+        "第一次接觸宿曜的人"
       ],
       "answersQuestions": [
-        "What is my birth mansion?",
-        "What rhythm do I move to?",
-        "What distance is comfortable for me in a relationship?"
+        "我的本命宿是什麼？",
+        "我習慣以怎樣的節奏行動？",
+        "關係中怎樣的距離讓我自在？"
       ],
-      "fallbackCta": "See your Sukuyo reading for free"
+      "fallbackCta": "免費查看宿曜"
     },
     "vedic": {
-      "tagline": "A basic Vedic astrology reading that calculates your lagna, your moon's placement, and your nakshatra, and shows your innate disposition alongside the period you are passing through.",
+      "tagline": "計算拉格納、月亮位置與納克沙特拉，同時呈現先天傾向及當前所處時期的吠陀占星基礎解讀。",
       "feats": [
-        "When Western star-sign results differ and it's confusing",
-        "When you want to know what period you're in",
-        "When Vedic astrology is unfamiliar"
+        "因與西方星座結果不同而疑惑時",
+        "想了解自己正處於什麼時期時",
+        "對吠陀占星還不熟悉時"
       ],
-      "premiumIntro": "It doesn't stop at a star-sign personality sketch -- it reads the flow of time alongside it.",
+      "premiumIntro": "不止於星座性格說明，也將時間的流動一起納入解讀。",
       "premiumAudience": [
-        "Anyone who wants to compare with Western astrology",
-        "Anyone who needs a read on timing",
-        "Anyone curious about Indian astrology"
+        "想與西方占星比較的人",
+        "需要判斷時機線索的人",
+        "對印度占星感興趣的人"
       ],
       "answersQuestions": [
-        "What is my lagna?",
-        "What period am I passing through now?",
-        "What is my innate temperament like?"
+        "我的拉格納是什麼？",
+        "我現在正經歷什麼時期？",
+        "我的先天氣質如何？"
       ],
-      "fallbackCta": "計算我的吠陀命盤"
+      "fallbackCta": "計算吠陀星盤"
     },
     "astrology": {
-      "tagline": "A basic astrology reading that calculates your birth chart and reads your disposition and the flow of your relationships from the placements.",
+      "tagline": "計算出生星盤，以星體布局解讀性格傾向與關係走勢的占星基礎解讀。",
       "feats": [
-        "When every star-sign personality article reads the same",
-        "When you're curious about the patterns that repeat in your relationships",
-        "When you don't know how to read a chart"
+        "覺得各種星座性格文章都差不多時",
+        "想了解關係中反覆出現的模式時",
+        "不知道怎樣讀星盤時"
       ],
-      "premiumIntro": "Not a single sun sign -- it separates out the grain using the combination of three placements.",
+      "premiumIntro": "不只看太陽星座，而是透過三個位置的組合，分別解釋不同特點。",
       "premiumAudience": [
-        "Anyone who wants to go a little deeper than sun signs",
-        "Anyone curious about their relationship tendencies",
-        "知道自己出生時間的人"
+        "想進一步了解星座的人",
+        "想了解關係傾向的人",
+        "知道出生時間的人"
       ],
       "answersQuestions": [
-        "What combination makes up my disposition?",
-        "What pattern repeats in my relationships?",
-        "What is the current flow like?"
+        "我的傾向由怎樣的組合構成？",
+        "關係中有哪些反覆出現的模式？",
+        "當前的走勢如何？"
       ],
-      "fallbackCta": "See your birth chart for free"
+      "fallbackCta": "免費查看出生星盤"
     },
     "human_design": {
       "tagline": "根據出生日期與出生時間計算類型、策略、內在權威與中心定義，展示你做決定與消耗能量的方式是如何被設計的。",
       "feats": [
-        "When you're always trying hard and always ending up drained",
-        "When you don't know how you should be making decisions",
-        "When personality-test results never quite fit"
+        "總是努力，卻反覆感到疲憊時",
+        "不知道該怎樣做決定時",
+        "覺得性格測試結果不太符合自己時"
       ],
       "premiumIntro": "這不是性格分類，而是如實展示由出生日期與出生時間計算出的能量藍圖。",
       "premiumAudience": [
-        "Anyone who wants to know how they decide",
-        "Anyone who wants to cut down on draining patterns",
-        "Anyone looking for a self-understanding tool beyond MBTI"
+        "想了解自己決策方式的人",
+        "想減少消耗性模式的人",
+        "尋找 MBTI 以外自我理解工具的人"
       ],
       "answersQuestions": [
-        "What type am I?",
-        "How should I actually be making decisions?",
-        "Where is my energy leaking?"
+        "我屬於哪種類型？",
+        "怎樣的決策方式適合我？",
+        "我的精力在哪裡被消耗？"
       ],
-      "fallbackCta": "Calculate your chart for free",
+      "fallbackCta": "免費計算圖表",
       "receives": {
         "0": {
           "title": "免費類型計算",
@@ -16328,435 +16328,434 @@
       }
     },
     "nakshatra": {
-      "tagline": "It calculates which of the 27 nakshatras your moon occupied at birth, and lays out the temperament and life direction that placement carries.",
+      "tagline": "以出生時的月亮位置，計算所屬的二十七納克沙特拉之一，梳理其氣質與人生方向。",
       "feats": [
-        "When your sun sign alone doesn't explain enough",
-        "When you want your essence named in one line",
-        "When you only want the core of Indian astrology"
+        "覺得太陽星座不足以解釋自己時",
+        "想用一句話認識自己的本質時",
+        "只想先了解印度占星核心時"
       ],
-      "premiumIntro": "Not the whole complicated chart -- it focuses on the single placement that points at your essence.",
+      "premiumIntro": "不展開整張複雜星盤，而是聚焦指向本質的一個位置。",
       "premiumAudience": [
-        "Anyone who wants their essence pinned down",
-        "Anyone who only wants the core of Vedic astrology",
-        "知道自己出生時間的人"
+        "想探究自身本質的人",
+        "想了解吠陀占星核心的人",
+        "知道出生時間的人"
       ],
       "answersQuestions": [
-        "What is my nakshatra?",
-        "What is my innate grain like?",
-        "What direction suits me?"
+        "我的納克沙特拉是什麼？",
+        "我的先天特點如何？",
+        "什麼方向適合我？"
       ],
-      "fallbackCta": "See your nakshatra for free"
+      "fallbackCta": "查看納克沙特拉"
     },
     "maya": {
-      "tagline": "Using the Tzolk'in calendar, it calculates the energy of your birth date and of today, and shows your innate seal alongside today's flow.",
+      "tagline": "依據卓爾金曆計算出生日期與今日的能量，呈現先天印記與今日走勢。",
       "feats": [
-        "When you're curious about a grain different from the fortune-telling you know",
-        "When you want a light check on today's energy",
-        "When the Mayan calendar is unfamiliar"
+        "想了解與熟悉的運勢不同的角度時",
+        "想輕鬆查看今日能量時",
+        "對瑪雅曆還陌生時"
       ],
-      "premiumIntro": "It attaches a different symbol to each date and names the attitude to carry through the day.",
+      "premiumIntro": "透過每天不同的象徵，提供今日處事態度的參考。",
       "premiumAudience": [
-        "Anyone who wants to try a new system",
-        "Anyone who wants to check today's energy",
-        "Anyone who enjoys reading symbols"
+        "想體驗新體系的人",
+        "想了解今日能量的人",
+        "喜歡象徵解讀的人"
       ],
       "answersQuestions": [
-        "What kind of energy does today carry?",
-        "What is my Mayan seal?",
-        "What should I focus on today?"
+        "今天是怎樣能量的一天？",
+        "我的瑪雅印記是什麼？",
+        "今天適合把注意力放在哪裡？"
       ],
-      "fallbackCta": "See your Mayan reading for free"
+      "fallbackCta": "免費查看瑪雅占卜"
     },
     "daily_fortune": {
-      "tagline": "It checks today's date against your birth date and gives you a short account of what to push on and what to hold off on for the day.",
+      "tagline": "將出生日期與今天的氣相對照，簡要整理一天中宜推進與宜暫緩的事。",
       "feats": [
-        "When you have no time to read a long interpretation",
-        "When you just want a direction for the day in the morning",
-        "When you need a light daily reference point"
+        "沒有時間閱讀長篇解讀時",
+        "早晨只想先定下一天方向時",
+        "需要每天可查看的簡明參考時"
       ],
-      "premiumIntro": "It doesn't pad things out -- only as much as the day actually needs.",
+      "premiumIntro": "不拖成長篇，只整理今天所需的重點。",
       "premiumAudience": [
-        "Anyone who wants a short daily check",
-        "Anyone curious about how today will feel",
-        "Anyone who wants fortune-reading as a habit"
+        "想每天簡短了解運勢的人",
+        "想了解今日狀態的人",
+        "想養成查看運勢習慣的人"
       ],
       "answersQuestions": [
-        "What is the flow of my day today?",
-        "What should I watch out for today?",
-        "What would be good to do today?"
+        "今天一天的走勢如何？",
+        "今天要留意什麼？",
+        "今天適合做些什麼？"
       ],
-      "fallbackCta": "See today's fortune"
+      "fallbackCta": "查看今日運勢"
     },
     "today": {
-      "tagline": "A hub that puts today's reading from three systems on one screen, so you can compare where the signals overlap and where they diverge.",
+      "tagline": "在同一畫面並列三種體系的今日解讀，比較共同訊號與不同之處的彙整頁面。",
       "feats": [
-        "When one interpretation alone doesn't convince you",
-        "When you want to know whether the systems disagree",
-        "When moving between pages is a nuisance"
+        "單一解讀還難以讓自己信服時",
+        "想知道不同體系的結果是否不同之時",
+        "覺得來回切換頁面麻煩時"
       ],
-      "premiumIntro": "It doesn't give you one branch's conclusion -- it lines up three side by side so you can compare.",
+      "premiumIntro": "不只給一種結論，而是並列三路解讀，供你比較。",
       "premiumAudience": [
-        "Anyone who wants to compare several systems",
-        "Anyone who wants to cross-check today's flow",
-        "Anyone who wants it all on one screen"
+        "想比較多個體系的人",
+        "想交叉查看今日走勢的人",
+        "想在同一畫面完成查看的人"
       ],
       "answersQuestions": [
-        "How do the three systems read today?",
-        "What signal do they all point at?",
-        "What is today's priority?"
+        "三個體系如何解讀今天？",
+        "它們共同指出什麼訊號？",
+        "今天的優先事項是什麼？"
       ],
-      "fallbackCta": "Open today's fortune hub"
+      "fallbackCta": "查看今日運勢"
     },
     "physiognomy": {
-      "tagline": "A face-reading interpretation that analyses the shape and balance of the features in your photo and lays out the temperament your impression conveys and the paths that suit it.",
+      "tagline": "分析照片中五官的形態與平衡，梳理面相印象所呈現的氣質及相應方向。",
       "feats": [
-        "When you want to know what you can read without a birth date",
-        "When you want to know how you come across to others",
-        "When face reading feels like nothing but superstition"
+        "想了解不需要出生日期的解讀時",
+        "想知道別人對自己的印象時",
+        "覺得面相只是迷信時"
       ],
-      "premiumIntro": "It doesn't sort faces into good and bad -- it explains the perception your impression creates and the strengths in it.",
+      "premiumIntro": "不把臉分成好壞，而是解釋印象帶來的感受與優勢。",
       "premiumAudience": [
-        "Anyone curious about their first impression",
-        "Anyone who wants a reading without a birth date",
-        "Anyone looking for their strengths from another angle"
+        "想了解第一印象的人",
+        "想不輸入出生日期就查看的人",
+        "想從不同角度尋找自身優勢的人"
       ],
       "answersQuestions": [
-        "How is my impression read?",
-        "What strengths show through?",
-        "什麼樣的工作適合我？"
+        "我的面部印象會如何解讀？",
+        "呈現出哪些優勢？",
+        "什麼工作與我相合？"
       ],
-      "fallbackCta": "See your face reading for free"
+      "fallbackCta": "免費看面相"
     },
     "dream": {
-      "tagline": "Dream interpretation: it unpacks the material and situations in your dream and explains how that symbolism touches your current state of mind and circumstances.",
+      "tagline": "梳理夢中的事物與場景，解釋其象徵如何連接當下心理與處境的夢境解讀。",
       "feats": [
-        "When the same dream keeps repeating",
-        "When a dream leaves an uneasy residue",
-        "When every search result interprets it differently"
+        "反覆做同一個夢時",
+        "夢醒後仍感到不安時",
+        "搜尋結果解讀各異，感到困惑時"
       ],
-      "premiumIntro": "Rather than sorting dreams into lucky and unlucky, it reads what the symbolism reflects right now.",
+      "premiumIntro": "不急著區分吉夢凶夢，而是解讀象徵當下所映照的內容。",
       "premiumAudience": [
-        "Anyone who has had a striking dream",
-        "Anyone with a recurring dream",
-        "Anyone curious about the psychological meaning"
+        "做過印象深刻的夢的人",
+        "有反覆夢境的人",
+        "對心理含義感興趣的人"
       ],
       "answersQuestions": [
-        "What does this dream mean?",
-        "Why do I keep having this dream?",
-        "What state is my mind in right now?"
+        "這個夢有什麼含義？",
+        "為什麼我反覆做這樣的夢？",
+        "現在的內心是什麼狀態？"
       ],
-      "fallbackCta": "Interpret your dream for free"
+      "fallbackCta": "解讀夢境"
     },
     "psychotest": {
-      "tagline": "A collection of psychological tests: answer a few short questions and it lays out your disposition and current state. No birth date needed.",
+      "tagline": "回答簡短問題，整理性格傾向與當前狀態的心理測驗合集，無需出生日期也可使用。",
       "feats": [
-        "When fortune-telling feels like too much and you want something light",
-        "When you need words to describe yourself",
-        "When you're looking for something to do with a friend"
+        "覺得運勢有負擔，想輕鬆試試時",
+        "需要描述自己的語言時",
+        "尋找能與朋友一起做的事時"
       ],
-      "premiumIntro": "It doesn't mark you right or wrong -- it puts the grain that showed in your answers into sentences.",
+      "premiumIntro": "不判斷對錯，而是將回答中體現的特點整理成文字。",
       "premiumAudience": [
-        "Anyone who wants to start light",
-        "Anyone uneasy about entering a birth date",
-        "Anyone who wants to share results with a friend"
+        "想輕鬆開始的人",
+        "不想輸入出生日期的人",
+        "想與朋友分享結果的人"
       ],
       "answersQuestions": [
-        "What kind of disposition do I have?",
-        "What state am I in right now?",
-        "What kind of relationship suits me?"
+        "我有怎樣的傾向？",
+        "我目前處於什麼狀態？",
+        "怎樣的關係適合我？"
       ],
-      "fallbackCta": "Take a free psychological test"
+      "fallbackCta": "開始免費心理測驗"
     },
     "manse": {
-      "tagline": "A Manseryeok tool: enter your birth date and time and it calculates your saju natal chart and luck cycles on solar-term boundaries, laid out as a table.",
+      "tagline": "輸入出生年月日時，以節氣為界計算四柱原局與大運，並用表格呈現的萬年曆工具。",
       "feats": [
-        "When you want to check the eight characters of your saju yourself",
-        "When your birthday falls on a solar-term boundary and it's confusing",
-        "When you want to cross-check against results from elsewhere"
+        "想親自確認自己八字時",
+        "生日處於節氣交界，感到困惑時",
+        "想與其他地方的結果對照時"
       ],
-      "premiumIntro": "It adds no interpretation -- it shows the calculated natal chart and luck cycles as they are.",
+      "premiumIntro": "不附加解讀，直接呈現計算出的原局與大運。",
       "premiumAudience": [
-        "Anyone studying saju themselves",
-        "Anyone who wants to cross-check a calculation",
-        "Anyone who wants their natal chart on record"
+        "自行學習四柱命理的人",
+        "想對照計算結果的人",
+        "想記錄原局的人"
       ],
       "answersQuestions": [
-        "What are the eight characters of my saju?",
-        "When do my luck cycles change?",
-        "Does my birth fall on a solar-term boundary?"
+        "我的四柱八字是什麼？",
+        "大運何時交替？",
+        "我的出生時間是否處在節氣交界？"
       ],
-      "fallbackCta": "Open the Manseryeok"
+      "fallbackCta": "打開萬年曆"
     },
     "insights_famous_saju": {
-      "tagline": "Reading material that takes real people's charts as examples and works through which arrangements showed up as which shape of life.",
+      "tagline": "以真實人物的命式為例，說明不同配置如何體現在人生經歷中的閱讀內容。",
       "feats": [
-        "When reading the terminology alone gives you no feel for it",
-        "When you need background to understand your own reading",
-        "When learning from examples is faster for you"
+        "只讀術語，仍難以理解時",
+        "需要背景知識來理解自身解讀時",
+        "更容易透過案例學習的人"
       ],
-      "premiumIntro": "Not a personal fortune reading -- a set of case studies explaining the principles from publicly available information.",
+      "premiumIntro": "不是個人運勢，而是依據公開資訊講解原理的案例合集。",
       "premiumAudience": [
-        "Anyone who wants to learn how saju works",
-        "Anyone who prefers learning from examples",
-        "Anyone looking for something to read"
+        "想學習四柱命理原理的人",
+        "喜歡透過案例學習的人",
+        "想找些讀物的人"
       ],
       "answersQuestions": [
-        "What shape of life does this arrangement show up as?",
-        "Why do the same characters produce different outcomes?",
-        "What does my own chart resemble?"
+        "這種配置可能呈現怎樣的人生經歷？",
+        "同樣的字，為什麼結果不同？",
+        "有哪些地方與我的命式相似？"
       ],
-      "fallbackCta": "Read famous people's saju"
+      "fallbackCta": "閱讀名人四柱"
     },
     "openMbtiModal": {
-      "tagline": "It maps each person's type onto an animal totem and works through how that combination meshes as a relationship reading.",
+      "tagline": "將兩人的類型各自化為動物圖騰，解讀組合如何在關係中相互配合。",
       "feats": [
-        "When every MBTI compatibility table looks the same",
-        "When you want to understand the difference between you and someone else",
-        "When you want a compatibility reading without birth dates"
+        "覺得各類MBTI合盤表都差不多時",
+        "想理解與對方的差異時",
+        "想不用出生日期就看合盤時"
       ],
-      "premiumIntro": "It doesn't just hand you a compatibility score -- it separates out where the two types mesh and where they slip.",
+      "premiumIntro": "不只給合盤分數，也分別說明兩種類型的契合與錯位之處。",
       "premiumAudience": [
-        "Anyone who knows both people's MBTI",
-        "Anyone who wants to understand a difference in a relationship",
-        "Anyone who wants a quick check"
+        "知道彼此MBTI的人",
+        "想理解關係差異的人",
+        "想輕鬆了解一下的人"
       ],
       "answersQuestions": [
-        "What is our combination like?",
-        "Where are we likely to collide?",
-        "What does each of us need from the other?"
+        "我們的組合如何？",
+        "哪些地方容易起摩擦？",
+        "彼此需要什麼？"
       ],
-      "fallbackCta": "See the MBTI animal compatibility"
+      "fallbackCta": "查看MBTI動物合盤"
     },
     "openLuckSyncDiary": {
-      "tagline": "A diary for recording today's flow and seeing it next to your past entries in a monthly planner.",
+      "tagline": "記錄今日走勢，並可在月計畫中與過往記錄並列查看的日記。",
       "feats": [
-        "When you can't remember whether a reading turned out right",
-        "When you want to see how your mood and the flow connect",
-        "When keeping a record going is hard"
+        "記不起運勢是否與實際吻合時",
+        "想了解心情與走勢如何關聯時",
+        "難以持續記錄時"
       ],
-      "premiumIntro": "It adds no prediction -- it simply places the day you recorded next to that day's flow.",
+      "premiumIntro": "不增加預測，只將記錄的一天與當日走勢並列呈現。",
       "premiumAudience": [
-        "Anyone building a habit of writing things down",
-        "Anyone who wants to check readings against what happened",
-        "Anyone who wants to see the flow month by month"
+        "想培養記錄習慣的人",
+        "想對照運勢與實際經歷的人",
+        "想按月觀察走勢的人"
       ],
       "answersQuestions": [
-        "How did this month's flow go?",
-        "How closely did my records match the readings?",
-        "What should I prepare for next month?"
+        "這個月的走勢如何？",
+        "記錄與運勢吻合了多少？",
+        "下個月可以準備些什麼？"
       ],
-      "fallbackCta": "Open the luck-sync diary"
+      "fallbackCta": "打開運勢日記"
     },
     "music": {
-      "tagline": "A player collecting the tracks written for Yeon-i and Neo's world. You can leave it running in the background while you read your fortune.",
+      "tagline": "彙集為Yeoni與Neo世界觀創作的歌曲的播放器，可在閱讀運勢時作為背景音樂播放。",
       "feats": [
-        "When your mind is unsettled after reading a result",
-        "When you need background sound to concentrate",
-        "When you're curious about the world behind the service"
+        "看完結果後心情紛亂時",
+        "需要幫助專注的背景聲音時",
+        "對服務的世界觀感興趣時"
       ],
-      "premiumIntro": "Not a fortune reading -- a music collection that carries the mood of the service as it is.",
+      "premiumIntro": "這不是運勢解讀，而是將服務氛圍化為聲音的音樂合集。",
       "premiumAudience": [
-        "Anyone who likes background music while reading",
-        "Anyone fond of Yeon-i and Neo's world",
-        "Anyone who wants to settle their mind quietly"
+        "想伴著背景音樂閱讀的人",
+        "喜歡Yeoni與Neo世界觀的人",
+        "想安靜梳理心情的人"
       ],
       "answersQuestions": [
-        "What tracks are there?",
-        "Can I play it while reading my fortune?",
-        "How does it connect to the world of the service?"
+        "有哪些歌曲？",
+        "可以邊看運勢邊播放嗎？",
+        "音樂與世界觀如何相連？"
       ],
-      "fallbackCta": "Open the moonlight player"
+      "fallbackCta": "打開月光播放器"
     },
     "codedestiny_novel_html": {
-      "tagline": "A light novel serialised in the world of the service. You can enjoy it as reading material quite apart from the fortune readings.",
+      "tagline": "以服務世界觀為背景的輕小說連載，可作為獨立於運勢的讀物欣賞。",
       "feats": [
-        "When you're looking for something to read rather than a reading",
-        "When you're curious about the characters' backgrounds",
-        "When you want to pass some time lightly"
+        "想找運勢之外的讀物時",
+        "想了解角色背景時",
+        "想輕鬆度過一些時間時"
       ],
-      "premiumIntro": "This is a work of fiction, not a fortune reading. It has no effect on your results.",
+      "premiumIntro": "這是創作故事，並非運勢解讀，不會影響結果。",
       "premiumAudience": [
-        "Anyone fond of the Yeon-i and Neo characters",
-        "Anyone who enjoys a serial",
-        "Anyone who wants to know more about the world"
+        "喜歡Yeoni、Neo角色的人",
+        "喜歡連載作品的人",
+        "想進一步了解世界觀的人"
       ],
       "answersQuestions": [
-        "What kind of story is it?",
-        "Is it connected to the fortune readings?",
-        "Where should I start reading?"
+        "這是怎樣的故事？",
+        "它與運勢有關嗎？",
+        "可以從哪裡開始讀？"
       ],
-      "fallbackCta": "Open the library of destiny"
+      "fallbackCta": "打開命運書齋"
     },
     "points": {
-      "tagline": "A moonlight pass lets you use paid features for a set period. You can check what you hold and how you've used it here.",
+      "tagline": "月光使用券可在規定期間內使用付費功能，你可以在這裡查看持有情況與使用紀錄。",
       "feats": [
-        "When paying every single time is a nuisance",
-        "When you don't know how much of your pass is left",
-        "When you're unclear on what it can be used for"
+        "覺得每次查看都付款很麻煩時",
+        "不清楚使用券還剩多少時",
+        "不清楚可以用於哪些功能時"
       ],
-      "premiumIntro": "Not a fortune reading -- a screen for checking what passes you hold and what they cover.",
+      "premiumIntro": "此頁面用於查看使用券的持有情況與適用範圍，並非運勢解讀。",
       "premiumAudience": [
-        "Anyone who uses paid features often",
-        "Anyone who wants to check their balance",
-        "Anyone comparing payment methods"
+        "經常使用付費功能的人",
+        "想查看持有情況的人",
+        "想比較付款方式的人"
       ],
       "answersQuestions": [
-        "What can I use a pass on?",
-        "How much do I have left right now?",
-        "How does it differ from a single payment?"
+        "使用券可以用於哪裡？",
+        "目前還剩多少？",
+        "與單次購買有什麼區別？"
       ],
-      "fallbackCta": "Check your passes"
+      "fallbackCta": "查看使用券"
     },
     "openSukuyoModal": {
-      "tagline": "從二十七宿中分別算出兩人的本命宿，判定緣分類型與距離，並把關係處方與注意訊號整理成一份緣分報告。",
+      "tagline": "分別計算兩人在二十七宿中的本命宿，判定關係類型與距離，並將相處建議及注意訊號整理成一份緣分報告。",
       "feats": [
-        "用命運卡片中的本人資訊，以及對方的出生日期、出生時間、陽曆/陰曆、性別，算出兩人的本命宿",
-        "命・業胎・榮親・友衰・安壞・危成六種緣分類型，以及同宿・近距離・中距離・遠距離的距離判定",
-        "關係・溫度・吸引三個區間，以及寫明容易打開的場景與需要留意場景的專家綜合判定",
-        "兩句馬上能用的關係處方與修復步驟、注意訊號，以及緣分之光與現實處方"
+        "根據命運卡中的本人資料，以及對方的出生日期、時刻、國曆／農曆與性別，計算雙方本命宿",
+        "判定命、業胎、榮親、友衰、安壞、成危六類緣分，以及同宿、近距離、中距離、遠距離",
+        "結合關係、溫度、吸引力三方面，以及順利展開與需要留意的情境，給出專家綜合判斷",
+        "兩句可直接使用的相處話語、修復步驟、注意訊號，以及緣分的亮點與實際建議"
       ],
-      "premiumIntro": "這份合盤依二十七宿的計算規則得出，同樣的兩個人無論何時打開都會得到相同結果。戀愛、結婚、復合等依目的的解讀和30天時機，要在結果中的精密合盤擴展裡另外打開。",
+      "premiumIntro": "本合盤按二十七宿計算規則得出，同樣的兩個人，無論何時開啟，結果均一致。每次重新撰寫解讀的AI諮詢，請選擇30,000韓元的宿曜合盤專家諮詢。",
       "premiumAudience": [
-        "Anyone strangely drawn to someone yet always colliding with them",
-        "想知道兩人在什麼距離最自在的人",
-        "想知道現在該對對方說什麼、該留意哪些訊號的人"
+        "特別受對方吸引，卻反覆發生衝突的人",
+        "想確定從戀愛、婚姻還是復合角度解讀的人",
+        "也想了解遠距、合作等戀愛以外關係的人"
       ],
       "premiumChapters": [
-        "兩人的關係名稱・緣分質地・距離徽章",
-        "緣分概要與算出的關係類型解說",
-        "關係・溫度・吸引核心區間",
-        "專家綜合判定——容易打開的場景與需要留意的場景",
-        "兩句馬上能用的關係處方與修復步驟・注意訊號",
-        "緣分之光與現實處方・誰站在什麼位置"
+        "關係類型與別稱、雙方的宿曜及各自角色",
+        "緣分的本質、靠近後出現的變化及反覆的情緒模式",
+        "感受到的進展速度、距離的優勢，以及需留意的距離感與相處方法",
+        "時機：較有利的窗口與需要謹慎的時段",
+        "戀愛、婚姻、復合、秘密戀情、遠距與合作六個主題的解讀及注意事項",
+        "讓關係長久的建議與今日提問"
       ],
       "premiumOutcomes": [
-        "Without the other person's birth date, you can only go as far as the reading of your own birth mansion.",
-        "If the birth time is unknown, it is calculated as 12:00 noon.",
-        "It is charged per use, and can also be opened with a pass or moonstone.",
-        "The relationship type tells you the character of the distance between you; it does not guarantee an outcome.",
-        "結果無法儲存或重新打開，需要的內容請當場確認。"
+        "沒有對方的出生日期時，僅能查看本人的本命宿解讀。",
+        "不知道出生時刻時，以中午12點為基準計算。",
+        "按次付費，也可使用使用券或月晶石開啟。",
+        "關係類型說明彼此距離感的特質，並不保證最終結果。"
       ],
       "answersQuestions": [
-        "What kind of distance is the tie between us?",
-        "現在該對這個人說些什麼？",
-        "Why do we collide the closer we get?"
+        "我與這個人屬於怎樣的距離緣分？",
+        "除了戀愛，在合作或遠距關係中會如何？",
+        "為什麼越靠近越容易發生衝突？"
       ],
-      "fallbackCta": "Open Sukuyo",
-      "ctaNote": "Open Sukuyo and check your own birth mansion first, then enter the other person's details in the compatibility reading.",
+      "fallbackCta": "開啟宿曜占",
+      "ctaNote": "開啟宿曜占，先確認本人的本命宿，再在合盤中輸入對方資料。",
       "analysisSteps": [
         {
-          "label": "Deriving your birth mansion",
-          "detail": "根據命運卡片中的出生日期，算出二十七宿中你的本命宿。到這一步都是免費的。"
+          "label": "計算本人的本命宿",
+          "detail": "根據出生日期，計算本人在二十七宿中的本命宿。此步驟免費。"
         },
         {
-          "label": "Deriving the other person's birth mansion",
-          "detail": "It takes the other person's birth date, birth time, solar/lunar calendar, and gender, and calculates their birth mansion."
+          "label": "計算對方的本命宿",
+          "detail": "輸入對方的出生日期、時刻、國曆／農曆與性別，計算對方的本命宿。"
         },
         {
-          "label": "Determining relationship type and distance",
-          "detail": "確定兩個本命宿形成的六種關係類型，以及同宿・近距離・中距離・遠距離。"
+          "label": "判定關係類型與距離",
+          "detail": "判定兩個本命宿形成的六種關係類型，以及近距、中距或遠距。"
         },
         {
-          "label": "整理緣分報告",
-          "detail": "把關係類型解說、核心區間、綜合判定、關係處方與注意訊號整理成一份報告。"
+          "label": "分主題解讀",
+          "detail": "分別針對六個主題，整理當前狀態、現在可做的事與注意事項。"
         }
       ],
       "faq": [
         {
-          "q": "Do I really need the other person's birth date?",
-          "a": "Yes. The relationship type only comes out once their birth mansion is calculated. Without it you can only see the reading of your own birth mansion."
+          "q": "一定要有對方的出生日期嗎？",
+          "a": "是的，必須計算對方的本命宿才能得出關係類型。沒有出生日期時，只能查看本人的本命宿解讀。"
         },
         {
-          "q": "和宿曜合盤諮詢有什麼不同？",
-          "a": "這份合盤依二十七宿的計算規則得出緣分類型與處方。宿曜合盤諮詢則以兩人的本命宿為基礎，重新撰寫多個部分的諮詢內容。"
+          "q": "與30,000韓元的宿曜合盤專家諮詢有何區別？",
+          "a": "本合盤依據二十七宿規則計算關係類型與六個主題。專家諮詢在相同計算基礎上，每次重新撰寫諮詢內容。"
         },
         {
-          "q": "How does payment work?",
-          "a": "It is charged per use. Reading it for a different person means paying again at that point, and it can also be opened with a pass or moonstone."
+          "q": "如何付費？",
+          "a": "按次付費。與另一位對象重新查看時，需要再次付費，也可使用使用券或月晶石開啟。"
         }
       ],
       "receives": [
         {
           "title": "兩人的緣分類型與距離",
-          "detail": "先告訴你兩個本命宿形成的緣分類型與緣分質地，以及兩人在同宿・近距離・中距離・遠距離中的距離。"
+          "detail": "先展示兩個本命宿形成的關係類型與緣分特質，以及兩人屬於同宿、近距、中距還是遠距。"
         },
         {
-          "title": "關係・溫度・吸引核心區間",
-          "detail": "按區間看關係以怎樣的速度靠近，溫度與吸引在哪裡升起、在哪裡冷卻。"
+          "title": "關係、溫度、吸引力的核心面向",
+          "detail": "逐項梳理關係靠近的速度，以及溫度與吸引力在哪裡升高或降溫。"
         },
         {
-          "title": "專家綜合判定",
-          "detail": "把這段緣分容易打開的場景和需要留意的場景分開，並說明兩人各自容易站在什麼位置。"
+          "title": "專家綜合判斷",
+          "detail": "區分這段緣分容易展開與需要留意的情境，解釋雙方各自容易處於什麼位置。"
         },
         {
-          "title": "馬上能用的關係處方",
-          "detail": "整理現在就能說出口的兩句話、修復步驟，以及需要先知道的注意訊號。"
+          "title": "可立即使用的相處建議",
+          "detail": "整理現在就能說出的兩句話、關係修復步驟，以及應提前了解的注意訊號。"
         }
       ],
       "outline": [
         {
-          "title": "緣分報告開頭",
-          "detail": "先展開兩人的關係名稱、緣分質地與距離徽章。"
+          "title": "緣分報告首頁",
+          "detail": "首先呈現兩人的關係名稱、緣分特質與距離標記。"
         },
         {
-          "title": "緣分概要・關係類型解說",
-          "detail": "簡短概括兩人的緣分，並解釋算出的關係類型意味著什麼。"
+          "title": "緣分摘要與關係類型解說",
+          "detail": "簡要概括雙方緣分，並解釋計算得出的關係類型意味著什麼。"
         },
         {
-          "title": "核心區間",
-          "detail": "查看關係・溫度・吸引三個區間的走向。"
+          "title": "核心面向",
+          "detail": "查看關係、溫度、吸引力三個方面的走向。"
         },
         {
-          "title": "專家綜合判定",
-          "detail": "指出容易打開的場景、需要留意的場景，以及適合這份距離感的態度。"
+          "title": "專家綜合判斷",
+          "detail": "指出容易順利展開及需要留意的情境，並給出符合彼此距離的相處態度。"
         },
         {
-          "title": "關係處方與注意訊號",
-          "detail": "依序整理兩句馬上能用的話、修復步驟與注意訊號。"
+          "title": "相處建議與注意訊號",
+          "detail": "依次整理兩句可直接使用的話語、修復步驟與注意訊號。"
         },
         {
-          "title": "光與現實・兩人的位置",
-          "detail": "以緣分之光與現實處方、誰站在什麼位置作結。"
+          "title": "亮點與現實：雙方的位置",
+          "detail": "最後總結緣分的亮點、實際相處建議，以及雙方各自所處的位置。"
         }
       ]
     },
     "tarot_mindscan": {
-      "tagline": "A ten-card reading: five main positions with five hidden-feeling cards laid over them, mapping the gap in warmth left in the relationship and the words worth sending now.",
-      "premiumIntro": "Write your question and the five positions are set to it, reading what was said aloud apart from what stayed inside.",
-      "fallbackCta": "Read the gap",
+      "tagline": "在五個位置放置主牌，再疊加五張隱藏情緒輔助牌。這份十張牌解讀梳理關係中的溫差，以及此刻適合傳達的話。",
+      "premiumIntro": "根據您寫下的問題設置五個牌位，分別解讀說出口的話與留在心裡的感受。",
+      "fallbackCta": "解讀關係距離",
       "premiumChapters": {
-        "0": "The overall current of the gap between you",
+        "0": "關係距離的整體氛圍",
         "1": "沒說出口的情感組合解讀",
         "2": "自己適合採取的態度",
         "3": "接下來的聯絡走向"
       },
       "premiumAudience": {
-        "0": "People who want to check what the other person truly means",
-        "1": "People stuck on what to send next",
-        "2": "People who want the temperature gap put into words"
+        "0": "想探索對方真實感受的人",
+        "1": "遲疑下一步該如何聯絡的人",
+        "2": "想用語言理清關係溫差的人"
       },
       "answersQuestions": {
-        "0": "How far apart are their words and their feelings?",
-        "1": "Why has this relationship stalled?",
+        "0": "對方的話與內心感受之間有多大距離？",
+        "1": "這段關係現在停滯的原因是什麼？",
         "2": "此刻我該採取什麼樣的態度？"
       },
       "feats": {
-        "0": "Five positions: spoken words · inner grain · the stall · the wish · reality",
+        "0": "表面言語 · 內在感受 · 停頓 · 期待 · 現實，五個牌位",
         "1": "從疊抽的卡牌中，最多讀出六組沒說出口的情感組合",
-        "2": "Five main and five support cards drawn from the full 78-card deck",
+        "2": "從完整的78張牌組中抽取5張主牌與5張輔助牌",
         "3": "整理出自己適合採取的態度"
       },
       "analysisSteps": {
         "0": {
-          "label": "Enter your question",
-          "detail": "You write down the relationship and the question you want looked at."
+          "label": "輸入問題",
+          "detail": "寫下想了解的關係與問題。"
         },
         "1": {
-          "label": "Lay ten cards",
+          "label": "布置十張牌",
           "detail": "在主要的五個牌位放上卡牌，再疊抽五張。"
         },
         "2": {
-          "label": "Read the gap",
+          "label": "解讀關係距離",
           "detail": "把表面話語與心底紋理的落差整理成七個面向，最後收在自己的態度與接下來的走向。"
         }
       },
@@ -16766,7 +16765,7 @@
           "a": "是的。解讀會依提問而不同，所以需要輸入。"
         },
         "1": {
-          "q": "What are the support cards?",
+          "q": "輔助牌是什麼？",
           "a": "是疊在主要五張之上再抽的五張，從這裡最多讀出六組沒說出口的情感組合。"
         }
       },
@@ -17021,53 +17020,53 @@
       }
     },
     "nakshatra_muhurta": {
-      "tagline": "The next 60 days are scored one by one to give the best date for your purpose and the dates to avoid if you can move them, each marked with whether both systems agree.",
-      "premiumIntro": "A good day depends on what it is for. A wedding, a contract and a move are each scored on their own terms.",
-      "fallbackCta": "Find the good day",
+      "tagline": "逐日計算未來60天，整理適合該目的的最佳日期，以及可調整時盡量避開的日期，並標明兩種體系是否一致。",
+      "premiumIntro": "好日子因目的而異。結婚、簽約與搬家分別按不同標準計算。",
+      "fallbackCta": "尋找合適日期",
       "premiumChapters": {
-        "0": "The best date for your chosen purpose",
-        "1": "Dates to avoid if they can be moved",
-        "2": "The score table for all 60 days",
-        "3": "The reason each date was picked"
+        "0": "各目的的最佳日期",
+        "1": "可調整時盡量避開的日期",
+        "2": "完整60天評分表",
+        "3": "每個日期的選取理由"
       },
       "premiumAudience": {
-        "0": "People setting the date for something that matters",
-        "1": "People who want both systems consulted before deciding",
-        "2": "People who want the bad dates filtered out first"
+        "0": "需要為重要安排選定日期的人",
+        "1": "希望結合兩種體系再作決定的人",
+        "2": "想先篩除不太合適日期的人"
       },
       "answersQuestions": {
-        "0": "Which date is best for this?",
-        "1": "Which dates are better avoided?",
-        "2": "Why is that date a good one?"
+        "0": "做這件事最適合哪一天？",
+        "1": "哪些日期盡量避開更好？",
+        "2": "為什麼那一天合適？"
       },
       "feats": {
-        "0": "Six purposes: wedding · opening · contract · moving · starting · recovery",
-        "1": "Every one of the next 60 days scored individually",
-        "2": "An agreement badge on days both systems favour",
-        "3": "Nakshatra · Sukuyo · Tara grades and reasons noted per date"
+        "0": "結婚、開業、簽約、搬家、啟動、恢復六種目的",
+        "1": "逐日評估未來60天",
+        "2": "兩種體系均看好的日期顯示一致徽章",
+        "3": "每個日期均標示星宿、宿曜、塔拉等級與理由"
       },
       "analysisSteps": {
         "0": {
-          "label": "Choose the purpose",
-          "detail": "You pick one of wedding, opening, contract, moving, starting or recovery."
+          "label": "選擇目的",
+          "detail": "從結婚、開業、簽約、搬家、啟動、恢復中選擇一項。"
         },
         "1": {
-          "label": "Score 60 days",
-          "detail": "Nakshatra and Sukuyo are overlaid day by day to produce a score and a grade."
+          "label": "計算60天",
+          "detail": "逐日對照星宿與宿曜，計算評分與等級。"
         },
         "2": {
-          "label": "Set out the dates",
-          "detail": "The best dates and the ones to avoid are listed with the reasoning."
+          "label": "整理日期",
+          "detail": "列出最佳日期與盡量避開的日期，並附上理由。"
         }
       },
       "faq": {
         "0": {
-          "q": "What if the two systems disagree?",
-          "a": "No agreement badge is given, and the table shows each system's grade and reasoning as they stand."
+          "q": "兩種體系結果不一致時怎麼辦？",
+          "a": "不會顯示一致徽章，表格仍會如實呈現各體系的等級與理由。"
         },
         "1": {
-          "q": "How far ahead does it look?",
-          "a": "It calculates 60 days from the moment you run it."
+          "q": "會查看多長時間？",
+          "a": "從查詢時點起計算60天。"
         }
       },
       "premiumOutcomes": {
@@ -17121,48 +17120,48 @@
       }
     },
     "nakshatra_compat": {
-      "tagline": "It names first where the two systems agree and where they part, then sets out the score by category, the relationship type, and a guide to how each of you can act.",
+      "tagline": "這份合盤會觀察兩種傳統的共同優勢與差異，以及雙方可以一起協調的溝通方法。",
       "premiumIntro": "不知道出生時間也能以正午為基準進行。先顯示兩個體系是趨同還是分歧，再用分項分數說明原因。",
-      "fallbackCta": "See the combined match",
+      "fallbackCta": "查看綜合契合度",
       "premiumChapters": {
-        "0": "The combined verdict and combined score",
-        "1": "Ashtakoota scores by category with dosha noted",
+        "0": "兩種體系的共同優勢與差異",
+        "1": "阿什塔庫塔各項指標的計算依據",
         "2": "吸引・穩定・衝突三個分數",
-        "3": "A guide to how each of you can act from where you stand"
+        "3": "兩人可以一起討論的問題"
       },
       "premiumAudience": {
-        "0": "People not convinced by one system alone",
-        "1": "People who want to know what to watch for, not just a score",
+        "0": "僅憑一種體系的結果難以判斷的人",
+        "1": "比起評分，更想了解需要留意什麼的人",
         "2": "想知道兩人各自該做什麼的人"
       },
       "answersQuestions": {
-        "0": "Do the two systems read this relationship the same way?",
-        "1": "Where do we collide most?",
-        "2": "What can I do from where I stand to make it better?"
+        "0": "兩種體系對這段關係的看法相同嗎？",
+        "1": "我們最容易在哪些地方產生摩擦？",
+        "2": "從我這一方出發，做些什麼會有幫助？"
       },
       "feats": {
-        "0": "India's 36-point Ashtakoota calculated category by category",
-        "1": "The relationship type judged by Eastern Sukuyo angles",
-        "2": "Where the two systems converge and diverge, set out first",
+        "0": "印度阿什塔庫塔八項指標及計算依據",
+        "1": "日本舊曆宿曜的關係類型、距離與相互角色",
+        "2": "兩種體系的共同優勢與需要協調的差異",
         "3": "不知道出生時間時，以正午為基準計算並照常進行"
       },
       "analysisSteps": {
         "0": {
-          "label": "Both people's details",
+          "label": "兩人的資訊",
           "detail": "輸入兩人的出生日期・出生時間・性別・出生城市。"
         },
         "1": {
-          "label": "Run both systems",
-          "detail": "The 36-point Ashtakoota and the Sukuyo angles are each calculated."
+          "label": "計算兩種體系",
+          "detail": "分別計算阿什塔庫塔36分制評分與宿曜隔角關係。"
         },
         "2": {
-          "label": "Bring them together",
-          "detail": "The points of agreement and divergence are set out, closing with a guide for each role."
+          "label": "綜合整理",
+          "detail": "梳理兩者的交會點與分歧點，最後給出各自角色的行動指南。"
         }
       },
       "faq": {
         "0": {
-          "q": "What if I don't know the birth time?",
+          "q": "不知道出生時刻怎麼辦？",
           "a": "選擇「時間不明」後，以正午為基準計算並照常進行。"
         },
         "1": {
@@ -21501,154 +21500,212 @@
   },
   "sajuReading": {
     "yeon": "Yeoni",
-    "neo": "Neo",
-    "garden": "A garden for understanding yourself",
-    "room": "A strategy room for reviewing choices",
-    "same": "One chart, two reading styles. Calculations and free/paid access stay the same.",
-    "compareNeo": "Review Yeoni’s clues with Neo",
-    "compareYeon": "Read Neo’s criteria with Yeoni",
-    "observe": "What Yeoni notices",
-    "life": "In everyday life",
-    "practice": "One small practice",
-    "diagnosis": "Neo’s assessment",
-    "basis": "Chart evidence",
-    "action": "Decision criteria",
-    "element": "Five-element balance",
-    "temperament": "Natural temperament",
-    "ten": "Roles in the Ten Gods",
-    "climate": "Seasonal balance",
-    "strength": "How support is distributed",
-    "flow": "Current cycles",
-    "letter": "A final note",
+    "neo": "Yeongnyangi",
+    "garden": "Yeoni的月光四柱",
+    "room": "Yeongnyangi的星光閣樓",
+    "same": "基礎四柱由Yeoni與Yeongnyangi共同解讀。以相同的計算依據為基礎，選擇您喜歡的講解風格。",
+    "compareNeo": "切換到Yeongnyangi解讀",
+    "compareYeon": "切換到Yeoni解讀",
+    "observe": "Yeoni發現的線索",
+    "life": "日常生活中的表現",
+    "practice": "今天的小行動",
+    "diagnosis": "Yeongnyangi指出的重點",
+    "basis": "計算依據",
+    "action": "行動依據",
+    "element": "五行分布",
+    "temperament": "先天氣質",
+    "ten": "從十神看角色",
+    "climate": "調候 · 季節的感受",
+    "strength": "扶抑 · 運用力量的方式",
+    "flow": "當前走勢",
+    "letter": "信",
     "names": {
-      "0": "Wood",
-      "1": "Fire",
-      "2": "Earth",
-      "3": "Metal",
-      "4": "Water"
+      "0": "木",
+      "1": "火",
+      "2": "土",
+      "3": "金",
+      "4": "水"
     },
     "traits": {
-      "0": "starting and developing ideas",
-      "1": "expressing thoughts and feelings",
-      "2": "sustaining commitments",
-      "3": "setting standards and simplifying",
-      "4": "observing and adapting"
+      "0": "開始新事物、拓展方向的力量",
+      "1": "向外表達想法與感受的力量",
+      "2": "穩定維繫關係與事務的力量",
+      "3": "建立標準、整理冗餘的力量",
+      "4": "觀察資訊、順應情境行動的力量"
     },
     "scenes": {
-      "0": "You may start several things at once. Leave room to finish them.",
-      "1": "You may bring energy to conversations. Give others time to respond.",
-      "2": "Familiar responsibilities may feel reassuring. Check whether you are carrying someone else’s share.",
-      "3": "Clear standards may help with uncertainty. Too many rules can leave little room to breathe.",
-      "4": "You may notice subtle changes. When reflection stretches on, try a small experiment."
+      "0": "興趣廣泛，可能同時開啟幾件事。也給收尾留出空間，成長的力量才能用得更好。",
+      "1": "您可能為交談帶來活力。心情走在前面時，也給對方留一點回應的時間。",
+      "2": "守住熟悉的職責可能讓您安心。也看看自己是否承擔了本屬於他人的部分。",
+      "3": "您可能善於在模糊的情境中找到標準。但規則過密時，自己與他人的餘裕也會減少。",
+      "4": "您可能察覺容易被忽略的變化。思考拖得太長時，不妨用一個小行動來驗證。"
     },
     "actions": {
-      "0": "Finish one existing task before adding another.",
-      "1": "Pause after an important message and listen to the response.",
-      "2": "Write down the boundary of one responsibility this week.",
-      "3": "Separate one essential standard from one flexible preference.",
-      "4": "Choose one thing to research and one thing to test now."
+      "0": "增加新任務前，先完成一件正在進行的事。",
+      "1": "說完重要的話後，等一等對方的回應。",
+      "2": "用一句話寫下本週任務中自己負責的範圍。",
+      "3": "分清一項必須守住的標準和一項可以靈活調整的標準。",
+      "4": "各選一件需要繼續了解的事和現在就能嘗試的事。"
     },
     "rules": {
-      "0": "Proceed with a clear goal and deadline. Reduce new tasks if unfinished work grows.",
-      "1": "Speak when the message and the listener’s availability align. Do not press for an immediate answer.",
-      "2": "Accept a role when resources match its demands. Renegotiate a growing workload.",
-      "3": "Apply standards that serve the goal. Define a minimum if perfection stalls progress.",
-      "4": "Research a specific question. Set a small test deadline if information only accumulates."
+      "0": "目標和期限明確後再推進。如果只開頭、不收尾的事越來越多，就先減少新任務。",
+      "1": "要說的內容與對方的餘裕合適時再開口。情緒上來時，更別急著催答覆。",
+      "2": "責任與可用資源相稱時再接下。自己的份額不斷增加，就重新商量範圍。",
+      "3": "標準能服務於目標時再用。若被完美拖住，就先定好最低可行條件。",
+      "4": "先明確要確認的問題再查資料。若只是資訊越積越多，就先定一個小範圍試行的日期。"
     },
     "godNames": {
-      "0": "Peer · autonomy",
-      "1": "Competitor · cooperation",
-      "2": "Expression · consistency",
-      "3": "Challenger · improvement",
-      "4": "Opportunity · resources",
-      "5": "Stewardship · accumulation",
-      "6": "Pressure · response",
-      "7": "Responsibility · order",
-      "8": "Insight · perspective",
-      "9": "Learning · support"
+      "0": "比肩 · 自我標準",
+      "1": "劫財 · 競爭與合作",
+      "2": "食神 · 穩定表達",
+      "3": "傷官 · 質疑與改進",
+      "4": "偏財 · 機會與資源",
+      "5": "正財 · 管理與累積",
+      "6": "偏官 · 壓力與應對",
+      "7": "正官 · 責任與秩序",
+      "8": "偏印 · 不同視角",
+      "9": "正印 · 學習與支持"
     },
     "godLife": {
-      "0": "Making your own decisions may feel comfortable. Hear another view too.",
-      "1": "Working alongside others may energise you. Notice when comparison becomes draining.",
-      "2": "Regular practice and expression may help you develop a skill.",
-      "3": "You may question familiar rules. Explain the reason for a proposed change.",
-      "4": "Connecting opportunities may interest you. Check what you can realistically manage.",
-      "5": "Keeping small financial commitments and promises may bring stability.",
-      "6": "Demanding tasks may focus your attention. Make recovery part of the schedule.",
-      "7": "Clear roles may feel comfortable. Practise adjusting when expectations change.",
-      "8": "You may explore unfamiliar perspectives deeply. Test them against experience.",
-      "9": "Learning and support may renew your energy. Put one lesson into practice."
+      "0": "自己做決定可能讓您自在。也聽聽其他人的意見。",
+      "1": "與他人並肩前行可能帶來力量。也留意比較是否正在消耗自己。",
+      "2": "持續表達並打磨熟悉的事物，可能是您的長處。",
+      "3": "您可能願意質疑習以為常的規則。先說明想改變的理由。",
+      "4": "您可能有興趣把不同機會串連起來。也看看實際能夠承受的範圍。",
+      "5": "守住小額收入與承諾，可能讓您獲得穩定感。",
+      "6": "面對困難任務時，專注力可能被激發。也把恢復精力的時間排進去。",
+      "7": "角色與標準明確時，您可能更安心。也練習應對標準變化的情境。",
+      "8": "您可能深入探索陌生的視角。也創造機會，在實際生活中驗證想法。",
+      "9": "學習與互相幫助可能讓您獲得力量。把學到的東西小小實踐一下。"
     },
     "godRules": {
-      "0": "Separate individual from shared decisions and consult where needed.",
-      "1": "Agree on costs and roles before competing. Pause if comparison replaces the goal.",
-      "2": "Start with a repeatable workload. Use completed work to plan the next step.",
-      "3": "Offer an alternative when identifying a problem. Avoid judging the person.",
-      "4": "List time and downside limits for each opportunity. Defer what exceeds them.",
-      "5": "Record income, costs and commitments. Do not let stability prevent necessary change.",
-      "6": "Check resources before accepting pressure. Share work if rest suffers.",
-      "7": "Clarify responsibility. Adjust rules with evidence when they undermine their purpose.",
-      "8": "Treat intuition as a hypothesis. Verify before making a major decision.",
-      "9": "Apply one lesson directly. Review the final choice even when receiving help."
+      "0": "分清個人決定與共同決定，需要協商的事先確認彼此意見。",
+      "1": "競爭前先談妥成本和角色。若比較讓目標變了，就暫停一下。",
+      "2": "從可以持續的工作量開始。以完成的成果為依據，確定下一步。",
+      "3": "指出問題時也提出替代方案，避免評價對方這個人。",
+      "4": "寫下每個機會所需時間與可承受損失的上限，超出範圍就暫緩。",
+      "5": "記錄收支與承諾。別因為追求穩定，連必要的改變也一直推遲。",
+      "6": "先確認自己應對壓力的資源。若睡眠和恢復受到影響，就分擔工作。",
+      "7": "先確認責任範圍。規則與目的相悖時，拿出依據進行調整。",
+      "8": "將直覺視為假設，用實際案例驗證。不要在缺乏依據時做重大決定。",
+      "9": "親自應用一項所學。即使獲得幫助，也要檢查最終選擇。"
     },
-    "distribution": "Existing chart ratios include the month-branch weighting. A larger share is not a rank or a probability of success.",
-    "dominant": "{element} at {value}% is relatively prominent: a clue to {trait}.",
-    "balanced": "Several elements share the largest proportion. Consider how different situations bring out different strengths.",
-    "dayBasis": "Day stem {stem} · day branch {branch}. The day stem is the reference for this reading; here its {element} symbolism is translated into daily life.",
-    "godBasis": "{name} appears in {count} chart positions. This counts relationships to the day stem, not a definitive personality diagnosis.",
-    "unknown": "Birth time unknown: noon is used as a reference. The hour pillar and time-dependent ratios, strength and timing cannot be treated as certain.",
-    "cold": "The seasonal score leans cooler. Notice what helps you prepare before starting an activity.",
-    "hot": "The seasonal score leans warmer. Leave recovery intervals when increasing your pace.",
-    "neutral": "The temperature score is centred. Observe your actual routine rather than compensating in one direction.",
-    "climateBasis": "Temperature score {score} · moist signals {wet} / dry signals {dry}. These are symbolic seasonal calculations, not a medical assessment.",
-    "climateAction": "Record activity and rest on days that went well. Adjust to actual wellbeing, not a symbolic score.",
-    "strong": "The day stem receives relatively strong support. Consider both independent effort and sharing responsibilities.",
-    "weak": "Surrounding demands are relatively large compared with support for the day stem. Preparation and help are useful questions to explore.",
-    "jong": "The engine considers a following structure. Ordinary strong/weak advice does not apply unchanged.",
-    "strengthBasis": "Existing support score {score} · balancing candidates {support}. This does not rank your ability or worth.",
-    "strengthAction": "Check time and support before adding a responsibility. Review focus, effort and recovery after the choice.",
-    "flowBasis": "{label} {stem}{branch} · existing score {score}. A comparison aid, not a certain prediction.",
-    "flowOpen": "The existing assessment reads this as relatively supportive. Test a prepared idea on a small scale.",
-    "flowCare": "The existing assessment suggests adjustment. Review pace, responsibilities and schedules.",
-    "flowRuleOpen": "Start small when resources and plans are ready. A score does not guarantee an outcome.",
-    "flowRuleCare": "Adjust schedules and keep options open. Do not make relationship, career or investment decisions from a score alone.",
-    "period": "Current ten-year cycle",
-    "year": "Current annual cycle",
-    "more": "Read more",
-    "sample": "Sample · a fictional chart",
-    "sampleNote": "An example of the format, not your personal result.",
-    "paidDifference": "The free reading covers temperament and current cycles. These static readings add longer periods and thematic detail, using explanations linked to the calculated chart.",
-    "paidDaeun": "一起解讀每十年變化的人生走向和每年的變化，從事業、人際、財運的解析中看清現在該準備的選擇。",
-    "paidSummary": "從先天氣質、五行與十神、性格與人際，到人生策略和今明兩年的建議，依你的命盤一次整理好。",
-    "recovery": "Reopen the chart with the same account and profile and check access. If payment succeeded but access is missing, do not pay again; contact support with the payment record.",
-    "inputs": "Uses the birth information and calculations already entered for this chart. Unknown birth time limits time-dependent interpretation.",
-    "pricePending": "Checking price",
-    "priceUnavailable": "Confirm the price in the payment information",
-    "paidRead": "View reading",
-    "catTitle": "Yeongnyangi readings",
-    "catPurpose": "Explore your chart with the cat guide",
-    "catGo": "Explore",
-    "catPrice": "From {price}",
-    "endYeon": "You do not need to fit every sentence. Start with one clue that connects with your own experience.",
-    "endNeo": "A chart does not decide for you. Separate supported observations from mismatches and choose one action to test.",
-    "catFree": "Free fortune",
-    "today": "Today’s cycle",
-    "month": "This month’s cycle",
-    "summaryTitle": "輕量版八字解讀",
+    "distribution": "這是包含月支權重的既有計算比例。多寡不代表優劣，也不是成功機率。",
+    "dominant": "{element}占{value}%，相對突出，可作為觀察{trait}的線索。",
+    "balanced": "幾個五行共同占據較大比例。不必用一種性格概括自己，可以看看不同情境中呈現的力量。",
+    "dayBasis": "日干{stem} · 日支{branch}。日干是解讀自我的基準，這裡把{element}的象徵轉化為日常語言。",
+    "godBasis": "當前命盤中{name}出現在{count}處。這是日干與其他字之間關係的計數，不是確定性的人格診斷。",
+    "unknown": "出生時間不詳：以正午代入進行參考計算。時柱及受時間影響的五行比例、強弱與時機解讀均無法確定。",
+    "cold": "調候訊號偏寒。開始活動前，留意身心需要怎樣的準備時間。",
+    "hot": "調候訊號偏暖。加快節奏時，也留出恢復的間隔。",
+    "neutral": "溫度分數居中。與其一味朝某個方向補足，不如觀察實際生活節奏。",
+    "climateBasis": "調候溫度分數{score} · 濕潤訊號{wet}／乾燥訊號{dry}。這是季節與干支的象徵性計算，並非健康診斷。",
+    "climateAction": "記錄狀態良好時的活動與休息間隔。調整時以實際感受為準，而非象徵分數。",
+    "strong": "這是支持日干的力量相對較大的結構。既看看獨立推進的力量，也留意分工合作的餘裕。",
+    "weak": "相較於日干的力量，周圍角色的要求更大。如何爭取幫助與準備時間，是值得探索的線索。",
+    "jong": "此結構考慮了順從單一氣勢的從格可能性，不能照搬一般身強、身弱的建議。",
+    "strengthBasis": "既有扶抑分數{score} · 調整候選{support}。分數不是衡量個人能力或價值的等級。",
+    "strengthAction": "增加職責前先確認時間與支持。記錄選擇後的專注、消耗和恢復情況，再調整判斷標準。",
+    "flowBasis": "{label} {stem}{branch} · 既有評分{score}。這是比較走勢的參考值，並非確定吉凶的預測。",
+    "flowOpen": "既有評估顯示，這段走勢相對順暢。可以小範圍試行已準備好的事情。",
+    "flowCare": "既有評估顯示，這段走勢需要協調。不妨放慢節奏，整理職責與日程。",
+    "flowRuleOpen": "資源與計畫準備好後，從小行動開始。分數並不保證結果。",
+    "flowRuleCare": "調整日程，保留選擇空間。不要僅憑分數決定關係、職業或投資。",
+    "period": "當前大運",
+    "year": "今年流年",
+    "more": "詳細閱讀",
+    "sample": "範例 · 虛構命盤的解讀",
+    "sampleNote": "此例僅展示解讀形式，並非您的個人結果。",
+    "paidDifference": "根據輸入的出生資訊計算命盤，再組合相應的既有解說。在免費解讀的氣質分析基礎上，繼續閱讀各時期走勢與主題解說。",
+    "paidDaeun": "結合每十年的生活走勢與逐年變化，從工作、關係和財務解讀中，看看現在可以為哪些選擇做準備。",
+    "paidSummary": "以您的命盤為依據，一起梳理先天氣質、五行與十神、性格與關係、生活策略，以及今明兩年的建議。",
+    "recovery": "請用原帳戶與檔案重新打開四柱結果，檢查該解讀的解鎖狀態。付款後仍打不開時，請勿重複購買，附上付款紀錄聯絡客服。",
+    "inputs": "使用當前四柱中已輸入的出生資訊與計算值。出生時間不詳時，依賴時辰的解讀僅能有限參考。",
+    "pricePending": "正在確認價格",
+    "priceUnavailable": "請在付款說明中確認價格",
+    "paidRead": "查看解讀",
+    "catTitle": "Yeongnyangi諮詢",
+    "catPurpose": "與貓咪顧問一起探索命盤走勢",
+    "catGo": "查看",
+    "catPrice": "{price}起",
+    "endYeon": "不必勉強把每句話都套在自己身上。從一條與真實經歷相接的線索開始，慢慢看看就好。",
+    "endNeo": "命盤不會替你選擇。分清有依據的部分與不符合經歷的解讀，選一個今天能驗證的行動。",
+    "catFree": "免費運勢",
+    "today": "今日走勢",
+    "month": "本月走勢",
+    "summaryTitle": "輕量四柱解讀",
     "daeunTitle": "大運分析 · 從現在到下一階段",
-    "graphTitle": "大運走勢對比",
+    "graphTitle": "大運走勢比較",
     "godTraits": {
-      "0": "A preference for self-directed choices",
-      "1": "Energy from cooperation and competition",
-      "2": "Expression refined through practice",
-      "3": "A habit of reviewing familiar rules",
-      "4": "Interest in connecting opportunities",
-      "5": "Steady attention to resources and commitments",
-      "6": "Focus on demanding tasks",
-      "7": "Attention to roles and standards",
-      "8": "Deep exploration of unfamiliar views",
-      "9": "Preparation through learning and support"
-    }
+      "0": "你傾向於自己決定方向。",
+      "1": "一起前行或切磋，反而可能讓你更有力量。",
+      "2": "你更擅長在反覆練習中打磨表達。",
+      "3": "即使是熟悉的規則，你也願意重新審視。",
+      "4": "你可能想把不同的機會連結起來。",
+      "5": "你傾向於持續照看承諾與資源。",
+      "6": "面對壓力較大的任務，你反而可能更專注。",
+      "7": "角色與標準清晰時，你更容易安心。",
+      "8": "遇到陌生視角時，你會想深入探索。",
+      "9": "你傾向於透過學習與互助做好準備。"
+    },
+    "neoIntro": "我會先幫你理清走勢的依據，再一起選一個現在可以嘗試的小步驟。",
+    "letterGreeting": "親愛的{name}：",
+    "letterGuest": "正在讀這封信的你",
+    "letterSignature": "Yeoni，懷著滿滿的心意",
+    "letterOpening": "讀這篇長長的解讀時，有些句子也許讓你點頭，有些地方則讓你的心稍稍停頓。今天，與其急著確定答案，我更想隔著一杯熱茶，再多聽一聽你的故事，懷著這樣的心情給你寫下這封信。",
+    "letterDay": "命式中用來理解你的基準——日干，是{stem}。{image} 如果這個畫面讓你覺得熟悉，不妨慢慢回想，最近你把這份力量用在了哪裡。先天氣質不是必須完成的功課，而是一條線索，幫助你少誤解自己一點。",
+    "letterImages": {
+      "0": "可以想像一棵大樹伸展枝條的樣子：認準方向，一步一步向前。",
+      "1": "可以想像草木與藤蔓尋找空間生長的樣子：觀察周圍，再調整自己的路徑。",
+      "2": "可以想像陽光照亮空間的樣子：把想法與心意分享給外面的世界。",
+      "3": "可以想像一盞小燈照亮身邊的樣子：細心照看自己在意的事與人。",
+      "4": "可以想像山巒穩穩立在原地的樣子：在搖擺的局面中，努力找到重心。",
+      "5": "可以想像泥土包容種子的樣子：照料日常中的細小條件，耐心等待結果。",
+      "6": "可以想像打磨工具鋒刃的樣子：理清糾纏的事情，作出必要的決定。",
+      "7": "可以想像細看寶石紋理的樣子：辨認細微差別，認真守護珍視的標準。",
+      "8": "可以想像河水尋找流路的樣子：觀察多種可能，讓思路向更寬處展開。",
+      "9": "可以想像細雨靜靜滲入土地的樣子：深入察覺容易被忽略的跡象與情緒。"
+    },
+    "letterBalance": "從五行分布來看，{observation} {scene} 原本用得很好的力量，如果一直不停地使用，也可能成為負擔。反過來，某種五行占比較少，也不意味著你缺少它所代表的能力。與其想著填滿數字上的空缺，不如一起回顧現實生活中讓你舒適的方式，以及令你疲憊的時刻。",
+    "letterTied": "幾種五行呈現出相近的占比。比起用一種樣子概括你，我更想同時看見那些隨著處境變化的心情。有時走在前面，有時安靜觀察，這些都是同一個你。",
+    "letterStrong": "命式顯示，支持日干的力量相對充足。如果你習慣自己決定方向，不妨回頭看看，是否因為「一個人也能做到」，便把所有責任都攬在身上。尋求幫助並不是放下自己的力量，也可以是分擔負荷，讓這份力量用得更長久。",
+    "letterWeak": "這是周圍要求相對於日干支持力更大的結構。它並不是說你內心軟弱，或能力不足。請把它理解為：當你有充分準備的時間、有可以商量的人，也有歇一歇的位置時，就能更自在地運用自己的力量。",
+    "letterJong": "命式中考慮了從格的可能性，也就是觀察力量向一個方向匯集的結構。比起僅用「強」或「弱」來解釋你，更值得留意的是：在哪種環境裡，你的力量會自然延續。請始終把自己的真實經歷放在解讀之前。",
+    "letterCare": "如果最近事情沒有如期待般順利，讓你對自己越來越苛刻，我希望你不要立刻把結果與自身價值綁在一起。艱難的時光未必是好事將近的預告，但你現在仍可以作出減輕今天負擔的選擇。少承擔一件事，或向信任的人說說眼下的處境，就從這樣的小選擇開始。",
+    "letterPractice": "如果今天只從這封信中帶走一件事，不妨這樣開始：{action} 這不是為了讓別人滿意的作業，而是一次小小的嘗試，看看自己的日子能否輕鬆一點。如果不適合你，換一種方法也沒關係。",
+    "letterSynthesis": "打開這封信時的你，與走到最後幾句話前的你，也許已經有了一點不同的心情。{image} {observation} 而在當前這段時期，命式也呈現出{verdict}。這些看起來像不同的故事，最後卻都指向同一個人——你。先天特質與當下走勢這樣交疊，組成了此刻獨屬於你的樣貌。所以，即使今天解讀中的其他話都淡去，我仍希望你記住：現在的你，已經在以自己的方式前行。",
+    "letterClosing": "就像輕輕放下茶杯，也把今天讀到的話暫時放在身旁吧。留住觸動你的句子，不符合自己的話，也可以讓它們流過去。最貼近地走過你人生的人，始終是你自己。即使下一步還不清晰，Yeoni仍希望你身邊留有一點餘地，讓你不必催逼自己，也能作出選擇。",
+    "neoLetterTitle": "星光下留給你的便箋",
+    "neoGreeting": "{name}，最後再一起看清一件事吧。",
+    "neoSignature": "Yeongnyangi · 下一步，由你自己選擇",
+    "neoDominant": "{element}占{value}%，相對突出。這是觀察{trait}的一條線索。",
+    "neoTied": "幾種五行共同占據最大比重。別急著用一種性格概括自己，先看看你在不同情境裡如何回應。",
+    "neoScenes": {
+      "0": "如果你容易同時開啟好幾件新事，也記得留出收尾的時間。",
+      "1": "如果你表達欲很強，也給對方留一點回應的空隙。",
+      "2": "看看自己是不是在守住本分時，連別人的那一份也扛了起來。",
+      "3": "標準清楚是你的長處。但也回頭看看，有沒有為了守住標準，反而忘了原本的目的。",
+      "4": "如果你很容易察覺細小變化，也定一個把觀察轉成行動的時點。"
+    },
+    "neoActions": {
+      "0": "增加新任務之前，先給手頭的一件事定下完成時間。",
+      "1": "先看看要說什麼、對方有沒有餘力聽，說完之後再等一等回應。",
+      "2": "先寫清楚要承擔的範圍，以及能投入的時間。",
+      "3": "分清一個必須守住的標準，以及一個可以調整的標準。",
+      "4": "選一個需要確認的問題，再選一件可以小範圍嘗試的事。"
+    },
+    "letterGuestGreeting": "致正在讀這封信的你：",
+    "neoGuestGreeting": "最後再一起看清一件事吧。",
+    "neoOpening": "哼，長篇解讀讀完了，辛苦啦。命式是幫助你觀察走勢的參考，不是替你下決定的指令書。合適的部分就拿來用，和真實經歷對不上的解讀，也可以先放一邊。你現在需要的，比起一大堆好聽的話，更是一個能親手試試的判斷標準。",
+    "neoClue": "{observation} 這裡要看的不是誰好誰差，而是你怎樣運用力量。{scene} 先回想最近的一次選擇，看看這樣的模式是不是真的在重複。",
+    "neoStrong": "支持日干的力量相對較大。正因為一個人也能往前推，你可能更容易什麼都攬下來。可就算有信心，時間和資源也不會自動變多。先分清哪些自己承擔、哪些可以分擔，也給不同意見留一個位置。",
+    "neoWeak": "相對於日干，周圍的要求較大。這不代表你能力不足。如果沒有準備時間、沒有可以依靠的支持，就一味增加角色，很快疲憊也不奇怪。一個人覺得吃力時，縮小範圍或開口求助，都是很好的選擇。",
+    "neoJong": "命式考慮了順著一個方向勢頭而行的從格可能性。所以，先別套用普通的強弱公式急著下結論。回想一下，過去順應環境行動時，事情是不是真的更順利。",
+    "neoAction": "今天可以試的事很簡單。{action} 也一起寫下什麼時候試、根據什麼判斷有沒有幫助。試過不合適，就換個方法。修改計畫不是認輸，而是在尋找適合自己的路。",
+    "neoClosing": "無論關係還是工作，都別只憑命式作重大決定。一起看看對方的實際行動、約定的條件，以及自己承擔得起的代價。我不是想逼你，只是希望你的選擇更清楚一點。今天就從自己做得到的那一點開始吧，喵。",
+    "letterVerdictJong": "順應力量匯向同一方向的結構",
+    "letterVerdictStrong": "較有餘力自行開闢道路的結構",
+    "letterVerdictWeak": "在身邊有支持、準備時間充足時更能自在發光的結構"
   },
   "sajuCompat": {
     "selfFallback": "我",

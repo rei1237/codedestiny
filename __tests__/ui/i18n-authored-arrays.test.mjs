@@ -12,3 +12,12 @@ test('authored replacement of one array item preserves all neighboring content',
   assert.equal(data.feature.faq[0].a,'first answer');assert.equal(data.feature.faq[1].q,'second question');
   assert.equal(data.feature.faq[0].q,'translated question');
 });
+
+test('an explicitly reviewed complete array removes only obsolete trailing copy',()=>{
+  const data={feature:{notes:['current policy','current access','obsolete policy'],other:['keep']}};
+  scope.trimAuthoredArray(data,'feature.notes',2);
+  assert.deepEqual(data.feature.notes,['current policy','current access']);
+  assert.deepEqual(data.feature.other,['keep']);
+  assert.throws(()=>scope.trimAuthoredArray(data,'feature.notes',3),/Incomplete/);
+  assert.throws(()=>scope.trimAuthoredArray(data,'feature.notes',-1),/Invalid/);
+});

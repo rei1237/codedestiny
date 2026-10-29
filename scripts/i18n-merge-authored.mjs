@@ -63,6 +63,14 @@ function setDeep(target, dottedKey, value) {
   node[parts[parts.length - 1]] = value;
 }
 
+function trimAuthoredArray(target, dottedKey, length) {
+  if (!Number.isSafeInteger(length) || length < 0) throw new Error(`Invalid reviewed array length: ${dottedKey}`);
+  const value = dottedKey.split('.').reduce((node, key) => node?.[key], target);
+  if (value === undefined) return;
+  if (!Array.isArray(value) || value.length < length) throw new Error(`Incomplete reviewed array: ${dottedKey}`);
+  value.length = length;
+}
+
 // 저작 파일 수집: <namespace>-<번호>.json
 const files = readdirSync(authoredDir)
   .filter((f) => f.endsWith(".json"))
@@ -81,12 +89,14 @@ const stripBrandNames = (text) => BRAND_TOKENS.reduce((value, name) => value.rep
 
 /** namespace → { locale → { key → value } } */
 const byNamespace = {};
+const arrayLengths = {};
 const problems = [];
 let entryCount = 0;
 
 for (const file of files) {
   const namespace = file.replace(/-\d+\.json$/, "");
   const authored = JSON.parse(readFileSync(join(authoredDir, file), "utf8"));
+  if (authored._arrayLengths) arrayLengths[namespace] = { ...arrayLengths[namespace], ...authored._arrayLengths };
   for (const [key, translations] of Object.entries(authored)) {
     if (key.startsWith("_")) continue;
     entryCount += 1;
@@ -121,6 +131,7 @@ for (const [namespace, byLocale] of Object.entries(byNamespace)) {
       if (existingOnly && key.split(".").reduce((node, part) => node?.[part], current) === undefined) continue;
       setDeep(current, key, value);
     }
+    for (const [key, length] of Object.entries(arrayLengths[namespace] || {})) trimAuthoredArray(current, key, length);
     writeFileSync(target, `${JSON.stringify(current, null, 2)}\n`, "utf8");
     written += 1;
   }
