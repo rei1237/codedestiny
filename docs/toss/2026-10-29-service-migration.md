@@ -2,6 +2,19 @@
 
 status: in-progress
 
+## 최신 전달 상태 — 2026-10-29 네오
+
+- 찻집 main push: ae5558a3f661ddd8c35e190cdfb02e23b1f9aa9f. 아래 기록의 로컬 CI 수정은 원격의 동일 수정 ce93c96f7 / dd42002bd를 보존하여 중복 반영하지 않았다. main PR CI 40843996522는 네오 검증 시점에 in_progress였다.
+- release 경로에서 NeoOperationRoomPage / NeoOperationRoomResultPage / NeoStrategyBooksPage를 직접 사용한다. 원본 5단계 입력, 14개 브리핑 부분 생성, 현실 점검 2회, 수정 명령서와 발급된 전략서의 원문 연결을 유지한다.
+- Toss 승인 SKU와 원본 가격·정규화 입력 해시를 묶고, 생성·재열람·수정·전략서 열람에서 동일 주문의 소유자/환경/활성 계정/파트너 환불 상태를 검사한다. 클라이언트의 웹 결제 증빙은 권한으로 사용하지 않는다. 웹 이용권·월정석·단건 가격/프롬프트/생성 분량/보관 포맷은 유지한다.
+- 결제 승인 후 첫 checkpoint 전 이탈도 저장된 입력으로 복구한다. 원본 cron의 축약 projection에는 native marker가 없으므로 원본 저장본을 다시 조회하여 Toss 복구 문맥을 붙인다. 웹 환불 처리로 폴백하지 않는다.
+- 토스 Node 138/138, 원본 네오 3 suites 72/72 통과. 실제 원본 처리기에서 오프라인 AI 14개 부분 저장, 추가 질문 2회(각 8개 부분), 추가 생성 없는 재열람, 환불 후 빠른 재조회 차단을 확인했다. 별도 경계 검사에서 첫 checkpoint 복구/입력 변조/계정·환경 격리/카탈로그 제거 뒤 재열람을 확인했다.
+- 출시 빌드 성공: deploymentId 01a186e4-1b18-73ef-b732-ce1a063c5113. 서버 dry-run 성공. 변경 파일 lint 0 errors / 19 warnings(마지막 UI 안내 수정 전 수치). check:fast 확대 검사 진행 중.
+- visual-checker: 390/1280 원본 전략실 배경·캐릭터·폰트·5단계 입력 정상, 입력 16px, overflow/깨진 이미지/404 없음. 결과 화면의 출시 전 잘못된 완료/지연 안내 수정 후 재검수 통과. 원본 CDN 배경·휘장 요청은 유지되며, API/로그인/결제/AI 요청은 수행하지 않았다.
+- SERVICE_AVAILABLE=false와 승인 SKU 빈 목록을 유지한다. 실제 토스 로그인·LLM·결제·운영 DB·콘솔 제출·실기기 검증은 별도다.
+
+다음 단위는 초융합이다. 원본 FusionFortuneClient의 SSE status/ping/stage/checkpoint/result/complete, 2단계 저장과 재개, SavedFusionReading, 8개 분야 장/체계별 시각화/독서 이동/PDF를 보존한다. 입력은 useCoinGate resume.args.body, 결제 경계는 buildFusionFortunePaidAccessResolver 및 assertFusionDeliveryAccess, 저장은 persistFusionDelivery와 FusionFortuneConsultation을 재사용한다. 초융합을 영냥이 fusion-book이나 일반 JSON 상담으로 대체하지 않는다.
+
 사용자 요청: 샘플 미리보기에서 끝내지 않고 영냥이·운명의 찻집·네오 전략실을 출시 버전에 연결한다. 원본 UI/UX와 결과 생성·저장·재열람을 보존한다. 그 이후 초융합과 다른 운세를 하나씩 정확히 이식한다.
 
 ## 순서와 완료 기준

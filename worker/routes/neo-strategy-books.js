@@ -1,4 +1,4 @@
-import { getOptionalUserFromRequest } from '../lib/auth.js';
+import { getOptionalUserFromRequest as webOptionalUser } from '../lib/auth.js';
 import { connectDb, mongoose, mongoTransactionOptions } from '../lib/db.js';
 import { scopeConnection } from '../lib/db-scope-connection.js';
 import { NeoOperationRoomConsultation } from '../lib/models.js';
@@ -6,15 +6,23 @@ import { isStoredPaidResultRevoked } from '../lib/paid-result-revocation.js';
 import { json, readJson } from '../lib/http.js';
 import { issueNeoStrategyBook, bookError, normalizeBookSelection } from '../lib/neo-strategy-book.js';
 
+import {nativeTossContext} from '../toss/native-context.js';
+const getOptionalUserFromRequest=(request,...args)=>nativeTossContext(request)?.auth||webOptionalUser(request,...args);
+async function isRevoked(request,userId,doc){
+  if(nativeTossContext(request)){await nativeTossContext(request).assertStored(doc);return false;}
+  return isStoredPaidResultRevoked(userId,FEATURE_KEY,doc);
+}
 const FEATURE_KEY = 'neo-operation-room-consultation';
-function publicBook(book) {
+function publicBook(book, request) {
   const { _id: _unusedId, userId: _unusedOwner, ...visible } = book;
+  if(nativeTossContext(request))return {...visible,chapters:visible.chapters.map(chapter=>({...chapter,
+    originalUrl:'/neo-operation-room/result/?attemptId='+encodeURIComponent(chapter.sessionId)}))};
   return visible;
 }
-async function assertBookAccess(book, userId) {
+async function assertBookAccess(book, userId, request) {
   for (const id of book.sessionIds) {
     const doc = await NeoOperationRoomConsultation.findOne({ id, userId, status: 'completed' }).lean();
-    if (!doc || await isStoredPaidResultRevoked(userId, FEATURE_KEY, doc)) throw bookError('RESULT_NOT_AVAILABLE', 403);
+    if (!doc || await isRevoked(request,userId,doc)) throw bookError('RESULT_NOT_AVAILABLE', 403);
   }
 }
 export async function handleNeoStrategyBooks(request, env, path, backfill) {
@@ -38,8 +46,8 @@ export async function handleNeoStrategyBooks(request, env, path, backfill) {
       if (!/^nsb_[a-f0-9]{40}$/.test(id)) throw bookError('BOOK_NOT_FOUND', 404);
       const book = await books.findOne({ _id: id, userId });
       if (!book) throw bookError('BOOK_NOT_FOUND', 404);
-      await assertBookAccess(book, userId);
-      return json({ ok: true, book: publicBook(book) });
+      await assertBookAccess(book, userId, request);
+      return json({ ok: true, book: publicBook(book, request) });
     }
     if (request.method !== 'POST' || path !== '/strategy-books') throw bookError('METHOD_NOT_ALLOWED', 405);
     const body = await readJson(request);
@@ -49,16 +57,16 @@ export async function handleNeoStrategyBooks(request, env, path, backfill) {
       books, wallets: connection.db.collection('neo_operation_room_badge_wallets'), ledgers: connection.db.collection('neo_operation_room_badge_ledgers'),
       now: () => new Date(),
       readConsultation: (owner, id) => NeoOperationRoomConsultation.findOne({ userId: owner, id }).lean(),
-      isRevoked: (owner, doc) => isStoredPaidResultRevoked(owner, FEATURE_KEY, doc),
+      isRevoked: (owner, doc) => isRevoked(request,owner,doc),
       transaction: async callback => {
         const session = await connection.startSession();
         try { return await session.withTransaction(() => callback(session), mongoTransactionOptions(env)); }
         finally { await session.endSession(); }
       },
     });
-    return json({ ok: true, book: publicBook(result.book), badge: { authenticated: true, balance: result.balance } });
+    return json({ ok: true, book: publicBook(result.book, request), badge: { authenticated: true, balance: result.balance } });
   } catch (error) {
-    if (error.status) return json({ ok: false, reason: error.reason }, { status: error.status });
+    if (error.status) return json({ ok: false, reason: error.reason || error.code }, { status: error.status });
     throw error;
   }
 }

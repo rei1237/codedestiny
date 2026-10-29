@@ -415,7 +415,7 @@ function buildNeoSincereLetter(session: NeoResultSession, methodName: string, lo
   ).join("\n\n");
 }
 
-export default function NeoOperationRoomResultPage() {
+export default function NeoOperationRoomResultPage({ availability }: { availability?: { title: string; message: string } } = {}) {
   const searchParams = useSearchParams();
   const attemptId = searchParams?.get("attemptId") || searchParams?.get("id") || "";
   const localPreviewEnabled = process.env.NODE_ENV !== "production";
@@ -486,6 +486,7 @@ export default function NeoOperationRoomResultPage() {
     const ownerIsCurrent = captureOwner();
     const isCurrent = () => !cancelled && ownerIsCurrent();
     async function loadResult() {
+      if(availability){setLoading(false);setError(availability.message);return;}
       if (localPreviewMode) {
         const previewSession = buildLocalPreviewSession(localPreviewMode);
         setSession(previewSession); setLoading(false); return;
@@ -515,7 +516,7 @@ export default function NeoOperationRoomResultPage() {
     }
     void loadResult();
     return () => { cancelled = true; };
-  }, [attemptId, localPreviewMode, recoveryEpoch, captureOwner, resultCopy.loginRequiredError, resultCopy.pollTimeoutError]);
+  }, [attemptId, localPreviewMode, recoveryEpoch, captureOwner, resultCopy.loginRequiredError, resultCopy.pollTimeoutError, availability]);
 
   async function handleRefine() {
     const isCurrent = captureOwner();
@@ -722,7 +723,7 @@ export default function NeoOperationRoomResultPage() {
       <div className={styles.bg} aria-hidden="true" />
       <section className={styles.hero} aria-labelledby="neo-result-title">
         <div className={styles.heroCopy}>
-          {!isGenerating ? <em className={styles.heroStatus}>{heroStatus}</em> : null}
+          {!isGenerating && session?.status === "completed" ? <em className={styles.heroStatus}>{heroStatus}</em> : null}
           <h1 id="neo-result-title">{heroOperationTitle}</h1>
           <p>{isGenerating ? resultCopy.heroSubtitleGenerating : resultCopy.heroSubtitleReady}</p>
         </div>
@@ -770,7 +771,7 @@ export default function NeoOperationRoomResultPage() {
       {isFailed ? (
         <section className={styles.stateCard} aria-live="assertive">
           <NeoWarRoomAssetImage asset={neoResultStampAsset} alt="" sizes="86px" className={styles.stateSeal} imageClassName={styles.decorImage} />
-          <h2>{resultCopy.failedTitle}</h2>
+          <h2>{availability?.title || resultCopy.failedTitle}</h2>
           <p>{error || session?.generationError?.message || resultCopy.failedDefaultMessage}</p>
           <button type="button" onClick={() => setRecoveryEpoch(value => value + 1)}>{resultCopy.retryLink}</button>
         </section>

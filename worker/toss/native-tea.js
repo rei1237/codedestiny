@@ -9,8 +9,10 @@ import {bindNativeTossRequest} from './native-context.js';
 import {nativeTeaContract,nativeTeaStoredState,handleFortuneTeaHouseRoutes} from '../routes/fortune-tea-house.js';
 import {getBillingFeaturePricing} from '../lib/billing-feature-registry.js';
 
-const intentId=(auth,contract)=>hash(JSON.stringify([auth._id,auth.environment,'tea',contract.requestId]));
-const ownerFilter=auth=>({identityId:auth._id,ownerId:auth.ownerId,environment:auth.environment,nativeService:'tea'});
+export const nativeIntentId=(auth,contract,service='tea')=>hash(JSON.stringify([auth._id,auth.environment,service,contract.requestId]));
+const intentId=nativeIntentId;
+export const nativeOwnerFilter=(auth,service='tea')=>({identityId:auth._id,ownerId:auth.ownerId,environment:auth.environment,nativeService:service});
+const ownerFilter=nativeOwnerFilter;
 const view=row=>({id:row._id,sku:row.sku,amountKRW:row.approvedPriceKRW,paid:row.status==='paid',resultId:row.resultId,orderId:row.orderId});
 
 export function approvedNativeTeaProduct(sku){
@@ -21,22 +23,27 @@ export function approvedNativeTeaProduct(sku){
 export function nativeTeaCatalog(){
   return APPROVED_TOSS_NATIVE_PRODUCTS.map(item=>{
     const product=approvedNativeTeaProduct(item.sku);
-    return {id:product.productId,name:'운명의 찻집',sku:product.sku,featureKey:product.featureKey,
+    return {id:product.productId,name:product.nativeService==='neo'?'네오의 팩폭 전략실':'운명의 찻집',sku:product.sku,featureKey:product.featureKey,
       approvedPriceKRW:product.approvedPriceKRW,available:true};
   });
 }
 
 export async function prepareNativeTea(env,auth,input,orderId){
-  const contract=nativeTeaContract(input),id=await intentId(auth,contract);
+  return prepareNativeConsultation(env,auth,input,orderId,nativeTeaContract(input),'tea');
+}
+
+export async function prepareNativeConsultation(env,auth,input,orderId,contract,service){
+  const id=await nativeIntentId(auth,contract,service);
+  const ownerFilter=auth=>nativeOwnerFilter(auth,service);
   const previous=await TossNativeConsultation.findOne({_id:id,...ownerFilter(auth)}).lean();
-  const recovered=orderId?await TossPurchase.findOne({_id:orderId,identityId:auth._id,ownerId:auth.ownerId,environment:auth.environment,nativeService:'tea'}).lean():null;
+  const recovered=orderId?await TossPurchase.findOne({_id:orderId,identityId:auth._id,ownerId:auth.ownerId,environment:auth.environment,nativeService:service}).lean():null;
   if(orderId&&!recovered)throw new TossError('RESULT_NOT_FOUND',404);
   if(recovered?.requestId&&recovered.requestId!==id)throw new TossError('ORDER_ALREADY_ASSIGNED',409);
   if(previous){
     assertNativeIntent(previous,auth,contract);
     if(!orderId||previous.status==='paid')return view(previous);
   }
-  const product=recovered?retainedNativeProduct(recovered,auth):nativeProduct(APPROVED_TOSS_NATIVE_PRODUCTS.find(item=>item.nativeService==='tea'&&item.featureKey===contract.featureKey),contract);
+  const product=recovered?retainedNativeProduct(recovered,auth):nativeProduct(APPROVED_TOSS_NATIVE_PRODUCTS.find(item=>item.nativeService===service&&item.featureKey===contract.featureKey),contract);
   if(product.featureKey!==contract.featureKey)throw new TossError('ORDER_PRODUCT_MISMATCH',409);
   const saved=await TossNativeConsultation.findOneAndUpdate({_id:id},{$setOnInsert:{
     ...ownerFilter(auth),...contract,input,pricing:{...contract.pricing,amountKRW:product.approvedPriceKRW},sku:product.sku,
@@ -48,16 +55,16 @@ export async function prepareNativeTea(env,auth,input,orderId){
     if(order.orderId!==orderId||order.sku!==product.sku)throw new TossError('ORDER_MISMATCH',403);
     if(order.status==='REFUNDED'){await recordTossRefund(auth,order);throw new TossError('ORDER_REFUNDED',409);}
     await grantNativeOrder({store:purchaseStore,auth,order,product,requestId:id});
-    return readNativeTeaIntent(env,auth,id);
+    return readNativeTeaIntent(env,auth,id,service);
   }
   return view(assertNativeIntent(saved,auth,contract));
 }
 
-async function verifiedIntent(env,auth,intent){
+export async function verifiedIntent(env,auth,intent){
   assertNativeIntent(intent,auth);
   if(!intent.orderId||intent.status!=='paid')throw new TossError('PAYMENT_REQUIRED',402);
   const purchase=await TossPurchase.findOne({_id:intent.orderId,identityId:auth._id,ownerId:auth.ownerId,
-    environment:auth.environment,nativeService:'tea',requestId:intent._id,featureKey:intent.featureKey,sku:intent.sku}).lean();
+    environment:auth.environment,nativeService:intent.nativeService,requestId:intent._id,featureKey:intent.featureKey,sku:intent.sku}).lean();
   if(!purchase)throw new TossError('RESULT_NOT_FOUND',404);
   if(purchase.status==='REFUNDED')throw new TossError('ORDER_REFUNDED',409);
   if(!await TossIdentity.findOne({_id:auth._id,ownerId:auth.ownerId,active:true,revision:auth.revision}).lean())throw new TossError('SESSION_EXPIRED',401);
@@ -92,8 +99,8 @@ function teaContext(env,auth){
   };
 }
 
-export async function readNativeTeaIntent(env,auth,id){
-  const row=await TossNativeConsultation.findOne({_id:id,...ownerFilter(auth)}).lean();
+export async function readNativeTeaIntent(env,auth,id,service='tea'){
+  const row=await TossNativeConsultation.findOne({_id:id,...nativeOwnerFilter(auth,service)}).lean();
   assertNativeIntent(row,auth);
   if(row.status==='paid')await verifiedIntent(env,auth,row);
   return view(row);
@@ -139,7 +146,9 @@ export async function nativeTeaLibraryItem(env,auth,purchase){
 export async function nativeTeaRecords(env,auth,params){
   const group=params.get('group')||'all';
   if(!['all','report'].includes(group))return {ok:true,items:[],failures:[],nextCursor:null};
-  const filter={...ownerFilter(auth),status:'paid'};
+  const source=params.get('source');
+  if(source&&!['tea','neo'].includes(source))return {ok:true,items:[],failures:[],nextCursor:null};
+  const filter={...ownerFilter(auth),nativeService:source||{$in:['tea','neo']},status:'paid'};
   const q=(params.get('q')||'').trim().slice(0,160);
   if(q)filter['input.question']={$regex:q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),$options:'i'};
   const cursor=params.get('cursor');
@@ -152,12 +161,13 @@ export async function nativeTeaRecords(env,auth,params){
   const rows=await TossNativeConsultation.find(filter).sort({createdAt:-1,_id:-1}).limit(51).lean();
   const items=[];
   for(const row of rows.slice(0,50)){
-    const purchase=await TossPurchase.findOne({_id:row.orderId,identityId:auth._id,ownerId:auth.ownerId,environment:auth.environment,requestId:row._id,nativeService:'tea'}).lean();
+    const purchase=await TossPurchase.findOne({_id:row.orderId,identityId:auth._id,ownerId:auth.ownerId,environment:auth.environment,requestId:row._id,nativeService:row.nativeService}).lean();
     if(!purchase||purchase.status==='REFUNDED')continue;
-    const saved=await nativeTeaLibraryItem(env,auth,purchase);
-    items.push({id:row.resultId,key:'tea:'+row.resultId,source:'tea',serviceId:'tea',serviceName:'연이의 운명 찻집',
-      title:saved.question||'운명의 찻집',question:saved.question,createdAt:row.createdAt,status:saved.state==='COMPLETED'?'completed':'generating',
-      character:'yeoni',group:'report',href:saved.href,nativeHref:saved.href,startHref:'/fortune-tea-house/'});
+    const neo=row.nativeService==='neo';
+    const saved=neo?await (await import('./native-neo.js')).nativeNeoLibraryItem(env,auth,purchase):await nativeTeaLibraryItem(env,auth,purchase);
+    items.push({id:saved.resultId||row.resultId,key:row.nativeService+':'+row.resultId,source:row.nativeService,serviceId:row.nativeService,serviceName:neo?'네오의 팩폭 전략실':'연이의 운명 찻집',
+      title:saved.question||(neo?'네오의 팩폭 전략실':'운명의 찻집'),question:saved.question,createdAt:row.createdAt,status:saved.state==='COMPLETED'?'completed':'generating',
+      character:neo?'neo':'yeoni',group:'report',href:saved.href,nativeHref:saved.href,startHref:neo?'/neo-operation-room/':'/fortune-tea-house/'});
   }
   const last=rows[49];
   return {ok:true,items,failures:[],nextCursor:rows.length>50?`${new Date(last.createdAt).toISOString()},${last._id}`:null};

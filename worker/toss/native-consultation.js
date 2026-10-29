@@ -1,9 +1,9 @@
 import {checkOrder,TossError} from './policy.js';
 
 export function nativeProduct(item,contract){
-  if(!item||item.approved!==true||item.nativeService!=='tea'||typeof item.sku!=='string'||!item.sku
-    ||!/^fortune-tea-house-/.test(item.featureKey)
-    ||item.featureKey!==contract.featureKey||item.productId!==`native:tea:${contract.featureKey}`
+  if(!item||item.approved!==true||!['tea','neo'].includes(item.nativeService)||typeof item.sku!=='string'||!item.sku
+    ||!(item.nativeService==='tea'?/^fortune-tea-house-/.test(item.featureKey):item.featureKey==='neo-operation-room-consultation')
+    ||item.featureKey!==contract.featureKey||item.productId!==`native:${item.nativeService}:${contract.featureKey}`
     ||!Number.isSafeInteger(item.approvedPriceKRW)||item.approvedPriceKRW<=0
     ||item.approvedPriceKRW!==contract.pricing.amountKRW||!item.priceEvidence)
     throw new TossError('TOSS_PRODUCT_NOT_APPROVED',503);
@@ -43,7 +43,7 @@ export async function grantNativeOrder({store,auth,order,product,requestId=null}
       if(purchase.requestId&&requestId&&purchase.requestId!==requestId)throw new TossError('ORDER_ALREADY_ASSIGNED',409);
     }else{
       purchase={_id:order.orderId,identityId:auth._id,ownerId:auth.ownerId,environment:auth.environment,
-        sku:product.sku,productId:product.productId,serviceId:'yeoni',nativeService:'tea',featureKey:product.featureKey,
+        sku:product.sku,productId:product.productId,serviceId:product.nativeService==='neo'?'neo':'yeoni',nativeService:product.nativeService,featureKey:product.featureKey,
         approvedPriceKRW:product.approvedPriceKRW,priceEvidence:product.priceEvidence,
         status:order.status,requestId:null,verifiedAt:new Date(),grantedAt:new Date()};
       await tx.insertPurchase(purchase);

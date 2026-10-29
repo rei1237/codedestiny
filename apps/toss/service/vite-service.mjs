@@ -73,7 +73,7 @@ export default function serviceCompat(){
    }
    // Original product disclosures fetch their authored manifest after opening.
    const catalogue=JSON.parse(await readFile(resolve(publicRoot,'../content/product-details/catalog.json'),'utf8'));
-   const ids=new Set(Object.entries(catalogue.products).filter(([key])=>key.startsWith('fortune-tea-house-')).map(([,id])=>id));
+   const ids=new Set(Object.entries(catalogue.products).filter(([key])=>key.startsWith('fortune-tea-house-')||key==='neo-operation-room-consultation').map(([,id])=>id));
    for(const id of ids){
     const ref='/feature-details/crafted/'+id+'/manifest.json';
     const source=await readFile(resolve(publicRoot,'.'+ref),'utf8');

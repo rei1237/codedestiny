@@ -61,3 +61,13 @@ test('retained purchases keep their own price snapshot and require the original 
  assert.throws(()=>retainedNativeProduct(row,{...auth,ownerId:'other'}),/RESULT_NOT_FOUND/);
  assert.throws(()=>retainedNativeProduct({...row,status:'REFUNDED'},auth),/ORDER_REFUNDED/);
 });
+
+test('native Neo grant binds only the approved strategy SKU and keeps its own service identity',async()=>{
+ const neo={...product,nativeService:'neo',featureKey:'neo-operation-room-consultation',productId:'native:neo:neo-operation-room-consultation'};
+ assert.equal(nativeProduct(neo,{...contract,featureKey:neo.featureKey}),neo);
+ const storage=store();storage.state.intent={...storage.state.intent,nativeService:'neo',featureKey:neo.featureKey};
+ await grantNativeOrder({store:storage,auth,product:neo,order,requestId:initial._id});
+ assert.equal(storage.state.purchases.get(order.orderId).nativeService,'neo');
+ assert.equal(storage.state.purchases.get(order.orderId).serviceId,'neo');
+ await assert.rejects(grantNativeOrder({store:storage,auth,product,order,requestId:initial._id}),/ORDER_OWNERSHIP_MISMATCH/);
+});

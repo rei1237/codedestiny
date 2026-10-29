@@ -22,6 +22,7 @@ state.models={
 globalThis.__nativeTeaBoundary=state;
 const root=path.resolve(import.meta.dirname,'../../..');
 const stubs={
+ 'worker/toss/native-neo.js':"export const nativeNeoLibraryItem=()=>{};",
   'worker/toss/models.js':'export const {TossNativeConsultation,TossPurchase,TossIdentity}=globalThis.__nativeTeaBoundary.models;',
   'worker/toss/catalog.js':'export const APPROVED_TOSS_NATIVE_PRODUCTS=globalThis.__nativeTeaBoundary.catalog;',
   'worker/toss/partner.js':'export const lookupOrder=async()=>{globalThis.__nativeTeaBoundary.lookups++;return globalThis.__nativeTeaBoundary.order;};',

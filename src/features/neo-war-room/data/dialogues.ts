@@ -495,7 +495,8 @@ export function getNeoMethodDialogue(method: NeoWarRoomConsultMode | "", seed = 
 }
 
 export function getNeoTopicDialogue(topic: string, seed = 0, locale: LoadingLocale = "ko") {
-  return pickNeoDialogue(neoOperationDialogues.topicSelect[topic] || neoOperationDialogues.topicSelect.default, seed, locale);
+  const topics: Readonly<Record<string, readonly NeoOperationDialogue[]>> = neoOperationDialogues.topicSelect;
+  return pickNeoDialogue(topics[topic] || topics.default, seed, locale);
 }
 
 export function getNeoIntensityDialogue(intensity: NeoWarRoomIntensityId | "", seed = 0, locale: LoadingLocale = "ko") {

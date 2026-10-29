@@ -9,7 +9,7 @@ jest.unstable_mockModule('../../worker/lib/sync-llm-timeout.js', () => ({ ...tim
 
 const uid = "64b7f2a1c3d4e5f601234567";
 const body = { idempotencyKey: "original-paid-request", selectedMethod: "saju", topic: "relationship", intensity: "standard", question: "반복되는 관계 선택을 구체적으로 살펴보고 싶습니다.", birthInput: { name: "검사", gender: "female", birthDate: "1993-07-21", birthTime: "09:00", calendarType: "solar" } };
-let utils, route, docs, provider, chart, fault, blocked, mode, userId, usage, refund, fetchBlock, lostConfirmation;
+let recoveryBind, resumeNeo, utils, route, docs, provider, chart, fault, blocked, mode, userId, usage, refund, fetchBlock, lostConfirmation;
 const clone = value => value == null ? value : structuredClone(value);
 function query(value) { const result = Promise.resolve(value); result.lean = async () => clone(value); result.select = result.sort = () => result; return result; }
 const get = (doc, key) => key.split(".").reduce((value, field) => value?.[field], doc);
@@ -66,6 +66,7 @@ function prose(seed, length) {
 }
 let definitions, refinedDefinitions;
 beforeAll(async () => {
+  jest.unstable_mockModule('../../worker/toss/native-neo.js',()=>({bindNativeNeoRecovery:(...args)=>recoveryBind(...args)}));
   const db = await import("../../worker/lib/db.js");
   const auth = await import("../../worker/lib/auth.js");
   const models = await import("../../worker/lib/models.js");
@@ -87,7 +88,7 @@ beforeAll(async () => {
   jest.unstable_mockModule("../../worker/lib/service-execution-task.js", () => ({ startServiceExecution: async () => ({}), completeServiceExecution: async () => ({}), failServiceExecution: (...args) => refund(...args) }));
   jest.unstable_mockModule("../../worker/lib/llm-cache-store.js", () => ({ createLlmCacheStore: () => null }));
   ({ NEO_INITIAL_SECTIONS: definitions, NEO_REFINED_SECTIONS: refinedDefinitions } = await import("../../worker/lib/neo-operation-room-prompt.js"));
-  ({ handleNeoOperationRoomRoutes: route, __neoOperationRoomTestUtils: utils } = await import("../../worker/routes/neo-operation-room.js"));
+  ({ handleNeoOperationRoomRoutes: route, resumeConsultationOnServer: resumeNeo, __neoOperationRoomTestUtils: utils } = await import("../../worker/routes/neo-operation-room.js"));
 });
 function fixture(section) {
   const shape = structuredClone(section.schema);
@@ -258,3 +259,44 @@ for(const kind of ['null','throw','confirm']) it(`refinement final ${kind} prese
 it('refinement short output is bounded and never changes completed initial delivery',async()=>{await initialComplete();provider.mockImplementation(async()=>({ok:true,text:'{"short":"empty"}'}));expect((await refine({sessionId:docs[0].id,freeform:'작게 바꾸겠습니다.'})).status).toBe(202);for(let i=0;i<1;i++)expect((await refine()).status).toBe(202);expect((await refine()).status).toBe(503);expect(docs[0].status).toBe('completed');expect(docs[0].refinementStatus).toBe('generation_failed');expect(provider).toHaveBeenCalledTimes(22);expect(refund).not.toHaveBeenCalled()});
 it('refinement lease, owner and revoked proof block extra provider calls',async()=>{await initialComplete();await refine({sessionId:docs[0].id,freeform:'작은 선택부터 바꿉니다.'});const calls=provider.mock.calls.length;docs[0].llmMeta.refineLockedAt=new Date();docs[0].llmMeta.refineLockToken='other';expect((await refine()).status).toBe(202);userId='other';expect((await refine()).status).toBe(404);userId=uid;blocked=0;expect((await refine()).status).toBe(402);expect(provider).toHaveBeenCalledTimes(calls)});
 it('saju basis and fallback card name only the day pillar, never all four pillars',async()=>{const {buildNeoBasisPayload}=await import('../../worker/lib/neo-operation-room-basis.js');const summary=utils.summarizeSaju({yearPillar:'갑자',monthPillar:'을축',dayPillar:'병인',hourPillar:'정묘',dayMaster:'병'});const core=buildNeoBasisPayload(summary).groups.find(group=>group.key==='core');const text=[summary.evidenceSummary,...core.items.map(item=>`${item.label} ${item.value}`)].join('\n');expect(text).toContain('병인');expect(text).not.toMatch(/갑자|을축|정묘|네 기둥|연월일시/)});
+
+it('native Toss runs the original saved briefing and two reality checks, blocks revoked early rereads and never uses web refunds',async()=>{
+ const {bindNativeTossRequest}=await import('../../worker/toss/native-context.js');
+ const {nativeNeoContract}=await import('../../worker/routes/neo-operation-room.js');
+ const contract=nativeNeoContract(body);let revoked=false;
+ userId='unrelated-web-user';mode='none';
+ const assertStored=jest.fn(async doc=>{
+  if(revoked)throw Object.assign(new Error('ORDER_REFUNDED'),{code:'ORDER_REFUNDED',status:409});
+  expect(doc.userId).toBe(uid);expect(doc.inputHash).toBe(contract.inputHash);expect(doc.paymentId).toBe('toss-original-order');
+ });
+ const access=jest.fn(async (_body,normalized,key)=>{
+  if(revoked)return {ok:false};
+  expect(key).toBe(contract.requestId);expect(normalized.inputHash).toBe(contract.inputHash);
+  return {ok:true,accessType:'paid',source:'toss',paymentId:'toss-original-order'};
+ });
+ const call=async(path,input)=>{
+  const request=new Request('https://mock.test/api/neo-operation-room'+path,{method:input?'POST':'GET',headers:{'content-type':'application/json'},...(input?{body:JSON.stringify(input)}:{})});
+  bindNativeTossRequest(request,{auth:{userId:uid,tossNative:true},access,assertStored});
+  return route(request,{});
+ };
+ for(let i=0;i<4;i++)expect((await call('/start',docs[0]?{sessionId:docs[0].id}:body)).status).toBe(i===3?200:202);
+ expect(docs[0].status).toBe('completed');expect(docs[0].llmMeta.tossNative).toBe(true);
+ recoveryBind=jest.fn(async(_request,_env,stored)=>{expect(stored.paymentId).toBe('toss-original-order');throw new Error('NATIVE_RECOVERY_REACHED');});
+ await expect(resumeNeo({}, {id:docs[0].id,userId:uid})).rejects.toThrow('NATIVE_RECOVERY_REACHED');
+ expect(recoveryBind).toHaveBeenCalledTimes(1);
+ expect(provider).toHaveBeenCalledTimes(14);
+ const initial=clone(docs[0].initialBriefing),sessionId=docs[0].id;
+ const saved=await (await call('/result?attemptId='+sessionId)).json();expect(saved.initialBriefing).toEqual(initial);
+ for(const freeform of ['작은 선택부터 다시 정리하겠습니다.','이번에는 관계의 속도를 살펴보겠습니다.']){
+  expect((await call('/refine',{sessionId,freeform})).status).toBe(202);
+  expect((await call('/refine',{sessionId})).status).toBe(200);
+ }
+ expect(provider).toHaveBeenCalledTimes(30);expect(docs[0].initialBriefing).toEqual(initial);
+ expect((await call('/refine',{sessionId,freeform:'새로운 세 번째 질문입니다.'})).status).toBe(409);
+ expect(usage).toHaveBeenCalledTimes(1);expect(refund).not.toHaveBeenCalled();
+ revoked=true;
+ for(const [path,input] of [['/result?attemptId='+sessionId,null],['/start',{sessionId}],['/refine',{sessionId}]]){
+  const response=await call(path,input);expect(response.status).toBe(409);expect((await response.json()).reason).toBe('ORDER_REFUNDED');
+ }
+ expect(provider).toHaveBeenCalledTimes(30);expect(assertStored).toHaveBeenCalled();
+});
