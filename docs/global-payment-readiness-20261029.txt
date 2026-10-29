@@ -1,4 +1,5 @@
 Code Destiny 해외결제 출시 준비 점검
+후속 완료: 2026-10-29 사용자 승인에 따라 PortOne 문의 발송 및 Play 상품 다국어 문안 적용 완료. 아래 초기 점검의 미발송/미적용 상태는 문서 끝 8절로 갱신됨.
 status: done (요청한 로컬 준비 범위, 출시/운영 활성화는 제외)
 점검일: 2026-10-29 (한국시간)
 범위: 계정 읽기 전용 확인, 로컬 코드 보완, 모의 검증, 문의 초안
@@ -171,3 +172,35 @@ tarot-ijik.html
 vedic-astrology.html
 yoga-guru.html
 docs/global-payment-readiness-20261029.txt
+
+8. 사용자 승인 후 외부 반영 완료 (2026-10-29)
+status: done
+
+PortOne 문의
+- 수신: pgs@portone.io
+- 제목: [CodeDestiny] 점술 업종의 일본결제 및 PayPal SPB 심사 가능 여부 확인
+- 준비한 문의 내용 발송 완료. SENT 라벨 확인.
+- Gmail message/thread ID: 1a185ad44bd05662
+- 발송 내역: https://mail.google.com/mail/u/0/#sent/1a185ad44bd05662
+- 업종 심사 가능 여부, 일본어 구현 요건, PayPal SPB 사전 승인/온보딩, 다국어 사이트 및 법정 표시 요건 문의. 계약/비용 발생 동의 없음.
+- 회신은 아직 확인하지 않았으며 업종 승인 또는 수취 가능 상태로 간주하지 않음.
+
+Play Console 상품 문안
+- 현행 상품 13개, 각 ko-KR/en-US/ja-JP/zh-CN/zh-TW 5개 언어, 총 65개 이름·설명 세트 저장 완료.
+- 단건: cd_content_tier_01, 02, 14, 06, 09, 10, 15, 16, 17, 18.
+- 이용권: cd_pass_standard_30d_v4, cd_pass_premium_30d_v4, cd_pass_vvip_30d_v4.
+- 각 상품 저장 성공 확인 후 페이지를 새로 불러와 5개 언어의 이름과 설명을 준비 문안과 정확히 대조함.
+- 각 상품 구매 옵션 및 혜택 표를 변경 전후 대조하여 옵션 ID, 국가 수, 갱신일, 활성 상태가 동일함을 확인함.
+- 가격/구매 옵션 편집 화면에는 진입하지 않았고 가격 입력·저장은 하지 않음. 국가별 가격 전수 대조를 수행했다는 의미는 아님.
+- 나머지 과거 상품 12개와 앱 판매 국가, 세금, 연령 등급, 태그, 아이콘 설정은 변경하지 않음.
+- Console 설명 제한 200자에 맞춰 이용권 영어 설명만 정책 의미를 보존하여 단축. 생성 스크립트와 검증 기준도 200자로 수정.
+- 실제 결제, 앱 바이너리 업로드, 심사 제출, 앱 출시, 웹 배포는 실행하지 않음.
+
+추가 로컬 수정 파일
+- scripts/export-play-localized-listings.mjs: 이용권 영어 설명 200자 이내로 단축.
+- __tests__/ui/play-localized-listings.test.mjs: 설명 최대 길이 200자 검사.
+- docs/play-localized-listings-review.json: 실제 적용한 최종 문안 재생성. review-only는 생성기의 무전송 동작을 의미함.
+- docs/global-payment-readiness-20261029.txt: 발송 및 Console 적용 증거 기록.
+검증: node --test __tests__/ui/play-localized-listings.test.mjs (1개 통과).
+이번 추가 변경에 전체 빌드/원격 CI는 실행하지 않음. 배포 금지 범위에 따라 원격 push 없이 로컬 커밋으로 보존.
+남은 확인: PortOne 회신, 업종/판매자 승인, 테스트 계정 구매 검증, 별도 출시 승인.

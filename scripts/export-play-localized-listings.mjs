@@ -13,7 +13,7 @@ const locales = {
   'en-US': {
     title: 'Fortune & consultation content', one: 'One-time purchase of the selected fortune or consultation content. Check the final charge in Google Play before paying.',
     passes: ['Small Honey Jar', 'Medium Honey Jar', 'Large Honey Jar'],
-    pass: (coverage, limit) => `Access eligible content valued at up to KRW ${coverage} per use, with a total allowance equivalent to KRW ${limit}. The allowance is not the purchase price. No time limit; ends when the allowance is used. Does not renew automatically.`,
+    pass: (coverage, limit) => `Eligible content up to KRW ${coverage} per use; total allowance KRW ${limit} (not the purchase price). No time limit. Ends when the allowance is used. No automatic renewal.`,
   },
   'ja-JP': {
     title: '占い・相談コンテンツ', one: '選択した占い・相談コンテンツ1件の都度購入です。お支払い前にGoogle Playで最終金額をご確認ください。',

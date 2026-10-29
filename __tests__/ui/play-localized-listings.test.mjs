@@ -12,7 +12,7 @@ test('review export covers current products only and never embeds a local sellin
     assert.equal(Object.keys(product.listings).length, 5);
     for (const { title, description } of Object.values(product.listings)) {
       assert.ok(title.length <= 55);
-      assert.ok(description.length <= 2000);
+      assert.ok(description.length <= 200);
       assert.doesNotMatch(title, /[0-9₩¥$]/);
     }
   }
