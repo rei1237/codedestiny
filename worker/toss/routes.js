@@ -18,6 +18,7 @@ import {publicTarotSpread} from '../yeongnyangi/fortune/tarot/spread-v3.ts';
 import {readRequest,resumeRequest} from '../yeongnyangi/repository.js';
 import {enqueueConsultation} from '../yeongnyangi/queue.js';
 import {canonicalProducts,canonicalSale,canonicalProfiles,prepareCanonicalFortune,drawCanonicalFortune,canonicalLibraryPage} from './canonical-yeongnyangi.js';
+import {forwardServiceResponse} from './service-response.js';
 import {attachTarotLibraryInput,deliverTarotLibraryOrder,grantTarotLibraryOrder,tarotLibraryFlow,tarotLibraryProduct,tarotLibraryResult} from './tarot-library.js';
 
 async function bodyOf(request) {
@@ -94,13 +95,13 @@ export async function handleTossRoutes(request,env) {
       if(request.method==='POST')await limit(env,auth._id,'native-tea',30);
       const {handleNativeTea}=await import('./native-tea.js');
       const response=await handleNativeTea(request,env,auth,path.slice('/canonical/fortune-tea-house'.length));
-      return new Response(await response.text(),{status:response.status,headers:{...Object.fromEntries(response.headers),...headers}});
+      return forwardServiceResponse(response,headers);
     }
     if(path.startsWith('/canonical/neo-operation-room/')&&['GET','POST'].includes(request.method)){
       if(request.method==='POST')await limit(env,auth._id,'native-neo',30);
       const {handleNativeNeo}=await import('./native-neo.js');
       const response=await handleNativeNeo(request,env,auth,path.slice('/canonical/neo-operation-room'.length));
-      return new Response(await response.text(),{status:response.status,headers:{...Object.fromEntries(response.headers),...headers}});
+      return forwardServiceResponse(response,headers);
     }
     if(path==='/canonical/auth/me'&&request.method==='GET')return reply({ok:true,authenticated:true,user:{id:auth.userId,_id:auth.userId,name:'토스 사용자',role:'user'}});
     if(path==='/canonical/profile'&&request.method==='GET')return reply(await canonicalProfiles(auth));
