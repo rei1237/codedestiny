@@ -1,0 +1,22 @@
+등록 상태: OFF. 심사·구매 추적·실제 청구 한도 확인 전 활성화하지 않는다.
+총 승인한도: VAT 포함 실제 청구 50,000원. 자동충전 사용 안 함.
+캠페인: 꿀꿀운세_사이트홍보_5만원
+하루예산 입력안: 3,000원. VAT 기준을 계정에서 확인. 일 예산은 절대 상한 아님.
+기본입찰: 70원(VAT 별도 기준). 가중치 전부 100%. 최대 조정 150원.
+매체: 네이버 검색. 추천/콘텐츠/제휴 지면 제외.
+확장검색: OFF. 일치검색 선택(네이버의 유사검색어 포함).
+
+공통 제목: 명리학자가 만든 꿀꿀운세
+공통 설명: 대통령 운세 공개 분석 기록부터 초융합·신년운세 상담 예시까지.
+
+A 그룹: 사이트_A_성냥팔이
+A 이미지: yeongnyangi-paid-20261028/creative/story-A-square.png
+A URL: https://code-destiny.com/?utm_source=naver&utm_medium=cpc&utm_campaign=paid_20261028_brand&utm_content=A_ko
+
+B 그룹: 사이트_B_달빛상담
+B 이미지: yeongnyangi-paid-20261028/creative/consultation-B-square.png
+B URL: https://code-destiny.com/?utm_source=naver&utm_medium=cpc&utm_campaign=paid_20261028_brand&utm_content=B_ko
+
+동일 키워드 그룹을 동시에 켜지 않는다. A-B-B-A-B-A-A-B 24시간 교대는 무작위 실험이 아닌 탐색 비교다.
+이미지 확장소재는 항상 표시되지 않으므로 그룹 성과를 순수 이미지 효과로 단정하지 않는다.
+광고비 충전, 실제 지출, 구매 원장, 환불을 따로 기록한다.
