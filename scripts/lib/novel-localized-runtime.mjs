@@ -21,7 +21,7 @@ export function localizeNovelRuntime(runtime, translation) {
         return {
           ...beat, t: text(target.t),
           ...(beat.nm ? { nm: text(target.nm) } : {}),
-          ...(beat.skill?.name ? { skill: { ...beat.skill, name: text(target.skill?.name) } } : {}),
+          ...(beat.skill?.name ? { skill: { ...beat.skill, name: text(target.skill?.name), ...(beat.skill.unit ? {unit: text(target.skill?.unit)} : {}) } } : {}),
           ...(beat.choice ? { choice: { ...beat.choice, options: beat.choice.options.map(option => ({
             ...option, label: text(target.choice?.options?.find(item => item.id === option.id)?.label),
           })) } } : {}),

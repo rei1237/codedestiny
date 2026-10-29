@@ -93,6 +93,10 @@
     "운명의 신": ["God of Destiny", "運命の神", "命运之神", "命運之神"],
     "윤달": ["Yundal", "Yundal", "闰月", "閏月"],
     "흑월": ["Heukwol", "Heukwol", "黑月", "黑月"],
-    "영냥이": ["Yeongnyangi", "Yeongnyangi", "Yeongnyangi", "Yeongnyangi"]
+    "영냥이": ["Yeongnyangi", "Yeongnyangi", "Yeongnyangi", "Yeongnyangi"],
+    "일의 박": ["First Beat", "一の拍", "一之拍", "一之拍"],
+    "일의 봉": ["First Seal", "一の封", "一之封", "一之封"],
+    "일의 멸": ["First Extinction", "一の滅", "一之灭", "一之滅"],
+    "진의 창고": ["Chen’s Storehouse", "辰の蔵", "辰之库", "辰之庫"]
   }
 }

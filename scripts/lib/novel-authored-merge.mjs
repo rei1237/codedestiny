@@ -48,7 +48,7 @@ export function assembleNovelAuthored(sourceRaw, documents, locale, uiCopy) {
         return {
           id:beatId,t,
           ...(beat.nm?{nm:display(beat.nm,row?.nm,`${beatId}/nm`)}:{}),
-          ...(beat.skill?.name?{skill:{name:display(beat.skill.name,row?.skill?.name,`${beatId}/skill.name`)}}:{}),
+          ...(beat.skill?.name?{skill:{name:display(beat.skill.name,row?.skill?.name,`${beatId}/skill.name`),...(beat.skill.unit?{unit:display(beat.skill.unit,row?.skill?.unit,`${beatId}/skill.unit`)}:{})}}:{}),
           ...(beat.choice?{choice:{options:beat.choice.options.map(option=>({id:option.id,label:display(option.label,row?.choice?.options?.find(item=>item.id===option.id)?.label,`${beatId}/choice/${option.id}`)}))}}:{}),
         };
       }),

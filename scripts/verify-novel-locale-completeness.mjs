@@ -29,6 +29,7 @@ for (const locale of locales) {
       const original = src.beats[beat];
       if (original.nm && invalidText(item?.nm)) errors.push(`${locale}: ${id}:${beat + 1} speaker incomplete`);
       if (original.skill?.name && invalidText(item?.skill?.name)) errors.push(`${locale}: ${id}:${beat + 1} skill name incomplete`);
+      if (original.skill?.unit && invalidText(item?.skill?.unit)) errors.push(`${locale}: ${id}:${beat + 1} skill unit incomplete`);
       for (const option of original.choice?.options || []) {
         if (invalidText(item?.choice?.options?.find(candidate => candidate.id === option.id)?.label)) errors.push(`${locale}: ${id}:${beat + 1} choice ${option.id} incomplete`);
       }
