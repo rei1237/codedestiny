@@ -8987,80 +8987,80 @@
   },
   "featureMarketing": {
     "template_saju": {
-      "tagline": "An interpretation that lines up your innate temperament with where things stand right now.",
+      "tagline": "Une lecture du lien entre votre tempérament inné et la période actuelle.",
       "feats": [
-        "When the same worry keeps repeating",
-        "When your strengths and weaknesses feel confused",
-        "When you want to know where the current pressure of fortune is coming from"
+        "Quand la même préoccupation revient",
+        "Quand vos forces et vos faiblesses vous semblent floues",
+        "Quand vous voulez comprendre les tensions de votre cycle actuel"
       ],
-      "premiumIntro": "The in-depth Saju reading doesn't scare you with fortune or misfortune -- it quietly surfaces the current flow and a standard for your choices.",
+      "premiumIntro": "Cette lecture approfondie des Quatre Piliers éclaire calmement les tendances actuelles et vos critères de choix, sans vous effrayer avec des présages favorables ou défavorables.",
       "premiumAudience": [
-        "Those who want to see innate temperament together with the current flow",
-        "Those who want to know why the same worry keeps repeating",
-        "Those who need a standard for judgment before a choice"
+        "Pour comprendre ensemble votre tempérament inné et votre cycle actuel",
+        "Pour comprendre pourquoi la même préoccupation revient",
+        "Pour trouver des repères avant de faire un choix"
       ],
       "premiumChapters": [
-        "The core flow of your temperament",
-        "The point strongly active in the current period",
-        "Choice patterns to be careful of",
-        "A realistic standard for action"
+        "Les tendances centrales de votre tempérament",
+        "Les influences les plus actives actuellement",
+        "Les habitudes de décision à surveiller",
+        "Des repères concrets pour agir"
       ],
       "answersQuestions": [
-        "Is it okay to keep pushing what I'm doing now?",
-        "Why does the same problem keep repeating?",
-        "Is it okay to make a decision within this year?"
+        "Devrais-je poursuivre ce que je fais actuellement ?",
+        "Pourquoi le même problème se répète-t-il ?",
+        "Serait-il raisonnable de décider cette année ?"
       ],
       "analysisSteps": [
         {
-          "label": "Chart calculation",
-          "detail": "Calculates your Saju natal chart and major/annual luck cycles from your birth date and time."
+          "label": "Calcul du thème",
+          "detail": "Calcule le thème natal des Quatre Piliers et les cycles majeurs et annuels à partir de votre date et heure de naissance."
         },
         {
-          "label": "Sorting temperament",
-          "detail": "Draws out your innate disposition from the strength/weakness of the five elements and the Ten Gods placement."
+          "label": "Aperçu du tempérament",
+          "detail": "Lit les tendances innées à travers l’équilibre des Cinq Éléments et la disposition des Dix Dieux."
         },
         {
-          "label": "Matching the flow",
-          "detail": "Checks where the luck passing through now pushes and pulls at that temperament."
+          "label": "Comparaison des cycles",
+          "detail": "Examine où le cycle actuel soutient ce tempérament et où il le met sous tension."
         },
         {
-          "label": "Writing the reading",
-          "detail": "Puts it into readable sentences on the result screen."
+          "label": "Rédaction de l’interprétation",
+          "detail": "Présente l’interprétation dans un texte lisible sur l’écran des résultats."
         }
       ],
       "valueCompare": [
         {
-          "axis": "Analysis scope",
-          "premium": "A reading weaving together the natal chart, major luck, and annual luck",
-          "free": "Basic chart and temperament summary"
+          "axis": "Portée de l’analyse",
+          "premium": "Une interprétation reliant le thème natal aux cycles majeurs et annuels",
+          "free": "Thème de base et résumé des tendances"
         },
         {
-          "axis": "Reflecting your question",
-          "premium": "Rebuilt around the worry you entered",
+          "axis": "Prise en compte de votre question",
+          "premium": "Structurée autour de la préoccupation que vous saisissez",
           "free": "None"
         },
         {
-          "axis": "Form of advice",
-          "premium": "What to do now and what to postpone",
-          "free": "General description of disposition"
+          "axis": "Forme des conseils",
+          "premium": "Ce qu’il est utile de faire maintenant ou de reporter",
+          "free": "Description générale des tendances"
         }
       ],
       "faq": [
         {
-          "q": "How is this different from the free result?",
-          "a": "The free version only goes up to the chart and a temperament summary. The paid version places the current luck cycle alongside it and rewrites the reading around your entered worry."
+          "q": "Quelle est la différence avec le résultat gratuit ?",
+          "a": "Le résultat gratuit comprend le thème et un résumé des tendances. La lecture payante tient aussi compte du cycle actuel et s’articule autour de votre préoccupation."
         },
         {
-          "q": "Can this still be read without a known birth time?",
-          "a": "It's calculated without the hour pillar. The day-pillar-centered reading still comes out, but knowing the time gives more accuracy."
+          "q": "Puis-je l’utiliser sans connaître mon heure de naissance ?",
+          "a": "Le thème est calculé sans le pilier de l’heure. Une lecture centrée sur le pilier du jour reste disponible ; connaître l’heure permet une interprétation plus précise."
         },
         {
-          "q": "Is the result saved?",
-          "a": "Whether it can be reopened varies by feature. Please check the notice on the payment screen."
+          "q": "Le résultat est-il enregistré ?",
+          "a": "La possibilité de le consulter à nouveau dépend de la fonction. Vérifiez les informations sur l’écran de paiement."
         }
       ],
       "badge": "In-depth reading",
-      "headline": "Read the signal your Saju keeps sending you a little more deeply.",
+      "headline": "Pourquoi est-ce que j’hésite toujours devant les mêmes choix ?",
       "hubTagline": "A reading that sorts out your temperament, the current flow, and the choice patterns that keep repeating.",
       "hubPremiumIntro": "A Saju reading doesn't scare you with fortune or misfortune -- it quietly surfaces the current flow and a standard for your choices."
     },

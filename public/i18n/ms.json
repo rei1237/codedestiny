@@ -8987,80 +8987,80 @@
   },
   "featureMarketing": {
     "template_saju": {
-      "tagline": "An interpretation that lines up your innate temperament with where things stand right now.",
+      "tagline": "Tafsiran tentang pertemuan sifat semula jadi anda dengan aliran semasa.",
       "feats": [
-        "When the same worry keeps repeating",
-        "When your strengths and weaknesses feel confused",
-        "When you want to know where the current pressure of fortune is coming from"
+        "Apabila kebimbangan yang sama terus berulang",
+        "Apabila kekuatan dan kelemahan diri terasa tidak jelas",
+        "Apabila anda ingin memahami punca tekanan dalam kitaran semasa"
       ],
-      "premiumIntro": "The in-depth Saju reading doesn't scare you with fortune or misfortune -- it quietly surfaces the current flow and a standard for your choices.",
+      "premiumIntro": "Bacaan Empat Tiang mendalam ini menjelaskan aliran semasa dan asas pilihan dengan tenang, tanpa menakutkan anda dengan nasib baik atau buruk.",
       "premiumAudience": [
-        "Those who want to see innate temperament together with the current flow",
-        "Those who want to know why the same worry keeps repeating",
-        "Those who need a standard for judgment before a choice"
+        "Bagi yang ingin meneliti sifat semula jadi bersama aliran semasa",
+        "Bagi yang ingin memahami sebab kebimbangan yang sama berulang",
+        "Bagi yang memerlukan asas pertimbangan sebelum membuat pilihan"
       ],
       "premiumChapters": [
-        "The core flow of your temperament",
-        "The point strongly active in the current period",
-        "Choice patterns to be careful of",
-        "A realistic standard for action"
+        "Pola utama sifat diri anda",
+        "Pengaruh yang paling ketara dalam tempoh ini",
+        "Corak pilihan yang perlu diperhatikan",
+        "Panduan tindakan yang praktikal"
       ],
       "answersQuestions": [
-        "Is it okay to keep pushing what I'm doing now?",
-        "Why does the same problem keep repeating?",
-        "Is it okay to make a decision within this year?"
+        "Patutkah saya terus mengejar usaha yang sedang dilakukan?",
+        "Mengapa masalah yang sama terus berulang?",
+        "Adakah wajar membuat keputusan dalam tahun ini?"
       ],
       "analysisSteps": [
         {
-          "label": "Chart calculation",
-          "detail": "Calculates your Saju natal chart and major/annual luck cycles from your birth date and time."
+          "label": "Pengiraan carta",
+          "detail": "Mengira carta kelahiran Empat Tiang serta kitaran utama dan tahunan berdasarkan tarikh dan waktu lahir."
         },
         {
-          "label": "Sorting temperament",
-          "detail": "Draws out your innate disposition from the strength/weakness of the five elements and the Ten Gods placement."
+          "label": "Gambaran sifat diri",
+          "detail": "Meneliti kecenderungan semula jadi melalui keseimbangan Lima Unsur dan susunan Sepuluh Dewa."
         },
         {
-          "label": "Matching the flow",
-          "detail": "Checks where the luck passing through now pushes and pulls at that temperament."
+          "label": "Perbandingan aliran",
+          "detail": "Meneliti bahagian yang disokong atau ditekan oleh kitaran semasa dalam sifat tersebut."
         },
         {
-          "label": "Writing the reading",
-          "detail": "Puts it into readable sentences on the result screen."
+          "label": "Penulisan tafsiran",
+          "detail": "Menyusun tafsiran dalam ayat yang mudah dibaca pada skrin hasil."
         }
       ],
       "valueCompare": [
         {
-          "axis": "Analysis scope",
-          "premium": "A reading weaving together the natal chart, major luck, and annual luck",
-          "free": "Basic chart and temperament summary"
+          "axis": "Skop analisis",
+          "premium": "Tafsiran yang menghubungkan carta kelahiran dengan kitaran utama dan tahunan",
+          "free": "Carta asas dan ringkasan kecenderungan"
         },
         {
-          "axis": "Reflecting your question",
-          "premium": "Rebuilt around the worry you entered",
+          "axis": "Penerapan soalan anda",
+          "premium": "Disusun mengikut kebimbangan yang anda masukkan",
           "free": "None"
         },
         {
-          "axis": "Form of advice",
-          "premium": "What to do now and what to postpone",
-          "free": "General description of disposition"
+          "axis": "Bentuk panduan",
+          "premium": "Apa yang boleh dilakukan sekarang dan apa yang boleh ditangguhkan",
+          "free": "Penerangan umum tentang kecenderungan"
         }
       ],
       "faq": [
         {
-          "q": "How is this different from the free result?",
-          "a": "The free version only goes up to the chart and a temperament summary. The paid version places the current luck cycle alongside it and rewrites the reading around your entered worry."
+          "q": "Apakah bezanya daripada hasil percuma?",
+          "a": "Hasil percuma merangkumi carta dan ringkasan kecenderungan. Bacaan berbayar turut meneliti kitaran semasa dan disusun mengikut kebimbangan yang anda masukkan."
         },
         {
-          "q": "Can this still be read without a known birth time?",
-          "a": "It's calculated without the hour pillar. The day-pillar-centered reading still comes out, but knowing the time gives more accuracy."
+          "q": "Bolehkah saya menggunakannya jika tidak tahu waktu lahir?",
+          "a": "Carta dikira tanpa tiang jam. Bacaan berpusat pada tiang hari masih tersedia; waktu lahir yang diketahui membolehkan tafsiran lebih tepat."
         },
         {
-          "q": "Is the result saved?",
-          "a": "Whether it can be reopened varies by feature. Please check the notice on the payment screen."
+          "q": "Adakah hasil disimpan?",
+          "a": "Ketersediaan untuk dilihat semula bergantung pada ciri. Sila semak maklumat pada skrin pembayaran."
         }
       ],
       "badge": "In-depth reading",
-      "headline": "Read the signal your Saju keeps sending you a little more deeply.",
+      "headline": "Mengapa saya terus teragak-agak menghadapi pilihan yang sama?",
       "hubTagline": "A reading that sorts out your temperament, the current flow, and the choice patterns that keep repeating.",
       "hubPremiumIntro": "A Saju reading doesn't scare you with fortune or misfortune -- it quietly surfaces the current flow and a standard for your choices."
     },

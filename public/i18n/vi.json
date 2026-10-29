@@ -8987,80 +8987,80 @@
   },
   "featureMarketing": {
     "template_saju": {
-      "tagline": "An interpretation that lines up your innate temperament with where things stand right now.",
+      "tagline": "Bài luận giải giúp nhìn rõ nơi khí chất bẩm sinh gặp dòng vận trình hiện tại.",
       "feats": [
-        "When the same worry keeps repeating",
-        "When your strengths and weaknesses feel confused",
-        "When you want to know where the current pressure of fortune is coming from"
+        "Khi cùng một nỗi băn khoăn cứ lặp lại",
+        "Khi bạn chưa phân biệt rõ điểm mạnh và điểm yếu của mình",
+        "Khi bạn muốn hiểu áp lực trong vận trình hiện tại đến từ đâu"
       ],
-      "premiumIntro": "The in-depth Saju reading doesn't scare you with fortune or misfortune -- it quietly surfaces the current flow and a standard for your choices.",
+      "premiumIntro": "Luận giải Tứ Trụ chuyên sâu không dùng cát hung để gây lo sợ, mà nhẹ nhàng làm rõ vận trình hiện tại và cơ sở lựa chọn.",
       "premiumAudience": [
-        "Those who want to see innate temperament together with the current flow",
-        "Those who want to know why the same worry keeps repeating",
-        "Those who need a standard for judgment before a choice"
+        "Người muốn nhìn khí chất bẩm sinh cùng vận trình hiện tại",
+        "Người muốn hiểu vì sao cùng một nỗi băn khoăn cứ lặp lại",
+        "Người cần cơ sở cân nhắc trước một lựa chọn"
       ],
       "premiumChapters": [
-        "The core flow of your temperament",
-        "The point strongly active in the current period",
-        "Choice patterns to be careful of",
-        "A realistic standard for action"
+        "Những xu hướng cốt lõi trong khí chất",
+        "Những yếu tố tác động rõ trong giai đoạn này",
+        "Những kiểu lựa chọn cần lưu ý",
+        "Định hướng hành động thực tế"
       ],
       "answersQuestions": [
-        "Is it okay to keep pushing what I'm doing now?",
-        "Why does the same problem keep repeating?",
-        "Is it okay to make a decision within this year?"
+        "Tôi có nên tiếp tục theo đuổi việc đang làm không?",
+        "Vì sao cùng một vấn đề cứ lặp lại?",
+        "Liệu quyết định trong năm nay có phù hợp không?"
       ],
       "analysisSteps": [
         {
-          "label": "Chart calculation",
-          "detail": "Calculates your Saju natal chart and major/annual luck cycles from your birth date and time."
+          "label": "Lập lá số",
+          "detail": "Lập lá số Tứ Trụ, đại vận và lưu niên từ ngày giờ sinh."
         },
         {
-          "label": "Sorting temperament",
-          "detail": "Draws out your innate disposition from the strength/weakness of the five elements and the Ten Gods placement."
+          "label": "Khái quát khí chất",
+          "detail": "Đọc khuynh hướng bẩm sinh qua độ mạnh yếu của ngũ hành và cách bố trí thập thần."
         },
         {
-          "label": "Matching the flow",
-          "detail": "Checks where the luck passing through now pushes and pulls at that temperament."
+          "label": "Đối chiếu vận trình",
+          "detail": "Xem vận trình hiện tại đang nâng đỡ hay gây áp lực lên khí chất ấy ở đâu."
         },
         {
-          "label": "Writing the reading",
-          "detail": "Puts it into readable sentences on the result screen."
+          "label": "Viết luận giải",
+          "detail": "Trình bày thành câu văn dễ đọc trên màn hình kết quả."
         }
       ],
       "valueCompare": [
         {
-          "axis": "Analysis scope",
-          "premium": "A reading weaving together the natal chart, major luck, and annual luck",
-          "free": "Basic chart and temperament summary"
+          "axis": "Phạm vi phân tích",
+          "premium": "Luận giải kết hợp nguyên cục, đại vận và lưu niên",
+          "free": "Lá số cơ bản và tóm tắt khuynh hướng"
         },
         {
-          "axis": "Reflecting your question",
-          "premium": "Rebuilt around the worry you entered",
+          "axis": "Phản ánh câu hỏi",
+          "premium": "Sắp xếp lại theo nỗi băn khoăn bạn đã nhập",
           "free": "None"
         },
         {
-          "axis": "Form of advice",
-          "premium": "What to do now and what to postpone",
-          "free": "General description of disposition"
+          "axis": "Hình thức lời khuyên",
+          "premium": "Việc nên làm ngay và việc nên để sau",
+          "free": "Mô tả khuynh hướng chung"
         }
       ],
       "faq": [
         {
-          "q": "How is this different from the free result?",
-          "a": "The free version only goes up to the chart and a temperament summary. The paid version places the current luck cycle alongside it and rewrites the reading around your entered worry."
+          "q": "Khác gì so với kết quả miễn phí?",
+          "a": "Kết quả miễn phí gồm lá số và tóm tắt khuynh hướng. Bản trả phí xét thêm vận trình hiện tại và viết theo nỗi băn khoăn bạn nhập."
         },
         {
-          "q": "Can this still be read without a known birth time?",
-          "a": "It's calculated without the hour pillar. The day-pillar-centered reading still comes out, but knowing the time gives more accuracy."
+          "q": "Không biết giờ sinh thì có xem được không?",
+          "a": "Lá số được lập không có trụ giờ. Bạn vẫn nhận được luận giải lấy trụ ngày làm trọng tâm; biết giờ sinh giúp luận giải chính xác hơn."
         },
         {
-          "q": "Is the result saved?",
-          "a": "Whether it can be reopened varies by feature. Please check the notice on the payment screen."
+          "q": "Kết quả có được lưu không?",
+          "a": "Khả năng xem lại tùy theo tính năng. Vui lòng kiểm tra hướng dẫn trên màn hình thanh toán."
         }
       ],
       "badge": "In-depth reading",
-      "headline": "Read the signal your Saju keeps sending you a little more deeply.",
+      "headline": "Vì sao tôi cứ do dự trước những lựa chọn giống nhau?",
       "hubTagline": "A reading that sorts out your temperament, the current flow, and the choice patterns that keep repeating.",
       "hubPremiumIntro": "A Saju reading doesn't scare you with fortune or misfortune -- it quietly surfaces the current flow and a standard for your choices."
     },
