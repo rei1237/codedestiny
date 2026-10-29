@@ -1,12 +1,31 @@
 ---
 status: active
-updated: 2026-10-29
+updated: 2026-10-30
 next: 외부 번역 API 없이 직접 번역을 작성하고 화면·소설 언어 연결을 완료한 뒤 새 앱 검증과 출시 진행
 ---
 
 # 앱 전체 다국어 출시
 
+## 2026-10-30 현재 진행 상태 — 아래 과거 기록보다 우선
+- 최신 커밋: a60fb7a44 상세 전체 번역, 4cb093a0f 편지 변수 보존, f2101ab5d 일본어 목록 줄바꿈. 이후 origin/main 통합 완료. 아직 push 전. 기본 main 체크아웃은 C:/Users/user/Documents/Codex/worktrees/yeongnyangi-blue-passes-20261024-050530이며 다른 작업의 dirty styles/saju-reading.css 등 8파일이 있다. root는 feat/world-cast-page로 다른 세션이 사용 중. 둘 다 체크아웃/정리하지 말고 검증한 통합 HEAD를 origin main에 non-force 전송한다.
+- 실제 cdTranslate는 없는 변수를 지우므로 편지 로딩에서 자리표시자를 보존하도록 수정. 강화한14검사 PASS, 실제 사주 편지 컴포넌트12/12 모바일 PASS(이름/일간/8·5문단/언어/폭). 상세12케이스는 일본어 목록 줄바꿈 수정 후 최종25427 실행 중. mock 서버71649 localhost18720/18721.
+- check:fast 전체는 완료 전에 중단하여 PASS 아님. 해당 실행의 Jest가 오래 출력 없이 실행됐으며 worker 종료 이후에도 후속 프로세스가 생긴 점을 확인했다. 관련 targeted14검사·typecheck·변경 TSX lint·dictionary/schema/price guards는 PASS. 공식 전체 검증은 main CI에서 확인할 것.
+- prepush35926은 활성 인수인계 문서 미커밋으로 실패했다. 문서 커밋 후 재실행 필요. Chrome 재연결은 browser3(extension4ca98...) tab1473077400 /u/0 프로덕션, connectedStore 변수. v54 심사 중/8국/설치0, 새버전 버튼 확인. 이후 Debugger unattached가 반복되므로 실제 새 제출 전 연결 복구 필요. USB RFCXB0CP4AR는 최신 연결됨.
+- HEAD 7e765d472a161e231d0cfad37fc0a573a9cb12f1, 아직 이번 작업 push 전. origin/main은 e0d312451로 갱신됨. 최신 CI40893952744는 마지막 조회 시 진행 중. 병합 전 이번 변경을 커밋하고 다른 세션 파일을 보존한다.
+- 소설 EN/JA/zh-CN/zh-TW 모두 73화/7,844비트 완성(921783ff7 포함). 네 언어 실제 메인 선택/리더/마지막 회차/허브와 320/390/1440 화면 검사 PASS. 나머지 7언어 영어, 독립 상담 언어 보존. API 번역 0.
+- 긴 상세 안내도 네 언어 직접 번역과 나머지 영어 적용. 최신 featureMarketing 검사 111 namespace/46,486경로, COPY누락/legacyD결손0. 전체 사주 편지8/5문단 및 변수 검사 포함18개 PASS. 국가/UI/상담 계약58검사와 fake provider12언어 PASS. 실제 해외IP·실LLM 결과 증거는 아니다.
+- 모바일 실제 검사에서 일본어 카드 내부 줄잘림, 비교표 pseudo 한국어, 네오 이미지 속 한국어, 편지 제목 조사 잔존을 발견해 수정했다. 상세 화면12케이스와 편지 화면은 담당자가 최종 재검증 중.
+- 명상/요가 오래된 가격 카피는 현재 registry를 확인해 가격 확인 안내로 정정. 실제 가격/결제/인증/DB 변경 없음. sync:public 최종44442 PASS. check:fast 호스트 실행83703 진행 중, .tmp/release-check-fast.log 끝의 EXIT_CODE로 확인한다. 이전65464는 완료 확인 없이 세션 소멸했으므로 통과로 취급하지 않는다.
+- 최신 기기 조회는 연결0(이전 연결 확인과 구별). 사용자가 USB와 Chrome 창 유지 요청에 답변 대기 중. Chrome browser3 tab1473077134 게시개요는 보이지만 제어 focus timeout. 재로그인/새 계정 생성하지 않는다.
+- 다음: 화면 검사 → scoped commit → 최신 main 병합/생성기/prepush → main push/CI → 승인된 production workflow → 새 서명 Android 빌드/실기기 → Play 제출/게시. 현재 출시/새 빌드/새 제출 완료 아님.
+
 ## 2026-10-29 후속 담당 진행 상태
+- **현재 확정 범위**: 사용자가 소설뿐 아니라 긴 상세 안내도 EN/JA/zh-CN/zh-TW, 나머지는 EN으로 승인했다. 기본 UI와 상담 응답은 국가별 기존 12언어 유지. `b25094496`은 상세 안내 featureMarketing 영어 대체 동기화/검사와 sky/experience 6템플릿 240키 직접 번역을 반영했다. UI·상담 namespace 보존 2검사, 111 namespace/46,299경로, 가격125키×12 PASS. 전체 상품 상세 번역 완료는 아직 아니다.
+- **소설 최신**: `56f206231` EN, `a7084846b` JA 전체 73화/7,844비트와 런타임 완료. `4bd5eeff1`은 EN/JA 허브 161문구와 73회차 제목 연결. 현재 공개 가능한 언어 ko/en/ja이며 ZH는 완성 후 생성한다. API 호출 없음.
+- **모바일 최신**: `cbf34d3ec` MobileBottomNav의 초기 언어 hydration 불일치를 공용 useLocale로 수정, 보관함7언어 라벨 직접 번역. native home12언어 실제 모의 브라우저 PASS. `scripts/design/verify-novel-locales-browser.mjs` EN/JA 메인선택·리더·허브·마지막회차·프랑스어 상담언어보존과 나머지7언어EN 선택 PASS. screenshot은 D:/Development/code-destiny/.playwright-mcp/global-novel. 실제 기기/해외 IP/실상담 증거는 아니다.
+- **기기 최신**: 호스트 adb에서 RFCXB0CP4AR / SM_M156S device 연결 확인. 기존 root의 release-signing.properties를 본 worktree의 동일 ignored 경로로 복사했으며 내용 출력/커밋하지 않음. 새 빌드·설치 검증은 아직 남았다.
+- **담당 재개**: 이전 에이전트가 live 목록에 없어 저장 원고부터 새 하위 담당에게 인계. finish_chinese_early=ZH EP39~42A+hub 두판, finish_chinese_late=ZH EP48~53/51S~53S 후 숙요 상세, finish_detail_four=sky120 완료 후 주요 유료 안내. root=오라클/리포트/음악120 완료, 통합·무료허브·검증·출시. 다른 세션 파일 보존.
+- 위 항목이 아래 과거 진행 기록보다 최신이다. 아직 main 통합/push 및 최종 CI·배포·새 앱 제출 전이다.
 - 최신 이어가기: origin/main 5d7fcf852c1eab54ff3471d4fea9630c0f4199b7(PR CI40862258511 success)을 d33fa1c69로 병합. sitemap 공식 생성 후3d6ab45b7, check:pre-push PASS. 그 이후 변경은 아직 push 전이며 다시 generator/pre-push 필요. root main은 다른 작업 변경이 있어 건드리지 않는다.
 - 870983913: 늦게 도착한 국가 기본 언어를 소설 메인/텍스트 리더에 반영. 수동 소설 언어 선택과 재생 중 읽기 위치 보존. 14검사+추가5검사 및 verify-novel-player-start PASS.
 - 9c39bbf37/f8315d189: 네이티브 홈 조언자/예시/체계설명/전체FAQ/사업자 라벨/접근성 nav라벨 연결. native-home-copy151개 직접 문구×11. 공개 KO 웹 유지. EN390px 실제 mock DOM에서 남은 한글은 공식브랜드·등록사업자원문만,scrollWidth375. 5관련검사+ESLint오류0.
