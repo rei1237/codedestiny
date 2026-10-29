@@ -1,0 +1,67 @@
+{
+  "status": "draft-not-approved-not-uploaded",
+  "date": "2026-10-29",
+  "scope": "스토어 앱 설명 초안. 인앱 상품명·가격·판매 국가 변경 없음. 중국어 등록정보는 신규 추가 승인 필요.",
+  "locales": {
+    "ko": {
+      "title": "꿀꿀운세",
+      "short": "사주·타로·점성술로 나를 이해하고, 오늘의 고민을 차분히 풀어보세요.",
+      "headline": "오늘의 마음에,\n작은 방향 하나",
+      "subline": "사주 · 타로 · 점성술 · 마음을 위한 상담",
+      "artHeadline": "간직하고 싶은\n나만의 작은 바람",
+      "artSubline": "영냥이와 연이의 달빛 부적을 만나보세요.",
+      "screenHeadline": "내 화면에 맞춰\n편안하게 담아요",
+      "screenSubline": "부적의 크기와 위치를 조절하고 저장하세요.",
+      "draftLabel": "검토용 초안 · 기기 적용 미검증",
+      "full": "마음이 복잡한 날, 나를 조금 더 이해할 수 있는 이야기를 만나보세요. 꿀꿀운세는 사주, 타로, 점성술 등 서로 다른 해석의 관점으로 성향과 관계, 지금의 고민을 돌아보는 운세·상담 서비스입니다.\n\n나를 이해하는 여러 관점\n사주와 자미두수, 숙요점, 베다점, 서양 점성술을 각 체계의 방식으로 살펴보세요. 낯선 용어 너머에서 나의 기질과 반복되는 선택을 생각해 볼 수 있습니다.\n\n마음에 맞는 상담\n다정한 연이의 운명의 찻집, 현실적인 네오의 팩폭 전략실, 영냥이의 달빛 점술방에서 고민에 어울리는 상담을 찾아보세요.\n\n작은 바람을 담은 달빛 부적\n영냥이와 연이의 그림을 고르고 화면 비율에 맞춰 크기와 위치를 조절할 수 있습니다. 저장한 그림을 나만의 배경화면으로 간직해 보세요. 배경화면 설정 방법은 기기 환경에 따라 다를 수 있습니다.\n\n이용 전 확인해 주세요\n일부 콘텐츠는 유료입니다. 이용권·월정석·단건 결제의 적용 범위와 조건은 구매 화면에서 확인해 주세요. 운세 해석은 자신을 돌아보기 위한 참고이며, 특정 결과를 보장하지 않습니다. 의료·법률·투자 분야의 전문적인 판단을 대신하지 않습니다."
+    },
+    "en": {
+      "title": "꿀꿀운세: Saju & Tarot",
+      "short": "Explore Saju, tarot and astrology for a thoughtful look at yourself.",
+      "headline": "A little clarity.\nA gentler day.",
+      "subline": "Saju · Tarot · Astrology · Personal reflection",
+      "artHeadline": "Keep a little\nwish close",
+      "artSubline": "Discover Moonlight Talisman art with Yeongnyangi and Yeoni.",
+      "screenHeadline": "Make room for\nyour own wish",
+      "screenSubline": "Adjust your talisman’s size and position, then save it.",
+      "draftLabel": "Review draft · Device application not verified",
+      "full": "When life feels complicated, take a moment to understand yourself. Explore Saju, tarot and astrology through readings that invite reflection on your patterns, relationships and everyday choices.\n\nDifferent traditions, distinct perspectives\nDiscover Korean Saju, Zi Wei Dou Shu, Sukuyo, Vedic astrology and Western astrology. Each tradition offers its own way to explore temperament and the rhythms of life.\n\nFind a voice that speaks to you\nMeet Yeoni in the Fortune Tea House, explore practical advice with Neo, or visit Yeongnyangi’s moonlit reading room. Choose a consultation that fits the question on your mind.\n\nArt for a personal wish\nBrowse Moonlight Talisman illustrations featuring Yeongnyangi and Yeoni. Adjust the size and position for your screen and save your chosen image. Wallpaper setup may vary by device. The artwork currently includes Korean text.\n\nBefore you begin\nSome content requires payment. Check the purchase screen for pass eligibility, Moonstone use and one-time purchase terms. Readings are for personal reflection and do not guarantee outcomes or replace medical, legal or financial advice."
+    },
+    "ja": {
+      "title": "꿀꿀운세：四柱推命・タロット",
+      "short": "四柱推命・タロット・占星術で自分を見つめ、今日の悩みに小さな気づきを。",
+      "headline": "今日の心に、\n小さな道しるべ",
+      "subline": "四柱推命 · タロット · 占星術 · 心の相談",
+      "artHeadline": "大切な願いを\nいつもそばに",
+      "artSubline": "ヨンニャンイとヨニの月明かりのお守りアート。",
+      "screenHeadline": "あなたの画面に\n心地よく収めて",
+      "screenSubline": "お守りの大きさと位置を調整して保存できます。",
+      "draftLabel": "確認用の下書き · 実機への適用は未検証",
+      "full": "心が落ち着かない日に、自分を少し深く知る時間を。四柱推命、タロット、占星術など、それぞれの視点から性格や人間関係、日々の選択を見つめる占い・相談サービスです。\n\nさまざまな占術の視点\n四柱推命、紫微斗数、宿曜占星術、インド占星術、西洋占星術を、それぞれの体系に沿って楽しめます。自分の気質や繰り返しやすいパターンを考えるきっかけに。\n\n悩みに合う相談を\nヨニの温かな「運命のお茶屋」、ネオの現実的な戦略相談、ヨンニャンイの月明かりの占い部屋から、今の気持ちに合う相談を選んでみてください。\n\n小さな願いをアートに\nヨンニャンイとヨニのお守りアートを選び、画面に合わせて大きさと位置を調整して保存できます。壁紙の設定方法は端末によって異なります。現在、絵の中の文字は韓国語です。\n\nご利用の前に\n一部のコンテンツは有料です。利用券、月光石、都度購入の適用範囲や条件は購入画面でご確認ください。占いは自己理解の参考であり、特定の結果を保証するものではありません。医療・法律・投資の専門的な判断に代わるものではありません。"
+    },
+    "zh-CN": {
+      "title": "꿀꿀운세：四柱与塔罗",
+      "short": "通过四柱、塔罗与占星认识自己，为今天的心事寻找新的思路。",
+      "headline": "给今天的心事，\n一点新的方向",
+      "subline": "四柱 · 塔罗 · 占星 · 心事咨询",
+      "artHeadline": "把小小心愿\n留在身边",
+      "artSubline": "认识Yeongnyangi与Yeoni的月光护符插画。",
+      "screenHeadline": "为你的屏幕\n留一处温柔",
+      "screenSubline": "调整护符的大小和位置，再保存喜欢的画面。",
+      "draftLabel": "审核用草稿 · 尚未验证真机应用",
+      "full": "心事纷杂时，给自己一点理解自己的时间。通过四柱、塔罗与占星等不同视角，回顾自己的性格、关系和日常选择。\n\n不同体系，各有视角\n探索四柱、紫微斗数、宿曜、吠陀占星与西方占星。各体系保留自己的解读方式，帮助你思考自身倾向与反复出现的模式。\n\n选择适合你的咨询\n在Yeoni的命运茶馆中整理感受，向Neo寻找现实的行动建议，或走进Yeongnyangi的月光占卜屋。\n\n把心愿留在画面里\n选择Yeongnyangi与Yeoni的月光护符插画，按屏幕比例调整大小和位置后保存。壁纸设置方式可能因设备而异。目前插画内的文字为韩语。\n\n使用前请留意\n部分内容需要付费。通行证、月光石与单次购买的适用范围及条件，请以购买页面为准。解读仅供自我探索参考，不保证特定结果，也不能代替医疗、法律或投资方面的专业判断。"
+    },
+    "zh-TW": {
+      "title": "꿀꿀운세：四柱與塔羅",
+      "short": "透過四柱、塔羅與占星認識自己，為今天的心事尋找新的思路。",
+      "headline": "給今天的心事，\n一點新的方向",
+      "subline": "四柱 · 塔羅 · 占星 · 心事諮詢",
+      "artHeadline": "把小小心願\n留在身邊",
+      "artSubline": "認識Yeongnyangi與Yeoni的月光護符插畫。",
+      "screenHeadline": "為你的螢幕\n留一處溫柔",
+      "screenSubline": "調整護符的大小和位置，再儲存喜歡的畫面。",
+      "draftLabel": "審閱用草稿 · 尚未驗證實機套用",
+      "full": "心事紛雜時，給自己一點理解自己的時間。透過四柱、塔羅與占星等不同視角，回顧自己的性格、關係和日常選擇。\n\n不同體系，各有視角\n探索四柱、紫微斗數、宿曜、吠陀占星與西方占星。各體系保留自己的解讀方式，幫助你思考自身傾向與反覆出現的模式。\n\n選擇適合你的諮詢\n在Yeoni的命運茶館中整理感受，向Neo尋找實際的行動建議，或走進Yeongnyangi的月光占卜屋。\n\n把心願留在畫面裡\n選擇Yeongnyangi與Yeoni的月光護符插畫，按螢幕比例調整大小和位置後儲存。桌布設定方式可能因裝置而異。目前插畫內的文字為韓語。\n\n使用前請留意\n部分內容需要付費。通行證、月光石與單次購買的適用範圍及條件，請以購買頁面為準。解讀僅供自我探索參考，不保證特定結果，也不能取代醫療、法律或投資方面的專業判斷。"
+    }
+  }
+}

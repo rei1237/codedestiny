@@ -1,0 +1,73 @@
+무과금 결제·다국어·잠금화면 부적 후속 검증
+status: done
+기록일: 2026-10-29 (Asia/Seoul)
+위 status는 아래 로컬 검증·초안 제작 기록의 완료 상태다. 실제 구매/실기기/출시 완료를 뜻하지 않는다.
+
+검증 기준
+- 시작 커밋 f5c952f55dc0906de8393d308387e21be7d0ea09.
+- 전 작업의 docs/global-payment-readiness-20261029.txt 미커밋 삭제 33줄은 타 세션 소유로 보존. 이 문서는 해당 내용을 되돌리거나 커밋하지 않았다.
+- 결제 정책·가격·이용권·월정석·인증·API·DB·앱 런타임 소스 변경 없음.
+- 실결제, 유료 LLM 호출, 운영 DB 쓰기, 환불, 스토어 업로드/저장/심사 변경 없음.
+
+실측한 Console 상태 (읽기 전용)
+- 프로덕션 1.0.54 — 다국어 부적: 검토 중인 변경사항. 전체 출시 시작은 심사 요청 내용이며 공개 완료가 아니다.
+- 내부 테스트: 49 (1.0.49), 10월 7일 등록. 최신 소스가 설치됐다는 근거로 쓸 수 없다.
+- 라이선스 테스트: 내부테스트 목록 체크됨, 사용자 1명, RESPOND_NORMALLY, 변경사항 저장 비활성. 설정을 변경하지 않았다.
+- 게시 개요에 한국어/영어 4지역/일본어 등록정보가 표시됨. 중국어 스토어 등록정보 추가는 이 작업에서 하지 않았다.
+- 공개 Play URL은 웹 도구에서 열리지 않아 실제 설치 가능 여부 미확인.
+- 서비스 계정 권한, RTDN 전달, 테스트 기기 계정 일치, 국가별 실제 Play 가격은 미검증.
+
+실기기 및 테스트 구매 차단 조건
+- ANDROID_HOME의 adb.exe devices -l 실행 성공, 연결 기기 0대.
+- scripts/app-native-bridge.js:26의 기본 API 주소는 운영 https://code-destiny.com.
+- worker/routes/app-store.js handleGoogleIntent는 AppPurchaseIntent.create, persistGooglePurchase는 Payment/권한 업데이트 경로를 사용한다. 라이선스 테스트 결제라고 자동으로 별도 DB에 저장하는 경로는 확인되지 않았다.
+- 따라서 운영 앱에서 테스트 구매를 확정하지 않았다. 무과금 수단 확인과 데이터 격리는 별개다.
+- 실제 구매 전에 분리된 테스트 API/DB 및 전용 앱 사용자, 모의 콘텐츠 전달, 해당 주소를 쓰는 테스트 빌드, 테스트 영수증/RTDN의 경로를 함께 확인해야 한다. 임의 운영 계정 권한 변경으로 대체하지 않는다.
+- 사용자가 직접 할 부분: Android 기기 USB 연결 및 기기의 USB 디버깅 허용. 연결 후 Google Play 구매 계정이 기존 라이선스 테스터와 일치하는지 확인한다. 필요 시 소유자 인증은 사용자에게 맡긴다.
+- 결제 시트의 테스트 구매 안내와 테스트 결제 수단 확인 전 구매 확정 금지. 실제 카드 폴백 금지.
+
+로컬 검증 명령과 결과
+1. npm run test:jest -- --runInBand __tests__/worker/app-store.google-billing.test.js
+   103 passed. 외부 통신 차단 mock runner 사용. 서버의 보류/복원/중복/계정 불일치/환불/의도 결합 등 기존 모의 계약.
+   최초 실행에 UI Node 테스트도 인자로 넣었으나 Jest가 이 파일들을 실행하지 않아 아래에서 별도 실행했다.
+2. npm run test:jest -- --runInBand __tests__/billing/paypal-ui.test.js __tests__/worker/payments-v2.paypal.test.js
+   17 passed. PayPal 라이브 수취 또는 실제 sandbox 계정 결제가 아니다.
+3. node --test __tests__/ui/native-billing-products.test.js __tests__/ui/android-app-locale.test.js __tests__/ui/talisman-wallpaper-fit.test.js __tests__/ui/talisman-locale.test.js __tests__/ui/talisman-catalog.test.js
+   29 passed. 승인 원본 15개 해시·크기, 부적 12개 언어 키, 다양한 화면 비율, 가격 조회 실패 폐쇄 등.
+4. node --test __tests__/ui/android-lockscreen-state.test.mjs __tests__/ui/android-lockscreen-public-pool.test.mjs __tests__/ui/play-localized-listings.test.mjs
+   7 passed. 잠금 알림의 기존 OFF/설정 보존과 부적 배경화면 적용은 별개 기능이다.
+5. node --test __tests__/ui/play-display-price.test.mjs __tests__/ui/play-price-hook.test.mjs
+   14 passed. KR/JP/US/GB/CA/AU/NZ/IE 가격 mock과 UI 로케일의 독립성. Play 실제 국가별 가격 검증은 아니다.
+6. node --require ./scripts/lib/mock-network-guard.cjs scripts/verify-talisman-nocharge.cjs
+   PASS: 실제 TalismanStudio 소스를 독립 번들로 실행. ko/en/ja/zh-CN/zh-TW 각각 PNG export 대상 lock, 오류 4종, 시스템 선택기 복귀/취소/저장/공유창 열림 4종 안내 구분. 가로 넘침·페이지 오류·외부 요청 0.
+   Android 브리지는 mock이다. 네이티브 WallpaperManager 실제 적용, 권한, OEM 자르기, 재실행 유지의 증거가 아니다.
+   최초 제한 환경에서 localhost 접근이 차단되어 종료됐고, 외부 네트워크 차단을 유지한 허용 환경에서 재실행하여 통과했다.
+7. node --require ./scripts/lib/mock-network-guard.cjs scripts/render-store-review-draft.cjs
+   PASS: 5개 언어별 대표 1장 + 세로 2장 = 15개 RGB PNG. 제목 30자/짧은 설명 80자/상세 4000자 이하.
+   최초 영어 짧은 설명 길이 실패를 수정한 뒤 전체 생성 통과.
+8. 대상 ESLint: 오류 0, 기존 CJS require 작성 방식에 대한 경고 11개. git diff --check 통과.
+9. npm run check:fast -- --plan / npm run check:fast
+   신규 검증 스크립트가 미분류 소스로 판정되어 critical 전체로 자동 승격. 전체 검사 결과는 아래 전달 기록 참조. 부분 통과를 전체 통과로 간주하지 않는다.
+
+초안 파일과 적용 경계
+- docs/store-draft-20261029/index.html: 언어별 이미지·짧은 설명·상세 설명 검토 페이지.
+- listings.json: ko/en/ja/zh-CN/zh-TW 문구 정본. 기능/효과 보장, 가격 숫자, 신규 혜택을 추가하지 않았다.
+- feature-*.png: 1024x500, art-*.png / screen-*.png: 1080x1920.
+- component-*.png / controls-*.png: 실제 소스 컴포넌트의 로컬 캡처. 브리지 mock, 실기기 캡처 아님.
+- component-verification.json / manifest.json: 검증 결과 및 미승인·미업로드 상태.
+- 기존 승인 부적 원본만 사용했다. 이미지 속 문구가 한국어라는 한계를 외국어 상세 설명에 명시했다.
+- 시각 검수 1차: 조작부 잘림·저해상도 발견. 캡처 영역 재설정, 2배 해상도, contain 및 로컬 mock 표시로 수정. 2차: 슬라이더·저장·공유·상태 안내 잘림 없음 확인.
+- 승인 전 새 이미지·설명을 Play Console에 적용하지 않는다. 승인 후에도 실제 기기 캡처 확인/교체 및 검토 표시 제거가 필요하다.
+- SEO: 로컬 검토 페이지 noindex. 공개 페이지 title/canonical/hreflang/sitemap 변경 없음.
+
+공식 참고
+https://developer.android.com/google/play/billing/test
+라이선스 테스터의 테스트 수단은 무과금이며, 내부 테스트 트랙만으로는 무과금이 보장되지 않는다.
+https://support.google.com/googleplay/android-developer/answer/9866151
+대표 이미지 규격 1024x500 및 스토어 시각 자산 요구사항.
+
+전달 기록
+- 검증 시작 시 origin/main 86e7f1b71e10ac7127c344a7785249d7ea805ac3 공식 PR CI / CI required success 확인.
+- https://github.com/rei1237/codedestiny/actions/runs/40812739881
+- git merge-tree --write-tree --name-only HEAD origin/main: 충돌 없음. 실제 통합/이번 변경 CI 통과를 뜻하지 않는다.
+- 전체 로컬 검사·커밋·push 상태는 작업 종료 전에 아래에 확정 기록한다.

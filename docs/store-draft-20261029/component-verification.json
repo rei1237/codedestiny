@@ -1,0 +1,101 @@
+{
+  "status": "passed",
+  "deviceVerified": false,
+  "results": [
+    {
+      "locale": "ko",
+      "applied": "잠금화면에 적용했어요. 기기 화면에서 확인해 주세요.",
+      "errorMessages": {
+        "WALLPAPER_UNSUPPORTED": "이 기기는 앱의 직접 설정을 지원하지 않아요. 시스템 설정 화면을 이용해 주세요.",
+        "WALLPAPER_NOT_ALLOWED": "기기의 관리 설정으로 배경화면 변경이 제한되어 있어요.",
+        "PHOTO_PERMISSION_DENIED": "사진 추가 권한이 필요해요. 기기 설정에서 이 앱의 사진 추가를 허용한 뒤 다시 저장해 주세요.",
+        "IMAGE_EXPORT_FAILED": "완료하지 못했어요. 저장 공간과 권한을 확인한 뒤 다시 시도하거나 시스템 설정 화면을 이용해 주세요."
+      },
+      "returnStates": {
+        "returned": "설정 화면을 닫았어요. 적용 여부는 기기에서 확인해 주세요.",
+        "cancelled": "선택을 취소했어요.",
+        "saved": "원본을 저장했어요.",
+        "opened": "공유 화면을 열었어요. 공유할 대상을 선택해 주세요."
+      },
+      "externalRequests": 0,
+      "pageErrors": [],
+      "source": "actual React component; mocked Android bridge; not device evidence"
+    },
+    {
+      "locale": "en",
+      "applied": "Applied to Lock screen. Check it on your device.",
+      "errorMessages": {
+        "WALLPAPER_UNSUPPORTED": "This device does not support direct wallpaper changes from the app. Use system settings.",
+        "WALLPAPER_NOT_ALLOWED": "Device management settings restrict wallpaper changes.",
+        "PHOTO_PERMISSION_DENIED": "Permission to add photos is needed. Allow it for this app in device settings, then save again.",
+        "IMAGE_EXPORT_FAILED": "Could not finish. Check storage and permissions, then try again or use system settings."
+      },
+      "returnStates": {
+        "returned": "The settings screen is closed. Check your device to see whether the wallpaper was applied.",
+        "cancelled": "Selection cancelled.",
+        "saved": "Original saved.",
+        "opened": "The share sheet is open. Choose where to share."
+      },
+      "externalRequests": 0,
+      "pageErrors": [],
+      "source": "actual React component; mocked Android bridge; not device evidence"
+    },
+    {
+      "locale": "ja",
+      "applied": "ロック画面に適用しました。端末の画面で確認してください。",
+      "errorMessages": {
+        "WALLPAPER_UNSUPPORTED": "この端末では直接設定できません。システムの設定画面をお使いください。",
+        "WALLPAPER_NOT_ALLOWED": "端末の管理設定で壁紙の変更が制限されています。",
+        "PHOTO_PERMISSION_DENIED": "写真の追加権限が必要です。端末の設定でこのアプリの写真追加を許可し、もう一度保存してください。",
+        "IMAGE_EXPORT_FAILED": "完了できませんでした。空き容量と権限を確認して再試行するか、システム設定をご利用ください。"
+      },
+      "returnStates": {
+        "returned": "設定画面を閉じました。適用されたか端末で確認してください。",
+        "cancelled": "キャンセルしました。",
+        "saved": "原本を保存しました。",
+        "opened": "共有画面を開きました。共有先を選んでください。"
+      },
+      "externalRequests": 0,
+      "pageErrors": [],
+      "source": "actual React component; mocked Android bridge; not device evidence"
+    },
+    {
+      "locale": "zh-CN",
+      "applied": "已应用到锁屏。请在设备上确认。",
+      "errorMessages": {
+        "WALLPAPER_UNSUPPORTED": "此设备不支持通过应用直接设置壁纸。请使用系统设置。",
+        "WALLPAPER_NOT_ALLOWED": "设备管理设置限制了壁纸更改。",
+        "PHOTO_PERMISSION_DENIED": "需要添加照片的权限。请在设备设置中允许本应用添加照片，再重新保存。",
+        "IMAGE_EXPORT_FAILED": "未能完成。请检查存储空间和权限后重试，或使用系统设置。"
+      },
+      "returnStates": {
+        "returned": "已关闭设置页面。请在设备上确认壁纸是否已应用。",
+        "cancelled": "已取消选择。",
+        "saved": "已保存原图。",
+        "opened": "已打开分享面板。请选择分享对象。"
+      },
+      "externalRequests": 0,
+      "pageErrors": [],
+      "source": "actual React component; mocked Android bridge; not device evidence"
+    },
+    {
+      "locale": "zh-TW",
+      "applied": "已套用至鎖定畫面。請在裝置上確認。",
+      "errorMessages": {
+        "WALLPAPER_UNSUPPORTED": "此裝置不支援透過 App 直接設定背景圖片。請使用系統設定。",
+        "WALLPAPER_NOT_ALLOWED": "裝置管理設定限制了背景圖片變更。",
+        "PHOTO_PERMISSION_DENIED": "需要加入照片的權限。請在裝置設定中允許此 App 加入照片，再重新儲存。",
+        "IMAGE_EXPORT_FAILED": "未能完成。請檢查儲存空間與權限後重試，或使用系統設定。"
+      },
+      "returnStates": {
+        "returned": "已關閉設定畫面。請在裝置上確認是否已套用背景圖片。",
+        "cancelled": "已取消選擇。",
+        "saved": "已儲存原圖。",
+        "opened": "已開啟分享面板。請選擇分享對象。"
+      },
+      "externalRequests": 0,
+      "pageErrors": [],
+      "source": "actual React component; mocked Android bridge; not device evidence"
+    }
+  ]
+}
