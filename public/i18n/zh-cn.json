@@ -10150,7 +10150,7 @@
       },
       "premiumChapters": {
         "0": "计算属于你的出生星盘",
-        "1": "15,000字以上的咨询正文",
+        "1": "正文以15,000字为目标",
         "2": "出生星盘图与星盘签名",
         "3": "解读依据与星盘原始资料",
         "4": "PDF保存与再次打开"
@@ -10192,7 +10192,7 @@
         },
         "1": {
           "axis": "Length",
-          "premium": "正文至少15,000字"
+          "premium": "正文以15,000字为目标"
         },
         "2": {
           "axis": "保存",
@@ -10387,7 +10387,7 @@
       "premiumChapters": {
         "0": "Rasi chart and nakshatra derivation",
         "1": "A consultation across four topics",
-        "2": "正文至少15,000字",
+        "2": "正文以15,000字为目标",
         "3": "A summary of the flow behind the reading"
       },
       "premiumOutcomes": {

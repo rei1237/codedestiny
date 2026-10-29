@@ -10150,7 +10150,7 @@
       },
       "premiumChapters": {
         "0": "Calculation of your own birth chart",
-        "1": "Hoofdtekst van ten minste 15.000 tekens",
+        "1": "Hoofdtekst met een streeflengte van 15.000 tekens",
         "2": "Your natal chart wheel and chart signature",
         "3": "The grounds for the reading, and the raw chart",
         "4": "PDF saving and reopening"
@@ -10192,7 +10192,7 @@
         },
         "1": {
           "axis": "Length",
-          "premium": "Hoofdtekst van ten minste 15.000 tekens"
+          "premium": "Hoofdtekst met een streeflengte van 15.000 tekens"
         },
         "2": {
           "axis": "Keeping it",
@@ -10387,7 +10387,7 @@
       "premiumChapters": {
         "0": "Rasi chart and nakshatra derivation",
         "1": "A consultation across four topics",
-        "2": "Hoofdtekst van ten minste 15.000 tekens",
+        "2": "Hoofdtekst met een streeflengte van 15.000 tekens",
         "3": "A summary of the flow behind the reading"
       },
       "premiumOutcomes": {

@@ -10150,7 +10150,7 @@
       },
       "premiumChapters": {
         "0": "ご自身の出生図の計算",
-        "1": "15,000字以上の相談本文",
+        "1": "本文は15,000文字を目安に作成",
         "2": "出生図のホイールとチャートシグネチャー",
         "3": "解釈の根拠とチャート原本",
         "4": "PDF保存と再閲覧"
@@ -10192,7 +10192,7 @@
         },
         "1": {
           "axis": "Length",
-          "premium": "本文15,000文字以上"
+          "premium": "本文は15,000文字を目安に作成"
         },
         "2": {
           "axis": "保管",
@@ -10387,7 +10387,7 @@
       "premiumChapters": {
         "0": "Rasi chart and nakshatra derivation",
         "1": "A consultation across four topics",
-        "2": "本文15,000文字以上",
+        "2": "本文は15,000文字を目安に作成",
         "3": "A summary of the flow behind the reading"
       },
       "premiumOutcomes": {

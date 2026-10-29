@@ -85,18 +85,18 @@
     "ko": "운세 결과는 참고용입니다."
   },
   "featureMarketing.astrology_ai_consultation.premiumChapters.1": {
-    "en": "Main text of at least 15,000 characters",
-    "ja": "15,000字以上の相談本文",
-    "zh-CN": "15,000字以上的咨询正文",
-    "zh-TW": "15,000字以上的諮詢正文",
-    "vi": "Nội dung chính ít nhất 15.000 ký tự",
-    "hi": "कम से कम 15,000 अक्षरों का मुख्य पाठ",
-    "es": "Texto principal de al menos 15.000 caracteres",
-    "fr": "Texte principal d’au moins 15 000 caractères",
-    "de": "Haupttext mit mindestens 15.000 Zeichen",
-    "nl": "Hoofdtekst van ten minste 15.000 tekens",
-    "ms": "Teks utama sekurang-kurangnya 15,000 aksara",
-    "ko": "본문 최소 15,000자"
+    "ko": "본문 목표 15,000자",
+    "en": "Main text targeting 15,000 characters",
+    "ja": "本文は15,000文字を目安に作成",
+    "zh-CN": "正文以15,000字为目标",
+    "zh-TW": "正文以15,000字為目標",
+    "vi": "Nội dung chính hướng tới 15.000 ký tự",
+    "hi": "मुख्य पाठ का लक्ष्य 15,000 अक्षर",
+    "es": "Texto principal con un objetivo de 15.000 caracteres",
+    "fr": "Texte principal visant 15 000 caractères",
+    "de": "Haupttext mit einem Zielumfang von 15.000 Zeichen",
+    "nl": "Hoofdtekst met een streeflengte van 15.000 tekens",
+    "ms": "Teks utama menyasarkan 15,000 aksara"
   },
   "featureMarketing.astrology_ai_consultation.premiumOutcomes.2": {
     "en": "Fortune results are for reference.",
@@ -113,18 +113,18 @@
     "ko": "운세 결과는 참고용입니다."
   },
   "featureMarketing.astrology_ai_consultation.valueCompare.1.premium": {
-    "en": "Main text of at least 15,000 characters",
-    "ja": "本文15,000文字以上",
-    "zh-CN": "正文至少15,000字",
-    "zh-TW": "正文至少15,000字",
-    "vi": "Nội dung chính ít nhất 15.000 ký tự",
-    "hi": "कम से कम 15,000 अक्षरों का मुख्य पाठ",
-    "es": "Texto principal de al menos 15.000 caracteres",
-    "fr": "Texte principal d’au moins 15 000 caractères",
-    "de": "Haupttext mit mindestens 15.000 Zeichen",
-    "nl": "Hoofdtekst van ten minste 15.000 tekens",
-    "ms": "Teks utama sekurang-kurangnya 15,000 aksara",
-    "ko": "본문 최소 15,000자"
+    "ko": "본문 목표 15,000자",
+    "en": "Main text targeting 15,000 characters",
+    "ja": "本文は15,000文字を目安に作成",
+    "zh-CN": "正文以15,000字为目标",
+    "zh-TW": "正文以15,000字為目標",
+    "vi": "Nội dung chính hướng tới 15.000 ký tự",
+    "hi": "मुख्य पाठ का लक्ष्य 15,000 अक्षर",
+    "es": "Texto principal con un objetivo de 15.000 caracteres",
+    "fr": "Texte principal visant 15 000 caractères",
+    "de": "Haupttext mit einem Zielumfang von 15.000 Zeichen",
+    "nl": "Hoofdtekst met een streeflengte van 15.000 tekens",
+    "ms": "Teks utama menyasarkan 15,000 aksara"
   },
   "featureMarketing.astrology_ai_consultation.faq.2.q": {
     "en": "Can I see the result again later?",
@@ -141,18 +141,18 @@
     "ko": "나중에 결과를 다시 볼 수 있나요?"
   },
   "featureMarketing.vedic_ai_consultation.premiumChapters.2": {
-    "en": "Main text of at least 15,000 characters",
-    "ja": "本文15,000文字以上",
-    "zh-CN": "正文至少15,000字",
-    "zh-TW": "正文至少15,000字",
-    "vi": "Nội dung chính ít nhất 15.000 ký tự",
-    "hi": "कम से कम 15,000 अक्षरों का मुख्य पाठ",
-    "es": "Texto principal de al menos 15.000 caracteres",
-    "fr": "Texte principal d’au moins 15 000 caractères",
-    "de": "Haupttext mit mindestens 15.000 Zeichen",
-    "nl": "Hoofdtekst van ten minste 15.000 tekens",
-    "ms": "Teks utama sekurang-kurangnya 15,000 aksara",
-    "ko": "본문 최소 15,000자"
+    "ko": "본문 목표 15,000자",
+    "en": "Main text targeting 15,000 characters",
+    "ja": "本文は15,000文字を目安に作成",
+    "zh-CN": "正文以15,000字为目标",
+    "zh-TW": "正文以15,000字為目標",
+    "vi": "Nội dung chính hướng tới 15.000 ký tự",
+    "hi": "मुख्य पाठ का लक्ष्य 15,000 अक्षर",
+    "es": "Texto principal con un objetivo de 15.000 caracteres",
+    "fr": "Texte principal visant 15 000 caractères",
+    "de": "Haupttext mit einem Zielumfang von 15.000 Zeichen",
+    "nl": "Hoofdtekst met een streeflengte van 15.000 tekens",
+    "ms": "Teks utama menyasarkan 15,000 aksara"
   },
   "featureMarketing.vedic_ai_consultation.premiumOutcomes.2": {
     "en": "Fortune results are for reference.",
