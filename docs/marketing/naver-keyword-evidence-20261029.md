@@ -57,6 +57,7 @@
 - 사용자 답변은 연결 상태 확인이었으며 파일 접근 허용 완료 확인은 아직 없다. 권한 변경 전 파일 업로드를 반복하지 않는다.
 
 ### 검증 및 전달
+- 종료 전 A 편집 화면 재진입: 수동 100원, 일치검색, 네이버 및 검색 포털 매체만 체크, 검색 파트너/추천·콘텐츠 모두 해제 저장 확인. 마지막 재확인 차단은 해소됨.
 - `npm run typecheck`: exit 0.
 - `npm run verify:new-year-ai-flow`, `npm run verify:fusion-fortune-quality`: mock 검사 실행, 초융합 PASS 확인. 실결제·실 LLM 호출 없음.
 - 변경 3파일 ESLint: exit 0, 기존 NewYearAiClient.tsx:836 aria-pressed/listitem 경고 1건.
