@@ -5,6 +5,14 @@ export const advisers = {
   neo: {name:'네오',place:'별빛 전략실',image:'/assets/neo.webp',message:'복잡한 고민, 다음 수부터 정하자.',description:'판세를 읽고 현실적인 전략으로'},
 } as const;
 export type AdviserId=keyof typeof advisers;
+export function CharacterGuide({id='yeoni',title,children}:{id?:AdviserId;title:string;children:string}){
+  return <aside className="character-guide"><AdviserPortrait id={id} className="character-guide-art" decorative/><div><strong>{title}</strong><p>{children}</p></div></aside>;
+}
+/** Branding only: amounts and entitlements always come from approved products. */
+export function PaymentIdentity({serviceId,fish}:{serviceId:string;fish:string}){
+  const names:Record<string,string>={mackerel:'고등어',salmon:'연어',flounder:'광어',tuna:'참치'};
+  return <p className="payment-identity">{serviceId==='yeongnyangi'?`영냥이 · ${names[fish]||'생선'} 결제`:serviceId==='yeoni'?'연이 · 꿀단지 결제':'네오 · 작전 티켓 결제'}</p>;
+}
 export function CharacterWelcome(){
   return <div className="character-welcome"><img src="/assets/yeoni-yeongnyangi-garden.webp" alt="달빛 꽃 정원에서 차와 책을 함께 보는 꽃돼지 연이와 영냥이" width={480} height={720} loading="lazy" decoding="async"/><div><h2>오늘은 누구와<br/>이야기할까요?</h2><p>꽃돼지 연이의 다정함,<br/>영냥이의 차분한 해석,<br/>네오의 현실적인 조언.</p></div></div>;
 }

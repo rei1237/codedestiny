@@ -102,3 +102,34 @@ status: in-progress
 - 첫 check:fast는 제한 환경에서 npm test 하위 실행의 진행이 없어 중지했다. 로컬 연결과 하위 프로세스를 허용한 재실행의 결과를 전달 전에 별도 기록한다.
 
 최종 로컬 검증: paid-gate-suite 90/90(전체 npm test 포함), 변경 lint·전체 lint·전체 typecheck·sitemap 통과. check:fast의 중복 test:node 단계에서 중단하고 원래 계획의 미실행 13개를 별도 실행해 모두 통과했다. 단일 check:fast 프로세스 완료 성공으로 표기하지 않는다. 최종 코드 커밋 54be184a2와 결제 보호 38ded5183, check:pre-push 통과. 운영 배포·실결제·실 LLM·운영 DB 쓰기 없음.
+
+## 2026-10-29 사용자 체험과 기능 동등성 재점검
+
+사용자 요구: 모든 기능과 UI/UX가 현재 사이트와 같거나 좋아야 한다. 상담가 표시와 분석 체계, 결제 단위를 분리한다. 영냥이는 생선, 연이는 꿀단지, 네오는 사용자가 지정한 작전 티켓을 결제 영역에서만 표시한다. 가격·잔액·교환비·신규 지급 정책은 추가하지 않는다. 상담가 3명은 말투/관점 선택이며 기본 접힌 변경 영역으로 옮겼다.
+
+### 현재 확인된 공백과 다음 구현 순서
+
+| 기능 | 기존 소스와 필수 동작 | 토스 상태 / 완료 조건 |
+| --- | --- | --- |
+| 사주 풀이·만세력 | worker/yeongnyangi/fortune/saju, 기존 사주 결과의 세부 리포트 진입 | 명식·오행·대운 일부만 연결. 기존 사주 결과 전체, 프로필/기록 동등성은 미완료 |
+| 인생의 책 | app/life-book-ai/LifeBookAiClient.tsx, lifeBookApi.ts, result/LifeBookAiResultClient.tsx | 전용 화면과 prepare/generate/result 계약 미이식. 책 표지·장별 뷰·중단 재개·원본 재열람까지 검증해야 함 |
+| 연애 비책 | app/love-secret-ai/LoveSecretAiClient.tsx, result/LoveSecretAiResultClient.tsx | 전용 화면과 /api/love-secret-ai/prepare, generate, result 미이식. 질문/입력·챕터·체크리스트·재개·계정 소유권 검증 필요 |
+| 초융합 심층 리딩 | app/fusion-fortune/FusionFortuneClient.tsx, FusionResultThread/Rail/Dock, _lib/reading.ts | 전용 화면과 status/result/generate/stream 미이식. 체계별 근거·통합 판정·목차·스트림 재접속·저장 원문 렌더러 보존 필요 |
+| 전문가 상담 | app/components/expert-consulting/ExpertConsultationFrame.tsx와 서비스별 진입 | 공통 3인 상담 화면은 전문가 서비스 전체 이식 증거가 아님. 서비스별 입력·결과·권한 계약을 원장의 각 후보에 매핑해야 함 |
+
+우선 인생의 책 → 연애 비책 → 초융합 → 전문가 서비스별 순으로 기존 결과 렌더러와 모의 계약 검사를 옮긴다. 단순 메뉴 링크나 모의 결과 추가로 완전 이식을 집계하지 않는다. 토스 계정/상품/주문 소유권을 기존 웹 인증에 임의로 연결하지 않는다. 실제 상품 승인, 실기기 입력·로그인·구매·복구·재열람과 성능 증거가 갖춰지기 전에는 출시를 열지 않는다.
+
+### 이번에 보완한 동작
+
+- 로컬 타로 3종(오늘/태양 회복/자기 기준 회복)의 짧은 공통 요약을 기존 tarot-interpretation-engine의 실제 카드별 해석으로 대체했다. 정·역방향과 질문을 전달하고 회복 행동 목록을 4개로 자르던 제한을 없앴다. 유료 흐름은 로컬로 폴백하지 않는다.
+- 기존 원본 엔진에도 자기 기준 회복 일부 카드에서 position_3_self_esteem_theme_missing 경고가 재현된다. 동일 원문 연결은 검증했으나 전체 콘텐츠가 개선되었다는 근거로 쓰지 않는다.
+- 로그인·구매 복구·설정·고객지원·타로 입력에 캐릭터 안내와 꽃가지 구분을 적용했다. 법적 안내와 장문 결과에 불필요한 캐릭터 반복을 넣지 않았다.
+- 개발 전용 /test/playground.html에서 실제 로컬 리딩과 모의 일일운세/만세력/근거 화면을 구분한다. 모의 화면은 입력 생일의 실제 계산이 아님을 명시한다. noindex 유지, 배포 빌드에 테스트 진입/페이지가 포함되지 않아야 한다.
+- 앱 테스트 119/119, typecheck 및 AIT build 통과. 최초 테스트 1건은 제한 환경의 localhost 천문 파일 서버 접근 차단으로 실패했고, 외부 호출 차단을 유지한 로컬 연결 허용 재실행에서 통과했다. 기존 main 86e7f1b71e10ac7127c344a7785249d7ea805ac3의 공식 PR CI 40812739881 success 확인.
+- 실제 브라우저에서 태양 회복 질문→4장 선택→6개 상세 구역과 3개 행동 출력 확인(430px, 가로 넘침 없음). main JS 1,350kB / gzip429kB, 지연 로딩 타로630.87kB / gzip182.32kB. 토스 실기기 시작시간/메모리는 아직 미측정이며 크기 경고 유지.
+
+사용자 추가 정정: 단순 공통 폼에 원화를 얹은 구성은 실제 서비스와 너무 다르므로 영냥이와 꿀꿀 운세를 하나의 앱으로 재구성한다. UnifiedHome은 기존 app/page.js의 두 원본 대표 카드와 영냥이 NightHero의 상담실 배경을 사용한다. 전체/꿀꿀 운세/영냥이 공간을 나누고 영냥이는 질문 중심, 꿀꿀은 도구와 연이·네오 상담실 중심으로 배치했다. 미이식 리포트는 준비 상태를 명시한다. 기존 상세 상담/결과 전체의 동등성을 달성했다는 뜻은 아니다. 다음 작업은 공통 상담 화면을 각 기존 서비스의 고유 입력/결과 흐름으로 대체하는 것이다.
+
+시각 검수: unified-home/cat/ggul-430.png에서 차단 결함 없음. 360px 꿀꿀 공간 가로 넘침/깨진 이미지 0, 연이 상담실 진입 시 serviceId 선택 유지 확인. 화면 증거는 D:/Development/code-destiny/outputs/toss-parity-20261029/에 보관한다. 개발 테스트 페이지는 배포 번들에서 제외 확인. 실제 결제·LLM·운영 DB·업로드 없음.
+
+최종 로컬 검증: 앱 119/119와 타입/AIT 빌드 성공(deploymentId 01a185d7-5343-7c1d-acbd-a5dc260ecb4d). check:fast는 환경 재연결 후 재실행했으나 paid-gate-suite 첫 단계에서 상세 실패 출력 없이 exit 1로 종료되어 미통과로 기록한다. 공식 CI를 대체하지 않는다. 디자인 detector는 탭의 직선 3px 선택 밑줄을 rounded-card 경고로 잡았으나 해당 nav 버튼에는 둥근 모서리가 없고 시각 검수도 통과했다. 검사 규칙은 바꾸지 않았다.
