@@ -131,9 +131,9 @@ export const LOVE_SECRET_AI_GROUPS = Object.freeze([
     key: "core",
     label: "핵심 연애운과 질문의 답",
     emits: Object.freeze(["header"]),
-    covered: "나의 성향·장단점/상대와 궁합·이상형/갈등·바람기·재회/타이밍·좋은 날짜·결혼운/실행 전략과 마무리",
+    covered: "나의 연애 반복 패턴·장단점/상대와 궁합·이상형/갈등·바람기·재회/타이밍·좋은 날짜·결혼운/실행 전략과 마무리",
     sections: Object.freeze([
-      Object.freeze({ title: "현재 관계의 자리와 질문의 핵심", field: "relationshipCore", guide: "사용자의 자유 질문을 첫 문장에서 정면으로 받고, 지금 관계가 어느 자리에 서 있는지부터 확정한다." }),
+      Object.freeze({ title: "현재 관계의 자리와 질문의 핵심", field: "relationshipCore", guide: "사용자의 자유 질문을 첫 문장에서 정면으로 받아 한 줄로 답한 뒤, 타고난 성향 총론을 먼저 짚는다. 일간·월지·오행 분포를 근거로 이 사람의 타고난 기질과 성향을 전반적으로 소개해, 상담자가 '나를 정확히 봤다'고 느끼도록 신뢰를 세운다(핵심 기질 2~3가지, 감정·관계에서의 반응, 결정 습관을 계산 사실의 쉬운 뜻 → 생활 장면 순으로). 연애에서 반복되는 패턴·장단점은 다른 부분이 맡으니 여기서는 총론에 머문다. 이어서 그 성향 위에서 지금 관계가 어느 자리에 서 있는지 확정한다." }),
       Object.freeze({ title: "핵심 연애운 — 명식이 사랑에서 그리는 큰 결", field: "coreLoveFortune", guide: "현재 연애운의 흐름, 열리는 기회, 위험 구간, 전체 분위기를 대운·세운·격국에 걸어 말한다." }),
       Object.freeze({ title: "오행과 조후로 보는 감정의 온도", field: "fiveElementsInsight", guide: "오행 분포와 조후로 감정의 온도·습도를 설명하고, 그것이 연애에서 어떻게 드러나는지로 번역한다." }),
     ]),
@@ -142,7 +142,7 @@ export const LOVE_SECRET_AI_GROUPS = Object.freeze([
     key: "self",
     label: "나의 연애 성향 — 장점·약점·심리",
     emits: Object.freeze([]),
-    covered: "질문의 핵심과 전체 연애운/상대와 궁합·이상형/갈등·바람기·재회/타이밍·좋은 날짜·결혼운/실행 전략과 마무리",
+    covered: "질문의 핵심·타고난 성향 총론과 전체 연애운/상대와 궁합·이상형/갈등·바람기·재회/타이밍·좋은 날짜·결혼운/실행 전략과 마무리",
     sections: Object.freeze([
       Object.freeze({ title: "나의 명식이 사랑에서 반복하는 방식", field: "userLovePattern", guide: "일간과 오행 성향에서 반복되는 선택 습관과 관계 패턴을 짚는다." }),
       Object.freeze({ title: "십성으로 보는 애착과 표현 방식", field: "tenGodsAttachmentPattern", guide: "십성 분포로 애착 유형, 표현 방식, 불안이 올라오는 순간을 설명한다." }),
