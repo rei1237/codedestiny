@@ -3,6 +3,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import copy from "../../content/novel/ui-copy.json";
 import { NOVEL_LOCALES, NOVEL_LANGUAGE_LABELS, resolveNovelLocale } from "../../lib/stories/vn/locales.mjs";
+import {StoryHubLocaleProvider} from './StoryHubCopy';
 
 type Beat = { id: string; s: string; t: string; nm?: string; bg?: string; sceneBreak?: boolean; choice?: { options: { id: string; label: string; target: string }[] } };
 type Episode = { id: string; no: string; title: string; tag: string; path: string; sourceHash?: string; beats?: Beat[] };
@@ -101,7 +102,7 @@ export default function StoryEdition({ children, episodeId }: { children: ReactN
       {pending&&<p role="status" className="mt-3 text-sm">{t('여는 중…')}</p>}
       {error&&<div role="alert" className="mt-3"><p>{t(error)}</p><button className="mt-2 min-h-11 underline" onClick={()=>setRetry(value=>value+1)}>{t('불러오기')}</button></div>}
     </div>
-    {locale==='ko'?children:!pending&&!error&&manifest&&<main className="mx-auto w-full max-w-3xl px-4 py-10 text-slate-100 md:px-6 md:py-14">
+    {locale==='ko'?children:!pending&&!error&&manifest&&(!episodeId?<StoryHubLocaleProvider locale={locale} episodes={manifest.episodes}>{children}</StoryHubLocaleProvider>:<main className="mx-auto w-full max-w-3xl px-4 py-10 text-slate-100 md:px-6 md:py-14">
       <header className="border-b border-white/10 pb-6">
         <h1 className="break-words text-3xl font-bold leading-tight text-amber-50">{episode?`${episode.no} · ${episode.title}`:t('연이의 운명 노벨')}</h1>
         <p className="mt-4 leading-8 text-slate-300">{episode?.tag||t('꽃돼지가 된 연이와 비밀을 품은 영냥이. 낯선 세계를 건너며, 정해진 운명 너머의 답을 함께 찾아가는 이야기.')}</p>
@@ -124,6 +125,6 @@ export default function StoryEdition({ children, episodeId }: { children: ReactN
         <p className="mt-3">{t('창작 안내 본문')}</p>
         <a href="/contact/" className="mt-2 inline-block min-h-11 text-amber-100 underline">{t('문의')}</a>
       </aside>
-    </main>}
+    </main>)}
   </div>;
 }
