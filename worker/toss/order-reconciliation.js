@@ -43,5 +43,5 @@ export async function runTossOrderReconciliation(env){
       {$set:{reconcileState:state,reconcileAfter:next}})),
   };
   return reconcileTossOrders({store,lookup:async(identity,orderId)=>lookupOrder(env,await unseal(env,identity.encryptedKey,identity._id),orderId),
-    refund:(identity,order)=>recordTossRefund(identity,order)});
+    refund:(identity,order)=>withMongoRetry(env,()=>recordTossRefund(identity,order))});
 }
