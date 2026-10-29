@@ -129,11 +129,11 @@ export default function FortuneHome({offers,guide,passBenefits}:{offers:ProductO
         </header>
 
         <main>
+          {passBenefits}
           <NightHero/>
           <HeavenLightCinema/>
           <FirstVisitGuide/>
           <QuestionJourney source="home"/>
-          {passBenefits}
           {guide}
           <div className="main-content">
             <section className="ggulggul-bridge" aria-labelledby="ggulggul-title">

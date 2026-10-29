@@ -11,6 +11,7 @@ import { HOME_CATEGORIES, HOME_CONCERNS } from "../lib/seo/home-discovery.mjs";
 import { getSignProfile } from "../lib/fortune/sign-profiles";
 import LegacyHomeEntry from "./components/LegacyHomeEntry";
 import HomeCardDeck from "./components/HomeCardDeck";
+import PassBenefits from "./components/PassBenefits";
 import HomeEntryState from "./components/HomeEntryState";
 import { PriceBadge } from "./components/PriceBadge";
 import ConsultationDiscovery from "./components/ConsultationDiscovery";
@@ -123,6 +124,7 @@ export default function HomePage() {
         </div>
 
         {/* 카드 제목(h2)의 링크를 카드 크기로 늘려 카드 전체가 한 링크다. 설명 두 줄은 aria-describedby 로 읽힌다. */}
+        <PassBenefits kind="honey" id="home-honey-pass"/>
         <HomeCardDeck className={styles.deck}>
           {CARDS.map((card, index) => {
             const linkProps = { href: card.href, className: styles.cardLink, "aria-label": `${card.name} ${card.action}`, "aria-describedby": `${card.key}CardTag`, ...discoveryTracking(card.key === "yeoni" ? "ggulggul" : "yeongnyangi", "primary") };
