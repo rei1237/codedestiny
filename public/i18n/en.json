@@ -9141,72 +9141,72 @@
       "headline": "Should I let go or reach out once more?"
     },
     "template_sukuyo": {
-      "tagline": "A reading centered on relationship texture, conflict patterns, and the rhythm of a bond.",
+      "tagline": "A reading focused on the texture of a relationship, recurring friction and the rhythm of connection.",
       "feats": [
-        "When you're strangely drawn together but clash often",
-        "When you want to know the pattern of a relationship",
-        "When you're curious whether it can last"
+        "When you feel a strong pull but often clash",
+        "When you want to understand your relationship patterns",
+        "When you wonder whether the connection can last"
       ],
-      "premiumIntro": "Sukuyo doesn't just call a match good or bad -- it first lights up the distance the relationship is moving through.",
+      "premiumIntro": "Sukuyo does not reduce compatibility to good or bad; it first explores the distance and closeness that shape the relationship.",
       "premiumAudience": [
-        "Those who clash more the closer they get",
-        "Those who want to name and understand the relationship pattern",
-        "Those who need to judge whether it's a lasting bond"
+        "For those who clash more often as they grow closer",
+        "For those who want to identify and understand relationship patterns",
+        "For those considering whether a connection can last"
       ],
       "premiumChapters": [
-        "The basic relationship type between the two",
-        "The strengths that show up as you get closer",
-        "Where the friction comes from",
-        "Advice to soften the relationship"
+        "The foundation of your relationship",
+        "Strengths that emerge as you grow closer",
+        "Where friction arises",
+        "Guidance for a gentler relationship"
       ],
       "answersQuestions": [
-        "Is it okay to keep seeing this person?",
-        "Why do we clash more the closer we get?",
-        "How should I time reaching out?"
+        "Should I keep seeing this person?",
+        "Why do we clash more as we grow closer?",
+        "How can I choose a good time to reach out?"
       ],
       "analysisSteps": [
         {
-          "label": "Calculating natal lodges",
-          "detail": "Calculates each person's natal lunar lodge among the 27 from their birth dates."
+          "label": "Calculate the natal mansion",
+          "detail": "Uses each person’s birth date to calculate their natal mansion among the 27 Sukuyo lunar mansions."
         },
         {
-          "label": "Determining relationship type",
-          "detail": "Fixes the relationship type formed by the two natal lodges."
+          "label": "Identify the relationship type",
+          "detail": "Determines the relationship category formed by the two natal mansions."
         },
         {
-          "label": "Reading the distance",
-          "detail": "Unpacks where attraction and conflict arise and how the rhythm goes off."
+          "label": "Interpret closeness and distance",
+          "detail": "Explores where attraction and friction arise, and how your rhythms fall out of step."
         },
         {
-          "label": "Organizing advice",
-          "detail": "Puts what to say now and what to hold off in order."
+          "label": "Organize the guidance",
+          "detail": "Sets out what to bring up now and what to leave for later."
         }
       ],
       "valueCompare": [
         {
-          "axis": "Subject",
+          "axis": "Focus",
           "premium": "The full relationship type for both people",
-          "free": "Summary of your own natal lodge"
+          "free": "Summary of my natal mansion"
         },
         {
-          "axis": "Scope of reading",
-          "premium": "Down to attraction, conflict, and the rhythm of recovery",
-          "free": "Disposition description"
+          "axis": "Scope of the reading",
+          "premium": "Attraction, friction and the rhythm of repair",
+          "free": "Description of tendencies"
         },
         {
-          "axis": "Timing advice",
-          "premium": "When to step closer and when to step back",
+          "axis": "Timing guidance",
+          "premium": "When to move closer and when to step back",
           "free": "None"
         }
       ],
       "faq": [
         {
-          "q": "Do I need to know the other person's birth date?",
-          "a": "A compatibility reading requires the other person's birth date. Without it, only your own natal-lodge reading is possible."
+          "q": "Can I use this without knowing the other person’s birth date?",
+          "a": "Compatibility requires the other person’s birth date. Without it, only your own natal mansion can be interpreted."
         },
         {
-          "q": "If the match is bad, should we break up?",
-          "a": "No. Sukuyo isn't about good or bad -- it's about the character of the distance. The harder the type, the clearer the line to protect."
+          "q": "Should we break up if compatibility looks difficult?",
+          "a": "No. Sukuyo examines the nature of closeness and distance rather than labeling a relationship good or bad. A challenging type can make the boundaries worth respecting clearer."
         },
         {
           "q": "Can I see the result again?",
@@ -9214,7 +9214,7 @@
         }
       ],
       "badge": "Relationship reading",
-      "headline": "Read the pull and the distance between two people more finely than good or bad."
+      "headline": "Why does someone I am drawn to leave me more tired as we grow closer?"
     },
     "template_ziwei": {
       "tagline": "A reading that follows the palace flows and star placements to check your long-term direction.",
@@ -10081,7 +10081,7 @@
       },
       "answersQuestions": {
         "0": "Should I keep seeing this person?",
-        "1": "Why do we keep clashing the closer we get?",
+        "1": "Why do we clash more as we grow closer?",
         "2": "What should we protect to keep this relationship going?"
       },
       "valueCompare": {

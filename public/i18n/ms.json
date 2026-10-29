@@ -9141,72 +9141,72 @@
       "headline": "Patutkah saya melepaskan atau cuba mendekati sekali lagi?"
     },
     "template_sukuyo": {
-      "tagline": "A reading centered on relationship texture, conflict patterns, and the rhythm of a bond.",
+      "tagline": "Tafsiran yang menumpukan sifat hubungan, corak pertentangan dan rentak ikatan.",
       "feats": [
-        "When you're strangely drawn together but clash often",
-        "When you want to know the pattern of a relationship",
-        "When you're curious whether it can last"
+        "Apabila ada tarikan yang sukar dijelaskan tetapi kerap bertembung",
+        "Apabila anda ingin memahami corak hubungan bersama seseorang",
+        "Apabila anda tertanya-tanya sama ada ikatan ini boleh berkekalan"
       ],
-      "premiumIntro": "Sukuyo doesn't just call a match good or bad -- it first lights up the distance the relationship is moving through.",
+      "premiumIntro": "Sukuyo tidak mengehadkan keserasian kepada baik atau buruk; ia terlebih dahulu meneliti jarak dan keakraban yang membentuk hubungan.",
       "premiumAudience": [
-        "Those who clash more the closer they get",
-        "Those who want to name and understand the relationship pattern",
-        "Those who need to judge whether it's a lasting bond"
+        "Bagi yang semakin kerap bertembung apabila hubungan makin rapat",
+        "Bagi yang ingin mengenal pasti dan memahami corak hubungan",
+        "Bagi yang sedang menilai sama ada ikatan boleh berkekalan"
       ],
       "premiumChapters": [
-        "The basic relationship type between the two",
-        "The strengths that show up as you get closer",
-        "Where the friction comes from",
-        "Advice to soften the relationship"
+        "Asas hubungan dua orang",
+        "Kekuatan yang muncul apabila semakin rapat",
+        "Titik timbulnya pertentangan",
+        "Panduan untuk melembutkan hubungan"
       ],
       "answersQuestions": [
-        "Is it okay to keep seeing this person?",
-        "Why do we clash more the closer we get?",
-        "How should I time reaching out?"
+        "Patutkah saya terus berjumpa dengan orang ini?",
+        "Mengapa kami semakin kerap bertembung apabila semakin rapat?",
+        "Bagaimanakah memilih masa yang sesuai untuk menghubungi?"
       ],
       "analysisSteps": [
         {
-          "label": "Calculating natal lodges",
-          "detail": "Calculates each person's natal lunar lodge among the 27 from their birth dates."
+          "label": "Kira rumah bulan kelahiran",
+          "detail": "Menggunakan tarikh lahir setiap orang untuk mengira rumah kelahiran masing-masing antara 27 rumah bulan Sukuyo."
         },
         {
-          "label": "Determining relationship type",
-          "detail": "Fixes the relationship type formed by the two natal lodges."
+          "label": "Kenal pasti jenis hubungan",
+          "detail": "Menentukan kategori hubungan yang terbentuk daripada dua rumah kelahiran."
         },
         {
-          "label": "Reading the distance",
-          "detail": "Unpacks where attraction and conflict arise and how the rhythm goes off."
+          "label": "Tafsir jarak dan keakraban",
+          "detail": "Meneliti punca tarikan dan pertentangan serta bagaimana rentak anda menjadi tidak seiring."
         },
         {
-          "label": "Organizing advice",
-          "detail": "Puts what to say now and what to hold off in order."
+          "label": "Susun panduan",
+          "detail": "Menyusun perkara yang boleh dibincangkan sekarang dan yang wajar ditangguhkan."
         }
       ],
       "valueCompare": [
         {
-          "axis": "Subject",
-          "premium": "The full relationship type for both people",
-          "free": "Summary of your own natal lodge"
+          "axis": "Tumpuan",
+          "premium": "Jenis hubungan penuh bagi kedua-dua orang",
+          "free": "Ringkasan rumah bulan kelahiran saya"
         },
         {
-          "axis": "Scope of reading",
-          "premium": "Down to attraction, conflict, and the rhythm of recovery",
-          "free": "Disposition description"
+          "axis": "Skop bacaan",
+          "premium": "Tarikan, pertentangan dan rentak pemulihan",
+          "free": "Penerangan kecenderungan"
         },
         {
-          "axis": "Timing advice",
-          "premium": "When to step closer and when to step back",
+          "axis": "Panduan masa",
+          "premium": "Bila untuk mendekati dan bila untuk berundur sedikit",
           "free": "None"
         }
       ],
       "faq": [
         {
-          "q": "Do I need to know the other person's birth date?",
-          "a": "A compatibility reading requires the other person's birth date. Without it, only your own natal-lodge reading is possible."
+          "q": "Bolehkah digunakan tanpa mengetahui tarikh lahir orang itu?",
+          "a": "Keserasian memerlukan tarikh lahir orang tersebut. Tanpanya, hanya rumah bulan kelahiran anda sendiri boleh ditafsirkan."
         },
         {
-          "q": "If the match is bad, should we break up?",
-          "a": "No. Sukuyo isn't about good or bad -- it's about the character of the distance. The harder the type, the clearer the line to protect."
+          "q": "Patutkah berpisah jika keserasian kelihatan sukar?",
+          "a": "Tidak. Sukuyo meneliti sifat jarak dan keakraban, bukannya melabel hubungan baik atau buruk. Jenis yang mencabar boleh memperjelas batas yang wajar dihormati."
         },
         {
           "q": "Bolehkah saya melihat semula hasilnya kemudian?",
@@ -9214,7 +9214,7 @@
         }
       ],
       "badge": "Relationship reading",
-      "headline": "Read the pull and the distance between two people more finely than good or bad."
+      "headline": "Mengapa semakin rapat dengan orang yang menarik hati saya, semakin saya penat?"
     },
     "template_ziwei": {
       "tagline": "A reading that follows the palace flows and star placements to check your long-term direction.",
@@ -10080,8 +10080,8 @@
         "2": "Please weigh relationship judgments alongside a realistic conversation."
       },
       "answersQuestions": {
-        "0": "Should I keep seeing this person?",
-        "1": "Why do we keep clashing the closer we get?",
+        "0": "Patutkah saya terus berjumpa dengan orang ini?",
+        "1": "Mengapa kami semakin kerap bertembung apabila semakin rapat?",
         "2": "What should we protect to keep this relationship going?"
       },
       "valueCompare": {

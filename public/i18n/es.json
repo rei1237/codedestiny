@@ -9141,72 +9141,72 @@
       "headline": "¿Debería soltar o acercarme una vez más?"
     },
     "template_sukuyo": {
-      "tagline": "A reading centered on relationship texture, conflict patterns, and the rhythm of a bond.",
+      "tagline": "Una lectura centrada en la naturaleza de la relación, los patrones de conflicto y el ritmo del vínculo.",
       "feats": [
-        "When you're strangely drawn together but clash often",
-        "When you want to know the pattern of a relationship",
-        "When you're curious whether it can last"
+        "Cuando sientes una atracción especial pero chocáis a menudo",
+        "Cuando quieres entender vuestros patrones de relación",
+        "Cuando te preguntas si el vínculo puede durar"
       ],
-      "premiumIntro": "Sukuyo doesn't just call a match good or bad -- it first lights up the distance the relationship is moving through.",
+      "premiumIntro": "Sukuyo no reduce la compatibilidad a buena o mala: primero explora la distancia y la cercanía que dan forma al vínculo.",
       "premiumAudience": [
-        "Those who clash more the closer they get",
-        "Those who want to name and understand the relationship pattern",
-        "Those who need to judge whether it's a lasting bond"
+        "Para quienes chocan más al acercarse",
+        "Para quienes quieren identificar y entender los patrones de relación",
+        "Para quienes valoran si un vínculo puede durar"
       ],
       "premiumChapters": [
-        "The basic relationship type between the two",
-        "The strengths that show up as you get closer",
-        "Where the friction comes from",
-        "Advice to soften the relationship"
+        "La base de vuestra relación",
+        "Fortalezas que aparecen al acercaros",
+        "Dónde surge la fricción",
+        "Consejos para suavizar la relación"
       ],
       "answersQuestions": [
-        "Is it okay to keep seeing this person?",
-        "Why do we clash more the closer we get?",
-        "How should I time reaching out?"
+        "¿Me conviene seguir viendo a esta persona?",
+        "¿Por qué chocamos más cuanto más nos acercamos?",
+        "¿Cómo elijo un buen momento para contactar?"
       ],
       "analysisSteps": [
         {
-          "label": "Calculating natal lodges",
-          "detail": "Calculates each person's natal lunar lodge among the 27 from their birth dates."
+          "label": "Calcular la mansión natal",
+          "detail": "Calcula la mansión natal de cada persona entre las 27 mansiones lunares de Sukuyo a partir de sus fechas de nacimiento."
         },
         {
-          "label": "Determining relationship type",
-          "detail": "Fixes the relationship type formed by the two natal lodges."
+          "label": "Identificar el tipo de relación",
+          "detail": "Determina la categoría de relación que forman ambas mansiones natales."
         },
         {
-          "label": "Reading the distance",
-          "detail": "Unpacks where attraction and conflict arise and how the rhythm goes off."
+          "label": "Interpretar cercanía y distancia",
+          "detail": "Explora dónde surgen la atracción y la fricción y cómo se desajustan vuestros ritmos."
         },
         {
-          "label": "Organizing advice",
-          "detail": "Puts what to say now and what to hold off in order."
+          "label": "Organizar la orientación",
+          "detail": "Ordena qué conviene plantear ahora y qué dejar para más adelante."
         }
       ],
       "valueCompare": [
         {
-          "axis": "Subject",
-          "premium": "The full relationship type for both people",
-          "free": "Summary of your own natal lodge"
+          "axis": "Enfoque",
+          "premium": "El tipo de relación completo de ambas personas",
+          "free": "Resumen de mi mansión natal"
         },
         {
-          "axis": "Scope of reading",
-          "premium": "Down to attraction, conflict, and the rhythm of recovery",
-          "free": "Disposition description"
+          "axis": "Alcance de la lectura",
+          "premium": "Atracción, fricción y ritmo de reparación",
+          "free": "Descripción de tendencias"
         },
         {
-          "axis": "Timing advice",
-          "premium": "When to step closer and when to step back",
+          "axis": "Orientación sobre el momento",
+          "premium": "Cuándo acercarte y cuándo dar un paso atrás",
           "free": "None"
         }
       ],
       "faq": [
         {
-          "q": "Do I need to know the other person's birth date?",
-          "a": "A compatibility reading requires the other person's birth date. Without it, only your own natal-lodge reading is possible."
+          "q": "¿Puedo usarlo sin saber la fecha de nacimiento de la otra persona?",
+          "a": "La compatibilidad requiere su fecha de nacimiento. Sin ella, solo se puede interpretar tu propia mansión natal."
         },
         {
-          "q": "If the match is bad, should we break up?",
-          "a": "No. Sukuyo isn't about good or bad -- it's about the character of the distance. The harder the type, the clearer the line to protect."
+          "q": "¿Deberíamos separarnos si la compatibilidad parece difícil?",
+          "a": "No. Sukuyo observa la naturaleza de la cercanía y la distancia, no etiqueta la relación como buena o mala. Un tipo difícil puede aclarar qué límites conviene respetar."
         },
         {
           "q": "¿Puedo volver a ver el resultado más adelante?",
@@ -9214,7 +9214,7 @@
         }
       ],
       "badge": "Relationship reading",
-      "headline": "Read the pull and the distance between two people more finely than good or bad."
+      "headline": "¿Por qué alguien que me atrae me agota más cuanto más nos acercamos?"
     },
     "template_ziwei": {
       "tagline": "A reading that follows the palace flows and star placements to check your long-term direction.",
@@ -10080,8 +10080,8 @@
         "2": "Please weigh relationship judgments alongside a realistic conversation."
       },
       "answersQuestions": {
-        "0": "Should I keep seeing this person?",
-        "1": "Why do we keep clashing the closer we get?",
+        "0": "¿Me conviene seguir viendo a esta persona?",
+        "1": "¿Por qué chocamos más cuanto más nos acercamos?",
         "2": "What should we protect to keep this relationship going?"
       },
       "valueCompare": {

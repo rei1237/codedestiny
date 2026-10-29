@@ -9141,72 +9141,72 @@
       "headline": "Moet ik loslaten of nog één keer toenadering zoeken?"
     },
     "template_sukuyo": {
-      "tagline": "A reading centered on relationship texture, conflict patterns, and the rhythm of a bond.",
+      "tagline": "Een duiding van de aard van je relatie, terugkerende wrijving en het ritme van de verbinding.",
       "feats": [
-        "When you're strangely drawn together but clash often",
-        "When you want to know the pattern of a relationship",
-        "When you're curious whether it can last"
+        "Wanneer je een sterke aantrekkingskracht voelt maar vaak botst",
+        "Wanneer je jullie relatiepatronen wilt begrijpen",
+        "Wanneer je je afvraagt of de band kan blijven bestaan"
       ],
-      "premiumIntro": "Sukuyo doesn't just call a match good or bad -- it first lights up the distance the relationship is moving through.",
+      "premiumIntro": "Sukuyo beperkt compatibiliteit niet tot goed of slecht, maar onderzoekt eerst de afstand en nabijheid die de relatie vormen.",
       "premiumAudience": [
-        "Those who clash more the closer they get",
-        "Those who want to name and understand the relationship pattern",
-        "Those who need to judge whether it's a lasting bond"
+        "Voor wie vaker botst naarmate de band hechter wordt",
+        "Voor wie relatiepatronen wil herkennen en begrijpen",
+        "Voor wie wil afwegen of een band duurzaam kan zijn"
       ],
       "premiumChapters": [
-        "The basic relationship type between the two",
-        "The strengths that show up as you get closer",
-        "Where the friction comes from",
-        "Advice to soften the relationship"
+        "De basis van jullie relatie",
+        "Sterke kanten die ontstaan als jullie dichterbij komen",
+        "Waar wrijving ontstaat",
+        "Advies voor een mildere omgang"
       ],
       "answersQuestions": [
-        "Is it okay to keep seeing this person?",
-        "Why do we clash more the closer we get?",
-        "How should I time reaching out?"
+        "Kan ik deze persoon blijven zien?",
+        "Waarom botsen we vaker als we dichterbij komen?",
+        "Hoe kies ik een geschikt moment om contact op te nemen?"
       ],
       "analysisSteps": [
         {
-          "label": "Calculating natal lodges",
-          "detail": "Calculates each person's natal lunar lodge among the 27 from their birth dates."
+          "label": "Het geboortemaanhuis berekenen",
+          "detail": "Berekent aan de hand van beide geboortedata ieders geboortemaanhuis binnen de 27 maanhuizen van Sukuyo."
         },
         {
-          "label": "Determining relationship type",
-          "detail": "Fixes the relationship type formed by the two natal lodges."
+          "label": "Het relatietype bepalen",
+          "detail": "Bepaalt de relatiecategorie die de twee geboortemaanhuizen vormen."
         },
         {
-          "label": "Reading the distance",
-          "detail": "Unpacks where attraction and conflict arise and how the rhythm goes off."
+          "label": "Nabijheid en afstand duiden",
+          "detail": "Onderzoekt waar aantrekkingskracht en wrijving ontstaan en hoe jullie ritmes uiteenlopen."
         },
         {
-          "label": "Organizing advice",
-          "detail": "Puts what to say now and what to hold off in order."
+          "label": "Het advies ordenen",
+          "detail": "Zet op een rij wat je nu kunt bespreken en wat later kan."
         }
       ],
       "valueCompare": [
         {
-          "axis": "Subject",
-          "premium": "The full relationship type for both people",
-          "free": "Summary of your own natal lodge"
+          "axis": "Focus",
+          "premium": "Het volledige relatietype van beide personen",
+          "free": "Samenvatting van mijn geboortemaanhuis"
         },
         {
-          "axis": "Scope of reading",
-          "premium": "Down to attraction, conflict, and the rhythm of recovery",
-          "free": "Disposition description"
+          "axis": "Omvang van de lezing",
+          "premium": "Aantrekkingskracht, wrijving en het ritme van herstel",
+          "free": "Beschrijving van neigingen"
         },
         {
-          "axis": "Timing advice",
-          "premium": "When to step closer and when to step back",
+          "axis": "Advies over timing",
+          "premium": "Wanneer toenadering zoeken en wanneer afstand nemen",
           "free": "None"
         }
       ],
       "faq": [
         {
-          "q": "Do I need to know the other person's birth date?",
-          "a": "A compatibility reading requires the other person's birth date. Without it, only your own natal-lodge reading is possible."
+          "q": "Kan ik dit gebruiken zonder de geboortedatum van de ander?",
+          "a": "Voor compatibiliteit is de geboortedatum van de ander nodig. Zonder die datum kan alleen je eigen geboortemaanhuis worden geduid."
         },
         {
-          "q": "If the match is bad, should we break up?",
-          "a": "No. Sukuyo isn't about good or bad -- it's about the character of the distance. The harder the type, the clearer the line to protect."
+          "q": "Moeten we uit elkaar als de compatibiliteit lastig lijkt?",
+          "a": "Nee. Sukuyo bekijkt de aard van nabijheid en afstand in plaats van de relatie goed of slecht te noemen. Een uitdagend type kan duidelijker maken welke grenzen respect verdienen."
         },
         {
           "q": "Kan ik het resultaat later opnieuw bekijken?",
@@ -9214,7 +9214,7 @@
         }
       ],
       "badge": "Relationship reading",
-      "headline": "Read the pull and the distance between two people more finely than good or bad."
+      "headline": "Waarom put iemand tot wie ik me aangetrokken voel me meer uit naarmate we dichterbij komen?"
     },
     "template_ziwei": {
       "tagline": "A reading that follows the palace flows and star placements to check your long-term direction.",
@@ -10080,8 +10080,8 @@
         "2": "Please weigh relationship judgments alongside a realistic conversation."
       },
       "answersQuestions": {
-        "0": "Should I keep seeing this person?",
-        "1": "Why do we keep clashing the closer we get?",
+        "0": "Kan ik deze persoon blijven zien?",
+        "1": "Waarom botsen we vaker als we dichterbij komen?",
         "2": "What should we protect to keep this relationship going?"
       },
       "valueCompare": {

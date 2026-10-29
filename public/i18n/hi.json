@@ -9141,72 +9141,72 @@
       "headline": "छोड़ दूँ या एक बार फिर पास जाने की कोशिश करूँ?"
     },
     "template_sukuyo": {
-      "tagline": "A reading centered on relationship texture, conflict patterns, and the rhythm of a bond.",
+      "tagline": "यह पाठ रिश्ते की प्रकृति, टकराव के ढर्रों और जुड़ाव की लय पर केंद्रित है।",
       "feats": [
-        "When you're strangely drawn together but clash often",
-        "When you want to know the pattern of a relationship",
-        "When you're curious whether it can last"
+        "जब अजीब-सा खिंचाव हो मगर अक्सर टकराव भी हो",
+        "जब आप अपने रिश्ते के ढर्रे समझना चाहें",
+        "जब जानना चाहें कि यह जुड़ाव लंबे समय तक चल सकता है या नहीं"
       ],
-      "premiumIntro": "Sukuyo doesn't just call a match good or bad -- it first lights up the distance the relationship is moving through.",
+      "premiumIntro": "सुकुयो अनुकूलता को केवल अच्छा या बुरा नहीं कहता; पहले यह रिश्ते में दूरी और निकटता की प्रकृति देखता है।",
       "premiumAudience": [
-        "Those who clash more the closer they get",
-        "Those who want to name and understand the relationship pattern",
-        "Those who need to judge whether it's a lasting bond"
+        "जो करीब आते-आते अधिक टकराने लगते हैं",
+        "जो रिश्ते के ढर्रों को पहचानकर समझना चाहते हैं",
+        "जो सोच रहे हैं कि यह जुड़ाव टिक सकता है या नहीं"
       ],
       "premiumChapters": [
-        "The basic relationship type between the two",
-        "The strengths that show up as you get closer",
-        "Where the friction comes from",
-        "Advice to soften the relationship"
+        "दो लोगों के रिश्ते का मूल स्वरूप",
+        "करीबी बढ़ने पर उभरती खूबियाँ",
+        "जहाँ टकराव पैदा होता है",
+        "रिश्ते में सहजता लाने का मार्गदर्शन"
       ],
       "answersQuestions": [
-        "Is it okay to keep seeing this person?",
-        "Why do we clash more the closer we get?",
-        "How should I time reaching out?"
+        "क्या मुझे इस व्यक्ति से मिलते रहना चाहिए?",
+        "करीब आने पर हम अधिक क्यों टकराते हैं?",
+        "संपर्क करने का सही समय कैसे चुनूँ?"
       ],
       "analysisSteps": [
         {
-          "label": "Calculating natal lodges",
-          "detail": "Calculates each person's natal lunar lodge among the 27 from their birth dates."
+          "label": "सुकुयो जन्म-निवास की गणना",
+          "detail": "दोनों की जन्मतिथियों से सुकुयो के 27 चंद्र-निवासों में उनका जन्म-निवास निकाला जाता है।"
         },
         {
-          "label": "Determining relationship type",
-          "detail": "Fixes the relationship type formed by the two natal lodges."
+          "label": "रिश्ते का प्रकार पहचानना",
+          "detail": "दो जन्म-निवासों से बनने वाली संबंध-श्रेणी निर्धारित करता है।"
         },
         {
-          "label": "Reading the distance",
-          "detail": "Unpacks where attraction and conflict arise and how the rhythm goes off."
+          "label": "दूरी और निकटता की व्याख्या",
+          "detail": "समझाता है कि आकर्षण और टकराव कहाँ जन्म लेते हैं और दोनों की लय कहाँ अलग पड़ती है।"
         },
         {
-          "label": "Organizing advice",
-          "detail": "Puts what to say now and what to hold off in order."
+          "label": "सलाह व्यवस्थित करना",
+          "detail": "अभी क्या बात उठाएँ और क्या बाद के लिए छोड़ें, उसे क्रम में रखता है।"
         }
       ],
       "valueCompare": [
         {
-          "axis": "Subject",
-          "premium": "The full relationship type for both people",
-          "free": "Summary of your own natal lodge"
+          "axis": "केंद्र",
+          "premium": "दोनों के संबंध-प्रकार का पूरा विवरण",
+          "free": "मेरे सुकुयो जन्म-निवास का सार"
         },
         {
-          "axis": "Scope of reading",
-          "premium": "Down to attraction, conflict, and the rhythm of recovery",
-          "free": "Disposition description"
+          "axis": "पाठ का दायरा",
+          "premium": "आकर्षण, टकराव और सुधार की लय",
+          "free": "प्रवृत्तियों का विवरण"
         },
         {
-          "axis": "Timing advice",
-          "premium": "When to step closer and when to step back",
+          "axis": "समय चुनने का मार्गदर्शन",
+          "premium": "कब पास जाएँ और कब थोड़ा पीछे हटें",
           "free": "None"
         }
       ],
       "faq": [
         {
-          "q": "Do I need to know the other person's birth date?",
-          "a": "A compatibility reading requires the other person's birth date. Without it, only your own natal-lodge reading is possible."
+          "q": "क्या दूसरे व्यक्ति की जन्मतिथि जाने बिना इसका उपयोग कर सकता हूँ?",
+          "a": "अनुकूलता की गणना के लिए दूसरे व्यक्ति की जन्मतिथि चाहिए। उसके बिना केवल आपके सुकुयो जन्म-निवास की व्याख्या संभव है।"
         },
         {
-          "q": "If the match is bad, should we break up?",
-          "a": "No. Sukuyo isn't about good or bad -- it's about the character of the distance. The harder the type, the clearer the line to protect."
+          "q": "अनुकूलता कठिन लगे तो क्या रिश्ता खत्म कर देना चाहिए?",
+          "a": "नहीं। सुकुयो रिश्ते को अच्छा या बुरा कहने के बजाय दूरी और निकटता की प्रकृति देखता है। चुनौतीपूर्ण प्रकार में सम्मान देने योग्य सीमाएँ अधिक स्पष्ट हो सकती हैं।"
         },
         {
           "q": "क्या मैं परिणाम बाद में फिर देख सकता हूँ?",
@@ -9214,7 +9214,7 @@
         }
       ],
       "badge": "Relationship reading",
-      "headline": "Read the pull and the distance between two people more finely than good or bad."
+      "headline": "जिसकी ओर खिंचाव है, उसके करीब जाते-जाते थकान क्यों होती है?"
     },
     "template_ziwei": {
       "tagline": "A reading that follows the palace flows and star placements to check your long-term direction.",
@@ -10080,8 +10080,8 @@
         "2": "Please weigh relationship judgments alongside a realistic conversation."
       },
       "answersQuestions": {
-        "0": "Should I keep seeing this person?",
-        "1": "Why do we keep clashing the closer we get?",
+        "0": "क्या मुझे इस व्यक्ति से मिलते रहना चाहिए?",
+        "1": "करीब आने पर हम अधिक क्यों टकराते हैं?",
         "2": "What should we protect to keep this relationship going?"
       },
       "valueCompare": {

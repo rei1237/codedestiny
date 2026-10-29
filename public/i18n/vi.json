@@ -9141,72 +9141,72 @@
       "headline": "Nên buông tay hay thử đến gần thêm một lần?"
     },
     "template_sukuyo": {
-      "tagline": "A reading centered on relationship texture, conflict patterns, and the rhythm of a bond.",
+      "tagline": "Luận giải tập trung vào sắc thái quan hệ, kiểu xung đột và nhịp gắn kết.",
       "feats": [
-        "When you're strangely drawn together but clash often",
-        "When you want to know the pattern of a relationship",
-        "When you're curious whether it can last"
+        "Khi bị thu hút khó hiểu nhưng thường va chạm",
+        "Khi muốn hiểu kiểu tương tác giữa hai người",
+        "Khi băn khoăn liệu mối gắn kết có thể lâu dài"
       ],
-      "premiumIntro": "Sukuyo doesn't just call a match good or bad -- it first lights up the distance the relationship is moving through.",
+      "premiumIntro": "Sukuyo không chỉ kết luận hợp hay khắc, mà trước hết nhìn vào khoảng cách chi phối cách quan hệ vận động.",
       "premiumAudience": [
-        "Those who clash more the closer they get",
-        "Those who want to name and understand the relationship pattern",
-        "Those who need to judge whether it's a lasting bond"
+        "Người càng gần đối phương càng dễ va chạm",
+        "Người muốn gọi tên và hiểu kiểu quan hệ của mình",
+        "Người cần cân nhắc khả năng gắn bó lâu dài"
       ],
       "premiumChapters": [
-        "The basic relationship type between the two",
-        "The strengths that show up as you get closer",
-        "Where the friction comes from",
-        "Advice to soften the relationship"
+        "Nền tảng quan hệ giữa hai người",
+        "Điểm tốt xuất hiện khi hai người gần nhau hơn",
+        "Điểm dễ nảy sinh xung đột",
+        "Lời khuyên để quan hệ nhẹ nhàng hơn"
       ],
       "answersQuestions": [
-        "Is it okay to keep seeing this person?",
-        "Why do we clash more the closer we get?",
-        "How should I time reaching out?"
+        "Tôi có nên tiếp tục gặp người này không?",
+        "Vì sao càng gần nhau chúng tôi càng dễ va chạm?",
+        "Tôi nên chọn thời điểm liên lạc thế nào?"
       ],
       "analysisSteps": [
         {
-          "label": "Calculating natal lodges",
-          "detail": "Calculates each person's natal lunar lodge among the 27 from their birth dates."
+          "label": "Tính bản mệnh tú",
+          "detail": "Dựa vào ngày sinh của mỗi người để tính bản mệnh tú trong 27 tú của Sukuyo."
         },
         {
-          "label": "Determining relationship type",
-          "detail": "Fixes the relationship type formed by the two natal lodges."
+          "label": "Xác định kiểu quan hệ",
+          "detail": "Xác định kiểu quan hệ hình thành từ hai bản mệnh tú."
         },
         {
-          "label": "Reading the distance",
-          "detail": "Unpacks where attraction and conflict arise and how the rhythm goes off."
+          "label": "Luận giải khoảng cách",
+          "detail": "Làm rõ nguồn gốc của thu hút và xung đột, cùng cách nhịp của hai người lệch nhau."
         },
         {
-          "label": "Organizing advice",
-          "detail": "Puts what to say now and what to hold off in order."
+          "label": "Sắp xếp lời khuyên",
+          "detail": "Sắp xếp điều nên nói ngay và điều nên để sau theo thứ tự."
         }
       ],
       "valueCompare": [
         {
-          "axis": "Subject",
-          "premium": "The full relationship type for both people",
-          "free": "Summary of your own natal lodge"
+          "axis": "Đối tượng",
+          "premium": "Toàn bộ kiểu quan hệ giữa hai người",
+          "free": "Tóm tắt bản mệnh tú của tôi"
         },
         {
-          "axis": "Scope of reading",
-          "premium": "Down to attraction, conflict, and the rhythm of recovery",
-          "free": "Disposition description"
+          "axis": "Phạm vi luận giải",
+          "premium": "Cả thu hút, xung đột và nhịp hàn gắn",
+          "free": "Mô tả khuynh hướng"
         },
         {
-          "axis": "Timing advice",
-          "premium": "When to step closer and when to step back",
+          "axis": "Lời khuyên về thời điểm",
+          "premium": "Khi nào nên đến gần và khi nào nên lùi lại",
           "free": "None"
         }
       ],
       "faq": [
         {
-          "q": "Do I need to know the other person's birth date?",
-          "a": "A compatibility reading requires the other person's birth date. Without it, only your own natal-lodge reading is possible."
+          "q": "Không biết ngày sinh của đối phương có được không?",
+          "a": "Để tính tương hợp cần ngày sinh của đối phương. Nếu không có, chỉ có thể luận giải bản mệnh tú của bạn."
         },
         {
-          "q": "If the match is bad, should we break up?",
-          "a": "No. Sukuyo isn't about good or bad -- it's about the character of the distance. The harder the type, the clearer the line to protect."
+          "q": "Nếu tương hợp không tốt thì có nên chia tay không?",
+          "a": "Không. Sukuyo nhìn vào tính chất của khoảng cách thay vì chia tốt xấu. Kiểu quan hệ khó có thể làm rõ hơn những ranh giới nên tôn trọng."
         },
         {
           "q": "Sau này mình có thể xem lại kết quả không?",
@@ -9214,7 +9214,7 @@
         }
       ],
       "badge": "Relationship reading",
-      "headline": "Read the pull and the distance between two people more finely than good or bad."
+      "headline": "Vì sao càng gần người mình bị thu hút, tôi càng thấy mệt?"
     },
     "template_ziwei": {
       "tagline": "A reading that follows the palace flows and star placements to check your long-term direction.",
@@ -10080,8 +10080,8 @@
         "2": "Please weigh relationship judgments alongside a realistic conversation."
       },
       "answersQuestions": {
-        "0": "Should I keep seeing this person?",
-        "1": "Why do we keep clashing the closer we get?",
+        "0": "Tôi có nên tiếp tục gặp người này không?",
+        "1": "Vì sao càng gần nhau chúng tôi càng dễ va chạm?",
         "2": "What should we protect to keep this relationship going?"
       },
       "valueCompare": {
