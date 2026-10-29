@@ -3,10 +3,38 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 import { parse } from 'parse5';
+import { JSDOM } from 'jsdom';
+import { attachFaqSearch } from '../../js/faq-search.mjs';
 import { STATIC_POLICY_ROUTES, policyStaticPath, isStaticPolicyPath } from '../../lib/navigation/static-policy-routes.mjs';
 
 const read = (file) => fs.readFileSync(new URL('../../' + file, import.meta.url), 'utf8');
 const walk = (node, fn) => { fn(node); for (const child of node.childNodes || []) walk(child, fn); };
+
+test('shared FAQ ES module searches static questions and restores all results', () => {
+  const route = STATIC_POLICY_ROUTES.find((item) => item.key === 'faq');
+  const dom = new JSDOM(read('public' + policyStaticPath(route)));
+  const root = dom.window.document.querySelector('[data-faq-search]');
+  const input = root.querySelector('[data-faq-input]');
+  const questions = [...root.querySelectorAll('#faq-results > details')];
+  const cleanup = attachFaqSearch(root);
+  assert.equal(root.querySelector('[data-faq-controls]').hidden, false);
+  input.value = '결제';
+  input.dispatchEvent(new dom.window.Event('input'));
+  const matches = questions.filter((item) => !item.hidden);
+  assert.ok(matches.length > 0 && matches.length < questions.length);
+  assert.ok(matches.every((item) => item.textContent.includes('결제')));
+  input.value = 'no-matching-faq-9f1b';
+  input.dispatchEvent(new dom.window.Event('input'));
+  assert.ok(questions.every((item) => item.hidden));
+  assert.equal(root.querySelector('[data-faq-empty]').hidden, false);
+  root.querySelector('[data-faq-clear]').click();
+  assert.ok(questions.every((item) => !item.hidden));
+  assert.equal(input.value, '');
+  assert.equal(root.querySelector('[data-faq-empty]').hidden, true);
+  cleanup();
+  assert.equal(root.dataset.faqReady, undefined);
+  dom.window.close();
+});
 
 test('policy document navigation only matches exact canonical and alias paths', () => {
   for (const pathname of ['/privacy', '/privacy-policy/', '/terms/', '/contact-us']) assert.ok(isStaticPolicyPath(pathname));
@@ -62,10 +90,10 @@ for (const route of STATIC_POLICY_ROUTES) test(`${route.canonical} is complete s
   }
   for (const anchor of anchors) assert.ok(ids.has(anchor), `broken section anchor: ${anchor}`);
   const expectedScripts = route.key === 'contact' ? ['/js/static-policy-contact.js']
-    : route.key === 'faq' ? ['/js/faq-search.js'] : [];
+    : route.key === 'faq' ? ['/js/faq-search.mjs'] : [];
   assert.deepEqual(scripts.map((src) => src.split('?')[0]), expectedScripts);
   if (route.key === 'faq') {
-    assert.match(html, /<script type="module" src="\/js\/faq-search\.js\?v=/);
+    assert.match(html, /<script type="module" src="\/js\/faq-search\.mjs\?v=/);
   }
 });
 

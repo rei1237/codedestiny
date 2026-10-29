@@ -4,7 +4,7 @@ import { useEffect, useId, useRef } from "react";
 import Link from "next/link";
 import { PolicyAccordion } from "../components/PolicyGuide";
 import styles from "./faq.module.css";
-import { attachFaqSearch } from "../../js/faq-search.js";
+import { attachFaqSearch } from "../../js/faq-search.mjs";
 
 export default function FaqExplorer({ items }) {
   const inputId = useId();

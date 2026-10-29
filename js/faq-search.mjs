@@ -33,6 +33,6 @@ export function attachFaqSearch(root) {
 }
 
 // Only the standalone page loads this file directly. Next initializes in useEffect.
-if (typeof document !== 'undefined' && document.querySelector('script[type="module"][src*="/js/faq-search.js"]')) {
+if (typeof document !== 'undefined' && document.querySelector('script[type="module"][src*="/js/faq-search.mjs"]')) {
   document.querySelectorAll('[data-faq-search]').forEach(attachFaqSearch);
 }
