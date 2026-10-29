@@ -4,7 +4,7 @@ import { paidExecutionDocumentId } from './executions.js';
 import { toObjectId } from './db.js';
 import { normalizePurchasePaymentMethod } from '../lib/entitlement-policy.js';
 import { paymentError } from './errors.js';
-import { servicePackCoverage, servicePackFeatures, isRetiredServicePack } from './service-pack-policy.js';
+import { servicePackCoverage, servicePackFeatures, isRetiredServicePack, hasServicePackExpiry, servicePackExpiry } from './service-pack-policy.js';
 import { YeongnyangiRequest } from '../lib/yeongnyangi-models.js';
 import { reserveFortuneFunding, completeFortuneFunding } from '../yeongnyangi/payment-funding.js';
 import { terminalRestoreFilter } from '../yeongnyangi/terminal-refund-policy.js';
@@ -82,8 +82,9 @@ export async function grantServicePackInTransaction(tx,order,{recipientUserId=''
       {$set:{'metadata.servicePackGrantGuard':String(order.merchantUid)}},{returnDocument:'after'});
     if(!verified)throw paymentError('INVALID_REQUEST','승인된 이용권 주문을 확인하지 못했어요.');
     const snapshot=storedPackSnapshot(verified),_id=packId(verified.merchantUid);
-    const paidAt=new Date(claimedAt||verified.paidAt),expiresAt=null;
+    const paidAt=new Date(claimedAt||verified.paidAt);
     if(!Number.isFinite(paidAt.getTime()))throw paymentError('INVALID_REQUEST','결제 시각을 확인하지 못했어요.');
+    const expiresAt=servicePackExpiry(snapshot,paidAt);
     const right=await tx.findOneAndUpdate(PurchaseEntitlement,{_id},{$setOnInsert:{
       _id,entitlementId:'purchase:'+verified.merchantUid,userId:String(recipientUserId||verified.userId),
       productId:verified.productId,featureKey:verified.featureKey,orderId:verified.merchantUid,paymentId:verified.merchantUid,
@@ -148,7 +149,8 @@ export async function consumeServicePack(db,{userId,entitlementId,requestId,now=
     const paid=await findPackFunding(tx,right,userId,requestId);
     if(!paid)throw paymentError('INVALID_REQUEST','이용권 결제 증빙을 확인하지 못했어요.');
     const updated=await tx.findOneAndUpdate(PurchaseEntitlement,{_id:right._id,userId:String(userId),
-      type:'service_pack',status:'granted',remainingUses:{$gte:1}},
+      type:'service_pack',status:'granted',remainingUses:{$gte:1},
+      ...(hasServicePackExpiry(right.packSnapshot)?{expiresAt:{$gt:now}}:{})},
       {$inc:{remainingUses:-1},$set:{updatedAt:now}},{returnDocument:'after'});
     if(!updated)throw paymentError('SERVICE_PACK_EXHAUSTED','남은 이용 횟수를 다시 확인해 주세요.');
     const receipt=await tx.findOneAndUpdate(PointHistory,{_id:receiptId},{$setOnInsert:{
@@ -200,7 +202,7 @@ export function presentPack(right,paid,now=new Date()) {
   const snap=right.packSnapshot||{},coverage=servicePackCoverage(right,snap.eligibleFeatureKeys?.[0],snap.unitPriceKRW,now);
   return {entitlementId:String(right._id),orderId:right.orderId,planId:right.productId,label:snap.label,fishId:snap.fishId,
     totalUses:Number(right.totalUses),remainingUses:Number(right.remainingUses),eligibleFeatureKeys:snap.eligibleFeatureKeys||[],
-    expiresAt:null,status:right.status,available:Boolean(paid&&coverage.covered),
+    expiresAt:hasServicePackExpiry(snap)?right.expiresAt:null,status:right.status,available:Boolean(paid&&coverage.covered),
     unavailableReason:paid?(coverage.reason||''):'PAYMENT_NOT_ACTIVE'};
 }
 export async function listOwnedServicePacks(db,{userId,before='',now=new Date()}) {
