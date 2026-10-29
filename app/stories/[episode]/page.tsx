@@ -23,8 +23,8 @@ export function generateStaticParams() {
   return STORY_EPISODES.map((episode) => ({ episode: episode.slug }));
 }
 
-export function generateMetadata({ params }: { params: { episode: string } }) {
-  const episode = getEpisodeBySlug(params.episode);
+export async function generateMetadata({ params }: { params: Promise<{ episode: string }> }) {
+  const episode = getEpisodeBySlug((await params).episode);
   if (!episode) return {};
 
   const logline = STORY_LOGLINES[episode.slug] || "";
@@ -43,8 +43,8 @@ export function generateMetadata({ params }: { params: { episode: string } }) {
   });
 }
 
-export default function StoryEpisodePage({ params }: { params: { episode: string } }) {
-  const episode = getEpisodeBySlug(params.episode);
+export default async function StoryEpisodePage({ params }: { params: Promise<{ episode: string }> }) {
+  const episode = getEpisodeBySlug((await params).episode);
   if (!episode) notFound();
 
   const index = getEpisodeIndex(episode.slug);

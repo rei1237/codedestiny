@@ -55,9 +55,16 @@ try {
       await page.waitForFunction(l => document.querySelector('main')?.closest('[lang]')?.getAttribute('lang') === l,locale);
       assert.equal(await page.locator('#toc ol > li').count(),root.episodes.length);
       assert.equal(/[가-힣]/.test(await page.locator('main').innerText()),false,'world, cast, arcs, loglines and fiction notice must be translated');
+      assert.ok(await page.locator('main h1 bdi').evaluate(el=>parseFloat(getComputedStyle(el).fontSize)>=24),'localized heading retains its title typography');
       assert.match(await page.locator('#toc a').first().getAttribute('href'),new RegExp('novelLang='+locale));
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth),false);
       if (output) await page.screenshot({path:resolve(output,`novel-${locale}-hub-390.png`)});
+      for (const width of [320, 390, 1440]) {
+        await page.setViewportSize({width,height:width===1440?1000:844});
+        const clipped = await page.locator('main p, main dd, main h1, main h2, main h3').evaluateAll(elements => elements.filter(el=>el.clientWidth&&el.scrollWidth>el.clientWidth+2).map(el=>el.textContent.slice(0,80)));
+        assert.deepEqual(clipped,[],`${locale} ${width}px: text must fit inside its own card`);
+        if(output&&width!==390)await page.screenshot({path:resolve(output,`novel-${locale}-hub-${width}.png`)});
+      }
       assert.deepEqual(errors,[]);
       console.log('PASS complete edition, main selector, reading, consultation language preservation, final chapter:',locale);
     } finally { await context.close(); }
