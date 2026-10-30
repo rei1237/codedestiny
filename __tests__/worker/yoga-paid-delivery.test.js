@@ -44,3 +44,9 @@ test.each(['short','truncated','json-tail'])('%s usable course is saved on its f
  provider.mockImplementationOnce(async()=>{const value=course();if(kind==='short')value.sequence.forEach((step,i)=>step.instructions=[`${i+1}단계에서는 편안한 범위에서 천천히 움직여 보세요.`,`${i+1}단계 중 불편하면 쉬면서 자연스러운 호흡을 유지해 주세요.`]);const text=JSON.stringify(value);return {ok:true,truncated:kind!=='short',text:kind==='json-tail'?text.slice(0,-1):text};});
  expect((await start()).status).toBe(200);expect((await resume()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(1);
 });
+test('a course cut at the token limit retries once with a doubled budget',async()=>{
+ const {capturePaidGenerationRaw}=await import('../../worker/lib/paid-generation-context.js');
+ provider.mockImplementationOnce(async()=>{const text=JSON.stringify(course()).slice(0,400);capturePaidGenerationRaw(text);return {ok:true,provider:'gemini',truncated:true,finishReason:'MAX_TOKENS',text};});
+ expect((await start()).status).toBe(202);expect((await resume()).status).toBe(200);
+ expect(provider.mock.calls.map(call=>call[2].maxOutputTokens)).toEqual([8192,16384]);
+});

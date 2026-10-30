@@ -84,6 +84,15 @@ it('an empty section gets one rescue attempt that keeps a truncated reply up to 
   expect(result.complete).toBe(true);
   expect(result.savedSections[0].text.endsWith('.')).toBe(true);
 });
+it('an over-long repair whose clip would drop its last months is adopted whole instead of discarded', async () => {
+  const saved = filled();
+  saved[monthlyIndex].text = text('monthly', 5000, pillars.slice(0, 7).join(' '));
+  provider.mockResolvedValue({ ok: true, provider: 'gemini', text: `${text('monthly', 6400, pillars.slice(0, 5).join(' '))}\n\n${pillars.slice(5).join(' ')} 흐름을 정리합니다.` });
+  const result = await utils.generateConsultationText({}, input, facts, options(saved, { monthly: 1 }));
+  expect(provider).toHaveBeenCalledTimes(1);
+  expect(result.savedSections[monthlyIndex].text).toContain('갑인');
+  expect(result.quality.issues.some(issue => issue.startsWith('MONTHLY_PILLAR_CITATIONS'))).toBe(false);
+});
 it('a reply repeating one stock sentence is adopted with the repeat removed instead of being discarded', async () => {
   const saved = filled();
   saved[monthlyIndex] = { ...saved[monthlyIndex], text: '', ok: false };

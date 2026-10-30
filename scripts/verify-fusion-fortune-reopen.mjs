@@ -157,14 +157,15 @@ check("결제 id 없이 저장하지 않는다", buildFusionConsultationDoc({ us
 check("사용자 없이 저장하지 않는다", buildFusionConsultationDoc({ requestId: "r", result: buildResult() }).ok === false);
 check("결과 없이 저장하지 않는다", buildFusionConsultationDoc({ requestId: "r", userId: "u-1" }).ok === false);
 
-// 비정상적으로 큰 결과는 저장을 거부한다(문서 한계 보호). 배달은 호출자가 계속한다.
+// 비정상적으로 큰 결과도 결제 뒤 거부하지 않는다 — 가장 긴 본문을 문장 끝에서 잘라 문서 상한 안에 저장한다.
 const oversized = buildFusionConsultationDoc({
   requestId: "r-big",
   userId: "u-1",
   input: INPUT,
   result: { ...buildResult(), closingMessage: "가".repeat(FUSION_CONSULTATION_MAX_RESULT_CHARS) },
 });
-check("문서 상한을 넘는 결과는 저장하지 않는다", oversized.ok === false && oversized.reason === "result_too_large");
+check("문서 상한을 넘는 결과는 잘라서 저장한다", oversized.ok === true && JSON.stringify(oversized.doc.result).length <= FUSION_CONSULTATION_MAX_RESULT_CHARS
+  && oversized.doc.result.closingMessage.length > 0 && oversized.doc.result.closingMessage.length < FUSION_CONSULTATION_MAX_RESULT_CHARS);
 
 if (failures.length) {
   console.error("[verify-fusion-fortune-reopen] 실패:");

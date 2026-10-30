@@ -188,8 +188,11 @@ export async function generateCodexChapterResponse(call, prompt, { chapter, metr
         // A length repair must name the target; a generic rewrite returned the same ~75% length.
         ? `\n[재작성] 이전 응답은 LLM_OUTPUT_TOO_SHORT: body가 최소 ${minChars}자에 못 미쳤다. 앞의 근거와 같은 문장을 반복하지 말고 생활 장면·대화 예시·대응 기준을 새로 더해 body를 ${minChars + 300}~${minChars + 900}자로 완성하라. 나머지 필드와 JSON 형식은 그대로 지켜라.`
         : `\n[재작성] 이전 응답은 ${failure.message} 기준을 통과하지 못했다. JSON 문자열을 올바르게 닫고, body의 최소 분량·계산 근거·필수 필드를 지켜 완성된 새 응답을 작성하라.`;
+    const planned = Math.max(8000, tokensRequiredForChars((chapter.minChars || 2400) + 900 + (evidenceContract?.consultation ? (evidenceContract.consultation.forecast ? 5000 : evidenceContract.consultation.questions.length * 1600) : 0)));
+    // A cut-off draft is never salvaged mid-sentence, so its retry gets twice the room (paid delivery beats the length target).
+    const tokens = failure?.message === "LLM_OUTPUT_TRUNCATED" ? Math.max(planned, Math.min(32768, planned * 2)) : planned;
     const ai = await call(prompt + instruction, {
-      ...options, attempts: 1, maxProviderAttempts: 1, baseTokens: Math.max(failure?.message === "LLM_OUTPUT_TRUNCATED" ? 11000 : 8000, tokensRequiredForChars((chapter.minChars || 2400) + 900 + (evidenceContract?.consultation ? (evidenceContract.consultation.forecast ? 5000 : evidenceContract.consultation.questions.length * 1600) : 0))), capTokens: evidenceContract?.consultation ? 24000 : 14000, thinkingBudget: 0,
+      ...options, attempts: 1, maxProviderAttempts: 1, baseTokens: tokens, capTokens: Math.max(tokens, evidenceContract?.consultation ? 24000 : 14000), thinkingBudget: 0,
       timeoutMs: Math.min(Number(options.timeoutMs) || remaining, remaining),
     });
     if (ai?.ok === false) {

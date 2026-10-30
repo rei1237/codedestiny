@@ -699,14 +699,16 @@ async function computeNatalFacts(env, normalized, request) {
 // 잘림·빈 파싱·목표 미달은 다음 요청에서 해당 장만 제한적으로 다시 생성한다.
 // 🔴 fallbackMinChars: Workers AI 폴백(70B는 약 1,700자에서 스스로 멈춘다)이 짧은 응답을 완성본으로
 //    돌려주는 것을 막는다. 이게 없으면 2만자 상품이 8% 분량으로 '완료' 저장된다(CLAUDE.md 필수 규칙).
-async function generateSectionOnce(env, section, prompt, cacheConfig) {
+async function generateSectionOnce(env, section, prompt, cacheConfig, truncationRetry = false) {
   const base = { id: section.id, deck: section.deck, title: section.title, keyInsight: "", vedicEvidence: "", sukuyoEvidence: "", body: "", chars: 0, ok: false };
   try {
-    const ai = await callGeminiText(env, prompt, { maxOutputTokens: 10000, temperature: 0.65, thinkingBudget: 0,
+    // 직전 시도가 MAX_TOKENS 로 잘렸으면 같은 예산 재시도는 또 잘려 환불된다 — 재시도만 2배(≤32768). 기본 예산은 그대로.
+    const ai = await callGeminiText(env, prompt, { maxOutputTokens: truncationRetry ? Math.min(32768, 10000 * 2) : 10000, temperature: 0.65, thinkingBudget: 0,
       responseMimeType: "application/json", responseSchema: jsonSchemaFromExample({ title: "", keyInsight: "", vedicEvidence: "", sukuyoEvidence: "", body: "" }), timeoutMs: clampSyncLlmTimeoutMs(SECTION_TIMEOUT_MS), fallbackToWorkersAI: false,
       ...(cacheConfig ? { cache: cacheConfig } : {}) });
     const isMock = (/mock/i.test(ai?.provider || "") || /mock/i.test(ai?.model || "") || ai?.isMock === true) && !isStagingLlmMockEnabled(env);
-    if (!ai?.ok || isMock || ai.truncated || /^(MAX_TOKENS|length)$/i.test(ai.finishReason || "")) return base;
+    if (!ai?.ok || isMock) return base;
+    if (ai.truncated || /^(MAX_TOKENS|length)$/i.test(ai.finishReason || "")) return { ...base, truncated: true };
     const parsed = parseSectionResponse(ai.text);
     if (!parsed.body || hasForbiddenResultText(parsed)) return base;
     return { ...base, ...parsed, chars: countPaidReportBodyChars(parsed.body), provider: clean(ai.provider), model: clean(ai.model), ok: true };
@@ -940,11 +942,11 @@ async function advanceGeneration({ request, env, auth, sessionId, idempotencyKey
       session = await saveNakshatraDelivery(filter, { llmMeta: { ...session.llmMeta, attempts } }, sessionId);
       const context = { summaryText: session.factSummary?.summaryText, question: session.question, writtenMemory: buildWrittenMemory(readSections(session)) };
       let queue = Promise.resolve();
-      const recordGenerationFailure = (sectionId) => {
+      const recordGenerationFailure = (sectionId, truncated = false) => {
         const write = queue.catch(() => {}).then(async () => {
           const generationFailures = { ...session.llmMeta?.generationFailures };
           generationFailures[sectionId] = Number(generationFailures[sectionId] || 0) + 1;
-          session = await saveNakshatraDelivery(filter, { llmMeta: { ...session.llmMeta, generationFailures } }, sessionId);
+          session = await saveNakshatraDelivery(filter, { llmMeta: { ...session.llmMeta, generationFailures, ...(truncated ? { attempts: { ...session.llmMeta?.attempts, [`${sectionId}:truncated`]: 1 } } : {}) } }, sessionId);
         });
         queue = write; return write;
       };
@@ -952,9 +954,9 @@ async function advanceGeneration({ request, env, auth, sessionId, idempotencyKey
         const prompt = buildSectionPrompt(section, context) + (attempts[`${section.id}:lengthRepair`]
           ? `\n[분량 보강] 기존 계산 근거를 유지하고 새로운 생활 장면과 행동 조언을 더해 공백 제외 본문 ${Math.ceil(section.minChars / 0.8)}자 이상의 완결된 JSON으로 작성하세요. 반복으로 채우지 마세요.` : "");
         const row = await runWithAiLocale(storedAiLocale(session), () => generateSectionOnce(env, section, prompt, { store: createLlmCacheStore(env), deterministic: true, ttlSeconds: 2592000,
-          minChars: section.minChars, keyExtra: `nakshatra-delivery-v4-${section.id}-r${attempts[section.id]}` }));
+          minChars: section.minChars, keyExtra: `nakshatra-delivery-v4-${section.id}-r${attempts[section.id]}` }, Boolean(attempts[`${section.id}:truncated`])));
         const identity = session.factSummary?.identity;
-        if (!isSectionSettled(row, {}, true) || (identity?.nakshatraKo && !row.vedicEvidence.includes(identity.nakshatraKo)) || (identity?.sukuyoKo && !row.sukuyoEvidence.includes(identity.sukuyoKo))) { await recordGenerationFailure(section.id); return; }
+        if (!isSectionSettled(row, {}, true) || (identity?.nakshatraKo && !row.vedicEvidence.includes(identity.nakshatraKo)) || (identity?.sukuyoKo && !row.sukuyoEvidence.includes(identity.sukuyoKo))) { await recordGenerationFailure(section.id, row.truncated === true); return; }
         const write = queue.catch(() => {}).then(async () => {
           const previous = readSections(session).find(saved => saved.id === row.id);
           if (isSectionSettled(previous, {}, true) && countPaidReportBodyChars(previous.body) >= countPaidReportBodyChars(row.body)) return;

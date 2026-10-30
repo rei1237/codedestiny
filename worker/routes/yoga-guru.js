@@ -54,17 +54,19 @@ function validCourse(course,duration) {
   return steps.reduce((sum,step)=>sum+step.duration_seconds,0)===duration*60
     &&countPaidReportBodyChars(steps.flatMap(step=>[...step.instructions,step.breathing_guide,step.caution]).join("\n"))>=120;
 }
+// 앞 시도의 원문이 닫히지 않은 JSON이면 토큰 상한에서 끊긴 코스다. 재시도만 예산 2배(최대 32768)로 산다 — 기본 예산은 비용 추정이 쓴다.
+const clippedRetryTokens=(raw,tokens)=>{if(!raw)return tokens;try{JSON.parse(raw);return tokens;}catch{return Math.max(tokens,Math.min(32768,tokens*2));}};
 // The route and the server resume task share produce and render.
 export function yogaNarrativeAdapter(env){
   return {
     reportType:"yogaGuruCourse",
     completeBody:body=>{const course=parseJsonCandidate(body);return validCourse(course,course?.course_metadata?.duration_min);},
-    produce:async(_task,state)=>{
+    produce:async(task,state)=>{
       const prompt=[state.input.systemPrompt,"[사용자 입력]",state.input.userPrompt,
         `전체 시간은 정확히 ${state.input.duration}분입니다. duration_seconds의 합은 ${state.input.duration*60}초이고 duration_min은 ${state.input.duration}입니다. 단계는 4~16개, 첫 단계는 Warmup, 마지막은 Relaxation이며 모든 필드를 채우세요. instructions/호흡/주의 안내 본문은 합계 800자 이상, 목표 1,600~2,400자입니다. 신체 치료를 보장하거나 통증을 참게 하지 마세요.`,
         "JSON만 출력하세요. 신화적 상징과 실제 신체 지시를 구분하고 원래 컨디션에 없는 진단을 만들지 마세요.",
       ].join("\n\n");
-      const ai=await callGeminiText(env,prompt,{model:clean(env.YOGA_GURU_GEMINI_MODEL),temperature:0.6,maxOutputTokens:8192,thinkingBudget:0,
+      const ai=await callGeminiText(env,prompt,{model:clean(env.YOGA_GURU_GEMINI_MODEL),temperature:0.6,maxOutputTokens:clippedRetryTokens(state.rawResponses?.[task.id],8192),thinkingBudget:0,
         timeoutMs:Math.min(45000,Math.max(15000,Number(env.YOGA_GURU_PROVIDER_TIMEOUT_MS)||45000)),fallbackToWorkersAI:false,responseMimeType:"application/json",responseSchema:jsonSchemaFromExample({course_metadata:{title:"",deity_theme:"",focus_area:"",chakra_focus:"",duration_min:0,intensity:""},sequence:[{step_number:0,type:"",duration_seconds:0,sanskrit_name:"",english_name:"",breathing_guide:"",benefits_physical:"",benefits_spiritual:"",caution:"",visual_cue_ui:"",instructions:[""]}],closing_mantra:""})});
       if(!ai?.ok||ai.isMock||/mock/i.test(`${ai.provider||""} ${ai.model||""}`))return null;
       const course=parseJsonCandidate(ai.text);if(!validCourse(course,state.input.duration))return null;

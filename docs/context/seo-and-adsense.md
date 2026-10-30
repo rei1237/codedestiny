@@ -222,3 +222,15 @@
 - 되돌림: 내일 상세의 미래 datePublished(T5)를 발행일로 바꿨다가 `scripts/lib/fortune-date-contract.mjs:64`("Article datePublished = 대상일") 게이트에 막혀 되돌렸다. 계약을 먼저 정해야 한다.
 - 유지: title/description과 10/03 제목 실험, 기존 URL·canonical·hreflang·robots, 심리테스트 22종·유명인 3쪽·`/human-design/` noindex와 다섯 곳 색인 정책, 결제·인증·API·DB·운세 계산.
 - 검증: `build:cf`(postbuild `verify-adsense-readiness` OK, 사이트맵 6개·loc 1,033), typecheck·lint 통과, jest 435 스위트·7,119 테스트 통과, node 테스트 3,965 통과·2 실패(Playwright Chromium 미설치 환경의 브라우저 테스트, 이번 변경과 무관). 리베이스(origin/main `12f0b1831`) 뒤 재빌드는 upstream `5f2b10b55` 때문에 멈췄다(FAQ 모듈 파싱, 문의 페이지 `Contact Us` 마커). 커밋하지 않은 로컬 임시 우회로 Next 출력을 만든 뒤 `verify-adsense-readiness`(문의 마커만 건너뜀)·`verify-home-identity`·`verify-sitemap-canonical`이 통과함을 확인하고 우회는 되돌렸다. 스테이징 배포([런 40907636662](https://github.com/rei1237/codedestiny/actions/runs/40907636662))는 같은 이유로 실패해 스테이징 확인은 하지 못했다. 운영 배포·서치어드바이저/GSC 제출·수집 요청은 하지 않았다(승인 대기). 검색 실적 효과는 미관측이다.
+
+### 2026-10-30 매년 신년 시즌 점검
+
+- 요청: "/fortune/2027/ 수집 이외에도 매년도마다 수집". 시즌 페이지는 해마다 새 원고가 필요해 자동 생성하지 않는다. 대신 해마다 그 해와 다음 해 페이지가 운영에 있는지 보고, 사람이 할 수집 요청 목록을 낸다.
+- 변경: `scripts/seo/new-year-season.mjs`(+ `new-year-season.test.mjs`)를 `.github/workflows/seo-operations.yml` 주간·월간 실행에 붙였다.
+  - KST 기준으로 올해 `/fortune/{YYYY}/`+12띠는 상시 실패 조건이다. 다음 해는 8월부터 경고, 10월부터 실패다. 첫 시즌은 2027이다.
+  - 검사 항목: 200, noindex 없음, 자기 canonical, title·description, 선언 sitemap 포함, Googlebot·Yeti robots 허용.
+  - 살아 있는 해는 서치어드바이저·GSC 수동 요청 체크리스트를 요약(`seo-qa/operations/new-year-season.md`)에 낸다.
+  - GET만 보내고 외부 제출은 하지 않는다. IndexNow는 운영 배포의 델타 통지가 그대로 맡는다. 새 URL과 lastmod 서명이 바뀐 URL이 대상이며, 네이버·Bing에 공유된다.
+- 첫 실행 기대값: 운영 미배포라 `/fortune/2027/` 404로 실패한다. 의도된 신호다.
+- 스테이징: main `0e64bb929`에서 PR CI 전부 통과, 스테이징 배포 성공, `verify:staging` PASS. 빌드를 막던 문의 마커·FAQ 미러·2027 12띠 3홉 링크 깊이는 다른 세션이 `5f09b9457`·`0e64bb929`로 고쳤다. 같은 SHA의 스테이징 대상 점검은 13쪽 모두 200이다. noindex·robots·canonical 항목은 스테이징 보호로 걸린 것이다.
+- 재제출: 사용자가 승인했다. 이 세션은 Chrome 확장이 연결되지 않았고 GSC API 자격이 없어 하지 못했다. 운영 배포 뒤 체크리스트로 한다. 해마다 할 일은 [seo-followups-20261029.md](../handoff/seo-followups-20261029.md) I절에 있다.

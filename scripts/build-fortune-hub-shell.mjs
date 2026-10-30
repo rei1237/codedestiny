@@ -16,6 +16,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { NEW_YEAR_SEASON, NEW_YEAR_SIGNS } from "../lib/fortune/new-year-registry.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, "..");
@@ -320,6 +321,14 @@ ${renderGrid(zodiac)}
     <h2 class="fi-section-title"><span aria-hidden="true">🗓️</span> ${otherPeriodIds.map((id) => PERIOD_LABEL[id]).join(" · ")} 운세 ${otherPeriodIds.length * allSigns.length}종</h2>
     <p class="fi-lead">위 두 목록은 오늘 운세로 이어집니다. 내일이나 이번 주, 이번 달을 바로 보고 싶다면 아래에서 고르세요. 기간마다 간지를 따로 뽑아 계산하기 때문에 같은 띠라도 오늘과 이번 달의 결과가 서로 다를 수 있습니다.</p>
 ${periodLinkBlocks}
+  </section>
+
+  <section class="fi-section" id="new-year-fortunes">
+    <h2 class="fi-section-title"><a href="${esc(NEW_YEAR_SEASON.path)}/">${esc(NEW_YEAR_SEASON.year)}년 띠별 운세</a></h2>
+    <p class="fi-lead">한 해의 흐름이 궁금하다면 자신의 띠를 골라보세요. 세운과 띠의 관계, 삼재 여부와 가까운 시기의 선택을 살펴볼 수 있습니다.</p>
+    <div class="fi-chiplist">
+${NEW_YEAR_SIGNS.map((sign) => `      <a class="fi-chip" href="${esc(NEW_YEAR_SEASON.path)}/${esc(sign.id)}/">${esc(sign.name)}</a>`).join("\n")}
+    </div>
   </section>
 
   <section class="fi-section" id="method">

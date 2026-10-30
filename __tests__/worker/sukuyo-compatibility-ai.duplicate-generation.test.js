@@ -392,7 +392,7 @@ for (const [length, accepted] of [[1199, true], [1200, true], [1499, true]]) {
     expect(prompt).toContain('2,250');
     expect(options.attempts).toBe(1);
     expect(Math.min(options.baseTokens, options.capTokens)).toBeGreaterThanOrEqual(12375);
-    expect(options.fallbackMinChars).toBe(1800);
+    expect(options.fallbackMinChars).toBe(1350);
   });
 }
 test('P2 still rejects repeated and empty sections', async () => {
@@ -436,6 +436,16 @@ test('P2 generates missing groups before reinforcing valid short sections', asyn
   expect(onReserve).toHaveBeenCalledWith('attraction', 1, false);
   expect(Object.keys(result.sections)).toHaveLength(3);
   expect(result.complete).toBe(false);
+});
+test('P2 doubles the section budget only for the retry after an unsalvageable truncated group', async () => {
+  const input = testUtils.normalizeInput(SAMPLE_BODY), calculation = testUtils.calculateSukuyo(input), group = testUtils.SUKUYO_SECTION_GROUPS[0];
+  callGeminiJsonWithRetryMock.mockResolvedValue({ ok: true, provider: 'gemini', truncated: true, finishReason: 'MAX_TOKENS', text: `{"${group.keys[0]}":{"body":"` });
+  const onCheckpoint = jest.fn();
+  const first = await testUtils.createCompatibilityAnswer({}, input, calculation, { onCheckpoint });
+  expect(first.attempts[`${group.id}:truncated`]).toBe(1); expect(onCheckpoint).toHaveBeenCalledWith(expect.objectContaining({ truncatedGroup: group.id }));
+  await testUtils.createCompatibilityAnswer({}, input, calculation, { sections: first.sections, attempts: first.attempts });
+  const [initial, retry] = callGeminiJsonWithRetryMock.mock.calls.map(args => args[2]);
+  expect(retry.baseTokens).toBe(Math.max(initial.baseTokens, Math.min(32768, initial.baseTokens * 2))); expect(retry.capTokens).toBeGreaterThanOrEqual(retry.baseTokens);
 });
 function p3SectionBody(key, size) { return key + Array.from({ length: size - key.length }, (_, i) => String.fromCharCode(0xac00 + i % 11172)).join(''); }
 

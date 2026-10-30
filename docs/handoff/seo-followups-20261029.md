@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-30
-next: "운영 배포 승인 여부를 사용자에게 받은 뒤, 승인되면 배포 → 서치어드바이저·GSC에 sitemap-index 재제출과 /fortune/2027/ 수집 요청(승인 범위 안에서만) → D+7 관찰"
+next: "운영 반영 확인됨(2026-10-30, 81200d3cc, 시즌 점검 13쪽 정상·IndexNow 통지 성공) → 사용자가 서치어드바이저·GSC에서 sitemap-index.xml 재제출과 2027 13쪽 수집·색인 요청 → D+7(11/06) 노출 관찰"
 ---
 
 # SEO·AEO·GEO 후속 (2026-10-29 감사 이후)
@@ -18,9 +18,14 @@ next: "운영 배포 승인 여부를 사용자에게 받은 뒤, 승인되면 �
 
 ## 지금 상태
 
-- 이번 세션 구현(main push `61ec2b936`, 스테이징 미반영, 운영 미배포): 2027 띠별 운세 허브 + 12띠 상세, llms-full.txt 신설·llms.txt 정비(G-L1~L3), 스키마 S1·S2·S3·S12, 신년운세 상담 → 무료 2027 허브 링크(C6 일부).
+- 이번 세션 구현(main push `61ec2b936`, 2026-10-30 스테이징 반영(main `0e64bb929`), 운영 미배포): 2027 띠별 운세 허브 + 12띠 상세, llms-full.txt 신설·llms.txt 정비(G-L1~L3), 스키마 S1·S2·S3·S12, 신년운세 상담 → 무료 2027 허브 링크(C6 일부).
 - T5(내일 상세 미래 datePublished)는 고쳤다가 되돌렸다. 아래 D 절을 본다.
-- 🔴 스테이징 배포는 실패했다([런 40907636662](https://github.com/rei1237/codedestiny/actions/runs/40907636662)). 원인은 이번 변경이 아니라 앞서 main에 들어온 `5f2b10b55`(FAQ 검색)다. `js/faq-search.js`가 `export`를 쓰는데 package.json이 `"type": "commonjs"`라 webpack이 비모듈로 읽어 Next 빌드가 멈추고, 문의 페이지에서 `Contact Us` 마커가 빠져 `verify-adsense-readiness`도 멈춘다. `12f0b1831`부터 main PR CI의 Build·Static guards가 같은 이유로 실패한다. 그 커밋이 고쳐진 뒤 `npm run verify:staging -- --sha=<그때 main SHA>`로 스테이징을 확인한다.
+- 스테이징 반영됨(2026-10-30): main `0e64bb929`에서 PR CI 전부 통과, 스테이징 배포 [런 40922130891](https://github.com/rei1237/codedestiny/actions/runs/40922130891) 성공, `verify:staging` Pages·Worker PASS.
+  - 그 전 실패 경위:
+    - [런 40907636662](https://github.com/rei1237/codedestiny/actions/runs/40907636662)와 40916737813은 `5f2b10b55`(FAQ 검색)가 원인이었다. ESM 파싱, 문의 `Contact Us` 마커, FAQ 정책 미러 세 가지다.
+    - 그 뒤 PR CI에서 `verify:internal-link-depth`가 막았다. 2027 12띠가 홈에서 3홉이었다.
+    - 사용자 요청대로 다른 세션(네오)이 고쳤다: `6f1a4efc2`·`ba1fc369d`·`5f09b9457`·`0e64bb929`(`/fortune/` 셸이 12띠를 링크).
+  - 스테이징 대상 `new-year-season.mjs`: 13쪽 모두 200. noindex·robots 차단·운영 canonical은 스테이징 보호가 정상 동작한 결과다.
 - 운영 배포, 서치어드바이저·GSC 제출, 수집 요청은 **하지 않았다**. 사용자 승인 대기.
 - 네이버 서치어드바이저·검색광고 키워드도구는 이번 세션에 조회하지 못했다(Chrome 확장 미연결). 키워드 경쟁도는 실측값이 없다.
 
@@ -30,6 +35,9 @@ next: "운영 배포 승인 여부를 사용자에게 받은 뒤, 승인되면 �
 
 - [ ] **운영 배포** 후 Yeti UA로 `/fortune/2027/`, `/fortune/2027/pig/`, `/llms-full.txt`가 200인지, `/fortune/today/` 허브 JSON-LD `#webpage` 노드가 1개인지 본다.
 - [ ] **서치어드바이저·GSC**: sitemap-index 재제출, `/fortune/2027/` 수집 요청. 10/18 재정비 이후 재제출 기록이 없다.
+  - 2026-10-30 사용자가 재제출을 승인했다. 이 세션에서는 하지 못했다. Chrome 확장이 연결되지 않았고, GSC API 자격(`~/.config/claude-seo/google-api.json`)도 없다. 네이버에는 사이트맵 제출 API가 없다.
+  - 순서: 운영 배포(별도 승인) 뒤 seo-operations 주간 요약의 "수동 수집 요청" 체크리스트대로 한다(아래 I절). 배포 전에 재제출하면 2027 URL이 없는 사이트맵을 다시 내는 것이라 한 번 더 해야 한다.
+  - 운영 배포 워크플로의 IndexNow 스텝이 새 URL 13개와 lastmod 서명이 바뀐 URL을 api.indexnow.org로 자동 통지한다(`scripts/lib/indexnow-delta.mjs` `selectSubmissionDelta`, 체크포인트 대비). IndexNow는 네이버·Bing에 공유되고 Google은 받지 않는다. 실제 전송 여부는 그 런의 `Notify IndexNow of changed URLs` 로그로 확인한다.
 - [ ] **T1 자정 날짜 지연** (`.github/workflows/fortune-daily-publish.yml`)
   - 현상: 00:10 KST cron이 7~26분 늦게 돌고, 릴리스는 31~53분 걸린다. 그 사이 오늘/내일 페이지가 전날 날짜로 나간다. 2026-10-30 00:10 KST에도 오늘=10/29, 내일=10/30으로 서빙 중인 것을 확인했다.
   - 10월에 6일이 "실패"로 찍혔지만 릴리스 런 자체는 성공했다(gh run 로그).
@@ -130,6 +138,23 @@ next: "운영 배포 승인 여부를 사용자에게 받은 뒤, 승인되면 �
 - [ ] 서치어드바이저 읽기 전용 실측: 페이지별 노출·수집 로그, 중복 title 경고, 리다이렉트 진단(308 잔존). 검색광고 키워드도구로 경쟁도를 잰다.
 - [ ] 사이트 밖 권위(GEO Authority 30점): 보도의 운영사명 오기 정정 요청, 외부 프로필 sameAs 통일, 실재 프로필만 연결.
 - [ ] AI 답변 기준선: "무료 사주 사이트 추천", "2027 신년운세 무료", "휴먼디자인 차트 무료 사이트", "사이코패스 테스트 무료"를 네이버 AI 브리핑·ChatGPT·Perplexity에서 읽기 전용으로 조회해 기록한다.
+
+### I. 매년 신년 시즌 (사용자 요청 2026-10-30: "매년도마다 수집")
+
+- 자동 점검(이미 들어감): `.github/workflows/seo-operations.yml`의 주간(월 08:19 KST)·월간(1일) 실행이 `scripts/seo/new-year-season.mjs`를 돌린다.
+  - 올해 `/fortune/{YYYY}/`와 12띠는 1년 내내 살아 있어야 한다.
+  - 다음 해 페이지는 8월부터 경고, 10월부터 실패로 본다.
+  - 살아 있는 해는 수동 수집 요청 URL 13개를 요약에 낸다.
+  - 외부 제출은 하지 않는다. 운영 사이트에 GET만 보낸다.
+  - 운영 배포 전인 지금은 2027이 404라 실패로 나온다. 의도된 신호다.
+- 해마다 사람이 할 일(Y년 기준):
+  - [ ] 7~8월: Y+1 원고를 새로 쓴다. 세운이 바뀌므로 지난해 문장을 재사용하지 않는다(`lib/fortune/new-year-registry.mjs` 머리말).
+  - [ ] 🔴 구조: 지금은 `NEW_YEAR_SEASON` 하나와 `app/fortune/2027/` 라우트뿐이다. Y+1을 넣을 때 레지스트리를 연도별로 나눠 `/fortune/2027/`이 2027 원고를 유지하게 한다. `generate-sitemap.mjs`·`generate-llms-txt.mjs`·`build-fortune-hub-shell.mjs`(`/fortune/` 셸의 12띠 링크, `verify:internal-link-depth` 2홉 상한)·`lib/fortune/new-year-sign.ts`도 연도 목록을 돌게 바꾼다. URL 규약 `/fortune/{YYYY}/{띠 id}/`는 바꾸지 않는다(점검 스크립트가 이 규약을 본다).
+  - [ ] 9월 말까지 운영에 반영한다.
+  - [ ] 반영된 주에 체크리스트대로 한다.
+    - 서치어드바이저: 사이트맵 제출(sitemap-index.xml 재제출)과 웹 페이지 수집 13개.
+    - GSC: Sitemaps 재제출과 URL 검사 색인 요청(허브부터).
+  - [ ] 지난해 페이지는 지우거나 리디렉트하지 않고 새해 허브로 링크하는 것을 제안한다. 정책 결정은 사용자에게 받는다.
 
 ## 관찰 계획
 

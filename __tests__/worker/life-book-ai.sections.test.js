@@ -183,6 +183,13 @@ describe("결손은 책임 섹션에만 매핑된다", () => {
     const mapped = mapIssuesToSections(issues, plan, sections);
     expect(mapped.trimOnly).toBe(true);
   });
+
+  test("14만자를 넘는 조립본도 JSON 으로 판독한다 — 분량이 많다는 이유로 report_json_missing 이 되지 않는다", () => {
+    const plan = buildSectionPlan(lifeFortuneInput);
+    const text = JSON.stringify(assembleReport(lifeFortuneInput, plan, buildSectionsAtTarget(plan, { scale: 5.5 })));
+    expect(text.length).toBeGreaterThan(140000);
+    expect(getLifeBookReportQualityIssues(text, lifeFortuneInput)).toEqual(["total_content_too_long"]);
+  });
 });
 
 describe("사주 슬라이스", () => {

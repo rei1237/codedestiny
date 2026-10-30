@@ -232,6 +232,17 @@ for (const flags of [{ truncated: true }, { finishReason: "length" }]) it(`prese
   for(let i=0;i<6;i++)await start();
   expect(docs[0].status).toBe("completed"); expect(provider).toHaveBeenCalledTimes(7);
 });
+it("doubles the output cap only for the retry after an unsalvageable truncated group", async () => {
+  const normal = provider.getMockImplementation(); let foundationCalls = 0;
+  provider.mockImplementation(async (...args) => args[2].logContext.sectionGroup === "foundation" && ++foundationCalls === 1
+    ? { ...await normal(...args), text: '{"sections":{"', truncated: true, finishReason: "MAX_TOKENS" } : normal(...args));
+  for (let i = 0; i < 9 && docs[0]?.status !== "completed"; i++) await start();
+  const groups = provider.mock.calls.map(args => args[2]).filter(options => utils.SECTION_GROUP_SPECS.some(group => group.id === options.logContext.sectionGroup));
+  const [first, retry] = groups.filter(options => options.logContext.sectionGroup === "foundation");
+  expect(retry.capTokens).toBe(Math.max(first.capTokens, Math.min(32768, first.capTokens * 2)));
+  for (const options of groups.filter(row => row.logContext.sectionGroup !== "foundation")) expect(options.capTokens).toBe(first.capTokens);
+  expect(docs[0].llmMeta.attempts["foundation:truncated"]).toBe(1); expect(docs[0].status).toBe("completed"); expect(refund).not.toHaveBeenCalled();
+});
 
 it("discards a malformed body while retaining other usable sections", async () => {
   const normal = provider.getMockImplementation();

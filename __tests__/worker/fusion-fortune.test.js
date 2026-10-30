@@ -15,6 +15,7 @@ import {
   generateFusionFortuneWithRealLLM,
   getFusionFortuneDateKey,
   isFusionFortuneRealLlmAllowed,
+  parseFusionFortuneLLMResponse,
   selectFusionFortuneTarotSpread,
   validateFusionFortuneGroup,
   validateFusionFortuneResult,
@@ -165,6 +166,26 @@ describe("Fusion Fortune per-use billing and mock generation", () => {
     const recovered = await generateFusionFortuneWithRealLLM({ input, context, stage: 1, env, providerCall, priorResult: first.result });
     expect(recovered.deliverable).toBe(true);
     expect(providerCall).not.toHaveBeenCalled();
+  });
+  it("never refuses a long but valid provider answer for its length", () => {
+    const value = { closingMessage: "가".repeat(130000) };
+    expect(parseFusionFortuneLLMResponse(JSON.stringify(value))).toEqual({ ok: true, value });
+  });
+  it("gives a cut-off group's retry twice the token room", async () => {
+    const calls = Object.fromEntries(["saju", "ziwei", "vedic", "sukuyo", "astrology", "tarot"].map(name => [name, 0]));
+    const { context } = await buildFusionFortuneContext(input, { adapters: fusionAdapters(calls) });
+    const sajuTokens = [];
+    const providerCall = jest.fn(async (_env, _prompt, options) => {
+      const group = FUSION_SECTION_GROUP_SPECS.find(item => item.id === options.logContext.sectionGroup);
+      const text = JSON.stringify(buildFusionGroupPayload(group, context.tarotSpread.cards));
+      if (group.id !== "saju") return { ok: true, provider: "gemini", text };
+      sajuTokens.push(options.maxOutputTokens);
+      return { ok: true, provider: "gemini", text: sajuTokens.length === 1 ? text.slice(0, 400) : text };
+    });
+    const env = { ENABLE_FUSION_FORTUNE_REAL_LLM: "true", ALLOW_FUSION_FORTUNE_REAL_LLM: "true", GEMINIF_API_KEY: "mock-only", GEMINI_CONTEXT_CACHE: "false" };
+    const first = await generateFusionFortuneWithRealLLM({ input, context, stage: 1, env, providerCall });
+    expect(first.deliverable).toBe(true);
+    expect(sajuTokens).toEqual([sajuTokens[0], Math.max(sajuTokens[0], Math.min(32768, sajuTokens[0] * 2))]);
   });
   it("stops before the next group when checkpoint confirmation fails", async () => {
     const calls = Object.fromEntries(["saju", "ziwei", "vedic", "sukuyo", "astrology", "tarot"].map(name => [name, 0]));

@@ -1034,7 +1034,7 @@ const NEO_SECTION_TIMEOUT_MS = 45000;
 // 🔴 이 루프를 공유 헬퍼 callGeminiJsonWithRetry 로 갈아끼우지 말 것. 그쪽은 잘림에만 재시도하고
 // (빈 파싱은 재시도 안 함) 재시도에도 cache 를 그대로 넘긴다 — 여기서 필요한 두 가지를 다 잃는다.
 // deadlineAt 을 주면 남은 예산 안에서만 호출한다(엣지 100s 전에 라우트가 먼저 판정하도록).
-async function generateNeoSectionOnce(env, section, prompt, cacheConfig, deadlineAt = 0, singleAttempt = false) {
+async function generateNeoSectionOnce(env, section, prompt, cacheConfig, deadlineAt = 0, singleAttempt = false, retry = false) {
   try {
     let ai = null;
     for (let attempt = 0; attempt < (singleAttempt ? 1 : 2); attempt += 1) {
@@ -1046,8 +1046,9 @@ async function generateNeoSectionOnce(env, section, prompt, cacheConfig, deadlin
       if (attempt > 0 && remaining < NEO_SECTION_TIMEOUT_MS) break;
       const useCache = attempt === 0 && cacheConfig;
       ai = await callGeminiText(env, prompt, {
-        // 잘렸으면 다음 시도에서 출력 상한을 올린다(같은 상한으로 다시 부르면 또 잘린다).
-        maxOutputTokens: attempt === 0 ? NEO_SECTION_BASE_TOKENS : Math.round(NEO_SECTION_BASE_TOKENS * 1.3),
+        // 잘렸으면 다음 시도에서 출력 상한을 두 배로 올린다(같은 상한으로 다시 부르면 또 잘린다).
+        // retry = 체크포인트의 두 번째 시도. 첫 시도가 잘렸는지는 저장하지 않으므로 재시도면 늘린다(상한일 뿐 과금 예약 아님).
+        maxOutputTokens: attempt === 0 && !retry ? NEO_SECTION_BASE_TOKENS : Math.min(32768, NEO_SECTION_BASE_TOKENS * 2),
         temperature: 0.65,
         thinkingBudget: 0,
         timeoutMs: Math.min(NEO_SECTION_TIMEOUT_MS, remaining),
@@ -1056,9 +1057,9 @@ async function generateNeoSectionOnce(env, section, prompt, cacheConfig, deadlin
         // (neo-operation-room-prompt.js 의 extractJsonObject).
         responseMimeType: "application/json",
         responseSchema: jsonSchemaFromExample(section.schema),
-        // Workers AI 폴백이 이 챕터 최소 분량의 40% 미만이면 실패로 돌린다.
+        // Workers AI 폴백이 이 챕터 최소 분량의 30% 미만이면 실패로 돌린다.
         // 아래 40자 게이트는 목적이 다르다 — 전 provider 대상 "렌더 가능한 응답" 하한.
-        fallbackMinChars: Math.round((section.minChars || 500) * 0.4),
+        fallbackMinChars: Math.round((section.minChars || 500) * 0.3),
         ...(singleAttempt ? { fallbackToWorkersAI: false } : {}),
         ...(useCache ? { cache: cacheConfig } : {}),
       });
@@ -1113,13 +1114,13 @@ async function generateBriefing(env, normalized, methodSummary) {
       // v3(2026-08-19): 자미두수 챕터 프롬프트에 성향 Context 지침을 추가했다. 버전은 4개 술수가
       // 공유하지만, 캐시 무효화 부작용은 "추가 LLM 비용 없는 재생성"뿐이라 전체를 함께 올린다.
       keyExtra: `neo-operation-room-v3-init-${section.id}`,
-      // 🔴 minChars 없이 저장하면 llm-cache 가 !truncated 만 보므로, 폴백이 40% 게이트를 겨우
+      // 🔴 minChars 없이 저장하면 llm-cache 가 !truncated 만 보므로, 폴백이 30% 게이트를 겨우
       //    넘긴 짧은 응답이 TTL 30일 동안 고착된다.
       //    llm-cache 의 관례값은 "라우트의 미달 판정 문턱"인데, 네오에는 챕터 단위 분량 판정이
       //    없다(라우트 게이트는 브리핑 전체 200자와 응답 40자뿐). 실제로 존재하는 유일한 하한인
       //    fallbackMinChars 와 같은 값을 쓴다 — section.minChars 를 그대로 쓰면 목표에 살짝
       //    못 미친 정상 응답까지 전부 캐시 미스가 되어 챕터 14개가 매번 정가가 된다.
-      minChars: Math.round((section.minChars || 500) * 0.4),
+      minChars: Math.round((section.minChars || 500) * 0.3),
     };
     return generateNeoSectionOnce(env, section, prompt, cacheConfig, deadlineAt);
   });
@@ -1741,7 +1742,7 @@ async function handleStart(request, env, ctx = null, recoveryAuth = null) {
           drifted(previousDraft) ? "\n[어조 보강] 이전 초안이 존댓말(습니다·세요·당신)로 쓰였다. 처음부터 끝까지 해라체 반말로 쓰고, 사용자는 너로 부른다." : "",
         ].join("") : "";
         const prompt = buildNeoInitialSectionPrompt(section, context) + repairNotes + `\n[완료 기준] 제목·목차·공백을 제외한 본문 최소 ${section.minChars}자, 목표 ${Math.ceil(section.minChars / 0.8)}자. 계산값 → 생활 패턴 → 반대 조건 → 행동 조언으로 전개한다. 반복으로 채우지 않는다.`;
-        const row = await runWithAiLocale(locale, () => generateNeoSectionOnce(env, section, prompt, null, Date.now() + 45000, true));
+        const row = await runWithAiLocale(locale, () => generateNeoSectionOnce(env, section, prompt, null, Date.now() + 45000, true, attempts[section.id] > 1));
         if (!usable(section, row)) return;
         const write = queue.catch(() => {}).then(async () => {
           const previous = doc.llmMeta.sections?.[section.id];
@@ -1919,7 +1920,7 @@ async function handleRefine(request, env) {
       const outcomes = await Promise.allSettled(selected.map(async section => {
         const prompt = buildNeoRefinedSectionPrompt(section, context) + (attempts[`${section.id}:lengthRepair`] ? "\n[분량 보강] 기존 계산 근거를 유지하고 새로운 장면과 행동 조언을 더해 완결된 JSON으로 다시 작성한다. 반복으로 채우지 않는다." : "") + `\n[완료 기준] 제목·공백을 제외한 본문 최소 ${section.minChars}자, 목표 ${Math.ceil(section.minChars / 0.8)}자. 현실 점검 답변과 계산값에 근거하고 앞 영역을 반복하지 않는다.`;
         const locale = toAiLocale(doc.llmMeta?.locale || doc.llmMeta?.resumeBody?.locale || "ko");
-        const row = await runWithAiLocale(locale, () => generateNeoSectionOnce(env, section, prompt, null, Date.now() + 45000, true));
+        const row = await runWithAiLocale(locale, () => generateNeoSectionOnce(env, section, prompt, null, Date.now() + 45000, true, attempts[section.id] > 1));
         if (!neoRefinedSectionReady(section, row, doc, true)) return;
         const write = queue.catch(() => {}).then(async () => {
           const previous = doc.llmMeta.refinement.sections[section.id];

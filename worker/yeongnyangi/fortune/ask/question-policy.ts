@@ -1,5 +1,5 @@
-import {EVIDENCE_ONCE,expandConsultationManifest} from '../consultation-expansion';
-import {questionEditorial,foundationGuide} from './question-editorial';
+import {EVIDENCE_ONCE,expandConsultationManifest,sectionShare} from '../consultation-expansion';
+import {questionEditorial,foundationGuide,natureOverview} from './question-editorial';
 import {consultationBudget,layoutTargets,layoutMinimum,CONSULTATION_CHAPTERS} from '../consultation-budget';
 import {questionOutlines,bonusAreas,lifeRows,tunaRoadmapRow,timingUnits,currentFlowGuide,timingSelectors,BONUS_TITLE,type LayoutStep,type LayoutTopic} from '../consultation-layout';
 import {questionFoundationEvidence} from '../reading-v6';
@@ -136,7 +136,7 @@ export function questionManifest(domain:DomainId,fish:QuestionFish,d:QuestionDec
  const fromStep=(step:LayoutStep,heading:string,role:string,weight=1):Group=>({title:heading,role,theme:step.theme,weight,timing:step.timing,
   sections:step.sections.map(x=>section(x.id,x.title,x.instruction+(step.timing?` 이 체계의 시기 단위는 ${timingUnits[domain]}이다.`:'')))});
  const groups:Group[]=[
-  {title:basics.title,role:'foundation',theme:'self',weight:1.1,sections:[section('nature',tarot?'지금의 태도와 마음':'나를 움직이는 기질',basics.instruction),
+  {title:basics.title,role:'foundation',theme:'self',weight:1.1,sections:[section('nature',tarot?'지금의 태도와 마음':'타고난 성향과 나를 움직이는 기질',natureOverview(domain)),
    section('empathy','이 고민이 마음에 남는 이유','성향과 현재 고민의 연결을 구체적으로 설명하고 사용자가 느꼈을 법한 어려움은 가능성으로 공감한다. 입력되지 않은 과거 경험을 실제 사실처럼 만들지 않는다.'),
    section('current-flow',tarot?'지금 흐르는 마음의 방향':'지금 지나고 있는 운의 흐름',currentFlowGuide[domain])]},
   {title:'나의 강점과 부담이 되는 순간',role:'foundation',theme:'self',weight:1,sections:[section('strength','살려 쓸 수 있는 강점','실제 근거에서 읽히는 장점을 생활 속 활용 방식과 함께 설명한다.'),section('shadow','강점의 그림자와 조정할 점','같은 성향이 과하거나 위축될 때 생길 부담과 약점을 비난 없이 설명하고 조정 방법을 제시한다.')]},
@@ -200,7 +200,8 @@ export function questionManifest(domain:DomainId,fish:QuestionFish,d:QuestionDec
   const targetChars=targets[ordinal];
   const index=group.role==='core'?-1:numbered++;
   if(!group.sections.some(x=>x.id==='evidence'))group.sections.push(section('evidence','이 해석의 근거','이 장에서 새로 쓰는 근거만 실제 계산값과 쉬운 뜻으로 연결하고 상충 신호와 한계를 설명한다.'+EVIDENCE_ONCE));
-  const plannedSections=group.sections.map(x=>({...x,minimumChars:0,targetChars:targetChars.map(n=>Math.ceil(n/group.sections.length)) as [number,number]}));
+  const shares=group.sections.reduce((sum,x)=>sum+sectionShare(x.id),0);
+  const plannedSections=group.sections.map(x=>({...x,minimumChars:0,targetChars:targetChars.map(n=>Math.ceil(n*sectionShare(x.id)/shares)) as [number,number]}));
   const selected=group.role==='foundation'?[...foundation,...selectors[domain],...(ordinal===0?timing:[])]:['bonus','life'].includes(group.role)||group.timing?[...selectors[domain],...timing]:group.role==='core'?[...selectors[domain],...(CORE_SELECTORS[domain]||[])]:selectors[domain];
   const roleFocus=group.role==='foundation'?basics.instruction:group.role==='bonus'?'질문 밖의 영역을 다루는 보너스 장이다. 질문에 대한 답을 반복하지 않는다.':group.role==='life'?'질문을 넘어 삶 전체를 살피는 장이다. 기본 장과 질문 장의 설명을 반복하지 않는다.':
    group.role==='core'?'질문과 별개로 이 사람의 기본 특성을 영역마다 한 번씩 정리하는 장이다. 기본 장의 기질 설명과 질문의 답을 반복하지 않고 영역마다 그 영역의 근거를 쓴다.':editorial.focus;

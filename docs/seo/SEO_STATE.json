@@ -4809,14 +4809,26 @@
       },
       "checkFast": "paid-gate-suite에서 위 브라우저 테스트 2개로 중단; 이후 단계 중 typecheck·lint는 따로 통과",
       "postRebase": "origin/main 12f0b1831 위 재빌드는 upstream 5f2b10b55(js/faq-search.js ESM 파싱, 문의 Contact Us 마커)로 실패. 커밋 안 한 임시 우회로 adsense-readiness(문의 마커만 건너뜀)·home-identity·sitemap-canonical 통과 확인",
-      "staging": "실패: 런 40907636662, 위 upstream 원인. 스테이징 미반영"
+      "staging": "실패: 런 40907636662, 위 upstream 원인. 스테이징 미반영",
+      "stagingRecheck20261030": "통과: main 0e64bb929 PR CI 전부 성공, 스테이징 배포 런 40922130891 성공, verify:staging Pages·Worker PASS. 남은 원인(문의 마커·FAQ 미러·2027 12띠 3홉 링크 깊이)은 다른 세션이 5f09b9457·0e64bb929로 해결"
     },
     "productionDeployed": false,
     "remaining": [
-      "upstream 5f2b10b55 빌드 실패 해결 뒤 verify:staging으로 스테이징 확인",
       "운영 배포·서치어드바이저/GSC sitemap 재제출·/fortune/2027/ 수집 요청은 사용자 승인 대기",
       "T1 자정 발행 지연(workflow 타임아웃·중복 디스패치), T2 무슬래시 308→301은 RED 승인 대기",
       "후속 목록: docs/handoff/seo-followups-20261029.md"
     ]
+  },
+  "newYearSeasonCheck20261030": {
+    "date": "2026-10-30",
+    "request": "/fortune/2027/ 수집 이외에도 매년도마다 수집",
+    "change": "scripts/seo/new-year-season.mjs를 seo-operations.yml 주간·월간 실행에 연결. 올해 /fortune/{YYYY}/+12띠는 상시 실패, 다음 해는 KST 8월 경고·10월 실패. 첫 시즌 2027",
+    "checks": "200, noindex 없음, 자기 canonical, title·description, 선언 sitemap 포함, Googlebot·Yeti robots 허용",
+    "output": "seo-qa/operations/new-year-season.json·.md(아티팩트·주간 요약), 살아 있는 해만 서치어드바이저·GSC 수동 요청 체크리스트",
+    "externalSubmission": "없음(GET만). IndexNow는 운영 배포의 델타 통지가 맡음",
+    "firstLiveRun": "2026-10-30 운영 대상 실행: /fortune/2027/ HTTP 404로 exit 1(운영 미배포, 의도된 신호)",
+    "stagingRun": "2026-10-30 스테이징(0e64bb929) 대상: 13쪽 모두 200, noindex·robots 차단·운영 canonical 65건 감지(스테이징 보호의 정상 동작)",
+    "productionRun": "2026-10-30 운영(81200d3cc, 승격 런 40937365074 성공, IndexNow 통지 스텝 성공) 대상: 2027 13쪽 이상 0건(exit 0). 재제출은 사용자가 수동으로 진행",
+    "resubmission": "사용자 승인(2026-10-30). Chrome 확장 미연결·GSC API 자격 없음으로 이 세션은 미실행. 운영 배포 뒤 체크리스트로 진행"
   }
 }

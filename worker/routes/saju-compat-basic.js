@@ -31,12 +31,19 @@ const clean = (value) => String(value || "").trim();
 
 const providerIsLive = (ai) => Boolean(ai?.ok) && !ai.isMock && !/mock/i.test(`${ai.provider || ""} ${ai.model || ""}`);
 
-async function generateGroup(env, group, input, seen, promptOptions) {
+// 앞 시도의 원문이 닫히지 않은 JSON이면 토큰 상한에서 끊긴 것이다. 그 그룹의 재시도만 예산 2배(최대 32768)로 산다.
+// 기본 예산은 비용 추정이 쓰므로 그대로 둔다.
+const clippedRetryTokens = (raw, tokens) => {
+  if (!raw) return tokens;
+  try { JSON.parse(raw); return tokens; } catch { return Math.max(tokens, Math.min(32768, tokens * 2)); }
+};
+
+async function generateGroup(env, group, input, seen, promptOptions, previousRaw) {
   const ai = await callGeminiText(env, buildSajuCompatPrompt(group, input, promptOptions), {
     systemPrompt: buildSajuCompatSystemPrompt(input),
     locale: toAiLocale(input.locale),
     temperature: 0.6,
-    maxOutputTokens: group === "core" && input.facts.relationship ? 16384 : 8192,
+    maxOutputTokens: clippedRetryTokens(previousRaw, group === "core" && input.facts.relationship ? 16384 : 8192),
     thinkingBudget: 0,
     timeoutMs: PROVIDER_TIMEOUT_MS,
     fallbackToWorkersAI: false,
@@ -82,7 +89,7 @@ export function sajuCompatNarrativeAdapter(env) {
       const stash = state.lenient?.[group] || null;
       const retry = attempt > 1 ? { issues: state.issues?.[group] || [], shortfall: Boolean(state.shortfall?.[group]) } : {};
       let fresh = null;
-      try { fresh = await generateGroup(env, group, input, seen, retry); } catch { fresh = null; }
+      try { fresh = await generateGroup(env, group, input, seen, retry, state.rawResponses?.[group]); } catch { fresh = null; }
       let shaped = fresh?.shaped || null;
       const model = fresh?.model || stash?.model || "";
       if (attempt < 2) {

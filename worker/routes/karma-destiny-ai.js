@@ -1637,8 +1637,8 @@ async function generateConsultationText(env, prompt, options = {}) {
     // 45s 단락 함정 회피(위 ensureInitialConsultationQuality 주석 참고). 배치당 2만 토큰 ≈ 100s.
     timeoutMs: mode === 'follow_up' ? 45000 : Number(env?.KARMA_DESTINY_AI_TIMEOUT_MS) || 120000,
     ...(mode === 'follow_up' ? { fallbackToWorkersAI: false } : {}),
-    // 초기 장문도 폴백을 허용하되 목표의 40% 미만이면 실패로 돌린다(재시도·환불 경로 유지).
-    ...(mode === "initial" ? { fallbackMinChars: Math.round(INITIAL_CONSULTATION_MIN_LENGTH * 0.4) } : {}),
+    // 초기 장문도 폴백을 허용하되 목표의 30% 미만이면 실패로 돌린다(재시도·환불 경로 유지).
+    ...(mode === "initial" ? { fallbackMinChars: Math.round(INITIAL_CONSULTATION_MIN_LENGTH * 0.3) } : {}),
     cache: buildKarmaLlmCache(env, mode),
   });
   const provider = clean(ai?.provider || ai?.model || "gemini");
@@ -1658,6 +1658,8 @@ async function generateConsultationText(env, prompt, options = {}) {
     });
     return { text, provider, model: clean(ai?.model) };
   }
+  // 후속 답변: 호출부가 하한을 90자로 낮추고 토큰을 두 배(9,200)로 준다 — 분량은 목표일 뿐이고, 짧아도
+  // 완결된 답은 전달 엔진이 받는다. 잘림(truncated)·빈 응답 가드는 그대로다.
   if (text.length < (options.minLength || 220)) {
     const error = new Error(clean(ai?.message || ai?.error || "LLM generation failed."));
     error.code = "LLM_GENERATION_FAILED";
@@ -2005,14 +2007,15 @@ async function callRealGeminiText(env, prompt, options = {}) {
     ...(options.singleAttempt ? { fallbackToWorkersAI: false } : {}),
     // 유료 라우트라 Workers AI 폴백에는 최소 분량 문턱을 반드시 함께 건다.
     // 문턱 미달이면 호출이 실패로 돌아 아래 실패 처리가 그대로 돈다.
-    fallbackMinChars: Math.round(Number(options.chapterMinLength || INITIAL_CONSULTATION_SECTION_MIN_LENGTH) * 0.4),
+    fallbackMinChars: Math.round(Number(options.chapterMinLength || INITIAL_CONSULTATION_SECTION_MIN_LENGTH) * 0.3),
     cache: { ...buildKarmaLlmCache(env, clean(options.cacheStage) || "chapter-batch"), skipRead: options.skipCache === true },
   });
   const provider = clean(ai?.provider || ai?.model || "gemini");
   const isMock = (/mock/i.test(provider) || ai?.isMock === true) && !isStagingLlmMockEnabled(env);
   if (!isCompleteLlmResponse(ai) || isMock || !clean(ai?.text)) {
     const error = new Error(clean(ai?.message || ai?.error || "LLM generation failed.", 500));
-    error.code = isMock ? "MOCK_PROVIDER_BLOCKED" : "LLM_GENERATION_FAILED";
+    // 토큰 상한에서 잘린 응답은 따로 표시한다 — 문장 중간에서 살리지 않고, 다음 시도가 두 배 예산을 받는다.
+    error.code = isMock ? "MOCK_PROVIDER_BLOCKED" : ai?.ok === true && !isCompleteLlmResponse(ai) ? "LLM_OUTPUT_TRUNCATED" : "LLM_GENERATION_FAILED";
     error.providerDiagnostics = getProviderDiagnostics(env);
     throw error;
   }
@@ -2027,7 +2030,8 @@ async function generateOneChapter(env, consultation, definition, context = {}) {
   try {
     const generated = await callRealGeminiText(env, buildChapterPrompt(consultation, definition, context), {
       temperature: context.retry ? 0.66 : 0.72,
-      maxOutputTokens: CHAPTER_MAX_OUTPUT_TOKENS,
+      // 잘린 뒤의 재시도만 두 배 예산 — 기본 상한은 비용 예약에 쓰이므로 그대로 둔다.
+      maxOutputTokens: context.truncatedRetry ? Math.min(32768, CHAPTER_MAX_OUTPUT_TOKENS * 2) : CHAPTER_MAX_OUTPUT_TOKENS,
       systemPrompt: buildSystemPrompt("initial"),
       // 장별 캐시 키 — 재시도 시 이미 성공한 장은 캐시에서 즉시 돌아온다.
       cacheStage: `${context.singleAttempt ? "delivery-v2-" : ""}chapter-${definition.id}`,
@@ -2748,7 +2752,14 @@ async function handleGenerateBatch(request, env, recoveryAuth = null) {
       consultation = await saveKarmaDelivery(filter, { llmMeta: { ...consultation.llmMeta, resumeBody, attempts } }, consultation.id);
       let queue = Promise.resolve();
       const results = await Promise.allSettled(targets.map(async definition => {
-        const row = await runWithAiLocale(storedAiLocale(consultation), async () => generateOneChapter(env, consultation, definition, { singleAttempt: true, retry: attempts[definition.id] > 1, previousSummaries: chapters.map(chapter => chapter.summary).slice(-8), siblingDefinitions: targets }));
+        const row = await runWithAiLocale(storedAiLocale(consultation), async () => generateOneChapter(env, consultation, definition, { singleAttempt: true, retry: attempts[definition.id] > 1, truncatedRetry: Boolean(attempts[`${definition.id}:truncated`]), previousSummaries: chapters.map(chapter => chapter.summary).slice(-8), siblingDefinitions: targets }));
+        if (row.reason === "LLM_OUTPUT_TRUNCATED") {
+          // 잘린 장은 표시만 남긴다(최선 노력). 저장이 안 돼도 다음 시도는 기본 예산으로 그대로 돈다.
+          const mark = queue.catch(() => {}).then(async () => {
+            try { consultation = await saveKarmaDelivery(filter, { llmMeta: { ...consultation.llmMeta, attempts: { ...consultation.llmMeta?.attempts, [`${definition.id}:truncated`]: 1 } } }, consultation.id); } catch {}
+          });
+          queue = mark; await mark; return;
+        }
         if (!row.ok || !karmaChapterReady(row.chapter, definition, true)) return;
         const save = queue.catch(() => {}).then(async () => {
           const prior = safeArray(consultation.chapters).find(chapter => chapter.id === definition.id);
@@ -2846,7 +2857,7 @@ async function handleMessage(request, env) {
   }).lean();
   if (!consultation) return invalidInput("상담 세션을 찾을 수 없습니다.", 404);
 
-  return await deliverExpertFollowUp({ request, env, auth, consultation, message, featureKey: FEATURE_KEY, model: KarmaDestinyAiConsultation, generate: (original, question) => generateConsultationText(env, buildFollowUpPrompt(original, question), { mode: 'follow_up', minLength: 180, maxOutputTokens: 4600 }), render: publicSession });
+  return await deliverExpertFollowUp({ request, env, auth, consultation, message, featureKey: FEATURE_KEY, model: KarmaDestinyAiConsultation, generate: (original, question) => generateConsultationText(env, buildFollowUpPrompt(original, question), { mode: 'follow_up', minLength: 90, maxOutputTokens: 9200 }), render: publicSession });
 }
 
 export async function handleKarmaDestinyAiRoutes(request, env = {}) {
@@ -2912,6 +2923,6 @@ export function resumeConsultationOnServer(env, doc) {
 }
 
 export function serverExpertFollowUpAdapter(env) {
-  const { featureKey, reportType, produce, render } = expertFollowUpNarrativeAdapter({ featureKey: FEATURE_KEY, generate: (original, question) => generateConsultationText(env, buildFollowUpPrompt(original, question), { mode: 'follow_up', minLength: 180, maxOutputTokens: 4600 }) });
+  const { featureKey, reportType, produce, render } = expertFollowUpNarrativeAdapter({ featureKey: FEATURE_KEY, generate: (original, question) => generateConsultationText(env, buildFollowUpPrompt(original, question), { mode: 'follow_up', minLength: 90, maxOutputTokens: 9200 }) });
   return { featureKey, reportType, produce, render };
 }

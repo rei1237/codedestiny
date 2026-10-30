@@ -30,15 +30,22 @@ export function reserveConversation(c:Conversation|undefined,limit:number,id:str
  return {...prev,revision:prev.revision+1,calls:prev.calls+1,pending:{id,question,token,until:now+90000,
   intentId:prev.pending?.intentId||prev.clarifyingIntent||id,attempts:(prev.pending?.attempts||0)+1}};
 }
+/** A long reply is delivered cut at its last sentence end, never refused for length. */
+export const FOLLOWUP_MAX_CHARS=20000;
+export function clipFollowup(text:string,limit=FOLLOWUP_MAX_CHARS){
+ if(text.length<=limit)return text;
+ const head=text.slice(0,limit),end=Math.max(...['.','!','?','。','\n'].map(mark=>head.lastIndexOf(mark)));
+ return (end>=limit/2?head.slice(0,end+1):head).trim();
+}
 export function validateFollowup(value:unknown,ids:Set<string>):FollowupReply{
  let v:any=value;
  if(typeof v==='string'){try{v=JSON.parse(v);}catch{throw new FortuneError('INVALID_FOLLOWUP',502);}}
  if(!v||!['answer','clarification','new_consultation','insufficient','correction','support'].includes(v.kind)||
-  typeof v.text!=='string'||!v.text.trim()||v.text.length>9000||/<\/?[a-z][^>]*>/i.test(v.text)||
+  typeof v.text!=='string'||!v.text.trim()||/<\/?[a-z][^>]*>/i.test(v.text)||
   !Array.isArray(v.sources)||v.sources.some((id:unknown)=>typeof id!=='string'||!ids.has(id)))throw new FortuneError('INVALID_FOLLOWUP',502);
  if(v.kind==='answer'&&(!v.sources.length||v.answered!==true||typeof v.reason!=='string'||!v.reason.trim()||typeof v.action!=='string'||!v.action.trim()))throw new FortuneError('INVALID_FOLLOWUP',502);
- const text=v.kind==='answer'?[v.text,v.reason,v.action].map((part:string)=>part.trim()).join('\n\n'):v.text.trim();
- if(text.length>9000||/<\/?[a-z][^>]*>/i.test(text))throw new FortuneError('INVALID_FOLLOWUP',502);
+ const text=clipFollowup(v.kind==='answer'?[v.text,v.reason,v.action].map((part:string)=>part.trim()).join('\n\n'):v.text.trim());
+ if(/<\/?[a-z][^>]*>/i.test(text))throw new FortuneError('INVALID_FOLLOWUP',502);
  validateReadingClaims(text,'ko');
  return {kind:v.kind,text,sources:v.sources};
 }

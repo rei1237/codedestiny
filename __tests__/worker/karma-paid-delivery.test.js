@@ -169,6 +169,17 @@ it('karma accepts a structurally valid short final attempt without changing tota
   expect(docs[0].llmMeta.attempts['chapter-01']).toBe(2); expect(refund).not.toHaveBeenCalled();
 });
 
+it('a chapter cut at the token cap retries once with double the budget and still delivers', async () => {
+  await start(); const base = provider.getMockImplementation(); const budgets = [];
+  provider.mockImplementation(async (...args) => {
+    if (!args[2].cache.keyExtra.endsWith('chapter-02')) return base(...args);
+    budgets.push(args[2].maxOutputTokens); const result = await base(...args);
+    return budgets.length === 1 ? { ...result, truncated: true, finishReason: 'MAX_TOKENS' } : result;
+  });
+  for (let i = 0; i < 6 && docs[0].status !== 'completed'; i++) await batch();
+  expect(budgets).toEqual([7000, 14000]); expect(docs[0].status).toBe('completed'); expect(refund).not.toHaveBeenCalled();
+});
+
 // 2026-10-16: 결제 1건 = 리포트 1건. 같은 결제를 요청 키만 바꿔 다시 내밀면 409, 계산도 다시 돌지 않는다.
 it('keeps empty relationship input compatible, but binds a changed scene to its request', async () => {
   const original = utils.normalizeConsultationInput(body);

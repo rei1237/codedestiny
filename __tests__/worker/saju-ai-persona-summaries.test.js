@@ -86,4 +86,16 @@ describe("명식이 답하는 사주 AI 상담 화자 요약", () => {
     expect(parsed.resultText).toBe(commonBody);
     expect(parsed.personaSummaries).toBeUndefined();
   });
+
+  test("길게 쓴 요약 항목은 버리지 않고 상한 안의 마지막 문장 끝에서 자른다", () => {
+    const longLetter = "마음이 앞서갈수록 지금 확인할 수 있는 흐름부터 천천히 살펴보세요. ".repeat(40).trim();
+    const parsed = fortuneRoute.__sajuAiSectionTestUtils.extractSajuAIPersonaSummaries(
+      `${commonBody}\n\n${summaryBlock.replace(/^YEONI_LETTER: .+$/m, `YEONI_LETTER: ${longLetter}`)}`,
+    );
+
+    expect(longLetter.length).toBeGreaterThan(1200);
+    expect(parsed.personaSummaries.yeoni.letter.length).toBeLessThanOrEqual(1200);
+    expect(parsed.personaSummaries.yeoni.letter).toMatch(/살펴보세요\.$/);
+    expect(parsed.personaSummaries.neo.nextCheck).toBe("예산, 일정, 상대의 답변 순서로 확인하세요.");
+  });
 });

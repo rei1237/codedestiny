@@ -243,7 +243,7 @@ async function runWithConcurrency(items, limit, worker) {
   return results;
 }
 
-async function generateChapter(env, chart, birthInfo, chapter, consultation, locale, attempt = 1) {
+async function generateChapter(env, chart, birthInfo, chapter, consultation, locale, attempt = 1, truncationRetry = false) {
   const prompt = buildZiweiDeepChapterPrompt(chart, birthInfo, chapter, consultation, locale) + (attempt > 1
     ? `\n[보강] 계산 근거를 유지하고 새로운 생활 장면과 행동 조언으로 공백 제외 본문 ${Math.ceil(chapter.minChars / 0.8)}자 이상을 목표로 완결된 장을 작성하세요. 같은 문장을 반복하지 마세요.` : "");
   // 결정적(명반+생년월일 기반, 자유질문 없음) 챕터 해석 → LLM 응답 캐시 + in-flight dedup.
@@ -253,19 +253,22 @@ async function generateChapter(env, chart, birthInfo, chapter, consultation, loc
     ttlSeconds: 30 * 24 * 60 * 60,
     keyExtra: "ziwei-deep-report-v1",
   };
+  let truncated = false;
   try {
     const ai = await callGeminiText(env, prompt, {
       // 이어쓰기에서는 최초 생성 언어를 명시한다. 현재 탭의 언어가 바뀌어도 한 리포트의 장이 섞이면 안 된다.
       locale,
-      maxOutputTokens: 9000,
+      // 직전 시도가 MAX_TOKENS 로 잘렸으면 같은 예산 재시도는 또 잘려 환불된다 — 재시도만 2배(≤32768). 기본 예산은 그대로.
+      maxOutputTokens: truncationRetry ? Math.min(32768, 9000 * 2) : 9000,
       thinkingBudget: 0,
       temperature: 0.72,
       timeoutMs: 60000,
       cache: attempt === 1 ? chapterLlmCache : undefined,
       // 제공자 폴백 이후에도 아래에서 챕터 전체 분량과 반복 여부를 검증한다.
-      fallbackMinChars: Math.round((chapter.minChars || 2200) * 0.4),
+      fallbackMinChars: Math.round((chapter.minChars || 2200) * 0.3),
     });
     const body = typeof ai?.text === "string" ? clean(ai.text) : "";
+    truncated = Boolean(ai?.ok) && (ai.truncated === true || /^(MAX_TOKENS|length)$/i.test(clean(ai.finishReason)));
     if (ai?.ok && ai.isMock !== true && !['staging-mock', 'mock', 'fallback'].includes(clean(ai.provider).toLowerCase())
       && ai.truncated !== true && !/^(MAX_TOKENS|length)$/i.test(clean(ai.finishReason))
       && countPaidReportBodyChars(body) > 0 && !hasRepeatedReportPassage(body)) {
@@ -275,7 +278,7 @@ async function generateChapter(env, chart, birthInfo, chapter, consultation, loc
   } catch (error) {
     // 폴백: 짧은 안내 문단(리포트 전체 실패를 막고 재생성 유도)
     const fallback = `● ${chapter.title.replace(/^제\d+장 · /, "")}\n이 장의 상세 해석을 생성하는 중 일시적인 문제가 발생했습니다. 잠시 후 다시 시도하면 명반(${birthInfo.name || "내담자"} · 명궁 ${chart?.lifePalace || "-"}) 기준으로 이 궁의 상세 해석이 채워집니다.`;
-    return { id: chapter.id, title: chapter.title, body: fallback, chars: fallback.length, provider: "fallback", ok: false, error: clean(error?.message, 120) };
+    return { id: chapter.id, title: chapter.title, body: fallback, chars: fallback.length, provider: "fallback", ok: false, error: clean(error?.message, 120), truncated };
   }
 }
 
@@ -764,7 +767,8 @@ export async function runZiweiDeepReportDeliveryBatch(request, env, body, auth, 
         [`llmMeta.attempts.${definition.id}`]: attempt,
         ...(repairing ? { [`llmMeta.attempts.${definition.id}:lengthRepair`]: 1 } : {}),
       } });
-      const result = await generateChapter(env, chart, normalized.birthInfo, definition, normalized.consultation, normalized.locale, attempt);
+      const result = await generateChapter(env, chart, normalized.birthInfo, definition, normalized.consultation, normalized.locale, attempt, Boolean(attempts[`${definition.id}:truncated`]));
+      if (result.truncated) await saveDeepCheckpoint({ env, id: reportId, userId: auth.userId, lockToken, values: { [`llmMeta.attempts.${definition.id}:truncated`]: 1 } });
       if (!isDeepChapterComplete(result, definition, {}, true)
         || (repairing && countPaidReportBodyChars(previous.body) >= countPaidReportBodyChars(result.body))) return;
       const checkpoint = chaptersForDb([{ ...result, order: ZIWEI_DEEP_CHAPTERS.findIndex(def => def.id === definition.id) }])[0];

@@ -133,3 +133,12 @@ it('P3 lost repair checkpoint resumes from the reserved repair without another p
  expect((await generate()).status).toBe(503);expect(docs[0].llmMeta.attempts[specs[0].key]).toBe(1);
  expect((await generate()).status).toBe(200);expect(provider).not.toHaveBeenCalled();expect(refund).not.toHaveBeenCalled();
 });
+it('a section cut at the token limit retries once with a doubled budget',async()=>{
+ const {COMPASS_SECTION_MAX_OUTPUT_TOKENS:tokens}=await import('../../worker/lib/destiny-compass-report-contract.js');
+ const base=provider.getMockImplementation(),key=specs[0].key;let cut=false;
+ provider.mockImplementation(async(...args)=>{if(args[1]===key&&!cut){cut=true;return {ok:true,truncated:true,text:'잘린 본문은 문장 중간에서'};}return base(...args);});
+ for(let i=0;i<4&&docs[0].status!=='completed';i++)await generate();
+ expect(docs[0].status).toBe('completed');expect(refund).not.toHaveBeenCalled();
+ expect(provider.mock.calls.filter(call=>call[1]===key).map(call=>call[2].maxOutputTokens)).toEqual([tokens,tokens*2]);
+ expect(provider.mock.calls.filter(call=>call[1]!==key).every(call=>call[2].maxOutputTokens===tokens)).toBe(true);
+});

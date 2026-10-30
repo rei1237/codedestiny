@@ -1328,8 +1328,8 @@ function cleanForbiddenResult(value) {
   return stripped.replace(/\n{3,}/g, "\n\n").trim();
 }
 
-function extractReportJson(content) {
-  const raw = clean(content, LIFE_BOOK_RESULT_TEXT_MAX_CHARS).replace(/^```(?:json)?/i, "").replace(/```$/i, "").trim();
+function extractReportJson(content, maxChars = LIFE_BOOK_RESULT_TEXT_MAX_CHARS) {
+  const raw = clean(content, maxChars).replace(/^```(?:json)?/i, "").replace(/```$/i, "").trim();
   const start = raw.indexOf("{");
   const end = raw.lastIndexOf("}");
   if (start < 0 || end <= start) return null;
@@ -1359,7 +1359,9 @@ function hasValidEvidenceRefs(refs = [], minCount = 1) {
 
 function getLifeBookReportQualityIssues(content, input = {}, options = {}) {
   const issues = [];
-  const text = clean(content, LIFE_BOOK_RESULT_TEXT_MAX_CHARS);
+  // 조립본은 자르지 않고 판독한다 — 14만자 clip 이 JSON 을 끊으면 분량이 많다는 이유만으로
+  // report_json_missing → 결제 결과 폐기가 된다. 크기는 섹션별 clip 이 이미 묶는다.
+  const text = clean(content);
   const lifeFortune = isLifeFortuneInput(input);
   const minChapterContentChars = lifeFortune ? LIFE_FORTUNE_MIN_CHAPTER_CONTENT_CHARS : LIFE_BOOK_MIN_CHAPTER_CONTENT_CHARS;
   const minExpertReadingContentChars = lifeFortune ? LIFE_FORTUNE_MIN_EXPERT_READING_CONTENT_CHARS : 350;
@@ -1367,7 +1369,7 @@ function getLifeBookReportQualityIssues(content, input = {}, options = {}) {
   const maxTotalContentChars = lifeFortune ? LIFE_FORTUNE_MAX_TOTAL_CONTENT_CHARS : LIFE_BOOK_MAX_TOTAL_CONTENT_CHARS;
   if (!text) return ["empty_result"];
   if (hasForbiddenResultTerms(text)) issues.push("forbidden_terms");
-  const report = extractReportJson(text);
+  const report = extractReportJson(text, 0);
   if (!report) {
     issues.push("report_json_missing");
     if (text.length < minTotalContentChars) issues.push("total_content_too_short");
@@ -1487,17 +1489,20 @@ async function generateSectionOnce(env, section, prompt, options = {}) {
     error: "",
   };
   try {
+    const tokens = Math.max(section.maxOutputTokens, tokensRequiredForChars(section.targetChars));
     const ai = await callGeminiText(env, prompt, {
       systemPrompt: await appendExpertPersona(env, "yunLifeBook", buildSystemPrompt(options.consultationType || "lifeBook")),
       responseMimeType: "application/json",
       responseSchema: jsonSchemaFromExample(buildSectionSchema(section, isLifeFortuneInput(options))),
       taskType: "fortune",
       temperature: options.temperature || 0.72,
-      maxOutputTokens: Math.max(section.maxOutputTokens, tokensRequiredForChars(section.targetChars)),
+      // 토큰 상한에서 잘린 뒤의 재시도는 예산을 두 배로 준다 — 같은 상한이면 같은 자리에서 또 잘린다.
+      maxOutputTokens: options.truncatedRetry ? Math.max(tokens, Math.min(32768, tokens * 2)) : tokens,
       timeoutMs: resolveSectionTimeoutMs(env),
       // 폴백은 켜 둔다. 섹션 목표가 3,000자까지 내려오면 Workers AI 실측 정지점(≈1,700자)이
       // 이 문턱을 넘기므로, 단일 3만자 호출에서 무용지물이던 폴백이 여기서는 실제 안전망이 된다.
-      fallbackMinChars: Math.round(section.minChars * 0.4),
+      // 분량은 목표일 뿐 — 하한의 30%만 넘으면 받는다(결제 뒤 전달 우선).
+      fallbackMinChars: Math.round(section.minChars * 0.3),
       logContext: options.logContext,
       cache: options.cache,
       ...recoveryOptions,
@@ -1508,9 +1513,11 @@ async function generateSectionOnce(env, section, prompt, options = {}) {
     const text = clean(ai?.text);
     base.provider = provider;
     base.model = clean(ai?.model);
-    if (!ai?.ok || ai.truncated || /^(MAX_TOKENS|length)$/i.test(clean(ai.finishReason)) || isMock || !text) {
+    const truncated = ai?.truncated || /^(MAX_TOKENS|length)$/i.test(clean(ai?.finishReason));
+    if (!ai?.ok || truncated || isMock || !text) {
       if (!ai?.ok) base.failure = { code: /^[A-Z][A-Z0-9_]{0,79}$/.test(ai?.error || "") ? ai.error : "LLM_PROVIDER_UNAVAILABLE", ...safeGeminiFailure(ai) };
-      base.error = isMock ? "MOCK_PROVIDER_BLOCKED" : base.failure?.code || "SECTION_CONTENT_EMPTY";
+      // 잘린 응답은 문장 중간에서 살리지 않는다. 대신 표시해 두면 재시도가 두 배 예산을 받는다.
+      base.error = isMock ? "MOCK_PROVIDER_BLOCKED" : ai?.ok && truncated ? "SECTION_TRUNCATED" : base.failure?.code || "SECTION_CONTENT_EMPTY";
       return base;
     }
     const parsed = extractReportJson(cleanForbiddenResult(text));
@@ -2761,6 +2768,7 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
               consultationType,
               birthInfo: normalized.input.birthInfo,
               supportRecovery: recovery,
+              truncatedRetry: stored?.error === "SECTION_TRUNCATED",
               // 재시도는 캐시를 우회해야 같은 짧은 응답을 다시 받지 않는다.
               cache: attempt > 1 ? null : {
                 store: createLlmCacheStore(env),

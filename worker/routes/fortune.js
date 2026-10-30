@@ -506,8 +506,11 @@ function normalizeSajuAIPersonaSummaryField(value, maxChars) {
     .replace(/[\u0000-\u001f\u007f]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
-  if (!normalized || normalized.length > maxChars) return "";
-  return normalized;
+  if (normalized.length <= maxChars) return normalized;
+  // 길다고 요약 블록을 통째로 버리지 않는다 — 마지막 문장 끝에서 자른다(clipFollowup 관례).
+  const head = normalized.slice(0, maxChars);
+  const end = Math.max(...[".", "!", "?", "。"].map((mark) => head.lastIndexOf(mark)));
+  return (end >= maxChars / 2 ? head.slice(0, end + 1) : head).trim();
 }
 
 /**
@@ -660,7 +663,7 @@ function isSajuAISectionRowShort(row) {
  *
  * 제공자 오류는 그룹 결과로 반환한다. 체크포인트 저장 오류는 호출부로 전달해 환불과 분리한다.
  */
-async function runSajuAISectionWaves(env, { builtPrompt, systemPrompt, cache, deadlineAt, requestId, promptVersion, locale, groups = SAJU_AI_SECTION_GROUPS, onSection = async (row) => row, onRepair = async () => {}, lengthRepair = false, allowRepair = true, initialRepairLines = [] } = {}) {
+async function runSajuAISectionWaves(env, { builtPrompt, systemPrompt, cache, deadlineAt, requestId, promptVersion, locale, groups = SAJU_AI_SECTION_GROUPS, onSection = async (row) => row, onRepair = async () => {}, lengthRepair = false, allowRepair = true, initialRepairLines = [], truncationRetry = false } = {}) {
   // 그룹 5개가 문자까지 같은 접두사를 각자 정가로 싣던 것을, Gemini 쪽에 한 벌만 올려 두고
   // 참조한다(명시적 컨텍스트 캐싱). null 이면 아무 일도 일어나지 않고 지금까지처럼 전체
   // 프롬프트가 나간다 — 웨이브1 직전에 채워지고, 웨이브가 끝나면 finally 에서 지운다.
@@ -677,8 +680,9 @@ async function runSajuAISectionWaves(env, { builtPrompt, systemPrompt, cache, de
         timeoutMs,
         maxProviderAttempts: 1,
         // 폴백 스텁이 20,000원 상품 결과로 전달되지 않도록 문턱을 건다. 전체가 아니라
-        // 이 그룹 목표의 40% — CLAUDE.md 의 fallbackMinChars 관례를 그룹 단위로 적용한 것이다.
-        fallbackMinChars: Math.round(group.minChars * 0.4),
+        // 이 그룹 최소의 30% — CLAUDE.md 의 fallbackMinChars 관례를 그룹 단위로 적용한 것이다.
+        // 분량은 목표일 뿐이라 전달 실패 문턱은 낮게 둔다(2026-10-30, 40%→30%).
+        fallbackMinChars: Math.round(group.minChars * 0.3),
         // 캐시 키를 그룹·시도별로 갈라야 네 그룹이 서로의 응답을 집어가지 않는다.
         cache: cache ? { ...cache, keyExtra: `${cache.keyExtra}-${group.key}-a${attempt}` } : undefined,
         // 🔴 프롬프트는 위에서 보듯 **전체**를 넘긴다. 접두사 제거는 llm-client 가 Gemini
@@ -725,7 +729,8 @@ async function runSajuAISectionWaves(env, { builtPrompt, systemPrompt, cache, de
         repairLines: initialRepairLines,
         attempt: 0,
         timeoutMs: wave1TimeoutMs,
-        maxOutputTokens: SAJU_AI_SECTION_MAX_OUTPUT_TOKENS,
+        // 같은 예산이면 또 MAX_TOKENS 다 — 잘린 뒤의 재시도만 두 배(24,000, Gemini 상한 32,768 이내).
+        maxOutputTokens: SAJU_AI_SECTION_MAX_OUTPUT_TOKENS * (truncationRetry ? 2 : 1),
       }).then(onSection)));
 
       // ── 웨이브2 — 모자란 그룹만 다시 쓴다(전체 재생성 금지) ──────────────
@@ -5012,6 +5017,7 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
         lengthRepair: true,
         allowRepair: false,
         initialRepairLines: buildSajuAISectionRetryLines(next.lastFailure),
+        truncationRetry: next.truncated === true,
         onRepair: async () => {
           next.lengthRepair = true;
           next.valid = !next.qualityRepair && validateSajuAISection(next.text, group, builtPrompt.factSnapshot, { lengthRepair: true });
@@ -5039,6 +5045,9 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
           }
           if (usable) delete next.lastFailure;
           else if (row.ok) next.lastFailure = findSajuAIUnsupportedAdvice(row.text)?.key || "rejected";
+          // 응답은 왔는데 MAX_TOKENS 로 잘렸고(문장 끝 복구본이 검증을 못 넘은 경우 포함) 쓸 수 없다 —
+          // 같은 예산이면 또 잘리므로 다음 요청이 두 배 예산으로 다시 쓰게 표시한다.
+          if (row.ai?.ok && !usable && (!row.ok || row.ai.recoveredLocally)) next.truncated = true; else delete next.truncated;
           next.valid = !next.qualityRepair && validateSajuAISection(next.text, group, builtPrompt.factSnapshot, { lengthRepair: true });
           await saveSajuAISectionCheckpoint({ executionId: sajuExecutionId, leaseToken, sections });
           return row;

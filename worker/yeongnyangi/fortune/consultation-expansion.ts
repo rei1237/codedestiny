@@ -6,6 +6,8 @@ export const CONSULTATION_EXPANSION_VERSION='consultation-expanded-20261019';
 export const EXPANDED_CHAPTERS={mackerel:8,salmon:14,flounder:19,tuna:30,assorted:35,omakase:45} as const;
 /** Every chapter carries an evidence section; without this each one re-explains the same pillars from the start. */
 export const EVIDENCE_ONCE=' 앞 장에서 이미 설명한 근거(explainedEvidence)는 다시 풀지 않고 한 줄로만 가리킨 뒤, 이 장의 판단에 새로 쓰는 근거에 분량을 쓴다.';
+/** The disposition overview (nature) gets a larger share of its chapter than the other sections. */
+export const sectionShare=(id:string)=>id==='nature'?1.5:1;
 const additions=[
  ['질문 속 선택지의 장단점','사용자가 제시한 선택지를 실제 근거로 비교한다. 선택지가 하나면 실행과 보류를 비교하되 가상의 선택임을 명시한다. 앞선 결론을 반복하지 않고 각 선택의 조건과 부담을 설명한다.'],
  ['반복 패턴을 바꾸는 작은 실천','앞선 장에서 확인한 반복 패턴 하나에만 집중한다. 신호를 알아차리는 방법, 바로 바꿀 행동, 기존 방식으로 돌아갔을 때의 조정 방법을 구체화한다.'],
@@ -30,11 +32,13 @@ export function expandConsultationManifest(rows:ChapterSpec[],tier:PackageId,tar
  });
  const end=rows.findIndex(row=>row.key==='prevention'||row.layoutRole==='synthesis');
  const ordered=end<0?[...rows,...extra]:[...rows.slice(0,end),...extra,...rows.slice(end)];
- const weights=ordered.map(row=>(({answer:1.1,foundation:1.05,expert:1.05,synthesis:.9} as Record<string,number>)[row.layoutRole||'']||1));
+ // The opening chapter carries the disposition overview as well as its own role, so it gets the largest share.
+ const weights=ordered.map((row,ordinal)=>ordinal===0?1.35:(({answer:1.1,foundation:1.05,expert:1.05,synthesis:.9} as Record<string,number>)[row.layoutRole||'']||1));
  const weightSum=weights.reduce((sum,value)=>sum+value,0);
  return ordered.map((row,ordinal)=>{
   const targetChars=source.map((n,i)=>(i?Math.floor:Math.ceil)(n*weights[ordinal]/weightSum)) as [number,number];
-  const sections=row.sections?.map(section=>({...section,minimumChars:0,targetChars:targetChars.map(n=>Math.floor(n/row.sections!.length)) as [number,number]}));
+  const shares=row.sections?.reduce((sum,section)=>sum+sectionShare(section.id),0)||1;
+  const sections=row.sections?.map(section=>({...section,minimumChars:0,targetChars:targetChars.map(n=>Math.floor(n*sectionShare(section.id)/shares)) as [number,number]}));
   return {...row,ordinal,targetChars,minimumChars:Math.ceil(targetChars[0]*(row.consultationLayout?.startsWith('fusion-book-')? .8 : .55)),sections,
    excludes:ordered.filter(other=>other.id!==row.id).map(other=>other.title),outputTokens:Math.max(8192,conciseOutputTokens({targetChars,sections}))};
  });

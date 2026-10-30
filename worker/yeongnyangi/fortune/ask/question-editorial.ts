@@ -30,3 +30,10 @@ export const foundationGuide:Record<DomainId,{title:string;instruction:string}>=
  astrology:{title:'내 출생 차트의 바탕 · 성향과 마음의 반응',instruction:'태양·달·상승점과 실제 행성의 각에서 읽히는 성향을 설명한다. 출생시간이 불명확한 상승점·하우스를 확정하지 않고 출생 배치로 사건 날짜를 예측하지 않는다.'},
  tarot:{title:'카드에 비친 지금의 마음과 태도',instruction:'저장된 카드의 이름·정역방향·상징에서 지금의 태도와 상황을 읽는다. 타고난 성격이나 상대의 실제 속마음을 단정하지 않는다.'},
 };
+
+const natureAnchors:Record<Exclude<DomainId,'tarot'>,string>={saju:'일간·월지·오행 분포와 십성',ziwei:'명궁·신궁의 주성',sukuyo:'본명숙',vedic:'라그나·달·나크샤트라',astrology:'태양·달·상승점(ASC)'};
+/** nature section: the disposition overview opens the reading. Tarot has no birth disposition and keeps its guide. */
+export function natureOverview(domain:DomainId){
+ if(domain==='tarot')return foundationGuide.tarot.instruction;
+ return foundationGuide[domain].instruction+` 이 소절은 타고난 성향 총론이다. ${natureAnchors[domain]}을 중심 근거로 이 사람의 타고난 기질과 성향을 먼저 전반적으로 짚어, 상담자가 나를 정확히 봤다고 느끼도록 신뢰가 서게 시작한다. 핵심 기질 두세 가지, 감정과 관계에서의 반응, 일과 결정을 내리는 습관, 에너지를 채우는 방식을 계산 사실의 쉬운 뜻 → 생활에서 드러나는 장면 순서로 구체적으로 쓴다. 강점과 부담은 핵심만 짧게 짚고 자세한 활용과 조정은 뒤 장에 맡긴다. 재물·연애·직업·시기 운세로 성향 총론을 대신하지 않는다.`;
+}

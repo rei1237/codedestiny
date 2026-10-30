@@ -204,6 +204,16 @@ for (const repair of ["shorter", "repeated", "empty", "truncated", "wrong-chart"
   else expect(docs[0].llmMeta.groups[key]).toEqual(draft);
   expect(docs[0].llmMeta.attempts[key]).toBe(2); expect(provider).toHaveBeenCalledTimes(6); expect(refund).not.toHaveBeenCalled();
 });
+it("doubles the output budget only for the retry after an unsalvageable truncated group", async () => {
+  const normal = provider.getMockImplementation();
+  provider.mockImplementation(async (...args) => provider.mock.calls.length === 1 ? { ...(await normal(...args)), text: '{"sections":{"', truncated: true, finishReason: "MAX_TOKENS" } : normal(...args));
+  for (let i = 0; i < 8 && docs[0]?.status !== "completed"; i++) await start();
+  const [first, retry, next] = provider.mock.calls.map(args => args[2]);
+  expect(retry.logContext.group).toBe(first.logContext.group);
+  expect(retry.baseTokens).toBe(Math.max(first.baseTokens, Math.min(32768, first.baseTokens * 2))); expect(retry.capTokens).toBeGreaterThanOrEqual(retry.baseTokens);
+  expect(next.baseTokens).toBe(first.baseTokens); expect(docs[0].llmMeta.attempts[`${first.logContext.group}:truncated`]).toBe(1);
+  expect(docs[0].status).toBe("completed"); expect(provider).toHaveBeenCalledTimes(6); expect(refund).not.toHaveBeenCalled();
+});
 it("trims overlong JSON bodies while retaining keys and scores", async () => {
   const normal = provider.getMockImplementation();
   provider.mockImplementation(async (...args) => {

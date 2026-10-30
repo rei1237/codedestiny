@@ -1891,11 +1891,11 @@ async function generateConsultationSection(env, options) {
       temperature: repairLines.length ? 0.62 : 0.72,
       maxOutputTokens: NEW_YEAR_AI_SECTION_MAX_OUTPUT_TOKENS,
       timeoutMs,
-      // 폴백 허용. 섹션 목표의 40% 미만이면 gemini.js가 실패로 돌려 재시도·환불 경로를 지킨다.
-      // 섹션 단위(2,600~5,000자)라 문턱이 1,040~1,360자이고, 실측 폴백 분량(~1,700자)이 이를 넘긴다 —
-      // 단일 2만자 호출에서는 넘길 수 없어 폴백이 사실상 무용지물이었다.
-      // 🔴 섹션 하한을 4,250자 이상으로 올리면 문턱이 1,700자를 넘어 폴백이 다시 무용지물이 된다.
-      fallbackMinChars: Math.round(section.minChars * 0.4),
+      // 폴백 허용. 섹션 하한의 30% 미만이면 gemini.js가 실패로 돌려 재시도·환불 경로를 지킨다.
+      // 섹션 하한 2,800~4,000자라 문턱이 840~1,200자이고, 실측 폴백 분량(~1,700자)이 이를 넘긴다 —
+      // 40%(1,600자)는 실측 폴백과 100자 차이라 조금 짧은 폴백이 시도만 태웠다(분량은 목표, 배달이 먼저).
+      // 🔴 섹션 하한을 5,600자 이상으로 올리면 문턱이 1,700자를 넘어 폴백이 다시 무용지물이 된다.
+      fallbackMinChars: Math.round(section.minChars * 0.3),
       cache,
       logContext,
       ...recoveryOptions,
@@ -2033,7 +2033,7 @@ async function generateConsultationText(env, input, fortuneData, options = {}) {
       temperature: 0.52,
       maxOutputTokens: NEW_YEAR_AI_SECTION_MAX_OUTPUT_TOKENS,
       timeoutMs: sectionTimeoutMs(),
-      fallbackMinChars: Math.round(longest.section.minChars * 0.4),
+      fallbackMinChars: Math.round(longest.section.minChars * 0.3),
       cache: newYearLlmCache,
     });
     const compressedText = clean(compressed?.text);
@@ -2460,7 +2460,11 @@ async function generateNewYearWave(env, input, fortuneData, options) {
         const index = results.indexOf(candidate);
         const before = contentIssues(results);
         const sourceRows = results.map((row, i) => i === index ? generated : row);
-        const trimmed = { ...generated, text: trimPaidReportText(generated.text, candidate.section.maxChars) };
+        // maxChars는 목표다. 자른 쪽에만 새 이슈(11·12월·마무리 소제목 누락 등)가 생기면 자르지 않고 그대로 채택한다 —
+        // 길게 쓴 보완이 잘린 탓에 버려져 마지막 시도를 태우지 않게(분량 초과는 거부 사유가 아니다).
+        const clipped = { ...generated, text: trimPaidReportText(generated.text, candidate.section.maxChars) };
+        const clipLoses = contentIssues(results.map((row, i) => i === index ? clipped : row)).some(issue => isNewIssue(issue, contentIssues(sourceRows)));
+        const trimmed = clipLoses ? generated : clipped;
         const next = results.map((row, i) => i === index ? trimmed : row);
         const after = contentIssues(next);
         const noNewIssues = [...contentIssues(sourceRows), ...after].every(issue => !isNewIssue(issue, before));
