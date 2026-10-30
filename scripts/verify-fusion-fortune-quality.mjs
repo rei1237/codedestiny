@@ -411,7 +411,7 @@ const validationOptions = {
   console.log("[tarot] 환각·누락 모두 그룹 경계에서 차단 · 다른 그룹에는 미적용");
 }
 
-// ── 7. 목표에 크게 못 미친 그룹을 다시 부르는가 ─────────────────────────────
+// ── 7. 목표에 못 미친 유효 그룹을 재호출 없이 전달하는가 ─────────────────────
 {
   const attempts = new Map();
   const { second } = await runTwoStages({
@@ -425,11 +425,11 @@ const validationOptions = {
       return { ok: true, provider: "gemini", model: "gemini-2.5-flash", text: JSON.stringify(groupPayload(groupById(groupId), { shortBy })) };
     },
   });
-  // 690ccfea5가 1회로 바꿨다가 R5(28,650자·보완 0회 "full")에서 되돌린다 — 길이 규칙 L2(보완 1회).
-  check("미달 그룹은 재생성", (attempts.get("action") || 0) === 2, `action attempts=${attempts.get("action")}`);
+  // 2026-10-30: R5 보완 호출을 없앴다. 분량은 전달 등급만 정하고, 유료 주문의 시도·호출 상한은 못 쓴 장에 쓴다.
+  check("미달 그룹도 재호출 없이 전달", (attempts.get("action") || 0) === 1, `action attempts=${attempts.get("action")}`);
   check("충분한 그룹은 재생성하지 않음", (attempts.get("saju") || 0) === 1 && (attempts.get("verdict") || 0) === 1, `saju=${attempts.get("saju")} verdict=${attempts.get("verdict")}`);
   check("짧은 본문을 전달 가능한 계약으로 유지", second.deliverable && validateFusionFortuneResult(second.result || {}, { ...validationOptions, ignoreLength: true }).ok);
-  console.log("[retry] 목표의 80% 미만 그룹만 1회 재생성");
+  console.log("[retry] 분량 미달만으로는 재호출하지 않음 · 짧은 유효 본문 전달");
 }
 
 // ── 8. 시각화가 어떤 입력에서도 그릴 수 있는 값이 되는가 ────────────────────
