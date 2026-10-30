@@ -1,7 +1,7 @@
 ---
-status: active
+status: done
 updated: 2026-10-31
-next: "§운영 배포 2단계부터(후속 과제·검증 끝, main push 완료) → CI required → release production → verify → 운영 실측"
+next: "없음 — 후속 과제 10건 처리, 운영 533008fc846d 배포·verify PASS(§운영 배포 결과)"
 ---
 
 # 2026-10-30 대표 상담 모바일 UI/UX — 후속 과제 마무리 후 운영 배포
@@ -136,6 +136,32 @@ next: "§운영 배포 2단계부터(후속 과제·검증 끝, main push 완료
 5. 운영에서 360·390 화면 실측을 1회 한다. 대상은 네오, 신년운세, 인생의 책, 초융합, 연애 비책이고, 실결제는 하지 않는다. `cf-placement`가 `remote-ICN`인지도 확인한다.
 6. 실패하면 `-f mode=rollback`으로 되돌린다. 직전 운영 SHA는 `4135d0e44292`다.
 7. 배포가 끝나면 이 문서의 `status: done`과 결과(SHA, run id, verify)를 기록하고 커밋한다.
+
+### 운영 배포 결과 (2026-10-31)
+
+- push
+  - origin/main `4135d0e44`가 이 브랜치의 바로 위 부모였다. 그 위 커밋이 모두 이 인수인계 줄의 것이라 cherry-pick 대신 fast-forward로 올렸다. 그래서 위 표의 SHA가 그대로 main에 있다.
+  - `27699c3d8`(초융합 복구 기록)도 함께 올라갔다. §현재 상태의 미push 목록에 들어 있던 커밋이다.
+- push 직전에 더한 커밋
+  - `60b7a49e7` 사이트맵 lastmod 재생성. 공용 폼 컴포넌트를 쓰는 라우트 376개다.
+  - `f86a3134a` public 미러 동기화. `check:pre-push`가 `e2f5dda7f`의 `styles/moonlit-birth-form.css` 미러 누락을 잡았다. index.html은 og 이미지 빌드 해시만 바뀌었다.
+  - `533008fc8` 이 문서 status를 `in-progress`에서 `active`로 고쳤다. PR CI run 41090345375의 `verify:handoff-contract`가 막았다. CI에서 건너뛴 51단계는 로컬에서 통과했다.
+- CI
+  - PR CI run 41093115322(`533008fc8`)에서 CI required가 success였다.
+  - 코드 lane(build·typecheck·critical)은 run 41090345375(`f86a3134a`)에서 success였다.
+- 릴리스
+  - run 41096476153, `mode=production`, success였다.
+  - Pages `96ac8874-bada-4d27-a4ed-1d02c28fb415`, Worker `32aa7a06-9c1a-4095-a57f-d68fac2f0110`.
+  - 롤백 대상은 Pages `ae27f3c0-2904-4e2b-866d-7e5f01ac6693` / Worker `b8d5e28c-da26-4c75-98c7-8cc45fd69a85`(`4135d0e44292`)다.
+- verify
+  - `verify-deployed-sha --sha=533008fc846d…` PASS. Pages와 Worker 모두 `533008fc846d`다.
+  - `/api/health`의 `cf-placement`는 `remote-ICN`이었다.
+- 운영 실측(360·390, 실결제 없음)
+  - 첫 입력칸 y는 신년 1211·1107, 인생의 책 1438·1380, 초융합 1641·1588로 개발 실측과 같다.
+  - 네오·연애 비책은 첫 화면에 입력칸이 없다(개발과 같다).
+  - 다섯 화면 모두 바닥에서 고정 바가 마지막 글을 덮지 않는다.
+  - 초융합 주문 바의 가격 "1회 50,000원"은 바 안(x 27–116 / 바 12–348)에 잘림 없이 들어간다.
+  - 신년운세 1280: 글 81–484, 카드 512–752, 나침반 787–1147로 겹치지 않는다. 상태 문구는 1회다.
 
 ## 지켜야 할 것
 
