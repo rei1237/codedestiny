@@ -898,13 +898,11 @@ const intensityOptions: Array<{
   id: IntensityId;
   label: string;
   body: string;
-  cropX: string;
-  cropY: string;
   tone: "mild" | "standard" | "roar";
 }> = [
-  { id: "soft", label: "순한맛", body: "정곡은 찌르되 숨 고를 틈은 남긴다.", cropX: "0%", cropY: "-50%", tone: "mild" },
-  { id: "standard", label: "기본맛", body: "회피한 부분까지 정확히 끌어올린다.", cropX: "-33.333%", cropY: "-50%", tone: "standard" },
-  { id: "roar", label: "사자 포효맛", body: "핑계의 방패를 내려놓게 만든다.", cropX: "-66.666%", cropY: "-50%", tone: "roar" },
+  { id: "soft", label: "순한맛", body: "정곡은 찌르되 숨 고를 틈은 남긴다.", tone: "mild" },
+  { id: "standard", label: "기본맛", body: "회피한 부분까지 정확히 끌어올린다.", tone: "standard" },
+  { id: "roar", label: "매운맛", body: "핑계의 방패를 내려놓게 만든다.", tone: "roar" },
 ];
 
 type NeoCommandChoice =
@@ -2776,7 +2774,8 @@ export default function NeoOperationRoomPage() {
                 <span>04</span>
                 <h2 id="neo-intensity-title">{formCopy["intensitySelect.title"]}</h2>
               </div>
-              <div className={styles.intensityGrid}>
+              {/* 모바일에서도 세 칸 한 줄. 설명은 고른 강도 하나만 아래에 보여 첫 화면 높이를 아낀다. */}
+              <div className={styles.intensityGrid} role="group" aria-labelledby="neo-intensity-title">
                 {localizedIntensityOptions.map((item) => (
                   <button
                     key={item.id}
@@ -2791,35 +2790,26 @@ export default function NeoOperationRoomPage() {
                       setLastCommandChoice({ kind: "intensity", value: item.id });
                     }}
                   >
-                    <span
-                      className={styles.intensityImageFrame}
-                      aria-hidden="true"
-                      style={{
-                        "--neo-intensity-x": item.cropX,
-                        "--neo-intensity-y": item.cropY,
-                      } as CSSProperties}
-                    >
-                      <NeoWarRoomAssetImage
-                        asset={neoWarRoomAssets.intensity.spicySheet}
-                        alt=""
-                        sizes="(max-width: 768px) 88vw, 220px"
-                        className={styles.intensityImageAsset}
-                        imageClassName={styles.intensityImage}
-                      />
-                    </span>
-                    <span className={styles.intensityCopy}>
-                      <span className={styles.intensityLabel}>{item.label}</span>
-                      <strong>{item.body}</strong>
-                    </span>
+                    <NeoWarRoomAssetImage
+                      asset={neoWarRoomAssets.intensity[item.id]}
+                      alt=""
+                      sizes="96px"
+                      className={styles.intensityFace}
+                      imageClassName={styles.intensityFaceImage}
+                    />
+                    <span className={styles.intensityLabel}>{item.label}</span>
                   </button>
                 ))}
               </div>
-              {intensity === "roar" ? (
-                <aside className={styles.roarWarning} role="alert">
-                  <span aria-hidden="true">!</span>
-                  <strong>{formCopy["intensitySelect.roarWarningTitle"]}</strong>
-                  <p>{formCopy["intensitySelect.roarWarningBody"]}</p>
-                </aside>
+              {selectedIntensity ? (
+                <div className={styles.intensityNote} data-tone={selectedIntensity.tone} aria-live="polite">
+                  <p>{selectedIntensity.body}</p>
+                  {selectedIntensity.id === "roar" ? (
+                    <p className={styles.intensityCaution}>
+                      <strong>{formCopy["intensitySelect.roarWarningTitle"]}</strong> {formCopy["intensitySelect.roarWarningBody"]}
+                    </p>
+                  ) : null}
+                </div>
               ) : null}
             </section>
             ) : null}

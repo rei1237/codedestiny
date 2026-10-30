@@ -186,13 +186,11 @@ export const neoWarRoomAssets = {
       "method-astrology",
     ),
   },
+  // 팩폭 강도는 영냥이 표정과 고추 개수(1·2·3)로 보여준다. 출처는 public/assets/yeongnyangi/intensity/README.md.
   intensity: {
-    spicySheet: destinyWarAsset(
-      "매운 맛 강도-Photoroom.webp",
-      "팩폭 강도 선택 배지",
-      "intensity-cover",
-      "intensity-spicy-sheet",
-    ),
+    soft: localNeoWarRoomAsset("/assets/yeongnyangi/intensity/soft.webp", "고추 하나를 든 웃는 영냥이", "intensity-cover", "intensity-soft"),
+    standard: localNeoWarRoomAsset("/assets/yeongnyangi/intensity/standard.webp", "고추 둘과 별 지팡이를 든 진지한 영냥이", "intensity-cover", "intensity-standard"),
+    roar: localNeoWarRoomAsset("/assets/yeongnyangi/intensity/hot.webp", "고추 셋과 불꽃 지팡이를 든 화끈한 영냥이", "intensity-cover", "intensity-hot"),
   },
   badges: {
     grades: destinyWarAsset(

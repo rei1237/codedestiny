@@ -230,7 +230,7 @@ const NEO_FORM_COPY_KO: NeoFormCopyTable = {
   "birthInfo.timezone": "시간대",
   "birthInfo.birthTimeUnknown": "출생시간 모름",
   "intensitySelect.title": "팩폭 강도 선택",
-  "intensitySelect.roarWarningTitle": "사자 포효맛 주의",
+  "intensitySelect.roarWarningTitle": "매운맛 주의",
   "intensitySelect.roarWarningBody": "이 강도는 위로보다 직면을 앞세운다. 마음이 예민한 날이라면 기본맛으로 낮춰도 작전은 흐려지지 않는다.",
   "questionInput.title": "고민을 들려주세요",
   "questionInput.label": "지금 네 선택을 흔드는 질문",
@@ -396,7 +396,7 @@ const NEO_FORM_COPY_EN: NeoFormCopyTable = {
   "birthInfo.timezone": "Timezone",
   "birthInfo.birthTimeUnknown": "Birth time unknown",
   "intensitySelect.title": "Choose your fact-punch intensity",
-  "intensitySelect.roarWarningTitle": "Lion's Roar warning",
+  "intensitySelect.roarWarningTitle": "Spicy warning",
   "intensitySelect.roarWarningBody": "This intensity leads with confrontation over comfort. If today's a fragile day, dropping to Mild won't blur the operation.",
   "questionInput.title": "Tell us your concern",
   "questionInput.label": "The question that's shaking your choice right now",
@@ -562,7 +562,7 @@ const NEO_FORM_COPY_JA: NeoFormCopyTable = {
   "birthInfo.timezone": "タイムゾーン",
   "birthInfo.birthTimeUnknown": "出生時間不明",
   "intensitySelect.title": "ファクトパンチの強度を選択",
-  "intensitySelect.roarWarningTitle": "獅子咆哮味の注意",
+  "intensitySelect.roarWarningTitle": "激辛味の注意",
   "intensitySelect.roarWarningBody": "この強度は慰めより直面を優先する。心が繊細な日はマイルド味に下げても作戦はぶれない。",
   "questionInput.title": "悩みを聞かせてください",
   "questionInput.label": "今お前の選択を揺らしている質問",
@@ -728,7 +728,7 @@ const NEO_FORM_COPY_ZH_CN: NeoFormCopyTable = {
   "birthInfo.timezone": "时区",
   "birthInfo.birthTimeUnknown": "出生时间不详",
   "intensitySelect.title": "选择犀利程度",
-  "intensitySelect.roarWarningTitle": "狮吼味提醒",
+  "intensitySelect.roarWarningTitle": "火辣味提醒",
   "intensitySelect.roarWarningBody": "此强度以直面问题为先，而非安慰。若今天情绪敏感，调低到温和味也不会影响作战。",
   "questionInput.title": "说说你的困扰",
   "questionInput.label": "此刻动摇你选择的问题",
@@ -894,7 +894,7 @@ const NEO_FORM_COPY_ZH_TW: NeoFormCopyTable = {
   "birthInfo.timezone": "時區",
   "birthInfo.birthTimeUnknown": "出生時間不詳",
   "intensitySelect.title": "選擇犀利程度",
-  "intensitySelect.roarWarningTitle": "獅吼味提醒",
+  "intensitySelect.roarWarningTitle": "火辣味提醒",
   "intensitySelect.roarWarningBody": "此強度以直面問題為先，而非安慰。若今天情緒敏感，調低到溫和味也不會影響作戰。",
   "questionInput.title": "說說你的困擾",
   "questionInput.label": "此刻動搖你選擇的問題",
@@ -1295,31 +1295,31 @@ export type NeoIntensityCopy = { label: string; body: string };
 const NEO_INTENSITY_TEXT_KO: Record<string, NeoIntensityCopy> = {
   soft: { label: "순한맛", body: "정곡은 찌르되 숨 고를 틈은 남긴다." },
   standard: { label: "기본맛", body: "회피한 부분까지 정확히 끌어올린다." },
-  roar: { label: "사자 포효맛", body: "핑계의 방패를 내려놓게 만든다." },
+  roar: { label: "매운맛", body: "핑계의 방패를 내려놓게 만든다." },
 };
 
 const NEO_INTENSITY_TEXT_EN: Record<string, NeoIntensityCopy> = {
   soft: { label: "Mild", body: "Hits the point, but leaves room to breathe." },
   standard: { label: "Standard", body: "Drags up even the parts you've been avoiding." },
-  roar: { label: "Lion's Roar", body: "Forces you to drop the shield of excuses." },
+  roar: { label: "Spicy", body: "Forces you to drop the shield of excuses." },
 };
 
 const NEO_INTENSITY_TEXT_JA: Record<string, NeoIntensityCopy> = {
   soft: { label: "マイルド味", body: "急所は突くが、息をつく余裕は残す。" },
   standard: { label: "基本味", body: "避けてきた部分まで正確に引き出す。" },
-  roar: { label: "獅子咆哮味", body: "言い訳の盾を下ろさせる。" },
+  roar: { label: "激辛味", body: "言い訳の盾を下ろさせる。" },
 };
 
 const NEO_INTENSITY_TEXT_ZH_CN: Record<string, NeoIntensityCopy> = {
   soft: { label: "温和味", body: "直击要害，但留一口喘息的空间。" },
   standard: { label: "基本味", body: "连你回避的部分也精准挖出来。" },
-  roar: { label: "狮吼味", body: "让你放下借口的盾牌。" },
+  roar: { label: "火辣味", body: "让你放下借口的盾牌。" },
 };
 
 const NEO_INTENSITY_TEXT_ZH_TW: Record<string, NeoIntensityCopy> = {
   soft: { label: "溫和味", body: "直擊要害，但留一口喘息的空間。" },
   standard: { label: "基本味", body: "連你迴避的部分也精準挖出來。" },
-  roar: { label: "獅吼味", body: "讓你放下藉口的盾牌。" },
+  roar: { label: "火辣味", body: "讓你放下藉口的盾牌。" },
 };
 
 const NEO_INTENSITY_TEXT_BY_LOCALE: Partial<Record<NonKoLocale, Record<string, NeoIntensityCopy>>> = {
