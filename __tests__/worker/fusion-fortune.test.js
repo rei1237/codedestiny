@@ -1078,6 +1078,7 @@ describe("paid premium stage one never stalls on an empty wave (2026-10-30)", ()
     ["timeout", { ok: false, error: "LLM_GENERATION_TIMEOUT" }, false],
     ["spend cap", { ok: false, error: "llm_failed", providerCode: "GEMINI_SPEND_CAP", status: 429, retryable: false }, false],
     ["bad request", { ok: false, error: "LLM_INPUT_TOKEN_COUNT_UNAVAILABLE", providerCode: "GEMINI_INVALID_REQUEST", status: 400, retryable: false }, false],
+    ["retired model", { ok: false, error: "LLM_INPUT_TOKEN_COUNT_UNAVAILABLE", providerCode: "GEMINI_MODEL_UNAVAILABLE", status: 404, retryable: false }, true],
   ])("%s hands the reservation back only when Gemini never billed it", async (_name, failure, handsBack) => {
     const reservations = [];
     const providerCall = jest.fn(async () => failure);
@@ -1085,5 +1086,40 @@ describe("paid premium stage one never stalls on an empty wave (2026-10-30)", ()
     expect(providerCall).toHaveBeenCalledTimes(1);
     expect(reservations).toEqual([["saju", {}], ...(handsBack ? [["saju", { unbilled: true }]] : [])]);
     expect(result.automaticRetryAllowed).toBe(handsBack);
+  });
+});
+
+describe("premium Pro groups fall back to Flash (2026-10-30 gemini-2.5-pro 404)", () => {
+  const env = { ENABLE_FUSION_FORTUNE_REAL_LLM: "true", ALLOW_FUSION_FORTUNE_REAL_LLM: "true", GEMINIF_API_KEY: "mock-only", GEMINI_CONTEXT_CACHE: "false" };
+  const context = { birthTimeKnown: true, birthPlaceKnown: true, locale: "ko", reportVersion: "fusion-premium.v2" };
+  const retired = { ok: false, error: "LLM_INPUT_TOKEN_COUNT_UNAVAILABLE", providerCode: "GEMINI_MODEL_UNAVAILABLE", status: 404, retryable: false };
+  const calls = providerCall => providerCall.mock.calls.map(call => [call[2].logContext.sectionGroup, call[2].model, call[2].reasoningTask || null]);
+  const stageTwo = (providerCall, attempts, reservations) => generateFusionFortuneWithRealLLM({ input, context, env, providerCall, stage: 2,
+    priorSnapshot: { attempts }, onCheckpoint: async () => {},
+    onAttempt: async (id, options) => { reservations.push([id, options]); return options.unbilled ? Number(attempts[id] || 0) : Number(attempts[id] || 0) + 1; } });
+  it.each([
+    ["retired model", retired],
+    ["rate limit", { ok: false, error: "llm_failed", providerCode: "GEMINI_RATE_LIMITED", status: 429, retryable: true }],
+    ["overload", { ok: false, error: "llm_failed", providerCode: "GEMINI_UNAVAILABLE", status: 503, retryable: true }],
+  ])("%s sends the same reserved attempt to Flash without the Pro reasoning task", async (_name, failure) => {
+    const reservations = [];
+    const providerCall = jest.fn(async (_env, _prompt, options) => options.model === "gemini-2.5-pro" ? failure : { ok: false, error: "llm_failed" });
+    const result = await stageTwo(providerCall, {}, reservations);
+    expect(calls(providerCall)).toEqual([["integration", "gemini-2.5-pro", "fusion-integration"], ["action", "gemini-2.5-flash", null], ["integration", "gemini-2.5-flash", null]]);
+    expect(reservations).toEqual([["integration", {}], ["action", {}]]);
+    expect(result).toMatchObject({ providerCalls: 3, modelFallbacks: 1 });
+  });
+  it("keeps a timed-out Pro attempt spent and does not call again in the same attempt", async () => {
+    const reservations = [];
+    const providerCall = jest.fn(async (_env, _prompt, options) => ({ ok: false, error: options.model === "gemini-2.5-pro" ? "LLM_GENERATION_TIMEOUT" : "llm_failed" }));
+    const result = await stageTwo(providerCall, {}, reservations);
+    expect(calls(providerCall).filter(([group]) => group === "integration")).toEqual([["integration", "gemini-2.5-pro", "fusion-integration"]]);
+    expect(result.modelFallbacks).toBeUndefined();
+  });
+  it("starts a Pro group on Flash once an earlier attempt was spent", async () => {
+    const reservations = [];
+    const providerCall = jest.fn(async () => ({ ok: false, error: "llm_failed" }));
+    await stageTwo(providerCall, { integration: 1, action: 2, verdict: 2 }, reservations);
+    expect(calls(providerCall)[0]).toEqual(["integration", "gemini-2.5-flash", null]);
   });
 });

@@ -1,4 +1,4 @@
-import { selectGeminiModel } from "../../lib/gemini-model-policy.js";
+import { GEMINI_PROSE_MODEL, selectGeminiModel } from "../../lib/gemini-model-policy.js";
 import { FUSION_PREMIUM_VERSION, fusionGroupModel, fusionReasoningTask, FUSION_PREMIUM_THINKING, premiumLengthFor, premiumTargetsFor, isDomainFusion, FUSION_DOMAIN_CHAPTERS, FUSION_DOMAIN_KEYS, premiumFusionBody, normalizeFusionSubchapters, isPremiumFusion, premiumGroupTarget, validFusionConsultationPlan, fusionSubchapters } from "../../lib/fusion-premium-report.js";
 import { fusionEvidenceReferences, fusionLocaleLengthScale, fusionExpertEvidenceReady, FUSION_EXPERT_VERSION, validFusionSignals, normalizeFusionSignals, buildFusionEvidenceCrossCheck, fusionInputIdentity, fusionCheckpointMatches } from "./fusion-expert-contract.js";
 import { tokensRequiredForChars } from "./llm-budget.js";
@@ -719,7 +719,18 @@ export function fusionGroupAttemptLimit(snapshot) {
 export const FUSION_UNBILLED_RETRY_LIMIT = 3;
 const FUSION_UNBILLED_FAILURES = new Set(["LLM_INPUT_TOKEN_COUNT_UNAVAILABLE", "GEMINI_RATE_LIMITED", "GEMINI_UNAVAILABLE"]);
 export function isUnbilledFusionFailure(response) {
-  return response?.retryable !== false && [response?.error, response?.providerCode].some(code => FUSION_UNBILLED_FAILURES.has(code));
+  // A retired model (404) is rejected before any generation, so it never bills either.
+  return response?.providerCode === "GEMINI_MODEL_UNAVAILABLE"
+    || (response?.retryable !== false && [response?.error, response?.providerCode].some(code => FUSION_UNBILLED_FAILURES.has(code)));
+}
+// 🔴 Pro가 응답하지 않으면 같은 프롬프트를 Flash로 보낸다(전달 우선). 2026-10-30: gemini-2.5-pro가 이 프로젝트에서
+//    404로 은퇴해 프리미엄 integration·verdict 호출이 전부 countTokens에서 실패했고, 그 주문은 끝내 완료되지 못했다.
+const FUSION_PRO_FALLBACK_CODES = new Set(["GEMINI_MODEL_UNAVAILABLE", "GEMINI_RATE_LIMITED", "GEMINI_UNAVAILABLE"]);
+const isProModel = model => /(?:^|\/)gemini-[\w.-]*pro(?:[-.]|$)/i.test(String(model || ""));
+export function fusionProFallbackCause(model, response) {
+  if (response?.ok || !isProModel(model)) return "";
+  if (FUSION_PRO_FALLBACK_CODES.has(response?.providerCode)) return response.providerCode;
+  return response?.error === "LLM_GENERATION_TIMEOUT" ? "LLM_GENERATION_TIMEOUT" : "";
 }
 /** Premium stage 1 writes the consultation plan in saju; every other group needs that plan first. */
 export function fusionGroupWaitsForPlan(group, context, stage, values) {
@@ -1110,6 +1121,15 @@ export async function generateFusionFortuneWithRealLLM({
   const remainingMs = () => profile.deadlineMs - (Date.now() - startedAt);
 
   const groupModel = group => isPremiumFusion(context) ? fusionGroupModel(group) : selectGeminiModel(text(env.FUSION_FORTUNE_LLM_MODEL, 100));
+  // A Pro group runs on Flash once Pro is gone for this run (404), once Pro failed it here (429·503·timeout),
+  // or when an earlier attempt was already spent — failure causes are not stored, so a retry never waits on Pro again.
+  let proRetired = false;
+  const flashGroups = new Set();
+  let modelFallbacks = 0;
+  const modelFor = group => {
+    const model = groupModel(group);
+    return isProModel(model) && (proRetired || flashGroups.has(group.id) || Number(attemptCounts[group.id] || 0) >= 1) ? GEMINI_PROSE_MODEL : model;
+  };
   // 🔴 ignoreLength:true is the *acceptance* gate only (rule L1, docs/handoff/2026-09-27-llm-length-never-fatal.md):
   //    a short valid group is kept, never failed. Length only decides the delivery tier (degraded vs full).
   // 2026-10-30: the R5 length repair is gone. A short valid group never buys another call — it spent the
@@ -1152,7 +1172,8 @@ export async function generateFusionFortuneWithRealLLM({
     if (group.stage === 1) await emitFusionFortuneStage(onStage, group.id, { phase: "analysis" });
   };
   const groupTimeoutMs = isPremiumFusion(context) ? 85000 : fusionGroupTimeoutMs(env);
-  const timeoutFor = group => profile.proTimeoutMs ? (/pro/i.test(groupModel(group)) ? profile.proTimeoutMs : profile.flashTimeoutMs) : groupTimeoutMs;
+  const flashTimeoutMs = profile.flashTimeoutMs || groupTimeoutMs;
+  const timeoutFor = group => profile.proTimeoutMs ? (isProModel(modelFor(group)) ? profile.proTimeoutMs : flashTimeoutMs) : groupTimeoutMs;
   const runGroup = async (group, { attempts = FUSION_GROUP_ATTEMPTS, timeoutMs = timeoutFor(group), extraInstruction = "", progress = composeProgress, persist = true } = {}) => {
     // 🔴 데드라인을 그룹 호출 **안에서** 강제한다. 예전에는 1차 병렬이 예산을 전혀 보지 않고
     //    attempts×timeoutMs(최악 110초)를 다 쓴 뒤에야 다음 물결에서 남은 예산을 확인했다.
@@ -1177,6 +1198,7 @@ export async function generateFusionFortuneWithRealLLM({
     // responseSchema below already carries every key, descriptor and array minimum.
     // Keep the display prompt intact; send each schema only once to the provider.
     const groupPrompt = buildFusionSectionGroupPrompt({ context, group, priorSections: { ...prior, ...merged }, extraInstruction, schemaInPrompt: false });
+    let model = modelFor(group);
     if (Number(attemptCounts[group.id] || 0) >= attemptLimit) return { ok: savedValid, group, value: savedValid ? saved : undefined, issue: "budget_exhausted" };
     const reservedAttempt = typeof onAttempt === "function" ? await onAttempt(group.id, {}) : null;
     attemptCounts[group.id] = reservedAttempt || Number(attemptCounts[group.id] || 0) + 1;
@@ -1184,36 +1206,53 @@ export async function generateFusionFortuneWithRealLLM({
     // almost always a cut-off answer (salvage drops the cut key), so it gets twice the room; the base stays the cost plan.
     const plannedTokens = fusionGroupTokens(group, env, context);
     const groupTokens = !savedValid && Number(attemptCounts[group.id]) > 1 ? Math.max(plannedTokens, Math.min(32768, plannedTokens * 2)) : plannedTokens;
-    providerCalls += 1;
-    let response;
-    try {
-      response = await providerCall(env, groupPrompt.userPrompt, {
-        systemPrompt: groupPrompt.systemPrompt,
-        responseMimeType: "application/json",
-        // 🔴 구조화 출력을 켜는 유일한 지점이다 — 다른 호출부는 이 옵션을 세우지 않으므로
-        //    공용 경로(gemini.js·llm-client.ts)는 초융합 밖에서 바디가 이전과 같다.
-        //    해제할 때는 위 schemaInPrompt도 true로 되돌려 출력 계약을 유지한다.
-        responseSchema: groupPrompt.geminiSchema,
-        attempts,
-        maxOutputTokens: groupTokens,
-        temperature: 0.62,
-        timeoutMs: clampedTimeoutMs,
-        model: groupModel(group),
-        reasoningTask: isPremiumFusion(context) ? fusionReasoningTask(group) : undefined,
-        ...(isPremiumFusion(context) ? { thinkingBudget: FUSION_PREMIUM_THINKING } : {}),
-        taskType: "fortune",
+    const send = async (callModel, callTimeoutMs) => {
+      providerCalls += 1;
+      try {
+        return await providerCall(env, groupPrompt.userPrompt, {
+          systemPrompt: groupPrompt.systemPrompt,
+          responseMimeType: "application/json",
+          // 🔴 구조화 출력을 켜는 유일한 지점이다 — 다른 호출부는 이 옵션을 세우지 않으므로
+          //    공용 경로(gemini.js·llm-client.ts)는 초융합 밖에서 바디가 이전과 같다.
+          //    해제할 때는 위 schemaInPrompt도 true로 되돌려 출력 계약을 유지한다.
+          responseSchema: groupPrompt.geminiSchema,
+          attempts,
+          maxOutputTokens: groupTokens,
+          temperature: 0.62,
+          timeoutMs: callTimeoutMs,
+          model: callModel,
+          // selectGeminiModel forces Pro for a reasoning task, so a Flash call must not carry one.
+          reasoningTask: isPremiumFusion(context) && callModel === groupModel(group) ? fusionReasoningTask(group) : undefined,
+          ...(isPremiumFusion(context) ? { thinkingBudget: FUSION_PREMIUM_THINKING } : {}),
+          taskType: "fortune",
 
-        // 🔴 초융합은 Workers AI 폴백을 켜지 않는다. 폴백 모델은 목표의 60~77%에서 스스로
-        // 멈춰(2026-07-30 실측) 분량 계약을 구조적으로 채울 수 없다. 켜면 호출만 더
-        // 태우고 결국 반려된다. 폴백을 켜게 되면 fallbackMinChars 를 함께 줘야 한다.
-        fallbackToWorkersAI: false,
-        // 🔴 묶음마다 같은 접두사(공통 규칙 + 1단계 요약 + 서버 컨텍스트)를 정가로 다시 보내지
-        //    않는다. 접두사 제거는 llm-client 가 전송 직전에만 하므로 userPrompt 는 전체로 둔다.
-        geminiCachedContent: contextCaches.get(groupModel(group)) || undefined,
-        logContext: { requestId: text(requestId, 120), featureKey: "fusion_fortune", stage: stageNumber, sectionGroup: group.id },
-      });
-    } catch (error) {
-      response = { ok: false, error: text(error?.code, 80) || "provider_exception" };
+          // 🔴 초융합은 Workers AI 폴백을 켜지 않는다. 폴백 모델은 목표의 60~77%에서 스스로
+          // 멈춰(2026-07-30 실측) 분량 계약을 구조적으로 채울 수 없다. 켜면 호출만 더
+          // 태우고 결국 반려된다. 폴백을 켜게 되면 fallbackMinChars 를 함께 줘야 한다.
+          fallbackToWorkersAI: false,
+          // 🔴 묶음마다 같은 접두사(공통 규칙 + 1단계 요약 + 서버 컨텍스트)를 정가로 다시 보내지
+          //    않는다. 접두사 제거는 llm-client 가 전송 직전에만 하므로 userPrompt 는 전체로 둔다.
+          geminiCachedContent: contextCaches.get(callModel) || undefined,
+          logContext: { requestId: text(requestId, 120), featureKey: "fusion_fortune", stage: stageNumber, sectionGroup: group.id },
+        });
+      } catch (error) {
+        return { ok: false, error: text(error?.code, 80) || "provider_exception" };
+      }
+    };
+    let response = await send(model, clampedTimeoutMs);
+    const fallbackCause = fusionProFallbackCause(model, response);
+    if (fallbackCause) {
+      flashGroups.add(group.id);
+      if (fallbackCause === "GEMINI_MODEL_UNAVAILABLE") proRetired = true;
+      // A timeout may already be billed: it keeps its attempt and only the next attempt moves to Flash.
+      // 404·429·503 were never generated, so the same reserved attempt goes to Flash right away.
+      const remainingForFallback = remainingMs();
+      if (fallbackCause !== "LLM_GENERATION_TIMEOUT" && remainingForFallback > profile.tailReserveMs + 1000) {
+        console.warn("[fusion-fortune-model-fallback]", { requestId: text(requestId, 120), stage: stageNumber, sectionGroup: group.id, from: model, to: GEMINI_PROSE_MODEL, cause: [fallbackCause, response?.status].filter(Boolean).join(":") });
+        model = GEMINI_PROSE_MODEL;
+        modelFallbacks += 1;
+        response = await send(model, Math.max(1000, Math.min(flashTimeoutMs, remainingForFallback - profile.tailReserveMs)));
+      }
     }
     if (!response?.ok) {
       // A call Gemini never billed hands its reservation back (bounded per group in storage).
@@ -1289,13 +1328,13 @@ export async function generateFusionFortuneWithRealLLM({
   //    지금까지와 완전히 같은 바디가 나간다(createGeminiContextCache 는 던지지 않는다).
   // A cache is model-specific. Mixed Flash/Pro waves never share its handle.
   for (const group of waveGroups) {
-    const model = groupModel(group);
+    const model = modelFor(group);
     if (profile.contextCache === false || contextCaches.has(model) || remainingMs() <= profile.tailReserveMs) continue;
     contextCaches.set(model, await createGeminiContextCache(env, {
       prefix: buildFusionSectionPromptPrefix({ context, stage: stageNumber, priorSections: prior }),
       systemPrompt: buildFusionSectionSystemPrompt(context),
       model,
-      reasoningTask: isPremiumFusion(context) ? fusionReasoningTask(group) : undefined,
+      reasoningTask: isPremiumFusion(context) && model === groupModel(group) ? fusionReasoningTask(group) : undefined,
     }));
   }
 
@@ -1379,7 +1418,7 @@ export async function generateFusionFortuneWithRealLLM({
   const missing = groups.filter((group) => !exhaustedOptional(group)).filter((group) => !validateFusionFortuneGroup(composed, group, validationOptions).ok
     || (context.version === FUSION_EXPERT_VERSION && group.stage === 1 && !group.systems.every((system) => validFusionSignals(composed[`${system}Section`], system, context))));
   if (missing.length) {
-    return { result: composed, deliverable: false, generationSource: "gemini_partial", providerCalls,
+    return { result: composed, deliverable: false, generationSource: "gemini_partial", providerCalls, ...(modelFallbacks ? { modelFallbacks } : {}),
       // A group still waiting for the plan cannot run, so its unspent attempts never justify another try.
       automaticRetryAllowed: missing.some(group => !fusionGroupWaitsForPlan(group, context, stageNumber, composed) && Number(attemptCounts[group.id] || 0) < attemptLimit),
       pendingGroups: missing.map(group => group.id), qualityIssues: ["groups_incomplete"], stage: stageNumber };
@@ -1398,7 +1437,7 @@ export async function generateFusionFortuneWithRealLLM({
   // Every group already passed acceptance above; judge the delivery tier on real length so a
   // report that stayed short after its repairs is labelled degraded, not full.
   const decision = resolveFusionFortuneDelivery(composed, { ...validationOptions, ignoreLength: false });
-  return { result: decision.value || composed, deliverable: decision.deliverable, automaticRetryAllowed: false, generationSource: "gemini", providerCalls, qualityTier: decision.tier, qualityNotice: decision.qualityNotice, qualityIssues: [...(decision.issues || []), ...(collectFusionCrossSectionDuplicates(composed).length ? ["cross_section_duplicate"] : [])], stage: 2 };
+  return { result: decision.value || composed, deliverable: decision.deliverable, automaticRetryAllowed: false, generationSource: "gemini", providerCalls, ...(modelFallbacks ? { modelFallbacks } : {}), qualityTier: decision.tier, qualityNotice: decision.qualityNotice, qualityIssues: [...(decision.issues || []), ...(collectFusionCrossSectionDuplicates(composed).length ? ["cross_section_duplicate"] : [])], stage: 2 };
 
 }
 
