@@ -1883,6 +1883,9 @@
 .recoveryNotice p { margin: 0; max-width: 64ch; line-height: 1.8; }
 .recoveryNotice button { min-height: 44px; margin-top: 16px; padding: 10px 20px; border: 0; border-radius: 8px; background: var(--fx-gold-2); color: var(--fx-deep); font-weight: 700; word-break: keep-all; }
 .seoGuide { width: min(960px, calc(100% - 32px)); margin-inline: auto; }
+/* 이용 안내는 <main> 밖 페이지 맨 끝에 온다. .page 바닥 여백은 main 안쪽이라 여기까지 닿지 않아
+   .orderBar 가 마지막 문단을 덮었다(2026-10-30 360px 실측). 같은 바 높이만큼 끝에 여백을 둔다. */
+.usageGuide { margin-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
 
 .tarotCard { position: relative; perspective: 800px; }
 .tarotCardInner { position: absolute; inset: 0; display: block; transform-style: preserve-3d; transition: transform 220ms ease-out; }

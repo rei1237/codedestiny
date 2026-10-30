@@ -77,9 +77,12 @@ export function ExpertStickyCta({ label, targetId, watchId, price, theme }: Expe
   useEffect(() => {
     const target = document.getElementById(targetId);
     if (!target || typeof IntersectionObserver === "undefined") return;
+    // 관찰 영역을 화면 위로 길게 늘린다. 폼이 화면 안이나 위에 있으면 교차, 아래에 있을 때만 비교차다.
+    // 예전에는 화면만 봐서 위에서 바닥으로 한 번에 건너뛰면(End 키·앵커 이동) 폼이 화면을 지나는
+    // 순간이 없어 콜백이 울리지 않았고, 바가 페이지 끝 마지막 콘텐츠를 덮은 채 남았다(2026-10-30 360px 실측).
     const observer = new IntersectionObserver(([entry]) => {
       setFormBelow(!entry.isIntersecting && entry.boundingClientRect.top > 0);
-    });
+    }, { rootMargin: "100000px 0px 0px 0px" });
     observer.observe(target);
     return () => observer.disconnect();
   }, [targetId]);
