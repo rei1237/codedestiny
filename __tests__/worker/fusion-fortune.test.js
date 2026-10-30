@@ -883,30 +883,21 @@ it('repairs only second-stage groups when the saved report misses the body floor
 });
 
 
-describe("fusion length drafts and bounded repairs", () => {
+describe("fusion length drafts are delivered without length repairs", () => {
   const env = { ENABLE_FUSION_FORTUNE_REAL_LLM: "true", ALLOW_FUSION_FORTUNE_REAL_LLM: "true", GEMINIF_API_KEY: "mock-only", GEMINI_CONTEXT_CACHE: "false" };
   const context = { birthTimeKnown: true, birthPlaceKnown: true, locale: "ko" };
-  it.each(["shorter", "empty", "unsafe", "truncated", "repeated"])("preserves a short draft when repair is %s and does not repair again on resume", async kind => {
-    const snapshot = { attempts: {}, lengthRepairs: {} };
+  // 2026-10-30: a short valid group is delivered as is. It never spends another attempt on length.
+  it("keeps a short valid draft without a length repair call and completes both stages", async () => {
+    const snapshot = { attempts: {} };
     let saved = {};
-    const onAttempt = async (id, { lengthRepair }) => {
-      if (lengthRepair) {
-        expect(saved.sajuSection.content.length).toBeGreaterThan(900);
-        snapshot.lengthRepairs[id] = true;
-      }
+    const onAttempt = async (id, options) => {
+      expect(options).toEqual({});
       return snapshot.attempts[id] = (snapshot.attempts[id] || 0) + 1;
     };
     const providerCall = jest.fn(async (_env, _prompt, options) => {
       const group = FUSION_SECTION_GROUP_SPECS.find(g => g.id === options.logContext.sectionGroup);
       const value = buildFusionGroupPayload(group);
-      if (group.id === "saju") {
-        const repair = snapshot.attempts.saju > 1;
-        value.sajuSection.content = fusionFiller("short valid saju", repair ? 500 : 1000);
-        if (repair && kind === "empty") value.sajuSection.content = "";
-        if (repair && kind === "unsafe") value.sajuSection.content += " 상대는 반드시 돌아온다.";
-        if (repair && kind === "repeated") value.sajuSection.content = fusionFiller("repeated", 80).repeat(10);
-        if (repair && kind === "truncated") return { ok: true, text: JSON.stringify(value), truncated: true };
-      }
+      if (group.id === "saju") value.sajuSection.content = fusionFiller("short valid saju", 1000);
       return { ok: true, text: JSON.stringify(value) };
     });
     const args = { input, context, env, providerCall, onAttempt, onCheckpoint: async value => { saved = structuredClone(value); } };
@@ -919,9 +910,9 @@ describe("fusion length drafts and bounded repairs", () => {
       expect(providerCall.mock.calls.length-calls).toBeLessThanOrEqual(2);
     }
     expect(first.deliverable).toBe(true);
-    // R5: a short group gets its one length repair in a later request (2 calls max for the group).
-    expect(snapshot.attempts.saju).toBe(2);
-    expect(snapshot.lengthRepairs.saju).toBe(true);
+    // One call per stage-one group, the short saju included.
+    expect(providerCall).toHaveBeenCalledTimes(6);
+    expect(snapshot.attempts.saju).toBe(1);
     expect(first.result.sajuSection.content).toBe(fusionFiller("short valid saju", 1000));
     providerCall.mockClear();
     const resumed = await generateFusionFortuneWithRealLLM({ ...args, priorResult: first.result, priorSnapshot: snapshot });
@@ -958,16 +949,17 @@ describe("fusion length drafts and bounded repairs", () => {
 });
 
 
-it("total repair keeps longer saved groups and marks a depth-only repair once", async () => {
+it("saved valid groups keep their longer text and never buy a length repair", async () => {
  const prior=Object.assign({}, ...FUSION_SECTION_GROUP_SPECS.map(group=>buildFusionGroupPayload(group)));
  prior.executiveSummary=fusionFiller("short summary",200);
  prior.finalVerdict.rationale=fusionFiller("long rationale",4000);
  const env={ENABLE_FUSION_FORTUNE_REAL_LLM:"true",ALLOW_FUSION_FORTUNE_REAL_LLM:"true",GEMINIF_API_KEY:"mock-only",GEMINI_CONTEXT_CACHE:"false"};
  const reservations=[];
- const snapshot={attempts:{},lengthRepairs:{}};
+ const snapshot={attempts:{}};
  const providerCall=jest.fn(async(_env,_prompt,options)=>({ok:true,text:JSON.stringify(buildFusionGroupPayload(FUSION_SECTION_GROUP_SPECS.find(g=>g.id===options.logContext.sectionGroup)))}));
- const first=await generateFusionFortuneWithRealLLM({context:{birthTimeKnown:true,birthPlaceKnown:true},env,stage:2,priorResult:prior,providerCall,onAttempt:async(id,opts)=>{reservations.push([id,opts]);if(opts.lengthRepair)snapshot.lengthRepairs[id]=true;return snapshot.attempts[id]=(snapshot.attempts[id]||0)+1;}});
- expect(reservations).toContainEqual(["verdict",{lengthRepair:true}]);
+ const first=await generateFusionFortuneWithRealLLM({context:{birthTimeKnown:true,birthPlaceKnown:true},env,stage:2,priorResult:prior,providerCall,onAttempt:async(id,opts)=>{reservations.push([id,opts]);return snapshot.attempts[id]=(snapshot.attempts[id]||0)+1;}});
+ expect(reservations).toEqual([]);
+ expect(providerCall).not.toHaveBeenCalled();
  expect(first.result.finalVerdict.rationale).toBe(prior.finalVerdict.rationale);
  providerCall.mockClear();
  await generateFusionFortuneWithRealLLM({context:{birthTimeKnown:true,birthPlaceKnown:true},env,stage:2,priorResult:first.result,priorSnapshot:snapshot,providerCall});
@@ -1091,7 +1083,7 @@ describe("paid premium stage one never stalls on an empty wave (2026-10-30)", ()
     const providerCall = jest.fn(async () => failure);
     const result = await run(providerCall, { saju: 1 }, async (id, options) => { reservations.push([id, options]); return options.unbilled ? 1 : 2; });
     expect(providerCall).toHaveBeenCalledTimes(1);
-    expect(reservations).toEqual([["saju", { lengthRepair: false }], ...(handsBack ? [["saju", { unbilled: true, lengthRepair: false }]] : [])]);
+    expect(reservations).toEqual([["saju", {}], ...(handsBack ? [["saju", { unbilled: true }]] : [])]);
     expect(result.automaticRetryAllowed).toBe(handsBack);
   });
 });

@@ -726,7 +726,7 @@ export function fusionGroupWaitsForPlan(group, context, stage, values) {
   return isPremiumFusion(context) && Number(stage) === 1 && group?.id !== "saju" && !validFusionConsultationPlan(values?.consultationPlan);
 }
 const FUSION_GROUP_ATTEMPTS = 1;
-// 목표의 이 비율에 못 미친 그룹은 다시 부른다. 낮게 잡으면 65%짜리 그룹이 통과해 합계가 무너진다.
+// 보완 물결의 재생성이 기존 본문보다 짧을 때, 중복·근거를 고쳤다면 이 비율까지는 받는다.
 const FUSION_GROUP_RETRY_RATIO = 0.8;
 // 생성 전체(1차 병렬 + 미달 그룹 재생성)의 벽시계 예산.
 export const FUSION_GENERATION_DEADLINE_MS = 82000;
@@ -1111,19 +1111,12 @@ export async function generateFusionFortuneWithRealLLM({
 
   const groupModel = group => isPremiumFusion(context) ? fusionGroupModel(group) : selectGeminiModel(text(env.FUSION_FORTUNE_LLM_MODEL, 100));
   // 🔴 ignoreLength:true is the *acceptance* gate only (rule L1, docs/handoff/2026-09-27-llm-length-never-fatal.md):
-  //    a short valid group is kept, never failed. Length still decides two things below — whether a
-  //    group is owed its one length repair (rule L2), and the delivery tier (degraded vs full).
+  //    a short valid group is kept, never failed. Length only decides the delivery tier (degraded vs full).
+  // 2026-10-30: the R5 length repair is gone. A short valid group never buys another call — it spent the
+  //    paid order's attempts and call cap on length while other groups were still unwritten (delivery first).
   const validationOptions = { ...fusionValidationOptions(context, input), locale: context.locale, ignoreLength: true };
   const attemptCounts = { ...priorSnapshot?.attempts };
-  const lengthRepairs = { ...priorSnapshot?.lengthRepairs };
   const attemptLimit = fusionGroupAttemptLimit(priorSnapshot);
-  // R5 (2026-10-09): 42b2ba1ef dropped this, so a report at 28,650/30,000 chars shipped as "full" with
-  // six short sections and zero repairs. One repair per group, inside the existing attempt cap.
-  // v2 분야 장(optional)은 분량 보완을 받지 않는다 — 남은 호출은 아직 못 쓴 장에 쓴다.
-  const owesLengthRepair = (values, group) => !group.optional && !lengthRepairs[group.id]
-    && Number(attemptCounts[group.id] || 0) < attemptLimit
-    && (!validateFusionFortuneGroup(values, group, { ...validationOptions, ignoreLength: false }).ok
-      || countFusionGroupChars(values, group) < group.targetChars * FUSION_GROUP_RETRY_RATIO);
   const providers = new Set();
   const models = new Set();
   let providerCalls = 0;
@@ -1138,12 +1131,10 @@ export async function generateFusionFortuneWithRealLLM({
   const savedReady = group => {
     const saved = pickKeys(prior, group.keys);
     return validateFusionFortuneGroup(saved, group, validationOptions).ok
-      && (context.version !== FUSION_EXPERT_VERSION || group.stage !== 1 || group.systems.every(system => validFusionSignals(saved[`${system}Section`], system, context)))
-      && !owesLengthRepair(saved, group);
+      && (context.version !== FUSION_EXPERT_VERSION || group.stage !== 1 || group.systems.every(system => validFusionSignals(saved[`${system}Section`], system, context)));
   };
   // Paid routes always supply checkpoints. At most two unfinished groups per request;
   // previously verified groups travel in prior and never purchase another call.
-  // A short saved group is "unfinished" until its one length repair is spent.
   // 🔴 The plan gate runs before the two-group slice. Slicing first picked ziwei+vedic (fewer attempts than
   //    saju), the gate then emptied the wave, and every later request made zero calls (2026-10-30).
   const waitsForPlan = group => fusionGroupWaitsForPlan(group, context, stageNumber, prior);
@@ -1183,17 +1174,12 @@ export async function generateFusionFortuneWithRealLLM({
     }
     const clampedTimeoutMs = Math.max(1000, Math.min(timeoutMs, remainingBeforeCall - profile.tailReserveMs));
     if (context.version === FUSION_EXPERT_VERSION && group.stage === 1) await emitFusionFortuneStage(onStage, group.id, { phase: "analysis_start", status: "running" });
-    if (typeof onCheckpoint === 'function' && savedValid && !savedReady(group)) {
-      extraInstruction += `\n${buildFusionShortfallInstruction(group, countFusionGroupChars(saved, group))}`;
-    }
     // responseSchema below already carries every key, descriptor and array minimum.
     // Keep the display prompt intact; send each schema only once to the provider.
     const groupPrompt = buildFusionSectionGroupPrompt({ context, group, priorSections: { ...prior, ...merged }, extraInstruction, schemaInPrompt: false });
     if (Number(attemptCounts[group.id] || 0) >= attemptLimit) return { ok: savedValid, group, value: savedValid ? saved : undefined, issue: "budget_exhausted" };
-    const lengthRepair = savedValid && owesLengthRepair(saved, group);
-    const reservedAttempt = typeof onAttempt === "function" ? await onAttempt(group.id, { lengthRepair }) : null;
+    const reservedAttempt = typeof onAttempt === "function" ? await onAttempt(group.id, {}) : null;
     attemptCounts[group.id] = reservedAttempt || Number(attemptCounts[group.id] || 0) + 1;
-    if (lengthRepair) lengthRepairs[group.id] = true;
     // Paid requests do not persist why the last attempt failed. A retry that still has no valid draft is
     // almost always a cut-off answer (salvage drops the cut key), so it gets twice the room; the base stays the cost plan.
     const plannedTokens = fusionGroupTokens(group, env, context);
@@ -1233,11 +1219,8 @@ export async function generateFusionFortuneWithRealLLM({
       // A call Gemini never billed hands its reservation back (bounded per group in storage).
       // If the hand-back fails the attempt stays spent — never more calls than reserved.
       if (isUnbilledFusionFailure(response) && typeof onAttempt === "function") {
-        const returned = await onAttempt(group.id, { unbilled: true, lengthRepair }).catch(() => null);
-        if (Number.isInteger(returned) && returned >= 0) {
-          attemptCounts[group.id] = returned;
-          if (lengthRepair) delete lengthRepairs[group.id];
-        }
+        const returned = await onAttempt(group.id, { unbilled: true }).catch(() => null);
+        if (Number.isInteger(returned) && returned >= 0) attemptCounts[group.id] = returned;
       }
       // providerCode·status 만 남긴다 — 사고 때 countTokens 실패의 HTTP 상태가 로그에 없어 원인을 못 갈랐다.
       return { ok: false, group, issue: text(response?.error, 80) || "provider_failed", detail: [response?.providerCode, response?.status].filter(Boolean).join(":") };
@@ -1331,16 +1314,15 @@ export async function generateFusionFortuneWithRealLLM({
       Object.assign(merged, outcome.value.value);
     });
 
-    // 실패했거나 목표를 크게 밑돈 그룹만 다시 부른다. 그룹 단위라 예산 안에 들어온다.
-    const shortGroups = (isPremiumFusion(context) ? waveGroups : groups).filter((group) => !failedGroups.includes(group) && owesLengthRepair(merged, group));
+    // 실패한 그룹만 다시 부른다(분량 미달은 다시 부르지 않는다 — 2026-10-30). 그룹 단위라 예산 안에 들어온다.
     // 🔴 중복은 **모델이 쓴 본문끼리만** 본다. composed(결정론 폴백이 섞인 것)로 재면 폴백이 제
     //    렌즈 문장을 여러 섹션에 재사용하는 구조 때문에 모델 잘못이 아닌 중복이 잡힌다(실측 24건/40자).
     //    2단계는 1단계 본문(prior)까지 포함해 본다 — 2단계가 요약을 그대로 베끼는 것이 잡아야 할 중복이다.
     const duplicates = collectFusionCrossSectionDuplicates({ ...prior, ...merged });
-    const duplicatedGroups = groups.filter((group) => !failedGroups.includes(group) && !shortGroups.includes(group) && countFusionGroupDuplicates(duplicates, group) >= FUSION_GROUP_DUPLICATE_LIMIT);
+    const duplicatedGroups = groups.filter((group) => !failedGroups.includes(group) && countFusionGroupDuplicates(duplicates, group) >= FUSION_GROUP_DUPLICATE_LIMIT);
     const evidenceTokens = new Map(groups.map((group) => [group.id, collectFusionEvidenceTokens(context, group)]));
-    const thinGroups = (isPremiumFusion(context) ? waveGroups : groups).filter((group) => !failedGroups.includes(group) && !shortGroups.includes(group) && !duplicatedGroups.includes(group) && isFusionGroupEvidenceThin(pickKeys(merged, group.keys), group, evidenceTokens.get(group.id)));
-    const retryTargets = [...failedGroups, ...shortGroups, ...duplicatedGroups, ...thinGroups].filter(group => Number(attemptCounts[group.id] || 0) < attemptLimit);
+    const thinGroups = (isPremiumFusion(context) ? waveGroups : groups).filter((group) => !failedGroups.includes(group) && !duplicatedGroups.includes(group) && isFusionGroupEvidenceThin(pickKeys(merged, group.keys), group, evidenceTokens.get(group.id)));
+    const retryTargets = [...failedGroups, ...duplicatedGroups, ...thinGroups].filter(group => Number(attemptCounts[group.id] || 0) < attemptLimit);
     // 연결이 끊긴 뒤에 보완 호출을 또 태우지 않는다. 1차 호출은 provider 안에서 이미 진행 중이라
     // 여기서 못 끊지만, **두 번째 물결**은 막을 수 있다(비용의 절반이 여기다).
     // 🔴 체크포인트(유료) 경로는 이 물결을 돌지 않는다 — 요청당 최대 2묶음(PAID_LLM_PARTS_PER_REQUEST,
@@ -1356,7 +1338,7 @@ export async function generateFusionFortuneWithRealLLM({
         //    못 미칩니다" 가 사실이 아닌 채로 나가 모델이 엉뚱한 곳을 늘린다.
         extraInstruction: [
           repeatedGroups.includes(group) ? buildFusionRepeatInstruction() : "",
-          !repeatedGroups.includes(group) && (failedGroups.includes(group) || shortGroups.includes(group)) ? buildFusionShortfallInstruction(group, countFusionGroupChars(merged, group)) : "",
+          !repeatedGroups.includes(group) && failedGroups.includes(group) ? buildFusionShortfallInstruction(group, countFusionGroupChars(merged, group)) : "",
           buildFusionDuplicateInstruction(group, duplicates),
           thinGroups.includes(group) ? buildFusionEvidenceInstruction(evidenceTokens.get(group.id)) : "",
         ].filter(Boolean).join("\n\n"),
@@ -1395,8 +1377,7 @@ export async function generateFusionFortuneWithRealLLM({
   //    배달 판정에서 domain_chapter_missing(강등)으로 남는다.
   const exhaustedOptional = (group) => group.optional && Number(attemptCounts[group.id] || 0) >= attemptLimit;
   const missing = groups.filter((group) => !exhaustedOptional(group)).filter((group) => !validateFusionFortuneGroup(composed, group, validationOptions).ok
-    || (context.version === FUSION_EXPERT_VERSION && group.stage === 1 && !group.systems.every((system) => validFusionSignals(composed[`${system}Section`], system, context)))
-    || (typeof onCheckpoint === "function" && owesLengthRepair(composed, group)));
+    || (context.version === FUSION_EXPERT_VERSION && group.stage === 1 && !group.systems.every((system) => validFusionSignals(composed[`${system}Section`], system, context))));
   if (missing.length) {
     return { result: composed, deliverable: false, generationSource: "gemini_partial", providerCalls,
       // A group still waiting for the plan cannot run, so its unspent attempts never justify another try.
