@@ -57,8 +57,9 @@ routes = [
   { pattern = "staging.code-destiny.com/api/*", zone_name = "code-destiny.com" },
 ]
 
-# 🔴 명시 배치(Targeted Placement) — **스테이징 전용 실험**이다(2026-09-26). 프로덕션
-# (worker/wrangler.toml)은 smart 그대로다. 효과가 확인되면 프로덕션 승격을 별도로 결정한다.
+# 🔴 명시 배치(Targeted Placement) — 스테이징 실험(2026-09-26)을 2026-10-30 프로덕션에도 올렸다.
+# 프로덕션 smart 가 워커를 홍콩(Gemini 미지원 지역)으로 옮겨 유료 생성이 막힌 장애 때문이다
+# (worker/wrangler.toml 의 [placement] 주석). 이제 양쪽 값이 같아야 한다.
 #
 # 왜 하나 (실측, 사용자 머신=서울):
 #   Cloudflare 진입 colo 는 미국이다(`/cdn-cgi/trace` → colo=LAX 그리고 2026-09-26 ATL/BOS, loc=KR).
@@ -86,13 +87,8 @@ routes = [
 #   캐시 미스 GET /api/reviews  평균 4.34s → 1.05s(≈−3.3s).
 #   GET /api/health             1.16~1.50s → 0.60~0.97s — DB 를 안 만지는 경로가 빨라진 이유는 분리하지 못했다.
 #   tail 의 connectMs·opMs 집계(npm run report:worker-tail-latency)는 아직 안 돌렸다.
-#   되돌리기: 실험 커밋 483760d86 을 revert(검증기 선언도 같은 커밋에 있다).
-#   프로덕션 승격: worker/wrangler.toml 의 [placement] 를 smart → 이 값으로 바꾸고 아래 두 선언을 지운다
-#   (별도 1회 승인). 해외 사용자는 서울까지 홉이 하나 늘고, 지역 장애 시 폴백은 미검증이다.
 #
-# scripts/verify-worker-config-parity.mjs 가 placement.mode 를 MUST_DIFFER_KEYS 로, placement.region
-# 을 스테이징 전용 키로 선언한다. 프로덕션에 옮기려면 그 두 선언을 함께 지워야 하고 안 지우면
-# 가드가 실패한다 — 결정이 우연히 새지 않는다.
+# scripts/verify-worker-config-parity.mjs 의 PINNED_PLACEMENT 가 양쪽 설정에서 이 두 값을 고정한다.
 [placement]
 mode = "targeted"
 region = "aws:ap-northeast-2"

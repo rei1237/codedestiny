@@ -51,10 +51,6 @@ const MUST_DIFFER_KEYS = new Set([
   "name",
   "routes",
   "triggers.crons",
-  // 프로덕션은 smart(재배치 효과 0 으로 실측), 스테이징은 targeted 로 명시 지역 배치를 실험한다
-  // (2026-09-26). 실험이 끝나 값이 같아지면 이 줄을 지운다. 프로덕션에 옮기려면 STAGING_ONLY_KEYS 의
-  // placement.region 과 함께 지워야 하므로 결정이 우연히 새지 않는다.
-  "placement.mode",
   "r2_buckets.FEEDBACK_IMAGES_BUCKET.bucket_name",
   "r2_buckets.INSIGHT_IMAGES_BUCKET.bucket_name",
   "vars.AUTH_FRONTEND_BASE_URL",
@@ -97,9 +93,6 @@ const STAGING_ONLY_KEYS = new Set([
   // 무료 운명 구조도 문장 다듬기 LLM 스위치(2026-10-06). 운영 활성화는 별도 결정이고, 옮길 때는 위와 같이
   // 워커 텍스트 바인딩 128 한도의 남은 자리를 먼저 확인한다. 코드는 없는 값을 꺼짐으로 읽는다.
   "vars.ENABLE_DESTINY_ANATOMY_REAL_LLM",
-  // 명시 배치의 지역 힌트(2026-09-26 스테이징 실험). 프로덕션에 들어오면 프로덕션 워커의 실행 위치가
-  // 조용히 바뀐다 — 승격은 별도 결정이라 이 선언이 유일한 자동 방어다.
-  "placement.region",
 ]);
 
 /**
@@ -115,6 +108,19 @@ const STAGING_ONLY_KEYS = new Set([
  */
 const REQUIRED_ON_KEYS = new Map([
   ["vars.GUARDIAN_FORTUNE_RATE_LIMIT_ENABLED", "true"],
+]);
+
+/**
+ * 양쪽 설정에서 이 값이어야 하는 워커 배치.
+ *
+ * 2026-10-30 장애: 프로덕션 smart 배치가 워커를 홍콩(cf-placement: remote-HKG)으로 옮겼고, Gemini API 는
+ * 홍콩을 지원하지 않아 countTokens 400 으로 유료 생성이 전부 막혔다. smart 는 위치를 스스로 고르므로
+ * Gemini 지원 지역이면서 Atlas 서울 근처인 지역에 명시 고정한다. 키별 비교는 양쪽을 함께 smart 로
+ * 바꾸면 조용히 통과하므로 값 자체를 고정한다.
+ */
+const PINNED_PLACEMENT = new Map([
+  ["placement.mode", "targeted"],
+  ["placement.region", "aws:ap-northeast-2"],
 ]);
 
 const PRODUCTION_ORIGIN = "https://code-destiny.com";
@@ -388,6 +394,18 @@ export function compareConfigs(productionText, stagingText) {
     }
   }
 
+  for (const [key, expected] of PINNED_PLACEMENT) {
+    for (const [label, flat] of [["프로덕션", production], ["스테이징", staging]]) {
+      const value = flat.get(key);
+      if (value === expected) continue;
+      const actual = value === undefined ? "키가 없다" : `${render(value)} 다`;
+      failures.push(
+        `${key}: ${label} 설정에서 ${render(expected)} 여야 하는데 ${actual}.`
+        + " smart 배치는 워커를 Gemini 미지원 지역(홍콩)으로 옮길 수 있다 — 바꿀 이유가 있으면 PINNED_PLACEMENT 를 사유와 함께 고쳐라.",
+      );
+    }
+  }
+
   return failures;
 }
 
@@ -403,7 +421,8 @@ const BASE_PRODUCTION = [
   ']',
   '',
   '[placement]',
-  'mode = "smart"',
+  'mode = "targeted"',
+  'region = "aws:ap-northeast-2"',
   '',
   '[ai]',
   'binding = "AI"',
@@ -469,9 +488,6 @@ const BASE_STAGING = [
 function withoutStagingOnlyKey(fixture, key) {
   if (key.startsWith("vars.")) {
     return fixture.split("\n").filter((line) => !line.startsWith(`${key.slice(5)} =`)).join("\n");
-  }
-  if (key === "placement.region") {
-    return fixture.split("\n").filter((line) => !line.startsWith("region =")).join("\n");
   }
   throw new Error(`self-test 가 모르는 스테이징 전용 키 종류: ${key}`);
 }
@@ -567,11 +583,17 @@ function runSelfTest() {
       expectFailure: /스테이징 전용 키인데 프로덕션 설정에도 있다/,
     },
     {
-      // 실험이 끝나 양쪽이 같은 배치가 됐는데 선언이 남아 있으면 낡은 허용목록이다.
-      name: "placement.mode 가 양쪽 같으면 잡는다 (낡은 허용목록)",
-      production: BASE_PRODUCTION,
-      staging: BASE_STAGING.replace('mode = "targeted"', 'mode = "smart"'),
-      expectFailure: /placement\.mode: 달라야 하는 키인데 값이 같다/,
+      name: "프로덕션 배치를 smart 로 되돌리면 잡는다",
+      production: BASE_PRODUCTION.replace('mode = "targeted"\nregion = "aws:ap-northeast-2"', 'mode = "smart"'),
+      staging: BASE_STAGING,
+      expectFailure: /placement\.mode: 프로덕션 설정에서 "targeted" 여야 하는데/,
+    },
+    {
+      // 양쪽을 함께 바꾸면 키별 비교는 아무 말도 하지 않는다 — 고정값 검사가 그 구멍을 막는다.
+      name: "양쪽 배치를 함께 smart 로 바꿔도 잡는다",
+      production: BASE_PRODUCTION.replace('mode = "targeted"\nregion = "aws:ap-northeast-2"', 'mode = "smart"'),
+      staging: BASE_STAGING.replace('mode = "targeted"\nregion = "aws:ap-northeast-2"', 'mode = "smart"'),
+      expectFailure: /placement\.region: 스테이징 설정에서 "aws:ap-northeast-2" 여야 하는데 키가 없다/,
     },
   ];
 
@@ -639,4 +661,4 @@ function main() {
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) main();
 
-export { STRUCTURAL_KEYS, MUST_DIFFER_KEYS, STAGING_ONLY_KEYS, REQUIRED_ON_KEYS };
+export { STRUCTURAL_KEYS, MUST_DIFFER_KEYS, STAGING_ONLY_KEYS, REQUIRED_ON_KEYS, PINNED_PLACEMENT };

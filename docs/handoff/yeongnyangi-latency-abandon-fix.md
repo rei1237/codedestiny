@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-02
-next: "verify-yeongnyangi-profiles-ui.mjs:95·145 구 셀렉터를 정리하고, 운영 배치 targeted 전환은 사용자 결정(RED, 1회 승인)"
+next: "운영 배치는 2026-10-30 targeted 로 전환됨. verify-yeongnyangi-profiles-ui.mjs:95·145 구 셀렉터 정리만 남음"
 ---
 
 # 영냥이 결제 이탈 화면 버그 + 서버 지연 (2026-09-26)
@@ -31,6 +31,8 @@ next: "verify-yeongnyangi-profiles-ui.mjs:95·145 구 셀렉터를 정리하고,
 tail(`npx wrangler tail code-destiny-web-staging --config worker/wrangler.staging.toml --format json --ip self`, targeted, 캐시 미스 reviews 6건·health 6건): reviews 는 Worker wall 152~320ms(중앙 266)·`[db-connect]` elapsedMs 77~225(중앙 161)·Mongo 명령(`aggregate`·`find`) 3~5ms·스코프 close 1ms. health 는 Worker 처리 1~4ms 라 curl 0.6~0.97s 는 전부 진입 colo 경로+ICN 홉이다(코드로 못 고침 — `worker/wrangler.toml` 애니캐스트 IP 주석). 문서 기준선과 같은 조건의 대조는 아니다. 원본 캡처는 IP·헤더가 있어 스크래치에만 뒀다. 명령별 ms(`[db-cmd-ok]`)는 `APP_ENV=staging` 일 때만 찍힌다(`worker/lib/db.js:692,1340`) — 프로덕션 tail 은 `[db-connect]` elapsedMs·wall 로 본다.
 
 ## 보류 — 프로덕션 배치 (사용자 결정 2026-09-26)
+> 2026-10-30 해소: 운영 smart 배치가 워커를 홍콩(remote-HKG, Gemini 미지원 지역)으로 옮겨 유료 생성이 막혔다. 사용자 승인으로 `worker/wrangler.toml`을 targeted `aws:ap-northeast-2`로 바꿨고, 검증기는 `PINNED_PLACEMENT`로 양쪽 값을 고정한다. 아래 재개 조건은 더 이상 적용되지 않는다(기록용).
+
 배치만 따로 올릴 수 없다. 릴리스는 main HEAD 만 내보내고(부분 승격 없음), 운영 `c54484ac0` 뒤 main 에는 실 LLM 으로 한 번도 돌리지 않은 자유질문 분석기·`ask-chapter-v1`(Phase 1–4)과 en/ja 로케일 작업이 쌓여 있다. 그래서 그 작업이 운영에 나갈 때 같이 싣는다.
 - 재개 조건(둘 다):
   1. 사용자가 자유질문·로케일 작업을 운영 가능으로 판정한다(`docs/handoff/yeongnyangi-ask-20260926.md`, `docs/handoff/yeongnyangi-seo-conversion-20260926.md`).
