@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { settleFailedConsultationRefund, runPendingConsultationRefunds, consultationRefundResponse } from '../../worker/lib/consultation-delivery-refund.js';
 import { refundPassCoverage } from '../../worker/lib/pass-consumption.js';
-import { NewYearAiConsultation, LifeBookAiConsultation, Payment, PaidExecutionRecord, PointHistory, MonthlyCreditLedger, User } from '../../worker/lib/models.js';
+import { NewYearAiConsultation, LifeBookAiConsultation, FusionFortuneConsultation, Payment, PaidExecutionRecord, PointHistory, MonthlyCreditLedger, User } from '../../worker/lib/models.js';
 const originalFetch = globalThis.fetch;
 test.beforeEach(() => { globalThis.fetch = () => { throw new Error('External HTTP forbidden in refund mocks'); }; });
 test.afterEach(() => { globalThis.fetch = originalFetch; });
@@ -348,4 +348,25 @@ test('native life-book failure cannot refund a matching web payment or consume m
   assert.equal(result.reason,'TOSS_ORDER_REVIEW_REQUIRED');assert.equal(f.cancels,0);assert.deepEqual(doc,before);
   await runPendingConsultationRefunds({},f.deps);
   assert.equal(f.cancels,0);assert.deepEqual(doc,before);assert.equal(f.payment.status,'paid');
+});
+// Fusion marks undelivered card orders refund-eligible; this cron settles them like the other services.
+function fusionFailure(lease) {
+  const f = fixture(), doc = f.put(FusionFortuneConsultation, f.rows(NewYearAiConsultation).pop());
+  delete doc.paymentId; doc.featureKey = 'fusion-fortune-consultation'; doc.llmMeta.refundEligibleAt = '2026-10-26T00:00:00Z';
+  if (lease) doc.generationLease = { token: 'cron', expiresAt: new Date(f.deps.now + 60000).toISOString() };
+  f.payment.featureKey = 'fusion-fortune-consultation'; f.execution.featureId = 'fusion-fortune-consultation';
+  return f;
+}
+test('an undelivered fusion card order is refunded once by the existing cron', async () => {
+  const f = fusionFailure(false);
+  assert.deepEqual((await runPendingConsultationRefunds({}, f.deps)).outcomes, [{ service: 'fusion-fortune', refundStatus: 'refunded' }]);
+  await runPendingConsultationRefunds({}, f.deps);
+  assert.equal(f.cancels, 1); assert.equal(f.rows(Payment)[0].status, 'refunded');
+  assert.equal(f.rows(FusionFortuneConsultation)[0].llmMeta.deliveryRefund.status, 'refunded');
+});
+test('a live fusion generation lease blocks the refund reservation', async () => {
+  const f = fusionFailure(true);
+  await runPendingConsultationRefunds({}, f.deps);
+  assert.equal(f.cancels, 0); assert.equal(f.rows(Payment)[0].status, 'paid');
+  assert.equal(f.rows(FusionFortuneConsultation)[0].llmMeta.deliveryRefund, undefined);
 });

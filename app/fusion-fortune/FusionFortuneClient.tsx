@@ -261,6 +261,8 @@ type FusionFortuneCopy = {
   analysisFailedMessage: string;
   noResultReceivedMessage: string;
   storedResultLoadFailedMessage: string;
+  refundedMessage?: string;
+  refundPendingMessage?: string;
   guardianHandoffNotice: string;
   guardianHandoffPrefix: string;
   guardianHandoffSuffix: string;
@@ -399,6 +401,8 @@ const FUSION_FORTUNE_EN: FusionFortuneCopy = {
   analysisFailedMessage: "We couldn't complete the analysis.",
   noResultReceivedMessage: "We didn't receive an analysis result. Please try again.",
   storedResultLoadFailedMessage: "We couldn't load the saved result.",
+  refundedMessage: "We couldn't finish your reading, so we refunded the full payment. Please check your payment history.",
+  refundPendingMessage: "We couldn't finish your reading, so a full refund is in progress. You don't need to pay again.",
   guardianHandoffNotice: "We carried over only the topic Yeoni left. Please recheck your birth information and question here.",
   guardianHandoffPrefix: "We carried over only the topic ",
   guardianHandoffSuffix: " that Yeoni left. Your private conversation and the original result weren't brought over.",
@@ -536,6 +540,8 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     analysisFailedMessage: "분석을 완료하지 못했어요.",
     noResultReceivedMessage: "분석 결과를 받지 못했어요. 다시 시도해 주세요.",
     storedResultLoadFailedMessage: "저장된 결과를 불러오지 못했어요.",
+    refundedMessage: "결과를 끝까지 만들지 못해 결제 금액을 전액 환불했어요. 결제 내역에서 확인해 주세요.",
+    refundPendingMessage: "결과를 끝까지 만들지 못해 전액 환불을 진행하고 있어요. 다시 결제하지 않으셔도 됩니다.",
     guardianHandoffNotice: "연이가 남긴 주제만 이어받았어요. 출생 정보와 질문은 여기에서 다시 확인해 주세요.",
     guardianHandoffPrefix: "연이가 남긴 ",
     guardianHandoffSuffix: " 주제만 이어받았어요. 개인 대화와 결과 원문은 가져오지 않았습니다.",
@@ -672,6 +678,8 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     analysisFailedMessage: "分析を完了できませんでした。",
     noResultReceivedMessage: "分析結果を受信できませんでした。もう一度お試しください。",
     storedResultLoadFailedMessage: "保存された結果を読み込めませんでした。",
+    refundedMessage: "結果を最後まで作成できなかったため、お支払い金額を全額返金しました。決済履歴をご確認ください。",
+    refundPendingMessage: "結果を最後まで作成できなかったため、全額返金を進めています。再度お支払いいただく必要はありません。",
     guardianHandoffNotice: "ヨニが残したテーマのみ引き継ぎました。出生情報と質問はこちらで再度ご確認ください。",
     guardianHandoffPrefix: "ヨニが残した",
     guardianHandoffSuffix: "というテーマのみ引き継ぎました。個人的な会話や結果原文は引き継いでいません。",
@@ -807,6 +815,8 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     analysisFailedMessage: "未能完成分析。",
     noResultReceivedMessage: "未收到分析结果。请重试。",
     storedResultLoadFailedMessage: "未能加载已保存的结果。",
+    refundedMessage: "未能完整生成结果，已全额退还付款金额。请在支付记录中确认。",
+    refundPendingMessage: "未能完整生成结果，正在办理全额退款。无需再次付款。",
     guardianHandoffNotice: "仅继承了妍伊留下的主题。请在此重新确认出生信息与问题。",
     guardianHandoffPrefix: "仅继承了妍伊留下的",
     guardianHandoffSuffix: "主题。未带入个人对话与结果原文。",
@@ -942,6 +952,8 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     analysisFailedMessage: "未能完成分析。",
     noResultReceivedMessage: "未收到分析結果。請重試。",
     storedResultLoadFailedMessage: "未能載入已儲存的結果。",
+    refundedMessage: "未能完整產生結果，已全額退還付款金額。請在付款紀錄中確認。",
+    refundPendingMessage: "未能完整產生結果，正在辦理全額退款。無需再次付款。",
     guardianHandoffNotice: "僅繼承了妍伊留下的主題。請在此重新確認出生資訊與問題。",
     guardianHandoffPrefix: "僅繼承了妍伊留下的",
     guardianHandoffSuffix: "主題。未帶入個人對話與結果原文。",
@@ -2270,7 +2282,18 @@ export function FusionFortuneClient({ seoContent, valuePreview, paymentNotice }:
     try {
       const response = await authFetch(`${apiBase}/api/fusion-fortune/result?requestId=${encodeURIComponent(requestId)}`, { credentials: "include" }, { retryOn401: true, apiBase });
       if (!scope.isCurrent()) return "stale";
-      if (response.status === 403) {
+      if (response.status === 403 || response.status === 409) {
+        // 자동 환불로 넘어간 주문은 이어 생성하지 않고 환불 상태만 보여 준다.
+        const refund = await parseJson<{ reason?: string }>(response, copy).catch(() => ({} as { reason?: string }));
+        if (!scope.isCurrent()) return "stale";
+        if (refund.reason === "PAYMENT_REFUNDED" || refund.reason === "REFUND_PENDING") {
+          const done = refund.reason === "PAYMENT_REFUNDED";
+          if (done) rememberPaidRequest("");
+          const message = done ? copy.refundedMessage || FUSION_FORTUNE_EN.refundedMessage : copy.refundPendingMessage || FUSION_FORTUNE_EN.refundPendingMessage;
+          setFailure({ message: message || copy.storedResultLoadFailedMessage, retryable: false, reason: refund.reason });
+          return "stale";
+        }
+        if (response.status === 409) return false;
         setFailure({ message: copy.storedResultLoadFailedMessage, retryable: false, reason: "RESULT_ACCESS_REVOKED" });
         return "stale";
       }

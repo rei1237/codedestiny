@@ -1,6 +1,6 @@
 // Terminal refunds for saved consultations. Reservation precedes PG calls; a
 // missing/uncertain PG response never clears it or reopens the paid request.
-import { NewYearAiConsultation, LifeBookAiConsultation, PaidExecutionRecord, Payment, PointHistory, MonthlyCreditLedger } from './models.js';
+import { NewYearAiConsultation, LifeBookAiConsultation, FusionFortuneConsultation, PaidExecutionRecord, Payment, PointHistory, MonthlyCreditLedger } from './models.js';
 import { withPaymentDb, createPaymentContext, toObjectId } from '../payments/db.js';
 import { claimRefund, settleRefund } from '../payments/orders.js';
 import { revokePurchaseEntitlement } from '../payments/executions.js';
@@ -16,6 +16,7 @@ const SERVICES = Object.freeze({
   'new-year-ai': { model: NewYearAiConsultation, feature: 'new-year-ai-consultation' },
   'life-book-ai': { model: LifeBookAiConsultation, feature: 'life-book-ai-consultation',
     features: ['life-book-ai-consultation', 'life-fortune-ai-consultation'] },
+  'fusion-fortune': { model: FusionFortuneConsultation, feature: 'fusion-fortune-consultation' },
 });
 const PAID = ['paid', 'success', 'fulfilled'];
 const LOCK_MS = 120000;
@@ -61,7 +62,8 @@ async function assertNoCompletedDelivery(db, doc, payment, deps) {
 
 function currentLease(doc, now) {
   const at = new Date(doc?.llmMeta?.lockedAt || 0).getTime();
-  return at > now.getTime() - LOCK_MS;
+  // Fusion generation holds its own lease; a live one means a provider call may still save a result.
+  return at > now.getTime() - LOCK_MS || new Date(doc?.generationLease?.expiresAt || 0).getTime() > now.getTime();
 }
 
 function configured(service, deps) {

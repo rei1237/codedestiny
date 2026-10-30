@@ -18,6 +18,8 @@ import { countFusionFortuneVisibleText, FUSION_GROUP_MAX_ATTEMPTS, fusionGroupAt
 // 저장 실패는 호출자가 재시도 가능한 저장 장애로 반환한다.
 export const FUSION_CONSULTATION_MAX_RESULT_CHARS = 200000;
 export { FUSION_GROUP_MAX_ATTEMPTS };
+// generation_failed는 환불 절차가 소유한다. 생성·재개 쓰기는 완료본과 마찬가지로 손대지 않는다.
+const CLOSED_STATUSES = ["completed", "generation_failed"];
 
 export function fusionConsultationPublicStatus(consultation) {
   return ["generating", "delivery_pending"].includes(consultation?.status) ? "partial" : consultation?.status || "completed";
@@ -132,8 +134,9 @@ export async function saveFusionFortuneConsultation(payload) {
     if (payload.lease && JSON.stringify(existing.result) !== JSON.stringify(rest.result)) return "";
     return text(existing.id, 120);
   }
+  if (existing?.status === "generation_failed") return "";
   const saved = await FusionFortuneConsultation.findOneAndUpdate(
-    { userId, idempotencyKey, status: { $ne: "completed" }, ...fusionLeaseFilter(payload.lease) },
+    { userId, idempotencyKey, status: { $nin: CLOSED_STATUSES }, ...fusionLeaseFilter(payload.lease) },
     { $set: rest, $setOnInsert: { id, userId, idempotencyKey } },
     { upsert: !payload.lease, new: true, setDefaultsOnInsert: true },
   ).lean();
@@ -156,7 +159,7 @@ export async function claimFusionDeliveryLease({ userId, requestId, ttlMs = 1500
   const lease = { token: crypto.randomUUID(), expiresAt: new Date(now.getTime() + (Number(ttlMs) > 0 ? Number(ttlMs) : 150000)) };
   try {
     const saved = await FusionFortuneConsultation.findOneAndUpdate(
-      { userId: owner, idempotencyKey: key, status: { $ne: "completed" }, $or: [{ generationLease: null }, { "generationLease.expiresAt": { $lte: now } }] },
+      { userId: owner, idempotencyKey: key, status: { $nin: CLOSED_STATUSES }, $or: [{ generationLease: null }, { "generationLease.expiresAt": { $lte: now } }] },
       { $set: { generationLease: lease }, $setOnInsert: { id: newConsultationId(), userId: owner, idempotencyKey: key, generationSnapshot: null, result: {}, status: "partial", stage: 1, nextStage: 1 } },
       { upsert: true, new: true, setDefaultsOnInsert: true },
     ).lean();
@@ -183,7 +186,7 @@ export async function saveFusionGenerationSnapshot({ userId, requestId, input, c
     if (existing?.generationSnapshot?.context || existing?.status === "completed") return existing.generationSnapshot;
     const snapshot = { input, context, calculatedAt, requestId: key, attempts: {} };
     const saved = await FusionFortuneConsultation.findOneAndUpdate(
-      { userId: owner, idempotencyKey: key, generationSnapshot: null, status: { $ne: "completed" }, ...fusionLeaseFilter(lease) },
+      { userId: owner, idempotencyKey: key, generationSnapshot: null, status: { $nin: CLOSED_STATUSES }, ...fusionLeaseFilter(lease) },
       { $set: { generationSnapshot: snapshot }, $setOnInsert: { id: newConsultationId(), userId: owner, idempotencyKey: key, result: {}, status: "partial", stage: 1, qualityTier: "partial" } },
       { upsert: !lease, new: true, setDefaultsOnInsert: true },
     ).lean();
@@ -204,7 +207,7 @@ export async function reserveFusionGroupAttempt({ userId, requestId, groupId, le
   try {
     const current = await FusionFortuneConsultation.findOne({ userId: owner, idempotencyKey: key }).lean();
     const limit = fusionGroupAttemptLimit(current?.generationSnapshot);
-    const reserved = await FusionFortuneConsultation.findOneAndUpdate({ userId: owner, idempotencyKey: key, status: { $ne: "completed" }, ...fusionLeaseFilter(lease),
+    const reserved = await FusionFortuneConsultation.findOneAndUpdate({ userId: owner, idempotencyKey: key, status: { $nin: CLOSED_STATUSES }, ...fusionLeaseFilter(lease),
       ...(lengthRepair ? { [repairField]: { $ne: true } } : {}),
       "generationSnapshot.context": { $exists: true }, $or: [{ [field]: { $exists: false } }, { [field]: { $lt: limit } }] },
       { $inc: { [field]: 1 }, ...(lengthRepair ? { $set: { [repairField]: true } } : {}) }, { new: true }).lean();
@@ -229,7 +232,7 @@ export async function returnUnbilledFusionAttempt({ userId, requestId, groupId, 
   const unbilledField = `generationSnapshot.unbilledFailures.${groupId}`;
   try {
     const saved = await FusionFortuneConsultation.findOneAndUpdate({ userId: text(userId, 120), idempotencyKey: text(requestId, 180),
-      status: { $ne: "completed" }, ...fusionLeaseFilter(lease), [field]: { $gte: 1 },
+      status: { $nin: CLOSED_STATUSES }, ...fusionLeaseFilter(lease), [field]: { $gte: 1 },
       $or: [{ [unbilledField]: { $exists: false } }, { [unbilledField]: { $lt: FUSION_UNBILLED_RETRY_LIMIT } }] },
     { $inc: { [field]: -1, [unbilledField]: 1 }, ...(lengthRepair ? { $set: { [`generationSnapshot.lengthRepairs.${groupId}`]: false } } : {}) }, { new: true }).lean();
     const attempt = Number(saved?.generationSnapshot?.attempts?.[groupId]);
@@ -242,7 +245,7 @@ export async function requestFusionRecovery({ userId, requestId, lease }) {
   if (!lease?.token) throw resultStorageUnavailable(requestId);
   const saved = await FusionFortuneConsultation.findOneAndUpdate({
     userId: text(userId, 120), idempotencyKey: text(requestId, 180),
-    status: { $ne: "completed" }, ...fusionLeaseFilter(lease),
+    status: { $nin: CLOSED_STATUSES }, ...fusionLeaseFilter(lease),
     "generationSnapshot.context": { $exists: true },
   }, { $set: {
     "generationSnapshot.recovery.manualGranted": true,

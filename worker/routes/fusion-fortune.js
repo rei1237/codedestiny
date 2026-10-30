@@ -2,6 +2,7 @@ import { TossError } from "../toss/policy.js";
 import { nativeTossContext } from "../toss/native-context.js";
 import { connectDb, withMongoRetry } from "../lib/db.js";
 import { isPaidResultRevoked } from "../lib/paid-result-revocation.js";
+import { consultationRefundResponse } from "../lib/consultation-refund-state.js";
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
 import { getOptionalUserFromRequest, requireUserFromRequest } from "../lib/auth.js";
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
@@ -209,10 +210,19 @@ export async function runFusionFortuneDeliveryStage(env, { userId, requestId, bo
   return { ...result, consultationId };
 }
 
+/** 자동 환불로 넘어간 주문은 본문·재개 입력 대신 환불 상태만 돌려준다. 예약 전이면 진행 중으로 본다. */
+function fusionRefundResponse(consultation) {
+  if (consultation?.status !== "generation_failed") return null;
+  const refund = consultationRefundResponse(consultation) || consultationRefundResponse({ llmMeta: { deliveryRefund: { status: "pending" } } });
+  return respond({ status: refund.status, ...refund.body });
+}
+
 async function respondFusionConsultation(consultation, native = null) {
   if (!consultation) {
     return respond({ ok: false, status: 404, error: "FUSION_FORTUNE_RESULT_NOT_FOUND", message: "저장된 결과를 찾지 못했어요." });
   }
+  const refunded = fusionRefundResponse(consultation);
+  if (refunded) return refunded;
   await assertFusionDeliveryAccess(consultation.userId, consultation.idempotencyKey, native);
   return respond({
     ok: true,
@@ -304,6 +314,8 @@ async function handleFusionFortuneStreamRoute(request, env, ctx) {
   const priorConsultation = await loadFusionPriorConsultation({ userId: String(auth.userId), requestId: streamRequestId });
   const completed = await replayCompletedFusion(priorConsultation, native);
   if (completed) return completed;
+  const refunded = fusionRefundResponse(priorConsultation);
+  if (refunded) return refunded;
   const transformer = new TransformStream();
   const writer = transformer.writable.getWriter();
   let consultationId = "";
@@ -482,6 +494,8 @@ export async function handleFusionFortuneRoutes(request, env, ctx = null) {
       const prior = await loadFusionPriorConsultation({ userId: String(auth.userId), requestId });
       const completed = await replayCompletedFusion(prior, native);
       if (completed) return completed;
+      const refunded = fusionRefundResponse(prior);
+      if (refunded) return refunded;
       const result = await runFusionFortuneDeliveryStage(env, { userId: String(auth.userId), requestId, body, stage, prior, ctx, native });
       if (!result.ok) return respond(result);
       return json({ ...result, status: result.stageStatus || "completed" }, { status: result.stageStatus === "partial" ? 202 : 200 });
