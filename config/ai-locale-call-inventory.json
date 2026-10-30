@@ -273,7 +273,7 @@
         "symbol": "./structured-consultation.js"
       },
       {
-        "line": 911,
+        "line": 906,
         "kind": "call",
         "symbol": "callGeminiJsonWithRetry"
       }
@@ -1063,12 +1063,17 @@
         "symbol": "../../lib/gemini.js"
       },
       {
-        "line": 45,
+        "line": 4,
+        "kind": "import-or-injected-call",
+        "symbol": "../../../lib/gemini-model-policy.js"
+      },
+      {
+        "line": 48,
         "kind": "call",
         "symbol": "callGeminiText"
       },
       {
-        "line": 70,
+        "line": 73,
         "kind": "call",
         "symbol": "callGeminiText"
       }

@@ -1,4 +1,4 @@
-import { GEMINI_PROSE_MODEL, selectGeminiModel } from "../../lib/gemini-model-policy.js";
+import { GEMINI_PROSE_MODEL, isGeminiProModel, proFallbackCause, selectGeminiModel } from "../../lib/gemini-model-policy.js";
 import { FUSION_PREMIUM_VERSION, fusionGroupModel, fusionReasoningTask, FUSION_PREMIUM_THINKING, premiumLengthFor, premiumTargetsFor, isDomainFusion, FUSION_DOMAIN_CHAPTERS, FUSION_DOMAIN_KEYS, premiumFusionBody, normalizeFusionSubchapters, isPremiumFusion, premiumGroupTarget, validFusionConsultationPlan, fusionSubchapters } from "../../lib/fusion-premium-report.js";
 import { fusionEvidenceReferences, fusionLocaleLengthScale, fusionExpertEvidenceReady, FUSION_EXPERT_VERSION, validFusionSignals, normalizeFusionSignals, buildFusionEvidenceCrossCheck, fusionInputIdentity, fusionCheckpointMatches } from "./fusion-expert-contract.js";
 import { tokensRequiredForChars } from "./llm-budget.js";
@@ -725,13 +725,8 @@ export function isUnbilledFusionFailure(response) {
 }
 // 🔴 Pro가 응답하지 않으면 같은 프롬프트를 Flash로 보낸다(전달 우선). 2026-10-30: gemini-2.5-pro가 이 프로젝트에서
 //    404로 은퇴해 프리미엄 integration·verdict 호출이 전부 countTokens에서 실패했고, 그 주문은 끝내 완료되지 못했다.
-const FUSION_PRO_FALLBACK_CODES = new Set(["GEMINI_MODEL_UNAVAILABLE", "GEMINI_RATE_LIMITED", "GEMINI_UNAVAILABLE"]);
-const isProModel = model => /(?:^|\/)gemini-[\w.-]*pro(?:[-.]|$)/i.test(String(model || ""));
-export function fusionProFallbackCause(model, response) {
-  if (response?.ok || !isProModel(model)) return "";
-  if (FUSION_PRO_FALLBACK_CODES.has(response?.providerCode)) return response.providerCode;
-  return response?.error === "LLM_GENERATION_TIMEOUT" ? "LLM_GENERATION_TIMEOUT" : "";
-}
+const isProModel = isGeminiProModel;
+export const fusionProFallbackCause = proFallbackCause;
 /** Premium stage 1 writes the consultation plan in saju; every other group needs that plan first. */
 export function fusionGroupWaitsForPlan(group, context, stage, values) {
   return isPremiumFusion(context) && Number(stage) === 1 && group?.id !== "saju" && !validFusionConsultationPlan(values?.consultationPlan);

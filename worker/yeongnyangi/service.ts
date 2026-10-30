@@ -61,7 +61,7 @@ import { consultationClock, consultationPeriod, createConsultation } from './for
 import { enqueueConsultation } from './queue.js';
 import { FortuneError, type DomainContext, type DomainId } from './fortune/shared/contracts';
 import { CodeDestinyProvider } from './providers/code-destiny';
-import {TUNA_QUALITY_POLICY,TUNA_REVIEW_MAX_REWRITES,auditTunaChapter,tunaProUnavailable,tunaChapterModel,tunaReasoningTask,tunaRoadmapEnd,tunaQualityApplies,tunaRewritesUsed} from './fortune/tuna-quality';
+import {TUNA_PRO_MIN_CALL_MS,TUNA_QUALITY_POLICY,TUNA_REVIEW_MAX_REWRITES,auditTunaChapter,tunaProUnavailable,tunaChapterModel,tunaReasoningTask,tunaRoadmapEnd,tunaQualityApplies,tunaRewritesUsed} from './fortune/tuna-quality';
 import { StructuredChapterProvider, type ChatPersona } from './providers/chapter';
 import { deliverChapter } from './providers/delivery';
 import { createRequest, commitTarotDraw, readRequest, attachPayment, claimChapter, finishChapter, failChapter, ownerId, saveAskAnalysis, saveChapterDraft, allowedChapterAttempts, holdAutoResumes, userCanRetry, reserveQuestionSkyFollowup } from './repository.js';
@@ -335,13 +335,15 @@ async function reviewTunaChapter(env:Record<string,unknown>,row:any,requestId:st
   const ordinal=row.chapters.length;
   const log=(outcome:string,extra:Record<string,unknown>={})=>console.info('[yeongnyangi-generation]',JSON.stringify({requestId,chapter:ordinal,code:'TUNA_SELF_REVIEW',outcome,issues,...extra}));
   if(!issues.length){log('clean');return undefined;}
-  // Keep 60 seconds of the lease for validation and the persisted commit.
+  // Keep 60 seconds of the lease for validation and the persisted commit. A Pro rewrite needs its own floor;
+  // without it the call times out and only adds cost, while the draft is delivered either way.
   const remaining=chapterLeaseMs(row)-(Date.now()-startedAt)-60000;
-  if(remaining<60000){log('skipped-time');return undefined;}
+  const proUnavailable=tunaProUnavailable(row),task=tunaReasoningTask(row.snapshot,row.snapshot.manifest[ordinal],proUnavailable);
+  if(remaining<(task?TUNA_PRO_MIN_CALL_MS:60000)){log('skipped-time');return undefined;}
   try {
     const reviewer=new CodeDestinyProvider(env,{serviceId:row.featureKey,requestId,access:row.accessMethod || (row.paymentId?'DIRECT_KRW':''),
       sectionGroup:`${ordinal+1}-review`,attempt:Number(row.chapterAttempts?.[ordinal] || 1),generationSource:source},
-      {owner:String(row.userId),skipRead:true},Math.min(chapterTimeoutMs(row),remaining),tunaChapterModel(env,row.snapshot,row.snapshot.manifest[ordinal],tunaProUnavailable(row)),tunaReasoningTask(row.snapshot,row.snapshot.manifest[ordinal],tunaProUnavailable(row)));
+      {owner:String(row.userId),skipRead:true},Math.min(chapterTimeoutMs(row),remaining),tunaChapterModel(env,row.snapshot,row.snapshot.manifest[ordinal],proUnavailable),task);
     const raw=await new StructuredChapterProvider(reviewer).generateChapter({...input,repair:{code:'TUNA_SELF_REVIEW',issues}});
     const body:any=deliverChapter(raw,input);
     if(natalFacts)assertSajuPillarClaims(body,natalFacts);

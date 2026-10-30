@@ -2,7 +2,9 @@ import '../../scripts/lib/mock-network-guard.cjs';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {build} from 'esbuild';
-import {selectGeminiModel} from '../../lib/gemini-model-policy.js';
+import {PRO_TASK_POLICY,proFallbackCause,selectGeminiModel} from '../../lib/gemini-model-policy.js';
+import {readFileSync,readdirSync} from 'node:fs';
+import path from 'node:path';
 
 const bundle=await build({stdin:{contents:"export {callLLM,createGeminiContextCache} from './lib/llm-client.ts';",resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'esm',write:false});
 const {callLLM,createGeminiContextCache}=await import('data:text/javascript;base64,'+Buffer.from(bundle.outputFiles[0].text).toString('base64'));
@@ -39,4 +41,25 @@ test('transport, retries and explicit context caches use the selected model (moc
   calls.length=0;await callLLM({prompt:'ordinary explanation',maxProviderAttempts:1,fallbackToWorkersAI:false},env);
   assert(calls[0].url.includes('/models/gemini-2.5-flash:'),'environment Pro override is constrained');
  }finally{globalThis.fetch=original;}
+});
+
+test('every Pro task names a Flash fallback and every Pro caller handles a refusal',()=>{
+ const tasks=Object.keys(PRO_TASK_POLICY);
+ for(const task of tasks){
+  assert.equal(selectGeminiModel('gemini-2.5-flash',task),'gemini-2.5-pro');
+  assert.equal(selectGeminiModel(PRO_TASK_POLICY[task].fallbackModel),PRO_TASK_POLICY[task].fallbackModel);
+ }
+ // The transport type admits exactly the tasks that carry a policy.
+ const declared=readFileSync('lib/llm-client.ts','utf8').match(/reasoningTask\?:\s*([^;]+);/)[1].match(/"[^"]+"/g).map(value=>JSON.parse(value));
+ assert.deepEqual(declared.sort(),[...tasks].sort());
+ for(const providerCode of ['GEMINI_MODEL_UNAVAILABLE','GEMINI_RATE_LIMITED','GEMINI_UNAVAILABLE'])assert.equal(proFallbackCause('gemini-2.5-pro',{ok:false,providerCode}),providerCode);
+ assert.equal(proFallbackCause('gemini-2.5-pro',{ok:false,error:'LLM_GENERATION_TIMEOUT'}),'LLM_GENERATION_TIMEOUT');
+ for(const [model,response] of [['gemini-2.5-flash',{ok:false,providerCode:'GEMINI_MODEL_UNAVAILABLE'}],['gemini-2.5-pro',{ok:false,providerCode:'GEMINI_ACCESS_DENIED'}],['gemini-2.5-pro',{ok:true}]])
+  assert.equal(proFallbackCause(model,response),'');
+ // A source that hands a reasoning task to the transport must route a Pro refusal through proFallbackCause.
+ const transports=new Set(['lib/llm-client.ts','worker/lib/gemini.js','lib/gemini-model-policy.js']);
+ const walk=dir=>readdirSync(dir,{withFileTypes:true}).flatMap(entry=>entry.isDirectory()?(entry.name==='node_modules'?[]:walk(path.join(dir,entry.name))):/\.(?:[cm]?js|ts)$/.test(entry.name)?[path.join(dir,entry.name).replace(/\\/g,'/')]:[]);
+ const callers=[...walk('worker'),...walk('lib')].filter(file=>!transports.has(file)&&/\breasoningTask\s*[:,}]/.test(readFileSync(file,'utf8')));
+ assert.ok(callers.length>=2,callers.join());
+ for(const file of callers)assert.match(readFileSync(file,'utf8'),/proFallbackCause/,file);
 });

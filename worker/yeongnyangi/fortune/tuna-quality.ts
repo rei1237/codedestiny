@@ -1,4 +1,4 @@
-import {GEMINI_PRO_MODEL,GEMINI_PROSE_MODEL,selectGeminiModel} from '../../../lib/gemini-model-policy.js';
+import {GEMINI_PRO_MODEL,GEMINI_PROSE_MODEL,PRO_TASK_POLICY,isGeminiProModel,selectGeminiModel} from '../../../lib/gemini-model-policy.js';
 // Tuna quality contract: computed-value citations, question links and one self-review rewrite.
 // Only orders whose snapshot carries TUNA_QUALITY_POLICY get it; orders created before it keep flash and the old flow.
 export const TUNA_QUALITY_POLICY='tuna-quality-20261012';
@@ -15,8 +15,12 @@ export const TUNA_MIN_CITED_VALUES=2;
 export const tunaRoadmapEnd=(asOf:string)=>`${Number(asOf.slice(0,4))+1}${asOf.slice(4,10)}`;
 export const tunaQualityApplies=(snapshot:any)=>snapshot?.tunaQualityPolicy===TUNA_QUALITY_POLICY;
 // Durable server receipts, not a client model preference, select recovery on the next existing attempt.
+// A Pro refusal (404, 429, 5xx), a Pro timeout or an attempt that already fell back moves synthesis to Flash.
+const proRefused=(entry:any)=>entry.code==='FORTUNE_PROVIDER_TIMEOUT'||entry.code==='FORTUNE_PROVIDER_FAILED'&&[404,429].includes(entry.receipt.status)||entry.code==='FORTUNE_PROVIDER_FAILED'&&entry.receipt.status>=500;
 export const tunaProUnavailable=(row:any)=>row?.state!=='REFUNDED'&&Array.isArray(row?.recoveryAudit)&&row.recoveryAudit.some((entry:any)=>
- entry.code==='FORTUNE_PROVIDER_FAILED'&&entry.receipt?.status===404&&entry.receipt?.provider==='gemini'&&entry.receipt?.model===GEMINI_PRO_MODEL);
+ entry.receipt?.provider==='gemini'&&(Boolean(entry.receipt.modelFallback)||isGeminiProModel(entry.receipt.model)&&proRefused(entry)));
+// A self-review rewrite on Pro needs this much of the lease to be worth starting.
+export const TUNA_PRO_MIN_CALL_MS=PRO_TASK_POLICY['tuna-synthesis'].minCallMs;
 export const tunaReasoningTask=(snapshot:any,chapter:any,proUnavailable=false)=>!proUnavailable&&tunaQualityApplies(snapshot)&&chapter?.layoutRole==='synthesis'&&chapter?.key!=='action'?'tuna-synthesis' as const:undefined;
 export function tunaChapterModel(env:Record<string,unknown>|undefined,snapshot:any,chapter?:any,proUnavailable=false):string|undefined{
   if(!tunaQualityApplies(snapshot))return undefined;
