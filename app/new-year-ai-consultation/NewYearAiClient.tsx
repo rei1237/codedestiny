@@ -2001,7 +2001,8 @@ export default function NewYearAiConsultationPage() {
         </div>
       </section>
 
-      {getCurrentLoadingLocale() === "ko" && <div style={{ width: "100%", maxWidth: 540, margin: "24px auto" }}><CraftedProductDisclosure featureKey={FEATURE_KEY} /></div>}
+      {/* 위 소개 판·아래 작업 영역과 같은 폭(최대 1180). 540으로 묶여 768에서 본문 744보다 좁았다(2026-10-30 QA). */}
+      {getCurrentLoadingLocale() === "ko" && <div style={{ width: "100%", maxWidth: 1180, margin: "24px auto" }}><CraftedProductDisclosure featureKey={FEATURE_KEY} /></div>}
       <section className="nyai-workspace">
         <form data-moonlit-form="" id="new-year-form" className="nyai-form nyai-panel" onSubmit={handleSubmit}>
           <div className="nyai-form-title">
