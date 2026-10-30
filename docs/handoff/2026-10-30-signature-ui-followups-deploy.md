@@ -1,7 +1,7 @@
 ---
-status: in-progress
-updated: 2026-10-30
-next: "§후속 과제 1번부터 수정 → §검증 → §운영 배포(사용자 명시 승인 있음)"
+status: active
+updated: 2026-10-31
+next: "§운영 배포 2단계부터(후속 과제·검증 끝, main push 완료) → CI required → release production → verify → 운영 실측"
 ---
 
 # 2026-10-30 대표 상담 모바일 UI/UX — 후속 과제 마무리 후 운영 배포
