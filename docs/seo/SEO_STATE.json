@@ -4828,6 +4828,7 @@
     "externalSubmission": "없음(GET만). IndexNow는 운영 배포의 델타 통지가 맡음",
     "firstLiveRun": "2026-10-30 운영 대상 실행: /fortune/2027/ HTTP 404로 exit 1(운영 미배포, 의도된 신호)",
     "stagingRun": "2026-10-30 스테이징(0e64bb929) 대상: 13쪽 모두 200, noindex·robots 차단·운영 canonical 65건 감지(스테이징 보호의 정상 동작)",
+    "productionRun": "2026-10-30 운영(81200d3cc, 승격 런 40937365074 성공, IndexNow 통지 스텝 성공) 대상: 2027 13쪽 이상 0건(exit 0). 재제출은 사용자가 수동으로 진행",
     "resubmission": "사용자 승인(2026-10-30). Chrome 확장 미연결·GSC API 자격 없음으로 이 세션은 미실행. 운영 배포 뒤 체크리스트로 진행"
   }
 }

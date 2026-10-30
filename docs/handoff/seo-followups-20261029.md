@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-30
-next: "main 스테이징 통과 확인 → 사용자에게 운영 배포 승인 받기 → 배포 뒤 seo-operations 주간 실행(또는 workflow_dispatch weekly)의 new-year-season 체크리스트대로 서치어드바이저·GSC 재제출·수집 요청(재제출은 2026-10-30 승인됨) → D+7 관찰"
+next: "운영 반영 확인됨(2026-10-30, 81200d3cc, 시즌 점검 13쪽 정상·IndexNow 통지 성공) → 사용자가 서치어드바이저·GSC에서 sitemap-index.xml 재제출과 2027 13쪽 수집·색인 요청 → D+7(11/06) 노출 관찰"
 ---
 
 # SEO·AEO·GEO 후속 (2026-10-29 감사 이후)
