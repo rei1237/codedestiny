@@ -6,7 +6,8 @@
   background:var(--cd-samples-paper); color:var(--cd-samples-ink); font-size:16px; line-height:1.5;
   box-shadow:inset 0 1px 0 var(--cd-samples-sheet);
 }
-[data-moonlit-form] :is(input,textarea)::placeholder { color:var(--cd-samples-muted); opacity:.8; }
+/* opacity .8이면 종이색 위 대비가 약 4.3:1로 AA(4.5:1)에 못 미쳤다. muted 그대로 쓰면 약 7:1. */
+[data-moonlit-form] :is(input,textarea)::placeholder { color:var(--cd-samples-muted); opacity:1; }
 [data-moonlit-form] select option { background:var(--cd-samples-paper); color:var(--cd-samples-ink); }
 [data-moonlit-form] :is(input,select,textarea):focus-visible { outline:2px solid var(--cd-samples-rose); outline-offset:3px; }
 [data-moonlit-form] :is(input,select,textarea)[aria-invalid=true] { border-color:var(--cd-samples-rose); }
