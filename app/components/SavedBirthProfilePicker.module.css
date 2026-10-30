@@ -3,7 +3,9 @@
 .heading > svg { color:var(--cd-samples-muted); flex-shrink:0; }
 /* 글자색은 카드가 소유한다. 페이지 폼 규칙(.form label, .form p 등)이 밝은 글자색을 내려
    밝은 카드 위에 밝은 글자가 올라갔다(2026-10-30 초융합 라벨 1.11:1, 신년운세 1.18:1). 그래서 두 단계 선택자로 묶는다. */
-.card .heading label { display:inline; margin:0; padding:0; font-size:.9rem; font-weight:700; line-height:1.4; letter-spacing:normal; color:var(--cd-samples-ink); }
+/* 전역 탭 영역 규칙(label[for] min-height 44px)으로 라벨이 44px가 되고 글자는 위에 붙어, 가운데 놓인 달 아이콘보다
+   12.5px 위에 떴다(2026-10-31 실측). 탭 영역은 두고 글자를 상자 가운데로 내린다. */
+.card .heading label { display:flex; align-items:center; margin:0; padding:0; font-size:.9rem; font-weight:700; line-height:1.4; letter-spacing:normal; color:var(--cd-samples-ink); }
 .refresh { margin-left:auto; display:grid; place-items:center; width:44px; height:44px; padding:0; border:1px solid var(--cd-samples-line); border-radius:50%; color:var(--cd-samples-muted); background:var(--cd-samples-sheet); cursor:pointer; }
 .card select { box-sizing:border-box; min-height:48px; width:100%; max-width:100%; min-width:0; padding:10px 12px; color:var(--cd-samples-ink); background:var(--cd-samples-sheet); border:1px solid var(--cd-samples-line); border-radius:var(--cd-r-control); font:inherit; font-size:16px; text-overflow:ellipsis; }
 .card option { color:var(--cd-samples-ink); background:var(--cd-samples-sheet); }
