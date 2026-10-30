@@ -1419,8 +1419,16 @@ const NYAI_READING_ROOM_CSS = `
 /* 원 장식은 위 규칙에 relative로 바뀌어 그리드 첫 칸을 차지했고(상담 카드·소개 글이 한 칸씩 밀림),
    그림 속 나침반과 겹쳐 떠도는 고리로 보였다. 그림이 같은 역할을 하므로 뺀다. */
 .nyai-page .nyai-intro .nyai-orbit { display: none; }
-/* 그림은 왼쪽이 어둡고 오른쪽에 밝은 나침반이 있다. 글은 어두운 왼쪽에, 반투명 요약 카드는 그림 위 오른쪽에 둔다. */
+/* 그림은 왼쪽이 어둡고 오른쪽에 밝은 나침반이 있다. 글은 어두운 왼쪽에 둔다.
+   나침반은 판 폭의 약 62~94%를 차지해(원본 1600×900의 x 980~1420, cover로 판 높이에 맞춰진다) 오른쪽 열에 둔 요약 카드가
+   그것을 가렸다(2026-10-30 QA). 오른쪽 열은 그림 몫으로 비우고, 카드는 자리가 나는 넓은 화면에서만 글과 나침반 사이에 둔다. */
 .nyai-page .nyai-intro { grid-template-columns: minmax(0, 1fr) minmax(210px, 340px); }
+@media (max-width: 1199px) { .nyai-page .nyai-intro .nyai-consult-card { display: none; } }
+@media (min-width: 1200px) {
+  .nyai-page .nyai-intro { grid-template-columns: minmax(0, 1fr) 240px calc(50% - 140px); column-gap: 28px; }
+}
+/* 이웃 칸이 모두 왼쪽 정렬이라 가운데 정렬된 시간만 따로 놀았다. */
+.nyai-page [data-cd-birth-time] > input { text-align: start; }
 .nyai-page .nyai-intro-copy { max-width: 56ch; align-self: center; order: -1; }
 .nyai-page .nyai-intro-copy h2 { text-wrap: balance; word-break: keep-all; }
 .nyai-page .nyai-intro .nyai-eyebrow { color: #e9c983; letter-spacing: .14em; }
@@ -1456,10 +1464,11 @@ const NYAI_READING_ROOM_CSS = `
   .nyai-page .nyai-intro { grid-template-columns: minmax(0, 1fr); }
   .nyai-page .nyai-intro .nyai-consult-card,
   .nyai-page .nyai-intro::after { display: none; }
-  /* 전폭 글이 그림 오른쪽의 밝은 나침반까지 걸쳐 읽기 어려웠다. 가로 그라데이션 대신 고르게 어둡게 깐다. */
+  /* 전폭 글이 그림 오른쪽의 밝은 나침반까지 걸쳐 읽기 어려웠다. 가로 그라데이션 대신 고르게 어둡게 깐다.
+     .86은 그림이 거의 안 보여 답답했다. .78에서도 본문이 가장 밝은 배경 픽셀 대비 5.2:1이다(2026-10-31 360·390·768 실측). */
   .nyai-page .nyai-intro-art {
     background:
-      linear-gradient(rgba(21, 8, 12, .86), rgba(21, 8, 12, .86)),
+      linear-gradient(rgba(21, 8, 12, .78), rgba(21, 8, 12, .78)),
       url('/fuctionassets/new-year-almanac-v1.webp') 68% center / cover no-repeat;
   }
 }
@@ -1969,7 +1978,6 @@ export default function NewYearAiConsultationPage() {
             <span><b>집중 흐름</b>{selectedFocusOption.label}</span>
             <span><b>이름</b>{form.userName.trim() || "아직 비어 있습니다"}</span>
             <span><b>생년월일</b>{form.birthDate || "아직 비어 있습니다"}</span>
-            <span><b>상태</b>{statusText}</span>
           </div>
         </div>
         <div className="nyai-intro-copy">
