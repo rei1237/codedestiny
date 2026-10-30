@@ -60,6 +60,7 @@ const stubs={
  export const validateFusionFortuneInput=normalizeFusionFortuneInput;
  export const isFusionFortuneApiEnabled=()=>true,isFusionFortuneUiEnabled=()=>true,isFusionFortuneMockFlowEnabled=()=>true,isFusionFortuneRealLlmAllowed=()=>false;
  export const hasFusionStageOneResult=x=>!!x?.sajuSection,buildFusionFortuneStatus=async()=>({canGenerate:true}),createMongoFusionFortuneStore=()=>({}),getFusionFortuneDateKey=()=> '2026-10-29';
+ export const fusionBudgetProfile=()=>({leaseMs:120000});
  export async function generateFusionFortuneRequest(args){
   const access=await args.resolvePaidAccess({userId:args.userId,requestId:args.requestId});if(!access.ok)return {ok:false,status:402};
   const s=globalThis.__fusionNative;s.generated++;
