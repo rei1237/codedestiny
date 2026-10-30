@@ -558,7 +558,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     copyLinkFailedMessage: "링크를 복사하지 못했어요.",
     pdfCoverFallbackTitle: "초융합 운세",
     pdfCoverSubtitle: (topic) => `여섯 체계 교차 판정 · ${topic}`,
-    pdfSavedNotice: "PDF 로 저장했어요.",
+    pdfSavedNotice: "PDF로 저장했어요.",
     pdfFailedMessage: "PDF를 저장하지 못했어요. 상담 결과는 그대로 있어요. 잠시 후 PDF 저장을 다시 눌러 주세요.",
     buttonLoadingLabel: "여섯 전문가의 흐름을 엮는 중…",
     buttonPayingLabel: "결제를 확인하고 있어요",
@@ -572,7 +572,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     guardianLinkText: "오늘의 귀인에서 이어지는 프리미엄 리딩",
     heroTitleLine1: "여섯 개의 해석을",
     heroTitleLine2: "하나의 상담으로",
-    heroDesc: "사주·자미두수·베다점·숙요점·점성술·타로를 각 분야의 언어로 깊게 읽고, 마지막에 하나의 교차 판정으로 모읍니다. 완성된 상담은 계정에 저장돼 언제든 다시 열고 PDF 로 내려받을 수 있어요.",
+    heroDesc: "사주·자미두수·베다점·숙요점·점성술·타로를 각 분야의 언어로 깊게 읽고, 마지막에 하나의 교차 판정으로 모읍니다. 완성된 상담은 계정에 저장돼 언제든 다시 열고 PDF로 내려받을 수 있어요.",
     systemBriefs: { saju: "타고난 기질과 삶의 흐름", ziwei: "삶의 영역과 시기의 변화", vedic: "행성 주기와 운명의 시간", sukuyo: "관계와 인연의 리듬", astrology: "심리와 선택의 패턴", tarot: "지금의 질문과 그 가능성" },
     reportPreviewTitle: "실제로 받게 되는 리포트의 차례입니다",
     heroFirstCome: "여섯 체계 교차 판정",
@@ -629,7 +629,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     statusRetryCta: "이용 상태 다시 확인하기",
     threadHeadingFailure: "상담이 중간에 멈췄어요",
     threadHeadingDefault: "여섯 전문가가 차례로 답하고 있어요",
-    threadSubResultSaved: "계정에 저장된 상담입니다. 이 화면에서 바로 PDF 로 내려받을 수 있어요.",
+    threadSubResultSaved: "계정에 저장된 상담입니다. 이 화면에서 바로 PDF로 내려받을 수 있어요.",
     threadSubResultFresh: "여섯 체계를 각각 읽고, 마지막에 하나로 교차 판정한 대화입니다.",
     threadSubFailure: "진행된 곳까지 그대로 남겨 뒀어요. 아래에서 이어서 다시 시도할 수 있습니다.",
     threadSubIdle: "여섯 체계를 부를 준비를 하고 있어요.",
@@ -654,7 +654,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     failureRetryCta: "추가 결제 없이 다시 시도하기",
     cancelGenerationCta: "분석 중단하기",
     pdfMakingLabel: "PDF 를 만드는 중…",
-    pdfSaveCta: "PDF 로 저장",
+    pdfSaveCta: "PDF로 저장",
     shareCta: "개인정보 제외 요약 공유",
     copyReopenLinkCta: "다시 열 링크 복사",
     continueGuardianLink: "오늘의 귀인에게 이어서 묻기",
@@ -2913,67 +2913,6 @@ export function FusionFortuneClient({ seoContent, valuePreview, paymentNotice }:
       </div>
     </section>
 
-    {/* 여섯 체계를 카드 세 장으로 요약하는 대신, 실제로 지나가는 순서를 그대로 보여 준다.
-        같은 색(fusionOrbs tint)이 아래 생성 화면의 말풍선에서 다시 등장해 한 흐름으로 읽힌다. */}
-    <section className={styles.readingFlow} aria-label={copy.readingFlowAriaLabel}>
-      <p className={styles.readingFlowLead}>{copy.readingFlowLead}</p>
-      <ol className={styles.readingFlowList}>
-        {FUSION_ORBS.map((orb) => (
-          <li key={orb.key} style={{ "--tint": orb.tint } as React.CSSProperties}>
-            <DestinyIcon name={FUSION_SYSTEM_ICONS[orb.key]} size={22} variant="line" className={styles.systemIcon} />
-            <strong>{sharedCopy.systemLabels[orb.key]}</strong>
-            <span>{copy.systemBriefs[orb.key]}</span>
-          </li>
-        ))}
-      </ol>
-      {/* 여섯 갈래가 하나로 좁아지는 깔때기. 이 상품이 파는 것이 정확히 이 수렴이라, 목록으로
-          나열하는 대신 형태로 보여 준다. 순수 장식이므로 접근성 트리에서 뺀다. */}
-      <div className={styles.readingFlowFinal}>
-        <strong>{copy.readingFlowFinalTitle}</strong>
-        <span>{copy.readingFlowFinalDesc}</span>
-      </div>
-    </section>
-
-    {getCurrentLoadingLocale() === "ko" && <CraftedProductDisclosure featureKey={PAID_FEATURE_KEY} />}
-    {valuePreview}
-
-    <ExpertValueCards theme="fusion" points={expertCopy.valuePoints} />
-
-    {/* 리포트 미리보기 + 신뢰. 3만원짜리 결과물의 규모를 구매 전에 그려 볼 수 있어야 한다.
-        🔴 여기 적히는 차례는 지어낸 목차가 아니라 FusionResultThread 의 실제 렌더 순서이며,
-           라벨도 결과 화면이 쓰는 FUSION_SHARED_COPY 키를 그대로 가져온다(신규 문안 0).
-        🔴 data-fusion-toc / data-fusion-pdf-section / data-fusion-visual / id="fusion-toc-*" 를
-           절대 쓰지 않는다 — 결과 화면의 TOC 관찰자와 PDF 캡처가 이 섹션을 결과로 오인한다. */}
-    <section className={styles.reportPreview} aria-labelledby="fusion-report-preview-heading">
-      <div className={styles.reportPreviewMain}>
-        <p className={styles.reportPreviewEyebrow}>{sharedCopy.tocHeading}</p>
-        <h2 id="fusion-report-preview-heading">{copy.reportPreviewTitle}</h2>
-        <ol className={styles.reportPreviewToc}>
-          <li>{sharedCopy.openingShortLabel}</li>
-          <li>{sharedCopy.summaryShortLabel}</li>
-          <li>
-            {sharedCopy.sixSystemsDirectionSpeaker}
-            <ul>
-              {FUSION_ORBS.map((orb) => (
-                <li key={orb.key} style={{ "--tint": orb.tint } as React.CSSProperties}>{sharedCopy.systemLabels[orb.key]}</li>
-              ))}
-            </ul>
-          </li>
-          <li>{sharedCopy.integratedShortLabel}</li>
-          <li>{sharedCopy.whenWhatSpeaker}</li>
-          <li>{sharedCopy.crossCheckHeading}</li>
-          <li className={styles.reportPreviewVerdict}>{sharedCopy.verdictShortLabel}</li>
-          <li>{sharedCopy.closingShortLabel}</li>
-        </ol>
-        <p className={styles.reportPreviewLength}>{expertCopy.length}</p>
-      </div>
-      <aside className={styles.reportPreviewTrust}>
-        <p className={styles.reportPreviewTrustLead}>{expertCopy.trust}</p>
-        <p>{expertCopy.guideBody}</p>
-        <p className={styles.reportPreviewTrustNote}>{copy.dialogNote}</p>
-      </aside>
-    </section>
-
     <FusionRecentList items={recentList} activeId={openedConsultationId} busyId={reopeningId} onOpen={(id) => void openConsultation(id)} />
 
     <section className={styles.panel}>
@@ -3153,6 +3092,69 @@ export function FusionFortuneClient({ seoContent, valuePreview, paymentNotice }:
       </footer>}
       {result && !loading && !stageTwoFailed && result.expertMeta?.complete !== false && <RecommendationResult service="fusion-fortune-consultation" practiceTags={fusionAdviceTopics(result)} brand="neo"/>}
     </section>}
+
+    {/* 상담 소개(지나가는 길·가치·차례)는 폼과 결과 뒤에 둔다. 앞에 있으면 휴대폰에서 첫 입력 칸이
+        6,800px 아래였다. 폼 첫머리 orderSummary 가 받는 것을 먼저 요약하고, 여기서 자세히 읽는다. */}
+    {/* 여섯 체계를 카드 세 장으로 요약하는 대신, 실제로 지나가는 순서를 그대로 보여 준다.
+        같은 색(fusionOrbs tint)이 위 생성 화면의 말풍선에도 쓰여 한 흐름으로 읽힌다. */}
+    <section className={styles.readingFlow} aria-label={copy.readingFlowAriaLabel}>
+      <p className={styles.readingFlowLead}>{copy.readingFlowLead}</p>
+      <ol className={styles.readingFlowList}>
+        {FUSION_ORBS.map((orb) => (
+          <li key={orb.key} style={{ "--tint": orb.tint } as React.CSSProperties}>
+            <DestinyIcon name={FUSION_SYSTEM_ICONS[orb.key]} size={22} variant="line" className={styles.systemIcon} />
+            <strong>{sharedCopy.systemLabels[orb.key]}</strong>
+            <span>{copy.systemBriefs[orb.key]}</span>
+          </li>
+        ))}
+      </ol>
+      {/* 여섯 갈래가 모이는 하나의 판정. 이 상품이 파는 것이 정확히 이 수렴이라 목록 끝에 따로 세운다. */}
+      <div className={styles.readingFlowFinal}>
+        <strong>{copy.readingFlowFinalTitle}</strong>
+        <span>{copy.readingFlowFinalDesc}</span>
+      </div>
+    </section>
+
+    {getCurrentLoadingLocale() === "ko" && <CraftedProductDisclosure featureKey={PAID_FEATURE_KEY} />}
+    {valuePreview}
+
+    <ExpertValueCards theme="fusion" points={expertCopy.valuePoints} />
+
+    {/* 리포트 미리보기 + 신뢰. 3만원짜리 결과물의 규모를 구매 전에 그려 볼 수 있어야 한다.
+        🔴 여기 적히는 차례는 지어낸 목차가 아니라 FusionResultThread 의 실제 렌더 순서이며,
+           라벨도 결과 화면이 쓰는 FUSION_SHARED_COPY 키를 그대로 가져온다(신규 문안 0).
+        🔴 data-fusion-toc / data-fusion-pdf-section / data-fusion-visual / id="fusion-toc-*" 를
+           절대 쓰지 않는다 — 결과 화면의 TOC 관찰자와 PDF 캡처가 이 섹션을 결과로 오인한다. */}
+    <section className={styles.reportPreview} aria-labelledby="fusion-report-preview-heading">
+      <div className={styles.reportPreviewMain}>
+        <p className={styles.reportPreviewEyebrow}>{sharedCopy.tocHeading}</p>
+        <h2 id="fusion-report-preview-heading">{copy.reportPreviewTitle}</h2>
+        <ol className={styles.reportPreviewToc}>
+          <li>{sharedCopy.openingShortLabel}</li>
+          <li>{sharedCopy.summaryShortLabel}</li>
+          <li>
+            {sharedCopy.sixSystemsDirectionSpeaker}
+            <ul>
+              {FUSION_ORBS.map((orb) => (
+                <li key={orb.key} style={{ "--tint": orb.tint } as React.CSSProperties}>{sharedCopy.systemLabels[orb.key]}</li>
+              ))}
+            </ul>
+          </li>
+          <li>{sharedCopy.integratedShortLabel}</li>
+          <li>{sharedCopy.whenWhatSpeaker}</li>
+          <li>{sharedCopy.crossCheckHeading}</li>
+          <li className={styles.reportPreviewVerdict}>{sharedCopy.verdictShortLabel}</li>
+          <li>{sharedCopy.closingShortLabel}</li>
+        </ol>
+        <p className={styles.reportPreviewLength}>{expertCopy.length}</p>
+      </div>
+      <aside className={styles.reportPreviewTrust}>
+        <p className={styles.reportPreviewTrustLead}>{expertCopy.trust}</p>
+        <p>{expertCopy.guideBody}</p>
+        <p className={styles.reportPreviewTrustNote}>{copy.dialogNote}</p>
+      </aside>
+    </section>
+
     {/* 생성 중이거나 결과가 떠 있으면 띄우지 않는다 — 그때 화면 아래는 결과 도킹 바의 자리다. */}
     {!loading && !result && !failure && <div className={styles.orderBar} data-visible={orderBarVisible ? "true" : "false"}>
       <PriceBadge featureKey={PAID_FEATURE_KEY} fallbackLabel={copy.heroPriceFallback} prefix={copy.heroPricePrefix} className={styles.orderBarPrice} />
