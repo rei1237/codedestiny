@@ -13202,6 +13202,26 @@
         "title": "기본 타로 세 장 해석",
         "description": "선택한 세 장의 흐름과 실천 조언"
       }
+    },
+    "collectedBonus": "{days}일 연속 보너스 {bonus}개 포함! ",
+    "calendar": {
+      "title": "{month} 찻집 출석 도장",
+      "streak": "연속 {days}일",
+      "streakNone": "오늘부터 시작해요",
+      "boardLabel": "{count}일 연속 도장판",
+      "slotDone": "{day}일째 도장 완료",
+      "slotTodo": "{day}일째 도장 전",
+      "slotBonusDone": "{day}일째 도장 완료, 보너스 꿀방울 {amount}개",
+      "slotBonusTodo": "{day}일째 도장 전, 보너스 꿀방울 {amount}개",
+      "slotDay": "{day}일",
+      "msgBonus": "{days}일 연속 달성! 보너스 {bonus}개를 더해 오늘 꿀방울 {total}개를 받았어요.",
+      "msgAttended": "연속 {days}일째예요. 보너스까지 {left}일 남았어요.",
+      "msgLast": "오늘 출석하면 보너스 꿀방울 +{bonus}개를 받아요!",
+      "msgNext": "오늘 출석하면 연속 {days}일째예요. 보너스까지 {left}일 남았어요.",
+      "msgFirst": "오늘 첫 도장을 찍어 보세요! {every}일 연속이면 꿀방울 +{bonus}개를 더 드려요.",
+      "dayDone": "{date} 출석 완료",
+      "dayBonus": "{date} 출석 완료, 연속 보너스 지급",
+      "dayToday": "{date} 오늘"
     }
   }
 }

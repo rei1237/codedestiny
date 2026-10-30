@@ -22194,6 +22194,26 @@
         "title": "Lectura de tarot de tres cartas",
         "description": "El hilo de tus tres cartas y pasos prácticos"
       }
+    },
+    "collectedBonus": "¡Incluye bono de {days} días seguidos: {bonus} gotas! ",
+    "calendar": {
+      "title": "Tarjeta de sellos de la casa de té, {month}",
+      "streak": "{days} días seguidos",
+      "streakNone": "Empieza hoy",
+      "boardLabel": "Tablero de {count} días seguidos",
+      "slotDone": "Día {day} sellado",
+      "slotTodo": "Día {day} sin sellar",
+      "slotBonusDone": "Día {day} sellado, bono de {amount} gotas",
+      "slotBonusTodo": "Día {day} sin sellar, bono de {amount} gotas",
+      "slotDay": "Día {day}",
+      "msgBonus": "¡{days} días seguidos! Con el bono de {bonus} gotas recibiste {total} gotas hoy.",
+      "msgAttended": "Llevas {days} días seguidos. Faltan {left} días para el bono.",
+      "msgLast": "¡Registra tu asistencia hoy y recibe un bono de +{bonus} gotas!",
+      "msgNext": "Si registras hoy, serán {days} días seguidos. Faltan {left} días para el bono.",
+      "msgFirst": "¡Sella tu primer día hoy! {every} días seguidos dan +{bonus} gotas más.",
+      "dayDone": "{date}, asistencia registrada",
+      "dayBonus": "{date}, asistencia registrada, bono de racha otorgado",
+      "dayToday": "{date}, hoy"
     }
   }
 }

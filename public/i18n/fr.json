@@ -22194,6 +22194,26 @@
         "title": "Lecture de tarot à trois cartes",
         "description": "Le fil de vos trois cartes et des conseils concrets"
       }
+    },
+    "collectedBonus": "Dont {bonus} gouttes de bonus pour {days} jours d'affilée ! ",
+    "calendar": {
+      "title": "Carte de tampons du salon de thé, {month}",
+      "streak": "{days} jours d'affilée",
+      "streakNone": "Commence aujourd'hui",
+      "boardLabel": "Planche de {count} jours d'affilée",
+      "slotDone": "Jour {day} tamponné",
+      "slotTodo": "Jour {day} pas encore tamponné",
+      "slotBonusDone": "Jour {day} tamponné, bonus de {amount} gouttes",
+      "slotBonusTodo": "Jour {day} pas encore tamponné, bonus de {amount} gouttes",
+      "slotDay": "Jour {day}",
+      "msgBonus": "{days} jours d'affilée ! Avec le bonus de {bonus} gouttes, vous avez reçu {total} gouttes aujourd'hui.",
+      "msgAttended": "{days}e jour d'affilée. Encore {left} jours avant le bonus.",
+      "msgLast": "Pointez aujourd'hui pour recevoir un bonus de +{bonus} gouttes !",
+      "msgNext": "En pointant aujourd'hui, ce sera le {days}e jour d'affilée. Encore {left} jours avant le bonus.",
+      "msgFirst": "Tamponnez votre premier jour aujourd'hui ! {every} jours d'affilée rapportent +{bonus} gouttes de plus.",
+      "dayDone": "{date}, présence enregistrée",
+      "dayBonus": "{date}, présence enregistrée, bonus de série accordé",
+      "dayToday": "{date}, aujourd'hui"
     }
   }
 }

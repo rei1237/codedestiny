@@ -22194,6 +22194,26 @@
         "title": "基本タロット3枚リーディング",
         "description": "選んだ3枚の流れと実践のヒント"
       }
+    },
+    "collectedBonus": "{days}日連続ボーナス{bonus}個を含みます！",
+    "calendar": {
+      "title": "{month}の茶屋スタンプ帳",
+      "streak": "{days}日連続",
+      "streakNone": "今日から始まります",
+      "boardLabel": "{count}日連続スタンプ台紙",
+      "slotDone": "{day}日目 スタンプ済み",
+      "slotTodo": "{day}日目 スタンプ前",
+      "slotBonusDone": "{day}日目 スタンプ済み、ボーナスしずく{amount}個",
+      "slotBonusTodo": "{day}日目 スタンプ前、ボーナスしずく{amount}個",
+      "slotDay": "{day}日目",
+      "msgBonus": "{days}日連続達成！ボーナス{bonus}個を加えて、今日はしずくを{total}個受け取りました。",
+      "msgAttended": "連続{days}日目です。ボーナスまであと{left}日です。",
+      "msgLast": "今日出席するとボーナスしずく+{bonus}個がもらえます！",
+      "msgNext": "今日出席すると連続{days}日目です。ボーナスまであと{left}日です。",
+      "msgFirst": "今日、最初のスタンプを押しましょう！{every}日連続でしずくがさらに+{bonus}個もらえます。",
+      "dayDone": "{date} 出席済み",
+      "dayBonus": "{date} 出席済み、連続ボーナス付与",
+      "dayToday": "{date} 今日"
     }
   }
 }

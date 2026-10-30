@@ -75,15 +75,16 @@
   var IMG = '/images/fortune-tea-house/';
   function icon(file, size) { var img = document.createElement('img'); img.src = IMG + file; img.alt = ''; img.width = size; img.height = size; img.loading = 'lazy'; img.decoding = 'async'; return img; }
   // 연이 찻집 도장 달력. 날짜·연속일·보너스는 모두 서버 응답(KST)만 쓰고, 칸 계산은 UTC 날짜로 해서 기기 시간대와 무관하다.
+  function utcFormat(options, date) { return new Intl.DateTimeFormat(locale(), Object.assign({ timeZone: 'UTC' }, options)).format(date); }
   function renderCalendar(widget) {
     var box = widget.querySelector('[data-cd-honey-calendar]'), chip = widget.querySelector('[data-cd-honey-streak]');
     var ready = Boolean(state && state.day && !state.guest && !state.error);
     if (box) box.hidden = !ready;
-    if (chip) { chip.hidden = !(ready && state.streak > 0); text(chip, ready ? '연속 ' + state.streak + '일' : ''); }
+    if (chip) { chip.hidden = !(ready && state.streak > 0); text(chip, ready ? tr('calendar.streak', '연속 {days}일', { days: number(state.streak) }) : ''); }
     if (!box || !ready) return;
     var days = Array.isArray(state.monthDays) ? state.monthDays : [];
     var every = state.streakEvery || 5, bonusAmount = state.streakBonus || 4, streak = state.streak || 0;
-    var signature = [state.day, streak, state.attended, every, bonusAmount, days.map(function (d) { return d.day + (d.bonus ? '*' : ''); }).join()].join('|');
+    var signature = [locale(), state.day, streak, state.attended, every, bonusAmount, days.map(function (d) { return d.day + (d.bonus ? '*' : ''); }).join()].join('|');
     if (box.dataset.signature === signature) return;
     box.dataset.signature = signature;
     var parts = state.day.split('-').map(Number), year = parts[0], month = parts[1], today = parts[2];
@@ -94,35 +95,36 @@
     var filled = streak > 0 && (state.attended || streak % every !== 0) ? ((streak - 1) % every) + 1 : 0;
 
     var head = node('div', '', 'cdh-cal__head');
-    head.append(node('strong', month + '월 찻집 출석 도장'), node('span', streak > 0 ? '연속 ' + streak + '일' : '오늘부터 시작해요', 'cdh-cal__streak'));
+    head.append(node('strong', tr('calendar.title', '{month} 찻집 출석 도장', { month: utcFormat({ month: 'long' }, new Date(Date.UTC(year, month - 1, 1))) })), node('span', streak > 0 ? tr('calendar.streak', '연속 {days}일', { days: number(streak) }) : tr('calendar.streakNone', '오늘부터 시작해요'), 'cdh-cal__streak'));
 
     var board = node('ol', '', 'cdh-cal__board');
-    board.setAttribute('aria-label', every + '일 연속 도장판');
+    board.setAttribute('aria-label', tr('calendar.boardLabel', '{count}일 연속 도장판', { count: number(every) }));
     for (var s = 1; s <= every; s++) {
       var slot = node('li', '', 'cdh-cal__slot' + (s <= filled ? ' is-filled' : '') + (s === every ? ' is-bonus' : ''));
-      slot.setAttribute('aria-label', s + '일째 ' + (s <= filled ? '도장 완료' : '도장 전') + (s === every ? ', 보너스 꿀방울 ' + bonusAmount + '개' : ''));
-      slot.append(icon(s === every ? 'honey-jar-bonus-v1.webp' : 'honey-drop-jewel-v1.webp', 44), node('span', s === every ? '+' + bonusAmount : s + '일', 'cdh-cal__slot-label'));
+      slot.setAttribute('aria-label', tr(s === every ? (s <= filled ? 'calendar.slotBonusDone' : 'calendar.slotBonusTodo') : (s <= filled ? 'calendar.slotDone' : 'calendar.slotTodo'), s <= filled ? '{day}일째 도장 완료' : '{day}일째 도장 전', { day: number(s), amount: number(bonusAmount) }));
+      slot.append(icon(s === every ? 'honey-jar-bonus-v1.webp' : 'honey-drop-jewel-v1.webp', 44), node('span', s === every ? '+' + number(bonusAmount) : tr('calendar.slotDay', '{day}일', { day: number(s) }), 'cdh-cal__slot-label'));
       board.append(slot);
     }
 
     var note = node('div', '', 'cdh-cal__note');
-    var message = bonusDay ? streak + '일 연속 달성! 보너스 ' + bonusAmount + '개를 더해 오늘 꿀방울 ' + (bonusAmount + 1) + '개를 받았어요.'
-      : state.attended ? '연속 ' + streak + '일째예요. 보너스까지 ' + state.nextBonusIn + '일 남았어요.'
-      : state.nextBonusIn === 1 ? '오늘 출석하면 보너스 꿀방울 +' + bonusAmount + '개를 받아요!'
-      : streak > 0 ? '오늘 출석하면 연속 ' + (streak + 1) + '일째예요. 보너스까지 ' + state.nextBonusIn + '일 남았어요.'
-      : '오늘 첫 도장을 찍어 보세요! ' + every + '일 연속이면 꿀방울 +' + bonusAmount + '개를 더 드려요.';
+    var message = bonusDay ? tr('calendar.msgBonus', '{days}일 연속 달성! 보너스 {bonus}개를 더해 오늘 꿀방울 {total}개를 받았어요.', { days: number(streak), bonus: number(bonusAmount), total: number(bonusAmount + 1) })
+      : state.attended ? tr('calendar.msgAttended', '연속 {days}일째예요. 보너스까지 {left}일 남았어요.', { days: number(streak), left: number(state.nextBonusIn) })
+      : state.nextBonusIn === 1 ? tr('calendar.msgLast', '오늘 출석하면 보너스 꿀방울 +{bonus}개를 받아요!', { bonus: number(bonusAmount) })
+      : streak > 0 ? tr('calendar.msgNext', '오늘 출석하면 연속 {days}일째예요. 보너스까지 {left}일 남았어요.', { days: number(streak + 1), left: number(state.nextBonusIn) })
+      : tr('calendar.msgFirst', '오늘 첫 도장을 찍어 보세요! {every}일 연속이면 꿀방울 +{bonus}개를 더 드려요.', { every: number(every), bonus: number(bonusAmount) });
     note.append(icon(bonusDay ? 'flower-pig-cheer.webp' : 'flower-pig-tea.webp', 40), node('p', message));
     note.firstChild.className = 'cdh-cal__pig';
 
     var week = node('div', '', 'cdh-cal__week'); week.setAttribute('aria-hidden', 'true');
-    ['일', '월', '화', '수', '목', '금', '토'].forEach(function (name, i) { week.append(node('span', name, i === 0 ? 'is-sun' : '')); });
+    for (var w = 0; w < 7; w++) week.append(node('span', new Intl.DateTimeFormat(locale(), { weekday: 'narrow', timeZone: 'UTC' }).format(new Date(Date.UTC(2023, 0, 1 + w))), w === 0 ? 'is-sun' : ''));
 
     var grid = node('ol', '', 'cdh-cal__grid');
     for (var blank = 0; blank < first; blank++) grid.append(node('li', '', 'cdh-cal__day is-blank'));
     for (var d = 1; d <= total; d++) {
       var key = year + '-' + String(month).padStart(2, '0') + '-' + String(d).padStart(2, '0'), hit = marked[key];
       var cell = node('li', '', 'cdh-cal__day' + (hit ? ' is-stamped' : '') + (hit && hit.bonus ? ' is-bonus' : '') + (d === today ? ' is-today' : '') + (d > today ? ' is-future' : ''));
-      var label = month + '월 ' + d + '일' + (hit ? ' 출석 완료' + (hit.bonus ? ', 연속 보너스 지급' : '') : d === today ? ' 오늘' : '');
+      var label = utcFormat({ month: 'long', day: 'numeric' }, new Date(Date.UTC(year, month - 1, d)));
+      label = hit ? tr(hit.bonus ? 'calendar.dayBonus' : 'calendar.dayDone', hit.bonus ? '{date} 출석 완료, 연속 보너스 지급' : '{date} 출석 완료', { date: label }) : d === today ? tr('calendar.dayToday', '{date} 오늘', { date: label }) : label;
       cell.setAttribute('aria-label', label);
       if (d === today) cell.setAttribute('aria-current', 'date');
       cell.append(node('span', String(d), 'cdh-cal__num'));

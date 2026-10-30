@@ -22194,6 +22194,26 @@
         "title": "Giải ba lá Tarot cơ bản",
         "description": "Mạch ý nghĩa của ba lá đã chọn và lời khuyên thực hành"
       }
+    },
+    "collectedBonus": "Gồm thưởng {days} ngày liên tiếp: {bonus} giọt! ",
+    "calendar": {
+      "title": "Thẻ dấu tiệm trà {month}",
+      "streak": "Liên tiếp {days} ngày",
+      "streakNone": "Bắt đầu từ hôm nay",
+      "boardLabel": "Bảng dấu {count} ngày liên tiếp",
+      "slotDone": "Ngày {day} đã đóng dấu",
+      "slotTodo": "Ngày {day} chưa đóng dấu",
+      "slotBonusDone": "Ngày {day} đã đóng dấu, thưởng {amount} giọt mật ong",
+      "slotBonusTodo": "Ngày {day} chưa đóng dấu, thưởng {amount} giọt mật ong",
+      "slotDay": "Ngày {day}",
+      "msgBonus": "Đạt {days} ngày liên tiếp! Cộng thưởng {bonus} giọt, hôm nay bạn nhận {total} giọt mật ong.",
+      "msgAttended": "Đã liên tiếp {days} ngày. Còn {left} ngày nữa là có thưởng.",
+      "msgLast": "Điểm danh hôm nay để nhận thưởng +{bonus} giọt mật ong!",
+      "msgNext": "Điểm danh hôm nay là ngày liên tiếp thứ {days}. Còn {left} ngày nữa là có thưởng.",
+      "msgFirst": "Hãy đóng dấu đầu tiên hôm nay! {every} ngày liên tiếp được thêm +{bonus} giọt mật ong.",
+      "dayDone": "{date}, đã điểm danh",
+      "dayBonus": "{date}, đã điểm danh, đã tặng thưởng liên tiếp",
+      "dayToday": "{date}, hôm nay"
     }
   }
 }

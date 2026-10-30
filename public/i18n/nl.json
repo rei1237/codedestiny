@@ -22194,6 +22194,26 @@
         "title": "Tarotlezing met drie kaarten",
         "description": "Het verhaal van je drie kaarten en praktische vervolgstappen"
       }
+    },
+    "collectedBonus": "Inclusief reeksbonus van {bonus} druppels voor {days} dagen! ",
+    "calendar": {
+      "title": "Stempelkaart van het theehuis, {month}",
+      "streak": "{days} dagen op rij",
+      "streakNone": "Begint vandaag",
+      "boardLabel": "Stempelbord voor {count} dagen op rij",
+      "slotDone": "Dag {day} afgestempeld",
+      "slotTodo": "Dag {day} nog niet afgestempeld",
+      "slotBonusDone": "Dag {day} afgestempeld, bonus van {amount} druppels",
+      "slotBonusTodo": "Dag {day} nog niet afgestempeld, bonus van {amount} druppels",
+      "slotDay": "Dag {day}",
+      "msgBonus": "{days} dagen op rij! Met de bonus van {bonus} druppels kreeg je vandaag {total} druppels.",
+      "msgAttended": "Dag {days} op rij. Nog {left} dagen tot de bonus.",
+      "msgLast": "Check vandaag in en ontvang een bonus van +{bonus} druppels!",
+      "msgNext": "Check je vandaag in, dan is het dag {days} op rij. Nog {left} dagen tot de bonus.",
+      "msgFirst": "Zet vandaag je eerste stempel! {every} dagen op rij levert +{bonus} extra druppels op.",
+      "dayDone": "{date}, ingecheckt",
+      "dayBonus": "{date}, ingecheckt, reeksbonus toegekend",
+      "dayToday": "{date}, vandaag"
     }
   }
 }

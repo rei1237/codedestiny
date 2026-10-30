@@ -22194,6 +22194,26 @@
         "title": "Three-card tarot reading",
         "description": "The story of your three chosen cards and practical next steps"
       }
+    },
+    "collectedBonus": "Includes a {days}-day streak bonus of {bonus}! ",
+    "calendar": {
+      "title": "{month} tea house stamp card",
+      "streak": "{days}-day streak",
+      "streakNone": "Starts today",
+      "boardLabel": "{count}-day stamp board",
+      "slotDone": "Day {day} stamped",
+      "slotTodo": "Day {day} not stamped yet",
+      "slotBonusDone": "Day {day} stamped, bonus of {amount} honey drops",
+      "slotBonusTodo": "Day {day} not stamped yet, bonus of {amount} honey drops",
+      "slotDay": "Day {day}",
+      "msgBonus": "{days}-day streak! With the {bonus}-drop bonus you received {total} honey drops today.",
+      "msgAttended": "Day {days} of your streak. {left} more days to the bonus.",
+      "msgLast": "Check in today to get a bonus of +{bonus} honey drops!",
+      "msgNext": "Check in today for day {days} of your streak. {left} days to the bonus.",
+      "msgFirst": "Stamp your first day today! {every} days in a row earns +{bonus} more honey drops.",
+      "dayDone": "{date}, checked in",
+      "dayBonus": "{date}, checked in, streak bonus granted",
+      "dayToday": "{date}, today"
     }
   }
 }

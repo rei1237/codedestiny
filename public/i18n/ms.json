@@ -22194,6 +22194,26 @@
         "title": "Bacaan tarot tiga kad",
         "description": "Aliran tiga kad pilihan dan nasihat praktikal"
       }
+    },
+    "collectedBonus": "Termasuk bonus {bonus} titis untuk {days} hari berturut-turut! ",
+    "calendar": {
+      "title": "Kad cop rumah teh {month}",
+      "streak": "{days} hari berturut-turut",
+      "streakNone": "Bermula hari ini",
+      "boardLabel": "Papan cop {count} hari berturut-turut",
+      "slotDone": "Hari {day} sudah dicop",
+      "slotTodo": "Hari {day} belum dicop",
+      "slotBonusDone": "Hari {day} sudah dicop, bonus {amount} titis madu",
+      "slotBonusTodo": "Hari {day} belum dicop, bonus {amount} titis madu",
+      "slotDay": "Hari {day}",
+      "msgBonus": "{days} hari berturut-turut! Dengan bonus {bonus} titis, anda menerima {total} titis madu hari ini.",
+      "msgAttended": "Hari ke-{days} berturut-turut. {left} hari lagi untuk bonus.",
+      "msgLast": "Daftar kehadiran hari ini untuk bonus +{bonus} titis madu!",
+      "msgNext": "Jika anda daftar hari ini, ia hari ke-{days} berturut-turut. {left} hari lagi untuk bonus.",
+      "msgFirst": "Cop hari pertama anda hari ini! {every} hari berturut-turut memberi +{bonus} titis madu tambahan.",
+      "dayDone": "{date}, sudah daftar kehadiran",
+      "dayBonus": "{date}, sudah daftar kehadiran, bonus berturut-turut diberikan",
+      "dayToday": "{date}, hari ini"
     }
   }
 }

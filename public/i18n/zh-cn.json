@@ -22194,6 +22194,26 @@
         "title": "三张基础塔罗解读",
         "description": "所选三张牌的脉络与实践建议"
       }
+    },
+    "collectedBonus": "含{days}天连续奖励{bonus}滴！",
+    "calendar": {
+      "title": "{month}茶馆签到印章",
+      "streak": "连续{days}天",
+      "streakNone": "从今天开始",
+      "boardLabel": "{count}天连续印章板",
+      "slotDone": "第{day}天已盖章",
+      "slotTodo": "第{day}天未盖章",
+      "slotBonusDone": "第{day}天已盖章，奖励{amount}滴蜂蜜",
+      "slotBonusTodo": "第{day}天未盖章，奖励{amount}滴蜂蜜",
+      "slotDay": "第{day}天",
+      "msgBonus": "连续{days}天达成！加上{bonus}滴奖励，今天获得了{total}滴蜂蜜。",
+      "msgAttended": "已连续{days}天，距离奖励还有{left}天。",
+      "msgLast": "今天签到即可获得+{bonus}滴蜂蜜奖励！",
+      "msgNext": "今天签到就是连续第{days}天，距离奖励还有{left}天。",
+      "msgFirst": "今天盖下第一个印章吧！连续{every}天可额外获得+{bonus}滴蜂蜜。",
+      "dayDone": "{date} 已签到",
+      "dayBonus": "{date} 已签到，已发放连续奖励",
+      "dayToday": "{date} 今天"
     }
   }
 }

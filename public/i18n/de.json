@@ -22194,6 +22194,26 @@
         "title": "Drei-Karten-Tarotdeutung",
         "description": "Der Zusammenhang deiner drei Karten und praktische nächste Schritte"
       }
+    },
+    "collectedBonus": "Inklusive {days}-Tage-Serienbonus von {bonus} Tropfen! ",
+    "calendar": {
+      "title": "Stempelkarte des Teehauses, {month}",
+      "streak": "{days} Tage in Folge",
+      "streakNone": "Startet heute",
+      "boardLabel": "Stempelbrett für {count} Tage in Folge",
+      "slotDone": "Tag {day} abgestempelt",
+      "slotTodo": "Tag {day} noch nicht abgestempelt",
+      "slotBonusDone": "Tag {day} abgestempelt, Bonus von {amount} Tropfen",
+      "slotBonusTodo": "Tag {day} noch nicht abgestempelt, Bonus von {amount} Tropfen",
+      "slotDay": "Tag {day}",
+      "msgBonus": "{days} Tage in Folge! Mit dem Bonus von {bonus} Tropfen hast du heute {total} Tropfen erhalten.",
+      "msgAttended": "Tag {days} in Folge. Noch {left} Tage bis zum Bonus.",
+      "msgLast": "Check heute ein und erhalte einen Bonus von +{bonus} Tropfen!",
+      "msgNext": "Wenn du heute eincheckst, ist es Tag {days} in Folge. Noch {left} Tage bis zum Bonus.",
+      "msgFirst": "Stempel heute deinen ersten Tag! {every} Tage in Folge bringen +{bonus} Tropfen extra.",
+      "dayDone": "{date}, eingecheckt",
+      "dayBonus": "{date}, eingecheckt, Serienbonus gutgeschrieben",
+      "dayToday": "{date}, heute"
     }
   }
 }
