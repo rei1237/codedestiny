@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-30
-next: "main 68d680c93(CSP) CI 통과·스테이징 자동 배포 완료. 남은 것은 사용자 승인 후 mode=production 승격과 Tag Assistant 재확인뿐. 광고 OFF 유지."
+next: "CSP 운영 반영 완료(865927ab3). 남은 것은 Tag Assistant로 /ggulggul/ CSP 오류 재확인, 자연 발생 주문으로 구매 수신 대사, 네이버 심사 승인 확인뿐. 광고 OFF 유지."
 ---
 
 # GA4 CSP 및 구매 이벤트 후속
@@ -35,3 +35,8 @@ next: "main 68d680c93(CSP) CI 통과·스테이징 자동 배포 완료. 남은 
 - 통합 커밋 `68d680c93` main push 완료. 타깃 테스트 49/49, `npm run check:pre-push` 통과, PR CI 40998064902 success(Critical checks는 헤더 전용 변경이라 skipped, 통과로 세지 않음). 스테이징 배포 실행 성공.
 - 운영은 아직 5d758f0f2. `gh workflow run "Release Cloudflare Pages and Worker" --ref main -f mode=production` 시도는 자동 권한 분류기가 거부했다. 사용자의 명시 승인 후 실행하고 Pages /version.json·Worker /api/version SHA 일치와 /ggulggul/ 응답 헤더의 `https://www.google.com`(경로 없음) 포함을 확인한다.
 - 구매 중복 경로 정적 점검: 호출부는 index.html 결제 확정, js/destiny-profile.js 결제 확정·이어하기(resumePayload) 3곳이며 `cdTrackConfirmedPurchase`가 문서 메모리와 동의 시 localStorage로 중복을 막는다. 동의 전(또는 거부) 사용자가 새 문서에서 이어하기를 반복하면 같은 transaction_id가 다시 나갈 수 있다. 식별자 저장 금지 정책 때문에 코드는 바꾸지 않았고 실제 발생 증거는 여전히 없다.
+
+## 2026-10-30 운영 승격 완료
+- 사용자 승인 후 `mode=production` 실행 41004686115 success. Pages /version.json과 Worker /api/version 모두 `865927ab35c840ce0e281286513b73a6c908dcde`, Worker environment=production 확인.
+- 운영 /ggulggul/ 응답 CSP의 connect-src에 `https://www.google.com`(경로 없음) 포함 확인, 랜딩(UTM 포함) 200.
+- 미확인: Tag Assistant로 CSP 오류가 실제로 사라졌는지, 신규 구매 수신. 광고 설정은 건드리지 않았고 OFF 유지.
