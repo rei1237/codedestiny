@@ -2067,7 +2067,8 @@ export default function AstrologyAiClient() {
                   <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_150px]">
                     <label className={LABEL_CLASS}>
                       {copy.birthTimeLabel}
-                      <BirthTimeInput className={FIELD_CLASS}  value={form.birthTime} disabled={form.birthTimeUnknown} onChange={(event) => patchForm({ birthTime: event.target.value })} />
+                      {/* "시간 모름"이면 비활성 칸에 예전 값을 띄우지 않는다. 상태 값은 두어 다시 끄면 돌아오고, 제출은 위 payload 가 ""로 보낸다. */}
+                      <BirthTimeInput className={FIELD_CLASS}  value={form.birthTimeUnknown ? "" : form.birthTime} disabled={form.birthTimeUnknown} onChange={(event) => patchForm({ birthTime: event.target.value })} />
                     </label>
                     <label className="flex min-h-12 items-end gap-2 pb-3 text-sm font-semibold text-slate-200">
                       <input className="h-4 w-4 accent-[#f5d487]" type="checkbox" checked={form.birthTimeUnknown} onChange={(event) => patchForm({ birthTimeUnknown: event.target.checked })} />

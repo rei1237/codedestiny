@@ -2,3 +2,5 @@
 .clock > .number { box-sizing: border-box; width: 100%; min-width: 0; min-height: 48px; margin: 0; border: 1px solid currentColor; border-color: color-mix(in srgb, currentColor 35%, transparent); border-radius: 10px; padding: 10px 12px; font: inherit; font-size: 16px; color: inherit; background: transparent; font-variant-numeric: tabular-nums; text-align: center; }
 .clock > input:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
 .clock > :disabled { opacity: .5; cursor: default; }
+/* 비활성("시간 모름")일 때 예시 "08:35"가 입력값처럼 읽히지 않게 숨긴다. */
+.clock > :disabled::placeholder { color: transparent; }
