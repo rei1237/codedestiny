@@ -1,14 +1,15 @@
-.card { position:relative; box-sizing:border-box; width:100%; min-width:0; grid-column:1/-1; padding:16px 18px; margin-block:8px 16px; border:1px solid var(--cd-samples-line); border-radius:var(--cd-r-md); background:linear-gradient(120deg,var(--cd-samples-paper),var(--cd-samples-lilac)); color:var(--cd-samples-ink); }
-.heading { display:flex; align-items:center; gap:9px; min-height:32px; margin-bottom:8px; }
+.card { position:relative; box-sizing:border-box; width:100%; min-width:0; grid-column:1/-1; padding:12px 14px 12px; margin-block:4px 12px; border:1px solid var(--cd-samples-line); border-radius:var(--cd-r-md); background:var(--cd-samples-lilac); color:var(--cd-samples-ink); text-align:left; }
+.heading { display:flex; align-items:center; gap:8px; min-height:32px; margin-bottom:6px; }
 .heading > svg { color:var(--cd-samples-muted); flex-shrink:0; }
-.heading label { font-weight:650; font-size:.9rem; color:var(--cd-samples-ink); }
+/* 글자색은 카드가 소유한다. 페이지 폼 규칙(.form label, .form p 등)이 밝은 글자색을 내려
+   밝은 카드 위에 밝은 글자가 올라갔다(2026-10-30 초융합 라벨 1.11:1, 신년운세 1.18:1). 그래서 두 단계 선택자로 묶는다. */
+.card .heading label { display:inline; margin:0; padding:0; font-size:.9rem; font-weight:700; line-height:1.4; letter-spacing:normal; color:var(--cd-samples-ink); }
 .refresh { margin-left:auto; display:grid; place-items:center; width:44px; height:44px; padding:0; border:1px solid var(--cd-samples-line); border-radius:50%; color:var(--cd-samples-muted); background:var(--cd-samples-sheet); cursor:pointer; }
 .card select { box-sizing:border-box; min-height:48px; width:100%; max-width:100%; min-width:0; padding:10px 12px; color:var(--cd-samples-ink); background:var(--cd-samples-sheet); border:1px solid var(--cd-samples-line); border-radius:var(--cd-r-control); font:inherit; font-size:16px; text-overflow:ellipsis; }
 .card option { color:var(--cd-samples-ink); background:var(--cd-samples-sheet); }
-.card .hint { margin:9px 0 0; color:var(--cd-samples-muted); font-size:.78rem; line-height:1.7; overflow-wrap:anywhere; }
+.card p.hint { margin:6px 0 0; color:var(--cd-samples-muted); font-size:.8rem; font-weight:500; line-height:1.6; letter-spacing:normal; overflow-wrap:anywhere; }
 .card :is(select,button):focus-visible { outline:2px solid var(--cd-samples-rose); outline-offset:3px; }
 .card :disabled { opacity:.65; cursor:default; }
-@media(max-width:430px) { .card { padding:14px; } }
 
 .card { flex:0 0 100%; }
 :global(div):has(> .card) { flex-wrap:wrap; }
