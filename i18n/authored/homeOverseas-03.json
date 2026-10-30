@@ -434,18 +434,18 @@
     "ms": "Yeoni tersenyum memeluk titisan madu"
   },
   "home.guideCopy.honeyAttendanceHint": {
-    "ko": "매일 출석하고, 꿀꿀운세 기본 해석에 사용해요.",
-    "en": "Check in daily and use your drops for basic readings.",
-    "ja": "毎日出席して、基本鑑定に使えます。",
-    "zh-CN": "每日签到，用于基础解读。",
-    "zh-TW": "每日簽到，用於基礎解讀。",
-    "vi": "Điểm danh hằng ngày để dùng cho luận giải cơ bản.",
-    "hi": "रोज़ चेक-इन करें और मूल व्याख्याओं में ड्रॉप्स इस्तेमाल करें।",
-    "es": "Regístrate a diario y usa tus gotas en lecturas básicas.",
-    "fr": "Visitez chaque jour et utilisez vos gouttes pour les lectures de base.",
-    "de": "Besuche uns täglich und nutze Tropfen für Grunddeutungen.",
-    "nl": "Kom dagelijks langs en gebruik druppels voor basisduidingen.",
-    "ms": "Daftar hadir setiap hari dan guna titisan untuk tafsiran asas."
+    "ko": "매일 출석하면 꿀방울 1개, 5일 연속이면 +4개 보너스! 모은 꿀방울은 꿀꿀운세 기본 해석에 써요.",
+    "en": "Check in daily for 1 honey drop, and a 5-day streak adds a +4 bonus! Use your drops for basic readings.",
+    "ja": "毎日出席でしずく1個、5日連続でさらに+4個のボーナス！集めたしずくは基本鑑定に使えます。",
+    "zh-CN": "每日签到得1滴蜂蜜，连续5天再得+4滴奖励！攒下的蜂蜜可用于基础解读。",
+    "zh-TW": "每日簽到得1滴蜂蜜，連續5天再得+4滴獎勵！累積的蜂蜜可用於基礎解讀。",
+    "vi": "Điểm danh mỗi ngày nhận 1 giọt mật ong, 5 ngày liên tiếp được thêm +4! Dùng mật ong cho luận giải cơ bản.",
+    "hi": "रोज़ चेक-इन पर 1 बूंद, लगातार 5 दिन पर +4 बोनस! जमा बूंदें मूल व्याख्याओं में इस्तेमाल करें।",
+    "es": "¡Regístrate a diario para 1 gota y con 5 días seguidos recibes +4 de bono! Usa tus gotas en lecturas básicas.",
+    "fr": "Pointez chaque jour pour 1 goutte, et 5 jours d'affilée ajoutent un bonus de +4 ! Utilisez vos gouttes pour les lectures de base.",
+    "de": "Täglich einchecken für 1 Tropfen, 5 Tage in Folge bringen +4 Bonus! Nutze die Tropfen für Grunddeutungen.",
+    "nl": "Check dagelijks in voor 1 druppel, 5 dagen op rij geeft +4 bonus! Gebruik je druppels voor basisduidingen.",
+    "ms": "Daftar hadir setiap hari untuk 1 titis, 5 hari berturut-turut tambah bonus +4! Guna titisan untuk tafsiran asas."
   },
   "home.guideCopy.honeyAttend": {
     "ko": "출석 체크 하기",
