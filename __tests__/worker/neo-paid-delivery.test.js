@@ -132,6 +132,19 @@ for(const status of ['delivery_pending','completed']) for(const kind of ['null',
 for(const store of [0,1,2,3]) it(`revoked store ${store} rejects resume`,async()=>{await start();blocked=store;const count=provider.mock.calls.length;expect((await start()).status).toBe(402);expect(provider).toHaveBeenCalledTimes(count)});
 it('bookkeeping failure does not hide completed delivery',async()=>{usage.mockImplementation(()=>{throw new Error('ledger unavailable')});for(let i=0;i<3;i++)await start();expect((await start()).status).toBe(200);expect(docs[0].status).toBe('completed')});
 it('short generation has a cumulative limit and no completion reward',async()=>{provider.mockImplementation(async()=>({ok:true,text:'{"short":"empty"}'}));for(let i=0;i<2;i++)expect((await start()).status).toBe(202);expect((await start()).status).toBe(503);expect(provider).toHaveBeenCalledTimes(8);expect(usage).not.toHaveBeenCalled()});
+it.each([
+  ['unsupported-location token count', { ok: false, error: 'LLM_INPUT_TOKEN_COUNT_UNAVAILABLE', providerCode: 'GEMINI_PRECONDITION_FAILED', status: 400, retryable: false }, 5],
+  ['generation timeout', { ok: false, error: 'LLM_GENERATION_TIMEOUT' }, 2],
+])('%s: only a call Gemini never billed hands its chapter attempt back (2026-10-30 HKG refund)', async (_name, failure, pendingWaves) => {
+  mode = 'paid'; provider.mockImplementation(async () => failure);
+  for (let i = 0; i < pendingWaves; i++) expect((await start()).status).toBe(202);
+  expect((await start()).status).toBe(503);
+  expect(provider).toHaveBeenCalledTimes(pendingWaves * 4);
+  const refunds = refund.mock.calls.filter(call => call[4] === 'neo_operation_room_generation');
+  expect(refunds).toHaveLength(1);
+  expect(refunds[0][3]).not.toMatch(/보존/);
+  expect(usage).not.toHaveBeenCalled();
+});
 it('lease and ownership prevent concurrent and cross-account calls',async()=>{await start();const count=provider.mock.calls.length;docs[0].llmMeta.lockToken='other';docs[0].llmMeta.lockedAt=new Date();expect((await start()).status).toBe(202);expect(provider).toHaveBeenCalledTimes(count);userId='other';expect((await start()).status).toBe(404);userId=uid;docs[0].llmMeta.lockedAt=new Date(Date.now()-121000);expect((await start()).status).toBe(202);expect(provider).toHaveBeenCalledTimes(count+4)});
 it('checkpoint null keeps successful siblings',async()=>{fault={chapterCount:2,kind:'null'};expect((await start()).status).toBe(503);expect(Object.keys(docs[0].llmMeta.sections)).toHaveLength(3);expect(refund).not.toHaveBeenCalled();expect((await start()).status).toBe(202)});
 it('apply response loss resumes the saved result without another generation',async()=>{for(let i=0;i<3;i++)await start();fault={kind:'usage'};expect((await start()).status).toBe(503);expect(docs[0].status).toBe('delivery_pending');expect(refund).not.toHaveBeenCalled();const count=provider.mock.calls.length;expect((await start()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(count)});

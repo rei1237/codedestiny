@@ -1,4 +1,5 @@
 import { GEMINI_PROSE_MODEL, isGeminiProModel, proFallbackCause, selectGeminiModel } from "../../lib/gemini-model-policy.js";
+import { isUnbilledGeminiFailure } from "../../lib/gemini-provider-errors.mjs";
 import { FUSION_PREMIUM_VERSION, fusionGroupModel, fusionReasoningTask, FUSION_PREMIUM_THINKING, premiumLengthFor, premiumTargetsFor, isDomainFusion, FUSION_DOMAIN_CHAPTERS, FUSION_DOMAIN_KEYS, premiumFusionBody, normalizeFusionSubchapters, isPremiumFusion, premiumGroupTarget, validFusionConsultationPlan, fusionSubchapters } from "../../lib/fusion-premium-report.js";
 import { fusionEvidenceReferences, fusionLocaleLengthScale, fusionExpertEvidenceReady, FUSION_EXPERT_VERSION, validFusionSignals, normalizeFusionSignals, buildFusionEvidenceCrossCheck, fusionInputIdentity, fusionCheckpointMatches } from "./fusion-expert-contract.js";
 import { tokensRequiredForChars } from "./llm-budget.js";
@@ -715,14 +716,9 @@ export function fusionGroupAttemptLimit(snapshot) {
 }
 // 🔴 Gemini 가 과금하지 않은 실패(토큰 계수 장애·429·5xx)는 품질 시도를 쓰지 않는다 — 그룹당 이 횟수까지
 //    예약을 돌려받는다. 2026-10-30 사고: 첫 호출의 countTokens 일시 장애 1회가 사주 시도를 소모했다.
-//    시간 초과는 넣지 않는다. 기다리기를 멈췄을 뿐 공급자는 이미 생성해 과금했을 수 있다.
+//    판정 정본은 lib/gemini-provider-errors.mjs isUnbilledGeminiFailure(네오 작전실과 같은 규칙).
 export const FUSION_UNBILLED_RETRY_LIMIT = 3;
-const FUSION_UNBILLED_FAILURES = new Set(["LLM_INPUT_TOKEN_COUNT_UNAVAILABLE", "GEMINI_RATE_LIMITED", "GEMINI_UNAVAILABLE"]);
-export function isUnbilledFusionFailure(response) {
-  // A retired model (404) is rejected before any generation, so it never bills either.
-  return response?.providerCode === "GEMINI_MODEL_UNAVAILABLE"
-    || (response?.retryable !== false && [response?.error, response?.providerCode].some(code => FUSION_UNBILLED_FAILURES.has(code)));
-}
+export const isUnbilledFusionFailure = isUnbilledGeminiFailure;
 // 🔴 Pro가 응답하지 않으면 같은 프롬프트를 Flash로 보낸다(전달 우선). 2026-10-30: gemini-2.5-pro가 이 프로젝트에서
 //    404로 은퇴해 프리미엄 integration·verdict 호출이 전부 countTokens에서 실패했고, 그 주문은 끝내 완료되지 못했다.
 const isProModel = isGeminiProModel;

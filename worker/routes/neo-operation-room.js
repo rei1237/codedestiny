@@ -26,6 +26,7 @@ import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../li
 // 이용권 정산 모듈은 db 트랜잭션 옵션까지 끌고 와 쓸 때만 불러온다(이 라우트를 db 대역으로 띄우는 테스트 보호).
 const loadPerUsePaidAccess = () => import("../lib/nakshatra-paid-access.js");
 import { callGeminiText } from "../lib/gemini.js";
+import { isUnbilledGeminiFailure } from "../../lib/gemini-provider-errors.mjs";
 import { getAmbientAiLocale, runWithAiLocale } from "../lib/ai-locale-context.js";
 import { toAiLocale } from "../../lib/i18n/ai-locale.js";
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
@@ -82,6 +83,9 @@ const LLM_ERROR_MESSAGE = "작전 브리핑 작성에 실패했다. 이용권이
 // 🔴 카드 단건 결제가 실제로 환불된 경우에만 쓴다 — 위 LLM_ERROR_MESSAGE 의 "결제 권한은 보존"과
 //    정반대의 사실이라, 환불하고도 저 문구를 내보내면 사용자는 재시도가 무료라고 믿고 결제창을 다시 만난다.
 const CARD_REFUNDED_MESSAGE = "브리핑을 완성하지 못했다. 결제한 금액은 자동으로 환불되니 확인하고 다시 시도해라.";
+// 🔴 PortOne 취소 사유와 결제 로그에 남는 문구다. LLM_ERROR_MESSAGE("결제 권한은 보존")를 넘기면
+//    실제로 환불한 기록에 정반대 사실이 적힌다(2026-10-30 네오 자동 환불 건).
+const AUTO_REFUND_REASON = "네오의 팩폭 작전실 브리핑을 생성하지 못해 자동 환불";
 const SERVER_ERROR_MESSAGE = "작전실을 여는 중 문제가 생겼다. 결제 금액은 차감하지 않았다.";
 const RESULT_NOT_FOUND_MESSAGE = "저장된 작전 브리핑을 찾지 못했다.";
 const METHODS = new Set(["saju", "ziwei", "vedic", "astrology"]);
@@ -1027,6 +1031,9 @@ function countNeoTextChars(value) {
 
 const NEO_SECTION_BASE_TOKENS = 8192;
 const NEO_SECTION_TIMEOUT_MS = 45000;
+// 공급자가 생성 전에 거절한 실패(isUnbilledGeminiFailure)는 챕터 시도를 돌려준다 — 챕터당 이 횟수까지.
+// 2026-10-30: 운영 워커가 홍콩에 배치돼 countTokens 가 지역 거절을 냈고, 생성 한 번 없이 시도 2회를 다 써 결제가 자동 환불됐다.
+const NEO_UNBILLED_RETRY_LIMIT = 3;
 
 // 챕터 하나 생성 → { id, parsed, provider, model, ok }. 실패해도 parsed={}로 폴백(전체 실패 방지).
 // 잘림(MAX_TOKENS)이나 빈 파싱이면 캐시를 우회해 1회 재시도한다(잘린 문장이 결과에 남는 것 방지).
@@ -1036,7 +1043,7 @@ const NEO_SECTION_TIMEOUT_MS = 45000;
 // deadlineAt 을 주면 남은 예산 안에서만 호출한다(엣지 100s 전에 라우트가 먼저 판정하도록).
 async function generateNeoSectionOnce(env, section, prompt, cacheConfig, deadlineAt = 0, singleAttempt = false, retry = false) {
   try {
-    let ai = null;
+    let ai = null, calls = 0;
     for (let attempt = 0; attempt < (singleAttempt ? 1 : 2); attempt += 1) {
       // 🔴 예산 검사는 여기 한 곳뿐이다. 시작 가드와 재시도 가드를 따로 두지 말 것(중첩 사전검사).
       const remaining = deadlineAt > 0 ? deadlineAt - Date.now() : NEO_SECTION_TIMEOUT_MS;
@@ -1045,6 +1052,7 @@ async function generateNeoSectionOnce(env, section, prompt, cacheConfig, deadlin
       // 재시도는 한 챕터분이 온전히 남았을 때만. 반쯤 가다 끊기면 이미 받아 둔 응답까지 버린다.
       if (attempt > 0 && remaining < NEO_SECTION_TIMEOUT_MS) break;
       const useCache = attempt === 0 && cacheConfig;
+      calls += 1;
       ai = await callGeminiText(env, prompt, {
         // 잘렸으면 다음 시도에서 출력 상한을 두 배로 올린다(같은 상한으로 다시 부르면 또 잘린다).
         // retry = 체크포인트의 두 번째 시도. 첫 시도가 잘렸는지는 저장하지 않으므로 재시도면 늘린다(상한일 뿐 과금 예약 아님).
@@ -1071,7 +1079,15 @@ async function generateNeoSectionOnce(env, section, prompt, cacheConfig, deadlin
     const provider = clean(ai?.provider || "");
     const model = clean(ai?.model || "");
     const isMock = (/mock/i.test(provider) || /mock/i.test(model) || ai?.isMock === true) && !isStagingLlmMockEnabled(env);
-    if (!ai?.ok || isMock || (singleAttempt && (ai.truncated || /^(MAX_TOKENS|length)$/i.test(clean(ai.finishReason)))) || clean(ai?.text).length < 40) {
+    if (!ai?.ok) {
+      // 코드·상태만 남긴다(본문·키 없음). 2026-10-30 환불 건은 이 기록이 없어 원인을 워커 배치에서야 찾았다.
+      const failure = [ai?.error, ai?.providerCode, ai?.status].filter(Boolean).join(":").slice(0, 120) || "not_called";
+      // 앞선 시도가 응답을 받았으면(잘림 재시도) 이미 과금됐다 — 첫 호출의 거절만 돌려받는다.
+      const unbilled = calls === 0 || (calls === 1 && isUnbilledGeminiFailure(ai));
+      console.warn("[neo-operation-room] section provider failed", { section: section.id, failure, unbilled });
+      return { id: section.id, parsed: {}, provider, model, ok: false, failure, unbilled };
+    }
+    if (isMock || (singleAttempt && (ai.truncated || /^(MAX_TOKENS|length)$/i.test(clean(ai.finishReason)))) || clean(ai?.text).length < 40) {
       return { id: section.id, parsed: {}, provider, model, ok: false };
     }
     const parsed = parseNeoSectionResponse(ai.text);
@@ -1349,7 +1365,7 @@ async function refundCardPaymentOnFailure(env, auth, access, error) {
       env,
       payment,
       clean(error?.code || "neo_operation_room_generation_failed", 80),
-      clean(error?.message || LLM_ERROR_MESSAGE, 300),
+      AUTO_REFUND_REASON,
       "neo_operation_room_generation",
     );
   } catch (refundError) {
@@ -1726,6 +1742,7 @@ async function handleStart(request, env, ctx = null, recoveryAuth = null) {
     if (missing.some(section => Number(doc.llmMeta.attempts?.[section.id] || 0) >= 2)) throw Object.assign(new Error(LLM_ERROR_MESSAGE), { code: "LLM_FAILED" });
     if (missing.length) {
       const selected = missing.slice(0, PAID_LLM_PARTS_PER_REQUEST);
+      const reservedFrom = { ...doc.llmMeta.attempts };
       const attempts = { ...doc.llmMeta.attempts };
       selected.forEach(section => {
         if (usable(section, doc.llmMeta.sections?.[section.id])) attempts[`${section.id}:lengthRepair`] = 1;
@@ -1743,6 +1760,23 @@ async function handleStart(request, env, ctx = null, recoveryAuth = null) {
         ].join("") : "";
         const prompt = buildNeoInitialSectionPrompt(section, context) + repairNotes + `\n[완료 기준] 제목·목차·공백을 제외한 본문 최소 ${section.minChars}자, 목표 ${Math.ceil(section.minChars / 0.8)}자. 계산값 → 생활 패턴 → 반대 조건 → 행동 조언으로 전개한다. 반복으로 채우지 않는다.`;
         const row = await runWithAiLocale(locale, () => generateNeoSectionOnce(env, section, prompt, null, Date.now() + 45000, true, attempts[section.id] > 1));
+        if (row.unbilled) {
+          // 생성 전에 거절된 호출은 이 챕터의 예약(과 길이 보강 표시)을 돌려준다. 잠금 소유자만, 챕터당 상한까지.
+          // 돌려주기 저장이 실패하면 시도는 쓴 채로 둔다 — 예약보다 많이 부르는 일은 없다.
+          const write = queue.catch(() => {}).then(async () => {
+            const tries = { ...doc.llmMeta.attempts }, unbilled = doc.llmMeta.unbilledFailures || {};
+            if (Number(unbilled[section.id] || 0) >= NEO_UNBILLED_RETRY_LIMIT || Number(tries[section.id] || 0) < 1) return;
+            tries[section.id] = Number(tries[section.id]) - 1;
+            const repairKey = `${section.id}:lengthRepair`;
+            if (reservedFrom[repairKey]) tries[repairKey] = reservedFrom[repairKey]; else delete tries[repairKey];
+            try {
+              doc = await saveNeoDelivery(filter, { llmMeta: { ...doc.llmMeta, attempts: tries, unbilledFailures: { ...unbilled, [section.id]: Number(unbilled[section.id] || 0) + 1 } } }, sessionId);
+            } catch {}
+          });
+          queue = write;
+          await write;
+          return;
+        }
         if (!usable(section, row)) return;
         const write = queue.catch(() => {}).then(async () => {
           const previous = doc.llmMeta.sections?.[section.id];

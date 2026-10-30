@@ -1078,6 +1078,7 @@ describe("paid premium stage one never stalls on an empty wave (2026-10-30)", ()
     ["timeout", { ok: false, error: "LLM_GENERATION_TIMEOUT" }, false],
     ["spend cap", { ok: false, error: "llm_failed", providerCode: "GEMINI_SPEND_CAP", status: 429, retryable: false }, false],
     ["bad request", { ok: false, error: "LLM_INPUT_TOKEN_COUNT_UNAVAILABLE", providerCode: "GEMINI_INVALID_REQUEST", status: 400, retryable: false }, false],
+    ["unsupported worker location", { ok: false, error: "LLM_INPUT_TOKEN_COUNT_UNAVAILABLE", providerCode: "GEMINI_PRECONDITION_FAILED", status: 400, retryable: false }, true],
     ["retired model", { ok: false, error: "LLM_INPUT_TOKEN_COUNT_UNAVAILABLE", providerCode: "GEMINI_MODEL_UNAVAILABLE", status: 404, retryable: false }, true],
   ])("%s hands the reservation back only when Gemini never billed it", async (_name, failure, handsBack) => {
     const reservations = [];
