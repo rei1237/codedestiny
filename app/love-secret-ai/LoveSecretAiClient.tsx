@@ -2316,7 +2316,9 @@ export default function LoveSecretAiPage({ paymentNotice }: { paymentNotice?: st
           percent={stepPercent}
         />
 
+        <div className={intro.valueSlot}>
           <ExpertValueCards theme="love" points={[{ title: "내 마음의 속도", description: "지금 관계에서 내가 먼저 반응하는 지점과 원하는 거리를 살핍니다." }, { title: "상대와의 결", description: "상대의 마음을 단정하지 않고 관계의 패턴과 흐름으로 읽습니다." }, { title: "다음 대화", description: "불안을 키우기보다 지금 선택할 수 있는 대화와 간격을 정리합니다." }]} />
+        </div>
         <div className={styles.formLayout}>
           <form data-moonlit-form="" onSubmit={handleSubmit} id={FORM_ANCHOR_ID} className={styles.entryForm}>
             <div

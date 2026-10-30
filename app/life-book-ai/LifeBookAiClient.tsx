@@ -1792,7 +1792,9 @@ export default function LifeBookAiClient({ paymentNotice }: { paymentNotice?: st
           </aside>
 
           <section className="grid content-start gap-4">
-            <ExpertValueCards theme="lifeBook" points={[{ title: "타고난 기질", description: "생년월일과 질문을 바탕으로 반복되는 선택의 결을 정리합니다." }, { title: "삶의 장면", description: "일·관계·회복의 흐름을 한 권의 목차처럼 연결해 봅니다." }, { title: "다음 장면", description: "지금 할 수 있는 작고 현실적인 다음 선택을 남깁니다." }]} />
+            <div className={intro.valueSlot}>
+              <ExpertValueCards theme="lifeBook" points={[{ title: "타고난 기질", description: "생년월일과 질문을 바탕으로 반복되는 선택의 결을 정리합니다." }, { title: "삶의 장면", description: "일·관계·회복의 흐름을 한 권의 목차처럼 연결해 봅니다." }, { title: "다음 장면", description: "지금 할 수 있는 작고 현실적인 다음 선택을 남깁니다." }]} />
+            </div>
             <form data-moonlit-form="" id="life-book-form" onSubmit={submit} className={intro.bookForm}>
               <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                 <div className="min-w-0 basis-full">
@@ -1808,7 +1810,7 @@ export default function LifeBookAiClient({ paymentNotice }: { paymentNotice?: st
                 </div>
               </div>
 
-              <div className="mb-4 grid gap-2 sm:grid-cols-2" role="radiogroup" aria-label={copy.reportTypeAria}>
+              <div className="mb-4 grid grid-cols-2 gap-2" role="radiogroup" aria-label={copy.reportTypeAria}>
                 {MODE_VALUES.map((value) => (
                   <button
                     key={value}
@@ -1816,10 +1818,10 @@ export default function LifeBookAiClient({ paymentNotice }: { paymentNotice?: st
                     role="radio"
                     aria-checked={form.mode === value}
                     onClick={() => updateField("mode", value)}
-                    className={`rounded-2xl border px-4 py-3 text-left transition ${form.mode === value ? "border-amber-200 bg-amber-200/15" : "border-amber-100/15 bg-[#14271e] hover:border-amber-200/45"}`}
+                    className={`rounded-2xl border px-3 py-3 text-left transition sm:px-4 ${form.mode === value ? "border-amber-200 bg-amber-200/15" : "border-amber-100/15 bg-[#14271e] hover:border-amber-200/45"}`}
                   >
                     <span className={`block text-sm font-semibold ${form.mode === value ? "text-amber-100" : "text-[#f4dfbd]"}`}>{copy.modeOptions[value].label}</span>
-                    <span className="mt-1 block text-sm leading-6 text-[#e7d2b5]">{copy.modeOptions[value].desc}</span>
+                    <span className="mt-1 block text-xs leading-5 text-[#e7d2b5] sm:text-sm sm:leading-6">{copy.modeOptions[value].desc}</span>
                   </button>
                 ))}
               </div>
@@ -1880,14 +1882,16 @@ export default function LifeBookAiClient({ paymentNotice }: { paymentNotice?: st
 
               <div className="mt-4 grid gap-2">
                 <span className="text-sm font-bold text-[#f6e6c4]">{copy.focusAreaFieldLabel}</span>
-                <div className="grid gap-2 sm:grid-cols-2">
+                {/* 휴대폰에서는 여덟 칸을 이름만 2열로 두고, 고른 분야의 설명 한 줄만 아래에 보인다(1열 648px → 약 230px). */}
+                <div className="grid grid-cols-2 gap-2">
                   {FOCUS_AREA_VALUES.map((value) => (
-                    <button key={value} type="button" onClick={() => updateField("focusArea", value)} className={`rounded-2xl border p-3 text-left transition hover:-translate-y-0.5 ${form.focusArea === value ? "border-amber-200/55 bg-amber-100/15 shadow-lg shadow-amber-200/10" : "border-amber-100/15 bg-[#0b1020aa]"}`}>
+                    <button key={value} type="button" aria-pressed={form.focusArea === value} onClick={() => updateField("focusArea", value)} className={`min-h-11 rounded-2xl border px-3 py-2.5 text-left transition hover:-translate-y-0.5 sm:p-3 ${form.focusArea === value ? "border-amber-200/55 bg-amber-100/15 shadow-lg shadow-amber-200/10" : "border-amber-100/15 bg-[#0b1020aa]"}`}>
                       <span className="block text-sm font-semibold text-amber-50">{copy.focusLabel[value]}</span>
-                      <span className="mt-1 block text-sm leading-6 text-[#d8c6a7]">{copy.focusHint[value]}</span>
+                      <span className="mt-1 hidden text-sm leading-6 text-[#d8c6a7] sm:block">{copy.focusHint[value]}</span>
                     </button>
                   ))}
                 </div>
+                <p className="text-sm leading-6 text-[#d8c6a7] sm:hidden">{copy.focusHint[form.focusArea]}</p>
               </div>
 
               <div className="mt-4 flex items-center justify-end">

@@ -137,20 +137,29 @@
 .preparation dt { color: var(--pe-muted); }
 .preparation dd { margin: 0; overflow-wrap: anywhere; }
 .bookForm { scroll-margin-top: 88px; border: 1px solid var(--pe-line); border-radius: 6px; background: #20362a; padding: 24px; }
+/* 좁은 2열 카드·안내 칩에서 "중/심의", "있/습니다"처럼 낱말이 갈라졌다. 안쪽 글자에 어절 단위 줄바꿈을 물려준다. */
+.bookForm, .preparation { word-break: keep-all; overflow-wrap: break-word; }
 @media (max-width: 700px) {
-  .shell { padding: 80px 20px 112px; }
-  .hero { grid-template-columns: minmax(0, 1fr); gap: 28px; padding-bottom: 32px; margin-bottom: 32px; }
-  .bookObject, .letterObject { width: 220px; justify-self: center; }
-  .bookObject { padding: 38px 30px 24px 38px; background-image: url('/images/expert-consulting/life-book-cover-20260923-600.webp'); }
-  .letterObject { padding: 48px 38px 55px 29px; }
-  .coverTitle { font-size: 23px; }
-  .coverSubtitle { font-size: 12px; margin-top: 12px; }
-  .heroCopy h2 { font-size: 28px; max-width: none; }
+  /* 상단 내비가 흐름 안에 있어(73px) 위 여백을 더 둘 필요가 없다. 360px에서 시작 버튼이 첫 화면에 다 들어온다. */
+  .shell { padding: 32px 20px 112px; }
+  /* 표지·편지 그림은 제목 옆 작은 썸네일로 둔다. 220px 단독 줄이면 390px에서 293px를 차지해 첫 입력 칸이
+     2,100px 아래로 밀렸다. .heroCopy를 contents로 풀어 제목만 썸네일 옆에 두고 나머지는 한 줄을 다 쓴다. */
+  .hero { grid-template-columns: 88px minmax(0, 1fr); column-gap: 16px; row-gap: 0; align-items: center; padding-bottom: 28px; margin-bottom: 24px; }
+  .heroCopy { display: contents; }
+  .heroCopy > * { grid-column: 1 / -1; }
+  .bookObject, .letterObject { grid-column: 1; grid-row: 1; width: 88px; }
+  .bookObject { padding: 18% 12% 8% 18%; background-image: url('/images/expert-consulting/life-book-cover-20260923-600.webp'); }
+  .letterObject { padding: 0; }
+  .coverTitle { font-size: 11px; line-height: 1.4; }
+  .coverSubtitle, .letterObject .coverTitle { display: none; }
+  .heroCopy h2 { grid-column: 2; grid-row: 1; font-size: 24px; line-height: 1.4; max-width: none; }
   .description { margin-top: 12px; font-size: 15px; }
   .topics { margin-top: 18px; font-size: 13px; gap: 6px 16px; }
   .actions { margin-top: 24px; gap: 12px; }
   .start { width: 100%; }
   .formLayout { grid-template-columns: minmax(0, 1fr); gap: 24px; }
   .preparation { order: 2; }
+  /* 상담 가치 카드(321px)는 폼 뒤로 보낸다. 폼이 먼저 보여야 바로 입력을 시작한다. */
+  .valueSlot { order: 1; }
   .bookForm { padding: 20px; }
 }
