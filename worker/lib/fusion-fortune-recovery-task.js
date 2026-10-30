@@ -1,7 +1,7 @@
 import { connectDb, withMongoRetry } from './db.js';
 import { FusionFortuneConsultation, Payment } from './models.js';
 import { fusionGroupsForStage } from './fusion-fortune-prompt.js';
-import { hasFusionStageOneResult, isFusionFortuneApiEnabled, FUSION_GENERATION_DEADLINE_MS, FUSION_FORTUNE_PAID_FEATURE_KEY, validateFusionFortuneGroup, fusionValidationOptions, fusionGroupAttemptLimit } from './fusion-fortune.js';
+import { hasFusionStageOneResult, isFusionFortuneApiEnabled, FUSION_GENERATION_DEADLINE_MS, FUSION_FORTUNE_PAID_FEATURE_KEY, validateFusionFortuneGroup, fusionValidationOptions, fusionGroupAttemptLimit, fusionGroupWaitsForPlan } from './fusion-fortune.js';
 import { readOrderResumeContext, RESUME_APPROVED_TTL_MS } from '../payments/resume-context.js';
 import { runFusionFortuneDeliveryStage } from '../routes/fusion-fortune.js';
 
@@ -86,7 +86,9 @@ export async function runFusionFortuneRecovery(env, options = {}) {
     const groups = fusionGroupsForStage(stage, candidate.generationSnapshot.context).filter(group => !validateFusionFortuneGroup(candidate.result, group, options).ok)
       .filter(group => !(group.optional && Number(candidate.generationSnapshot.attempts?.[group.id] || 0) >= fusionGroupAttemptLimit(candidate.generationSnapshot)));
     // Provider reservations belong to the saved purchase and include browser attempts.
-    if (groups.length && groups.every(group => Number(candidate.generationSnapshot.attempts?.[group.id] || 0) >= fusionGroupAttemptLimit(candidate.generationSnapshot))) {
+    // Groups waiting for the premium plan cannot run; once saju is spent nothing can, so stop for review.
+    const runnable = groups.filter(group => !fusionGroupWaitsForPlan(group, candidate.generationSnapshot.context, stage, candidate.result));
+    if (groups.length && runnable.every(group => Number(candidate.generationSnapshot.attempts?.[group.id] || 0) >= fusionGroupAttemptLimit(candidate.generationSnapshot))) {
       await withMongoRetry(env, () => FusionFortuneConsultation.updateOne({ userId, idempotencyKey: requestId, ...buildAbandonedFusionFilter(now) },
         { $set: { 'generationSnapshot.recovery.reviewRequired': true } }), { retries: 0 });
       outcomes.push({ requestId, outcome: 'budget_exhausted', stage });

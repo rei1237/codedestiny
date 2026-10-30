@@ -18,6 +18,7 @@ import {
   FUSION_FORTUNE_PAID_FEATURE_KEY,
   FUSION_GENERATION_DEADLINE_MS,
   hasFusionStageOneResult,
+  fusionBudgetProfile,
 } from "../lib/fusion-fortune.js";
 import {
   getFusionFortuneConsultation,
@@ -187,16 +188,16 @@ async function loadFusionPriorConsultation({ userId, requestId }) {
 }
 
 /** A browser or scheduled recovery executes exactly one original paid stage. */
-export async function runFusionFortuneDeliveryStage(env, { userId, requestId, body, stage, prior, ctx = null, requireExisting = false, native = null }) {
+export async function runFusionFortuneDeliveryStage(env, { userId, requestId, body, stage, prior, ctx = null, requireExisting = false, native = null, budget = "interactive" }) {
   if (!native && requireExisting) native = await (await import("../toss/native-fusion.js")).nativeFusionRecoveryContext(env, userId, requestId);
   if (native && (await native.access(body, requestId)).ok) await native.assertDelivery(requestId, body);
   let consultationId = "";
   const result = await generateFusionFortuneRequest({
     input: body, userId, requestId, dateKey: getFusionFortuneDateKey(),
     store: createMongoFusionFortuneStore(env), resolvePaidAccess: buildFusionFortunePaidAccessResolver(env, requireExisting, native, body), env, ctx, stage,
-    priorResult: prior?.result || null, priorGenerationSource: prior?.generationSource || "", priorSnapshot: prior?.generationSnapshot || null,
+    priorResult: prior?.result || null, priorGenerationSource: prior?.generationSource || "", priorSnapshot: prior?.generationSnapshot || null, budget,
     onSnapshot: snapshot => withMongoRetry(env, () => saveFusionGenerationSnapshot({ ...snapshot, userId }), { retries: 0 }),
-    onReserved: () => withMongoRetry(env, () => claimFusionDeliveryLease({ userId, requestId }), { retries: 0 }),
+    onReserved: () => withMongoRetry(env, () => claimFusionDeliveryLease({ userId, requestId, ttlMs: fusionBudgetProfile(budget).leaseMs }), { retries: 0 }),
     onRecoveryRequested: body?.resumeGeneration === true ? lease => requestFusionRecovery({ userId, requestId, lease }) : undefined,
     onReleased: lease => withMongoRetry(env, () => releaseFusionDeliveryLease({ userId, requestId, lease }), { retries: 0 }),
     onAttempt: (groupId, lease, attemptOptions) => withMongoRetry(env, () => reserveFusionGroupAttempt({ userId, requestId, groupId, lease, ...attemptOptions }), { retries: 0 }),

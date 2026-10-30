@@ -9,6 +9,7 @@ import {
   countFusionFortuneVisibleText,
   countFusionReportBodyChars,
   fusionReportMeetsTotalFloor,
+  fusionGroupWaitsForPlan,
   createMemoryFusionFortuneStore,
   generateFusionFortuneRequest,
   generateFusionFortuneWithMockLLM,
@@ -1051,5 +1052,46 @@ describe("fusion premium v2 (domain chapters)", () => {
     const v1 = await generateFusionFortuneWithMockLLM({ context: { birthTimeKnown: true, birthPlaceKnown: true, reportVersion: "fusion-premium.v1" } });
     expect(v1.loveSection).toBeUndefined();
     expect(validateFusionFortuneResult({ ...v1, reportVersion: "fusion-premium.v1" }, { ignoreLength: true }).issues || []).not.toContain("domain_chapter_missing");
+  });
+});
+
+describe("paid premium stage one never stalls on an empty wave (2026-10-30)", () => {
+  const env = { ENABLE_FUSION_FORTUNE_REAL_LLM: "true", ALLOW_FUSION_FORTUNE_REAL_LLM: "true", GEMINIF_API_KEY: "mock-only", GEMINI_CONTEXT_CACHE: "false" };
+  const context = { birthTimeKnown: true, birthPlaceKnown: true, locale: "ko", reportVersion: "fusion-premium.v2" };
+  const run = (providerCall, attempts, onAttempt) => generateFusionFortuneWithRealLLM({ input, context, env, providerCall, priorSnapshot: { attempts }, onAttempt, onCheckpoint: async () => {} });
+  it("gates only non-saju premium stage-one groups until a valid plan is saved", () => {
+    const group = id => FUSION_SECTION_GROUP_SPECS.find(item => item.id === id);
+    const plan = { version: "fusion-premium.v1", question: "질문", questions: [1, 2, 3].map(index => ({ id: `q${index}`, title: "소제목" })) };
+    expect(fusionGroupWaitsForPlan(group("ziwei"), context, 1, {})).toBe(true);
+    expect(fusionGroupWaitsForPlan(group("saju"), context, 1, {})).toBe(false);
+    expect(fusionGroupWaitsForPlan(group("ziwei"), context, 1, { consultationPlan: plan })).toBe(false);
+    expect(fusionGroupWaitsForPlan(group("ziwei"), { birthTimeKnown: true }, 1, {})).toBe(false);
+    expect(fusionGroupWaitsForPlan(group("integration"), context, 2, {})).toBe(false);
+  });
+  it("runs saju after its first call was spent instead of slicing two plan-gated groups", async () => {
+    const providerCall = jest.fn(async () => ({ ok: false, error: "llm_failed" }));
+    const result = await run(providerCall, { saju: 1 }, async () => 2);
+    expect(providerCall.mock.calls.map(call => call[2].logContext.sectionGroup)).toEqual(["saju"]);
+    expect(result).toMatchObject({ deliverable: false, automaticRetryAllowed: false });
+  });
+  it("stops automatic retries when saju is spent and every other group waits for the plan", async () => {
+    const providerCall = jest.fn();
+    const result = await run(providerCall, { saju: 2 }, async () => { throw new Error("must not reserve"); });
+    expect(providerCall).not.toHaveBeenCalled();
+    expect(result.automaticRetryAllowed).toBe(false);
+  });
+  it.each([
+    ["token count outage", { ok: false, error: "LLM_INPUT_TOKEN_COUNT_UNAVAILABLE", providerCode: "GEMINI_UNAVAILABLE", status: 503, retryable: true }, true],
+    ["rate limit", { ok: false, error: "llm_failed", providerCode: "GEMINI_RATE_LIMITED", status: 429, retryable: true }, true],
+    ["timeout", { ok: false, error: "LLM_GENERATION_TIMEOUT" }, false],
+    ["spend cap", { ok: false, error: "llm_failed", providerCode: "GEMINI_SPEND_CAP", status: 429, retryable: false }, false],
+    ["bad request", { ok: false, error: "LLM_INPUT_TOKEN_COUNT_UNAVAILABLE", providerCode: "GEMINI_INVALID_REQUEST", status: 400, retryable: false }, false],
+  ])("%s hands the reservation back only when Gemini never billed it", async (_name, failure, handsBack) => {
+    const reservations = [];
+    const providerCall = jest.fn(async () => failure);
+    const result = await run(providerCall, { saju: 1 }, async (id, options) => { reservations.push([id, options]); return options.unbilled ? 1 : 2; });
+    expect(providerCall).toHaveBeenCalledTimes(1);
+    expect(reservations).toEqual([["saju", { lengthRepair: false }], ...(handsBack ? [["saju", { unbilled: true, lengthRepair: false }]] : [])]);
+    expect(result.automaticRetryAllowed).toBe(handsBack);
   });
 });

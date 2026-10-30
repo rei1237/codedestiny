@@ -11,7 +11,7 @@
 
 import { resultStorageUnavailable } from "./result-storage.js";
 import { FusionFortuneConsultation } from "./models.js";
-import { countFusionFortuneVisibleText, FUSION_GROUP_MAX_ATTEMPTS, fusionGroupAttemptLimit } from "./fusion-fortune.js";
+import { countFusionFortuneVisibleText, FUSION_GROUP_MAX_ATTEMPTS, fusionGroupAttemptLimit, FUSION_UNBILLED_RETRY_LIMIT } from "./fusion-fortune.js";
 
 // mongoose Mixed 필드는 상한이 없어 16MB 문서 한계까지 들어간다. 인생의 책이 본문에
 // 200,000자 상한을 둔 것과 같은 이유로, 비정상적으로 커진 결과는 저장하지 않는다.
@@ -148,11 +148,12 @@ function fusionLeaseFilter(lease) {
 }
 
 /** One lease spans both generation stages, provider reservations and verified delivery. */
-export async function claimFusionDeliveryLease({ userId, requestId }) {
+export async function claimFusionDeliveryLease({ userId, requestId, ttlMs = 150000 }) {
   const owner = text(userId, 120), key = text(requestId, 180);
   if (!owner || !key) throw resultStorageUnavailable(key);
   const now = new Date();
-  const lease = { token: crypto.randomUUID(), expiresAt: new Date(now.getTime() + 150000) };
+  // Background generation holds the lease past its own deadline so a browser retry cannot run beside it.
+  const lease = { token: crypto.randomUUID(), expiresAt: new Date(now.getTime() + (Number(ttlMs) > 0 ? Number(ttlMs) : 150000)) };
   try {
     const saved = await FusionFortuneConsultation.findOneAndUpdate(
       { userId: owner, idempotencyKey: key, status: { $ne: "completed" }, $or: [{ generationLease: null }, { "generationLease.expiresAt": { $lte: now } }] },
@@ -194,7 +195,8 @@ export async function saveFusionGenerationSnapshot({ userId, requestId, input, c
 }
 
 /** Reserve a provider call before starting it; lost responses never reset its budget. */
-export async function reserveFusionGroupAttempt({ userId, requestId, groupId, lease, lengthRepair = false }) {
+export async function reserveFusionGroupAttempt({ userId, requestId, groupId, lease, lengthRepair = false, unbilled = false }) {
+  if (unbilled) return returnUnbilledFusionAttempt({ userId, requestId, groupId, lease, lengthRepair });
   const owner = text(userId, 120), key = text(requestId, 180);
   if (!/^[a-zA-Z0-9_-]{1,60}$/.test(String(groupId))) throw resultStorageUnavailable(key);
   const field = `generationSnapshot.attempts.${groupId}`;
@@ -214,6 +216,25 @@ export async function reserveFusionGroupAttempt({ userId, requestId, groupId, le
     if (!Number.isFinite(confirmedAttempt) || confirmedAttempt < attempt) throw resultStorageUnavailable(key);
     return attempt;
   } catch { throw resultStorageUnavailable(key); }
+}
+
+/**
+ * Hand back a reservation whose call Gemini never billed (token-count outage, 429, 5xx).
+ * At most FUSION_UNBILLED_RETRY_LIMIT per group, so a provider outage cannot loop forever.
+ * Returns the attempt count after the hand-back, or null when nothing changed.
+ */
+export async function returnUnbilledFusionAttempt({ userId, requestId, groupId, lease, lengthRepair = false }) {
+  if (!lease?.token || !/^[a-zA-Z0-9_-]{1,60}$/.test(String(groupId))) return null;
+  const field = `generationSnapshot.attempts.${groupId}`;
+  const unbilledField = `generationSnapshot.unbilledFailures.${groupId}`;
+  try {
+    const saved = await FusionFortuneConsultation.findOneAndUpdate({ userId: text(userId, 120), idempotencyKey: text(requestId, 180),
+      status: { $ne: "completed" }, ...fusionLeaseFilter(lease), [field]: { $gte: 1 },
+      $or: [{ [unbilledField]: { $exists: false } }, { [unbilledField]: { $lt: FUSION_UNBILLED_RETRY_LIMIT } }] },
+    { $inc: { [field]: -1, [unbilledField]: 1 }, ...(lengthRepair ? { $set: { [`generationSnapshot.lengthRepairs.${groupId}`]: false } } : {}) }, { new: true }).lean();
+    const attempt = Number(saved?.generationSnapshot?.attempts?.[groupId]);
+    return saved && Number.isInteger(attempt) && attempt >= 0 ? attempt : null;
+  } catch { return null; }
 }
 
 /** One explicit recovery allowance for the existing purchase; never reset spent attempts. */

@@ -18,6 +18,7 @@ function matches(doc, filter) {
       if ("$lt" in value) return get(doc, key) < value.$lt;
       if ("$lte" in value) return get(doc, key) <= value.$lte;
       if ("$gt" in value) return get(doc, key) > value.$gt;
+      if ("$gte" in value) return get(doc, key) >= value.$gte;
     }
     if (value === null) return get(doc, key) == null;
     return String(get(doc, key)) === String(value);
@@ -105,4 +106,24 @@ it('manual recovery adds one bounded allowance without resetting spent calls or 
  await recover({...args,lease});
  await expect(reserve({...args,lease,groupId:'saju'})).rejects.toMatchObject({code:'RESULT_STORAGE_UNAVAILABLE'});
  expect(docs[0].generationSnapshot.attempts.saju).toBe(4);
+});
+
+it("hands back unbilled calls at most three times per group under the live lease", async () => {
+ await snapshot();
+ const args={userId:uid,requestId:"original-request",groupId:"saju"};
+ const lease=await claim(args);
+ for(let i=0;i<3;i++){expect(await reserve({...args,lease})).toBe(1);expect(await reserve({...args,lease,unbilled:true})).toBe(0);}
+ expect(await reserve({...args,lease})).toBe(1);
+ expect(await reserve({...args,lease,unbilled:true})).toBeNull();
+ expect(await reserve({...args,lease:{token:"stale"},unbilled:true})).toBeNull();
+ expect(await reserve({...args,unbilled:true})).toBeNull();
+ expect(docs[0].generationSnapshot).toMatchObject({attempts:{saju:1},unbilledFailures:{saju:3}});
+});
+it("background lease outlives its generation deadline", async () => {
+ const {fusionBudgetProfile}=await import("../../worker/lib/fusion-fortune.js");
+ const profile=fusionBudgetProfile("background");
+ const before=Date.now();
+ const lease=await claim({userId:uid,requestId:"original-request",ttlMs:profile.leaseMs});
+ expect(new Date(lease.expiresAt).getTime()-before).toBeGreaterThan(profile.deadlineMs);
+ expect(fusionBudgetProfile("unknown")).toBe(fusionBudgetProfile("interactive"));
 });

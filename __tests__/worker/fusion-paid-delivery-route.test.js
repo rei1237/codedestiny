@@ -293,3 +293,16 @@ it.each(["short-total", "complete-checkpoint"])("recovery handles exhausted %s w
  expect(runStage).toHaveBeenCalledTimes(1);
  expect(result.outcomes[0].completed).toBe(true);
 });
+
+it('recovery marks review when saju is spent and the premium chapters still wait for its plan',async()=>{
+ generator=async()=>({result:{sajuSection:sections.sajuSection},deliverable:false,automaticRetryAllowed:true,qualityTier:'partial'});
+ await route(request(),ENV);docs[0].updatedAt=new Date(Date.now()-600000);
+ docs[0].generationSnapshot.context={birthTimeKnown:true,birthPlaceKnown:true,reportVersion:'fusion-premium.v2'};
+ docs[0].generationSnapshot.attempts={saju:2};
+ const runStage=jest.fn();
+ const {runFusionFortuneRecovery}=await import('../../worker/lib/fusion-fortune-recovery-task.js');
+ const result=await runFusionFortuneRecovery(ENV,{runStage});
+ expect(runStage).not.toHaveBeenCalled();
+ expect(result.outcomes[0]).toMatchObject({outcome:'budget_exhausted',stage:1});
+ expect(docs[0].generationSnapshot.recovery.reviewRequired).toBe(true);
+});

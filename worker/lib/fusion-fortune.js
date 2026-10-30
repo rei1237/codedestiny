@@ -713,6 +713,18 @@ export const FUSION_GROUP_MAX_ATTEMPTS = 2;
 export function fusionGroupAttemptLimit(snapshot) {
   return FUSION_GROUP_MAX_ATTEMPTS + (snapshot?.recovery?.manualGranted === true ? 2 : 0);
 }
+// 🔴 Gemini 가 과금하지 않은 실패(토큰 계수 장애·429·5xx)는 품질 시도를 쓰지 않는다 — 그룹당 이 횟수까지
+//    예약을 돌려받는다. 2026-10-30 사고: 첫 호출의 countTokens 일시 장애 1회가 사주 시도를 소모했다.
+//    시간 초과는 넣지 않는다. 기다리기를 멈췄을 뿐 공급자는 이미 생성해 과금했을 수 있다.
+export const FUSION_UNBILLED_RETRY_LIMIT = 3;
+const FUSION_UNBILLED_FAILURES = new Set(["LLM_INPUT_TOKEN_COUNT_UNAVAILABLE", "GEMINI_RATE_LIMITED", "GEMINI_UNAVAILABLE"]);
+export function isUnbilledFusionFailure(response) {
+  return response?.retryable !== false && [response?.error, response?.providerCode].some(code => FUSION_UNBILLED_FAILURES.has(code));
+}
+/** Premium stage 1 writes the consultation plan in saju; every other group needs that plan first. */
+export function fusionGroupWaitsForPlan(group, context, stage, values) {
+  return isPremiumFusion(context) && Number(stage) === 1 && group?.id !== "saju" && !validFusionConsultationPlan(values?.consultationPlan);
+}
 const FUSION_GROUP_ATTEMPTS = 1;
 // 목표의 이 비율에 못 미친 그룹은 다시 부른다. 낮게 잡으면 65%짜리 그룹이 통과해 합계가 무너진다.
 const FUSION_GROUP_RETRY_RATIO = 0.8;
@@ -728,6 +740,17 @@ const FUSION_TAIL_RESERVE_MS = 20000;
 //    빌드·검증·onDelivery·store.commit 소요)를 더해, 정상 진행 중인 요청을 조기에 이중 실행하지
 //    않으면서도 기존 10분 TTL 전부를 기다리게 하지 않는다. 근거: docs/HANDOFF_FUSION_FORTUNE_UX.md.
 export const FUSION_RESERVATION_FRESHNESS_MS = FUSION_GENERATION_DEADLINE_MS + 60000;
+// 예산 프로필. interactive 는 결제 직후 요청(엣지 ~100초) 그대로다. background 는 연결을 붙잡은 사람이
+// 없는 서버 이어 생성용이라 Pro 그룹에 실제로 필요한 분 단위 시간을 준다. 컨텍스트 캐시는 끈다 —
+// TTL(300초)보다 긴 호출이 캐시를 잃으면 안 되고, 요청당 두 묶음이라 아끼는 몫도 작다.
+// leaseMs 는 마감 + 여유라 같은 주문의 브라우저 요청이 그 사이 끼어들어 겹쳐 돌지 않는다.
+export const FUSION_BUDGET_PROFILES = Object.freeze({
+  interactive: Object.freeze({ name: "interactive", deadlineMs: FUSION_GENERATION_DEADLINE_MS, tailReserveMs: FUSION_TAIL_RESERVE_MS, leaseMs: 150000 }),
+  background: Object.freeze({ name: "background", deadlineMs: 540000, tailReserveMs: 30000, leaseMs: 600000, proTimeoutMs: 300000, flashTimeoutMs: 180000, contextCache: false }),
+});
+export function fusionBudgetProfile(name) {
+  return FUSION_BUDGET_PROFILES[name] || FUSION_BUDGET_PROFILES.interactive;
+}
 /**
  * 그룹 목표 상한 + JSON 완충을 공통 토큰 환산식으로 확보한다.
  * 단일 호출 시절의 운영 노브 FUSION_FORTUNE_MAX_OUTPUT_TOKENS 는 이제 **그룹당** 상한으로 읽는다.
@@ -1068,6 +1091,7 @@ export async function generateFusionFortuneWithRealLLM({
   onCheckpoint,
   onAttempt,
   priorSnapshot = null,
+  budget = "interactive",
 } = {}) {
   if (!isFusionFortuneRealLlmAllowed(env)) {
     const error = new Error("FUSION_REAL_LLM_NOT_ALLOWED");
@@ -1082,7 +1106,8 @@ export async function generateFusionFortuneWithRealLLM({
   //    LLM 그룹보다 먼저 같은 예산을 소모하므로, 여기서 새로 시작하면 컨텍스트 시간이 예산에
   //    안 잡혀 Cloudflare 엣지 한도(~100s)를 넘겨 요청이 도중에 죽는다.
   const startedAt = Number.isFinite(Number(deadlineStartAt)) && Number(deadlineStartAt) > 0 ? Number(deadlineStartAt) : Date.now();
-  const remainingMs = () => FUSION_GENERATION_DEADLINE_MS - (Date.now() - startedAt);
+  const profile = fusionBudgetProfile(budget);
+  const remainingMs = () => profile.deadlineMs - (Date.now() - startedAt);
 
   const groupModel = group => isPremiumFusion(context) ? fusionGroupModel(group) : selectGeminiModel(text(env.FUSION_FORTUNE_LLM_MODEL, 100));
   // 🔴 ignoreLength:true is the *acceptance* gate only (rule L1, docs/handoff/2026-09-27-llm-length-never-fatal.md):
@@ -1119,12 +1144,12 @@ export async function generateFusionFortuneWithRealLLM({
   // Paid routes always supply checkpoints. At most two unfinished groups per request;
   // previously verified groups travel in prior and never purchase another call.
   // A short saved group is "unfinished" until its one length repair is spent.
-  let waveGroups = typeof onCheckpoint === 'function' ? groups.filter(group => !savedReady(group))
+  // 🔴 The plan gate runs before the two-group slice. Slicing first picked ziwei+vedic (fewer attempts than
+  //    saju), the gate then emptied the wave, and every later request made zero calls (2026-10-30).
+  const waitsForPlan = group => fusionGroupWaitsForPlan(group, context, stageNumber, prior);
+  const waveGroups = typeof onCheckpoint === 'function' ? groups.filter(group => !savedReady(group) && !waitsForPlan(group))
     .filter(group => Number(attemptCounts[group.id] || 0) < attemptLimit)
-    .sort((a, b) => Number(Boolean(a.optional)) - Number(Boolean(b.optional)) || Number(attemptCounts[a.id] || 0) - Number(attemptCounts[b.id] || 0)).slice(0, 2) : groups;
-  if (isPremiumFusion(context) && stageNumber === 1 && !validFusionConsultationPlan(prior.consultationPlan)) {
-    waveGroups = waveGroups.filter(group => group.id === "saju");
-  }
+    .sort((a, b) => Number(Boolean(a.optional)) - Number(Boolean(b.optional)) || Number(attemptCounts[a.id] || 0) - Number(attemptCounts[b.id] || 0)).slice(0, 2) : groups.filter(group => !waitsForPlan(group));
   let checkpointQueue = Promise.resolve();
   const checkpoint = async (group, value) => {
     Object.assign(merged, value);
@@ -1136,7 +1161,8 @@ export async function generateFusionFortuneWithRealLLM({
     if (group.stage === 1) await emitFusionFortuneStage(onStage, group.id, { phase: "analysis" });
   };
   const groupTimeoutMs = isPremiumFusion(context) ? 85000 : fusionGroupTimeoutMs(env);
-  const runGroup = async (group, { attempts = FUSION_GROUP_ATTEMPTS, timeoutMs = groupTimeoutMs, extraInstruction = "", progress = composeProgress, persist = true } = {}) => {
+  const timeoutFor = group => profile.proTimeoutMs ? (/pro/i.test(groupModel(group)) ? profile.proTimeoutMs : profile.flashTimeoutMs) : groupTimeoutMs;
+  const runGroup = async (group, { attempts = FUSION_GROUP_ATTEMPTS, timeoutMs = timeoutFor(group), extraInstruction = "", progress = composeProgress, persist = true } = {}) => {
     // 🔴 데드라인을 그룹 호출 **안에서** 강제한다. 예전에는 1차 병렬이 예산을 전혀 보지 않고
     //    attempts×timeoutMs(최악 110초)를 다 쓴 뒤에야 다음 물결에서 남은 예산을 확인했다.
     //    컨텍스트 빌드(6개 계산기)까지 같은 120초 예산을 소모하므로, 그대로면 Cloudflare 엣지
@@ -1151,11 +1177,11 @@ export async function generateFusionFortuneWithRealLLM({
       return { ok: true, group, value: saved };
     }
     const remainingBeforeCall = remainingMs();
-    if (remainingBeforeCall <= FUSION_TAIL_RESERVE_MS + 1000) {
+    if (remainingBeforeCall <= profile.tailReserveMs + 1000) {
       console.warn("[fusion-fortune-group-skipped-deadline]", { requestId: text(requestId, 120), stage: stageNumber, sectionGroup: group.id, remainingMs: remainingBeforeCall });
       return { ok: false, group, issue: "deadline_exhausted" };
     }
-    const clampedTimeoutMs = Math.max(1000, Math.min(timeoutMs, remainingBeforeCall - FUSION_TAIL_RESERVE_MS));
+    const clampedTimeoutMs = Math.max(1000, Math.min(timeoutMs, remainingBeforeCall - profile.tailReserveMs));
     if (context.version === FUSION_EXPERT_VERSION && group.stage === 1) await emitFusionFortuneStage(onStage, group.id, { phase: "analysis_start", status: "running" });
     if (typeof onCheckpoint === 'function' && savedValid && !savedReady(group)) {
       extraInstruction += `\n${buildFusionShortfallInstruction(group, countFusionGroupChars(saved, group))}`;
@@ -1203,7 +1229,19 @@ export async function generateFusionFortuneWithRealLLM({
     } catch (error) {
       response = { ok: false, error: text(error?.code, 80) || "provider_exception" };
     }
-    if (!response?.ok) return { ok: false, group, issue: text(response?.error, 80) || "provider_failed" };
+    if (!response?.ok) {
+      // A call Gemini never billed hands its reservation back (bounded per group in storage).
+      // If the hand-back fails the attempt stays spent — never more calls than reserved.
+      if (isUnbilledFusionFailure(response) && typeof onAttempt === "function") {
+        const returned = await onAttempt(group.id, { unbilled: true, lengthRepair }).catch(() => null);
+        if (Number.isInteger(returned) && returned >= 0) {
+          attemptCounts[group.id] = returned;
+          if (lengthRepair) delete lengthRepairs[group.id];
+        }
+      }
+      // providerCode·status 만 남긴다 — 사고 때 countTokens 실패의 HTTP 상태가 로그에 없어 원인을 못 갈랐다.
+      return { ok: false, group, issue: text(response?.error, 80) || "provider_failed", detail: [response?.providerCode, response?.status].filter(Boolean).join(":") };
+    }
     const parsed = parseFusionFortuneLLMResponse(response.text);
     if (!parsed.ok) return { ok: false, group, issue: "parse_failed" };
     // 🔴 검증·분량 계수보다 **먼저** 공백 런을 접는다. 안 접으면 공백만 9만 자인 본문이 그룹
@@ -1269,7 +1307,7 @@ export async function generateFusionFortuneWithRealLLM({
   // A cache is model-specific. Mixed Flash/Pro waves never share its handle.
   for (const group of waveGroups) {
     const model = groupModel(group);
-    if (contextCaches.has(model) || remainingMs() <= FUSION_TAIL_RESERVE_MS) continue;
+    if (profile.contextCache === false || contextCaches.has(model) || remainingMs() <= profile.tailReserveMs) continue;
     contextCaches.set(model, await createGeminiContextCache(env, {
       prefix: buildFusionSectionPromptPrefix({ context, stage: stageNumber, priorSections: prior }),
       systemPrompt: buildFusionSectionSystemPrompt(context),
@@ -1309,7 +1347,7 @@ export async function generateFusionFortuneWithRealLLM({
     //    엣지 100s)이라 같은 요청에서 보완까지 하면 데드라인을 넘는다. 대신 보완이 남은 묶음은 아래
     //    `missing`에 남아 pending으로 돌아가고, 다음 요청의 waveGroups가 분량 지시와 함께 다시 쓴다.
     if (typeof onCheckpoint !== 'function' && retryTargets.length && !abortSignal?.aborted && remainingMs() > FUSION_GROUP_RETRY_MIN_BUDGET_MS) {
-      const retryTimeoutMs = Math.min(groupTimeoutMs, remainingMs() - FUSION_TAIL_RESERVE_MS);
+      const retryTimeoutMs = Math.min(groupTimeoutMs, remainingMs() - profile.tailReserveMs);
       const repairProgress = { phase: "repair", total: retryTargets.length, done: 0 };
       const retried = await Promise.allSettled(retryTargets.map((group) => runGroup(group, {
         attempts: 1,
@@ -1361,7 +1399,8 @@ export async function generateFusionFortuneWithRealLLM({
     || (typeof onCheckpoint === "function" && owesLengthRepair(composed, group)));
   if (missing.length) {
     return { result: composed, deliverable: false, generationSource: "gemini_partial", providerCalls,
-      automaticRetryAllowed: missing.some(group => Number(attemptCounts[group.id] || 0) < attemptLimit),
+      // A group still waiting for the plan cannot run, so its unspent attempts never justify another try.
+      automaticRetryAllowed: missing.some(group => !fusionGroupWaitsForPlan(group, context, stageNumber, composed) && Number(attemptCounts[group.id] || 0) < attemptLimit),
       pendingGroups: missing.map(group => group.id), qualityIssues: ["groups_incomplete"], stage: stageNumber };
   }
   if (context.version === FUSION_EXPERT_VERSION) composed.evidenceCrossCheck = buildFusionEvidenceCrossCheck(composed, context);
@@ -1490,7 +1529,7 @@ export async function buildFusionFortuneStatus({ userId = "", enabled = true } =
  * STAGE_ONE_MISSING(409, retryable) 로 돌려보내 클라이언트가 1단계부터 다시 잇게 한다.
  * 결제 증빙은 두 단계 모두 같은 requestId 로 조회만 한다(재과금·쓰기 없음).
  */
-export async function generateFusionFortuneRequest({ input = {}, userId = "", requestId, dateKey, store, resolvePaidAccess, now = new Date(), contextBuilder = buildFusionFortuneContext, generator = generateFusionFortuneWithConfiguredLLM, env = {}, onStage, abortSignal, onDelivery, onCheckpoint, stage = 1, priorResult = null, priorGenerationSource = "", priorSnapshot = null, onSnapshot, onAttempt, onReserved, onReleased, onRecoveryRequested } = {}) {
+export async function generateFusionFortuneRequest({ input = {}, userId = "", requestId, dateKey, store, resolvePaidAccess, now = new Date(), contextBuilder = buildFusionFortuneContext, generator = generateFusionFortuneWithConfiguredLLM, env = {}, onStage, abortSignal, onDelivery, onCheckpoint, stage = 1, priorResult = null, priorGenerationSource = "", priorSnapshot = null, onSnapshot, onAttempt, onReserved, onReleased, onRecoveryRequested, budget = "interactive" } = {}) {
   if (!text(userId)) return { ok: false, status: 401, error: FUSION_FORTUNE_ERROR_CODES.AUTH_REQUIRED, message: "로그인이 필요합니다." };
   const stageNumber = Number(stage) || 1;
   if (stageNumber !== 1 && stageNumber !== 2) return { ok: false, status: 400, error: FUSION_FORTUNE_ERROR_CODES.INVALID_INPUT, message: "입력 정보를 확인해 주세요." };
@@ -1546,7 +1585,7 @@ export async function generateFusionFortuneRequest({ input = {}, userId = "", re
     //    컨텍스트 시간이 예산에 안 잡혀 Cloudflare 엣지 한도(~100s)를 넘겨 요청이 도중에 죽는다.
     const expertMeta = { version: FUSION_EXPERT_VERSION, calculationVersion: FUSION_EXPERT_VERSION, promptVersion: FUSION_EXPERT_VERSION, identity, locale: normalized.locale, calculatedAt: calculationDate.toISOString(), pendingStage: stageNumber, complete: false };
     const withMetadata = (value) => normalized.contextVersion === 2 ? { ...value, ...(isPremiumFusion(normalized) ? { reportVersion: normalized.reportVersion } : {}), expertMeta: { ...expertMeta, systems: Object.fromEntries(["saju", "ziwei", "vedic", "sukuyo", "astrology", "tarot"].map((system) => [system, { calculation: "complete", analysis: validFusionSignals(value?.[`${system}Section`], system, contextResult.context) ? "complete" : "pending" }])) }, tarotCards: contextResult.context.tarotSpread?.cards || [] } : value;
-    const generated = await generator({ input: normalized, context: contextResult.context, onAttempt: typeof onAttempt === "function" ? (groupId, attemptOptions) => onAttempt(groupId, deliveryLease, attemptOptions) : undefined, env, requestId: safeId, userId, onStage, now: calculationDate, abortSignal, deadlineStartAt: startedAt, stage: stageNumber, priorResult, priorGenerationSource, priorSnapshot,
+    const generated = await generator({ input: normalized, context: contextResult.context, onAttempt: typeof onAttempt === "function" ? (groupId, attemptOptions) => onAttempt(groupId, deliveryLease, attemptOptions) : undefined, env, requestId: safeId, userId, onStage, now: calculationDate, abortSignal, deadlineStartAt: startedAt, stage: stageNumber, priorResult, priorGenerationSource, priorSnapshot, budget,
       onCheckpoint: typeof onCheckpoint === "function" ? (value) => onCheckpoint({ requestId: safeId, lease: deliveryLease, result: withMetadata(value), generationSource: "gemini_partial", qualityTier: "partial", stage: stageNumber, nextStage: stageNumber, status: "partial" }) : undefined,
     });
     if (generated?.result && normalized.contextVersion === 2) {
