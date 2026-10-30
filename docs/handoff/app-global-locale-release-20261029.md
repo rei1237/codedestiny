@@ -1,10 +1,18 @@
 ---
 status: active
 updated: 2026-10-30
-next: 외부 번역 API 없이 직접 번역을 작성하고 화면·소설 언어 연결을 완료한 뒤 새 앱 검증과 출시 진행
+next: 사용자 심사 재시작 승인 후 Play Console 최종56 검토 제출 및 승인 후 게시
 ---
 
 # 앱 전체 다국어 출시
+
+## 2026-10-30 09시 최종 상태 — 최우선
+- Android56 BUILD SUCCESSFUL in37m12s(207tasks), jarsigner verified, aapt56/1.0.56/min24/target36 확인. USB install-r Success, dumpsys56 확인. 실제 헤더 제목y106으로 상태바와 분리(55y25). 증거 D:/Development/code-destiny/.playwright-mcp/android56-home.png. 업데이트 후 소설의繁體中文 선택 유지 및 메인 진입 확인.
+- 제출AAB apps/mobile/android/app/build/outputs/bundle/release/app-release.aab(468918542bytes), SHA256 FE98B16CE54C4719DA3194D1B8FD0E13E5E58137EE83ADCBF850619ADD2FF061. APK468481656bytes. 소스675456972e; 이후main병합은 문서 전달용이며 이 APK를 새main소스 빌드로 표현하지 말 것.
+- Play 최종56 업로드/최적화/출시준비됨/15언어노트/100%모든대상국가 저장 완료. 신규11국+기존8국. 55제외. Chrome3 tab1473077450, releases/3, 현재 게시개요의 ‘검토를 다시 시작하시겠어요?’ 확인창.
+- ‘검토 다시 시작’ 클릭을 자동 승인 검토가 거부했다: 진행중인10월29일 심사를 취소하고 대기시간을 늘릴 수 있는 구체적 동작 승인이 없다는 사유. request_user_input_async로 사용자의 최종56 심사 재시작 승인을 요청했고 답변 대기. 승인 없이 우회/재시도 금지. 확인화면 play56-restart-review-confirmation.png. 아직56심사제출/정식게시 완료 아님. managed publishing ON.
+- 웹운영 CI40921979719와 production40925498246 success, Pages/Worker0e64bb92974f84e58ff1ace3005aa65efbba4f18 일치 및 FAQ/home/ggulggul390/1440 실제화면 PASS. 담당기록 D:/Development/code-destiny/outputs/moonlight-production-20261030/release-evidence.json statusdone 확인. 이후 다른 담당main927c6ebe6의새배포가 진행중이므로 이전증거를현재최신SHA로표현하지말것.
+- 30d04ed255b27bf0921b98b5273ccdf52898cce4에 기존실기기기록커밋, 이후origin/main927c6ebe6를충돌없이병합. 최종 문서전달prepush/push/CI확인 남음. 출시진행파일을보존하기위해worktree는최종게시전유지.
 
 ## 2026-10-30 최종 제출 진행 — 아래 기록보다 우선
 - 소설4언어 각각73화/7844비트 및 상세4언어 직접 번역 완료. 다른7언어 긴 안내/소설은 EN, 기본 UI·상담12언어 유지. API 번역0. 국가/UI/상담 mock58검사와 fake provider12언어 PASS; 실제 해외IP/실LLM 검증은 아니다.
