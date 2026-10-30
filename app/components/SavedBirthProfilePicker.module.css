@@ -7,7 +7,7 @@
 .refresh { margin-left:auto; display:grid; place-items:center; width:44px; height:44px; padding:0; border:1px solid var(--cd-samples-line); border-radius:50%; color:var(--cd-samples-muted); background:var(--cd-samples-sheet); cursor:pointer; }
 .card select { box-sizing:border-box; min-height:48px; width:100%; max-width:100%; min-width:0; padding:10px 12px; color:var(--cd-samples-ink); background:var(--cd-samples-sheet); border:1px solid var(--cd-samples-line); border-radius:var(--cd-r-control); font:inherit; font-size:16px; text-overflow:ellipsis; }
 .card option { color:var(--cd-samples-ink); background:var(--cd-samples-sheet); }
-.card p.hint { margin:6px 0 0; color:var(--cd-samples-muted); font-size:.8rem; font-weight:500; line-height:1.6; letter-spacing:normal; overflow-wrap:anywhere; }
+.card p.hint { margin:6px 0 0; color:var(--cd-samples-muted); font-size:.8rem; font-weight:500; line-height:1.6; letter-spacing:normal; word-break:keep-all; overflow-wrap:anywhere; }
 .card :is(select,button):focus-visible { outline:2px solid var(--cd-samples-rose); outline-offset:3px; }
 .card :disabled { opacity:.65; cursor:default; }
 

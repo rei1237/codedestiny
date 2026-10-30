@@ -1416,11 +1416,18 @@ const NYAI_READING_ROOM_CSS = `
 }
 
 .nyai-page .nyai-intro > :not(.nyai-intro-art) { position: relative; z-index: 1; }
-.nyai-page .nyai-intro-copy { max-width: 56ch; align-self: center; }
+/* 원 장식은 위 규칙에 relative로 바뀌어 그리드 첫 칸을 차지했고(상담 카드·소개 글이 한 칸씩 밀림),
+   그림 속 나침반과 겹쳐 떠도는 고리로 보였다. 그림이 같은 역할을 하므로 뺀다. */
+.nyai-page .nyai-intro .nyai-orbit { display: none; }
+/* 그림은 왼쪽이 어둡고 오른쪽에 밝은 나침반이 있다. 글은 어두운 왼쪽에, 반투명 요약 카드는 그림 위 오른쪽에 둔다. */
+.nyai-page .nyai-intro { grid-template-columns: minmax(0, 1fr) minmax(210px, 340px); }
+.nyai-page .nyai-intro-copy { max-width: 56ch; align-self: center; order: -1; }
+.nyai-page .nyai-intro-copy h2 { text-wrap: balance; word-break: keep-all; }
 .nyai-page .nyai-intro .nyai-eyebrow { color: #e9c983; letter-spacing: .14em; }
 .nyai-page .nyai-intro h1 { color: #fff3db; font-size: clamp(2rem, 4vw, 3.4rem); letter-spacing: -.02em; }
 .nyai-page .nyai-intro .nyai-consult-card {
-  align-self: stretch;
+  /* stretch면 소개 글 높이(645px)까지 늘어나 줄 아래 250px가 빈 판으로 남았다. */
+  align-self: center;
   background: rgba(17, 8, 12, .76);
   border-color: rgba(227, 196, 106, .25);
   backdrop-filter: blur(10px);
@@ -1443,10 +1450,22 @@ const NYAI_READING_ROOM_CSS = `
 .nyai-page .nyai-message,
 .nyai-page .nyai-month-calendar,
 .nyai-page .nyai-report-details { border-color: rgba(227, 196, 106, .22); background-color: rgba(17, 8, 12, .68); }
+@media (max-width: 860px) {
+  /* 한 열에서는 상담 대상자 요약이 바로 아래 폼과 같은 값을 "아직 비어 있습니다"로 먼저 보여 제목을 386px 밀어냈다.
+     요약은 두 열(데스크톱)에서만 둔다. */
+  .nyai-page .nyai-intro { grid-template-columns: minmax(0, 1fr); }
+  .nyai-page .nyai-intro .nyai-consult-card,
+  .nyai-page .nyai-intro::after { display: none; }
+  /* 전폭 글이 그림 오른쪽의 밝은 나침반까지 걸쳐 읽기 어려웠다. 가로 그라데이션 대신 고르게 어둡게 깐다. */
+  .nyai-page .nyai-intro-art {
+    background:
+      linear-gradient(rgba(21, 8, 12, .86), rgba(21, 8, 12, .86)),
+      url('/fuctionassets/new-year-almanac-v1.webp') 68% center / cover no-repeat;
+  }
+}
 @media (max-width: 720px) {
   .nyai-page .nyai-intro { min-height: 0; }
-  .nyai-page .nyai-intro-art { background-position: 68% center; }
-  .nyai-page .nyai-intro-copy { padding-top: 54px; }
+  .nyai-page .nyai-intro-copy { padding-top: 20px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .nyai-page .nyai-primary { transition: none; }

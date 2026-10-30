@@ -152,8 +152,9 @@
     position: fixed;
     z-index: 70;
     right: 12px;
-    /* 하단 내비 위로 띄운다 — --cd-mnav-offset 은 safe-area 를 이미 포함한다. */
-    bottom: calc(var(--cd-mnav-offset, env(safe-area-inset-bottom, 0px)) + 8px);
+    /* 하단 내비가 없는 화면은 바닥에 붙인다. 대표 상담 경로는 내비가 없는데 :root 의 --cd-mnav-offset(92px)을
+       그대로 써서 바닥에서 100px 떠 본문을 가렸다(2026-10-30). 내비가 붙은 화면은 아래 규칙이 그 위로 올린다. */
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
     left: 12px;
     display: flex;
     min-height: 56px;
@@ -168,7 +169,14 @@
     box-shadow: 0 14px 34px rgba(0, 0, 0, .34);
   }
 
-  .stickyCta span { min-width: 0; font-size: 12px; }
+  /* --cd-mnav-offset 은 safe-area 를 이미 포함한다. */
+  :global(body.cd-mnav-mounted) .stickyCta { bottom: calc(var(--cd-mnav-offset) + 8px); }
+
+  /* 360px에서 "가 / 격"처럼 낱말 가운데가 갈라졌다. */
+  .stickyCta span { min-width: 0; font-size: 12px; word-break: keep-all; }
+  /* 가격 배지(PriceBadge, rounded-full 알약)는 99px 폭에서 세 줄로 접혀 첫 줄이 둥근 끝에 닿았다.
+     바 안에서는 좌우 여백과 모서리를 줄여 "상담 이용 가격 / 30,000원" 두 줄에 담는다. */
+  .stickyCta span > span { padding-inline: 8px; border-radius: 8px; line-height: 1.35; }
   .stickyCta strong {
     display: inline-flex;
     min-height: 42px;
