@@ -2430,6 +2430,8 @@ export default function NeoOperationRoomPage() {
               <textarea
                 id="neo-operation-question"
                 className={styles.questionInput}
+                // 공통 달빛 입력폼 규칙(min-height 48px)이 특이도로 이겨 .questionInput 높이가 빠지므로 줄 수로 높이를 정한다.
+                rows={4}
                 value={question}
                 maxLength={600}
                 placeholder={formCopy["questionInput.placeholder"]}

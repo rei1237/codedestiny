@@ -197,7 +197,7 @@ const NEO_FORM_COPY_KO: NeoFormCopyTable = {
   "commandFlow.stepMethod": "분석 방식",
   "commandFlow.stepTopic": "상담 전선",
   "commandFlow.stepBirth": "출생정보",
-  "commandFlow.stepIntensity": "조언 강도",
+  "commandFlow.stepIntensity": "팩폭 강도",
   "commandFlow.stepQuestion": "고민·주제",
   "commandFlow.stepLaunch": "내용 확인",
   "commandFlow.hintChooseMethod": "먼저 어떤 지도로 전선을 볼지 고르면 다음 단계가 열린다.",
