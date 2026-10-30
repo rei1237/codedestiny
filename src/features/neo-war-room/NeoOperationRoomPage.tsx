@@ -1077,7 +1077,8 @@ export default function NeoOperationRoomPage() {
   const [partnerState, setPartnerState] = useState(buildDefaultNeoWarRoomPartnerState);
   const [method, setMethod] = useState<NeoWarRoomConsultMode | "">("");
   const [topic, setTopic] = useState<(typeof topicOptions)[number] | "">("");
-  const [intensity, setIntensity] = useState<IntensityId | "">("");
+  // 기본맛을 미리 골라 둔다 — 강도는 바꾸고 싶을 때만 누르는 선택이고, 단계를 하나 더 만들지 않는다.
+  const [intensity, setIntensity] = useState<IntensityId | "">("standard");
   const [lastCommandChoice, setLastCommandChoice] = useState<NeoCommandChoice | null>(null);
   const [question, setQuestion] = useState("");
   const [operationReady, setOperationReady] = useState(false);
@@ -1423,7 +1424,7 @@ export default function NeoOperationRoomPage() {
     { id: "concern", label: formCopy["commandFlow.stepQuestion"], targetId: "neo-question-title", done: questionReady && Boolean(topic), active: !questionReady || !topic },
     { id: "method", label: formCopy["commandFlow.stepMethod"], targetId: "neo-method-title", done: Boolean(method), active: questionReady && Boolean(topic) && !method },
     { id: "birth", label: formCopy["commandFlow.stepBirth"], targetId: "neo-profile-title", done: hasBirthCoordinates, active: Boolean(method && topic) && !hasBirthCoordinates },
-    { id: "intensity", label: formCopy["commandFlow.stepIntensity"], targetId: "neo-intensity-title", done: Boolean(intensity), active: Boolean(method && topic && hasBirthCoordinates) && !intensity },
+    { id: "intensity", label: formCopy["commandFlow.stepIntensity"], targetId: "neo-intensity-title", done: Boolean(method && topic && hasBirthCoordinates && intensity), active: Boolean(method && topic && hasBirthCoordinates) && !intensity },
     { id: "launch", label: formCopy["commandFlow.stepLaunch"], targetId: "neo-operation-launch", done: operationReady, active: operationReady },
   ];
   const commandStepHint = !questionReady ? getNeoCommandStepQuestionHint(questionShortfall, dialogueLocale)
