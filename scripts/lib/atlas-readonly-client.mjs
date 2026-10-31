@@ -27,7 +27,8 @@ export const ALLOWED_GET_PREFIXES = Object.freeze([
 ]);
 
 const PLACEHOLDER = /^\{[^}]+\}$/;
-const UNSAFE_SEGMENT = /^\.{1,2}$|\|%2e|%2f|%5c/i;
+// ".", ".." 세그먼트, 인코딩된 점/슬래시/역슬래시(%2e %2f %5c), 역슬래시, 제어문자(U+0000-U+001F)를 거부한다.
+const UNSAFE_SEGMENT = /^\.{1,2}$|%2e|%2f|%5c|[\\\u0000-\u001f]/i;
 
 function matchesAllowList(pathOnly) {
   const segments = pathOnly.slice(1).split("/");
@@ -114,6 +115,13 @@ export function createAtlasReadonlyClient({ publicKey, privateKey, fetchImpl, cn
 
     const url = `${base}${prefix}${rel}`;
     const parsed = new URL(url);
+    // 다층 방어: URL이 정규화한 결과(탭 제거, 백슬래시 변환, %2e 해석 등)가 검증한 경로와 다르면 거부한다.
+    const normalizedPath = parsed.pathname;
+    const allowUnlisted = testOnly && opts.allowUnlisted === true;
+    if (normalizedPath !== `${prefix}${pathOnly}`
+      || (!allowUnlisted && !matchesAllowList(normalizedPath.slice(prefix.length)))) {
+      throw new Error(`Atlas path not allowed: ${pathOnly}`);
+    }
     const uri = `${parsed.pathname}${parsed.search}`;
 
     let res = await send(url, uri);
