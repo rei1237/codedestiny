@@ -507,6 +507,17 @@ function passFailureMessage(reason) {
     || "현재 이용권 한도 밖 서비스입니다. 원화 단건 결제로 이용해 주세요.";
 }
 
+/* pass-check 영구 해금 트랜잭션의 소비 CAS 패배 신호(모듈 전용). 일반 Error 이고
+   TransientTransactionError 레이블이 없으므로 드라이버 withTransaction 은 재시도 없이 abort 후
+   그대로 던진다 — 같은 트랜잭션의 지급(신규 삽입·REFUNDED 복원)이 함께 롤백된다. 트랜잭션 바깥의
+   호출부만 이 신호를 잡아 pass_access_conflict 로 바꾼다. */
+class PassUnlockCasLost extends Error {
+  constructor() {
+    super("pass-check unlock consume CAS lost");
+    this.name = "PassUnlockCasLost";
+  }
+}
+
 /* 🔴 구 buildPassPaymentDecision(billing.js)의 decisionReason 어휘를 그대로 승계한다. V2 402 봉투에는
    이 키가 없었고, 클라이언트 판정기 pass-verdict.isMonthlyLimitPayload 는 **이 필드만** 본다 —
    그래서 이용권을 가진 사용자의 한도 초과 거절이 "이용권 없음"으로 오분류돼 이용권 상점으로 튕겼다.
@@ -1804,38 +1815,42 @@ const ROUTES = {
            🔴 지급 → 소비 → 계정 해금 → 증빙은 **한 트랜잭션**이다(pass-consumption.js 소비+증빙과 같은
            패턴). 따로 쓰면 중간 장애가 "지급만 남은 무료 해금"이나 "예산은 깎였는데 증빙이 없어
            deferred/register 가 402" 를 남긴다. withTransaction 은 일시 오류에 본문을 통째로 재실행하므로
-           본문의 쓰기는 전부 멱등이어야 한다($setOnInsert upsert·마커 CAS·$addToSet·orderId 삭제)
-           — 재시도 사이에 상태를 넘기지 않도록 grantedIdentity 도 본문 안에 둔다. */
-        return db.transaction(async (tx) => {
-          let grantedIdentity = null;
-          if (unlock) {
-            const granted = await grantEntitlement(tx, {
-              userId, product, orderId: requestId, profileId, birthIdentity,
-              contentKey: body.contentKey, scope: body.scope, source: "PASS",
-            });
-            if (granted.alreadyOwned) return { coverage, entitlement, user, alreadyUnlocked: true };
-            grantedIdentity = granted.identity;
-          }
-
-          const updated = await consumePassCoverage(tx, {
-            userId, coverage, marker, existingMarkers: markers,
-          });
-          if (!updated) {
-            /* CAS 패배 = 그 사이 예산이 소진됐거나 이용권이 바뀌었다. 커버를 단정하지 않고 인계하되,
-               🔴 위에서 만든 지급은 반드시 되돌린다 — 이 반환은 트랜잭션을 **커밋**하므로 drop 을
-               빼면 예산을 못 깎고도 영구 해금이 성립해 그 다음 진입이 무료가 된다(월정석 경로와 같은 결함). */
-            if (grantedIdentity) {
-              await dropEntitlementByIdentity(tx, { userId, identity: grantedIdentity, orderId: requestId });
+           본문의 쓰기는 전부 멱등이어야 한다($setOnInsert upsert·REFUNDED 복원 CAS·마커 CAS·$addToSet). */
+        try {
+          return await db.transaction(async (tx) => {
+            if (unlock) {
+              const granted = await grantEntitlement(tx, {
+                userId, product, orderId: requestId, profileId, birthIdentity,
+                contentKey: body.contentKey, scope: body.scope, source: "PASS",
+              });
+              if (granted.alreadyOwned) return { coverage, entitlement, user, alreadyUnlocked: true };
             }
-            return { coverage: { covered: false, reason: "pass_access_conflict", tier: coverage.tier }, entitlement };
-          }
-          // 계정 해금 목록은 예산 차감이 확정된 뒤에 적는다($pull 로 되돌리면 다른 경로의 권한까지 지운다).
-          if (unlock) await markUserFeatureUnlocked(tx, { userId, featureKey: product.featureKey });
-          // 🔴 증빙 먼저. 구 deferred/register 가 이 행을 찾지 못하면 이용권을 이미 소비하고도
-          //    402 로 막힌다(passes.js recordPassUsageEvidence 머리주석).
-          await recordPassUsageEvidence(tx, { userId, product, requestId, profileId, coverage, user: updated });
-          return { coverage, entitlement, user: updated };
-        });
+
+            const updated = await consumePassCoverage(tx, {
+              userId, coverage, marker, existingMarkers: markers,
+            });
+            if (!updated) {
+              /* CAS 패배 = 그 사이 예산이 소진됐거나 이용권이 바뀌었다. 커버를 단정하지 않고 인계하되,
+                 🔴 위의 지급은 반드시 되돌린다 — 정상 반환은 트랜잭션을 **커밋**해, 예산을 못 깎고도
+                 영구 해금이 성립한다(다음 진입이 무료). 그래서 반환 대신 던져 **abort** 한다.
+                 지우기(dropEntitlementByIdentity)로 되돌리면 안 된다: grantEntitlement 가 REFUNDED 행을
+                 이번 orderId 로 되살린 경우 그 orderId 필터가 바로 그 행과 맞아 "샀다가 환불한" 이력이
+                 사라진다. abort 는 신규 삽입과 REFUNDED 복원을 함께 되돌리고 이력을 건드리지 않는다.
+                 null 은 CAS 가 모두 빗나간 경우뿐이라 consumePassCoverage 안에서 롤백될 쓰기는 없다. */
+              throw new PassUnlockCasLost();
+            }
+            // 계정 해금 목록은 예산 차감이 확정된 뒤에 적는다($pull 로 되돌리면 다른 경로의 권한까지 지운다).
+            if (unlock) await markUserFeatureUnlocked(tx, { userId, featureKey: product.featureKey });
+            // 🔴 증빙 먼저. 구 deferred/register 가 이 행을 찾지 못하면 이용권을 이미 소비하고도
+            //    402 로 막힌다(passes.js recordPassUsageEvidence 머리주석).
+            await recordPassUsageEvidence(tx, { userId, product, requestId, profileId, coverage, user: updated });
+            return { coverage, entitlement, user: updated };
+          });
+        } catch (error) {
+          // 이 신호만 conflict 로 바꾼다. 그 밖의 오류는 그대로 올려 보낸다(withMongoRetry·오류 봉투).
+          if (!(error instanceof PassUnlockCasLost)) throw error;
+          return { coverage: { covered: false, reason: "pass_access_conflict", tier: coverage.tier }, entitlement };
+        }
       });
 
       if (!outcome.coverage.covered) {
