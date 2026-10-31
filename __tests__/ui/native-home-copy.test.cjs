@@ -24,7 +24,7 @@ function render(native, locale) {
   }});
   const {NativeHomeRoot: Root, NativeHomeText: Text, NativeHomeCardLink: Card} = testModule.exports;
   const html = renderToStaticMarkup(React.createElement(Root, {className: 'approved-home'},
-    React.createElement('h1', null, React.createElement(Text, null, '어떤 운세를 만나볼까요?')),
+    React.createElement('h1', null, React.createElement(Text, null, '꿀꿀 운세에서 어떤 운세를 만나볼까요?')),
     React.createElement(Card, {href: '/ggulggul/', external: true, name: '꿀꿀 운세', action: '운세 골라보기', 'aria-describedby': 'yeoniCardTag'}),
     React.createElement(Card, {href: '/yeongnyangi/', name: '운세보는 영냥이', action: '영냥이 만나기', 'aria-describedby': 'ynCardTag'}),
   ));
@@ -32,10 +32,10 @@ function render(native, locale) {
 }
 
 test('packaged home uses all supported languages and retains both entry links', () => {
-  for (const locale of Object.keys(copy['어떤 운세를 만나볼까요?'])) {
+  for (const locale of Object.keys(copy['꿀꿀 운세에서 어떤 운세를 만나볼까요?'])) {
     const doc = render(true, locale);
     assert.equal(doc.querySelector('[lang]').lang, locale);
-    assert.equal(doc.querySelector('h1').textContent, copy['어떤 운세를 만나볼까요?'][locale]);
+    assert.equal(doc.querySelector('h1').textContent, copy['꿀꿀 운세에서 어떤 운세를 만나볼까요?'][locale]);
     assert.deepEqual([...doc.querySelectorAll('a')].map(a => a.getAttribute('href')), ['/ggulggul/', '/yeongnyangi/']);
     assert.equal(doc.querySelectorAll('a')[1].getAttribute('aria-label'), `${copy['운세보는 영냥이'][locale]} ${copy['영냥이 만나기'][locale]}`);
   }
@@ -45,7 +45,7 @@ test('public home and Korean app keep Korean copy with unchanged markup', () => 
   for (const [native, locale] of [[false, 'fr'], [true, 'ko']]) {
     const doc = render(native, locale);
     assert.equal(doc.querySelector('[lang]').lang, 'ko');
-    assert.equal(doc.querySelector('h1').textContent, '어떤 운세를 만나볼까요?');
+    assert.equal(doc.querySelector('h1').textContent, '꿀꿀 운세에서 어떤 운세를 만나볼까요?');
     assert.equal(doc.querySelectorAll('a')[1].textContent, '운세보는 영냥이');
   }
 });

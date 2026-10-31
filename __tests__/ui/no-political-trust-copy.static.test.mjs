@@ -16,7 +16,7 @@ const ALLOWED = {
   'app/components/FounderTrust.tsx': { count: 1, reason: '2026-10-05 승인: 원문에 연결된 대통령 기록과 공개 반응, 사실과 구분한 프롤로그' },
   'app/components/TrustStories.tsx': { count: 4, reason: '2026-10-05 승인: 원문에 연결된 대통령 기록과 공개 반응, 사실과 구분한 프롤로그' },
   'lib/brand/trust-stories.mjs': { count: 26, reason: '2026-10-05 승인: 원문에 연결된 대통령 기록과 공개 반응, 사실과 구분한 프롤로그' },
-  'lib/brand/differentiation-faqs.mjs': { count: 6, reason: '2026-10-22 사용자 요청: 차별점 FAQ에 대통령 공개 기록 제작자 소개. 주석 1건 포함, 적중률·보장 표현 제외' },
+  'lib/brand/differentiation-faqs.mjs': { count: 7, reason: '2026-10-22 사용자 요청: 차별점 FAQ에 대통령 공개 기록 제작자 소개. 주석 1건 포함, 적중률·보장 표현 제외. 2026-10-31 사용자 요청: "잘 맞나요?" 문항이 공개 기록 이름 1건을 가리킴' },
   'app/faq/page.js': { count: 1, reason: '2026-10-22 사용자 요청: 차별점 FAQ가 가리키는 공개 분석 기록 칩 1건' },
   'app/insights/[slug]/page.js': { count: 1, reason: '공개 기록 페이지에만 가시 FAQ와 일치하는 schema 적용' },
   'lib/seo/public-record-copy.mjs': { count: 17, reason: '2026-10-28 사용자 요청: 종합 운세 플랫폼 제작자 소개를 공개 원문 비교와 연결. 적중률이나 사건 방식의 일치 보장 없음' },

@@ -202,7 +202,8 @@ export function createVerificationPlan(changes, { profile = "fast", skipBuild = 
   const npm = (name) => add({ kind: "npm", name, args: [] });
   add({ kind: "whitespace" });
   npm("verify:doc-freshness");
-  if (paidGates) add({ kind: "node", file: "scripts/run-paid-gate-suite.mjs", args: [] });
+  // 비교 기준을 넘겨야 스위트가 실패를 merge-base 에서 다시 돌려 귀책을 가린다. 없으면 전부 이 변경 책임으로 본다.
+  if (paidGates) add({ kind: "node", file: "scripts/run-paid-gate-suite.mjs", args: changes.baseSha ? ["--base", changes.baseSha] : [] });
   if (profile === "all") add({ kind: "ci-static-guards" });
   if (!docsOnly) {
     add({ kind: "lint-changed" });

@@ -65,8 +65,8 @@ export function buildOrganizationJsonLd() {
     logo: {
       "@type": "ImageObject",
       url: siteSeo.organization.logo,
-      width: 1200,
-      height: 630,
+      width: 512,
+      height: 512,
     },
     contactPoint: {
       "@type": "ContactPoint",

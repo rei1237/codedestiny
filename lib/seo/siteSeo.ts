@@ -91,7 +91,8 @@ export const siteSeo = {
     alternateName: BRAND_FACTS.operator.alternateNames,
     legalName: "코드 데스티니",
     url: "https://code-destiny.com",
-    logo: "https://code-destiny.com/og/code-destiny-og.png",
+    // 로고는 정사각형 앱 아이콘을 쓴다. 1200×630 공유 카드는 검색 로고로 쓰기에 비율이 맞지 않는다.
+    logo: "https://code-destiny.com/icons/moonlight-garden-v1-512.png",
   },
   contact: {
     email: "admin@code-destiny.com",

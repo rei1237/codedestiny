@@ -1,12 +1,12 @@
 import Link from "next/link";
-import { publicSeoPages } from "../lib/seo/siteSeo";
-import { buildServiceJsonLd, buildWebPageJsonLd, buildFaqPageJsonLd } from "../lib/structured-data";
+import { publicSeoPages, siteSeo } from "../lib/seo/siteSeo";
+import { buildServiceJsonLd, buildWebPageJsonLd, buildFaqPageJsonLd, buildAuthorPersonJsonLd } from "../lib/structured-data";
 import { serializeJsonLd } from "../lib/seo/json-ld.mjs";
 import { brandCopy } from "../lib/seo/brand-copy.mjs";
 import { BRAND_FACTS } from "../lib/brand/brand-facts.mjs";
 import { FOOTER_BYLINE, FOOTER_LINKS, FOOTER_NOTICE, FOOTER_TRUST_LINKS } from "../lib/brand/site-footer";
 import { BUSINESS_IDENTITY } from "../lib/site-policy-config";
-import { HOME_DIFFERENTIATION_FAQ } from "../lib/brand/differentiation-faqs.mjs";
+import { HOME_ACCURACY_FAQ, HOME_DIFFERENTIATION_FAQ } from "../lib/brand/differentiation-faqs.mjs";
 import { HOME_CATEGORIES, HOME_CONCERNS } from "../lib/seo/home-discovery.mjs";
 import { getSignProfile } from "../lib/fortune/sign-profiles";
 import LegacyHomeEntry from "./components/LegacyHomeEntry";
@@ -30,7 +30,8 @@ const { service, characters } = BRAND_FACTS;
 const YEONGNYANGI = characters.find((character) => character.key === "yeongnyangi");
 const HOME_TITLE = brandCopy('homeSearchTitle');
 const HOME_DESCRIPTION = brandCopy('homeSearchDescription');
-const HOME_IMAGE = "https://code-destiny.com/icons/moonlight-garden-v1-512.png";
+// summary_large_image 카드라 1200×630 공유 이미지를 쓴다. 정적 홈 셸(index.html)과 같은 그림이다.
+const HOME_IMAGE = siteSeo.defaultOgImage;
 const ART = "/images/home/illustrated";
 // 카드 그림은 같은 파일명으로 다시 그려 왔고 정적 이미지는 7일 캐시된다(public/_headers).
 // 그림을 바꾸면 이 값을 올려야 이미 방문한 브라우저도 새 그림을 받는다(10-17 운영에서 옛 그림이 남은 사고).
@@ -61,7 +62,7 @@ export const metadata = {
     siteName: service.name,
     title: HOME_TITLE,
     description: HOME_DESCRIPTION,
-    images: [{ url: HOME_IMAGE, width: 512, height: 512, alt: HOME_TITLE }],
+    images: [{ url: HOME_IMAGE, width: 1200, height: 630, alt: HOME_TITLE }],
   },
   twitter: {
     card: "summary_large_image",
@@ -90,6 +91,7 @@ const RESULT_EXAMPLE = getSignProfile("rat");
 const HOME_FAQS = [
   ...CONSULTATION_METHOD_FAQS,
   { question: "꿀꿀 운세와 꿀꿀운세, 코드 데스티니는 어떤 관계인가요?", answer: brandCopy("aliases") },
+  HOME_ACCURACY_FAQ,
   HOME_DIFFERENTIATION_FAQ,
   { question: "꽃돼지 연이와 영냥이는 어떻게 다른가요?", answer: "꽃돼지 연이의 앱에서는 사주·타로·자미두수 등 원하는 도구를 골라 이용해요. 운세보는 영냥이는 사주보는 고양이 상담 서비스로, 구체적인 질문과 상황을 바탕으로 고민을 풀어가요. 같은 운영자가 제공하며, 이용 범위와 결제 조건은 각 서비스에서 안내해요." },
   { question: "어디까지 무료로 이용할 수 있나요?", answer: "기본 사주·만세력·타로와 공개 별자리·띠별 운세를 무료로 시작할 수 있어요. 심층 리포트와 AI 상담은 별도 유료 상품이 있으며, 이용권·월정석·단건 결제의 적용 여부와 금액은 각 상품의 결제 전 안내를 확인해 주세요." },
@@ -103,6 +105,8 @@ function discoveryTracking(serviceKey, placement = "directory") {
 
 export default function HomePage() {
   const webPageJsonLd = buildWebPageJsonLd({ title: HOME_TITLE, description: HOME_DESCRIPTION, path: "/" });
+  // 레이아웃 Organization.founder 와 같은 @id 다. 제목의 "명리학자가 만든"을 직함·별칭·소개 페이지로 뒷받침한다.
+  const founderJsonLd = { "@context": "https://schema.org", ...buildAuthorPersonJsonLd() };
   const serviceJsonLd = [
     buildServiceJsonLd({ name: service.name, description: "꽃돼지 연이가 안내하는 사주·타로·숙요점·베다점·자미두수·점성술 운세와 상담", path: service.appEntryPath }),
     buildServiceJsonLd({ name: YEONGNYANGI.serviceName, alternateName: [...YEONGNYANGI.alternateNames], description: brandCopy("yeongnyangiDescription"), path: YEONGNYANGI.path }),
@@ -120,7 +124,7 @@ export default function HomePage() {
 
       <main className={styles.stage}>
         <div className={styles.head}>
-          <h1 id="homeCardTitle" className={styles.title}><NativeHomeText>어떤 운세를 만나볼까요?</NativeHomeText></h1>
+          <h1 id="homeCardTitle" className={styles.title}><NativeHomeText>꿀꿀 운세에서 어떤 운세를 만나볼까요?</NativeHomeText></h1>
 
         </div>
 
@@ -250,6 +254,6 @@ export default function HomePage() {
         <p className={styles.notice}><NativeHomeDictionaryText translationKey="footer.disclaimerNote">{FOOTER_NOTICE}</NativeHomeDictionaryText></p>
       </footer>
     </NativeHomeRoot>
-    <script type="application/ld+json" dangerouslySetInnerHTML={{__html:serializeJsonLd([webPageJsonLd, ...serviceJsonLd, buildFaqPageJsonLd(HOME_FAQS)])}} />
+    <script type="application/ld+json" dangerouslySetInnerHTML={{__html:serializeJsonLd([webPageJsonLd, founderJsonLd, ...serviceJsonLd, buildFaqPageJsonLd(HOME_FAQS)])}} />
   </>;
 }

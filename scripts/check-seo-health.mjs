@@ -3,7 +3,8 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { collectSitemapUrls, inspectPage, robotsAllows, sitemapDirectives } from './seo/health-policy.mjs';
 
 const BASE = (process.env.SITE_URL || 'https://code-destiny.com').replace(/\/$/, '');
-const targets = ['/ggulggul/', '/about/', '/faq/', '/methodology/', '/yeongnyangi/', '/fusion-fortune/', '/fortune/2027/', '/saju/', '/manse/', '/ziwei/', '/sukuyo/', '/vedic/', '/astrology/',
+// The Fusion input screen keeps its existing noindex policy; its public explanation hub is indexed.
+const targets = ['/ggulggul/', '/about/', '/faq/', '/methodology/', '/yeongnyangi/', '/insights/fusion/', '/fortune/2027/', '/saju/', '/manse/', '/ziwei/', '/sukuyo/', '/vedic/', '/astrology/',
   '/tarot/', '/compatibility/', '/today/', '/insights/', '/guides/', '/ja/', '/en/', '/zh/',
   '/ja/saju/', '/ja/vedic/', '/ja/sukuyo/', '/ja/ziwei/',
   '/fortune/today/', '/fortune/tomorrow/', '/fortune/weekly/', '/fortune/monthly/',
