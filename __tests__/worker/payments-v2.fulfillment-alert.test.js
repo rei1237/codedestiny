@@ -13,7 +13,7 @@ import { alertPaymentAnomalies } from "../../worker/payments/reconcile.js";
 import { buildPaymentAlert, createOperatorAlertSender, PAYMENT_ALERT_TEXT_LIMIT } from "../../worker/payments/fulfillment-alert.js";
 import { maskId } from "../../worker/payments/log.js";
 import { notifyOperators } from "../../worker/lib/feedback-notify.js";
-import { makeFakePaymentDb } from "../fixtures/fake-payment-db.mjs";
+import { makeFakePaymentDb, matches } from "../fixtures/fake-payment-db.mjs";
 
 const NOW = new Date("2026-09-17T12:00:00Z");
 const MIN = 60_000;
@@ -53,6 +53,22 @@ const refundFailureRow = (name, overrides = {}) => ({
   metadata: {}, ...PII, ...overrides,
 });
 const deliveredNotify = () => jest.fn(async () => ({ delivered: true }));
+/* 실제 Mongo 는 null·스칼라 부모 아래로 점 표기 $set 을 하면 던진다(없는 부모는 만들어 준다). 공유 fixture 는 부모를 만들어 주므로
+   이 테스트에서만 updateOne 을 감싸 그 거동을 재현한다 — fixture 를 바꾸면 다른 payments-v2 스위트가 흔들린다. */
+function nullParentStrict(db) {
+  const real = db.updateOne.bind(db);
+  db.updateOne = async (Model, filter, update) => {
+    for (const path of Object.keys(update?.$set || {})) {
+      let node = db.rows.find((row) => matches(row, filter));
+      for (const part of path.split(".").slice(0, -1)) {
+        node = node?.[part];
+        if (node === null || (node !== undefined && typeof node !== "object")) throw new Error(`Cannot create field in element {${part}: ${node}}`);
+      }
+    }
+    return real(Model, filter, update);
+  };
+  return db;
+}
 
 let savedEnv;
 let originalFetch;
@@ -225,6 +241,24 @@ test("🔴 환불 실패: 전달 실패면 표식 0건이고 다음 틱에 다�
   expect(await alertPaymentAnomalies(db, { notify: async () => ({ delivered: false }), now: NOW })).toMatchObject({ refundFailures: 1, delivered: false, marked: 0 });
   expect(db.rows[0].metadata.refundFailureAlert).toBeUndefined();
   expect(await alertPaymentAnomalies(db, { notify: deliveredNotify(), now: later(10 * MIN) })).toMatchObject({ refundFailures: 1, delivered: true, marked: 1 });
+});
+
+test("환불 실패: metadata 가 null 인 실행 기록(모델 기본값)도 표식이 남고 다음 틱에 다시 보내지 않는다", async () => {
+  const db = nullParentStrict(await seed([refundFailureRow("c-null", { metadata: null })]));
+  expect(await alertPaymentAnomalies(db, { notify: deliveredNotify(), now: NOW })).toMatchObject({ refundFailures: 1, delivered: true, marked: 1 });
+  expect(db.rows[0].metadata).toEqual({ refundFailureAlert: { lastAlertedAt: NOW } });
+  const again = deliveredNotify();
+  expect(await alertPaymentAnomalies(db, { notify: again, now: later(10 * MIN) })).toMatchObject({ refundFailures: 0, delivered: false, marked: 0 });
+  expect(again).not.toHaveBeenCalled();
+});
+
+test("환불 실패: 한 건의 표식 쓰기가 던져도 나머지 건은 표식이 남고, 실패는 루프 뒤에 다시 던진다", async () => {
+  const db = nullParentStrict(await seed([refundFailureRow("c-bad", { metadata: "broken" }), refundFailureRow("c-ok1"), refundFailureRow("c-ok2", { metadata: null })]));
+  await expect(alertPaymentAnomalies(db, { notify: deliveredNotify(), now: NOW })).rejects.toThrow(/Cannot create field/);
+  const byKey = (name) => db.rows.find((row) => row.executionKey === execKey(name));
+  expect(byKey("c-ok1").metadata.refundFailureAlert.lastAlertedAt).toEqual(NOW);
+  expect(byKey("c-ok2").metadata.refundFailureAlert.lastAlertedAt).toEqual(NOW);
+  expect(byKey("c-bad").metadata).toBe("broken");
 });
 
 test("환불 실패: 이미 표식이 있는 건은 조회되지 않는다 — 다시 돌아도 보내지 않는다", async () => {
