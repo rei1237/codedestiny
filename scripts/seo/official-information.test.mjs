@@ -28,3 +28,9 @@ test('CMS custom questions survive while canonical facts are not duplicated or o
   assert.deepEqual(officialInformationFaqs('zh'),[]);
   assert.equal(mergeOfficialInformation([{ question: '결제한 결과는 어디에서 다시 보나요?', answer: 'legacy' }]).length, 10);
 });
+
+test('Neo email facts distinguish AI drafting from individual human review in every published locale', () => {
+  assert.match(officialInformationFaqs('ko')[8].answer, /AI가 작성한 답변을 네오가 개별 검수/);
+  assert.match(officialInformationFaqs('en')[8].answer, /AI to draft a reply, then Neo individually reviews/);
+  assert.match(officialInformationFaqs('ja')[8].answer, /AIが作成した回答をネオが個別に確認/);
+});
