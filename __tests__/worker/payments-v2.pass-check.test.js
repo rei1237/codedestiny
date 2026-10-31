@@ -359,6 +359,42 @@ describe("라우트 — 왕복 예산·소비·봉투", () => {
       expect(evidence(db, item.featureKey)).toHaveLength(1);
     });
 
+    // 롤백 테스트((a)(b))와 재생 테스트((c))는 따로 있었다. 트랜잭션 설계의 핵심 가정은 둘의 조합이다:
+    // 장애로 롤백된 첫 시도 뒤, 장애가 풀리고 같은 requestId 로 다시 오면 정확히 한 번 소비·증빙 1행·권한 1건.
+    describe.each([["증빙(PointHistory) 쓰기", "PointHistory"], ["소비 CAS(User) 쓰기", "User"]])("(e) 장애 %s 로 롤백된 뒤 같은 requestId 재시도", (_fault, modelName) => {
+      test.each(CASES)("%s: 200 · 이용권 소비 1회 · 증빙 1행 · 권한 1건", async (_label, item, profileId) => {
+        const db = makeFakePaymentDb({ profileCards: CARDS });
+        const user = seedUser(db, activePass("family"));
+        const requestId = `atomic-retry-${modelName}`;
+        const body = unlockBody(item, requestId, profileId);
+
+        const healthy = db.findOneAndUpdate;
+        replaceWrite(db, modelName, () => { throw new Error(`injected ${modelName} write failure`); });
+        const first = await postPassCheck(db, body);
+        expectPropagated(first.response, first.payload);
+        expectUntouched(db, user, item);
+        expect(evidence(db, item.featureKey)).toHaveLength(0);
+
+        db.findOneAndUpdate = healthy; // 장애 해제
+        const retry = await postPassCheck(db, body);
+        expect(retry.response.status).toBe(200);
+        expect(retry.payload.data.consume.idempotent).not.toBe(true); // 첫 시도는 아무것도 남기지 않았으니 재생이 아니라 첫 소비다
+        expect(Number(user.profileSubscription.monthlySpendCoin || 0)).toBe(Number(item.priceCoins));
+        expect(user.recentConsumeRequestIds).toEqual([buildPassConsumeMarker(item.featureKey, requestId)]);
+        expect(evidence(db, item.featureKey)).toHaveLength(1);
+        expect(evidence(db, item.featureKey)[0].metadata.requestId).toBe(requestId);
+        expect(grants(db)).toHaveLength(1);
+        expect(grants(db)[0]).toMatchObject({ grantType: "permanent_unlock", featureKey: item.featureKey });
+        expect(grants(db)[0].status).not.toBe("REFUNDED");
+
+        // 세 번째 요청도 재생일 뿐 — 다시 소비하거나 증빙을 늘리지 않는다.
+        expect((await postPassCheck(db, body)).response.status).toBe(200);
+        expect(Number(user.profileSubscription.monthlySpendCoin || 0)).toBe(Number(item.priceCoins));
+        expect(evidence(db, item.featureKey)).toHaveLength(1);
+        expect(grants(db)).toHaveLength(1);
+      });
+    });
+
     test("(d) 마커만 있고 증빙이 없는 재요청(구 경로 잔재) → 200 + 증빙 1행, 재차감 없음", async () => {
       const db = makeFakePaymentDb();
       const user = seedUser(db, activePass("family"));
