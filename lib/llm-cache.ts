@@ -19,6 +19,10 @@ export interface LLMCacheConfig {
   // 사용자가 재생성해도 같은 키에서 같은 미달 결과를 다시 받는다.
   // 관례는 그 호출의 미달 판정 문턱(fallbackMinChars 가 아니라 목표 분량)과 같은 값이다.
   minChars?: number;
+  // in-flight dedup 범위(요청 식별자). 비어 있으면 dedup 하지 않는다.
+  // Workers 는 다른 요청 컨텍스트에서 만든 I/O Promise 를 await 하면 hang/취소될 수 있어
+  // 호출부(llm-client)가 요청 스코프 id 를 넘긴다. 이 파일은 의존성 없이 유지한다.
+  inflightScope?: string;
 }
 
 const DEFAULT_TTL_SECONDS = 30 * 24 * 60 * 60;
@@ -81,19 +85,23 @@ export async function buildCacheKey(request: LLMRequest, keyExtra = ""): Promise
   return sha256Hex(JSON.stringify(normalized));
 }
 
-// 같은 캐시 키로 이미 진행 중인 호출이 있으면 그 Promise를 공유한다 (isolate-local in-flight dedup).
+// 같은 요청 스코프 + 같은 캐시 키로 이미 진행 중인 호출이 있으면 그 Promise를 공유한다.
+// scope 가 없으면 공유하지 않는다: isolate 전역으로 공유하면 다른 요청의 I/O Promise 를 await 하게 된다.
 const inflightMap = new Map<string, Promise<LLMResponse>>();
 
 export function deduplicatedCall(
   cacheKey: string,
   callFn: () => Promise<LLMResponse>,
+  scope?: string,
 ): Promise<LLMResponse> {
-  const existing = inflightMap.get(cacheKey);
+  if (!scope) return callFn();
+  const key = `${scope}\u0000${cacheKey}`;
+  const existing = inflightMap.get(key);
   if (existing) return existing;
   const promise = callFn().finally(() => {
-    inflightMap.delete(cacheKey);
+    inflightMap.delete(key);
   });
-  inflightMap.set(cacheKey, promise);
+  inflightMap.set(key, promise);
   return promise;
 }
 
@@ -167,7 +175,8 @@ export async function withLLMCache(
   }
 
   // 2. Dedup + 실제 호출
-  const result = await deduplicatedCall(cacheKey, () => callUncached(request));
+  // 요청 간 Promise 공유 금지 — inflightScope(요청 스코프)가 같을 때만 dedup (근거: worker/routes/access-state.js:207).
+  const result = await deduplicatedCall(cacheKey, () => callUncached(request), config?.inflightScope);
 
   // 3. 캐시 저장 (결정적 호출만, best-effort). 응답을 지연시키지 않도록 상한을 둔다.
   // 잘린 응답(truncated)은 저장하지 않는다 — TTL 동안 잘린 텍스트가 고정되는 것을 방지.
