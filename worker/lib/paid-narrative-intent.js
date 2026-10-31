@@ -198,9 +198,10 @@ async function promoteOne(env, intent) {
 }
 
 // Runs at the start of the recovery tick. Expired intents are deleted here as
-// well, since the TTL index is not assumed to exist. A review-required intent is
-// kept past its deadline: the delivery-review alert reads it and the operator
-// decides; it is never selected for promotion again. (Plain parameters: the cron
+// well, since the TTL index is not assumed to exist. This sweep skips a
+// review-required intent, but the unpaid_intent_retention_v1 TTL (models.js) still
+// removes it at retentionUntil, so the delivery-review alert has to reach the
+// operator before then. It is never selected for promotion again. (Plain parameters: the cron
 // op-coverage verifier cuts a signature at its first closing parenthesis.)
 export async function promotePaidIntents(env, options = {}) {
   const now = options.now ?? Date.now(), deadline = options.deadline ?? now + 30000, at = new Date(now);
