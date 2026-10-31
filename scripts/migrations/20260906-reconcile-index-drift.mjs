@@ -102,6 +102,14 @@ export function classifyCollection(items, liveIndexes, violations, forced = []) 
   const out = [];
   const candidates = [];
   for (const item of items) {
+    // TTL(expireAfterSeconds)은 조회가 아니라 만료 선언이다. 실물이 키와 만료 값까지 같으면 drift 가 아니고,
+    // 아니면 복합 접두로 덮였거나 쿼리가 안 써도 지우라고 하지 않는다(TTL 은 단일 필드 인덱스여야 만료된다).
+    const ttl = item.options?.expireAfterSeconds;
+    if (ttl !== undefined) {
+      const matched = liveIndexes.some((index) => sameKey(index.key || {}, item.spec) && index.expireAfterSeconds === ttl);
+      if (!matched) out.push({ ...item, verdict: "create", fixes: ["TTL 선언(만료)"] });
+      continue;
+    }
     const cover = findPrefixCover(item.spec, liveIndexes);
     if (cover) out.push({ ...item, verdict: "redundant-prefix", coveredBy: cover });
     else candidates.push(item);
@@ -172,12 +180,21 @@ function runSelfTest() {
   ok(forcedVerdict.verdict === "create" && forcedVerdict.fixes[0] === "worker/routes/x.js:9", "DYNAMIC_READERS 는 근거를 달고 create 로 강제");
   ok(verdictOf({ id: 1 }, [{ spec: { id: 1 }, options: { unique: true } }]).verdict === "create", "unique 선언은 조회가 없어도 create");
 
+  // TTL 은 조회가 아니라 만료 선언이다 — 실물과 키·expireAfterSeconds 가 같으면 drift 가 아니고, 아니면 접두 덮음·unused 로 지우지 않는다.
+  const ttlItem = { spec: { expiresAt: 1 }, options: { expireAfterSeconds: 3600 } };
+  const ttlLive = [{ name: "expiresAt_1", key: { expiresAt: 1 }, expireAfterSeconds: 3600 }];
+  ok(classifyCollection([ttlItem], ttlLive, []).length === 0, "실물과 expireAfterSeconds 까지 같은 TTL 선언은 drift 0");
+  const ttlDiffer = classifyCollection([ttlItem], [{ name: "expiresAt_1", key: { expiresAt: 1 }, expireAfterSeconds: 60 }], []);
+  ok(ttlDiffer.length === 1 && ttlDiffer[0].verdict === "create", "expireAfterSeconds 가 다른 TTL 선언은 drift(create)");
+  const ttlCovered = classifyCollection([ttlItem], [{ name: "expiresAt_1_x_1", key: { expiresAt: 1, x: 1 } }], []);
+  ok(ttlCovered.length === 1 && ttlCovered[0].verdict === "create", "TTL 선언은 복합 접두 덮음·unused 로 지우지 않는다");
+
   const opts = indexOptions({ a: 1 }, { unique: true, background: true, expireAfterSeconds: 60 });
   ok(opts.name === "a_1" && opts.unique === true && opts.expireAfterSeconds === 60 && !("background" in opts), "옵션은 의미 있는 것만 넘긴다");
 
   ok(!(APPLY && DRY_RUN), "--apply 와 --dry-run 을 함께 주면 쓰기를 하지 않는다");
 
-  const total = 19;
+  const total = 22;
   console.log(`[self-test] 점검 ${total}건 중 ${total - failures.length}건 통과`);
   if (failures.length) {
     for (const failure of failures) console.error(`  FAIL ${failure}`);
