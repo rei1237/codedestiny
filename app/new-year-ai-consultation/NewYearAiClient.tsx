@@ -1431,8 +1431,6 @@ const NYAI_READING_ROOM_CSS = `
 @media (min-width: 1200px) {
   .nyai-page .nyai-intro { grid-template-columns: minmax(0, 1fr) 240px calc(50% - 140px); column-gap: 28px; }
 }
-/* 이웃 칸이 모두 왼쪽 정렬이라 가운데 정렬된 시간만 따로 놀았다. */
-.nyai-page [data-cd-birth-time] > input { text-align: start; }
 .nyai-page .nyai-intro-copy { max-width: 56ch; align-self: center; order: -1; }
 .nyai-page .nyai-intro-copy h2 { text-wrap: balance; word-break: keep-all; }
 .nyai-page .nyai-intro .nyai-eyebrow { color: #e9c983; letter-spacing: .14em; }
