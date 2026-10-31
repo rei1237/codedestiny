@@ -256,21 +256,21 @@ function evidenceMatchesBirthIdentity(evidence, identity) {
   return recorded.every((birthKey) => birthKey === identity.birthKey);
 }
 
-async function findPaymentForHistory(history) {
-  const metadata = history?.metadata && typeof history.metadata === "object" ? history.metadata : {};
-  const candidates = [
-    history?.paymentId,
-    metadata.paymentId,
-    metadata.purchaseId,
-  ].map((value) => String(value || "").trim()).filter(isObjectIdLike);
+// 이력 행들이 가리키는 결제를 한 번의 $in 조회로 가져온다. 행마다 findOne 을 돌리던 N+1 을 없앤다.
+async function findPaymentsForHistories(histories) {
+  const paymentIds = Array.from(new Set(histories.flatMap(getHistoryPaymentIds)));
+  const paymentById = new Map();
+  if (!paymentIds.length) return paymentById;
 
-  if (!candidates.length) return null;
-
-  return Payment.findOne({
-    _id: { $in: candidates },
+  const payments = await Payment.find({
+    _id: { $in: paymentIds },
     status: { $in: BACKFILL_SUCCESS_PAYMENT_STATUSES },
     paymentType: "digital_content",
   }).select("_id merchantUid status paymentType featureKey coinPrice expectedChargedPoints paidAt createdAt updatedAt pricingSnapshot").lean();
+  for (const payment of payments) {
+    if (payment?._id) paymentById.set(String(payment._id), payment);
+  }
+  return paymentById;
 }
 
 async function findBackfillEvidence({ userId, profileId, contentKey }) {
@@ -288,10 +288,11 @@ async function findBackfillEvidence({ userId, profileId, contentKey }) {
     ],
   }).sort({ createdAt: -1 }).limit(20).lean();
 
-  for (const history of histories) {
-    if (!hasHistoryProfileScope(history, profileId)) continue;
+  const scopedHistories = histories.filter((history) => hasHistoryProfileScope(history, profileId));
+  const paymentById = await findPaymentsForHistories(scopedHistories);
 
-    const payment = await findPaymentForHistory(history);
+  for (const history of scopedHistories) {
+    const payment = getHistoryPaymentIds(history).map((paymentId) => paymentById.get(paymentId)).find(Boolean);
     if (payment) {
       if (isSuccessPaymentStatus(payment.status)) return { history, payment };
       continue;

@@ -14,6 +14,7 @@ const upsertContentUnlock = jest.fn();
 const profileFindOne = jest.fn();
 const pointHistoryFind = jest.fn();
 const paymentFind = jest.fn();
+const paymentFindOne = jest.fn();
 const entitlementBulkWrite = jest.fn();
 const entitlementFind = jest.fn();
 const resolveBirthUnlockIdentity = jest.fn();
@@ -59,7 +60,7 @@ beforeAll(async () => {
       },
       CONTENT_ENTITLEMENT_STATUSES: { ACTIVE: "ACTIVE" },
       ContentEntitlement: { bulkWrite: entitlementBulkWrite, find: entitlementFind },
-      Payment: { find: paymentFind },
+      Payment: { find: paymentFind, findOne: paymentFindOne },
       PointHistory: { find: pointHistoryFind },
       ProfileCard: { findOne: profileFindOne },
       SAJU_LOCKED_CONTENT_KEYS: {
@@ -142,10 +143,12 @@ beforeEach(() => {
   entitlementFind.mockReset();
   pointHistoryFind.mockReset();
   paymentFind.mockReset();
+  paymentFindOne.mockReset();
   entitlementBulkWrite.mockResolvedValue({ acknowledged: true });
   entitlementFind.mockReturnValue(queryChain([]));
   pointHistoryFind.mockReturnValue(queryChain([]));
   paymentFind.mockReturnValue(queryChain([]));
+  paymentFindOne.mockReturnValue(queryChain(null));
 });
 
 test("rejects legacy unlock reads without profileId before auth or DB lookup", async () => {
@@ -323,5 +326,74 @@ describe("POST /api/access/confirm — birth-scoped keys", () => {
     expect(response.status).toBe(403);
     expect(resolveBirthUnlockIdentity).not.toHaveBeenCalled();
     expect(upsertContentUnlock).not.toHaveBeenCalled();
+  });
+});
+
+describe("POST /api/access/confirm — backfill evidence lookup", () => {
+  const oid = (n) => String(n).padStart(24, "a");
+  const historyRow = (n, extra = {}) => ({
+    _id: `history-${n}`,
+    createdAt: new Date(Date.UTC(2026, 7, 30 - n)),
+    metadata: { profileId: TEST_PROFILE_ID, paymentId: oid(n), ...(extra.metadata || {}) },
+  });
+  const payment = (n, status) => ({ _id: oid(n), status, paymentType: "digital_content" });
+  const coinConfirm = () => handleAccessRoutes(confirmRequest({
+    profileId: TEST_PROFILE_ID,
+    contentKey: "saju.daewunAnalysis",
+    source: "coin",
+  }), {});
+
+  beforeEach(() => {
+    requireUserFromRequest.mockResolvedValue({ userId: TEST_USER_ID });
+  });
+
+  test("looks up the payments of all history rows with a single Payment.find", async () => {
+    pointHistoryFind.mockReturnValue(queryChain(Array.from({ length: 20 }, (_, i) => historyRow(i + 1))));
+    paymentFind.mockReturnValue(queryChain([payment(20, "paid")]));
+
+    const response = await coinConfirm();
+
+    expect(response.status).toBe(200);
+    expect(paymentFind).toHaveBeenCalledTimes(1);
+    expect(paymentFind.mock.calls[0][0]._id.$in).toHaveLength(20);
+    expect(paymentFindOne).not.toHaveBeenCalled();
+  });
+
+  test("a succeeded payment on the newest row wins over older rows", async () => {
+    pointHistoryFind.mockReturnValue(queryChain([historyRow(1), historyRow(2)]));
+    paymentFind.mockReturnValue(queryChain([payment(1, "success")]));
+
+    const response = await coinConfirm();
+
+    expect(response.status).toBe(200);
+    expect(paymentFind).toHaveBeenCalledTimes(1);
+    expect(paymentFindOne).not.toHaveBeenCalled();
+  });
+
+  test("a row whose payment did not succeed is skipped, even if the row looks like a pass deduction", async () => {
+    pointHistoryFind.mockReturnValue(queryChain([historyRow(1, { metadata: { accessType: "membership_pass" } })]));
+    paymentFind.mockReturnValue(queryChain([payment(1, "refunded")]));
+
+    const response = await coinConfirm();
+
+    expect(response.status).toBe(409);
+    expect(paymentFind).toHaveBeenCalledTimes(1);
+    expect(paymentFindOne).toHaveBeenCalledTimes(1);
+  });
+
+  test("a row without a payment falls back to pass backfill, a plain one does not", async () => {
+    pointHistoryFind.mockReturnValue(queryChain([
+      historyRow(1),
+      historyRow(2, { metadata: { accessType: "membership_pass" } }),
+    ]));
+
+    const passResponse = await coinConfirm();
+    expect(passResponse.status).toBe(200);
+    expect(paymentFindOne).not.toHaveBeenCalled();
+
+    pointHistoryFind.mockReturnValue(queryChain([historyRow(1), historyRow(2)]));
+    const plainResponse = await coinConfirm();
+    expect(plainResponse.status).toBe(409);
+    expect(paymentFindOne).toHaveBeenCalledTimes(1);
   });
 });
