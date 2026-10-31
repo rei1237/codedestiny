@@ -54,6 +54,8 @@ export function evaluateSearchObservations(observations) {
     summary.push({ phase, provider, group,
       expected: SEARCH_QUERIES.filter(query => query.group === group).length,
       observed: relevant.filter(row => row.status === 'observed').length,
+      independentQueries: relevant.filter(row => row.status === 'observed' && row.contextMode !== 'batch').length,
+      distinctResultPages: new Set(relevant.filter(row => row.status === 'observed').map(row => row.evidence.url)).size,
       unavailable: relevant.filter(row => row.status === 'blocked').length,
       criteria: Object.fromEntries(CRITERIA.map(key => {
         const scored = relevant.filter(row => row.status === 'observed' && typeof row.assessment?.[key] === 'boolean');
