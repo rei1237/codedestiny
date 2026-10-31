@@ -109,3 +109,18 @@ test("잘못된 이메일은 한도를 쓰지 않고 400을 돌려준다", async
   expect(response.status).toBe(400);
   expect(counters.size).toBe(0);
 });
+
+test("subDaily:false 요청은 400이고 IP·이메일 한도를 쓰지 않으며 저장·메일도 없다", async () => {
+  const response = await handleSubscriptionRoutes(
+    new Request("https://code-destiny.com/api/subscriptions/daily-fortune", {
+      method: "POST",
+      headers: { "content-type": "application/json", "cf-connecting-ip": "203.0.113.70" },
+      body: JSON.stringify({ email: "monthly@example.com", subDaily: false }),
+    }),
+    {},
+  );
+  expect(response.status).toBe(400);
+  expect(counters.size).toBe(0);
+  expect(DailyFortuneSubscription.findOneAndUpdate).not.toHaveBeenCalled();
+  expect(sendSingleFortune).not.toHaveBeenCalled();
+});

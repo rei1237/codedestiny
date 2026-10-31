@@ -154,13 +154,14 @@ async function handleDailyFortunePost(request, env) {
       return json({ message: "유효한 이메일 주소를 입력해 주세요." }, { status: 400 });
     }
 
+    if (!subDaily) {
+      return json({ message: "현재 이메일 구독은 사주 기반 일일 운세만 지원합니다." }, { status: 400 });
+    }
+
+    // 한도는 입력 검증(이메일 형식·subDaily)을 통과한 요청만 세고, 저장·메일 발송 전에 건다.
     const retryAfter = await subscribeRetryAfterSeconds(request, email, env);
     if (retryAfter) {
       return json({ message: "잠시 후 다시 시도해 주세요." }, { status: 429, headers: { "Retry-After": String(retryAfter) } });
-    }
-
-    if (!subDaily) {
-      return json({ message: "현재 이메일 구독은 사주 기반 일일 운세만 지원합니다." }, { status: 400 });
     }
 
     // 스냅샷 우선순위: (a) 클라이언트 제공(사주 분석 완료 경로) → (b) 생년정보로 서버 계산 → (c) 없으면 null(범용 발송 폴백)
