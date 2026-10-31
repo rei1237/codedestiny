@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { ArtistChips } from "./_components/ArtistChips";
+import { ArtistProfiles } from "./_components/ArtistProfiles";
 import { LyricsDrawer } from "./_components/LyricsDrawer";
 import { MiniPlayer } from "./_components/MiniPlayer";
 import { MusicHeader } from "./_components/MusicHeader";
@@ -212,6 +213,7 @@ export default function MusicPlayerExample() {
         ) : null}
 
         <ArtistChips label={copy.filterAria} value={filter} counts={FILTER_COUNTS} onChange={setFilter} />
+        <ArtistProfiles artist={filter} />
 
         <TrackList copy={copy} tracks={access.playbackTracks} filter={filter} onSelect={handleSelect} />
       </div>
