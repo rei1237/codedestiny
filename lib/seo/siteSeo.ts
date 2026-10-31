@@ -3,7 +3,7 @@ import { BRAND_FACTS } from "../brand/brand-facts.mjs";
 const SITE_SEO_TEXT_TRANSLATIONS = {
   ko: {
     "siteSeo.001": "무료 사주팔자 · 타로 · 오늘의 운세 | 꿀꿀 운세",
-    "siteSeo.002": "꿀꿀 운세 소개 | 무료 운세 플랫폼",
+    "siteSeo.002": "꿀꿀 운세 소개 | 운영자·해석 기준·서비스 안내",
     "siteSeo.003": "꿀꿀 운세 자주 묻는 질문",
     "siteSeo.004": "운세 콘텐츠 방법론과 면책 고지",
     "siteSeo.005": "무료 만세력 사주 분석 | 오행·십성·대운 해석",
@@ -76,7 +76,7 @@ export const siteSeo = {
   brandName: BRAND_FACTS.service.name,
   // WebSite 별칭. 과거 이름과 운영자 이름은 넣지 않는다(과거 이름은 이력 설명에만, 운영자는 Organization 에).
   alternateName: BRAND_FACTS.service.alternateNames,
-  siteUrl: "https://code-destiny.com",
+  siteUrl: BRAND_FACTS.service.siteUrl,
   defaultLocale: "ko",
   supportedLocales: ["ko"],
   defaultTitle: "꿀꿀 운세 — 사주·궁합·타로",

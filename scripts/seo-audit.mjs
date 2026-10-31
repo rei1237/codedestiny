@@ -23,8 +23,9 @@ const baseUrl = source === "out"
   : (process.env.SEO_AUDIT_BASE_URL || "http://localhost:3000").replace(/\/$/, "");
 // 프로덕션 대상 리포트를 덮지 않도록 파일명을 분리한다.
 const reportSuffix = source === "out" ? "-out" : "";
-const outJson = path.resolve(`seo-audit-report${reportSuffix}.json`);
-const outMd = path.resolve(`seo-audit-report${reportSuffix}.md`);
+const reportDirectory = path.resolve(process.env.SEO_AUDIT_REPORT_DIR || ".");
+const outJson = path.join(reportDirectory, `seo-audit-report${reportSuffix}.json`);
+const outMd = path.join(reportDirectory, `seo-audit-report${reportSuffix}.md`);
 const crawlSitemap = process.argv.includes("--crawl-sitemap");
 
 // 🔴 색인 대상의 정본은 **사이트맵**이지 이 파일의 배열이 아니다.
@@ -846,10 +847,15 @@ const sitemapPaths = await readSitemapPaths();
 const sitemapIndexablePaths = new Set(sitemapPaths);
 const pathsToAudit = [...new Set([...seedPathsToAudit, ...(crawlSitemap ? sitemapPaths : [])])];
 
-const routes = [];
-for (const inputPath of pathsToAudit) {
-  routes.push(await auditPath(inputPath, sitemapIndexablePaths));
-}
+// Bound public GET traffic while keeping the report in deterministic route order.
+const routes = new Array(pathsToAudit.length);
+let nextPath = 0;
+await Promise.all(Array.from({ length: source === "out" ? 1 : 4 }, async () => {
+  while (nextPath < pathsToAudit.length) {
+    const index = nextPath++;
+    routes[index] = await auditPath(pathsToAudit[index], sitemapIndexablePaths);
+  }
+}));
 
 const duplicates = {
   titles: duplicateMap(routes.filter((row) => row.shouldBeIndexed), "title"),
@@ -870,6 +876,7 @@ const report = {
 };
 report.issues = [...buildIssues(routes, support), ...(artifacts ? artifacts.issues : [])];
 
+await fs.mkdir(reportDirectory, { recursive: true });
 await fs.writeFile(outJson, `${JSON.stringify(report, null, 2)}\n`, "utf8");
 await fs.writeFile(outMd, buildMarkdown(report), "utf8");
 

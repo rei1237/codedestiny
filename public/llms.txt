@@ -1,13 +1,13 @@
 # 꿀꿀 운세
 
-> 꿀꿀 운세는 CODE DESTINY(코드 데스티니)가 운영하는 사주·타로·자미두수 운세 상담 서비스입니다. 생년월일과 태어난 시각을 입력하면 사주·자미두수·숙요점·베다 점성술·서양 점성술·타로 여섯 체계로 운세를 읽어 주는 한국어 웹 서비스입니다. 각 체계를 그 체계의 기준으로 해석하고, 무료 기본 결과와 선택형 유료 AI 상담의 범위는 각 안내 페이지에서 구분합니다.
+> 꿀꿀 운세는 CODE DESTINY가 운영하는 사주·명리학·자미두수·숙요점·베다점·서양 점성술·타로 운세 상담 서비스입니다. 생년월일과 태어난 시각을 입력하면 사주·자미두수·숙요점·베다 점성술·서양 점성술·타로 여섯 체계로 운세를 읽어 주는 한국어 웹 서비스입니다. 각 체계를 그 체계의 기준으로 해석하고, 무료 기본 결과와 선택형 유료 AI 상담의 범위는 각 안내 페이지에서 구분합니다.
 
 - 공식 홈페이지: https://code-destiny.com/
 - 상담 앱 입구(꽃돼지 연이·네오): https://code-destiny.com/ggulggul/
 - 운세보는 영냥이(영냥이 상담) 입구: https://code-destiny.com/yeongnyangi/
 - 표기: 공식 서비스명은 "꿀꿀 운세"이고, 붙여 쓴 "꿀꿀운세"도 같은 서비스입니다.
 - 운영자: CODE DESTINY(코드 데스티니). 대표 박병하(활동명 네오). 소개: https://code-destiny.com/about/#author
-- 공식 외부 채널: https://www.youtube.com/@CodeDestiny_Official · https://www.threads.com/@codedestiny_official · https://www.instagram.com/codedestiny_official/ · https://blog.naver.com/neosaju · https://x.com/sajuseongj97497
+- 공식 외부 채널: https://www.youtube.com/@CodeDestiny_Official · https://www.threads.com/@codedestiny_official · https://www.instagram.com/codedestiny_official/ · https://blog.naver.com/neosaju · https://ggulggulinsights.wordpress.com/ · https://x.com/sajuseongj97497
 - 캐릭터: 꽃돼지 연이(꿀꿀 운세의 안내 캐릭터), 네오(대표 명리학자 박병하의 활동명), 운세보는 영냥이(꿀꿀 운세의 사주보는 고양이 상담 서비스)
 - 언어: 한국어(기본), 일본어 `/ja/`, 중국어 간체 `/zh/`, 중국어 번체 `/zh-tw/`, 영어 `/en/`
 
@@ -65,7 +65,7 @@
 ## 운영자와 공개 분석 기록
 원문 분석: 박병하(네오) · 10년 경력 명리학자. 이 비교 문서의 정리: Code Destiny 편집팀.
 - 기록 정본: https://code-destiny.com/insights/presidential-saju-public-records/
-확인일 2026-10-05. 아래 공개일은 현재 네이버 원문에 표시된 날짜입니다. 사건 전에 보존된 독립 웹 아카이브나 수정 이력은 확보하지 못했습니다. 따라서 현재 읽을 수 있는 본문이 게시 당시와 글자까지 같았다고 증명하지는 않습니다.
+확인일 2026-10-31. 네이버 원문 3건의 현재 표시 공개일과 관련 서술을 다시 확인했습니다. 사건 전에 보존된 독립 웹 아카이브나 수정 이력은 확보하지 못했습니다. 따라서 현재 읽을 수 있는 본문이 게시 당시와 글자까지 같았다고 증명하지는 않습니다.
 2024-05-12부터 2025-04-04까지는 327일입니다. 따라서 이 항목을 사건 1년 전의 기록이라고 늘려 표현하지 않습니다. 2022년 글은 더 앞선 날짜가 표시되어 있지만, 정치계 변화라는 넓은 문장을 정확한 파면 날짜의 예고로 좁혀 읽지 않습니다.
 세 글 모두를 방식까지 맞혔다고 표현하지 않습니다. 특히 2024-05-27 글의 혁명이라는 방식과 실제 조기 선거는 일치하지 않습니다. 연도 언급과 방식은 표에서 따로 판정했습니다.
 
