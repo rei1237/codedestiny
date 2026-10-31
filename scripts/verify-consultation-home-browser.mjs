@@ -25,7 +25,7 @@ for (const channel of ['chrome', 'msedge']) {
       // 홈: 히어로 버튼 하나 → 대표 상담 덱 → 초융합 시그니처 → 무료로 먼저 → 꿀방울 → 1:1 상담 → 영냥이 배너 → 질문 카테고리 → 이용권 → 뮤직비디오 → 모든 운세 보기 → 링크 → 달빛 이야기.
       assert.equal(await main.locator('.cdh-hero .cdh-primary').getAttribute('href'), '#cdSignatureConsult');
       assert.equal(await page.locator('#cdhMore').count(), 0, 'no folded catalog on home');
-      const order = await page.evaluate(() => ['#cdSignatureConsult','#cdhFusionSignature','#cdQuickServices','.cdh-honey','.cdh-consult-browser','#cdConcernPick','#cdhPass','#cdhMoonlightMv','.cdh-all-cta','.cdh-links','.cdh-story'].map(sel => document.querySelector(sel).getBoundingClientRect().top + scrollY));
+      const order = await page.evaluate(() => ['#cdhFusionSignature','#cdhYeongnyangiSlot','#cdSignatureConsult','#cdConcernPick','#cdQuickServices','#cdhPass','.cdh-all-cta','.cdh-links','.cdh-story'].map(sel => document.querySelector(sel).getBoundingClientRect().top + scrollY));
       assert(order.every((top,i) => i===0 || top>order[i-1]), JSON.stringify(order));
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
       assert(overflow <= 0, 'home overflow: '+width+' / '+overflow);

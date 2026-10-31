@@ -2277,6 +2277,39 @@
       "compactTitle": "Pas Balang Madu",
       "conditions": "Liputan dan syarat penggunaan",
       "otherServices": "Lihat pas untuk perkhidmatan lain"
+    },
+    "consultChoice": {
+      "title": "Pilih konsultasi yang sesuai dengan kebimbangan anda",
+      "subtitle": "Biarkan soalan anda menjadi lebih jelas di bawah cahaya bulan.",
+      "yeongnyangi": {
+        "method": "Berfokus pada soalan dan situasi anda",
+        "body": "Teliti soalan dan situasi anda melalui pelbagai sistem ramalan, dengan huraian berbahagian dan langkah seterusnya."
+      },
+      "neo": {
+        "method": "Ditulis AI · disemak manusia · dihantar melalui e-mel",
+        "title": "Keputusan Strategi Neo",
+        "body": "Untuk memahami kriteria pilihan dan pelan tindakan dengan lebih jelas. AI menyediakan draf, kemudian disemak manusia sebelum dihantar melalui e-mel.",
+        "cta": "Tanya Neo",
+        "note": "Terima jawapan yang disemak melalui e-mel.",
+        "saleClosed": "Sedang disediakan · pembayaran dan penghantaran permintaan belum dibuka."
+      },
+      "compare": {
+        "caption": "Bandingkan konsultasi Yeongnyangi dengan pelan strategi Neo",
+        "selection": "Konsultasi",
+        "format": "Cara konsultasi",
+        "fit": "Sesuai untuk",
+        "delivery": "Penyampaian hasil",
+        "yeongnyangi": {
+          "format": "Huraian berbahagian berdasarkan soalan anda",
+          "fit": "Apabila anda mahu memahami situasi dan coraknya dengan lebih luas",
+          "delivery": "Lihat pada halaman konsultasi dan rekod anda"
+        },
+        "neo": {
+          "format": "Ditulis oleh AI dan disemak oleh manusia",
+          "fit": "Apabila anda memerlukan kriteria dan pelan tindakan bagi satu pilihan",
+          "delivery": "Jawapan yang disemak dihantar melalui e-mel"
+        }
+      }
     }
   },
   "terms": {

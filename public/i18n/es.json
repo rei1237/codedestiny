@@ -2277,6 +2277,39 @@
       "compactTitle": "Pases Tarro de Miel",
       "conditions": "Cobertura y condiciones",
       "otherServices": "Ver pases para otros servicios"
+    },
+    "consultChoice": {
+      "title": "Elige la consulta que mejor encaja con tu inquietud",
+      "subtitle": "Deja que tu pregunta se aclare bajo la luz de la luna.",
+      "yeongnyangi": {
+        "method": "Centrada en tu pregunta y situación",
+        "body": "Explora tu pregunta y situación con distintos sistemas de lectura, en capítulos con el hilo de tu inquietud y próximos pasos."
+      },
+      "neo": {
+        "method": "Redacción con IA · revisión humana · entrega por correo",
+        "title": "Plan estratégico de Neo",
+        "body": "Para conocer mejor los criterios y el plan de acción de una decisión. La IA redacta la respuesta y una persona la revisa antes de enviarla por correo.",
+        "cta": "Preguntar a Neo",
+        "note": "Recibe por correo una respuesta revisada.",
+        "saleClosed": "En preparación · el pago y el envío de solicitudes aún no están disponibles."
+      },
+      "compare": {
+        "caption": "Compara la consulta de Yeongnyangi con el plan de Neo",
+        "selection": "Consulta",
+        "format": "Cómo funciona",
+        "fit": "Ideal para",
+        "delivery": "Entrega del resultado",
+        "yeongnyangi": {
+          "format": "Lectura por capítulos basada en tu pregunta",
+          "fit": "Para entender mejor tu situación y sus tendencias",
+          "delivery": "Consulta el resultado en la página y en tu historial"
+        },
+        "neo": {
+          "format": "Redactado por IA y revisado por una persona",
+          "fit": "Para definir criterios y un plan de acción para una decisión",
+          "delivery": "Respuesta revisada enviada por correo"
+        }
+      }
     }
   },
   "terms": {

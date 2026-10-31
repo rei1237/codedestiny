@@ -2277,6 +2277,39 @@
       "compactTitle": "Honigtopf-Pässe",
       "conditions": "Leistungsumfang und Bedingungen",
       "otherServices": "Pässe für andere Dienste ansehen"
+    },
+    "consultChoice": {
+      "title": "Wähle die Beratung, die zu deinem Anliegen passt",
+      "subtitle": "Lass deine Frage im Mondlicht klarer werden.",
+      "yeongnyangi": {
+        "method": "Auf deine Frage und Situation ausgerichtet",
+        "body": "Betrachte deine Frage mit verschiedenen Deutungssystemen und erhalte Kapitel zu deinem Anliegen und den nächsten Schritten."
+      },
+      "neo": {
+        "method": "Von KI verfasst · menschlich geprüft · per E-Mail zugestellt",
+        "title": "Neos Strategieentscheidung",
+        "body": "Für genauere Kriterien und einen Aktionsplan zu einer Entscheidung. Die KI entwirft die Antwort, ein Mensch prüft sie vor dem Versand per E-Mail.",
+        "cta": "Neo fragen",
+        "note": "Du erhältst eine geprüfte Antwort per E-Mail.",
+        "saleClosed": "In Vorbereitung · Zahlung und Anfragen sind noch nicht möglich."
+      },
+      "compare": {
+        "caption": "Vergleiche Yeongnyangis Beratung mit Neos Strategieplan",
+        "selection": "Beratung",
+        "format": "Ablauf",
+        "fit": "Geeignet für",
+        "delivery": "Ergebniszustellung",
+        "yeongnyangi": {
+          "format": "Kapitelweise Deutung zu deiner Frage",
+          "fit": "Wenn du deine Situation und ihre Muster umfassender betrachten möchtest",
+          "delivery": "Auf der Beratungsseite und in deinen Einträgen ansehen"
+        },
+        "neo": {
+          "format": "Von KI verfasst und von einem Menschen geprüft",
+          "fit": "Wenn du Kriterien und einen Aktionsplan für eine Entscheidung brauchst",
+          "delivery": "Geprüfte Antwort per E-Mail"
+        }
+      }
     }
   },
   "terms": {

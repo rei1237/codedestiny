@@ -39,7 +39,7 @@ const server = createServer(async(req,res)=>{
   try {
     const origin='http://127.0.0.1:'+server.address().port;
     const path=new URL(req.url,origin).pathname;
-    if(/^\/assets\/yeongnyangi\/scenes\/(love|work-400|wealth-400|self-400)\.webp$/.test(path) || /^\/images\/home-questions\/(marriage|reunion)-400\.webp$/.test(path) || /^\/images\/neo-consultation\/moonlit-letter-(640|1280)\.webp$/.test(path) || path===NEO_EMAIL_PORTRAIT || /^\/images\/service-introductions\/neo-consultation(?:-640)?\.webp$/.test(path)){res.setHeader('content-type','image/webp');res.end(await readFile(resolve(root,'public',path.slice(1))));return;}
+    if(/^\/assets\/yeongnyangi\/scenes\/(love|work-400|wealth-400|self-400)\.webp$/.test(path) || /^\/images\/home-questions\/(marriage|reunion)-400\.webp$/.test(path) || /^\/images\/neo-consultation\/moonlit-letter-(640|1280)\.webp$/.test(path) || path===NEO_EMAIL_PORTRAIT || /^\/images\/service-introductions\/neo-consultation(?:-(?:320|640|960))?\.webp$/.test(path)){res.setHeader('content-type','image/webp');res.end(await readFile(resolve(root,'public',path.slice(1))));return;}
     if(path==='/home-preview/'){
       res.setHeader('content-type','text/html');
       res.end('<!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style>body{margin:0;padding:20px;background:#f6eff5}.cdh{max-width:1000px;margin:auto}*{box-sizing:border-box}</style><style>'+tokens+await readFile(resolve(root,'styles/home-funnel.css'),'utf8')+'</style><div class="cdh">'+renderNeoEmailHomeEntry()+'</div></html>');return;
@@ -200,7 +200,7 @@ try {
     await entry.locator('.cdh-neo-letter__art img').waitFor();
     // Resizing <picture> can replace an in-flight image and reject decode().
     // Wait for the selected source and loaded pixels; broken assets still fail.
-    await expect(page.locator('picture img')).toHaveJSProperty('currentSrc',base+'/images/service-introductions/neo-consultation'+(width<=640?'-640':'')+'.webp');
+    await expect(page.locator('picture img')).toHaveAttribute('srcset', /neo-consultation-320\.webp 320w.*neo-consultation-960\.webp 960w/);
     await expect.poll(()=>page.evaluate(()=>[...document.images].every(img=>img.complete && img.naturalWidth>0))).toBe(true);
     await page.evaluate(async()=>{await Promise.all([...document.images].map(img=>img.decode()));});
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
@@ -214,7 +214,7 @@ try {
     await page.keyboard.press('Enter');
     await expect(details).toHaveJSProperty('open',false);
   }
-  await page.getByRole('link',{name:'질문 작성하기'}).click();
+  await page.getByRole('link',{name:'네오에게 질문하기'}).click();
   await page.getByRole('heading',{name:/그 사람은 왜.*그렇게 행동할까/}).waitFor();
   await page.setViewportSize({width:390,height:380});
   await page.getByLabel('질문 1',{exact:true}).fill('작은 화면에서도 질문이 보존되나요?');

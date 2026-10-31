@@ -2277,6 +2277,39 @@
       "compactTitle": "Honingpot-passen",
       "conditions": "Dekking en voorwaarden",
       "otherServices": "Passen voor andere diensten bekijken"
+    },
+    "consultChoice": {
+      "title": "Kies het consult dat bij je vraag past",
+      "subtitle": "Laat je vraag helderder worden in het maanlicht.",
+      "yeongnyangi": {
+        "method": "Gericht op je vraag en situatie",
+        "body": "Bekijk je vraag met verschillende duidingsmethoden, met hoofdstukken over je situatie en mogelijke vervolgstappen."
+      },
+      "neo": {
+        "method": "Door AI geschreven · door een mens gecontroleerd · per e-mail verstuurd",
+        "title": "Neos strategiebesluit",
+        "body": "Voor heldere criteria en een actieplan bij één keuze. AI stelt het antwoord op; een medewerker controleert het voordat het per e-mail wordt verstuurd.",
+        "cta": "Neo een vraag stellen",
+        "note": "Ontvang een gecontroleerd antwoord per e-mail.",
+        "saleClosed": "In voorbereiding · betalen en aanvragen indienen is nog niet mogelijk."
+      },
+      "compare": {
+        "caption": "Vergelijk Yeongnyangi’s consult met Neos strategieplan",
+        "selection": "Consult",
+        "format": "Werkwijze",
+        "fit": "Geschikt voor",
+        "delivery": "Resultaat ontvangen",
+        "yeongnyangi": {
+          "format": "Duiding in hoofdstukken, afgestemd op je vraag",
+          "fit": "Als je je situatie en patronen breder wilt bekijken",
+          "delivery": "Bekijk het op de consultpagina en in je geschiedenis"
+        },
+        "neo": {
+          "format": "Geschreven door AI en gecontroleerd door een medewerker",
+          "fit": "Als je criteria en een actieplan voor één keuze nodig hebt",
+          "delivery": "Gecontroleerd antwoord per e-mail"
+        }
+      }
     }
   },
   "terms": {
