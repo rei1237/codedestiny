@@ -26,7 +26,7 @@ export default function FaqExplorer({ items }) {
       </div>
       <p data-faq-count className={styles.count} role="status">전체 질문 {items.length}개</p>
       <div id="faq-results" className={styles.results}>
-        {items.map(item => <PolicyAccordion key={item.question} title={item.question}><p>{item.answer}</p></PolicyAccordion>)}
+        {items.map(item => <PolicyAccordion key={item.question} title={item.question}><p>{item.answer}</p>{item.links?.length > 0 && <div className="cd-chip-wrap">{item.links.map(link => <Link className="cd-chip" key={link.href} href={link.href}>{link.label}</Link>)}</div>}</PolicyAccordion>)}
         <div data-faq-empty hidden className={styles.empty}><h3>일치하는 질문이 없어요</h3><p>짧은 단어로 다시 검색하거나 문의로 상황을 알려주세요.</p><Link href="/contact/" className="cd-yehwa-button cd-yehwa-button--secondary">문의하기</Link></div>
       </div>
       <aside className={styles.next}>

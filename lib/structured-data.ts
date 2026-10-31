@@ -226,6 +226,7 @@ export function buildServiceJsonLd(input: {
   return {
     "@context": "https://schema.org",
     "@type": "Service",
+      "@id": `${toAbsoluteUrl(input.path)}#service`,
     name: input.name,
     ...(input.alternateName?.length ? { alternateName: input.alternateName } : {}),
     serviceType: input.serviceType || audience.serviceType,

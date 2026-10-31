@@ -12,6 +12,7 @@ import { getEditorNote } from "../_content/editor-notes";
 import EditorNote from "../components/EditorNote";
 import FaqExplorer from "./FaqExplorer";
 import styles from "./faq.module.css";
+import { mergeOfficialInformation } from "../../lib/brand/official-information.mjs";
 
 const seo = publicSeoPages.faq;
 
@@ -19,7 +20,7 @@ export const dynamic = "force-static";
 
 
 // 관리자 CMS(페이지 → 자주 묻는 질문)에서 고친 목록을 쓴다. 비어 있으면 위 기본 목록.
-const faqs = cmsQaList("faq", "faq-page", "items", FAQS_DEFAULT);
+const faqs = mergeOfficialInformation(cmsQaList("faq", "faq-page", "items", FAQS_DEFAULT));
 
 export const metadata = buildSeoMetadata({ ...seo, hreflang: trustRoutes("faq") });
 
@@ -40,8 +41,8 @@ export default function FaqPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
       <PolicyGuide
         kind="faq"
-        title="자주 묻는 질문"
-        description="운세를 처음 보는 방법부터 결제와 개인정보까지, 궁금한 항목을 펼쳐 편안하게 확인하세요."
+        title="꿀꿀 운세 이용 안내와 자주 묻는 질문"
+        description="공식 서비스와 영냥이의 관계, 무료 도구와 유료 상담, 결과 생성·보관 방식을 확인하세요."
       />
 
       <FaqExplorer items={faqs} />
@@ -61,6 +62,8 @@ export default function FaqPage() {
         <nav className={styles.guidePolicies} aria-label="서비스 및 이용 정책">
           <Link href="/">공식 사이트 안내</Link>
           <Link href="/about">서비스 소개</Link>
+          <Link href="/consultation-samples/">공개 결과 예시</Link>
+          <Link href="/neo-consultation/">네오 직접 검수 상담</Link>
           <Link href="/privacy">개인정보처리방침</Link>
           <Link href="/terms">이용약관</Link>
         </nav>

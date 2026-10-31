@@ -1,5 +1,6 @@
 // Reading order is an editorial navigation choice, not evidence of expert review.
 export const EDITORIAL_READING_PATHS = [
+  { title: "질문에 맞는 운세 고르기", slugs: ["fortune-service-selection-guide", "gyeokguk-vs-yongshin", "jonggyeok-gajonggyeok", "vedic-vs-western-astrology", "saju-2027-monthly-planning-framework"] },
   { title: "인물과 나를 다르게 읽기", slugs: ["rescene-members-saju-reading-guide", "same-day-pillar-different-season-reading", "tarot-question-journal-before-redraw"] },
   { title: "계산 기준부터 확인하기", slugs: ["how-we-calculate-saju", "midnight-birth-day-pillar", "why-saju-results-differ-between-services", "saju-without-birth-time-three-pillars-guide", "manseoryeok-what-is"] },
   { title: "사주의 해석 순서", slugs: ["ten-gods-beginner-map", "ten-gods-practical-map-love-work-money", "yongshin-finding-method-practical-guide", "daewoon-sewoon-reading-complete-guide"] },

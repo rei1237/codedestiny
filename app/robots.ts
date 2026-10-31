@@ -30,6 +30,8 @@ const privateDisallowRules = [
   "/fail/",
   "/result/",
   "/results/",
+  "/records/",
+  "/yeongnyangi/library/",
   "/report/progress/",
   "/my/",
   "/me/",

@@ -1,13 +1,13 @@
 # 꿀꿀 운세
 
-> 꿀꿀 운세는 CODE DESTINY(코드 데스티니)가 운영하는 사주·타로·자미두수 운세 상담 서비스입니다. 생년월일과 태어난 시각을 입력하면 사주·자미두수·숙요점·베다 점성술·서양 점성술·타로 여섯 체계로 운세를 읽어 주는 한국어 웹 서비스입니다. 각 체계를 그 체계의 기준으로 해석하고, 무료 기본 결과와 선택형 유료 AI 상담의 범위는 각 안내 페이지에서 구분합니다.
+> 꿀꿀 운세는 CODE DESTINY가 운영하는 사주·명리학·자미두수·숙요점·베다점·서양 점성술·타로 운세 상담 서비스입니다. 생년월일과 태어난 시각을 입력하면 사주·자미두수·숙요점·베다 점성술·서양 점성술·타로 여섯 체계로 운세를 읽어 주는 한국어 웹 서비스입니다. 각 체계를 그 체계의 기준으로 해석하고, 무료 기본 결과와 선택형 유료 AI 상담의 범위는 각 안내 페이지에서 구분합니다.
 
 - 공식 홈페이지: https://code-destiny.com/
 - 상담 앱 입구(꽃돼지 연이·네오): https://code-destiny.com/ggulggul/
 - 운세보는 영냥이(영냥이 상담) 입구: https://code-destiny.com/yeongnyangi/
 - 표기: 공식 서비스명은 "꿀꿀 운세"이고, 붙여 쓴 "꿀꿀운세"도 같은 서비스입니다.
 - 운영자: CODE DESTINY(코드 데스티니). 대표 박병하(활동명 네오). 소개: https://code-destiny.com/about/#author
-- 공식 외부 채널: https://www.youtube.com/@CodeDestiny_Official · https://www.threads.com/@codedestiny_official · https://www.instagram.com/codedestiny_official/ · https://blog.naver.com/neosaju · https://x.com/sajuseongj97497
+- 공식 외부 채널: https://www.youtube.com/@CodeDestiny_Official · https://www.threads.com/@codedestiny_official · https://www.instagram.com/codedestiny_official/ · https://blog.naver.com/neosaju · https://ggulggulinsights.wordpress.com/ · https://x.com/sajuseongj97497
 - 캐릭터: 꽃돼지 연이(꿀꿀 운세의 안내 캐릭터), 네오(대표 명리학자 박병하의 활동명), 운세보는 영냥이(꿀꿀 운세의 사주보는 고양이 상담 서비스)
 - 언어: 한국어(기본), 일본어 `/ja/`, 중국어 간체 `/zh/`, 중국어 번체 `/zh-tw/`, 영어 `/en/`
 

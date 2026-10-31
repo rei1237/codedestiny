@@ -37,7 +37,8 @@ test('brand facts keep the service, its alias and the operator apart', () => {
   assert.equal(operator.nameKo, '코드 데스티니');
   assert.ok(Number.isInteger(BRAND_FACTS.version) && BRAND_FACTS.version >= 1);
   assert.match(BRAND_FACTS.reviewedAt, /^\d{4}-\d{2}-\d{2}$/);
-  assert.equal(BRAND_FACTS.sameAs.length, 5);
+  assert.equal(BRAND_FACTS.sameAs.length, 6);
+  assert.equal(BRAND_FACTS.sameAs.find(profile => profile.key === 'wordpress').url, 'https://ggulggulinsights.wordpress.com/');
   for (const profile of BRAND_FACTS.sameAs) assert.match(profile.url, /^https:\/\//);
   assert.ok(!BRAND_FACTS.sameAs.some(profile => /pf\.kakao\.com/.test(profile.url)), 'Kakao channel is pending confirmation');
   for (const name of [service.name, ...service.alternateNames, operator.name]) {
