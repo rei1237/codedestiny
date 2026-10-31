@@ -295,13 +295,30 @@ export async function alertPaymentAnomalies(db, { notify, now = new Date(), limi
     }, { $set: { "metadata.verifyAlert.lastAlertedAt": now } });
     summary.marked += Number(result?.modifiedCount || 0);
   }
+  /* 🔴 ServiceExecutionTransaction.metadata 의 모델 기본값은 null 이고 refund_failed 를 쓰는 경로도 metadata 를 채우지 않는다.
+     null 부모 아래 점 표기 $set 은 Mongo 가 던지므로 null/없음 CAS 로 metadata 를 객체로 먼저 채운다(null 을 바꾸는 것뿐이라
+     고객 데이터를 덮지 않는다). 걸리는 문서가 없으면(= 객체 부모) 기존 점 표기 CAS 다. 한 건이 던져도 나머지 건은 계속 찍고,
+     실패는 marked 에 세지 않으며 루프 뒤에 첫 오류를 다시 던진다(호출부 payments/index.js 가 로그만 남기고 이번 틱 결과를 버린다). */
+  let markError = null;
   for (const execution of message.included.refundFailures) {
-    const result = await db.updateOne(ServiceExecutionTransaction, {
-      _id: execution._id,
-      refundStatus: "refund_failed",
-      "metadata.refundFailureAlert": { $exists: false },
-    }, { $set: { "metadata.refundFailureAlert.lastAlertedAt": now } });
-    summary.marked += Number(result?.modifiedCount || 0);
+    try {
+      let result = await db.updateOne(ServiceExecutionTransaction, {
+        _id: execution._id,
+        refundStatus: "refund_failed",
+        metadata: null,
+      }, { $set: { metadata: { refundFailureAlert: { lastAlertedAt: now } } } });
+      if (!Number(result?.modifiedCount || 0)) {
+        result = await db.updateOne(ServiceExecutionTransaction, {
+          _id: execution._id,
+          refundStatus: "refund_failed",
+          "metadata.refundFailureAlert": { $exists: false },
+        }, { $set: { "metadata.refundFailureAlert.lastAlertedAt": now } });
+      }
+      summary.marked += Number(result?.modifiedCount || 0);
+    } catch (error) {
+      markError ||= error;
+    }
   }
+  if (markError) throw markError;
   return summary;
 }
