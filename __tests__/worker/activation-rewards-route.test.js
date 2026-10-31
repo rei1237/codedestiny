@@ -17,3 +17,5 @@ test('client userId cannot select another reward recipient',async()=>{const r=aw
 test('GET cannot grant rewards',async()=>{expect((await handle(request('tutorial/complete'),{})).status).toBe(405);expect(connect).not.toHaveBeenCalled();});
 
 test('code redemption uses authenticated account',async()=>{const r=await handle(request('snu/code',{method:'POST',headers:{Origin:'https://example.com','Content-Type':'application/json'},body:JSON.stringify({code:'test-code',userId:'other'})}),{});expect(r.status).toBe(200);expect(school).toHaveBeenCalledWith(UID,'test-code',{});});
+
+test.each(['snu/request','snu/verify'])('retired email path %s cannot bypass campaign stock or send email',async path=>{const r=await handle(request(path,{method:'POST',headers:{Origin:'https://example.com','Content-Type':'application/json'},body:'{}'}),{});expect(r.status).toBe(410);expect((await r.json()).code).toBe('SNULIFE_CODE_REQUIRED');expect(connect).not.toHaveBeenCalled();expect(school).not.toHaveBeenCalled();});
