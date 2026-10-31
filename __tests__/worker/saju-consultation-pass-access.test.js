@@ -8,6 +8,7 @@ import { normalizeConsultAccessType, resolveCanonicalEntitlement, resolveFeature
 import { consumePassForFeature, hasConsumedPassFeature, passDenialCode } from "../../worker/lib/pass-consumption.js";
 import { getBillingFeaturePricing } from "../../worker/lib/billing-feature-registry.js";
 import { nativeTossContext } from "../../worker/toss/native-context.js";
+import { USABLE_EXECUTION_STATUSES } from "../../worker/payments/executions.js";
 import { makeFakePaymentDb, matches } from "../fixtures/fake-payment-db.mjs";
 
 const USER = "64b000000000000000000001";
@@ -153,6 +154,7 @@ test.each(services)("%s / %s: 소진 뒤 실제 서버 증빙 조회로 같은 �
   Object.assign(f.context, { mongoose, SERVICE_KEY: route, objectOf: value => value || {},
     isObjectIdLike: value => mongoose.Types.ObjectId.isValid(value), normalizeConsultationType: value => value,
     connectDb: async () => {}, findMoonstoneSpendEvidence: async () => null,
+    USABLE_EXECUTION_STATUSES,
     PointHistory: { findOne: query }, Payment: { findOne: () => chain(null) }, PaidExecutionRecord: { findOne: () => chain(null) },
   });
   for (const name of evidenceHelpers[route]) load(route, name, f.context);

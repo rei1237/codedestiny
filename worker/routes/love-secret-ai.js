@@ -11,6 +11,7 @@ import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../l
 import { LoveSecretAiConsultation, MonthlyCreditLedger, PaidExecutionRecord, Payment, PointHistory, User } from "../lib/models.js";
 import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
+import { USABLE_EXECUTION_STATUSES } from "../payments/executions.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { normalizeConsultAccessType, resolveCanonicalEntitlement, resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
@@ -639,7 +640,7 @@ async function resolveBillingUsageEvidence(env, auth, body = {}) {
     ? await PaidExecutionRecord.findOne({
       userId: clean(auth.userId),
       featureId: FEATURE_KEY,
-      status: { $in: ["paid_pending_generation", "completed", "paid", "success", "fulfilled"] },
+      status: { $in: [...USABLE_EXECUTION_STATUSES, "paid", "success", "fulfilled"] },
       $or: deferredOr,
     }).sort({ updatedAt: -1, createdAt: -1 }).select("_id executionId requestId paymentId accessMethod result status").lean()
     : null;
@@ -1874,6 +1875,7 @@ export const __loveSecretAiTestUtils = {
   SERVICE_KEY,
   normalizeRequestBody,
   getPricing,
+  resolveBillingUsageEvidence,
 };
 
 // Internal cron continuation: only a stored owner/id is accepted, never client input.

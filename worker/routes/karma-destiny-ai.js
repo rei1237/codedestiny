@@ -16,6 +16,7 @@ import { deliverExpertFollowUp, recoverSavedExpertFollowUps, expertFollowUpNarra
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { hasRenderableLlmText, isCompleteLlmResponse } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
+import { USABLE_EXECUTION_STATUSES } from "../payments/executions.js";
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
 import { isStoredPaidResultRevoked } from "../lib/paid-result-revocation.js";
 import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
@@ -854,7 +855,7 @@ async function findBillingGateEvidence({ env, userId, idempotencyKey, body = {} 
     const record = await PaidExecutionRecord.findOne({
       userId: clean(userId),
       featureId: FEATURE_KEY,
-      status: { $in: ["paid_pending_generation", "generating", "completed"] },
+      status: { $in: USABLE_EXECUTION_STATUSES },
       $or: deferredClauses,
     }).sort({ updatedAt: -1, createdAt: -1 }).lean();
     if (record) {
@@ -2914,6 +2915,7 @@ export const __karmaDestinyAiTestUtils = {
   detectLensRoleViolation,
   detectCrossChapterConclusionOverlap,
   buildKarmaDestinyAiMockConsultation,
+  findBillingGateEvidence,
 };
 
 export function resumeConsultationOnServer(env, doc) {
