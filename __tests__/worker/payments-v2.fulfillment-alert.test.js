@@ -46,6 +46,12 @@ async function seed(rows) {
   return db;
 }
 const rowOf = (db, name) => db.rows.find((row) => row.merchantUid === uid(name));
+const execKey = (name) => `exec-0123456789-${name.padStart(8, "_")}`;
+const refundFailureRow = (name, overrides = {}) => ({
+  executionKey: execKey(name), status: "failed", refundStatus: "refund_failed", refundFailedAt: ago(3 * HOUR),
+  serviceId: "fusion-fortune", featureKey: "fusion-fortune-consultation", paymentProvider: "portone", reasonCode: "REFUND_SETTLEMENT_FAILED",
+  metadata: {}, ...PII, ...overrides,
+});
 const deliveredNotify = () => jest.fn(async () => ({ delivered: true }));
 
 let savedEnv;
@@ -86,7 +92,7 @@ test("A 는 paid·결제 30분+·미지급(재지급과 같은 정의)만, B 는
     verifyFailureRow("b-old", "AMOUNT_MISMATCH", { updatedAt: ago(31 * DAY) }),
   ]);
   const notify = deliveredNotify();
-  expect(await alertPaymentAnomalies(db, { notify, now: NOW })).toEqual({ unfulfilled: 2, verifyFailures: 4, delivered: true, marked: 6 });
+  expect(await alertPaymentAnomalies(db, { notify, now: NOW })).toEqual({ unfulfilled: 2, verifyFailures: 4, refundFailures: 0, delivered: true, marked: 6 });
   expect(notify).toHaveBeenCalledTimes(1);
   const { subject, text } = notify.mock.calls[0][0];
   expect(subject).toBe("[결제 알림] 미지급 2건 · PG 대조 실패 4건");
@@ -103,7 +109,7 @@ test("전달 후 다시 돌면 보내지 않는다 — 대조 실패는 주문�
   const db = await seed([unfulfilledRow("a1"), verifyFailureRow("b1", "AMOUNT_MISMATCH")]);
   await alertPaymentAnomalies(db, { notify: deliveredNotify(), now: NOW });
   const again = deliveredNotify();
-  expect(await alertPaymentAnomalies(db, { notify: again, now: later(10 * MIN) })).toEqual({ unfulfilled: 0, verifyFailures: 0, delivered: false, marked: 0 });
+  expect(await alertPaymentAnomalies(db, { notify: again, now: later(10 * MIN) })).toEqual({ unfulfilled: 0, verifyFailures: 0, refundFailures: 0, delivered: false, marked: 0 });
   expect(await alertPaymentAnomalies(db, { notify: again, now: later(23 * HOUR) })).toMatchObject({ unfulfilled: 0, verifyFailures: 0 });
   expect(again).not.toHaveBeenCalled();
 });
@@ -193,4 +199,58 @@ test("🔴 결제 알림 모듈은 공개 대화방 헬퍼를 모른다 — 운�
   expect(source).not.toMatch(/telegram/i);
   expect(source).toContain('await import("../lib/feedback-notify.js")');
   expect(readFileSync("worker/payments/reconcile.js", "utf8")).not.toMatch(/telegram/i);
+});
+
+test("C 환불 실패: refund_failed 30일 내·미알림만 — '환불 실패' 섹션과 표식 1건, 본문에 실행ID 뒤 8자·서비스·결제수단·사유·경과만", async () => {
+  const db = await seed([
+    refundFailureRow("c-target"),
+    refundFailureRow("c-pending", { refundStatus: "pending" }),
+    refundFailureRow("c-refunded", { refundStatus: "refunded" }),
+    refundFailureRow("c-old", { refundFailedAt: ago(31 * DAY) }),
+  ]);
+  const notify = deliveredNotify();
+  expect(await alertPaymentAnomalies(db, { notify, now: NOW })).toEqual({ unfulfilled: 0, verifyFailures: 0, refundFailures: 1, delivered: true, marked: 1 });
+  expect(notify).toHaveBeenCalledTimes(1);
+  const { subject, text } = notify.mock.calls[0][0];
+  expect(subject).toContain("환불 실패 1건");
+  expect(text).toContain("환불 실패");
+  expect(text).toContain(`${maskId(execKey("c-target"))} · fusion-fortune · portone · REFUND_SETTLEMENT_FAILED · 실패 후 3시간 0분`);
+  const byKey = (name) => db.rows.find((row) => row.executionKey === execKey(name));
+  expect(byKey("c-target").metadata.refundFailureAlert).toEqual({ lastAlertedAt: NOW });
+  for (const name of ["c-pending", "c-refunded", "c-old"]) expect(byKey(name).metadata.refundFailureAlert).toBeUndefined();
+});
+
+test("🔴 환불 실패: 전달 실패면 표식 0건이고 다음 틱에 다시 보낸다", async () => {
+  const db = await seed([refundFailureRow("c1")]);
+  expect(await alertPaymentAnomalies(db, { notify: async () => ({ delivered: false }), now: NOW })).toMatchObject({ refundFailures: 1, delivered: false, marked: 0 });
+  expect(db.rows[0].metadata.refundFailureAlert).toBeUndefined();
+  expect(await alertPaymentAnomalies(db, { notify: deliveredNotify(), now: later(10 * MIN) })).toMatchObject({ refundFailures: 1, delivered: true, marked: 1 });
+});
+
+test("환불 실패: 이미 표식이 있는 건은 조회되지 않는다 — 다시 돌아도 보내지 않는다", async () => {
+  const db = await seed([refundFailureRow("c-marked", { metadata: { refundFailureAlert: { lastAlertedAt: ago(DAY) } } }), refundFailureRow("c-fresh")]);
+  const notify = deliveredNotify();
+  expect(await alertPaymentAnomalies(db, { notify, now: NOW })).toMatchObject({ refundFailures: 1, marked: 1 });
+  expect(notify.mock.calls[0][0].text).toContain(maskId(execKey("c-fresh")));
+  expect(notify.mock.calls[0][0].text).not.toContain(maskId(execKey("c-marked")));
+  const again = deliveredNotify();
+  expect(await alertPaymentAnomalies(db, { notify: again, now: later(DAY) })).toMatchObject({ refundFailures: 0, delivered: false, marked: 0 });
+  expect(again).not.toHaveBeenCalled();
+});
+
+test("🔴 환불 실패 알림 본문·제목에 userId·이메일·전화·rawPortOne·전체 실행키가 없다", async () => {
+  const db = await seed([refundFailureRow("c-pii")]);
+  const notify = deliveredNotify();
+  await alertPaymentAnomalies(db, { notify, now: NOW });
+  const sent = JSON.stringify(notify.mock.calls);
+  for (const secret of [USER_ID, EMAIL, PHONE, "raw-pg-tx-0001", "rawPortOne", execKey("c-pii")]) expect(sent).not.toContain(secret);
+});
+
+test("환불 실패 섹션도 20건·본문 한도 안에서 자르고 빠진 건은 표식 없이 다음 틱으로 간다", () => {
+  const many = Array.from({ length: 25 }, (_, i) => refundFailureRow(`m${String(i).padStart(2, "0")}`, { serviceId: "s".repeat(100) }));
+  const built = buildPaymentAlert({ refundFailures: many, now: NOW });
+  expect(built.included.refundFailures.length).toBeGreaterThan(0);
+  expect(built.included.refundFailures.length).toBeLessThanOrEqual(20);
+  expect(built.text.length).toBeLessThanOrEqual(PAYMENT_ALERT_TEXT_LIMIT);
+  expect(built.text).toContain(`(외 ${25 - built.included.refundFailures.length}건은 다음 알림)`);
 });

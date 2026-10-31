@@ -13,7 +13,7 @@
  * 🔴 **재시도 루프가 아니다.** 각 항목을 한 번씩만 시도하고, 실패하면 다음 크론에 다시 만난다.
  * 크론 안에서 재시도를 돌리면 admission 슬롯을 몰아 쓰게 되고, 그게 사용자 요청을 굶긴다.
  */
-import { Payment } from "../lib/models.js";
+import { Payment, ServiceExecutionTransaction } from "../lib/models.js";
 import { REFUND_LOCK_TTL_MS, markOrderCancelled } from "./orders.js";
 import { RESUME_APPROVED_TTL_MS } from "./resume-context.js";
 import { listProducts } from "./catalog.js";
@@ -216,6 +216,7 @@ const VERIFY_ALERT_CODES = Object.freeze(["AMOUNT_MISMATCH", "CURRENCY_MISMATCH"
  *
  *   A 미지급: paid · 결제 30분+ · 권한 없음(unfulfilledClause) · (미알림 또는 마지막 알림 24시간+ 이고 7회 미만)
  *   B PG 대조 실패: failed · failureStage "pg-verify" · 30일 내 · VERIFY_ALERT_CODES · 주문당 1회
+ *   C 환불 실패: ServiceExecutionTransaction refundStatus "refund_failed"(자동 환불 소진) · 30일 내 · 실행당 1회
  *
  * @param {(message: {subject: string, text: string}) => Promise<{delivered: boolean}>} notify
  *   발송기(fulfillment-alert.js createOperatorAlertSender). 채널을 아는 쪽이 넘긴다.
@@ -254,10 +255,19 @@ export async function alertPaymentAnomalies(db, { notify, now = new Date(), limi
     },
     { limit, sort: { updatedAt: 1 } },
   );
-  const summary = { unfulfilled: unfulfilled.length, verifyFailures: verifyFailures.length, delivered: false, marked: 0 };
-  if (!unfulfilled.length && !verifyFailures.length) return summary;
+  const refundFailures = await db.find(
+    ServiceExecutionTransaction,
+    {
+      refundStatus: "refund_failed",
+      refundFailedAt: { $gte: new Date(now.getTime() - VERIFY_ALERT_LOOKBACK_MS) },
+      "metadata.refundFailureAlert": { $exists: false },
+    },
+    { limit, sort: { refundFailedAt: 1 } },
+  );
+  const summary = { unfulfilled: unfulfilled.length, verifyFailures: verifyFailures.length, refundFailures: refundFailures.length, delivered: false, marked: 0 };
+  if (!unfulfilled.length && !verifyFailures.length && !refundFailures.length) return summary;
 
-  const message = buildPaymentAlert({ unfulfilled, verifyFailures, now });
+  const message = buildPaymentAlert({ unfulfilled, verifyFailures, refundFailures, now });
   try {
     summary.delivered = (await notify({ subject: message.subject, text: message.text }))?.delivered === true;
   } catch {
@@ -283,6 +293,14 @@ export async function alertPaymentAnomalies(db, { notify, now = new Date(), limi
       status: "failed",
       "metadata.verifyAlert": { $exists: false },
     }, { $set: { "metadata.verifyAlert.lastAlertedAt": now } });
+    summary.marked += Number(result?.modifiedCount || 0);
+  }
+  for (const execution of message.included.refundFailures) {
+    const result = await db.updateOne(ServiceExecutionTransaction, {
+      _id: execution._id,
+      refundStatus: "refund_failed",
+      "metadata.refundFailureAlert": { $exists: false },
+    }, { $set: { "metadata.refundFailureAlert.lastAlertedAt": now } });
     summary.marked += Number(result?.modifiedCount || 0);
   }
   return summary;
