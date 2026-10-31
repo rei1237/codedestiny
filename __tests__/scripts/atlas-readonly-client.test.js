@@ -111,8 +111,9 @@ describe("허용 목록 세그먼트 매칭", () => {
     expect(urls[0].url).toBe("https://cloud.mongodb.com/api/atlas/v2/groups/g1/clusters");
   });
 
-  test("허용 목록은 brief의 14개 패턴과 같다", () => {
-    expect(ALLOWED_GET_PREFIXES).toHaveLength(14);
+  test("허용 목록은 brief의 14개 패턴에 사건 피드(events) 1개를 더한 것이다", () => {
+    expect(ALLOWED_GET_PREFIXES).toHaveLength(15);
+    expect(ALLOWED_GET_PREFIXES).toContain("/groups/{g}/events");
     expect(ALLOWED_GET_PREFIXES).toContain("/groups/{g}/clusters/{c}/backup/schedule");
   });
 });

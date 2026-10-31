@@ -22,6 +22,7 @@ export const ALLOWED_GET_PREFIXES = Object.freeze([
   "/groups/{g}/clusters/{c}/backup/snapshots",
   "/groups/{g}/alertConfigs",
   "/groups/{g}/auditLog",
+  "/groups/{g}/events",
   "/orgs/{o}/invoices",
   "/orgs/{o}/invoices/{id}",
 ]);
