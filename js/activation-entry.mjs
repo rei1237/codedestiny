@@ -67,6 +67,7 @@ export async function showLegacyCompletionBenefits() {
   try {
     const data = await request('first-paid/claim', {});
     if(turn !== revision)return;
+    account = data; showAccountNote();
     const key = `cd:legacy-benefits:${data.accountId}`;
     try { if (sessionStorage.getItem(key)) return; } catch { return; }
     if (document.querySelector('dialog[open], [aria-modal="true"]')) return;

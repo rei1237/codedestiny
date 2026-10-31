@@ -11,9 +11,12 @@ branch: wt/activation-rewards-20261031-145450
 
 ## 전달 차단
 
-확인한 main: 06a18ac7133026ac6cbba08ea64c2e309492e3b7. 기존 PR CI 실패: https://github.com/rei1237/codedestiny/actions/runs/41177515266
+이전 실패 main: 06a18ac7133026ac6cbba08ea64c2e309492e3b7. 기존 PR CI 실패: https://github.com/rei1237/codedestiny/actions/runs/41177515266
 - Build Pages and Worker: fortune-service-selection-guide 제목 표시 폭 82 > 60.
 - Static guards: verify-editorial-manuscripts, 검수 원고 수 27 != 32.
+현재 main 수정 63e86a034b8b9e749d9a91e529e8349d61cc542e를 로컬 통합했다. 마지막 확인 시 해당 main CI 41179244541은 in_progress였다: https://github.com/rei1237/codedestiny/actions/runs/41179244541 . 완료 성공을 확인하기 전에는 새 기능을 push하지 않는다.
+통합 후 targeted Jest 91/91, client race 2/2, TypeScript, worker dry-run, payment-freeze, JS module graph를 다시 확인했다. 월정석 지급 후 안내 잔액도 새로 조회한다.
+
 사용자 AGENTS.md의 기존 main이 red이면 그 위에 새 변경을 push하지 않는 규칙 때문에 이 기능은 push하지 않았다. 무관한 SEO 원고와 다른 세션의 main 미커밋 수정은 건드리지 않았다.
 
 main 체크아웃(C:/Users/user/Documents/Codex/worktrees/yeongnyangi-blue-passes-20261024-050530)에는 다른 세션의 미커밋 변경이 있다. 원본 D:/Development/code-destiny도 다른 세션이 사용 중인 feature checkout이다. reset/stash/checkout으로 정리하지 않는다.
@@ -25,7 +28,7 @@ main 체크아웃(C:/Users/user/Documents/Codex/worktrees/yeongnyangi-blue-passe
 - node ./node_modules/typescript/bin/tsc --noEmit --pretty false 통과.
 - scoped ESLint 오류 0. /ggulggul/은 legacy 문서 전체 이동이 필요해 원래 a 링크를 유지하며 경고가 있다.
 - verify-payment-freeze 통과(region 4 / file 3 / cap 2), verify-worker-no-undef 통과.
-- sync:public 및 i18n 정본 병합 실행, public parity 통과.
+- sync:public 및 i18n 정본 병합 실행, public parity 통과. 통합 후 sitemap:generate 실행(1037 URLs, 사주 안내/학교 혜택 경로는 noindex로 제외). Worker dry-run 빌드 통과(gzip 5767.58 KiB). 첫 check:pre-push는 lastmod 원장 drift로 중단돼 정본 생성기로 보정했다.
 - 실제 신규 경로 /onboarding/, /snu/ 10상태를 가상 API로 확인: 360/390/430/1280px, 그림 로딩·가로 넘침 없음, 수령·기존 수령자·학교 확인 요청·프로필 해금·비회원 확인. 당시 브라우저 오류 0.
 - 상담 후 실제 ResultBenefits 컴포넌트: 360/1280px 팝업 표시, Esc 닫기, 포커스 복귀, 다시 열기·버튼 닫기 통과.
 - 기존 first-visit-guide 실제 모듈·CSS: 360/1280px 새 그림, 월정석 장면·링크·Esc 통과.

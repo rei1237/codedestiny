@@ -13,11 +13,12 @@ export default function ActivationEntry() {
   useEffect(() => {
     setData(null); setCampus(null); setClosed(false);
     if (!userKey || userKey === 'guest') return;
-    let current = true;
-    void Promise.all([activationApi<ActivationState>('status'), activationApi<CampusState>('snu/status')]).then(([reward, school]) => {
-      if (current) { setData(reward); setCampus(school); }
-    }).catch(() => {});
-    return () => { current = false; };
+    let current = true, version = 0;
+    const refresh = () => { const turn = ++version; void Promise.all([activationApi<ActivationState>('status'), activationApi<CampusState>('snu/status')]).then(([reward, school]) => {
+      if (current && turn === version) { setData(reward); setCampus(school); }
+    }).catch(() => {}); };
+    refresh(); window.addEventListener('cd:activation-reward-updated', refresh);
+    return () => { current = false; window.removeEventListener('cd:activation-reward-updated', refresh); };
   }, [userKey]);
   if (!data || closed || /^\/(checkout|login|signup|onboarding|snu|admin|gift)(\/|$)/.test(path || '')) return null;
   const schoolGift = campus?.eligibleEmail && campus.unlockedFeatureKeys.length !== campus.features.length;

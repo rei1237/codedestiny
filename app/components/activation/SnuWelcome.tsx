@@ -66,7 +66,7 @@ export default function SnuWelcome() {
             {profiles.error && <p role="alert">{profiles.error}</p>}
             <button className={styles.primary} disabled={busy || profiles.loading || !profiles.profileId} onClick={() => void unlock()}>{busy ? '선물을 열고 있어요' : '이 프로필로 사주 선물 열기'}</button></>}
       </section> : !message && <p role="status">연이가 학교 선물을 확인하고 있어요.</p>}
-    {message && <p role="status" className={styles.message}>{message}</p>}
+    {message && <div role="status" className={styles.message}><p>{message}</p>{!data && !guest && <button onClick={() => void load()}>학교 선물 다시 확인하기</button>}</div>}
     <section className={styles.included}><h2>학교 선물로 열리는 콘텐츠</h2><ul>{(data?.features || SNU_SAJU_FEATURES).map(item => <li key={item.featureKey}><Check size={16} aria-hidden="true"/>{item.title}</li>)}</ul><p>이 목록의 사주 풀이와 재미 콘텐츠를 열어드려요. AI가 답변을 만드는 유료 상담과 목록에 없는 기능은 별도예요.</p></section>
     <aside className={styles.smallGuide}><h2>내 이야기를 더 듣고 싶을 땐</h2><p>사주 풀이를 읽은 뒤에도 남는 질문은 유료 상담에서 이어갈 수 있어요. 추가 상담은 직접 선택할 때만 진행돼요.</p><Link href="/yeongnyangi/fortune/">영냥이 상담 둘러보기 <ArrowRight size={16}/></Link><Link href="/onboarding/">월정석과 첫 이용 혜택 알아보기 <ArrowRight size={16}/></Link></aside>
     <Image className={styles.campaignArt} src="/assets/marketing/snulife/yeoni-saju-gift-v1.webp" width={1500} height={1200} alt="SNULIFE와 꿀꿀 운세가 준비한 연이의 라이트 사주·대운 풀이 선물"/>

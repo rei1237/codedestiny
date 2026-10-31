@@ -23,5 +23,6 @@ export async function activationApi<T>(path: string, body?: object, signal?: Abo
   });
   const data = await response.json();
   if (!response.ok || data.ok !== true) throw new ActivationApiError(response.status, data.message || '선물을 확인하지 못했어요. 잠시 후 다시 확인해 주세요.');
+  if (data.granted === true && data.replayed !== true) window.dispatchEvent(new Event('cd:activation-reward-updated'));
   return data as T;
 }
