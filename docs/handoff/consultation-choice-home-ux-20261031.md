@@ -39,6 +39,7 @@ updated: 2026-10-31
 - npm run verify:hero-contrast: PASS.
 - npm run verify:mobile-detail-nonintrusive: PASS.
 - node scripts/design/build-home-funnel.mjs --check: current.
+- 시각 검토: 데스크톱·360px 최종 캡처 2차 통과. 차단 결함 없음.
 - impeccable detect: [] (접근성·시각 품질의 보증으로 간주하지 않음).
 - npm run check:fast -- --plan: critical 자동 승격. check:fast 실행 중이며 전체 통과로 보고하지 않는다. 첫 중단 세션 후 최종 로그는 build-cache/consultation-choice-ui/check-fast-final.log.
 
@@ -46,5 +47,6 @@ updated: 2026-10-31
 
 - 캡처·수치: 통합 폴더의 build-cache/consultation-choice-ui/.
 - 운영 반영: 이번 UI만 커밋 → check:pre-push → fast-forward main push → 공식 main CI 확인 → 승인된 production workflow 실행.
+- 최초 check:pre-push에서 사이트맵 lastmod 원장 드리프트가 검출되어 정식 sitemap:generate로 URL 집합을 보존하며 동기화했다.
 - CI/운영 배포 결과는 실행 시점의 실제 런으로 기록한다. 미실행·진행 중 상태를 완료로 표현하지 않는다.
 - 사용자 지시에 따라 기존 브랜치·워크트리는 정리하지 않는다.

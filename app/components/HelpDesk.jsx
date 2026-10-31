@@ -12,7 +12,7 @@ export default function HelpDesk() {
     <section className={styles.desk} aria-label="꿀꿀 운세 이용 길잡이">
       <div className={styles.intro}>
         <img className={styles.mascot} src="/images/home/illustrated/yeoni-character-320.webp" srcSet="/images/home/illustrated/yeoni-character-320.webp 320w, /images/home/illustrated/yeoni-character-480.webp 480w" sizes="(max-width: 720px) 88px, 128px" width="320" height="320" alt="책과 찻잔 곁에서 안내하는 꽃돼지 연이" loading="lazy" decoding="async" />
-        <div><h2>궁금한 순간에도,<br />길을 잃지 않도록</h2><p>시작 방법부터 저장한 결과까지,<br />연이와 함께 필요한 안내를 찾아봐요.</p><Link href="/about/">꿀꿀 운세 서비스 소개 <span aria-hidden="true">→</span></Link></div>
+        <div><h2>궁금한 순간에도,<br />길을 잃지 않도록</h2><p>시작 방법부터 저장한 결과까지,<br /> 연이와 함께 필요한 안내를 찾아봐요.</p><Link href="/about/">꿀꿀 운세 서비스 소개 <span aria-hidden="true">→</span></Link></div>
       </div>
       <nav className={styles.links} aria-label="이용 안내와 도움">{LINKS.map(([href, title, description, icon]) => <Link key={href} href={href}><svg className={styles.icon} viewBox="0 0 24 24" aria-hidden="true"><path d={icon} /></svg><span><strong>{title}</strong><small>{description}</small></span><svg className={styles.arrow} viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" /></svg></Link>)}</nav>
     </section>
