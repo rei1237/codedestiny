@@ -34,7 +34,9 @@ export function evaluateSearchObservations(observations) {
       return { ...row, group: query.group, assessment: null };
     }
     if (!['ui', 'official_api'].includes(row.method) || row.mock === true) throw new Error('Only actual UI or official API evidence is allowed');
-    if (!/^\d{4}-\d\d-\d\dT/.test(row.observedAt || '') || !Number.isFinite(Date.parse(row.observedAt))) throw new Error('Missing actual observation time');
+    const hasTime = /^\d{4}-\d\d-\d\dT/.test(row.observedAt || '') && Number.isFinite(Date.parse(row.observedAt));
+    const hasDate = /^\d{4}-\d\d-\d\d$/.test(row.observedOn || '') && Number.isFinite(Date.parse(row.observedOn));
+    if (!hasTime && !hasDate) throw new Error('Missing actual observation time or date');
     if (!String(row.evidence?.text || '').trim() || !/^https:\/\//.test(row.evidence?.url || '')) throw new Error('Missing answer/result evidence');
     const assessment = Object.fromEntries(CRITERIA.map(key => {
       const value = row.assessment?.[key] ?? null;

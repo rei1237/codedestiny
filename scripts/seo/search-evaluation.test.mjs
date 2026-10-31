@@ -25,3 +25,8 @@ test('evidence, identity and unique sample keys are required', () => {
   assert.throws(() => evaluateSearchObservations([actual,actual]), /Duplicate/);
   assert.throws(() => evaluateSearchObservations([{ ...actual, queryId:'unknown' }]), /Unknown/);
 });
+test('day precision is retained without inventing an exact observation time', () => {
+  const dated = { ...actual, observedAt: undefined, observedOn: '2026-10-31' };
+  assert.equal(evaluateSearchObservations([dated]).rows[0].observedOn, '2026-10-31');
+  assert.throws(() => evaluateSearchObservations([{ ...dated, observedOn: '' }]), /observation/);
+});
