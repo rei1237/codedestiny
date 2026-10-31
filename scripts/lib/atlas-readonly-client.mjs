@@ -145,6 +145,15 @@ export function createAtlasReadonlyClient({ publicKey, privateKey, fetchImpl, cn
 const IPV4 = /^(\d{1,3})\.(\d{1,3})\.\d{1,3}\.\d{1,3}(\/\d{1,2})?$/;
 const SECRET_KEY = /key$|^key|token|secret|password|connectionstring|mongouri|srvaddress|authorization|credential/i;
 
+// 호스트명은 마지막 라벨만, 프로젝트(groupId)·조직(orgId) ID 는 끝 4자만 남긴다.
+const HOST_PORT = /^[A-Za-z0-9-]+(?:.[A-Za-z0-9-]+)+(:d{1,5})?$/;
+function maskHost(value) {
+  const match = HOST_PORT.exec(value);
+  if (!match) return null;
+  const host = match[1] ? value.slice(0, -match[1].length) : value;
+  return `***.${host.split(".").at(-1)}${match[1] || ""}`;
+}
+
 function maskAddress(value, keyName) {
   const v4 = IPV4.exec(value);
   if (v4) return value === "0.0.0.0/0" ? value : `${v4[1]}.${v4[2]}.x.x${v4[3] || ""}`;
@@ -169,6 +178,9 @@ export function redactAtlasSnapshot(snapshot) {
     }
     if (typeof value !== "string") return value;
     if (keyName === "username") return `${value.slice(0, 2)}***`;
+    if (keyName === "groupId" || keyName === "orgId") return `***${value.slice(-4)}`;
+    // Atlas 프로세스 id 는 "호스트:포트" 라 호스트명이 그대로 실린다.
+    if (keyName === "hostname" || keyName === "id") return (!IPV4.test(value) && maskHost(value)) || maskAddress(value, keyName);
     return maskAddress(value, keyName);
   };
   return walk(snapshot, "");

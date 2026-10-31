@@ -30,6 +30,23 @@ test("redact: IP는 /16로 줄이고 0.0.0.0/0은 유지, 사용자명 마스킹
   expect(out.dbUsers[0].username).toBe("ap***");
 });
 
+test("redact: 호스트명은 마지막 라벨만, groupId·orgId 는 끝 4자만 남긴다(가짜 값)", () => {
+  const out = redactAtlasSnapshot({
+    orgId: "aaaabbbbccccdddd1111", groupId: "eeeeffffgggghhhh2222",
+    processes: [{ hostname: "fake-shard-00-00.zz9.example.test", id: "fake-shard-00-00.zz9.example.test:27017", typeName: "REPLICA_PRIMARY", port: 27017 }],
+    nodes: [{ process: { id: "fake-shard-00-01.zz9.example.test:27017", typeName: "REPLICA_SECONDARY" } }],
+  });
+  expect(out.orgId).toBe("***1111");
+  expect(out.groupId).toBe("***2222");
+  expect(out.processes[0].hostname).toBe("***.test");
+  expect(out.processes[0].id).toBe("***.test:27017");
+  expect(out.nodes[0].process.id).toBe("***.test:27017");
+  // 기존 동작은 그대로다: 역할·포트 같은 비식별 값은 건드리지 않는다.
+  expect(out.processes[0]).toMatchObject({ typeName: "REPLICA_PRIMARY", port: 27017 });
+  const dump = JSON.stringify(out);
+  for (const leaked of ["fake-shard", "zz9", "aaaabbbbcccc", "eeeeffffgggg"]) expect(dump).not.toContain(leaked);
+});
+
 describe("허용 목록 세그먼트 매칭", () => {
   const okFetch = () => {
     const urls = [];
