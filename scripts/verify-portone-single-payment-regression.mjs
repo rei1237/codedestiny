@@ -2,8 +2,22 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
-import { createRequire } from "node:module";
+import { createRequire, registerHooks } from "node:module";
 import { sliceFunction, stripComments } from "./lib/js-source-slice.mjs";
+
+// This verifier uses fake model methods throughout. Keep the connection wrapper fake too;
+// payment handlers and all assertions below still execute their actual source.
+const dbModuleUrl = new URL('../worker/lib/db.js', import.meta.url).href;
+const fakeDbHook = registerHooks({ load(url, context, nextLoad) {
+  const loaded = nextLoad(url, context);
+  if (url !== dbModuleUrl) return loaded;
+  const source = String(loaded.source);
+  const start = source.indexOf('export async function withMongoRetry(');
+  const bodyStart = source.indexOf(') {', start) + 2;
+  assert.ok(start >= 0 && bodyStart > start, 'DB wrapper signature must be found');
+  const body = sliceFunction(source.slice(bodyStart), '{', 'fake DB wrapper');
+  return { ...loaded, source: source.slice(0, start) + 'export async function withMongoRetry(_env, operation) { return operation(); }' + source.slice(bodyStart + body.length) };
+} });
 
 const { getBillingFeaturePricing } = await import("../worker/lib/billing-feature-registry.js");
 const { pricing: summaryPrice } = getBillingFeaturePricing({ featureKey: "section_summary" });
@@ -40,6 +54,7 @@ const localPortOneEnv = buildLocalPortOneEnv();
 const paymentsMod = await import("../worker/routes/payments.js");
 const portoneMod = await import("../worker/lib/portone.js");
 const modelsMod = await import("../worker/lib/models.js");
+fakeDbHook.deregister();
 
 const {
   handleSinglePaymentStart,

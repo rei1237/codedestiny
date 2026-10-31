@@ -1,5 +1,5 @@
 ---
-status: done
+status: active
 updated: 2026-10-31
 workspace: D:/Development/code-destiny/.codex-worktrees/activation-rewards-20261031-145450
 branch: wt/activation-rewards-20261031-145450
@@ -55,3 +55,10 @@ D:/Development/code-destiny/outputs/snulife-partnership-20261031/
 
 기능 커밋: 8602c9c26. check:pre-push 전체 통과(63개 서비스·미러 일치·1037 URLs·llms·entity registry). 로컬 main의 타 세션 미커밋 변경과 충돌해 fast-forward는 안전하게 중단됐다. 미커밋 파일을 보존하고 최신 원격 main을 포함한 이 작업 HEAD를 origin/main으로 직접 push한다. 공식 CI는 push 후 최종 보고 직전에 1회 확인하며 진행 중이면 성공으로 표기하지 않는다.
 운영 활성화·최종 혜택 제공·게시·메일 발송은 별도 승인 대기. 이 문서의 done은 개발·자료 준비 전달 상태이며 운영 집행 완료를 뜻하지 않는다.
+
+## 운영 전달 후속 작업 (2026-10-31 승인)
+
+검수 코드 3계정·14일을 정식 1,000계정·게시일부터 3개월과 분리했다. 기존 등록자는 다른 캠페인 수량을 추가 소비하지 않는다. 현재 운영은 1592b601, /snu/ 404, SNULIFE 설정 없음으로 확인했다.
+CI 실패 3종을 복구했다: onboarding description, auth.guestMoonstoneTeaser 12언어 정본, 단건 해금 DB 작업의 withMongoRetry 경계(재시도 0). 새 DB 경계 때문에 실 DB 연결을 시도하던 두 검증기의 DB 대역을 보완했고 결제 로직·검사 조건은 유지했다.
+검증: 제휴 관련 테스트 27개(초기 25개 후 캠퍼스 2개 추가), 쉘 문구 4개, 웹훅 원장 22개, 단건 결제 회귀 검증, 크론 Mongo 커버리지, 중첩 재시도, payment-freeze, TypeScript, scoped ESLint, env-parity 통과. check:fast 첫 실행 paid-gate 88/90, 실패한 2개는 보완 후 개별 통과. npm test 결과는 439/440 suites, 7202/7207 tests였고 실패한 웹훅 파일 22개는 최신 대역으로 개별 통과했다. 전체 검사를 다시 반복하지 않고 공식 CI로 판정한다.
+남은 순서: commit/pre-push/main push → 공식 CI 성공 → 공식 production 워크플로 → 양쪽 SHA 일치 → 검수 설정·전용 테스트 계정의 실제 해금/재로그인/보존 확인 → 자료 갱신 → 기존 스레드 ad@snulife.com에 1회 답신. 실제 결제·과금 LLM은 하지 않는다. 운영 검증 실패 시 발송하지 않는다.

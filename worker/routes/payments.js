@@ -1168,7 +1168,7 @@ async function handleSinglePaymentCancel(request, env, auth) {
   });
 }
 
-async function upsertSinglePaymentUnlockRecord({ payment, paidAt }) {
+async function upsertSinglePaymentUnlockRecord({ env, payment, paidAt }) {
   const profileId = cleanProfileId(payment?.pricingSnapshot?.profileId || payment?.pricingSnapshot?.selectedProfileId);
   const serviceId = String(payment?.pricingSnapshot?.serviceId || payment?.productId || CONTENT_ENTITLEMENT_SERVICE_KEYS.SAJU).trim().slice(0, 80);
   const contentId = String(payment?.pricingSnapshot?.contentId || payment?.featureKey || "").trim().slice(0, 160);
@@ -1205,7 +1205,7 @@ async function upsertSinglePaymentUnlockRecord({ payment, paidAt }) {
   }
 
   if (isUnlockPaidFeatureKey(payment?.featureKey)) {
-    const entitlement = await grantPermanentUnlock({
+    const entitlement = await withMongoRetry(env, () => grantPermanentUnlock({
       userId: String(payment.userId),
       profileId: entitlementProfileId,
       serviceKey,
@@ -1222,7 +1222,7 @@ async function upsertSinglePaymentUnlockRecord({ payment, paidAt }) {
         partnerProfileId: cleanProfileId(payment?.pricingSnapshot?.partnerProfileId),
         ...(birthIdentityFromSnapshot(payment?.pricingSnapshot) ? { birthIdentity: birthIdentityFromSnapshot(payment?.pricingSnapshot) } : {}),
       } : {}),
-    });
+    }), { retries: 0 });
     return {
       ...entitlement,
       serviceId,
@@ -1415,7 +1415,7 @@ async function handleSinglePaymentComplete(request, env, auth, options = {}) {
       // "환불하지 않고 보류"가 성립하지 않는다. 정당한 환불 경로는 revokeSinglePaymentContentAccess 가
       // 이 권한까지 회수하므로 순서를 바꿔도 과지급이 남지 않는다.
       await recordUserPaidFeature(order.userId, order.featureKey);
-      entitlement = await upsertSinglePaymentUnlockRecord({ payment: order, paidAt });
+      entitlement = await upsertSinglePaymentUnlockRecord({ env, payment: order, paidAt });
     } catch (error) {
       const reasonMessage = String(error?.message || "Unlock upsert failed.");
       const refund = await refundOrDefer(order, "unlock_upsert_failed", reasonMessage, "single_unlock_upsert", {
@@ -1698,7 +1698,7 @@ async function handleSinglePaymentComplete(request, env, auth, options = {}) {
     try {
       // 권한 지급 먼저(위 멱등 경로와 같은 이유).
       await recordUserPaidFeature(finalPayment.userId, finalPayment.featureKey);
-      entitlement = await upsertSinglePaymentUnlockRecord({ payment: finalPayment, paidAt });
+      entitlement = await upsertSinglePaymentUnlockRecord({ env, payment: finalPayment, paidAt });
     } catch (error) {
       const reasonMessage = String(error?.message || "Unlock upsert failed.");
       const refund = await refundOrDefer(finalPayment, "unlock_upsert_failed", reasonMessage, "single_unlock_upsert", {

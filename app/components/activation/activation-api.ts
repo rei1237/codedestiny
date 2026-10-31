@@ -11,6 +11,7 @@ export type ActivationState = {
   granted?: boolean; replayed?: boolean;
 };
 export type CampusState = { eligibleEmail: boolean; verified: boolean; email?: string; profileId?: string; complete?: boolean;
+  campaign?: { mode: 'review' | 'public'; endsAt: string; limit: number } | null;
   unlockedFeatureKeys: string[]; features: { featureKey: string; title: string }[] };
 
 export class ActivationApiError extends Error {

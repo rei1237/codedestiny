@@ -46,6 +46,9 @@ async function buildWebhookRequest(body, eventId = "evt_test_001") {
 }
 
 beforeAll(async () => {
+  // Model operations below are fakes; keep the new DB boundary local too.
+  const db = await import('../../worker/lib/db.js');
+  jest.unstable_mockModule('../../worker/lib/db.js', () => ({ ...db, withMongoRetry: jest.fn(async (_env, operation) => operation()) }));
   const paymentsMod = await import("../../worker/routes/payments.js");
   const modelsMod = await import("../../worker/lib/models.js");
 

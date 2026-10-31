@@ -98,18 +98,18 @@
     "ms": "Daftar dengan Kakao atau e-mel"
   },
   "auth.guestMoonstoneTeaser": {
-    "ko": "무료 사주 첫걸음 완료 후 월정석 500개",
-    "en": "Complete the free saju tutorial for 500 moonstones",
-    "ja": "無料四柱推命ガイド完了後に月光石500個",
-    "zh-CN": "完成免费四柱教程后领取500个月光石",
-    "zh-TW": "完成免費四柱教學後領取500個月光石",
-    "vi": "Hoàn thành hướng dẫn saju miễn phí để nhận 500 đá mặt trăng",
-    "hi": "मुफ्त साजू ट्यूटोरियल पूरा करने पर 500 मूनस्टोन",
-    "es": "Completa el tutorial gratuito de saju y recibe 500 piedras lunares",
-    "fr": "Terminez le guide saju gratuit pour recevoir 500 pierres de lune",
-    "de": "Schließe die kostenlose Saju-Anleitung ab und erhalte 500 Mondsteine",
-    "nl": "Voltooi de gratis saju-uitleg voor 500 maanstenen",
-    "ms": "Lengkapkan panduan saju percuma untuk 500 batu bulan"
+    "ko": "무료 사주 첫걸음 완료 후 월정석 500개 · 10,000원 이상 대상 서비스 할인",
+    "en": "Complete the free saju tutorial for 500 moonstones · discounts on eligible services from KRW 10,000",
+    "ja": "無料四柱推命ガイド完了後に月光石500個 · 10,000ウォン以上の対象サービス割引",
+    "zh-CN": "完成免费四柱教程后领取500个月光石 · 可抵扣10,000韩元以上指定服务",
+    "zh-TW": "完成免費四柱教學後領取500個月光石 · 可折抵10,000韓元以上指定服務",
+    "vi": "Hoàn thành hướng dẫn saju miễn phí để nhận 500 đá mặt trăng · giảm giá dịch vụ đủ điều kiện từ 10.000 KRW",
+    "hi": "मुफ्त साजू ट्यूटोरियल पूरा करने पर 500 मूनस्टोन · 10,000 KRW से अधिक की पात्र सेवाओं पर छूट",
+    "es": "Completa el tutorial gratuito de saju y recibe 500 piedras lunares · descuentos en servicios elegibles desde 10.000 KRW",
+    "fr": "Terminez le guide saju gratuit pour recevoir 500 pierres de lune · réduction sur les services éligibles dès 10 000 KRW",
+    "de": "Schließe die kostenlose Saju-Anleitung ab und erhalte 500 Mondsteine · Rabatt auf berechtigte Angebote ab 10.000 KRW",
+    "nl": "Voltooi de gratis saju-uitleg voor 500 maanstenen · korting op geschikte diensten vanaf 10.000 KRW",
+    "ms": "Lengkapkan panduan saju percuma untuk 500 batu bulan · diskaun perkhidmatan layak dari KRW 10,000"
   },
   "auth.exitBenefit.title": {
     "ko": "무료 사주 첫걸음 완료 후 월정석 {amount}개",

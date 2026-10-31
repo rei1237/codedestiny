@@ -12,6 +12,7 @@ const schema = new mongoose.Schema({
   email: { type: String }, userId: { type: String, required: true },
   verifiedAt: Date, tokenHash: String, challengeExpiresAt: Date, requestedAt: Date,
   sendDay: String, sendCount: Number, attempts: Number, revision: { type: Number, default: 0 },
+  campaignId: String, campaignMode: String, campaignEndsAt: Date, campaignLimit: Number,
   profileId: String, birthKey: String, grantVersion: String, grantedFeatureKeys: [String],
 }, { timestamps: true, collection: 'snu_campus_members' });
 export const SnuCampusMember = scopedModel(mongoose.models.SnuCampusMember || mongoose.model('SnuCampusMember', schema));
@@ -35,14 +36,16 @@ export async function readSnuCampus(userId) {
   const verified = Boolean(member?.userId === String(userId) && member?.verifiedAt && (codeMember || email && member.email === email));
   return { eligibleEmail: Boolean(email), verified, email: email || null,
     profileId: verified ? member.profileId || null : null,
+    campaign: verified && member.campaignId ? { mode: member.campaignMode, endsAt: member.campaignEndsAt, limit: member.campaignLimit } : null,
     unlockedFeatureKeys: verified ? member.grantedFeatureKeys || [] : [], features: SNU_SAJU_FEATURES };
 }
 
 export async function claimSnulifeCode(userId, code, env) {
-  await account(userId);
+  const existing = await readSnuCampus(userId);
+  if (existing.verified) return existing;
   const { reserveSnulifeCode } = await import('./snulife-code.js');
-  await reserveSnulifeCode(userId, code, env);
-  await SnuCampusMember.updateOne({ _id: await codeMemberId(userId) }, { $setOnInsert: { userId: String(userId), verifiedAt: new Date(), revision: 0 } }, { upsert: true });
+  const receipt = await reserveSnulifeCode(userId, code, env);
+  await SnuCampusMember.updateOne({ _id: await codeMemberId(userId) }, { $setOnInsert: { userId: String(userId), verifiedAt: new Date(), revision: 0, campaignId: receipt.campaignId, campaignMode: receipt.mode, campaignEndsAt: receipt.endsAt, campaignLimit: receipt.limit } }, { upsert: true });
   return readSnuCampus(userId);
 }
 
