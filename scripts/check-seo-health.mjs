@@ -11,7 +11,7 @@ const targets = ['/ggulggul/', '/about/', '/faq/', '/methodology/', '/yeongnyang
 // A Yeti user-agent probe does not prove access from verified Naver crawler IPs.
 const userAgent = 'Mozilla/5.0 (compatible; Yeti/1.1; +https://naver.me/spd)';
 const robotsAgents = ['googlebot', 'bingbot', 'yeti', 'oai-searchbot', 'perplexitybot'];
-const privatePaths = ['/api/billing/', '/admin/', '/account/', '/checkout/', '/results/', '/records/', '/yeongnyangi/library/'];
+const privatePaths = ['/api/billing/', '/admin/', '/account/', '/checkout/', '/points/', '/results/', '/records/', '/yeongnyangi/library/', '/yeongnyangi/room/'];
 const issues = [];
 const rows = [];
 async function get(path, probeUserAgent = userAgent) {
