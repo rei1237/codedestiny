@@ -665,8 +665,14 @@ await check("10분 크론·관리자 수동 실행·두 wrangler [vars]", async 
   const index = fs.readFileSync(path.join(ROOT, "worker/index.js"), "utf8");
   const branch = index.slice(index.indexOf("if (cron === PAYMENT_RECONCILE_CRON)"));
   const branchEnd = branch.indexOf("return;");
-  assert.ok(branch.slice(0, branchEnd).includes('await import("./lib/threads-daily-jobs.js")'), "10분 크론 분기에 threads-daily-jobs 가 없다");
-  assert.ok(branch.slice(0, branchEnd).includes("runThreadsDailyJobs(env).catch("), "runThreadsDailyJobs 가 catch 로 격리되지 않았다");
+  const tenMinute = branch.slice(0, branchEnd);
+  // 로드·실행 모두 trackTask 안에서 시작해야 한다: import 실패는 loadFailed 로 기록되고, 실행 실패는 .catch 로 격리된다.
+  assert.match(
+    tenMinute,
+    /trackTask\("threads-daily-jobs", import\("\.\/lib\/threads-daily-jobs\.js"\)\s*\.then\(\(\{ runThreadsDailyJobs \}\) => runThreadsDailyJobs\(env\), loadFailed\("threads-daily-jobs"\)\)\s*\.catch\(/,
+    "10분 크론 분기에 threads-daily-jobs 가 trackTask(import→run→loadFailed→catch)로 배선돼 있지 않다",
+  );
+  assert.ok(!tenMinute.replace("await import(\"./lib/cron-tick-failure-alert.js\")", "").includes("await import("), "10분 크론 분기에 trackTask 밖 정적 await import 가 남았다 — 그 import 가 던지면 뒤의 태스크가 시작도 못 한다");
   const admin = fs.readFileSync(path.join(ROOT, "worker/routes/admin-sns.js"), "utf8");
   assert.match(admin, /runThreadsDailyJobs\(env, \{ only: type, force: true \}\)/);
   // 워커 텍스트 바인딩 예산(128, 여유 2)이 꽉 차 있어 분할 발행은 새 [vars] 를 쓰지 않는다 — 기존 스위치 값 "split" +

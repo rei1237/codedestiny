@@ -1987,65 +1987,86 @@ const app = {
       // 같게 둔다: 알림이 "Workers Logs에서 [<태그>] 검색"을 안내하고, 로그 줄이 지워지지 않는 사본이다.
       const failures = [];
       const tickTasks = [];
+      const pendingTasks = new Set();
       const tickFailed = (name, reason) => { failures.push({ name, message: String(reason) }); };
-      const trackTask = (promise) => { ctx.waitUntil(promise); tickTasks.push(promise); };
-      const { runTossOrderReconciliation } = await import('./toss/order-reconciliation.js');
-      trackTask(runTossOrderReconciliation(env).catch((error) => {
-        console.error('[toss-order-reconciliation] task failed');
-        tickFailed("toss-order-reconciliation", error?.code || error?.name || "failed");
-      }));
-      const { runTossUnlinkRecovery } = await import('./toss/unlink-recovery.js');
-      trackTask(runTossUnlinkRecovery(env).catch((error) => {
-        console.error('[toss-unlink-recovery] task failed');
-        tickFailed("toss-unlink-recovery", error?.code || error?.name || "failed");
-      }));
-      const { runPaymentReconcileTask } = await import("./lib/payment-reconcile-task.js");
-      trackTask(runPaymentReconcileTask(env).catch((error) => {
-        console.error("[payment-reconcile] task failed:", error?.message || error);
-        tickFailed("payment-reconcile", error?.message || error);
-      }));
+      // 🔴 모듈 import 도 태스크의 일부다. 예전에는 정적 import 대기(await)가 trackTask 밖에 있어서, 하나라도 던지면
+      // scheduled 가 통째로 거절되고 뒤의 태스크(결제 대조·유료 복구)가 시작도 못 한 채 failures 집계·알림도 등록되지 않았다
+      // (일일 분기 loadFailed 와 같은 사고 — 2026-08-31 sns-daily-post). 이제 import 는 trackTask 안의 promise 체인에서 시작하고,
+      // 로드 실패는 `.then(run, loadFailed(name))` 로 실행 실패와 갈라 "load:" 로 기록한다(다른 태스크는 계속 돈다).
+      const loadFailed = (name) => (error) => {
+        console.error(`[${name}] module load failed`);
+        tickFailed(name, `load: ${String(error?.message || error)}`);
+      };
+      const trackTask = (name, promise) => {
+        pendingTasks.add(name);
+        const settled = Promise.resolve(promise).finally(() => { pendingTasks.delete(name); });
+        ctx.waitUntil(settled);
+        tickTasks.push(settled);
+      };
+      trackTask("toss-order-reconciliation", import('./toss/order-reconciliation.js')
+        .then(({ runTossOrderReconciliation }) => runTossOrderReconciliation(env), loadFailed("toss-order-reconciliation"))
+        .catch((error) => {
+          console.error('[toss-order-reconciliation] task failed');
+          tickFailed("toss-order-reconciliation", error?.code || error?.name || "failed");
+        }));
+      trackTask("toss-unlink-recovery", import('./toss/unlink-recovery.js')
+        .then(({ runTossUnlinkRecovery }) => runTossUnlinkRecovery(env), loadFailed("toss-unlink-recovery"))
+        .catch((error) => {
+          console.error('[toss-unlink-recovery] task failed');
+          tickFailed("toss-unlink-recovery", error?.code || error?.name || "failed");
+        }));
+      trackTask("payment-reconcile", import("./lib/payment-reconcile-task.js")
+        .then(({ runPaymentReconcileTask }) => runPaymentReconcileTask(env), loadFailed("payment-reconcile"))
+        .catch((error) => {
+          console.error("[payment-reconcile] task failed:", error?.message || error);
+          tickFailed("payment-reconcile", error?.message || error);
+        }));
       // V2 자가치유 — 컷오버로 V2 confirm 이 GRANT_PENDING(지급 마무리는 크론 몫) 계약을 쓰기
       // 시작했으므로, 그 집행자를 같은 10분 주기에 함께 돌린다. 경계: V2 는 status:"paid" 주문만,
       // 구 태스크는 레거시 상태 주문만 본다 — 같은 주문의 이중 처리가 구조적으로 없다.
       // 한쪽 실패가 다른 쪽을 죽이지 않도록 각자 waitUntil·catch 로 격리한다.
-      const { runPaymentsV2Reconcile } = await import("./payments/index.js");
-      trackTask(import("./neo-consultation/tasks.js").then(({runNeoConsultationTasks}) => runNeoConsultationTasks(env)).catch((error) => {
-        console.error("[neo-consultation] outbox unavailable");
-        tickFailed("neo-consultation", error?.code || error?.name || "failed");
-      }));
-      trackTask(runPaymentsV2Reconcile(env).catch((error) => {
-        console.error("[payments-v2-reconcile] task failed:", error?.message || error);
-        tickFailed("payments-v2-reconcile", error?.message || error);
-      }));
+      trackTask("neo-consultation", import("./neo-consultation/tasks.js")
+        .then(({ runNeoConsultationTasks }) => runNeoConsultationTasks(env), loadFailed("neo-consultation"))
+        .catch((error) => {
+          console.error("[neo-consultation] outbox unavailable");
+          tickFailed("neo-consultation", error?.code || error?.name || "failed");
+        }));
+      trackTask("payments-v2-reconcile", import("./payments/index.js")
+        .then(({ runPaymentsV2Reconcile }) => runPaymentsV2Reconcile(env), loadFailed("payments-v2-reconcile"))
+        .catch((error) => {
+          console.error("[payments-v2-reconcile] task failed:", error?.message || error);
+          tickFailed("payments-v2-reconcile", error?.message || error);
+        }));
       // 🔴 SNS 일일 발행의 **같은 날** 자기복구. 22:00Z 일일 크론이 잠금만 잡고 죽으면(2026-09-03 실사고)
       // 그 문서는 processing 으로 굳고, 이후 시도는 전부 unique 인덱스에 걸려 already_posted 로 조용히
       // 건너뛴다. 회수 조건(sns-daily-post-task.js 의 buildReclaimFilter 분기 ②)을 열어 놓아도 그날
       // 다시 두드릴 실행이 없으면 발동하지 않으므로, 이 10분 주기가 그 두드림을 맡는다.
       // 창(22:10~22:50) 밖 호출은 DB 도 네트워크도 타지 않고 즉시 반환한다 — 나머지 137회는 무비용이다.
-      const { runSnsDailyPostRecovery } = await import("./lib/sns-daily-post-task.js");
-      trackTask(runSnsDailyPostRecovery(env).catch((error) => {
-        console.error("[sns-daily-post-recovery] task failed:", error?.message || error);
-        tickFailed("sns-daily-post-recovery", error?.message || error);
-      }));
+      trackTask("sns-daily-post-recovery", import("./lib/sns-daily-post-task.js")
+        .then(({ runSnsDailyPostRecovery }) => runSnsDailyPostRecovery(env), loadFailed("sns-daily-post-recovery"))
+        .catch((error) => {
+          console.error("[sns-daily-post-recovery] task failed:", error?.message || error);
+          tickFailed("sns-daily-post-recovery", error?.message || error);
+        }));
       // Threads 유형별 일일 발행(사주 08:30·자미두수 12:00·베다 16:00 KST). SNS_THREADS_POST_ENABLED 가
       // "split" 이 아니거나 발행 창 밖이면 DB·네트워크 0회로 즉시 반환한다. 창 안의 틱이 곧 재시도다.
-      const { runThreadsDailyJobs } = await import("./lib/threads-daily-jobs.js");
-      trackTask(runThreadsDailyJobs(env).catch((error) => {
-        console.error("[threads-daily-jobs] task failed:", error?.message || error);
-        tickFailed("threads-daily-jobs", error?.message || error);
-      }));
+      trackTask("threads-daily-jobs", import("./lib/threads-daily-jobs.js")
+        .then(({ runThreadsDailyJobs }) => runThreadsDailyJobs(env), loadFailed("threads-daily-jobs"))
+        .catch((error) => {
+          console.error("[threads-daily-jobs] task failed:", error?.message || error);
+          tickFailed("threads-daily-jobs", error?.message || error);
+        }));
       // 별빛 운영본부 집계(퀘스트·운영 XP·매출 사실). 결제·발행과 무관한 ops_* 만 쓰고 Threads 는 읽기만 한다.
-      // 모듈 로드 실패·동기 throw 까지 한 promise 안에 두어 이 tick 의 다른 태스크로 번지지 않게 격리한다.
-      trackTask(import("./ops-hq/sync.js")
-        .then(({ runOpsHqSync }) => runOpsHqSync(env))
+      trackTask("ops-hq", import("./ops-hq/sync.js")
+        .then(({ runOpsHqSync }) => runOpsHqSync(env), loadFailed("ops-hq"))
         .catch((error) => {
           console.error("[ops-hq] sync failed:", error?.message || error);
           tickFailed("ops-hq", error?.message || error);
         }));
       // 광고 수신 동의자 대상 주간 광고 메일(화 10–12 KST)과 §50 고지 메일(09–20 KST). 창 밖이면 DB·네트워크 0회로
       // 즉시 반환한다. 광고는 EmailMarketingState 'control' 문서가 켜져 있을 때만 나간다(기본 꺼짐).
-      trackTask(import("./lib/email-marketing-task.js")
-        .then(({ runEmailMarketingTasks }) => runEmailMarketingTasks(env))
+      trackTask("email-marketing", import("./lib/email-marketing-task.js")
+        .then(({ runEmailMarketingTasks }) => runEmailMarketingTasks(env), loadFailed("email-marketing"))
         .catch((error) => {
           console.error("[email-marketing] task failed:", error?.message || error);
           tickFailed("email-marketing", error?.message || error);
@@ -2054,65 +2075,86 @@ const app = {
       // 결제 직후 PG 리다이렉트로 돌아온 탭이 잠들거나 닫히면 세션이 미완인 채 굳는다 — 돈은
       // 이미 나갔다. 결과 화면이 이어쓰기 주체가 된 뒤에도 "아무도 안 보는 세션"은 남으므로
       // 이 10분 주기가 그것들을 완주까지 밀어 올린다. 틱당 최대 3세션을 4분 안에서 순환한다.
-      const { runMasterLoveCodexRecovery } = await import("./lib/master-love-codex-recovery-task.js");
-      trackTask(runMasterLoveCodexRecovery(env).catch((error) => {
-        console.error("[master-love-codex-recovery] task failed:", error?.message || error);
-        tickFailed("master-love-codex-recovery", error?.message || error);
-      }));
+      trackTask("master-love-codex-recovery", import("./lib/master-love-codex-recovery-task.js")
+        .then(({ runMasterLoveCodexRecovery }) => runMasterLoveCodexRecovery(env), loadFailed("master-love-codex-recovery"))
+        .catch((error) => {
+          console.error("[master-love-codex-recovery] task failed:", error?.message || error);
+          tickFailed("master-love-codex-recovery", error?.message || error);
+        }));
       // 초융합의 다음 단계도 탭 종료 뒤 원래 구매·계산·공급자 예산으로 이어 간다.
-      const { runFusionFortuneRecovery } = await import("./lib/fusion-fortune-recovery-task.js");
-      trackTask(runFusionFortuneRecovery(env).catch((error) => {
-        console.error("[fusion-fortune-recovery] task failed:", error?.message || error);
-        tickFailed("fusion-fortune-recovery", error?.message || error);
-      }));
-      const { runZiweiDeepReportRecovery } = await import("./lib/ziwei-deep-report-recovery-task.js");
-      trackTask(runZiweiDeepReportRecovery(env).catch((error) => {
-        console.error("[ziwei-deep-report-recovery] task failed:", error?.message || error);
-        tickFailed("ziwei-deep-report-recovery", error?.message || error);
-      }));
-      const { runYeongnyangiRecovery } = await import("./yeongnyangi/recovery.js");
-      trackTask(runYeongnyangiRecovery(env).catch((error) => {
-        console.error("[yeongnyangi-recovery] task failed:", error?.code || 'RECOVERY_FAILED');
-        tickFailed("yeongnyangi-recovery", error?.code || 'RECOVERY_FAILED');
-      }));
+      trackTask("fusion-fortune-recovery", import("./lib/fusion-fortune-recovery-task.js")
+        .then(({ runFusionFortuneRecovery }) => runFusionFortuneRecovery(env), loadFailed("fusion-fortune-recovery"))
+        .catch((error) => {
+          console.error("[fusion-fortune-recovery] task failed:", error?.message || error);
+          tickFailed("fusion-fortune-recovery", error?.message || error);
+        }));
+      trackTask("ziwei-deep-report-recovery", import("./lib/ziwei-deep-report-recovery-task.js")
+        .then(({ runZiweiDeepReportRecovery }) => runZiweiDeepReportRecovery(env), loadFailed("ziwei-deep-report-recovery"))
+        .catch((error) => {
+          console.error("[ziwei-deep-report-recovery] task failed:", error?.message || error);
+          tickFailed("ziwei-deep-report-recovery", error?.message || error);
+        }));
+      trackTask("yeongnyangi-recovery", import("./yeongnyangi/recovery.js")
+        .then(({ runYeongnyangiRecovery }) => runYeongnyangiRecovery(env), loadFailed("yeongnyangi-recovery"))
+        .catch((error) => {
+          console.error("[yeongnyangi-recovery] task failed:", error?.code || 'RECOVERY_FAILED');
+          tickFailed("yeongnyangi-recovery", error?.code || 'RECOVERY_FAILED');
+        }));
       // 공통 유료 상담(paid-narrative)의 탭 종료 백스톱. 등록된 상품만, 원래 실행 기록의 항목당
       // 2회 예산 안에서 이어 생성한다. 환불·취소 건은 엔진의 revoked() 가 공급자 호출 전에 막는다.
-      const { runPaidNarrativeRecovery } = await import("./lib/paid-narrative-recovery-task.js");
-      trackTask(runPaidNarrativeRecovery(env).catch((error) => {
-        console.error("[paid-narrative-recovery] task failed:", error?.code || 'RECOVERY_FAILED');
-        tickFailed("paid-narrative-recovery", error?.code || 'RECOVERY_FAILED');
-      }));
-      const { runConsultationRecovery } = await import("./lib/consultation-recovery-task.js");
-      trackTask(runConsultationRecovery(env).catch((error) => {
-        console.error("[consultation-recovery] task failed:", error?.code || 'RECOVERY_FAILED');
-        tickFailed("consultation-recovery", error?.code || 'RECOVERY_FAILED');
-      }));
-      const { monitorPaidNarratives } = await import("./lib/paid-narrative-monitor.js");
-      trackTask(monitorPaidNarratives(env).catch((error) => {
-        console.error('[paid-narrative-monitor] failed');
-        tickFailed("paid-narrative-monitor", error?.code || error?.name || "failed");
-      }));
+      trackTask("paid-narrative-recovery", import("./lib/paid-narrative-recovery-task.js")
+        .then(({ runPaidNarrativeRecovery }) => runPaidNarrativeRecovery(env), loadFailed("paid-narrative-recovery"))
+        .catch((error) => {
+          console.error("[paid-narrative-recovery] task failed:", error?.code || 'RECOVERY_FAILED');
+          tickFailed("paid-narrative-recovery", error?.code || 'RECOVERY_FAILED');
+        }));
+      trackTask("consultation-recovery", import("./lib/consultation-recovery-task.js")
+        .then(({ runConsultationRecovery }) => runConsultationRecovery(env), loadFailed("consultation-recovery"))
+        .catch((error) => {
+          console.error("[consultation-recovery] task failed:", error?.code || 'RECOVERY_FAILED');
+          tickFailed("consultation-recovery", error?.code || 'RECOVERY_FAILED');
+        }));
+      trackTask("paid-narrative-monitor", import("./lib/paid-narrative-monitor.js")
+        .then(({ monitorPaidNarratives }) => monitorPaidNarratives(env), loadFailed("paid-narrative-monitor"))
+        .catch((error) => {
+          console.error('[paid-narrative-monitor] failed');
+          tickFailed("paid-narrative-monitor", error?.code || error?.name || "failed");
+        }));
       // Gemini 지출 한도 알림의 재발송 백스톱과 복구 추정 알림. 생성·환불 흐름은 건드리지 않는다.
-      const { checkProviderRecovery } = await import("./lib/provider-outage-alert.js");
-      trackTask(checkProviderRecovery(env).catch((error) => {
-        console.error('[provider-outage] recovery check failed');
-        tickFailed("provider-outage", error?.code || error?.name || "failed");
-      }));
+      trackTask("provider-outage", import("./lib/provider-outage-alert.js")
+        .then(({ checkProviderRecovery }) => checkProviderRecovery(env), loadFailed("provider-outage"))
+        .catch((error) => {
+          console.error('[provider-outage] recovery check failed');
+          tickFailed("provider-outage", error?.code || error?.name || "failed");
+        }));
       // Gemini 추정 지출이 월 예산(GEMINI_MONTHLY_BUDGET_USD)의 50·80·95%를 넘으면 1회씩 알린다.
-      const { checkLlmBudget } = await import("./lib/llm-usage-meter.js");
-      trackTask(checkLlmBudget(env).catch((error) => {
-        console.error('[llm-budget] check failed');
-        tickFailed("llm-budget", error?.code || error?.name || "failed");
-      }));
+      trackTask("llm-budget", import("./lib/llm-usage-meter.js")
+        .then(({ checkLlmBudget }) => checkLlmBudget(env), loadFailed("llm-budget"))
+        .catch((error) => {
+          console.error('[llm-budget] check failed');
+          tickFailed("llm-budget", error?.code || error?.name || "failed");
+        }));
       // 결제가 끝났는데 "검토 필요"로 멈춘 유료 결과(비카드 초융합·서사형·자미두수)를 운영자에게 알린다. 알림뿐이다.
-      trackTask(import("./lib/delivery-review-alert.js")
-        .then(({ alertDeliveryReviews }) => alertDeliveryReviews(env))
+      trackTask("delivery-review-alert", import("./lib/delivery-review-alert.js")
+        .then(({ alertDeliveryReviews }) => alertDeliveryReviews(env), loadFailed("delivery-review-alert"))
         .catch((error) => {
           console.error("[delivery-review-alert] task failed:", error?.code || error?.name || "failed");
           tickFailed("delivery-review-alert", error?.code || error?.name || "failed");
         }));
+      // 🔴 알림 대기에 상한을 둔다. 끝나지 않는 태스크 하나가 allSettled 를 붙잡으면 다른 태스크의 실패 알림도 같이 늦어지고,
+      // 호출이 wall 상한에서 끊기면 모은 실패가 통째로 사라진다. 그 시한에 아직 안 끝난 태스크는 `timeout` 실패로 보고한다.
+      // 취소하지 않는다 — 각 promise 는 위 trackTask 의 ctx.waitUntil 로 계속 보호된다. 시한 타이머는 먼저 끝나면 지운다.
+      // 8분 = 10분 주기보다 짧아 다음 틱과 겹치기 전에 알리고, 이 분기의 가장 큰 태스크 예산(복구 태스크 TASK_BUDGET_MS 4분)의 2배다.
+      // 저장소에 문서화된 크론 wall-time 상수는 없다(grep 확인).
+      const TICK_ALERT_DEADLINE_MS = 8 * 60_000;
       ctx.waitUntil((async () => {
-        await Promise.allSettled(tickTasks);
+        let timer;
+        const deadline = new Promise((resolveDeadline) => { timer = setTimeout(() => resolveDeadline("deadline"), TICK_ALERT_DEADLINE_MS); });
+        const outcome = await Promise.race([Promise.allSettled(tickTasks).then(() => "settled"), deadline]);
+        clearTimeout(timer);
+        if (outcome === "deadline") {
+          for (const name of pendingTasks) tickFailed(name, `timeout: ${TICK_ALERT_DEADLINE_MS / 60_000}분 안에 끝나지 않음(취소하지 않고 계속 실행)`);
+        }
         // (verify-payment-reconcile.mjs 가 이 분기의 첫 반환문을 일일 분기의 시작으로 읽는다 — 그 앞에서는 조기 반환을 쓰지 않는다.)
         if (failures.length > 0) {
           const { notifyTickFailures } = await import("./lib/cron-tick-failure-alert.js");

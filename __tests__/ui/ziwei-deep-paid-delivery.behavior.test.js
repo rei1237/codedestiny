@@ -130,7 +130,7 @@ test('실제 scheduled tick은 첫 네 장 저장 후 닫힌 문서를 원래 �
   const f = fixture(); await f.post(); assert.equal(f.doc.status, 'partial');
   const ctx = f.ctx, pending = [];
   Object.assign(ctx, {
-    PAYMENT_RECONCILE_CRON: '*/10 * * * *',
+    setTimeout, clearTimeout, PAYMENT_RECONCILE_CRON: '*/10 * * * *',
     ABANDONED_AFTER_MS: 300000, TASK_BUDGET_MS: 240000, BATCH_BUDGET_MS: 65000, MAX_PER_TICK: 3,
     RESUME_APPROVED_TTL_MS: 604800000, PAID: ['paid', 'success', 'fulfilled'],
     Payment: { find: () => ({ sort() { return this; }, limit() { return this; }, lean: async () => [] }) },
