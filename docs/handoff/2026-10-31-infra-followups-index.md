@@ -70,7 +70,7 @@ gh run list --branch main --limit 8 --json workflowName,conclusion,headSha --jq 
 - Gemini 키 교체: 새 키 → `wrangler secret put`(스테이징 → 운영) → 스테이징 확인 → 구 키 폐기. 로컬 `.env.local`의 키도 교체 대상이다.
 - 스테이징 `WORKER_ROUTE_METRICS_TOKEN` 설정: `npx wrangler secret put WORKER_ROUTE_METRICS_TOKEN --config worker/wrangler.staging.toml`. 운영에는 이미 있다.
 - DB 비밀번호 교체·권한 축소(승인 항목 3).
-- 고아 tail 프로세스 종료: 아래 "이 세션이 못 끝낸 것" 1.
+- ~~고아 tail 프로세스 종료~~: 2026-11-01 확인 시 6개 PID 모두 없고 `wrangler tail` node 프로세스도 없다. 조치 불요.
 - Atlas 읽기 전용 API 키 삭제: 측정이 끝나면(0순위 장애 문서의 1단계에서 Atlas 분 단위 지표를 쓰면 그 뒤에) Atlas Organization Access Manager에서 키를 지운다. 사용자 환경변수 `ATLAS_PUBLIC_KEY`·`ATLAS_PRIVATE_KEY`·`ATLAS_ORG_ID`·`ATLAS_GROUP_ID`도 지운다.
 - DR 리허설 덤프(`D:\Development\code-destiny-backups\mongodb\`, 개인정보 포함) 보관 기간 결정.
 
@@ -90,7 +90,7 @@ gh run list --branch main --limit 8 --json workflowName,conclusion,headSha --jq 
 진행표 [2026-10-31-infra-db-optimization.md](2026-10-31-infra-db-optimization.md)의 Task 2·12·13 행이 기준이다. 행이 "완료"로 바뀌었으면 아래는 끝난 것이다.
 
 1. ~~최종 tail 수치~~ → 2026-11-01에 끝냈다(T-FINAL, SERVER-PERFORMANCE "최종 tail 실측 표"). Task 9 판정도 확정했다(DO 미도입, 결제 레인 유지, M10 유지).
-   - 읽기 전용 tail 루프의 고아 프로세스가 아직 떠 있다: bash 26836·24656, cmd 37944, node 12124·21600·16420(10-31 22:06:59~22:07:01 시작). eventTimestamp 13:36:22Z(22:36:22 KST) 뒤로는 아무것도 기록하지 않는다. 자동 모드가 종료를 거부했으므로 **사용자가 끈다.** PID는 재사용되니 먼저 `Get-Process -Id 26836,24656,37944,12124,21600,16420 | Select-Object Id,ProcessName,StartTime`으로 시작 시각을 확인한 뒤 `Stop-Process -Id 26836,24656,37944,12124,21600,16420` 또는 작업 관리자로 끈다.
+   - ~~읽기 전용 tail 루프의 고아 프로세스~~(bash 26836·24656, cmd 37944, node 12124·21600·16420): 2026-11-01 확인 시 모두 종료돼 있었다. 조치 불요.
    - 중복 세그먼트: `seg-20261031-220659.jsonl`(909 이벤트)과 `seg-20261031-220705.jsonl`(906)은 eventTimestamp 범위가 같고(07:36:14Z~13:36:22Z) 키 880개가 겹친다. T-FINAL은 220705만 썼다. 지우지 않았다.
    - tail 파일에는 IP·헤더가 있다. 저장소에 넣지 않는다.
 2. **스테이징 push**: **먼저 사용자 확인을 받는다.** 운영 승격(`mode=production`)은 main HEAD(`github.sha`)를 배포한다(`.github/workflows/cloudflare-pages-deploy.yml:14`, `:265`). push한 뒤 어느 세션이든 운영 승격을 누르면 Task 3·7의 RED 변경이 스테이징 확인 없이 운영으로 나간다. RED 승인 범위는 "스테이징까지"다. 확인을 받으면 배포 트리를 최신 origin/main 위로 다시 cherry-pick한다(내 커밋만, 공유 main에 남의 미push 커밋을 섞지 않음). origin/main은 2026-11-01 01시 기준 `4d58f3dc5`이고, `c110fc2f1` 뒤 다른 세션 커밋 6개와 이 브랜치가 함께 바꾼 파일은 0개다. `npm run check:fast -- --base=origin/main`이 사전 실패 외에 새 실패가 없음을 확인한다. 그 뒤 push(= 스테이징 배포) → CI required 확인 → `npm run verify:staging` → [작은 후속 묶음](2026-10-31-infra-small-followups.md) C1. upstream 차단은 `90b7f7875`로 풀렸다(스테이징 런 41210005340 성공). 다시 막혀 있으면 push하지 않고 "스테이징 미배포(빌드 차단)"로 적는다.
