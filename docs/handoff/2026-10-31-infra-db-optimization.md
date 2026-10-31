@@ -24,8 +24,8 @@
 | 6 R1·R2 | 완료 | c322f998f | 리뷰 Approved(리뷰 전 보완 + 수정 1라운드, Minor 4 이월). 6A 자동환불 소진(refund_failed) 알림 섹션 C, 6B 비카드 초융합·서사형·자미두수 검토 대기 알림(10분 크론, 알림만·자동 복원 없음). 표식은 전달 성공 뒤 CAS, 상위 객체 null 문서도 표식. 인덱스 생성 없음(Fusion 조회 1건 allowlist) |
 | 7 P4 | 완료 | 927b56623 | RED 승인됨(스테이징까지). 리뷰 Approved(plan-mandated Important 1 수정 1라운드, Minor 5 이월). unlock 분기 grant→consume→unlock→evidence 단일 트랜잭션, CAS 패배는 sentinel abort로 신규 지급·REFUNDED 복원 함께 롤백(행 삭제 없음), 마커 재생 분기 증빙 보강. 레플리카셋 동시성은 스테이징 확인 항목. 후속: 월정석 해금 경로(/coin-gate/moonstone)의 같은 drop 문제 |
 | 8 쿼리 핫스팟 | 완료 | 30ef0c7ac | 리뷰 Approved(Minor 4 이월). access 백필 증빙 결제 조회 최대 20회 → `$in` 1회(우선순위 유지), insights 목록 집계 withMongoRetry(캐시는 넣지 않음 — insight-public-cache.js:26-27 기존 결정, 실측 ≈5회/시간), ops-hq XP `$group` 1회·남은 업적만 판정(원장 105행, 증가 상한 목적), drift TTL 예외 + self-test 22건. Step 3 운영 인덱스 `users{referralCode}`는 승인 항목으로 미실행 |
-| 9 측정 판정 | 대기 | | |
-| 10 보안 | 대기 | | |
+| 9 측정 판정 | Task 12에 합침 | | 코드 변경 없음. DO·결제 레인·SECURITY_DB_TIMEOUT·M10 판정은 SERVER-PERFORMANCE.md·COST-OPTIMIZATION.md에 피크 포함 전체 tail 수치로 기록 |
+| 10 보안 | 완료 | 014703a08 | 리뷰 Approved(Minor 5 이월). 10A 보안 커밋 4건 `-x` cherry-pick(W-1 83c7e699a, W-6 9872dd9a8, W-10 4aef96200, E-1 4aedaf1a8) + CORS 단언(`https://localhost` 앱 출처 유지), 10B 구독 POST IP 5/시간·이메일 3/일(실측 7일 POST 0건), 10C compass 전역 300/일(실측 D=1). 10D·10E·10F는 문서라 Task 12에서. 스테이징 route-metrics는 토큰 미설정으로 닫힘(사용자 조치) |
 | 11 DR | 대기 | | |
 | 12 문서 7종 | 대기 | | |
 | 13 검증·스테이징 | 대기 | | push는 origin/main 위 cherry-pick, 운영은 요청 시에만 |
