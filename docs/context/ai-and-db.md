@@ -35,17 +35,18 @@
 > [SERVER-PERFORMANCE](../infrastructure/SERVER-PERFORMANCE.md) 에 있다. 아래 "지리" 절(2026-08-21, LAX)은 이 절로 대체된 기록이다.
 
 - **배치:** Worker 실행이 ICN 에 고정됐다. CF 실행 colo 기준 ICN 비율은 10-31 에 99%(3,966/4,007)다. 10-25~10-30 은 일별 0.02~44% 로 날마다 크게 달랐다(10-27 0.02%, 10-29 3.4%. 출처 CF-COLO `cf-analytics/20261031-colo-by-date-7d.json`, 일별 값은 [SERVER-PERFORMANCE](../infrastructure/SERVER-PERFORMANCE.md#측정-조건)). `/api/health` 응답의 `cf-placement` 는 3회 모두 `remote-ICN` 이었다.
-- **창:** 2026-10-31 06:09:28Z~09:59:05Z(15:09~18:59 KST), tail 이벤트 1,855건. **피크 미포함 중간 값**이다. 전체 tail(2026-11-01 00:40 KST 종료)이 끝나면 SERVER-PERFORMANCE 표와 함께 바꾼다.
+- **창:** 2026-10-31 06:09:28Z~13:36:22Z(15:09~22:36 KST), tail 이벤트 15,972건. **저녁 피크와 P1 장애 포함**이다. 평시 값은 장애 15분(13:00~13:15Z)을 뺀 것이다.
 
 | 항목 | 값 | n | 재현 |
 |---|---|---|---|
-| shared DB 연결 완료 p50 / p95 / p99 | 87 / 2,351 / 4,643ms | 745 | `npm run report:worker-tail-latency -- <tail 파일> --all` |
-| payment 레인 연결 p50 / p95 / p99 | 389 / 2,374 / 2,533ms | 49 | 같음 |
-| DB 를 쓰는 fetch 비중 | 40.8%(748/1,834) | 1,834 | 같은 tail 의 스크래치 집계(SERVER-PERFORMANCE 표 T-7) |
+| shared DB 연결 완료 p50 / p95 / p99 | 90 / 2,424 / 5,600ms(평시 86 / 1,100 / 4,125ms) | 7,239(평시 6,423) | `npm run report:worker-tail-latency -- <tail 파일들> --all` |
+| payment 레인 연결 p50 / p95 / p99 | 141 / 2,297 / 3,547ms | 277 | 같음 |
+| DB 를 쓰는 fetch 비중 | 46.5%(7,406/15,927) | 15,927 | 같은 tail 의 스크래치 집계(SERVER-PERFORMANCE 표 T-7) |
 | `/api/health` 클라이언트 측 p50 | 311.9ms(측정 PC↔엣지 왕복 포함, 2026-10-31T06:11Z). Worker 안 wallTime p50 은 1ms(n=19) | 10 | `npm run measure:post-deploy-latency -- --base https://code-destiny.com --iterations 10` |
 
-- 요청마다 새 연결을 내는 구조는 그대로다. 아래 소켓 수명 설명은 지금도 유효하다. 바뀐 것은 왕복 거리다: 2026-08 LAX 핸드셰이크 1,273~1,305ms → 10-31 ICN 중앙값 87ms.
-- 남은 문제는 꼬리다. 느린 연결(800ms 초과)의 지연은 거의 다 소켓 준비 단계에서 생기고, 73건 중 52건이 10분 크론 직후 분에 몰렸다. 원인은 미확인이다([SERVER-PERFORMANCE 꼬리 지연 위험](../infrastructure/SERVER-PERFORMANCE.md#꼬리-지연-위험)).
+- 요청마다 새 연결을 내는 구조는 그대로다. 아래 소켓 수명 설명은 지금도 유효하다. 바뀐 것은 왕복 거리다: 2026-08 LAX 핸드셰이크 1,273~1,305ms → 10-31 ICN 중앙값 90ms.
+- 남은 문제는 꼬리다. 느린 연결(800ms 초과)은 687/7,174건(9.6%)이고, 지연은 거의 다 소켓 준비 단계에서 생긴다. 크론 직후 분이 아니라 몇 분짜리 에피소드로 몰린다(중간 집계의 "크론 직후 분" 가설은 철회). 원인은 미확인이다([SERVER-PERFORMANCE 꼬리 지연 위험](../infrastructure/SERVER-PERFORMANCE.md#꼬리-지연-위험)).
+- 🔴 **2026-10-31 21:59~22:10 KST P1 장애:** 저녁 피크에 DB 연결이 무너져 장애 창 tail 이벤트의 30.9%(791/2,561)가 503이었다. 원인 1순위는 M10 의 노드당 신규 연결 생성률 제한(15/초)이다(미확정). CF 오류 수는 0이었으니 CF 오류율로는 못 잡는다. DB 연결 오류 신고가 오면 [장애 인수인계](../handoff/2026-11-01-db-connection-rate-limit-outage.md)부터 본다.
 
 ## 지리 — 워커는 LAX, Atlas 는 서울 (2026-08-21 실측 · 기록, 2026-10-31 ICN 실측으로 대체)
 
@@ -103,7 +104,7 @@ DB 연산 2회  /api/reviews         3,450ms   (+  718ms)
 🔴 **미검증**: 위 "두 벌" 해석은 산술 일치에서 온 추론이다. 확정하려면 워커에 계측을 넣어
 스테이징에서 재야 한다(스테이징도 같은 LAX↔서울 구도라 그대로 재현된다).
 
-### 레버 (2026-08-21 기준 · 기록. 현행 판정은 [SERVER-PERFORMANCE](../infrastructure/SERVER-PERFORMANCE.md#판정-규칙과-중간-판정))
+### 레버 (2026-08-21 기준 · 기록. 현행 판정은 [SERVER-PERFORMANCE](../infrastructure/SERVER-PERFORMANCE.md#판정-규칙과-판정))
 
 1. **Atlas 리전 이전(서울 → us-west)** — 왕복이 150ms → 한 자릿수가 되므로 3,450ms → 추정 250~400ms.
    티어가 M10(전용)이라 Atlas 라이브 리전 마이그레이션이 가능하다. 🔴 다만 **Cloudflare 가 KT
@@ -117,7 +118,7 @@ DB 연산 2회  /api/reviews         3,450ms   (+  718ms)
 
 - **싱글턴은 완결이다** — `worker/lib/db.js` `connectDb` 하나뿐이고 새 연결 패턴을 추가하지 않는다. 요청당 핸드셰이크는 위 "지리" 절의 Cloudflare 소켓 수명 때문이지 싱글턴 부재가 아니다.
 - **요청 경로 쿼리 리터럴 = 인덱스 접두** — `explain` 실측([docs/db-query-plans-2026-08-30.md](../db-query-plans-2026-08-30.md), 재현 `npm run audit:mongo-query-plans`)에서 COLLSCAN 은 `users {referralCode}` 하나였고 나머지 후보 14개는 IXSCAN 이었다. 정적 분석으로 인덱스를 추측해 만들지 말고 `explain` 으로 확정한 뒤 `scripts/migrations/` 에 담는다(생성 실행은 사용자 허가). 새 요청 경로 쿼리가 선언 인덱스의 선두 키를 쓰는지는 `verify:mongo-query-index-shapes`(PR CI critical) 가 정적으로 잡고, 예외는 `config/mongo-query-index-allowlist.json` 에 사유와 함께 둔다 — 리터럴이 아닌 필터(`dynamic`)는 검사 밖이다.
-- **캐시 히트는 쿼리가 아니라 핸드셰이크(2026-08 LAX 기준 ~1.3s, 2026-10-31 ICN 중앙값 87ms·꼬리 p95 2,351ms)를 통째로 건너뛴다** — 그래서 인덱스보다 `worker/lib/cms-cache.js`·`credential-scoped-cache.js` 확장이 더 큰 레버다(결제·인증 판정 경로 제외).
+- **캐시 히트는 쿼리가 아니라 핸드셰이크(2026-08 LAX 기준 ~1.3s, 2026-10-31 ICN 중앙값 90ms·꼬리 p95 2,424ms)를 통째로 건너뛴다** — 그래서 인덱스보다 `worker/lib/cms-cache.js`·`credential-scoped-cache.js` 확장이 더 큰 레버다(결제·인증 판정 경로 제외).
 
 ## LLM 안전 규칙 (2026-08-28 `AGENTS.md` 에서 이관)
 

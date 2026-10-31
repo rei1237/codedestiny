@@ -2,10 +2,10 @@
 
 - **측정 시각:** 2026-10-31 작성. 검증 수치는 SDD 원장(LEDGER)에 기록된 시점의 값이다.
 - **출처:**
-  - `git log f4c5458a0..6d92e96f5`(커밋 본문의 위험·롤백 메모)
+  - `git log f4c5458a0..2a6039151`(커밋 본문의 위험·롤백 메모)
   - LEDGER(Task별 검증, Task 13 Step 1 실측)
   - `.github/workflows/cloudflare-pages-deploy.yml`, `scripts/deploy-safe.mjs`, `scripts/lib/production-deploy-guard.mjs`
-- **기준 커밋:** origin/main `f4c5458a0`. 처음 작성할 때 브랜치 HEAD는 `35be53295`였다. 검증 결과를 채운 시점(2026-10-31 22시) HEAD는 `6d92e96f5`(46커밋)다.
+- **기준 커밋:** origin/main `f4c5458a0`. 처음 작성할 때 브랜치 HEAD는 `35be53295`였다. 검증 결과를 채운 시점(2026-10-31 22시) HEAD는 `6d92e96f5`(46커밋)다. 마지막 코드 커밋은 `2a6039151`(49커밋째, Atlas 사건 피드 GET 허용)이고, 그 뒤로는 문서 커밋만 있다.
 - **상태: 운영 미배포.** 스테이징 push도 하지 않았다. 보류 이유는 [배포 경로](#배포-경로) 2에 있다.
 - **함께 보는 문서:**
   - 이슈 현황·승인 항목: [INFRASTRUCTURE-AUDIT](INFRASTRUCTURE-AUDIT.md#승인-필요-항목)
@@ -29,7 +29,7 @@
 | Task | 내용 | 커밋 | 분류 | 런타임 |
 |---|---|---|---|---|
 | 0 | 실행 계획·인수인계 문서 | `b82ff0f3d` | docs | 없음 |
-| 1 | Atlas Admin API 읽기 전용 감사 도구, 허용 목록 우회 차단 | `a452d553b`, `fa5156d3b` (문서 `ed5016461`) | GREEN | 없음(`scripts/`만) |
+| 1 | Atlas Admin API 읽기 전용 감사 도구, 허용 목록 우회 차단, 프로젝트 사건 피드(events) GET 허용 | `a452d553b`, `fa5156d3b`, `2a6039151` (문서 `ed5016461`) | GREEN | 없음(`scripts/`만) |
 | 2 | tail 지연 리포트에 DB 연결 단계 집계 | `02441bcac` (문서 `2ddbdcfa1`) | GREEN | 없음(`scripts/`만) |
 | 3 | 지연차감 cancel이 환불 기록을 되살리지 않음(R3), cancel 기록을 재시도 증빙으로 인정(F3) | `4de80b27c` (문서 `8afd81c2c`) | **RED** | Worker 결제 라우트 |
 | 4 | LLM in-flight dedup을 요청 스코프로 한정 | `238ec6554` (문서 `9908587f5`) | GREEN | LLM 캐시(`lib/`) |
@@ -69,8 +69,8 @@
 
 1. **배포 트리를 만든다.** origin/main 최신 위에 이 브랜치 커밋(`f4c5458a0..HEAD`)만 cherry-pick한다.
    - 공유 체크아웃의 로컬 main은 쓰지 않는다. 남의 미push 커밋이 섞일 수 있다.
-   - 배포 트리는 `D:\Development\codedestiny-worktrees\infra-deploy-20261031-190620`(브랜치 `wt/infra-deploy-20261031-190620`)이다. origin/main `c110fc2f1` 위에 46개를 무충돌로 올렸고 HEAD는 `2d56489bd`다. 처음에는 `1592b6013` 위 33개로 만들었다(LEDGER).
-   - 2026-10-31 21:35에 origin/main이 `1b262f31c`("fix: recover CI and separate SNULIFE review codes")로 움직였다. 이 커밋과 46개 커밋이 함께 바꾼 파일은 0개다. push 전에 그 위로 다시 올리고 `npm run check:fast -- --base=origin/main`을 다시 돌린다.
+   - 배포 트리는 `D:\Development\codedestiny-worktrees\infra-deploy-20261031-190620`(브랜치 `wt/infra-deploy-20261031-190620`)이다. origin/main `c110fc2f1` 위에 무충돌로 올렸다. 검증 시점 HEAD는 `2d56489bd`(46개)였고, 2026-11-01 문서 갱신 직전에는 `554e18ce6`(48개)이다. 처음에는 `1592b6013` 위 33개로 만들었다(LEDGER). 최신 상태는 `git -C <배포 트리> log --oneline c110fc2f1..HEAD`로 확인한다.
+   - origin/main은 2026-11-01 01시 기준 `4d58f3dc5`다. `c110fc2f1` 뒤로 다른 세션 커밋 6개(`1b262f31c`~`4d58f3dc5`, 48파일)가 올라갔다. 이 브랜치와 함께 바꾼 파일은 0개다(`git diff --name-only` 교집합). push 전에 그 위로 다시 올리고 `npm run check:fast -- --base=origin/main`을 다시 돌린다.
 2. **스테이징.** `git push origin main` → main CI(`pr-ci.yml`, "CI required") → `workflow_dispatch(mode=staging)` 예약 → staging.code-destiny.com.
    - 스테이징은 RED 변경의 승인 한계다.
    - **main push는 곧 다음 운영 승격의 대상이 된다.** 운영 승격(`mode=production`)은 main HEAD(`github.sha`)를 배포한다(`cloudflare-pages-deploy.yml:14`, `:265`). push한 뒤 누구든 운영 승격을 누르면 Task 3·7의 RED 변경이 스테이징 확인 전에 운영으로 나간다. 다른 세션도 같은 main으로 운영 승격을 한다.
@@ -107,11 +107,13 @@ Step 1만 실행했다. 이 브랜치 때문에 생긴 실패는 없다. 남은 
 | `2d56489bd` `check:payment`(paid-gate-suite 90개) | ok 87, FAIL 3: `verify:payment-copy-dictionary`, `verify:i18n-price-drift`, `npm test`. 위 `check:fast`의 실패 3건과 이름·내용이 같다. 둘 다 이 브랜치가 건드리지 않은 문구 때문이다(월정석 500개 안내 문구와 `auth.guestMoonstoneTeaser` 10000). 46개 커밋 중 i18n·문구 파일을 바꾼 것은 0개다. 스위트의 자체 재실행은 base를 HEAD(`2d56489bd`)로 잡아서 귀책 판정에 쓰지 않았다 | 21:38~ 실행 |
 | `2d56489bd` `verify:phone-encryption` | EXIT=1 `/onboarding must stay removed`(`scripts/verify-phone-encryption.mjs:236`). `app/onboarding/page.tsx`는 다른 세션 커밋 `bea087f4c`가 되살렸고 `c110fc2f1`·`1b262f31c`에 모두 있다. 46개 커밋 중 onboarding 파일을 바꾼 것은 0개다 | 21:50 실행 |
 | 이전 기록 | Task 10 작업 트리 `test:jest` 421 suites / 6,884 tests PASS. 첫 배포 트리(`1592b6013` + 33) 개별 게이트 32단계 전부 EXIT=0(`test:jest` 447 / 7,297) | Task 10 보고서, LEDGER |
-| origin/main 스테이징 릴리스(이 브랜치 미포함) | `c110fc2f1`: 런 41195463516·41196675384·41198056546이 adsense-readiness(`out/onboarding` description)에서 실패. `1b262f31c`: 런 41201869815가 adsense는 통과했지만 "Deploy staging Pages and Worker at the exact SHA" 단계의 고위험 mock 게이트에서 `verify:phone-encryption`으로 실패(`scripts/deploy-safe.mjs:257`) | `gh run view`, `scratchpad/run-41201869815-failed.log` |
+| origin/main 스테이징 릴리스(이 브랜치 미포함) | `c110fc2f1`: 런 41195463516·41196675384·41198056546이 adsense-readiness(`out/onboarding` description)에서 실패. `1b262f31c`: 런 41201869815가 adsense는 통과했지만 "Deploy staging Pages and Worker at the exact SHA" 단계의 고위험 mock 게이트에서 `verify:phone-encryption`으로 실패(`scripts/deploy-safe.mjs:257`). `4d58f3dc5`: 스테이징 런 41210005340 성공(2026-10-31 23:24 KST), 운영 런 41213033014 성공(배포 단계 11-01 00:06~00:22 KST), 41213773173 실패(`--pages-only` 차단), 41215094790 성공 | `gh run view`, `scratchpad/run-41201869815-failed.log` |
 | CI "CI required", `verify:staging`, 스테이징 수동 확인 | 미실행. push하지 않았다([배포 경로](#배포-경로) 2) | — |
 
-**지금 push해도 스테이징에 올라가지 않는다.** origin/main 자체가 `verify:phone-encryption`에서 막혀 있다. `app/onboarding`을 되살린 세션이 그 단언과 화면 중 하나를 정리해야 풀린다. 이 브랜치가 고칠 일이 아니다.
+**upstream 차단은 2026-11-01 기준 풀렸다.** `90b7f7875`가 `app/onboarding/page.tsx`를 다시 뺐고, `4d58f3dc5`의 스테이징 릴리스(런 41210005340)가 성공했다. 이 브랜치는 아직 push하지 않았으므로 스테이징 검증은 그대로 **미실행**이다. push는 사용자 확인 뒤에 하고, 그 전에 `4d58f3dc5` 이상 위로 다시 올려 `check:fast`를 다시 돌린다.
 
 ## 운영 상태
 
 **운영 미배포.** 운영 Worker·Pages·DB에 이 브랜치의 변경은 하나도 나가지 않았다. 측정 중 운영에 한 일은 tail, 공개 GET, Atlas Admin GET, 읽기 전용 DB 조회(serverStatus, 인덱스 목록, 인덱스 드리프트 dry-run, 전량 덤프)뿐이다. 운영 DB 쓰기·실결제·유료 LLM 호출은 0회다.
+
+지금 운영에서 도는 것은 다른 세션이 올린 `4d58f3dc5`다. Worker는 운영 릴리스 런 41213033014가 2026-11-01 00:20:29 KST에 바꿨고, 그 뒤 운영 런 41215094790이 00:32~00:50 KST에 배포 단계를 돌렸지만 새 Worker 배포 행은 없다(DEP). 둘 다 이 브랜치를 포함하지 않는다. 2026-10-31 21:59~22:10 P1 장애도 이 브랜치가 없는 운영 코드(Worker `6e7c62f7`, 커밋 `1592b60`)에서 났다([SERVER-PERFORMANCE](SERVER-PERFORMANCE.md#p1-장애-저녁-피크-db-연결-실패)).
