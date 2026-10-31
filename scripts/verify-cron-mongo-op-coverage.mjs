@@ -95,11 +95,18 @@ function matchBalanced(source, from, open, close) {
 /** 선언부 뒤 첫 '{' 부터 중괄호 균형이 맞는 지점까지를 본문으로 잘라낸다(화살표 const 포함). */
 function functionBody(source, name) {
   const escaped = escapeRe(name);
-  const declaration = new RegExp(`(?:export\\s+)?(?:async\\s+)?function\\s+${escaped}\\s*\\([^)]*\\)\\s*\\{`);
+  const declaration = new RegExp(`(?:export\\s+)?(?:async\\s+)?function\\s+${escaped}\\s*\\(`);
   const match = declaration.exec(source);
   if (match) {
-    const end = matchBalanced(source, match.index + match[0].length - 1, "{", "}");
-    return end < 0 ? null : source.slice(match.index, end + 1);
+    // 기본값에 괄호가 있어도(`{ now = new Date() } = {}`) 시그니처를 괄호 균형으로 건너뛴다.
+    const parenOpen = match.index + match[0].length - 1;
+    const parenClose = matchBalanced(source, parenOpen, "(", ")");
+    const bodyOpen = parenClose < 0 ? -1 : /^\s*\{/.exec(source.slice(parenClose + 1));
+    if (bodyOpen) {
+      const open = parenClose + 1 + bodyOpen[0].length - 1;
+      const end = matchBalanced(source, open, "{", "}");
+      return end < 0 ? null : source.slice(match.index, end + 1);
+    }
   }
   const arrow = new RegExp(`(?:export\\s+)?(?:const|let|var)\\s+${escaped}\\s*=\\s*(?:async\\s*)?\\(`);
   const arrowMatch = arrow.exec(source);
@@ -227,6 +234,12 @@ export function analyzeCronMongoCoverage({ sources, modelsFile, indexFile }) {
     const target = resolveSpec(indexFile, m[2]);
     if (!target) { problems.push(`scheduled( 안의 동적 import 를 해석하지 못했다: ${m[2]}`); continue; }
     for (const part of m[1].split(",")) entries.add(`${target}::${part.trim()}`);
+  }
+  // import("./x.js").then(({ runX }) => runX(env), …) — 10분 분기가 모듈 로드 실패를 태스크 안에 가두는 형태.
+  for (const m of schedBody.matchAll(/\bimport\(\s*["']([^"']+)["']\s*\)\s*\.then\(\s*\(\s*\{([^{}]+)\}\s*\)/g)) {
+    const target = resolveSpec(indexFile, m[1]);
+    if (!target) { problems.push(`scheduled( 안의 동적 import 를 해석하지 못했다: ${m[1]}`); continue; }
+    for (const part of m[2].split(",")) entries.add(`${target}::${part.trim().split(/\s*:\s*/)[0]}`);
   }
   for (const m of schedBody.matchAll(/await\s+import\(\s*["']([^"']+)["']\s*\)[^;\n]*?\)\s*\.\s*(\w+)\s*\(/g)) {
     const target = resolveSpec(indexFile, m[1]);
@@ -412,6 +425,29 @@ function runSelfTest() {
       ].join("\n"));
       if (r.uncovered.length !== 0) return `미커버 0건이어야 하는데 ${r.uncovered.length}건`;
       if (r.stats.covered < 1) return "감싼 op 을 하나도 못 셌다(분석기 사망)";
+      return null;
+    }],
+
+    // 10분 분기는 모듈 로드 실패를 태스크 안에 가두려고 import("./x.js").then(({ runX }) => runX(env), …) 로 부른다.
+    // 이 형태를 못 읽으면 진입점이 통째로 사라지고 위반 0 으로 초록불이 된다.
+    ["import().then 구조분해 진입점을 발견한다", () => {
+      const index = [
+        "export default {",
+        "  async scheduled(event, env, ctx) {",
+        "    trackTask(\"t\", import(\"./lib/task.js\").then(({ runTask }) => runTask(env), loadFailed(\"t\")));",
+        "  },",
+        "};",
+        "",
+      ].join("\n");
+      const r = fixture([
+        "import { User } from \"./models.js\";",
+        "export async function runTask(env) {",
+        "  return User.find({ a: 1 }).lean();",
+        "}",
+        "",
+      ].join("\n"), { indexSource: index });
+      if (r.entries.size !== 1) return `진입점 1건이어야 하는데 ${r.entries.size}건`;
+      if (r.uncovered.length !== 1) return `미커버 1건이어야 하는데 ${r.uncovered.length}건`;
       return null;
     }],
 
