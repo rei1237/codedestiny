@@ -19,7 +19,7 @@
 | 1 Atlas 스냅샷 도구 | 완료(실측 대기) | a452d553b, fa5156d3b | 리뷰 통과. 실측은 사용자 API 키(ATLAS_PUBLIC_KEY·ATLAS_PRIVATE_KEY·ATLAS_ORG_ID·ATLAS_GROUP_ID) 설정 뒤 `npm run audit:atlas-readonly` |
 | 2 tail DB 연결 집계 | 완료(피크 실측 대기) | 02441bcac | 리뷰 통과. 중간 실측: fetch shared 연결 p50 119ms/p95 268ms, 크론(*/10) 연결 p50 1764ms(배치 밖 실행). 피크 포함 전체 리포트는 9시간 tail(~00:29 KST) 뒤 |
 | 3 R3·F3 | 완료 | 4de80b27c | RED 승인됨. 리뷰 Approved(Minor 3). 환불·취소 기록에 cancel → 상태 불변(CAS), 세 라우트가 generation_failed를 재시도 증빙으로 인정 → apply 경로(billing.js:2479 revoked 403, CAS $nin refunded/cancelled)로 completed 전이 확인. check:payment 잔여는 기존 shell-dictionary-parity 1건 |
-| 4 L1 | 대기 | | |
+| 4 L1 | 완료 | 238ec6554 | 리뷰 Approved(Minor 2). LLM in-flight dedup을 currentDbScopeId() 요청 스코프로 한정, 스코프 없으면 공유 안 함. node:test 18/18, jest llm 116/116 |
 | 5 C5 | 대기 | | |
 | 6 R1·R2 | 대기 | | |
 | 7 P4 | 대기 | | RED 승인됨 |
