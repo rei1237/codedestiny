@@ -38,6 +38,10 @@ on:
           - preview
           - rollback
         default: preview
+      configure_snulife_review:
+        description: "승인된 SNULIFE 검수 코드 3계정·14일 최초 설정. production 전용, 기존 설정 보존."
+        type: boolean
+        default: false
       bootstrap_cms:
         description: "화면 CMS 최초 설치 전용: 아직 운영 Worker에 build-bundle API가 없을 때만 발행본 조회를 건너뜁니다. 기존 CMS 발행본이 있으면 사용하지 마세요."
         type: boolean
@@ -358,6 +362,12 @@ jobs:
       # Environment key mismatches only surface at runtime, long after the deploy
       # succeeds. This step runs before the build so a missing or drifted key stops
       # the release instead of reaching production.
+      - name: Configure approved SNULIFE review code
+        if: github.event_name == 'workflow_dispatch' && inputs.mode == 'production' && inputs.configure_snulife_review == true && inputs.pages_only != true
+        env:
+          SNULIFE_REVIEW_CODE: ${{ secrets.SNULIFE_REVIEW_CODE }}
+        run: node scripts/configure-snulife-review.mjs
+
       - name: Verify environment key parity
         run: npm run verify:env-parity:remote
 

@@ -31,10 +31,10 @@ function showAccountNote() {
   if (campus?.eligibleEmail && campus.unlockedFeatureKeys?.length !== campus.features?.length)
     renderNote(campus.verified ? '학교 계정을 확인했어요. 사주 선물을 열어볼까요?' : 'SNU 손님, 연이가 사주 선물을 준비했어요.', '/snu/', '학교 사주 선물 확인하기');
   else if (account.tutorial.eligible && account.tutorial.receipt?.status !== 'started')
-    renderNote(`연이랑 무료 사주를 보고 월정석 ${TUTORIAL_REWARD.amount}개를 받아볼까요?`, '/onboarding/', '첫걸음 안내 보기');
+    renderNote(`연이랑 무료 사주를 보고 월정석 ${TUTORIAL_REWARD.amount}개를 받아볼까요?`, '/first-steps/', '첫걸음 안내 보기');
   else if (account.tutorial.receipt?.status === 'started')
-    renderNote('무료 사주를 확인했어요. 첫걸음 선물을 받아볼까요?', '/onboarding/', '월정석 선물 받기');
-  else renderNote(`내 월정석 ${account.wallet.balance.toLocaleString('ko-KR')}개, 어디에 쓸 수 있을까요?`, '/onboarding/', '월정석 사용법 보기');
+    renderNote('무료 사주를 확인했어요. 첫걸음 선물을 받아볼까요?', '/first-steps/', '월정석 선물 받기');
+  else renderNote(`내 월정석 ${account.wallet.balance.toLocaleString('ko-KR')}개, 어디에 쓸 수 있을까요?`, '/first-steps/', '월정석 사용법 보기');
 }
 
 async function refresh() {
@@ -52,12 +52,12 @@ async function startPendingTutorial() {
   try {
     const result = await request('tutorial/start', { profileId });
     if (turn === revision) { account = result; pendingTutorialProfileId = ''; showAccountNote(); }
-  } catch (error) { if (turn === revision) renderNote(error.message, '/onboarding/', '선물 다시 확인하기'); }
+  } catch (error) { if (turn === revision) renderNote(error.message, '/first-steps/', '선물 다시 확인하기'); }
   finally { if(turn === revision)tutorialPending = false; }
 }
 window.addEventListener('cd:saju-summary-ready', () => {
   const profileId = typeof window._sajuPromptResolveProfileId === 'function' ? window._sajuPromptResolveProfileId() : '';
-  if (!profileId) { if(account)renderNote('내 프로필을 저장하고 무료 사주를 보면 첫걸음 선물을 받을 수 있어요.', '/onboarding/', '연이의 안내 보기'); return; }
+  if (!profileId) { if(account)renderNote('내 프로필을 저장하고 무료 사주를 보면 첫걸음 선물을 받을 수 있어요.', '/first-steps/', '연이의 안내 보기'); return; }
   pendingTutorialProfileId = profileId; void startPendingTutorial();
 });
 
@@ -78,7 +78,7 @@ export async function showLegacyCompletionBenefits() {
     const balance = document.createElement('p'); balance.textContent = `내 월정석 ${data.wallet.balance.toLocaleString('ko-KR')}개 · ${data.wallet.minimumProductKRW.toLocaleString('ko-KR')}원 이상 대상 서비스 할인에 쓸 수 있어요.`;
     const note = document.createElement('p'); note.textContent = `후기 공개 승인 후 월정석 ${data.policy.review.amount.toLocaleString('ko-KR')}개를 받을 수 있어요. 솔직한 후기라면 별점과 관계없어요.`;
     const links = document.createElement('nav');
-    for (const item of [...data.recommendations.map(row => ({ href: row.href, title: row.title })), { href: '/reviews/?write=1', title: '솔직한 후기 남기기' }, { href: '/onboarding/', title: '내 월정석과 첫 이용 혜택 보기' }]) {
+    for (const item of [...data.recommendations.map(row => ({ href: row.href, title: row.title })), { href: '/reviews/?write=1', title: '솔직한 후기 남기기' }, { href: '/first-steps/', title: '내 월정석과 첫 이용 혜택 보기' }]) {
       const link = document.createElement('a'); link.href = item.href; link.textContent = item.title; links.append(link);
     }
     const close = document.createElement('button'); close.type = 'button'; close.textContent = '지금은 상담을 더 읽을게요'; close.addEventListener('click', () => dialog.close());

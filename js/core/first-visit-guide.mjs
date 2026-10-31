@@ -48,7 +48,7 @@ function installGuide() {
   dialog.querySelector('img').remove();
   dialog.querySelector('[data-first-start]').before(story,howTo);
   if(document.documentElement.lang.startsWith('ko')){
-    const gift=document.createElement('a');gift.className='cd-first__reward-link';gift.href='/onboarding/';gift.textContent='무료 사주를 본 뒤, 월정석 선물과 사용법 확인하기';
+    const gift=document.createElement('a');gift.className='cd-first__reward-link';gift.href='/first-steps/';gift.textContent='무료 사주를 본 뒤, 월정석 선물과 사용법 확인하기';
     dialog.querySelector('[data-first-start]').after(gift);
   }
   const progress = root.querySelector('[data-first-progress]');

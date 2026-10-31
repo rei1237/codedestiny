@@ -20,7 +20,7 @@ branch: wt/activation-rewards-20261031-145450
 - Mongo 단일 캠페인 문서에서 addToSet과 배열 인덱스 조건으로 1,000계정 한도를 원자적으로 지킨다. 계정 식별자는 캠페인별 해시, 코드는 해시만 저장한다. 고유 _id로 재시도 중복을 방지하고 설정 변경으로 수량을 초기화하지 않는다.
 - SNULIFE_BENEFIT_CODE / SNULIFE_STARTS_AT / SNULIFE_ENDS_AT 미설정·잘못된 기간이면 닫힌 상태. 운영 값은 아직 설정하지 않았다. 게시 승인 후 충분히 긴 무작위 코드와 한국시간 시작·종료일을 별도 운영 승인으로 설정한다.
 - 모집 종료 후 기존 콘텐츠 재열람은 유지한다. 기존 학교 인증 수령 경로도 호환 보존하며 구매·환불 회수 권리는 insertOnly로 보호한다.
-- /snu/와 /onboarding/ noindex 유지, 기존 SEO 정본을 보존했다.
+- /snu/와 /first-steps/ noindex 유지, 기존 SEO 정본을 보존했다.
 
 ## 통합·검증
 
@@ -62,3 +62,5 @@ D:/Development/code-destiny/outputs/snulife-partnership-20261031/
 CI 실패 3종을 복구했다: onboarding description, auth.guestMoonstoneTeaser 12언어 정본, 단건 해금 DB 작업의 withMongoRetry 경계(재시도 0). 새 DB 경계 때문에 실 DB 연결을 시도하던 두 검증기의 DB 대역을 보완했고 결제 로직·검사 조건은 유지했다.
 검증: 제휴 관련 테스트 27개(초기 25개 후 캠퍼스 2개 추가), 쉘 문구 4개, 웹훅 원장 22개, 단건 결제 회귀 검증, 크론 Mongo 커버리지, 중첩 재시도, payment-freeze, TypeScript, scoped ESLint, env-parity 통과. check:fast 첫 실행 paid-gate 88/90, 실패한 2개는 보완 후 개별 통과. npm test 결과는 439/440 suites, 7202/7207 tests였고 실패한 웹훅 파일 22개는 최신 대역으로 개별 통과했다. 전체 검사를 다시 반복하지 않고 공식 CI로 판정한다.
 남은 순서: commit/pre-push/main push → 공식 CI 성공 → 공식 production 워크플로 → 양쪽 SHA 일치 → 검수 설정·전용 테스트 계정의 실제 해금/재로그인/보존 확인 → 자료 갱신 → 기존 스레드 ad@snulife.com에 1회 답신. 실제 결제·과금 LLM은 하지 않는다. 운영 검증 실패 시 발송하지 않는다.
+
+추가 CI 발견: /onboarding은 폐지된 개인정보 수집 화면의 예약 리다이렉트다. 가드를 유지하고 새 무료 사주 안내를 /first-steps/로 옮겨 충돌을 해소했다. 검수 코드 설정도 로컬 운영 쓰기 없이 GitHub production workflow_dispatch의 configure_snulife_review=true 선택으로만 최초 적용한다. 기존 설정이 있으면 덮어쓰지 않는다.

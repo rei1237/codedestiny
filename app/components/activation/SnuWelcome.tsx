@@ -57,7 +57,7 @@ export default function SnuWelcome() {
     {data?.campaign?.mode === 'review' && <p className={styles.note}>검수용 코드로 등록했어요. 정식 모집 1,000계정과 별도로 최대 {data.campaign.limit}계정에서 확인할 수 있어요. 코드 등록은 {new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', dateStyle: 'long', timeStyle: 'short' }).format(new Date(data.campaign.endsAt))}까지예요.</p>}
     {message && <div role="status" className={styles.message}><p>{message}</p>{!data && !guest && <button onClick={() => void load()}>제휴 선물 다시 확인하기</button>}</div>}
     <section className={styles.included}><h2>제휴 선물로 열리는 콘텐츠</h2><ul>{(data?.features || SNU_SAJU_FEATURES).map(item => <li key={item.featureKey}><Check size={16} aria-hidden="true"/>{item.title}</li>)}</ul><p>이 목록의 사주 풀이와 재미 콘텐츠를 열어드려요. AI가 답변을 만드는 유료 상담과 목록에 없는 기능은 별도예요.</p></section>
-    <aside className={styles.smallGuide}><h2>내 이야기를 더 듣고 싶을 땐</h2><p>사주 풀이를 읽은 뒤에도 남는 질문은 유료 상담에서 이어갈 수 있어요. 추가 상담은 직접 선택할 때만 진행돼요.</p><Link href="/yeongnyangi/fortune/">영냥이 상담 둘러보기 <ArrowRight size={16}/></Link><Link href="/onboarding/">월정석과 첫 이용 혜택 알아보기 <ArrowRight size={16}/></Link></aside>
+    <aside className={styles.smallGuide}><h2>내 이야기를 더 듣고 싶을 땐</h2><p>사주 풀이를 읽은 뒤에도 남는 질문은 유료 상담에서 이어갈 수 있어요. 추가 상담은 직접 선택할 때만 진행돼요.</p><Link href="/yeongnyangi/fortune/">영냥이 상담 둘러보기 <ArrowRight size={16}/></Link><Link href="/first-steps/">월정석과 첫 이용 혜택 알아보기 <ArrowRight size={16}/></Link></aside>
     <Image className={styles.campaignArt} src="/assets/marketing/snulife/yeoni-saju-code-v2.webp" width={1500} height={1200} alt="SNULIFE와 꿀꿀 운세가 준비한 연이의 라이트 사주·대운 풀이 선물"/>
     <p className={styles.note}>서울대학교의 추천·공인을 의미하지 않습니다. 가입·로그인과 유효한 제휴 코드가 필요합니다. 등록은 게시일부터 3개월 또는 수량 소진까지이며, 이미 받은 콘텐츠와 기존 구매·결과 기록은 보존합니다.</p>
   </main>;
