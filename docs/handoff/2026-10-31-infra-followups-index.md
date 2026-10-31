@@ -23,8 +23,8 @@ next: "1순위 월정석 해금 경로 문서부터. 먼저 '현재 상태 확�
 ## 현재 상태 확인 (시작 전에)
 
 2026-10-31 21:40 KST 기준:
-- 본 작업 커밋은 `wt/infra-optimization-20261031-150228`에 있다. 배포용 cherry-pick 트리는 `wt/infra-deploy-20261031-190620`이다(origin/main `c110fc2f1` 위 44개, HEAD `794eca3de`). 둘 다 **미push**다.
-- 스테이징 릴리스는 `c110fc2f1`에서 다른 세션 커밋의 adsense-readiness 빌드 오류로 막혀 있었다(실패 런 41195463516, 41196675384, 41198056546). 21:35에 origin/main이 `1b262f31c`("fix: recover CI and separate SNULIFE review codes")로 움직였고, 그 CI가 돌기 시작했다.
+- 본 작업 커밋은 `wt/infra-optimization-20261031-150228`에 있다. 배포용 cherry-pick 트리는 `wt/infra-deploy-20261031-190620`이다(origin/main `c110fc2f1` 위 46개, HEAD `2d56489bd`). 둘 다 **미push**다. push는 사용자 확인 대기다(아래 "이 세션이 못 끝낸 것" 2).
+- 스테이징 릴리스는 `c110fc2f1`에서 다른 세션 커밋의 adsense-readiness 빌드 오류로 막혀 있었다(실패 런 41195463516, 41196675384, 41198056546). 21:35에 origin/main이 `1b262f31c`("fix: recover CI and separate SNULIFE review codes")로 움직였다. 그 스테이징 런 41201869815도 실패했다(21:42). adsense-readiness는 통과했지만 배포 전 고위험 mock 게이트의 `verify:phone-encryption`이 `/onboarding must stay removed`(`scripts/verify-phone-encryption.mjs:236`)로 멈췄다. `app/onboarding/page.tsx`는 다른 세션 커밋 `bea087f4c`가 되살렸고 `1b262f31c`도 그 파일을 고쳤다. 이 브랜치의 46개 커밋은 onboarding을 건드리지 않는다. **스테이징은 여전히 다른 세션 변경으로 막혀 있다.**
 
 ```bash
 git fetch origin main && git log --oneline origin/main | grep -c "이용권 해금 CAS 패배\|cancel이 환불 기록을 되살리지"   # 2면 push됨, 0이면 미push
@@ -60,6 +60,7 @@ gh run list --branch main --limit 8 --json workflowName,conclusion,headSha --jq 
 | 6 | Atlas 스냅샷 복원 시험(임시 클러스터 약 $0.096/시간), 로컬 mongod 복원 RTO 실측 | 미승인 | DISASTER-RECOVERY "승인 필요" |
 | 7 | 등급 변경, DO 파일럿 | 제안하지 않음(M10 유지, DO 미도입). 최종 tail 수치로 확정 | COST-OPTIMIZATION, SERVER-PERFORMANCE |
 | 8 | 운영 배포 | 미배포. 사용자의 1회성 명시 요청이 있을 때만 | DEPLOYMENT-REPORT |
+| 8a | 스테이징 push(main) | 사용자 확인 대기. main push가 다음 운영 승격의 대상이 되기 때문이다 | DEPLOYMENT-REPORT "배포 경로" 2 |
 
 ## 사용자 조치
 
@@ -76,7 +77,8 @@ gh run list --branch main --limit 8 --json workflowName,conclusion,headSha --jq 
 - `npm test`의 Playwright 2건(daily tarot, hat story), `shell-dictionary-parity`
 - `verify:payment-copy-dictionary`
 - `verify:i18n-price-drift`(`auth.guestMoonstoneTeaser`)
-- 릴리스 워크플로의 adsense-readiness(`out/onboarding` description)
+- 릴리스 워크플로의 adsense-readiness(`out/onboarding` description). `1b262f31c`에서 풀렸다
+- `verify:phone-encryption`(`/onboarding must stay removed`). `app/onboarding`이 있는 한 실패한다. 스테이징 배포의 고위험 mock 게이트가 이 검사를 돌린다. 21:38의 `check:payment`는 이 검사를 고르지 않았다. 단독 실행하면 배포 트리에서도 EXIT=1이다
 - content-unlocks 크론 커버리지
 
 ## 이 세션이 못 끝낸 것 (세션이 끊기면 이어받기)
@@ -88,6 +90,6 @@ gh run list --branch main --limit 8 --json workflowName,conclusion,headSha --jq 
    - `npm run -s report:worker-tail-latency -- <스크래치>/tail-all.jsonl --all`
    - 결과로 [작은 후속 묶음](2026-10-31-infra-small-followups.md) E절의 중간 수치를 바꾸고, Task 9 판정(DO 미도입, 결제 레인 유지, M10 유지)을 최종으로 확정한다. 판정 규칙은 SERVER-PERFORMANCE·COST-OPTIMIZATION에 있다. 수치가 규칙의 문턱을 넘으면 판정을 바꾸고 이유를 적는다.
    - tail 파일에는 IP·헤더가 있다. 저장소에 넣지 않는다.
-2. **스테이징 push**: 배포 트리를 최신 origin/main 위로 다시 cherry-pick한다(내 커밋만, 공유 main에 남의 미push 커밋을 섞지 않음). `npm run check:fast -- --base=origin/main`이 사전 실패 외에 새 실패가 없음을 확인한다. 그 뒤 push(= 스테이징 배포) → CI required 확인 → `npm run verify:staging` → [작은 후속 묶음](2026-10-31-infra-small-followups.md) C1. 스테이징이 여전히 막혀 있으면 push하지 않고 "스테이징 미배포(빌드 차단)"로 적는다.
-3. **DEPLOYMENT-REPORT "검증 결과"** 채우기: t13c `check:fast` 결과. EXIT=1이지만 남은 실패 3건(`npm test`, `verify:payment-copy-dictionary`, `verify:i18n-price-drift`)은 merge-base와 ✖ 목록이 같다. jest는 452 suites / 7,360 tests 통과. `check:payment`·`verify:worker-size`·`verify:mongo-query-index-shapes`도 배포 트리에서 다시 돌려 붙인다.
+2. **스테이징 push**: **먼저 사용자 확인을 받는다.** 운영 승격(`mode=production`)은 main HEAD(`github.sha`)를 배포한다(`.github/workflows/cloudflare-pages-deploy.yml:14`, `:265`). push한 뒤 어느 세션이든 운영 승격을 누르면 Task 3·7의 RED 변경이 스테이징 확인 없이 운영으로 나간다. RED 승인 범위는 "스테이징까지"다. 확인을 받으면 배포 트리를 최신 origin/main 위로 다시 cherry-pick한다(내 커밋만, 공유 main에 남의 미push 커밋을 섞지 않음). 21:35의 `1b262f31c`와 46개 커밋이 함께 바꾼 파일은 0개다. `npm run check:fast -- --base=origin/main`이 사전 실패 외에 새 실패가 없음을 확인한다. 그 뒤 push(= 스테이징 배포) → CI required 확인 → `npm run verify:staging` → [작은 후속 묶음](2026-10-31-infra-small-followups.md) C1. 스테이징이 여전히 막혀 있으면 push하지 않고 "스테이징 미배포(빌드 차단)"로 적는다.
+3. ~~DEPLOYMENT-REPORT "검증 결과" 채우기~~ → 2026-10-31 22시에 채웠다. `check:payment`는 ok 87 / FAIL 3이고, 실패 3건은 위 사전 실패와 같다. `verify:worker-size`와 `verify:mongo-query-index-shapes`는 EXIT=0이다. push 전에 최신 origin/main 위에서 다시 돌리면 그 결과로 표를 갱신한다.
 4. **작업 트리 정리**(모든 커밋이 origin/main에 들어간 뒤): `(Get-Item <트리>\node_modules -Force).Delete()`로 정션만 지운 뒤 `git worktree remove --force <트리>`. 정션을 먼저 지우지 않으면 공유 node_modules가 지워진다.
