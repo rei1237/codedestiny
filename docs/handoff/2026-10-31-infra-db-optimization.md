@@ -17,7 +17,7 @@
 |---|---|---|---|
 | 0 작업 트리 | 완료 | (이 문서 커밋) | `npm ci` 생략: 스크립트가 node_modules를 공유 체크아웃으로 정션 연결함. 기준 `check:fast` EXIT=0 |
 | 1 Atlas 스냅샷 도구 | 완료(실측 대기) | a452d553b, fa5156d3b | 리뷰 통과. 실측은 사용자 API 키(ATLAS_PUBLIC_KEY·ATLAS_PRIVATE_KEY·ATLAS_ORG_ID·ATLAS_GROUP_ID) 설정 뒤 `npm run audit:atlas-readonly` |
-| 2 tail DB 연결 집계 | 대기 | | |
+| 2 tail DB 연결 집계 | 완료(피크 실측 대기) | 02441bcac | 리뷰 통과. 중간 실측: fetch shared 연결 p50 119ms/p95 268ms, 크론(*/10) 연결 p50 1764ms(배치 밖 실행). 피크 포함 전체 리포트는 9시간 tail(~00:29 KST) 뒤 |
 | 3 R3·F3 | 대기 | | RED 승인됨 |
 | 4 L1 | 대기 | | |
 | 5 C5 | 대기 | | |
