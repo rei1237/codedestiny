@@ -70,6 +70,21 @@ describe("허용 목록 세그먼트 매칭", () => {
     await expect(client.get(path)).rejects.toThrow(/not allowed|must start/);
   });
 
+  test.each([
+    ["%2e%2e 세그먼트", "/groups/%2e%2e/clusters"],
+    ["대문자 %2E%2E 세그먼트", "/groups/%2E%2E/clusters"],
+    ["백슬래시 경로", "/groups/a\\b/clusters"],
+    ["세그먼트 안의 탭", "/groups/a\tb/clusters"],
+    ["세그먼트 안의 개행", "/groups/a\nb/clusters"],
+    ["%2f 세그먼트", "/groups/a%2fb/clusters"],
+    ["%5c 세그먼트", "/groups/a%5cb/clusters"],
+  ])("우회 시도 거부, fetch 미호출: %s", async (_label, path) => {
+    const fetchImpl = jest.fn(async () => new Response("{}", { status: 200 }));
+    const client = createAtlasReadonlyClient({ publicKey: "p", privateKey: "s", fetchImpl });
+    await expect(client.get(path)).rejects.toThrow(/not allowed/);
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
   test("_testOnly 없이는 baseUrl·pathPrefix·allowUnlisted가 무시된다", async () => {
     const { urls, fetchImpl } = okFetch();
     const client = createAtlasReadonlyClient({ publicKey: "p", privateKey: "s", fetchImpl, baseUrl: "http://evil.example", pathPrefix: "" });
@@ -200,6 +215,23 @@ describe("audit-atlas-readonly CLI", () => {
       tableSpy.mockRestore();
       await rm(dir, { recursive: true, force: true });
     }
+  });
+
+  test("디스크 지표는 units를 반영하고 모르는 단위는 null이다", async () => {
+    const { summarizeNode, toBytes } = await import("../../scripts/audit-atlas-readonly.mjs");
+    const point = (value) => ({ timestamp: "2026-10-01T00:00:00.000Z", value });
+    const node = (units) => summarizeNode({ id: "h1" }, {
+      DISK_PARTITION_SPACE_USED_DATA: { units, dataPoints: [point(2500)] },
+      LOGICAL_SIZE: { units, dataPoints: [point(2500)] },
+    });
+    // 2500 MB = 2.5 GB (1000 기반)
+    expect(node("MEGABYTES").diskUsedDataGb).toMatchObject({ p50: 2.5, max: 2.5 });
+    expect(node("MEGABYTES").logicalSizeGb).toMatchObject({ p50: 2.5, max: 2.5 });
+    expect(node("GIGABYTES").diskUsedDataGb.max).toBe(2500);
+    expect(node("BYTES").diskUsedDataGb.max).toBe(0);
+    expect(toBytes(1, "KILOBYTES")).toBe(1000);
+    expect(node("FURLONGS").diskUsedDataGb).toBeNull();
+    expect(node(undefined).logicalSizeGb).toBeNull();
   });
 
   test("CLI 모듈은 import만으로 실행되지 않는다", async () => {

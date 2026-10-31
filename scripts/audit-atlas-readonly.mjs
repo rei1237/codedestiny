@@ -18,6 +18,13 @@ export const METRICS = [
 const MEASUREMENT_QUERY = "granularity=PT1H&period=P30D";
 const GB = 1e9;
 
+// Atlas 측정 단위를 바이트로 바꾼다. 1000 기반(위 GB = 1e9와 동일). 모르는 단위는 null.
+const UNIT_BYTES = { BYTES: 1, KILOBYTES: 1e3, MEGABYTES: 1e6, GIGABYTES: 1e9, TERABYTES: 1e12, PETABYTES: 1e15 };
+export function toBytes(value, units) {
+  const factor = UNIT_BYTES[String(units || "").toUpperCase()];
+  return typeof value === "number" && factor !== undefined ? value * factor : null;
+}
+
 // ---- 순수 계산 -------------------------------------------------------------
 
 export function percentile(sortedValues, p) {
@@ -63,6 +70,7 @@ export function summarizeNode(processInfo, measurementsByName) {
   if (!m || m.unavailable) return { process: processInfo, unavailable: m?.unavailable || "측정 없음" };
   const metric = (name) => (m[name] && !m[name].unavailable ? m[name] : null);
   const valuesOf = (name) => pointsOf(metric(name)).map((d) => d.value);
+  const bytesOf = (name) => pointsOf(metric(name)).map((d) => toBytes(d.value, metric(name).units));
   const ops = OPCOUNTERS.map(metric).filter(Boolean).map(pointsOf);
   const out = metric("NETWORK_BYTES_OUT");
   return {
@@ -73,8 +81,8 @@ export function summarizeNode(processInfo, measurementsByName) {
     cpuPercentSystemNormalizedUser: roundStats(stats(valuesOf("SYSTEM_NORMALIZED_CPU_USER"))),
     cpuPercentProcessUser: roundStats(stats(valuesOf("PROCESS_CPU_USER"))),
     scannedObjectsPerReturned: roundStats(stats(valuesOf("QUERY_TARGETING_SCANNED_OBJECTS_PER_RETURNED"))),
-    diskUsedDataGb: roundStats(stats(valuesOf("DISK_PARTITION_SPACE_USED_DATA")), GB),
-    logicalSizeGb: roundStats(stats(valuesOf("LOGICAL_SIZE")), GB),
+    diskUsedDataGb: roundStats(stats(bytesOf("DISK_PARTITION_SPACE_USED_DATA")), GB),
+    logicalSizeGb: roundStats(stats(bytesOf("LOGICAL_SIZE")), GB),
   };
 }
 
