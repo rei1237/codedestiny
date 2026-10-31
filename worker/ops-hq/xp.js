@@ -191,22 +191,28 @@ export async function syncTaskXp(cols, { now = new Date(), actor = "system", rea
 
 /** 원장 합계 → ops_xp_state 캐시. 최고 레벨은 $max 로만 올라가고 환불로 내려가지 않는다. */
 export async function recomputeXpState(cols, { now = new Date() } = {}) {
-  const rows = await cols.ledger.find({}, { projection: { delta: 1, sourceType: 1, mastery: 1 } }).toArray();
+  // 원장 전체를 읽어 오지 않고 (원천, 숙련도) 조합별 합계만 서버에서 묶어 받는다. 조합 수는 원장 행 수와 무관하게 작다.
+  const groups = await cols.ledger.aggregate([
+    { $group: { _id: { sourceType: "$sourceType", mastery: "$mastery" }, delta: { $sum: "$delta" }, count: { $sum: 1 } } },
+  ]).toArray();
   let total = 0;
+  let entryCount = 0;
   const bySource = { task: 0, revenue: 0, traffic: 0 };
   const byMastery = Object.fromEntries(Object.keys(MASTERY_LABELS).map((key) => [key, 0]));
-  for (const row of rows) {
-    const delta = Number(row.delta) || 0;
+  for (const group of groups) {
+    const delta = Number(group.delta) || 0;
+    const { sourceType, mastery } = group._id || {};
     total += delta;
-    bySource[row.sourceType] = (bySource[row.sourceType] || 0) + delta;
-    if (row.mastery) byMastery[row.mastery] = (byMastery[row.mastery] || 0) + delta;
+    entryCount += Number(group.count) || 0;
+    bySource[sourceType] = (bySource[sourceType] || 0) + delta;
+    if (mastery) byMastery[mastery] = (byMastery[mastery] || 0) + delta;
   }
   total = Math.max(0, total);
   const level = levelForXp(total);
   await cols.xpState.updateOne(
     { _id: BUSINESS_ID },
     {
-      $set: { total, bySource, byMastery, level, ruleVersion: XP_RULES.version, updatedAt: now, entryCount: rows.length },
+      $set: { total, bySource, byMastery, level, ruleVersion: XP_RULES.version, updatedAt: now, entryCount },
       $max: { peakLevel: level, peakXp: total },
       // 처음 만들 때는 지금 레벨을 이미 본 것으로 둔다 — 첫 화면에서 레벨업 연출이 터지지 않게.
       $setOnInsert: { ackLevel: level, createdAt: now },

@@ -85,6 +85,35 @@ describe("업적", () => {
     expect(list.find((row) => row.key === "first_quest")).toMatchObject({ unlocked: true, achievedAt: first });
     expect(list.find((row) => row.key === "all_channels").unlocked).toBe(false);
   });
+
+  const seedAchieved = async (cols, keys) => {
+    for (const key of keys) await cols.achievements.insertOne({ _id: key, achievedAt: NOW, recordedAt: NOW });
+  };
+
+  test("모두 달성했으면 근거 기록을 읽지 않는다", async () => {
+    const cols = createOpsCols();
+    await seedAchieved(cols, achievements.ACHIEVEMENTS.map((spec) => spec.key));
+    const ledgerFind = jest.spyOn(cols.ledger, "find");
+    const questFind = jest.spyOn(cols.quests, "find");
+    expect(await achievements.syncAchievements(cols, { now: NOW })).toEqual({ created: 0 });
+    expect(ledgerFind).not.toHaveBeenCalled();
+    expect(questFind).not.toHaveBeenCalled();
+  });
+
+  test("원장 타임라인은 레벨 업적이 남았을 때만 읽는다", async () => {
+    const cols = createOpsCols();
+    await cols.quests.insertOne({ _id: "q1", kind: "publish", channel: "tiktok", status: "done", xpVerifiedAt: new Date("2026-10-13T01:00:00Z") });
+    await seedAchieved(cols, ["level_5", "level_10"]);
+    const ledgerFind = jest.spyOn(cols.ledger, "find");
+    expect(await achievements.syncAchievements(cols, { now: NOW })).toEqual({ created: 2 });
+    expect(ledgerFind).not.toHaveBeenCalled();
+
+    await cols.achievements.rows.delete("level_5");
+    await cols.ledger.insertOne({ _id: "revenue:cumulative#r000001", delta: 700, processedAt: new Date("2026-10-14T00:00:00Z") });
+    expect(await achievements.syncAchievements(cols, { now: NOW })).toEqual({ created: 1 });
+    expect(ledgerFind).toHaveBeenCalledTimes(1);
+    expect(await cols.achievements.findOne({ _id: "level_5" })).toMatchObject({ achievedAt: new Date("2026-10-14T00:00:00Z") });
+  });
 });
 
 describe("동기화", () => {

@@ -57,16 +57,26 @@ export function evaluateAchievements({ doneQuests = [], countedFacts = [], plann
   return out;
 }
 
+// 원장 타임라인으로만 판정하는 업적. 이 업적이 모두 기록됐으면 원장을 읽을 이유가 없다.
+const LEDGER_TIMELINE_KEYS = Object.freeze(["level_5", "level_10"]);
+
 export async function syncAchievements(cols, { now = new Date() } = {}) {
+  // 이미 기록된 업적은 다시 판정해도 _id 중복으로 버려지므로, 먼저 남은 업적만 추린다.
+  const recorded = new Set((await cols.achievements.find({}, { projection: { _id: 1 } }).toArray()).map((row) => row._id));
+  const pending = ACHIEVEMENTS.filter((spec) => !recorded.has(spec.key));
+  if (!pending.length) return { created: 0 };
+  const needsTimeline = pending.some((spec) => LEDGER_TIMELINE_KEYS.includes(spec.key));
   const [doneQuests, countedFacts, plannedWeek1, ledgerTimeline] = await Promise.all([
     cols.quests.find({ status: "done", xpVerifiedAt: { $ne: null } }, { projection: { kind: 1, channel: 1, xpVerifiedAt: 1 } }).toArray(),
     cols.revenueFacts.find({ xpState: "counted", netKRW: { $gt: 0 } }, { projection: { paidAt: 1, netKRW: 1 } }).toArray(),
     cols.quests.find({ origin: "plan", plannedDate: { $gte: "2026-10-12", $lte: "2026-10-18" } }, { projection: { kind: 1, status: 1, xpVerifiedAt: 1, doneAt: 1 } }).toArray(),
-    cols.ledger.find({}, { projection: { delta: 1, processedAt: 1 } }).sort({ processedAt: 1, _id: 1 }).toArray(),
+    needsTimeline
+      ? cols.ledger.find({}, { projection: { delta: 1, processedAt: 1 } }).sort({ processedAt: 1, _id: 1 }).toArray()
+      : [],
   ]);
   const evaluated = evaluateAchievements({ doneQuests, countedFacts, plannedWeek1, ledgerTimeline });
   let created = 0;
-  for (const spec of ACHIEVEMENTS) {
+  for (const spec of pending) {
     const achievedAt = evaluated[spec.key];
     if (!achievedAt) continue;
     try {

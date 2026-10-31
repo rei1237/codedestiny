@@ -139,6 +139,34 @@ class FakeCollection {
     return cursor;
   }
 
+  // $group(+$sum)만 흉내 낸다 — ops-hq 가 쓰는 집계 모양이 이것뿐이다.
+  aggregate(pipeline = []) {
+    let rows = this.all();
+    for (const stage of pipeline) {
+      if (!stage.$group) throw new Error("fake: unsupported stage " + Object.keys(stage)[0]);
+      const { _id: idSpec, ...accumulators } = stage.$group;
+      const resolve = (spec, doc) => {
+        if (typeof spec === "string" && spec.startsWith("$")) return getAt(doc, spec.slice(1));
+        if (spec && typeof spec === "object") return Object.fromEntries(Object.entries(spec).map(([key, value]) => [key, resolve(value, doc)]));
+        return spec;
+      };
+      const groups = new Map();
+      for (const doc of rows) {
+        const id = idSpec === null ? null : resolve(idSpec, doc);
+        const key = JSON.stringify(id ?? null);
+        const group = groups.get(key) || { _id: id, ...Object.fromEntries(Object.keys(accumulators).map((name) => [name, 0])) };
+        for (const [name, accumulator] of Object.entries(accumulators)) {
+          if (!("$sum" in accumulator)) throw new Error("fake: unsupported accumulator " + Object.keys(accumulator)[0]);
+          const value = resolve(accumulator.$sum, doc);
+          group[name] += typeof value === "number" ? value : 0;
+        }
+        groups.set(key, group);
+      }
+      rows = [...groups.values()];
+    }
+    return { toArray: async () => rows };
+  }
+
   async findOne(query = {}) {
     return clone(this.all().find((doc) => matches(doc, query)) || null);
   }
