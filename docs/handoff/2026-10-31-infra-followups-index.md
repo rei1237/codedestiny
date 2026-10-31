@@ -23,7 +23,7 @@ next: "1순위 월정석 해금 경로 문서부터. 먼저 '현재 상태 확�
 ## 현재 상태 확인 (시작 전에)
 
 2026-10-31 21:40 KST 기준:
-- 본 작업 커밋은 `wt/infra-optimization-20261031-150228`에 있다. 배포용 cherry-pick 트리는 `wt/infra-deploy-20261031-190620`이다(origin/main `c110fc2f1` 위 46개, HEAD `2d56489bd`). 둘 다 **미push**다. push는 사용자 확인 대기다(아래 "이 세션이 못 끝낸 것" 2).
+- 본 작업 커밋은 `wt/infra-optimization-20261031-150228`에 있다. 배포용 cherry-pick 트리는 `wt/infra-deploy-20261031-190620`이다(origin/main `c110fc2f1` 위). 문서 커밋이 더해질 때마다 개수와 HEAD가 바뀐다. 문서 속 "46개"는 그 시점 값이다. 지금 목록은 `git log --oneline c110fc2f1..wt/infra-deploy-20261031-190620`로 본다. 둘 다 **미push**다. push는 사용자 확인 대기다(아래 "이 세션이 못 끝낸 것" 2).
 - 스테이징 릴리스는 `c110fc2f1`에서 다른 세션 커밋의 adsense-readiness 빌드 오류로 막혀 있었다(실패 런 41195463516, 41196675384, 41198056546). 21:35에 origin/main이 `1b262f31c`("fix: recover CI and separate SNULIFE review codes")로 움직였다. 그 스테이징 런 41201869815도 실패했다(21:42). adsense-readiness는 통과했지만 배포 전 고위험 mock 게이트의 `verify:phone-encryption`이 `/onboarding must stay removed`(`scripts/verify-phone-encryption.mjs:236`)로 멈췄다. `app/onboarding/page.tsx`는 다른 세션 커밋 `bea087f4c`가 되살렸고 `1b262f31c`도 그 파일을 고쳤다. 이 브랜치의 46개 커밋은 onboarding을 건드리지 않는다. **스테이징은 여전히 다른 세션 변경으로 막혀 있다.**
 
 ```bash
