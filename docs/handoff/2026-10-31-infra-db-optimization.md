@@ -20,7 +20,7 @@
 | 2 tail DB 연결 집계 | 완료(피크 실측 대기) | 02441bcac | 리뷰 통과. 중간 실측: fetch shared 연결 p50 119ms/p95 268ms, 크론(*/10) 연결 p50 1764ms(배치 밖 실행). 피크 포함 전체 리포트는 9시간 tail(~00:29 KST) 뒤 |
 | 3 R3·F3 | 완료 | 4de80b27c | RED 승인됨. 리뷰 Approved(Minor 3). 환불·취소 기록에 cancel → 상태 불변(CAS), 세 라우트가 generation_failed를 재시도 증빙으로 인정 → apply 경로(billing.js:2479 revoked 403, CAS $nin refunded/cancelled)로 completed 전이 확인. check:payment 잔여는 기존 shell-dictionary-parity 1건 |
 | 4 L1 | 완료 | 238ec6554 | 리뷰 Approved(Minor 2). LLM in-flight dedup을 currentDbScopeId() 요청 스코프로 한정, 스코프 없으면 공유 안 함. node:test 18/18, jest llm 116/116 |
-| 5 C5 | 대기 | | |
+| 5 C5 | 완료 | 7a40ea881 | 리뷰 Approved(Minor 3). 10분 크론 18개 태스크 실패를 태스크별 시간당 1회 운영자 알림(IdempotencyKey cron10-failure-alert, DB 장애 시 isolate 메모로 억제하고 발송). test:node UI 14건은 origin/main 사전 실패(셸↔ko.json 3키 등) |
 | 6 R1·R2 | 대기 | | |
 | 7 P4 | 대기 | | RED 승인됨 |
 | 8 쿼리 핫스팟 | 대기 | | Step 3 인덱스 생성은 승인 전 금지 |
