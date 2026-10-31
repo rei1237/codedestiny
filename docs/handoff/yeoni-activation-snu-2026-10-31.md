@@ -1,5 +1,5 @@
 ---
-status: active
+status: done
 updated: 2026-10-31
 workspace: D:/Development/code-destiny/.codex-worktrees/activation-rewards-20261031-145450
 branch: wt/activation-rewards-20261031-145450
@@ -50,3 +50,8 @@ D:/Development/code-destiny/outputs/snulife-partnership-20261031/
 ## 운영 경계·남은 확인
 
 실 LLM·실결제·운영 DB 지급·실제 메일·게시·운영 승격은 미실행. 별도 최종 승인 후 게시 시작·종료일 및 실제 코드 설정, 운영 동선·기존 결과 보존 확인, 준비 상태에 맞춘 자료 갱신과 발송을 진행한다. 기존 main과 루트의 타 세션 변경을 보존한다.
+
+## 전달 기록
+
+기능 커밋: 8602c9c26. check:pre-push 전체 통과(63개 서비스·미러 일치·1037 URLs·llms·entity registry). 로컬 main의 타 세션 미커밋 변경과 충돌해 fast-forward는 안전하게 중단됐다. 미커밋 파일을 보존하고 최신 원격 main을 포함한 이 작업 HEAD를 origin/main으로 직접 push한다. 공식 CI는 push 후 최종 보고 직전에 1회 확인하며 진행 중이면 성공으로 표기하지 않는다.
+운영 활성화·최종 혜택 제공·게시·메일 발송은 별도 승인 대기. 이 문서의 done은 개발·자료 준비 전달 상태이며 운영 집행 완료를 뜻하지 않는다.
