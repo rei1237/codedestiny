@@ -13,8 +13,8 @@
  */
 import { handlePaymentsContext } from "../../worker/payments/index.js";
 import { listProducts } from "../../worker/payments/catalog.js";
-import { getPaidFeatureBillingType } from "../../worker/lib/paid-feature-registry.js";
-import { activatePassSubscription, evaluatePassCoverage, revokePassGrantForOrder, terminatePassOnBudgetExhaustion } from "../../worker/payments/passes.js";
+import { getPaidFeatureBillingType, isBirthScopedUnlockFeatureKey } from "../../worker/lib/paid-feature-registry.js";
+import { activatePassSubscription, buildPassConsumeMarker, evaluatePassCoverage, revokePassGrantForOrder, terminatePassOnBudgetExhaustion } from "../../worker/payments/passes.js";
 import { getBillingFeaturePricing } from "../../worker/lib/billing-feature-registry.js";
 import { MIN_PASS_COVERABLE_COIN, MONTHLY_PASS_LIMITS, PASS_LIMITS } from "../../worker/lib/profile-limits.js";
 import { makeFakePaymentDb } from "../fixtures/fake-payment-db.mjs";
@@ -249,6 +249,96 @@ describe("라우트 — 왕복 예산·소비·봉투", () => {
     expect(second.response.status).toBe(200);
     expect(second.payload.data.consume.alreadyUnlocked).toBe(true);
     expect(Number(user.profileSubscription.monthlySpendCoin || 0)).toBe(spentOnce);
+  });
+
+  /* 🔴 영구 해금형은 지급 → 소비 → 계정 해금 → 증빙을 한 트랜잭션으로 묶는다. 따로 쓰면 중간 장애가
+     "예산은 깎였는데 증빙이 없다"(지연차감 402) 또는 "지급만 남았다"(무료 해금)를 남긴다.
+     장애 주입은 영냥이 CAS 테스트와 같은 방식(어댑터 메서드 교체)이다 — 픽스처의 transaction 은
+     실패한 시도를 게시하지 않으므로(롤백) 원자성을 그대로 관찰할 수 있다. */
+  describe("🔴 영구 해금 원자성 — 지급·소비·해금·증빙 단일 트랜잭션", () => {
+    const UNLOCKS = listProducts().filter((p) => p.billingType !== "per_use" && !p.passExcluded && !p.familyPassOnly
+      && Number(p.priceCoins) > 0 && Number(p.priceCoins) <= PASS_LIMITS.family);
+    const PLAIN_UNLOCK = UNLOCKS.find((p) => !isBirthScopedUnlockFeatureKey(p.featureKey));
+    const BIRTH_UNLOCK = UNLOCKS.find((p) => isBirthScopedUnlockFeatureKey(p.featureKey));
+    const CASES = [["출생 무관", PLAIN_UNLOCK, ""], ["출생 단위", BIRTH_UNLOCK, "p1"]];
+    const CARDS = [testCard("p1", { userId: USER })];
+
+    const grants = (db) => db.rows.filter((row) => row.grantType === "permanent_unlock");
+    const evidence = (db, featureKey) => db.rows.filter((row) => row.kind === "deduct" && row.featureKey === featureKey);
+    const unlockBody = (item, requestId, profileId) => ({
+      featureKey: item.featureKey, paymentMode: "MEMBERSHIP_PASS", requestId, ...(profileId ? { profileId } : {}),
+    });
+    function replaceWrite(db, modelName, replacement) {
+      const write = db.findOneAndUpdate;
+      db.findOneAndUpdate = async (Model, ...args) => (Model?.modelName === modelName ? replacement() : write(Model, ...args));
+    }
+    function expectUntouched(db, user, item) {
+      expect(Number(user.profileSubscription.monthlySpendCoin || 0)).toBe(0);
+      expect(user.recentConsumeRequestIds || []).toHaveLength(0);
+      expect(grants(db)).toHaveLength(0);
+      expect(user.unlockedFeatures || []).not.toContain(item.featureKey);
+      expect(user.paidFeatures || []).not.toContain(item.featureKey);
+    }
+
+    test("검증 대상 상품이 카탈로그에 있다(없으면 아래 단언이 비어 버린다)", () => {
+      expect(PLAIN_UNLOCK).toBeDefined();
+      expect(BIRTH_UNLOCK).toBeDefined();
+    });
+
+    test.each(CASES)("(a) %s: 증빙 기록이 실패하면 예산·지급·계정 해금이 모두 되돌아간다", async (_label, item, profileId) => {
+      const db = makeFakePaymentDb({ profileCards: CARDS });
+      const user = seedUser(db, activePass("family"));
+      replaceWrite(db, "PointHistory", () => { throw new Error("injected PointHistory write failure"); });
+      const { response } = await postPassCheck(db, unlockBody(item, "atomic-evidence-fail", profileId));
+      expect(response.status).not.toBe(200);
+      expectUntouched(db, user, item);
+      expect(evidence(db, item.featureKey)).toHaveLength(0);
+    });
+
+    test.each(CASES)("(b) %s: 소비 CAS 직전에 장애가 나면 지급이 남지 않는다(무료 해금 없음)", async (_label, item, profileId) => {
+      const db = makeFakePaymentDb({ profileCards: CARDS });
+      const user = seedUser(db, activePass("family"));
+      replaceWrite(db, "User", () => { throw new Error("injected consume failure"); });
+      const { response } = await postPassCheck(db, unlockBody(item, "atomic-consume-fail", profileId));
+      expect(response.status).not.toBe(200);
+      expectUntouched(db, user, item);
+    });
+
+    test.each(CASES)("CAS 패배 %s: 402 로 인계하고 같은 트랜잭션에서 지급을 되돌린다", async (_label, item, profileId) => {
+      const db = makeFakePaymentDb({ profileCards: CARDS });
+      const user = seedUser(db, activePass("family"));
+      replaceWrite(db, "User", () => null);
+      const { response } = await postPassCheck(db, unlockBody(item, "atomic-cas-lost", profileId));
+      expect(response.status).toBe(402);
+      expectUntouched(db, user, item);
+      expect(evidence(db, item.featureKey)).toHaveLength(0);
+    });
+
+    test.each(CASES)("(c) %s: 같은 requestId 두 번 → 소비 1회 · 증빙 1행", async (_label, item, profileId) => {
+      const db = makeFakePaymentDb({ profileCards: CARDS });
+      const user = seedUser(db, activePass("family"));
+      const body = unlockBody(item, "atomic-replay", profileId);
+      expect((await postPassCheck(db, body)).response.status).toBe(200);
+      expect((await postPassCheck(db, body)).response.status).toBe(200);
+      expect(Number(user.profileSubscription.monthlySpendCoin || 0)).toBe(Number(item.priceCoins));
+      expect(user.recentConsumeRequestIds).toEqual([buildPassConsumeMarker(item.featureKey, "atomic-replay")]);
+      expect(grants(db)).toHaveLength(1);
+      expect(evidence(db, item.featureKey)).toHaveLength(1);
+    });
+
+    test("(d) 마커만 있고 증빙이 없는 재요청(구 경로 잔재) → 200 + 증빙 1행, 재차감 없음", async () => {
+      const db = makeFakePaymentDb();
+      const user = seedUser(db, activePass("family"));
+      const requestId = "atomic-legacy-marker";
+      user.recentConsumeRequestIds = [buildPassConsumeMarker(PLAIN_UNLOCK.featureKey, requestId)];
+      const { response, payload } = await postPassCheck(db, unlockBody(PLAIN_UNLOCK, requestId));
+      expect(response.status).toBe(200);
+      expect(payload.data.consume.idempotent).toBe(true);
+      const rows = evidence(db, PLAIN_UNLOCK.featureKey);
+      expect(rows).toHaveLength(1);
+      expect(rows[0].metadata.requestId).toBe(requestId);
+      expect(Number(user.profileSubscription.monthlySpendCoin || 0)).toBe(0);
+    });
   });
 
   describe("🔴 출생 단위 이용권 차감", () => {

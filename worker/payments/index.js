@@ -1788,6 +1788,9 @@ const ROUTES = {
         // 현재 잔여 한도는 새 실행에만 적용하고 동일 요청의 재열람에 적용하지 않는다.
         const markers = Array.isArray(user?.recentConsumeRequestIds) ? user.recentConsumeRequestIds : [];
         if (marker && markers.includes(marker) && !birthScoped) {
+          // 마커만 있고 증빙이 없는 구 경로 잔재도 여기서 증빙을 채운다(결정적 _id upsert 라 멱등,
+          // pass-consumption.js 재생 분기와 같다). 없으면 deferred/register 가 402 로 막는다.
+          await recordPassUsageEvidence(db, { userId, product, requestId, profileId, coverage, user });
           return { coverage: { ...coverage, covered: true, reason: "", coinCost: product.priceCoins }, entitlement, user, replayed: true };
         }
         if (!coverage.covered) return { coverage, entitlement };
@@ -1797,35 +1800,42 @@ const ROUTES = {
            already_unlocked 분기 승계). grantEntitlement 는 upsert 라 순서만 바뀔 뿐 왕복은 늘지 않는다.
            🔴 지급은 **여기 한 번뿐**이다. 소유 확인을 앞으로 옮긴 리팩터가 뒤쪽 지급 쌍을 지우지 않아
            한동안 같은 upsert + $addToSet 가 예산 차감 뒤에 한 번 더 돌았다 — 결과는 같지만 unlock 형
-           이용권 검사마다 왕복 2회를 그냥 버렸다. 뒤에 다시 넣지 말 것. */
-        let grantedIdentity = null;
-        if (unlock) {
-          const granted = await grantEntitlement(db, {
-            userId, product, orderId: requestId, profileId, birthIdentity,
-            contentKey: body.contentKey, scope: body.scope, source: "PASS",
-          });
-          if (granted.alreadyOwned) return { coverage, entitlement, user, alreadyUnlocked: true };
-          grantedIdentity = granted.identity;
-        }
-
-        const updated = await consumePassCoverage(db, {
-          userId, coverage, marker, existingMarkers: markers,
-        });
-        if (!updated) {
-          /* CAS 패배 = 그 사이 예산이 소진됐거나 이용권이 바뀌었다. 커버를 단정하지 않고 인계하되,
-             🔴 위에서 만든 지급은 반드시 되돌린다 — 남기면 예산을 못 깎고도 영구 해금이 성립해
-             그 다음 진입이 무료가 된다(월정석 경로와 같은 결함). */
-          if (grantedIdentity) {
-            await dropEntitlementByIdentity(db, { userId, identity: grantedIdentity, orderId: requestId });
+           이용권 검사마다 왕복 2회를 그냥 버렸다. 뒤에 다시 넣지 말 것.
+           🔴 지급 → 소비 → 계정 해금 → 증빙은 **한 트랜잭션**이다(pass-consumption.js 소비+증빙과 같은
+           패턴). 따로 쓰면 중간 장애가 "지급만 남은 무료 해금"이나 "예산은 깎였는데 증빙이 없어
+           deferred/register 가 402" 를 남긴다. withTransaction 은 일시 오류에 본문을 통째로 재실행하므로
+           본문의 쓰기는 전부 멱등이어야 한다($setOnInsert upsert·마커 CAS·$addToSet·orderId 삭제)
+           — 재시도 사이에 상태를 넘기지 않도록 grantedIdentity 도 본문 안에 둔다. */
+        return db.transaction(async (tx) => {
+          let grantedIdentity = null;
+          if (unlock) {
+            const granted = await grantEntitlement(tx, {
+              userId, product, orderId: requestId, profileId, birthIdentity,
+              contentKey: body.contentKey, scope: body.scope, source: "PASS",
+            });
+            if (granted.alreadyOwned) return { coverage, entitlement, user, alreadyUnlocked: true };
+            grantedIdentity = granted.identity;
           }
-          return { coverage: { covered: false, reason: "pass_access_conflict", tier: coverage.tier }, entitlement };
-        }
-        // 계정 해금 목록은 예산 차감이 확정된 뒤에 적는다($pull 로 되돌리면 다른 경로의 권한까지 지운다).
-        if (unlock) await markUserFeatureUnlocked(db, { userId, featureKey: product.featureKey });
-        // 🔴 증빙 먼저. 구 deferred/register 가 이 행을 찾지 못하면 이용권을 이미 소비하고도
-        //    402 로 막힌다(passes.js recordPassUsageEvidence 머리주석).
-        await recordPassUsageEvidence(db, { userId, product, requestId, profileId, coverage, user: updated });
-        return { coverage, entitlement, user: updated };
+
+          const updated = await consumePassCoverage(tx, {
+            userId, coverage, marker, existingMarkers: markers,
+          });
+          if (!updated) {
+            /* CAS 패배 = 그 사이 예산이 소진됐거나 이용권이 바뀌었다. 커버를 단정하지 않고 인계하되,
+               🔴 위에서 만든 지급은 반드시 되돌린다 — 이 반환은 트랜잭션을 **커밋**하므로 drop 을
+               빼면 예산을 못 깎고도 영구 해금이 성립해 그 다음 진입이 무료가 된다(월정석 경로와 같은 결함). */
+            if (grantedIdentity) {
+              await dropEntitlementByIdentity(tx, { userId, identity: grantedIdentity, orderId: requestId });
+            }
+            return { coverage: { covered: false, reason: "pass_access_conflict", tier: coverage.tier }, entitlement };
+          }
+          // 계정 해금 목록은 예산 차감이 확정된 뒤에 적는다($pull 로 되돌리면 다른 경로의 권한까지 지운다).
+          if (unlock) await markUserFeatureUnlocked(tx, { userId, featureKey: product.featureKey });
+          // 🔴 증빙 먼저. 구 deferred/register 가 이 행을 찾지 못하면 이용권을 이미 소비하고도
+          //    402 로 막힌다(passes.js recordPassUsageEvidence 머리주석).
+          await recordPassUsageEvidence(tx, { userId, product, requestId, profileId, coverage, user: updated });
+          return { coverage, entitlement, user: updated };
+        });
       });
 
       if (!outcome.coverage.covered) {
