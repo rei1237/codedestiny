@@ -559,8 +559,8 @@ export async function runSnsDailyPostTask(env, options = {}) {
  * 이미 성공한 날은 unique 인덱스에 걸려 `already_posted` 로 즉시 빠지므로 정상적인 날의 비용은
  * connectDb 1회 + 채널당 조회 2회다.
  *
- * 🔴 알림은 붙이지 않는다 — cron-failure-alert 가 10분 크론 알림을 금지하고 있고, 그날 실패는
- * 22:00Z 가 이미 한 통 보냈다. 여기서 또 던져 봐야 같은 사실을 5번 더 말할 뿐이다.
+ * 🔴 여기서 따로 알림을 만들지 않는다 — 10분 크론 실패는 cron-tick-failure-alert 가 태스크별 시간당 1회로
+ * 알리고, 그날 실패는 22:00Z 가 이미 한 통 보냈다. 여기서 또 던져 봐야 같은 사실을 5번 더 말할 뿐이다.
  */
 export async function runSnsDailyPostRecovery(env, options = {}) {
   const now = typeof options.now === "number" ? options.now : Date.now();

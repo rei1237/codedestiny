@@ -146,7 +146,7 @@ describe("격리·권한 (정적 확인)", () => {
     const admin = read("worker/routes/admin.js");
     const block = admin.slice(admin.indexOf('path === "/hq"'), admin.indexOf("handleAdminHqRoutes(path"));
     expect(block).toContain("await authorizeAdminRequest(request, env)");
-    expect(read("worker/index.js")).toMatch(/ctx\.waitUntil\(import\("\.\/ops-hq\/sync\.js"\)\s*\.then\(\(\{ runOpsHqSync \}\) => runOpsHqSync\(env\)\)\s*\.catch\(/);
+    expect(read("worker/index.js")).toMatch(/(?:ctx\.waitUntil|trackTask)\(import\("\.\/ops-hq\/sync\.js"\)\s*\.then\(\(\{ runOpsHqSync \}\) => runOpsHqSync\(env\)\)\s*\.catch\(/);
     const payments = fs.readdirSync(path.join(root, "worker/payments")).filter((name) => name.endsWith(".js"));
     for (const name of payments) expect(read(`worker/payments/${name}`)).not.toMatch(/ops-hq/);
   });

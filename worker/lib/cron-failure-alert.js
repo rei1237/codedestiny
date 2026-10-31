@@ -10,7 +10,7 @@ import { escapeTelegramHtml, sendTelegramMessage } from "./telegram.js";
  * (worker/lib/daily-fortune-task.js 의 설정 오류 알림은 발송을 시도한 뒤에만 울린다).
  *
  * 🔴 실행 1회당 최대 1건. 태스크마다 보내면 커넥션 장애 한 번이 6통이 된다.
- * 🔴 10분 크론(payments-reconcile)에는 붙이지 않는다 — 하루 144회라 알림이 소음이 된다.
+ * 🔴 10분 크론(payments-reconcile)에는 붙이지 않는다 — 하루 144회라 알림이 소음이 된다. 그쪽은 cron-tick-failure-alert.js 가 태스크별 시간당 1회로 억제해 알린다.
  * 🔴 throw 하지 않는다 — 알림 실패가 크론을 죽이면 안 된다(telegram.js 와 같은 계약).
  *
  * 🔴 "던지지 않았다"는 "일했다"가 아니다. 구독자를 하나도 못 찾은 실행은 정상 반환하면서도
