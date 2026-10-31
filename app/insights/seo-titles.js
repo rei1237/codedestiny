@@ -18,6 +18,10 @@
 import { publicRecordCopy, PUBLIC_RECORD_PATH } from '../../lib/seo/public-record-copy.mjs';
 
 export const INSIGHT_SEO_TITLES = {
+  'gyeokguk-vs-yongshin': '격국과 용신의 차이 | 꿀꿀 운세',
+  'jonggyeok-gajonggyeok': '종격·가종격과 정격의 차이 | 꿀꿀 운세',
+  'vedic-vs-western-astrology': '베다점과 서양 점성술 비교 | 꿀꿀 운세',
+  'fortune-service-selection-guide': '운세 서비스 선택과 가격 | 꿀꿀 운세',
   'rescene-members-saju-reading-guide': '리센느 멤버 사주 읽기 | 꿀꿀 운세',
   'tarot-question-journal-before-redraw': '타로 질문 기록법 | 꿀꿀 운세',
   'same-day-pillar-different-season-reading': '같은 일주, 다른 계절 | 꿀꿀 운세',

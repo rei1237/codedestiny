@@ -24,6 +24,8 @@ test("locale sitemaps partition canonical URLs without changing lastmod or alter
 
 test("public trust dictionaries are complete, native-language and contain visible FAQ answers", async () => {
   const { TRUST_COPY, TRUST_KEYS, TRUST_LOCALES, trustRoutes } = await import("../../lib/i18n/public-trust-copy.mjs");
+  const { BRAND_FACTS } = await import("../../lib/brand/brand-facts.mjs");
+  const brandNames = [BRAND_FACTS.service.name, ...BRAND_FACTS.service.alternateNames];
   const titles = new Set();
   const descriptions = new Set();
   for (const locale of TRUST_LOCALES) for (const key of TRUST_KEYS) {
@@ -31,7 +33,8 @@ test("public trust dictionaries are complete, native-language and contain visibl
     assert.ok(copy.title && copy.description && copy.intro);
     assert.ok(!titles.has(copy.title)); titles.add(copy.title);
     assert.ok(!descriptions.has(copy.description)); descriptions.add(copy.description);
-    assert.doesNotMatch(JSON.stringify(copy).replaceAll('꿀꿀운세', ''), /[가-힣]|Translation pending/);
+    const nativeCopy = brandNames.reduce((text, name) => text.split(name).join(''), JSON.stringify(copy));
+    assert.doesNotMatch(nativeCopy, /[가-힣]|Translation pending/);
     assert.ok(copy.sections.length >= (key === "faq" ? 10 : 5));
     assert.ok(copy.sections.every(([heading, body]) => heading.length > 0 && body.length > 30));
     assert.ok(fs.existsSync(path.join(root, `app/[locale]/${key}/page.js`)));
