@@ -43,9 +43,18 @@ const KINDS = [
         { 'generationSnapshot.recovery.reviewRequired': true, 'llmMeta.refundEligibleAt': { $exists: false } },
       ],
     }).sort({ createdAt: 1 }).limit(limit).select('_id createdAt featureKey llmMeta.refundSkipped').lean()),
-    mark: (env, id, at) => withMongoRetry(env, () => FusionFortuneConsultation.updateOne(
-      { _id: id, 'llmMeta.reviewAlertAt': { $exists: false } }, { $set: { 'llmMeta.reviewAlertAt': at } }, { timestamps: false },
-    ), { retries: 0 }),
+    // 🔴 llmMeta 는 모델 기본값이 null 이고(recovery 가 generationSnapshot 만 채우는 건은 계속 null), null 부모에는 점 표기 $set 이
+    //    던진다. 그래서 null/없음 CAS 를 먼저 건다(null 을 객체로 바꾸는 것뿐이라 고객 데이터를 덮지 않는다).
+    //    걸리는 문서가 없으면(= 객체 부모) 기존 점 표기 CAS 로 간다.
+    mark: async (env, id, at) => {
+      const bare = await withMongoRetry(env, () => FusionFortuneConsultation.updateOne(
+        { _id: id, llmMeta: null }, { $set: { llmMeta: { reviewAlertAt: at } } }, { timestamps: false },
+      ), { retries: 0 });
+      if (Number(bare?.modifiedCount || 0) > 0) return bare;
+      return withMongoRetry(env, () => FusionFortuneConsultation.updateOne(
+        { _id: id, 'llmMeta.reviewAlertAt': { $exists: false } }, { $set: { 'llmMeta.reviewAlertAt': at } }, { timestamps: false },
+      ), { retries: 0 });
+    },
     render: (doc, now) => row('초융합', doc._id, doc.featureKey || FUSION_PRODUCT, doc.llmMeta?.refundSkipped || 'REVIEW_REQUIRED', doc.createdAt, now),
   },
   {
@@ -115,11 +124,19 @@ export async function alertDeliveryReviews(env, { now = new Date(), send = notif
   summary.delivered = (await sendOperatorAlert(env, send, message)) === true;
   if (!summary.delivered) return summary;
 
+  // 🔴 한 건의 표식 쓰기가 던져도 나머지 건은 계속 찍는다(안 그러면 뒤 건이 10분마다 재알림된다). 실패한 건은 marked 에
+  //    세지 않고, 루프가 끝난 뒤 첫 오류를 다시 던져 Task 5 크론 실패 알림이 보게 한다. 성공 경로의 반환 계약은 그대로다.
+  let markError = null;
   for (const { kind } of found) {
     for (const doc of included.get(kind.key)) {
-      const result = await kind.mark(env, doc._id, now);
-      summary.marked += Number(result?.modifiedCount || 0);
+      try {
+        const result = await kind.mark(env, doc._id, now);
+        summary.marked += Number(result?.modifiedCount || 0);
+      } catch (error) {
+        markError ||= error;
+      }
     }
   }
+  if (markError) throw markError;
   return summary;
 }

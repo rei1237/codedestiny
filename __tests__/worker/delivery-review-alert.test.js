@@ -54,6 +54,15 @@ function fakeModel(rows) {
     updateOne: jest.fn(async (filter, update) => {
       const hit = rows.find((row) => matches(row, filter));
       if (!hit) return { matchedCount: 0, modifiedCount: 0 };
+      // Mongo 는 null·스칼라 부모 아래로 점 표기 $set 을 하면 던진다(없는 부모는 만들어 준다).
+      for (const path of Object.keys(update.$set || {})) {
+        const parts = path.split(".").slice(0, -1);
+        let node = hit;
+        for (const part of parts) {
+          node = node?.[part];
+          if (node === null || (node !== undefined && typeof node !== "object")) throw new Error(`Cannot create field in element {${part}: ${node}}`);
+        }
+      }
       applyUpdate(hit, update);
       return { matchedCount: 1, modifiedCount: 1 };
     }),
@@ -178,9 +187,13 @@ test("(e) 표식 쓰기는 $set 표식 경로 하나뿐이다 — 결과·상태
   const before = structuredClone([fusion.rows, narrative.rows, ziwei.rows]);
   await alertDeliveryReviews({}, { now: NOW, send: delivered() });
   const expected = [[fusion, "llmMeta.reviewAlertAt"], [narrative, "metadata.paidNarrativeRecovery.reviewAlertAt"], [ziwei, "llmMeta.recovery.reviewAlertAt"]];
+  // 초융합은 null 부모 CAS 를 먼저 걸고(객체 부모면 0건 매칭), 이어서 점 표기 CAS 를 건다.
+  expect(fusion.updateOne).toHaveBeenCalledTimes(2);
+  expect(fusion.updateOne.mock.calls[0][0]).toEqual({ _id: "f1", llmMeta: null });
+  expect(fusion.updateOne.mock.calls[0][1]).toEqual({ $set: { llmMeta: { reviewAlertAt: NOW } } });
+  expect(fusion.updateOne.mock.calls[0][2]).toEqual({ timestamps: false });
   for (const [model, path] of expected) {
-    expect(model.updateOne).toHaveBeenCalledTimes(1);
-    const [filter, update, options] = model.updateOne.mock.calls[0];
+    const [filter, update, options] = model.updateOne.mock.calls.at(-1);
     expect(Object.keys(update)).toEqual(["$set"]);
     expect(Object.keys(update.$set)).toEqual([path]);
     expect(options).toEqual({ timestamps: false });
@@ -193,13 +206,35 @@ test("(e) 표식 쓰기는 $set 표식 경로 하나뿐이다 — 결과·상태
   expect([fusion.rows, narrative.rows, ziwei.rows]).toEqual(before);
   // 쓰기는 비멱등이라 재시도 0회로 감싼다.
   const writeCalls = retry.mock.calls.filter(([, , options]) => options?.retries === 0);
-  expect(writeCalls).toHaveLength(3);
+  expect(writeCalls).toHaveLength(4);
 });
 
 test("표식 CAS: 그 사이 다른 틱이 먼저 찍었으면 modifiedCount 0 이라 marked 에 세지 않는다", async () => {
   seed({ f: [fusionRow("f1")] });
-  fusion.updateOne.mockImplementationOnce(async () => ({ matchedCount: 0, modifiedCount: 0 }));
+  fusion.updateOne.mockImplementation(async () => ({ matchedCount: 0, modifiedCount: 0 }));
   expect(await alertDeliveryReviews({}, { now: NOW, send: delivered() })).toEqual({ found: 1, delivered: true, marked: 0 });
+});
+
+test("초융합 llmMeta 가 null 이어도(recovery 가 generationSnapshot 만 채운 건) 표식이 남고 다음 호출에서 조회되지 않는다", async () => {
+  const row = fusionRow("f1", { llmMeta: null, generationSnapshot: { recovery: { reviewRequired: true } } });
+  seed({ f: [row] });
+  expect(await alertDeliveryReviews({}, { now: NOW, send: delivered() })).toEqual({ found: 1, delivered: true, marked: 1 });
+  expect(fusion.rows[0].llmMeta).toEqual({ reviewAlertAt: NOW });
+  expect(fusion.rows[0].generationSnapshot).toEqual({ recovery: { reviewRequired: true } });
+  const send = delivered();
+  expect(await alertDeliveryReviews({}, { now: NOW, send })).toEqual({ found: 0, delivered: false, marked: 0 });
+  expect(send).not.toHaveBeenCalled();
+});
+
+test("한 건의 표식 쓰기가 던져도 나머지 건은 표식을 남기고, 실패는 루프 뒤에 다시 던져 크론 실패 알림이 보게 한다", async () => {
+  seed({ f: [fusionRow("f1")], n: [narrativeRow("n1")], z: [ziweiRow("z1")] });
+  narrative.updateOne.mockImplementationOnce(async () => { throw Object.assign(new Error("write failed"), { code: "MARK_FAILED" }); });
+  await expect(alertDeliveryReviews({}, { now: NOW, send: delivered() })).rejects.toMatchObject({ code: "MARK_FAILED" });
+  expect(fusion.rows[0].llmMeta.reviewAlertAt).toEqual(NOW);
+  expect(ziwei.rows[0].llmMeta.recovery.reviewAlertAt).toEqual(NOW);
+  expect(narrative.rows[0].metadata.paidNarrativeRecovery.reviewAlertAt).toBeUndefined();
+  // 실패한 건만 다음 호출에서 다시 조회·표식된다.
+  expect(await alertDeliveryReviews({}, { now: NOW, send: delivered() })).toEqual({ found: 1, delivered: true, marked: 1 });
 });
 
 test("종류당 limit(기본 20)과 본문 길이 한도 — 본문에 못 실은 건은 표식 없이 다음 호출로 간다", async () => {
