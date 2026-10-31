@@ -62,20 +62,32 @@ function verifyFailureRow(order, now) {
   ].join(" · ");
 }
 
+/* 실행키는 maskId 뒤 8자만. userId·이메일은 싣지 않는다(ServiceExecutionTransaction 의 사용자 필드를 읽지 않는다). */
+function refundFailureRow(execution, now) {
+  return [
+    maskId(execution?.executionKey) || "실행 ID 없음",
+    token(execution?.serviceId || execution?.featureKey, 60) || "-",
+    token(execution?.paymentProvider, 40) || "-",
+    token(execution?.reasonCode, 80) || "-",
+    `실패 후 ${formatElapsed(execution?.refundFailedAt, now)}`,
+  ].join(" · ");
+}
+
 /**
  * 한 틱의 알림 메시지. included 는 본문에 실제로 실린 주문이다 — 표식은 이것만 찍어야 잘린 주문이
  * 다음 틱에 다시 실린다.
  */
-export function buildPaymentAlert({ unfulfilled = [], verifyFailures = [], now = new Date() } = {}) {
-  const subject = `[결제 알림] 미지급 ${unfulfilled.length}건 · PG 대조 실패 ${verifyFailures.length}건`;
+export function buildPaymentAlert({ unfulfilled = [], verifyFailures = [], refundFailures = [], now = new Date() } = {}) {
+  const subject = `[결제 알림] 미지급 ${unfulfilled.length}건 · PG 대조 실패 ${verifyFailures.length}건${refundFailures.length ? ` · 환불 실패 ${refundFailures.length}건` : ""}`;
   const sections = [
     { key: "unfulfilled", title: "■ 결제 완료·권한 미지급(30분+) — 크론이 재지급 중, 원인 확인 필요", orders: unfulfilled, render: unfulfilledRow },
     { key: "verifyFailures", title: "■ PG 대조 실패로 FAILED 확정 — 결제 취소·환불 여부 확인 필요", orders: verifyFailures, render: verifyFailureRow },
+    { key: "refundFailures", title: "■ 환불 실패 — 자동 환불 재시도 소진, 수동 환불·정산 확인 필요", orders: refundFailures, render: refundFailureRow },
   ];
   const lines = [subject];
   let length = subject.length;
   let omitted = 0;
-  const included = { unfulfilled: [], verifyFailures: [] };
+  const included = { unfulfilled: [], verifyFailures: [], refundFailures: [] };
   for (const section of sections) {
     const orders = section.orders.slice(0, PAYMENT_ALERT_SECTION_LIMIT);
     omitted += section.orders.length - orders.length;
