@@ -22,7 +22,7 @@
 | 4 L1 | 완료 | 238ec6554 | 리뷰 Approved(Minor 2). LLM in-flight dedup을 currentDbScopeId() 요청 스코프로 한정, 스코프 없으면 공유 안 함. node:test 18/18, jest llm 116/116 |
 | 5 C5 | 완료 | 7a40ea881 | 리뷰 Approved(Minor 3). 10분 크론 18개 태스크 실패를 태스크별 시간당 1회 운영자 알림(IdempotencyKey cron10-failure-alert, DB 장애 시 isolate 메모로 억제하고 발송). test:node UI 14건은 origin/main 사전 실패(셸↔ko.json 3키 등) |
 | 6 R1·R2 | 완료 | c322f998f | 리뷰 Approved(리뷰 전 보완 + 수정 1라운드, Minor 4 이월). 6A 자동환불 소진(refund_failed) 알림 섹션 C, 6B 비카드 초융합·서사형·자미두수 검토 대기 알림(10분 크론, 알림만·자동 복원 없음). 표식은 전달 성공 뒤 CAS, 상위 객체 null 문서도 표식. 인덱스 생성 없음(Fusion 조회 1건 allowlist) |
-| 7 P4 | 대기 | | RED 승인됨 |
+| 7 P4 | 완료 | 927b56623 | RED 승인됨(스테이징까지). 리뷰 Approved(plan-mandated Important 1 수정 1라운드, Minor 5 이월). unlock 분기 grant→consume→unlock→evidence 단일 트랜잭션, CAS 패배는 sentinel abort로 신규 지급·REFUNDED 복원 함께 롤백(행 삭제 없음), 마커 재생 분기 증빙 보강. 레플리카셋 동시성은 스테이징 확인 항목. 후속: 월정석 해금 경로(/coin-gate/moonstone)의 같은 drop 문제 |
 | 8 쿼리 핫스팟 | 대기 | | Step 3 인덱스 생성은 승인 전 금지 |
 | 9 측정 판정 | 대기 | | |
 | 10 보안 | 대기 | | |
