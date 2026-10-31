@@ -26,7 +26,11 @@ function withDeadline(promise, ms, label) {
 
 test("different inflightScope never shares a pending call across requests", async () => {
   let calls = 0;
-  void withLLMCache({ prompt: "scope-a" }, () => { calls += 1; return never(); }, { inflightScope: "A" });
+  let enteredA;
+  const aEntered = new Promise((resolveEntered) => { enteredA = resolveEntered; });
+  void withLLMCache({ prompt: "scope-a" }, () => { calls += 1; enteredA(); return never(); }, { inflightScope: "A" });
+  // A 의 callFn 진입 = inflightMap 등록 완료(llm-cache.ts 에서 같은 동기 구간). 그 뒤에만 B 를 시작한다.
+  await withDeadline(aEntered, 1000, "scope A never entered callFn");
   const resultB = { text: "B result", provider: "gemini" };
   const result = await withDeadline(
     withLLMCache({ prompt: "scope-a" }, async () => { calls += 1; return resultB; }, { inflightScope: "B" }),
