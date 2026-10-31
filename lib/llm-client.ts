@@ -13,6 +13,7 @@ import {
 import { classifyGeminiHttpError, geminiOutageCode, safeGeminiFailure } from "./gemini-provider-errors.mjs";
 import { reportProviderOutage } from "../worker/lib/provider-outage-alert.js";
 import { recordGeminiUsage } from "../worker/lib/llm-usage-meter.js";
+import { currentDbScopeId } from "../worker/lib/db-scope.js";
 
 export interface LLMRequest {
   /** Total generation attempts across Gemini, cache recovery and Workers AI. */
@@ -1299,7 +1300,10 @@ export async function callLLM(
     return buildStagingMockResponse(localized);
   }
   if (localized.cache?.store) {
-    return withLLMCache(localized, (req) => callLLMUncached(req, env), localized.cache);
+    return withLLMCache(localized, (req) => callLLMUncached(req, env), {
+      ...localized.cache,
+      inflightScope: currentDbScopeId() || "",
+    });
   }
   return callLLMUncached(localized, env);
 }

@@ -32,10 +32,10 @@ test('malformed, truncated and mock responses never become reusable cache entrie
   assert.equal(calls,2);
  }
 });
-test('simultaneous identical calls deduplicate without sharing other purchases',async()=>{
+test('simultaneous identical calls in one request scope deduplicate without sharing other purchases',async()=>{
  let calls=0;
  const generate=async()=>{calls++;await new Promise(resolve=>setTimeout(resolve,10));return response;};
- const config=chapterResponseCache({},'owner','parallel','1');
+ const config={...chapterResponseCache({},'owner','parallel','1'),inflightScope:'request-1'};
  await Promise.all([withLLMCache(request,generate,config),withLLMCache(request,generate,config)]);
  assert.equal(calls,1);
  await withLLMCache(request,generate,chapterResponseCache({},'owner','separate','1'));assert.equal(calls,2);
