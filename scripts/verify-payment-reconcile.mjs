@@ -51,6 +51,26 @@ assert.ok(
   "일일 태스크는 allSettled 로 격리해야 한다(하나가 throw 해도 나머지가 죽지 않게)",
 );
 
+// 10분 분기: 재조정 두 태스크가 trackTask(import→run→loadFailed→catch)로 배선돼야 하고, 분기 안에 trackTask 밖 정적
+// `await import()` 가 없어야 한다(있으면 그 import 가 던질 때 뒤의 결제 대조가 시작도 못 하고 실패 알림도 등록되지 않는다).
+{
+  const tenMinute = scheduledBody.slice(0, scheduledBody.indexOf("return;"));
+  assert.match(
+    tenMinute,
+    /trackTask\("payment-reconcile", import\("\.\/lib\/payment-reconcile-task\.js"\)\s*\.then\(\(\{ runPaymentReconcileTask \}\) => runPaymentReconcileTask\(env\), loadFailed\("payment-reconcile"\)\)\s*\.catch\(/,
+    "10분 크론 분기의 payment-reconcile 이 trackTask(import→run→loadFailed→catch)로 배선돼 있지 않다",
+  );
+  assert.match(
+    tenMinute,
+    /trackTask\("payments-v2-reconcile", import\("\.\/payments\/index\.js"\)\s*\.then\(\(\{ runPaymentsV2Reconcile \}\) => runPaymentsV2Reconcile\(env\), loadFailed\("payments-v2-reconcile"\)\)\s*\.catch\(/,
+    "10분 크론 분기의 payments-v2-reconcile 이 trackTask(import→run→loadFailed→catch)로 배선돼 있지 않다",
+  );
+  assert.ok(
+    !tenMinute.replace('await import("./lib/cron-tick-failure-alert.js")', "").includes("await import("),
+    "10분 크론 분기에 trackTask 밖 정적 await import 가 남았다",
+  );
+}
+
 // 🔴 일일 태스크의 **로드**가 실패 포착 블록 안에 있어야 한다.
 // 2026-08-20~08-31 의 12일 침묵을 알림으로 잡으려고 실패 수집을 붙였는데, 그 시점의 동적
 // import 6개는 ctx.waitUntil 밖에 있었다 — 하나라도 던지면 scheduled 가 통째로 거절되고

@@ -182,7 +182,7 @@ for(const kind of ['pass','monthly','single'])describe(kind,()=>{
   function visit(node){if(ts.isMethodDeclaration(node)&&node.name?.getText(ast)==='scheduled')scheduled=node;ts.forEachChild(node,visit)}
   visit(ast);expect(scheduled).toBeDefined();
   const pending=[];
-  const context=vm.createContext({console,Date,PAYMENT_RECONCILE_CRON:'*/10 * * * *',
+  const context=vm.createContext({console,Date,setTimeout,clearTimeout,PAYMENT_RECONCILE_CRON:'*/10 * * * *',
    __import:async spec=>spec==='./lib/fusion-fortune-recovery-task.js'
     ? import('../../worker/lib/fusion-fortune-recovery-task.js')
     : {monitorPaidNarratives:async()=>{}, checkProviderRecovery:async()=>{}, checkLlmBudget:async()=>{}, runPaidNarrativeRecovery:async()=>{},runConsultationRecovery:async()=>{}, runYeongnyangiRecovery: async () => {}, runTossOrderReconciliation: async () => {}, runTossUnlinkRecovery: async () => {}, runPaymentReconcileTask:async()=>{},runPaymentsV2Reconcile:async()=>{},runSnsDailyPostRecovery:async()=>{},runThreadsDailyJobs:async()=>{},runMasterLoveCodexRecovery:async()=>{},runZiweiDeepReportRecovery:async()=>{}},
