@@ -1,6 +1,6 @@
 ---
 status: active
-updated: 2026-10-31
+updated: 2026-11-01
 next: "A1(alertError → tickFailed)부터. 각 항목은 독립이며 하나씩 작업 트리·커밋으로 처리"
 ---
 
@@ -66,7 +66,7 @@ next: "A1(alertError → tickFailed)부터. 각 항목은 독립이며 하나씩
 
 ## E. 문서 정밀도 (GREEN)
 
-이 세션이 2026-11-01 00:40 KST tail 종료 뒤 문서 커밋에서 처리할 예정이다. `git log --oneline -- docs/infrastructure`에서 "최종 tail"이 들어간 커밋이 있으면 처리된 것이니 이 절을 지운다.
+2026-11-01 문서 커밋에서는 tail 중간 수치만 처리했다(아래 마지막 항목). 나머지 항목은 다음 세션이 처리한다. 줄 번호는 2026-10-31 기준이라 밀렸을 수 있으니 따옴표 안의 문구로 찾는다.
 
 - `docs/infrastructure/MONGODB-OPTIMIZATION.md:88-90`: 파생 uptime을 136,450초에서 실측 136,480초로 고친다(결론 불변).
 - 같은 파일 `:127`: COLLSCAN 54건 중 49건이 원장 밖 컬렉션이므로 "규모 미확인"을 붙인다.
@@ -75,7 +75,7 @@ next: "A1(alertError → tickFailed)부터. 각 항목은 독립이며 하나씩
 - `INFRASTRUCTURE-AUDIT.md:223`: "카드 초융합" 깨진 문구를 고친다.
 - `docs/context/ai-and-db.md:20`, `docs/DEBUGGING_GUIDE.md:54`: "M30 이상 제한 없음"에 "MongoDB 9.0 미만" 단서를 붙인다(9.0+ M30은 24/초, 운영은 8.0.34).
 - `docs/context/ai-and-db.md:74-79`: Cloudflare anycast IP와 `*.workers.dev` 서브도메인(계정 식별자)을 일반화한다. 공개 저장소이며, 2026-08-21 `53a26039ef`부터 있던 줄이다.
-- tail 중간 수치: `INFRASTRUCTURE-AUDIT.md:18,39,60`, `SERVER-PERFORMANCE.md:15,61,148,172,200,230,246`, `docs/context/ai-and-db.md:38`의 "중간 판정(피크 미포함)" 값을 최종 수치로 바꾼다. 방법은 색인 문서 "이 세션이 못 끝낸 것"에 있다.
+- ~~tail 중간 수치를 최종 수치로 바꾼다~~ → 2026-11-01 문서 커밋에서 처리했다(T-FINAL).
 
 ## F. DR 후속
 
@@ -85,7 +85,7 @@ next: "A1(alertError → tickFailed)부터. 각 항목은 독립이며 하나씩
 |---|---|---|
 | F1 | 확인 | 스테이징이 `MONGO_DB_NAME`/`MONGO_NAME` 재정의로 운영과 다른 DB를 쓰는지 아직 확인하지 못했다. 이름만 확인한다(`wrangler secret list`, `[vars]`) |
 | F2 | 도구 | EJSON 덤프를 복원하는 저장소 도구가 없다. `mongorestore` 대체 스크립트가 필요한지 정한다 |
-| F3 | 알림 | `[db-connect-error]` 급증 알림이 없다. 지금은 런북 1(로그 검색)뿐이다 |
+| F3 | 알림 | `[db-connect-error]` 급증 알림이 없다. 지금은 런북 1(로그 검색)뿐이다. 2026-10-31 P1 장애가 이 공백 때문에 경보 없이 지나갔다. [장애 후속](2026-11-01-db-connection-rate-limit-outage.md) 2단계에서 다룬다 |
 | F4 | 확인 | 이전 Worker 버전으로 롤백할 때 secret이 어떻게 동작하는지 미확인이다 |
 | F5 | 절차 | 운영 롤백은 CI `mode=rollback` 또는 break-glass뿐이다. 런북 4에 이미 있고, 연습한 적이 없다 |
 | F6 | RED(라우팅) | 스테이징 Pages의 `API_WORKER_ORIGIN` 기본값이 운영 Worker로 향한다(`public/_worker.js:347`). 스테이징 화면이 운영 API를 칠 수 있다 |
