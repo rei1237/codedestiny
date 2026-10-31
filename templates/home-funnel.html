@@ -154,7 +154,37 @@
   <div class="cdh-flow">
 
 <div class="cdh-slot" id="cdhFusionSignatureSlot">{{fusionSignature}}</div>
-<div class="cdh-slot" id="cdhNeoLetterSlot">{{neoEmailConsultation}}</div>
+<section class="cdh-consult-choice" id="cdhYeongnyangiSlot" aria-labelledby="cdhConsultChoiceTitle" data-marker="cd-yeongnyangi-neo-choice-v1">
+  <img class="cdh-consult-choice__room" src="/assets/yeongnyangi/original/room-780.webp" srcset="/assets/yeongnyangi/original/room-780.webp 780w, /assets/yeongnyangi/original/room-1440.webp 1440w" sizes="(max-width: 640px) calc(100vw - 32px), min(100vw - 80px, 1280px)" width="1440" height="810" loading="lazy" decoding="async" alt="">
+  <header class="cdh-consult-choice__head">
+    <svg class="cdh-consult-choice__moon" aria-hidden="true" viewBox="0 0 160 24" width="160" height="24" fill="none"><path d="M2 12h52m52 0h52" stroke="currentColor"/><path d="M85 3a9 9 0 1 0 5 15A9 9 0 0 1 85 3Z" fill="currentColor"/></svg>
+    <h2 id="cdhConsultChoiceTitle" data-cd-trans="home.consultChoice.title">내 고민에 맞는 상담을 골라보세요</h2>
+    <p data-cd-trans="home.consultChoice.subtitle">지금, 달빛 아래에서 당신의 질문이 더 선명해질 거예요.</p>
+  </header>
+  <div class="cdh-consult-choice__cards">
+    <article class="cdh-choice-card cdh-choice-card--yeongnyangi" aria-labelledby="cdhYeongnyangiCardTitle">
+      <div class="cdh-choice-card__art cdh-choice-card__art--yeongnyangi" aria-hidden="true">
+        <img class="cdh-choice-card__character" src="/assets/yeongnyangi/original/hero-480.webp" width="480" height="480" loading="lazy" decoding="async" alt="">
+      </div>
+      <div class="cdh-choice-card__copy">
+        <h3 id="cdhYeongnyangiCardTitle" data-cd-trans="home.yeongnyangiEntry.badge">영냥이의 질문 상담</h3>
+        <p class="cdh-choice-card__method" data-cd-trans="home.consultChoice.yeongnyangi.method">질문과 상황을 중심으로</p>
+        <p data-cd-trans="home.consultChoice.yeongnyangi.body">내 질문과 상황을 운세 체계별로 읽어요. 고민의 흐름과 다음 행동을 챕터별 해설로 확인할 수 있어요.</p>
+        <a class="cdh-choice-card__cta cdh-choice-card__cta--primary" href="/yeongnyangi/" data-cd-localized-route="yeongnyangi" data-cd-portal-link data-cd-portal-placement="home_hero"><span data-cd-trans="home.yeongnyangiEntry.start">영냥이 상담 시작하기</span> <span aria-hidden="true">→</span></a>
+      </div>
+    </article>
+    <div class="cdh-consult-choice__neo" id="cdhNeoLetterSlot">{{neoEmailConsultation}}</div>
+  </div>
+  <table class="cdh-consult-choice__compare">
+    <caption data-cd-trans="home.consultChoice.compare.caption">영냥이 질문 상담과 네오 작전 결정서 비교</caption>
+    <thead><tr><th scope="col" data-cd-trans="home.consultChoice.compare.selection">상담 선택</th><th scope="col" data-cd-trans="home.yeongnyangiEntry.badge">영냥이의 질문 상담</th><th scope="col" data-cd-trans="home.consultChoice.neo.title">네오 작전 결정서</th></tr></thead>
+    <tbody>
+      <tr><th scope="row" data-cd-trans="home.consultChoice.compare.format">상담 방식</th><td data-service="영냥이의 질문 상담" data-cd-trans-attr="data-service:home.yeongnyangiEntry.badge" data-cd-trans="home.consultChoice.compare.yeongnyangi.format">질문을 반영한 운세 체계별 챕터 해설</td><td data-service="네오 작전 결정서" data-cd-trans-attr="data-service:home.consultChoice.neo.title" data-cd-trans="home.consultChoice.compare.neo.format">AI가 작성하고 사람이 검수</td></tr>
+      <tr><th scope="row" data-cd-trans="home.consultChoice.compare.fit">잘 맞는 고민</th><td data-service="영냥이의 질문 상담" data-cd-trans-attr="data-service:home.yeongnyangiEntry.badge" data-cd-trans="home.consultChoice.compare.yeongnyangi.fit">내 상황과 흐름을 폭넓게 살펴보고 싶을 때</td><td data-service="네오 작전 결정서" data-cd-trans-attr="data-service:home.consultChoice.neo.title" data-cd-trans="home.consultChoice.compare.neo.fit">한 가지 선택의 기준과 실행안이 필요할 때</td></tr>
+      <tr><th scope="row" data-cd-trans="home.consultChoice.compare.delivery">결과 전달</th><td data-service="영냥이의 질문 상담" data-cd-trans-attr="data-service:home.yeongnyangiEntry.badge" data-cd-trans="home.consultChoice.compare.yeongnyangi.delivery">상담 화면과 기록에서 확인</td><td data-service="네오 작전 결정서" data-cd-trans-attr="data-service:home.consultChoice.neo.title" data-cd-trans="home.consultChoice.compare.neo.delivery">검수한 답변을 이메일로 전달</td></tr>
+    </tbody>
+  </table>
+</section>
 <div class="cdh-slot" id="cdhFeatured"><div id="cdhSignatureSlot">{{signature}}</div></div>
 <section class="cdh-free" data-home-reveal="free" aria-labelledby="cdhFreeTitle">
   <h2 class="cdh-free__title" id="cdhFreeTitle" data-cd-trans="home.simpleHome.freeTitle">무료로 먼저</h2>

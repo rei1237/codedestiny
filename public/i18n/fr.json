@@ -2277,6 +2277,39 @@
       "compactTitle": "Pass Pot de Miel",
       "conditions": "Services inclus et conditions",
       "otherServices": "Voir les pass des autres services"
+    },
+    "consultChoice": {
+      "title": "Choisissez la consultation adaptée à votre préoccupation",
+      "subtitle": "Laissez votre question s’éclaircir au clair de lune.",
+      "yeongnyangi": {
+        "method": "Centrée sur votre question et votre situation",
+        "body": "Explorez votre question avec différentes méthodes, en chapitres qui éclairent votre situation et les prochaines étapes."
+      },
+      "neo": {
+        "method": "Rédigé par l’IA · vérifié par une personne · envoyé par e-mail",
+        "title": "Décision stratégique de Neo",
+        "body": "Pour préciser les critères et le plan d’action d’une décision. L’IA rédige la réponse, puis une personne la vérifie avant l’envoi par e-mail.",
+        "cta": "Poser une question à Neo",
+        "note": "Recevez par e-mail une réponse vérifiée.",
+        "saleClosed": "En préparation · le paiement et l’envoi des demandes ne sont pas encore ouverts."
+      },
+      "compare": {
+        "caption": "Comparez la consultation Yeongnyangi et le plan de Neo",
+        "selection": "Consultation",
+        "format": "Fonctionnement",
+        "fit": "Adapté à",
+        "delivery": "Envoi du résultat",
+        "yeongnyangi": {
+          "format": "Lecture par chapitres adaptée à votre question",
+          "fit": "Pour mieux comprendre votre situation et ses tendances",
+          "delivery": "Consultez le résultat sur la page et dans vos archives"
+        },
+        "neo": {
+          "format": "Rédigé par l’IA et vérifié par une personne",
+          "fit": "Pour définir les critères et le plan d’action d’une décision",
+          "delivery": "Réponse vérifiée envoyée par e-mail"
+        }
+      }
     }
   },
   "terms": {

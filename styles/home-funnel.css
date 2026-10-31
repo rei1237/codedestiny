@@ -892,7 +892,7 @@ html.neo-mode #cdHomeFunnel{--cdh-moon-art:url('/images/home/illustrated/moon-fl
 .cdh .cdh-neo-letter p{color:var(--cd-neo-letter-silver);font-size:1rem;line-height:1.75;margin:12px 0}
 .cdh .cdh-neo-letter .cdh-neo-letter__method{margin:0 0 8px;color:var(--cd-neo-letter-gold);font-size:.875rem;font-weight:600}
 .cdh .cdh-neo-letter .cdh-neo-letter__price{margin:20px 0 0;font-variant-numeric:tabular-nums;color:var(--cd-neo-letter-gold);font-weight:600}
-.cdh .cdh-neo-letter a{position:relative;display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:52px;background:var(--cd-neo-letter-blue);color:var(--cd-neo-letter-paper)!important;border:1px solid var(--cd-neo-letter-line);padding:12px 18px;border-radius:var(--cd-r-sm);margin:16px 0 12px;text-decoration:none;font-size:1rem;font-weight:600;transition:background-color .18s}
+.cdh .cdh-neo-letter a:not(.cdh-choice-card__cta){position:relative;display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:52px;background:var(--cd-neo-letter-blue);color:var(--cd-neo-letter-paper)!important;border:1px solid var(--cd-neo-letter-line);padding:12px 18px;border-radius:var(--cd-r-sm);margin:16px 0 12px;text-decoration:none;font-size:1rem;font-weight:600;transition:background-color .18s}
 .cdh .cdh-neo-letter a svg{flex-shrink:0}.cdh .cdh-neo-letter a:hover{background:var(--cd-neo-letter-blue-hover)}
 .cdh .cdh-neo-letter :is(a,summary):focus-visible{outline:3px solid var(--cd-neo-letter-gold);outline-offset:4px}
 .cdh .cdh-neo-letter small{display:block;font-size:.875rem;color:var(--cd-neo-letter-silver);line-height:1.7}
@@ -1127,6 +1127,48 @@ html.neo-mode .cdh,body.neo-mode .cdh{--cdh-glass-line:color-mix(in srgb,var(--c
 #cdHomeFunnel #fortuneGatewayEntry .fortune-gateway__entry-note{margin:0;color:var(--cdh-muted);font-size:12px;line-height:1.75;text-align:center}
 @media(max-width:1100px){#cdHomeFunnel .cdh-consult{grid-template-columns:minmax(0,1fr)}}
 @media(max-width:640px){#cdHomeFunnel .cdh-consult{margin:28px 16px 0}#cdHomeFunnel .cdh-consult .cdh-neo-letter{padding:0}}
+/* 영냥이 질문 상담과 네오 이메일 작전 결정서를 한 화면에서 비교한다. */
+#cdHomeFunnel .cdh-consult-choice{--cd-neo-letter-night:#101f34;--cd-neo-letter-paper:#fbf7ef;--cd-neo-letter-silver:#dce7f0;--cd-neo-letter-gold:#f0cf91;--cd-neo-letter-line:#c4a975;--cd-neo-letter-shadow:#06122555;--cd-neo-letter-blue-hover:#315a7d;--choice-plum:#21162e;position:relative;isolation:isolate;display:grid;gap:24px;margin:28px 40px 0;padding:clamp(20px,2.5vw,32px);overflow:hidden;border:1px solid var(--cd-neo-letter-line);border-radius:24px;background:var(--cd-neo-letter-night);color:var(--cd-neo-letter-paper);box-shadow:0 18px 44px var(--cd-neo-letter-shadow)}
+#cdHomeFunnel .cdh-consult-choice::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,#101f3420,#21162e55 36%,#101f34c4)}
+#cdHomeFunnel .cdh-consult-choice__room{position:absolute;inset:0;z-index:-2;width:100%;height:100%;object-fit:cover;object-position:center 35%}
+#cdHomeFunnel .cdh-consult-choice__head{display:grid;align-content:center;justify-items:center;gap:12px;min-height:180px;padding:24px 12px;text-align:center;background:radial-gradient(ellipse at center,#21162ee8,#21162e99 55%,#21162e00 75%)}
+#cdHomeFunnel .cdh-consult-choice__moon{color:var(--cd-neo-letter-gold)}
+#cdHomeFunnel .cdh-consult-choice__head h2{max-width:18ch;margin:0;color:var(--cd-neo-letter-paper);font:700 clamp(26px,3vw,40px)/1.4 var(--font-serif,"Noto Serif KR",serif);letter-spacing:-.025em;text-wrap:balance}
+#cdHomeFunnel .cdh-consult-choice__head p{margin:0;color:var(--cd-neo-letter-paper);font-size:clamp(14px,1.4vw,16px);line-height:1.65;text-wrap:balance}
+#cdHomeFunnel .cdh-consult-choice__cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(14px,2vw,24px);align-items:stretch}
+#cdHomeFunnel .cdh-choice-card{display:grid;grid-template-columns:34% minmax(0,1fr);min-width:0;min-height:320px;overflow:hidden;border:1px solid var(--cd-neo-letter-line);border-radius:18px;background:#21162ef2;color:var(--cd-neo-letter-paper);box-shadow:0 12px 28px var(--cd-neo-letter-shadow)}
+#cdHomeFunnel .cdh-choice-card__art{position:relative;display:block;min-width:0;height:100%;overflow:hidden;background:transparent}
+#cdHomeFunnel .cdh-choice-card__character{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:transparent}
+#cdHomeFunnel .cdh-choice-card__art--neo img{display:block;width:100%;height:100%;object-fit:cover;object-position:67% center}
+#cdHomeFunnel .cdh-choice-card__art--neo::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,var(--cd-neo-letter-night),#101f3400 40%)}
+#cdHomeFunnel .cdh-choice-card__copy{display:flex;flex-direction:column;justify-content:center;gap:10px;min-width:0;padding:24px 20px}
+#cdHomeFunnel .cdh-choice-card__method{margin:0;color:var(--cd-neo-letter-gold);font-size:13px;font-weight:700;line-height:1.65}
+#cdHomeFunnel .cdh-choice-card h3{margin:0;color:var(--cd-neo-letter-paper);font:700 clamp(20px,1.8vw,26px)/1.4 var(--font-serif,"Noto Serif KR",serif);letter-spacing:-.025em;text-wrap:balance}
+#cdHomeFunnel .cdh-choice-card__copy>p:not(.cdh-choice-card__method){margin:0;color:var(--cd-neo-letter-silver);font-size:14px;line-height:1.7;word-break:keep-all;overflow-wrap:anywhere}
+#cdHomeFunnel .cdh-consult-choice .cdh-choice-card__cta{display:flex;align-items:center;justify-content:center;gap:10px;min-height:48px;margin-top:auto;padding:10px 12px;border:1px solid var(--cd-neo-letter-gold);border-radius:999px;background:var(--cd-neo-letter-gold);color:var(--choice-plum);font-size:14px;font-weight:750;text-align:center;text-decoration:none;transition:background-color .18s ease,color .18s ease}
+#cdHomeFunnel .cdh-consult-choice .cdh-choice-card__cta:hover{background:var(--cd-neo-letter-paper);color:var(--choice-plum)}
+#cdHomeFunnel .cdh-consult-choice .cdh-choice-card__cta:active{background:var(--cd-neo-letter-silver)}
+#cdHomeFunnel .cdh-consult-choice .cdh-choice-card__cta:focus-visible{outline:3px solid var(--cd-neo-letter-paper);outline-offset:3px}
+#cdHomeFunnel .cdh-consult-choice .cdh-choice-card__cta span[aria-hidden="true"]{font-size:20px;line-height:1}
+#cdHomeFunnel .cdh-consult-choice__neo{display:flex;min-width:0}
+#cdHomeFunnel .cdh-consult-choice__neo>.cdh-neo-letter{flex:1;grid-template-columns:minmax(0,1fr) 34%;gap:0;margin:0;padding:0;border-radius:18px;background:var(--cd-neo-letter-night)}
+#cdHomeFunnel .cdh-consult-choice__neo .cdh-choice-card__art{grid-column:2;grid-row:1;min-height:0}
+#cdHomeFunnel .cdh-consult-choice__neo .cdh-choice-card__copy{grid-column:1;grid-row:1;min-width:0;padding:24px 20px}
+#cdHomeFunnel .cdh-consult-choice__neo .cdh-choice-card h3,#cdHomeFunnel .cdh-consult-choice__neo .cdh-choice-card__copy>p{margin:0}
+#cdHomeFunnel .cdh-consult-choice__neo .cdh-choice-card__copy small{color:var(--cd-neo-letter-silver);font-size:12px;line-height:1.6}
+#cdHomeFunnel .cdh-consult-choice .cdh-choice-card__cta{margin-bottom:0}
+#cdHomeFunnel .cdh-consult-choice__compare{width:100%;border:1px solid var(--cd-neo-letter-line);border-radius:16px;border-spacing:0;overflow:hidden;background:#101f34f2;color:var(--cd-neo-letter-silver);font-size:14px;line-height:1.65}
+#cdHomeFunnel .cdh-consult-choice__compare caption{position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;clip-path:inset(50%)}
+#cdHomeFunnel .cdh-consult-choice__compare th,#cdHomeFunnel .cdh-consult-choice__compare td{padding:12px 16px;border-bottom:1px solid #c4a97555;text-align:left;word-break:keep-all;overflow-wrap:anywhere}
+#cdHomeFunnel .cdh-consult-choice__compare thead th{color:var(--cd-neo-letter-gold);font-weight:750}
+#cdHomeFunnel .cdh-consult-choice__compare tbody th{width:18%;color:var(--cd-neo-letter-paper);font-weight:700;white-space:nowrap}
+#cdHomeFunnel .cdh-consult-choice__compare tr:last-child>*{border-bottom:0}
+#cdHomeFunnel .cdh-consult-choice__compare td{width:41%}
+#cdHomeFunnel .cdh-consult{grid-template-columns:minmax(0,1fr);max-width:760px;margin-inline:auto}
+@media(min-width:761px) and (max-width:1100px){#cdHomeFunnel .cdh-consult-choice__cards{grid-template-columns:minmax(0,1fr)}#cdHomeFunnel .cdh-choice-card{min-height:270px;grid-template-columns:32% minmax(0,1fr)}#cdHomeFunnel .cdh-consult-choice__neo>.cdh-neo-letter{grid-template-columns:minmax(0,1fr) 32%}#cdHomeFunnel .cdh-choice-card__character{width:100%;max-height:100%;object-fit:contain}}
+@media(max-width:760px){#cdHomeFunnel .cdh-consult-choice__cards{grid-template-columns:minmax(0,1fr)}#cdHomeFunnel .cdh-choice-card,#cdHomeFunnel .cdh-consult-choice__neo>.cdh-neo-letter{grid-template-columns:minmax(0,1fr);grid-template-rows:180px 1fr;min-height:0}#cdHomeFunnel .cdh-consult-choice__neo .cdh-choice-card__art,#cdHomeFunnel .cdh-consult-choice__neo .cdh-choice-card__copy{grid-column:1;grid-row:auto}#cdHomeFunnel .cdh-choice-card__character{height:100%;width:100%;max-width:100%;object-fit:contain}#cdHomeFunnel .cdh-choice-card__art--neo img{object-position:center 38%}#cdHomeFunnel .cdh-choice-card__art--neo::after{background:linear-gradient(0deg,var(--cd-neo-letter-night),#101f3400 40%)}#cdHomeFunnel .cdh-consult-choice .cdh-choice-card__cta{margin-top:8px}}
+@media(max-width:640px){#cdHomeFunnel .cdh-consult-choice{gap:18px;margin:24px 16px 0;padding:18px 14px;border-radius:18px}#cdHomeFunnel .cdh-consult-choice__head{gap:10px;min-height:180px;padding:12px 0}#cdHomeFunnel .cdh-consult-choice__head h2{font-size:26px}#cdHomeFunnel .cdh-consult-choice__head p{font-size:14px}#cdHomeFunnel .cdh-choice-card__copy,#cdHomeFunnel .cdh-consult-choice__neo .cdh-choice-card__copy{gap:8px;padding:20px 18px}#cdHomeFunnel .cdh-choice-card h3{font-size:22px}#cdHomeFunnel .cdh-consult-choice__compare{display:block;padding:6px 12px;font-size:13px}#cdHomeFunnel .cdh-consult-choice__compare thead{position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;clip-path:inset(50%)}#cdHomeFunnel .cdh-consult-choice__compare tbody{display:grid}#cdHomeFunnel .cdh-consult-choice__compare tr{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 12px;padding:12px 0;border-bottom:1px solid #c4a97555}#cdHomeFunnel .cdh-consult-choice__compare tbody th{grid-column:1/-1;width:auto;padding:0 0 8px;border:0;white-space:normal}#cdHomeFunnel .cdh-consult-choice__compare td{width:auto;padding:0;border:0}#cdHomeFunnel .cdh-consult-choice__compare td::before{display:block;margin-bottom:5px;color:var(--cd-neo-letter-gold);font-size:12px;font-weight:750;content:attr(data-service)}#cdHomeFunnel .cdh-consult-choice__compare tr:last-child{border-bottom:0}#cdHomeFunnel .cdh-consult{margin:28px 16px 0}}
+@media(prefers-reduced-motion:reduce){#cdHomeFunnel .cdh-consult-choice .cdh-choice-card__cta{transition:none}}
 /* 영냥이 전용 이용권: local night-blue palette; flower passes retain their theme. */
 #cdHomeFunnel .cdh-pass__packs{--pack-night:#0c1930;--pack-surface:#142c4b;--pack-ink:#f0f6ff;--pack-muted:#becfe6;--pack-rim:#507299;--pack-light:#9dcaff;--pack-button:#275fba;margin-top:8px;padding:20px;border:1px solid var(--pack-rim);border-radius:24px;background:var(--pack-night);color:var(--pack-ink);color-scheme:dark;box-shadow:0 16px 32px -22px var(--pack-night)}
 #cdHomeFunnel .cdh-pass__packs>summary{display:flex;align-items:center;gap:20px;min-height:44px;margin:0;cursor:pointer;list-style:none;color:var(--pack-ink)}

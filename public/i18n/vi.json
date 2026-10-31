@@ -2277,6 +2277,39 @@
       "compactTitle": "Vé Hũ Mật",
       "conditions": "Phạm vi và điều kiện sử dụng",
       "otherServices": "Xem vé cho dịch vụ khác"
+    },
+    "consultChoice": {
+      "title": "Chọn hình thức tư vấn phù hợp với điều bạn đang băn khoăn",
+      "subtitle": "Để câu hỏi của bạn trở nên rõ ràng hơn dưới ánh trăng.",
+      "yeongnyangi": {
+        "method": "Tập trung vào câu hỏi và hoàn cảnh của bạn",
+        "body": "Xem câu hỏi và hoàn cảnh của bạn qua các hệ thống luận đoán, cùng diễn giải theo từng phần và bước tiếp theo."
+      },
+      "neo": {
+        "method": "AI soạn thảo · người kiểm duyệt · gửi qua email",
+        "title": "Bản quyết định chiến lược Neo",
+        "body": "Muốn biết rõ tiêu chí lựa chọn và kế hoạch hành động? AI soạn câu trả lời, sau đó người thật kiểm duyệt trước khi gửi email.",
+        "cta": "Hỏi Neo",
+        "note": "Nhận câu trả lời đã được kiểm duyệt qua email.",
+        "saleClosed": "Đang chuẩn bị mở bán · thanh toán và gửi yêu cầu chưa mở."
+      },
+      "compare": {
+        "caption": "So sánh tư vấn Yeongnyangi và bản chiến lược Neo",
+        "selection": "Hình thức tư vấn",
+        "format": "Cách tư vấn",
+        "fit": "Phù hợp với",
+        "delivery": "Cách nhận kết quả",
+        "yeongnyangi": {
+          "format": "Diễn giải theo từng phần dựa trên câu hỏi",
+          "fit": "Khi bạn muốn nhìn rộng hơn về hoàn cảnh và diễn biến",
+          "delivery": "Xem tại trang tư vấn và lịch sử"
+        },
+        "neo": {
+          "format": "AI soạn thảo và người thật kiểm duyệt",
+          "fit": "Khi cần tiêu chí và kế hoạch hành động cho một lựa chọn",
+          "delivery": "Câu trả lời đã kiểm duyệt được gửi qua email"
+        }
+      }
     }
   },
   "terms": {

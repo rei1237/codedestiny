@@ -2277,6 +2277,39 @@
       "compactTitle": "Honey Jar passes",
       "conditions": "Coverage and terms",
       "otherServices": "Explore passes for other services"
+    },
+    "consultChoice": {
+      "title": "Choose the consultation that fits your concern",
+      "subtitle": "Let your question become clearer beneath the moonlight.",
+      "yeongnyangi": {
+        "method": "Centered on your question and situation",
+        "body": "Explore your question through different fortune-reading systems, with chapters on your situation and practical next steps."
+      },
+      "neo": {
+        "method": "AI-written · human-reviewed · delivered by email",
+        "title": "Neo Strategy Brief",
+        "body": "Need clearer criteria and an action plan for one decision? AI drafts the response, then a person reviews it before it arrives by email.",
+        "cta": "Ask Neo",
+        "note": "Receive a reviewed response by email.",
+        "saleClosed": "Preparing for launch · payment and submissions are not open yet."
+      },
+      "compare": {
+        "caption": "Compare Yeongnyangi question consultation and Neo Strategy Brief",
+        "selection": "Consultation",
+        "format": "How it works",
+        "fit": "Best for",
+        "delivery": "Delivery",
+        "yeongnyangi": {
+          "format": "Chaptered reading shaped around your question",
+          "fit": "When you want a broader view of your situation and its patterns",
+          "delivery": "View it on the consultation page and in your records"
+        },
+        "neo": {
+          "format": "Written by AI and reviewed by a person",
+          "fit": "When you need criteria and an action plan for one decision",
+          "delivery": "A reviewed response delivered by email"
+        }
+      }
     }
   },
   "terms": {

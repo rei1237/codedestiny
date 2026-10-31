@@ -2277,6 +2277,39 @@
       "compactTitle": "蜜罐通行证",
       "conditions": "适用范围与使用条件",
       "otherServices": "查看其他服务通行证"
+    },
+    "consultChoice": {
+      "title": "选择适合你烦恼的咨询",
+      "subtitle": "在月光下，让你的问题渐渐清晰。",
+      "yeongnyangi": {
+        "method": "围绕你的问题与处境",
+        "body": "从不同占术体系解读你的问题与处境，并分章节梳理困扰脉络和下一步行动。"
+      },
+      "neo": {
+        "method": "AI撰写 · 人工审核 · 邮件送达",
+        "title": "Neo策略决策书",
+        "body": "想更具体地了解某个选择的判断标准和执行方案？AI撰写答复，经人工审核后通过邮件发送。",
+        "cta": "向Neo提问",
+        "note": "审核后的答复将通过邮件送达。",
+        "saleClosed": "正在准备上线 · 付款和提交暂未开放。"
+      },
+      "compare": {
+        "caption": "比较灵喵问题咨询与Neo策略决策书",
+        "selection": "咨询方式",
+        "format": "咨询方式",
+        "fit": "适合的问题",
+        "delivery": "结果交付",
+        "yeongnyangi": {
+          "format": "围绕问题展开的分章节占术解读",
+          "fit": "想全面了解自己的处境与趋势时",
+          "delivery": "在咨询页面和记录中查看"
+        },
+        "neo": {
+          "format": "AI撰写并由人工审核",
+          "fit": "需要某项选择的判断标准和执行方案时",
+          "delivery": "审核后的答复通过邮件发送"
+        }
+      }
     }
   },
   "terms": {
