@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { publicSeoPages } from "../lib/seo/siteSeo";
-import { buildServiceJsonLd, buildWebPageJsonLd, buildFaqPageJsonLd } from "../lib/structured-data";
+import { buildServiceJsonLd, buildWebPageJsonLd, buildFaqPageJsonLd, buildAuthorPersonJsonLd } from "../lib/structured-data";
 import { serializeJsonLd } from "../lib/seo/json-ld.mjs";
 import { brandCopy } from "../lib/seo/brand-copy.mjs";
 import { BRAND_FACTS } from "../lib/brand/brand-facts.mjs";
 import { FOOTER_BYLINE, FOOTER_LINKS, FOOTER_NOTICE, FOOTER_TRUST_LINKS } from "../lib/brand/site-footer";
 import { BUSINESS_IDENTITY } from "../lib/site-policy-config";
-import { HOME_DIFFERENTIATION_FAQ } from "../lib/brand/differentiation-faqs.mjs";
+import { HOME_ACCURACY_FAQ, HOME_DIFFERENTIATION_FAQ } from "../lib/brand/differentiation-faqs.mjs";
 import { HOME_CATEGORIES, HOME_CONCERNS } from "../lib/seo/home-discovery.mjs";
 import { getSignProfile } from "../lib/fortune/sign-profiles";
 import LegacyHomeEntry from "./components/LegacyHomeEntry";
@@ -90,6 +90,7 @@ const RESULT_EXAMPLE = getSignProfile("rat");
 const HOME_FAQS = [
   ...CONSULTATION_METHOD_FAQS,
   { question: "꿀꿀 운세와 꿀꿀운세, 코드 데스티니는 어떤 관계인가요?", answer: brandCopy("aliases") },
+  HOME_ACCURACY_FAQ,
   HOME_DIFFERENTIATION_FAQ,
   { question: "꽃돼지 연이와 영냥이는 어떻게 다른가요?", answer: "꽃돼지 연이의 앱에서는 사주·타로·자미두수 등 원하는 도구를 골라 이용해요. 운세보는 영냥이는 사주보는 고양이 상담 서비스로, 구체적인 질문과 상황을 바탕으로 고민을 풀어가요. 같은 운영자가 제공하며, 이용 범위와 결제 조건은 각 서비스에서 안내해요." },
   { question: "어디까지 무료로 이용할 수 있나요?", answer: "기본 사주·만세력·타로와 공개 별자리·띠별 운세를 무료로 시작할 수 있어요. 심층 리포트와 AI 상담은 별도 유료 상품이 있으며, 이용권·월정석·단건 결제의 적용 여부와 금액은 각 상품의 결제 전 안내를 확인해 주세요." },
@@ -103,6 +104,8 @@ function discoveryTracking(serviceKey, placement = "directory") {
 
 export default function HomePage() {
   const webPageJsonLd = buildWebPageJsonLd({ title: HOME_TITLE, description: HOME_DESCRIPTION, path: "/" });
+  // 레이아웃 Organization.founder 와 같은 @id 다. 제목의 "명리학자가 만든"을 직함·별칭·소개 페이지로 뒷받침한다.
+  const founderJsonLd = { "@context": "https://schema.org", ...buildAuthorPersonJsonLd() };
   const serviceJsonLd = [
     buildServiceJsonLd({ name: service.name, description: "꽃돼지 연이가 안내하는 사주·타로·숙요점·베다점·자미두수·점성술 운세와 상담", path: service.appEntryPath }),
     buildServiceJsonLd({ name: YEONGNYANGI.serviceName, alternateName: [...YEONGNYANGI.alternateNames], description: brandCopy("yeongnyangiDescription"), path: YEONGNYANGI.path }),
@@ -250,6 +253,6 @@ export default function HomePage() {
         <p className={styles.notice}><NativeHomeDictionaryText translationKey="footer.disclaimerNote">{FOOTER_NOTICE}</NativeHomeDictionaryText></p>
       </footer>
     </NativeHomeRoot>
-    <script type="application/ld+json" dangerouslySetInnerHTML={{__html:serializeJsonLd([webPageJsonLd, ...serviceJsonLd, buildFaqPageJsonLd(HOME_FAQS)])}} />
+    <script type="application/ld+json" dangerouslySetInnerHTML={{__html:serializeJsonLd([webPageJsonLd, founderJsonLd, ...serviceJsonLd, buildFaqPageJsonLd(HOME_FAQS)])}} />
   </>;
 }
