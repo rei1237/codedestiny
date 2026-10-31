@@ -1,11 +1,65 @@
 import { connectDb } from "../lib/db.js";
 import { DailyFortuneSubscription } from "../lib/models.js";
-import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
+import { createHash } from "node:crypto";
+import { getRequestMeta, getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
+import { incrementRateLimit } from "../lib/rate-limit.js";
 import { escapeHtml, sendSingleFortune } from "../lib/daily-fortune-task.js";
 import { buildSajuSnapshotFromBirth } from "../lib/saju-snapshot-from-birth.js";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const SAJU_SNAPSHOT_MAX_CHARS = 36000;
+
+// 무인증 POST 라 같은 IP·같은 이메일로 첫 메일(=Resend 비용·발신 평판)을 반복 유발할 수 있다.
+// 한도는 destiny-compass.js 와 같은 Mongo abuse_scores(incrementRateLimit)로 세고, DB 가 죽으면
+// 아이솔레이트 로컬 카운터로 내려간다(한도 없음보다 낫고 정상 고객은 첫 요청부터 막히지 않는다).
+const SUBSCRIBE_IP_LIMIT = Object.freeze({ endpoint: "subscriptions:daily-fortune:ip", windowMs: 3_600_000, max: 5 });
+const SUBSCRIBE_EMAIL_LIMIT = Object.freeze({ endpoint: "subscriptions:daily-fortune:email", windowMs: 86_400_000, max: 3 });
+const localSubscribeBuckets = new Map();
+
+function sha256Hex(value) {
+  return createHash("sha256").update(String(value)).digest("hex");
+}
+
+/** 아이솔레이트 안에서만 사는 폴백 카운터. DB 가 죽었을 때만 쓴다. 한도 초과면 true. */
+function exceedsLocalLimit(limit, subjectHash) {
+  const key = `${limit.endpoint}|${subjectHash}`;
+  const now = Date.now();
+  const current = localSubscribeBuckets.get(key);
+  if (!current || current.resetAt <= now) {
+    localSubscribeBuckets.set(key, { count: 1, resetAt: now + limit.windowMs });
+    if (localSubscribeBuckets.size > 512) {
+      for (const [bucketKey, bucket] of localSubscribeBuckets) {
+        if (bucket.resetAt <= now) localSubscribeBuckets.delete(bucketKey);
+      }
+    }
+    return { exceeded: false, resetAt: now + limit.windowMs };
+  }
+  current.count += 1;
+  return { exceeded: current.count > limit.max, resetAt: current.resetAt };
+}
+
+/** 한도를 1 올리고 초과면 Retry-After(초), 아니면 0 을 돌려준다. */
+async function countSubscribeLimit(limit, subject, env) {
+  const subjectHash = sha256Hex(subject);
+  let exceeded;
+  let resetAt;
+  try {
+    const result = await incrementRateLimit({ subjectHash, endpoint: limit.endpoint, windowMs: limit.windowMs, env });
+    exceeded = result.count > limit.max;
+    resetAt = Number(result.resetAt) || Date.now() + limit.windowMs;
+  } catch (error) {
+    console.warn("[SUBSCRIPTION] rate-limit increment failed", String(error?.message || error).slice(0, 200));
+    ({ exceeded, resetAt } = exceedsLocalLimit(limit, subjectHash));
+  }
+  return exceeded ? Math.max(1, Math.ceil((resetAt - Date.now()) / 1000)) : 0;
+}
+
+async function subscribeRetryAfterSeconds(request, email, env) {
+  return (
+    (await countSubscribeLimit(SUBSCRIBE_IP_LIMIT, getRequestMeta(request).ip, env)) ||
+    (await countSubscribeLimit(SUBSCRIBE_EMAIL_LIMIT, email, env))
+  );
+}
 
 function normalizeEmail(email) {
   return String(email || "").trim().toLowerCase();
@@ -98,6 +152,11 @@ async function handleDailyFortunePost(request, env) {
 
     if (!email || !emailRegex.test(email)) {
       return json({ message: "유효한 이메일 주소를 입력해 주세요." }, { status: 400 });
+    }
+
+    const retryAfter = await subscribeRetryAfterSeconds(request, email, env);
+    if (retryAfter) {
+      return json({ message: "잠시 후 다시 시도해 주세요." }, { status: 429, headers: { "Retry-After": String(retryAfter) } });
     }
 
     if (!subDaily) {
