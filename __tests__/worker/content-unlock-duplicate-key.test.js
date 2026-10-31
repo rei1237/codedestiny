@@ -13,6 +13,7 @@
  */
 
 import { jest } from "@jest/globals";
+import mongoose from "mongoose";
 import { TEST_USER_ID, profileCardModel, testCard } from "../fixtures/profile-card-model.mjs";
 import { computeBirthKey, toBirthEntitlementProfileId } from "../../worker/lib/birth-key.js";
 
@@ -155,4 +156,24 @@ test('insert-only concurrent loser reads without replacing the winner', async ()
   expect(await upsertContentUnlock({ ...SAJU_INPUT, source: 'ADMIN', insertOnly: true })).toBe(paid);
   expect(findOneAndUpdate).toHaveBeenCalledTimes(1);
   expect(findOne.mock.calls[0][0]).toEqual(findOneAndUpdate.mock.calls[0][0]);
+});
+
+test('insert-only grants remain insert-only after real Mongoose timestamp middleware', async () => {
+  const connection = mongoose.createConnection();
+  const model = connection.model('CampaignTimestampRegression', new mongoose.Schema({}, {
+    strict: false, timestamps: true, bufferCommands: false,
+  }));
+  let persistedUpdate;
+  model.collection.findOneAndUpdate = async (_filter, update) => {
+    persistedUpdate = update;
+    return { status: 'ACTIVE' };
+  };
+  findOneAndUpdate.mockImplementation((...args) => model.findOneAndUpdate(...args));
+  await upsertContentUnlock({ ...SAJU_INPUT, source: 'ADMIN', insertOnly: true });
+  // Mongo rejects updatedAt in both $set and $setOnInsert (code 40).
+  // Updating a pre-existing row would also violate the preservation contract.
+  expect(persistedUpdate).not.toHaveProperty('$set');
+  expect(persistedUpdate.$setOnInsert.updatedAt).toBeInstanceOf(Date);
+  expect(persistedUpdate.$setOnInsert.createdAt).toBeInstanceOf(Date);
+  await connection.close();
 });

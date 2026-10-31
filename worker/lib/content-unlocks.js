@@ -879,7 +879,9 @@ export async function upsertContentUnlock({
         ...(birthFields || {}),
       },
     },
-    { upsert: true, new: true, setDefaultsOnInsert: true },
+    // insertOnly owns both timestamps in $setOnInsert; Mongoose must not add
+    // $set.updatedAt, which conflicts in Mongo and mutates existing rights.
+    { upsert: true, new: true, setDefaultsOnInsert: true, ...(insertOnly ? { timestamps: false } : {}) },
   );
   if (session) query.session(session);
 
