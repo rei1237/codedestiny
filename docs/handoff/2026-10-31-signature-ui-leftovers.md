@@ -1,7 +1,7 @@
 ---
-status: active
+status: done
 updated: 2026-10-31
-next: "1번(신년운세 1280 상담 연도 칩·양력/음력 select)부터 개발 서버에서 계산값을 실측해 원인을 확인한다. 워크트리는 §지금 상태"
+next: "없음. 4건 모두 main에 반영했다(스테이징까지). 운영 승격은 아직 승인이 없다 — 요청이 있으면 §처리 결과의 롤백 대상을 적고 진행한다"
 ---
 
 # 대표 상담 UI 남은 문제 4건 (범위 밖 이월분)
@@ -46,3 +46,23 @@ next: "1번(신년운세 1280 상담 연도 칩·양력/음력 select)부터 개
 
 - 3번에서 일부 화면을 가운데 정렬로 남길지 판단이 갈리면 사용자에게 묻는다.
 - 4건을 고친 뒤 운영 배포까지 할지는 아직 승인이 없다.
+
+## 처리 결과 (2026-10-31)
+
+| # | 커밋 | 수정 | 실측 |
+|---|---|---|---|
+| 1 | `04bb7d1be` | `.nyai-grid > .nyai-year-field { grid-column: 1 / -1 }` (`NewYearAiClient.tsx`) | 원인은 추정대로였다. 폼 열이 390px라 칸이 189px이고, 같은 행의 양력/음력 라벨이 연도 필드 높이 261px까지 늘었다. 1024·1280 전 → 후: 칩 52×163 → 119×68(제목·간지 한 줄씩), select 139 → 49(옆 입력칸과 같음), 라벨 261 → 81, 제출 버튼 y 2106·2172 → 2085·2150. 360·390 첫 입력칸 y 1211·1107 그대로 |
+| 2 | `bdf88dfd1` | `.nyai-category-chip` `min-height` 40 → 44 | 360·390·768·1024·1280 모두 44px. 줄 수 4·4·2·3·3으로 그대로, 첫 입력칸 y 그대로. 제출 버튼만 +16·+16·+8·+12·+12 |
+| 3 | `8e34cb479` | `BirthTimeInput.module.css` `.number`를 `text-align: start`로, `NewYearAiClient.tsx`의 `[data-cd-birth-time]` 덮어쓰기 삭제 | 시간 칸이 보이는 22개 화면(1280)에서 시간 칸과 옆 입력칸 모두 `start`. 입력칸을 가운데로 둔 화면은 없었다. 게이트 뒤라 못 연 9곳(diary·island-consult·love-secret-ai·neo-consultation·yeongnyangi·neo-operation-room·master-love-codex·fortune-tea-house·saju)은 34개 파일의 `text-align:center`를 정적으로 훑어(입력칸 대상 0건) 대신했다 |
+| 4 | `ce495d213` | `neo-operation-room.module.css`에 `.consultationValue > section { width: 100% }` | 카드·소개·고지의 좌우 x 360 20..340, 768 24..744(전 40..728), 1280 104..1176(전 120..1160)으로 같아졌다. `.consultationValue`는 네오 페이지만 쓰고 공용 `.valueSection`은 손대지 않아 다른 8개 화면은 그대로다 |
+| - | `c097ed486` | `npm run sitemap:generate`(lastmod 갱신 39개) | 공용 CSS 변경으로 라우트 서명이 바뀌어 `verify:sitemap-drift`가 막혔다. 선례 `60b7a49e7`과 같은 처리 |
+
+- 검증: `git diff --check`, eslint(오류 0, 기존 warning 1건 `:837`), `tsc --noEmit` 0, 관련 node 테스트 64/64, `check:pre-push`(home-service-registry·public-mirror-fresh·sitemap-drift·llms-txt·seo-entity-registry) OK.
+- `check:fast`는 끝까지 못 돌았다. paid-gate-suite의 `npm test`가 headless shell 미설치로 영냥이 browser 테스트 2건(daily tarot·hat prologue)에서 실패하는데, `--base`가 없어 fail-closed로 막힌다. `node scripts/run-paid-gate-suite.mjs --base origin/main`으로 돌리면 90개 중 89 통과, 그 1건은 merge-base(`372de16d3`)에서도 같은 2건이 실패해 PRE-EXISTING으로 판정된다. 내 변경 책임이 아니다.
+- SEO: CSS만 바뀌어 title·H1·canonical·robots·본문·내부 링크는 영향 없다. sitemap lastmod만 위 커밋으로 맞췄다.
+- 운영은 아직 `533008fc846d`다. 이번 4건은 main push(스테이징)까지만 했고 운영 승격은 승인이 없어 하지 않았다. 승격하면 롤백 대상은 `533008fc846d`다.
+
+## 이월 (이번에 고치지 않은 것)
+
+- `check:fast`가 로컬에서 끝까지 안 도는 문제(headless shell 미설치 + `--base` 없는 fail-closed). msedge로 돌리는 방식이나 `check:fast`에 base를 넘기는 방식은 따로 정한다.
+- 신년운세 저장된 프로필 카드가 연한 라벤더 배경이라 어두운 폼에서 튄다(1280 스크린샷에서 봤고 이번 범위 밖).
