@@ -30,3 +30,10 @@ test('day precision is retained without inventing an exact observation time', ()
   assert.equal(evaluateSearchObservations([dated]).rows[0].observedOn, '2026-10-31');
   assert.throws(() => evaluateSearchObservations([{ ...dated, observedOn: '' }]), /observation/);
 });
+test('grouped questions do not become independent search samples', () => {
+  const report = evaluateSearchObservations([actual, { ...actual, queryId: 'B02', contextMode: 'batch' }]);
+  const summary = report.summary.find(row => row.phase === 'before' && row.provider === 'google' && row.group === 'brand');
+  assert.equal(summary.observed, 2);
+  assert.equal(summary.independentQueries, 1);
+  assert.equal(summary.distinctResultPages, 1);
+});
