@@ -92,7 +92,19 @@
 
 **해석**
 
-- M10·M20에는 노드당 새 연결 생성을 초당 15개로 묶는 제한이 있다. M30 이상에는 없다(Atlas 문서 기준). 거부(rejected)는 이 제한에 걸린 연결이다.
+- **생성률 제한의 출처(Atlas 공식 문서, 2026-10-31 조회).** 연결 제한 수치는 이 절에만 적고, 다른 문서는 이 절을 링크한다.
+  - [Atlas Service Limits](https://www.mongodb.com/docs/atlas/reference/atlas-limits/)의 "Connection Rate Limits" 절:
+    - 노드가 초당 받아들이는 새 연결 수를 제한한다. 동시 연결 한도(이 클러스터 노드당 1,500, MDB)와는 별개다.
+    - M10·M20은 항상 켜져 있다. M30 이상은 MongoDB 9.0 이상에서만 켜지고, 9.0 미만에서는 꺼져 있다.
+    - General 스토리지 클래스의 노드당 초당 상한은 M10 15, M20 15, M30 24다.
+    - 한도에 닿으면 새 연결 시도를 큐에 넣고, 과부하가 이어지면 일부 연결을 끊는다. Atlas 내부 서비스 연결은 세지 않는다.
+  - [Intelligent Workload Management](https://www.mongodb.com/docs/atlas/intelligent-workload-management/): 9.0 미만에서 M10·M20의 생성률 제한은 7.0.23+, 8.0.12+, 8.1.2+에서 켜진다. 초과한 연결 요청은 거부한다고 적는다. 이 클러스터는 8.0.34(ATL)라 적용 대상이다.
+  - 기존 저장소 문서([ai-and-db](../context/ai-and-db.md):20, [DEBUGGING_GUIDE](../DEBUGGING_GUIDE.md):54)의 "M30 이상엔 없다"는 MongoDB 9.0 미만에서만 맞다.
+  - 값은 Atlas가 바꿀 수 있다. 등급 판단이나 런북 대응 전에는 위 문서를 다시 본다.
+- **거부의 뜻.** [serverStatus 문서](https://www.mongodb.com/docs/manual/reference/command/serverStatus/)(2026-10-31 조회)는 두 값을 다르게 정의한다.
+  - `connections.establishmentRateLimit.rejected`: 생성률 제한으로 거부한 연결 수.
+  - 최상위 `connections.rejected`: 용량 부족이나 `net.maxIncomingConnections` 도달로 거부한 연결 수.
+  - 실측에서는 두 값이 모두 17,523이었다(MDB, MDB2). 그래서 이 거부는 생성률 제한에 걸린 연결로 본다. 위 표의 exempted도 `establishmentRateLimit` 아래 값이다.
 - 거부는 기동(10-30 01:47 KST 무렵)부터 15:42 사이에 생겼다. 그 뒤 90분 관측에서는 0이다.
 - 배포 직후 연결이 한꺼번에 몰렸을 때 생긴 것으로 **추정**한다. 시각을 대조해 보지는 않았다.
 - 같은 기간 네트워크 송신은 18.78GB(약 11.9GB/일)였다. 요청 수 3,475,711건으로 계산하면 약 25.5건/초다.
