@@ -1,8 +1,9 @@
 ---
 status: active
 updated: 2026-10-31
-workspace: D:/Development/code-destiny/.codex-worktrees/activation-rewards-20261031-145450
-branch: wt/activation-rewards-20261031-145450
+next: "최신 main CI 성공 확인 후 공식 production 배포와 검수 설정, 전용 계정 운영 검증, 스누라이프 답신 1회 발송"
+workspace: D:/Development/code-destiny/.codex-worktrees/snulife-review-20261031-211701
+branch: wt/snulife-review-20261031-211701
 ---
 
 # 연이 활성화·SNULIFE 제휴 코드 전달
@@ -64,3 +65,5 @@ CI 실패 3종을 복구했다: onboarding description, auth.guestMoonstoneTease
 남은 순서: commit/pre-push/main push → 공식 CI 성공 → 공식 production 워크플로 → 양쪽 SHA 일치 → 검수 설정·전용 테스트 계정의 실제 해금/재로그인/보존 확인 → 자료 갱신 → 기존 스레드 ad@snulife.com에 1회 답신. 실제 결제·과금 LLM은 하지 않는다. 운영 검증 실패 시 발송하지 않는다.
 
 추가 CI 발견: /onboarding은 폐지된 개인정보 수집 화면의 예약 리다이렉트다. 가드를 유지하고 새 무료 사주 안내를 /first-steps/로 옮겨 충돌을 해소했다. 검수 코드 설정도 로컬 운영 쓰기 없이 GitHub production workflow_dispatch의 configure_snulife_review=true 선택으로만 최초 적용한다. 기존 설정이 있으면 덮어쓰지 않는다.
+
+166147b5b CI: Build Pages and Worker, Critical checks, Typecheck and lint 통과. Static guards는 이 문서 next 필드 누락만 실패하여 보완했다. 신규 학교 메일 인증 HTTP 경로는 410으로 닫고 기존 수령 권리를 보존한다. 신규 수령은 수량 제한된 코드로만 진행하며 관련 Jest 29개 통과.
