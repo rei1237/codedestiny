@@ -1,6 +1,6 @@
 /** @jest-environment node */
 jest.unstable_mockModule('../../worker/lib/db.js', () => ({ connectDb: jest.fn(), withMongoRetry: jest.fn((_env, fn) => fn()) }));
-jest.unstable_mockModule('../../worker/lib/models.js', () => ({ DailyFortuneSubscription: { updateOne: jest.fn(async () => ({ matchedCount: 1 })) } }));
+jest.unstable_mockModule('../../worker/lib/models.js', () => ({ AbuseScore: {}, DailyFortuneSubscription: { updateOne: jest.fn(async () => ({ matchedCount: 1 })) } }));
 let handleSubscriptionRoutes, DailyFortuneSubscription;
 beforeAll(async () => {
   ({ handleSubscriptionRoutes } = await import('../../worker/routes/subscriptions.js'));
