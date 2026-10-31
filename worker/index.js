@@ -2100,6 +2100,13 @@ const app = {
         console.error('[llm-budget] check failed');
         tickFailed("llm-budget", error?.code || error?.name || "failed");
       }));
+      // 결제가 끝났는데 "검토 필요"로 멈춘 유료 결과(비카드 초융합·서사형·자미두수)를 운영자에게 알린다. 알림뿐이다.
+      trackTask(import("./lib/delivery-review-alert.js")
+        .then(({ alertDeliveryReviews }) => alertDeliveryReviews(env))
+        .catch((error) => {
+          console.error("[delivery-review-alert] task failed:", error?.code || error?.name || "failed");
+          tickFailed("delivery-review-alert", error?.code || error?.name || "failed");
+        }));
       ctx.waitUntil((async () => {
         await Promise.allSettled(tickTasks);
         // (verify-payment-reconcile.mjs 가 이 분기의 첫 반환문을 일일 분기의 시작으로 읽는다 — 그 앞에서는 조기 반환을 쓰지 않는다.)
