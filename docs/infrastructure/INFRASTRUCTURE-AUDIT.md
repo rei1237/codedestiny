@@ -63,7 +63,7 @@ Task 2 Step 3의 측정 항목이다.
 | 항목 | before 값 | 측정 시각·창 | 도구(출처) | 표본 | after |
 |---|---|---|---|---|---|
 | 실행 위치(`cf-placement`) | remote-ICN 3/3 | 2026-10-31 (LEDGER §Workers) | `curl -D -` `/api/health` | 3 | 운영 미배포로 after 미측정 |
-| 실행 colo ICN 비율 | 10-24 88%, 10-25~10-30 33~44%, 10-31 99%(3,966/4,007) | 2026-10-24~10-31 UTC | CF-COLO | 일별 | 운영 미배포로 after 미측정 |
+| 실행 colo ICN 비율 | 10-24 88%, 10-25~10-30 0.02~44%(일별 편차 큼. 10-27 0.02%, 10-29 3.4%. 일별 값은 [SERVER-PERFORMANCE](SERVER-PERFORMANCE.md#측정-조건)), 10-31 99%(3,966/4,007) | 2026-10-24~10-31 UTC | CF-COLO | 일별 | 운영 미배포로 after 미측정 |
 | 라우트 wallTime p50/p95/max(ms), 상위 4개 | `GET /api/auth/me` 2/176/4,992 (n=594), `GET /api/honey/attendance` 150/482/6,775 (n=512), `GET /api/profile` 5/201/4,538 (n=294), `GET /api/rpg/characters` 1,043/6,467/6,964 (n=93) | T-INT 창 | T-INT `--all` | 이벤트 1,855 | 운영 미배포로 after 미측정 |
 | 라우트 wallTime p99 | 미측정. 리포트가 p50/p95/max만 출력한다. 측정 방법: 같은 원본에 p99 열을 추가해 다시 집계 | — | — | — | — |
 | DB 연결 shared p50/p95/p99(ms) | 87 / 2,351 / 4,643 | T-INT 창 | T-INT | n=745 | 운영 미배포로 after 미측정 |
@@ -123,7 +123,7 @@ Task 2 Step 3의 측정 항목이다.
 |---|---|---|---|---|
 | 스테이징 배포 스모크가 운영 Worker에 도달 | 06:29Z 7건, 06:47Z 7건, 전부 GET(LEDGER). 원인 후보: `public/_worker.js:347` `resolveApiWorkerOrigin`이 `API_WORKER_ORIGIN` 미설정 시 운영 기본값으로 떨어진다 | 스테이징 미리보기에서 로그인·결제하면 운영 DB에 닿을 수 있다 | 잔여(코드 변경 없음) | 사용자: 스테이징 Pages `API_WORKER_ORIGIN` 확인. [SECURITY-AUDIT](SECURITY-AUDIT.md#잔여-위험-10f) |
 | exceededResources 50건/7일 | CF-7D, LEDGER | 해당 요청의 연결이 끊긴다 | 잔여(경로 미특정) | [SERVER-PERFORMANCE](SERVER-PERFORMANCE.md#exceededresources-50건7일) |
-| 프라이머리 연결 거부 17,523건 | MDB, MDB2 | 연결 생성률 제한(노드당 15/초)에 걸리면 요청이 늦어지거나 실패한다 | 관측 구간(15:42~17:12) 증가 0 | [MONGODB-OPTIMIZATION](MONGODB-OPTIMIZATION.md#연결) |
+| 프라이머리 연결 거부 17,523건 | MDB, MDB2 | 연결 생성률 제한(M10 노드당 15/초, Atlas 문서 2026-10-31 조회)에 걸리면 요청이 늦어지거나 실패한다 | 관측 구간(15:42~17:12) 증가 0 | [MONGODB-OPTIMIZATION](MONGODB-OPTIMIZATION.md#연결) |
 | 느린 fetch 연결이 10분 크론 직후 분에 몰림 | 느린 연결 73건 중 52건이 분 ≡ 1(mod 10)에 있다(T-KIND) | 연결 꼬리 지연 | 원인 미확인 | [SERVER-PERFORMANCE](SERVER-PERFORMANCE.md#꼬리-지연-위험) |
 
 ## 전후 비교

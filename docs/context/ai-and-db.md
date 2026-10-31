@@ -34,7 +34,7 @@
 > DB 가 느리다는 신고가 오면 **쿼리·인덱스·티어를 보기 전에 이 절을 먼저 본다.** 판정과 전체 표는
 > [SERVER-PERFORMANCE](../infrastructure/SERVER-PERFORMANCE.md) 에 있다. 아래 "지리" 절(2026-08-21, LAX)은 이 절로 대체된 기록이다.
 
-- **배치:** Worker 실행이 ICN 에 고정됐다. CF 실행 colo 기준 ICN 비율은 10-31 에 99%(3,966/4,007)다. 10-25~10-30 은 33~44% 로 흩어져 있었다. `/api/health` 응답의 `cf-placement` 는 3회 모두 `remote-ICN` 이었다.
+- **배치:** Worker 실행이 ICN 에 고정됐다. CF 실행 colo 기준 ICN 비율은 10-31 에 99%(3,966/4,007)다. 10-25~10-30 은 일별 0.02~44% 로 날마다 크게 달랐다(10-27 0.02%, 10-29 3.4%. 출처 CF-COLO `cf-analytics/20261031-colo-by-date-7d.json`, 일별 값은 [SERVER-PERFORMANCE](../infrastructure/SERVER-PERFORMANCE.md#측정-조건)). `/api/health` 응답의 `cf-placement` 는 3회 모두 `remote-ICN` 이었다.
 - **창:** 2026-10-31 06:09:28Z~09:59:05Z(15:09~18:59 KST), tail 이벤트 1,855건. **피크 미포함 중간 값**이다. 전체 tail(2026-11-01 00:40 KST 종료)이 끝나면 SERVER-PERFORMANCE 표와 함께 바꾼다.
 
 | 항목 | 값 | n | 재현 |

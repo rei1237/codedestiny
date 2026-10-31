@@ -71,7 +71,7 @@
 - 로컬 `.env.local`·`.env.staging.local`도 함께 바꾼다.
   - `npm run secrets:cf:worker`(`scripts/sync-cloudflare-worker-secrets.mjs`)는 이 파일들의 값을 Worker 시크릿으로 덮어쓴다.
   - 옛 값이 남아 있으면 나중에 동기화할 때 폐기된 자격이 다시 들어간다.
-- Worker는 Mongo URI를 `MONGO_URI` → `MONGODB_URI` → `MONGO_URL` 순으로 읽는다(`worker/lib/db.js:472-474`). 먼저 `wrangler secret list`로 셋 중 어느 이름이 설정돼 있는지 보고, 설정된 이름을 모두 바꾼다.
+- Worker는 Mongo URI를 `MONGO_URI` → `MONGODB_URI` → `MONGO_URL` → `DATABASE_URL` 순으로 읽는다(공유 연결 `worker/lib/db.js:903-908`, 결제 레인 `worker/lib/db.js:1346-1351`). 먼저 `wrangler secret list`로 넷 중 어느 이름이 설정돼 있는지 보고, 설정된 이름을 모두 바꾼다.
 - Worker는 요청마다 새 MongoClient를 만든다(Q1). 시크릿을 바꾸면 다음 요청부터 새 자격으로 접속한다.
 - 스테이징 확인 요청이 스테이징 Worker에 닿는지 반드시 본다.
   - 스테이징 Pages는 `API_WORKER_ORIGIN`이 없으면 운영 Worker로 떨어진다(`public/_worker.js:347`).
@@ -134,7 +134,7 @@
 
 | 단계 | 할 일 | 확인 |
 |---|---|---|
-| 0 | 스테이징 Worker가 실제로 `code_destiny_staging`을 쓰는지 확인한다. `resolveMongoDbName`(`worker/lib/db.js:462-468`)은 시크릿 `MONGO_DB_NAME`·`MONGO_NAME`을 vars `MONGODB_DB_NAME`보다 먼저 본다. 스테이징 시크릿 이름 목록에 이 둘이 있는지는 **미확인**이다 | 둘 다 없거나, 있다면 값이 `code_destiny_staging`. 아니면 스테이징 사용자 권한 대상 DB를 실제 값에 맞춘다 |
+| 0 | 스테이징 Worker가 실제로 `code_destiny_staging`을 쓰는지 확인한다. `resolveMongoDbName`(`worker/lib/db.js:463-468`)은 시크릿 `MONGO_DB_NAME`·`MONGO_NAME`을 vars `MONGODB_DB_NAME`보다 먼저 본다. 스테이징 시크릿 이름 목록에 이 둘이 있는지는 **미확인**이다 | 둘 다 없거나, 있다면 값이 `code_destiny_staging`. 아니면 스테이징 사용자 권한 대상 DB를 실제 값에 맞춘다 |
 | 1 | Atlas UI에서 위 표의 세 사용자를 만든다. 역할 이름은 Atlas UI의 Specific Privileges 표기로 확인한다 | UI에서 변경 배포 완료 표시 |
 | 2 | 스테이징 앱 URI를 스테이징 시크릿과 `.env.staging.local`에 넣는다 | 스테이징 C1~C4 통과. 추가로 스테이징에서 로그인 → 보관함 열람 → `/api/health`([DEPLOYMENT-REPORT](DEPLOYMENT-REPORT.md) Task 13 수동 확인과 같은 경로) |
 | 3 | 운영 앱 URI를 운영 시크릿에 넣는다 | 운영 C1~C5 통과. tail에 권한 오류(`not authorized`) 0건 |

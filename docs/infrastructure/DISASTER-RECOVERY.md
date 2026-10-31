@@ -131,7 +131,7 @@ DB 연결 없이 덤프 파일만으로 검증했다. 운영 영향은 0이다. 
 | 2 | 오류 메시지를 분류한다 | 인증 실패 → 3번. DNS·TLS·시간 초과 → 4번. 연결 거부 → 5번 |
 | 3 | 직전에 DB 자격·시크릿을 바꿨는지 본다 | 바꿨다면 [SECURITY-AUDIT 런북 1](SECURITY-AUDIT.md#런북-1-db-비밀번호-교체)의 롤백 |
 | 4 | Atlas UI에서 클러스터 상태를 본다(유지보수, 프라이머리 선출, 장애 표시). 접근 목록이 `0.0.0.0/0` 그대로인지도 본다 | Atlas 쪽 사건이면 상태 페이지·지원. 접근 목록이 바뀌었으면 원복 |
-| 5 | 연결 수와 거부를 본다. 노드 한도는 1,500(MDB)이다. serverStatus `connections.rejected`가 늘었는지 읽기 전용으로 확인한다. M10은 새 연결 생성이 노드당 15/초로 제한된다([MONGODB-OPTIMIZATION](MONGODB-OPTIMIZATION.md#연결)) | 트래픽 급증 출처를 찾는다. 크론 직후 분(분 ≡ 1 mod 10)에 몰리는지 본다([SERVER-PERFORMANCE](SERVER-PERFORMANCE.md#꼬리-지연-위험)) |
+| 5 | 연결 수와 거부를 본다. 노드 한도는 1,500(MDB)이다. serverStatus `connections.rejected`가 늘었는지 읽기 전용으로 확인한다. M10은 새 연결 생성이 노드당 15/초로 제한된다(Atlas 문서, 2026-10-31 조회. 출처는 [MONGODB-OPTIMIZATION](MONGODB-OPTIMIZATION.md#연결)). 대응할 때 Atlas 문서의 현재 값을 다시 확인한다 | 트래픽 급증 출처를 찾는다. 크론 직후 분(분 ≡ 1 mod 10)에 몰리는지 본다([SERVER-PERFORMANCE](SERVER-PERFORMANCE.md#꼬리-지연-위험)) |
 | 6 | 오류 시작 시각을 최근 배포 시각과 대조한다 | 배포 뒤 시작이면 [런북 4](#런북-4-배포-롤백) |
 | 7 | 데이터 손상이 의심되면 [RPO](#rpo) 표에 따라 PITR을 검토한다 | 운영 DB 쓰기이므로 사용자 명시 승인 뒤에만 한다 |
 | 8 | 복구를 확인한다: [SECURITY-AUDIT 연결 유지 확인](SECURITY-AUDIT.md#기존-서비스-연결-유지-확인) C2~C5 | 오류 창 안의 유료 주문은 [런북 3](#런북-3-결제-미전달) |
