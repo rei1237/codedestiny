@@ -147,6 +147,14 @@ test('lost replies, duplicate keys and concurrent ticks settle on one record; re
  await fresh();fault='exists';for(const offset of [360000,3600000,7200000])expect(outcomes(await promote(offset))).toEqual(['PROMOTION_FAILED']);
  expect(docs[0].metadata.paidIntent).toMatchObject({errors:3,code:'PROMOTION_FAILED',reviewRequired:true});expect((await promote(36000000)).scanned).toBe(0);expect(docs).toHaveLength(1);expect(provider).not.toHaveBeenCalled();
 });
+test('a review-required intent outlives its 24h deadline (the operator alert needs it) and never reaches generation; an ordinary expired intent is still swept',async()=>{
+ await register(dream,original());paid=true;docs[0].metadata.paidIntent.reviewRequired=true;docs[0].metadata.paidIntent.code='PROMOTION_FAILED';
+ docs.push({_id:'stale-1',userId:owner,executionKey:'paid-intent:stale-1',featureKey:dream,status:'awaiting_payment',timeoutAt:new Date(Date.now()-1000),metadata:{paidIntent:{reviewRequired:false}}});
+ proofs=[];const afterDeadline=await promote(25*3600000);
+ expect(afterDeadline).toMatchObject({expired:1,scanned:0,outcomes:[]});
+ expect(docs.map(doc=>doc._id)).not.toContain('stale-1');expect(docs).toHaveLength(1);expect(docs[0].metadata.paidIntent.reviewRequired).toBe(true);
+ expect(proofs).toEqual([]);expect(provider).not.toHaveBeenCalled();expect(docs.some(doc=>doc.status==='pending')).toBe(false);
+});
 test('every server-resumable product is registered or excluded with its reason',()=>{
  const included=Object.keys(intent.PAID_INTENT_PRODUCTS),excluded=Object.keys(intent.PAID_INTENT_EXCLUSIONS);
  expect([...included,...excluded].sort()).toEqual([...adapters.PAID_NARRATIVE_SERVER_RESUME_FEATURE_KEYS].sort());expect(included.filter(featureKey=>excluded.includes(featureKey))).toEqual([]);
