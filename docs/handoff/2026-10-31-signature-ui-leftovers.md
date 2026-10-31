@@ -1,7 +1,7 @@
 ---
 status: done
 updated: 2026-10-31
-next: "없음. 4건 모두 main에 반영했다(스테이징까지). 운영 승격은 아직 승인이 없다 — 요청이 있으면 §처리 결과의 롤백 대상을 적고 진행한다"
+next: "없음. 4건 모두 main 반영·운영 승격 요청(run 41157215524)까지 했다. 운영 반영 확인은 사용자 몫"
 ---
 
 # 대표 상담 UI 남은 문제 4건 (범위 밖 이월분)
@@ -60,7 +60,8 @@ next: "없음. 4건 모두 main에 반영했다(스테이징까지). 운영 승�
 - 검증: `git diff --check`, eslint(오류 0, 기존 warning 1건 `:837`), `tsc --noEmit` 0, 관련 node 테스트 64/64, `check:pre-push`(home-service-registry·public-mirror-fresh·sitemap-drift·llms-txt·seo-entity-registry) OK.
 - `check:fast`는 끝까지 못 돌았다. paid-gate-suite의 `npm test`가 headless shell 미설치로 영냥이 browser 테스트 2건(daily tarot·hat prologue)에서 실패하는데, `--base`가 없어 fail-closed로 막힌다. `node scripts/run-paid-gate-suite.mjs --base origin/main`으로 돌리면 90개 중 89 통과, 그 1건은 merge-base(`372de16d3`)에서도 같은 2건이 실패해 PRE-EXISTING으로 판정된다. 내 변경 책임이 아니다.
 - SEO: CSS만 바뀌어 title·H1·canonical·robots·본문·내부 링크는 영향 없다. sitemap lastmod만 위 커밋으로 맞췄다.
-- 운영은 아직 `533008fc846d`다. 이번 4건은 main push(스테이징)까지만 했고 운영 승격은 승인이 없어 하지 않았다. 승격하면 롤백 대상은 `533008fc846d`다.
+- 운영 승격(2026-10-31, 사용자 요청 1회): `gh workflow run "Release Cloudflare Pages and Worker" --ref main -f mode=production`, 고정 SHA `440cce4cf`, run https://github.com/rei1237/codedestiny/actions/runs/41157215524 (디스패치 시점 in_progress, 폴링 안 함). 롤백 대상은 직전 운영 `533008fc846d`(Actions → mode=rollback, `npm run deploy:rollback -- --list`로 ID 조회).
+- main CI는 `AI Locale Gate`만 실패다. `4135d0e44`(이번 작업 이전)부터 계속 실패 중인 AI 호출 인벤토리 검사로 이번 변경과 무관하다. 별도로 고쳐야 한다.
 
 ## 이월 (이번에 고치지 않은 것)
 
