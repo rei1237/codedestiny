@@ -2888,7 +2888,7 @@ export default function NewYearAiConsultationPage() {
           display: inline-flex;
           align-items: center;
           gap: 7px;
-          min-height: 40px;
+          min-height: 44px;
           padding: 0 12px;
           border: 1px solid var(--nyai-gold-hair);
           border-radius: var(--nyai-radius-pill);
