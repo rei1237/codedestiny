@@ -8,6 +8,15 @@
 import { jest } from "@jest/globals";
 
 const connectDb = jest.fn(async () => null);
+// 실물 withMongoRetry(env, operation, options) 의 시그니처. 일시 오류(transient 표식)는 한 번 다시 시도한다.
+const withMongoRetry = jest.fn(async (_env, operation) => {
+  try {
+    return await operation();
+  } catch (error) {
+    if (error?.transient) return operation();
+    throw error;
+  }
+});
 const findOne = jest.fn();
 const find = jest.fn();
 const aggregate = jest.fn();
@@ -47,7 +56,7 @@ beforeAll(async () => {
   await Promise.all([
     jest.unstable_mockModule("../../worker/lib/db.js", () => ({
       connectDb,
-      withMongoRetry: async (fn) => fn(),
+      withMongoRetry,
       isTransientMongoError: () => false,
     })),
     jest.unstable_mockModule("../../worker/lib/models.js", () => ({
@@ -61,6 +70,7 @@ beforeAll(async () => {
 
 beforeEach(async () => {
   connectDb.mockClear();
+  withMongoRetry.mockClear();
   find.mockReset();
   findOne.mockReset();
   aggregate.mockReset();
@@ -89,6 +99,24 @@ test("목록: 페이지 단위 MongoDB 집계만 실행하고 전체 본문 캐�
   expect(second.status).toBe(200);
   expect(second.headers.get("X-CD-Cache")).toBe("bypass");
   expect(connectDb).toHaveBeenCalledTimes(2);
+  expect(aggregate).toHaveBeenCalledTimes(4);
+});
+
+test("목록: 일시적 Mongo 오류 1회 뒤 성공하면 200 이고 캐시 없이 집계를 다시 돈다", async () => {
+  const transient = Object.assign(new Error("pool was cleared"), { transient: true });
+  aggregate.mockImplementationOnce(() => ({
+    collation: () => Promise.reject(transient),
+    then: (resolve, reject) => Promise.reject(transient).then(resolve, reject),
+  }));
+
+  const response = await handleInsightsRoutes(req("/api/insights"), {});
+  const body = await response.json();
+
+  expect(response.status).toBe(200);
+  expect(response.headers.get("X-CD-Cache")).toBe("bypass");
+  expect(body.items).toHaveLength(1);
+  expect(withMongoRetry).toHaveBeenCalledTimes(1);
+  expect(withMongoRetry.mock.calls[0][1]).toEqual(expect.any(Function));
   expect(aggregate).toHaveBeenCalledTimes(4);
 });
 

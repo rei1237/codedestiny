@@ -1,4 +1,4 @@
-import { connectDb } from "../lib/db.js";
+import { connectDb, withMongoRetry } from "../lib/db.js";
 import { Insight } from "../lib/models.js";
 import { createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed, notFound } from "../lib/http.js";
 import { readCmsThroughCache } from "../lib/cms-cache.js";
@@ -456,7 +456,8 @@ async function handleInsightsList(request, env) {
   } : null;
 
   await connectDb(env);
-  const [listResult, metadataResult] = await Promise.all([
+  // 공개 목록은 쿼리별 집계라 캐시하지 않는다(insight-public-cache.js 의 결정). 풀 초기화 같은 일시 오류만 재시도한다.
+  const [listResult, metadataResult] = await withMongoRetry(env, () => Promise.all([
     Insight.aggregate([
       ...(searchStage ? [searchStage] : []),
       { $match: listMatch },
@@ -500,7 +501,7 @@ async function handleInsightsList(request, env) {
         },
       },
     ]).collation({ locale: "ko", strength: 2 }),
-  ]);
+  ]));
 
   const list = listResult?.[0] || {};
   const metadata = metadataResult?.[0] || {};
