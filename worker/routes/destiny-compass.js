@@ -15,6 +15,11 @@ import { cmsPromptText } from "../lib/cms-prompts.js";
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const RATE_LIMIT_MAX_REQUESTS = 30;
 const RATE_LIMIT_ENDPOINT = "destiny-compass:narrate";
+// 전역(모든 IP 합산) 일일 한도. 분산 IP 로 Gemini 비용을 태우는 것을 막는 상한이다.
+// 실측: 7일간 이 경로 요청이 1건(D=1)이라 max(300, 5×D) = 300. 초과 시 클라이언트는 결정론 템플릿을 그대로 보여 준다.
+export const GLOBAL_DAILY_MAX = 300;
+const GLOBAL_RATE_LIMIT_ENDPOINT = "destiny-compass:narrate:global-day";
+const GLOBAL_RATE_LIMIT_WINDOW_MS = 24 * 60 * 60 * 1000;
 const requestBuckets = new Map();
 
 // 무료 결과는 아래 LLM 없이 이미 완성된다. 이 호출은 문장 다듬기만 하므로 클라이언트의
@@ -74,10 +79,27 @@ async function checkRateLimit(request, env) {
       windowMs: RATE_LIMIT_WINDOW_MS,
       env,
     });
-    return count <= RATE_LIMIT_MAX_REQUESTS;
+    if (count > RATE_LIMIT_MAX_REQUESTS) return false;
   } catch (error) {
     console.warn("[compass narrate] rate-limit increment failed", String(error?.message || error).slice(0, 200));
     return checkLocalRateLimit(request);
+  }
+  return checkGlobalDailyCap(env);
+}
+
+/** IP 한도를 통과한 요청만 센다. 카운터가 죽으면 전역 한도는 건너뛰고 IP 한도만 적용한다(정상 고객을 막지 않는다). */
+async function checkGlobalDailyCap(env) {
+  try {
+    const { count } = await incrementRateLimit({
+      subjectHash: "global",
+      endpoint: GLOBAL_RATE_LIMIT_ENDPOINT,
+      windowMs: GLOBAL_RATE_LIMIT_WINDOW_MS,
+      env,
+    });
+    return count <= GLOBAL_DAILY_MAX;
+  } catch (error) {
+    console.warn("[compass narrate] global daily cap increment failed", String(error?.message || error).slice(0, 200));
+    return true;
   }
 }
 
