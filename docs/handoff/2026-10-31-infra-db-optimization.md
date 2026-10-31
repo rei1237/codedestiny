@@ -28,7 +28,7 @@
 | 10 보안 | 완료 | 014703a08 | 리뷰 Approved(Minor 5 이월). 10A 보안 커밋 4건 `-x` cherry-pick(W-1 83c7e699a, W-6 9872dd9a8, W-10 4aef96200, E-1 4aedaf1a8) + CORS 단언(`https://localhost` 앱 출처 유지), 10B 구독 POST IP 5/시간·이메일 3/일(실측 7일 POST 0건), 10C compass 전역 300/일(실측 D=1). 10D·10E·10F는 문서라 Task 12에서. 스테이징 route-metrics는 토큰 미설정으로 닫힘(사용자 조치) |
 | 11 DR | 완료 | 89bb3cd1a | Task 12 문서와 한 커밋. 오프라인 리허설(덤프·검증)만 실측, 복원 단계 RTO는 미측정(로컬 mongod 실행이 권한 분류기에서 거부됨). Atlas 스냅샷 복원 시험은 승인 항목 |
 | 12 문서 7종 | 완료(최종 tail 수치 대기) | 89bb3cd1a, da47f58b1 | 리뷰 Needs fixes → 수정 1라운드(ICN 비율 원본 재계산 일별 0.02~44%, Atlas 연결 제한 공식 문서 출처, 판정 라벨) → 재리뷰 전부 ADDRESSED. Minor 7 이월. tail 표·Task 9 판정은 "중간 판정(피크 미포함)", 00:40 뒤 최종 수치로 교체 |
-| 13 검증·스테이징 | 진행 중 | | 배포 트리 `D:\Development\codedestiny-worktrees\infra-deploy-20261031-190620`(origin/main 위 cherry-pick). origin/main c110fc2f1의 CI required는 다른 세션 커밋으로 이미 실패 중(adsense-readiness·shell-dictionary-parity·content-unlocks 크론 커버리지). 운영은 요청 시에만 |
+| 13 검증·스테이징 | 진행 중(미push) | | 최종 리뷰 With fixes → fix wave(`da47f58b1..f947073ef`) → 재리뷰 ADDRESSED, 신규 Important(TTL)는 주석 정정 `25729b770` + 후속 문서. 배포 트리 `D:\Development\codedestiny-worktrees\infra-deploy-20261031-190620`(origin/main `c110fc2f1` 위 44개 cherry-pick, HEAD `794eca3de`). `check:fast --base=origin/main` EXIT=1이지만 남은 3건은 merge-base와 ✖ 목록 동일, jest 452/7,360 통과. 스테이징 릴리스는 `c110fc2f1`에서 다른 세션 커밋(adsense-readiness)으로 막혀 push 보류. 21:35 origin/main `1b262f31c`("recover CI") CI 진행 중. 운영 미배포, 요청 시에만 |
 
 ## 실측 파일 위치 (리포 밖, 커밋 금지)
 
@@ -38,5 +38,10 @@
 
 ## 다음 세션이 할 일
 
-1. 위 표에서 첫 "대기" Task부터 이어 간다. 원장의 Rulings를 먼저 읽는다.
-2. 승인 필요 항목(계획 하단)은 자동 실행하지 않는다.
+후속 작업은 색인 [2026-10-31-infra-followups-index.md](2026-10-31-infra-followups-index.md)에서 시작한다. 이 브랜치의 남은 마무리(최종 tail 수치, 스테이징 push, 검증 결과 기록, 작업 트리 정리)는 그 문서 "이 세션이 못 끝낸 것"에 있다.
+
+1. [월정석 해금 경로 권한 삭제](2026-10-31-moonstone-unlock-entitlement-drop.md): RED, 1순위.
+2. [서사형 의도 검토 대기의 TTL 삭제](2026-10-31-paid-intent-review-ttl.md): RED, 2순위.
+3. [작은 후속 묶음](2026-10-31-infra-small-followups.md): 알림·도구·스테이징 확인·문서·DR·보안 잔여.
+
+승인 필요 항목은 자동 실행하지 않는다(색인 문서 "승인 필요 항목 현황").
