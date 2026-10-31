@@ -14,7 +14,7 @@ branch: wt/activation-rewards-20261031-145450
 이전 실패 main: 06a18ac7133026ac6cbba08ea64c2e309492e3b7. 기존 PR CI 실패: https://github.com/rei1237/codedestiny/actions/runs/41177515266
 - Build Pages and Worker: fortune-service-selection-guide 제목 표시 폭 82 > 60.
 - Static guards: verify-editorial-manuscripts, 검수 원고 수 27 != 32.
-현재 main 수정 63e86a034b8b9e749d9a91e529e8349d61cc542e를 로컬 통합했다. 마지막 확인 시 해당 main CI 41179244541은 in_progress였다: https://github.com/rei1237/codedestiny/actions/runs/41179244541 . 완료 성공을 확인하기 전에는 새 기능을 push하지 않는다.
+현재 main 수정 63e86a034b8b9e749d9a91e529e8349d61cc542e를 로컬 통합했다. 해당 main CI 41179244541 최종 결과는 failure: https://github.com/rei1237/codedestiny/actions/runs/41179244541 . Static guards / Verify public mirrors are fresh에서 docs/design/moon-library/insight-audit.json이 앞선 검사로 수정돼 dirty 상태가 되어 실패했다. 이 작업 변경과 무관한 main 실패가 복구되기 전에는 새 기능을 push하지 않는다.
 통합 후 targeted Jest 91/91, client race 2/2, TypeScript, worker dry-run, payment-freeze, JS module graph를 다시 확인했다. 월정석 지급 후 안내 잔액도 새로 조회한다.
 
 사용자 AGENTS.md의 기존 main이 red이면 그 위에 새 변경을 push하지 않는 규칙 때문에 이 기능은 push하지 않았다. 무관한 SEO 원고와 다른 세션의 main 미커밋 수정은 건드리지 않았다.
@@ -42,7 +42,7 @@ main 체크아웃(C:/Users/user/Documents/Codex/worktrees/yeongnyangi-blue-passe
 ## 이어서 할 일
 
 1. 기존 main CI 책임 변경이 복구됐는지 확인한다. 이 작업에 SEO 수정을 섞거나 검사를 낮추지 않는다.
-2. 이 작업 커밋의 check:pre-push 결과를 최종 보고/상태 파일에서 확인한다.
+2. 이 작업의 커밋된 트리 check:pre-push는 최종 통과했다(63개 서비스, 생성 미러 일치, sitemap 1037 URLs, llms 및 entity registry). 정확한 커밋과 상태는 D:/Development/code-destiny/outputs/snulife-partnership-20261031/delivery-status.json을 확인한다.
 3. 최신 origin/main과 안전하게 통합하고 충돌은 정본(source)을 보존한 뒤 i18n/sync 생성기를 다시 돌린다. 다른 세션 main dirty 파일은 보존한다.
 4. 필요한 targeted 검사 후 main에 전달하고 공식 CI를 한 번 확인한다. 실패나 진행 중을 성공으로 보고하지 않는다.
 5. 운영 승격은 별도 명시 승인 후 진행하고 학교 메일 전달·본인 프로필 해금·기존 결과 보존을 확인한다. 실 LLM 검수는 횟수를 따로 승인받는다. 준비 완료 후 SNULIFE 답신 초안을 갱신하고 제출 자료를 보낸다.
