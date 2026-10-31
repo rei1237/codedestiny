@@ -26,9 +26,9 @@
 | 8 쿼리 핫스팟 | 완료 | 30ef0c7ac | 리뷰 Approved(Minor 4 이월). access 백필 증빙 결제 조회 최대 20회 → `$in` 1회(우선순위 유지), insights 목록 집계 withMongoRetry(캐시는 넣지 않음 — insight-public-cache.js:26-27 기존 결정, 실측 ≈5회/시간), ops-hq XP `$group` 1회·남은 업적만 판정(원장 105행, 증가 상한 목적), drift TTL 예외 + self-test 22건. Step 3 운영 인덱스 `users{referralCode}`는 승인 항목으로 미실행 |
 | 9 측정 판정 | Task 12에 합침 | | 코드 변경 없음. DO·결제 레인·SECURITY_DB_TIMEOUT·M10 판정은 SERVER-PERFORMANCE.md·COST-OPTIMIZATION.md에 피크 포함 전체 tail 수치로 기록 |
 | 10 보안 | 완료 | 014703a08 | 리뷰 Approved(Minor 5 이월). 10A 보안 커밋 4건 `-x` cherry-pick(W-1 83c7e699a, W-6 9872dd9a8, W-10 4aef96200, E-1 4aedaf1a8) + CORS 단언(`https://localhost` 앱 출처 유지), 10B 구독 POST IP 5/시간·이메일 3/일(실측 7일 POST 0건), 10C compass 전역 300/일(실측 D=1). 10D·10E·10F는 문서라 Task 12에서. 스테이징 route-metrics는 토큰 미설정으로 닫힘(사용자 조치) |
-| 11 DR | 대기 | | |
-| 12 문서 7종 | 대기 | | |
-| 13 검증·스테이징 | 대기 | | push는 origin/main 위 cherry-pick, 운영은 요청 시에만 |
+| 11 DR | 완료 | 89bb3cd1a | Task 12 문서와 한 커밋. 오프라인 리허설(덤프·검증)만 실측, 복원 단계 RTO는 미측정(로컬 mongod 실행이 권한 분류기에서 거부됨). Atlas 스냅샷 복원 시험은 승인 항목 |
+| 12 문서 7종 | 완료(최종 tail 수치 대기) | 89bb3cd1a, da47f58b1 | 리뷰 Needs fixes → 수정 1라운드(ICN 비율 원본 재계산 일별 0.02~44%, Atlas 연결 제한 공식 문서 출처, 판정 라벨) → 재리뷰 전부 ADDRESSED. Minor 7 이월. tail 표·Task 9 판정은 "중간 판정(피크 미포함)", 00:40 뒤 최종 수치로 교체 |
+| 13 검증·스테이징 | 진행 중 | | 배포 트리 `D:\Development\codedestiny-worktrees\infra-deploy-20261031-190620`(origin/main 위 cherry-pick). origin/main c110fc2f1의 CI required는 다른 세션 커밋으로 이미 실패 중(adsense-readiness·shell-dictionary-parity·content-unlocks 크론 커버리지). 운영은 요청 시에만 |
 
 ## 실측 파일 위치 (리포 밖, 커밋 금지)
 
