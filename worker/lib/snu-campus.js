@@ -9,7 +9,7 @@ import { grantPermanentUnlock } from './content-unlocks.js';
 
 const schema = new mongoose.Schema({
   _id: { type: String, required: true },
-  email: { type: String, required: true }, userId: { type: String, required: true },
+  email: { type: String }, userId: { type: String, required: true },
   verifiedAt: Date, tokenHash: String, challengeExpiresAt: Date, requestedAt: Date,
   sendDay: String, sendCount: Number, attempts: Number, revision: { type: Number, default: 0 },
   profileId: String, birthKey: String, grantVersion: String, grantedFeatureKeys: [String],
@@ -19,6 +19,7 @@ const failure = (status, code, message) => createHttpError(status, message, { co
 const hash = async token => Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(token))), value => value.toString(16).padStart(2, '0')).join('');
 // The built-in unique _id prevents email reuse even when autoIndex is disabled.
 const memberId = async email => `snu:${await hash(email)}`;
+const codeMemberId = async userId => `snulife:${await hash(String(userId))}`;
 const randomToken = () => Array.from(crypto.getRandomValues(new Uint8Array(32)), value => value.toString(16).padStart(2, '0')).join('');
 
 async function account(userId) {
@@ -29,11 +30,20 @@ async function account(userId) {
 
 export async function readSnuCampus(userId) {
   const { email } = await account(userId);
-  const member = email ? await SnuCampusMember.findById(await memberId(email)).lean() : null;
-  const verified = Boolean(email && member?.email === email && member?.userId === String(userId) && member?.verifiedAt);
+  const codeMember = await SnuCampusMember.findById(await codeMemberId(userId)).lean();
+  const member = codeMember || (email ? await SnuCampusMember.findById(await memberId(email)).lean() : null);
+  const verified = Boolean(member?.userId === String(userId) && member?.verifiedAt && (codeMember || email && member.email === email));
   return { eligibleEmail: Boolean(email), verified, email: email || null,
     profileId: verified ? member.profileId || null : null,
     unlockedFeatureKeys: verified ? member.grantedFeatureKeys || [] : [], features: SNU_SAJU_FEATURES };
+}
+
+export async function claimSnulifeCode(userId, code, env) {
+  await account(userId);
+  const { reserveSnulifeCode } = await import('./snulife-code.js');
+  await reserveSnulifeCode(userId, code, env);
+  await SnuCampusMember.updateOne({ _id: await codeMemberId(userId) }, { $setOnInsert: { userId: String(userId), verifiedAt: new Date(), revision: 0 } }, { upsert: true });
+  return readSnuCampus(userId);
 }
 
 export async function requestSnuVerification(userId, env) {
@@ -87,11 +97,13 @@ export async function verifySnuEmail(userId, token) {
 
 export async function unlockSnuSaju(userId, profileId) {
   const status = await readSnuCampus(userId);
-  if (!status.verified) throw failure(403, 'SNU_VERIFICATION_REQUIRED', '학교 이메일을 확인하면 연이가 선물을 열어드릴게요.');
+  if (!status.verified) throw failure(403, 'SNU_VERIFICATION_REQUIRED', 'SNULIFE 제휴 코드를 등록하면 사주 선물을 열 수 있어요.');
   const identity = await resolveBirthUnlockIdentity({ userId: String(userId), profileId, featureKey: 'section_summary' });
-  let member = await SnuCampusMember.findOneAndUpdate({ _id: await memberId(status.email), userId: String(userId), email: status.email, verifiedAt: { $ne: null },
+  const codeMember = await SnuCampusMember.findById(await codeMemberId(userId)).lean();
+  const id = codeMember ? codeMember._id : await memberId(status.email);
+  let member = await SnuCampusMember.findOneAndUpdate({ _id: id, userId: String(userId), verifiedAt: { $ne: null },
     $or: [{ birthKey: null }, { birthKey: '' }] }, { $set: { profileId: identity.profileId, birthKey: identity.birthKey, grantVersion: SNU_SAJU_VERSION } }, { new: true }).lean();
-  if (!member) member = await SnuCampusMember.findById(await memberId(status.email)).lean();
+  if (!member) member = await SnuCampusMember.findById(id).lean();
   if (!member || member.userId !== String(userId)) throw failure(409, 'SNU_ACCOUNT_CHANGED', '학교 계정을 다시 확인해 주세요.');
   if (member.birthKey !== identity.birthKey) throw failure(409, 'SNU_PROFILE_ALREADY_SELECTED', '처음 선택한 본인 프로필에서 선물을 확인해 주세요.');
   const granted = [];

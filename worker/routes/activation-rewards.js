@@ -2,7 +2,7 @@ import { connectDb } from '../lib/db.js';
 import { requireUserFromRequest, isMobileAppAuthRequest } from '../lib/auth.js';
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson, createHttpError } from '../lib/http.js';
 import { readActivationRewards, startFreeSajuTutorial, settleActivationReward } from '../lib/activation-rewards.js';
-import { readSnuCampus, requestSnuVerification, verifySnuEmail, unlockSnuSaju } from '../lib/snu-campus.js';
+import { claimSnulifeCode, readSnuCampus, requestSnuVerification, verifySnuEmail, unlockSnuSaju } from '../lib/snu-campus.js';
 
 export function assertActivationOrigin(request, env = {}) {
   if (isMobileAppAuthRequest(request)) return;
@@ -14,7 +14,7 @@ export function assertActivationOrigin(request, env = {}) {
 export async function handleActivationRewardRoutes(request, env) {
   try {
     const path = getRoutePath(request, '/api/activation-rewards');
-    const known = ['/status', '/tutorial/start', '/tutorial/complete', '/first-paid/claim', '/snu/status', '/snu/request', '/snu/verify', '/snu/unlock'];
+    const known = ['/status', '/tutorial/start', '/tutorial/complete', '/first-paid/claim', '/snu/status', '/snu/code', '/snu/request', '/snu/verify', '/snu/unlock'];
     if (!known.includes(path)) return notFound();
     if (request.method !== (path.endsWith('/status') ? 'GET' : 'POST')) return methodNotAllowed();
     if (request.method === 'POST') assertActivationOrigin(request, env);
@@ -25,7 +25,8 @@ export async function handleActivationRewardRoutes(request, env) {
     else if (path === '/snu/status') result = await readSnuCampus(auth.userId);
     else {
       const body = await readJson(request);
-      if (path === '/snu/request') result = await requestSnuVerification(auth.userId, env);
+      if (path === '/snu/code') result = await claimSnulifeCode(auth.userId, body.code, env);
+      else if (path === '/snu/request') result = await requestSnuVerification(auth.userId, env);
       else if (path === '/snu/verify') result = await verifySnuEmail(auth.userId, body.token);
       else if (path === '/snu/unlock') result = await unlockSnuSaju(auth.userId, body.profileId);
       else if (path === '/tutorial/start') result = await startFreeSajuTutorial(auth.userId, body.profileId);
