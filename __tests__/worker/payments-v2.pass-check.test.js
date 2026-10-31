@@ -17,6 +17,7 @@ import { getPaidFeatureBillingType, isBirthScopedUnlockFeatureKey } from "../../
 import { activatePassSubscription, buildPassConsumeMarker, evaluatePassCoverage, revokePassGrantForOrder, terminatePassOnBudgetExhaustion } from "../../worker/payments/passes.js";
 import { getBillingFeaturePricing } from "../../worker/lib/billing-feature-registry.js";
 import { MIN_PASS_COVERABLE_COIN, MONTHLY_PASS_LIMITS, PASS_LIMITS } from "../../worker/lib/profile-limits.js";
+import { grantEntitlement } from "../../worker/payments/entitlements.js";
 import { makeFakePaymentDb } from "../fixtures/fake-payment-db.mjs";
 import { testCard } from "../fixtures/profile-card-model.mjs";
 
@@ -272,6 +273,11 @@ describe("라우트 — 왕복 예산·소비·봉투", () => {
       const write = db.findOneAndUpdate;
       db.findOneAndUpdate = async (Model, ...args) => (Model?.modelName === modelName ? replacement() : write(Model, ...args));
     }
+    // 주입한 장애는 CAS 패배 신호가 아니다 — conflict(402)로 삼켜지지 않고 오류로 그대로 나가야 한다.
+    function expectPropagated(response, payload) {
+      expect(response.status).toBe(500);
+      expect(payload?.code).not.toBe("MEMBERSHIP_PASS_NOT_COVERED");
+    }
     function expectUntouched(db, user, item) {
       expect(Number(user.profileSubscription.monthlySpendCoin || 0)).toBe(0);
       expect(user.recentConsumeRequestIds || []).toHaveLength(0);
@@ -289,8 +295,8 @@ describe("라우트 — 왕복 예산·소비·봉투", () => {
       const db = makeFakePaymentDb({ profileCards: CARDS });
       const user = seedUser(db, activePass("family"));
       replaceWrite(db, "PointHistory", () => { throw new Error("injected PointHistory write failure"); });
-      const { response } = await postPassCheck(db, unlockBody(item, "atomic-evidence-fail", profileId));
-      expect(response.status).not.toBe(200);
+      const { response, payload } = await postPassCheck(db, unlockBody(item, "atomic-evidence-fail", profileId));
+      expectPropagated(response, payload);
       expectUntouched(db, user, item);
       expect(evidence(db, item.featureKey)).toHaveLength(0);
     });
@@ -299,8 +305,8 @@ describe("라우트 — 왕복 예산·소비·봉투", () => {
       const db = makeFakePaymentDb({ profileCards: CARDS });
       const user = seedUser(db, activePass("family"));
       replaceWrite(db, "User", () => { throw new Error("injected consume failure"); });
-      const { response } = await postPassCheck(db, unlockBody(item, "atomic-consume-fail", profileId));
-      expect(response.status).not.toBe(200);
+      const { response, payload } = await postPassCheck(db, unlockBody(item, "atomic-consume-fail", profileId));
+      expectPropagated(response, payload);
       expectUntouched(db, user, item);
     });
 
@@ -312,6 +318,33 @@ describe("라우트 — 왕복 예산·소비·봉투", () => {
       expect(response.status).toBe(402);
       expectUntouched(db, user, item);
       expect(evidence(db, item.featureKey)).toHaveLength(0);
+    });
+
+    test.each(CASES)("CAS 패배 %s: 환불된(REFUNDED) 권한을 되살리던 중 지면 환불 이력 행이 원래 모습 그대로 남는다", async (_label, item, profileId) => {
+      const db = makeFakePaymentDb({ profileCards: CARDS });
+      const user = seedUser(db, activePass("family"));
+      const seeded = await grantEntitlement(db, {
+        userId: USER, product: item, orderId: "refunded-order-1", profileId, source: "PASS",
+      });
+      expect(seeded.alreadyOwned).toBe(false);
+      const [refunded] = grants(db);
+      Object.assign(refunded, { status: "REFUNDED", refundedAt: new Date("2026-10-01T00:00:00Z") });
+      const snapshot = structuredClone(refunded);
+      replaceWrite(db, "User", () => null);
+      const { response, payload } = await postPassCheck(db, unlockBody(item, "atomic-cas-lost-refunded", profileId));
+      expect(response.status).toBe(402);
+      // pass_access_conflict 는 이 코드·문구로 매핑돼 나간다(index.js PASS_FAILURE_*).
+      expect(payload.code).toBe("MEMBERSHIP_PASS_NOT_COVERED");
+      expect(payload.message).toContain("이용권 상태를 확인하지 못했습니다");
+      // 이력 행은 삭제도, 새 주문으로의 덮어쓰기도 없이 그대로다.
+      expect(grants(db)).toHaveLength(1);
+      expect(grants(db)[0]).toEqual(snapshot);
+      expect(grants(db)[0]).toMatchObject({ orderId: "refunded-order-1", status: "REFUNDED" });
+      expect(user.recentConsumeRequestIds || []).toHaveLength(0);
+      expect(Number(user.profileSubscription.monthlySpendCoin || 0)).toBe(0);
+      expect(db.rows.filter((row) => "kind" in row)).toHaveLength(0);
+      expect(user.unlockedFeatures || []).not.toContain(item.featureKey);
+      expect(user.paidFeatures || []).not.toContain(item.featureKey);
     });
 
     test.each(CASES)("(c) %s: 같은 requestId 두 번 → 소비 1회 · 증빙 1행", async (_label, item, profileId) => {
