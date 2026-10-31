@@ -1938,7 +1938,7 @@
       "all": "Xem tất cả nội dung",
       "light": "Thử xem nhẹ nhàng",
       "free": "Bắt đầu miễn phí · Chuyên sâu tính phí riêng",
-      "benefit": "500 đá mặt trăng khi đăng ký lần đầu",
+      "benefit": "Hoàn thành hướng dẫn saju miễn phí để nhận 500 đá mặt trăng",
       "benefitNote": "Có hiệu lực 30 ngày. Tương đương 5.000 KRW theo tỷ lệ thông thường; mức trừ tùy sản phẩm. Không phải tiền mặt và không dùng mua thẻ. Chỉ giảm giá dịch vụ áp dụng từ 10.000 KRW.",
       "join": "Đăng ký bằng Kakao hoặc email",
       "signatureDescription": "Xem tư vấn và kết quả mẫu phù hợp với điều bạn quan tâm.",
@@ -3070,7 +3070,7 @@
     "neoSubline": "Không có thêm ý kiến gì. Chỉ có sự thật vẫn còn.",
     "signup": "Đăng ký",
     "login": "Đăng nhập",
-    "guestMoonstoneTeaser": "500 đá mặt trăng khi đăng ký lần đầu · Trị giá 5.000 KRW. Chỉ giảm giá dịch vụ áp dụng từ 10.000 KRW.",
+    "guestMoonstoneTeaser": "Hoàn thành hướng dẫn saju miễn phí để nhận 500 đá mặt trăng",
     "loadingGreeting": "Căn chỉnh ánh sao cho tài khoản của bạn",
     "loadingChip": "ĐỒNG BỘ PHIÊN",
     "loadingTitle": "Đang tải thông tin đăng nhập của bạn",
@@ -3110,8 +3110,8 @@
     "passCheckingGreeting": "Đang kiểm tra Thẻ Pass",
     "passCheckingNote": "Đang điều chỉnh Thẻ Pass Ánh Trăng và cấp độ thành viên một cách an toàn.",
     "exitBenefit": {
-      "title": "Quà đăng ký · {amount} Đá Mặt Trăng",
-      "copy": "Trị giá 5.000 KRW. Nhận một lần khi đăng ký lần đầu. Dùng cho nội dung áp dụng trong {days} ngày kể từ khi cấp. Chỉ giảm giá dịch vụ áp dụng từ 10.000 KRW.",
+      "title": "Hoàn thành hướng dẫn saju miễn phí để nhận {amount} đá mặt trăng",
+      "copy": "Nhận một lần sau khi đăng nhập và xem saju miễn phí với hồ sơ đã lưu. Không cấp lại nếu đã nhận quà đăng ký. Trị giá 5.000 KRW. Dùng trong {days} ngày cho dịch vụ áp dụng từ 10.000 KRW.",
       "note": "Số đá cần dùng tùy sản phẩm. Không phải tiền mặt và không dùng để mua gói.",
       "join": "Đăng ký với Kakao",
       "email": "Đăng ký bằng email"

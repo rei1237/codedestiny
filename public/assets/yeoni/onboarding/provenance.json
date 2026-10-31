@@ -1,0 +1,10 @@
+{
+  "generator": "built-in image_gen",
+  "date": "2026-10-31",
+  "mode": "generate with brand references",
+  "references": [
+    "public/assets/service-intro/yeoni-gift.webp"
+  ],
+  "prompt": "Three equal horizontal panels, 3:1 ratio, no text. Cute pink flower-pig Yeoni with lotus on head, ivory blush lilac palette. Left: opens a saju chart with five-element circles. Middle: offers a gift box of violet moonstones. Right: helps choose reading cards. Clean illustration explaining free saju, reward, next consultation.",
+  "export": "1800x600 WebP; contain; no further visual edits"
+}

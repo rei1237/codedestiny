@@ -1938,7 +1938,7 @@
       "all": "Alle Deutungen ansehen",
       "light": "Eine kurze Deutung ausprobieren",
       "free": "Kostenlos starten · Vertiefung kostet extra",
-      "benefit": "500 Mondsteine bei erster Anmeldung",
+      "benefit": "Schließe die kostenlose Saju-Anleitung ab und erhalte 500 Mondsteine",
       "benefitNote": "30 Tage gültig. Zum Standardkurs 5.000 KRW wert; der Verbrauch hängt vom Produkt ab. Kein Bargeld und nicht für Passkäufe. Nur als Rabatt auf berechtigte Dienste ab 10.000 KRW.",
       "join": "Mit Kakao oder E-Mail anmelden",
       "signatureDescription": "Entdecke passende Beratungen und Beispielergebnisse für dein Anliegen.",
@@ -3070,7 +3070,7 @@
     "neoSubline": "Keine zusätzliche Stimmung. Es bleiben nur die Fakten.",
     "signup": "Melden Sie sich an",
     "login": "Einloggen",
-    "guestMoonstoneTeaser": "500 Mondsteine bei erster Anmeldung · Wert: 5.000 KRW. Nur als Rabatt auf berechtigte Dienste ab 10.000 KRW.",
+    "guestMoonstoneTeaser": "Schließe die kostenlose Saju-Anleitung ab und erhalte 500 Mondsteine",
     "loadingGreeting": "Richten Sie Ihr Konto im Sternenlicht aus",
     "loadingChip": "SITZUNGSSYNC",
     "loadingTitle": "Ihre Anmeldeinformationen werden geladen",
@@ -3110,8 +3110,8 @@
     "passCheckingGreeting": "Pass wird überprüft",
     "passCheckingNote": "Ihr Mondlicht-Pass und Ihre Mitgliedsstufe werden sicher abgeglichen.",
     "exitBenefit": {
-      "title": "Willkommensgeschenk · {amount} Mondsteine",
-      "copy": "Wert: 5.000 KRW. Einmalig bei der ersten Registrierung. Ab Ausgabe {days} Tage für berechtigte Inhalte nutzbar. Nur als Rabatt auf berechtigte Dienste ab 10.000 KRW.",
+      "title": "Schließe die kostenlose Saju-Anleitung ab und erhalte {amount} Mondsteine",
+      "copy": "Einmal nach der Anmeldung und kostenlosen Saju-Lesung mit deinem gespeicherten Profil abholen. Wer das frühere Anmeldegeschenk erhalten hat, erhält keine zweite Gutschrift. Wert: 5.000 KRW. Ab Ausgabe {days} Tage als Rabatt auf berechtigte Dienste ab 10.000 KRW nutzbar.",
       "note": "Die Kosten variieren je nach Produkt. Kein Bargeld und nicht für den Kauf von Pässen.",
       "join": "Mit Kakao registrieren",
       "email": "Mit E-Mail registrieren"

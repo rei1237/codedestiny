@@ -141,7 +141,7 @@ async function fetchUsedReviewProducts(normalizedUserId, env) {
     { $project: { featureId: 1, featureKey: 1, contentKey: 1, serviceKey: 1,
       completedAt: 1, consumedAt: 1, createdAt: 1, paidAt: 1, unlockedAt: 1,
       executionId: 1, paymentId: 1, merchantUid: 1, orderId: 1, paymentClaimOrderId: 1, accessMethod: 1,
-      passEvidenceId: 1, moonstoneLedgerId: 1, packEntitlementId: 1, "metadata.accessMethod": 1 } },
+      passEvidenceId: 1, moonstoneLedgerId: 1, packEntitlementId: 1, evidenceId: 1, "metadata.accessMethod": 1 } },
   ]));
   const [executions, payments, pointHistories, entitlements, consultations] = await Promise.all([
     latestByKey(PaidExecutionRecord, {
@@ -220,7 +220,7 @@ async function fetchUsedReviewProducts(normalizedUserId, env) {
       featureKey: row?.contentKey,
       orderId: row?.orderId,
       usedAt: row?.unlockedAt,
-      source: "entitlement",
+      source: toText(row?.evidenceId).startsWith('snu:') ? "campaign" : "entitlement",
     });
   }
 

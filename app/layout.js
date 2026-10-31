@@ -14,6 +14,7 @@ import UnlockProvider from "./providers/UnlockProvider";
 import AppChrome from "./components/AppChrome";
 import RuntimeClientGuards from "./components/RuntimeClientGuards";
 import ShellHomeHardNavGuard from "./components/ShellHomeHardNavGuard";
+import ActivationEntry from './components/activation/ActivationEntry';
 import { SEO_CORE_KEYWORDS } from "../lib/seo-metadata";
 import { siteSeo } from "../lib/seo/siteSeo";
 import { serializeJsonLd } from "../lib/seo/json-ld.mjs";
@@ -293,6 +294,7 @@ export default function RootLayout({ children }) {
                 <ShellHomeHardNavGuard />
                 <ToastProvider />
                 <AppChrome>{children}</AppChrome>
+                <ActivationEntry />
               </NavigationProvider>
             </UserSessionProvider>
           </UnlockProvider>

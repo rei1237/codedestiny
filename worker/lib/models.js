@@ -142,6 +142,7 @@ const userSchema = new mongoose.Schema({
     passLimit: { type: Number, default: 0, min: 0 },
     membershipCreditBalance: { type: Number, default: 0, min: 0 },
     membershipCreditGranted: { type: Number, default: 0, min: 0 },
+    activationRewardVersion: { type: String },
     membershipCreditUsed: { type: Number, default: 0, min: 0 },
     // 이용권 주기 식별자와 이용권으로 커버된 거래의 30일 누적 코인가 합계를 함께 담는다.
     // premiumUseCount 는 옛 횟수제 문서 호환용으로만 남고 현재 판정에는 쓰지 않는다.

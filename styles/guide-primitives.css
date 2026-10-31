@@ -100,3 +100,5 @@
   .cd-guide__next:hover,
   .cd-first.cd-first .cd-first__speech button:hover { background: var(--cd-primary-hover); }
 }
+
+.cd-first.cd-first .cd-first__reward-link { display:flex; align-items:center; justify-content:center; min-height:44px; margin-top:12px; padding:8px 12px; color:var(--cd-primary); font:600 var(--cd-t-body)/1.6 var(--font-body); text-align:center; text-underline-offset:4px; }

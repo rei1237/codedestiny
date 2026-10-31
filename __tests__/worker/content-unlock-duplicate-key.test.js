@@ -17,6 +17,7 @@ import { TEST_USER_ID, profileCardModel, testCard } from "../fixtures/profile-ca
 import { computeBirthKey, toBirthEntitlementProfileId } from "../../worker/lib/birth-key.js";
 
 const findOneAndUpdate = jest.fn();
+const findOne = jest.fn();
 
 const BIRTH_PROFILE_ID = toBirthEntitlementProfileId(computeBirthKey(testCard("profile-1")));
 
@@ -34,7 +35,7 @@ beforeAll(async () => {
       BACKFILL: "BACKFILL",
     },
     CONTENT_ENTITLEMENT_STATUSES: { ACTIVE: "ACTIVE", REFUNDED: "REFUNDED", CANCELLED: "CANCELLED" },
-    ContentEntitlement: { findOneAndUpdate },
+    ContentEntitlement: { findOneAndUpdate, findOne },
     SAJU_LOCKED_CONTENT_KEYS: {
       DAEUN_ANALYSIS: "saju.daeunAnalysis",
       FULL_READING: "saju.fullReading",
@@ -136,4 +137,22 @@ test("contentKey 별칭 치유는 유지된다", async () => {
   const [featureClause] = findOneAndUpdate.mock.calls[0][0].$or;
   expect(featureClause.featureKey).toBe("section_summary");
   expect(featureClause.contentKey.$in).toEqual(expect.arrayContaining(["saju.fullReading", "section_summary"]));
+});
+
+
+test('campaign insert-only grant preserves existing paid proof', async () => {
+  const paid = { _id: 'paid', source: 'PAYMENT', paymentId: 'original', status: 'ACTIVE' };
+  findOneAndUpdate.mockReturnValueOnce(chain(async () => paid));
+  expect(await upsertContentUnlock({ ...SAJU_INPUT, source: 'ADMIN', insertOnly: true, evidenceId: 'snu:campaign' })).toBe(paid);
+  const update = findOneAndUpdate.mock.calls[0][1];
+  expect(update).not.toHaveProperty('$set');
+  expect(update.$setOnInsert.source).toBe('ADMIN');
+});
+test('insert-only concurrent loser reads without replacing the winner', async () => {
+  const paid = { _id: 'winner', source: 'PAYMENT', paymentId: 'original' };
+  findOneAndUpdate.mockReturnValueOnce(chain(async () => { throw duplicateKeyError(); }));
+  findOne.mockReturnValueOnce(chain(async () => paid));
+  expect(await upsertContentUnlock({ ...SAJU_INPUT, source: 'ADMIN', insertOnly: true })).toBe(paid);
+  expect(findOneAndUpdate).toHaveBeenCalledTimes(1);
+  expect(findOne.mock.calls[0][0]).toEqual(findOneAndUpdate.mock.calls[0][0]);
 });

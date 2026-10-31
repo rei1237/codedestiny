@@ -275,6 +275,13 @@ describe("탈퇴 거부 조건", () => {
 });
 
 describe("탈퇴 처리 — 비식별화 범위", () => {
+  test('학교 인증 메일·토큰·출생 연결과 보상 프로필 증빙을 비식별화한다',async()=>{
+    expect((await callWithdraw()).status).toBe(200);
+    const school=collectionCalls.get('snu_campus_members').updateMany.mock.calls[0];
+    expect(school[0]).toEqual({userId:USER_ID});expect(school[1].$unset).toMatchObject({email:'',tokenHash:'',profileId:'',birthKey:''});
+    const reward=collectionCalls.get('activation_rewards').updateMany.mock.calls[0];expect(String(reward[0].userId)).toBe(USER_ID);expect(reward[1].$unset).toEqual({profileId:'',proofId:''});
+  });
+
   test("영냥이 상담의 출생정보와 질문도 계정 소유자로 범위를 제한해 삭제한다", async () => {
     const {status}=await callWithdraw();
     expect(status).toBe(200);

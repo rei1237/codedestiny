@@ -148,3 +148,9 @@ test("기존 후기 상태를 전달하고 기존 후기 조회 실패도 숨기
   await expect(listReviewableProducts({ userId: USER })).rejects.toThrow("review lookup failed");
   expect(await findUsedReviewProduct({ userId: USER, productId: "saju-ai" })).toBeNull();
 });
+
+test('SNU free campaign unlock is not presented as a verified purchase',async()=>{
+ rows.entitlement=[{userId:USER,contentKey:'saju.daeunAnalysis',serviceKey:'saju',status:'ACTIVE',evidenceId:'snu:snu-saju-20261031-v1:'+USER}];
+ const used=await listUsedReviewProducts({userId:USER});expect(used).toHaveLength(1);expect(used[0].sources).toEqual(['campaign']);
+ const {resolveUsageVerification}=await import('../../worker/lib/review-eligibility.js');expect(resolveUsageVerification(used[0]).isVerifiedPurchase).toBe(false);
+});

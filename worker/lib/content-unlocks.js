@@ -768,6 +768,7 @@ export async function upsertContentUnlock({
   grantedAt = null,
   expiresAt = null,
   session = null,
+  insertOnly = false,
   partnerProfileId = "",
   birthKey = "",
   partnerBirthKey = "",
@@ -867,8 +868,9 @@ export async function upsertContentUnlock({
   const query = ContentEntitlement.findOneAndUpdate(
     identity,
     {
-      $set: setFields,
+      ...(insertOnly ? {} : { $set: setFields }),
       $setOnInsert: {
+        ...(insertOnly ? setFields : {}),
         userId: normalized.userId,
         profileId: normalized.profileId,
         scope: normalized.scope,
@@ -894,7 +896,8 @@ export async function upsertContentUnlock({
     if (session) throw error;
     // 같은 identity 로 upsert 없이 한 번만 다시 쓴다. 필터가 1차와 동일하므로 1차가 고르지 않았을 행을
     // 고를 수 없다. 못 찾으면 이 필터가 애초에 소유하지 않는 행과의 진짜 데이터 충돌이므로 삼키지 않는다.
-    document = await ContentEntitlement.findOneAndUpdate(identity, { $set: setFields }, { new: true }).lean();
+    document = insertOnly ? await ContentEntitlement.findOne(identity).lean()
+      : await ContentEntitlement.findOneAndUpdate(identity, { $set: setFields }, { new: true }).lean();
     if (!document) throw error;
   }
   invalidateAccessReadCaches(normalized.userId);

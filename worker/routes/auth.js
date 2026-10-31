@@ -1,4 +1,4 @@
-import signupBenefitPolicy from "../../js/core/signup-benefit-policy.mjs";
+import { ACTIVATION_REWARD_VERSION } from '../../js/core/activation-reward-policy.mjs';
 import { mapSocialProfile, normalizeKoreanPhoneNumber } from "../lib/social-profile.js";
 import { connectDb, mongoose, requestPoolRecovery, resolveMongoDbName, withMongoRetry } from "../lib/db.js";
 import { IdempotencyKey, MonthlyCreditLedger, PointHistory, RESTORE_CREDENTIAL_CAP, RefreshTokenSession, User } from "../lib/models.js";
@@ -89,7 +89,9 @@ const PHONE_CHANGE_RATE_LIMIT_MAX = 5;
 const PHONE_CHANGE_RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
 const LOGIN_RATE_LIMIT_DEFAULT_MAX = 20;
 const LOGIN_RATE_LIMIT_DEFAULT_WINDOW_MS = 60 * 1000;
-const SIGNUP_MONTHLY_CREDIT_GRANT = signupBenefitPolicy.amount;
+// The same 500-stone welcome reward is now earned by completing the free-saju tutorial.
+// Existing signup lots are untouched; the ledger helper skips a zero amount.
+const SIGNUP_MONTHLY_CREDIT_GRANT = 0;
 const AUTH_TERMS_VERSION = "2026-04-11";
 // 🔴 app/privacy-policy/PrivacyPolicyContent.jsx 의 PRIVACY_POLICY_EFFECTIVE_DATE 와 같아야 한다.
 const AUTH_PRIVACY_VERSION = "2026-10-10";
@@ -101,22 +103,15 @@ const loginRateLimitMap = new Map();
 const OAUTH_CODE_GUARD_TTL_MS = 10 * 60 * 1000;
 const OAUTH_CODE_EXCHANGE_GUARDS = new Map();
 
-function buildSignupProfileSubscription(now = new Date()) {
-  const grantedAt = now instanceof Date ? now : new Date(now);
+function buildSignupProfileSubscription() {
   return {
     tier: "free",
     source: "event",
     membershipCreditBalance: SIGNUP_MONTHLY_CREDIT_GRANT,
     membershipCreditGranted: SIGNUP_MONTHLY_CREDIT_GRANT,
     membershipCreditUsed: 0,
-    // 월정석은 지급일로부터 30일간만 유효 — 가입 지급분을 lot으로 기록(지급일+30일 소멸).
-    membershipCreditLots: [{
-      lotId: "signup",
-      amount: SIGNUP_MONTHLY_CREDIT_GRANT,
-      remaining: SIGNUP_MONTHLY_CREDIT_GRANT,
-      grantedAt,
-      expiresAt: new Date(grantedAt.getTime() + signupBenefitPolicy.days * 86400000),
-    }],
+    activationRewardVersion: ACTIVATION_REWARD_VERSION,
+    membershipCreditLots: [],
     membershipCreditLotsVersion: 0,
     legacyCoinCreditSeeded: true,
     legacyCoinCreditSeededPoints: 0,
@@ -4241,6 +4236,19 @@ async function handleWithdraw(request, env) {
   } catch (error) {
     partialFailure = true;
     console.error("[auth/withdraw] profile card delete failed:", error);
+  }
+
+  // Remove campaign contact, challenge and birth details on withdrawal; keep only the dedupe receipt.
+  try {
+    await User.db.collection('snu_campus_members').updateMany({ userId: String(userId) }, {
+      $unset: { email: '', tokenHash: '', challengeExpiresAt: '', profileId: '', birthKey: '' },
+    }, { maxTimeMS: 8000 });
+    await User.db.collection('activation_rewards').updateMany({ userId: objectId }, {
+      $unset: { profileId: '', proofId: '' },
+    }, { maxTimeMS: 8000 });
+  } catch (error) {
+    partialFailure = true;
+    console.error('[auth/withdraw] activation data anonymize failed:', error);
   }
 
   // Consultation and free-reading snapshots contain birth data and private questions.

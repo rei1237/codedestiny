@@ -21,7 +21,7 @@ function installGuide() {
     {label:guideText('sceneReadingLabel'),title:guideText('sceneReadingTitle'),speech:guideText('sceneReadingBody')},
     {label:guideText('sceneDeeperLabel'),title:guideText('sceneDeeperTitle'),speech:guideText('sceneDeeperBody')}
   ];
-  const art=(step=0)=>'<span class="cd-first__art" aria-hidden="true"><img src="/images/first-visit/yeoni-tutorial-v2.webp" width="1440" height="480" alt="" style="left:-'+step*100+'%"></span>';
+  const art=(step=0)=>'<span class="cd-first__art" aria-hidden="true"><img src="/assets/yeoni/onboarding/first-steps-v1.webp" width="1800" height="600" alt="" style="left:-'+step*100+'%"></span>';
   const story=document.createElement('div');story.className='cd-first__story';
   story.innerHTML=`<nav class="cd-first__scene-nav" data-first-aria="scenesLabel" aria-label="${guideText('scenesLabel')}">`+scenes().map((scene,index)=>'<button type="button" data-first-scene="'+index+'"><span>'+(index+1)+'</span>'+'<span data-first-copy="'+['sceneProfileLabel','sceneReadingLabel','sceneDeeperLabel'][index]+'">'+scene.label+'</span></button>').join('')+'</nav><div class="cd-first__scene">'+art()+`<div class="cd-first__speech" aria-live="polite"><span class="cd-first__speaker" data-first-copy="speaker">${guideText('speaker')}</span><h2></h2><p></p><button type="button" data-first-next></button></div></div>`;
   let sceneIndex=0,lastProgressStep=0;
@@ -47,6 +47,10 @@ function installGuide() {
   document.body.append(dialog);
   dialog.querySelector('img').remove();
   dialog.querySelector('[data-first-start]').before(story,howTo);
+  if(document.documentElement.lang.startsWith('ko')){
+    const gift=document.createElement('a');gift.className='cd-first__reward-link';gift.href='/onboarding/';gift.textContent='무료 사주를 본 뒤, 월정석 선물과 사용법 확인하기';
+    dialog.querySelector('[data-first-start]').after(gift);
+  }
   const progress = root.querySelector('[data-first-progress]');
   dialog.append(progress);
   root.querySelector('.cd-first__bar > span').remove();

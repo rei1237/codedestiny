@@ -1,0 +1,11 @@
+{
+  "generator": "built-in image_gen",
+  "date": "2026-10-31",
+  "mode": "edit",
+  "references": [
+    "public/assets/service-intro/yeoni-gift.webp",
+    "public/assets/yeongnyangi/original/ggulggul-fortune.webp"
+  ],
+  "prompt": "Approved SNULIFE x 꿀꿀 운세 flower-pig Yeoni poster. Light saju and daewun unlock gifts. School-email verification and one own profile. Remove only the tiny 제휴 제안 시안 label; preserve approved artwork and other copy.",
+  "export": "1500x1200 WebP; contain with ivory border; no further visual edits"
+}

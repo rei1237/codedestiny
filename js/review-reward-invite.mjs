@@ -20,6 +20,16 @@ export function mountPaidReviewInvite({ host, completed, paid, locale = 'ko' }) 
   text.append(heading, description, reward, detail, action);
   const image = document.createElement('img'); image.className = 'cd-review-invite__image'; image.src = copy.image; image.alt = reviewRewardCopy.imageAlt; image.width = 360; image.height = 240; image.loading = 'lazy';
   section.append(text, image); host.appendChild(section);
+  if (typeof IntersectionObserver !== 'undefined') {
+    const observer = new IntersectionObserver(entries => {
+      if (!entries.some(entry => entry.isIntersecting) || document.hidden) return;
+      observer.disconnect();
+      // Reuse the shell's stamped URL so module state/listeners are installed only once.
+      const moduleUrl = document.querySelector('script[type="module"][src*="/js/activation-entry.mjs"]')?.src || new URL('./activation-entry.mjs', import.meta.url).href;
+      void import(moduleUrl).then(module => module.showLegacyCompletionBenefits()).catch(() => {});
+    }, { threshold: .5 });
+    observer.observe(section);
+  }
   const krwPerStone = Number(document.getElementById('cdReviewInvite')?.dataset.reviewKrwPerStone);
   fetch('/api/reviews/products', { headers: { accept: 'application/json' } })
     .then(response => response.ok ? response.json() : null)

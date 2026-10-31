@@ -1938,7 +1938,7 @@
       "all": "Explore all readings",
       "light": "Try a lighter reading",
       "free": "Start free · In-depth readings cost extra",
-      "benefit": "500 moonstones on first signup",
+      "benefit": "Complete the free saju tutorial for 500 moonstones",
       "benefitNote": "Valid for 30 days. Equivalent to KRW 5,000 at the standard rate; costs vary by product. Not cash or credit for purchasing passes. Only for discounts on eligible services priced KRW 10,000 or more.",
       "join": "Sign up with Kakao or email",
       "signatureDescription": "Explore consultations and sample results for your concern.",
@@ -3070,7 +3070,7 @@
     "neoSubline": "No extra sentiment. Only the facts remain.",
     "signup": "Sign up",
     "login": "Log in",
-    "guestMoonstoneTeaser": "500 moonstones on first signup · Worth KRW 5,000. Only for discounts on eligible services priced KRW 10,000 or more.",
+    "guestMoonstoneTeaser": "Complete the free saju tutorial for 500 moonstones",
     "loadingGreeting": "Aligning your account starlight",
     "loadingChip": "SESSION SYNC",
     "loadingTitle": "Loading your login information",
@@ -3110,8 +3110,8 @@
     "passCheckingGreeting": "Checking your Pass",
     "passCheckingNote": "We're securely matching your Moonlight Pass and membership tier.",
     "exitBenefit": {
-      "title": "Welcome gift · {amount} Moonstones",
-      "copy": "Worth KRW 5,000. Granted once on first signup. Use on eligible content within {days} days of issue. Only for discounts on eligible services priced KRW 10,000 or more.",
+      "title": "Complete the free saju tutorial for {amount} moonstones",
+      "copy": "Claim once after viewing free saju with your saved profile while signed in. Previous signup-gift recipients do not receive a second grant. Worth KRW 5,000. Use within {days} days on eligible services priced KRW 10,000 or more.",
       "note": "Moonstone costs vary by product. Not cash or a coupon for purchasing passes.",
       "join": "Sign up with Kakao",
       "email": "Sign up with email"

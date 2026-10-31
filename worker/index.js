@@ -504,6 +504,7 @@ const handleHumanDesignReportRoutes = createLazyRouteHandler("./routes/human-des
 const handleInsightsRoutes = createLazyRouteHandler("./routes/insights.js", () => import("./routes/insights.js"), "handleInsightsRoutes");
 const handleCmsRoutes = createLazyRouteHandler("./routes/cms.js", () => import("./routes/cms.js"), "handleCmsRoutes", "api/cms");
 const handleReviewRoutes = createLazyRouteHandler("./routes/reviews.js", () => import("./routes/reviews.js"), "handleReviewRoutes");
+const handleActivationRewardRoutes = createLazyRouteHandler("./routes/activation-rewards.js", () => import("./routes/activation-rewards.js"), "handleActivationRewardRoutes", "api/activation-rewards");
 const handleFeedbackRoutes = createLazyRouteHandler("./routes/feedback.js", () => import("./routes/feedback.js"), "handleFeedbackRoutes");
 const handleContentRoutes = createLazyRouteHandler("./routes/content.js", () => import("./routes/content.js"), "handleContentRoutes");
 const handleContentFeedRoutes = createLazyRouteHandler("./routes/content.js", () => import("./routes/content.js"), "handleContentFeedRoutes", "api/content-feed");
@@ -1275,6 +1276,10 @@ const app = {
 
       if (url.pathname === "/api/reviews" || url.pathname.startsWith("/api/reviews/")) {
         return withCorsHeaders(request, env, await handleReviewRoutes(request, env));
+      }
+
+      if (url.pathname.startsWith('/api/activation-rewards/')) {
+        return withCorsHeaders(request, env, await handleActivationRewardRoutes(request, env));
       }
 
       // ctx 를 넘기는 이유: 관리자 알림 메일/웹훅을 응답 이후 백그라운드로 돌려

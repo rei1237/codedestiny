@@ -1938,7 +1938,7 @@
       "all": "Ver todas las lecturas",
       "light": "Prueba una lectura breve",
       "free": "Inicio gratis · Lecturas profundas aparte",
-      "benefit": "500 piedras lunares al registrarte",
+      "benefit": "Completa el tutorial gratuito de saju y recibe 500 piedras lunares",
       "benefitNote": "Válidas 30 días. Equivalen a 5.000 KRW a la tasa estándar; el coste varía según el producto. No son efectivo ni sirven para comprar pases. Solo para descuentos en servicios elegibles de 10.000 KRW o más.",
       "join": "Regístrate con Kakao o correo",
       "signatureDescription": "Explora consultas y resultados de ejemplo para tu inquietud.",
@@ -3070,7 +3070,7 @@
     "neoSubline": "Sin sentimiento adicional. Sólo quedan los hechos.",
     "signup": "Regístrate",
     "login": "Iniciar sesión",
-    "guestMoonstoneTeaser": "500 piedras lunares al registrarte · Valor de 5.000 KRW. Solo para descuentos en servicios elegibles de 10.000 KRW o más.",
+    "guestMoonstoneTeaser": "Completa el tutorial gratuito de saju y recibe 500 piedras lunares",
     "loadingGreeting": "Alineando tu cuenta starlight",
     "loadingChip": "SINCRONIZACIÓN DE SESIÓN",
     "loadingTitle": "Cargando su información de inicio de sesión",
@@ -3110,8 +3110,8 @@
     "passCheckingGreeting": "Verificando su Pase",
     "passCheckingNote": "Ajustando de forma segura su Pase de Luz Lunar y nivel de membresía.",
     "exitBenefit": {
-      "title": "Regalo de bienvenida · {amount} Piedras Lunares",
-      "copy": "Valor de 5.000 KRW. Se otorgan una vez al registrarte por primera vez. Úsalas en contenido apto durante {days} días desde su emisión. Solo para descuentos en servicios elegibles de 10.000 KRW o más.",
+      "title": "Completa el tutorial gratuito de saju y recibe {amount} piedras lunares",
+      "copy": "Recíbelas una vez tras iniciar sesión y ver el saju gratuito con tu perfil guardado. Quienes ya recibieron el regalo de registro no reciben otro. Valor de 5.000 KRW. Válidas {days} días para descuentos en servicios aptos desde 10.000 KRW.",
       "note": "El coste varía según el producto. No son dinero ni sirven para comprar pases.",
       "join": "Registrarse con Kakao",
       "email": "Registrarse con email"

@@ -103,6 +103,7 @@
 /public/insights/rss.xml
 /public/ja/index.html
 /public/js/README.md
+/public/js/activation-entry.mjs
 /public/js/affiliate-presentation.mjs
 /public/js/animal-totem-experience.js
 /public/js/app.js
@@ -119,6 +120,7 @@
 /public/js/consultation-sample-guide.d.mts
 /public/js/consultation-sample-guide.mjs
 /public/js/core/access-store.js
+/public/js/core/activation-reward-policy.mjs
 /public/js/core/analytics.js
 /public/js/core/app-context.d.ts
 /public/js/core/app-context.js
@@ -186,6 +188,7 @@
 /public/js/core/service-registry.js
 /public/js/core/shell-sheet.js
 /public/js/core/signup-benefit-policy.mjs
+/public/js/core/snu-campus-policy.mjs
 /public/js/core/standalone-ai-locale.js
 /public/js/core/sukuyo-astronomy.js
 /public/js/core/uiBindings.js
@@ -301,6 +304,7 @@
 /public/sitemap.xml
 /public/static/index.html
 /public/styles/README.md
+/public/styles/activation-entry.css
 /public/styles/app-shell.css
 /public/styles/astro-reading.css
 /public/styles/basic-fortune-library.css

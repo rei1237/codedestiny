@@ -2,6 +2,7 @@
 import { chapterAdviceTopics } from '@/js/recommendations-context.mjs';
 import { RecommendationResult } from "@/app/components/recommendations/RecommendationResult";
 import ReviewRewardBanner from "@/app/components/ReviewRewardBanner";
+import ResultBenefits from '@/app/components/activation/ResultBenefits';
 import {shouldInvitePaidReview} from '@/js/review-reward-copy.mjs';
 import type { ReactNode } from "react";
 import ReadingCharts from "@/app/yeongnyangi/_components/ReadingCharts";
@@ -147,6 +148,7 @@ export default function ConsultationResult({ row, onNew, readOnly = false }: { r
       {order.map((key) => sections[key]())}
 
       {!readOnly && shouldInvitePaidReview(row) && <ReviewRewardBanner afterResult/>}
+      {!readOnly && row.state === 'COMPLETED' && <ResultBenefits requestId={row.id} locale={row.locale||'ko'}/>}
       {writing ? (
         <p className={styles.progress} role="status" aria-live="polite">
           남은 이야기를 이어서 쓰는 중이에요 · {chapters.length} / {manifest.length}
