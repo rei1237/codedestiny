@@ -1,71 +1,47 @@
 ---
-status: active
-updated: 2026-10-31
-next: "최신 main CI 성공 확인 후 공식 production 배포와 검수 설정, 전용 계정 운영 검증, 스누라이프 답신 1회 발송"
-workspace: D:/Development/code-destiny/.codex-worktrees/snulife-review-20261031-211701
-branch: wt/snulife-review-20261031-211701
+status: done
+updated: 2026-11-01
+next: "SNULIFE 담당자의 게시일 회신 후 정식 1,000계정 캠페인의 코드·시작·종료일을 별도 설정하고 게시 문안을 확정"
 ---
 
-# 연이 활성화·SNULIFE 제휴 코드 전달
+# SNULIFE 무료 제휴 운영 검증·자료 발송 완료
 
-## 최신 결정과 승인 경계
+## 승인과 유지한 범위
+사용자 승인에 따라 CI 복구, 공식 운영 배포, 기존 전용 테스트 계정의 검수 권리만 등록·해금·재열람 확인 후 기존 메일 스레드에 1회 회신했다. 별도 학생 인증을 요구하지 않는다. 정식 모집은 게시일부터 3개월·총 1,000계정·계정당 1회·본인 출생정보 하나·지정 콘텐츠 10종이며 게시일 확정 전 비활성이다. 일반 결제 가격과 이용권·월정석·단건 결제 체계는 유지했다. 다른 사용자 계정 쓰기·실결제·과금 LLM·유료 광고·계약은 실행하지 않았다.
 
-2026-10-31 사용자 요청: 기존 main CI 복구 확인 → 최신 main 통합 → 검증 → main push → CI 확인. 이후 제휴 접수 조건에 맞춰 제목·본문·5:4 썸네일 1장·혜택 페이지·검수용 이용 방법을 다시 준비하도록 요청했다.
-학생 인증은 필수가 아니다. 사용자가 선택한 구현·제출 준비안은 **게시일부터 3개월, 총 1,000계정, 계정당 1회**다. 운영 혜택 제공·코드 활성화·게시·메일 발송은 별도 최종 승인 대상이다.
+## 수정 파일과 의도
+- worker/lib/snulife-code.js, worker/lib/snu-campus.js, worker/routes/activation-rewards.js: 검수 3계정·14일과 정식 1,000계정을 별도 ID로 구분하고 기존 영수증·수량·출생정보 귀속·구매 및 회수 권리를 보존. 신규 학교 인증 경로는 410으로 종료, 기존 수령자는 유지.
+- app/components/activation/SnuWelcome.tsx, activation-api.ts: 동일 코드 입력 화면에서 검수 캠페인 안내와 선택 프로필의 10종 해금·재열람 제공.
+- worker/lib/content-unlocks.js, __tests__/worker/content-unlock-duplicate-key.test.js: insertOnly의 수동 날짜와 Mongoose 자동 날짜 충돌을 수정. 실제 ODM 미들웨어로 수정 전 실패·수정 후 통과를 확인했으며 기존 권리의 updatedAt도 보존.
+- app/first-steps/page.tsx: 예약된 /onboarding 경로와의 충돌을 피하고 설명·noindex·내부 링크 유지.
+- i18n/authored/homeFollowup-01.json 및 public/i18n 12개 미러: 실제 조건과 번역·화면 문구 일치.
+- worker/routes/payments.js와 검증 대역 2개: 크론 호출 DB 경계에 withMongoRetry(retries:0) 적용. 결제 판정·가격·차감·반복 검사 기준은 유지.
+- scripts/configure-snulife-review.mjs, .github/workflows/cloudflare-pages-deploy.yml, 관련 테스트·환경 계약·정책 문서: 공식 production 실행에서만 검수 설정 최초 적용. 기존 설정이 있으면 덮어쓰지 않음.
 
-## 구현
+## CI·공식 운영 전달
+릴리스 커밋: 4d58f3dc58e66bfd04dc265bf9dbf7392cab1c81
+공식 CI: https://github.com/rei1237/codedestiny/actions/runs/41209939007 — 성공. Jest 440 suites / 7,210 tests.
+운영 배포: https://github.com/rei1237/codedestiny/actions/runs/41213033014 — 성공. Worker·Pages 양쪽 SHA 및 검수 전후 SHA 일치.
+초기 b255b50 운영 검수에서 Mongo code 40(updatedAt 충돌)을 발견해 공식 롤백 41209533477로 직전 1592b601에 복귀한 뒤 수정했다. 수정본의 첫 재배포 41211324660은 월말 자정을 가로지른 빌드 날짜 불일치로 승격 전에 차단됐다. 기존 운영과 검수 설정을 보존하고 날짜 전환 후 같은 커밋으로 재배포했다.
 
-- 기존 무료 사주 튜토리얼과 첫 단건 현금 상담 전달 후 월정석 보상은 기존 승인 방향 유지. 가입 보상 기존 수령자는 추가 지급하지 않는다.
-- /snu/는 가입·로그인 → 제휴 코드 → 본인 출생정보 프로필 하나 → 검토된 비 LLM 콘텐츠 10종 해금. 학교 이메일·학생증 인증을 요구하지 않는다.
-- 지정 10종: 라이트 사주, 대운, 퀀텀 명리, 사주로 보는 여행지, 빌런 사주, 건강 흐름, 매력 카드, 재능 스킬 트리, 비밀의 집, 동물 운명. 일반 공개 무료 사주보다 넓은 지정 유료 해금 혜택이며 AI 유료 상담은 제외한다.
-- Mongo 단일 캠페인 문서에서 addToSet과 배열 인덱스 조건으로 1,000계정 한도를 원자적으로 지킨다. 계정 식별자는 캠페인별 해시, 코드는 해시만 저장한다. 고유 _id로 재시도 중복을 방지하고 설정 변경으로 수량을 초기화하지 않는다.
-- SNULIFE_BENEFIT_CODE / SNULIFE_STARTS_AT / SNULIFE_ENDS_AT 미설정·잘못된 기간이면 닫힌 상태. 운영 값은 아직 설정하지 않았다. 게시 승인 후 충분히 긴 무작위 코드와 한국시간 시작·종료일을 별도 운영 승인으로 설정한다.
-- 모집 종료 후 기존 콘텐츠 재열람은 유지한다. 기존 학교 인증 수령 경로도 호환 보존하며 구매·환불 회수 권리는 insertOnly로 보호한다.
-- /snu/와 /first-steps/ noindex 유지, 기존 SEO 정본을 보존했다.
+## 검증 명령과 출력
+- 관련 Jest 38개 통과, 실제 Mongoose 날짜 미들웨어 회귀 포함.
+- npm run check:pre-push: 서비스 63개·공개 미러·sitemap 1,037개·llms·entity 모두 통과.
+- npm run check:fast -- --plan 확인 및 실행. 로컬 제한 환경에서 paid-gate 89/90개가 종료됐고 접근 제한으로 실패한 3개는 필요한 접근을 허용한 개별 재검사에서 통과. 종료되지 않은 로컬 npm test는 자기 프로세스만 중단했다. 로컬 전체 통과로 표기하지 않으며 공식 CI 전체 성공으로 최종 판정했다.
+- 실제 운영 브라우저: 최초 코드 UI 등록 영수증을 이어서 본인 프로필 선택·10종 UI 해금, 새로고침·실제 로그아웃·UI 재로그인 후 재열람, 중복 등록, 존재하지 않는 프로필 거부 확인. 타인 프로필·기존 회수 권리 보존은 가상 검사에서 확인했다. 서버 접근 조회에서도 10종 권한 확인.
+- 360/1280px 가로 넘침 없음·이미지 로딩 정상·브라우저 오류 0. 기존 기록 보관함과 /first-steps/ 접근 확인.
+- 전용 계정에는 검수 전 기존 유료 권리가 없었다. 실제 유료 결과 재열람은 미실행이며, 기존 구매·회수 권리 보존은 가상 회귀 검사에서 확인했다. 원본 비교 증거는 개인정보 없이 해시로 보관. 정식 캠페인 수량 변화 없음.
+- 운영 검수 JSON: D:/Development/code-destiny/outputs/snulife-partnership-20261031/live-review-proof.json
 
-## 통합·검증
+## 검수 조건과 제출
+검수 등록 종료: 2026-11-14 22:46 KST(최초 설정한 14일 창 유지). 최대 3계정 중 자체 검수 1계정 사용, 담당자 검수 2계정 남음. 실제 코드는 저장소·파일·검사 출력에 저장하지 않고 담당자 발송 메일에서만 전달했다.
+혜택 페이지: https://code-destiny.com/snu/
+자료: posting-copy.txt, usage-and-review.txt, snulife-yeoni-code-1500x1200.png(1500×1200, 5:4, 1장), snulife-submission-code-v2.zip.
+게시 문안은 사주 기반 자기이해, 가입 필요·무료 범위·수량·기간을 명시하고 결과 보장이나 서울대학교 추천·공인 표현을 배제했다.
 
-기존 main 1592b601354873390b62b57be659acf8efbde48e의 공식 CI 성공 확인: https://github.com/rei1237/codedestiny/actions/runs/41189260100
-최신 main 병합 커밋: 3de056ad5ea23bfb139f4b6ce52ce5921ee9e514. 유일한 충돌 sitemap-lastmod 원장은 최신 main 기준으로 생성기를 다시 실행했다.
-
-- targeted Jest 8파일 98/98 통과. 수량 한도 직전 동시 요청, 중복, 만료, 잘못된 코드, 설정 변경, 일반 이메일 계정, 기존 권리·인증·탈퇴·보상 보존 확인.
-- node --test __tests__/ui/activation-entry.test.mjs: 2/2 통과.
-- TypeScript noEmit 통과. scoped ESLint 오류 0, 기존 /ggulggul/ 전체 문서 이동 a 링크 경고 4개.
-- verify:env-parity 통과(기존 alias 경고 7개), verify:worker-no-undef 통과.
-- 실제 SnuWelcome 컴포넌트 가상 API 브라우저 확인: 360/1280px, 잘못된 코드·등록·프로필 해금·새로고침 재열람·수량 마감·비회원. 가로 넘침 없음, 이미지 로딩 정상, 브라우저 오류 0. 인증·프로필 API는 가상값이며 실제 통합 동작으로 확대 해석하지 않는다.
-- check:fast -- --base=origin/main --plan 확인, 실행은 대규모 npm test 단계에서 지연되어 중단. 전체 통과가 아니다. 다른 세션의 오래 실행 중인 검사 프로세스는 건드리지 않았다.
-- 공식 main CI 결과와 check:pre-push 결과는 최종 전달 시 아래 갱신한다.
-
-## 제출 자료
-
-D:/Development/code-destiny/outputs/snulife-partnership-20261031/
-- posting-copy.txt: 제목·본문·혜택·이용 방법·기간·수량·유의사항.
-- snulife-yeoni-code-1500x1200.png: 5:4 썸네일 1장. 학생 인증 문구를 코드 방식으로 교체하고 대통령 주장 제거. built-in image_gen 편집 후 1500x1200 내보내기. 프롬프트·출처: public/assets/marketing/snulife/provenance-code-v2.json.
-- usage-and-review.txt: 검수용 이용 방법. 운영 코드가 발급됐다고 안내하지 않는다.
-- campaign-plan.txt / reply-after-readiness-draft.txt: 최신 준비안·미발송 초안.
-- 혜택 URL 예정: https://code-destiny.com/snu/ (운영 활성화 완료 의미 아님).
-- 썸네일의 실제 서비스 사본: public/assets/marketing/snulife/yeoni-saju-code-v2.webp.
-
-무료 제휴는 운영진의 [제휴] 게시, 최장 3개월. 상단 고정·[공식제휴] 표기·광고주 계정은 포함되지 않는다. PC 메인 최근 6개 노출로 상시 메인 노출을 보장하지 않는다. 서울대학교 추천·공인 및 진로·취업 결과 보장 표현을 쓰지 않는다.
-
-## 운영 경계·남은 확인
-
-실 LLM·실결제·운영 DB 지급·실제 메일·게시·운영 승격은 미실행. 별도 최종 승인 후 게시 시작·종료일 및 실제 코드 설정, 운영 동선·기존 결과 보존 확인, 준비 상태에 맞춘 자료 갱신과 발송을 진행한다. 기존 main과 루트의 타 세션 변경을 보존한다.
-
-## 전달 기록
-
-기능 커밋: 8602c9c26. check:pre-push 전체 통과(63개 서비스·미러 일치·1037 URLs·llms·entity registry). 로컬 main의 타 세션 미커밋 변경과 충돌해 fast-forward는 안전하게 중단됐다. 미커밋 파일을 보존하고 최신 원격 main을 포함한 이 작업 HEAD를 origin/main으로 직접 push한다. 공식 CI는 push 후 최종 보고 직전에 1회 확인하며 진행 중이면 성공으로 표기하지 않는다.
-운영 활성화·최종 혜택 제공·게시·메일 발송은 별도 승인 대기. 이 문서의 done은 개발·자료 준비 전달 상태이며 운영 집행 완료를 뜻하지 않는다.
-
-## 운영 전달 후속 작업 (2026-10-31 승인)
-
-검수 코드 3계정·14일을 정식 1,000계정·게시일부터 3개월과 분리했다. 기존 등록자는 다른 캠페인 수량을 추가 소비하지 않는다. 현재 운영은 1592b601, /snu/ 404, SNULIFE 설정 없음으로 확인했다.
-CI 실패 3종을 복구했다: onboarding description, auth.guestMoonstoneTeaser 12언어 정본, 단건 해금 DB 작업의 withMongoRetry 경계(재시도 0). 새 DB 경계 때문에 실 DB 연결을 시도하던 두 검증기의 DB 대역을 보완했고 결제 로직·검사 조건은 유지했다.
-검증: 제휴 관련 테스트 27개(초기 25개 후 캠퍼스 2개 추가), 쉘 문구 4개, 웹훅 원장 22개, 단건 결제 회귀 검증, 크론 Mongo 커버리지, 중첩 재시도, payment-freeze, TypeScript, scoped ESLint, env-parity 통과. check:fast 첫 실행 paid-gate 88/90, 실패한 2개는 보완 후 개별 통과. npm test 결과는 439/440 suites, 7202/7207 tests였고 실패한 웹훅 파일 22개는 최신 대역으로 개별 통과했다. 전체 검사를 다시 반복하지 않고 공식 CI로 판정한다.
-남은 순서: commit/pre-push/main push → 공식 CI 성공 → 공식 production 워크플로 → 양쪽 SHA 일치 → 검수 설정·전용 테스트 계정의 실제 해금/재로그인/보존 확인 → 자료 갱신 → 기존 스레드 ad@snulife.com에 1회 답신. 실제 결제·과금 LLM은 하지 않는다. 운영 검증 실패 시 발송하지 않는다.
-
-추가 CI 발견: /onboarding은 폐지된 개인정보 수집 화면의 예약 리다이렉트다. 가드를 유지하고 새 무료 사주 안내를 /first-steps/로 옮겨 충돌을 해소했다. 검수 코드 설정도 로컬 운영 쓰기 없이 GitHub production workflow_dispatch의 configure_snulife_review=true 선택으로만 최초 적용한다. 기존 설정이 있으면 덮어쓰지 않는다.
-
-166147b5b CI: Build Pages and Worker, Critical checks, Typecheck and lint 통과. Static guards는 이 문서 next 필드 누락만 실패하여 보완했다. 신규 학교 메일 인증 HTTP 경로는 410으로 닫고 기존 수령 권리를 보존한다. 신규 수령은 수량 제한된 코드로만 진행하며 관련 Jest 29개 통과.
-
-b255b50 CI 41205246968 성공, 공식 production 41206841239 성공 및 Worker/Pages SHA 일치. 검수 설정은 3계정·2026-11-14 22:46 KST까지이며 정식 모집은 미활성이다. 기존 전용 테스트 계정 1개에서 UI 코드 등록·로그인 복귀·프로필 선택 확인, 해금 시 Mongo code 40(updatedAt 충돌)을 발견해 발송을 보류했다. insertOnly의 수동 $setOnInsert 날짜와 Mongoose 자동 $set.updatedAt 충돌을 실 ODM 미들웨어 회귀 검사로 재현한 뒤 해당 옵션에서만 timestamps:false로 수정한다. 기존 권리·수량은 초기화하지 않으며 수정본도 공식 CI와 production 절차로 재전달한다.
+## 발송과 남은 일
+seongbae555@gmail.com → ad@snulife.com 김태윤 담당자, 기존 스레드 1a18223372b04e4a에 1회 회신.
+발송 ID: 1a1945e6438053c2
+메일: https://mail.google.com/mail/u/?authuser=seongbae555%40gmail.com#all/1a1945e6438053c2
+제목·본문 파일과 썸네일 1장을 첨부하고 실제 검수 코드·종료일·남은 수량·이용 방법 및 게시일 협의 요청을 전달했다.
+남은 일은 담당자 검토와 게시일 확정, 그 날짜 기준의 정식 캠페인 설정·정식 코드 전달이다. 무료 제휴의 상단 고정·[공식제휴] 표기·광고주 계정이나 유료 집행을 승인한 것으로 보지 않는다.
