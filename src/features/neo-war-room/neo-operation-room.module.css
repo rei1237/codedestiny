@@ -1,4 +1,7 @@
 .consultationValue { max-width: 1120px; margin: 0 auto; padding: 48px 24px; }
+/* 공용 값 카드(.valueSection)는 폭이 min(1160px, 100% - 32px)이라 이 래퍼의 패딩 안에서 양옆 16px 더 들어가
+   소개 블록·제작 고지와 가장자리가 어긋났다. 공용 폭은 다른 화면이 쓰므로 여기서만 래퍼 폭을 다 쓴다. */
+.consultationValue > section { width: 100%; }
 .consultationValueIntro { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; gap: 40px; margin-bottom: 28px; }
 .consultationValueIntro img { width: 100%; height: auto; border-radius: var(--cd-r-control); }
 .consultationValueIntro h2 { font-family: var(--font-display, var(--font-body)); font-size: clamp(1.6rem, 3vw, 2.3rem); line-height: 1.5; }
