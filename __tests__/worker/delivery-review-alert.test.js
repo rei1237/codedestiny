@@ -70,12 +70,17 @@ function fakeModel(rows) {
   return model;
 }
 
-let fusion; let narrative; let ziwei;
+let fusion; let narrative; let ziwei; let intents; let codex;
 const retry = jest.fn(async (_env, fn) => fn());
 jest.unstable_mockModule("../../worker/lib/db.js", () => ({ connectDb: async () => {}, withMongoRetry: retry }));
 jest.unstable_mockModule("../../worker/lib/models.js", () => ({
   FusionFortuneConsultation: { find: (...args) => fusion.find(...args), updateOne: (...args) => fusion.updateOne(...args) },
-  ServiceExecutionTransaction: { find: (...args) => narrative.find(...args), updateOne: (...args) => narrative.updateOne(...args) },
+  // 서사형 복구 건(pending)과 유료 서사 의도(awaiting_payment)는 같은 컬렉션이라 상태로 갈라 두 대역으로 보낸다.
+  ServiceExecutionTransaction: {
+    find: (filter, ...rest) => (filter.status === "awaiting_payment" ? intents : narrative).find(filter, ...rest),
+    updateOne: (filter, ...rest) => (filter.status === "awaiting_payment" ? intents : narrative).updateOne(filter, ...rest),
+  },
+  MasterLoveCodexSession: { find: (...args) => codex.find(...args), updateOne: (...args) => codex.updateOne(...args) },
   ZiweiDeepReport: { find: (...args) => ziwei.find(...args), updateOne: (...args) => ziwei.updateOne(...args) },
 }));
 let alertDeliveryReviews;
@@ -96,7 +101,18 @@ const ziweiRow = (id, overrides = {}) => ({
 });
 const delivered = () => jest.fn(async () => ({ results: [{ ok: true }] }));
 const notDelivered = () => jest.fn(async () => ({ results: [{ ok: false }] }));
-const seed = ({ f = [], n = [], z = [] } = {}) => { fusion = fakeModel(f); narrative = fakeModel(n); ziwei = fakeModel(z); };
+const intentRow = (id, overrides = {}) => ({
+  _id: id, userId: USER_ID, executionKey: `paid-intent:abcdef0123456789${id}-aabbccdd`, createdAt: ago(6 * HOUR), status: "awaiting_payment", featureKey: "dream-psycho-analysis",
+  timeoutAt: ago(-18 * HOUR), retentionUntil: ago(-18 * HOUR),
+  metadata: { paidIntent: { body: { dreamText: SECRET, email: EMAIL, birth: BIRTH }, requestId: "req-secret-0001", reviewRequired: true, code: "PROMOTION_UNCONFIRMED", errors: 3 } },
+  ...overrides,
+});
+const codexRow = (id, overrides = {}) => ({
+  _id: id, id: `mlc-${id}-11223344`, userId: USER_ID, createdAt: ago(7 * HOUR), status: "generation_failed", mode: "solo",
+  birthInfo: { birthDate: BIRTH, name: "FAKE-NAME" }, chapters: [{ body: SECRET }], generationError: { code: "CHAPTER_FAILED" },
+  deliveryMeta: { reviewRequired: true, reviewReason: "GENERATION_BUDGET_EXCEEDED" }, ...overrides,
+});
+const seed = ({ f = [], n = [], z = [], i = [], c = [] } = {}) => { fusion = fakeModel(f); narrative = fakeModel(n); ziwei = fakeModel(z); intents = fakeModel(i); codex = fakeModel(c); };
 
 beforeEach(() => { retry.mockClear(); });
 
@@ -271,4 +287,117 @@ test("10분 크론에 태스크로 연결돼 있고 실패는 Task 5 알림(tick
   expect(block).toContain("alertDeliveryReviews(env)");
   expect(block).toContain('console.error("[delivery-review-alert]');
   expect(block).toContain('tickFailed("delivery-review-alert"');
+});
+
+describe("검토 대기 종류 추가: 유료 서사 의도(paidIntent)와 마스터 러브 코덱스(codex)", () => {
+  test("각 1건이면 알림 1통에 담기고, 본문에는 종류·뒤 8자·상품 키·사유 코드·경과 시간만 있다", async () => {
+    seed({ i: [intentRow("i1")], c: [codexRow("c1")] });
+    const send = delivered();
+    expect(await alertDeliveryReviews({}, { now: NOW, send })).toEqual({ found: 2, delivered: true, marked: 2 });
+    expect(send).toHaveBeenCalledTimes(1);
+    const { text } = send.mock.calls[0][1];
+    expect(text).toContain("유료 의도");
+    expect(text).toContain("dream-psycho-analysis");
+    expect(text).toContain("PROMOTION_UNCONFIRMED");
+    expect(text).toContain("...aabbccdd");
+    expect(text).toContain("검토 대기 6시간 0분");
+    expect(text).toContain("코덱스");
+    expect(text).toContain("master-love-codex");
+    expect(text).toContain("GENERATION_BUDGET_EXCEEDED");
+    expect(text).toContain("...11223344");
+    expect(text).toContain("검토 대기 7시간 0분");
+    const sent = JSON.stringify(send.mock.calls);
+    for (const secret of [USER_ID, EMAIL, SECRET, BIRTH, "FAKE-NAME", "req-secret-0001", "mlc-c1-11223344", "abcdef0123456789i1"]) expect(sent).not.toContain(secret);
+  });
+
+  test("궁합판 코덱스는 상품 키가 master-love-codex-compat 이고, 사유 코드가 없으면 generationError.code 를 쓴다", async () => {
+    seed({ c: [codexRow("c2", { mode: "compat", deliveryMeta: { reviewRequired: true } })] });
+    const send = delivered();
+    await alertDeliveryReviews({}, { now: NOW, send });
+    const { text } = send.mock.calls[0][1];
+    expect(text).toContain("master-love-codex-compat");
+    expect(text).toContain("CHAPTER_FAILED");
+  });
+
+  test("조회는 결과·생년·요청 본문·사용자 필드를 가져오지 않는다", async () => {
+    seed({ i: [intentRow("i1")], c: [codexRow("c1")] });
+    await alertDeliveryReviews({}, { now: NOW, send: delivered() });
+    for (const model of [intents, codex]) {
+      expect(model.selects.length).toBeGreaterThan(0);
+      expect(model.selects.flat().join(" ")).not.toMatch(/userId|result|chapters|birth|email|parts|body|rawResponses|consultation|partner|saju|ziwei|compatibility|loveDna|requestId/i);
+    }
+  });
+
+  test("30일 창·표식 없는 건·알맞은 상태만 — 오래된 건, 표식이 있는 건, reviewRequired 가 아닌 건, 다른 상태는 조회되지 않는다", async () => {
+    seed({
+      i: [
+        intentRow("i-old", { createdAt: ago(31 * DAY) }),
+        intentRow("i-marked", { metadata: { paidIntent: { reviewRequired: true, code: "X", reviewAlertAt: ago(DAY) } } }),
+        intentRow("i-live", { metadata: { paidIntent: { reviewRequired: false, code: "" } } }),
+        intentRow("i-pending", { status: "pending" }),
+        intentRow("i-ok"),
+      ],
+      c: [
+        codexRow("c-old", { createdAt: ago(31 * DAY) }),
+        codexRow("c-marked", { deliveryMeta: { reviewRequired: true, reviewAlertAt: ago(DAY) } }),
+        codexRow("c-open", { deliveryMeta: { reviewRequired: false } }),
+        codexRow("c-generating", { status: "generating" }),
+        codexRow("c-nometa", { deliveryMeta: null }),
+        codexRow("c-ok"),
+      ],
+    });
+    expect(await alertDeliveryReviews({}, { now: NOW, send: delivered() })).toEqual({ found: 2, delivered: true, marked: 2 });
+    const again = delivered();
+    expect(await alertDeliveryReviews({}, { now: NOW, send: again })).toEqual({ found: 0, delivered: false, marked: 0 });
+    expect(again).not.toHaveBeenCalled();
+  });
+
+  test("표식은 전달 성공 뒤에만 — delivered:false 이거나 발송이 던지면 쓰기 0건, 다음 호출에서 다시 조회된다", async () => {
+    seed({ i: [intentRow("i1")], c: [codexRow("c1")] });
+    expect(await alertDeliveryReviews({}, { now: NOW, send: notDelivered() })).toEqual({ found: 2, delivered: false, marked: 0 });
+    const throwing = jest.fn(async () => { throw new Error("boom"); });
+    expect(await alertDeliveryReviews({}, { now: NOW, send: throwing })).toEqual({ found: 2, delivered: false, marked: 0 });
+    expect(intents.updateOne).not.toHaveBeenCalled();
+    expect(codex.updateOne).not.toHaveBeenCalled();
+    expect(await alertDeliveryReviews({}, { now: new Date(NOW.getTime() + 600_000), send: delivered() })).toEqual({ found: 2, delivered: true, marked: 2 });
+  });
+
+  test("표식 쓰기는 $exists:false CAS·{timestamps:false}·표식 경로 하나뿐인 갱신이고 재시도 0회로 감싼다 — 고객 문서는 표식만 달라진다", async () => {
+    seed({ i: [intentRow("i1")], c: [codexRow("c1")] });
+    const before = structuredClone([intents.rows, codex.rows]);
+    await alertDeliveryReviews({}, { now: NOW, send: delivered() });
+    for (const [model, path] of [[intents, "metadata.paidIntent.reviewAlertAt"], [codex, "deliveryMeta.reviewAlertAt"]]) {
+      expect(model.updateOne).toHaveBeenCalledTimes(1);
+      const [filter, update, options] = model.updateOne.mock.calls[0];
+      expect(Object.keys(update)).toEqual(["$set"]);
+      expect(Object.keys(update.$set)).toEqual([path]);
+      expect(update.$set[path]).toEqual(NOW);
+      expect(options).toEqual({ timestamps: false });
+      expect(filter).toMatchObject({ _id: expect.anything(), [path]: { $exists: false } });
+    }
+    delete intents.rows[0].metadata.paidIntent.reviewAlertAt;
+    delete codex.rows[0].deliveryMeta.reviewAlertAt;
+    expect([intents.rows, codex.rows]).toEqual(before);
+    expect(retry.mock.calls.filter(([, , options]) => options?.retries === 0)).toHaveLength(2);
+  });
+
+  test("표식 CAS: 보내는 사이 코덱스 세션이 다시 열렸으면 표식을 남기지 않는다(다시 닫히면 새로 알린다)", async () => {
+    seed({ i: [intentRow("i1")], c: [codexRow("c1")] });
+    const send = jest.fn(async () => {
+      codex.rows[0].status = "generating";
+      codex.rows[0].deliveryMeta.reviewRequired = false;
+      return { results: [{ ok: true }] };
+    });
+    expect(await alertDeliveryReviews({}, { now: NOW, send })).toEqual({ found: 2, delivered: true, marked: 1 });
+    expect(codex.rows[0].deliveryMeta.reviewAlertAt).toBeUndefined();
+    expect(intents.rows[0].metadata.paidIntent.reviewAlertAt).toEqual(NOW);
+  });
+
+  test("새 종류의 표식 쓰기가 던져도 나머지는 계속 찍고 첫 오류를 다시 던진다", async () => {
+    seed({ i: [intentRow("i1")], c: [codexRow("c1")] });
+    intents.updateOne.mockImplementationOnce(async () => { throw Object.assign(new Error("write failed"), { code: "MARK_FAILED" }); });
+    await expect(alertDeliveryReviews({}, { now: NOW, send: delivered() })).rejects.toMatchObject({ code: "MARK_FAILED" });
+    expect(codex.rows[0].deliveryMeta.reviewAlertAt).toEqual(NOW);
+    expect(intents.rows[0].metadata.paidIntent.reviewAlertAt).toBeUndefined();
+  });
 });

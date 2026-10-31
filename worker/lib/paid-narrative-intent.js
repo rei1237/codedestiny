@@ -198,11 +198,15 @@ async function promoteOne(env, intent) {
 }
 
 // Runs at the start of the recovery tick. Expired intents are deleted here as
-// well, since the TTL index is not assumed to exist. (Plain parameters: the cron
+// well, since the TTL index is not assumed to exist. A review-required intent is
+// kept past its deadline: the delivery-review alert reads it and the operator
+// decides; it is never selected for promotion again. (Plain parameters: the cron
 // op-coverage verifier cuts a signature at its first closing parenthesis.)
 export async function promotePaidIntents(env, options = {}) {
   const now = options.now ?? Date.now(), deadline = options.deadline ?? now + 30000, at = new Date(now);
-  const expired = await withMongoRetry(env, () => ServiceExecutionTransaction.deleteMany({ status: "awaiting_payment", timeoutAt: { $lte: at } }));
+  const expired = await withMongoRetry(env, () => ServiceExecutionTransaction.deleteMany({
+    status: "awaiting_payment", timeoutAt: { $lte: at }, "metadata.paidIntent.reviewRequired": { $ne: true },
+  }));
   const intents = await withMongoRetry(env, () => ServiceExecutionTransaction.find({
     status: "awaiting_payment", timeoutAt: { $gt: at }, featureKey: { $in: [...PAID_INTENT_FEATURE_KEYS] },
     "metadata.paidIntent.nextAttemptAt": { $lte: at }, "metadata.paidIntent.reviewRequired": { $ne: true },

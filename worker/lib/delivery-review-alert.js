@@ -1,5 +1,5 @@
 import { connectDb, withMongoRetry } from './db.js';
-import { FusionFortuneConsultation, ServiceExecutionTransaction, ZiweiDeepReport } from './models.js';
+import { FusionFortuneConsultation, MasterLoveCodexSession, ServiceExecutionTransaction, ZiweiDeepReport } from './models.js';
 import { sendOperatorAlert } from './ops-alert.js';
 import { maskId } from '../payments/log.js';
 import { formatElapsed, token } from '../payments/fulfillment-alert.js';
@@ -11,8 +11,10 @@ import { formatElapsed, token } from '../payments/fulfillment-alert.js';
  *   초융합   비카드 주문(llmMeta.refundSkipped)이거나 검토 필요(generationSnapshot.recovery.reviewRequired)인데 환불 시각이 없는 건
  *   서사형   metadata.paidNarrativeRecovery.reviewRequired (ServiceExecutionTransaction, 아직 pending)
  *   자미두수 llmMeta.recovery.reviewRequired (예산 소진 분기만 이 표식을 쓴다)
+ *   유료 의도 metadata.paidIntent.reviewRequired (ServiceExecutionTransaction, 아직 awaiting_payment — 결제 확인 뒤 승격이 3회 실패해 멈춘 건)
+ *   코덱스   deliveryMeta.reviewRequired (MasterLoveCodexSession, generation_failed — 시도를 소진해 닫힌 건)
  *
- * 세 종류 모두 전달 전 상태(아직 completed·환불 쪽으로 넘어가지 않은 건)만 본다 — 전달된 건을 검토 대기로 알리지 않는다.
+ * 모든 종류가 전달 전 상태(아직 completed·환불 쪽으로 넘어가지 않은 건)만 본다 — 전달된 건을 검토 대기로 알리지 않는다.
  * 🔴 표식(reviewAlertAt)은 **전달 성공 뒤에만** 찍는다. 실패하면 표식이 없어 다음 틱이 다시 보낸다.
  *    표식 쓰기는 문서 키 + 표식 경로 $exists:false 의 CAS 이고 { timestamps: false } 라 updatedAt 도 건드리지 않는다.
  * 🔴 본문에는 종류·식별자 뒤 8자·상품 키·사유 코드·경과 시간만 싣는다(userId·이메일·생년·결과 본문 금지).
@@ -28,6 +30,7 @@ const DEFAULT_LIMIT = 20;
 
 const FUSION_PRODUCT = 'fusion-fortune-consultation';
 const ZIWEI_PRODUCT = 'ziwei-deep-pdf';
+const CODEX_PRODUCT = 'master-love-codex';
 
 const row = (kind, id, product, code, since, now) => [
   kind, maskId(id) || '식별자 없음', token(product, 60) || '-', token(code, 80) || '-', `검토 대기 ${formatElapsed(since, now)}`,
@@ -80,6 +83,35 @@ const KINDS = [
       { $set: { 'llmMeta.recovery.reviewAlertAt': at } }, { timestamps: false },
     ), { retries: 0 }),
     render: (doc, now) => row('자미두수', doc.id || doc._id, ZIWEI_PRODUCT, 'BUDGET_EXHAUSTED', doc.createdAt, now),
+  },
+  {
+    // 🔴 의도 문서의 metadata.paidIntent.body 에는 고객이 낸 요청 본문이 들어 있다 — select 에 넣지 않는다.
+    key: 'paidIntent',
+    find: (env, since, limit) => withMongoRetry(env, () => ServiceExecutionTransaction.find({
+      status: 'awaiting_payment', createdAt: { $gte: since }, 'metadata.paidIntent.reviewRequired': true,
+      'metadata.paidIntent.reviewAlertAt': { $exists: false },
+    }).sort({ createdAt: 1 }).limit(limit).select('_id createdAt executionKey featureKey metadata.paidIntent.code').lean()),
+    // 보내는 사이 승격돼 문서가 사라졌거나 상태가 바뀌었으면 매칭되지 않는다(표식을 새 문서에 남기지 않는다).
+    mark: (env, id, at) => withMongoRetry(env, () => ServiceExecutionTransaction.updateOne(
+      { _id: id, status: 'awaiting_payment', 'metadata.paidIntent.reviewAlertAt': { $exists: false } },
+      { $set: { 'metadata.paidIntent.reviewAlertAt': at } }, { timestamps: false },
+    ), { retries: 0 }),
+    render: (doc, now) => row('유료 의도', doc.executionKey || doc._id, doc.featureKey, doc.metadata?.paidIntent?.code || 'REVIEW_REQUIRED', doc.createdAt, now),
+  },
+  {
+    key: 'codex',
+    find: (env, since, limit) => withMongoRetry(env, () => MasterLoveCodexSession.find({
+      status: 'generation_failed', createdAt: { $gte: since }, 'deliveryMeta.reviewRequired': true,
+      'deliveryMeta.reviewAlertAt': { $exists: false },
+    }).sort({ createdAt: 1 }).limit(limit).select('_id id createdAt mode deliveryMeta.reviewReason generationError.code').lean()),
+    // 크론이 세션을 다시 열면(status generating, reviewRequired false) 표식을 남기지 않는다 — 다시 닫히면 새로 알린다.
+    // deliveryMeta 는 reviewRequired 가 참인 문서에서만 오므로 객체 부모다(null 부모 CAS 불필요).
+    mark: (env, id, at) => withMongoRetry(env, () => MasterLoveCodexSession.updateOne(
+      { _id: id, status: 'generation_failed', 'deliveryMeta.reviewRequired': true, 'deliveryMeta.reviewAlertAt': { $exists: false } },
+      { $set: { 'deliveryMeta.reviewAlertAt': at } }, { timestamps: false },
+    ), { retries: 0 }),
+    render: (doc, now) => row('코덱스', doc.id || doc._id, doc.mode === 'compat' ? `${CODEX_PRODUCT}-compat` : CODEX_PRODUCT,
+      doc.deliveryMeta?.reviewReason || doc.generationError?.code || 'REVIEW_REQUIRED', doc.createdAt, now),
   },
 ];
 
