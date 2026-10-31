@@ -582,8 +582,9 @@ const SERVICE = {
   ],
 };
 
+// 검색 제목은 화면 제목(h1)보다 길게 써서 무엇을 하는 테스트인지와 서비스 이름을 함께 보인다.
 export const metadata = withUniqueRouteMetadata("/oracle/hwatu-life", {
-  title: hwatuLifeText("title"),
+  title: "화투 인생 패 테스트 · 7문항 무료 심리테스트 | 꿀꿀 운세",
   description: hwatuLifeText("description"),
 });
 

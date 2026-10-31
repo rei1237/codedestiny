@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { publicSeoPages } from "../lib/seo/siteSeo";
+import { publicSeoPages, siteSeo } from "../lib/seo/siteSeo";
 import { buildServiceJsonLd, buildWebPageJsonLd, buildFaqPageJsonLd, buildAuthorPersonJsonLd } from "../lib/structured-data";
 import { serializeJsonLd } from "../lib/seo/json-ld.mjs";
 import { brandCopy } from "../lib/seo/brand-copy.mjs";
@@ -30,7 +30,8 @@ const { service, characters } = BRAND_FACTS;
 const YEONGNYANGI = characters.find((character) => character.key === "yeongnyangi");
 const HOME_TITLE = brandCopy('homeSearchTitle');
 const HOME_DESCRIPTION = brandCopy('homeSearchDescription');
-const HOME_IMAGE = "https://code-destiny.com/icons/moonlight-garden-v1-512.png";
+// summary_large_image 카드라 1200×630 공유 이미지를 쓴다. 정적 홈 셸(index.html)과 같은 그림이다.
+const HOME_IMAGE = siteSeo.defaultOgImage;
 const ART = "/images/home/illustrated";
 // 카드 그림은 같은 파일명으로 다시 그려 왔고 정적 이미지는 7일 캐시된다(public/_headers).
 // 그림을 바꾸면 이 값을 올려야 이미 방문한 브라우저도 새 그림을 받는다(10-17 운영에서 옛 그림이 남은 사고).
@@ -61,7 +62,7 @@ export const metadata = {
     siteName: service.name,
     title: HOME_TITLE,
     description: HOME_DESCRIPTION,
-    images: [{ url: HOME_IMAGE, width: 512, height: 512, alt: HOME_TITLE }],
+    images: [{ url: HOME_IMAGE, width: 1200, height: 630, alt: HOME_TITLE }],
   },
   twitter: {
     card: "summary_large_image",
@@ -123,7 +124,7 @@ export default function HomePage() {
 
       <main className={styles.stage}>
         <div className={styles.head}>
-          <h1 id="homeCardTitle" className={styles.title}><NativeHomeText>어떤 운세를 만나볼까요?</NativeHomeText></h1>
+          <h1 id="homeCardTitle" className={styles.title}><NativeHomeText>꿀꿀 운세에서 어떤 운세를 만나볼까요?</NativeHomeText></h1>
 
         </div>
 

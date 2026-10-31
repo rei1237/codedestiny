@@ -27,7 +27,7 @@ const locales = ['ko', 'ja', 'en', 'zh-CN', 'zh-TW', 'vi', 'hi', 'es', 'fr', 'de
         await page.goto(base.href, { waitUntil: 'networkidle' });
         await page.waitForFunction(() => typeof window.cdGetCurrentLanguage === 'function');
         assert.equal(await page.locator('[data-home-card]').count(), 2, locale + ': cards survive hydration');
-        assert.equal(await page.locator('#homeCardTitle').textContent(), native && locale !== 'ko' ? nativeCopy['어떤 운세를 만나볼까요?'][locale] : '어떤 운세를 만나볼까요?');
+        assert.equal(await page.locator('#homeCardTitle').textContent(), native && locale !== 'ko' ? nativeCopy['꿀꿀 운세에서 어떤 운세를 만나볼까요?'][locale] : '꿀꿀 운세에서 어떤 운세를 만나볼까요?');
         assert.equal(await page.locator('[data-home-card="yeoni"] a').getAttribute('href'), '/ggulggul/');
         assert.equal(await page.locator('[data-home-card="yn"] a').getAttribute('href'), '/yeongnyangi/');
         assert.equal(await page.locator('#homeCardTitle').evaluate(e => e.closest('[lang]').lang), native ? locale : 'ko');
