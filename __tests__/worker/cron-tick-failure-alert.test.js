@@ -10,7 +10,11 @@ function fakeKeyModel() {
     keys.add(id);
     return doc;
   });
-  return { create, keys };
+  const deleteOne = jest.fn(async (filter) => {
+    const id = `${filter.userId}|${filter.endpoint}|${filter.keyHash}`;
+    return { deletedCount: keys.delete(id) ? 1 : 0 };
+  });
+  return { create, deleteOne, keys };
 }
 const delivered = () => jest.fn(async () => ({ results: [{ ok: true }] }));
 const T0 = Date.UTC(2026, 9, 31, 3, 10); // 2026-10-31 12:10 KST
@@ -118,11 +122,60 @@ test('(e) the message names the task, caps the reason at 200 chars and points to
   expect(message.text).toContain('Workers Logs에서 [task-e] 검색');
 });
 
-test('an undelivered alert keeps its claim: the next tick of the hour does not resend', async () => {
-  const model = fakeKeyModel(); const send = jest.fn(async () => ({ results: [{ ok: false }] }));
+const undelivered = () => jest.fn(async () => ({ results: [{ ok: false }] }));
+
+test('an undelivered alert releases its claim: the next tick resends instead of waiting an hour', async () => {
+  const model = fakeKeyModel(); const send = undelivered();
   const first = await notifyTickFailures({}, [{ name: 'task-u', message: 'x' }], opts(model, send));
-  const second = await notifyTickFailures({}, [{ name: 'task-u', message: 'x' }], opts(model, send, T0 + 600_000));
   expect(first).toEqual({ sent: [], suppressed: [] });
-  expect(second).toEqual({ sent: [], suppressed: ['task-u'] });
-  expect(send).toHaveBeenCalledTimes(1);
+  expect(model.deleteOne).toHaveBeenCalledTimes(1);
+  expect(model.deleteOne).toHaveBeenCalledWith({ userId: null, endpoint: 'cron10-failure-alert', keyHash: 'task-u:2026-10-31T12' });
+  expect(model.keys.size).toBe(0);
+  const ok = delivered();
+  const second = await notifyTickFailures({}, [{ name: 'task-u', message: 'x' }], opts(model, ok, T0 + 600_000));
+  expect(second).toEqual({ sent: ['task-u'], suppressed: [] });
+  expect(ok).toHaveBeenCalledTimes(1);
+  // Once delivered, the claim stays and the hour is quiet again.
+  const third = await notifyTickFailures({}, [{ name: 'task-u', message: 'x' }], opts(model, ok, T0 + 1_200_000));
+  expect(third).toEqual({ sent: [], suppressed: ['task-u'] });
+  expect(ok).toHaveBeenCalledTimes(1);
+});
+
+test('a delivered alert never deletes a claim', async () => {
+  const model = fakeKeyModel();
+  await notifyTickFailures({}, [{ name: 'task-u2', message: 'x' }], opts(model, delivered()));
+  expect(model.deleteOne).not.toHaveBeenCalled();
+  expect(model.keys.size).toBe(1);
+});
+
+test('an undelivered alert releases only the claims this call made, not an earlier ticks claim', async () => {
+  const model = fakeKeyModel();
+  await notifyTickFailures({}, [{ name: 'task-u3x', message: 'x' }], opts(model, delivered()));
+  const result = await notifyTickFailures({}, [{ name: 'task-u3x', message: 'x' }, { name: 'task-u3y', message: 'y' }],
+    opts(model, undelivered(), T0 + 600_000));
+  expect(result).toEqual({ sent: [], suppressed: ['task-u3x'] });
+  expect(model.deleteOne).toHaveBeenCalledTimes(1);
+  expect(model.deleteOne.mock.calls[0][0].keyHash).toBe('task-u3y:2026-10-31T12');
+  expect([...model.keys]).toEqual(['null|cron10-failure-alert|task-u3x:2026-10-31T12']);
+});
+
+test('a release that throws is logged and swallowed; the claim stays and the tick is not broken', async () => {
+  const error = jest.spyOn(console, 'error').mockImplementation(() => {});
+  const warn = quietWarn();
+  const model = fakeKeyModel();
+  model.deleteOne.mockImplementation(async () => { throw new Error('write failed'); });
+  const result = await notifyTickFailures({}, [{ name: 'task-u4', message: 'x' }], opts(model, undelivered()));
+  expect(result).toEqual({ sent: [], suppressed: [] });
+  expect(error.mock.calls.length + warn.mock.calls.length).toBeGreaterThan(0);
+  const again = await notifyTickFailures({}, [{ name: 'task-u4', message: 'x' }], opts(model, undelivered(), T0 + 600_000));
+  expect(again).toEqual({ sent: [], suppressed: ['task-u4'] });
+});
+
+test('an undelivered alert in a DB outage has no claim to release and does not call the DB again', async () => {
+  const warn = quietWarn();
+  const model = { create: jest.fn(async () => { throw Object.assign(new Error('no primary'), { name: 'MongoServerSelectionError' }); }), deleteOne: jest.fn() };
+  const result = await notifyTickFailures({}, [{ name: 'task-u5', message: 'x' }], opts(model, undelivered()));
+  expect(result).toEqual({ sent: [], suppressed: [] });
+  expect(model.deleteOne).not.toHaveBeenCalled();
+  expect(warn).toHaveBeenCalled();
 });

@@ -10,8 +10,9 @@ import { resolveOpsDeps, sendOperatorAlert, settleWithin } from './ops-alert.js'
  *
  * 🔴 억제는 claim-first 다. `idempotency_keys` 에 `cron10-failure-alert` / `<task>:<KST YYYY-MM-DDTHH>` 를 먼저
  * 만들고(unique {userId,endpoint,keyHash}가 이미 있어 새 인덱스 불필요, TTL 은 expiresAt) 11000 이면
- * 같은 시간대에 이미 알렸다는 뜻이다. 발송이 실패해도 claim 은 지우지 않는다 — 최대 1시간 늦어질 뿐이고,
- * 실패 알림이 틱마다 재시도되는 폭주를 만들지 않는다.
+ * 같은 시간대에 이미 알렸다는 뜻이다. 발송이 전달되지 않았으면(delivered === false) 이번 호출이 만든 claim 을
+ * 지운다 — 안 지우면 알림이 닿지 않았는데 1시간 동안 조용해진다(실패를 알리는 채널이 막힌 순간이 가장 위험하다).
+ * 지우는 쪽이 던져도 삼키고 로그만 남긴다(claim 이 남아 최대 1시간 늦어질 뿐이다). 이전 틱이 만든 claim 은 건드리지 않는다.
  *
  * 🔴 DB 장애는 이 알림이 가장 필요한 순간이다. 11000 이 아닌 모든 DB 단계 실패(connect·create 던짐, 지연)는
  * isolate-local `Map<task,hourBucket>` 로 억제하고 **그래도 발송한다**. DB 단계는 waitMs 로 묶어
@@ -74,10 +75,12 @@ export async function notifyTickFailures(env, failures, options = {}) {
     await deps.connect(env);
     return deps;
   })();
+  const claimedInDb = new Set(); // 이 호출이 DB 에 실제로 만든 claim(발송 실패 시 되돌릴 대상)
   const claimInDb = async (name) => {
     const { model, retry } = await connect();
     try {
       await retry(env, () => model.create({ userId: null, endpoint: ENDPOINT, keyHash: `${name}:${bucket}`, expiresAt }), { retries: 0 });
+      claimedInDb.add(name);
       return { claimed: true };
     } catch (error) {
       if (error?.code === 11000) return { claimed: false };
@@ -97,5 +100,17 @@ export async function notifyTickFailures(env, failures, options = {}) {
   if (claimed.length === 0) return { sent: [], suppressed };
 
   const delivered = await sendOperatorAlert(env, options.send || notifyOperatorsLazily, alertMessage(claimed, bucket));
+  if (!delivered) await releaseClaims(claimed.filter(row => claimedInDb.has(row.name)));
   return { sent: delivered ? claimed.map(row => row.name) : [], suppressed };
+
+  // 전달되지 않은 알림의 claim 을 지운다. claim 이 남아도 안전한 쪽(최대 1시간 늦음)으로 실패하므로 던지지 않는다.
+  async function releaseClaims(owned) {
+    if (owned.length === 0) return;
+    const outcome = await settleWithin('cron-tick-failure-alert-release', async () => {
+      const { model, retry } = await connect();
+      await Promise.all(owned.map(row => retry(env, () => model.deleteOne({ userId: null, endpoint: ENDPOINT, keyHash: `${row.name}:${bucket}` }))));
+      return { released: true };
+    }, options.waitMs ?? DB_WAIT_MS);
+    if (!outcome?.released) console.error('[cron-tick-failure-alert] claim release failed; the next ticks of this hour stay suppressed');
+  }
 }
