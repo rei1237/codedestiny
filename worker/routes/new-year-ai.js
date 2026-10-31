@@ -29,6 +29,7 @@ import { appendExpertPersona, expertPersonaText } from "../lib/expert-character-
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
+import { USABLE_EXECUTION_STATUSES } from "../payments/executions.js";
 import { handleBillingRoutes, BILLING_SNAPSHOT_USER_PROJECTION } from "./billing.js";
 import { claimRequestBillingEvidence, evidenceClaimErrorBody, releaseRequestBillingEvidence } from "../lib/billing-evidence-claim.js";
 
@@ -1193,7 +1194,7 @@ async function resolveBillingGateAccess({ env, auth, user, body, pricing, idempo
     const record = await PaidExecutionRecord.findOne({
       userId: clean(auth.userId),
       featureId: FEATURE_KEY,
-      status: { $in: ["paid_pending_generation", "generating", "completed"] },
+      status: { $in: USABLE_EXECUTION_STATUSES },
       $or: deferredClauses,
     }).sort({ updatedAt: -1, createdAt: -1 }).lean();
     if (record) {
@@ -2797,6 +2798,7 @@ export const __newYearAiTestUtils = {
   adoptRepairedSection,
   trimToLastCompleteSentence,
   generateConsultationText,
+  resolveBillingGateAccess,
 };
 
 // Internal cron continuation: only a stored owner/id is accepted, never client input.

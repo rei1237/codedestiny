@@ -2526,11 +2526,11 @@ async function handleDeferredUsageCancel(request, env) {
   const requestId = resolveRequestId(request, body);
   const featureKey = String(pricingResult.pricing?.featureKey || body?.featureKey || "").trim();
   const record = await findDeferredUsageRecord(env, authCheck.auth.userId, featureKey, requestId, body);
-  if (!record || record.status === "completed") {
+  if (!record || ["completed", "refunded", "cancelled", "canceled"].includes(record.status)) {
     return success({ deferredUsage: true, status: record?.status || "not_found" }, "보류된 이용 권한을 정리했습니다.");
   }
   await PaidExecutionRecord.updateOne(
-    { _id: record._id, userId: String(authCheck.auth.userId || "") },
+    { _id: record._id, userId: String(authCheck.auth.userId || ""), status: { $in: ["paid_pending_generation", "generating", "generation_failed"] } },
     {
       $set: {
         status: "generation_failed",
