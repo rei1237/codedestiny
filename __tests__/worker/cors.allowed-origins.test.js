@@ -3,7 +3,7 @@ let worker;
 beforeAll(async () => { ({ default: worker } = await import('../../worker/index.js')); });
 const env = { NODE_ENV: 'production' };
 const preflight = origin => worker.fetch(new Request('https://api.code-destiny.com/api/health/route-metrics', { method: 'OPTIONS', headers: { origin, 'access-control-request-method': 'GET' } }), env, { waitUntil() {} });
-test.each(['https://code-destiny.com', 'https://www.code-destiny.com', 'https://code-destiny.pages.dev'])('소유 origin 유지: %s', async origin => {
+test.each(['https://code-destiny.com', 'https://www.code-destiny.com', 'https://code-destiny.pages.dev', 'https://localhost'])('소유 origin·모바일 앱 출처 유지: %s', async origin => {
   const response = await preflight(origin);
   expect(response.headers.get('access-control-allow-origin')).toBe(origin);
 });
