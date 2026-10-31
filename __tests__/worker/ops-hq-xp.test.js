@@ -136,4 +136,47 @@ describe("원장", () => {
     expect(state.pendingLevelUp).toBeNull();
     expect([...cols.ledger.rows.values()].map((row) => row.delta)).toEqual([250, -130, 130]);
   });
+
+  test("원장 합계는 전체 행을 읽지 않고 $group 1회로 구하며 옛 루프와 같은 값이다", async () => {
+    const cols = createOpsCols();
+    const now = at("2026-10-13T00:00:00Z");
+    const masteries = Object.keys(xp.MASTERY_LABELS);
+    const sources = ["task", "revenue", "traffic"];
+    // 고정 원장 50행: 원천·숙련도가 섞이고, 숙련도 없는 행과 음수(정정) 행을 포함한다.
+    const fixed = Array.from({ length: 50 }, (_, index) => ({
+      _id: `fixed:${String(index).padStart(2, "0")}#r000001`,
+      sourceType: sources[index % 3],
+      mastery: index % 3 === 0 ? masteries[index % masteries.length] : (index % 4 === 0 ? masteries[index % masteries.length] : null),
+      delta: index % 7 === 0 ? -(index + 3) : index * 3 + 5,
+    }));
+    for (const row of fixed) await cols.ledger.insertOne(row);
+
+    // 옛 구현(원장 전체 find 후 JS 루프) 그대로.
+    let total = 0;
+    const bySource = { task: 0, revenue: 0, traffic: 0 };
+    const byMastery = Object.fromEntries(masteries.map((key) => [key, 0]));
+    for (const row of fixed) {
+      const delta = Number(row.delta) || 0;
+      total += delta;
+      bySource[row.sourceType] = (bySource[row.sourceType] || 0) + delta;
+      if (row.mastery) byMastery[row.mastery] = (byMastery[row.mastery] || 0) + delta;
+    }
+    total = Math.max(0, total);
+
+    const findSpy = jest.spyOn(cols.ledger, "find");
+    const aggregateSpy = jest.spyOn(cols.ledger, "aggregate");
+    await xp.recomputeXpState(cols, { now });
+
+    expect(findSpy).not.toHaveBeenCalled();
+    expect(aggregateSpy).toHaveBeenCalledTimes(1);
+    const saved = await cols.xpState.findOne({ _id: "code-destiny" });
+    expect(saved).toMatchObject({ total, bySource, byMastery, entryCount: 50, level: levels.levelForXp(total) });
+  });
+
+  test("원장이 비어 있으면 0 합계와 entryCount 0 을 쓴다", async () => {
+    const cols = createOpsCols();
+    await xp.recomputeXpState(cols, { now: at("2026-10-13T00:00:00Z") });
+    const saved = await cols.xpState.findOne({ _id: "code-destiny" });
+    expect(saved).toMatchObject({ total: 0, bySource: { task: 0, revenue: 0, traffic: 0 }, entryCount: 0 });
+  });
 });
