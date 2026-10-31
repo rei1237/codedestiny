@@ -18,6 +18,7 @@
  *    (docs/context/ai-and-db.md §무엇이 느린가).
  */
 import fs from "node:fs";
+import { summarizeDbConnect } from "./lib/worker-tail-db-connect.mjs";
 
 const files = process.argv.slice(2).filter((a) => !a.startsWith("--"));
 if (!files.length) {
@@ -147,6 +148,20 @@ for (const [k, r] of rows) {
 }
 const others = [...byRoute.values()].filter((r) => !r.interesting);
 console.log(`(관심 밖 라우트 ${others.length}종 · 이벤트 ${others.reduce((s, r) => s + r.wall.length, 0)}건${showAll ? "" : " — --all 로 표시"})`);
+
+{
+  // 라우트 표 아래 DB 연결 단계(worker/lib/db.js [db-connect] 완료 줄). 정의는 lib 머리 주석.
+  const dc = summarizeDbConnect(events);
+  console.log("\n## DB 연결 — [db-connect] 완료 줄의 elapsedMs(ms, nearest-rank)");
+  console.log("lane | n | p50 | p95 | p99");
+  for (const lane of ["shared", "payment"]) {
+    const s = dc[lane];
+    console.log(`${lane} | ${s.count} | ${fmt(s.p50)} | ${fmt(s.p95)} | ${fmt(s.p99)}`);
+  }
+  console.log(`요청당 연결 수(연결 있는 이벤트만) p50=${fmt(dc.connectsPerRequest.p50)} max=${fmt(dc.connectsPerRequest.max)}`);
+  const c = dc.counters;
+  console.log(`counters: db-ping=${c.dbPing} db-op-admission=${c.dbOpAdmission} db-op-timeout=${c.dbOpTimeout} db-connect-error=${c.dbConnectError} eventEmitterLeak=${c.eventEmitterLeak}`);
+}
 
 if (authTiming.size) {
   console.log("\n## [auth-timing] — 핸들러 안 단계별(ms, p50/p95)");
