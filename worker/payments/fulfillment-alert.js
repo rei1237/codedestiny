@@ -21,11 +21,11 @@ export const PAYMENT_ALERT_SEND_TIMEOUT_MS = 5_000;
 /* 잘린 건수 안내가 들어갈 자리. 본문이 한도에 닿아도 안내 줄까지 한도 안에 들어가게 남겨 둔다. */
 const FOOTER_RESERVE = 40;
 
-function token(value, max) {
+export function token(value, max) {
   return String(value ?? "").replace(/[^A-Za-z0-9_.:-]/g, "").slice(0, max);
 }
 
-function formatElapsed(since, now) {
+export function formatElapsed(since, now) {
   const time = since instanceof Date ? since.getTime() : new Date(since).getTime();
   if (!Number.isFinite(time)) return "시각 없음";
   const minutes = Math.max(0, Math.floor((now.getTime() - time) / 60_000));
