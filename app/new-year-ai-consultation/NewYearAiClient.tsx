@@ -970,6 +970,10 @@ const NYAI_SEASON_CSS = `
   margin-bottom: 8px;
 }
 
+/* 폼 열이 좁은 2열(1024~1280, 칸 약 189px)에서는 반 폭에 칩 3개가 52px로 눌리고, 같은 행의 양력/음력 라벨이
+   이 필드 높이(261px)까지 늘어나 select가 139px가 됐다. 연도 필드는 한 행을 다 쓴다. */
+.nyai-grid > .nyai-year-field { grid-column: 1 / -1; }
+
 .nyai-year-chips {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
