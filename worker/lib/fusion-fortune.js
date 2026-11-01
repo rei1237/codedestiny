@@ -1188,7 +1188,7 @@ export async function generateFusionFortuneWithRealLLM({
     if (context.version === FUSION_EXPERT_VERSION && group.stage === 1) await emitFusionFortuneStage(onStage, group.id, { phase: "analysis_start", status: "running" });
     // responseSchema below already carries every key, descriptor and array minimum.
     // Keep the display prompt intact; send each schema only once to the provider.
-    const groupPrompt = buildFusionSectionGroupPrompt({ context, group, priorSections: { ...prior, ...merged }, extraInstruction, schemaInPrompt: false });
+    const groupPrompt = buildFusionSectionGroupPrompt({ context, group, priorSections: { ...prior, ...merged }, extraInstruction, schemaInPrompt: false, referenceDate: now });
     let model = modelFor(group);
     if (Number(attemptCounts[group.id] || 0) >= attemptLimit) return { ok: savedValid, group, value: savedValid ? saved : undefined, issue: "budget_exhausted" };
     const reservedAttempt = typeof onAttempt === "function" ? await onAttempt(group.id, {}) : null;
