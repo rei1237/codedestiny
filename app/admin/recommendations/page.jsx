@@ -114,7 +114,7 @@ export default function RecommendationsAdmin() {
         <label><input type="checkbox" checked={draft.featured} onChange={e => field('featured', e.target.checked)}/>적합성 필터 통과 후 대표 상품</label>
         <div className={styles.toolbar}><button disabled={busy} className={adminButton('primary')}>초안 저장</button><button type="button" disabled={busy || !draft.id || !draft.title} className={adminButton()} onClick={() => void action('preview', { product: draft })}>상품 카드 미리보기</button><button type="button" className={adminButton()} onClick={() => { setDraft(empty()); setPreview(null); }}>새 상품 입력</button></div>
       </form>
-      {preview && <div className={styles.preview}><p>{copy.disclosure}</p><ProductCard product={preview.product} copy={copy} preview/><ul>{preview.reviewErrors.map(e => <li key={e}>{e}</li>)}</ul></div>}
+      {preview && <div className={styles.preview}><p>{copy.disclosure}</p><ProductCard product={preview.product} copy={copy} brand={previewBrand} preview/><ul>{preview.reviewErrors.map(e => <li key={e}>{e}</li>)}</ul></div>}
       <h3>저장한 상품 검수</h3><p>URL 형식 검사는 계정 귀속이나 정품 확인을 대신하지 않습니다. 의약품·치료 목적 제품·위조 상품은 제외합니다.</p>
       <div className={styles.checks}>{[['account','선택 판매처·계정의 공식 발급 링크 확인'],['facts','상품 정보·분류·종·그룹 확인'],['image','이미지 사용 근거 확인'],['allowedCategory','금지 품목·효능 보장 문구 제외']].map(([key,label]) => <label key={key}><input type="checkbox" checked={checks[key]} onChange={e => setChecks(c => ({ ...c, [key]: e.target.checked }))}/>{label}</label>)}</div>
       <button className={adminButton()} disabled={busy || !products.some(p => p.id === draft.id) || !Object.values(checks).every(Boolean)} onClick={() => void action('review', { id: draft.id, checks })}>저장본 검수 완료 기록</button>

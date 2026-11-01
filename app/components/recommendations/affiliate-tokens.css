@@ -1,3 +1,5 @@
-/* The approved moonlight affiliate panel uses the existing night palette, scoped to ads. */
+/* Keep the two approved brand palettes local to the affiliate surface and its cards. */
 @import '../../yeongnyangi/night-tokens.css';
 [data-affiliate-brand]{--rec-bg:var(--yn-deep,#0b1220);--rec-surface:var(--yn-night,#101b2c);--rec-raised:var(--yn-surface,#182a40);--rec-ink:var(--yn-ivory,#f3eee5);--rec-muted:var(--yn-muted,#bac9da);--rec-accent:var(--yn-gold,#e5c58e);--rec-line:var(--yn-line,rgba(200,216,236,.2));--rec-photo:#f3eee5;--rec-button-line:#7f715b;}
+[data-affiliate-brand]{--rec-scheme:dark}
+[data-affiliate-brand="ggulggul"]{--rec-bg:var(--cd-samples-paper,#fff9f4);--rec-surface:var(--cd-samples-sheet,#ffffff);--rec-raised:var(--cd-samples-blush,#f8e4ea);--rec-ink:var(--cd-samples-ink,#402a38);--rec-muted:var(--cd-samples-muted,#6b4d5e);--rec-accent:var(--cd-samples-rose,#a52e54);--rec-line:var(--cd-samples-line,#e4d2d8);--rec-photo:var(--cd-samples-sheet,#ffffff);--rec-photo-ink:var(--cd-samples-ink,#402a38);--rec-button-line:var(--cd-samples-rose,#a52e54);--rec-scheme:light}

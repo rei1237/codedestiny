@@ -3,7 +3,7 @@
   "note": "사이트맵 lastmod 원장. scripts/lib/sitemap-lastmod.mjs 가 라우트별 소스 서명을 계산해 다시 쓴다. 손으로 고치지 말고 npm run sitemap:generate 로 갱신할 것.",
   "routes": {
     "/": {
-      "signature": "05a008be863700bf",
+      "signature": "c4ebe21ffddd5f44",
       "lastmod": "2026-11-01"
     },
     "/about/": {
@@ -79,7 +79,7 @@
       "lastmod": "2026-10-31"
     },
     "/en/": {
-      "signature": "6cab2a33e0d3375d",
+      "signature": "221069bea13cb950",
       "lastmod": "2026-11-01"
     },
     "/en/about/": {
@@ -591,7 +591,7 @@
       "lastmod": "2026-11-01"
     },
     "/fortune-tea-house/": {
-      "signature": "421fc81e0d67aac2",
+      "signature": "c4ba8bbfd9375526",
       "lastmod": "2026-11-01"
     },
     "/fortune/": {
@@ -1055,7 +1055,7 @@
       "lastmod": "2026-11-01"
     },
     "/ggulggul/": {
-      "signature": "11c8895a1b5b6ec9",
+      "signature": "59a9e87c7d284231",
       "lastmod": "2026-11-01"
     },
     "/guides/": {
@@ -1127,7 +1127,7 @@
       "lastmod": "2026-10-31"
     },
     "/ja/": {
-      "signature": "6cab2a33e0d3375d",
+      "signature": "221069bea13cb950",
       "lastmod": "2026-11-01"
     },
     "/ja/about/": {
@@ -1855,7 +1855,7 @@
       "lastmod": "2026-10-31"
     },
     "/saju/destiny-bias/": {
-      "signature": "52b1fb65af61c0fd",
+      "signature": "5719768b3bf05345",
       "lastmod": "2026-11-01"
     },
     "/saju/destiny-meeting-place/": {
@@ -2219,7 +2219,7 @@
       "lastmod": "2026-10-31"
     },
     "/sukuyo-compatibility-ai/": {
-      "signature": "d3317c9a85c11707",
+      "signature": "a21fde01970fa146",
       "lastmod": "2026-11-01"
     },
     "/sukuyo/": {
@@ -2291,7 +2291,7 @@
       "lastmod": "2026-11-01"
     },
     "/vedic-ai/": {
-      "signature": "5b5a6fdd228041cc",
+      "signature": "e2288410a1076172",
       "lastmod": "2026-11-01"
     },
     "/vedic/": {
@@ -2319,7 +2319,7 @@
       "lastmod": "2026-11-01"
     },
     "/zh-tw/": {
-      "signature": "6cab2a33e0d3375d",
+      "signature": "221069bea13cb950",
       "lastmod": "2026-11-01"
     },
     "/zh-tw/astrology/": {
@@ -2795,7 +2795,7 @@
       "lastmod": "2026-10-31"
     },
     "/zh/": {
-      "signature": "6cab2a33e0d3375d",
+      "signature": "221069bea13cb950",
       "lastmod": "2026-11-01"
     },
     "/zh/about/": {
@@ -3303,7 +3303,7 @@
       "lastmod": "2026-10-31"
     },
     "/ziwei-ai/": {
-      "signature": "599f71866d5bd4de",
+      "signature": "f71651757d3100d9",
       "lastmod": "2026-11-01"
     },
     "/ziwei/": {

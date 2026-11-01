@@ -22,6 +22,7 @@ export async function mountRecommendation(host, input, anchor = null) {
   const seen = new Set();
   const section = document.createElement('section'), top = document.createElement('p');
   section.className = 'cd-recommendations'; section.dataset.recommendationBlock = 'true';
+  section.dataset.affiliateBrand = 'ggulggul'; top.dataset.affiliateBrand = 'ggulggul';
   top.className = 'cd-recommendations-disclosure'; top.textContent = copy.disclosure;
   let current;
   const node = (tag, text, parent) => { const el = document.createElement(tag); if (text) el.textContent = text; if (parent) parent.append(el); return el; };
@@ -96,7 +97,7 @@ export async function mountRecommendation(host, input, anchor = null) {
     } catch { cleanupObserver(); section.remove(); top.remove(); }
   }
   if (!document.querySelector('link[data-recommendation-styles]')) {
-    const css = document.createElement('link'); css.rel = 'stylesheet'; css.href = '/styles/recommendations.css?v=build-18b9d8ddaaa5'; css.dataset.recommendationStyles = 'true'; document.head.append(css);
+    const css = document.createElement('link'); css.rel = 'stylesheet'; css.href = '/styles/recommendations.css?v=build-631ce0647d7e'; css.dataset.recommendationStyles = 'true'; document.head.append(css);
   }
   const timer = setInterval(() => { if (!host.isConnected) cleanup(); else if (!document.hidden && !host.hidden) void render(); }, 60000);
   function cleanup() { closed = true; current?.abort(); clearInterval(timer); cleanupObserver(); section.remove(); top.remove(); mounted.delete(host); }

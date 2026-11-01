@@ -1,8 +1,8 @@
-.surface,.disclosure,.product{box-sizing:border-box;color:var(--rec-ink);background:var(--rec-bg);font-family:'Yeongnyangi Noto',var(--font-body,sans-serif),sans-serif;line-height:1.8;overflow-wrap:anywhere;color-scheme:dark}
-.surface{padding:32px clamp(20px,4vw,36px) 24px;margin:40px 0 24px;border-block:1px solid var(--rec-line)}
+.surface,.disclosure,.product{box-sizing:border-box;color:var(--rec-ink);background:var(--rec-bg);font-family:'Yeongnyangi Noto',var(--font-body,sans-serif),sans-serif;line-height:1.8;overflow-wrap:anywhere;color-scheme:var(--rec-scheme,dark)}
+.surface{scroll-margin-block-start:calc(72px + env(safe-area-inset-top,0px));scroll-margin-block-end:calc(var(--cd-mnav-offset,92px) + 16px);padding:32px clamp(20px,4vw,36px) 24px;margin:40px 0 24px;border-block:1px solid var(--rec-line)}
 .footer{width:calc(100% - 40px);max-width:1100px;margin:40px auto 24px}
 .surface *,.product *{box-sizing:border-box}.heading{display:flex;justify-content:space-between;align-items:center;gap:24px}.heading>div{min-width:0}
-.surface h2{font:500 clamp(25px,2.5vw,31px)/1.55 'Yeongnyangi Myeongjo',var(--font-display,serif),serif;color:var(--rec-ink);margin:0;letter-spacing:-.025em;word-break:keep-all}
+.surface h2{scroll-margin-block-start:calc(72px + env(safe-area-inset-top,0px));font:500 clamp(25px,2.5vw,31px)/1.55 'Yeongnyangi Myeongjo',var(--font-display,serif),serif;color:var(--rec-ink);margin:0;letter-spacing:-.025em;word-break:keep-all}
 .resultLead{font-size:14px;color:var(--rec-muted);margin:10px 0 0;line-height:1.8}
 .shuffle,.actions button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;flex-shrink:0;padding:8px 0;border:0;background:transparent;color:var(--rec-accent);font:inherit;font-size:13px;cursor:pointer}
 .disclosure{font-size:12px;line-height:1.8;margin:18px 0 22px;color:var(--rec-muted)}
@@ -10,7 +10,7 @@
 .product{display:grid;grid-template-columns:96px minmax(0,1fr);gap:22px;min-width:0;align-items:start;padding:24px 0;border-top:1px solid var(--rec-line)}
 .image{display:grid;place-items:center;width:96px;height:112px;overflow:hidden;border-radius:5px;background:var(--rec-photo)}
 .image img{display:block;width:100%;height:100%;object-fit:contain;padding:7px}
-.placeholder{display:grid;place-items:center;gap:8px;padding:8px;color:var(--rec-bg);font-size:12px;text-align:center}.placeholder svg{width:24px;height:24px}
+.placeholder{display:grid;place-items:center;gap:8px;padding:8px;color:var(--rec-photo-ink,var(--rec-bg));font-size:12px;text-align:center}.placeholder svg{width:24px;height:24px}
 .productText{display:flex;flex-direction:column;align-items:start;min-width:0;height:100%}
 .product h3{font:500 19px/1.55 'Yeongnyangi Myeongjo',var(--font-display,serif),serif;color:var(--rec-ink);margin:0;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;word-break:normal}
 .product .meta{font-size:12px;line-height:1.8;color:var(--rec-muted);margin:5px 0 0;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -20,5 +20,5 @@
 .actions{display:flex;align-items:center;justify-content:space-between;gap:24px;margin-top:4px;border-top:1px solid var(--rec-line);padding-top:18px}
 .merchantTerms{display:block;font-size:12px;line-height:1.8;color:var(--rec-muted);margin:0}.actions button{font-size:12px;color:var(--rec-muted);white-space:nowrap}
 .surface :focus-visible{outline:2px solid var(--rec-accent);outline-offset:4px}.surface[hidden]{display:none}
-@media(max-width:700px){.surface{padding:25px 20px 20px}.footer{width:calc(100% - 40px)}.heading{display:block}.heading h2{font-size:25px;max-width:16ch}.resultLead{font-size:13px;margin-top:9px}.shuffle{margin-top:11px;font-size:12px}.disclosure{margin:15px 0 19px}.products{column-gap:18px}.product{grid-template-columns:1fr;gap:12px;padding:20px 0 22px}.image{width:72px;height:88px}.image img{padding:5px}.product h3{font-size:17px;min-height:53px}.product .reason{font-size:14px;min-height:51px;margin:7px 0 14px}.button{width:100%;padding:8px 9px;font-size:13px;gap:3px}.button svg{width:13px;height:13px}.actions{gap:14px;align-items:start}.actions button{padding-left:8px}}
+@media(max-width:700px){.surface{scroll-margin-block-start:calc(72px + env(safe-area-inset-top,0px));scroll-margin-block-end:calc(var(--cd-mnav-offset,92px) + 16px);padding:25px 20px 20px}.footer{width:calc(100% - 40px)}.heading{display:block}.heading h2{font-size:25px;max-width:16ch}.resultLead{font-size:13px;margin-top:9px}.shuffle{margin-top:11px;font-size:12px}.disclosure{margin:15px 0 19px}.products{column-gap:18px}.product{grid-template-columns:1fr;gap:12px;padding:20px 0 22px}.image{width:72px;height:88px}.image img{padding:5px}.product h3{font-size:17px;min-height:53px}.product .reason{font-size:14px;min-height:51px;margin:7px 0 14px}.button{width:100%;padding:8px 9px;font-size:13px;gap:3px}.button svg{width:13px;height:13px}.actions{gap:14px;align-items:start}.actions button{padding-left:8px}}
 @media(min-width:1100px){.products{column-gap:60px}.product{padding:25px 0}}
