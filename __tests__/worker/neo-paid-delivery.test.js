@@ -2,6 +2,7 @@
 import { jest } from "@jest/globals";
 import { AI_OUTPUT_LOCALES } from '../../lib/i18n/ai-locale.js';
 import { getAmbientAiLocale, runWithAiLocale } from '../../worker/lib/ai-locale-context.js';
+import { TossError } from '../../worker/toss/policy.js';
 // Stress fixture: preserve multi-part storage/lease failures at the former batch width.
 // Production's one-part contract is covered by paid-llm-sequential.test.js.
 const timeoutPolicy = jest.requireActual('../../worker/lib/sync-llm-timeout.js');
@@ -313,4 +314,46 @@ it('native Toss runs the original saved briefing and two reality checks, blocks 
   const response=await call(path,input);expect(response.status).toBe(409);expect((await response.json()).reason).toBe('ORDER_REFUNDED');
  }
  expect(provider).toHaveBeenCalledTimes(30);expect(assertStored).toHaveBeenCalled();
+});
+
+for(const stage of ['initial','refine']) it.each([
+ ['ORDER_REFUNDED',409],['SESSION_EXPIRED',401],['ORDER_MISMATCH',403],
+ ['PARTNER_RATE_LIMITED',429],['PARTNER_UNAVAILABLE',502],['storage',503],
+])(`native Toss ${stage}: final authority failure %s preserves checkpoints for verified resume`,async(code,status)=>{
+ const {bindNativeTossRequest}=await import('../../worker/toss/native-context.js');
+ let deny=false;
+ const access=jest.fn(async()=>{
+  if(deny)throw code==='storage'?new Error('private database failure'):new TossError(code,status);
+  return {ok:true,accessType:'paid',source:'toss',paymentId:'toss-original-order'};
+ });
+ const call=async(path,input)=>{
+  const request=new Request('https://mock.test/api/neo-operation-room'+path,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(input)});
+  bindNativeTossRequest(request,{auth:{userId:uid,tossNative:true},access,assertStored:async doc=>{
+   expect(doc.userId).toBe(uid);expect(doc.paymentId).toBe('toss-original-order');
+  }});
+  return route(request,{});
+ };
+ for(let i=0;i<(stage==='initial'?3:4);i++)await call('/start',docs[0]?{sessionId:docs[0].id}:body);
+ const sessionId=docs[0].id,initial=clone(docs[0].initialBriefing);
+ if(stage==='refine')expect((await call('/refine',{sessionId,freeform:'작은 선택부터 바꾸겠습니다.'})).status).toBe(202);
+ const original=provider.getMockImplementation();
+ provider.mockImplementation(async(...args)=>{const result=await original(...args);deny=true;return result;});
+ const path=stage==='initial'?'/start':'/refine';
+ const response=await call(path,{sessionId});
+ expect(response.status).toBe(status);
+ const payload=await response.json();
+ expect(payload.reason).toBe(code==='storage'?'RESULT_STORAGE_UNAVAILABLE':code);
+ expect(JSON.stringify(payload)).not.toContain('private database');
+ expect(docs[0].status).toBe(stage==='initial'?'delivery_pending':'completed');
+ if(stage==='refine'){
+  expect(docs[0].initialBriefing).toEqual(initial);
+  expect(docs[0].refinementStatus).toBe('generating');
+  expect(docs[0].llmMeta.refinementHistory||[]).toHaveLength(0);
+ }
+ const calls=provider.mock.calls.length;deny=false;
+ expect((await call(path,{sessionId})).status).toBe(200);
+ expect(provider).toHaveBeenCalledTimes(calls);
+ expect(docs[0].status).toBe('completed');
+ if(stage==='refine')expect(docs[0].llmMeta.refinementHistory).toHaveLength(1);
+ expect(refund).not.toHaveBeenCalled();
 });

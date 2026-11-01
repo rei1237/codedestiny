@@ -5,6 +5,7 @@ import { createHash } from "node:crypto";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest as webOptionalUser, isAuthDbInfraError } from "../lib/auth.js";
 import { nativeTossContext } from '../toss/native-context.js';
+import { TossError } from '../toss/policy.js';
 const getOptionalUserFromRequest=(request,...args)=>nativeTossContext(request)?.auth||webOptionalUser(request,...args);
 import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
@@ -1803,7 +1804,10 @@ async function handleStart(request, env, ctx = null, recoveryAuth = null) {
     if (doc.status !== "delivery_pending") doc = await saveNeoDelivery(filter, { status: "delivery_pending", initialBriefing: briefing,
       messages: [{ role: "user", content: normalized.input.question, createdAt: new Date() }, { role: "assistant", content: JSON.stringify(briefing), createdAt: new Date() }] }, sessionId);
     try { access = await resolveStartAccess({ request, env, auth, body: resumeBody, normalized, pricing, idempotencyKey }); }
-    catch { throw resultStorageUnavailable(sessionId); }
+    catch (error) {
+      if(nativeTossContext(request)&&error instanceof TossError)throw error;
+      throw resultStorageUnavailable(sessionId);
+    }
     if (!access.ok) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
     try { await applyUsageOnce({ userId: auth.userId, sessionId, accessType: access.accessType, pricing, source: access.source }); }
     catch { throw resultStorageUnavailable(sessionId); }
@@ -1813,6 +1817,7 @@ async function handleStart(request, env, ctx = null, recoveryAuth = null) {
     return json(publicSession(doc));
   } catch (error) {
     if (error?.code === "RESULT_STORAGE_UNAVAILABLE") throw error;
+    if(nativeTossContext(request)&&error instanceof TossError)throw error;
     await saveNeoDelivery(filter, { status: "generation_failed", generationError: { code: clean(error?.code || "LLM_FAILED", 80), message: clean(error?.message, 500) } }, sessionId);
     await releaseRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds });
     await failRefundableExecution(env, auth, idempotencyKey, sessionId, error);
@@ -1973,7 +1978,10 @@ async function handleRefine(request, env) {
     const refinedOrder = mergeNeoRefinedSections(Object.values(doc.llmMeta.refinement.sections), doc);
     let freshAccess;
     try { freshAccess = await resolveStartAccess({ request, env, auth, body: resumeBody, normalized: { inputHash: doc.inputHash }, pricing: getPricing(), idempotencyKey: doc.idempotencyKey }); }
-    catch { throw resultStorageUnavailable(sessionId); }
+    catch (error) {
+      if(nativeTossContext(request)&&error instanceof TossError)throw error;
+      throw resultStorageUnavailable(sessionId);
+    }
     if (!freshAccess.ok) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
     const now = new Date();
     doc = await saveNeoDelivery(filter, { refinedOrder, realityCheck: doc.llmMeta.refinement.realityCheck, refinementStatus: "completed", refinementError: null,
@@ -1983,6 +1991,7 @@ async function handleRefine(request, env) {
     return json(publicSession(doc));
   } catch (error) {
     if (error?.code === "RESULT_STORAGE_UNAVAILABLE") throw error;
+    if(nativeTossContext(request)&&error instanceof TossError)throw error;
     await saveNeoDelivery(filter, { refinementStatus: "generation_failed", refinementError: { code: clean(error?.code || "LLM_FAILED", 80), message: clean(error?.message, 500) } }, sessionId);
     return json({ ok: false, reason: "LLM_ERROR", message: LLM_ERROR_MESSAGE }, { status: 503 });
   } finally {
