@@ -48,6 +48,16 @@ UI/UX 관련 요청(디자인/리디자인/비평/감사/폴리싱/애니메이�
   - **주의 — 지연 장치를 두 개 걸지 말 것**: 하이드레이션이 이미 IO로 게이트되므로 생성하는 `<img>`는 `loading="eager"`여야 한다. `lazy`를 함께 걸면 요청이 영영 나가지 않는다. 마크업에 정적으로 박힌 `loading="lazy"` 이미지도 닫힌 컬렉션 안에서 파싱되면 열려도 요청이 안 나가므로, 하이드레이션이 노드를 새로 붙여 깨운다.
   - 구현 정본: `js/core/index-inline-runtime.js`·`js/core/uiBindings.js`의 `__(cd)HydrateCollectionImagesChunked` / `buildResizedCollectionImageUrl`. 그리드 열 수의 실제 정본은 CSS가 아니라 `index.html` `classifyCards()`의 인라인 `grid-template-columns` (인라인 `!important`라 CSS보다 셈).
 
+## CSS 수정 규칙 (2026-11-02 진단)
+
+실측: 전역 CSS는 `styles/` 56개·`css/` 3개·그 밖의 app 전역 21개, CSS Module 154개다. `!important`는 약 3,938개(`cosmic-main` 565·`fortune-ui` 382·`mobile-lite` 330·`basic-fortune-library` 154·`life-book` 116·`home-funnel` 104)다. 셀렉터 1,145개가 전역 파일 두 곳 이상에 정의돼 있고, 대부분은 `core-ui.css`·`fortune-ui-home.css`·`fortune-ui.css` 세 벌 복사다(`.feature-card-grid`는 5개 파일). `app/layout`은 전역 CSS 7개를, 루트 `index.html`은 스타일시트 43개를 싣는다. 그래서 "첫 매치를 고쳤는데 화면이 그대로"가 기본값이다.
+
+- **새 화면·새 컴포넌트 스타일은 CSS Module 이 먼저다.** 전역 파일에 새 블록을 더하지 않는다.
+- **전역 셸 CSS 를 꼭 고쳐야 하면 화면 전용 접두어 클래스(기존 예: `.lb-`·`.df-`)로 범위를 좁힌다.** 맨 셀렉터(`.feature-card-grid` 등)를 새로 선언하지 않는다.
+- **공통 파일(`core-ui.css`·`fortune-ui*.css`·`mobile-lite.css`)을 다른 화면 때문에 덮어쓰지 않는다.** 그 화면의 CSS 에서 고친다(위 모바일 래퍼 사고와 같은 원리).
+- **`!important` 로 이기지 않는다.** 이기는 블록(파일·특이도·`<link>` 순서)을 먼저 찾아 그 블록을 고친다. 아래 "큰 디자인 변경 절차" 1번과 같다.
+- 중복 정의 정리는 디자인·SEO 회귀 위험이 커서 별도 작업으로 한다. 이 규칙은 새 중복을 막는 용도다.
+
 ## 모바일 · 몰입형 경험 (2026-08-28 `AGENTS.md` 에서 이관)
 
 - 🔴 **모바일 UI 회귀는 고위험이다.** 라우트 동작 · safe area · 터치 타깃 · 앱 결제 라우팅을 보존한다.
