@@ -1,16 +1,10 @@
 // Operator name (CODE DESTINY) and registered legal identity are separate; the service name lives on WebSite.
 import { BUSINESS_IDENTITY } from "../../lib/site-policy-config";
 import { siteSeo } from "../../lib/seo/siteSeo";
-import { serializeJsonLd } from "../../lib/seo/json-ld.mjs";
+import { serializeJsonLd, toJsonLdDate } from "../../lib/seo/json-ld.mjs";
 const OPERATOR_NAME = siteSeo.organization.name;
 const BRAND_URL = "https://code-destiny.com";
 const DEFAULT_IMAGE = `${BRAND_URL}/og/code-destiny-og.png`;
-
-function toIsoString(value) {
-  if (!value) return undefined;
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? undefined : date.toISOString();
-}
 
 function StructuredDataScript({ id, data }) {
   if (!data) return null;
@@ -52,8 +46,8 @@ export function ArticleJsonLd({
   inLanguage = "ko-KR",
 }) {
   const organization = buildOrganization();
-  const published = toIsoString(datePublished) || toIsoString(dateModified);
-  const modified = toIsoString(dateModified) || published;
+  const published = toJsonLdDate(datePublished) || toJsonLdDate(dateModified);
+  const modified = toJsonLdDate(dateModified) || published;
 
   const data = {
     "@context": "https://schema.org",

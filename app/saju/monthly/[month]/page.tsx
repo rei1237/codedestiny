@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { buildSeoMetadata } from "@/lib/seo";
 import { siteSeo } from "@/lib/seo/siteSeo";
+import { serializeJsonLd } from "@/lib/seo/json-ld.mjs";
 import GuideCta from "@/app/components/GuideCta";
 import { GUIDE_CTA_TARGETS } from "@/app/components/guide-cta-targets";
 import {
@@ -187,9 +188,9 @@ export default function IlganMonthlyHubPage({ params }: { params: { month: strin
           운세 콘텐츠는 자기성찰을 위한 참고 정보입니다. 건강·법률·재무처럼 중요한 결정은 실제 조건과 해당 분야 전문가의 조언을 함께 확인하세요.
         </p>
       </main>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(collectionJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(faqJsonLd) }} />
     </>
   );
 }
