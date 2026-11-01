@@ -15,7 +15,7 @@ import styles from './profiles.module.css';
 import ProfileChatFields,{type ProfileChatField} from './ProfileChatFields';
 import chatStyles from './intake-chat.module.css';
 import type {VoiceStyle} from '../_lib/voice-style-copy';
-export default function ProfileForm({onSaved,locale,conversational=false,voice='banmal',onLogin=loginForCurrentPage}:{onSaved:(profile:DestinyProfileCard)=>void;locale?:ReadingLocale;conversational?:boolean;voice?:VoiceStyle;onLogin?:()=>void}) {
+export default function ProfileForm({onSaved,locale,conversational=false,voice='banmal',surface='night',onLogin=loginForCurrentPage}:{onSaved:(profile:DestinyProfileCard)=>void;locale?:ReadingLocale;conversational?:boolean;voice?:VoiceStyle;surface?:'night'|'paper';onLogin?:()=>void}) {
  const copy=consultationInputCopy(locale);
  const [currentLocation,setCurrentLocation]=useState<CurrentLocation|null>(null);
  const [birthDate,setBirthDate]=useState(''),[place,setPlace]=useState('');
@@ -64,5 +64,5 @@ export default function ProfileForm({onSaved,locale,conversational=false,voice='
   {id:'time',prompt:fields[3].prompt,chips:chip(unknown,copy.unknown,()=>setUnknown(!unknown)),note:copy.unknownHint,input:<BirthTimeInput name="time"  form={formId} aria-label={copy.birthTime} required={!unknown} disabled={unknown}/>,answer:unknown?copy.unknown:undefined},
   {id:'place',prompt:fields[4].prompt,note:<><div className={chatStyles.locate}><CurrentLocationButton locale={locale} translation={readingLocationCopy(locale||'ko')} disabled={busy} onLocation={value=>{setCurrentLocation(value);setPlace(value.name);}}/></div>{currentLocation&&<p role="status">{copy.locationUsed} {currentLocation.timezone}</p>}<p>{copy.placeHint}</p></>,input:<input name="place" form={formId} aria-label={copy.birthPlace} value={place} onChange={e=>{setPlace(e.target.value);setCurrentLocation(null);}} placeholder={copy.placeExample} maxLength={120}/>},
  ];
- return conversational?<ProfileChatFields fields={chatFields} formId={formId} onSubmit={save} busy={busy} error={error} saveLabel={busy?copy.saving:copy.save}/>:<form onSubmit={save} className={styles.profileForm} lang={locale||'ko'}><h3>{copy.profileHeading}</h3><p>{copy.profileIntro}</p>{fields.map(field=><div key={field.id}>{field.content}</div>)}<button disabled={busy} type="submit">{busy?copy.saving:copy.save}</button>{error&&<p role="alert">{error}</p>}</form>;
+ return conversational?<ProfileChatFields fields={chatFields} formId={formId} onSubmit={save} busy={busy} error={error} saveLabel={busy?copy.saving:copy.save}/>:<form onSubmit={save} className={`${styles.profileForm}${surface==='paper'?` ${styles.paper}`:''}`} lang={locale||'ko'}><h3>{copy.profileHeading}</h3><p>{copy.profileIntro}</p>{fields.map(field=><div key={field.id}>{field.content}</div>)}<button disabled={busy} type="submit">{busy?copy.saving:copy.save}</button>{error&&<p role="alert">{error}</p>}</form>;
 }

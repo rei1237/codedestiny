@@ -33,3 +33,16 @@
 @media(prefers-reduced-motion:reduce) { .picker .choice { transition:none; } }
 
 .profileForm :is(input,select,button){scroll-margin-block:24px 96px}.profileForm :is(input,select,button):focus-visible{outline:2px solid var(--yn-gold);outline-offset:3px}.profileForm input::placeholder{color:var(--yn-muted);opacity:1}
+
+/* The partner page opts into paper; existing night and conversational forms stay unchanged. */
+.profileForm.paper { color: var(--cd-samples-ink); border-top-color: var(--cd-samples-line); color-scheme: light; }
+.profileForm.paper h3, .profileForm.paper label { color: var(--cd-samples-ink); }
+.profileForm.paper h3 { font-family: "Yeongnyangi Myeongjo", var(--font-serif); }
+.profileForm.paper p { color: var(--cd-samples-muted); }
+.profileForm.paper input:not([type="checkbox"]), .profileForm.paper select { background: var(--cd-samples-sheet); color: var(--cd-samples-ink); border-color: var(--cd-samples-muted); font-family: var(--font-body); }
+.profileForm.paper input::placeholder { color: var(--cd-samples-muted); }
+.profileForm.paper input[type="checkbox"] { accent-color: var(--cd-samples-rose); }
+.profileForm.paper label:has(input[type="checkbox"]) { display: flex; align-items: center; gap: var(--cd-sp-sm); min-height: 44px; }
+.profileForm.paper button { background: var(--cd-samples-rose); border-color: var(--cd-samples-rose); color: var(--cd-pass-on-rose); font-family: var(--font-body); }
+.profileForm.paper button:hover:not(:disabled) { background: var(--cd-pass-rose-deep); }
+.profileForm.paper :is(input, select, button):focus-visible { outline-color: var(--cd-samples-rose); }

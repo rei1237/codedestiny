@@ -106,6 +106,8 @@ const IMMERSIVE_FORTUNE_ROUTES = [
   "/features",
   "/fusion-fortune",
   "/fortune-chat",
+  // The partner benefit owns its compact home navigation and legal links.
+  "/snu",
 ];
 
 // Routes that render their own in-experience back/home controls, so the global

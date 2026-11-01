@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
 import styles from "./AnalyticsConsent.module.css";
 
@@ -27,6 +28,12 @@ export default function AnalyticsConsent() {
   const panel = useRef<HTMLElement>(null);
   const requested = useRef(false);
   const excluded = /^\/(admin|gift|ggulggul)(\/|$)/.test(pathname);
+  const inPage = /^\/snu(\/|$)/.test(pathname);
+  const [inPageHost, setInPageHost] = useState<HTMLElement | null>(null);
+
+  useEffect(() => {
+    setInPageHost(inPage ? document.getElementById("snu-consent-slot") : null);
+  }, [inPage]);
 
   useEffect(() => {
     // Preserve the native-app consent policy. This banner is for web visitors.
@@ -67,8 +74,8 @@ export default function AnalyticsConsent() {
   }
 
   if (!ready || !open) return null;
-  return (
-    <section ref={panel} tabIndex={-1} className={styles.banner} aria-labelledby="analytics-consent-title">
+  const banner = (
+    <section ref={panel} tabIndex={-1} className={`${styles.banner}${inPage ? ` ${styles.inPage}` : ""}`} aria-labelledby="analytics-consent-title">
       <div className={styles.heading}>
         <span className={styles.ornament} aria-hidden="true" />
         <h2 id="analytics-consent-title">방문 분석 쿠키를 선택해 주세요</h2>
@@ -82,4 +89,5 @@ export default function AnalyticsConsent() {
       {error ? <p className={styles.error} role="alert">선택을 저장하지 못했어요. 브라우저의 쿠키 허용 설정을 확인한 뒤 다시 선택해 주세요.</p> : null}
     </section>
   );
+  return inPage ? (inPageHost ? createPortal(banner, inPageHost) : null) : banner;
 }

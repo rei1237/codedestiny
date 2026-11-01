@@ -77,9 +77,9 @@ test('a distinct explicit test property works; production config remains singula
 });
 
 test('actual Next consent UI: default denied, reject/accept/revoke, persistence and late tag initialization', async () => {
-  for (const path of ['/', '/yeongnyangi/', '/points/']) {
+  for (const path of ['/', '/yeongnyangi/', '/points/', '/snu/']) {
     // Reopening is a footer button outside the banner (SiteFooterHub, LocaleFooterHub, app/page.js).
-    const dom = new JSDOM('<div id="root"></div><button type="button" data-cd-cookie-settings>쿠키 설정</button>', { url: `https://code-destiny.com${path}`, runScripts: 'outside-only' });
+    const dom = new JSDOM('<div id="root"></div><div id="snu-consent-slot"></div><button type="button" data-cd-cookie-settings>쿠키 설정</button>', { url: `https://code-destiny.com${path}`, runScripts: 'outside-only' });
     const w = dom.window;
     globalThis.window = w; globalThis.document = w.document; globalThis.location = w.location;
     globalThis.IS_REACT_ACT_ENVIRONMENT = true;

@@ -69,3 +69,32 @@
 @media (prefers-reduced-motion: reduce) {
   .actions button { transition: none; }
 }
+
+/* The benefit page keeps optional consent in flow, clear of its main action. */
+.banner.inPage {
+  --ac-night: var(--cd-samples-paper);
+  --ac-ink: var(--cd-samples-ink);
+  --ac-muted: var(--cd-samples-muted);
+  --ac-gold: var(--cd-samples-rose);
+  --ac-line: var(--cd-samples-line);
+  position: static;
+  inset: auto;
+  z-index: auto;
+  width: 100%;
+  max-width: var(--cd-w-prose);
+  max-height: none;
+  margin: var(--cd-sp-lg) auto;
+  padding: var(--cd-sp-lg);
+  background: var(--ac-night);
+  color: var(--ac-ink);
+  box-shadow: none;
+  color-scheme: light;
+}
+.inPage .heading { margin-bottom: var(--cd-sp-sm); }
+.inPage .ornament { flex-basis: 24px; width: 24px; height: 24px; background: var(--ac-gold); }
+.inPage h2 { font: 650 1rem/1.5 var(--font-body); text-wrap: pretty; }
+.inPage p { font-size: 0.9rem; line-height: 1.75; margin-bottom: var(--cd-sp-md); }
+.inPage .actions { gap: var(--cd-sp-sm); }
+.inPage .actions button { font-size: .9rem; word-break: keep-all; }
+.inPage .actions a { font-size: 0.85rem; }
+.inPage .actions button:hover, .inPage .actions button:active { background: var(--cd-samples-blush); }
