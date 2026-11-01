@@ -5,7 +5,7 @@ import {readFile,mkdir,writeFile,rm} from 'node:fs/promises';
 import {resolve,extname,sep} from 'node:path';
 import {chromium} from 'playwright';
 
-const output=resolve('.tmp/round2/ui'),compiled=resolve('out');
+const output=resolve(process.env.CONSULTATION_UI_OUTPUT||'.tmp/round2/ui'),compiled=resolve('out');
 await readFile(resolve(compiled,'index.html'));
 const mime={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.json':'application/json','.webp':'image/webp','.avif':'image/avif','.svg':'image/svg+xml','.woff2':'font/woff2'};
 const server=createServer(async(req,res)=>{
@@ -93,6 +93,74 @@ try{
   proof.push({width,products,mutations,firstQuestionReady:true,draftRetained:true,legacyEntryPreserved:true,accountIsolation:width===390?true:undefined,overflow:false,inputTargetMet,inputEvents,apiRequests});
   await context.close();
  }
+ // The SSR introduction must survive a browser with a cached private profile
+ // and a different runtime language without changing its existing form values.
+ const introProof=[];
+ for(const routeName of ['astrology-ai','vedic-ai','karma-destiny-ai','sukuyo-compatibility-ai']){
+  const html=await readFile(resolve(compiled,routeName,'index.html'),'utf8');
+  assert(html.includes(`${routeName}-${['astrology-ai','sukuyo-compatibility-ai'].includes(routeName)?'960':'640'}.webp`));
+  assert(!/<form\b|<input\b/.test(html),'private profile controls are mounted after hydration');
+  for(const width of [360,390,430,1280]){
+   const context=await browser.newContext({viewport:{width,height:900},serviceWorkers:'block',reducedMotion:'reduce'});
+   let mutations=0;const errors=[];
+   await context.route('**/*',async route=>{
+    const request=route.request(),url=new URL(request.url());
+    if(url.origin!==origin)return route.abort();
+    if(!url.pathname.startsWith('/api/'))return route.continue();
+    if(!['GET','HEAD'].includes(request.method())&&!url.pathname.startsWith('/api/auth/'))mutations++;
+    const json=url.pathname.startsWith('/api/auth/')?{authenticated:false,guest:true,reason:'no_auth_hint'}:{ok:false,code:'MOCK_ROUTE_NOT_IMPLEMENTED'};
+    return route.fulfill({json,status:url.pathname.startsWith('/api/auth/')?200:503});
+   });
+   await context.addInitScript(()=>{
+    sessionStorage.setItem('privacyAgreed','true');
+    localStorage.setItem('codeDestiny:guestProfile',JSON.stringify({id:'fixture-guest',name:'검증 프로필',gender:'female',birthDate:'1993-02-04',birthTime:'11:25'}));
+   });
+   const page=await context.newPage();activePage=page;
+   page.on('pageerror',error=>errors.push(error.message));
+   page.on('console',message=>{if(message.type()==='error'&&/hydration|Minified React error/i.test(message.text()))errors.push(message.text());});
+   await page.goto(`${origin}/${routeName}/${width===390?'?lang=en':''}`,{waitUntil:'load'});
+   let input=page.locator('main input:not([type=hidden])').first();await input.waitFor();
+   const essential=page.getByRole('button',{name:/필수만 사용|Essential only|Essential cookies only/i});if(await essential.isVisible())await essential.click();
+   if(routeName==='sukuyo-compatibility-ai'){
+    await page.screenshot({path:resolve(output,`${routeName}-${width}-default.png`),fullPage:true});
+    const detail=page.locator('main details').filter({has:page.getByPlaceholder('나를 부르는 이름',{exact:true})});
+    await detail.locator('summary').click();
+    input=page.getByPlaceholder('나를 부르는 이름',{exact:true});
+   }
+   assert.equal(await input.inputValue(),'검증 프로필');
+   if(width===390&&routeName!=='sukuyo-compatibility-ai')await page.waitForFunction(()=>/Astrology|Vedic|Red Thread/i.test(document.querySelector('main h1,main h2')?.textContent||''));
+   const heroAction=page.locator('#vedic-hero-start,#karma-hero-start');
+   if(await heroAction.count()){
+    await heroAction.click();
+    const formBox=await page.locator('main form').first().boundingBox();
+    assert(formBox&&formBox.y<900&&formBox.y+formBox.height>0,'the introduction action reaches the actual form');
+   }
+   await input.fill('입력 확인');await input.focus();
+   assert.equal(await input.inputValue(),'입력 확인');
+   assert.equal(await page.evaluate(()=>document.activeElement?.tagName),'INPUT');
+   await page.keyboard.press('Tab');
+   assert.equal(await page.evaluate(()=>document.activeElement===document.body),false);
+   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);
+   await page.screenshot({path:resolve(output,`${routeName}-${width}.png`),fullPage:true});
+   await page.reload({waitUntil:'load'});await page.locator('main input[value="검증 프로필"]').waitFor({state:'attached'});
+   assert.deepEqual(errors,[]);assert.equal(mutations,0);
+   introProof.push({route:routeName,width,ssrIntroduction:true,cachedProfileRestored:true,language:width===390?'en':'ko',reload:true,keyboardTab:true,heroAction:['vedic-ai','karma-destiny-ai'].includes(routeName)?true:undefined,overflow:false,mutations,errors});
+   await context.close();
+  }
+ }
+ // Splitting unused global chrome must retain crawlable server navigation on
+ // ordinary public pages, including when JavaScript is unavailable.
+ const publicContext=await browser.newContext({viewport:{width:390,height:900},javaScriptEnabled:false,serviceWorkers:'block'});
+ const publicPage=await publicContext.newPage();activePage=publicPage;
+ await publicContext.route('**/*',route=>new URL(route.request().url()).origin===origin?route.continue():route.abort());
+ const publicHtml=await readFile(resolve(compiled,'insights','index.html'),'utf8');
+ assert(publicHtml.includes('<footer'),'the footer remains in server HTML');
+ await publicPage.goto(origin+'/insights/',{waitUntil:'load'});
+ assert(await publicPage.getByRole('banner').first().isVisible());
+ assert(await publicPage.locator('footer a[href*="privacy"]').count()>0);
+ await publicPage.screenshot({path:resolve(output,'public-chrome-390.png'),fullPage:true});
+ await publicContext.close();
+ await writeFile(resolve(output,'intro-proof.json'),JSON.stringify({cases:introProof,publicChrome:{serverHtml:true,javascriptDisabled:true,footerPolicyLinks:true}},null,2));
  await writeFile(resolve(output,'proof.json'),JSON.stringify(proof,null,2));
  await Promise.all(['failure.png','failure.json'].map(name=>rm(resolve(output,name),{force:true})));
  console.log(JSON.stringify(proof.map(({apiRequests,...row})=>row)));

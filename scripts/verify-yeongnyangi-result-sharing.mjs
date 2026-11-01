@@ -13,6 +13,9 @@ const browser=await chromium.launch({headless:true}),results=[];
 try{
  for(const width of [360,390,430,1280]){
   const f=await fixtures(browser,base,products.find(p=>p.id==='saju_mackerel'),width);
+  await f.page.addLocatorHandler(f.page.locator('dialog[open][aria-labelledby^="benefits-title-"]'),async()=>{
+   await f.page.getByRole('button',{name:'닫고 상담 계속 읽기',exact:true}).click();
+  });
   let release;const gate=new Promise(resolve=>{release=resolve;});
   try{
    f.row.paid=true;f.row.state='COMPLETED';
@@ -28,11 +31,12 @@ try{
    await f.context.route(`**/api/yeongnyangi/requests/${f.row.id}`,async route=>{await gate;await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({fortune:f.row})});});
    await f.page.goto(base+'/yeongnyangi/result/?id='+f.row.id,{waitUntil:'domcontentloaded'});
    await f.page.getByText('기록을 불러오고 있어요.').waitFor();
-   const loadingCat=f.page.getByRole('status').filter({hasText:'기록을 불러오고 있어요.'}).locator('img');
-   assert.equal(await loadingCat.evaluate(img=>img.complete&&img.naturalWidth>0),true);
-   assert.equal(await loadingCat.evaluate(img=>getComputedStyle(img.parentElement).backgroundColor),'rgba(0, 0, 0, 0)');
+   const loadingStatus=f.page.getByRole('status').filter({hasText:'기록을 불러오고 있어요.'});
+   assert.equal(await loadingStatus.isVisible(),true);
+   assert.equal(await loadingStatus.locator('img').count(),0,'an unknown record must not load a generic reading illustration');
    await f.page.screenshot({path:`${output}/loading-${width}.png`});release();
-   await f.page.getByText('마음에 남은 상담 공유하기',{exact:false}).click();
+   const editor=f.page.locator('[data-consultation-sharing]');
+   await editor.locator('summary').click();
    await f.page.getByAltText('보내기 전 확인하는 영냥이 상담 이미지').waitFor();
    await f.page.getByRole('button',{name:'카카오톡 요약 보내기',exact:true}).click();
    const kakao=await f.page.evaluate(()=>window.__kakaoCalls[0]);assert.equal(kakao.objectType,'feed');assert.ok(kakao.content.description.length<=95);assert.ok(kakao.content.description.includes('준비한 선택지'));assert.ok(!kakao.content.link.webUrl.includes(f.row.id));
@@ -51,9 +55,9 @@ try{
    if(width===360){
     const complete=f.row.chapters;f.state.holdGeneration=true;f.row.chapters=complete.slice(0,2);f.row.state='GENERATING';
     await f.page.reload();await f.page.getByText('남은 상담은 서버에서 자동으로 이어져요. 창을 닫아도 영냥이 보관함에서 다시 확인할 수 있어요.',{exact:true}).waitFor();
-    assert.equal(await f.page.getByText('마음에 남은 상담 공유하기',{exact:false}).count(),0);
+    assert.equal(await editor.count(),0);
     f.row.chapters=complete;await f.page.reload();await f.page.getByText('저장된 상담을 최종 확인하고 있어요.',{exact:true}).waitFor();
-    assert.equal(await f.page.locator('progress').getAttribute('value'),'5');assert.equal(await f.page.locator('progress').getAttribute('max'),'6');
+    assert.equal(await f.page.locator('progress').getAttribute('value'),String(complete.length));assert.equal(await f.page.locator('progress').getAttribute('max'),String(f.row.manifest.length+1));
    }
    results.push({width,status:'PASS',loading:true,kakao:'mock',clipboard:true,image:true,cancel:true,realMessages:0});
   }catch(error){await f.page.screenshot({path:`${output}/failure-${width}.png`});console.error(JSON.stringify({width,resources:f.state.resources.slice(-8),errors:f.state.errors,url:f.page.url(),body:(await f.page.locator('body').innerText()).slice(0,1200)}));throw error;}finally{release();await f.context.close();}

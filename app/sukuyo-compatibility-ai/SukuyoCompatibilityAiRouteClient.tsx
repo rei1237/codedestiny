@@ -3,7 +3,6 @@
 import dynamic from "next/dynamic";
 
 const SukuyoCompatibilityAiClient = dynamic(() => import("./SukuyoCompatibilityAiClient"), {
-  ssr: false,
   loading: () => <SukuyoCompatibilityAiShell />,
 });
 

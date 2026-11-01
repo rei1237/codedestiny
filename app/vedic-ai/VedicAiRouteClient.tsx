@@ -3,7 +3,6 @@
 import dynamic from "next/dynamic";
 
 const VedicAiClient = dynamic(() => import("./VedicAiClient"), {
-  ssr: false,
   loading: () => <VedicAiShell />,
 });
 

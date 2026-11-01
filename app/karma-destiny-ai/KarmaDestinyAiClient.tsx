@@ -1765,9 +1765,10 @@ function getKarmaDestinyCopy(locale: LoadingLocale): KarmaDestinyCopy {
 }
 
 function useKarmaDestinyCopy(): KarmaDestinyCopy {
-  const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
+  const [locale, setLocale] = useState<LoadingLocale>("ko");
   useEffect(() => {
     const sync = () => setLocale(getCurrentLoadingLocale());
+    sync();
     window.addEventListener("languagechange", sync);
     window.addEventListener("cd:locale-ready", sync);
     return () => {
@@ -2276,6 +2277,8 @@ function KarmaResultModal({
 
 export default function KarmaDestinyAiPage() {
   const copy = useKarmaDestinyCopy();
+  const [clientReady, setClientReady] = useState(false);
+  useEffect(() => { setClientReady(true); }, []);
   const locale = getCurrentLoadingLocale();
   const [form, setForm] = useState<ConsultationForm>(() => buildInitialForm());
   const [status, setStatus] = useState<FlowStatus>("idle");
@@ -2609,11 +2612,11 @@ export default function KarmaDestinyAiPage() {
 
   return (
     <main className={`kdai-page ${polish.page}`} data-karma-destiny-ai="v20260629">
-      <ConsultationMasterIntro kind="karma" label={copy.heroTitle} lead={copy.heroDescription} actionHref="#karma-destiny-consultation" actionId="karma-hero-start">
-        <div className="kdai-status" data-status={status} role="status">
+      <ConsultationMasterIntro kind="karma" label={copy.heroTitle} lead={copy.heroDescription} actionHref={clientReady ? "#karma-destiny-consultation" : undefined} actionId="karma-hero-start">
+        {clientReady && <div className="kdai-status" data-status={status} role="status">
           {isBusy ? <Loader2 size={16} className="kdai-spin" /> : <Sparkles size={16} />}
           <span>{statusText}</span>
-        </div>
+        </div>}
         {accessType && <p className="kdai-access">{copy.accessTypeLabelPrefix}{accessType}</p>}
       </ConsultationMasterIntro>
 
@@ -2642,6 +2645,7 @@ export default function KarmaDestinyAiPage() {
         </div>
       </section>
 
+      {clientReady && <>
       {getCurrentLoadingLocale() === "ko" && <div style={{width:"100%",maxWidth:540,margin:"24px auto",position:"relative",zIndex:1,textAlign:"left",color:"#463a31",background:"#eee7dc",borderRadius:12}}><CraftedProductDisclosure featureKey="karma-destiny-ai-consultation" summaryLabel="붉은 실 · 운명의 업 상담 상세 안내" /></div>}
       <section className="kdai-workspace">
         <form data-moonlit-form="" id="karma-destiny-consultation" className="kdai-form kdai-panel" onSubmit={handleSubmit}>
@@ -2864,6 +2868,7 @@ export default function KarmaDestinyAiPage() {
         />
       )}
 
+      </>}
       <style jsx>{`
         .kdai-page {
           position: relative;

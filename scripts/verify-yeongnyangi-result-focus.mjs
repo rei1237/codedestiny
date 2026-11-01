@@ -1,6 +1,6 @@
 import './lib/mock-network-guard.cjs';
 import assert from 'node:assert/strict';
-import {mkdir,writeFile} from 'node:fs/promises';
+import {mkdir,writeFile,rm} from 'node:fs/promises';
 import {chromium} from '@playwright/test';
 import {build} from 'esbuild';
 import {fixtures} from './lib/yeongnyangi-mobile-payment.mjs';
@@ -17,6 +17,9 @@ const samples={
 };
 try{for(const [width,locale] of [[360,'ko'],[390,'ko'],[430,'ko'],[1280,'ko'],[360,'de'],[360,'hi']]){
  const f=await fixtures(browser,base,products.find(p=>p.id==='saju_mackerel'),width);const {page,context,row,state}=f;const sample=samples[locale];
+ const consoleErrors=[];page.on('console',message=>{if(message.type()==='error')consoleErrors.push(message.text());});
+ const closeBenefits=async()=>{const dialog=page.locator('dialog[open][aria-labelledby^="benefits-title-"]');if(await dialog.isVisible())await dialog.getByRole('button',{name:'닫고 상담 계속 읽기',exact:true}).click();};
+ await page.addLocatorHandler(page.locator('dialog[open][aria-labelledby^="benefits-title-"]'),closeBenefits);
  try{
   row.paid=true;row.state='COMPLETED';row.locale=locale;
   row.manifest=[{id:'focus',title:'지금 선택의 기준',theme:'career',ordinal:0}];
@@ -32,6 +35,7 @@ try{for(const [width,locale] of [[360,'ko'],[390,'ko'],[430,'ko'],[1280,'ko'],[3
   assert.equal(await tools.getAttribute('open'),null);assert.equal(await evidence.getAttribute('open'),null);
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
   const answerBox=await focus.getByText(sample.answer,{exact:true}).boundingBox();assert.ok(answerBox.y<700,'the answer appears before secondary tools on a phone');
+  await closeBenefits();
   await page.screenshot({path:directory+'/'+locale+'-'+width+'-viewport.png'});await page.screenshot({path:directory+'/'+locale+'-'+width+'-full.png',fullPage:true});
   await evidence.locator('summary').first().click();await evidence.getByText('甲子',{exact:true}).waitFor();
   await tools.locator('summary').first().click();await tools.locator('[data-external-image-guide]').waitFor();
@@ -39,6 +43,11 @@ try{for(const [width,locale] of [[360,'ko'],[390,'ko'],[430,'ko'],[1280,'ko'],[3
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
   assert.equal(state.generates,0);assert.equal(state.orders.size,0);assert.equal(state.sdk.length,0);assert.deepEqual(state.errors,[]);assert.deepEqual(state.unknown,[]);
   report.push({width,locale,status:'PASS',answerY:Math.round(answerBox.y),generationCalls:state.generates});
+ }catch(error){
+  await writeFile(directory+'/failure.json',JSON.stringify({width,locale,error:String(error),errors:state.errors,consoleErrors,unknown:state.unknown,blocked:state.blocked,resources:state.resources.slice(-20),body:await page.locator('body').innerText()},null,2));
+  await page.screenshot({path:directory+'/failure.png',fullPage:true});
+  throw error;
  }finally{await context.close();}
 }}finally{await browser.close();await writeFile(directory+'/verification.json',JSON.stringify({cases:report,realPayments:0,realLlmCalls:0,productionWrites:0},null,2));}
+await Promise.all(['failure.json','failure.png'].map(name=>rm(directory+'/'+name,{force:true})));
 console.log(JSON.stringify({status:'PASS',cases:report}));

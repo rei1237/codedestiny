@@ -89,7 +89,7 @@ try {
         const metrics = await page.evaluate(() => {
           const resources = performance.getEntriesByType('resource');
           const pendingVisibleImages=[...document.images].filter(img=>{const box=img.getBoundingClientRect();return !img.complete&&box.width>0&&box.height>0&&box.top<innerHeight&&box.bottom>0;}).map(img=>img.currentSrc||img.src);
-          return { ...window.__webPerf, pendingVisibleImages, dom: document.querySelectorAll('*').length, overflow: document.documentElement.scrollWidth > innerWidth + 1, scripts: resources.filter(e => e.initiatorType === 'script').reduce((sum, e) => sum + e.encodedBodySize, 0), resources: resources.map(e => ({ url: e.name.replace(location.origin, ''), type: e.initiatorType, start: e.startTime, end: e.responseEnd, duration: e.duration, bytes: e.encodedBodySize })).sort((a, b) => b.bytes - a.bytes).slice(0, 40) };
+          return { ...window.__webPerf, pendingVisibleImages, dom: document.querySelectorAll('*').length, overflow: document.documentElement.scrollWidth > innerWidth + 1, scripts: resources.filter(e => e.initiatorType === 'script').reduce((sum, e) => sum + e.encodedBodySize, 0), chunkFiles: resources.filter(e => e.name.includes('/_next/static/') && /\.js(?:\?|$)/.test(e.name)).map(e => e.name.replace(location.origin, '')), resources: resources.map(e => ({ url: e.name.replace(location.origin, ''), type: e.initiatorType, start: e.startTime, end: e.responseEnd, duration: e.duration, bytes: e.encodedBodySize })).sort((a, b) => b.bytes - a.bytes).slice(0, 40) };
         });
         const input = page.locator('input:not([type=hidden]):visible, textarea:visible').first();
         let interactionMs = null;

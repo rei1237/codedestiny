@@ -3,7 +3,6 @@
 import dynamic from "next/dynamic";
 
 const KarmaDestinyAiClient = dynamic(() => import("./KarmaDestinyAiClient"), {
-  ssr: false,
   loading: () => <KarmaDestinyAiShell />,
 });
 
