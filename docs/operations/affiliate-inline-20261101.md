@@ -40,3 +40,10 @@ status: follow-up-required
 
 - 수정CI41287879696의 화면검사는4025개중4024통과, 후속 SNULIFE 분기에서 새로 쓰는 URLSearchParams가 기존 사주 진입 VM 모의 환경에 없어1개 실패했다. 해당 테스트에 브라우저 기본 URLSearchParams와 빈 location.search만 제공했으며 런타임 수정 없음. 관련33개 재검사 통과.
 - 로컬 check:fast는90개로 자동 승격됐으며 npm test 실패 후 공유 컴퓨터 자원 경합으로 우리 실행만 중단했다. 통과로 기록하지 않으며 전체 최종 판정은 공식CI를 따른다.
+
+## 운영 전 캐시 정합성 보완
+- CI41288817334는 전체6잡 성공, UI4025/4025 통과. 운영 수정배포41290273541는 verify:payment-choice-parity에서 독립 페이지의 공용 런타임 캐시 주소 누락을 발견해 승격 전 중단됐다. 배포 상태 기록은 생성되지 않았으며 실제 Pages/Worker 모두 기존0cd89ca4 유지 확인.
+- 기존 scripts/restamp-paid-runtime-pins.mjs로25개 참조를 build-fc0c52ff363f에 맞추고 sync:public으로 미러를 갱신했다. js/destiny-profile.js와 worker/payments 코드는 변경하지 않았다.
+- app/_lib/billing-client.ts는 PAID_SERVICE_RUNTIME_SRC 주소 상수1곳만 변경했다. worker/payments에는 해당 브라우저 로더 주소 참조가 없어 대응 정책 변경이 필요하지 않음을 확인했다. 공식 절차로 payment-freeze 매니페스트의 해당 파일 해시1개만 갱신했으며 보호 검사 통과.
+- 기계적 대조: 캐시 주소만 바뀐 파일23개, 보호 해시만 바뀐 파일1개, 기타 소스 내용 변경0. 가격·차감·인증·결과 저장 로직 유지.
+- payment-choice-parity(렌더러10, CSS105규칙, 고지문구80x12로케일)·paid-gate-ui·payment-freeze·runtime-cache-sync·변경파일 lint 통과. npm run deploy:critical 전체 전 단계 통과(실 연동 없는 mock/정적 검사, Worker 빌드는 dry-run).
