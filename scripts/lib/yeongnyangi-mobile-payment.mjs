@@ -9,6 +9,8 @@ import {listServicePackPlans} from '../../worker/payments/service-pack-policy.js
 import {legacyMoonstoneEnvelope} from '../../worker/payments/compat.js';
 import {listReviewProductSummaries} from '../../worker/lib/review-product-catalog.js';
 import {REVIEW_REWARD_AMOUNT} from '../../worker/lib/review-reward.js';
+import {FIRST_PAID_REWARD,TUTORIAL_REWARD} from '../../js/core/activation-reward-policy.mjs';
+import {MOONSTONE_MIN_PRODUCT_KRW} from '../../worker/lib/paid-feature-registry.js';
 export const QA_API_ORIGIN='https://yeongnyangi-qa.example.invalid';
 
 const user={id:'507f1f77bcf86cd799439011',_id:'507f1f77bcf86cd799439011',name:'QA 고객',email:'qa@example.invalid',phoneNumber:'01012345678',role:'user'};
@@ -84,8 +86,12 @@ export async function fixtures(browser,base,product,width=390,{monthlyBalance=0}
   if(path==='/api/recommendations'&&request.method()==='GET')return send({enabled:false,products:[]});
   if(!state.auth&&path!=='/api/yeongnyangi/products')return send({ok:false,code:'UNAUTHORIZED',message:'QA 세션 만료'},401);
   // The shared entry banner reads these two endpoints on signed-in pages.
-  // This payment fixture has no activation/SNULIFE grant; writes stay unknown.
-  if(path==='/api/activation-rewards/status'&&request.method()==='GET')return send({ok:true,accountId:user.id,wallet:{balance:state.monthlyBalance},tutorial:{eligible:false,legacySignupReceived:false},firstPaid:{},recommendations:[]});
+  // This returning QA account has historical receipts, with no new reward or
+  // SNULIFE grant. Preserve the real response shape; writes stay unknown.
+  if(path==='/api/activation-rewards/status'&&request.method()==='GET')return send({ok:true,accountId:user.id,
+   policy:{tutorial:TUTORIAL_REWARD,firstPaid:FIRST_PAID_REWARD,review:{amount:REVIEW_REWARD_AMOUNT,days:30,trigger:'approved'}},
+   wallet:{balance:state.monthlyBalance,minimumProductKRW:MOONSTONE_MIN_PRODUCT_KRW},
+   tutorial:{eligible:false,legacySignupReceived:true},firstPaid:{receipt:{status:'granted',amount:FIRST_PAID_REWARD.amount}},recommendations:[]});
   if(path==='/api/activation-rewards/snu/status'&&request.method()==='GET')return send({ok:true,eligibleEmail:false,verified:false,complete:false,campaign:null,unlockedFeatureKeys:[],features:[]});
   if(path==='/api/payments/config')return send(config);
   if(path==='/api/payments/birth-profile-pending'&&request.method()==='GET')return send({ok:true,orders:[]});
