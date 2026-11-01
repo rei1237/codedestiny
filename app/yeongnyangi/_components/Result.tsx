@@ -23,8 +23,8 @@ import {shouldInvitePaidReview} from '@/js/review-reward-copy.mjs';
 import styles from '../yeongnyangi.module.css';
 import {trackFortuneDelivery,trackFortuneView} from '@/lib/analytics';
 import ReadingLoading from './ReadingLoading';
-import ResultSharing from './ResultSharing';
-import SummaryReportView from './SummaryReport';
+const ResultSharing = dynamic(() => import('./ResultSharing'), { ssr: false });
+const SummaryReportView = dynamic(() => import('./SummaryReport'), { ssr: false });
 import FishReceipt from './FishReceipt';
 import {OrderReference} from './OrderRecovery';
 import TarotDrawRitual,{tarotRitualCompleted} from './TarotDrawRitual';
@@ -32,6 +32,8 @@ import TarotCardPick from './tarot/TarotCardPick';
 import TarotSpreadReveal,{spreadCards} from './tarot/TarotSpreadReveal';
 import {useReadingLanguage} from '../_lib/use-reading-language';
 import {localizedSystem,localizedTier,localizedKind} from '../_lib/consultation-locale-copy';
+// Completed-reading tools load after the record selects them. The reading body
+// keeps its original mount timing and space ahead of the benefits section.
 function RecoveryNotice({message,busy,onRetry,locale}:{message:string;busy:boolean;onRetry:()=>void;locale?:FortuneRecord['locale']}){
  const copy=resultStateCopy(locale);
  return <div className={styles.recoveryNotice}>

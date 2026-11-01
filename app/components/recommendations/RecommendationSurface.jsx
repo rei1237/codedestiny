@@ -23,7 +23,7 @@ export function useCopy(locale) {
   }, [locale]);
   return { ...recommendationCopy(lang), ...affiliateCopy(lang), locale: lang };
 }
-export function ProductCard({ product, copy, preview = false, onClick = () => {}, onImageError = null, terms = true }) {
+export function ProductCard({ product, copy, brand = 'yeongnyangi', preview = false, onClick = () => {}, onImageError = null, terms = true }) {
   const [failed, setFailed] = useState(false);
   useEffect(() => { ensureRecommendationFonts(); }, []);
   const provider = affiliatePresentation(product.providerId);
@@ -33,7 +33,7 @@ export function ProductCard({ product, copy, preview = false, onClick = () => {}
   const PlaceholderIcon = product.category === 'books' ? BookOpen : ShoppingBag;
   if (!preview && (failed || !validImageUrl(product.imageUrl))) return null;
   const ctaLabel = (product.linkType === 'search' ? copy.search : merchantCopy(copy.view)).replace(/\s*↗$/, '');
-  return <article data-recommendation-product={product.id} className={styles.product} data-affiliate-brand="moonlight" data-yn-night data-affiliate-provider={product.providerId || 'coupang'}>
+  return <article data-recommendation-product={product.id} className={styles.product} data-affiliate-brand={affiliateBrand(brand)} data-yn-night data-affiliate-provider={product.providerId || 'coupang'}>
     <div className={styles.image}>{validImageUrl(product.imageUrl) && !failed
       // eslint-disable-next-line @next/next/no-img-element -- 외부 제휴 이미지. 정적 export(images.unoptimized)라 next/image 이점이 없고 no-referrer·onError 대체가 필요하다
       ? <img src={product.imageUrl} alt={product.title} width="96" height="112" loading="lazy" referrerPolicy="no-referrer" onError={() => { setFailed(true); onImageError?.(product.imageUrl); }}/>
@@ -107,7 +107,7 @@ export function RecommendationResult({ service, species = '', groupId = '', loca
     {top && createPortal(<p className={styles.disclosure} data-affiliate-brand={uiBrand} data-brand={brand} data-yn-night>{preview || products.some(p => p.providerId === 'aliexpress') ? c.genericDisclosure + (products.some(p => !p.providerId || p.providerId === 'coupang') ? ' ' + c.disclosure : '') : c.disclosure}</p>, top)}
     <div className={styles.heading}><div><h2>{title}</h2><p className={styles.resultLead}>{context.practiceTags.length > 0 ? c.resultLead : c.inlineIntro}</p></div><button type="button" className={styles.shuffle} onClick={() => { setSelectionSeed(createRecommendationSeed()); if (!preview) trackRecommendation('more', context, placement, '', getApiBaseUrl()); }}><RotateCw size={16} aria-hidden="true"/>{c.shuffle}</button></div>
     <p className={styles.disclosure}>{preview || products.some(p => p.providerId === 'aliexpress') ? c.genericDisclosure + (products.some(p => !p.providerId || p.providerId === 'coupang') ? ' ' + c.disclosure : '') : c.disclosure}</p>
-    <div className={styles.products}>{products.map(p => <ProductCard key={`${p.id}:${p.imageUrl}`} product={p} copy={c} preview={preview} terms={false} onImageError={url => setFailedImages(old => [...old, url])} onClick={() => { if (!preview) trackRecommendation('click', context, placement, p.id, getApiBaseUrl()); }}/>)}</div>
+    <div className={styles.products}>{products.map(p => <ProductCard key={`${p.id}:${p.imageUrl}`} product={p} copy={c} brand={brand} preview={preview} terms={false} onImageError={url => setFailedImages(old => [...old, url])} onClick={() => { if (!preview) trackRecommendation('click', context, placement, p.id, getApiBaseUrl()); }}/>)}</div>
     <div className={styles.actions}><p className={styles.merchantTerms}>{c.inlineNote}<br/>{c.partnerTerms}</p><button type="button" onClick={() => { setDismissed(true); if (!preview) trackRecommendation('dismiss', context, placement, '', getApiBaseUrl()); }}>{c.dismiss}</button></div>
   </section>;
 }

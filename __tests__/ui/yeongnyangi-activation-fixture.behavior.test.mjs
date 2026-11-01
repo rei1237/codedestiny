@@ -23,6 +23,8 @@ test('payment fixture recognises activation reads without granting rights or acc
  try{
   const reward=await request('/api/activation-rewards/status');
   assert.equal(reward.status,200);assert.equal(reward.json.tutorial.eligible,false);
+  assert.equal(reward.json.policy.review.trigger,'approved');assert.equal(typeof reward.json.policy.review.amount,'number');
+  assert.equal(reward.json.firstPaid.receipt.status,'granted');assert.equal(reward.json.wallet.balance,0);
   const campus=await request('/api/activation-rewards/snu/status');
   assert.equal(campus.status,200);assert.equal(campus.json.verified,false);assert.equal(campus.json.complete,false);
   assert.deepEqual(campus.json.unlockedFeatureKeys,[]);assert.deepEqual(f.state.unknown,[]);

@@ -20,7 +20,6 @@ import ExpertCharacterStage from "@/app/components/expert-consulting/ExpertChara
 import MasterProfile from "@/components/fortune/MasterProfile";
 import { masterProfiles } from "@/components/fortune/master-profiles";
 import { getExpertCharacter, getExpertCharacterName, getExpertCharacterTitle, getExpertLine, isExpertCharacterEnabled } from "@/src/features/expert-characters";
-import Image from "next/image";
 import { AlertCircle, CalendarDays, CheckCircle2, ExternalLink, Loader2, MapPin, Moon, RotateCcw, Sparkles, Stars, WalletCards } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
 import AnalysisBasisLoading from "@/components/fortune/AnalysisBasisLoading";
@@ -1370,9 +1369,10 @@ function getAstrologyClientCopy(locale: LoadingLocale): AstrologyClientCopy {
 
 // 윤달 대사(getExpertLine)도 같은 로케일을 써야 해서 문구 대신 로케일을 돌려준다.
 function useAstrologyClientLocale(): LoadingLocale {
-  const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
+  const [locale, setLocale] = useState<LoadingLocale>("ko");
   useEffect(() => {
     const sync = () => setLocale(getCurrentLoadingLocale());
+    sync();
     window.addEventListener("languagechange", sync);
     window.addEventListener("cd:locale-ready", sync);
     return () => {
@@ -1580,6 +1580,10 @@ function pointLabel(point: ChartPoint | null | undefined, copy: AstrologyClientC
 
 export default function AstrologyAiClient() {
   const locale = useAstrologyClientLocale();
+  // The public introduction can paint from HTML. Private profile-backed fields
+  // keep their existing browser initialization and only mount after hydration.
+  const [clientReady, setClientReady] = useState(false);
+  useEffect(() => { setClientReady(true); }, []);
   const copy = getAstrologyClientCopy(locale);
   const [form, setForm] = useState<FormState>(buildInitialForm);
   const [phase, setPhase] = useState<FlowPhase>("idle");
@@ -1983,14 +1987,16 @@ export default function AstrologyAiClient() {
             <header className="overflow-hidden rounded-lg border border-white/10 bg-[#0b1027]/[0.82] p-6 shadow-2xl shadow-black/30 ring-1 ring-white/[0.03] backdrop-blur sm:p-8">
               {yunOn && (
                 <div className="relative -mx-6 -mt-6 mb-6 aspect-[3/2] overflow-hidden sm:-mx-8 sm:-mt-8">
-                  <Image
+                  <img
                     src={yunHero.src}
+                    srcSet="/images/service-introductions/astrology-ai-320.webp 320w, /images/service-introductions/astrology-ai-480.webp 480w, /images/service-introductions/astrology-ai-640.webp 640w, /images/service-introductions/astrology-ai-960.webp 960w"
                     alt={yunHero.alt}
-                    fill
-                    priority
+                    width={1536}
+                    height={1024}
+                    fetchPriority="high"
+                    decoding="async"
                     sizes="(min-width: 1280px) 830px, (min-width: 1024px) 64vw, 100vw"
-                    className="object-cover object-center"
-                    unoptimized
+                    className="absolute inset-0 h-full w-full object-cover object-center"
                   />
                   <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-[#0b1027] to-transparent" aria-hidden="true" />
                 </div>
@@ -2031,6 +2037,7 @@ export default function AstrologyAiClient() {
               </div>
             </header>
 
+            {clientReady && <>
             {getCurrentLoadingLocale() === "ko" && <CraftedProductDisclosure featureKey="astrology-ai-consultation" />}
             <ExpertValueCards theme={yunOn ? "yun" : "astrology"} points={[yunOn ? { title: "생시부터 묻는 이유", description: "태어난 분까지 알면 상승궁과 열두 하우스가 또렷해지고, 태양·달과 함께 기질의 중심을 정확히 잡습니다." } : { title: "차트의 중심", description: "태양·달·상승궁이 보여주는 기질과 감정의 리듬을 정리합니다." }, { title: "지금의 하늘", description: "행성과 하우스의 흐름을 현재의 질문과 맞물려 읽습니다." }, { title: "선택의 타이밍", description: "변화를 밀어붙일 때와 숨을 고를 때를 구체적으로 나눠 봅니다." }]} />
             <form data-moonlit-form="" id="astrology-ai-form" onSubmit={handleSubmit} className="space-y-5">
@@ -2178,9 +2185,10 @@ export default function AstrologyAiClient() {
               </div>
             </form>
             <ExpertStickyCta theme={yunOn ? "yun" : "astrology"} targetId="astrology-ai-form" label="별빛 상담 시작" price={<PriceBadge featureKey="astrology-ai-consultation" prefix="상담 이용 가격 " />} />
+            </>}
           </div>
 
-          <aside className="space-y-5 lg:sticky lg:top-6 lg:self-start">
+          {clientReady && <aside className="space-y-5 lg:sticky lg:top-6 lg:self-start">
             <section className="rounded-lg border border-white/10 bg-[#0b1027]/[0.88] p-5 shadow-2xl shadow-black/30 ring-1 ring-white/[0.03] backdrop-blur" aria-live="polite">
               <div className="mb-5 flex items-start justify-between gap-3">
                 <div>
@@ -2281,11 +2289,11 @@ export default function AstrologyAiClient() {
                 </div>
               )}
             </section>
-          </aside>
+          </aside>}
         </div>
       </section>
       {/* 소개용 캐릭터 프로필 — 상담 진행 중에는 내리고, 사전이 없는 다른 로케일에는 띄우지 않는다. */}
-      {yunOn && locale === "ko" && !busy && <MasterProfile profile={masterProfiles.yun} />}
+      {clientReady && yunOn && locale === "ko" && !busy && <MasterProfile profile={masterProfiles.yun} />}
     </main>
   );
 }

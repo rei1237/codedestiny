@@ -3,7 +3,6 @@
 import dynamic from "next/dynamic";
 
 const AstrologyAiClient = dynamic(() => import("./AstrologyAiClient"), {
-  ssr: false,
   loading: () => <AstrologyAiShell />,
 });
 

@@ -1,19 +1,23 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import type { ReactNode } from "react";
 import { useCallback } from "react";
 import { ArrowLeft, Home } from "lucide-react";
 import styles from "./FeatureBackHomeNav.module.css";
 import { LazyMotion } from "framer-motion";
 import { useLocale } from "@/lib/i18n/useT";
-import GlobalHeader from "./GlobalHeader";
 import DisclaimerBanner from "./DisclaimerBanner";
-import MobileBottomNav from "./MobileBottomNav";
-import SiteFooterHub from "./SiteFooterHub";
 import { SHELL_HOME_PATH, hardNavigateToShellHome } from "@/lib/navigation/shellHome";
 // 함수만 가져온다 — 번역 테이블이 아니라 프리픽스 판정 로직이라 클라이언트 번들 비용이 사실상 없다.
 import { localeFromPathname } from "@/lib/i18n/locales";
+
+// Immersive screens do not render these surfaces. Keep their code separate;
+// ordinary pages still render the same navigation and footer in server HTML.
+const GlobalHeader = dynamic(() => import("./GlobalHeader"));
+const MobileBottomNav = dynamic(() => import("./MobileBottomNav"));
+const SiteFooterHub = dynamic(() => import("./SiteFooterHub"));
 
 const HOME_ROUTE = SHELL_HOME_PATH;
 // 루트(/)는 앱 홈이 아니라 브랜드 대표 홈이다. 크롬을 숨기는 판정은 이 경로 기준이다.
