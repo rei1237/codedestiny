@@ -1,6 +1,8 @@
 ---
 status: done
 date: 2026-11-01
+updated: 2026-11-01
+next: "완료 기록이며 후속 요청이 있을 때만 재개한다"
 owner: 01a19588-f79a-7e72-b5fa-d72da6964cf9
 ---
 
