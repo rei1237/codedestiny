@@ -19,7 +19,7 @@ function render(native, locale) {
     if (name.endsWith('/useT')) return {useLocale: () => locale};
     if (name.endsWith('/native-home-copy.json')) return copy;
     if (name.endsWith('/native-home-html.mjs')) return require('../../lib/i18n/native-home-html.mjs');
-    if (name === 'next/link') return function MockLink(props) { return React.createElement('a', props); };
+    if (name === 'next/link') return function MockLink(props) { const anchorProps={...props};delete anchorProps.prefetch;return React.createElement('a', anchorProps); };
     return require(name);
   }});
   const {NativeHomeRoot: Root, NativeHomeText: Text, NativeHomeCardLink: Card} = testModule.exports;
