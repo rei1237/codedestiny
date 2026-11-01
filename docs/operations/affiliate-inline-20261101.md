@@ -1,56 +1,38 @@
 # 사이트 내 제휴 광고 적용 — 2026-11-01
 
-status: verification-in-progress
+status: done
 
-## 요청과 최종 범위
-- 별도 서가 페이지·전용 탐색 코드 삭제. 홈 푸터 위와 기존 완료 결과에 사진 있는 광고 최대 4개 자동 배치(후속 승인 시안).
-- 최종 사용자 지시로 알리 제외. 알리 공개 설정 OFF 확인, 기존 상품·실적은 보존한다.
-- 결제·인증·운세 계산·LLM 생성·저장·DB 스키마는 유지한다.
+## 최종 구현
+- 별도 서가·카테고리 페이지와 RecommendationBrowse, 전용 필터·복귀 저장·더 보기 링크를 제거했다. 기존 주소는 대표 홈301, /api/recommendations와 /admin/recommendations는 유지한다.
+- 대표 홈과 꿀꿀운세 홈의 푸터 위, 완료된 결과의 저장·공유 영역 뒤에 검수한 상품 사진을 최대4개 표시한다. 관련 상품이 없거나 이미지 로딩에 실패하면 해당 카드·빈 영역을 숨긴다. 입력·생성·결제·정책·관리자·블로그에는 새 광고를 추가하지 않는다. 관리자 미리보기는 별도 검수 UI다.
+- 승인된 달빛 예화 시안: 모바일·데스크톱2×2, 사진72×88/96×112px, 명조 제목·본문 서체·밤·아이보리·골드. 실제 상품명·짧은 추천 이유·판매처 버튼·제휴 고지를 정돈했다. 원본 상품 가격·링크·속성 데이터는 보존했다.
+- 적격·이미지·검수·판매 상태·만료·관련성·판매처 공개 필터를 먼저 적용한 뒤 익명 일회성 seed로 무작위 선택한다. 새 방문·다른 상품 보기에서 새 선택, 같은 화면60초 공개설정 갱신에는 기존 선택 유지. seed는 개인 정보와 연결·저장·통계 전송하지 않는다. 기존 API 응답과 result/browse/footer 지표 호환 유지.
+- 공용 하단 홈 아이콘을 연꽃으로 교체했다. 메뉴5개의 이름·순서·경로 유지. 대표 /는 기존 AppChrome 규칙대로 공용 메뉴가 없는 상태를 유지한다. /ggulggul/와 React /app/ 공용 메뉴의 실제 연꽃 표시를 확인했다.
 
-## 구현과 검증
-- footer source/placement 추가. 기존 API 응답·browse 통계 호환 유지.
-- 공식 이미지가 없는 자동 광고를 제외한다. 확인한 쿠팡 CDN 호스트만 추가 허용한다.
-- 기본 카드는 독서·기록·집중·휴식용 일반 상품으로 제한한다. 결과는 기존 조언 관련성을 유지한다.
-- 폐지된 공개 서가 URL은 대표 홈으로 301 이동한다. 관리자·공개 API는 유지한다.
-- 광고·라우팅 회귀 58개, Worker 검사 22개, 관련 lint(오류·경고 0), typecheck 통과. 사이트맵 정본 1,037 URL 재생성 및 drift 검사 통과.
-- React mock 12개 크기·브랜드 조합과 두 실제 홈 경로 검증, 독립 시각 검수 배포 가능.
+## 이미지 등록과 미완료 항목
+- 공식 쿠팡 상품·옵션과 이미지 사용 근거를 확인하여9개 이미지를 등록했다(관리자 저장·재검수1개, 전후 대조를 거친 이미지 필드만 원자적 보완8개). 나머지 가격·링크·사실 검수일·만료일 보존.
+- 활성 쿠팡31개 중 공식 사진 보유25개. 알리 공개OFF, 기존 상품·실적 보존. 이번 UI 개선은 기존212px 공식 사진을 작게 표시하며 임의·AI 상품 사진을 추가하지 않았다.
+- 공식 옵션 사진 미확보6개는 자동 노출 제외: dotline-amethyst-ch06, sunjin-moon-lamp, tamsa-focus-timer, tamsa-weekly-planner, warmon-steam-fireplace, zz-plant-large-120.
 
-## 이미지·운영
-- 기존 공식 이미지 자료 25개 HTTP 200과 이미지 응답 확인.
-- bigtree-rest-mask 이미지를 관리자에서 저장 후 초안 전환을 확인하고 재검수. 운영 공개 API에서 이미지 반환 확인.
-- 추가 8개는 공식 원본과 thumbnail13 공식 CDN의 같은 경로 이미지 SHA-256 일치 확인 후 이미지 필드만 원자적으로 반영했다. 다른 필드·상품 사실 검수일·만료일 보존 및 전후 대조 통과. 백업: outputs/affiliate-inline-20261101/image-before.json·image-after.json·image-source-proof.json. 이번 보완 9개, 활성 쿠팡 31개 중 사진 25개.
-- 나머지 공식 옵션 이미지 미확보 상품은 자동 노출에서 제외하며 추정 사진을 등록하지 않는다.
-- 운영 공개 API에서 예산·휴식 이미지와 알리 제외 확인. main cb48b7af의 기존 birth-scope 목록 누락은 다른 세션의 209b9150d 동기화 커밋을 통합해 해결했다. 중복 수정 없이 목록 검증 40개 키 일치 확인. check:fast 전체 실행은 이 기저 실패가 확인되어 중단했으며 통과로 기록하지 않는다. 공식 CI·배포 결과는 완료 시 갱신한다.
+## 해결한 배포 차단
+- 운영의 무버전 추천 CSS가 immutable 캐시에서 오래된 내용을 반환했다. 기존 생성기의 내용 해시 URL에 추천 CSS·공용 메뉴SVG·서체 로더를 연결했다. 운영의 추천 CSS build-18b9d8ddaaa5와 연꽃SVG build-bac850b915a2 실제 로딩 확인.
+- 지연 import·URLSearchParams를 기존 VM mock이 지원하도록 테스트만 동기화했다. 실제 상담·결제 런타임 변경 없음.
+- 기존 공용 유료 런타임 주소는 공식 restamp-paid-runtime-pins 생성기로 동기화했다. billing-client는 해당 로더 상수만 보완했고 공식 payment-freeze 절차로 해시를 갱신했다. 가격·차감·인증 정책 변경 없음.
+- 마지막 CSS 수정 뒤 달라진 사이트맵 소스 지문은 기존 sitemap:generate로 갱신했다. 후속 전달 검사와 최종 CI 통과.
 
-## 전달 기록
-- 원본6fa75e36d CI는 .ignore의 추천 CSS 미러 항목 누락으로 실패했다. 다른 세션의0cd89ca4가 정본 항목을 복원했으며 통합 main의 CI41282998959로 확인한다.
-- 작업 워크트리는0cd89ca4로 fast-forward했고 검사기가 남긴 .ignore 임시 변경은 커밋 정본으로 복원했다. 다른 세션 변경은 보존했다.
+## 검사
+- 관련 Node6파일55 passed, Worker mock API23 passed. 변경 파일 ESLint 오류0. payment-choice-parity·payment-freeze·mobile-bottom-nav-sync·js-module-graph 통과.
+- check:pre-push 최종 전체 통과: 서비스 레지스트리63, public mirror fresh, sitemap1037, llms, SEO entity registry63.
+- 최초 넓은 check:fast는90개 자동 승격 실행을 시도했으나 로컬 실행 정체로 중단했으며 통과로 보고하지 않는다. 공식 CI가 최종 판정이다.
+- 광고 본체29a41c917 CI는 critical·type/lint·build 통과, static guard의 사이트맵 원장 실패는da6c26bc4에서 보완했다.
+- 최종 서비스 커밋 bf38cbed59e4fa04ca083e6c0bb79f21b9a69f24의 필수 CI 성공: https://github.com/rei1237/codedestiny/actions/runs/41302211143 (선언된 실행 lane 모두 성공, critical lane은 해당 후속 범위에서skip).
 
-- main CI41282998959는 전체6잡(CI required 포함) 성공. 원격 main0cd89ca4 고정 확인 후 운영 릴리스41284464905를 mode=production으로 1회 요청했다. 이 요청은 재실행하지 않는다.
-- 0cd89ca4에서 check:pre-push 최종 통과. 로컬 추천 CSS의 혼합 개행만 저장소 LF로 정규화했고 Git 내용 변경은 없다.
+## 공식 운영 반영과 실제 검수
+- 승인된 production 배포를1회 요청, 성공: https://github.com/rei1237/codedestiny/actions/runs/41304026511
+- Pages /version.json과 Worker /api/version 모두 bf38cbed59e4fa04ca083e6c0bb79f21b9a69f24.
+- 실제 /와/ggulggul/ ×360·390·430·1280px8뷰: 사진4개·2열·72/96px·원본212px·실제Myeongjo fontface 로딩·제목25/31px·제휴고지·CTA44px hit-test·가로 넘침0·중복0·Ali0·JSerror0.
+- 같은 seed의 선택 안정성, 서로 다른 seed의4개 고유 선택, 결과API 관련성, 서가301 6주소, 셔플2경로·이미지 실패숨김2경로 확인. 독립 운영 시각 검수SHIP, 공용 React 연꽃도 별도 확인.
+- 결과의 실제 유료 상담 생성·실결제·실폰 검사는 하지 않았다. 결과 연결은 mock과 실제 공개 추천API로 검증했다. 구매율·수익 상승 증거로 확대하지 않는다.
+- 결제 가격·이용권·월정석·단건결제·인증·운세 계산·상담 생성·결과 저장·DB 스키마 유지.
 
-## 운영 검수에서 발견한 캐시 결함
-- 운영 릴리스41284464905 성공, Pages·Worker 모두0cd89ca4 일치. 서가301 6개·API6조건·사진실패숨김2경로 통과. 대표 홈4크기 독립 시각 검수 수용.
-- 꿀꿀운세 홈은 옛 추천 CSS가 CF HIT(Age177836초)·immutable 1년으로 반환되어 카드 grid와 footer 폭 규칙이 적용되지 않았다. 자동 검사8화면 통과만으로 시각 수용을 주장하지 않는다.
-- 버전 없는 CSS URL을 기존 내용 해시 생성 절차에 연결하고 캐시 해시 회귀 검사를 추가한다. 수정본 운영 반영 전에는 셸 시각 수용 보류다.
-- 후속 main20904183a CI41284797775는500fbad의 찻집 지연 import를 VM 모의 테스트가 지원하지 못해 실패했다. 실제 상담·결제 코드를 바꾸지 않고 테스트 어댑터를 동기화할 예정이다.
-
-- 찻집 VM 테스트는 CommonJS 모의 모듈 로더로 새 지연 import를 지원하도록 맞췄다. 유일하게 허용한 모듈은 기존 local draft stub이며 실 상담·결제 코드 변경 없음. 캐시 회귀와 복구 테스트28개 통과.
-- 해시 CSS 주소를 연결한 검증용 미리보기(아직 운영 적용 아님)에서 전체1100px·2열534px·사진203px·카드351px 복원. 정상 스크롤 후 두 CTA 모두 hit-test 및 독립 시각 검수 수용. 과거 고정 메뉴 겹침은 캡처 위치의 영향이며 지속적 접근 차단은 아니다.
-
-- 수정CI41287879696의 화면검사는4025개중4024통과, 후속 SNULIFE 분기에서 새로 쓰는 URLSearchParams가 기존 사주 진입 VM 모의 환경에 없어1개 실패했다. 해당 테스트에 브라우저 기본 URLSearchParams와 빈 location.search만 제공했으며 런타임 수정 없음. 관련33개 재검사 통과.
-- 로컬 check:fast는90개로 자동 승격됐으며 npm test 실패 후 공유 컴퓨터 자원 경합으로 우리 실행만 중단했다. 통과로 기록하지 않으며 전체 최종 판정은 공식CI를 따른다.
-
-## 운영 전 캐시 정합성 보완
-- CI41288817334는 전체6잡 성공, UI4025/4025 통과. 운영 수정배포41290273541는 verify:payment-choice-parity에서 독립 페이지의 공용 런타임 캐시 주소 누락을 발견해 승격 전 중단됐다. 배포 상태 기록은 생성되지 않았으며 실제 Pages/Worker 모두 기존0cd89ca4 유지 확인.
-- 기존 scripts/restamp-paid-runtime-pins.mjs로25개 참조를 build-fc0c52ff363f에 맞추고 sync:public으로 미러를 갱신했다. js/destiny-profile.js와 worker/payments 코드는 변경하지 않았다.
-- app/_lib/billing-client.ts는 PAID_SERVICE_RUNTIME_SRC 주소 상수1곳만 변경했다. worker/payments에는 해당 브라우저 로더 주소 참조가 없어 대응 정책 변경이 필요하지 않음을 확인했다. 공식 절차로 payment-freeze 매니페스트의 해당 파일 해시1개만 갱신했으며 보호 검사 통과.
-- 기계적 대조: 캐시 주소만 바뀐 파일23개, 보호 해시만 바뀐 파일1개, 기타 소스 내용 변경0. 가격·차감·인증·결과 저장 로직 유지.
-- payment-choice-parity(렌더러10, CSS105규칙, 고지문구80x12로케일)·paid-gate-ui·payment-freeze·runtime-cache-sync·변경파일 lint 통과. npm run deploy:critical 전체 전 단계 통과(실 연동 없는 mock/정적 검사, Worker 빌드는 dry-run).
-
-## 승인 시안 구현 — 작은 사진 4개와 연꽃
-- 사용자가 승인한 2×2 구성과 달빛 예화 밤·아이보리·골드 팔레트, 명조 제목·본문 서체를 광고 범위에 적용했다. 모바일 사진72×88px, 데스크톱96×112px로 기존 공식 사진을 과하게 확대하지 않는다.
-- 익명 일회성 seed로 적격 상품 중 최대4개를 무작위 선택한다. 새 방문·다른 상품 보기에서 새 선택, 같은 화면의60초 공개설정 갱신은 선택을 유지한다. 결과 관련성·검수·공개·이미지·품절·만료 필터를 모두 먼저 적용하며 API 응답 구조와 통계는 유지한다.
-- 하단 홈 SVG를 연꽃으로 교체했다. 기존5개 메뉴·이동경로 유지. CSS·SVG·서체 URL은 기존 내용 해시 생성기로 갱신해 오래된 캐시가 새 UI를 덮지 않게 했다.
-- 관련 Node55개·Worker23개 통과, 변경파일 ESLint 오류0, payment-choice-parity·payment-freeze·mobile-bottom-nav-sync·js-module-graph 통과. check:fast는90개 자동승격 실행을 시도했으나 로컬 실행 정체로 이번 프로세스만 중단했으며 통과로 기록하지 않는다. 공식 main CI가 최종 게이트다.
-- 로컬 실제 소스 렌더8뷰(360·390·430·1280px×React/legacy): 사진4개·2열·서체 로딩·제목25/31px·44px CTA hit-test·넘침0·셔플·이미지 실패숨김·JSerror0 통과. 독립 시각 검수 SHIP. 로컬 mock 증거이며 운영 검증은 배포 뒤 별도 기록한다.
+검증 근거·사진 등록 전후 자료: outputs/affiliate-inline-20261101. 최종 운영 캡처·CI/배포 영수증·시각 검수·변경파일·정리 결과: outputs/affiliate-moonlight-implementation-20261101.
