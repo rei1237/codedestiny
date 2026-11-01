@@ -22,7 +22,7 @@ const PRODUCTION_ORIGIN = "https://code-destiny.com";
 // HTTP 모드가 못 보는 층이 있어서 붙였다 — canonical 상속, `_headers` X-Robots-Tag 와
 // meta robots 의 충돌, hreflang 상호참조, 그리고 **실제 링크 그래프**다. 소스 grep 으로는
 // `/fortune/${period}/${sign}` 같은 템플릿 문자열 때문에 고아 판정이 위양성 148건을 냈다.
-// 파서는 새로 만들지 않고 아래 기존 함수(getCanonical/getHreflang/getJsonLd/...)를 그대로 쓴다.
+// 파서는 새로 만들지 않는다. getCanonical/getHreflang/getJsonLd/... 는 scripts/seo/health-policy.mjs 의 공용 파서다(verify-dist 와 같은 판정).
 const sourceArg = process.argv.find((arg) => arg.startsWith("--source="));
 const source = sourceArg ? sourceArg.slice("--source=".length) : "http";
 if (source !== "http" && source !== "out") {

@@ -277,6 +277,9 @@ function checkJsonLdSyntax(site) {
 }
 
 // @id 마다 선언된 @type 종류를 모은다. 서로 다른 @type 이 둘 이상이면 @id 마다 1건.
+// 중첩 노드도 센다 — fail 유지(2026-11-02 판단). Article @id=url 에 mainEntityOfPage {WebPage, @id=url} 처럼
+// 같은 @id 에 다른 타입이 붙으면 JSON-LD 상 한 노드가 두 정체성을 갖는 실제 충돌이다. 지금 dist 에는 0건이라
+// 새 출력이 이것을 만들면 빌드에서 바로 막는다.
 function checkJsonLdIdType(site) {
   const byId = new Map();
   for (const { loc, facts } of site.pages) {
