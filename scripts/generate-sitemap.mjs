@@ -808,6 +808,10 @@ async function main() {
     today,
     volatileToday,
     previousSitemapPath: sitemapRootPath,
+    // 원장이 날짜를 정하는 라우트 전체 — 사이트 전역 모듈(fan-in)을 가르는 모집단이다.
+    routes: routeEntries
+      .filter((route) => isPublicSitemapPath(route.path) && !Object.hasOwn(route, "lastmod"))
+      .map((route) => normalizeSitemapPath(route.path)),
   });
 
   const entryMap = new Map();
