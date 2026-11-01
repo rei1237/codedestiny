@@ -1,6 +1,6 @@
 # Current Dev Baseline
 
-Last curated: `2026-10-17`
+Last curated: `2026-11-01`
 
 ## Curation Rules
 
@@ -22,6 +22,12 @@ Last curated: `2026-10-17`
 - Risk and platform references: `docs/PAYMENT_AND_ACCESS.md`, `docs/LLM_AND_AI_POLICY.md`, `docs/DEPLOYMENT_AND_INFRA.md`, `docs/DEBUGGING_GUIDE.md`
 
 ## Current Focus
+
+### Latest verified delivery — 2026-11-01
+
+- SNULIFE 검수 코드·정식 코드 분리의 정본은 `worker/lib/snulife-code.js`, `worker/lib/snu-campus.js`다. 정식 1,000계정 모집은 게시일 확정 전 비활성이다. 검수는 별도 최대 3계정이며 기존 수량·수령 권리와 결제 정책을 보존한다.
+- 운영 릴리스 `4d58f3dc58e66bfd04dc265bf9dbf7392cab1c81`: 공식 CI [41209939007](https://github.com/rei1237/codedestiny/actions/runs/41209939007) 440 suites / 7,210 tests 성공, 공식 운영 [41213033014](https://github.com/rei1237/codedestiny/actions/runs/41213033014)에서 Worker·Pages SHA 일치 확인. 전용 계정의 검수 해금·재로그인·접근 조회 검증 후 제휴 검토 메일 1회 발송 완료. 상세는 [전달 기록](handoff/yeoni-activation-snu-2026-10-31.md).
+- 현재 후속 작업은 `/snu/`의 서체·정보 순서·공용 내비 및 쿠키 안내 겹침 개선이다. 기존 API·코드·수량·권리·인증·일반 결제 정책은 변경하지 않는다. 이번 큐레이션은 해당 전달·실행 계약을 확인한 범위이며 아래 과거 실측 수치를 새로 측정한 것으로 보지 않는다.
 
 ### 1. Billing, access, and pass safety
 
