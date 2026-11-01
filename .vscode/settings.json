@@ -13,7 +13,13 @@
     "**/playwright-report/**": true,
     "**/test-results/**": true,
     "**/.claude/worktrees/**": true,
-    "**/.codex-worktrees/**": true
+    "**/.codex-worktrees/**": true,
+    "**/.claude-worktrees/**": true,
+    "**/.worktrees/**": true,
+    "**/.delivery-worktrees/**": true,
+    "**/.codex-tmp/**": true,
+    "**/outputs/**": true,
+    "**/docs/product-details/verification/**": true
   },
   "search.exclude": {
     "**/node_modules": true,
@@ -27,7 +33,15 @@
     "**/coverage": true,
     "**/playwright-report": true,
     "**/test-results": true,
-    "**/*.tsbuildinfo": true
+    "**/*.tsbuildinfo": true,
+    "**/.claude/worktrees": true,
+    "**/.codex-worktrees": true,
+    "**/.claude-worktrees": true,
+    "**/.worktrees": true,
+    "**/.delivery-worktrees": true,
+    "**/.codex-tmp": true,
+    "**/outputs": true,
+    "**/docs/product-details/verification": true
   },
   "files.exclude": {
     "**/.next": true,

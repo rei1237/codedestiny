@@ -83,6 +83,8 @@ _temp*.js
 build_output.txt
 # 로컬 스크립트 산출물(android UI mock, llm-review 등). 수만 개라 check:fast 의 untracked 수집을 막는다.
 /output/
+# 같은 계열(이미지 생성·검수 산출물). 무시되지 않으면 check:fast 가 미분류로 보고 매번 critical 이 된다(2026-11-02).
+/outputs/
 build_last.log
 latest_build.log
 latest_cf_build.log
