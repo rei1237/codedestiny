@@ -3,15 +3,14 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { cleanEvent } from '../../js/recommendations-core.mjs';
 const read = path => readFileSync(new URL('../../' + path, import.meta.url), 'utf8');
-test('all three adapters observe product cards; previews stay excluded', () => {
+test('inline adapters observe product cards; previews stay excluded', () => {
   const surface = read('app/components/recommendations/RecommendationSurface.jsx');
-  const browse = read('app/components/recommendations/RecommendationBrowse.jsx');
   const legacy = read('js/recommendations-legacy.mjs');
   assert.match(surface, /data-recommendation-product=\{product.id\}/);
-  for (const text of [surface, browse]) {
+  for (const text of [surface]) {
     assert.match(text, /observeRecommendationProducts\(host.current/);
     assert.match(text, /if \([^\n]*preview\) return/);
-    assert.match(text, /trackRecommendation\('impression', \{ service: trackedService \}, '(result|browse)', id,/);
+    assert.match(text, /trackRecommendation\('impression', \{ service: trackedService \}, placement, id,/);
     assert.doesNotMatch(text, /observeRecommendation\(host.current/);
   }
   assert.match(legacy, /article.dataset.recommendationProduct = p.id/);

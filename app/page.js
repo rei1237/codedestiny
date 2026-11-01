@@ -1,3 +1,4 @@
+import { RecommendationFooter } from './components/recommendations/RecommendationResult';
 import Link from "next/link";
 import { publicSeoPages, siteSeo } from "../lib/seo/siteSeo";
 import { buildServiceJsonLd, buildWebPageJsonLd, buildFaqPageJsonLd, buildAuthorPersonJsonLd } from "../lib/structured-data";
@@ -237,6 +238,7 @@ export default function HomePage() {
         </details>
       </main>
 
+      <RecommendationFooter brand="ggulggul" locale="ko"/>
       <footer className={styles.footer}>
         <NativeHomeNav className={styles.footerNav} aria-label="정책과 문의">
           {FOOTER_LINKS.map(link => <Link key={link.href} href={link.href} className={link.strong ? styles.footerStrong : undefined}><NativeHomeDictionaryText translationKey={link.trans}>{link.text}</NativeHomeDictionaryText></Link>)}
