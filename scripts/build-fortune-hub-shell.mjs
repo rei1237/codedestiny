@@ -174,7 +174,7 @@ ${renderPeriodLinkList(id, allSigns)}
           "별자리 12종과 띠 12종의 오늘·내일·이번 주·이번 달 운세를 산출 근거와 함께 무료로 제공합니다.",
         url: "https://code-destiny.com/fortune/",
         inLanguage: "ko-KR",
-        isPartOf: { "@type": "WebSite", name: "Code Destiny", url: "https://code-destiny.com/" },
+        isPartOf: { "@id": "https://code-destiny.com/#website" },
       },
       {
         "@type": "BreadcrumbList",

@@ -19,7 +19,7 @@ import { checkSitemapPage, htmlFileFor, redirectSources, sitemapLocs } from "../
 import { PAGES, verifyPage } from "../verify-home-identity.mjs";
 import { distAssets, probeEdge } from "./edge-probe.mjs";
 import {
-  decodeHtml, getCanonical, getH1s, getHreflang, getInternalLinks, getMeta, getTitle, parseSitemapAlternates, robotsAllows, stripTags,
+  decodeHtml, getCanonical, getH1s, getHreflang, getInternalLinks, getJsonLd, getMeta, getTitle, parseSitemapAlternates, robotsAllows, stripTags,
 } from "./health-policy.mjs";
 
 export const RULES = {
@@ -38,6 +38,11 @@ export const RULES = {
   "hreflang-sitemap": "warn",
   // dist/robots.txt 가 정본(lib/seo/robots-policy.mjs)과 표본 UA×경로 판정·Sitemap 경로가 모두 같아야 한다.
   "robots-policy": "fail",
+  // 사이트 전체 JSON-LD 정체성. 같은 @id 는 어느 페이지에서나 같은 @type, #organization 은 같은 name 이어야 한다.
+  // 브랜드 노드는 한 곳에서 정의하고 나머지는 { "@id": … } 로 참조한다.
+  "jsonld-syntax": "fail",
+  "jsonld-id-type": "fail",
+  "organization-name": "fail",
   "edge-slash-308": "warn",
   "edge-country-302": "warn",
   "edge-crawler-cookie": "warn",
@@ -95,7 +100,26 @@ function pageFacts(html, loc, origin) {
     ogTitles: getMeta(html, "og:title"),
     hreflang: getHreflang(html),
     links: getInternalLinks(html, origin),
+    jsonLd: jsonLdFacts(html),
   };
+}
+
+// JSON-LD 에서 @id 와 @type 을 함께 선언한 노드(최상위·@graph·다른 노드 안에 중첩된 것 모두)만 남긴다.
+// @type 이 없는 { "@id": … } 는 참조이므로 집계에서 뺀다. @type 배열은 정렬해 문자열로 만든다.
+function jsonLdFacts(html) {
+  const { nodes, errors } = getJsonLd(html);
+  const declarations = [];
+  const visit = (value) => {
+    if (Array.isArray(value)) return value.forEach(visit);
+    if (!value || typeof value !== "object") return;
+    if (typeof value["@id"] === "string" && value["@type"] !== undefined) {
+      const type = [value["@type"]].flat().map(String).sort().join(" + ");
+      declarations.push({ id: value["@id"], type, name: typeof value.name === "string" ? value.name : undefined });
+    }
+    Object.values(value).forEach(visit);
+  };
+  nodes.forEach(visit);
+  return { errors, declarations };
 }
 
 function loadSite(distDir, origin) {
@@ -229,6 +253,38 @@ function checkOgHomeTitle(site, origin) {
     .map((page) => `${page.loc}: og:title 이 홈과 같다 "${homeTitle}"`);
 }
 
+function checkJsonLdSyntax(site) {
+  return site.pages.flatMap(({ loc, facts }) => (facts?.jsonLd.errors ?? []).map((message) => `${loc}: JSON-LD 파싱 실패 — ${message}`));
+}
+
+// @id 마다 선언된 @type 종류를 모은다. 서로 다른 @type 이 둘 이상이면 @id 마다 1건.
+function checkJsonLdIdType(site) {
+  const byId = new Map();
+  for (const { loc, facts } of site.pages) {
+    for (const { id, type } of facts?.jsonLd.declarations ?? []) {
+      const types = byId.get(id) ?? new Map();
+      types.set(type, [...(types.get(type) ?? []), loc]);
+      byId.set(id, types);
+    }
+  }
+  return [...byId]
+    .filter(([, types]) => types.size > 1)
+    .map(([id, types]) => `${id}: ${[...types].map(([type, locs]) => `${type} (${sample(locs)})`).join(" ≠ ")}`);
+}
+
+// '#organization' 으로 끝나는 @id 의 name 종류가 n 개면 (n − 1)건: 가장 많은 name 을 기준으로 나머지 name 마다 1건.
+function checkOrganizationName(site) {
+  const byName = new Map();
+  for (const { loc, facts } of site.pages) {
+    for (const { id, name } of facts?.jsonLd.declarations ?? []) {
+      if (!id.endsWith("#organization") || name === undefined) continue;
+      byName.set(name, [...(byName.get(name) ?? []), loc]);
+    }
+  }
+  const [[majority, majorityLocs] = [], ...rest] = [...byName].sort((a, b) => b[1].length - a[1].length);
+  return rest.map(([name, locs]) => `${sample(locs)}: #organization name "${name}" ≠ 최다 "${majority}" (${majorityLocs.length}쪽)`);
+}
+
 // HTML hreflang 집합과 사이트맵 alternates 집합을 (언어 코드 소문자, href) 쌍으로 비교한다.
 //   xdefault-sitemap-only  사이트맵에만 x-default 가 있다
 //   code-sitemap-only      사이트맵에만 있는 언어 코드가 있다
@@ -343,6 +399,9 @@ export async function inspectDist({ distDir, origin = BRAND_FACTS.service.siteUr
   if (wants("og-home-title")) details["og-home-title"] = checkOgHomeTitle(site, origin);
   if (wants("hreflang-sitemap")) details["hreflang-sitemap"] = checkHreflangSitemap(site, distDir);
   if (wants("robots-policy")) details["robots-policy"] = checkRobotsPolicy(distDir, origin);
+  if (wants("jsonld-syntax")) details["jsonld-syntax"] = checkJsonLdSyntax(site);
+  if (wants("jsonld-id-type")) details["jsonld-id-type"] = checkJsonLdIdType(site);
+  if (wants("organization-name")) details["organization-name"] = checkOrganizationName(site);
   let edgeError = null;
   if (EDGE_RULES.some(wants)) {
     if (edge && isFile(join(distDir, "_worker.js"))) {

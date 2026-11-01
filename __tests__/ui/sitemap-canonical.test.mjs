@@ -276,3 +276,68 @@ test('robots-policy fails when dist/robots.txt decides any sample differently fr
   assert.match(otherSitemap.details['robots-policy'].join('\n'), /Sitemap/);
   assert.match((await check(null)).details['robots-policy'][0], /robots\.txt/);
 });
+
+// ── JSON-LD 정체성: 사이트 전체에서 @id 하나는 @type 하나, #organization 은 name 하나 ────────────
+const ORG = `${SITE}/#organization`;
+const WEBSITE = `${SITE}/#website`;
+// 실제 빌드가 쓰는 꼴 그대로 <script> 안에서 `<` `>` `&` 를 \uXXXX 로 이스케이프한다.
+const ldScript = (data) => `<script type="application/ld+json">${JSON.stringify(data).replace(/[<>&]/g, (c) => '\\u' + `${c.charCodeAt(0).toString(16).padStart(4, '0')}`)}</script>`;
+const ldFixture = (pages) => {
+  const paths = ['/', ...Object.keys(pages)];
+  return {
+    'sitemap.xml': urlset(paths),
+    'sitemap-index.xml': sitemapIndex(['sitemap-ko.xml']),
+    'sitemap-ko.xml': urlset(paths),
+    '_redirects': '',
+    'index.html': htmlPage('/'),
+    ...Object.fromEntries(Object.entries(pages).map(([path, head]) => [`${path.slice(1)}index.html`, htmlPage(path, { head })])),
+  };
+};
+const JSONLD_RULES = ['jsonld-syntax', 'jsonld-id-type', 'organization-name'];
+const runLd = (pages) => inspectDist({ distDir: writeDist(ldFixture(pages)), edge: false, rules: JSONLD_RULES });
+
+test('organization-name counts extra #organization names across pages, whether JSON-LD is an @graph, an array, or has angle brackets escaped', async () => {
+  const result = await runLd({
+    '/a/': ldScript({ '@context': 'https://schema.org', '@graph': [{ '@type': 'Organization', '@id': ORG, name: '꿀꿀 운세' }] }),
+    '/b/': ldScript([{ '@context': 'https://schema.org', '@type': 'Organization', '@id': ORG, name: 'CODE DESTINY', description: '<b>a & b</b>' }]),
+    '/c/': ldScript({ '@context': 'https://schema.org', '@graph': [{ '@type': 'Organization', '@id': ORG, name: '꿀꿀 운세' }] }),
+  });
+  assert.equal(result.counts['organization-name'], 1, JSON.stringify(result.details['organization-name']));
+  assert.match(result.details['organization-name'][0], /\/b\/.*CODE DESTINY/); // 소수 쪽 값과 그 페이지를 가리킨다
+  assert.equal(result.counts['jsonld-syntax'], 0);
+  assert.equal(result.counts['jsonld-id-type'], 0);
+});
+
+test('jsonld-id-type counts one per @id declared with different @type sets; reference-only nodes and type order do not count', async () => {
+  const result = await runLd({
+    '/a/': ldScript({ '@context': 'https://schema.org', '@graph': [{ '@type': 'WebSite', '@id': WEBSITE, name: '꿀꿀 운세' }] }),
+    '/b/': ldScript([{ '@context': 'https://schema.org', '@type': 'WebPage', '@id': WEBSITE }]),
+    '/c/': ldScript({ '@type': 'WebPage', isPartOf: { '@id': WEBSITE }, publisher: { '@id': ORG } }), // 참조만
+    '/d/': ldScript([{ '@type': ['Organization', 'LocalBusiness'], '@id': ORG }]),
+    '/e/': ldScript({ '@graph': [{ '@type': ['LocalBusiness', 'Organization'], '@id': ORG }] }),
+  });
+  assert.equal(result.counts['jsonld-id-type'], 1, JSON.stringify(result.details['jsonld-id-type']));
+  assert.match(result.details['jsonld-id-type'][0], /#website.*WebPage.*WebSite|#website.*WebSite.*WebPage/);
+  assert.match(result.details['jsonld-id-type'][0], /\/a\/.*\/b\/|\/b\/.*\/a\//);
+  assert.equal(result.counts['organization-name'], 0);
+});
+
+test('a JSON-LD declaration nested under a node (publisher with its own @id) is aggregated', async () => {
+  const result = await runLd({
+    '/a/': ldScript({ '@type': 'Article', publisher: { '@type': 'Organization', '@id': ORG, name: 'CODE DESTINY' } }),
+    '/b/': ldScript({ '@graph': [{ '@type': 'Organization', '@id': ORG, name: '꿀꿀 운세' }] }),
+  });
+  assert.equal(result.counts['organization-name'], 1, JSON.stringify(result.details['organization-name']));
+});
+
+test('jsonld-syntax counts each unparsable JSON-LD script with its page', async () => {
+  const broken = '<script type="application/ld+json">{"@type": "Organization", </script>';
+  const result = await runLd({ '/a/': `${broken}${broken}`, '/b/': ldScript({ '@type': 'WebPage' }) });
+  assert.equal(result.counts['jsonld-syntax'], 2, JSON.stringify(result.details['jsonld-syntax']));
+  assert.match(result.details['jsonld-syntax'][0], /\/a\//);
+});
+
+test('references only: a site whose pages never declare @id nodes has no JSON-LD identity findings', async () => {
+  const result = await runLd({ '/a/': ldScript({ '@type': 'WebPage', isPartOf: { '@id': WEBSITE }, publisher: { '@id': ORG } }) });
+  assert.deepEqual(result.counts, { 'jsonld-syntax': 0, 'jsonld-id-type': 0, 'organization-name': 0 });
+});
