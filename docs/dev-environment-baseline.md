@@ -56,7 +56,7 @@ VS Code 설정은 개인 경로·자동승인을 제외한 항목만 공유한�
 
 중첩 워크트리 ESLint가 상위 설정을 상속해 플러그인이 충돌하던 문제는 root:true로, Next가 부모 lockfile을 root로 선택하던 문제는 outputFileTracingRoot로 수정했다. dev는 포트 점유 시 기존 서버를 건드리지 않고 중단한다. 테스트는 절대 preload 경로를 사용해 다른 cwd의 자식 Node에도 mock 차단이 유지된다.
 
-check:fast는 커밋 전 검사다. check:all은 커밋 후 push 전 검사이며, clean HEAD를 요구하는 기존 public-mirror-fresh 검사를 초반에 실행한다. 검사의 clean 조건을 약화하지 않는다. push 후에는 main CI(`CI required`) 결과만 확인하고, 스테이징 SHA·응답 확인은 필요한 경우에만 한다. 프로덕션 승격은 별도 명시 승인 때만 한다.
+check:fast는 커밋 전 검사다. 커밋 후 push 전에는 `npm run check:pre-push`(커밋된 트리, 약 15s)만 돈다. check:all은 pr-ci guards+critical의 로컬 재현이라 일상 흐름에서 쓰지 않고 수동 조사용으로만 남긴다([delivery-and-ci](context/delivery-and-ci.md#전달-흐름과-위험-영역-검증)). check:all은 clean HEAD를 요구하는 기존 public-mirror-fresh 검사를 초반에 실행한다. 검사의 clean 조건을 약화하지 않는다. push 후에는 main CI(`CI required`) 결과만 확인하고, 스테이징 SHA·응답 확인은 필요한 경우에만 한다. 프로덕션 승격은 별도 명시 승인 때만 한다.
 
 독립 설치 시 npm audit는 기존 lockfile에 취약점 경고 77건(높음 22건)을 보고했다. 도달 가능성·운영 영향은 미분석이며 의존성 자동 업데이트는 하지 않았다. 별도 보안 검토 대상으로 남긴다.
 
