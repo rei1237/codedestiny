@@ -17,7 +17,7 @@ test("root layout does not globally preload route-specific Maya or display font 
 // 페이지에서 "preloaded but not used" 경고와 함께 헛다운로드가 발생했다.
 test("mobile bottom nav does not prefetch the static shell home", () => {
   const nav = fs.readFileSync(path.join(root, "app/components/MobileBottomNav.tsx"), "utf8");
-  assert.match(nav, /prefetch=\{targetsStaticShellHome\(tab\.href\) \? false : undefined\}/);
+  assert.match(nav, /prefetch=\{IS_APP_BUILD \|\| targetsStaticShellHome\(tab\.href\) \? false : undefined\}/);
 });
 
 test("CSS retry runs only from actual resource errors", () => {

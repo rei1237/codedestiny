@@ -16,6 +16,7 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createHash, randomUUID } from "node:crypto";
+import { compactMobileJson } from "./lib/mobile-json.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const distArgIndex = process.argv.indexOf("--dist");
@@ -245,8 +246,31 @@ async function removeDeadPngOriginals(referenced) {
   return removed;
 }
 
+// Brand source artwork is kept in public for future authoring. The app needs
+// only its responsive derivatives; never remove a source that is referenced,
+// lacks a derivative, or lives outside this explicitly owned asset directory.
+export async function removeUnusedBrandSources(referenced, dist = DIST) {
+  const directory = path.join(dist, "images", "brand");
+  if (!(await exists(directory))) return [];
+  const entries = await fs.readdir(directory, { withFileTypes: true });
+  const removed = [];
+  for (const entry of entries) {
+    const name = entry.name;
+    if (!name.endsWith("-source.png") || referenced.has(name)) continue;
+    const stem = name.slice(0, -"-source.png".length);
+    if (!entries.some(other => other.isFile() && other.name.startsWith(`${stem}-`) && /-\d+\.(?:webp|avif)$/.test(other.name))) continue;
+    const file = path.join(directory, name);
+    const stat = await fs.lstat(file);
+    if (!stat.isFile()) continue;
+    await fs.rm(file);
+    removed.push({ path: path.relative(dist, file).replace(/\\/g, "/"), bytes: stat.size });
+  }
+  return removed;
+}
+
 // ── 앱 전용: 이미지 축소 ─────────────────────────────────────────────────────
-// 폰에 1080px 넘는 원본을 담을 이유가 없다. 2026-08-29 실측(`unzip -v` 로 압축 크기 집계):
+// 일반 이미지는 1080px로 제한한다. 상세 소개 그림은 원래 해상도를 유지한다.
+// 2026-08-29 실측(`unzip -v` 로 압축 크기 집계):
 // AAB 110.7MB 중 이미지가 72.4MB(65%)였고 텍스트·코드는 전부 합쳐 32.4MB였다.
 // 선명해야 하는 자산(스프라이트 시트·컷아웃·타로 카드)의 분류는 scripts/optimize-images.mjs
 // 의 HERO_PATTERNS 와 같은 정책이다 — 그 모듈은 import 하면 run()이 돌아 여기에 다시 적는다.
@@ -263,10 +287,50 @@ const OPTIMIZABLE_EXTENSIONS = new Set([...RESIZABLE_EXTENSIONS, ".avif"]);
 export function isTalismanOriginal(file, dist = DIST) {
   return path.relative(dist, file).replace(/\\/g, "/").startsWith("assets/talismans/originals/");
 }
-export function mobileImageCacheKey(input, filename, versions) {
+export function isIntroductionImage(file, dist = DIST) {
+  const relative = path.relative(dist, file).replace(/\\/g, "/");
+  return ["feature-details/", "images/service-introductions/", "images/consultation-editorial/", "images/feature-details/"].some(prefix => relative.startsWith(prefix));
+}
+
+export function mobileImageCacheKey(input, filename, versions, preserveDimensions = false) {
   const ext = path.extname(filename).toLowerCase();
   const quality = CRISP_PATTERNS.some(p => path.basename(filename).toLowerCase().includes(p)) ? IMAGE_QUALITY_CRISP : IMAGE_QUALITY_DEFAULT;
-  return createHash("sha256").update(input).update(JSON.stringify({schema:2,ext,quality,avif:IMAGE_QUALITY_AVIF,pngPalette:PNG_PALETTE_QUALITY,width:IMAGE_MAX_WIDTH,sharp:versions.sharp,vips:versions.vips})).digest("hex");
+  const policy = {schema:2,ext,quality,avif:IMAGE_QUALITY_AVIF,pngPalette:PNG_PALETTE_QUALITY,width:IMAGE_MAX_WIDTH};
+  if (preserveDimensions) Object.assign(policy, { schema: 3, width: null, preserveIntroductionDimensions: true });
+  return createHash("sha256").update(input).update(JSON.stringify({...policy,sharp:versions.sharp,vips:versions.vips})).digest("hex");
+}
+
+// Runtime readers fetch manifests and use panel.src/variants. Keep all manifests,
+// referenced basenames (including dynamically assembled URLs), and unknown folders.
+// The separate images/feature-details library uses literal image URLs in the
+// shipped catalogs. Do not extend this to service-introductions: PDF artwork
+// there is also selected by a dynamically assembled theme name.
+export async function removeUnusedIntroductionImages(referenced, dist = DIST) {
+  const directory = path.join(dist, "feature-details", "crafted");
+  const removed = [];
+  async function removeUnreferencedWebps(folder) {
+    if (!(await exists(folder))) return;
+    for (const image of await fs.readdir(folder, { withFileTypes: true })) {
+      if (!image.isFile() || !/^[a-z0-9-]+\.webp$/i.test(image.name) || referenced.has(image.name)) continue;
+      const file = path.join(folder, image.name);
+      const bytes = (await fs.stat(file)).size;
+      await fs.rm(file);
+      removed.push({ path: path.relative(dist, file).replace(/\\/g, "/"), bytes });
+    }
+  }
+  if (await exists(directory)) {
+    for (const entry of await fs.readdir(directory, { withFileTypes: true })) {
+      if (!entry.isDirectory()) continue;
+      const folder = path.join(directory, entry.name);
+      const manifest = path.join(folder, "manifest.json");
+      if (!(await exists(manifest))) continue;
+      const detail = JSON.parse(await fs.readFile(manifest, "utf8"));
+      if (!Array.isArray(detail.panels) || detail.panels.length === 0) continue;
+      await removeUnreferencedWebps(folder);
+    }
+  }
+  await removeUnreferencedWebps(path.join(dist, "images", "feature-details"));
+  return removed;
 }
 
 /**
@@ -303,7 +367,7 @@ export async function removeRedundantImageCopies(referenced, dist = DIST) {
  *
  * fail-safe 셋: 결과가 원본보다 크면 버리고 원본을 남긴다. 인코딩이 실패해도 원본을 남긴다.
  * 여러 프레임(애니메이션 webp/gif)은 건너뛴다 — 재인코딩하면 첫 장으로 눌린다.
- * 확대는 하지 않는다(상한 이하는 폭을 그대로 두고 재인코딩만 시도한다).
+ * 확대는 하지 않는다. 소개 그림은 크기를 바꾸지 않고 인코딩만 최적화한다.
  */
 export async function shrinkOversizedImages(dist = DIST) {
   // verify-app-no-portone.mjs 가 이 모듈에서 색인 함수만 가져다 쓴다 —
@@ -326,9 +390,10 @@ export async function shrinkOversizedImages(dist = DIST) {
     const before = input.length;
     const ext = path.extname(image).toLowerCase();
     const base = path.basename(image).toLowerCase();
+    const preserveDimensions = isIntroductionImage(image, dist);
     const quality = CRISP_PATTERNS.some((p) => base.includes(p)) ? IMAGE_QUALITY_CRISP : IMAGE_QUALITY_DEFAULT;
     let output;
-    const cachedFile = path.join(cacheDir, mobileImageCacheKey(input, image, sharp.versions));
+    const cachedFile = path.join(cacheDir, mobileImageCacheKey(input, image, sharp.versions, preserveDimensions));
     try { output = await fs.readFile(cachedFile); } catch { /* Cache misses follow the same encoder. */ }
     try {
      if (!output) {
@@ -339,7 +404,9 @@ export async function shrinkOversizedImages(dist = DIST) {
         skipped += 1;
         continue;
       }
-      const sized = meta.width > IMAGE_MAX_WIDTH ? source.resize({ width: IMAGE_MAX_WIDTH }) : source;
+      // Keep the source dimensions of introduction art, including small type.
+      // Reuse the existing quality policy; never replace it with a larger encode.
+      const sized = !preserveDimensions && meta.width > IMAGE_MAX_WIDTH ? source.resize({ width: IMAGE_MAX_WIDTH }) : source;
       if (ext === ".png") output = await sized.png({ compressionLevel: 9, palette: true, quality: PNG_PALETTE_QUALITY, effort: 8 }).toBuffer();
       else if (ext === ".avif") output = await sized.avif({ quality: IMAGE_QUALITY_AVIF, effort: 5 }).toBuffer();
       else if (ext === ".webp") output = await sized.webp({ quality, effort: 6, smartSubsample: true }).toBuffer();
@@ -693,6 +760,10 @@ async function main() {
 
   // 라우트를 지운 뒤에 색인을 만든다 — 지워진 SEO 페이지가 참조하던 자산까지 죽은 것으로 잡히게.
   const referenced = await buildReferencedNameIndex();
+  const removedIntroductions = await removeUnusedIntroductionImages(referenced);
+  console.log(`  ✅ 미사용 상세 소개 그림 제외: ${removedIntroductions.length}개 (${(removedIntroductions.reduce((bytes, item) => bytes + item.bytes, 0) / 1048576).toFixed(1)} MB)`);
+  const removedSources = await removeUnusedBrandSources(referenced);
+  console.log(`  ✅ 미사용 브랜드 원본 사본 제외: ${removedSources.length}개 (${(removedSources.reduce((bytes, item) => bytes + item.bytes, 0) / 1048576).toFixed(1)} MB)`);
   const removedPngs = await removeDeadPngOriginals(referenced);
   const freedMB = removedPngs.reduce((sum, item) => sum + item.bytes, 0) / 1048576;
   console.log(`  ✅ 죽은 PNG 원본 제거: ${removedPngs.length}개 (${freedMB.toFixed(1)} MB)`);
@@ -756,6 +827,9 @@ async function main() {
 
   const shrunk = await shrinkOversizedImages();
   console.log(`  ✅ 이미지 축소: ${shrunk.rewritten}/${shrunk.total}개 재인코딩 (${(shrunk.freed / 1048576).toFixed(1)} MB 절감, 건너뜀 ${shrunk.skipped}개)`);
+
+  const json = await compactMobileJson(DIST);
+  console.log(`  ✅ 앱 JSON 공백 제거: ${json.rewritten}/${json.total}개 (${((json.beforeBytes - json.afterBytes) / 1048576).toFixed(1)} MB 절감, 값·문자열·숫자 토큰 유지)`);
 
   console.log("\n✅ 앱 빌드 후처리 완료 — 이어서 `node scripts/verify-app-no-portone.mjs`로 검증하세요.\n");
 }
