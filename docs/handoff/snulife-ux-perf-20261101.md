@@ -1,38 +1,42 @@
 ---
 status: active
 updated: 2026-11-01
-next: "main 복구 CI 결과를 1회 확인하고 성공이면 통합 코드를 main으로 전달한다"
+next: "현재 main 코드 CI 결과를 1회 확인하고 남은 성능 미달 20화면을 큰 병목부터 이어서 개선한다"
 ---
 
 # SNULIFE 이용 흐름·웹 성능
 
-## 왜
+## 현재 상태
 
-승인한 코드+계정+본인 프로필 방식으로 선물 이용을 연결하고, 공통 사주·전문가 상담·홈·영냥이 성능을 개선한다. 운영 활성화·DB·실결제·LLM·메일·운영 배포는 범위 밖이다.
+- 작업 폴더: `D:\Development\code-destiny\.codex-worktrees\snulife-ux-perf-20261101-142056`. 다른 작업이 있는 원래 폴더와 다른 워크트리는 보존했다.
+- 코드 기준 `5c0a80f7dc9a9f8bf94b5811a2af5d564604d9d4`까지 main push 완료. 기존 구현209041, 성능 개선a1a086, 제목 검사 수정c973161, 연이·네오 그림abe9dda, 모의 조회·목록 보완5c0a80 순이다. 운영 배포·정식 캠페인 활성화는 실행하지 않았다.
+- a1 공식 CI의 hydrated-H1 실패는 클라이언트 전용 경계를 명시해 수정했다. 최종 로컬 가드234경로·빌드1862페이지·타입·린트·전달 검사 통과. 예외나 느슨한 검사는 추가하지 않았다.
+- abe 공식 코드 CI [41293508476](https://github.com/rei1237/codedestiny/actions/runs/41293508476)는 마지막 확인에서 진행 중이었다. 보조 Browser Shadow는 상태 조회2개가 mock에 없어 실패했고, 정확한GET만 추가해 미수령 상태·POST/미등록501·비인증401을 검증했다. AI Locale 목록은 기존 검수 설정 스크립트의 Cloudflare URL1개만 공식 생성기로 추가했다. 그 운영 스크립트는 실행하지 않았다. 이후 새 CI를 성공으로 추정하지 않는다.
 
-## 지금 상태
+## 근거
 
-- 작업본: `D:\Development\code-destiny\.codex-worktrees\snulife-ux-perf-20261101-142056`, `wt/snulife-ux-perf-20261101-142056`. 코드 검증 기준 `ce67cc94d7f73fdae28d01eef4ef3b910ebb25a8`, 이후 인수인계 문서 커밋만 추가.
-- 최신 main `0cd89ca4a`를 합쳤다. 원장 충돌은 생성기로 해결했다. **push·운영 반영 없음**. main 직전 CI `6fa75e36d` 실패 후 복구 CI [41282998959](https://github.com/rei1237/codedestiny/actions/runs/41282998959)가 마지막 확인에서 진행 중이었다. 기다리거나 반복 조회하지 않았다.
-- 근거·전체 수정 파일·전후 표·PNG·JSON·로그: `D:\Development\code-destiny\outputs\snulife-ux-perf-20261101\verification.md`.
+- 상세 파일·의도·정책·검증·전후표·원본JSON·PNG·로그: `D:\Development\code-destiny\outputs\snulife-performance-round2-20261101\verification.md`.
+- 21화면 각3cold/warm126표본 및 후속7화면42표본. CPU4/Slow4G390px/localcompiled/guest mock. 공개루트 LCP2.39초·CLS0. 나머지20화면은 미달이다.
+- 최종 비교 가능한 관찰값: 연이7.26→3.22초, 네오6.92→4.42초, 영냥이입구9.42→6.04초. 중간 입구4.80초는 최종경계수정전 수치다. 점성술·영냥이결과·보관함 등 악화 표본도 보고서에 보존했다. 일부LCP는 동의배너/로딩그림에서 다른실제콘텐츠로 바뀌며 미완료이미지도 있어 동일콘텐츠 개선율이나 전체화면 합격으로 해석하지 않는다.
+- SNULIFE4폭 모의 접근·고정프로필·키보드·focus·10링크·로그아웃 검증 통과. 최종 질문4폭 입력·새로고침·legacy·계정분리·비결제 검증 통과. 입력24~32ms는 단일실험실 이벤트 표본이며 실제INP가 아니다.
+- 전체 `check:fast`는 초기에 실패했고 전체 로컬 반복은 하지 않았다. 실패 원인별 표적검사와 `check:pre-push`는 통과했다. 전체판정은 공식CI로 확인한다. 실PG·실LLM·운영DB·실기기는 미검증.
 
-## 남은 작업
+## 추가 요청 회신 — 발송 완료
 
-- [ ] 복구 CI를 1회 확인한다. 성공 전 추가 push 보류. 최신 main이 바뀌었으면 격리 작업본에 합쳐 관련 검사·`check:pre-push`를 통과시킨다.
-- [ ] 정상인 main에 비강제 fast-forward로 전달하고, main CI 결과를 계약대로 1회 확인한다. 공유 main 폴더는 오래된 등록 상태라 건드리지 않았다. `git push origin HEAD:main` 사용 시 먼저 `origin/main`이 HEAD 조상인지 검증한다.
-- [ ] 전달 후 문서를 done으로 닫고 자기 워크트리만 배수한다. 원래 폴더의 `feat/world-cast-page` 미커밋 변경과 다른 워크트리는 보존한다.
-- [ ] 성능 목표 미달 20/21개와 실제 조작 200ms·INP·실기기 검증은 남았다. 표는 통합 전 분리 빌드 측정이며 통합 후 build/perf 증거가 아니다.
+- 사용자가 명시적으로 요청한 추가 메일1건을 기존 SNULIFE 스레드에 회신했다. 이름: **꿀꿀운세 라이트 사주 패키지**.
+- 김태윤 `ad@snulife.com`에게 게시글 문안TXT와 꽃돼지 연이1500×1200(5:4)JPEG 첨부. [보낸 메일](https://mail.google.com/mail/u/?authuser=seongbae555%40gmail.com#all/1a1967003041c84d). SENT·정확한첨부2개를 재조회했다. 다시 발송하지 않는다.
+- 게시일·정식코드는 별도 협의하며 별도 안내 전 게시 보류를 명시했다. 검수 코드 값은 새 본문·첨부에 넣지 않았다.
+- 자료: `D:\Development\code-destiny\outputs\snulife-light-saju-package-20261101`. 원본PNG·1500PNG/JPEG·문안·회신·프롬프트·발송증거 보존.
 
-## 정본 예시
+## 다음 작업
 
-`js/core/snu-reading-flow.mjs`, `worker/lib/snu-campus.js`, `scripts/verify-snulife-flow-browser.mjs`.
-
-## 검증
-
-worker mock 31개, 흐름/사주/안내 19개, 앱 문구 5개, 프로필·권한·세션 가드 통과. 4너비 브라우저(키보드·포커스·고정 프로필·10링크·noindex·넘침) 통과. 통합 후 typecheck·check:pre-push 통과. check:fast 전체는 메모리 경합으로 중단되어 미통과다. 공식 CI가 필요하다.
+1. main의 현재 코드 커밋에 연결된 PR CI를 한 번 확인한다. 일반 run-list가 이전 커밋을 반환한 적이 있어 head SHA를 대조한다. 진행 중이면 기다리거나 반복 조회하지 말고 다른 유효 작업을 진행한다. 실패면 해당 로그만 읽는다.
+2. 남은 병목: 점성술/베다 등의 초기결과 의존성·공통초기화, 영냥이 결과/보관함의 의미있는 첫콘텐츠 표시, 레거시홈 긴실행·CLS, 연이의늦은CSS·네오의아래쪽전체그림. 기존가격·권한·인증·모델·저장계약을 보존한다.
+3. 계속 측정할 때 기존 두 빌드의 수치와 새 측정을 구분한다. 스크립트 `scripts/measure-consultation-web-perf.mjs`와 영구출력JSON을 재사용한다. 실제사용자INP로 보고하지 않는다.
+4. 공식CI·전달과 후속 범위가 정리되면 이 문서를 done으로 닫고 자기 워크트리만 배수한다. node_modules 정션을 먼저 해제하고 다른 작업은 건드리지 않는다.
 
 ## 재개
 
 ```text
-D:\Development\code-destiny\.codex-worktrees\snulife-ux-perf-20261101-142056에서 D:\Development\code-destiny\.codex-worktrees\snulife-ux-perf-20261101-142056\docs\handoff\snulife-ux-perf-20261101.md를 읽고, 검증 기준 ce67cc94d7f73fdae28d01eef4ef3b910ebb25a8과 작업본 상태를 확인한 뒤 main 복구 CI 41282998959 결과를 1회 확인하는 단계부터 이어서 진행하라.
+D:\Development\code-destiny\.codex-worktrees\snulife-ux-perf-20261101-142056에서 D:\Development\code-destiny\.codex-worktrees\snulife-ux-perf-20261101-142056\docs\handoff\snulife-ux-perf-20261101.md를 읽고, 마지막 코드 커밋 5c0a80f7dc9a9f8bf94b5811a2af5d564604d9d4와 현재 main을 확인한 뒤 코드 CI 결과 1회 확인 및 미달20화면 병목 개선부터 이어서 진행하라. SNULIFE 회신은 이미 발송했으므로 중복 발송하지 말고 운영 배포·정식 캠페인 활성화는 실행하지 말라.
 ```
