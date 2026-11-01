@@ -64,10 +64,10 @@ export async function readInput() {
 export function utcInstant(input) {
   if (input.calendar !== 'solar' || input.timeUnknown) throw new Error('UNSUPPORTED_INPUT: solar date and known time required');
   const p = parts(input), wall = Date.UTC(p.year, p.month - 1, p.day, p.hour, p.minute);
-  const formatter = new Intl.DateTimeFormat('en-CA', { timeZone: input.place.timezone, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
+  const formatter = new Intl.DateTimeFormat('en-CA', { timeZone: input.place.timezone, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' });
   const offsetAt = at => {
     const f = Object.fromEntries(formatter.formatToParts(at).map(x => [x.type, x.value]));
-    return (Date.UTC(+f.year, +f.month - 1, +f.day, +f.hour, +f.minute) - at) / 60000;
+    return (Date.UTC(+f.year, +f.month - 1, +f.day, +f.hour, +f.minute, +f.second) - at) / 60000;
   };
   const offsets = input.place.utcOffsetMinutes != null ? [input.place.utcOffsetMinutes] : [...new Set([-2, -1, 0, 1, 2].map(day => offsetAt(wall + day * 86400000)))];
   const valid = offsets.filter(offset => offsetAt(wall - offset * 60000) === offset);

@@ -28,11 +28,13 @@ const deniedPath = value => FORBIDDEN.test(value) || /(?:^|\/)(?:node_modules|ap
 
 // Build only; never import service modules into the host process. Every resolved
 // file is reviewed and pinned separately before evaluateBundle can run it.
-export async function buildAdapter(domain, repo = REPO) {
+export async function buildAdapter(domain, repo = REPO, publicSymbol) {
   if (!Object.hasOwn(ENTRYPOINTS, domain)) throw new Error('SERVICE_DOMAIN_BLOCKED');
   verifyLicenses();
   const { build } = await import('esbuild');
-  const [entry, symbol] = ENTRYPOINTS[domain];
+  const [entry, defaultSymbol] = ENTRYPOINTS[domain];
+  if (publicSymbol && !(domain === 'saju' && publicSymbol === 'resolveAnimalTwelveResult')) throw new Error('SERVICE_SYMBOL_BLOCKED');
+  const symbol = publicSymbol ?? defaultSymbol;
   const sourceFiles = new Map();
   const result = await build({
     stdin: { contents: `export { ${symbol} as run } from './${entry}';`, resolveDir: repo, sourcefile: 'audit-entry.js' },
@@ -66,6 +68,7 @@ export function verifyServiceSources(domain, sources) {
   return pins.baseCommit;
 }
 
+const compiledBundles = new Map();
 export async function evaluateBundle(code, input, referenceDate, options) {
   // Accidental I/O guard, not a security boundary for hostile source code.
   const epoch = Date.parse(`${referenceDate}T00:00:00Z`);
@@ -83,7 +86,8 @@ export async function evaluateBundle(code, input, referenceDate, options) {
     globalThis.console = { log() {}, warn() {}, error() {}, info() {} };
     globalThis.module = { exports: {} }; globalThis.exports = module.exports;
   `).runInContext(context, { timeout: 1000 });
-  new vm.Script(code, { filename: 'read-only-adapter.cjs' }).runInContext(context, { timeout: 10000 });
+  if (!compiledBundles.has(code)) compiledBundles.set(code, new vm.Script(code, { filename: 'read-only-adapter.cjs' }));
+  compiledBundles.get(code).runInContext(context, { timeout: 10000 });
   await new vm.Script('globalThis.__result = module.exports.run(JSON.parse(__inputJSON), JSON.parse(__optionsJSON) ?? undefined); __result').runInContext(context, { timeout: 10000 });
   if (context.__ioAttempts) throw new Error('SERVICE_IO_BLOCKED');
   // Promise resolution and serialization remain in the isolated context.
@@ -91,7 +95,14 @@ export async function evaluateBundle(code, input, referenceDate, options) {
   return JSON.parse(context.__outputJSON);
 }
 
-export async function runService(domain, input) {
+export async function prepareServiceRunner(domain) {
+  if (!Object.hasOwn(ENTRYPOINTS, domain)) throw new Error('SERVICE_DOMAIN_BLOCKED');
+  const bundle = await buildAdapter(domain);
+  verifyServiceSources(domain, bundle.sources);
+  return input => runService(domain, input, bundle);
+}
+
+export async function runService(domain, input, preparedBundle) {
   if (BLOCKED.has(domain)) return envelope(`service:${domain}`, 'not-loaded', input, {
     status: 'blocked', reason: 'SWISS_CONNECTED_SERVICE_PATH', limitations: ['No import, bundle or engine execution was attempted.'],
   });
@@ -100,7 +111,7 @@ export async function runService(domain, input) {
   if (input.place.utcOffsetMinutes != null) return unsupported(`service:${domain}`, 'not-loaded', input, 'Public adapter has no UTC offset override');
   if (domain === 'ziwei' && (input.timeUnknown || input.gender === 'unknown')) return unsupported('service:ziwei', 'not-loaded', input, 'Known birth time and gender required');
   if (domain === 'saju' && input.place.timezone !== 'Asia/Seoul') return unsupported('service:saju', 'not-loaded', input, 'Public adapter does not forward timezone');
-  const bundle = await buildAdapter(domain);
+  const bundle = preparedBundle ?? await buildAdapter(domain);
   const commit = verifyServiceSources(domain, bundle.sources);
   const adapterInput = domain === 'saju' ? {
     birthDate: input.date, birthTime: input.time ?? '', gender: input.gender,

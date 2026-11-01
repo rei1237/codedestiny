@@ -1,0 +1,132 @@
+{
+  "status": "verified",
+  "serviceBase": "20904183a1b0276584ed6f74313bf1e6cdeaf442",
+  "phase1Base": "8f5bd649b89cd6c5c8acf442faf2d2c508715bb2",
+  "corpusSize": 22711,
+  "seed": "0x20261101",
+  "files": [
+    {
+      "file": "a-candidates.jsonl.gz",
+      "bytes": 29165,
+      "sha256": "48de6a80d7cf1f06d3ce0078ee0be2c2eb24c925681d88cb1ca29369f971769a",
+      "rows": 1109
+    },
+    {
+      "file": "adjudication.jsonl.gz",
+      "bytes": 50237,
+      "sha256": "8eaba30476120f8e04f734cd45921061cc73344619aaa45b1b6f468ce3d007bd",
+      "rows": 135
+    },
+    {
+      "file": "controls.jsonl.gz",
+      "bytes": 474818,
+      "sha256": "83da025b6400db116e9778aeb95064c98a12913854c43eb3f807e128717f96dc",
+      "rows": 3504
+    },
+    {
+      "file": "corpus.json",
+      "bytes": 446,
+      "sha256": "f92f383ac7ec1cd59f428b87540d5d49f7280e6523cf349969f8e96075cb975d"
+    },
+    {
+      "file": "inputs.jsonl.gz",
+      "bytes": 302781,
+      "sha256": "3276bba6e833ccf30d0f73a79a597e536d7bc762a58a34ba3548df7eb0a16df3",
+      "rows": 22711
+    },
+    {
+      "file": "node-0.jsonl.gz",
+      "bytes": 29344628,
+      "sha256": "09c50e52b89892b13cfea635f45cd396980a131fc26d80c6ede217b83c74ed2a",
+      "rows": 5678
+    },
+    {
+      "file": "node-1.jsonl.gz",
+      "bytes": 29286643,
+      "sha256": "17bebdb9a0284ce8fcff626607ce5b5d4d5240c6d2af80486fc60f61b8535dda",
+      "rows": 5678
+    },
+    {
+      "file": "node-2.jsonl.gz",
+      "bytes": 29318578,
+      "sha256": "280efe38e53b4eec9ede6934a5fa552feb51255a25cd217db728f5145886e7ac",
+      "rows": 5678
+    },
+    {
+      "file": "node-3.jsonl.gz",
+      "bytes": 29178090,
+      "sha256": "8633b19a4521222a6f5b982dfb596614aca72d675fd483b340da5a89662109f0",
+      "rows": 5677
+    },
+    {
+      "file": "observations-final.jsonl.gz",
+      "bytes": 2211189,
+      "sha256": "652b114f8f667fe3a8cb3f79706e462094ebb056dbce0e0f2e5d0fbbe2b27c5a",
+      "rows": 216705
+    },
+    {
+      "file": "observations.jsonl.gz",
+      "bytes": 2147662,
+      "sha256": "69800171e7cd8b9b9a47a50f3d125d179ee1d0a59991ad7131701027703a5c80",
+      "rows": 216705
+    },
+    {
+      "file": "python-cache-validation.json",
+      "bytes": 1227,
+      "sha256": "dd7e7502d98a513bd2ec77a0c6c0645466c558c7bdc12d7b79f4c641d0f61ef5"
+    },
+    {
+      "file": "python.jsonl.gz",
+      "bytes": 10059931,
+      "sha256": "f38bc7fae2545955c78a8a1e513fd71b93c3e1e6fc116efa8a0b32016b766886",
+      "rows": 22711
+    },
+    {
+      "file": "summary-final.json",
+      "bytes": 122782,
+      "sha256": "a4c531d26bee73af084e991a39da83ef8e2cb4cbda6d275b0df69d8b5edc0cf0"
+    },
+    {
+      "file": "summary.json",
+      "bytes": 131574,
+      "sha256": "405d176bb45c58205dc28ac848e5646f9ff11c2da1f4dd47a07b414c25b46681"
+    },
+    {
+      "file": "twelve-stages.jsonl.gz",
+      "bytes": 17535,
+      "sha256": "3371f95f3757063334658f00c0b7a4d5a88faa5a300a08bf2ef0b64e0db8987a",
+      "rows": 500
+    }
+  ],
+  "sourceHashes": [
+    {
+      "file": "__tests__/fixtures/korean-calendar/kasi-samples.json",
+      "sha256": "686cf585e48654c99ec5ec387d1af87ed7752471f9b4d3fc1dddc998cfba37a2"
+    },
+    {
+      "file": "__tests__/fixtures/korean-calendar/kasi-24divisions.json",
+      "sha256": "f7e08561e543c5ad3f1ab2c6d2c8784acbcc412a6226ca7ccfb97d3b5e2bd869"
+    },
+    {
+      "file": "tools/oracle/service-source-pins.json",
+      "sha256": "671cff0b5d0da638e9522078a0314cbbdf0a9818254ff47e4a9258338e155e26"
+    },
+    {
+      "file": "tools/oracle/source-pins.json",
+      "sha256": "1b90f9539a4c9fbb9530cfe6f859a40a8d9e2d2f5530f11de8fc6222944ad775"
+    },
+    {
+      "file": "tools/oracle/contract.mjs",
+      "sha256": "b86e8112eeb85a0ad5f15950a3da4b2dca8d5862b8bbdb627bf612dd14e93fce"
+    }
+  ],
+  "chronology": "node-* and controls/summary were captured before the contract.mjs historical offset seconds correction. adjudication/final classification preserve those originals and replay only 135 initial A input IDs. Re-running the corrected harness need not reproduce the provisional controls byte-for-byte.",
+  "checks": [
+    "gzip/JSON parsing",
+    "unique complete Node/Python input IDs",
+    "A evidence fields",
+    "initial/final observation count conservation",
+    "final category counts"
+  ],
+  "totalBytes": 132677286
+}

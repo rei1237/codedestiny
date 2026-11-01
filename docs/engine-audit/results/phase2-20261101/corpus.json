@@ -1,0 +1,17 @@
+{
+  "seed": 539365633,
+  "randomAlgorithm": "xorshift32",
+  "counts": {
+    "kasi": 578,
+    "edge": 2133,
+    "random": 20000
+  },
+  "total": 22711,
+  "sha256": "b096fab8607edc6fb58c58b3236282c055582b756d841a5e2e40f51c63f1c9b1",
+  "edgeDesign": "Authored matrix expanded mechanically; not 500 individually hand-certified cases",
+  "blocked": [
+    "Swiss service domains",
+    "Vedic primary oracle",
+    "nakshatra boundary calculations"
+  ]
+}

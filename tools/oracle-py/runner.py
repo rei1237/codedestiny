@@ -9,6 +9,7 @@ import re
 import socket
 import subprocess
 import sys
+from functools import lru_cache
 from datetime import datetime, date
 
 ROOT = Path(__file__).resolve().parent
@@ -31,6 +32,12 @@ def verify_license():
 
 def deny_io(*args, **kwargs):
     raise RuntimeError("ORACLE_IO_DISABLED")
+
+
+@lru_cache(maxsize=1)
+def bundled_data():
+    from korean_saju import load_bundled_data
+    return load_bundled_data()
 
 
 def validate(raw):
@@ -105,8 +112,8 @@ def run(raw):
     verify_license()
     socket.socket = socket.create_connection = socket.getaddrinfo = deny_io
     subprocess.Popen = subprocess.run = deny_io
-    from korean_saju import load_bundled_data, Saju, SajuAnalysis, Daewoon, Gender, IlganStrengthAnalyzer, JohuAnalyzer
-    lunar_data, terms = load_bundled_data()
+    from korean_saju import Saju, SajuAnalysis, Daewoon, Gender, IlganStrengthAnalyzer, JohuAnalyzer
+    lunar_data, terms = bundled_data()
     solar = (lunar_data.lunar_to_solar(year=year, month=month, day=day, is_leap=request["leapMonth"])
              if request["calendar"] == "lunar" else datetime(year, month, day))
     if solar is None:

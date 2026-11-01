@@ -1,6 +1,6 @@
 # Phase 1: 격리 오라클 하네스
 
-확인일: 2026-11-01. **Phase 1 구축 및 합성 입력 기동·계약 검사까지만 완료.** 정확도 인증, Phase 2 차분 검사, 운영 변경은 하지 않았다. [라이선스 원장](../../docs/engine-audit/01-license-ledger.md)을 먼저 읽는다.
+확인일: 2026-11-01. 이 문서는 Phase 1 하네스의 실행 계약이다. 후속 사주·자미두수 배치와 분류 결과는 [Phase 2 보고서](../../docs/engine-audit/02-diff-report.md)에 기록한다. [라이선스 원장](../../docs/engine-audit/01-license-ledger.md)을 먼저 읽는다. 운영 코드는 변경하지 않는다.
 
 ## 실행 위치와 설치
 
@@ -113,3 +113,30 @@ npm --prefix tools/oracle test
 하네스 테스트 21개: 재실행 동일 출력, 날짜/시간/옵션 거절, 음력 입력, 시각 미상, UTC 중복/틈 처리, Swiss 경로 차단, 서비스 그래프 변경·금지 import·I/O 실패 주입, 설치 라이선스 확인. 오라클 간 합의나 외부 정답에 맞는지 검사하지 않았다.
 
 독립 베다 주 검증기는 확보되지 않았다. `ndastro-engine`은 전이 라이선스 허용 목록을 충족하지 않아 미설치, `orrery` upstream은 AGPL로 미설치다. Swiss 서비스 계산·KASI API·LLM·결제·운영 DB·스냅샷 재생성·Phase 2 대량 입력은 미실행이다. 다음 단계는 네오의 별도 승인 대상이다.
+
+## Phase 2 추가 실행 계약
+
+위 미실행 상태는 Phase 1 종료 시점의 기록이다. 네오의 후속 승인으로 사주·자미두수 Phase 2를 진행했다. 새 의존성은 설치하지 않았고 Swiss/베다 차단을 유지했다.
+
+```powershell
+node tools/oracle/phase2/corpus.mjs
+node tools/oracle/phase2/run.mjs
+node tools/oracle/phase2/supplement.mjs
+node tools/oracle/phase2/stages.mjs
+node tools/oracle/phase2/check-python-cache.mjs
+node tools/oracle/phase2/analyze.mjs
+node tools/oracle/phase2/adjudicate.mjs
+node tools/oracle/phase2/finalize.mjs
+node tools/oracle/phase2/manifest.mjs
+node --test tools/oracle/test/phase2.test.mjs
+```
+
+`run.mjs`는 같은 고정 입력을 4개 Node 프로세스로 분할하고 Python venv 프로세스 하나를 실행한다. 공개 서비스 번들은 소스 검증 후 컴파일만 재사용하며 각 호출은 새 VM이다. Python은 읽기 전용 내장 달력 객체를 재사용한다. 준비된 실행과 새 실행의 동등성은 별도 검사한다. 서비스 소스 핀은 배치 시작/끝에 확인한다.
+
+출력 위치는 `docs/engine-audit/results/phase2-20261101/`이다. JSONL.gz는 gzip 해제 후 한 줄씩 JSON으로 읽는다. 입력 원본, 원래 제공자 값, 기준을 맞춘 대조군, 분류 관측, 집계가 서로 다른 파일에 있다. 대조군은 서비스 결과를 덮어쓰지 않는다. 원시 파일의 사주 결과는 비교에 사용한 사실·학파 판정·근거 필드의 투영이며 전체 사용자용 장문 리포트를 저장한 것은 아니다. 정확한 필드 목록은 `phase2/projection.mjs`에 있다.
+
+기존 결과를 보존하도록 배치·분석 출력은 생성 전용이다. 재실행은 별도 날짜/실행 디렉터리를 지정해 기록을 분리해야 하며, 기존 gzip을 삭제·갱신하거나 운영 스냅샷으로 승격하지 않는다. `corpus.mjs`의 입력 생성 또한 기존 실행을 덮어쓰지 않도록 아래 구현의 guard를 따른다.
+
+Python 신살 `locations`는 프로세스마다 배열 순서가 달라질 수 있다. 원시 배열은 그대로 보존하고, 비교할 때에만 위치 이름의 집합으로 취급한다. 이 사실은 `python-cache-validation.json`과 C 분류에 기록한다. Phase 2 자료를 정확도 인증이나 운영 전체 엔진 검증으로 확대 해석하지 않는다.
+
+최초 배치 뒤 `contract.mjs::utcInstant`의 역사 IANA 오프셋 초 누락을 수정했다. `node-*`, `controls`, `summary`는 수정 전 증거로 보존하고, 최초 A 135개 입력에만 Python 독립 달력과 수정된 시계를 적용한 `adjudication`을 추가했다. `summary-final`/`observations-final`이 최종 분류이며 원래 비교율을 다시 계산한 것은 아니다. 최종 하네스의 새 배치는 최초 대조군과 바이트 단위로 같지 않을 수 있다. 12운성 건록/임관은 같은 단계로 확인되어 D 동의어 차이로 분류했다.

@@ -1,0 +1,54 @@
+{
+  "cases": [
+    {
+      "id": "kasi-000000",
+      "factsEqual": true,
+      "schoolEqualAfterLocationSetSort": true,
+      "rawSchoolEqual": true
+    },
+    {
+      "id": "kasi-000001",
+      "factsEqual": true,
+      "schoolEqualAfterLocationSetSort": true,
+      "rawSchoolEqual": true
+    },
+    {
+      "id": "edge-001146",
+      "factsEqual": true,
+      "schoolEqualAfterLocationSetSort": true,
+      "rawSchoolEqual": true
+    },
+    {
+      "id": "random-002711",
+      "factsEqual": true,
+      "schoolEqualAfterLocationSetSort": true,
+      "rawSchoolEqual": true
+    },
+    {
+      "id": "random-012711",
+      "factsEqual": true,
+      "schoolEqualAfterLocationSetSort": true,
+      "rawSchoolEqual": false
+    },
+    {
+      "id": "random-022710",
+      "factsEqual": true,
+      "schoolEqualAfterLocationSetSort": true,
+      "rawSchoolEqual": true
+    }
+  ],
+  "passed": 6,
+  "method": "fresh isolated CLI facts exact; school.stars[*].locations treated as a set, raw results preserved",
+  "initialFailure": {
+    "id": "random-012711",
+    "kind": "location array order only",
+    "batch": [
+      "YEAR_BRANCH",
+      "HOUR_BRANCH"
+    ],
+    "fresh": [
+      "HOUR_BRANCH",
+      "YEAR_BRANCH"
+    ]
+  }
+}
