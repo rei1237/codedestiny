@@ -1,0 +1,10 @@
+{
+  "package": "korean-saju",
+  "version": "0.3.0",
+  "repository": "https://github.com/glee1228/korean_saju",
+  "commit": "8c81256db10d3179d31f551beacaa69f2ab2fcc5",
+  "wheelSha256": "8940b141a50c5931b6cc026a73c3a755802a64ac7d9cf2c5d9ac348a2984c52c",
+  "sourcePythonFilesMatched": 44,
+  "license": "MIT",
+  "checkedAt": "2026-11-01"
+}

@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "calendar": "solar",
+  "date": "1990-06-15",
+  "leapMonth": false,
+  "time": "12:30",
+  "timeUnknown": false,
+  "gender": "male",
+  "place": { "timezone": "Asia/Seoul", "latitude": 37.5665, "longitude": 126.978 },
+  "referenceDate": "2026-11-01"
+}
