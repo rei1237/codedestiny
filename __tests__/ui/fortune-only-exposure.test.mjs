@@ -6,6 +6,8 @@ import { createRequire } from 'node:module';
 const { JSDOM } = createRequire(import.meta.url)('jsdom');
 const source = fs.readFileSync('public/_worker.js', 'utf8');
 const worker = (await import('data:text/javascript;base64,' + Buffer.from(source).toString('base64'))).default;
+// scripts/generate-sitemap.mjs noindexPathPrefixes 의 "선택형/놀이형 콘텐츠 임시 비노출" 항목을 옮겨 적은 것.
+// 그쪽에 일시중지 경로를 더하면 여기에도 더한다(사이트맵·llms 단언은 사이트맵 소속으로도 한 번 더 막는다).
 const paused = ['/mini-games', '/destiny-poker', '/secret-house_real', '/saju/love-simulation'];
 test('paused content headers cover every entry within the Pages rule limit', () => {
   for (const file of ['_headers', 'public/_headers']) {
@@ -75,7 +77,8 @@ test('llms files list only sitemap URLs and no paused path', () => {
   const sitemap = new Set([...fs.readFileSync('sitemap.xml', 'utf8').matchAll(/<loc>([^<]+)<\/loc>/g)].map(([, loc]) => new URL(loc).pathname.replace(/\/$/, '')));
   for (const file of ['llms.txt', 'llms-full.txt', 'public/llms.txt', 'public/llms-full.txt']) {
     // 마크다운 링크 `(https://…)`와 맨 URL `: https://…` 를 모두 센다. `#refund-policy` 같은 앵커는 pathname만 본다.
-    for (const [, url] of fs.readFileSync(file, 'utf8').matchAll(/(https:\/\/code-destiny\.com[^\s)]*)/g)) {
+    // 맨 URL 바로 뒤 문장 부호(`… /about/.`)는 URL 이 아니므로 마지막 글자에서 뺀다.
+    for (const [, url] of fs.readFileSync(file, 'utf8').matchAll(/(https:\/\/code-destiny\.com(?:[^\s)]*[^\s).,;:!?'"])?)/g)) {
       const path = new URL(url).pathname.replace(/\/$/, '');
       assert.ok(!paused.includes(path), file + ': ' + path);
       assert.ok(path === '' || sitemap.has(path), file + ': 사이트맵 밖 ' + path);
