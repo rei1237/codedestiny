@@ -41,7 +41,7 @@ export async function handleRecommendationRoutes(request, env) {
       return new Response(null, { status: 204 });
     }
     const q = new URL(request.url).searchParams;
-    const input = normalizeContext({ service: q.get('service'), category: q.get('category'), interests: q.getAll('interest'), practiceTags: q.getAll('topic'), source: q.get('source'), currency: q.get('currency'), color: q.get('color'), motif: q.get('motif'), species: q.get('species'), groupId: q.get('group'), maxPrice: q.get('maxPrice'), exclude: q.getAll('exclude') });
+    const input = normalizeContext({ service: q.get('service'), category: q.get('category'), interests: q.getAll('interest'), practiceTags: q.getAll('topic'), source: q.get('source'), currency: q.get('currency'), color: q.get('color'), motif: q.get('motif'), species: q.get('species'), groupId: q.get('group'), maxPrice: q.get('maxPrice'), exclude: q.getAll('exclude'), selectionSeed: q.get('seed') });
     const { settings, products } = await readCatalogue(env);
     if (!isEnabled(settings, input.service)) return disabled();
     return json({ enabled: true, products: selectProducts(products.filter(p => providerEnabled(settings, p.providerId)), input).slice(0, 60) }, { headers: { 'Cache-Control': 'no-store' } });

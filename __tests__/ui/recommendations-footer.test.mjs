@@ -5,12 +5,25 @@ import {cleanProduct,reviewProduct,selectProducts,providerEnabled,cleanEvent,val
 const now=Date.parse('2026-11-01T00:00:00Z');
 const fixture=(id,providerId='coupang',patch={})=>reviewProduct(cleanProduct({id,providerId,category:'books',kind:'stationery',title:id,reason:'독서 중 읽던 곳을 표시하는 용도',practiceTags:['focus'],topicReasons:{focus:'집중하는 독서 시간을 돕는 도구'},interests:['reading'],affiliateUrl:providerId==='coupang'?'https://link.coupang.com/a/FixtureOnly':'https://s.click.aliexpress.com/e/_FixtureOnly',imageUrl:'/images/fixture.png',imageSource:'synthetic test only',evidence:'synthetic test only',...patch}),{account:true,facts:true,image:true,allowedCategory:true},now);
 const footer=products=>selectProducts(products,{service:'recommendations',source:'footer'},now);
-test('footer automatically selects at most two image-ready products and represents both eligible merchants',()=>{
+test('footer automatically selects at most four image-ready products and represents both eligible merchants',()=>{
  const rows=[fixture('coupon-a'),fixture('coupon-b'),fixture('ali-a','aliexpress',{order:999})];
- assert.deepEqual(footer(rows).map(p=>p.id),['coupon-a','ali-a']);
+ assert.deepEqual(footer(rows).map(p=>p.id),['coupon-a','ali-a','coupon-b']);
  assert.equal(footer(rows.filter(p=>p.providerId==='coupang')).length,2);
  const settings={providers:{coupang:{enabled:true,approved:true,mediaRegistered:true,trackingId:'AF7837486',evidence:'fixture'},aliexpress:{enabled:false}}};
  assert.ok(footer(rows.filter(p=>providerEnabled(settings,p.providerId))).every(p=>p.providerId==='coupang'));
+});
+test('anonymous seeds rotate four unique eligible products, remain stable and retain result relevance',()=>{
+ const rows=Array.from({length:12},(_,i)=>fixture('random-'+i));
+ const context={service:'recommendations',source:'footer',selectionSeed:'anonymous-seed-01'};
+ const first=selectProducts(rows,context,now);
+ assert.equal(first.length,4);assert.equal(new Set(first.map(p=>p.id)).size,4);
+ assert.deepEqual(selectProducts(rows,context,now),first);
+ const combinations=new Set(Array.from({length:20},(_,i)=>JSON.stringify(selectProducts(rows,{...context,selectionSeed:'anonymous-seed-'+i},now).map(p=>p.id))));
+ assert.ok(combinations.size>15);
+ const result={...context,service:'legacy-saju',source:'result',practiceTags:['focus']};
+ assert.equal(selectProducts(rows,result,now).length,4);
+ assert.deepEqual(selectProducts(rows,{...result,practiceTags:['rest']},now),[]);
+ assert.ok(selectProducts([...rows,{...rows[0],id:'bad-image',imageUrl:''},{...rows[0],id:'bad-stock',stock:'sold-out'}],context,now).every(p=>!p.id.startsWith('bad-')));
 });
 test('missing images, sold-out, expired and paused products never occupy the automatic footer',()=>{
  const p=fixture('test-item');

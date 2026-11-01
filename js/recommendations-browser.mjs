@@ -1,4 +1,16 @@
 import { RECOMMENDATIONS_RELEASED, normalizeContext, cleanEvent } from './recommendations-core.mjs';
+export function createRecommendationSeed() {
+  const bytes = new Uint32Array(4);
+  if (globalThis.crypto?.getRandomValues) globalThis.crypto.getRandomValues(bytes);
+  else for (let i = 0; i < bytes.length; i++) bytes[i] = Math.floor(Math.random() * 4294967296);
+  return Array.from(bytes, value => value.toString(16).padStart(8, '0')).join('');
+}
+export function ensureRecommendationFonts() {
+  if (document.querySelector('link[data-recommendation-fonts]')) return;
+  const link = document.createElement('link');
+  link.rel = 'stylesheet'; link.href = '/styles/fonts-yeongnyangi.css?v=build-ddf63bf2addd';
+  link.dataset.recommendationFonts = 'true'; document.head.append(link);
+}
 export function analyticsAllowed() {
   try {
     const value = window.CodeDestinyCookiePolicy?.getConsent?.() || decodeURIComponent(document.cookie.match(/(?:^|;\s*)cd_cookie_consent=([^;]*)/)?.[1] || '');
@@ -44,6 +56,7 @@ export function recommendationQuery(context) {
   for (const k of ['color','motif']) if(c[k]) q.set(k,c[k]);
   for (const k of ['category', 'species', 'maxPrice']) if (c[k]) q.set(k, String(c[k]));
   if (c.groupId) q.set('group', c.groupId);
+  if (c.selectionSeed) q.set('seed', c.selectionSeed);
   c.interests.forEach(x => q.append('interest', x));
   c.exclude.forEach(x => q.append('exclude', x));
   return q.toString();
