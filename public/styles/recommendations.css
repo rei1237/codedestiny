@@ -1,16 +1,26 @@
-.cd-recommendations,.cd-recommendations-disclosure{background:var(--cd-surface);color:var(--cd-text);padding:24px 0;margin:32px 0;border-block:1px solid var(--cd-border);line-height:1.75;overflow-wrap:anywhere}
-.cd-affiliate-footer{width:calc(100% - 40px);max-width:1100px;margin-inline:auto}.cd-affiliate-footer[hidden]{display:none}
-.cd-recommendations-disclosure{font-size:var(--cd-t-caption);border:0;margin-bottom:0;padding-bottom:0}
-.cd-recommendations h2{font:500 clamp(1.35rem,2.5vw,1.8rem)/1.5 var(--font-display),serif;margin:0 0 12px;word-break:keep-all}
-.cd-recommendations>p{font-size:var(--cd-t-caption);color:var(--cd-text-muted);max-width:85ch}
-.cd-recommendations-products{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:32px;margin:24px 0}
-.cd-recommendations article{min-width:0;display:grid;grid-template-columns:minmax(100px,38%) minmax(0,1fr);column-gap:24px;align-content:start}
-.cd-recommendations img{grid-column:1;grid-row:1/9;width:100%;height:200px;object-fit:contain;background:var(--cd-surface-2);border-radius:var(--cd-r-card);padding:12px}
-.cd-recommendations article>:not(img){grid-column:2}.cd-recommendations-merchant{font-size:12px;color:var(--cd-accent);font-weight:600}
-.cd-recommendations h3{font-size:var(--cd-t-card);line-height:1.55;word-break:keep-all;margin:4px 0 8px}.cd-recommendations article p{font-size:var(--cd-t-body);margin:0 0 8px}
-.cd-recommendations a,.cd-recommendations button{display:inline-flex;align-items:center;min-height:44px;padding:10px 0;border:0;color:var(--cd-text);background:none;font-size:var(--cd-t-body);text-decoration:underline;text-underline-offset:4px}
-.cd-recommendations a.cd-recommendations-cta,.cd-recommendations select{min-height:44px;padding:10px 14px;border:1px solid var(--cd-accent);border-radius:var(--cd-r-control);color:var(--cd-accent);background:var(--cd-surface);font-size:var(--cd-t-body)}
-.cd-recommendations a.cd-recommendations-cta{justify-content:center;width:100%;margin-top:8px;font-weight:600;text-decoration:none}
-.cd-recommendations>button{display:flex;margin-left:auto;color:var(--cd-text-muted);font-size:var(--cd-t-caption)}
-.cd-recommendations :focus-visible{outline:3px solid var(--cd-accent);outline-offset:3px}
-@media(max-width:700px){.cd-recommendations-products{grid-template-columns:1fr;gap:28px}.cd-recommendations article{grid-template-columns:112px minmax(0,1fr);column-gap:18px}.cd-recommendations img{width:112px;height:144px}.cd-recommendations article+article{border-top:1px solid var(--cd-border);padding-top:28px}}
+.cd-recommendations,.cd-recommendations-disclosure{--rec-bg:var(--yn-deep,#0b1220);--rec-surface:var(--yn-night,#101b2c);--rec-raised:var(--yn-surface,#182a40);--rec-ink:var(--yn-ivory,#f3eee5);--rec-muted:var(--yn-muted,#bac9da);--rec-accent:var(--yn-gold,#e5c58e);--rec-line:var(--yn-line,rgba(200,216,236,.2));--rec-photo:#f3eee5;--rec-button-line:#7f715b;}
+
+.cd-recommendations,.cd-recommendations-disclosure{box-sizing:border-box;color:var(--rec-ink);background:var(--rec-bg);font-family:'Yeongnyangi Noto',var(--font-body,sans-serif),sans-serif;line-height:1.8;overflow-wrap:anywhere;color-scheme:dark}
+.cd-recommendations{padding:32px clamp(20px,4vw,36px) 24px;margin:40px 0 24px;border-block:1px solid var(--rec-line)}
+.cd-affiliate-footer{width:calc(100% - 40px);max-width:1100px;margin:40px auto 24px}
+.cd-recommendations *{box-sizing:border-box}.cd-recommendations-heading{display:flex;justify-content:space-between;align-items:center;gap:24px}.cd-recommendations-heading>div{min-width:0}
+.cd-recommendations h2{font:500 clamp(25px,2.5vw,31px)/1.55 'Yeongnyangi Myeongjo',var(--font-display,serif),serif;color:var(--rec-ink);margin:0;letter-spacing:-.025em;word-break:keep-all}
+.cd-recommendations-lead{font-size:14px;color:var(--rec-muted);margin:10px 0 0;line-height:1.8}
+.cd-recommendations-shuffle,.cd-recommendations-actions button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;flex-shrink:0;padding:8px 0;border:0;background:transparent;color:var(--rec-accent);font:inherit;font-size:13px;cursor:pointer}
+.cd-recommendations-disclosure{font-size:12px;line-height:1.8;margin:18px 0 22px;color:var(--rec-muted)}
+.cd-recommendations-products{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:48px}
+.cd-recommendations-product{display:grid;grid-template-columns:96px minmax(0,1fr);gap:22px;min-width:0;align-items:start;padding:24px 0;border-top:1px solid var(--rec-line)}
+.cd-recommendations-image{display:grid;place-items:center;width:96px;height:112px;overflow:hidden;border-radius:5px;background:var(--rec-photo)}
+.cd-recommendations-image img{display:block;width:100%;height:100%;object-fit:contain;padding:7px}
+.cd-recommendations-placeholder{display:grid;place-items:center;gap:8px;padding:8px;color:var(--rec-bg);font-size:12px;text-align:center}.cd-recommendations-placeholder svg{width:24px;height:24px}
+.cd-recommendations-product-text{display:flex;flex-direction:column;align-items:start;min-width:0;height:100%}
+.cd-recommendations-product h3{font:500 19px/1.55 'Yeongnyangi Myeongjo',var(--font-display,serif),serif;color:var(--rec-ink);margin:0;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;word-break:normal}
+.cd-recommendations-product .cd-recommendations-meta{font-size:12px;line-height:1.8;color:var(--rec-muted);margin:5px 0 0;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cd-recommendations-product .cd-recommendations-reason{font-size:14px;line-height:1.8;color:var(--rec-muted);margin:8px 0 14px;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;word-break:normal}
+.cd-recommendations-cta{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:8px 14px;margin-top:auto;border:1px solid var(--rec-button-line);border-radius:5px;background:var(--rec-surface);color:var(--rec-accent);font:inherit;font-size:13px;text-decoration:none;cursor:pointer}
+.cd-recommendations-cta svg{flex-shrink:0}.cd-recommendations-cta:hover{background:var(--rec-raised);border-color:var(--rec-accent)}.cd-recommendations-cta:disabled{color:var(--rec-muted);border-color:var(--rec-line);cursor:default}
+.cd-recommendations-actions{display:flex;align-items:center;justify-content:space-between;gap:24px;margin-top:4px;border-top:1px solid var(--rec-line);padding-top:18px}
+.cd-recommendations-terms{display:block;font-size:12px;line-height:1.8;color:var(--rec-muted);margin:0}.cd-recommendations-actions button{font-size:12px;color:var(--rec-muted);white-space:nowrap}
+.cd-recommendations :focus-visible{outline:2px solid var(--rec-accent);outline-offset:4px}.cd-recommendations[hidden]{display:none}
+@media(max-width:700px){.cd-recommendations{padding:25px 20px 20px}.cd-affiliate-footer{width:calc(100% - 40px)}.cd-recommendations-heading{display:block}.cd-recommendations-heading h2{font-size:25px;max-width:16ch}.cd-recommendations-lead{font-size:13px;margin-top:9px}.cd-recommendations-shuffle{margin-top:11px;font-size:12px}.cd-recommendations-disclosure{margin:15px 0 19px}.cd-recommendations-products{column-gap:18px}.cd-recommendations-product{grid-template-columns:1fr;gap:12px;padding:20px 0 22px}.cd-recommendations-image{width:72px;height:88px}.cd-recommendations-image img{padding:5px}.cd-recommendations-product h3{font-size:17px;min-height:53px}.cd-recommendations-product .cd-recommendations-reason{font-size:14px;min-height:51px;margin:7px 0 14px}.cd-recommendations-cta{width:100%;padding:8px 9px;font-size:13px;gap:3px}.cd-recommendations-cta svg{width:13px;height:13px}.cd-recommendations-actions{gap:14px;align-items:start}.cd-recommendations-actions button{padding-left:8px}}
+@media(min-width:1100px){.cd-recommendations-products{column-gap:60px}.cd-recommendations-product{padding:25px 0}}

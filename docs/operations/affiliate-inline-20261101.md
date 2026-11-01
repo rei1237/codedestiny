@@ -1,9 +1,9 @@
 # 사이트 내 제휴 광고 적용 — 2026-11-01
 
-status: follow-up-required
+status: verification-in-progress
 
 ## 요청과 최종 범위
-- 별도 서가 페이지·전용 탐색 코드 삭제. 홈 푸터 위와 기존 완료 결과에 사진 있는 광고 최대 2개 자동 배치.
+- 별도 서가 페이지·전용 탐색 코드 삭제. 홈 푸터 위와 기존 완료 결과에 사진 있는 광고 최대 4개 자동 배치(후속 승인 시안).
 - 최종 사용자 지시로 알리 제외. 알리 공개 설정 OFF 확인, 기존 상품·실적은 보존한다.
 - 결제·인증·운세 계산·LLM 생성·저장·DB 스키마는 유지한다.
 
@@ -40,3 +40,17 @@ status: follow-up-required
 
 - 수정CI41287879696의 화면검사는4025개중4024통과, 후속 SNULIFE 분기에서 새로 쓰는 URLSearchParams가 기존 사주 진입 VM 모의 환경에 없어1개 실패했다. 해당 테스트에 브라우저 기본 URLSearchParams와 빈 location.search만 제공했으며 런타임 수정 없음. 관련33개 재검사 통과.
 - 로컬 check:fast는90개로 자동 승격됐으며 npm test 실패 후 공유 컴퓨터 자원 경합으로 우리 실행만 중단했다. 통과로 기록하지 않으며 전체 최종 판정은 공식CI를 따른다.
+
+## 운영 전 캐시 정합성 보완
+- CI41288817334는 전체6잡 성공, UI4025/4025 통과. 운영 수정배포41290273541는 verify:payment-choice-parity에서 독립 페이지의 공용 런타임 캐시 주소 누락을 발견해 승격 전 중단됐다. 배포 상태 기록은 생성되지 않았으며 실제 Pages/Worker 모두 기존0cd89ca4 유지 확인.
+- 기존 scripts/restamp-paid-runtime-pins.mjs로25개 참조를 build-fc0c52ff363f에 맞추고 sync:public으로 미러를 갱신했다. js/destiny-profile.js와 worker/payments 코드는 변경하지 않았다.
+- app/_lib/billing-client.ts는 PAID_SERVICE_RUNTIME_SRC 주소 상수1곳만 변경했다. worker/payments에는 해당 브라우저 로더 주소 참조가 없어 대응 정책 변경이 필요하지 않음을 확인했다. 공식 절차로 payment-freeze 매니페스트의 해당 파일 해시1개만 갱신했으며 보호 검사 통과.
+- 기계적 대조: 캐시 주소만 바뀐 파일23개, 보호 해시만 바뀐 파일1개, 기타 소스 내용 변경0. 가격·차감·인증·결과 저장 로직 유지.
+- payment-choice-parity(렌더러10, CSS105규칙, 고지문구80x12로케일)·paid-gate-ui·payment-freeze·runtime-cache-sync·변경파일 lint 통과. npm run deploy:critical 전체 전 단계 통과(실 연동 없는 mock/정적 검사, Worker 빌드는 dry-run).
+
+## 승인 시안 구현 — 작은 사진 4개와 연꽃
+- 사용자가 승인한 2×2 구성과 달빛 예화 밤·아이보리·골드 팔레트, 명조 제목·본문 서체를 광고 범위에 적용했다. 모바일 사진72×88px, 데스크톱96×112px로 기존 공식 사진을 과하게 확대하지 않는다.
+- 익명 일회성 seed로 적격 상품 중 최대4개를 무작위 선택한다. 새 방문·다른 상품 보기에서 새 선택, 같은 화면의60초 공개설정 갱신은 선택을 유지한다. 결과 관련성·검수·공개·이미지·품절·만료 필터를 모두 먼저 적용하며 API 응답 구조와 통계는 유지한다.
+- 하단 홈 SVG를 연꽃으로 교체했다. 기존5개 메뉴·이동경로 유지. CSS·SVG·서체 URL은 기존 내용 해시 생성기로 갱신해 오래된 캐시가 새 UI를 덮지 않게 했다.
+- 관련 Node55개·Worker23개 통과, 변경파일 ESLint 오류0, payment-choice-parity·payment-freeze·mobile-bottom-nav-sync·js-module-graph 통과. check:fast는90개 자동승격 실행을 시도했으나 로컬 실행 정체로 이번 프로세스만 중단했으며 통과로 기록하지 않는다. 공식 main CI가 최종 게이트다.
+- 로컬 실제 소스 렌더8뷰(360·390·430·1280px×React/legacy): 사진4개·2열·서체 로딩·제목25/31px·44px CTA hit-test·넘침0·셔플·이미지 실패숨김·JSerror0 통과. 독립 시각 검수 SHIP. 로컬 mock 증거이며 운영 검증은 배포 뒤 별도 기록한다.

@@ -70,6 +70,24 @@ test('admin save and review preserve provider metadata and public API varies by 
 const eventRequest = body => new Request('https://code-destiny.com/api/recommendations/events', {
   method: 'POST', headers: { Origin: 'https://code-destiny.com' }, body: JSON.stringify(body),
 });
+test('public seed rotates four eligible products without exposing evidence or bypassing merchant OFF', async()=>{
+  const {cleanProduct,reviewProduct}=await import('../../js/recommendations-core.mjs');
+  settingsData={enabled:true,approved:true,mediaRegistered:true,providers:{coupang:{enabled:true,approved:true,mediaRegistered:true,trackingId:'AF7837486',evidence:'mock official account'},aliexpress:{enabled:false}}};
+  for(let i=0;i<10;i++) {
+    const p=reviewProduct(cleanProduct({id:'random-fixture-'+i,providerId:'coupang',category:'books',kind:'stationery',title:'mock item',reason:'독서 도구',practiceTags:['focus'],topicReasons:{focus:'집중하는 독서 시간'},interests:['reading'],affiliateUrl:'https://link.coupang.com/a/FixtureOnly',imageUrl:'/images/fixture.png',imageSource:'mock official image',evidence:'mock official facts'}),{account:true,facts:true,image:true,allowedCategory:true});
+    store.set(p.id,{data:p});
+  }
+  const query=async(seed,source='footer',topic='')=>await(await handleRecommendationRoutes(request('/?service='+(source==='footer'?'recommendations':'legacy-saju')+'&source='+source+'&seed='+seed+'&topic='+topic),{})).json();
+  const first=await query('anonymous-seed-01');
+  expect(Object.keys(first).sort()).toEqual(['enabled','products']);expect(first.products).toHaveLength(4);
+  expect(new Set(first.products.map(p=>p.id)).size).toBe(4);
+  expect(await query('anonymous-seed-01')).toEqual(first);
+  expect((await query('anonymous-seed-02')).products.map(p=>p.id)).not.toEqual(first.products.map(p=>p.id));
+  expect(first.products.every(p=>p.providerId==='coupang'&&!p.evidence)).toBe(true);
+  expect((await query('anonymous-seed-02','result','rest')).products).toEqual([]);
+  settingsData.providers.coupang.enabled=false;
+  expect((await query('anonymous-seed-01')).products).toEqual([]);
+});
 const impression = { event: 'impression', service: 'legacy-saju', placement: 'result', productId: 'book-id', consent: true };
 function enableMetrics() {
   settingsData = { enabled: true, approved: true, mediaRegistered: true, providers: { coupang: { enabled: true, approved: true, mediaRegistered: true, trackingId: 'AF7837486', evidence: 'mock account and registered website' } } };

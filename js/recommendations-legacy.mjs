@@ -2,7 +2,6 @@ export { adviceTopics } from './recommendations-context.mjs';
 import { adviceTopics } from './recommendations-context.mjs';
 import { RECOMMENDATIONS_RELEASED, RESULT_PRODUCT_LIMIT, normalizeContext, validateAffiliateUrl, validImageUrl, serviceRule, INTERESTS } from './recommendations-core.mjs';
 import { affiliateCopy } from './affiliate-presentation.mjs';
-import { bookPerspectiveLabel } from './recommendations-context.mjs';
 const mounted = new WeakMap();
 export function mountSajuRecommendation(host, anchor) {
   // Only the rendered practical-advice list: no chart, birth data or report text.
@@ -19,7 +18,7 @@ export async function mountRecommendation(host, input, anchor = null) {
   const copy = recommendationCopy(document.documentElement.lang || 'ko');
   // The shell and React surfaces share their title and disclosure.
   const lang = document.documentElement.lang || 'ko', shelf = affiliateCopy(lang === 'zh' ? 'zh-CN' : lang);
-  let context = normalizeContext(input), closed = false, cleanupObserver = () => {}, lastKey = '';
+  let context = normalizeContext({ ...input, selectionSeed: browser.createRecommendationSeed() }), closed = false, cleanupObserver = () => {}, lastKey = '';
   const seen = new Set();
   const section = document.createElement('section'), top = document.createElement('p');
   section.className = 'cd-recommendations'; section.dataset.recommendationBlock = 'true';
@@ -44,11 +43,18 @@ export async function mountRecommendation(host, input, anchor = null) {
       data.products = (data.products || []).filter(p => validImageUrl(p.imageUrl)).slice(0, RESULT_PRODUCT_LIMIT);
       const choose = serviceRule(context.service)?.explicitInterest || (context.service.startsWith('pet-') && !context.species);
       if (!data.products?.length && !choose) { section.remove(); top.remove(); return; }
+      browser.ensureRecommendationFonts();
+      const restoreShuffleFocus = document.activeElement?.classList.contains('cd-recommendations-shuffle');
       cleanupObserver(); section.replaceChildren();
       const disclosure = data.products.some(p => p.providerId === 'aliexpress') ? shelf.genericDisclosure + (data.products.some(p => !p.providerId || p.providerId === 'coupang') ? ' ' + copy.disclosure : '') : copy.disclosure;
       top.textContent = disclosure;
-      node('h2', shelf.inlineTitle, section); node('p', copy.ad + ' · ' + disclosure, section);
-      if (context.practiceTags.length) node('p', shelf.resultLead, section).className = 'cd-recommendations-lead';
+      const heading = node('div', '', section); heading.className = 'cd-recommendations-heading';
+      const headingText = node('div', '', heading);
+      node('h2', shelf.inlineTitle, headingText);
+      node('p', context.practiceTags.length ? shelf.resultLead : shelf.inlineIntro, headingText).className = 'cd-recommendations-lead';
+      const shuffle = node('button', '↻ ' + shelf.shuffle, heading); shuffle.type = 'button'; shuffle.className = 'cd-recommendations-shuffle';
+      shuffle.addEventListener('click', () => { context = normalizeContext({ ...context, selectionSeed: browser.createRecommendationSeed() }); track('more'); void render(); });
+      node('p', disclosure, section).className = 'cd-recommendations-disclosure';
       if (choose) {
         const label = node('label', context.service.startsWith('pet-') ? copy.species : copy.purpose, section);
         const select = node('select', '', label);
@@ -62,32 +68,35 @@ export async function mountRecommendation(host, input, anchor = null) {
       data.products.slice(0, RESULT_PRODUCT_LIMIT).forEach(p => {
         const merchantCopy = value => p.providerId === 'aliexpress' ? value.replace(/쿠팡|Coupang|coupang/g, 'AliExpress') : value;
         const article = node('article', '', grid);
-        article.dataset.recommendationProduct = p.id;
-        node('span', (p.providerId === 'aliexpress' ? 'AliExpress' : 'Coupang') + ' · ' + copy.ad, article).className = 'cd-recommendations-merchant';
-        if (validImageUrl(p.imageUrl)) { const image = node('img', '', article); image.referrerPolicy = 'no-referrer'; image.loading = 'lazy'; image.alt = p.title; image.src = p.imageUrl; image.width = 240; image.height = 180; image.onerror = () => { article.remove(); if (!grid.children.length) { cleanupObserver(); section.remove(); top.remove(); } }; }
-        node('h3', p.title, article); node('p', p.reason, article);
-        if (p.book?.author) node('p', [p.book.author, p.book.publisher, p.book.edition, p.book.language, p.book.format].filter(Boolean).join(' · '), article);
-        if (p.book?.perspective) node('p', bookPerspectiveLabel(p.book.perspective, lang), article);
-        (p.attributes || []).forEach(a => node('p', a, article));
-        if (p.price != null) node('p', new Intl.NumberFormat(undefined, { style: 'currency', currency: p.currency || 'KRW' }).format(p.price) + ' · ' + new Date(p.priceVerifiedAt).toLocaleString(), article);
+        article.dataset.recommendationProduct = p.id; article.className = 'cd-recommendations-product';
+        article.dataset.affiliateProvider = p.providerId || 'coupang';
+        const photo = node('div', '', article); photo.className = 'cd-recommendations-image';
+        if (validImageUrl(p.imageUrl)) { const image = node('img', '', photo); image.referrerPolicy = 'no-referrer'; image.loading = 'lazy'; image.alt = p.title; image.src = p.imageUrl; image.width = 96; image.height = 112; image.onerror = () => { article.remove(); if (!grid.children.length) { cleanupObserver(); section.remove(); top.remove(); } }; }
+        const text = node('div', '', article); text.className = 'cd-recommendations-product-text';
+        node('h3', p.title, text).title = p.title;
+        node('p', (p.book?.author || (p.providerId === 'aliexpress' ? 'AliExpress' : 'Coupang')) + ' · ' + copy.ad, text).className = 'cd-recommendations-meta';
+        node('p', p.reason, text).className = 'cd-recommendations-reason';
         if (validateAffiliateUrl(p.affiliateUrl, p.providerId)) {
-          // 가격을 확인하지 못한 상품은 가격 줄 대신 CTA 하나가 "현재 가격 확인"을 맡는다.
-          const link = node('a', p.linkType === 'search' ? copy.search : merchantCopy(p.price == null ? copy.price + ' ↗' : copy.view), article);
+          const link = node('a', p.linkType === 'search' ? copy.search : merchantCopy(copy.view), text);
           link.className = 'cd-recommendations-cta';
           link.href = p.affiliateUrl; link.target = '_blank'; link.rel = 'sponsored noopener'; link.referrerPolicy = 'no-referrer';
           link.addEventListener('click', () => track('click', p.id));
         }
       });
-      const dismiss = node('button', copy.dismiss, section);
+      const actions = node('div', '', section); actions.className = 'cd-recommendations-actions';
+      const terms = node('p', '', actions); terms.className = 'cd-recommendations-terms';
+      terms.append(document.createTextNode(shelf.inlineNote), document.createElement('br'), document.createTextNode(shelf.partnerTerms));
+      const dismiss = node('button', shelf.dismiss, actions); dismiss.type = 'button';
       dismiss.addEventListener('click', () => { track('dismiss'); cleanup(); });
       if (context.source !== 'footer' && !top.isConnected) host.prepend(top);
       section.dataset.recommendationPlacement = context.source === 'footer' ? 'footer' : 'result';
       if (!section.isConnected) { if (anchor?.parentElement === host) anchor.after(section); else host.append(section); }
+      if (restoreShuffleFocus) shuffle.focus({ preventScroll: true });
       cleanupObserver = browser.observeRecommendationProducts(section, seen, id => track('impression', id));
     } catch { cleanupObserver(); section.remove(); top.remove(); }
   }
   if (!document.querySelector('link[data-recommendation-styles]')) {
-    const css = document.createElement('link'); css.rel = 'stylesheet'; css.href = '/styles/recommendations.css?v=build-97a9b5a719a6'; css.dataset.recommendationStyles = 'true'; document.head.append(css);
+    const css = document.createElement('link'); css.rel = 'stylesheet'; css.href = '/styles/recommendations.css?v=build-18b9d8ddaaa5'; css.dataset.recommendationStyles = 'true'; document.head.append(css);
   }
   const timer = setInterval(() => { if (!host.isConnected) cleanup(); else if (!document.hidden && !host.hidden) void render(); }, 60000);
   function cleanup() { closed = true; current?.abort(); clearInterval(timer); cleanupObserver(); section.remove(); top.remove(); mounted.delete(host); }
