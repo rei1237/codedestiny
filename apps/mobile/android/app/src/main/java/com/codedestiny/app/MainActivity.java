@@ -29,6 +29,7 @@ import java.io.InputStream;
 public class MainActivity extends BridgeActivity {
     /** 웹 메인 화면이 실제로 보여줄 준비를 마쳤는지. 네이티브 스플래시를 걷는 조건이다. */
     private final boolean[] webViewDrawn = { false };
+    private boolean webContentReady = false;
 
     /**
      * 웹 준비 신호가 끝내 오지 않아도 스플래시에 갇히지 않도록 하는 상한.
@@ -179,11 +180,13 @@ public class MainActivity extends BridgeActivity {
         }
         try {
             getBridge().getWebView().evaluateJavascript(
-                    "(function(){try{return document.readyState!=='loading'"
+                    "(function(){try{return window.location.href!=='about:blank'"
+                            + "&&document.readyState!=='loading'"
                             + "&&!document.documentElement.classList.contains('cd-boot-gate');}"
-                            + "catch(e){return true;}})()",
+                            + "catch(e){return false;}})()",
                     value -> {
                         if ("true".equals(value)) {
+                            webContentReady = true;
                             webViewDrawn[0] = true;
                             return;
                         }
@@ -206,6 +209,13 @@ public class MainActivity extends BridgeActivity {
     private void installSplashExitFade(SplashScreen splashScreen) {
         try {
             splashScreen.setOnExitAnimationListener(provider -> {
+                // The real document is ready: show it without another 220ms cover.
+                // Timeout/error handoffs retain the existing color transition.
+                if (webContentReady) {
+                    provider.remove();
+                    reportFullyDrawn();
+                    return;
+                }
                 try {
                     View splashView = provider.getView();
                     splashView.animate()

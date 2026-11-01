@@ -54,3 +54,22 @@ test('packaged home waits for navigation before loading another route; web keeps
   assert.equal(render(true, 'ko').querySelectorAll('a')[1].getAttribute('data-prefetch'), 'false');
   assert.equal(render(false, 'ko').querySelectorAll('a')[1].getAttribute('data-prefetch'), 'auto');
 });
+
+test('home sets prefetch on the existing Link boundary without a client wrapper', () => {
+  const page = fs.readFileSync(path.resolve(__dirname, '../../app/page.js'), 'utf8');
+  const components = fs.readFileSync(path.resolve(__dirname, '../../app/components/NativeHomeCopy.tsx'), 'utf8');
+  assert.match(page, /import Link from ['"]next\/link['"]/);
+  assert.doesNotMatch(page + components, /NativeHomeLink/);
+  const tree = ts.createSourceFile('page.jsx', page, ts.ScriptTarget.Latest, true, ts.ScriptKind.JSX);
+  let links = 0;
+  const visit = node => {
+    if ((ts.isJsxOpeningElement(node) || ts.isJsxSelfClosingElement(node)) && node.tagName.getText(tree) === 'Link') {
+      links++;
+      const prefetch = node.attributes.properties.find(p => ts.isJsxAttribute(p) && p.name.getText(tree) === 'prefetch');
+      assert.equal(prefetch?.initializer?.expression?.getText(tree), 'IS_APP_BUILD ? false : undefined');
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(tree);
+  assert.ok(links > 0);
+});
