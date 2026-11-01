@@ -102,7 +102,7 @@ test('all product button adapters preserve cash handlers and show server honey p
       assert.equal(button.nextElementSibling.querySelector('strong').textContent, `${item.honeyCost}개`);
       button.click();
     }
-    assert.equal(cashClicks, 22);
+    assert.equal(cashClicks, 23);
   } finally { app.close(); }
 });
 test('double clicks coalesce and stale account responses cannot overwrite the new balance', async () => {
@@ -215,13 +215,13 @@ test('reduced motion still announces credit; no credit and failed requests never
 });
 
 for (const locale of ['en', 'ja', 'zh-CN', 'zh-TW', 'vi', 'hi', 'es', 'fr', 'de', 'nl', 'ms']) {
-  test(locale + ': all 24 products, prices, controls and a cancelled confirmation use the locale', async () => {
+  test(locale + ': all 25 products, prices, controls and a cancelled confirmation use the locale', async () => {
     const app = await setup('ok', { locale });
     try {
       const { win } = app, doc = win.document;
       doc.body.insertAdjacentHTML('beforeend', '<button data-cd-sheet-open="cdHoneySheet">open</button><dialog id="cdHoneySheet" open><p data-cd-honey-sheet-state></p><div data-cd-honey-uses></div></dialog><button id="useHoney"></button><dialog id="cdHoneyUnlockSheet"><h3 data-honey-confirm-title></h3><p data-honey-confirm-cost></p><p data-honey-confirm-condition></p><button data-honey-confirm></button></dialog>');
       doc.querySelector('[data-cd-sheet-open]').click(); await tick();
-      assert.equal(doc.querySelectorAll('.cd-honey-use').length, 24);
+      assert.equal(doc.querySelectorAll('.cd-honey-use').length, 25);
       for (const row of doc.querySelectorAll('.cd-honey-use')) {
         assert.doesNotMatch(row.textContent + row.querySelector('a').getAttribute('aria-label'), /[가-힣]|\{\w+\}|honeyUI\./);
         const key = new URL(row.querySelector('a').href).searchParams.get('honeyContent');

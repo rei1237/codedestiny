@@ -46,6 +46,7 @@ function normalizeRegistryReasonCostTable(table = {}) {
 }
 
 const INTERNAL_FRONTEND_FEATURE_KEYS = [
+  "saju-career-style",
   "coin-gate-per-use",
   "openGeomancyOracle",
   "openJuyukModal",
@@ -482,6 +483,7 @@ export function getPaidFeaturePaymentPolicy(featureKey) {
 }
 
 const RAW_PIG_COIN_UNLOCK_PRODUCTS = Object.freeze({
+  "unlock.saju-career-style": { featureKey: "saju-career-style", cost: 50, amountKRW: 5000, reason: "나의 일 스타일 리포트 해금" },
   [LOVE_CODE_PRODUCT_ID]: {
     featureKey: LOVE_CODE_FEATURE_KEY,
     cost: 70,
@@ -741,6 +743,7 @@ export const UNLOCK_PAID_FEATURE_KEYS = Object.freeze(
    - 계정 기반: 출생 정보와 무관한 상품(음원·도감·캐릭터·일기 등). 종전대로 계정 전체에 열린다.
    새 영구 해금 키를 추가할 때 어느 쪽인지 정하지 않으면 검증이 실패한다(fail-closed). */
 const BIRTH_SCOPED_UNLOCK_FEATURE_KEY_LIST = Object.freeze([
+  "saju-career-style",
   "section_summary",
   "section_daewun",
   "section_compat",

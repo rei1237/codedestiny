@@ -404,3 +404,22 @@ describe("읽기 매핑과 소유권", () => {
     expect(db.rows[0].entitlementGrantedAt).toEqual(first);
   });
 });
+
+
+test('진로 리포트 5,000원 단건 주문·확정 재시도는 기존 멱등 상태기계를 재사용한다', async () => {
+ const {resolveProduct}=await import('../../worker/payments/catalog.js');
+ const {verifyPgPayment}=await import('../../worker/payments/pg.js');
+ const product=resolveProduct({featureKey:'saju-career-style'});
+ expect(product).toMatchObject({priceKRW:5000,priceCoins:50,billingType:'unlock'});
+ const db=makeFakeDb({profileCards:[{userId:USER,profileId:'career-card',gender:'F',birth:{year:2000,month:3,day:15,hour:12,minute:30}}]});
+ const first=await createOrder(db,{userId:USER,profileId:'career-card',product,idempotencyKey:'career-cash-001'});
+ const retry=await createOrder(db,{userId:USER,profileId:'career-card',product,idempotencyKey:'career-cash-001'});
+ expect(retry.merchantUid).toBe(first.merchantUid);expect(db.rows).toHaveLength(1);
+ const query={orderId:first.merchantUid,expectedAmountKRW:product.priceKRW};
+ const reply={paymentId:first.merchantUid,status:'paid',amount:5000,currency:'KRW',pay_method:'card'};
+ const env={PORTONE_API_SECRET:'mock',PORTONE_STORE_ID:'mock-store'};
+ await expect(verifyPgPayment(env,query,{fetchPayment:async()=>({...reply,amount:100})})).rejects.toMatchObject({code:'AMOUNT_MISMATCH'});
+ const pg=await verifyPgPayment(env,query,{fetchPayment:async()=>reply});
+ expect(await markOrderPaid(db,{orderId:first.merchantUid,order:first,pg})).not.toBeNull();
+ expect(await markOrderPaid(db,{orderId:first.merchantUid,order:first,pg})).toBeNull();
+});

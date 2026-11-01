@@ -17397,24 +17397,24 @@
     "saju_career_style": {
       "fallbackTitle": "我的工作风格",
       "tagline": "根据个人资料卡生成的八章韩语四柱命理自我探索报告，了解性格倾向、月支与工作条件。",
-      "premiumIntro": "注册或登录后，选择已有资料卡或创建新卡，即可免费阅读。",
-      "fallbackCta": "登录后免费探索",
-      "premiumOutcomes": {
-        "0": "无需付费、撰写评价或分享。",
-        "1": "这是基于四柱命理的自我探索内容，不能替代专业职业测评或心理咨询。"
-      },
-      "receives": {
-        "0": {
+      "premiumIntro": "介绍与示例免费，个人报告需付款或使用蜜滴解锁。",
+      "fallbackCta": "查看报告解锁方式",
+      "premiumOutcomes": [
+        "介绍与示例免费，个人报告需付款或使用蜜滴解锁。",
+        "这是基于四柱命理的自我探索内容，不能替代专业职业测评或心理咨询。"
+      ],
+      "receives": [
+        {
           "title": "我的工作风格",
           "detail": "根据个人资料卡生成的八章韩语四柱命理自我探索报告，了解性格倾向、月支与工作条件。"
         }
-      },
-      "outline": {
-        "0": {
+      ],
+      "outline": [
+        {
           "title": "报告阅读顺序",
           "detail": "依次了解性格倾向与月支、工作条件与角色、优势的另一面，以及小型职业探索实践。"
         }
-      }
+      ]
     }
   },
   "featureMarketingCategory": {
@@ -22226,6 +22226,10 @@
       "tarot-myeongri-three-card": {
         "title": "三张基础塔罗解读",
         "description": "所选三张牌的脉络与实践建议"
+      },
+      "saju-career-style": {
+        "title": "我的工作风格",
+        "description": "根据个人资料卡生成的八章韩语四柱命理自我探索报告，了解性格倾向、月支与工作条件。"
       }
     },
     "collectedBonus": "含{days}天连续奖励{bonus}滴！",

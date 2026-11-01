@@ -755,10 +755,11 @@
       "slug": "career-style",
       "title": "나의 일 스타일",
       "href": "/saju/career-style/",
-      "featureKey": "career-style",
+      "featureKey": "saju-career-style",
       "accessType": "unknown",
       "image": "/images/career-style/yeoni-work-style.webp",
       "aliases": [
+        "saju-career-style",
         "career-style",
         "/saju/career-style/",
         "/saju/career-style"
@@ -8058,11 +8059,12 @@
       "slug": "career-style",
       "title": "나의 일 스타일",
       "href": "/saju/career-style/",
-      "featureKey": "career-style",
+      "featureKey": "saju-career-style",
       "featureKeyTo": "",
       "accessType": "unknown",
       "image": "/images/career-style/yeoni-work-style.webp",
       "aliases": [
+        "saju-career-style",
         "career-style",
         "/saju/career-style/",
         "/saju/career-style"
@@ -8071,7 +8073,7 @@
       "headline": "나의 일 스타일",
       "description": "프로필 카드로 읽는 여덟 장의 한국어 사주 자기이해 리포트. 성향·월지·업무 조건을 살펴봐요.",
       "panels": [],
-      "ctaLabel": "가입 후 무료로 알아보기",
+      "ctaLabel": "리포트 해금 안내 보기",
       "evidence": [
         "index.html:FEATURE_MARKETING_COPY:saju_career_style"
       ],
@@ -8091,7 +8093,7 @@
       "journey": {
         "questions": [],
         "trustNotes": [
-          "결제·후기·공유 의무는 없습니다.",
+          "소개·예시 무료 · 개인 리포트는 해금 후 제공해요.",
           "사주 기반 자기이해 콘텐츠이며 전문 진로검사·심리상담을 대체하지 않습니다."
         ],
         "faq": []

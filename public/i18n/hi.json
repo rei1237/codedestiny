@@ -17397,24 +17397,24 @@
     "saju_career_style": {
       "fallbackTitle": "My work style",
       "tagline": "An eight-chapter Korean saju self-reflection report based on your profile card. Explore tendencies, the month branch and working conditions.",
-      "premiumIntro": "Sign in, then select or create a profile card to read for free.",
-      "fallbackCta": "Sign in to explore for free",
-      "premiumOutcomes": {
-        "0": "No payment, reviews or sharing required.",
-        "1": "Saju-based self-reflection content; not a substitute for professional career assessments or psychological counseling."
-      },
-      "receives": {
-        "0": {
+      "premiumIntro": "The introduction and sample are free. Unlock your personal report with payment or Honey Drops.",
+      "fallbackCta": "View report unlock options",
+      "premiumOutcomes": [
+        "The introduction and sample are free. Unlock your personal report with payment or Honey Drops.",
+        "Saju-based self-reflection content; not a substitute for professional career assessments or psychological counseling."
+      ],
+      "receives": [
+        {
           "title": "My work style",
           "detail": "An eight-chapter Korean saju self-reflection report based on your profile card. Explore tendencies, the month branch and working conditions."
         }
-      },
-      "outline": {
-        "0": {
+      ],
+      "outline": [
+        {
           "title": "Your report journey",
           "detail": "Explore tendencies and the month branch, working conditions and roles, the downsides of strengths, and small career experiments."
         }
-      }
+      ]
     }
   },
   "featureMarketingCategory": {
@@ -22226,6 +22226,10 @@
       "tarot-myeongri-three-card": {
         "title": "तीन कार्ड की टैरो व्याख्या",
         "description": "चुने तीन कार्डों का क्रम और व्यावहारिक अगले कदम"
+      },
+      "saju-career-style": {
+        "title": "मेरी कार्य शैली",
+        "description": "आपके प्रोफ़ाइल कार्ड पर आधारित आठ अध्यायों वाली कोरियाई भाषा की साजू आत्मचिंतन रिपोर्ट। प्रवृत्तियों, जन्म-माह की शाखा और काम की परिस्थितियों को समझें।"
       }
     },
     "collectedBonus": "{days} दिन लगातार बोनस की {bonus} बूंदें शामिल! ",

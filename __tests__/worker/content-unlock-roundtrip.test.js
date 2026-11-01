@@ -153,11 +153,11 @@ test("레거시 serviceKey(ziwei/saju)로 남은 행도 계속 매칭된다", as
 });
 
 
-test("꿀방울 22종은 실제 영구 권리 쓰기와 기존 읽기가 같은 출생 행을 찾는다", async () => {
+test("꿀방울 23종은 실제 영구 권리 쓰기와 기존 읽기가 같은 출생 행을 찾는다", async () => {
   const { HONEY_UNLOCK_PRODUCTS } = await import('../../worker/lib/honey-unlock-catalog.js');
   const { grantPermanentUnlock, findActivePaidContentUnlock } = await import('../../worker/lib/content-unlocks.js');
   const session = {};
-  expect(HONEY_UNLOCK_PRODUCTS.filter(p => p.billingType === 'birth_unlock')).toHaveLength(22);
+  expect(HONEY_UNLOCK_PRODUCTS.filter(p => p.billingType === 'birth_unlock')).toHaveLength(23);
   for (const product of HONEY_UNLOCK_PRODUCTS.filter(p => p.billingType === 'birth_unlock')) {
     findOneAndUpdate.mockClear(); findOne.mockClear();
     const readQuery = { session: jest.fn(), lean: async () => null };

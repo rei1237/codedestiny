@@ -18,7 +18,7 @@ export default function UserSessionProvider({ children }: { children: ReactNode 
   }, []);
 
   useEffect(() => {
-    // This free report verifies ownership through its existing profile API; it has no paid entry.
+    // Career-style loads profiles and server unlock status locally; billing starts on explicit action.
     if (profileOnly) return;
     const cleanup = installUserAccessInvalidationListeners();
     const warmup = () => {

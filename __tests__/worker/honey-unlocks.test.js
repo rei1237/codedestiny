@@ -40,7 +40,7 @@ function fixture(balance = 60) {
 }
 
 test('정본의 6개·30개 개별 상품은 모두 출생 기반이며 유료 상품은 전환에서 제외한다', () => {
-  expect(HONEY_UNLOCK_PRODUCTS).toHaveLength(24);
+  expect(HONEY_UNLOCK_PRODUCTS).toHaveLength(25);
   expect(HONEY_UNLOCK_PRODUCTS.filter(p => p.honeyCost === 6)).toHaveLength(2);
   for (const p of HONEY_UNLOCK_PRODUCTS) {
     expect(p.serviceScope).toBe('GGULGGUL');
@@ -50,7 +50,7 @@ test('정본의 6개·30개 개별 상품은 모두 출생 기반이며 유료 �
   }
   for (const key of ['saju_ai_question_prompt', 'fortune-prompt-hub-generate']) expect(HONEY_UNLOCK_PRODUCTS.some(p => p.featureKey === key)).toBe(false);
 });
-test.each([['rpt_specialCharmCard', 6], ['vedic_basic_reading', 30], ['section_summary', 60], ['section_daewun', 120]])('서버 가격 %s, 요청의 가격 조작 무시', async (productId, price) => {
+test.each([['rpt_specialCharmCard', 6], ['vedic_basic_reading', 30], ['saju-career-style', 30], ['section_summary', 60], ['section_daewun', 120]])('서버 가격 %s, 요청의 가격 조작 무시', async (productId, price) => {
   const f = fixture(150);
   expect((await f.run({ productId, honeyCost: 0 })).spent).toBe(price);
   expect(f.read().balance).toBe(150 - price);
@@ -127,4 +127,17 @@ test('실제 꿀방울 원장 writer와 reader가 동일 증빙을 읽고 다른
   for (const change of [{userId:'other'}, {profileId:'different'}, {featureKey:'premium-sukuyo-compat-extra'}]) {
     expect(await readHoneyUseReceipt({}, {...query,...change})).toBeFalsy();
   }
+});
+
+test('진로 리포트는 잔액 부족·실패 재시도·동시 해금·다른 카드·재로그인에서 중복 차감하지 않는다', async () => {
+ const productId='saju-career-style';
+ const short=fixture(29); await expect(short.run({productId})).rejects.toMatchObject({status:402}); expect(short.read().balance).toBe(29);
+ const f=fixture(60), grant=f.store.grant;
+ f.store.grant=async()=>{throw Error('grant failure');};
+ await expect(f.run({productId})).rejects.toThrow('grant failure'); expect(f.read()).toEqual({balance:60,grants:[],ledgers:[]});
+ f.store.grant=grant;
+ const replies=await Promise.all([f.run({productId}),f.run({productId,requestId:'request-002'}),f.run({productId,profileId:'same-birth',requestId:'request-003'})]);
+ expect(replies.reduce((sum,row)=>sum+row.spent,0)).toBe(30); expect(f.read().balance).toBe(30); expect(f.read().grants).toHaveLength(1);
+ expect((await unlockHoneyContent({...base,productId,requestId:'relogin-001'},f.store)).spent).toBe(0);
+ expect((await f.run({productId,profileId:'different',requestId:'different-001'})).spent).toBe(30);
 });

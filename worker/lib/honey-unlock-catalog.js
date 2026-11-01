@@ -1,6 +1,7 @@
 import { getBillingFeaturePricing } from './billing-feature-registry.js';
 // Honey is an alternative unlock method; cash prices remain authoritative in the paid registry.
 const entries = [
+  ['saju-career-style', '나의 일 스타일', '기본 사주', null, '성향·월지·여섯 업무 조건과 작은 진로 실험을 담은 여덟 장 리포트', 'openCareerStyleRoute'],
   ['section_summary', '라이트 사주 풀이', '기본 사주', null, '타고난 성향·강점·반복되는 패턴과 삶의 큰 흐름', 'cdOneStepFreeSajuEntry'],
   ['section_daewun', '사주 대운 풀이', '기본 사주', null, '10년 단위 변화와 시기마다 살펴볼 선택', 'cdOneStepFreeSajuEntry'],
   ['rpt_specialCharmCard', '나의 매력 클래스', '재미 사주', 6, '사람에게 자연스럽게 전해지는 나의 매력', 'cdOneStepFreeSajuEntry'],
@@ -49,6 +50,6 @@ export function getHoneyUnlockProduct(value) {
 
 export const HONEY_SCOPE_MESSAGE = '꿀방울은 꿀꿀운세의 지정된 기본 운세 상품에서만 사용할 수 있어요.';
 export function isHoneySpendProduct(featureKey) { return getHoneyUnlockProduct(featureKey)?.serviceScope === 'GGULGGUL'; }
-// 운세 프롬프트 1회 생성은 HONEY_UNLOCK_PRODUCTS(홈 사용처 24상품) 밖에서 꿀방울 1개만 허용한다. 3,000원 단건 결제는 그대로다.
+// 운세 프롬프트 1회 생성은 HONEY_UNLOCK_PRODUCTS(홈 사용처 25상품) 밖에서 꿀방울 1개만 허용한다. 3,000원 단건 결제는 그대로다.
 export const HONEY_PROMPT_HUB_FEATURE_KEY = 'fortune-prompt-hub-generate';
 export function isHoneyPromptHubSpend(featureKey) { return String(featureKey || '') === HONEY_PROMPT_HUB_FEATURE_KEY; }

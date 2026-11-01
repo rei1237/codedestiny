@@ -1,14 +1,16 @@
 "use client";
-import {useEffect,useMemo,useRef,useState} from 'react';
+import {useEffect,useRef,useState} from 'react';
 import ProfilePicker from '@/app/yeongnyangi/_components/ProfilePicker';
-import {useProfiles,profileKey} from '@/app/yeongnyangi/_lib/use-profiles';
-import {selectedBirthProfileSeed} from '@/app/_lib/ai-prefill-seed';
-import {AUTH_SESSION_INVALIDATED_EVENT} from '@/app/_lib/auth-client';
-import {buildCareerReport,careerNatalInput,careerShare,CAREER_URL} from '@/lib/saju/career-style/report.mjs';
+import {useProfiles,profileKey,isProfileBillingSyncEvent} from '@/app/yeongnyangi/_lib/use-profiles';
+import {authFetch,AUTH_SESSION_INVALIDATED_EVENT} from '@/app/_lib/auth-client';
+import {careerShare,CAREER_URL} from '@/lib/saju/career-style/share.mjs';
+import {runPaidAccessGate} from '@/app/_lib/billing-client';
+import {usePaidResume} from '@/app/hooks/usePaidResume';
 import {YEONI_GUIDE_ART} from '@/lib/brand/yeoni-guide-art';
 import styles from './career.module.css';
 
 const login=()=>{const next='/saju/career-style/';window.location.assign(`/login/?next=${encodeURIComponent(next)}&returnTo=${encodeURIComponent(next)}`);};
+type CareerReport=ReturnType<typeof import('@/lib/saju/career-style/report.mjs').buildCareerReport>;
 type Insight={id:string;title:string;basis:string;scene:string;condition:string;action:string};
 const chapterArt:Record<number,{src:string;alt:string;width:number;height:number;caption:string}>={
  0:{src:'/images/career-style/yeoni-work-style.webp',alt:'노트와 나침반으로 일의 방향을 살펴보는 연이',width:1536,height:1024,caption:'직업의 이름보다 나에게 맞는 일의 조건부터.'},
@@ -25,21 +27,71 @@ function InsightReading({item}:{item:Insight}){return <div className={styles.ins
  <p>{item.scene}</p><p><strong className={styles.conditionLabel}>도움 되는 조건</strong>{item.condition}</p>
  <div className={styles.practice}><strong>이렇게 확인해 보세요</strong><p>{item.action}</p></div>
 </div>;}
-export default function CareerStyleClient(){
- const state=useProfiles({forceFreshOnMount:true});
- const [opened,setOpened]=useState(false),[shareStatus,setShareStatus]=useState(''),[manual,setManual]=useState(false);
+export default function CareerStyleClient({priceKRW,honeyCost}:{priceKRW:number;honeyCost:number}){
+ const state=useProfiles({forceFreshOnMount:true,skipBillingSync:true});
+ const [shareStatus,setShareStatus]=useState(''),[manual,setManual]=useState(false);
+ const [loaded,setLoaded]=useState<{context:number;report:CareerReport}|null>(null);
+ const [access,setAccess]=useState<{context:number;unlocked:boolean}|null>(null);
+ const [error,setError]=useState(''),[busy,setBusy]=useState(false);
+ const revision=useRef(0),lock=useRef(false),requests=useRef(new Map<string,string>());
+ const activeProfile=useRef('');
  const [invalidated,setInvalidated]=useState(false);
  const reportHeading=useRef<HTMLHeadingElement>(null);
- // No result state or report storage: the current authenticated list is the only source.
  const selected=state.profiles.find(p=>profileKey(p)===state.profileId);
  const ready=!invalidated&&!state.loading&&!state.guest&&!state.error&&Boolean(selected);
- const result=useMemo(()=>{
-  if(!opened||!ready||!selected)return null;
-  try{return {report:buildCareerReport(careerNatalInput(selectedBirthProfileSeed(selected))),error:''};}
-  catch{return {report:null,error:'출생정보를 계산하지 못했어요. 날짜·달력 종류와 출생지의 시간대·경도를 프로필 카드에서 확인해 주세요.'};}
- },[opened,ready,selected]);
- useEffect(()=>{setShareStatus('');setManual(false);},[selected,ready]);
- useEffect(()=>{if(opened)reportHeading.current?.focus();},[opened]);
+ const currentProfile=ready?JSON.stringify(selected):'';
+ // An old profile/auth response must never become the next card's result.
+ if(activeProfile.current!==currentProfile){activeProfile.current=currentProfile;revision.current+=1;}
+ const context=revision.current;
+ const result=loaded?.context===context?{report:loaded.report}:null;
+ const owns=access?.context===context&&access.unlocked;
+ const buildResume=usePaidResume('saju-career-style',async args=>{
+  if(!ready||args.profileId!==state.profileId)return false;
+  const version=revision.current;
+  const data=await api('/api/saju/career-style',{profileId:state.profileId});
+  if(version!==revision.current)return false;
+  setLoaded({context:version,report:data.report});setAccess({context:version,unlocked:true});return true;
+ });
+ useEffect(()=>{setShareStatus('');setManual(false);setError('');},[currentProfile]);
+ useEffect(()=>{if(result?.report)reportHeading.current?.focus();},[result?.report]);
+ useEffect(()=>{
+  if(!ready)return;
+  const version=revision.current;
+  void api('/api/saju/career-style?profileId='+encodeURIComponent(state.profileId)).then(data=>{
+   if(version===revision.current)setAccess({context:version,unlocked:data.unlocked===true});
+  }).catch(()=>{}); // Open rechecks the server before offering any purchase.
+ },[ready,state.profileId]);
+ async function api(url:string,body?:Record<string,unknown>){
+  const response=await authFetch(url,{method:body?'POST':'GET',cache:'no-store',...(body?{headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{})},{retryOn401:false,forceFresh:true});
+  const data=await response.json();
+  if(!response.ok||!data.ok)throw Object.assign(new Error(data.message||'확인하지 못했어요. 잠시 후 다시 시도해 주세요.'),{status:response.status});
+  return data;
+ }
+ async function open(method:'payment'|'honey'){
+  if(state.guest){login();return;}
+  if(!ready||lock.current)return;
+  lock.current=true;setBusy(true);setError('');
+  const version=revision.current,pid=state.profileId;
+  const valid=()=>version===revision.current;
+  const read=()=>api('/api/saju/career-style',{profileId:pid});
+  const show=(data:{report:CareerReport})=>{if(valid()){setLoaded({context:version,report:data.report});setAccess({context:version,unlocked:true});}};
+  try{
+   try{show(await read());return;}catch(e){if((e as {status?:number}).status!==402)throw e;}
+   if(!valid())return;
+   const requestKey=currentProfile+':'+method;
+   if(!requests.current.has(requestKey))requests.current.set(requestKey,crypto.randomUUID());
+   const requestId=requests.current.get(requestKey)!;
+   if(method==='honey'){
+    await api('/api/honey/unlocks',{productId:'saju-career-style',profileId:pid,requestId});
+    window.dispatchEvent(new CustomEvent('cd:honey-updated',{detail:{featureKey:'saju-career-style',profileId:pid}}));
+   }else{
+    const payment=await runPaidAccessGate({featureKey:'saju-career-style',profileId:pid,requestId,reason:'나의 일 스타일 리포트 해금',resume:buildResume({profileId:pid})});
+    if(!payment.ok){if(valid())setError(payment.message||'결제를 완료하지 않았어요. 기존 결제가 있다면 결과를 다시 확인해 주세요.');return;}
+   }
+   if(valid())show(await read());
+  }catch(e){if(valid())setError(e instanceof Error?e.message:'확인하지 못했어요. 잠시 후 다시 시도해 주세요.');}
+  finally{lock.current=false;setBusy(false);}
+ }
  useEffect(()=>{if(!state.loading&&!state.guest&&!state.error)setInvalidated(false);},[state.loading,state.guest,state.error]);
  useEffect(()=>{
   // Reuse the authenticated list endpoint on tab return and while reading, with no billing warmup.
@@ -49,26 +101,30 @@ export default function CareerStyleClient(){
   return()=>{document.removeEventListener('visibilitychange',revalidate);window.clearInterval(timer);};
  },[state.refresh,state.guest]);
  useEffect(()=>{
-  const clear=()=>{setOpened(false);setInvalidated(true);setShareStatus('');setManual(false);};
-  const storage=(e:StorageEvent)=>{if(e.key===null||['fortune_auth_user','fortune_auth_token','cdToken'].includes(e.key))clear();};
+  const clear=(event:Event)=>{if(isProfileBillingSyncEvent(event))return;revision.current+=1;setLoaded(null);setAccess(null);requests.current.clear();setInvalidated(true);setShareStatus('');setManual(false);setError('');};
+  const storage=(e:StorageEvent)=>{if(e.key===null||['fortune_auth_user','fortune_auth_token','cdToken'].includes(e.key))clear(e);};
   window.addEventListener('cd:auth-changed',clear);window.addEventListener(AUTH_SESSION_INVALIDATED_EVENT,clear);window.addEventListener('storage',storage);
-  return()=>{window.removeEventListener('cd:auth-changed',clear);window.removeEventListener(AUTH_SESSION_INVALIDATED_EVENT,clear);window.removeEventListener('storage',storage);};
+  return()=>{revision.current+=1;window.removeEventListener('cd:auth-changed',clear);window.removeEventListener(AUTH_SESSION_INVALIDATED_EVENT,clear);window.removeEventListener('storage',storage);};
  },[]);
  async function share(){
   if(!result?.report)return;
-  const data=careerShare(result.report);
+  const data=careerShare();
   if(navigator.share){try{await navigator.share(data);setShareStatus('공유 창을 열었어요.');return;}catch(e){if(e instanceof Error&&e.name==='AbortError')return;}}
-  try{await navigator.clipboard.writeText(`${data.text}\n${data.url}`);setShareStatus('유형 요약과 공개 링크를 복사했어요.');}
+  try{await navigator.clipboard.writeText(`${data.text}\n${data.url}`);setShareStatus('소개 문구와 공개 링크를 복사했어요.');}
   catch{setManual(true);setShareStatus('아래 공개 주소를 직접 복사해 주세요.');}
  }
  return <section id="start" className={styles.start} aria-labelledby="start-title">
   <h2 id="start-title">내 프로필에서 시작하기</h2>
-  <p>가입 후 무료로 읽을 수 있어요. 저장한 프로필 카드를 선택하면 이 기기에서 리포트를 계산합니다.</p>
+  <p>소개와 위의 예시는 무료예요. 개인 리포트 여덟 장은 단건 결제 {priceKRW.toLocaleString('ko-KR')}원 또는 꿀방울 {honeyCost}개로 해금해요. 이용권은 공통 결제창에서 적용 여부를 확인할 수 있어요.</p>
+  <p>같은 계정·같은 출생정보로 해금한 결과는 저장된 원문을 추가 결제·차감 없이 다시 읽을 수 있어요. 이전 무료 열람만으로는 유료 해금 권리가 생기지 않아요.</p>
   <div className={styles.picker}><ProfilePicker state={state} locale="ko" showPolicyNote={false} onLogin={login}/></div>
-  <button className={styles.primary} type="button" disabled={state.loading||(!state.guest&&!ready)} onClick={()=>state.guest?login():setOpened(true)}>
-   {state.loading?'프로필 확인 중':state.guest?'가입하고 무료로 알아보기':'내 프로필로 결과 보기'}
-  </button>
-  {result?.error&&<p role="alert">{result.error} 다른 카드를 선택하거나 위에서 정확한 정보로 카드를 추가해 주세요.</p>}
+  <div className={styles.paymentActions} aria-busy={busy}>
+   <button className={styles.primary} type="button" disabled={busy||state.loading||(!state.guest&&!ready)} onClick={()=>void open('payment')}>
+    {busy?'해금·결과 확인 중':state.loading?'프로필 확인 중':state.guest?'로그인하고 리포트 확인하기':owns?'결과 확인하기':'이용권·단건 결제로 열기'}
+   </button>
+   {!owns&&!state.guest&&<button className={styles.primary} type="button" disabled={busy||!ready} onClick={()=>void open('honey')}>꿀방울 {honeyCost}개로 열기</button>}
+  </div>
+  {error&&<p role="alert">{error}</p>}
   {result?.report&&<article className={styles.report} aria-label="나의 일 스타일 리포트">
    <header className={styles.reportHeader}>
     <img className={styles.reportPortrait} src="/fuctionassets/career-style-yeoni.webp" alt="나의 일 스타일 탐색을 함께하는 꽃돼지 연이" width={600} height={400} loading="lazy" decoding="async"/>
@@ -103,7 +159,7 @@ export default function CareerStyleClient(){
     {result.report.limitations.map((line:string)=><p key={line}>{line}</p>)}
    </details>
    <p className={styles.notice}>{result.report.disclaimer}</p>
-   <footer className={styles.share}><h3>나를 알아가는 질문, 함께 나눠 볼까요?</h3><p>공유는 선택이에요. 유형 요약과 소개 링크만 전달하며, 이름·출생정보·개인 리포트 본문은 포함하지 않습니다.</p>
+   <footer className={styles.share}><h3>나를 알아가는 질문, 함께 나눠 볼까요?</h3><p>공유는 선택이에요. 소개 문구와 공개 링크만 전달하며, 이름·출생정보·개인 리포트 본문은 포함하지 않습니다.</p>
     <button type="button" className={styles.primary} onClick={()=>void share()}>일 스타일 소개 공유하기</button>
     <p role="status">{shareStatus}</p>{manual&&<label>직접 복사할 공개 주소<input readOnly value={CAREER_URL} onFocus={e=>e.currentTarget.select()}/></label>}
    </footer>

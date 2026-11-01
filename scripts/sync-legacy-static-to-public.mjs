@@ -918,6 +918,8 @@ function cpSyncWithRetry(sourcePath, destinationPath, options) {
 
 // 캐시 키는 자산별 내용 해시로 찍는다(scripts/lib/asset-cache-keys.mjs).
 // buildTimestamp 는 레포에 파일이 없는 참조(이미지·외부 URL)에만 쓰는 대비값이다.
+// Price-derived source copy must be current before mirror copying and cache hashing.
+syncSajuReadingPrices(rootDir);
 const buildTimestamp = resolveDeterministicCacheKey();
 restampRootLoaderFiles(buildTimestamp);
 
@@ -1355,7 +1357,6 @@ function syncSearchIgnoreList() {
   console.log(`[sync-legacy-static-to-public] Wrote .ignore search-exclusion block (${body.length} mirrors).`);
 }
 
-syncSajuReadingPrices(rootDir);
 syncRootAssetCacheKeys();
 
 sanitizePublicGoogleFontReferences(publicDir);

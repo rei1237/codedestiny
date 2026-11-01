@@ -1,5 +1,6 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { getHoneyUnlockProduct } from '../../worker/lib/honey-unlock-catalog.js';
 import { getBillingFeaturePricing } from '../../worker/lib/billing-feature-registry.js';
 
 // Presentation seeds use the same resolver as billing; no second price table.
@@ -21,6 +22,10 @@ export function syncSajuReadingPrices(root) {
     html = html.replace(new RegExp(`<button\\b(?=[^>]*data-unlock-key="${featureKey}")[^>]*>`, 'g'), tag =>
       tag.replace(/data-unlock-cost="\d+"/, `data-unlock-cost="${cost}"`));
   }
+  const career=getHoneyUnlockProduct('saju-career-style');
+  const careerLabel=career.cashPriceKRW.toLocaleString('ko-KR')+'원 또는 꿀방울 '+career.honeyCost+'개';
+  updated=updated.replace(/(id:"career-style"[^\n]+?badge:")[^"]*(")/, '$1'+careerLabel+'$2');
+  html=html.replace(/(<span data-career-style-price>)[^<]*(<\/span>)/g, '$1'+careerLabel+'$2');
   if (updated !== source) writeFileSync(dashboard, updated);
   const sibyl = getBillingFeaturePricing({featureKey:'premium-sibyl-dominator'});
   if (!sibyl.ok || !Number.isSafeInteger(sibyl.pricing.amountKRW)) throw new Error('Missing Sibyl price');
@@ -28,6 +33,6 @@ export function syncSajuReadingPrices(root) {
   if (html !== readFileSync(file, 'utf8')) writeFileSync(file, html);
   const registryFile=join(root,'js/core/service-registry.js');
   const registry=readFileSync(registryFile,'utf8');
-  const updatedRegistry=registry.replace(/(featureKey: "premium-sibyl-dominator",\s*price: ")[^"]*(")/, '$1'+sibyl.pricing.amountKRW.toLocaleString('ko-KR')+'원$2');
+  const updatedRegistry=registry.replace(/(featureKey: "saju-career-style", price: ")[^"]*(")/, '$1'+careerLabel+'$2').replace(/(featureKey: "premium-sibyl-dominator",\s*price: ")[^"]*(")/, '$1'+sibyl.pricing.amountKRW.toLocaleString('ko-KR')+'원$2');
   if(updatedRegistry!==registry) writeFileSync(registryFile,updatedRegistry);
 }

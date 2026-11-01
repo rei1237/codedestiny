@@ -81,3 +81,5 @@
  .sample,.picker { padding:20px; }
  .page .primary { width:100%; }
 }
+
+.paymentActions { display:flex; flex-wrap:wrap; gap:12px; }

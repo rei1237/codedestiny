@@ -17397,24 +17397,24 @@
     "saju_career_style": {
       "fallbackTitle": "My work style",
       "tagline": "An eight-chapter Korean saju self-reflection report based on your profile card. Explore tendencies, the month branch and working conditions.",
-      "premiumIntro": "Sign in, then select or create a profile card to read for free.",
-      "fallbackCta": "Sign in to explore for free",
-      "premiumOutcomes": {
-        "0": "No payment, reviews or sharing required.",
-        "1": "Saju-based self-reflection content; not a substitute for professional career assessments or psychological counseling."
-      },
-      "receives": {
-        "0": {
+      "premiumIntro": "The introduction and sample are free. Unlock your personal report with payment or Honey Drops.",
+      "fallbackCta": "View report unlock options",
+      "premiumOutcomes": [
+        "The introduction and sample are free. Unlock your personal report with payment or Honey Drops.",
+        "Saju-based self-reflection content; not a substitute for professional career assessments or psychological counseling."
+      ],
+      "receives": [
+        {
           "title": "My work style",
           "detail": "An eight-chapter Korean saju self-reflection report based on your profile card. Explore tendencies, the month branch and working conditions."
         }
-      },
-      "outline": {
-        "0": {
+      ],
+      "outline": [
+        {
           "title": "Your report journey",
           "detail": "Explore tendencies and the month branch, working conditions and roles, the downsides of strengths, and small career experiments."
         }
-      }
+      ]
     }
   },
   "featureMarketingCategory": {
@@ -22226,6 +22226,10 @@
       "tarot-myeongri-three-card": {
         "title": "Drei-Karten-Tarotdeutung",
         "description": "Der Zusammenhang deiner drei Karten und praktische nächste Schritte"
+      },
+      "saju-career-style": {
+        "title": "Mein Arbeitsstil",
+        "description": "Ein koreanischer Saju-Bericht zur Selbstreflexion in acht Kapiteln, basierend auf deiner Profilkarte. Erkunde Neigungen, den Monatszweig und Arbeitsbedingungen."
       }
     },
     "collectedBonus": "Inklusive {days}-Tage-Serienbonus von {bonus} Tropfen! ",
