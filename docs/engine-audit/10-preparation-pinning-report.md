@@ -72,3 +72,7 @@ Mongoose 실제 스키마를 오프라인으로 적용하자 기본 `minimize`�
 작업은 격리 감사 워크트리에 보존한다. 다른 세션 변경은 건드리지 않고 main 병합·push·배포하지 않는다. 로컬 커밋 및 마지막 정적 검사 결과는 아래에 기록한다.
 
 재실행 명령은 `node tools/oracle/preparation-pinning/checks.mjs <새-결과파일명.json>`이다. 기존 증거는 덮어쓰지 않는다. [manifest.json](results/preparation-pinning-20261101/manifest.json)에 테스트·검사기·증거 파일 해시를 고정했다. 문서 상대 링크 검사·`verify:doc-freshness`·공백 검사는 통과했다.
+
+구현 로컬 커밋: `bb6923f4dca309310c15be2874845b4cb92f9a74`. 첫 `check:pre-push`에서 `config/sitemap-lastmod.json`의 `/ziwei-ai/` 소스 지문 드리프트가 발생했다. 네트워크 차단 상태에서 공식 `scripts/generate-sitemap.mjs`를 실행했고, **해당 지문 한 줄만** 바뀌었다(수정일·1,037개 URL·색인 정책 불변). 생성 원장은 `2d5480eb6`에 로컬 커밋했다.
+
+이후 커밋된 트리에서 `npm run check:pre-push` **종료 0**: 홈 등록부 63개, 공개 미러 차이 없음, 사이트맵 1,037개, llms, SEO 등록부 통과. 이 정적 전달 검사에는 기존 실패인 `payment-choice-parity`가 포함되지 않으므로 그 실패는 여전히 남는다. 검증된 코드/증거/원장은 격리 작업 공간에 커밋했고, push·배포·운영 ON·main 병합 없이 종료한다.
