@@ -193,6 +193,9 @@ export function createVerificationPlan(changes, { profile = "fast", skipBuild = 
   const failClosed = !changes.complete || !files.length || unknown;
   const critical = failClosed || sourceRemoval || shared || forceCritical || deep.required || risk.level === "high" || ["payment", "all"].includes(profile);
   const docsOnly = !critical && profile === "fast" && files.every((file) => /(?:\.mdx?$|^docs\/)/i.test(file));
+  // CSS·이미지·문서는 tsc 입력이 아니다(`*.module.css` 는 types/css-modules.d.ts 의 와일드카드 선언).
+  // 그래서 결과가 바뀔 수 없는 typecheck 만 뺀다. 소스를 텍스트로 읽는 test:node 는 그대로 돈다.
+  const presentationOnly = files.every((file) => /\.(?:css|scss|sass|less|svg|png|jpe?g|webp|gif|ico|avif|mdx?)$/i.test(file));
   const tier = critical ? "critical" : risk.level === "low" ? "fast" : "standard";
   const needsBuild = !docsOnly && tier !== "fast";
   const both = failClosed || sourceRemoval || shared || deep.required || ["payment", "all"].includes(profile) || forceCritical || files.some((file) => /(?:payment|billing|auth|login|entitlement|unlock|pass-verdict)/i.test(file));
@@ -216,7 +219,7 @@ export function createVerificationPlan(changes, { profile = "fast", skipBuild = 
     add({ kind: "lint-changed" });
     if (critical) npm("lint");
     npm("verify:sitemap-drift");
-    npm("typecheck");
+    if (critical || !presentationOnly) npm("typecheck");
     // Static guards read source as text, outside Jest's import graph.
     npm("test:node");
     if (critical) {

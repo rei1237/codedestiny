@@ -69,6 +69,18 @@ test('missing base and empty diff select full checks', async () => {
   }
 });
 
+test('presentation-only changes skip typecheck but keep static guards', async () => {
+  const { createVerificationPlan } = await load();
+  const names = (files) => createVerificationPlan(input(files), { scripts }).steps.map((step) => step.name);
+  for (const files of [['styles/site.css'], ['app/channel/page.module.css'], ['styles/site.css', 'public/images/a.webp']]) {
+    assert.equal(names(files).includes('typecheck'), false, files.join());
+    assert.equal(names(files).includes('test:node'), true, files.join());
+  }
+  for (const files of [['app/components/Button.tsx'], ['styles/site.css', 'app/components/Button.tsx'], ['styles/site.css', 'lib/payment/portone.ts']]) {
+    assert.equal(names(files).includes('typecheck'), true, files.join());
+  }
+});
+
 test('only a complete empty diff counts as nothing to verify', async () => {
   const { nothingToVerify } = await load();
   assert.equal(nothingToVerify(input([])), true);
