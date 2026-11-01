@@ -5,7 +5,7 @@ status: done
 ## 최종 구현
 - 별도 서가·카테고리 페이지와 RecommendationBrowse, 전용 필터·복귀 저장·더 보기 링크를 제거했다. 기존 주소는 대표 홈301, /api/recommendations와 /admin/recommendations는 유지한다.
 - 대표 홈과 꿀꿀운세 홈의 푸터 위, 완료된 결과의 저장·공유 영역 뒤에 검수한 상품 사진을 최대4개 표시한다. 관련 상품이 없거나 이미지 로딩에 실패하면 해당 카드·빈 영역을 숨긴다. 입력·생성·결제·정책·관리자·블로그에는 새 광고를 추가하지 않는다. 관리자 미리보기는 별도 검수 UI다.
-- 승인된 달빛 예화 시안: 모바일·데스크톱2×2, 사진72×88/96×112px, 명조 제목·본문 서체·밤·아이보리·골드. 실제 상품명·짧은 추천 이유·판매처 버튼·제휴 고지를 정돈했다. 원본 상품 가격·링크·속성 데이터는 보존했다.
+- 승인된 달빛 예화 시안: 모바일·데스크톱2×2, 사진72×88/96×112px, 명조 제목·본문 서체. 꿀꿀운세는 밝은 크림·짙은 글자·로즈, 영냥이는 기존 밤·아이보리·골드를 사용한다. 실제 상품명·짧은 추천 이유·판매처 버튼·제휴 고지를 정돈했다. 원본 상품 가격·링크·속성 데이터는 보존했다.
 - 적격·이미지·검수·판매 상태·만료·관련성·판매처 공개 필터를 먼저 적용한 뒤 익명 일회성 seed로 무작위 선택한다. 새 방문·다른 상품 보기에서 새 선택, 같은 화면60초 공개설정 갱신에는 기존 선택 유지. seed는 개인 정보와 연결·저장·통계 전송하지 않는다. 기존 API 응답과 result/browse/footer 지표 호환 유지.
 - 공용 하단 홈 아이콘을 연꽃으로 교체했다. 메뉴5개의 이름·순서·경로 유지. 대표 /는 기존 AppChrome 규칙대로 공용 메뉴가 없는 상태를 유지한다. /ggulggul/와 React /app/ 공용 메뉴의 실제 연꽃 표시를 확인했다.
 
@@ -27,7 +27,7 @@ status: done
 - 광고 본체29a41c917 CI는 critical·type/lint·build 통과, static guard의 사이트맵 원장 실패는da6c26bc4에서 보완했다.
 - 최종 서비스 커밋 bf38cbed59e4fa04ca083e6c0bb79f21b9a69f24의 필수 CI 성공: https://github.com/rei1237/codedestiny/actions/runs/41302211143 (선언된 실행 lane 모두 성공, critical lane은 해당 후속 범위에서skip).
 
-## 공식 운영 반영과 실제 검수
+## 1차 공식 운영 반영과 실제 검수
 - 승인된 production 배포를1회 요청, 성공: https://github.com/rei1237/codedestiny/actions/runs/41304026511
 - Pages /version.json과 Worker /api/version 모두 bf38cbed59e4fa04ca083e6c0bb79f21b9a69f24.
 - 실제 /와/ggulggul/ ×360·390·430·1280px8뷰: 사진4개·2열·72/96px·원본212px·실제Myeongjo fontface 로딩·제목25/31px·제휴고지·CTA44px hit-test·가로 넘침0·중복0·Ali0·JSerror0.
@@ -36,3 +36,17 @@ status: done
 - 결제 가격·이용권·월정석·단건결제·인증·운세 계산·상담 생성·결과 저장·DB 스키마 유지.
 
 검증 근거·사진 등록 전후 자료: outputs/affiliate-inline-20261101. 최종 운영 캡처·CI/배포 영수증·시각 검수·변경파일·정리 결과: outputs/affiliate-moonlight-implementation-20261101.
+
+## 최종 보완 — 브랜드별 톤과 상단 가림
+- 사용자 후속 승인에 따라 꿀꿀운세의 광고·카드·고지를 기존 cd-samples 밝은 팔레트로 통일하고 영냥이 밤빛을 유지했다. 개별 카드의 고정 moonlight 브랜드를 실제 호스트 브랜드로 연결하고 관리자 미리보기도 같은 선택을 따르게 했다.
+- 비활성 fsn 상단 표시줄은 필수 CSS에서 visibility:hidden으로 확실히 숨기고 fsn-visible일 때만 표시한다. 기존 결과 내비게이션 기능은 유지한다. 광고와 H2에 상단 scroll-margin72px와 하단 메뉴 여백을 설정했다.
+- 제목이 가려진 이전 화면을 캡처 artifact로만 완화했던 시각 판정은 철회했다. 현재는 제목으로 진입한 첫 상태의 가림과 정상 하단 스크롤을 분리해 검수한다.
+- 변경 원본 ecb4507a3, 다른 세션 최신 main을 보존한 서비스 커밋98643c274597e5c87cb72f678dc24aae317bd761. 원장 충돌만 기존 sitemap 생성기로 재생성했다.
+- 관련 Node56검사·변경파일ESLint·payment-freeze·modulegraph·check:pre-push 전체통과. 로컬 check:fast는90개로자동승격됐으나동시검사경합·여유메모리0.49GB로우리30740프로세스만중단했다. 통과로기록하지않으며다른세션1948은보존했다.
+- 공식CI41309160320은6잡전부성공: https://github.com/rei1237/codedestiny/actions/runs/41309160320
+- 공식운영41310979025를1회요청해성공: https://github.com/rei1237/codedestiny/actions/runs/41310979025
+- 현재운영Pages/Worker모두98643c274597e5c87cb72f678dc24aae317bd761 일치. 실제두홈360·390·430·1280px8뷰에서 밝은bg(255,249,244)·짙은ink(64,42,56)·light색상·카드4·2열·사진72/96px·제목hit·고지·CTA44px·overflow0·JSerror0 확인. 제목상단은대표홈약72px/꿀꿀운세모바일약86px,비활성fsn은visibility:hidden.
+- ENTRY와LOWER16장 및390×1500 전체영역검수용1장(실폰아닌브라우저)을독립시각검수해SHIP. 상품바꾸기와이미지실패숨김도두경로통과.
+- 영냥이는기존night룰·night-tokens·COMPLETED결과의brand가불변임을대조하고로컬4뷰로확인했다. 새유료운영결과생성·결제는수행하지않았다. 로컬전체12뷰·관리자미등록이미지안내명암도통과.
+- 상품선택·이미지주소·제휴고지·판매처링크·가격·인증·운세계산·상담생성·결과저장·DB/API·연꽃메뉴는이번보완에서변경하지않았다.
+- 최종근거·캡처·수정파일·정리결과: outputs/affiliate-brand-fix-20261101.
