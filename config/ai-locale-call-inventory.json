@@ -140,6 +140,16 @@
     ]
   },
   {
+    "file": "scripts/configure-snulife-review.mjs",
+    "matches": [
+      {
+        "line": 12,
+        "kind": "provider-url",
+        "symbol": "direct REST"
+      }
+    ]
+  },
+  {
     "file": "scripts/i18n-translate-pending.mjs",
     "matches": [
       {
