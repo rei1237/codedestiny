@@ -534,7 +534,7 @@
     "mobile:android:open": "cd apps/mobile && npx cap open android",
     "preview:worker": "node scripts/preview-worker.mjs",
     "start": "next start",
-    "lint": "eslint --quiet app components lib pages src",
+    "lint": "eslint --quiet --cache --cache-strategy content --cache-location build-cache/eslint/ app components lib pages src",
     "lint:changed": "node scripts/lint-changed-files.mjs",
     "typecheck": "tsc --noEmit",
     "test:node": "node scripts/run-mock-tests.mjs node",

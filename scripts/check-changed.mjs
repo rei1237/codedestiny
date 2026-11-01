@@ -72,7 +72,7 @@ function main() {
     }
     if (step.kind === "lint-changed") {
       const files = lintTargets(plan.files, { root });
-      if (files.length) run(process.execPath, [resolve(dirname(require.resolve("eslint/package.json")), "bin/eslint.js"), "--quiet", "--", ...files]);
+      if (files.length) run(process.execPath, [resolve(dirname(require.resolve("eslint/package.json")), "bin/eslint.js"), "--quiet", "--cache", "--cache-strategy", "content", "--cache-location", "build-cache/eslint/", "--", ...files]);
     }
     if (step.kind === "jest-related") {
       const files = lintTargets(plan.files, { root });
