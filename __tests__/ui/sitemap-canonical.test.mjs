@@ -121,6 +121,27 @@ test('verify-dist flags a violating page by rule id', async () => {
   assert.equal(result.counts['sitemap-set'], 1);
 });
 
+test('og-url is a failing rule and og-home-title counts sub-pages that repeat the home og:title', async () => {
+  assert.equal(RULES['og-url'], 'fail');
+  assert.equal(RULES['og-home-title'], 'fail');
+  const og = (title) => `<meta property="og:title" content="${title}">`;
+  const files = (subTitle) => ({
+    'sitemap.xml': urlset(['/', '/a/', '/b/']),
+    'sitemap-index.xml': sitemapIndex(['sitemap-ko.xml']),
+    'sitemap-ko.xml': urlset(['/', '/a/', '/b/']),
+    '_redirects': '',
+    'index.html': htmlPage('/', { head: og('꿀꿀 운세 홈') }),
+    'a/index.html': htmlPage('/a/', { head: og(subTitle) }), // 홈 og:title 을 물려받은 쪽
+    'b/index.html': htmlPage('/b/'), // og:title 이 없는 쪽은 상속이 아니므로 세지 않는다
+  });
+  const inherited = await inspectDist({ distDir: writeDist(files('꿀꿀 운세 홈')), edge: false, rules: ['og-home-title'] });
+  assert.equal(inherited.counts['og-home-title'], 1, JSON.stringify(inherited.details['og-home-title']));
+  assert.match(inherited.details['og-home-title'][0], /\/a\//);
+  assert.equal(inherited.failures.length, 1);
+  const own = await inspectDist({ distDir: writeDist(files('사주 풀이')), edge: false, rules: ['og-home-title'] });
+  assert.equal(own.counts['og-home-title'], 0);
+});
+
 test('loc-to-file: percent-encoded Korean, .html and slashless locs map to their dist files', async () => {
   const locs = ['/a/', KO_SAJU, '/policy.html', '/plain'];
   const dir = writeDist({

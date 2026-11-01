@@ -100,13 +100,12 @@ export const metadata = {
   //    이 레이아웃의 메타데이터가 덮이므로, 홈의 canonical·hreflang 은 셸의 <head> 와
   //    사이트맵(scripts/generate-sitemap.mjs 의 i18nRouteGroups)이 담당한다.
   //    회귀 가드: scripts/verify-adsense-readiness.mjs 의 verifyNoInheritedHomeCanonical.
+  // 하위 페이지가 홈 og:url·og:title 을 물려받지 않게 루트에는 공통 값(type·locale·siteName·images)만 둔다.
+  // 제목·설명·URL 은 각 페이지가 자기 openGraph 로 선언한다(홈은 app/page.js).
   openGraph: {
     type: "website",
     locale: "ko_KR",
-    url: siteSeo.siteUrl,
     siteName: siteSeo.brandName,
-    title: ROOT_SEO.ogTitle,
-    description: ROOT_SEO.ogDescription,
     images: [
       {
         url: siteSeo.defaultOgImage,
@@ -118,8 +117,6 @@ export const metadata = {
   },
   twitter: {
     card: siteSeo.twitterCard,
-    title: ROOT_SEO.ogTitle,
-    description: ROOT_SEO.ogDescription,
     images: [siteSeo.defaultOgImage],
   },
   // verification: 손대지 말 것 — 2026-08-13 Cloudflare DNS TXT 로 GSC 도메인 속성 인증을 마쳤다.

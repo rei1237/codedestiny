@@ -31,7 +31,9 @@ export const RULES = {
   "home-identity": "fail",
   "duplicate-title": "warn",
   "duplicate-description": "warn",
-  "og-url": "warn",
+  "og-url": "fail",
+  // 루트 레이아웃의 og:title 이 하위 페이지로 상속되면 모든 쪽이 홈과 같은 제목으로 공유된다. 홈이 아닌 쪽의 og:title 이 홈과 같으면 1건.
+  "og-home-title": "fail",
   "hreflang-sitemap": "warn",
   "edge-slash-308": "warn",
   "edge-country-302": "warn",
@@ -87,6 +89,7 @@ function pageFacts(html, loc, origin) {
     hasBodyText: stripTags(body).length > 0,
     canonical: getCanonical(html)[0],
     ogUrls: getMeta(html, "og:url"),
+    ogTitles: getMeta(html, "og:title"),
     hreflang: getHreflang(html),
     links: getInternalLinks(html, origin),
   };
@@ -214,6 +217,15 @@ function checkOgUrl(site) {
   return details;
 }
 
+function checkOgHomeTitle(site, origin) {
+  const homePath = safePathname(`${origin}/`);
+  const homeTitle = site.pages.find((page) => page.path === homePath)?.facts?.ogTitles[0]?.trim();
+  if (!homeTitle) return [];
+  return site.pages
+    .filter((page) => page.path !== homePath && page.facts?.ogTitles.some((title) => title.trim() === homeTitle))
+    .map((page) => `${page.loc}: og:title 이 홈과 같다 "${homeTitle}"`);
+}
+
 // HTML hreflang 집합과 사이트맵 alternates 집합을 (언어 코드 소문자, href) 쌍으로 비교한다.
 //   xdefault-sitemap-only  사이트맵에만 x-default 가 있다
 //   code-sitemap-only      사이트맵에만 있는 언어 코드가 있다
@@ -287,6 +299,7 @@ export async function inspectDist({ distDir, origin = BRAND_FACTS.service.siteUr
   if (wants("duplicate-title")) details["duplicate-title"] = checkDuplicates(site, "title");
   if (wants("duplicate-description")) details["duplicate-description"] = checkDuplicates(site, "description");
   if (wants("og-url")) details["og-url"] = checkOgUrl(site);
+  if (wants("og-home-title")) details["og-home-title"] = checkOgHomeTitle(site, origin);
   if (wants("hreflang-sitemap")) details["hreflang-sitemap"] = checkHreflangSitemap(site, distDir);
   let edgeError = null;
   if (EDGE_RULES.some(wants)) {
