@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { createAssetCacheKeys } from '../../scripts/lib/asset-cache-keys.mjs';
-import { analyticsAllowed, observeRecommendationProducts, observeRecommendation, recommendationQuery, trackRecommendation } from '../../js/recommendations-browser.mjs';
+import { createRecommendationSeed, analyticsAllowed, observeRecommendationProducts, observeRecommendation, recommendationQuery, trackRecommendation } from '../../js/recommendations-browser.mjs';
 
 function setGlobal(t, key, value) { const old = Object.getOwnPropertyDescriptor(globalThis, key); Object.defineProperty(globalThis,key,{value,writable:true,configurable:true}); t.after(()=>{if(old)Object.defineProperty(globalThis,key,old);else delete globalThis[key];}); }
 
@@ -26,6 +26,13 @@ test('only existing affirmative cookie consent permits analytics', t => {
 test('query projection drops counselling, identity and report data', () => {
   const query = recommendationQuery({service:'legacy-saju',interests:['journaling'],reportId:'private-report',question:'secret',name:'private-name',url:'https://evil.invalid'});
   assert.equal(query,'service=legacy-saju&source=result&currency=KRW&interest=journaling');
+});
+test('selection seeds contain no identity, rotate per mount and reject arbitrary text', () => {
+ const seeds=Array.from({length:20},createRecommendationSeed);
+ assert.equal(new Set(seeds).size,20);
+ assert.ok(seeds.every(seed=>/^[a-f0-9]{32}$/.test(seed)));
+ assert.equal(new URLSearchParams(recommendationQuery({selectionSeed:seeds[0]})).get('seed'),seeds[0]);
+ assert.equal(new URLSearchParams(recommendationQuery({selectionSeed:'private question@example.com'})).has('seed'),false);
 });
 test('impression waits for half-visible one second and counts once, without navigation', t => {
   let intersection, fire, cleared=0, count=0, visibility, disconnected=false;

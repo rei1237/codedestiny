@@ -135,16 +135,16 @@ test('legacy results cap cards, retain result actions and hide failed requests',
  try {
   for(const k of ['window','document','sessionStorage','location'])globalThis[k]=k==='window'?dom.window:dom.window[k];
   globalThis.setInterval=()=>0;globalThis.clearInterval=()=>{};
-  const products=Array.from({length:3},(_,i)=>({id:String(i),category:'books',title:'검증 도서 '+i,imageUrl:'/images/fixture.png',reason:'기록 실천',affiliateUrl:'https://link.coupang.com/a/FixtureOnly',price:null}));
+  const products=Array.from({length:6},(_,i)=>({id:String(i),category:'books',title:'검증 도서 '+i,imageUrl:'/images/fixture.png',reason:'기록 실천',affiliateUrl:'https://link.coupang.com/a/FixtureOnly',price:null}));
   globalThis.fetch=async()=>({ok:true,json:async()=>({enabled:true,products})});
   const { mountRecommendation, mountSajuRecommendation }=await import('../../js/recommendations-legacy.mjs');
   const host=document.querySelector('main'),save=document.querySelector('#save');
   await mountRecommendation(host,{service:'legacy-tarot',source:'result'},save);
-  assert.equal(host.querySelectorAll('article').length,2);
+  assert.equal(host.querySelectorAll('article').length,4);
   assert.equal(save.nextElementSibling?.dataset.recommendationBlock,'true');
   assert.ok(host.firstElementChild.classList.contains('cd-recommendations-disclosure'));
-  assert.equal(host.querySelector('.cd-recommendations h2')?.textContent,'풀이를 일상으로 잇는 작은 선택');
-  assert.equal(host.querySelector('.cd-recommendations-lead'),null);
+  assert.equal(host.querySelector('.cd-recommendations h2')?.textContent,'풀이를 일상에 담는 작은 선택');
+  assert.equal(host.querySelector('.cd-recommendations-lead')?.textContent,'기록하고, 집중하고, 잠시 쉬어가는 시간을 위해.');
   const advice=document.createElement('ul');advice.id='iljuAdviceList';advice.innerHTML='<li>집중 시간을 확보하세요.</li>';host.prepend(advice);
   let requested;
   globalThis.fetch=async url=>{requested=new URL(url,'http://localhost');return {ok:true,json:async()=>({enabled:true,products:requested.searchParams.has('topic')?products:[]})};};
@@ -152,14 +152,20 @@ test('legacy results cap cards, retain result actions and hide failed requests',
   assert.equal(requested.searchParams.get('topic'),'focus');
   assert.equal(requested.searchParams.get('service'),'legacy-saju');
   assert.equal(requested.searchParams.has('advice'),false);
-  assert.equal(host.querySelectorAll('article').length,2);
-  // 실천 조언에서 고른 추천은 그 사실을 한 줄로 알리고, 가격 미확인 카드는 CTA 하나가 가격 확인을 맡는다.
+  assert.equal(host.querySelectorAll('article').length,4);
+  assert.match(requested.searchParams.get('seed'),/^[a-f0-9]{32}$/);
+  // 실천 조언과 연결되는 이유를 밝히고 판매처에서 현재 조건을 확인한다.
   assert.equal(host.querySelector('.cd-recommendations-lead')?.textContent,'풀이의 실천 조언에 맞춰 골랐어요.');
   const cta=host.querySelector('article a');
   assert.equal(cta.className,'cd-recommendations-cta');
-  assert.equal(cta.textContent,'쿠팡에서 현재 가격 확인 ↗');
-  assert.equal(host.querySelector('article').textContent.split('현재 가격 확인').length,2);
+  assert.equal(cta.textContent,'쿠팡에서 보기 ↗');
   assert.equal(save.nextElementSibling?.dataset.recommendationBlock,'true');
+  const previousSeed=requested.searchParams.get('seed');
+  host.querySelector('.cd-recommendations-shuffle').click();
+  await new Promise(r=>setTimeout(r,20));
+  assert.notEqual(requested.searchParams.get('seed'),previousSeed);
+  for(const img of host.querySelectorAll('article img'))img.dispatchEvent(new dom.window.Event('error'));
+  assert.equal(host.querySelectorAll('[data-recommendation-block]').length,0);
   advice.innerHTML='<li>상대방은 일기를 기록하세요.</li>';
   await mountSajuRecommendation(host,save);
   assert.equal(host.querySelectorAll('[data-recommendation-block]').length,0);

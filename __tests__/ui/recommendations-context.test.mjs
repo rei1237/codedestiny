@@ -110,14 +110,14 @@ test('sukuyo compatibility and the free human design chart read only their actio
  assert.deepEqual(humanDesignChartAdviceTopics(null),[]);
 });
 
-test('result pair adds action coverage or a practical companion without changing browse order',()=>{
+test('four result cards add action coverage or a practical companion without changing browse order',()=>{
  const book=product('focus-book','focus');
  const duplicate=product('focus-book-two','focus',{order:101});
  const timer=product('focus-timer','focus',{category:'daily-life',kind:'timer',order:102});
  const diary=product('daily-journal','journaling',{kind:'journal',order:103});
  const c={service:'fortune-chat',source:'result',practiceTags:['focus']};
- assert.deepEqual(selectProducts([book,duplicate,timer,diary],c,now).map(p=>p.id),['focus-book','focus-timer']);
- assert.deepEqual(selectProducts([book,duplicate,timer,diary],{...c,practiceTags:['focus','journaling']},now).map(p=>p.id),['focus-book','daily-journal']);
+ assert.deepEqual(selectProducts([book,duplicate,timer,diary],c,now).map(p=>p.id),['focus-book','focus-timer','focus-book-two']);
+ assert.deepEqual(selectProducts([book,duplicate,timer,diary],{...c,practiceTags:['focus','journaling']},now).map(p=>p.id),['focus-book','daily-journal','focus-timer','focus-book-two']);
  assert.deepEqual(selectProducts([book,duplicate,timer,diary],{...c,source:'browse'},now).map(p=>p.id),['focus-book','focus-book-two','focus-timer']);
  assert.deepEqual(selectProducts([book,diary],c,now).map(p=>p.id),['focus-book']);
  assert.deepEqual(selectProducts([book,timer],{...c,practiceTags:[]},now),[]);
@@ -156,11 +156,11 @@ test('expanded editorial catalogue matches advice and keeps publication gates cl
   ['rest',['mindfulness-poems-ko','bigtree-rest-mask']],
   ['self-compassion',['live-as-me-ko']],
   ['meaning-purpose',['mans-search-meaning-ko']],
- ]) assert.deepEqual(choose([tag]).map(p=>p.id),expected,tag);
+ ]) assert.deepEqual(choose([tag]).slice(0,2).map(p=>p.id),expected,tag);
  assert.equal(choose(['focus','journaling'])[1].id,'reflection-notebook-pair');
  assert.deepEqual(choose([]),[]);
  assert.deepEqual(choose(['symbolism','supplement-information']),[]);
- for(const tag of release.selectionStrategy.coverage) assert.ok(choose([tag]).length>0 && choose([tag]).length<=2,tag);
+ for(const tag of release.selectionStrategy.coverage) assert.ok(choose([tag]).length>0 && choose([tag]).length<=4,tag);
  assert.equal(selectProducts(catalogue,{service:'recommendations',source:'browse',practiceTags:['symbolism'],color:'pink'},now)[0].id,'rosequartz-pink-6mm');
  assert.deepEqual(selectProducts(catalogue.map(p=>({...p,stock:'sold-out'})),{service:'fortune-chat',practiceTags:['focus']},now),[]);
  assert.deepEqual(selectProducts(catalogue,{service:'fortune-chat',practiceTags:['focus']},now+31*86400000),[]);
