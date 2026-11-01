@@ -189,6 +189,7 @@
 /public/js/core/shell-sheet.js
 /public/js/core/signup-benefit-policy.mjs
 /public/js/core/snu-campus-policy.mjs
+/public/js/core/snu-reading-flow.mjs
 /public/js/core/standalone-ai-locale.js
 /public/js/core/sukuyo-astronomy.js
 /public/js/core/uiBindings.js

@@ -1,4 +1,13 @@
 /* Owned by the static saju surface, never by the shared mobile wrapper. */
+.saju-reading-header:has(.saju-reading-toc) { flex-wrap: wrap; }
+.saju-reading-toc { flex-basis: 100%; grid-column: 1 / -1; width: 100%; }
+.saju-reading-toc summary, .saju-gift-contents summary { min-height: var(--cd-btn-h); padding-block: var(--cd-sp-sm); font-weight: 700; cursor: pointer; }
+.saju-reading-toc nav, .saju-gift-contents nav { display: flex; flex-wrap: wrap; gap: var(--cd-sp-sm); }
+.saju-reading-toc a, .saju-gift-contents a { display: inline-flex; align-items: center; min-height: var(--cd-btn-h); padding: var(--cd-sp-sm) var(--cd-sp-md); border: 1px solid var(--cd-border); border-radius: var(--cd-r-control); color: inherit; text-underline-offset: 4px; line-height: 1.6; }
+.saju-gift-contents { margin-block: var(--cd-sp-lg); padding: var(--cd-sp-lg); border: 1px solid var(--cd-border); border-radius: var(--cd-r-card); background: var(--cd-surface); color: var(--cd-text); }
+.saju-gift-contents p { margin-block: var(--cd-sp-sm) var(--cd-sp-md); font-size: .9rem; line-height: 1.7; }
+.saju-reading-toc :is(a, summary):focus-visible, .saju-gift-contents :is(a, summary):focus-visible { outline: 2px solid var(--cd-focus-ring); outline-offset: 3px; }
+#resultPage :is(#summaryCard, #sajuCard, #daewunCard, #reportDashboardCard) { scroll-margin-top: var(--cd-sp-xl); }
 #resultPage .career-style-entry { display:grid; grid-template-columns:minmax(140px,.8fr) minmax(0,1.5fr); align-items:center; gap:24px; margin:24px 0; padding:18px; border:1px solid var(--cd-border,#e5ccd5); outline:1px solid var(--cd-border,#e5ccd5); outline-offset:-6px; border-radius:24px; background:var(--cd-samples-sheet,#fff); color:var(--cd-samples-ink,#402a38); text-decoration:none; box-shadow:0 10px 28px #71405512; }
 #resultPage .career-style-entry img { display:block; width:100%; height:auto; border-radius:16px; }
 #resultPage .career-style-entry h3 { margin:0 0 10px; font-family:var(--font-display,"Noto Serif KR",serif); font-size:clamp(1.2rem,2vw,1.55rem); color:inherit; line-height:1.5; }

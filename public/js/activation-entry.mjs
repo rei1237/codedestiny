@@ -1,4 +1,5 @@
 import { TUTORIAL_REWARD } from './core/activation-reward-policy.mjs';
+import { hasCompleteSnuGift, mountSnuReadingContents } from './core/snu-reading-flow.mjs';
 
 const prefix = '/api/activation-rewards/';
 let account = null, campus = null, revision = 0, tutorialPending = false, pendingTutorialProfileId = '';
@@ -28,8 +29,8 @@ function renderNote(text, href, action) {
 
 function showAccountNote() {
   if (!account) return;
-  if (campus?.eligibleEmail && campus.unlockedFeatureKeys?.length !== campus.features?.length)
-    renderNote(campus.verified ? '학교 계정을 확인했어요. 사주 선물을 열어볼까요?' : 'SNU 손님, 연이가 사주 선물을 준비했어요.', '/snu/', '학교 사주 선물 확인하기');
+  if (campus?.verified && !hasCompleteSnuGift(campus))
+    renderNote('등록한 SNULIFE 사주 선물을 이어서 열어보세요.', '/snu/', '등록한 사주 선물 확인하기');
   else if (account.tutorial.eligible && account.tutorial.receipt?.status !== 'started')
     renderNote(`연이랑 무료 사주를 보고 월정석 ${TUTORIAL_REWARD.amount}개를 받아볼까요?`, '/first-steps/', '첫걸음 안내 보기');
   else if (account.tutorial.receipt?.status === 'started')
@@ -42,7 +43,7 @@ async function refresh() {
   try {
     const [reward, school] = await Promise.all([request('status'), request('snu/status')]);
     if (turn !== revision) return;
-    account = reward; campus = school; showAccountNote(); void startPendingTutorial();
+    account = reward; campus = school; showAccountNote(); showSnuContents(); void startPendingTutorial();
   } catch { if (turn === revision) { account = null; campus = null; document.getElementById('cdActivationGuide')?.remove(); } }
 }
 
@@ -55,7 +56,15 @@ async function startPendingTutorial() {
   } catch (error) { if (turn === revision) renderNote(error.message, '/first-steps/', '선물 다시 확인하기'); }
   finally { if(turn === revision)tutorialPending = false; }
 }
+function showSnuContents() {
+  const current = window.__cdGetCurrentDestinyProfile?.();
+  const displayedId = window.cdBirthScopeCurrentProfileId?.();
+  const profile = window.G_PILLARS && current && String(current.id || current.profileId || '') === String(displayedId || '') ? current : null;
+  mountSnuReadingContents(document, campus, profile);
+}
+document.addEventListener('destinyProfileChanged', () => document.getElementById('snuReadingContents')?.remove());
 window.addEventListener('cd:saju-summary-ready', () => {
+  showSnuContents();
   const profileId = typeof window._sajuPromptResolveProfileId === 'function' ? window._sajuPromptResolveProfileId() : '';
   if (!profileId) { if(account)renderNote('내 프로필을 저장하고 무료 사주를 보면 첫걸음 선물을 받을 수 있어요.', '/first-steps/', '연이의 안내 보기'); return; }
   pendingTutorialProfileId = profileId; void startPendingTutorial();
@@ -91,6 +100,7 @@ window.addEventListener('cd:destiny-profile-server-ready', () => { void refresh(
 window.addEventListener('cd:auth-changed', event => {
   revision++; account = null; campus = null; pendingTutorialProfileId = ''; tutorialPending = false;
   document.querySelector('.cd-activation-dialog')?.remove(); document.getElementById('cdActivationGuide')?.remove();
+  document.getElementById('snuReadingContents')?.remove();
   if (String(event.detail?.event || '').toLowerCase() !== 'logout') void refresh();
 });
 if (window.__cdDestinyProfileServerReady) void refresh();

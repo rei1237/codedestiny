@@ -414,6 +414,12 @@
   function renderHeader() {
     var c=langCopy(locale()), selected=mode(), neo=selected==='neo';ensureHeader();
     write('sajuReadingHeader','<img src="/images/saju/'+(neo?'yeongnyangi':'yeoni-clue')+'-160.webp" width="80" height="80" alt="" decoding="async"><div><h2>'+esc(neo?c.room:c.garden)+'</h2><p>'+esc(neo?c.neoIntro:c.yeonIntro)+'</p>'+controls()+'</div>');
+    var header=document.getElementById('sajuReadingHeader');
+    if(header&&locale()==='ko'&&!header.querySelector('.saju-reading-toc')){
+      var toc=document.createElement('details');toc.className='saju-reading-toc';
+      toc.innerHTML='<summary>풀이 목차</summary><nav aria-label="사주 풀이 목차"><a href="#summaryCard">한눈에 보는 풀이</a><a href="#sajuCard">명식과 상세 풀이</a><a href="#daewunCard">대운의 흐름</a><a href="#reportDashboardCard">관련 콘텐츠</a></nav>';
+      header.appendChild(toc);
+    }
     var form=document.getElementById('destinyCardForm');
     if(form&&!document.getElementById('sajuInputModes')){var host=document.createElement('div');host.id='sajuInputModes';host.className='saju-input-modes';form.prepend(host);}
     write('sajuInputModes','<img src="/images/first-visit/yeoni-profile-guide-v1.webp" width="64" height="96" alt="" decoding="async"><div><strong>'+esc(c.yeon)+'</strong><p>'+esc(c.garden)+'</p></div>');
