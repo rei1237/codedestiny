@@ -91,3 +91,11 @@ status: implemented-verified-local-only
 [check:fast 계획](results/payment-cache-pins-20261101/check-fast-plan.json)은 critical/full 경로를 선택했다. Swiss 연결 전체 Worker/라우트 import·전체 테스트/빌드/공식 CI는 계속 미실행이다. `verify:billing-pass-policy`와 `verify:portone-single-payment`도 기존 import 차단을 유지하며 가드를 약화하지 않는다. 허용 검사 통과를 전체 CI·실결제·운영 검증 통과로 표시하지 않는다.
 
 실제 DB·PG·LLM·운영 배포는 미실행이다. 사용자 노출 문구·960px 레이아웃·공개 URL/색인 정책·가격/이용권/월정석 정책과 저장/유료 결과는 보존했다. 캐시 주소만 변경되어 새 화면 시안이나 실제 결제창 접속 검증은 하지 않았다. 로컬 커밋 후 미러/전달 정적 검사 결과는 아래에 기록한다.
+
+## 최종 전달 상태
+
+- 수정/동결 원장/검증 증거 로컬 커밋: `74241e06b02bb2ad4df994b8c2b3b4ce7ce93868`.
+- 커밋 이후에도 중단하지 않고 `npm run check:pre-push`를 실행해 **종료 0** 확인. 홈 등록부 63개, 공개 미러 재생성 차이 없음, 사이트맵 1,037개, llms·SEO 등록부 통과. 사이트맵 원장이나 URL 집합의 추가 변경은 없었다.
+- 검증 증거는 [manifest.json](results/payment-cache-pins-20261101/manifest.json)에 해시로 고정했다. 공백·문서 링크 검사 통과. 이번 변경은 기본 OFF, Swiss 차단과 기존 자산 보존 조건을 유지한다.
+- 남은 것은 위 승인표의 실제 환경/DB/PG/물리 기기 검증 및 Swiss 비연결 공식 CI 경계다. 이번 캐시 핀 실패와 동결 가드 불일치는 해결했다. 이것을 운영 적용/실결제 성공으로 주장하지 않는다.
+- 기존 감사 워크트리에 로컬 커밋으로 보존하며 다른 세션 변경은 건드리지 않았다. main 병합·push·배포는 하지 않았다.
