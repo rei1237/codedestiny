@@ -77,21 +77,18 @@ export function stripTags(html) {
     .trim();
 }
 
+// 한 번에 푼다: `&amp;lt;` 는 `&lt;` 로 남는다(이중 해제 금지).
+const HTML_ENTITIES = { quot: '"', '#39': "'", amp: '&', lt: '<', gt: '>' };
 export function decodeHtml(value = '') {
-  return value
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, ' ')
-    .trim();
+  return value.replace(/&(quot|#39|amp|lt|gt);/g, (_, name) => HTML_ENTITIES[name]).trim();
 }
 
 const tagAttributes = (html, tag) => [...html.matchAll(new RegExp(`<${tag}(?=[\\s/>])[^>]*>`, 'gi'))].map(m => attributes(m[0]));
 const hasRelToken = (attrs, token) => (attrs.rel || '').toLowerCase().split(/\s+/).includes(token);
 
+// 인라인 <svg> 의 <title> 은 아이콘 이름이지 문서 제목이 아니다.
 export function getTitle(html) {
-  return decodeHtml(html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] || '').replace(/\s+/g, ' ');
+  return decodeHtml(html.replace(/<svg\b[\s\S]*?<\/svg>/gi, '').match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] || '').replace(/\s+/g, ' ');
 }
 
 export function getCanonical(html) {

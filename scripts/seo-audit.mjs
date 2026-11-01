@@ -486,8 +486,9 @@ async function auditArtifacts(sitemapPathSet) {
     const { nodes: jsonLdNodes, errors: jsonLdParseErrors } = getJsonLd(html);
     const jsonLdTypes = new Set();
     const breadcrumbItems = [];
-    // 공유 파서는 블록 경계를 지우므로 "@type 없음"은 페이지 단위로 판정한다(타입 있는 노드가 하나라도 있으면 통과).
-    const jsonLdMissingType = jsonLdNodes.length > 0 && jsonLdNodes.every((node) => !node["@type"]);
+    // "@type 없음"은 노드 단위로 본다: 최상위·@graph 노드 중 하나라도 @type 이 없으면 신고한다.
+    // 2026-11-02 dist 1,854쪽 실측 0건이라 페이지 단위로 느슨하게 둘 이유가 없다.
+    const jsonLdMissingType = jsonLdNodes.some((node) => !node["@type"]);
     for (const node of jsonLdNodes) {
       const types = [].concat(node["@type"] || []);
       types.forEach((type) => jsonLdTypes.add(String(type)));
@@ -647,7 +648,7 @@ async function auditArtifacts(sitemapPathSet) {
     const page = pages.get(routePath);
     if (!page) continue;
     if (!page.jsonLdValid) issues.push(`artifact: ${routePath} 의 JSON-LD 가 파싱되지 않는다`);
-    if (page.jsonLdMissingType) issues.push(`artifact: ${routePath} 의 JSON-LD 블록에 @type 이 없다`);
+    if (page.jsonLdMissingType) issues.push(`artifact: ${routePath} 의 JSON-LD 노드에 @type 이 없다`);
     for (const item of page.breadcrumbItems) {
       const itemPath = pathFromUrl(item);
       if (itemPath && !lookupArtifactPage(pages, itemPath)) {

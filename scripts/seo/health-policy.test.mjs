@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  collectSitemapUrls, getCanonical, getH1s, getHreflang, getInternalLinks, getJsonLd, getMeta, getTitle,
+  collectSitemapUrls, decodeHtml, getCanonical, getH1s, getHreflang, getInternalLinks, getJsonLd, getMeta, getTitle,
   hasNoindex, inspectPage, parseHeaderRobotsRules, parseSitemapAlternates, robotsAllows, sitemapDirectives,
 } from './health-policy.mjs';
 import { parseRobotsGroups } from '../lib/robots-groups.mjs';
@@ -130,6 +130,21 @@ test('getHreflang decodes entities like getCanonical and sitemap alternates', ()
   const html = '<link rel="canonical" href="https://code-destiny.com/a/?b=1&amp;c=2"><link rel="alternate" hreflang="ko" href="https://code-destiny.com/a/?b=1&amp;c=2">';
   assert.deepEqual(getHreflang(html), [{ lang: 'ko', href: 'https://code-destiny.com/a/?b=1&c=2' }]);
   assert.equal(getHreflang(html)[0].href, getCanonical(html)[0]);
+});
+test('decodeHtml decodes each entity once and keeps > as >', () => {
+  assert.equal(decodeHtml('A &gt; B'), 'A > B');
+  assert.equal(decodeHtml('&amp;lt;b&amp;gt;'), '&lt;b&gt;');
+  assert.equal(decodeHtml('&quot;x&#39; &amp; y'), '"x\x27 & y');
+});
+test('shared parsers read uppercase tags, any attribute order and single-quoted values', () => {
+  const html = "<TITLE>T</TITLE><LINK HREF='https://code-destiny.com/a/' REL='canonical'><META CONTENT=\"d\" NAME=\"description\"><SCRIPT data-x=\"1\" TYPE='application/ld+json'>{\"@type\":\"Thing\"}</SCRIPT>";
+  assert.equal(getTitle(html), 'T');
+  assert.deepEqual(getCanonical(html), ['https://code-destiny.com/a/']);
+  assert.deepEqual(getMeta(html, 'description'), ['d']);
+  assert.deepEqual(getJsonLd(html).nodes, [{ '@type': 'Thing' }]);
+});
+test('getTitle skips <title> inside inline <svg>', () => {
+  assert.equal(getTitle('<svg><title>icon</title></svg><title>Page</title>'), 'Page');
 });
 test('getJsonLd keeps nested @graph shapes: arrays, graph in graph, bare containers dropped, containers with properties kept', () => {
   const ld = (s) => `<script type="application/ld+json">${s}</script>`;
