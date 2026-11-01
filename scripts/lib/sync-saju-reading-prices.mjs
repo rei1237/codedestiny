@@ -33,6 +33,6 @@ export function syncSajuReadingPrices(root) {
   if (html !== readFileSync(file, 'utf8')) writeFileSync(file, html);
   const registryFile=join(root,'js/core/service-registry.js');
   const registry=readFileSync(registryFile,'utf8');
-  const updatedRegistry=registry.replace(/(featureKey: "saju-career-style", price: ")[^"]*(")/, '$1'+careerLabel+'$2').replace(/(featureKey: "premium-sibyl-dominator",\s*price: ")[^"]*(")/, '$1'+sibyl.pricing.amountKRW.toLocaleString('ko-KR')+'원$2');
+  const updatedRegistry=registry.replace(/(featureKey: "saju-career-style", price: ")[^"]*(")/, '$1'+career.cashPriceKRW.toLocaleString('ko-KR')+'원$2').replace(/(featureKey: "premium-sibyl-dominator",\s*price: ")[^"]*(")/, '$1'+sibyl.pricing.amountKRW.toLocaleString('ko-KR')+'원$2');
   if(updatedRegistry!==registry) writeFileSync(registryFile,updatedRegistry);
 }
