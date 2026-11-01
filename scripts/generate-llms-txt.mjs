@@ -49,7 +49,7 @@ const SECTIONS = [
   },
   {
     heading: "통합 리포트",
-    paths: ["/yeongnyangi", "/yeongnyangi/1000-won-fortune", "/fusion-fortune", "/human-design/guide"],
+    paths: ["/yeongnyangi", "/yeongnyangi/1000-won-fortune", "/human-design/guide"],
   },
   {
     heading: "읽을거리와 방법론",
@@ -60,6 +60,28 @@ const SECTIONS = [
     paths: ["/"],
   },
 ];
+
+/**
+ * 🔴 llms 에는 사이트맵에 실린 URL 만 올린다. 사이트맵은 "색인 대상" 의 단일 정본이라
+ *    일시중지(noindex)·미발행 경로는 이미 빠져 있다. 경로를 따로 하드코딩해 빼면
+ *    사이트맵이 바뀔 때 또 갈라지므로, 루트 sitemap.xml 의 loc pathname 집합으로 거른다.
+ *    (후행 슬래시는 떼어 비교한다. 홈 "/" 은 빈 문자열로 정규화된다.)
+ */
+const normalizePath = (pathname) => pathname.replace(/\/$/, "");
+const sitemapPaths = new Set(
+  [...readFileSync(resolve(rootDir, "sitemap.xml"), "utf8").matchAll(/<loc>([^<]+)<\/loc>/g)].map(([, loc]) =>
+    normalizePath(new URL(loc).pathname),
+  ),
+);
+const droppedPaths = new Set();
+function inSitemap(path) {
+  if (sitemapPaths.has(normalizePath(path))) return true;
+  if (!droppedPaths.has(path)) {
+    droppedPaths.add(path);
+    console.error(`[llms.txt] 사이트맵 밖이라 뺌: ${path}`);
+  }
+  return false;
+}
 
 function profileFor(path) {
   const profile = SEO_ROUTE_PROFILES[path];
@@ -116,13 +138,15 @@ lines.push(`해석 기준과 데이터 출처는 ${siteBaseUrl}/methodology/ 에
 lines.push("");
 
 for (const section of SECTIONS) {
+  const paths = section.paths.filter(inSitemap);
+  if (paths.length === 0) continue;
   lines.push(`## ${section.heading}`);
   lines.push("");
   if (section.intro) {
     lines.push(section.intro);
     lines.push("");
   }
-  for (const path of section.paths) {
+  for (const path of paths) {
     const profile = profileFor(path);
     lines.push(`- [${profile.title}](${siteBaseUrl}${path === "/" ? "/" : `${path}/`}): ${profile.topicSummary}`);
   }
@@ -194,7 +218,7 @@ const { NEW_YEAR_SEASON, NEW_YEAR_SIGNS } = await import(
 );
 const full = [body.trimEnd(), ""];
 full.push("## 공개 페이지 전체 목록", "");
-for (const profile of Object.values(SEO_ROUTE_PROFILES)) {
+for (const profile of Object.values(SEO_ROUTE_PROFILES).filter((entry) => inSitemap(entry.path))) {
   full.push(`- [${profile.title}](${siteBaseUrl}${profile.path === "/" ? "/" : `${profile.path}/`}): ${profile.topicSummary}`);
 }
 full.push("", `## ${NEW_YEAR_SEASON.year}년 띠별 운세`, "");

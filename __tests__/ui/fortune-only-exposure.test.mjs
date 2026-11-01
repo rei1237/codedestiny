@@ -60,3 +60,14 @@ test('published home and curated search do not advertise paused content', () => 
     dom.window.close();
   }
 });
+test('llms files list only sitemap URLs and no paused path', () => {
+  const sitemap = new Set([...fs.readFileSync('sitemap.xml', 'utf8').matchAll(/<loc>([^<]+)<\/loc>/g)].map(([, loc]) => new URL(loc).pathname.replace(/\/$/, '')));
+  for (const file of ['llms.txt', 'llms-full.txt', 'public/llms.txt', 'public/llms-full.txt']) {
+    // 마크다운 링크 `(https://…)`와 맨 URL `: https://…` 를 모두 센다. `#refund-policy` 같은 앵커는 pathname만 본다.
+    for (const [, url] of fs.readFileSync(file, 'utf8').matchAll(/(https:\/\/code-destiny\.com[^\s)]*)/g)) {
+      const path = new URL(url).pathname.replace(/\/$/, '');
+      assert.ok(!paused.includes(path), file + ': ' + path);
+      assert.ok(path === '' || sitemap.has(path), file + ': 사이트맵 밖 ' + path);
+    }
+  }
+});
