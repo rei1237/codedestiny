@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import { memo, type CSSProperties } from "react";
 import AiResultProse from "./AiResultProse";
 import ConsultationIllustration, { type ConsultationKind } from "./ConsultationIllustration";
 import { masterProfiles } from "./master-profiles";
@@ -10,7 +10,7 @@ const masterByKind = {
 } as const;
 
 /** Presentation only: the original result text and its existing speaker determine the reading. */
-export default function ConsultationReading({ value, kind, index = 0, speaker, highlight, className = "" }: {
+export default memo(function ConsultationReading({ value, kind, index = 0, speaker, highlight, className = "" }: {
   value: unknown; kind: ConsultationKind; index?: number; speaker?: "yeoni" | "hanbi"; highlight?: string[]; className?: string;
 }) {
   const theme = REPORT_COVER_THEMES[kind];
@@ -24,4 +24,4 @@ export default function ConsultationReading({ value, kind, index = 0, speaker, h
     style={{ "--reading-accent": accent, "--reading-wash": kind === "love" ? `var(--ls-surface-2, rgba(${rgb},.08))` : `rgba(${rgb},.08)`, "--reading-line": kind === "love" ? `var(--ls-line, rgba(${rgb},.25))` : `rgba(${rgb},.25)` } as CSSProperties}
     // Karma is jointly authored; its approved scene includes both masters, without guessing a chapter speaker.
     illustrations={kind === "karma" ? [scene] : index % 2 === 0 ? [scene, portrait] : [portrait, scene]} />;
-}
+});

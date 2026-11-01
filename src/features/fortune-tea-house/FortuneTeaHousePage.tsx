@@ -31,7 +31,6 @@ import { fortuneTeaHouseConsultPricing, getFortuneTeaHouseConsultFeatureKey, res
 import { isTeaHouseEntryStage } from "./data/entryStory";
 import type { TeaHouseStage } from "./data/story";
 import { getTeaHouseCupById, type TeaHouseCup } from "./data/teaCups";
-import { buildFortuneTeaHouseConsultResult } from "./lib/buildConsultResult";
 import {
   createFortuneTeaAttemptId,
   normalizeHoneyDropsState,
@@ -1159,6 +1158,8 @@ export default function FortuneTeaHousePage() {
 
     try {
       const startedAt = Date.now();
+      const { buildFortuneTeaHouseConsultResult } = await import('./lib/buildConsultResult');
+      if (consultRunRef.current !== consultRunId) return;
       const localDraft = buildFortuneTeaHouseConsultResult({
         consultationMode: nextQuestionInput.consultationMode,
         selectedTeaCupId: activeCup.id,
