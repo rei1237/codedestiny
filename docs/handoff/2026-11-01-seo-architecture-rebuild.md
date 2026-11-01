@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-11-01
-next: "설계 문서를 읽고 superpowers:writing-plans로 묶음 ①(V0 검사 도구·A2 메타/JSON-LD/robots·D1 날짜 계약) 작업 계획을 쓴 뒤 구현을 시작한다"
+next: "묶음 ① 승인 패킷(D:/Development/seo-audit/code-destiny-20261101/bundle-1/approval-packet.md) 검토 → 승인 시 push·스테이징·운영"
 ---
 
 # SEO 아키텍처 재구축
@@ -20,8 +20,13 @@ next: "설계 문서를 읽고 superpowers:writing-plans로 묶음 ①(V0 검사
 
 ## 지금 상태
 
-- 설계 승인, 코드 변경 0. 커밋: 설계 문서 `496c0bc62`, 이 문서(브랜치 HEAD). push 보류(사용자 규칙: push·배포는 요청할 때만).
-- 운영 `a64a7cbf3`(11/01 확인). origin/main `a9634ff14`에는 다른 세션 커밋 2개(`0600c9717`·`a9634ff14`, 진로 리포트 결제)가 더 있어 다음 승격에 같이 실린다.
+- 묶음 ① 로컬 구현·검토 끝, push 안 함. 계획은 `docs/superpowers/plans/2026-11-01-seo-bundle-1-v0-a2-d1.md`(`0e423795b`).
+  - 커밋: T1 `5d2c4aaf5`·`42abd8dc0`, T2 `9b9b90625`·`a6a68a35d`, T3 `35d1f4f09`·`bc7b780ba`, T4 `372be4243`·`7853f8c5a`, T5 `b90f45268`, T6 `8b4b333ec`, T7 `e6865f5da`, T8 `f346c8b53`, T9 `9a93207ac`, 최종 검토 수정 `dc2efaea1`.
+  - 태스크마다 새 검토자, 끝에 Opus 전체 검토. Important 1건(jsonld-dates 시각 비교 → 새벽 빌드 거짓 실패)은 KST 날짜 비교로 고쳤다.
+- verify-dist(로컬 build:cf): 실패 규칙 전부 0. og:url 8 → 0(실패로 승격). 경고 hreflang 185(80·1·100·4)와 엣지 3/1/4는 묶음 ②·③ 몫이다.
+- 증거와 승인 패킷: `D:\Development\seo-audit\code-destiny-20261101\bundle-1\`(`approval-packet.md`, verify-dist 전후 JSON, `regression\` 로그).
+- 운영 `98643c274`(11/01 13:35Z 빌드). origin/main `a40cb71b5`까지 다른 세션 커밋 7개가 같이 실린다(코드는 `08d56081a` 토스 하나).
+- rebase하면 `config/sitemap-lastmod.json` 충돌 1건이 난다. 생성 파일이니 `npm run sitemap:generate`로 다시 만든다.
 - Codex 수집본 없음. 11/07 홈 title D+30 관찰 대기.
 
 ## 작업 규칙
@@ -39,6 +44,8 @@ next: "설계 문서를 읽고 superpowers:writing-plans로 묶음 ①(V0 검사
 ## 단계
 
 - [ ] 묶음 ① — verify-dist 실패 0, 경고가 감사 수치를 재현(og:url 8쪽, hreflang 100/80/8), 운영 `/version.json` SHA 일치
+  - [x] 로컬: 구현·검토·회귀 통과, verify-dist 실패 0, 승인 패킷 작성
+  - [ ] 승인 → push → 운영 `/version.json` SHA 일치
 - [ ] 묶음 ② — vm 하네스 5개국×3UA 불변, 절대 Location 301 한 번, 결제 회귀 통과
 - [ ] 묶음 ③ — 전 URL 색인 상태 diff 0, HTML과 사이트맵의 hreflang 집합 일치
 - [ ] Codex 수집본 반영 → 묶음 ④ → 묶음 ⑤ → F
