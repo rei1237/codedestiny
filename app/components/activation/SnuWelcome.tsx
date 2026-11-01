@@ -65,14 +65,14 @@ export default function SnuWelcome() {
   return <main className={styles.page}>
     <div className={styles.frame}>
       <nav className={styles.topNav} aria-label="혜택 페이지 이동">
-        <Link className={styles.brand} href="/">꿀꿀 운세</Link>
-        <Link className={styles.homeLink} href="/ggulggul/"><Home size={16} aria-hidden="true"/>홈으로</Link>
+        <Link className={styles.brand} href="/" prefetch={false}>꿀꿀 운세</Link>
+        <Link className={styles.homeLink} href="/ggulggul/" prefetch={false}><Home size={16} aria-hidden="true"/>홈으로</Link>
       </nav>
 
       <header className={styles.hero}>
         <h1>연이가 준비한<br/>사주 선물</h1>
         <p>SNULIFE 회원님을 위한 사주 콘텐츠 {features.length}종. <br/>나의 기질과 앞으로의 흐름을 함께 읽어보세요.</p>
-        <Image className={styles.heroArt} src="/assets/service-intro/yeoni-gift.webp" width={176} height={198} priority alt="사주 선물을 준비한 꽃돼지 연이"/>
+        <Image className={styles.heroArt} src="/assets/service-intro/yeoni-gift-352.webp" width={176} height={198} priority alt="사주 선물을 준비한 꽃돼지 연이"/>
       </header>
 
       <ol className={styles.progress} aria-label="선물 받는 순서">
@@ -103,7 +103,7 @@ export default function SnuWelcome() {
             <p>선택한 본인 프로필에 콘텐츠 {features.length}종이 열렸어요. 같은 프로필에서 언제든 다시 살펴보세요.</p>
             {selected && preview && <p className={styles.profilePreview}><strong>{selected.name || '내 프로필'}</strong><span>{preview.birthDate} · {preview.calendarType === 'lunar' ? '음력' : '양력'}{preview.isLeapMonth ? ' 윤달' : ''} · {preview.birthTimeUnknown ? '태어난 시간 모름' : preview.birthTime}</span></p>}
             <a className={styles.primary} href={SNU_READING_URL}><span>내 사주와 열린 콘텐츠 보기</span><ArrowRight size={18} aria-hidden="true"/></a>
-            <Link className={styles.quietLink} href="/records/">기존 기록 보관함으로<ArrowRight size={15} aria-hidden="true"/></Link>
+            <Link className={styles.quietLink} href="/records/" prefetch={false}>기존 기록 보관함으로<ArrowRight size={15} aria-hidden="true"/></Link>
           </> : <>
             <h2>{!profiles.loading && !profiles.profiles.length ? '먼저 본인 프로필을 저장해 주세요' : '선물을 담을 본인 프로필을 골라 주세요'}</h2>
             <p>{!profiles.loading && !profiles.profiles.length ? '선물을 담을 본인의 출생정보가 필요해요. 프로필을 저장한 뒤 사주 선물을 열어 주세요.' : '처음 선택한 출생정보 하나에 혜택이 적용돼요. 선택 후에는 다른 사람의 프로필로 바꿀 수 없어요.'}</p>
