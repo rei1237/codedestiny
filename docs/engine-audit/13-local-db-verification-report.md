@@ -61,4 +61,6 @@ status: done-local-db-verified-not-deployed
 
 데이터·필수 서버 실행 파일/원문 라이선스·로컬 로그는 `.local/`에 보존했다. 설치 ZIP/PDB 및 사용하지 않은 부가 파일 6개(2,993,440,467 bytes)는 이번 생성 경로가 전용 디렉터리 안임을 확인하고 정리했다. [정리 기록](results/local-db-20261102/cleanup.json). 합성 DB와 기존 자료는 삭제하지 않았다.
 
-`verify-doc-freshness` 통과, `check:fast -- --plan` 종료 0. 계획은 새 도구 `.gitignore`를 미분류 critical로 판정해 Swiss 연결 전체 테스트/빌드까지 선택했다. 따라서 **전체 check:fast/CI/build는 미실행**이며 분류나 가드를 완화하지 않았다. 변경은 문서·증거·로컬 산출물 ignore뿐으로, 서비스/runner mjs의 추가 수정은 없다. 실행 기록은 로컬 커밋 후 정적 전달 검사를 기록한다. 공식 CI·서비스 연결은 아직 완료하지 않았으며 후속 단계는 위 구매자 전달 기준을 따른다.
+`verify-doc-freshness` 통과, `check:fast -- --plan` 종료 0. 계획은 새 도구 `.gitignore`를 미분류 critical로 판정해 Swiss 연결 전체 테스트/빌드까지 선택했다. 따라서 **전체 check:fast/CI/build는 미실행**이며 분류나 가드를 완화하지 않았다. 변경은 문서·증거·로컬 산출물 ignore뿐으로, 서비스/runner mjs의 추가 수정은 없다. 공식 CI·서비스 연결은 아직 완료하지 않았으며 후속 단계는 위 구매자 전달 기준을 따른다.
+
+실측/문서/승인 기록을 `46dd376e0a073ef175daf5d1c0f3cb2ebc9c2884`에 로컬 커밋했다. 그 깨끗한 트리에서 **`npm run check:pre-push` 종료 0**, 검사 전후 추적/미추적 변경 0을 확인했다. 홈 registry·공개 미러·1,037 URL 사이트맵·llms 문서·SEO registry 통과 [원문](results/local-db-20261102/committed-check.json). 전달 기록은 별도 로컬 커밋으로 남긴다. push·배포·main 통합은 하지 않았고 전용 워크트리를 보존한다.
