@@ -143,6 +143,8 @@ Python 신살 `locations`는 프로세스마다 배열 순서가 달라질 수 �
 
 ## A 후보의 공식 추가 판정
 
+후속 승인 구현의 최신 상태와 검증 명령은 [implementation/README.md](implementation/README.md), [최종 보고서](../../docs/engine-audit/05-final-report.md)에 있다. 기존 Phase 1/2 소스 핀과 증거는 보존했으므로 변경된 엔진에는 별도의 승인 구현 러너를 사용한다.
+
 후속 승인으로 KASI 공식 사이트와 NASA/JPL Horizons를 직접 조회했다. [추가 판정 보고서](../../docs/engine-audit/02a-authoritative-adjudication.md)와 [수정 계획](../../docs/engine-audit/03-fix-plan.md)을 작성했으며, 운영 수정과 Swiss 실행은 하지 않았다. 101개 입력의 관측 오류는 두 결함군으로 확정했고, 상세 원인·영향 범위의 미확정 부분은 따로 기록했다.
 
 기존 증거만 검증하는 오프라인 명령:

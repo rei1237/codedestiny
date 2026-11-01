@@ -1,5 +1,5 @@
 import { lookupServerCoinPrice } from "@/app/_lib/serviceCoinPrice";
-import { calculateNatalSaju, daeun, DAEUN_POLICY_VERSION, lunarToSolar, nodeTerms } from "@/lib/korean-calendar";
+import { calculateNatalSaju, daeun, DAEUN_POLICY_VERSION, lunarToSolar, nodeTerms, resolveAuthorityFlags, verifiedNodeTermWindow } from "@/lib/korean-calendar";
 import { cmsRecord } from "@/lib/cms/build-text";
 import { standardMeridianForTimezone } from "@/worker/lib/birth-time-context.js";
 import { wallClockToUtcMillis } from "@/worker/lib/iana-offset.js";
@@ -211,7 +211,8 @@ export interface SolarTermBoundaryLocal {
   minute: number;
   second: number;
   isoLocal: string;
-  source: "kasi" | "korean-calendar-core" | "validated-table" | "fixed-fallback";
+  source: "kasi" | "korean-calendar-core" | "validated-table" | "fixed-fallback" | "jpl-de441";
+  utcMs?: number;
 }
 
 export interface DaewoonStartLocal {
@@ -293,6 +294,7 @@ export interface LocalSajuResult {
 export type HourPillarTimePolicy = "KST_CLOCK_TIME" | "LOCAL_MEAN_TIME" | "TRUE_SOLAR_TIME" | "CIVIL_TIME";
 
 export interface LocalSajuInput {
+  authorityFlags?: { sajuTermAuthorityV2?: boolean; koreanCalendarAuthorityV2?: boolean };
   year: number;
   month: number;
   day: number;
@@ -380,6 +382,14 @@ function canonicalNatalPillar(value: string | null): SajuPillarLocal | null {
 }
 
 function resolveSolarDate(input: LocalSajuInput) {
+  if (input.authorityFlags?.koreanCalendarAuthorityV2 === true) {
+    const official = input.calendarType === "lunar"
+      ? lunarToSolar(input.year, Math.abs(input.month), input.day, Boolean(input.lunarLeap), input.authorityFlags)
+      : { year: input.year, month: input.month, day: input.day };
+    if (!official) throw new RangeError("INVALID_LUNAR_DATE");
+    if (input.kasiSolarDate && ["year", "month", "day"].some(key => input.kasiSolarDate![key as "year" | "month" | "day"] !== official[key as "year" | "month" | "day"])) throw new RangeError("CALENDAR_AUTHORITY_CONFLICT");
+    return official;
+  }
   // KASI 음양력 변환 결과가 있으면 권위 값으로 우선한다(로컬 코어 변환보다 우선).
   const kasiSolar = input.kasiSolarDate;
   if (
@@ -5321,16 +5331,22 @@ export function calculateLocalSaju(input: LocalSajuInput): LocalSajuResult {
   }
 
   const timezoneInfo = normalizeTimezone(input);
+  const authorityFlags = resolveAuthorityFlags(input.authorityFlags);
+  // The approved wrapper has no gender-dependent major-luck path. Do not mix v2 natal terms with v1 daeun.
+  if (authorityFlags.sajuTermAuthorityV2 && input.hasTime && normalizeGender(input) !== "unknown") throw new RangeError("TERM_AUTHORITY_DAEUN_NOT_APPROVED");
   const solarDate = resolveSolarDate(input);
   const birthPlace = canonicalNatalPlace(input, timezoneInfo.timezone);
   const allowMissingLongitude = birthPlace != null && birthPlace.longitude == null;
   const canonicalNatal = calculateNatalSaju({
-    birthDate: `${String(input.year).padStart(4, "0")}-${String(input.month).padStart(2, "0")}-${String(input.day).padStart(2, "0")}`,
+    birthDate: authorityFlags.koreanCalendarAuthorityV2
+      ? `${solarDate.year}-${String(solarDate.month).padStart(2, "0")}-${String(solarDate.day).padStart(2, "0")}`
+      : `${String(input.year).padStart(4, "0")}-${String(input.month).padStart(2, "0")}-${String(input.day).padStart(2, "0")}`,
     birthTime: input.hasTime ? `${String(input.hour ?? 0).padStart(2, "0")}:${String(input.minute ?? 0).padStart(2, "0")}` : undefined,
-    calendarType: input.calendarType === "lunar" && input.lunarLeap ? "lunar_leap" : (input.calendarType || "solar"),
-    isLeapMonth: Boolean(input.lunarLeap),
+    calendarType: authorityFlags.koreanCalendarAuthorityV2 ? "solar" : input.calendarType === "lunar" && input.lunarLeap ? "lunar_leap" : (input.calendarType || "solar"),
+    isLeapMonth: authorityFlags.koreanCalendarAuthorityV2 ? false : Boolean(input.lunarLeap),
+    ...(authorityFlags.koreanCalendarAuthorityV2 ? { originalCalendar: { year: input.year, month: input.month, day: input.day, calendarType: input.calendarType || "solar", leapMonth: Boolean(input.lunarLeap) } } : {}),
     birthPlace,
-  }, { allowMissingLongitude });
+  }, { allowMissingLongitude, authorityFlags });
 
   // The applied policy is the canonical natal contract; legacy input options remain input evidence only.
   const standardClock = { ...canonicalNatal.calculationMeta.civil, hour: canonicalNatal.calculationMeta.civil.hour ?? 12, minute: canonicalNatal.calculationMeta.civil.minute ?? 0 };
@@ -5340,8 +5356,13 @@ export function calculateLocalSaju(input: LocalSajuInput): LocalSajuResult {
   const zashiMode = "early";
   // Solar terms use the actual instant in KST, including lunar conversion and historical DST.
   const termClock = canonicalNatal.calculationMeta.termClock;
-  const yearPillarResult = getYearPillar(termClock, CORE_SOLAR_TERM_TIMEZONE_OFFSET_MINUTES, new Map());
-  const solarTermWindow = getSolarTermWindow(termClock, CORE_SOLAR_TERM_TIMEZONE_OFFSET_MINUTES, new Map());
+  const authoritativeWindow = authorityFlags.sajuTermAuthorityV2 ? verifiedNodeTermWindow(canonicalNatal.calculationMeta.instant?.timestamp ?? wallTimeToInstantMs(termClock, CORE_SOLAR_TERM_TIMEZONE_OFFSET_MINUTES)) : null;
+  const verifiedBoundary = (term: { utcMs: number; index: number }): SolarTermBoundaryLocal => {
+    const local = new Date(term.utcMs + 9 * 3600000);
+    return { year: local.getUTCFullYear(), month: local.getUTCMonth() + 1, day: local.getUTCDate(), hour: local.getUTCHours(), minute: local.getUTCMinutes(), second: local.getUTCSeconds(), index: term.index / 2, name: JIE_BOUNDARY_NAMES[term.index / 2], solarLongitude: JIE_SOLAR_LONGITUDES[term.index / 2], isoLocal: local.toISOString().slice(0, -1) + "+09:00", source: "jpl-de441", utcMs: term.utcMs };
+  };
+  const yearPillarResult = authoritativeWindow ? { ipchun: verifiedBoundary(authoritativeWindow.ipchun) } : getYearPillar(termClock, CORE_SOLAR_TERM_TIMEZONE_OFFSET_MINUTES, new Map());
+  const solarTermWindow = authoritativeWindow ? { active: verifiedBoundary(authoritativeWindow.previous), previous: verifiedBoundary(authoritativeWindow.previous), next: verifiedBoundary(authoritativeWindow.next) } : getSolarTermWindow(termClock, CORE_SOLAR_TERM_TIMEZONE_OFFSET_MINUTES, new Map());
   const dayPillarDate = canonicalNatal.calculationMeta.dayPillarCivilDate;
   const pillars = {
     year: canonicalNatalPillar(canonicalNatal.pillars.year)!,

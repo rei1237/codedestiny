@@ -1,0 +1,53 @@
+{
+  "approval": "User approved CR-001/002, defaults OFF, no Swiss or push",
+  "baselineCommit": "c21a64c26f9aa9b0a9650f1ef2670a31f711087a",
+  "domains": {
+    "saju": {
+      "app/_content/cms.generated.json": "e7fb31abe2d96f08288f85661e3197868d0f01f7292a4185efcd0e4cff24bd8a",
+      "app/_lib/serviceCoinPrice.ts": "ac5651f27c57288aaf443aa410606b9938b49c83fc4c0f20ea1ba27fff9e7ad4",
+      "app/saju/animal-destiny/engine/localSajuCalculator.ts": "d2ecee06a23b9a98fc91c590f9b0770780fec9072af155b24945b6dd99b64a7b",
+      "app/saju/animal-destiny/lib/animalMapping.ts": "04761012d1806f584d17a3112c2a76ffe7a2d33ad8208b2a6e05f92a542ec18e",
+      "app/saju/animal-destiny/lib/sajuAdapter.ts": "b85b3b670525ec0d2179d70afd6cce772c500f30fa7ea59abb77d17cffeb3027",
+      "app/saju/animal-destiny/lib/twelveStages.ts": "cbd8dbee8e02d8d54b0ea258584d5087e806269094e88b7c796903b5f8ede634",
+      "components/fortune/animal-twelve/animalTwelveData.ts": "d047e8184ce592566a64687c4d9ea40073b603870bff82dfd1986ab252fe0bee",
+      "lib/cms/build-text.ts": "5d6af3536c7dc54d8cbbc6900afbb5fe7925ac99fffc387acb44d0eca064cd53",
+      "lib/cms/static-copy.mjs": "cecf31545b20b102d0a61624334fafeb270546b1681e1626eb37f935366d2a87",
+      "lib/fortune/chat-products.js": "de79c035a9b43fb2993e64013f783b08f31474ca4f06bf07a0fc1983a8bc1b15",
+      "lib/korean-calendar/authority-data.generated.js": "4e8be46272be3dfd475621e802e3f4c4ac36831b5668e8882f24bb6b4430adfb",
+      "lib/korean-calendar/authority.js": "2f62929a441da6e82a11e76e7a49a3d34a3bbcb806732001b651a4089aa33154",
+      "lib/korean-calendar/core.js": "4ff3c854676c69f504c2c9fe6af29e3ce585a7f44719cc0b71e1534a8928862b",
+      "lib/korean-calendar/daeun.js": "64711c91d98ee2fc92931e1235c6b4fdd3ab800f8f9ee1f7d9cf5f3b378e4d56",
+      "lib/korean-calendar/ganji.js": "8dac7c06fd9577cad1e56c503eb20d2d4c745124d5e055862493562317c41ce5",
+      "lib/korean-calendar/index.js": "9347dfbdc28d1ecbdb272616280e5fdf9d51b6001dc451396352b684bcbe06c4",
+      "lib/korean-calendar/labels.js": "386a93abc2e8e3bdc6d2f9324a02d519339ce6f9434bddaf43cd7298858f2801",
+      "lib/korean-calendar/natal.js": "f5e86fb40f6029f9874ce47c06b76c6663c6bb4bfe986757ce01c6a47195ffaf",
+      "lib/korean-calendar/policy.js": "7681da4d713cde47701aa1f396a63c96f4dae0a8b3f6bd143dd86ff1c55ee5ba",
+      "lib/korean-calendar/table.generated.js": "80de66f9dbab66a8ca771f737dd56d9591f1939b1357d6266c65faa133f1ad79",
+      "lib/music-access-policy.js": "2a05d9951c4d36dcc7d303f9cbe6ee183dd2d588c478a03b346f7da8508ac813",
+      "worker/lib/billing-policy.js": "a4241eb479f9b33535d487cc5b232e64ef215100fb58d984e758256acdd03254",
+      "worker/lib/birth-time-context.js": "9baf9dd6c1775096143b31689578bed24247b8fb573f3bc8d66329bdf650f839",
+      "worker/lib/iana-offset.js": "35ab3e7c3e9c3aec4293ccd73c5342235dcb8daf7bbfbfede9ab7680c08aa8a1",
+      "worker/lib/paid-feature-registry.js": "240e646184815ec60ed67cf18a9d3aa8872d96d73efb857f91080f10c28b09a9"
+    },
+    "ziwei": {
+      "lib/korean-calendar/authority-data.generated.js": "4e8be46272be3dfd475621e802e3f4c4ac36831b5668e8882f24bb6b4430adfb",
+      "lib/korean-calendar/authority.js": "2f62929a441da6e82a11e76e7a49a3d34a3bbcb806732001b651a4089aa33154",
+      "lib/korean-calendar/core.js": "4ff3c854676c69f504c2c9fe6af29e3ce585a7f44719cc0b71e1534a8928862b",
+      "lib/korean-calendar/daeun.js": "64711c91d98ee2fc92931e1235c6b4fdd3ab800f8f9ee1f7d9cf5f3b378e4d56",
+      "lib/korean-calendar/ganji.js": "8dac7c06fd9577cad1e56c503eb20d2d4c745124d5e055862493562317c41ce5",
+      "lib/korean-calendar/index.js": "9347dfbdc28d1ecbdb272616280e5fdf9d51b6001dc451396352b684bcbe06c4",
+      "lib/korean-calendar/labels.js": "386a93abc2e8e3bdc6d2f9324a02d519339ce6f9434bddaf43cd7298858f2801",
+      "lib/korean-calendar/natal.js": "f5e86fb40f6029f9874ce47c06b76c6663c6bb4bfe986757ce01c6a47195ffaf",
+      "lib/korean-calendar/policy.js": "7681da4d713cde47701aa1f396a63c96f4dae0a8b3f6bd143dd86ff1c55ee5ba",
+      "lib/korean-calendar/table.generated.js": "80de66f9dbab66a8ca771f737dd56d9591f1939b1357d6266c65faa133f1ad79",
+      "lib/ziwei-birth-clock.js": "477855bafe276cdd0160efdac77ad01fc35de5c729ef14c6ba344187537dfaed",
+      "lib/ziwei-fire-bell.js": "c17e9c28dfdff2a798c21ea355cf14c3f7f860384c55234f7bf2154a9c938593",
+      "lib/ziwei-minor-limit.js": "02b01775f19b94447ba7cf62c47ac50ac79d35fd83849b8e4430409b95640a4c",
+      "lib/ziwei-star-strength.js": "d82bdb3dbbaf06c36effae6dc133d82268c88ffe46ff0e5ab81f34a80aa71607",
+      "worker/lib/guardian-fortune-adapter-utils.js": "9659dc6908ce4bf0a7381b9a580884cc848dd0c8c69cc914a14e88ae81ef2874",
+      "worker/lib/guardian-fortune/adapters/ziwei.js": "5392e8026fcd3a3ac61c01406c0fd42d8355d3f7b947ff361d3d0ecba6cd2bce",
+      "worker/lib/guardian-fortune/expert-evidence.js": "7382403c2225c7bce26585cf2947b91980109564cd6a002b28da55fe27381176",
+      "worker/lib/ziwei-ai-chart.js": "bf2652a46444f96b85834bc2d29248e47716eac3b2fa701512c774187b0f84b3"
+    }
+  }
+}

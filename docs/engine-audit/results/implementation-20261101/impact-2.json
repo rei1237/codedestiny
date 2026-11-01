@@ -1,0 +1,2625 @@
+{
+  "shard": 2,
+  "sourcePinHash": "0bd31f911906e7e54389cce83e5f972b4b71fba8bc441359063055f06de669e3",
+  "randomInputs": 5000,
+  "lastId": "random-022710",
+  "offCompared": {
+    "saju": 5000,
+    "ziwei": 5000
+  },
+  "offDifferences": [],
+  "enabled": {
+    "saju": 525,
+    "ziwei": 55
+  },
+  "changedFacts": {
+    "saju": 3,
+    "ziwei": 16
+  },
+  "enabledErrors": [],
+  "changes": [
+    {
+      "id": "random-002950",
+      "domain": "saju",
+      "flags": {
+        "sajuTermAuthorityV2": true,
+        "koreanCalendarAuthorityV2": false
+      },
+      "before": {
+        "year": "甲辰",
+        "month": "辛未",
+        "day": "辛未",
+        "hour": "己亥"
+      },
+      "after": {
+        "year": "甲辰",
+        "month": "庚午",
+        "day": "辛未",
+        "hour": "己亥"
+      }
+    },
+    {
+      "id": "random-005030",
+      "domain": "ziwei",
+      "flags": {
+        "sajuTermAuthorityV2": false,
+        "koreanCalendarAuthorityV2": true
+      },
+      "before": {
+        "status": "ok",
+        "life": 9,
+        "body": 1,
+        "bureau": 3,
+        "stars": {
+          "천동": 9,
+          "함지": 9,
+          "칠살": 8,
+          "천량": 7,
+          "좌보": 7,
+          "우필": 7,
+          "천월": 7,
+          "지겁": 7,
+          "염정": 6,
+          "천상": 6,
+          "경양": 6,
+          "영성": 6,
+          "거문": 5,
+          "녹존": 5,
+          "탐랑": 4,
+          "천요": 4,
+          "타라": 4,
+          "태음": 3,
+          "지공": 3,
+          "자미": 2,
+          "천부": 2,
+          "문창": 2,
+          "천마": 2,
+          "천기": 1,
+          "천괴": 1,
+          "파군": 0,
+          "문곡": 0,
+          "태양": 11,
+          "무곡": 10,
+          "화성": 10
+        },
+        "decades": {
+          "0": 33,
+          "1": 43,
+          "2": 53,
+          "3": 63,
+          "4": 73,
+          "5": 83,
+          "6": 93,
+          "7": 103,
+          "8": 113,
+          "9": 3,
+          "10": 13,
+          "11": 23
+        },
+        "hua": {
+          "huaLu": "탐랑",
+          "huaQuan": "태음",
+          "huaKe": "우필",
+          "huaJi": "천기"
+        },
+        "minorLuck": {
+          "startBranchIndex": 10,
+          "startBranch": "술",
+          "direction": "순행",
+          "baseYear": 1908,
+          "current": null,
+          "entries": []
+        },
+        "yearlyLuck": {
+          "year": 2026,
+          "earthlyBranch": "오",
+          "palaceName": "자녀궁",
+          "mainStars": [
+            "염정",
+            "천상"
+          ],
+          "transformations": []
+        }
+      },
+      "after": {
+        "status": "ok",
+        "life": 9,
+        "body": 1,
+        "bureau": 3,
+        "stars": {
+          "함지": 9,
+          "염정": 7,
+          "칠살": 7,
+          "좌보": 7,
+          "우필": 7,
+          "천월": 7,
+          "지겁": 7,
+          "천량": 6,
+          "경양": 6,
+          "영성": 6,
+          "천상": 5,
+          "녹존": 5,
+          "거문": 4,
+          "천요": 4,
+          "타라": 4,
+          "자미": 3,
+          "탐랑": 3,
+          "지공": 3,
+          "천기": 2,
+          "태음": 2,
+          "문창": 2,
+          "천마": 2,
+          "천부": 1,
+          "천괴": 1,
+          "태양": 0,
+          "문곡": 0,
+          "무곡": 11,
+          "파군": 11,
+          "천동": 10,
+          "화성": 10
+        },
+        "decades": {
+          "0": 33,
+          "1": 43,
+          "2": 53,
+          "3": 63,
+          "4": 73,
+          "5": 83,
+          "6": 93,
+          "7": 103,
+          "8": 113,
+          "9": 3,
+          "10": 13,
+          "11": 23
+        },
+        "hua": {
+          "huaLu": "탐랑",
+          "huaQuan": "태음",
+          "huaKe": "우필",
+          "huaJi": "천기"
+        },
+        "minorLuck": {
+          "startBranchIndex": 10,
+          "startBranch": "술",
+          "direction": "순행",
+          "baseYear": 1908,
+          "current": null,
+          "entries": []
+        },
+        "yearlyLuck": {
+          "year": 2026,
+          "earthlyBranch": "오",
+          "palaceName": "자녀궁",
+          "mainStars": [
+            "천량"
+          ],
+          "transformations": []
+        }
+      }
+    },
+    {
+      "id": "random-006066",
+      "domain": "saju",
+      "flags": {
+        "sajuTermAuthorityV2": false,
+        "koreanCalendarAuthorityV2": true
+      },
+      "before": {
+        "year": "己酉",
+        "month": "癸酉",
+        "day": "辛卯",
+        "hour": "庚寅"
+      },
+      "after": {
+        "year": "己酉",
+        "month": "癸酉",
+        "day": "庚寅",
+        "hour": "戊寅"
+      }
+    },
+    {
+      "id": "random-006430",
+      "domain": "ziwei",
+      "flags": {
+        "sajuTermAuthorityV2": false,
+        "koreanCalendarAuthorityV2": true
+      },
+      "before": {
+        "status": "ok",
+        "life": 5,
+        "body": 5,
+        "bureau": 4,
+        "stars": {
+          "자미": 5,
+          "칠살": 5,
+          "천기": 4,
+          "천량": 4,
+          "문곡": 4,
+          "천요": 4,
+          "경양": 4,
+          "천상": 3,
+          "녹존": 3,
+          "화성": 3,
+          "태양": 2,
+          "거문": 2,
+          "타라": 2,
+          "무곡": 1,
+          "탐랑": 1,
+          "천동": 0,
+          "태음": 0,
+          "천괴": 0,
+          "천부": 11,
+          "천마": 11,
+          "지공": 11,
+          "지겁": 11,
+          "문창": 10,
+          "영성": 10,
+          "염정": 9,
+          "파군": 9,
+          "천월": 8,
+          "좌보": 7,
+          "우필": 7,
+          "함지": 6
+        },
+        "decades": {
+          "0": 54,
+          "1": 44,
+          "2": 34,
+          "3": 24,
+          "4": 14,
+          "5": 4,
+          "6": 114,
+          "7": 104,
+          "8": 94,
+          "9": 84,
+          "10": 74,
+          "11": 64
+        },
+        "hua": {
+          "huaLu": "천기",
+          "huaQuan": "천량",
+          "huaKe": "자미",
+          "huaJi": "태음"
+        },
+        "minorLuck": {
+          "startBranchIndex": 7,
+          "startBranch": "미",
+          "direction": "순행",
+          "baseYear": 1905,
+          "current": null,
+          "entries": []
+        },
+        "yearlyLuck": {
+          "year": 2026,
+          "earthlyBranch": "오",
+          "palaceName": "부모궁",
+          "mainStars": [],
+          "transformations": []
+        }
+      },
+      "after": {
+        "status": "ok",
+        "life": 5,
+        "body": 5,
+        "bureau": 4,
+        "stars": {
+          "거문": 5,
+          "탐랑": 4,
+          "문곡": 4,
+          "천요": 4,
+          "경양": 4,
+          "태음": 3,
+          "녹존": 3,
+          "화성": 3,
+          "자미": 2,
+          "천부": 2,
+          "타라": 2,
+          "천기": 1,
+          "파군": 0,
+          "천괴": 0,
+          "태양": 11,
+          "천마": 11,
+          "지공": 11,
+          "지겁": 11,
+          "무곡": 10,
+          "문창": 10,
+          "영성": 10,
+          "천동": 9,
+          "칠살": 8,
+          "천월": 8,
+          "천량": 7,
+          "좌보": 7,
+          "우필": 7,
+          "염정": 6,
+          "천상": 6,
+          "함지": 6
+        },
+        "decades": {
+          "0": 54,
+          "1": 44,
+          "2": 34,
+          "3": 24,
+          "4": 14,
+          "5": 4,
+          "6": 114,
+          "7": 104,
+          "8": 94,
+          "9": 84,
+          "10": 74,
+          "11": 64
+        },
+        "hua": {
+          "huaLu": "천기",
+          "huaQuan": "천량",
+          "huaKe": "자미",
+          "huaJi": "태음"
+        },
+        "minorLuck": {
+          "startBranchIndex": 7,
+          "startBranch": "미",
+          "direction": "순행",
+          "baseYear": 1905,
+          "current": null,
+          "entries": []
+        },
+        "yearlyLuck": {
+          "year": 2026,
+          "earthlyBranch": "오",
+          "palaceName": "부모궁",
+          "mainStars": [
+            "염정",
+            "천상"
+          ],
+          "transformations": []
+        }
+      }
+    },
+    {
+      "id": "random-006650",
+      "domain": "ziwei",
+      "flags": {
+        "sajuTermAuthorityV2": false,
+        "koreanCalendarAuthorityV2": true
+      },
+      "before": {
+        "status": "ok",
+        "life": 7,
+        "body": 7,
+        "bureau": 6,
+        "stars": {
+          "무곡": 7,
+          "탐랑": 7,
+          "천동": 6,
+          "태음": 6,
+          "천부": 5,
+          "천월": 5,
+          "천마": 5,
+          "지공": 5,
+          "지겁": 5,
+          "문창": 4,
+          "영성": 4,
+          "염정": 3,
+          "파군": 3,
+          "좌보": 3,
+          "천괴": 3,
+          "화성": 3,
+          "경양": 1,
+          "녹존": 0,
+          "함지": 0,
+          "천요": 0,
+          "자미": 11,
+          "칠살": 11,
+          "우필": 11,
+          "타라": 11,
+          "천기": 10,
+          "천량": 10,
+          "문곡": 10,
+          "천상": 9,
+          "태양": 8,
+          "거문": 8
+        },
+        "decades": {
+          "0": 76,
+          "1": 66,
+          "2": 56,
+          "3": 46,
+          "4": 36,
+          "5": 26,
+          "6": 16,
+          "7": 6,
+          "8": 116,
+          "9": 106,
+          "10": 96,
+          "11": 86
+        },
+        "hua": {
+          "huaLu": "파군",
+          "huaQuan": "거문",
+          "huaKe": "태음",
+          "huaJi": "탐랑"
+        },
+        "minorLuck": {
+          "startBranchIndex": 1,
+          "startBranch": "축",
+          "direction": "순행",
+          "baseYear": 1903,
+          "current": null,
+          "entries": []
+        },
+        "yearlyLuck": {
+          "year": 2026,
+          "earthlyBranch": "오",
+          "palaceName": "형제궁",
+          "mainStars": [
+            "천동",
+            "태음"
+          ],
+          "transformations": [
+            "화과:태음"
+          ]
+        }
+      },
+      "after": {
+        "status": "ok",
+        "life": 7,
+        "body": 7,
+        "bureau": 6,
+        "stars": {
+          "칠살": 6,
+          "천량": 5,
+          "천월": 5,
+          "천마": 5,
+          "지공": 5,
+          "지겁": 5,
+          "자미": 4,
+          "천상": 4,
+          "문창": 4,
+          "영성": 4,
+          "천기": 3,
+          "거문": 3,
+          "좌보": 3,
+          "천괴": 3,
+          "화성": 3,
+          "탐랑": 2,
+          "태양": 1,
+          "태음": 1,
+          "경양": 1,
+          "무곡": 0,
+          "천부": 0,
+          "녹존": 0,
+          "함지": 0,
+          "천요": 0,
+          "천동": 11,
+          "우필": 11,
+          "타라": 11,
+          "파군": 10,
+          "문곡": 10,
+          "염정": 8
+        },
+        "decades": {
+          "0": 76,
+          "1": 66,
+          "2": 56,
+          "3": 46,
+          "4": 36,
+          "5": 26,
+          "6": 16,
+          "7": 6,
+          "8": 116,
+          "9": 106,
+          "10": 96,
+          "11": 86
+        },
+        "hua": {
+          "huaLu": "파군",
+          "huaQuan": "거문",
+          "huaKe": "태음",
+          "huaJi": "탐랑"
+        },
+        "minorLuck": {
+          "startBranchIndex": 1,
+          "startBranch": "축",
+          "direction": "순행",
+          "baseYear": 1903,
+          "current": null,
+          "entries": []
+        },
+        "yearlyLuck": {
+          "year": 2026,
+          "earthlyBranch": "오",
+          "palaceName": "형제궁",
+          "mainStars": [
+            "칠살"
+          ],
+          "transformations": []
+        }
+      }
+    },
+    {
+      "id": "random-008278",
+      "domain": "ziwei",
+      "flags": {
+        "sajuTermAuthorityV2": false,
+        "koreanCalendarAuthorityV2": true
+      },
+      "before": {
+        "status": "ok",
+        "life": 4,
+        "body": 4,
+        "bureau": 5,
+        "stars": {
+          "탐랑": 4,
+          "문창": 4,
+          "영성": 4,
+          "태음": 3,
+          "천괴": 3,
+          "화성": 3,
+          "자미": 2,
+          "천부": 2,
+          "우필": 2,
+          "천기": 1,
+          "경양": 1,
+          "파군": 0,
+          "좌보": 0,
+          "녹존": 0,
+          "함지": 0,
+          "태양": 11,
+          "타라": 11,
+          "무곡": 10,
+          "문곡": 10,
+          "천동": 9,
+          "천요": 9,
+          "칠살": 8,
+          "천량": 7,
+          "염정": 6,
+          "천상": 6,
+          "거문": 5,
+          "천월": 5,
+          "천마": 5,
+          "지공": 5,
+          "지겁": 5
+        },
+        "decades": {
+          "0": 85,
+          "1": 95,
+          "2": 105,
+          "3": 115,
+          "4": 5,
+          "5": 15,
+          "6": 25,
+          "7": 35,
+          "8": 45,
+          "9": 55,
+          "10": 65,
+          "11": 75
+        },
+        "hua": {
+          "huaLu": "파군",
+          "huaQuan": "거문",
+          "huaKe": "태음",
+          "huaJi": "탐랑"
+        },
+        "minorLuck": {
+          "startBranchIndex": 1,
+          "startBranch": "축",
+          "direction": "역행",
+          "baseYear": 1903,
+          "current": null,
+          "entries": []
+        },
+        "yearlyLuck": {
+          "year": 2026,
+          "earthlyBranch": "오",
+          "palaceName": "복덕궁",
+          "mainStars": [
+            "염정",
+            "천상"
+          ],
+          "transformations": []
+        }
+      },
+      "after": {
+        "status": "ok",
+        "life": 4,
+        "body": 4,
+        "bureau": 5,
+        "stars": {
+          "태양": 4,
+          "문창": 4,
+          "영성": 4,
+          "무곡": 3,
+          "칠살": 3,
+          "천괴": 3,
+          "화성": 3,
+          "천동": 2,
+          "천량": 2,
+          "우필": 2,
+          "천상": 1,
+          "경양": 1,
+          "거문": 0,
+          "좌보": 0,
+          "녹존": 0,
+          "함지": 0,
+          "염정": 11,
+          "탐랑": 11,
+          "타라": 11,
+          "태음": 10,
+          "문곡": 10,
+          "천부": 9,
+          "천요": 9,
+          "자미": 7,
+          "파군": 7,
+          "천기": 6,
+          "천월": 5,
+          "천마": 5,
+          "지공": 5,
+          "지겁": 5
+        },
+        "decades": {
+          "0": 85,
+          "1": 95,
+          "2": 105,
+          "3": 115,
+          "4": 5,
+          "5": 15,
+          "6": 25,
+          "7": 35,
+          "8": 45,
+          "9": 55,
+          "10": 65,
+          "11": 75
+        },
+        "hua": {
+          "huaLu": "파군",
+          "huaQuan": "거문",
+          "huaKe": "태음",
+          "huaJi": "탐랑"
+        },
+        "minorLuck": {
+          "startBranchIndex": 1,
+          "startBranch": "축",
+          "direction": "역행",
+          "baseYear": 1903,
+          "current": null,
+          "entries": []
+        },
+        "yearlyLuck": {
+          "year": 2026,
+          "earthlyBranch": "오",
+          "palaceName": "복덕궁",
+          "mainStars": [
+            "천기"
+          ],
+          "transformations": []
+        }
+      }
+    },
+    {
+      "id": "random-009914",
+      "domain": "ziwei",
+      "flags": {
+        "sajuTermAuthorityV2": false,
+        "koreanCalendarAuthorityV2": true
+      },
+      "before": {
+        "status": "ok",
+        "life": 8,
+        "body": 2,
+        "bureau": 4,
+        "stars": {
+          "자미": 8,
+          "천부": 8,
+          "지공": 8,
+          "천기": 7,
+          "문창": 7,
+          "문곡": 7,
+          "천월": 7,
+          "파군": 6,
+          "태양": 5,
+          "화성": 5,
+          "무곡": 4,
+          "천동": 3,
+          "경양": 3,
+          "칠살": 2,
+          "녹존": 2,
+          "천마": 2,
+          "지겁": 2,
+          "천량": 1,
+          "좌보": 1,
+          "우필": 1,
+          "천괴": 1,
+          "타라": 1,
+          "영성": 1,
+          "염정": 0,
+          "천상": 0,
+          "거문": 11,
+          "탐랑": 10,
+          "천요": 10,
+          "태음": 9,
+          "함지": 9
+        },
+        "decades": {
+          "0": 84,
+          "1": 74,
+          "2": 64,
+          "3": 54,
+          "4": 44,
+          "5": 34,
+          "6": 24,
+          "7": 14,
+          "8": 4,
+          "9": 114,
+          "10": 104,
+          "11": 94
+        },
+        "hua": {
+          "huaLu": "염정",
+          "huaQuan": "파군",
+          "huaKe": "무곡",
+          "huaJi": "태양"
+        },
+        "minorLuck": {
+          "startBranchIndex": 10,
+          "startBranch": "술",
+          "direction": "역행",
+          "baseYear": 1904,
+          "current": null,
+          "entries": []
+        },
+        "yearlyLuck": {
+          "year": 2026,
+          "earthlyBranch": "오",
+          "palaceName": "부부궁",
+          "mainStars": [
+            "파군"
+          ],
+          "transformations": [
+            "화권:파군"
+          ]
+        }
+      },
+      "after": {
+        "status": "ok",
+        "life": 8,
+        "body": 2,
+        "bureau": 4,
+        "stars": {
+          "지공": 8,
+          "문창": 7,
+          "문곡": 7,
+          "천월": 7,
+          "자미": 5,
+          "칠살": 5,
+          "화성": 5,
+          "천기": 4,
+          "천량": 4,
+          "천상": 3,
+          "경양": 3,
+          "태양": 2,
+          "거문": 2,
+          "녹존": 2,
+          "천마": 2,
+          "지겁": 2,
+          "무곡": 1,
+          "탐랑": 1,
+          "좌보": 1,
+          "우필": 1,
+          "천괴": 1,
+          "타라": 1,
+          "영성": 1,
+          "천동": 0,
+          "태음": 0,
+          "천부": 11,
+          "천요": 10,
+          "염정": 9,
+          "파군": 9,
+          "함지": 9
+        },
+        "decades": {
+          "0": 84,
+          "1": 74,
+          "2": 64,
+          "3": 54,
+          "4": 44,
+          "5": 34,
+          "6": 24,
+          "7": 14,
+          "8": 4,
+          "9": 114,
+          "10": 104,
+          "11": 94
+        },
+        "hua": {
+          "huaLu": "염정",
+          "huaQuan": "파군",
+          "huaKe": "무곡",
+          "huaJi": "태양"
+        },
+        "minorLuck": {
+          "startBranchIndex": 10,
+          "startBranch": "술",
+          "direction": "역행",
+          "baseYear": 1904,
+          "current": null,
+          "entries": []
+        },
+        "yearlyLuck": {
+          "year": 2026,
+          "earthlyBranch": "오",
+          "palaceName": "부부궁",
+          "mainStars": [],
+          "transformations": []
+        }
+      }
+    },
+    {
+      "id": "random-010718",
+      "domain": "ziwei",
+      "flags": {
+        "sajuTermAuthorityV2": false,
+        "koreanCalendarAuthorityV2": true
+      },
+      "before": {
+        "status": "ok",
+        "life": 4,
+        "body": 6,
+        "bureau": 4,
+        "stars": {
+          "자미": 4,
+          "천상": 4,
+          "천요": 4,
+          "경양": 4,
+          "화성": 4,
+          "천기": 3,
+          "거문": 3,
+          "녹존": 3,
+          "탐랑": 2,
+          "타라": 2,
+          "태양": 1,
+          "태음": 1,
+          "무곡": 0,
+          "천부": 0,
+          "천괴": 0,
+          "지겁": 0,
+          "천동": 11,
+          "천마": 11,
+          "영성": 11,
+          "파군": 10,
+          "지공": 10,
+          "문창": 9,
+          "염정": 8,
+          "천월": 8,
+          "좌보": 7,
+          "우필": 7,
+          "칠살": 6,
+          "함지": 6,
+          "천량": 5,
+          "문곡": 5
+        },
+        "decades": {
+          "0": 44,
+          "1": 34,
+          "2": 24,
+          "3": 14,
+          "4": 4,
+          "5": 114,
+          "6": 104,
+          "7": 94,
+          "8": 84,
+          "9": 74,
+          "10": 64,
+          "11": 54
+        },
+        "hua": {
+          "huaLu": "천기",
+          "huaQuan": "천량",
+          "huaKe": "자미",
+          "huaJi": "태음"
+        },
+        "minorLuck": {
+          "startBranchIndex": 7,
+          "startBranch": "미",
+          "direction": "순행",
+          "baseYear": 1905,
+          "current": null,
+          "entries": []
+        },
+        "yearlyLuck": {
+          "year": 2026,
+          "earthlyBranch": "오",
+          "palaceName": "복덕궁",
+          "mainStars": [
+            "칠살"
+          ],
+          "transformations": []
+        }
+      },
+      "after": {
+        "status": "ok",
+        "life": 4,
+        "body": 6,
+        "bureau": 4,
+        "stars": {
+          "태음": 4,
+          "천요": 4,
+          "경양": 4,
+          "화성": 4,
+          "천부": 3,
+          "녹존": 3,
+          "타라": 2,
+          "자미": 1,
+          "파군": 1,
+          "천기": 0,
+          "천괴": 0,
+          "지겁": 0,
+          "천마": 11,
+          "영성": 11,
+          "태양": 10,
+          "지공": 10,
+          "무곡": 9,
+          "칠살": 9,
+          "문창": 9,
+          "천동": 8,
+          "천량": 8,
+          "천월": 8,
+          "천상": 7,
+          "좌보": 7,
+          "우필": 7,
+          "거문": 6,
+          "함지": 6,
+          "염정": 5,
+          "탐랑": 5,
+          "문곡": 5
+        },
+        "decades": {
+          "0": 44,
+          "1": 34,
+          "2": 24,
+          "3": 14,
+          "4": 4,
+          "5": 114,
+          "6": 104,
+          "7": 94,
+          "8": 84,
+          "9": 74,
+          "10": 64,
+          "11": 54
+        },
+        "hua": {
+          "huaLu": "천기",
+          "huaQuan": "천량",
+          "huaKe": "자미",
+          "huaJi": "태음"
+        },
+        "minorLuck": {
+          "startBranchIndex": 7,
+          "startBranch": "미",
+          "direction": "순행",
+          "baseYear": 1905,
+          "current": null,
+          "entries": []
+        },
+        "yearlyLuck": {
+          "year": 2026,
+          "earthlyBranch": "오",
+          "palaceName": "복덕궁",
+          "mainStars": [
+            "거문"
+          ],
+          "transformations": []
+        }
+      }
+    },
+    {
+      "id": "random-011214",
+      "domain": "ziwei",
+      "flags": {
+        "sajuTermAuthorityV2": false,
+        "koreanCalendarAuthorityV2": true
+      },
+      "before": {
+        "status": "ok",
+        "life": 1,
+        "body": 9,
+        "bureau": 6,
+        "stars": {
+          "자미": 1,
+          "파군": 1,
+          "천기": 0,
+          "천괴": 0,
+          "천마": 11,
+          "태양": 10,
+          "무곡": 9,
+          "칠살": 9,
+          "천동": 8,
+          "천량": 8,
+          "문곡": 8,
+          "천월": 8,
+          "천상": 7,
+          "좌보": 7,
+          "우필": 7,
+          "화성": 7,
+          "지공": 7,
+          "거문": 6,
+          "문창": 6,
+          "함지": 6,
+          "염정": 5,
+          "탐랑": 5,
+          "태음": 4,
+          "천요": 4,
+          "경양": 4,
+          "천부": 3,
+          "녹존": 3,
+          "지겁": 3,
+          "타라": 2,
+          "영성": 2
+        },
+        "decades": {
+          "0": 116,
+          "1": 6,
+          "2": 16,
+          "3": 26,
+          "4": 36,
+          "5": 46,
+          "6": 56,
+          "7": 66,
+          "8": 76,
+          "9": 86,
+          "10": 96,
+          "11": 106
+        },
+        "hua": {
+          "huaLu": "천기",
+          "huaQuan": "천량",
+          "huaKe": "자미",
+          "huaJi": "태음"
+        },
+        "minorLuck": {
+          "startBranchIndex": 7,
+          "startBranch": "미",
+          "direction": "역행",
+          "baseYear": 1905,
+          "current": null,
+          "entries": []
+        },
+        "yearlyLuck": {
+          "year": 2026,
+          "earthlyBranch": "오",
+          "palaceName": "노복궁",
+          "mainStars": [
+            "거문"
+          ],
+          "transformations": []
+        }
+      },
+      "after": {
+        "status": "ok",
+        "life": 1,
+        "body": 9,
+        "bureau": 6,
+        "stars": {
+          "천기": 1,
+          "파군": 0,
+          "천괴": 0,
+          "태양": 11,
+          "천마": 11,
+          "무곡": 10,
+          "천동": 9,
+          "칠살": 8,
+          "문곡": 8,
+          "천월": 8,
+          "천량": 7,
+          "좌보": 7,
+          "우필": 7,
+          "화성": 7,
+          "지공": 7,
+          "염정": 6,
+          "천상": 6,
+          "문창": 6,
+          "함지": 6,
+          "거문": 5,
+          "탐랑": 4,
+          "천요": 4,
+          "경양": 4,
+          "태음": 3,
+          "녹존": 3,
+          "지겁": 3,
+          "자미": 2,
+          "천부": 2,
+          "타라": 2,
+          "영성": 2
+        },
+        "decades": {
+          "0": 116,
+          "1": 6,
+          "2": 16,
+          "3": 26,
+          "4": 36,
+          "5": 46,
+          "6": 56,
+          "7": 66,
+          "8": 76,
+          "9": 86,
+          "10": 96,
+          "11": 106
+        },
+        "hua": {
+          "huaLu": "천기",
+          "huaQuan": "천량",
+          "huaKe": "자미",
+          "huaJi": "태음"
+        },
+        "minorLuck": {
+          "startBranchIndex": 7,
+          "startBranch": "미",
+          "direction": "역행",
+          "baseYear": 1905,
+          "current": null,
+          "entries": []
+        },
+        "yearlyLuck": {
+          "year": 2026,
+          "earthlyBranch": "오",
+          "palaceName": "노복궁",
+          "mainStars": [
+            "염정",
+            "천상"
+          ],
+          "transformations": []
+        }
+      }
+    },
+    {
+      "id": "random-011298",
+      "domain": "ziwei",
+      "flags": {
+        "sajuTermAuthorityV2": false,
+        "koreanCalendarAuthorityV2": true
+      },
+      "before": {
+        "status": "ok",
+        "life": 4,
+        "body": 6,
+        "bureau": 4,
+        "stars": {
+          "파군": 4,
+          "천요": 4,
+          "경양": 4,
+          "화성": 4,
+          "녹존": 3,
+          "염정": 2,
+          "타라": 2,
+          "칠살": 0,
+          "천괴": 0,
+          "지겁": 0,
+          "천량": 11,
+          "천마": 11,
+          "영성": 11,
+          "자미": 10,
+          "천상": 10,
+          "지공": 10,
+          "천기": 9,
+          "거문": 9,
+          "문창": 9,
+          "탐랑": 8,
+          "천월": 8,
+          "태양": 7,
+          "태음": 7,
+          "좌보": 7,
+          "우필": 7,
+          "무곡": 6,
+          "천부": 6,
+          "함지": 6,
+          "천동": 5,
+          "문곡": 5
+        },
+        "decades": {
+          "0": 84,
+          "1": 94,
+          "2": 104,
+          "3": 114,
+          "4": 4,
+          "5": 14,
+          "6": 24,
+          "7": 34,
+          "8": 44,
+          "9": 54,
+          "10": 64,
+          "11": 74
+        },
+        "hua": {
+          "huaLu": "천기",
+          "huaQuan": "천량",
+          "huaKe": "자미",
+          "huaJi": "태음"
+        },
+        "minorLuck": {
+          "startBranchIndex": 7,
+          "startBranch": "미",
+          "direction": "역행",
+          "baseYear": 1905,
+          "current": null,
+          "entries": []
+        },
+        "yearlyLuck": {
+          "year": 2026,
+          "earthlyBranch": "오",
+          "palaceName": "복덕궁",
+          "mainStars": [
+            "무곡",
+            "천부"
+          ],
+          "transformations": []
+        }
+      },
+      "after": {
+        "status": "ok",
+        "life": 4,
+        "body": 6,
+        "bureau": 4,
+        "stars": {
+          "태양": 4,
+          "천요": 4,
+          "경양": 4,
+          "화성": 4,
+          "무곡": 3,
+          "칠살": 3,
+          "녹존": 3,
+          "천동": 2,
+          "천량": 2,
+          "타라": 2,
+          "천상": 1,
+          "거문": 0,
+          "천괴": 0,
+          "지겁": 0,
+          "염정": 11,
+          "탐랑": 11,
+          "천마": 11,
+          "영성": 11,
+          "태음": 10,
+          "지공": 10,
+          "천부": 9,
+          "문창": 9,
+          "천월": 8,
+          "자미": 7,
+          "파군": 7,
+          "좌보": 7,
+          "우필": 7,
+          "천기": 6,
+          "함지": 6,
+          "문곡": 5
+        },
+        "decades": {
+          "0": 84,
+          "1": 94,
+          "2": 104,
+          "3": 114,
+          "4": 4,
+          "5": 14,
+          "6": 24,
+          "7": 34,
+          "8": 44,
+          "9": 54,
+          "10": 64,
+          "11": 74
+        },
+        "hua": {
+          "huaLu": "천기",
+          "huaQuan": "천량",
+          "huaKe": "자미",
+          "huaJi": "태음"
+        },
+        "minorLuck": {
+          "startBranchIndex": 7,
+          "startBranch": "미",
+          "direction": "역행",
+          "baseYear": 1905,
+          "current": null,
+          "entries": []
+        },
+        "yearlyLuck": {
+          "year": 2026,
+          "earthlyBranch": "오",
+          "palaceName": "복덕궁",
+          "mainStars": [
+            "천기"
+          ],
+          "transformations": [
+            "화록:천기"
+          ]
+        }
+      }
+    },
+    {
+      "id": "random-011414",
+      "domain": "ziwei",
+      "flags": {
+        "sajuTermAuthorityV2": false,
+        "koreanCalendarAuthorityV2": true
+      },
+      "before": {
+        "status": "ok",
+        "life": 2,
+        "body": 8,
+        "bureau": 5,
+        "stars": {
+          "천기": 2,
+          "태음": 2,
+          "타라": 2,
+          "지겁": 2,
+          "천부": 1,
+          "영성": 1,
+          "태양": 0,
+          "천괴": 0,
+          "무곡": 11,
+          "파군": 11,
+          "천마": 11,
+          "천동": 10,
+          "천월": 8,
+          "지공": 8,
+          "염정": 7,
+          "칠살": 7,
+          "문창": 7,
+          "문곡": 7,
+          "좌보": 7,
+          "우필": 7,
+          "천량": 6,
+          "함지": 6,
+          "화성": 6,
+          "천상": 5,
+          "거문": 4,
+          "천요": 4,
+          "경양": 4,
+          "자미": 3,
+          "탐랑": 3,
+          "녹존": 3
+        },
+        "decades": {
+          "0": 105,
+          "1": 115,
+          "2": 5,
+          "3": 15,
+          "4": 25,
+          "5": 35,
+          "6": 45,
+          "7": 55,
+          "8": 65,
+          "9": 75,
+          "10": 85,
+          "11": 95
+        },
+        "hua": {
+          "huaLu": "천기",
+          "huaQuan": "천량",
+          "huaKe": "자미",
+          "huaJi": "태음"
+        },
+        "minorLuck": {
+          "startBranchIndex": 7,
+          "startBranch": "미",
+          "direction": "역행",
+          "baseYear": 1905,
+          "current": null,
+          "entries": []
+        },
+        "yearlyLuck": {
+          "year": 2026,
+          "earthlyBranch": "오",
+          "palaceName": "관록궁",
+          "mainStars": [
+            "천량"
+          ],
+          "transformations": [
+            "화권:천량"
+          ]
+        }
+      },
+      "after": {
+        "status": "ok",
+        "life": 2,
+        "body": 8,
+        "bureau": 5,
+        "stars": {
+          "칠살": 2,
+          "타라": 2,
+          "지겁": 2,
+          "천량": 1,
+          "영성": 1,
+          "염정": 0,
+          "천상": 0,
+          "천괴": 0,
+          "거문": 11,
+          "천마": 11,
+          "탐랑": 10,
+          "태음": 9,
+          "자미": 8,
+          "천부": 8,
+          "천월": 8,
+          "지공": 8,
+          "천기": 7,
+          "문창": 7,
+          "문곡": 7,
+          "좌보": 7,
+          "우필": 7,
+          "파군": 6,
+          "함지": 6,
+          "화성": 6,
+          "태양": 5,
+          "무곡": 4,
+          "천요": 4,
+          "경양": 4,
+          "천동": 3,
+          "녹존": 3
+        },
+        "decades": {
+          "0": 105,
+          "1": 115,
+          "2": 5,
+          "3": 15,
+          "4": 25,
+          "5": 35,
+          "6": 45,
+          "7": 55,
+          "8": 65,
+          "9": 75,
+          "10": 85,
+          "11": 95
+        },
+        "hua": {
+          "huaLu": "천기",
+          "huaQuan": "천량",
+          "huaKe": "자미",
+          "huaJi": "태음"
+        },
+        "minorLuck": {
+          "startBranchIndex": 7,
+          "startBranch": "미",
+          "direction": "역행",
+          "baseYear": 1905,
+          "current": null,
+          "entries": []
+        },
+        "yearlyLuck": {
+          "year": 2026,
+          "earthlyBranch": "오",
+          "palaceName": "관록궁",
+          "mainStars": [
+            "파군"
+          ],
+          "transformations": []
+        }
+      }
+    },
+    {
+      "id": "random-011530",
+      "domain": "ziwei",
+      "flags": {
+        "sajuTermAuthorityV2": false,
+        "koreanCalendarAuthorityV2": true
+      },
+      "before": {
+        "status": "ok",
+        "life": 4,
+        "body": 4,
+        "bureau": 5,
+        "stars": {
+          "염정": 4,
+          "천부": 4,
+          "문창": 4,
+          "영성": 4,
+          "천괴": 3,
+          "화성": 3,
+          "파군": 2,
+          "우필": 2,
+          "경양": 1,
+          "자미": 0,
+          "좌보": 0,
+          "녹존": 0,
+          "함지": 0,
+          "천기": 11,
+          "타라": 11,
+          "칠살": 10,
+          "문곡": 10,
+          "태양": 9,
+          "천량": 9,
+          "천요": 9,
+          "무곡": 8,
+          "천상": 8,
+          "천동": 7,
+          "거문": 7,
+          "탐랑": 6,
+          "태음": 5,
+          "천월": 5,
+          "천마": 5,
+          "지공": 5,
+          "지겁": 5
+        },
+        "decades": {
+          "0": 85,
+          "1": 95,
+          "2": 105,
+          "3": 115,
+          "4": 5,
+          "5": 15,
+          "6": 25,
+          "7": 35,
+          "8": 45,
+          "9": 55,
+          "10": 65,
+          "11": 75
+        },
+        "hua": {
+          "huaLu": "파군",
+          "huaQuan": "거문",
+          "huaKe": "태음",
+          "huaJi": "탐랑"
+        },
+        "minorLuck": {
+          "startBranchIndex": 1,
+          "startBranch": "축",
+          "direction": "역행",
+          "baseYear": 1903,
+          "current": null,
+          "entries": []
+        },
+        "yearlyLuck": {
+          "year": 2026,
+          "earthlyBranch": "오",
+          "palaceName": "복덕궁",
+          "mainStars": [
+            "탐랑"
+          ],
+          "transformations": [
+            "화기:탐랑"
+          ]
+        }
+      },
+      "after": {
+        "status": "ok",
+        "life": 4,
+        "body": 4,
+        "bureau": 5,
+        "stars": {
+          "천기": 4,
+          "천량": 4,
+          "문창": 4,
+          "영성": 4,
+          "천상": 3,
+          "천괴": 3,
+          "화성": 3,
+          "태양": 2,
+          "거문": 2,
+          "우필": 2,
+          "무곡": 1,
+          "탐랑": 1,
+          "경양": 1,
+          "천동": 0,
+          "태음": 0,
+          "좌보": 0,
+          "녹존": 0,
+          "함지": 0,
+          "천부": 11,
+          "타라": 11,
+          "문곡": 10,
+          "염정": 9,
+          "파군": 9,
+          "천요": 9,
+          "자미": 5,
+          "칠살": 5,
+          "천월": 5,
+          "천마": 5,
+          "지공": 5,
+          "지겁": 5
+        },
+        "decades": {
+          "0": 85,
+          "1": 95,
+          "2": 105,
+          "3": 115,
+          "4": 5,
+          "5": 15,
+          "6": 25,
+          "7": 35,
+          "8": 45,
+          "9": 55,
+          "10": 65,
+          "11": 75
+        },
+        "hua": {
+          "huaLu": "파군",
+          "huaQuan": "거문",
+          "huaKe": "태음",
+          "huaJi": "탐랑"
+        },
+        "minorLuck": {
+          "startBranchIndex": 1,
+          "startBranch": "축",
+          "direction": "역행",
+          "baseYear": 1903,
+          "current": null,
+          "entries": []
+        },
+        "yearlyLuck": {
+          "year": 2026,
+          "earthlyBranch": "오",
+          "palaceName": "복덕궁",
+          "mainStars": [],
+          "transformations": []
+        }
+      }
+    },
+    {
+      "id": "random-012698",
+      "domain": "ziwei",
+      "flags": {
+        "sajuTermAuthorityV2": false,
+        "koreanCalendarAuthorityV2": true
+      },
+      "before": {
+        "status": "ok",
+        "life": 11,
+        "body": 11,
+        "bureau": 2,
+        "stars": {
+          "천부": 11,
+          "문곡": 10,
+          "염정": 9,
+          "파군": 9,
+          "함지": 9,
+          "화성": 8,
+          "좌보": 7,
+          "우필": 7,
+          "천월": 7,
+          "경양": 6,
+          "자미": 5,
+          "칠살": 5,
+          "녹존": 5,
+          "지공": 5,
+          "지겁": 5,
+          "천기": 4,
+          "천량": 4,
+          "문창": 4,
+          "천요": 4,
+          "타라": 4,
+          "영성": 4,
+          "천상": 3,
+          "태양": 2,
+          "거문": 2,
+          "천마": 2,
+          "무곡": 1,
+          "탐랑": 1,
+          "천괴": 1,
+          "천동": 0,
+          "태음": 0
+        },
+        "decades": {
+          "0": 112,
+          "1": 102,
+          "2": 92,
+          "3": 82,
+          "4": 72,
+          "5": 62,
+          "6": 52,
+          "7": 42,
+          "8": 32,
+          "9": 22,
+          "10": 12,
+          "11": 2
+        },
+        "hua": {
+          "huaLu": "탐랑",
+          "huaQuan": "태음",
+          "huaKe": "우필",
+          "huaJi": "천기"
+        },
+        "minorLuck": {
+          "startBranchIndex": 10,
+          "startBranch": "술",
+          "direction": "역행",
+          "baseYear": 1908,
+          "current": null,
+          "entries": []
+        },
+        "yearlyLuck": {
+          "year": 2026,
+          "earthlyBranch": "오",
+          "palaceName": "질액궁",
+          "mainStars": [],
+          "transformations": []
+        }
+      },
+      "after": {
+        "status": "ok",
+        "life": 11,
+        "body": 11,
+        "bureau": 2,
+        "stars": {
+          "태음": 11,
+          "염정": 10,
+          "천부": 10,
+          "문곡": 10,
+          "함지": 9,
+          "파군": 8,
+          "화성": 8,
+          "좌보": 7,
+          "우필": 7,
+          "천월": 7,
+          "자미": 6,
+          "경양": 6,
+          "천기": 5,
+          "녹존": 5,
+          "지공": 5,
+          "지겁": 5,
+          "칠살": 4,
+          "문창": 4,
+          "천요": 4,
+          "타라": 4,
+          "영성": 4,
+          "태양": 3,
+          "천량": 3,
+          "무곡": 2,
+          "천상": 2,
+          "천마": 2,
+          "천동": 1,
+          "거문": 1,
+          "천괴": 1,
+          "탐랑": 0
+        },
+        "decades": {
+          "0": 112,
+          "1": 102,
+          "2": 92,
+          "3": 82,
+          "4": 72,
+          "5": 62,
+          "6": 52,
+          "7": 42,
+          "8": 32,
+          "9": 22,
+          "10": 12,
+          "11": 2
+        },
+        "hua": {
+          "huaLu": "탐랑",
+          "huaQuan": "태음",
+          "huaKe": "우필",
+          "huaJi": "천기"
+        },
+        "minorLuck": {
+          "startBranchIndex": 10,
+          "startBranch": "술",
+          "direction": "역행",
+          "baseYear": 1908,
+          "current": null,
+          "entries": []
+        },
+        "yearlyLuck": {
+          "year": 2026,
+          "earthlyBranch": "오",
+          "palaceName": "질액궁",
+          "mainStars": [
+            "자미"
+          ],
+          "transformations": []
+        }
+      }
+    },
+    {
+      "id": "random-012930",
+      "domain": "ziwei",
+      "flags": {
+        "sajuTermAuthorityV2": false,
+        "koreanCalendarAuthorityV2": true
+      },
+      "before": {
+        "status": "ok",
+        "life": 6,
+        "body": 0,
+        "bureau": 5,
+        "stars": {
+          "탐랑": 6,
+          "녹존": 6,
+          "함지": 6,
+          "화성": 6,
+          "태음": 5,
+          "타라": 5,
+          "염정": 4,
+          "천부": 4,
+          "우필": 3,
+          "파군": 2,
+          "지겁": 2,
+          "영성": 1,
+          "자미": 0,
+          "천괴": 0,
+          "천기": 11,
+          "좌보": 11,
+          "천마": 11,
+          "칠살": 10,
+          "태양": 9,
+          "천량": 9,
+          "무곡": 8,
+          "천상": 8,
+          "천월": 8,
+          "천요": 8,
+          "지공": 8,
+          "천동": 7,
+          "거문": 7,
+          "문창": 7,
+          "문곡": 7,
+          "경양": 7
+        },
+        "decades": {
+          "0": 65,
+          "1": 75,
+          "2": 85,
+          "3": 95,
+          "4": 105,
+          "5": 115,
+          "6": 5,
+          "7": 15,
+          "8": 25,
+          "9": 35,
+          "10": 45,
+          "11": 55
+        },
+        "hua": {
+          "huaLu": "무곡",
+          "huaQuan": "탐랑",
+          "huaKe": "천량",
+          "huaJi": "문곡"
+        },
+        "minorLuck": {
+          "startBranchIndex": 7,
+          "startBranch": "미",
+          "direction": "역행",
+          "baseYear": 1909,
+          "current": null,
+          "entries": []
+        },
+        "yearlyLuck": {
+          "year": 2026,
+          "earthlyBranch": "오",
+          "palaceName": "명궁",
+          "mainStars": [
+            "탐랑"
+          ],
+          "transformations": [
+            "화권:탐랑"
+          ]
+        }
+      },
+      "after": {
+        "status": "ok",
+        "life": 6,
+        "body": 0,
+        "bureau": 5,
+        "stars": {
+          "녹존": 6,
+          "함지": 6,
+          "화성": 6,
+          "자미": 5,
+          "칠살": 5,
+          "타라": 5,
+          "천기": 4,
+          "천량": 4,
+          "천상": 3,
+          "우필": 3,
+          "태양": 2,
+          "거문": 2,
+          "지겁": 2,
+          "무곡": 1,
+          "탐랑": 1,
+          "영성": 1,
+          "천동": 0,
+          "태음": 0,
+          "천괴": 0,
+          "천부": 11,
+          "좌보": 11,
+          "천마": 11,
+          "염정": 9,
+          "파군": 9,
+          "천월": 8,
+          "천요": 8,
+          "지공": 8,
+          "문창": 7,
+          "문곡": 7,
+          "경양": 7
+        },
+        "decades": {
+          "0": 65,
+          "1": 75,
+          "2": 85,
+          "3": 95,
+          "4": 105,
+          "5": 115,
+          "6": 5,
+          "7": 15,
+          "8": 25,
+          "9": 35,
+          "10": 45,
+          "11": 55
+        },
+        "hua": {
+          "huaLu": "무곡",
+          "huaQuan": "탐랑",
+          "huaKe": "천량",
+          "huaJi": "문곡"
+        },
+        "minorLuck": {
+          "startBranchIndex": 7,
+          "startBranch": "미",
+          "direction": "역행",
+          "baseYear": 1909,
+          "current": null,
+          "entries": []
+        },
+        "yearlyLuck": {
+          "year": 2026,
+          "earthlyBranch": "오",
+          "palaceName": "명궁",
+          "mainStars": [],
+          "transformations": []
+        }
+      }
+    },
+    {
+      "id": "random-014402",
+      "domain": "ziwei",
+      "flags": {
+        "sajuTermAuthorityV2": false,
+        "koreanCalendarAuthorityV2": true
+      },
+      "before": {
+        "status": "ok",
+        "life": 6,
+        "body": 0,
+        "bureau": 5,
+        "stars": {
+          "칠살": 6,
+          "녹존": 6,
+          "함지": 6,
+          "화성": 6,
+          "천량": 5,
+          "타라": 5,
+          "자미": 4,
+          "천상": 4,
+          "천기": 3,
+          "거문": 3,
+          "우필": 3,
+          "탐랑": 2,
+          "지겁": 2,
+          "태양": 1,
+          "태음": 1,
+          "영성": 1,
+          "무곡": 0,
+          "천부": 0,
+          "천괴": 0,
+          "천동": 11,
+          "좌보": 11,
+          "천마": 11,
+          "파군": 10,
+          "염정": 8,
+          "천월": 8,
+          "천요": 8,
+          "지공": 8,
+          "문창": 7,
+          "문곡": 7,
+          "경양": 7
+        },
+        "decades": {
+          "0": 65,
+          "1": 55,
+          "2": 45,
+          "3": 35,
+          "4": 25,
+          "5": 15,
+          "6": 5,
+          "7": 115,
+          "8": 105,
+          "9": 95,
+          "10": 85,
+          "11": 75
+        },
+        "hua": {
+          "huaLu": "무곡",
+          "huaQuan": "탐랑",
+          "huaKe": "천량",
+          "huaJi": "문곡"
+        },
+        "minorLuck": {
+          "startBranchIndex": 7,
+          "startBranch": "미",
+          "direction": "순행",
+          "baseYear": 1909,
+          "current": null,
+          "entries": []
+        },
+        "yearlyLuck": {
+          "year": 2026,
+          "earthlyBranch": "오",
+          "palaceName": "명궁",
+          "mainStars": [
+            "칠살"
+          ],
+          "transformations": []
+        }
+      },
+      "after": {
+        "status": "ok",
+        "life": 6,
+        "body": 0,
+        "bureau": 5,
+        "stars": {
+          "태양": 6,
+          "녹존": 6,
+          "함지": 6,
+          "화성": 6,
+          "무곡": 5,
+          "파군": 5,
+          "타라": 5,
+          "천동": 4,
+          "우필": 3,
+          "지겁": 2,
+          "염정": 1,
+          "칠살": 1,
+          "영성": 1,
+          "천량": 0,
+          "천괴": 0,
+          "천상": 11,
+          "좌보": 11,
+          "천마": 11,
+          "거문": 10,
+          "자미": 9,
+          "탐랑": 9,
+          "천기": 8,
+          "태음": 8,
+          "천월": 8,
+          "천요": 8,
+          "지공": 8,
+          "천부": 7,
+          "문창": 7,
+          "문곡": 7,
+          "경양": 7
+        },
+        "decades": {
+          "0": 65,
+          "1": 55,
+          "2": 45,
+          "3": 35,
+          "4": 25,
+          "5": 15,
+          "6": 5,
+          "7": 115,
+          "8": 105,
+          "9": 95,
+          "10": 85,
+          "11": 75
+        },
+        "hua": {
+          "huaLu": "무곡",
+          "huaQuan": "탐랑",
+          "huaKe": "천량",
+          "huaJi": "문곡"
+        },
+        "minorLuck": {
+          "startBranchIndex": 7,
+          "startBranch": "미",
+          "direction": "순행",
+          "baseYear": 1909,
+          "current": null,
+          "entries": []
+        },
+        "yearlyLuck": {
+          "year": 2026,
+          "earthlyBranch": "오",
+          "palaceName": "명궁",
+          "mainStars": [
+            "태양"
+          ],
+          "transformations": []
+        }
+      }
+    },
+    {
+      "id": "random-017550",
+      "domain": "ziwei",
+      "flags": {
+        "sajuTermAuthorityV2": false,
+        "koreanCalendarAuthorityV2": true
+      },
+      "before": {
+        "status": "ok",
+        "life": 8,
+        "body": 4,
+        "bureau": 6,
+        "stars": {
+          "문곡": 8,
+          "타라": 8,
+          "염정": 7,
+          "칠살": 7,
+          "지공": 7,
+          "천량": 6,
+          "문창": 6,
+          "천월": 6,
+          "천상": 5,
+          "천마": 5,
+          "거문": 4,
+          "자미": 3,
+          "탐랑": 3,
+          "지겁": 3,
+          "천기": 2,
+          "태음": 2,
+          "좌보": 2,
+          "천괴": 2,
+          "영성": 2,
+          "천부": 1,
+          "화성": 1,
+          "태양": 0,
+          "우필": 0,
+          "함지": 0,
+          "무곡": 11,
+          "파군": 11,
+          "천요": 11,
+          "천동": 10,
+          "경양": 10,
+          "녹존": 9
+        },
+        "decades": {
+          "0": 86,
+          "1": 76,
+          "2": 66,
+          "3": 56,
+          "4": 46,
+          "5": 36,
+          "6": 26,
+          "7": 16,
+          "8": 6,
+          "9": 116,
+          "10": 106,
+          "11": 96
+        },
+        "hua": {
+          "huaLu": "거문",
+          "huaQuan": "태양",
+          "huaKe": "문곡",
+          "huaJi": "문창"
+        },
+        "minorLuck": {
+          "startBranchIndex": 1,
+          "startBranch": "축",
+          "direction": "순행",
+          "baseYear": 1911,
+          "current": null,
+          "entries": []
+        },
+        "yearlyLuck": {
+          "year": 2026,
+          "earthlyBranch": "오",
+          "palaceName": "부부궁",
+          "mainStars": [
+            "천량"
+          ],
+          "transformations": [
+            "화기:문창"
+          ]
+        }
+      },
+      "after": {
+        "status": "ok",
+        "life": 8,
+        "body": 4,
+        "bureau": 6,
+        "stars": {
+          "태양": 8,
+          "거문": 8,
+          "문곡": 8,
+          "타라": 8,
+          "무곡": 7,
+          "탐랑": 7,
+          "지공": 7,
+          "천동": 6,
+          "태음": 6,
+          "문창": 6,
+          "천월": 6,
+          "천부": 5,
+          "천마": 5,
+          "염정": 3,
+          "파군": 3,
+          "지겁": 3,
+          "좌보": 2,
+          "천괴": 2,
+          "영성": 2,
+          "화성": 1,
+          "우필": 0,
+          "함지": 0,
+          "자미": 11,
+          "칠살": 11,
+          "천요": 11,
+          "천기": 10,
+          "천량": 10,
+          "경양": 10,
+          "천상": 9,
+          "녹존": 9
+        },
+        "decades": {
+          "0": 86,
+          "1": 76,
+          "2": 66,
+          "3": 56,
+          "4": 46,
+          "5": 36,
+          "6": 26,
+          "7": 16,
+          "8": 6,
+          "9": 116,
+          "10": 106,
+          "11": 96
+        },
+        "hua": {
+          "huaLu": "거문",
+          "huaQuan": "태양",
+          "huaKe": "문곡",
+          "huaJi": "문창"
+        },
+        "minorLuck": {
+          "startBranchIndex": 1,
+          "startBranch": "축",
+          "direction": "순행",
+          "baseYear": 1911,
+          "current": null,
+          "entries": []
+        },
+        "yearlyLuck": {
+          "year": 2026,
+          "earthlyBranch": "오",
+          "palaceName": "부부궁",
+          "mainStars": [
+            "천동",
+            "태음"
+          ],
+          "transformations": [
+            "화기:문창"
+          ]
+        }
+      }
+    },
+    {
+      "id": "random-017786",
+      "domain": "ziwei",
+      "flags": {
+        "sajuTermAuthorityV2": false,
+        "koreanCalendarAuthorityV2": true
+      },
+      "before": {
+        "status": "ok",
+        "life": 7,
+        "body": 7,
+        "bureau": 6,
+        "stars": {
+          "칠살": 6,
+          "천량": 5,
+          "천월": 5,
+          "천마": 5,
+          "지공": 5,
+          "지겁": 5,
+          "자미": 4,
+          "천상": 4,
+          "문창": 4,
+          "영성": 4,
+          "천기": 3,
+          "거문": 3,
+          "좌보": 3,
+          "천괴": 3,
+          "화성": 3,
+          "탐랑": 2,
+          "태양": 1,
+          "태음": 1,
+          "경양": 1,
+          "무곡": 0,
+          "천부": 0,
+          "녹존": 0,
+          "함지": 0,
+          "천요": 0,
+          "천동": 11,
+          "우필": 11,
+          "타라": 11,
+          "파군": 10,
+          "문곡": 10,
+          "염정": 8
+        },
+        "decades": {
+          "0": 56,
+          "1": 66,
+          "2": 76,
+          "3": 86,
+          "4": 96,
+          "5": 106,
+          "6": 116,
+          "7": 6,
+          "8": 16,
+          "9": 26,
+          "10": 36,
+          "11": 46
+        },
+        "hua": {
+          "huaLu": "파군",
+          "huaQuan": "거문",
+          "huaKe": "태음",
+          "huaJi": "탐랑"
+        },
+        "minorLuck": {
+          "startBranchIndex": 1,
+          "startBranch": "축",
+          "direction": "역행",
+          "baseYear": 1903,
+          "current": null,
+          "entries": []
+        },
+        "yearlyLuck": {
+          "year": 2026,
+          "earthlyBranch": "오",
+          "palaceName": "형제궁",
+          "mainStars": [
+            "칠살"
+          ],
+          "transformations": []
+        }
+      },
+      "after": {
+        "status": "ok",
+        "life": 7,
+        "body": 7,
+        "bureau": 6,
+        "stars": {
+          "천상": 7,
+          "거문": 6,
+          "염정": 5,
+          "탐랑": 5,
+          "천월": 5,
+          "천마": 5,
+          "지공": 5,
+          "지겁": 5,
+          "태음": 4,
+          "문창": 4,
+          "영성": 4,
+          "천부": 3,
+          "좌보": 3,
+          "천괴": 3,
+          "화성": 3,
+          "자미": 1,
+          "파군": 1,
+          "경양": 1,
+          "천기": 0,
+          "녹존": 0,
+          "함지": 0,
+          "천요": 0,
+          "우필": 11,
+          "타라": 11,
+          "태양": 10,
+          "문곡": 10,
+          "무곡": 9,
+          "칠살": 9,
+          "천동": 8,
+          "천량": 8
+        },
+        "decades": {
+          "0": 56,
+          "1": 66,
+          "2": 76,
+          "3": 86,
+          "4": 96,
+          "5": 106,
+          "6": 116,
+          "7": 6,
+          "8": 16,
+          "9": 26,
+          "10": 36,
+          "11": 46
+        },
+        "hua": {
+          "huaLu": "파군",
+          "huaQuan": "거문",
+          "huaKe": "태음",
+          "huaJi": "탐랑"
+        },
+        "minorLuck": {
+          "startBranchIndex": 1,
+          "startBranch": "축",
+          "direction": "역행",
+          "baseYear": 1903,
+          "current": null,
+          "entries": []
+        },
+        "yearlyLuck": {
+          "year": 2026,
+          "earthlyBranch": "오",
+          "palaceName": "형제궁",
+          "mainStars": [
+            "거문"
+          ],
+          "transformations": [
+            "화권:거문"
+          ]
+        }
+      }
+    },
+    {
+      "id": "random-018442",
+      "domain": "ziwei",
+      "flags": {
+        "sajuTermAuthorityV2": false,
+        "koreanCalendarAuthorityV2": true
+      },
+      "before": {
+        "status": "ok",
+        "life": 10,
+        "body": 8,
+        "bureau": 6,
+        "stars": {
+          "칠살": 10,
+          "지겁": 10,
+          "태양": 9,
+          "천량": 9,
+          "영성": 9,
+          "무곡": 8,
+          "천상": 8,
+          "천월": 8,
+          "천요": 8,
+          "천동": 7,
+          "거문": 7,
+          "경양": 7,
+          "탐랑": 6,
+          "녹존": 6,
+          "함지": 6,
+          "태음": 5,
+          "타라": 5,
+          "염정": 4,
+          "천부": 4,
+          "문곡": 3,
+          "우필": 3,
+          "파군": 2,
+          "화성": 2,
+          "자미": 0,
+          "천괴": 0,
+          "지공": 0,
+          "천기": 11,
+          "문창": 11,
+          "좌보": 11,
+          "천마": 11
+        },
+        "decades": {
+          "0": 106,
+          "1": 96,
+          "2": 86,
+          "3": 76,
+          "4": 66,
+          "5": 56,
+          "6": 46,
+          "7": 36,
+          "8": 26,
+          "9": 16,
+          "10": 6,
+          "11": 116
+        },
+        "hua": {
+          "huaLu": "무곡",
+          "huaQuan": "탐랑",
+          "huaKe": "천량",
+          "huaJi": "문곡"
+        },
+        "minorLuck": {
+          "startBranchIndex": 7,
+          "startBranch": "미",
+          "direction": "순행",
+          "baseYear": 1909,
+          "current": null,
+          "entries": []
+        },
+        "yearlyLuck": {
+          "year": 2026,
+          "earthlyBranch": "오",
+          "palaceName": "재백궁",
+          "mainStars": [
+            "탐랑"
+          ],
+          "transformations": [
+            "화권:탐랑"
+          ]
+        }
+      },
+      "after": {
+        "status": "ok",
+        "life": 10,
+        "body": 8,
+        "bureau": 6,
+        "stars": {
+          "지겁": 10,
+          "염정": 9,
+          "파군": 9,
+          "영성": 9,
+          "천월": 8,
+          "천요": 8,
+          "경양": 7,
+          "녹존": 6,
+          "함지": 6,
+          "자미": 5,
+          "칠살": 5,
+          "타라": 5,
+          "천기": 4,
+          "천량": 4,
+          "천상": 3,
+          "문곡": 3,
+          "우필": 3,
+          "태양": 2,
+          "거문": 2,
+          "화성": 2,
+          "무곡": 1,
+          "탐랑": 1,
+          "천동": 0,
+          "태음": 0,
+          "천괴": 0,
+          "지공": 0,
+          "천부": 11,
+          "문창": 11,
+          "좌보": 11,
+          "천마": 11
+        },
+        "decades": {
+          "0": 106,
+          "1": 96,
+          "2": 86,
+          "3": 76,
+          "4": 66,
+          "5": 56,
+          "6": 46,
+          "7": 36,
+          "8": 26,
+          "9": 16,
+          "10": 6,
+          "11": 116
+        },
+        "hua": {
+          "huaLu": "무곡",
+          "huaQuan": "탐랑",
+          "huaKe": "천량",
+          "huaJi": "문곡"
+        },
+        "minorLuck": {
+          "startBranchIndex": 7,
+          "startBranch": "미",
+          "direction": "순행",
+          "baseYear": 1909,
+          "current": null,
+          "entries": []
+        },
+        "yearlyLuck": {
+          "year": 2026,
+          "earthlyBranch": "오",
+          "palaceName": "재백궁",
+          "mainStars": [],
+          "transformations": []
+        }
+      }
+    },
+    {
+      "id": "random-021978",
+      "domain": "saju",
+      "flags": {
+        "sajuTermAuthorityV2": false,
+        "koreanCalendarAuthorityV2": true
+      },
+      "before": {
+        "year": "甲辰",
+        "month": "乙亥",
+        "day": "癸酉",
+        "hour": "壬子"
+      },
+      "after": {
+        "year": "甲辰",
+        "month": "乙亥",
+        "day": "壬申",
+        "hour": "庚子"
+      }
+    }
+  ]
+}

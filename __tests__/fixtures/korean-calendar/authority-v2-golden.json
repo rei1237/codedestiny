@@ -1,0 +1,3640 @@
+{
+  "sourceSha256": "c91867f830c2b8d48e9fc3c6889dcd2f60ad4b418b8f59013b2a1c5880a6b92e",
+  "basis": "KASI official lunar conversion and NASA/JPL DE441 adjudication, 2026-11-01; future epochs are prediction-versioned.",
+  "cases": [
+    {
+      "id": "random-002844",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1904-11-19",
+        "leapMonth": false,
+        "time": "23:31",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.자미": 8,
+        "stars.칠살": 2,
+        "stars.천기": 7,
+        "stars.천량": 1,
+        "stars.천상": 0,
+        "stars.태양": 5,
+        "stars.거문": 11,
+        "stars.무곡": 4,
+        "stars.탐랑": 10,
+        "stars.천동": 3,
+        "stars.태음": 9,
+        "stars.천부": 8,
+        "stars.염정": 0,
+        "stars.파군": 6
+      }
+    },
+    {
+      "id": "random-004392",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1909-09-25",
+        "leapMonth": false,
+        "time": "16:52",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.천동": 2,
+        "stars.거문": 0,
+        "stars.탐랑": 11,
+        "stars.태음": 10,
+        "stars.염정": 11,
+        "stars.천부": 9,
+        "stars.파군": 7,
+        "stars.자미": 7,
+        "stars.천기": 6,
+        "stars.칠살": 3,
+        "stars.태양": 4,
+        "stars.천량": 2,
+        "stars.무곡": 3,
+        "stars.천상": 1
+      }
+    },
+    {
+      "id": "random-011452",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1907-07-22",
+        "leapMonth": false,
+        "time": "17:03",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.파군": 0,
+        "stars.염정": 6,
+        "stars.칠살": 8,
+        "stars.천량": 7,
+        "stars.자미": 2,
+        "stars.천상": 6,
+        "stars.천기": 1,
+        "stars.거문": 5,
+        "stars.탐랑": 4,
+        "stars.태양": 11,
+        "stars.태음": 3,
+        "stars.무곡": 10,
+        "stars.천부": 2,
+        "stars.천동": 9
+      }
+    },
+    {
+      "id": "random-014456",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1903-10-25",
+        "leapMonth": false,
+        "time": "16:18",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.천기": 3,
+        "stars.태음": 1,
+        "stars.천부": 0,
+        "stars.태양": 1,
+        "stars.무곡": 0,
+        "stars.파군": 10,
+        "stars.천동": 11,
+        "stars.염정": 8,
+        "stars.칠살": 6,
+        "stars.천량": 5,
+        "stars.천상": 4,
+        "stars.거문": 3,
+        "stars.자미": 4,
+        "stars.탐랑": 2
+      }
+    },
+    {
+      "id": "random-018216",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1909-09-21",
+        "leapMonth": false,
+        "time": "23:27",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.염정": 5,
+        "stars.칠살": 9,
+        "stars.천량": 8,
+        "stars.천상": 7,
+        "stars.거문": 6,
+        "stars.자미": 1,
+        "stars.탐랑": 5,
+        "stars.천기": 0,
+        "stars.태음": 4,
+        "stars.천부": 3,
+        "stars.태양": 10,
+        "stars.무곡": 9,
+        "stars.파군": 1,
+        "stars.천동": 8
+      }
+    },
+    {
+      "id": "random-018356",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1903-11-06",
+        "leapMonth": false,
+        "time": "02:54",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.파군": 7,
+        "stars.자미": 7,
+        "stars.천기": 6,
+        "stars.칠살": 3,
+        "stars.태양": 4,
+        "stars.천량": 2,
+        "stars.무곡": 3,
+        "stars.천상": 1,
+        "stars.천동": 2,
+        "stars.거문": 0,
+        "stars.탐랑": 11,
+        "stars.태음": 10,
+        "stars.염정": 11,
+        "stars.천부": 9
+      }
+    },
+    {
+      "id": "random-018480",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1909-10-08",
+        "leapMonth": false,
+        "time": "21:00",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.천부": 3,
+        "stars.염정": 5,
+        "stars.파군": 1,
+        "stars.자미": 1,
+        "stars.칠살": 9,
+        "stars.천기": 0,
+        "stars.천량": 8,
+        "stars.천상": 7,
+        "stars.태양": 10,
+        "stars.거문": 6,
+        "stars.무곡": 9,
+        "stars.탐랑": 5,
+        "stars.천동": 8,
+        "stars.태음": 4
+      }
+    },
+    {
+      "id": "random-019300",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1907-08-07",
+        "leapMonth": false,
+        "time": "14:23",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.천기": 9,
+        "stars.태양": 7,
+        "stars.무곡": 6,
+        "stars.칠살": 0,
+        "stars.천동": 5,
+        "stars.천량": 11,
+        "stars.천상": 10,
+        "stars.거문": 9,
+        "stars.염정": 2,
+        "stars.탐랑": 8,
+        "stars.태음": 7,
+        "stars.천부": 6,
+        "stars.자미": 10,
+        "stars.파군": 4
+      }
+    },
+    {
+      "id": "random-019308",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1904-11-26",
+        "leapMonth": false,
+        "time": "20:22",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.칠살": 11,
+        "stars.천량": 10,
+        "stars.자미": 11,
+        "stars.천상": 9,
+        "stars.천기": 10,
+        "stars.거문": 8,
+        "stars.탐랑": 7,
+        "stars.태양": 8,
+        "stars.태음": 6,
+        "stars.무곡": 7,
+        "stars.천부": 5,
+        "stars.천동": 6,
+        "stars.파군": 3,
+        "stars.염정": 3
+      }
+    },
+    {
+      "id": "random-019936",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1904-02-07",
+        "leapMonth": false,
+        "time": "17:04",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.파군": 11,
+        "stars.염정": 7,
+        "stars.칠살": 7,
+        "stars.천량": 6,
+        "stars.자미": 3,
+        "stars.천상": 5,
+        "stars.천기": 2,
+        "stars.거문": 4,
+        "stars.탐랑": 3,
+        "stars.태양": 0,
+        "stars.태음": 2,
+        "stars.무곡": 11,
+        "stars.천부": 1,
+        "stars.천동": 10
+      }
+    },
+    {
+      "id": "random-020168",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1904-11-16",
+        "leapMonth": false,
+        "time": "01:30",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.칠살": 5,
+        "stars.태양": 2,
+        "stars.천량": 4,
+        "stars.무곡": 1,
+        "stars.천상": 3,
+        "stars.천동": 0,
+        "stars.거문": 2,
+        "stars.탐랑": 1,
+        "stars.태음": 0,
+        "stars.염정": 9,
+        "stars.천부": 11,
+        "stars.파군": 9,
+        "stars.자미": 5,
+        "stars.천기": 4
+      }
+    },
+    {
+      "id": "random-020364",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1904-02-12",
+        "leapMonth": false,
+        "time": "00:10",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.칠살": 3,
+        "stars.천량": 2,
+        "stars.자미": 7,
+        "stars.천상": 1,
+        "stars.천기": 6,
+        "stars.거문": 0,
+        "stars.탐랑": 11,
+        "stars.태양": 4,
+        "stars.태음": 10,
+        "stars.무곡": 3,
+        "stars.천부": 9,
+        "stars.천동": 2,
+        "stars.파군": 7,
+        "stars.염정": 11
+      }
+    },
+    {
+      "id": "random-020732",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1903-11-12",
+        "leapMonth": false,
+        "time": "14:56",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.파군": 1,
+        "stars.자미": 1,
+        "stars.천기": 0,
+        "stars.칠살": 9,
+        "stars.태양": 10,
+        "stars.천량": 8,
+        "stars.무곡": 9,
+        "stars.천상": 7,
+        "stars.천동": 8,
+        "stars.거문": 6,
+        "stars.탐랑": 5,
+        "stars.태음": 4,
+        "stars.염정": 5,
+        "stars.천부": 3
+      }
+    },
+    {
+      "id": "random-003093",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1905-05-25",
+        "leapMonth": false,
+        "time": "08:23",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.천기": 6,
+        "stars.파군": 7,
+        "stars.태양": 4,
+        "stars.무곡": 3,
+        "stars.천동": 2,
+        "stars.칠살": 3,
+        "stars.천량": 2,
+        "stars.염정": 11,
+        "stars.천상": 1,
+        "stars.거문": 0,
+        "stars.탐랑": 11,
+        "stars.태음": 10,
+        "stars.자미": 7,
+        "stars.천부": 9
+      }
+    },
+    {
+      "id": "random-004269",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1904-11-14",
+        "leapMonth": false,
+        "time": "06:14",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.칠살": 7,
+        "stars.천량": 6,
+        "stars.염정": 7,
+        "stars.천상": 5,
+        "stars.거문": 4,
+        "stars.탐랑": 3,
+        "stars.태음": 2,
+        "stars.자미": 3,
+        "stars.천부": 1,
+        "stars.천기": 2,
+        "stars.파군": 11,
+        "stars.태양": 0,
+        "stars.무곡": 11,
+        "stars.천동": 10
+      }
+    },
+    {
+      "id": "random-005065",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1904-01-24",
+        "leapMonth": false,
+        "time": "09:39",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.파군": 11,
+        "stars.자미": 3,
+        "stars.천기": 2,
+        "stars.칠살": 7,
+        "stars.태양": 0,
+        "stars.천량": 6,
+        "stars.무곡": 11,
+        "stars.천상": 5,
+        "stars.천동": 10,
+        "stars.거문": 4,
+        "stars.탐랑": 3,
+        "stars.태음": 2,
+        "stars.염정": 7,
+        "stars.천부": 1
+      }
+    },
+    {
+      "id": "random-005417",
+      "domain": "saju",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "lunar",
+        "date": "1909-08-11",
+        "leapMonth": false,
+        "time": "16:44",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "day": "丁亥",
+        "hour": "戊申"
+      }
+    },
+    {
+      "id": "random-006245",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1907-08-07",
+        "leapMonth": false,
+        "time": "22:09",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.천기": 5,
+        "stars.태음": 11,
+        "stars.천부": 10,
+        "stars.태양": 3,
+        "stars.무곡": 2,
+        "stars.파군": 8,
+        "stars.천동": 1,
+        "stars.염정": 10,
+        "stars.칠살": 4,
+        "stars.천량": 3,
+        "stars.천상": 2,
+        "stars.거문": 1,
+        "stars.자미": 6,
+        "stars.탐랑": 0
+      }
+    },
+    {
+      "id": "random-007361",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1912-01-10",
+        "leapMonth": false,
+        "time": "17:36",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.천동": 6,
+        "stars.칠살": 11,
+        "stars.천량": 10,
+        "stars.염정": 3,
+        "stars.천상": 9,
+        "stars.거문": 8,
+        "stars.탐랑": 7,
+        "stars.태음": 6,
+        "stars.자미": 11,
+        "stars.천부": 5,
+        "stars.천기": 10,
+        "stars.파군": 3,
+        "stars.태양": 8,
+        "stars.무곡": 7
+      }
+    },
+    {
+      "id": "random-008401",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1908-05-04",
+        "leapMonth": false,
+        "time": "23:23",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.거문": 0,
+        "stars.탐랑": 11,
+        "stars.태음": 10,
+        "stars.자미": 7,
+        "stars.천부": 9,
+        "stars.천기": 6,
+        "stars.파군": 7,
+        "stars.태양": 4,
+        "stars.무곡": 3,
+        "stars.천동": 2,
+        "stars.칠살": 3,
+        "stars.천량": 2,
+        "stars.염정": 11,
+        "stars.천상": 1
+      }
+    },
+    {
+      "id": "random-011265",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1905-05-15",
+        "leapMonth": false,
+        "time": "11:02",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.거문": 6,
+        "stars.탐랑": 5,
+        "stars.태음": 4,
+        "stars.자미": 1,
+        "stars.천부": 3,
+        "stars.천기": 0,
+        "stars.파군": 1,
+        "stars.태양": 10,
+        "stars.무곡": 9,
+        "stars.천동": 8,
+        "stars.칠살": 9,
+        "stars.천량": 8,
+        "stars.염정": 5,
+        "stars.천상": 7
+      }
+    },
+    {
+      "id": "random-013069",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1904-02-04",
+        "leapMonth": false,
+        "time": "13:22",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.칠살": 10,
+        "stars.천량": 9,
+        "stars.자미": 0,
+        "stars.천상": 8,
+        "stars.천기": 11,
+        "stars.거문": 7,
+        "stars.탐랑": 6,
+        "stars.태양": 9,
+        "stars.태음": 5,
+        "stars.무곡": 8,
+        "stars.천부": 4,
+        "stars.천동": 7,
+        "stars.파군": 2,
+        "stars.염정": 4
+      }
+    },
+    {
+      "id": "random-013701",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1904-11-14",
+        "leapMonth": false,
+        "time": "10:27",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.탐랑": 1,
+        "stars.태음": 0,
+        "stars.염정": 9,
+        "stars.천부": 11,
+        "stars.파군": 9,
+        "stars.자미": 5,
+        "stars.천기": 4,
+        "stars.칠살": 5,
+        "stars.태양": 2,
+        "stars.천량": 4,
+        "stars.무곡": 1,
+        "stars.천상": 3,
+        "stars.천동": 0,
+        "stars.거문": 2
+      }
+    },
+    {
+      "id": "random-014169",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1912-01-08",
+        "leapMonth": false,
+        "time": "23:47",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.천동": 5,
+        "stars.태음": 7,
+        "stars.천부": 6,
+        "stars.염정": 2,
+        "stars.파군": 4,
+        "stars.자미": 10,
+        "stars.칠살": 0,
+        "stars.천기": 9,
+        "stars.천량": 11,
+        "stars.천상": 10,
+        "stars.태양": 7,
+        "stars.거문": 9,
+        "stars.무곡": 6,
+        "stars.탐랑": 8
+      }
+    },
+    {
+      "id": "random-016185",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1907-07-24",
+        "leapMonth": false,
+        "time": "05:43",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.무곡": 9,
+        "stars.천동": 8,
+        "stars.칠살": 9,
+        "stars.천량": 8,
+        "stars.염정": 5,
+        "stars.천상": 7,
+        "stars.거문": 6,
+        "stars.탐랑": 5,
+        "stars.태음": 4,
+        "stars.자미": 1,
+        "stars.천부": 3,
+        "stars.천기": 0,
+        "stars.파군": 1,
+        "stars.태양": 10
+      }
+    },
+    {
+      "id": "random-016505",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1912-01-15",
+        "leapMonth": false,
+        "time": "02:44",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.천상": 10,
+        "stars.거문": 9,
+        "stars.자미": 10,
+        "stars.탐랑": 8,
+        "stars.천기": 9,
+        "stars.태음": 7,
+        "stars.천부": 6,
+        "stars.태양": 7,
+        "stars.무곡": 6,
+        "stars.파군": 4,
+        "stars.천동": 5,
+        "stars.염정": 2,
+        "stars.칠살": 0,
+        "stars.천량": 11
+      }
+    },
+    {
+      "id": "random-016589",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1904-01-23",
+        "leapMonth": false,
+        "time": "23:29",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.천기": 2,
+        "stars.파군": 11,
+        "stars.태양": 0,
+        "stars.무곡": 11,
+        "stars.천동": 10,
+        "stars.칠살": 7,
+        "stars.천량": 6,
+        "stars.염정": 7,
+        "stars.천상": 5,
+        "stars.거문": 4,
+        "stars.탐랑": 3,
+        "stars.태음": 2,
+        "stars.자미": 3,
+        "stars.천부": 1
+      }
+    },
+    {
+      "id": "random-016993",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1904-11-21",
+        "leapMonth": false,
+        "time": "07:14",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.염정": 8,
+        "stars.칠살": 6,
+        "stars.천량": 5,
+        "stars.천상": 4,
+        "stars.거문": 3,
+        "stars.자미": 4,
+        "stars.탐랑": 2,
+        "stars.천기": 3,
+        "stars.태음": 1,
+        "stars.천부": 0,
+        "stars.태양": 1,
+        "stars.무곡": 0,
+        "stars.파군": 10,
+        "stars.천동": 11
+      }
+    },
+    {
+      "id": "random-017713",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1904-02-12",
+        "leapMonth": false,
+        "time": "00:49",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.칠살": 3,
+        "stars.천량": 2,
+        "stars.자미": 7,
+        "stars.천상": 1,
+        "stars.천기": 6,
+        "stars.거문": 0,
+        "stars.탐랑": 11,
+        "stars.태양": 4,
+        "stars.태음": 10,
+        "stars.무곡": 3,
+        "stars.천부": 9,
+        "stars.천동": 2,
+        "stars.파군": 7,
+        "stars.염정": 11
+      }
+    },
+    {
+      "id": "random-018345",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1907-07-15",
+        "leapMonth": false,
+        "time": "08:37",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.파군": 9,
+        "stars.자미": 5,
+        "stars.천기": 4,
+        "stars.칠살": 5,
+        "stars.태양": 2,
+        "stars.천량": 4,
+        "stars.무곡": 1,
+        "stars.천상": 3,
+        "stars.천동": 0,
+        "stars.거문": 2,
+        "stars.탐랑": 1,
+        "stars.태음": 0,
+        "stars.염정": 9,
+        "stars.천부": 11
+      }
+    },
+    {
+      "id": "random-019589",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1904-11-19",
+        "leapMonth": false,
+        "time": "12:05",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.자미": 8,
+        "stars.칠살": 2,
+        "stars.천기": 7,
+        "stars.천량": 1,
+        "stars.천상": 0,
+        "stars.태양": 5,
+        "stars.거문": 11,
+        "stars.무곡": 4,
+        "stars.탐랑": 10,
+        "stars.천동": 3,
+        "stars.태음": 9,
+        "stars.천부": 8,
+        "stars.염정": 0,
+        "stars.파군": 6
+      }
+    },
+    {
+      "id": "random-019985",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1907-07-22",
+        "leapMonth": false,
+        "time": "07:45",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.천기": 1,
+        "stars.거문": 5,
+        "stars.탐랑": 4,
+        "stars.태양": 11,
+        "stars.태음": 3,
+        "stars.무곡": 10,
+        "stars.천부": 2,
+        "stars.천동": 9,
+        "stars.파군": 0,
+        "stars.염정": 6,
+        "stars.칠살": 8,
+        "stars.천량": 7,
+        "stars.자미": 2,
+        "stars.천상": 6
+      }
+    },
+    {
+      "id": "random-020113",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1903-11-18",
+        "leapMonth": false,
+        "time": "14:27",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.자미": 4,
+        "stars.탐랑": 2,
+        "stars.천기": 3,
+        "stars.태음": 1,
+        "stars.천부": 0,
+        "stars.태양": 1,
+        "stars.무곡": 0,
+        "stars.파군": 10,
+        "stars.천동": 11,
+        "stars.염정": 8,
+        "stars.칠살": 6,
+        "stars.천량": 5,
+        "stars.천상": 4,
+        "stars.거문": 3
+      }
+    },
+    {
+      "id": "random-020757",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1904-02-10",
+        "leapMonth": false,
+        "time": "15:30",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.자미": 6,
+        "stars.칠살": 4,
+        "stars.천기": 5,
+        "stars.천량": 3,
+        "stars.천상": 2,
+        "stars.태양": 3,
+        "stars.거문": 1,
+        "stars.무곡": 2,
+        "stars.탐랑": 0,
+        "stars.천동": 1,
+        "stars.태음": 11,
+        "stars.천부": 10,
+        "stars.염정": 10,
+        "stars.파군": 8
+      }
+    },
+    {
+      "id": "random-021305",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1908-05-14",
+        "leapMonth": false,
+        "time": "22:13",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.파군": 1,
+        "stars.태양": 10,
+        "stars.무곡": 9,
+        "stars.천동": 8,
+        "stars.칠살": 9,
+        "stars.천량": 8,
+        "stars.염정": 5,
+        "stars.천상": 7,
+        "stars.거문": 6,
+        "stars.탐랑": 5,
+        "stars.태음": 4,
+        "stars.자미": 1,
+        "stars.천부": 3,
+        "stars.천기": 0
+      }
+    },
+    {
+      "id": "random-021941",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1905-05-23",
+        "leapMonth": false,
+        "time": "21:32",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.무곡": 3,
+        "stars.천부": 9,
+        "stars.천동": 2,
+        "stars.파군": 7,
+        "stars.염정": 11,
+        "stars.칠살": 3,
+        "stars.천량": 2,
+        "stars.자미": 7,
+        "stars.천상": 1,
+        "stars.천기": 6,
+        "stars.거문": 0,
+        "stars.탐랑": 11,
+        "stars.태양": 4,
+        "stars.태음": 10
+      }
+    },
+    {
+      "id": "random-021989",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1911-12-30",
+        "leapMonth": false,
+        "time": "12:55",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.자미": 3,
+        "stars.천기": 2,
+        "stars.칠살": 7,
+        "stars.태양": 0,
+        "stars.천량": 6,
+        "stars.무곡": 11,
+        "stars.천상": 5,
+        "stars.천동": 10,
+        "stars.거문": 4,
+        "stars.탐랑": 3,
+        "stars.태음": 2,
+        "stars.염정": 7,
+        "stars.천부": 1,
+        "stars.파군": 11
+      }
+    },
+    {
+      "id": "random-005030",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1908-05-05",
+        "leapMonth": false,
+        "time": "16:07",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.천동": 10,
+        "stars.칠살": 7,
+        "stars.천량": 6,
+        "stars.염정": 7,
+        "stars.천상": 5,
+        "stars.거문": 4,
+        "stars.탐랑": 3,
+        "stars.태음": 2,
+        "stars.자미": 3,
+        "stars.천부": 1,
+        "stars.천기": 2,
+        "stars.파군": 11,
+        "stars.태양": 0,
+        "stars.무곡": 11
+      }
+    },
+    {
+      "id": "random-006066",
+      "domain": "saju",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "lunar",
+        "date": "1909-08-14",
+        "leapMonth": false,
+        "time": "04:28",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "day": "庚寅",
+        "hour": "戊寅"
+      }
+    },
+    {
+      "id": "random-006430",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1905-05-09",
+        "leapMonth": false,
+        "time": "23:36",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.자미": 2,
+        "stars.칠살": 8,
+        "stars.천기": 1,
+        "stars.천량": 7,
+        "stars.천상": 6,
+        "stars.태양": 11,
+        "stars.거문": 5,
+        "stars.무곡": 10,
+        "stars.탐랑": 4,
+        "stars.천동": 9,
+        "stars.태음": 3,
+        "stars.천부": 2,
+        "stars.염정": 6,
+        "stars.파군": 0
+      }
+    },
+    {
+      "id": "random-006650",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1904-01-20",
+        "leapMonth": false,
+        "time": "12:41",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.무곡": 0,
+        "stars.탐랑": 2,
+        "stars.천동": 11,
+        "stars.태음": 1,
+        "stars.천부": 0,
+        "stars.염정": 8,
+        "stars.파군": 10,
+        "stars.자미": 4,
+        "stars.칠살": 6,
+        "stars.천기": 3,
+        "stars.천량": 5,
+        "stars.천상": 4,
+        "stars.태양": 1,
+        "stars.거문": 3
+      }
+    },
+    {
+      "id": "random-008278",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1903-10-25",
+        "leapMonth": false,
+        "time": "12:20",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.탐랑": 11,
+        "stars.태음": 10,
+        "stars.자미": 7,
+        "stars.천부": 9,
+        "stars.천기": 6,
+        "stars.파군": 7,
+        "stars.태양": 4,
+        "stars.무곡": 3,
+        "stars.천동": 2,
+        "stars.칠살": 3,
+        "stars.천량": 2,
+        "stars.염정": 11,
+        "stars.천상": 1,
+        "stars.거문": 0
+      }
+    },
+    {
+      "id": "random-009914",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1904-11-25",
+        "leapMonth": false,
+        "time": "05:41",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.자미": 5,
+        "stars.천부": 11,
+        "stars.천기": 4,
+        "stars.파군": 9,
+        "stars.태양": 2,
+        "stars.무곡": 1,
+        "stars.천동": 0,
+        "stars.칠살": 5,
+        "stars.천량": 4,
+        "stars.염정": 9,
+        "stars.천상": 3,
+        "stars.거문": 2,
+        "stars.탐랑": 1,
+        "stars.태음": 0
+      }
+    },
+    {
+      "id": "random-010718",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1905-05-06",
+        "leapMonth": false,
+        "time": "01:54",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.자미": 1,
+        "stars.천상": 7,
+        "stars.천기": 0,
+        "stars.거문": 6,
+        "stars.탐랑": 5,
+        "stars.태양": 10,
+        "stars.태음": 4,
+        "stars.무곡": 9,
+        "stars.천부": 3,
+        "stars.천동": 8,
+        "stars.파군": 1,
+        "stars.염정": 5,
+        "stars.칠살": 9,
+        "stars.천량": 8
+      }
+    },
+    {
+      "id": "random-011214",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1905-05-09",
+        "leapMonth": false,
+        "time": "07:39",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.자미": 2,
+        "stars.파군": 0,
+        "stars.천기": 1,
+        "stars.태양": 11,
+        "stars.무곡": 10,
+        "stars.칠살": 8,
+        "stars.천동": 9,
+        "stars.천량": 7,
+        "stars.천상": 6,
+        "stars.거문": 5,
+        "stars.염정": 6,
+        "stars.탐랑": 4,
+        "stars.태음": 3,
+        "stars.천부": 2
+      }
+    },
+    {
+      "id": "random-011298",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1905-05-30",
+        "leapMonth": false,
+        "time": "01:01",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.파군": 7,
+        "stars.염정": 11,
+        "stars.칠살": 3,
+        "stars.천량": 2,
+        "stars.자미": 7,
+        "stars.천상": 1,
+        "stars.천기": 6,
+        "stars.거문": 0,
+        "stars.탐랑": 11,
+        "stars.태양": 4,
+        "stars.태음": 10,
+        "stars.무곡": 3,
+        "stars.천부": 9,
+        "stars.천동": 2
+      }
+    },
+    {
+      "id": "random-011414",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1905-05-14",
+        "leapMonth": false,
+        "time": "05:57",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.천기": 7,
+        "stars.태음": 9,
+        "stars.천부": 8,
+        "stars.태양": 5,
+        "stars.무곡": 4,
+        "stars.파군": 6,
+        "stars.천동": 3,
+        "stars.염정": 0,
+        "stars.칠살": 2,
+        "stars.천량": 1,
+        "stars.천상": 0,
+        "stars.거문": 11,
+        "stars.자미": 8,
+        "stars.탐랑": 10
+      }
+    },
+    {
+      "id": "random-011530",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1903-10-27",
+        "leapMonth": false,
+        "time": "12:19",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.염정": 9,
+        "stars.천부": 11,
+        "stars.파군": 9,
+        "stars.자미": 5,
+        "stars.천기": 4,
+        "stars.칠살": 5,
+        "stars.태양": 2,
+        "stars.천량": 4,
+        "stars.무곡": 1,
+        "stars.천상": 3,
+        "stars.천동": 0,
+        "stars.거문": 2,
+        "stars.탐랑": 1,
+        "stars.태음": 0
+      }
+    },
+    {
+      "id": "random-012698",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1908-05-09",
+        "leapMonth": false,
+        "time": "12:08",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.천부": 10,
+        "stars.염정": 10,
+        "stars.파군": 8,
+        "stars.자미": 6,
+        "stars.칠살": 4,
+        "stars.천기": 5,
+        "stars.천량": 3,
+        "stars.천상": 2,
+        "stars.태양": 3,
+        "stars.거문": 1,
+        "stars.무곡": 2,
+        "stars.탐랑": 0,
+        "stars.천동": 1,
+        "stars.태음": 11
+      }
+    },
+    {
+      "id": "random-012930",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1909-09-21",
+        "leapMonth": false,
+        "time": "06:56",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.탐랑": 1,
+        "stars.태음": 0,
+        "stars.염정": 9,
+        "stars.천부": 11,
+        "stars.파군": 9,
+        "stars.자미": 5,
+        "stars.천기": 4,
+        "stars.칠살": 5,
+        "stars.태양": 2,
+        "stars.천량": 4,
+        "stars.무곡": 1,
+        "stars.천상": 3,
+        "stars.천동": 0,
+        "stars.거문": 2
+      }
+    },
+    {
+      "id": "random-014402",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1909-10-11",
+        "leapMonth": false,
+        "time": "05:31",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.칠살": 1,
+        "stars.천량": 0,
+        "stars.자미": 9,
+        "stars.천상": 11,
+        "stars.천기": 8,
+        "stars.거문": 10,
+        "stars.탐랑": 9,
+        "stars.태양": 6,
+        "stars.태음": 8,
+        "stars.무곡": 5,
+        "stars.천부": 7,
+        "stars.천동": 4,
+        "stars.파군": 5,
+        "stars.염정": 1
+      }
+    },
+    {
+      "id": "random-017550",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1912-01-01",
+        "leapMonth": false,
+        "time": "08:19",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.염정": 3,
+        "stars.칠살": 11,
+        "stars.천량": 10,
+        "stars.천상": 9,
+        "stars.거문": 8,
+        "stars.자미": 11,
+        "stars.탐랑": 7,
+        "stars.천기": 10,
+        "stars.태음": 6,
+        "stars.천부": 5,
+        "stars.태양": 8,
+        "stars.무곡": 7,
+        "stars.파군": 3,
+        "stars.천동": 6
+      }
+    },
+    {
+      "id": "random-017786",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1904-01-21",
+        "leapMonth": false,
+        "time": "12:34",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.칠살": 9,
+        "stars.천량": 8,
+        "stars.자미": 1,
+        "stars.천상": 7,
+        "stars.천기": 0,
+        "stars.거문": 6,
+        "stars.탐랑": 5,
+        "stars.태양": 10,
+        "stars.태음": 4,
+        "stars.무곡": 9,
+        "stars.천부": 3,
+        "stars.천동": 8,
+        "stars.파군": 1,
+        "stars.염정": 5
+      }
+    },
+    {
+      "id": "random-018442",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1909-09-23",
+        "leapMonth": false,
+        "time": "21:26",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.칠살": 5,
+        "stars.태양": 2,
+        "stars.천량": 4,
+        "stars.무곡": 1,
+        "stars.천상": 3,
+        "stars.천동": 0,
+        "stars.거문": 2,
+        "stars.탐랑": 1,
+        "stars.태음": 0,
+        "stars.염정": 9,
+        "stars.천부": 11,
+        "stars.파군": 9,
+        "stars.자미": 5,
+        "stars.천기": 4
+      }
+    },
+    {
+      "id": "edge-000587",
+      "domain": "saju",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "2000-03-05",
+        "leapMonth": false,
+        "time": "15:42",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "sajuTermAuthorityV2": true
+      },
+      "expected": {
+        "month": "戊寅"
+      }
+    },
+    {
+      "id": "edge-000599",
+      "domain": "saju",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "2000-06-05",
+        "leapMonth": false,
+        "time": "17:58",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "sajuTermAuthorityV2": true
+      },
+      "expected": {
+        "month": "辛巳"
+      }
+    },
+    {
+      "id": "edge-000675",
+      "domain": "saju",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "2002-01-05",
+        "leapMonth": false,
+        "time": "21:43",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "sajuTermAuthorityV2": true
+      },
+      "expected": {
+        "month": "庚子"
+      }
+    },
+    {
+      "id": "edge-000683",
+      "domain": "saju",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "2002-03-06",
+        "leapMonth": false,
+        "time": "03:27",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "sajuTermAuthorityV2": true
+      },
+      "expected": {
+        "month": "壬寅"
+      }
+    },
+    {
+      "id": "edge-000851",
+      "domain": "saju",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "2005-09-07",
+        "leapMonth": false,
+        "time": "21:56",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "sajuTermAuthorityV2": true
+      },
+      "expected": {
+        "month": "甲申"
+      }
+    },
+    {
+      "id": "edge-000875",
+      "domain": "saju",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "2006-03-06",
+        "leapMonth": false,
+        "time": "02:28",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "sajuTermAuthorityV2": true
+      },
+      "expected": {
+        "month": "庚寅"
+      }
+    },
+    {
+      "id": "edge-000883",
+      "domain": "saju",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "2006-05-06",
+        "leapMonth": false,
+        "time": "00:30",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "sajuTermAuthorityV2": true
+      },
+      "expected": {
+        "month": "壬辰"
+      }
+    },
+    {
+      "id": "edge-001179",
+      "domain": "saju",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "2012-07-07",
+        "leapMonth": false,
+        "time": "01:40",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "sajuTermAuthorityV2": true
+      },
+      "expected": {
+        "month": "丙午"
+      }
+    },
+    {
+      "id": "edge-001263",
+      "domain": "saju",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "2014-04-05",
+        "leapMonth": false,
+        "time": "05:46",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "sajuTermAuthorityV2": true
+      },
+      "expected": {
+        "month": "丁卯"
+      }
+    },
+    {
+      "id": "edge-001427",
+      "domain": "saju",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "2017-09-07",
+        "leapMonth": false,
+        "time": "19:38",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "sajuTermAuthorityV2": true
+      },
+      "expected": {
+        "month": "戊申"
+      }
+    },
+    {
+      "id": "edge-001483",
+      "domain": "saju",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "2018-11-07",
+        "leapMonth": false,
+        "time": "20:31",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "sajuTermAuthorityV2": true
+      },
+      "expected": {
+        "month": "壬戌"
+      }
+    },
+    {
+      "id": "edge-001487",
+      "domain": "saju",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "2018-12-07",
+        "leapMonth": false,
+        "time": "13:25",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "sajuTermAuthorityV2": true
+      },
+      "expected": {
+        "month": "癸亥"
+      }
+    },
+    {
+      "id": "edge-001507",
+      "domain": "saju",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "2019-05-06",
+        "leapMonth": false,
+        "time": "04:02",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "sajuTermAuthorityV2": true
+      },
+      "expected": {
+        "month": "戊辰"
+      }
+    },
+    {
+      "id": "edge-001515",
+      "domain": "saju",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "2019-07-07",
+        "leapMonth": false,
+        "time": "18:20",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "sajuTermAuthorityV2": true
+      },
+      "expected": {
+        "month": "庚午"
+      }
+    },
+    {
+      "id": "edge-001527",
+      "domain": "saju",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "2019-10-08",
+        "leapMonth": false,
+        "time": "23:05",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "sajuTermAuthorityV2": true
+      },
+      "expected": {
+        "month": "癸酉"
+      }
+    },
+    {
+      "id": "edge-001687",
+      "domain": "saju",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "2023-02-04",
+        "leapMonth": false,
+        "time": "11:42",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "sajuTermAuthorityV2": true
+      },
+      "expected": {
+        "year": "壬寅",
+        "month": "癸丑"
+      }
+    },
+    {
+      "id": "edge-001707",
+      "domain": "saju",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "2023-07-07",
+        "leapMonth": false,
+        "time": "17:30",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "sajuTermAuthorityV2": true
+      },
+      "expected": {
+        "month": "戊午"
+      }
+    },
+    {
+      "id": "edge-001739",
+      "domain": "saju",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "2024-03-05",
+        "leapMonth": false,
+        "time": "11:22",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "sajuTermAuthorityV2": true
+      },
+      "expected": {
+        "month": "丙寅"
+      }
+    },
+    {
+      "id": "edge-001807",
+      "domain": "saju",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "2025-08-07",
+        "leapMonth": false,
+        "time": "14:51",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "sajuTermAuthorityV2": true
+      },
+      "expected": {
+        "month": "癸未"
+      }
+    },
+    {
+      "id": "edge-001883",
+      "domain": "saju",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "2027-03-06",
+        "leapMonth": false,
+        "time": "04:39",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "sajuTermAuthorityV2": true
+      },
+      "expected": {
+        "month": "壬寅"
+      }
+    },
+    {
+      "id": "edge-001895",
+      "domain": "saju",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "2027-06-06",
+        "leapMonth": false,
+        "time": "06:25",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "sajuTermAuthorityV2": true
+      },
+      "expected": {
+        "month": "乙巳"
+      }
+    },
+    {
+      "id": "edge-001903",
+      "domain": "saju",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "2027-08-08",
+        "leapMonth": false,
+        "time": "02:26",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "sajuTermAuthorityV2": true
+      },
+      "expected": {
+        "month": "丁未"
+      }
+    },
+    {
+      "id": "edge-001959",
+      "domain": "saju",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "2028-10-08",
+        "leapMonth": false,
+        "time": "03:08",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "sajuTermAuthorityV2": true
+      },
+      "expected": {
+        "month": "辛酉"
+      }
+    },
+    {
+      "id": "random-003579",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1905-05-05",
+        "leapMonth": false,
+        "time": "07:50",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.염정": 10,
+        "stars.칠살": 4,
+        "stars.천량": 3,
+        "stars.천상": 2,
+        "stars.거문": 1,
+        "stars.자미": 6,
+        "stars.탐랑": 0,
+        "stars.천기": 5,
+        "stars.태음": 11,
+        "stars.천부": 10,
+        "stars.태양": 3,
+        "stars.무곡": 2,
+        "stars.파군": 8,
+        "stars.천동": 1
+      }
+    },
+    {
+      "id": "random-004243",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1907-07-19",
+        "leapMonth": false,
+        "time": "00:09",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.자미": 6,
+        "stars.칠살": 4,
+        "stars.천기": 5,
+        "stars.천량": 3,
+        "stars.천상": 2,
+        "stars.태양": 3,
+        "stars.거문": 1,
+        "stars.무곡": 2,
+        "stars.탐랑": 0,
+        "stars.천동": 1,
+        "stars.태음": 11,
+        "stars.천부": 10,
+        "stars.염정": 10,
+        "stars.파군": 8
+      }
+    },
+    {
+      "id": "random-006903",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1904-12-01",
+        "leapMonth": false,
+        "time": "03:20",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.천부": 11,
+        "stars.자미": 5,
+        "stars.파군": 9,
+        "stars.천기": 4,
+        "stars.태양": 2,
+        "stars.무곡": 1,
+        "stars.칠살": 5,
+        "stars.천동": 0,
+        "stars.천량": 4,
+        "stars.천상": 3,
+        "stars.거문": 2,
+        "stars.염정": 9,
+        "stars.탐랑": 1,
+        "stars.태음": 0
+      }
+    },
+    {
+      "id": "random-006915",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1908-05-05",
+        "leapMonth": false,
+        "time": "05:01",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.자미": 4,
+        "stars.탐랑": 2,
+        "stars.천기": 3,
+        "stars.태음": 1,
+        "stars.천부": 0,
+        "stars.태양": 1,
+        "stars.무곡": 0,
+        "stars.파군": 10,
+        "stars.천동": 11,
+        "stars.염정": 8,
+        "stars.칠살": 6,
+        "stars.천량": 5,
+        "stars.천상": 4,
+        "stars.거문": 3
+      }
+    },
+    {
+      "id": "random-006923",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1908-05-21",
+        "leapMonth": false,
+        "time": "12:21",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.자미": 0,
+        "stars.칠살": 10,
+        "stars.천기": 11,
+        "stars.천량": 9,
+        "stars.천상": 8,
+        "stars.태양": 9,
+        "stars.거문": 7,
+        "stars.무곡": 8,
+        "stars.탐랑": 6,
+        "stars.천동": 7,
+        "stars.태음": 5,
+        "stars.천부": 4,
+        "stars.염정": 4,
+        "stars.파군": 2
+      }
+    },
+    {
+      "id": "random-007027",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1908-05-07",
+        "leapMonth": false,
+        "time": "22:32",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.무곡": 3,
+        "stars.천부": 9,
+        "stars.천동": 2,
+        "stars.파군": 7,
+        "stars.염정": 11,
+        "stars.칠살": 3,
+        "stars.천량": 2,
+        "stars.자미": 7,
+        "stars.천상": 1,
+        "stars.천기": 6,
+        "stars.거문": 0,
+        "stars.탐랑": 11,
+        "stars.태양": 4,
+        "stars.태음": 10
+      }
+    },
+    {
+      "id": "random-007047",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1904-11-08",
+        "leapMonth": false,
+        "time": "20:24",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.자미": 2,
+        "stars.파군": 0,
+        "stars.천기": 1,
+        "stars.태양": 11,
+        "stars.무곡": 10,
+        "stars.칠살": 8,
+        "stars.천동": 9,
+        "stars.천량": 7,
+        "stars.천상": 6,
+        "stars.거문": 5,
+        "stars.염정": 6,
+        "stars.탐랑": 4,
+        "stars.태음": 3,
+        "stars.천부": 2
+      }
+    },
+    {
+      "id": "random-008919",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1905-05-15",
+        "leapMonth": false,
+        "time": "18:56",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.파군": 7,
+        "stars.자미": 7,
+        "stars.천기": 6,
+        "stars.칠살": 3,
+        "stars.태양": 4,
+        "stars.천량": 2,
+        "stars.무곡": 3,
+        "stars.천상": 1,
+        "stars.천동": 2,
+        "stars.거문": 0,
+        "stars.탐랑": 11,
+        "stars.태음": 10,
+        "stars.염정": 11,
+        "stars.천부": 9
+      }
+    },
+    {
+      "id": "random-011047",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1907-07-29",
+        "leapMonth": false,
+        "time": "05:19",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.염정": 1,
+        "stars.천부": 7,
+        "stars.파군": 5,
+        "stars.자미": 9,
+        "stars.천기": 8,
+        "stars.칠살": 1,
+        "stars.태양": 6,
+        "stars.천량": 0,
+        "stars.무곡": 5,
+        "stars.천상": 11,
+        "stars.천동": 4,
+        "stars.거문": 10,
+        "stars.탐랑": 9,
+        "stars.태음": 8
+      }
+    },
+    {
+      "id": "random-011471",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1908-05-04",
+        "leapMonth": false,
+        "time": "15:17",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.염정": 6,
+        "stars.파군": 0,
+        "stars.자미": 2,
+        "stars.칠살": 8,
+        "stars.천기": 1,
+        "stars.천량": 7,
+        "stars.천상": 6,
+        "stars.태양": 11,
+        "stars.거문": 5,
+        "stars.무곡": 10,
+        "stars.탐랑": 4,
+        "stars.천동": 9,
+        "stars.태음": 3,
+        "stars.천부": 2
+      }
+    },
+    {
+      "id": "random-011507",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1909-09-21",
+        "leapMonth": false,
+        "time": "00:51",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.천동": 10,
+        "stars.칠살": 7,
+        "stars.천량": 6,
+        "stars.염정": 7,
+        "stars.천상": 5,
+        "stars.거문": 4,
+        "stars.탐랑": 3,
+        "stars.태음": 2,
+        "stars.자미": 3,
+        "stars.천부": 1,
+        "stars.천기": 2,
+        "stars.파군": 11,
+        "stars.태양": 0,
+        "stars.무곡": 11
+      }
+    },
+    {
+      "id": "random-014367",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1903-10-28",
+        "leapMonth": false,
+        "time": "06:31",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.자미": 0,
+        "stars.파군": 2,
+        "stars.천기": 11,
+        "stars.태양": 9,
+        "stars.무곡": 8,
+        "stars.칠살": 10,
+        "stars.천동": 7,
+        "stars.천량": 9,
+        "stars.천상": 8,
+        "stars.거문": 7,
+        "stars.염정": 4,
+        "stars.탐랑": 6,
+        "stars.태음": 5,
+        "stars.천부": 4
+      }
+    },
+    {
+      "id": "random-015571",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1904-12-04",
+        "leapMonth": false,
+        "time": "20:11",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.천기": 2,
+        "stars.파군": 11,
+        "stars.태양": 0,
+        "stars.무곡": 11,
+        "stars.천동": 10,
+        "stars.칠살": 7,
+        "stars.천량": 6,
+        "stars.염정": 7,
+        "stars.천상": 5,
+        "stars.거문": 4,
+        "stars.탐랑": 3,
+        "stars.태음": 2,
+        "stars.자미": 3,
+        "stars.천부": 1
+      }
+    },
+    {
+      "id": "random-016711",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1903-11-13",
+        "leapMonth": false,
+        "time": "04:11",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.천기": 11,
+        "stars.태음": 5,
+        "stars.천부": 4,
+        "stars.태양": 9,
+        "stars.무곡": 8,
+        "stars.파군": 2,
+        "stars.천동": 7,
+        "stars.염정": 4,
+        "stars.칠살": 10,
+        "stars.천량": 9,
+        "stars.천상": 8,
+        "stars.거문": 7,
+        "stars.자미": 0,
+        "stars.탐랑": 6
+      }
+    },
+    {
+      "id": "random-018067",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1904-01-17",
+        "leapMonth": false,
+        "time": "03:38",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "life": 11,
+        "body": 3,
+        "stars.파군": 1,
+        "stars.염정": 5,
+        "stars.칠살": 9,
+        "stars.천량": 8,
+        "stars.자미": 1,
+        "stars.천상": 7,
+        "stars.천기": 0,
+        "stars.거문": 6,
+        "stars.탐랑": 5,
+        "stars.좌보": 3,
+        "stars.태양": 10,
+        "stars.태음": 4,
+        "stars.무곡": 9,
+        "stars.천부": 3,
+        "stars.우필": 11,
+        "stars.천동": 8,
+        "stars.천요": 0,
+        "decades.0": 112,
+        "decades.1": 102,
+        "decades.2": 92,
+        "decades.3": 82,
+        "decades.4": 72,
+        "decades.5": 62,
+        "decades.6": 52,
+        "decades.7": 42,
+        "decades.8": 32,
+        "decades.9": 22,
+        "decades.10": 12,
+        "decades.11": 2
+      }
+    },
+    {
+      "id": "random-018703",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1908-05-28",
+        "leapMonth": false,
+        "time": "10:36",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.염정": 10,
+        "stars.천상": 2,
+        "stars.거문": 1,
+        "stars.탐랑": 0,
+        "stars.태음": 11,
+        "stars.자미": 6,
+        "stars.천부": 10,
+        "stars.천기": 5,
+        "stars.파군": 8,
+        "stars.태양": 3,
+        "stars.무곡": 2,
+        "stars.천동": 1,
+        "stars.칠살": 4,
+        "stars.천량": 3
+      }
+    },
+    {
+      "id": "random-019139",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1904-01-25",
+        "leapMonth": false,
+        "time": "02:34",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.태양": 10,
+        "stars.무곡": 9,
+        "stars.파군": 1,
+        "stars.천동": 8,
+        "stars.염정": 5,
+        "stars.칠살": 9,
+        "stars.천량": 8,
+        "stars.천상": 7,
+        "stars.거문": 6,
+        "stars.자미": 1,
+        "stars.탐랑": 5,
+        "stars.천기": 0,
+        "stars.태음": 4,
+        "stars.천부": 3
+      }
+    },
+    {
+      "id": "random-019543",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1907-07-13",
+        "leapMonth": false,
+        "time": "03:18",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.천부": 0,
+        "stars.염정": 8,
+        "stars.파군": 10,
+        "stars.자미": 4,
+        "stars.칠살": 6,
+        "stars.천기": 3,
+        "stars.천량": 5,
+        "stars.천상": 4,
+        "stars.태양": 1,
+        "stars.거문": 3,
+        "stars.무곡": 0,
+        "stars.탐랑": 2,
+        "stars.천동": 11,
+        "stars.태음": 1
+      }
+    },
+    {
+      "id": "random-019551",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1903-10-27",
+        "leapMonth": false,
+        "time": "03:01",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.파군": 11,
+        "stars.자미": 3,
+        "stars.천기": 2,
+        "stars.칠살": 7,
+        "stars.태양": 0,
+        "stars.천량": 6,
+        "stars.무곡": 11,
+        "stars.천상": 5,
+        "stars.천동": 10,
+        "stars.거문": 4,
+        "stars.탐랑": 3,
+        "stars.태음": 2,
+        "stars.염정": 7,
+        "stars.천부": 1
+      }
+    },
+    {
+      "id": "random-019855",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1904-12-01",
+        "leapMonth": false,
+        "time": "23:27",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.태양": 7,
+        "stars.무곡": 6,
+        "stars.칠살": 0,
+        "stars.천동": 5,
+        "stars.천량": 11,
+        "stars.천상": 10,
+        "stars.거문": 9,
+        "stars.염정": 2,
+        "stars.탐랑": 8,
+        "stars.태음": 7,
+        "stars.천부": 6,
+        "stars.자미": 10,
+        "stars.파군": 4,
+        "stars.천기": 9
+      }
+    },
+    {
+      "id": "random-020383",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1903-10-21",
+        "leapMonth": false,
+        "time": "18:54",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.자미": 4,
+        "stars.칠살": 6,
+        "stars.천기": 3,
+        "stars.천량": 5,
+        "stars.천상": 4,
+        "stars.태양": 1,
+        "stars.거문": 3,
+        "stars.무곡": 0,
+        "stars.탐랑": 2,
+        "stars.천동": 11,
+        "stars.태음": 1,
+        "stars.천부": 0,
+        "stars.염정": 8,
+        "stars.파군": 10
+      }
+    },
+    {
+      "id": "random-020667",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1904-01-17",
+        "leapMonth": false,
+        "time": "23:37",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.자미": 4,
+        "stars.칠살": 6,
+        "stars.천기": 3,
+        "stars.천량": 5,
+        "stars.천상": 4,
+        "stars.태양": 1,
+        "stars.거문": 3,
+        "stars.무곡": 0,
+        "stars.탐랑": 2,
+        "stars.천동": 11,
+        "stars.태음": 1,
+        "stars.천부": 0,
+        "stars.염정": 8,
+        "stars.파군": 10
+      }
+    },
+    {
+      "id": "random-021219",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1903-10-23",
+        "leapMonth": false,
+        "time": "21:03",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.태양": 0,
+        "stars.무곡": 11,
+        "stars.천동": 10,
+        "stars.칠살": 7,
+        "stars.천량": 6,
+        "stars.염정": 7,
+        "stars.천상": 5,
+        "stars.거문": 4,
+        "stars.탐랑": 3,
+        "stars.태음": 2,
+        "stars.자미": 3,
+        "stars.천부": 1,
+        "stars.천기": 2,
+        "stars.파군": 11
+      }
+    },
+    {
+      "id": "random-021255",
+      "domain": "ziwei",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1911-12-21",
+        "leapMonth": false,
+        "time": "08:39",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "stars.천기": 5,
+        "stars.태음": 11,
+        "stars.천부": 10,
+        "stars.태양": 3,
+        "stars.무곡": 2,
+        "stars.파군": 8,
+        "stars.천동": 1,
+        "stars.염정": 10,
+        "stars.칠살": 4,
+        "stars.천량": 3,
+        "stars.천상": 2,
+        "stars.거문": 1,
+        "stars.자미": 6,
+        "stars.탐랑": 0
+      }
+    }
+  ]
+}

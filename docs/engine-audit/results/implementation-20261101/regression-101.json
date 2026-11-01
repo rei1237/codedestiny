@@ -1,0 +1,713 @@
+{
+  "cases": 101,
+  "verifiedFields": 1109,
+  "results": [
+    {
+      "id": "random-002844",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-004392",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-011452",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-014456",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-018216",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-018356",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-018480",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-019300",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-019308",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-019936",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-020168",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-020364",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-020732",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-003093",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-004269",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-005065",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-005417",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 2
+    },
+    {
+      "id": "random-006245",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-007361",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-008401",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-011265",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-013069",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-013701",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-014169",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-016185",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-016505",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-016589",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-016993",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-017713",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-018345",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-019589",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-019985",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-020113",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-020757",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-021305",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-021941",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-021989",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-005030",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-006066",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 2
+    },
+    {
+      "id": "random-006430",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-006650",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-008278",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-009914",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-010718",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-011214",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-011298",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-011414",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-011530",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-012698",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-012930",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-014402",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-017550",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-017786",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-018442",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "edge-000587",
+      "flags": {
+        "sajuTermAuthorityV2": true
+      },
+      "verifiedFields": 1
+    },
+    {
+      "id": "edge-000599",
+      "flags": {
+        "sajuTermAuthorityV2": true
+      },
+      "verifiedFields": 1
+    },
+    {
+      "id": "edge-000675",
+      "flags": {
+        "sajuTermAuthorityV2": true
+      },
+      "verifiedFields": 1
+    },
+    {
+      "id": "edge-000683",
+      "flags": {
+        "sajuTermAuthorityV2": true
+      },
+      "verifiedFields": 1
+    },
+    {
+      "id": "edge-000851",
+      "flags": {
+        "sajuTermAuthorityV2": true
+      },
+      "verifiedFields": 1
+    },
+    {
+      "id": "edge-000875",
+      "flags": {
+        "sajuTermAuthorityV2": true
+      },
+      "verifiedFields": 1
+    },
+    {
+      "id": "edge-000883",
+      "flags": {
+        "sajuTermAuthorityV2": true
+      },
+      "verifiedFields": 1
+    },
+    {
+      "id": "edge-001179",
+      "flags": {
+        "sajuTermAuthorityV2": true
+      },
+      "verifiedFields": 1
+    },
+    {
+      "id": "edge-001263",
+      "flags": {
+        "sajuTermAuthorityV2": true
+      },
+      "verifiedFields": 1
+    },
+    {
+      "id": "edge-001427",
+      "flags": {
+        "sajuTermAuthorityV2": true
+      },
+      "verifiedFields": 1
+    },
+    {
+      "id": "edge-001483",
+      "flags": {
+        "sajuTermAuthorityV2": true
+      },
+      "verifiedFields": 1
+    },
+    {
+      "id": "edge-001487",
+      "flags": {
+        "sajuTermAuthorityV2": true
+      },
+      "verifiedFields": 1
+    },
+    {
+      "id": "edge-001507",
+      "flags": {
+        "sajuTermAuthorityV2": true
+      },
+      "verifiedFields": 1
+    },
+    {
+      "id": "edge-001515",
+      "flags": {
+        "sajuTermAuthorityV2": true
+      },
+      "verifiedFields": 1
+    },
+    {
+      "id": "edge-001527",
+      "flags": {
+        "sajuTermAuthorityV2": true
+      },
+      "verifiedFields": 1
+    },
+    {
+      "id": "edge-001687",
+      "flags": {
+        "sajuTermAuthorityV2": true
+      },
+      "verifiedFields": 2
+    },
+    {
+      "id": "edge-001707",
+      "flags": {
+        "sajuTermAuthorityV2": true
+      },
+      "verifiedFields": 1
+    },
+    {
+      "id": "edge-001739",
+      "flags": {
+        "sajuTermAuthorityV2": true
+      },
+      "verifiedFields": 1
+    },
+    {
+      "id": "edge-001807",
+      "flags": {
+        "sajuTermAuthorityV2": true
+      },
+      "verifiedFields": 1
+    },
+    {
+      "id": "edge-001883",
+      "flags": {
+        "sajuTermAuthorityV2": true
+      },
+      "verifiedFields": 1
+    },
+    {
+      "id": "edge-001895",
+      "flags": {
+        "sajuTermAuthorityV2": true
+      },
+      "verifiedFields": 1
+    },
+    {
+      "id": "edge-001903",
+      "flags": {
+        "sajuTermAuthorityV2": true
+      },
+      "verifiedFields": 1
+    },
+    {
+      "id": "edge-001959",
+      "flags": {
+        "sajuTermAuthorityV2": true
+      },
+      "verifiedFields": 1
+    },
+    {
+      "id": "random-003579",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-004243",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-006903",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-006915",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-006923",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-007027",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-007047",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-008919",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-011047",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-011471",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-011507",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-014367",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-015571",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-016711",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-018067",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 31
+    },
+    {
+      "id": "random-018703",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-019139",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-019543",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-019551",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-019855",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-020383",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-020667",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-021219",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    },
+    {
+      "id": "random-021255",
+      "flags": {
+        "koreanCalendarAuthorityV2": true
+      },
+      "verifiedFields": 14
+    }
+  ]
+}

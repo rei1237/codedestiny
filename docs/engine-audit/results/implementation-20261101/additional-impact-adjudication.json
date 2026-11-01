@@ -1,0 +1,157 @@
+{
+  "status": "confirmed-within-approved-CR-families",
+  "cases": [
+    {
+      "id": "random-005377",
+      "domain": "saju",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "lunar",
+        "date": "1907-06-19",
+        "leapMonth": false,
+        "time": "09:07",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "sajuTermAuthorityV2": false,
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "day": "戊寅",
+        "hour": "丁巳"
+      },
+      "evidence": {
+        "sourceFile": "sources/kasi-impact-1907-06-19.json",
+        "officialSolar": "1907-07-28",
+        "officialIljin": "戊寅",
+        "corrected": "1907-07-28T09:07:00.000Z"
+      }
+    },
+    {
+      "id": "random-002950",
+      "domain": "saju",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "2024-07-06",
+        "leapMonth": false,
+        "time": "23:20",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "sajuTermAuthorityV2": true,
+        "koreanCalendarAuthorityV2": false
+      },
+      "expected": {
+        "month": "庚午"
+      },
+      "evidence": {
+        "sourceFile": "verified-authorities.json",
+        "timestamp": 1720275600000,
+        "previous": {
+          "year": 2024,
+          "index": 10,
+          "utcMs": 1717560594835,
+          "lowerUtcMs": 1717560594815,
+          "upperUtcMs": 1717560594855,
+          "beforeLongitude": 74.9999998,
+          "afterLongitude": 75.0000002
+        },
+        "next": {
+          "year": 2024,
+          "index": 12,
+          "utcMs": 1720275604575,
+          "lowerUtcMs": 1720275604555,
+          "upperUtcMs": 1720275604595,
+          "beforeLongitude": 104.9999998,
+          "afterLongitude": 105.0000002
+        },
+        "basis": "Direct JPL sign bracket places input before 소서; month remains 午."
+      }
+    },
+    {
+      "id": "random-021978",
+      "domain": "saju",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "lunar",
+        "date": "1904-10-28",
+        "leapMonth": false,
+        "time": "00:16",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "sajuTermAuthorityV2": false,
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "day": "壬申",
+        "hour": "庚子"
+      },
+      "evidence": {
+        "sourceFile": "sources/kasi-impact-1904-10-28.json",
+        "officialSolar": "1904-12-04",
+        "officialIljin": "壬申",
+        "corrected": "1904-12-04T00:16:00.000Z"
+      }
+    },
+    {
+      "id": "random-004635",
+      "domain": "saju",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "lunar",
+        "date": "1903-09-11",
+        "leapMonth": false,
+        "time": "14:04",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "sajuTermAuthorityV2": false,
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "day": "辛卯",
+        "hour": "乙未"
+      },
+      "evidence": {
+        "sourceFile": "sources/kasi-impact-1903-09-11.json",
+        "officialSolar": "1903-10-30",
+        "officialIljin": "辛卯",
+        "corrected": "1903-10-30T14:04:00.000Z"
+      }
+    }
+  ]
+}

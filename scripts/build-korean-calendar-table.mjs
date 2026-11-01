@@ -310,6 +310,8 @@ export const OUTPUT_FILES = Object.freeze({
 const CLASSIC_MODULES = Object.freeze([
   "lib/korean-calendar/policy.js",
   "lib/korean-calendar/labels.js",
+  "lib/korean-calendar/authority-data.generated.js",
+  "lib/korean-calendar/authority.js",
   "lib/korean-calendar/core.js",
   "lib/korean-calendar/ganji.js",
   "lib/korean-calendar/daeun.js",

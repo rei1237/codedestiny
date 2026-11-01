@@ -250,7 +250,7 @@ export async function prefetchKasiContext(input: AnimalDestinyInput): Promise<Ka
  * 기본 사주 분석과 동일한 옵션으로 로컬 명식(natalAnalysis 포함 full result)을 계산한다.
  * calculateLocalResult(동물점)와 러브심 궁합 엔진이 이 단일 함수를 공유해 일주 로직을 100% 일치시킨다.
  */
-export function computeNatalFromInput(input: AnimalDestinyInput, kasi?: KasiPrefetchResult) {
+export function computeNatalFromInput(input: AnimalDestinyInput, kasi?: KasiPrefetchResult & { authorityFlags?: { sajuTermAuthorityV2?: boolean; koreanCalendarAuthorityV2?: boolean } }) {
   const { year, month, day } = parseBirthDate(input.birthDate);
   const { hour, minute, hasTime } = parseBirthTime(input.birthTime);
 
@@ -265,6 +265,7 @@ export function computeNatalFromInput(input: AnimalDestinyInput, kasi?: KasiPref
     lunarLeap: Boolean(input.lunarLeap),
     kasiSolarDate: kasi?.kasiSolarDate,
     kasiSolarTerms: kasi?.kasiSolarTerms,
+    authorityFlags: kasi?.authorityFlags,
   });
 }
 

@@ -1,0 +1,26 @@
+{
+  "status": "implemented-default-off-local-only",
+  "baselineCommit": "c21a64c26f9aa9b0a9650f1ef2670a31f711087a",
+  "sourcePinHash": "0bd31f911906e7e54389cce83e5f972b4b71fba8bc441359063055f06de669e3",
+  "originalRegression": {
+    "cases": 101,
+    "fields": 1109
+  },
+  "randomInputs": 20000,
+  "offComparisons": 40000,
+  "offDifferences": 0,
+  "enabled": {
+    "saju": 2147,
+    "ziwei": 252
+  },
+  "changedFacts": {
+    "saju": 6,
+    "ziwei": 76
+  },
+  "additionalConfirmedSameFamilies": 4,
+  "schemaChanges": false,
+  "savedResultsRecalculated": false,
+  "swissExecuted": false,
+  "push": false,
+  "deploy": false
+}

@@ -1,0 +1,537 @@
+{
+  "preserved": [
+    {
+      "directory": "phase2-20261101",
+      "files": 16,
+      "manifestSha256": "ae28316d9951e910159e70f5787d2fb1e8076eb94caeb7470259f3c8b38a5486"
+    },
+    {
+      "directory": "adjudication-20261101",
+      "files": 104,
+      "manifestSha256": "1c54546a182a5fcdca1a2be99ee7df4086f9906aea53d18e9e64f6b96ef1aa54"
+    }
+  ],
+  "files": [
+    {
+      "file": "additional-impact-adjudication.json",
+      "bytes": 4081,
+      "sha256": "0f21510b9ed7dafdf33b6fc9e2864f50ba283a9e3b8a8771f9a8495dadf92cfa"
+    },
+    {
+      "file": "impact-0.json",
+      "bytes": 46439,
+      "sha256": "b4d158b5b1c0c6b9b0eb08d7115160f55cb54e7316d5f1d7e7d64d696fd3fc7a"
+    },
+    {
+      "file": "impact-1.json",
+      "bytes": 82457,
+      "sha256": "91a98a28d594781a1fc962afd78e0000b28676973bc72e07005d62d66ece5fa3"
+    },
+    {
+      "file": "impact-2.json",
+      "bytes": 58252,
+      "sha256": "03860b2b9bcb71ec2107061e13d66721566afc31a6d8a4a6df38d8fa40fc2575"
+    },
+    {
+      "file": "impact-3.json",
+      "bytes": 86136,
+      "sha256": "37d1fdfbdd45527285eab079d746a1630a67f8e41b1fbc42ba6fccdbb92de572"
+    },
+    {
+      "file": "regression-101.json",
+      "bytes": 13692,
+      "sha256": "6beecd7f28de6b2cc08bff0ab6ca5ebe4b9191e0c22dd9533e1468b16b77ebdc"
+    },
+    {
+      "file": "sources/jpl-coarse-0.json",
+      "bytes": 11478,
+      "sha256": "36e190c05850727629c4a4bbf13bfc975a2d2587670905b4208fa593bb9377cc"
+    },
+    {
+      "file": "sources/jpl-coarse-1.json",
+      "bytes": 11478,
+      "sha256": "69309d6ee0ad5a6e66f697f572cdc98a704d294272c9c0222184979619f44d0a"
+    },
+    {
+      "file": "sources/jpl-coarse-2.json",
+      "bytes": 11478,
+      "sha256": "7a59748674fbcb9133460c81c61ea199c720f9d66c41540dc7cc608a972f78ae"
+    },
+    {
+      "file": "sources/jpl-coarse-3.json",
+      "bytes": 11478,
+      "sha256": "fa9027821ac0fec29c341301304250403b1ae2a17b3386ec386befdd57acc947"
+    },
+    {
+      "file": "sources/jpl-coarse-4.json",
+      "bytes": 11478,
+      "sha256": "d4b85ec17b4ecda4bf3be08e44468e0e4bad295c6acbb59852656bb130590d8b"
+    },
+    {
+      "file": "sources/jpl-coarse-5.json",
+      "bytes": 11478,
+      "sha256": "bf8498402db5f61a8dafb46ac4ef2e9ada8902285001aa374d20c5f490fc0483"
+    },
+    {
+      "file": "sources/jpl-coarse-6.json",
+      "bytes": 11478,
+      "sha256": "49b4920ea2f24bb7f69d95722a415ee6f9d6a0c877b418bb108b95dcee5ea493"
+    },
+    {
+      "file": "sources/jpl-coarse-7.json",
+      "bytes": 11478,
+      "sha256": "fc05215e5c1d5c148ee2efed1eb1e2aa9a5df055a91bc269929facaed6870bcf"
+    },
+    {
+      "file": "sources/jpl-coarse-8.json",
+      "bytes": 11478,
+      "sha256": "a1f9cdaafd50cca8c29ed0587681794dcded15b9ed1daacf53c7d6aa0fe9cc86"
+    },
+    {
+      "file": "sources/jpl-coarse-9.json",
+      "bytes": 8214,
+      "sha256": "0f220faccf48038a3f1f33abe3d3b722474b6eaf654740b295efc42ed465d561"
+    },
+    {
+      "file": "sources/jpl-fine-0.json",
+      "bytes": 11478,
+      "sha256": "aa31c9fe4a824ec9895a0065f78780d26f7024b7b0fa1168054af33f42f014cb"
+    },
+    {
+      "file": "sources/jpl-fine-1.json",
+      "bytes": 11478,
+      "sha256": "ea3e9ef5517a1f4ab7dd531ca6464d977c084dde4e9652b7e53b35354ecf8164"
+    },
+    {
+      "file": "sources/jpl-fine-2.json",
+      "bytes": 11478,
+      "sha256": "4f75fbee35bbd45c7177b07c1fc3c28851a8e3ae44a7ed226de9e433a4bf9b0a"
+    },
+    {
+      "file": "sources/jpl-fine-3.json",
+      "bytes": 11478,
+      "sha256": "dea7a8f34d8a19603c5775a7c97897ff3d59f2254d9a7f25b70edee2f15a86c5"
+    },
+    {
+      "file": "sources/jpl-fine-4.json",
+      "bytes": 11478,
+      "sha256": "cdcde7abb71a819bcf3be715070f8dca9098618a0b824dfbcb44ac5669625cee"
+    },
+    {
+      "file": "sources/jpl-fine-5.json",
+      "bytes": 11478,
+      "sha256": "18705b268bc195c8d15fdc71f804c359aef7ac2b8b952ed83df9d7d0b09383d8"
+    },
+    {
+      "file": "sources/jpl-fine-6.json",
+      "bytes": 11478,
+      "sha256": "d1a6576eca2272708749ad1254624dce3593487c60882249ded047f82023bc1f"
+    },
+    {
+      "file": "sources/jpl-fine-7.json",
+      "bytes": 11478,
+      "sha256": "dbe7d480f6a143b0a315644a6fc310958adb1b2340f6e40e8c4ba364fb426544"
+    },
+    {
+      "file": "sources/jpl-fine-8.json",
+      "bytes": 11478,
+      "sha256": "51cdecfa2103b4f7861f2e264d51d4b8efbf073bce88b6bd154fbef9c8318097"
+    },
+    {
+      "file": "sources/jpl-fine-9.json",
+      "bytes": 8214,
+      "sha256": "d2ef8789b110edbe8bb56ceca5e485118d6b945fce8d546ec5a43e8d7de1199e"
+    },
+    {
+      "file": "sources/kasi-impact-1903-09-11.json",
+      "bytes": 671,
+      "sha256": "cd78e5d3a0fd5b0f054fc7a671583fe60fe5050be09c76b5732cedca15e1f23f"
+    },
+    {
+      "file": "sources/kasi-impact-1904-10-28.json",
+      "bytes": 671,
+      "sha256": "e74f747814eaf38102481914536749ec390ac7649fd82d95de5554803fbe3c9c"
+    },
+    {
+      "file": "sources/kasi-impact-1907-06-19.json",
+      "bytes": 671,
+      "sha256": "18486e47cf475e6acd255795dc8ea5418d83ae57291a9ab55939439b3fab2e9f"
+    },
+    {
+      "file": "sources/kasi-month-1903-08.json",
+      "bytes": 671,
+      "sha256": "929c5e1fe7c39a85f9055242d2b1877cbae00a862d7f47ab5b127efb57401d2d"
+    },
+    {
+      "file": "sources/kasi-month-1903-09.json",
+      "bytes": 671,
+      "sha256": "8637988cf24b0a28ca94edae97ed90fbca9c8bfdafe410641b54c9ebc2fdb07d"
+    },
+    {
+      "file": "sources/kasi-month-1903-10.json",
+      "bytes": 671,
+      "sha256": "fe7b0f44dab1ae136c9ff17e66319449f5013ca1f5cc37bdd10ce4c0a80959a8"
+    },
+    {
+      "file": "sources/kasi-month-1903-11.json",
+      "bytes": 671,
+      "sha256": "e0ddd078159d154274aa5ddd00f2931428b6220098ad08b567a1fc85a2f8d9f6"
+    },
+    {
+      "file": "sources/kasi-month-1903-12.json",
+      "bytes": 671,
+      "sha256": "0ac883dacd6000dd6da650efdb6b89bcc57a6b04283f11c32d369b761de4c039"
+    },
+    {
+      "file": "sources/kasi-month-1904-01.json",
+      "bytes": 671,
+      "sha256": "d89468f287b36cfec66c8034213180e6b21e06241a174bdb8423f7f5d62d0098"
+    },
+    {
+      "file": "sources/kasi-month-1904-09.json",
+      "bytes": 671,
+      "sha256": "30b4da1334df6ce739fec777b7a8b0be51099945d3191e55d33755da302aa397"
+    },
+    {
+      "file": "sources/kasi-month-1904-10.json",
+      "bytes": 671,
+      "sha256": "92e598dcc06bee4743dfbb2b87fcf2cd3fb1c9c94b1b80b06b94b2fd629f583f"
+    },
+    {
+      "file": "sources/kasi-month-1904-11.json",
+      "bytes": 671,
+      "sha256": "c34cc3685351074bafcf91aecec83ec4978e6a83368b404ff9300ce6512b51fb"
+    },
+    {
+      "file": "sources/kasi-month-1905-03.json",
+      "bytes": 671,
+      "sha256": "a56dc815d39a678ea01a3bbe946854f3c45fa98c3ef47a93448bb76397fa1e74"
+    },
+    {
+      "file": "sources/kasi-month-1905-04.json",
+      "bytes": 671,
+      "sha256": "56b1e98ff0c58ac3acf6dfcb9fc9bc9dbed621fbfc06e1e42e1d935f046379c2"
+    },
+    {
+      "file": "sources/kasi-month-1905-05.json",
+      "bytes": 671,
+      "sha256": "dfaaae77522831da0b352317f549d30e5786ab658e0f5c9c2b0ceff2a83bbdb7"
+    },
+    {
+      "file": "sources/kasi-month-1907-05.json",
+      "bytes": 671,
+      "sha256": "578adbe5e7b6eefa8ceaa87fb4ad62764f9f49c934e46a543ac2499ca1f1886e"
+    },
+    {
+      "file": "sources/kasi-month-1907-06.json",
+      "bytes": 671,
+      "sha256": "021877a3a538c040b02d822bd172cc0bce8aec05d02c555e8ba437d4c25ebc5b"
+    },
+    {
+      "file": "sources/kasi-month-1907-07.json",
+      "bytes": 671,
+      "sha256": "72d9665a58af320869f3297d523c441e5944d56948a37c8da0a98903497fe48d"
+    },
+    {
+      "file": "sources/kasi-month-1908-03.json",
+      "bytes": 671,
+      "sha256": "836a40ebc28a27186616b404576c358b3fc8f09e4c314fc4e2626b11aaf15478"
+    },
+    {
+      "file": "sources/kasi-month-1908-04.json",
+      "bytes": 671,
+      "sha256": "c113aff223cf5c41ae0c090cf409cb7d31cf90ff41a2331f9584ee172616db94"
+    },
+    {
+      "file": "sources/kasi-month-1908-05.json",
+      "bytes": 671,
+      "sha256": "c5d8e1c9e9538461a036ede2e3ecd61619b0e5e4d419f50cea2c7995a58d289b"
+    },
+    {
+      "file": "sources/kasi-month-1909-07.json",
+      "bytes": 671,
+      "sha256": "af5a9765333431cde3bcf970e6d0bdb53a69b6ba9bafcd0b2120274a0732b037"
+    },
+    {
+      "file": "sources/kasi-month-1909-08.json",
+      "bytes": 671,
+      "sha256": "cfcb29d83ad1455e9c3ffcb36af2ec918e516e1480a1f87008a06b561f78320a"
+    },
+    {
+      "file": "sources/kasi-month-1909-09.json",
+      "bytes": 671,
+      "sha256": "4ee656750befd559dc9591a6112c5d0939482bf07856e701cf5551bc7f02f5d1"
+    },
+    {
+      "file": "sources/kasi-month-1911-10.json",
+      "bytes": 671,
+      "sha256": "a77e8cce468411cd2cbe8a384695c7afb2faab89004943ecb18adfd5c3205af0"
+    },
+    {
+      "file": "sources/kasi-month-1911-11.json",
+      "bytes": 671,
+      "sha256": "3c0ce24d48ab523caf9a1ad8763ae792355735207f836855e53fc451d8861531"
+    },
+    {
+      "file": "sources/kasi-month-1911-12.json",
+      "bytes": 671,
+      "sha256": "ba318b83adf50bd5205cfc97039ac38c63df5b6fa1f23ae7c6b6b66d65aa8897"
+    },
+    {
+      "file": "sources/kasi-solc-1903-10-19.json",
+      "bytes": 669,
+      "sha256": "78a46c3a994b44210935de45d1300ef1d71720b2efbbda1c2426a9c049730f8b"
+    },
+    {
+      "file": "sources/kasi-solc-1903-10-20.json",
+      "bytes": 669,
+      "sha256": "77fc043d2cada44e8d19c95e98699b90e58cc2160c8da14d251dedd24f9035c0"
+    },
+    {
+      "file": "sources/kasi-solc-1903-11-18.json",
+      "bytes": 669,
+      "sha256": "319befe909d71db89d84387049740abc7d642311aff860a2f4ba03d9e1f32b35"
+    },
+    {
+      "file": "sources/kasi-solc-1903-11-19.json",
+      "bytes": 669,
+      "sha256": "4b72dd6d58d09d735bf06ec1822b7f770776f8497f5bcaa1d46d5c0bc1e0ab10"
+    },
+    {
+      "file": "sources/kasi-solc-1903-12-18.json",
+      "bytes": 669,
+      "sha256": "fdfa18948ff9b660ad0af6a98f6b2d3c137fbdfadcefbd8f48e5c29c3a99483b"
+    },
+    {
+      "file": "sources/kasi-solc-1903-12-19.json",
+      "bytes": 669,
+      "sha256": "3f226afafe0e35a9a473ca5efcc12af98471ba0e0580cae62b793f9e414e1e39"
+    },
+    {
+      "file": "sources/kasi-solc-1904-01-16.json",
+      "bytes": 669,
+      "sha256": "13f916a9e8654dc3b73c45f90aa811da7078798085c1ea02a666974bc7ea74ca"
+    },
+    {
+      "file": "sources/kasi-solc-1904-01-17.json",
+      "bytes": 669,
+      "sha256": "ee790927eb71ea01dce92ea604e8d8d0d889cc74d811a580931e6c46743c8abf"
+    },
+    {
+      "file": "sources/kasi-solc-1904-02-15.json",
+      "bytes": 669,
+      "sha256": "5eba9747963d07aa5d15d79c46297d5640ee6801861af0a405cdefb34c2a92a3"
+    },
+    {
+      "file": "sources/kasi-solc-1904-02-16.json",
+      "bytes": 669,
+      "sha256": "ebb4bb9c66acbde189acc6666e95f01763128f55d81b391ca3fb0615d238f164"
+    },
+    {
+      "file": "sources/kasi-solc-1904-03-16.json",
+      "bytes": 669,
+      "sha256": "c33bb8b1bdc2c4ff1d2316fefceaada835bc633bcf9b3a83d766b6187da95758"
+    },
+    {
+      "file": "sources/kasi-solc-1904-03-17.json",
+      "bytes": 669,
+      "sha256": "4a2ffb29321700b3837e460fc37c1ab7ace73135cc0cc82f6b64c1827fc9631a"
+    },
+    {
+      "file": "sources/kasi-solc-1904-11-06.json",
+      "bytes": 669,
+      "sha256": "6afa4cd1433ce3a3d9f400310005731f961e136736e3ffa2a25f848c338120b0"
+    },
+    {
+      "file": "sources/kasi-solc-1904-11-07.json",
+      "bytes": 669,
+      "sha256": "37602ceb53a4d43bbe4ba8d4a30d12d5092cb798b8309ea40e33799fb128ddb5"
+    },
+    {
+      "file": "sources/kasi-solc-1904-12-06.json",
+      "bytes": 669,
+      "sha256": "67373c9d51971300a52f48fd02440e8e6b251576492aa7390547ee8e7e919a0b"
+    },
+    {
+      "file": "sources/kasi-solc-1904-12-07.json",
+      "bytes": 669,
+      "sha256": "b6d3885847f5023ae8151ff8d47824990d2fb18e3ba7baed2700e1f03e8b362b"
+    },
+    {
+      "file": "sources/kasi-solc-1905-01-05.json",
+      "bytes": 669,
+      "sha256": "9520e96b91e09fe7f8d4fbe8afaa2d27e04164db863d7556d15d2afaa4bea5ac"
+    },
+    {
+      "file": "sources/kasi-solc-1905-01-06.json",
+      "bytes": 669,
+      "sha256": "c4569bba8e9c362f4d286922b807373a2254d4d8f36dfa87d0a38993dbf2c0ca"
+    },
+    {
+      "file": "sources/kasi-solc-1905-05-03.json",
+      "bytes": 669,
+      "sha256": "8861d6ef0e7d1cdc300458a40eb0c8ec77a170666d8cc7b713f85c426f827917"
+    },
+    {
+      "file": "sources/kasi-solc-1905-05-04.json",
+      "bytes": 669,
+      "sha256": "a149f239f3823b519e8f281951cf9a66cfb136a3b1c4710b7445448de4a9da57"
+    },
+    {
+      "file": "sources/kasi-solc-1905-06-02.json",
+      "bytes": 669,
+      "sha256": "242147a7b9ddd02973d76697ed14d4129310d4a3f259d078742a08ec461d7007"
+    },
+    {
+      "file": "sources/kasi-solc-1905-06-03.json",
+      "bytes": 669,
+      "sha256": "9e28910c68adb7b66aaff938e59dd37f5c5571c60ab0019bde037dddc60ced4c"
+    },
+    {
+      "file": "sources/kasi-solc-1905-07-02.json",
+      "bytes": 669,
+      "sha256": "b3340aebc751190eceb52d923caa6586655a5c7aad56b12db8845f694b205ba0"
+    },
+    {
+      "file": "sources/kasi-solc-1905-07-03.json",
+      "bytes": 669,
+      "sha256": "b49f34ec6d6d428595d0cb3203c84ba32b06573ce70852bf9c50d415205fe7d2"
+    },
+    {
+      "file": "sources/kasi-solc-1907-07-09.json",
+      "bytes": 669,
+      "sha256": "860008cbfb614174c03292eeb4c58aeb95d44c4ab0d841310a46d3702943d553"
+    },
+    {
+      "file": "sources/kasi-solc-1907-07-10.json",
+      "bytes": 669,
+      "sha256": "25df60267b2abe6bd689604e91d13a4f8e3513fb227de95c5ec33312c9ac9254"
+    },
+    {
+      "file": "sources/kasi-solc-1907-08-08.json",
+      "bytes": 669,
+      "sha256": "18122e42475d713ae72733ba6e91cd8349874a8952e5d9e50c99619f5c2649e7"
+    },
+    {
+      "file": "sources/kasi-solc-1907-08-09.json",
+      "bytes": 669,
+      "sha256": "dd42ae5ca12123307df4d70d11802a1ebd4c303a3a81a2a71f8ef1028f0fe692"
+    },
+    {
+      "file": "sources/kasi-solc-1907-09-07.json",
+      "bytes": 669,
+      "sha256": "b61d53e524229c39992888f194974794865c2fcca638dc2c6d3179d228669c78"
+    },
+    {
+      "file": "sources/kasi-solc-1907-09-08.json",
+      "bytes": 669,
+      "sha256": "34d5524efb741cfc92400b9bd859cfb84b49267eca637f2a268ca15ef4ada2d9"
+    },
+    {
+      "file": "sources/kasi-solc-1908-04-29.json",
+      "bytes": 669,
+      "sha256": "54426ecb0f8a622a7d32c460d0f0b62e480099dcd905b5bfce3b1be71066d4ca"
+    },
+    {
+      "file": "sources/kasi-solc-1908-04-30.json",
+      "bytes": 669,
+      "sha256": "11672d00afe2c839c855e3b0f56569c6a97d2368c13535219bcdc7616143a030"
+    },
+    {
+      "file": "sources/kasi-solc-1908-05-29.json",
+      "bytes": 669,
+      "sha256": "a934e689b8c78f37e209c25be78397485ffc326a2dddf0df7086d0c6aa908359"
+    },
+    {
+      "file": "sources/kasi-solc-1908-05-30.json",
+      "bytes": 669,
+      "sha256": "b994bf55f6847f72f34e3ebe40740d8a42f9ce4a6ac12d3a8aaf0cc29e9d8f05"
+    },
+    {
+      "file": "sources/kasi-solc-1908-06-28.json",
+      "bytes": 669,
+      "sha256": "6ad16a0ea9bfa052d79ddabf532344a9c78edc02cfd2153104943ffef0b2e1ea"
+    },
+    {
+      "file": "sources/kasi-solc-1908-06-29.json",
+      "bytes": 669,
+      "sha256": "d636fbeaf61a9a3baf25884558e56879db73c997f8468a0a00ec2123c245f171"
+    },
+    {
+      "file": "sources/kasi-solc-1909-09-13.json",
+      "bytes": 669,
+      "sha256": "1a27dfe4d3618ce5e2445c2a79f067953113d0489d41a302aa84ea5fa426cf3a"
+    },
+    {
+      "file": "sources/kasi-solc-1909-09-14.json",
+      "bytes": 669,
+      "sha256": "34e4a973a347b3f906d91be7eb14099cbc587fa10e3df0d923f3e5f208b53ae4"
+    },
+    {
+      "file": "sources/kasi-solc-1909-10-13.json",
+      "bytes": 669,
+      "sha256": "fc023c7bbed314ad1a5c835ddd84158fcc9aed2e26b77a04b24c0c464d8feefe"
+    },
+    {
+      "file": "sources/kasi-solc-1909-10-14.json",
+      "bytes": 669,
+      "sha256": "cd48010c475dcd3c09cccd91dbeb0c3500f222cc9b5effa5d326c9fab31ad949"
+    },
+    {
+      "file": "sources/kasi-solc-1909-11-12.json",
+      "bytes": 669,
+      "sha256": "740a61739e7db8f0a7defb1e6a52c10f92c2f9b673394e2d4f16c6a0c9357276"
+    },
+    {
+      "file": "sources/kasi-solc-1909-11-13.json",
+      "bytes": 669,
+      "sha256": "003b84b7120c7d5e0d14520279a83df93561ea1431661c77429d1c54a2322e8f"
+    },
+    {
+      "file": "sources/kasi-solc-1911-12-19.json",
+      "bytes": 669,
+      "sha256": "771201db3d4cdba5f9a4831accd6126ce79a9eabab5681aaadec5fc499dc2910"
+    },
+    {
+      "file": "sources/kasi-solc-1911-12-20.json",
+      "bytes": 669,
+      "sha256": "e9aa82a28d03f5051a3cbfbe70093b99fa0169d8f266c245304680d723745911"
+    },
+    {
+      "file": "sources/kasi-solc-1912-01-18.json",
+      "bytes": 669,
+      "sha256": "b953322d811a4c2a82a90ce2ae6301d461989b7afa42f9fabf1708a5a92ca660"
+    },
+    {
+      "file": "sources/kasi-solc-1912-01-19.json",
+      "bytes": 669,
+      "sha256": "1d77b5e02e6bdc23eb69f4cd8633e4a3ca4e1273297946a1dfe102706c3f5327"
+    },
+    {
+      "file": "sources/kasi-solc-1912-02-17.json",
+      "bytes": 669,
+      "sha256": "55d444757af23d0513f6e2ddc2ad848ee2fc5175f0e352a427058965e3abc405"
+    },
+    {
+      "file": "sources/kasi-solc-1912-02-18.json",
+      "bytes": 669,
+      "sha256": "e86fc1db5d4f215d4fe49951ed69e3303382180268b42179b1b5f74d0ae37200"
+    },
+    {
+      "file": "summary.json",
+      "bytes": 623,
+      "sha256": "9859800b75443b94b2f59380d054ffba7518dde7cc2ca3e2f3e1d0ffb54187a5"
+    },
+    {
+      "file": "verification.json",
+      "bytes": 5014,
+      "sha256": "8425be2b0a106a1a6ec53d76234d8a05a30874ba096edc8159dc6bc46ffd0d20"
+    },
+    {
+      "file": "verified-authorities.json",
+      "bytes": 44873,
+      "sha256": "00b51dc4c065453c5018d87a66946f5140d89015a6665ed1f0b14f610b311176"
+    }
+  ],
+  "totalBytes": 614828
+}

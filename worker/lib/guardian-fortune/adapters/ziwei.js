@@ -1,6 +1,7 @@
 import { pickExpertFields } from "../expert-evidence.js";
 import { calculateZiweiAiChart } from "../../ziwei-ai-chart.js";
 import { arrayText, nonEmptyText, text } from "../../guardian-fortune-adapter-utils.js";
+import { VERIFIED_AUTHORITY_VERSION } from "../../../../lib/korean-calendar/index.js";
 
 const TOPIC_PALACE_ALIASES = {
   daily: ["명궁", "命宮"],
@@ -47,7 +48,7 @@ export async function buildZiweiAdapter(input, options = {}) {
       // 명반 시각은 출생지 경도·과거 서머타임으로 보정한다(lib/ziwei-birth-clock.js). 예전에는 출생지를 넘기지 않아 늘 서울 기준이었다.
       birthPlace: input.birthPlace,
     },
-  }, { year: Number(input.targetDate.slice(0, 4)) });
+  }, { year: Number(input.targetDate.slice(0, 4)), ...(options.authorityFlags ? { authorityFlags: options.authorityFlags } : {}) });
 
   const lifePalaceSummary = palaceSummary(
     Array.isArray(raw?.palaces) ? raw.palaces.find((palace) => String(palace?.name || "").includes("명궁") || String(palace?.name || "").includes("命宮")) : null,
@@ -75,6 +76,7 @@ export async function buildZiweiAdapter(input, options = {}) {
     strengths,
     cautions,
     evidence: [
+      options.authorityFlags?.koreanCalendarAuthorityV2 === true ? `ziwei.calendarAuthority.${VERIFIED_AUTHORITY_VERSION}` : null,
       lifePalaceSummary ? "ziwei.lifePalace" : null,
       topicPalaceSummary ? `ziwei.${input.topic}.palace` : null,
       keyStars.length ? "ziwei.keyStars" : null,

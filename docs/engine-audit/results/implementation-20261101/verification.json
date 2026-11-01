@@ -1,0 +1,84 @@
+{
+  "results": [
+    {
+      "name": "typecheck",
+      "command": "node node_modules/typescript/bin/tsc --noEmit",
+      "status": 0,
+      "milliseconds": 122396,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "golden",
+      "command": "node --test __tests__/ui/calendar-authority-regression.test.mjs",
+      "status": 0,
+      "milliseconds": 1625,
+      "stdout": "✔ official 101-case snapshot regression uses public adapters only (230.6822ms)\n✔ all supported JPL node boundaries switch across ±1 second/±1 minute and reject unresolved subsecond instants (22.259ms)\n✔ public default remains OFF and flags never mutate birth input or saved evidence (14.9681ms)\nℹ tests 3\nℹ suites 0\nℹ pass 3\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 1472.9729\n",
+      "stderr": ""
+    },
+    {
+      "name": "approved-public-paths",
+      "command": "node --test --test-name-pattern=101 officially|flags default|immutable tools/oracle/implementation/regression.test.mjs",
+      "status": 0,
+      "milliseconds": 6028,
+      "stdout": "✔ 101 officially confirmed cases resolve all 1109 original A fields through public adapters (4856.852ms)\n✔ flags default OFF, reject unverified ranges and wrong-domain switches without Swiss (142.0449ms)\n✔ immutable functions, prefetch, normalizer and storage/payment files stay unchanged (578.9199ms)\nℹ tests 3\nℹ suites 0\nℹ pass 3\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 5876.1709\n",
+      "stderr": ""
+    },
+    {
+      "name": "official-evidence",
+      "command": "node tools/oracle/implementation/verify-evidence.mjs",
+      "status": 0,
+      "milliseconds": 472,
+      "stdout": "{\"officialNodeBrackets\":184,\"historicalMonths\":24,\"historicalDays\":712,\"status\":\"verified\"}\n",
+      "stderr": ""
+    },
+    {
+      "name": "authority-data-freshness",
+      "command": "node tools/oracle/implementation/build-authorities.mjs --check",
+      "status": 0,
+      "milliseconds": 162,
+      "stdout": "authority data verified\n",
+      "stderr": ""
+    },
+    {
+      "name": "golden-freshness",
+      "command": "node tools/oracle/implementation/build-golden.mjs --check",
+      "status": 0,
+      "milliseconds": 222,
+      "stdout": "Official golden: 101 inputs / 1109 expected fields.\n",
+      "stderr": ""
+    },
+    {
+      "name": "classic-table-freshness",
+      "command": "node scripts/build-korean-calendar-table.mjs --check",
+      "status": 0,
+      "milliseconds": 913,
+      "stdout": "[build-korean-calendar-table] 최신 — 블록 202 · 달 2499 · 절기 4872 · 윤달 75 · 자정위험 51 · kc1:fa21fe1cc7dc · 694ms\n",
+      "stderr": ""
+    },
+    {
+      "name": "mirror-freshness",
+      "command": "node scripts/verify-public-mirror-fresh.mjs",
+      "status": 1,
+      "milliseconds": 547,
+      "stdout": "",
+      "stderr": "[verify-public-mirror-fresh] FAIL — 작업 트리에 커밋되지 않은 변경이 있어 미러 신선도를 판정할 수 없다.\n  판정 불가는 통과가 아니다 — 커밋하거나 되돌린 뒤 다시 실행할 것.\n    · app/saju/animal-destiny/engine/localSajuCalculator.ts\n    · app/saju/animal-destiny/lib/sajuAdapter.ts\n    · js/core/korean-calendar.js\n    · lib/korean-calendar/core.js\n    · lib/korean-calendar/ganji.js\n    · lib/korean-calendar/index.js\n    · lib/korean-calendar/natal.js\n    · lib/korean-calendar/policy.js\n    · lib/ziwei-birth-clock.js\n    · public/js/core/korean-calendar.js\n    · scripts/build-korean-calendar-table.mjs\n    · worker/lib/guardian-fortune/adapters/ziwei.js\n    · worker/lib/ziwei-ai-chart.js\n"
+    },
+    {
+      "name": "targeted-lint",
+      "command": "node node_modules/eslint/bin/eslint.js --quiet app/saju/animal-destiny/engine/localSajuCalculator.ts app/saju/animal-destiny/lib/sajuAdapter.ts lib/korean-calendar/core.js lib/korean-calendar/ganji.js lib/korean-calendar/natal.js lib/korean-calendar/policy.js lib/korean-calendar/authority.js lib/ziwei-birth-clock.js worker/lib/ziwei-ai-chart.js worker/lib/guardian-fortune/adapters/ziwei.js",
+      "status": 0,
+      "milliseconds": 8654,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "followUpChecks": [
+    {
+      "name": "golden-final",
+      "status": 0,
+      "stdout": "✔ official 101-case snapshot regression uses public adapters only (295.6455ms)\n✔ all supported JPL node boundaries switch across ±1 second/±1 minute and reject unresolved subsecond instants (22.2812ms)\n✔ public default remains OFF and flags never mutate birth input or saved evidence (14.271ms)\n✔ all 24 official months round-trip through solar/lunar public ziwei chart inputs (1118.1516ms)\n✔ four additional impact observations match KASI/JPL within the same approved defect families (14.4526ms)\nℹ tests 5\nℹ suites 0\nℹ pass 5\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 2630.0401\n",
+      "stderr": ""
+    }
+  ]
+}

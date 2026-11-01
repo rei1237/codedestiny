@@ -1,0 +1,116 @@
+{
+  "basis": "Three current KASI conversions and one directly bracketed JPL 소서; no new defect family or production path.",
+  "cases": [
+    {
+      "id": "random-005377",
+      "domain": "saju",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "lunar",
+        "date": "1907-06-19",
+        "leapMonth": false,
+        "time": "09:07",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "sajuTermAuthorityV2": false,
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "day": "戊寅",
+        "hour": "丁巳"
+      }
+    },
+    {
+      "id": "random-002950",
+      "domain": "saju",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "2024-07-06",
+        "leapMonth": false,
+        "time": "23:20",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "sajuTermAuthorityV2": true,
+        "koreanCalendarAuthorityV2": false
+      },
+      "expected": {
+        "month": "庚午"
+      }
+    },
+    {
+      "id": "random-021978",
+      "domain": "saju",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "lunar",
+        "date": "1904-10-28",
+        "leapMonth": false,
+        "time": "00:16",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "sajuTermAuthorityV2": false,
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "day": "壬申",
+        "hour": "庚子"
+      }
+    },
+    {
+      "id": "random-004635",
+      "domain": "saju",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "lunar",
+        "date": "1903-09-11",
+        "leapMonth": false,
+        "time": "14:04",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "flags": {
+        "sajuTermAuthorityV2": false,
+        "koreanCalendarAuthorityV2": true
+      },
+      "expected": {
+        "day": "辛卯",
+        "hour": "乙未"
+      }
+    }
+  ]
+}

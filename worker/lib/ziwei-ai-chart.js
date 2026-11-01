@@ -1,7 +1,7 @@
 // 🔴 음양력 변환은 한국 음양력 코어(KST 기준)만 쓴다. lunar-javascript 는 중국 표준시(UTC+8)
 // 기준이라 삭이 CST 23시대에 들면 그 달 전체의 음력일이 하루 밀리고, 음력일이 밀리면 자미성이
 // 밀려 14주성이 통째로 어긋난다(1900~2100 전수 4.08% — verify:korean-calendar-divergence).
-import { sexagenaryYearIndexes, solarToLunar, lunarToSolar } from "../../lib/korean-calendar/index.js";
+import { sexagenaryYearIndexes, solarToLunar, lunarToSolar, resolveAuthorityFlags, VERIFIED_AUTHORITY_VERSION } from "../../lib/korean-calendar/index.js";
 // 소한 상수·계산은 셸 엔진과 공유한다(lib/ziwei-minor-limit.js 머리말 참고).
 import { buildMinorLimitEntries, describeMinorLimit } from "../../lib/ziwei-minor-limit.js";
 // 화성·영성 기점도 같은 이유로 공유한다(lib/ziwei-fire-bell.js 머리말 참고).
@@ -102,26 +102,26 @@ function parseTime(timeText, unknown) {
  * 🔴 자미두수의 년간지는 **음력 프레임**이다 — 세차가 설날에 바뀐다. 코어의 ganji() 는
  * 절기 프레임(입춘 경계)이라 여기서 쓰면 안 된다. 음력해에서 직접 유도한다.
  */
-function getLunarDate(parts, calendarType, isLeapMonth, nextDay = false) {
+function getLunarDate(parts, calendarType, isLeapMonth, nextDay = false, authorityFlags = {}) {
   if (calendarType === "lunar") {
     const leap = Boolean(isLeapMonth);
-    const solar = lunarToSolar(parts.year, parts.month, parts.day, leap);
+    const solar = lunarToSolar(parts.year, parts.month, parts.day, leap, authorityFlags);
     if (!solar) {
       const error = new Error("INVALID_LUNAR_BIRTH_DATE");
       error.code = "INVALID_INPUT";
       throw error;
     }
-    if (nextDay) return lunarOfSolarDay(solar, true);
+    if (nextDay) return lunarOfSolarDay(solar, true, authorityFlags);
     return {
       lunarYear: parts.year,
       lunarMonth: Math.abs(parts.month),
       lunarDay: parts.day,
       isLeapMonth: leap,
-      source: "user-lunar-input",
+      source: authorityFlags.koreanCalendarAuthorityV2 ? VERIFIED_AUTHORITY_VERSION : "user-lunar-input",
     };
   }
 
-  return lunarOfSolarDay(parts, nextDay);
+  return lunarOfSolarDay(parts, nextDay, authorityFlags);
 }
 
 /**
@@ -130,9 +130,9 @@ function getLunarDate(parts, calendarType, isLeapMonth, nextDay = false) {
  * ("上午刻属昨夜亥时，下午刻属今日子时")은 모호해 유파 선택으로 기록한다.
  * 음력 변환에 넣는 날짜만 민다 — 소한 기준 연도 탐색과 씨앗 연도는 입력 날짜 그대로 쓴다.
  */
-function lunarOfSolarDay({ year, month, day }, nextDay) {
+function lunarOfSolarDay({ year, month, day }, nextDay, authorityFlags = {}) {
   const civil = new Date(Date.UTC(year, month - 1, day + (nextDay ? 1 : 0)));
-  const lunar = solarToLunar(civil.getUTCFullYear(), civil.getUTCMonth() + 1, civil.getUTCDate());
+  const lunar = solarToLunar(civil.getUTCFullYear(), civil.getUTCMonth() + 1, civil.getUTCDate(), authorityFlags);
   if (!lunar) {
     const error = new Error("UNSUPPORTED_BIRTH_DATE");
     error.code = "INVALID_INPUT";
@@ -143,7 +143,7 @@ function lunarOfSolarDay({ year, month, day }, nextDay) {
     lunarMonth: lunar.lunarMonth,
     lunarDay: lunar.lunarDay,
     isLeapMonth: lunar.isLeapMonth,
-    source: "korean-calendar-core",
+    source: authorityFlags.koreanCalendarAuthorityV2 ? VERIFIED_AUTHORITY_VERSION : "korean-calendar-core",
   };
 }
 
@@ -465,6 +465,8 @@ function buildSummary(outputPalaces, lifePalace, bodyPalace, fourTransformations
 }
 
 export function calculateZiweiAiChart(input = {}, options = {}) {
+  const authorityFlags = resolveAuthorityFlags(options.authorityFlags);
+  if (authorityFlags.sajuTermAuthorityV2) throw new RangeError("SAJU_TERM_FLAG_NOT_APPLICABLE_TO_ZIWEI");
   const birthInfo = input.birthInfo && typeof input.birthInfo === "object" ? input.birthInfo : input;
   // 프로필 표기 "lunar_leap"(윤달)도 음력이다 — 예전에는 양력으로 조용히 계산했다.
   const rawCalendar = clean(birthInfo.calendarType).toLowerCase();
@@ -489,14 +491,14 @@ export function calculateZiweiAiChart(input = {}, options = {}) {
     calendarType,
     isLeapMonth,
     birthPlace: birthInfo.birthPlace,
-  });
+  }, authorityFlags);
   const chartTime = clock ? { hour: clock.corrected.hour, minute: clock.corrected.minute, unknown: false } : timeParts;
   const nightZi = chartTime.hour === 23 && !chartTime.unknown;
   // 보정이 자정을 넘겨 날짜가 바뀐 경우(00:00~00:31 출생 등)만 보정 날짜에서 음력을 다시 찾는다.
   const dayMoved = clock && (clock.corrected.year !== clock.civil.year || clock.corrected.month !== clock.civil.month || clock.corrected.day !== clock.civil.day);
   const lunarInfo = dayMoved
-    ? lunarOfSolarDay(clock.corrected, nightZi)
-    : getLunarDate(dateParts, calendarType, isLeapMonth, nightZi);
+    ? lunarOfSolarDay(clock.corrected, nightZi, authorityFlags)
+    : getLunarDate(dateParts, calendarType, isLeapMonth, nightZi, authorityFlags);
   // 세차는 음력해에서 바로 나온다(甲=0 / 子=0). 예전에는 lunar-javascript 의 getYearGan/getYearZhi
   // 를 읽고 실패 시 같은 식으로 폴백했다 — 값은 그대로이고 근거만 코어로 옮겼다.
   const yearIndexes = sexagenaryYearIndexes(lunarInfo.lunarYear);
