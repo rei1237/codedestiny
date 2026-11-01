@@ -4,6 +4,8 @@ import { jest } from '@jest/globals';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import ts from 'typescript';
+import { bindNativeTossRequest } from '../../worker/toss/native-context.js';
+import { TossError } from '../../worker/toss/policy.js';
 let onPaymentFind, docs, orders, missingEvidence, fault, lostConfirmation, route, generator, paymentChecks, revoked, store, accessType;
 const originalFetch = globalThis.fetch;
 const uid='64b7f2a1c3d4e5f601234567';
@@ -103,6 +105,58 @@ afterAll(()=>{globalThis.fetch=originalFetch;jest.restoreAllMocks()});
 beforeEach(()=>{onPaymentFind=null;docs=[];orders=[];missingEvidence=false;fault=null;lostConfirmation=false;paymentChecks=[];revoked=false;store.attempts.clear();accessType='pass'});
 function request(stage=1){return new Request('https://example.test/api/fusion-fortune/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({requestId:'paid-original',birthDate:'1995-04-18',birthTime:'08:30',stage})})}
 const sections=Object.fromEntries(['saju','ziwei','vedic','sukuyo','astrology','tarot'].map(key=>[`${key}Section`,{title:key,content:'계산 근거에 따른 생활 패턴을 설명합니다. '.repeat(240),keyPoints:[]} ]));
+for (const [code,status] of [['ORDER_REFUNDED',409],['TOSS_SESSION_REQUIRED',401],['ORDER_OWNER_MISMATCH',403],['ORDER_CHECK_THROTTLED',429],['TOSS_PARTNER_UNAVAILABLE',502]]) for (const transport of ['json', 'stream']) for (const stage of [1, 2]) {
+ it(`native ${transport} stage ${stage} preserves ${code} after a durable checkpoint`, async () => {
+  let denied = false;
+  const retryable=status>=500||status===429;
+  const assertAccess = async () => { if (denied) throw new TossError(code, status); return {ok:true}; };
+  const native = {auth:{userId:uid,tossNative:true},access:assertAccess,assertDelivery:assertAccess};
+  const nativeRequest = (step, streaming=false) => {
+   const req=request(step);
+   const target=streaming ? new Request(req.url+'/stream',req) : req;
+   return bindNativeTossRequest(target,native);
+  };
+  generator=async()=>({result:sections,deliverable:true,qualityTier:'partial'});
+  if (stage===2) expect((await route(nativeRequest(1),ENV)).status).toBe(202);
+  generator=async({onCheckpoint})=>{
+   await onCheckpoint(sections);
+   denied=true;
+   return {result:sections,deliverable:true,qualityTier:stage===1?'partial':'full'};
+  };
+  const response=await route(nativeRequest(stage,transport==='stream'),ENV);
+  if(transport==='stream') {
+   const body=await response.text();
+   const errors=[...body.matchAll(/event: error\ndata: (.+)/g)].map(match=>JSON.parse(match[1]));
+   expect(errors).toEqual([expect.objectContaining({error:code,status,retryable,requestId:'paid-original'})]);
+   expect(body).toContain('event: checkpoint');
+   expect(body).not.toMatch(/event: (result|complete)/);
+  } else {
+   expect(response.status).toBe(status);
+   expect(await response.json()).toMatchObject({error:code,retryable});
+  }
+  expect(docs).toHaveLength(1);
+  expect(docs[0].status).toBe('partial');
+  expect(docs[0].result).toMatchObject(sections);
+  expect(docs[0].generationSnapshot.input.birthDate).toBe('1995-04-18');
+  expect(docs[0].generationLease).toBeNull();
+  expect(paymentChecks).toHaveLength(0);
+  expect(orders).toHaveLength(0);
+  const checkpoint=clone(docs[0].result),snapshot=clone(docs[0].generationSnapshot);
+  const deniedRead=bindNativeTossRequest(new Request('https://example.test/api/fusion-fortune/result?requestId=paid-original'),native);
+  expect((await route(deniedRead,ENV)).status).toBe(status);
+  expect(docs[0].result).toEqual(checkpoint);
+  denied=false;
+  generator=async({priorResult,priorSnapshot})=>{
+   expect(priorResult).toEqual(checkpoint);
+   expect(priorSnapshot.context).toEqual(snapshot.context);
+   return {result:{...priorResult,title:'복구한 결과'},deliverable:true,qualityTier:'full'};
+  };
+  expect((await route(nativeRequest(2),ENV)).status).toBe(200);
+  generator=()=>{throw Error('completed native results must not regenerate')};
+  expect((await route(nativeRequest(2),ENV)).status).toBe(200);
+  expect(paymentChecks).toHaveLength(0);
+ });
+}
 for(const kind of ['pass','monthly','single'])describe(kind,()=>{
  beforeEach(()=>{accessType=kind});
  it('checkpoints partial output, resumes the same paid stage, and commits only after verified delivery',async()=>{

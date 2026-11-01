@@ -451,6 +451,15 @@ async function handleFusionFortuneStreamRoute(request, env, ctx) {
         ...(error?.code === "RESULT_STORAGE_UNAVAILABLE" ? { ...resultStorageFailurePayload(error), status: 503 } : {}),
         error: error?.code === "RESULT_STORAGE_UNAVAILABLE" ? error.code : FUSION_FORTUNE_ERROR_CODES.GENERATION_FAILED,
         message: "결과를 준비하지 못했어요. 같은 요청으로 다시 시도하면 추가 결제는 없습니다.",
+        ...(native && error instanceof TossError ? {
+          error: error.code,
+          status: error.status,
+          retryable: error.status >= 500 || error.status === 429,
+          requestId: streamRequestId,
+          retryRequestId: streamRequestId,
+          stage: streamStage,
+          message: "상담 권한을 확인하지 못했어요. 로그인 상태와 결제 내역을 확인한 뒤 다시 시도해 주세요.",
+        } : {}),
       }).catch(() => {});
     } finally {
       // 하드 스톱이 먼저 닫았으면 settleStream 이 아무것도 하지 않는다(이중 종료 방지).
@@ -513,7 +522,7 @@ export async function handleFusionFortuneRoutes(request, env, ctx = null) {
     if (["/status", "/generate", "/generate/stream", "/result"].includes(path)) return methodNotAllowed();
     return notFound();
   } catch (error) {
-    if (native && error instanceof TossError) return json({ok:false,error:error.code,retryable:false}, {status:error.status});
+    if (native && error instanceof TossError) return json({ok:false,error:error.code,retryable:error.status >= 500 || error.status === 429}, {status:error.status});
     if (error?.code === "RESULT_ACCESS_REVOKED") return json({ ok: false, reason: error.code, retryable: false, resultId: error.resultId, message: error.message }, { status: 403 });
     if (error?.code === "RESULT_STORAGE_UNAVAILABLE") return json(resultStorageFailurePayload(error), { status: 503 });
     return handleRouteError(error, { request, env, trace: { route: "fusion-fortune", method, requestPath: new URL(request.url).pathname } });

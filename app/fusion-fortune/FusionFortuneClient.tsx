@@ -198,7 +198,7 @@ async function consumeFusionStream(
   if (!response.ok || !response.body || !response.headers.get("content-type")?.includes("text/event-stream")) {
     const fallback = await response.json().catch(() => ({})) as Record<string, unknown>;
     if (response.ok && fallback.ok === true && fallback.status === "completed" && fallback.result) return fallback;
-    throw Object.assign(new Error(String(fallback.message || copy.streamStartFailedMessage)), { httpStatus: response.status, errorCode: fallback.reason || fallback.error, retryable: fallback.retryable === true });
+    throw Object.assign(new Error(String(fallback.message || copy.streamStartFailedMessage)), { httpStatus: response.status, errorCode: fallback.reason || fallback.code || fallback.error, retryable: typeof fallback.retryable === "boolean" ? fallback.retryable : undefined });
   }
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
@@ -221,7 +221,7 @@ async function consumeFusionStream(
       // 해결되는 실패인지 결제가 필요한 실패인지 화면이 구분할 수 없다.
       const failure = new Error(String(payload.message || copy.analysisFailedMessage));
       throw Object.assign(failure, {
-        retryable: payload.retryable === true,
+        retryable: typeof payload.retryable === "boolean" ? payload.retryable : undefined,
         httpStatus: Number(payload.status) || 0,
         // 계약 위반 코드만 온다(본문·개인정보 없음). 같은 실패가 반복될 때 사용자가 문의에 적을 근거다.
         errorCode: String(payload.error || ""),
@@ -2282,9 +2282,10 @@ export function FusionFortuneClient({ seoContent, valuePreview, paymentNotice }:
     try {
       const response = await authFetch(`${apiBase}/api/fusion-fortune/result?requestId=${encodeURIComponent(requestId)}`, { credentials: "include" }, { retryOn401: true, apiBase });
       if (!scope.isCurrent()) return "stale";
-      if (response.status === 403 || response.status === 409) {
+      if (!response.ok) {
         // 자동 환불로 넘어간 주문은 이어 생성하지 않고 환불 상태만 보여 준다.
-        const refund = await parseJson<{ reason?: string }>(response, copy).catch(() => ({} as { reason?: string }));
+        type Denial = { reason?: string; code?: string; error?: string | { code?: string }; retryable?: boolean; message?: string };
+        const refund = await parseJson<Denial>(response, copy).catch(() => ({} as Denial));
         if (!scope.isCurrent()) return "stale";
         if (refund.reason === "PAYMENT_REFUNDED" || refund.reason === "REFUND_PENDING") {
           const done = refund.reason === "PAYMENT_REFUNDED";
@@ -2293,11 +2294,17 @@ export function FusionFortuneClient({ seoContent, valuePreview, paymentNotice }:
           setFailure({ message: message || copy.storedResultLoadFailedMessage, retryable: false, reason: refund.reason });
           return "stale";
         }
-        if (response.status === 409) return false;
-        setFailure({ message: copy.storedResultLoadFailedMessage, retryable: false, reason: "RESULT_ACCESS_REVOKED" });
-        return "stale";
+        if (refund.retryable === false) {
+          setStageTwoFailed(false);
+          setFailure({ message: refund.message || copy.storedResultLoadFailedMessage, retryable: false, reason: refund.reason || refund.code || (typeof refund.error === "string" ? refund.error : refund.error?.code) });
+          return "stale";
+        }
+        if (response.status === 403) {
+          setFailure({ message: copy.storedResultLoadFailedMessage, retryable: false, reason: "RESULT_ACCESS_REVOKED" });
+          return "stale";
+        }
+        return false;
       }
-      if (!response.ok) return false;
       const payload = await parseJson<{ ok?: boolean; consultation?: OpenedConsultation }>(response, copy);
       if (!scope.isCurrent()) return "stale";
       if (!payload.ok || !payload.consultation?.result) return false;
@@ -2637,6 +2644,11 @@ export function FusionFortuneClient({ seoContent, valuePreview, paymentNotice }:
       return true;
     } catch (cause) {
       if (!isCurrent()) return false;
+      if ((cause as { retryable?: boolean })?.retryable === false) {
+        setStageTwoFailed(false);
+        setFailure({ message: cause instanceof Error ? cause.message : copy.resultGenerationFailedMessage, retryable: false, reason: String((cause as { errorCode?: string })?.errorCode || "") });
+        return false;
+      }
       // 결제는 생성 전에 끝났다. "차감되지 않았다"고 말하면 거짓이므로, 실제로 안전한 것
       // (같은 requestId 재시도에 추가 결제가 없다는 점)만 안내한다.
       const aborted = (cause as Error)?.name === "AbortError";

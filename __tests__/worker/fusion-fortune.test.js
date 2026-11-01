@@ -32,6 +32,7 @@ import {
   toGeminiSchema,
 } from "../../worker/lib/fusion-fortune-prompt.js";
 import { FEATURE_KEY_PRICE_TABLE, isPerUsePaidFeatureKey } from "../../worker/lib/paid-feature-registry.js";
+import { TossError } from "../../worker/toss/policy.js";
 
 const input = { birthDate: "1995-04-18", birthTime: "08:30", calendarType: "solar", gender: "female", topic: "삶의 전반적인 흐름", concern: "" };
 const contextBuilder = async () => ({ ok: true, context: { birthTimeKnown: true } });
@@ -886,6 +887,12 @@ it('repairs only second-stage groups when the saved report misses the body floor
 describe("fusion length drafts are delivered without length repairs", () => {
   const env = { ENABLE_FUSION_FORTUNE_REAL_LLM: "true", ALLOW_FUSION_FORTUNE_REAL_LLM: "true", GEMINIF_API_KEY: "mock-only", GEMINI_CONTEXT_CACHE: "false" };
   const context = { birthTimeKnown: true, birthPlaceKnown: true, locale: "ko" };
+  it("propagates a native checkpoint denial through the actual parallel group generator", async () => {
+    const denial=new TossError('ORDER_REFUNDED',409);
+    const providerCall=jest.fn(async(_env,_prompt,options)=>({ok:true,text:JSON.stringify(buildFusionGroupPayload(FUSION_SECTION_GROUP_SPECS.find(group=>group.id===options.logContext.sectionGroup)))}));
+    await expect(generateFusionFortuneWithRealLLM({input,context,env,providerCall,onCheckpoint:async()=>{throw denial}})).rejects.toBe(denial);
+    expect(providerCall).toHaveBeenCalledTimes(2);
+  });
   // 2026-10-30: a short valid group is delivered as is. It never spends another attempt on length.
   it("keeps a short valid draft without a length repair call and completes both stages", async () => {
     const snapshot = { attempts: {} };

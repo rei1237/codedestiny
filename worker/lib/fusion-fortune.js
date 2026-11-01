@@ -30,6 +30,7 @@ import { buildFortuneQuestionFocus } from "./fortune-question-focus.js";
 import { createGeminiContextCache, deleteGeminiContextCache, pickGeminiKeys } from "./gemini.js";
 import { callGeminiJsonWithRetry } from "./structured-consultation.js";
 import { TAROT_CARDS } from "../../lib/tarot/tarot-cards.mjs";
+import { TossError } from "../toss/policy.js";
 
 // 초융합 운세는 표준 회당 결제(B유형)다. 가격 정본은 worker/lib/paid-feature-registry.js 이며
 // 300코인(30,000원)이라 이용권 커버는 family 등급만 통과한다(PASS_LIMITS 참고).
@@ -1656,6 +1657,7 @@ export async function generateFusionFortuneRequest({ input = {}, userId = "", re
     return { ok: true, status: 200, requestId: safeId, stage: stageNumber, nextStage: stageNumber === 1 ? 2 : null, stageStatus, result: delivery.value, fusionStatus: status, generationSource: generated?.generationSource || "mock", providerCalls: count(generated?.providerCalls) || undefined, qualityTier: delivery.tier, qualityNotice: delivery.qualityNotice };
   } catch (error) {
     if (!committed) await store.release(reservation, now).catch(() => {});
+    if (error instanceof TossError) throw error;
     const code = error?.code || FUSION_FORTUNE_ERROR_CODES.GENERATION_FAILED;
     const cancelled = code === FUSION_FORTUNE_ERROR_CODES.CANCELLED;
     // 🔴 실패해도 어느 관문에서 죽었는지 남겨야 한다. 예전에는 사용자에게 보낸 문구가 전부라
