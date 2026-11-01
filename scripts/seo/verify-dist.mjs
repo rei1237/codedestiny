@@ -16,10 +16,11 @@ import { pathToFileURL } from "node:url";
 import { BRAND_FACTS } from "../../lib/brand/brand-facts.mjs";
 import { renderRobotsTxt } from "../../lib/seo/robots-policy.mjs";
 import { checkSitemapPage, htmlFileFor, redirectSources, sitemapLocs } from "../verify-sitemap-canonical.mjs";
+import { robotsAllows, robotsSamples } from "../lib/robots-groups.mjs";
 import { PAGES, verifyPage } from "../verify-home-identity.mjs";
 import { distAssets, probeEdge } from "./edge-probe.mjs";
 import {
-  decodeHtml, getCanonical, getH1s, getHreflang, getInternalLinks, getJsonLd, getMeta, getTitle, parseJsonLdDate, parseSitemapAlternates, robotsAllows, stripTags,
+  decodeHtml, getCanonical, getH1s, getHreflang, getInternalLinks, getJsonLd, getMeta, getTitle, parseJsonLdDate, parseSitemapAlternates, stripTags,
 } from "./health-policy.mjs";
 
 export const RULES = {
@@ -379,12 +380,7 @@ function checkRobotsPolicy(distDir, origin) {
   const dist = readText(join(distDir, "robots.txt"));
   if (dist == null) return [`${join(distDir, "robots.txt")} 없음`];
   const policy = renderRobotsTxt(origin);
-  const agents = new Set(ROBOTS_SAMPLE_AGENTS);
-  const paths = new Set(ROBOTS_SAMPLE_PATHS);
-  for (const text of [policy, dist]) {
-    for (const [, agent] of text.matchAll(/^\s*User-agent:\s*(\S+)/gim)) agents.add(agent);
-    for (const [, path] of text.matchAll(/^\s*(?:Allow|Disallow):\s*(\S+)/gim)) paths.add(path.replace(/\*/g, "x").replace(/\$$/, ""));
-  }
+  const { agents, paths } = robotsSamples([policy, dist], { agents: ROBOTS_SAMPLE_AGENTS, paths: ROBOTS_SAMPLE_PATHS });
   const verdict = (allowed) => (allowed ? "허용" : "차단");
   const details = [];
   for (const agent of agents) {

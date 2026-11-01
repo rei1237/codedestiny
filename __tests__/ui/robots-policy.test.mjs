@@ -2,20 +2,22 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { buildRobotsRules, renderRobotsTxt } from '../../lib/seo/robots-policy.mjs';
-import { robotsAllows } from '../../scripts/seo/health-policy.mjs';
+import { robotsAllows, robotsSamples } from '../../scripts/lib/robots-groups.mjs';
 
-// 'googlebot'(소문자)은 UA 대소문자 무시를, 표에 없는 봇은 '*' 그룹 상속을 본다.
-const UAS = ['Googlebot', 'googlebot', 'Bingbot', 'Yeti', 'Mediapartners-Google', 'GPTBot', 'CCBot', 'SomeUnlistedBot'];
 const before = readFileSync(new URL('../fixtures/seo/robots-2026-11-01.txt', import.meta.url), 'utf8');
-const samplePaths = () => [...new Set([
-  ...[...before.matchAll(/^(?:Allow|Disallow):\s*(\S+)/gim)].map(([, p]) => p.replace(/\*/g, 'x')),
-  '/', '/saju/', '/fortune/today/aries/', '/?auth=1', '/insights/x/?session=1',
-  '/ggulggul/', '/yeongnyangi/', '/en/faq/', '/api/og?title=x', '/api/billing/',
-])];
+// UA 는 두 파일에 적힌 User-agent 전부(검색·인용·학습 크롤러)에 더해, 소문자 'googlebot'(대소문자 무시)과
+// 표에 없는 봇('*' 그룹 상속)을 본다. 경로도 두 파일의 Allow·Disallow 전부에 대표 경로를 더한다.
+const samples = (after) => robotsSamples([before, after], {
+  agents: ['googlebot', 'SomeUnlistedBot'],
+  paths: ['/', '/saju/', '/fortune/today/aries/', '/?auth=1', '/insights/x/?session=1',
+    '/ggulggul/', '/yeongnyangi/', '/en/faq/', '/api/og?title=x', '/api/billing/'],
+});
 
 test('merged robots policy keeps every allow/disallow decision of the 2026-11-01 production file', () => {
   const after = renderRobotsTxt();
-  for (const ua of UAS) for (const path of samplePaths()) {
+  const { agents, paths } = samples(after);
+  assert.ok(agents.includes('GPTBot') && agents.includes('Claude-SearchBot') && agents.includes('CCBot'), agents.join(' '));
+  for (const ua of agents) for (const path of paths) {
     assert.equal(robotsAllows(after, path, ua), robotsAllows(before, path, ua), `${ua} ${path}`);
   }
   // 표본이 실제로 양쪽 판정을 다 밟는지(전부 허용·전부 차단이면 비교가 무의미하다).

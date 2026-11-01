@@ -4,6 +4,7 @@ import {
   collectSitemapUrls, getCanonical, getH1s, getHreflang, getInternalLinks, getJsonLd, getMeta, getTitle,
   hasNoindex, inspectPage, parseHeaderRobotsRules, parseSitemapAlternates, robotsAllows, sitemapDirectives,
 } from './health-policy.mjs';
+import { parseRobotsGroups } from '../lib/robots-groups.mjs';
 
 test('declared index reaches child URLs without treating sitemap files as pages', async () => {
   const base = 'https://example.com';
@@ -54,6 +55,13 @@ test('crawler-specific group, longest path and allow tie', () => {
   assert.equal(robotsAllows('User-agent: *\nDisallow: /saju/\nAllow: /saju/', '/saju/'), true);
   assert.equal(robotsAllows('User-agent: *\nDisallow: /*?v=', '/about/?v=123'), false);
   assert.equal(robotsAllows('User-agent: Googlebot\nDisallow:\nUser-agent: *\nDisallow: /', '/saju/'), true);
+});
+
+test('robots groups ignore trailing comments and only Allow/Disallow close the agent list', () => {
+  assert.equal(robotsAllows('User-agent: GPTBot # training\nDisallow: / # all', '/saju/', 'GPTBot'), false);
+  const sitemapBetween = 'User-agent: CCBot\nSitemap: https://example.com/s.xml\nUser-agent: GPTBot\nDisallow: /';
+  assert.equal(robotsAllows(sitemapBetween, '/saju/', 'CCBot'), false);
+  assert.deepEqual(parseRobotsGroups(sitemapBetween), [{ agents: ['CCBot', 'GPTBot'], allow: [], disallow: ['/'] }]);
 });
 
 test('Yeti exclusions are checked independently of Googlebot and wildcard access', () => {

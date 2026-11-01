@@ -64,31 +64,8 @@ export function inspectPage({ url, status, html, xRobots = '', indexable = true 
   if (descriptions.length > 1) issues.push(`description count ${descriptions.length}`);
   return issues;
 }
-export function robotsAllows(text, pathname, agent = 'googlebot') {
-  agent = agent.toLowerCase();
-  const groups = [];
-  let group = { agents: [], rules: [], hasDirectives: false };
-  for (const line of text.split(/\r?\n/)) {
-    const match = line.replace(/#.*/, '').trim().match(/^(user-agent|allow|disallow):\s*(.*)$/i);
-    if (!match) continue;
-    const [, rawKey, value] = match;
-    if (rawKey.toLowerCase() === 'user-agent') {
-      if (group.hasDirectives) { groups.push(group); group = { agents: [], rules: [], hasDirectives: false }; }
-      group.agents.push(value.toLowerCase());
-    } else {
-      group.hasDirectives = true;
-      if (value) group.rules.push({ allow: rawKey.toLowerCase() === 'allow', value });
-    }
-  }
-  groups.push(group);
-  const specific = groups.filter(g => g.agents.includes(agent));
-  const selected = specific.length ? specific : groups.filter(g => g.agents.includes('*'));
-  const rules = selected.flatMap(g => g.rules).filter(rule => {
-    const pattern = rule.value.replace(/[.+?^{}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*');
-    return new RegExp(`^${pattern}`).test(pathname);
-  }).sort((a, b) => b.value.replace(/[*$]/g, '').length - a.value.replace(/[*$]/g, '').length || Number(b.allow) - Number(a.allow));
-  return rules[0]?.allow ?? true;
-}
+// robots.txt 판정은 scripts/lib/robots-groups.mjs 한 곳에서 한다(가드들과 같은 파서).
+export { robotsAllows } from '../lib/robots-groups.mjs';
 
 // Shared HTML / sitemap / header parsers. Pure string functions: no network, no filesystem.
 export function stripTags(html) {
