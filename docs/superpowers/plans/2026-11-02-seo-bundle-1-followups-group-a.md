@@ -1,6 +1,6 @@
 # SEO 묶음 ① 후속 — 그룹 A(검사기 신뢰성) Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** `scripts/seo/verify-dist.mjs`의 거짓 실패·거짓 통과 여지를 줄이고, 규칙 등급과 경계 동작을 테스트로 고정한다.
 
@@ -32,11 +32,11 @@
 **Files:**
 - Modify: `__tests__/ui/sitemap-canonical.test.mjs` (370줄 항상 참 단언 제거, 새 테스트 3개, `writeDist` 임시 폴더 정리)
 
-- [ ] **Step 1:** 테스트 `RULES grades are pinned rule by rule` — `assert.deepEqual(RULES, {...})`로 현재 18개 규칙 등급 전체를 그대로 적는다. 370줄 `=== 'fail' || === 'warn'` 단언은 지운다.
-- [ ] **Step 2:** 테스트 `organization-name ties pick the first-seen name as majority and report the other` — 두 쪽이 각각 다른 name 1번씩 → counts 1, 상세에 `≠ 최다` 포함.
-- [ ] **Step 3:** 테스트 `the same @id with the same @type on two pages is not a jsonld-id-type finding` — counts 0.
-- [ ] **Step 4:** `writeDist`가 만든 폴더를 모아 `test.after`에서 `rmSync(dir, { recursive: true, force: true })`(A4의 mkdtemp 정리를 여기서 함께).
-- [ ] **Step 5:** `node --test __tests__/ui/sitemap-canonical.test.mjs` PASS → 커밋 `test(seo): verify-dist 규칙 등급을 고정하고 정체성 경계를 테스트한다`
+- [x] **Step 1:** 테스트 `RULES grades are pinned rule by rule` — `assert.deepEqual(RULES, {...})`로 현재 18개 규칙 등급 전체를 그대로 적는다. 370줄 `=== 'fail' || === 'warn'` 단언은 지운다.
+- [x] **Step 2:** 테스트 `organization-name ties pick the first-seen name as majority and report the other` — 두 쪽이 각각 다른 name 1번씩 → counts 1, 상세에 `≠ 최다` 포함.
+- [x] **Step 3:** 테스트 `the same @id with the same @type on two pages is not a jsonld-id-type finding` — counts 0.
+- [x] **Step 4:** `writeDist`가 만든 폴더를 모아 `test.after`에서 `rmSync(dir, { recursive: true, force: true })`(A4의 mkdtemp 정리를 여기서 함께).
+- [x] **Step 5:** `node --test __tests__/ui/sitemap-canonical.test.mjs` PASS → 커밋 `test(seo): verify-dist 규칙 등급을 고정하고 정체성 경계를 테스트한다`
 
 ### Task 2: 리디렉션 출발점·워커 동적 경로 (A2·A3)
 
@@ -47,9 +47,9 @@
 
 **Interfaces:** Produces `redirectSources(dist) → { exact: Set<string>, prefixes: string[], worker: Set<string> }`
 
-- [ ] **Step 1:** 기존 internal-404 테스트에서 `/old/`(→`_redirects`에 `/old`만)를 404 기대로 바꾸고, `/api/fortune`·`/api`·`/rss.xml` 링크는 404 아님, `/apix/`는 404 단언 추가. 실패 확인.
-- [ ] **Step 2:** 구현. `DYNAMIC_FEED_PATHS`는 `const DYNAMIC_FEED_PATHS = new Set([...])` 정규식으로 읽고, 못 찾으면 빈 집합(링크가 있으면 404로 세지므로 fail-closed).
-- [ ] **Step 3:** 테스트 PASS → 실제 build:cf로 internal-404·sitemap-page 0건 확인 → 커밋.
+- [x] **Step 1:** 기존 internal-404 테스트에서 `/old/`(→`_redirects`에 `/old`만)를 404 기대로 바꾸고, `/api/fortune`·`/api`·`/rss.xml` 링크는 404 아님, `/apix/`는 404 단언 추가. 실패 확인.
+- [x] **Step 2:** 구현. `DYNAMIC_FEED_PATHS`는 `const DYNAMIC_FEED_PATHS = new Set([...])` 정규식으로 읽고, 못 찾으면 빈 집합(링크가 있으면 404로 세지므로 fail-closed).
+- [x] **Step 3:** 테스트 PASS → 실제 build:cf로 internal-404·sitemap-page 0건 확인 → 커밋.
 
 ### Task 3: dist 기준 출발점·누락 파일 보고 (A4·A6)
 
@@ -58,9 +58,9 @@
 - Modify: `scripts/seo/verify-dist.mjs` `inspectDist` — `dist/_redirects` 없으면 원하는 규칙(`sitemap-page`·`internal-404`)에 `"<dist>/_redirects 없음"` 1줄을 넣고 그 규칙은 돌리지 않는다
 - Test: 같은 파일
 
-- [ ] **Step 1:** 먼저 실제 build:cf 뒤 `cmp dist/_worker.js public/_worker.js`로 바이트 동일 확인(다르면 Task 3 멈추고 보고).
-- [ ] **Step 2:** 테스트: `_redirects` 없는 픽스처 → failures에 `_redirects 없음`, throw 없음. 워커 표 있는 `_worker.js` 픽스처의 출발점 `/moved` → `/moved/` 링크 404 아님.
-- [ ] **Step 3:** 구현·PASS·커밋.
+- [x] **Step 1:** 먼저 실제 build:cf 뒤 `cmp dist/_worker.js public/_worker.js`로 바이트 동일 확인(다르면 Task 3 멈추고 보고).
+- [x] **Step 2:** 테스트: `_redirects` 없는 픽스처 → failures에 `_redirects 없음`, throw 없음. 워커 표 있는 `_worker.js` 픽스처의 출발점 `/moved` → `/moved/` 링크 404 아님.
+- [x] **Step 3:** 구현·PASS·커밋.
 
 ### Task 4: 엣지 흉내 테스트·주석·CONTENT_TYPES (A5) + html-only 테스트(A3 후반)
 
@@ -68,10 +68,10 @@
 - Modify: `scripts/seo/edge-probe.mjs` — CONTENT_TYPES에 `.woff2 font/woff2`, `.webmanifest application/manifest+json`, `.gif image/gif`, `.avif image/avif`, `.mp4 video/mp4`; `distAssets` 위 주석에 Pages와 다른 점(`/x.html`→`/x` 308 미재현, `/dir/index.html` 200, `_redirects`·`_headers` 미적용) 명시
 - Test: 같은 테스트 파일
 
-- [ ] **Step 1:** 테스트 `distAssets serves 200/308/404, refuses traversal and bad percent, and labels new content types` — 기존 엣지 테스트 속 단언을 분리·확장(woff2 content-type 단언).
-- [ ] **Step 2:** 테스트 `hreflang html-only` — HTML에만 있는 언어 쌍 1건 → `html-only` 1건. href만 다른 경우(같은 언어 코드)는 `code-sitemap-only`가 아니라 html-only 1건 + 사이트맵 쪽 코드 1건으로 두 번 세는지 확인하고, 두 번이면 판정 결과를 계획 결과에 기록(수정은 원장 47 재평가 후).
-- [ ] **Step 3:** PASS·커밋.
+- [x] **Step 1:** 테스트 `distAssets serves 200/308/404, refuses traversal and bad percent, and labels new content types` — 기존 엣지 테스트 속 단언을 분리·확장(woff2 content-type 단언).
+- [x] **Step 2:** 테스트 `hreflang html-only` — HTML에만 있는 언어 쌍 1건 → `html-only` 1건. href만 다른 경우(같은 언어 코드)는 `code-sitemap-only`가 아니라 html-only 1건 + 사이트맵 쪽 코드 1건으로 두 번 세는지 확인하고, 두 번이면 판정 결과를 계획 결과에 기록(수정은 원장 47 재평가 후).
+- [x] **Step 3:** PASS·커밋.
 
 ### 마감
 
-- [ ] `node --test scripts/seo/*.test.mjs __tests__/ui/sitemap-canonical.test.mjs`, `npm run build:cf`(verify-dist 실패 0), `npm run check:fast` → 인수인계 문서에 SHA 기록.
+- [x] `node --test scripts/seo/*.test.mjs __tests__/ui/sitemap-canonical.test.mjs`, `npm run build:cf`(verify-dist 실패 0), `npm run check:fast` → 인수인계 문서에 SHA 기록.
