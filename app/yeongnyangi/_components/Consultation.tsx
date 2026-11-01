@@ -69,7 +69,7 @@ import {localizedTarotSpread} from '../_lib/tarot-spread-catalog-locales';
 const hasReviews=visibleReviews().length>0;
 // Every locale opens tarot on the question-first spread order.
 const defaultKind=(domainId:string)=>domainId==='tarot'?consultationKinds.tarot.find(k=>k.id===TAROT_SPREAD_KIND)!:consultationKinds[domainId][0];
-export default function Consultation(){
+export default function Consultation({initialQuestion=''}:{initialQuestion?:string}){
  const [relationshipStage,setRelationshipStage]=useState(''),[relationshipQuestionId,setRelationshipQuestionId]=useState('');
  const [participants,setParticipants]=useState({self:'',partner:''});
  const [touched,setTouched]=useState<Record<string,boolean>>({});
@@ -88,7 +88,7 @@ export default function Consultation(){
  const [available,setAvailable]=useState<Product[]>([]),[catalogError,setCatalogError]=useState('');
  const profileState=useProfiles(),{profiles,profileId,guest}=profileState;
  const [partnerId,setPartnerId]=useState(''),[timeUnknown,setTimeUnknown]=useState(false);
- const [topicId,setTopicId]=useState('general'),[question,setQuestion]=useState(''),[error,setError]=useState('');
+ const [topicId,setTopicId]=useState('general'),[question,setQuestion]=useState(initialQuestion),[error,setError]=useState('');
  const [busy,setBusy]=useState(false),[ready,setReady]=useState(false);
  // 2026-10-17 "직관성": 말투 선택을 없애고 존댓말로 고정한다.
  const [voiceStyle,setVoiceStyle]=useState<VoiceStyle>('honorific');
@@ -103,6 +103,7 @@ export default function Consultation(){
  const lock=useRef(false);
  const consultationAttemptId=useRef(''),preparationKey=useRef('');
  const viewedProduct=useRef('');
+ const initialOpen=useRef<(()=>void)|null>(null),initialOpened=useRef(false);
  const restoredDraft=useRef<{profileId?:string;partnerId?:string;extraTime?:string;extraPlace?:string;timeUnknown?:boolean}|null>(null);
  const product=products.find(p=>p.id===productId)!;
  const plannedTotal=siteLocale==='ko'?plannedPriceFor(product.fishId,product.priceKRW):null;
@@ -289,6 +290,9 @@ export default function Consultation(){
  // 상담·결제 확인 단계에서 브라우저 뒤로가기는 질문 입력으로 돌아간다. 결제를 준비하는 동안에는 받아 두기만 한다.
  const questionCheckoutOpen=ready&&questionMode&&siteLocale==='ko'&&domain!=='fusion'&&chatStep==='checkout';
  useBackNavigation({scope:'wizard',enabled:questionCheckoutOpen,isLocked:busy,canGoBack:questionCheckoutOpen,onBack:()=>{setChatStep('question');return true;}});
+ useEffect(()=>{
+  if(ready&&initialQuestion&&questionMode&&siteLocale==='ko'&&domain!=='fusion'&&!initialOpened.current&&initialOpen.current){initialOpened.current=true;initialOpen.current();}
+ },[ready,initialQuestion,siteLocale,questionMode,domain]);
  // Do not expose the legacy selector while the entry and catalog are still loading.
  if(!ready)return <p className={styles.loading} role="status">{inputCopy.catalogLoading}</p>;
  if(questionMode&&siteLocale==='ko'&&domain!=='fusion'){
@@ -316,10 +320,12 @@ export default function Consultation(){
   prep.push({id:'language',prompt:voiceStyle==='honorific'?'결과를 어떤 언어로 읽으시겠어요?':'결과는 어떤 언어로 읽고 싶어?',answer:readingLanguageNames[locale],valid:true,content:<ReadingLanguageSelect locale={locale} siteLocale={siteLocale} fallback={fallback} disabled={busy||kind.koOnly} onChange={value=>{setLocale(value);setError('');}}/>});
   const plan=recommendQuestion(intake.domain,intake.decision,question);
   const confirmIntake=(next:IntakeValue)=>{const d={...next.decision,confirmed:true};setDecision(d);setScopeDraft(d);const fish=intakeFish(next);setQuestionFish(fish);setProductId(next.domain+'_'+fish);setDomain(next.domain);setKindId(next.domain==='tarot'?TAROT_SPREAD_KIND:d.target==='pair'?'compatibility':'ask');setTopicId(d.category);setRelationshipStage('');consultationAttemptId.current='';setError('');};
+  const openQuestionCheckout=()=>{const category=questionCandidate(question)||intake.decision.category;confirmIntake({...intake,decision:{...intake.decision,category,situation:intake.decision.situation||question.slice(0,600)}});setChatStep('checkout');};
+  initialOpen.current=openQuestionCheckout;
   return <QuestionCheckout value={intake} open={chatStep==='checkout'} busy={busy}
    guidanceReady={!guest&&!catalogError&&!missing.length&&!plan.missing.length&&!plan.unsupported&&available.some(p=>p.id===productId)}
    onChange={next=>{setQuestion(next.question);setQuestionFish(next.fish);setScopeDraft(next.decision);if(chatStep==='checkout')confirmIntake(next);else setDecision(undefined);}}
-   onOpen={()=>{const category=questionCandidate(question)||intake.decision.category;confirmIntake({...intake,decision:{...intake.decision,category,situation:intake.decision.situation||question.slice(0,600)}});setChatStep('checkout');}}
+   onOpen={openQuestionCheckout}
    preparation={prep.map(item=>({...item,pending:item.pending||Boolean(restoredDraft.current)}))}
    checkout={children=><CheckoutClient draft={{product,question,chapters:previewCount,hint:[...missing,...plan.missing][0],ready:ready&&!guest&&!missing.length&&!plan.missing.length&&!plan.unsupported&&available.some(p=>p.id===productId)&&!prep.some(item=>!item.valid||item.pending),onLogin:loginWithDraft,onPrepare:()=>prepare(true),children:<>{children}
     {(missing.length>0||plan.missing.length>0)&&<ul className={styles.inputHints}>{[...missing,...plan.missing].map(message=><li key={message}>{message}</li>)}</ul>}
@@ -335,7 +341,7 @@ export default function Consultation(){
   {(()=>{const settings=<><ReadingLanguageSelect locale={locale} siteLocale={siteLocale} fallback={fallback} disabled={busy||kind.koOnly} onChange={value=>{setLocale(value);setError('');}}/></>;
   // 한국어 화면은 결과 언어를 기본값으로 접어 두고, 상담 종류와 생선 선택을 먼저 보인다.
   return siteLocale==='ko'?<details className={styles.readingSettings}><summary>세부 설정 · {readingLanguageNames[locale]}</summary>{settings}</details>:settings;})()}
-  {!questionActive&&<a className={styles.spiritEntry} href={`/yeongnyangi/fortune/?mode=spirit&lang=${siteLocale}`}><img src="/assets/yeongnyangi/spirit/eastern-oracle.webp" width={64} height={68} alt=""/><span><strong>{spiritEntryCopy.title}</strong><br/>{spiritEntryCopy.description}</span></a>}
+  {!questionActive&&<a className={styles.spiritEntry} href={`/yeongnyangi/fortune/?mode=spirit&lang=${siteLocale}`}><img src="/assets/yeongnyangi/spirit/eastern-oracle-128.webp" width={64} height={68} alt=""/><span><strong>{spiritEntryCopy.title}</strong><br/>{spiritEntryCopy.description}</span></a>}
   {!questionActive&&<><div className={styles.tabs} role="group" aria-label={siteLocale==='ko'?'운세 종류':ui.methodTitle}>{[...Object.entries(systemNames),['fusion','복합 운세']].map(([id,label])=><button key={id} aria-pressed={domain===id} onClick={()=>chooseDomain(id)}>{siteLocale==='ko'?label:localizedSystem(id,siteLocale)}</button>)}<a href={`/yeongnyangi/fortune/?mode=spirit&lang=${siteLocale}`}>{spiritEntryCopy.title}</a></div>
   <div className={styles.kindChoices} role="group" aria-label={siteLocale==='ko'?'상담 종류':ui.summary}>{consultationKinds[domain].filter(item=>!item.koOnly||siteLocale==='ko').sort((a,b)=>Number(b.id===TAROT_SPREAD_KIND)-Number(a.id===TAROT_SPREAD_KIND)).map(item=><button key={item.id} aria-pressed={kind.id===item.id} onClick={()=>chooseKind(item.id)}><strong>{kindLabel(item.id)}</strong>{(siteLocale==='ko'||additionalKindDescription(item.id,siteLocale))&&<span>{siteLocale==='ko'?item.description:additionalKindDescription(item.id,siteLocale)}</span>}</button>)}</div>
 

@@ -1442,7 +1442,7 @@ export default function NeoOperationRoomPage() {
   const backgroundStyle = {
     // 배경은 CSS 변수로 나가 NeoWarRoomAssetImage 를 우회하므로 리사이즈를 여기서 직접 건다.
     "--neo-bg-desktop": 'url("/neo-operation-room/strategy-room-v1.webp")',
-    "--neo-bg-mobile": 'url("/neo-operation-room/strategy-room-v1.webp")',
+    "--neo-bg-mobile": 'url("/neo-operation-room/strategy-room-v1-960.webp")',
     "--neo-prologue-bg": 'url("/neo-operation-room/strategy-room-v1.webp")',
   } as CSSProperties;
   const playNeoBgm = useCallback(async (forceEnabled = false) => {

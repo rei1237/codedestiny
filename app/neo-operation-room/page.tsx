@@ -20,6 +20,7 @@ export const metadata: Metadata = {
 export default function NeoOperationRoomRoute() {
   return (
     <>
+      <link rel="preload" as="image" href="/neo-operation-room/strategy-room-v1-960.webp" media="(max-width: 720px)" fetchPriority="high" />
       <NeoOperationRoomClient />
       {/* 상담 화면은 클라이언트에서만 그려져 크롤러에게는 사실상 빈 페이지였다. 아래 안내는
           서버에서 렌더한다. 네 가지 방식의 입력값과 계산 항목은

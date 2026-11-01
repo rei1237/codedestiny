@@ -34,7 +34,7 @@ export function NativeHomeNav({children, className, 'aria-label': label}: {child
 
 export function NativeHomeDictionaryText({translationKey, children}: {translationKey: string; children: string}) {
   const locale = useContext(HomeLocale);
-  const pick = useTPick();
+  const pick = useTPick(undefined, 'ko');
   return locale === 'ko' ? children : pick(translationKey, children);
 }
 

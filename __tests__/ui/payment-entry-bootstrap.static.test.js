@@ -34,7 +34,8 @@ const prewarmSection = providerSource.slice(prewarmStart, prewarmEnd);
 test("payment runtime gate is prewarmed from the app-wide provider (covers screens that skip useCoinGate)", () => {
   assert.ok(prewarmStart >= 0, "prewarmPaidRuntimeGate helper not found");
   assert.match(prewarmSection, /import\("\.\.\/_lib\/billing-client"\)/);
-  assert.match(prewarmSection, /loadPaidServiceRuntimeGate/);
+  assert.match(prewarmSection, /prefetchPaidServiceRuntimeGate/);
+  assert.doesNotMatch(prewarmSection, /loadPaidServiceRuntimeGate/);
   assert.match(prewarmSection, /requestIdleCallback/);
   // idle 콜백이 없는 환경(구형 브라우저)에서도 결국 프리페치되도록 setTimeout 폴백을 유지한다.
   assert.match(prewarmSection, /setTimeout\(prewarmPaidRuntimeGate/);

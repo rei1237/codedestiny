@@ -72,13 +72,17 @@ export function useLocale(): RuntimeLocale {
 }
 
 /** 사전 자체를 돌려준다. `useT` 와 `useTPick` 이 같은 로딩·캐시를 공유한다. */
-function useDictionary(namespace?: string): { locale: RuntimeLocale; dictionary: Dictionary | null } {
+function useDictionary(namespace?: string, sourceLocale?: RuntimeLocale): { locale: RuntimeLocale; dictionary: Dictionary | null } {
   const locale = useLocale();
   const key = cacheKey(locale, namespace);
   const [dictionary, setDictionary] = useState<Dictionary | null>(() => ready.get(key) ?? null);
 
   useEffect(() => {
     let cancelled = false;
+    if (locale === sourceLocale) {
+      setDictionary(null);
+      return;
+    }
     if (ready.has(key)) {
       setDictionary(ready.get(key) ?? null);
       return () => { cancelled = true; };
@@ -88,9 +92,9 @@ function useDictionary(namespace?: string): { locale: RuntimeLocale; dictionary:
       if (!cancelled) setDictionary(loaded);
     });
     return () => { cancelled = true; };
-  }, [key, locale, namespace]);
+  }, [key, locale, namespace, sourceLocale]);
 
-  return { locale, dictionary };
+  return { locale, dictionary: locale === sourceLocale ? null : dictionary };
 }
 
 /**
@@ -118,8 +122,8 @@ export type TranslatePick = (key: string, current: string | undefined) => string
  * 정적 셸(index.html)의 `_pvwTrKeep` 과 같은 계약을 React 쪽에 준다 — 원본 값이
  * 비어 있으면 조회 자체를 건너뛰고, 사전에 값이 없으면 원본을 유지한다.
  */
-export function useTPick(namespace?: string): TranslatePick {
-  const { dictionary } = useDictionary(namespace);
+export function useTPick(namespace?: string, sourceLocale?: RuntimeLocale): TranslatePick {
+  const { dictionary } = useDictionary(namespace, sourceLocale);
 
   return useCallback(
     (translationKey: string, current: string | undefined) => {
