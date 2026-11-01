@@ -33,6 +33,7 @@ import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
 import { hasRenderableLlmText, isCompleteLlmResponse } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { calculateZiweiAiChart, formatStarWithBrightness } from "../lib/ziwei-ai-chart.js";
+import { prepareZiweiExecutionChart, readZiweiExecutionSnapshot } from "../lib/ziwei-execution-adapter.js";
 import { ZIWEI_STRENGTH_LEGEND } from "../../lib/ziwei-star-strength.js";
 import { basisGroup, basisItem, basisStage, buildAnalysisBasisPayload } from "../lib/analysis-basis-contract.js";
 import {
@@ -2594,6 +2595,14 @@ async function handleStart(request, env, route = "/api/ziwei-ai/generate", recov
   if (existing && (existing.inputHash !== normalized.inputHash || (existing.serviceType && existing.serviceType !== SERVICE_KEY))) return invalidInput("같은 요청 키로 다른 상담 정보를 사용할 수 없습니다.", 409);
   if (existing?.status === "completed") return json(publicConsultation(existing));
   if (existing?.status === "generation_failed") return json({ ok: false, reason: "GENERATION_FAILED", message: MESSAGES.llmFailed }, { status: 409 });
+  let initialChart;
+  try {
+    // New execution only: preflight before billing side effects, then persist with its unique key.
+    // Rollout stays OFF. Prepare/basis selection needs a separate durable contract before activation.
+    if (existing?.status !== "delivery_pending") initialChart = prepareZiweiExecutionChart(normalized.input, { existing, year: new Date().getFullYear() });
+  } catch {
+    return calculationFailed();
+  }
   const access = await resolveStartAccess({ request, env, auth, body, normalized, pricing, idempotencyKey });
   if (!access.ok) return paymentVerifyFailed();
   logZiweiAi("Payment Guard Passed", { route, requestId: idempotencyKey, access: access.accessType });
@@ -2615,7 +2624,7 @@ async function handleStart(request, env, route = "/api/ziwei-ai/generate", recov
     } else {
       const resumeBody = { ...body, idempotencyKey, accessType: access.accessType };
       delete resumeBody.accessToken;
-      doc = await ZiweiAiConsultation.create({ ...owner, serviceType: SERVICE_KEY, idempotencyKey, inputHash: normalized.inputHash, birthInfo: normalized.input.birthInfo, topic: normalized.input.topic, userQuestion: normalized.input.userQuestion, accessType: access.accessType, paymentId: clean(access.paymentId, 160), status: "generating", generationLease: lease, messages: [], llmMeta: { resumeBody, groups: {}, attempts: {} } });
+      doc = await ZiweiAiConsultation.create({ ...owner, serviceType: SERVICE_KEY, idempotencyKey, inputHash: normalized.inputHash, birthInfo: normalized.input.birthInfo, topic: normalized.input.topic, userQuestion: normalized.input.userQuestion, accessType: access.accessType, paymentId: clean(access.paymentId, 160), status: "generating", generationLease: lease, messages: [], llmMeta: { resumeBody, groups: {}, attempts: {}, chartSnapshot: initialChart } });
       doc = typeof doc.toObject === "function" ? doc.toObject() : doc;
     }
   } catch (error) {
@@ -2628,7 +2637,8 @@ async function handleStart(request, env, route = "/api/ziwei-ai/generate", recov
   const locked = { ...owner, generationLease: lease, status: { $ne: "completed" } };
   try {
     if (doc.status !== "delivery_pending") {
-      const chart = doc.llmMeta?.chartSnapshot || calculateZiweiAiChart(normalized.input, { year: new Date().getFullYear() });
+      // A concurrent lease holder's persisted snapshot wins over our preflight candidate.
+      const chart = readZiweiExecutionSnapshot(doc) || initialChart;
       const resumeBody = { ...body, idempotencyKey, accessType: access.accessType }; delete resumeBody.accessToken;
       doc = await saveZiweiDelivery(locked, { llmMeta: { ...doc.llmMeta, chartSnapshot: chart, resumeBody: doc.llmMeta?.resumeBody || resumeBody } }, sessionId);
       const generated = await runWithAiLocale(storedAiLocale(doc), async () => generateInitialConsultation(env, { input: normalized.input, chart, groups: doc.llmMeta.groups, attempts: doc.llmMeta.attempts, meta: doc.llmMeta.reportMeta, rawResponses: doc.llmMeta.rawResponses,
@@ -2648,6 +2658,7 @@ async function handleStart(request, env, route = "/api/ziwei-ai/generate", recov
     if (access.accessType === "paid" && access.paymentId) await Payment.updateOne({ userId: auth.userId, featureKey: FEATURE_KEY, merchantUid: access.paymentId, status: { $in: ["paid", "success", "fulfilled"] } }, { $set: { status: "fulfilled", sessionId, reportId: sessionId, orderState: "UNLOCKED" } }).catch(() => {});
     return json(publicConsultation(doc));
   } catch (error) {
+    if (error?.code === "CALCULATION_SNAPSHOT_REQUIRED") return calculationFailed();
     if (error?.code === "RESULT_STORAGE_UNAVAILABLE") return json(resultStorageFailurePayload(error), { status: 503 });
     // Once a complete body exists, payment/apply uncertainty must retry that same delivery, never refund or regenerate.
     if (doc.status === "delivery_pending") return json(resultStorageFailurePayload(resultStorageUnavailable(sessionId)), { status: 503 });

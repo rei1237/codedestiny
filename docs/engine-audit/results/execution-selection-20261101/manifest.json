@@ -1,0 +1,15 @@
+{
+  "baseline": "91021aa3a20856f5b4cca6abd8b560ac36ef46ad",
+  "files": [
+    {
+      "file": "pre-existing-cache-pin.json",
+      "bytes": 1065,
+      "sha256": "225ef0470feececea82eb293bf6cec2fc2d1c2c66e75365ae7a286ce9a9ee6b9"
+    },
+    {
+      "file": "verification.json",
+      "bytes": 21979,
+      "sha256": "ac95bccdf1068ce63acb325aa11402d4e02f1206ce5cbbf4ddd1166b66d92546"
+    }
+  ]
+}
