@@ -97,6 +97,9 @@ test('getInternalLinks reads href itself, not data-*-href attributes that follow
   const html = '<a class="tile" href="/palm-reading/" data-fallback-href="/x/" data-service-detail-href="/services/palm-reading/">손금</a>';
   assert.deepEqual(getInternalLinks(html, 'https://code-destiny.com'), ['/palm-reading/']);
 });
+test('getH1s ignores <h1> markup inside <script> strings', () => {
+  assert.equal(getH1s('<h1>진짜</h1><script>el.innerHTML = "<h1>x</h1>";</script>').length, 1);
+});
 test('getInternalLinks skips markup built inside <script> strings', () => {
   const html = `<script>el.innerHTML = '<a class="x" href="' + safeUrl + '">공유</a>';</script><a href="/real/">진짜</a>`;
   assert.deepEqual(getInternalLinks(html, 'https://code-destiny.com'), ['/real/']);

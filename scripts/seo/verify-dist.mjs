@@ -264,7 +264,8 @@ async function checkEdge(distDir) {
 /**
  * @param {{ distDir: string, origin?: string, edge?: boolean, rules?: string[] }} options
  * `rules` 를 주면 그 규칙만 돈다(테스트용). `edge=false` 이거나 dist/_worker.js 가 없으면 엣지 규칙은 건너뛰고
- * `details.edge = ['skipped']` 이며, 건너뛴 규칙은 counts 에 없다.
+ * `details.edge = ['skipped']` 이며, 건너뛴 규칙은 counts 에 없다. 탐침이 던지면 `details.edge = ['error: …']`·경고 1줄이고
+ * 엣지 규칙은 같은 방식으로 건너뛴다(실패로 올리지 않는다).
  */
 export async function inspectDist({ distDir, origin = BRAND_FACTS.service.siteUrl, edge = true, rules } = {}) {
   const selected = rules ? [...rules] : Object.keys(RULES);
@@ -287,10 +288,18 @@ export async function inspectDist({ distDir, origin = BRAND_FACTS.service.siteUr
   if (wants("duplicate-description")) details["duplicate-description"] = checkDuplicates(site, "description");
   if (wants("og-url")) details["og-url"] = checkOgUrl(site);
   if (wants("hreflang-sitemap")) details["hreflang-sitemap"] = checkHreflangSitemap(site, distDir);
+  let edgeError = null;
   if (EDGE_RULES.some(wants)) {
     if (edge && isFile(join(distDir, "_worker.js"))) {
-      const edgeDetails = await checkEdge(distDir);
-      for (const rule of EDGE_RULES.filter(wants)) details[rule] = edgeDetails[rule];
+      // 엣지 규칙은 모두 warn 이다. 워커 모양이 바뀌어 탐침이 못 돌아도 postbuild(일일 발행·배포)를 세우지 않고
+      // 경고로만 남기며, 엣지 규칙은 건너뛴 것으로 본다.
+      try {
+        const edgeDetails = await checkEdge(distDir);
+        for (const rule of EDGE_RULES.filter(wants)) details[rule] = edgeDetails[rule];
+      } catch (error) {
+        edgeError = String(error?.message || error).split("\n")[0];
+        details.edge = [`error: ${edgeError}`];
+      }
     } else {
       details.edge = ["skipped"];
     }
@@ -306,6 +315,7 @@ export async function inspectDist({ distDir, origin = BRAND_FACTS.service.siteUr
     const message = `${rule} ${counts[rule]}건 — ${details[rule][0]}`;
     (RULES[rule] === "fail" ? failures : warnings).push(message);
   }
+  if (edgeError) warnings.push(`edge 탐침 실패(엣지 규칙 건너뜀) — ${edgeError}`);
   return { counts, details, failures, warnings };
 }
 
@@ -325,6 +335,7 @@ function printTable(result) {
       if (result.details[rule].length > 20) console.log(`      … ${result.details[rule].length - 20}건 더`);
     }
   }
+  if (result.details.edge?.[0]?.startsWith("error: ")) console.log(`  ⚠ 엣지 탐침 ${result.details.edge[0]}`);
 }
 
 async function main() {

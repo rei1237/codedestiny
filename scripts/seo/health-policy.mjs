@@ -129,8 +129,11 @@ export function getHreflang(html) {
     .map(a => ({ lang: decodeHtml(a.hreflang), href: decodeHtml(a.href) }));
 }
 
+// <script> 본문의 문자열 마크업(innerHTML 조립, RSC·JSON 페이로드)은 문서 구조도 링크도 아니다.
+const withoutScripts = html => html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '');
+
 export function getH1s(html) {
-  return [...html.matchAll(/<h1\b[^>]*>([\s\S]*?)<\/h1>/gi)].map(m => stripTags(m[1]));
+  return [...withoutScripts(html).matchAll(/<h1\b[^>]*>([\s\S]*?)<\/h1>/gi)].map(m => stripTags(m[1]));
 }
 
 // Arrays and @graph containers are flattened; a container is kept only if it carries its own properties.
@@ -158,7 +161,7 @@ export function getInternalLinks(html, origin) {
   const links = [];
   // 속성 이름으로 읽는다. 태그 정규식으로 href= 를 찾으면 뒤따르는 data-*-href 를 대신 집는다.
   // <script> 본문의 문자열 마크업은 크롤러가 따라가는 링크가 아니므로 먼저 걷어 낸다.
-  for (const a of tagAttributes(html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, ''), 'a')) {
+  for (const a of tagAttributes(withoutScripts(html), 'a')) {
     const href = decodeHtml(a.href || '');
     if (!href || href.startsWith('#') || /^(mailto|tel|javascript):/i.test(href)) continue;
     try {

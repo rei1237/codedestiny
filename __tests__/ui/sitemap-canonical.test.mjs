@@ -223,3 +223,13 @@ test('edge rules run the dist worker over emulated Pages assets, and are skipped
   const noWorker = await inspectDist({ distDir: writeDist(cleanFixture()), rules: ['edge-slash-308'] });
   assert.deepEqual(noWorker.details.edge, ['skipped']);
 });
+
+test('an unloadable dist worker is a warning, never a failure: warn-graded edge rules must not block postbuild', async () => {
+  const dir = writeDist({ ...cleanFixture(), '_worker.js': 'import x from "./y.js";\nexport default app;\n' });
+  const result = await inspectDist({ distDir: dir, rules: ['page-shape', 'edge-slash-308', 'edge-country-302', 'edge-crawler-cookie'] });
+  assert.deepEqual(result.failures, []);
+  assert.match(result.details.edge[0], /^error: /);
+  for (const rule of ['edge-slash-308', 'edge-country-302', 'edge-crawler-cookie']) assert.equal(result.counts[rule], undefined);
+  assert.equal(result.counts['page-shape'], 0);
+  assert.ok(result.warnings.some((line) => line.startsWith('edge ')), JSON.stringify(result.warnings));
+});
