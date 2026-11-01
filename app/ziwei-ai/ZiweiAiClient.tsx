@@ -20,7 +20,6 @@ import ExpertCharacterStage from "@/app/components/expert-consulting/ExpertChara
 import MasterProfile from "@/components/fortune/MasterProfile";
 import { masterProfiles } from "@/components/fortune/master-profiles";
 import { getExpertCharacter, getExpertCharacterName, getExpertCharacterTitle, getExpertLine, isExpertCharacterEnabled, MUSUNG_FEATHER_ASPECT, MUSUNG_FEATHER_STAGES } from "@/src/features/expert-characters";
-import Image from "next/image";
 import { Download, Loader2, Moon, Sparkles, Stars, WalletCards } from "lucide-react";
 import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
 import { authFetch } from "@/app/_lib/auth-client";
@@ -159,9 +158,10 @@ function getZiweiAiCopy(locale: LoadingLocale): ZiweiAiCopy {
 }
 
 function useZiweiAiCopy(): ZiweiAiCopy {
-  const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
+  const [locale, setLocale] = useState<LoadingLocale>("ko");
   useEffect(() => {
     const sync = () => setLocale(getCurrentLoadingLocale());
+    sync();
     window.addEventListener("languagechange", sync);
     window.addEventListener("cd:locale-ready", sync);
     return () => {
@@ -832,6 +832,8 @@ function formatTransformation(value: string | undefined) {
 }
 
 export default function ZiweiAiPage() {
+  const [clientReady, setClientReady] = useState(false);
+  useEffect(() => { setClientReady(true); }, []);
   const copy = useZiweiAiCopy();
   const [form, setForm] = useState<FormState>(buildInitialZiweiForm);
   const [phase, setPhase] = useState<Phase>("idle");
@@ -1182,7 +1184,7 @@ export default function ZiweiAiPage() {
       <section className={`ziweiHero${musungOn ? " isMusung" : ""}`}>
         {musungOn ? (
           <div className="musungHeroArt">
-            <Image src={musungHero.src} alt={musungHero.alt} fill priority sizes="(min-width: 1400px) 1316px, 100vw" unoptimized />
+            <img src={musungHero.src} srcSet="/images/service-introductions/ziwei-ai-320.webp 320w, /images/service-introductions/ziwei-ai-480.webp 480w, /images/service-introductions/ziwei-ai-640.webp 640w, /images/service-introductions/ziwei-ai-960.webp 960w" alt={musungHero.alt} width={1536} height={1024} fetchPriority="high" decoding="async" sizes="(min-width: 1400px) 1316px, 100vw" style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} />
           </div>
         ) : (
           <div className="heroConstellation" aria-hidden="true">
@@ -1204,10 +1206,10 @@ export default function ZiweiAiPage() {
         <div className="heroSeparator" aria-hidden="true" />
       </section>
 
-      {!consultation && getCurrentLoadingLocale() === "ko" && <div className="craftedGuide"><CraftedProductDisclosure featureKey="ziwei-ai-consultation" /></div>}
+      {!consultation && copy === ZIWEI_AI_COPY.ko && <div className="craftedGuide"><CraftedProductDisclosure featureKey="ziwei-ai-consultation" /></div>}
       <section className="workspace">
         <ExpertValueCards theme={musungOn ? "musung" : "ziwei"} points={[musungOn ? { title: "막힌 별부터 판결", description: "명반에서 화기(化忌)가 걸린 궁을 먼저 짚고, 그 자리를 화록(化祿)으로 돌릴 구체적인 행동을 처방합니다." } : { title: "명궁의 기질", description: "명궁과 주요 별이 보여주는 기본 반응과 선택 습관을 살핍니다." }, { title: "12궁의 무대", description: "일·돈·관계처럼 지금 질문이 놓인 삶의 영역을 나눠 읽습니다." }, { title: "별의 전환점", description: "현재 흐름에서 서두를 때와 정리할 때를 현실적인 언어로 짚습니다." }]} />
-        <form data-moonlit-form="" id="ziwei-consultation-form" className="consultForm" onSubmit={handleSubmit}>
+        {clientReady && (<form data-moonlit-form="" id="ziwei-consultation-form" className="consultForm" onSubmit={handleSubmit}>
           <div className="formHeader flex-wrap">
             <div className="flex min-w-0 flex-1 items-center gap-2">
               <Sparkles size={20} />
@@ -1295,8 +1297,8 @@ export default function ZiweiAiPage() {
           {/* 캐릭터 한 줄은 사실 문구 앞에만 둔다 — 결제·재시도 안내는 그대로. */}
           {error && <ExpertCharacterStage character="musung" mood={musungError.mood} line={musungError.text} placement="inline" />}
           {error && <p className="error">{error}</p>}
-        </form>
-        <ExpertStickyCta theme={musungOn ? "musung" : "ziwei"} targetId={consultation ? "ziwei-saved-result" : "ziwei-consultation-form"} label={consultation ? "저장된 상담 읽기" : "별궁 상담 열기"} price={<PriceBadge featureKey="ziwei-ai-consultation" prefix="상담 이용 가격 " />} />
+        </form>)}
+        {clientReady && (<ExpertStickyCta theme={musungOn ? "musung" : "ziwei"} targetId={consultation ? "ziwei-saved-result" : "ziwei-consultation-form"} label={consultation ? "저장된 상담 읽기" : "별궁 상담 열기"} price={<PriceBadge featureKey="ziwei-ai-consultation" prefix="상담 이용 가격 " />} />)}
 
         <div className="resultPane" id="ziwei-saved-result">
           {isLoadingConsultation ? (
