@@ -41,6 +41,7 @@
     "verify:adsense-readiness": "node scripts/verify-adsense-readiness.mjs",
     "verify:home-identity": "node scripts/verify-home-identity.mjs",
     "verify:sitemap-canonical": "node scripts/verify-sitemap-canonical.mjs",
+    "verify:seo-dist": "node scripts/seo/verify-dist.mjs",
     "verify:editor-notes": "node scripts/verify-editor-notes.mjs",
     "verify:famous-saju-editorial": "node scripts/verify-famous-saju-editorial.mjs",
     "verify:famous-saju-multisystem": "node scripts/verify-famous-saju-multisystem.mjs",

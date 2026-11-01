@@ -23,20 +23,20 @@ const SKIP_DIRS = new Set(["_next", "js", "css", "assets", "images", "icons", "f
 // 워커 루트 분기(public/_worker.js)가 /index.html 을 301 로 / 에 넘긴다.
 const WORKER_REDIRECT_PATHS = ["/index.html"];
 
-function sitemapLocs() {
-  const files = readdirSync(DIST).filter((name) => /^sitemap(-[a-z0-9-]+)?\.xml$/.test(name) && name !== "sitemap-index.xml");
+export function sitemapLocs(dist = DIST) {
+  const files = readdirSync(dist).filter((name) => /^sitemap(-[a-z0-9-]+)?\.xml$/.test(name) && name !== "sitemap-index.xml");
   const locs = new Set();
   for (const name of files) {
-    for (const [, loc] of readFileSync(join(DIST, name), "utf8").matchAll(/<loc>([^<]+)<\/loc>/g)) locs.add(loc.trim());
+    for (const [, loc] of readFileSync(join(dist, name), "utf8").matchAll(/<loc>([^<]+)<\/loc>/g)) locs.add(loc.trim());
   }
   return { files, locs };
 }
 
-function htmlFileFor(loc) {
+export function htmlFileFor(loc, dist = DIST) {
   const { pathname } = new URL(loc);
   const relative = decodeURIComponent(pathname).replace(/^\//, "");
-  if (pathname.endsWith("/")) return join(DIST, relative, "index.html");
-  const exact = join(DIST, relative);
+  if (pathname.endsWith("/")) return join(dist, relative, "index.html");
+  const exact = join(dist, relative);
   return existsSync(exact) ? exact : `${exact}.html`;
 }
 
@@ -48,10 +48,10 @@ export function checkSitemapPage(html, loc) {
   return failures;
 }
 
-function redirectSources() {
+export function redirectSources(dist = DIST) {
   const exact = new Set(WORKER_REDIRECT_PATHS);
   const prefixes = [];
-  for (const line of readFileSync(join(DIST, "_redirects"), "utf8").split(/\r?\n/)) {
+  for (const line of readFileSync(join(dist, "_redirects"), "utf8").split(/\r?\n/)) {
     const [source, , status = "301"] = line.trim().split(/\s+/);
     if (!source || source.startsWith("#") || status.startsWith("200")) continue;
     if (source.endsWith("/*")) prefixes.push(source.slice(0, -1));
@@ -64,7 +64,7 @@ function redirectSources() {
   return { exact, prefixes };
 }
 
-function htmlFiles(dir, out = []) {
+export function htmlFiles(dir, out = []) {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     const file = join(dir, entry.name);
     if (entry.isDirectory()) {

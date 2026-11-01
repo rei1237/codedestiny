@@ -1,7 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { checkSitemapPage, redirectingLinks } from '../../scripts/verify-sitemap-canonical.mjs';
-import { probeEdge } from '../../scripts/seo/edge-probe.mjs';
+import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { dirname, join } from 'node:path';
+import { distAssets, probeEdge } from '../../scripts/seo/edge-probe.mjs';
+import { RULES, inspectDist } from '../../scripts/seo/verify-dist.mjs';
 
 const loc = 'https://code-destiny.com/faq/';
 const page = (head) => `<html><head>${head}</head><body></body></html>`;
@@ -52,4 +56,170 @@ test('crawler probe sends Google\'s real Search Console inspection UA, which the
   assert.ok(crawlerCookie.includes('/ Google-InspectionTool'), JSON.stringify(crawlerCookie));
   assert.ok(crawlerCookie.includes('/saju/ Google-InspectionTool'), JSON.stringify(crawlerCookie));
   assert.ok(crawlerCookie.includes('/ Mediapartners-Google'), JSON.stringify(crawlerCookie));
+});
+
+// ── verify-dist: temporary dist fixtures ────────────────────────────────────────────────────────
+const SITE = 'https://code-destiny.com';
+const RULE_SUBSET = ['sitemap-page', 'sitemap-set', 'page-shape', 'internal-404', 'og-url'];
+const KO_SAJU = '/%EC%82%AC%EC%A3%BC/';
+
+function writeDist(files) {
+  const dir = mkdtempSync(join(tmpdir(), 'verify-dist-'));
+  for (const [path, content] of Object.entries(files)) {
+    const file = join(dir, path);
+    mkdirSync(dirname(file), { recursive: true });
+    writeFileSync(file, content);
+  }
+  return dir;
+}
+
+const urlset = (paths) => `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${paths.map((p) => `<url><loc>${SITE}${p}</loc></url>`).join('')}</urlset>`;
+const sitemapIndex = (names) => `<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${names.map((n) => `<sitemap><loc>${SITE}/${n}</loc></sitemap>`).join('')}</sitemapindex>`;
+const htmlPage = (path, { h1 = ['제목'], head = '', body = '<p>본문</p>' } = {}) =>
+  `<!doctype html><html><head><title>${path}</title><link rel="canonical" href="${SITE}${path}">${head}</head><body>${h1.map((t) => `<h1>${t}</h1>`).join('')}${body}</body></html>`;
+
+function cleanFixture() {
+  return {
+    'sitemap.xml': urlset(['/a/', KO_SAJU]),
+    'sitemap-index.xml': sitemapIndex(['sitemap-ko.xml']),
+    'sitemap-ko.xml': urlset(['/a/', KO_SAJU]),
+    '_redirects': '# no rules\n',
+    'a/index.html': htmlPage('/a/', {
+      head: `<meta property="og:url" content="${SITE}/a/">`,
+      body: '<a href="/사주/">사주</a><a href="/a/#top">위로</a><a href="/a/?action=openTarotModal">타로</a><a href="mailto:help@code-destiny.com">메일</a>',
+    }),
+    '사주/index.html': htmlPage(KO_SAJU, { body: '<a href="/a/">a</a>' }),
+  };
+}
+
+function violatingFixture() {
+  return {
+    ...cleanFixture(),
+    'sitemap.xml': urlset(['/a/', KO_SAJU, '/b/']),
+    'a/index.html': htmlPage('/a/', {
+      h1: ['하나', '둘'],
+      head: `<meta property="og:url" content="${SITE}/">`,
+      body: '<a href="/missing/">없는 쪽</a>',
+    }),
+    'b/index.html': htmlPage('/b/'),
+  };
+}
+
+test('verify-dist passes a clean dist fixture', async () => {
+  const dir = writeDist(cleanFixture());
+  const result = await inspectDist({ distDir: dir, edge: false, rules: RULE_SUBSET });
+  assert.deepEqual(result.failures, []);
+  assert.equal(result.counts['internal-404'], 0);
+});
+
+test('verify-dist flags a violating page by rule id', async () => {
+  const dir = writeDist(violatingFixture()); // /a/ 에 H1 2개, og:url=홈, /missing/ 링크, sitemap.xml 에만 있는 /b/
+  const result = await inspectDist({ distDir: dir, edge: false, rules: RULE_SUBSET });
+  assert.equal(result.counts['page-shape'], 1);
+  assert.equal(result.counts['og-url'], 1);
+  assert.equal(result.counts['internal-404'], 1);
+  assert.equal(result.counts['sitemap-set'], 1);
+});
+
+test('loc-to-file: percent-encoded Korean, .html and slashless locs map to their dist files', async () => {
+  const locs = ['/a/', KO_SAJU, '/policy.html', '/plain'];
+  const dir = writeDist({
+    'sitemap.xml': urlset(locs),
+    'sitemap-index.xml': sitemapIndex(['sitemap-ko.xml']),
+    'sitemap-ko.xml': urlset(locs),
+    '_redirects': '',
+    'a/index.html': htmlPage('/a/'),
+    '사주/index.html': htmlPage(KO_SAJU),
+    'policy.html': htmlPage('/policy.html'),
+    'plain.html': htmlPage('/plain'),
+  });
+  const result = await inspectDist({ distDir: dir, edge: false, rules: ['sitemap-page', 'page-shape'] });
+  assert.deepEqual(result.details['sitemap-page'], []);
+  assert.deepEqual(result.failures, []);
+  const missing = await inspectDist({ distDir: writeDist({ ...cleanFixture(), 'sitemap.xml': urlset(['/a/', KO_SAJU, '/gone/']) }), edge: false, rules: ['sitemap-page'] });
+  assert.equal(missing.counts['sitemap-page'], 1);
+  assert.match(missing.details['sitemap-page'][0], /\/gone\/: dist 파일 없음/);
+});
+
+test('internal links: fragments, functional queries, external hosts, mailto/tel, files and redirect sources are not 404', async () => {
+  const dir = writeDist({
+    ...cleanFixture(),
+    '_redirects': '/legacy/*   /a/   301\n/old   /a/   301\n/old-guide*   /a/   301\n',
+    'static.css': 'body{}',
+    'plain.html': htmlPage('/plain'),
+    'a/index.html': htmlPage('/a/', {
+      body: [
+        '<a href="#top">위로</a>', '<a href="/a/#top">위로</a>', '<a href="/a/?action=openTarotModal">타로</a>',
+        '<a href="//cdn.example.com/missing/">cdn</a>', '<a href="https://example.com/missing/">외부</a>',
+        '<a href="mailto:help@code-destiny.com">메일</a>', '<a href="tel:+8210">전화</a>',
+        '<a href="/static.css">css</a>', '<a href="/plain">plain</a>', '<a href="/a">a</a>', `<a href="${SITE}${KO_SAJU}">사주</a>`,
+        '<a href="/legacy/x/">옛</a>', '<a href="/old">옛</a>', '<a href="/old/">옛</a>', '<a href="/old-guide/">splat</a>',
+        '<a href="/missing/?ref=x">없음</a>', '<a href="/missing/#y">없음</a>',
+      ].join(''),
+    }),
+  });
+  const result = await inspectDist({ distDir: dir, edge: false, rules: ['internal-404'] });
+  assert.equal(result.counts['internal-404'], 1, JSON.stringify(result.details['internal-404']));
+  assert.match(result.details['internal-404'][0], /^\/missing\/ /);
+});
+
+test('home-identity counts each missing representative page as a failure', async () => {
+  const result = await inspectDist({ distDir: writeDist(cleanFixture()), edge: false, rules: ['home-identity'] });
+  assert.equal(result.counts['home-identity'], 4);
+  assert.equal(RULES['home-identity'], 'fail');
+  assert.equal(result.failures.length, 1);
+});
+
+test('hreflang-sitemap splits HTML/sitemap differences and one-way sitemap annotations; duplicates are warnings', async () => {
+  const alt = (lang, href) => `<xhtml:link rel="alternate" hreflang="${lang}" href="${SITE}${href}" />`;
+  const sitemap = `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+    <url><loc>${SITE}/a/</loc>${alt('ko', '/a/')}${alt('ko-KR', '/a/')}${alt('en', '/en/a/')}${alt('x-default', '/a/')}</url>
+    <url><loc>${SITE}/en/a/</loc>${alt('ko', '/a/')}${alt('en', '/en/a/')}${alt('x-default', '/a/')}</url>
+    <url><loc>${SITE}/b/</loc></url>
+    <url><loc>${SITE}/en/b/</loc>${alt('ko', '/b/')}${alt('en', '/en/b/')}</url></urlset>`;
+  const link = (lang, href) => `<link rel="alternate" hreflang="${lang}" href="${SITE}${href}">`;
+  const same = '<meta name="description" content="같은 설명">';
+  const dir = writeDist({
+    'sitemap.xml': sitemap, 'sitemap-index.xml': sitemapIndex(['sitemap-ko.xml']), 'sitemap-ko.xml': sitemap, '_redirects': '',
+    'a/index.html': htmlPage('/a/', { head: link('ko', '/a/') + link('en', '/en/a/') + same }),
+    'en/a/index.html': htmlPage('/en/a/', { head: link('ko', '/a/') + link('en', '/en/a/') + link('x-default', '/a/') + same }),
+    'b/index.html': htmlPage('/b/'),
+    'en/b/index.html': htmlPage('/en/b/', { head: link('ko', '/b/') + link('en', '/en/b/') }),
+  });
+  const result = await inspectDist({ distDir: dir, edge: false, rules: ['hreflang-sitemap', 'duplicate-title', 'duplicate-description'] });
+  const kinds = result.details['hreflang-sitemap'].map((line) => line.split(' ')[0]).sort();
+  assert.deepEqual(kinds, ['code-sitemap-only', 'one-way', 'xdefault-sitemap-only']);
+  assert.ok(result.details['hreflang-sitemap'].includes(`one-way ${SITE}/en/b/ → ${SITE}/b/`));
+  assert.equal(result.counts['duplicate-description'], 1);
+  assert.equal(result.counts['duplicate-title'], 0);
+  assert.deepEqual(result.failures, []);
+  assert.equal(result.warnings.length, 2);
+});
+
+test('edge rules run the dist worker over emulated Pages assets, and are skipped without a worker', async () => {
+  const dir = writeDist({
+    ...cleanFixture(),
+    'index.html': htmlPage('/'), 'saju/index.html': htmlPage('/saju/'), 'en/index.html': htmlPage('/en/'), 'ggulggul/index.html': htmlPage('/ggulggul/'),
+    '_worker.js': 'export default { async fetch(request, env) { return env.ASSETS.fetch(request); } };',
+  });
+  const result = await inspectDist({ distDir: dir, rules: ['edge-slash-308', 'edge-country-302', 'edge-crawler-cookie'] });
+  assert.deepEqual(result.details['edge-slash-308'], ['/saju', '/en', '/ggulggul']);
+  assert.equal(result.counts['edge-country-302'], 0);
+  assert.equal(result.counts['edge-crawler-cookie'], 0);
+  assert.equal(result.warnings.length, 1);
+
+  // distAssets itself: percent-decoded paths, slashless directory 308, unknown path and traversal 404.
+  const assets = distAssets(dir);
+  const status = async (path) => (await assets.fetch(new Request(`${SITE}${path}`))).status;
+  assert.equal(await status(KO_SAJU), 200);
+  assert.equal(await status('/a'), 308);
+  assert.equal(await status('/nope'), 404);
+  assert.equal(await status('/..%2F..%2Fetc%2Fhosts'), 404);
+  assert.equal(await status('/%E0%A4%A'), 404);
+
+  const skipped = await inspectDist({ distDir: dir, edge: false, rules: ['edge-slash-308'] });
+  assert.deepEqual(skipped.details.edge, ['skipped']);
+  assert.equal(skipped.counts['edge-slash-308'], undefined);
+  const noWorker = await inspectDist({ distDir: writeDist(cleanFixture()), rules: ['edge-slash-308'] });
+  assert.deepEqual(noWorker.details.edge, ['skipped']);
 });

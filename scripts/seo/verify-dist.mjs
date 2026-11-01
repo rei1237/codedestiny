@@ -1,0 +1,353 @@
+/**
+ * 빌드 산출물(dist/) 단일 SEO 검사기. 네트워크를 쓰지 않는다. postbuild 에서 verify-sitemap-canonical 뒤에 돈다.
+ *
+ * 규칙마다 등급이 있다(RULES). `fail` 규칙이 1건이라도 나오면 exit 1, `warn` 규칙은 개수만 보고한다.
+ * 래칫이다: 현재 산출물에서 이미 깨끗한 결정적 불변식만 `fail` 로 둔다. 00:10 KST 일일 발행
+ * (fortune-daily-publish)과 다른 세션 배포를 막지 않으려면, 0건이 아닌 규칙은 `warn` 으로 시작해야 한다.
+ * 규칙은 사이트맵의 모든 페이지에 똑같이 돈다(사주·운세·인사이트·/ggulggul/·/yeongnyangi/·로케일). 구역을 빼지 않는다.
+ *
+ * 겹치는 기존 검사(verify-sitemap-canonical·verify-home-identity)는 그대로 두고, 그 함수를 가져다 쓴다.
+ *
+ * 실행: node scripts/seo/verify-dist.mjs [--dist=dist] [--json=<경로>]
+ */
+import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { pathToFileURL } from "node:url";
+import { BRAND_FACTS } from "../../lib/brand/brand-facts.mjs";
+import { checkSitemapPage, htmlFileFor, redirectSources, sitemapLocs } from "../verify-sitemap-canonical.mjs";
+import { PAGES, verifyPage } from "../verify-home-identity.mjs";
+import { distAssets, probeEdge } from "./edge-probe.mjs";
+import {
+  decodeHtml, getCanonical, getH1s, getHreflang, getInternalLinks, getMeta, getTitle, parseSitemapAlternates, stripTags,
+} from "./health-policy.mjs";
+
+export const RULES = {
+  "sitemap-page": "fail",
+  // 함정 3: /sitemap.xml(빙이 읽음)과 sitemap-index 하위 합집합은 개수만 같다고 알려져 있었다. 기준선에서 깨끗하지 않으면 warn.
+  "sitemap-set": "fail",
+  "page-shape": "fail",
+  // 함정 3: 깨끗하지 않으면 warn 으로 시작한다. 리디렉션 출발점을 가리키는 링크는 verify-sitemap-canonical 이 막는다.
+  "internal-404": "fail",
+  "home-identity": "fail",
+  "duplicate-title": "warn",
+  "duplicate-description": "warn",
+  "og-url": "warn",
+  "hreflang-sitemap": "warn",
+  "edge-slash-308": "warn",
+  "edge-country-302": "warn",
+  "edge-crawler-cookie": "warn",
+};
+
+const EDGE_RULES = ["edge-slash-308", "edge-country-302", "edge-crawler-cookie"];
+const DETAIL_SAMPLE = 3;
+
+function isFile(file) {
+  return Boolean(file) && existsSync(file) && statSync(file).isFile();
+}
+
+function readText(file) {
+  return isFile(file) ? readFileSync(file, "utf8") : null;
+}
+
+function xmlLocs(xml) {
+  return [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map(([, loc]) => loc.trim());
+}
+
+function sample(values) {
+  const list = [...values];
+  return list.slice(0, DETAIL_SAMPLE).join(", ") + (list.length > DETAIL_SAMPLE ? ", …" : "");
+}
+
+// 워커 CONSOLIDATED_PAGE_REDIRECTS 는 후행 슬래시를 떼고 찾으므로 두 꼴을 모두 출발점으로 본다.
+// redirectSources 는 `/x/*` 만 접두사로 바꾸고 `/insights/old-slug*` 같은 splat 은 글자 그대로 둔다.
+// Pages 에서는 둘 다 접두사 규칙이므로 `*` 로 끝나는 항목도 접두사로 본다.
+function isRedirectSource(pathname, { exact, prefixes }) {
+  if (exact.has(pathname) || exact.has(pathname.replace(/(.)\/$/, "$1"))) return true;
+  if (prefixes.some((prefix) => pathname.startsWith(prefix))) return true;
+  for (const source of exact) if (source.endsWith("*") && pathname.startsWith(source.slice(0, -1))) return true;
+  return false;
+}
+
+function locFile(loc, distDir) {
+  try {
+    return htmlFileFor(loc, distDir);
+  } catch {
+    return null; // 디코드할 수 없는 퍼센트 인코딩
+  }
+}
+
+// 페이지마다 HTML 을 한 번만 읽고 규칙이 쓸 사실만 남긴다(1,000쪽이 넘는 HTML 을 메모리에 들고 있지 않는다).
+function pageFacts(html, loc, origin) {
+  const body = html.match(/<body\b[^>]*>([\s\S]*?)(?:<\/body>|$)/i)?.[1] ?? "";
+  return {
+    sitemapIssues: checkSitemapPage(html, loc),
+    title: getTitle(html),
+    description: getMeta(html, "description")[0] || "",
+    h1Count: getH1s(html).length,
+    hasBodyText: stripTags(body).length > 0,
+    canonical: getCanonical(html)[0],
+    ogUrls: getMeta(html, "og:url"),
+    hreflang: getHreflang(html),
+    links: getInternalLinks(html, origin),
+  };
+}
+
+function loadSite(distDir, origin) {
+  const { files, locs } = sitemapLocs(distDir);
+  const pages = [...locs].map((loc) => {
+    const file = locFile(loc, distDir);
+    const html = readText(file);
+    return { loc, path: safePathname(loc), file, facts: html == null ? null : pageFacts(html, loc, origin) };
+  });
+  return { files, pages };
+}
+
+function safePathname(url) {
+  try {
+    return new URL(url).pathname;
+  } catch {
+    return url;
+  }
+}
+
+function checkSitemapPages(site, sources) {
+  const details = [];
+  if (site.pages.length === 0) details.push("sitemap*.xml 에 loc 이 없습니다");
+  for (const page of site.pages) {
+    if (!page.facts) details.push(`${page.loc}: dist 파일 없음`);
+    else details.push(...page.facts.sitemapIssues);
+    if (isRedirectSource(page.path, sources)) details.push(`${page.loc}: 리디렉션 출발점`);
+  }
+  return details;
+}
+
+// /sitemap.xml 의 loc 집합 == sitemap-index.xml 이 가리키는 하위 사이트맵 loc 합집합
+function checkSitemapSet(distDir) {
+  const details = [];
+  const main = readText(join(distDir, "sitemap.xml"));
+  const index = readText(join(distDir, "sitemap-index.xml"));
+  if (main == null) details.push("sitemap.xml 없음");
+  if (index == null) details.push("sitemap-index.xml 없음");
+  if (main == null || index == null) return details;
+  const children = new Set();
+  for (const child of xmlLocs(index)) {
+    let xml = null;
+    try {
+      xml = readText(join(distDir, decodeURIComponent(new URL(child).pathname)));
+    } catch { /* 잘못된 하위 사이트맵 URL 은 없음으로 센다 */ }
+    if (xml == null) details.push(`${child}: 하위 사이트맵 파일 없음`);
+    else xmlLocs(xml).forEach((loc) => children.add(loc));
+  }
+  const mainLocs = new Set(xmlLocs(main));
+  for (const loc of mainLocs) if (!children.has(loc)) details.push(`sitemap.xml 에만: ${loc}`);
+  for (const loc of children) if (!mainLocs.has(loc)) details.push(`하위 사이트맵에만: ${loc}`);
+  return details;
+}
+
+function checkPageShape(site) {
+  const details = [];
+  for (const { loc, facts } of site.pages) {
+    if (!facts) continue; // 파일 없음은 sitemap-page 가 센다
+    if (facts.h1Count !== 1) details.push(`${loc}: H1 ${facts.h1Count}개`);
+    if (!facts.hasBodyText) details.push(`${loc}: <body> 텍스트 없음`);
+  }
+  return details;
+}
+
+// 쿼리·fragment 를 뗀 pathname 이 dist 파일, 디렉터리 index, `_redirects`·워커 리디렉션 출발점 중 어디에도 없으면 404.
+// 리디렉션 출발점은 redirectSources 가 읽는 표(_redirects 301 규칙 + 워커 CONSOLIDATED_PAGE_REDIRECTS + /index.html)로만 본다.
+// edge-probe 의 distAssets 는 _redirects 를 적용하지 않으므로 여기에 쓰지 않는다.
+function checkInternal404(site, distDir, origin, sources) {
+  const resolved = new Map();
+  const exists = (pathname) => {
+    if (isRedirectSource(pathname, sources)) return true;
+    let file;
+    let rel;
+    try {
+      file = htmlFileFor(origin + pathname, distDir);
+      rel = decodeURIComponent(pathname).replace(/^\/+/, "");
+    } catch {
+      return false;
+    }
+    return isFile(file) || isFile(join(distDir, rel, "index.html"));
+  };
+  const missing = new Map();
+  for (const { path, facts } of site.pages) {
+    if (!facts) continue;
+    for (const link of facts.links) {
+      const pathname = link.split("?")[0];
+      if (!resolved.has(pathname)) resolved.set(pathname, exists(pathname));
+      if (resolved.get(pathname)) continue;
+      if (!missing.has(pathname)) missing.set(pathname, new Set());
+      missing.get(pathname).add(path);
+    }
+  }
+  return [...missing].map(([pathname, pages]) => `${pathname} ← ${pages.size}쪽 (예: ${sample(pages)})`);
+}
+
+function checkHomeIdentity(distDir) {
+  return PAGES.flatMap((page) => {
+    const file = join(distDir, page.file);
+    const html = readText(file);
+    return html == null ? [`${page.path}: ${file} 없음`] : verifyPage(html, page);
+  });
+}
+
+function checkDuplicates(site, field) {
+  const groups = new Map();
+  for (const { path, facts } of site.pages) {
+    const value = facts?.[field]?.trim();
+    if (!value) continue;
+    if (!groups.has(value)) groups.set(value, []);
+    groups.get(value).push(path);
+  }
+  return [...groups].filter(([, paths]) => paths.length > 1).map(([value, paths]) => `"${value}" ← ${paths.length}쪽 (예: ${sample(paths)})`);
+}
+
+function checkOgUrl(site) {
+  const details = [];
+  for (const { loc, facts } of site.pages) {
+    if (!facts || facts.ogUrls.length === 0) continue;
+    const canonical = facts.canonical ?? loc;
+    if (facts.ogUrls.some((value) => value !== canonical)) details.push(`${loc}: og:url ${facts.ogUrls.join(", ")} ≠ canonical ${canonical}`);
+  }
+  return details;
+}
+
+// HTML hreflang 집합과 사이트맵 alternates 집합을 (언어 코드 소문자, href) 쌍으로 비교한다.
+//   xdefault-sitemap-only  사이트맵에만 x-default 가 있다
+//   code-sitemap-only      사이트맵에만 있는 언어 코드가 있다
+//   html-only              HTML 에만 있는 쌍이 있다(위 둘로 분류되지 않는 차이를 놓치지 않으려고 둔다)
+//   one-way                사이트맵에서 A→B 가 있는데 B 의 alternates 에 A 가 없다(쌍마다 1건)
+// 같은 loc 이 sitemap.xml 과 하위 사이트맵에 다 있으면 alternates 를 합친다.
+function checkHreflangSitemap(site, distDir) {
+  const alternates = new Map();
+  for (const name of site.files) {
+    for (const [loc, list] of parseSitemapAlternates(readFileSync(join(distDir, name), "utf8"))) {
+      const merged = alternates.get(loc) || new Map();
+      for (const alt of list) merged.set(`${alt.lang.toLowerCase()} ${alt.href}`, alt);
+      alternates.set(loc, merged);
+    }
+  }
+  const details = [];
+  for (const { loc, facts } of site.pages) {
+    if (!facts) continue;
+    const inSitemap = alternates.get(decodeHtml(loc)) || new Map();
+    const inHtml = new Set(facts.hreflang.map((alt) => `${alt.lang.toLowerCase()} ${alt.href}`));
+    const sitemapOnly = [...inSitemap.keys()].filter((key) => !inHtml.has(key)).map((key) => key.split(" ")[0]);
+    const htmlOnly = [...inHtml].filter((key) => !inSitemap.has(key)).map((key) => key.split(" ")[0]);
+    if (sitemapOnly.includes("x-default")) details.push(`xdefault-sitemap-only ${loc}`);
+    const codes = sitemapOnly.filter((code) => code !== "x-default");
+    if (codes.length) details.push(`code-sitemap-only ${loc} [${codes.join(", ")}]`);
+    if (htmlOnly.length) details.push(`html-only ${loc} [${htmlOnly.join(", ")}]`);
+  }
+  for (const [from, list] of alternates) {
+    for (const to of new Set([...list.values()].map((alt) => alt.href))) {
+      if (to === from) continue;
+      if (![...(alternates.get(to)?.values() || [])].some((alt) => alt.href === from)) details.push(`one-way ${from} → ${to}`);
+    }
+  }
+  return details;
+}
+
+// 엣지 규칙은 dist/_worker.js 를 vm 에서 돌리고 그 뒤에 Pages 정적 서빙 흉내(distAssets)를 둔다.
+// 흉내의 한계 — 개수를 읽을 때 감안할 것:
+//   - `_redirects`·`_headers` 를 적용하지 않는다(리디렉션·헤더 규칙은 다른 검사가 본다).
+//   - `/x.html` 은 200 이지만 실제 Pages 는 `/x` 로 308 한다. `/dir/index.html` 도 200 이다.
+// 그래서 이 수치는 "워커가 무엇을 하는가"이고, 운영 응답 전체를 재현하지 않는다.
+async function checkEdge(distDir) {
+  const workerSource = readFileSync(join(distDir, "_worker.js"), "utf8");
+  const { slash308, country302, crawlerCookie } = await probeEdge({ workerSource, assets: distAssets(distDir) });
+  return { "edge-slash-308": slash308, "edge-country-302": country302, "edge-crawler-cookie": crawlerCookie };
+}
+
+/**
+ * @param {{ distDir: string, origin?: string, edge?: boolean, rules?: string[] }} options
+ * `rules` 를 주면 그 규칙만 돈다(테스트용). `edge=false` 이거나 dist/_worker.js 가 없으면 엣지 규칙은 건너뛰고
+ * `details.edge = ['skipped']` 이며, 건너뛴 규칙은 counts 에 없다.
+ */
+export async function inspectDist({ distDir, origin = BRAND_FACTS.service.siteUrl, edge = true, rules } = {}) {
+  const selected = rules ? [...rules] : Object.keys(RULES);
+  const unknown = selected.filter((rule) => !Object.hasOwn(RULES, rule));
+  if (unknown.length) throw new Error(`verify-dist: 알 수 없는 규칙 ${unknown.join(", ")}`);
+  const wants = (rule) => selected.includes(rule);
+
+  const details = {};
+  const needsSite = selected.some((rule) => !EDGE_RULES.includes(rule) && rule !== "sitemap-set" && rule !== "home-identity");
+  const site = needsSite ? loadSite(distDir, origin) : null;
+  const needsSources = wants("sitemap-page") || wants("internal-404");
+  const sources = needsSources ? redirectSources(distDir) : null;
+
+  if (wants("sitemap-page")) details["sitemap-page"] = checkSitemapPages(site, sources);
+  if (wants("sitemap-set")) details["sitemap-set"] = checkSitemapSet(distDir);
+  if (wants("page-shape")) details["page-shape"] = checkPageShape(site);
+  if (wants("internal-404")) details["internal-404"] = checkInternal404(site, distDir, origin, sources);
+  if (wants("home-identity")) details["home-identity"] = checkHomeIdentity(distDir);
+  if (wants("duplicate-title")) details["duplicate-title"] = checkDuplicates(site, "title");
+  if (wants("duplicate-description")) details["duplicate-description"] = checkDuplicates(site, "description");
+  if (wants("og-url")) details["og-url"] = checkOgUrl(site);
+  if (wants("hreflang-sitemap")) details["hreflang-sitemap"] = checkHreflangSitemap(site, distDir);
+  if (EDGE_RULES.some(wants)) {
+    if (edge && isFile(join(distDir, "_worker.js"))) {
+      const edgeDetails = await checkEdge(distDir);
+      for (const rule of EDGE_RULES.filter(wants)) details[rule] = edgeDetails[rule];
+    } else {
+      details.edge = ["skipped"];
+    }
+  }
+
+  const counts = {};
+  const failures = [];
+  const warnings = [];
+  for (const rule of selected) {
+    if (!details[rule]) continue;
+    counts[rule] = details[rule].length;
+    if (counts[rule] === 0) continue;
+    const message = `${rule} ${counts[rule]}건 — ${details[rule][0]}`;
+    (RULES[rule] === "fail" ? failures : warnings).push(message);
+  }
+  return { counts, details, failures, warnings };
+}
+
+function printTable(result) {
+  const breakdown = (rule) => {
+    if (rule !== "hreflang-sitemap" || !result.counts[rule]) return "";
+    const kinds = {};
+    for (const line of result.details[rule]) kinds[line.split(" ")[0]] = (kinds[line.split(" ")[0]] || 0) + 1;
+    return `  (${Object.entries(kinds).map(([kind, n]) => `${kind} ${n}`).join(" · ")})`;
+  };
+  console.log("[verify-dist] 규칙별 건수");
+  for (const [rule, grade] of Object.entries(RULES)) {
+    const count = Object.hasOwn(result.counts, rule) ? String(result.counts[rule]) : "skipped";
+    console.log(`  ${rule.padEnd(22)} ${grade.padEnd(4)} ${count.padStart(7)}${breakdown(rule)}`);
+    if (grade === "fail" && result.counts[rule]) {
+      for (const line of result.details[rule].slice(0, 20)) console.log(`      ✗ ${line}`);
+      if (result.details[rule].length > 20) console.log(`      … ${result.details[rule].length - 20}건 더`);
+    }
+  }
+}
+
+async function main() {
+  const arg = (name) => process.argv.find((value) => value.startsWith(`--${name}=`))?.slice(name.length + 3);
+  const dist = arg("dist") || "dist";
+  const jsonPath = arg("json");
+  if (!existsSync(dist)) {
+    console.error(`[verify-dist] ${dist}/ 가 없습니다. 빌드 뒤에 실행하세요.`);
+    process.exit(1);
+  }
+  const result = await inspectDist({ distDir: dist });
+  printTable(result);
+  if (jsonPath) {
+    mkdirSync(dirname(jsonPath), { recursive: true });
+    writeFileSync(jsonPath, `${JSON.stringify({ dist, rules: RULES, ...result }, null, 2)}\n`);
+    console.log(`[verify-dist] 결과 → ${jsonPath}`);
+  }
+  if (result.failures.length) {
+    console.error(`[verify-dist] 실패 ${result.failures.length}개 규칙`);
+    for (const failure of result.failures) console.error(`  ✗ ${failure}`);
+    process.exit(1);
+  }
+  console.log(`[verify-dist] OK — 실패 규칙 0 · 경고 규칙 ${result.warnings.length}`);
+}
+
+if (import.meta.url === pathToFileURL(process.argv[1]).href) await main();

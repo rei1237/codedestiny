@@ -156,8 +156,10 @@ export function getJsonLd(html) {
 // Same-origin pathname(+search) of every <a href>, in document order and without de-duplication.
 export function getInternalLinks(html, origin) {
   const links = [];
-  for (const m of html.matchAll(/<a\b[^>]*href=["']([^"']+)["'][^>]*>/gi)) {
-    const href = decodeHtml(m[1]);
+  // 속성 이름으로 읽는다. 태그 정규식으로 href= 를 찾으면 뒤따르는 data-*-href 를 대신 집는다.
+  // <script> 본문의 문자열 마크업은 크롤러가 따라가는 링크가 아니므로 먼저 걷어 낸다.
+  for (const a of tagAttributes(html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, ''), 'a')) {
+    const href = decodeHtml(a.href || '');
     if (!href || href.startsWith('#') || /^(mailto|tel|javascript):/i.test(href)) continue;
     try {
       const url = new URL(href, `${origin}/`);

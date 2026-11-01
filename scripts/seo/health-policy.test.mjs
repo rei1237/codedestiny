@@ -93,6 +93,14 @@ test('getInternalLinks ignores fragments, functional schemes and other hosts', (
     .map((href) => `<a href="${href}">x</a>`).join('');
   assert.deepEqual(getInternalLinks(html, 'https://code-destiny.com'), ['/a/', '/a/', '/c/?action=openTarotModal']);
 });
+test('getInternalLinks reads href itself, not data-*-href attributes that follow it', () => {
+  const html = '<a class="tile" href="/palm-reading/" data-fallback-href="/x/" data-service-detail-href="/services/palm-reading/">손금</a>';
+  assert.deepEqual(getInternalLinks(html, 'https://code-destiny.com'), ['/palm-reading/']);
+});
+test('getInternalLinks skips markup built inside <script> strings', () => {
+  const html = `<script>el.innerHTML = '<a class="x" href="' + safeUrl + '">공유</a>';</script><a href="/real/">진짜</a>`;
+  assert.deepEqual(getInternalLinks(html, 'https://code-destiny.com'), ['/real/']);
+});
 test('parseSitemapAlternates maps each loc to its xhtml:link alternates', () => {
   const xml = '<url><loc>https://code-destiny.com/a/</loc><xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/a/"/></url>';
   assert.deepEqual(parseSitemapAlternates(xml).get('https://code-destiny.com/a/'), [{ lang: 'x-default', href: 'https://code-destiny.com/a/' }]);
