@@ -126,7 +126,7 @@ export function getCanonical(html) {
 export function getHreflang(html) {
   return tagAttributes(html, 'link')
     .filter(a => hasRelToken(a, 'alternate') && a.hreflang && a.href)
-    .map(a => ({ lang: a.hreflang, href: a.href }));
+    .map(a => ({ lang: decodeHtml(a.hreflang), href: decodeHtml(a.href) }));
 }
 
 export function getH1s(html) {

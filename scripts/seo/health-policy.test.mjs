@@ -106,3 +106,19 @@ test('parseHeaderRobotsRules keeps only X-Robots-Tag rules on path patterns', ()
   const text = '# c\n/private/*\n  X-Robots-Tag: NoIndex\n/other\n  Cache-Control: no-store\n*.js\n  X-Robots-Tag: none\n';
   assert.deepEqual(parseHeaderRobotsRules(text), [{ pattern: '/private/*', value: 'noindex' }]);
 });
+
+test('getHreflang decodes entities like getCanonical and sitemap alternates', () => {
+  const html = '<link rel="canonical" href="https://code-destiny.com/a/?b=1&amp;c=2"><link rel="alternate" hreflang="ko" href="https://code-destiny.com/a/?b=1&amp;c=2">';
+  assert.deepEqual(getHreflang(html), [{ lang: 'ko', href: 'https://code-destiny.com/a/?b=1&c=2' }]);
+  assert.equal(getHreflang(html)[0].href, getCanonical(html)[0]);
+});
+test('getJsonLd keeps nested @graph shapes: arrays, graph in graph, bare containers dropped, containers with properties kept', () => {
+  const ld = (s) => `<script type="application/ld+json">${s}</script>`;
+  const html = ld('[{"@graph":[{"@id":"#in-array"}]}]')
+    + ld('{"@graph":[{"@id":"#outer","@graph":[{"@id":"#inner"}]}]}')
+    + ld('{"@context":"https://schema.org","@graph":[{"@id":"#ctx-child"}]}')
+    + ld('{"name":"own-props","@graph":[{"@id":"#own-child"}]}');
+  const { nodes, errors } = getJsonLd(html);
+  assert.deepEqual(errors, []);
+  assert.deepEqual(nodes.map((n) => n['@id'] ?? n.name), ['#in-array', '#outer', '#inner', '#ctx-child', 'own-props', '#own-child']);
+});
