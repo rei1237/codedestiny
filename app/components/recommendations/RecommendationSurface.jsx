@@ -3,11 +3,11 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { CATEGORIES, RECOMMENDATIONS_RELEASED, RESULT_PRODUCT_LIMIT, normalizeContext, validateAffiliateUrl, validImageUrl } from '@/js/recommendations-core.mjs';
 import { recommendationCopy } from '@/js/recommendations-copy.mjs';
-import { observeRecommendationProducts, trackRecommendation, rememberRecommendationContext, recommendationQuery } from '@/js/recommendations-browser.mjs';
+import { observeRecommendationProducts, trackRecommendation, recommendationQuery } from '@/js/recommendations-browser.mjs';
 import { detectLocale, normalizeLocale } from '@/lib/i18n/dictionary';
 import { getApiBaseUrl } from '@/app/_lib/api-config';
 import { BookOpen, ArrowUpRight, ShoppingBag } from 'lucide-react';
-import { affiliateBrand, affiliateBrowsePath, affiliateCopy, affiliatePresentation } from '@/js/affiliate-presentation.mjs';
+import { affiliateBrand, affiliateCopy, affiliatePresentation } from '@/js/affiliate-presentation.mjs';
 import { bookPerspectiveLabel } from '@/js/recommendations-context.mjs';
 import './affiliate-tokens.css';
 import styles from './recommendations.module.css';
@@ -24,7 +24,7 @@ export function useCopy(locale) {
   }, [locale]);
   return { ...recommendationCopy(lang), ...affiliateCopy(lang), locale: lang };
 }
-export function ProductCard({ product, copy, preview = false, onClick = () => {}, onExclude = null, terms = true }) {
+export function ProductCard({ product, copy, preview = false, onClick = () => {}, onImageError = null, terms = true }) {
   const [failed, setFailed] = useState(false);
   const provider = affiliatePresentation(product.providerId);
   const merchant = provider.label || copy[provider.labelKey];
@@ -33,11 +33,12 @@ export function ProductCard({ product, copy, preview = false, onClick = () => {}
   const PlaceholderIcon = product.category === 'books' ? BookOpen : ShoppingBag;
   // 가격을 확인하지 못한 상품은 가격 줄 대신 CTA 하나가 "현재 가격 확인"을 맡는다. 화살표는 아이콘이 이미 그린다.
   const priced = product.price != null;
-  const ctaLabel = (product.linkType === 'search' ? copy.search : merchantCopy(priced ? copy.view : copy.price)).replace(/s*↗$/, '');
+  if (!preview && (failed || !validImageUrl(product.imageUrl))) return null;
+  const ctaLabel = (product.linkType === 'search' ? copy.search : merchantCopy(priced ? copy.view : copy.price)).replace(/\s*↗$/, '');
   return <article data-recommendation-product={product.id} className={styles.product} data-affiliate-provider={product.providerId || 'coupang'}>
     <div className={styles.image}>{validImageUrl(product.imageUrl) && !failed
       // eslint-disable-next-line @next/next/no-img-element -- 외부 제휴 이미지. 정적 export(images.unoptimized)라 next/image 이점이 없고 no-referrer·onError 대체가 필요하다
-      ? <img src={product.imageUrl} alt={product.title} width="320" height="240" loading="lazy" referrerPolicy="no-referrer" onError={() => setFailed(true)}/>
+      ? <img src={product.imageUrl} alt={product.title} width="320" height="240" loading="lazy" referrerPolicy="no-referrer" onError={() => { setFailed(true); onImageError?.(product.imageUrl); }}/>
       : <span className={styles.placeholder}><PlaceholderIcon size={40} strokeWidth={1} aria-hidden="true"/><span>{preview ? copy.previewImage || copy.image : copy.categories?.[CATEGORIES.indexOf(product.category)] || copy.image}</span></span>}</div>
     <div className={styles.productText}>
       <span className={styles.label}>{merchant || 'Coupang'} · {copy.ad}</span>
@@ -50,7 +51,6 @@ export function ProductCard({ product, copy, preview = false, onClick = () => {}
       {(priced || provider.previewOnly) && <p className={styles.price}>{!priced ? copy.pendingLink : <>{new Intl.NumberFormat(undefined, { style: 'currency', currency: product.currency || 'KRW' }).format(product.price)} <small>{product.priceVerifiedAt && new Date(product.priceVerifiedAt).toLocaleString()}</small></>}</p>}
       {actionable ? <a className={styles.button} href={product.affiliateUrl} target="_blank" rel="sponsored noopener" referrerPolicy="no-referrer" onClick={onClick}>{ctaLabel}<ArrowUpRight size={16} aria-hidden="true"/></a> : <button className={styles.button} disabled>{copy.pendingLink || copy.preview}</button>}
       {terms && <small className={styles.merchantTerms}>{copy.partnerTerms}</small>}
-      {onExclude && <button className={styles.exclude} onClick={onExclude}>{copy.exclude}</button>}
     </div>
   </article>;
 }
@@ -81,34 +81,37 @@ export function RecommendationResult({ service, species = '', groupId = '', loca
   const host = useRef(null);
   const [top, setTop] = useState(null);
   const [dismissed, setDismissed] = useState(false);
-  const shown = source !== 'article' && completed && !dismissed && data.enabled && data.products.length > 0;
+  const [failedImages, setFailedImages] = useState([]);
+  const products = data.products.filter(p => (preview || validImageUrl(p.imageUrl)) && !failedImages.includes(p.imageUrl)).slice(0, RESULT_PRODUCT_LIMIT);
+  const placement = source === 'footer' ? 'footer' : 'result';
+  const shown = source !== 'article' && completed && !dismissed && data.enabled && products.length > 0;
   useEffect(() => {
-    if (!shown || !host.current) return;
+    if (!shown || source === 'footer' || !host.current) return;
     const parent = host.current.parentElement;
     if (!parent || parent.querySelector(':scope > [data-recommendation-disclosure]')) return;
     const disclosure = document.createElement('div');
     disclosure.dataset.recommendationDisclosure = 'true';
     parent.prepend(disclosure); setTop(disclosure);
     return () => { disclosure.remove(); setTop(null); };
-  }, [shown]);
+  }, [shown, source]);
   // 노출 이벤트는 service만 싣는다. context는 렌더마다 새 객체라 의존성에 넣으면 구독이 매번 새로 생겨 노출이 중복 집계된다.
   const trackedService = context.service;
   const impressions = useRef({ service: trackedService, seen: new Set() });
-  const productKey = data.products.slice(0, RESULT_PRODUCT_LIMIT).map(p => p.id).join('|');
+  const productKey = products.map(p => p.id).join('|');
   useEffect(() => {
     if (!shown || preview) return;
     if (impressions.current.service !== trackedService) impressions.current = { service: trackedService, seen: new Set() };
-    return observeRecommendationProducts(host.current, impressions.current.seen, id => trackRecommendation('impression', { service: trackedService }, 'result', id, getApiBaseUrl()));
-  }, [shown, trackedService, preview, productKey]);
+    return observeRecommendationProducts(host.current, impressions.current.seen, id => trackRecommendation('impression', { service: trackedService }, placement, id, getApiBaseUrl()));
+  }, [shown, trackedService, preview, productKey, placement]);
   if (!shown) return null;
   const uiBrand = affiliateBrand(brand);
-  const title = uiBrand === 'ggulggul' ? c.yeoniTitle : c.locale === 'ko' ? '영냥이가 고른 오늘의 취향' : c.title;
-  return <section ref={host} className={styles.surface} data-brand={brand} data-affiliate-brand={uiBrand} data-yn-night aria-label={title} data-recommendation-block>
-    {top && createPortal(<p className={styles.disclosure} data-affiliate-brand={uiBrand} data-yn-night>{preview || data.products.some(p => p.providerId === 'aliexpress') ? c.genericDisclosure + (data.products.some(p => !p.providerId || p.providerId === 'coupang') ? ' ' + c.disclosure : '') : c.disclosure}</p>, top)}
-    <h2>{title}</h2><p className={styles.disclosure}>{preview || data.products.some(p => p.providerId === 'aliexpress') ? c.genericDisclosure + (data.products.some(p => !p.providerId || p.providerId === 'coupang') ? ' ' + c.disclosure : '') : c.disclosure}</p>
+  const title = c.inlineTitle;
+  return <section ref={host} className={`${styles.surface} ${source === 'footer' ? styles.footer : ''}`} data-brand={brand} data-affiliate-brand={uiBrand} data-yn-night aria-label={title} data-recommendation-block data-recommendation-placement={placement}>
+    {top && createPortal(<p className={styles.disclosure} data-affiliate-brand={uiBrand} data-brand={brand} data-yn-night>{preview || products.some(p => p.providerId === 'aliexpress') ? c.genericDisclosure + (products.some(p => !p.providerId || p.providerId === 'coupang') ? ' ' + c.disclosure : '') : c.disclosure}</p>, top)}
+    <h2>{title}</h2><p className={styles.disclosure}>{preview || products.some(p => p.providerId === 'aliexpress') ? c.genericDisclosure + (products.some(p => !p.providerId || p.providerId === 'coupang') ? ' ' + c.disclosure : '') : c.disclosure}</p>
     {context.practiceTags.length > 0 && <p className={styles.resultLead}>{c.resultLead}</p>}
-    <div className={styles.products}>{data.products.slice(0, RESULT_PRODUCT_LIMIT).map(p => <ProductCard key={p.id} product={p} copy={c} preview={preview} terms={false} onClick={() => { if (!preview) trackRecommendation('click', context, 'result', p.id, getApiBaseUrl()); }}/>)}</div>
+    <div className={styles.products}>{products.map(p => <ProductCard key={`${p.id}:${p.imageUrl}`} product={p} copy={c} preview={preview} terms={false} onImageError={url => setFailedImages(old => [...old, url])} onClick={() => { if (!preview) trackRecommendation('click', context, placement, p.id, getApiBaseUrl()); }}/>)}</div>
     <p className={styles.merchantTerms}>{c.partnerTerms}</p>
-    <div className={styles.actions}>{!preview && <a href={affiliateBrowsePath(brand)} onClick={() => { rememberRecommendationContext(context); trackRecommendation('more', context, 'result', '', getApiBaseUrl()); }}>{c.more}</a>}<button onClick={() => { setDismissed(true); if (!preview) trackRecommendation('dismiss', context, 'result', '', getApiBaseUrl()); }}>{c.dismiss}</button></div>
+    <div className={styles.actions}><button onClick={() => { setDismissed(true); if (!preview) trackRecommendation('dismiss', context, placement, '', getApiBaseUrl()); }}>{c.dismiss}</button></div>
   </section>;
 }

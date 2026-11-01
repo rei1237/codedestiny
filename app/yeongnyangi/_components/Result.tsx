@@ -2,6 +2,7 @@
 import { chapterAdviceTopics } from '@/js/recommendations-context.mjs';
 import { RecommendationResult } from "@/app/components/recommendations/RecommendationResult";
 import {useCallback,useEffect,useRef,useState} from 'react';
+import dynamic from 'next/dynamic';
 import {PawPrint,RefreshCw} from 'lucide-react';
 import {fortuneApi,FortuneApiError,loginForCurrentPage,checkoutPath,type FortuneRecord} from '../_lib/api';
 import {friendlyErrorMessage} from '@/app/_lib/friendly-error';
@@ -15,7 +16,7 @@ import ReadingBook from './ReadingBook';
 import FusionBookExtras,{FusionBookIntroduction} from './FusionBookExtras';
 import QuestionConversation,{QuestionConversationEntry} from './QuestionConversation';
 import ReadingIdentity from './ReadingIdentity';
-import SpiritResult from './SpiritResult';
+const SpiritResult = dynamic(() => import('./SpiritResult'), { ssr: false, loading: () => <p role="status">상담 풀이를 준비하고 있어요.</p> });
 import ReviewRewardBanner from '@/app/components/ReviewRewardBanner';
 import ResultBenefits from '@/app/components/activation/ResultBenefits';
 import {shouldInvitePaidReview} from '@/js/review-reward-copy.mjs';

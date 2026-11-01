@@ -1,13 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { affiliateBrand, affiliateBrowsePath, affiliateCopy, affiliatePresentation } from '../../js/affiliate-presentation.mjs';
+import { affiliateBrand, affiliateCopy, affiliatePresentation } from '../../js/affiliate-presentation.mjs';
 import { RECOMMENDATIONS_RELEASED } from '../../js/recommendations-core.mjs';
 import { RECOMMENDATION_COPY_LOCALES } from '../../js/recommendations-copy.mjs';
 test('brand navigation preserves the two independent worlds without private input', () => {
-  assert.equal(affiliateBrowsePath('yeongnyangi'), '/recommendations/?brand=yeongnyangi');
-  for (const value of ['yeoni', 'ggulggul', 'neo']) assert.equal(affiliateBrowsePath(value), '/recommendations/?brand=ggulggul');
+  for (const value of ['yeoni','ggulggul','neo']) assert.equal(affiliateBrand(value), 'ggulggul');
   assert.equal(affiliateBrand('https://attacker.example'), 'yeongnyangi');
-  assert.equal(affiliateBrowsePath('private-report-id'), '/recommendations/?brand=yeongnyangi');
 });
 test('new or unknown merchants cannot borrow Coupang outbound permissions', () => {
   for (const value of ['book-partner-preview','lifestyle-partner-preview','unknown','__proto__','constructor','https://evil.example']) assert.equal(affiliatePresentation(value).previewOnly, true);

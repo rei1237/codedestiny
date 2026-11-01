@@ -7,6 +7,11 @@
 
 // Retired presentation pages: exact paths only; paid/result routes are never matched.
 const CONSOLIDATED_PAGE_REDIRECTS = {
+  "/recommendations": "/",
+  "/recommendations/books": "/",
+  "/recommendations/daily-life": "/",
+  "/recommendations/pets": "/",
+  "/recommendations/fandom": "/",
   "/premium": "/consultations/",
   "/premium-reports": "/consultations/",
   "/premium/saju-lifebook": "/life-book-ai/",

@@ -1,5 +1,5 @@
 'use client';
-import {Fragment,useEffect,useState} from 'react';
+import {Fragment,memo,useEffect,useState} from 'react';
 import type {FortuneRecord} from '../_lib/api';
 import {readingCopy} from '../_lib/reading-copy';
 import {readingFocusCopy} from '../_lib/reading-focus-copy';
@@ -16,7 +16,7 @@ import {AtAGlance,AnswerTable,Interlude,KeyPoints,MascotBubble,SajuBoard,SceneAr
 import {expressionFor,interludes,isRichReading,sajuFacts,sceneArt,timingRows,yearFocus} from '../_lib/reading-visuals';
 import styles from './reading-v5.module.css';
 
-export default function ReadingBook({row}:{row:FortuneRecord}){
+export default memo(function ReadingBook({row}:{row:FortuneRecord}){
  const [current,setCurrent]=useState(''),[saved,setSaved]=useState(''),[open,setOpen]=useState(false);
  const storageKey=`yeongnyangi:reading-position:${row.id}`;
  useEffect(()=>{try{setSaved(localStorage.getItem(storageKey)||'');}catch{/* Optional device preference. */}setOpen(matchMedia('(min-width: 1000px)').matches);},[storageKey]);
@@ -95,4 +95,4 @@ export default function ReadingBook({row}:{row:FortuneRecord}){
    {row.state==='COMPLETED'&&row.chapters.length>0&&<ReportIllustration scene="closing"/>}
   </div>
  </div>;
-}
+});

@@ -1,4 +1,5 @@
 "use client";
+import dynamic from 'next/dynamic';
 import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
 import BirthTimeInput from "@/app/components/BirthTimeInput";
 
@@ -6,8 +7,8 @@ import ConsultationMasterIntro, { masterPreparationLabel } from "@/app/component
 import { RecommendationResult } from "@/app/components/recommendations/RecommendationResult";
 import { cleanTopics, reportAdviceTopics } from "@/js/recommendations-context.mjs";
 import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
-import PaidResultImageGuide from "@/components/fortune/PaidResultImageGuide";
-import ConsultationReading from "@/components/fortune/ConsultationReading";
+const PaidResultImageGuide = dynamic(() => import('@/components/fortune/PaidResultImageGuide'), { ssr: false });
+const ConsultationReading = dynamic(() => import('@/components/fortune/ConsultationReading'), { ssr: false, loading: () => <p role="status">상담 풀이를 준비하고 있어요.</p> });
 
 import CurrentLocationButton from '@/app/components/CurrentLocationButton';
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
@@ -17,7 +18,7 @@ import Link from "next/link";
 import { CalendarDays, Clock3, Compass, Download, Loader2, MapPin, Moon, Sparkles, Star } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
 import AnalysisBasisLoading from "@/components/fortune/AnalysisBasisLoading";
-import AnalysisBasisPanel from "@/components/fortune/AnalysisBasisPanel";
+const AnalysisBasisPanel = dynamic(() => import('@/components/fortune/AnalysisBasisPanel'), { ssr: false, loading: () => <p role="status">풀이 근거를 준비하고 있어요.</p> });
 import { fetchAnalysisBasis, type AnalysisBasis } from "@/lib/fortune/analysis-basis";
 import { isRetriableResultPollFailure, runAccessCheckWithTransientRetry } from "@/app/_lib/consultationResultPolling";
 import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from "@/lib/llm-text";

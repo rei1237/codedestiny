@@ -59,15 +59,19 @@
     var nextConcern = concernControls.querySelector('[data-concern-next]');
     concernControls.hidden = false;
     function syncConcernArrows() {
-      previousConcern.disabled = concernRail.scrollLeft <= 2;
-      nextConcern.disabled = concernRail.scrollLeft + concernRail.clientWidth >= concernRail.scrollWidth - 2;
+      var left = concernRail.scrollLeft, width = concernRail.clientWidth, total = concernRail.scrollWidth;
+      previousConcern.disabled = left <= 2;
+      nextConcern.disabled = left + width >= total - 2;
     }
     function scrollConcerns(direction) {
       concernRail.scrollBy({ left: direction * concernRail.clientWidth * .9, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
     }
     previousConcern.addEventListener('click', function () { scrollConcerns(-1); });
     nextConcern.addEventListener('click', function () { scrollConcerns(1); });
-    concernRail.addEventListener('scroll', syncConcernArrows, { passive: true });
+    var concernFrame = 0;
+    concernRail.addEventListener('scroll', function () {
+      if (!concernFrame) concernFrame = requestAnimationFrame(function () { concernFrame = 0; syncConcernArrows(); });
+    }, { passive: true });
     window.addEventListener('resize', syncConcernArrows);
     syncConcernArrows();
   }

@@ -5,13 +5,15 @@ import {createContext, useContext, type ComponentProps, type ReactNode} from 're
 import {IS_APP_BUILD} from '@/lib/app-build-target';
 import {useLocale, useTPick} from '@/lib/i18n/useT';
 import type {RuntimeLocale} from '@/lib/i18n/dictionary';
-import copy from '@/lib/i18n/native-home-copy.json';
 import {localizeNativeHomeHtml} from '@/lib/i18n/native-home-html.mjs';
 
 // The public Korean home keeps its SEO copy. The packaged app uses the same
 // markup and links, with text rendered by React in the selected app language.
 const HomeLocale = createContext<RuntimeLocale>('ko');
-const rows = copy as Record<string, Record<string, string>>;
+// The public web home is Korean. Keep the native-only dictionary out of its
+// initial bundle; the literal build target lets webpack discard the require.
+const rows: Record<string, Record<string, string>> = process.env.NEXT_PUBLIC_RUNTIME_TARGET === 'mobile-app'
+  ? require('@/lib/i18n/native-home-copy.json') : {};
 function translate(source: string, locale: RuntimeLocale) {
   return locale === 'ko' ? source : rows[source]?.[locale] || source;
 }

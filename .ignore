@@ -189,6 +189,7 @@
 /public/js/core/shell-sheet.js
 /public/js/core/signup-benefit-policy.mjs
 /public/js/core/snu-campus-policy.mjs
+/public/js/core/snu-reading-flow.mjs
 /public/js/core/standalone-ai-locale.js
 /public/js/core/sukuyo-astronomy.js
 /public/js/core/uiBindings.js
@@ -237,6 +238,7 @@
 /public/js/recommendations-copy.mjs
 /public/js/recommendations-core.mjs
 /public/js/recommendations-editorial.mjs
+/public/js/recommendations-footer.mjs
 /public/js/recommendations-legacy.mjs
 /public/js/review-reward-copy.mjs
 /public/js/review-reward-invite.mjs

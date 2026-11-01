@@ -38,25 +38,6 @@ export function observeRecommendationProducts(host, seen, onVisible) {
   });
   return () => cleanups.forEach(cleanup => cleanup());
 }
-export function rememberRecommendationContext(context) {
-  try {
-    sessionStorage.setItem('cd:recommendations:context', JSON.stringify(normalizeContext(context)));
-    sessionStorage.setItem('cd:recommendations:return', JSON.stringify({ path: location.pathname + location.search + location.hash, at: Date.now() }));
-  } catch { /* Navigation remains available without storage. */ }
-}
-export function readRecommendationContext() {
-  try { return normalizeContext(JSON.parse(sessionStorage.getItem('cd:recommendations:context') || '{}')); } catch { return normalizeContext(); }
-}
-export function recommendationReturnPath(fallback = '/ggulggul/') {
-  fallback = fallback === '/yeongnyangi/' ? fallback : '/ggulggul/';
-  try {
-    const saved = JSON.parse(sessionStorage.getItem('cd:recommendations:return') || 'null');
-    if (!saved || !Number.isFinite(saved.at) || saved.at > Date.now() || Date.now() - saved.at > 3600000 || !/^\/(?!\/)/.test(saved.path) || /[\\\u0000-\u001f]/.test(saved.path)) return fallback;
-    const u = new URL(saved.path, location.origin);
-    if (u.origin !== location.origin || /^\/(api|admin|checkout|recommendations)(\/|$)/.test(u.pathname)) return fallback;
-    return u.pathname + u.search + u.hash;
-  } catch { return fallback; }
-}
 export function recommendationQuery(context) {
   const c = normalizeContext(context), q = new URLSearchParams({ service: c.service, source: c.source, currency: c.currency });
   c.practiceTags.forEach(x => q.append('topic', x));

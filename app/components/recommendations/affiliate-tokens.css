@@ -20,3 +20,14 @@
   --rec-line: #b58398;
   color-scheme: light;
 }
+/* Stable Neo palette from styles/theme-tokens.css; the report may be embedded outside a themed root. */
+[data-affiliate-brand="ggulggul"][data-brand="neo"] {
+  --rec-bg: #0a0818;
+  --rec-surface: rgba(19,16,42,.96);
+  --rec-raised: rgba(10,8,24,.98);
+  --rec-ink: #f4eeff;
+  --rec-muted: rgba(200,170,255,.7);
+  --rec-accent: #c4b5fd;
+  --rec-line: rgba(196,181,253,.32);
+  color-scheme: dark;
+}

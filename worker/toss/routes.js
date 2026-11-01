@@ -233,11 +233,12 @@ export async function handleTossRoutes(request,env) {
     }
     if((path==='/orders/grant'||path==='/orders/restore')&&request.method==='POST') {
       const input=await bodyOf(request);
-      const tarotProduct=path==='/orders/restore'&&APPROVED_TOSS_TAROT_LIBRARY_PRODUCTS.find(item=>item.sku===input.sku);
       const stored=await TossPurchase.findOne({_id:input.orderId,identityId:auth._id,ownerId:auth.ownerId,environment:auth.environment}).lean();
-      const native=!!stored?.nativeService||APPROVED_TOSS_NATIVE_PRODUCTS.some(item=>item.sku===input.sku);
+      // A durable purchase keeps its original product and price after a sale ends.
+      const tarotProduct=path==='/orders/restore'&&(stored?(stored.tarotFlowId?{...stored,kind:'tarot-library',approved:true}:null):APPROVED_TOSS_TAROT_LIBRARY_PRODUCTS.find(item=>item.sku===input.sku));
+      const native=stored?!!stored.nativeService:APPROVED_TOSS_NATIVE_PRODUCTS.some(item=>item.sku===input.sku);
       if(stored&&stored.sku!==input.sku)throw new TossError('ORDER_MISMATCH',403);
-      const product=stored?.nativeService?(await import('./native-consultation.js')).retainedNativeProduct(stored,auth):native?(await import('./native-tea.js')).approvedNativeTeaProduct(input.sku):tarotProduct?tarotLibraryProduct(tarotProduct):approvedProduct(input.sku);
+      const product=stored?.nativeService?(await import('./native-consultation.js')).retainedNativeProduct(stored,auth):native?(await import('./native-tea.js')).approvedNativeTeaProduct(input.sku):tarotProduct?tarotLibraryProduct(tarotProduct):stored||approvedProduct(input.sku);
       const order=await lookupOrder(env,auth.userKey,input.orderId);
       if(order.orderId!==input.orderId||order.sku!==input.sku)throw new TossError('ORDER_MISMATCH',403);
       if(order.status==='REFUNDED'){await recordTossRefund(auth,order);throw new TossError('ORDER_REFUNDED',409);}

@@ -15,7 +15,7 @@ export type CampusState = { eligibleEmail: boolean; verified: boolean; email?: s
   unlockedFeatureKeys: string[]; features: { featureKey: string; title: string }[] };
 
 export class ActivationApiError extends Error {
-  constructor(public status: number, message: string) { super(message); }
+  constructor(public status: number, message: string, public code?: string) { super(message); }
 }
 export async function activationApi<T>(path: string, body?: object, signal?: AbortSignal): Promise<T> {
   const response = await authFetch(`/api/activation-rewards/${path}`, {
@@ -23,7 +23,7 @@ export async function activationApi<T>(path: string, body?: object, signal?: Abo
     ...(body === undefined ? {} : { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }),
   });
   const data = await response.json();
-  if (!response.ok || data.ok !== true) throw new ActivationApiError(response.status, data.message || '선물을 확인하지 못했어요. 잠시 후 다시 확인해 주세요.');
+  if (!response.ok || data.ok !== true) throw new ActivationApiError(response.status, data.message || '선물을 확인하지 못했어요. 잠시 후 다시 확인해 주세요.', data.code);
   if (data.granted === true && data.replayed !== true) window.dispatchEvent(new Event('cd:activation-reward-updated'));
   return data as T;
 }
