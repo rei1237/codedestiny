@@ -51,6 +51,31 @@ Node 잠금/원장 파일: [package-lock.json](../../tools/oracle/package-lock.j
 - [requirements.txt](../../tools/oracle-py/requirements.txt), [source-pin.json](../../tools/oracle-py/source-pin.json)으로 버전·wheel 해시·SHA 고정. [PyPI 해당 버전 메타데이터](https://pypi.org/pypi/korean-saju/0.3.0/json).
 - 운영 root node_modules와 Python 시스템 site-packages를 사용하지 않는다. uv/Python은 기존 환경 도구이며 서비스 번들 또는 oracle 런타임 dependency로 추가하지 않았다.
 
+## 격리 DB 준비: 기존 설치 드라이버 재사용 (2026-11-01~02)
+
+새 오라클이나 운영 의존성을 설치하지 않았다. `tools/oracle/isolated-db/`의 오프라인 BSON 검사와 향후 별도 승인 DB 실험에 한해 기존 루트 node_modules의 드라이버를 재사용한다. 설치 메타데이터 및 아래 LICENSE 원문을 직접 읽었고, 필수 전이 의존성까지 12개 전부 사용자 허용 SPDX에 속한다. 법적 의무/배포 상태에 관한 새로운 판단은 아니다.
+
+확인 경로의 기준은 프로젝트 `node_modules/`이며 이 워크트리에서는 기존 공유 설치 경로로 연결된다. 각 행의 `package.json`도 직접 확인했다. 정확한 버전·상위 의존성·라이선스 원문 및 실행 파일 200개 SHA256은 [isolated-db/pins.json](../../tools/oracle/isolated-db/pins.json)에 고정했다. 메타데이터 배지만 사용하지 않는다.
+
+| 패키지 | 설치 버전 | SPDX | 직접 확인 원문 경로 (`node_modules/` 아래) | 전이/역할 |
+|---|---|---|---|---|
+| mongodb | 7.1.0 | Apache-2.0 | mongodb/LICENSE.md | saslprep, bson, connection-string-url 필수 |
+| @mongodb-js/saslprep | 1.4.6 | MIT | @mongodb-js/saslprep/LICENSE | sparse-bitfield |
+| sparse-bitfield | 3.0.3 | MIT | sparse-bitfield/LICENSE | memory-pager |
+| memory-pager | 1.5.0 | MIT | memory-pager/LICENSE | 필수 전이 없음 |
+| bson | 7.2.0 | Apache-2.0 | bson/LICENSE.md | 필수 전이 없음; 오프라인 serialize/deserialize |
+| mongodb-connection-string-url | 7.0.1 | Apache-2.0 | mongodb-connection-string-url/LICENSE | whatwg-url, @types/whatwg-url |
+| @types/whatwg-url | 13.0.0 | MIT | @types/whatwg-url/LICENSE | 타입 전용; @types/webidl-conversions |
+| @types/webidl-conversions | 7.0.3 | MIT | @types/webidl-conversions/LICENSE | 타입 전용; 필수 전이 없음 |
+| whatwg-url | 14.2.0 | MIT | whatwg-url/LICENSE.txt | tr46, webidl-conversions |
+| tr46 | 5.1.1 | MIT | tr46/LICENSE.md | punycode |
+| punycode | 2.3.1 | MIT | punycode/LICENSE-MIT.txt | 필수 전이 없음 |
+| webidl-conversions | 7.0.0 | BSD-2-Clause | webidl-conversions/LICENSE.md | 필수 전이 없음 |
+
+확인 수준: 설치 파일/원문/필수 의존성 연결 직접 확인, 실제 드라이버 import 및 BSON 왕복은 네트워크 차단 상태로 실행. 실제 DB 연결/PG/외부 인증/선택 peer 실행은 하지 않았다. 선택 peer(별도 AWS·Kerberos·압축·암호화 패키지 등)는 로더 허용 목록에 없으며 설치/활성화하지 않는다. 드라이버 내부에 포함된 관련 JS 모듈의 로딩을 외부 서비스 호출로 혼동하지 않는다. URI 옵션도 거부하여 해당 기능을 활성화하지 않는다.
+
+이 검사는 과거 오라클 12개 MIT 검사와 **별개 집합**이다. Swiss 및 베다 주 검증기 차단은 해제하지 않는다. 설치 버전/파일이 바뀌면 러너는 로딩 전에 중단하며 승인 없는 자동 갱신을 하지 않는다.
+
 ## 후보별 채택·차단 사유
 
 | 후보 | 결정 | 직접 확인 근거 / 확인 수준 |

@@ -1,0 +1,11 @@
+{
+  "approved": false,
+  "scope": "isolated-db-write-cr006",
+  "runId": null,
+  "sourceDigest": null,
+  "expiresAt": null,
+  "target": { "host": "127.0.0.1", "port": 27017, "database": null },
+  "dedicatedDisposableInstance": false,
+  "allowCreateCollections": false,
+  "limits": { "preparations": 4, "consultations": 2, "insertAttempts": 26, "reads": 160 }
+}

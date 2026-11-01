@@ -1,0 +1,63 @@
+{
+  "mode": "mock",
+  "runId": "syntheticlocal01",
+  "sourceDigest": "46d24b2b9312c1933b22b5c79f6ae225323a217ef528384b5960635d8bc06ae1",
+  "calendarAuthorityV2": false,
+  "limits": {
+    "preparations": 4,
+    "consultations": 2,
+    "insertAttempts": 26,
+    "reads": 160
+  },
+  "collections": {
+    "preparations": "ziweiCalculationPreparations",
+    "consultations": "ziweiAiConsultations"
+  },
+  "database": "cd_engine_audit_cr006_syntheticlocal01",
+  "cleanupSupported": false,
+  "completed": [
+    "two-connection-concurrency-20",
+    "basis-generate-off-year-change",
+    "input-geography-owner-isolation",
+    "insert-response-loss-recovery",
+    "missing-or-unreadable-preparation-holds",
+    "corrupted-synthetic-preparation-holds",
+    "stored-paid-and-partial-fixtures-unchanged"
+  ],
+  "counts": {
+    "reads": 57,
+    "insertAttempts": 25,
+    "preparationRows": 4,
+    "consultationRows": 2
+  },
+  "chartDigest": "c0c657e197148b9c172baddde70e8dbaf0d7a4491bd5d4918daed072e52caaaf",
+  "savedResultsDigest": "c76aeb57edca272c38d65a62dec4cd25eef2a8f05097412f9d0d23f0b3dbbf4c",
+  "paymentCalls": 0,
+  "llmCalls": 0,
+  "databaseConnected": false,
+  "storage": "memory",
+  "importedFiles": [
+    "lib/korean-calendar/authority-data.generated.js",
+    "lib/korean-calendar/authority-expanded.generated.js",
+    "lib/korean-calendar/authority.js",
+    "lib/korean-calendar/core.js",
+    "lib/korean-calendar/daeun.js",
+    "lib/korean-calendar/ganji.js",
+    "lib/korean-calendar/index.js",
+    "lib/korean-calendar/labels.js",
+    "lib/korean-calendar/natal.js",
+    "lib/korean-calendar/policy.js",
+    "lib/korean-calendar/table.generated.js",
+    "lib/ziwei-birth-clock.js",
+    "lib/ziwei-fire-bell.js",
+    "lib/ziwei-minor-limit.js",
+    "lib/ziwei-star-strength.js",
+    "tools/oracle/isolated-db/config.mjs",
+    "tools/oracle/isolated-db/network.mjs",
+    "tools/oracle/isolated-db/scenario.mjs",
+    "tools/oracle/isolated-db/storage.mjs",
+    "worker/lib/ziwei-ai-chart.js",
+    "worker/lib/ziwei-calculation-preparation.js",
+    "worker/lib/ziwei-execution-adapter.js"
+  ]
+}

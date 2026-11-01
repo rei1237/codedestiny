@@ -1,0 +1,110 @@
+{
+  "baseline": "9501323a46330ebea075ae798e6b57c0232870ca",
+  "actualDB": false,
+  "actualPG": false,
+  "actualLLM": false,
+  "results": [
+    {
+      "name": "isolated-db-regression",
+      "args": [
+        "--test",
+        "__tests__/ui/ziwei-isolated-db-runner.test.mjs"
+      ],
+      "status": 0,
+      "stdout": "✔ mock and BSON roundtrip keep concurrency, resume and saved results identical without DB (3107.5015ms)\n✔ plan and offline execution never read URI environment; unapproved DB fails before environment access (3963.9916ms)\n✔ argument parser cannot enable a feature flag, override limits, or implicitly connect (1.3117ms)\n✔ approval validation binds exact source, scope, run, lifetime, limits and disposable target before URI access (1.2064ms)\n✔ URI validation rejects SRV, remote hosts, wrong database, extra hosts and connection options (0.7089ms)\n✔ CLI default-deny error contains no connection value or secret (464.6777ms)\n✔ offline guard blocks local TCP, TLS, DNS, HTTP, UDP and WebSocket before any connection (505.7521ms)\n✔ resolver blocks Swiss, full routes, production DB modules and unapproved packages before evaluation (506.8517ms)\n✔ source drift is rejected before service import without changing any source file (148.1813ms)\n✔ dependency drift is rejected before driver import without changing installed packages (264.2697ms)\n✔ approved-target transport rule forwards only its exact TCP destination to an injected socket (116.3013ms)\n✔ bounded storage denies foreign owners, authority v2, unknown IDs and writes to missing-record case (1.0268ms)\n✔ read and insert budgets stop backend calls even on repeated duplicate attempts (2.7569ms)\n✔ injected DB facade uses two narrow clients and only approved collections; no actual driver connects (0.5461ms)\n✔ nonempty DB and failed connection close both injected clients without obtaining write handles (0.3565ms)\nℹ tests 15\nℹ suites 0\nℹ pass 15\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 9241.6703\n",
+      "stderr": ""
+    },
+    {
+      "name": "preparation-selection-lifecycle",
+      "args": [
+        "--test",
+        "__tests__/ui/ziwei-preparation-pinning.test.mjs",
+        "__tests__/ui/ziwei-execution-selection.test.mjs",
+        "__tests__/ui/ziwei-execution-lifecycle.test.mjs"
+      ],
+      "status": 0,
+      "stdout": "✔ OFF final result matches baseline; new row contains its snapshot at the first atomic create (278.7897ms)\n✔ atomic create response loss then rollback resumes the persisted v2 chart without recalculation (86.7497ms)\n✔ concurrent identical requests keep one winning snapshot and one generation/charge (178.352ms)\n✔ partial rollback, completed retry and delivery-only retry never select a new version (162.0595ms)\n✔ leased record wins over an earlier read and failed checkpoint retries use the original snapshot (224.3911ms)\n✔ old blank execution stays legacy; missing snapshot with written results is held without billing/refund (237.5472ms)\n✔ lookup/input/ownership/preflight/storage failures do not become another new paid execution (375.5096ms)\n✔ payment/access/read helpers and immutable engine contracts are not edited; CR-006 permits prepare/basis orchestration (247.8502ms)\n✔ CR-006 payment prepare, basis, return after OFF/year change and partial resume share one snapshot (63.6881ms)\n✔ CR-006 two prepare calls and generation races preserve the durable winner (73.4638ms)\n✔ CR-006 lost prepare response retries the stored version; unreadable or missing preparation holds before billing (356.1189ms)\n✔ CR-006 conflicting input/geography and different owners cannot reuse another preparation (59.7006ms)\n✔ CR-006 corrupted selection or lost metadata never regenerates/refunds; completed results remain readable (436.0712ms)\n✔ CR-006 new default-OFF requests pin legacy and body flags cannot enable v2 (199.749ms)\n✔ default OFF agrees with the previously approved public projection; body flags cannot opt in (49.918ms)\n✔ new explicit ON has the approved authority and round-trips unchanged after OFF/year/input changes (5.6244ms)\n✔ old executions without a snapshot remain legacy; missing snapshots with written content are held (9.154ms)\n✔ ON outside pilot or invalid authority input fails without legacy fallback (1.0834ms)\n✔ real approved calculator: competing isolates pin one version/year, OFF return and restart preserve every chart field (52.4602ms)\n✔ real calculator raw geography guard and invalid lunar inputs fail before persistence; legacy stays OFF (4.7754ms)\n✔ new schema is additive, no TTL/index job, and round-trips the complete real snapshot offline (273.8478ms)\n✔ actual client never opens payment or generation before confirmed prepare, including degraded/old-worker responses (467.119ms)\n✔ actual client basis follows prepare; paid-resume serialization preserves protocol, key and input without another payment (204.9165ms)\nℹ tests 23\nℹ suites 0\nℹ pass 23\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 3874.2534\n",
+      "stderr": ""
+    },
+    {
+      "name": "original-and-expanded-golden",
+      "args": [
+        "--test",
+        "__tests__/ui/calendar-authority-regression.test.mjs",
+        "__tests__/ui/calendar-authority-expansion.test.mjs"
+      ],
+      "status": 0,
+      "stdout": "{\"calendarDaysAccepted\":15504,\"pre1900GuardDays\":29}\n{\"publicSolarLunarPairs\":1572}\n✔ authority versions are explicit; original scopes and defaults remain unchanged (1.8567ms)\n✔ all 348 expanded node boundaries and unresolved intervals use official brackets (133.4021ms)\n✔ all official month days round-trip; source boundaries and unsupported guards stay separate (444.0537ms)\n✔ solar/lunar public saju and ziwei agree at every official month start/middle/end (5862.7031ms)\n✔ 2016 official daeun golden inputs match independent sect-1 arithmetic without other interpretation changes (21706.4777ms)\n✔ daeun option stays OFF, rejects unsupported inputs, and never fabricates unknown time/gender (14.5693ms)\n✔ month ends, leap birthdays, every clock hour and expanded-version daeun preserve sect-1 results (846.8804ms)\n✔ official 101-case snapshot regression uses public adapters only (184.9073ms)\n✔ all supported JPL node boundaries switch across ±1 second/±1 minute and reject unresolved subsecond instants (19.3312ms)\n✔ public default remains OFF and flags never mutate birth input or saved evidence (14.0714ms)\n✔ all 24 official months round-trip through solar/lunar public ziwei chart inputs (765.1574ms)\n✔ four additional impact observations match KASI/JPL within the same approved defect families (7.6745ms)\nℹ tests 12\nℹ suites 0\nℹ pass 12\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 30065.8695\n",
+      "stderr": ""
+    },
+    {
+      "name": "saved-paid-result-mocks",
+      "args": [
+        "--test",
+        "__tests__/ui/paid-report-storage.behavior.test.js",
+        "__tests__/ui/saju-paid-delivery.behavior.test.js",
+        "__tests__/ui/ziwei-paid-resume.behavior.test.js"
+      ],
+      "status": 0,
+      "stdout": "✔ 자미두수 first 저장 throw는 완료 대신 저장 장애 (86.7683ms)\n✔ 자미두수 next 저장 throw는 완료 대신 저장 장애 (20.3597ms)\n✔ 자미두수 first 저장 null는 완료 대신 저장 장애 (26.0327ms)\n✔ 자미두수 next 저장 null는 완료 대신 저장 장애 (14.7725ms)\n✔ 자미두수 first 저장 read-null는 완료 대신 저장 장애 (14.9092ms)\n✔ 자미두수 next 저장 read-null는 완료 대신 저장 장애 (14.4844ms)\n✔ 자미두수 재시도는 장을 중복하지 않고 완료본은 덮어쓰지 않는다 (13.0182ms)\n✔ 자미두수 다른 계정은 저장된 결과를 수정할 수 없다 (17.3512ms)\n✔ partial report resumes by server job without checkout and clears proof only on completed saved response (229.4155ms)\n✔ storage failure retains original pending job and allows another same-job retry (104.0035ms)\n✔ fresh and bfcache pageshow leave unrequested saved jobs collapsed (91.2933ms)\n✔ window focus does not start an unrequested saved job (45.8474ms)\n✔ account change discards in-flight result and isolates local recovery keys (90.9037ms)\n✔ saved consultation stays in archive until explicitly opened, without charging or deleting (17.3439ms)\n✔ server-discovered completed reading does not become a pending job or reopen on focus (76.6988ms)\n✔ twelve chapter bodies survive grouped navigation and historical bold headings (25.4463ms)\n✔ question draft is scoped to the current owner and profile (19.935ms)\n✔ legacy result opens as the previous format without regeneration (14.4382ms)\n✔ dark mode keeps Yeoni and preserves the paid result and input state (171.4952ms)\n✔ numbered chapter subtitles retain text and belong to the correct reading group (10.9134ms)\n✔ disclosure opens saved report without POST and folding preserves it (140.2593ms)\n✔ profile and locale changes discard old replies and close the reader (201.4814ms)\n✔ a user-started failed continuation can recover on focus (91.4726ms)\n✔ 자미두수 실제 화면 재개 함수는 정상 묶음을 표시하며 같은 결과를 완성한다 (72.9917ms)\n✔ 숨김 상태에서는 부분 본문을 유지하고 다음 묶음을 시작하지 않는다 (13.5656ms)\n✔ 계정 변경 뒤 도착한 응답을 표시하지 않는다 (13.5435ms)\n✔ 저장 및 조회 장애는 원래 서버 ID로 다시 요청한다 (10.0384ms)\n✔ 자미두수 화면은 pageshow와 focus만 발생해도 저장된 상담을 다시 조회한다 (1.3432ms)\nℹ tests 28\nℹ suites 0\nℹ pass 28\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 4999.1632\n",
+      "stderr": ""
+    },
+    {
+      "name": "targeted-lint",
+      "args": [
+        "node_modules/eslint/bin/eslint.js",
+        "--quiet",
+        "tools/oracle/isolated-db/config.mjs",
+        "tools/oracle/isolated-db/network.mjs",
+        "tools/oracle/isolated-db/run.mjs",
+        "tools/oracle/isolated-db/scenario.mjs",
+        "tools/oracle/isolated-db/seal.mjs",
+        "tools/oracle/isolated-db/storage.mjs",
+        "__tests__/ui/ziwei-isolated-db-runner.test.mjs"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "payment-freeze",
+      "args": [
+        "scripts/verify-payment-freeze.mjs"
+      ],
+      "status": 0,
+      "stdout": "[payment-freeze] 통과 — region 4 · file 3 · 상한 2\n",
+      "stderr": ""
+    },
+    {
+      "name": "payment-choice-parity",
+      "args": [
+        "scripts/verify-payment-choice-parity.mjs",
+        "--self-test"
+      ],
+      "status": 0,
+      "stdout": "[verify-payment-choice-parity] self-test OK — 6개 음성 케이스 + 정상 2건\n[verify-payment-choice-parity] PASS (10 renderers, 105 css rules, 22 builder + 14 renderer markers, 3 banned, 80 copy keys x 12 locales, 25 gate-triggered paths)\n",
+      "stderr": "error: fsmonitor_ipc__send_query: unspecified error on 'D:/Development/code-destiny/.git/worktrees/engine-audit-phase0-20261101-163440/fsmonitor--daemon.ipc'\n"
+    },
+    {
+      "name": "doc-freshness",
+      "args": [
+        "scripts/verify-doc-freshness.mjs"
+      ],
+      "status": 0,
+      "stdout": "[verify:doc-freshness] OK\n- active docs checked: AGENTS.md, docs/CURRENT_DEV_BASELINE.md, CLAUDE.md, docs/CONTEXT_AUDIT.md\n- baseline freshness window: 14 days\n",
+      "stderr": ""
+    },
+    {
+      "name": "check-fast-plan",
+      "args": [
+        "scripts/check-changed.mjs",
+        "--profile=fast",
+        "--skip-build",
+        "--plan"
+      ],
+      "status": 0,
+      "stdout": "{\n  \"version\": 1,\n  \"profile\": \"fast\",\n  \"baseSha\": \"9501323a46330ebea075ae798e6b57c0232870ca\",\n  \"headSha\": \"9501323a46330ebea075ae798e6b57c0232870ca\",\n  \"files\": [\n    \"__tests__/ui/ziwei-isolated-db-runner.test.mjs\",\n    \"docs/engine-audit/01-license-ledger.md\",\n    \"docs/engine-audit/12-isolated-db-runner-report.md\",\n    \"docs/engine-audit/results/isolated-db-runner-20261102/check-driver.json\",\n    \"docs/engine-audit/results/isolated-db-runner-20261102/mock.json\",\n    \"docs/engine-audit/results/isolated-db-runner-20261102/plan.json\",\n    \"docs/engine-audit/results/isolated-db-runner-20261102/source-proof.json\",\n    \"tools/oracle/isolated-db/README.md\",\n    \"tools/oracle/isolated-db/approval.example.json\",\n    \"tools/oracle/isolated-db/config.mjs\",\n    \"tools/oracle/isolated-db/fixtures.json\",\n    \"tools/oracle/isolated-db/network.mjs\",\n    \"tools/oracle/isolated-db/pins.json\",\n    \"tools/oracle/isolated-db/run.mjs\",\n    \"tools/oracle/isolated-db/scenario.mjs\",\n    \"tools/oracle/isolated-db/seal.mjs\",\n    \"tools/oracle/isolated-db/storage.mjs\"\n  ],\n  \"tier\": \"critical\",\n  \"legacyTier\": \"critical\",\n  \"failClosed\": true,\n  \"hasDeletionOrRename\": false,\n  \"reasons\": [\n    \"__tests__/ui/ziwei-isolated-db-runner.test.mjs: runtime/test/infra boundary\",\n    \"docs/engine-audit/01-license-ledger.md: static/content/presentation change\",\n    \"docs/engine-audit/12-isolated-db-runner-report.md: static/content/presentation change\",\n    \"docs/engine-audit/results/isolated-db-runner-20261102/check-driver.json: static/content/presentation change\",\n    \"docs/engine-audit/results/isolated-db-runner-20261102/mock.json: static/content/presentation change\",\n    \"docs/engine-audit/results/isolated-db-runner-20261102/plan.json: static/content/presentation change\",\n    \"docs/engine-audit/results/isolated-db-runner-20261102/source-proof.json: static/content/presentation change\",\n    \"tools/oracle/isolated-db/README.md: static/content/presentation change\",\n    \"tools/oracle/isolated-db/approval.example.json: unclassified source/config change\",\n    \"tools/oracle/isolated-db/config.mjs: unclassified source/config change\",\n    \"tools/oracle/isolated-db/fixtures.json: unclassified source/config change\",\n    \"tools/oracle/isolated-db/network.mjs: unclassified source/config change\",\n    \"tools/oracle/isolated-db/pins.json: unclassified source/config change\",\n    \"tools/oracle/isolated-db/run.mjs: unclassified source/config change\",\n    \"tools/oracle/isolated-db/scenario.mjs: unclassified source/config change\",\n    \"tools/oracle/isolated-db/seal.mjs: unclassified source/config change\",\n    \"tools/oracle/isolated-db/storage.mjs: unclassified source/config change\"\n  ],\n  \"buildTargets\": {\n    \"frontend\": true,\n    \"worker\": true\n  },\n  \"buildDeferredToCi\": true,\n  \"steps\": [\n    {\n      \"kind\": \"whitespace\"\n    },\n    {\n      \"kind\": \"npm\",\n      \"name\": \"verify:doc-freshness\",\n      \"args\": []\n    },\n    {\n      \"kind\": \"node\",\n      \"file\": \"scripts/run-paid-gate-suite.mjs\",\n      \"args\": [\n        \"--base\",\n        \"9501323a46330ebea075ae798e6b57c0232870ca\"\n      ]\n    },\n    {\n      \"kind\": \"lint-changed\"\n    },\n    {\n      \"kind\": \"npm\",\n      \"name\": \"lint\",\n      \"args\": []\n    },\n    {\n      \"kind\": \"npm\",\n      \"name\": \"verify:sitemap-drift\",\n      \"args\": []\n    },\n    {\n      \"kind\": \"npm\",\n      \"name\": \"typecheck\",\n      \"args\": []\n    },\n    {\n      \"kind\": \"npm\",\n      \"name\": \"test:node\",\n      \"args\": []\n    },\n    {\n      \"kind\": \"npm\",\n      \"name\": \"verify:env-parity\",\n      \"args\": []\n    },\n    {\n      \"kind\": \"npm\",\n      \"name\": \"verify:billing-pass-policy\",\n      \"args\": []\n    },\n    {\n      \"kind\": \"npm\",\n      \"name\": \"verify:pass-tier-policy\",\n      \"args\": []\n    },\n    {\n      \"kind\": \"npm\",\n      \"name\": \"verify:portone-single-payment\",\n      \"args\": []\n    },\n    {\n      \"kind\": \"npm\",\n      \"name\": \"verify:phone-encryption\",\n      \"args\": []\n    },\n    {\n      \"kind\": \"npm\",\n      \"name\": \"verify:signup-phone-required\",\n      \"args\": []\n    },\n    {\n      \"kind\": \"npm\",\n      \"name\": \"verify:paid-gate-ui\",\n      \"args\": []\n    },\n    {\n      \"kind\": \"npm\",\n      \"name\": \"verify:payment-choice-parity\",\n      \"args\": []\n    },\n    {\n      \"kind\": \"npm\",\n      \"name\": \"verify:payment-phone-consent\",\n      \"args\": []\n    },\n    {\n      \"kind\": \"npm\",\n      \"name\": \"verify:checkout-pass-card\",\n      \"args\": []\n    },\n    {\n      \"kind\": \"npm\",\n      \"name\": \"verify:paid-feature-billing-policy\",\n      \"args\": []\n    },\n    {\n      \"kind\": \"npm\",\n      \"name\": \"verify:ai-prompt-billing-policy\",\n      \"args\": []\n    },\n    {\n      \"kind\": \"npm\",\n      \"name\": \"verify:pass-snapshot\",\n      \"args\": []\n    },\n    {\n      \"kind\": \"npm\",\n      \"name\": \"verify:pass-recovery-path\",\n      \"args\": []\n    },\n    {\n      \"kind\": \"npm\",\n      \"name\": \"verify:saju-unlock-entitlement-regression\",\n      \"args\": []\n    },\n    {\n      \"kind\": \"npm\",\n      \"name\": \"verify:ai-consultation-flows\",\n      \"args\": []\n    },\n    {\n      \"kind\": \"npm\",\n      \"name\": \"verify:staging-llm-mock\",\n      \"args\": []\n    },\n    {\n      \"kind\": \"npm\",\n      \"name\": \"verify:analytics-events\",\n      \"args\": []\n    },\n    {\n      \"kind\": \"npm\",\n      \"name\": \"verify:no-nested-retry\",\n      \"args\": []\n    },\n    {\n      \"kind\": \"npm\",\n      \"name\": \"verify:worker-no-undef\",\n      \"args\": []\n    },\n    {\n      \"kind\": \"npm\",\n      \"name\": \"verify:mongo-reset-callers\",\n      \"args\": []\n    },\n    {\n      \"kind\": \"npm\",\n      \"name\": \"verify:cron-mongo-op-coverage\",\n      \"args\": []\n    },\n    {\n      \"kind\": \"npm\",\n      \"name\": \"verify:admin-route-error-context\",\n      \"args\": []\n    },\n    {\n      \"kind\": \"npm\",\n      \"name\": \"build:worker\",\n      \"args\": []\n    },\n    {\n      \"kind\": \"npm\",\n      \"name\": \"verify:entry-encoding\",\n      \"args\": [\n        \"--strict-core\"\n      ]\n    },\n    {\n      \"kind\": \"npm\",\n      \"name\": \"test:jest\",\n      \"args\": []\n    }\n  ]\n}\n",
+      "stderr": ""
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "schema": "cr006-synthetic-db-v1",
+  "syntheticOnly": true,
+  "year": 2026,
+  "birthInfo": { "birthDate": "2023-02-04", "birthTime": "11:42", "calendarType": "solar", "gender": "male" },
+  "topic": "overall",
+  "userQuestion": "SYNTHETIC AUDIT INPUT",
+  "savedPaidText": "SYNTHETIC PAID RESULT; NEVER CHARGED; PRESERVE VERBATIM",
+  "concurrency": 20,
+  "limits": { "preparations": 4, "consultations": 2, "insertAttempts": 26, "reads": 160 }
+}
