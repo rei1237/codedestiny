@@ -40,3 +40,9 @@ next: "현재 main 코드 CI 결과를 1회 확인하고 남은 성능 미달 20
 ```text
 D:\Development\code-destiny\.codex-worktrees\snulife-ux-perf-20261101-142056에서 D:\Development\code-destiny\.codex-worktrees\snulife-ux-perf-20261101-142056\docs\handoff\snulife-ux-perf-20261101.md를 읽고, 마지막 코드 커밋 5c0a80f7dc9a9f8bf94b5811a2af5d564604d9d4와 현재 main을 확인한 뒤 코드 CI 결과 1회 확인 및 미달20화면 병목 개선부터 이어서 진행하라. SNULIFE 회신은 이미 발송했으므로 중복 발송하지 말고 운영 배포·정식 캠페인 활성화는 실행하지 말라.
 ```
+
+## 마지막 동시 작업 통합
+
+최신 main f7c5a88d15f5e7b9baebe05ea8f224edfd20e432의 Android·공통 홈 변경을 583dd38fc74b270402d580d8e1c0e30e5da2c465로 충돌 없이 보존해 합쳤다. 이 단계에서 성능 전체를 다시 측정하거나 운영 배포하지 않았다. 표는 위 검증 빌드 기준이다. 공통 홈·모의 조회 표적 검사와 타입·전달 검사를 다시 확인한다.
+
+통합 후 공통 홈·모의 조회 8개 테스트와 타입 검사가 통과했다. 다른 작업의 Android 완료 문서에는 필수 updated/next 두 줄이 없어 공통 문서 검사가 실패했다. 본문·완료 상태를 보존하며 메타데이터만 63e7ff89e로 복원했고 257문서 계약 검사가 통과했다. 공식 main CI는 마지막 확인에서 진행 중이었고, 최종 통합 후 전체 build/perf는 반복하지 않았다.
