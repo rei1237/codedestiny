@@ -24,12 +24,16 @@ test('paused content headers cover every entry within the Pages rule limit', () 
 test('asset cache rules do not cover HTML directory routes', () => {
   for (const file of ['_headers', 'public/_headers']) {
     const text = fs.readFileSync(file, 'utf8');
-    const rules = new Map([...text.matchAll(/^(\/\S*)\r?\n((?:[ \t]+[^\r\n]+\r?\n?)*)/gm)].map(([, pattern, headers]) => [pattern, headers]));
-    for (const pattern of ['/music/*', '/neo-operation-room/*']) assert.ok(!rules.has(pattern), file + ': broad ' + pattern);
+    // Pages 는 같은 패턴의 블록을 모두 적용하므로 마지막 블록만 남기지 않고 이어 붙인다.
+    const rules = new Map();
+    for (const [, pattern, headers] of text.matchAll(/^(\/\S*)\r?\n((?:[ \t]+[^\r\n]+\r?\n?)*)/gm)) rules.set(pattern, (rules.get(pattern) ?? '') + headers);
+    for (const pattern of ['/music/*', '/neo-operation-room/*', '/audio/*', '/DestinyCafe/*']) assert.ok(!rules.has(pattern), file + ': broad ' + pattern);
     for (const pattern of ['/neo-operation-room/*.webp', '/neo-operation-room/*.json']) {
-      assert.match(rules.get(pattern) ?? '', /Cache-Control: public, max-age=2592000/, file + ': ' + pattern);
+      assert.match(rules.get(pattern) ?? '', /^[ \t]+Cache-Control: public, max-age=2592000/m, file + ': ' + pattern);
+      assert.match(rules.get(pattern) ?? '', /^[ \t]+CDN-Cache-Control: public, max-age=604800\r?$/m, file + ': CDN ' + pattern);
     }
-    assert.match(rules.get('/neo-operation-room/strategy-books*') ?? '', /Cache-Control: no-store/, file + ': strategy-books no-store');
+    assert.match(rules.get('/neo-operation-room/strategy-books*') ?? '', /^[ \t]+Cache-Control: no-store/m, file + ': strategy-books no-store');
+    assert.match(rules.get('/neo-operation-room/strategy-books*') ?? '', /^[ \t]+CDN-Cache-Control: no-store/m, file + ': strategy-books CDN no-store');
   }
 });
 test('paused content is absent from published sitemaps and poker HTML is noindex', () => {
