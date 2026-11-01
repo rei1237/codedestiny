@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-11-01
-next: "0순위 DB 연결 장애 문서부터(다음 저녁 피크 전에 읽기 전용 분 단위 표본 준비). 그다음 1순위 월정석 해금 경로. 먼저 '현재 상태 확인' 명령으로 push·스테이징 여부를 본다"
+next: "0순위 DB 연결 장애: 11-01 20:45 KST Codex P1a 피크 측정 → P1b 판정 → 차단기 push 결정(프롬프트 2026-11-01-db-connection-user-actions-codex.md). 그다음 1순위 월정석 해금 경로. 먼저 '현재 상태 확인' 명령으로 push·스테이징 여부를 본다"
 ---
 
 # 인프라·DB 최적화 후속 작업 색인 (2026-10-31)
@@ -14,7 +14,7 @@ next: "0순위 DB 연결 장애 문서부터(다음 저녁 피크 전에 읽기 
 
 | 순위 | 문서 | 분류 | 왜 먼저인가 |
 |---|---|---|---|
-| 0 | [DB 연결 생성률 장애(P1) 후속: 저녁 피크에 새 연결이 막혀 503이 난다](2026-11-01-db-connection-rate-limit-outage.md) | 측정은 읽기 전용, 코드는 RED 승인 필요 | 2026-10-31 21:59~22:10에 503이 30.9%였고 유료 결과 조회 28건도 막혔다. 같은 연결 코드가 지금 운영에서 돈다. 다음 피크에 다시 날 수 있고 지금 경보로는 안 보인다 |
+| 0 | [DB 연결 생성률 장애(P1) 후속: 저녁 피크에 새 연결이 막혀 503이 난다](2026-11-01-db-connection-rate-limit-outage.md) | 측정 도구 준비 끝(11-01 20:50~23:10 Codex 실행, [프롬프트](2026-11-01-db-connection-user-actions-codex.md)). rpg/characters 중복 합치기 push `6118c9fe2`. 차단기 `53d934544` 미push | 2026-10-31 21:59~22:10에 503이 30.9%였고 유료 결과 조회 28건도 막혔다. 같은 연결 코드가 지금 운영에서 돈다. 다음 피크에 다시 날 수 있고 지금 경보로는 안 보인다 |
 | 1 | [월정석 해금 경로: 차감 결과를 모르는 오류에도 권한을 지운다](2026-10-31-moonstone-unlock-entitlement-drop.md) | RED, 승인 필요 | 잔액은 빠졌는데 해금이 없는 상태가 생길 수 있다. 지시서 최우선 과제인 유료 결과 미전달이다. 환불 기록 행 삭제(전역 제약 위반)도 함께 걸려 있다 |
 | 2 | [결제 확인된 서사형 의도가 24시간 TTL로 지워진다](2026-10-31-paid-intent-review-ttl.md) | RED, 승인 필요 | 검토 대기 의도가 운영자 처리 전에 사라질 수 있다. 수정 범위는 작다(`$unset` 1개 + 재등록 가드) |
 | 3 | [작은 후속 묶음](2026-10-31-infra-small-followups.md) | 항목별 | 알림 소음·도구·스테이징 확인·문서 정밀도·DR·보안 잔여 |
@@ -63,7 +63,7 @@ gh run list --branch main --limit 8 --json workflowName,conclusion,headSha --jq 
 | 7 | 등급 변경, DO 파일럿 | M10 유지·DO 미도입 확정(최종 tail). 다운그레이드는 P1 장애로 더 위험해졌다. M30 승격은 검토 대상이지만 원인 확정 전에는 하지 않는다(M30 가격 미측정) | COST-OPTIMIZATION, SERVER-PERFORMANCE, [장애 후속](2026-11-01-db-connection-rate-limit-outage.md) |
 | 8 | 운영 배포 | 미배포. 사용자의 1회성 명시 요청이 있을 때만 | DEPLOYMENT-REPORT |
 | 8a | 스테이징 push(main) | 사용자 확인 대기. main push가 다음 운영 승격의 대상이 되기 때문이다 | DEPLOYMENT-REPORT "배포 경로" 2 |
-| 10 | P1 장애 대응 코드 변경(연결 실패 차단기·재시도 축소, 요청당 연결 수 축소, 연결 실패·503 비율 경보) | 미승인 RED. 결제·로그인 경로에 닿는다 | [장애 후속](2026-11-01-db-connection-rate-limit-outage.md), INFRASTRUCTURE-AUDIT 승인 10 |
+| 10 | P1 장애 대응 코드 변경(연결 실패 차단기·재시도 축소, 요청당 연결 수 축소, 연결 실패·503 비율 경보) | 차단기만 "구현·커밋, push 보류"로 승인(11-01, `53d934544` 미push). 재시도·요청당 연결 수 축소와 경보는 미승인 RED. 결제·로그인 경로에 닿는다 | [장애 후속](2026-11-01-db-connection-rate-limit-outage.md), INFRASTRUCTURE-AUDIT 승인 10 |
 
 ## 사용자 조치
 
@@ -71,7 +71,7 @@ gh run list --branch main --limit 8 --json workflowName,conclusion,headSha --jq 
 - 스테이징 `WORKER_ROUTE_METRICS_TOKEN` 설정: `npx wrangler secret put WORKER_ROUTE_METRICS_TOKEN --config worker/wrangler.staging.toml`. 운영에는 이미 있다.
 - DB 비밀번호 교체·권한 축소(승인 항목 3).
 - ~~고아 tail 프로세스 종료~~: 2026-11-01 확인 시 6개 PID 모두 없고 `wrangler tail` node 프로세스도 없다. 조치 불요.
-- Atlas 읽기 전용 API 키 삭제: 측정이 끝나면(0순위 장애 문서의 1단계에서 Atlas 분 단위 지표를 쓰면 그 뒤에) Atlas Organization Access Manager에서 키를 지운다. 사용자 환경변수 `ATLAS_PUBLIC_KEY`·`ATLAS_PRIVATE_KEY`·`ATLAS_ORG_ID`·`ATLAS_GROUP_ID`도 지운다.
+- Atlas 읽기 전용 API 키 삭제: 측정이 끝나면(0순위 장애 문서의 1단계에서 Atlas 분 단위 지표를 쓰면 그 뒤에) Atlas Organization Access Manager에서 키를 지운다. 사용자 환경변수 `ATLAS_PUBLIC_KEY`·`ATLAS_PRIVATE_KEY`·`ATLAS_ORG_ID`·`ATLAS_GROUP_ID`도 지운다. 순서와 명령은 [Codex 프롬프트 P4](2026-11-01-db-connection-user-actions-codex.md#p4-atlas-읽기-전용-키-정리).
 - DR 리허설 덤프(`D:\Development\code-destiny-backups\mongodb\`, 개인정보 포함) 보관 기간 결정.
 
 ## 다른 세션 소유의 origin/main 사전 실패

@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-11-01
-next: "읽기 전용 피크 serverStatus 1분 표본부터(다음 저녁 피크 21~23시 KST 전에 준비, 운영 읽기는 사용자 재확인). 코드 변경은 RED 승인 뒤"
+next: "오늘(11-01) 20:45 KST Codex P1a로 피크 측정 시작 → 23:15 뒤 P1b 판정 → 판정에 따라 차단기 push(승인 10) 결정. 프롬프트: 2026-11-01-db-connection-user-actions-codex.md"
 ---
 
 # DB 연결 생성률 장애(P1): 저녁 피크에 새 연결이 거부된다
@@ -21,6 +21,44 @@ next: "읽기 전용 피크 serverStatus 1분 표본부터(다음 저녁 피크 
   - 경보(2단계): GREEN. 다만 알림 채널 설정이 사용자 조치일 수 있다.
   - 코드 변경(3~5단계): **RED**. 운영 DB 연결 경로라 승인 10이 필요하다.
   - 등급·구조 변경(6~7단계): 승인 7이 필요하다.
+
+## 이번 세션 결과 (2026-11-01)
+
+사용자 조치는 Codex 프롬프트로 한다: [2026-11-01-db-connection-user-actions-codex.md](2026-11-01-db-connection-user-actions-codex.md) (P1a~P5).
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| 1단계 측정 도구 | 준비 끝 | 리포 밖 `D:\Development\code-destiny-backups\scripts\p1-peak\` (`run-peak.mjs` 오케스트레이터, `analyze-peak.mjs` 판정, `cf-1m.mjs`, `atlas-1m.mjs`). dry-run과 기존 10-31 데이터로 analyze 재현을 했다 |
+| P1 피크 실측 | **미실행** — 11-01 20:50~23:10 KST, Codex P1a·P1b | 운영 serverStatus 1분 읽기는 이 창만 승인(연결 1개, maxPoolSize 1). 결과는 P1b가 이 칸에 쓴다 |
+| 5단계 클라이언트 수정 | origin/main push `6118c9fe2` (브랜치 `7952d81c2`) | `_dpShouldDedupeGet`에 `path === '/api/rpg/characters'`(정확히 일치). 같은 순간의 GET이 하나로 합쳐지고 503 뒤 5초 쿨다운이 걸린다. `/equip`·`/character-preview`는 제외 |
+| 3단계 차단기 | 브랜치 커밋 `53d934544`, **미push** | 아래 "차단기" |
+
+새로 확인한 것:
+
+- **`rejected`는 생성률 거부 카운터다.** 10-31 serverStatus 표본 2개에서 `connections.rejected`가 `establishmentRateLimit.rejected`와 같다(17,523 / 31,035). 위 가설의 카운터가 생성률 한도 거부를 세고 있다는 뜻이다.
+- **초당 생성률은 노드 수로 나누지 않는다.** serverStatus는 프라이머리 mongod 한 대의 카운터다. 한도도 노드당 15/초라 `ΔtotalCreated ÷ Δ초`를 그대로 한도와 비교한다. 1단계 판정 규칙을 고쳤다.
+- **실패한 요청 하나가 연결을 최대 6번 만든다.** 공유 레인은 요청 스코프마다 새로 연결한다(`connectScopedSharedLane`). family 후보 [4, 0] × (재시도 2 + 1) = 6이다. 운영 요청은 모두 스코프 안이고, 전역 연결 루프는 테스트·스크립트용이다(`[db-scope-miss]`).
+- **CF 기준 503은 22:04 KST부터 보인다.** 운영 호스트 `code-destiny.com` + `/api/%`, eyeball만 셌다(staging 제외). 예: 13:05Z 총 635 중 503 270, 13:09Z 총 300 중 503 172. tail 세그먼트 파일은 22:07:05에 시작해 그 앞을 덮지 못한다.
+- **5단계 tail 집계 (21:59~22:11, 세그먼트 `seg-20261031-220705`).** 이벤트 590건, `/api/rpg/characters` GET 368건, 클라이언트 3개(290 / 73 / 5건).
+  - 같은 클라이언트의 연속 요청 간격: 1초 미만 308, 1~3초 38, 3~9초 14, 9~12초 2, 12~60초 1, 60초 이상 2.
+  - 상태: 200 46, 503 310, 취소 12. wall time p50 20.8초, p95 26.1초, 최대 29.8초.
+  - 상위 3개는 모두 `X-Code-Destiny-Client: legacy:destiny-profile`을 보내는 실제 브라우저다(Windows Chrome·`/ggulggul/`, Android WebView, Samsung Browser). 봇이 아니다. IP는 적지 않는다.
+  - 1위 클라이언트는 `/api/rpg/characters`를 약 50ms 안에 10~20개씩 몰아서 보냈다. 같은 순간에 `/api/auth/me`·`/api/profile`도 되풀이됐다. `renderMasterCard()`가 연달아 불리며(호출 지점 약 30곳) 카드를 다시 마운트하고, 마운트마다 GET을 새로 보낸 것으로 본다.
+  - 10초 간격 쌍(타임아웃 뒤 다음 후보 재요청)은 9~12초 구간 2건뿐이다. 주된 증폭은 재마운트다.
+
+차단기(`worker/lib/db.js` `sharedConnectBreaker`, isolate 단위):
+
+- 공유 레인 수립이 3번 연속 실패하면 5초 동안 열린다. 열린 동안은 `createConnection`을 부르지 않고 `MongoConnectBreakerOpenError`로 바로 실패한다. 이 오류는 일시 오류(503)로 분류되고, `withMongoRetry`는 재시도하지 않고 풀도 리셋하지 않는다. `[db-connect-error]`도 늘리지 않는다.
+- 창이 지나면 탐침 1개만 수립을 시도한다. 성공하면 닫히고, 실패하면 다시 열린다. 상태가 바뀔 때만 `[db-connect-breaker] open|half-open|close`를 남긴다.
+- 결제는 막지 않는다. 결제 레인 실패 뒤의 공유 연결 폴백(`worker/payments/db.js`)과 결제 admission 레인의 `withMongoRetry`는 `bypassConnectBreaker`로 우회한다. 결제 레인(`establishLane`) 자체는 손대지 않았다.
+- 노브: `MONGO_CONNECT_BREAKER_FAILURES`(기본 3, 0이면 끔), `MONGO_CONNECT_BREAKER_OPEN_MS`(기본 5000). 코드 기본값만 있고 `[vars]`에는 넣지 않았다. 재시도 2 → 1은 1단계 수치를 본 뒤로 미룬다.
+- 테스트: `__tests__/worker/db.shared-connect-breaker.test.js` 6개. 위험: 차단기가 열린 5초 동안 그 isolate의 비결제 DB 요청은 연결 시도 없이 503이다. 원래 실패했을 요청을 빨리 실패시키는 것이 목적이다. 롤백: 커밋 revert(`[vars]` 변경 없음).
+
+후속(이번 범위 밖, 보고만):
+
+- `mountCharacterCard`는 이전 마운트의 AbortController를 abort하지만 그 signal을 fetch에 넘기지 않는다. 재마운트로 생긴 이전 요청이 취소되지 않는다.
+- GET이 타임아웃(10초)·네트워크 오류로 끝나면 180ms 뒤 같은 후보로 한 번 더 요청한다(`runRetryOnce`). 서버가 느리면 요청이 두 배가 된다. 모든 GET이 공유하는 동작이라 따로 다룬다.
+- `renderMasterCard()` 호출 지점(약 30곳)이 같은 프레임에 겹쳐 불린다. 묶어서 한 번만 그리는 안을 따로 본다.
 
 ## 타임라인 (KST)
 
@@ -141,7 +179,7 @@ next: "읽기 전용 피크 serverStatus 1분 표본부터(다음 저녁 피크 
 | `js/core/profile-character-card.mjs:71` | 수동 재시도 버튼 |
 | `js/core/profile-character-card.mjs:107-111, 130` | `refresh()`가 `/api/rpg/characters`를 부른다. 마운트마다 1회 |
 | `js/destiny-profile.js` `"onQuestExp"` 근처 | 카드 마운트. `request`가 `_dpFetchJsonWithFallback(path, init, { timeoutMs: 10000, allowWorkerFallback: false })`를 부른다(`retryTransient` 없음) |
-| `js/destiny-profile.js` `"function _dpShouldDedupeGet"`, `"function _dpShouldApplyCooldown"` | 중복 합치기·쿨다운 대상 목록. `/api/rpg/characters`는 **없다** |
+| `js/destiny-profile.js` `"function _dpShouldDedupeGet"`, `"function _dpShouldApplyCooldown"` | 중복 합치기·쿨다운 대상 목록. `/api/rpg/characters`(정확히 일치)를 2026-11-01 `6118c9fe2`에서 넣었다 |
 | `js/destiny-profile.js` `"var retryable = looksHtml"` | JSON 503은 다음 후보 주소로 재시도하지 않는다 |
 | `js/destiny-profile.js` `.catch` 안 `"if (method === 'GET' && index < candidates.length - 1)"` | **타임아웃·네트워크 오류(status 0)는 GET이면 다음 후보 주소로 다시 요청한다**. 비인증 경로 후보는 상대경로와 `location.origin`(같은 Worker)이라 최소 2개다 |
 | `js/destiny-profile.js` `"function _dpRunTransientRetry"` | `opts.retryTransient`일 때만 503·504·0을 최대 2번 재시도. 카드 요청은 해당 없음 |
@@ -177,7 +215,7 @@ console.log(JSON.stringify({ at: new Date().toISOString(), host: s.host, primary
 ```
 
 - 판정 규칙
-  - 연결 오류·503이 많은 분에 `rejected` 증가가 몰리면 원인 확정이다. 이때 `totalCreated` 분당 증가 ÷ 60 ÷ 노드 수로 초당 생성률을 함께 적는다.
+  - 연결 오류·503이 많은 분에 `rejected` 증가가 몰리면 원인 확정이다. 이때 `ΔtotalCreated ÷ Δ초`로 초당 생성률을 함께 적는다. serverStatus는 프라이머리 한 대의 카운터라 노드 수로 나누지 않는다(2026-11-01 정정). `analyze-peak.mjs`는 90초 이하 간격 표본만 분 단위 판정에 쓰고, 오류 분이 그런 표본으로 덮이지 않으면 "판정 불가"를 낸다.
   - 오류가 많은 분에 `rejected` 증가가 없으면 가설을 버리고 다시 연다. 다음 후보는 TLS·DNS 단계 지연과 Atlas 쪽 프록시다.
   - 피크에 장애가 없으면, 평시 분당 `totalCreated` 증가로 한도까지 남은 여유를 적는다.
 - 결과는 [SERVER-PERFORMANCE](../infrastructure/SERVER-PERFORMANCE.md#p1-장애-저녁-피크-db-연결-실패)의 "원인 가설과 한계"와 이 문서에 쓴다.
@@ -230,6 +268,7 @@ console.log(JSON.stringify({ at: new Date().toISOString(), host: s.host, primary
 
 - 승인 7: 등급 변경(M10 → M30), DO 파일럿
 - 승인 10: 연결 경로 코드 변경(차단기·재시도 축소, 요청당 연결 수 축소). 경보는 GREEN이지만 채널 설정이 사용자 조치일 수 있다.
+  - 2026-11-01: 차단기는 "구현·커밋만, push 보류"로 승인됐다. 브랜치 커밋 `53d934544`, 미push. push 여부는 P1 판정을 본 뒤 정한다. 재시도 축소·요청당 연결 수 축소는 미착수다.
 - 승인 번호는 [색인](2026-10-31-infra-followups-index.md)의 승인 표와 같다.
 
 ## 검증·롤백
