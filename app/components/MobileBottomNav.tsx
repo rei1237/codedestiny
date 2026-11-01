@@ -20,6 +20,7 @@ import { type LoadingLocale } from "@/constants/loadingMessages";
 import { useLocale, useTPick } from "@/lib/i18n/useT";
 import { MOBILE_NAV_SSR_COPY } from "@/lib/i18n/mobile-nav-ssr-copy";
 import { localeFromPathname } from "@/lib/i18n/locales";
+import { IS_APP_BUILD } from "@/lib/app-build-target";
 
 const NAV_ARIA_LABEL: Partial<Record<LoadingLocale, string>> = {
   ko: "주요 화면",
@@ -182,7 +183,8 @@ function MobileBottomNav() {
                 // 절대 쓰이지 않는다. 그런데 prefetch 는 살아 있어 "/" 의 RSC 페이로드(/index.txt)를
                 // 받고 그 안의 Float 힌트가 홈 전용 CSS 청크를 preload 한다 — 끝내 쓰이지 않아
                 // 브라우저 경고("preloaded but not used")와 함께 전 페이지에서 헛다운로드가 된다.
-                prefetch={targetsStaticShellHome(tab.href) ? false : undefined}
+                // 앱은 다른 탭도 번들에 있으므로 선택할 때만 읽는다. 웹의 기존 예외는 유지한다.
+                prefetch={IS_APP_BUILD || targetsStaticShellHome(tab.href) ? false : undefined}
                 className={loading ? "cd-mnav__link opacity-70" : "cd-mnav__link"}
                 data-nav-key={tab.key}
                 aria-label={navText(tab.ariaTransKey, tab.ariaLabel)}

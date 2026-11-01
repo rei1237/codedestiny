@@ -19,7 +19,7 @@ function render(native, locale) {
     if (name.endsWith('/useT')) return {useLocale: () => locale};
     if (name.endsWith('/native-home-copy.json')) return copy;
     if (name.endsWith('/native-home-html.mjs')) return require('../../lib/i18n/native-home-html.mjs');
-    if (name === 'next/link') return function MockLink(props) { return React.createElement('a', props); };
+    if (name === 'next/link') return function MockLink({prefetch, ...props}) { return React.createElement('a', {...props, 'data-prefetch': prefetch === undefined ? 'auto' : String(prefetch)}); };
     return require(name);
   }});
   const {NativeHomeRoot: Root, NativeHomeText: Text, NativeHomeCardLink: Card} = testModule.exports;
@@ -48,4 +48,9 @@ test('public home and Korean app keep Korean copy with unchanged markup', () => 
     assert.equal(doc.querySelector('h1').textContent, '꿀꿀 운세에서 어떤 운세를 만나볼까요?');
     assert.equal(doc.querySelectorAll('a')[1].textContent, '운세보는 영냥이');
   }
+});
+
+test('packaged home waits for navigation before loading another route; web keeps automatic prefetch', () => {
+  assert.equal(render(true, 'ko').querySelectorAll('a')[1].getAttribute('data-prefetch'), 'false');
+  assert.equal(render(false, 'ko').querySelectorAll('a')[1].getAttribute('data-prefetch'), 'auto');
 });

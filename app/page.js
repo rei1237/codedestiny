@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { publicSeoPages, siteSeo } from "../lib/seo/siteSeo";
 import { buildServiceJsonLd, buildWebPageJsonLd, buildFaqPageJsonLd, buildAuthorPersonJsonLd } from "../lib/structured-data";
 import { serializeJsonLd } from "../lib/seo/json-ld.mjs";
@@ -13,7 +12,7 @@ import LegacyHomeEntry from "./components/LegacyHomeEntry";
 import HomeCardDeck from "./components/HomeCardDeck";
 import HelpDesk from "./components/HelpDesk";
 import HomeEntryState from "./components/HomeEntryState";
-import { NativeHomeRoot, NativeHomeNav, NativeHomeText, NativeHomeCardLink, NativeHomeDictionaryText } from "./components/NativeHomeCopy";
+import { NativeHomeLink as Link, NativeHomeRoot, NativeHomeNav, NativeHomeText, NativeHomeCardLink, NativeHomeDictionaryText } from "./components/NativeHomeCopy";
 import { PriceBadge } from "./components/PriceBadge";
 import ConsultationDiscovery from "./components/ConsultationDiscovery";
 import ConsultationMethodGuide from "./components/ConsultationMethodGuide";

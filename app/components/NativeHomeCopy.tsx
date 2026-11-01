@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import {createContext, useContext, type ReactNode} from 'react';
+import {createContext, useContext, type ComponentProps, type ReactNode} from 'react';
 import {IS_APP_BUILD} from '@/lib/app-build-target';
 import {useLocale, useTPick} from '@/lib/i18n/useT';
 import type {RuntimeLocale} from '@/lib/i18n/dictionary';
@@ -41,6 +41,12 @@ export function NativeHomeHtml({html, className}: {html: string; className?: str
   return <div className={className} dangerouslySetInnerHTML={{__html: localizeNativeHomeHtml(html, locale, rows)}} />;
 }
 
+// Packaged routes are already on the device. Fetch their RSC payload only when
+// selected, rather than competing with the home screen's initial render.
+export function NativeHomeLink({prefetch, ...props}: ComponentProps<typeof Link>) {
+  return <Link {...props} prefetch={IS_APP_BUILD ? false : prefetch} />;
+}
+
 export function NativeHomeCardLink({name, action, external, ...props}: {
   name: string; action: string; external?: boolean; href: string; className: string;
   'aria-describedby': string; 'data-cd-cross-sell': string;
@@ -51,5 +57,5 @@ export function NativeHomeCardLink({name, action, external, ...props}: {
   const accessibleLabel = `${label} ${translate(action, locale)}`;
   return external
     ? <a {...props} aria-label={accessibleLabel}>{label}</a>
-    : <Link {...props} aria-label={accessibleLabel}>{label}</Link>;
+    : <NativeHomeLink {...props} aria-label={accessibleLabel}>{label}</NativeHomeLink>;
 }
