@@ -118,7 +118,7 @@ A1의 서비스 소스는 `lib/korean-calendar/core.js::nodeTerms/enclosingNodeT
 
 ## 산출물·재현·검증
 
-원시 압축 JSONL 및 집계 16개 파일, **132,677,286바이트**를 보존했다. [manifest.json](results/phase2-20261101/manifest.json)에 파일별 SHA256·바이트·행 수와 입력/서비스 소스 근거 해시가 있다. gzip 파싱, 전체 22,711개 입력 ID의 Node/Python 중복·누락 없음, A 증거 필드, 최초/최종 관측 개수 보존을 검사했다. 대량 파일은 요청한 감사 증거이며 운영 번들/의존성이 아니다.
+원시 압축 JSONL 및 집계 16개 파일, **132,677,276바이트**를 보존했다. [manifest.json](results/phase2-20261101/manifest.json)에 파일별 SHA256·바이트·행 수와 입력/서비스 소스 근거 해시가 있다. gzip 파싱, 전체 22,711개 입력 ID의 Node/Python 중복·누락 없음, A 증거 필드, 최초/최종 관측 개수 보존을 검사했다. 대량 파일은 요청한 감사 증거이며 운영 번들/의존성이 아니다. 최종 후보 파일의 역사 사주 4필드(2입력)에서 추가 필요 근거 문구를 ‘공식 음력→양력 변환’으로 바로잡고 해시를 갱신했다. 원시 계산·분류·집계는 같고 이전 주석은 Git 커밋에 보존된다.
 
 | 파일 | 내용 |
 |---|---|
@@ -153,4 +153,4 @@ A1의 서비스 소스는 `lib/korean-calendar/core.js::nodeTerms/enclosingNodeT
 
 이번 변경은 검사 계획에서 critical이며 `.github/workflows/pr-ci.yml`의 critical 잡은 전체 `npm run test:jest`를 실행한다. 여기에 `__tests__/lib/vedicSwissChart.test.js`처럼 mock을 사용하더라도 Swiss 연결 서비스 어댑터를 import/호출하는 검사가 있다. **사용자의 Swiss 연결 서비스 실행 금지를 지키기 위해 이번 작업의 main 통합·push 및 전체 CI 실행은 보류**했다. 게이트를 끄거나 수정하지 않았다. 기존 main 성공을 이번 변경의 CI 통과로 표시하지 않는다. 미통합 커밋·설치물·증거가 있는 작업 폴더는 삭제하지 않는다.
 
-커밋 이후 정적 검사 결과는 별도 전달 기록에 추가한다. 내부 결함 수정, 학파 설정 변경, 저장 결과 재계산은 진행하지 않는다.
+구현·증거 커밋 `0b302e898a41663e32c84627dcdb7c732c073917`에서 `npm run check:pre-push` 통과: home registry 63개, public mirror, sitemap 1,037 URL, llms 문서, SEO registry. 이 검사는 정적 일관성 검사이며 엔진 정확도나 전체 CI 통과가 아니다. [전달 보존 기록](../handoff/2026-11-01-engine-audit-phase2-delivery.md)에 남은 전달 경계와 재개 경로를 기록했다. 내부 결함 수정, 학파 설정 변경, 저장 결과 재계산은 진행하지 않는다.

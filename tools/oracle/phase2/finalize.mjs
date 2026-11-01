@@ -54,7 +54,7 @@ for await (const original of readRows('observations.jsonl.gz')) {
   if (r.category === 'A') await candidates.write({ ...r, input: c.input, anchor: c.anchor,
     expected: { value: r.oracle, status: 'provisional-oracle-value-not-authoritative' },
     impact: r.group.startsWith('A-saju') ? 'computeNatalFromInput public adapter: natal pillars/derived analysis; animal/love callers. Other service surfaces not executed.' : 'buildZiweiAdapter fusionExpert: guardian/fusion chart evidence and star-based prompts. Other UI/worker surfaces not executed.',
-    requiredEvidence: r.group.startsWith('A-saju') ? 'Official solar-term instant with seconds and rounding convention' : 'Official Korean lunar date for this historical solar date, then star-placement rule check' });
+    requiredEvidence: r.group === 'A-saju-term-minute-boundary' ? 'Official solar-term instant with seconds and rounding convention' : r.group === 'A-saju-residual' ? 'Official Korean lunar-to-solar conversion for this historical lunar date, then day/hour pillar check' : 'Official Korean lunar date for this historical solar date, then star-placement rule check' });
 }
 await sink.close(); await candidates.close();
 for (const [key, ids] of Object.entries(groupIds)) summary.groups[key].cases = ids.size;
