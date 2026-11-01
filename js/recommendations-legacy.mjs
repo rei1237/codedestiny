@@ -87,7 +87,7 @@ export async function mountRecommendation(host, input, anchor = null) {
     } catch { cleanupObserver(); section.remove(); top.remove(); }
   }
   if (!document.querySelector('link[data-recommendation-styles]')) {
-    const css = document.createElement('link'); css.rel = 'stylesheet'; css.href = '/styles/recommendations.css'; css.dataset.recommendationStyles = 'true'; document.head.append(css);
+    const css = document.createElement('link'); css.rel = 'stylesheet'; css.href = '/styles/recommendations.css?v=build-97a9b5a719a6'; css.dataset.recommendationStyles = 'true'; document.head.append(css);
   }
   const timer = setInterval(() => { if (!host.isConnected) cleanup(); else if (!document.hidden && !host.hidden) void render(); }, 60000);
   function cleanup() { closed = true; current?.abort(); clearInterval(timer); cleanupObserver(); section.remove(); top.remove(); mounted.delete(host); }

@@ -15,7 +15,7 @@ function functionSource(name) {
   }
   visit(ast);
   assert.ok(result, name);
-  return ts.transpileModule(result, { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText;
+  return ts.transpileModule(result, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS } }).outputText;
 }
 function hookCallbackSource(name) {
   let result;
@@ -99,6 +99,10 @@ function harness({ window = { localStorage: store(), sessionStorage: store() }, 
     goToStage(value) { state.stage = value; },
     // 사주 초안은 명식이 열린 상태로만 제출된다(닫히면 결제 전에 멈춘다).
     buildFortuneTeaHouseConsultResult: () => ({ body: "LOCAL_PREVIEW", saju: { available: true } }),
+    require(moduleName) {
+      assert.equal(moduleName, './lib/buildConsultResult', 'only the local draft module may load in this mock');
+      return { buildFortuneTeaHouseConsultResult: state.buildFortuneTeaHouseConsultResult };
+    },
     createFortuneTeaAttemptId: () => `attempt-${++serial}`,
     beginFortuneTeaAccessGate: async () => {}, completeFortuneTeaAccessGate: async () => {},
     releaseFortuneTeaAccessGate: async () => {}, failFortuneTeaAccessGate: async () => {},
