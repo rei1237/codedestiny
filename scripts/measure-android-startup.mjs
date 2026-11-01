@@ -5,6 +5,21 @@ import { writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { parseMeminfo, resolveAdb } from './measure-app-memory.mjs';
 
+export function requireBenchmarkPackage(name) {
+  if (!['com.codedestiny.app.benchmark', 'com.codedestiny.app.benchmark.baseline', 'com.codedestiny.app.benchmark.candidate'].includes(name)) {
+    throw new Error('Use the isolated com.codedestiny.app.benchmark package with mocked APIs');
+  }
+  return name;
+}
+
+export function requireUnlockedDevice(policy) {
+  const state = /\bmIsShowing=(true|false)\b/.exec(policy)
+    || /\bmShowingLockscreen=(true|false)\b/.exec(policy)
+    || /KeyguardServiceDelegate[\s\S]*?\bshowing=(true|false)\b/.exec(policy);
+  if (!state) throw new Error('Cannot verify the phone lock state');
+  if (state[1] === 'true') throw new Error('Unlock the test phone before measuring startup');
+}
+
 export function launchTime(output) {
   if (!/^Status:\s*ok\s*$/m.test(output)) throw new Error('Android launch failed');
   const match = /^TotalTime:\s*(\d+)\s*$/m.exec(output);
@@ -30,25 +45,35 @@ async function main() {
     const index = args.indexOf(name);
     return index < 0 ? fallback : args[index + 1];
   };
-  const packageName = option('--package');
-  if (!/^com\.codedestiny\.app\.benchmark$/.test(packageName || '')) throw new Error('Use the isolated com.codedestiny.app.benchmark package with mocked APIs');
+  const packageName = requireBenchmarkPackage(option('--package'));
   const serial = option('--serial');
   if (!serial) throw new Error('--serial is required');
   const runs = Number(option('--runs', '5'));
   if (!Number.isInteger(runs) || runs < 5 || runs > 20) throw new Error('--runs must be 5–20');
+  const compilation = option('--compile', 'unchanged');
+  if (!['unchanged', 'full'].includes(compilation)) throw new Error('--compile must be unchanged or full');
   const adbPath = resolveAdb();
-  const adb = (...command) => execFileSync(adbPath, ['-s', serial, ...command], { encoding: 'utf8', timeout: 60000, maxBuffer: 8 * 1024 * 1024, windowsHide: true });
+  const adb = (...command) => execFileSync(adbPath, ['-s', serial, ...command], { encoding: 'utf8', timeout: 120000, maxBuffer: 8 * 1024 * 1024, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
   const info = adb('shell', 'dumpsys', 'package', packageName);
   if (!info.includes(`Package [${packageName}]`)) throw new Error('Benchmark app is not installed');
+  if (compilation === 'full' && !/^Success\s*$/m.test(adb('shell', 'cmd', 'package', 'compile', '-m', 'speed', '-f', packageName))) {
+    throw new Error('Benchmark compilation did not succeed');
+  }
   const component = `${packageName}/com.codedestiny.app.MainActivity`;
   const cold = [], warm = [];
   const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
   try {
     for (let run = 0; run < runs; run += 1) {
       adb('shell', 'input', 'keyevent', 'KEYCODE_WAKEUP');
+      requireUnlockedDevice(adb('shell', 'dumpsys', 'window', 'policy'));
       adb('shell', 'am', 'force-stop', packageName);
       cold.push(launchTime(adb('shell', 'am', 'start', '-W', '-n', component)));
       await delay(3000);
+    }
+    // Collect resumes after all cold launches: HOME invokes onTrimMemory and
+    // must not change WebView cache state between cold measurements.
+    for (let run = 0; run < runs; run += 1) {
+      requireUnlockedDevice(adb('shell', 'dumpsys', 'window', 'policy'));
       adb('shell', 'input', 'keyevent', 'KEYCODE_HOME');
       await delay(500);
       const resumed = adb('shell', 'am', 'start', '-W', '-n', component);
@@ -69,6 +94,7 @@ async function main() {
       model: adb('shell', 'getprop', 'ro.product.model').trim(),
       android: adb('shell', 'getprop', 'ro.build.version.release').trim(),
       versionCode: /versionCode=(\d+)/.exec(info)?.[1],
+      compilation, phases: ['cold', 'singleTask hot resume'],
       // am start -W measures activity launch, not web content readiness/TTFD.
       activityLaunchMs: { cold: summarize(cold), warm: warm.length ? summarize(warm) : null },
       warmTimingUnavailable: runs - warm.length,
