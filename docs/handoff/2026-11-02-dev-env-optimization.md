@@ -1,7 +1,7 @@
 ---
 status: done
 updated: 2026-11-02
-next: "완료 — push 하지 않았다. 이 브랜치를 main 에 넣을지는 사용자가 정한다. 넣기 전에 「결과」의 72cda36ab 주의를 확인한다"
+next: "완료 — 2026-11-02 origin/main 에 push 했다(a948f7572..679970261). 다른 체크아웃이 main 을 받기 전에 「백업과 복구」의 d15879d49 주의를 확인한다"
 ---
 
 # 개발 환경 최적화 (2026-11-02)
@@ -156,22 +156,22 @@ next: "완료 — push 하지 않았다. 이 브랜치를 main 에 넣을지는 
 
 ## 결과 (2026-11-02)
 
-push 하지 않았다. 커밋은 이 브랜치에만 있다(base `fd675f0da`).
+2026-11-02 사용자 요청으로 origin/main(a948f7572) 위에 rebase 해 push 했다(`a948f7572..679970261`). 아래 SHA 는 rebase 뒤 값이다. push 전에 rebase 된 트리에서 check:pre-push(16.5초)·typecheck·lint·test:node(4,097개)·관련 jest 2스위트가 통과했고, 결제 파일 변경 `--plan` 이 critical 로 남는 것을 확인했다.
 
 | 단계 | 커밋 | 내용 |
 |---|---|---|
-| 1 | `a52e66543` | `.gitignore` outputs, `.ignore`, `.vscode/settings.json` exclude |
-| 2 | `c74e3b513` | 깨끗한 트리 조기 종료(로컬 fast·ui·worker 만, 테스트 포함) |
-| 2 | `2200dac00` | `i18n/authored/*.json` low 분류 |
-| 2 | `621ebbb2e` | CSS·이미지·문서만 바뀌면 typecheck 생략 |
-| 2 | `7f1029a67` | eslint `--cache --cache-strategy content`(`build-cache/eslint/`) |
-| 3 | `42ec753c5` | AGENTS·CLAUDE·ARCHITECTURE·reference-basics·dev-environment-baseline 정리 |
-| 4 | `de386bb3a` | `verify:repo-hygiene`, `check:pre-push` 연결, guard-wiring 등록 |
-| 5 | `72cda36ab` | 검수 PNG·WebP 5,504개(1.1GB) 추적 해제, `.gitignore`, README |
-| 8 | `b8b22379a` | `_graveyard` 참조 없는 JS 3개 삭제 |
-| 8 | `31e3f952d` | 참조 없는 i18n 점파일 5개 삭제 |
-| 9 | `30c584495` | `docs/context/design-and-ui.md` CSS 수정 규칙 |
-| 10 | `716fa5c49` | `docs/dev-environment-baseline.md` 「2026-11-02 최적화 전후」 |
+| 1 | `cebc1faa6` | `.gitignore` outputs, `.ignore`, `.vscode/settings.json` exclude |
+| 2 | `e4f22d8b5` | 깨끗한 트리 조기 종료(로컬 fast·ui·worker 만, 테스트 포함) |
+| 2 | `7038c83d7` | `i18n/authored/*.json` low 분류 |
+| 2 | `e03df3784` | CSS·이미지·문서만 바뀌면 typecheck 생략 |
+| 2 | `bdfe31d89` | eslint `--cache --cache-strategy content`(`build-cache/eslint/`) |
+| 3 | `a7f37dfd8` | AGENTS·CLAUDE·ARCHITECTURE·reference-basics·dev-environment-baseline 정리 |
+| 4 | `893216466` | `verify:repo-hygiene`, `check:pre-push` 연결, guard-wiring 등록 |
+| 5 | `d15879d49` | 검수 PNG·WebP 5,504개(1.1GB) 추적 해제, `.gitignore`, README |
+| 8 | `bbac3bba3` | `_graveyard` 참조 없는 JS 3개 삭제 |
+| 8 | `1e9f42c02` | 참조 없는 i18n 점파일 5개 삭제 |
+| 9 | `45d2bf58b` | `docs/context/design-and-ui.md` CSS 수정 규칙 |
+| 10 | `63a9a4b35` | `docs/dev-environment-baseline.md` 「2026-11-02 최적화 전후」 |
 
 - 전후 수치는 `docs/dev-environment-baseline.md` 「2026-11-02 최적화 전후」에 있다.
 - 최종 트리에서 critical 전체 실행(test:node 4,086개, jest 443스위트·7,240개)과 `check:pre-push`(15.6초), `build:cf`(411초, exit 0)가 통과했다. 중간 커밋을 하나씩 따로 돌리지는 않았다.
@@ -185,8 +185,8 @@ push 하지 않았다. 커밋은 이 브랜치에만 있다(base `fd675f0da`).
 
 ### 백업과 복구
 
-- 검수 이미지: `D:\Development\backups\code-destiny-product-details-verification-20261102\`. 저장소 안에서 되돌리려면 `git checkout 72cda36ab^ -- docs/product-details/verification`.
-- **주의:** `72cda36ab`가 다른 체크아웃에 머지되면 그곳의 로컬 PNG가 작업 트리에서 지워진다. 머지 전에 위 백업이나 복구 명령을 확인한다.
+- 검수 이미지: `D:\Development\backups\code-destiny-product-details-verification-20261102\`. 저장소 안에서 되돌리려면 `git checkout d15879d49^ -- docs/product-details/verification`.
+- **주의:** `d15879d49`가 다른 체크아웃에 머지되면 그곳의 로컬 PNG가 작업 트리에서 지워진다. 머지 전에 위 백업이나 복구 명령을 확인한다.
 - `refs/codex`: `D:\Development\backups\codex-refs-20261102.bundle`(verify OK, 72 ref)과 `D:\Development\backups\codex-refs-20261102.list`(114 ref: sha·ref·날짜). 복원은 `git fetch <bundle> 'refs/codex/*:refs/codex/*'`, bundle 에 없는 42개(이미 origin/main 에 도달 가능)는 list 의 SHA 로 `git update-ref`.
 - `.git`: loose 66,881개(7.78GiB) + pack 1.41GiB → loose 0 + pack 3.42GiB. 이 중 0.83GiB 는 2주 안 된 cruft 라 다음 기본 `git gc`에서 회수된다.
 
