@@ -4,10 +4,12 @@ import {useEffect,useState} from 'react';
 import styles from '../yeongnyangi.module.css';
 import {useReadingLanguage} from '../_lib/use-reading-language';
 import {chromeCopy} from '../_lib/chrome-copy';
-import QuestionEntry from './QuestionEntry';
 import {CONSULTATION_DRAFT_KEY} from '@/lib/fortune/question-entry';
 import {readDestinyProfileAccountId} from '@/app/_lib/profile-card-storage';
 function ConsultationLoading(){const {siteLocale}=useReadingLanguage();return <p role="status" className={styles.loading}>{chromeCopy(siteLocale).loading}</p>;}
+// This form, like the full consultation, is selected only after resolving the
+// browser's route, language and private draft. Keep that client-only boundary explicit.
+const QuestionEntry=dynamic(()=>import('./QuestionEntry'),{ssr:false,loading:ConsultationLoading});
 const Consultation=dynamic(()=>import('./Consultation'),{ssr:false,loading:ConsultationLoading});
 const QuestionSkyConsultation=dynamic(()=>import('./QuestionSkyConsultation'),{ssr:false,loading:()=> <p className={styles.loading}>질문의 결을 살피는 중</p>});
 const Result=dynamic(()=>import('./Result'),{ssr:false,loading:ConsultationLoading});
