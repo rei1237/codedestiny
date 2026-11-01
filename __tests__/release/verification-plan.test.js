@@ -29,6 +29,7 @@ test('local paid selection reads the CI paths and rejects a malformed contract',
 for (const [name, files, tier, builds] of [
   ['documentation', ['docs/context/payment-gating.md'], 'fast', [false, false]],
   ['presentation CSS', ['styles/site.css'], 'fast', [false, false]],
+  ['translation source', ['i18n/authored/shell-02.json'], 'fast', [false, false]],
   ['UI', ['app/components/Button.tsx'], 'standard', [true, false]],
   ['Worker only', ['worker/routes/ziwei-ai.js'], 'critical', [false, true]],
   ['payment', ['lib/payment/portone.ts'], 'critical', [true, true]],
