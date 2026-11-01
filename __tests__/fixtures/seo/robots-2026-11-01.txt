@@ -1,6 +1,4 @@
-# Public search/retrieval allowed. Training permissions preserved; CCBot blocked.
-# Policy source: app/robots.ts. Each group includes private-path exclusions.
-User-agent: *
+User-Agent: *
 Allow: /
 Allow: /api/og
 Disallow: /api/
@@ -17,10 +15,14 @@ Disallow: /profile/
 Disallow: /payment/
 Disallow: /payments/
 Disallow: /checkout/
+Disallow: /points/
 Disallow: /success/
 Disallow: /fail/
 Disallow: /result/
 Disallow: /results/
+Disallow: /records/
+Disallow: /yeongnyangi/library/
+Disallow: /yeongnyangi/room/
 Disallow: /report/progress/
 Disallow: /my/
 Disallow: /me/
@@ -29,7 +31,7 @@ Disallow: /*?session=
 Disallow: /*?token=
 Disallow: /*?auth=
 
-User-agent: Mediapartners-Google
+User-Agent: Mediapartners-Google
 Allow: /
 Allow: /api/og
 Disallow: /api/
@@ -46,10 +48,14 @@ Disallow: /profile/
 Disallow: /payment/
 Disallow: /payments/
 Disallow: /checkout/
+Disallow: /points/
 Disallow: /success/
 Disallow: /fail/
 Disallow: /result/
 Disallow: /results/
+Disallow: /records/
+Disallow: /yeongnyangi/library/
+Disallow: /yeongnyangi/room/
 Disallow: /report/progress/
 Disallow: /my/
 Disallow: /me/
@@ -58,7 +64,7 @@ Disallow: /*?session=
 Disallow: /*?token=
 Disallow: /*?auth=
 
-User-agent: Googlebot
+User-Agent: Googlebot
 Allow: /
 Allow: /api/og
 Disallow: /api/
@@ -75,10 +81,14 @@ Disallow: /profile/
 Disallow: /payment/
 Disallow: /payments/
 Disallow: /checkout/
+Disallow: /points/
 Disallow: /success/
 Disallow: /fail/
 Disallow: /result/
 Disallow: /results/
+Disallow: /records/
+Disallow: /yeongnyangi/library/
+Disallow: /yeongnyangi/room/
 Disallow: /report/progress/
 Disallow: /my/
 Disallow: /me/
@@ -87,7 +97,7 @@ Disallow: /*?session=
 Disallow: /*?token=
 Disallow: /*?auth=
 
-User-agent: Bingbot
+User-Agent: Bingbot
 Allow: /
 Allow: /api/og
 Disallow: /api/
@@ -104,10 +114,14 @@ Disallow: /profile/
 Disallow: /payment/
 Disallow: /payments/
 Disallow: /checkout/
+Disallow: /points/
 Disallow: /success/
 Disallow: /fail/
 Disallow: /result/
 Disallow: /results/
+Disallow: /records/
+Disallow: /yeongnyangi/library/
+Disallow: /yeongnyangi/room/
 Disallow: /report/progress/
 Disallow: /my/
 Disallow: /me/
@@ -116,7 +130,7 @@ Disallow: /*?session=
 Disallow: /*?token=
 Disallow: /*?auth=
 
-User-agent: Yeti
+User-Agent: Yeti
 Allow: /
 Allow: /api/og
 Disallow: /api/
@@ -133,10 +147,14 @@ Disallow: /profile/
 Disallow: /payment/
 Disallow: /payments/
 Disallow: /checkout/
+Disallow: /points/
 Disallow: /success/
 Disallow: /fail/
 Disallow: /result/
 Disallow: /results/
+Disallow: /records/
+Disallow: /yeongnyangi/library/
+Disallow: /yeongnyangi/room/
 Disallow: /report/progress/
 Disallow: /my/
 Disallow: /me/
@@ -145,7 +163,7 @@ Disallow: /*?session=
 Disallow: /*?token=
 Disallow: /*?auth=
 
-User-agent: OAI-SearchBot
+User-Agent: OAI-SearchBot
 Allow: /
 Allow: /api/og
 Disallow: /api/
@@ -162,10 +180,14 @@ Disallow: /profile/
 Disallow: /payment/
 Disallow: /payments/
 Disallow: /checkout/
+Disallow: /points/
 Disallow: /success/
 Disallow: /fail/
 Disallow: /result/
 Disallow: /results/
+Disallow: /records/
+Disallow: /yeongnyangi/library/
+Disallow: /yeongnyangi/room/
 Disallow: /report/progress/
 Disallow: /my/
 Disallow: /me/
@@ -174,7 +196,7 @@ Disallow: /*?session=
 Disallow: /*?token=
 Disallow: /*?auth=
 
-User-agent: Claude-SearchBot
+User-Agent: Claude-SearchBot
 Allow: /
 Allow: /api/og
 Disallow: /api/
@@ -191,10 +213,14 @@ Disallow: /profile/
 Disallow: /payment/
 Disallow: /payments/
 Disallow: /checkout/
+Disallow: /points/
 Disallow: /success/
 Disallow: /fail/
 Disallow: /result/
 Disallow: /results/
+Disallow: /records/
+Disallow: /yeongnyangi/library/
+Disallow: /yeongnyangi/room/
 Disallow: /report/progress/
 Disallow: /my/
 Disallow: /me/
@@ -203,7 +229,7 @@ Disallow: /*?session=
 Disallow: /*?token=
 Disallow: /*?auth=
 
-User-agent: PerplexityBot
+User-Agent: PerplexityBot
 Allow: /
 Allow: /api/og
 Disallow: /api/
@@ -220,10 +246,14 @@ Disallow: /profile/
 Disallow: /payment/
 Disallow: /payments/
 Disallow: /checkout/
+Disallow: /points/
 Disallow: /success/
 Disallow: /fail/
 Disallow: /result/
 Disallow: /results/
+Disallow: /records/
+Disallow: /yeongnyangi/library/
+Disallow: /yeongnyangi/room/
 Disallow: /report/progress/
 Disallow: /my/
 Disallow: /me/
@@ -232,7 +262,7 @@ Disallow: /*?session=
 Disallow: /*?token=
 Disallow: /*?auth=
 
-User-agent: ChatGPT-User
+User-Agent: ChatGPT-User
 Allow: /
 Allow: /api/og
 Disallow: /api/
@@ -249,10 +279,14 @@ Disallow: /profile/
 Disallow: /payment/
 Disallow: /payments/
 Disallow: /checkout/
+Disallow: /points/
 Disallow: /success/
 Disallow: /fail/
 Disallow: /result/
 Disallow: /results/
+Disallow: /records/
+Disallow: /yeongnyangi/library/
+Disallow: /yeongnyangi/room/
 Disallow: /report/progress/
 Disallow: /my/
 Disallow: /me/
@@ -261,7 +295,7 @@ Disallow: /*?session=
 Disallow: /*?token=
 Disallow: /*?auth=
 
-User-agent: Claude-User
+User-Agent: Claude-User
 Allow: /
 Allow: /api/og
 Disallow: /api/
@@ -278,10 +312,14 @@ Disallow: /profile/
 Disallow: /payment/
 Disallow: /payments/
 Disallow: /checkout/
+Disallow: /points/
 Disallow: /success/
 Disallow: /fail/
 Disallow: /result/
 Disallow: /results/
+Disallow: /records/
+Disallow: /yeongnyangi/library/
+Disallow: /yeongnyangi/room/
 Disallow: /report/progress/
 Disallow: /my/
 Disallow: /me/
@@ -290,7 +328,7 @@ Disallow: /*?session=
 Disallow: /*?token=
 Disallow: /*?auth=
 
-User-agent: Perplexity-User
+User-Agent: Perplexity-User
 Allow: /
 Allow: /api/og
 Disallow: /api/
@@ -307,10 +345,14 @@ Disallow: /profile/
 Disallow: /payment/
 Disallow: /payments/
 Disallow: /checkout/
+Disallow: /points/
 Disallow: /success/
 Disallow: /fail/
 Disallow: /result/
 Disallow: /results/
+Disallow: /records/
+Disallow: /yeongnyangi/library/
+Disallow: /yeongnyangi/room/
 Disallow: /report/progress/
 Disallow: /my/
 Disallow: /me/
@@ -319,7 +361,7 @@ Disallow: /*?session=
 Disallow: /*?token=
 Disallow: /*?auth=
 
-User-agent: GPTBot
+User-Agent: GPTBot
 Allow: /
 Allow: /api/og
 Disallow: /api/
@@ -336,10 +378,14 @@ Disallow: /profile/
 Disallow: /payment/
 Disallow: /payments/
 Disallow: /checkout/
+Disallow: /points/
 Disallow: /success/
 Disallow: /fail/
 Disallow: /result/
 Disallow: /results/
+Disallow: /records/
+Disallow: /yeongnyangi/library/
+Disallow: /yeongnyangi/room/
 Disallow: /report/progress/
 Disallow: /my/
 Disallow: /me/
@@ -348,7 +394,7 @@ Disallow: /*?session=
 Disallow: /*?token=
 Disallow: /*?auth=
 
-User-agent: ClaudeBot
+User-Agent: ClaudeBot
 Allow: /
 Allow: /api/og
 Disallow: /api/
@@ -365,10 +411,14 @@ Disallow: /profile/
 Disallow: /payment/
 Disallow: /payments/
 Disallow: /checkout/
+Disallow: /points/
 Disallow: /success/
 Disallow: /fail/
 Disallow: /result/
 Disallow: /results/
+Disallow: /records/
+Disallow: /yeongnyangi/library/
+Disallow: /yeongnyangi/room/
 Disallow: /report/progress/
 Disallow: /my/
 Disallow: /me/
@@ -377,7 +427,7 @@ Disallow: /*?session=
 Disallow: /*?token=
 Disallow: /*?auth=
 
-User-agent: anthropic-ai
+User-Agent: anthropic-ai
 Allow: /
 Allow: /api/og
 Disallow: /api/
@@ -394,10 +444,14 @@ Disallow: /profile/
 Disallow: /payment/
 Disallow: /payments/
 Disallow: /checkout/
+Disallow: /points/
 Disallow: /success/
 Disallow: /fail/
 Disallow: /result/
 Disallow: /results/
+Disallow: /records/
+Disallow: /yeongnyangi/library/
+Disallow: /yeongnyangi/room/
 Disallow: /report/progress/
 Disallow: /my/
 Disallow: /me/
@@ -406,7 +460,7 @@ Disallow: /*?session=
 Disallow: /*?token=
 Disallow: /*?auth=
 
-User-agent: Claude-Web
+User-Agent: Claude-Web
 Allow: /
 Allow: /api/og
 Disallow: /api/
@@ -423,10 +477,14 @@ Disallow: /profile/
 Disallow: /payment/
 Disallow: /payments/
 Disallow: /checkout/
+Disallow: /points/
 Disallow: /success/
 Disallow: /fail/
 Disallow: /result/
 Disallow: /results/
+Disallow: /records/
+Disallow: /yeongnyangi/library/
+Disallow: /yeongnyangi/room/
 Disallow: /report/progress/
 Disallow: /my/
 Disallow: /me/
@@ -435,7 +493,7 @@ Disallow: /*?session=
 Disallow: /*?token=
 Disallow: /*?auth=
 
-User-agent: Google-Extended
+User-Agent: Google-Extended
 Allow: /
 Allow: /api/og
 Disallow: /api/
@@ -452,10 +510,14 @@ Disallow: /profile/
 Disallow: /payment/
 Disallow: /payments/
 Disallow: /checkout/
+Disallow: /points/
 Disallow: /success/
 Disallow: /fail/
 Disallow: /result/
 Disallow: /results/
+Disallow: /records/
+Disallow: /yeongnyangi/library/
+Disallow: /yeongnyangi/room/
 Disallow: /report/progress/
 Disallow: /my/
 Disallow: /me/
@@ -464,7 +526,7 @@ Disallow: /*?session=
 Disallow: /*?token=
 Disallow: /*?auth=
 
-User-agent: Applebot-Extended
+User-Agent: Applebot-Extended
 Allow: /
 Allow: /api/og
 Disallow: /api/
@@ -481,10 +543,14 @@ Disallow: /profile/
 Disallow: /payment/
 Disallow: /payments/
 Disallow: /checkout/
+Disallow: /points/
 Disallow: /success/
 Disallow: /fail/
 Disallow: /result/
 Disallow: /results/
+Disallow: /records/
+Disallow: /yeongnyangi/library/
+Disallow: /yeongnyangi/room/
 Disallow: /report/progress/
 Disallow: /my/
 Disallow: /me/
@@ -493,8 +559,8 @@ Disallow: /*?session=
 Disallow: /*?token=
 Disallow: /*?auth=
 
-User-agent: CCBot
+User-Agent: CCBot
 Disallow: /
 
-Sitemap: https://code-destiny.com/sitemap-index.xml
 Host: https://code-destiny.com
+Sitemap: https://code-destiny.com/sitemap-index.xml

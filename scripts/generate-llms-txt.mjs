@@ -19,7 +19,7 @@ import { FEATURE_INTRODUCTIONS } from '../lib/i18n/feature-introductions.mjs';
  * 🔴 사이트맵에 넣지 않는다 — verify-adsense-readiness 가 사이트맵 라우트에 HTML 산출물과
  *    최소 가시 텍스트를 요구한다. llms.txt 는 평문이라 그 게이트를 통과할 수 없다.
  *
- * 출력은 robots.txt·ads.txt 와 같은 패턴으로 **루트 + public/ 양쪽**에 쓴다.
+ * 출력은 ads.txt 와 같은 패턴으로 **루트 + public/ 양쪽**에 쓴다.
  */
 import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";

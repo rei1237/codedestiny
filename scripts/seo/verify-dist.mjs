@@ -14,11 +14,12 @@ import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "no
 import { dirname, join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { BRAND_FACTS } from "../../lib/brand/brand-facts.mjs";
+import { renderRobotsTxt } from "../../lib/seo/robots-policy.mjs";
 import { checkSitemapPage, htmlFileFor, redirectSources, sitemapLocs } from "../verify-sitemap-canonical.mjs";
 import { PAGES, verifyPage } from "../verify-home-identity.mjs";
 import { distAssets, probeEdge } from "./edge-probe.mjs";
 import {
-  decodeHtml, getCanonical, getH1s, getHreflang, getInternalLinks, getMeta, getTitle, parseSitemapAlternates, stripTags,
+  decodeHtml, getCanonical, getH1s, getHreflang, getInternalLinks, getMeta, getTitle, parseSitemapAlternates, robotsAllows, stripTags,
 } from "./health-policy.mjs";
 
 export const RULES = {
@@ -35,6 +36,8 @@ export const RULES = {
   // 루트 레이아웃의 og:title 이 하위 페이지로 상속되면 모든 쪽이 홈과 같은 제목으로 공유된다. 홈이 아닌 쪽의 og:title 이 홈과 같으면 1건.
   "og-home-title": "fail",
   "hreflang-sitemap": "warn",
+  // dist/robots.txt 가 정본(lib/seo/robots-policy.mjs)과 표본 UA×경로 판정·Sitemap 경로가 모두 같아야 한다.
+  "robots-policy": "fail",
   "edge-slash-308": "warn",
   "edge-country-302": "warn",
   "edge-crawler-cookie": "warn",
@@ -262,6 +265,44 @@ function checkHreflangSitemap(site, distDir) {
   return details;
 }
 
+// robots-policy: dist/robots.txt 와 정본(renderRobotsTxt)의 판정을 표본 UA×경로마다 견준다. 호스트는 보지 않는다
+// (스테이징 빌드의 siteUrl 이 다를 수 있다). 표에 없는 봇은 '*' 그룹 상속을, 소문자 googlebot 은 UA 대소문자
+// 무시를 본다. 경로는 서비스 구역마다 하나씩과 쿼리 규칙(/*?auth= 등)을 밟는 쪽을 고정으로 두고,
+// 양쪽 파일의 User-agent 이름과 Allow/Disallow 값(`*` → x)을 모두 더한다.
+const ROBOTS_SAMPLE_AGENTS = ["googlebot", "SomeUnlistedBot"];
+const ROBOTS_SAMPLE_PATHS = [
+  "/", "/saju/", "/fortune/today/aries/", "/insights/", "/ggulggul/", "/yeongnyangi/", "/en/faq/", "/ja/faq/",
+  "/?auth=1", "/insights/x/?session=1", "/saju/?token=1", "/api/og?title=x",
+];
+
+function robotsSitemapPaths(text) {
+  return [...new Set([...text.matchAll(/^\s*Sitemap:\s*(\S+)/gim)].map(([, url]) => safePathname(url)))].sort();
+}
+
+function checkRobotsPolicy(distDir, origin) {
+  const dist = readText(join(distDir, "robots.txt"));
+  if (dist == null) return [`${join(distDir, "robots.txt")} 없음`];
+  const policy = renderRobotsTxt(origin);
+  const agents = new Set(ROBOTS_SAMPLE_AGENTS);
+  const paths = new Set(ROBOTS_SAMPLE_PATHS);
+  for (const text of [policy, dist]) {
+    for (const [, agent] of text.matchAll(/^\s*User-agent:\s*(\S+)/gim)) agents.add(agent);
+    for (const [, path] of text.matchAll(/^\s*(?:Allow|Disallow):\s*(\S+)/gim)) paths.add(path.replace(/\*/g, "x").replace(/\$$/, ""));
+  }
+  const verdict = (allowed) => (allowed ? "허용" : "차단");
+  const details = [];
+  for (const agent of agents) {
+    for (const path of paths) {
+      const want = robotsAllows(policy, path, agent);
+      const got = robotsAllows(dist, path, agent);
+      if (want !== got) details.push(`${agent} ${path}: dist ${verdict(got)}, 정본 ${verdict(want)}`);
+    }
+  }
+  const [want, got] = [robotsSitemapPaths(policy), robotsSitemapPaths(dist)];
+  if (want.join(" ") !== got.join(" ")) details.push(`Sitemap 경로: dist [${got.join(", ")}], 정본 [${want.join(", ")}]`);
+  return details;
+}
+
 // 엣지 규칙은 dist/_worker.js 를 vm 에서 돌리고 그 뒤에 Pages 정적 서빙 흉내(distAssets)를 둔다.
 // 흉내의 한계 — 개수를 읽을 때 감안할 것:
 //   - `_redirects`·`_headers` 를 적용하지 않는다(리디렉션·헤더 규칙은 다른 검사가 본다).
@@ -286,7 +327,7 @@ export async function inspectDist({ distDir, origin = BRAND_FACTS.service.siteUr
   const wants = (rule) => selected.includes(rule);
 
   const details = {};
-  const needsSite = selected.some((rule) => !EDGE_RULES.includes(rule) && rule !== "sitemap-set" && rule !== "home-identity");
+  const needsSite = selected.some((rule) => !EDGE_RULES.includes(rule) && !["sitemap-set", "home-identity", "robots-policy"].includes(rule));
   const site = needsSite ? loadSite(distDir, origin) : null;
   const needsSources = wants("sitemap-page") || wants("internal-404");
   const sources = needsSources ? redirectSources(distDir) : null;
@@ -301,6 +342,7 @@ export async function inspectDist({ distDir, origin = BRAND_FACTS.service.siteUr
   if (wants("og-url")) details["og-url"] = checkOgUrl(site);
   if (wants("og-home-title")) details["og-home-title"] = checkOgHomeTitle(site, origin);
   if (wants("hreflang-sitemap")) details["hreflang-sitemap"] = checkHreflangSitemap(site, distDir);
+  if (wants("robots-policy")) details["robots-policy"] = checkRobotsPolicy(distDir, origin);
   let edgeError = null;
   if (EDGE_RULES.some(wants)) {
     if (edge && isFile(join(distDir, "_worker.js"))) {

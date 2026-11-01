@@ -1,11 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { checkSitemapPage, redirectingLinks } from '../../scripts/verify-sitemap-canonical.mjs';
-import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { distAssets, probeEdge } from '../../scripts/seo/edge-probe.mjs';
 import { RULES, inspectDist } from '../../scripts/seo/verify-dist.mjs';
+import { renderRobotsTxt } from '../../lib/seo/robots-policy.mjs';
 
 const loc = 'https://code-destiny.com/faq/';
 const page = (head) => `<html><head>${head}</head><body></body></html>`;
@@ -253,4 +254,25 @@ test('an unloadable dist worker is a warning, never a failure: warn-graded edge 
   for (const rule of ['edge-slash-308', 'edge-country-302', 'edge-crawler-cookie']) assert.equal(result.counts[rule], undefined);
   assert.equal(result.counts['page-shape'], 0);
   assert.ok(result.warnings.some((line) => line.startsWith('edge ')), JSON.stringify(result.warnings));
+});
+
+test('robots-policy fails when dist/robots.txt decides any sample differently from the policy module; the host is not compared', async () => {
+  const policy = renderRobotsTxt();
+  const check = async (robots) => inspectDist({ distDir: writeDist(robots == null ? cleanFixture() : { ...cleanFixture(), 'robots.txt': robots }), edge: false, rules: ['robots-policy'] });
+  assert.equal(RULES['robots-policy'], 'fail');
+
+  // 정본 그대로, 스테이징 호스트, 2026-11-01 운영본(그룹 18개·Host 줄)은 판정이 같다.
+  for (const same of [policy, renderRobotsTxt('https://staging.example'), readFileSync(new URL('../fixtures/seo/robots-2026-11-01.txt', import.meta.url), 'utf8')]) {
+    const result = await check(same);
+    assert.deepEqual(result.failures, [], JSON.stringify(result.details['robots-policy']));
+  }
+
+  const dropped = await check(policy.replace(/^Disallow: \/\*\?auth=\n/m, ''));
+  assert.equal(dropped.failures.length, 1);
+  assert.match(dropped.details['robots-policy'].join('\n'), /\?auth=/);
+  const lowerOnly = await check(`${policy}\nUser-agent: googlebot\nDisallow: /saju/\n`);
+  assert.ok(lowerOnly.counts['robots-policy'] > 0, 'a lowercase googlebot group must count as Googlebot');
+  const otherSitemap = await check(policy.replace('/sitemap-index.xml', '/sitemap.xml'));
+  assert.match(otherSitemap.details['robots-policy'].join('\n'), /Sitemap/);
+  assert.match((await check(null)).details['robots-policy'][0], /robots\.txt/);
 });

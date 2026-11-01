@@ -160,14 +160,14 @@ function params(query) {
 
 /* ⑦ robots.txt 가 /api/og 만 연다 */
 {
-  const robots = fs.readFileSync(path.join(ROOT, "app/robots.ts"), "utf8");
+  const robots = fs.readFileSync(path.join(ROOT, "lib/seo/robots-policy.mjs"), "utf8");
   assert.ok(
     robots.includes('"/api/og"'),
-    "app/robots.ts 가 /api/og 를 허용하지 않는다 — 구글이 og:image 를 못 읽어 리치 결과 썸네일이 죽는다",
+    "lib/seo/robots-policy.mjs 가 /api/og 를 허용하지 않는다 — 구글이 og:image 를 못 읽어 리치 결과 썸네일이 죽는다",
   );
   assert.ok(
     robots.includes('"/api/",'),
-    "app/robots.ts 의 /api/ Disallow 가 사라졌다 — 나머지 API 가 색인 대상이 된다",
+    "lib/seo/robots-policy.mjs 의 /api/ Disallow 가 사라졌다 — 나머지 API 가 색인 대상이 된다",
   );
   // 훈련 전용 크롤러 전면 차단은 그대로여야 한다.
   assert.ok(robots.includes('disallow: ["/"],'), "TRAINING_ONLY_CRAWLERS 차단이 사라졌다");
