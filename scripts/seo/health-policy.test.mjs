@@ -1,6 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { collectSitemapUrls, inspectPage, robotsAllows, sitemapDirectives } from './health-policy.mjs';
+import {
+  collectSitemapUrls, getCanonical, getH1s, getHreflang, getInternalLinks, getJsonLd, getMeta, getTitle,
+  hasNoindex, inspectPage, parseHeaderRobotsRules, parseSitemapAlternates, robotsAllows, sitemapDirectives,
+} from './health-policy.mjs';
 
 test('declared index reaches child URLs without treating sitemap files as pages', async () => {
   const base = 'https://example.com';
@@ -67,4 +70,39 @@ test('duplicate metadata is detected without counting scripts or comments', () =
   assert.ok(issues.includes('description count 2'));
   const quoted = html.replace('</head>', '<!-- <title>comment</title> --><script>const example = "<title>example</title>";</script></head>');
   assert.deepEqual(inspectPage({ url, status: 200, html: quoted }), []);
+});
+
+test('shared parsers read canonical, hreflang, H1 and meta as arrays', () => {
+  const html = '<title> A  B </title><link rel="canonical" href="https://code-destiny.com/a/"><link rel="alternate" hreflang="ko" href="https://code-destiny.com/a/"><meta property="og:url" content="https://code-destiny.com/"><h1>x</h1><h1>y</h1>';
+  assert.equal(getTitle(html), 'A B');
+  assert.equal(getTitle('<p>no title</p>'), '');
+  assert.deepEqual(getCanonical(html), ['https://code-destiny.com/a/']);
+  assert.deepEqual(getHreflang(html), [{ lang: 'ko', href: 'https://code-destiny.com/a/' }]);
+  assert.deepEqual(getH1s(html), ['x', 'y']);
+  assert.deepEqual(getMeta(html, 'og:url'), ['https://code-destiny.com/']);
+});
+test('getJsonLd flattens arrays and @graph, keeps escaped text, and reports parse errors', () => {
+  const ld = (s) => `<script type="application/ld+json">${s}</script>`;
+  const { nodes, errors } = getJsonLd(ld('[{"@id":"#a","@type":"Thing"}]') + ld('{"@graph":[{"@id":"#b","name":"\\u003c/script>"}]}') + ld('{bad'));
+  assert.deepEqual(nodes.map((n) => n['@id']), ['#a', '#b']);
+  assert.equal(nodes[1].name, '</script>');
+  assert.equal(errors.length, 1);
+});
+test('getInternalLinks ignores fragments, functional schemes and other hosts', () => {
+  const html = ['/a/', '#top', '/a/#x', 'mailto:x@y', 'tel:1', '//cdn.example.com/a', 'https://example.com/b', 'https://code-destiny.com/c/?action=openTarotModal']
+    .map((href) => `<a href="${href}">x</a>`).join('');
+  assert.deepEqual(getInternalLinks(html, 'https://code-destiny.com'), ['/a/', '/a/', '/c/?action=openTarotModal']);
+});
+test('parseSitemapAlternates maps each loc to its xhtml:link alternates', () => {
+  const xml = '<url><loc>https://code-destiny.com/a/</loc><xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/a/"/></url>';
+  assert.deepEqual(parseSitemapAlternates(xml).get('https://code-destiny.com/a/'), [{ lang: 'x-default', href: 'https://code-destiny.com/a/' }]);
+});
+test('hasNoindex reads robots and googlebot meta in either attribute order', () => {
+  assert.equal(hasNoindex('<meta name="robots" content="index,follow">'), false);
+  assert.equal(hasNoindex('<meta content="NOINDEX, nofollow" name="robots">'), true);
+  assert.equal(hasNoindex('<meta name="googlebot" content="noindex">'), true);
+});
+test('parseHeaderRobotsRules keeps only X-Robots-Tag rules on path patterns', () => {
+  const text = '# c\n/private/*\n  X-Robots-Tag: NoIndex\n/other\n  Cache-Control: no-store\n*.js\n  X-Robots-Tag: none\n';
+  assert.deepEqual(parseHeaderRobotsRules(text), [{ pattern: '/private/*', value: 'noindex' }]);
 });

@@ -89,3 +89,126 @@ export function robotsAllows(text, pathname, agent = 'googlebot') {
   }).sort((a, b) => b.value.replace(/[*$]/g, '').length - a.value.replace(/[*$]/g, '').length || Number(b.allow) - Number(a.allow));
   return rules[0]?.allow ?? true;
 }
+
+// Shared HTML / sitemap / header parsers. Pure string functions: no network, no filesystem.
+export function stripTags(html) {
+  return html
+    .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+    .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+export function decodeHtml(value = '') {
+  return value
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, ' ')
+    .trim();
+}
+
+const tagAttributes = (html, tag) => [...html.matchAll(new RegExp(`<${tag}(?=[\\s/>])[^>]*>`, 'gi'))].map(m => attributes(m[0]));
+const hasRelToken = (attrs, token) => (attrs.rel || '').toLowerCase().split(/\s+/).includes(token);
+
+export function getTitle(html) {
+  return decodeHtml(html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] || '').replace(/\s+/g, ' ');
+}
+
+export function getCanonical(html) {
+  return tagAttributes(html, 'link')
+    .filter(a => hasRelToken(a, 'canonical') && a.href)
+    .map(a => decodeHtml(a.href));
+}
+
+export function getHreflang(html) {
+  return tagAttributes(html, 'link')
+    .filter(a => hasRelToken(a, 'alternate') && a.hreflang && a.href)
+    .map(a => ({ lang: a.hreflang, href: a.href }));
+}
+
+export function getH1s(html) {
+  return [...html.matchAll(/<h1\b[^>]*>([\s\S]*?)<\/h1>/gi)].map(m => stripTags(m[1]));
+}
+
+// Arrays and @graph containers are flattened; a container is kept only if it carries its own properties.
+function flattenJsonLd(value, nodes = []) {
+  if (Array.isArray(value)) value.forEach(item => flattenJsonLd(item, nodes));
+  else if (value && typeof value === 'object') {
+    const isContainer = '@graph' in value && Object.keys(value).every(key => key === '@graph' || key === '@context');
+    if (!isContainer) nodes.push(value);
+    if ('@graph' in value) flattenJsonLd(value['@graph'], nodes);
+  }
+  return nodes;
+}
+
+export function getJsonLd(html) {
+  const nodes = [];
+  const errors = [];
+  for (const m of html.matchAll(/<script\s+[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)) {
+    try { flattenJsonLd(JSON.parse(m[1].trim()), nodes); } catch (error) { errors.push(error.message); }
+  }
+  return { nodes, errors };
+}
+
+// Same-origin pathname(+search) of every <a href>, in document order and without de-duplication.
+export function getInternalLinks(html, origin) {
+  const links = [];
+  for (const m of html.matchAll(/<a\b[^>]*href=["']([^"']+)["'][^>]*>/gi)) {
+    const href = decodeHtml(m[1]);
+    if (!href || href.startsWith('#') || /^(mailto|tel|javascript):/i.test(href)) continue;
+    try {
+      const url = new URL(href, `${origin}/`);
+      if (url.origin === origin) links.push(url.pathname + url.search);
+    } catch { /* unparsable href is not an internal link */ }
+  }
+  return links;
+}
+
+// `key` may be a meta name or property (og:url, description, robots, ...). Returns every content value.
+export function getMeta(html, key) {
+  const wanted = key.toLowerCase();
+  return tagAttributes(html, 'meta')
+    .filter(a => [a.name, a.property].some(v => v?.toLowerCase() === wanted) && a.content !== undefined)
+    .map(a => decodeHtml(a.content));
+}
+
+export function hasNoindex(html) {
+  return [...getMeta(html, 'robots'), ...getMeta(html, 'googlebot')].join(',').toLowerCase().includes('noindex');
+}
+
+// Cloudflare `_headers`: unindented lines are path patterns, indented lines are that pattern's headers.
+// Only X-Robots-Tag on path patterns is returned; precedence is deliberately not reproduced.
+export function parseHeaderRobotsRules(headersText) {
+  const rules = [];
+  let current = null;
+  for (const rawLine of headersText.split(/\r?\n/)) {
+    const trimmed = rawLine.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+    if (/^\s/.test(rawLine)) {
+      const match = trimmed.match(/^X-Robots-Tag:\s*(.+)$/i);
+      if (match && current) current.value = match[1].trim().toLowerCase();
+      continue;
+    }
+    current = { pattern: trimmed, value: '' };
+    rules.push(current);
+  }
+  return rules.filter(rule => rule.value && rule.pattern.startsWith('/'));
+}
+
+// Sitemap `xhtml:link rel="alternate"` entries per <loc> (both decoded), keyed by the loc URL.
+export function parseSitemapAlternates(xml) {
+  const map = new Map();
+  for (const block of xml.matchAll(/<url>([\s\S]*?)<\/url>/gi)) {
+    const loc = block[1].match(/<loc>([^<]+)<\/loc>/i)?.[1];
+    if (!loc) continue;
+    const alternates = [...block[1].matchAll(/<xhtml:link\b[^>]*>/gi)]
+      .map(m => attributes(m[0]))
+      .filter(a => a.hreflang && a.href)
+      .map(a => ({ lang: a.hreflang, href: decodeHtml(a.href) }));
+    map.set(decodeHtml(loc), alternates);
+  }
+  return map;
+}

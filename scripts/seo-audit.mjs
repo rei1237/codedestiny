@@ -1,6 +1,20 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { sitemapDirectives } from "./seo/health-policy.mjs";
+import {
+  decodeHtml,
+  getCanonical,
+  getH1s,
+  getHreflang,
+  getInternalLinks,
+  getJsonLd,
+  getMeta,
+  getTitle,
+  hasNoindex,
+  parseHeaderRobotsRules,
+  parseSitemapAlternates,
+  sitemapDirectives,
+  stripTags,
+} from "./seo/health-policy.mjs";
 
 const PRODUCTION_ORIGIN = "https://code-destiny.com";
 
@@ -122,69 +136,12 @@ async function readSitemapPaths() {
   }
 }
 
-function stripTags(html) {
-  return html
-    .replace(/<script[\s\S]*?<\/script>/gi, " ")
-    .replace(/<style[\s\S]*?<\/style>/gi, " ")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-function decodeHtml(value = "") {
-  return value
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, " ")
-    .trim();
-}
-
 function getTagContent(html, selector) {
-  const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const pattern = new RegExp(`<meta\\s+[^>]*(?:name|property)=["']${escaped}["'][^>]*content=["']([^"']*)["'][^>]*>`, "i");
-  const match = html.match(pattern);
-  return decodeHtml(match?.[1] || "");
-}
-
-function getTitle(html) {
-  return decodeHtml(html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] || "");
-}
-
-function getCanonical(html) {
-  return decodeHtml(html.match(/<link\s+[^>]*rel=["']canonical["'][^>]*href=["']([^"']+)["'][^>]*>/i)?.[1] || "");
+  return getMeta(html, selector)[0] || "";
 }
 
 function getLang(html) {
   return decodeHtml(html.match(/<html\s+[^>]*lang=["']([^"']+)["'][^>]*>/i)?.[1] || "");
-}
-
-function getHreflang(html) {
-  const links = [];
-  const pattern = /<link\s+[^>]*rel=["']alternate["'][^>]*>/gi;
-  for (const tag of html.match(pattern) || []) {
-    const lang = tag.match(/hreflang=["']([^"']+)["']/i)?.[1];
-    const href = tag.match(/href=["']([^"']+)["']/i)?.[1];
-    if (lang && href) links.push({ lang, href });
-  }
-  return links;
-}
-
-function getH1s(html) {
-  return [...html.matchAll(/<h1\b[^>]*>([\s\S]*?)<\/h1>/gi)].map((match) => stripTags(match[1]));
-}
-
-function getJsonLd(html) {
-  const blocks = [...html.matchAll(/<script\s+[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)];
-  return blocks.map((match) => {
-    const raw = match[1].trim();
-    try {
-      return { valid: true, raw, parsed: JSON.parse(raw) };
-    } catch (error) {
-      return { valid: false, raw, error: error.message };
-    }
-  });
 }
 
 function getImagesMissingAlt(html) {
@@ -199,22 +156,9 @@ function getImagesMissingAlt(html) {
   return images.filter((tag) => !/\salt=["'][^"']*["']/i.test(tag)).length;
 }
 
-function getInternalLinks(html) {
-  const links = new Set();
-  for (const match of html.matchAll(/<a\b[^>]*href=["']([^"']+)["'][^>]*>/gi)) {
-    const href = match[1];
-    if (!href || href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("tel:")) continue;
-    try {
-      const url = new URL(href, `${baseUrl}/`);
-      if (url.origin === baseUrl) links.add(url.pathname);
-    } catch {}
-  }
-  return [...links];
-}
-
-function hasNoindex(html) {
-  const robots = [getTagContent(html, "robots"), getTagContent(html, "googlebot")].join(",").toLowerCase();
-  return robots.includes("noindex");
+// 링크 그래프는 경로만 본다(쿼리 제외, 중복 제거). 공유 파서는 pathname+search 를 중복 포함해 돌려준다.
+function getInternalPaths(html) {
+  return [...new Set(getInternalLinks(html, baseUrl).map((link) => link.split("?")[0]))];
 }
 
 /**
@@ -269,7 +213,7 @@ async function auditPath(inputPath, sitemapIndexablePaths = new Set()) {
         text = retry.text;
       }
     }
-    const jsonLd = getJsonLd(text);
+    const { nodes: jsonLdNodes, errors: jsonLdErrors } = getJsonLd(text);
     const h1s = getH1s(text);
     const bodyText = stripTags(text);
     return {
@@ -277,7 +221,7 @@ async function auditPath(inputPath, sitemapIndexablePaths = new Set()) {
       path: inputPath,
       httpStatus: response.status,
       robots: hasNoindex(text) || /\b(noindex|none)\b/i.test(response.headers?.get("x-robots-tag") || "") ? "noindex" : "index",
-      canonicalUrl: getCanonical(text),
+      canonicalUrl: getCanonical(text)[0] || "",
       title: getTitle(text),
       metaDescription: getTagContent(text, "description"),
       h1Count: h1s.length,
@@ -288,12 +232,12 @@ async function auditPath(inputPath, sitemapIndexablePaths = new Set()) {
       twitterCard: getTagContent(text, "twitter:card"),
       lang: getLang(text),
       hreflang: getHreflang(text),
-      hasStructuredData: jsonLd.length > 0,
-      jsonLdValid: jsonLd.every((item) => item.valid),
-      jsonLdErrors: jsonLd.filter((item) => !item.valid).map((item) => item.error),
+      hasStructuredData: jsonLdNodes.length > 0 || jsonLdErrors.length > 0,
+      jsonLdValid: jsonLdErrors.length === 0,
+      jsonLdErrors,
       missingImageAltCount: getImagesMissingAlt(text),
       bodyTextLength: bodyText.length,
-      internalLinkCount: getInternalLinks(text).length,
+      internalLinkCount: getInternalPaths(text).length,
       shouldBeIndexed,
       shouldBeNoindex,
       error: null,
@@ -475,54 +419,15 @@ async function readFirstExisting(files) {
   return "";
 }
 
-/**
- * Cloudflare `_headers` 에서 X-Robots-Tag 규칙만 뽑는다.
- * 들여쓰지 않은 줄이 경로 패턴, 들여쓴 줄이 그 패턴의 헤더다.
- * 🔴 Cloudflare 의 정확한 우선순위까지 재현하지 않는다 — 목적이 "충돌 탐지"이므로
- *    매칭되는 규칙을 전부 모아 하나라도 noindex 면 noindex 로 본다.
- */
-function parseHeaderRobotsRules(text) {
-  const rules = [];
-  let current = null;
-  for (const rawLine of text.split(/\r?\n/)) {
-    const trimmed = rawLine.trim();
-    if (!trimmed || trimmed.startsWith("#")) continue;
-    if (/^\s/.test(rawLine)) {
-      const match = trimmed.match(/^X-Robots-Tag:\s*(.+)$/i);
-      if (match && current) current.robots = match[1].trim().toLowerCase();
-      continue;
-    }
-    current = { pattern: trimmed, robots: "" };
-    rules.push(current);
-  }
-  return rules.filter((rule) => rule.robots && rule.pattern.startsWith("/"));
-}
-
 function headerRobotsFor(routePath, rules) {
   const values = [];
   for (const rule of rules) {
     const matched = rule.pattern.endsWith("*")
       ? routePath.startsWith(rule.pattern.slice(0, -1))
       : normalizePathname(rule.pattern) === routePath;
-    if (matched) values.push(rule.robots);
+    if (matched) values.push(rule.value);
   }
   return values;
-}
-
-/** @graph·배열을 펼쳐 JSON-LD 노드를 전부 돌려준다. */
-function flattenJsonLd(value) {
-  const nodes = [];
-  const visit = (node) => {
-    if (Array.isArray(node)) {
-      node.forEach(visit);
-      return;
-    }
-    if (!node || typeof node !== "object") return;
-    nodes.push(node);
-    if (node["@graph"]) visit(node["@graph"]);
-  };
-  visit(value);
-  return nodes;
 }
 
 function pathFromUrl(href) {
@@ -554,16 +459,13 @@ async function readSitemapAlternates() {
   const { response, text } = await fetchText(absoluteUrl("/sitemap.xml"));
   if (response.status !== 200) return new Map();
   const map = new Map();
-  for (const block of text.matchAll(/<url>([\s\S]*?)<\/url>/gi)) {
-    const body = block[1];
-    const loc = body.match(/<loc>([^<]+)<\/loc>/i);
-    if (!loc) continue;
-    const from = pathFromUrl(decodeHtml(loc[1]));
+  for (const [loc, alternates] of parseSitemapAlternates(text)) {
+    const from = pathFromUrl(loc);
     if (!from) continue;
     const targets = new Map();
-    for (const alt of body.matchAll(/hreflang="([^"]+)"\s+href="([^"]+)"/gi)) {
-      const to = pathFromUrl(decodeHtml(alt[2]));
-      if (to) targets.set(to, [...(targets.get(to) || []), alt[1]]);
+    for (const { lang, href } of alternates) {
+      const to = pathFromUrl(href);
+      if (to) targets.set(to, [...(targets.get(to) || []), lang]);
     }
     map.set(from, targets);
   }
@@ -581,36 +483,32 @@ async function auditArtifacts(sitemapPathSet) {
 
   for (const [routePath, file] of routeFiles) {
     const html = await fs.readFile(file, "utf8");
-    const jsonLdBlocks = getJsonLd(html);
+    const { nodes: jsonLdNodes, errors: jsonLdParseErrors } = getJsonLd(html);
     const jsonLdTypes = new Set();
     const breadcrumbItems = [];
-    let jsonLdMissingType = false;
-    for (const block of jsonLdBlocks) {
-      if (!block.valid) continue;
-      const nodes = flattenJsonLd(block.parsed);
-      if (nodes.length === 0 || nodes.every((node) => !node["@type"])) jsonLdMissingType = true;
-      for (const node of nodes) {
-        const types = [].concat(node["@type"] || []);
-        types.forEach((type) => jsonLdTypes.add(String(type)));
-        if (!types.includes("BreadcrumbList")) continue;
-        for (const element of [].concat(node.itemListElement || [])) {
-          const item = element && element.item;
-          const id = typeof item === "string" ? item : (item && item["@id"]) || (element && element["@id"]);
-          if (id) breadcrumbItems.push(String(id));
-        }
+    // 공유 파서는 블록 경계를 지우므로 "@type 없음"은 페이지 단위로 판정한다(타입 있는 노드가 하나라도 있으면 통과).
+    const jsonLdMissingType = jsonLdNodes.length > 0 && jsonLdNodes.every((node) => !node["@type"]);
+    for (const node of jsonLdNodes) {
+      const types = [].concat(node["@type"] || []);
+      types.forEach((type) => jsonLdTypes.add(String(type)));
+      if (!types.includes("BreadcrumbList")) continue;
+      for (const element of [].concat(node.itemListElement || [])) {
+        const item = element && element.item;
+        const id = typeof item === "string" ? item : (item && item["@id"]) || (element && element["@id"]);
+        if (id) breadcrumbItems.push(String(id));
       }
     }
-    for (const link of new Set(getInternalLinks(html).map(normalizePathname))) {
+    for (const link of new Set(getInternalPaths(html).map(normalizePathname))) {
       if (link === routePath) continue;
       inbound.set(link, (inbound.get(link) || 0) + 1);
     }
     pages.set(routePath, {
-      canonical: getCanonical(html),
+      canonical: getCanonical(html)[0] || "",
       metaNoindex: hasNoindex(html),
       hreflang: getHreflang(html),
       headerRobots: headerRobotsFor(routePath, headerRules),
       jsonLdTypes: [...jsonLdTypes],
-      jsonLdValid: jsonLdBlocks.every((block) => block.valid),
+      jsonLdValid: jsonLdParseErrors.length === 0,
       jsonLdMissingType,
       breadcrumbItems,
     });
