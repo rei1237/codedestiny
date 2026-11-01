@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { adviceTopics, chapterAdviceTopics, teaAdviceTopics, neoAdviceTopics } from '../../js/recommendations-context.mjs';
 import { cleanProduct, reviewProduct, selectProducts, normalizeContext, validateAffiliateUrl, cleanSettings, providerEnabled } from '../../js/recommendations-core.mjs';
 const now = Date.parse('2026-10-09T00:00:00Z');
-const product = (id, tag, patch = {}) => reviewProduct(cleanProduct({ id,category:'books',kind:'book',title:id,reason:'일반 소개',practiceTags:[tag],topicReasons:{[tag]:'이 조언의 실천과 책의 내용을 연결합니다.'},interests:['reading'],affiliateUrl:'https://link.coupang.com/a/FixtureOnly',evidence:'mock facts',book:{author:'fixture',publisher:'fixture',edition:'1',language:'ko',format:'paper',editionEvidence:'mock edition',contentsEvidence:'mock contents',audience:'adult',perspective:'practical'},...patch }),{account:true,facts:true,image:true,allowedCategory:true},now);
+const product = (id, tag, patch = {}) => reviewProduct(cleanProduct({ id,category:'books',kind:'book',title:id,imageUrl:'/images/fixture.png',imageSource:'test only',reason:'일반 소개',practiceTags:[tag],topicReasons:{[tag]:'이 조언의 실천과 책의 내용을 연결합니다.'},interests:['reading'],affiliateUrl:'https://link.coupang.com/a/FixtureOnly',evidence:'mock facts',book:{author:'fixture',publisher:'fixture',edition:'1',language:'ko',format:'paper',editionEvidence:'mock edition',contentsEvidence:'mock contents',audience:'adult',perspective:'practical'},...patch }),{account:true,facts:true,image:true,allowedCategory:true},now);
 test('negation, third-person, examples and religious speculation never produce tags',()=>{
   for(const text of ['집착이 강하다는 뜻은 아니다','상대가 불안해할 수 있다','카르마 때문이라고 단정할 수 없다','만약 가계부를 정리하라고 한다면','예를 들어 마음챙김을 해보세요','상대방은 경계를 설정하세요']) assert.deepEqual(adviceTopics([text]),[],text);
   assert.deepEqual(adviceTopics(['마음챙김보다 가계부 정리가 우선']),['budgeting']);
@@ -148,7 +148,7 @@ test('expanded editorial catalogue matches advice and keeps publication gates cl
  assert.equal(release.proposedPublication.requiresSeparateApproval,true);
  assert.equal(new Set(drafts.map(p=>p.id)).size,drafts.length);
  assert.ok(drafts.every(p=>p.status==='draft' && !p.accountVerified));
- const catalogue=drafts.map(p=>reviewProduct(cleanProduct(p),{account:true,facts:true,image:true,allowedCategory:true},now));
+ const catalogue=drafts.map(p=>reviewProduct(cleanProduct({...p,imageUrl:'/images/fixture.png',imageSource:'test only'}),{account:true,facts:true,image:true,allowedCategory:true},now));
  const choose=tags=>selectProducts(catalogue,{service:'fortune-chat',source:'result',practiceTags:tags},now);
  for(const [tag,expected] of [
   ['focus',['deep-work-ko','tamsa-focus-timer']],

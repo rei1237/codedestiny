@@ -237,6 +237,7 @@
 /public/js/recommendations-copy.mjs
 /public/js/recommendations-core.mjs
 /public/js/recommendations-editorial.mjs
+/public/js/recommendations-footer.mjs
 /public/js/recommendations-legacy.mjs
 /public/js/review-reward-copy.mjs
 /public/js/review-reward-invite.mjs
@@ -340,7 +341,6 @@
 /public/styles/press-coverage.css
 /public/styles/profile-characters.css
 /public/styles/pwa-lifecycle.css
-/public/styles/recommendations.css
 /public/styles/result-samples.css
 /public/styles/review-reward.css
 /public/styles/saju-entry-flow.css

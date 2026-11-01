@@ -73,7 +73,7 @@ export function validateAffiliateUrl(raw, providerId = 'coupang') {
 export function validImageUrl(raw) {
   if (typeof raw !== 'string' || raw.length > 2048 || /[\s\\\u0000-\u001f]/.test(raw)) return false;
   if (/^\/(assets|images)\/[A-Za-z0-9/_-]+\.(webp|png|jpg|jpeg)$/.test(raw) && !raw.includes('..')) return true;
-  try { const u = new URL(raw); return u.protocol === 'https:' && !u.username && !u.password && !u.port && !u.search && !u.hash && /^(thumbnail[0-9]*\.coupangcdn\.com|image[0-9]*\.coupangcdn\.com)$/.test(u.hostname); } catch { return false; }
+  try { const u = new URL(raw); return u.protocol === 'https:' && !u.username && !u.password && !u.port && !u.search && !u.hash && /^(thumbnail[0-9]*\.coupangcdn\.com|image[0-9]*\.coupangcdn\.com|(?:t1c|t2c|t3a|t4a|t4c|t5a|t5c)\.coupangcdn\.com)$/.test(u.hostname); } catch { return false; }
 }
 const text = (v, max = 500) => typeof v === 'string' ? v.trim().slice(0, max) : '';
 const list = (v, allowed) => Array.isArray(v) ? [...new Set(v.filter(x => typeof x === 'string' && allowed(x)))].slice(0, 30) : [];
@@ -140,7 +140,7 @@ export function normalizeContext(input = {}) {
   const service = !input.service ? 'recommendations' : typeof input.service === 'string' && serviceRule(input.service) ? input.service : 'unsupported';
   return {
     service, category: CATEGORIES.includes(input.category) ? input.category : '',
-    source: ['result','article','browse'].includes(input.source) ? input.source : service === 'recommendations' ? 'browse' : 'result',
+    source: ['result','article','browse','footer'].includes(input.source) ? input.source : service === 'recommendations' ? 'browse' : 'result',
     practiceTags: cleanTopics(input.practiceTags),
     color: SYMBOL_COLORS.includes(input.color) ? input.color : '', motif: SYMBOL_MOTIFS.includes(input.motif) ? input.motif : '',
     currency: CURRENCIES.includes(input.currency) ? input.currency : 'KRW',
@@ -160,7 +160,7 @@ export function publicProduct(p, now = Date.now()) {
 }
 export function selectProducts(products, input = {}, now = Date.now()) {
   const c = normalizeContext(input), rule = serviceRule(c.service);
-  if (!rule || c.source === 'article') return [];
+  if (!rule || c.source === 'article' || (c.source === 'footer' && c.service !== 'recommendations')) return [];
   if (rule.explicitInterest) {
     c.interests = c.interests.filter(x => ['meal-prep', 'hydration', 'rest'].includes(x));
     if (!c.interests.length) return [];
@@ -168,6 +168,8 @@ export function selectProducts(products, input = {}, now = Date.now()) {
   const matches = products.filter(p => {
     const expires = new Date(p.expiresAt || 0).getTime(), verified = new Date(p.verifiedAt || 0).getTime();
     if (p.status !== 'active' || !p.accountVerified || reviewErrors(p).length || !Number.isFinite(expires) || !Number.isFinite(verified) || expires <= now || verified <= 0 || verified > now || now - verified > VALID_DAYS * DAY) return false;
+    if (['result', 'footer'].includes(c.source) && (!validImageUrl(p.imageUrl) || !p.imageSource)) return false;
+    if (c.source === 'footer' && (!['books', 'daily-life'].includes(p.category) || !p.practiceTags?.some(t => ['habit-building', 'journaling', 'focus', 'rest'].includes(t)) || ['buddhist-philosophy', 'modern-spirituality', 'divination-study'].includes(p.book?.perspective))) return false;
     // Symbols and supplements are explicit browsing choices, never fortune prescriptions.
     if ((p.practiceTags?.includes('symbolism') || p.kind === 'health-supplement') && c.source !== 'browse') return false;
     if (p.kind === 'health-supplement' && !c.practiceTags.includes('supplement-information')) return false;
@@ -176,7 +178,7 @@ export function selectProducts(products, input = {}, now = Date.now()) {
     if (p.category === 'pets' && (!c.species || !p.species.includes(c.species))) return false;
     if (p.category === 'fandom' && p.groupId && p.groupId !== c.groupId) return false;
     if (['books','daily-life'].includes(p.category) && !rule.explicitInterest) {
-      if (!c.practiceTags.length || !p.practiceTags?.some(t => c.practiceTags.includes(t))) return false;
+      if (c.source !== 'footer' && (!c.practiceTags.length || !p.practiceTags?.some(t => c.practiceTags.includes(t)))) return false;
       if (p.book?.perspective === 'divination-study' && !p.practiceTags.some(t => t.endsWith('-study') && c.practiceTags.includes(t))) return false;
       if (p.practiceTags?.includes('symbolism')) {
         // Browsing may follow an explicit purpose instead of a colour or motif.
@@ -194,6 +196,10 @@ export function selectProducts(products, input = {}, now = Date.now()) {
   const topicFor = (p, covered = '') => c.practiceTags.find(t => t !== covered && p.practiceTags?.includes(t));
   let selected = matches;
   let covered = '';
+  if (c.source === 'footer') {
+    const leaders = PROVIDERS.map(id => matches.find(p => (p.providerId || 'coupang') === id)).filter(Boolean);
+    selected = [...leaders, ...matches.filter(p => !leaders.includes(p))].slice(0, RESULT_PRODUCT_LIMIT);
+  }
   if (c.source === 'result' && matches.length) {
     const first = matches[0];
     covered = topicFor(first);
@@ -209,7 +215,7 @@ export function isEnabled(settings, service, released = RECOMMENDATIONS_RELEASED
 }
 export const EVENT_NAMES = ['impression', 'click', 'more', 'filter', 'dismiss'];
 export function cleanEvent(body) {
-  if (!body || Object.keys(body).some(k => !['event', 'service', 'placement', 'productId', 'consent'].includes(k)) || !EVENT_NAMES.includes(body.event) || !serviceRule(body.service) || !['result', 'browse'].includes(body.placement) || body.consent !== true) return null;
+  if (!body || Object.keys(body).some(k => !['event', 'service', 'placement', 'productId', 'consent'].includes(k)) || !EVENT_NAMES.includes(body.event) || !serviceRule(body.service) || !['result', 'browse', 'footer'].includes(body.placement) || body.consent !== true) return null;
   if (body.productId && !validId(body.productId)) return null;
   // Product events require a real id; legacy section impressions are no longer collected.
   if (['click', 'impression'].includes(body.event) && (!body.productId || body.productId === 'block')) return null;

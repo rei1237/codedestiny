@@ -7,3 +7,7 @@ export function RecommendationResult(props: Props) {
   if (!RECOMMENDATIONS_RELEASED || props.completed === false || props.source === 'article') return null;
   return <Result {...props}/>;
 }
+
+export function RecommendationFooter(props: { brand?: string; locale?: string }) {
+  return <Result {...props} service="recommendations" source="footer"/>;
+}
