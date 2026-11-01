@@ -25,6 +25,7 @@ export function useCopy(locale) {
 }
 export function ProductCard({ product, copy, preview = false, onClick = () => {}, onImageError = null, terms = true }) {
   const [failed, setFailed] = useState(false);
+  useEffect(() => { ensureRecommendationFonts(); }, []);
   const provider = affiliatePresentation(product.providerId);
   const merchant = provider.label || copy[provider.labelKey];
   const merchantCopy = value => product.providerId === 'aliexpress' ? value.replace(/쿠팡|Coupang|coupang/g, 'AliExpress') : value;
@@ -32,7 +33,7 @@ export function ProductCard({ product, copy, preview = false, onClick = () => {}
   const PlaceholderIcon = product.category === 'books' ? BookOpen : ShoppingBag;
   if (!preview && (failed || !validImageUrl(product.imageUrl))) return null;
   const ctaLabel = (product.linkType === 'search' ? copy.search : merchantCopy(copy.view)).replace(/\s*↗$/, '');
-  return <article data-recommendation-product={product.id} className={styles.product} data-affiliate-provider={product.providerId || 'coupang'}>
+  return <article data-recommendation-product={product.id} className={styles.product} data-affiliate-brand="moonlight" data-yn-night data-affiliate-provider={product.providerId || 'coupang'}>
     <div className={styles.image}>{validImageUrl(product.imageUrl) && !failed
       // eslint-disable-next-line @next/next/no-img-element -- 외부 제휴 이미지. 정적 export(images.unoptimized)라 next/image 이점이 없고 no-referrer·onError 대체가 필요하다
       ? <img src={product.imageUrl} alt={product.title} width="96" height="112" loading="lazy" referrerPolicy="no-referrer" onError={() => { setFailed(true); onImageError?.(product.imageUrl); }}/>
