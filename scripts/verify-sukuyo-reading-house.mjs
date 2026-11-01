@@ -87,12 +87,12 @@ try {
       await page.locator('.cdh-honey').screenshot({path:path.join(output,`honey-${width}.png`)});
     }
     await page.locator('[data-cd-sheet-open="cdHoneySheet"]').click();
-    await page.waitForFunction(()=>document.querySelectorAll('#cdHoneySheet .cd-honey-use').length===24);
+    await page.waitForFunction(count=>document.querySelectorAll('#cdHoneySheet .cd-honey-use').length===count, HONEY_UNLOCK_PRODUCTS.length);
     for (const width of [360,390,430,1280]) {
       await page.setViewportSize({width,height:900});
       const sheet=page.locator('#cdHoneySheet');
       assert.equal(await sheet.locator('.cd-honey-use-group').count(),6);
-      assert.equal(await sheet.locator('.cd-honey-use .cd-honey-eligible').count(),24);
+      assert.equal(await sheet.locator('.cd-honey-use .cd-honey-eligible').count(),HONEY_UNLOCK_PRODUCTS.length);
       assert.ok(await sheet.evaluate(el=>el.scrollWidth<=el.clientWidth+1));
       await sheet.screenshot({path:path.join(output,`honey-guide-${width}.png`)});
     }
