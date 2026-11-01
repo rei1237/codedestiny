@@ -16,19 +16,20 @@ const model={findById:id=>chain(()=>member?._id===id?member:null),
  updateOne:jest.fn(async(filter,update)=>{if(!member&&update.$setOnInsert)member={_id:filter._id,...update.$setOnInsert};if(update.$set)Object.assign(member,update.$set);if(update.$inc)for(const[k,v]of Object.entries(update.$inc))member[k]=(member[k]||0)+v;}),
 };
 const reserve=jest.fn(async()=>({accountKey:'hashed'}));
-const send=jest.fn(async()=>({ok:true})),grant=jest.fn(async()=>({status:'ACTIVE'}));let api;
+const send=jest.fn(async()=>({ok:true})),grant=jest.fn(async()=>({status:'ACTIVE'}));
+const snapshot=jest.fn(async()=>({featureKeys:SNU_SAJU_FEATURES.map(item=>item.featureKey)}));let api;
 beforeAll(async()=>{
  class Schema{constructor(){} }Schema.Types={};
  await jest.unstable_mockModule('../../worker/lib/db.js',()=>({mongoose:{Schema,models:{SnuCampusMember:model}}}));
  await jest.unstable_mockModule('../../worker/lib/db-scope-connection.js',()=>({scopedModel:x=>x}));
  await jest.unstable_mockModule('../../worker/lib/models.js',()=>({User:{findById:()=>chain(()=>({_id:UID,email}))}}));
  await jest.unstable_mockModule('../../worker/lib/resend.js',()=>({sendEmail:send}));
- await jest.unstable_mockModule('../../worker/lib/content-unlocks.js',()=>({grantPermanentUnlock:grant}));
+ await jest.unstable_mockModule('../../worker/lib/content-unlocks.js',()=>({grantPermanentUnlock:grant,getUnlockedContentSnapshot:snapshot}));
  await jest.unstable_mockModule('../../worker/lib/birth-scoped-unlock-identity.js',()=>({resolveBirthUnlockIdentity:jest.fn(async({profileId})=>{if(profileId==='other')throw Object.assign(new Error('invalid'),{code:'INVALID_PROFILE'});return{profileId,birthKey:profileBirth}})}));
  await jest.unstable_mockModule('../../worker/lib/snulife-code.js',()=>({reserveSnulifeCode:reserve}));
  api=await import('../../worker/lib/snu-campus.js');
 });
-beforeEach(()=>{jest.clearAllMocks();email='student@snu.ac.kr';member=null;reserve.mockResolvedValue({accountKey:'hashed'});profileBirth='birth-one';grant.mockResolvedValue({status:'ACTIVE'});});
+beforeEach(()=>{jest.clearAllMocks();email='student@snu.ac.kr';member=null;reserve.mockResolvedValue({accountKey:'hashed'});profileBirth='birth-one';grant.mockResolvedValue({status:'ACTIVE'});snapshot.mockResolvedValue({featureKeys:SNU_SAJU_FEATURES.map(item=>item.featureKey)});});
 test.each(['student@snu.ac.kr.evil.com','snu.ac.kr@evil.com','student@other.ac.kr','student@snu.ac.kr\n@evil.com'])('domain spoof %s is denied',value=>expect(isSnuEmail(value)).toBe(false));
 test('only reviewed non-LLM keys can be granted',()=>{expect(SNU_SAJU_FEATURES).toHaveLength(10);for(const key of ['saju-ai','fortune-chat-consultation','yeongnyangi-saju-mackerel','future-service'])expect(isSnuSajuFeature(key)).toBe(false);});
 test('typing a school email without verification cannot unlock',async()=>{await expect(api.unlockSnuSaju(UID,'own')).rejects.toMatchObject({payload:{code:'SNU_VERIFICATION_REQUIRED'}});expect(grant).not.toHaveBeenCalled();});
@@ -61,3 +62,12 @@ test('failed code reservation never creates membership',async()=>{reserve.mockRe
 
 test('an existing member rereads without consuming review or public capacity',async()=>{member={_id:'snulife:'+createHash('sha256').update(UID).digest('hex'),userId:UID,verifiedAt:new Date(),campaignId:'review',campaignMode:'review',campaignLimit:3,campaignEndsAt:new Date(0)};const r=await api.claimSnulifeCode(UID,'another-code',{});expect(r.verified).toBe(true);expect(r.campaign.mode).toBe('review');expect(reserve).not.toHaveBeenCalled();});
 test('a partial grant retries safely on the same profile',async()=>{member={_id:KEY,userId:UID,email,verifiedAt:new Date(),revision:1};grant.mockRejectedValueOnce(new Error('temporary db failure'));await expect(api.unlockSnuSaju(UID,'own')).rejects.toThrow('temporary db failure');expect(member.birthKey).toBe(profileBirth);const r=await api.unlockSnuSaju(UID,'own');expect(r.complete).toBe(true);for(const [args]of grant.mock.calls)expect(args.insertOnly).toBe(true);});
+
+test('status rereads active birth-scoped rights, instead of trusting the old grant receipt',async()=>{
+ member={_id:KEY,userId:UID,email,verifiedAt:new Date(),profileId:'own',grantedFeatureKeys:SNU_SAJU_FEATURES.map(item=>item.featureKey)};
+ snapshot.mockResolvedValueOnce({featureKeys:['section_summary','unrelated-ai']});
+ expect((await api.readSnuCampus(UID)).unlockedFeatureKeys).toEqual(['section_summary']);
+ expect(snapshot).toHaveBeenCalledWith({userId:UID,profileId:'own'});
+ snapshot.mockResolvedValueOnce({featureKeys:[]});expect((await api.readSnuCampus(UID)).unlockedFeatureKeys).toEqual([]);
+ expect(grant).not.toHaveBeenCalled();expect(reserve).not.toHaveBeenCalled();
+});

@@ -5,7 +5,7 @@ import { createHttpError } from './http.js';
 import { sendEmail } from './resend.js';
 import { normalizeSnuEmail, SNU_SAJU_FEATURES, SNU_SAJU_VERSION } from '../../js/core/snu-campus-policy.mjs';
 import { resolveBirthUnlockIdentity } from './birth-scoped-unlock-identity.js';
-import { grantPermanentUnlock } from './content-unlocks.js';
+import { grantPermanentUnlock, getUnlockedContentSnapshot } from './content-unlocks.js';
 
 const schema = new mongoose.Schema({
   _id: { type: String, required: true },
@@ -34,10 +34,17 @@ export async function readSnuCampus(userId) {
   const codeMember = await SnuCampusMember.findById(await codeMemberId(userId)).lean();
   const member = codeMember || (email ? await SnuCampusMember.findById(await memberId(email)).lean() : null);
   const verified = Boolean(member?.userId === String(userId) && member?.verifiedAt && (codeMember || email && member.email === email));
+  // The campaign receipt records what was granted, not whether it is still active.
+  // Reuse the birth-scoped access reader so revoked/deleted-profile rights never
+  // reappear as gifts. One snapshot query covers the whole reviewed allowlist.
+  const snapshot = verified && member.profileId
+    ? await getUnlockedContentSnapshot({ userId: String(userId), profileId: member.profileId }) : null;
+  const unlockedFeatureKeys = verified ? SNU_SAJU_FEATURES.filter(({ featureKey }) =>
+    member.grantedFeatureKeys?.includes(featureKey) && snapshot?.featureKeys.includes(featureKey)).map(item => item.featureKey) : [];
   return { eligibleEmail: Boolean(email), verified, email: email || null,
     profileId: verified ? member.profileId || null : null,
     campaign: verified && member.campaignId ? { mode: member.campaignMode, endsAt: member.campaignEndsAt, limit: member.campaignLimit } : null,
-    unlockedFeatureKeys: verified ? member.grantedFeatureKeys || [] : [], features: SNU_SAJU_FEATURES };
+    unlockedFeatureKeys, features: SNU_SAJU_FEATURES };
 }
 
 export async function claimSnulifeCode(userId, code, env) {
