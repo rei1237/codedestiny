@@ -1,8 +1,18 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { createAssetCacheKeys } from '../../scripts/lib/asset-cache-keys.mjs';
 import { analyticsAllowed, observeRecommendationProducts, observeRecommendation, recommendationQuery, trackRecommendation } from '../../js/recommendations-browser.mjs';
 
 function setGlobal(t, key, value) { const old = Object.getOwnPropertyDescriptor(globalThis, key); Object.defineProperty(globalThis,key,{value,writable:true,configurable:true}); t.after(()=>{if(old)Object.defineProperty(globalThis,key,old);else delete globalThis[key];}); }
+
+test('legacy stylesheet URL rotates with its content instead of reusing an immutable cached stylesheet', () => {
+  const root = fileURLToPath(new URL('../../', import.meta.url));
+  const loader = readFileSync(new URL('../../js/recommendations-legacy.mjs', import.meta.url), 'utf8');
+  const version = loader.match(/recommendations\.css\?v=(build-[a-f0-9]+)/)?.[1];
+  assert.equal(version, createAssetCacheKeys(root).resolve('/styles/recommendations.css', 'js/recommendations-legacy.mjs').key);
+});
 
 test('public release lock creates no analytics request even if called', () => {
   assert.doesNotThrow(() => trackRecommendation('click', { service:'legacy-saju' }, 'result', 'fixture'));
