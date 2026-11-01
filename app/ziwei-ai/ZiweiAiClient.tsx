@@ -1,4 +1,5 @@
 "use client";
+import dynamic from 'next/dynamic';
 import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
 import BirthTimeInput from "@/app/components/BirthTimeInput";
 
@@ -7,7 +8,7 @@ import introductionArt from "@/lib/marketing/service-introduction-art.json";
 import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import { RecommendationResult } from "@/app/components/recommendations/RecommendationResult";
 import { adviceTopics } from "@/js/recommendations-context.mjs";
-import PaidResultImageGuide from "@/components/fortune/PaidResultImageGuide";
+const PaidResultImageGuide = dynamic(() => import('@/components/fortune/PaidResultImageGuide'), { ssr: false });
 
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent } from "react";
@@ -25,8 +26,8 @@ import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
 import { authFetch } from "@/app/_lib/auth-client";
 import { isRetriableResultPollFailure, runAccessCheckWithTransientRetry } from "@/app/_lib/consultationResultPolling";
 import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from "@/lib/llm-text";
-import ConsultationReading from "@/components/fortune/ConsultationReading";
-import AnalysisBasisPanel from "@/components/fortune/AnalysisBasisPanel";
+const ConsultationReading = dynamic(() => import('@/components/fortune/ConsultationReading'), { ssr: false, loading: () => <p role="status">상담 풀이를 준비하고 있어요.</p> });
+const AnalysisBasisPanel = dynamic(() => import('@/components/fortune/AnalysisBasisPanel'), { ssr: false, loading: () => <p role="status">풀이 근거를 준비하고 있어요.</p> });
 import AnalysisBasisLoading from "@/components/fortune/AnalysisBasisLoading";
 import { fetchAnalysisBasis, type AnalysisBasis } from "@/lib/fortune/analysis-basis";
 import { readDevPreviewState } from "@/lib/dev-preview/core";

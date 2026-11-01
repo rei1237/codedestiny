@@ -11062,6 +11062,35 @@
   });
 
   window.cdOneStepFreeSajuEntry = function() {
+    if (new URLSearchParams(window.location.search).get('entry') === 'snulife') {
+      if (__cdDirectSajuEntryState.inFlight) return;
+      __cdDirectSajuEntryState.inFlight = true;
+      var entryScope = _dpGetProfileScope();
+      // A route marker never grants access or chooses a cached/other profile.
+      // Read the receipt and refresh this account's owned profiles first.
+      import('/js/core/snu-reading-flow.mjs').then(function(flow) {
+        return _dpFetchJsonWithFallback('/api/activation-rewards/snu/status', {
+          method: 'GET', credentials: 'include', cache: 'no-store', headers: _dpBuildAuthHeaders()
+        }, { allowWorkerFallback: false, retryOn401: true, timeoutMs: _DP_FETCH_TIMEOUT_MS }).then(function(result) {
+          if (entryScope !== _dpGetProfileScope()) return;
+          var state = result && result.ok && result.data;
+          if (!state || !state.verified || !state.profileId) throw new Error('SNULIFE_CODE_REQUIRED');
+          return new Promise(function(resolve) {
+            _dpLoadFromServer(function(loaded) {
+              if (entryScope !== _dpGetProfileScope()) { resolve(); return; }
+              var profile = loaded && flow.resolveSnuReadingProfile(state, DPStorage.list());
+              if (!profile) { resolve(false); return; }
+              DPStorage.setCurrent(_dpGetProfileId(profile));
+              _dpHomeIntent(''); _injectAndRun(profile, 'saju'); resolve(true);
+            });
+          }).then(function(opened) { if (opened === false) throw new Error('SNU_PROFILE_REQUIRED'); });
+        });
+      }).catch(function() {
+        __cdDirectSajuEntryState.inFlight = false;
+        if (entryScope === _dpGetProfileScope()) window.location.href = '/snu/';
+      });
+      return;
+    }
     var cached = _dpResolveCurrentProfileForSaju('');
     if (cached && cached.birth && _dpHasValidProfileDate(cached.birth.year, cached.birth.month, cached.birth.day)) {
       _dpHomeIntent('');

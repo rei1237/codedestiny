@@ -14,7 +14,7 @@ const compiled = ts.transpileModule(fs.readFileSync(path.resolve(__dirname, '../
 
 function render(native, locale) {
   const testModule = {exports: {}};
-  vm.runInNewContext(compiled, {module: testModule, exports: testModule.exports, require: name => {
+  vm.runInNewContext(compiled, {module: testModule, exports: testModule.exports, process: {env: {NEXT_PUBLIC_RUNTIME_TARGET: native ? 'mobile-app' : 'web'}}, require: name => {
     if (name.endsWith('/app-build-target')) return {IS_APP_BUILD: native};
     if (name.endsWith('/useT')) return {useLocale: () => locale};
     if (name.endsWith('/native-home-copy.json')) return copy;

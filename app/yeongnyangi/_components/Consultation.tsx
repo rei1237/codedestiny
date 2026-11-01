@@ -1,7 +1,8 @@
 "use client";
 import BirthTimeInput from "@/app/components/BirthTimeInput";
 
-import CheckoutClient from '@/app/checkout/CheckoutClient';
+import dynamic from 'next/dynamic';
+const CheckoutClient = dynamic(() => import('@/app/checkout/CheckoutClient'), { ssr: false });
 import {fusionIntroductionArt} from '../_lib/introduction-art';
 import QuestionCheckout from './QuestionCheckout';
 import {getQuestionGuide,questionScopeEntry} from "@/lib/fortune/question-journey";
@@ -11,7 +12,7 @@ import {emptyIntakeDecision,intakeFish,type IntakeValue} from '../_lib/intake-ch
 import {PREVENTION_TITLE} from '@/worker/lib/fortune-prevention.js';
 import {consultationBudget,fusionPremiumManifest,a4Label,A4_PAGE_NOTE} from '@/worker/yeongnyangi/fortune/consultation-budget';
 import {questionCandidate,recommendQuestion,QUESTION_POLICY_VERSION,questionTopics,questionDecision,questionManifest,questionScopes,FOLLOWUP_LIMITS,type QuestionDecision,type QuestionFish} from '@/worker/yeongnyangi/fortune/ask/question-policy';
-import RelationshipJourney from './RelationshipJourney';
+const RelationshipJourney = dynamic(() => import('./RelationshipJourney'), { ssr: false });
 import {additionalKindDescription} from '../_lib/consultation-kind-copy';
 import {relationshipCopyFor} from '../_lib/relationship-locales';
 import {relationshipMethodCopy} from '../_lib/relationship-method-copy';
