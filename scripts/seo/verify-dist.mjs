@@ -278,15 +278,19 @@ function checkJsonLdIdType(site) {
     .map(([id, types]) => `${id}: ${[...types].map(([type, locs]) => `${type} (${sample(locs)})`).join(" ≠ ")}`);
 }
 
-// 날짜 값마다 1건: ISO 8601 이 아니거나(없는 날짜 포함) now 보다 뒤.
+// 날짜 값마다 1건: ISO 8601 이 아니거나(없는 날짜 포함) KST 날짜가 now 의 KST 날짜보다 뒤.
+// 날 단위로 본다: 날짜만 있는 원본을 toISOString() 으로 내보낸 값은 그날 09:00 KST 라서,
+// 시각으로 비교하면 00:00~09:00 KST 빌드(00:10 일일 발행 포함)가 정상 콘텐츠로 실패한다.
+// 운세 Article 의 시각 단위 검사는 fortune-date-contract 가 맡는다.
+const kstDay = (ms) => new Date(ms + 9 * 3_600_000).toISOString().slice(0, 10);
 function checkJsonLdDates(site, now) {
-  const nowMs = now.getTime();
+  const today = kstDay(now.getTime());
   const details = [];
   for (const { loc, facts } of site.pages) {
     for (const { field, value } of facts?.jsonLd.dates ?? []) {
       const ms = parseJsonLdDate(value);
       if (ms === null) details.push(`${loc}: ${field} ${JSON.stringify(value)} 를 ISO 8601 로 읽을 수 없다`);
-      else if (ms > nowMs) details.push(`${loc}: ${field} ${value} 가 검사 시각 ${now.toISOString()} 보다 뒤`);
+      else if (kstDay(ms) > today) details.push(`${loc}: ${field} ${value} 가 검사일 ${today}(KST) 보다 뒤`);
     }
   }
   return details;

@@ -354,6 +354,8 @@ test('jsonld-dates counts future and unparsable dates on any node; valid, bounda
     '/e/': ldScript({ '@type': 'Article', datePublished: '2026-06-21', dateModified: '2026-11-01' }),
     // 오프셋이 없으면 KST 로 읽는다(기계 시간대와 무관). now 와 같은 순간은 통과.
     '/f/': ldScript({ '@type': 'Article', datePublished: '2026-11-01T00:29:00', dateModified: '2026-10-31T15:30:00.000Z' }),
+    // 날짜만 있는 원본을 new Date().toISOString() 으로 내보낸 값(UTC 자정 = 09:00 KST). 검사일과 같은 KST 날이면 통과.
+    '/g/': ldScript({ '@type': 'Article', datePublished: '2026-11-01T00:00:00.000Z', dateModified: '2026-11-01T08:59:59+09:00' }),
   };
   const result = await inspectDist({ distDir: writeDist(ldFixture(pages)), edge: false, rules: ['jsonld-dates'], now });
   assert.equal(result.counts['jsonld-dates'], 3, JSON.stringify(result.details['jsonld-dates']));
@@ -361,7 +363,7 @@ test('jsonld-dates counts future and unparsable dates on any node; valid, bounda
   assert.match(joined, /\/a\/.*datePublished.*2026-11-02/);
   assert.match(joined, /\/b\/.*dateModified.*2026-13-45/);
   assert.match(joined, /\/c\/.*datePublished.*November/);
-  assert.doesNotMatch(joined, /\/[def]\//);
+  assert.doesNotMatch(joined, /\/[defg]\//);
   // 같은 산출물을 하루 뒤에 검사하면 /a/ 도 과거다.
   const later = await inspectDist({ distDir: writeDist(ldFixture(pages)), edge: false, rules: ['jsonld-dates'], now: new Date('2026-11-02T00:00:00Z') });
   assert.equal(later.counts['jsonld-dates'], 2, JSON.stringify(later.details['jsonld-dates']));
