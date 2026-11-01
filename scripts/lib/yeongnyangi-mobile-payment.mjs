@@ -83,6 +83,10 @@ export async function fixtures(browser,base,product,width=390,{monthlyBalance=0}
    items:listReviewProductSummaries().map(product=>({...product,total:0,average:0}))});
   if(path==='/api/recommendations'&&request.method()==='GET')return send({enabled:false,products:[]});
   if(!state.auth&&path!=='/api/yeongnyangi/products')return send({ok:false,code:'UNAUTHORIZED',message:'QA 세션 만료'},401);
+  // The shared entry banner reads these two endpoints on signed-in pages.
+  // This payment fixture has no activation/SNULIFE grant; writes stay unknown.
+  if(path==='/api/activation-rewards/status'&&request.method()==='GET')return send({ok:true,accountId:user.id,wallet:{balance:state.monthlyBalance},tutorial:{eligible:false,legacySignupReceived:false},firstPaid:{},recommendations:[]});
+  if(path==='/api/activation-rewards/snu/status'&&request.method()==='GET')return send({ok:true,eligibleEmail:false,verified:false,complete:false,campaign:null,unlockedFeatureKeys:[],features:[]});
   if(path==='/api/payments/config')return send(config);
   if(path==='/api/payments/birth-profile-pending'&&request.method()==='GET')return send({ok:true,orders:[]});
   if(path==='/api/payments/service-packs/catalog'&&request.method()==='GET')return send({ok:true,plans:listServicePackPlans(),giftEnabled:false});
