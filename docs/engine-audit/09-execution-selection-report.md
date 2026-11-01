@@ -53,4 +53,4 @@ status: generation-boundary-implemented-default-off-local-only
 
 되돌림은 이후 신규 선택을 OFF로 두고 저장 snapshot reader를 유지하는 것이다. 구현의 신규 ON은 직접 호출한 테스트 옵션에서만 검증했으며 운영 요청에서 켜지지 않는다. 정확도 의심 시 영향을 받는 재개만 보류하고 원문·결제 증거를 보존한다. 이전 코드로 저장 명반을 지우거나 새 버전 결과를 일괄 재계산하지 않는다.
 
-로컬 커밋과 정적 종료 검사를 마친 뒤 종료한다. main 병합·push·배포는 하지 않는다.
+구현 로컬 커밋: `bba0426e06b662574b49e470fd4877eeb2a3815b`. 커밋된 트리에서 `npm run check:pre-push` 종료 0(홈 등록부 63개·공개 미러 재생성 차이 0·사이트맵 1,037 URL·llms·SEO 등록부). 이 검사에는 앞서 실패한 `payment-choice-parity`가 포함되지 않으며 해당 실패는 여전히 보류다. 문서 상대 링크 25개·코드 블록 짝·doc freshness·공백 검사 통과, Git에 커밋된 새 증거 2개 해시 보존 확인. main 병합·push·배포 없이 기존 격리 작업 공간에 보존하고 종료했다.
