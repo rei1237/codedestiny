@@ -36,13 +36,13 @@ spacing:
 
 은발·푸른 눈·금장 판타지 코트의 기존 네오를 유지하고, 조언을 편하게 꺼내는 서재와 정돈된 상담문을 연결한다. 네이비 퍼플과 샴페인 골드는 루트 [DESIGN.md](../../../DESIGN.md)의 네오 세계관을 따른다. 이 문서는 해당 표면의 구현 기록이며 전역 정본을 대체하지 않는다.
 
-진입은 인물·공간 일러스트로, 결과는 판단과 행동을 읽는 여백으로 구분한다. 전략서 리더는 현재 테마의 `--cd-*`를 사용하므로 모든 화면이 고정 다크인 것은 아니다. 화면별 흐름·검증 범위는 [surface brief](../../../.impeccable/surfaces/neo-strategy.md)에 기록한다.
+진입은 인물·공간 일러스트로, 결과는 판단과 행동을 읽는 여백으로 구분한다. 전략서 리더는 2026-11-01 사용자 요청에 따라 푸른 남색으로 고정하고, 전역 분홍 테마와 분리한다. 화면별 흐름·검증 범위는 [surface brief](../../../.impeccable/surfaces/neo-strategy.md)에 기록한다.
 
 ## Colors
 
 Primary는 `neo-accent`, Secondary는 `neo-gold`, Neutral은 나머지 네오 색이다. 결과 CSS의 `--nr-bg/surface/text/muted/accent/gold`가 위 색에 대응한다. `neo-muted`는 결과 전용 보조 글자색이다.
 
-결과 경계선은 `color-mix(in srgb, var(--nr-accent) 25%, transparent)`다. 전략서는 `--cd-bg/text/border`로 배경·글자·경계선을 함께 전환한다. 진입의 기존 CTA는 로컬 `--cd-cta-primary-*` 네이비 바탕과 밝은 글자, 금색 경계선을 유지한다.
+결과 경계선은 `color-mix(in srgb, var(--nr-accent) 25%, transparent)`다. 전략서는 기존 `--cd-neo-letter-night/blue/blue-hover/paper/silver`를 사설 `--nb-*` 토큰으로 연결해 남색 바탕·푸른 버튼·밝은 본문·은빛 경계선을 함께 적용한다. 진입의 기존 CTA는 로컬 `--cd-cta-primary-*` 네이비 바탕과 밝은 글자, 금색 경계선을 유지한다.
 
 ## Typography
 
