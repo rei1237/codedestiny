@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-11-01
-next: "묶음 ① 승인 패킷(D:/Development/seo-audit/code-destiny-20261101/bundle-1/approval-packet.md) 검토 → 승인 시 push·스테이징·운영"
+updated: 2026-11-02
+next: "묶음 ① 운영 배포 승인을 받는다(승인 패킷 갱신 → gh workflow run cloudflare-pages-deploy.yml -f mode=production → /version.json 확인), 그 뒤 superpowers:writing-plans로 묶음 ② A1 엣지 계획을 쓴다"
 ---
 
 # SEO 아키텍처 재구축
@@ -20,13 +20,14 @@ next: "묶음 ① 승인 패킷(D:/Development/seo-audit/code-destiny-20261101/b
 
 ## 지금 상태
 
-- 묶음 ① 로컬 구현·검토 끝, push 안 함. 계획은 `docs/superpowers/plans/2026-11-01-seo-bundle-1-v0-a2-d1.md`(`0e423795b`).
-  - 커밋: T1 `5d2c4aaf5`·`42abd8dc0`, T2 `9b9b90625`·`a6a68a35d`, T3 `35d1f4f09`·`bc7b780ba`, T4 `372be4243`·`7853f8c5a`, T5 `b90f45268`, T6 `8b4b333ec`, T7 `e6865f5da`, T8 `f346c8b53`, T9 `9a93207ac`, 최종 검토 수정 `dc2efaea1`.
+- 묶음 ① main push 완료(2026-11-02, origin/main `32397321e` 위로 rebase). 운영 배포는 사용자가 아직 승인하지 않았다(push만 요청). 계획은 `docs/superpowers/plans/2026-11-01-seo-bundle-1-v0-a2-d1.md`(`e00cf2f88`).
+  - 커밋(rebase 후): T1 `cc57c748f`·`78e5cd1f9`, T2 `f4e76db9a`·`ad9e418d1`, T3 `6492b2ca7`·`f4f268314`, T4 `9807f5e50`·`ebecc316a`, T5 `f71eafb85`, T6 `023be9a18`, T7 `cdd15f625`, T8 `d7ba36b65`, T9 `53c4959ca`, 최종 검토 수정 `29ec78b93`.
   - 태스크마다 새 검토자, 끝에 Opus 전체 검토. Important 1건(jsonld-dates 시각 비교 → 새벽 빌드 거짓 실패)은 KST 날짜 비교로 고쳤다.
+  - rebase 충돌은 생성 파일(`config/sitemap-lastmod.json`, sitemap XML)뿐이었고 커밋마다 `npm run sitemap:generate`로 다시 만들었다. 운세 페이지 lastmod가 11-02로 하루 넘어간 것은 일일 갱신분이다.
 - verify-dist(로컬 build:cf): 실패 규칙 전부 0. og:url 8 → 0(실패로 승격). 경고 hreflang 185(80·1·100·4)와 엣지 3/1/4는 묶음 ②·③ 몫이다.
-- 증거와 승인 패킷: `D:\Development\seo-audit\code-destiny-20261101\bundle-1\`(`approval-packet.md`, verify-dist 전후 JSON, `regression\` 로그).
-- 운영 `98643c274`(11/01 13:35Z 빌드). origin/main `a40cb71b5`까지 다른 세션 커밋 7개가 같이 실린다(코드는 `08d56081a` 토스 하나).
-- rebase하면 `config/sitemap-lastmod.json` 충돌 1건이 난다. 생성 파일이니 `npm run sitemap:generate`로 다시 만든다.
+- 증거와 승인 패킷: `D:\Development\seo-audit\code-destiny-20261101\bundle-1\`(`approval-packet.md`, verify-dist 전후 JSON, `regression\` 로그, `sdd-ledger.md` 원장).
+- 운영은 `98643c274`(11/01 13:35Z 빌드)에 머물러 있다. main에는 묶음 ① 말고도 다른 세션 커밋이 운영 배포를 기다린다. 배포 승인 패킷에는 `git log 98643c274..origin/main`을 새로 뽑아 넣는다.
+- 미룬 사소한 항목(약 45건)은 별도 세션으로 넘겼다: `docs/handoff/2026-11-02-seo-bundle-1-followups.md`. 이 흐름은 묶음 ②부터 이어 간다. `verify-dist.mjs`를 같이 고치므로 자주 rebase한다.
 - Codex 수집본 없음. 11/07 홈 title D+30 관찰 대기.
 
 ## 작업 규칙
@@ -45,7 +46,8 @@ next: "묶음 ① 승인 패킷(D:/Development/seo-audit/code-destiny-20261101/b
 
 - [ ] 묶음 ① — verify-dist 실패 0, 경고가 감사 수치를 재현(og:url 8쪽, hreflang 100/80/8), 운영 `/version.json` SHA 일치
   - [x] 로컬: 구현·검토·회귀 통과, verify-dist 실패 0, 승인 패킷 작성
-  - [ ] 승인 → push → 운영 `/version.json` SHA 일치
+  - [x] main push (2026-11-02, HEAD는 이 문서 커밋)
+  - [ ] 운영 배포 승인 → `/version.json` SHA 일치
 - [ ] 묶음 ② — vm 하네스 5개국×3UA 불변, 절대 Location 301 한 번, 결제 회귀 통과
 - [ ] 묶음 ③ — 전 URL 색인 상태 diff 0, HTML과 사이트맵의 hreflang 집합 일치
 - [ ] Codex 수집본 반영 → 묶음 ④ → 묶음 ⑤ → F
@@ -93,5 +95,5 @@ npm run verify:staging -- --sha=<40자리 SHA>
 ## 재개
 
 - 새 세션은 `C:\Users\user`에서 열고 `/handoff D:\Development\codedestiny-worktrees\seo-architecture-rebuild-20261101-135310\docs\handoff\2026-11-01-seo-architecture-rebuild.md`로 시작한다.
-- 작업 디렉터리는 `D:\Development\codedestiny-worktrees\seo-architecture-rebuild-20261101-135310`이다. 마지막 커밋은 이 문서를 담은 브랜치 HEAD다(부모 `496c0bc62`, 기준 origin/main `a9634ff14`). rebase하면 SHA가 바뀐다.
+- 작업 디렉터리는 `D:\Development\codedestiny-worktrees\seo-architecture-rebuild-20261101-135310`이다. 브랜치는 origin/main과 같은 지점까지 push됐다. 이어서 할 때는 `git fetch` 후 `git rebase origin/main`부터 한다.
 - 다음 행동은 frontmatter `next`다.
