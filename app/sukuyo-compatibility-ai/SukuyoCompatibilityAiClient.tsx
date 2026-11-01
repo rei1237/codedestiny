@@ -52,7 +52,6 @@ import ExpertCharacterStage from "@/app/components/expert-consulting/ExpertChara
 import MasterProfile from "@/components/fortune/MasterProfile";
 import { masterProfiles } from "@/components/fortune/master-profiles";
 import { getExpertCharacter, getExpertLine, isExpertCharacterEnabled } from "@/src/features/expert-characters";
-import Image from "next/image";
 import { getCurrentLoadingLocale, INTL_LOCALE_BY_LOADING_LOCALE, type LoadingLocale } from "@/constants/loadingMessages";
 
 const QUOTE_SEEN_STORAGE_KEY = "cd:sukuyo-compat-result:quote-seen:v1";
@@ -183,9 +182,10 @@ function getSukuyoCompatCopy(locale: LoadingLocale): SukuyoCompatCopy {
 
 /** 이 파일 전용 로케일 훅 — 여러 하위 컴포넌트가 각자 useState+useEffect를 반복하지 않도록 공용화. */
 function useSukuyoCompatLocale(): LoadingLocale {
-  const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
+  const [locale, setLocale] = useState<LoadingLocale>("ko");
   useEffect(() => {
     const sync = () => setLocale(getCurrentLoadingLocale());
+    sync();
     window.addEventListener("languagechange", sync);
     window.addEventListener("cd:locale-ready", sync);
     return () => { window.removeEventListener("languagechange", sync); window.removeEventListener("cd:locale-ready", sync); };
@@ -1279,6 +1279,8 @@ type RecentConsultation = {
 
 export default function SukuyoCompatibilityAiClient() {
   const locale = useSukuyoCompatLocale();
+  const [clientReady, setClientReady] = useState(false);
+  useEffect(() => { setClientReady(true); }, []);
   const copy = getSukuyoCompatCopy(locale);
   // 서한비 — enabled 를 끄면 기존 예화 씬과 문구만 남는다.
   const hanbiOn = isExpertCharacterEnabled("hanbi");
@@ -1792,28 +1794,22 @@ export default function SukuyoCompatibilityAiClient() {
     <main className={styles.screen} data-sukuyo-ai-consultation data-duo-linked={bothComplete ? "true" : undefined} data-character={hanbiOn ? "hanbi" : undefined}>
       <div className={styles.threadLine} />
       <div className={styles.starField} aria-hidden="true" />
-      {!consultation && getCurrentLoadingLocale() === "ko" && <div className={styles.productGuide}><CraftedProductDisclosure featureKey="sukuyo-compatibility-ai" /></div>}
+      {!consultation && locale === "ko" && <div className={styles.productGuide}><CraftedProductDisclosure featureKey="sukuyo-compatibility-ai" /></div>}
       <section className={`${styles.shell} mx-auto w-full`}>
-        <m.aside
+        <aside
           className={styles.visualPanel}
-          initial={reduceMotion ? false : { opacity: 0, y: 16 }}
-          animate={reduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
-          transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
         >
           {hanbiOn ? (
             <div className={styles.hanbiKeyArt}>
-              <Image src={hanbiHero.src} alt={hanbiHero.alt} fill priority sizes="(max-width: 900px) 100vw, 46vw" className={styles.hanbiKeyArtImage} unoptimized />
+              <img src={hanbiHero.src} srcSet="/images/service-introductions/sukuyo-compatibility-ai-320.webp 320w, /images/service-introductions/sukuyo-compatibility-ai-480.webp 480w, /images/service-introductions/sukuyo-compatibility-ai-640.webp 640w, /images/service-introductions/sukuyo-compatibility-ai-960.webp 960w" alt={hanbiHero.alt} width={1536} height={1024} fetchPriority="high" decoding="async" sizes="(max-width: 900px) 100vw, 46vw" className={`${styles.hanbiKeyArtImage} absolute inset-0 h-full w-full`} />
             </div>
           ) : (
             <div className={styles.visualVeil} aria-hidden="true">
               <SukuyoYehwaScene />
             </div>
           )}
-          <m.div
+          <div
             className={styles.visualCopy}
-            initial={reduceMotion ? false : { opacity: 0, y: 10 }}
-            animate={reduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
           >
             <p className={styles.eyebrow}>
               <SukuyoMoonBadge />
@@ -1823,10 +1819,10 @@ export default function SukuyoCompatibilityAiClient() {
             <h2>우리의 인연은<br />어떤 달빛 아래에서<br />이어지고 있을까요?</h2>
             <p>끌림의 이유부터 반복되는 갈등까지. 27숙이 만드는 두 사람의 관계 리듬을 상담처럼 천천히 읽어드립니다.</p>
             <ExpertCharacterStage character="hanbi" mood={hanbiGreet.mood} line={hanbiGreet.text} placement="inline" locale={locale} className={styles.hanbiHeroStage} />
-          </m.div>
-        </m.aside>
+          </div>
+        </aside>
 
-        <section className={`${styles.workPanel}${!consultation ? ` ${styles.workPanelWithCta}` : ""}`}>
+        {clientReady && <section className={`${styles.workPanel}${!consultation ? ` ${styles.workPanelWithCta}` : ""}`}>
           {!consultation ? (
             <>
               <div className={styles.panelHeader}>
@@ -2012,10 +2008,10 @@ export default function SukuyoCompatibilityAiClient() {
               {error && <span>{error}</span>}
             </div>
           )}
-        </section>
+        </section>}
       </section>
       {/* 소개용 캐릭터 프로필 — 상담 진행·결과 화면에서는 내리고, 사전이 없는 다른 로케일에는 띄우지 않는다. */}
-      {hanbiOn && locale === "ko" && !busy && !result && <MasterProfile profile={masterProfiles.hanbi} />}
+      {clientReady && hanbiOn && locale === "ko" && !busy && !result && <MasterProfile profile={masterProfiles.hanbi} />}
       {phase === "start" && !result && <MoonLoadingScreen basis={basis} />}
       {result && resultOpen && (
         <CompatResultModal

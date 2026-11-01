@@ -2072,9 +2072,10 @@ function getVedicAiCopy(locale: LoadingLocale): VedicAiCopy {
 }
 
 function useVedicAiCopy(): VedicAiCopy {
-  const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
+  const [locale, setLocale] = useState<LoadingLocale>("ko");
   useEffect(() => {
     const sync = () => setLocale(getCurrentLoadingLocale());
+    sync();
     window.addEventListener("languagechange", sync);
     window.addEventListener("cd:locale-ready", sync);
     return () => {
@@ -2946,6 +2947,9 @@ export function StructuredReadingResult({
 
 export default function VedicAiClient() {
   const copy = useVedicAiCopy();
+  // Render the public introduction in HTML, then mount browser/profile controls.
+  const [clientReady, setClientReady] = useState(false);
+  useEffect(() => { setClientReady(true); }, []);
   const [form, setForm] = useState<FormState>(() => buildInitialForm());
   const [consultation, setConsultation] = useState<Consultation | null>(null);
   // 서버가 계산한 조티시 차트 근거 — 대기 화면이 실제 값을 단계별로 보여 준다.
@@ -3315,8 +3319,8 @@ export default function VedicAiClient() {
 
   return (
     <main className={styles.shell} data-vedic-ai-page="direct-route-v20260627">
-      <ConsultationMasterIntro kind="vedic" label={copy.heroTitle} lead={copy.heroLead} actionHref="#vedic-consultation-form" actionId="vedic-hero-start">
-        <PriceBadge featureKey="vedic-ai-consultation" prefix={copy.pricePrefix} />
+      <ConsultationMasterIntro kind="vedic" label={copy.heroTitle} lead={copy.heroLead} actionHref={clientReady ? "#vedic-consultation-form" : undefined} actionId="vedic-hero-start">
+        {clientReady && <PriceBadge featureKey="vedic-ai-consultation" prefix={copy.pricePrefix} />}
       </ConsultationMasterIntro>
 
       <ExpertValueCards
@@ -3328,7 +3332,7 @@ export default function VedicAiClient() {
         ]}
       />
 
-      <section className={styles.workspace}>
+      {clientReady && <section className={styles.workspace}>
         <form data-moonlit-form="" id="vedic-consultation-form" className={styles.formPanel} onSubmit={(event) => { event.preventDefault(); void handleSubmit(); }}>
           {!consultation && detectLocale() === "ko" && <CraftedProductDisclosure featureKey="vedic-ai-consultation" />}
           <div className={`${styles.panelHeader} flex-wrap`}>
@@ -3515,9 +3519,9 @@ export default function VedicAiClient() {
             </>
           )}
         </section>
-      </section>
+      </section>}
       {consultation?.status === "completed" && !busy && <RecommendationResult service="vedic-ai-consultation" practiceTags={cleanTopics(consultation.messages.filter(message => message.role === "assistant").flatMap(message => reportAdviceTopics(message.content)))}/>}
-      {!consultation && (
+      {clientReady && !consultation && (
         <ExpertStickyCta
           theme="vedic"
           targetId="vedic-consultation-form"
