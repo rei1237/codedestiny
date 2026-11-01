@@ -78,7 +78,7 @@ describe("versioned flower passes", () => {
     expect(FEATURE_KEY_PRICE_TABLE["yeongnyangi-saju-mackerel"].amountKRW).toBe(5000);
     expect(FEATURE_KEY_PRICE_TABLE["yeongnyangi-fusion-all"]).toMatchObject({ cost: 600, amountKRW: 60000, paymentScope: "direct_or_family" });
     for (const key of ["yeongnyangi-fusion-saju-ziwei", "yeongnyangi-fusion-sukuyo-vedic", "yeongnyangi-fusion-astrology-tarot"]) {
-      expect(FEATURE_KEY_PRICE_TABLE[key].amountKRW).toBe(50000);
+      expect(FEATURE_KEY_PRICE_TABLE[key]).toMatchObject({ cost: 400, amountKRW: 40000, paymentScope: "direct_or_family" });
     }
   });
 });

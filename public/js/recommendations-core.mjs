@@ -19,7 +19,7 @@ export function providerEnabled(settings, id = 'coupang') {
   const p = settings?.providers?.[id];
   return PROVIDERS.includes(id) && p?.enabled === true && p.approved === true && p.mediaRegistered === true && !!p.evidence && (id === 'coupang' ? p.trackingId === PARTNER_ACCOUNT : !!p.trackingId);
 }
-export const RESULT_PRODUCT_LIMIT = 2;
+export const RESULT_PRODUCT_LIMIT = 4;
 export const VALID_DAYS = 30;
 const DAY = 86400000;
 const systems = ['saju', 'ziwei', 'sukuyo', 'vedic', 'astrology', 'tarot'];
@@ -149,6 +149,7 @@ export function normalizeContext(input = {}) {
     groupId: validId(input.groupId) ? input.groupId : '',
     maxPrice: Number.isFinite(Number(input.maxPrice)) && Number(input.maxPrice) > 0 ? Math.min(Number(input.maxPrice), 100000000) : null,
     exclude: list(input.exclude, validId),
+    selectionSeed: typeof input.selectionSeed === 'string' && /^[A-Za-z0-9_-]{8,64}$/.test(input.selectionSeed) ? input.selectionSeed : '',
   };
 }
 export function currentPrice(p, now = Date.now()) {
@@ -193,6 +194,19 @@ export function selectProducts(products, input = {}, now = Date.now()) {
   });
   const score = p => (p.kind === 'book' ? 1000 : 0) + (p.practiceTags || []).filter(t => c.practiceTags.includes(t)).length * 100 + (p.serviceTags?.includes(c.service) ? 20 : 0) + p.interests.filter(x => c.interests.includes(x)).length * 10;
   matches.sort((a, b) => score(b) - score(a) || Number(b.featured) - Number(a.featured) || a.order - b.order || a.id.localeCompare(b.id));
+  // An anonymous, per-surface seed keeps the 60-second settings refresh stable.
+  // Shuffle only after every eligibility and practical-advice filter has passed.
+  if (c.selectionSeed && ['footer', 'result'].includes(c.source)) {
+    let state = 2166136261;
+    for (const char of c.selectionSeed) state = Math.imul(state ^ char.charCodeAt(0), 16777619) >>> 0;
+    for (let i = matches.length - 1; i > 0; i--) {
+      state = (state + 0x6d2b79f5) >>> 0;
+      let value = Math.imul(state ^ state >>> 15, 1 | state);
+      value ^= value + Math.imul(value ^ value >>> 7, 61 | value);
+      const j = Math.floor(((value ^ value >>> 14) >>> 0) / 4294967296 * (i + 1));
+      [matches[i], matches[j]] = [matches[j], matches[i]];
+    }
+  }
   const topicFor = (p, covered = '') => c.practiceTags.find(t => t !== covered && p.practiceTags?.includes(t));
   let selected = matches;
   let covered = '';

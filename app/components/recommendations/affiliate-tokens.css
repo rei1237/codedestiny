@@ -1,33 +1,3 @@
-/* Yeongnyangi night tokens are the source; Yeoni values mirror theme-tokens.css
-   explicitly so a saved Neo theme cannot turn the Ggulggul surface into another brand. */
+/* The approved moonlight affiliate panel uses the existing night palette, scoped to ads. */
 @import '../../yeongnyangi/night-tokens.css';
-[data-affiliate-brand] {
-  --rec-bg: var(--yn-deep);
-  --rec-surface: var(--yn-night);
-  --rec-raised: var(--yn-surface);
-  --rec-ink: var(--yn-ivory);
-  --rec-muted: var(--yn-muted);
-  --rec-accent: var(--yn-gold);
-  --rec-line: var(--yn-line);
-}
-[data-affiliate-brand="ggulggul"] {
-  --rec-bg: #fffaf7;
-  --rec-surface: #fff3f8;
-  --rec-raised: #fff8dc;
-  --rec-ink: #3c1830;
-  --rec-muted: #70445c;
-  --rec-accent: #b31955;
-  --rec-line: #b58398;
-  color-scheme: light;
-}
-/* Stable Neo palette from styles/theme-tokens.css; the report may be embedded outside a themed root. */
-[data-affiliate-brand="ggulggul"][data-brand="neo"] {
-  --rec-bg: #0a0818;
-  --rec-surface: rgba(19,16,42,.96);
-  --rec-raised: rgba(10,8,24,.98);
-  --rec-ink: #f4eeff;
-  --rec-muted: rgba(200,170,255,.7);
-  --rec-accent: #c4b5fd;
-  --rec-line: rgba(196,181,253,.32);
-  color-scheme: dark;
-}
+[data-affiliate-brand]{--rec-bg:var(--yn-deep,#0b1220);--rec-surface:var(--yn-night,#101b2c);--rec-raised:var(--yn-surface,#182a40);--rec-ink:var(--yn-ivory,#f3eee5);--rec-muted:var(--yn-muted,#bac9da);--rec-accent:var(--yn-gold,#e5c58e);--rec-line:var(--yn-line,rgba(200,216,236,.2));--rec-photo:#f3eee5;--rec-button-line:#7f715b;}

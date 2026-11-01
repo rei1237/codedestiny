@@ -462,12 +462,15 @@ const MODULE_IMPORT_CACHE_KEY_FILES = [
   // 모듈 import 는 아니지만 /styles/*.css immutable 캐시를 타는 동적 스타일시트 URL 을 싣는다.
   ["js", "feature-detail-preview.mjs"],
   ["js", "recommendations-legacy.mjs"],
+  ["js", "recommendations-browser.mjs"],
   ["js", "core", "saju", "basicFortunePresentation.js"],
 ];
 
 /** 다른 자산을 `?v=` 로 싣는 루트 로더 파일. 셸은 이 파일들의 내용 해시를 키로 문다. */
 const ROOT_LOADER_RESTAMP_FILES = [
   ...MODULE_IMPORT_CACHE_KEY_FILES.map((parts) => parts.join("/")),
+  "styles/mobile-bottom-nav.css",
+  "styles/recommendations.css",
   "js/mobile-interaction-patch.js",
   "js/core/uiBindings.js",
   "js/core/index-inline-runtime.js",

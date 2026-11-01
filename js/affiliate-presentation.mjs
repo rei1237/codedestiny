@@ -13,7 +13,7 @@ export function affiliatePresentation(id = 'coupang') {
 }
 const copy = {
   "ko": {
-    "inlineTitle": "풀이를 일상으로 잇는 작은 선택",
+    "inlineTitle": "풀이를 일상에 담는 작은 선택",
     "partnerTerms": "가격·배송·취소 조건은 판매처에서 확인해 주세요.",
     "bookPartner": "도서 제휴사 예시",
     "lifePartner": "라이프스타일 제휴사 예시",
@@ -145,4 +145,78 @@ const copy = {
     "resultLead": "Dipilih mengikut nasihat praktikal dalam bacaan anda."
   }
 };
-export function affiliateCopy(locale = "ko") { return copy[locale] || copy.ko; }
+const inlineCopy = {
+  "ko": {
+    "inlineIntro": "기록하고, 집중하고, 잠시 쉬어가는 시간을 위해.",
+    "shuffle": "다른 상품 보기",
+    "inlineNote": "마음에 드는 선택만 가볍게 살펴보세요.",
+    "dismiss": "이 제안 접기"
+  },
+  "en": {
+    "inlineIntro": "For writing, focus and a moment of rest.",
+    "shuffle": "Other products",
+    "inlineNote": "Explore only what suits you.",
+    "dismiss": "Hide suggestions"
+  },
+  "ja": {
+    "inlineIntro": "記録と集中、ひと休みの時間に。",
+    "shuffle": "別の商品を見る",
+    "inlineNote": "気になるものを気軽にご覧ください。",
+    "dismiss": "提案を閉じる"
+  },
+  "zh-CN": {
+    "inlineIntro": "为记录、专注和片刻休息。",
+    "shuffle": "看看其他商品",
+    "inlineNote": "轻松看看适合自己的选择。",
+    "dismiss": "收起推荐"
+  },
+  "zh-TW": {
+    "inlineIntro": "為記錄、專注和片刻休息。",
+    "shuffle": "看看其他商品",
+    "inlineNote": "輕鬆看看適合自己的選擇。",
+    "dismiss": "收起推薦"
+  },
+  "vi": {
+    "inlineIntro": "Cho việc ghi chép, tập trung và nghỉ ngơi.",
+    "shuffle": "Sản phẩm khác",
+    "inlineNote": "Chỉ khám phá những gì phù hợp với bạn.",
+    "dismiss": "Ẩn gợi ý"
+  },
+  "hi": {
+    "inlineIntro": "लिखने, ध्यान और विश्राम के लिए।",
+    "shuffle": "अन्य उत्पाद",
+    "inlineNote": "अपनी पसंद की चीज़ें देखें।",
+    "dismiss": "सुझाव छिपाएँ"
+  },
+  "es": {
+    "inlineIntro": "Para escribir, concentrarte y descansar.",
+    "shuffle": "Otros productos",
+    "inlineNote": "Explora solo lo que te guste.",
+    "dismiss": "Ocultar sugerencias"
+  },
+  "fr": {
+    "inlineIntro": "Pour écrire, se concentrer et se reposer.",
+    "shuffle": "Autres produits",
+    "inlineNote": "Explorez ce qui vous convient.",
+    "dismiss": "Masquer les suggestions"
+  },
+  "de": {
+    "inlineIntro": "Zum Schreiben, Fokussieren und Ausruhen.",
+    "shuffle": "Andere Produkte",
+    "inlineNote": "Entdecke, was zu dir passt.",
+    "dismiss": "Vorschläge ausblenden"
+  },
+  "nl": {
+    "inlineIntro": "Voor schrijven, focus en rust.",
+    "shuffle": "Andere producten",
+    "inlineNote": "Ontdek wat bij je past.",
+    "dismiss": "Suggesties verbergen"
+  },
+  "ms": {
+    "inlineIntro": "Untuk menulis, fokus dan berehat.",
+    "shuffle": "Produk lain",
+    "inlineNote": "Lihat pilihan yang sesuai dengan anda.",
+    "dismiss": "Sembunyikan cadangan"
+  }
+};
+export function affiliateCopy(locale = "ko") { return { ...(copy[locale] || copy.ko), ...(inlineCopy[locale] || inlineCopy.ko) }; }
