@@ -145,6 +145,9 @@ const UNWIRED_BY_DESIGN = [
   ["verify:seo-entity-registry", "SEO 엔티티 리포트 — 수동"],
   ["verify:cachebust-merge", "캐시버스트 병합 수동 점검 도구"],
 
+  // ── 로컬 push 직전 전용. check:pre-push(커밋된 트리)가 부른다. 이 가드의 게이트 루트는 CI·배포라 여기에 선언한다.
+  ["verify:repo-hygiene", "check:pre-push 전용 — push 전 커밋의 docs PNG·루트 산출물 폴더를 본다. CI 게이트 추가는 미승인(2026-11-02)"],
+
   // ── 배선 후보이나 미승인. 게이트 추가는 사용자 승인 사항이라 임의로 넣지 않는다.
   //    2026-09-13 에 이 그룹의 실측 통과분 41개는 SHADOW_OBSERVING 으로 갔다. 여기 남은 것은
   //    **지금 실패하는** 검사다 — 배선 전에 원인을 고쳐야 한다(범위 밖 결함이므로 보고만 한 상태).
