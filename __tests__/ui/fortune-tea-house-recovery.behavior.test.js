@@ -15,7 +15,7 @@ function functionSource(name) {
   }
   visit(ast);
   assert.ok(result, name);
-  return ts.transpileModule(result, { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText;
+  return ts.transpileModule(result, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS } }).outputText;
 }
 function hookCallbackSource(name) {
   let result;
@@ -82,6 +82,8 @@ function harness({ window = { localStorage: store(), sessionStorage: store() }, 
   let succeed = false;
   const state = {
     ...api, Error, AbortController, URLSearchParams, console, isSubmitting: false,
+    // The result builder is now loaded on submit. Keep the same fixture at that module boundary.
+    require(specifier) { assert.equal(specifier, './lib/buildConsultResult'); return { buildFortuneTeaHouseConsultResult: state.buildFortuneTeaHouseConsultResult }; },
     trackEvent(_name, properties) { assert.ok(Object.keys(properties).every(key => ["method", "code"].includes(key)), "analytics must not include personal input"); },
     submitLockRef: { current: false }, submitSucceededRef: { current: false },
     consultRunRef: { current: 0 }, unusedPaidAttemptRef: { current: saved },
