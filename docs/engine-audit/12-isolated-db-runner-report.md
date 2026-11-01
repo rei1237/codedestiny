@@ -49,4 +49,6 @@ status: done
 
 전체 `check:fast` 실행/전체 test:node·Jest/Worker 빌드/CI는 **미실행**이다. Swiss 연결 테스트·전체 결제 그래프가 포함되어 사용자 차단 조건과 충돌한다. 검사기 분류·기대값·금지 경로를 바꾸지 않았다. 이번 mjs 도구 변경에 전체 TypeScript/서비스 빌드 통과를 주장하지 않는다.
 
-로컬 커밋 후 `check:pre-push`를 검사하고 전달 기록을 추가한다. push·배포·main 통합은 하지 않으며 미통합 감사 워크트리와 검증 자료를 보존한다. 별도 실제 DB/PG 승인이 있기 전까지 추가 실행은 하지 않는다.
+구현 로컬 커밋은 `97aafd2ed7d49676d1b1dd205e7a5a3898c4bca1`이다. 깨끗한 커밋 트리에서 **`npm run check:pre-push` 종료 0**을 확인했고, 검사 후에도 작업 트리는 깨끗했다. 홈 registry 63개·공개 미러·사이트맵 1,037 URL·llms 문서·SEO registry 검사를 통과했다. [커밋 상태 검사 원문](results/isolated-db-runner-20261102/committed-check.json)에 기록했으며, 이는 DB·결제 실증이나 공식 CI 통과를 뜻하지 않는다.
+
+준비와 오프라인 검증을 완료했다. 전달 기록도 별도 로컬 커밋에 보존하며 push·배포·main 통합은 하지 않는다. 미통합 감사 워크트리를 유지하고, 실제 DB/PG는 별도 승인 전까지 실행하지 않는다. 운영 코드·저장 데이터·플래그는 그대로다.
