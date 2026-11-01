@@ -71,3 +71,11 @@ test('status rereads active birth-scoped rights, instead of trusting the old gra
  snapshot.mockResolvedValueOnce({featureKeys:[]});expect((await api.readSnuCampus(UID)).unlockedFeatureKeys).toEqual([]);
  expect(grant).not.toHaveBeenCalled();expect(reserve).not.toHaveBeenCalled();
 });
+
+test('unlock completion requires the active snapshot even when every grant returned ACTIVE',async()=>{
+ member={_id:KEY,userId:UID,email,verifiedAt:new Date(),revision:1};
+ snapshot.mockResolvedValue({featureKeys:SNU_SAJU_FEATURES.slice(1).map(item=>item.featureKey)});
+ const result=await api.unlockSnuSaju(UID,'own');
+ expect(grant).toHaveBeenCalledTimes(10);expect(result.complete).toBe(false);
+ expect(result.unlockedFeatureKeys).toHaveLength(9);
+});

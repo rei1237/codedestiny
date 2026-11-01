@@ -123,5 +123,6 @@ export async function unlockSnuSaju(userId, profileId) {
     if (entitlement.status === 'ACTIVE') granted.push(featureKey);
   }
   await SnuCampusMember.updateOne({ _id: member._id, userId: String(userId), birthKey: identity.birthKey }, { $set: { grantedFeatureKeys: granted } });
-  return { ...(await readSnuCampus(userId)), complete: granted.length === SNU_SAJU_FEATURES.length };
+  const state = await readSnuCampus(userId);
+  return { ...state, complete: SNU_SAJU_FEATURES.every(item => state.unlockedFeatureKeys.includes(item.featureKey)) };
 }
