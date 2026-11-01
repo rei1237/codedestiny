@@ -1,0 +1,39 @@
+{
+  "runId": "localdb20261102a",
+  "pid": 12264,
+  "exe": "D:\\Development\\code-destiny\\.codex-worktrees\\engine-audit-phase0-20261101-163440\\tools\\oracle\\isolated-db\\.local\\runtime\\mongodb-win32-x86_64-windows-8.0.34\\bin\\mongod.exe",
+  "commandLine": "\"D:\\Development\\code-destiny\\.codex-worktrees\\engine-audit-phase0-20261101-163440\\tools\\oracle\\isolated-db\\.local\\runtime\\mongodb-win32-x86_64-windows-8.0.34\\bin\\mongod.exe\" --bind_ip 127.0.0.1 --port 27186 --dbpath D:\\Development\\code-destiny\\.codex-worktrees\\engine-audit-phase0-20261101-163440\\tools\\oracle\\isolated-db\\.local\\localdb20261102a\\data --logpath D:\\Development\\code-destiny\\.codex-worktrees\\engine-audit-phase0-20261101-163440\\tools\\oracle\\isolated-db\\.local\\localdb20261102a\\mongod.log --logappend --setParameter diagnosticDataCollectionEnabled=false",
+  "newEmptyDataPath": "D:\\Development\\code-destiny\\.codex-worktrees\\engine-audit-phase0-20261101-163440\\tools\\oracle\\isolated-db\\.local\\localdb20261102a\\data",
+  "portVacantBefore": true,
+  "dataDirectoryEmptyBefore": true,
+  "listeners": [
+    {
+      "LocalAddress": "127.0.0.1",
+      "LocalPort": 27186,
+      "OwningProcess": 12264
+    }
+  ],
+  "options": {
+    "net": {
+      "bindIp": "127.0.0.1",
+      "port": 27186
+    },
+    "setParameter": {
+      "diagnosticDataCollectionEnabled": "false"
+    },
+    "storage": {
+      "dbPath": "D:\\Development\\code-destiny\\.codex-worktrees\\engine-audit-phase0-20261101-163440\\tools\\oracle\\isolated-db\\.local\\localdb20261102a\\data"
+    },
+    "systemLog": {
+      "destination": "file",
+      "logAppend": true,
+      "path": "D:\\Development\\code-destiny\\.codex-worktrees\\engine-audit-phase0-20261101-163440\\tools\\oracle\\isolated-db\\.local\\localdb20261102a\\mongod.log"
+    }
+  },
+  "serverReady": true,
+  "productionConfigRead": false,
+  "replicaSet": false,
+  "sharding": false,
+  "databaseWritesAttempted": 0,
+  "checkedAt": "2026-11-01T15:30:11.8038635Z"
+}

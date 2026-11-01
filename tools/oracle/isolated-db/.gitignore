@@ -1,0 +1,2 @@
+# Local-only server binaries, logs and preserved synthetic database files.
+.local/

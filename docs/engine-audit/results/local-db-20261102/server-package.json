@@ -1,0 +1,24 @@
+{
+  "version": "8.0.34",
+  "gitVersion": "51db4515a6597aedcf6188ee4e48a27e65b065ae",
+  "url": "https://fastdl.mongodb.org/windows/mongodb-windows-x86_64-8.0.34.zip",
+  "checksumUrl": "https://fastdl.mongodb.org/windows/mongodb-windows-x86_64-8.0.34.zip.sha256",
+  "archiveBytes": 807616685,
+  "expectedArchiveSha256": "6b021a0864494e4decf278b36477a29eb36072432773e4e62c2f42c302630db0",
+  "actualArchiveSha256": "6b021a0864494e4decf278b36477a29eb36072432773e4e62c2f42c302630db0",
+  "authenticode": "NotSigned; authenticity check used official HTTPS archive SHA256",
+  "licenseException": "CR-007 approved only for this local server package",
+  "includedNotices": [
+    "SSPL-1.0",
+    "MPL-2.0",
+    "Boost and other third-party notices; not classified as all-permissive"
+  ],
+  "valgrindNotice": "THIRD-PARTY-NOTICES states BSD-style license for included valgrind.h; GPL reference is to the remainder of Valgrind, which was not installed or run",
+  "files": {
+    "LICENSE-Community.txt": "09d99ca61eb07873d5334077acba22c33e7f7d0a9fa08c92734e0ac8430d6e27",
+    "MPL-2": "fab3dd6bdab226f1c08630b1dd917e11fcb4ec5e1e020e2c16f83a0a13863e85",
+    "THIRD-PARTY-NOTICES": "c3c1219b8c71583c33b372d2b4eae0978d27d6854f5306dd25d4bd0a4fe8844c",
+    "README": "2bb23beaf70002a77d4f82597d664559879845573ad6ed51ae20476c9cabd1e8",
+    "bin/mongod.exe": "4c9e9764cbac5be8eb92733e23ce7f70b52f8ae84b6879b4d5cc010c90ec6082"
+  }
+}

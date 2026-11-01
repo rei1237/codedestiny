@@ -1,0 +1,31 @@
+{
+  "removed": [
+    {
+      "name": "mongodb-windows-x86_64-8.0.34.zip",
+      "bytes": 807616685
+    },
+    {
+      "name": "mongod.pdb",
+      "bytes": 1274277888
+    },
+    {
+      "name": "mongos.pdb",
+      "bytes": 836562944
+    },
+    {
+      "name": "mongos.exe",
+      "bytes": 49667072
+    },
+    {
+      "name": "vc_redist.x64.exe",
+      "bytes": 25314320
+    },
+    {
+      "name": "Install-Compass.ps1",
+      "bytes": 1558
+    }
+  ],
+  "databaseFilesTouched": false,
+  "mongodPreserved": true,
+  "licensesPreserved": true
+}

@@ -1,0 +1,24 @@
+{
+  "originalPid": 12264,
+  "originalStopped": true,
+  "portVacantBeforeRestart": true,
+  "restartPid": 4428,
+  "exe": "D:\\Development\\code-destiny\\.codex-worktrees\\engine-audit-phase0-20261101-163440\\tools\\oracle\\isolated-db\\.local\\runtime\\mongodb-win32-x86_64-windows-8.0.34\\bin\\mongod.exe",
+  "args": [
+    "--bind_ip",
+    "127.0.0.1",
+    "--port",
+    "27186",
+    "--dbpath",
+    "D:\\Development\\code-destiny\\.codex-worktrees\\engine-audit-phase0-20261101-163440\\tools\\oracle\\isolated-db\\.local\\localdb20261102a\\data",
+    "--logpath",
+    "D:\\Development\\code-destiny\\.codex-worktrees\\engine-audit-phase0-20261101-163440\\tools\\oracle\\isolated-db\\.local\\localdb20261102a\\mongod.log",
+    "--logappend",
+    "--setParameter",
+    "diagnosticDataCollectionEnabled=false"
+  ],
+  "dataPath": "D:\\Development\\code-destiny\\.codex-worktrees\\engine-audit-phase0-20261101-163440\\tools\\oracle\\isolated-db\\.local\\localdb20261102a\\data",
+  "restartedAt": "2026-11-01T15:34:29.7949801Z",
+  "newApplicationWrites": 0,
+  "listenerOwnershipVerified": true
+}

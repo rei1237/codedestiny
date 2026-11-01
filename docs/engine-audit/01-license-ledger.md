@@ -76,6 +76,21 @@ Node 잠금/원장 파일: [package-lock.json](../../tools/oracle/package-lock.j
 
 이 검사는 과거 오라클 12개 MIT 검사와 **별개 집합**이다. Swiss 및 베다 주 검증기 차단은 해제하지 않는다. 설치 버전/파일이 바뀌면 러너는 로딩 전에 중단하며 승인 없는 자동 갱신을 하지 않는다.
 
+## CR-007 한정 예외 — 로컬 DB 서버 (2026-11-02)
+
+사용자가 전용 로컬 DB 생성/합성 6건 쓰기를 승인한 뒤, 별도 질문에 **“이번 로컬 DB 서버만 예외 승인”**이라고 답했다. [CR-007](change-requests/CR-007.md)에 따라 원본 MongoDB Community Server 패키지만 이 실험용으로 사용했다. 일반 허용 SPDX/오라클 기준을 바꾸거나 Swiss를 허용한 것이 아니다.
+
+| 항목 | 직접 확인 |
+|---|---|
+| 서버 | MongoDB Community Server 8.0.34 Windows x86_64, `mongod --version` gitVersion `51db4515a6597aedcf6188ee4e48a27e65b065ae` |
+| 설치 경로 | `tools/oracle/isolated-db/.local/runtime/mongodb-win32-x86_64-windows-8.0.34/` — 로컬 전용 gitignore, OS 서비스/PATH/운영 package 변경 없음 |
+| 서버 LICENSE | 위 경로 `LICENSE-Community.txt` 원문: SSPL-1.0. 허용 목록 밖이며 CR-007 예외로만 사용 |
+| 포함 고지 | `MPL-2` 원문과 `THIRD-PARTY-NOTICES`(Boost/SpiderMonkey/Unicode 등) 직접 확인. 서버 패키지 전체를 permissive라고 분류하지 않음. 고지의 GPL 언급은 BSD-style `valgrind.h`와 나머지 Valgrind를 구별하는 문장으로 확인; 별도 Valgrind는 설치/실행하지 않음 |
+| 원본·무결성 | 공식 HTTPS ZIP와 `.sha256`의 `6b021a0864494e4decf278b36477a29eb36072432773e4e62c2f42c302630db0` 일치. 실행 파일은 Authenticode NotSigned; 서명 성공 주장 없음 |
+| 사용 범위 | 이번 독립 loopback standalone에서 합성 6건, 재조회/정상 재시작 보존만 확인 후 종료. 운영 서버/번들·외부 DB 서비스로 도입하지 않음 |
+
+[설치·파일 해시 증거](results/local-db-20261102/server-package.json), [실제 검증 보고서](13-local-db-verification-report.md). 설치 ZIP/PDB 등 불필요한 부가물은 정리하고 실행 파일/고지/합성 데이터는 로컬 보존한다. 드라이버 및 오라클 npm/Python 패키지의 버전·의존성·핀은 그대로다. 법적 공개 의무에 대한 새로운 판단을 한 것이 아니다.
+
 ## 후보별 채택·차단 사유
 
 | 후보 | 결정 | 직접 확인 근거 / 확인 수준 |

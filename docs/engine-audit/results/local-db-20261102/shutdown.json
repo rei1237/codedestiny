@@ -1,0 +1,14 @@
+{
+  "originalPid": 12264,
+  "restartPid": 4428,
+  "remainingProcesses": 0,
+  "remainingListeners": 0,
+  "cleanShutdowns": 2,
+  "dataPath": "D:\\Development\\code-destiny\\.codex-worktrees\\engine-audit-phase0-20261101-163440\\tools\\oracle\\isolated-db\\.local\\localdb20261102a\\data",
+  "dataPreserved": true,
+  "databaseDropped": false,
+  "recordsDeleted": false,
+  "pgCalls": 0,
+  "productionDBCalls": 0,
+  "checkedAt": "2026-11-01T15:36:20.0749811Z"
+}

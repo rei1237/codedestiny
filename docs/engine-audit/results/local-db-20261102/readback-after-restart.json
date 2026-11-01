@@ -1,0 +1,10 @@
+{
+  "runId": "localdb20261102a",
+  "actualPreparationCount": 4,
+  "actualConsultationCount": 2,
+  "preparationDocumentsDigest": "2ea393dfd916da4f0c7f3434fe96264a20eab69de14d7a5bef179306be200d6f",
+  "savedResultsDigest": "8b37fc281ddc36627db3d4ba249c3d7e9c698c25125b6639b98c3373184beb76",
+  "allSixDocumentHashesUnchanged": true,
+  "newWrites": 0,
+  "checkedAt": "2026-11-01T15:34:57.733Z"
+}

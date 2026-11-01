@@ -1,0 +1,38 @@
+{
+  "runId": "localdb20261102a",
+  "serverVersion": "8.0.34",
+  "serverGitVersion": "51db4515a6597aedcf6188ee4e48a27e65b065ae",
+  "standalone": true,
+  "options": {
+    "net": {
+      "bindIp": "127.0.0.1",
+      "port": 27186
+    },
+    "setParameter": {
+      "diagnosticDataCollectionEnabled": "false"
+    },
+    "storage": {
+      "dbPath": "D:\\Development\\code-destiny\\.codex-worktrees\\engine-audit-phase0-20261101-163440\\tools\\oracle\\isolated-db\\.local\\localdb20261102a\\data"
+    },
+    "systemLog": {
+      "destination": "file",
+      "logAppend": true,
+      "path": "D:\\Development\\code-destiny\\.codex-worktrees\\engine-audit-phase0-20261101-163440\\tools\\oracle\\isolated-db\\.local\\localdb20261102a\\mongod.log"
+    }
+  },
+  "collections": [
+    "ziweiAiConsultations",
+    "ziweiCalculationPreparations"
+  ],
+  "actualPreparationCount": 4,
+  "actualConsultationCount": 2,
+  "missingPreparationStillAbsent": true,
+  "preparationDocumentsDigest": "2ea393dfd916da4f0c7f3434fe96264a20eab69de14d7a5bef179306be200d6f",
+  "savedResultsDigest": "8b37fc281ddc36627db3d4ba249c3d7e9c698c25125b6639b98c3373184beb76",
+  "chartDigest": "c0c657e197148b9c172baddde70e8dbaf0d7a4491bd5d4918daed072e52caaaf",
+  "authorityVersions": [
+    "legacy"
+  ],
+  "newWrites": 0,
+  "checkedAt": "2026-11-01T15:33:41.580Z"
+}

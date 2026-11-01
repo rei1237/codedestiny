@@ -1,0 +1,21 @@
+{
+  "approved": true,
+  "scope": "isolated-db-write-cr006",
+  "runId": "localdb20261102a",
+  "sourceDigest": "46d24b2b9312c1933b22b5c79f6ae225323a217ef528384b5960635d8bc06ae1",
+  "expiresAt": "2026-11-01T16:15:57.524Z",
+  "target": {
+    "host": "127.0.0.1",
+    "port": 27186,
+    "database": "cd_engine_audit_cr006_localdb20261102a"
+  },
+  "dedicatedDisposableInstance": true,
+  "allowCreateCollections": true,
+  "limits": {
+    "preparations": 4,
+    "consultations": 2,
+    "insertAttempts": 26,
+    "reads": 160
+  },
+  "authorization": "User approved local DB creation and six synthetic records; CR-007 local server exception approved 2026-11-02"
+}
