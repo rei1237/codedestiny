@@ -1,9 +1,16 @@
-.cd-recommendations,.cd-recommendations-disclosure{background:var(--cd-surface);color:var(--cd-text);border:1px solid var(--cd-border);padding:20px;margin:24px 0;border-radius:var(--cd-r-card);line-height:1.7;overflow-wrap:anywhere}
-.cd-recommendations-disclosure{font-size:14px}.cd-recommendations h2{font-size:1.4rem;margin:0 0 16px}.cd-recommendations-products{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;margin:24px 0}
-.cd-recommendations article{min-width:0}.cd-recommendations img{width:100%;height:180px;object-fit:contain}.cd-recommendations h3{font-size:1.1rem}
-.cd-recommendations a,.cd-recommendations button{display:inline-flex;align-items:center;min-height:44px;padding:10px 0;border:0;color:var(--cd-text);background:none;margin:8px 20px 0 0;font-size:16px;text-decoration:underline;text-underline-offset:4px}
-.cd-recommendations a.cd-recommendations-cta,.cd-recommendations select{min-height:44px;padding:10px 14px;border:1px solid var(--cd-accent);border-radius:var(--cd-r-control);color:var(--cd-text);background:var(--cd-surface);font-size:16px}
-.cd-recommendations a.cd-recommendations-cta{display:flex;justify-content:center;width:100%;margin:12px 0 0;font-weight:600;text-decoration:none}.cd-recommendations select{display:inline-flex;margin:8px 8px 0 0}
-.cd-recommendations-lead{font-size:15px;margin:0 0 8px}
+.cd-recommendations,.cd-recommendations-disclosure{background:var(--cd-surface);color:var(--cd-text);padding:24px 0;margin:32px 0;border-block:1px solid var(--cd-border);line-height:1.75;overflow-wrap:anywhere}
+.cd-affiliate-footer{width:calc(100% - 40px);max-width:1100px;margin-inline:auto}.cd-affiliate-footer[hidden]{display:none}
+.cd-recommendations-disclosure{font-size:var(--cd-t-caption);border:0;margin-bottom:0;padding-bottom:0}
+.cd-recommendations h2{font:500 clamp(1.35rem,2.5vw,1.8rem)/1.5 var(--font-display),serif;margin:0 0 12px;word-break:keep-all}
+.cd-recommendations>p{font-size:var(--cd-t-caption);color:var(--cd-text-muted);max-width:85ch}
+.cd-recommendations-products{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:32px;margin:24px 0}
+.cd-recommendations article{min-width:0;display:grid;grid-template-columns:minmax(100px,38%) minmax(0,1fr);column-gap:24px;align-content:start}
+.cd-recommendations img{grid-column:1;grid-row:1/9;width:100%;height:200px;object-fit:contain;background:var(--cd-surface-2);border-radius:var(--cd-r-card);padding:12px}
+.cd-recommendations article>:not(img){grid-column:2}.cd-recommendations-merchant{font-size:12px;color:var(--cd-accent);font-weight:600}
+.cd-recommendations h3{font-size:var(--cd-t-card);line-height:1.55;word-break:keep-all;margin:4px 0 8px}.cd-recommendations article p{font-size:var(--cd-t-body);margin:0 0 8px}
+.cd-recommendations a,.cd-recommendations button{display:inline-flex;align-items:center;min-height:44px;padding:10px 0;border:0;color:var(--cd-text);background:none;font-size:var(--cd-t-body);text-decoration:underline;text-underline-offset:4px}
+.cd-recommendations a.cd-recommendations-cta,.cd-recommendations select{min-height:44px;padding:10px 14px;border:1px solid var(--cd-accent);border-radius:var(--cd-r-control);color:var(--cd-accent);background:var(--cd-surface);font-size:var(--cd-t-body)}
+.cd-recommendations a.cd-recommendations-cta{justify-content:center;width:100%;margin-top:8px;font-weight:600;text-decoration:none}
+.cd-recommendations>button{display:flex;margin-left:auto;color:var(--cd-text-muted);font-size:var(--cd-t-caption)}
 .cd-recommendations :focus-visible{outline:3px solid var(--cd-accent);outline-offset:3px}
-@media(max-width:700px){.cd-recommendations-products{grid-template-columns:1fr}.cd-recommendations article{border-bottom:1px solid var(--cd-border);padding-bottom:20px}.cd-recommendations img{width:140px;height:140px}}
+@media(max-width:700px){.cd-recommendations-products{grid-template-columns:1fr;gap:28px}.cd-recommendations article{grid-template-columns:112px minmax(0,1fr);column-gap:18px}.cd-recommendations img{width:112px;height:144px}.cd-recommendations article+article{border-top:1px solid var(--cd-border);padding-top:28px}}

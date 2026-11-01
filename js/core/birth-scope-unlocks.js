@@ -29,6 +29,7 @@
   "use strict";
 
   var CD_BIRTH_SCOPED_UNLOCK_KEYS = Object.freeze([
+    "saju-career-style",
     "section_summary",
     "section_daewun",
     "section_compat",

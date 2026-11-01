@@ -135,7 +135,7 @@ test('legacy results cap cards, retain result actions and hide failed requests',
  try {
   for(const k of ['window','document','sessionStorage','location'])globalThis[k]=k==='window'?dom.window:dom.window[k];
   globalThis.setInterval=()=>0;globalThis.clearInterval=()=>{};
-  const products=Array.from({length:3},(_,i)=>({id:String(i),category:'books',title:'검증 도서 '+i,reason:'기록 실천',affiliateUrl:'https://link.coupang.com/a/FixtureOnly',price:null}));
+  const products=Array.from({length:3},(_,i)=>({id:String(i),category:'books',title:'검증 도서 '+i,imageUrl:'/images/fixture.png',reason:'기록 실천',affiliateUrl:'https://link.coupang.com/a/FixtureOnly',price:null}));
   globalThis.fetch=async()=>({ok:true,json:async()=>({enabled:true,products})});
   const { mountRecommendation, mountSajuRecommendation }=await import('../../js/recommendations-legacy.mjs');
   const host=document.querySelector('main'),save=document.querySelector('#save');
@@ -143,7 +143,7 @@ test('legacy results cap cards, retain result actions and hide failed requests',
   assert.equal(host.querySelectorAll('article').length,2);
   assert.equal(save.nextElementSibling?.dataset.recommendationBlock,'true');
   assert.ok(host.firstElementChild.classList.contains('cd-recommendations-disclosure'));
-  assert.equal(host.querySelector('.cd-recommendations h2')?.textContent,'연이의 작은 추천 서가');
+  assert.equal(host.querySelector('.cd-recommendations h2')?.textContent,'풀이를 일상으로 잇는 작은 선택');
   assert.equal(host.querySelector('.cd-recommendations-lead'),null);
   const advice=document.createElement('ul');advice.id='iljuAdviceList';advice.innerHTML='<li>집중 시간을 확보하세요.</li>';host.prepend(advice);
   let requested;
@@ -179,7 +179,7 @@ test('legacy refresh keeps the cards a reader is looking at when nothing changed
   for(const k of ['window','document','sessionStorage','location'])globalThis[k]=k==='window'?dom.window:dom.window[k];
   let tick;globalThis.setInterval=fn=>{tick=fn;return 0;};globalThis.clearInterval=()=>{};
   let calls=0,enabled=true;
-  const products=[{id:'a',category:'books',title:'검증 도서',reason:'기록 실천',affiliateUrl:'https://link.coupang.com/a/FixtureOnly',price:null}];
+  const products=[{id:'a',category:'books',title:'검증 도서',imageUrl:'/images/fixture.png',reason:'기록 실천',affiliateUrl:'https://link.coupang.com/a/FixtureOnly',price:null}];
   globalThis.fetch=async()=>{calls++;return {ok:true,json:async()=>({enabled,products})};};
   const { mountRecommendation }=await import('../../js/recommendations-legacy.mjs');
   const host=document.querySelector('main');
