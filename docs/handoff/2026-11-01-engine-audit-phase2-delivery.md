@@ -2,7 +2,18 @@
 
 status: done
 
-Phase 2 로컬 작업은 완료했고 사용자 요청대로 종료한다. Phase 3는 미승인이다. 원격 통합·push는 보류했다.
+**최신 상태: 공식 추가 판정 및 Phase 3 계획 작성까지 후속 승인에 따라 완료했다. 구현은 미승인이다.** 원격 통합·push는 Swiss 차단 때문에 보류했다. 아래 최초 Phase 2 수치는 당시의 이력이며, 현재 판정은 다음 절을 따른다.
+
+## 2026-11-01 공식 추가 판정 완료
+
+- 보고서 `docs/engine-audit/02a-authoritative-adjudication.md`: KASI/JPL 직접 공개 근거로 A 101개 입력/1,109필드의 출력 오류 확인, 이 집합 미확정 0. 독립 결함 수가 아니라 두 결함군(절입 정밀도/역사 음력)이다. 미래 정본 초·전체 역사 범위·운영 사용자 영향은 미확인으로 유지했다.
+- `docs/engine-audit/03-fix-plan.md`에 확정된 두 결함군만 넣었다. 내부 엔진 제안은 `change-requests/CR-001.md`, `CR-002.md`에 기록했고 승인 전 적용 금지다.
+- 검증한 증거 커밋: `39a07eb8c25385139190c443e9fc466d829ea529`. 추가 증거 104개 파일 2,748,819바이트, 원본 Phase 2 16개 파일 보존. Git 저장본 120개 해시 확인, 오프라인 판정 검사 7개·소스 핀 39개·12개 MIT 의존성 확인, 문법/문서 freshness/정적 pre-push 통과.
+- 미실행: 운영 변경, 엔진 내부 수정, 신규 의존성, Swiss 실행, 전체 CI, push, 저장/유료 결과 재계산. `check:fast -- --plan`은 critical로 Swiss 연결 전체 Jest를 선택하므로 실제 전체 검사는 차단했다.
+- 원격 main `abe9ddacbb582f14b0c43ec6fd3e342dac2344f6`의 [PR CI](https://github.com/rei1237/codedestiny/actions/runs/41293508476)는 종료 조회 시 실행 중이었다. 이전 main 성공/실패를 현재 상태로 간주하지 않는다. 현재 감사는 원격 미통합이다.
+- 공유 원래 체크아웃의 `feat/world-cast-page`와 다른 세션 변경을 보존했다. 미통합 증거와 격리 설치물이 있는 이 워크트리는 삭제하지 않는다. 임시 초안은 제거했고 최종 공식 원문은 JSON 안에 바이트 해시와 함께 보존했다.
+
+## 최초 Phase 2 종료 이력
 
 - 작업 디렉터리: `D:/Development/code-destiny/.codex-worktrees/engine-audit-phase0-20261101-163440`
 - 보고서: `D:/Development/code-destiny/.codex-worktrees/engine-audit-phase0-20261101-163440/docs/engine-audit/02-diff-report.md`
@@ -15,8 +26,8 @@ Phase 2 로컬 작업은 완료했고 사용자 요청대로 종료한다. Phase
 
 ## 재개 경계
 
-다음 단계는 **읽기 전용으로 결과와 원격 전달 조건 확인**이다. Swiss 연결 서비스 테스트를 실행하지 않고 전달 가능한 승인된 절차가 정해지기 전에는 전체 테스트/CI를 촉발하지 않는다. Phase 3 수정과 내부 엔진 변경은 별도 승인 대상이며 A 후보를 확정 오류로 승격하지 않는다.
+다음 단계는 **읽기 전용으로 확정 보고서·Phase 3 계획·CR 승인 상태 및 원격 전달 조건 확인**이다. 사용자가 승인하기 전에는 내부 엔진 구현을 시작하지 않는다. Swiss 연결 서비스 테스트를 실행하지 않고 전달 가능한 승인된 절차가 정해지기 전에는 전체 테스트/CI를 촉발하지 않는다. 계획 작성 승인을 구현 승인으로 확대하지 않는다.
 
 ```text
-D:/Development/code-destiny/.codex-worktrees/engine-audit-phase0-20261101-163440에서 D:/Development/code-destiny/.codex-worktrees/engine-audit-phase0-20261101-163440/docs/handoff/2026-11-01-engine-audit-phase2-delivery.md를 읽고, 0b302e898a41663e32c84627dcdb7c732c073917 및 후속 문서 커밋과 현재 main의 상태를 확인하라. 먼저 Swiss 실행 금지를 유지한 원격 전달 조건만 읽기 전용으로 확인하고, Phase 3나 전체 CI를 시작하지 마라.
+D:/Development/code-destiny/.codex-worktrees/engine-audit-phase0-20261101-163440에서 D:/Development/code-destiny/.codex-worktrees/engine-audit-phase0-20261101-163440/docs/handoff/2026-11-01-engine-audit-phase2-delivery.md를 읽고, 마지막 검증한 증거 커밋 39a07eb8c25385139190c443e9fc466d829ea529 및 후속 종료 문서 커밋을 git log -1로 확인하라. 첫 행동은 02a-authoritative-adjudication.md와 03-fix-plan.md 및 CR-001/CR-002 승인 상태를 읽기 전용으로 확인하는 것이다. 별도 승인 없이 운영 구현·Swiss 실행·전체 CI·push를 시작하지 마라.
 ```
