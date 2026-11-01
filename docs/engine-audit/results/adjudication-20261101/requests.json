@@ -1,0 +1,8322 @@
+{
+  "candidateCount": 101,
+  "cases": [
+    {
+      "id": "random-002844",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1904-11-19",
+        "leapMonth": false,
+        "time": "23:31",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.자미",
+          "service": 11,
+          "oracle": 8
+        },
+        {
+          "field": "stars.칠살",
+          "service": 11,
+          "oracle": 2
+        },
+        {
+          "field": "stars.천기",
+          "service": 10,
+          "oracle": 7
+        },
+        {
+          "field": "stars.천량",
+          "service": 10,
+          "oracle": 1
+        },
+        {
+          "field": "stars.천상",
+          "service": 9,
+          "oracle": 0
+        },
+        {
+          "field": "stars.태양",
+          "service": 8,
+          "oracle": 5
+        },
+        {
+          "field": "stars.거문",
+          "service": 8,
+          "oracle": 11
+        },
+        {
+          "field": "stars.무곡",
+          "service": 7,
+          "oracle": 4
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 7,
+          "oracle": 10
+        },
+        {
+          "field": "stars.천동",
+          "service": 6,
+          "oracle": 3
+        },
+        {
+          "field": "stars.태음",
+          "service": 6,
+          "oracle": 9
+        },
+        {
+          "field": "stars.천부",
+          "service": 5,
+          "oracle": 8
+        },
+        {
+          "field": "stars.염정",
+          "service": 3,
+          "oracle": 0
+        },
+        {
+          "field": "stars.파군",
+          "service": 3,
+          "oracle": 6
+        }
+      ]
+    },
+    {
+      "id": "random-004392",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1909-09-25",
+        "leapMonth": false,
+        "time": "16:52",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.천동",
+          "service": 1,
+          "oracle": 2
+        },
+        {
+          "field": "stars.거문",
+          "service": 1,
+          "oracle": 0
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 0,
+          "oracle": 11
+        },
+        {
+          "field": "stars.태음",
+          "service": 11,
+          "oracle": 10
+        },
+        {
+          "field": "stars.염정",
+          "service": 10,
+          "oracle": 11
+        },
+        {
+          "field": "stars.천부",
+          "service": 10,
+          "oracle": 9
+        },
+        {
+          "field": "stars.파군",
+          "service": 8,
+          "oracle": 7
+        },
+        {
+          "field": "stars.자미",
+          "service": 6,
+          "oracle": 7
+        },
+        {
+          "field": "stars.천기",
+          "service": 5,
+          "oracle": 6
+        },
+        {
+          "field": "stars.칠살",
+          "service": 4,
+          "oracle": 3
+        },
+        {
+          "field": "stars.태양",
+          "service": 3,
+          "oracle": 4
+        },
+        {
+          "field": "stars.천량",
+          "service": 3,
+          "oracle": 2
+        },
+        {
+          "field": "stars.무곡",
+          "service": 2,
+          "oracle": 3
+        },
+        {
+          "field": "stars.천상",
+          "service": 2,
+          "oracle": 1
+        }
+      ]
+    },
+    {
+      "id": "random-011452",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1907-07-22",
+        "leapMonth": false,
+        "time": "17:03",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.파군",
+          "service": 10,
+          "oracle": 0
+        },
+        {
+          "field": "stars.염정",
+          "service": 8,
+          "oracle": 6
+        },
+        {
+          "field": "stars.칠살",
+          "service": 6,
+          "oracle": 8
+        },
+        {
+          "field": "stars.천량",
+          "service": 5,
+          "oracle": 7
+        },
+        {
+          "field": "stars.자미",
+          "service": 4,
+          "oracle": 2
+        },
+        {
+          "field": "stars.천상",
+          "service": 4,
+          "oracle": 6
+        },
+        {
+          "field": "stars.천기",
+          "service": 3,
+          "oracle": 1
+        },
+        {
+          "field": "stars.거문",
+          "service": 3,
+          "oracle": 5
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 2,
+          "oracle": 4
+        },
+        {
+          "field": "stars.태양",
+          "service": 1,
+          "oracle": 11
+        },
+        {
+          "field": "stars.태음",
+          "service": 1,
+          "oracle": 3
+        },
+        {
+          "field": "stars.무곡",
+          "service": 0,
+          "oracle": 10
+        },
+        {
+          "field": "stars.천부",
+          "service": 0,
+          "oracle": 2
+        },
+        {
+          "field": "stars.천동",
+          "service": 11,
+          "oracle": 9
+        }
+      ]
+    },
+    {
+      "id": "random-014456",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1903-10-25",
+        "leapMonth": false,
+        "time": "16:18",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.천기",
+          "service": 2,
+          "oracle": 3
+        },
+        {
+          "field": "stars.태음",
+          "service": 2,
+          "oracle": 1
+        },
+        {
+          "field": "stars.천부",
+          "service": 1,
+          "oracle": 0
+        },
+        {
+          "field": "stars.태양",
+          "service": 0,
+          "oracle": 1
+        },
+        {
+          "field": "stars.무곡",
+          "service": 11,
+          "oracle": 0
+        },
+        {
+          "field": "stars.파군",
+          "service": 11,
+          "oracle": 10
+        },
+        {
+          "field": "stars.천동",
+          "service": 10,
+          "oracle": 11
+        },
+        {
+          "field": "stars.염정",
+          "service": 7,
+          "oracle": 8
+        },
+        {
+          "field": "stars.칠살",
+          "service": 7,
+          "oracle": 6
+        },
+        {
+          "field": "stars.천량",
+          "service": 6,
+          "oracle": 5
+        },
+        {
+          "field": "stars.천상",
+          "service": 5,
+          "oracle": 4
+        },
+        {
+          "field": "stars.거문",
+          "service": 4,
+          "oracle": 3
+        },
+        {
+          "field": "stars.자미",
+          "service": 3,
+          "oracle": 4
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 3,
+          "oracle": 2
+        }
+      ]
+    },
+    {
+      "id": "random-018216",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1909-09-21",
+        "leapMonth": false,
+        "time": "23:27",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.염정",
+          "service": 7,
+          "oracle": 5
+        },
+        {
+          "field": "stars.칠살",
+          "service": 7,
+          "oracle": 9
+        },
+        {
+          "field": "stars.천량",
+          "service": 6,
+          "oracle": 8
+        },
+        {
+          "field": "stars.천상",
+          "service": 5,
+          "oracle": 7
+        },
+        {
+          "field": "stars.거문",
+          "service": 4,
+          "oracle": 6
+        },
+        {
+          "field": "stars.자미",
+          "service": 3,
+          "oracle": 1
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 3,
+          "oracle": 5
+        },
+        {
+          "field": "stars.천기",
+          "service": 2,
+          "oracle": 0
+        },
+        {
+          "field": "stars.태음",
+          "service": 2,
+          "oracle": 4
+        },
+        {
+          "field": "stars.천부",
+          "service": 1,
+          "oracle": 3
+        },
+        {
+          "field": "stars.태양",
+          "service": 0,
+          "oracle": 10
+        },
+        {
+          "field": "stars.무곡",
+          "service": 11,
+          "oracle": 9
+        },
+        {
+          "field": "stars.파군",
+          "service": 11,
+          "oracle": 1
+        },
+        {
+          "field": "stars.천동",
+          "service": 10,
+          "oracle": 8
+        }
+      ]
+    },
+    {
+      "id": "random-018356",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1903-11-06",
+        "leapMonth": false,
+        "time": "02:54",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.파군",
+          "service": 8,
+          "oracle": 7
+        },
+        {
+          "field": "stars.자미",
+          "service": 6,
+          "oracle": 7
+        },
+        {
+          "field": "stars.천기",
+          "service": 5,
+          "oracle": 6
+        },
+        {
+          "field": "stars.칠살",
+          "service": 4,
+          "oracle": 3
+        },
+        {
+          "field": "stars.태양",
+          "service": 3,
+          "oracle": 4
+        },
+        {
+          "field": "stars.천량",
+          "service": 3,
+          "oracle": 2
+        },
+        {
+          "field": "stars.무곡",
+          "service": 2,
+          "oracle": 3
+        },
+        {
+          "field": "stars.천상",
+          "service": 2,
+          "oracle": 1
+        },
+        {
+          "field": "stars.천동",
+          "service": 1,
+          "oracle": 2
+        },
+        {
+          "field": "stars.거문",
+          "service": 1,
+          "oracle": 0
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 0,
+          "oracle": 11
+        },
+        {
+          "field": "stars.태음",
+          "service": 11,
+          "oracle": 10
+        },
+        {
+          "field": "stars.염정",
+          "service": 10,
+          "oracle": 11
+        },
+        {
+          "field": "stars.천부",
+          "service": 10,
+          "oracle": 9
+        }
+      ]
+    },
+    {
+      "id": "random-018480",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1909-10-08",
+        "leapMonth": false,
+        "time": "21:00",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.천부",
+          "service": 11,
+          "oracle": 3
+        },
+        {
+          "field": "stars.염정",
+          "service": 9,
+          "oracle": 5
+        },
+        {
+          "field": "stars.파군",
+          "service": 9,
+          "oracle": 1
+        },
+        {
+          "field": "stars.자미",
+          "service": 5,
+          "oracle": 1
+        },
+        {
+          "field": "stars.칠살",
+          "service": 5,
+          "oracle": 9
+        },
+        {
+          "field": "stars.천기",
+          "service": 4,
+          "oracle": 0
+        },
+        {
+          "field": "stars.천량",
+          "service": 4,
+          "oracle": 8
+        },
+        {
+          "field": "stars.천상",
+          "service": 3,
+          "oracle": 7
+        },
+        {
+          "field": "stars.태양",
+          "service": 2,
+          "oracle": 10
+        },
+        {
+          "field": "stars.거문",
+          "service": 2,
+          "oracle": 6
+        },
+        {
+          "field": "stars.무곡",
+          "service": 1,
+          "oracle": 9
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 1,
+          "oracle": 5
+        },
+        {
+          "field": "stars.천동",
+          "service": 0,
+          "oracle": 8
+        },
+        {
+          "field": "stars.태음",
+          "service": 0,
+          "oracle": 4
+        }
+      ]
+    },
+    {
+      "id": "random-019300",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1907-08-07",
+        "leapMonth": false,
+        "time": "14:23",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.천기",
+          "service": 0,
+          "oracle": 9
+        },
+        {
+          "field": "stars.태양",
+          "service": 10,
+          "oracle": 7
+        },
+        {
+          "field": "stars.무곡",
+          "service": 9,
+          "oracle": 6
+        },
+        {
+          "field": "stars.칠살",
+          "service": 9,
+          "oracle": 0
+        },
+        {
+          "field": "stars.천동",
+          "service": 8,
+          "oracle": 5
+        },
+        {
+          "field": "stars.천량",
+          "service": 8,
+          "oracle": 11
+        },
+        {
+          "field": "stars.천상",
+          "service": 7,
+          "oracle": 10
+        },
+        {
+          "field": "stars.거문",
+          "service": 6,
+          "oracle": 9
+        },
+        {
+          "field": "stars.염정",
+          "service": 5,
+          "oracle": 2
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 5,
+          "oracle": 8
+        },
+        {
+          "field": "stars.태음",
+          "service": 4,
+          "oracle": 7
+        },
+        {
+          "field": "stars.천부",
+          "service": 3,
+          "oracle": 6
+        },
+        {
+          "field": "stars.자미",
+          "service": 1,
+          "oracle": 10
+        },
+        {
+          "field": "stars.파군",
+          "service": 1,
+          "oracle": 4
+        }
+      ]
+    },
+    {
+      "id": "random-019308",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1904-11-26",
+        "leapMonth": false,
+        "time": "20:22",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.칠살",
+          "service": 0,
+          "oracle": 11
+        },
+        {
+          "field": "stars.천량",
+          "service": 11,
+          "oracle": 10
+        },
+        {
+          "field": "stars.자미",
+          "service": 10,
+          "oracle": 11
+        },
+        {
+          "field": "stars.천상",
+          "service": 10,
+          "oracle": 9
+        },
+        {
+          "field": "stars.천기",
+          "service": 9,
+          "oracle": 10
+        },
+        {
+          "field": "stars.거문",
+          "service": 9,
+          "oracle": 8
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 8,
+          "oracle": 7
+        },
+        {
+          "field": "stars.태양",
+          "service": 7,
+          "oracle": 8
+        },
+        {
+          "field": "stars.태음",
+          "service": 7,
+          "oracle": 6
+        },
+        {
+          "field": "stars.무곡",
+          "service": 6,
+          "oracle": 7
+        },
+        {
+          "field": "stars.천부",
+          "service": 6,
+          "oracle": 5
+        },
+        {
+          "field": "stars.천동",
+          "service": 5,
+          "oracle": 6
+        },
+        {
+          "field": "stars.파군",
+          "service": 4,
+          "oracle": 3
+        },
+        {
+          "field": "stars.염정",
+          "service": 2,
+          "oracle": 3
+        }
+      ]
+    },
+    {
+      "id": "random-019936",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1904-02-07",
+        "leapMonth": false,
+        "time": "17:04",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.파군",
+          "service": 4,
+          "oracle": 11
+        },
+        {
+          "field": "stars.염정",
+          "service": 2,
+          "oracle": 7
+        },
+        {
+          "field": "stars.칠살",
+          "service": 0,
+          "oracle": 7
+        },
+        {
+          "field": "stars.천량",
+          "service": 11,
+          "oracle": 6
+        },
+        {
+          "field": "stars.자미",
+          "service": 10,
+          "oracle": 3
+        },
+        {
+          "field": "stars.천상",
+          "service": 10,
+          "oracle": 5
+        },
+        {
+          "field": "stars.천기",
+          "service": 9,
+          "oracle": 2
+        },
+        {
+          "field": "stars.거문",
+          "service": 9,
+          "oracle": 4
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 8,
+          "oracle": 3
+        },
+        {
+          "field": "stars.태양",
+          "service": 7,
+          "oracle": 0
+        },
+        {
+          "field": "stars.태음",
+          "service": 7,
+          "oracle": 2
+        },
+        {
+          "field": "stars.무곡",
+          "service": 6,
+          "oracle": 11
+        },
+        {
+          "field": "stars.천부",
+          "service": 6,
+          "oracle": 1
+        },
+        {
+          "field": "stars.천동",
+          "service": 5,
+          "oracle": 10
+        }
+      ]
+    },
+    {
+      "id": "random-020168",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1904-11-16",
+        "leapMonth": false,
+        "time": "01:30",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.칠살",
+          "service": 10,
+          "oracle": 5
+        },
+        {
+          "field": "stars.태양",
+          "service": 9,
+          "oracle": 2
+        },
+        {
+          "field": "stars.천량",
+          "service": 9,
+          "oracle": 4
+        },
+        {
+          "field": "stars.무곡",
+          "service": 8,
+          "oracle": 1
+        },
+        {
+          "field": "stars.천상",
+          "service": 8,
+          "oracle": 3
+        },
+        {
+          "field": "stars.천동",
+          "service": 7,
+          "oracle": 0
+        },
+        {
+          "field": "stars.거문",
+          "service": 7,
+          "oracle": 2
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 6,
+          "oracle": 1
+        },
+        {
+          "field": "stars.태음",
+          "service": 5,
+          "oracle": 0
+        },
+        {
+          "field": "stars.염정",
+          "service": 4,
+          "oracle": 9
+        },
+        {
+          "field": "stars.천부",
+          "service": 4,
+          "oracle": 11
+        },
+        {
+          "field": "stars.파군",
+          "service": 2,
+          "oracle": 9
+        },
+        {
+          "field": "stars.자미",
+          "service": 0,
+          "oracle": 5
+        },
+        {
+          "field": "stars.천기",
+          "service": 11,
+          "oracle": 4
+        }
+      ]
+    },
+    {
+      "id": "random-020364",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1904-02-12",
+        "leapMonth": false,
+        "time": "00:10",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.칠살",
+          "service": 0,
+          "oracle": 3
+        },
+        {
+          "field": "stars.천량",
+          "service": 11,
+          "oracle": 2
+        },
+        {
+          "field": "stars.자미",
+          "service": 10,
+          "oracle": 7
+        },
+        {
+          "field": "stars.천상",
+          "service": 10,
+          "oracle": 1
+        },
+        {
+          "field": "stars.천기",
+          "service": 9,
+          "oracle": 6
+        },
+        {
+          "field": "stars.거문",
+          "service": 9,
+          "oracle": 0
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 8,
+          "oracle": 11
+        },
+        {
+          "field": "stars.태양",
+          "service": 7,
+          "oracle": 4
+        },
+        {
+          "field": "stars.태음",
+          "service": 7,
+          "oracle": 10
+        },
+        {
+          "field": "stars.무곡",
+          "service": 6,
+          "oracle": 3
+        },
+        {
+          "field": "stars.천부",
+          "service": 6,
+          "oracle": 9
+        },
+        {
+          "field": "stars.천동",
+          "service": 5,
+          "oracle": 2
+        },
+        {
+          "field": "stars.파군",
+          "service": 4,
+          "oracle": 7
+        },
+        {
+          "field": "stars.염정",
+          "service": 2,
+          "oracle": 11
+        }
+      ]
+    },
+    {
+      "id": "random-020732",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1903-11-12",
+        "leapMonth": false,
+        "time": "14:56",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.파군",
+          "service": 2,
+          "oracle": 1
+        },
+        {
+          "field": "stars.자미",
+          "service": 0,
+          "oracle": 1
+        },
+        {
+          "field": "stars.천기",
+          "service": 11,
+          "oracle": 0
+        },
+        {
+          "field": "stars.칠살",
+          "service": 10,
+          "oracle": 9
+        },
+        {
+          "field": "stars.태양",
+          "service": 9,
+          "oracle": 10
+        },
+        {
+          "field": "stars.천량",
+          "service": 9,
+          "oracle": 8
+        },
+        {
+          "field": "stars.무곡",
+          "service": 8,
+          "oracle": 9
+        },
+        {
+          "field": "stars.천상",
+          "service": 8,
+          "oracle": 7
+        },
+        {
+          "field": "stars.천동",
+          "service": 7,
+          "oracle": 8
+        },
+        {
+          "field": "stars.거문",
+          "service": 7,
+          "oracle": 6
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 6,
+          "oracle": 5
+        },
+        {
+          "field": "stars.태음",
+          "service": 5,
+          "oracle": 4
+        },
+        {
+          "field": "stars.염정",
+          "service": 4,
+          "oracle": 5
+        },
+        {
+          "field": "stars.천부",
+          "service": 4,
+          "oracle": 3
+        }
+      ]
+    },
+    {
+      "id": "random-003093",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1905-05-25",
+        "leapMonth": false,
+        "time": "08:23",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.천기",
+          "service": 1,
+          "oracle": 6
+        },
+        {
+          "field": "stars.파군",
+          "service": 0,
+          "oracle": 7
+        },
+        {
+          "field": "stars.태양",
+          "service": 11,
+          "oracle": 4
+        },
+        {
+          "field": "stars.무곡",
+          "service": 10,
+          "oracle": 3
+        },
+        {
+          "field": "stars.천동",
+          "service": 9,
+          "oracle": 2
+        },
+        {
+          "field": "stars.칠살",
+          "service": 8,
+          "oracle": 3
+        },
+        {
+          "field": "stars.천량",
+          "service": 7,
+          "oracle": 2
+        },
+        {
+          "field": "stars.염정",
+          "service": 6,
+          "oracle": 11
+        },
+        {
+          "field": "stars.천상",
+          "service": 6,
+          "oracle": 1
+        },
+        {
+          "field": "stars.거문",
+          "service": 5,
+          "oracle": 0
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 4,
+          "oracle": 11
+        },
+        {
+          "field": "stars.태음",
+          "service": 3,
+          "oracle": 10
+        },
+        {
+          "field": "stars.자미",
+          "service": 2,
+          "oracle": 7
+        },
+        {
+          "field": "stars.천부",
+          "service": 2,
+          "oracle": 9
+        }
+      ]
+    },
+    {
+      "id": "random-004269",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1904-11-14",
+        "leapMonth": false,
+        "time": "06:14",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.칠살",
+          "service": 8,
+          "oracle": 7
+        },
+        {
+          "field": "stars.천량",
+          "service": 7,
+          "oracle": 6
+        },
+        {
+          "field": "stars.염정",
+          "service": 6,
+          "oracle": 7
+        },
+        {
+          "field": "stars.천상",
+          "service": 6,
+          "oracle": 5
+        },
+        {
+          "field": "stars.거문",
+          "service": 5,
+          "oracle": 4
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 4,
+          "oracle": 3
+        },
+        {
+          "field": "stars.태음",
+          "service": 3,
+          "oracle": 2
+        },
+        {
+          "field": "stars.자미",
+          "service": 2,
+          "oracle": 3
+        },
+        {
+          "field": "stars.천부",
+          "service": 2,
+          "oracle": 1
+        },
+        {
+          "field": "stars.천기",
+          "service": 1,
+          "oracle": 2
+        },
+        {
+          "field": "stars.파군",
+          "service": 0,
+          "oracle": 11
+        },
+        {
+          "field": "stars.태양",
+          "service": 11,
+          "oracle": 0
+        },
+        {
+          "field": "stars.무곡",
+          "service": 10,
+          "oracle": 11
+        },
+        {
+          "field": "stars.천동",
+          "service": 9,
+          "oracle": 10
+        }
+      ]
+    },
+    {
+      "id": "random-005065",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1904-01-24",
+        "leapMonth": false,
+        "time": "09:39",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.파군",
+          "service": 8,
+          "oracle": 11
+        },
+        {
+          "field": "stars.자미",
+          "service": 6,
+          "oracle": 3
+        },
+        {
+          "field": "stars.천기",
+          "service": 5,
+          "oracle": 2
+        },
+        {
+          "field": "stars.칠살",
+          "service": 4,
+          "oracle": 7
+        },
+        {
+          "field": "stars.태양",
+          "service": 3,
+          "oracle": 0
+        },
+        {
+          "field": "stars.천량",
+          "service": 3,
+          "oracle": 6
+        },
+        {
+          "field": "stars.무곡",
+          "service": 2,
+          "oracle": 11
+        },
+        {
+          "field": "stars.천상",
+          "service": 2,
+          "oracle": 5
+        },
+        {
+          "field": "stars.천동",
+          "service": 1,
+          "oracle": 10
+        },
+        {
+          "field": "stars.거문",
+          "service": 1,
+          "oracle": 4
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 0,
+          "oracle": 3
+        },
+        {
+          "field": "stars.태음",
+          "service": 11,
+          "oracle": 2
+        },
+        {
+          "field": "stars.염정",
+          "service": 10,
+          "oracle": 7
+        },
+        {
+          "field": "stars.천부",
+          "service": 10,
+          "oracle": 1
+        }
+      ]
+    },
+    {
+      "id": "random-005417",
+      "group": "A-saju-residual",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "lunar",
+        "date": "1909-08-11",
+        "leapMonth": false,
+        "time": "16:44",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "day",
+          "service": "戊子",
+          "oracle": "丁亥"
+        },
+        {
+          "field": "hour",
+          "service": "庚申",
+          "oracle": "戊申"
+        }
+      ]
+    },
+    {
+      "id": "random-006245",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1907-08-07",
+        "leapMonth": false,
+        "time": "22:09",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.천기",
+          "service": 8,
+          "oracle": 5
+        },
+        {
+          "field": "stars.태음",
+          "service": 8,
+          "oracle": 11
+        },
+        {
+          "field": "stars.천부",
+          "service": 7,
+          "oracle": 10
+        },
+        {
+          "field": "stars.태양",
+          "service": 6,
+          "oracle": 3
+        },
+        {
+          "field": "stars.무곡",
+          "service": 5,
+          "oracle": 2
+        },
+        {
+          "field": "stars.파군",
+          "service": 5,
+          "oracle": 8
+        },
+        {
+          "field": "stars.천동",
+          "service": 4,
+          "oracle": 1
+        },
+        {
+          "field": "stars.염정",
+          "service": 1,
+          "oracle": 10
+        },
+        {
+          "field": "stars.칠살",
+          "service": 1,
+          "oracle": 4
+        },
+        {
+          "field": "stars.천량",
+          "service": 0,
+          "oracle": 3
+        },
+        {
+          "field": "stars.천상",
+          "service": 11,
+          "oracle": 2
+        },
+        {
+          "field": "stars.거문",
+          "service": 10,
+          "oracle": 1
+        },
+        {
+          "field": "stars.자미",
+          "service": 9,
+          "oracle": 6
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 9,
+          "oracle": 0
+        }
+      ]
+    },
+    {
+      "id": "random-007361",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1912-01-10",
+        "leapMonth": false,
+        "time": "17:36",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.천동",
+          "service": 3,
+          "oracle": 6
+        },
+        {
+          "field": "stars.칠살",
+          "service": 2,
+          "oracle": 11
+        },
+        {
+          "field": "stars.천량",
+          "service": 1,
+          "oracle": 10
+        },
+        {
+          "field": "stars.염정",
+          "service": 0,
+          "oracle": 3
+        },
+        {
+          "field": "stars.천상",
+          "service": 0,
+          "oracle": 9
+        },
+        {
+          "field": "stars.거문",
+          "service": 11,
+          "oracle": 8
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 10,
+          "oracle": 7
+        },
+        {
+          "field": "stars.태음",
+          "service": 9,
+          "oracle": 6
+        },
+        {
+          "field": "stars.자미",
+          "service": 8,
+          "oracle": 11
+        },
+        {
+          "field": "stars.천부",
+          "service": 8,
+          "oracle": 5
+        },
+        {
+          "field": "stars.천기",
+          "service": 7,
+          "oracle": 10
+        },
+        {
+          "field": "stars.파군",
+          "service": 6,
+          "oracle": 3
+        },
+        {
+          "field": "stars.태양",
+          "service": 5,
+          "oracle": 8
+        },
+        {
+          "field": "stars.무곡",
+          "service": 4,
+          "oracle": 7
+        }
+      ]
+    },
+    {
+      "id": "random-008401",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1908-05-04",
+        "leapMonth": false,
+        "time": "23:23",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.거문",
+          "service": 5,
+          "oracle": 0
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 4,
+          "oracle": 11
+        },
+        {
+          "field": "stars.태음",
+          "service": 3,
+          "oracle": 10
+        },
+        {
+          "field": "stars.자미",
+          "service": 2,
+          "oracle": 7
+        },
+        {
+          "field": "stars.천부",
+          "service": 2,
+          "oracle": 9
+        },
+        {
+          "field": "stars.천기",
+          "service": 1,
+          "oracle": 6
+        },
+        {
+          "field": "stars.파군",
+          "service": 0,
+          "oracle": 7
+        },
+        {
+          "field": "stars.태양",
+          "service": 11,
+          "oracle": 4
+        },
+        {
+          "field": "stars.무곡",
+          "service": 10,
+          "oracle": 3
+        },
+        {
+          "field": "stars.천동",
+          "service": 9,
+          "oracle": 2
+        },
+        {
+          "field": "stars.칠살",
+          "service": 8,
+          "oracle": 3
+        },
+        {
+          "field": "stars.천량",
+          "service": 7,
+          "oracle": 2
+        },
+        {
+          "field": "stars.염정",
+          "service": 6,
+          "oracle": 11
+        },
+        {
+          "field": "stars.천상",
+          "service": 6,
+          "oracle": 1
+        }
+      ]
+    },
+    {
+      "id": "random-011265",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1905-05-15",
+        "leapMonth": false,
+        "time": "11:02",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.거문",
+          "service": 11,
+          "oracle": 6
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 10,
+          "oracle": 5
+        },
+        {
+          "field": "stars.태음",
+          "service": 9,
+          "oracle": 4
+        },
+        {
+          "field": "stars.자미",
+          "service": 8,
+          "oracle": 1
+        },
+        {
+          "field": "stars.천부",
+          "service": 8,
+          "oracle": 3
+        },
+        {
+          "field": "stars.천기",
+          "service": 7,
+          "oracle": 0
+        },
+        {
+          "field": "stars.파군",
+          "service": 6,
+          "oracle": 1
+        },
+        {
+          "field": "stars.태양",
+          "service": 5,
+          "oracle": 10
+        },
+        {
+          "field": "stars.무곡",
+          "service": 4,
+          "oracle": 9
+        },
+        {
+          "field": "stars.천동",
+          "service": 3,
+          "oracle": 8
+        },
+        {
+          "field": "stars.칠살",
+          "service": 2,
+          "oracle": 9
+        },
+        {
+          "field": "stars.천량",
+          "service": 1,
+          "oracle": 8
+        },
+        {
+          "field": "stars.염정",
+          "service": 0,
+          "oracle": 5
+        },
+        {
+          "field": "stars.천상",
+          "service": 0,
+          "oracle": 7
+        }
+      ]
+    },
+    {
+      "id": "random-013069",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1904-02-04",
+        "leapMonth": false,
+        "time": "13:22",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.칠살",
+          "service": 6,
+          "oracle": 10
+        },
+        {
+          "field": "stars.천량",
+          "service": 5,
+          "oracle": 9
+        },
+        {
+          "field": "stars.자미",
+          "service": 4,
+          "oracle": 0
+        },
+        {
+          "field": "stars.천상",
+          "service": 4,
+          "oracle": 8
+        },
+        {
+          "field": "stars.천기",
+          "service": 3,
+          "oracle": 11
+        },
+        {
+          "field": "stars.거문",
+          "service": 3,
+          "oracle": 7
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 2,
+          "oracle": 6
+        },
+        {
+          "field": "stars.태양",
+          "service": 1,
+          "oracle": 9
+        },
+        {
+          "field": "stars.태음",
+          "service": 1,
+          "oracle": 5
+        },
+        {
+          "field": "stars.무곡",
+          "service": 0,
+          "oracle": 8
+        },
+        {
+          "field": "stars.천부",
+          "service": 0,
+          "oracle": 4
+        },
+        {
+          "field": "stars.천동",
+          "service": 11,
+          "oracle": 7
+        },
+        {
+          "field": "stars.파군",
+          "service": 10,
+          "oracle": 2
+        },
+        {
+          "field": "stars.염정",
+          "service": 8,
+          "oracle": 4
+        }
+      ]
+    },
+    {
+      "id": "random-013701",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1904-11-14",
+        "leapMonth": false,
+        "time": "10:27",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.탐랑",
+          "service": 6,
+          "oracle": 1
+        },
+        {
+          "field": "stars.태음",
+          "service": 5,
+          "oracle": 0
+        },
+        {
+          "field": "stars.염정",
+          "service": 4,
+          "oracle": 9
+        },
+        {
+          "field": "stars.천부",
+          "service": 4,
+          "oracle": 11
+        },
+        {
+          "field": "stars.파군",
+          "service": 2,
+          "oracle": 9
+        },
+        {
+          "field": "stars.자미",
+          "service": 0,
+          "oracle": 5
+        },
+        {
+          "field": "stars.천기",
+          "service": 11,
+          "oracle": 4
+        },
+        {
+          "field": "stars.칠살",
+          "service": 10,
+          "oracle": 5
+        },
+        {
+          "field": "stars.태양",
+          "service": 9,
+          "oracle": 2
+        },
+        {
+          "field": "stars.천량",
+          "service": 9,
+          "oracle": 4
+        },
+        {
+          "field": "stars.무곡",
+          "service": 8,
+          "oracle": 1
+        },
+        {
+          "field": "stars.천상",
+          "service": 8,
+          "oracle": 3
+        },
+        {
+          "field": "stars.천동",
+          "service": 7,
+          "oracle": 0
+        },
+        {
+          "field": "stars.거문",
+          "service": 7,
+          "oracle": 2
+        }
+      ]
+    },
+    {
+      "id": "random-014169",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1912-01-08",
+        "leapMonth": false,
+        "time": "23:47",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.천동",
+          "service": 0,
+          "oracle": 5
+        },
+        {
+          "field": "stars.태음",
+          "service": 0,
+          "oracle": 7
+        },
+        {
+          "field": "stars.천부",
+          "service": 11,
+          "oracle": 6
+        },
+        {
+          "field": "stars.염정",
+          "service": 9,
+          "oracle": 2
+        },
+        {
+          "field": "stars.파군",
+          "service": 9,
+          "oracle": 4
+        },
+        {
+          "field": "stars.자미",
+          "service": 5,
+          "oracle": 10
+        },
+        {
+          "field": "stars.칠살",
+          "service": 5,
+          "oracle": 0
+        },
+        {
+          "field": "stars.천기",
+          "service": 4,
+          "oracle": 9
+        },
+        {
+          "field": "stars.천량",
+          "service": 4,
+          "oracle": 11
+        },
+        {
+          "field": "stars.천상",
+          "service": 3,
+          "oracle": 10
+        },
+        {
+          "field": "stars.태양",
+          "service": 2,
+          "oracle": 7
+        },
+        {
+          "field": "stars.거문",
+          "service": 2,
+          "oracle": 9
+        },
+        {
+          "field": "stars.무곡",
+          "service": 1,
+          "oracle": 6
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 1,
+          "oracle": 8
+        }
+      ]
+    },
+    {
+      "id": "random-016185",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1907-07-24",
+        "leapMonth": false,
+        "time": "05:43",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.무곡",
+          "service": 4,
+          "oracle": 9
+        },
+        {
+          "field": "stars.천동",
+          "service": 3,
+          "oracle": 8
+        },
+        {
+          "field": "stars.칠살",
+          "service": 2,
+          "oracle": 9
+        },
+        {
+          "field": "stars.천량",
+          "service": 1,
+          "oracle": 8
+        },
+        {
+          "field": "stars.염정",
+          "service": 0,
+          "oracle": 5
+        },
+        {
+          "field": "stars.천상",
+          "service": 0,
+          "oracle": 7
+        },
+        {
+          "field": "stars.거문",
+          "service": 11,
+          "oracle": 6
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 10,
+          "oracle": 5
+        },
+        {
+          "field": "stars.태음",
+          "service": 9,
+          "oracle": 4
+        },
+        {
+          "field": "stars.자미",
+          "service": 8,
+          "oracle": 1
+        },
+        {
+          "field": "stars.천부",
+          "service": 8,
+          "oracle": 3
+        },
+        {
+          "field": "stars.천기",
+          "service": 7,
+          "oracle": 0
+        },
+        {
+          "field": "stars.파군",
+          "service": 6,
+          "oracle": 1
+        },
+        {
+          "field": "stars.태양",
+          "service": 5,
+          "oracle": 10
+        }
+      ]
+    },
+    {
+      "id": "random-016505",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1912-01-15",
+        "leapMonth": false,
+        "time": "02:44",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.천상",
+          "service": 11,
+          "oracle": 10
+        },
+        {
+          "field": "stars.거문",
+          "service": 10,
+          "oracle": 9
+        },
+        {
+          "field": "stars.자미",
+          "service": 9,
+          "oracle": 10
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 9,
+          "oracle": 8
+        },
+        {
+          "field": "stars.천기",
+          "service": 8,
+          "oracle": 9
+        },
+        {
+          "field": "stars.태음",
+          "service": 8,
+          "oracle": 7
+        },
+        {
+          "field": "stars.천부",
+          "service": 7,
+          "oracle": 6
+        },
+        {
+          "field": "stars.태양",
+          "service": 6,
+          "oracle": 7
+        },
+        {
+          "field": "stars.무곡",
+          "service": 5,
+          "oracle": 6
+        },
+        {
+          "field": "stars.파군",
+          "service": 5,
+          "oracle": 4
+        },
+        {
+          "field": "stars.천동",
+          "service": 4,
+          "oracle": 5
+        },
+        {
+          "field": "stars.염정",
+          "service": 1,
+          "oracle": 2
+        },
+        {
+          "field": "stars.칠살",
+          "service": 1,
+          "oracle": 0
+        },
+        {
+          "field": "stars.천량",
+          "service": 0,
+          "oracle": 11
+        }
+      ]
+    },
+    {
+      "id": "random-016589",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1904-01-23",
+        "leapMonth": false,
+        "time": "23:29",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.천기",
+          "service": 1,
+          "oracle": 2
+        },
+        {
+          "field": "stars.파군",
+          "service": 0,
+          "oracle": 11
+        },
+        {
+          "field": "stars.태양",
+          "service": 11,
+          "oracle": 0
+        },
+        {
+          "field": "stars.무곡",
+          "service": 10,
+          "oracle": 11
+        },
+        {
+          "field": "stars.천동",
+          "service": 9,
+          "oracle": 10
+        },
+        {
+          "field": "stars.칠살",
+          "service": 8,
+          "oracle": 7
+        },
+        {
+          "field": "stars.천량",
+          "service": 7,
+          "oracle": 6
+        },
+        {
+          "field": "stars.염정",
+          "service": 6,
+          "oracle": 7
+        },
+        {
+          "field": "stars.천상",
+          "service": 6,
+          "oracle": 5
+        },
+        {
+          "field": "stars.거문",
+          "service": 5,
+          "oracle": 4
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 4,
+          "oracle": 3
+        },
+        {
+          "field": "stars.태음",
+          "service": 3,
+          "oracle": 2
+        },
+        {
+          "field": "stars.자미",
+          "service": 2,
+          "oracle": 3
+        },
+        {
+          "field": "stars.천부",
+          "service": 2,
+          "oracle": 1
+        }
+      ]
+    },
+    {
+      "id": "random-016993",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1904-11-21",
+        "leapMonth": false,
+        "time": "07:14",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.염정",
+          "service": 7,
+          "oracle": 8
+        },
+        {
+          "field": "stars.칠살",
+          "service": 7,
+          "oracle": 6
+        },
+        {
+          "field": "stars.천량",
+          "service": 6,
+          "oracle": 5
+        },
+        {
+          "field": "stars.천상",
+          "service": 5,
+          "oracle": 4
+        },
+        {
+          "field": "stars.거문",
+          "service": 4,
+          "oracle": 3
+        },
+        {
+          "field": "stars.자미",
+          "service": 3,
+          "oracle": 4
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 3,
+          "oracle": 2
+        },
+        {
+          "field": "stars.천기",
+          "service": 2,
+          "oracle": 3
+        },
+        {
+          "field": "stars.태음",
+          "service": 2,
+          "oracle": 1
+        },
+        {
+          "field": "stars.천부",
+          "service": 1,
+          "oracle": 0
+        },
+        {
+          "field": "stars.태양",
+          "service": 0,
+          "oracle": 1
+        },
+        {
+          "field": "stars.무곡",
+          "service": 11,
+          "oracle": 0
+        },
+        {
+          "field": "stars.파군",
+          "service": 11,
+          "oracle": 10
+        },
+        {
+          "field": "stars.천동",
+          "service": 10,
+          "oracle": 11
+        }
+      ]
+    },
+    {
+      "id": "random-017713",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1904-02-12",
+        "leapMonth": false,
+        "time": "00:49",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.칠살",
+          "service": 0,
+          "oracle": 3
+        },
+        {
+          "field": "stars.천량",
+          "service": 11,
+          "oracle": 2
+        },
+        {
+          "field": "stars.자미",
+          "service": 10,
+          "oracle": 7
+        },
+        {
+          "field": "stars.천상",
+          "service": 10,
+          "oracle": 1
+        },
+        {
+          "field": "stars.천기",
+          "service": 9,
+          "oracle": 6
+        },
+        {
+          "field": "stars.거문",
+          "service": 9,
+          "oracle": 0
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 8,
+          "oracle": 11
+        },
+        {
+          "field": "stars.태양",
+          "service": 7,
+          "oracle": 4
+        },
+        {
+          "field": "stars.태음",
+          "service": 7,
+          "oracle": 10
+        },
+        {
+          "field": "stars.무곡",
+          "service": 6,
+          "oracle": 3
+        },
+        {
+          "field": "stars.천부",
+          "service": 6,
+          "oracle": 9
+        },
+        {
+          "field": "stars.천동",
+          "service": 5,
+          "oracle": 2
+        },
+        {
+          "field": "stars.파군",
+          "service": 4,
+          "oracle": 7
+        },
+        {
+          "field": "stars.염정",
+          "service": 2,
+          "oracle": 11
+        }
+      ]
+    },
+    {
+      "id": "random-018345",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1907-07-15",
+        "leapMonth": false,
+        "time": "08:37",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.파군",
+          "service": 2,
+          "oracle": 9
+        },
+        {
+          "field": "stars.자미",
+          "service": 0,
+          "oracle": 5
+        },
+        {
+          "field": "stars.천기",
+          "service": 11,
+          "oracle": 4
+        },
+        {
+          "field": "stars.칠살",
+          "service": 10,
+          "oracle": 5
+        },
+        {
+          "field": "stars.태양",
+          "service": 9,
+          "oracle": 2
+        },
+        {
+          "field": "stars.천량",
+          "service": 9,
+          "oracle": 4
+        },
+        {
+          "field": "stars.무곡",
+          "service": 8,
+          "oracle": 1
+        },
+        {
+          "field": "stars.천상",
+          "service": 8,
+          "oracle": 3
+        },
+        {
+          "field": "stars.천동",
+          "service": 7,
+          "oracle": 0
+        },
+        {
+          "field": "stars.거문",
+          "service": 7,
+          "oracle": 2
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 6,
+          "oracle": 1
+        },
+        {
+          "field": "stars.태음",
+          "service": 5,
+          "oracle": 0
+        },
+        {
+          "field": "stars.염정",
+          "service": 4,
+          "oracle": 9
+        },
+        {
+          "field": "stars.천부",
+          "service": 4,
+          "oracle": 11
+        }
+      ]
+    },
+    {
+      "id": "random-019589",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1904-11-19",
+        "leapMonth": false,
+        "time": "12:05",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.자미",
+          "service": 5,
+          "oracle": 8
+        },
+        {
+          "field": "stars.칠살",
+          "service": 5,
+          "oracle": 2
+        },
+        {
+          "field": "stars.천기",
+          "service": 4,
+          "oracle": 7
+        },
+        {
+          "field": "stars.천량",
+          "service": 4,
+          "oracle": 1
+        },
+        {
+          "field": "stars.천상",
+          "service": 3,
+          "oracle": 0
+        },
+        {
+          "field": "stars.태양",
+          "service": 2,
+          "oracle": 5
+        },
+        {
+          "field": "stars.거문",
+          "service": 2,
+          "oracle": 11
+        },
+        {
+          "field": "stars.무곡",
+          "service": 1,
+          "oracle": 4
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 1,
+          "oracle": 10
+        },
+        {
+          "field": "stars.천동",
+          "service": 0,
+          "oracle": 3
+        },
+        {
+          "field": "stars.태음",
+          "service": 0,
+          "oracle": 9
+        },
+        {
+          "field": "stars.천부",
+          "service": 11,
+          "oracle": 8
+        },
+        {
+          "field": "stars.염정",
+          "service": 9,
+          "oracle": 0
+        },
+        {
+          "field": "stars.파군",
+          "service": 9,
+          "oracle": 6
+        }
+      ]
+    },
+    {
+      "id": "random-019985",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1907-07-22",
+        "leapMonth": false,
+        "time": "07:45",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.천기",
+          "service": 3,
+          "oracle": 1
+        },
+        {
+          "field": "stars.거문",
+          "service": 3,
+          "oracle": 5
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 2,
+          "oracle": 4
+        },
+        {
+          "field": "stars.태양",
+          "service": 1,
+          "oracle": 11
+        },
+        {
+          "field": "stars.태음",
+          "service": 1,
+          "oracle": 3
+        },
+        {
+          "field": "stars.무곡",
+          "service": 0,
+          "oracle": 10
+        },
+        {
+          "field": "stars.천부",
+          "service": 0,
+          "oracle": 2
+        },
+        {
+          "field": "stars.천동",
+          "service": 11,
+          "oracle": 9
+        },
+        {
+          "field": "stars.파군",
+          "service": 10,
+          "oracle": 0
+        },
+        {
+          "field": "stars.염정",
+          "service": 8,
+          "oracle": 6
+        },
+        {
+          "field": "stars.칠살",
+          "service": 6,
+          "oracle": 8
+        },
+        {
+          "field": "stars.천량",
+          "service": 5,
+          "oracle": 7
+        },
+        {
+          "field": "stars.자미",
+          "service": 4,
+          "oracle": 2
+        },
+        {
+          "field": "stars.천상",
+          "service": 4,
+          "oracle": 6
+        }
+      ]
+    },
+    {
+      "id": "random-020113",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1903-11-18",
+        "leapMonth": false,
+        "time": "14:27",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.자미",
+          "service": 3,
+          "oracle": 4
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 3,
+          "oracle": 2
+        },
+        {
+          "field": "stars.천기",
+          "service": 2,
+          "oracle": 3
+        },
+        {
+          "field": "stars.태음",
+          "service": 2,
+          "oracle": 1
+        },
+        {
+          "field": "stars.천부",
+          "service": 1,
+          "oracle": 0
+        },
+        {
+          "field": "stars.태양",
+          "service": 0,
+          "oracle": 1
+        },
+        {
+          "field": "stars.무곡",
+          "service": 11,
+          "oracle": 0
+        },
+        {
+          "field": "stars.파군",
+          "service": 11,
+          "oracle": 10
+        },
+        {
+          "field": "stars.천동",
+          "service": 10,
+          "oracle": 11
+        },
+        {
+          "field": "stars.염정",
+          "service": 7,
+          "oracle": 8
+        },
+        {
+          "field": "stars.칠살",
+          "service": 7,
+          "oracle": 6
+        },
+        {
+          "field": "stars.천량",
+          "service": 6,
+          "oracle": 5
+        },
+        {
+          "field": "stars.천상",
+          "service": 5,
+          "oracle": 4
+        },
+        {
+          "field": "stars.거문",
+          "service": 4,
+          "oracle": 3
+        }
+      ]
+    },
+    {
+      "id": "random-020757",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1904-02-10",
+        "leapMonth": false,
+        "time": "15:30",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.자미",
+          "service": 5,
+          "oracle": 6
+        },
+        {
+          "field": "stars.칠살",
+          "service": 5,
+          "oracle": 4
+        },
+        {
+          "field": "stars.천기",
+          "service": 4,
+          "oracle": 5
+        },
+        {
+          "field": "stars.천량",
+          "service": 4,
+          "oracle": 3
+        },
+        {
+          "field": "stars.천상",
+          "service": 3,
+          "oracle": 2
+        },
+        {
+          "field": "stars.태양",
+          "service": 2,
+          "oracle": 3
+        },
+        {
+          "field": "stars.거문",
+          "service": 2,
+          "oracle": 1
+        },
+        {
+          "field": "stars.무곡",
+          "service": 1,
+          "oracle": 2
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 1,
+          "oracle": 0
+        },
+        {
+          "field": "stars.천동",
+          "service": 0,
+          "oracle": 1
+        },
+        {
+          "field": "stars.태음",
+          "service": 0,
+          "oracle": 11
+        },
+        {
+          "field": "stars.천부",
+          "service": 11,
+          "oracle": 10
+        },
+        {
+          "field": "stars.염정",
+          "service": 9,
+          "oracle": 10
+        },
+        {
+          "field": "stars.파군",
+          "service": 9,
+          "oracle": 8
+        }
+      ]
+    },
+    {
+      "id": "random-021305",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1908-05-14",
+        "leapMonth": false,
+        "time": "22:13",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.파군",
+          "service": 6,
+          "oracle": 1
+        },
+        {
+          "field": "stars.태양",
+          "service": 5,
+          "oracle": 10
+        },
+        {
+          "field": "stars.무곡",
+          "service": 4,
+          "oracle": 9
+        },
+        {
+          "field": "stars.천동",
+          "service": 3,
+          "oracle": 8
+        },
+        {
+          "field": "stars.칠살",
+          "service": 2,
+          "oracle": 9
+        },
+        {
+          "field": "stars.천량",
+          "service": 1,
+          "oracle": 8
+        },
+        {
+          "field": "stars.염정",
+          "service": 0,
+          "oracle": 5
+        },
+        {
+          "field": "stars.천상",
+          "service": 0,
+          "oracle": 7
+        },
+        {
+          "field": "stars.거문",
+          "service": 11,
+          "oracle": 6
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 10,
+          "oracle": 5
+        },
+        {
+          "field": "stars.태음",
+          "service": 9,
+          "oracle": 4
+        },
+        {
+          "field": "stars.자미",
+          "service": 8,
+          "oracle": 1
+        },
+        {
+          "field": "stars.천부",
+          "service": 8,
+          "oracle": 3
+        },
+        {
+          "field": "stars.천기",
+          "service": 7,
+          "oracle": 0
+        }
+      ]
+    },
+    {
+      "id": "random-021941",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1905-05-23",
+        "leapMonth": false,
+        "time": "21:32",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.무곡",
+          "service": 6,
+          "oracle": 3
+        },
+        {
+          "field": "stars.천부",
+          "service": 6,
+          "oracle": 9
+        },
+        {
+          "field": "stars.천동",
+          "service": 5,
+          "oracle": 2
+        },
+        {
+          "field": "stars.파군",
+          "service": 4,
+          "oracle": 7
+        },
+        {
+          "field": "stars.염정",
+          "service": 2,
+          "oracle": 11
+        },
+        {
+          "field": "stars.칠살",
+          "service": 0,
+          "oracle": 3
+        },
+        {
+          "field": "stars.천량",
+          "service": 11,
+          "oracle": 2
+        },
+        {
+          "field": "stars.자미",
+          "service": 10,
+          "oracle": 7
+        },
+        {
+          "field": "stars.천상",
+          "service": 10,
+          "oracle": 1
+        },
+        {
+          "field": "stars.천기",
+          "service": 9,
+          "oracle": 6
+        },
+        {
+          "field": "stars.거문",
+          "service": 9,
+          "oracle": 0
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 8,
+          "oracle": 11
+        },
+        {
+          "field": "stars.태양",
+          "service": 7,
+          "oracle": 4
+        },
+        {
+          "field": "stars.태음",
+          "service": 7,
+          "oracle": 10
+        }
+      ]
+    },
+    {
+      "id": "random-021989",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1911-12-30",
+        "leapMonth": false,
+        "time": "12:55",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.자미",
+          "service": 6,
+          "oracle": 3
+        },
+        {
+          "field": "stars.천기",
+          "service": 5,
+          "oracle": 2
+        },
+        {
+          "field": "stars.칠살",
+          "service": 4,
+          "oracle": 7
+        },
+        {
+          "field": "stars.태양",
+          "service": 3,
+          "oracle": 0
+        },
+        {
+          "field": "stars.천량",
+          "service": 3,
+          "oracle": 6
+        },
+        {
+          "field": "stars.무곡",
+          "service": 2,
+          "oracle": 11
+        },
+        {
+          "field": "stars.천상",
+          "service": 2,
+          "oracle": 5
+        },
+        {
+          "field": "stars.천동",
+          "service": 1,
+          "oracle": 10
+        },
+        {
+          "field": "stars.거문",
+          "service": 1,
+          "oracle": 4
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 0,
+          "oracle": 3
+        },
+        {
+          "field": "stars.태음",
+          "service": 11,
+          "oracle": 2
+        },
+        {
+          "field": "stars.염정",
+          "service": 10,
+          "oracle": 7
+        },
+        {
+          "field": "stars.천부",
+          "service": 10,
+          "oracle": 1
+        },
+        {
+          "field": "stars.파군",
+          "service": 8,
+          "oracle": 11
+        }
+      ]
+    },
+    {
+      "id": "random-005030",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1908-05-05",
+        "leapMonth": false,
+        "time": "16:07",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.천동",
+          "service": 9,
+          "oracle": 10
+        },
+        {
+          "field": "stars.칠살",
+          "service": 8,
+          "oracle": 7
+        },
+        {
+          "field": "stars.천량",
+          "service": 7,
+          "oracle": 6
+        },
+        {
+          "field": "stars.염정",
+          "service": 6,
+          "oracle": 7
+        },
+        {
+          "field": "stars.천상",
+          "service": 6,
+          "oracle": 5
+        },
+        {
+          "field": "stars.거문",
+          "service": 5,
+          "oracle": 4
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 4,
+          "oracle": 3
+        },
+        {
+          "field": "stars.태음",
+          "service": 3,
+          "oracle": 2
+        },
+        {
+          "field": "stars.자미",
+          "service": 2,
+          "oracle": 3
+        },
+        {
+          "field": "stars.천부",
+          "service": 2,
+          "oracle": 1
+        },
+        {
+          "field": "stars.천기",
+          "service": 1,
+          "oracle": 2
+        },
+        {
+          "field": "stars.파군",
+          "service": 0,
+          "oracle": 11
+        },
+        {
+          "field": "stars.태양",
+          "service": 11,
+          "oracle": 0
+        },
+        {
+          "field": "stars.무곡",
+          "service": 10,
+          "oracle": 11
+        }
+      ]
+    },
+    {
+      "id": "random-006066",
+      "group": "A-saju-residual",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "lunar",
+        "date": "1909-08-14",
+        "leapMonth": false,
+        "time": "04:28",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "day",
+          "service": "辛卯",
+          "oracle": "庚寅"
+        },
+        {
+          "field": "hour",
+          "service": "庚寅",
+          "oracle": "戊寅"
+        }
+      ]
+    },
+    {
+      "id": "random-006430",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1905-05-09",
+        "leapMonth": false,
+        "time": "23:36",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.자미",
+          "service": 5,
+          "oracle": 2
+        },
+        {
+          "field": "stars.칠살",
+          "service": 5,
+          "oracle": 8
+        },
+        {
+          "field": "stars.천기",
+          "service": 4,
+          "oracle": 1
+        },
+        {
+          "field": "stars.천량",
+          "service": 4,
+          "oracle": 7
+        },
+        {
+          "field": "stars.천상",
+          "service": 3,
+          "oracle": 6
+        },
+        {
+          "field": "stars.태양",
+          "service": 2,
+          "oracle": 11
+        },
+        {
+          "field": "stars.거문",
+          "service": 2,
+          "oracle": 5
+        },
+        {
+          "field": "stars.무곡",
+          "service": 1,
+          "oracle": 10
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 1,
+          "oracle": 4
+        },
+        {
+          "field": "stars.천동",
+          "service": 0,
+          "oracle": 9
+        },
+        {
+          "field": "stars.태음",
+          "service": 0,
+          "oracle": 3
+        },
+        {
+          "field": "stars.천부",
+          "service": 11,
+          "oracle": 2
+        },
+        {
+          "field": "stars.염정",
+          "service": 9,
+          "oracle": 6
+        },
+        {
+          "field": "stars.파군",
+          "service": 9,
+          "oracle": 0
+        }
+      ]
+    },
+    {
+      "id": "random-006650",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1904-01-20",
+        "leapMonth": false,
+        "time": "12:41",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.무곡",
+          "service": 7,
+          "oracle": 0
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 7,
+          "oracle": 2
+        },
+        {
+          "field": "stars.천동",
+          "service": 6,
+          "oracle": 11
+        },
+        {
+          "field": "stars.태음",
+          "service": 6,
+          "oracle": 1
+        },
+        {
+          "field": "stars.천부",
+          "service": 5,
+          "oracle": 0
+        },
+        {
+          "field": "stars.염정",
+          "service": 3,
+          "oracle": 8
+        },
+        {
+          "field": "stars.파군",
+          "service": 3,
+          "oracle": 10
+        },
+        {
+          "field": "stars.자미",
+          "service": 11,
+          "oracle": 4
+        },
+        {
+          "field": "stars.칠살",
+          "service": 11,
+          "oracle": 6
+        },
+        {
+          "field": "stars.천기",
+          "service": 10,
+          "oracle": 3
+        },
+        {
+          "field": "stars.천량",
+          "service": 10,
+          "oracle": 5
+        },
+        {
+          "field": "stars.천상",
+          "service": 9,
+          "oracle": 4
+        },
+        {
+          "field": "stars.태양",
+          "service": 8,
+          "oracle": 1
+        },
+        {
+          "field": "stars.거문",
+          "service": 8,
+          "oracle": 3
+        }
+      ]
+    },
+    {
+      "id": "random-008278",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1903-10-25",
+        "leapMonth": false,
+        "time": "12:20",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.탐랑",
+          "service": 4,
+          "oracle": 11
+        },
+        {
+          "field": "stars.태음",
+          "service": 3,
+          "oracle": 10
+        },
+        {
+          "field": "stars.자미",
+          "service": 2,
+          "oracle": 7
+        },
+        {
+          "field": "stars.천부",
+          "service": 2,
+          "oracle": 9
+        },
+        {
+          "field": "stars.천기",
+          "service": 1,
+          "oracle": 6
+        },
+        {
+          "field": "stars.파군",
+          "service": 0,
+          "oracle": 7
+        },
+        {
+          "field": "stars.태양",
+          "service": 11,
+          "oracle": 4
+        },
+        {
+          "field": "stars.무곡",
+          "service": 10,
+          "oracle": 3
+        },
+        {
+          "field": "stars.천동",
+          "service": 9,
+          "oracle": 2
+        },
+        {
+          "field": "stars.칠살",
+          "service": 8,
+          "oracle": 3
+        },
+        {
+          "field": "stars.천량",
+          "service": 7,
+          "oracle": 2
+        },
+        {
+          "field": "stars.염정",
+          "service": 6,
+          "oracle": 11
+        },
+        {
+          "field": "stars.천상",
+          "service": 6,
+          "oracle": 1
+        },
+        {
+          "field": "stars.거문",
+          "service": 5,
+          "oracle": 0
+        }
+      ]
+    },
+    {
+      "id": "random-009914",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1904-11-25",
+        "leapMonth": false,
+        "time": "05:41",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.자미",
+          "service": 8,
+          "oracle": 5
+        },
+        {
+          "field": "stars.천부",
+          "service": 8,
+          "oracle": 11
+        },
+        {
+          "field": "stars.천기",
+          "service": 7,
+          "oracle": 4
+        },
+        {
+          "field": "stars.파군",
+          "service": 6,
+          "oracle": 9
+        },
+        {
+          "field": "stars.태양",
+          "service": 5,
+          "oracle": 2
+        },
+        {
+          "field": "stars.무곡",
+          "service": 4,
+          "oracle": 1
+        },
+        {
+          "field": "stars.천동",
+          "service": 3,
+          "oracle": 0
+        },
+        {
+          "field": "stars.칠살",
+          "service": 2,
+          "oracle": 5
+        },
+        {
+          "field": "stars.천량",
+          "service": 1,
+          "oracle": 4
+        },
+        {
+          "field": "stars.염정",
+          "service": 0,
+          "oracle": 9
+        },
+        {
+          "field": "stars.천상",
+          "service": 0,
+          "oracle": 3
+        },
+        {
+          "field": "stars.거문",
+          "service": 11,
+          "oracle": 2
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 10,
+          "oracle": 1
+        },
+        {
+          "field": "stars.태음",
+          "service": 9,
+          "oracle": 0
+        }
+      ]
+    },
+    {
+      "id": "random-010718",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1905-05-06",
+        "leapMonth": false,
+        "time": "01:54",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.자미",
+          "service": 4,
+          "oracle": 1
+        },
+        {
+          "field": "stars.천상",
+          "service": 4,
+          "oracle": 7
+        },
+        {
+          "field": "stars.천기",
+          "service": 3,
+          "oracle": 0
+        },
+        {
+          "field": "stars.거문",
+          "service": 3,
+          "oracle": 6
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 2,
+          "oracle": 5
+        },
+        {
+          "field": "stars.태양",
+          "service": 1,
+          "oracle": 10
+        },
+        {
+          "field": "stars.태음",
+          "service": 1,
+          "oracle": 4
+        },
+        {
+          "field": "stars.무곡",
+          "service": 0,
+          "oracle": 9
+        },
+        {
+          "field": "stars.천부",
+          "service": 0,
+          "oracle": 3
+        },
+        {
+          "field": "stars.천동",
+          "service": 11,
+          "oracle": 8
+        },
+        {
+          "field": "stars.파군",
+          "service": 10,
+          "oracle": 1
+        },
+        {
+          "field": "stars.염정",
+          "service": 8,
+          "oracle": 5
+        },
+        {
+          "field": "stars.칠살",
+          "service": 6,
+          "oracle": 9
+        },
+        {
+          "field": "stars.천량",
+          "service": 5,
+          "oracle": 8
+        }
+      ]
+    },
+    {
+      "id": "random-011214",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1905-05-09",
+        "leapMonth": false,
+        "time": "07:39",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.자미",
+          "service": 1,
+          "oracle": 2
+        },
+        {
+          "field": "stars.파군",
+          "service": 1,
+          "oracle": 0
+        },
+        {
+          "field": "stars.천기",
+          "service": 0,
+          "oracle": 1
+        },
+        {
+          "field": "stars.태양",
+          "service": 10,
+          "oracle": 11
+        },
+        {
+          "field": "stars.무곡",
+          "service": 9,
+          "oracle": 10
+        },
+        {
+          "field": "stars.칠살",
+          "service": 9,
+          "oracle": 8
+        },
+        {
+          "field": "stars.천동",
+          "service": 8,
+          "oracle": 9
+        },
+        {
+          "field": "stars.천량",
+          "service": 8,
+          "oracle": 7
+        },
+        {
+          "field": "stars.천상",
+          "service": 7,
+          "oracle": 6
+        },
+        {
+          "field": "stars.거문",
+          "service": 6,
+          "oracle": 5
+        },
+        {
+          "field": "stars.염정",
+          "service": 5,
+          "oracle": 6
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 5,
+          "oracle": 4
+        },
+        {
+          "field": "stars.태음",
+          "service": 4,
+          "oracle": 3
+        },
+        {
+          "field": "stars.천부",
+          "service": 3,
+          "oracle": 2
+        }
+      ]
+    },
+    {
+      "id": "random-011298",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1905-05-30",
+        "leapMonth": false,
+        "time": "01:01",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.파군",
+          "service": 4,
+          "oracle": 7
+        },
+        {
+          "field": "stars.염정",
+          "service": 2,
+          "oracle": 11
+        },
+        {
+          "field": "stars.칠살",
+          "service": 0,
+          "oracle": 3
+        },
+        {
+          "field": "stars.천량",
+          "service": 11,
+          "oracle": 2
+        },
+        {
+          "field": "stars.자미",
+          "service": 10,
+          "oracle": 7
+        },
+        {
+          "field": "stars.천상",
+          "service": 10,
+          "oracle": 1
+        },
+        {
+          "field": "stars.천기",
+          "service": 9,
+          "oracle": 6
+        },
+        {
+          "field": "stars.거문",
+          "service": 9,
+          "oracle": 0
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 8,
+          "oracle": 11
+        },
+        {
+          "field": "stars.태양",
+          "service": 7,
+          "oracle": 4
+        },
+        {
+          "field": "stars.태음",
+          "service": 7,
+          "oracle": 10
+        },
+        {
+          "field": "stars.무곡",
+          "service": 6,
+          "oracle": 3
+        },
+        {
+          "field": "stars.천부",
+          "service": 6,
+          "oracle": 9
+        },
+        {
+          "field": "stars.천동",
+          "service": 5,
+          "oracle": 2
+        }
+      ]
+    },
+    {
+      "id": "random-011414",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1905-05-14",
+        "leapMonth": false,
+        "time": "05:57",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.천기",
+          "service": 2,
+          "oracle": 7
+        },
+        {
+          "field": "stars.태음",
+          "service": 2,
+          "oracle": 9
+        },
+        {
+          "field": "stars.천부",
+          "service": 1,
+          "oracle": 8
+        },
+        {
+          "field": "stars.태양",
+          "service": 0,
+          "oracle": 5
+        },
+        {
+          "field": "stars.무곡",
+          "service": 11,
+          "oracle": 4
+        },
+        {
+          "field": "stars.파군",
+          "service": 11,
+          "oracle": 6
+        },
+        {
+          "field": "stars.천동",
+          "service": 10,
+          "oracle": 3
+        },
+        {
+          "field": "stars.염정",
+          "service": 7,
+          "oracle": 0
+        },
+        {
+          "field": "stars.칠살",
+          "service": 7,
+          "oracle": 2
+        },
+        {
+          "field": "stars.천량",
+          "service": 6,
+          "oracle": 1
+        },
+        {
+          "field": "stars.천상",
+          "service": 5,
+          "oracle": 0
+        },
+        {
+          "field": "stars.거문",
+          "service": 4,
+          "oracle": 11
+        },
+        {
+          "field": "stars.자미",
+          "service": 3,
+          "oracle": 8
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 3,
+          "oracle": 10
+        }
+      ]
+    },
+    {
+      "id": "random-011530",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1903-10-27",
+        "leapMonth": false,
+        "time": "12:19",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.염정",
+          "service": 4,
+          "oracle": 9
+        },
+        {
+          "field": "stars.천부",
+          "service": 4,
+          "oracle": 11
+        },
+        {
+          "field": "stars.파군",
+          "service": 2,
+          "oracle": 9
+        },
+        {
+          "field": "stars.자미",
+          "service": 0,
+          "oracle": 5
+        },
+        {
+          "field": "stars.천기",
+          "service": 11,
+          "oracle": 4
+        },
+        {
+          "field": "stars.칠살",
+          "service": 10,
+          "oracle": 5
+        },
+        {
+          "field": "stars.태양",
+          "service": 9,
+          "oracle": 2
+        },
+        {
+          "field": "stars.천량",
+          "service": 9,
+          "oracle": 4
+        },
+        {
+          "field": "stars.무곡",
+          "service": 8,
+          "oracle": 1
+        },
+        {
+          "field": "stars.천상",
+          "service": 8,
+          "oracle": 3
+        },
+        {
+          "field": "stars.천동",
+          "service": 7,
+          "oracle": 0
+        },
+        {
+          "field": "stars.거문",
+          "service": 7,
+          "oracle": 2
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 6,
+          "oracle": 1
+        },
+        {
+          "field": "stars.태음",
+          "service": 5,
+          "oracle": 0
+        }
+      ]
+    },
+    {
+      "id": "random-012698",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1908-05-09",
+        "leapMonth": false,
+        "time": "12:08",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.천부",
+          "service": 11,
+          "oracle": 10
+        },
+        {
+          "field": "stars.염정",
+          "service": 9,
+          "oracle": 10
+        },
+        {
+          "field": "stars.파군",
+          "service": 9,
+          "oracle": 8
+        },
+        {
+          "field": "stars.자미",
+          "service": 5,
+          "oracle": 6
+        },
+        {
+          "field": "stars.칠살",
+          "service": 5,
+          "oracle": 4
+        },
+        {
+          "field": "stars.천기",
+          "service": 4,
+          "oracle": 5
+        },
+        {
+          "field": "stars.천량",
+          "service": 4,
+          "oracle": 3
+        },
+        {
+          "field": "stars.천상",
+          "service": 3,
+          "oracle": 2
+        },
+        {
+          "field": "stars.태양",
+          "service": 2,
+          "oracle": 3
+        },
+        {
+          "field": "stars.거문",
+          "service": 2,
+          "oracle": 1
+        },
+        {
+          "field": "stars.무곡",
+          "service": 1,
+          "oracle": 2
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 1,
+          "oracle": 0
+        },
+        {
+          "field": "stars.천동",
+          "service": 0,
+          "oracle": 1
+        },
+        {
+          "field": "stars.태음",
+          "service": 0,
+          "oracle": 11
+        }
+      ]
+    },
+    {
+      "id": "random-012930",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1909-09-21",
+        "leapMonth": false,
+        "time": "06:56",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.탐랑",
+          "service": 6,
+          "oracle": 1
+        },
+        {
+          "field": "stars.태음",
+          "service": 5,
+          "oracle": 0
+        },
+        {
+          "field": "stars.염정",
+          "service": 4,
+          "oracle": 9
+        },
+        {
+          "field": "stars.천부",
+          "service": 4,
+          "oracle": 11
+        },
+        {
+          "field": "stars.파군",
+          "service": 2,
+          "oracle": 9
+        },
+        {
+          "field": "stars.자미",
+          "service": 0,
+          "oracle": 5
+        },
+        {
+          "field": "stars.천기",
+          "service": 11,
+          "oracle": 4
+        },
+        {
+          "field": "stars.칠살",
+          "service": 10,
+          "oracle": 5
+        },
+        {
+          "field": "stars.태양",
+          "service": 9,
+          "oracle": 2
+        },
+        {
+          "field": "stars.천량",
+          "service": 9,
+          "oracle": 4
+        },
+        {
+          "field": "stars.무곡",
+          "service": 8,
+          "oracle": 1
+        },
+        {
+          "field": "stars.천상",
+          "service": 8,
+          "oracle": 3
+        },
+        {
+          "field": "stars.천동",
+          "service": 7,
+          "oracle": 0
+        },
+        {
+          "field": "stars.거문",
+          "service": 7,
+          "oracle": 2
+        }
+      ]
+    },
+    {
+      "id": "random-014402",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1909-10-11",
+        "leapMonth": false,
+        "time": "05:31",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.칠살",
+          "service": 6,
+          "oracle": 1
+        },
+        {
+          "field": "stars.천량",
+          "service": 5,
+          "oracle": 0
+        },
+        {
+          "field": "stars.자미",
+          "service": 4,
+          "oracle": 9
+        },
+        {
+          "field": "stars.천상",
+          "service": 4,
+          "oracle": 11
+        },
+        {
+          "field": "stars.천기",
+          "service": 3,
+          "oracle": 8
+        },
+        {
+          "field": "stars.거문",
+          "service": 3,
+          "oracle": 10
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 2,
+          "oracle": 9
+        },
+        {
+          "field": "stars.태양",
+          "service": 1,
+          "oracle": 6
+        },
+        {
+          "field": "stars.태음",
+          "service": 1,
+          "oracle": 8
+        },
+        {
+          "field": "stars.무곡",
+          "service": 0,
+          "oracle": 5
+        },
+        {
+          "field": "stars.천부",
+          "service": 0,
+          "oracle": 7
+        },
+        {
+          "field": "stars.천동",
+          "service": 11,
+          "oracle": 4
+        },
+        {
+          "field": "stars.파군",
+          "service": 10,
+          "oracle": 5
+        },
+        {
+          "field": "stars.염정",
+          "service": 8,
+          "oracle": 1
+        }
+      ]
+    },
+    {
+      "id": "random-017550",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1912-01-01",
+        "leapMonth": false,
+        "time": "08:19",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.염정",
+          "service": 7,
+          "oracle": 3
+        },
+        {
+          "field": "stars.칠살",
+          "service": 7,
+          "oracle": 11
+        },
+        {
+          "field": "stars.천량",
+          "service": 6,
+          "oracle": 10
+        },
+        {
+          "field": "stars.천상",
+          "service": 5,
+          "oracle": 9
+        },
+        {
+          "field": "stars.거문",
+          "service": 4,
+          "oracle": 8
+        },
+        {
+          "field": "stars.자미",
+          "service": 3,
+          "oracle": 11
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 3,
+          "oracle": 7
+        },
+        {
+          "field": "stars.천기",
+          "service": 2,
+          "oracle": 10
+        },
+        {
+          "field": "stars.태음",
+          "service": 2,
+          "oracle": 6
+        },
+        {
+          "field": "stars.천부",
+          "service": 1,
+          "oracle": 5
+        },
+        {
+          "field": "stars.태양",
+          "service": 0,
+          "oracle": 8
+        },
+        {
+          "field": "stars.무곡",
+          "service": 11,
+          "oracle": 7
+        },
+        {
+          "field": "stars.파군",
+          "service": 11,
+          "oracle": 3
+        },
+        {
+          "field": "stars.천동",
+          "service": 10,
+          "oracle": 6
+        }
+      ]
+    },
+    {
+      "id": "random-017786",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1904-01-21",
+        "leapMonth": false,
+        "time": "12:34",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.칠살",
+          "service": 6,
+          "oracle": 9
+        },
+        {
+          "field": "stars.천량",
+          "service": 5,
+          "oracle": 8
+        },
+        {
+          "field": "stars.자미",
+          "service": 4,
+          "oracle": 1
+        },
+        {
+          "field": "stars.천상",
+          "service": 4,
+          "oracle": 7
+        },
+        {
+          "field": "stars.천기",
+          "service": 3,
+          "oracle": 0
+        },
+        {
+          "field": "stars.거문",
+          "service": 3,
+          "oracle": 6
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 2,
+          "oracle": 5
+        },
+        {
+          "field": "stars.태양",
+          "service": 1,
+          "oracle": 10
+        },
+        {
+          "field": "stars.태음",
+          "service": 1,
+          "oracle": 4
+        },
+        {
+          "field": "stars.무곡",
+          "service": 0,
+          "oracle": 9
+        },
+        {
+          "field": "stars.천부",
+          "service": 0,
+          "oracle": 3
+        },
+        {
+          "field": "stars.천동",
+          "service": 11,
+          "oracle": 8
+        },
+        {
+          "field": "stars.파군",
+          "service": 10,
+          "oracle": 1
+        },
+        {
+          "field": "stars.염정",
+          "service": 8,
+          "oracle": 5
+        }
+      ]
+    },
+    {
+      "id": "random-018442",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1909-09-23",
+        "leapMonth": false,
+        "time": "21:26",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.칠살",
+          "service": 10,
+          "oracle": 5
+        },
+        {
+          "field": "stars.태양",
+          "service": 9,
+          "oracle": 2
+        },
+        {
+          "field": "stars.천량",
+          "service": 9,
+          "oracle": 4
+        },
+        {
+          "field": "stars.무곡",
+          "service": 8,
+          "oracle": 1
+        },
+        {
+          "field": "stars.천상",
+          "service": 8,
+          "oracle": 3
+        },
+        {
+          "field": "stars.천동",
+          "service": 7,
+          "oracle": 0
+        },
+        {
+          "field": "stars.거문",
+          "service": 7,
+          "oracle": 2
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 6,
+          "oracle": 1
+        },
+        {
+          "field": "stars.태음",
+          "service": 5,
+          "oracle": 0
+        },
+        {
+          "field": "stars.염정",
+          "service": 4,
+          "oracle": 9
+        },
+        {
+          "field": "stars.천부",
+          "service": 4,
+          "oracle": 11
+        },
+        {
+          "field": "stars.파군",
+          "service": 2,
+          "oracle": 9
+        },
+        {
+          "field": "stars.자미",
+          "service": 0,
+          "oracle": 5
+        },
+        {
+          "field": "stars.천기",
+          "service": 11,
+          "oracle": 4
+        }
+      ]
+    },
+    {
+      "id": "edge-000587",
+      "group": "A-saju-term-minute-boundary",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "2000-03-05",
+        "leapMonth": false,
+        "time": "15:42",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "anchor": {
+        "kind": "kasi-term",
+        "year": 2000,
+        "index": 4,
+        "name": "경칩",
+        "cell": "03051543",
+        "deltaMinutes": -1
+      },
+      "differences": [
+        {
+          "field": "month",
+          "service": "己卯",
+          "oracle": "戊寅"
+        }
+      ]
+    },
+    {
+      "id": "edge-000599",
+      "group": "A-saju-term-minute-boundary",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "2000-06-05",
+        "leapMonth": false,
+        "time": "17:58",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "anchor": {
+        "kind": "kasi-term",
+        "year": 2000,
+        "index": 10,
+        "name": "망종",
+        "cell": "06051759",
+        "deltaMinutes": -1
+      },
+      "differences": [
+        {
+          "field": "month",
+          "service": "壬午",
+          "oracle": "辛巳"
+        }
+      ]
+    },
+    {
+      "id": "edge-000675",
+      "group": "A-saju-term-minute-boundary",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "2002-01-05",
+        "leapMonth": false,
+        "time": "21:43",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "anchor": {
+        "kind": "kasi-term",
+        "year": 2002,
+        "index": 0,
+        "name": "소한",
+        "cell": "01052144",
+        "deltaMinutes": -1
+      },
+      "differences": [
+        {
+          "field": "month",
+          "service": "辛丑",
+          "oracle": "庚子"
+        }
+      ]
+    },
+    {
+      "id": "edge-000683",
+      "group": "A-saju-term-minute-boundary",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "2002-03-06",
+        "leapMonth": false,
+        "time": "03:27",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "anchor": {
+        "kind": "kasi-term",
+        "year": 2002,
+        "index": 4,
+        "name": "경칩",
+        "cell": "03060328",
+        "deltaMinutes": -1
+      },
+      "differences": [
+        {
+          "field": "month",
+          "service": "癸卯",
+          "oracle": "壬寅"
+        }
+      ]
+    },
+    {
+      "id": "edge-000851",
+      "group": "A-saju-term-minute-boundary",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "2005-09-07",
+        "leapMonth": false,
+        "time": "21:56",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "anchor": {
+        "kind": "kasi-term",
+        "year": 2005,
+        "index": 16,
+        "name": "백로",
+        "cell": "09072157",
+        "deltaMinutes": -1
+      },
+      "differences": [
+        {
+          "field": "month",
+          "service": "乙酉",
+          "oracle": "甲申"
+        }
+      ]
+    },
+    {
+      "id": "edge-000875",
+      "group": "A-saju-term-minute-boundary",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "2006-03-06",
+        "leapMonth": false,
+        "time": "02:28",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "anchor": {
+        "kind": "kasi-term",
+        "year": 2006,
+        "index": 4,
+        "name": "경칩",
+        "cell": "03060229",
+        "deltaMinutes": -1
+      },
+      "differences": [
+        {
+          "field": "month",
+          "service": "辛卯",
+          "oracle": "庚寅"
+        }
+      ]
+    },
+    {
+      "id": "edge-000883",
+      "group": "A-saju-term-minute-boundary",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "2006-05-06",
+        "leapMonth": false,
+        "time": "00:30",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "anchor": {
+        "kind": "kasi-term",
+        "year": 2006,
+        "index": 8,
+        "name": "입하",
+        "cell": "05060031",
+        "deltaMinutes": -1
+      },
+      "differences": [
+        {
+          "field": "month",
+          "service": "癸巳",
+          "oracle": "壬辰"
+        }
+      ]
+    },
+    {
+      "id": "edge-001179",
+      "group": "A-saju-term-minute-boundary",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "2012-07-07",
+        "leapMonth": false,
+        "time": "01:40",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "anchor": {
+        "kind": "kasi-term",
+        "year": 2012,
+        "index": 12,
+        "name": "소서",
+        "cell": "07070141",
+        "deltaMinutes": -1
+      },
+      "differences": [
+        {
+          "field": "month",
+          "service": "丁未",
+          "oracle": "丙午"
+        }
+      ]
+    },
+    {
+      "id": "edge-001263",
+      "group": "A-saju-term-minute-boundary",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "2014-04-05",
+        "leapMonth": false,
+        "time": "05:46",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "anchor": {
+        "kind": "kasi-term",
+        "year": 2014,
+        "index": 6,
+        "name": "청명",
+        "cell": "04050547",
+        "deltaMinutes": -1
+      },
+      "differences": [
+        {
+          "field": "month",
+          "service": "戊辰",
+          "oracle": "丁卯"
+        }
+      ]
+    },
+    {
+      "id": "edge-001427",
+      "group": "A-saju-term-minute-boundary",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "2017-09-07",
+        "leapMonth": false,
+        "time": "19:38",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "anchor": {
+        "kind": "kasi-term",
+        "year": 2017,
+        "index": 16,
+        "name": "백로",
+        "cell": "09071939",
+        "deltaMinutes": -1
+      },
+      "differences": [
+        {
+          "field": "month",
+          "service": "己酉",
+          "oracle": "戊申"
+        }
+      ]
+    },
+    {
+      "id": "edge-001483",
+      "group": "A-saju-term-minute-boundary",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "2018-11-07",
+        "leapMonth": false,
+        "time": "20:31",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "anchor": {
+        "kind": "kasi-term",
+        "year": 2018,
+        "index": 20,
+        "name": "입동",
+        "cell": "11072032",
+        "deltaMinutes": -1
+      },
+      "differences": [
+        {
+          "field": "month",
+          "service": "癸亥",
+          "oracle": "壬戌"
+        }
+      ]
+    },
+    {
+      "id": "edge-001487",
+      "group": "A-saju-term-minute-boundary",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "2018-12-07",
+        "leapMonth": false,
+        "time": "13:25",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "anchor": {
+        "kind": "kasi-term",
+        "year": 2018,
+        "index": 22,
+        "name": "대설",
+        "cell": "12071326",
+        "deltaMinutes": -1
+      },
+      "differences": [
+        {
+          "field": "month",
+          "service": "甲子",
+          "oracle": "癸亥"
+        }
+      ]
+    },
+    {
+      "id": "edge-001507",
+      "group": "A-saju-term-minute-boundary",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "2019-05-06",
+        "leapMonth": false,
+        "time": "04:02",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "anchor": {
+        "kind": "kasi-term",
+        "year": 2019,
+        "index": 8,
+        "name": "입하",
+        "cell": "05060403",
+        "deltaMinutes": -1
+      },
+      "differences": [
+        {
+          "field": "month",
+          "service": "己巳",
+          "oracle": "戊辰"
+        }
+      ]
+    },
+    {
+      "id": "edge-001515",
+      "group": "A-saju-term-minute-boundary",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "2019-07-07",
+        "leapMonth": false,
+        "time": "18:20",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "anchor": {
+        "kind": "kasi-term",
+        "year": 2019,
+        "index": 12,
+        "name": "소서",
+        "cell": "07071821",
+        "deltaMinutes": -1
+      },
+      "differences": [
+        {
+          "field": "month",
+          "service": "辛未",
+          "oracle": "庚午"
+        }
+      ]
+    },
+    {
+      "id": "edge-001527",
+      "group": "A-saju-term-minute-boundary",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "2019-10-08",
+        "leapMonth": false,
+        "time": "23:05",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "anchor": {
+        "kind": "kasi-term",
+        "year": 2019,
+        "index": 18,
+        "name": "한로",
+        "cell": "10082306",
+        "deltaMinutes": -1
+      },
+      "differences": [
+        {
+          "field": "month",
+          "service": "甲戌",
+          "oracle": "癸酉"
+        }
+      ]
+    },
+    {
+      "id": "edge-001687",
+      "group": "A-saju-term-minute-boundary",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "2023-02-04",
+        "leapMonth": false,
+        "time": "11:42",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "anchor": {
+        "kind": "kasi-term",
+        "year": 2023,
+        "index": 2,
+        "name": "입춘",
+        "cell": "02041143",
+        "deltaMinutes": -1
+      },
+      "differences": [
+        {
+          "field": "year",
+          "service": "癸卯",
+          "oracle": "壬寅"
+        },
+        {
+          "field": "month",
+          "service": "甲寅",
+          "oracle": "癸丑"
+        }
+      ]
+    },
+    {
+      "id": "edge-001707",
+      "group": "A-saju-term-minute-boundary",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "2023-07-07",
+        "leapMonth": false,
+        "time": "17:30",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "anchor": {
+        "kind": "kasi-term",
+        "year": 2023,
+        "index": 12,
+        "name": "소서",
+        "cell": "07071731",
+        "deltaMinutes": -1
+      },
+      "differences": [
+        {
+          "field": "month",
+          "service": "己未",
+          "oracle": "戊午"
+        }
+      ]
+    },
+    {
+      "id": "edge-001739",
+      "group": "A-saju-term-minute-boundary",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "2024-03-05",
+        "leapMonth": false,
+        "time": "11:22",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "anchor": {
+        "kind": "kasi-term",
+        "year": 2024,
+        "index": 4,
+        "name": "경칩",
+        "cell": "03051123",
+        "deltaMinutes": -1
+      },
+      "differences": [
+        {
+          "field": "month",
+          "service": "丁卯",
+          "oracle": "丙寅"
+        }
+      ]
+    },
+    {
+      "id": "edge-001807",
+      "group": "A-saju-term-minute-boundary",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "2025-08-07",
+        "leapMonth": false,
+        "time": "14:51",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "anchor": {
+        "kind": "kasi-term",
+        "year": 2025,
+        "index": 14,
+        "name": "입추",
+        "cell": "08071452",
+        "deltaMinutes": -1
+      },
+      "differences": [
+        {
+          "field": "month",
+          "service": "甲申",
+          "oracle": "癸未"
+        }
+      ]
+    },
+    {
+      "id": "edge-001883",
+      "group": "A-saju-term-minute-boundary",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "2027-03-06",
+        "leapMonth": false,
+        "time": "04:39",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "anchor": {
+        "kind": "kasi-term",
+        "year": 2027,
+        "index": 4,
+        "name": "경칩",
+        "cell": "03060440",
+        "deltaMinutes": -1
+      },
+      "differences": [
+        {
+          "field": "month",
+          "service": "癸卯",
+          "oracle": "壬寅"
+        }
+      ]
+    },
+    {
+      "id": "edge-001895",
+      "group": "A-saju-term-minute-boundary",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "2027-06-06",
+        "leapMonth": false,
+        "time": "06:25",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "anchor": {
+        "kind": "kasi-term",
+        "year": 2027,
+        "index": 10,
+        "name": "망종",
+        "cell": "06060626",
+        "deltaMinutes": -1
+      },
+      "differences": [
+        {
+          "field": "month",
+          "service": "丙午",
+          "oracle": "乙巳"
+        }
+      ]
+    },
+    {
+      "id": "edge-001903",
+      "group": "A-saju-term-minute-boundary",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "2027-08-08",
+        "leapMonth": false,
+        "time": "02:26",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "anchor": {
+        "kind": "kasi-term",
+        "year": 2027,
+        "index": 14,
+        "name": "입추",
+        "cell": "08080227",
+        "deltaMinutes": -1
+      },
+      "differences": [
+        {
+          "field": "month",
+          "service": "戊申",
+          "oracle": "丁未"
+        }
+      ]
+    },
+    {
+      "id": "edge-001959",
+      "group": "A-saju-term-minute-boundary",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "2028-10-08",
+        "leapMonth": false,
+        "time": "03:08",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "anchor": {
+        "kind": "kasi-term",
+        "year": 2028,
+        "index": 18,
+        "name": "한로",
+        "cell": "10080309",
+        "deltaMinutes": -1
+      },
+      "differences": [
+        {
+          "field": "month",
+          "service": "壬戌",
+          "oracle": "辛酉"
+        }
+      ]
+    },
+    {
+      "id": "random-003579",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1905-05-05",
+        "leapMonth": false,
+        "time": "07:50",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.염정",
+          "service": 1,
+          "oracle": 10
+        },
+        {
+          "field": "stars.칠살",
+          "service": 1,
+          "oracle": 4
+        },
+        {
+          "field": "stars.천량",
+          "service": 0,
+          "oracle": 3
+        },
+        {
+          "field": "stars.천상",
+          "service": 11,
+          "oracle": 2
+        },
+        {
+          "field": "stars.거문",
+          "service": 10,
+          "oracle": 1
+        },
+        {
+          "field": "stars.자미",
+          "service": 9,
+          "oracle": 6
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 9,
+          "oracle": 0
+        },
+        {
+          "field": "stars.천기",
+          "service": 8,
+          "oracle": 5
+        },
+        {
+          "field": "stars.태음",
+          "service": 8,
+          "oracle": 11
+        },
+        {
+          "field": "stars.천부",
+          "service": 7,
+          "oracle": 10
+        },
+        {
+          "field": "stars.태양",
+          "service": 6,
+          "oracle": 3
+        },
+        {
+          "field": "stars.무곡",
+          "service": 5,
+          "oracle": 2
+        },
+        {
+          "field": "stars.파군",
+          "service": 5,
+          "oracle": 8
+        },
+        {
+          "field": "stars.천동",
+          "service": 4,
+          "oracle": 1
+        }
+      ]
+    },
+    {
+      "id": "random-004243",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1907-07-19",
+        "leapMonth": false,
+        "time": "00:09",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.자미",
+          "service": 5,
+          "oracle": 6
+        },
+        {
+          "field": "stars.칠살",
+          "service": 5,
+          "oracle": 4
+        },
+        {
+          "field": "stars.천기",
+          "service": 4,
+          "oracle": 5
+        },
+        {
+          "field": "stars.천량",
+          "service": 4,
+          "oracle": 3
+        },
+        {
+          "field": "stars.천상",
+          "service": 3,
+          "oracle": 2
+        },
+        {
+          "field": "stars.태양",
+          "service": 2,
+          "oracle": 3
+        },
+        {
+          "field": "stars.거문",
+          "service": 2,
+          "oracle": 1
+        },
+        {
+          "field": "stars.무곡",
+          "service": 1,
+          "oracle": 2
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 1,
+          "oracle": 0
+        },
+        {
+          "field": "stars.천동",
+          "service": 0,
+          "oracle": 1
+        },
+        {
+          "field": "stars.태음",
+          "service": 0,
+          "oracle": 11
+        },
+        {
+          "field": "stars.천부",
+          "service": 11,
+          "oracle": 10
+        },
+        {
+          "field": "stars.염정",
+          "service": 9,
+          "oracle": 10
+        },
+        {
+          "field": "stars.파군",
+          "service": 9,
+          "oracle": 8
+        }
+      ]
+    },
+    {
+      "id": "random-006903",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1904-12-01",
+        "leapMonth": false,
+        "time": "03:20",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.천부",
+          "service": 9,
+          "oracle": 11
+        },
+        {
+          "field": "stars.자미",
+          "service": 7,
+          "oracle": 5
+        },
+        {
+          "field": "stars.파군",
+          "service": 7,
+          "oracle": 9
+        },
+        {
+          "field": "stars.천기",
+          "service": 6,
+          "oracle": 4
+        },
+        {
+          "field": "stars.태양",
+          "service": 4,
+          "oracle": 2
+        },
+        {
+          "field": "stars.무곡",
+          "service": 3,
+          "oracle": 1
+        },
+        {
+          "field": "stars.칠살",
+          "service": 3,
+          "oracle": 5
+        },
+        {
+          "field": "stars.천동",
+          "service": 2,
+          "oracle": 0
+        },
+        {
+          "field": "stars.천량",
+          "service": 2,
+          "oracle": 4
+        },
+        {
+          "field": "stars.천상",
+          "service": 1,
+          "oracle": 3
+        },
+        {
+          "field": "stars.거문",
+          "service": 0,
+          "oracle": 2
+        },
+        {
+          "field": "stars.염정",
+          "service": 11,
+          "oracle": 9
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 11,
+          "oracle": 1
+        },
+        {
+          "field": "stars.태음",
+          "service": 10,
+          "oracle": 0
+        }
+      ]
+    },
+    {
+      "id": "random-006915",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1908-05-05",
+        "leapMonth": false,
+        "time": "05:01",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.자미",
+          "service": 3,
+          "oracle": 4
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 3,
+          "oracle": 2
+        },
+        {
+          "field": "stars.천기",
+          "service": 2,
+          "oracle": 3
+        },
+        {
+          "field": "stars.태음",
+          "service": 2,
+          "oracle": 1
+        },
+        {
+          "field": "stars.천부",
+          "service": 1,
+          "oracle": 0
+        },
+        {
+          "field": "stars.태양",
+          "service": 0,
+          "oracle": 1
+        },
+        {
+          "field": "stars.무곡",
+          "service": 11,
+          "oracle": 0
+        },
+        {
+          "field": "stars.파군",
+          "service": 11,
+          "oracle": 10
+        },
+        {
+          "field": "stars.천동",
+          "service": 10,
+          "oracle": 11
+        },
+        {
+          "field": "stars.염정",
+          "service": 7,
+          "oracle": 8
+        },
+        {
+          "field": "stars.칠살",
+          "service": 7,
+          "oracle": 6
+        },
+        {
+          "field": "stars.천량",
+          "service": 6,
+          "oracle": 5
+        },
+        {
+          "field": "stars.천상",
+          "service": 5,
+          "oracle": 4
+        },
+        {
+          "field": "stars.거문",
+          "service": 4,
+          "oracle": 3
+        }
+      ]
+    },
+    {
+      "id": "random-006923",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1908-05-21",
+        "leapMonth": false,
+        "time": "12:21",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.자미",
+          "service": 11,
+          "oracle": 0
+        },
+        {
+          "field": "stars.칠살",
+          "service": 11,
+          "oracle": 10
+        },
+        {
+          "field": "stars.천기",
+          "service": 10,
+          "oracle": 11
+        },
+        {
+          "field": "stars.천량",
+          "service": 10,
+          "oracle": 9
+        },
+        {
+          "field": "stars.천상",
+          "service": 9,
+          "oracle": 8
+        },
+        {
+          "field": "stars.태양",
+          "service": 8,
+          "oracle": 9
+        },
+        {
+          "field": "stars.거문",
+          "service": 8,
+          "oracle": 7
+        },
+        {
+          "field": "stars.무곡",
+          "service": 7,
+          "oracle": 8
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 7,
+          "oracle": 6
+        },
+        {
+          "field": "stars.천동",
+          "service": 6,
+          "oracle": 7
+        },
+        {
+          "field": "stars.태음",
+          "service": 6,
+          "oracle": 5
+        },
+        {
+          "field": "stars.천부",
+          "service": 5,
+          "oracle": 4
+        },
+        {
+          "field": "stars.염정",
+          "service": 3,
+          "oracle": 4
+        },
+        {
+          "field": "stars.파군",
+          "service": 3,
+          "oracle": 2
+        }
+      ]
+    },
+    {
+      "id": "random-007027",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1908-05-07",
+        "leapMonth": false,
+        "time": "22:32",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.무곡",
+          "service": 6,
+          "oracle": 3
+        },
+        {
+          "field": "stars.천부",
+          "service": 6,
+          "oracle": 9
+        },
+        {
+          "field": "stars.천동",
+          "service": 5,
+          "oracle": 2
+        },
+        {
+          "field": "stars.파군",
+          "service": 4,
+          "oracle": 7
+        },
+        {
+          "field": "stars.염정",
+          "service": 2,
+          "oracle": 11
+        },
+        {
+          "field": "stars.칠살",
+          "service": 0,
+          "oracle": 3
+        },
+        {
+          "field": "stars.천량",
+          "service": 11,
+          "oracle": 2
+        },
+        {
+          "field": "stars.자미",
+          "service": 10,
+          "oracle": 7
+        },
+        {
+          "field": "stars.천상",
+          "service": 10,
+          "oracle": 1
+        },
+        {
+          "field": "stars.천기",
+          "service": 9,
+          "oracle": 6
+        },
+        {
+          "field": "stars.거문",
+          "service": 9,
+          "oracle": 0
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 8,
+          "oracle": 11
+        },
+        {
+          "field": "stars.태양",
+          "service": 7,
+          "oracle": 4
+        },
+        {
+          "field": "stars.태음",
+          "service": 7,
+          "oracle": 10
+        }
+      ]
+    },
+    {
+      "id": "random-007047",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1904-11-08",
+        "leapMonth": false,
+        "time": "20:24",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.자미",
+          "service": 1,
+          "oracle": 2
+        },
+        {
+          "field": "stars.파군",
+          "service": 1,
+          "oracle": 0
+        },
+        {
+          "field": "stars.천기",
+          "service": 0,
+          "oracle": 1
+        },
+        {
+          "field": "stars.태양",
+          "service": 10,
+          "oracle": 11
+        },
+        {
+          "field": "stars.무곡",
+          "service": 9,
+          "oracle": 10
+        },
+        {
+          "field": "stars.칠살",
+          "service": 9,
+          "oracle": 8
+        },
+        {
+          "field": "stars.천동",
+          "service": 8,
+          "oracle": 9
+        },
+        {
+          "field": "stars.천량",
+          "service": 8,
+          "oracle": 7
+        },
+        {
+          "field": "stars.천상",
+          "service": 7,
+          "oracle": 6
+        },
+        {
+          "field": "stars.거문",
+          "service": 6,
+          "oracle": 5
+        },
+        {
+          "field": "stars.염정",
+          "service": 5,
+          "oracle": 6
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 5,
+          "oracle": 4
+        },
+        {
+          "field": "stars.태음",
+          "service": 4,
+          "oracle": 3
+        },
+        {
+          "field": "stars.천부",
+          "service": 3,
+          "oracle": 2
+        }
+      ]
+    },
+    {
+      "id": "random-008919",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1905-05-15",
+        "leapMonth": false,
+        "time": "18:56",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.파군",
+          "service": 8,
+          "oracle": 7
+        },
+        {
+          "field": "stars.자미",
+          "service": 6,
+          "oracle": 7
+        },
+        {
+          "field": "stars.천기",
+          "service": 5,
+          "oracle": 6
+        },
+        {
+          "field": "stars.칠살",
+          "service": 4,
+          "oracle": 3
+        },
+        {
+          "field": "stars.태양",
+          "service": 3,
+          "oracle": 4
+        },
+        {
+          "field": "stars.천량",
+          "service": 3,
+          "oracle": 2
+        },
+        {
+          "field": "stars.무곡",
+          "service": 2,
+          "oracle": 3
+        },
+        {
+          "field": "stars.천상",
+          "service": 2,
+          "oracle": 1
+        },
+        {
+          "field": "stars.천동",
+          "service": 1,
+          "oracle": 2
+        },
+        {
+          "field": "stars.거문",
+          "service": 1,
+          "oracle": 0
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 0,
+          "oracle": 11
+        },
+        {
+          "field": "stars.태음",
+          "service": 11,
+          "oracle": 10
+        },
+        {
+          "field": "stars.염정",
+          "service": 10,
+          "oracle": 11
+        },
+        {
+          "field": "stars.천부",
+          "service": 10,
+          "oracle": 9
+        }
+      ]
+    },
+    {
+      "id": "random-011047",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1907-07-29",
+        "leapMonth": false,
+        "time": "05:19",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.염정",
+          "service": 4,
+          "oracle": 1
+        },
+        {
+          "field": "stars.천부",
+          "service": 4,
+          "oracle": 7
+        },
+        {
+          "field": "stars.파군",
+          "service": 2,
+          "oracle": 5
+        },
+        {
+          "field": "stars.자미",
+          "service": 0,
+          "oracle": 9
+        },
+        {
+          "field": "stars.천기",
+          "service": 11,
+          "oracle": 8
+        },
+        {
+          "field": "stars.칠살",
+          "service": 10,
+          "oracle": 1
+        },
+        {
+          "field": "stars.태양",
+          "service": 9,
+          "oracle": 6
+        },
+        {
+          "field": "stars.천량",
+          "service": 9,
+          "oracle": 0
+        },
+        {
+          "field": "stars.무곡",
+          "service": 8,
+          "oracle": 5
+        },
+        {
+          "field": "stars.천상",
+          "service": 8,
+          "oracle": 11
+        },
+        {
+          "field": "stars.천동",
+          "service": 7,
+          "oracle": 4
+        },
+        {
+          "field": "stars.거문",
+          "service": 7,
+          "oracle": 10
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 6,
+          "oracle": 9
+        },
+        {
+          "field": "stars.태음",
+          "service": 5,
+          "oracle": 8
+        }
+      ]
+    },
+    {
+      "id": "random-011471",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1908-05-04",
+        "leapMonth": false,
+        "time": "15:17",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.염정",
+          "service": 9,
+          "oracle": 6
+        },
+        {
+          "field": "stars.파군",
+          "service": 9,
+          "oracle": 0
+        },
+        {
+          "field": "stars.자미",
+          "service": 5,
+          "oracle": 2
+        },
+        {
+          "field": "stars.칠살",
+          "service": 5,
+          "oracle": 8
+        },
+        {
+          "field": "stars.천기",
+          "service": 4,
+          "oracle": 1
+        },
+        {
+          "field": "stars.천량",
+          "service": 4,
+          "oracle": 7
+        },
+        {
+          "field": "stars.천상",
+          "service": 3,
+          "oracle": 6
+        },
+        {
+          "field": "stars.태양",
+          "service": 2,
+          "oracle": 11
+        },
+        {
+          "field": "stars.거문",
+          "service": 2,
+          "oracle": 5
+        },
+        {
+          "field": "stars.무곡",
+          "service": 1,
+          "oracle": 10
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 1,
+          "oracle": 4
+        },
+        {
+          "field": "stars.천동",
+          "service": 0,
+          "oracle": 9
+        },
+        {
+          "field": "stars.태음",
+          "service": 0,
+          "oracle": 3
+        },
+        {
+          "field": "stars.천부",
+          "service": 11,
+          "oracle": 2
+        }
+      ]
+    },
+    {
+      "id": "random-011507",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1909-09-21",
+        "leapMonth": false,
+        "time": "00:51",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.천동",
+          "service": 9,
+          "oracle": 10
+        },
+        {
+          "field": "stars.칠살",
+          "service": 8,
+          "oracle": 7
+        },
+        {
+          "field": "stars.천량",
+          "service": 7,
+          "oracle": 6
+        },
+        {
+          "field": "stars.염정",
+          "service": 6,
+          "oracle": 7
+        },
+        {
+          "field": "stars.천상",
+          "service": 6,
+          "oracle": 5
+        },
+        {
+          "field": "stars.거문",
+          "service": 5,
+          "oracle": 4
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 4,
+          "oracle": 3
+        },
+        {
+          "field": "stars.태음",
+          "service": 3,
+          "oracle": 2
+        },
+        {
+          "field": "stars.자미",
+          "service": 2,
+          "oracle": 3
+        },
+        {
+          "field": "stars.천부",
+          "service": 2,
+          "oracle": 1
+        },
+        {
+          "field": "stars.천기",
+          "service": 1,
+          "oracle": 2
+        },
+        {
+          "field": "stars.파군",
+          "service": 0,
+          "oracle": 11
+        },
+        {
+          "field": "stars.태양",
+          "service": 11,
+          "oracle": 0
+        },
+        {
+          "field": "stars.무곡",
+          "service": 10,
+          "oracle": 11
+        }
+      ]
+    },
+    {
+      "id": "random-014367",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1903-10-28",
+        "leapMonth": false,
+        "time": "06:31",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.자미",
+          "service": 7,
+          "oracle": 0
+        },
+        {
+          "field": "stars.파군",
+          "service": 7,
+          "oracle": 2
+        },
+        {
+          "field": "stars.천기",
+          "service": 6,
+          "oracle": 11
+        },
+        {
+          "field": "stars.태양",
+          "service": 4,
+          "oracle": 9
+        },
+        {
+          "field": "stars.무곡",
+          "service": 3,
+          "oracle": 8
+        },
+        {
+          "field": "stars.칠살",
+          "service": 3,
+          "oracle": 10
+        },
+        {
+          "field": "stars.천동",
+          "service": 2,
+          "oracle": 7
+        },
+        {
+          "field": "stars.천량",
+          "service": 2,
+          "oracle": 9
+        },
+        {
+          "field": "stars.천상",
+          "service": 1,
+          "oracle": 8
+        },
+        {
+          "field": "stars.거문",
+          "service": 0,
+          "oracle": 7
+        },
+        {
+          "field": "stars.염정",
+          "service": 11,
+          "oracle": 4
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 11,
+          "oracle": 6
+        },
+        {
+          "field": "stars.태음",
+          "service": 10,
+          "oracle": 5
+        },
+        {
+          "field": "stars.천부",
+          "service": 9,
+          "oracle": 4
+        }
+      ]
+    },
+    {
+      "id": "random-015571",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1904-12-04",
+        "leapMonth": false,
+        "time": "20:11",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.천기",
+          "service": 1,
+          "oracle": 2
+        },
+        {
+          "field": "stars.파군",
+          "service": 0,
+          "oracle": 11
+        },
+        {
+          "field": "stars.태양",
+          "service": 11,
+          "oracle": 0
+        },
+        {
+          "field": "stars.무곡",
+          "service": 10,
+          "oracle": 11
+        },
+        {
+          "field": "stars.천동",
+          "service": 9,
+          "oracle": 10
+        },
+        {
+          "field": "stars.칠살",
+          "service": 8,
+          "oracle": 7
+        },
+        {
+          "field": "stars.천량",
+          "service": 7,
+          "oracle": 6
+        },
+        {
+          "field": "stars.염정",
+          "service": 6,
+          "oracle": 7
+        },
+        {
+          "field": "stars.천상",
+          "service": 6,
+          "oracle": 5
+        },
+        {
+          "field": "stars.거문",
+          "service": 5,
+          "oracle": 4
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 4,
+          "oracle": 3
+        },
+        {
+          "field": "stars.태음",
+          "service": 3,
+          "oracle": 2
+        },
+        {
+          "field": "stars.자미",
+          "service": 2,
+          "oracle": 3
+        },
+        {
+          "field": "stars.천부",
+          "service": 2,
+          "oracle": 1
+        }
+      ]
+    },
+    {
+      "id": "random-016711",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1903-11-13",
+        "leapMonth": false,
+        "time": "04:11",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.천기",
+          "service": 8,
+          "oracle": 11
+        },
+        {
+          "field": "stars.태음",
+          "service": 8,
+          "oracle": 5
+        },
+        {
+          "field": "stars.천부",
+          "service": 7,
+          "oracle": 4
+        },
+        {
+          "field": "stars.태양",
+          "service": 6,
+          "oracle": 9
+        },
+        {
+          "field": "stars.무곡",
+          "service": 5,
+          "oracle": 8
+        },
+        {
+          "field": "stars.파군",
+          "service": 5,
+          "oracle": 2
+        },
+        {
+          "field": "stars.천동",
+          "service": 4,
+          "oracle": 7
+        },
+        {
+          "field": "stars.염정",
+          "service": 1,
+          "oracle": 4
+        },
+        {
+          "field": "stars.칠살",
+          "service": 1,
+          "oracle": 10
+        },
+        {
+          "field": "stars.천량",
+          "service": 0,
+          "oracle": 9
+        },
+        {
+          "field": "stars.천상",
+          "service": 11,
+          "oracle": 8
+        },
+        {
+          "field": "stars.거문",
+          "service": 10,
+          "oracle": 7
+        },
+        {
+          "field": "stars.자미",
+          "service": 9,
+          "oracle": 0
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 9,
+          "oracle": 6
+        }
+      ]
+    },
+    {
+      "id": "random-018067",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1904-01-17",
+        "leapMonth": false,
+        "time": "03:38",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "life",
+          "service": 10,
+          "oracle": 11
+        },
+        {
+          "field": "body",
+          "service": 2,
+          "oracle": 3
+        },
+        {
+          "field": "stars.파군",
+          "service": 10,
+          "oracle": 1
+        },
+        {
+          "field": "stars.염정",
+          "service": 8,
+          "oracle": 5
+        },
+        {
+          "field": "stars.칠살",
+          "service": 6,
+          "oracle": 9
+        },
+        {
+          "field": "stars.천량",
+          "service": 5,
+          "oracle": 8
+        },
+        {
+          "field": "stars.자미",
+          "service": 4,
+          "oracle": 1
+        },
+        {
+          "field": "stars.천상",
+          "service": 4,
+          "oracle": 7
+        },
+        {
+          "field": "stars.천기",
+          "service": 3,
+          "oracle": 0
+        },
+        {
+          "field": "stars.거문",
+          "service": 3,
+          "oracle": 6
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 2,
+          "oracle": 5
+        },
+        {
+          "field": "stars.좌보",
+          "service": 2,
+          "oracle": 3
+        },
+        {
+          "field": "stars.태양",
+          "service": 1,
+          "oracle": 10
+        },
+        {
+          "field": "stars.태음",
+          "service": 1,
+          "oracle": 4
+        },
+        {
+          "field": "stars.무곡",
+          "service": 0,
+          "oracle": 9
+        },
+        {
+          "field": "stars.천부",
+          "service": 0,
+          "oracle": 3
+        },
+        {
+          "field": "stars.우필",
+          "service": 0,
+          "oracle": 11
+        },
+        {
+          "field": "stars.천동",
+          "service": 11,
+          "oracle": 8
+        },
+        {
+          "field": "stars.천요",
+          "service": 11,
+          "oracle": 0
+        },
+        {
+          "field": "decades.0",
+          "service": 102,
+          "oracle": 112
+        },
+        {
+          "field": "decades.1",
+          "service": 92,
+          "oracle": 102
+        },
+        {
+          "field": "decades.2",
+          "service": 82,
+          "oracle": 92
+        },
+        {
+          "field": "decades.3",
+          "service": 72,
+          "oracle": 82
+        },
+        {
+          "field": "decades.4",
+          "service": 62,
+          "oracle": 72
+        },
+        {
+          "field": "decades.5",
+          "service": 52,
+          "oracle": 62
+        },
+        {
+          "field": "decades.6",
+          "service": 42,
+          "oracle": 52
+        },
+        {
+          "field": "decades.7",
+          "service": 32,
+          "oracle": 42
+        },
+        {
+          "field": "decades.8",
+          "service": 22,
+          "oracle": 32
+        },
+        {
+          "field": "decades.9",
+          "service": 12,
+          "oracle": 22
+        },
+        {
+          "field": "decades.10",
+          "service": 2,
+          "oracle": 12
+        },
+        {
+          "field": "decades.11",
+          "service": 112,
+          "oracle": 2
+        }
+      ]
+    },
+    {
+      "id": "random-018703",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1908-05-28",
+        "leapMonth": false,
+        "time": "10:36",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.염정",
+          "service": 0,
+          "oracle": 10
+        },
+        {
+          "field": "stars.천상",
+          "service": 0,
+          "oracle": 2
+        },
+        {
+          "field": "stars.거문",
+          "service": 11,
+          "oracle": 1
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 10,
+          "oracle": 0
+        },
+        {
+          "field": "stars.태음",
+          "service": 9,
+          "oracle": 11
+        },
+        {
+          "field": "stars.자미",
+          "service": 8,
+          "oracle": 6
+        },
+        {
+          "field": "stars.천부",
+          "service": 8,
+          "oracle": 10
+        },
+        {
+          "field": "stars.천기",
+          "service": 7,
+          "oracle": 5
+        },
+        {
+          "field": "stars.파군",
+          "service": 6,
+          "oracle": 8
+        },
+        {
+          "field": "stars.태양",
+          "service": 5,
+          "oracle": 3
+        },
+        {
+          "field": "stars.무곡",
+          "service": 4,
+          "oracle": 2
+        },
+        {
+          "field": "stars.천동",
+          "service": 3,
+          "oracle": 1
+        },
+        {
+          "field": "stars.칠살",
+          "service": 2,
+          "oracle": 4
+        },
+        {
+          "field": "stars.천량",
+          "service": 1,
+          "oracle": 3
+        }
+      ]
+    },
+    {
+      "id": "random-019139",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1904-01-25",
+        "leapMonth": false,
+        "time": "02:34",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.태양",
+          "service": 0,
+          "oracle": 10
+        },
+        {
+          "field": "stars.무곡",
+          "service": 11,
+          "oracle": 9
+        },
+        {
+          "field": "stars.파군",
+          "service": 11,
+          "oracle": 1
+        },
+        {
+          "field": "stars.천동",
+          "service": 10,
+          "oracle": 8
+        },
+        {
+          "field": "stars.염정",
+          "service": 7,
+          "oracle": 5
+        },
+        {
+          "field": "stars.칠살",
+          "service": 7,
+          "oracle": 9
+        },
+        {
+          "field": "stars.천량",
+          "service": 6,
+          "oracle": 8
+        },
+        {
+          "field": "stars.천상",
+          "service": 5,
+          "oracle": 7
+        },
+        {
+          "field": "stars.거문",
+          "service": 4,
+          "oracle": 6
+        },
+        {
+          "field": "stars.자미",
+          "service": 3,
+          "oracle": 1
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 3,
+          "oracle": 5
+        },
+        {
+          "field": "stars.천기",
+          "service": 2,
+          "oracle": 0
+        },
+        {
+          "field": "stars.태음",
+          "service": 2,
+          "oracle": 4
+        },
+        {
+          "field": "stars.천부",
+          "service": 1,
+          "oracle": 3
+        }
+      ]
+    },
+    {
+      "id": "random-019543",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1907-07-13",
+        "leapMonth": false,
+        "time": "03:18",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.천부",
+          "service": 5,
+          "oracle": 0
+        },
+        {
+          "field": "stars.염정",
+          "service": 3,
+          "oracle": 8
+        },
+        {
+          "field": "stars.파군",
+          "service": 3,
+          "oracle": 10
+        },
+        {
+          "field": "stars.자미",
+          "service": 11,
+          "oracle": 4
+        },
+        {
+          "field": "stars.칠살",
+          "service": 11,
+          "oracle": 6
+        },
+        {
+          "field": "stars.천기",
+          "service": 10,
+          "oracle": 3
+        },
+        {
+          "field": "stars.천량",
+          "service": 10,
+          "oracle": 5
+        },
+        {
+          "field": "stars.천상",
+          "service": 9,
+          "oracle": 4
+        },
+        {
+          "field": "stars.태양",
+          "service": 8,
+          "oracle": 1
+        },
+        {
+          "field": "stars.거문",
+          "service": 8,
+          "oracle": 3
+        },
+        {
+          "field": "stars.무곡",
+          "service": 7,
+          "oracle": 0
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 7,
+          "oracle": 2
+        },
+        {
+          "field": "stars.천동",
+          "service": 6,
+          "oracle": 11
+        },
+        {
+          "field": "stars.태음",
+          "service": 6,
+          "oracle": 1
+        }
+      ]
+    },
+    {
+      "id": "random-019551",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1903-10-27",
+        "leapMonth": false,
+        "time": "03:01",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.파군",
+          "service": 8,
+          "oracle": 11
+        },
+        {
+          "field": "stars.자미",
+          "service": 6,
+          "oracle": 3
+        },
+        {
+          "field": "stars.천기",
+          "service": 5,
+          "oracle": 2
+        },
+        {
+          "field": "stars.칠살",
+          "service": 4,
+          "oracle": 7
+        },
+        {
+          "field": "stars.태양",
+          "service": 3,
+          "oracle": 0
+        },
+        {
+          "field": "stars.천량",
+          "service": 3,
+          "oracle": 6
+        },
+        {
+          "field": "stars.무곡",
+          "service": 2,
+          "oracle": 11
+        },
+        {
+          "field": "stars.천상",
+          "service": 2,
+          "oracle": 5
+        },
+        {
+          "field": "stars.천동",
+          "service": 1,
+          "oracle": 10
+        },
+        {
+          "field": "stars.거문",
+          "service": 1,
+          "oracle": 4
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 0,
+          "oracle": 3
+        },
+        {
+          "field": "stars.태음",
+          "service": 11,
+          "oracle": 2
+        },
+        {
+          "field": "stars.염정",
+          "service": 10,
+          "oracle": 7
+        },
+        {
+          "field": "stars.천부",
+          "service": 10,
+          "oracle": 1
+        }
+      ]
+    },
+    {
+      "id": "random-019855",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1904-12-01",
+        "leapMonth": false,
+        "time": "23:27",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.태양",
+          "service": 10,
+          "oracle": 7
+        },
+        {
+          "field": "stars.무곡",
+          "service": 9,
+          "oracle": 6
+        },
+        {
+          "field": "stars.칠살",
+          "service": 9,
+          "oracle": 0
+        },
+        {
+          "field": "stars.천동",
+          "service": 8,
+          "oracle": 5
+        },
+        {
+          "field": "stars.천량",
+          "service": 8,
+          "oracle": 11
+        },
+        {
+          "field": "stars.천상",
+          "service": 7,
+          "oracle": 10
+        },
+        {
+          "field": "stars.거문",
+          "service": 6,
+          "oracle": 9
+        },
+        {
+          "field": "stars.염정",
+          "service": 5,
+          "oracle": 2
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 5,
+          "oracle": 8
+        },
+        {
+          "field": "stars.태음",
+          "service": 4,
+          "oracle": 7
+        },
+        {
+          "field": "stars.천부",
+          "service": 3,
+          "oracle": 6
+        },
+        {
+          "field": "stars.자미",
+          "service": 1,
+          "oracle": 10
+        },
+        {
+          "field": "stars.파군",
+          "service": 1,
+          "oracle": 4
+        },
+        {
+          "field": "stars.천기",
+          "service": 0,
+          "oracle": 9
+        }
+      ]
+    },
+    {
+      "id": "random-020383",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1903-10-21",
+        "leapMonth": false,
+        "time": "18:54",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.자미",
+          "service": 11,
+          "oracle": 4
+        },
+        {
+          "field": "stars.칠살",
+          "service": 11,
+          "oracle": 6
+        },
+        {
+          "field": "stars.천기",
+          "service": 10,
+          "oracle": 3
+        },
+        {
+          "field": "stars.천량",
+          "service": 10,
+          "oracle": 5
+        },
+        {
+          "field": "stars.천상",
+          "service": 9,
+          "oracle": 4
+        },
+        {
+          "field": "stars.태양",
+          "service": 8,
+          "oracle": 1
+        },
+        {
+          "field": "stars.거문",
+          "service": 8,
+          "oracle": 3
+        },
+        {
+          "field": "stars.무곡",
+          "service": 7,
+          "oracle": 0
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 7,
+          "oracle": 2
+        },
+        {
+          "field": "stars.천동",
+          "service": 6,
+          "oracle": 11
+        },
+        {
+          "field": "stars.태음",
+          "service": 6,
+          "oracle": 1
+        },
+        {
+          "field": "stars.천부",
+          "service": 5,
+          "oracle": 0
+        },
+        {
+          "field": "stars.염정",
+          "service": 3,
+          "oracle": 8
+        },
+        {
+          "field": "stars.파군",
+          "service": 3,
+          "oracle": 10
+        }
+      ]
+    },
+    {
+      "id": "random-020667",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1904-01-17",
+        "leapMonth": false,
+        "time": "23:37",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.자미",
+          "service": 11,
+          "oracle": 4
+        },
+        {
+          "field": "stars.칠살",
+          "service": 11,
+          "oracle": 6
+        },
+        {
+          "field": "stars.천기",
+          "service": 10,
+          "oracle": 3
+        },
+        {
+          "field": "stars.천량",
+          "service": 10,
+          "oracle": 5
+        },
+        {
+          "field": "stars.천상",
+          "service": 9,
+          "oracle": 4
+        },
+        {
+          "field": "stars.태양",
+          "service": 8,
+          "oracle": 1
+        },
+        {
+          "field": "stars.거문",
+          "service": 8,
+          "oracle": 3
+        },
+        {
+          "field": "stars.무곡",
+          "service": 7,
+          "oracle": 0
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 7,
+          "oracle": 2
+        },
+        {
+          "field": "stars.천동",
+          "service": 6,
+          "oracle": 11
+        },
+        {
+          "field": "stars.태음",
+          "service": 6,
+          "oracle": 1
+        },
+        {
+          "field": "stars.천부",
+          "service": 5,
+          "oracle": 0
+        },
+        {
+          "field": "stars.염정",
+          "service": 3,
+          "oracle": 8
+        },
+        {
+          "field": "stars.파군",
+          "service": 3,
+          "oracle": 10
+        }
+      ]
+    },
+    {
+      "id": "random-021219",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1903-10-23",
+        "leapMonth": false,
+        "time": "21:03",
+        "timeUnknown": false,
+        "gender": "female",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.태양",
+          "service": 11,
+          "oracle": 0
+        },
+        {
+          "field": "stars.무곡",
+          "service": 10,
+          "oracle": 11
+        },
+        {
+          "field": "stars.천동",
+          "service": 9,
+          "oracle": 10
+        },
+        {
+          "field": "stars.칠살",
+          "service": 8,
+          "oracle": 7
+        },
+        {
+          "field": "stars.천량",
+          "service": 7,
+          "oracle": 6
+        },
+        {
+          "field": "stars.염정",
+          "service": 6,
+          "oracle": 7
+        },
+        {
+          "field": "stars.천상",
+          "service": 6,
+          "oracle": 5
+        },
+        {
+          "field": "stars.거문",
+          "service": 5,
+          "oracle": 4
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 4,
+          "oracle": 3
+        },
+        {
+          "field": "stars.태음",
+          "service": 3,
+          "oracle": 2
+        },
+        {
+          "field": "stars.자미",
+          "service": 2,
+          "oracle": 3
+        },
+        {
+          "field": "stars.천부",
+          "service": 2,
+          "oracle": 1
+        },
+        {
+          "field": "stars.천기",
+          "service": 1,
+          "oracle": 2
+        },
+        {
+          "field": "stars.파군",
+          "service": 0,
+          "oracle": 11
+        }
+      ]
+    },
+    {
+      "id": "random-021255",
+      "group": "A-ziwei-historical-calendar-placement",
+      "input": {
+        "schemaVersion": 1,
+        "calendar": "solar",
+        "date": "1911-12-21",
+        "leapMonth": false,
+        "time": "08:39",
+        "timeUnknown": false,
+        "gender": "male",
+        "place": {
+          "timezone": "Asia/Seoul",
+          "latitude": 37.5665,
+          "longitude": 126.978
+        },
+        "options": {},
+        "referenceDate": "2026-11-01"
+      },
+      "differences": [
+        {
+          "field": "stars.천기",
+          "service": 8,
+          "oracle": 5
+        },
+        {
+          "field": "stars.태음",
+          "service": 8,
+          "oracle": 11
+        },
+        {
+          "field": "stars.천부",
+          "service": 7,
+          "oracle": 10
+        },
+        {
+          "field": "stars.태양",
+          "service": 6,
+          "oracle": 3
+        },
+        {
+          "field": "stars.무곡",
+          "service": 5,
+          "oracle": 2
+        },
+        {
+          "field": "stars.파군",
+          "service": 5,
+          "oracle": 8
+        },
+        {
+          "field": "stars.천동",
+          "service": 4,
+          "oracle": 1
+        },
+        {
+          "field": "stars.염정",
+          "service": 1,
+          "oracle": 10
+        },
+        {
+          "field": "stars.칠살",
+          "service": 1,
+          "oracle": 4
+        },
+        {
+          "field": "stars.천량",
+          "service": 0,
+          "oracle": 3
+        },
+        {
+          "field": "stars.천상",
+          "service": 11,
+          "oracle": 2
+        },
+        {
+          "field": "stars.거문",
+          "service": 10,
+          "oracle": 1
+        },
+        {
+          "field": "stars.자미",
+          "service": 9,
+          "oracle": 6
+        },
+        {
+          "field": "stars.탐랑",
+          "service": 9,
+          "oracle": 0
+        }
+      ]
+    }
+  ],
+  "solarDates": [
+    "1903-10-21",
+    "1903-10-23",
+    "1903-10-25",
+    "1903-10-27",
+    "1903-10-28",
+    "1903-11-06",
+    "1903-11-12",
+    "1903-11-13",
+    "1903-11-18",
+    "1904-01-17",
+    "1904-01-18",
+    "1904-01-20",
+    "1904-01-21",
+    "1904-01-24",
+    "1904-01-25",
+    "1904-02-04",
+    "1904-02-07",
+    "1904-02-10",
+    "1904-02-12",
+    "1904-11-08",
+    "1904-11-14",
+    "1904-11-16",
+    "1904-11-19",
+    "1904-11-20",
+    "1904-11-21",
+    "1904-11-25",
+    "1904-11-26",
+    "1904-12-01",
+    "1904-12-02",
+    "1904-12-04",
+    "1905-05-05",
+    "1905-05-06",
+    "1905-05-09",
+    "1905-05-10",
+    "1905-05-14",
+    "1905-05-15",
+    "1905-05-23",
+    "1905-05-25",
+    "1905-05-30",
+    "1907-07-13",
+    "1907-07-15",
+    "1907-07-19",
+    "1907-07-22",
+    "1907-07-24",
+    "1907-07-29",
+    "1907-08-07",
+    "1908-05-04",
+    "1908-05-05",
+    "1908-05-07",
+    "1908-05-09",
+    "1908-05-14",
+    "1908-05-21",
+    "1908-05-28",
+    "1909-09-21",
+    "1909-09-22",
+    "1909-09-23",
+    "1909-09-25",
+    "1909-10-08",
+    "1909-10-11",
+    "1911-12-21",
+    "1911-12-30",
+    "1912-01-01",
+    "1912-01-09",
+    "1912-01-10",
+    "1912-01-15"
+  ],
+  "lunarDates": [
+    "1909-08-11",
+    "1909-08-14"
+  ],
+  "years": [
+    2000,
+    2002,
+    2005,
+    2006,
+    2012,
+    2014,
+    2017,
+    2018,
+    2019,
+    2023,
+    2024,
+    2025,
+    2027,
+    2028
+  ],
+  "jplTimes": [
+    {
+      "id": "edge-000587",
+      "deltaSeconds": 0,
+      "utc": "2000-03-05T06:42:00.000Z",
+      "jd": 2451608.779166667
+    },
+    {
+      "id": "edge-000587",
+      "deltaSeconds": 60,
+      "utc": "2000-03-05T06:43:00.000Z",
+      "jd": 2451608.779861111
+    },
+    {
+      "id": "edge-000599",
+      "deltaSeconds": 0,
+      "utc": "2000-06-05T08:58:00.000Z",
+      "jd": 2451700.873611111
+    },
+    {
+      "id": "edge-000599",
+      "deltaSeconds": 60,
+      "utc": "2000-06-05T08:59:00.000Z",
+      "jd": 2451700.8743055556
+    },
+    {
+      "id": "edge-000675",
+      "deltaSeconds": 0,
+      "utc": "2002-01-05T12:43:00.000Z",
+      "jd": 2452280.029861111
+    },
+    {
+      "id": "edge-000675",
+      "deltaSeconds": 60,
+      "utc": "2002-01-05T12:44:00.000Z",
+      "jd": 2452280.0305555556
+    },
+    {
+      "id": "edge-000683",
+      "deltaSeconds": 0,
+      "utc": "2002-03-05T18:27:00.000Z",
+      "jd": 2452339.26875
+    },
+    {
+      "id": "edge-000683",
+      "deltaSeconds": 60,
+      "utc": "2002-03-05T18:28:00.000Z",
+      "jd": 2452339.269444444
+    },
+    {
+      "id": "edge-000851",
+      "deltaSeconds": 0,
+      "utc": "2005-09-07T12:56:00.000Z",
+      "jd": 2453621.038888889
+    },
+    {
+      "id": "edge-000851",
+      "deltaSeconds": 60,
+      "utc": "2005-09-07T12:57:00.000Z",
+      "jd": 2453621.0395833333
+    },
+    {
+      "id": "edge-000875",
+      "deltaSeconds": 0,
+      "utc": "2006-03-05T17:28:00.000Z",
+      "jd": 2453800.2277777777
+    },
+    {
+      "id": "edge-000875",
+      "deltaSeconds": 60,
+      "utc": "2006-03-05T17:29:00.000Z",
+      "jd": 2453800.228472222
+    },
+    {
+      "id": "edge-000883",
+      "deltaSeconds": 0,
+      "utc": "2006-05-05T15:30:00.000Z",
+      "jd": 2453861.1458333335
+    },
+    {
+      "id": "edge-000883",
+      "deltaSeconds": 60,
+      "utc": "2006-05-05T15:31:00.000Z",
+      "jd": 2453861.146527778
+    },
+    {
+      "id": "edge-001179",
+      "deltaSeconds": 0,
+      "utc": "2012-07-06T16:40:00.000Z",
+      "jd": 2456115.1944444445
+    },
+    {
+      "id": "edge-001179",
+      "deltaSeconds": 60,
+      "utc": "2012-07-06T16:41:00.000Z",
+      "jd": 2456115.195138889
+    },
+    {
+      "id": "edge-001263",
+      "deltaSeconds": 0,
+      "utc": "2014-04-04T20:46:00.000Z",
+      "jd": 2456752.365277778
+    },
+    {
+      "id": "edge-001263",
+      "deltaSeconds": 60,
+      "utc": "2014-04-04T20:47:00.000Z",
+      "jd": 2456752.3659722223
+    },
+    {
+      "id": "edge-001427",
+      "deltaSeconds": 0,
+      "utc": "2017-09-07T10:38:00.000Z",
+      "jd": 2458003.9430555557
+    },
+    {
+      "id": "edge-001427",
+      "deltaSeconds": 60,
+      "utc": "2017-09-07T10:39:00.000Z",
+      "jd": 2458003.94375
+    },
+    {
+      "id": "edge-001483",
+      "deltaSeconds": 0,
+      "utc": "2018-11-07T11:31:00.000Z",
+      "jd": 2458429.979861111
+    },
+    {
+      "id": "edge-001483",
+      "deltaSeconds": 60,
+      "utc": "2018-11-07T11:32:00.000Z",
+      "jd": 2458429.980555556
+    },
+    {
+      "id": "edge-001487",
+      "deltaSeconds": 0,
+      "utc": "2018-12-07T04:25:00.000Z",
+      "jd": 2458459.684027778
+    },
+    {
+      "id": "edge-001487",
+      "deltaSeconds": 60,
+      "utc": "2018-12-07T04:26:00.000Z",
+      "jd": 2458459.6847222224
+    },
+    {
+      "id": "edge-001507",
+      "deltaSeconds": 0,
+      "utc": "2019-05-05T19:02:00.000Z",
+      "jd": 2458609.293055556
+    },
+    {
+      "id": "edge-001507",
+      "deltaSeconds": 60,
+      "utc": "2019-05-05T19:03:00.000Z",
+      "jd": 2458609.29375
+    },
+    {
+      "id": "edge-001515",
+      "deltaSeconds": 0,
+      "utc": "2019-07-07T09:20:00.000Z",
+      "jd": 2458671.888888889
+    },
+    {
+      "id": "edge-001515",
+      "deltaSeconds": 60,
+      "utc": "2019-07-07T09:21:00.000Z",
+      "jd": 2458671.8895833334
+    },
+    {
+      "id": "edge-001527",
+      "deltaSeconds": 0,
+      "utc": "2019-10-08T14:05:00.000Z",
+      "jd": 2458765.0868055555
+    },
+    {
+      "id": "edge-001527",
+      "deltaSeconds": 60,
+      "utc": "2019-10-08T14:06:00.000Z",
+      "jd": 2458765.0875
+    },
+    {
+      "id": "edge-001687",
+      "deltaSeconds": 0,
+      "utc": "2023-02-04T02:42:00.000Z",
+      "jd": 2459979.6125
+    },
+    {
+      "id": "edge-001687",
+      "deltaSeconds": 60,
+      "utc": "2023-02-04T02:43:00.000Z",
+      "jd": 2459979.613194444
+    },
+    {
+      "id": "edge-001707",
+      "deltaSeconds": 0,
+      "utc": "2023-07-07T08:30:00.000Z",
+      "jd": 2460132.8541666665
+    },
+    {
+      "id": "edge-001707",
+      "deltaSeconds": 60,
+      "utc": "2023-07-07T08:31:00.000Z",
+      "jd": 2460132.854861111
+    },
+    {
+      "id": "edge-001739",
+      "deltaSeconds": 0,
+      "utc": "2024-03-05T02:22:00.000Z",
+      "jd": 2460374.5986111113
+    },
+    {
+      "id": "edge-001739",
+      "deltaSeconds": 60,
+      "utc": "2024-03-05T02:23:00.000Z",
+      "jd": 2460374.5993055557
+    },
+    {
+      "id": "edge-001807",
+      "deltaSeconds": 0,
+      "utc": "2025-08-07T05:51:00.000Z",
+      "jd": 2460894.74375
+    },
+    {
+      "id": "edge-001807",
+      "deltaSeconds": 60,
+      "utc": "2025-08-07T05:52:00.000Z",
+      "jd": 2460894.7444444443
+    },
+    {
+      "id": "edge-001883",
+      "deltaSeconds": 0,
+      "utc": "2027-03-05T19:39:00.000Z",
+      "jd": 2461470.31875
+    },
+    {
+      "id": "edge-001883",
+      "deltaSeconds": 60,
+      "utc": "2027-03-05T19:40:00.000Z",
+      "jd": 2461470.3194444445
+    },
+    {
+      "id": "edge-001895",
+      "deltaSeconds": 0,
+      "utc": "2027-06-05T21:25:00.000Z",
+      "jd": 2461562.392361111
+    },
+    {
+      "id": "edge-001895",
+      "deltaSeconds": 60,
+      "utc": "2027-06-05T21:26:00.000Z",
+      "jd": 2461562.3930555554
+    },
+    {
+      "id": "edge-001903",
+      "deltaSeconds": 0,
+      "utc": "2027-08-07T17:26:00.000Z",
+      "jd": 2461625.226388889
+    },
+    {
+      "id": "edge-001903",
+      "deltaSeconds": 60,
+      "utc": "2027-08-07T17:27:00.000Z",
+      "jd": 2461625.2270833333
+    },
+    {
+      "id": "edge-001959",
+      "deltaSeconds": 0,
+      "utc": "2028-10-07T18:08:00.000Z",
+      "jd": 2462052.2555555557
+    },
+    {
+      "id": "edge-001959",
+      "deltaSeconds": 60,
+      "utc": "2028-10-07T18:09:00.000Z",
+      "jd": 2462052.25625
+    }
+  ],
+  "authorization": "Public KASI and NASA/JPL read-only adjudication; no Swiss/service execution or credentials"
+}

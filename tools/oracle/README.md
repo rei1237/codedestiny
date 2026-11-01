@@ -140,3 +140,30 @@ node --test tools/oracle/test/phase2.test.mjs
 Python 신살 `locations`는 프로세스마다 배열 순서가 달라질 수 있다. 원시 배열은 그대로 보존하고, 비교할 때에만 위치 이름의 집합으로 취급한다. 이 사실은 `python-cache-validation.json`과 C 분류에 기록한다. Phase 2 자료를 정확도 인증이나 운영 전체 엔진 검증으로 확대 해석하지 않는다.
 
 최초 배치 뒤 `contract.mjs::utcInstant`의 역사 IANA 오프셋 초 누락을 수정했다. `node-*`, `controls`, `summary`는 수정 전 증거로 보존하고, 최초 A 135개 입력에만 Python 독립 달력과 수정된 시계를 적용한 `adjudication`을 추가했다. `summary-final`/`observations-final`이 최종 분류이며 원래 비교율을 다시 계산한 것은 아니다. 최종 하네스의 새 배치는 최초 대조군과 바이트 단위로 같지 않을 수 있다. 12운성 건록/임관은 같은 단계로 확인되어 D 동의어 차이로 분류했다.
+
+## A 후보의 공식 추가 판정
+
+후속 승인으로 KASI 공식 사이트와 NASA/JPL Horizons를 직접 조회했다. [추가 판정 보고서](../../docs/engine-audit/02a-authoritative-adjudication.md)와 [수정 계획](../../docs/engine-audit/03-fix-plan.md)을 작성했으며, 운영 수정과 Swiss 실행은 하지 않았다. 101개 입력의 관측 오류는 두 결함군으로 확정했고, 상세 원인·영향 범위의 미확정 부분은 따로 기록했다.
+
+기존 증거만 검증하는 오프라인 명령:
+
+```powershell
+node --test tools/oracle/test/adjudication.test.mjs
+node tools/oracle/verify-licenses.mjs
+```
+
+공식 출처를 새로 수집할 때는 `ORACLE_ADJUDICATION_OUTPUT`에 **존재하지 않는** `docs/engine-audit/results/` 하위 경로를 지정한다. 아래 순서는 공개 외부 읽기와 허용 공개 사주 어댑터 실행을 포함하며, 기존 결과에 재실행하지 않는다. 수집 도구는 실패한 응답을 성공으로 간주하지 않는다. 새 결과는 기존 결과와 별도 검토해야 한다.
+
+```powershell
+$env:ORACLE_ADJUDICATION_OUTPUT = 'docs/engine-audit/results/adjudication-new-run'
+node tools/oracle/adjudication/collect.mjs
+node tools/oracle/adjudication/calendar-probe.mjs
+node tools/oracle/adjudication/prefetch-control.mjs
+node tools/oracle/adjudication/moon-support.mjs
+node tools/oracle/adjudication/judge.mjs
+node tools/oracle/adjudication/manifest.mjs
+node --test tools/oracle/test/adjudication.test.mjs
+Remove-Item Env:ORACLE_ADJUDICATION_OUTPUT
+```
+
+`collect`/`moon-support`만 공개 KASI/JPL 요청을 수행한다. 서비스·오라클 대조는 별도 프로세스에서 네트워크를 차단한다. 절입 판정은 실제 입력 순간의 황경 부호를 사용하며 보간한 초를 정본으로 저장하지 않는다. 1962년 이전 Horizons UT는 UT1이다. 기존 16개 Phase 2 원시 파일의 해시 보존도 함께 검사한다.

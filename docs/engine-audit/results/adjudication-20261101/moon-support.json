@@ -1,0 +1,277 @@
+{
+  "rows": [
+    {
+      "lunarMonth": "1903-09",
+      "officialFirstSolarDate": "1903-10-20",
+      "samples": [
+        {
+          "lunarMonth": "1903-09",
+          "officialFirstSolarDate": "1903-10-20",
+          "utc": "1903-10-20T14:30:00Z",
+          "jd": 2416408.1041666665,
+          "elongation": -0.5356064999999717
+        },
+        {
+          "lunarMonth": "1903-09",
+          "officialFirstSolarDate": "1903-10-20",
+          "utc": "1903-10-20T15:00:00Z",
+          "jd": 2416408.125,
+          "elongation": -0.2689655000000357
+        },
+        {
+          "lunarMonth": "1903-09",
+          "officialFirstSolarDate": "1903-10-20",
+          "utc": "1903-10-20T15:30:00Z",
+          "jd": 2416408.1458333335,
+          "elongation": -0.002439200000026176
+        },
+        {
+          "lunarMonth": "1903-09",
+          "officialFirstSolarDate": "1903-10-20",
+          "utc": "1903-10-20T16:00:00Z",
+          "jd": 2416408.1666666665,
+          "elongation": 0.263971999999967
+        }
+      ]
+    },
+    {
+      "lunarMonth": "1903-12",
+      "officialFirstSolarDate": "1904-01-17",
+      "samples": [
+        {
+          "lunarMonth": "1903-12",
+          "officialFirstSolarDate": "1904-01-17",
+          "utc": "1904-01-17T14:30:00Z",
+          "jd": 2416497.1041666665,
+          "elongation": -0.5826560999998946
+        },
+        {
+          "lunarMonth": "1903-12",
+          "officialFirstSolarDate": "1904-01-17",
+          "utc": "1904-01-17T15:00:00Z",
+          "jd": 2416497.125,
+          "elongation": -0.35425869999994575
+        },
+        {
+          "lunarMonth": "1903-12",
+          "officialFirstSolarDate": "1904-01-17",
+          "utc": "1904-01-17T15:30:00Z",
+          "jd": 2416497.1458333335,
+          "elongation": -0.12590640000007625
+        },
+        {
+          "lunarMonth": "1903-12",
+          "officialFirstSolarDate": "1904-01-17",
+          "utc": "1904-01-17T16:00:00Z",
+          "jd": 2416497.1666666665,
+          "elongation": 0.10240060000000994
+        }
+      ]
+    },
+    {
+      "lunarMonth": "1904-10",
+      "officialFirstSolarDate": "1904-11-07",
+      "samples": [
+        {
+          "lunarMonth": "1904-10",
+          "officialFirstSolarDate": "1904-11-07",
+          "utc": "1904-11-07T14:30:00Z",
+          "jd": 2416792.1041666665,
+          "elongation": -0.6266878000000133
+        },
+        {
+          "lunarMonth": "1904-10",
+          "officialFirstSolarDate": "1904-11-07",
+          "utc": "1904-11-07T15:00:00Z",
+          "jd": 2416792.125,
+          "elongation": -0.3442359000000579
+        },
+        {
+          "lunarMonth": "1904-10",
+          "officialFirstSolarDate": "1904-11-07",
+          "utc": "1904-11-07T15:30:00Z",
+          "jd": 2416792.1458333335,
+          "elongation": -0.06187980000004245
+        },
+        {
+          "lunarMonth": "1904-10",
+          "officialFirstSolarDate": "1904-11-07",
+          "utc": "1904-11-07T16:00:00Z",
+          "jd": 2416792.1666666665,
+          "elongation": 0.22037920000002487
+        }
+      ]
+    },
+    {
+      "lunarMonth": "1905-04",
+      "officialFirstSolarDate": "1905-05-04",
+      "samples": [
+        {
+          "lunarMonth": "1905-04",
+          "officialFirstSolarDate": "1905-05-04",
+          "utc": "1905-05-04T14:30:00Z",
+          "jd": 2416970.1041666665,
+          "elongation": -0.6145304000000351
+        },
+        {
+          "lunarMonth": "1905-04",
+          "officialFirstSolarDate": "1905-05-04",
+          "utc": "1905-05-04T15:00:00Z",
+          "jd": 2416970.125,
+          "elongation": -0.3831106999999747
+        },
+        {
+          "lunarMonth": "1905-04",
+          "officialFirstSolarDate": "1905-05-04",
+          "utc": "1905-05-04T15:30:00Z",
+          "jd": 2416970.1458333335,
+          "elongation": -0.15163119999999708
+        },
+        {
+          "lunarMonth": "1905-04",
+          "officialFirstSolarDate": "1905-05-04",
+          "utc": "1905-05-04T16:00:00Z",
+          "jd": 2416970.1666666665,
+          "elongation": 0.07990800000004583
+        }
+      ]
+    },
+    {
+      "lunarMonth": "1907-06",
+      "officialFirstSolarDate": "1907-07-10",
+      "samples": [
+        {
+          "lunarMonth": "1907-06",
+          "officialFirstSolarDate": "1907-07-10",
+          "utc": "1907-07-10T14:30:00Z",
+          "jd": 2417767.1041666665,
+          "elongation": -0.35293269999999666
+        },
+        {
+          "lunarMonth": "1907-06",
+          "officialFirstSolarDate": "1907-07-10",
+          "utc": "1907-07-10T15:00:00Z",
+          "jd": 2417767.125,
+          "elongation": -0.12716530000000148
+        },
+        {
+          "lunarMonth": "1907-06",
+          "officialFirstSolarDate": "1907-07-10",
+          "utc": "1907-07-10T15:30:00Z",
+          "jd": 2417767.1458333335,
+          "elongation": 0.09861209999996845
+        },
+        {
+          "lunarMonth": "1907-06",
+          "officialFirstSolarDate": "1907-07-10",
+          "utc": "1907-07-10T16:00:00Z",
+          "jd": 2417767.1666666665,
+          "elongation": 0.3243995000000268
+        }
+      ]
+    },
+    {
+      "lunarMonth": "1908-04",
+      "officialFirstSolarDate": "1908-04-30",
+      "samples": [
+        {
+          "lunarMonth": "1908-04",
+          "officialFirstSolarDate": "1908-04-30",
+          "utc": "1908-04-30T14:30:00Z",
+          "jd": 2418062.1041666665,
+          "elongation": -0.5528348000000278
+        },
+        {
+          "lunarMonth": "1908-04",
+          "officialFirstSolarDate": "1908-04-30",
+          "utc": "1908-04-30T15:00:00Z",
+          "jd": 2418062.125,
+          "elongation": -0.2895461000000523
+        },
+        {
+          "lunarMonth": "1908-04",
+          "officialFirstSolarDate": "1908-04-30",
+          "utc": "1908-04-30T15:30:00Z",
+          "jd": 2418062.1458333335,
+          "elongation": -0.026388500000052773
+        },
+        {
+          "lunarMonth": "1908-04",
+          "officialFirstSolarDate": "1908-04-30",
+          "utc": "1908-04-30T16:00:00Z",
+          "jd": 2418062.1666666665,
+          "elongation": 0.23663729999998395
+        }
+      ]
+    },
+    {
+      "lunarMonth": "1909-08",
+      "officialFirstSolarDate": "1909-09-14",
+      "samples": [
+        {
+          "lunarMonth": "1909-08",
+          "officialFirstSolarDate": "1909-09-14",
+          "utc": "1909-09-14T14:30:00Z",
+          "jd": 2418564.1041666665,
+          "elongation": -0.2927603000000545
+        },
+        {
+          "lunarMonth": "1909-08",
+          "officialFirstSolarDate": "1909-09-14",
+          "utc": "1909-09-14T15:00:00Z",
+          "jd": 2418564.125,
+          "elongation": -0.06441150000000562
+        },
+        {
+          "lunarMonth": "1909-08",
+          "officialFirstSolarDate": "1909-09-14",
+          "utc": "1909-09-14T15:30:00Z",
+          "jd": 2418564.1458333335,
+          "elongation": 0.16390360000002602
+        },
+        {
+          "lunarMonth": "1909-08",
+          "officialFirstSolarDate": "1909-09-14",
+          "utc": "1909-09-14T16:00:00Z",
+          "jd": 2418564.1666666665,
+          "elongation": 0.39218540000001667
+        }
+      ]
+    },
+    {
+      "lunarMonth": "1911-11",
+      "officialFirstSolarDate": "1911-12-20",
+      "samples": [
+        {
+          "lunarMonth": "1911-11",
+          "officialFirstSolarDate": "1911-12-20",
+          "utc": "1911-12-20T14:30:00Z",
+          "jd": 2419391.1041666665,
+          "elongation": -0.5285042000000431
+        },
+        {
+          "lunarMonth": "1911-11",
+          "officialFirstSolarDate": "1911-12-20",
+          "utc": "1911-12-20T15:00:00Z",
+          "jd": 2419391.125,
+          "elongation": -0.3020383000000493
+        },
+        {
+          "lunarMonth": "1911-11",
+          "officialFirstSolarDate": "1911-12-20",
+          "utc": "1911-12-20T15:30:00Z",
+          "jd": 2419391.1458333335,
+          "elongation": -0.07558879999999135
+        },
+        {
+          "lunarMonth": "1911-11",
+          "officialFirstSolarDate": "1911-12-20",
+          "utc": "1911-12-20T16:00:00Z",
+          "jd": 2419391.1666666665,
+          "elongation": 0.1508444999999483
+        }
+      ]
+    }
+  ],
+  "note": "Conjunction sign support only; no historical time-zone adoption claim."
+}

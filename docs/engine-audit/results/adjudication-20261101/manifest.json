@@ -1,0 +1,722 @@
+{
+  "status": "verified",
+  "serviceBase": "20904183a1b0276584ed6f74313bf1e6cdeaf442",
+  "phase2EvidenceCommit": "1b91faf5380e3ab07da71e3dc29f6a892d8bc448",
+  "priorManifestSha256": "ae28316d9951e910159e70f5787d2fb1e8076eb94caeb7470259f3c8b38a5486",
+  "priorFilesPreserved": 16,
+  "files": [
+    {
+      "file": "calendar-probes.json",
+      "bytes": 225029,
+      "sha256": "6a402f1fff66499a51d70b201412097f37a522a6df1d933f76030ead9651a716"
+    },
+    {
+      "file": "decisions-official.json",
+      "bytes": 687477,
+      "sha256": "c91867f830c2b8d48e9fc3c6889dcd2f60ad4b418b8f59013b2a1c5880a6b92e"
+    },
+    {
+      "file": "moon-epochs.json",
+      "bytes": 5515,
+      "sha256": "d5656ae04f4d9713aa10b0bc5524f18f1dba7d8a91cf543d3308510e89d80a0a"
+    },
+    {
+      "file": "moon-support.json",
+      "bytes": 8247,
+      "sha256": "e17ba3ad28212d1ba622cb51ee54f9c749711b6f049ab4d3335a187d24b3e60e"
+    },
+    {
+      "file": "prefetch-controls.json",
+      "bytes": 8819,
+      "sha256": "7c3d638c10425fb90e71e02f9563b34cc9d4829e2b3b16b2efc318030371440f"
+    },
+    {
+      "file": "requests.json",
+      "bytes": 179788,
+      "sha256": "6e09e098495be0558997a4a2c75c45b73afe9c09490659b815df582a17bc6720"
+    },
+    {
+      "file": "sources/jpl-historical-moon.json",
+      "bytes": 10783,
+      "sha256": "aa6ef3b4da91e4a417e851af324e50f21510ccce3c4ec21e7db5955840ec328b",
+      "url": "https://ssd.jpl.nasa.gov/api/horizons.api?format=json&COMMAND=%27301%27&EPHEM_TYPE=%27OBSERVER%27&CENTER=%27500%40399%27&QUANTITIES=%2731%27&TIME_TYPE=%27UT%27&TLIST_TYPE=%27JD%27&CAL_TYPE=%27GREGORIAN%27&CAL_FORMAT=%27BOTH%27&TIME_DIGITS=%27FRACSEC%27&EXTRA_PREC=%27YES%27&CSV_FORMAT=%27YES%27&TLIST=%272416408.1041666665%27+%272416408.1250000000%27+%272416408.1458333335%27+%272416408.1666666665%27+%272416497.1041666665%27+%272416497.1250000000%27+%272416497.1458333335%27+%272416497.1666666665%27+%272416792.1041666665%27+%272416792.1250000000%27+%272416792.1458333335%27+%272416792.1666666665%27+%272416970.1041666665%27+%272416970.1250000000%27+%272416970.1458333335%27+%272416970.1666666665%27+%272417767.1041666665%27+%272417767.1250000000%27+%272417767.1458333335%27+%272417767.1666666665%27+%272418062.1041666665%27+%272418062.1250000000%27+%272418062.1458333335%27+%272418062.1666666665%27+%272418564.1041666665%27+%272418564.1250000000%27+%272418564.1458333335%27+%272418564.1666666665%27+%272419391.1041666665%27+%272419391.1250000000%27+%272419391.1458333335%27+%272419391.1666666665%27",
+      "capturedAt": "2026-11-01T09:21:56.239Z"
+    },
+    {
+      "file": "sources/jpl-historical-sun.json",
+      "bytes": 10662,
+      "sha256": "57d2862329290fc4909abdd7a180ff42dc93170bcea49c772909d3f8ae127340",
+      "url": "https://ssd.jpl.nasa.gov/api/horizons.api?format=json&COMMAND=%2710%27&EPHEM_TYPE=%27OBSERVER%27&CENTER=%27500%40399%27&QUANTITIES=%2731%27&TIME_TYPE=%27UT%27&TLIST_TYPE=%27JD%27&CAL_TYPE=%27GREGORIAN%27&CAL_FORMAT=%27BOTH%27&TIME_DIGITS=%27FRACSEC%27&EXTRA_PREC=%27YES%27&CSV_FORMAT=%27YES%27&TLIST=%272416408.1041666665%27+%272416408.1250000000%27+%272416408.1458333335%27+%272416408.1666666665%27+%272416497.1041666665%27+%272416497.1250000000%27+%272416497.1458333335%27+%272416497.1666666665%27+%272416792.1041666665%27+%272416792.1250000000%27+%272416792.1458333335%27+%272416792.1666666665%27+%272416970.1041666665%27+%272416970.1250000000%27+%272416970.1458333335%27+%272416970.1666666665%27+%272417767.1041666665%27+%272417767.1250000000%27+%272417767.1458333335%27+%272417767.1666666665%27+%272418062.1041666665%27+%272418062.1250000000%27+%272418062.1458333335%27+%272418062.1666666665%27+%272418564.1041666665%27+%272418564.1250000000%27+%272418564.1458333335%27+%272418564.1666666665%27+%272419391.1041666665%27+%272419391.1250000000%27+%272419391.1458333335%27+%272419391.1666666665%27",
+      "capturedAt": "2026-11-01T09:21:55.601Z"
+    },
+    {
+      "file": "sources/jpl-probe.json",
+      "bytes": 7341,
+      "sha256": "a5d85f7b10fbcfcb562346b590f8a40261470daab8cc5515357c912899a0c165",
+      "url": "https://ssd.jpl.nasa.gov/api/horizons.api?format=json&COMMAND=%2710%27&EPHEM_TYPE=%27OBSERVER%27&CENTER=%27500%40399%27&START_TIME=%272023-02-04+02%3A42%3A00%27&STOP_TIME=%272023-02-04+02%3A44%3A00%27&STEP_SIZE=%271+m%27&QUANTITIES=%2731%27&EXTRA_PREC=%27YES%27&CSV_FORMAT=%27YES%27&TIME_DIGITS=%27SECONDS%27",
+      "capturedAt": "2026-11-01T09:13:07.717Z"
+    },
+    {
+      "file": "sources/jpl-solar-boundaries.json",
+      "bytes": 12146,
+      "sha256": "7b3df4335b6c8ab43b2c3ca927f1876074b693de3fb4b8daecbf0590c5470965",
+      "url": "https://ssd.jpl.nasa.gov/api/horizons.api?format=json&COMMAND=%2710%27&EPHEM_TYPE=%27OBSERVER%27&CENTER=%27500%40399%27&QUANTITIES=%2731%27&TIME_TYPE=%27UT%27&TLIST_TYPE=%27JD%27&CAL_TYPE=%27GREGORIAN%27&CAL_FORMAT=%27BOTH%27&TIME_DIGITS=%27FRACSEC%27&EXTRA_PREC=%27YES%27&CSV_FORMAT=%27YES%27&TLIST=%272451608.7791666668%27+%272451608.7798611112%27+%272451700.8736111112%27+%272451700.8743055556%27+%272452280.0298611112%27+%272452280.0305555556%27+%272452339.2687499998%27+%272452339.2694444442%27+%272453621.0388888889%27+%272453621.0395833333%27+%272453800.2277777777%27+%272453800.2284722221%27+%272453861.1458333335%27+%272453861.1465277779%27+%272456115.1944444445%27+%272456115.1951388889%27+%272456752.3652777779%27+%272456752.3659722223%27+%272458003.9430555557%27+%272458003.9437500001%27+%272458429.9798611109%27+%272458429.9805555558%27+%272458459.6840277780%27+%272458459.6847222224%27+%272458609.2930555558%27+%272458609.2937500002%27+%272458671.8888888890%27+%272458671.8895833334%27+%272458765.0868055555%27+%272458765.0874999999%27+%272459979.6124999998%27+%272459979.6131944442%27+%272460132.8541666665%27+%272460132.8548611109%27+%272460374.5986111113%27+%272460374.5993055557%27+%272460894.7437499999%27+%272460894.7444444443%27+%272461470.3187500001%27+%272461470.3194444445%27+%272461562.3923611110%27+%272461562.3930555554%27+%272461625.2263888889%27+%272461625.2270833333%27+%272462052.2555555557%27+%272462052.2562500001%27",
+      "capturedAt": "2026-11-01T09:15:42.379Z"
+    },
+    {
+      "file": "sources/kasi-convert-form.html",
+      "bytes": 125285,
+      "sha256": "69cdd50695200a1abb79e1ba35275e248e2be66662d0b8c2239ea5f9d0d90e3a"
+    },
+    {
+      "file": "sources/kasi-lunc-1909-08-11.json",
+      "bytes": 727,
+      "sha256": "36af36bcb3e10d1cdd5e0055195d8829491cf7ab28be6ad69a28a6df51e62b21",
+      "url": "https://astro.kasi.re.kr/life/lunc?yyyy=1909&mm=08&dd=11",
+      "capturedAt": "2026-11-01T09:15:38.473Z"
+    },
+    {
+      "file": "sources/kasi-lunc-1909-08-14.json",
+      "bytes": 727,
+      "sha256": "44226f244525b2187e4f3ef69e541c6d1bc1e435b817cdca59495937964b273a",
+      "url": "https://astro.kasi.re.kr/life/lunc?yyyy=1909&mm=08&dd=14",
+      "capturedAt": "2026-11-01T09:15:38.567Z"
+    },
+    {
+      "file": "sources/kasi-lunc-probe.json",
+      "bytes": 586,
+      "sha256": "f30a533184d00a6e448f8a7bda8ac7adac5dedb77a404e60be0aff3e092ee151",
+      "url": "https://astro.kasi.re.kr/life/lunc?yyyy=1909&mm=08&dd=11",
+      "capturedAt": "2026-11-01T09:13:58.432Z"
+    },
+    {
+      "file": "sources/kasi-month-form.html",
+      "bytes": 95633,
+      "sha256": "88c1e98ff01ed66b8d7e2b4c0dc543055012aa7c88b8b96101674c4d728f0bfd"
+    },
+    {
+      "file": "sources/kasi-month-start-1903-09.json",
+      "bytes": 671,
+      "sha256": "b047a9d12af91938ff432f773f6f9b9c3dacb9e10e4a318913e4fd3a9d39a22f",
+      "url": "https://astro.kasi.re.kr/life/lunc?yyyy=1903&mm=09&dd=01",
+      "capturedAt": "2026-11-01T09:23:30.233Z"
+    },
+    {
+      "file": "sources/kasi-month-start-1903-12.json",
+      "bytes": 671,
+      "sha256": "560ee9e3513e5920b8514550e3157c2fd39b199df227a3b432b416c2f1d716a7",
+      "url": "https://astro.kasi.re.kr/life/lunc?yyyy=1903&mm=12&dd=01",
+      "capturedAt": "2026-11-01T09:23:30.301Z"
+    },
+    {
+      "file": "sources/kasi-month-start-1904-10.json",
+      "bytes": 671,
+      "sha256": "a36900e97ae6ef3d957156b61fef17619015a47f2004cb179ebe89d0f5112b22",
+      "url": "https://astro.kasi.re.kr/life/lunc?yyyy=1904&mm=10&dd=01",
+      "capturedAt": "2026-11-01T09:23:30.362Z"
+    },
+    {
+      "file": "sources/kasi-month-start-1905-04.json",
+      "bytes": 671,
+      "sha256": "5d2b4cc76a57a6a00f720195f8365c9aa75fb90168a80a35141d8737d9f0c25f",
+      "url": "https://astro.kasi.re.kr/life/lunc?yyyy=1905&mm=04&dd=01",
+      "capturedAt": "2026-11-01T09:23:30.430Z"
+    },
+    {
+      "file": "sources/kasi-month-start-1907-06.json",
+      "bytes": 671,
+      "sha256": "69658ce4c3991845a738ecd407494b815806b11184c772b3f20e5900eb7bd8b7",
+      "url": "https://astro.kasi.re.kr/life/lunc?yyyy=1907&mm=06&dd=01",
+      "capturedAt": "2026-11-01T09:23:30.488Z"
+    },
+    {
+      "file": "sources/kasi-month-start-1908-04.json",
+      "bytes": 671,
+      "sha256": "d20ec0d735d961b49471dd9ed954fa603078c2ad2449e2d1b77ae1b9fe0985ce",
+      "url": "https://astro.kasi.re.kr/life/lunc?yyyy=1908&mm=04&dd=01",
+      "capturedAt": "2026-11-01T09:23:30.537Z"
+    },
+    {
+      "file": "sources/kasi-month-start-1909-08.json",
+      "bytes": 671,
+      "sha256": "9002978c8d27b203bd7ee744f35c3b5dc55a0422133dcb7ecb66cb8ef9b271cd",
+      "url": "https://astro.kasi.re.kr/life/lunc?yyyy=1909&mm=08&dd=01",
+      "capturedAt": "2026-11-01T09:23:30.583Z"
+    },
+    {
+      "file": "sources/kasi-month-start-1911-11.json",
+      "bytes": 671,
+      "sha256": "28e676465a09cc79a9fe2ac1b48a02e7d8c14e7b1cc887dce53b1450618e93ca",
+      "url": "https://astro.kasi.re.kr/life/lunc?yyyy=1911&mm=11&dd=01",
+      "capturedAt": "2026-11-01T09:23:30.645Z"
+    },
+    {
+      "file": "sources/kasi-solc-1903-10-21.json",
+      "bytes": 725,
+      "sha256": "6a5989092614f174dea43b988a82ded29be164dcb560296729141bc1a21025e2",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1903&mm=10&dd=21",
+      "capturedAt": "2026-11-01T09:15:34.203Z"
+    },
+    {
+      "file": "sources/kasi-solc-1903-10-23.json",
+      "bytes": 725,
+      "sha256": "55a66069791678f003939e3d6a9c4c2cb578640104ac1dff2763aa6a84284ec0",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1903&mm=10&dd=23",
+      "capturedAt": "2026-11-01T09:15:34.276Z"
+    },
+    {
+      "file": "sources/kasi-solc-1903-10-25.json",
+      "bytes": 725,
+      "sha256": "963499f2f9a5daf882823be67216ee7d5dce193212cbeff5777e8e4b1dc474f0",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1903&mm=10&dd=25",
+      "capturedAt": "2026-11-01T09:15:34.328Z"
+    },
+    {
+      "file": "sources/kasi-solc-1903-10-27.json",
+      "bytes": 725,
+      "sha256": "c216d3270f31602d31489046e4756cf15191026303a728d7a0a7c8e584c2b288",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1903&mm=10&dd=27",
+      "capturedAt": "2026-11-01T09:15:34.463Z"
+    },
+    {
+      "file": "sources/kasi-solc-1903-10-28.json",
+      "bytes": 725,
+      "sha256": "768fc8e5b658a6c68b0135d9f81afd4103646b0592d0e15da7931cb8ecf2b055",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1903&mm=10&dd=28",
+      "capturedAt": "2026-11-01T09:15:34.513Z"
+    },
+    {
+      "file": "sources/kasi-solc-1903-11-06.json",
+      "bytes": 725,
+      "sha256": "7548651be0d04f7f7f5a7711f6cadebf8dd4d107ffaeade86fad9e215ffa754b",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1903&mm=11&dd=06",
+      "capturedAt": "2026-11-01T09:15:34.569Z"
+    },
+    {
+      "file": "sources/kasi-solc-1903-11-12.json",
+      "bytes": 725,
+      "sha256": "ac604b9a85a1cd57078b93a0f05e8ee5885370116267ee17ad2faa73201cbf2d",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1903&mm=11&dd=12",
+      "capturedAt": "2026-11-01T09:15:34.617Z"
+    },
+    {
+      "file": "sources/kasi-solc-1903-11-13.json",
+      "bytes": 725,
+      "sha256": "408877fb5ed1ee9f05bea14364362d93dbc197e0b253f2bc4622f94d8d1aeca6",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1903&mm=11&dd=13",
+      "capturedAt": "2026-11-01T09:15:34.675Z"
+    },
+    {
+      "file": "sources/kasi-solc-1903-11-18.json",
+      "bytes": 725,
+      "sha256": "d74cf7a66109b5d292105e50dc4b0953df50b95714cd2b476c89e2b83f09e034",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1903&mm=11&dd=18",
+      "capturedAt": "2026-11-01T09:15:34.746Z"
+    },
+    {
+      "file": "sources/kasi-solc-1904-01-17.json",
+      "bytes": 725,
+      "sha256": "712283841a5809eade9e9d8c20f42e69c006b41fad28b875c9c90e21c69b748a",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1904&mm=01&dd=17",
+      "capturedAt": "2026-11-01T09:15:34.808Z"
+    },
+    {
+      "file": "sources/kasi-solc-1904-01-18.json",
+      "bytes": 725,
+      "sha256": "b0398eef7666f88e4e2965ffdcf415f9d2aa3087ec461d84a764df3aa2af2b64",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1904&mm=01&dd=18",
+      "capturedAt": "2026-11-01T09:15:34.886Z"
+    },
+    {
+      "file": "sources/kasi-solc-1904-01-20.json",
+      "bytes": 725,
+      "sha256": "6f0a39567478f5a29a6631883df5a551eca01a2d97c532b1b2e90356adc809d5",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1904&mm=01&dd=20",
+      "capturedAt": "2026-11-01T09:15:34.952Z"
+    },
+    {
+      "file": "sources/kasi-solc-1904-01-21.json",
+      "bytes": 725,
+      "sha256": "3c9d5c3d19b4690b15602f98cb1b8f24f4204492af67335e185981d2f8cae1df",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1904&mm=01&dd=21",
+      "capturedAt": "2026-11-01T09:15:35.007Z"
+    },
+    {
+      "file": "sources/kasi-solc-1904-01-24.json",
+      "bytes": 725,
+      "sha256": "0501095501e932f091fb812f70f1c257c13e6f076ced9c6317f2fd8d4af27bbb",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1904&mm=01&dd=24",
+      "capturedAt": "2026-11-01T09:15:35.062Z"
+    },
+    {
+      "file": "sources/kasi-solc-1904-01-25.json",
+      "bytes": 725,
+      "sha256": "7577eb431a49d47e950bab8cfa050e837e804969d8d8c8024b97b4301c278053",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1904&mm=01&dd=25",
+      "capturedAt": "2026-11-01T09:15:35.118Z"
+    },
+    {
+      "file": "sources/kasi-solc-1904-02-04.json",
+      "bytes": 725,
+      "sha256": "8f02788982113671eea3a3ee55bf22b8803ccd04e1d219379f6fbe7772a904a9",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1904&mm=02&dd=04",
+      "capturedAt": "2026-11-01T09:15:35.185Z"
+    },
+    {
+      "file": "sources/kasi-solc-1904-02-07.json",
+      "bytes": 725,
+      "sha256": "0764c0aa2b196495252b31120895127bc262cc4c46d3be5af743461a245150e0",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1904&mm=02&dd=07",
+      "capturedAt": "2026-11-01T09:15:35.237Z"
+    },
+    {
+      "file": "sources/kasi-solc-1904-02-10.json",
+      "bytes": 725,
+      "sha256": "605a5213c95f344216427a5e0274f7759b52e32b39cce2424128818a07568b24",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1904&mm=02&dd=10",
+      "capturedAt": "2026-11-01T09:15:35.286Z"
+    },
+    {
+      "file": "sources/kasi-solc-1904-02-12.json",
+      "bytes": 725,
+      "sha256": "d841a203afd30f477551bd8f03f13f418a7c4b20d51221334c638ee5fa1182e1",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1904&mm=02&dd=12",
+      "capturedAt": "2026-11-01T09:15:35.358Z"
+    },
+    {
+      "file": "sources/kasi-solc-1904-11-08.json",
+      "bytes": 725,
+      "sha256": "1b134984b88e677c21ae7f9c154a15b3354a8c71c9e2cb9e1c2f90500cb704ea",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1904&mm=11&dd=08",
+      "capturedAt": "2026-11-01T09:15:35.421Z"
+    },
+    {
+      "file": "sources/kasi-solc-1904-11-14.json",
+      "bytes": 725,
+      "sha256": "98ec4bfeb2eca3f21467026a048d70e4e94e0541745170fcd30e83628f6590b1",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1904&mm=11&dd=14",
+      "capturedAt": "2026-11-01T09:15:35.484Z"
+    },
+    {
+      "file": "sources/kasi-solc-1904-11-16.json",
+      "bytes": 725,
+      "sha256": "8b191ee636b5f719e41b6777f0193590620289b494f2575ac0875a3fdf69b968",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1904&mm=11&dd=16",
+      "capturedAt": "2026-11-01T09:15:35.538Z"
+    },
+    {
+      "file": "sources/kasi-solc-1904-11-19.json",
+      "bytes": 725,
+      "sha256": "7579a4b36441543140c4f64b997bc7994f57e8b3cb2be7e6cde1006806dd9305",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1904&mm=11&dd=19",
+      "capturedAt": "2026-11-01T09:15:35.585Z"
+    },
+    {
+      "file": "sources/kasi-solc-1904-11-20.json",
+      "bytes": 725,
+      "sha256": "4c0f182f13d22b11ddb28054b9fbbd02370c28bef84cfeeb045a9c78b7ab13e5",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1904&mm=11&dd=20",
+      "capturedAt": "2026-11-01T09:15:35.649Z"
+    },
+    {
+      "file": "sources/kasi-solc-1904-11-21.json",
+      "bytes": 725,
+      "sha256": "b88ad4254f3dd402b8494485793975b960d66fccc232f350d98d53193b892f1f",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1904&mm=11&dd=21",
+      "capturedAt": "2026-11-01T09:15:35.793Z"
+    },
+    {
+      "file": "sources/kasi-solc-1904-11-25.json",
+      "bytes": 725,
+      "sha256": "67482bd0296b718b080d2c2afce135bb63ff79eb77c86675ff0b67d2e531e5a4",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1904&mm=11&dd=25",
+      "capturedAt": "2026-11-01T09:15:35.894Z"
+    },
+    {
+      "file": "sources/kasi-solc-1904-11-26.json",
+      "bytes": 725,
+      "sha256": "604aca3ca7dbb82ed5514a90f64fac5ec47a9ae0fe3a012c3f353aae6d870030",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1904&mm=11&dd=26",
+      "capturedAt": "2026-11-01T09:15:35.953Z"
+    },
+    {
+      "file": "sources/kasi-solc-1904-12-01.json",
+      "bytes": 725,
+      "sha256": "acfd4388bcddfb9845651b2b48b5c03228840b8517879c4db5ad7f8657189141",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1904&mm=12&dd=01",
+      "capturedAt": "2026-11-01T09:15:36.013Z"
+    },
+    {
+      "file": "sources/kasi-solc-1904-12-02.json",
+      "bytes": 725,
+      "sha256": "3095011bffeb97a84dc6d9cb14bf86095d1f6393f042977e6140f4b450cf5e78",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1904&mm=12&dd=02",
+      "capturedAt": "2026-11-01T09:15:36.072Z"
+    },
+    {
+      "file": "sources/kasi-solc-1904-12-04.json",
+      "bytes": 725,
+      "sha256": "15432845a93f70be96c39c64234d6d26b99a1c35f33a7f4ca187d6f390995d16",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1904&mm=12&dd=04",
+      "capturedAt": "2026-11-01T09:15:36.137Z"
+    },
+    {
+      "file": "sources/kasi-solc-1905-05-05.json",
+      "bytes": 725,
+      "sha256": "b9d299b0e4271fda930c41fd3a9fdfa84eb4beb50fcb4ce8c4369d26dd0656a1",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1905&mm=05&dd=05",
+      "capturedAt": "2026-11-01T09:15:36.197Z"
+    },
+    {
+      "file": "sources/kasi-solc-1905-05-06.json",
+      "bytes": 725,
+      "sha256": "0f19e2a8fd998fe3b0747d1f76f8b0658b8ff15bfcdb52f97d703278df407ce1",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1905&mm=05&dd=06",
+      "capturedAt": "2026-11-01T09:15:36.263Z"
+    },
+    {
+      "file": "sources/kasi-solc-1905-05-09.json",
+      "bytes": 725,
+      "sha256": "391c5ffa0e529b5bab1f778e5661fbffe5bb61044585e10643c9c0b36fcd317a",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1905&mm=05&dd=09",
+      "capturedAt": "2026-11-01T09:15:36.323Z"
+    },
+    {
+      "file": "sources/kasi-solc-1905-05-10.json",
+      "bytes": 725,
+      "sha256": "fc5990f65f5337d656ba0d783162df5a4130dcb7a0ae6534c21318fdf199beea",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1905&mm=05&dd=10",
+      "capturedAt": "2026-11-01T09:15:36.388Z"
+    },
+    {
+      "file": "sources/kasi-solc-1905-05-14.json",
+      "bytes": 725,
+      "sha256": "c684492e75489f031f6e213e05aa05a56b70bb4524f6e89ac5de10e5e56e0ffc",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1905&mm=05&dd=14",
+      "capturedAt": "2026-11-01T09:15:36.444Z"
+    },
+    {
+      "file": "sources/kasi-solc-1905-05-15.json",
+      "bytes": 725,
+      "sha256": "91f5eb7f9115405171e533b3c28fbfb329a5732b8202004357c26cd659608841",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1905&mm=05&dd=15",
+      "capturedAt": "2026-11-01T09:15:36.493Z"
+    },
+    {
+      "file": "sources/kasi-solc-1905-05-23.json",
+      "bytes": 725,
+      "sha256": "fe80ba8c434ca053063870e1536f7a3c4802b08564c79585f3712e4c5ee875fd",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1905&mm=05&dd=23",
+      "capturedAt": "2026-11-01T09:15:36.541Z"
+    },
+    {
+      "file": "sources/kasi-solc-1905-05-25.json",
+      "bytes": 725,
+      "sha256": "7da34ad9881a8d6c71c512afd7841f96c2e1378cf791662986c1638c17d2b7a5",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1905&mm=05&dd=25",
+      "capturedAt": "2026-11-01T09:15:36.605Z"
+    },
+    {
+      "file": "sources/kasi-solc-1905-05-30.json",
+      "bytes": 725,
+      "sha256": "5afe0ab049204f297b4ac38dae39f3c8b3e9132573c2d172be6097c0fa8a9565",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1905&mm=05&dd=30",
+      "capturedAt": "2026-11-01T09:15:36.663Z"
+    },
+    {
+      "file": "sources/kasi-solc-1907-07-13.json",
+      "bytes": 725,
+      "sha256": "3dc0b13183adfb45030c9887250a456d75c0fd1465b5c1430d874d9710d68dd6",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1907&mm=07&dd=13",
+      "capturedAt": "2026-11-01T09:15:36.727Z"
+    },
+    {
+      "file": "sources/kasi-solc-1907-07-15.json",
+      "bytes": 725,
+      "sha256": "0cafba6469b4d69eb06ba9e35eb2aa293e10e0fd260368979613a530466781b5",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1907&mm=07&dd=15",
+      "capturedAt": "2026-11-01T09:15:36.851Z"
+    },
+    {
+      "file": "sources/kasi-solc-1907-07-19.json",
+      "bytes": 725,
+      "sha256": "6b69a83d51a24c6e72dc4fbc6f5f58adcccf4dee0775344094c789ade4729a20",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1907&mm=07&dd=19",
+      "capturedAt": "2026-11-01T09:15:36.906Z"
+    },
+    {
+      "file": "sources/kasi-solc-1907-07-22.json",
+      "bytes": 725,
+      "sha256": "b2f6f6a9347f05fe173990b2eed35a42a138bea80ac57ab3c34db6a1cd58ced8",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1907&mm=07&dd=22",
+      "capturedAt": "2026-11-01T09:15:36.967Z"
+    },
+    {
+      "file": "sources/kasi-solc-1907-07-24.json",
+      "bytes": 725,
+      "sha256": "d583fed92b75a687f131c734c0293bdc1035608e4a67711f9d026baae275ba3e",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1907&mm=07&dd=24",
+      "capturedAt": "2026-11-01T09:15:37.029Z"
+    },
+    {
+      "file": "sources/kasi-solc-1907-07-29.json",
+      "bytes": 725,
+      "sha256": "3fbe3335747ce896c70b013ef860abf90d24ba4621882578b774ae08b3220bfe",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1907&mm=07&dd=29",
+      "capturedAt": "2026-11-01T09:15:37.092Z"
+    },
+    {
+      "file": "sources/kasi-solc-1907-08-07.json",
+      "bytes": 725,
+      "sha256": "6e421058e6661a10d318caf355885d0beeaf2001884eb31196e48cbe73012e84",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1907&mm=08&dd=07",
+      "capturedAt": "2026-11-01T09:15:37.162Z"
+    },
+    {
+      "file": "sources/kasi-solc-1908-05-04.json",
+      "bytes": 725,
+      "sha256": "d3551d1982bd0fea333bd20f3190e1d170ca30ea9c7512e8ea1b5972019e0abb",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1908&mm=05&dd=04",
+      "capturedAt": "2026-11-01T09:15:37.239Z"
+    },
+    {
+      "file": "sources/kasi-solc-1908-05-05.json",
+      "bytes": 725,
+      "sha256": "77579454226495cd2d7142966cfd3073d76f77d811acb1597d41fc94a6cdbd7b",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1908&mm=05&dd=05",
+      "capturedAt": "2026-11-01T09:15:37.303Z"
+    },
+    {
+      "file": "sources/kasi-solc-1908-05-07.json",
+      "bytes": 725,
+      "sha256": "d47028a886a34ab2f40e61d4c9fa8d63b6962dca71d6ec5ad3550e85a959e972",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1908&mm=05&dd=07",
+      "capturedAt": "2026-11-01T09:15:37.361Z"
+    },
+    {
+      "file": "sources/kasi-solc-1908-05-09.json",
+      "bytes": 725,
+      "sha256": "883b979c7b72286d47be9991e2158ebe9ad7ac67a33d9c1126d62ce3cceb2c90",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1908&mm=05&dd=09",
+      "capturedAt": "2026-11-01T09:15:37.423Z"
+    },
+    {
+      "file": "sources/kasi-solc-1908-05-14.json",
+      "bytes": 725,
+      "sha256": "04bf45fb36b4d7af6f075fd7b89008684cf11b410cda768766fef595fa135113",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1908&mm=05&dd=14",
+      "capturedAt": "2026-11-01T09:15:37.488Z"
+    },
+    {
+      "file": "sources/kasi-solc-1908-05-21.json",
+      "bytes": 725,
+      "sha256": "7094e89ea9ea26b259e710d74db70d634263025442789305b9e572bc3e032016",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1908&mm=05&dd=21",
+      "capturedAt": "2026-11-01T09:15:37.536Z"
+    },
+    {
+      "file": "sources/kasi-solc-1908-05-28.json",
+      "bytes": 725,
+      "sha256": "979d7403983b20bc61b3672f681a9e9ca702e5ca2df507aa50838eb500cccb40",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1908&mm=05&dd=28",
+      "capturedAt": "2026-11-01T09:15:37.588Z"
+    },
+    {
+      "file": "sources/kasi-solc-1909-09-21.json",
+      "bytes": 725,
+      "sha256": "f1ee97ccc0b14d0a6e5e78f96bb992863da3689cda11480f85e31209437b4067",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1909&mm=09&dd=21",
+      "capturedAt": "2026-11-01T09:15:37.662Z"
+    },
+    {
+      "file": "sources/kasi-solc-1909-09-22.json",
+      "bytes": 725,
+      "sha256": "2d749c6c4a11b41fe4a7461892809e42f3597450dcbb69a888ae817a707e08a9",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1909&mm=09&dd=22",
+      "capturedAt": "2026-11-01T09:15:37.712Z"
+    },
+    {
+      "file": "sources/kasi-solc-1909-09-23.json",
+      "bytes": 725,
+      "sha256": "22387580bb9a09686ff18d4cf6520852b87ee71564fc3974e152e2d0aa0d8959",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1909&mm=09&dd=23",
+      "capturedAt": "2026-11-01T09:15:37.778Z"
+    },
+    {
+      "file": "sources/kasi-solc-1909-09-25.json",
+      "bytes": 725,
+      "sha256": "0bd9f859b36145bf83b8d9484a0dfbc94cbf3cb1567958fd889ffb2ce9970df9",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1909&mm=09&dd=25",
+      "capturedAt": "2026-11-01T09:15:37.864Z"
+    },
+    {
+      "file": "sources/kasi-solc-1909-10-08.json",
+      "bytes": 725,
+      "sha256": "c64591d8a6a9d61af38fb89951750f2245b681f8d149b787bbce365ebde613fe",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1909&mm=10&dd=08",
+      "capturedAt": "2026-11-01T09:15:37.938Z"
+    },
+    {
+      "file": "sources/kasi-solc-1909-10-11.json",
+      "bytes": 725,
+      "sha256": "ace137311ea36ea92a97b70b602f85b4e7c1baea7534caf24022b77eee0b1826",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1909&mm=10&dd=11",
+      "capturedAt": "2026-11-01T09:15:38.009Z"
+    },
+    {
+      "file": "sources/kasi-solc-1911-12-21.json",
+      "bytes": 725,
+      "sha256": "1c163e8730a9257ab574e7cb8de14617604d32ba21ad4e898efac0f281ce4d2c",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1911&mm=12&dd=21",
+      "capturedAt": "2026-11-01T09:15:38.062Z"
+    },
+    {
+      "file": "sources/kasi-solc-1911-12-30.json",
+      "bytes": 725,
+      "sha256": "03dfe1bdcd288c6f62c8ea887d60081c282a637a0a59e4523cc0cf0f3acef00f",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1911&mm=12&dd=30",
+      "capturedAt": "2026-11-01T09:15:38.135Z"
+    },
+    {
+      "file": "sources/kasi-solc-1912-01-01.json",
+      "bytes": 725,
+      "sha256": "858becaf6be43f3fd6c64da57b0111eb742dda4ea7c61e8df3895affdc23b316",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1912&mm=01&dd=01",
+      "capturedAt": "2026-11-01T09:15:38.213Z"
+    },
+    {
+      "file": "sources/kasi-solc-1912-01-09.json",
+      "bytes": 725,
+      "sha256": "e15ddcf5ae18a65f14882902eef24fc1cc5e2fbc2844c84e4471740f06ab62cc",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1912&mm=01&dd=09",
+      "capturedAt": "2026-11-01T09:15:38.280Z"
+    },
+    {
+      "file": "sources/kasi-solc-1912-01-10.json",
+      "bytes": 725,
+      "sha256": "43ebd87182bbc082246cec9ea3908ea6717b59e2176a72c4187bc16e2263aacf",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1912&mm=01&dd=10",
+      "capturedAt": "2026-11-01T09:15:38.337Z"
+    },
+    {
+      "file": "sources/kasi-solc-1912-01-15.json",
+      "bytes": 725,
+      "sha256": "fb8963467a1bb18b1eef81a686481e2fd55cca8ff2e992cb6b76c5e931357c90",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1912&mm=01&dd=15",
+      "capturedAt": "2026-11-01T09:15:38.393Z"
+    },
+    {
+      "file": "sources/kasi-solc-probe.json",
+      "bytes": 584,
+      "sha256": "885d42f0264c9720d35d0931ada9fe0b71239d2b598699315b9fc123e013274c",
+      "url": "https://astro.kasi.re.kr/life/solc?yyyy=1909&mm=09&dd=25",
+      "capturedAt": "2026-11-01T09:13:58.343Z"
+    },
+    {
+      "file": "sources/kasi-terms-2000-official.json",
+      "bytes": 77074,
+      "sha256": "f7824332479b75261df1d3a8966fa177531ffef9107eb883cb41a67cf64a7fb8",
+      "url": "https://astro.kasi.re.kr/kor/life/post/calendarData?search_year=2000",
+      "capturedAt": "2026-11-01T09:15:38.746Z"
+    },
+    {
+      "file": "sources/kasi-terms-2000.json",
+      "bytes": 76926,
+      "sha256": "354626dda540493c7dcbda822fad53a05fb5045b70343dbdc126d3ce4831dfd5",
+      "url": "https://astro.kasi.re.kr/kor/life/post/calendarData?search_year=2000",
+      "capturedAt": "2026-11-01T09:13:58.646Z"
+    },
+    {
+      "file": "sources/kasi-terms-2002-official.json",
+      "bytes": 77074,
+      "sha256": "429ebb894cb40333e6c1648eebd87c4ec45f7483581eb7a1b8bbd4a603aed0e3",
+      "url": "https://astro.kasi.re.kr/kor/life/post/calendarData?search_year=2002",
+      "capturedAt": "2026-11-01T09:15:38.990Z"
+    },
+    {
+      "file": "sources/kasi-terms-2005-official.json",
+      "bytes": 77074,
+      "sha256": "344996396993fe43b1ee972d99d924cf6a4efc2c2b6e7fba33051ff72ea189b8",
+      "url": "https://astro.kasi.re.kr/kor/life/post/calendarData?search_year=2005",
+      "capturedAt": "2026-11-01T09:15:39.220Z"
+    },
+    {
+      "file": "sources/kasi-terms-2006-official.json",
+      "bytes": 77074,
+      "sha256": "3a4dbe09b6477cc35e4cc00ffc836e71083531989c226a7587ca3631461140bc",
+      "url": "https://astro.kasi.re.kr/kor/life/post/calendarData?search_year=2006",
+      "capturedAt": "2026-11-01T09:15:39.403Z"
+    },
+    {
+      "file": "sources/kasi-terms-2012-official.json",
+      "bytes": 77074,
+      "sha256": "b9c1365123093e55ee68986f57f5dee460730fde29b2ae1fed25cb15c43282e8",
+      "url": "https://astro.kasi.re.kr/kor/life/post/calendarData?search_year=2012",
+      "capturedAt": "2026-11-01T09:15:39.605Z"
+    },
+    {
+      "file": "sources/kasi-terms-2014-official.json",
+      "bytes": 77074,
+      "sha256": "ea7fe50237d54fee26e88e2bcd445d8669c77cfee21d06948874a01d34c914ec",
+      "url": "https://astro.kasi.re.kr/kor/life/post/calendarData?search_year=2014",
+      "capturedAt": "2026-11-01T09:15:39.797Z"
+    },
+    {
+      "file": "sources/kasi-terms-2017-official.json",
+      "bytes": 77074,
+      "sha256": "86ed12efac812cf2f50e741ba0e9ee2fc176f901af44f26f3b08a36d77be4af8",
+      "url": "https://astro.kasi.re.kr/kor/life/post/calendarData?search_year=2017",
+      "capturedAt": "2026-11-01T09:15:39.999Z"
+    },
+    {
+      "file": "sources/kasi-terms-2018-official.json",
+      "bytes": 77074,
+      "sha256": "1eae1e2e8f27f8247d8466ef92368e8830b7364d4d78bded1e38a83733dc90c4",
+      "url": "https://astro.kasi.re.kr/kor/life/post/calendarData?search_year=2018",
+      "capturedAt": "2026-11-01T09:15:40.223Z"
+    },
+    {
+      "file": "sources/kasi-terms-2019-official.json",
+      "bytes": 77074,
+      "sha256": "cb166e08bbe92dfaca900d124b9dec8f2b5a7d684188b26f7e36d711df6a7505",
+      "url": "https://astro.kasi.re.kr/kor/life/post/calendarData?search_year=2019",
+      "capturedAt": "2026-11-01T09:15:40.421Z"
+    },
+    {
+      "file": "sources/kasi-terms-2023-official.json",
+      "bytes": 97796,
+      "sha256": "e0d7440635c419099236b2b6652466f2eaa5db13d4c41acc4c47100ff5bf9b49",
+      "url": "https://astro.kasi.re.kr/kor/life/post/calendarData?search_year=2023",
+      "capturedAt": "2026-11-01T09:15:40.713Z"
+    },
+    {
+      "file": "sources/kasi-terms-2024-official.json",
+      "bytes": 99511,
+      "sha256": "a083e434e14d693630330d8c524f68d0c03eb19250e7185aacf1683edffd6df6",
+      "url": "https://astro.kasi.re.kr/kor/life/post/calendarData?search_year=2024",
+      "capturedAt": "2026-11-01T09:15:40.939Z"
+    },
+    {
+      "file": "sources/kasi-terms-2025-official.json",
+      "bytes": 100552,
+      "sha256": "731e458501a69600eeac810a16dd87cfb635a2b7f6018db2d6f610756b103bc2",
+      "url": "https://astro.kasi.re.kr/kor/life/post/calendarData?search_year=2025",
+      "capturedAt": "2026-11-01T09:15:41.231Z"
+    },
+    {
+      "file": "sources/kasi-terms-2027-official.json",
+      "bytes": 103995,
+      "sha256": "1e636f68015ea8865b26b7b00235097f2e911c3895c102b017a5bae498b4e932",
+      "url": "https://astro.kasi.re.kr/kor/life/post/calendarData?search_year=2027",
+      "capturedAt": "2026-11-01T09:15:41.463Z"
+    },
+    {
+      "file": "sources/kasi-terms-2028-official.json",
+      "bytes": 100914,
+      "sha256": "aee59efa90537cbd2d4ba96093dc22cbfb7842d8d8898b3333ae80f1589df035",
+      "url": "https://astro.kasi.re.kr/kor/life/post/calendarData?search_year=2028",
+      "capturedAt": "2026-11-01T09:15:41.732Z"
+    }
+  ],
+  "totalBytes": 2705202
+}
