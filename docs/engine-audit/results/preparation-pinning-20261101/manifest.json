@@ -1,0 +1,12 @@
+{
+  "baseline": "b69790198a9c94988a2f7c0c93604ef603bdc376",
+  "normalization": "UTF-8 LF",
+  "files": {
+    "tools/oracle/preparation-pinning/checks.mjs": "12a53a0b16a4c602a4620bff81388d4c45e00424c20521e1936341f3dd054f82",
+    "__tests__/ui/ziwei-preparation-pinning.test.mjs": "6d5b9c5bfed25f4e7b5bc91f4538ee878184568bf1a407784186546a2868f81c",
+    "__tests__/ui/ziwei-execution-lifecycle.test.mjs": "56986555d31357bc376fea536068a919a306c7c2f48db69046d43f5e0f06a68e",
+    "docs/engine-audit/results/preparation-pinning-20261101/final-verification.json": "b362c5934f08b279f6e6f948f3e4a6f49e198881073ea17e778732d4f66e29b5",
+    "docs/engine-audit/results/preparation-pinning-20261101/pre-existing-cache-pin.json": "1a222b3cddc232f240f61461fba9ac315c69d0528094c776a0dd3433331d3506",
+    "docs/engine-audit/results/preparation-pinning-20261101/verification.json": "4b8497e350297e68a78feff77e06624911271781f5926149d0be7c396af1c7a6"
+  }
+}

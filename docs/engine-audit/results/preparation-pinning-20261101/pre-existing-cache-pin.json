@@ -1,0 +1,34 @@
+{
+  "baseline": "b69790198a9c94988a2f7c0c93604ef603bdc376",
+  "classification": "pre-existing static cache pin failure; no runtime or guard change",
+  "expected": "build-fc0c52ff363f",
+  "actual": "build-2029b9340aa4",
+  "example": "yoga-guru.html",
+  "proof": [
+    {
+      "file": "scripts/verify-payment-choice-parity.mjs",
+      "unchanged": true,
+      "sha256": "e22a6a4bc1b63d4c835e0ae95cc668dad35b01ef18ac8815b80fb3a6b6a21c65"
+    },
+    {
+      "file": "js/destiny-profile.js",
+      "unchanged": true,
+      "sha256": "eaeb4b35124454b72dba474a7ebf07269ca8f266ad4096a319f4491a7d4a07e2"
+    },
+    {
+      "file": "yoga-guru.html",
+      "unchanged": true,
+      "sha256": "65ba1201773601f0c1c0ca1902f4052ea6be5aa6d8e3d612722edc3fda444399"
+    },
+    {
+      "file": "index.html",
+      "unchanged": true,
+      "sha256": "cd7a5fec713f2986972142260293dc1341351f4e648c229395002a559a88a1d1"
+    },
+    {
+      "file": "public/index.html",
+      "unchanged": true,
+      "sha256": "3e027581a20081076279fd4f49f0b033c992ffa5e9f643259e0c25b40daa7dc3"
+    }
+  ]
+}

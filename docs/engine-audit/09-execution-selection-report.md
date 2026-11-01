@@ -2,6 +2,8 @@
 
 status: generation-boundary-implemented-default-off-local-only
 
+후속 상태: CR-006 사용자 승인에 따른 준비→근거→생성→재개 연결은 [10-preparation-pinning-report.md](10-preparation-pinning-report.md)에 기록했다. 이 문서의 준비 단계 보류는 CR-005 완료 당시의 상태다.
+
 기준 `91021aa3a20856f5b4cca6abd8b560ac36ef46ad`. 사용자 CR-005 승인에 따라 기본 OFF로 구현한다. 기존 감사 워크트리를 사용하고 main 병합·push·배포하지 않는다. Swiss·실결제·운영 DB·LLM 호출 금지.
 
 최초 대상은 CR-005의 자미 상담 생성 경계다. 기존 `llmMeta.chartSnapshot`과 `(userId, idempotencyKey)` unique/lease를 사용한다. 신규 문서 생성에 snapshot을 함께 넣고 재개는 저장 snapshot을 사용한다. 사주 유료 라우트·prepare/basis 전환은 자동 편입하지 않는다. 새 필드/키가 필요한 준비 단계 영속 선택은 별도 CR로 남긴다.

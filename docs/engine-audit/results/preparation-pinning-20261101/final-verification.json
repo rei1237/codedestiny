@@ -1,0 +1,183 @@
+{
+  "baseline": "b69790198a9c94988a2f7c0c93604ef603bdc376",
+  "sources": {
+    "app/_content/cms.generated.json": "e7fb31abe2d96f08288f85661e3197868d0f01f7292a4185efcd0e4cff24bd8a",
+    "app/_lib/serviceCoinPrice.ts": "ac5651f27c57288aaf443aa410606b9938b49c83fc4c0f20ea1ba27fff9e7ad4",
+    "app/saju/animal-destiny/engine/localSajuCalculator.ts": "4a826ee210291d5159e15b7b1162b8bfa0cb3b053050afaf460139f55f646792",
+    "app/saju/animal-destiny/lib/animalMapping.ts": "04761012d1806f584d17a3112c2a76ffe7a2d33ad8208b2a6e05f92a542ec18e",
+    "app/saju/animal-destiny/lib/sajuAdapter.ts": "dd2ed423304956ab63a80360aef8822322f5209a37eece22e7d052c1eb5ca4c3",
+    "app/saju/animal-destiny/lib/twelveStages.ts": "cbd8dbee8e02d8d54b0ea258584d5087e806269094e88b7c796903b5f8ede634",
+    "components/fortune/animal-twelve/animalTwelveData.ts": "d047e8184ce592566a64687c4d9ea40073b603870bff82dfd1986ab252fe0bee",
+    "lib/cms/build-text.ts": "5d6af3536c7dc54d8cbbc6900afbb5fe7925ac99fffc387acb44d0eca064cd53",
+    "lib/cms/static-copy.mjs": "cecf31545b20b102d0a61624334fafeb270546b1681e1626eb37f935366d2a87",
+    "lib/fortune/chat-products.js": "de79c035a9b43fb2993e64013f783b08f31474ca4f06bf07a0fc1983a8bc1b15",
+    "lib/korean-calendar/authority-data.generated.js": "4e8be46272be3dfd475621e802e3f4c4ac36831b5668e8882f24bb6b4430adfb",
+    "lib/korean-calendar/authority-expanded.generated.js": "c9c51346942a96df57f197880f7bdd208d849034fecd84323a722399356749cd",
+    "lib/korean-calendar/authority.js": "f33a582065bc605164d2c819a40d8aeb96a043138d3f2895318f28dfcdd75a3a",
+    "lib/korean-calendar/core.js": "4e74703edd5c47e9a0c04dcf40a01595dd2b7a2a0aee872620720eafda119367",
+    "lib/korean-calendar/daeun.js": "64711c91d98ee2fc92931e1235c6b4fdd3ab800f8f9ee1f7d9cf5f3b378e4d56",
+    "lib/korean-calendar/ganji.js": "d4f55fc8e6f53c58c2e37cb6d3286dd4c896f8648b485addd23036f119f3aded",
+    "lib/korean-calendar/index.js": "db3a945f3a01721ca95cb23b90049953b90270b32f51a1f50d5c03a77216cfb5",
+    "lib/korean-calendar/labels.js": "386a93abc2e8e3bdc6d2f9324a02d519339ce6f9434bddaf43cd7298858f2801",
+    "lib/korean-calendar/natal.js": "57875817499e14249246983abfcd057929c3f6eab8ca01b36f81931a24c3930e",
+    "lib/korean-calendar/policy.js": "1ab02fdb08c7e172447d66342dcf598e0d6576b1f31d26e1c0ac67c72f0b3852",
+    "lib/korean-calendar/table.generated.js": "80de66f9dbab66a8ca771f737dd56d9591f1939b1357d6266c65faa133f1ad79",
+    "lib/music-access-policy.js": "2a05d9951c4d36dcc7d303f9cbe6ee183dd2d588c478a03b346f7da8508ac813",
+    "worker/lib/billing-policy.js": "a4241eb479f9b33535d487cc5b232e64ef215100fb58d984e758256acdd03254",
+    "worker/lib/birth-time-context.js": "9baf9dd6c1775096143b31689578bed24247b8fb573f3bc8d66329bdf650f839",
+    "worker/lib/iana-offset.js": "35ab3e7c3e9c3aec4293ccd73c5342235dcb8daf7bbfbfede9ab7680c08aa8a1",
+    "worker/lib/paid-feature-registry.js": "240e646184815ec60ed67cf18a9d3aa8872d96d73efb857f91080f10c28b09a9",
+    "lib/ziwei-birth-clock.js": "477855bafe276cdd0160efdac77ad01fc35de5c729ef14c6ba344187537dfaed",
+    "lib/ziwei-fire-bell.js": "c17e9c28dfdff2a798c21ea355cf14c3f7f860384c55234f7bf2154a9c938593",
+    "lib/ziwei-minor-limit.js": "02b01775f19b94447ba7cf62c47ac50ac79d35fd83849b8e4430409b95640a4c",
+    "lib/ziwei-star-strength.js": "d82bdb3dbbaf06c36effae6dc133d82268c88ffe46ff0e5ab81f34a80aa71607",
+    "worker/lib/guardian-fortune-adapter-utils.js": "9659dc6908ce4bf0a7381b9a580884cc848dd0c8c69cc914a14e88ae81ef2874",
+    "worker/lib/guardian-fortune/adapters/ziwei.js": "f432822ca6f0590a00be1cefb2c4c831238694da7e2c1681419b4057e931393f",
+    "worker/lib/guardian-fortune/expert-evidence.js": "7382403c2225c7bce26585cf2947b91980109564cd6a002b28da55fe27381176",
+    "worker/lib/ziwei-ai-chart.js": "c5b05e4d30edf2bd7807b47a8e6048c3ea64193853b588947c5cfe4298d00fbf",
+    "worker/lib/ziwei-calculation-preparation.js": "fc2de31d1df106e10c789be2e85eb60ca501e9eff1488d82398e4ef49675152a",
+    "worker/lib/models.js": "2f5d40022651afa6e0a8cd00f44b4fdb3fbdf49fcf8955dbe64b8b40af0c95cb",
+    "worker/routes/ziwei-ai.js": "a33e17d4b5b8844997045e492e9589b483e406113fb0c6b618d41c551153eff5",
+    "app/ziwei-ai/ZiweiAiClient.tsx": "15a8e6bd5425c1b41ce1e181d8afffecfb4b0297b2c30fac2d86f3b1ccdf50a3",
+    "worker/lib/ziwei-execution-adapter.js": "18d64ecf9d53f411ec70773a2b35766be75143ae1118fadbe15b0d15b2f8bd18",
+    "app/saju/love-simulation/_engine/normalizeSaju.ts": "20953b5e47f290f308ca87dc1f90ddccee076564ff85a93cefe3e6c003351c93",
+    "app/hooks/usePaidResume.ts": "1cbc27706f48258b35657507f6c55d9674ac963d0d4b5ead0a09b9c887123020",
+    "package.json": "e912fe7549fc3d8de409832c6e56b85a398cbe9ba4b05f186d33609180b5def0",
+    "package-lock.json": "68dc54cad4b61cb053a8bae38dfeac28c73a794780fc3c1555563b7a4418ca04",
+    "config/payment-freeze.json": "98b428fb68ee1da7dc49f950405f221e72ed05e73878636bc33e4b6493265299"
+  },
+  "results": [
+    {
+      "name": "preparation-and-execution",
+      "args": [
+        "--test",
+        "__tests__/ui/ziwei-preparation-pinning.test.mjs",
+        "__tests__/ui/ziwei-execution-selection.test.mjs",
+        "__tests__/ui/ziwei-execution-lifecycle.test.mjs"
+      ],
+      "status": 0,
+      "milliseconds": 2527,
+      "stdout": "✔ OFF final result matches baseline; new row contains its snapshot at the first atomic create (186.2196ms)\n✔ atomic create response loss then rollback resumes the persisted v2 chart without recalculation (58.7814ms)\n✔ concurrent identical requests keep one winning snapshot and one generation/charge (91.9953ms)\n✔ partial rollback, completed retry and delivery-only retry never select a new version (100.8028ms)\n✔ leased record wins over an earlier read and failed checkpoint retries use the original snapshot (162.8522ms)\n✔ old blank execution stays legacy; missing snapshot with written results is held without billing/refund (162.1796ms)\n✔ lookup/input/ownership/preflight/storage failures do not become another new paid execution (324.2032ms)\n✔ payment/access/read helpers and immutable engine contracts are not edited; CR-006 permits prepare/basis orchestration (165.0324ms)\n✔ CR-006 payment prepare, basis, return after OFF/year change and partial resume share one snapshot (46.4777ms)\n✔ CR-006 two prepare calls and generation races preserve the durable winner (40.075ms)\n✔ CR-006 lost prepare response retries the stored version; unreadable or missing preparation holds before billing (208.0317ms)\n✔ CR-006 conflicting input/geography and different owners cannot reuse another preparation (39.8453ms)\n✔ CR-006 corrupted selection or lost metadata never regenerates/refunds; completed results remain readable (301.4828ms)\n✔ CR-006 new default-OFF requests pin legacy and body flags cannot enable v2 (130.877ms)\n✔ default OFF agrees with the previously approved public projection; body flags cannot opt in (28.1607ms)\n✔ new explicit ON has the approved authority and round-trips unchanged after OFF/year/input changes (4.4764ms)\n✔ old executions without a snapshot remain legacy; missing snapshots with written content are held (3.4591ms)\n✔ ON outside pilot or invalid authority input fails without legacy fallback (0.5701ms)\n✔ real approved calculator: competing isolates pin one version/year, OFF return and restart preserve every chart field (36.1766ms)\n✔ real calculator raw geography guard and invalid lunar inputs fail before persistence; legacy stays OFF (3.2741ms)\n✔ new schema is additive, no TTL/index job, and round-trips the complete real snapshot offline (182.4536ms)\n✔ actual client never opens payment or generation before confirmed prepare, including degraded/old-worker responses (385.5133ms)\n✔ actual client basis follows prepare; paid-resume serialization preserves protocol, key and input without another payment (132.6663ms)\nℹ tests 23\nℹ suites 0\nℹ pass 23\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 2431.7291\n",
+      "stderr": ""
+    },
+    {
+      "name": "original-and-expanded-golden",
+      "args": [
+        "--test",
+        "__tests__/ui/calendar-authority-regression.test.mjs",
+        "__tests__/ui/calendar-authority-expansion.test.mjs"
+      ],
+      "status": 0,
+      "milliseconds": 25441,
+      "stdout": "{\"calendarDaysAccepted\":15504,\"pre1900GuardDays\":29}\n{\"publicSolarLunarPairs\":1572}\n✔ authority versions are explicit; original scopes and defaults remain unchanged (1.6676ms)\n✔ all 348 expanded node boundaries and unresolved intervals use official brackets (98.8467ms)\n✔ all official month days round-trip; source boundaries and unsupported guards stay separate (379.9081ms)\n✔ solar/lunar public saju and ziwei agree at every official month start/middle/end (6499.2109ms)\n✔ 2016 official daeun golden inputs match independent sect-1 arithmetic without other interpretation changes (16076.1577ms)\n✔ daeun option stays OFF, rejects unsupported inputs, and never fabricates unknown time/gender (19.0771ms)\n✔ month ends, leap birthdays, every clock hour and expanded-version daeun preserve sect-1 results (1400.4172ms)\n✔ official 101-case snapshot regression uses public adapters only (136.1281ms)\n✔ all supported JPL node boundaries switch across ±1 second/±1 minute and reject unresolved subsecond instants (15.4959ms)\n✔ public default remains OFF and flags never mutate birth input or saved evidence (9.7386ms)\n✔ all 24 official months round-trip through solar/lunar public ziwei chart inputs (878.5844ms)\n✔ four additional impact observations match KASI/JPL within the same approved defect families (7.0341ms)\nℹ tests 12\nℹ suites 0\nℹ pass 12\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 25337.5577\n",
+      "stderr": ""
+    },
+    {
+      "name": "paid-storage-mocks",
+      "args": [
+        "--test",
+        "__tests__/ui/paid-report-storage.behavior.test.js",
+        "__tests__/ui/saju-paid-delivery.behavior.test.js",
+        "__tests__/ui/ziwei-paid-resume.behavior.test.js"
+      ],
+      "status": 0,
+      "milliseconds": 4216,
+      "stdout": "✔ 자미두수 first 저장 throw는 완료 대신 저장 장애 (82.5217ms)\n✔ 자미두수 next 저장 throw는 완료 대신 저장 장애 (19.6005ms)\n✔ 자미두수 first 저장 null는 완료 대신 저장 장애 (17.8415ms)\n✔ 자미두수 next 저장 null는 완료 대신 저장 장애 (14.7965ms)\n✔ 자미두수 first 저장 read-null는 완료 대신 저장 장애 (17.509ms)\n✔ 자미두수 next 저장 read-null는 완료 대신 저장 장애 (14.7844ms)\n✔ 자미두수 재시도는 장을 중복하지 않고 완료본은 덮어쓰지 않는다 (14.5467ms)\n✔ 자미두수 다른 계정은 저장된 결과를 수정할 수 없다 (16.358ms)\n✔ partial report resumes by server job without checkout and clears proof only on completed saved response (172.8963ms)\n✔ storage failure retains original pending job and allows another same-job retry (91.2949ms)\n✔ fresh and bfcache pageshow leave unrequested saved jobs collapsed (75.3187ms)\n✔ window focus does not start an unrequested saved job (45.158ms)\n✔ account change discards in-flight result and isolates local recovery keys (90.7594ms)\n✔ saved consultation stays in archive until explicitly opened, without charging or deleting (17.0805ms)\n✔ server-discovered completed reading does not become a pending job or reopen on focus (74.2015ms)\n✔ twelve chapter bodies survive grouped navigation and historical bold headings (13.1399ms)\n✔ question draft is scoped to the current owner and profile (14.2715ms)\n✔ legacy result opens as the previous format without regeneration (10.4783ms)\n✔ dark mode keeps Yeoni and preserves the paid result and input state (145.0224ms)\n✔ numbered chapter subtitles retain text and belong to the correct reading group (10.3534ms)\n✔ disclosure opens saved report without POST and folding preserves it (109.2953ms)\n✔ profile and locale changes discard old replies and close the reader (179.8381ms)\n✔ a user-started failed continuation can recover on focus (90.8222ms)\n✔ 자미두수 실제 화면 재개 함수는 정상 묶음을 표시하며 같은 결과를 완성한다 (68.7755ms)\n✔ 숨김 상태에서는 부분 본문을 유지하고 다음 묶음을 시작하지 않는다 (15.895ms)\n✔ 계정 변경 뒤 도착한 응답을 표시하지 않는다 (16.5889ms)\n✔ 저장 및 조회 장애는 원래 서버 ID로 다시 요청한다 (8.9813ms)\n✔ 자미두수 화면은 pageshow와 focus만 발생해도 저장된 상담을 다시 조회한다 (1.269ms)\nℹ tests 28\nℹ suites 0\nℹ pass 28\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 4085.0676\n",
+      "stderr": ""
+    },
+    {
+      "name": "typecheck",
+      "args": [
+        "node_modules/typescript/bin/tsc",
+        "--noEmit"
+      ],
+      "status": 0,
+      "milliseconds": 9500,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "targeted-lint",
+      "args": [
+        "node_modules/eslint/bin/eslint.js",
+        "--quiet",
+        "worker/lib/ziwei-calculation-preparation.js",
+        "worker/lib/models.js",
+        "worker/routes/ziwei-ai.js",
+        "app/ziwei-ai/ZiweiAiClient.tsx"
+      ],
+      "status": 0,
+      "milliseconds": 4660,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "payment-freeze",
+      "args": [
+        "scripts/verify-payment-freeze.mjs"
+      ],
+      "status": 0,
+      "milliseconds": 171,
+      "stdout": "[payment-freeze] 통과 — region 4 · file 3 · 상한 2\n",
+      "stderr": ""
+    },
+    {
+      "name": "paid-gate-ui-regression",
+      "args": [
+        "scripts/verify-paid-gate-ui-regression.mjs"
+      ],
+      "status": 0,
+      "milliseconds": 208,
+      "stdout": "[verify-paid-gate-ui-regression] PASS\n",
+      "stderr": ""
+    },
+    {
+      "name": "payment-choice-parity",
+      "args": [
+        "scripts/verify-payment-choice-parity.mjs"
+      ],
+      "status": 1,
+      "milliseconds": 7851,
+      "stdout": "",
+      "stderr": "error: fsmonitor_ipc__send_query: unspecified error on 'D:/Development/code-destiny/.git/worktrees/engine-audit-phase0-20261101-163440/fsmonitor--daemon.ipc'\nnode:internal/modules/run_main:107\r\n    triggerUncaughtException(\r\n    ^\r\n\r\nAssertionError [ERR_ASSERTION]: 독립 결제 런타임 캐시 핀이 낡았습니다: build-2029b9340aa4 (예: yoga-guru.html)\r\n  기대: build-fc0c52ff363f  ← js/destiny-profile.js 내용에서 유도\r\n  독립 정적 페이지의 ?v= 는 sync:public 이 돌리지 않습니다. 그 핀 전부를 위 값으로 바꾸세요.\r\n  안 바꾸면 _headers 의 /js/*.js (max-age 7일 · SWR 30일) 때문에 이 변경이 도달하지 않습니다.\r\n\r\n1 !== 0\r\n\r\n    at file:///D:/Development/code-destiny/.codex-worktrees/engine-audit-phase0-20261101-163440/scripts/verify-payment-choice-parity.mjs:823:10\r\n    at ModuleJob.run (node:internal/modules/esm/module_job:439:25)\r\n    at async node:internal/modules/esm/loader:643:26\r\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5) {\r\n  generatedMessage: false,\r\n  code: 'ERR_ASSERTION',\r\n  actual: 1,\r\n  expected: 0,\r\n  operator: 'strictEqual',\r\n  diff: 'simple'\r\n}\r\n\r\nNode.js v24.18.0\r\n"
+    },
+    {
+      "name": "checkout-pass-card",
+      "args": [
+        "scripts/verify-checkout-pass-card.mjs"
+      ],
+      "status": 0,
+      "milliseconds": 12863,
+      "stdout": "\n[1] 결제창에 이용권/단건/월정석 3옵션이 모두 보이는가\n  ✓ 이용권 카드\n  ✓ 단건 결제 카드\n  ✓ 월정석 카드\n  ✓ 이용권 카드 라벨이 '이용권으로 열기'\n  ✓ 이용권 카드가 첫 옵션(추천)\n  ✓ 추천 카드는 크게, 나머지 둘은 컴팩트 행으로 위계가 갈린다\n  ✓ 추천 배지는 추천 카드 하나에만 붙는다\n  ✓ 결제창 안내자 꽃돼지는 같은 출처 자산이다\n\n[1-b] 추천 선택지가 이용권 등급·월정석 잔량에 따라 바뀌는가\n  ✓ 등급 미상 → 이용권 추천(종전과 동일, 무회귀)\n  ✓ 등급 보유 + 이 가격 미커버 + 월정석 충분 → 월정석이 1순위\n  ✓ 등급 보유 + 월정석 부족 → 단건 추천\n  ✓ 잔량 미확정은 '충분'으로 치지 않는다\n  ✓ 추천이 무엇이든 세 옵션은 항상 order 에 남는다\n\n[1-c] 정본 모듈 미로딩 폴백도 셸·독립 정적 렌더러가 같은 추천을 내는가\n  ✓ 셸(index.html) _cdResolveCheckoutRecommendation — 정본이 있으면 그대로 위임한다\n  ✓ 셸(index.html) _cdResolveCheckoutRecommendation — 정본 미로딩 + 등급 보유 + 미커버 + 월정석 충분 → 월정석이 1순위\n  ✓ 셸(index.html) _cdResolveCheckoutRecommendation — 정본 미로딩 + 잔량 미확정은 커버로 치지 않는다\n  ✓ 독립 정적(js/destiny-profile.js) _dpResolveCheckoutRecommendation — 정본이 있으면 그대로 위임한다\n  ✓ 독립 정적(js/destiny-profile.js) _dpResolveCheckoutRecommendation — 정본 미로딩 + 등급 보유 + 미커버 + 월정석 충분 → 월정석이 1순위\n  ✓ 독립 정적(js/destiny-profile.js) _dpResolveCheckoutRecommendation — 정본 미로딩 + 잔량 미확정은 커버로 치지 않는다\n\n[2] 이용권 카드 클릭 → 커버되면 결제 없이 'pass' 로 닫히는가\n  ✓ 서버 이용권 검사를 정확히 1회 수행\n  ✓ 'pass' 로 resolve(호출부가 무료로 연다)\n  ✓ 이용권 상점으로 인계하지 않음\n  ✓ 충전 모달도 열지 않음\n\n[2-b] FAMILY 이용권 서버 봉투도 무료로 통과하는가\n  ✓ FAMILY 봉투가 'pass' 로 resolve\n  ✓ 최종 MEMBERSHIP_PASS POST 를 보냄\n  ✓ FAMILY 보유자를 /points 로 보내지 않음\n  ✓ FAMILY 보유자에게 충전 모달을 열지 않음\n\n[3] 이용권 카드 클릭 → 미커버면 /points 로 인계하는가\n  ✓ /points 로 인계\n  ✓ 웹에서는 중간 충전 모달을 거치지 않는다\n  ✓ 추천 플랜이 프리셋으로 실린다\n  ✓ cdco 가 붙지 않는다 — 상점 화면 자체로 인계해 다른 플랜·기간을 볼 수 있어야 한다\n  ✓ 복귀 지점 저장(결제 후 원래 화면으로 돌아간다)\n\n[4] 앱 런타임에서 /points 로 이동하지 않고 인앱 상점을 타는가\n  ✓ 인앱 상점(__cdOpenChargeModal)을 호출\n  ✓ /points URL 을 만들지도 않음(앱 번들에 없어 빈 화면이 된다)\n\n[5] 퍼널 계측이 결제 경로에 영향을 주지 않는가\n  ✓ 이용권 무료 통과는 그대로\n  ✓ 계측 이벤트가 실제로 나갔다\n  ✓ application/json 으로 보낸다(워커 requireJson 가드)\n  ✓ 개인식별자를 실어 보내지 않는다\n\n[6] 계측이 예외를 던져도 이용권 무료 통과는 그대로인가\n  ✓ 계측이 터져도 'pass' 로 닫힌다\n\n[7] 대기 오버레이가 허용된 모드(이용권·월정석·단건)에서만 뜨는가\n  ✓ 'payment' 진행 화면은 뜨지 않는다\n  ✓ 'checkout' 진행 화면은 뜨지 않는다\n  ✓ 'confirm' 진행 화면은 뜨지 않는다\n  ✓ 'subscription' 진행 화면은 뜨지 않는다\n  ✓ 'pass'(이용권 확인)는 뜬다\n  ✓ 'card'(단건 결제 준비)는 뜬다\n  ✓ 'pass-applied' 결과 표시는 뜬다\n  ✓ 'payment-complete' 결과 표시는 뜬다\n  ✓ 'payment-failed' 결과 표시는 뜬다\n\n[8] 이용권 확인이 실패하면 상점으로 보내지 않고 재시도를 안내하는가\n  ✓ 이용권 상점으로 인계하지 않는다\n  ✓ 충전 모달도 열지 않는다\n  ✓ 결제창이 닫히지 않는다(그 자리에서 다시 시도할 수 있어야 한다)\n  ✓ 재시도 안내 문구를 보여준다\n  ✓ 이용권 카드를 다시 누를 수 있다(비활성으로 굳지 않는다)\n  ✓ 다시 누르면 이용권이 적용돼 'pass' 로 닫힌다\n\n[9] 인증 준비 완료 뒤 이용권 최종 판정이 한 번만 실행되는가\n  ✓ 인증 준비 GET 뒤에 final MEMBERSHIP_PASS POST\n  ✓ 인증 복구 후 이용권 커버면 바로 무료 통과\n  ✓ 인증 준비는 PG 주문을 만들지 않음\n\n[10] 확정 미인증(401)이면 결제창을 유지하고 상점으로 보내지 않는가\n  ✓ 확정 401은 final pass POST를 보내지 않음\n  ✓ 확정 401은 이용권 상점으로 이동하지 않음\n  ✓ 확정 401은 결제창을 유지하고 재시도할 수 있음\n\n[11] 인증 503(미확정) + 세션 흔적이면 이용권 최종 판정을 서버에 보내는가\n  ✓ 503 은 final MEMBERSHIP_PASS POST 를 막지 않는다\n  ✓ 503 을 이용권 미커버로 오인해 상점으로 보내지 않는다\n  ✓ 서버가 커버를 확인하면 무료 통과('pass')로 닫힌다\n\n[12] 결제 서비스 경계를 중첩해도 결제창이 뜨는가(교착 회귀)\n  ✓ payment-service 가 실제로 설치돼 경계가 살아 있다\n  ✓ 정적 경로: 결제창이 열린다\n  ✓ 정적 경로: 경계 진입은 1회\n  ✓ React 경로: 결제창이 열린다(교착 없음)\n  ✓ React 경로: 경계는 바깥 1회만 열린다\n\n[13] 단건결제 2단계 결제수단 흐름\n  ✓ 2단계 패널이 감춰진 채로 함께 렌더된다\n  ✓ 정본 표의 수단이 전부 렌더되고 활성 여부도 표를 따른다\n  ✓ 🔴 2단계 버튼에는 data-mode 가 없다(붙으면 누를 때 결제창이 닫힌다)\n  ✓ 활성 수단은 전부 PortOne 이 받는 필드 묶음으로 번역된다\n  ✓ 모든 결제수단이 수단별 대기 안내를 가진다\n  ✓ 전용 채널을 쓰는 수단은 채널키 이름이 서버 config 까지 이어져 있다\n  ✓ 클라이언트 투영기가 표의 전용 채널키를 하나도 떨어뜨리지 않는다\n  ✓ 🔴 동의 전에는 단건 카드가 진짜 잠긴다(표시가 아니라 동작) — 동의하면 열린다\n  ✓ 단건 카드는 창을 닫지 않고 2단계로 전환한다\n  ✓ 2단계 진입은 1단계 카드를 잠그지 않는다(뒤로 복귀 대비)\n  ✓ 준비중 수단은 창을 닫지 않고 상태로만 알린다\n  ✓ [뒤로] 로 1단계가 돌아온다\n  ✓ 활성 수단을 고르면 'direct' 로 닫힌다(호출부 계약 불변)\n  ✓ 고른 수단이 PortOne 요청 payMethod 로 이어진다\n  ✓ 새 결제창을 열면 이전 선택이 비워진다\n  ✓ 취소로 닫으면 선택이 남지 않는다\n\n[14] 이용권 결제수단 — 결제창 표와 서버 정책의 양끝\n  ✓ 표에서 읽은 카드 수가 정본 순서와 같다\n  ✓ 표의 모든 orderMethod 가 서버에서 PG 레일로 정규화된다\n  ✓ 표의 모든 orderMethod 로 이용권(30일) 구매가 허용된다\n  ✓ 🔴 월정석·이용권·코인 계열로는 여전히 이용권을 살 수 없다\n  ✓ /points 이용권 모달이 결제창 표를 정본으로 읽는다\n  ✓ 🔴 이용권 요청이 카드 고정 조립부로 되돌아가지 않았다\n  ✓ 🔴 전용 채널 수단은 채널키가 없으면 폴백하지 않고 던진다\n\n[verify-checkout-pass-card] PASS\n",
+      "stderr": ""
+    },
+    {
+      "name": "paid-feature-billing-policy",
+      "args": [
+        "scripts/verify-paid-feature-billing-policy.mjs"
+      ],
+      "status": 0,
+      "milliseconds": 1333,
+      "stdout": "[verify-paid-feature-billing-policy] PASS\n",
+      "stderr": ""
+    },
+    {
+      "name": "ai-prompt-billing-policy",
+      "args": [
+        "scripts/verify-ai-prompt-billing-policy.mjs"
+      ],
+      "status": 0,
+      "milliseconds": 154,
+      "stdout": "[verify-ai-prompt-billing-policy] PASS\n",
+      "stderr": ""
+    }
+  ],
+  "productionIO": false,
+  "blocked": [
+    "full route imports/Swiss",
+    "full check:fast/CI/build",
+    "verify:billing-pass-policy imports billing -> fortune",
+    "verify:portone-single-payment imports full payments graph",
+    "real Mongo/PG/LLM calls"
+  ]
+}

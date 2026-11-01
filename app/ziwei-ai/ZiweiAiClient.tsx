@@ -276,6 +276,7 @@ type StructuredZiweiResult = {
 };
 
 type ApiResult = {
+  calculationReady?: boolean;
   retryable?: boolean;
   resultId?: string;
   ok?: boolean;
@@ -633,6 +634,7 @@ function buildConsultationPayload(form: FormState, requestId: string) {
   return {
     serviceType: FEATURE_KEY,
     consultationType: "ziwei",
+    calculationProtocol: "ziwei-prepared-v1",
     userName: form.name.trim() || undefined,
     gender: form.gender,
     birthDate: form.birthDate,
@@ -1067,9 +1069,7 @@ export default function ZiweiAiPage() {
         throw new Error(validationMessage);
       }
       const payload = buildConsultationPayload(form, idempotencyKey);
-      // 근거는 결제/생성과 무관한 순수 계산이라 기다리지 않고 병렬로 받는다.
-      // 실패해도 fetchAnalysisBasis가 null을 돌려주므로 대기 화면이 기존 문구로 되돌아갈 뿐 흐름을 막지 않는다.
-      void fetchAnalysisBasis("/api/ziwei-ai/basis", payload).then(setBasis);
+      // Fetch the basis only after prepare pins the same chart used by generation.
       beginPaidFeatureGateCheck({
         featureKey: FEATURE_KEY,
         requestId: idempotencyKey,
@@ -1088,6 +1088,9 @@ export default function ZiweiAiPage() {
         () => postJson<ApiResult>("/api/ziwei-ai/prepare", payload, idempotencyKey),
         { onRetry: () => setNotice("연결이 잠시 불안정해요. 이용권을 다시 확인하는 중입니다.") },
       );
+      // Preparation failures must never degrade into a new payment attempt.
+      if (data.calculationReady !== true) throw new Error(mapError(data, status));
+      if (data.ok || data.reason === "PAYMENT_REQUIRED") void fetchAnalysisBasis("/api/ziwei-ai/basis", payload).then(setBasis);
       if (data.ok) {
         completePaidFeatureGateCheck({
           featureKey: FEATURE_KEY,
