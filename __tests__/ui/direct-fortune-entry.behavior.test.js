@@ -32,7 +32,7 @@ test("사주 직행 액션은 저장 프로필·입력폼 순서와 중복 실�
 
   const calls = [];
   const context = {
-    window: { location: { search: "" }, addEventListener() {} },
+    window: { addEventListener() {}, location: { search: '' } },
     URLSearchParams,
     _dpResolveCurrentProfileForSaju: () => context.cached,
     _dpHasValidProfileDate: (year, month, day) => [year, month, day].every(Boolean),

@@ -82,8 +82,6 @@ function harness({ window = { localStorage: store(), sessionStorage: store() }, 
   let succeed = false;
   const state = {
     ...api, Error, AbortController, URLSearchParams, console, isSubmitting: false,
-    // The result builder is now loaded on submit. Keep the same fixture at that module boundary.
-    require(specifier) { assert.equal(specifier, './lib/buildConsultResult'); return { buildFortuneTeaHouseConsultResult: state.buildFortuneTeaHouseConsultResult }; },
     trackEvent(_name, properties) { assert.ok(Object.keys(properties).every(key => ["method", "code"].includes(key)), "analytics must not include personal input"); },
     submitLockRef: { current: false }, submitSucceededRef: { current: false },
     consultRunRef: { current: 0 }, unusedPaidAttemptRef: { current: saved },
@@ -101,6 +99,10 @@ function harness({ window = { localStorage: store(), sessionStorage: store() }, 
     goToStage(value) { state.stage = value; },
     // 사주 초안은 명식이 열린 상태로만 제출된다(닫히면 결제 전에 멈춘다).
     buildFortuneTeaHouseConsultResult: () => ({ body: "LOCAL_PREVIEW", saju: { available: true } }),
+    require(moduleName) {
+      assert.equal(moduleName, './lib/buildConsultResult', 'only the local draft module may load in this mock');
+      return { buildFortuneTeaHouseConsultResult: state.buildFortuneTeaHouseConsultResult };
+    },
     createFortuneTeaAttemptId: () => `attempt-${++serial}`,
     beginFortuneTeaAccessGate: async () => {}, completeFortuneTeaAccessGate: async () => {},
     releaseFortuneTeaAccessGate: async () => {}, failFortuneTeaAccessGate: async () => {},

@@ -461,6 +461,7 @@ const MODULE_IMPORT_CACHE_KEY_FILES = [
   ["js", "core", "bootstrapDestinyFlower.js"],
   // 모듈 import 는 아니지만 /styles/*.css immutable 캐시를 타는 동적 스타일시트 URL 을 싣는다.
   ["js", "feature-detail-preview.mjs"],
+  ["js", "recommendations-legacy.mjs"],
   ["js", "core", "saju", "basicFortunePresentation.js"],
 ];
 
