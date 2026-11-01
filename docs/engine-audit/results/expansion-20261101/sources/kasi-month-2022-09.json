@@ -1,0 +1,7 @@
+{
+  "url": "https://astro.kasi.re.kr/life/lunc?yyyy=2022&mm=09&dd=01",
+  "status": 200,
+  "capturedAt": "2026-11-01T11:49:57.680Z",
+  "bodySha256": "d3f4abbdb85cbf06923cfc170b075f9c026cfbef65523dbdfd32410a36690d44",
+  "body": "[{\"LUNC_LEAP_MM\":\"평\",\"LUNC_PRCN\":\"임인(壬寅)\",\"LUNC_ILJIN\":\"임오(壬午)\",\"SOLC_LEAP_YYYY\":\"평\",\"LUNC_EN_DD\":\"29\",\"SOLC_JD\":\"2459849\",\"SOLC_MM\":\"09\",\"SOLC_DD\":\"26\",\"LUNC_WLGN\":\"경술(庚戌)\",\"LUNC_MM\":\"09\",\"LUNC_DD\":\"01\",\"JULIAN_LeapYear\":\"평\",\"JULIAN_YYYY\":\"2022\",\"SOLC_YYYY\":\"2022\",\"LUNC_YYYY\":\"2022\",\"JULIAN_MM\":\"09\",\"JULIAN_DD\":\"13\",\"SOLC_WEEK\":\"월\",\"LUNC_AGE\":0.6}]"
+}

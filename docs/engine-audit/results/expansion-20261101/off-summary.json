@@ -1,0 +1,11 @@
+{
+  "mode": "off",
+  "baselineCommit": "d648d9d2453c3ba64a7060175942227e9da9fe39",
+  "sourcePinHash": "74758bf51091aa872236c387ad5caf0bc228a3a1102d01bfcf1b6fe06a455dc7",
+  "inputs": 20000,
+  "comparisons": 40000,
+  "differences": [],
+  "swissExecuted": false,
+  "networkUsed": false,
+  "rawSha256": "2cca3c128b2cdc61f4fb8332812582743cffb8c83299c0d889a2746e9196017a"
+}

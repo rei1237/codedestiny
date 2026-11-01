@@ -1,5 +1,5 @@
 import { lookupServerCoinPrice } from "@/app/_lib/serviceCoinPrice";
-import { calculateNatalSaju, daeun, DAEUN_POLICY_VERSION, lunarToSolar, nodeTerms, resolveAuthorityFlags, verifiedNodeTermWindow } from "@/lib/korean-calendar";
+import { calculateNatalSaju, daeun, daeunFromFrame, DAEUN_POLICY_VERSION, lunarToSolar, nodeTerms, resolveAuthorityFlags, verifiedNodeTermWindow, authorityMetadata } from "@/lib/korean-calendar";
 import { cmsRecord } from "@/lib/cms/build-text";
 import { standardMeridianForTimezone } from "@/worker/lib/birth-time-context.js";
 import { wallClockToUtcMillis } from "@/worker/lib/iana-offset.js";
@@ -294,7 +294,9 @@ export interface LocalSajuResult {
 export type HourPillarTimePolicy = "KST_CLOCK_TIME" | "LOCAL_MEAN_TIME" | "TRUE_SOLAR_TIME" | "CIVIL_TIME";
 
 export interface LocalSajuInput {
-  authorityFlags?: { sajuTermAuthorityV2?: boolean; koreanCalendarAuthorityV2?: boolean };
+  authorityFlags?: { sajuTermAuthorityV2?: boolean; koreanCalendarAuthorityV2?: boolean; authorityVersion?: string };
+  /** Explicit public-wrapper opt-in; never used for spouse/personality interpretation. */
+  daeunContext?: { enabled: true; gender: "male" | "female" | "unknown" };
   year: number;
   month: number;
   day: number;
@@ -885,10 +887,30 @@ function getDaewoonDirection(input: LocalSajuInput, yearStem: StemKr): "forward"
 function calculateDaewoonStartFromCore(
   canonicalNatal: ReturnType<typeof calculateNatalSaju>,
   input: LocalSajuInput,
+  verified?: { window: ReturnType<typeof verifiedNodeTermWindow>; previous: SolarTermBoundaryLocal; next: SolarTermBoundaryLocal },
 ): { direction: "forward" | "reverse" | "unknown"; start: DaewoonStartLocal } {
-  const gender = normalizeGender(input);
+  const gender = input.daeunContext?.enabled ? input.daeunContext.gender : normalizeGender(input);
   const unknown = { direction: "unknown" as const, start: { age: null, years: 0, months: 0, days: 0, baseTerm: null, policyVersion: DAEUN_POLICY_VERSION, ageBasis: "korean-counting-age" as const } };
   if (!input.hasTime || gender === "unknown") return unknown;
+  if (input.daeunContext?.enabled) {
+    if (!verified || !["male", "female"].includes(gender)) throw new RangeError("DAEUN_REQUIRES_VERIFIED_TERMS");
+    // Pilot eligibility stays at the original 14 years, even with a wider data version.
+    const instant = canonicalNatal.calculationMeta.instant;
+    if (!instant) throw new RangeError("DAEUN_REQUIRES_BIRTH_INSTANT");
+    verifiedNodeTermWindow(instant.timestamp);
+    const frameKey = (ms: number) => {
+      const d = new Date(ms + 9 * 3600000), hour = d.getUTCHours();
+      return `${d.toISOString().slice(0, 10)}:${hour === 23 ? 11 : Math.floor((hour + 1) / 2) % 12}`;
+    };
+    for (const node of [verified.window.previous, verified.window.next]) {
+      if (frameKey(node.lowerUtcMs) !== frameKey(node.upperUtcMs)) throw new RangeError("DAEUN_TERM_FRAME_UNCERTAIN");
+    }
+    const year = canonicalNatalPillar(canonicalNatal.pillars.year)!;
+    const month = canonicalNatalPillar(canonicalNatal.pillars.month)!;
+    const result = daeunFromFrame({ birth: canonicalNatal.calculationMeta.termClock, yearStemIndex: STEMS.indexOf(year.stem), monthPillar: { stemIndex: STEMS.indexOf(month.stem), branchIndex: BRANCHES.indexOf(month.branch) }, prevNode: verified.previous, nextNode: verified.next, gender: gender === "male" ? "M" : "F", birthCivilYear: canonicalNatal.calculationMeta.civil.year });
+    if (!result) throw new RangeError("DAEUN_FRAME_INVALID");
+    return { direction: result.forward ? "forward" : "reverse", start: { age: result.cycles[1]?.startAge ?? null, ...result.start, baseTerm: result.forward ? verified.next : verified.previous, startSolar: result.startSolar, policyVersion: `${DAEUN_POLICY_VERSION}:${authorityMetadata(input.authorityFlags).version}`, ageBasis: "korean-counting-age" } };
+  }
   const result = daeun(canonicalNatal.calculationMeta.termClock, { gender: gender === "male" ? "M" : "F", birthCivilYear: canonicalNatal.calculationMeta.civil.year });
   if (!result) return unknown;
   const node = result.meta.referenceNode;
@@ -5332,6 +5354,7 @@ export function calculateLocalSaju(input: LocalSajuInput): LocalSajuResult {
 
   const timezoneInfo = normalizeTimezone(input);
   const authorityFlags = resolveAuthorityFlags(input.authorityFlags);
+  if (input.daeunContext && (!input.daeunContext.enabled || !authorityFlags.sajuTermAuthorityV2 || input.calendarType === "lunar" || input.lunarLeap || timezoneInfo.timezone !== "Asia/Seoul")) throw new RangeError("INVALID_DAEUN_CONTEXT");
   // The approved wrapper has no gender-dependent major-luck path. Do not mix v2 natal terms with v1 daeun.
   if (authorityFlags.sajuTermAuthorityV2 && input.hasTime && normalizeGender(input) !== "unknown") throw new RangeError("TERM_AUTHORITY_DAEUN_NOT_APPROVED");
   const solarDate = resolveSolarDate(input);
@@ -5356,7 +5379,7 @@ export function calculateLocalSaju(input: LocalSajuInput): LocalSajuResult {
   const zashiMode = "early";
   // Solar terms use the actual instant in KST, including lunar conversion and historical DST.
   const termClock = canonicalNatal.calculationMeta.termClock;
-  const authoritativeWindow = authorityFlags.sajuTermAuthorityV2 ? verifiedNodeTermWindow(canonicalNatal.calculationMeta.instant?.timestamp ?? wallTimeToInstantMs(termClock, CORE_SOLAR_TERM_TIMEZONE_OFFSET_MINUTES)) : null;
+  const authoritativeWindow = authorityFlags.sajuTermAuthorityV2 ? verifiedNodeTermWindow(canonicalNatal.calculationMeta.instant?.timestamp ?? wallTimeToInstantMs(termClock, CORE_SOLAR_TERM_TIMEZONE_OFFSET_MINUTES), authorityFlags) : null;
   const verifiedBoundary = (term: { utcMs: number; index: number }): SolarTermBoundaryLocal => {
     const local = new Date(term.utcMs + 9 * 3600000);
     return { year: local.getUTCFullYear(), month: local.getUTCMonth() + 1, day: local.getUTCDate(), hour: local.getUTCHours(), minute: local.getUTCMinutes(), second: local.getUTCSeconds(), index: term.index / 2, name: JIE_BOUNDARY_NAMES[term.index / 2], solarLongitude: JIE_SOLAR_LONGITUDES[term.index / 2], isoLocal: local.toISOString().slice(0, -1) + "+09:00", source: "jpl-de441", utcMs: term.utcMs };
@@ -5371,7 +5394,7 @@ export function calculateLocalSaju(input: LocalSajuInput): LocalSajuResult {
     hour: canonicalNatalPillar(canonicalNatal.pillars.hour),
   };
   // 원국과 같은 출생 순간에서 코어 대운을 산출한다. 나이는 세는 나이, 입운 경과는 years/months/days다.
-  const { direction: daewoonDirection, start: daewoonStart } = calculateDaewoonStartFromCore(canonicalNatal, input);
+  const { direction: daewoonDirection, start: daewoonStart } = calculateDaewoonStartFromCore(canonicalNatal, input, authoritativeWindow ? { window: authoritativeWindow, previous: verifiedBoundary(authoritativeWindow.previous), next: verifiedBoundary(authoritativeWindow.next) } : undefined);
   const longitude = getInputLongitude(input);
   const latitude = getInputLatitude(input);
   const solarTermBoundary = {
@@ -5460,7 +5483,7 @@ export function calculateLocalSaju(input: LocalSajuInput): LocalSajuResult {
       },
       daewoon: {
         direction: daewoonDirection,
-        rule: "yang male/yin female forward; yin male/yang female reverse",
+        rule: "yang male/yin female forward; yin male/yang female reverse" + (input.daeunContext?.enabled ? `; daeunGender=${input.daeunContext.gender}` : ""),
         policyVersion: daewoonStart.policyVersion,
         ageBasis: daewoonStart.ageBasis,
         calendarFrame: "KST",

@@ -1,7 +1,7 @@
 // 🔴 음양력 변환은 한국 음양력 코어(KST 기준)만 쓴다. lunar-javascript 는 중국 표준시(UTC+8)
 // 기준이라 삭이 CST 23시대에 들면 그 달 전체의 음력일이 하루 밀리고, 음력일이 밀리면 자미성이
 // 밀려 14주성이 통째로 어긋난다(1900~2100 전수 4.08% — verify:korean-calendar-divergence).
-import { sexagenaryYearIndexes, solarToLunar, lunarToSolar, resolveAuthorityFlags, VERIFIED_AUTHORITY_VERSION } from "../../lib/korean-calendar/index.js";
+import { sexagenaryYearIndexes, solarToLunar, lunarToSolar, resolveAuthorityFlags, authorityMetadata } from "../../lib/korean-calendar/index.js";
 // 소한 상수·계산은 셸 엔진과 공유한다(lib/ziwei-minor-limit.js 머리말 참고).
 import { buildMinorLimitEntries, describeMinorLimit } from "../../lib/ziwei-minor-limit.js";
 // 화성·영성 기점도 같은 이유로 공유한다(lib/ziwei-fire-bell.js 머리말 참고).
@@ -117,7 +117,7 @@ function getLunarDate(parts, calendarType, isLeapMonth, nextDay = false, authori
       lunarMonth: Math.abs(parts.month),
       lunarDay: parts.day,
       isLeapMonth: leap,
-      source: authorityFlags.koreanCalendarAuthorityV2 ? VERIFIED_AUTHORITY_VERSION : "user-lunar-input",
+      source: authorityFlags.koreanCalendarAuthorityV2 ? authorityMetadata(authorityFlags).version : "user-lunar-input",
     };
   }
 
@@ -143,7 +143,7 @@ function lunarOfSolarDay({ year, month, day }, nextDay, authorityFlags = {}) {
     lunarMonth: lunar.lunarMonth,
     lunarDay: lunar.lunarDay,
     isLeapMonth: lunar.isLeapMonth,
-    source: authorityFlags.koreanCalendarAuthorityV2 ? VERIFIED_AUTHORITY_VERSION : "korean-calendar-core",
+    source: authorityFlags.koreanCalendarAuthorityV2 ? authorityMetadata(authorityFlags).version : "korean-calendar-core",
   };
 }
 

@@ -1,0 +1,7 @@
+{
+  "url": "https://astro.kasi.re.kr/life/solc?yyyy=2002&mm=05&dd=12",
+  "status": 200,
+  "capturedAt": "2026-11-01T11:49:26.960Z",
+  "bodySha256": "053cb1baefdbaaaf3a43ac9d2a76d2ba46990dfaca7a5f988bc4701ab83cc75e",
+  "body": "{\"LUNC_LEAP_MM\":\"평\",\"LUNC_PRCN\":\"임오(壬午)\",\"LUNC_ILJIN\":\"경진(庚辰)\",\"SOLC_LEAP_YYYY\":\"평\",\"LUNC_EN_DD\":\"30\",\"SOLC_JD\":\"2452407\",\"SOLC_MM\":\"05\",\"SOLC_DD\":\"12\",\"LUNC_WLGN\":\"을사(乙巳)\",\"LUNC_MM\":\"04\",\"LUNC_DD\":\"01\",\"JULIAN_LeapYear\":\"평\",\"JULIAN_YYYY\":\"2002\",\"SOLC_YYYY\":\"2002\",\"LUNC_YYYY\":\"2002\",\"JULIAN_MM\":\"04\",\"JULIAN_DD\":\"29\",\"SOLC_WEEK\":\"일\"}"
+}

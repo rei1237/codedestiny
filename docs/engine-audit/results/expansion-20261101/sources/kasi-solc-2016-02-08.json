@@ -1,0 +1,7 @@
+{
+  "url": "https://astro.kasi.re.kr/life/solc?yyyy=2016&mm=02&dd=08",
+  "status": 200,
+  "capturedAt": "2026-11-01T11:49:47.373Z",
+  "bodySha256": "904357e438510d93e8105a827cc73f6a1f5203ba9af994bfa6fdf9f78782a38e",
+  "body": "{\"LUNC_LEAP_MM\":\"평\",\"LUNC_PRCN\":\"병신(丙申)\",\"LUNC_ILJIN\":\"경신(庚申)\",\"SOLC_LEAP_YYYY\":\"윤\",\"LUNC_EN_DD\":\"30\",\"SOLC_JD\":\"2457427\",\"SOLC_MM\":\"02\",\"SOLC_DD\":\"08\",\"LUNC_WLGN\":\"경인(庚寅)\",\"LUNC_MM\":\"01\",\"LUNC_DD\":\"01\",\"JULIAN_LeapYear\":\"윤\",\"JULIAN_YYYY\":\"2016\",\"SOLC_YYYY\":\"2016\",\"LUNC_YYYY\":\"2016\",\"JULIAN_MM\":\"01\",\"JULIAN_DD\":\"26\",\"SOLC_WEEK\":\"월\",\"LUNC_AGE\":29.4}"
+}

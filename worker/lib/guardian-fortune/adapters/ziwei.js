@@ -1,7 +1,7 @@
 import { pickExpertFields } from "../expert-evidence.js";
 import { calculateZiweiAiChart } from "../../ziwei-ai-chart.js";
 import { arrayText, nonEmptyText, text } from "../../guardian-fortune-adapter-utils.js";
-import { VERIFIED_AUTHORITY_VERSION } from "../../../../lib/korean-calendar/index.js";
+import { authorityMetadata } from "../../../../lib/korean-calendar/index.js";
 
 const TOPIC_PALACE_ALIASES = {
   daily: ["명궁", "命宮"],
@@ -76,7 +76,7 @@ export async function buildZiweiAdapter(input, options = {}) {
     strengths,
     cautions,
     evidence: [
-      options.authorityFlags?.koreanCalendarAuthorityV2 === true ? `ziwei.calendarAuthority.${VERIFIED_AUTHORITY_VERSION}` : null,
+      options.authorityFlags?.koreanCalendarAuthorityV2 === true ? `ziwei.calendarAuthority.${authorityMetadata(options.authorityFlags).version}` : null,
       lifePalaceSummary ? "ziwei.lifePalace" : null,
       topicPalaceSummary ? `ziwei.${input.topic}.palace` : null,
       keyStars.length ? "ziwei.keyStars" : null,

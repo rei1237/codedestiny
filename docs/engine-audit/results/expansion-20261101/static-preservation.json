@@ -1,0 +1,14 @@
+{
+  "cacheReferencesOnly": 10,
+  "sitemapLastmodOnly": 0,
+  "ledgerStructureAndUrlsUnchanged": true,
+  "immutableFiles": [
+    "lib/korean-calendar/table.generated.js",
+    "lib/korean-calendar/authority-data.generated.js",
+    "lib/korean-calendar/daeun.js",
+    "app/saju/love-simulation/_engine/normalizeSaju.ts",
+    "package.json",
+    "package-lock.json"
+  ],
+  "classicByteIncrease": 99735
+}

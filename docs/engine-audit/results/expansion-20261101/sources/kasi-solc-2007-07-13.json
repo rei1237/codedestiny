@@ -1,0 +1,7 @@
+{
+  "url": "https://astro.kasi.re.kr/life/solc?yyyy=2007&mm=07&dd=13",
+  "status": 200,
+  "capturedAt": "2026-11-01T11:49:34.479Z",
+  "bodySha256": "fb000475fcb6387a15a9df52d872fa87c357a5e00db1fdf9de6c1efc655c1470",
+  "body": "{\"LUNC_LEAP_MM\":\"평\",\"LUNC_PRCN\":\"정해(丁亥)\",\"LUNC_ILJIN\":\"무신(戊申)\",\"SOLC_LEAP_YYYY\":\"평\",\"LUNC_EN_DD\":\"29\",\"SOLC_JD\":\"2454295\",\"SOLC_MM\":\"07\",\"SOLC_DD\":\"13\",\"LUNC_WLGN\":\"병오(丙午)\",\"LUNC_MM\":\"05\",\"LUNC_DD\":\"29\",\"JULIAN_LeapYear\":\"평\",\"JULIAN_YYYY\":\"2007\",\"SOLC_YYYY\":\"2007\",\"LUNC_YYYY\":\"2007\",\"JULIAN_MM\":\"06\",\"JULIAN_DD\":\"30\",\"SOLC_WEEK\":\"금\"}"
+}

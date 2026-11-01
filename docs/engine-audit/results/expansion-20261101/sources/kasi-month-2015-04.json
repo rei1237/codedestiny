@@ -1,0 +1,7 @@
+{
+  "url": "https://astro.kasi.re.kr/life/lunc?yyyy=2015&mm=04&dd=01",
+  "status": 200,
+  "capturedAt": "2026-11-01T11:49:46.147Z",
+  "bodySha256": "bf1f5d739ef41127d804f3add1b3d54efa0cd28c361dddfd37034b0f4acefc33",
+  "body": "[{\"LUNC_LEAP_MM\":\"평\",\"LUNC_PRCN\":\"을미(乙未)\",\"LUNC_ILJIN\":\"갑오(甲午)\",\"SOLC_LEAP_YYYY\":\"평\",\"LUNC_EN_DD\":\"29\",\"SOLC_JD\":\"2457161\",\"SOLC_MM\":\"05\",\"SOLC_DD\":\"18\",\"LUNC_WLGN\":\"신사(辛巳)\",\"LUNC_MM\":\"04\",\"LUNC_DD\":\"01\",\"JULIAN_LeapYear\":\"평\",\"JULIAN_YYYY\":\"2015\",\"SOLC_YYYY\":\"2015\",\"LUNC_YYYY\":\"2015\",\"JULIAN_MM\":\"05\",\"JULIAN_DD\":\"05\",\"SOLC_WEEK\":\"월\",\"LUNC_AGE\":0.3}]"
+}

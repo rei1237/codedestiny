@@ -1,0 +1,12 @@
+{
+  "mode": "daeun",
+  "baselineCommit": "d648d9d2453c3ba64a7060175942227e9da9fe39",
+  "sourcePinHash": "74758bf51091aa872236c387ad5caf0bc228a3a1102d01bfcf1b6fe06a455dc7",
+  "inputs": 20000,
+  "comparisons": 20000,
+  "differences": [],
+  "swissExecuted": false,
+  "networkUsed": false,
+  "seed": "0xc0de0304",
+  "rawSha256": "7e4b6394c4462a4b73063027f29044f1ffd67390c00bcb4f57ac760d4491ee42"
+}

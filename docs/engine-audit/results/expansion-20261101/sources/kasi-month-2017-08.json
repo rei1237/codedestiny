@@ -1,0 +1,7 @@
+{
+  "url": "https://astro.kasi.re.kr/life/lunc?yyyy=2017&mm=08&dd=01",
+  "status": 200,
+  "capturedAt": "2026-11-01T11:49:49.847Z",
+  "bodySha256": "7d8fe6f912b08991e42bdc54ac7d6ee8980f4920c8ca6d92f652e659a9bb1f36",
+  "body": "[{\"LUNC_LEAP_MM\":\"평\",\"LUNC_PRCN\":\"정유(丁酉)\",\"LUNC_ILJIN\":\"경술(庚戌)\",\"SOLC_LEAP_YYYY\":\"평\",\"LUNC_EN_DD\":\"30\",\"SOLC_JD\":\"2458017\",\"SOLC_MM\":\"09\",\"SOLC_DD\":\"20\",\"LUNC_WLGN\":\"기유(己酉)\",\"LUNC_MM\":\"08\",\"LUNC_DD\":\"01\",\"JULIAN_LeapYear\":\"평\",\"JULIAN_YYYY\":\"2017\",\"SOLC_YYYY\":\"2017\",\"LUNC_YYYY\":\"2017\",\"JULIAN_MM\":\"09\",\"JULIAN_DD\":\"07\",\"SOLC_WEEK\":\"수\",\"LUNC_AGE\":0.3}]"
+}

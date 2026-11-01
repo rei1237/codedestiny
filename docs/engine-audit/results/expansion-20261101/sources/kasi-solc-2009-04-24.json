@@ -1,0 +1,7 @@
+{
+  "url": "https://astro.kasi.re.kr/life/solc?yyyy=2009&mm=04&dd=24",
+  "status": 200,
+  "capturedAt": "2026-11-01T11:49:37.087Z",
+  "bodySha256": "c64b47608fe5e80bb4d1beb219420f3c4ee23b48e2344a9e5acd621609d6d12b",
+  "body": "{\"LUNC_LEAP_MM\":\"평\",\"LUNC_PRCN\":\"기축(己丑)\",\"LUNC_ILJIN\":\"기해(己亥)\",\"SOLC_LEAP_YYYY\":\"평\",\"LUNC_EN_DD\":\"29\",\"SOLC_JD\":\"2454946\",\"SOLC_MM\":\"04\",\"SOLC_DD\":\"24\",\"LUNC_WLGN\":\"무진(戊辰)\",\"LUNC_MM\":\"03\",\"LUNC_DD\":\"29\",\"JULIAN_LeapYear\":\"평\",\"JULIAN_YYYY\":\"2009\",\"SOLC_YYYY\":\"2009\",\"LUNC_YYYY\":\"2009\",\"JULIAN_MM\":\"04\",\"JULIAN_DD\":\"11\",\"SOLC_WEEK\":\"금\",\"LUNC_AGE\":28.8}"
+}

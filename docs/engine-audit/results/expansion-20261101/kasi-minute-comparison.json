@@ -1,0 +1,2445 @@
+{
+  "source": "Existing KASI 2000-2028 fixture collected through service proxy; no new official minute-table request in this run",
+  "sourceSha256": "f7e08561e543c5ad3f1ab2c6d2c8784acbcc412a6226ca7ccfb97d3b5e2bd869",
+  "count": 348,
+  "maxAbsSeconds": 21063.174,
+  "roundedMinuteDifferences": 26,
+  "rows": [
+    {
+      "year": 2000,
+      "index": 0,
+      "kasiCell": "01061001",
+      "differenceSeconds": -18.002,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2000,
+      "index": 2,
+      "kasiCell": "02042140",
+      "differenceSeconds": 23.824,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2000,
+      "index": 4,
+      "kasiCell": "03051543",
+      "differenceSeconds": -20.176,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2000,
+      "index": 6,
+      "kasiCell": "04042032",
+      "differenceSeconds": -1.32,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2000,
+      "index": 8,
+      "kasiCell": "05051350",
+      "differenceSeconds": 10.436,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2000,
+      "index": 10,
+      "kasiCell": "06051759",
+      "differenceSeconds": -25.301,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2000,
+      "index": 12,
+      "kasiCell": "07070414",
+      "differenceSeconds": -2.533,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2000,
+      "index": 14,
+      "kasiCell": "08071403",
+      "differenceSeconds": 0.564,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2000,
+      "index": 16,
+      "kasiCell": "09071659",
+      "differenceSeconds": 10.647,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2000,
+      "index": 18,
+      "kasiCell": "10080838",
+      "differenceSeconds": 13.007,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2000,
+      "index": 20,
+      "kasiCell": "11071148",
+      "differenceSeconds": 4.374,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2000,
+      "index": 22,
+      "kasiCell": "12070437",
+      "differenceSeconds": 2.732,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2001,
+      "index": 0,
+      "kasiCell": "01051549",
+      "differenceSeconds": 16.366,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2001,
+      "index": 2,
+      "kasiCell": "02040329",
+      "differenceSeconds": -9.228,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2001,
+      "index": 4,
+      "kasiCell": "03052133",
+      "differenceSeconds": -29.325,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2001,
+      "index": 6,
+      "kasiCell": "04050224",
+      "differenceSeconds": 23.449,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2001,
+      "index": 8,
+      "kasiCell": "05051945",
+      "differenceSeconds": -9.057,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2001,
+      "index": 10,
+      "kasiCell": "06052354",
+      "differenceSeconds": -23.115,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2001,
+      "index": 12,
+      "kasiCell": "07071007",
+      "differenceSeconds": -16.928,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2001,
+      "index": 14,
+      "kasiCell": "08071952",
+      "differenceSeconds": 21.932,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2001,
+      "index": 16,
+      "kasiCell": "09072246",
+      "differenceSeconds": 12.157,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2001,
+      "index": 18,
+      "kasiCell": "10081425",
+      "differenceSeconds": 2.989,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2001,
+      "index": 20,
+      "kasiCell": "11071737",
+      "differenceSeconds": -6.255,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2001,
+      "index": 22,
+      "kasiCell": "12071029",
+      "differenceSeconds": -6.438,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2002,
+      "index": 0,
+      "kasiCell": "01052144",
+      "differenceSeconds": -28.595,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2002,
+      "index": 2,
+      "kasiCell": "02040924",
+      "differenceSeconds": 6.45,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2002,
+      "index": 4,
+      "kasiCell": "03060328",
+      "differenceSeconds": -26.393,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2002,
+      "index": 6,
+      "kasiCell": "04050818",
+      "differenceSeconds": 17.199,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2002,
+      "index": 8,
+      "kasiCell": "05060137",
+      "differenceSeconds": 17.971,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2002,
+      "index": 10,
+      "kasiCell": "06060545",
+      "differenceSeconds": -12.49,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2002,
+      "index": 12,
+      "kasiCell": "07071556",
+      "differenceSeconds": 12.845,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2002,
+      "index": 14,
+      "kasiCell": "08080139",
+      "differenceSeconds": 20.194,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2002,
+      "index": 16,
+      "kasiCell": "09080431",
+      "differenceSeconds": 3.648,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2002,
+      "index": 18,
+      "kasiCell": "10082009",
+      "differenceSeconds": 19.633,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2002,
+      "index": 20,
+      "kasiCell": "11072322",
+      "differenceSeconds": -9.957,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2002,
+      "index": 22,
+      "kasiCell": "12071614",
+      "differenceSeconds": 14.64,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2003,
+      "index": 0,
+      "kasiCell": "01060328",
+      "differenceSeconds": -15.499,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2003,
+      "index": 2,
+      "kasiCell": "02041505",
+      "differenceSeconds": 21.064,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2003,
+      "index": 4,
+      "kasiCell": "03060905",
+      "differenceSeconds": -5.847,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2003,
+      "index": 6,
+      "kasiCell": "04051352",
+      "differenceSeconds": 30.555,
+      "roundedMinuteMatches": false
+    },
+    {
+      "year": 2003,
+      "index": 8,
+      "kasiCell": "05060710",
+      "differenceSeconds": 30.591,
+      "roundedMinuteMatches": false
+    },
+    {
+      "year": 2003,
+      "index": 10,
+      "kasiCell": "06061120",
+      "differenceSeconds": -15.411,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2003,
+      "index": 12,
+      "kasiCell": "07072136",
+      "differenceSeconds": -19.386,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2003,
+      "index": 14,
+      "kasiCell": "08080724",
+      "differenceSeconds": 19.622,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2003,
+      "index": 16,
+      "kasiCell": "09081020",
+      "differenceSeconds": 15.569,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2003,
+      "index": 18,
+      "kasiCell": "10090201",
+      "differenceSeconds": -26.043,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2003,
+      "index": 20,
+      "kasiCell": "11080513",
+      "differenceSeconds": 12.634,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2003,
+      "index": 22,
+      "kasiCell": "12072205",
+      "differenceSeconds": 10.691,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2004,
+      "index": 0,
+      "kasiCell": "01060919",
+      "differenceSeconds": -26.439,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2004,
+      "index": 2,
+      "kasiCell": "02042056",
+      "differenceSeconds": 13.464,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2004,
+      "index": 4,
+      "kasiCell": "03051456",
+      "differenceSeconds": -21.176,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2004,
+      "index": 6,
+      "kasiCell": "04041943",
+      "differenceSeconds": 19.671,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2004,
+      "index": 8,
+      "kasiCell": "05051302",
+      "differenceSeconds": 28.483,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2004,
+      "index": 10,
+      "kasiCell": "06051714",
+      "differenceSeconds": -13.779,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2004,
+      "index": 12,
+      "kasiCell": "07070331",
+      "differenceSeconds": 17.363,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2004,
+      "index": 14,
+      "kasiCell": "08071320",
+      "differenceSeconds": -22.793,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2004,
+      "index": 16,
+      "kasiCell": "09071613",
+      "differenceSeconds": -4.365,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2004,
+      "index": 18,
+      "kasiCell": "10080749",
+      "differenceSeconds": 18.879,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2004,
+      "index": 20,
+      "kasiCell": "11071059",
+      "differenceSeconds": -25.211,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2004,
+      "index": 22,
+      "kasiCell": "12070349",
+      "differenceSeconds": -1.323,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2005,
+      "index": 0,
+      "kasiCell": "01051503",
+      "differenceSeconds": 0.992,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2005,
+      "index": 2,
+      "kasiCell": "02040243",
+      "differenceSeconds": 3.807,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2005,
+      "index": 4,
+      "kasiCell": "03052045",
+      "differenceSeconds": 11.902,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2005,
+      "index": 6,
+      "kasiCell": "04050134",
+      "differenceSeconds": 17.699,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2005,
+      "index": 8,
+      "kasiCell": "05051853",
+      "differenceSeconds": -8.556,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2005,
+      "index": 10,
+      "kasiCell": "06052302",
+      "differenceSeconds": -6.212,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2005,
+      "index": 12,
+      "kasiCell": "07070917",
+      "differenceSeconds": -24.309,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2005,
+      "index": 14,
+      "kasiCell": "08071903",
+      "differenceSeconds": 23.582,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2005,
+      "index": 16,
+      "kasiCell": "09072157",
+      "differenceSeconds": -18.403,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2005,
+      "index": 18,
+      "kasiCell": "10081333",
+      "differenceSeconds": 19.813,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2005,
+      "index": 20,
+      "kasiCell": "11071642",
+      "differenceSeconds": 28.532,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2005,
+      "index": 22,
+      "kasiCell": "12070933",
+      "differenceSeconds": -16.838,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2006,
+      "index": 0,
+      "kasiCell": "01052047",
+      "differenceSeconds": -1.441,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2006,
+      "index": 2,
+      "kasiCell": "02040827",
+      "differenceSeconds": 17.198,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2006,
+      "index": 4,
+      "kasiCell": "03060229",
+      "differenceSeconds": -20.321,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2006,
+      "index": 6,
+      "kasiCell": "04050715",
+      "differenceSeconds": 29.66,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2006,
+      "index": 8,
+      "kasiCell": "05060031",
+      "differenceSeconds": -21.028,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2006,
+      "index": 10,
+      "kasiCell": "06060437",
+      "differenceSeconds": -0.686,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2006,
+      "index": 12,
+      "kasiCell": "07071451",
+      "differenceSeconds": 28.353,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2006,
+      "index": 14,
+      "kasiCell": "08080041",
+      "differenceSeconds": -11.148,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2006,
+      "index": 16,
+      "kasiCell": "09080339",
+      "differenceSeconds": 2.342,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2006,
+      "index": 18,
+      "kasiCell": "10081921",
+      "differenceSeconds": 22.792,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2006,
+      "index": 20,
+      "kasiCell": "11072235",
+      "differenceSeconds": -9.818,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2006,
+      "index": 22,
+      "kasiCell": "12071527",
+      "differenceSeconds": -11.308,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2007,
+      "index": 0,
+      "kasiCell": "01060240",
+      "differenceSeconds": 10.426,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2007,
+      "index": 2,
+      "kasiCell": "02041418",
+      "differenceSeconds": 13.682,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2007,
+      "index": 4,
+      "kasiCell": "03060818",
+      "differenceSeconds": 0.345,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2007,
+      "index": 6,
+      "kasiCell": "04051305",
+      "differenceSeconds": -20.34,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2007,
+      "index": 8,
+      "kasiCell": "05060620",
+      "differenceSeconds": 24.39,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2007,
+      "index": 10,
+      "kasiCell": "06061027",
+      "differenceSeconds": 5.308,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2007,
+      "index": 12,
+      "kasiCell": "07072042",
+      "differenceSeconds": -15.334,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2007,
+      "index": 14,
+      "kasiCell": "08080631",
+      "differenceSeconds": 15.726,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2007,
+      "index": 16,
+      "kasiCell": "09080929",
+      "differenceSeconds": 29.715,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2007,
+      "index": 18,
+      "kasiCell": "10090111",
+      "differenceSeconds": 30.657,
+      "roundedMinuteMatches": false
+    },
+    {
+      "year": 2007,
+      "index": 20,
+      "kasiCell": "11080424",
+      "differenceSeconds": 2.242,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2007,
+      "index": 22,
+      "kasiCell": "12072114",
+      "differenceSeconds": 6.337,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2008,
+      "index": 0,
+      "kasiCell": "01060825",
+      "differenceSeconds": -8.625,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2008,
+      "index": 2,
+      "kasiCell": "02042000",
+      "differenceSeconds": 25.598,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2008,
+      "index": 4,
+      "kasiCell": "03051359",
+      "differenceSeconds": -10.417,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2008,
+      "index": 6,
+      "kasiCell": "04041846",
+      "differenceSeconds": -7.594,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2008,
+      "index": 8,
+      "kasiCell": "05051203",
+      "differenceSeconds": 26.712,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2008,
+      "index": 10,
+      "kasiCell": "06051612",
+      "differenceSeconds": -15.501,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2008,
+      "index": 12,
+      "kasiCell": "07070227",
+      "differenceSeconds": -8.838,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2008,
+      "index": 14,
+      "kasiCell": "08071216",
+      "differenceSeconds": 12.193,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2008,
+      "index": 16,
+      "kasiCell": "09071514",
+      "differenceSeconds": 9.885,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2008,
+      "index": 18,
+      "kasiCell": "10080657",
+      "differenceSeconds": -21.3,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2008,
+      "index": 20,
+      "kasiCell": "11071010",
+      "differenceSeconds": 34.992,
+      "roundedMinuteMatches": false
+    },
+    {
+      "year": 2008,
+      "index": 22,
+      "kasiCell": "12070302",
+      "differenceSeconds": 19.194,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2009,
+      "index": 0,
+      "kasiCell": "01051414",
+      "differenceSeconds": 8.545,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2009,
+      "index": 2,
+      "kasiCell": "02040150",
+      "differenceSeconds": -10.917,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2009,
+      "index": 4,
+      "kasiCell": "03051947",
+      "differenceSeconds": 32.852,
+      "roundedMinuteMatches": false
+    },
+    {
+      "year": 2009,
+      "index": 6,
+      "kasiCell": "04050034",
+      "differenceSeconds": -12.757,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2009,
+      "index": 8,
+      "kasiCell": "05051751",
+      "differenceSeconds": -9.372,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2009,
+      "index": 10,
+      "kasiCell": "06052159",
+      "differenceSeconds": 4.844,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2009,
+      "index": 12,
+      "kasiCell": "07070813",
+      "differenceSeconds": 30.697,
+      "roundedMinuteMatches": false
+    },
+    {
+      "year": 2009,
+      "index": 14,
+      "kasiCell": "08071801",
+      "differenceSeconds": 9.894,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2009,
+      "index": 16,
+      "kasiCell": "09072058",
+      "differenceSeconds": -22.987,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2009,
+      "index": 18,
+      "kasiCell": "10081240",
+      "differenceSeconds": 3.913,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2009,
+      "index": 20,
+      "kasiCell": "11071556",
+      "differenceSeconds": 15.987,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2009,
+      "index": 22,
+      "kasiCell": "12070852",
+      "differenceSeconds": 14.849,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2010,
+      "index": 0,
+      "kasiCell": "01052009",
+      "differenceSeconds": -11.747,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2010,
+      "index": 2,
+      "kasiCell": "02040748",
+      "differenceSeconds": -8.167,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2010,
+      "index": 4,
+      "kasiCell": "03060146",
+      "differenceSeconds": 21.218,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2010,
+      "index": 6,
+      "kasiCell": "04050630",
+      "differenceSeconds": 29.27,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2010,
+      "index": 8,
+      "kasiCell": "05052344",
+      "differenceSeconds": 1.918,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2010,
+      "index": 10,
+      "kasiCell": "06060349",
+      "differenceSeconds": 24.643,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2010,
+      "index": 12,
+      "kasiCell": "07071402",
+      "differenceSeconds": 25.418,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2010,
+      "index": 14,
+      "kasiCell": "08072349",
+      "differenceSeconds": 10.013,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2010,
+      "index": 16,
+      "kasiCell": "09080245",
+      "differenceSeconds": -17.778,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2010,
+      "index": 18,
+      "kasiCell": "10081826",
+      "differenceSeconds": 29.929,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2010,
+      "index": 20,
+      "kasiCell": "11072142",
+      "differenceSeconds": 30.975,
+      "roundedMinuteMatches": false
+    },
+    {
+      "year": 2010,
+      "index": 22,
+      "kasiCell": "12071438",
+      "differenceSeconds": 24.468,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2011,
+      "index": 0,
+      "kasiCell": "01060155",
+      "differenceSeconds": -20.591,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2011,
+      "index": 2,
+      "kasiCell": "02041333",
+      "differenceSeconds": -2.235,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2011,
+      "index": 4,
+      "kasiCell": "03060730",
+      "differenceSeconds": -0.526,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2011,
+      "index": 6,
+      "kasiCell": "04051212",
+      "differenceSeconds": -0.355,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2011,
+      "index": 8,
+      "kasiCell": "05060523",
+      "differenceSeconds": 14.42,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2011,
+      "index": 10,
+      "kasiCell": "06060927",
+      "differenceSeconds": 22.058,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2011,
+      "index": 12,
+      "kasiCell": "07071942",
+      "differenceSeconds": 2.066,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2011,
+      "index": 14,
+      "kasiCell": "08080533",
+      "differenceSeconds": 27.564,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2011,
+      "index": 16,
+      "kasiCell": "09080834",
+      "differenceSeconds": 14.612,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2011,
+      "index": 18,
+      "kasiCell": "10090019",
+      "differenceSeconds": 6.676,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2011,
+      "index": 20,
+      "kasiCell": "11080926",
+      "differenceSeconds": -21063.174,
+      "roundedMinuteMatches": false
+    },
+    {
+      "year": 2011,
+      "index": 22,
+      "kasiCell": "12072029",
+      "differenceSeconds": 1.281,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2012,
+      "index": 0,
+      "kasiCell": "01060744",
+      "differenceSeconds": -3.264,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2012,
+      "index": 2,
+      "kasiCell": "02041922",
+      "differenceSeconds": 25.005,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2012,
+      "index": 4,
+      "kasiCell": "03051321",
+      "differenceSeconds": 3.982,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2012,
+      "index": 6,
+      "kasiCell": "04041805",
+      "differenceSeconds": 36.944,
+      "roundedMinuteMatches": false
+    },
+    {
+      "year": 2012,
+      "index": 8,
+      "kasiCell": "05051120",
+      "differenceSeconds": -18.009,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2012,
+      "index": 10,
+      "kasiCell": "06051526",
+      "differenceSeconds": -4.352,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2012,
+      "index": 12,
+      "kasiCell": "07070141",
+      "differenceSeconds": -15.417,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2012,
+      "index": 14,
+      "kasiCell": "08071130",
+      "differenceSeconds": 33.94,
+      "roundedMinuteMatches": false
+    },
+    {
+      "year": 2012,
+      "index": 16,
+      "kasiCell": "09071429",
+      "differenceSeconds": 1.411,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2012,
+      "index": 18,
+      "kasiCell": "10080612",
+      "differenceSeconds": -16.529,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2012,
+      "index": 20,
+      "kasiCell": "11070926",
+      "differenceSeconds": -1.494,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2012,
+      "index": 22,
+      "kasiCell": "12070219",
+      "differenceSeconds": -2.68,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2013,
+      "index": 0,
+      "kasiCell": "01051334",
+      "differenceSeconds": -20.611,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2013,
+      "index": 2,
+      "kasiCell": "02040113",
+      "differenceSeconds": 26.532,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2013,
+      "index": 4,
+      "kasiCell": "03051915",
+      "differenceSeconds": -8.125,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2013,
+      "index": 6,
+      "kasiCell": "04050002",
+      "differenceSeconds": 28.292,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2013,
+      "index": 8,
+      "kasiCell": "05051718",
+      "differenceSeconds": 11.258,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2013,
+      "index": 10,
+      "kasiCell": "06052123",
+      "differenceSeconds": 21.448,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2013,
+      "index": 12,
+      "kasiCell": "07070734",
+      "differenceSeconds": 37.786,
+      "roundedMinuteMatches": false
+    },
+    {
+      "year": 2013,
+      "index": 14,
+      "kasiCell": "08071720",
+      "differenceSeconds": 22.568,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2013,
+      "index": 16,
+      "kasiCell": "09072016",
+      "differenceSeconds": 16.73,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2013,
+      "index": 18,
+      "kasiCell": "10081158",
+      "differenceSeconds": 30.696,
+      "roundedMinuteMatches": false
+    },
+    {
+      "year": 2013,
+      "index": 20,
+      "kasiCell": "11071514",
+      "differenceSeconds": -5.78,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2013,
+      "index": 22,
+      "kasiCell": "12070808",
+      "differenceSeconds": 34.022,
+      "roundedMinuteMatches": false
+    },
+    {
+      "year": 2014,
+      "index": 0,
+      "kasiCell": "01051924",
+      "differenceSeconds": 12.887,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2014,
+      "index": 2,
+      "kasiCell": "02040703",
+      "differenceSeconds": 17.805,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2014,
+      "index": 4,
+      "kasiCell": "03060102",
+      "differenceSeconds": 16.963,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2014,
+      "index": 6,
+      "kasiCell": "04050547",
+      "differenceSeconds": -19.036,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2014,
+      "index": 8,
+      "kasiCell": "05052259",
+      "differenceSeconds": 27.434,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2014,
+      "index": 10,
+      "kasiCell": "06060303",
+      "differenceSeconds": 4.486,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2014,
+      "index": 12,
+      "kasiCell": "07071315",
+      "differenceSeconds": -11.886,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2014,
+      "index": 14,
+      "kasiCell": "08072302",
+      "differenceSeconds": 30.338,
+      "roundedMinuteMatches": false
+    },
+    {
+      "year": 2014,
+      "index": 16,
+      "kasiCell": "09080201",
+      "differenceSeconds": 27.238,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2014,
+      "index": 18,
+      "kasiCell": "10081747",
+      "differenceSeconds": 31.543,
+      "roundedMinuteMatches": false
+    },
+    {
+      "year": 2014,
+      "index": 20,
+      "kasiCell": "11072107",
+      "differenceSeconds": -17.895,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2014,
+      "index": 22,
+      "kasiCell": "12071404",
+      "differenceSeconds": 7.866,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2015,
+      "index": 0,
+      "kasiCell": "01060120",
+      "differenceSeconds": 34.809,
+      "roundedMinuteMatches": false
+    },
+    {
+      "year": 2015,
+      "index": 2,
+      "kasiCell": "02041258",
+      "differenceSeconds": 29.43,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2015,
+      "index": 4,
+      "kasiCell": "03060656",
+      "differenceSeconds": -18.332,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2015,
+      "index": 6,
+      "kasiCell": "04051139",
+      "differenceSeconds": 9.121,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2015,
+      "index": 8,
+      "kasiCell": "05060452",
+      "differenceSeconds": 37.015,
+      "roundedMinuteMatches": false
+    },
+    {
+      "year": 2015,
+      "index": 10,
+      "kasiCell": "06060858",
+      "differenceSeconds": 12.436,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2015,
+      "index": 12,
+      "kasiCell": "07071912",
+      "differenceSeconds": 16.577,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2015,
+      "index": 14,
+      "kasiCell": "08080501",
+      "differenceSeconds": 24.568,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2015,
+      "index": 16,
+      "kasiCell": "09080759",
+      "differenceSeconds": 34.919,
+      "roundedMinuteMatches": false
+    },
+    {
+      "year": 2015,
+      "index": 18,
+      "kasiCell": "10082343",
+      "differenceSeconds": -9.574,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2015,
+      "index": 20,
+      "kasiCell": "11080258",
+      "differenceSeconds": 39.513,
+      "roundedMinuteMatches": false
+    },
+    {
+      "year": 2015,
+      "index": 22,
+      "kasiCell": "12071953",
+      "differenceSeconds": 22.537,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2016,
+      "index": 0,
+      "kasiCell": "01060708",
+      "differenceSeconds": 23.797,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2016,
+      "index": 2,
+      "kasiCell": "02041846",
+      "differenceSeconds": 3.313,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2016,
+      "index": 4,
+      "kasiCell": "03051243",
+      "differenceSeconds": 33.86,
+      "roundedMinuteMatches": false
+    },
+    {
+      "year": 2016,
+      "index": 6,
+      "kasiCell": "04041727",
+      "differenceSeconds": 32.994,
+      "roundedMinuteMatches": false
+    },
+    {
+      "year": 2016,
+      "index": 8,
+      "kasiCell": "05051042",
+      "differenceSeconds": -5.278,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2016,
+      "index": 10,
+      "kasiCell": "06051448",
+      "differenceSeconds": 32.187,
+      "roundedMinuteMatches": false
+    },
+    {
+      "year": 2016,
+      "index": 12,
+      "kasiCell": "07070103",
+      "differenceSeconds": 23.328,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2016,
+      "index": 14,
+      "kasiCell": "08071053",
+      "differenceSeconds": 3.444,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2016,
+      "index": 16,
+      "kasiCell": "09071351",
+      "differenceSeconds": 7.143,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2016,
+      "index": 18,
+      "kasiCell": "10080533",
+      "differenceSeconds": 24.365,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2016,
+      "index": 20,
+      "kasiCell": "11070848",
+      "differenceSeconds": -16.542,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2016,
+      "index": 22,
+      "kasiCell": "12070141",
+      "differenceSeconds": 9.471,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2017,
+      "index": 0,
+      "kasiCell": "01051256",
+      "differenceSeconds": -14.47,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2017,
+      "index": 2,
+      "kasiCell": "02040034",
+      "differenceSeconds": 4.519,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2017,
+      "index": 4,
+      "kasiCell": "03051833",
+      "differenceSeconds": -15.418,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2017,
+      "index": 6,
+      "kasiCell": "04042317",
+      "differenceSeconds": 20.868,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2017,
+      "index": 8,
+      "kasiCell": "05051631",
+      "differenceSeconds": 3.363,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2017,
+      "index": 10,
+      "kasiCell": "06052037",
+      "differenceSeconds": -22.584,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2017,
+      "index": 12,
+      "kasiCell": "07070651",
+      "differenceSeconds": -17.477,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2017,
+      "index": 14,
+      "kasiCell": "08071640",
+      "differenceSeconds": 1.028,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2017,
+      "index": 16,
+      "kasiCell": "09071939",
+      "differenceSeconds": -22.285,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2017,
+      "index": 18,
+      "kasiCell": "10081122",
+      "differenceSeconds": 9.233,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2017,
+      "index": 20,
+      "kasiCell": "11071438",
+      "differenceSeconds": -9.728,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2017,
+      "index": 22,
+      "kasiCell": "12070733",
+      "differenceSeconds": -19.744,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2018,
+      "index": 0,
+      "kasiCell": "01051849",
+      "differenceSeconds": -14.572,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2018,
+      "index": 2,
+      "kasiCell": "02040628",
+      "differenceSeconds": 30.349,
+      "roundedMinuteMatches": false
+    },
+    {
+      "year": 2018,
+      "index": 4,
+      "kasiCell": "03060028",
+      "differenceSeconds": 11.894,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2018,
+      "index": 6,
+      "kasiCell": "04050513",
+      "differenceSeconds": -11.458,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2018,
+      "index": 8,
+      "kasiCell": "05052225",
+      "differenceSeconds": 23.267,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2018,
+      "index": 10,
+      "kasiCell": "06060229",
+      "differenceSeconds": 9.902,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2018,
+      "index": 12,
+      "kasiCell": "07071242",
+      "differenceSeconds": -6.574,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2018,
+      "index": 14,
+      "kasiCell": "08072231",
+      "differenceSeconds": -18.695,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2018,
+      "index": 16,
+      "kasiCell": "09080130",
+      "differenceSeconds": -16.606,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2018,
+      "index": 18,
+      "kasiCell": "10081715",
+      "differenceSeconds": -15.369,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2018,
+      "index": 20,
+      "kasiCell": "11072032",
+      "differenceSeconds": -12.81,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2018,
+      "index": 22,
+      "kasiCell": "12071326",
+      "differenceSeconds": -3.482,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2019,
+      "index": 0,
+      "kasiCell": "01060039",
+      "differenceSeconds": -0.983,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2019,
+      "index": 2,
+      "kasiCell": "02041214",
+      "differenceSeconds": 20.487,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2019,
+      "index": 4,
+      "kasiCell": "03060610",
+      "differenceSeconds": -14.308,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2019,
+      "index": 6,
+      "kasiCell": "04051051",
+      "differenceSeconds": 27.66,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2019,
+      "index": 8,
+      "kasiCell": "05060403",
+      "differenceSeconds": -13.099,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2019,
+      "index": 10,
+      "kasiCell": "06060806",
+      "differenceSeconds": 25.38,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2019,
+      "index": 12,
+      "kasiCell": "07071821",
+      "differenceSeconds": -27.367,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2019,
+      "index": 14,
+      "kasiCell": "08080413",
+      "differenceSeconds": 4.657,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2019,
+      "index": 16,
+      "kasiCell": "09080717",
+      "differenceSeconds": -6.687,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2019,
+      "index": 18,
+      "kasiCell": "10082306",
+      "differenceSeconds": -21.091,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2019,
+      "index": 20,
+      "kasiCell": "11080224",
+      "differenceSeconds": 23.361,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2019,
+      "index": 22,
+      "kasiCell": "12071918",
+      "differenceSeconds": 29.304,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2020,
+      "index": 0,
+      "kasiCell": "01060630",
+      "differenceSeconds": 7.613,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2020,
+      "index": 2,
+      "kasiCell": "02041803",
+      "differenceSeconds": 21.059,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2020,
+      "index": 4,
+      "kasiCell": "03051157",
+      "differenceSeconds": -5.573,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2020,
+      "index": 6,
+      "kasiCell": "04041638",
+      "differenceSeconds": 11.365,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2020,
+      "index": 8,
+      "kasiCell": "05050951",
+      "differenceSeconds": 24.491,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2020,
+      "index": 10,
+      "kasiCell": "06051358",
+      "differenceSeconds": 27.083,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2020,
+      "index": 12,
+      "kasiCell": "07070014",
+      "differenceSeconds": 28.67,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2020,
+      "index": 14,
+      "kasiCell": "08071006",
+      "differenceSeconds": 12.749,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2020,
+      "index": 16,
+      "kasiCell": "09071308",
+      "differenceSeconds": 4.301,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2020,
+      "index": 18,
+      "kasiCell": "10080455",
+      "differenceSeconds": 17.124,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2020,
+      "index": 20,
+      "kasiCell": "11070814",
+      "differenceSeconds": -3.475,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2020,
+      "index": 22,
+      "kasiCell": "12070109",
+      "differenceSeconds": 31.511,
+      "roundedMinuteMatches": false
+    },
+    {
+      "year": 2021,
+      "index": 0,
+      "kasiCell": "01051223",
+      "differenceSeconds": 26.837,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2021,
+      "index": 2,
+      "kasiCell": "02032359",
+      "differenceSeconds": -11.126,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2021,
+      "index": 4,
+      "kasiCell": "03051754",
+      "differenceSeconds": -17.928,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2021,
+      "index": 6,
+      "kasiCell": "04042235",
+      "differenceSeconds": 7.354,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2021,
+      "index": 8,
+      "kasiCell": "05051547",
+      "differenceSeconds": 11.589,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2021,
+      "index": 10,
+      "kasiCell": "06051952",
+      "differenceSeconds": 7.179,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2021,
+      "index": 12,
+      "kasiCell": "07070605",
+      "differenceSeconds": 29.918,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2021,
+      "index": 14,
+      "kasiCell": "08071554",
+      "differenceSeconds": -0.275,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2021,
+      "index": 16,
+      "kasiCell": "09071853",
+      "differenceSeconds": -2.496,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2021,
+      "index": 18,
+      "kasiCell": "10081039",
+      "differenceSeconds": 3.36,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2021,
+      "index": 20,
+      "kasiCell": "11071359",
+      "differenceSeconds": -13.182,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2021,
+      "index": 22,
+      "kasiCell": "12070657",
+      "differenceSeconds": 4.87,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2022,
+      "index": 0,
+      "kasiCell": "01051814",
+      "differenceSeconds": 4.69,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2022,
+      "index": 2,
+      "kasiCell": "02040551",
+      "differenceSeconds": -11.287,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2022,
+      "index": 4,
+      "kasiCell": "03052344",
+      "differenceSeconds": -13.359,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2022,
+      "index": 6,
+      "kasiCell": "04050420",
+      "differenceSeconds": 15.751,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2022,
+      "index": 8,
+      "kasiCell": "05052126",
+      "differenceSeconds": -1.431,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2022,
+      "index": 10,
+      "kasiCell": "06060126",
+      "differenceSeconds": -10.445,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2022,
+      "index": 12,
+      "kasiCell": "07071138",
+      "differenceSeconds": 1.427,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2022,
+      "index": 14,
+      "kasiCell": "08072129",
+      "differenceSeconds": 10.723,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2022,
+      "index": 16,
+      "kasiCell": "09080032",
+      "differenceSeconds": 19.669,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2022,
+      "index": 18,
+      "kasiCell": "10081622",
+      "differenceSeconds": 28.643,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2022,
+      "index": 20,
+      "kasiCell": "11071945",
+      "differenceSeconds": 30.332,
+      "roundedMinuteMatches": false
+    },
+    {
+      "year": 2022,
+      "index": 22,
+      "kasiCell": "12071246",
+      "differenceSeconds": 16.929,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2023,
+      "index": 0,
+      "kasiCell": "01060005",
+      "differenceSeconds": -8.247,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2023,
+      "index": 2,
+      "kasiCell": "02041143",
+      "differenceSeconds": -25.742,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2023,
+      "index": 4,
+      "kasiCell": "03060536",
+      "differenceSeconds": 15.361,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2023,
+      "index": 6,
+      "kasiCell": "04051013",
+      "differenceSeconds": 4.812,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2023,
+      "index": 8,
+      "kasiCell": "05060319",
+      "differenceSeconds": -13.278,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2023,
+      "index": 10,
+      "kasiCell": "06060718",
+      "differenceSeconds": 22.597,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2023,
+      "index": 12,
+      "kasiCell": "07071731",
+      "differenceSeconds": -17.111,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2023,
+      "index": 14,
+      "kasiCell": "08080323",
+      "differenceSeconds": -5.339,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2023,
+      "index": 16,
+      "kasiCell": "09080627",
+      "differenceSeconds": -16.532,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2023,
+      "index": 18,
+      "kasiCell": "10082216",
+      "differenceSeconds": -23.842,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2023,
+      "index": 20,
+      "kasiCell": "11080136",
+      "differenceSeconds": -23.06,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2023,
+      "index": 22,
+      "kasiCell": "12071833",
+      "differenceSeconds": -1.808,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2024,
+      "index": 0,
+      "kasiCell": "01060549",
+      "differenceSeconds": 23.639,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2024,
+      "index": 2,
+      "kasiCell": "02041727",
+      "differenceSeconds": 8.696,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2024,
+      "index": 4,
+      "kasiCell": "03051123",
+      "differenceSeconds": -12.743,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2024,
+      "index": 6,
+      "kasiCell": "04041602",
+      "differenceSeconds": 18.831,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2024,
+      "index": 8,
+      "kasiCell": "05050910",
+      "differenceSeconds": 6.209,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2024,
+      "index": 10,
+      "kasiCell": "06051310",
+      "differenceSeconds": -5.165,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2024,
+      "index": 12,
+      "kasiCell": "07062320",
+      "differenceSeconds": 4.575,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2024,
+      "index": 14,
+      "kasiCell": "08070909",
+      "differenceSeconds": 17.616,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2024,
+      "index": 16,
+      "kasiCell": "09071211",
+      "differenceSeconds": 21.988,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2024,
+      "index": 18,
+      "kasiCell": "10080400",
+      "differenceSeconds": -1.527,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2024,
+      "index": 20,
+      "kasiCell": "11070720",
+      "differenceSeconds": 5.66,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2024,
+      "index": 22,
+      "kasiCell": "12070017",
+      "differenceSeconds": 3.727,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2025,
+      "index": 0,
+      "kasiCell": "01051133",
+      "differenceSeconds": -12.557,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2025,
+      "index": 2,
+      "kasiCell": "02032310",
+      "differenceSeconds": 29.219,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2025,
+      "index": 4,
+      "kasiCell": "03051707",
+      "differenceSeconds": 17.291,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2025,
+      "index": 6,
+      "kasiCell": "04042149",
+      "differenceSeconds": -25.099,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2025,
+      "index": 8,
+      "kasiCell": "05051457",
+      "differenceSeconds": 12.578,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2025,
+      "index": 10,
+      "kasiCell": "06051857",
+      "differenceSeconds": -27.674,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2025,
+      "index": 12,
+      "kasiCell": "07070505",
+      "differenceSeconds": 0.263,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2025,
+      "index": 14,
+      "kasiCell": "08071452",
+      "differenceSeconds": -24.114,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2025,
+      "index": 16,
+      "kasiCell": "09071752",
+      "differenceSeconds": -2.155,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2025,
+      "index": 18,
+      "kasiCell": "10080941",
+      "differenceSeconds": 13.251,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2025,
+      "index": 20,
+      "kasiCell": "11071304",
+      "differenceSeconds": 3.868,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2025,
+      "index": 22,
+      "kasiCell": "12070605",
+      "differenceSeconds": -23.957,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2026,
+      "index": 0,
+      "kasiCell": "01051723",
+      "differenceSeconds": 10.549,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2026,
+      "index": 2,
+      "kasiCell": "02040502",
+      "differenceSeconds": 9.05,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2026,
+      "index": 4,
+      "kasiCell": "03052259",
+      "differenceSeconds": 0.237,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2026,
+      "index": 6,
+      "kasiCell": "04050340",
+      "differenceSeconds": 0.311,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2026,
+      "index": 8,
+      "kasiCell": "05052049",
+      "differenceSeconds": -15.185,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2026,
+      "index": 10,
+      "kasiCell": "06060048",
+      "differenceSeconds": 23.05,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2026,
+      "index": 12,
+      "kasiCell": "07071057",
+      "differenceSeconds": -1.454,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2026,
+      "index": 14,
+      "kasiCell": "08072043",
+      "differenceSeconds": -14.306,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2026,
+      "index": 16,
+      "kasiCell": "09072341",
+      "differenceSeconds": 18.375,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2026,
+      "index": 18,
+      "kasiCell": "10081529",
+      "differenceSeconds": 18.635,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2026,
+      "index": 20,
+      "kasiCell": "11071852",
+      "differenceSeconds": 5.458,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2026,
+      "index": 22,
+      "kasiCell": "12071153",
+      "differenceSeconds": -27.429,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2027,
+      "index": 0,
+      "kasiCell": "01052310",
+      "differenceSeconds": -0.991,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2027,
+      "index": 2,
+      "kasiCell": "02041046",
+      "differenceSeconds": 19.338,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2027,
+      "index": 4,
+      "kasiCell": "03060440",
+      "differenceSeconds": -27.254,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2027,
+      "index": 6,
+      "kasiCell": "04050917",
+      "differenceSeconds": 30.462,
+      "roundedMinuteMatches": false
+    },
+    {
+      "year": 2027,
+      "index": 8,
+      "kasiCell": "05060225",
+      "differenceSeconds": 12.471,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2027,
+      "index": 10,
+      "kasiCell": "06060626",
+      "differenceSeconds": -10.639,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2027,
+      "index": 12,
+      "kasiCell": "07071637",
+      "differenceSeconds": 4.761,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2027,
+      "index": 14,
+      "kasiCell": "08080227",
+      "differenceSeconds": -12.988,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2027,
+      "index": 16,
+      "kasiCell": "09080528",
+      "differenceSeconds": 27.375,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2027,
+      "index": 18,
+      "kasiCell": "10082117",
+      "differenceSeconds": 5.362,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2027,
+      "index": 20,
+      "kasiCell": "11080039",
+      "differenceSeconds": -25.34,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2027,
+      "index": 22,
+      "kasiCell": "12071738",
+      "differenceSeconds": -18.521,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2028,
+      "index": 0,
+      "kasiCell": "01060455",
+      "differenceSeconds": -20.249,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2028,
+      "index": 2,
+      "kasiCell": "02041631",
+      "differenceSeconds": 15.155,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2028,
+      "index": 4,
+      "kasiCell": "03051025",
+      "differenceSeconds": -10.807,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2028,
+      "index": 6,
+      "kasiCell": "04041503",
+      "differenceSeconds": 6.232,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2028,
+      "index": 8,
+      "kasiCell": "05050812",
+      "differenceSeconds": 12.007,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2028,
+      "index": 10,
+      "kasiCell": "06051216",
+      "differenceSeconds": 0.7,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2028,
+      "index": 12,
+      "kasiCell": "07062230",
+      "differenceSeconds": 19.242,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2028,
+      "index": 14,
+      "kasiCell": "08070821",
+      "differenceSeconds": 10.824,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2028,
+      "index": 16,
+      "kasiCell": "09071122",
+      "differenceSeconds": 9.186,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2028,
+      "index": 18,
+      "kasiCell": "10080309",
+      "differenceSeconds": -28.954,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2028,
+      "index": 20,
+      "kasiCell": "11070627",
+      "differenceSeconds": 16.526,
+      "roundedMinuteMatches": true
+    },
+    {
+      "year": 2028,
+      "index": 22,
+      "kasiCell": "12062325",
+      "differenceSeconds": -19.063,
+      "roundedMinuteMatches": true
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "url": "https://astro.kasi.re.kr/life/solc?yyyy=2003&mm=10&dd=25",
+  "status": 200,
+  "capturedAt": "2026-11-01T11:49:29.248Z",
+  "bodySha256": "2e6c2c0f8b99939bf81bf9ab8cb0249cdc7a3d4912e0250cca64efc692721919",
+  "body": "{\"LUNC_LEAP_MM\":\"평\",\"LUNC_PRCN\":\"계미(癸未)\",\"LUNC_ILJIN\":\"신미(辛未)\",\"SOLC_LEAP_YYYY\":\"평\",\"LUNC_EN_DD\":\"30\",\"SOLC_JD\":\"2452938\",\"SOLC_MM\":\"10\",\"SOLC_DD\":\"25\",\"LUNC_WLGN\":\"계해(癸亥)\",\"LUNC_MM\":\"10\",\"LUNC_DD\":\"01\",\"JULIAN_LeapYear\":\"평\",\"JULIAN_YYYY\":\"2003\",\"SOLC_YYYY\":\"2003\",\"LUNC_YYYY\":\"2003\",\"JULIAN_MM\":\"10\",\"JULIAN_DD\":\"12\",\"SOLC_WEEK\":\"토\"}"
+}

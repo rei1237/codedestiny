@@ -1,0 +1,7 @@
+{
+  "url": "https://astro.kasi.re.kr/life/solc?yyyy=2011&mm=12&dd=25",
+  "status": 200,
+  "capturedAt": "2026-11-01T11:49:41.289Z",
+  "bodySha256": "6b29877947d08065bff578343a6d50fa8c0940c9ede228d6e062dd2bf87638d2",
+  "body": "{\"LUNC_LEAP_MM\":\"평\",\"LUNC_PRCN\":\"신묘(辛卯)\",\"LUNC_ILJIN\":\"갑인(甲寅)\",\"SOLC_LEAP_YYYY\":\"평\",\"LUNC_EN_DD\":\"29\",\"SOLC_JD\":\"2455921\",\"SOLC_MM\":\"12\",\"SOLC_DD\":\"25\",\"LUNC_WLGN\":\"신축(辛丑)\",\"LUNC_MM\":\"12\",\"LUNC_DD\":\"01\",\"JULIAN_LeapYear\":\"평\",\"JULIAN_YYYY\":\"2011\",\"SOLC_YYYY\":\"2011\",\"LUNC_YYYY\":\"2011\",\"JULIAN_MM\":\"12\",\"JULIAN_DD\":\"12\",\"SOLC_WEEK\":\"일\",\"LUNC_AGE\":0.7}"
+}

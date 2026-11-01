@@ -1,6 +1,8 @@
 # 검증 범위 확대·대운 연결 후속 계획
 
-status: planning-complete-execution-not-approved
+status: superseded-by-bounded-implementation
+
+후속 업데이트 요청으로 CR-003 최초 T/L 및 CR-004 제한 파일럿을 기본 OFF로 구현했다. [07 구현 보고서](07-expansion-implementation-report.md)가 최신 상태다. 아래는 계획 작성 당시의 지원/미승인 기록이며 넓은 장기 목표까지 승인·완료된 것은 아니다.
 
 작성일: 2026-11-01. 기준 커밋: `d1238c68404f639f1222a8f077854952b7353665`. **이번 작업은 문서 작성과 읽기 전용 확인뿐이다.** 자료 수집·새 차분 실행·코드 수정·플래그 활성화·push·배포 승인이 아니다. CR-001/002의 승인 범위를 자동 확장하지 않는다.
 

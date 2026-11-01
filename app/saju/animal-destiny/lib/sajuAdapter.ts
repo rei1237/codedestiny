@@ -250,7 +250,18 @@ export async function prefetchKasiContext(input: AnimalDestinyInput): Promise<Ka
  * 기본 사주 분석과 동일한 옵션으로 로컬 명식(natalAnalysis 포함 full result)을 계산한다.
  * calculateLocalResult(동물점)와 러브심 궁합 엔진이 이 단일 함수를 공유해 일주 로직을 100% 일치시킨다.
  */
-export function computeNatalFromInput(input: AnimalDestinyInput, kasi?: KasiPrefetchResult & { authorityFlags?: { sajuTermAuthorityV2?: boolean; koreanCalendarAuthorityV2?: boolean } }) {
+export function computeNatalFromInput(input: AnimalDestinyInput, kasi?: KasiPrefetchResult & { authorityFlags?: { sajuTermAuthorityV2?: boolean; koreanCalendarAuthorityV2?: boolean; authorityVersion?: string } }, executionOptions: { daeunAuthorityV2?: boolean } = {}) {
+  if (!executionOptions || typeof executionOptions !== "object" || Array.isArray(executionOptions)
+    || Object.entries(executionOptions).some(([key, value]) => key !== "daeunAuthorityV2" || typeof value !== "boolean")) throw new TypeError("INVALID_DAEUN_OPTIONS");
+  const daeunEnabled = executionOptions.daeunAuthorityV2 === true;
+  if (daeunEnabled) {
+    if (kasi?.authorityFlags?.sajuTermAuthorityV2 !== true) throw new RangeError("DAEUN_REQUIRES_VERIFIED_TERMS");
+    if ((input.calendarType && input.calendarType !== "solar") || input.lunarLeap) throw new RangeError("DAEUN_PILOT_SOLAR_ONLY");
+    if ((input.timezone && input.timezone !== "Asia/Seoul") || input.timezoneOffset != null || input.timezoneOffsetMinutes != null || input.standardMeridian != null
+      || (input.longitude != null && input.longitude !== 126.978) || (input.latitude != null && input.latitude !== 37.5665)) throw new RangeError("DAEUN_PILOT_SEOUL_ONLY");
+    if (!["male", "female", "unknown"].includes(input.gender)) throw new TypeError("INVALID_DAEUN_GENDER");
+    if (input.birthTime && !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(input.birthTime)) throw new TypeError("INVALID_DAEUN_BIRTH_TIME");
+  }
   const { year, month, day } = parseBirthDate(input.birthDate);
   const { hour, minute, hasTime } = parseBirthTime(input.birthTime);
 
@@ -266,6 +277,7 @@ export function computeNatalFromInput(input: AnimalDestinyInput, kasi?: KasiPref
     kasiSolarDate: kasi?.kasiSolarDate,
     kasiSolarTerms: kasi?.kasiSolarTerms,
     authorityFlags: kasi?.authorityFlags,
+    ...(daeunEnabled ? { daeunContext: { enabled: true as const, gender: input.gender } } : {}),
   });
 }
 

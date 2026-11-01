@@ -1,0 +1,7 @@
+{
+  "url": "https://astro.kasi.re.kr/life/solc?yyyy=2013&mm=10&dd=05",
+  "status": 200,
+  "capturedAt": "2026-11-01T11:49:43.891Z",
+  "bodySha256": "c6221a5d6bb8897dbedca8e4d7d8efef1e82a7778d846f9c92b664d14a01ee2c",
+  "body": "{\"LUNC_LEAP_MM\":\"평\",\"LUNC_PRCN\":\"계사(癸巳)\",\"LUNC_ILJIN\":\"갑진(甲辰)\",\"SOLC_LEAP_YYYY\":\"평\",\"LUNC_EN_DD\":\"29\",\"SOLC_JD\":\"2456571\",\"SOLC_MM\":\"10\",\"SOLC_DD\":\"05\",\"LUNC_WLGN\":\"임술(壬戌)\",\"LUNC_MM\":\"09\",\"LUNC_DD\":\"01\",\"JULIAN_LeapYear\":\"평\",\"JULIAN_YYYY\":\"2013\",\"SOLC_YYYY\":\"2013\",\"LUNC_YYYY\":\"2013\",\"JULIAN_MM\":\"09\",\"JULIAN_DD\":\"22\",\"SOLC_WEEK\":\"토\",\"LUNC_AGE\":0.5}"
+}

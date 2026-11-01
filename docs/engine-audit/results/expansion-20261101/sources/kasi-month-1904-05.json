@@ -1,0 +1,7 @@
+{
+  "url": "https://astro.kasi.re.kr/life/lunc?yyyy=1904&mm=05&dd=01",
+  "status": 200,
+  "capturedAt": "2026-11-01T11:49:10.788Z",
+  "bodySha256": "92909793cd95059a3f56826a19c6481c7db32f41c59caabc18d79bda8882dfad",
+  "body": "[{\"LUNC_LEAP_MM\":\"평\",\"LUNC_PRCN\":\"갑진(甲辰)\",\"LUNC_ILJIN\":\"기묘(己卯)\",\"SOLC_LEAP_YYYY\":\"윤\",\"LUNC_EN_DD\":\"29\",\"SOLC_JD\":\"2416646\",\"SOLC_MM\":\"06\",\"SOLC_DD\":\"14\",\"LUNC_WLGN\":\"경오(庚午)\",\"LUNC_MM\":\"05\",\"LUNC_DD\":\"01\",\"JULIAN_LeapYear\":\"윤\",\"JULIAN_YYYY\":\"1904\",\"SOLC_YYYY\":\"1904\",\"LUNC_YYYY\":\"1904\",\"JULIAN_MM\":\"06\",\"JULIAN_DD\":\"01\",\"SOLC_WEEK\":\"화\"}]"
+}

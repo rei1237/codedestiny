@@ -1,0 +1,41 @@
+{
+  "status": "implemented-default-off-local-only",
+  "baselineCommit": "d648d9d2453c3ba64a7060175942227e9da9fe39",
+  "sourcePinHash": "74758bf51091aa872236c387ad5caf0bc228a3a1102d01bfcf1b6fe06a455dc7",
+  "version": "kasi-jpl-expanded-20261101",
+  "termYears": 29,
+  "nodeTerms": 350,
+  "months": 526,
+  "leapMonths": 16,
+  "calendarDays": 15533,
+  "calendarDaysSupported": 15504,
+  "pre1900GuardDays": 29,
+  "originalCases": 101,
+  "originalFields": 1109,
+  "additionalOriginalCases": 4,
+  "daeunGoldenCases": 2016,
+  "daeunClockCases": 324,
+  "daeunRandomCases": 20000,
+  "offComparisons": 40000,
+  "offDifferences": 0,
+  "expandedOn": {
+    "saju": 5543,
+    "ziwei": 5394
+  },
+  "expandedChanged": {
+    "saju": 6,
+    "ziwei": 76
+  },
+  "expandedChangesIdenticalToPreviouslyAdjudicatedCases": true,
+  "paidMockTests": 28,
+  "priorEvidenceFilesPreserved": 224,
+  "swissExecuted": false,
+  "savedResultsRecalculated": false,
+  "push": false,
+  "deploy": false,
+  "typecheck": {
+    "command": "node node_modules/typescript/bin/tsc --noEmit",
+    "status": 0,
+    "record": "Executed separately; initial nullable-instant TS18047 corrected, final execution exit 0."
+  }
+}

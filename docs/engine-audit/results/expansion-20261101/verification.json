@@ -1,0 +1,84 @@
+{
+  "results": [
+    {
+      "name": "original-golden",
+      "command": "node --test __tests__/ui/calendar-authority-regression.test.mjs",
+      "status": 0,
+      "milliseconds": 2157,
+      "stdout": "✔ official 101-case snapshot regression uses public adapters only (170.2859ms)\n✔ all supported JPL node boundaries switch across ±1 second/±1 minute and reject unresolved subsecond instants (16.5293ms)\n✔ public default remains OFF and flags never mutate birth input or saved evidence (11.7883ms)\n✔ all 24 official months round-trip through solar/lunar public ziwei chart inputs (871.9004ms)\n✔ four additional impact observations match KASI/JPL within the same approved defect families (7.2058ms)\nℹ tests 5\nℹ suites 0\nℹ pass 5\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 2065.4299\n",
+      "stderr": ""
+    },
+    {
+      "name": "expanded-golden",
+      "command": "node --test __tests__/ui/calendar-authority-expansion.test.mjs",
+      "status": 0,
+      "milliseconds": 32673,
+      "stdout": "{\"calendarDaysAccepted\":15504,\"pre1900GuardDays\":29}\n{\"publicSolarLunarPairs\":1572}\n✔ authority versions are explicit; original scopes and defaults remain unchanged (2.0918ms)\n✔ all 348 expanded node boundaries and unresolved intervals use official brackets (146.2038ms)\n✔ all official month days round-trip; source boundaries and unsupported guards stay separate (576.1761ms)\n✔ solar/lunar public saju and ziwei agree at every official month start/middle/end (9440.1346ms)\n✔ 2016 official daeun golden inputs match independent sect-1 arithmetic without other interpretation changes (20698.9748ms)\n✔ daeun option stays OFF, rejects unsupported inputs, and never fabricates unknown time/gender (10.8968ms)\n✔ month ends, leap birthdays, every clock hour and expanded-version daeun preserve sect-1 results (697.1171ms)\nℹ tests 7\nℹ suites 0\nℹ pass 7\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 32570.2505\n",
+      "stderr": ""
+    },
+    {
+      "name": "paid-storage-mocks",
+      "command": "node --require ./scripts/lib/mock-network-guard.cjs --test __tests__/ui/paid-report-storage.behavior.test.js __tests__/ui/saju-paid-delivery.behavior.test.js __tests__/ui/ziwei-paid-resume.behavior.test.js",
+      "status": 0,
+      "milliseconds": 4584,
+      "stdout": "✔ 자미두수 first 저장 throw는 완료 대신 저장 장애 (48.8016ms)\n✔ 자미두수 next 저장 throw는 완료 대신 저장 장애 (18.7366ms)\n✔ 자미두수 first 저장 null는 완료 대신 저장 장애 (17.809ms)\n✔ 자미두수 next 저장 null는 완료 대신 저장 장애 (13.0341ms)\n✔ 자미두수 first 저장 read-null는 완료 대신 저장 장애 (14.6542ms)\n✔ 자미두수 next 저장 read-null는 완료 대신 저장 장애 (12.1151ms)\n✔ 자미두수 재시도는 장을 중복하지 않고 완료본은 덮어쓰지 않는다 (11.4566ms)\n✔ 자미두수 다른 계정은 저장된 결과를 수정할 수 없다 (14.3186ms)\n✔ partial report resumes by server job without checkout and clears proof only on completed saved response (207.6461ms)\n✔ storage failure retains original pending job and allows another same-job retry (103.9341ms)\n✔ fresh and bfcache pageshow leave unrequested saved jobs collapsed (76.8663ms)\n✔ window focus does not start an unrequested saved job (45.0587ms)\n✔ account change discards in-flight result and isolates local recovery keys (92.7803ms)\n✔ saved consultation stays in archive until explicitly opened, without charging or deleting (19.3525ms)\n✔ server-discovered completed reading does not become a pending job or reopen on focus (89.8098ms)\n✔ twelve chapter bodies survive grouped navigation and historical bold headings (12.4383ms)\n✔ question draft is scoped to the current owner and profile (11.0434ms)\n✔ legacy result opens as the previous format without regeneration (10.9163ms)\n✔ dark mode keeps Yeoni and preserves the paid result and input state (145.5072ms)\n✔ numbered chapter subtitles retain text and belong to the correct reading group (6.6716ms)\n✔ disclosure opens saved report without POST and folding preserves it (114.39ms)\n✔ profile and locale changes discard old replies and close the reader (169.3116ms)\n✔ a user-started failed continuation can recover on focus (77.826ms)\n✔ 자미두수 실제 화면 재개 함수는 정상 묶음을 표시하며 같은 결과를 완성한다 (47.399ms)\n✔ 숨김 상태에서는 부분 본문을 유지하고 다음 묶음을 시작하지 않는다 (12.8442ms)\n✔ 계정 변경 뒤 도착한 응답을 표시하지 않는다 (8.0841ms)\n✔ 저장 및 조회 장애는 원래 서버 ID로 다시 요청한다 (5.6835ms)\n✔ 자미두수 화면은 pageshow와 focus만 발생해도 저장된 상담을 다시 조회한다 (0.8864ms)\nℹ tests 28\nℹ suites 0\nℹ pass 28\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 4467.3572\n",
+      "stderr": ""
+    },
+    {
+      "name": "evidence",
+      "command": "node tools/oracle/expansion/verify-evidence.mjs",
+      "status": 0,
+      "milliseconds": 2591,
+      "stdout": "{\"rawResponses\":1580,\"directNewJplBrackets\":166,\"preservedBrackets\":184,\"officialMonths\":526,\"leapMonths\":16,\"officialDays\":15533}\n",
+      "stderr": ""
+    },
+    {
+      "name": "new-data-freshness",
+      "command": "node tools/oracle/expansion/build-data.mjs --check",
+      "status": 0,
+      "milliseconds": 150,
+      "stdout": "{\"version\":\"kasi-jpl-expanded-20261101\",\"years\":29,\"terms\":350,\"months\":526,\"leapMonths\":16,\"days\":15533}\n",
+      "stderr": ""
+    },
+    {
+      "name": "new-golden-freshness",
+      "command": "node tools/oracle/expansion/build-daeun-golden.mjs --check",
+      "status": 0,
+      "milliseconds": 119,
+      "stdout": "Independent daeun golden: 2016 unique boundary inputs plus 324 clock/month-end inputs\n",
+      "stderr": ""
+    },
+    {
+      "name": "old-data-freshness",
+      "command": "node tools/oracle/implementation/build-authorities.mjs --check",
+      "status": 0,
+      "milliseconds": 119,
+      "stdout": "authority data verified\n",
+      "stderr": ""
+    },
+    {
+      "name": "classic-freshness",
+      "command": "node scripts/build-korean-calendar-table.mjs --check",
+      "status": 0,
+      "milliseconds": 601,
+      "stdout": "[build-korean-calendar-table] 최신 — 블록 202 · 달 2499 · 절기 4872 · 윤달 75 · 자정위험 51 · kc1:fa21fe1cc7dc · 490ms\n",
+      "stderr": ""
+    },
+    {
+      "name": "classic-syntax",
+      "command": "node --check js/core/korean-calendar.js",
+      "status": 0,
+      "milliseconds": 93,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "targeted-lint",
+      "command": "node node_modules/eslint/bin/eslint.js --quiet app/saju/animal-destiny/engine/localSajuCalculator.ts app/saju/animal-destiny/lib/sajuAdapter.ts lib/korean-calendar/authority.js lib/korean-calendar/core.js lib/korean-calendar/ganji.js lib/korean-calendar/natal.js lib/korean-calendar/policy.js worker/lib/ziwei-ai-chart.js worker/lib/guardian-fortune/adapters/ziwei.js",
+      "status": 0,
+      "milliseconds": 5834,
+      "stdout": "",
+      "stderr": ""
+    }
+  ]
+}

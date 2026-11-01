@@ -1,0 +1,7 @@
+{
+  "url": "https://astro.kasi.re.kr/life/lunc?yyyy=1909&mm=02&dd=01",
+  "status": 200,
+  "capturedAt": "2026-11-01T11:49:16.982Z",
+  "bodySha256": "08eb414a3dd8016ff9cee754d2aedc6930a8e5099053a571e7dddea6ced94de9",
+  "body": "[{\"LUNC_LEAP_MM\":\"평\",\"LUNC_PRCN\":\"기유(己酉)\",\"LUNC_ILJIN\":\"신해(辛亥)\",\"SOLC_LEAP_YYYY\":\"평\",\"LUNC_EN_DD\":\"30\",\"SOLC_JD\":\"2418358\",\"SOLC_MM\":\"02\",\"SOLC_DD\":\"20\",\"LUNC_WLGN\":\"정묘(丁卯)\",\"LUNC_MM\":\"02\",\"LUNC_DD\":\"01\",\"JULIAN_LeapYear\":\"평\",\"JULIAN_YYYY\":\"1909\",\"SOLC_YYYY\":\"1909\",\"LUNC_YYYY\":\"1909\",\"JULIAN_MM\":\"02\",\"JULIAN_DD\":\"07\",\"SOLC_WEEK\":\"토\"},{\"LUNC_LEAP_MM\":\"윤\",\"LUNC_PRCN\":\"기유(己酉)\",\"LUNC_ILJIN\":\"신사(辛巳)\",\"SOLC_LEAP_YYYY\":\"평\",\"LUNC_EN_DD\":\"29\",\"SOLC_JD\":\"2418388\",\"SOLC_MM\":\"03\",\"SOLC_DD\":\"22\",\"LUNC_WLGN\":\"\",\"LUNC_MM\":\"02\",\"LUNC_DD\":\"01\",\"JULIAN_LeapYear\":\"평\",\"JULIAN_YYYY\":\"1909\",\"SOLC_YYYY\":\"1909\",\"LUNC_YYYY\":\"1909\",\"JULIAN_MM\":\"03\",\"JULIAN_DD\":\"09\",\"SOLC_WEEK\":\"월\"}]"
+}

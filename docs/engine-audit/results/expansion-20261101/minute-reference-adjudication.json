@@ -1,0 +1,38 @@
+{
+  "classification": "C: existing cached KASI fixture limitation",
+  "cachedFixtureUnchanged": true,
+  "existingErrata": "scripts/verify-solar-term-frame-kasi.mjs::KASI_KNOWN_ERRATA (2011:입동)",
+  "cachedCell": "11080926",
+  "jplTerm": {
+    "year": 2011,
+    "index": 20,
+    "utcMs": 1320690896826,
+    "lowerUtcMs": 1320690896806,
+    "upperUtcMs": 1320690896846,
+    "beforeLongitude": 224.9999998,
+    "afterLongitude": 225.0000002
+  },
+  "kstModelTime": "2011-11-08T03:34:56.826+09:00",
+  "basis": "Fresh direct JPL DE441 apparent-longitude sign bracket supports the existing erratum. No oracle majority vote. Current KASI API correctness is not claimed because this fixture came through a service proxy.",
+  "otherRows": {
+    "count": 347,
+    "maxAbsSeconds": 39.513,
+    "roundedMinuteDifferences": 25,
+    "classification": "C/D: minute-resolution reference vs model instant; no new service defect adjudicated"
+  },
+  "unsuccessfulAdditionalSources": [
+    {
+      "url": "https://www.kasi.re.kr/file/209064213683812.hwp",
+      "result": "HTTP 404"
+    },
+    {
+      "url": "https://www.kasi.re.kr/web-front/comm/fileDownload",
+      "result": "HTTP 200 script response, not HWP; rejected"
+    },
+    {
+      "url": "https://www.hko.gov.hk/tc/gts/astron2011/files/11_2011.pdf",
+      "result": "Web text showed day only; screenshot unavailable. Not used as time evidence."
+    }
+  ],
+  "resolution": "Use directly verified JPL boundary in new opt-in dataset; preserve original fixture and existing guard unchanged."
+}

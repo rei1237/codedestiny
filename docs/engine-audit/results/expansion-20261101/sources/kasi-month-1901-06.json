@@ -1,0 +1,7 @@
+{
+  "url": "https://astro.kasi.re.kr/life/lunc?yyyy=1901&mm=06&dd=01",
+  "status": 200,
+  "capturedAt": "2026-11-01T11:49:07.265Z",
+  "bodySha256": "98ab520949f6e559c3afa03c4c0a2ac5cedff063519e27dc2abc7039be1362e0",
+  "body": "[{\"LUNC_LEAP_MM\":\"평\",\"LUNC_PRCN\":\"신축(辛丑)\",\"LUNC_ILJIN\":\"을미(乙未)\",\"SOLC_LEAP_YYYY\":\"평\",\"LUNC_EN_DD\":\"29\",\"SOLC_JD\":\"2415582\",\"SOLC_MM\":\"07\",\"SOLC_DD\":\"16\",\"LUNC_WLGN\":\"을미(乙未)\",\"LUNC_MM\":\"06\",\"LUNC_DD\":\"01\",\"JULIAN_LeapYear\":\"평\",\"JULIAN_YYYY\":\"1901\",\"SOLC_YYYY\":\"1901\",\"LUNC_YYYY\":\"1901\",\"JULIAN_MM\":\"07\",\"JULIAN_DD\":\"03\",\"SOLC_WEEK\":\"화\"}]"
+}

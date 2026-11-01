@@ -1,0 +1,7 @@
+{
+  "url": "https://astro.kasi.re.kr/life/solc?yyyy=2006&mm=08&dd=24",
+  "status": 200,
+  "capturedAt": "2026-11-01T11:49:33.259Z",
+  "bodySha256": "bd04c8df82004568c8ad2cc159d8e3d32ad8b035f528c4c1b96e22bd13ea8ef7",
+  "body": "{\"LUNC_LEAP_MM\":\"윤\",\"LUNC_PRCN\":\"병술(丙戌)\",\"LUNC_ILJIN\":\"을유(乙酉)\",\"SOLC_LEAP_YYYY\":\"평\",\"LUNC_EN_DD\":\"29\",\"SOLC_JD\":\"2453972\",\"SOLC_MM\":\"08\",\"SOLC_DD\":\"24\",\"LUNC_WLGN\":\"\",\"LUNC_MM\":\"07\",\"LUNC_DD\":\"01\",\"JULIAN_LeapYear\":\"평\",\"JULIAN_YYYY\":\"2006\",\"SOLC_YYYY\":\"2006\",\"LUNC_YYYY\":\"2006\",\"JULIAN_MM\":\"08\",\"JULIAN_DD\":\"11\",\"SOLC_WEEK\":\"목\"}"
+}
