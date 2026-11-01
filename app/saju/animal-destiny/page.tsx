@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import AnimalDestinyRouteClient from "./AnimalDestinyRouteClient";
 import YehwaCard from "../../components/service-intro/YehwaCard";
+import { pageOpenGraph } from "../../../lib/seo/page-open-graph";
 
 const ANIMAL_DESTINY_PAGE_TEXT_TRANSLATIONS = {
   ko: {
@@ -20,6 +21,8 @@ const ANIMAL_DESTINY_PAGE_TEXT_TRANSLATIONS = {
 
 const animalDestinyPageCopy = ANIMAL_DESTINY_PAGE_TEXT_TRANSLATIONS.ko;
 
+const PAGE_URL = "https://code-destiny.com/saju/animal-destiny";
+
 export const metadata: Metadata = {
   title: animalDestinyPageCopy.title,
   description: animalDestinyPageCopy.description,
@@ -27,8 +30,9 @@ export const metadata: Metadata = {
   //   근거: 2026-10-24 네이버·구글 자동완성(docs/seo/keyword-research-2026-10).
   keywords: ["십이운성", "십이운성 동물점", "사주 십이운성", "십이운성 계산", "내 십이운성", "운명의 동물", "동물점"],
   alternates: {
-    canonical: "https://code-destiny.com/saju/animal-destiny",
+    canonical: PAGE_URL,
   },
+  openGraph: pageOpenGraph(PAGE_URL),
   robots: {
     index: true,
     follow: true,

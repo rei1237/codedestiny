@@ -4,12 +4,16 @@ import SampleSurface from '@/app/components/SampleSurface';
 import samples from '@/lib/marketing/result-samples.json';
 import {MOONSTONE_MIN_PRODUCT_KRW} from '@/worker/lib/paid-feature-registry.js';
 import {NEO_POLICY} from '@/lib/neo-consultation/policy';
+import {pageOpenGraph} from '@/lib/seo/page-open-graph';
 import './samples-landing.css';
+
+const PAGE_URL = 'https://code-destiny.com/consultation-samples/';
 
 export const metadata: Metadata = {
   title: '사주·운세 상담 비교 | 인연의 서·마스터·네오 이메일 상담',
   description: '연애 패턴과 두 사람의 관계에 맞는 상담을 찾아보세요. 인연의 서 개인·궁합판, 마스터별 AI 상담과 네오 이메일 상담의 차이·결과 예시·이용 조건을 비교합니다.',
-  alternates: {canonical: 'https://code-destiny.com/consultation-samples/'},
+  alternates: {canonical: PAGE_URL},
+  openGraph: pageOpenGraph(PAGE_URL),
 };
 
 export default function ConsultationSamplesPage() {

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import NumerologyTarotRouteClient from "./NumerologyTarotRouteClient";
+import { pageOpenGraph } from "../../../lib/seo/page-open-graph";
 
 const NUMEROLOGY_TAROT_PAGE_TEXT_TRANSLATIONS = {
   ko: {
@@ -181,6 +182,7 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/tarot/numerology",
   },
+  openGraph: pageOpenGraph("/tarot/numerology"),
 };
 
 const guideCards = [

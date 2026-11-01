@@ -1,5 +1,6 @@
 import TarotSelfEsteemRouteClient from "./TarotSelfEsteemRouteClient";
 import RouteMetadataLocaleSync from "../../components/RouteMetadataLocaleSync";
+import { pageOpenGraph } from "../../../lib/seo/page-open-graph";
 
 const TAROT_SELF_ESTEEM_METADATA_COPY = {
   ko: {
@@ -26,12 +27,15 @@ const TAROT_SELF_ESTEEM_METADATA_COPY = {
 
 const metadataCopy = TAROT_SELF_ESTEEM_METADATA_COPY.ko;
 
+const PAGE_URL = "https://code-destiny.com/tarot/self-esteem";
+
 export const metadata = {
   title: metadataCopy.title,
   description: metadataCopy.description,
   alternates: {
-    canonical: "https://code-destiny.com/tarot/self-esteem",
+    canonical: PAGE_URL,
   },
+  openGraph: pageOpenGraph(PAGE_URL),
 };
 
 export default function TarotSelfEsteemLandingPage() {
