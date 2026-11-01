@@ -1,4 +1,5 @@
 import FeatureLandingPage from "../../components/FeatureLandingPage";
+import { ROOT_OPEN_GRAPH } from "@/lib/seo/page-open-graph";
 
 /* 2026-08-24: 이 라우트는 원래 `redirect("/ifa-oracle.html?source=oracle-ifa")` 한 줄이었다.
    그래서 이파점은 색인 대상 페이지가 하나도 없었다 — 목적지인 도구 화면(/ifa-oracle)은
@@ -39,6 +40,7 @@ export const metadata = {
     canonical: "https://code-destiny.com/oracle/ifa",
   },
   openGraph: {
+    ...ROOT_OPEN_GRAPH,
     type: "website",
     url: "https://code-destiny.com/oracle/ifa",
     title: metadataCopy.title,

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ROOT_OPEN_GRAPH } from "@/lib/seo/page-open-graph";
 import SukuyoCompatibilityAiRouteClient from "./SukuyoCompatibilityAiRouteClient";
 import {
   buildBreadcrumbJsonLd,
@@ -24,6 +25,7 @@ export const metadata: Metadata = {
     languages: createHreflangFromRoutes(introductionRoutes("sukuyo-compatibility-ai")),
   },
   openGraph: {
+    ...ROOT_OPEN_GRAPH,
     title: "숙요점 궁합 전문가 상담",
     description: "붉은 실처럼 이어진 두 사람의 끌림과 갈등, 장기 관계의 흐름을 상담형으로 읽습니다.",
     url: "/sukuyo-compatibility-ai/",

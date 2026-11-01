@@ -298,6 +298,8 @@ function checkJsonLdIdType(site) {
 // 날 단위로 본다: 날짜만 있는 원본을 toISOString() 으로 내보낸 값은 그날 09:00 KST 라서,
 // 시각으로 비교하면 00:00~09:00 KST 빌드(00:10 일일 발행 포함)가 정상 콘텐츠로 실패한다.
 // 운세 Article 의 시각 단위 검사는 fortune-date-contract 가 맡는다.
+// 2026-11-02 검토: SeoJsonLd·generate-page-metadata·famous-saju 는 날짜 문자열로 바꿨지만 /insights/* 113쪽이
+// 아직 `T00:00:00.000Z` 를 내보내므로(실측 dist) 날 단위를 유지한다.
 const kstDay = (ms) => new Date(ms + 9 * 3_600_000).toISOString().slice(0, 10);
 function checkJsonLdDates(site, now) {
   const today = kstDay(now.getTime());

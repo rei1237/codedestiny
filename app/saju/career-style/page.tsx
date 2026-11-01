@@ -1,4 +1,5 @@
 import type {Metadata} from 'next';
+import {ROOT_OPEN_GRAPH} from '@/lib/seo/page-open-graph';
 import CareerStyleClient from './CareerStyleClient';
 import {DISCLAIMER,DAY_COPY} from '@/lib/saju/career-style/copy.mjs';
 import styles from './career.module.css';
@@ -11,7 +12,7 @@ export const metadata:Metadata={
  title:'사주로 찾는 나의 일 스타일 | 진로·적성 리포트 · 꿀꿀 운세',
  description:`일하는 성향과 월지의 환경, 여섯 업무 조건과 진로 실험을 살펴보세요. 소개·예시는 무료, 개인 리포트 여덟 장은 ${price} 또는 꿀방울 ${product.honeyCost}개로 해금합니다.`,
  alternates:{canonical:url},
- openGraph:{title:'사주로 찾는 나의 일 스타일',description:'연이와 함께 성향, 환경, 나에게 맞는 업무 조건을 탐색해요.',url,images:[{url:'/images/career-style/yeoni-work-style.webp',width:1536,height:1024,alt:'노트와 나침반을 펼치고 진로 탐색을 돕는 꽃돼지 연이'}]},
+ openGraph:{...ROOT_OPEN_GRAPH,title:'사주로 찾는 나의 일 스타일',description:'연이와 함께 성향, 환경, 나에게 맞는 업무 조건을 탐색해요.',url,images:[{url:'/images/career-style/yeoni-work-style.webp',width:1536,height:1024,alt:'노트와 나침반을 펼치고 진로 탐색을 돕는 꽃돼지 연이'}]},
  twitter:{card:'summary_large_image',images:['/images/career-style/yeoni-work-style.webp']},
 };
 export default function CareerStylePage(){return <main className={styles.page}>

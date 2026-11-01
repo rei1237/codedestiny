@@ -233,6 +233,10 @@ ${renderPeriodLinkList(id, allSigns)}
   <meta property="og:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=42dedf5c85">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="무료 운세 | 오늘·내일·주간·월간 별자리·띠별 운세">
+  <meta name="twitter:description" content="별자리 12종·띠 12종의 기간별 운세 96가지를 산출 근거와 함께 무료로 제공합니다.">
+  <meta name="twitter:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=42dedf5c85">
   <meta name="google-adsense-account" content="ca-pub-9863227498729828">
   <link rel="canonical" href="https://code-destiny.com/fortune/">
   <link rel="alternate" hreflang="ko" href="https://code-destiny.com/fortune/">
