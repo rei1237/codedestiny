@@ -341,3 +341,29 @@ test('references only: a site whose pages never declare @id nodes has no JSON-LD
   const result = await runLd({ '/a/': ldScript({ '@type': 'WebPage', isPartOf: { '@id': WEBSITE }, publisher: { '@id': ORG } }) });
   assert.deepEqual(result.counts, { 'jsonld-syntax': 0, 'jsonld-id-type': 0, 'organization-name': 0 });
 });
+
+// ── jsonld-dates: datePublished·dateModified 는 ISO 8601 이고 검사 시각(now) 이하 ─────────────────
+test('jsonld-dates counts future and unparsable dates on any node; valid, boundary and dateless pages are not counted', async () => {
+  const now = new Date('2026-10-31T15:30:00Z'); // 2026-11-01 00:30 KST
+  const pages = {
+    '/a/': ldScript({ '@type': 'Article', datePublished: '2026-11-02T00:00:00+09:00', dateModified: '2026-11-01T00:30:00+09:00' }), // 미래 1
+    '/b/': ldScript({ '@graph': [{ '@type': 'WebPage', publisher: { '@type': 'Organization' }, mainEntity: { '@type': 'Article', dateModified: '2026-13-45' } }] }), // 중첩·없는 날짜 1
+    '/c/': ldScript([{ '@type': 'Article', datePublished: 'November 1, 2026' }]), // ISO 아님 1
+    '/d/': ldScript({ '@type': 'WebPage', name: '날짜 없음' }),
+    // 날짜만 있으면 그날 00:00 KST — UTC 자정(09:00 KST)으로 읽으면 미래가 된다.
+    '/e/': ldScript({ '@type': 'Article', datePublished: '2026-06-21', dateModified: '2026-11-01' }),
+    // 오프셋이 없으면 KST 로 읽는다(기계 시간대와 무관). now 와 같은 순간은 통과.
+    '/f/': ldScript({ '@type': 'Article', datePublished: '2026-11-01T00:29:00', dateModified: '2026-10-31T15:30:00.000Z' }),
+  };
+  const result = await inspectDist({ distDir: writeDist(ldFixture(pages)), edge: false, rules: ['jsonld-dates'], now });
+  assert.equal(result.counts['jsonld-dates'], 3, JSON.stringify(result.details['jsonld-dates']));
+  const joined = result.details['jsonld-dates'].join('\n');
+  assert.match(joined, /\/a\/.*datePublished.*2026-11-02/);
+  assert.match(joined, /\/b\/.*dateModified.*2026-13-45/);
+  assert.match(joined, /\/c\/.*datePublished.*November/);
+  assert.doesNotMatch(joined, /\/[def]\//);
+  // 같은 산출물을 하루 뒤에 검사하면 /a/ 도 과거다.
+  const later = await inspectDist({ distDir: writeDist(ldFixture(pages)), edge: false, rules: ['jsonld-dates'], now: new Date('2026-11-02T00:00:00Z') });
+  assert.equal(later.counts['jsonld-dates'], 2, JSON.stringify(later.details['jsonld-dates']));
+  assert.equal(RULES['jsonld-dates'] === 'fail' || RULES['jsonld-dates'] === 'warn', true);
+});

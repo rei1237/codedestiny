@@ -19,7 +19,7 @@ import { checkSitemapPage, htmlFileFor, redirectSources, sitemapLocs } from "../
 import { PAGES, verifyPage } from "../verify-home-identity.mjs";
 import { distAssets, probeEdge } from "./edge-probe.mjs";
 import {
-  decodeHtml, getCanonical, getH1s, getHreflang, getInternalLinks, getJsonLd, getMeta, getTitle, parseSitemapAlternates, robotsAllows, stripTags,
+  decodeHtml, getCanonical, getH1s, getHreflang, getInternalLinks, getJsonLd, getMeta, getTitle, parseJsonLdDate, parseSitemapAlternates, robotsAllows, stripTags,
 } from "./health-policy.mjs";
 
 export const RULES = {
@@ -43,6 +43,9 @@ export const RULES = {
   "jsonld-syntax": "fail",
   "jsonld-id-type": "fail",
   "organization-name": "fail",
+  // 어느 노드든 datePublished·dateModified 가 있으면 ISO 8601 이고 검사 시각(now) 이하. 오프셋이 없으면 KST 로 읽는다.
+  // 검사는 빌드 뒤에 돌므로 now ≥ 빌드 시각이다. 기준선 0건(2026-11-01 22:29 KST build:cf 산출물)이라 fail.
+  "jsonld-dates": "fail",
   "edge-slash-308": "warn",
   "edge-country-302": "warn",
   "edge-crawler-cookie": "warn",
@@ -106,12 +109,15 @@ function pageFacts(html, loc, origin) {
 
 // JSON-LD 에서 @id 와 @type 을 함께 선언한 노드(최상위·@graph·다른 노드 안에 중첩된 것 모두)만 남긴다.
 // @type 이 없는 { "@id": … } 는 참조이므로 집계에서 뺀다. @type 배열은 정렬해 문자열로 만든다.
+// 같은 순회에서 어느 노드든 datePublished·dateModified 값을 모은다(jsonld-dates).
 function jsonLdFacts(html) {
   const { nodes, errors } = getJsonLd(html);
   const declarations = [];
+  const dates = [];
   const visit = (value) => {
     if (Array.isArray(value)) return value.forEach(visit);
     if (!value || typeof value !== "object") return;
+    for (const field of ["datePublished", "dateModified"]) if (Object.hasOwn(value, field)) dates.push({ field, value: value[field] });
     if (typeof value["@id"] === "string" && value["@type"] !== undefined) {
       const type = [value["@type"]].flat().map(String).sort().join(" + ");
       declarations.push({ id: value["@id"], type, name: typeof value.name === "string" ? value.name : undefined });
@@ -119,7 +125,7 @@ function jsonLdFacts(html) {
     Object.values(value).forEach(visit);
   };
   nodes.forEach(visit);
-  return { errors, declarations };
+  return { errors, declarations, dates };
 }
 
 function loadSite(distDir, origin) {
@@ -272,6 +278,20 @@ function checkJsonLdIdType(site) {
     .map(([id, types]) => `${id}: ${[...types].map(([type, locs]) => `${type} (${sample(locs)})`).join(" ≠ ")}`);
 }
 
+// 날짜 값마다 1건: ISO 8601 이 아니거나(없는 날짜 포함) now 보다 뒤.
+function checkJsonLdDates(site, now) {
+  const nowMs = now.getTime();
+  const details = [];
+  for (const { loc, facts } of site.pages) {
+    for (const { field, value } of facts?.jsonLd.dates ?? []) {
+      const ms = parseJsonLdDate(value);
+      if (ms === null) details.push(`${loc}: ${field} ${JSON.stringify(value)} 를 ISO 8601 로 읽을 수 없다`);
+      else if (ms > nowMs) details.push(`${loc}: ${field} ${value} 가 검사 시각 ${now.toISOString()} 보다 뒤`);
+    }
+  }
+  return details;
+}
+
 // '#organization' 으로 끝나는 @id 의 name 종류가 n 개면 (n − 1)건: 가장 많은 name 을 기준으로 나머지 name 마다 1건.
 function checkOrganizationName(site) {
   const byName = new Map();
@@ -371,12 +391,12 @@ async function checkEdge(distDir) {
 }
 
 /**
- * @param {{ distDir: string, origin?: string, edge?: boolean, rules?: string[] }} options
- * `rules` 를 주면 그 규칙만 돈다(테스트용). `edge=false` 이거나 dist/_worker.js 가 없으면 엣지 규칙은 건너뛰고
+ * @param {{ distDir: string, origin?: string, edge?: boolean, rules?: string[], now?: Date }} options
+ * `now` 는 jsonld-dates 의 기준 시각(기본: 지금). `rules` 를 주면 그 규칙만 돈다(테스트용). `edge=false` 이거나 dist/_worker.js 가 없으면 엣지 규칙은 건너뛰고
  * `details.edge = ['skipped']` 이며, 건너뛴 규칙은 counts 에 없다. 탐침이 던지면 `details.edge = ['error: …']`·경고 1줄이고
  * 엣지 규칙은 같은 방식으로 건너뛴다(실패로 올리지 않는다).
  */
-export async function inspectDist({ distDir, origin = BRAND_FACTS.service.siteUrl, edge = true, rules } = {}) {
+export async function inspectDist({ distDir, origin = BRAND_FACTS.service.siteUrl, edge = true, rules, now = new Date() } = {}) {
   const selected = rules ? [...rules] : Object.keys(RULES);
   const unknown = selected.filter((rule) => !Object.hasOwn(RULES, rule));
   if (unknown.length) throw new Error(`verify-dist: 알 수 없는 규칙 ${unknown.join(", ")}`);
@@ -402,6 +422,7 @@ export async function inspectDist({ distDir, origin = BRAND_FACTS.service.siteUr
   if (wants("jsonld-syntax")) details["jsonld-syntax"] = checkJsonLdSyntax(site);
   if (wants("jsonld-id-type")) details["jsonld-id-type"] = checkJsonLdIdType(site);
   if (wants("organization-name")) details["organization-name"] = checkOrganizationName(site);
+  if (wants("jsonld-dates")) details["jsonld-dates"] = checkJsonLdDates(site, now);
   let edgeError = null;
   if (EDGE_RULES.some(wants)) {
     if (edge && isFile(join(distDir, "_worker.js"))) {

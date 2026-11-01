@@ -21,6 +21,7 @@ import { buildPeriodFaqs } from "@/lib/fortune/period-faqs";
 import { FORTUNE_PERIOD_IDS, PERIOD_LABEL, PERIOD_TITLE, isFortunePeriodId } from "@/lib/fortune/periods";
 import { SIGN_PROFILES, getSignProfile } from "@/lib/fortune/sign-profiles";
 import { buildFortuneTitle, titleVariantFor } from "@/lib/fortune/seo-title.mjs";
+import { fortuneArticleDates } from "@/lib/fortune/article-dates.mjs";
 import KakaoChannelInvite from '@/app/components/KakaoChannelInvite';
 import SignFortuneView from "./SignFortuneView";
 
@@ -159,7 +160,8 @@ export default function SignFortunePage({ params }: { params: { period: string; 
     path: seo.path,
     category: `${kindLabel} 운세`,
     keywords: seo.keywords,
-    datePublished: `${vm.dateKey.length === 7 ? `${vm.dateKey}-01` : vm.dateKey}T00:00:00+09:00`,
+    // 발행 = min(대상일 00:00 KST, 빌드 시각), 수정 = 빌드 시각. 내일 운세가 미래 발행일을 달지 않는다.
+    ...fortuneArticleDates(vm.dateKey),
   });
   const breadcrumbJsonLd = buildBreadcrumbJsonLd([
     { name: "홈", path: "/" },

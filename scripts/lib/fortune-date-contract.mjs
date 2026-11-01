@@ -2,11 +2,14 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { parse } from 'parse5';
-import { kstYmdToday, kstYmdNextDay, kstWeekStartYmd, kstMonthStartYmd } from './fortune-date.mjs';
+import { kstYmdToday, kstYmdNextDay, kstYmdPreviousDay, kstWeekStartYmd, kstMonthStartYmd } from './fortune-date.mjs';
+import { parseJsonLdDate } from '../seo/health-policy.mjs';
 
 const PERIOD_TEXT = { today: '오늘의', tomorrow: '내일의', weekly: '이번 주', monthly: '이번 달' };
 const compact = text => String(text || '').replace(/\s+/g, '');
 const textOf = node => node.nodeName === '#text' ? node.value : (node.childNodes || []).map(textOf).join(' ');
+const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
+const kstYmdOf = ms => new Date(ms + KST_OFFSET_MS).toISOString().slice(0, 10);
 const short = ymd => `${Number(ymd.slice(5, 7))}월${Number(ymd.slice(8, 10))}일`;
 function expectedLabels(period, businessDate, periodDate) {
   const date = periodDate || (period === 'today' ? businessDate : period === 'tomorrow' ? kstYmdNextDay(businessDate) : period === 'weekly' ? kstWeekStartYmd(businessDate) : period === 'monthly' ? kstMonthStartYmd(businessDate) : null);
@@ -26,13 +29,17 @@ function expectedLabels(period, businessDate, periodDate) {
   return { date, title: short(date), body: `${Number(date.slice(0, 4))}년${short(date)}` };
 }
 
-export function verifyFortuneDateContract(html, { period, businessDate = kstYmdToday(), periodDate }) {
+// buildTime: 산출물을 만든 시각의 상한. 기본값은 검사 시각이다 — 검사는 늘 빌드 뒤에 돌므로(now ≥ 빌드 시각)
+// 빌드 직후 postbuild 든, 며칠 지난 dist 든 그대로 맞다. Article 날짜 규칙은 lib/fortune/article-dates.mjs.
+export function verifyFortuneDateContract(html, { period, businessDate = kstYmdToday(), periodDate, buildTime = new Date() }) {
+  const buildMs = buildTime instanceof Date ? buildTime.getTime() : Number.NaN;
+  if (!Number.isFinite(buildMs)) throw new Error(`Fortune date contract: buildTime is not a valid Date: ${buildTime}`);
   const expected = expectedLabels(period, businessDate, periodDate);
   const evidence = { titles: [], h1: [], times: [], articles: [] };
   function addArticles(value) {
     if (Array.isArray(value)) return value.forEach(addArticles);
     if (!value || typeof value !== 'object') return;
-    if ([value['@type']].flat().includes('Article')) evidence.articles.push({ headline: value.headline, datePublished: value.datePublished });
+    if ([value['@type']].flat().includes('Article')) evidence.articles.push({ headline: value.headline, datePublished: value.datePublished, dateModified: value.dateModified });
     if (value['@graph']) addArticles(value['@graph']);
   }
   function visit(node, hidden = false) {
@@ -61,7 +68,13 @@ export function verifyFortuneDateContract(html, { period, businessDate = kstYmdT
   check(evidence.times[0]?.dateTime === expected.date, `body time datetime must be ${expected.date}`);
   check(compact(evidence.times[0]?.text).includes(expected.body), `visible body range must contain ${expected.body}`);
   check(evidence.articles.length === 1, 'exactly one Article is required');
-  check(String(evidence.articles[0]?.datePublished || '').slice(0, 10) === expected.date, `Article datePublished must be ${expected.date}`);
+  // 내일 운세는 대상일 전날 빌드되므로 발행 시각이 전날이다(min(대상일 00:00 KST, 빌드 시각)).
+  const published = parseJsonLdDate(evidence.articles[0]?.datePublished);
+  const modified = parseJsonLdDate(evidence.articles[0]?.dateModified);
+  check(published !== null, 'Article datePublished must be an ISO 8601 date-time');
+  check(published === null || published <= buildMs, 'Article datePublished must not be after build time');
+  check(published !== null && [expected.date, kstYmdPreviousDay(expected.date)].includes(kstYmdOf(published)), `Article datePublished must be ${expected.date} or the day before`);
+  check(modified !== null && published !== null && published <= modified && modified <= buildMs, 'Article dateModified is required and must be within publish..build');
   check(compact(evidence.articles[0]?.headline) === title, 'Article headline and title must agree');
   return { ok: failures.length === 0, expectedDate: expected.date, failures, evidence };
 }

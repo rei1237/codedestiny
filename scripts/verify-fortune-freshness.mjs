@@ -157,7 +157,10 @@ async function checkOnce(period, sign, todayYmd) {
   if (!found) {
     return { url, expected, found: null, cache, ok: false, reason: "Article JSON-LD 의 datePublished 를 찾지 못했습니다" };
   }
-  if (found !== expected) {
+  // 내일 운세의 datePublished 는 빌드 시각이라 대상일 전날(=오늘)이다(lib/fortune/article-dates.mjs).
+  // 오늘·주간·월간은 정확히 맞아야 한다. 전날 빌드가 남아 있으면 오늘 쪽은 어제, 내일 쪽은 그 전날이라 둘 다 걸린다.
+  const accepted = period === "tomorrow" ? [expected, todayYmd] : [expected];
+  if (!accepted.includes(found)) {
     return { url, expected, found, cache, ok: false, reason: `날짜가 낡았습니다 — 기대 ${expected}, 실제 ${found}` };
   }
   return { url, expected, found, cache, ok: true, date: found };

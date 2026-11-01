@@ -156,6 +156,23 @@ export function getJsonLd(html) {
   return { nodes, errors };
 }
 
+// schema.org Date/DateTime (ISO 8601) → epoch ms, or null when it is not ISO 8601 or not a real date/time.
+// No offset is read as KST (+09:00), the site's calendar; a date alone is 00:00 KST of that day.
+// The machine time zone is never used (CI runs in UTC, local machines in KST).
+const ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2})(?::(\d{2})(\.\d+)?)?(Z|[+-]\d{2}:?\d{2})?)?$/;
+export function parseJsonLdDate(value) {
+  const match = typeof value === 'string' ? ISO_DATE.exec(value.trim()) : null;
+  if (!match) return null;
+  const [y, mo, d, h = 0, mi = 0, s = 0] = match.slice(1, 7).map((part) => (part === undefined ? undefined : Number(part)));
+  const wall = new Date(Date.UTC(y, mo - 1, d, h, mi, s));
+  if (wall.getUTCFullYear() !== y || wall.getUTCMonth() !== mo - 1 || wall.getUTCDate() !== d || wall.getUTCHours() !== h || wall.getUTCMinutes() !== mi || wall.getUTCSeconds() !== s) return null;
+  const zone = match[8] ?? '+09:00';
+  const [, sign, zh, zm] = zone === 'Z' ? [null, '+', '0', '0'] : /^([+-])(\d{2}):?(\d{2})$/.exec(zone);
+  if (Number(zh) > 14 || Number(zm) > 59) return null;
+  const offsetMs = (sign === '-' ? -1 : 1) * (Number(zh) * 60 + Number(zm)) * 60_000;
+  return wall.getTime() + Math.floor(Number(match[7] || 0) * 1000) - offsetMs;
+}
+
 // Same-origin pathname(+search) of every <a href>, in document order and without de-duplication.
 export function getInternalLinks(html, origin) {
   const links = [];
