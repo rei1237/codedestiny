@@ -37,7 +37,12 @@ function PreparedCheckout(){
  const [row,setRow]=useState(null),[error,setError]=useState('');
  useEffect(()=>{const controller=new AbortController();const id=new URLSearchParams(location.search).get('requestId');
   if(!/^[a-f0-9]{64}$/.test(id||'')){setError('상담 입력 화면에서 다시 시작해 주세요.');return;}
-  void canonicalResponse('/canonical/yeongnyangi/requests/'+id,new Request(location.origin,{signal:controller.signal})).then(async response=>{const data=await response.json();if(!response.ok||!data.fortune)throw new Error();setRow(data.fortune);}).catch(()=>{if(!controller.signal.aborted)setError('상담을 불러오지 못했어요. 다시 열어 주세요.');});return()=>controller.abort();
+  void canonicalResponse('/canonical/yeongnyangi/requests/'+id,new Request(location.origin,{signal:controller.signal})).then(async response=>{
+   const data=await response.json();if(!response.ok||!data.fortune)throw new Error();
+   if(controller.signal.aborted)return;
+   if(data.fortune.paid===true){location.replace('/yeongnyangi/result/?id='+encodeURIComponent(id));return;}
+   setRow(data.fortune);
+  }).catch(()=>{if(!controller.signal.aborted)setError('상담을 불러오지 못했어요. 다시 열어 주세요.');});return()=>controller.abort();
  },[]);
  return error?<p role="alert">{error}</p>:row?<Checkout draft={{product:row.product,question:row.consultation?.question,chapters:row.manifest.length,ready:row.state==='CREATED'||row.paid,onPrepare:async()=>row}}/>:<p role="status">상담을 확인하고 있어요.</p>;
 }
