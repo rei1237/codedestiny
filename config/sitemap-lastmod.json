@@ -3,7 +3,7 @@
   "note": "사이트맵 lastmod 원장. scripts/lib/sitemap-lastmod.mjs 가 라우트별 소스 서명을 계산해 다시 쓴다. 손으로 고치지 말고 npm run sitemap:generate 로 갱신할 것.",
   "routes": {
     "/": {
-      "signature": "1da9e08d6f9e6cd1",
+      "signature": "4c6abf23d786f8c9",
       "lastmod": "2026-11-01"
     },
     "/about/": {
@@ -591,7 +591,7 @@
       "lastmod": "2026-11-01"
     },
     "/fortune-tea-house/": {
-      "signature": "e9930e7fa652aea3",
+      "signature": "8ce11f41384dd8d8",
       "lastmod": "2026-11-01"
     },
     "/fortune/": {
@@ -1855,7 +1855,7 @@
       "lastmod": "2026-10-31"
     },
     "/saju/destiny-bias/": {
-      "signature": "92d50201c7b41bd5",
+      "signature": "cdb0e8037c260b1a",
       "lastmod": "2026-11-01"
     },
     "/saju/destiny-meeting-place/": {
@@ -2219,7 +2219,7 @@
       "lastmod": "2026-10-31"
     },
     "/sukuyo-compatibility-ai/": {
-      "signature": "52736e6d6f3ece4f",
+      "signature": "24e720459fbc161a",
       "lastmod": "2026-11-01"
     },
     "/sukuyo/": {
@@ -2291,7 +2291,7 @@
       "lastmod": "2026-11-01"
     },
     "/vedic-ai/": {
-      "signature": "60f71cd2e01dfa59",
+      "signature": "19fbf037930632d8",
       "lastmod": "2026-11-01"
     },
     "/vedic/": {
@@ -3303,7 +3303,7 @@
       "lastmod": "2026-10-31"
     },
     "/ziwei-ai/": {
-      "signature": "c8f7a4ec15930154",
+      "signature": "163af09846857d2a",
       "lastmod": "2026-11-01"
     },
     "/ziwei/": {
