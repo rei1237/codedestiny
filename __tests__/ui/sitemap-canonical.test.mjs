@@ -41,3 +41,15 @@ test('edge probe reports slash 308, country 302 and crawler cookies from a worke
   assert.deepEqual(result.country302, ['/ US']);
   assert.ok(result.crawlerCookie.length >= 1 && result.crawlerCookie.every((label) => label.includes('Mediapartners')));
 });
+
+test('crawler probe sends Google\'s real Search Console inspection UA, which the worker\'s bot regex does not exclude', async () => {
+  const workerSource = `export default { async fetch(req, env) {
+    const res = await env.ASSETS.fetch(req);
+    if (/bot|crawler|spider|slurp|yeti|facebookexternalhit|kakaotalk-scrap/i.test(req.headers.get('user-agent') || '')) return res;
+    return new Response(res.body, { status: res.status, headers: { 'Set-Cookie': 'cd_geo_country=US; Path=/', 'Cache-Control': 'private, no-store' } }); } }`;
+  const assets = { fetch: async () => new Response('<html></html>', { status: 200 }) };
+  const { crawlerCookie } = await probeEdge({ workerSource, assets });
+  assert.ok(crawlerCookie.includes('/ Google-InspectionTool'), JSON.stringify(crawlerCookie));
+  assert.ok(crawlerCookie.includes('/saju/ Google-InspectionTool'), JSON.stringify(crawlerCookie));
+  assert.ok(crawlerCookie.includes('/ Mediapartners-Google'), JSON.stringify(crawlerCookie));
+});

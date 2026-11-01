@@ -7,6 +7,12 @@ import { runInNewContext } from 'node:vm';
 
 const ORIGIN = 'https://code-destiny.test';
 const CHROME_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36';
+// Label is what Task 3 consumes; ua is what is actually sent. Send the strings Google really uses:
+// a bare token like "Googlebot-InspectionTool" trips the worker's /bot/ exclusion and hides the case.
+const CRAWLERS = [
+  { label: 'Google-InspectionTool', ua: 'Mozilla/5.0 (compatible; Google-InspectionTool/1.0;)' },
+  { label: 'Mediapartners-Google', ua: 'Mediapartners-Google' },
+];
 const CONTENT_TYPES = {
   '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8',
   '.json': 'application/json; charset=utf-8', '.xml': 'application/xml; charset=utf-8', '.txt': 'text/plain; charset=utf-8',
@@ -70,12 +76,12 @@ export async function probeEdge({ workerSource, assets }) {
     if ((await visit(worker, assets, path, 'KR', CHROME_UA)).status === 308) result.slash308.push(path);
   }
   if ((await visit(worker, assets, '/', 'US', CHROME_UA)).status === 302) result.country302.push('/ US');
-  for (const userAgent of ['Googlebot-InspectionTool', 'Mediapartners-Google']) {
+  for (const { label: crawler, ua } of CRAWLERS) {
     for (const path of ['/', '/saju/']) {
-      const response = await visit(worker, assets, path, 'US', userAgent);
+      const response = await visit(worker, assets, path, 'US', ua);
       const cacheControl = response.headers.get('Cache-Control') || '';
       if (/cd_geo/.test(response.headers.get('Set-Cookie') || '') || /private|no-store/i.test(cacheControl)) {
-        result.crawlerCookie.push(`${path} ${userAgent}`);
+        result.crawlerCookie.push(`${path} ${crawler}`);
       }
     }
   }
