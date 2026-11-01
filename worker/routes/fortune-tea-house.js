@@ -31,6 +31,7 @@ import { ganji as calendarGanji, lunarToSolar, solarToLunar } from "../../lib/ko
 import { createHash, randomUUID } from "node:crypto";
 import { getCurrentUser as webCurrentUser, getOptionalUserFromRequest as webOptionalUser } from "../lib/auth.js";
 import { nativeTossContext } from "../toss/native-context.js";
+import { TossError } from "../toss/policy.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
 
 function getCurrentUser(request,env,...options) {
@@ -6021,6 +6022,9 @@ async function handleTeaFollowUp(request, env, path) {
       return teaFollowUpError("FOLLOW_UP_IN_PROGRESS", 202, { retryable: true, followUpAllowance }, { "Retry-After": "5" });
     }
   } catch (error) {
+    if (nativeTossContext(request) && error instanceof TossError) {
+      return teaFollowUpError(error.code, error.status, { retryable: error.status >= 500 || error.status === 429 });
+    }
     console.warn("[fortune-tea-house/follow-up] storage unavailable", error?.message);
     return unavailable();
   }
@@ -6054,6 +6058,9 @@ async function handleTeaFollowUp(request, env, path) {
     const saved = savedTeaFollowUp(latest, clientQuestionId);
     return saved ? teaFollowUpSuccess(latest, saved, saved.id !== entry.id) : unavailable();
   } catch (error) {
+    if (nativeTossContext(request) && error instanceof TossError) {
+      return teaFollowUpError(error.code, error.status, { retryable: error.status >= 500 || error.status === 429 });
+    }
     console.warn("[fortune-tea-house/follow-up] save unavailable", error?.message);
     return unavailable();
   } finally {

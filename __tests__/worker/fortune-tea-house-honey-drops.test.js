@@ -11,6 +11,7 @@ jest.unstable_mockModule('../../worker/lib/sync-llm-timeout.js', () => ({ ...tim
 
 let handleFortuneTeaHouseRoutes;
 let nativeTeaContract, bindNativeTossRequest;
+let TossError;
 let authState = { userId: USER_ID, email: "tea@example.com", role: "user" };
 let paidAccessAllowed = true;
 let callGeminiTextMock;
@@ -319,6 +320,7 @@ beforeAll(async () => {
   handleFortuneTeaHouseRoutes = mod.handleFortuneTeaHouseRoutes;
   nativeTeaContract = mod.nativeTeaContract;
   ({bindNativeTossRequest}=await import('../../worker/toss/native-context.js'));
+  ({TossError}=await import('../../worker/toss/policy.js'));
 });
 
 beforeEach(() => {
@@ -353,16 +355,17 @@ test('Toss context uses the original card draw, checkpoints, stored result and r
     tarotSpreadId:'yn_knot_three',requestId:'toss-native-original',featureKey:FEATURE_KEYS.tarot};
   delete body.draftResult;
   const contract=nativeTeaContract(body),auth={userId:USER_ID,tossNative:true};
-  let revoked=false,checks=0;
+  let revoked=false,checks=0,storedError=null;
   const context={auth,access:async input=>{
     expect(nativeTeaContract(input)).toEqual(contract);checks++;
-    if(revoked)throw Object.assign(new Error('ORDER_REFUNDED'),{status:409});
+    if(revoked)throw new TossError('ORDER_REFUNDED',409);
     return {ok:true,auth,featureKey:contract.featureKey,pricing:contract.pricing,deferredUsage:false,
       accessDecision:{allowed:true,reason:'TOSS_IAP',accessSource:'toss',paymentId:'toss-order',claimEvidenceIds:[]}};
   },assertStored:async doc=>{
     expect(doc.userId).toBe(USER_ID);expect(doc.generationRequestHash).toBe(contract.inputHash);
     expect(doc.deliveryAccessKey).toBe('toss-order');
-    if(revoked)throw Object.assign(new Error('ORDER_REFUNDED'),{status:409});
+    if(storedError)throw storedError;
+    if(revoked)throw new TossError('ORDER_REFUNDED',409);
   }};
   const send=async(path,input)=>{
     const request=new Request('https://example.com/api/fortune-tea-house'+path,{method:input?'POST':'GET',
@@ -390,15 +393,58 @@ test('Toss context uses the original card draw, checkpoints, stored result and r
   }
   if(response.status!==200){const {completedSections,...progress}=response.payload;throw new Error(JSON.stringify({status:response.status,progress,parts:completedSections?.map(s=>s.key),checkpoint:collection('fortune_tea_house_results').all()[0]?.generationCheckpoint?.errors}).slice(0,2500));}
   expect(response.payload.result.resultId).toBe(contract.resultId);
-  const count=callGeminiTextMock.mock.calls.length;
+  let count=callGeminiTextMock.mock.calls.length;
   expect(count).toBeGreaterThan(0);expect(checks).toBeGreaterThan(1);
   const saved=await send('/results/'+encodeURIComponent(contract.resultId));
   expect(saved.status).toBe(200);expect(saved.payload.result.tarotSpreadCards).toEqual(response.payload.result.tarotSpreadCards);
   expect(callGeminiTextMock).toHaveBeenCalledTimes(count);expect(billingCalls).toHaveLength(0);expect(settleCalls).toHaveLength(0);
   expect(collection('fortune_tea_house_results').all()[0].tossNative).toBe(true);
+  const followPath='/results/'+encodeURIComponent(contract.resultId)+'/follow-up';
+  const followInput={clientQuestionId:'toss-follow-up-denied',question:'저장한 상담에서 어떤 행동부터 시작하면 좋을까요?'};
+  for(const [code,status,retryable] of [['ORDER_REFUNDED',409,false],['SESSION_EXPIRED',401,false],['ORDER_MISMATCH',403,false],['PARTNER_REQUEST_FAILED',502,true],['PARTNER_RATE_LIMITED',429,true]]){
+    storedError=new TossError(code,status);
+    const denied=await send(followPath,followInput);
+    expect(denied.status).toBe(status);
+    expect(denied.payload.errorCode).toBe(code);
+    expect(denied.payload.retryable).toBe(retryable);
+    expect(callGeminiTextMock).toHaveBeenCalledTimes(count);
+  }
+  storedError=new Error('private storage failure');
+  const unavailable=await send(followPath,followInput);
+  expect(unavailable.status).toBe(503);
+  expect(unavailable.payload.errorCode).toBe('RESULT_STORAGE_UNAVAILABLE');
+  expect(unavailable.payload.retryable).toBe(true);
+  expect(JSON.stringify(unavailable.payload)).not.toContain('private storage failure');
+  expect(callGeminiTextMock).toHaveBeenCalledTimes(count);
+  storedError=null;
+  const passage=topic=>Array.from({length:20},(_,index)=>`${topic}의 ${index+1}번째 근거를 차분히 짚어 봅니다.`).join(' ');
+  const followAnswer={ok:true,provider:'gemini',model:'offline-fixture',text:JSON.stringify({
+    answerTitle:'지금 해볼 일',directAnswer:passage('핵심 답'),evidence:[passage('첫 카드'),passage('다음 카드'),passage('현재 흐름')],
+    guidance:passage('생활 속 실천'),caution:'상대의 마음을 단정하지 말고 확인한 사실을 먼저 살펴보세요.',closing:'작은 선택부터 천천히 이어가도 괜찮아요.'})};
+  callGeminiTextMock.mockImplementation(async()=>{storedError=new TossError('SESSION_EXPIRED',401);return followAnswer;});
+  const expiredDuringAnswer=await send(followPath,followInput);
+  expect(expiredDuringAnswer.status).toBe(401);
+  expect(expiredDuringAnswer.payload.errorCode).toBe('SESSION_EXPIRED');
+  expect(collection('fortune_tea_house_results').all()[0].followUps||[]).toHaveLength(0);
+  storedError=null;count=callGeminiTextMock.mock.calls.length;
+  callGeminiTextMock.mockResolvedValue(followAnswer);
+  const answered=await send(followPath,followInput);
+  expect(answered.status).toBe(200);
+  expect(answered.payload.followUpAllowance).toEqual({limit:1,used:1,remaining:0});
+  expect(callGeminiTextMock.mock.calls.length).toBeGreaterThan(count);
+  count=callGeminiTextMock.mock.calls.length;
+  const repeated=await send(followPath,followInput);
+  expect(repeated.status).toBe(200);expect(repeated.payload.alreadyApplied).toBe(true);
+  expect(repeated.payload.followUp).toEqual(answered.payload.followUp);
+  expect((await send(followPath,{...followInput,clientQuestionId:'another-toss-follow-up'})).status).toBe(409);
+  const reread=await send('/results/'+encodeURIComponent(contract.resultId));
+  expect(reread.payload.result.followUps).toEqual(answered.payload.followUps);
+  expect(reread.payload.result.tarotSpreadCards).toEqual(response.payload.result.tarotSpreadCards);
+  expect(callGeminiTextMock).toHaveBeenCalledTimes(count);expect(billingCalls).toHaveLength(0);expect(settleCalls).toHaveLength(0);
   revoked=true;
   expect((await send('/results/'+encodeURIComponent(contract.resultId))).status).toBe(409);
   expect((await send('/consult',body)).status).toBe(409);
+  expect((await send(followPath,followInput)).status).toBe(409);
   expect(callGeminiTextMock).toHaveBeenCalledTimes(count);
 });
 
