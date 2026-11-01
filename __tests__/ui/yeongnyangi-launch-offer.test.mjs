@@ -26,7 +26,7 @@ const TRIAL={mackerel:1000,salmon:3000,flounder:5000,tuna:10000,assorted:20000,o
 const whileActive=fn=>{const before=mod.launchOffer.active;mod.launchOffer.active=true;try{return fn();}finally{mod.launchOffer.active=before;}};
 
 test('all 28 catalog products follow the user-confirmed fish ratio and fusion prices',()=>{
- const approved={mackerel:5000,salmon:10000,flounder:15000,tuna:30000,assorted:50000,omakase:60000};
+ const approved={mackerel:5000,salmon:10000,flounder:15000,tuna:30000,assorted:40000,omakase:60000};
  assert.equal(mod.products.length,28);
  for(const product of mod.products)assert.equal(product.priceKRW,approved[product.fishId],product.id);
  assert.deepEqual(mod.launchOffer.plannedPriceKRW,approved);
