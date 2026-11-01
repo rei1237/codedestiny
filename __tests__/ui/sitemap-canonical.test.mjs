@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { checkSitemapPage, redirectingLinks } from '../../scripts/verify-sitemap-canonical.mjs';
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { distAssets, probeEdge } from '../../scripts/seo/edge-probe.mjs';
@@ -64,8 +64,12 @@ const SITE = 'https://code-destiny.com';
 const RULE_SUBSET = ['sitemap-page', 'sitemap-set', 'page-shape', 'internal-404', 'og-url'];
 const KO_SAJU = '/%EC%82%AC%EC%A3%BC/';
 
+const fixtureDirs = [];
+test.after(() => { for (const dir of fixtureDirs) rmSync(dir, { recursive: true, force: true }); });
+
 function writeDist(files) {
   const dir = mkdtempSync(join(tmpdir(), 'verify-dist-'));
+  fixtureDirs.push(dir);
   for (const [path, content] of Object.entries(files)) {
     const file = join(dir, path);
     mkdirSync(dirname(file), { recursive: true });
@@ -367,5 +371,29 @@ test('jsonld-dates counts future and unparsable dates on any node; valid, bounda
   // 같은 산출물을 하루 뒤에 검사하면 /a/ 도 과거다.
   const later = await inspectDist({ distDir: writeDist(ldFixture(pages)), edge: false, rules: ['jsonld-dates'], now: new Date('2026-11-02T00:00:00Z') });
   assert.equal(later.counts['jsonld-dates'], 2, JSON.stringify(later.details['jsonld-dates']));
-  assert.equal(RULES['jsonld-dates'] === 'fail' || RULES['jsonld-dates'] === 'warn', true);
+});
+
+// 등급을 바꾸는 커밋은 이 표도 함께 바꿔야 한다. fail 로 올리기 전에는 실제 build:cf dist 에서 0건인지 먼저 본다.
+test('RULES grades are pinned rule by rule', () => {
+  assert.deepEqual(RULES, {
+    'sitemap-page': 'fail', 'sitemap-set': 'fail', 'page-shape': 'fail', 'internal-404': 'fail', 'home-identity': 'fail',
+    'duplicate-title': 'warn', 'duplicate-description': 'warn', 'og-url': 'fail', 'og-home-title': 'fail', 'hreflang-sitemap': 'warn',
+    'robots-policy': 'fail', 'jsonld-syntax': 'fail', 'jsonld-id-type': 'fail', 'organization-name': 'fail', 'jsonld-dates': 'fail',
+    'edge-slash-308': 'warn', 'edge-country-302': 'warn', 'edge-crawler-cookie': 'warn',
+  });
+});
+
+test('organization-name ties keep the first-seen name as the majority and report the other one', async () => {
+  const result = await runLd({
+    '/a/': ldScript({ '@graph': [{ '@type': 'Organization', '@id': ORG, name: '꿀꿀 운세' }] }),
+    '/b/': ldScript({ '@graph': [{ '@type': 'Organization', '@id': ORG, name: 'CODE DESTINY' }] }),
+  });
+  assert.equal(result.counts['organization-name'], 1, JSON.stringify(result.details['organization-name']));
+  assert.match(result.details['organization-name'][0], /\/b\/.*"CODE DESTINY" ≠ 최다 "꿀꿀 운세"/);
+});
+
+test('the same @id declared with the same @type on two pages is not a jsonld-id-type finding', async () => {
+  const node = { '@context': 'https://schema.org', '@type': 'WebSite', '@id': WEBSITE, name: '꿀꿀 운세' };
+  const result = await runLd({ '/a/': ldScript(node), '/b/': ldScript({ '@graph': [node] }) });
+  assert.deepEqual(result.counts, { 'jsonld-syntax': 0, 'jsonld-id-type': 0, 'organization-name': 0 });
 });
