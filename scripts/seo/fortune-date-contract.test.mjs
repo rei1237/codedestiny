@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { verifyFortuneDateContract, resolveFortuneBuildDateContext } from '../lib/fortune-date-contract.mjs';
+import { verifyFortuneDateContract, resolveFortuneBuildDateContext, resolveFortuneBuildDateContexts, verifyFortuneBuildDates } from '../lib/fortune-date-contract.mjs';
 import { fortuneArticleDates } from '../../lib/fortune/article-dates.mjs';
 
 const fixture = ({ title = '쥐띠 내일의 운세 10월 19일 | 총운 7/10', h1 = '쥐띠 내일의 운세', date = '2026-10-19', label = '2026년 10월 19일', articleDate = date, published = `${articleDate}T00:00:00+09:00`, dateModified = published, headline = title, hidden = false } = {}) => `<html><head><title>${title}</title></head><body><main><header><time data-cd-fortune-range-marker datetime="${date}"${hidden ? ' hidden' : ''}>${label}</time><h1>${h1}</h1></header><p>날짜와 별자리의 계산 기준으로 정리한 공개 결과입니다.</p></main><script type="application/ld+json">${JSON.stringify({ '@type': 'Article', headline, datePublished: published, ...(dateModified === '' ? {} : { dateModified }) })}</script></body></html>`;
@@ -131,7 +131,7 @@ test('date boundaries: pages rendered at 23:59 KST, just after midnight on a sta
 test('Article dates: two days early, unparsable, dateModified before publish or after build are rejected; evidence carries dateModified', () => {
   const build = new Date('2026-10-19T00:00:00Z');
   const run = (extra) => verifyFortuneDateContract(fixture(extra), { period: 'tomorrow', businessDate: '2026-10-18', buildTime: build }).failures;
-  assert.ok(run({ published: '2026-10-17T23:59:59+09:00' }).some((m) => m.includes('or the day before')));
+  assert.ok(run({ published: '2026-10-17T23:59:59+09:00' }).some((m) => m.includes('datePublished must be')));
   assert.ok(run({ published: '2026-10-18T00:00:00+09:00' }).every((m) => !m.includes('datePublished')));
   assert.ok(run({ published: 'October 19, 2026' }).some((m) => m.includes('datePublished')));
   assert.ok(run({ published: '2026-10-18T15:00:00+09:00', dateModified: '2026-10-18T14:00:00+09:00' }).some((m) => m.includes('dateModified')));
@@ -142,4 +142,47 @@ test('Article dates: two days early, unparsable, dateModified before publish or 
   assert.deepEqual(run({ published: '2026-10-18T15:00:00Z', dateModified: '2026-10-18T15:00:00.000Z' }), []);
   const result = verifyFortuneDateContract(fixture({ dateModified: '2026-10-19T08:00:00+09:00' }), { period: 'tomorrow', businessDate: '2026-10-18', buildTime: build });
   assert.equal(result.evidence.articles[0].dateModified, '2026-10-19T08:00:00+09:00');
+});
+
+test('a day-before datePublished is accepted only for tomorrow or a build that precedes the target day', () => {
+  const today = fixture({ title: '쥐띠 오늘의 운세 10월 19일 | 총운 7/10', h1: '쥐띠 오늘의 운세', published: '2026-10-18T00:00:00+09:00' });
+  const after = verifyFortuneDateContract(today, { period: 'today', periodDate: '2026-10-19', buildTime: new Date('2026-10-19T01:00:00Z') });
+  assert.ok(after.failures.some((m) => m === 'Article datePublished must be 2026-10-19'), after.failures.join('; '));
+  assert.deepEqual(verifyFortuneDateContract(today, { period: 'today', periodDate: '2026-10-19', buildTime: new Date('2026-10-18T14:50:00Z') }).failures, []);
+  const weekly = fixture({ title: '쥐띠 이번 주 운세 10월 26~11월 1일', h1: '쥐띠 이번 주 운세', date: '2026-10-26', label: '10월 26일 ~ 11월 1일', published: '2026-10-25T00:00:00+09:00' });
+  assert.ok(verifyFortuneDateContract(weekly, { period: 'weekly', periodDate: '2026-10-26', buildTime: new Date('2026-10-28T00:00:00Z') }).failures.some((m) => m.includes('datePublished')));
+});
+
+test('build guard accepts pages rendered before a week/month boundary within the render window only', () => {
+  const rootDir = mkdtempSync(join(tmpdir(), 'cd-fortune-render-window-'));
+  try {
+    const signs = Array.from({ length: 24 }, (_, i) => `s${i}`);
+    mkdirSync(join(rootDir, 'lib/fortune'), { recursive: true });
+    mkdirSync(join(rootDir, 'fortune/data'), { recursive: true });
+    writeFileSync(join(rootDir, 'lib/fortune/range-data.ts'), 'export const WEEK_STARTS_ON_MONDAY = true;');
+    writeFileSync(join(rootDir, 'fortune/data/run-manifest.json'), JSON.stringify({ today: '2026-11-01', tomorrow: '2026-11-02', weekly: '2026-10-26', monthly: '2026-11-01' }));
+    // 일요일 23:59 KST 렌더. 다음 날 00:30 검사는 렌더 창 안, 04:00 검사는 밖이다.
+    const renderedAt = new Date('2026-11-01T14:59:00Z');
+    const pages = {
+      today: { key: '2026-11-01', title: '쥐띠 오늘의 운세 11월 1일', h1: '쥐띠 오늘의 운세', label: '2026년 11월 1일' },
+      tomorrow: { key: '2026-11-02', title: '쥐띠 내일의 운세 11월 2일', h1: '쥐띠 내일의 운세', label: '2026년 11월 2일' },
+      weekly: { key: '2026-10-26', title: '쥐띠 이번 주 운세 10월 26~11월 1일', h1: '쥐띠 이번 주 운세', label: '10월 26일 ~ 11월 1일' },
+      monthly: { key: '2026-11', date: '2026-11-01', title: '쥐띠 이번 달 운세 2026년 11월', h1: '쥐띠 이번 달 운세', label: '2026년 11월' },
+    };
+    for (const [period, page] of Object.entries(pages)) {
+      const { datePublished, dateModified } = fortuneArticleDates(period, page.key, renderedAt);
+      const html = fixture({ title: page.title, h1: page.h1, date: page.date || page.key, label: page.label, published: datePublished, dateModified });
+      for (const sign of signs) {
+        mkdirSync(join(rootDir, 'out/fortune', period, sign), { recursive: true });
+        writeFileSync(join(rootDir, 'out/fortune', period, sign, 'index.html'), html);
+      }
+    }
+    const verify = (now) => verifyFortuneBuildDates({ rootDir, outputDir: 'out', periods: Object.keys(pages), signIds: signs, dateContexts: resolveFortuneBuildDateContexts({ rootDir, now }) });
+    assert.equal(resolveFortuneBuildDateContexts({ rootDir, now: new Date('2026-11-04T03:00:00Z') }).length, 1, 'mid-week: one context');
+    assert.deepEqual(verify(new Date('2026-11-01T15:30:00Z')).failures, []);
+    const late = verify(new Date('2026-11-01T19:00:00Z'));
+    const failedRoutes = new Set(late.failures.map((m) => m.slice(0, m.indexOf(':'))));
+    assert.equal(failedRoutes.size, 24, late.failures.slice(0, 3).join('; '));
+    assert.ok([...failedRoutes].every((route) => route.startsWith('/fortune/weekly/')));
+  } finally { rmSync(rootDir, { recursive: true, force: true }); }
 });

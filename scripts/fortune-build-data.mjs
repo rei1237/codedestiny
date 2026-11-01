@@ -36,7 +36,7 @@ const onceScript = path.join(__dirname, 'fortune-daily-once.mjs');
 // 🔴 시계는 한 번만 읽는다. 오늘과 내일을 각각 `new Date()` 로 구하면 두 호출 사이에
 // KST 자정이 지날 때 today=D / tomorrow=D+2 가 나온다(이 빌드는 00:10 KST 에 돈다).
 const runDateKst = kstYmdToday();
-// 🔴 weekly·monthly 의 시드 날짜는 그 기간 페이지가 `datePublished` 로 내보내는 날짜와 같다
+// 🔴 weekly·monthly 의 시드 날짜는 그 기간 페이지가 기간 표식 `<time datetime>` 으로 내보내는 날짜와 같다
 //    (주 시작일 · 그 달 1일). scripts/verify-fortune-freshness.mjs 의 expectedDateFor 가
 //    같은 규칙을 프로덕션에서 확인하므로 둘이 어긋나면 그 가드가 먼저 운다.
 const archiveDates = [];
