@@ -18,6 +18,12 @@ test('comparison preserves seven products, anchors, official art and four Yeongn
     assert.equal(card.querySelector('.result-sample__cta').getAttribute('href'),item.href);
     assert.ok(existsSync('public'+item.visual),item.visual);
     assert.ok(card.querySelector('img').getAttribute('alt'));
+    const srcset=card.querySelector('img').getAttribute('srcset');
+    if(srcset)for(const candidate of srcset.split(', ')){
+      const [path]=candidate.split(' ');
+      assert.ok(existsSync('public'+path),path);
+      assert.ok(path===item.visual||path.replace(/-(320|640|960)\.webp$/,'.webp')===item.visual,'responsive art must keep the same character scene');
+    }
   }
   assert.equal(doc.querySelectorAll('.consultation-guide').length,0,'deep examples belong in detail views');
   assert.ok(NODE_TEST_PATTERNS.includes('__tests__/ui/*.test.mjs'),'existing CI test:node discovers this regression');

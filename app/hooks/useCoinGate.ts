@@ -5,7 +5,7 @@ import { getAuthState, handleSessionInvalidated, refreshAuth } from "../_lib/aut
 import { refreshUserAccessAfterPayment } from "../_lib/user-session-cache";
 import {
   hasClientAuthSessionHint,
-  loadPaidServiceRuntimeGate,
+  prefetchPaidServiceRuntimeGate,
   runPaidAccessGate,
 } from "../_lib/billing-client";
 import {
@@ -332,11 +332,11 @@ export function useCoinGate() {
   // 🔴 구독 스냅샷 워밍은 여기서 하지 않는다 — 앱 전역 Provider(PaymentProcessingContext)가 이미
   // subscribeAuth 로 '인증이 확정되는 순간' 워밍한다. 여기서 한 번 더 걸면 중첩이고, 게다가 이쪽은
   // 마운트 시점의 getAuthState() 만 봐서 하이드레이션이 늦으면 그냥 건너뛰던 열등한 사본이었다.
-  // 결제 런타임 스크립트(destiny-profile.js, ~400KB)는 인증과 무관한 정적 자산이라 여기서 미리 받는다.
+  // 결제 런타임은 정적 파일만 미리 받는다. 실행은 실제 결제 진입에서 기존 로더가 담당한다.
   // 예전에는 인증 상태일 때만 받아서, 아직 비인증으로 보이던 흔한 경우에 이 다운로드가 클릭 경로의
   // await(billing-client 의 runtimeGate)로 그대로 옮겨갔다. 내부에서 중복 주입을 막는다.
   useEffect(() => {
-    void loadPaidServiceRuntimeGate();
+    prefetchPaidServiceRuntimeGate();
   }, []);
 
   const ensurePaidAccess = useCallback(async (input: EnsurePaidAccessInput): Promise<EnsurePaidAccessResult> => {

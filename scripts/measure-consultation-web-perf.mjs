@@ -52,12 +52,19 @@ try {
       const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, isMobile: true, hasTouch: true, serviceWorkers: 'block' });
       await context.addInitScript(() => {
         sessionStorage.setItem('privacyAgreed', 'true');
-        window.__webPerf = { lcp: 0, cls: 0, longTasks: 0 };
+        window.__webPerf = { lcp: 0, cls: 0, longTasks: 0, lcpHistory: [], shifts: [] };
         for (const type of ['largest-contentful-paint', 'layout-shift', 'longtask']) {
           new PerformanceObserver(list => {
             for (const entry of list.getEntries()) {
-              if (type === 'largest-contentful-paint') window.__webPerf.lcp = entry.startTime;
-              if (type === 'layout-shift' && !entry.hadRecentInput) window.__webPerf.cls += entry.value;
+              if (type === 'largest-contentful-paint') {
+                window.__webPerf.lcp = entry.startTime;
+                const element = entry.element;
+                window.__webPerf.lcpHistory.push({ time: entry.startTime, url: entry.url, tag: element?.tagName, id: element?.id, className: element?.className, parentClassName: element?.parentElement?.className, text: element?.textContent?.trim().slice(0,120), size: entry.size });
+              }
+              if (type === 'layout-shift' && !entry.hadRecentInput) {
+                window.__webPerf.cls += entry.value;
+                window.__webPerf.shifts.push({ time: entry.startTime, value: entry.value, sources: (entry.sources || []).map(source => ({ tag: source.node?.tagName, id: source.node?.id, className: source.node?.className, previousRect: source.previousRect.toJSON(), currentRect: source.currentRect.toJSON() })) });
+              }
               if (type === 'longtask') window.__webPerf.longTasks += Math.max(0, entry.duration - 50);
             }
           }).observe({ type, buffered: true });
@@ -79,7 +86,11 @@ try {
         const response = await page.goto(origin + route, { waitUntil: 'load', timeout: 120000 });
         if (response.status() !== 200) throw new Error(`${route}: HTTP ${response.status()}`);
         await page.waitForTimeout(2000);
-        const metrics = await page.evaluate(() => ({ ...window.__webPerf, dom: document.querySelectorAll('*').length, overflow: document.documentElement.scrollWidth > innerWidth + 1, scripts: performance.getEntriesByType('resource').filter(e => e.initiatorType === 'script').reduce((sum, e) => sum + e.encodedBodySize, 0) }));
+        const metrics = await page.evaluate(() => {
+          const resources = performance.getEntriesByType('resource');
+          const pendingVisibleImages=[...document.images].filter(img=>{const box=img.getBoundingClientRect();return !img.complete&&box.width>0&&box.height>0&&box.top<innerHeight&&box.bottom>0;}).map(img=>img.currentSrc||img.src);
+          return { ...window.__webPerf, pendingVisibleImages, dom: document.querySelectorAll('*').length, overflow: document.documentElement.scrollWidth > innerWidth + 1, scripts: resources.filter(e => e.initiatorType === 'script').reduce((sum, e) => sum + e.encodedBodySize, 0), resources: resources.map(e => ({ url: e.name.replace(location.origin, ''), type: e.initiatorType, start: e.startTime, end: e.responseEnd, duration: e.duration, bytes: e.encodedBodySize })).sort((a, b) => b.bytes - a.bytes).slice(0, 40) };
+        });
         const input = page.locator('input:not([type=hidden]):visible, textarea:visible').first();
         let interactionMs = null;
         if (await input.count()) {

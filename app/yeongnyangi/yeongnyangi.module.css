@@ -7,6 +7,7 @@
   padding-bottom: var(--toss-service-bottom, env(safe-area-inset-bottom));
   color-scheme: dark;
 }
+.experience { min-height: 100svh; }
 .page * {
   box-sizing: border-box;
 }

@@ -49,7 +49,9 @@ export type ScopedCopyOptions = {
  * 연쇄로 깨진다. `data/` 상수를 그대로 넘기는 것도 같은 이유로 안전하다.
  */
 export function useScopedCopy<T>(namespace: string, scope: string, ko: T, options?: ScopedCopyOptions): T {
-  const pick = useTPick();
+  // Korean is already the authoritative source, not a missing translation.
+  // Other locales still load the same dictionary and react to language changes.
+  const pick = useTPick(undefined, "ko");
   const skipKeys = options?.skipKeys;
   // options 객체 자체는 인라인이어도 되지만 skipKeys 배열은 상수여야 메모가 유지된다.
   const skip = useMemo(() => (skipKeys ? new Set(skipKeys) : NO_SKIP), [skipKeys]);

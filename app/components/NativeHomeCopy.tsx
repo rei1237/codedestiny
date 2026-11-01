@@ -34,7 +34,7 @@ export function NativeHomeNav({children, className, 'aria-label': label}: {child
 
 export function NativeHomeDictionaryText({translationKey, children}: {translationKey: string; children: string}) {
   const locale = useContext(HomeLocale);
-  const pick = useTPick();
+  const pick = useTPick(undefined, 'ko');
   return locale === 'ko' ? children : pick(translationKey, children);
 }
 
@@ -53,5 +53,5 @@ export function NativeHomeCardLink({name, action, external, ...props}: {
   const accessibleLabel = `${label} ${translate(action, locale)}`;
   return external
     ? <a {...props} aria-label={accessibleLabel}>{label}</a>
-    : <Link {...props} aria-label={accessibleLabel}>{label}</Link>;
+    : <Link {...props} prefetch={IS_APP_BUILD ? false : undefined} aria-label={accessibleLabel}>{label}</Link>;
 }

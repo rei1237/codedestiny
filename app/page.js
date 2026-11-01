@@ -1,5 +1,5 @@
+import Link from 'next/link';
 import { RecommendationFooter } from './components/recommendations/RecommendationResult';
-import Link from "next/link";
 import { publicSeoPages, siteSeo } from "../lib/seo/siteSeo";
 import { buildServiceJsonLd, buildWebPageJsonLd, buildFaqPageJsonLd, buildAuthorPersonJsonLd } from "../lib/structured-data";
 import { serializeJsonLd } from "../lib/seo/json-ld.mjs";
@@ -156,7 +156,7 @@ export default function HomePage() {
         <section className={styles.signature} aria-labelledby="homeSignature" data-cd-funnel-section="signature_consult">
           <div className={styles.signatureHeading}><svg className={styles.signatureMoon} width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="currentColor" strokeWidth="1.25" aria-hidden="true"><path d="M26 5a15 15 0 1 0 9 23A15 15 0 0 1 26 5Z"/><path d="M29 12v8m-4-4h8M15 29c-4-2-5-5-4-8 4 1 6 4 4 8Zm0 0c4-2 5-5 4-8-4 1-6 4-4 8Z"/></svg><h2 id="homeSignature"><NativeHomeText>마음이 머무는 대표 상담</NativeHomeText></h2><p><NativeHomeText>연애, 한 해, 인생. 지금의 고민에 가까운 이야기를 골라보세요.</NativeHomeText></p></div>
           <ul className={styles.signatureList}>{SIGNATURE_CONSULTATIONS.map((item, index) => <li key={item.key} data-home-signature={item.key}>
-            <Link href={item.href} className={styles.signatureCard}>
+            <Link prefetch={IS_APP_BUILD ? false : undefined} href={item.href} className={styles.signatureCard}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img className={styles.signatureArt} src={`${SIGNATURE_ART}/${item.art}-640.webp`} srcSet={`${SIGNATURE_ART}/${item.art}-320.webp 320w, ${SIGNATURE_ART}/${item.art}-640.webp 640w`} sizes="(min-width: 641px) 320px, 38vw" width={640} height={427} alt="" loading="lazy" decoding="async" />
               <div className={styles.signatureCopy}>
@@ -179,7 +179,7 @@ export default function HomePage() {
             <div className={styles.sectionHeading}><h2 id="homeServices"><NativeHomeText>어떤 운세가 궁금하세요?</NativeHomeText></h2><p><NativeHomeText>익숙한 사주부터 새로운 별의 이야기까지.</NativeHomeText></p></div>
             <ul className={styles.serviceList}>
               {HOME_CATEGORIES.map(item => <li key={item.key}>
-                <Link href={item.href} {...discoveryTracking(item.key)}>
+                <Link prefetch={IS_APP_BUILD ? false : undefined} href={item.href} {...discoveryTracking(item.key)}>
                   <span className={styles.methodDoor}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img className={styles.methodArt} src={item.image} width={320} height={213} alt="" loading="lazy" decoding="async" />
@@ -190,23 +190,23 @@ export default function HomePage() {
               </li>)}
             </ul>
             <NativeHomeNav className={styles.quickLinks} aria-label="바로 확인하는 운세">
-              <Link href="/manse/" {...discoveryTracking("manse")}><NativeHomeText>만세력으로 명식 확인하기</NativeHomeText></Link>
-              <Link href="/fortune/tomorrow/" {...discoveryTracking("zodiac")}><NativeHomeText>내일 운세 보기</NativeHomeText></Link>
-              <Link href="/fortune/monthly/" {...discoveryTracking("zodiac")}><NativeHomeText>이번 달 운세 보기</NativeHomeText></Link>
+              <Link prefetch={IS_APP_BUILD ? false : undefined} href="/manse/" {...discoveryTracking("manse")}><NativeHomeText>만세력으로 명식 확인하기</NativeHomeText></Link>
+              <Link prefetch={IS_APP_BUILD ? false : undefined} href="/fortune/tomorrow/" {...discoveryTracking("zodiac")}><NativeHomeText>내일 운세 보기</NativeHomeText></Link>
+              <Link prefetch={IS_APP_BUILD ? false : undefined} href="/fortune/monthly/" {...discoveryTracking("zodiac")}><NativeHomeText>이번 달 운세 보기</NativeHomeText></Link>
             </NativeHomeNav>
           </section>
           <section className={styles.section} aria-labelledby="homeConcerns">
             <div className={styles.sectionHeading}><h2 id="homeConcerns"><NativeHomeText>지금 마음에 걸리는 이야기</NativeHomeText></h2><p><NativeHomeText>연애·일·돈·관계, 질문에서 시작해도 좋아요.</NativeHomeText></p></div>
             <ul className={styles.concernList}>{HOME_CONCERNS.map(item => <li key={item.title}>
-              <Link href={item.href} {...discoveryTracking(item.key, "related")}><h3><NativeHomeText>{item.title}</NativeHomeText></h3><p><NativeHomeText>{item.description}</NativeHomeText></p></Link>
+              <Link prefetch={IS_APP_BUILD ? false : undefined} href={item.href} {...discoveryTracking(item.key, "related")}><h3><NativeHomeText>{item.title}</NativeHomeText></h3><p><NativeHomeText>{item.description}</NativeHomeText></p></Link>
             </li>)}</ul>
             <div className={styles.advisers}>
-              <Link href="/fortune-tea-house/" {...discoveryTracking("tea", "related")}>
+              <Link prefetch={IS_APP_BUILD ? false : undefined} href="/fortune-tea-house/" {...discoveryTracking("tea", "related")}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={`${ART}/yeoni-hanbok-240.webp`} width={240} height={360} alt="" loading="lazy" decoding="async" />
                 <span><strong><NativeHomeText>연이의 운명의 찻집</NativeHomeText></strong><span><NativeHomeText>마음을 정리하는 다정한 편지</NativeHomeText></span><b><NativeHomeText>연이에게 이야기하기</NativeHomeText> <span aria-hidden="true">→</span></b></span>
               </Link>
-              <Link href="/neo-operation-room/" {...discoveryTracking("neo", "related")}>
+              <Link prefetch={IS_APP_BUILD ? false : undefined} href="/neo-operation-room/" {...discoveryTracking("neo", "related")}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={`${ART}/neo-human-240.webp`} width={240} height={360} alt="" loading="lazy" decoding="async" />
                 <span><strong><NativeHomeText>네오의 팩폭 전략실</NativeHomeText></strong><span><NativeHomeText>복잡한 고민을 실행할 전략으로</NativeHomeText></span><b><NativeHomeText>네오와 전략 세우기</NativeHomeText> <span aria-hidden="true">→</span></b></span>
@@ -215,7 +215,7 @@ export default function HomePage() {
           </section>
           <section className={`${styles.section} ${styles.readingSection}`} aria-labelledby="homeExample">
             <div className={styles.sectionHeading}><h2 id="homeExample"><NativeHomeText>결과를 읽고, 작은 행동으로</NativeHomeText></h2><p><NativeHomeText>기질 설명과 현실적인 조언을 함께 읽어보세요. 아래는 공개 쥐띠 운세에 쓰이는 해설의 일부예요.</NativeHomeText></p></div>
-            <figure className={styles.readingExample}><figcaption><NativeHomeText>쥐띠 운세의 기질·습관 해설 예시</NativeHomeText></figcaption><blockquote><p><NativeHomeText>{RESULT_EXAMPLE.strength}</NativeHomeText></p><p><NativeHomeText>{RESULT_EXAMPLE.luckyHabit}</NativeHomeText></p></blockquote><p className={styles.exampleNote}><NativeHomeText>개인 사주 결과가 아닌 공통 기질 해설이에요. 날짜별 운세에서는 해당 날짜의 일진과 별의 흐름도 함께 확인할 수 있어요.</NativeHomeText></p><Link href="/fortune/tomorrow/rat/" {...discoveryTracking("zodiac", "next_step")}><NativeHomeText>쥐띠 내일 운세 전체 읽기</NativeHomeText></Link></figure>
+            <figure className={styles.readingExample}><figcaption><NativeHomeText>쥐띠 운세의 기질·습관 해설 예시</NativeHomeText></figcaption><blockquote><p><NativeHomeText>{RESULT_EXAMPLE.strength}</NativeHomeText></p><p><NativeHomeText>{RESULT_EXAMPLE.luckyHabit}</NativeHomeText></p></blockquote><p className={styles.exampleNote}><NativeHomeText>개인 사주 결과가 아닌 공통 기질 해설이에요. 날짜별 운세에서는 해당 날짜의 일진과 별의 흐름도 함께 확인할 수 있어요.</NativeHomeText></p><Link prefetch={IS_APP_BUILD ? false : undefined} href="/fortune/tomorrow/rat/" {...discoveryTracking("zodiac", "next_step")}><NativeHomeText>쥐띠 내일 운세 전체 읽기</NativeHomeText></Link></figure>
           </section>
           <section className={styles.section} aria-labelledby="homeMethods">
             <div className={styles.sectionHeading}><h2 id="homeMethods"><NativeHomeText>서로 다른 체계, 나를 이해하는 여러 관점</NativeHomeText></h2></div>
@@ -224,14 +224,14 @@ export default function HomePage() {
               <div><dt><NativeHomeText>숙요점·베다점·서양 점성술</NativeHomeText></dt><dd><NativeHomeText>숙요점은 본명숙과 관계 유형, 베다점은 항성황도에 따른 라그나·다샤, 서양 점성술은 출생차트의 태양·달·상승궁을 살펴봐요. 같은 이름의 별이나 궁이라도 계산 기준과 해석을 섞지 않아요.</NativeHomeText></dd></div>
               <div><dt><NativeHomeText>타로와 고민 상담</NativeHomeText></dt><dd><NativeHomeText>타로는 질문과 카드의 상징을 통해 마음과 선택지를 읽어요. 영냥이 질문 상담과 운명의 찻집, 네오의 팩폭 전략실에서는 내 상황을 정리하고 실천할 조언을 찾아갈 수 있어요.</NativeHomeText></dd></div>
             </dl>
-            <p className={styles.methodLink}><NativeHomeText>여러 체계를 함께 읽는 방식은</NativeHomeText> <Link href="/fusion-fortune/"><NativeHomeText>초융합 운세 안내</NativeHomeText></Link><NativeHomeText>에서 확인할 수 있어요.</NativeHomeText></p>
-            <p className={styles.byline}><Link href="/about/#author"><NativeHomeDictionaryText translationKey="footer.byline">{FOOTER_BYLINE}</NativeHomeDictionaryText></Link></p>
+            <p className={styles.methodLink}><NativeHomeText>여러 체계를 함께 읽는 방식은</NativeHomeText> <Link prefetch={IS_APP_BUILD ? false : undefined} href="/fusion-fortune/"><NativeHomeText>초융합 운세 안내</NativeHomeText></Link><NativeHomeText>에서 확인할 수 있어요.</NativeHomeText></p>
+            <p className={styles.byline}><Link prefetch={IS_APP_BUILD ? false : undefined} href="/about/#author"><NativeHomeDictionaryText translationKey="footer.byline">{FOOTER_BYLINE}</NativeHomeDictionaryText></Link></p>
           </section>
           <section className={styles.section} aria-labelledby="homeFaq">
             <div className={styles.sectionHeading}><h2 id="homeFaq"><NativeHomeText>시작하기 전에 궁금한 점</NativeHomeText></h2><p><NativeHomeText>꿀꿀 운세의 공식 홈페이지는 code-destiny.com이에요. CODE DESTINY(코드 데스티니)가 운영해요.</NativeHomeText></p></div>
-            <div className={styles.faqList}>{HOME_FAQS.map(item => <details key={item.question}><summary><NativeHomeText>{item.question}</NativeHomeText></summary><p><NativeHomeText>{item.answer}</NativeHomeText>{item.link && <> <Link href={item.link.href}><NativeHomeText>{item.link.label}</NativeHomeText></Link></>}</p></details>)}</div>
+            <div className={styles.faqList}>{HOME_FAQS.map(item => <details key={item.question}><summary><NativeHomeText>{item.question}</NativeHomeText></summary><p><NativeHomeText>{item.answer}</NativeHomeText>{item.link && <> <Link prefetch={IS_APP_BUILD ? false : undefined} href={item.link.href}><NativeHomeText>{item.link.label}</NativeHomeText></Link></>}</p></details>)}</div>
             <details className={styles.history} data-brand-history=""><summary><NativeHomeText>이전 서비스 이름 안내</NativeHomeText></summary><p><NativeHomeText>{BRAND_FACTS.historyKo}</NativeHomeText> <NativeHomeText>같은 계정으로 이전 구매 내역과 저장된 결과를 확인할 수 있어요.</NativeHomeText></p></details>
-            <NativeHomeNav className={styles.quickLinks} aria-label="상담 방식과 이용 안내"><Link href="/about/"><NativeHomeText>운영자와 해석 방식</NativeHomeText></Link><Link href="/editorial-policy/"><NativeHomeText>콘텐츠 편집 원칙</NativeHomeText></Link><Link href="/faq/"><NativeHomeText>전체 이용 안내</NativeHomeText></Link></NativeHomeNav>
+            <NativeHomeNav className={styles.quickLinks} aria-label="상담 방식과 이용 안내"><Link prefetch={IS_APP_BUILD ? false : undefined} href="/about/"><NativeHomeText>운영자와 해석 방식</NativeHomeText></Link><Link prefetch={IS_APP_BUILD ? false : undefined} href="/editorial-policy/"><NativeHomeText>콘텐츠 편집 원칙</NativeHomeText></Link><Link prefetch={IS_APP_BUILD ? false : undefined} href="/faq/"><NativeHomeText>전체 이용 안내</NativeHomeText></Link></NativeHomeNav>
           </section>
         </div>
           </div>
@@ -241,11 +241,11 @@ export default function HomePage() {
       <RecommendationFooter brand="ggulggul" locale="ko"/>
       <footer className={styles.footer}>
         <NativeHomeNav className={styles.footerNav} aria-label="정책과 문의">
-          {FOOTER_LINKS.map(link => <Link key={link.href} href={link.href} className={link.strong ? styles.footerStrong : undefined}><NativeHomeDictionaryText translationKey={link.trans}>{link.text}</NativeHomeDictionaryText></Link>)}
+          {FOOTER_LINKS.map(link => <Link prefetch={IS_APP_BUILD ? false : undefined} key={link.href} href={link.href} className={link.strong ? styles.footerStrong : undefined}><NativeHomeDictionaryText translationKey={link.trans}>{link.text}</NativeHomeDictionaryText></Link>)}
         </NativeHomeNav>
         {/* 둘째 줄(작게): dist/index.html 도 scripts/verify-adsense-readiness.mjs 의 신뢰 링크 8종 검사 대상이다. */}
         <NativeHomeNav className={`${styles.footerNav} ${styles.footerQuiet}`} aria-label="안내 페이지">
-          {FOOTER_TRUST_LINKS.map(link => <Link key={link.href} href={link.href}><NativeHomeDictionaryText translationKey={link.trans}>{link.text}</NativeHomeDictionaryText></Link>)}
+          {FOOTER_TRUST_LINKS.map(link => <Link prefetch={IS_APP_BUILD ? false : undefined} key={link.href} href={link.href}><NativeHomeDictionaryText translationKey={link.trans}>{link.text}</NativeHomeDictionaryText></Link>)}
           {!IS_APP_BUILD && <button type="button" data-cd-cookie-settings className={styles.footerButton}>쿠키 설정</button>}
         </NativeHomeNav>
         <p className={styles.business}>

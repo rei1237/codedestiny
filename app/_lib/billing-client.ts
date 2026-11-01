@@ -2056,6 +2056,20 @@ function getPaidServiceRuntimeGate(): PaidServiceRuntimeGate | null {
   return typeof runtimeWindow._cdOpenPaidServiceGate === "function" ? runtimeWindow._cdOpenPaidServiceGate : null;
 }
 
+// Warm only the static file. Executing it also starts the legacy profile and
+// locale bootstraps, which must not compete with the first consultation paint.
+// The user-initiated loader below still owns execution, readiness and retries.
+export function prefetchPaidServiceRuntimeGate(): void {
+  if (typeof document === "undefined" || getPaidServiceRuntimeGate()) return;
+  if (document.querySelector('link[data-cd-payment-runtime-prefetch]')) return;
+  const link = document.createElement("link");
+  link.rel = "prefetch";
+  link.as = "script";
+  link.href = PAID_SERVICE_RUNTIME_SRC;
+  link.dataset.cdPaymentRuntimePrefetch = "1";
+  document.head.appendChild(link);
+}
+
 export function loadPaidServiceRuntimeGate(): Promise<PaidServiceRuntimeGate | null> {
   installReactPaymentChoiceBridge();
   const current = getPaidServiceRuntimeGate();
