@@ -16,6 +16,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { BRAND_FACTS } from "../lib/brand/brand-facts.mjs";
 import { NEW_YEAR_SEASON, NEW_YEAR_SIGNS } from "../lib/fortune/new-year-registry.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -167,6 +168,16 @@ ${renderPeriodLinkList(id, allSigns)}
   const jsonLd = {
     "@context": "https://schema.org",
     "@graph": [
+      // isPartOf 가 가리키는 #website 를 이 쪽 안에 둔다(정적 셸이라 Next 레이아웃의 WebSite 노드가 붙지 않는다).
+      // 이름은 홈 셸·lib/structured-data.ts 와 같은 lib/brand/brand-facts.mjs 에서 읽는다.
+      {
+        "@type": "WebSite",
+        "@id": `${BRAND_FACTS.service.siteUrl}/#website`,
+        url: `${BRAND_FACTS.service.siteUrl}/`,
+        name: BRAND_FACTS.service.name,
+        alternateName: [...BRAND_FACTS.service.alternateNames],
+        inLanguage: "ko-KR",
+      },
       {
         "@type": "CollectionPage",
         name: "무료 운세 모음 — 별자리 12종·띠 12종",
