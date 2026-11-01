@@ -86,6 +86,9 @@ Node 잠금/원장 파일: [package-lock.json](../../tools/oracle/package-lock.j
 | `npm --prefix tools/oracle test` | **21/21 통과**. 합성 입력 기동·스키마·반복 결정성·옵션·음력·시각 미상, UTC gap/fold, 금지 서비스/import/네트워크/라이선스 실패 주입 |
 | Python 격리 CLI | 0.3.0 로드, facts 및 school 직렬화 확인. 21개 테스트에 Python 프로세스 검사 포함 |
 | `node scripts/verify-doc-freshness.mjs` | 통과. 기존 활성 문서의 신선도 검사이며 오라클 정답 검증은 아님 |
+| `node --check` (하네스 mjs 7개), 알 수 없는 provider 거절 검사 | 통과. CLI 제공자 이름은 자체 허용 목록만 허용 |
+| `git diff --cached --check`, 변경 경로 점검 | 통과. Phase 1 추가 파일은 docs 1개 및 격리 tools 18개뿐이며 운영 파일 변경 없음 |
+| `npm run check:pre-push` | 구현 커밋 `aace915b9fd7a4d27c225bd580d53ba31bb9f844`에서 통과: home registry, public mirror, sitemap 1037 URL, llms 문서, SEO registry. 검사 후 추적 파일 변경 없음. 엔진 정확도 테스트 아님 |
 | `npm run check:fast -- --plan` | 실행 완료. 새 tools 경로와 격리 lockfile을 미분류/critical로 판단하여 전체 test:node/test:jest, 워커 빌드 등을 선택 |
 | `npm run check:fast` | **미실행**. 계획에 Swiss 연결 서비스 테스트가 포함되므로 사용자 실행 금지와 충돌. `__tests__/lib/vedicSwissChart.test.js`, `__tests__/worker/astro-basic-deep.test.js` 등은 mock 여부와 무관하게 이번 서비스 실행 허용 목록 밖. 검사기 분류나 게이트를 수정하지 않음 |
 | 전체 lint/typecheck/build/기존 엔진 회귀 | 미실행, 통과로 주장하지 않음. 운영 변경이 없는 도구 단계이며 전체 엔진 실행 승인이 아님 |
