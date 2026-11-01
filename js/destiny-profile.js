@@ -1388,7 +1388,11 @@
       || path.indexOf('/api/subscription/me') === 0
       || path.indexOf('/api/fortune/pig-coin/profile-subscription/status') === 0
       || path.indexOf('/api/billing/balance') === 0
-      || path.indexOf('/api/auth/me') === 0;
+      || path.indexOf('/api/auth/me') === 0
+      /* 정확히 일치만 — /equip(POST)·/character-preview 는 제외. renderMasterCard()가 연달아 불리면
+         카드가 다시 마운트될 때마다 이 GET 을 새로 보낸다(이전 요청은 취소하지 않는다). 2026-10-31 장애 때
+         한 브라우저가 같은 순간에 20개 가까이 보냈다 → in-flight 병합과 503 뒤 쿨다운으로 흡수한다. */
+      || path === '/api/rpg/characters';
   }
 
   function _dpShouldApplyCooldown(pathname, method) {
