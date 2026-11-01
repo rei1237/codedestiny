@@ -1,0 +1,11 @@
+{
+  "args": [
+    "--require",
+    "./scripts/lib/mock-network-guard.cjs",
+    "scripts/verify-payment-freeze.mjs"
+  ],
+  "status": 0,
+  "stdout": "[payment-freeze] 통과 — region 4 · file 3 · 상한 2\n",
+  "stderr": "",
+  "productionIO": false
+}

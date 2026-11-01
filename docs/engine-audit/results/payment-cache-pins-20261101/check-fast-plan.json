@@ -1,0 +1,248 @@
+{
+  "version": 1,
+  "profile": "fast",
+  "baseSha": "068dcd3748e51513687aec29283bdc7f1f5da0c3",
+  "headSha": "068dcd3748e51513687aec29283bdc7f1f5da0c3",
+  "files": [
+    "app/_lib/billing-client.ts",
+    "celestial-harmony.html",
+    "cosmic-soul-meditation.html",
+    "docs/engine-audit/11-payment-cache-pin-report.md",
+    "docs/engine-audit/results/payment-cache-pins-20261101/source-proof.json",
+    "docs/engine-audit/results/payment-cache-pins-20261101/verification.json",
+    "docs/engine-audit/results/preparation-pinning-20261101/post-cache-pin-verification.json",
+    "fortune-teller-fish.html",
+    "geomancy-oracle-v4.html",
+    "ifa_oracle_v2_full.html",
+    "neville-meditation.html",
+    "pet-saju.html",
+    "public/celestial-harmony.html",
+    "public/cosmic-soul-meditation.html",
+    "public/fortune-teller-fish.html",
+    "public/geomancy-oracle-v4.html",
+    "public/ifa-oracle.html",
+    "public/neville-meditation.html",
+    "public/pet-saju.html",
+    "public/royal-tea-oracle.html",
+    "public/static/geomancy-oracle-v4.html",
+    "public/tarot-ijik.html",
+    "public/yoga-guru.html",
+    "royal-tea-oracle.html",
+    "scripts/verify-paid-gate-ui-regression.mjs",
+    "tarot-ijik.html",
+    "yoga-guru.html"
+  ],
+  "tier": "critical",
+  "legacyTier": "critical",
+  "failClosed": true,
+  "hasDeletionOrRename": false,
+  "reasons": [
+    "app/_lib/billing-client.ts: payment/auth/db keyword at a path segment start",
+    "celestial-harmony.html: unclassified source/config change",
+    "cosmic-soul-meditation.html: unclassified source/config change",
+    "docs/engine-audit/11-payment-cache-pin-report.md: static/content/presentation change",
+    "docs/engine-audit/results/payment-cache-pins-20261101/source-proof.json: static/content/presentation change",
+    "docs/engine-audit/results/payment-cache-pins-20261101/verification.json: static/content/presentation change",
+    "docs/engine-audit/results/preparation-pinning-20261101/post-cache-pin-verification.json: static/content/presentation change",
+    "fortune-teller-fish.html: unclassified source/config change",
+    "geomancy-oracle-v4.html: unclassified source/config change",
+    "ifa_oracle_v2_full.html: unclassified source/config change",
+    "neville-meditation.html: unclassified source/config change",
+    "pet-saju.html: unclassified source/config change",
+    "public/celestial-harmony.html: unclassified source/config change",
+    "public/cosmic-soul-meditation.html: unclassified source/config change",
+    "public/fortune-teller-fish.html: unclassified source/config change",
+    "public/geomancy-oracle-v4.html: unclassified source/config change",
+    "public/ifa-oracle.html: unclassified source/config change",
+    "public/neville-meditation.html: unclassified source/config change",
+    "public/pet-saju.html: unclassified source/config change",
+    "public/royal-tea-oracle.html: unclassified source/config change",
+    "public/static/geomancy-oracle-v4.html: unclassified source/config change",
+    "public/tarot-ijik.html: unclassified source/config change",
+    "public/yoga-guru.html: unclassified source/config change",
+    "royal-tea-oracle.html: unclassified source/config change",
+    "scripts/verify-paid-gate-ui-regression.mjs: unclassified source/config change",
+    "tarot-ijik.html: unclassified source/config change",
+    "yoga-guru.html: unclassified source/config change",
+    "app/_lib/billing-client.ts: React 결제 게이트",
+    "Shared source or verification configuration: full verification"
+  ],
+  "buildTargets": {
+    "frontend": true,
+    "worker": true
+  },
+  "buildDeferredToCi": true,
+  "steps": [
+    {
+      "kind": "whitespace"
+    },
+    {
+      "kind": "npm",
+      "name": "verify:doc-freshness",
+      "args": []
+    },
+    {
+      "kind": "node",
+      "file": "scripts/run-paid-gate-suite.mjs",
+      "args": [
+        "--base",
+        "068dcd3748e51513687aec29283bdc7f1f5da0c3"
+      ]
+    },
+    {
+      "kind": "lint-changed"
+    },
+    {
+      "kind": "npm",
+      "name": "lint",
+      "args": []
+    },
+    {
+      "kind": "npm",
+      "name": "verify:sitemap-drift",
+      "args": []
+    },
+    {
+      "kind": "npm",
+      "name": "typecheck",
+      "args": []
+    },
+    {
+      "kind": "npm",
+      "name": "test:node",
+      "args": []
+    },
+    {
+      "kind": "npm",
+      "name": "verify:env-parity",
+      "args": []
+    },
+    {
+      "kind": "npm",
+      "name": "verify:billing-pass-policy",
+      "args": []
+    },
+    {
+      "kind": "npm",
+      "name": "verify:pass-tier-policy",
+      "args": []
+    },
+    {
+      "kind": "npm",
+      "name": "verify:portone-single-payment",
+      "args": []
+    },
+    {
+      "kind": "npm",
+      "name": "verify:phone-encryption",
+      "args": []
+    },
+    {
+      "kind": "npm",
+      "name": "verify:signup-phone-required",
+      "args": []
+    },
+    {
+      "kind": "npm",
+      "name": "verify:paid-gate-ui",
+      "args": []
+    },
+    {
+      "kind": "npm",
+      "name": "verify:payment-choice-parity",
+      "args": []
+    },
+    {
+      "kind": "npm",
+      "name": "verify:payment-phone-consent",
+      "args": []
+    },
+    {
+      "kind": "npm",
+      "name": "verify:checkout-pass-card",
+      "args": []
+    },
+    {
+      "kind": "npm",
+      "name": "verify:paid-feature-billing-policy",
+      "args": []
+    },
+    {
+      "kind": "npm",
+      "name": "verify:ai-prompt-billing-policy",
+      "args": []
+    },
+    {
+      "kind": "npm",
+      "name": "verify:pass-snapshot",
+      "args": []
+    },
+    {
+      "kind": "npm",
+      "name": "verify:pass-recovery-path",
+      "args": []
+    },
+    {
+      "kind": "npm",
+      "name": "verify:saju-unlock-entitlement-regression",
+      "args": []
+    },
+    {
+      "kind": "npm",
+      "name": "verify:ai-consultation-flows",
+      "args": []
+    },
+    {
+      "kind": "npm",
+      "name": "verify:staging-llm-mock",
+      "args": []
+    },
+    {
+      "kind": "npm",
+      "name": "verify:analytics-events",
+      "args": []
+    },
+    {
+      "kind": "npm",
+      "name": "verify:no-nested-retry",
+      "args": []
+    },
+    {
+      "kind": "npm",
+      "name": "verify:worker-no-undef",
+      "args": []
+    },
+    {
+      "kind": "npm",
+      "name": "verify:mongo-reset-callers",
+      "args": []
+    },
+    {
+      "kind": "npm",
+      "name": "verify:cron-mongo-op-coverage",
+      "args": []
+    },
+    {
+      "kind": "npm",
+      "name": "verify:admin-route-error-context",
+      "args": []
+    },
+    {
+      "kind": "npm",
+      "name": "build:worker",
+      "args": []
+    },
+    {
+      "kind": "npm",
+      "name": "verify:entry-encoding",
+      "args": [
+        "--strict-core"
+      ]
+    },
+    {
+      "kind": "npm",
+      "name": "test:jest",
+      "args": []
+    }
+  ]
+}

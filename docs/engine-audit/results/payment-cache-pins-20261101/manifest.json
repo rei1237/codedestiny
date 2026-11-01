@@ -1,0 +1,12 @@
+{
+  "baseline": "068dcd3748e51513687aec29283bdc7f1f5da0c3",
+  "normalization": "UTF-8 LF",
+  "files": {
+    "docs/engine-audit/results/payment-cache-pins-20261101/check-fast-plan.json": "a9e31a1e47890ae75aa2fd88c48db71a05c9540557b625faff6db4e5cab384b9",
+    "docs/engine-audit/results/payment-cache-pins-20261101/final-source-proof.json": "051f301431c0de35ddbf6d5dba4a7ed616bb3151dda347937ab7ab89480ab5fb",
+    "docs/engine-audit/results/payment-cache-pins-20261101/freeze-recheck.json": "ae35f71feb92a16b5ac49ff56ad75a5822587ec8656245bec4dea41552e4a844",
+    "docs/engine-audit/results/payment-cache-pins-20261101/source-proof.json": "afae48d1caddd2a351099306ab6fee577cd81829492e4cb019c58492488edbf1",
+    "docs/engine-audit/results/payment-cache-pins-20261101/verification.json": "9a714e33ce59414233e260e6cc9cdeb3ba19428b5f90256a287a8a55dbdc2c62",
+    "docs/engine-audit/results/preparation-pinning-20261101/post-cache-pin-verification.json": "1eab62d468f9365e2e5cddc36ae52f4e461f1740cc82588edf0d951986e67af3"
+  }
+}

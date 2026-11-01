@@ -1,0 +1,165 @@
+{
+  "baseline": "068dcd3748e51513687aec29283bdc7f1f5da0c3",
+  "oldPin": "build-2029b9340aa4",
+  "expected": "build-fc0c52ff363f",
+  "proof": [
+    {
+      "file": "app/_lib/billing-client.ts",
+      "changes": "exactly one cache URL",
+      "before": "5b0e93d65eec45cb0cd8445c867027874f45998a9937a61d59939cae2605723c",
+      "after": "c6f87f977533f7805695f0395847d42b0daed4c2cdbc57f9088bee1f1f883afa"
+    },
+    {
+      "file": "celestial-harmony.html",
+      "changes": "exactly one cache URL",
+      "before": "4a7c4395cea51222e2931d05abe04878a867d86ebc42d3c1dab85a2487797a26",
+      "after": "85ce8420217e4af4e97927a82a1cc9352bf5119bfe8d1bb702a7709812ece792"
+    },
+    {
+      "file": "cosmic-soul-meditation.html",
+      "changes": "exactly one cache URL",
+      "before": "ccdd6911bd838569f0b5d40d7dff5005a308ba42be7bf144d2d62e37ecc75b0c",
+      "after": "72af489ec95b65987339a6b9a2e29c6f562ac8406cbc4f36b8fedb1148f621df"
+    },
+    {
+      "file": "fortune-teller-fish.html",
+      "changes": "exactly one cache URL",
+      "before": "c72bb42100dc07ed85846f2a387c7f5ea971f84e6847b38da683c90250c9c671",
+      "after": "d6971935bac5077825adf026328ccad11152a43e7a1263a0ac6789b3d697c28b"
+    },
+    {
+      "file": "geomancy-oracle-v4.html",
+      "changes": "exactly one cache URL",
+      "before": "0fc93b49ae5e2f740f2307d7cdd935f444bd95e0c7bbffcd17efe4611eb0e028",
+      "after": "c67f46ed7cf784a5a30ce63550a6410b79152ae0d5bdc531bf2c081ff8431d57"
+    },
+    {
+      "file": "ifa_oracle_v2_full.html",
+      "changes": "exactly one cache URL",
+      "before": "9f862ae7ee6626b79b8aa54e9802759f9fb4fc7a3a0509fc94f3a256091872ce",
+      "after": "b6bc79a799387cd7cfe6a0841e5cb78a01f5e18d70586b86c8b41bc54fb2409f"
+    },
+    {
+      "file": "neville-meditation.html",
+      "changes": "exactly one cache URL",
+      "before": "db4e024abb175ccff6afc9404c74b5a579bda784b8fd3c7d2a23b09fa5f44dc4",
+      "after": "cc206553ad1898eb5d07b4f779fe6cc16ee37eae665993a5c7a488cb8fbc98e7"
+    },
+    {
+      "file": "pet-saju.html",
+      "changes": "exactly one cache URL",
+      "before": "48c7b62cf6dd79f3c5914d289ca810d0c6e9e3b0071a3f976bc8164b8bb8d987",
+      "after": "955e0cee163a83b1c2f85ea8d76ad79f9ba3b9f454e306739a098683e86f12de"
+    },
+    {
+      "file": "public/celestial-harmony.html",
+      "changes": "exactly one cache URL",
+      "before": "4a7c4395cea51222e2931d05abe04878a867d86ebc42d3c1dab85a2487797a26",
+      "after": "85ce8420217e4af4e97927a82a1cc9352bf5119bfe8d1bb702a7709812ece792"
+    },
+    {
+      "file": "public/cosmic-soul-meditation.html",
+      "changes": "exactly one cache URL",
+      "before": "ccdd6911bd838569f0b5d40d7dff5005a308ba42be7bf144d2d62e37ecc75b0c",
+      "after": "72af489ec95b65987339a6b9a2e29c6f562ac8406cbc4f36b8fedb1148f621df"
+    },
+    {
+      "file": "public/fortune-teller-fish.html",
+      "changes": "exactly one cache URL",
+      "before": "c72bb42100dc07ed85846f2a387c7f5ea971f84e6847b38da683c90250c9c671",
+      "after": "d6971935bac5077825adf026328ccad11152a43e7a1263a0ac6789b3d697c28b"
+    },
+    {
+      "file": "public/geomancy-oracle-v4.html",
+      "changes": "exactly one cache URL",
+      "before": "0fc93b49ae5e2f740f2307d7cdd935f444bd95e0c7bbffcd17efe4611eb0e028",
+      "after": "c67f46ed7cf784a5a30ce63550a6410b79152ae0d5bdc531bf2c081ff8431d57"
+    },
+    {
+      "file": "public/ifa-oracle.html",
+      "changes": "exactly one cache URL",
+      "before": "0edbe9aa26d00f80317f32dfca90bcab6203b053fb89678d993c3db2a2f85f2b",
+      "after": "036398319b0a1c1978389a5499e2f962aff02fe23ccde83e257a4fbeb298a53d"
+    },
+    {
+      "file": "public/neville-meditation.html",
+      "changes": "exactly one cache URL",
+      "before": "db4e024abb175ccff6afc9404c74b5a579bda784b8fd3c7d2a23b09fa5f44dc4",
+      "after": "cc206553ad1898eb5d07b4f779fe6cc16ee37eae665993a5c7a488cb8fbc98e7"
+    },
+    {
+      "file": "public/pet-saju.html",
+      "changes": "exactly one cache URL",
+      "before": "48c7b62cf6dd79f3c5914d289ca810d0c6e9e3b0071a3f976bc8164b8bb8d987",
+      "after": "955e0cee163a83b1c2f85ea8d76ad79f9ba3b9f454e306739a098683e86f12de"
+    },
+    {
+      "file": "public/royal-tea-oracle.html",
+      "changes": "exactly one cache URL",
+      "before": "96e983974fbeb1644b484882ce12ec70ee15b434a3a2b435f967198de5888630",
+      "after": "f3764c2a23bf8dd5f14c6297a5b6fba3cb1e97a3539d840462027518fd7389c3"
+    },
+    {
+      "file": "public/static/geomancy-oracle-v4.html",
+      "changes": "exactly one cache URL",
+      "before": "0fc93b49ae5e2f740f2307d7cdd935f444bd95e0c7bbffcd17efe4611eb0e028",
+      "after": "c67f46ed7cf784a5a30ce63550a6410b79152ae0d5bdc531bf2c081ff8431d57"
+    },
+    {
+      "file": "public/tarot-ijik.html",
+      "changes": "exactly one cache URL",
+      "before": "99663d8fdeda4408188ab614526002a1f2c624a8438db17c9391b55e737905f6",
+      "after": "51cb9cc8504f53c7f3a48fe8337c29ef88f178909fd89f4205b33f3bce5331ba"
+    },
+    {
+      "file": "public/yoga-guru.html",
+      "changes": "exactly one cache URL",
+      "before": "65ba1201773601f0c1c0ca1902f4052ea6be5aa6d8e3d612722edc3fda444399",
+      "after": "140e0a0a7087bdbd32c46ce0adeb96c154c289d4becdcd7aa04fa20fa29fcf92"
+    },
+    {
+      "file": "royal-tea-oracle.html",
+      "changes": "exactly one cache URL",
+      "before": "96e983974fbeb1644b484882ce12ec70ee15b434a3a2b435f967198de5888630",
+      "after": "f3764c2a23bf8dd5f14c6297a5b6fba3cb1e97a3539d840462027518fd7389c3"
+    },
+    {
+      "file": "scripts/verify-paid-gate-ui-regression.mjs",
+      "changes": "exactly one cache URL",
+      "before": "06a6f7967556500335a5edf5591af9ac6dd3af42ef053ef31d97a8b39fd5a1fb",
+      "after": "d9b645258a527f58c8ba67fc8435edd9c9ec56a9176ecc1aafeedbc91dd64725"
+    },
+    {
+      "file": "tarot-ijik.html",
+      "changes": "exactly one cache URL",
+      "before": "99663d8fdeda4408188ab614526002a1f2c624a8438db17c9391b55e737905f6",
+      "after": "51cb9cc8504f53c7f3a48fe8337c29ef88f178909fd89f4205b33f3bce5331ba"
+    },
+    {
+      "file": "yoga-guru.html",
+      "changes": "exactly one cache URL",
+      "before": "65ba1201773601f0c1c0ca1902f4052ea6be5aa6d8e3d612722edc3fda444399",
+      "after": "140e0a0a7087bdbd32c46ce0adeb96c154c289d4becdcd7aa04fa20fa29fcf92"
+    }
+  ],
+  "preserved": {
+    "js/destiny-profile.js": "eaeb4b35124454b72dba474a7ebf07269ca8f266ad4096a319f4491a7d4a07e2",
+    "public/js/destiny-profile.js": "eaeb4b35124454b72dba474a7ebf07269ca8f266ad4096a319f4491a7d4a07e2",
+    "js/core/checkout-entry.js": "08282b076e95475a1a97021d2ccbc25975114d5fe987dcec26c235ef1e133589",
+    "js/core/pass-verdict.js": "6300332e3d548a2978dc118dc7a0163acb20eb847a4efe55b978df2927d86370",
+    "worker/lib/ziwei-execution-adapter.js": "18d64ecf9d53f411ec70773a2b35766be75143ae1118fadbe15b0d15b2f8bd18",
+    "worker/lib/ziwei-calculation-preparation.js": "fc2de31d1df106e10c789be2e85eb60ca501e9eff1488d82398e4ef49675152a",
+    "worker/routes/ziwei-ai.js": "a33e17d4b5b8844997045e492e9589b483e406113fb0c6b618d41c551153eff5",
+    "worker/lib/models.js": "2f5d40022651afa6e0a8cd00f44b4fdb3fbdf49fcf8955dbe64b8b40af0c95cb",
+    "worker/lib/paid-feature-registry.js": "240e646184815ec60ed67cf18a9d3aa8872d96d73efb857f91080f10c28b09a9",
+    "worker/lib/portone.js": "aa094ce33dccee9468241d96776a40803f8fa723dc6910268d056e88b65e6760",
+    "worker/payments/pg.js": "ab634cadec466a54fe65aa47dafdd1f85a929766e3a658908e1677c7e36c7b4a",
+    "app/hooks/usePaidResume.ts": "1cbc27706f48258b35657507f6c55d9674ac963d0d4b5ead0a09b9c887123020",
+    "config/payment-freeze.json": "98b428fb68ee1da7dc49f950405f221e72ed05e73878636bc33e4b6493265299",
+    "package.json": "e912fe7549fc3d8de409832c6e56b85a398cbe9ba4b05f186d33609180b5def0",
+    "package-lock.json": "68dc54cad4b61cb053a8bae38dfeac28c73a794780fc3c1555563b7a4418ca04",
+    "vedic-astrology.html": "f06141a2bd9fdb70919c15f1eb718e3b6e1d847c6efccf1b7c96a2e741cc0dfe",
+    "public/vedic-astrology.html": "f06141a2bd9fdb70919c15f1eb718e3b6e1d847c6efccf1b7c96a2e741cc0dfe"
+  },
+  "productionIO": false
+}

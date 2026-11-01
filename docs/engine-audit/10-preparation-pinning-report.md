@@ -2,6 +2,8 @@
 
 status: implemented-default-off-local-only
 
+후속 상태: 이 문서에 남겼던 결제 캐시 핀 실패는 사용자 후속 승인 작업에서 수정하고 회귀 검증했다. 최신 결과와 실 DB·PG 검증의 준비/승인 범위는 [11-payment-cache-pin-report.md](11-payment-cache-pin-report.md)를 따른다. 아래 수치와 실패 기록은 CR-006 당시 증거로 보존한다.
+
 기준 `b69790198a9c94988a2f7c0c93604ef603bdc376`. CR-006 사용자 승인 구현. 기존 감사 워크트리에서 작업하고 push·배포·main 병합하지 않는다. 6개 엔진·불변 함수·결제 실행 파일은 보존하고 Swiss/실 LLM/운영 DB/실결제를 실행하지 않는다.
 
 ## 구현한 범위

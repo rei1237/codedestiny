@@ -1,0 +1,70 @@
+{
+  "baseline": "068dcd3748e51513687aec29283bdc7f1f5da0c3",
+  "productionIO": false,
+  "results": [
+    {
+      "name": "payment-choice-self-test",
+      "args": [
+        "scripts/verify-payment-choice-parity.mjs",
+        "--self-test"
+      ],
+      "status": 0,
+      "milliseconds": 27976,
+      "stdout": "[verify-payment-choice-parity] self-test OK — 6개 음성 케이스 + 정상 2건\n[verify-payment-choice-parity] PASS (10 renderers, 105 css rules, 22 builder + 14 renderer markers, 3 banned, 80 copy keys x 12 locales, 25 gate-triggered paths)\n",
+      "stderr": "error: fsmonitor_ipc__send_query: unspecified error on 'D:/Development/code-destiny/.git/worktrees/engine-audit-phase0-20261101-163440/fsmonitor--daemon.ipc'\n"
+    },
+    {
+      "name": "runtime-cache-sync",
+      "args": [
+        "scripts/verify-runtime-cache-sync.mjs"
+      ],
+      "status": 0,
+      "milliseconds": 425,
+      "stdout": "[runtime-cache-sync] OK: runtime=build-0655141b51a3, saju-engine=build-f2e3efaf9622, sibyl=build-1969477b5929, mobile-lite=build-dbd29495df4e, share=build-67cbd46b7d92\n",
+      "stderr": ""
+    },
+    {
+      "name": "static-asset-cache-keys",
+      "args": [
+        "scripts/verify-static-asset-cache-keys.mjs"
+      ],
+      "status": 0,
+      "milliseconds": 201,
+      "stdout": "[verify-static-asset-cache-keys] PASS — 자산 4종, 참조 34건 정합 (AnalysisEngine.js=h96b7981840e2, PhysiognomyUI.js=h249f3790ba4b, PastLifeFaceUI.js=he6a7b41ecbbb, HwatuFortune.js=haecc3241c877)\n",
+      "stderr": ""
+    },
+    {
+      "name": "paid-resume-wiring",
+      "args": [
+        "scripts/verify-paid-resume-wiring.mjs"
+      ],
+      "status": 0,
+      "milliseconds": 9297,
+      "stdout": "[verify-paid-resume-wiring] PASS — 게이트 호출부 React 49/49 · 정적 49/49 · 사주 섹션 단건 2/2 배선, 재개 kind 47개가 핸들러와 짝을 이룹니다.\n",
+      "stderr": ""
+    },
+    {
+      "name": "targeted-lint",
+      "args": [
+        "node_modules/eslint/bin/eslint.js",
+        "--quiet",
+        "app/_lib/billing-client.ts",
+        "scripts/verify-paid-gate-ui-regression.mjs"
+      ],
+      "status": 0,
+      "milliseconds": 14731,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "doc-freshness",
+      "args": [
+        "scripts/verify-doc-freshness.mjs"
+      ],
+      "status": 0,
+      "milliseconds": 330,
+      "stdout": "[verify:doc-freshness] OK\n- active docs checked: AGENTS.md, docs/CURRENT_DEV_BASELINE.md, CLAUDE.md, docs/CONTEXT_AUDIT.md\n- baseline freshness window: 14 days\n",
+      "stderr": ""
+    }
+  ]
+}
