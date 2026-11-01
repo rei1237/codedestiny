@@ -26,11 +26,11 @@ const stubMap={
  'worker/yeongnyangi/fortune/question-sky.ts':"export const resolveCurrentLocation=x=>({latitude:x.latitude,longitude:x.longitude,timezone:'Asia/Seoul'});",
  'worker/yeongnyangi/retry.js':"export const retryFortune=(...args)=>globalThis.__tossRouteMocks.retry(...args);",
  'worker/toss/session.js':"import {TossError} from './policy.js';export const requireTossSession=async()=>{if(globalThis.__tossRouteMocks.denyAuth)throw new TossError('LOGIN_REQUIRED',401);return globalThis.__tossRouteMocks.auth();};export const createTossSession=()=>{};export const invalidateIdentity=()=>{};export const disconnectIdentity=()=>{};",
- 'worker/toss/catalog.js':"export const APPROVED_TOSS_PRODUCTS=[];export const APPROVED_TOSS_NATIVE_PRODUCTS=[];export const APPROVED_TOSS_TAROT_LIBRARY_PRODUCTS=globalThis.__tossRouteMocks.tarotProducts;export const approvedProduct=globalThis.__tossRouteMocks.product;",
+ 'worker/toss/catalog.js':"export const APPROVED_TOSS_PRODUCTS=[];export const APPROVED_TOSS_NATIVE_PRODUCTS=[];export const APPROVED_TOSS_TAROT_LIBRARY_PRODUCTS=globalThis.__tossRouteMocks.tarotProducts;export const approvedProduct=(...args)=>globalThis.__tossRouteMocks.product(...args);",
  'worker/toss/models.js':"export const TossPurchase={findOne:(...args)=>globalThis.__tossRouteMocks.purchase(...args)};export const TossSession={};",
  'worker/toss/partner.js':"export const lookupOrder=(...args)=>globalThis.__tossRouteMocks.lookupOrder(...args);",
  'worker/toss/tarot-library.js':"export const tarotLibraryProduct=x=>x;export const tarotLibraryFlow=()=>{};export const tarotLibraryResult=()=>{};export const attachTarotLibraryInput=()=>{};export const grantTarotLibraryOrder=async args=>{globalThis.__tossRouteMocks.grants.push(args);return {orderId:args.order.orderId,durable:true,entitlement:'granted'};};export const deliverTarotLibraryOrder=()=>{globalThis.__tossRouteMocks.deliveries++;throw Error('grant must never generate')};",
- 'worker/toss/grant.js':"export const grantVerifiedOrder=()=>{};",
+ 'worker/toss/grant.js':"export const grantVerifiedOrder=(...args)=>globalThis.__tossRouteMocks.genericGrant(...args);",
  'worker/toss/purchases.js':"export const purchaseStore={};export const recordTossRefund=()=>{};",
  'worker/lib/models.js':"export const ProfileCard={updateOne:globalThis.__tossRouteMocks.profile};export const PaidExecutionRecord={findOne:()=>({lean:async()=>null})};",
  'worker/lib/rate-limit.js':"export const incrementRateLimit=async()=>({count:1});",
@@ -207,4 +207,38 @@ test('Love Secret routes require the release gate and verified account before th
  const generated=await request({userId:'attacker'},'/canonical/love-secret-ai/generate');
  assert.equal(generated.status,200);assert.equal(mocks.nativeLove.at(-1)[2],auth);
  assert.equal(mocks.nativeLove.at(-1)[3],'/generate');
+});
+
+for(const kind of ['consultation','tarot'])test('stored '+kind+' purchase restores after the sale SKU is retired',async()=>{
+ const previous={purchase:mocks.purchase,lookupOrder:mocks.lookupOrder,product:mocks.product,genericGrant:mocks.genericGrant};
+ const orderId='01900000-1111-7111-8111-000000000042',sku='retired-sku';
+ const stored={_id:orderId,identityId:auth._id,ownerId:auth.ownerId,environment:auth.environment,sku,
+  serviceId:'yeongnyangi',productId:kind==='tarot'?'tarot-library:tarot-mindscan':'saju_mackerel',
+  requestId:kind==='tarot'?'toss-tarot:'+orderId:'b'.repeat(64),approvedPriceKRW:3000,priceEvidence:'saved-approved-snapshot',status:'PURCHASED',
+  ...(kind==='tarot'?{tarotFlowId:'tarot-mindscan',featureKey:'tarot-mindscan'}:{})};
+ let generic=0;
+ mocks.purchase=filter=>({lean:async()=>{assert.deepEqual(filter,{_id:orderId,identityId:auth._id,ownerId:auth.ownerId,environment:auth.environment});return stored;}});
+ mocks.lookupOrder=async(_env,key,id)=>{assert.equal(key,auth.userKey);assert.equal(id,orderId);return {orderId,sku,status:'PURCHASED'};};
+ mocks.product=()=>{throw Error('RETIRED_SALE_MUST_NOT_BE_REQUIRED');};
+ mocks.genericGrant=async args=>{generic++;for(const key of ['productId','serviceId','approvedPriceKRW','priceEvidence'])assert.equal(args.product[key],stored[key]);assert.equal(args.requestId,null);return {orderId,requestId:stored.requestId,entitlement:'granted',durable:true};};
+ mocks.grants.length=0;mocks.deliveries=0;
+ try{
+  const response=await request({orderId,sku,ownerId:'attacker',environment:'DEFAULT',approvedPriceKRW:1},'/orders/restore');
+  assert.equal(response.status,200,JSON.stringify(await response.clone().json()));
+  assert.equal((await response.json()).durable,true);
+  if(kind==='tarot'){
+   assert.equal(generic,0);assert.equal(mocks.grants.length,1);
+   assert.equal(mocks.grants[0].product.tarotFlowId,stored.tarotFlowId);
+   assert.equal(mocks.grants[0].product.approvedPriceKRW,stored.approvedPriceKRW);
+   assert.equal(mocks.grants[0].product.priceEvidence,stored.priceEvidence);
+  }else{assert.equal(generic,1);assert.equal(mocks.grants.length,0);}
+  assert.equal(mocks.deliveries,0);assert.equal(calls.prepared.length,0);
+  const mismatch=await request({orderId,sku:'different-sku'},'/orders/restore');
+  assert.equal(mismatch.status,403);
+  const ownedLookup=mocks.purchase;mocks.purchase=()=>({lean:async()=>null});
+  assert.equal((await request({orderId,sku},'/orders/restore')).status,503,'an unknown retired SKU must not create a new right');
+  mocks.purchase=ownedLookup;mocks.lookupOrder=async()=>({orderId,sku,status:'REFUNDED'});
+  assert.equal((await request({orderId,sku},'/orders/restore')).status,409,'an authoritative refund must still block restoration');
+  assert.equal(generic,kind==='tarot'?0:1);assert.equal(mocks.grants.length,kind==='tarot'?1:0);assert.equal(mocks.deliveries,0);
+ }finally{Object.assign(mocks,previous);mocks.grants.length=0;}
 });
