@@ -2979,17 +2979,17 @@ export function FusionFortuneClient({ seoContent, valuePreview, paymentNotice }:
         {status.message && <p className={styles.notice}>{status.message}</p>}{notice && <p className={styles.success} role="status">{notice}</p>}
         {/* 결제는 끝났는데 결과를 못 받은 요청이 남아 있으면 그것부터 알린다 — 이 안내가 없으면
             사용자는 처음부터 다시 하는 줄 알고 결제를 한 번 더 한다. */}
-        {pendingPaidRequest && !loading && !result && <p className={`${styles.wide} ${styles.notice}`} role="status">
+        {pendingPaidRequest && !loading && !result && failure?.retryable !== false && <p className={`${styles.wide} ${styles.notice}`} role="status">
           {copy.pendingRequestNoticePrefix}<b>{copy.pendingRequestNoticeBold}</b>{copy.pendingRequestNoticeSuffix}
         </p>}
         {error && <div className={styles.wide}>
           <p className={styles.error} role="alert">{error}</p>
           {statusUnavailable && <button type="button" className={styles.profileReload} onClick={() => { setError(""); void refresh(); }}>{copy.statusRetryCta}</button>}
         </div>}
-        <button disabled={loading || isPaying || status.nextAction === "disabled"} type="submit">
+        {failure?.retryable !== false && <button disabled={loading || isPaying || status.nextAction === "disabled"} type="submit">
           <span>{buttonLabel}</span>
           {showSubmitPrice && <PriceBadge featureKey={PAID_FEATURE_KEY} fallbackLabel={copy.heroPriceFallback} prefix={copy.heroPricePrefix} className={styles.submitPrice} />}
-        </button>
+        </button>}
       </form>}
       {/* 예전에는 여기 ExpertStickyCta 와 아래 .orderBar 두 개가 동시에 떠서 화면 하단에
           같은 CTA 가 두 겹으로 쌓였다. .orderBar 쪽만 남긴다 — 가격과 CTA 를 한 줄에 들고
@@ -3018,7 +3018,7 @@ export function FusionFortuneClient({ seoContent, valuePreview, paymentNotice }:
                 ? copy.threadSubResultSaved
                 : copy.threadSubResultFresh
               : failure
-                ? copy.threadSubFailure
+                ? failure.retryable ? copy.threadSubFailure : failure.message
                 : fusionStages.find((stage) => stageStates[stage.key] === "active")?.message || copy.threadSubIdle}
           </p>
           {(!result || result.expertMeta?.complete === false) && loading && <p className="m-0 mt-2 text-[0.82rem] text-[var(--fx-ink-4)]">{copy.stagesCompletedPrefix}<b className="font-display text-[var(--fx-gold)]">{completedStageCount}</b>{copy.stagesCompletedSuffix}</p>}

@@ -62,3 +62,21 @@ test('actual Fusion saved-result recovery honors native denial before foreground
   if(!retryable){assert.equal(failure.retryable,false);assert.equal(failure.reason,code);}
  }
 });
+
+test('actual Fusion form suppresses paid-resume promises and submit after terminal denial',()=>{
+ let submitGuard='true',noticeGuard;
+ function visit(node){
+  if(ts.isJsxExpression(node)&&node.expression&&ts.isBinaryExpression(node.expression)){
+   const expression=node.expression;
+   if(expression.right.getText(ast).startsWith('<button disabled=')&&expression.right.getText(ast).includes('type="submit"'))submitGuard=expression.left.getText(ast);
+   if(expression.right.getText(ast).includes('copy.pendingRequestNoticePrefix'))noticeGuard=expression.left.getText(ast);
+  }
+  ts.forEachChild(node,visit);
+ }
+ visit(ast);assert.ok(noticeGuard);
+ for(const failure of [null,{retryable:true},{retryable:false}]){
+  const context={failure,pendingPaidRequest:true,loading:false,result:null};
+  assert.equal(vm.runInNewContext(submitGuard,context),failure?.retryable!==false);
+  assert.equal(vm.runInNewContext(noticeGuard,context),failure?.retryable!==false);
+ }
+});
