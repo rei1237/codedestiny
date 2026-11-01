@@ -66,28 +66,39 @@ test('tomorrow Article published the day before at build time passes; future or 
   assert.ok(missing.failures.some((m) => m.includes('dateModified')));
 });
 
-test('fortuneArticleDates clamps to build time across midnight, month and year boundaries', () => {
-  assert.deepEqual(fortuneArticleDates('2027-01-01', new Date('2026-12-31T14:59:59Z')), { datePublished: '2026-12-31T23:59:59+09:00', dateModified: '2026-12-31T23:59:59+09:00' });
-  assert.equal(fortuneArticleDates('2027-01-01', new Date('2026-12-31T15:05:00Z')).datePublished, '2027-01-01T00:00:00+09:00');
-  assert.equal(fortuneArticleDates('2026-11', new Date('2026-11-01T00:00:00Z')).datePublished, '2026-11-01T00:00:00+09:00');
-  assert.equal(fortuneArticleDates('2026-10-26', new Date('2026-11-01T14:00:00Z')).datePublished, '2026-10-26T00:00:00+09:00');
+test('fortuneArticleDates clamps to the KST build day across midnight, month and year boundaries', () => {
+  assert.deepEqual(fortuneArticleDates('tomorrow', '2027-01-01', new Date('2026-12-31T14:59:59Z')), { datePublished: '2026-12-31T00:00:00+09:00', dateModified: '2026-12-31T00:00:00+09:00' });
+  assert.equal(fortuneArticleDates('today', '2027-01-01', new Date('2026-12-31T15:05:00Z')).datePublished, '2027-01-01T00:00:00+09:00');
+  assert.deepEqual(fortuneArticleDates('monthly', '2026-11', new Date('2026-11-03T00:00:00Z')), { datePublished: '2026-11-01T00:00:00+09:00', dateModified: '2026-11-03T00:00:00+09:00' });
+  assert.deepEqual(fortuneArticleDates('weekly', '2026-10-26', new Date('2026-11-01T14:00:00Z')), { datePublished: '2026-10-26T00:00:00+09:00', dateModified: '2026-10-26T00:00:00+09:00' });
+});
+
+test('fortuneArticleDates: redeploys within the refresh period do not move the dates', () => {
+  // 오늘·내일·월간은 KST 하루, 주간은 월~일 한 주 동안 같은 값이다. 바뀌는 순간은 다음 주기의 00:00 KST.
+  const at = (iso) => new Date(iso);
+  for (const [period, key] of [['today', '2026-11-02'], ['tomorrow', '2026-11-03'], ['monthly', '2026-11']]) {
+    assert.deepEqual(fortuneArticleDates(period, key, at('2026-11-01T15:10:00Z')), fortuneArticleDates(period, key, at('2026-11-02T14:59:59Z')), period);
+  }
+  assert.notEqual(fortuneArticleDates('monthly', '2026-11', at('2026-11-02T14:59:59Z')).dateModified, fortuneArticleDates('monthly', '2026-11', at('2026-11-02T15:00:00Z')).dateModified);
+  // 주간: 월요일 00:10 KST 와 일요일 23:59 KST 빌드가 같다(월말을 넘는 주).
+  assert.deepEqual(fortuneArticleDates('weekly', '2026-10-26', at('2026-10-25T15:10:00Z')), fortuneArticleDates('weekly', '2026-10-26', at('2026-11-01T14:59:00Z')));
 });
 
 test('fortuneArticleDates: exact midnight, monthly year rollover, leap day, sub-second build time and invalid input', () => {
   // 대상일 00:00 KST 와 빌드 시각이 같으면 둘 다 그 순간이다(경계 포함).
-  assert.deepEqual(fortuneArticleDates('2027-01', new Date('2026-12-31T15:00:00Z')), { datePublished: '2027-01-01T00:00:00+09:00', dateModified: '2027-01-01T00:00:00+09:00' });
+  assert.deepEqual(fortuneArticleDates('monthly', '2027-01', new Date('2026-12-31T15:00:00Z')), { datePublished: '2027-01-01T00:00:00+09:00', dateModified: '2027-01-01T00:00:00+09:00' });
   // 월간: 12월 31일 23:59 KST 빌드는 아직 12월이다.
-  assert.equal(fortuneArticleDates('2026-12', new Date('2026-12-31T14:59:00Z')).datePublished, '2026-12-01T00:00:00+09:00');
-  assert.equal(fortuneArticleDates('2028-02-29', new Date('2028-03-01T00:00:00Z')).datePublished, '2028-02-29T00:00:00+09:00');
-  // 밀리초는 버린다(내림) — 문자열이 실제 빌드 시각보다 뒤가 되지 않는다.
-  assert.equal(fortuneArticleDates('2026-10-19', new Date('2026-10-18T06:00:00.999Z')).dateModified, '2026-10-18T15:00:00+09:00');
-  for (const bad of ['2026-13-01', '2026-02-30', '2026-1', '20261019', '2026-00', '']) assert.throws(() => fortuneArticleDates(bad, new Date()), /dateKey/, bad);
-  assert.throws(() => fortuneArticleDates('2026-10-19', new Date('nope')), /now/);
+  assert.equal(fortuneArticleDates('monthly', '2026-12', new Date('2026-12-31T14:59:00Z')).datePublished, '2026-12-01T00:00:00+09:00');
+  assert.equal(fortuneArticleDates('today', '2028-02-29', new Date('2028-03-01T00:00:00Z')).datePublished, '2028-02-29T00:00:00+09:00');
+  // 빌드 날 00:00 으로 내린다 — 문자열이 실제 빌드 시각보다 뒤가 되지 않는다.
+  assert.equal(fortuneArticleDates('tomorrow', '2026-10-19', new Date('2026-10-18T06:00:00.999Z')).dateModified, '2026-10-18T00:00:00+09:00');
+  for (const bad of ['2026-13-01', '2026-02-30', '2026-1', '20261019', '2026-00', '']) assert.throws(() => fortuneArticleDates('today', bad, new Date()), /dateKey/, bad);
+  assert.throws(() => fortuneArticleDates('today', '2026-10-19', new Date('nope')), /now/);
 });
 
 test('date boundaries: pages rendered at 23:59 KST, just after midnight on a stale manifest, and on the 1st pass when verified later', () => {
-  const page = (dateKey, renderedAt, extra) => {
-    const dates = fortuneArticleDates(dateKey, renderedAt);
+  const page = (period, dateKey, renderedAt, extra) => {
+    const dates = fortuneArticleDates(period, dateKey, renderedAt);
     return fixture({ ...extra, published: dates.datePublished, dateModified: dates.dateModified });
   };
   const tomorrowJan1 = { title: '쥐띠 내일의 운세 1월 1일', date: '2027-01-01', label: '2027년 1월 1일' };
@@ -95,25 +106,25 @@ test('date boundaries: pages rendered at 23:59 KST, just after midnight on a sta
   // ① 12-31 23:59:59 KST 렌더(매니페스트 today=12-31). 같은 순간과 자정을 넘긴 뒤(00:01:59) 검사한다.
   const late = new Date('2026-12-31T14:59:59Z');
   for (const verifiedAt of [late, new Date('2026-12-31T15:01:59Z')]) {
-    assert.deepEqual(verifyFortuneDateContract(page('2027-01-01', late, tomorrowJan1), { period: 'tomorrow', periodDate: '2027-01-01', buildTime: verifiedAt }).failures, [], `tomorrow ${verifiedAt.toISOString()}`);
-    assert.deepEqual(verifyFortuneDateContract(page('2026-12-31', late, todayDec31), { period: 'today', periodDate: '2026-12-31', buildTime: verifiedAt }).failures, [], `today ${verifiedAt.toISOString()}`);
+    assert.deepEqual(verifyFortuneDateContract(page('tomorrow', '2027-01-01', late, tomorrowJan1), { period: 'tomorrow', periodDate: '2027-01-01', buildTime: verifiedAt }).failures, [], `tomorrow ${verifiedAt.toISOString()}`);
+    assert.deepEqual(verifyFortuneDateContract(page('today', '2026-12-31', late, todayDec31), { period: 'today', periodDate: '2026-12-31', buildTime: verifiedAt }).failures, [], `today ${verifiedAt.toISOString()}`);
   }
   // ② prebuild 는 12-31 에 매니페스트를 썼고 렌더는 01-01 00:00:30 KST 에 됐다(매니페스트가 아직 안 넘어감).
   const afterMidnight = new Date('2026-12-31T15:00:30Z');
-  assert.deepEqual(verifyFortuneDateContract(page('2027-01-01', afterMidnight, tomorrowJan1), { period: 'tomorrow', periodDate: '2027-01-01', buildTime: afterMidnight }).failures, []);
-  assert.deepEqual(verifyFortuneDateContract(page('2026-12-31', afterMidnight, todayDec31), { period: 'today', periodDate: '2026-12-31', buildTime: afterMidnight }).failures, []);
+  assert.deepEqual(verifyFortuneDateContract(page('tomorrow', '2027-01-01', afterMidnight, tomorrowJan1), { period: 'tomorrow', periodDate: '2027-01-01', buildTime: afterMidnight }).failures, []);
+  assert.deepEqual(verifyFortuneDateContract(page('today', '2026-12-31', afterMidnight, todayDec31), { period: 'today', periodDate: '2026-12-31', buildTime: afterMidnight }).failures, []);
   // ③ 월간: 1일 00:00:00 KST 정각에 렌더하고 같은 순간 검사(같으면 통과). 연 경계.
   const jan1 = new Date('2026-12-31T15:00:00Z');
   const monthly = { title: '쥐띠 이번 달 운세 2027년 1월', h1: '쥐띠 이번 달 운세', date: '2027-01-01', label: '2027년 1월' };
-  assert.deepEqual(verifyFortuneDateContract(page('2027-01', jan1, monthly), { period: 'monthly', periodDate: '2027-01-01', buildTime: jan1 }).failures, []);
+  assert.deepEqual(verifyFortuneDateContract(page('monthly', '2027-01', jan1, monthly), { period: 'monthly', periodDate: '2027-01-01', buildTime: jan1 }).failures, []);
   // ④ 주간: 일요일 23:59 KST 렌더, 월말을 넘는 주(10-26~11-01).
   const sunday = new Date('2026-11-01T14:59:00Z');
   const weekly = { title: '쥐띠 이번 주 운세 10월 26~11월 1일', h1: '쥐띠 이번 주 운세', date: '2026-10-26', label: '10월 26일 ~ 11월 1일' };
-  assert.deepEqual(verifyFortuneDateContract(page('2026-10-26', sunday, weekly), { period: 'weekly', periodDate: '2026-10-26', buildTime: sunday }).failures, []);
+  assert.deepEqual(verifyFortuneDateContract(page('weekly', '2026-10-26', sunday, weekly), { period: 'weekly', periodDate: '2026-10-26', buildTime: sunday }).failures, []);
   // ⑤ 오래된 dist 를 며칠 뒤 검사해도(now ≥ 빌드 시각) 통과한다.
-  assert.deepEqual(verifyFortuneDateContract(page('2027-01-01', late, tomorrowJan1), { period: 'tomorrow', periodDate: '2027-01-01', buildTime: new Date('2027-01-05T00:00:00Z') }).failures, []);
-  // 검사 시각이 렌더보다 1초라도 앞이면(시계가 거꾸로) 실패한다.
-  const skew = verifyFortuneDateContract(page('2027-01-01', late, tomorrowJan1), { period: 'tomorrow', periodDate: '2027-01-01', buildTime: new Date('2026-12-31T14:59:58Z') });
+  assert.deepEqual(verifyFortuneDateContract(page('tomorrow', '2027-01-01', late, tomorrowJan1), { period: 'tomorrow', periodDate: '2027-01-01', buildTime: new Date('2027-01-05T00:00:00Z') }).failures, []);
+  // 검사 시각이 Article 날짜보다 1초라도 앞이면(시계가 거꾸로) 실패한다.
+  const skew = verifyFortuneDateContract(fixture({ ...tomorrowJan1, published: '2026-12-31T23:59:59+09:00' }), { period: 'tomorrow', periodDate: '2027-01-01', buildTime: new Date('2026-12-31T14:59:58Z') });
   assert.ok(skew.failures.some((m) => m.includes('after build time')), skew.failures.join('; '));
 });
 
