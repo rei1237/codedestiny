@@ -420,11 +420,6 @@
   CDN-Cache-Control: public, max-age=604800
   Cloudflare-CDN-Cache-Control: public, max-age=604800
 
-/music/*
-  Cache-Control: public, max-age=2592000, stale-while-revalidate=604800
-  CDN-Cache-Control: public, max-age=604800
-  Cloudflare-CDN-Cache-Control: public, max-age=604800
-
 /audio/*
   Cache-Control: public, max-age=2592000, stale-while-revalidate=604800
   CDN-Cache-Control: public, max-age=604800
@@ -435,7 +430,12 @@
   CDN-Cache-Control: public, max-age=604800
   Cloudflare-CDN-Cache-Control: public, max-age=604800
 
-/neo-operation-room/*
+/neo-operation-room/*.webp
+  Cache-Control: public, max-age=2592000, stale-while-revalidate=604800
+  CDN-Cache-Control: public, max-age=604800
+  Cloudflare-CDN-Cache-Control: public, max-age=604800
+
+/neo-operation-room/*.json
   Cache-Control: public, max-age=2592000, stale-while-revalidate=604800
   CDN-Cache-Control: public, max-age=604800
   Cloudflare-CDN-Cache-Control: public, max-age=604800

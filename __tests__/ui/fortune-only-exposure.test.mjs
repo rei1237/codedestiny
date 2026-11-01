@@ -19,6 +19,17 @@ test('paused content headers cover every entry within the Pages rule limit', () 
     }
   }
 });
+test('asset cache rules do not cover HTML directory routes', () => {
+  for (const file of ['_headers', 'public/_headers']) {
+    const text = fs.readFileSync(file, 'utf8');
+    const rules = new Map([...text.matchAll(/^(\/\S*)\r?\n((?:[ \t]+[^\r\n]+\r?\n?)*)/gm)].map(([, pattern, headers]) => [pattern, headers]));
+    for (const pattern of ['/music/*', '/neo-operation-room/*']) assert.ok(!rules.has(pattern), file + ': broad ' + pattern);
+    for (const pattern of ['/neo-operation-room/*.webp', '/neo-operation-room/*.json']) {
+      assert.match(rules.get(pattern) ?? '', /Cache-Control: public, max-age=2592000/, file + ': ' + pattern);
+    }
+    assert.match(rules.get('/neo-operation-room/strategy-books*') ?? '', /Cache-Control: no-store/, file + ': strategy-books no-store');
+  }
+});
 test('paused content is absent from published sitemaps and poker HTML is noindex', () => {
   for (const file of ['sitemap.xml', 'public/sitemap.xml', 'sitemap-ko.xml', 'public/sitemap-ko.xml']) {
     const xml = fs.readFileSync(file, 'utf8');
