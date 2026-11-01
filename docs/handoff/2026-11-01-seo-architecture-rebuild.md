@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-11-02
-next: "묶음 ① 운영 배포 승인을 받는다(승인 패킷 갱신 → gh workflow run cloudflare-pages-deploy.yml -f mode=production → /version.json 확인), 그 뒤 superpowers:writing-plans로 묶음 ② A1 엣지 계획을 쓴다"
+next: "묶음 ① 운영 승격 런 https://github.com/rei1237/codedestiny/actions/runs/41335766465 결과를 /version.json(gitSha 6d514ecaf)으로 한 번 확인하고, superpowers:writing-plans로 묶음 ② A1 엣지 계획을 쓴다"
 ---
 
 # SEO 아키텍처 재구축
@@ -20,7 +20,7 @@ next: "묶음 ① 운영 배포 승인을 받는다(승인 패킷 갱신 → gh 
 
 ## 지금 상태
 
-- 묶음 ① main push 완료(2026-11-02, origin/main `32397321e` 위로 rebase). 운영 배포는 사용자가 아직 승인하지 않았다(push만 요청). 계획은 `docs/superpowers/plans/2026-11-01-seo-bundle-1-v0-a2-d1.md`(`e00cf2f88`).
+- 묶음 ① main push 완료(2026-11-02, origin/main `32397321e` 위로 rebase). 운영 배포는 2026-11-02 사용자 승인으로 1회 실행했다(https://github.com/rei1237/codedestiny/actions/runs/41335766465, `98643c274..6d514ecaf` 66커밋). 계획은 `docs/superpowers/plans/2026-11-01-seo-bundle-1-v0-a2-d1.md`(`e00cf2f88`).
   - 커밋(rebase 후): T1 `cc57c748f`·`78e5cd1f9`, T2 `f4e76db9a`·`ad9e418d1`, T3 `6492b2ca7`·`f4f268314`, T4 `9807f5e50`·`ebecc316a`, T5 `f71eafb85`, T6 `023be9a18`, T7 `cdd15f625`, T8 `d7ba36b65`, T9 `53c4959ca`, 최종 검토 수정 `29ec78b93`.
   - 태스크마다 새 검토자, 끝에 Opus 전체 검토. Important 1건(jsonld-dates 시각 비교 → 새벽 빌드 거짓 실패)은 KST 날짜 비교로 고쳤다.
   - rebase 충돌은 생성 파일(`config/sitemap-lastmod.json`, sitemap XML)뿐이었고 커밋마다 `npm run sitemap:generate`로 다시 만들었다. 운세 페이지 lastmod가 11-02로 하루 넘어간 것은 일일 갱신분이다.
@@ -47,7 +47,7 @@ next: "묶음 ① 운영 배포 승인을 받는다(승인 패킷 갱신 → gh 
 - [ ] 묶음 ① — verify-dist 실패 0, 경고가 감사 수치를 재현(og:url 8쪽, hreflang 100/80/8), 운영 `/version.json` SHA 일치
   - [x] 로컬: 구현·검토·회귀 통과, verify-dist 실패 0, 승인 패킷 작성
   - [x] main push (2026-11-02, HEAD는 이 문서 커밋)
-  - [ ] 운영 배포 승인 → `/version.json` SHA 일치
+  - [x] 운영 배포 승인(2026-11-02, 후속 정리 그룹 D 포함) → 승격 런 https://github.com/rei1237/codedestiny/actions/runs/41335766465 (main `6d514ecaf`). `/version.json` SHA 일치는 다음 세션이 한 번 확인
 - [ ] 묶음 ② — vm 하네스 5개국×3UA 불변, 절대 Location 301 한 번, 결제 회귀 통과
 - [ ] 묶음 ③ — 전 URL 색인 상태 diff 0, HTML과 사이트맵의 hreflang 집합 일치
 - [ ] Codex 수집본 반영 → 묶음 ④ → 묶음 ⑤ → F

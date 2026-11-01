@@ -1,14 +1,14 @@
 ---
-status: blocked
+status: done
 updated: 2026-11-02
-next: "그룹 D(날짜·lastmod 신호) D1~D5를 할지 사용자 판단을 받는다. 받으면 origin/main 기준 새 워크트리에서 같은 방식(TDD→check:fast→커밋)으로 진행한다"
+next: "없음 — 그룹 A~E 완료. 운영 승격 런 https://github.com/rei1237/codedestiny/actions/runs/41335766465 결과(/version.json gitSha 6d514ecaf)만 한 번 확인한다"
 ---
 
 # SEO 묶음 ① 후속 정리 (미룬 사소한 항목 최적화)
 
 ## 왜
 
-SEO 재구축 묶음 ①(V0 검사 도구 `verify-dist`·A2 메타/JSON-LD/robots·D1 날짜 계약)은 2026-11-02에 main으로 push됐다. 운영 배포는 아직이다.
+SEO 재구축 묶음 ①(V0 검사 도구 `verify-dist`·A2 메타/JSON-LD/robots·D1 날짜 계약)은 2026-11-02에 main으로 push됐고, 같은 날 그룹 D와 함께 운영 승격을 1회 실행했다(https://github.com/rei1237/codedestiny/actions/runs/41335766465, main `6d514ecaf`, 운영 `98643c274` 뒤 66커밋).
 태스크별 검토와 최종 Opus 검토에서 "머지 후 처리 가능"으로 미룬 사소한 항목이 약 45건 남았다. 사용자는 이것을 다른 세션에서 최적화하라고 요청했다(2026-11-02).
 본 재구축(묶음 ②~⑤)은 `docs/handoff/2026-11-01-seo-architecture-rebuild.md`가 따로 맡는다. 이 문서는 그 흐름을 막지 않는 정리 작업만 다룬다.
 
@@ -23,7 +23,7 @@ SEO 재구축 묶음 ①(V0 검사 도구 `verify-dist`·A2 메타/JSON-LD/robot
 
 - 묶음 ① main push 완료(인수인계 문서 `2026-11-01-seo-architecture-rebuild.md` '지금 상태'에 SHA). 운영 배포는 사용자 승인 대기.
 - 그룹 A·B·C·E 완료, origin/main push(세션 99675bd9, 2026-11-02). 운영 배포는 하지 않았다.
-- 그룹 D는 설계 판단이 필요해 사용자 확인 대기다(`status: blocked`).
+- 그룹 D는 2026-11-02 사용자가 설계 판단을 위임해 같은 날 끝냈다(아래 그룹 D).
 - 이번 세션 판단(계획과 다르게 한 것 포함):
   - A4·A6: `dist/_worker.js`가 없어도 스택 트레이스 대신 규칙 실패 1줄로 보고한다(fail-closed).
   - B2: `--check`는 SECTIONS 허브가 빠질 때만 실패한다. 전체 목록의 레지스트리 경로를 모두 실패로 하면 `/fusion-fortune`(사이트맵 제외 허브) 때문에 빌드가 막힌다.
@@ -72,13 +72,13 @@ SEO 재구축 묶음 ①(V0 검사 도구 `verify-dist`·A2 메타/JSON-LD/robot
 - [x] C6 날짜만 있는 원본을 `toISOString()`으로 내보내는 곳 3곳을 날짜 문자열 또는 `+09:00`로 바꾼다: `app/insights/famous-saju/[slug]/page.tsx:787,789`, `app/components/SeoJsonLd.jsx:12`, `lib/generate-page-metadata.ts:252-253`. 바꾸면 jsonld-dates를 다시 시각 단위로 좁힐 수 있는지 검토한다. → `240b8b4b5 · 판단 9935aa702`
 - [x] C7 주석 정리: `app/layout.js` alternates 블록 밑 새 주석 위치, tarot/numerology 리터럴의 adsense 사유, `seo-audit.mjs:43` 낡은 주석(원장 24·65·66). → `434213763 · cd630de1d`
 
-### 그룹 D — 날짜·lastmod 신호 (설계 판단 필요, 사용자 확인 후)
+### 그룹 D — 날짜·lastmod 신호 (2026-11-02 사용자가 설계 판단 위임)
 
-- [ ] D1 lastmod 서명을 import한 모듈 전체 해시가 아니라 렌더 결과나 경로 프로필 기준으로 바꾼다. 공유 모듈 한 줄 수정에 322쪽 lastmod가 움직이는 문제다(원장 88·124). 사이트맵 diff와 `verify:sitemap-drift`로 검증한다.
-- [ ] D2 today/weekly/monthly 운세 dateModified가 배포할 때마다 빌드 시각으로 오른다. 내용이 바뀔 때만 오르게 할지 판단한다(원장 122).
-- [ ] D3 fortune-date-contract의 "대상일 또는 전날" 허용을 tomorrow·build<target일 때로 좁힌다. freshness 검사가 datePublished 대신 `<time datetime>` 표식을 읽게 해서 독립성을 높인다(원장 109·110).
-- [ ] D4 기존 문제: weekly/monthly 기대값이 검사기 시계를 쓴다. 일요일·월말 23:59 렌더를 자정 뒤에 검사하면 실패한다(원장 106·113).
-- [ ] D5 `parseJsonLdDate`가 확장형 날짜에 기본형 오프셋(±hhmm)을 받는 의도를 주석으로 적는다(원장 112).
+- [x] D1 lastmod 서명을 import한 모듈 전체 해시가 아니라 렌더 결과나 경로 프로필 기준으로 바꾼다. 공유 모듈 한 줄 수정에 322쪽 lastmod가 움직이는 문제다(원장 88·124). 사이트맵 diff와 `verify:sitemap-drift`로 검증한다. → `b39779b92` 원장 v2(원장 라우트 80% 이상이 import하는 전역 모듈 10개는 서명에서 빼고 그 안의 라우트 전용 객체·번역 키만 넣음, v1 원장은 옛 서명으로 비교해 전환만으로는 0건 변경) · `3ea746a53` 부풀려진 156개 lastmod를 실제 수정일로 소급. IndexNow 증분 키가 서명을 포함하므로 다음 운영 배포에서 830개가 한 번 재제출된다
+- [x] D2 today/weekly/monthly 운세 dateModified가 배포할 때마다 빌드 시각으로 오른다. 내용이 바뀔 때만 오르게 할지 판단한다(원장 122). → `6e93e306f` 발행 = min(대상일, 빌드 날) 00:00 KST, 수정 = 갱신 주기 시작(빌드 날, 주간은 그 주 월요일). 같은 날·같은 주 재배포는 날짜가 그대로다
+- [x] D3 fortune-date-contract의 "대상일 또는 전날" 허용을 tomorrow·build<target일 때로 좁힌다. freshness 검사가 datePublished 대신 `<time datetime>` 표식을 읽게 해서 독립성을 높인다(원장 109·110). → `169c39614` freshness는 npm ci 없이 돌므로 파서 없이 표식 태그만 읽고 모든 기간 정확 일치. 운영 GET 4/4 OK
+- [x] D4 기존 문제: weekly/monthly 기대값이 검사기 시계를 쓴다. 일요일·월말 23:59 렌더를 자정 뒤에 검사하면 실패한다(원장 106·113). → `169c39614` 검사 시각과 3시간 전(FORTUNE_RENDER_WINDOW_MS) 두 문맥 중 하나에 맞으면 통과
+- [x] D5 `parseJsonLdDate`가 확장형 날짜에 기본형 오프셋(±hhmm)을 받는 의도를 주석으로 적는다(원장 112). → `6d514ecaf`
 
 ### 그룹 E — 헤더·기타
 
@@ -86,7 +86,7 @@ SEO 재구축 묶음 ①(V0 검사 도구 `verify-dist`·A2 메타/JSON-LD/robot
 - [x] E2 `/audio/*`·`/DestinyCafe/*` 넓은 splat을 좁힌다(지금은 HTML 없음)(원장 102). → `525aa25e6`
 - [x] E3 공유 decodeHtml의 특이 동작(`&gt;`→공백, `&amp;lt;` 이중 해제)을 고치고, 대문자 태그·속성 순서·작은따옴표 canonical 테스트를 추가한다. seo-audit "JSON-LD @type 없음" 판정 완화를 복원할지 판단하고, `data-href=` 오인식과 `<svg>` 안 `<title>` 문제도 본다(원장 22·23·25·26). → `93dcf4ff0`
 
-- [x] 끝: 이 문서 갱신(그룹 D 대기라 `status: blocked`), 워크트리 배수(junction 해제 → `git worktree remove --force` → `git branch -d`)
+- [x] 끝: 이 문서 갱신(그룹 D 완료 뒤 `status: done`), 워크트리 배수(junction 해제 → `git worktree remove --force` → `git branch -d`)
 
 ## 함정
 
