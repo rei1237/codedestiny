@@ -133,6 +133,9 @@ export function getJsonLd(html) {
 // schema.org Date/DateTime (ISO 8601) → epoch ms, or null when it is not ISO 8601 or not a real date/time.
 // No offset is read as KST (+09:00), the site's calendar; a date alone is 00:00 KST of that day.
 // The machine time zone is never used (CI runs in UTC, local machines in KST).
+// The offset may also be basic form (+0900) after an extended date. Strict ISO 8601 forbids mixing the
+// two forms, but %z-style formatters emit it and Date.parse reads it to the same instant as +09:00.
+// This guard exists to catch wrong or unreadable dates, not to lint offset spelling, so it is accepted on purpose.
 const ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2})(?::(\d{2})(\.\d+)?)?(Z|[+-]\d{2}:?\d{2})?)?$/;
 export function parseJsonLdDate(value) {
   const match = typeof value === 'string' ? ISO_DATE.exec(value.trim()) : null;
