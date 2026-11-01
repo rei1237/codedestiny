@@ -18,7 +18,7 @@ globalThis.__tossRouteMocks=mocks;
 const stubMap={
  'worker/toss/native-life-book.js':"export const prepareNativeLifeBook=()=>{};export const handleNativeLifeBook=()=>{};export const nativeLifeBookLibraryItem=()=>{};",
  'worker/toss/native-love-secret.js':"const calls=globalThis.__tossRouteMocks.nativeLove;export const prepareNativeLoveSecret=(...args)=>{calls.push(args);return {id:'offline-intent'};};export const handleNativeLoveSecret=(...args)=>{calls.push(args);return Response.json({ok:true,source:'original-love'});};export const nativeLoveSecretLibraryItem=()=>{};",
- 'worker/toss/native-fusion.js':"export const prepareNativeFusion=()=>{};export const handleNativeFusion=()=>{};export const nativeFusionLibraryItem=()=>{};",
+ 'worker/toss/native-fusion.js':"import {TossError} from './policy.js';export const prepareNativeFusion=()=>{};export const handleNativeFusion=()=>{const error=globalThis.__tossRouteMocks.nativeFailure;if(error)throw new TossError(error.code,error.status);};export const nativeFusionLibraryItem=()=>{};",
  'worker/toss/native-neo.js':"export const prepareNativeNeo=()=>{};export const handleNativeNeo=()=>{};export const nativeNeoLibraryItem=()=>{};",
  'worker/toss/native-tea.js':"export const nativeTeaCatalog=()=>[];export const prepareNativeTea=()=>{throw Error('not used')};export const readNativeTeaIntent=()=>{};export const handleNativeTea=()=>{};export const approvedNativeTeaProduct=()=>{};",
  'worker/routes/profile.js':"export const normalizeIncomingProfile=x=>x;export const validateRequiredBirth=x=>({ok:!!x?.birth,birth:x?.birth});export const toClientProfile=x=>x;",
@@ -54,6 +54,20 @@ async function request(body,path='/prepare',env={TOSS_RELEASE_READY:'true'}){
  return handleTossRoutes(new Request('https://code-destiny.com/api/toss'+path,{method:'POST',headers:{Origin:'https://ai-saju-studio.private-apps.tossmini.com','Content-Type':'application/json'},body:JSON.stringify(body)}),env);
 }
 test('release gate prevents any profile or prepared row write',async()=>{const r=await request(input(),'/prepare',{});assert.equal(r.status,503);assert.equal(calls.profiles.length,0);assert.equal(calls.prepared.length,0);});
+
+test('Fusion preflight authority errors retain retryability through the outer Toss router',async()=>{
+ try{
+  for(const [code,status] of [['ORDER_REFUNDED',409],['ORDER_OWNERSHIP_MISMATCH',403],['TOO_MANY_REQUESTS',429],['TOSS_PARTNER_UNAVAILABLE',502]]){
+   mocks.nativeFailure={code,status};
+   const response=await request({},'/canonical/fusion-fortune/generate/stream');
+   assert.equal(response.status,status);
+   const body=await response.json();assert.equal(body.error,code);assert.equal(body.retryable,status>=500||status===429);
+  }
+  mocks.nativeFailure=null;mocks.denyAuth=true;
+  const response=await request({},'/canonical/fusion-fortune/result');
+  assert.equal(response.status,401);assert.equal((await response.json()).retryable,false);
+ }finally{mocks.nativeFailure=null;mocks.denyAuth=false;}
+});
 
 test('daily adapter requires release readiness and a verified account before any operation',async()=>{
  mocks.dailyCalls.length=0;

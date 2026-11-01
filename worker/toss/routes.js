@@ -332,6 +332,7 @@ export async function handleTossRoutes(request,env) {
     const inputErrors=['QUESTION_SCOPE_REQUIRED','QUESTION_SCOPE_UNSUPPORTED','QUESTION_PRODUCT_MISMATCH','PARTNER_REQUIRED','PARTNER_NOT_SUPPORTED','BIRTH_TIME_REQUIRED','PROFILE_REQUIRED','INVALID_BIRTH','QUESTION_FOLLOWUP_BUSY','QUESTION_FOLLOWUP_SUPPORT','FOLLOWUP_NOT_AVAILABLE','FOLLOWUP_INPUT_INVALID','QUESTION_CONVERSATION_CLOSED'];
     if(inputErrors.includes(error?.code))return reply({error:error.code,errorId:crypto.randomUUID()},400);
     // Engine messages are not echoed; request IDs are random and contain no personal data.
-    return reply({error:known?error.code:'REQUEST_FAILED',errorId:crypto.randomUUID()},known?error.status:503);
+    return reply({error:known?error.code:'REQUEST_FAILED',errorId:crypto.randomUUID(),
+      ...(path.startsWith('/canonical/fusion-fortune/')?{retryable:!known||error.status>=500||error.status===429}:{})},known?error.status:503);
   }
 }
