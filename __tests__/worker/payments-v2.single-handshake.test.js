@@ -50,6 +50,6 @@ test("🔴 레인 자가복구가 배선돼 있다 — 없으면 좀비 커넥�
   const body = source.slice(source.indexOf("export async function withPaymentDb"));
   expect(body).toMatch(/isTransientMongoError\(error\)/);
   expect(body).toMatch(/resetPaymentConnection\(\)/);
-  // 레인 실패 폴백에는 공유 connectDb 가 있어야 한다(bufferCommands:false).
-  expect(body).toMatch(/if\s*\(!paymentConn\)\s*await connectDb\(env\)/);
+  // 레인 실패 폴백에는 공유 connectDb 가 있어야 한다(bufferCommands:false). 공유 레인 연결 차단기는 우회한다.
+  expect(body).toMatch(/if\s*\(!paymentConn\)\s*await connectDb\(env,\s*\{\s*bypassConnectBreaker:\s*true\s*\}\)/);
 });

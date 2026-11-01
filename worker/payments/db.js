@@ -226,7 +226,8 @@ export async function withPaymentDb(env, ctx, fn, overrides) {
       let paymentConn = null;
       if (laneEnabled) {
         try { paymentConn = await connectPaymentDb(env); } catch { paymentConn = null; }
-        if (!paymentConn) await connectDb(env);
+        // 폴백 공유 연결은 공유 레인 연결 차단기를 우회한다 — 결제는 막지 않는다(worker/lib/db.js sharedConnectBreaker).
+        if (!paymentConn) await connectDb(env, { bypassConnectBreaker: true });
       }
       try {
         return await fn(makeCountingDb(ctx, paymentConn));

@@ -1019,7 +1019,8 @@ export async function connectDb(env = {}, options = {}) {
 
   // 요청 스코프 안이면 전역 연결 대신 이 요청의 연결을 세운다(설계안 C3 — sharedLaneForRequest 주석).
   if (sharedLane) {
-    return connectScopedSharedLane(sharedLane, { uri, familyCandidates, retryCount, retryBaseDelayMS, guardTimeoutMS, buildConnectOptions, timings });
+    const breaker = options.bypassConnectBreaker === true ? null : readSharedConnectBreakerConfig(env);
+    return connectScopedSharedLane(sharedLane, { uri, familyCandidates, retryCount, retryBaseDelayMS, guardTimeoutMS, buildConnectOptions, timings, breaker });
   }
 
   let lastError = null;
@@ -1226,11 +1227,72 @@ function retireScopedSharedConnection(lane) {
   bindScopeConnection(lane.scope, null);
 }
 
+// ── 공유 레인 연결 차단기(isolate 단위, 2026-11-01) ─────────────────────────────
+// 2026-10-31 21:59~22:10 P1: 503 비율이 30.9%까지 올랐다. 유력 원인은 M10 의 노드당 신규 연결 한도(초당 15개)다.
+// 공유 레인은 요청마다 연결을 새로 세우고, 수립이 실패한 요청 하나가 family 후보 × 재시도로 최대 6번을 더 연다
+// (아래 establishScopedSharedLane). 한도에 걸려 거절당하면 그 재시도가 다시 한도를 두드리는 고리가 된다.
+// 그래서 이 isolate 에서 수립이 연달아 실패하면 잠시 새 수립을 멈추고 바로 실패시킨다.
+//   · 닫힘: 수립 성공마다 failures=0. 수립(모든 시도)이 실패하면 failures+1. N번 연속이면 열린다.
+//   · 열림: openMs 동안 createConnection 을 부르지 않고 MongoConnectBreakerOpenError 로 실패한다.
+//   · 반개방: 창이 지나면 탐침 하나만 수립을 시도하고, 나머지는 탐침이 끝날 때까지 바로 실패한다.
+//     탐침이 성공하면 닫히고, 실패하면 다시 열린다.
+// 결제는 막지 않는다 — 결제 레인(connectPaymentDb)은 이 경로를 타지 않고, 그 레인이 실패했을 때 타는 공유 레인
+// 폴백(worker/payments/db.js)과 결제 admission 레인의 connectDb 는 bypassConnectBreaker 로 우회한다.
+// 노브: MONGO_CONNECT_BREAKER_FAILURES(0 이면 끔), MONGO_CONNECT_BREAKER_OPEN_MS. [vars] 에는 없다(코드 기본값).
+// 스코프 밖 전역 연결 루프(테스트·스크립트)에는 걸지 않는다.
+const sharedConnectBreaker = { failures: 0, openUntil: 0, probing: false };
+
+export const CONNECT_BREAKER_OPEN_ERROR_NAME = "MongoConnectBreakerOpenError";
+
+function readSharedConnectBreakerConfig(env) {
+  return {
+    threshold: clampInt(getEnv(env, "MONGO_CONNECT_BREAKER_FAILURES", "3"), 3, 0, 20),
+    openMs: clampInt(getEnv(env, "MONGO_CONNECT_BREAKER_OPEN_MS", "5000"), 5000, 1000, 60000),
+  };
+}
+
+function connectBreakerOpenError() {
+  // 메시지는 isTransientMongoError 의 "connection is not ready" 에도 걸려, 이름으로 분류하지 않는 호출부도 503 으로 간다.
+  const error = new Error("MongoDB connection is not ready in Worker (connect breaker open).");
+  error.name = CONNECT_BREAKER_OPEN_ERROR_NAME;
+  return error;
+}
+
+// 새 수립을 해도 되는지 묻는다. 안 되면 던지고, 되면 결과(true/false)를 받을 함수를 돌려준다.
+function admitSharedConnect(config) {
+  const breaker = sharedConnectBreaker;
+  if (!config.threshold || breaker.failures < config.threshold) return (ok) => settleSharedConnect(config, false, ok);
+  if (Date.now() < breaker.openUntil || breaker.probing) throw connectBreakerOpenError();
+  breaker.probing = true;
+  console.log(`[db-connect-breaker] half-open failures=${breaker.failures}`);
+  return (ok) => settleSharedConnect(config, true, ok);
+}
+
+function settleSharedConnect(config, probe, ok) {
+  const breaker = sharedConnectBreaker;
+  if (probe) breaker.probing = false;
+  if (ok) {
+    if (config.threshold && breaker.failures >= config.threshold) console.log(`[db-connect-breaker] close failures=${breaker.failures}`);
+    breaker.failures = 0;
+    breaker.openUntil = 0;
+    return;
+  }
+  breaker.failures += 1;
+  if (!config.threshold || breaker.failures < config.threshold) return;
+  // 열리기 전에 출발한 동시 수립이 뒤늦게 실패해도 창만 늘리고 open 은 다시 찍지 않는다.
+  const wasOpen = Date.now() < breaker.openUntil;
+  breaker.openUntil = Date.now() + config.openMs;
+  if (!wasOpen) console.log(`[db-connect-breaker] open failures=${breaker.failures} openMs=${config.openMs}`);
+}
+
 async function connectScopedSharedLane(lane, params) {
   if (lane.conn && lane.conn.readyState === 1) return lane.conn;
   if (!lane.promise) {
+    const settle = params.breaker ? admitSharedConnect(params.breaker) : null;
     retireScopedSharedConnection(lane);
-    lane.promise = establishScopedSharedLane(lane, params).finally(() => { lane.promise = null; });
+    lane.promise = establishScopedSharedLane(lane, params)
+      .then((conn) => { settle?.(true); return conn; }, (error) => { settle?.(false); throw error; })
+      .finally(() => { lane.promise = null; });
   }
   return lane.promise;
 }
@@ -1545,6 +1607,8 @@ export function isTransientMongoError(error) {
     // 받는다(느린 성공→즉시 실패로 바뀔 뿐 나아지지 않는다).
     || name === "MongoExpiredSessionError"
     || name === "MongoNotConnectedError"
+    // 공유 레인 연결 차단기가 열려 바로 실패한 경우. 연결을 시도하지 않았을 뿐 DB 장애와 같은 일시 실패라 503 이다.
+    || name === CONNECT_BREAKER_OPEN_ERROR_NAME
   ) {
     return true;
   }
@@ -1708,7 +1772,8 @@ export async function withMongoRetry(env = {}, operation, options = {}) {
           // 판정이 자기 자신을 '동시 요청'으로 세지 않게 알려 준다(connectDb 머리주석).
           // timings 를 그대로 넘긴다 — connectDb 가 connectMs 안쪽을 pingMs·resetMs·handshakeMs 로
           // 쪼개 채운다(전용 레인은 공유 커넥션을 안 타므로 넘길 것이 없다).
-          if (ownsSharedConnection) await connectDb(env, { activeOpsOwned: 1, timings });
+          // 결제 admission 레인(소켓 레인을 끈 경우)은 공유 레인 연결 차단기를 우회한다(sharedConnectBreaker 주석).
+          if (ownsSharedConnection) await connectDb(env, { activeOpsOwned: 1, timings, bypassConnectBreaker: options.admissionLane === "payment" });
           connectFinishedAt = Date.now();
           return await operation();
         })();
@@ -1781,12 +1846,16 @@ export async function withMongoRetry(env = {}, operation, options = {}) {
         // 여전히 재시도하고, 라우트 계층의 503(재시도 가능) 매핑도 그대로다. 여기서 빠지는 것은
         // '웜 커넥션 무효화 + 풀 리셋' 판정뿐이다.
         const isWaitQueueTimeout = String(error?.name || "") === "MongoWaitQueueTimeoutError";
+        // 차단기 빠른 실패는 연결을 만들지도 않았다 — 은퇴·리셋할 연결이 없고, 창 안에서 다시 시도해도 또 막힌다.
+        const isConnectBreakerOpen = error?.name === CONNECT_BREAKER_OPEN_ERROR_NAME;
         const isConnectionLevelFailure = ownsSharedConnection
           && !isWaitQueueTimeout
+          && !isConnectBreakerOpen
           && ((isOperationTimeout && resetOnOperationTimeout) || isTransientMongoError(error));
         const willRetry = attempt < maxRetries
           && (isTransientMongoError(error) || (isOperationTimeout && retryOnOperationTimeout))
-          && error?.name !== "MongoOperationOverloadedError";
+          && error?.name !== "MongoOperationOverloadedError"
+          && !isConnectBreakerOpen;
         if (isOperationTimeout) {
           // 이 한 줄이 세 후보를 가른다:
           //   connectMs 가 크다        → 연결 수립이 범인(현재 실측상 아님, 중앙값 1497ms)
@@ -1918,4 +1987,6 @@ export const __dbTestUtils = {
     lastPoolResetAt = Date.now() - agoMs;
     consecutiveConnectionFailures = 0;
   },
+  // 공유 레인 연결 차단기 상태(테스트가 창 경과를 기다리지 않고 재현한다).
+  sharedConnectBreakerForTest: () => sharedConnectBreaker,
 };
