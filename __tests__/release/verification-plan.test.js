@@ -68,6 +68,14 @@ test('missing base and empty diff select full checks', async () => {
   }
 });
 
+test('only a complete empty diff counts as nothing to verify', async () => {
+  const { nothingToVerify } = await load();
+  assert.equal(nothingToVerify(input([])), true);
+  assert.equal(nothingToVerify(input([], false)), false);
+  assert.equal(nothingToVerify(input(['docs/a.md'])), false);
+  assert.equal(nothingToVerify({ ...input([]), hasDeletionOrRename: true }), false);
+});
+
 test('rename includes source and destination; deletion stays in risk input', async () => {
   const { parseNameStatus, createVerificationPlan } = await load();
   const files = parseNameStatus('R100\0worker/routes/payments.js\0docs/retired.md\0D\0app/hooks/usePaidResume.ts\0');

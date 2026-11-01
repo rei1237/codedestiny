@@ -63,6 +63,13 @@ export function collectChanges({ root = process.cwd(), base = "origin/main", hea
   return { baseSha, headSha, files: [...files].sort(), deletedOrRenamedFiles: [...deletedOrRenamedFiles].sort(), hasDeletionOrRename: deletedOrRenamedFiles.size > 0, embeddedRepos, complete: errors.length === 0, errors };
 }
 
+// 깨끗한 작업 트리는 "검사할 변경이 없다"이지 "모른다"가 아니다. 계획 자체는 빈 diff 를 계속
+// fail-closed(critical)로 보고, 이 판정은 로컬 작업 트리 모드의 실행기만 쓴다(2026-11-02: 커밋 직후
+// check:fast 가 34단계 전체 검증을 돌았다). git 수집이 실패하면 complete=false 라 여기 걸리지 않는다.
+export function nothingToVerify(changes) {
+  return changes.complete === true && !(changes.files || []).length && !changes.hasDeletionOrRename;
+}
+
 // Read the existing critical contract rather than duplicating its guard list.
 export function criticalSteps(scripts) {
   const command = scripts["check:critical"];

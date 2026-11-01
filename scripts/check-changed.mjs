@@ -3,7 +3,7 @@ import { spawnSync } from "node:child_process";
 import { readFileSync, existsSync, appendFileSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, resolve } from "node:path";
-import { collectChanges, createVerificationPlan, expandCiGuards } from "./lib/verification-plan.mjs";
+import { collectChanges, createVerificationPlan, expandCiGuards, nothingToVerify } from "./lib/verification-plan.mjs";
 import { lintTargets } from "./lib/lint-targets.mjs";
 import { selfTest as riskSelfTest } from "./lib/change-risk.mjs";
 
@@ -39,6 +39,11 @@ function main() {
     root, base: value("base") || (ci ? process.env.PR_BASE_SHA || "MISSING_PR_BASE" : committed ? "HEAD^" : "HEAD"),
     head: value("head") || (ci ? process.env.PR_HEAD_SHA || "HEAD" : "HEAD"), working: !ci && !committed,
   });
+  // check:all·check:payment 는 clean HEAD 에서 일부러 전체를 돌리는 명령이라 여기서 끊지 않는다.
+  if (!ci && !committed && ["fast", "ui", "worker"].includes(value("profile") || "fast") && process.env.CD_FORCE_CRITICAL !== "true" && nothingToVerify(changes)) {
+    console.log("[check:changed] 검사할 변경 없음 — 작업 트리가 HEAD 와 같다.");
+    return;
+  }
   let jestConfig;
   try { jestConfig = require(resolve(root, "jest.config.cjs")); } catch { /* Keep smoke when dependencies/config cannot be resolved. */ }
   let plan = createVerificationPlan(changes, { scripts, jestConfig, profile: value("profile") || "fast", skipBuild: args.includes("--skip-build"), forceCritical: process.env.CD_FORCE_CRITICAL === "true" });
