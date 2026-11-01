@@ -49,6 +49,7 @@ status: done
 - `lib/ziwei-birth-clock.js`, `worker/lib/ziwei-ai-chart.js`, `worker/lib/guardian-fortune/adapters/ziwei.js`: 같은 역사 달력을 시계와 명반에 전달. 학파/소한 seedYear 규칙 변경 없음.
 - `scripts/build-korean-calendar-table.mjs`, `js/core/korean-calendar.js`, `public/js/core/korean-calendar.js`: 승인 모듈의 정본 생성 연결/미러. 기존 표 `table.generated.js`는 불변.
 - 정적 생성기 후속 10개 파일(`index.html`, `js/core/index-inline-runtime.js`, `public/js/core/index-inline-runtime.js`, `public/{index,en/index,ja/index,zh/index,zh-tw/index,ggulggul/index,static/index}.html`)은 캐시 URL의 `?v=` 값만 갱신했다. 변경 전후에서 그 값만 정규화하면 내용이 동일함을 검사하여 문구·마크업·레이아웃·계산 로직 변화가 없음을 확인했다.
+- 정적 전달 검사의 생성물 불일치는 기존 `scripts/generate-sitemap.mjs`로 동기화했다. 루트/public의 사이트맵 XML 12개는 `lastmod` 외 내용이 동일하고, `config/sitemap-lastmod.json`은 내용 지문·날짜 외 구조와 경로 집합이 동일함을 검사했다. 새 주소·SEO 문구·색인 정책은 추가하지 않았다.
 - `__tests__/fixtures/korean-calendar/authority-v2-*.json`, `__tests__/ui/calendar-authority-regression.test.mjs`, `tools/oracle/implementation/`: 독립 공식 골든·검증/수집 도구. 운영 의존성과 lockfile은 변경하지 않았다.
 
 결제/가격/이용권/월정석/단건 결제, PortOne/Inicis, 인증, API 라우트, DB/KV/R2/사용자 자산 형식, 기존 저장·유료 결과, 960px 레이아웃 및 UI/i18n/SEO 문구는 변경하지 않았다. 저장 결과 재계산/덮어쓰기 0건이다. 추가된 문자열은 내부 오류 코드와 근거 버전이며 사용자 UI 문구를 추가하지 않았다. 폐기한 운영 코드가 없어 `_graveyard/` 이동도 없다.
