@@ -32,12 +32,12 @@
     {
       "file": "app/_lib/billing-client.ts",
       "why": "React 결제 코어. 낙관 이용권 grant 와 결제창 렌더러가 여기 있다.",
-      "sha256": "5b0e93d65eec45cb"
+      "sha256": "b627f1e8a19a9ac4"
     },
     {
       "file": "app/hooks/useCoinGate.ts",
       "why": "React 유료 게이트 공개 훅.",
-      "sha256": "505907f697d4dc2f"
+      "sha256": "4e7201845c01e4a8"
     },
     {
       "file": "lib/payment/portone.ts",

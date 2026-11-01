@@ -465,7 +465,7 @@ const BILLING_FETCH_DEFAULT_TIMEOUT_MS = 20000;
 const BILLING_FETCH_CHECKOUT_TIMEOUT_MS = 40000;
 const BILLING_FETCH_CONFIRM_TIMEOUT_MS = 60000;
 const PAYMENT_CHOICE_IN_FLIGHT_TTL_MS = 45000;
-export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-2029b9340aa4";
+export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-fc0c52ff363f";
 // 🔴 이용권 스냅샷의 상수·읽기·쓰기·판정은 전부 js/core/pass-verdict.js 가 소유한다.
 // 셸(index.html)·독립 정적(js/destiny-profile.js)과 **같은 localStorage 키**를 공유하므로 값이 갈리면
 // 같은 사용자가 어느 런타임에서 클릭했느냐에 따라 판정이 달라지고, 한쪽이 만료로 보고 지운 캐시가
@@ -2054,6 +2054,20 @@ function getPaidServiceRuntimeGate(): PaidServiceRuntimeGate | null {
   if (typeof window === "undefined") return null;
   const runtimeWindow = window as RuntimeApiWindow;
   return typeof runtimeWindow._cdOpenPaidServiceGate === "function" ? runtimeWindow._cdOpenPaidServiceGate : null;
+}
+
+// Warm only the static file. Executing it also starts the legacy profile and
+// locale bootstraps, which must not compete with the first consultation paint.
+// The user-initiated loader below still owns execution, readiness and retries.
+export function prefetchPaidServiceRuntimeGate(): void {
+  if (typeof document === "undefined" || getPaidServiceRuntimeGate()) return;
+  if (document.querySelector('link[data-cd-payment-runtime-prefetch]')) return;
+  const link = document.createElement("link");
+  link.rel = "prefetch";
+  link.as = "script";
+  link.href = PAID_SERVICE_RUNTIME_SRC;
+  link.dataset.cdPaymentRuntimePrefetch = "1";
+  document.head.appendChild(link);
 }
 
 export function loadPaidServiceRuntimeGate(): Promise<PaidServiceRuntimeGate | null> {
