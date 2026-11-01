@@ -80,7 +80,9 @@ KASI [1909년 음력 8월 11일](https://astro.kasi.re.kr/life/lunc?yyyy=1909&mm
 
 ### 종료 기록
 
-검증: `node --test tools/oracle/test/adjudication.test.mjs` 7개 통과(원본 101입력/1,109필드, JPL 시점·공식 달력·공개 어댑터 대조, 원시 해시, 소스 핀). `node tools/oracle/verify-licenses.mjs` 설치된 12개 패키지 MIT 확인. 새 `.mjs` 문법 검사와 `git diff --check` 통과. 추가 증거 104개 파일 2,705,202바이트(매니페스트 제외), 기존 Phase 2 증거 16개 파일 불변, 서비스 소스 핀 39개 불변을 확인했다.
+검증: `node --test tools/oracle/test/adjudication.test.mjs` 7개 통과(원본 101입력/1,109필드, JPL 시점·공식 달력·공개 어댑터 대조, 원시 해시, 소스 핀). `node tools/oracle/verify-licenses.mjs` 설치된 12개 패키지 MIT 확인. 새 `.mjs` 문법 검사와 최종 변경의 `git diff --check`, `npm run verify:doc-freshness` 통과. 추가 증거 104개 파일 2,748,819바이트(매니페스트 제외), 기존 Phase 2 증거 16개 파일 불변, 서비스 소스 핀 39개 불변을 확인했다.
+
+초기 탐색 HTML 두 개는 Git 줄바꿈 정규화/공백 검사와 충돌하여, 원문의 모든 바이트를 검증한 뒤 JSON의 `body`와 `bodySha256`으로 포장했다. 원문 내용을 교정하지 않았다. 이 두 탐색 파일은 정확한 요청 시각/URL이 기록되지 않았음을 명시하며 판정 근거로 사용하지 않는다. 판정에 쓰인 공식 응답은 별도의 출처 메타데이터를 갖는다.
 
 `npm run check:fast -- --plan`은 critical로 전체 Jest 등 Swiss 연결 검사를 선택한다. **계획만 조회했고 전체 실행·CI·push는 하지 않았다.** 최초 증거 검사 작성 중 구문 오타 1개를 수정한 뒤 7개 전체 검사를 통과했다. 운영 코드 검증 실패를 숨기거나 게이트를 축소한 것이 아니다.
 

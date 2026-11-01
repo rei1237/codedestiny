@@ -64,9 +64,9 @@
       "capturedAt": "2026-11-01T09:15:42.379Z"
     },
     {
-      "file": "sources/kasi-convert-form.html",
-      "bytes": 125285,
-      "sha256": "69cdd50695200a1abb79e1ba35275e248e2be66662d0b8c2239ea5f9d0d90e3a"
+      "file": "sources/kasi-convert-form.json",
+      "bytes": 144512,
+      "sha256": "5b88d841ba10645e2afe077460740550d9284af7157c68c786fc9acf1c373abb"
     },
     {
       "file": "sources/kasi-lunc-1909-08-11.json",
@@ -90,9 +90,9 @@
       "capturedAt": "2026-11-01T09:13:58.432Z"
     },
     {
-      "file": "sources/kasi-month-form.html",
-      "bytes": 95633,
-      "sha256": "88c1e98ff01ed66b8d7e2b4c0dc543055012aa7c88b8b96101674c4d728f0bfd"
+      "file": "sources/kasi-month-form.json",
+      "bytes": 120023,
+      "sha256": "87eaa7149b6d2642f837008d0562e78c194dd18b78e047c8431c240bb007a1db"
     },
     {
       "file": "sources/kasi-month-start-1903-09.json",
@@ -718,5 +718,5 @@
       "capturedAt": "2026-11-01T09:15:41.732Z"
     }
   ],
-  "totalBytes": 2705202
+  "totalBytes": 2748819
 }
