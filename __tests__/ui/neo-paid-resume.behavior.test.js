@@ -25,3 +25,16 @@ test('a completed initial report does not stop a pending refinement', async () =
  vm.runInNewContext(ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{...f.ctx});
  assert.equal((await f.run('refinement')).refinementStatus,'completed');assert.equal(posts,2);assert.equal(paths.filter(path=>path.endsWith('/refine')).length,2);assert.equal(paths.some(path=>path.endsWith('/start')),false);
 });
+
+for(const phase of ['briefing','refinement'])for(const boundary of ['read','resume'])for(const code of ['ORDER_REFUNDED','ORDER_MISMATCH','REQUEST_INPUT_MISMATCH'])test(`native ${phase} ${boundary}: ${code} stops without retries or a new request`,async()=>{
+ const f=fixture(),calls=[];
+ f.ctx.require=()=>({authFetch:async(url,init)=>{
+  calls.push({url,init});
+  if(boundary==='resume'&&!init?.method)return {ok:true,status:202,json:async()=>({ok:true,sessionId:'original-server-id',status:'partial'})};
+  return {ok:false,status:code==='ORDER_MISMATCH'?403:409,json:async()=>({ok:false,reason:code})};
+ }});
+ vm.runInNewContext(ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{...f.ctx});
+ await assert.rejects(()=>f.run(phase),new RegExp(code));
+ assert.equal(calls.length,boundary==='read'?1:2);
+ assert.equal(f.progress.length,boundary==='read'?0:1);
+});

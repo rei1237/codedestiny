@@ -28,7 +28,7 @@ import { getNeoBookCopy } from "./data/strategy-book";
 import { getNeoVisualCopy } from "./data/visual-copy";
 import { type NeoWarRoomConsultMode, neoWarRoomAssets } from "./data/assets";
 import { getLocalizedNeoWarRoomMethodDefinition, getLocalizedNeoWarRoomMethodRegistry } from "./data/method-registry";
-import { getNeoRealityCheckLabel, getNeoFormCopy, getNeoTopicLabel } from "./data/form-copy";
+import { getNeoRealityCheckLabel, getNeoFormCopy, getNeoTopicLabel, getNeoErrorCopy } from "./data/form-copy";
 import {
   buildNeoSincereLetterParagraphs,
   getNeoResultAdjustWithTiming,
@@ -510,12 +510,14 @@ export default function NeoOperationRoomResultPage({ availability }: { availabil
       } catch (caught) {
         if (!isCurrent()) return;
         setLoading(false);
-        setError(caught instanceof Error && caught.message === "LOGIN_REQUIRED" ? resultCopy.loginRequiredError : resultCopy.pollTimeoutError);
+        const code = caught instanceof Error ? caught.message : "";
+        const accessDenied = ["ORDER_REFUNDED", "ORDER_MISMATCH", "REQUEST_INPUT_MISMATCH"].includes(code);
+        setError(code === "LOGIN_REQUIRED" ? resultCopy.loginRequiredError : accessDenied ? getNeoErrorCopy("PAYMENT_VERIFY_FAILED", dialogueLocale) : resultCopy.pollTimeoutError);
       }
     }
     void loadResult();
     return () => { cancelled = true; };
-  }, [attemptId, localPreviewMode, recoveryEpoch, captureOwner, resultCopy.loginRequiredError, resultCopy.pollTimeoutError, availability]);
+  }, [attemptId, localPreviewMode, recoveryEpoch, captureOwner, resultCopy.loginRequiredError, resultCopy.pollTimeoutError, availability, dialogueLocale]);
 
   async function handleRefine() {
     const isCurrent = captureOwner();
