@@ -133,6 +133,15 @@ npm run verify:ziwei-star-parity
 - 신규 공개 API·인터페이스·스키마 없음. 의존성 추가·삭제·lock 수정 없음. 폐기 코드 없음.
 - Phase 0 문서 작성 후 종료한다. **Phase 1 설치·CLI·하네스는 시작하지 않는다.** 라이선스 충돌 및 방법론/정규화 의심 항목은 승인·재현 대기이며 상용 사용 가능성이나 전체 정확도를 보증하지 않는다.
 
+### 7.1 문서 전달 상태
+
+- 문서 본문 커밋: `cf296ea9a` (`docs(audit): inventory fortune engines and licenses`). 이 절의 전달 상태 기록은 같은 문서의 후속 커밋으로 보존한다.
+- `npm run check:pre-push`: exit 0. home-service-registry, public-mirror-fresh, sitemap-drift(1,037 URL), llms check, seo-entity-registry 통과. 엔진 계산 테스트·정확도 검증을 실행한 것은 아니다.
+- **push 보류:** 문서를 포함하지 않는 기존 main `20904183a1b0276584ed6f74313bf1e6cdeaf442`의 [CI 실행 41284797775](https://github.com/rei1237/codedestiny/actions/runs/41284797775)가 failure. 실패 로그에서 Static guards의 `__tests__/ui/fortune-tea-house-recovery.behavior.test.js` assertion 및 null requestPayload 오류, CI required 실패를 확인했다. 이 SHA에서 실패했다는 뜻이며 실패를 처음 만든 커밋은 이번에 추적하지 않았다.
+- `docs/context/delivery-and-ci.md`의 기존 main 실패 시 추가 push 금지 규칙을 따른다. 관련 없는 테스트/서비스 코드는 수정하지 않는다. main 병합·push·프로덕션 배포는 수행하지 않았다.
+- 미병합 문서 커밋을 잃지 않도록 `D:/Development/code-destiny/.codex-worktrees/engine-audit-phase0-20261101-163440` 및 `wt/engine-audit-phase0-20261101-163440`를 보존한다. 다른 작업 공간/브랜치는 정리하지 않는다. 사용자 열람용으로 요청 루트의 동일 상대 경로에도 문서 사본을 보존한다.
+- 전달만 재개할 때: 위 워크트리에서 `git log -1 --format=%H -- docs/engine-audit/00-inventory.md`로 마지막 문서 커밋을 확인하고 최신 main CI 복구 여부를 확인한다. 복구 후 문서 한 파일만 최신 main에 통합·검증·push하고 자기 워크트리를 정리한다. **이 재개 범위에도 Phase 1은 포함하지 않는다.**
+
 ## 8. 의존성 라이선스 부록
 
 아래 표는 확인일의 로컬 설치본 메타데이터와 잠금 파일을 직접 읽어 집계한다. 운영 25개/개발 21개의 구분은 루트 manifest 선언 기준이다. 전이 의존성의 dev/optional 플래그는 번들 포함 여부를 보장하지 않는다. 모든 전이 라이선스 원문을 읽은 완전한 법률 감사는 아니다.
