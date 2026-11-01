@@ -71,11 +71,13 @@ function sample(values) {
   return list.slice(0, DETAIL_SAMPLE).join(", ") + (list.length > DETAIL_SAMPLE ? ", …" : "");
 }
 
-// 워커 CONSOLIDATED_PAGE_REDIRECTS 는 후행 슬래시를 떼고 찾으므로 두 꼴을 모두 출발점으로 본다.
+// 워커 CONSOLIDATED_PAGE_REDIRECTS 는 후행 슬래시를 떼고 찾으므로(public/_worker.js consolidatedPath) 두 꼴을 모두 출발점으로 본다.
+// `_redirects` 정확 일치는 글자 그대로다: Cloudflare 문서 예시 `/trailing /trailing/ 301` 이 루프하지 않으려면
+// `/trailing` 규칙이 `/trailing/` 에 맞으면 안 된다. 그래서 슬래시 제거는 워커 표에만 적용한다.
 // redirectSources 는 `/x/*` 만 접두사로 바꾸고 `/insights/old-slug*` 같은 splat 은 글자 그대로 둔다.
 // Pages 에서는 둘 다 접두사 규칙이므로 `*` 로 끝나는 항목도 접두사로 본다.
-function isRedirectSource(pathname, { exact, prefixes }) {
-  if (exact.has(pathname) || exact.has(pathname.replace(/(.)\/$/, "$1"))) return true;
+function isRedirectSource(pathname, { exact, prefixes, worker }) {
+  if (exact.has(pathname) || worker.has(pathname.replace(/(.)\/$/, "$1"))) return true;
   if (prefixes.some((prefix) => pathname.startsWith(prefix))) return true;
   for (const source of exact) if (source.endsWith("*") && pathname.startsWith(source.slice(0, -1))) return true;
   return false;
@@ -190,13 +192,23 @@ function checkPageShape(site) {
   return details;
 }
 
-// 쿼리·fragment 를 뗀 pathname 이 dist 파일, 디렉터리 index, `_redirects`·워커 리디렉션 출발점 중 어디에도 없으면 404.
+// 워커가 정적 파일 없이 직접 응답하는 경로: `/api`·`/api/*` 프록시와 DYNAMIC_FEED_PATHS 피드(dist/_worker.js 에서 읽는다).
+// 표를 못 찾으면 피드는 빈 집합이다 — 그 링크는 dist 파일로만 판정되므로 거짓 통과가 아니라 거짓 실패 쪽으로 기운다.
+function workerDynamicPath(distDir) {
+  const source = readText(join(distDir, "_worker.js")) ?? "";
+  const feeds = source.match(/const DYNAMIC_FEED_PATHS = new Set\((\[[^\]]*\])\)/);
+  const feedPaths = new Set(feeds ? JSON.parse(feeds[1]) : []);
+  return (pathname) => pathname === "/api" || pathname.startsWith("/api/") || feedPaths.has(pathname);
+}
+
+// 쿼리·fragment 를 뗀 pathname 이 dist 파일, 디렉터리 index, `_redirects`·워커 리디렉션 출발점, 워커 동적 경로 중 어디에도 없으면 404.
 // 리디렉션 출발점은 redirectSources 가 읽는 표(_redirects 301 규칙 + 워커 CONSOLIDATED_PAGE_REDIRECTS + /index.html)로만 본다.
 // edge-probe 의 distAssets 는 _redirects 를 적용하지 않으므로 여기에 쓰지 않는다.
 function checkInternal404(site, distDir, origin, sources) {
   const resolved = new Map();
+  const isDynamic = workerDynamicPath(distDir);
   const exists = (pathname) => {
-    if (isRedirectSource(pathname, sources)) return true;
+    if (isRedirectSource(pathname, sources) || isDynamic(pathname)) return true;
     let file;
     let rel;
     try {
@@ -312,7 +324,8 @@ function checkOrganizationName(site) {
 // HTML hreflang 집합과 사이트맵 alternates 집합을 (언어 코드 소문자, href) 쌍으로 비교한다.
 //   xdefault-sitemap-only  사이트맵에만 x-default 가 있다
 //   code-sitemap-only      사이트맵에만 있는 언어 코드가 있다
-//   html-only              HTML 에만 있는 쌍이 있다(위 둘로 분류되지 않는 차이를 놓치지 않으려고 둔다)
+//   href-mismatch          같은 언어 코드가 양쪽에 있는데 href 가 다르다(code-sitemap-only·html-only 로 두 번 세지 않는다)
+//   html-only              HTML 에만 있는 쌍이 있다(위 셋으로 분류되지 않는 차이를 놓치지 않으려고 둔다)
 //   one-way                사이트맵에서 A→B 가 있는데 B 의 alternates 에 A 가 없다(쌍마다 1건)
 // 같은 loc 이 sitemap.xml 과 하위 사이트맵에 다 있으면 alternates 를 합친다.
 function checkHreflangSitemap(site, distDir) {
@@ -331,10 +344,13 @@ function checkHreflangSitemap(site, distDir) {
     const inHtml = new Set(facts.hreflang.map((alt) => `${alt.lang.toLowerCase()} ${alt.href}`));
     const sitemapOnly = [...inSitemap.keys()].filter((key) => !inHtml.has(key)).map((key) => key.split(" ")[0]);
     const htmlOnly = [...inHtml].filter((key) => !inSitemap.has(key)).map((key) => key.split(" ")[0]);
-    if (sitemapOnly.includes("x-default")) details.push(`xdefault-sitemap-only ${loc}`);
-    const codes = sitemapOnly.filter((code) => code !== "x-default");
+    const mismatched = [...new Set(sitemapOnly.filter((code) => htmlOnly.includes(code)))];
+    if (sitemapOnly.includes("x-default") && !mismatched.includes("x-default")) details.push(`xdefault-sitemap-only ${loc}`);
+    const codes = sitemapOnly.filter((code) => code !== "x-default" && !mismatched.includes(code));
     if (codes.length) details.push(`code-sitemap-only ${loc} [${codes.join(", ")}]`);
-    if (htmlOnly.length) details.push(`html-only ${loc} [${htmlOnly.join(", ")}]`);
+    if (mismatched.length) details.push(`href-mismatch ${loc} [${mismatched.join(", ")}]`);
+    const htmlOnlyCodes = htmlOnly.filter((code) => !mismatched.includes(code));
+    if (htmlOnlyCodes.length) details.push(`html-only ${loc} [${htmlOnlyCodes.join(", ")}]`);
   }
   for (const [from, list] of alternates) {
     for (const to of new Set([...list.values()].map((alt) => alt.href))) {
@@ -410,12 +426,21 @@ export async function inspectDist({ distDir, origin = BRAND_FACTS.service.siteUr
   const needsSite = selected.some((rule) => !EDGE_RULES.includes(rule) && !["sitemap-set", "home-identity", "robots-policy"].includes(rule));
   const site = needsSite ? loadSite(distDir, origin) : null;
   const needsSources = wants("sitemap-page") || wants("internal-404");
-  const sources = needsSources ? redirectSources(distDir) : null;
+  // `_redirects`·`_worker.js` 가 없거나 워커 표를 못 읽으면 스택 트레이스 대신 두 규칙의 실패 1줄로 보고한다.
+  let sources = null;
+  let sourcesError = null;
+  if (needsSources) {
+    try {
+      sources = redirectSources(distDir);
+    } catch (error) {
+      sourcesError = `리디렉션 표를 읽지 못함 — ${String(error?.message || error).split("\n")[0]}`;
+    }
+  }
 
-  if (wants("sitemap-page")) details["sitemap-page"] = checkSitemapPages(site, sources);
+  if (wants("sitemap-page")) details["sitemap-page"] = sourcesError ? [sourcesError] : checkSitemapPages(site, sources);
   if (wants("sitemap-set")) details["sitemap-set"] = checkSitemapSet(distDir);
   if (wants("page-shape")) details["page-shape"] = checkPageShape(site);
-  if (wants("internal-404")) details["internal-404"] = checkInternal404(site, distDir, origin, sources);
+  if (wants("internal-404")) details["internal-404"] = sourcesError ? [sourcesError] : checkInternal404(site, distDir, origin, sources);
   if (wants("home-identity")) details["home-identity"] = checkHomeIdentity(distDir);
   if (wants("duplicate-title")) details["duplicate-title"] = checkDuplicates(site, "title");
   if (wants("duplicate-description")) details["duplicate-description"] = checkDuplicates(site, "description");

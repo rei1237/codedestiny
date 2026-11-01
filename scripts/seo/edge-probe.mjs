@@ -17,6 +17,7 @@ const CONTENT_TYPES = {
   '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8',
   '.json': 'application/json; charset=utf-8', '.xml': 'application/xml; charset=utf-8', '.txt': 'text/plain; charset=utf-8',
   '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.ico': 'image/x-icon',
+  '.gif': 'image/gif', '.avif': 'image/avif', '.woff2': 'font/woff2', '.webmanifest': 'application/manifest+json', '.mp4': 'video/mp4',
 };
 
 // Same loading trick as __tests__/ui/visitor-country-routing.test.mjs. fetch is a trap: a plain GET
@@ -30,6 +31,11 @@ export function loadWorker(source) {
 
 // Pages static serving: a file is 200, `/dir` with dir/index.html is a 308 to `/dir/`, `/dir/` serves
 // its index.html, `/page` serves page.html, anything else (or anything outside distDir) is 404.
+// Where real Pages differs (not emulated, so counts describe the worker, not the full production response):
+//   - `/x.html` is 200 here; Pages 308s it to `/x`. `/dir/index.html` is 200 here; Pages 308s it to `/dir/`.
+//   - `/dir/` with only dir.html (no dir/index.html) is 404 here; Pages still resolves it to dir.html.
+//   - `_redirects` and `_headers` are not applied.
+// The vm context is not a sandbox and has no timeout: only run a dist this repo built.
 export function distAssets(distDir) {
   const root = resolve(distDir);
   const fileAt = (relPath) => {

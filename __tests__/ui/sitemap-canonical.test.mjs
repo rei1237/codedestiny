@@ -83,12 +83,16 @@ const sitemapIndex = (names) => `<?xml version="1.0" encoding="UTF-8"?>\n<sitema
 const htmlPage = (path, { h1 = ['제목'], head = '', body = '<p>본문</p>' } = {}) =>
   `<!doctype html><html><head><title>${path}</title><link rel="canonical" href="${SITE}${path}">${head}</head><body>${h1.map((t) => `<h1>${t}</h1>`).join('')}${body}</body></html>`;
 
+// 리디렉션 표는 dist/_worker.js 에서 읽는다. 워커 표 출발점 /moved, 동적 피드 /rss.xml, 그대로 통과시키는 fetch.
+const FIXTURE_WORKER = 'const CONSOLIDATED_PAGE_REDIRECTS = {"/moved": "/a/"};\nconst DYNAMIC_FEED_PATHS = new Set(["/rss.xml"]);\nexport default { async fetch(request, env) { return env.ASSETS.fetch(request); } };\n';
+
 function cleanFixture() {
   return {
     'sitemap.xml': urlset(['/a/', KO_SAJU]),
     'sitemap-index.xml': sitemapIndex(['sitemap-ko.xml']),
     'sitemap-ko.xml': urlset(['/a/', KO_SAJU]),
     '_redirects': '# no rules\n',
+    '_worker.js': FIXTURE_WORKER,
     'a/index.html': htmlPage('/a/', {
       head: `<meta property="og:url" content="${SITE}/a/">`,
       body: '<a href="/사주/">사주</a><a href="/a/#top">위로</a><a href="/a/?action=openTarotModal">타로</a><a href="mailto:help@code-destiny.com">메일</a>',
@@ -154,6 +158,7 @@ test('loc-to-file: percent-encoded Korean, .html and slashless locs map to their
     'sitemap-index.xml': sitemapIndex(['sitemap-ko.xml']),
     'sitemap-ko.xml': urlset(locs),
     '_redirects': '',
+    '_worker.js': FIXTURE_WORKER,
     'a/index.html': htmlPage('/a/'),
     '사주/index.html': htmlPage(KO_SAJU),
     'policy.html': htmlPage('/policy.html'),
@@ -179,14 +184,42 @@ test('internal links: fragments, functional queries, external hosts, mailto/tel,
         '<a href="//cdn.example.com/missing/">cdn</a>', '<a href="https://example.com/missing/">외부</a>',
         '<a href="mailto:help@code-destiny.com">메일</a>', '<a href="tel:+8210">전화</a>',
         '<a href="/static.css">css</a>', '<a href="/plain">plain</a>', '<a href="/a">a</a>', `<a href="${SITE}${KO_SAJU}">사주</a>`,
-        '<a href="/legacy/x/">옛</a>', '<a href="/old">옛</a>', '<a href="/old/">옛</a>', '<a href="/old-guide/">splat</a>',
+        '<a href="/legacy/x/">옛</a>', '<a href="/old">옛</a>', '<a href="/old-guide/">splat</a>',
+        '<a href="/moved">워커 표</a>', '<a href="/moved/">워커 표 슬래시</a>',
+        '<a href="/api">api</a>', '<a href="/api/fortune?x=1">api</a>', '<a href="/rss.xml">피드</a>',
         '<a href="/missing/?ref=x">없음</a>', '<a href="/missing/#y">없음</a>',
+        // `_redirects` 의 /old 는 /old/ 에 맞지 않는다(글자 그대로). /apix/ 는 /api/ 프록시가 아니다.
+        '<a href="/old/">없음</a>', '<a href="/apix/">없음</a>',
       ].join(''),
     }),
   });
   const result = await inspectDist({ distDir: dir, edge: false, rules: ['internal-404'] });
-  assert.equal(result.counts['internal-404'], 1, JSON.stringify(result.details['internal-404']));
-  assert.match(result.details['internal-404'][0], /^\/missing\/ /);
+  const missing = result.details['internal-404'].map((line) => line.split(' ')[0]).sort();
+  assert.deepEqual(missing, ['/apix/', '/missing/', '/old/'], JSON.stringify(result.details['internal-404']));
+});
+
+test('sitemap-page flags a loc that is a worker-table source in either slash form, but not a slashed loc of an exact _redirects rule', async () => {
+  const locs = ['/a/', '/moved/', '/old/'];
+  const dir = writeDist({
+    ...cleanFixture(),
+    'sitemap.xml': urlset(locs), 'sitemap-ko.xml': urlset(locs),
+    '_redirects': '/old   /a/   301\n',
+    'moved/index.html': htmlPage('/moved/'), 'old/index.html': htmlPage('/old/'),
+  });
+  const result = await inspectDist({ distDir: dir, edge: false, rules: ['sitemap-page'] });
+  assert.deepEqual(result.details['sitemap-page'], [`${SITE}/moved/: 리디렉션 출발점`]);
+});
+
+test('a dist without _redirects or _worker.js is one sitemap-page and one internal-404 failure, not a thrown stack trace', async () => {
+  for (const missing of ['_redirects', '_worker.js']) {
+    const { [missing]: _, ...files } = cleanFixture();
+    const result = await inspectDist({ distDir: writeDist(files), edge: false, rules: ['sitemap-page', 'internal-404'] });
+    assert.deepEqual(result.counts, { 'sitemap-page': 1, 'internal-404': 1 }, missing);
+    assert.match(result.details['sitemap-page'][0], new RegExp(`리디렉션 표를 읽지 못함 — .*${missing.replace('.', '\\.')} 없음`));
+    assert.equal(result.failures.length, 2);
+  }
+  const noTable = await inspectDist({ distDir: writeDist({ ...cleanFixture(), '_worker.js': 'export default {};' }), edge: false, rules: ['internal-404'] });
+  assert.match(noTable.details['internal-404'][0], /CONSOLIDATED_PAGE_REDIRECTS/);
 });
 
 test('home-identity counts each missing representative page as a failure', async () => {
@@ -222,6 +255,21 @@ test('hreflang-sitemap splits HTML/sitemap differences and one-way sitemap annot
   assert.equal(result.warnings.length, 2);
 });
 
+test('hreflang-sitemap: an HTML-only language is html-only, and a language whose href differs is one href-mismatch, not two findings', async () => {
+  const alt = (lang, href) => `<xhtml:link rel="alternate" hreflang="${lang}" href="${SITE}${href}" />`;
+  const sitemap = `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+    <url><loc>${SITE}/a/</loc>${alt('ko', '/a/')}${alt('en', '/en/a/')}</url>
+    <url><loc>${SITE}/en/a/</loc>${alt('ko', '/a/')}${alt('en', '/en/a/')}</url></urlset>`;
+  const link = (lang, href) => `<link rel="alternate" hreflang="${lang}" href="${SITE}${href}">`;
+  const dir = writeDist({
+    'sitemap.xml': sitemap, 'sitemap-index.xml': sitemapIndex(['sitemap-ko.xml']), 'sitemap-ko.xml': sitemap, '_redirects': '',
+    'a/index.html': htmlPage('/a/', { head: link('ko', '/a/') + link('en', '/en/a/') + link('ja', '/ja/a/') }),
+    'en/a/index.html': htmlPage('/en/a/', { head: link('ko', '/a/') + link('en', '/en/a2/') }),
+  });
+  const result = await inspectDist({ distDir: dir, edge: false, rules: ['hreflang-sitemap'] });
+  assert.deepEqual(result.details['hreflang-sitemap'].sort(), [`href-mismatch ${SITE}/en/a/ [en]`, `html-only ${SITE}/a/ [ja]`]);
+});
+
 test('edge rules run the dist worker over emulated Pages assets, and are skipped without a worker', async () => {
   const dir = writeDist({
     ...cleanFixture(),
@@ -234,20 +282,26 @@ test('edge rules run the dist worker over emulated Pages assets, and are skipped
   assert.equal(result.counts['edge-crawler-cookie'], 0);
   assert.equal(result.warnings.length, 1);
 
-  // distAssets itself: percent-decoded paths, slashless directory 308, unknown path and traversal 404.
-  const assets = distAssets(dir);
-  const status = async (path) => (await assets.fetch(new Request(`${SITE}${path}`))).status;
-  assert.equal(await status(KO_SAJU), 200);
-  assert.equal(await status('/a'), 308);
-  assert.equal(await status('/nope'), 404);
-  assert.equal(await status('/..%2F..%2Fetc%2Fhosts'), 404);
-  assert.equal(await status('/%E0%A4%A'), 404);
-
   const skipped = await inspectDist({ distDir: dir, edge: false, rules: ['edge-slash-308'] });
   assert.deepEqual(skipped.details.edge, ['skipped']);
   assert.equal(skipped.counts['edge-slash-308'], undefined);
-  const noWorker = await inspectDist({ distDir: writeDist(cleanFixture()), rules: ['edge-slash-308'] });
+  const { '_worker.js': _, ...withoutWorker } = cleanFixture();
+  const noWorker = await inspectDist({ distDir: writeDist(withoutWorker), rules: ['edge-slash-308'] });
   assert.deepEqual(noWorker.details.edge, ['skipped']);
+});
+
+test('distAssets emulates Pages static serving: 200 files, slashless-directory 308 with query, 404 for unknown, traversal, NUL and bad percent', async () => {
+  const dir = writeDist({ ...cleanFixture(), 'plain.html': htmlPage('/plain'), 'font.woff2': 'x', 'site.webmanifest': '{}', 'clip.mp4': 'x' });
+  const assets = distAssets(dir);
+  const get = (path) => assets.fetch(new Request(`${SITE}${path}`));
+  for (const path of ['/a/', KO_SAJU, '/plain', '/plain.html', '/a/index.html']) assert.equal((await get(path)).status, 200, path);
+  const slashless = await get('/a?x=1');
+  assert.equal(slashless.status, 308);
+  assert.equal(slashless.headers.get('Location'), '/a/?x=1');
+  for (const path of ['/nope', '/nope/', '/..%2F..%2Fetc%2Fhosts', '/%E0%A4%A', '/a%00']) assert.equal((await get(path)).status, 404, path);
+  assert.equal((await get('/font.woff2')).headers.get('Content-Type'), 'font/woff2');
+  assert.equal((await get('/site.webmanifest')).headers.get('Content-Type'), 'application/manifest+json');
+  assert.equal((await get('/clip.mp4')).headers.get('Content-Type'), 'video/mp4');
 });
 
 test('an unloadable dist worker is a warning, never a failure: warn-graded edge rules must not block postbuild', async () => {
