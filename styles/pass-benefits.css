@@ -7,3 +7,13 @@
 html:not([lang^="ko"]) .cdh .pb{display:none}html[lang^="ko"] [data-cd-localized-pass]{display:none}
 @media(min-width:801px){.pb{display:grid;grid-template-columns:1fr 1fr;gap:16px 28px;align-items:start}.pb__intro{grid-column:1;grid-row:1}.pb__selection{grid-column:1;grid-row:2;margin:0}.pb__detail{grid-column:2;grid-row:1/3;border-top:0;padding-top:0}.pb__bridge{grid-column:1/-1;margin:0}}
 @media(max-width:600px){.pb{padding:16px;margin:20px 12px}.pb h2{font-size:20px}.pb__intro{padding-right:60px}.pb__portrait,.pb__portrait img{width:52px;height:52px}.pb__choices{gap:6px}.pb__choice strong{font-size:13px}.pb__choice img{width:40px;height:40px}.pb__bridge{display:block}.pb__bridge a{width:fit-content}.pb__scope br,.pb__upgrade br{display:block}}
+
+/* Honey comparison keeps its registry, native radios and terms; soften only this surface. */
+.pb--honey{border-radius:var(--cd-r-section);background:var(--cd-surface);box-shadow:0 10px 28px -22px var(--pb-ink)}
+.pb--honey h2{font-family:var(--font-display,var(--font-body))}
+.pb--honey .pb__choice{padding:12px 8px;border-radius:var(--cd-r-card);background:var(--pb-paper)}
+.pb--honey .pb__choice:has(input:checked){background:color-mix(in srgb,var(--pb-selected) 40%,var(--cd-surface))}
+.pb--honey .pb__choice>span,.pb--honey .pb__choice small{font-size:14px}
+.pb--honey .pb__cta{border-radius:var(--cd-r-pill);box-shadow:0 4px 9px -7px var(--pb-ink)}
+.pb--honey .pb__prices span,.pb--honey .pb__terms{font-size:14px}
+@media(max-width:600px){.pb--honey .pb__choices{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.pb--honey .pb__choice{display:grid;grid-template-columns:48px minmax(0,1fr);gap:0 8px;text-align:left}.pb--honey .pb__choice img{grid-row:1/4;width:48px;height:48px}.pb--honey .pb__choice strong{text-align:left;font-size:14px}.pb--honey .pb__choice>span,.pb--honey .pb__choice small{grid-column:2}}

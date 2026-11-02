@@ -1678,3 +1678,8 @@ html.neo-mode #cdHomeFunnel .cdh-scene-art #honeypigLogo{box-shadow:none!importa
 #cdHomeFunnel #cdhQuestionSlot>.cdh-other{width:100%;margin-inline:0}
 
 @media(max-width:599px){#cdHomeFunnel .cdh-consult-browser .cd-soulcat-entry__actions{display:grid;grid-template-columns:minmax(0,1fr)}#cdHomeFunnel .cdh-consult-browser .cd-soulcat-entry__cta{box-sizing:border-box;min-width:0}}
+
+/* Keep pass discovery near the home introduction without changing checkout controls. */
+#cdHomeFunnel .cdh-nav{flex-wrap:wrap;gap:8px}
+#cdHomeFunnel .cdh-nav>a{border-radius:var(--cd-r-pill);min-height:44px}
+@media(max-width:640px){#cdHomeFunnel .cdh-top .cdh-nav{min-width:0;justify-content:flex-end}#cdHomeFunnel .cdh-nav>a{font-size:12px;padding-inline:8px}}

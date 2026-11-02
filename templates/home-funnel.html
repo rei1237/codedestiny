@@ -4,6 +4,7 @@
   <header class="cdh-top" aria-label="공통 헤더">
     <a href="/ggulggul/" class="cdh-brand"><img class="cdh-brand__mark" src="/fuctionassets/%EC%97%B0%EC%9D%B4.webp" width="40" height="40" alt="" decoding="async"><span>꿀꿀 운세<small data-cd-trans="home.simpleHome.tagline">명리학 기반 운세 상담</small></span></a>
     <nav class="cdh-nav" aria-label="홈 주요 메뉴">
+      <a class="cdh-account-btn" href="#cdhPass" data-cd-trans="home.myGarden.pass">이용권 · 월정석</a>
       <a class="cdh-account-btn" href="/login/" id="cdhAccountBtn" data-cd-sheet-open="cdAccountSheet" data-cd-account-open data-auth="guest" role="button" aria-haspopup="dialog" aria-controls="cdAccountSheet" aria-expanded="false"><span class="cdh-account-btn__guest" data-cd-trans="home.funnelCopy.login">로그인</span><span class="cdh-account-btn__member" data-cd-trans="home.funnelCopy.account">내 계정</span></a>
     </nav>
     <div class="cdh-tools"><div id="cdhThemeSlot"></div><div id="cdhLanguageSlot"></div></div>
@@ -124,6 +125,7 @@
 
 
   {{yehwaHome}}
+  <div class="cdh-slot cdh-slot--pass" id="cdhPass"><div id="cdhPassSlot">{{pass}}</div></div>
 
   <dialog class="cd-sheet" id="cdHoneySheet" data-cd-sheet aria-labelledby="cdHoneySheetTitle"><div class="cd-sheet__panel"><div class="cd-sheet__head"><h2 id="cdHoneySheetTitle">꿀방울, 어디에 쓸 수 있나요?</h2><button type="button" class="cd-sheet__close" data-cd-sheet-close aria-label="꿀방울 사용처 닫기">×</button></div><div class="cd-sheet__body">
     <span class="cd-honey-eligible">꿀방울 사용 가능처</span><p class="cd-honey-guide__lead">출석으로 모은 꿀방울로 꿀꿀운세의 지정된 기본 해석을 열 수 있어요. 아래에서 운세별 상품과 필요한 개수를 확인해 보세요.</p>
@@ -177,7 +179,7 @@
 <section class="cdh-free" data-home-reveal="free" aria-labelledby="cdhFreeTitle">
   <h2 class="cdh-free__title" id="cdhFreeTitle" data-cd-trans="home.simpleHome.freeTitle">무료로 먼저</h2>
   <div class="cdh-slot" id="cdhQuickSlot">{{quick}}</div>
-<div class="cdh-slot cdh-slot--pass" id="cdhPass"><div id="cdhPassSlot">{{pass}}</div></div>
+
 </section>
   <section class="cdh cdh-honey" data-cd-honey-widget aria-labelledby="cdHoneyTitle" hidden>
     <details class="cdh-honey__details"><summary><span id="cdHoneyTitle">출석 · 꿀방울</span><span class="cdh-honey__chip" data-cd-honey-streak hidden></span><div class="cdh-honey__wallet"><img src="/images/fortune-tea-house/honey-drop-jewel-v1.webp" width="192" height="192" loading="lazy" decoding="async" alt=""><p class="cdh-honey__balance"><span>내가 모은 꿀방울</span><strong data-cd-honey-balance>확인 중</strong></p></div></summary>    <div class="cdh-honey__story">

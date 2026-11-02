@@ -2,13 +2,13 @@
 .yh-home{max-width:1120px;margin-inline:auto;color:var(--cd-text);font-family:var(--font-body);line-height:1.7;word-break:keep-all;overflow-wrap:anywhere}
 .yh-home [hidden]{display:none!important}
 .yh-home :where(h1,h2,p){margin:0}
-.yh-home :where(h1,h2){font-family:var(--font-serif);font-weight:700;text-wrap:balance}
+.yh-home :where(h1,h2){font-family:var(--font-display,var(--font-body));font-weight:700;text-wrap:balance}
 .yh-home :where(button,a,summary){font:inherit;color:inherit;-webkit-tap-highlight-color:transparent}
 .yh-home :where(button,summary){cursor:pointer}
 .yh-home :where(button,a,summary):focus-visible{outline:3px solid var(--cd-focus-ring);outline-offset:4px}
 .yh-home button{min-height:44px;border:1px solid var(--cd-line);border-radius:var(--cd-r-control);background:var(--cd-surface);padding:8px 16px}
 .yh-home button:disabled{opacity:.55;cursor:default}
-.yh-hero{--yh-garden:url("/images/home/illustrated/yeoni-moon-garden-1280.webp");display:grid;grid-template-columns:1.2fr 1fr;align-items:center;gap:24px;padding:32px 40px;min-height:280px;border:1px solid color-mix(in srgb,var(--cd-yehwa-line) 50%,transparent);border-radius:26px;background:linear-gradient(90deg,var(--cd-surface) 0%,color-mix(in srgb,var(--cd-surface) 94%,transparent) 35%,transparent 75%),var(--yh-garden) center 24%/cover no-repeat;box-shadow:inset 0 0 0 6px var(--cd-bg)}
+.yh-hero{--yh-garden:url("/images/home/illustrated/yeoni-moon-garden-1280.webp");display:grid;grid-template-columns:1.2fr 1fr;align-items:center;gap:24px;padding:32px 40px;min-height:280px;border:1px solid color-mix(in srgb,var(--cd-yehwa-line) 50%,transparent);border-radius:var(--cd-r-section);background:linear-gradient(90deg,var(--cd-surface) 0%,color-mix(in srgb,var(--cd-surface) 94%,transparent) 35%,transparent 75%),var(--yh-garden) center 24%/cover no-repeat;box-shadow:inset 0 0 0 6px var(--cd-bg)}
 .yh-greeting h1{font-size:clamp(26px,3.7vw,44px);line-height:1.5;color:var(--cd-text)}
 .yh-greeting p{margin-top:16px;color:var(--cd-text-muted);font-size:16px}
 .yh-home .yh-guide-open{padding:0;min-height:44px;margin-top:12px;border:0;background:transparent;text-decoration:underline;text-underline-offset:5px;font-size:14px;color:var(--cd-accent)}
@@ -27,8 +27,8 @@ html.neo-mode .yh-hero{--yh-garden:url("/images/home/illustrated/yeoni-moon-gard
 .yh-section-heading{display:flex;align-items:baseline;flex-wrap:wrap;gap:8px 16px;margin-bottom:16px}
 .yh-section-heading>span{font-size:14px;color:var(--cd-text-muted)}
 .yh-card-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
-.yh-home .yh-card{display:flex;align-items:flex-start;gap:14px;min-width:0;padding:20px;border:1px solid var(--cd-line);border-radius:20px;background:var(--cd-surface);text-decoration:none;box-shadow:0 6px 16px -14px var(--cd-text)}
-.yh-card>img{width:64px;height:64px;object-fit:cover;border-radius:12px;flex:none}
+.yh-home .yh-card{display:flex;align-items:flex-start;gap:14px;min-width:0;padding:20px;border:1px solid var(--cd-line);border-radius:var(--cd-r-section);background:var(--cd-surface);text-decoration:none;box-shadow:0 8px 20px -16px var(--cd-text)}
+.yh-card>img{width:64px;height:64px;object-fit:cover;border-radius:var(--cd-r-md);flex:none}
 .yh-card-copy{display:flex;flex-direction:column;gap:8px;min-width:0;flex:1}
 .yh-card-copy>strong{font-size:17px;font-weight:700;line-height:1.5}
 .yh-card-copy>span:not(.yh-card-foot){font-size:15px;color:var(--cd-text-muted)}
@@ -38,7 +38,7 @@ html.neo-mode .yh-hero{--yh-garden:url("/images/home/illustrated/yeoni-moon-gard
 .yh-links a,.yh-links summary{display:flex;align-items:center;justify-content:space-between;min-height:48px;text-decoration:none;padding:4px 8px}
 .yh-links summary{display:list-item;list-style-position:inside}
 .yh-links details a{font-size:14px}
-.yh-guide{display:grid;grid-column:1/-1;grid-template-columns:96px minmax(0,1fr);gap:16px;align-items:center;margin-block:16px;padding:16px;border:1px solid var(--cd-yehwa-line);border-radius:20px;background:var(--cd-surface)}
+.yh-guide{display:grid;grid-column:1/-1;grid-template-columns:96px minmax(0,1fr);gap:16px;align-items:center;margin-block:16px;padding:16px;border:1px solid var(--cd-yehwa-line);border-radius:var(--cd-r-section);background:var(--cd-surface)}
 .yh-portrait{width:96px;aspect-ratio:5/6;overflow:hidden}
 .yh-home .yh-portrait img{display:block;width:400%;min-width:400%;height:100%;max-width:none;object-fit:fill}
 .yh-guide-head{display:flex;align-items:center;gap:12px;font-size:14px;color:var(--cd-accent)}
