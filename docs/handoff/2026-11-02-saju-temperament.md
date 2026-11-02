@@ -49,21 +49,22 @@ updated: 2026-11-02
 
 ## 전달 차단과 다음 행동
 
-main CI는 작업 시작 전부터 `5ac923923fe2e54b9a958c90f00f8971b8b2a8a6`의 중복 H1 검사로 실패했고, 전달 직전 확인에서도 같았다.
+main CI는 작업 시작 전부터 `5ac923923fe2e54b9a958c90f00f8971b8b2a8a6`의 중복 H1 검사로 실패했다. 마지막 확인에서는 다른 세션의 새 main `b14cec16b80e26fbe762179668491eca0902d865`에 대한 CI가 진행 중이었다. 새 main의 통과 여부는 미확인이다.
 
 - CI: https://github.com/rei1237/codedestiny/actions/runs/41391113434
+- 마지막 확인한 새 main CI(진행 중): https://github.com/rei1237/codedestiny/actions/runs/41404010635
 - 실패: `/yeongnyangi/fortune`, `/yeongnyangi/library`, `/yeongnyangi/result`의 서버 H1과 클라이언트 H1 중복.
-- `docs/context/delivery-and-ci.md`의 **이미 빨간 main 위에 push하지 않는다**는 규칙에 따라 main 머지·push를 보류했다. 작업과 관계없는 화면 결함을 이 변경에 섞지 않았다.
+- `docs/context/delivery-and-ci.md`의 **이미 빨간 main 위에 push하지 않는다**는 규칙에 따라 main 머지·push를 보류했다. 새 main도 아직 CI 통과를 확인하지 못했고 이 작업의 공식 전체 검사는 미완료다. 작업과 관계없는 화면 결함을 이 변경에 섞지 않았다.
 - 기본 작업 폴더 `D:\Development\code-destiny`의 `feat/world-cast-page`와 다른 세션의 미커밋 변경을 보존했다. 이 문서의 워크트리도 고유 미머지 커밋이 있어 보존한다.
-- 첫 다음 행동: main CI 실패가 해결됐는지 확인한다. 여전히 실패하면 push하지 않는다. 해결됐다면 현재 main 보유 워크트리와 동시 변경을 확인하고, 안전하게 main에 직접 머지한 다음 커밋된 트리에서 `npm run check:pre-push` → `git push origin main` → CI 1회 확인을 완료한다. PR은 만들지 않는다.
+- 첫 다음 행동: 새 main CI 결과와 이 작업의 전체 테스트 실패 상세를 확인한다. 진행 중인 CI를 통과로 간주하지 않고 실패 중인 main에는 push하지 않는다. 두 문제가 정리되면 최신 main과 동시 변경을 확인하고, 안전하게 main에 직접 머지한 다음 커밋된 트리에서 `npm run check:pre-push` → `git push origin main` → CI 1회 확인을 완료한다. PR은 만들지 않는다.
 - 전달 완료 뒤 이 문서를 `status: done`으로 닫고 자기 워크트리의 `node_modules` 정션을 먼저 해제한 뒤 워크트리와 머지된 `wt/*` 브랜치를 배수한다.
 
 재개 지시:
 
 ```text
-D:\Development\code-destiny\.codex-worktrees\saju-temperament-20261102-141359에서 D:\Development\code-destiny\.codex-worktrees\saju-temperament-20261102-141359\docs\handoff\2026-11-02-saju-temperament.md를 읽고, 구현 커밋 af00622dfca84464d572baefb5af7d0d0d212552와 사이트맵 커밋 535c9ec02a1651145bec70bade11c670e208f274가 보존됐는지 확인하라. main CI의 기존 중복 H1 실패가 해결됐는지 확인하는 것부터 이어서 진행하고, 실패 상태에서는 push하지 마라. 이 문서 이후 문서 커밋의 SHA는 git log -1로 확인한다.
+D:\Development\code-destiny\.codex-worktrees\saju-temperament-20261102-141359에서 D:\Development\code-destiny\.codex-worktrees\saju-temperament-20261102-141359\docs\handoff\2026-11-02-saju-temperament.md를 읽고, 구현 커밋 af00622dfca84464d572baefb5af7d0d0d212552와 사이트맵 커밋 535c9ec02a1651145bec70bade11c670e208f274가 보존됐는지 확인하라. 새 main b14cec16b80e26fbe762179668491eca0902d865의 CI 결과와 이 작업의 전체 테스트 실패 상세 확인부터 이어서 진행하고, 실패 상태에서는 push하지 마라. 이 문서 이후 문서 커밋의 SHA는 git log -1로 확인한다.
 ```
 
 ## 최종 전달 상태
 
-구현·관련 검사·사이트맵 동기화·커밋된 트리의 전달 검사는 완료했다. 광범위 검사 프로세스는 중단·정리했으며 공식 전체 검사는 미통과·미완료다. main 머지·push와 실제 LLM 문장 품질은 미검증이다. 기존 main CI가 해결되면 전체 테스트의 실패 상세와 기준점 재현을 확인한 후 전달해야 한다. 이 워크트리의 고유 미머지 커밋은 삭제하지 않는다.
+구현·관련 검사·사이트맵 동기화·커밋된 트리의 전달 검사는 완료했다. 광범위 검사 프로세스는 중단·정리했으며 공식 전체 검사는 미통과·미완료다. main 머지·push와 실제 LLM 문장 품질은 미검증이다. 마지막 확인에서 새 main CI는 진행 중이었다. 최신 main 상태와 전체 테스트의 실패 상세·기준점 재현을 확인한 후 전달해야 한다. 이 워크트리의 고유 미머지 커밋은 삭제하지 않는다.
