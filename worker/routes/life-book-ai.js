@@ -26,6 +26,7 @@ import { appendExpertPersona, expertPersonaText } from "../lib/expert-character-
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { calculateLifeBookAiSaju } from "../lib/life-book-ai-saju.js";
+import { connectLifeBookSajuAuthority, readSajuAuthority, lifeBookPillars, SAJU_AUTHORITY_PROMPT_RULES } from '../lib/saju-authority-consumer.js';
 import { sajuTemperamentPromptLines } from '../lib/saju-temperament.js';
 import { canStripForbiddenText } from "../lib/llm-leak-guard.js";
 import {clampSyncLlmTimeoutMs, PAID_LLM_PARTS_PER_REQUEST } from "../lib/sync-llm-timeout.js";
@@ -1203,6 +1204,7 @@ const CALCULATION_META_PROMPT_KEYS = Object.freeze(["available", "timeUnknown", 
 function pickSajuSlice(sajuResult, evidenceRefs = []) {
   if (!sajuResult || typeof sajuResult !== "object") return sajuResult;
   const roots = new Set(SECTION_SAJU_BASE_ROOTS);
+  if (sajuResult.sajuAuthority) roots.add('sajuAuthority');
   for (const ref of evidenceRefs) {
     const root = evidenceRefRoot(ref);
     if (root) roots.add(root);
@@ -1257,7 +1259,7 @@ function buildSectionPrompt(input, sajuSlice, section, digest = "") {
     "",
     "[계산 가능한 사주 명리 데이터]",
     JSON.stringify(sajuSlice),
-    ...sajuTemperamentPromptLines(sajuSlice),
+    ...(sajuSlice?.sajuAuthority ? SAJU_AUTHORITY_PROMPT_RULES : sajuTemperamentPromptLines(sajuSlice)),
     "",
     "[이번에 쓸 조각]",
   ];
@@ -2546,7 +2548,11 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
     let sajuResult = null;
     try {
       sajuResult = existing?.llmMeta?.factSnapshot || calculateLifeBookAiSaju(normalized.input.birthInfo);
+      sajuResult = connectLifeBookSajuAuthority(sajuResult, {
+        enabled: env?.SAJU_GYEOKGUK_AUTHORITY_V2 === "true", hasExistingRecord: Boolean(existing),
+      });
     } catch (error) {
+      if (env?.SAJU_GYEOKGUK_AUTHORITY_V2 === 'true' || existing?.llmMeta?.factSnapshot?.sajuAuthority) throw error;
       if (isLifeFortuneInput(normalized.input)) {
         await restoreAccessBeforeGenerationFailure({
           request,
@@ -2700,6 +2706,10 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
     try {
       const doc = await LifeBookAiConsultation.findOne({ id: sessionId, userId: clean(auth.userId) }).lean().catch(() => { throw resultStorageUnavailable(sessionId); });
       if (!doc) throw resultStorageUnavailable(sessionId);
+      if (doc.llmMeta?.factSnapshot?.sajuAuthority) {
+        readSajuAuthority(doc.llmMeta.factSnapshot.sajuAuthority, lifeBookPillars(doc.llmMeta.factSnapshot));
+        sajuResult = doc.llmMeta.factSnapshot;
+      }
       const plan = Array.isArray(doc?.llmMeta?.plan) && doc.llmMeta.plan.length ? doc.llmMeta.plan : sectionPlan;
       const storedSections = doc?.llmMeta?.sections && typeof doc.llmMeta.sections === "object" ? { ...doc.llmMeta.sections } : {};
       const waveCount = Number(doc?.llmMeta?.waveCount || 0);

@@ -8,6 +8,7 @@ import {
 import { GUARDIAN_CATEGORY_ADAPTER_PRIORITY, text } from "./guardian-fortune-adapter-utils.js";
 import { buildFortuneQuestionFocus } from "./fortune-question-focus.js";
 import { sajuTemperamentPromptLines } from './saju-temperament.js';
+import { sajuAuthorityPromptFacts, SAJU_AUTHORITY_PROMPT_RULES } from './saju-authority-consumer.js';
 
 const MODE_SYSTEM_PROMPTS = Object.freeze({
   yeoni: [
@@ -109,7 +110,10 @@ function projectAdapter(name, data) {
     const value = safeText(data[field]);
     if (value) projected[field] = value;
   }
-  if (name === 'saju') projected.temperament = sajuTemperamentPromptLines(data);
+  if (name === 'saju' && data.sajuAuthority) {
+    projected.sajuAuthority = sajuAuthorityPromptFacts(data.sajuAuthority);
+    projected.temperament = [...SAJU_AUTHORITY_PROMPT_RULES];
+  } else if (name === 'saju') projected.temperament = sajuTemperamentPromptLines(data);
   return Object.keys(projected).length ? projected : undefined;
 }
 

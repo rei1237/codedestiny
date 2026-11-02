@@ -34,7 +34,9 @@ export async function deliverGuardianPaid({ env, input, userId, requestId, resol
         if (!proof?.ok) throw Object.assign(Error('결제 내역을 확인하지 못했어요.'), { accessStatus: proof?.degraded ? 503 : 403 });
       },
       seed: async original => {
-        const calculated = await contextBuilder(original, contextOptions);
+        const calculated = await contextBuilder(original, { ...contextOptions,
+          // seed runs only for a new paid narrative; resume reads its stored context.
+          gyeokgukAuthorityV2: original.category === 'saju' && env?.SAJU_GYEOKGUK_AUTHORITY_V2 === 'true' });
         if (!calculated?.ok || calculated.context?.availableSystems?.length !== 1 || calculated.context.availableSystems[0] !== original.category) throw Object.assign(Error('계산 근거를 확인하지 못했어요.'), { accessStatus: 422 });
         // The answer's visible text is both the part target and the total floor, so a
         // short final answer is preserved for review rather than completed.
