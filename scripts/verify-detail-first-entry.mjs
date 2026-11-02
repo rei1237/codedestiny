@@ -64,6 +64,13 @@ try {
       if (await disclosure.count() && !await disclosure.evaluate(element => element.open)) {
         await disclosure.locator('summary').first().click();
       }
+      // Concern cards are intentionally hidden until their real selector is chosen.
+      const concern = card.locator('xpath=ancestor::*[@data-yh-group][1]');
+      if (await concern.count()) {
+        const group = await concern.getAttribute('data-yh-group');
+        await page.locator('[data-yh-concern="' + group + '"]').click();
+        await expect(card).toBeVisible();
+      }
       await card.scrollIntoViewIfNeeded();
       await card.click();
       const dialog = page.locator('#tilePvwOverlay');
