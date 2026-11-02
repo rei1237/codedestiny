@@ -84,13 +84,20 @@ try{
     assert(await page.locator('#snuReadingContents nav a').first().isVisible());
     assert.equal(await page.locator('.saju-reading-toc').count(),1);
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);
+    const guideAction=page.locator('#cdActivationGuide a');
+    await guideAction.waitFor({state:'visible'});
+    assert(await guideAction.evaluate(link=>{
+      const box=link.getBoundingClientRect();
+      const hit=document.elementFromPoint(box.x+box.width/2,box.y+box.height/2);
+      return hit===link||link.contains(hit);
+    }),'the gift guide action must remain above the fixed navigation');
     await page.screenshot({path:resolve(output,`snu-reading-${width}.png`)});
     await page.goto(origin+'/snu/',{waitUntil:'networkidle'});await result.waitFor();
     guest=true;
     await page.evaluate(()=>{localStorage.removeItem('fortune_auth_user');localStorage.removeItem('fortune_auth_token');window.dispatchEvent(new CustomEvent('cd:auth-changed',{detail:{event:'logout'}}));});
     await page.getByRole('link',{name:'가입·로그인하기',exact:true}).waitFor();
     assert.equal(await page.getByRole('link',{name:'내 사주와 열린 콘텐츠 보기',exact:true}).count(),0);
-    rows.push({width,claims,unlocks,profile:'fixture-gift',shortcuts:10,overflow:false,logoutCleared:true,keyboardGrant:true,focusMoved:true});
+    rows.push({width,claims,unlocks,profile:'fixture-gift',shortcuts:10,overflow:false,guideActionUncovered:true,logoutCleared:true,keyboardGrant:true,focusMoved:true});
     await context.close();
   }
   await writeFile(resolve(output,'proof.json'),JSON.stringify(rows,null,2));
