@@ -21,6 +21,7 @@ import AiResultProse from "@/components/fortune/AiResultProse";
 import ConsultationReading from "@/components/fortune/ConsultationReading";
 import AnalysisBasisLoading from "@/components/fortune/AnalysisBasisLoading";
 import AnalysisBasisPanel from "@/components/fortune/AnalysisBasisPanel";
+import ResultReference from '@/components/fortune/ResultReference';
 import { fetchAnalysisBasis, type AnalysisBasis } from "@/lib/fortune/analysis-basis";
 import PagedResultViewer, { usePagedViewerMode, type ResultViewerPage } from "@/components/fortune/PagedResultViewer";
 import {
@@ -1037,7 +1038,7 @@ function CompatResultModal({ result, onClose, onDownloadError, basis = null, com
   const chapterEntries = useMemo(() => Object.entries(sections), [sections]);
   const [activeChapter, setActiveChapter] = useState(0);
   const [chapterViewAll, setChapterViewAll] = usePagedViewerMode("sukuyoCompatChapterViewerV1");
-  const [detailOpen, setDetailOpen] = useState(false);
+  const [detailOpen, setDetailOpen] = useState(true);
   const [mounted, setMounted] = useState(false);
   const [hasSeenQuote, setHasSeenQuote] = useState(false);
   const initialSeenRef = useRef<boolean | null>(null);
@@ -1126,13 +1127,6 @@ function CompatResultModal({ result, onClose, onDownloadError, basis = null, com
         {result.insight && (
           <SukuyoReveal><InsightSection insight={result.insight} /></SukuyoReveal>
         )}
-        {basis && (
-          <section className={styles.basisPane}>
-            <AnalysisBasisPanel basis={basis} />
-          </section>
-        )}
-        <ScoreDetailSection scores={meta.scores} />
-        <CompareSection a={meta.person_a} b={meta.person_b} />
         <section className={styles.detailDisclosure} aria-label={copy.detailDisclosureAria}>
           <button
             type="button"
@@ -1191,6 +1185,11 @@ function CompatResultModal({ result, onClose, onDownloadError, basis = null, com
             />
           </div>
         </section>
+        <ResultReference>
+          {basis && <AnalysisBasisPanel basis={basis} />}
+          <ScoreDetailSection scores={meta.scores} />
+          <CompareSection a={meta.person_a} b={meta.person_b} />
+        </ResultReference>
         {completed && <RecommendationResult service="sukuyo-compatibility-ai" practiceTags={sukuyoCompatAdviceTopics(result.sections)}/>}
       </div>
 

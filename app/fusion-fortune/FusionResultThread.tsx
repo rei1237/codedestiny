@@ -90,6 +90,50 @@ export function FusionResultThread({ result, openSections, onToggleSection, expo
       <button type="button" onClick={() => onToggleSection("all")} className="min-h-11 rounded-full border border-white/20 px-4 text-sm">{premiumCopy.expandAll}</button>
       <button type="button" onClick={() => onToggleSection("none")} className="min-h-11 rounded-full border border-white/20 px-4 text-sm">{premiumCopy.collapseAll}</button>
     </li>}
+    {result.finalVerdict && result.expertMeta?.complete !== false && <li
+      id="fusion-toc-verdict"
+      data-fusion-toc="verdict"
+      data-fusion-pdf-section="true"
+      className={exporting ? "" : "animate-fade-in-up motion-reduce:animate-none"}
+      style={exporting ? undefined : { animationDelay: "660ms" }}
+    >
+      <section aria-labelledby="fusion-final-verdict-heading" className="relative overflow-hidden rounded-[1.5rem] border border-[rgba(232,213,163,0.34)] bg-[linear-gradient(160deg,rgba(48,34,80,0.86),rgba(16,12,32,0.95))] px-5 py-6 sm:px-8 sm:py-8">
+        <span aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,var(--fx-gold-2),transparent)]" />
+        <p className="m-0 font-display text-[0.72rem] uppercase tracking-[0.3em] text-[var(--fx-gold-2)]">{expertCopy.final}</p>
+        <h3 id="fusion-final-verdict-heading" className={`m-0 mt-3.5 max-w-[28ch] ${styles.readingTitle} text-[clamp(1.5rem,4.4vw,2.25rem)] leading-[1.3] text-[var(--fx-ink-1)]`}>{result.finalVerdict.headline}</h3>
+        {!result.expertMeta && <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2.5">
+          <span className="text-[0.85rem] text-[var(--fx-ink-3)]">{copy.crossCheckGaugeCaption}</span>
+          <span aria-hidden className="h-1.5 min-w-[8rem] flex-1 overflow-hidden rounded-full bg-white/[0.09]">
+            <em className="block h-full origin-left rounded-full bg-[linear-gradient(90deg,var(--fx-violet),var(--fx-gold-2))] transition-transform duration-700 ease-out motion-reduce:transition-none" style={{ transform: `scaleX(${Math.min(1, Math.max(0, result.finalVerdict.confidence / 100))})` }} />
+          </span>
+          <b className="font-display text-[1.05rem] text-[var(--fx-gold)]">{result.finalVerdict.confidence}%</b>
+        </div>}
+        <ul className="mt-6 grid list-none gap-3 p-0 sm:grid-cols-2 lg:grid-cols-3">
+          {result.finalVerdict.systemVerdicts.map((item) => (
+            <li key={item.key} data-stance={item.stance} style={tintVars(item.key)} className="relative overflow-hidden rounded-xl border border-white/[0.1] bg-black/25 p-4">
+              <span aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,var(--tint),transparent)]" />
+              <div className="flex items-center justify-between gap-2">
+                <strong className="font-display text-[0.95rem] text-[var(--fx-ink-1)]">{item.label}</strong>
+                <span className={`shrink-0 rounded-full px-2.5 py-1 text-[0.72rem] ${STANCE_CLASS[item.stance]}`}>{copy.stanceLabels[item.stance]}</span>
+              </div>
+              <p className="m-0 mt-2.5 text-[0.88rem] leading-[1.75] text-[var(--fx-ink-3)]">{item.note}</p>
+            </li>
+          ))}
+        </ul>
+        <p className={`m-0 mt-6 max-w-[72ch] whitespace-pre-wrap ${styles.reading} text-[var(--fx-ink-2)] [text-wrap:pretty]`}>{result.finalVerdict.rationale}</p>
+        <div className="mt-6 grid gap-5 sm:grid-cols-2">
+          {([[copy.doNowHeading, result.finalVerdict.doNow, "text-[var(--fx-mint)]"], [copy.avoidNowHeading, result.finalVerdict.avoid, "text-[var(--fx-rose)]"]] as const).map(([heading, items, tone]) => (
+            <div key={heading}>
+              <h4 className={`m-0 font-display text-[0.92rem] ${tone}`}>{heading}</h4>
+              <ul className="mt-3 grid list-none gap-2.5 p-0">
+                {items.map((item) => <li key={item} className="rounded-lg border border-white/[0.09] bg-white/[0.03] px-3.5 py-3 text-[0.92rem] leading-[1.75] text-[var(--fx-ink-3)]">{item}</li>)}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </section>
+    </li>}
+
     {result.consultationPlan && <ThreadRow systemKey="fusion" index={0} exporting={exporting} pdfSection>
       <ThreadBubble systemKey="fusion" exporting={exporting}>
         <h2 className="font-display text-xl leading-relaxed text-[var(--fx-ink-1)]">{result.consultationPlan.question}</h2>
@@ -234,50 +278,6 @@ export function FusionResultThread({ result, openSections, onToggleSection, expo
 
     {/* 이 상품이 파는 것은 여섯 해석이 아니라 그들이 만나 남긴 답 하나다 — 대화의 폭을 다 쓴다. */}
     <ExpertEvidence cards={result.tarotCards} crossCheck={result.evidenceCrossCheck} exporting={exporting} />
-    {result.finalVerdict && result.expertMeta?.complete !== false && <li
-      id="fusion-toc-verdict"
-      data-fusion-toc="verdict"
-      data-fusion-pdf-section="true"
-      className={exporting ? "" : "animate-fade-in-up motion-reduce:animate-none"}
-      style={exporting ? undefined : { animationDelay: "660ms" }}
-    >
-      <section aria-labelledby="fusion-final-verdict-heading" className="relative overflow-hidden rounded-[1.5rem] border border-[rgba(232,213,163,0.34)] bg-[linear-gradient(160deg,rgba(48,34,80,0.86),rgba(16,12,32,0.95))] px-5 py-6 sm:px-8 sm:py-8">
-        <span aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,var(--fx-gold-2),transparent)]" />
-        <p className="m-0 font-display text-[0.72rem] uppercase tracking-[0.3em] text-[var(--fx-gold-2)]">{expertCopy.final}</p>
-        <h3 id="fusion-final-verdict-heading" className={`m-0 mt-3.5 max-w-[28ch] ${styles.readingTitle} text-[clamp(1.5rem,4.4vw,2.25rem)] leading-[1.3] text-[var(--fx-ink-1)]`}>{result.finalVerdict.headline}</h3>
-        {!result.expertMeta && <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2.5">
-          <span className="text-[0.85rem] text-[var(--fx-ink-3)]">{copy.crossCheckGaugeCaption}</span>
-          <span aria-hidden className="h-1.5 min-w-[8rem] flex-1 overflow-hidden rounded-full bg-white/[0.09]">
-            <em className="block h-full origin-left rounded-full bg-[linear-gradient(90deg,var(--fx-violet),var(--fx-gold-2))] transition-transform duration-700 ease-out motion-reduce:transition-none" style={{ transform: `scaleX(${Math.min(1, Math.max(0, result.finalVerdict.confidence / 100))})` }} />
-          </span>
-          <b className="font-display text-[1.05rem] text-[var(--fx-gold)]">{result.finalVerdict.confidence}%</b>
-        </div>}
-        <ul className="mt-6 grid list-none gap-3 p-0 sm:grid-cols-2 lg:grid-cols-3">
-          {result.finalVerdict.systemVerdicts.map((item) => (
-            <li key={item.key} data-stance={item.stance} style={tintVars(item.key)} className="relative overflow-hidden rounded-xl border border-white/[0.1] bg-black/25 p-4">
-              <span aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,var(--tint),transparent)]" />
-              <div className="flex items-center justify-between gap-2">
-                <strong className="font-display text-[0.95rem] text-[var(--fx-ink-1)]">{item.label}</strong>
-                <span className={`shrink-0 rounded-full px-2.5 py-1 text-[0.72rem] ${STANCE_CLASS[item.stance]}`}>{copy.stanceLabels[item.stance]}</span>
-              </div>
-              <p className="m-0 mt-2.5 text-[0.88rem] leading-[1.75] text-[var(--fx-ink-3)]">{item.note}</p>
-            </li>
-          ))}
-        </ul>
-        <p className={`m-0 mt-6 max-w-[72ch] whitespace-pre-wrap ${styles.reading} text-[var(--fx-ink-2)] [text-wrap:pretty]`}>{result.finalVerdict.rationale}</p>
-        <div className="mt-6 grid gap-5 sm:grid-cols-2">
-          {([[copy.doNowHeading, result.finalVerdict.doNow, "text-[var(--fx-mint)]"], [copy.avoidNowHeading, result.finalVerdict.avoid, "text-[var(--fx-rose)]"]] as const).map(([heading, items, tone]) => (
-            <div key={heading}>
-              <h4 className={`m-0 font-display text-[0.92rem] ${tone}`}>{heading}</h4>
-              <ul className="mt-3 grid list-none gap-2.5 p-0">
-                {items.map((item) => <li key={item} className="rounded-lg border border-white/[0.09] bg-white/[0.03] px-3.5 py-3 text-[0.92rem] leading-[1.75] text-[var(--fx-ink-3)]">{item}</li>)}
-              </ul>
-            </div>
-          ))}
-        </div>
-      </section>
-    </li>}
-
     {result.closingMessage && <ThreadRow systemKey="fusion" index={12} exporting={exporting} pdfSection tocKey="closing">
       <ThreadBubble systemKey="fusion" exporting={exporting}>
         {!exporting && <FusionChapterArt systemKey="choice" closing />}
