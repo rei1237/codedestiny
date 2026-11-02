@@ -102,8 +102,8 @@ function readShellTabs(html) {
 
 const canonical = readCanonicalTabs();
 
-if (canonical.length !== 5) {
-  fail(`MOBILE_TABS 는 5개여야 합니다 (현재 ${canonical.length}개).`);
+if (canonical.length !== 4) {
+  fail(`MOBILE_TABS 는 4개여야 합니다 (현재 ${canonical.length}개).`);
 }
 
 for (const relativePath of SHELL_FILES) {

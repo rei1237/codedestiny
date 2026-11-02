@@ -25,3 +25,7 @@
 
 /* A single header help entry; the existing tutorial and progress stay in its dialog. */
 .cdh-nav>.cd-first{margin:0}.cdh-nav .cd-first__bar{border:0;padding:0}.cdh-nav .cd-first button[data-first-replay]{display:grid;place-items:center;width:44px;height:44px;padding:0;border:1px solid var(--cd-border);border-radius:50%;text-decoration:none}.cd-first__welcome .cd-first__story{padding-top:16px}.cd-first__welcome .cd-first__howto{text-align:left}.cd-first__welcome [data-first-progress]{text-align:left;margin-top:20px}
+
+.cd-first .cd-first__atelier{aspect-ratio:5/6}.cd-first .cd-first__atelier img{width:400%;min-width:400%;height:100%;left:0;object-fit:fill;animation:yeoniAtelierTalk 440ms steps(1,end)}
+@keyframes yeoniAtelierTalk{0%,50%{transform:translateX(-50%)}25%{transform:translateX(-75%)}75%,100%{transform:translateX(0)}}
+@media(prefers-reduced-motion:reduce){.cd-first .cd-first__atelier img{animation:none}}

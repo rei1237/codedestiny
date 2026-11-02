@@ -210,6 +210,7 @@
 /public/js/core/sukuyo-astronomy.js
 /public/js/core/uiBindings.js
 /public/js/core/vedic/crafted-details.mjs
+/public/js/core/yehwa-home.mjs
 /public/js/destiny-profile.js
 /public/js/dream-ledger.js
 /public/js/dream-meaning-library.js
@@ -371,6 +372,7 @@
 /public/styles/tarot-year-fortune.css
 /public/styles/theme-tokens.css
 /public/styles/trust-stories.css
+/public/styles/yehwa-home.css
 /public/styles/yehwa-motifs-nav.css
 /public/styles/yehwa-motifs.css
 /public/tadagochi.html

@@ -10,7 +10,7 @@ import {loginForCurrentPage} from '../_lib/api';
 import {firstVisitEvent,firstVisitHome,firstVisitOverlayBusy,firstVisitLogin,writeFirstVisit,readFirstVisit,readYeongnyangiGuideHidden,hideYeongnyangiGuide,clearYeongnyangiGuideHidden,type FirstVisitState} from '@/js/first-visit-state.mjs';
 import styles from './first-visit.module.css';
 function GuideArt({step=0}:{step?:number}){
- return <span className={styles.art} aria-hidden="true"><Image src="/images/first-visit/yeongnyangi-tutorial-v1.webp" alt="" width={1440} height={480} style={{left:`-${step*100}%`}}/></span>;
+ return <span key={step} className={styles.portrait} aria-hidden="true"><Image src="/assets/yeongnyangi/original/hero-480.webp" alt="" width={480} height={480}/></span>;
 }
 export default function FirstVisitGuide(){
  const locale=useLocale();

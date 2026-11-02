@@ -2311,6 +2311,40 @@
           "delivery": "审核后的答复通过邮件发送"
         }
       }
+    },
+    "yehwa": {
+      "titleA": "今天想聊些什么",
+      "titleB": "呢？",
+      "leadA": "从心里的疑问开始",
+      "leadB": "慢慢挑选吧。",
+      "tour": "跟延伊逛一逛",
+      "concern": "有什么心事？",
+      "love": "恋爱·关系",
+      "work": "金钱·工作",
+      "self": "我的性格",
+      "flow": "未来的趋势",
+      "family": "家庭·生活",
+      "results": "探索内心的咨询",
+      "view": "了解咨询",
+      "all": "查看全部运势",
+      "records": "重温我的咨询",
+      "pigRecords": "Ggulggul记录",
+      "catRecords": "灵喵咨询记录",
+      "line1": "从今天挂心的事开始，好吗？",
+      "line2": "查看咨询内容和使用条件，选择后可查看详细说明。",
+      "line3": "以往的咨询保存在各服务的记录中，Ggulggul与灵喵的记录分别显示。",
+      "done": "结束引导",
+      "previous": "上一步",
+      "next": "下一步",
+      "skip": "跳过",
+      "findLabel": "按心事寻找咨询",
+      "libraryLabel": "全部运势和咨询记录",
+      "guideLabel": "延伊的页面引导",
+      "close": "关闭引导",
+      "codexDescription": "个人版探索恋爱模式，合盘版理解两人的差异。",
+      "sibylName": "西比拉年度准备报告",
+      "sibylDescription": "关注时期、分领域准备和实际行动。",
+      "rangePrice": "{from}–{to}韩元"
     }
   },
   "terms": {

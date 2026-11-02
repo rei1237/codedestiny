@@ -72,9 +72,6 @@ export const MOBILE_TABS: readonly MobileTab[] = [
     glyph: "✦",
     shellAction: ALL_FORTUNES_ACTION,
   },
-  { key: "consult", label: "대표 상담", href: "/consultations/", ariaLabel: "대표 상담 고르기", glyph: "✿",
-    transKey: "shell.cdMobileBottomNav.cdMobileBottomNavMain.consult",
-    ariaTransKey: "shell.cdMobileBottomNav.cdMobileBottomNavMain.consultTab.ariaLabel" },
   {
     key: "library",
     label: "보관함",
@@ -100,9 +97,9 @@ const TAB_KEYS: readonly MobileTabKey[] = MOBILE_TABS.map((tab) => tab.key);
 
 /** pathname prefix → 탭 key. 위에서부터 먼저 맞는 것을 쓴다(구체적인 것이 앞). */
 const PATH_RULES: ReadonlyArray<{ prefix: string; key: MobileTabKey }> = [
-  { prefix: "/consultations", key: "consult" },
+  { prefix: "/consultations", key: "fortunes" },
   { prefix: "/records", key: "library" },
-  { prefix: "/fortune-chat", key: "consult" },
+  { prefix: "/fortune-chat", key: "fortunes" },
   { prefix: "/yeongnyangi/library", key: "library" },
   { prefix: "/points", key: "my" },
   { prefix: "/login", key: "my" },

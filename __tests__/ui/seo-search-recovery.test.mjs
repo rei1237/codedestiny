@@ -34,7 +34,7 @@ for (const [name, source] of [['shell', legacy], ['React', react]]) {
 test('first-screen translations render before JS; missing translations fail the build', () => {
   const fixture = mkdtempSync(join(tmpdir(), 'cd-seo-locale-'));
   try {
-    const html = read('templates/home-funnel.html');
+    const html = read('index.html');
     const hero = html.match(/<h1 id="cdhTitle"[^>]*>[\s\S]*?<\/h1>/)[0];
     for (const [locale, dictionary] of [['en','en'],['ja','ja'],['zh','zh-cn'],['zh-tw','zh-tw']]) {
       mkdirSync(join(fixture, 'dist', locale), { recursive: true });
@@ -52,7 +52,7 @@ test('first-screen translations render before JS; missing translations fail the 
     }
     const bad = JSON.parse(read('public/i18n/ja.json'));
     // 히어로 제목이 실제로 쓰는 키(2026-10-17 "직관성" 단순화 뒤 home.simpleHome.title)를 지운다.
-    delete bad.home.simpleHome.title;
+    delete bad.home.yehwa.titleA;
     writeFileSync(join(fixture, 'public/i18n/ja.json'), JSON.stringify(bad));
     assert.notEqual(run().status, 0);
   } finally {
