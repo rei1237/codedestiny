@@ -64,3 +64,27 @@ CR-001/002: 261a6c105 승인 역법; CR-003/004: 9c7d61817 한정 범위 확대�
 - 타로의 결제 전 최초 카드 고정과 생성 시 해석 버전 고정은 별개다. 현재 /paid-draw의 표시 해석은 최신 레지스트리를 사용하므로 준비 시점부터 모든 해석 문구가 고정됐다고 주장하지 않는다.
 - stateless 자미 섬과 프로필 해금 전용 대한에 CR-006의 상담 requestId를 임의 재사용하지 않았다. 신규 영속 저장/identity 확장은 별도 CR-009 검토 대상이다.
 - 검색 범위: ARCHITECTURE의 worker/routes, worker/lib의 관련 명칭, worker/yeongnyangi/fortune, app/destiny-compass/_engine/adapters, 관련 app 결과와 components/fortune. 정적 js의 모든 로케일·모든 상품별 export는 아직 호출부 전수 추적을 마치지 않았으므로 빠짐없는 전수 적용 완료로 선언하지 않는다.
+
+## 2026-11-02 후속 구현 — 대표·전문가 상담 우선
+
+아래는 7ef443f7e 이후의 최신 상태다. 위 초기 행렬과 겹치는 행은 이 표를 우선한다. 모든 새 플래그는 기본 OFF이며, 저장 결과 화면 검증과 신규 생성 검증을 구분한다.
+
+| 우선 상품/소비자 | 기본 결과 → LLM 근거 | 저장·재개 | 재열람·PDF·공유 | 최신 상태 |
+| --- | --- | --- | --- | --- |
+| 대표: 신년운세 new-year-ai | 기존 원국과 실제 대운 계산의 기둥 일치 확인 후 majorLuck 전달 | 신규 SAJU_CONSUMER_FACTS_V1만 pin; OFF 재개에도 같은 값 | 기존 fortuneData 및 저장 본문 reader 보존; 화면 회귀 | 신규 대운 연결·mock 완료 |
+| 대표: 연애 비책 love-secret-ai | 계산 결과와 grounding facts를 함께 고정 | 신규만 pin; 재개에서 grounding 재생성 금지, 손상 시 409 | 완료본 원문 reader 보존; 화면 회귀 | 신규 사실 고정·mock 완료 |
+| 대표: 인생의 책/총운 life-book-ai | 기존 majorLuck·yearlyLuck·CR-008 사실 사용 | 기존 factSnapshot 계약 유지 | 기존 저장 본문과 표시 보존 | 기존 연결 회귀 57건 묶음 및 화면 회귀 |
+| 대표: 연애 대작전 master-love-codex | A/B 자미 명반과 연간 명반 모두 같은 역법 선택 | 기존 저장 charts 우선; 신규만 server flag | 기존 장별 저장 본문 reader 보존 | 신규 자미 연결·순수 함수/mock 회귀 |
+| 대표: 네오 전략실 neo-operation-room | 자미 self/partner 동일 선택 | 신규 ON methodSummary를 최초 create에 포함; 기존 빈 실행은 legacy | 기존 결과 저장/재개 UI 회귀 | 신규 자미 연결·mock 회귀 |
+| 대표: 운명의 찻집 fortune-tea-house | 기존 tea-tarot-draw의 version/deck/spread/cards → buildTarotFactInput | 기존 fingerprint/소유자/최초 추첨 보존; 중복 구현 없음 | 기존 저장 본문 reader 유지 | 기존 카드 고정 계약 확인·재개 회귀 |
+| 전문가: 자미 ziwei-ai | 실제 prepare/basis/generate에 서버 선택 플래그 연결 | CR-006 준비 명반/연도 재사용 | 저장 원문·PDF 전달 하네스 | 신규 ON/OFF/경합/손상 회귀 |
+| 전문가: 자미 정밀 ziwei-deep-report | 공통 calculateZiweiConsumerChart 사용 | 저장 chartSnapshot/ziweiChart 우선 | 기존 완료 원문 보존 | 기존 58건 회귀·신규 공통 선택 검증 |
+| 전문가: 점성술 astrology-ai | 기존 provider chart와 동일 facts | llmMeta.engineFacts와 astrologyChart 동일 저장; 불일치 409, 재계산/환급 안 함 | 기존 chart 및 저장 본문 reader 보존; 화면 회귀 | 합성 명반 연결 검증; Swiss 실계산 차단 |
+| 전문가: 베다 vedic-ai | 기존 provider chart와 동일 facts | chartSnapshot+engineFacts 동일 저장; 불일치 409 | 기존 consultationPayload/저장 본문; 화면 회귀 | 합성 명반 연결 검증; Swiss 실계산 차단 |
+| 전문가: 숙요 sukuyo-compatibility-ai | 기존 A/B calculation 전체 사실 보존 | calculation+engineFacts 같은 seed; 불일치 409 | 기존 sukuyoResult/저장 본문; 화면 회귀 | 합성 명반 연결 검증; Swiss 실계산 차단 |
+| 자미: 무료 island blueprint | 공통 서버 선택, 같은 응답 내 chart 사용 | 무DB·무인증 기존 계약 유지 | 유료 island-report와 공통 준비 ID는 없음 | stateless 연결만; 영속 연결 CR-009 대기 |
+| 자미/타로: 연이·네오 guardian | 공통 사실 포착·프롬프트 envelope | 기존 유료 seed에 저장 | 기존 reader 보존 | 기본/신규 유료 연결 확장 |
+| 자미/타로: 영냥이 | DomainContext pin → chartView/chapter/prompt | 신규 context 및 별도 tarot draw에 pin; 저장 context 읽기 검증 | 기존 context/본문 reader, 6체계 저장 화면 회귀 | 개인 자미 실제 계산·타로 합성 검증; 관계 Swiss 그래프 실행 안 함 |
+| 기본 타로 /reading 및 연간 저장 | 실제 cards/reading/engineMeta에 version/facts envelope | 신규만 추가; 기존 연간 완료본 우선 | 기존 연간 저장 원문 반환 | 기본 결과 pin 연결·mock 검증 |
+
+잔여 경계: 앱 내부 자미 계산기·destiny-compass 내부 어댑터는 보호된 엔진으로 자동 교체하지 않았다. island-report 영속 준비 ID는 CR-009 미승인이다. Swiss 계열 낙샤트라/숙요 기본 계산 및 초융합 전체 실계산은 차단 유지다. paid-tarot-draw의 기존 카드 pin은 보존하지만 결제 전 해석 버전까지 묶는 새 준비 계약은 구현하지 않았다. crystal-soul/ijik/numerology와 별도 사주 기본 상품은 위 완료 집계에 포함하지 않는다.
