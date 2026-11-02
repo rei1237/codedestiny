@@ -8,15 +8,13 @@
 .yh-home :where(button,a,summary):focus-visible{outline:3px solid var(--cd-focus-ring);outline-offset:4px}
 .yh-home button{min-height:44px;border:1px solid var(--cd-line);border-radius:var(--cd-r-control);background:var(--cd-surface);padding:8px 16px}
 .yh-home button:disabled{opacity:.55;cursor:default}
-.yh-hero{display:grid;grid-template-columns:1.2fr 1fr;align-items:center;gap:24px;padding:32px 40px;min-height:280px;border:1px solid color-mix(in srgb,var(--cd-yehwa-line) 50%,transparent);border-radius:26px;background:linear-gradient(110deg,var(--cd-surface),var(--cd-surface-2));box-shadow:inset 0 0 0 6px var(--cd-bg)}
+.yh-hero{--yh-garden:url("/images/home/illustrated/yeoni-moon-garden-1280.webp");display:grid;grid-template-columns:1.2fr 1fr;align-items:center;gap:24px;padding:32px 40px;min-height:280px;border:1px solid color-mix(in srgb,var(--cd-yehwa-line) 50%,transparent);border-radius:26px;background:linear-gradient(90deg,var(--cd-surface) 0%,color-mix(in srgb,var(--cd-surface) 94%,transparent) 35%,transparent 75%),var(--yh-garden) center 24%/cover no-repeat;box-shadow:inset 0 0 0 6px var(--cd-bg)}
 .yh-greeting h1{font-size:clamp(26px,3.7vw,44px);line-height:1.5;color:var(--cd-text)}
 .yh-greeting p{margin-top:16px;color:var(--cd-text-muted);font-size:16px}
 .yh-home .yh-guide-open{padding:0;min-height:44px;margin-top:12px;border:0;background:transparent;text-decoration:underline;text-underline-offset:5px;font-size:14px;color:var(--cd-accent)}
 .yh-art{position:relative;width:100%;max-width:270px;justify-self:center;align-self:center;isolation:isolate}
-.yh-art::before{content:"";position:absolute;inset:6% 8% 0;border:1px solid var(--cd-yehwa-line);border-radius:50% 50% 26px 26px;z-index:-1;background:color-mix(in srgb,var(--cd-surface) 75%,transparent)}
-.yh-art::after{content:"";position:absolute;width:110px;height:100px;right:-16px;bottom:0;opacity:.55;background:var(--cd-yehwa-line-deep);mask:var(--cd-yehwa-mask-branch-corner) center/contain no-repeat;pointer-events:none}
-.yh-art img{display:block;width:100%;height:auto;aspect-ratio:6/7;object-fit:contain}
-.yh-moon{position:absolute;top:8%;left:2%;width:30px;height:30px;border-radius:50%;box-shadow:7px 4px 0 -1px var(--cd-yehwa-line);transform:rotate(-20deg)}
+.yh-art img{display:block;width:100%;height:auto;aspect-ratio:1;object-fit:contain}
+html.neo-mode .yh-hero{--yh-garden:url("/images/home/illustrated/yeoni-moon-garden-night-1280.webp")}
 .yh-concerns{padding-top:20px;scroll-margin-top:20px}
 .yh-concerns::before{content:"";display:block;width:min(80%,540px);height:28px;margin:0 auto 20px;background:var(--cd-yehwa-line-deep);opacity:.5;mask:var(--cd-yehwa-mask-branch-h) center/contain no-repeat}
 .yh-home h2{font-size:22px;line-height:1.5}
@@ -53,4 +51,4 @@
 [data-yh-highlight]{outline:2px solid var(--cd-yehwa-line);outline-offset:6px;border-radius:16px}
 @media(hover:hover){.yh-card:hover,.yh-choices button:hover{border-color:var(--cd-accent)}.yh-home a:hover{text-decoration:underline;text-underline-offset:4px}}
 @media(max-width:900px){.yh-card-list{grid-template-columns:1fr}.yh-card>img{width:72px;height:72px}.yh-card-foot{margin-top:4px}}
-@media(max-width:600px){.yh-hero{min-height:0;gap:8px;padding:24px 18px;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr)}.yh-greeting h1{font-size:22px;line-height:1.45;letter-spacing:-.025em}.yh-greeting p{font-size:15px;margin-top:12px}.yh-home .yh-guide-open{font-size:13px;text-align:left}.yh-art::after{width:45px;height:60px;right:0}.yh-art img{aspect-ratio:5/7}.yh-moon{width:20px;height:20px}.yh-home h2{font-size:20px}.yh-choices{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.yh-choices button{justify-content:flex-start;padding-inline:16px;font-size:15px}.yh-card-list{gap:12px}.yh-home .yh-card{padding:16px;gap:12px}.yh-links{grid-template-columns:1fr;gap:0}.yh-guide{grid-template-columns:64px minmax(0,1fr);gap:10px;padding:12px}.yh-portrait{width:64px}.yh-guide-head{gap:6px}.yh-guide-actions button{padding-inline:10px}.yh-speech p{font-size:15px}}
+@media(max-width:600px){.yh-hero{--yh-garden:url("/images/home/illustrated/yeoni-moon-garden-640.webp");background-position:center,76% 22%;min-height:0;gap:8px;padding:24px 18px;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr)}.yh-greeting h1{font-size:22px;line-height:1.45;letter-spacing:-.025em}.yh-greeting p{font-size:15px;margin-top:12px}.yh-home .yh-guide-open{font-size:13px;text-align:left}.yh-home h2{font-size:20px}.yh-choices{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.yh-choices button{justify-content:flex-start;padding-inline:16px;font-size:15px}.yh-card-list{gap:12px}.yh-home .yh-card{padding:16px;gap:12px}.yh-links{grid-template-columns:1fr;gap:0}.yh-guide{grid-template-columns:64px minmax(0,1fr);gap:10px;padding:12px}.yh-portrait{width:64px}.yh-guide-head{gap:6px}.yh-guide-actions button{padding-inline:10px}.yh-speech p{font-size:15px}}

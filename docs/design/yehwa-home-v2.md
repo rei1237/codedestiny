@@ -12,7 +12,7 @@
 
 ## 자산
 
-홈 캐릭터: 기존 `public/fuctionassets/연이.webp`.
+홈 메인: 기존 `public/images/home/illustrated/yeoni-character-{320,480,800}.webp`의 책을 읽는 꽃돼지와 `yeoni-moon-garden` 배경을 유지한다. 모바일·다크 모드도 기존 배경 변형을 사용한다. 별도 꽃돼지 이미지와 아틀리에 에셋은 브랜드·첫 방문 안내 및 튜토리얼 영역에 사용하고 메인 이미지를 대체하지 않는다.
 
 대화 원본: 사용자 소유 연이 아틀리에 `atelier-release/assets/illustrated/talking/yeoni_pig.webp`. 1280×384, 가로 4셀, 셀마다 320×384. SHA256 `90ce057c759fb0854a575d3e3a018e1caf3a69433290c111da9baabfd4e2edaa`.
 
