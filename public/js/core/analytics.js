@@ -428,6 +428,77 @@
       observation:'browser_render',metric_version:2
     });
   };
+  // Naver's SDK reads full location/referrer. Keep it in a same-origin, no-referrer
+  // measurement frame whose URL excludes checkout tokens, hashes and private queries.
+  var naverFrame = null, naverReady = false;
+  var naverPending = Object.create(null), naverSent = Object.create(null), naverInFlight = Object.create(null);
+  function naverLocation() {
+    var path = global.location.pathname;
+    if (!/^\/(?:[a-z][a-z0-9-]{0,48}\/?)*$/i.test(path)) path = '/';
+    var parts = String(global.location.search || '').replace(/^\?/, '').split('&').filter(function (pair) {
+      return /^NaPm=[a-zA-Z0-9%|=._~-]{1,2048}$/.test(pair) ||
+        /^utm_source=naver$|^utm_medium=cpc$|^utm_campaign=(paid_20261028_(naver|brand)|ggulggul_2027_test)$|^utm_content=([A-E]_ko|yearly_[abc])$|^utm_term=K(0[1-9]|10)$/.test(pair);
+    });
+    return global.location.origin + path + (parts.length ? '?' + parts.join('&') : '');
+  }
+  function flushNaverPurchases() {
+    if (!naverReady || !naverFrame || readConsent() !== 'accepted') return;
+    Object.keys(naverPending).forEach(function (id) {
+      if (naverInFlight[id] || naverSent[id]) return;
+      naverInFlight[id] = true;
+      naverFrame.contentWindow.postMessage({kind:'cd:naver:purchase',receipt:naverPending[id]},global.location.origin);
+    });
+  }
+  function clearNaverStorage() {
+    try {
+      ['NA_SA','NA_SAC','NA_SAS','NA_MI','NA_CO','NVADID','NA_DA','_fwb','NA_TRIDTP','NA_NACC'].forEach(function (name) {
+        document.cookie = name + '=; max-age=0; path=/; SameSite=Lax; Secure';
+        document.cookie = name + '=; max-age=0; path=/; domain=code-destiny.com; SameSite=Lax; Secure';
+      });
+      Object.keys(global.localStorage).filter(function (key) { return key.indexOf('cd:naver:purchase:') === 0; }).forEach(function (key) { global.localStorage.removeItem(key); });
+    } catch (_) { /* Storage policy cannot block checkout. */ }
+  }
+  function syncNaverConsent() {
+    if (!productionOrigin) return;
+    if (readConsent() !== 'accepted') {
+      clearNaverStorage();
+      if (naverFrame) naverFrame.remove();
+      naverFrame = null; naverReady = false;
+      naverPending = Object.create(null); naverInFlight = Object.create(null);
+      return;
+    }
+    if (naverFrame) return;
+    naverFrame = document.createElement('iframe');
+    naverFrame.id = 'cd-naver-conversion'; naverFrame.hidden = true;
+    naverFrame.title = '전환 측정'; naverFrame.setAttribute('aria-hidden','true');
+    naverFrame.setAttribute('referrerpolicy','no-referrer');
+    naverFrame.src = '/analytics/naver-conversion.html';
+    naverFrame.onload = function () {
+      if (naverFrame && readConsent() === 'accepted') naverFrame.contentWindow.postMessage({kind:'cd:naver:init',url:naverLocation()},global.location.origin);
+    };
+    (document.body || document.documentElement).appendChild(naverFrame);
+  }
+  function queueNaverPurchase(id, value, item) {
+    if (readConsent() !== 'accepted' || !productionOrigin || naverSent[id]) return;
+    try { if (global.localStorage.getItem('cd:naver:purchase:' + id)) return; } catch (_) {}
+    if (Object.keys(naverPending).length >= 32 && !naverPending[id]) return;
+    naverPending[id] = {id:id,value:value,item:item};
+    syncNaverConsent(); flushNaverPurchases();
+  }
+  global.addEventListener('message',function (event) {
+    if (!naverFrame || event.origin !== global.location.origin || event.source !== naverFrame.contentWindow || readConsent() !== 'accepted') return;
+    var data = event.data || {};
+    if (data.kind === 'cd:naver:ready') { naverReady = true; flushNaverPurchases(); }
+    if (data.kind === 'cd:naver:ack' && naverPending[data.id] && naverInFlight[data.id]) {
+      delete naverInFlight[data.id];
+      if (data.sent === true) {
+        naverSent[data.id] = true; delete naverPending[data.id];
+        try { global.localStorage.setItem('cd:naver:purchase:' + data.id,'1'); } catch (_) {}
+      }
+    }
+  });
+  syncNaverConsent();
+
   // Call only with a successful server confirmation, never the PG popup callback.
   global.cdTrackConfirmedPurchase = function (payload) {
     try {
@@ -450,7 +521,9 @@
         if (!global.cdTrack('purchase', {transaction_id:id,value:value,currency:'KRW',page_location:pageLocation(),items:[{item_id:item,price:value,quantity:1}]})) return false;
         purchaseEvents[key] = true;
         if (persisted) { try { global.localStorage.setItem(key, '1'); } catch (_) {} }
+        queueNaverPurchase(id,value,item);
       }
+      flushNaverPurchases();
       var granted = !/^(GRANT_PENDING|PENDING_CONFIRMATION)$/.test(String(payload.code || '').toUpperCase()) && payload.activationPending !== true && payload.recoveryRequired !== true && payment.entitlementGranted !== false;
       var grantSeen = purchaseEvents[key + ':grant'];
       if (persisted) { try { grantSeen = grantSeen || global.localStorage.getItem(key + ':grant'); } catch (_) {} }
@@ -508,6 +581,7 @@
   }
   global.cdSyncConsent = function cdSyncConsent() {
     syncServerConsent();
+    syncNaverConsent();
     persistObservedPurchases();
     growthAttribution();
     try {
