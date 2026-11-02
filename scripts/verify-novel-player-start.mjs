@@ -755,6 +755,39 @@ async function verifyNeoReturnAndCover() {
     assert.deepEqual(errors, []);
   } finally { dom.window.close(); }
 }
+async function verifyAtelierCast() {
+  const { dom, errors } = createPlayerDom({ hash: "#play" });
+  try {
+    const win = dom.window;
+    await waitFor(() => win.__NOVEL_READY && win.S.started && win.document.getElementById("dlgBody")?.textContent.trim().length > 0, "atelier player ready");
+    for (const key of ["yeoni", "yeoni_pig", "neo", "neo_cat", "luna", "luna_sis", "moka", "yun", "seohanbi", "museong", "raven", "cheongtokki"]) win.atelierReady[key] = true;
+    assert.match(win.spriteFor("yeon", "neutral", "human", "lion").url, /atelier\/yeoni\.webp$/);
+    assert.match(win.spriteFor("yeon", "neutral", "pig", "lion").url, /atelier\/talking-pig\.webp$/);
+    assert.match(win.spriteFor("neo", "neutral", "pig", "lion").url, /atelier\/neo_cat\.webp$/);
+    assert.match(win.spriteFor("neo", "neutral", "human", "human").url, /atelier\/neo\.webp$/);
+    for (const [who, key] of [["ln","luna"],["lns","luna_sis"],["moka","moka"],["yun","yun"],["pje","seohanbi"],["mu","museong"],["crow","raven"],["rab","cheongtokki"]]) {
+      const sprite = win.spriteFor(who, who === "mu" ? "calm" : "neutral", "pig", "lion");
+      assert.ok(sprite.url.endsWith('/atelier/' + key + '.webp'), who + ' keeps its own identity');
+      assert.equal(sprite.size, "400% 100%");
+    }
+    assert.ok(!win.spriteFor("mu", undefined, "pig", "lion").cls.includes("atelier"), "unrevealed Museong stays a shadow");
+    assert.ok(!win.spriteFor("lns", "h1", "pig", "lion").cls.includes("atelier"), "healed form stays canonical");
+    assert.ok(!win.spriteFor("yeon", "cry", "pig", "lion").cls.includes("atelier"), "authored emotion stays canonical");
+    win.S.reduce = false; win.S.skip = false;
+    win.setSlot("l", "ln", "neutral");
+    const portrait = win.document.getElementById("char_l");
+    let frames;
+    portrait.animate = value => { frames = value; return {}; };
+    win.playAtelierSpeech("ln");
+    assert.deepEqual(Array.from(frames, frame => frame.backgroundPosition), ["0% 0%", (100/3) + "% 0%", "0% 0%"], "Luna never uses broken mouth cells");
+    frames = null; win.S.reduce = true; win.playAtelierSpeech("ln");
+    assert.equal(frames, null, "reduced motion does not animate");
+    win.atelierReady.yeoni_pig = false;
+    assert.ok(!win.spriteFor("yeon", "talk", "pig", "lion").cls.includes("atelier"), "unavailable atlas keeps original portrait");
+    assert.deepEqual(errors, []);
+  } finally { dom.window.close(); }
+}
+await verifyAtelierCast();
 await verifyNeoReturnAndCover();
 await verifyLinearEnding();
 await verifyMobileAssetsAndCache();

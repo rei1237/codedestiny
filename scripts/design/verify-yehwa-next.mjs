@@ -38,7 +38,7 @@ try {
   await page.screenshot({path:`${out}/home-clear-${width}.png`});
   await page.goto(origin+'/yeongnyangi/',{waitUntil:'networkidle'});
   await page.getByRole('button',{name:'영냥이 이용 안내 열기',exact:true}).click();
-  await page.locator('dialog[open] img[src*="hero-480.webp"]').evaluate(image=>image.decode());
+  await page.locator('dialog[open] img[src*="neo_cat.webp"]').evaluate(image=>image.decode());
   await page.screenshot({path:`${out}/cat-guide-${width}.png`});
   await page.getByRole('button',{name:'첫 이용 안내 닫기',exact:true}).click();
   assert.deepEqual(errors,[]);
