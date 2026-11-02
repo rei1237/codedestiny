@@ -1,0 +1,2045 @@
+{
+  "browser": "156.0.8078.74",
+  "productionFlags": "OFF",
+  "results": [
+    {
+      "service": "vedic",
+      "passed": true,
+      "references": 2,
+      "disclosureLabels": [
+        "이 상담이 계산한 값",
+        "상담 결과를 이미지로 정리하기"
+      ],
+      "savedHash": "3f5f7cac7a118d9a4059170670126aed0f61cb656e42c9e6e4093f5352727e1a"
+    },
+    {
+      "service": "astrology",
+      "passed": true,
+      "references": 3,
+      "disclosureLabels": [
+        "이 상담이 계산한 값",
+        "상담 결과를 이미지로 정리하기"
+      ],
+      "savedHash": "9de3b1a58907e203b62f5aa79254aa534045783e6bb690d534e823e976e1b222"
+    },
+    {
+      "service": "new-year",
+      "passed": true,
+      "references": 1,
+      "disclosureLabels": [
+        "이 상담이 계산한 값"
+      ],
+      "savedHash": "aea6d01d2eb927e930aef12156938140f823b02060528900ed83d10ab97d1052"
+    },
+    {
+      "service": "sukuyo",
+      "passed": true,
+      "references": 1,
+      "disclosureLabels": [
+        "이 상담이 계산한 값"
+      ],
+      "savedHash": "aef3032bf54415431575d432e17b4e44eee89f1a2a2cb83a31183cd211110ac5"
+    },
+    {
+      "service": "life-book",
+      "passed": true,
+      "references": 1,
+      "disclosureLabels": [
+        "기본 명식"
+      ],
+      "savedHash": "969a3181c266f1a834c77fa4a4de9acac02a263c0f880c7b6450373229bf6a4d"
+    },
+    {
+      "service": "love-secret",
+      "passed": true,
+      "references": 1,
+      "disclosureLabels": [
+        "연애 명식 기초"
+      ],
+      "savedHash": "4a245c9746e436f7f4342bd4387fe4d95c59bc2abaf9101917f5e09d728d8c55"
+    },
+    {
+      "service": "karma",
+      "passed": false,
+      "error": "expect(locator).toBeVisible() failed\n\nLocator: getByText('반복은 벌이 아니라 아직 바꾸지 않은 선택입니다.').filter({ visible: true }).first()\nExpected: visible\nTimeout: 60000ms\nError: element(s) not found\n\n",
+      "text": "방문 분석 쿠키를 선택해 주세요\n\n로그인·결제에 필요한 필수 쿠키를 사용해요. 동의하면 방문과 구매 흐름을 분석하는 쿠키도 사용해요. 필수만 선택해도 서비스를 이용할 수 있어요.\n\n필수만 사용\n분석 쿠키 동의\n개인정보 처리방침\n\n운명의 업 · 공동 마스터 상담\n\n네오와 서한비의 붉은 실\n목차\n15장\n01\n운명의 핵심 주제\n02\n운명의 근원\n03\n현재 삶의 흐름\n04\n업의 핵심 과제\n05\n인간관계의 업\n06\n사랑의 업\n07\n돈의 업\n08\n직업의 업\n09\n건강 에너지\n10\n숨겨진 재능\n11\n운명의 전환점\n12\n앞으로의 성장 전략\n13\n다섯 관점의 종합 결론\n14\n운명을 바꾸는 핵심 문장\n15\n최종 편지\n다시 보기\n운명의 업 · Karma Destiny AI\n민준 · 운명 지도\n\n반복되는 관계 패턴 · 2026년 7월 8일 오후 6:00\n\n목차\n전체 복사\nPDF 저장\n이번 삶을 관통하는 한 문장\n\n운명을 바꾸는 핵심 문장은 지금 다시 마주할 시기입니다.\n\n31,200자\n15장\n업의 매듭\n관계의 반복\n현실 전략\n영역별 에너지 강도\n지금 어디에 힘이 실려 있는가\n관계\n68\n\n인간관계의 업에서 짚은 계산 근거를 기준으로 본 강도입니다.\n\n사랑\n74\n\n사랑의 업에서 짚은 계산 근거를 기준으로 본 강도입니다.\n\n돈\n52\n\n돈의 업에서 짚은 계산 근거를 기준으로 본 강도입니다.\n\n직업\n81\n\n직업의 업에서 짚은 계산 근거를 기준으로 본 강도입니다.\n\n건강\n46\n\n건강 에너지에서 짚은 계산 근거를 기준으로 본 강도입니다.\n\n각 영역을 실제로 분석한 장이 그 장의 계산 근거만으로 판정한 값입니다.\n\n다섯 관점의 종합 결론\n다섯 관점의 종합 결론\n다섯 관점의 종합 결론은 지금 다시 마주할 시기입니다.\n\n다섯 관점의 종합 결론에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다. 과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다. 다섯 관점의 종합 결론에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다.\n\n과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다. 다섯 관점의 종합 결론에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다. 과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다.\n\n다섯 관점의 종합 결론에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다. 과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다. 다섯 관점의 종합 결론에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다.\n\n과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다. 다섯 관점의 종합 결론에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다. 과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다.\n\n사주명리\n92%\n자미두수\n95%\n숙요 27수\n66%\n서양 점성술\n79%\n베다 점성술\n71%\n각 관점이 이 리포트에 실제로 근거를 제공한 정도입니다. 운세의 강약이 아닙니다.\n표로 보기\n관점별 기여도\n관점\t기여도\t산출 근거\n사주명리\t92%\t계산 완료\n0.45×계산 가용성 + 0.35×리포트 내 비중 + 0.20×데이터 충실도\n\n자미두수\t95%\t계산 완료\n0.45×계산 가용성 + 0.35×리포트 내 비중 + 0.20×데이터 충실도\n\n숙요 27수\t66%\t계산 완료\n0.45×계산 가용성 + 0.35×리포트 내 비중 + 0.20×데이터 충실도\n\n서양 점성술\t79%\t계산 완료\n0.45×계산 가용성 + 0.35×리포트 내 비중 + 0.20×데이터 충실도\n\n베다 점성술\t71%\t계산 완료\n0.45×계산 가용성 + 0.35×리포트 내 비중 + 0.20×데이터 충실도\n왜 이런 결론이 나왔나요?\n운명 지도\n흐름이 갈라지는 지점\n자미두수\n\n{\"name\":\"명궁\",\"branch\":\"해\",\"mainStars\":[\"천동\"]}\n\n3장 현재 삶의 흐름\n사주명리\n\n己\n\n3장 현재 삶의 흐름\n베다 점성술\n\nRohini\n\n3장 현재 삶의 흐름\n자미두수\n\n{\"name\":\"명궁\",\"branch\":\"해\",\"mainStars\":[\"천동\"]}\n\n11장 운명의 전환점\n사주명리\n\n己\n\n11장 운명의 전환점\n베다 점성술\n\nRohini\n\n11장 운명의 전환점\n카테고리별 해석\n12개의 렌즈로 본 삶\n전문\n요약\n1장. 운명의 핵심 주제\n2장. 운명의 근원\n3장. 현재 삶의 흐름\n4장. 업의 핵심 과제\n5장. 인간관계의 업\n6장. 사랑의 업\n7장. 돈의 업\n8장. 직업의 업\n9장. 건강 에너지\n10장. 숨겨진 재능\n11장. 운명의 전환점\n12장. 앞으로의 성장 전략\n13장. 다섯 관점의 종합 결론\n14장. 운명을 바꾸는 핵심 문장\n15장. 최종 편지\n業\n운명의 핵심 주제\n운명의 핵심 주제은 지금 다시 마주할 시기입니다.\n\n운명의 핵심 주제에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다. 과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다. 운명의 핵심 주제에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다.\n\n과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다. 운명의 핵심 주제에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다. 과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다.\n\n운명의 핵심 주제에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다. 과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다. 운명의 핵심 주제에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다.\n\n과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다. 운명의 핵심 주제에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다. 과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다.\n\n본문 더 읽기\n이번 장의 핵심\n반복 패턴을 인식하는 것이 첫걸음입니다.\n작은 선택이 흐름을 바꿉니다.\n운명의 핵심 주제에서는 한 가지 기준만 정하면 됩니다.\n왜 이런 결론이 나왔나요?\n이 장 복사\n源\n운명의 근원\nsaju\n운명의 근원은 지금 다시 마주할 시기입니다.\n\n운명의 근원에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다. 과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다. 운명의 근원에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다.\n\n과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다. 운명의 근원에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다. 과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다.\n\n운명의 근원에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다. 과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다. 운명의 근원에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다.\n\n과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다. 운명의 근원에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다. 과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다.\n\n본문 더 읽기\n이번 장의 핵심\n반복 패턴을 인식하는 것이 첫걸음입니다.\n작은 선택이 흐름을 바꿉니다.\n운명의 근원에서는 한 가지 기준만 정하면 됩니다.\n왜 이런 결론이 나왔나요?\n이 장 복사\n流\n현재 삶의 흐름\nziwei\n현재 삶의 흐름은 지금 다시 마주할 시기입니다.\n\n현재 삶의 흐름에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다. 과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다. 현재 삶의 흐름에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다.\n\n과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다. 현재 삶의 흐름에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다. 과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다.\n\n현재 삶의 흐름에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다. 과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다. 현재 삶의 흐름에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다.\n\n과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다. 현재 삶의 흐름에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다. 과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다.\n\n본문 더 읽기\n이번 장의 핵심\n반복 패턴을 인식하는 것이 첫걸음입니다.\n작은 선택이 흐름을 바꿉니다.\n현재 삶의 흐름에서는 한 가지 기준만 정하면 됩니다.\n왜 이런 결론이 나왔나요?\n이 장 복사\n課\n업의 핵심 과제\nvedic\n업의 핵심 과제은 지금 다시 마주할 시기입니다.\n\n업의 핵심 과제에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다. 과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다. 업의 핵심 과제에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다.\n\n과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다. 업의 핵심 과제에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다. 과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다.\n\n업의 핵심 과제에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다. 과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다. 업의 핵심 과제에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다.\n\n과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다. 업의 핵심 과제에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다. 과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다.\n\n본문 더 읽기\n이번 장의 핵심\n반복 패턴을 인식하는 것이 첫걸음입니다.\n작은 선택이 흐름을 바꿉니다.\n업의 핵심 과제에서는 한 가지 기준만 정하면 됩니다.\n왜 이런 결론이 나왔나요?\n이 장 복사\n緣\n인간관계의 업\nsukuyo\n인간관계의 업은 지금 다시 마주할 시기입니다.\n\n인간관계의 업에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다. 과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다. 인간관계의 업에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다.\n\n과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다. 인간관계의 업에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다. 과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다.\n\n인간관계의 업에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다. 과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다. 인간관계의 업에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다.\n\n과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다. 인간관계의 업에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다. 과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다.\n\n본문 더 읽기\n이번 장의 핵심\n반복 패턴을 인식하는 것이 첫걸음입니다.\n작은 선택이 흐름을 바꿉니다.\n인간관계의 업에서는 한 가지 기준만 정하면 됩니다.\n왜 이런 결론이 나왔나요?\n이 장 복사\n情\n사랑의 업\nwestern\n사랑의 업은 지금 다시 마주할 시기입니다.\n\n사랑의 업에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다. 과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다. 사랑의 업에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다.\n\n과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다. 사랑의 업에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다. 과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다.\n\n사랑의 업에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다. 과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다. 사랑의 업에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다.\n\n과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다. 사랑의 업에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다. 과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다.\n\n본문 더 읽기\n이번 장의 핵심\n반복 패턴을 인식하는 것이 첫걸음입니다.\n작은 선택이 흐름을 바꿉니다.\n사랑의 업에서는 한 가지 기준만 정하면 됩니다.\n왜 이런 결론이 나왔나요?\n이 장 복사\n財\n돈의 업\nsaju\n돈의 업은 지금 다시 마주할 시기입니다.\n\n돈의 업에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다. 과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다. 돈의 업에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다.\n\n과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다. 돈의 업에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다. 과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다.\n\n돈의 업에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다. 과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다. 돈의 업에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다.\n\n과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다. 돈의 업에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다. 과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다.\n\n본문 더 읽기\n이번 장의 핵심\n반복 패턴을 인식하는 것이 첫걸음입니다.\n작은 선택이 흐름을 바꿉니다.\n돈의 업에서는 한 가지 기준만 정하면 됩니다.\n왜 이런 결론이 나왔나요?\n이 장 복사\n職\n직업의 업\nziwei\n직업의 업은 지금 다시 마주할 시기입니다.\n\n직업의 업에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다. 과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다. 직업의 업에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다.\n\n과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다. 직업의 업에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다. 과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다.\n\n직업의 업에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다. 과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다. 직업의 업에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다.\n\n과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다. 직업의 업에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다. 과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다.\n\n본문 더 읽기\n이번 장의 핵심\n반복 패턴을 인식하는 것이 첫걸음입니다.\n작은 선택이 흐름을 바꿉니다.\n직업의 업에서는 한 가지 기준만 정하면 됩니다.\n왜 이런 결론이 나왔나요?\n이 장 복사\n體\n건강 에너지\nsaju\n건강 에너지은 지금 다시 마주할 시기입니다.\n\n건강 에너지에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다. 과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다. 건강 에너지에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다.\n\n과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다. 건강 에너지에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다. 과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다.\n\n건강 에너지에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다. 과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다. 건강 에너지에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다.\n\n과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다. 건강 에너지에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다. 과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다.\n\n본문 더 읽기\n이번 장의 핵심\n반복 패턴을 인식하는 것이 첫걸음입니다.\n작은 선택이 흐름을 바꿉니다.\n건강 에너지에서는 한 가지 기준만 정하면 됩니다.\n왜 이런 결론이 나왔나요?\n이 장 복사\n才\n숨겨진 재능\nwestern\n숨겨진 재능은 지금 다시 마주할 시기입니다.\n\n숨겨진 재능에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다. 과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다. 숨겨진 재능에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다.\n\n과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다. 숨겨진 재능에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다. 과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다.\n\n숨겨진 재능에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다. 과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다. 숨겨진 재능에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다.\n\n과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다. 숨겨진 재능에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다. 과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다.\n\n본문 더 읽기\n이번 장의 핵심\n반복 패턴을 인식하는 것이 첫걸음입니다.\n작은 선택이 흐름을 바꿉니다.\n숨겨진 재능에서는 한 가지 기준만 정하면 됩니다.\n왜 이런 결론이 나왔나요?\n이 장 복사\n轉\n운명의 전환점\nziwei\n운명의 전환점은 지금 다시 마주할 시기입니다.\n\n운명의 전환점에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다. 과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다. 운명의 전환점에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다.\n\n과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다. 운명의 전환점에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다. 과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다.\n\n운명의 전환점에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다. 과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다. 운명의 전환점에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다.\n\n과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다. 운명의 전환점에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다. 과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다.\n\n본문 더 읽기\n이번 장의 핵심\n반복 패턴을 인식하는 것이 첫걸음입니다.\n작은 선택이 흐름을 바꿉니다.\n운명의 전환점에서는 한 가지 기준만 정하면 됩니다.\n왜 이런 결론이 나왔나요?\n이 장 복사\n策\n앞으로의 성장 전략\n앞으로의 성장 전략은 지금 다시 마주할 시기입니다.\n\n앞으로의 성장 전략에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다. 과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다. 앞으로의 성장 전략에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다.\n\n과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다. 앞으로의 성장 전략에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다. 과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다.\n\n앞으로의 성장 전략에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다. 과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다. 앞으로의 성장 전략에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다.\n\n과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다. 앞으로의 성장 전략에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다. 과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다.\n\n본문 더 읽기\n이번 장의 핵심\n반복 패턴을 인식하는 것이 첫걸음입니다.\n작은 선택이 흐름을 바꿉니다.\n앞으로의 성장 전략에서는 한 가지 기준만 정하면 됩니다.\n왜 이런 결론이 나왔나요?\n이 장 복사\n지금 할 수 있는 것\n행동 전략\n반복 패턴을 인식하는 것이 첫걸음입니다.\n작은 선택이 흐름을 바꿉니다.\n운명의 핵심 주제에서는 한 가지 기준만 정하면 됩니다.\n운명의 근원에서는 한 가지 기준만 정하면 됩니다.\n현재 삶의 흐름에서는 한 가지 기준만 정하면 됩니다.\n업의 핵심 과제에서는 한 가지 기준만 정하면 됩니다.\n인간관계의 업에서는 한 가지 기준만 정하면 됩니다.\n사랑의 업에서는 한 가지 기준만 정하면 됩니다.\n돈의 업에서는 한 가지 기준만 정하면 됩니다.\n직업의 업에서는 한 가지 기준만 정하면 됩니다.\n건강 에너지에서는 한 가지 기준만 정하면 됩니다.\n숨겨진 재능에서는 한 가지 기준만 정하면 됩니다.\n최종 편지\n\n최종 편지에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다. 과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다. 최종 편지에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다.\n\n과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다. 최종 편지에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다. 과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다.\n\n최종 편지에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다. 과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다. 최종 편지에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다.\n\n과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다. 최종 편지에 대해 살펴보면, 이번 생에서 반복적으로 마주하는 패턴이 뚜렷하게 드러납니다. 과거의 경험이 지금의 선택에 어떤 영향을 주고 있는지, 그리고 이 흐름을 어떻게 풀어나가야 할지 구체적으로 짚어드립니다.\n\n오늘 기억해야 할 한 문장\n\n먼저 주는 마음은 약점이 아니라 기준이 없을 때만 상처가 됩니다.\n\n기억할 문장 전부 보기\n이 상담은 운명학적 상징과 자기 성찰을 돕기 위한 콘텐츠이며, 의료·법률·투자 판단을 대신하지 않습니다.\n마음에 남은 상담 공유하기\n친구에게 건넬 한 문장\n상담을 읽고 난 마음, 연이에게 들려주세요.\n\n마음에 남은 문장이나 아쉬웠던 점을 솔직하게 남겨주세요. 다음 상담을 더 다정하게 준비하는 데 도움이 돼요.\n\n공개 승인 후 월정석 지급\n\n후기는 나중에 써도 괜찮아요. 횟수 제한 없이 매번 관리자 승인 후 지급돼요. 지급일부터 30일 동안 사용하며, 현금으로 바꿀 수는 없어요.\n\n상담 후기 남기기\n핵심\n에너지\n종합\n운명 지도\n카테고리\n행동 전략\n오늘의 문장\n\n내 월정석 0개, 어디에 쓸 수 있을까요?\n\n월정석과 첫걸음 안내 보기\n닫기"
+    },
+    {
+      "service": "fusion",
+      "passed": true,
+      "references": 1,
+      "disclosureLabels": [
+        "함께 가리키는 흐름과 관점의 차이"
+      ],
+      "savedHash": "06206a14e9f23b7fc3a8888aa056e0ec2e8534945cbb92d45c094aac20fc9458"
+    },
+    {
+      "service": "yeongnyangi-saju",
+      "passed": false,
+      "error": "expect(locator).toBeVisible() failed\n\nLocator: getByText('사주 합성 저장 답변입니다. 이번 주에는 미뤄 둔 일 하나의 완료 기준을 먼저 정해 보세요.').filter({ visible: true }).first()\nExpected: visible\nTimeout: 60000ms\nError: element(s) not found\n\n",
+      "text": "방문 분석 쿠키를 선택해 주세요\n\n로그인·결제에 필요한 필수 쿠키를 사용해요. 동의하면 방문과 구매 흐름을 분석하는 쿠키도 사용해요. 필수만 선택해도 서비스를 이용할 수 있어요.\n\n필수만 사용\n분석 쿠키 동의\n개인정보 처리방침\n화면을 불러오는 중 문제가 생겼어요.\n\n꿀꿀운세\n\n일시적인 오류일 수 있어요. 다시 시도하면 대부분 정상적으로 돌아옵니다.\n\n다시 시도\n메인으로 이동\n\n내 월정석 0개, 어디에 쓸 수 있을까요?\n\n월정석과 첫걸음 안내 보기\n닫기"
+    },
+    {
+      "service": "yeongnyangi-ziwei",
+      "passed": false,
+      "error": "expect(locator).toBeVisible() failed\n\nLocator: getByText('자미두수 합성 저장 답변입니다. 이번 주에는 미뤄 둔 일 하나의 완료 기준을 먼저 정해 보세요.').filter({ visible: true }).first()\nExpected: visible\nTimeout: 60000ms\nError: element(s) not found\n\n",
+      "text": "방문 분석 쿠키를 선택해 주세요\n\n로그인·결제에 필요한 필수 쿠키를 사용해요. 동의하면 방문과 구매 흐름을 분석하는 쿠키도 사용해요. 필수만 선택해도 서비스를 이용할 수 있어요.\n\n필수만 사용\n분석 쿠키 동의\n개인정보 처리방침\n화면을 불러오는 중 문제가 생겼어요.\n\n꿀꿀운세\n\n일시적인 오류일 수 있어요. 다시 시도하면 대부분 정상적으로 돌아옵니다.\n\n다시 시도\n메인으로 이동\n\n내 월정석 0개, 어디에 쓸 수 있을까요?\n\n월정석과 첫걸음 안내 보기\n닫기"
+    },
+    {
+      "service": "yeongnyangi-sukuyo",
+      "passed": false,
+      "error": "expect(locator).toBeVisible() failed\n\nLocator: getByText('숙요 합성 저장 답변입니다. 이번 주에는 미뤄 둔 일 하나의 완료 기준을 먼저 정해 보세요.').filter({ visible: true }).first()\nExpected: visible\nTimeout: 60000ms\nError: element(s) not found\n\n",
+      "text": "방문 분석 쿠키를 선택해 주세요\n\n로그인·결제에 필요한 필수 쿠키를 사용해요. 동의하면 방문과 구매 흐름을 분석하는 쿠키도 사용해요. 필수만 선택해도 서비스를 이용할 수 있어요.\n\n필수만 사용\n분석 쿠키 동의\n개인정보 처리방침\n화면을 불러오는 중 문제가 생겼어요.\n\n꿀꿀운세\n\n일시적인 오류일 수 있어요. 다시 시도하면 대부분 정상적으로 돌아옵니다.\n\n다시 시도\n메인으로 이동\n\n내 월정석 0개, 어디에 쓸 수 있을까요?\n\n월정석과 첫걸음 안내 보기\n닫기"
+    },
+    {
+      "service": "yeongnyangi-vedic",
+      "passed": false,
+      "error": "expect(locator).toBeVisible() failed\n\nLocator: getByText('베다점 합성 저장 답변입니다. 이번 주에는 미뤄 둔 일 하나의 완료 기준을 먼저 정해 보세요.').filter({ visible: true }).first()\nExpected: visible\nTimeout: 60000ms\nError: element(s) not found\n\n",
+      "text": "방문 분석 쿠키를 선택해 주세요\n\n로그인·결제에 필요한 필수 쿠키를 사용해요. 동의하면 방문과 구매 흐름을 분석하는 쿠키도 사용해요. 필수만 선택해도 서비스를 이용할 수 있어요.\n\n필수만 사용\n분석 쿠키 동의\n개인정보 처리방침\n화면을 불러오는 중 문제가 생겼어요.\n\n꿀꿀운세\n\n일시적인 오류일 수 있어요. 다시 시도하면 대부분 정상적으로 돌아옵니다.\n\n다시 시도\n메인으로 이동\n\n내 월정석 0개, 어디에 쓸 수 있을까요?\n\n월정석과 첫걸음 안내 보기\n닫기"
+    },
+    {
+      "service": "yeongnyangi-astrology",
+      "passed": false,
+      "error": "expect(locator).toBeVisible() failed\n\nLocator: getByText('서양 점성술 합성 저장 답변입니다. 이번 주에는 미뤄 둔 일 하나의 완료 기준을 먼저 정해 보세요.').filter({ visible: true }).first()\nExpected: visible\nTimeout: 60000ms\nError: element(s) not found\n\n",
+      "text": "방문 분석 쿠키를 선택해 주세요\n\n로그인·결제에 필요한 필수 쿠키를 사용해요. 동의하면 방문과 구매 흐름을 분석하는 쿠키도 사용해요. 필수만 선택해도 서비스를 이용할 수 있어요.\n\n필수만 사용\n분석 쿠키 동의\n개인정보 처리방침\n화면을 불러오는 중 문제가 생겼어요.\n\n꿀꿀운세\n\n일시적인 오류일 수 있어요. 다시 시도하면 대부분 정상적으로 돌아옵니다.\n\n다시 시도\n메인으로 이동\n\n내 월정석 0개, 어디에 쓸 수 있을까요?\n\n월정석과 첫걸음 안내 보기\n닫기"
+    },
+    {
+      "service": "yeongnyangi-tarot",
+      "passed": false,
+      "error": "expect(locator).toBeVisible() failed\n\nLocator: getByText('타로 합성 저장 답변입니다. 이번 주에는 미뤄 둔 일 하나의 완료 기준을 먼저 정해 보세요.').filter({ visible: true }).first()\nExpected: visible\nTimeout: 60000ms\nError: element(s) not found\n\n",
+      "text": "방문 분석 쿠키를 선택해 주세요\n\n로그인·결제에 필요한 필수 쿠키를 사용해요. 동의하면 방문과 구매 흐름을 분석하는 쿠키도 사용해요. 필수만 선택해도 서비스를 이용할 수 있어요.\n\n필수만 사용\n분석 쿠키 동의\n개인정보 처리방침\n화면을 불러오는 중 문제가 생겼어요.\n\n꿀꿀운세\n\n일시적인 오류일 수 있어요. 다시 시도하면 대부분 정상적으로 돌아옵니다.\n\n다시 시도\n메인으로 이동\n\n내 월정석 0개, 어디에 쓸 수 있을까요?\n\n월정석과 첫걸음 안내 보기\n닫기"
+    }
+  ],
+  "errors": [],
+  "unknown": [],
+  "requests": [
+    {
+      "method": "GET",
+      "path": "/api/me/access-state"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/snu/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/vedic-ai/result?id=aaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "method": "GET",
+      "path": "/api/reviews/products"
+    },
+    {
+      "method": "GET",
+      "path": "/api/recommendations?service=vedic-ai-consultation&source=result&currency=KRW"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/access-state"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/snu/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/vedic-ai/result?id=aaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "method": "GET",
+      "path": "/api/reviews/products"
+    },
+    {
+      "method": "GET",
+      "path": "/api/recommendations?service=vedic-ai-consultation&source=result&currency=KRW"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/access-state"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/snu/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/astrology-ai/result/aaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "method": "GET",
+      "path": "/api/reviews/products"
+    },
+    {
+      "method": "GET",
+      "path": "/api/recommendations?service=astrology-ai-consultation&source=result&currency=KRW"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/access-state"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/snu/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/astrology-ai/result/aaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "method": "GET",
+      "path": "/api/reviews/products"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/access-state"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/snu/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/profile"
+    },
+    {
+      "method": "GET",
+      "path": "/api/new-year-ai/result?sessionId=aaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "method": "GET",
+      "path": "/api/new-year-ai/result"
+    },
+    {
+      "method": "GET",
+      "path": "/api/new-year-ai/result?sessionId=aaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "method": "GET",
+      "path": "/api/new-year-ai/result"
+    },
+    {
+      "method": "GET",
+      "path": "/api/reviews/products"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/access-state"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/snu/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/profile"
+    },
+    {
+      "method": "GET",
+      "path": "/api/new-year-ai/result?sessionId=dev-preview-new-year"
+    },
+    {
+      "method": "GET",
+      "path": "/api/new-year-ai/result"
+    },
+    {
+      "method": "GET",
+      "path": "/api/new-year-ai/result?sessionId=dev-preview-new-year"
+    },
+    {
+      "method": "GET",
+      "path": "/api/new-year-ai/result"
+    },
+    {
+      "method": "GET",
+      "path": "/api/reviews/products"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/access-state"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/snu/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/profile"
+    },
+    {
+      "method": "GET",
+      "path": "/api/sukuyo-compatibility-ai/result"
+    },
+    {
+      "method": "GET",
+      "path": "/api/sukuyo-compatibility-ai/result"
+    },
+    {
+      "method": "GET",
+      "path": "/api/sukuyo-compatibility-ai/result?id=aaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "method": "GET",
+      "path": "/api/recommendations?service=sukuyo-compatibility-ai&source=result&currency=KRW"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/access-state"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/snu/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/profile"
+    },
+    {
+      "method": "GET",
+      "path": "/api/sukuyo-compatibility-ai/result"
+    },
+    {
+      "method": "GET",
+      "path": "/api/sukuyo-compatibility-ai/result"
+    },
+    {
+      "method": "GET",
+      "path": "/api/sukuyo-compatibility-ai/result?id=aaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/access-state"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/snu/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/life-book-ai/result?attemptId=aaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "method": "GET",
+      "path": "/api/life-book-ai/result?attemptId=aaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "method": "GET",
+      "path": "/api/reviews/products"
+    },
+    {
+      "method": "GET",
+      "path": "/api/recommendations?service=life-book-ai&source=result&currency=KRW"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/access-state"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/snu/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/life-book-ai/result?attemptId=aaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "method": "GET",
+      "path": "/api/life-book-ai/result?attemptId=aaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "method": "GET",
+      "path": "/api/reviews/products"
+    },
+    {
+      "method": "GET",
+      "path": "/api/recommendations?service=life-book-ai&source=result&currency=KRW"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/access-state"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/snu/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/love-secret-ai/result/aaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "method": "GET",
+      "path": "/api/love-secret-ai/result/aaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "method": "GET",
+      "path": "/api/reviews/products"
+    },
+    {
+      "method": "GET",
+      "path": "/api/recommendations?service=love-secret-ai&source=result&currency=KRW"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/access-state"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/snu/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/love-secret-ai/result/aaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "method": "GET",
+      "path": "/api/love-secret-ai/result/aaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "method": "GET",
+      "path": "/api/reviews/products"
+    },
+    {
+      "method": "GET",
+      "path": "/api/recommendations?service=love-secret-ai&source=result&currency=KRW"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/access-state"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/snu/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/karma-destiny-ai/result?sessionId=aaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "method": "GET",
+      "path": "/api/karma-destiny-ai/result?sessionId=aaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "method": "GET",
+      "path": "/api/reviews/products"
+    },
+    {
+      "method": "GET",
+      "path": "/api/profile"
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/me"
+    },
+    {
+      "method": "GET",
+      "path": "/api/fusion-fortune/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/fusion-fortune/result?id=aaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "method": "GET",
+      "path": "/api/fusion-fortune/result"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/snu/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/fusion-fortune/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/fusion-fortune/result?pending=1"
+    },
+    {
+      "method": "GET",
+      "path": "/api/fusion-fortune/result?id=aaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "method": "GET",
+      "path": "/api/fusion-fortune/result"
+    },
+    {
+      "method": "GET",
+      "path": "/api/billing/unlock-status?featureKey=membership-status-refresh&reason=app-entry"
+    },
+    {
+      "method": "GET",
+      "path": "/api/reviews/products"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/access-state"
+    },
+    {
+      "method": "GET",
+      "path": "/api/recommendations?service=fusion-fortune-consultation&source=result&currency=KRW"
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/me"
+    },
+    {
+      "method": "GET",
+      "path": "/api/profile"
+    },
+    {
+      "method": "GET",
+      "path": "/api/fusion-fortune/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/fusion-fortune/result?pending=1"
+    },
+    {
+      "method": "GET",
+      "path": "/api/fusion-fortune/result?id=aaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "method": "GET",
+      "path": "/api/fusion-fortune/result"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/snu/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/billing/unlock-status?featureKey=membership-status-refresh&reason=app-entry"
+    },
+    {
+      "method": "GET",
+      "path": "/api/reviews/products"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/access-state"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/snu/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/yeongnyangi/requests/1111111111111111111111111111111111111111111111111111111111111111"
+    },
+    {
+      "method": "GET",
+      "path": "/api/yeongnyangi/requests/1111111111111111111111111111111111111111111111111111111111111111"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/access-state"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/snu/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/yeongnyangi/requests/2222222222222222222222222222222222222222222222222222222222222222"
+    },
+    {
+      "method": "GET",
+      "path": "/api/yeongnyangi/requests/2222222222222222222222222222222222222222222222222222222222222222"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/access-state"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/snu/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/yeongnyangi/requests/3333333333333333333333333333333333333333333333333333333333333333"
+    },
+    {
+      "method": "GET",
+      "path": "/api/yeongnyangi/requests/3333333333333333333333333333333333333333333333333333333333333333"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/access-state"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/snu/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/yeongnyangi/requests/4444444444444444444444444444444444444444444444444444444444444444"
+    },
+    {
+      "method": "GET",
+      "path": "/api/yeongnyangi/requests/4444444444444444444444444444444444444444444444444444444444444444"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/access-state"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/snu/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/yeongnyangi/requests/5555555555555555555555555555555555555555555555555555555555555555"
+    },
+    {
+      "method": "GET",
+      "path": "/api/yeongnyangi/requests/5555555555555555555555555555555555555555555555555555555555555555"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/access-state"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/snu/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/yeongnyangi/requests/6666666666666666666666666666666666666666666666666666666666666666"
+    },
+    {
+      "method": "GET",
+      "path": "/api/yeongnyangi/requests/6666666666666666666666666666666666666666666666666666666666666666"
+    }
+  ],
+  "blocked": [
+    {
+      "service": "vedic",
+      "url": "https://assets.code-destiny.com/fonts/serif-latin/09941fb1c169.woff2"
+    },
+    {
+      "service": "vedic",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/0fa5719f7323.woff2"
+    },
+    {
+      "service": "vedic",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5aaab50eeb5d.woff2"
+    },
+    {
+      "service": "vedic",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/4a7f3dcb2cc3.woff2"
+    },
+    {
+      "service": "vedic",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/972d74532ce4.woff2"
+    },
+    {
+      "service": "vedic",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/84a60324a3b8.woff2"
+    },
+    {
+      "service": "vedic",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/22b54ce7f9da.woff2"
+    },
+    {
+      "service": "vedic",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5c6665edab37.woff2"
+    },
+    {
+      "service": "vedic",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/37f2e5c7951e.woff2"
+    },
+    {
+      "service": "vedic",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/d9b6283e0f2f.woff2"
+    },
+    {
+      "service": "vedic",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/384be67e4250.woff2"
+    },
+    {
+      "service": "vedic",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/3a02d5b8cf74.woff2"
+    },
+    {
+      "service": "vedic",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/fd36e9d170d8.woff2"
+    },
+    {
+      "service": "vedic",
+      "url": "https://assets.code-destiny.com/fonts/serif-latin/09941fb1c169.woff2"
+    },
+    {
+      "service": "vedic",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/0fa5719f7323.woff2"
+    },
+    {
+      "service": "vedic",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5aaab50eeb5d.woff2"
+    },
+    {
+      "service": "vedic",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/4a7f3dcb2cc3.woff2"
+    },
+    {
+      "service": "vedic",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/972d74532ce4.woff2"
+    },
+    {
+      "service": "vedic",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/84a60324a3b8.woff2"
+    },
+    {
+      "service": "vedic",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/22b54ce7f9da.woff2"
+    },
+    {
+      "service": "vedic",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5c6665edab37.woff2"
+    },
+    {
+      "service": "vedic",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/37f2e5c7951e.woff2"
+    },
+    {
+      "service": "vedic",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/d9b6283e0f2f.woff2"
+    },
+    {
+      "service": "vedic",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/384be67e4250.woff2"
+    },
+    {
+      "service": "vedic",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/3a02d5b8cf74.woff2"
+    },
+    {
+      "service": "vedic",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/fd36e9d170d8.woff2"
+    },
+    {
+      "service": "astrology",
+      "url": "https://assets.code-destiny.com/fonts/serif-latin/09941fb1c169.woff2"
+    },
+    {
+      "service": "astrology",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/0fa5719f7323.woff2"
+    },
+    {
+      "service": "astrology",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5aaab50eeb5d.woff2"
+    },
+    {
+      "service": "astrology",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/4a7f3dcb2cc3.woff2"
+    },
+    {
+      "service": "astrology",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/972d74532ce4.woff2"
+    },
+    {
+      "service": "astrology",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/84a60324a3b8.woff2"
+    },
+    {
+      "service": "astrology",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/22b54ce7f9da.woff2"
+    },
+    {
+      "service": "astrology",
+      "url": "https://assets.code-destiny.com/Mulmaru.woff2"
+    },
+    {
+      "service": "astrology",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/37f2e5c7951e.woff2"
+    },
+    {
+      "service": "astrology",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5c6665edab37.woff2"
+    },
+    {
+      "service": "astrology",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/d9b6283e0f2f.woff2"
+    },
+    {
+      "service": "astrology",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/3a02d5b8cf74.woff2"
+    },
+    {
+      "service": "astrology",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/4192bcd5cb99.woff2"
+    },
+    {
+      "service": "astrology",
+      "url": "https://assets.code-destiny.com/fonts/serif-latin/09941fb1c169.woff2"
+    },
+    {
+      "service": "astrology",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/0fa5719f7323.woff2"
+    },
+    {
+      "service": "astrology",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5aaab50eeb5d.woff2"
+    },
+    {
+      "service": "astrology",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/4a7f3dcb2cc3.woff2"
+    },
+    {
+      "service": "astrology",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/972d74532ce4.woff2"
+    },
+    {
+      "service": "astrology",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/84a60324a3b8.woff2"
+    },
+    {
+      "service": "astrology",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/22b54ce7f9da.woff2"
+    },
+    {
+      "service": "astrology",
+      "url": "https://assets.code-destiny.com/Mulmaru.woff2"
+    },
+    {
+      "service": "astrology",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/37f2e5c7951e.woff2"
+    },
+    {
+      "service": "astrology",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5c6665edab37.woff2"
+    },
+    {
+      "service": "astrology",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/d9b6283e0f2f.woff2"
+    },
+    {
+      "service": "astrology",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/3a02d5b8cf74.woff2"
+    },
+    {
+      "service": "astrology",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/4192bcd5cb99.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-latin/09941fb1c169.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/0fa5719f7323.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/4a7f3dcb2cc3.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/623ee24b811e.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5aaab50eeb5d.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/22b54ce7f9da.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5c6665edab37.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/972d74532ce4.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/37f2e5c7951e.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/3a02d5b8cf74.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/68db3c4109cc.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/84a60324a3b8.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/b7a42dba1fee.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/48f2975dcf62.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/384be67e4250.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/d9b6283e0f2f.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-latin/09941fb1c169.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/0fa5719f7323.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/4a7f3dcb2cc3.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/623ee24b811e.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5aaab50eeb5d.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/22b54ce7f9da.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5c6665edab37.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/972d74532ce4.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/37f2e5c7951e.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/3a02d5b8cf74.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/68db3c4109cc.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/84a60324a3b8.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/b7a42dba1fee.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/48f2975dcf62.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/384be67e4250.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/d9b6283e0f2f.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/84a60324a3b8.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/22b54ce7f9da.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/0fa5719f7323.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5aaab50eeb5d.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/4a7f3dcb2cc3.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/972d74532ce4.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/623ee24b811e.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/37f2e5c7951e.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5c6665edab37.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/68db3c4109cc.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-latin/09941fb1c169.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/Mulmaru.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/e8e25a7b4aff.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/b7d7deaf1ba4.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/4192bcd5cb99.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/84a60324a3b8.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/22b54ce7f9da.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/0fa5719f7323.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5aaab50eeb5d.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/4a7f3dcb2cc3.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/972d74532ce4.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/623ee24b811e.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/37f2e5c7951e.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5c6665edab37.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/68db3c4109cc.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-latin/09941fb1c169.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/Mulmaru.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/e8e25a7b4aff.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/b7d7deaf1ba4.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/4192bcd5cb99.woff2"
+    },
+    {
+      "service": "life-book",
+      "url": "https://assets.code-destiny.com/fonts/serif-latin/09941fb1c169.woff2"
+    },
+    {
+      "service": "life-book",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/0fa5719f7323.woff2"
+    },
+    {
+      "service": "life-book",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5aaab50eeb5d.woff2"
+    },
+    {
+      "service": "life-book",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/4a7f3dcb2cc3.woff2"
+    },
+    {
+      "service": "life-book",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/972d74532ce4.woff2"
+    },
+    {
+      "service": "life-book",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/84a60324a3b8.woff2"
+    },
+    {
+      "service": "life-book",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/22b54ce7f9da.woff2"
+    },
+    {
+      "service": "life-book",
+      "url": "https://assets.code-destiny.com/Mulmaru.woff2"
+    },
+    {
+      "service": "life-book",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/37f2e5c7951e.woff2"
+    },
+    {
+      "service": "life-book",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5c6665edab37.woff2"
+    },
+    {
+      "service": "life-book",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/68db3c4109cc.woff2"
+    },
+    {
+      "service": "life-book",
+      "url": "https://assets.code-destiny.com/fonts/serif-latin/09941fb1c169.woff2"
+    },
+    {
+      "service": "life-book",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/0fa5719f7323.woff2"
+    },
+    {
+      "service": "life-book",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5aaab50eeb5d.woff2"
+    },
+    {
+      "service": "life-book",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/4a7f3dcb2cc3.woff2"
+    },
+    {
+      "service": "life-book",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/972d74532ce4.woff2"
+    },
+    {
+      "service": "life-book",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/84a60324a3b8.woff2"
+    },
+    {
+      "service": "life-book",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/22b54ce7f9da.woff2"
+    },
+    {
+      "service": "life-book",
+      "url": "https://assets.code-destiny.com/Mulmaru.woff2"
+    },
+    {
+      "service": "life-book",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/37f2e5c7951e.woff2"
+    },
+    {
+      "service": "life-book",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5c6665edab37.woff2"
+    },
+    {
+      "service": "life-book",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/68db3c4109cc.woff2"
+    },
+    {
+      "service": "love-secret",
+      "url": "https://assets.code-destiny.com/fonts/serif-latin/09941fb1c169.woff2"
+    },
+    {
+      "service": "love-secret",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/0fa5719f7323.woff2"
+    },
+    {
+      "service": "love-secret",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5aaab50eeb5d.woff2"
+    },
+    {
+      "service": "love-secret",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/4a7f3dcb2cc3.woff2"
+    },
+    {
+      "service": "love-secret",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/972d74532ce4.woff2"
+    },
+    {
+      "service": "love-secret",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/84a60324a3b8.woff2"
+    },
+    {
+      "service": "love-secret",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/22b54ce7f9da.woff2"
+    },
+    {
+      "service": "love-secret",
+      "url": "https://assets.code-destiny.com/Mulmaru.woff2"
+    },
+    {
+      "service": "love-secret",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/37f2e5c7951e.woff2"
+    },
+    {
+      "service": "love-secret",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5c6665edab37.woff2"
+    },
+    {
+      "service": "love-secret",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/68db3c4109cc.woff2"
+    },
+    {
+      "service": "love-secret",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/3a02d5b8cf74.woff2"
+    },
+    {
+      "service": "love-secret",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/4192bcd5cb99.woff2"
+    },
+    {
+      "service": "love-secret",
+      "url": "https://assets.code-destiny.com/fonts/serif-latin/09941fb1c169.woff2"
+    },
+    {
+      "service": "love-secret",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/0fa5719f7323.woff2"
+    },
+    {
+      "service": "love-secret",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5aaab50eeb5d.woff2"
+    },
+    {
+      "service": "love-secret",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/4a7f3dcb2cc3.woff2"
+    },
+    {
+      "service": "love-secret",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/972d74532ce4.woff2"
+    },
+    {
+      "service": "love-secret",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/84a60324a3b8.woff2"
+    },
+    {
+      "service": "love-secret",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/22b54ce7f9da.woff2"
+    },
+    {
+      "service": "love-secret",
+      "url": "https://assets.code-destiny.com/Mulmaru.woff2"
+    },
+    {
+      "service": "love-secret",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/37f2e5c7951e.woff2"
+    },
+    {
+      "service": "love-secret",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5c6665edab37.woff2"
+    },
+    {
+      "service": "love-secret",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/68db3c4109cc.woff2"
+    },
+    {
+      "service": "love-secret",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/3a02d5b8cf74.woff2"
+    },
+    {
+      "service": "love-secret",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/4192bcd5cb99.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-latin/09941fb1c169.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/0fa5719f7323.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5aaab50eeb5d.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/4a7f3dcb2cc3.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/972d74532ce4.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/84a60324a3b8.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/22b54ce7f9da.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/68db3c4109cc.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5c6665edab37.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/3a02d5b8cf74.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/24f235a5910b.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/384be67e4250.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/37f2e5c7951e.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/623ee24b811e.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-latin/09941fb1c169.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/22b54ce7f9da.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/0fa5719f7323.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5aaab50eeb5d.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/972d74532ce4.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/68db3c4109cc.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/4a7f3dcb2cc3.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5c6665edab37.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/3a02d5b8cf74.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/37f2e5c7951e.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/24f235a5910b.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/623ee24b811e.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/384be67e4250.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/84a60324a3b8.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-latin/09941fb1c169.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/22b54ce7f9da.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/0fa5719f7323.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5aaab50eeb5d.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/972d74532ce4.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/68db3c4109cc.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/4a7f3dcb2cc3.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5c6665edab37.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/3a02d5b8cf74.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/37f2e5c7951e.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/24f235a5910b.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/623ee24b811e.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/384be67e4250.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/84a60324a3b8.woff2"
+    },
+    {
+      "service": "fusion",
+      "url": "https://assets.code-destiny.com/fonts/serif-latin/09941fb1c169.woff2"
+    },
+    {
+      "service": "fusion",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/0fa5719f7323.woff2"
+    },
+    {
+      "service": "fusion",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/4a7f3dcb2cc3.woff2"
+    },
+    {
+      "service": "fusion",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/3a02d5b8cf74.woff2"
+    },
+    {
+      "service": "fusion",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/22b54ce7f9da.woff2"
+    },
+    {
+      "service": "fusion",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5aaab50eeb5d.woff2"
+    },
+    {
+      "service": "fusion",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/972d74532ce4.woff2"
+    },
+    {
+      "service": "fusion",
+      "url": "https://assets.code-destiny.com/Mulmaru.woff2"
+    },
+    {
+      "service": "fusion",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/623ee24b811e.woff2"
+    },
+    {
+      "service": "fusion",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/37f2e5c7951e.woff2"
+    },
+    {
+      "service": "fusion",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5c6665edab37.woff2"
+    },
+    {
+      "service": "fusion",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/68db3c4109cc.woff2"
+    },
+    {
+      "service": "fusion",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/d9b6283e0f2f.woff2"
+    },
+    {
+      "service": "fusion",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/84a60324a3b8.woff2"
+    },
+    {
+      "service": "fusion",
+      "url": "https://assets.code-destiny.com/fonts/serif-latin/09941fb1c169.woff2"
+    },
+    {
+      "service": "fusion",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/0fa5719f7323.woff2"
+    },
+    {
+      "service": "fusion",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/4a7f3dcb2cc3.woff2"
+    },
+    {
+      "service": "fusion",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/3a02d5b8cf74.woff2"
+    },
+    {
+      "service": "fusion",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/22b54ce7f9da.woff2"
+    },
+    {
+      "service": "fusion",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5aaab50eeb5d.woff2"
+    },
+    {
+      "service": "fusion",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/972d74532ce4.woff2"
+    },
+    {
+      "service": "fusion",
+      "url": "https://assets.code-destiny.com/Mulmaru.woff2"
+    },
+    {
+      "service": "fusion",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/623ee24b811e.woff2"
+    },
+    {
+      "service": "fusion",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/37f2e5c7951e.woff2"
+    },
+    {
+      "service": "fusion",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5c6665edab37.woff2"
+    },
+    {
+      "service": "fusion",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/68db3c4109cc.woff2"
+    },
+    {
+      "service": "fusion",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/d9b6283e0f2f.woff2"
+    },
+    {
+      "service": "fusion",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/84a60324a3b8.woff2"
+    },
+    {
+      "service": "yeongnyangi-saju",
+      "url": "https://assets.code-destiny.com/fonts/serif-latin/09941fb1c169.woff2"
+    },
+    {
+      "service": "yeongnyangi-saju",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/0fa5719f7323.woff2"
+    },
+    {
+      "service": "yeongnyangi-saju",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5aaab50eeb5d.woff2"
+    },
+    {
+      "service": "yeongnyangi-saju",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/4a7f3dcb2cc3.woff2"
+    },
+    {
+      "service": "yeongnyangi-saju",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/972d74532ce4.woff2"
+    },
+    {
+      "service": "yeongnyangi-saju",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/84a60324a3b8.woff2"
+    },
+    {
+      "service": "yeongnyangi-saju",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/22b54ce7f9da.woff2"
+    },
+    {
+      "service": "yeongnyangi-saju",
+      "url": "https://assets.code-destiny.com/Mulmaru.woff2"
+    },
+    {
+      "service": "yeongnyangi-saju",
+      "url": "https://assets.code-destiny.com/Mulmaru.woff2"
+    },
+    {
+      "service": "yeongnyangi-saju",
+      "url": "https://assets.code-destiny.com/fonts/serif-latin/09941fb1c169.woff2"
+    },
+    {
+      "service": "yeongnyangi-saju",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/0fa5719f7323.woff2"
+    },
+    {
+      "service": "yeongnyangi-saju",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5aaab50eeb5d.woff2"
+    },
+    {
+      "service": "yeongnyangi-saju",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/4a7f3dcb2cc3.woff2"
+    },
+    {
+      "service": "yeongnyangi-saju",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/972d74532ce4.woff2"
+    },
+    {
+      "service": "yeongnyangi-saju",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/84a60324a3b8.woff2"
+    },
+    {
+      "service": "yeongnyangi-saju",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/22b54ce7f9da.woff2"
+    },
+    {
+      "service": "yeongnyangi-ziwei",
+      "url": "https://assets.code-destiny.com/fonts/serif-latin/09941fb1c169.woff2"
+    },
+    {
+      "service": "yeongnyangi-ziwei",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/0fa5719f7323.woff2"
+    },
+    {
+      "service": "yeongnyangi-ziwei",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5aaab50eeb5d.woff2"
+    },
+    {
+      "service": "yeongnyangi-ziwei",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/4a7f3dcb2cc3.woff2"
+    },
+    {
+      "service": "yeongnyangi-ziwei",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/972d74532ce4.woff2"
+    },
+    {
+      "service": "yeongnyangi-ziwei",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/84a60324a3b8.woff2"
+    },
+    {
+      "service": "yeongnyangi-ziwei",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/22b54ce7f9da.woff2"
+    },
+    {
+      "service": "yeongnyangi-ziwei",
+      "url": "https://assets.code-destiny.com/Mulmaru.woff2"
+    },
+    {
+      "service": "yeongnyangi-ziwei",
+      "url": "https://assets.code-destiny.com/Mulmaru.woff2"
+    },
+    {
+      "service": "yeongnyangi-ziwei",
+      "url": "https://assets.code-destiny.com/fonts/serif-latin/09941fb1c169.woff2"
+    },
+    {
+      "service": "yeongnyangi-ziwei",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/0fa5719f7323.woff2"
+    },
+    {
+      "service": "yeongnyangi-ziwei",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5aaab50eeb5d.woff2"
+    },
+    {
+      "service": "yeongnyangi-ziwei",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/4a7f3dcb2cc3.woff2"
+    },
+    {
+      "service": "yeongnyangi-ziwei",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/972d74532ce4.woff2"
+    },
+    {
+      "service": "yeongnyangi-ziwei",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/84a60324a3b8.woff2"
+    },
+    {
+      "service": "yeongnyangi-ziwei",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/22b54ce7f9da.woff2"
+    },
+    {
+      "service": "yeongnyangi-sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-latin/09941fb1c169.woff2"
+    },
+    {
+      "service": "yeongnyangi-sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/0fa5719f7323.woff2"
+    },
+    {
+      "service": "yeongnyangi-sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5aaab50eeb5d.woff2"
+    },
+    {
+      "service": "yeongnyangi-sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/4a7f3dcb2cc3.woff2"
+    },
+    {
+      "service": "yeongnyangi-sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/972d74532ce4.woff2"
+    },
+    {
+      "service": "yeongnyangi-sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/84a60324a3b8.woff2"
+    },
+    {
+      "service": "yeongnyangi-sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/22b54ce7f9da.woff2"
+    },
+    {
+      "service": "yeongnyangi-sukuyo",
+      "url": "https://assets.code-destiny.com/Mulmaru.woff2"
+    },
+    {
+      "service": "yeongnyangi-vedic",
+      "url": "https://assets.code-destiny.com/fonts/serif-latin/09941fb1c169.woff2"
+    },
+    {
+      "service": "yeongnyangi-vedic",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/0fa5719f7323.woff2"
+    },
+    {
+      "service": "yeongnyangi-vedic",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5aaab50eeb5d.woff2"
+    },
+    {
+      "service": "yeongnyangi-vedic",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/4a7f3dcb2cc3.woff2"
+    },
+    {
+      "service": "yeongnyangi-vedic",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/972d74532ce4.woff2"
+    },
+    {
+      "service": "yeongnyangi-vedic",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/84a60324a3b8.woff2"
+    },
+    {
+      "service": "yeongnyangi-vedic",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/22b54ce7f9da.woff2"
+    },
+    {
+      "service": "yeongnyangi-vedic",
+      "url": "https://assets.code-destiny.com/Mulmaru.woff2"
+    },
+    {
+      "service": "yeongnyangi-astrology",
+      "url": "https://assets.code-destiny.com/fonts/serif-latin/09941fb1c169.woff2"
+    },
+    {
+      "service": "yeongnyangi-astrology",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/0fa5719f7323.woff2"
+    },
+    {
+      "service": "yeongnyangi-astrology",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5aaab50eeb5d.woff2"
+    },
+    {
+      "service": "yeongnyangi-astrology",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/4a7f3dcb2cc3.woff2"
+    },
+    {
+      "service": "yeongnyangi-astrology",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/972d74532ce4.woff2"
+    },
+    {
+      "service": "yeongnyangi-astrology",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/84a60324a3b8.woff2"
+    },
+    {
+      "service": "yeongnyangi-astrology",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/22b54ce7f9da.woff2"
+    },
+    {
+      "service": "yeongnyangi-astrology",
+      "url": "https://assets.code-destiny.com/Mulmaru.woff2"
+    },
+    {
+      "service": "yeongnyangi-astrology",
+      "url": "https://assets.code-destiny.com/Mulmaru.woff2"
+    },
+    {
+      "service": "yeongnyangi-astrology",
+      "url": "https://assets.code-destiny.com/fonts/serif-latin/09941fb1c169.woff2"
+    },
+    {
+      "service": "yeongnyangi-astrology",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/0fa5719f7323.woff2"
+    },
+    {
+      "service": "yeongnyangi-astrology",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5aaab50eeb5d.woff2"
+    },
+    {
+      "service": "yeongnyangi-astrology",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/4a7f3dcb2cc3.woff2"
+    },
+    {
+      "service": "yeongnyangi-astrology",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/972d74532ce4.woff2"
+    },
+    {
+      "service": "yeongnyangi-astrology",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/84a60324a3b8.woff2"
+    },
+    {
+      "service": "yeongnyangi-astrology",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/22b54ce7f9da.woff2"
+    },
+    {
+      "service": "yeongnyangi-astrology",
+      "url": "https://assets.code-destiny.com/Mulmaru.woff2"
+    },
+    {
+      "service": "yeongnyangi-astrology",
+      "url": "https://assets.code-destiny.com/fonts/serif-latin/09941fb1c169.woff2"
+    },
+    {
+      "service": "yeongnyangi-astrology",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/0fa5719f7323.woff2"
+    },
+    {
+      "service": "yeongnyangi-astrology",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5aaab50eeb5d.woff2"
+    },
+    {
+      "service": "yeongnyangi-astrology",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/4a7f3dcb2cc3.woff2"
+    },
+    {
+      "service": "yeongnyangi-astrology",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/972d74532ce4.woff2"
+    },
+    {
+      "service": "yeongnyangi-astrology",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/84a60324a3b8.woff2"
+    },
+    {
+      "service": "yeongnyangi-astrology",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/22b54ce7f9da.woff2"
+    },
+    {
+      "service": "yeongnyangi-astrology",
+      "url": "https://assets.code-destiny.com/Mulmaru.woff2"
+    },
+    {
+      "service": "yeongnyangi-astrology",
+      "url": "https://assets.code-destiny.com/fonts/serif-latin/09941fb1c169.woff2"
+    },
+    {
+      "service": "yeongnyangi-astrology",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/0fa5719f7323.woff2"
+    },
+    {
+      "service": "yeongnyangi-astrology",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5aaab50eeb5d.woff2"
+    },
+    {
+      "service": "yeongnyangi-astrology",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/4a7f3dcb2cc3.woff2"
+    },
+    {
+      "service": "yeongnyangi-astrology",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/972d74532ce4.woff2"
+    },
+    {
+      "service": "yeongnyangi-astrology",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/84a60324a3b8.woff2"
+    },
+    {
+      "service": "yeongnyangi-astrology",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/22b54ce7f9da.woff2"
+    },
+    {
+      "service": "yeongnyangi-tarot",
+      "url": "https://assets.code-destiny.com/fonts/serif-latin/09941fb1c169.woff2"
+    },
+    {
+      "service": "yeongnyangi-tarot",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/0fa5719f7323.woff2"
+    },
+    {
+      "service": "yeongnyangi-tarot",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5aaab50eeb5d.woff2"
+    },
+    {
+      "service": "yeongnyangi-tarot",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/4a7f3dcb2cc3.woff2"
+    },
+    {
+      "service": "yeongnyangi-tarot",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/972d74532ce4.woff2"
+    },
+    {
+      "service": "yeongnyangi-tarot",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/84a60324a3b8.woff2"
+    },
+    {
+      "service": "yeongnyangi-tarot",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/22b54ce7f9da.woff2"
+    },
+    {
+      "service": "yeongnyangi-tarot",
+      "url": "https://assets.code-destiny.com/Mulmaru.woff2"
+    },
+    {
+      "service": "yeongnyangi-tarot",
+      "url": "https://assets.code-destiny.com/Mulmaru.woff2"
+    },
+    {
+      "service": "yeongnyangi-tarot",
+      "url": "https://assets.code-destiny.com/fonts/serif-latin/09941fb1c169.woff2"
+    },
+    {
+      "service": "yeongnyangi-tarot",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/0fa5719f7323.woff2"
+    },
+    {
+      "service": "yeongnyangi-tarot",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5aaab50eeb5d.woff2"
+    },
+    {
+      "service": "yeongnyangi-tarot",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/4a7f3dcb2cc3.woff2"
+    },
+    {
+      "service": "yeongnyangi-tarot",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/972d74532ce4.woff2"
+    },
+    {
+      "service": "yeongnyangi-tarot",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/84a60324a3b8.woff2"
+    },
+    {
+      "service": "yeongnyangi-tarot",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/22b54ce7f9da.woff2"
+    },
+    {
+      "service": "yeongnyangi-tarot",
+      "url": "https://assets.code-destiny.com/Mulmaru.woff2"
+    },
+    {
+      "service": "yeongnyangi-tarot",
+      "url": "https://assets.code-destiny.com/fonts/serif-latin/09941fb1c169.woff2"
+    },
+    {
+      "service": "yeongnyangi-tarot",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/0fa5719f7323.woff2"
+    },
+    {
+      "service": "yeongnyangi-tarot",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5aaab50eeb5d.woff2"
+    },
+    {
+      "service": "yeongnyangi-tarot",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/4a7f3dcb2cc3.woff2"
+    },
+    {
+      "service": "yeongnyangi-tarot",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/972d74532ce4.woff2"
+    },
+    {
+      "service": "yeongnyangi-tarot",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/84a60324a3b8.woff2"
+    },
+    {
+      "service": "yeongnyangi-tarot",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/22b54ce7f9da.woff2"
+    }
+  ],
+  "storedPayloadsUnchanged": true,
+  "compiledModules": 600
+}

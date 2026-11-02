@@ -1,0 +1,650 @@
+{
+  "browser": "156.0.8078.74",
+  "productionFlags": "OFF",
+  "results": [
+    {
+      "service": "sukuyo",
+      "passed": true,
+      "references": 1,
+      "disclosureLabels": [
+        "이 상담이 계산한 값"
+      ],
+      "savedHash": "aef3032bf54415431575d432e17b4e44eee89f1a2a2cb83a31183cd211110ac5",
+      "storedReads": 2
+    },
+    {
+      "service": "karma",
+      "passed": true,
+      "references": 15,
+      "disclosureLabels": [
+        "이 상담이 계산한 값",
+        "왜 이런 결론이 나왔나요?",
+        "흐름이 갈라지는 지점",
+        "왜 이런 결론이 나왔나요?",
+        "왜 이런 결론이 나왔나요?",
+        "왜 이런 결론이 나왔나요?",
+        "왜 이런 결론이 나왔나요?",
+        "왜 이런 결론이 나왔나요?",
+        "왜 이런 결론이 나왔나요?",
+        "왜 이런 결론이 나왔나요?",
+        "왜 이런 결론이 나왔나요?",
+        "왜 이런 결론이 나왔나요?",
+        "왜 이런 결론이 나왔나요?",
+        "왜 이런 결론이 나왔나요?",
+        "왜 이런 결론이 나왔나요?"
+      ],
+      "savedHash": "6bedae5a2d8a303124b697c03cdc95172e79d0074bd51f0ffe8d10eb7550576a",
+      "storedReads": 4
+    }
+  ],
+  "errors": [],
+  "unknown": [],
+  "requests": [
+    {
+      "method": "GET",
+      "path": "/api/me/access-state",
+      "responseHash": "2b7c47e419e7c61ec81915b91481796792727e551af8a97c79e9c609900842fa"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/status",
+      "responseHash": "ca0614859292b6231c61d8352e2950ea4dc27b8e7b5f46d574d8aad713fb6fbe"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/snu/status",
+      "responseHash": "a193188f2f6f2a331f7f2b0c8b435617abe8c2e5dcda10c6301062111a7d0617"
+    },
+    {
+      "method": "GET",
+      "path": "/api/profile",
+      "responseHash": "a83eebc82d906af9130c319e468c1bfb57489115f161923e475582fd1c209d8e"
+    },
+    {
+      "method": "GET",
+      "path": "/api/sukuyo-compatibility-ai/result",
+      "responseHash": "272dcd2534d38258065821f76af4b6a7272a5b1eb82dfcf896f6b79179097af7"
+    },
+    {
+      "method": "GET",
+      "path": "/api/sukuyo-compatibility-ai/result",
+      "responseHash": "272dcd2534d38258065821f76af4b6a7272a5b1eb82dfcf896f6b79179097af7"
+    },
+    {
+      "method": "GET",
+      "path": "/api/sukuyo-compatibility-ai/result?id=aaaaaaaaaaaaaaaaaaaaaaaa",
+      "responseHash": "aef3032bf54415431575d432e17b4e44eee89f1a2a2cb83a31183cd211110ac5"
+    },
+    {
+      "method": "GET",
+      "path": "/api/recommendations?service=sukuyo-compatibility-ai&source=result&currency=KRW",
+      "responseHash": "ea4c67b50a8fc99034ced600842a25c31cb786c612f51cde518aeda65102e7ca"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/access-state",
+      "responseHash": "2b7c47e419e7c61ec81915b91481796792727e551af8a97c79e9c609900842fa"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/status",
+      "responseHash": "ca0614859292b6231c61d8352e2950ea4dc27b8e7b5f46d574d8aad713fb6fbe"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/snu/status",
+      "responseHash": "a193188f2f6f2a331f7f2b0c8b435617abe8c2e5dcda10c6301062111a7d0617"
+    },
+    {
+      "method": "GET",
+      "path": "/api/profile",
+      "responseHash": "a83eebc82d906af9130c319e468c1bfb57489115f161923e475582fd1c209d8e"
+    },
+    {
+      "method": "GET",
+      "path": "/api/sukuyo-compatibility-ai/result",
+      "responseHash": "272dcd2534d38258065821f76af4b6a7272a5b1eb82dfcf896f6b79179097af7"
+    },
+    {
+      "method": "GET",
+      "path": "/api/sukuyo-compatibility-ai/result",
+      "responseHash": "272dcd2534d38258065821f76af4b6a7272a5b1eb82dfcf896f6b79179097af7"
+    },
+    {
+      "method": "GET",
+      "path": "/api/sukuyo-compatibility-ai/result?id=aaaaaaaaaaaaaaaaaaaaaaaa",
+      "responseHash": "aef3032bf54415431575d432e17b4e44eee89f1a2a2cb83a31183cd211110ac5"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/access-state",
+      "responseHash": "2b7c47e419e7c61ec81915b91481796792727e551af8a97c79e9c609900842fa"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/status",
+      "responseHash": "ca0614859292b6231c61d8352e2950ea4dc27b8e7b5f46d574d8aad713fb6fbe"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/snu/status",
+      "responseHash": "a193188f2f6f2a331f7f2b0c8b435617abe8c2e5dcda10c6301062111a7d0617"
+    },
+    {
+      "method": "GET",
+      "path": "/api/karma-destiny-ai/result?sessionId=aaaaaaaaaaaaaaaaaaaaaaaa",
+      "responseHash": "6bedae5a2d8a303124b697c03cdc95172e79d0074bd51f0ffe8d10eb7550576a"
+    },
+    {
+      "method": "GET",
+      "path": "/api/karma-destiny-ai/result?sessionId=aaaaaaaaaaaaaaaaaaaaaaaa",
+      "responseHash": "6bedae5a2d8a303124b697c03cdc95172e79d0074bd51f0ffe8d10eb7550576a"
+    },
+    {
+      "method": "GET",
+      "path": "/api/reviews/products",
+      "responseHash": "9f37f45c4b4adbf7335a4d7a000d395ab70ab81c61aa0909d4e7201a66cfac35"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/access-state",
+      "responseHash": "2b7c47e419e7c61ec81915b91481796792727e551af8a97c79e9c609900842fa"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/status",
+      "responseHash": "ca0614859292b6231c61d8352e2950ea4dc27b8e7b5f46d574d8aad713fb6fbe"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/snu/status",
+      "responseHash": "a193188f2f6f2a331f7f2b0c8b435617abe8c2e5dcda10c6301062111a7d0617"
+    },
+    {
+      "method": "GET",
+      "path": "/api/karma-destiny-ai/result?sessionId=aaaaaaaaaaaaaaaaaaaaaaaa",
+      "responseHash": "6bedae5a2d8a303124b697c03cdc95172e79d0074bd51f0ffe8d10eb7550576a"
+    },
+    {
+      "method": "GET",
+      "path": "/api/karma-destiny-ai/result?sessionId=aaaaaaaaaaaaaaaaaaaaaaaa",
+      "responseHash": "6bedae5a2d8a303124b697c03cdc95172e79d0074bd51f0ffe8d10eb7550576a"
+    },
+    {
+      "method": "GET",
+      "path": "/api/reviews/products",
+      "responseHash": "9f37f45c4b4adbf7335a4d7a000d395ab70ab81c61aa0909d4e7201a66cfac35"
+    }
+  ],
+  "blocked": [
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/84a60324a3b8.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/22b54ce7f9da.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/0fa5719f7323.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5aaab50eeb5d.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/4a7f3dcb2cc3.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/972d74532ce4.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/623ee24b811e.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/37f2e5c7951e.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5c6665edab37.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/68db3c4109cc.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-latin/09941fb1c169.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/Mulmaru.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/e8e25a7b4aff.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/b7d7deaf1ba4.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/4192bcd5cb99.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/84a60324a3b8.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/22b54ce7f9da.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/0fa5719f7323.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5aaab50eeb5d.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/4a7f3dcb2cc3.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/972d74532ce4.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/623ee24b811e.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/37f2e5c7951e.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5c6665edab37.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/68db3c4109cc.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-latin/09941fb1c169.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/Mulmaru.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/e8e25a7b4aff.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/b7d7deaf1ba4.woff2"
+    },
+    {
+      "service": "sukuyo",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/4192bcd5cb99.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-latin/09941fb1c169.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/22b54ce7f9da.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/0fa5719f7323.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5aaab50eeb5d.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/972d74532ce4.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/68db3c4109cc.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/4a7f3dcb2cc3.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5c6665edab37.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/3a02d5b8cf74.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/24f235a5910b.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/384be67e4250.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/84a60324a3b8.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/37f2e5c7951e.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/623ee24b811e.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-latin/09941fb1c169.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/22b54ce7f9da.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/0fa5719f7323.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5aaab50eeb5d.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/972d74532ce4.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/68db3c4109cc.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/4a7f3dcb2cc3.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5c6665edab37.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/3a02d5b8cf74.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/24f235a5910b.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/384be67e4250.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/84a60324a3b8.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/37f2e5c7951e.woff2"
+    },
+    {
+      "service": "karma",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/623ee24b811e.woff2"
+    }
+  ],
+  "consoleErrors": [
+    {
+      "service": "sukuyo",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "service": "sukuyo",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "service": "sukuyo",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "service": "sukuyo",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "service": "sukuyo",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "service": "sukuyo",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "service": "sukuyo",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "service": "sukuyo",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "service": "sukuyo",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "service": "sukuyo",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "service": "sukuyo",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "service": "sukuyo",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "service": "sukuyo",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "service": "sukuyo",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "service": "sukuyo",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "service": "sukuyo",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "service": "sukuyo",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "service": "sukuyo",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "service": "sukuyo",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "service": "sukuyo",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "service": "sukuyo",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "service": "sukuyo",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "service": "sukuyo",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "service": "sukuyo",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "service": "sukuyo",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "service": "sukuyo",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "service": "sukuyo",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "service": "sukuyo",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "service": "sukuyo",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "service": "sukuyo",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "service": "karma",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "service": "karma",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "service": "karma",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "service": "karma",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "service": "karma",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "service": "karma",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "service": "karma",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "service": "karma",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "service": "karma",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "service": "karma",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "service": "karma",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "service": "karma",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "service": "karma",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "service": "karma",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "service": "karma",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "service": "karma",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "service": "karma",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "service": "karma",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "service": "karma",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "service": "karma",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "service": "karma",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "service": "karma",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "service": "karma",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "service": "karma",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "service": "karma",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "service": "karma",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "service": "karma",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    },
+    {
+      "service": "karma",
+      "message": "Failed to load resource: net::ERR_FAILED"
+    }
+  ],
+  "httpFailures": [],
+  "storedPayloadsUnchanged": true,
+  "compiledModules": 257
+}

@@ -1,0 +1,176 @@
+{
+  "browser": "156.0.8078.74",
+  "productionFlags": "OFF",
+  "results": [
+    {
+      "service": "new-year",
+      "passed": false,
+      "error": "expect(locator).toBeVisible() failed\n\nLocator: getByText('합이 드는 달에는 관계가 가까워지고').filter({ visible: true }).first()\nExpected: visible\nTimeout: 60000ms\nError: element(s) not found\n\n",
+      "text": "방문 분석 쿠키를 선택해 주세요\n\n로그인·결제에 필요한 필수 쿠키를 사용해요. 동의하면 방문과 구매 흐름을 분석하는 쿠키도 사용해요. 필수만 선택해도 서비스를 이용할 수 있어요.\n\n필수만 사용\n분석 쿠키 동의\n개인정보 처리방침\n뒤로\n홈\n서비스 소개\n신년운세 전문가 상담\n\n신년운세 마스터\n\n네오\n한 해의 판세를 짜는 운명 사령관\n\n“올해 판세는 내가 먼저 읽는다. 너는 밀 때와 멈출 때만 기억하면 된다.”\n\n마스터 소개 보기\n↓\n\n이직을 준비할 때, 관계를 돌아볼 때, 새해의 우선순위를 정하고 싶을 때. 내 사주와 한 해의 흐름을 함께 읽고, 월별로 살펴볼 점과 현실적인 행동 조언을 정리해 드립니다.\n\n사주 원국\n세운 분석\n월별 흐름\n행동 전략\n새해 상담소가 조용히 열려 있습니다\n\n2027년 새해까지 D-60\n\n이 상담을 글과 그림으로 자세히 보기\n새해 상담에 필요한 정보를 알려주세요\n저장된 프로필\n\n저장된 프로필이 없어요. 아래에 직접 입력해 주세요.\n\n이름 또는 닉네임\n성별\n선택\n여성\n남성\n비공개\n생년월일\n출생시간\n양력/음력\n양력\n음력\n상담 연도\n올해 2026\n병오년 · 말띠\n내년 2027\n정미년 · 양띠\n다른 연도\n직접 입력\n2027년 상담 흐름을 선택했습니다.\n더 깊게 보고 싶은 흐름\n종합운\n年\n종합운\n緣\n연애/재회\n財\n재물/수입\n官\n직업/이직\n身\n건강/멘탈\n和\n가족/관계\n文\n학업/성장\n問\n직접 질문\n이 질문에 최우선으로 답해드립니다\n현재 상황과 고민 중인 선택을 적어 주세요. 답과 그 이유를 먼저 설명해 드려요.\n명리학자에게 맡길 질문\n상담 이용 가격 30,000원\n신년운세 전문가 상담 받기\n새해의 첫 번째 답장\n\n아직 새해의 첫 문장이 열리지 않았습니다.\n\n생년월일과 궁금한 흐름을 남기면, 원국과 세운이 맞물리는 지점부터 차분히 짚어드립니다.\n네\n\n신년운세 마스터\n\n네오\n\n한 해의 판세를 짜는 운명 사령관\n\n올해 판세, 내가 먼저 읽어 주지. 넌 움직이기만 하면 된다.\n\n새해 작전 회의는 내가 연다. 네 명식과 올해의 흐름을 맞대어 밀어붙일 달과 숨 고를 달을 가르고, 일·재물·관계·건강을 장마다 바로 쓸 수 있는 작전으로 정리해 넘긴다.\n\n전문 영역\n한 해의 총운과 열두 달의 판세, 일·재물·관계·건강의 작전\n읽는 근거\n네 명식의 격국·용신·조후, 대운 위에 올해 세운이 닿는 자리, 달마다 바뀌는 월별 흐름\n이 상담에서 맡는 부분\n질문과 타고난 성향 · 올해의 총운 · 재물과 직업 · 애정과 대인관계 · 1월~12월 월별 흐름 · 건강과 개운법 — 여섯 장 전부\n상담 원칙\n듣기 좋은 말보다 쓸 수 있는 말\n단정 대신 조건으로 말한다\n깎아내리지 않는다\n\n서비스의 이야기를 안내하는 캐릭터예요. 상담은 선택을 돕는 해석이며, 미래나 상대의 마음을 확정하지 않아요.\n\n프로필 시트 펼쳐보기\n상담에서 어떤 내용을 받나요?\n\n구성과 예시를 읽고, 나의 질문을 준비해 보세요.\n\n네오 · 신년운세\n\n신년운세\n\n새해에는 이직과 부업 중 무엇을 준비할까?\n\n한 해의 흐름 · 12개월 변화 · 현실적인 준비\n\n신년운세 상담 알아보기\n→\n받게 될 내용과 예시\n\n한 해의 일·돈·관계와 월별 변화를 함께 살펴, 준비할 일의 순서를 정하고 싶은 분께 맞아요.\n\n질문 · 이직과 부업 사이\n\n가상 프로필의 입력·AI 결과 원문 발췌 · 실제 고객 후기 아님\n\n2027년에 지금 회사를 계속 다니면서 부업으로 수입을 늘려도 될지, 아니면 이직으로 연봉을 올리는 쪽이 나을지 일과 돈의 흐름을 알고 싶어요.\n\n발췌 출처: 2027 신년운세 / 가상 프로필의 입력 질문 (새 창)\n예시 더 읽기 해석과 행동까지\n상담에 담기는 내용 펼쳐보기\n상담 전에 준비해 주세요\n\n출생 정보와 살펴볼 연도, 집중해서 보고 싶은 흐름과 질문을 준비해 주세요. 올해·내년 또는 다른 연도를 선택할 수 있어요.\n\n선택한 연도의 리포트는 상담 기록과 PDF로 다시 읽을 수 있어요. 아래 발췌는 2027년을 선택한 가상 프로필의 결과로, 모든 이용자에게 같은 달이나 방향을 권하는 뜻은 아니에요.\n\n2027 신년운세 보는 곳 — 정미년 흐름과 월별 운세 풀이\n올해 나에게 가장 중요한 일은 뭘까?\n\n신년운세 전문가 상담은 생년월일로 세운 사주 명식 위에 새해의 간지가 만드는 세운의 흐름을 겹쳐 읽습니다. 2027년 정미년이라면 丁화와 未토가 내 일간과 어떤 관계를 맺는지부터 계산합니다. 한 해의 재물운과 관계운, 일과 커리어의 결이 어느 달에 열리는지, 어느 시기에 무리하지 않고 숨을 고르는 편이 좋은지 월별 체크포인트로 정리해 드립니다.\n\n새해 운세는 한 해를 단정하는 예언이 아니라, 계절의 흐름을 미리 아는 달력에 가깝습니다. 연초가 아니어도 남은 달의 방향을 잡거나 다가올 해를 미리 살피는 데 언제든 활용할 수 있습니다.\n\n태어난 해의 띠 하나로 먼저 큰 흐름을 보고 싶다면 2027년 띠별 운세에서 12띠와 정미년의 합·충 관계, 삼재, 절기별 월건을 무료로 확인할 수 있습니다. 이 상담은 띠가 아니라 생년월일시 전체 명식에 세운을 겹쳐 봅니다.\n\n같은 해라도 사람마다 사주 명식이 다르기 때문에 세운이 만드는 결도 저마다 다릅니다. 막연히 좋다·나쁘다로 나누기보다, 어느 달에 무리하지 않는 편이 좋고 어느 달에 움직임을 시작하면 좋은지 구체적인 체크포인트로 정리해 드립니다. 재물, 관계, 커리어처럼 영역별로 나누어 살피면 같은 해라도 시기에 따라 다르게 대응할 부분이 또렷해집니다.\n\n이런 분께 추천합니다\n새해를 앞두고 한 해 전체의 큰 흐름을 미리 가늠해 마음의 준비를 하고 싶을 때\n이직, 이사, 창업처럼 시기 선택 자체가 중요한 계획을 앞두고 있을 때\n재물이나 관계에서 특히 조심해야 할 달이 언제인지 미리 알아두고 싶을 때\n연중에 지나온 반년을 되짚어 보고 남은 달의 방향을 다시 잡고 싶을 때\n상담은 이렇게 진행됩니다\n생년월일을 입력해 사주 명식과 해당 연도의 세운을 함께 세웁니다.\n재물·관계·커리어별로 한 해 동안의 흐름을 월별 체크포인트로 나눠 확인합니다.\n지금 가장 궁금한 주제를 중심으로 상담 문장을 정리해 보여 드립니다.\n필요하면 월별 가이드를 담은 신년 리포트 PDF로도 정리해 볼 수 있습니다.\n\n한 해의 흐름을 미리 안다고 해서 노력 없이 결과가 정해지는 것은 아닙니다. 다만 어느 달에 힘을 모으고 어느 달에 숨을 고를지 미리 알아두면, 같은 노력도 더 순조로운 시점에 쓸 수 있습니다.\n\n자주 묻는 질문\n이직이나 관계 고민을 어떻게 질문하면 좋나요?\n\n현재 상황과 고민 중인 선택을 함께 적어 주세요. 예를 들어 ‘지금 직장에 남을지 이직을 준비할지 고민이에요. 올해 어떤 점을 살피면 좋을까요?’처럼 질문하면, 월별 흐름과 질문에 대한 조언을 함께 읽기 좋습니다. 운세는 선택을 돌아보는 참고 자료이며 채용·수익·관계의 결과를 보장하지 않습니다.\n\n신년운세 전문가 상담은 무엇을 알려주나요?\n\n새해 한 해의 큰 흐름을 사주 명식의 세운(歲運) 관점에서 읽어 드립니다. 재물·관계·커리어의 결이 어느 계절에 열리고 어느 시기에 숨을 고르면 좋은지, 월별 체크포인트와 함께 상담 문장으로 정리합니다.\n\n2027 토정비결과 사주 신년운세는 무엇이 다른가요?\n\n토정비결은 나이와 음력 생월·생일로 세 자리 괘를 뽑아 144괘 가운데 하나의 정해진 풀이를 읽는 방식입니다. 신년운세 전문가 상담은 생년월일시로 세운 사주 명식 위에 그해의 간지(2027년은 정미)가 만드는 세운을 겹쳐 개인별로 계산합니다. 같은 괘를 받은 사람끼리도 명식이 다르면 풀이가 갈립니다.\n\n2027년 정미년은 어떤 해인가요?\n\n2027년은 천간 丁(정화, 음의 불)과 지지 未(미토, 양띠)가 만나는 정미년입니다. 같은 정미 세운이라도 일간에 따라 작용이 다릅니다. 예를 들어 甲·乙 일간에게 丁화는 표현과 결과물을 뜻하는 식상이고, 壬·癸 일간에게는 재물과 현실 감각을 뜻하는 재성입니다. 그래서 띠나 해의 이름만으로 한 해를 판단하지 않고 내 명식과의 관계로 읽습니다.\n\n2027년 신년운세는 언제부터 보면 되나요?\n\n지금 바로 볼 수 있습니다. 상담 화면의 기본 대상 연도가 다가올 해로 맞춰져 있어 연말에 미리 한 해를 준비할 수 있습니다. 사주에서 해가 바뀌는 기준은 양력 1월 1일이 아니라 입춘(2027년은 2월 4일 무렵)이라, 1월은 아직 2026년 병오년 세운의 끝자락으로 읽습니다.\n\n연말이 아니어도 볼 수 있나요?\n\n네, 세운의 흐름은 한 해 내내 이어지므로 언제든 남은 기간의 흐름과 다가올 해의 결을 미리 살필 수 있습니다. 연중에 보면 지나온 흐름을 되짚고 남은 달의 방향을 잡는 데 도움이 됩니다.\n\n결과는 다시 볼 수 있나요?\n\n상담 결과는 본인 계정에서 다시 열람할 수 있습니다. 더 긴 호흡의 문서가 필요하다면 월별 가이드를 담은 신년 리포트 PDF로도 정리할 수 있습니다.\n\n가족 여러 명의 신년운세를 각각 볼 수 있나요?\n\n네, 본인 외에도 가족 구성원의 생년월일을 각각 입력해 개별 상담을 받을 수 있습니다. 같은 해라도 사람마다 사주 명식이 다르므로 세운이 만드는 결도 각자 다르게 나타납니다.\n\n이직이나 이사 시기를 정할 때도 참고할 수 있나요?\n\n네, 세운의 흐름을 따라 어느 달에 움직임이 순조롭고 어느 달에 신중해야 하는지를 함께 살피므로, 이직·이사·창업처럼 시기 선택이 중요한 계획을 세울 때 참고 자료로 활용하기 좋습니다.\n\n지난해 신년운세와 비교해서 봐도 되나요?\n\n네, 여러 해의 상담 결과를 나란히 두고 비교하면 해마다 바뀌는 세운의 흐름과, 그 안에서도 크게 변하지 않는 자신의 기질을 함께 확인할 수 있어 스스로를 이해하는 데 도움이 됩니다.\n\n월별 체크포인트는 구체적으로 어떤 식으로 나오나요?\n\n재물, 관계, 커리어 영역별로 흐름이 좋은 달과 신중해야 할 달을 짚어 드리며, 특히 눈에 띄는 달에는 그 이유가 되는 세운의 결도 함께 풀어 설명해 단순한 달력 이상의 참고가 되도록 구성합니다.\n\n이어서 볼 만한 운세\n사주 해석\n오늘의 운세\n만세력\n초융합 운세\n\n제작·검수 안내\n\n이 글은 전통 상징 체계와 공개 정보를 바탕으로 구성한 해설입니다. 설명을 정리하는 과정에 인공지능이 활용될 수 있습니다. 원고의 제작 방식과 전문가의 개별 검수 여부는 구분하여 안내합니다. 운세 해석은 미래를 단정하는 예언이 아니라 자기 성찰과 선택 정돈을 돕는 참고 자료입니다.\n\n작성 책임 Code Destiny 편집팀 · 전문가 개별 검수 확인 전 · 운영자와 검수 기준\n\n발행 2026. 06. 27. · 최종 수정 2026. 09. 06.\n\n제작 기준은 콘텐츠 제작 및 AI 활용 고지와 운세 콘텐츠 방법론에서 확인할 수 있습니다. 부정확한 내용을 발견하면 문의로 알려 주시면 검토 후 수정합니다.\n\n내 월정석 0개, 어디에 쓸 수 있을까요?\n\n월정석과 첫걸음 안내 보기\n닫기"
+    }
+  ],
+  "errors": [],
+  "unknown": [],
+  "requests": [
+    {
+      "method": "GET",
+      "path": "/api/me/access-state"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/snu/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/profile"
+    },
+    {
+      "method": "GET",
+      "path": "/api/new-year-ai/result?sessionId=aaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "method": "GET",
+      "path": "/api/new-year-ai/result"
+    },
+    {
+      "method": "GET",
+      "path": "/api/new-year-ai/result"
+    }
+  ],
+  "blocked": [
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-latin/09941fb1c169.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/0fa5719f7323.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/4a7f3dcb2cc3.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/623ee24b811e.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5aaab50eeb5d.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/22b54ce7f9da.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5c6665edab37.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/972d74532ce4.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/37f2e5c7951e.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/3a02d5b8cf74.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/68db3c4109cc.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/84a60324a3b8.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/b7a42dba1fee.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/48f2975dcf62.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/384be67e4250.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/d9b6283e0f2f.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-latin/09941fb1c169.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/22b54ce7f9da.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/0fa5719f7323.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5aaab50eeb5d.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/4a7f3dcb2cc3.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/b7a42dba1fee.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/48f2975dcf62.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/37f2e5c7951e.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/5c6665edab37.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/972d74532ce4.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/384be67e4250.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/d9b6283e0f2f.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/623ee24b811e.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/3a02d5b8cf74.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/68db3c4109cc.woff2"
+    },
+    {
+      "service": "new-year",
+      "url": "https://assets.code-destiny.com/fonts/serif-kr/84a60324a3b8.woff2"
+    }
+  ],
+  "storedPayloadsUnchanged": true,
+  "compiledModules": 209
+}
