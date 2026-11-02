@@ -140,6 +140,29 @@ function removePublicContentVersion(request, url) {
   return true;
 }
 
+// Resolve an asset Location against base into one absolute URL; the request search survives
+// when the target names none, as Pages' own redirects do.
+function absoluteRedirectTarget(location, base, search) {
+  const target = new URL(location, base);
+  if (!target.search && search) target.search = search;
+  return target.toString();
+}
+
+// Version removal and double-slash collapse become one absolute 301. ASSETS is asked once (HEAD)
+// so a slashless directory URL lands on its slash form instead of chaining another 308.
+async function canonicalRedirect(request, env, url, pathCollapsed) {
+  if (!removePublicContentVersion(request, url) && !pathCollapsed) return null;
+  let target = url.toString();
+  try {
+    const probe = await env.ASSETS.fetch(new Request(target, { method: "HEAD", redirect: "manual" }));
+    const location = probe.headers.get("Location");
+    if ((probe.status === 301 || probe.status === 308) && location) target = absoluteRedirectTarget(location, target, url.search);
+  } catch {
+    // Keep the cleaned URL when the probe fails.
+  }
+  return new Response(null, { status: 301, headers: { Location: target, "Cache-Control": "no-store" } });
+}
+
 // Inputs that still keep a question guide on Yeongnyangi instead of the Ggulggul app.
 const HOME_GUIDE_KEY = /^(utm_.+|gclid|gbraid|wbraid|fbclid|msclkid|ref|question|lang)$/;
 
@@ -686,6 +709,9 @@ async function serveGuardianShareCard(request, env, ctx, url, shareId) {
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+    const pathCollapsed = ["GET", "HEAD"].includes(request.method)
+      && !/^\/(?:api|app)(?:\/|$)/.test(url.pathname) && /\/{2,}/.test(url.pathname);
+    if (pathCollapsed) url.pathname = url.pathname.replace(/\/{2,}/g, "/");
     // Temporarily remove play-only entry points from the fortune service.
     if (/^\/(?:mini-games|destiny-poker|secret-house_real|saju\/love-simulation)(?:\.html|\/index\.html)?\/?$/.test(url.pathname)) {
       return new Response(null, { status: 302, headers: { Location: new URL('/ggulggul/', url).toString(), 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex' } });
@@ -700,9 +726,8 @@ export default {
       removePublicContentVersion(request, url);
       return new Response(null, { status: 301, headers: { Location: url.toString(), 'Cache-Control': 'no-store' } });
     }
-    if (removePublicContentVersion(request, url)) {
-      return new Response(null, { status: 301, headers: { Location: url.toString(), "Cache-Control": "no-store" } });
-    }
+    const canonical = await canonicalRedirect(request, env, url, pathCollapsed);
+    if (canonical) return canonical;
     const visitorLocale = visitorLocaleContext(request, url);
     // Resolve app inputs before serving HTML: waiting for React's useEffect
     // briefly paints the brand home before the app screen they belong to.
@@ -764,6 +789,10 @@ export default {
     }
 
     const assetResponse = await env.ASSETS.fetch(request);
+    const assetLocation = assetResponse.headers.get("Location");
+    if (["GET", "HEAD"].includes(request.method) && (assetResponse.status === 301 || assetResponse.status === 308) && assetLocation) {
+      return new Response(null, { status: 301, headers: { Location: absoluteRedirectTarget(assetLocation, url, url.search), "Cache-Control": "no-store" } });
+    }
     if (assetResponse.status === 404) {
       const expiredDateTarget = expiredFortuneDateTarget(url.pathname);
       if (expiredDateTarget) {

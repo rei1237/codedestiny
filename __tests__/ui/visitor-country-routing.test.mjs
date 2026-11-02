@@ -177,3 +177,98 @@ test('static and React language detection follow the URL and saved language, nev
     dom.window.close();
   }
 });
+
+// Pages-like asset fixture: slashless directory URLs answer with a relative 308 that carries the request search.
+function pagesAssets() {
+  const heads = [];
+  const html = () => new Response('<html>content</html>', { headers: { 'Content-Type': 'text/html' } });
+  const ASSETS = { fetch: async request => {
+    const u = new URL(request.url);
+    if (request.method === 'HEAD') heads.push(u.pathname + u.search);
+    if (['/saju', '/fortune/tomorrow/pig', '/ggulggul'].includes(u.pathname)) return new Response(null, { status: 308, headers: { Location: u.pathname + '/' + u.search } });
+    if (['/saju/', '/ggulggul/', '/fortune/tomorrow/pig/', '/'].includes(u.pathname)) return html();
+    if (u.pathname === '/moved') return new Response(null, { status: 301, headers: { Location: '/new/' } });
+    if (u.pathname === '/temp') return new Response(null, { status: 302, headers: { Location: '/elsewhere/' } });
+    return new Response('missing', { status: 404 });
+  } };
+  return { env: { ASSETS }, heads };
+}
+const BASE = 'https://code-destiny.test';
+
+test('one absolute 301 for slashless, version and double-slash URLs', async () => {
+  const worker = edge();
+  for (const [path, expected] of [
+    ['/fortune/tomorrow/pig', '/fortune/tomorrow/pig/'],
+    ['/saju?utm_source=a', '/saju/?utm_source=a'],
+    ['/saju/?v=1', '/saju/'],
+    ['/saju?v=1&utm_source=a', '/saju/?utm_source=a'],
+    ['//ggulggul/', '/ggulggul/'],
+    ['//ggulggul?x=1', '/ggulggul/?x=1'],
+  ]) for (const method of ['GET', 'HEAD']) for (const country of COUNTRIES) for (const [agent, userAgent] of Object.entries(AGENTS)) {
+    const { env } = pagesAssets();
+    const label = method + ' ' + path + ' ' + country + ' ' + agent;
+    const response = await worker.fetch(visit(path, country, { method, headers: { 'User-Agent': userAgent } }), env);
+    assert.equal(response.status, 301, label);
+    assert.equal(response.headers.get('Location'), BASE + expected, label);
+    assert.equal(response.headers.get('Cache-Control'), 'no-store', label);
+    assert.equal(response.headers.get('Set-Cookie'), null, label);
+    const next = await worker.fetch(visit(response.headers.get('Location').slice(BASE.length), country, { method, headers: { 'User-Agent': userAgent } }), env);
+    assert.equal(next.status, 200, label + ' second hop');
+  }
+});
+
+test('version removal asks ASSETS at most once', async () => {
+  const versioned = pagesAssets();
+  await edge().fetch(visit('/saju?v=1', 'KR'), versioned.env);
+  assert.deepEqual(versioned.heads, ['/saju']);
+  const clean = pagesAssets();
+  await edge().fetch(visit('/saju/', 'KR'), clean.env);
+  assert.deepEqual(clean.heads, []);
+});
+
+test('a failing HEAD still redirects to the cleaned URL', async () => {
+  const env = { ASSETS: { fetch: async request => { if (request.method === 'HEAD') throw new Error('boom'); return new Response('x'); } } };
+  const response = await edge().fetch(visit('/saju?v=1', 'KR'), env);
+  assert.equal(response.status, 301);
+  assert.equal(response.headers.get('Location'), BASE + '/saju');
+});
+
+test('//evil.com/x stays on this host', async () => {
+  const response = await edge().fetch(visit('//evil.com/x', 'KR'), pagesAssets().env);
+  assert.equal(response.status, 301);
+  const location = new URL(response.headers.get('Location'));
+  assert.equal(location.host, 'code-destiny.test');
+  assert.equal(location.pathname, '/evil.com/x');
+});
+
+test('signed queries keep their full URL', async () => {
+  const response = await edge().fetch(visit('/saju/?v=1&sig=a%2Bb', 'KR'), pagesAssets().env);
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get('Location'), null);
+});
+
+test('asset redirects become absolute 301 and keep the query', async () => {
+  const { env } = pagesAssets();
+  const moved = await edge().fetch(visit('/moved?a=1', 'KR'), env);
+  assert.equal(moved.status, 301);
+  assert.equal(moved.headers.get('Location'), BASE + '/new/?a=1');
+  assert.equal(moved.headers.get('Cache-Control'), 'no-store');
+  const temp = await edge().fetch(visit('/temp', 'KR'), env);
+  assert.equal(temp.status, 302);
+  assert.equal(temp.headers.get('Location'), '/elsewhere/');
+});
+
+test('POST and API paths are not normalized', async () => {
+  const { env } = pagesAssets();
+  const post = await edge().fetch(visit('/saju', 'KR', { method: 'POST', body: '{}' }), env);
+  assert.equal(post.status, 308);
+  assert.equal(post.headers.get('Location'), '/saju/');
+  const seen = [];
+  const forwarded = await edge().fetch(visit('//x', 'KR', { method: 'POST', body: '{}' }), { ASSETS: { fetch: async request => { seen.push(new URL(request.url).pathname); return new Response('ok'); } } });
+  assert.equal(forwarded.status, 200);
+  assert.deepEqual(seen, ['//x']);
+  const upstream = [];
+  const api = await edge(async input => { upstream.push(String(input.url || input)); return new Response('{"ok":true}', { headers: { 'Content-Type': 'application/json' } }); }).fetch(visit('/api//x', 'KR'), env);
+  assert.notEqual(api.status, 301);
+  assert.equal(upstream.length, 1);
+});
