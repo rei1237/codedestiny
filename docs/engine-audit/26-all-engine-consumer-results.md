@@ -44,7 +44,7 @@ implementation_commit: 0e1fd0fe7
 - npm run verify:worker-no-undef: 804개 파일 통과(기존 데드코드 예외 3건). verify:ai-prompt-billing-policy, verify:no-nested-retry 통과.
 - impeccable detect --json app/ziwei-ai/ZiweiAiClient.tsx: [] (기계 검사; 생명주기 검증 대체 아님).
 - npm run check:fast -- --plan: critical. 전체 Node/Jest/worker build에 Swiss 연결이 포함되므로 전체 실행하지 않고 위 허용 대상만 실행. 전체 CI 통과로 표시하지 않는다.
-- npm run check:pre-push: 최초 사이트맵 드리프트 실패, 원인 확인·생성 후 최종 재검증 결과는 아래 마감 기록에 추가한다.
+- npm run check:pre-push: 최초 사이트맵 드리프트 실패를 수정한 뒤 c1b71fd73에서 전체 통과. 대운 보완 뒤 최종 재검증은 마감 기록 참조.
 
 ## 실패와 수정 기록
 
@@ -65,7 +65,9 @@ implementation_commit: 0e1fd0fe7
 
 - __tests__/fixtures/korean-calendar/authority-v2-golden.json
 - __tests__/fixtures/korean-calendar/authority-v2-impact-golden.json
+- __tests__/fixtures/korean-calendar/daeun-authority-v2-golden.json
 - __tests__/ui/all-engine-fact-consumers.test.mjs
+- __tests__/ui/calendar-authority-expansion.test.mjs
 - __tests__/ui/calendar-authority-regression.test.mjs
 - __tests__/ui/saju-authority-consumers.test.mjs
 - __tests__/ui/tarot-fact-consumers.test.mjs
@@ -74,6 +76,14 @@ implementation_commit: 0e1fd0fe7
 - app/saju/animal-destiny/lib/sajuAdapter.ts
 - app/ziwei-ai/ZiweiAiClient.tsx
 - config/sitemap-lastmod.json
+- docs/engine-audit/24-all-engine-consumers-handoff.md
+- docs/engine-audit/25-all-engine-consumer-matrix.md
+- docs/engine-audit/26-all-engine-consumer-results.md
+- docs/engine-audit/change-requests/CR-009.md
+- docs/engine-audit/results/all-engine-consumers-20261102/saved-browser.json
+- docs/engine-audit/results/all-engine-consumers-20261102/ziwei-new-pdf.json
+- docs/engine-audit/results/all-engine-consumers-20261102/ziwei-rollback-partial.json
+- docs/engine-audit/results/expansion-20261101/verified-authorities.json
 - docs/engine-audit/results/implementation-20261101/verified-authorities.json
 - lib/korean-calendar/authority-data.generated.js
 - lib/korean-calendar/authority-expanded.generated.js
@@ -89,6 +99,13 @@ implementation_commit: 0e1fd0fe7
 - public/sitemap.xml
 - sitemap-ko.xml
 - sitemap.xml
+- tools/oracle/browser-delivery/serve.mjs
+- tools/oracle/delivery-integration/consumer-source-pins.json
+- tools/oracle/delivery-integration/harness.mjs
+- tools/oracle/next-delivery/README.md
+- tools/oracle/next-delivery/browser-init.mjs
+- tools/oracle/next-delivery/selection.mjs
+- tools/oracle/next-delivery/verify.mjs
 - worker/lib/engine-fact-snapshot.js
 - worker/lib/fusion-fortune-prompt.js
 - worker/lib/guardian-fortune-context.js
@@ -111,3 +128,13 @@ implementation_commit: 0e1fd0fe7
 - 구현 0e1fd0fe7, 추가 mock/확대 회귀 7c2cf77cc, 검증된 사이트맵 메타데이터 4ae71260e를 로컬 커밋했다.
 - 추가 하네스 및 변경 테스트 ESLint --quiet, 최종 tsc --noEmit와 git diff --check 통과.
 - 마지막 pre-push 시도는 미커밋 변경 때문에 mirror 검사가 중단됐다. 커밋한 트리에서 다시 실행한다.
+
+## 대운 반영 확인 및 후속 보완
+
+- 명식 상담은 대운 순서·간지와 원국/세운 구분 지침을 전달한다. 인생의 책·총운은 majorLuck의 순역·시작일·현재 구간·원국 상호작용과 yearlyLuck을 각 장의 근거로 사용한다.
+- 연이·네오 CR-008 ON 분기에서 원 계산의 대운·세운이 투영 중 누락되는 것을 확인했다. authorityGuardianResult의 신규 결과에 timingFacts를 추가하여 기존 계산값을 context→저장 seed→guardian/초융합 프롬프트로 보존했다. 계산기·시간대·대운 규칙은 수정하지 않았다.
+- 출생시간 미상 available=false 유지, 과거 pin에 없는 대운을 재계산하지 않음, OFF 24명식 원문 비교 및 저장 JSON/프롬프트 전달을 포함한 관련 두 테스트 파일 17/17 통과.
+- 다른 체계에 사주 대운을 섞지 않는다. 전체 상품에서 대운 전달 완료를 주장하지 않는다.
+
+- 대운 보완 f3d7498ef: 타입·lint·diff 검사 통과. sitemap 검사는 원장 서명만 차이를 보고하여 생성기로 갱신했다.
+- 고유 임시 디렉터리 .tmp/all-engine-next-enabled는 JSON 증거 보존 후 삭제했다. 기존 공용 검증 디렉터리는 타 작업 산출물 여부를 확정할 수 없어 일괄 삭제하지 않았다.
