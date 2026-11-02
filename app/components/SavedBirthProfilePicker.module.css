@@ -1,7 +1,5 @@
-/* Watercolour stationery: crop only the artwork's quiet paper at the centre.
-   Its moon and flowers have a separate, reserved place in the heading row. */
+/* A small moonlit paper note. Its ink stays dark even inside a night form. */
 .card {
-  --profile-metal:color-mix(in srgb,var(--cd-yehwa-line-deep) 55%,var(--cd-samples-ink));
   position:relative;
   isolation:isolate;
   box-sizing:border-box;
@@ -11,17 +9,10 @@
   flex:0 0 100%;
   padding:18px;
   margin-block:4px 14px;
-  border:1px solid color-mix(in srgb,var(--cd-yehwa-line-deep) 64%,var(--cd-samples-paper));
-  border-radius:var(--cd-r-md);
-  background-color:var(--cd-samples-paper);
-  background-image:
-    radial-gradient(ellipse at 30% 0%,color-mix(in srgb,var(--cd-samples-sheet) 65%,transparent),transparent 75%),
-    linear-gradient(110deg,color-mix(in srgb,var(--cd-yehwa-line) 13%,transparent),transparent 28%,transparent 72%,color-mix(in srgb,var(--cd-yehwa-line) 13%,transparent)),
-    url('/images/home/illustrated/moon-floral-light-480.webp');
-  background-size:100% 100%,100% 100%,max(960px,400%) auto;
-  background-position:center,center,center 48%;
-  background-repeat:no-repeat;
-  box-shadow:inset 0 1px 0 var(--cd-samples-sheet),inset 0 -1px 0 color-mix(in srgb,var(--cd-yehwa-line) 35%,transparent),0 10px 20px -12px color-mix(in srgb,var(--cd-samples-ink) 55%,transparent);
+  border:1px solid color-mix(in srgb,var(--cd-yehwa-line) 72%,var(--cd-samples-paper));
+  border-radius:var(--cd-r-sm);
+  background:linear-gradient(135deg,color-mix(in srgb,var(--cd-yehwa-line) 7%,var(--cd-samples-paper)),var(--cd-samples-paper) 62%);
+  box-shadow:0 10px 24px -20px color-mix(in srgb,var(--cd-samples-ink) 45%,transparent);
   color:var(--cd-samples-ink);
   font-family:var(--font-body);
   text-align:left;
@@ -30,27 +21,17 @@
   content:"";
   position:absolute;
   inset:5px;
-  border:1px solid color-mix(in srgb,var(--cd-yehwa-line) 28%,transparent);
-  border-radius:calc(var(--cd-r-md) - 5px);
+  border:1px solid color-mix(in srgb,var(--cd-yehwa-line) 32%,transparent);
+  border-radius:calc(var(--cd-r-sm) - 4px);
   pointer-events:none;
 }
-.heading { display:flex; align-items:center; gap:8px; min-width:0; min-height:48px; margin-bottom:12px; }
-.heading::after {
-  content:"";
-  order:1;
-  flex:0 0 64px;
-  height:48px;
-  background:url('/images/home/illustrated/moon-floral-light-480.webp') right top/146px auto no-repeat;
-  -webkit-mask-image:linear-gradient(90deg,transparent,#000 28%,#000 92%,transparent);
-  mask-image:linear-gradient(90deg,transparent,#000 28%,#000 92%,transparent);
-  pointer-events:none;
-}
+.heading { display:flex; align-items:center; gap:10px; min-width:0; min-height:44px; margin-bottom:10px; }
 .heading > svg { color:color-mix(in srgb,var(--cd-yehwa-line-deep) 55%,var(--cd-samples-ink)); stroke-width:1.6; flex-shrink:0; }
 /* The component owns its ink: host .form label/.form p rules must not put
    pale night text on this paper. Keep the 44px label vertically centered. */
-.card .heading label { display:flex; flex:1 1 auto; align-items:center; min-width:0; margin:0; padding:0; color:var(--cd-samples-ink); font-family:var(--font-serif,var(--font-body)); font-size:1.0625rem; font-weight:700; line-height:1.5; letter-spacing:normal; overflow-wrap:anywhere; }
-.refresh { display:grid; order:2; place-items:center; flex:0 0 44px; width:44px; height:44px; margin-left:auto; padding:0; border:1px solid var(--profile-metal); border-radius:var(--cd-r-control); color:var(--profile-metal); background:var(--cd-samples-paper); box-shadow:inset 0 1px 0 var(--cd-samples-sheet),0 3px 7px -6px var(--cd-samples-ink); cursor:pointer; }
-.card[data-saved-birth-profile] select { box-sizing:border-box; width:100%; min-width:0; max-width:100%; min-height:52px; padding:12px 14px; border:1px solid var(--profile-metal); border-radius:var(--cd-r-control); color:var(--cd-samples-ink); background:var(--cd-samples-sheet); box-shadow:inset 0 1px 3px color-mix(in srgb,var(--cd-samples-ink) 8%,transparent),0 2px 5px -4px color-mix(in srgb,var(--cd-yehwa-line-deep) 28%,transparent); color-scheme:light; font:inherit; font-size:16px; line-height:1.5; text-overflow:ellipsis; }
+.card .heading label { display:flex; align-items:center; min-width:0; margin:0; padding:0; color:var(--cd-samples-ink); font-family:var(--font-body); font-size:1rem; font-weight:650; line-height:1.5; letter-spacing:normal; overflow-wrap:anywhere; }
+.refresh { display:grid; place-items:center; flex:0 0 44px; width:44px; height:44px; margin-left:auto; padding:0; border:1px solid color-mix(in srgb,var(--cd-samples-muted) 72%,var(--cd-samples-paper)); border-radius:var(--cd-r-sm); color:var(--cd-samples-muted); background:var(--cd-samples-paper); cursor:pointer; }
+.card[data-saved-birth-profile] select { box-sizing:border-box; width:100%; min-width:0; max-width:100%; min-height:52px; padding:12px 14px; border:1px solid color-mix(in srgb,var(--cd-samples-muted) 72%,var(--cd-samples-paper)); border-radius:var(--cd-r-sm); color:var(--cd-samples-ink); background:var(--cd-samples-sheet); color-scheme:light; font:inherit; font-size:16px; line-height:1.5; text-overflow:ellipsis; }
 .card[data-saved-birth-profile] option { color:var(--cd-samples-ink); background:var(--cd-samples-sheet); }
 .card p.hint { margin:10px 0 0; color:var(--cd-samples-muted); font-family:var(--font-body); font-size:.875rem; font-weight:500; line-height:1.65; letter-spacing:normal; word-break:keep-all; overflow-wrap:anywhere; }
 .card[data-saved-birth-profile] :is(select,button):focus-visible { outline:2px solid var(--cd-samples-rose); outline-offset:3px; }
@@ -60,5 +41,5 @@
   .card[data-saved-birth-profile] select:not(:disabled):hover,.refresh:not(:disabled):hover { border-color:var(--cd-samples-rose); }
   .refresh:not(:disabled):hover { background:var(--cd-samples-sheet); }
 }
-@media(max-width:430px) { .card { padding-inline:16px; } .heading::after { flex-basis:52px; } }
+@media(max-width:430px) { .card { padding-inline:16px; } }
 :global(div):has(> .card) { flex-wrap:wrap; }
