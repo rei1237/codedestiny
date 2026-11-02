@@ -45,6 +45,7 @@ status: done
 | `node node_modules/typescript/bin/tsc --noEmit` | exit 0 |
 | 변경 TS/JS/MJS 대상 ESLint 및 `npm run lint` | exit 0 |
 | `git -c core.fsmonitor=false diff --check` | exit 0 |
+| `npm run check:pre-push` | 최종 exit 0: 레지스트리·미러·사이트맵·llms·SEO·저장소 위생 검사 통과 |
 
 증거: [CR-008 회귀](results/cr008-regression.json), [동일 명반 오라클](results/cr008-same-pillars-oracle.json), [브라우저 회귀](results/cr008-browser-regression.json).
 
@@ -61,6 +62,7 @@ status: done
 - 초기 확장 fixture의 가종재 기대값은 甲己 합화의 우선 조건을 놓쳤다. 화토 우선 사례와 가종재 사례를 분리했다. 화수·화화 양성 초안도 천간충 조건을 놓쳐 반례로 보존하고 양성 입력을 따로 작성했다. 공통 엔진 규칙은 바꾸지 않았다.
 - 이전 합성 명반의 간지 불가능 조합 3건은 오라클이 거부했다. 새 회귀는 유효 간지로 교체하고 불가능 조합 거부를 별도 검증한다. 단일 필드 변형은 구조 검사이지 실존 출생 정보 표본이나 정확도 비율이 아니다.
 - 최초 타입 검사에서 pin schema의 문자열 리터럴 타입 확장이 발견되어 payload 타입을 명시했다. 최종 타입 검사는 통과했다.
+- 최초 pre-push 검사는 변경 소스와 사이트맵 signature/lastmod 원장의 드리프트로 실패했다. `npm run sitemap:generate`로 원장 7개 signature 및 그중 2개 URL의 날짜를 맞췄다. `config/sitemap-lastmod.json`, 루트/public의 sitemap·sitemap-ko 4개만 추가 변경했다. URL 집합(1,058개)·색인 정책은 동일하며 재실행이 통과했다. fsmonitor IPC 경고는 있었으나 검사는 exit 0이었다.
 
 ### 미실행·차단 및 후속
 
@@ -69,3 +71,5 @@ status: done
 현재 production 호출부는 새 선택을 켜지 않는다. `prepare` 저장소 계약은 mock으로 검증했으며 실 DB 원자 쓰기나 결제 실행 파일에 연결하지 않았다. 다른 미커밋 작업, 인증/가격/이용권/월정석/단건 결제, KV/R2·DB 스키마, 저장/유료 결과, 960px 레이아웃은 수정하지 않았다. push·배포 없음.
 
 2026-11-02 추가 요청인 **새 판정을 LLM 서비스와 기타 운세 결과에도 반영**하는 작업을 [후속 연결 계획](22-authority-consumer-rollout.md)에 등록했다. 전체 엔진 정확도 개선·운영 적용 완료를 의미하지 않는다.
+
+로컬 구현 커밋 `0c639986b`, 생성 메타데이터 커밋 `e44e25024`. 격리 작업 브랜치에 보존했으며 main 병합·push·배포는 하지 않았다. 이번에 만든 VM/Next 임시 번들은 검증 후 제거했고 재현 가능한 JSON 근거는 위 결과 파일로 보존했다.
