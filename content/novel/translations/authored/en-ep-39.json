@@ -316,9 +316,9 @@
     },
     {
       "id": "ep-39:52",
-      "source": "북 치던 애, 그날 진짜 울었어. 나 그거 봤어. 모카네 섬 할머니들도. 그 사람들한테 아무것도 안 돌려줬는데 내가 먼저 용서하면 안 되잖아.",
-      "sourceHash": "4e79083ddb79e51df9ffdc7fc93aa17ffeb0233a59cda915439e3df410e59248",
-      "t": "That drummer child really cried that day. I saw it. So did the grandmothers on Moka's island. You haven't returned anything to them. I can't forgive you ahead of them."
+      "source": "북 치던 애가 우는 걸 나도 봤어. 그 애 몫의 용서는 내가 대신할 수 없어. 나한테 한 일도 아직 아프고.",
+      "sourceHash": "6d094554d3fc12da090d73ef1575892933e6499d40f2b413cefcfcebe085bb8c",
+      "t": "I saw that child crying too. I can’t forgive you on their behalf. And what you did to me still hurts."
     },
     {
       "id": "ep-39:53",
@@ -394,9 +394,9 @@
     },
     {
       "id": "ep-39:65",
-      "source": "밤이 되었다. 스물일곱 개의 달이 하나씩 켜졌다. 연이는 우물 턱에 앉아 메모장을 꺼냈다. 네오가 옆에 엎드렸다.",
-      "sourceHash": "6546e4214d1fe67f0d9d3dc5692650df072b6c6bc6492bae02bd8f70191d84fe",
-      "t": "Night came. The twenty-seven moons lit one by one. Yeoni sat on the well's edge and took out their notebook. Neo lay down beside them."
+      "source": "밤이 되었다. 스물일곱 개의 달이 하나씩 켜졌다. 연이가 우물 턱에 앉아 메모장을 꺼내자, 네오는 한 뼘쯤 자리를 남기고 옆에 앉았다.",
+      "sourceHash": "65d7a26d6a0b4ca8915560f355deba5f94dfe6bb86ae223b6b2b281c5630441e",
+      "t": "Night fell and the twenty-seven moons lit one by one. When Yeoni sat on the well’s rim with her notebook, Neo sat beside her, leaving a handspan between them."
     },
     {
       "id": "ep-39:66",
@@ -460,9 +460,9 @@
     },
     {
       "id": "ep-39:76",
-      "source": "연이는 네오의 투명한 앞다리를 보았다. 만져 보려다가 손을 멈췄다. 손이 통과해 버리면 그게 더 무서울 것 같았다.",
-      "sourceHash": "2b67bb32c2dfbef273ee089407e681181fdaa5d9b262e1248af9875d1bcfdd39",
-      "t": "Yeoni looked at Neo's transparent foreleg. They reached to touch it, then stopped. It seemed even more frightening to feel their hand pass through."
+      "source": "연이는 네오의 투명한 팔을 보았다. 손을 뻗다가 멈췄다. 손끝이 통과할까 두려워, 대신 그의 소매 끝을 살짝 붙잡았다.",
+      "sourceHash": "80c30a271f290b879939b2cb6472c4c106cc09e73a493708775ac69bd165ab2f",
+      "t": "Yeoni looked at Neo’s translucent arm. She reached out, then stopped. Afraid her fingers would pass through him, she gently caught the edge of his sleeve instead."
     },
     {
       "id": "ep-39:77",
@@ -532,9 +532,9 @@
     },
     {
       "id": "ep-39:88",
-      "source": "서한비가 네오의 다리를 내려다보았다. 처음으로 웃음기 없는 얼굴이 굳었다.",
-      "sourceHash": "3f776093fd6386587f7338d152192c37172306e8b191c9c55265ea4b06b1dd86",
-      "t": "Seo Hanbi looked down at Neo's leg. For the first time, her unsmiling face tightened."
+      "source": "서한비가 네오의 팔을 내려다보았다. 소매 아래로 우물의 돌무늬가 비쳤다. 그녀의 입가에서 웃음기가 사라졌다.",
+      "sourceHash": "2451b0173402ea4e7065f7c58b7753b1ba0d67d87dc3b2c09acfae9a36afcb7a",
+      "t": "Seohanbi looked down at Neo’s arm. The well’s stonework showed through his sleeve. Her faint smile vanished."
     },
     {
       "id": "ep-39:89",
