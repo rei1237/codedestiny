@@ -10,20 +10,15 @@ const dictionary = readFileSync('lib/i18n/dictionary.ts', 'utf8');
 const normalizer = readFileSync('lib/i18n/locale-normalize.js', 'utf8').replaceAll('export ', '');
 const native = readFileSync('js/cd-lang-native.js', 'utf8');
 const routes = JSON.parse(readFileSync('public/_routes.json', 'utf8'));
-test('the native country API agrees with every Pages country-language group', () => {
-  const api = ts.createSourceFile('worker.js', readFileSync('worker/index.js', 'utf8'), ts.ScriptTarget.Latest, true);
-  const resolve = api.statements.find(node => ts.isFunctionDeclaration(node) && node.name?.text === 'detectLocale');
-  assert.ok(resolve);
-  const groups = runInNewContext(source.slice(source.indexOf('const COUNTRY_LANGUAGE_GROUPS'), source.indexOf('const VISITOR_LANGUAGES')) + ';COUNTRY_LANGUAGE_GROUPS;');
-  const detect = runInNewContext(resolve.getText(api) + ';detectLocale;');
-  const normalize = runInNewContext(normalizer + ';normalizeLocale;');
-  for (const [locale, countries] of Object.entries(groups)) for (const country of countries.split(' ')) {
-    assert.equal(normalize(detect(country)), locale, country);
-  }
-});
+const COUNTRIES = ['KR', 'US', 'JP', 'TW', 'VN'];
+const AGENTS = {
+  chrome: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+  googlebot: 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
+  yeti: 'Mozilla/5.0 (compatible; Yeti/1.1; +https://naver.me/spd)',
+};
 const asset = { ASSETS: { fetch: async () => new Response('<html>content</html>', { headers: { 'Content-Type': 'text/html', 'Cache-Control': 'public, max-age=3600' } }) } };
 function edge(fetchImpl = () => { throw Error('Unexpected network'); }) {
-  return runInNewContext(source.replace('export default {', 'globalThis.worker = {') + '\nworker;', { URL, Response, Headers, console, fetch: fetchImpl });
+  return runInNewContext(source.replace('export default {', 'globalThis.worker = {') + '\nworker;', { URL, Request, Response, Headers, console, fetch: fetchImpl });
 }
 function visit(path, country, { headers = {}, method = 'GET', body } = {}) {
   const request = new Request('https://code-destiny.test' + path, { method, headers: { Accept: 'text/html', ...headers }, body });
@@ -31,40 +26,52 @@ function visit(path, country, { headers = {}, method = 'GET', body } = {}) {
   return request;
 }
 
-test('fresh country arrivals select a supported language, never browser Korean; assets bypass the Worker', async () => {
-  assert.ok(routes.include.includes('/*'));
-  assert.ok(routes.exclude.includes('/_next/*'));
-  // 2026-10-15: Korea gets the brand home itself (200), still with the geo cookies.
-  const home = await edge().fetch(visit('/?utm_source=test', 'KR', { headers: { 'Accept-Language': 'ko-KR', Cookie: 'cd_locale=ko; cd_locale_ack=1' } }), asset);
-  assert.equal(home.status, 200);
-  assert.equal(home.headers.get('Location'), null);
-  assert.match(home.headers.get('Set-Cookie'), /cd_geo_locale=ko/);
-  assert.equal(home.headers.get('Cache-Control'), 'private, no-store');
-  for (const [country, lang, path] of [['JP','ja','ja'],['CN','zh-CN','zh'],['TW','zh-TW','zh-tw'],['HK','zh-TW','zh-tw'],['MO','zh-TW','zh-tw'],['US','en','en'],['GB','en','en'],['BR','en','en'],['TH','en','en'],['XX','en','en'],[undefined,'en','en']]) {
-    const response = await edge().fetch(visit('/?utm_source=test', country, { headers: { 'Accept-Language': 'ko-KR', Cookie: 'cd_locale=ko; cd_locale_ack=1' } }), asset);
-    assert.equal(response.status, 302, country);
-    assert.equal(response.headers.get('Location'), `https://code-destiny.test/${path}/?utm_source=test`);
-    assert.match(response.headers.get('Set-Cookie'), new RegExp(`cd_geo_locale=${encodeURIComponent(lang)}`));
-    assert.equal(response.headers.get('Cache-Control'), 'private, no-store');
+
+const PATHS = ['/', '/?utm_source=test', '/saju/', '/en/', '/zh-tw/sukuyo/', '/contact/', '/?lang=en', '/?question=money', '/?paymentId=x&code=y'];
+const snapshot = async response => [response.status, response.headers.get('Location'), await response.text(), response.headers.get('Cache-Control')];
+const withoutCountry = (cookie, country) => String(cookie).replace('cd_geo_country=' + country, 'cd_geo_country=<country>');
+
+test('same URL gives the same status, Location, body and Cache-Control for every country and agent', async () => {
+  for (const path of PATHS) {
+    let expected;
+    let expectedCookie;
+    for (const country of COUNTRIES) for (const [agent, userAgent] of Object.entries(AGENTS)) {
+      const response = await edge().fetch(visit(path, country, { headers: { 'User-Agent': userAgent } }), asset);
+      const label = path + ' ' + country + ' ' + agent;
+      const cookie = response.headers.get('Set-Cookie');
+      assert.doesNotMatch(String(cookie), /cd_geo_locale/, label);
+      if (response.status === 200) assert.match(cookie, new RegExp('cd_geo_country=' + country + '(;|$)'), label);
+      const current = await snapshot(response);
+      expected ??= current;
+      expectedCookie ??= withoutCountry(cookie, country);
+      assert.deepEqual(current, expected, label);
+      assert.equal(withoutCountry(cookie, country), expectedCookie, label);
+    }
   }
 });
 
-test('country locale reaches deep HTML visits and uses all supported runtime languages', async () => {
-  for (const [country, locale] of [['FR','fr'],['DE','de'],['NL','nl'],['VN','vi'],['IN','hi'],['MY','ms'],['ES','es']]) {
-    const response = await edge().fetch(visit('/checkout/?product=existing', country), asset);
-    assert.equal(response.status, 200);
-    assert.match(response.headers.get('Set-Cookie'), new RegExp(`cd_geo_locale=${locale}`));
-    assert.equal(response.headers.get('Cache-Control'), 'private, no-store');
+test('overseas visitors get 200 on / and entry paths with no redirect', async () => {
+  for (const country of ['US', 'JP', 'TW']) for (const path of ['/', '/saju/', '/today/', '/contact/', '/ggulggul/']) {
+    const response = await edge().fetch(visit(path, country), asset);
+    assert.equal(response.status, 200, country + path);
+    assert.equal(response.headers.get('Location'), null, country + path);
   }
 });
 
-test('all automatically selected public destinations are real indexable translated URLs', async () => {
-  const sitemap = readFileSync('sitemap.xml', 'utf8');
-  for (const country of ['JP','CN','TW','US']) for (const path of ['/today/','/saju/','/vedic/','/tarot/','/terms/','/privacy/','/saju/compatibility/','/contact/']) {
-    const response = await edge().fetch(visit(path,country),asset);
-    const destination = response.headers.get('Location');
-    if (destination) assert.ok(sitemap.includes('https://code-destiny.com'+new URL(destination).pathname), destination);
+test('the URL decides the language: ?lang= and explicit cookie still redirect, privately', async () => {
+  const worker = edge();
+  for (const [path, headers, expected] of [
+    ['/?lang=en', {}, '/en/?lang=en'],
+    ['/saju/?lang=zh-Hant', {}, '/zh-tw/saju/?lang=zh-Hant'],
+    ['/saju/', { Cookie: 'cd_locale=en; cd_locale_explicit=1' }, '/en/saju/'],
+  ]) {
+    const response = await worker.fetch(visit(path, 'US', { headers }), asset);
+    assert.equal(response.status, 302, path);
+    assert.equal(response.headers.get('Location'), 'https://code-destiny.test' + expected);
+    assert.equal(response.headers.get('Cache-Control'), 'private, no-store');
   }
+  const ko = await worker.fetch(visit('/ggulggul/', 'US', { headers: { Cookie: 'cd_locale=ko; cd_locale_explicit=1' } }), asset);
+  assert.equal(ko.status, 200);
 });
 
 test('explicit languages, query bytes, payment returns and crawler discovery remain stable', async () => {
@@ -73,18 +80,46 @@ test('explicit languages, query bytes, payment returns and crawler discovery rem
     ['/ggulggul/?lang=ko', {}, null],
     ['/en/', {}, null], ['/ja/', {}, null],
     ['/ggulggul/', { Cookie: 'cd_locale=ko; cd_locale_explicit=1' }, null],
-    ['/?question=money&ref=a%2Bb', {}, '/ja/yeongnyangi/?question=money&ref=a%2Bb'],
-    ['/?paymentId=existing&code=success&value=a%2Bb', {}, '/ja/?paymentId=existing&code=success&value=a%2Bb'],
+    ['/?question=money&ref=a%2Bb', {}, '/yeongnyangi/?question=money&ref=a%2Bb'],
+    ['/?paymentId=existing&code=success&value=a%2Bb', {}, '/ggulggul/?paymentId=existing&code=success&value=a%2Bb'],
     ['/?lang=en', {}, '/en/?lang=en'],
   ]) {
     const response = await worker.fetch(visit(path, 'JP', { headers }), asset);
     assert.equal(response.headers.get('Location'), expected && 'https://code-destiny.test' + expected);
   }
-  const bot = await worker.fetch(visit('/', 'US', { headers: { 'User-Agent': 'Googlebot' } }), asset);
-  assert.equal(bot.status, 200);
-  assert.equal(bot.headers.get('Location'), null);
-  assert.equal(bot.headers.get('Set-Cookie'), null);
-  const image = await worker.fetch(visit('/logo.png', 'JP'), asset);
+});
+
+async function htmlCacheControl(assetCacheControl) {
+  const headers = { 'Content-Type': 'text/html' };
+  if (assetCacheControl !== null) headers['Cache-Control'] = assetCacheControl;
+  const env = { ASSETS: { fetch: async () => new Response('<html>content</html>', { headers }) } };
+  return (await edge().fetch(visit('/saju/', 'JP'), env)).headers.get('Cache-Control');
+}
+
+test('HTML keeps the asset cache directives under private', async () => {
+  assert.equal(await htmlCacheControl('no-cache'), 'private, no-cache');
+  assert.equal(await htmlCacheControl('public, max-age=3600, s-maxage=60'), 'private, max-age=3600');
+  assert.equal(await htmlCacheControl(null), 'private, no-cache');
+});
+
+test('keeps no-store on private HTML', async () => {
+  assert.equal(await htmlCacheControl('no-store'), 'private, no-store');
+});
+
+test('a conditional 304 passes through without a body or geo cookie', async () => {
+  const env = { ASSETS: { fetch: async request => request.headers.get('If-None-Match')
+    ? new Response(null, { status: 304, headers: { ETag: '"a"' } })
+    : new Response('<html>content</html>', { headers: { 'Content-Type': 'text/html' } }) } };
+  const response = await edge().fetch(visit('/saju/', 'JP', { headers: { 'If-None-Match': '"a"' } }), env);
+  assert.equal(response.status, 304);
+  assert.equal(response.headers.get('Set-Cookie'), null);
+  assert.equal(response.headers.get('ETag'), '"a"');
+});
+
+test('non-HTML assets get no geo cookie', async () => {
+  assert.ok(routes.include.includes('/*'));
+  assert.ok(routes.exclude.includes('/_next/*'));
+  const image = await edge().fetch(visit('/logo.png', 'JP'), asset);
   assert.equal(image.headers.get('Set-Cookie'), null);
 });
 
@@ -139,25 +174,5 @@ test('static and React language detection honor country over old automatic Korea
     dom.window.eval(native);
     assert.equal(dom.window.cdGetCurrentLanguage(),expected,'static '+path);
     dom.window.close();
-  }
-});
-
-test('missing static locale editions fall back to an existing English page', async () => {
-  for (const country of ['TW','HK','MO','FR','DE','VN']) {
-    const response = await edge().fetch(visit('/contact/',country),asset);
-    assert.equal(response.status,302);
-    assert.equal(response.headers.get('Location'),'https://code-destiny.test/en/contact/');
-  }
-});
-
-
-test('Yeti and other crawlers can fetch every language independently of edge country', async () => {
-  for (const agent of ['Yeti/1.1 (+http://naver.me/spd)', 'Googlebot', 'bingbot', 'OAI-SearchBot', 'facebookexternalhit']) {
-    for (const country of ['KR', 'US', 'JP']) for (const path of ['/', '/saju/', '/zh-tw/sukuyo/']) {
-      const response = await edge().fetch(visit(path, country, { headers: { 'User-Agent': agent } }), asset);
-      assert.equal(response.status, 200, agent + country + path);
-      assert.equal(response.headers.get('Location'), null);
-      assert.equal(response.headers.get('Set-Cookie'), null);
-    }
   }
 });

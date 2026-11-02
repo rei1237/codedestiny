@@ -52,14 +52,9 @@ const DEFAULT_API_WORKER_ORIGIN = "https://code-destiny-web.bulegyung.workers.de
 const DYNAMIC_FEED_PATHS = new Set(["/rss.xml", "/insights/rss.xml"]);
 
 // @routes-include: /*
-// HTML deep links also need IP-country context. Asset directories bypass this Worker.
-const COUNTRY_LANGUAGE_GROUPS = {
-  ko: "KR", ja: "JP", "zh-CN": "CN", "zh-TW": "TW HK MO", vi: "VN",
-  hi: "IN", ms: "MY BN", de: "DE AT LI CH", nl: "NL BE SR",
-  fr: "FR MC LU SN CI BF ML NE TG BJ GN CD CG GA CM TD CF DJ MG KM SC RE GP MQ GF PF NC",
-  es: "ES MX AR BO CL CO CR CU DO EC GT HN NI PA PE PR PY SV UY VE GQ",
-};
-const VISITOR_LANGUAGES = new Set(["en", ...Object.keys(COUNTRY_LANGUAGE_GROUPS)]);
+// HTML deep links also need the IP-country cookie (payment-region UI). Country never picks a
+// language or a URL: the URL, ?lang= and an explicit cd_locale choice do. Asset directories bypass this Worker.
+const VISITOR_LANGUAGES = new Set(["en", "ko", "ja", "zh-CN", "zh-TW", "vi", "hi", "ms", "de", "nl", "fr", "es"]);
 const LANGUAGE_PATHS = { ko: "", en: "en", ja: "ja", "zh-CN": "zh", "zh-TW": "zh-tw" };
 // Only routes with published translations. Tests verify every destination against
 // the sitemap so a locale prefix cannot create a silent 404.
@@ -81,26 +76,33 @@ function visitorCookie(request, name) {
 function visitorLocaleContext(request, url) {
   if (!["GET", "HEAD"].includes(request.method) || /^\/(?:api|app)(?:\/|$)/.test(url.pathname)) return null;
   if (/\.[a-z0-9]+$/i.test(url.pathname) && !/\.html$/i.test(url.pathname)) return null;
-  // Keep canonical URLs and their hreflang alternatives independently crawlable.
-  if (/bot|crawler|spider|slurp|yeti|facebookexternalhit|kakaotalk-scrap/i.test(request.headers.get("User-Agent") || "")) return null;
   if (!request.headers.get("Accept")?.includes("text/html") && request.headers.get("Sec-Fetch-Dest") !== "document") return null;
   const country = String(request.cf?.country || "").toUpperCase();
-  const countryLocale = Object.entries(COUNTRY_LANGUAGE_GROUPS).find(([, countries]) => countries.split(" ").includes(country))?.[0] || "en";
   const queryLocale = visitorLanguage(url.searchParams.get("lang"));
   const pathLocale = visitorLanguage(url.pathname.split("/")[1]);
   const explicitLocale = visitorCookie(request, "cd_locale_explicit") === "1" ? visitorLanguage(visitorCookie(request, "cd_locale")) : "";
-  return { countryLocale, country: /^[A-Z]{2}$/.test(country) ? country : "XX", locale: queryLocale || pathLocale || explicitLocale || countryLocale };
+  return { country: /^[A-Z]{2}$/.test(country) ? country : "XX", locale: queryLocale || pathLocale || explicitLocale };
 }
 
-function visitorLocaleHeaders(headers, context) {
+function visitorLocaleHeaders(headers, context, cacheControl = "private, no-store") {
   if (!context) return headers;
-  headers.append("Set-Cookie", `cd_geo_locale=${encodeURIComponent(context.countryLocale)}; Path=/; SameSite=Lax; Secure`);
   headers.append("Set-Cookie", `cd_geo_country=${context.country}; Path=/; SameSite=Lax; Secure`);
-  headers.set("Cache-Control", "private, no-store");
+  headers.set("Cache-Control", cacheControl);
   return headers;
 }
 
+// The cookie varies per country, so a shared cache must not store the HTML. Keep the asset's own
+// freshness directives (max-age, no-cache, no-store...) and only swap the visibility to private.
+function privateCacheControl(value) {
+  const kept = String(value || "").split(",").map(part => part.trim())
+    .filter(part => part && !/^(?:public|private|s-maxage(?:=.*)?)$/i.test(part));
+  return `private, ${kept.length ? kept.join(", ") : "no-cache"}`;
+}
+
 function localizedEntryPath(pathname, locale) {
+  // No URL, query or cookie language means no redirect. An empty locale must not reach the
+  // `locale !== "ko" && !prefix` branch below, which would send core topics to /en/.
+  if (!locale) return null;
   const path = pathname.replace(/\/+$/, "") || "/";
   const prefix = LANGUAGE_PATHS[locale];
   // These static information pages have en/ja/zh editions only. Do not send a
@@ -142,8 +144,9 @@ function removePublicContentVersion(request, url) {
 const HOME_GUIDE_KEY = /^(utm_.+|gclid|gbraid|wbraid|fbclid|msclkid|ref|question|lang)$/;
 
 // `/` is the brand home (2026-10-15): plain and campaign-only GET/HEAD visits get it with 200,
-// crawlers included. App inputs (payment and OAuth returns, ref, lang, question guides) still
-// move on, and overseas visitors still land on their locale home. Returns null to serve `/`.
+// crawlers and overseas visitors included. App inputs (payment and OAuth returns, ref, lang,
+// question guides) still move on; only an explicit ?lang= or cd_locale choice picks a locale home.
+// Returns null to serve `/`.
 function brandHomeRedirect(request, url, visitorLocale) {
   const keys = [...url.searchParams.keys()];
   const target = new URL(url);
@@ -771,7 +774,7 @@ export default {
     }
     const response = hardenResponse(request.url, assetResponse);
     if (visitorLocale && response.ok && /^text\/html\b/i.test(response.headers.get("Content-Type") || "")) {
-      visitorLocaleHeaders(response.headers, visitorLocale);
+      visitorLocaleHeaders(response.headers, visitorLocale, privateCacheControl(response.headers.get("Cache-Control")));
     }
     return response;
   },
