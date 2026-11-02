@@ -1,7 +1,6 @@
 'use client';
 import {useEffect,useState} from 'react';
 import NextImage from 'next/image';
-import type {ReadingChart} from '@/worker/yeongnyangi/fortune/reading-presentation';
 import {yeongnyangiCardArt} from '@/lib/tarot/yeongnyangi-deck';
 import type {ReadingLocale} from '@/worker/yeongnyangi/fortune/reading-locale';
 import {tarotPlanCopy} from '../../_lib/tarot-plan-locales';
@@ -9,16 +8,12 @@ import type {PublicTarotSpread} from '../../_lib/api';
 import {tarotRitualCopy} from '../../_lib/tarot-ritual-copy';
 import {tarotSpreadCopyFor} from '../../_lib/tarot-spread-locales';
 import {localizedTarotSpread} from '../../_lib/tarot-spread-catalog-locales';
-import {storedRitual,saveRitual} from '../TarotDrawRitual';
+import {storedRitual,saveRitual} from '../../_lib/tarot-presentation-state';
 import TarotSpreadLayout,{type SlotCard} from './TarotSpreadLayout';
 import styles from '../../yeongnyangi.module.css';
 import spreadStyles from './tarot-spread.module.css';
 
-/** Saved cards of one v3 spread keyed by position id; undefined when the chart cannot place every position. */
-export function spreadCards(spread:PublicTarotSpread,chart?:ReadingChart):Record<string,{cardCode:string;reversed:boolean}>|undefined{
- const cards=Object.fromEntries((chart?.groups||[]).filter(group=>group.positionKey&&group.cardCode).map(group=>[group.positionKey!,{cardCode:group.cardCode!,reversed:Boolean(group.reversed)}]));
- return spread.positions.every(position=>cards[position.id])?cards:undefined;
-}
+export {spreadCards} from '../../_lib/tarot-presentation-state';
 
 type Stage='focus'|'reveal'|'reading';
 /** After payment the cards picked before checkout are turned over in reading order on the spread's own layout. */
