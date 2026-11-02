@@ -1,7 +1,10 @@
-# 사주 요리법 무료 웹툰 통합
-status: in_progress
+---
+status: active
 updated: 2026-11-02
 next: 독립 작업 공간의 요리 통합 트리 검사와 main push 후 CI 확인, 승인된 production 승격 및 라이브 무료 공개 검증.
+---
+
+# 사주 요리법 무료 웹툰 통합
 
 ## 결과
 - 기존 seo-five-elements 작업 디렉터리의 레시피 20개와 2D WebP를 재사용했다. 모음은 /recipes/ 하나, 상세는 기존 고유 슬러그 20개다.
