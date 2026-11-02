@@ -155,17 +155,18 @@ test('public payment config gets the visitor edge country and cannot be shared a
   }
 });
 
-test('static and React language detection honor country over old automatic Korean without overriding explicit choices', async () => {
+test('static and React language detection follow the URL and saved language, never a stale geo cookie', async () => {
   for (const [path, stored, cookie, expected] of [
-    ['/checkout/', {cd_lang:'ko',cd_locale_ack:'1'}, 'cd_geo_locale=ja', 'ja'],
-    ['/checkout/', {cd_lang:'ko',cd_lang_explicit:'1',cd_locale_ack:'1'}, 'cd_geo_locale=ja', 'ko'],
+    ['/checkout/', {}, 'cd_geo_locale=ja', 'ko'],
+    ['/checkout/', {cd_lang:'ko',cd_locale_ack:'1'}, 'cd_geo_locale=ja', 'ko'],
+    ['/checkout/', {cd_lang:'en',cd_locale_ack:'1'}, 'cd_geo_locale=ja', 'en'],
     ['/zh-tw/', {cd_lang:'ko'}, 'cd_geo_locale=ja', 'zh-TW'],
     ['/checkout/?lang=en', {cd_lang:'ko'}, 'cd_geo_locale=ja', 'en'],
-    ['/ggulggul/', {}, 'cd_geo_locale=en', 'en'],
+    ['/ggulggul/', {}, '', 'ko'],
   ]) {
     const dom = new JSDOM('<html><body></body></html>', {url:'https://code-destiny.test'+path,runScripts:'outside-only'});
     for (const [key,value] of Object.entries(stored)) dom.window.localStorage.setItem(key,value);
-    dom.window.document.cookie=cookie+'; Path=/';
+    if (cookie) dom.window.document.cookie=cookie+'; Path=/';
     const detect = dictionary.slice(dictionary.indexOf('export function detectLocale'));
     const code = ts.transpileModule(normalizer+'\n'+detect.replace('export ',''),{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText;
     dom.window.eval(code);

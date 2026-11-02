@@ -16,7 +16,7 @@ function preferredEdition() {
   const cookie=(name:string)=>document.cookie.split(';').map(value=>value.trim()).find(value=>value.startsWith(name+'='))?.slice(name.length+1)||'';
   let saved='';try{saved=localStorage.getItem('cd:novel:language')||'';}catch{}
   const nativeLanguage=(window as typeof window & {__cdAppLanguage?:string}).__cdAppLanguage;
-  return resolveNovelLocale(params.get('novelLang')||saved||nativeLanguage||params.get('lang')||(cookie('cd_locale_explicit')==='1'?cookie('cd_locale'):'')||cookie('cd_geo_locale')||cookie('cd_locale')||navigator.language);
+  return resolveNovelLocale(params.get('novelLang')||saved||nativeLanguage||params.get('lang')||(cookie('cd_locale_explicit')==='1'?cookie('cd_locale'):'')||cookie('cd_locale')||navigator.language);
 }
 
 export default function StoryEdition({ children, episodeId }: { children: ReactNode; episodeId?: string }) {

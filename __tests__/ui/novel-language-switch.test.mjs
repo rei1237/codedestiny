@@ -21,13 +21,17 @@ function setup({ search = '', cookie = '', saved = '', language = 'ko-KR' } = {}
   vm.runInNewContext(controller, root);
   return {root, select, status, writes, requests};
 }
-test('country default selects English for other supported service languages', async () => {
-  const {root,requests}=setup({cookie:'cd_geo_locale=fr'});
+test('saved locale selects English for other supported service languages', async () => {
+  const {root,requests}=setup({cookie:'cd_locale=fr'});
   const result=await root.selectNovelEdition({sourceHash:'current',availableLocales:['ko','en']});
   assert.equal(result.locale,'en');assert.deepEqual(requests,['/data/novel/en/manifest.json']);
 });
+test('a stale geo locale cookie alone never picks the novel language', () => {
+  const {root}=setup({cookie:'cd_geo_locale=fr'});
+  assert.equal(root.requestedNovelLocale(),'ko');
+});
 test('novel preference wins and selection changes neither consultation locale nor bookmark', async () => {
-  const {root,select,writes}=setup({saved:'ja',cookie:'cd_geo_locale=fr'});
+  const {root,select,writes}=setup({saved:'ja',cookie:'cd_locale=fr'});
   assert.equal(root.requestedNovelLocale(),'ja');
   await root.selectNovelEdition({sourceHash:'current',availableLocales:['ko','en']});
   select.value='en';select.onchange();
@@ -41,8 +45,8 @@ test('unpublished translations cannot be selected and their absence is disclosed
   assert.match(status.textContent,/being prepared/);assert.equal(requests.length,0);
 });
 
-test('late country default refreshes title-screen data without interrupting active reading', async()=>{
-  const {root}=setup({cookie:'cd_geo_locale=fr'});
+test('late saved locale refreshes title-screen data without interrupting active reading', async()=>{
+  const {root}=setup({cookie:'cd_locale=fr'});
   root.S={screen:'main'};
   root.NOVEL_ROOT_MANIFEST={availableLocales:['ko','en']};
   root.NOVEL_EPISODE_LOADS={old:Promise.resolve()};

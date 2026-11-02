@@ -278,14 +278,6 @@ export function detectLocale(): RuntimeLocale {
     }
   } catch {}
   try {
-    const cookies = String(document.cookie || "").split(";").map(part => part.trim());
-    let storedExplicit = false;
-    try { storedExplicit = window.localStorage.getItem("cd_lang_explicit") === "1"; } catch {}
-    const explicit = cookies.includes("cd_locale_explicit=1") || storedExplicit;
-    const geo = cookies.find(part => part.startsWith("cd_geo_locale="));
-    if (!explicit && geo) return normalizeLocale(decodeURIComponent(geo.slice("cd_geo_locale=".length)));
-  } catch {}
-  try {
     const stored = window.localStorage.getItem("cd_lang");
     if (stored) return normalizeLocale(stored);
   } catch {}

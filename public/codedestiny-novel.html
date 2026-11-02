@@ -2293,7 +2293,7 @@ function requestedNovelLocale(){
   var saved='';try{saved=localStorage.getItem('cd:novel:language')||'';}catch(_){}
   var cookies=document.cookie.split(';').map(function(value){return value.trim();});
   function cookie(name){var item=cookies.find(function(value){return value.indexOf(name+'=')===0;});return item?decodeURIComponent(item.slice(name.length+1)):'';}
-  var site=window.__cdAppLanguage||new URLSearchParams(location.search).get('lang')||(cookie('cd_locale_explicit')==='1'?cookie('cd_locale'):'')||cookie('cd_geo_locale')||cookie('cd_locale');
+  var site=window.__cdAppLanguage||new URLSearchParams(location.search).get('lang')||(cookie('cd_locale_explicit')==='1'?cookie('cd_locale'):'')||cookie('cd_locale');
   var tag=(new URLSearchParams(location.search).get('novelLang')||saved||site||navigator.language||'en').toLowerCase().replace(/_/g,'-');
   if(/^ko(?:-|$)/.test(tag))return 'ko';if(/^ja(?:-|$)/.test(tag))return 'ja';
   if(/^zh(?:-|$)/.test(tag))return /(?:^|-)(?:hant|tw|hk|mo)(?:-|$)/.test(tag)?'zh-TW':'zh-CN';
