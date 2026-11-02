@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-11-02
-next: "묶음 ① 운영 승격 런 https://github.com/rei1237/codedestiny/actions/runs/41335766465 결과를 /version.json(gitSha 6d514ecaf)으로 한 번 확인하고, superpowers:writing-plans로 묶음 ② A1 엣지 계획을 쓴다"
+next: "superpowers:writing-plans로 묶음 ② A1 엣지 계획을 쓴다(묶음 ① 운영 반영은 2026-11-02 확인 끝, 작은 후속은 docs/handoff/2026-11-02-seo-post-promotion-followups.md)"
 ---
 
 # SEO 아키텍처 재구축
@@ -13,7 +13,7 @@ next: "묶음 ① 운영 승격 런 https://github.com/rei1237/codedestiny/actio
 
 ## 첫 행동
 
-1. 이 워크트리에서 이어 간다: `D:\Development\codedestiny-worktrees\seo-architecture-rebuild-20261101-135310`(브랜치 `wt/seo-architecture-rebuild-20261101-135310`). 새 워크트리를 만들지 않는다. 두 문서는 아직 origin/main에 없으니 이 경로에서 읽는다.
+1. 이 워크트리에서 이어 간다: `D:\Development\codedestiny-worktrees\seo-architecture-rebuild-20261101-135310`(브랜치 `wt/seo-architecture-rebuild-20261101-135310`). 새 워크트리를 만들지 않는다. 두 문서는 origin/main에도 있다.
 2. `git fetch origin` → `git status` → `git log --oneline -3`. origin/main이 앞서 있으면 `git rebase origin/main`.
 3. 설계 문서를 끝까지 읽고 superpowers:writing-plans로 묶음 ① 계획을 쓴다. 브레인스토밍과 설계 승인은 끝났다. 설계 문서의 '확정된 결정'·'설계 판단'은 다시 묻지 않고, 운영 승격만 묶음마다 승인받는다.
 4. `D:\Development\seo-data\code-destiny\2026-11-01\`(Codex 수집본, `manifest.csv`·`README.md`)이 생겼는지 본다. 생겼으면 설계 문서 근거 부록 6(원인 판정)과 묶음 ④ 매핑에 반영한다.
@@ -26,7 +26,7 @@ next: "묶음 ① 운영 승격 런 https://github.com/rei1237/codedestiny/actio
   - rebase 충돌은 생성 파일(`config/sitemap-lastmod.json`, sitemap XML)뿐이었고 커밋마다 `npm run sitemap:generate`로 다시 만들었다. 운세 페이지 lastmod가 11-02로 하루 넘어간 것은 일일 갱신분이다.
 - verify-dist(로컬 build:cf): 실패 규칙 전부 0. og:url 8 → 0(실패로 승격). 경고 hreflang 185(80·1·100·4)와 엣지 3/1/4는 묶음 ②·③ 몫이다.
 - 증거와 승인 패킷: `D:\Development\seo-audit\code-destiny-20261101\bundle-1\`(`approval-packet.md`, verify-dist 전후 JSON, `regression\` 로그, `sdd-ledger.md` 원장).
-- 운영은 `98643c274`(11/01 13:35Z 빌드)에 머물러 있다. main에는 묶음 ① 말고도 다른 세션 커밋이 운영 배포를 기다린다. 배포 승인 패킷에는 `git log 98643c274..origin/main`을 새로 뽑아 넣는다.
+- 운영은 `6d514ecaf`(11/01 18:27Z 빌드)다. 다음 승격 승인 패킷에는 `git log 6d514ecaf..origin/main`을 새로 뽑아 넣는다.
 - 미룬 사소한 항목(약 45건)은 별도 세션으로 넘겼다: `docs/handoff/2026-11-02-seo-bundle-1-followups.md`. 이 흐름은 묶음 ②부터 이어 간다. `verify-dist.mjs`를 같이 고치므로 자주 rebase한다.
 - Codex 수집본 없음. 11/07 홈 title D+30 관찰 대기.
 
@@ -44,10 +44,10 @@ next: "묶음 ① 운영 승격 런 https://github.com/rei1237/codedestiny/actio
 
 ## 단계
 
-- [ ] 묶음 ① — verify-dist 실패 0, 경고가 감사 수치를 재현(og:url 8쪽, hreflang 100/80/8), 운영 `/version.json` SHA 일치
+- [x] 묶음 ① — verify-dist 실패 0, 경고가 감사 수치를 재현(og:url 8쪽, hreflang 100/80/8), 운영 `/version.json` SHA 일치
   - [x] 로컬: 구현·검토·회귀 통과, verify-dist 실패 0, 승인 패킷 작성
   - [x] main push (2026-11-02, HEAD는 이 문서 커밋)
-  - [x] 운영 배포 승인(2026-11-02, 후속 정리 그룹 D 포함) → 승격 런 https://github.com/rei1237/codedestiny/actions/runs/41335766465 (main `6d514ecaf`). `/version.json` SHA 일치는 다음 세션이 한 번 확인
+  - [x] 운영 배포 승인(2026-11-02, 후속 정리 그룹 D 포함) → 승격 런 https://github.com/rei1237/codedestiny/actions/runs/41335766465 (main `6d514ecaf`). `/version.json` gitSha `6d514ecaf` 일치 확인(2026-11-02), 작은 후속은 `docs/handoff/2026-11-02-seo-post-promotion-followups.md`
 - [ ] 묶음 ② — vm 하네스 5개국×3UA 불변, 절대 Location 301 한 번, 결제 회귀 통과
 - [ ] 묶음 ③ — 전 URL 색인 상태 diff 0, HTML과 사이트맵의 hreflang 집합 일치
 - [ ] Codex 수집본 반영 → 묶음 ④ → 묶음 ⑤ → F
