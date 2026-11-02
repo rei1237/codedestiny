@@ -102,13 +102,15 @@ for (const entry of [
   if (action) assert.ok(sourceEntry.includes(`action: "${action}"`), `서비스 레지스트리 직접 실행 액션이 없습니다: ${id} -> ${action}`);
 }
 
-// 전체 검색은 검색 → 지역 탐색 → 대표 상담 복귀 링크 → 기존 필터 순서다.
+// 검색·필터를 먼저 조작하고 결과를 바로 본다. 공간 탐색은 접어 두고 대표 상담 복귀 링크는 결과 뒤에 보존한다.
 const afRoot = template.indexOf('id="cdAllFortunesRoot"');
 const afSearch = template.indexOf('id="cdAllFortunesSearch"');
 const afExplore = template.indexOf('data-cd-explore');
 const afLink = template.indexOf('data-cd-af-signature');
 const afFilters = template.indexOf('id="cdAllFortunesMethodTitle"');
-assert.ok(afRoot > 0 && afSearch > afRoot && afExplore > afSearch && afLink > afExplore && afFilters > afLink, 'search and exploration precede the preserved signature link and filters');
+const afResults = template.indexOf('id="cdAllFortunesResults"');
+assert.ok(afRoot > 0 && afSearch > afRoot && afFilters > afSearch && afExplore > afFilters && afResults > afExplore && afLink > afResults, 'search and filters precede optional exploration and results; the home link stays after results');
+assert.match(template, /<details class="cd-af__explore" data-cd-explore aria-labelledby="cdAllFortunesExploreTitle">/, 'space exploration is collapsed by default');
 assert.match(template.slice(afRoot, afSearch), /^id="cdAllFortunesRoot">\s*<div class="cd-af__search" role="search">\s*<input type="search"\s*$/, 'search is the first content element');
 assert.ok(template.includes('href="/ggulggul/#cdSignatureConsult" data-cd-af-signature'), 'signature link points at the home deck');
 
