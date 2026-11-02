@@ -1,0 +1,10 @@
+{
+  "mode": "normal",
+  "message": "Next exited: 1",
+  "errors": [],
+  "blocked": [],
+  "httpFailures": [],
+  "api": [],
+  "serverTail": "   Using tsconfig file: .tmp/engine-audit-next/tsconfig.json\nnode:internal/buffer:1104\r\n  return new FastBuffer(createUnsafeArrayBuffer(size));\r\n                        ^\r\n\r\nRangeError: Failed to allocate memory\r\n    at createUnsafeBuffer (node:internal/buffer:1104:25)\r\n    at allocate (node:buffer:491:10)\r\n    at Buffer.allocUnsafe (node:buffer:454:10)\r\n    at Gunzip.ZlibBase (node:zlib:264:28)\r\n    at Gunzip.Zlib (node:zlib:683:12)\r\n    at new Gunzip (node:zlib:753:8)\r\n    at value (node:zlib:962:14)\r\n    at D:\\Development\\code-destiny\\node_modules\\next\\dist\\compiled\\webpack\\bundle5.js:29:1261548\r\n    at callback (D:\\Development\\code-destiny\\node_modules\\next\\dist\\compiled\\webpack\\bundle5.js:1:277846)\r\n    at FSReqCallback.oncomplete (node:fs:197:5) {\r\n  code: 'ERR_MEMORY_ALLOCATION_FAILED'\r\n}\r\n\r\nNode.js v24.18.0\r\n",
+  "pages": []
+}

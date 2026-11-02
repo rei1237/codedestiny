@@ -14,9 +14,11 @@ const folder = 'tools/oracle/browser-delivery';
 const out = path.resolve(root, '.tmp/engine-audit-browser-delivery');
 // Currency glyphs in lucide-react are unrelated to Swiss Ephemeris.
 const forbidden = /swiss(?!-franc)|sweph|swisseph|jyotish/i;
-export async function startBrowserFixture() {
+export async function startBrowserFixture({ compileUi = true, extraMockApi } = {}) {
+  let compiled;
+  if (compileUi) {
   fs.mkdirSync(out, { recursive: true });
-  const compiled = await build({ entryPoints: [`${folder}/browser.tsx`], outfile: `${out}/app.js`, bundle: true,
+  compiled = await build({ entryPoints: [`${folder}/browser.tsx`], outfile: `${out}/app.js`, bundle: true,
     jsx: 'automatic', loader: { '.module.css': 'local-css' }, metafile: true, write: true,
     alias: { '@': root }, define: { 'process.env.NODE_ENV': '"development"', 'process.env': '{}' },
     plugins: [{ name: 'swiss-block-and-framework-host', setup(builder) {
@@ -34,6 +36,7 @@ export async function startBrowserFixture() {
   fs.writeFileSync(`${out}/input.css`, '@tailwind base;\n@tailwind components;\n@tailwind utilities;');
   const css = spawnSync(process.execPath, [require.resolve('tailwindcss/lib/cli.js'), '-i', `${out}/input.css`, '-o', `${out}/tailwind.css`, '--content', './app/ziwei-ai/**/*.{tsx,ts},./app/components/**/*.{tsx,ts},./components/fortune/**/*.{tsx,ts}'], { windowsHide: true, encoding: 'utf8', maxBuffer: 4 * 1024 * 1024 });
   assert.equal(css.status, 0, css.stderr);
+  }
   const backend = createBackend();
   const requests = [], errors = [], pgReturns = [];
   const bodyText = '합성 전달 검증 본문입니다. 준비한 명반과 기준 연도를 유지하며, 재열람 때 이 문장을 그대로 보여 줍니다.';
@@ -68,6 +71,10 @@ export async function startBrowserFixture() {
         const result = await backend.request(url.pathname + url.search, body, req.method);
         return json(result.data, result.status);
       }
+      if (extraMockApi && url.pathname.startsWith('/api/')) {
+        const extra = await extraMockApi({ url, body, method: req.method, backend });
+        if (extra) return json(extra.data, extra.status || 200);
+      }
       if (url.pathname === '/api/auth/me') return json({ ok: true, user: { id: backend.userId, _id: backend.userId, nickname: '합성 검증' } });
       if (url.pathname === '/api/me/access-state') return json({ ok: true, userId: backend.userId, unlocks: [], subscription: null });
       if (url.pathname === '/api/billing/features') return json({ ok: true, features: { 'ziwei-ai-consultation': { coinPrice: 300, amountKRW: 30000 } } });
@@ -91,7 +98,7 @@ export async function startBrowserFixture() {
     } catch (error) { errors.push(error.stack); res.writeHead(500, { 'Content-Type': 'application/json' }).end(JSON.stringify({ ok: false, reason: 'MOCK_FIXTURE_FAILURE' })); }
   });
   await new Promise((resolve, reject) => { http.once('error', reject); http.listen(0, '127.0.0.1', resolve); });
-  return { http, backend, requests, errors, pgReturns, bodyText, bundleInputs: Object.keys(compiled.metafile.inputs), out, origin: `http://127.0.0.1:${http.address().port}` };
+  return { http, backend, requests, errors, pgReturns, bodyText, bundleInputs: Object.keys(compiled?.metafile.inputs || {}), out, origin: `http://127.0.0.1:${http.address().port}` };
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
   const runtime = await startBrowserFixture(); console.log(JSON.stringify({ origin: runtime.origin, inputs: runtime.bundleInputs.length }));

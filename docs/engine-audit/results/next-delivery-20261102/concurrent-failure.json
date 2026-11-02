@@ -1,0 +1,174 @@
+{
+  "mode": "concurrent",
+  "message": "expect(locator).toBeVisible() failed\n\nLocator: getByText('합성 전달 검증 본문입니다. 준비한 명반과 기준 연도를 유지하며, 재열람 때 이 문장을 그대로 보여 줍니다.', { exact: true }).first()\nExpected: visible\nTimeout: 45000ms\nError: element(s) not found\n\n",
+  "errors": [],
+  "blocked": [
+    "https://assets.code-destiny.com/fonts/serif-latin/09941fb1c169.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/22b54ce7f9da.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/0fa5719f7323.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/4a7f3dcb2cc3.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/972d74532ce4.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/5aaab50eeb5d.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/5c6665edab37.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/68db3c4109cc.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/37f2e5c7951e.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/24f235a5910b.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/623ee24b811e.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/84a60324a3b8.woff2",
+    "https://assets.code-destiny.com/Mulmaru.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/d9b6283e0f2f.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/9bda8d102587.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/3a02d5b8cf74.woff2"
+  ],
+  "httpFailures": [
+    {
+      "path": "/api/ziwei-ai/prepare/",
+      "status": 402
+    }
+  ],
+  "api": [
+    {
+      "method": "GET",
+      "path": "/api/me/access-state"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/snu/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/profile"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ziwei-ai/result"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ziwei-ai/result"
+    },
+    {
+      "method": "POST",
+      "path": "/api/ziwei-ai/prepare"
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/me"
+    },
+    {
+      "method": "POST",
+      "path": "/api/ziwei-ai/basis"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ziwei-ai/result"
+    },
+    {
+      "method": "GET",
+      "path": "/api/billing/unlock-status"
+    },
+    {
+      "method": "POST",
+      "path": "/__audit/pg"
+    },
+    {
+      "method": "GET",
+      "path": "/api/billing/unlock-status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/snu/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/access-state"
+    },
+    {
+      "method": "GET",
+      "path": "/api/profile"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ziwei-ai/result"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ziwei-ai/result"
+    },
+    {
+      "method": "GET",
+      "path": "/api/billing/unlock-status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/snu/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/profile"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ziwei-ai/result"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ziwei-ai/result"
+    },
+    {
+      "method": "POST",
+      "path": "/api/ziwei-ai/generate"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/access-state"
+    },
+    {
+      "method": "GET",
+      "path": "/api/reviews/products"
+    },
+    {
+      "method": "GET",
+      "path": "/api/recommendations"
+    }
+  ],
+  "serverTail": "   Using tsconfig file: .tmp/engine-audit-next/tsconfig.json\n   \nYour tsconfig.json extends another configuration, which means we cannot add the Next.js TypeScript plugin automatically. To improve your development experience, we recommend adding the Next.js plugin (`\"plugins\": [{ \"name\": \"next\" }]`) manually to your TypeScript configuration. Learn more: https://nextjs.org/docs/app/api-reference/config/typescript#the-typescript-plugin\n\n\n   We detected TypeScript in your project and reconfigured your tsconfig.json file for you. Strict-mode is set to false by default.\n   The following suggested values were added to your tsconfig.json. These values can be changed to fit your project's needs:\n\n   \t- include was updated to add '.tmp/engine-audit-next/.next/types/**/*.ts'\n\n ○ Compiling /ziwei-ai ...\nBrowserslist: browsers data (caniuse-lite) is 8 months old. Please run:\n  npx update-browserslist-db@latest\n  Why you should do it regularly: https://github.com/browserslist/update-db#readme\n ✓ Compiled /ziwei-ai in 19.7s (2444 modules)\n GET /ziwei-ai/ 200 in 22886ms\n ⚠ Cross origin request detected from 127.0.0.1 to /_next/* resource. In a future major version of Next.js, you will need to explicitly configure \"allowedDevOrigins\" in next.config to allow this.\nRead more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins\n GET /ziwei-ai/?auditReturn=1 200 in 1528ms\n GET /ziwei-ai/?auditReturn=1 200 in 1384ms\n",
+  "pages": [
+    {
+      "url": "/ziwei-ai/?auditReturn=1&lang=ko&cid=zwai_mock-uuid-2&attemptId=pa_mvysrfl0_dkwuoa0y",
+      "state": {
+        "documentId": "e2b2618e-06d6-4145-a4dc-09206c52b5b9",
+        "gateCalls": 0,
+        "resumed": true,
+        "resumeStartedAt": 7248.600000008941,
+        "resumeFinishedAt": 15196.29999999702
+      },
+      "visibility": "visible",
+      "result": true,
+      "text": "방문 분석 쿠키를 선택해 주세요\n\n로그인·결제에 필요한 필수 쿠키를 사용해요. 동의하면 방문과 구매 흐름을 분석하는 쿠키도 사용해요. 필수만 선택해도 서비스를 이용할 수 있어요.\n\n필수만 사용\n분석 쿠키 동의\n개인정보 처리방침\n뒤로\n홈\n紫微斗數\n\n무성 · 막힌 별을 녹으로 바꾸는 판결\n\n자미두수 전문가 상담\n\n명궁과 12궁의 별 흐름을 따라 지금 가장 궁금한 질문을 차분히 풀어드립니다.\n\n무성\n\n명반을 펼치겠습니다. 태어난 시각이 정확할수록 판결도 정확합니다.\n\n01\n막힌 별부터 판결\n\n명반에서 화기(化忌)가 걸린 궁을 먼저 짚고, 그 자리를 화록(化祿)으로 돌릴 구체적인 행동을 처방합니다.\n\n02\n12궁의 무대\n\n일·돈·관계처럼 지금 질문이 놓인 삶의 영역을 나눠 읽습니다.\n\n03\n별의 전환점\n\n현재 흐름에서 서두를 때와 정리할 때를 현실적인 언어로 짚습니다.\n\n별궁을 열기 위한 정보\n저장된 프로필\n\n저장된 프로필이 없어요. 아래에 직접 입력해 주세요.\n\n이름 또는 닉네임\n성별\n선택\n여성\n남성\n비공개\n생년월일\n출생시간\n양력/음력\n양력\n음력\n출생시간 모름\n상담 주제\n전체 명반 해석\n타고난 성향\n인생 방향\n직업/사업운\n학업/시험운\n재물운\n부동산/전택운\n연애/결혼운\n인간관계\n부모/가족운\n자녀/출산운\n건강/멘탈\n이동/이주운\n송사/분쟁\n현재 고민 상담\n별궁에 묻고 싶은 질문\n상담 이용 가격 30,000원\n별궁 전문가 상담 받기\n완성 상담\n별궁 기록이 완성되었습니다\nPDF 다운로드\n紫微斗數\n자미두수 별궁 상담\n\n합성 Next 검증 · 2023-02-04 · 전체 명반 해석\n\n무성\n\n판결합니다. 막힌 자리와 풀리는 자리를 함께 적었습니다.\n\n명궁\n명궁\n신궁\n명궁\n핵심 별\n자미 · 칠살 · 천기\n상담 키워드\n전체 명반 해석 · 명궁의 방향 · 탐랑 화기 조율\n이 상담이 계산한 값\n\n전문가가 지어낸 값이 아니라, 입력하신 정보로 계산된 결과입니다.\n\n명궁과 신궁\n\n명반을 읽는 첫 자리입니다. 명궁이 타고난 결, 신궁이 살면서 매달리게 되는 자리입니다.\n\n명궁\n신궁 · 무주성(차성안궁)\n신궁\n명궁\n오행국\n목삼국 · 첫 대한 3세부터\n사화가 앉은 자리\n\n네 가지 변화가 어느 궁에 놓였는지가 힘이 실리는 방향과 막히는 지점을 정합니다.\n\n화록\n파군 → 부모궁\n화권\n거문 → 천이궁\n화과\n태음 → 관록궁\n화기\n탐랑 → 노복궁\n12궁 강약\n\n괄호 안이 별의 강약입니다(묘·왕·득·리·평·불·함 순). 길흉이 아니라 그 별의 성질이 얼마나 또렷하게 드러나는가입니다.\n\n자녀궁(사)\n자미(왕), 칠살(평), 천월, 천마, 지공, 지겁\n재백궁(진)\n천기(왕), 천량(묘), 문창(득), 좌보, 영성(함)\n질액궁(묘)\n천상(함), 천괴, 화성(리)\n천이궁(인)\n태양(왕), 거문(묘)\n노복궁(축)\n무곡(묘), 탐랑(묘), 천요, 경양(묘)\n관록궁(자)\n천동(왕), 태음(묘), 녹존, 함지\n전택궁(해)\n천부(득), 타라(함)\n복덕궁(술)\n문곡(함), 우필\n부모궁(유)\n염정(평), 파군(함)\n지금의 흐름\n\n타고난 배치 위에 현재 어떤 조명이 들어와 있는지를 봅니다.\n\n대한\n명궁 · 3-12세 · 역행 (세는나이 4세 기준)\n올해 세운\n2026년 오 · 부부궁\n삼방사정\n명궁 ↔ 관록궁 · 재백궁 · 천이궁\n현재 대운\n명궁 · 3-12\n\n지금의 흐름을 명반 기준으로 살핍니다.\n\n대한(大限) 타임라인\n목삼국 · 첫 대한 3세 · ▼ 지금\n▼\n3-12\n명궁\n13-22\n형제궁\n23-32\n부부궁\n33-42\n자녀궁\n43-52\n재백궁\n53-62\n질액궁\n63-72\n천이궁\n73-82\n노복궁\n83-92\n관록궁\n93-102\n전택궁\n\n3-12세 · 명궁 대한 (역행) — 무주성 궁 · 지금 이 대한을 지나는 중입니다\n\n기본 명반"
+    },
+    {
+      "url": "/ziwei-ai/?auditReturn=1&attemptId=pa_mvysrfl0_dkwuoa0y",
+      "state": {
+        "documentId": "10be027b-b919-4457-a1fb-956e0d6751f8",
+        "gateCalls": 0,
+        "resumed": null
+      },
+      "visibility": "visible",
+      "result": true,
+      "text": "방문 분석 쿠키를 선택해 주세요\n\n로그인·결제에 필요한 필수 쿠키를 사용해요. 동의하면 방문과 구매 흐름을 분석하는 쿠키도 사용해요. 필수만 선택해도 서비스를 이용할 수 있어요.\n\n필수만 사용\n분석 쿠키 동의\n개인정보 처리방침\n뒤로\n홈\n紫微斗數\n\n무성 · 막힌 별을 녹으로 바꾸는 판결\n\n자미두수 전문가 상담\n\n명궁과 12궁의 별 흐름을 따라 지금 가장 궁금한 질문을 차분히 풀어드립니다.\n\n무성\n\n명반을 펼치겠습니다. 태어난 시각이 정확할수록 판결도 정확합니다.\n\n이 상담을 글과 그림으로 자세히 보기\n01\n막힌 별부터 판결\n\n명반에서 화기(化忌)가 걸린 궁을 먼저 짚고, 그 자리를 화록(化祿)으로 돌릴 구체적인 행동을 처방합니다.\n\n02\n12궁의 무대\n\n일·돈·관계처럼 지금 질문이 놓인 삶의 영역을 나눠 읽습니다.\n\n03\n별의 전환점\n\n현재 흐름에서 서두를 때와 정리할 때를 현실적인 언어로 짚습니다.\n\n별궁을 열기 위한 정보\n저장된 프로필\n\n저장된 프로필이 없어요. 아래에 직접 입력해 주세요.\n\n이름 또는 닉네임\n성별\n선택\n여성\n남성\n비공개\n생년월일\n출생시간\n양력/음력\n양력\n음력\n출생시간 모름\n상담 주제\n전체 명반 해석\n타고난 성향\n인생 방향\n직업/사업운\n학업/시험운\n재물운\n부동산/전택운\n연애/결혼운\n인간관계\n부모/가족운\n자녀/출산운\n건강/멘탈\n이동/이주운\n송사/분쟁\n현재 고민 상담\n별궁에 묻고 싶은 질문\n상담 이용 가격 30,000원\n별궁 전문가 상담 받기\n명궁\n★\n부모궁\n·\n복덕궁\n·\n전택궁\n✦\n형제궁\n·\n관록궁\n·\n부부궁\n✦\n노복궁\n·\n자녀궁\n·\n천이궁\n✦\n재백궁\n·\n질액궁\n·\n별궁을 펼칠 준비가 되어 있습니다\n상담이 시작되면 이 자리에 당신의 12궁 명반과 주성이 놓입니다.\n무성\n\n아직 펼칠 명반이 없습니다. 생년월일과 시각을 먼저 적어 주십시오.\n\n무성\n\n막힌 별을 녹으로 바꾸는 판결 · 자미두수\n\n명반에서 막힌 자리(화기·化忌)를 먼저 짚고, 그 자리를 풀어 갈 길(화록·化祿)을 처방하는 자미두수 판결자입니다.\n\n짧고 분명한 판결로 시작해, 처방은 오늘 해 볼 수 있는 구체적인 행동으로 이어 드려요. 명궁과 열두 궁, 대운의 근거를 함께 보여 드리고, 미래를 단정하지 않습니다.\n\n서비스의 이야기를 안내하는 캐릭터예요. 상담은 선택을 돕는 해석이며, 미래나 상대의 마음을 확정하지 않아요.\n\n프로필 시트 펼쳐보기\n자미두수 전문가 상담 — 명궁·사화·대운 풀이\n\n자미두수 전문가 상담은 생년월일과 태어난 시간으로 12궁 명반을 세우고, 명궁과 신궁의 별자리 배치, 사화의 흐름, 지금 지나는 대운과 유년의 결을 함께 읽습니다. 직업과 진로는 관록궁, 재물은 재백궁, 인연은 부처궁 — 고민이 머무는 궁을 짚어 상담 문장으로 풀어 드립니다.\n\n명반을 몰라도 괜찮습니다. 입력한 정보로 명반 작성부터 해석까지 이어지며, 화기가 얽힌 자리는 과제로, 화록이 닿는 자리는 열리는 문으로 균형 있게 비춰 드립니다.\n\n자미두수는 명궁을 중심으로 12개 궁이 삶의 각 영역을 나누어 보여주는 체계입니다. 하나의 운명 전체를 뭉뚱그려 말하기보다, 지금 궁금한 주제가 머무는 궁을 짚어 그 자리의 별과 사화를 읽는 방식으로 접근합니다. 사주가 오행이라는 하나의 언어로 기질을 말한다면, 자미두수는 궁위라는 지도 위에서 삶의 영역을 나눠 보여주는 점이 다릅니다.\n\n이런 순간에 특히 도움이 됩니다\n진로나 이직처럼 관록궁의 흐름이 중요한 결정을 앞두고 판단이 필요할 때\n연애나 결혼처럼 부처궁의 흐름이 궁금한 관계의 갈림길에 서 있을 때\n대운이 바뀌는 시점이라 앞으로 10년의 큰 흐름을 미리 가늠하고 싶을 때\n사주로는 이미 상담을 받았지만 다른 체계로도 같은 고민을 겹쳐 확인하고 싶을 때\n상담은 "
+    }
+  ]
+}

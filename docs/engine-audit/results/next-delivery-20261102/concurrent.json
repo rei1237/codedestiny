@@ -1,0 +1,279 @@
+{
+  "mode": "concurrent",
+  "cases": [
+    "two-documents-one-generation-and-usage",
+    "full-next-payment-return-generation",
+    "full-next-reload-and-archive-preserve-paid-original",
+    "full-layout-responsive-no-overflow"
+  ],
+  "browser": "156.0.8078.74",
+  "flags": "OFF",
+  "errors": [],
+  "blocked": [
+    "https://assets.code-destiny.com/fonts/serif-latin/09941fb1c169.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/22b54ce7f9da.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/0fa5719f7323.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/4a7f3dcb2cc3.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/972d74532ce4.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/5aaab50eeb5d.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/5c6665edab37.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/68db3c4109cc.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/37f2e5c7951e.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/24f235a5910b.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/623ee24b811e.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/84a60324a3b8.woff2",
+    "https://assets.code-destiny.com/Mulmaru.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/aabe945482a2.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/d9b6283e0f2f.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/9bda8d102587.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/3a02d5b8cf74.woff2"
+  ],
+  "httpFailures": [
+    {
+      "path": "/api/ziwei-ai/prepare/",
+      "status": 402
+    }
+  ],
+  "requests": [
+    {
+      "method": "GET",
+      "path": "/api/me/access-state"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/snu/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/profile"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ziwei-ai/result"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ziwei-ai/result"
+    },
+    {
+      "method": "POST",
+      "path": "/api/ziwei-ai/prepare"
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/me"
+    },
+    {
+      "method": "POST",
+      "path": "/api/ziwei-ai/basis"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ziwei-ai/result"
+    },
+    {
+      "method": "GET",
+      "path": "/api/billing/unlock-status"
+    },
+    {
+      "method": "POST",
+      "path": "/__audit/pg"
+    },
+    {
+      "method": "GET",
+      "path": "/api/billing/unlock-status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/snu/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/access-state"
+    },
+    {
+      "method": "GET",
+      "path": "/api/billing/unlock-status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/snu/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/access-state"
+    },
+    {
+      "method": "GET",
+      "path": "/api/profile"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ziwei-ai/result"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ziwei-ai/result"
+    },
+    {
+      "method": "POST",
+      "path": "/api/ziwei-ai/generate"
+    },
+    {
+      "method": "GET",
+      "path": "/api/profile"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ziwei-ai/result"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ziwei-ai/result"
+    },
+    {
+      "method": "POST",
+      "path": "/api/ziwei-ai/generate"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ziwei-ai/result"
+    },
+    {
+      "method": "POST",
+      "path": "/api/ziwei-ai/generate"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ziwei-ai/result"
+    },
+    {
+      "method": "POST",
+      "path": "/api/ziwei-ai/generate"
+    },
+    {
+      "method": "GET",
+      "path": "/api/recommendations"
+    },
+    {
+      "method": "GET",
+      "path": "/api/reviews/products"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ziwei-ai/result"
+    },
+    {
+      "method": "GET",
+      "path": "/api/reviews/products"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ziwei-ai/result"
+    },
+    {
+      "method": "GET",
+      "path": "/api/recommendations"
+    },
+    {
+      "method": "GET",
+      "path": "/api/billing/unlock-status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/access-state"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/snu/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/profile"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ziwei-ai/result"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ziwei-ai/result"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ziwei-ai/result"
+    },
+    {
+      "method": "GET",
+      "path": "/api/reviews/products"
+    },
+    {
+      "method": "GET",
+      "path": "/api/recommendations"
+    },
+    {
+      "method": "GET",
+      "path": "/api/billing/unlock-status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/access-state"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/snu/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/profile"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ziwei-ai/result"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ziwei-ai/result"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ziwei-ai/result"
+    },
+    {
+      "method": "GET",
+      "path": "/api/reviews/products"
+    },
+    {
+      "method": "GET",
+      "path": "/api/recommendations"
+    }
+  ],
+  "resultHash": "a2046e2312dc2ee613d501e5c242a0c2e30edf3cabcfd48cca89cdfec29cd6b1",
+  "chartHashes": [
+    "75e405d33737fc6721ee78a6d2de15740591195d2d4a91a5cf3ff2902f3e34e5"
+  ],
+  "compiledModules": 231,
+  "llmCalls": 1,
+  "mockPgApprovals": 1,
+  "usageApplications": 1
+}
