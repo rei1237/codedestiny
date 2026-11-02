@@ -26,3 +26,9 @@ next: 기존 main CI 실패와 문서 신선도 차단 해소 후, 다른 세션
 - https://github.com/rei1237/codedestiny/actions/runs/41391113434
 - 다른 세션의 홈/카카오/i18n 변경을 보존했다. 현재 sitemap*.xml / public/sitemap*.xml / config/sitemap-lastmod.json은 현재 공유 체크아웃에서 생성되어 그 변경들도 반영한다. 해당 생성물은 독립 소스 커밋에 섞지 않고 로컬에 보존한다. 전달 전 확정된 통합 트리에서 sitemap:generate 및 verify:sitemap-drift 재실행과 별도 생성물 커밋이 필요하다.
 - 원격 push와 운영 배포 미실행. 검색 노출/순위 상승은 검증하지 않았다.
+
+## 로컬 복구 지점
+- 소스/그림 커밋: 2b15b4a5805393ba2cfa11ef0e91f4854a3c7a61.
+- 완료 시 확인된 체크아웃은 feat/world-cast-page다. 이 작업에서 새 브랜치/전환을 수행하지 않았다. main 통합으로 보고하지 않는다. 다른 세션의 체크아웃을 임의 전환하거나 병합하지 않았다.
+- 마지막 verify:sitemap-drift는 1040 URL 일치로 통과했다. 마지막 재생성 시 sitemap.xml 쓰기는 UNKNOWN 오류가 있었지만 선행 생성물과 갱신 원장에 대해 읽기 전용 일치 검사가 통과했다. 생성물 최종 커밋은 여전히 보류한다.
+- WebP 26개 포맷/크기 및 dashboard source/public mirror 일치 확인.
