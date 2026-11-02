@@ -34,6 +34,7 @@ status: done
 - `node tools/oracle/gyeokguk/verify-authority.mjs`: 기존 CR-008 OFF 48개 동일, ON 48개 일관성, 명명 사례 26개, 변형 1,144개·잘못된 간지 1,144개 거절, 16요청/1삽입, I/O 시도 0. 독립 학파 정답 검증으로 세지 않음.
 - `node node_modules/typescript/bin/tsc --noEmit`: 통과. 변경 worker 9개 파일 ESLint `--quiet`: 통과. `git diff --check`: 통과.
 - `npm run verify:worker-no-undef`: 797개 파일 통과(기존 데드코드 예외 3건). `npm run verify:ai-prompt-billing-policy`, `npm run verify:no-nested-retry`: 통과.
+- `npm run check:pre-push`: 첫 실행에서 사이트맵 원장 드리프트 검출. `npm run sitemap:generate`로 소스 서명 7개만 동기화(URL/날짜 변경 없음) 후 **재실행 통과**. fsmonitor IPC 경고는 있었으나 각 검사 종료 코드는 0, 저장소 위생 검사 통과.
 - `npm run check:fast -- --plan`: critical. 전체 Node/Jest/worker build에 Swiss 연결 범위가 포함되므로 전체 실행은 보류하고 위 허용 경로만 실행. 이 범위 제한을 전체 CI 통과로 표기하지 않음.
 - 초기 테스트 fixture의 누락된 mock(`clean`, `hasRepeatedReportPassage`)을 수정한 뒤 해당 전체 테스트를 재실행했다. 운영 코드에 검증 우회 조건은 추가하지 않았다.
 
@@ -51,6 +52,9 @@ status: done
 | `worker/lib/fusion-fortune-prompt.js` | 사주 pin을 받은 경우만 구 성향 재판정 대신 후보/보류 전달 |
 | `__tests__/ui/saju-authority-consumers.test.mjs`, `life-book-paid-delivery.behavior.test.js` | 격리 번들, 실제 함수 + mock 저장/결제/LLM 생명주기 회귀 |
 | `docs/engine-audit/22-authority-consumer-rollout.md`, 이 문서 | 연결 범위와 미활성/차단 범위 구분 |
+| `config/sitemap-lastmod.json` | 생성기 기준 소스 서명 7개 동기화, URL·날짜·색인 정책 유지 |
+
+로컬 구현 커밋 `7b4ac41cc12030bb8604af4d0919f7f86d817e21`, 생성 메타데이터 커밋 `fd466db1c`. 검증용 `.tmp/gyeokguk-authority`만 정리했다. 다른 세션의 작업/산출물은 보존한다. 이 격리 브랜치의 로컬 변경이며 이번 작업에서 main 병합·원격 push·배포를 하지 않았다.
 
 ## 남은 적용 조건
 
