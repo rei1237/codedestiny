@@ -165,6 +165,7 @@
 /public/js/core/init.js
 /public/js/core/kasi-calendar-service.js
 /public/js/core/korean-calendar.js
+/public/js/core/naver-conversion-frame.js
 /public/js/core/oracle/crafted-details.mjs
 /public/js/core/paid-editorial-report.mjs
 /public/js/core/paid-narrative-reader.js

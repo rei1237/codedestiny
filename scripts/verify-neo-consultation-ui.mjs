@@ -199,10 +199,14 @@ try {
     await expect(entry.locator('img')).toHaveCount(1);
     await entry.locator('.cdh-neo-letter__art img').waitFor();
     // Resizing <picture> can replace an in-flight image and reject decode().
-    // Wait for the selected source and loaded pixels; broken assets still fail.
+    // Poll decoding and source stability together; broken assets still fail.
     await expect(page.locator('picture img')).toHaveAttribute('srcset', /neo-consultation-320\.webp 320w.*neo-consultation-960\.webp 960w/);
-    await expect.poll(()=>page.evaluate(()=>[...document.images].every(img=>img.complete && img.naturalWidth>0))).toBe(true);
-    await page.evaluate(async()=>{await Promise.all([...document.images].map(img=>img.decode()));});
+    await expect.poll(()=>page.evaluate(async()=>{
+      const images=[...document.images],sources=images.map(img=>img.currentSrc);
+      const decoded=await Promise.allSettled(images.map(img=>img.decode()));
+      return images.length>0 && decoded.every(result=>result.status==='fulfilled')
+        && images.every((img,i)=>img.complete && img.naturalWidth>0 && img.naturalHeight>0 && img.currentSrc===sources[i]);
+    })).toBe(true);
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
     const path=resolve(out,'home-'+width+'.png');await page.screenshot({path,fullPage:true});captures.push(path);
     const details = entry.locator('details');
