@@ -46,7 +46,7 @@ test("the retired daily quota leaves no sell-out path behind", () => {
   assert.match(client, /paidRequestIdRef/);
 });
 
-test("the final cross verdict is rendered as the last part of the result", () => {
+test("the saved final verdict leads interpretation and reference details", () => {
   const resultThread = read(RESULT);
   const prompt = read("worker/lib/fusion-fortune-prompt.js");
   // 여섯 해석이 아니라 그 여섯이 만나 남긴 답 하나가 이 상품이 파는 것이다.
@@ -54,8 +54,10 @@ test("the final cross verdict is rendered as the last part of the result", () =>
   assert.match(prompt, /systemVerdicts/);
   assert.match(resultThread, /result\.finalVerdict/);
   assert.match(resultThread, /copy\.stanceLabels\[item\.stance\]/);
-  // 결론은 마지막에 온다 — 맺음말보다 앞이어야 한다.
+  // 저장된 결론을 먼저 보여 주고 나머지 해석·근거·맺음말은 보존한다.
   assert.ok(resultThread.indexOf("fusion-final-verdict-heading") > 0);
+  assert.ok(resultThread.indexOf("fusion-final-verdict-heading") < resultThread.indexOf("{result.openingMessage &&"));
+  assert.ok(resultThread.indexOf("fusion-final-verdict-heading") < resultThread.indexOf("<ExpertEvidence"));
   assert.ok(resultThread.indexOf("fusion-final-verdict-heading") < resultThread.indexOf("fusion-closing-message"));
 });
 

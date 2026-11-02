@@ -57,3 +57,5 @@ node scripts/verify-paid-editorial-report.mjs docs/engine-audit/results/next-ena
 ```
 
 `--customer-view`는 합성 상담 4개 섹션으로 결론 우선·근거 접힘·원문 재열람을 검사한다. ON normal은 실제 PDF 다운로드도 검사한다. `--debug-pdf`는 진단용 예외 정지를 켜므로 정상 검증에 쓰지 않는다. `verify-references.mjs`는 6개 domain의 실제 공유 컴포넌트와 PDF를 검사하되 Next 링크/이미지만 DOM shim이다. 모든 서비스 계산/결제 E2E를 뜻하지 않으며 Swiss 그래프는 허용하지 않는다. 순수 UI fixture의 외부 API는 501이고 실제 연동 폴백이 없다.
+
+실제 다른 서비스 결과 URL 검증은 `node tools/oracle/next-delivery/verify-service-results.mjs`로 실행한다. 베다·서양점성술·신년·숙요·인생의 책·연애 비책·운명의 업·융합 및 영냥이 6종의 **완료된 합성 저장 응답**을 로컬 mock API로 읽는다. 계산·생성·실결제 경로를 실행하지 않는다. `AUDIT_SERVICES`에 `sukuyo,karma`처럼 키를 지정하면 해당 사례만 재검증한다. 390/960px, 키보드 접힘·펼침, 원문과 재열람 응답 해시, 결제 창 미호출을 검사한다. `service-results-20261102/*-report.json`에 실행별 증거를 기록하며, 전체 설명과 한계는 `docs/engine-audit/19-service-results-browser-report.md`에 있다.

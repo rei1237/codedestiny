@@ -1503,11 +1503,12 @@ export default function NewYearAiConsultationPage() {
   const [isDownloading, setIsDownloading] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
   const startLockRef = useRef(false);
+  const resultLoadScopeRef = useRef<(() => boolean) | null>(null);
   const idempotencyKeyRef = useRef(createIdempotencyKey());
   const pendingGenerationRef = useRef<{ payload: Record<string, unknown>; key: string; access: Record<string, unknown> } | null>(null);
   const [reloadEpoch, setReloadEpoch] = useState(0);
   const captureDeliveryScope = usePaidDeliveryScope(() => {
-    pendingGenerationRef.current = null; startLockRef.current = false;
+    pendingGenerationRef.current = null; startLockRef.current = false; resultLoadScopeRef.current = null;
     idempotencyKeyRef.current = createIdempotencyKey();
     setMessages([]); setServerSections([]); setSajuProfile(null); setMonthlyFlow([]); setTargetYearInfo(null); setRecentSessions([]);
     setStatus("idle"); setError(""); setNotice(""); setReloadEpoch(value => value + 1);
@@ -1595,8 +1596,11 @@ export default function NewYearAiConsultationPage() {
   }, [applyResult, captureDeliveryScope]);
 
   const loadSession = useCallback(async (sessionId: string) => {
-    if (startLockRef.current) return false;
+    // A discarded mount must not keep a read lock alive on the next mount.
+    // Active generation and reads in the current owner scope remain exclusive.
+    if (startLockRef.current && (!resultLoadScopeRef.current || resultLoadScopeRef.current())) return false;
     const isCurrent = captureDeliveryScope();
+    resultLoadScopeRef.current = isCurrent;
     startLockRef.current = true;
     try {
       const response = await authFetch(`/api/new-year-ai/result?sessionId=${encodeURIComponent(sessionId)}`);
@@ -1610,7 +1614,12 @@ export default function NewYearAiConsultationPage() {
       if (!response.ok) setError(result.message || SERVER_ERROR_MESSAGE);
     } catch (caught) {
       if (isCurrent()) { setError(friendlyErrorMessage(caught, SERVER_ERROR_MESSAGE)); setStatus("error"); }
-    } finally { if (isCurrent()) startLockRef.current = false; }
+    } finally {
+      if (resultLoadScopeRef.current === isCurrent) {
+        resultLoadScopeRef.current = null;
+        startLockRef.current = false;
+      }
+    }
     return false;
   }, [applyResult, captureDeliveryScope, startConsultation]);
 
