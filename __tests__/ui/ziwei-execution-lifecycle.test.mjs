@@ -187,10 +187,14 @@ test('lookup/input/ownership/preflight/storage failures do not become another ne
   s.docs[0].userId = 'owner'; assert.deepEqual(s.docs, original); assert.equal(s.calculations, 0); assert.equal(s.usage, 0);
 });
 
-test('payment/access/read helpers and immutable engine contracts are not edited; CR-006 permits prepare/basis orchestration', () => {
-  for (const name of ['resolveStartAccess', 'handleResult', 'applyUsageOnce', 'createOrReusePaymentPayload', 'verifyPaymentForStart', 'saveZiweiDelivery']) {
+test('payment/access/read helpers stay pinned; only reviewed prepare-order race recovery changes', () => {
+  for (const name of ['resolveStartAccess', 'handleResult', 'applyUsageOnce', 'verifyPaymentForStart', 'saveZiweiDelivery']) {
     assert.equal(functionText(source, name).replaceAll('\r\n', '\n'), functionText(baseline, name).replaceAll('\r\n', '\n'), name);
   }
+  // 2026-11-02 requested integration fixes: duplicate prepare reads the validated
+  // existing order, without a write retry. Behavior coverage: ziwei-next-enabled-selection.
+  assert.equal(createHash('sha256').update(functionText(source, 'createOrReusePaymentPayload').replaceAll('\r\n', '\n')).digest('hex'),
+    '0bd53292d1b421ce6c0d07d8f72f7904747bdc1514808a33b7a7d7887c4652d4');
   assert.ok(!functionText(source, 'handleStart').includes('calendarAuthorityV2: true'));
 });
 

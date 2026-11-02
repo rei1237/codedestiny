@@ -895,24 +895,21 @@ function buildPaymentPayload({ config, paymentId, pricing, user, userId, idempot
 
 async function createOrReusePaymentPayload({ env, auth, user, pricing, idempotencyKey, inputHash }) {
   const config = getPortOnePublicConfig(env || {});
-
-  // 결제 read만 재시도 — Payment.create(쓰기)는 이중결제 위험으로 래핑하지 않는다.
-  const existing = await withMongoRetry(env, () => Payment.findOne({
-    userId: auth.userId,
-    idempotencyKey,
-    paymentType: "digital_content",
-  }).sort({ createdAt: -1 }).lean());
-
-  if (existing) {
-    if (clean(existing.featureKey) !== FEATURE_KEY || clean(existing?.pricingSnapshot?.inputHash) !== inputHash) {
+  const query = { userId: auth.userId, idempotencyKey, paymentType: "digital_content" };
+  const reuse = (order) => {
+    if (clean(order.featureKey) !== FEATURE_KEY || clean(order?.pricingSnapshot?.inputHash) !== inputHash) {
       return { ok: false, message: "같은 요청 키로 다른 결제 요청을 만들 수 없습니다." };
     }
-    const paymentId = clean(existing.merchantUid || existing.impUid, 160);
+    const paymentId = clean(order.merchantUid || order.impUid, 160);
     return {
       ok: true,
       paymentPayload: buildPaymentPayload({ config, paymentId, pricing, user, userId: auth.userId, idempotencyKey }),
     };
-  }
+  };
+
+  // 결제 read만 재시도 — Payment.create(쓰기)는 이중결제 위험으로 래핑하지 않는다.
+  const existing = await withMongoRetry(env, () => Payment.findOne(query).sort({ createdAt: -1 }).lean());
+  if (existing) return reuse(existing);
 
   if (!config.configured) {
     return {
@@ -922,7 +919,8 @@ async function createOrReusePaymentPayload({ env, auth, user, pricing, idempoten
   }
 
   const paymentId = buildPaymentId(auth.userId);
-  await Payment.create({
+  try {
+    await Payment.create({
     userId: auth.userId,
     merchantUid: paymentId,
     idempotencyKey,
@@ -956,7 +954,14 @@ async function createOrReusePaymentPayload({ env, auth, user, pricing, idempoten
     orderState: "PENDING",
     source: "prepare",
     paymentType: "digital_content",
-  });
+    });
+  } catch (error) {
+    if (error?.code !== 11000) throw error;
+    // Another prepare won the unique request key. Read that order; never retry a write.
+    const winner = await withMongoRetry(env, () => Payment.findOne(query).sort({ createdAt: -1 }).lean());
+    if (!winner) throw error;
+    return reuse(winner);
+  }
 
   return {
     ok: true,
