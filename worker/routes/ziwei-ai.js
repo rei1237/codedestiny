@@ -2476,7 +2476,7 @@ async function handleEnsureAccess(request, env, route = "/api/ziwei-ai/prepare")
     const existing = await ZiweiAiConsultation.findOne({ userId: clean(auth.userId), idempotencyKey }).lean();
     if (existing && (existing.inputHash !== normalized.inputHash || (existing.serviceType && existing.serviceType !== SERVICE_KEY))) return invalidInput(MESSAGES.invalidInput, 409);
     if (existing?.status === "completed") return json({ ...publicConsultation(existing), ...(body.calculationProtocol ? { calculationReady: true } : {}) });
-    await resolveZiweiPreparation({ model: ZiweiCalculationPreparation, userId: clean(auth.userId), requestId: idempotencyKey, inputHash: normalized.inputHash, input: normalized.input, rawBody: body, existing, action: "prepare", year: new Date().getFullYear() });
+    await resolveZiweiPreparation({ model: ZiweiCalculationPreparation, userId: clean(auth.userId), requestId: idempotencyKey, inputHash: normalized.inputHash, input: normalized.input, rawBody: body, existing, action: "prepare", year: new Date().getFullYear(), calendarAuthorityV2: env?.ZIWEI_CALENDAR_AUTHORITY_V2 === 'true' });
     logZiweiAi("Chart Data Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "ok", env }));
   } catch (error) {
     logZiweiAi("Error", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "chart_data_failed", env, error }), "error");
@@ -2614,7 +2614,7 @@ async function handleStart(request, env, route = "/api/ziwei-ai/generate", recov
   let initialChart, preparationId;
   try {
     if (existing?.status !== "delivery_pending") {
-      const selection = await resolveZiweiPreparation({ model: ZiweiCalculationPreparation, userId: clean(auth.userId), requestId: idempotencyKey, inputHash: normalized.inputHash, input: normalized.input, rawBody: body, existing, action: "generate", year: new Date().getFullYear() });
+      const selection = await resolveZiweiPreparation({ model: ZiweiCalculationPreparation, userId: clean(auth.userId), requestId: idempotencyKey, inputHash: normalized.inputHash, input: normalized.input, rawBody: body, existing, action: "generate", year: new Date().getFullYear(), calendarAuthorityV2: env?.ZIWEI_CALENDAR_AUTHORITY_V2 === 'true' });
       initialChart = preparedZiweiChart(selection); preparationId = selection.preparationId;
     }
   } catch (error) {
@@ -2656,7 +2656,7 @@ async function handleStart(request, env, route = "/api/ziwei-ai/generate", recov
     if (doc.status !== "delivery_pending") {
       // A concurrent lease holder's persisted snapshot wins over our preflight candidate.
       const chart = doc.llmMeta?.calculationPreparationId
-        ? preparedZiweiChart(await resolveZiweiPreparation({ model: ZiweiCalculationPreparation, userId: clean(auth.userId), requestId: idempotencyKey, inputHash: normalized.inputHash, input: normalized.input, rawBody: body, existing: doc, action: "generate", year: new Date().getFullYear() }))
+        ? preparedZiweiChart(await resolveZiweiPreparation({ model: ZiweiCalculationPreparation, userId: clean(auth.userId), requestId: idempotencyKey, inputHash: normalized.inputHash, input: normalized.input, rawBody: body, existing: doc, action: "generate", year: new Date().getFullYear(), calendarAuthorityV2: env?.ZIWEI_CALENDAR_AUTHORITY_V2 === 'true' }))
         : readZiweiExecutionSnapshot(doc) || initialChart;
       const resumeBody = { ...body, idempotencyKey, accessType: access.accessType }; delete resumeBody.accessToken;
       doc = await saveZiweiDelivery(locked, { llmMeta: { ...doc.llmMeta, chartSnapshot: chart, resumeBody: doc.llmMeta?.resumeBody || resumeBody } }, sessionId);
@@ -2784,7 +2784,7 @@ async function handleBasis(request, env) {
       await connectDb(env);
       const existing = await ZiweiAiConsultation.findOne({ userId: clean(userId), idempotencyKey: requestId }).lean();
       if (existing && (existing.inputHash !== normalized.inputHash || (existing.serviceType && existing.serviceType !== SERVICE_KEY))) return invalidInput(MESSAGES.invalidInput, 409);
-      chart = preparedZiweiChart(await resolveZiweiPreparation({ model: ZiweiCalculationPreparation, userId: clean(userId), requestId, inputHash: normalized.inputHash, input: normalized.input, rawBody: body, existing, action: "basis", year: new Date().getFullYear() }));
+      chart = preparedZiweiChart(await resolveZiweiPreparation({ model: ZiweiCalculationPreparation, userId: clean(userId), requestId, inputHash: normalized.inputHash, input: normalized.input, rawBody: body, existing, action: "basis", year: new Date().getFullYear(), calendarAuthorityV2: env?.ZIWEI_CALENDAR_AUTHORITY_V2 === 'true' }));
     }
     return json(buildZiweiAnalysisBasis(chart, normalized.input.birthInfo));
   } catch (error) {

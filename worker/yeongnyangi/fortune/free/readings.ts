@@ -1,3 +1,4 @@
+import {pinDomainFacts} from '../shared/consumer-facts';
 import {withContinuation} from '../../../../lib/fortune/prompt-continuation';
 import {freeCategories,type FreeReading} from './categories';
 import {domains} from '../index';
@@ -108,7 +109,7 @@ export async function calculateFree(category:string,input:FortuneInput,draft:Rec
   basis=cards.map((x,i)=>({label:['원인','과정','결과'][i],value:`${x.nameKo} · ${x.orientation==='reversed'?'역방향':'정방향'}`}));
   paragraphs=cards.map((x,i)=>`${basis[i].label} 자리에는 ${basis[i].value}가 나왔어. ${x.interpretation}`);
   paragraphs.push('세 카드를 네 질문과 함께 읽어봐. 상대의 속마음이나 미래를 확정하는 답은 아니야. 지금 직접 바꿀 수 있는 행동 하나를 고르는 데 써줘.');kind='symbolic';limitations=['당일 최초 카드 배열을 보관합니다. 다시 읽어도 같은 카드입니다.'];
-  const calculated=context('tarot',{spreadId:'three_card_cause_process_outcome',cards},limitations);
+  const calculated=pinDomainFacts(context('tarot',{spreadId:'three_card_cause_process_outcome',cards},limitations),input,{runtimeEnv:env,asOf:at});
   charts=[chartView(calculated)];prompt=buildDomainPrompt('tarot',input,calculated);
  } else if(['ziwei','sukuyo','vedic','astrology'].includes(category)) {
   const d=category as DomainId,c=await domains[d].calculate(domains[d].validateInput({...input,readingMode:'personal'}),{runtimeEnv:env,asOf:at}),chart=chartView(c);

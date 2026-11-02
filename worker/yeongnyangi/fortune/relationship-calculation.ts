@@ -1,3 +1,4 @@
+import {calculateZiweiConsumerChart} from '../../lib/ziwei-consumer-chart.js';
 import {calculateZiweiAiChart, FOUR_TRANSFORMATIONS} from '../../lib/ziwei-ai-chart.js';
 import {buildZiweiLoveCompatibility} from '../../lib/master-love-codex-compat.js';
 import {calculateEquationOfTimeMinutes} from '../../lib/birth-time-context.js';
@@ -31,9 +32,11 @@ export function ziweiRelationshipClock(profile:BirthProfile){
   audit:{policy:'overseas-true-solar-v1',utc:t.utc.toISOString(),original:profile,longitudeMinutes:t.lon*4,equationOfTimeMinutes:eot,correctedDate:solar.toISOString().slice(0,10),correctedTime:solar.toISOString().slice(11,16),calendar:'korean-lunisolar',precision:'existing-daily-equation-of-time-approximation'}};
 }
 
-export function calculateRelationshipZiwei(profile:BirthProfile,asOf:string){
+export function calculateRelationshipZiwei(profile:BirthProfile,asOf:string,runtimeEnv:Record<string,unknown>={}){
  const clock=ziweiRelationshipClock(profile),year=Number(asOf.slice(0,4));
- const chart=calculateZiweiAiChart(clock.profile,clock.corrected?{year,birthClock:'corrected'}:{year});
+ const chart=runtimeEnv.ZIWEI_CALENDAR_AUTHORITY_V2==='true'
+  ? calculateZiweiConsumerChart(profile,{env:runtimeEnv,year})
+  : calculateZiweiAiChart(clock.profile,clock.corrected?{year,birthClock:'corrected'}:{year});
  const branch=mod(chart.lunar.year-4);
  // 紅鸞: 子年起卯逆行; 天喜: 紅鸞對宮. Source: iztro star/location getLuanXiIndex.
  // Only the relationship copy is enriched; legacy chart output is untouched.

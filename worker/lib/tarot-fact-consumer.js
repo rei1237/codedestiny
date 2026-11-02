@@ -22,3 +22,11 @@ export function assertTarotNarrativeSnapshot(state) {
   const saved = readEngineFactSnapshot(state.engineFacts, { system: 'tarot' });
   if (saved.options.stateDigest !== hash(stateFacts(state))) throw Object.assign(new Error('TAROT_FACTS_CONFLICT'), { code: 'TAROT_FACTS_CONFLICT' });
 }
+
+/** Basic deterministic reading and its existing year-result storage share this exact payload. */
+export function pinTarotBasicResult(payload, env, input) {
+  if (env?.TAROT_CONSUMER_FACTS_V1 !== 'true') return payload;
+  const engineFacts = createEngineFactSnapshot('tarot', { cards: payload.cards, reading: payload.reading }, input,
+    { options: { spreadType: payload.spreadType, questionType: payload.engineMeta?.questionType || '' } });
+  return { ...payload, engineMeta: { ...payload.engineMeta, engineFacts } };
+}

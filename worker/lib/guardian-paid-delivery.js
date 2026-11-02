@@ -38,6 +38,7 @@ export async function deliverGuardianPaid({ env, input, userId, requestId, resol
         const calculated = await contextBuilder(original, { ...contextOptions,
           // seed runs only for a new paid narrative; resume reads its stored context.
           gyeokgukAuthorityV2: original.category === 'saju' && env?.SAJU_GYEOKGUK_AUTHORITY_V2 === 'true',
+          calendarAuthorityV2: original.category === 'ziwei' && env?.ZIWEI_CALENDAR_AUTHORITY_V2 === 'true',
           captureEngineFacts: ['ziwei', 'tarot', 'saju'].includes(original.category) && env?.[original.category.toUpperCase() + '_CONSUMER_FACTS_V1'] === 'true' });
         if (!calculated?.ok || calculated.context?.availableSystems?.length !== 1 || calculated.context.availableSystems[0] !== original.category) throw Object.assign(Error('계산 근거를 확인하지 못했어요.'), { accessStatus: 422 });
         // The answer's visible text is both the part target and the total floor, so a

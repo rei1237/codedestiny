@@ -103,9 +103,9 @@ function setup({ old = false, on = false } = {}) {
   vm.runInContext('const preparedChartYears = new WeakMap();', context);
   for (const name of ['preparedZiweiChart', 'preparationFailed', 'handleEnsureAccess', 'handleBasis']) vm.runInContext(functionText(source, name), context);
   vm.runInContext(functionText(old ? baseline : source, 'handleStart'), context);
-  state.start = (body = requestBody) => context.handleStart({ body }, {});
-  state.prepare = (body = requestBody) => context.handleEnsureAccess({ body }, {});
-  state.basis = (body = requestBody) => context.handleBasis({ body }, {});
+  state.start = (body = requestBody) => context.handleStart({ body }, { ZIWEI_CALENDAR_AUTHORITY_V2: String(state.on) });
+  state.prepare = (body = requestBody) => context.handleEnsureAccess({ body }, { ZIWEI_CALENDAR_AUTHORITY_V2: String(state.on) });
+  state.basis = (body = requestBody) => context.handleBasis({ body }, { ZIWEI_CALENDAR_AUTHORITY_V2: String(state.on) });
   state.resume = () => state.start({ resumeSessionId: state.docs[0].id });
   state.seed = (patch = {}) => state.docs.push({ id: 'saved', userId: 'owner', idempotencyKey: requestBody.idempotencyKey, inputHash: JSON.stringify(birth), serviceType: 'ziwei-ai', status: 'partial', generationLease: '', updatedAt: new Date(epoch), messages: [], llmMeta: { resumeBody: clone(requestBody), groups: {}, attempts: {}, chartSnapshot: { palaces: [], lunar: { source: 'fixed-v2' } } }, ...clone(patch) });
   return state;

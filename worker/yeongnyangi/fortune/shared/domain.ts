@@ -7,6 +7,7 @@ import {
   FortuneError,
   FortuneInput,
 } from "./contracts";
+import { pinDomainFacts, validateDomainFacts } from "./consumer-facts";
 import { validateInput } from "./input";
 import { buildPrompt } from "./prompt";
 import { validateResult } from "./result";
@@ -22,7 +23,7 @@ export function domain(
   return {
     id,
     validateInput: (x) => validateInput(x, id),
-    calculate,
+    calculate: async (input, options) => pinDomainFacts(await calculate(input, options), input, options),
     buildContext: (c) => {
       if (
         c.domain !== id ||
@@ -30,7 +31,7 @@ export function domain(
         new Set(c.facts.map((f) => f.id)).size !== c.facts.length
       )
         throw new FortuneError("INVALID_CONTEXT", 500);
-      return c;
+      return validateDomainFacts(c);
     },
     buildPrompt: (i, c, f) => buildPrompt(i, c, f, rules, sections),
     validateResult,

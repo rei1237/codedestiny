@@ -1,9 +1,11 @@
 {
-  "baseline": "0e1fd0fe7",
+  "baseline": "7ef443f7e",
   "reviewedDifferences": [
-    "worker/lib/guardian-fortune/adapters/ziwei.js"
+    "worker/lib/guardian-fortune/adapters/ziwei.js",
+    "worker/lib/ziwei-consumer-chart.js",
+    "worker/lib/ziwei-execution-adapter.js"
   ],
-  "reason": "Only additive sourceFacts capture in guardian ziwei adapter; calculation source hashes equal approved CR-003 graph.",
+  "reason": "Reviewed default-OFF consumer selection wrapper and guardian integration. All pre-existing calendar, birth-clock and star-calculation source hashes unchanged.",
   "domains": {
     "ziwei": {
       "lib/korean-calendar/authority-data.generated.js": "4e8be46272be3dfd475621e802e3f4c4ac36831b5668e8882f24bb6b4430adfb",
@@ -22,9 +24,11 @@
       "lib/ziwei-minor-limit.js": "02b01775f19b94447ba7cf62c47ac50ac79d35fd83849b8e4430409b95640a4c",
       "lib/ziwei-star-strength.js": "d82bdb3dbbaf06c36effae6dc133d82268c88ffe46ff0e5ab81f34a80aa71607",
       "worker/lib/guardian-fortune-adapter-utils.js": "9659dc6908ce4bf0a7381b9a580884cc848dd0c8c69cc914a14e88ae81ef2874",
-      "worker/lib/guardian-fortune/adapters/ziwei.js": "e5d3e31ed9cf4701d99cec4653de320301865e4f95b09fcc3bff348517828c96",
+      "worker/lib/guardian-fortune/adapters/ziwei.js": "b78faa3c71e524710872b4c8024670ad65cf40f05f1a30718f3c239784d2913c",
       "worker/lib/guardian-fortune/expert-evidence.js": "7382403c2225c7bce26585cf2947b91980109564cd6a002b28da55fe27381176",
-      "worker/lib/ziwei-ai-chart.js": "c5b05e4d30edf2bd7807b47a8e6048c3ea64193853b588947c5cfe4298d00fbf"
+      "worker/lib/ziwei-ai-chart.js": "c5b05e4d30edf2bd7807b47a8e6048c3ea64193853b588947c5cfe4298d00fbf",
+      "worker/lib/ziwei-consumer-chart.js": "7eeece9874e42a9aa11c3f473cb0f66fbe3818ce8462609c83348974f6ef2e48",
+      "worker/lib/ziwei-execution-adapter.js": "18d64ecf9d53f411ec70773a2b35766be75143ae1118fadbe15b0d15b2f8bd18"
     }
   }
 }

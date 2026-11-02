@@ -1,5 +1,6 @@
 import { pickExpertFields } from "../expert-evidence.js";
 import { calculateZiweiAiChart } from "../../ziwei-ai-chart.js";
+import { calculateZiweiConsumerChart } from "../../ziwei-consumer-chart.js";
 import { arrayText, nonEmptyText, text } from "../../guardian-fortune-adapter-utils.js";
 import { authorityMetadata } from "../../../../lib/korean-calendar/index.js";
 
@@ -36,7 +37,9 @@ export async function buildZiweiAdapter(input, options = {}) {
     throw error;
   }
 
-  const calculate = options.calculator || calculateZiweiAiChart;
+  const calculate = options.calculator || (options.calendarAuthorityV2 === true
+    ? (input, args) => calculateZiweiConsumerChart(input, { year: args.year, env: { ZIWEI_CALENDAR_AUTHORITY_V2: 'true' } })
+    : calculateZiweiAiChart);
   const raw = await calculate({
     birthInfo: {
       birthDate: input.birthDate,

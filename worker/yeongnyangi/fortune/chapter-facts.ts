@@ -1,3 +1,4 @@
+import {validateDomainFacts} from './shared/consumer-facts';
 import {DomainContext} from './shared/contracts';
 import {ChapterSpec} from './book-contracts';
 import {isStructuredReading,READING_V6_VERSION,READING_V7_VERSION} from './reading-policy';
@@ -138,6 +139,7 @@ function withLuckOverlap(context:DomainContext):DomainContext{
  return value?{...context,facts:[...context.facts,{id:'saju.luckOverlap',label:'luckOverlap',value} as DomainContext['facts'][number]]}:context;
 }
 export function selectChapterFacts(context:DomainContext,chapter:ChapterSpec,topic='general'){
+ validateDomainFacts(context);
  // 자미 궁 강약·관계·판단 문장은 저장 context 가 아니라 여기서 붙인다 — v6·v7·주의점·옛 주제 경로가 모두 이 입구를 지난다.
  context=enrichTarotTimeFrames(enrichZiweiContext(context));
  const prevention=preventionFacts(context,chapter);

@@ -27,6 +27,8 @@ export interface Evidence {
   value: unknown;
 }
 export interface DomainContext {
+  engineFactProtocol?: "engine-facts-v1";
+  engineFacts?: ReturnType<typeof import("../../../lib/engine-fact-snapshot.js").createEngineFactSnapshot>;
   domain: DomainId;
   engineVersion: string;
   calculatedAt: string;

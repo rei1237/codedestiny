@@ -257,6 +257,11 @@ function buildLimitedProjection(adapterName, reason) {
 }
 
 export async function buildGuardianFortuneContext(input, options = {}) {
+  if (['ziwei', 'tarot'].includes(input?.category) &&
+      (options.env?.[input.category.toUpperCase() + '_CONSUMER_FACTS_V1'] === 'true'
+       || (input.category === 'ziwei' && options.env?.ZIWEI_CALENDAR_AUTHORITY_V2 === 'true'))) {
+    options = { ...options, captureEngineFacts: true };
+  }
   let normalized;
   try {
     normalized = normalizeGuardianFortuneInput(input, options);
@@ -276,6 +281,7 @@ export async function buildGuardianFortuneContext(input, options = {}) {
   const priority = GUARDIAN_CATEGORY_ADAPTER_PRIORITY[normalized.category];
   const adapterOptions = {
     ...options,
+    calendarAuthorityV2: options.calendarAuthorityV2 === true || options.env?.ZIWEI_CALENDAR_AUTHORITY_V2 === 'true',
     now: options.now instanceof Date ? options.now : new Date(),
   };
 

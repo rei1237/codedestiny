@@ -34,7 +34,8 @@ import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import {SYNC_LLM_TIMEOUT_CEILING_MS, PAID_LLM_PARTS_PER_REQUEST } from "../lib/sync-llm-timeout.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { calculateLifeBookAiSaju } from "../lib/life-book-ai-saju.js";
-import { calculateZiweiAiChart, describeBrightness, formatStarWithBrightness } from "../lib/ziwei-ai-chart.js";
+import { calculateZiweiConsumerChart } from "../lib/ziwei-consumer-chart.js";
+import { describeBrightness, formatStarWithBrightness } from "../lib/ziwei-ai-chart.js";
 import { calculateVedicAiChart } from "../lib/vedic-ai-chart.js";
 import { prepareAstroPremiumCalculation } from "../lib/astro-premium-generator.js";
 import {
@@ -917,8 +918,8 @@ async function calculateMethodSummary(env, normalized, request) {
   }
   if (input.selectedMethod === "ziwei") {
     const year = new Date().getFullYear();
-    const selfChart = calculateZiweiAiChart({ birthInfo: input.birthInfo }, { year });
-    const partnerChart = partner ? calculateZiweiAiChart({ birthInfo: partner }, { year }) : null;
+    const selfChart = calculateZiweiConsumerChart({ birthInfo: input.birthInfo }, { env, year });
+    const partnerChart = partner ? calculateZiweiConsumerChart({ birthInfo: partner }, { env, year }) : null;
     return withCompat(summarizeZiwei(selfChart), input, "ziwei", selfChart, partnerChart);
   }
   if (input.selectedMethod === "vedic") {
@@ -1698,7 +1699,10 @@ async function handleStart(request, env, ctx = null, recoveryAuth = null) {
   delete resumeBody.accessToken;
   if (!existing) {
     try {
+      const initialZiweiSummary = normalized.input.selectedMethod === 'ziwei' && env?.ZIWEI_CALENDAR_AUTHORITY_V2 === 'true'
+        ? await calculateMethodSummary(env, normalized, request) : null;
       await NeoOperationRoomConsultation.create({ id: sessionId, userId: auth.userId, idempotencyKey, inputHash: normalized.inputHash,
+        ...(initialZiweiSummary ? { methodSummary: initialZiweiSummary } : {}),
         ...normalized.input, accessType: access.accessType, paymentId: access.paymentId || "", status: "generating",
         llmMeta: { locale, resumeBody, sections: {}, attempts: {}, ...(auth.tossNative?{tossNative:true}:{}) } });
       existing = await NeoOperationRoomConsultation.findOne({ id: sessionId, userId: auth.userId }).lean();
@@ -1722,7 +1726,7 @@ async function handleStart(request, env, ctx = null, recoveryAuth = null) {
   const filter = { id: sessionId, userId: auth.userId, "llmMeta.lockToken": lockToken, status: { $ne: "completed" } };
   try {
     if (!doc.methodSummary) {
-      const methodSummary = await calculateMethodSummary(env, normalized, request);
+      const methodSummary = await calculateMethodSummary({ ...env, ZIWEI_CALENDAR_AUTHORITY_V2: 'false' }, normalized, request);
       doc = await saveNeoDelivery(filter, { methodSummary, llmMeta: { ...doc.llmMeta, resumeBody } }, sessionId);
     }
     const sections = doc.methodSummary?.compat ? neoCompatInitialSections(normalized.input.selectedMethod) : NEO_INITIAL_SECTIONS;
