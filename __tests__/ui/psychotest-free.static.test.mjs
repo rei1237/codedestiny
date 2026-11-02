@@ -21,7 +21,8 @@ test("free entry cannot invoke paid access and owns immersive navigation", () =>
   const link = read("app/psychotest/_components/PaidPsychotestLink.tsx");
   assert.doesNotMatch(link, /useCoinGate|ensurePaidAccess|usePaidResume/);
   const chrome = read("app/components/AppChrome.tsx");
-  assert.match(chrome, /const IMMERSIVE_FORTUNE_ROUTES = \[\s*"\/psychotest"/);
+  const immersiveRoutes = chrome.match(/const IMMERSIVE_FORTUNE_ROUTES = \[([^\]]*)\];/)?.[1] || "";
+  assert.match(immersiveRoutes, /"\/psychotest"/);
   const player = read("src/features/psychotest/TestPlayer.tsx");
   assert.doesNotMatch(player, /fetch\(|ensurePaidAccess|replit\.app/);
   assert.match(player, /PSYCHO_QUESTIONS\.length/);
