@@ -198,11 +198,6 @@ const coreRoutes = [
   { path: "/saju", changefreq: "daily", priority: 0.98 },
   { path: "/manse", changefreq: "daily", priority: 0.98 },
   { path: "/destiny-compass", changefreq: "weekly", priority: 0.9 },
-  // 🔴 루트 정적 셸 라우트다 — 실체는 `destiny-poker.html` 이고 app 페이지가 없다.
-  // Cloudflare Pages 가 확장자를 떼고 `/destiny-poker` 로 서빙한다(`.html` 은 308).
-  // 무료 기능이라 색인 대상으로 두되, 본문이 얇으면 "낮은 가치의 콘텐츠" 표본이 되므로
-  // `verify-adsense-readiness` 의 1,800자 게이트를 반드시 통과시킨 채로 유지할 것.
-  { path: "/destiny-poker", changefreq: "monthly", priority: 0.6 },
   // /reviews 는 2026-08-30 에 색인 대상에서 뺐다 — 승인 리뷰가 0건인데 제목·h1 이 후기 모음을
   // 약속해 "없는 콘텐츠를 약속하는 페이지"가 됐다. 라우트 자체의 noindex 는 app/reviews/page.tsx
   // 의 metadata.robots 에 있고, 광고 대상 제외는 app/components/adsense-route-policy.js 에 있다.
@@ -245,8 +240,6 @@ const coreRoutes = [
   //    /tarot/healing 등 2026-08-24 의 5개와 같은 모양이다. page.tsx 에 서버 렌더
   //    안내 섹션을 넣어 1,900자대로 올린 뒤 되돌렸다.
   { path: "/saju-fpti", changefreq: "weekly", priority: 0.86 },
-  // 체험형 게임 10종 모음(2026-10-17). 홈·컬렉션에서 빠진 게임 타일의 진입점이다.
-  { path: "/mini-games", changefreq: "weekly", priority: 0.84 },
   // 🔴 coreRoutes 는 손으로 유지하는 목록이라, noindexPathPrefixes 에서 빼는 것만으로는
   //    사이트맵에 들어오지 않는다. 2026-08-24 에 색인으로 되돌린 5개 중 /tarot/healing 과
   //    /saju/love-simulation 은 이미(각각 여기와 정적 canonical 목록에) 등재돼 있었고,
@@ -815,6 +808,10 @@ async function main() {
     today,
     volatileToday,
     previousSitemapPath: sitemapRootPath,
+    // 원장이 날짜를 정하는 라우트 전체 — 사이트 전역 모듈(fan-in)을 가르는 모집단이다.
+    routes: routeEntries
+      .filter((route) => isPublicSitemapPath(route.path) && !Object.hasOwn(route, "lastmod"))
+      .map((route) => normalizeSitemapPath(route.path)),
   });
 
   const entryMap = new Map();

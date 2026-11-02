@@ -1,3 +1,4 @@
+import { serializeJsonLd } from "../../lib/seo/json-ld.mjs";
 import PublicReadingGuide from "./PublicReadingGuide";
 import { entryHook } from "../../lib/i18n/entry-hooks.mjs";
 import Link from "next/link";
@@ -367,11 +368,11 @@ export default function I18nSeoPageTemplate({
       </nav>
 
       {breadcrumbJsonLd ? (
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbJsonLd) }} />
       ) : null}
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(webPageJsonLd) }} />
       <PublicReadingGuide locale={locale} topic={stripLocalePrefix(currentPath).replace(/^\//, "")} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(faqJsonLd) }} />
     </main>
   );
 }

@@ -9,6 +9,6 @@
 
 재출력: 저장소 루트에서 `node scripts/render-crafted-detail.cjs saju-daewun` (종합 사주는 `saju-summary`). 이 명령은 로컬 서버만 사용하며 외부 요청을 차단한다. 글자를 줄여 넘침을 숨기지 않고 원고 편집이나 패널 분할로 수정한다.
 
-공개 산출물은 public/feature-details/crafted/{id}/, PNG·연결 미리보기·검수는 docs/product-details/verification/{id}/에 둔다. 재출력 전 해당 상품만 수정하고, 확인된 WebP만 적용한다.
+공개 산출물은 public/feature-details/crafted/{id}/, PNG·연결 미리보기·검수는 docs/product-details/verification/{id}/에 둔다. 이 폴더의 PNG·WebP 는 로컬 전용이라 추적하지 않는다(2026-11-02, 1.1GB). 원장이 인용하는 render·mobile·review JSON·md·html 만 커밋한다. 이전 이미지는 `D:\Development\backups\code-destiny-product-details-verification-20261102` 에 백업했고, `git checkout <추적 해제 커밋>^ -- docs/product-details/verification` 로 되살린다. 재출력 전 해당 상품만 수정하고, 확인된 WebP만 적용한다.
 
 - 영냥이 전체 소개: 질문 상담의 근거/범위/예시/준비를 별도로 편집한10장. 공식 hero-480, reading-art/insight, conversion/saju-pattern 재사용. 상담 계약 실행 근거는 docs/product-details/yeongnyangi-contract-snapshot.json. 실제 고객 후기나 생성 결과로 사용하지 않음.

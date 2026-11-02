@@ -637,6 +637,45 @@ test("모든 운세 검색은 동의어로도 찾는다(이직 → 직장·진�
   assert.ok((await search("나크샤트라")).includes("베다점"), "나크샤트라로 베다점을 못 찾는다");
 });
 
+test('모든 운세 방식 전환은 이전 방식을 해제하고 고민과 함께 정확히 좁힌다', async () => {
+  const { doc, panel, window } = await bootAllFortunes();
+  const root = doc.getElementById('cdAllFortunesRoot');
+  root.querySelector('[data-method="saju"]').click();
+  root.querySelector('[data-method="tarot"]').click();
+  assert.equal(root.querySelector('[data-method="saju"]').getAttribute('aria-pressed'), 'false');
+  assert.equal(root.querySelectorAll('[data-method][aria-pressed="true"]').length, 1);
+  let expected = Array.from(window.__cdServiceRegistry).filter(item => item.methods.includes('tarot')).map(item => item.name);
+  assert.deepEqual(names(panel).sort(), expected.sort());
+  root.querySelector('[data-purpose="love"]').click();
+  expected = Array.from(window.__cdServiceRegistry).filter(item => item.methods.includes('tarot') && item.purposes.includes('love')).map(item => item.name);
+  assert.deepEqual(names(panel).sort(), expected.sort());
+});
+
+test('공간에서 방식으로 바꾸면 숨은 공간 조건이 남지 않는다', async () => {
+  const { doc, panel } = await bootAllFortunes();
+  doc.querySelector('[data-region="tea"]').click();
+  doc.querySelector('#cdAllFortunesRoot [data-method="vedic"]').click();
+  assert.equal(doc.getElementById('cdAllFortunesRoot').getAttribute('data-cd-region'), 'all');
+  assert.ok(names(panel).includes('베다점'));
+});
+
+test('띄어 쓴 검색어는 단어 순서와 관계없이 함께 찾는다', async () => {
+  const { search } = await bootAllFortunes();
+  const a = await search('타로 연애');
+  assert.ok(a.length > 0);
+  assert.deepEqual((await search('연애 타로')).sort(), a.sort());
+  assert.equal((await search('타로 없는단어zz')).length, 0);
+});
+
+test('한글 조합 중에는 결과를 교체하지 않고 조합이 끝나면 찾는다', async () => {
+  const { input, panel, window } = await bootAllFortunes();
+  const before = names(panel);
+  input.dispatchEvent(new window.Event('compositionstart'));input.value = '나크샤트라';input.dispatchEvent(new window.Event('input'));
+  await new Promise(resolve => setTimeout(resolve, 160));assert.deepEqual(names(panel), before);
+  input.dispatchEvent(new window.Event('compositionend'));await new Promise(resolve => setTimeout(resolve, 160));
+  assert.ok(names(panel).includes('베다점'));assert.ok(names(panel).length < before.length);
+});
+
 test("모든 운세의 '기타' 방식은 레지스트리 밖 컬렉션 타일만 보인다", async () => {
   const { doc, panel } = await bootAllFortunes();
   doc.querySelector('#cdAllFortunesRoot [data-method="etc"]').click();

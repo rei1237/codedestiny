@@ -27,6 +27,9 @@ const steps = [
   // 사이트맵 loc 의 dist 페이지가 self canonical·색인 가능이고, 내부 링크가 리다이렉트 원천을 가리키지
   // 않는지 본다. canonical·robots 메타·<a href> 만 읽으므로 externalize·minify 앞이든 뒤든 결과가 같다.
   "scripts/verify-sitemap-canonical.mjs",
+  // 사이트맵 전 페이지의 SEO 규칙 표(scripts/seo/verify-dist.mjs RULES). fail 규칙만 빌드를 세우고 warn 은 개수만 찍는다.
+  // HTML 원문(H1·본문·링크)을 읽으므로 externalize·minify 앞에 둔다.
+  "scripts/seo/verify-dist.mjs",
   // 아래 둘은 **검증이 끝난 뒤 배포 바이트만** 고치는 최적화 단계다. 소스(index.html·js/)와
   // 미러(public/)는 건드리지 않으므로, 셸을 문자열로 읽는 가드 61개는 계속 원본을 읽는다.
   // 🔴 반드시 verify-adsense-readiness **뒤**에 둘 것 — 그 검증기가 dist 셸의 본문 텍스트와
@@ -68,6 +71,8 @@ if (process.env.NEXT_PUBLIC_RUNTIME_TARGET === "mobile-app") {
   steps.splice(steps.indexOf("scripts/verify-home-identity.mjs"), 1);
   // 앱 번들은 색인 대상이 아니다. build-mobile-app.mjs 가 뒤에서 sitemap.xml 을 지우고, 같은 커밋의 웹 빌드가 같은 검사를 돈다.
   steps.splice(steps.indexOf("scripts/verify-sitemap-canonical.mjs"), 1);
+  // 같은 이유로 사이트맵 기반 SEO 검사도 뺀다. 앱 번들은 사이트맵·대표 홈이 없고, 같은 커밋의 웹 빌드가 같은 검사를 돈다.
+  steps.splice(steps.indexOf("scripts/seo/verify-dist.mjs"), 1);
 }
 
 function wait(ms) {

@@ -3,6 +3,9 @@ import type { Metadata } from "next";
 import NeoOperationRoomClient from "./NeoOperationRoomClient";
 import ImmersiveRelatedLinks from "../components/ImmersiveRelatedLinks";
 import ServiceIntroSection from "../components/ServiceIntroSection";
+import { pageOpenGraph } from "../../lib/seo/page-open-graph";
+
+const PAGE_URL = "https://code-destiny.com/neo-operation-room";
 
 export const metadata: Metadata = {
   title: "네오의 팩폭 작전실 | 꿀꿀 운세",
@@ -13,8 +16,9 @@ export const metadata: Metadata = {
   // 커밋에서 걷었다. 🔴 canonical 은 그대로 둔다 — 비우면 홈 canonical 이 내려와 이 라우트가
   // 홈의 중복으로 접힌다.
   alternates: {
-    canonical: "https://code-destiny.com/neo-operation-room",
+    canonical: PAGE_URL,
   },
+  openGraph: pageOpenGraph(PAGE_URL),
 };
 
 export default function NeoOperationRoomRoute() {

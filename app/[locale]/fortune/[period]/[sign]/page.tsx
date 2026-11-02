@@ -3,6 +3,7 @@ import { buildSeoMetadata } from "@/lib/seo";
 import { buildArticleJsonLd, buildBreadcrumbJsonLd, buildFaqPageJsonLd, buildWebPageJsonLd } from "@/lib/structured-data";
 import { buildSignViewModel } from "@/lib/fortune/build-view";
 import { buildPeriodFaqs } from "@/lib/fortune/period-faqs";
+import { fortuneArticleDates } from "@/lib/fortune/article-dates.mjs";
 import { FORTUNE_PERIOD_IDS, isFortunePeriodId, type FortunePeriodId } from "@/lib/fortune/periods";
 import { SIGN_PROFILES, getSignProfile } from "@/lib/fortune/sign-profiles";
 import { fortuneLocaleSegment as prefix, FORTUNE_COPY, getLocalizedProfile, normalizeFortuneLocale, periodLabel, periodTitle, signName, type FortuneLocale } from "@/lib/fortune/localization";
@@ -65,7 +66,7 @@ export default async function LocalizedSignFortunePage({ params }: { params: Pro
   return <>
     <SignFortuneView vm={vm} locale={locale} />
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(buildWebPageJsonLd({ title, description, path, locale })) }} />
-    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(buildArticleJsonLd({ title, description, path, locale, category: FORTUNE_COPY[locale][sourceProfile.kind], keywords: [name, periodLabel(period, locale)], datePublished: `${vm.dateKey.length === 7 ? `${vm.dateKey}-01` : vm.dateKey}T00:00:00+09:00` })) }} />
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(buildArticleJsonLd({ title, description, path, locale, category: FORTUNE_COPY[locale][sourceProfile.kind], keywords: [name, periodLabel(period, locale)], ...fortuneArticleDates(period, vm.dateKey) })) }} />
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(buildBreadcrumbJsonLd([{ name: FORTUNE_COPY[locale].home, path: `/${prefix(locale)}/` }, { name: FORTUNE_COPY[locale].today, path: `/${prefix(locale)}/today` }, { name: `${periodLabel(period, locale)} ${FORTUNE_COPY[locale].fortune}`, path: `/${prefix(locale)}/fortune/${period}` }, { name, path }])) }} />
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(buildFaqPageJsonLd(faqs)) }} />
   </>;

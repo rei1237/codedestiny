@@ -64,28 +64,150 @@ export function inspectPage({ url, status, html, xRobots = '', indexable = true 
   if (descriptions.length > 1) issues.push(`description count ${descriptions.length}`);
   return issues;
 }
-export function robotsAllows(text, pathname, agent = 'googlebot') {
-  agent = agent.toLowerCase();
-  const groups = [];
-  let group = { agents: [], rules: [], hasDirectives: false };
-  for (const line of text.split(/\r?\n/)) {
-    const match = line.replace(/#.*/, '').trim().match(/^(user-agent|allow|disallow):\s*(.*)$/i);
-    if (!match) continue;
-    const [, rawKey, value] = match;
-    if (rawKey.toLowerCase() === 'user-agent') {
-      if (group.hasDirectives) { groups.push(group); group = { agents: [], rules: [], hasDirectives: false }; }
-      group.agents.push(value.toLowerCase());
-    } else {
-      group.hasDirectives = true;
-      if (value) group.rules.push({ allow: rawKey.toLowerCase() === 'allow', value });
-    }
+// robots.txt 판정은 scripts/lib/robots-groups.mjs 한 곳에서 한다(가드들과 같은 파서).
+export { robotsAllows } from '../lib/robots-groups.mjs';
+
+// Shared HTML / sitemap / header parsers. Pure string functions: no network, no filesystem.
+export function stripTags(html) {
+  return html
+    .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+    .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+// 한 번에 푼다: `&amp;lt;` 는 `&lt;` 로 남는다(이중 해제 금지).
+const HTML_ENTITIES = { quot: '"', '#39': "'", amp: '&', lt: '<', gt: '>' };
+export function decodeHtml(value = '') {
+  return value.replace(/&(quot|#39|amp|lt|gt);/g, (_, name) => HTML_ENTITIES[name]).trim();
+}
+
+const tagAttributes = (html, tag) => [...html.matchAll(new RegExp(`<${tag}(?=[\\s/>])[^>]*>`, 'gi'))].map(m => attributes(m[0]));
+const hasRelToken = (attrs, token) => (attrs.rel || '').toLowerCase().split(/\s+/).includes(token);
+
+// 인라인 <svg> 의 <title> 은 아이콘 이름이지 문서 제목이 아니다.
+export function getTitle(html) {
+  return decodeHtml(html.replace(/<svg\b[\s\S]*?<\/svg>/gi, '').match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] || '').replace(/\s+/g, ' ');
+}
+
+export function getCanonical(html) {
+  return tagAttributes(html, 'link')
+    .filter(a => hasRelToken(a, 'canonical') && a.href)
+    .map(a => decodeHtml(a.href));
+}
+
+export function getHreflang(html) {
+  return tagAttributes(html, 'link')
+    .filter(a => hasRelToken(a, 'alternate') && a.hreflang && a.href)
+    .map(a => ({ lang: decodeHtml(a.hreflang), href: decodeHtml(a.href) }));
+}
+
+// <script> 본문의 문자열 마크업(innerHTML 조립, RSC·JSON 페이로드)은 문서 구조도 링크도 아니다.
+const withoutScripts = html => html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '');
+
+export function getH1s(html) {
+  return [...withoutScripts(html).matchAll(/<h1\b[^>]*>([\s\S]*?)<\/h1>/gi)].map(m => stripTags(m[1]));
+}
+
+// Arrays and @graph containers are flattened; a container is kept only if it carries its own properties.
+function flattenJsonLd(value, nodes = []) {
+  if (Array.isArray(value)) value.forEach(item => flattenJsonLd(item, nodes));
+  else if (value && typeof value === 'object') {
+    const isContainer = '@graph' in value && Object.keys(value).every(key => key === '@graph' || key === '@context');
+    if (!isContainer) nodes.push(value);
+    if ('@graph' in value) flattenJsonLd(value['@graph'], nodes);
   }
-  groups.push(group);
-  const specific = groups.filter(g => g.agents.includes(agent));
-  const selected = specific.length ? specific : groups.filter(g => g.agents.includes('*'));
-  const rules = selected.flatMap(g => g.rules).filter(rule => {
-    const pattern = rule.value.replace(/[.+?^{}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*');
-    return new RegExp(`^${pattern}`).test(pathname);
-  }).sort((a, b) => b.value.replace(/[*$]/g, '').length - a.value.replace(/[*$]/g, '').length || Number(b.allow) - Number(a.allow));
-  return rules[0]?.allow ?? true;
+  return nodes;
+}
+
+export function getJsonLd(html) {
+  const nodes = [];
+  const errors = [];
+  for (const m of html.matchAll(/<script\s+[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)) {
+    try { flattenJsonLd(JSON.parse(m[1].trim()), nodes); } catch (error) { errors.push(error.message); }
+  }
+  return { nodes, errors };
+}
+
+// schema.org Date/DateTime (ISO 8601) → epoch ms, or null when it is not ISO 8601 or not a real date/time.
+// No offset is read as KST (+09:00), the site's calendar; a date alone is 00:00 KST of that day.
+// The machine time zone is never used (CI runs in UTC, local machines in KST).
+// The offset may also be basic form (+0900) after an extended date. Strict ISO 8601 forbids mixing the
+// two forms, but %z-style formatters emit it and Date.parse reads it to the same instant as +09:00.
+// This guard exists to catch wrong or unreadable dates, not to lint offset spelling, so it is accepted on purpose.
+const ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2})(?::(\d{2})(\.\d+)?)?(Z|[+-]\d{2}:?\d{2})?)?$/;
+export function parseJsonLdDate(value) {
+  const match = typeof value === 'string' ? ISO_DATE.exec(value.trim()) : null;
+  if (!match) return null;
+  const [y, mo, d, h = 0, mi = 0, s = 0] = match.slice(1, 7).map((part) => (part === undefined ? undefined : Number(part)));
+  const wall = new Date(Date.UTC(y, mo - 1, d, h, mi, s));
+  if (wall.getUTCFullYear() !== y || wall.getUTCMonth() !== mo - 1 || wall.getUTCDate() !== d || wall.getUTCHours() !== h || wall.getUTCMinutes() !== mi || wall.getUTCSeconds() !== s) return null;
+  const zone = match[8] ?? '+09:00';
+  const [, sign, zh, zm] = zone === 'Z' ? [null, '+', '0', '0'] : /^([+-])(\d{2}):?(\d{2})$/.exec(zone);
+  if (Number(zh) > 14 || Number(zm) > 59) return null;
+  const offsetMs = (sign === '-' ? -1 : 1) * (Number(zh) * 60 + Number(zm)) * 60_000;
+  return wall.getTime() + Math.floor(Number(match[7] || 0) * 1000) - offsetMs;
+}
+
+// Same-origin pathname(+search) of every <a href>, in document order and without de-duplication.
+export function getInternalLinks(html, origin) {
+  const links = [];
+  // 속성 이름으로 읽는다. 태그 정규식으로 href= 를 찾으면 뒤따르는 data-*-href 를 대신 집는다.
+  // <script> 본문의 문자열 마크업은 크롤러가 따라가는 링크가 아니므로 먼저 걷어 낸다.
+  for (const a of tagAttributes(withoutScripts(html), 'a')) {
+    const href = decodeHtml(a.href || '');
+    if (!href || href.startsWith('#') || /^(mailto|tel|javascript):/i.test(href)) continue;
+    try {
+      const url = new URL(href, `${origin}/`);
+      if (url.origin === origin) links.push(url.pathname + url.search);
+    } catch { /* unparsable href is not an internal link */ }
+  }
+  return links;
+}
+
+// `key` may be a meta name or property (og:url, description, robots, ...). Returns every content value.
+export function getMeta(html, key) {
+  const wanted = key.toLowerCase();
+  return tagAttributes(html, 'meta')
+    .filter(a => [a.name, a.property].some(v => v?.toLowerCase() === wanted) && a.content !== undefined)
+    .map(a => decodeHtml(a.content));
+}
+
+export function hasNoindex(html) {
+  return [...getMeta(html, 'robots'), ...getMeta(html, 'googlebot')].join(',').toLowerCase().includes('noindex');
+}
+
+// Cloudflare `_headers`: unindented lines are path patterns, indented lines are that pattern's headers.
+// Only X-Robots-Tag on path patterns is returned; precedence is deliberately not reproduced.
+export function parseHeaderRobotsRules(headersText) {
+  const rules = [];
+  let current = null;
+  for (const rawLine of headersText.split(/\r?\n/)) {
+    const trimmed = rawLine.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+    if (/^\s/.test(rawLine)) {
+      const match = trimmed.match(/^X-Robots-Tag:\s*(.+)$/i);
+      if (match && current) current.value = match[1].trim().toLowerCase();
+      continue;
+    }
+    current = { pattern: trimmed, value: '' };
+    rules.push(current);
+  }
+  return rules.filter(rule => rule.value && rule.pattern.startsWith('/'));
+}
+
+// Sitemap `xhtml:link rel="alternate"` entries per <loc> (both decoded), keyed by the loc URL.
+export function parseSitemapAlternates(xml) {
+  const map = new Map();
+  for (const block of xml.matchAll(/<url>([\s\S]*?)<\/url>/gi)) {
+    const loc = block[1].match(/<loc>([^<]+)<\/loc>/i)?.[1];
+    if (!loc) continue;
+    const alternates = [...block[1].matchAll(/<xhtml:link\b[^>]*>/gi)]
+      .map(m => attributes(m[0]))
+      .filter(a => a.hreflang && a.href)
+      .map(a => ({ lang: a.hreflang, href: decodeHtml(a.href) }));
+    map.set(decodeHtml(loc), alternates);
+  }
+  return map;
 }

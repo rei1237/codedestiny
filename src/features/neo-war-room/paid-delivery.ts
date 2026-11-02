@@ -41,7 +41,7 @@ export async function receiveNeoBriefing<T extends { ok?: boolean; sessionId?: s
         failures += 1;
       }
     } catch (error) {
-      if (error instanceof Error && ["ACCOUNT_CHANGED", "GENERATION_PENDING", "LOGIN_REQUIRED", "PAYMENT_VERIFY_FAILED", "RESULT_NOT_FOUND", "LLM_ERROR"].includes(error.message)) throw error;
+      if (error instanceof Error && ["ACCOUNT_CHANGED", "GENERATION_PENDING", "LOGIN_REQUIRED", "PAYMENT_VERIFY_FAILED", "RESULT_NOT_FOUND", "LLM_ERROR", "ORDER_REFUNDED", "ORDER_MISMATCH", "REQUEST_INPUT_MISMATCH"].includes(error.message)) throw error;
       failures += 1;
     }
     if (failures >= 6) throw new Error("GENERATION_PENDING");

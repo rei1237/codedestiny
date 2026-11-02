@@ -29,6 +29,7 @@ test('local paid selection reads the CI paths and rejects a malformed contract',
 for (const [name, files, tier, builds] of [
   ['documentation', ['docs/context/payment-gating.md'], 'fast', [false, false]],
   ['presentation CSS', ['styles/site.css'], 'fast', [false, false]],
+  ['translation source', ['i18n/authored/shell-02.json'], 'fast', [false, false]],
   ['UI', ['app/components/Button.tsx'], 'standard', [true, false]],
   ['Worker only', ['worker/routes/ziwei-ai.js'], 'critical', [false, true]],
   ['payment', ['lib/payment/portone.ts'], 'critical', [true, true]],
@@ -66,6 +67,26 @@ test('missing base and empty diff select full checks', async () => {
     assert.equal(plan.tier, 'critical');
     assert.deepEqual(plan.buildTargets, { frontend: true, worker: true });
   }
+});
+
+test('presentation-only changes skip typecheck but keep static guards', async () => {
+  const { createVerificationPlan } = await load();
+  const names = (files) => createVerificationPlan(input(files), { scripts }).steps.map((step) => step.name);
+  for (const files of [['styles/site.css'], ['app/channel/page.module.css'], ['styles/site.css', 'public/images/a.webp']]) {
+    assert.equal(names(files).includes('typecheck'), false, files.join());
+    assert.equal(names(files).includes('test:node'), true, files.join());
+  }
+  for (const files of [['app/components/Button.tsx'], ['styles/site.css', 'app/components/Button.tsx'], ['styles/site.css', 'lib/payment/portone.ts']]) {
+    assert.equal(names(files).includes('typecheck'), true, files.join());
+  }
+});
+
+test('only a complete empty diff counts as nothing to verify', async () => {
+  const { nothingToVerify } = await load();
+  assert.equal(nothingToVerify(input([])), true);
+  assert.equal(nothingToVerify(input([], false)), false);
+  assert.equal(nothingToVerify(input(['docs/a.md'])), false);
+  assert.equal(nothingToVerify({ ...input([]), hasDeletionOrRename: true }), false);
 });
 
 test('rename includes source and destination; deletion stays in risk input', async () => {

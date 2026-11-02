@@ -40,6 +40,19 @@
 /app/insights/articles.js
 /app/saju/love-simulation/_data/loveCodeMvp.ts
 
+# 검수 스크린샷·생성 산출물·마케팅 미디어 — 코드 검색에 걸릴 내용이 없고 파일 수만 많다(2026-11-02).
+# 위 헤더와 같은 계약이다 — Grep(rg)에서만 빠지고 Read·git grep·Glob 은 그대로 본다.
+/outputs/
+/docs/product-details/verification/
+/artifacts/
+/marketing/**/*.png
+/marketing/**/*.jpg
+/marketing/**/*.jpeg
+/marketing/**/*.webp
+/marketing/**/*.gif
+/marketing/**/*.mp4
+/marketing/**/*.mov
+
 # >>> sync:public 생성 미러 — 자동 생성, 직접 편집 금지 >>>
 /public/AnalysisEngine.js
 /public/HwatuFortune.js
@@ -120,6 +133,7 @@
 /public/js/consultation-sample-guide.d.mts
 /public/js/consultation-sample-guide.mjs
 /public/js/core/access-store.js
+/public/js/core/activation-guide-state.mjs
 /public/js/core/activation-reward-policy.mjs
 /public/js/core/analytics.js
 /public/js/core/app-context.d.ts
@@ -292,7 +306,6 @@
 /public/myungwun_final.html
 /public/neville-meditation.html
 /public/pet-saju.html
-/public/robots.txt
 /public/royal-tea-oracle.html
 /public/rss.xml
 /public/secret-house_real.html

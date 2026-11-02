@@ -5,16 +5,18 @@
 ## Quick Start (전체 명령)
 
 ```bash
-npm run dev            # 로컬 개발 서버 (local-auth 포함)
+npm run dev            # 로컬 개발 서버 — mock(LLM·결제·DB 차단, local-auth 포함)
+npm run dev:live       # 실연동 개발 서버 — 별도 명령, 기본으로 쓰지 않는다
 npm run dev:next       # Next.js dev 서버만
 npm run build          # UTF-8 콘솔 + Cloudflare 빌드
 npm run build:cf       # prebuild:cf && build (SEO/AdSense 게이트가 여기서 돈다)
 npm run lint           # next lint
 npm run typecheck      # tsc --noEmit
 npm run deploy:check       # 업로드 없이 변경 집합만 확인 (프로덕션 배포는 로컬 불가)
-npm run deploy:cf:pages    # Cloudflare Pages 배포
-npm run deploy:cf:worker   # Cloudflare Worker 배포
-npm run deploy:cf:opennext # OpenNext 경유 배포
+# 아래 셋은 CI 전용이다 — 로컬 실행은 assertProductionDeployIsCi 가 막고, 로컬 배포는 금지다.
+npm run deploy:cf:pages    # Cloudflare Pages 배포 (CI 전용)
+npm run deploy:cf:worker   # Cloudflare Worker 배포 (CI 전용)
+npm run deploy:cf:opennext # OpenNext 경유 배포 (CI 전용)
 ```
 `verify:*` / `seed:*` / `migrate:*` 스크립트 다수 존재 — 결제·AI·i18n·보안 회귀 검증용. 관련 기능 수정 시 해당 `verify:*` 먼저 실행.
 
@@ -35,7 +37,7 @@ public/, dist/, out/   # 정적 자산 및 빌드 산출물
 
 > **죽은 코드는 격리하지 말고 지운다** — 격리 디렉터리(`_graveyard/` 등)는 빌드에서만 빠질 뿐 grep·AI 코드 읽기에는 그대로 노출돼 "다음 세션이 보고 복제하는" 문제를 못 막는다. 안전망은 Git 이력이다.
 
-> **홈 `/` 은 `app/page.js`(영냥이 홈)다 — 2026-09-21 전환** — 홈 콘텐츠·메타는 `app/page.js` 와 `app/yeongnyangi/_components/` 에 둔다. 루트 `index.html` 은 꽃돼지 `/ggulggul/`·로케일 정적 셸의 정본이고, `public/**/index.html` 은 `sync:public` 이 만드는 미러이므로 직접 패치하지 않는다. 옛 홈 딥링크(결제 복귀 쿼리·`#saju-result` 등)는 `app/components/LegacyHomeEntry.tsx` 가 `/ggulggul/` 로 넘긴다.
+> **홈 `/` 은 `app/page.js`(꿀꿀 운세 공식 대표 홈, 200)다 — 2026-10-15 결정, 정본 설명은 [CLAUDE.md](../../CLAUDE.md)의 홈 `/` 문단** — 홈 콘텐츠·메타는 `app/page.js` 와 `app/yeongnyangi/_components/` 에 둔다. 루트 `index.html` 은 꽃돼지 `/ggulggul/`·로케일 정적 셸의 정본이고, `public/**/index.html` 은 `sync:public` 이 만드는 미러이므로 직접 패치하지 않는다. 옛 홈 딥링크(결제 복귀 쿼리·`#saju-result` 등)는 `app/components/LegacyHomeEntry.tsx` 가 `/ggulggul/` 로 넘긴다.
 
 > **없는 디렉터리 주의** — `veda/` 와 `models/` 는 **존재하지 않는다**(2026-08-09 확인). 베다/나크샤트라 엔진의 실체는 `lib/vedicSwissChart.js`·`lib/vedicCalculator.js`·`worker/lib/vedic-*.js`·`worker/lib/nakshatra-*.js` 다. `tsconfig.json` `exclude` 와 `config/env.contract.json` `scanRoots` 에 남아 있던 `veda` 는 잔재이므로 새 코드의 근거로 삼지 말 것.
 
@@ -48,7 +50,7 @@ public/, dist/, out/   # 정적 자산 및 빌드 산출물
 - **배포**: Cloudflare Pages + Workers (wrangler 4.73, `@opennextjs/cloudflare`)
 - **결제**: PortOne V2 (+ KG Inicis 채널), 포인트/코인 기반 유료 기능
 - **인증**: 커스텀 JWT (NextAuth 아님), Google/Kakao/Naver OAuth
-- **i18n**: `ko`(기본, prefix 없음) / `ja`, `zh`, `en`(경로 prefix)
+- **i18n**: 12개 로케일 — `ko`(기본, prefix 없음)와 `de`·`en`·`es`·`fr`·`hi`·`ja`·`ms`·`nl`·`vi`·`zh-cn`·`zh-tw`(목록 정본은 `public/i18n/`). 경로 prefix 랜딩은 `/en`·`/ja`·`/zh`·`/zh-tw`(`public/_worker.js`)
 - **모바일**: Capacitor Android 래퍼 — `apps/mobile/**`
 - **이미지 자산**: UI/UX 상 중요한 신규 이미지는 직접 제작하거나 기존 승인 자산에서 파생해 repo-local WebP 로 최적화한다. 외부 핫링크나 임시 생성 경로를 프로덕션 UI 에서 직접 참조하지 않는다.
 

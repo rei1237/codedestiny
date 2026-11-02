@@ -50,6 +50,9 @@ GREEN은 관련 파일부터 수정하고, RED는 위험·검증·롤백을 먼�
 5~15파일은 목표이며 필요한 회귀 확인을 막지 않는다. 관련 없는 전체 탐색·로그 전문·반복 읽기를 피한다.
 Do not scan or read the entire repository unless explicitly required. Use git grep/rg/git ls-files to locate relevant files first.
 npm run check:fast로 변경 기반 검사를 한 번 실행한다. 계획은 --plan. 위험 변경은 자동 승격되며 typecheck는 전체 incremental 1회다.
+경량(문구·CSS·마크업): 관련 파일만 수정 → check:fast 1회, 전체 빌드·전체 테스트를 따로 돌리지 않는다.
+일반(컴포넌트·라우트·스크립트): check:fast(standard 자동).
+고위험(결제·인증·DB·배포): 자동 critical + 위 RED 절차.
 로컬 Pages 빌드는 기존 --skip-build 계약을 유지한다. CI build 조건을 줄이려면 이 근거도 함께 갱신한다.
 CI 선택 실행은 10회 push 비교 전까지 shadow다. 기존 검사를 삭제하지 않는다.
 결과: 수정 파일·의도·유지 정책·명령/출력·남은 위험. 실제 미실행은 미검증.
@@ -83,7 +86,7 @@ Claude 훅은 Codex 훅이 아니다. 도구별 규칙 적용을 구분한다.
 
 ## 2026-09-12 전달 흐름: main 직접 커밋, 브랜치·PR 없음
 
-기본 흐름은 `main`에서 코드 수정→targeted 검사(check:fast)→commit→(커밋된 트리, 약 15s)→(안정 시점에) push→main CI 통과 확인에서 끝난다. 브랜치도 PR도 만들지 않는다. 유일한 공식 검증 게이트는 GitHub CI(`CI required` aggregate)이며, push 전에 전체 lint/typecheck/test/build를 로컬에서 반복하지 않는다. 이 절은 이전의 PR·연속 머지·입장 판정(delivery:admit / delivery:batch-plan) 조항을 **폐기**한다.
+기본 흐름은 `main`에서 코드 수정→targeted 검사(check:fast)→commit→`npm run check:pre-push`(커밋된 트리, 약 15s)→(안정 시점에) push→main CI 통과 확인에서 끝난다. 브랜치도 PR도 만들지 않는다. 유일한 공식 검증 게이트는 GitHub CI(`CI required` aggregate)이며, push 전에 전체 lint/typecheck/test/build를 로컬에서 반복하지 않는다. 이 절은 이전의 PR·연속 머지·입장 판정(delivery:admit / delivery:batch-plan) 조항을 **폐기**한다.
 
 커밋은 복구 지점, push는 원격 백업 겸 배포 지점이다. 로컬 마이크로 커밋은 자주, push는 작업 단위가 안정됐을 때 묶어서 한다. 서로 무관한 변경을 한 커밋에 섞지 않는다 — 기준은 "이 커밋 하나를 되돌려도 다른 기능이 거의 흔들리지 않는가"다. 커밋 시점의 main은 항상 실행 가능해야 한다. 회귀가 나면 조건·try/catch·CSS 오버라이드를 덧대지 말고 되돌린다: 미커밋은 `git reset --hard HEAD`, 나쁜 커밋은 그 커밋만. 이미 커밋된 다른 정상 작업까지 날리지 않는다. 되돌린 뒤에는 같은 구조로 재시도하지 않고 실패 원인·회귀 영역·새 접근을 보고한 다음 다르게 구현한다.
 

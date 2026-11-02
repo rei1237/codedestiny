@@ -74,6 +74,9 @@ const lowPatterns = [
   // high 를 면한 뒤 미분류 기본값 medium 으로 떨어져 build 잡을 돌린다.
   /\.mdx?$/i,
   /(^|\/)(index\.html|public\/i18n\/|sitemap|robots|ads\.txt)/i,
+  // 번역 원문 JSON. 미분류로 두면 문구 한 줄에도 fail-closed critical 이 됐다(2026-11-02 실측).
+  // 앱이 import 하므로 typecheck·test:node·lint 는 low 에서도 그대로 돈다.
+  /^i18n\/authored\/.+\.json$/i,
 ];
 
 /**
@@ -248,7 +251,7 @@ export function selfTest() {
 
     // ── 🔴 키워드 경계. 이 블록이 사라지면 2026-09-06 이전 상태로 조용히 되돌아간다.
     // 왼쪽: 단어가 이어지므로 결제·인증이 아니다(오탐이었다).
-    ["i18n/authored/shell-02.json", "medium"],           // authored ≠ auth (PR #1645)
+    ["i18n/authored/shell-02.json", "low"],              // authored ≠ auth (PR #1645), 번역 원문은 low
     ["styles/accessibility.css", "low"],                 // accessibility ≠ access
     ["components/AccessibleModal.tsx", "medium"],        // Accessible ≠ Access
     ["scripts/kvstore.mjs", "medium"],                   // kvstore ≠ kv

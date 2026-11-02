@@ -28,6 +28,7 @@ const results = [];
 try {
   for (const width of [360,390,768,1440]) for (const theme of ['yeoni','neo']) {
     const context = await browser.newContext({viewport:{width,height:960}, isMobile:width<500, hasTouch:width<500, serviceWorkers:'block', reducedMotion:'reduce'});
+    await context.addInitScript(()=>localStorage.setItem('cd:first-visit:v1:ggulggul:guest',JSON.stringify({status:'dismissed',step:0})));
     const page = await context.newPage();
     const paid = [], errors = [];
     page.on('pageerror', error => errors.push(error.message));
@@ -45,6 +46,7 @@ try {
     });
     try {
       await page.goto(base+'/ggulggul/', {waitUntil:'load'});
+      await page.waitForFunction(()=>!document.documentElement.classList.contains('cd-boot-gate'), null, {timeout:20000});
       await page.waitForFunction(()=>typeof window.cdOpenAllFortunes==='function' && window.CodeDestinyAllFortunes);
       if (theme==='neo') {
         const toggle=page.locator('.tsp-option[data-theme="neo"]');
@@ -56,6 +58,7 @@ try {
       await entry.click();
       const finder=page.locator('#cdAllFortunesRoot'), input=page.locator('#cdAllFortunesSearch');
       await expect(input).toBeVisible();
+      await finder.locator('[data-cd-explore]>summary').click();
       await expect(finder.locator('[data-region]')).toHaveCount(8);
       await expect(finder.locator('[data-region="all"]')).toHaveAttribute('aria-pressed','true');
       await finder.locator('[data-region="tea"] img').evaluate(image=>image.decode());

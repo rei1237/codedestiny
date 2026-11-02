@@ -23,6 +23,7 @@
 import { siteSeo } from "./seo/siteSeo";
 import { mergeKeywords, SEO_CORE_KEYWORDS, toAbsoluteUrl } from "./seo-metadata";
 import { getSeoProfileKeywords } from "./seo/entity-registry.mjs";
+import { toJsonLdDate } from "./seo/json-ld.mjs";
 import { buildOpenGraphImageUrl, getCanonicalUrl, isIndexableRoute, normalizePath } from "./seo.v2";
 import { truncateToDisplayWidth } from "./seo";
 import { ogLocaleFor, resolveLocaleTag } from "./i18n/locales";
@@ -249,8 +250,8 @@ export function buildFortuneJsonLd(opts: FortunePageMeta): string {
         ...(offer && typeof offer === "object" ? { offers: offer } : {}),
         ...(featureList.length > 0 ? { featureList } : {}),
         ...(keywords.length > 0 ? { keywords: keywords.join(", ") } : {}),
-        ...(publishedAt ? { datePublished: new Date(publishedAt).toISOString() } : {}),
-        ...(updatedAt ? { dateModified: new Date(updatedAt).toISOString() } : {}),
+        ...(publishedAt ? { datePublished: toJsonLdDate(publishedAt) } : {}),
+        ...(updatedAt ? { dateModified: toJsonLdDate(updatedAt) } : {}),
       },
       {
         // 현재 페이지를 WebPage로도 선언해 구글이 페이지 목적을 코드로 파악하게 함

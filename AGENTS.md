@@ -15,17 +15,24 @@ Code Destiny는 한국어 운세·상담 서비스다. 한국어로 보고한다
 - 예외 — **동시에 쓰는 세션이 둘 이상이면 두 번째부터 워크트리를 만든다**(`powershell -File scripts/create-safe-worktree.ps1 -Slug <이름>`). 거기서도 PR 은 만들지 않는다: 끝나면 main 에 직접 머지하고 워크트리를 배수한다. 혼자 쓰는 세션이면 만들지 않는다.
 - 작업 단위가 검증되면 즉시 커밋한다. 되돌려도 다른 기능이 흔들리지 않는 크기가 기준이며, 무관한 변경을 한 커밋에 섞지 않는다.
 - `npm run worktree:status`는 남아 있는 과거 워크트리를 배수할 때만 쓰는 읽기 전용 진단이다. 새 작업의 진입·전달 판정에는 쓰지 않는다.
-- Do not scan or read the entire repository unless explicitly required. Use git grep/rg/git ls-files to locate relevant files first.
+- 저장소 전체 탐색 금지는 [CLAUDE.md](CLAUDE.md)의 탐색·검증 절을 따른다. 검색은 범위를 지정한다: `rg <패턴> app components lib js worker src styles`. 루트 전체 `rg`와 Glob `**` 전체 스캔은 하지 않는다(2026-11-02 실측: 루트 rg 32.4s, 범위 지정 0.5s). Glob 은 `.ignore` 를 읽지 않는다. 같은 실패를 2회 반복하면 멈추고 원인을 보고한다.
+- 스크래치·스크린샷·검수 산출물은 `.tmp/`(무시됨) 또는 저장소 밖 D:\ 폴더에 둔다. docs/ 아래 PNG 를 커밋하지 않는다 — `npm run check:pre-push` 의 `verify:repo-hygiene` 가 5MB 초과 바이너리·docs PNG 20개 초과 추가·무시되지 않은 루트 산출물 폴더를 막는다.
 - 승인된 범위는 반복 확인하지 않는다. 실제 과금·운영 행위의 별도 승인과 외부 게이트는 유지한다.
 - 작업이 끝나면 정리까지가 완료다: 자기 인수인계 문서는 `status: done` 으로 닫고, 자기 워크트리는 배수(node_modules 정션 먼저 해제 → `git worktree remove --force` → 머지된 `wt/*` 브랜치 `git branch -d`)하고, 자기가 만든 임시 파일(`.tmp/`·`*.log`·스크래치)은 지운다. 다른 세션의 워크트리·문서·파일은 지우지 않고 보고만 한다.
 - 작업 종료 전 검증한 변경을 커밋하고 `git push origin main` 뒤 main CI 결과를 확인한다. 인수인계 문서는 이 전달 절차를 대체하지 않는다. 예외·완료 기준은 [전달 완료 필수 규칙](docs/context/delivery-and-ci.md#전달-완료-필수-규칙)을 따른다.
 - 인수인계를 보고할 때는 문서 파일명만 담은 코드 블록·클릭 가능한 절대 경로·다른 세션에 복사할 재개 명령어 코드 블록을 함께 제시한다. 파일명을 줄이거나 설명형 링크 이름에 숨기지 않는다. 명령어에는 실제 작업 디렉터리, 문서 절대 경로, 마지막 커밋 SHA, 다음 행동을 채우고, 답변 전 세 항목의 누락을 확인한다.
 - npm run check:fast -- --plan으로 계획 확인, npm run check:fast로 실행한다. 위험 변경은 자동 승격된다.
+
+| 등급 | 범위 | 검증 |
+|---|---|---|
+| 경량 | 문구·CSS·마크업 | 관련 파일만 수정 → `check:fast` 1회. 전체 빌드·전체 테스트를 따로 돌리지 않는다 |
+| 일반 | 컴포넌트·라우트·스크립트 | `check:fast`(standard 자동) |
+| 고위험 | 결제·인증·DB·배포 | 자동 critical + CLAUDE.md 의 RED 절차 |
+
 - 최종 보고: 수정 파일·의도·유지 정책·명령과 출력·남은 확인. 실행하지 않은 검사는 미검증.
 
-Ignore snapshot, archive, and one-off audit paths unless the user explicitly asks for them: `.claude/worktrees/**`, `.codex-worktrees/**`, `.delivery-worktrees/**`, `.cleanup/**`, `reports/**`. 이 경로들은 레포 전체 사본이라 grep 결과를 오염시킨다.
+Ignore snapshot, archive, and one-off audit paths unless the user explicitly asks for them: `.claude/worktrees/**`, `.claude-worktrees/**`, `.codex-worktrees/**`, `.codex-tmp/**`, `.worktrees/**`, `.delivery-worktrees/**`, `.cleanup/**`, `reports/**`. 이 경로들은 레포 전체 사본이라 grep 결과를 오염시킨다.
 
 로컬 전체 preflight는 폐기했다(2026-09-12). **유일한 공식 검증 게이트는 GitHub CI다.** 기본 흐름은 `main`에서 코드 수정 → 관련 targeted 검사(`npm run check:fast`) → commit → `npm run check:pre-push`(커밋된 트리, 약 15s) → (안정 시점에) push → main CI 통과 확인이다. 브랜치도 PR도 만들지 않는다. push 전에 전체 lint/typecheck/test/build를 로컬에서 반복하지 않는다. 회귀가 나면 조건·try/catch·CSS 오버라이드를 덧대지 말고 되돌린다(미커밋은 `git reset --hard HEAD`, 나쁜 커밋은 그 커밋만). 스테이징 검증은 선택이다 — 조건과 명령은 [CLAUDE.md](CLAUDE.md)의 2026-09-12 전달 흐름 절, 세부 규칙은 [전달 흐름과 위험 영역 검증](docs/context/delivery-and-ci.md#전달-흐름과-위험-영역-검증)을 따른다.
 
-Do not wait for or manually verify staging deployment after every push. Do not wait for CI either: after a push, continue to the next task and check the main CI result once, right before the next push or the final report. Never loop on `sleep` + `gh run list`. If main is already red from someone else's commit, report that commit instead of pushing on top of it. Verify staging only when explicitly requested, when deployment infrastructure changed, or during a final release verification.
-Do not poll staging URLs, deployment status, commit SHA, or freshness markers after routine pushes.
+push 뒤 CI·스테이징을 기다리거나 폴링하지 않는 규칙(main 이 이미 빨간불이면 그 커밋을 보고)은 [CLAUDE.md](CLAUDE.md)의 2026-09-12 전달 흐름 절 마지막 두 문단을 따른다.

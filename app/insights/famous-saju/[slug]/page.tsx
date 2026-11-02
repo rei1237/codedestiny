@@ -12,6 +12,8 @@ import { buildCelebrityMultiSystem, type MultiSystemRow } from "../../../../lib/
 import { buildAuthorPersonJsonLd } from "../../../../lib/structured-data";
 import { truncateToDisplayWidth } from "../../../../lib/seo";
 import { SEARCH_READING_PATHS } from "../../../../lib/i18n/search-reading-paths.mjs";
+import { BRAND_FACTS } from "../../../../lib/brand/brand-facts.mjs";
+import { toJsonLdDate } from "../../../../lib/seo/json-ld.mjs";
 
 type PageParams = { slug: string };
 type PageProps = { params: Promise<PageParams> };
@@ -783,13 +785,13 @@ export default async function FamousSajuInsightDetailPage({ params }: PageProps)
     image: [heroImageUrl],
     url: canonicalUrl,
     mainEntityOfPage: canonicalUrl,
-    datePublished: new Date(publication?.publishedAt || seo.publishedAt).toISOString(),
+    datePublished: toJsonLdDate(publication?.publishedAt || seo.publishedAt),
     // 검수된 원고는 검수일이 곧 수정일이다 — 사이트맵 lastmod(generate-sitemap.mjs)와 같은 값.
-    dateModified: new Date(publication?.updatedAt || reviewedAt || seo.updatedAt).toISOString(),
+    dateModified: toJsonLdDate(publication?.updatedAt || reviewedAt || seo.updatedAt),
     // 검수된 원고만 실명 저자(박병하 Person 노드). 템플릿 조립물에 사람의 경력을 붙이지 않는다.
-    author: reviewedAt ? buildAuthorPersonJsonLd() : { "@type": "Organization", name: "CODE DESTINY" },
+    author: reviewedAt ? buildAuthorPersonJsonLd() : { "@type": "Organization", "@id": `${SITE_ORIGIN}/#organization`, name: BRAND_FACTS.operator.name },
     ...(publication && profile ? { citation: [...new Set(profile.sources.map(source => source.url))] } : reviewedAt && editorial ? { citation: editorial.sources.map((source) => source.url) } : {}),
-    publisher: { "@type": "Organization", name: "CODE DESTINY" },
+    publisher: { "@id": `${SITE_ORIGIN}/#organization` },
     articleSection: seo.articleSection,
     keywords: seo.keywords.join(", "),
     inLanguage: "ko-KR",
@@ -817,7 +819,7 @@ export default async function FamousSajuInsightDetailPage({ params }: PageProps)
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Code Destiny", item: SITE_ORIGIN },
+      { "@type": "ListItem", position: 1, name: BRAND_FACTS.service.name, item: SITE_ORIGIN },
       { "@type": "ListItem", position: 2, name: "운세 인사이트", item: toAbsoluteUrl("/insights") },
       { "@type": "ListItem", position: 3, name: "유명인 사주 분석", item: toAbsoluteUrl("/insights/famous-saju") },
       { "@type": "ListItem", position: 4, name: `${celebrity.nameKo} 사주 분석`, item: canonicalUrl },

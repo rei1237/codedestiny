@@ -2,13 +2,13 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { buildSeoMetadata } from "@/lib/seo";
 import { siteSeo } from "@/lib/seo/siteSeo";
+import { serializeJsonLd } from "@/lib/seo/json-ld.mjs";
 import GuideCta from "@/app/components/GuideCta";
 import { GUIDE_CTA_TARGETS } from "@/app/components/guide-cta-targets";
 import {
   buildBreadcrumbJsonLd,
   buildCollectionPageJsonLd,
   buildFaqPageJsonLd,
-  buildWebPageJsonLd,
 } from "@/lib/structured-data";
 import {
   getIlganMonthlyMonthKeys,
@@ -96,7 +96,7 @@ export default function IlganMonthlyHubPage({ params }: { params: { month: strin
     { name: "사주", path: "/saju" },
     { name: "일간별 월간 운세", path },
   ]);
-  const webPageJsonLd = buildWebPageJsonLd({ title, description, path });
+  // CollectionPage 는 WebPage 와 같은 @id(#webpage)를 쓴다. 둘 다 내면 한 노드가 @type 둘로 갈라지므로 하나만 낸다.
   const collectionJsonLd = buildCollectionPageJsonLd({ title, description, path });
   const faqJsonLd = buildFaqPageJsonLd(HUB_FAQS);
 
@@ -188,10 +188,9 @@ export default function IlganMonthlyHubPage({ params }: { params: { month: strin
           운세 콘텐츠는 자기성찰을 위한 참고 정보입니다. 건강·법률·재무처럼 중요한 결정은 실제 조건과 해당 분야 전문가의 조언을 함께 확인하세요.
         </p>
       </main>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageJsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(collectionJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(faqJsonLd) }} />
     </>
   );
 }

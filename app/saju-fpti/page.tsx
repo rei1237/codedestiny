@@ -3,6 +3,7 @@ import SajuFptiRouteClient from "./SajuFptiRouteClient";
 import RouteMetadataLocaleSync from "../components/RouteMetadataLocaleSync";
 import ImmersiveRelatedLinks from "../components/ImmersiveRelatedLinks";
 import ServiceIntroSection from "../components/ServiceIntroSection";
+import { pageOpenGraph } from "../../lib/seo/page-open-graph";
 
 const SAJU_FPTI_METADATA_COPY = {
   ko: {
@@ -29,12 +30,15 @@ const SAJU_FPTI_METADATA_COPY = {
 
 const metadataCopy = SAJU_FPTI_METADATA_COPY.ko;
 
+const PAGE_URL = "https://code-destiny.com/saju-fpti";
+
 export const metadata: Metadata = {
   title: metadataCopy.title,
   description: metadataCopy.description,
   alternates: {
-    canonical: "/saju-fpti",
+    canonical: PAGE_URL,
   },
+  openGraph: pageOpenGraph(PAGE_URL),
 };
 
 export default function SajuFptiPage() {

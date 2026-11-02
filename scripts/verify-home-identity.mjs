@@ -17,7 +17,7 @@ import { JSDOM } from "jsdom";
 import { BRAND_FACTS, findFormerBrandNames } from "../lib/brand/brand-facts.mjs";
 
 const DIST = process.argv.find((arg) => arg.startsWith("--dist="))?.slice(7) || "dist";
-const PAGES = [
+export const PAGES = [
   { path: "/", file: "index.html", hreflang: false },
   { path: "/ggulggul/", file: "ggulggul/index.html", hreflang: true },
   { path: "/about/", file: "about/index.html", hreflang: true },

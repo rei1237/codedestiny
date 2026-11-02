@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ROOT_OPEN_GRAPH } from "@/lib/seo/page-open-graph";
 import type { ReactNode } from "react";
 
 const TAROT_PROMPT_MAKER_LAYOUT_TEXT_TRANSLATIONS = {
@@ -32,6 +33,7 @@ export const metadata: Metadata = {
     canonical: "/tarot/prompt-maker",
   },
   openGraph: {
+    ...ROOT_OPEN_GRAPH,
     title: tarotPromptMakerLayoutCopy.title,
     description: tarotPromptMakerLayoutCopy.ogDescription,
     url: "/tarot/prompt-maker",

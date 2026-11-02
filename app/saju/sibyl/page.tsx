@@ -1,5 +1,6 @@
 import FeatureLandingPage from "../../components/FeatureLandingPage";
 import RouteMetadataLocaleSync from "../../components/RouteMetadataLocaleSync";
+import { pageOpenGraph } from "../../../lib/seo/page-open-graph";
 
 const SERVICE = {
   h1: "시빌라 시스템 — 나의 연간 대비 리포트",
@@ -174,12 +175,15 @@ const SAJU_SIBYL_METADATA_COPY = {
 
 const metadataCopy = SAJU_SIBYL_METADATA_COPY.ko;
 
+const PAGE_URL = "https://code-destiny.com/saju/sibyl";
+
 export const metadata = {
   title: metadataCopy.title,
   description: metadataCopy.description,
   alternates: {
-    canonical: "https://code-destiny.com/saju/sibyl",
+    canonical: PAGE_URL,
   },
+  openGraph: pageOpenGraph(PAGE_URL),
 };
 
 export default function SajuSibylLandingPage() {

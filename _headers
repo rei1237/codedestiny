@@ -307,8 +307,8 @@
 # 404 가 이틀간 죽어 /points·/me·/login 이 무스타일로 뜬 경로다.
 #
 # (2) 2026-08-14 수정: 이 블록이 파일 앞쪽(#2)에 있던 동안, `/_next/static/chunks/*.js` 는
-# 여기와 `/*.js`(#80, max-age=86400) 에 **둘 다** 매칭됐다. 매칭되는 규칙은 전부 적용되고 같은
-# 헤더는 뒤에 있는 쪽이 이기므로, 규칙 수가 정확히 100개가 된 시점부터 immutable 이 조용히
+# 여기와 `/*.js`(#80, max-age=86400) 에 **둘 다** 매칭됐다. 매칭되는 규칙은 전부 적용되고
+# Cache-Control 의 같은 지시어(max-age)는 뒤 블록 값이 남으므로, 규칙 수가 정확히 100개가 된 시점부터 immutable 이 조용히
 # 깨져 있었다(86400 이 이겼다). 위 주석이 예고한 조건이 실제로 발생한 것이라 처방대로 옮겼다.
 # 🔴 이 블록을 다시 파일 앞쪽으로 되돌리지 말 것.
 /_next/static/*
@@ -321,7 +321,10 @@
   CDN-Cache-Control: public, max-age=604800
   Cloudflare-CDN-Cache-Control: public, max-age=604800
 
-# 🔴 이 블록은 반드시 위 `/js/*.js` **뒤**에 있어야 한다. 둘 다 매칭되고 같은 헤더는 뒤가 이긴다.
+# 🔴 이 블록은 반드시 위 `/js/*.js` **뒤**에 있어야 한다. 매칭된 블록의 헤더는 "뒤가 통째로 이기는" 게 아니라 모두 붙는다.
+#    Cache-Control 은 지시어 단위로 합쳐져 같은 지시어는 뒤 블록 값이 남고, CDN-Cache-Control 은 매칭된 블록 수만큼
+#    여러 줄로 나간다(운영 실측 2026-11-02 /js/shell/s-*.js: `public, max-age=31536000, stale-while-revalidate=2592000, immutable`
+#    + cdn-cache-control 604800·604800·31536000 세 줄). 그래서 순서가 정하는 것은 Cache-Control 의 max-age 다.
 # `/js/shell/s-<sha256 16자>.js` 는 scripts/externalize-dist-inline-scripts.mjs 가 셸의 인라인
 # 스크립트 본문을 해시해서 만든 파일이다 — **파일명 자체가 내용 해시**라 내용이 바뀌면 이름이
 # 바뀐다. 위 주석이 `/js/*.js` 를 immutable 로 못 올린다고 한 이유(무버전 참조 11곳)는 이 경로엔
@@ -352,7 +355,7 @@
   CDN-Cache-Control: public, max-age=604800
   Cloudflare-CDN-Cache-Control: public, max-age=604800
 
-# 배포 산출물에서 내용 해시로 생성한 셸 CSS. 위의 /css/*.css보다 뒤에 두어야 immutable이 이긴다.
+# 배포 산출물에서 내용 해시로 생성한 셸 CSS. 위의 /css/*.css보다 뒤에 두어야 Cache-Control max-age 가 1년으로 남는다(합쳐지는 방식은 위 `/js/shell/*` 주석).
 /css/shell/*.css
   Cache-Control: public, max-age=31536000, immutable
   CDN-Cache-Control: public, max-age=31536000, immutable
@@ -420,22 +423,22 @@
   CDN-Cache-Control: public, max-age=604800
   Cloudflare-CDN-Cache-Control: public, max-age=604800
 
-/music/*
+/audio/*.mp3
   Cache-Control: public, max-age=2592000, stale-while-revalidate=604800
   CDN-Cache-Control: public, max-age=604800
   Cloudflare-CDN-Cache-Control: public, max-age=604800
 
-/audio/*
+/DestinyCafe/*.webp
   Cache-Control: public, max-age=2592000, stale-while-revalidate=604800
   CDN-Cache-Control: public, max-age=604800
   Cloudflare-CDN-Cache-Control: public, max-age=604800
 
-/DestinyCafe/*
+/neo-operation-room/*.webp
   Cache-Control: public, max-age=2592000, stale-while-revalidate=604800
   CDN-Cache-Control: public, max-age=604800
   Cloudflare-CDN-Cache-Control: public, max-age=604800
 
-/neo-operation-room/*
+/neo-operation-room/*.json
   Cache-Control: public, max-age=2592000, stale-while-revalidate=604800
   CDN-Cache-Control: public, max-age=604800
   Cloudflare-CDN-Cache-Control: public, max-age=604800

@@ -26,11 +26,11 @@ try{
   for(const width of [360,390,430,1280]){
     const context=await browser.newContext({viewport:{width,height:900},serviceWorkers:'block',reducedMotion:'reduce'});
     let guest=false, verified=false, bound='', claims=0, unlocks=0;
-    const user={id:'fixture-member',_id:'fixture-member',name:'화면 검증',email:'fixture@example.test'};
+    let user={id:'fixture-member',_id:'fixture-member',name:'화면 검증',email:'fixture@example.test'};
     const profiles=[{id:'fixture-other',profileId:'fixture-other',name:'다른 프로필',birthDate:'1992-06-17',birth:{year:1992,month:6,day:17,hour:14,minute:0},gender:'F',location:{lat:37.5,lng:127,tzOffset:9}}, {id:'fixture-gift',profileId:'fixture-gift',name:'본인 선물 프로필',birthDate:'1990-05-15',birth:{year:1990,month:5,day:15,hour:12,minute:0},gender:'F',location:{lat:37.5,lng:127,tzOffset:9}}];
     const status=()=>({ok:true,eligibleEmail:false,verified,profileId:bound||null,features:SNU_SAJU_FEATURES,unlockedFeatureKeys:bound?SNU_SAJU_FEATURES.map(x=>x.featureKey):[]});
     await context.addInitScript(user=>{localStorage.setItem('fortune_auth_user',JSON.stringify(user));localStorage.setItem('fortune_auth_token','fixture-only');sessionStorage.setItem('privacyAgreed','true');},user);
-    await context.route('**/*',async route=>{
+    const routeFixture=async route=>{
       const url=new URL(route.request().url());if(url.origin!==origin)return route.abort();
       if(!url.pathname.startsWith('/api/'))return route.continue();
       const path=url.pathname,body=route.request().postDataJSON()||{};
@@ -47,7 +47,8 @@ try{
       if(path==='/api/saju/section')return send({ok:true,unlocked:true,featureKey:body.featureKey,html:'<article class="saju-summary-report"><h3>지금의 흐름</h3><p>프로필에 연결된 풀이 검증입니다.</p></article>'});
       if(path.includes('access-state'))return send({ok:true,userId:user.id,profileId:bound||'fixture-other',currentProfileId:bound||'fixture-other',authority:'server',completeness:'full',degraded:false,unlockMap:Object.fromEntries(SNU_SAJU_FEATURES.map(x=>[x.featureKey,true]))});
       return send({ok:false,code:'MOCK_ROUTE_NOT_IMPLEMENTED'},503);
-    });
+    };
+    await context.route('**/*',routeFixture);
     const page=await context.newPage();activePage=page;page.setDefaultTimeout(20000);
     await page.goto(origin+'/snu/',{waitUntil:'networkidle'});
     const essential=page.getByRole('button',{name:'필수만 사용',exact:true});if(await essential.isVisible())await essential.click();
@@ -84,21 +85,30 @@ try{
     assert(await page.locator('#snuReadingContents nav a').first().isVisible());
     assert.equal(await page.locator('.saju-reading-toc').count(),1);
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);
-    const guideAction=page.locator('#cdActivationGuide a');
-    await guideAction.waitFor({state:'visible'});
-    assert(await guideAction.evaluate(link=>{
-      const box=link.getBoundingClientRect();
-      const hit=document.elementFromPoint(box.x+box.width/2,box.y+box.height/2);
-      return hit===link||link.contains(hit);
-    }),'the gift guide action must remain above the fixed navigation');
+    assert.equal(await page.locator('#cdActivationGuide').count(),0,'completed reading must not receive an unrelated reward invitation');
     await page.screenshot({path:resolve(output,`snu-reading-${width}.png`)});
     await page.goto(origin+'/snu/',{waitUntil:'networkidle'});await result.waitFor();
     guest=true;
     await page.evaluate(()=>{localStorage.removeItem('fortune_auth_user');localStorage.removeItem('fortune_auth_token');window.dispatchEvent(new CustomEvent('cd:auth-changed',{detail:{event:'logout'}}));});
     await page.getByRole('link',{name:'가입·로그인하기',exact:true}).waitFor();
     assert.equal(await page.getByRole('link',{name:'내 사주와 열린 콘텐츠 보기',exact:true}).count(),0);
-    rows.push({width,claims,unlocks,profile:'fixture-gift',shortcuts:10,overflow:false,guideActionUncovered:true,logoutCleared:true,keyboardGrant:true,focusMoved:true});
     await context.close();
+    // A separate account with a registered but unopened gift still needs its reminder.
+    guest=false;bound='';user={...user,id:'fixture-pending',_id:'fixture-pending',email:'pending@example.test'};
+    const pendingContext=await browser.newContext({viewport:{width,height:900},serviceWorkers:'block',reducedMotion:'reduce'});
+    await pendingContext.addInitScript(user=>{localStorage.setItem('fortune_auth_user',JSON.stringify(user));localStorage.setItem('fortune_auth_token','fixture-only');sessionStorage.setItem('privacyAgreed','true');},user);
+    await pendingContext.route('**/*',routeFixture);
+    const pendingPage=await pendingContext.newPage();activePage=pendingPage;
+    await pendingPage.goto(origin+'/ggulggul/',{waitUntil:'networkidle'});
+    const pendingConsent=pendingPage.getByRole('button',{name:'필수만 사용',exact:true});if(await pendingConsent.isVisible())await pendingConsent.click();
+    const welcomeClose=pendingPage.locator('dialog[open] [data-first-close]:visible').first();if(await welcomeClose.isVisible())await welcomeClose.click();
+    await pendingPage.locator('.cd-boot-gate__veil').waitFor({state:'hidden',timeout:60000});
+    const guideAction=pendingPage.locator('#cdActivationGuide a[href="/snu/"]');await guideAction.waitFor({state:'visible'});
+    assert(await guideAction.evaluate(link=>{const box=link.getBoundingClientRect();const hit=document.elementFromPoint(box.x+box.width/2,box.y+box.height/2);return hit===link||link.contains(hit);}), 'the pending gift reminder must remain above the fixed navigation');
+    assert.equal(unlocks,1,'a reminder must not grant a second gift');
+    await pendingPage.screenshot({path:resolve(output,`snu-partial-reminder-${width}.png`)});
+    rows.push({width,claims,unlocks,profile:'fixture-gift',shortcuts:10,overflow:false,completedGuideHidden:true,guideActionUncovered:true,logoutCleared:true,keyboardGrant:true,focusMoved:true});
+    await pendingContext.close();
   }
   await writeFile(resolve(output,'proof.json'),JSON.stringify(rows,null,2));
   await Promise.all(['failure.json','failure.png'].map(name=>rm(resolve(output,name),{force:true})));

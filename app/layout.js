@@ -17,6 +17,7 @@ import ShellHomeHardNavGuard from "./components/ShellHomeHardNavGuard";
 import ActivationEntry from './components/activation/ActivationEntry';
 import { SEO_CORE_KEYWORDS } from "../lib/seo-metadata";
 import { siteSeo } from "../lib/seo/siteSeo";
+import { ROOT_OPEN_GRAPH } from "../lib/seo/page-open-graph";
 import { serializeJsonLd } from "../lib/seo/json-ld.mjs";
 import {
   buildOrganizationJsonLd,
@@ -43,8 +44,6 @@ const ROOT_LAYOUT_COPY = {
 const ROOT_SEO = {
   title: "꿀꿀 운세 | 사주·타로·영냥이 상담",
   description: "꿀꿀 운세는 사주·타로 상담 서비스입니다. 꽃돼지 연이, 네오, 영냥이와 함께 자신의 기질과 관계를 살펴보고 일상에서 선택할 방향을 찾아보세요.",
-  ogTitle: siteSeo.defaultTitle,
-  ogDescription: siteSeo.defaultDescription,
 };
 
 export const metadata = {
@@ -100,26 +99,12 @@ export const metadata = {
   //    이 레이아웃의 메타데이터가 덮이므로, 홈의 canonical·hreflang 은 셸의 <head> 와
   //    사이트맵(scripts/generate-sitemap.mjs 의 i18nRouteGroups)이 담당한다.
   //    회귀 가드: scripts/verify-adsense-readiness.mjs 의 verifyNoInheritedHomeCanonical.
-  openGraph: {
-    type: "website",
-    locale: "ko_KR",
-    url: siteSeo.siteUrl,
-    siteName: siteSeo.brandName,
-    title: ROOT_SEO.ogTitle,
-    description: ROOT_SEO.ogDescription,
-    images: [
-      {
-        url: siteSeo.defaultOgImage,
-        width: 1200,
-        height: 630,
-        alt: "꿀꿀 운세 사주·타로 상담 서비스",
-      },
-    ],
-  },
+
+  // 하위 페이지가 홈 og:url·og:title 을 물려받지 않게 루트에는 공통 값(type·locale·siteName·images)만 둔다.
+  // 제목·설명·URL 은 각 페이지가 자기 openGraph 로 선언한다(홈은 app/page.js). 공통 값은 pageOpenGraph 와 한 벌이다.
+  openGraph: ROOT_OPEN_GRAPH,
   twitter: {
     card: siteSeo.twitterCard,
-    title: ROOT_SEO.ogTitle,
-    description: ROOT_SEO.ogDescription,
     images: [siteSeo.defaultOgImage],
   },
   // verification: 손대지 말 것 — 2026-08-13 Cloudflare DNS TXT 로 GSC 도메인 속성 인증을 마쳤다.

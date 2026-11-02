@@ -1,6 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { collectSitemapUrls, inspectPage, robotsAllows, sitemapDirectives } from './health-policy.mjs';
+import {
+  collectSitemapUrls, decodeHtml, getCanonical, getH1s, getHreflang, getInternalLinks, getJsonLd, getMeta, getTitle,
+  hasNoindex, inspectPage, parseHeaderRobotsRules, parseSitemapAlternates, robotsAllows, sitemapDirectives,
+} from './health-policy.mjs';
+import { parseRobotsGroups } from '../lib/robots-groups.mjs';
 
 test('declared index reaches child URLs without treating sitemap files as pages', async () => {
   const base = 'https://example.com';
@@ -53,6 +57,13 @@ test('crawler-specific group, longest path and allow tie', () => {
   assert.equal(robotsAllows('User-agent: Googlebot\nDisallow:\nUser-agent: *\nDisallow: /', '/saju/'), true);
 });
 
+test('robots groups ignore trailing comments and only Allow/Disallow close the agent list', () => {
+  assert.equal(robotsAllows('User-agent: GPTBot # training\nDisallow: / # all', '/saju/', 'GPTBot'), false);
+  const sitemapBetween = 'User-agent: CCBot\nSitemap: https://example.com/s.xml\nUser-agent: GPTBot\nDisallow: /';
+  assert.equal(robotsAllows(sitemapBetween, '/saju/', 'CCBot'), false);
+  assert.deepEqual(parseRobotsGroups(sitemapBetween), [{ agents: ['CCBot', 'GPTBot'], allow: [], disallow: ['/'] }]);
+});
+
 test('Yeti exclusions are checked independently of Googlebot and wildcard access', () => {
   const robots = 'User-agent: *\nAllow: /\nUser-agent: Googlebot\nAllow: /\nUser-agent: Yeti\nDisallow: /fortune/\nAllow: /fortune/tomorrow/rat/';
   assert.equal(robotsAllows(robots, '/fortune/tomorrow/tiger/', 'googlebot'), true);
@@ -67,4 +78,81 @@ test('duplicate metadata is detected without counting scripts or comments', () =
   assert.ok(issues.includes('description count 2'));
   const quoted = html.replace('</head>', '<!-- <title>comment</title> --><script>const example = "<title>example</title>";</script></head>');
   assert.deepEqual(inspectPage({ url, status: 200, html: quoted }), []);
+});
+
+test('shared parsers read canonical, hreflang, H1 and meta as arrays', () => {
+  const html = '<title> A  B </title><link rel="canonical" href="https://code-destiny.com/a/"><link rel="alternate" hreflang="ko" href="https://code-destiny.com/a/"><meta property="og:url" content="https://code-destiny.com/"><h1>x</h1><h1>y</h1>';
+  assert.equal(getTitle(html), 'A B');
+  assert.equal(getTitle('<p>no title</p>'), '');
+  assert.deepEqual(getCanonical(html), ['https://code-destiny.com/a/']);
+  assert.deepEqual(getHreflang(html), [{ lang: 'ko', href: 'https://code-destiny.com/a/' }]);
+  assert.deepEqual(getH1s(html), ['x', 'y']);
+  assert.deepEqual(getMeta(html, 'og:url'), ['https://code-destiny.com/']);
+});
+test('getJsonLd flattens arrays and @graph, keeps escaped text, and reports parse errors', () => {
+  const ld = (s) => `<script type="application/ld+json">${s}</script>`;
+  const { nodes, errors } = getJsonLd(ld('[{"@id":"#a","@type":"Thing"}]') + ld('{"@graph":[{"@id":"#b","name":"\\u003c/script>"}]}') + ld('{bad'));
+  assert.deepEqual(nodes.map((n) => n['@id']), ['#a', '#b']);
+  assert.equal(nodes[1].name, '</script>');
+  assert.equal(errors.length, 1);
+});
+test('getInternalLinks ignores fragments, functional schemes and other hosts', () => {
+  const html = ['/a/', '#top', '/a/#x', 'mailto:x@y', 'tel:1', '//cdn.example.com/a', 'https://example.com/b', 'https://code-destiny.com/c/?action=openTarotModal']
+    .map((href) => `<a href="${href}">x</a>`).join('');
+  assert.deepEqual(getInternalLinks(html, 'https://code-destiny.com'), ['/a/', '/a/', '/c/?action=openTarotModal']);
+});
+test('getInternalLinks reads href itself, not data-*-href attributes that follow it', () => {
+  const html = '<a class="tile" href="/palm-reading/" data-fallback-href="/x/" data-service-detail-href="/services/palm-reading/">손금</a>';
+  assert.deepEqual(getInternalLinks(html, 'https://code-destiny.com'), ['/palm-reading/']);
+});
+test('getH1s ignores <h1> markup inside <script> strings', () => {
+  assert.equal(getH1s('<h1>진짜</h1><script>el.innerHTML = "<h1>x</h1>";</script>').length, 1);
+});
+test('getInternalLinks skips markup built inside <script> strings', () => {
+  const html = `<script>el.innerHTML = '<a class="x" href="' + safeUrl + '">공유</a>';</script><a href="/real/">진짜</a>`;
+  assert.deepEqual(getInternalLinks(html, 'https://code-destiny.com'), ['/real/']);
+});
+test('parseSitemapAlternates maps each loc to its xhtml:link alternates', () => {
+  const xml = '<url><loc>https://code-destiny.com/a/</loc><xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/a/"/></url>';
+  assert.deepEqual(parseSitemapAlternates(xml).get('https://code-destiny.com/a/'), [{ lang: 'x-default', href: 'https://code-destiny.com/a/' }]);
+});
+test('hasNoindex reads robots and googlebot meta in either attribute order', () => {
+  assert.equal(hasNoindex('<meta name="robots" content="index,follow">'), false);
+  assert.equal(hasNoindex('<meta content="NOINDEX, nofollow" name="robots">'), true);
+  assert.equal(hasNoindex('<meta name="googlebot" content="noindex">'), true);
+});
+test('parseHeaderRobotsRules keeps only X-Robots-Tag rules on path patterns', () => {
+  const text = '# c\n/private/*\n  X-Robots-Tag: NoIndex\n/other\n  Cache-Control: no-store\n*.js\n  X-Robots-Tag: none\n';
+  assert.deepEqual(parseHeaderRobotsRules(text), [{ pattern: '/private/*', value: 'noindex' }]);
+});
+
+test('getHreflang decodes entities like getCanonical and sitemap alternates', () => {
+  const html = '<link rel="canonical" href="https://code-destiny.com/a/?b=1&amp;c=2"><link rel="alternate" hreflang="ko" href="https://code-destiny.com/a/?b=1&amp;c=2">';
+  assert.deepEqual(getHreflang(html), [{ lang: 'ko', href: 'https://code-destiny.com/a/?b=1&c=2' }]);
+  assert.equal(getHreflang(html)[0].href, getCanonical(html)[0]);
+});
+test('decodeHtml decodes each entity once and keeps > as >', () => {
+  assert.equal(decodeHtml('A &gt; B'), 'A > B');
+  assert.equal(decodeHtml('&amp;lt;b&amp;gt;'), '&lt;b&gt;');
+  assert.equal(decodeHtml('&quot;x&#39; &amp; y'), '"x\x27 & y');
+});
+test('shared parsers read uppercase tags, any attribute order and single-quoted values', () => {
+  const html = "<TITLE>T</TITLE><LINK HREF='https://code-destiny.com/a/' REL='canonical'><META CONTENT=\"d\" NAME=\"description\"><SCRIPT data-x=\"1\" TYPE='application/ld+json'>{\"@type\":\"Thing\"}</SCRIPT>";
+  assert.equal(getTitle(html), 'T');
+  assert.deepEqual(getCanonical(html), ['https://code-destiny.com/a/']);
+  assert.deepEqual(getMeta(html, 'description'), ['d']);
+  assert.deepEqual(getJsonLd(html).nodes, [{ '@type': 'Thing' }]);
+});
+test('getTitle skips <title> inside inline <svg>', () => {
+  assert.equal(getTitle('<svg><title>icon</title></svg><title>Page</title>'), 'Page');
+});
+test('getJsonLd keeps nested @graph shapes: arrays, graph in graph, bare containers dropped, containers with properties kept', () => {
+  const ld = (s) => `<script type="application/ld+json">${s}</script>`;
+  const html = ld('[{"@graph":[{"@id":"#in-array"}]}]')
+    + ld('{"@graph":[{"@id":"#outer","@graph":[{"@id":"#inner"}]}]}')
+    + ld('{"@context":"https://schema.org","@graph":[{"@id":"#ctx-child"}]}')
+    + ld('{"name":"own-props","@graph":[{"@id":"#own-child"}]}');
+  const { nodes, errors } = getJsonLd(html);
+  assert.deepEqual(errors, []);
+  assert.deepEqual(nodes.map((n) => n['@id'] ?? n.name), ['#in-array', '#outer', '#inner', '#ctx-child', 'own-props', '#own-child']);
 });

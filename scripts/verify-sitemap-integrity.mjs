@@ -1,11 +1,11 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { indexerGroups } from "./lib/robots-groups.mjs";
+import { renderRobotsTxt } from "../lib/seo/robots-policy.mjs";
 
 const rootDir = process.cwd();
 const sitemapPath = resolve(rootDir, "sitemap.xml");
 const publicSitemapPath = resolve(rootDir, "public", "sitemap.xml");
-const robotsPath = resolve(rootDir, "robots.txt");
 const headersPath = resolve(rootDir, "public", "_headers");
 
 const LIVE_ORIGIN = "https://code-destiny.com";
@@ -114,7 +114,9 @@ function matchesRobotsDisallow(disallowPath, pathname) {
 function assertLocalSitemaps() {
   const rootXml = readFileSync(sitemapPath, "utf8");
   const publicXml = readFileSync(publicSitemapPath, "utf8");
-  const robotsText = readFileSync(robotsPath, "utf8");
+  // 이 검사는 배포 워크플로에서 빌드 전에 돈다. dist 가 없으니 정본을 렌더해 읽고,
+  // 배포본(dist/robots.txt)과 정본이 같은지는 빌드 뒤 verify-dist `robots-policy` 가 본다.
+  const robotsText = renderRobotsTxt();
   const headersText = readFileSync(headersPath, "utf8");
 
   const rootUrls = parseSitemapUrls(rootXml);

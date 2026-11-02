@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import DestinyMeetingPlaceRouteClient from "./DestinyMeetingPlaceRouteClient";
 import RouteMetadataLocaleSync from "../../components/RouteMetadataLocaleSync";
+import { pageOpenGraph } from "../../../lib/seo/page-open-graph";
 import ImmersiveRelatedLinks from "../../components/ImmersiveRelatedLinks";
 import YehwaCard from "../../components/service-intro/YehwaCard";
 
@@ -29,12 +30,15 @@ const DESTINY_MEETING_PLACE_METADATA_COPY = {
 
 const metadataCopy = DESTINY_MEETING_PLACE_METADATA_COPY.ko;
 
+const PAGE_URL = "https://code-destiny.com/saju/destiny-meeting-place";
+
 export const metadata: Metadata = {
   title: metadataCopy.title,
   description: metadataCopy.description,
   alternates: {
-    canonical: "https://code-destiny.com/saju/destiny-meeting-place",
+    canonical: PAGE_URL,
   },
+  openGraph: pageOpenGraph(PAGE_URL),
   robots: {
     index: true,
     follow: true,
