@@ -13,7 +13,7 @@ export async function generateMetadata({ params }) {
   const { slug } = await params;
   const recipe = RECIPES.find((r) => r.slug === slug);
   if (!recipe) return {};
-  return buildSeoMetadata({ path: recipePath(recipe), title: `${recipe.name} 레시피, ${recipe.taste}의 오행 요리 | ${BRAND_FACTS.service.name}`, description: recipe.description, ogImage: recipeImage(recipe), ogType: 'article' });
+  return buildSeoMetadata({ path: recipePath(recipe), title: `${recipe.name} 레시피 | ${BRAND_FACTS.service.name}`, description: recipe.description, ogImage: recipeImage(recipe), ogType: 'article' });
 }
 export default async function RecipePage({ params }) {
   const { slug } = await params;
