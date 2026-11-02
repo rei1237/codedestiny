@@ -104,7 +104,6 @@ const FEATURE_NAV_EXTRA_ROUTES = [
 // Premium fortune routes that own their complete in-experience navigation.
 // They must not inherit the site header, footer, floating feature nav, or mobile tab bar.
 const IMMERSIVE_FORTUNE_ROUTES = [
-  "/recipes",
   "/psychotest",
   "/checkout",
   "/yeongnyangi",
@@ -113,6 +112,7 @@ const IMMERSIVE_FORTUNE_ROUTES = [
   "/fortune-chat",
   // The partner benefit owns its compact home navigation and legal links.
   "/snu",
+  "/recipes",
 ];
 
 // Routes that render their own in-experience back/home controls, so the global
