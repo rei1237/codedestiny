@@ -162,6 +162,34 @@
       "status": 0,
       "widths": 4,
       "externalRequests": 0
-    }
+    },
+    "prePush": {
+      "command": "npm run check:pre-push",
+      "guard": "tools/oracle/next-delivery/guard.cjs",
+      "status": 0,
+      "checkedCommit": "2c5212816",
+      "checks": [
+        "home-service-registry",
+        "public-mirror-fresh",
+        "sitemap-drift",
+        "llms-txt-check",
+        "seo-entity-registry"
+      ],
+      "priorFailures": [
+        "sandbox Git index.lock denial after mirror generation",
+        "generated sitemap source signatures required update"
+      ],
+      "corrections": [
+        "9612c33a0: content-hash-only shell references",
+        "2c5212816: sitemap source signatures and lastmod only"
+      ],
+      "pushed": false,
+      "deployed": false
+    },
+    "cleanup": [
+      ".tmp/engine-audit-next",
+      ".tmp/engine-audit-browser-delivery",
+      ".tmp/engine-audit-typecheck"
+    ]
   }
 }

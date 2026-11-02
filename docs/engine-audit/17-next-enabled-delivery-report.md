@@ -23,6 +23,10 @@ next: 로컬 승인 범위 완료. 운영 통합·실제 연동·활성화는 �
 
 ## 중간 실행 기록 (최종 결과와 구분)
 
+전달 전 마감: `npm run check:pre-push`가 `2c5212816`에서 exit 0. home registry, public mirror fresh, sitemap drift, llms 텍스트, SEO entity registry 모두 통과했다. 최초 실행은 미러 검사기의 Git 복원 권한 문제로 실패했다. 생성된 8개 셸은 `v=build-*` 해시 외 동일함을 확인해 `9612c33a0`에 커밋했다. 이어 사이트맵 원장 드리프트는 실제 변경한 공유 표시 소스의 서명을 갱신해 `2c5212816`에 커밋했다. 사이트맵 URL·priority·alternates는 동일하고 lastmod만 바뀌었다. 마지막으로 보호/검증 소스 해시 전체가 증거와 같음을 확인했다.
+
+자기 임시 Next/component 번들 및 타입 캐시 세 디렉터리는 절대 경로·중첩 reparse point 검사 후 삭제했다. 테스트 서버/브라우저는 종료했다. 기존 누적 감사 워크트리는 아직 main에 통합하지 않았으므로 결과 커밋과 함께 보존한다. 다른 세션의 main 변경, 기존 로컬 Mongo 자료는 건드리지 않았다. GitHub CI·push·배포는 실행하지 않았다.
+
 엔진 전달 12개 시나리오 통과: ON normal/prepare-race/delayed-auth/boundary/partial/storage-failure/concurrent/legacy/unsupported, rollback normal/partial, OFF normal. 부분 생성 2개 사례는 생성 호출 2회·승인/사용 1회, 범위 밖은 모두 0, 나머지는 각각 1회. 재열람은 추가 호출·쓰기 없이 보존된다. 브라우저 오류 0. 이 묶음은 고객 결과 우선 UI의 최종 검증 이전 기록이며, 변경된 화면은 별도로 재검증한다.
 
 초기 단위 검사에서 주문 create 경합을 발견해 수정했다. 이후 102개 검사 중 101개 통과, 1개 실패는 기존 `createOrReusePaymentPayload` 소스 고정 검사였다. 해당 helper만 새 해시로 고정하고 나머지 보호 함수 비교는 유지했다. 그 변경 후 관련 20개 검사 통과. 최초 보호 파일 비교는 Next 실행 중 임시 `next-env.d.ts` 때문에 실패했으므로 최종 검사는 Next 종료 후 순차 실행한다.
