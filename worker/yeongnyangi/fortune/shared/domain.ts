@@ -1,3 +1,4 @@
+import {attachNatalProfile} from './natal-profile';
 import { SAJU_ENGINE_VERSION } from "../../../../lib/korean-calendar/index.js";
 import {
   CalculationOptions,
@@ -23,7 +24,7 @@ export function domain(
   return {
     id,
     validateInput: (x) => validateInput(x, id),
-    calculate: async (input, options) => pinDomainFacts(await calculate(input, options), input, options),
+    calculate: async (input, options) => pinDomainFacts(attachNatalProfile(await calculate(input, options), input, options), input, options),
     buildContext: (c) => {
       if (
         c.domain !== id ||
