@@ -1,3 +1,4 @@
+import { connectNewYearTiming, readRepresentativeFacts } from '../lib/representative-consumer-facts.js';
 import { runWithAiLocale, storedAiLocale } from '../lib/ai-locale-context.js';
 import {calculateNatalSaju} from "../../lib/korean-calendar/index.js";
 import { buildSajuNatalAnalysis, SAJU_ELEMENT_KO } from "../lib/saju-natal-analysis.js";
@@ -1375,6 +1376,11 @@ function buildCanonicalNewYearFacts(fortuneData = {}) {
   const trigger = fortuneData.advancedSajuSummary?.daewoonSewoon?.annualEventTrigger || null;
   const monthly = Array.isArray(fortuneData.monthlyFlow) ? fortuneData.monthlyFlow : [];
   const lines = sajuTemperamentPromptLines({...fortuneData.saju,natalAnalysis:fortuneData.natalAnalysis,calculationMeta:fortuneData.calculationMeta});
+  if (fortuneData.majorLuck) {
+    const luck = fortuneData.majorLuck;
+    lines.push('대운 근거: ' + JSON.stringify(luck));
+    lines.push('원국·대운·세운을 구분합니다. available=false 또는 currentCycle이 없으면 대운 시작일·현재 구간을 추정하지 않습니다.');
+  }
   if (target.pillar) {
     lines.push(`세운: ${target.year}년 ${target.pillar} (천간 ${target.stem}=${target.stemElement}, 지지 ${target.branch}=${target.branchElement}, 일간 기준 십신 ${target.tenGodToDayMaster || "미산출"})`);
   }
@@ -2560,7 +2566,11 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
     return json({ ...publicSession(existing), status: 'generating' }, { status: 202 });
   }
   let fortuneData;
-  try { fortuneData = existing?.llmMeta?.fortuneData || calculateNewYearFortuneData(normalized.input); }
+  try {
+    fortuneData = existing?.llmMeta?.fortuneData
+      ? readRepresentativeFacts(existing.llmMeta.fortuneData, 'new-year')
+      : connectNewYearTiming(calculateNewYearFortuneData(normalized.input), normalized.input.birthInfo, existing ? {} : env);
+  }
   catch (error) {
     if (!existing) await releaseRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds });
     if (!existing && access.deferredUsage) await callDeferredUsageRoute({ request, env, auth, path: 'cancel', idempotencyKey, sessionId,

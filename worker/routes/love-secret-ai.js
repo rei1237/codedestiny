@@ -1,3 +1,4 @@
+import { pinRepresentativeFacts, readRepresentativeFacts } from '../lib/representative-consumer-facts.js';
 import { createHash } from "node:crypto";
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
 import { isStoredPaidResultRevoked } from "../lib/paid-result-revocation.js";
@@ -1544,11 +1545,13 @@ async function handleStart(request, env, route = "/api/love-secret-ai/generate",
   let sajuResult;
   try {
     logLoveSecretAi("Fortune Data Start", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
-    sajuResult = existing?.sajuResult || calculateLoveSecretAiSaju(normalized);
-    // 6개 그룹 프롬프트 전부에 같은 문자열로 들어가는 계산 확정값(병렬 생성물의 일관성 앵커).
-    sajuResult.facts = buildLoveSecretGroundingFacts(sajuResult);
+    sajuResult = existing?.sajuResult ? readRepresentativeFacts(existing.sajuResult, 'love-secret') : calculateLoveSecretAiSaju(normalized);
+    // A new seed pins the shared facts once; already pinned retries keep their original grounding text.
+    if (!sajuResult.consumerFactIdentity) sajuResult.facts = buildLoveSecretGroundingFacts(sajuResult);
+    if (!existing) sajuResult = pinRepresentativeFacts(sajuResult, env, 'love-secret');
     logLoveSecretAi("Fortune Data Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
   } catch (error) {
+    if (error?.message === 'REPRESENTATIVE_FACTS_MISMATCH') return json({ ok: false, reason: error.message }, { status: 409 });
     logLoveSecretAi("LLM Error", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "fortune_data_failed", access: access.accessType, env, error }), "error");
     const restored = await restoreBillingGateAccessOnFailure({ env, userId: auth.userId, access, idempotencyKey, pricing, error }).catch((restoreError) => ({ restored: false, error: clean(restoreError?.message || restoreError, 300) }));
     logLoveSecretAi("LLM Refund Or Restore", {
