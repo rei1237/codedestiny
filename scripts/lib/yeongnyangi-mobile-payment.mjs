@@ -31,8 +31,8 @@ export async function fixtures(browser,base,product,width=390,{monthlyBalance=0}
  const authUser=()=>({...user,profileSubscription:{tier:'free',isActive:false,membershipCreditBalance:state.monthlyBalance}});
  state.profiles=[{profileId:'shared-profile',name:'QA 고객',birth:{year:1990,month:6,day:15,hour:14,minute:30},location:{label:'대한민국 부산'}}];state.profileCreates=0;state.creates=0;
  state.resources=[];state.blocked=[];state.http=[];state.apiInFlight=new Map();state.visited=[];state.pageErrorDetails=[];
- state.pageIds=new WeakMap();let nextPageId=0;
- context.on('request',request=>{const path=new URL(request.url()).pathname;if(path.startsWith('/api/')&&path!=='/api/billing/funnel-event')state.apiInFlight.set(request,request.frame().page());});
+ state.pageIds=new WeakMap();state.requestStartedAt=new WeakMap();let nextPageId=0;
+ context.on('request',request=>{const path=new URL(request.url()).pathname;if(path.startsWith('/api/')&&path!=='/api/billing/funnel-event'){state.requestStartedAt.set(request,Date.now());state.apiInFlight.set(request,request.frame().page());}});
  const finishRequest=request=>state.apiInFlight.delete(request);
  context.on('requestfinished',finishRequest);context.on('requestfailed',finishRequest);
  context.on('response',response=>{const url=new URL(response.url());if(url.pathname.startsWith('/_next/'))state.resources.push({path:url.pathname,status:response.status()});});
@@ -69,7 +69,8 @@ export async function fixtures(browser,base,product,width=390,{monthlyBalance=0}
   const request=route.request(),url=new URL(request.url()),path=url.pathname;
   const send=async(body,status=200,headers={})=>{
    const pageId=request.frame?state.pageIds.get(request.frame().page()):undefined;
-   const startedAt=request.timing?.().startTime??Date.now();
+   // Intercepted Playwright requests report timing().startTime=0 until served.
+   const startedAt=state.requestStartedAt.get(request)??Date.now();
    await route.fulfill({status,json:body,headers:{'Access-Control-Allow-Origin':base,'Access-Control-Allow-Credentials':'true','Cache-Control':'no-store','Pragma':'no-cache',...headers}});
    state.http.push({path,method:request.method(),status,pageId,startedAt,paid:body?.fortune?.paid,read503:state.read503,activate503:state.activate503});
   };
