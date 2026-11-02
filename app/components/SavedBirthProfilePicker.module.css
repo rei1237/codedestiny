@@ -1,17 +1,45 @@
-.card { position:relative; box-sizing:border-box; width:100%; min-width:0; grid-column:1/-1; padding:12px 14px 12px; margin-block:4px 12px; border:1px solid var(--cd-samples-line); border-radius:var(--cd-r-md); background:var(--cd-samples-lilac); color:var(--cd-samples-ink); text-align:left; }
-.heading { display:flex; align-items:center; gap:8px; min-height:32px; margin-bottom:6px; }
-.heading > svg { color:var(--cd-samples-muted); flex-shrink:0; }
-/* 글자색은 카드가 소유한다. 페이지 폼 규칙(.form label, .form p 등)이 밝은 글자색을 내려
-   밝은 카드 위에 밝은 글자가 올라갔다(2026-10-30 초융합 라벨 1.11:1, 신년운세 1.18:1). 그래서 두 단계 선택자로 묶는다. */
-/* 전역 탭 영역 규칙(label[for] min-height 44px)으로 라벨이 44px가 되고 글자는 위에 붙어, 가운데 놓인 달 아이콘보다
-   12.5px 위에 떴다(2026-10-31 실측). 탭 영역은 두고 글자를 상자 가운데로 내린다. */
-.card .heading label { display:flex; align-items:center; margin:0; padding:0; font-size:.9rem; font-weight:700; line-height:1.4; letter-spacing:normal; color:var(--cd-samples-ink); }
-.refresh { margin-left:auto; display:grid; place-items:center; width:44px; height:44px; padding:0; border:1px solid var(--cd-samples-line); border-radius:50%; color:var(--cd-samples-muted); background:var(--cd-samples-sheet); cursor:pointer; }
-.card select { box-sizing:border-box; min-height:48px; width:100%; max-width:100%; min-width:0; padding:10px 12px; color:var(--cd-samples-ink); background:var(--cd-samples-sheet); border:1px solid var(--cd-samples-line); border-radius:var(--cd-r-control); font:inherit; font-size:16px; text-overflow:ellipsis; }
-.card option { color:var(--cd-samples-ink); background:var(--cd-samples-sheet); }
-.card p.hint { margin:6px 0 0; color:var(--cd-samples-muted); font-size:.8rem; font-weight:500; line-height:1.6; letter-spacing:normal; word-break:keep-all; overflow-wrap:anywhere; }
-.card :is(select,button):focus-visible { outline:2px solid var(--cd-samples-rose); outline-offset:3px; }
+/* A small moonlit paper note. Its ink stays dark even inside a night form. */
+.card {
+  position:relative;
+  isolation:isolate;
+  box-sizing:border-box;
+  width:100%;
+  min-width:0;
+  grid-column:1/-1;
+  flex:0 0 100%;
+  padding:18px;
+  margin-block:4px 14px;
+  border:1px solid color-mix(in srgb,var(--cd-yehwa-line) 72%,var(--cd-samples-paper));
+  border-radius:var(--cd-r-sm);
+  background:linear-gradient(135deg,color-mix(in srgb,var(--cd-yehwa-line) 7%,var(--cd-samples-paper)),var(--cd-samples-paper) 62%);
+  box-shadow:0 10px 24px -20px color-mix(in srgb,var(--cd-samples-ink) 45%,transparent);
+  color:var(--cd-samples-ink);
+  font-family:var(--font-body);
+  text-align:left;
+}
+.card::before {
+  content:"";
+  position:absolute;
+  inset:5px;
+  border:1px solid color-mix(in srgb,var(--cd-yehwa-line) 32%,transparent);
+  border-radius:calc(var(--cd-r-sm) - 4px);
+  pointer-events:none;
+}
+.heading { display:flex; align-items:center; gap:10px; min-width:0; min-height:44px; margin-bottom:10px; }
+.heading > svg { color:color-mix(in srgb,var(--cd-yehwa-line-deep) 55%,var(--cd-samples-ink)); stroke-width:1.6; flex-shrink:0; }
+/* The component owns its ink: host .form label/.form p rules must not put
+   pale night text on this paper. Keep the 44px label vertically centered. */
+.card .heading label { display:flex; align-items:center; min-width:0; margin:0; padding:0; color:var(--cd-samples-ink); font-family:var(--font-body); font-size:1rem; font-weight:650; line-height:1.5; letter-spacing:normal; overflow-wrap:anywhere; }
+.refresh { display:grid; place-items:center; flex:0 0 44px; width:44px; height:44px; margin-left:auto; padding:0; border:1px solid color-mix(in srgb,var(--cd-samples-muted) 72%,var(--cd-samples-paper)); border-radius:var(--cd-r-sm); color:var(--cd-samples-muted); background:var(--cd-samples-paper); cursor:pointer; }
+.card[data-saved-birth-profile] select { box-sizing:border-box; width:100%; min-width:0; max-width:100%; min-height:52px; padding:12px 14px; border:1px solid color-mix(in srgb,var(--cd-samples-muted) 72%,var(--cd-samples-paper)); border-radius:var(--cd-r-sm); color:var(--cd-samples-ink); background:var(--cd-samples-sheet); color-scheme:light; font:inherit; font-size:16px; line-height:1.5; text-overflow:ellipsis; }
+.card[data-saved-birth-profile] option { color:var(--cd-samples-ink); background:var(--cd-samples-sheet); }
+.card p.hint { margin:10px 0 0; color:var(--cd-samples-muted); font-family:var(--font-body); font-size:.875rem; font-weight:500; line-height:1.65; letter-spacing:normal; word-break:keep-all; overflow-wrap:anywhere; }
+.card[data-saved-birth-profile] :is(select,button):focus-visible { outline:2px solid var(--cd-samples-rose); outline-offset:3px; }
 .card :disabled { opacity:.65; cursor:default; }
-
-.card { flex:0 0 100%; }
+.card ::selection { color:var(--cd-samples-ink); background:var(--cd-samples-blush); }
+@media(hover:hover) {
+  .card[data-saved-birth-profile] select:not(:disabled):hover,.refresh:not(:disabled):hover { border-color:var(--cd-samples-rose); }
+  .refresh:not(:disabled):hover { background:var(--cd-samples-sheet); }
+}
+@media(max-width:430px) { .card { padding-inline:16px; } }
 :global(div):has(> .card) { flex-wrap:wrap; }

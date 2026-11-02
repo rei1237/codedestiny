@@ -1,0 +1,27 @@
+{
+  "tool": "built-in image_gen",
+  "generatedAt": "2026-10-12 Asia/Seoul",
+  "usage": "Generic illustrated cooking-guide poses, not per-dish ingredients",
+  "reference": "public/images/home/illustrated/yeoni-character-480.webp",
+  "export": "320px wide WebP quality84",
+  "assets": [
+    {
+      "key": "yeoni-prepare",
+      "file": "yeoni-prepare-2d.webp",
+      "source": "C:\\Users\\user\\.codex\\generated_images\\01a12b74-17e4-7352-bc59-4440069b68f3\\exec-c4064ed7-1c47-4e2f-a812-4d798c5e51c5.png",
+      "prompt": "Flat 2D storybook illustration, square canvas, solid warm ivory background, clean brown outlines and pastel watercolor blocks, no photorealism or 3D. Same pink lotus pig Yeoni as reference, purple ribbon, ivory chef apron and hat, lotus on head. Entire character and props in frame with margin, legible at 96px. No text or labels. Yeoni carefully weighs ingredients with a small kitchen scale and measuring jug on a low countertop. Simple unlabelled tools, no readable digits. Friendly focused expression."
+    },
+    {
+      "key": "yeoni-mix",
+      "file": "yeoni-mix-2d.webp",
+      "source": "C:\\Users\\user\\.codex\\generated_images\\01a12b74-17e4-7352-bc59-4440069b68f3\\exec-e467420a-616c-4a07-9ddb-1e19ecab58bd.png",
+      "prompt": "Flat 2D storybook illustration, square canvas, solid warm ivory background, clean brown outlines and pastel watercolor blocks, no photorealism or 3D. Same pink lotus pig Yeoni as reference, purple ribbon, ivory chef apron and hat, lotus on head. Entire character and props in frame with margin, legible at 96px. No text or labels. Yeoni gently stirs a cream mixing bowl with a wooden spoon at a low countertop. Friendly focused expression."
+    },
+    {
+      "key": "yeoni-cook",
+      "file": "yeoni-cook-2d.webp",
+      "source": "C:\\Users\\user\\.codex\\generated_images\\01a12b74-17e4-7352-bc59-4440069b68f3\\exec-43337a54-9906-4e93-b2fc-e29346bdd25f.png",
+      "prompt": "Flat 2D storybook illustration, square canvas, solid warm ivory background, clean brown outlines and pastel watercolor blocks, no photorealism or 3D. Same pink lotus pig Yeoni as reference, purple ribbon, ivory chef apron and hat, lotus on head. Entire character and props in frame with margin, legible at 96px. No text or labels. Yeoni safely stirs a small cooking pot on a countertop induction hob, another hoof wears a kitchen mitt holding the pot handle. No open flames, no steam covering the face. Friendly focused expression."
+    }
+  ]
+}

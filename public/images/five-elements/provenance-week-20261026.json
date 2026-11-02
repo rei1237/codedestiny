@@ -1,0 +1,48 @@
+{
+  "week": "2026-10-26",
+  "tool": "built-in image_gen",
+  "reference": "public/images/home/illustrated/yeoni-character-480.webp",
+  "export": {
+    "format": "webp",
+    "width": 1200,
+    "height": 800,
+    "quality": 84
+  },
+  "assets": [
+    {
+      "slug": "lemon-white-bean-stew",
+      "file": "lemon-white-bean-stew-2d.webp",
+      "source": "C:/Users/user/.codex/generated_images/01a12b74-17e4-7352-bc59-4440069b68f3/exec-3f013c18-9704-4c45-9cb2-d505778bdc6c.png",
+      "promptSummary": "Flat 2D pastel storybook, Yeoni pink pig lotus flower purple ribbon ivory chef hat and apron, finished dish foreground and cooking demonstration behind, no text, no 3D, no photorealism. 레몬 토마토 흰콩 스튜",
+      "outputHint": "Generated images are saved to C:\\Users\\user\\.codex\\generated_images\\01a12b74-17e4-7352-bc59-4440069b68f3 as C:\\Users\\user\\.codex\\generated_images\\01a12b74-17e4-7352-bc59-4440069b68f3\\exec-3f013c18-9704-4c45-9cb2-d505778bdc6c.png by default.\nIf you need to use a generated image at another path, copy it and leave the original in place unless the user explicitly asks you to delete it.\nThe generated image is already displayed to the user. There is no need to render it in the final response as a Markdown image or file link."
+    },
+    {
+      "slug": "chicory-mushroom-omelette",
+      "file": "chicory-mushroom-omelette-2d.webp",
+      "source": "C:/Users/user/.codex/generated_images/01a12b74-17e4-7352-bc59-4440069b68f3/exec-752cc346-b54c-4644-9e93-db15d48946be.png",
+      "promptSummary": "Flat 2D pastel storybook, Yeoni pink pig lotus flower purple ribbon ivory chef hat and apron, finished dish foreground and cooking demonstration behind, no text, no 3D, no photorealism. 치커리 버섯 오믈렛",
+      "outputHint": "Generated images are saved to C:\\Users\\user\\.codex\\generated_images\\01a12b74-17e4-7352-bc59-4440069b68f3 as C:\\Users\\user\\.codex\\generated_images\\01a12b74-17e4-7352-bc59-4440069b68f3\\exec-752cc346-b54c-4644-9e93-db15d48946be.png by default.\nIf you need to use a generated image at another path, copy it and leave the original in place unless the user explicitly asks you to delete it.\nThe generated image is already displayed to the user. There is no need to render it in the final response as a Markdown image or file link."
+    },
+    {
+      "slug": "pumpkin-oat-pancakes",
+      "file": "pumpkin-oat-pancakes-2d.webp",
+      "source": "C:/Users/user/.codex/generated_images/01a12b74-17e4-7352-bc59-4440069b68f3/exec-62089d71-6b57-4483-9bcf-e3a9ff5148c2.png",
+      "promptSummary": "Flat 2D pastel storybook, Yeoni pink pig lotus flower purple ribbon ivory chef hat and apron, finished dish foreground and cooking demonstration behind, no text, no 3D, no photorealism. 단호박 오트 팬케이크",
+      "outputHint": "Generated images are saved to C:\\Users\\user\\.codex\\generated_images\\01a12b74-17e4-7352-bc59-4440069b68f3 as C:\\Users\\user\\.codex\\generated_images\\01a12b74-17e4-7352-bc59-4440069b68f3\\exec-62089d71-6b57-4483-9bcf-e3a9ff5148c2.png by default.\nIf you need to use a generated image at another path, copy it and leave the original in place unless the user explicitly asks you to delete it.\nThe generated image is already displayed to the user. There is no need to render it in the final response as a Markdown image or file link."
+    },
+    {
+      "slug": "ginger-potato-rosti",
+      "file": "ginger-potato-rosti-2d.webp",
+      "source": "C:/Users/user/.codex/generated_images/01a12b74-17e4-7352-bc59-4440069b68f3/exec-551a918a-b9ea-46d8-bf2a-8d0701d4fe5a.png",
+      "promptSummary": "Flat 2D pastel storybook, Yeoni pink pig lotus flower purple ribbon ivory chef hat and apron, finished dish foreground and cooking demonstration behind, no text, no 3D, no photorealism. 생강 대파 감자채전",
+      "outputHint": "Generated images are saved to C:\\Users\\user\\.codex\\generated_images\\01a12b74-17e4-7352-bc59-4440069b68f3 as C:\\Users\\user\\.codex\\generated_images\\01a12b74-17e4-7352-bc59-4440069b68f3\\exec-551a918a-b9ea-46d8-bf2a-8d0701d4fe5a.png by default.\nIf you need to use a generated image at another path, copy it and leave the original in place unless the user explicitly asks you to delete it.\nThe generated image is already displayed to the user. There is no need to render it in the final response as a Markdown image or file link."
+    },
+    {
+      "slug": "miso-eggplant-tofu-bowl",
+      "file": "miso-eggplant-tofu-bowl-2d.webp",
+      "source": "C:/Users/user/.codex/generated_images/01a12b74-17e4-7352-bc59-4440069b68f3/exec-0ce5a20f-4414-40cb-863b-e54d14e0624e.png",
+      "promptSummary": "Flat 2D pastel storybook, Yeoni pink pig lotus flower purple ribbon ivory chef hat and apron, finished dish foreground and cooking demonstration behind, no text, no 3D, no photorealism. 미소 가지 두부 덮밥",
+      "outputHint": "Generated images are saved to C:\\Users\\user\\.codex\\generated_images\\01a12b74-17e4-7352-bc59-4440069b68f3 as C:\\Users\\user\\.codex\\generated_images\\01a12b74-17e4-7352-bc59-4440069b68f3\\exec-0ce5a20f-4414-40cb-863b-e54d14e0624e.png by default.\nIf you need to use a generated image at another path, copy it and leave the original in place unless the user explicitly asks you to delete it.\nThe generated image is already displayed to the user. There is no need to render it in the final response as a Markdown image or file link."
+    }
+  ]
+}
