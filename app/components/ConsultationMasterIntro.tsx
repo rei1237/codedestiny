@@ -41,7 +41,7 @@ export default function ConsultationMasterIntro({ kind, compact = false, childre
   const copy = translated[locale];
   const title = copy[kind === "karma" ? 0 : 1];
   return <section className={styles.room} data-master-room={kind} data-compact={compact || undefined} aria-label={title}>
-    <img className={styles.art} src={`/images/service-introductions/${room.image}-640.webp`} srcSet={`/images/service-introductions/${room.image}-320.webp 320w, /images/service-introductions/${room.image}-480.webp 480w, /images/service-introductions/${room.image}-640.webp 640w, /images/service-introductions/${room.image}-960.webp 960w, /images/service-introductions/${room.image}.webp 1536w`} sizes={compact ? "160px" : "(max-width: 960px) 100vw, 52vw"} width={1536} height={1024} alt={isKo ? room.alt : title} fetchPriority={compact ? "auto" : "high"} decoding="async" />
+    <img className={styles.art} src={`/images/service-introductions/${room.image}-640.webp`} srcSet={`/images/service-introductions/${room.image}-320.webp 320w, /images/service-introductions/${room.image}-400.webp 400w, /images/service-introductions/${room.image}-480.webp 480w, /images/service-introductions/${room.image}-640.webp 640w, /images/service-introductions/${room.image}-960.webp 960w, /images/service-introductions/${room.image}.webp 1536w`} sizes={compact ? "160px" : "(max-width: 960px) 100vw, 52vw"} width={1536} height={1024} alt={isKo ? room.alt : title} fetchPriority={compact ? "auto" : "high"} decoding="async" />
     <div className={styles.copy}>
       <p className={styles.eyebrow}>{isKo ? room.label : label || (kind === "karma" ? "Neo · Seo Hanbi" : "Yun-dal")}</p>
       <h2>{title}</h2>

@@ -53,5 +53,5 @@ export function NativeHomeCardLink({name, action, external, ...props}: {
   const accessibleLabel = `${label} ${translate(action, locale)}`;
   return external
     ? <a {...props} aria-label={accessibleLabel}>{label}</a>
-    : <Link {...props} prefetch={IS_APP_BUILD ? false : undefined} aria-label={accessibleLabel}>{label}</Link>;
+    : <Link {...props} prefetch={false} aria-label={accessibleLabel}>{label}</Link>;
 }

@@ -148,7 +148,7 @@
   .heroCopy { display: contents; }
   .heroCopy > * { grid-column: 1 / -1; }
   .bookObject, .letterObject { grid-column: 1; grid-row: 1; width: 88px; }
-  .bookObject { padding: 18% 12% 8% 18%; background-image: url('/images/expert-consulting/life-book-cover-20260923-600.webp'); }
+  .bookObject { padding: 18% 12% 8% 18%; background-image: url('/images/expert-consulting/life-book-cover-20260923-176.webp'); }
   .letterObject { padding: 0; }
   .coverTitle { font-size: 11px; line-height: 1.4; }
   .coverSubtitle, .letterObject .coverTitle { display: none; }

@@ -1766,9 +1766,10 @@ function getNamingCopy(locale: LoadingLocale): NamingCopy {
 }
 
 function useNamingLocale(): LoadingLocale {
-  const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
+  const [locale, setLocale] = useState<LoadingLocale>("ko");
   useEffect(() => {
     const sync = () => setLocale(getCurrentLoadingLocale());
+    sync();
     window.addEventListener("languagechange", sync);
     window.addEventListener("cd:locale-ready", sync);
     return () => {
@@ -2025,10 +2026,12 @@ const PHASE_PROGRESS: Record<Phase, number> = {
 };
 
 export default function NamingAiClient() {
+  const [clientReady, setClientReady] = useState(false);
+  useEffect(() => { setClientReady(true); }, []);
   const locale = useNamingLocale();
   const copy = getNamingCopy(locale);
   const { seed } = useAiProfileSeed();
-  const [form, setForm] = useState<FormState>(() => ({ ...INITIAL_FORM, birthPlace: copy.defaultBirthPlace }));
+  const [form, setForm] = useState<FormState>(() => ({ ...INITIAL_FORM, birthPlace: getNamingCopy(getCurrentLoadingLocale()).defaultBirthPlace }));
   const [engineOptIn] = useState(readNamingEngineOptIn);
   const defaultBirthPlaceRef = useRef(form.birthPlace);
   const [phase, setPhase] = useState<Phase>("idle");
@@ -2433,7 +2436,7 @@ export default function NamingAiClient() {
   return (
     // 셸 색은 naming-tone.module.css(--nm-*) — v1 은 네오 밤 값 그대로, v2 opt-in 일 때만 밝은 연이 표지 값(작명서와 같은 바탕).
     // 위 여백 pt-20 — AppChrome 좌상단 고정 나브(top 12px + 44px)가 히어로 머리를 덮지 않게 결과 화면과 같은 값.
-    <main className={`${tone.shell} ${engineOptIn ? tone.light : ""} relative min-h-screen overflow-hidden bg-[color:var(--nm-b-0a0818)] px-4 pb-9 pt-20 text-[color:var(--nm-t-f4eeff)] [font-family:var(--font-body)] sm:pb-12`}>
+    <main className={`${tone.shell} ${(!clientReady || engineOptIn) ? tone.light : ""} relative min-h-screen overflow-hidden bg-[color:var(--nm-b-0a0818)] px-4 pb-9 pt-20 text-[color:var(--nm-t-f4eeff)] [font-family:var(--font-body)] sm:pb-12`}>
       <div className="pointer-events-none fixed inset-0 [background-image:var(--nm-backdrop-l)]" aria-hidden="true" />
       <div
         className="pointer-events-none fixed inset-0 opacity-70 [background:var(--nm-aura-l)]"
@@ -2464,7 +2467,7 @@ export default function NamingAiClient() {
             ))}
           </ul>
           <div className="mt-4">
-            <PriceBadge featureKey={FEATURE_KEY} className={engineOptIn ? "inline-flex items-center rounded-full border border-[color:var(--nm-badge-line)] bg-[color:var(--nm-badge-fill)] px-3 py-1 text-xs font-bold text-[color:var(--nm-badge-ink)]" : undefined} />
+            <PriceBadge featureKey={FEATURE_KEY} className={(!clientReady || engineOptIn) ? "inline-flex items-center rounded-full border border-[color:var(--nm-badge-line)] bg-[color:var(--nm-badge-fill)] px-3 py-1 text-xs font-bold text-[color:var(--nm-badge-ink)]" : undefined} />
           </div>
         </header>
 
@@ -2477,7 +2480,7 @@ export default function NamingAiClient() {
         {showGeneratingCard ? (
           <NamingGeneratingCard phase={phase} />
         ) : (
-          <form data-moonlit-form=""
+          (clientReady && (<form data-moonlit-form=""
             className="grid gap-6 lg:grid-cols-[1.12fr_0.88fr]"
             onSubmit={(event) => {
               event.preventDefault();
@@ -2978,7 +2981,7 @@ export default function NamingAiClient() {
                 {copy.footerNote}
               </p>
             </aside>
-          </form>
+          </form>))
         )}
       </div>
     </main>

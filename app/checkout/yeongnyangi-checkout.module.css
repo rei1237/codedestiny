@@ -63,7 +63,7 @@
   .header h1 {font-size:1.65rem;max-width:8ch;margin-bottom:12px}
   .intro p {font-size:.85rem;line-height:1.7}
   .art {width:140px;height:185px}
-  .art img {width:170px;height:185px;max-width:none;margin-left:-20px}
+  .art img {width:140px;height:185px;max-width:100%}
   .fish {left:-6px;top:30%;transform:rotate(-23deg) scale(.7)}
   .fish:last-child {right:1px;top:78%}
   .question {font-size:1.1rem;padding:8px 0 22px}

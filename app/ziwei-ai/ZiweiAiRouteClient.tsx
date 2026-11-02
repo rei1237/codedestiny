@@ -3,7 +3,6 @@
 import dynamic from "next/dynamic";
 
 const ZiweiAiClient = dynamic(() => import("./ZiweiAiClient"), {
-  ssr: false,
   loading: () => <ZiweiAiShell />,
 });
 

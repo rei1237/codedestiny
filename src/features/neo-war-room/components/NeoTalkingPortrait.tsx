@@ -27,10 +27,10 @@ export default function NeoTalkingPortrait({ talking }: { talking: boolean }) {
   const position = { "--neo-talk-x": `${(frame % 2) * -50}%`, "--neo-talk-y": `${Math.floor(frame / 2) * -50}%` } as CSSProperties;
 
   return <span ref={gate.ref} className={styles.portrait} data-neo-talk-frame={frame} data-ready={loaded && !failed} style={position} aria-hidden="true">
-    {(!loaded || failed) && <Image src="/neo-operation-room/sprites/transparent/neo-transparent-s1-f01.webp" alt="" fill unoptimized sizes="(max-width: 768px) 76vw, 600px" className={styles.fallback} />}
+    {(!loaded || failed) && <Image src="/neo-operation-room/sprites/transparent/neo-transparent-s1-f01.webp" alt="" fill priority unoptimized sizes="(max-width: 768px) 76vw, 600px" className={styles.fallback} />}
     {!failed && <picture>
       <source media="(max-width: 768px)" srcSet="/neo-operation-room/sprites/neo-talk-v1-768.webp" />
-      <Image src="/neo-operation-room/sprites/neo-talk-v1-1280.webp" alt="" width={1280} height={1280} unoptimized loading="eager" className={styles.sheet}
+      <Image src="/neo-operation-room/sprites/neo-talk-v1-1280.webp" alt="" width={1280} height={1280} unoptimized loading="lazy" fetchPriority="low" className={styles.sheet}
         onLoad={handleLoad}
         onError={handleError} />
     </picture>}
