@@ -151,3 +151,20 @@ test('is wired from the layout and the native language runtime, never from serve
   assert.doesNotMatch(native, /cd-lang-suggest['"]\s*\)?\s*\.(innerHTML|insertAdjacent)/);
   assert.doesNotMatch(readFileSync('app/layout.js', 'utf8'), /id=["']cd-lang-suggest["']/);
 });
+
+test('moves below the first visible h1 only when it overlaps in the top half', () => {
+  const rectOf = (top, bottom) => () => ({ top, bottom, left: 0, right: 100, width: 100, height: bottom - top });
+  function run(h1Rect) {
+    const dom = new JSDOM('<!doctype html><html lang="ko"><head><link rel="alternate" hreflang="en" href="https://code-destiny.com/en/saju/"></head><body><h1>title</h1></body></html>', { url: 'https://code-destiny.com/saju/', runScripts: 'outside-only' });
+    const { window } = dom;
+    Object.defineProperty(window.navigator, 'languages', { value: ['en'], configurable: true });
+    Object.defineProperty(window, 'innerHeight', { value: 800, configurable: true });
+    window.document.querySelector('h1').getBoundingClientRect = rectOf(...h1Rect);
+    window.HTMLDivElement.prototype.getBoundingClientRect = function () { return this.style.top ? rectOf(parseInt(this.style.top, 10), parseInt(this.style.top, 10) + 60)() : rectOf(8, 68)(); };
+    window.eval(source);
+    return window.document.getElementById('cd-lang-suggest').style.top;
+  }
+  assert.equal(run([40, 120]), '128px');
+  assert.equal(run([200, 260]), '8px');
+  assert.equal(run([30, 500]), '8px');
+});

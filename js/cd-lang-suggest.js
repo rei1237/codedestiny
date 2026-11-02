@@ -104,6 +104,21 @@
     return 8;
   }
 
+  // 첫 번째 보이는 h1 과 겹치고 그 h1 의 아래쪽이 화면 위쪽 절반 안이면 h1 바로 아래로 내린다. 한 번만 잰다.
+  function avoidHeading(box) {
+    try {
+      var heads = document.querySelectorAll('h1');
+      for (var i = 0; i < heads.length; i += 1) {
+        var h = heads[i].getBoundingClientRect();
+        if (!(h.height > 0)) continue;
+        var b = box.getBoundingClientRect();
+        var half = (window.innerHeight || 0) / 2;
+        if (h.top < b.bottom && h.bottom > b.top && h.bottom <= half) box.style.top = Math.round(h.bottom + 8) + 'px';
+        return;
+      }
+    } catch (e) { /* 기본 위치 */ }
+  }
+
   function show(lang, path) {
     var copy = COPY[lang];
     var box = document.createElement('div');
@@ -112,7 +127,7 @@
     box.setAttribute('translate', 'no');
     box.setAttribute('lang', lang);
     box.setAttribute('aria-label', copy[0]);
-    box.style.cssText = 'position:fixed;top:' + topOffset() + 'px;left:8px;right:8px;margin:0 auto;width:fit-content;z-index:2147483000;'
+    box.style.cssText = 'position:fixed;top:' + topOffset() + 'px;left:8px;right:8px;margin:0 auto;width:fit-content;z-index:100250;'
       + 'box-sizing:border-box;max-width:calc(100vw - 16px);display:flex;align-items:center;gap:8px;'
       + 'padding:8px 8px 8px 14px;border-radius:12px;background:#fff;color:#1f2430;border:1px solid rgba(31,36,48,.18);'
       + 'box-shadow:0 6px 24px rgba(0,0,0,.18);font:14px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif;';
@@ -144,6 +159,7 @@
     box.appendChild(body);
     box.appendChild(close);
     document.body.appendChild(box);
+    avoidHeading(box);
   }
 
   function run() {
