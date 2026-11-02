@@ -186,6 +186,8 @@ export default function RootLayout({ children }) {
           />
         ) : null}
         <Script src="/js/core/analytics.js?v=20261102-naver-conversion-v1" strategy="afterInteractive" />
+        {/* 언어 제안 배너: 클라이언트 전용. 서버 출력에는 배너 DOM 이 없고, 스크립트는 이동시키지 않는다. */}
+        <Script src="/js/cd-lang-suggest.js" strategy="lazyOnload" />
         <link rel="alternate" type="application/rss+xml" title={ROOT_LAYOUT_COPY.ko.insightsRssTitle} href="https://code-destiny.com/rss.xml" />
         {/* hreflang / og:site_name / og:locale 을 여기서 하드코딩하지 말 것.
             이 layout 은 모든 Next 라우트의 <head> 이므로, 홈 기준 값을 박으면 전 페이지가

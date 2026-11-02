@@ -124,6 +124,7 @@
 /public/js/basic-fortune-detail.mjs
 /public/js/cd-google-translate-lazy.js
 /public/js/cd-lang-native.js
+/public/js/cd-lang-suggest.js
 /public/js/cd-lazy-feature-loader.js
 /public/js/chunks/compat.chunk.js
 /public/js/chunks/extra-fortune.chunk.js

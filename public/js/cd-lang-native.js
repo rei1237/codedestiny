@@ -632,6 +632,22 @@
         nativeChangeLanguage(btn.getAttribute('data-lang'), btn);
       }, true);
     }
+    loadLanguageSuggest();
+  }
+
+  // 언어 제안 배너는 이동시키지 않는 클라이언트 전용 안내다. 창 load 뒤에 한 번만 불러온다.
+  function loadLanguageSuggest() {
+    if (window.__cdLangSuggestLoaded || window.__cdLangSuggestRequested) return;
+    window.__cdLangSuggestRequested = true;
+    function load() {
+      if (window.__cdLangSuggestLoaded) return;
+      var script = document.createElement('script');
+      script.src = '/js/cd-lang-suggest.js';
+      script.async = true;
+      (document.head || document.documentElement).appendChild(script);
+    }
+    if (document.readyState === 'complete') load();
+    else window.addEventListener('load', load);
   }
 
   if (document.readyState === 'loading') {
