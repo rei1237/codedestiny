@@ -1,3 +1,4 @@
+import { RECIPES, recipePath } from "../lib/lifestyle/recipes.mjs";
 import { actualContentDate } from "../lib/content/editorial-review.mjs";
 import { getPublishedProfiles } from "../lib/famous-saju/profile-publication.js";
 import { INTRO_TOPICS, introductionRoutes } from "../lib/i18n/feature-introductions.mjs";
@@ -293,6 +294,8 @@ const coreRoutes = [
   { path: "/compare/saju-vs-ziwei", changefreq: "monthly", priority: 0.8 },
   { path: "/compare/sukuyo-vs-vedic", changefreq: "monthly", priority: 0.8 },
   { path: "/compare/fortune-apps", changefreq: "monthly", priority: 0.82 },
+  { path: "/recipes", changefreq: "weekly", priority: 0.8 },
+  ...RECIPES.map((recipe) => ({ path: recipePath(recipe), changefreq: "monthly", priority: 0.7 })),
   { path: "/insights", changefreq: "weekly", priority: 0.85 },
   // 연이의 운명 노벨 텍스트 리더 — 허브 + 44화.
   // 슬러그는 생성물(lib/stories/vn/episodes.generated.json)에서 읽어 하드코딩 드리프트를 막는다.

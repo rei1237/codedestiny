@@ -1,0 +1,43 @@
+{
+  "week": "2026-11-02",
+  "tool": "built-in image_gen",
+  "reference": "public/images/home/illustrated/yeoni-character-480.webp",
+  "export": {
+    "width": 1200,
+    "height": 800,
+    "format": "webp",
+    "quality": 84
+  },
+  "assets": [
+    {
+      "key": "apple-cabbage-wraps",
+      "prompt": "Landscape 3:2 illustration, entirely flat 2D warm pastel storybook with clean ink outlines. No photorealism, no 3D. One pink pig Yeoni matching character identity reference, pink lotus flower on head, dark round eyes, purple neck ribbon, ivory chef hat and apron. Cozy cream kitchen. Finished dish large in foreground, smaller single character demonstrating cooking behind. No text, letters, watermark. Apple and cabbage tofu wraps: rice paper rolls halved to show julienned apple, cabbage, carrot and cooked tofu strips. Small lemon dipping sauce bowl. Yeoni rolls softened rice paper on a board.",
+      "file": "apple-cabbage-wraps-2d.webp",
+      "source": "C:/Users/user/.codex/generated_images/01a12b74-17e4-7352-bc59-4440069b68f3/exec-8e47cef0-c65a-4c00-9258-d9ad3b562c9b.png"
+    },
+    {
+      "key": "chicory-pear-barley",
+      "prompt": "Landscape 3:2 illustration, entirely flat 2D warm pastel storybook with clean ink outlines. No photorealism, no 3D. One pink pig Yeoni matching character identity reference, pink lotus flower on head, dark round eyes, purple neck ribbon, ivory chef hat and apron. Cozy cream kitchen. Finished dish large in foreground, smaller single character demonstrating cooking behind. No text, letters, watermark. Chicory pear barley salad: two bowls of cooked pearl barley, frilly chicory, pear cubes, pumpkin seeds, lemon dressing. Yeoni gently tosses the salad with wooden spoons.",
+      "file": "chicory-pear-barley-2d.webp",
+      "source": "C:/Users/user/.codex/generated_images/01a12b74-17e4-7352-bc59-4440069b68f3/exec-e01e93a1-88a3-4b3e-9be6-28bd53525360.png"
+    },
+    {
+      "key": "carrot-corn-porridge",
+      "prompt": "Landscape 3:2 illustration, entirely flat 2D warm pastel storybook with clean ink outlines. No photorealism, no 3D. One pink pig Yeoni matching character identity reference, pink lotus flower on head, dark round eyes, purple neck ribbon, ivory chef hat and apron. Cozy cream kitchen. Finished dish large in foreground, smaller single character demonstrating cooking behind. No text, letters, watermark. Carrot sweetcorn rice porridge: two bowls creamy orange rice porridge with sweetcorn kernels, finely diced carrot and chopped scallions. Yeoni slowly stirs a pot. No sugar.",
+      "file": "carrot-corn-porridge-2d.webp",
+      "source": "C:/Users/user/.codex/generated_images/01a12b74-17e4-7352-bc59-4440069b68f3/exec-13f87329-f3e3-47d3-ac55-311e5dcfd533.png"
+    },
+    {
+      "key": "ginger-cabbage-udon",
+      "prompt": "Landscape 3:2 illustration, entirely flat 2D warm pastel storybook with clean ink outlines. No photorealism, no 3D. One pink pig Yeoni matching character identity reference, pink lotus flower on head, dark round eyes, purple neck ribbon, ivory chef hat and apron. Cozy cream kitchen. Finished dish large in foreground, smaller single character demonstrating cooking behind. No text, letters, watermark. Ginger cabbage mushroom stir-fried udon: two plates thick white udon noodles, cabbage ribbons, shiitake slices, scallions and tiny ginger shreds. Yeoni turns noodles gently with kitchen tongs in pan.",
+      "file": "ginger-cabbage-udon-2d.webp",
+      "source": "C:/Users/user/.codex/generated_images/01a12b74-17e4-7352-bc59-4440069b68f3/exec-fd90f592-50a8-4d38-88e3-10ecc9d27093.png"
+    },
+    {
+      "key": "nori-sesame-potatoes",
+      "prompt": "Landscape 3:2 illustration, entirely flat 2D warm pastel storybook with clean ink outlines. No photorealism, no 3D. One pink pig Yeoni matching character identity reference, pink lotus flower on head, dark round eyes, purple neck ribbon, ivory chef hat and apron. Cozy cream kitchen. Finished dish large in foreground, smaller single character demonstrating cooking behind. No text, letters, watermark. Nori sesame roasted potatoes: small roasted potato cubes with crumbled nori seaweed and sesame, cucumber sticks and plain yogurt dip on two plates. Yeoni tosses roasted potatoes with seaweed using wooden spoon. No meat.",
+      "file": "nori-sesame-potatoes-2d.webp",
+      "source": "C:/Users/user/.codex/generated_images/01a12b74-17e4-7352-bc59-4440069b68f3/exec-6d6ba7d0-a66b-4eca-b25d-a4f613ba0fe5.png"
+    }
+  ]
+}

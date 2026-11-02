@@ -1522,7 +1522,14 @@ function renderReportDashboard() {
     gridHtml += '</section>';
   });
   gridHtml += '</div>';
-  container.innerHTML = gridHtml;
+  container.innerHTML = "<a class=\"rpt-recipe-entry\" href=\"/recipes/\" aria-label=\"무료 사주 요리법, 연이의 요리 웹툰 읽기\"><img src=\"/images/five-elements/recipe-entry-640.webp\" width=\"640\" height=\"427\" alt=\"오행 요리를 차린 꽃돼지 연이\" loading=\"lazy\" decoding=\"async\"><span class=\"rpt-recipe-entry__copy\"><span class=\"rpt-recipe-entry__badge\">무료 공개 · 요리 웹툰</span><strong>사주 요리법</strong><span>오늘은 어떤 맛이 당기나요?<br>연이와 한 컷씩 만드는 오행의 식탁</span><b>요리법 모아보기 →</b></span></a>" + gridHtml;
+  if (!document.getElementById("rpt-recipe-entry-style")) {
+    var recipeStyles = document.createElement("link");
+    recipeStyles.id = "rpt-recipe-entry-style";
+    recipeStyles.rel = "stylesheet";
+    recipeStyles.href = "/styles/recipe-entry.css";
+    document.head.appendChild(recipeStyles);
+  }
   container.querySelectorAll('.rpt-v2-filter').forEach(function(button) {
     button.addEventListener('click', function() {
       var category = button.getAttribute('data-rpt-category') || 'all';
