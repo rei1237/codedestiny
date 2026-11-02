@@ -2,8 +2,11 @@
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { useAuthStore } from '../_lib/auth-store';
-import KakaoChannelInvite from './KakaoChannelInvite';
-import EmailMarketingPreference from './EmailMarketingPreference';
+import dynamic from 'next/dynamic';
+// These optional signup surfaces are selected by the existing account-scoped
+// completion hint. Ordinary visits do not need their code or artwork.
+const KakaoChannelInvite = dynamic(() => import('./KakaoChannelInvite'));
+const EmailMarketingPreference = dynamic(() => import('./EmailMarketingPreference'));
 export default function SignupChannelInvite() {
   const { user, isAuthenticated } = useAuthStore();
   const path = usePathname();

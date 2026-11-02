@@ -74,7 +74,9 @@ export default function Library(){
    setRecoverError({id:row.id,message:locale!=='ko'?stateCopy.generateFailed:friendlyErrorMessage(reason,stateCopy.generateFailed)});setRecovering('');void load();
   }
  }
- const scene=needsLogin?'login':rows?.length||error?'hero':'signup',[art,artWidth,artHeight]=ART[scene];
+ // Loading is not an empty library: keep the normal artwork until the server
+ // confirms an empty list, instead of downloading signup art and replacing it.
+ const scene=needsLogin?'login':rows?.length===0&&!error?'signup':'hero',[art,artWidth,artHeight]=ART[scene];
  // 빈 보관함은 안내 바로 아래에서 첫 상담으로 데려간다. 같은 링크를 목록 아래에 한 번 더 두지 않는다.
  const empty=rows?.length===0&&!error,startHref=`/yeongnyangi/fortune/?lang=${locale}`;
  return <section className={styles.consultation}><header className={styles.spiritIntro}><img className={scene==='signup'?styles.libraryFade:undefined} src={art} width={artWidth} height={artHeight} alt=""/><div className={styles.libraryIntro}><h1>{copy.library}</h1>

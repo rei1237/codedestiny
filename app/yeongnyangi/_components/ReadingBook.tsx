@@ -1,5 +1,6 @@
 'use client';
 import {Fragment,memo,useEffect,useState} from 'react';
+import dynamic from 'next/dynamic';
 import type {FortuneRecord} from '../_lib/api';
 import {readingCopy} from '../_lib/reading-copy';
 import {readingFocusCopy} from '../_lib/reading-focus-copy';
@@ -7,7 +8,7 @@ import {chartCopy,visualCopy} from '../_lib/reading-chart-copy';
 import {askPhase5Copy} from '../_lib/ask-phase5-copy';
 import {journeyCopy} from '../_lib/journey-copy';
 import {v7Label,v7PartHead} from '../_lib/reading-v7-copy';
-import ReadingCharts from './ReadingCharts';
+const ReadingCharts=dynamic(()=>import('./ReadingCharts'),{loading:()=> <p role="status">풀이 근거를 준비하고 있어요.</p>});
 import ReportIllustration from './ReportIllustration';
 import {readingPartHeading,readingBodyBlocks} from '@/lib/pdf/yeongnyangi-report-plan';
 import {TarotSpreadResult,spreadCards} from './tarot/TarotSpreadReveal';
@@ -18,6 +19,7 @@ import styles from './reading-v5.module.css';
 
 export default memo(function ReadingBook({row}:{row:FortuneRecord}){
  const [current,setCurrent]=useState(''),[saved,setSaved]=useState(''),[open,setOpen]=useState(false);
+ const [evidenceMounted,setEvidenceMounted]=useState(false);
  const storageKey=`yeongnyangi:reading-position:${row.id}`;
  useEffect(()=>{try{setSaved(localStorage.getItem(storageKey)||'');}catch{/* Optional device preference. */}setOpen(matchMedia('(min-width: 1000px)').matches);},[storageKey]);
  useEffect(()=>{
@@ -77,7 +79,7 @@ export default memo(function ReadingBook({row}:{row:FortuneRecord}){
   <div className={styles.body}>
    {row.chapters.length>0&&<ReportIllustration scene="cover"/>}
    {rich&&<details className={styles.reference}><summary>{visualCopy(row.locale).glance}</summary><AtAGlance manifest={row.manifest} chapters={row.chapters} title={title} locale={row.locale}/></details>}
-   {!!row.charts?.length&&<details className={styles.reference} data-reading-evidence><summary>{chartCopy(row.locale).section}</summary><ReadingCharts charts={row.charts} available={available} titles={Object.fromEntries(row.manifest.map((c,i)=>[c.id,title(i)]))} locale={row.locale}/></details>}
+   {!!row.charts?.length&&<details className={styles.reference} data-reading-evidence onToggle={event=>{if(event.currentTarget.open)setEvidenceMounted(true);}}><summary>{chartCopy(row.locale).section}</summary>{evidenceMounted&&<ReadingCharts charts={row.charts} available={available} titles={Object.fromEntries(row.manifest.map((c,i)=>[c.id,title(i)]))} locale={row.locale}/>}</details>}
    {row.chapters.map((chapter,index)=><Fragment key={row.manifest[index].id}><article data-reading-chapter id={`chapter-${row.manifest[index].id}`} className={styles.chapter} tabIndex={-1}>
     <h2>{title(index)}</h2>{(index>0||!!firstAnswer)&&<p className={styles.chapterSummary}>{chapter.summary}</p>}
     {(rich||index===0)&&!!chapter.highlights?.length&&<KeyPoints items={chapter.highlights} locale={row.locale}/>}

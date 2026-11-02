@@ -4,8 +4,8 @@ import ConsultationEntrance from "@/app/fortune-chat/ConsultationEntrance";
 import { Suspense, useEffect, useState, type ReactNode } from "react";
 import dynamic from "next/dynamic";
 import { teaHouseSurface } from "@/lib/fortune/yeoni-entry";
+import FortuneTeaHousePage from "@/src/features/fortune-tea-house/FortuneTeaHousePage";
 
-const FortuneTeaHousePage = dynamic(() => import("@/src/features/fortune-tea-house/FortuneTeaHousePage"), { loading: () => <ConsultationEntrance /> });
 const SavedTeaReading = dynamic(() => import("./SavedTeaReading"), { loading: () => <ConsultationEntrance /> });
 
 const FortuneChatEntry = dynamic(() => import("@/app/fortune-chat/FortuneChatEntry"), { loading: () => <ConsultationEntrance /> });
