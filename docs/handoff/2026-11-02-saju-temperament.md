@@ -1,7 +1,7 @@
 ---
 status: done
 updated: 2026-11-02
-next: 후속 변경 시 최신 main CI와 이 문서의 검증 기록부터 확인한다.
+next: main의 GitHub Actions CI required 결과를 확인한다. 구현과 로컬 검증 기록은 아래 본문을 따른다.
 ---
 
 # 사주 LLM 상담의 타고난 성향 해석 개선
