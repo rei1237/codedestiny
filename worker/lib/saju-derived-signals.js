@@ -1,5 +1,6 @@
 import { buildLuckNatalInteractions } from './life-book-ai-saju.js';
 import { canonicalPreventionPillar, preventionPillarDetails } from './fortune-prevention.js';
+import { buildSajuTemperamentProfile } from './saju-temperament.js';
 
 // Deterministic interpretation packets derived from already calculated saju facts. No LLM, no new
 // calendar math: element ratios, ten gods, shinsal and luck interactions all come from the engine.
@@ -16,15 +17,15 @@ const EXCESS_RATIO = 29;
 const DEFICIENT_RATIO = 16;
 const TEMPERAMENT = {
   wood:{excess:'곧게 뻗어 나가려는 추진력과 성장 욕구가 강하다. 계획과 아이디어가 많고 자존심이 곧은 편이지만, 뜻대로 되지 않으면 조급함과 고집으로 드러나기 쉽다.',
-    none:'새로 시작하는 힘보다 이미 있는 것을 다듬는 쪽이 편하다. 방향을 정하는 데 시간이 걸릴 수 있어 작은 시작 장치가 도움이 된다.'},
+    none:'겉 글자에서 목이 보이지 않아도 시작하는 능력이나 성장 의지가 없다는 뜻은 아니다. 다른 십성과 월령을 함께 보고, 시작이 어렵게 느껴진다면 작은 실행 장치를 마련한다.'},
   fire:{excess:'밝고 표현이 빠르며 사람과 분위기를 달구는 열정이 크다. 판단과 감정의 속도가 빨라 들뜨거나 쉽게 식는 기복, 마무리의 약함이 그림자다.',
-    none:'감정을 겉으로 드러내기보다 안에서 정리하는 편이다. 표현과 자기 알림이 늦어 실력보다 덜 보일 수 있다.'},
+    none:'겉 글자에서 화가 보이지 않는다는 이유로 열정이나 표현력이 부족하다고 단정하지 않는다. 표현에 시간이 걸리는 모습이 실제로 있다면 생각을 짧게 전하는 연습을 한다.'},
   earth:{excess:'신중하고 듬직하며 신용과 책임을 중시한다. 사람과 일을 품는 중재력이 있지만 변화에 느리고 생각과 걱정이 많아 결정을 미루거나 고집스러워 보일 수 있다.',
-    none:'중심을 잡아 주는 기운이 약해 생활 리듬과 우선순위가 쉽게 흔들릴 수 있다. 규칙적인 루틴이 바탕을 대신 세워 준다.'},
+    none:'겉 글자에서 토가 보이지 않아도 책임감과 생활 기반의 결여로 읽지 않는다. 생활 리듬이 흔들릴 때는 규칙적인 루틴으로 우선순위를 확인한다.'},
   metal:{excess:'원칙과 결단력, 의리가 분명하다. 맺고 끊음이 확실하고 기준이 높아 일 처리가 깔끔하지만 말이 날카롭거나 완벽주의와 비판으로 자신과 남을 몰아붙이기 쉽다.',
-    none:'결단과 마무리보다 여지를 남기는 쪽을 택하기 쉽다. 거절과 정리가 어려워 경계를 의식적으로 세우는 연습이 필요하다.'},
+    none:'겉 글자에서 금이 보이지 않아도 결단력이나 원칙이 없다는 뜻은 아니다. 거절과 마무리가 어렵게 느껴진다면 경계와 완료 기준을 말로 정한다.'},
   water:{excess:'생각이 깊고 유연하며 흐름과 사람의 속을 읽는 지혜가 있다. 다만 생각에 잠겨 실행이 늦거나 속을 잘 드러내지 않고 불안이 길게 이어질 수 있다.',
-    none:'깊이 머무르기보다 바로 움직이는 편이라 쉼과 성찰의 시간이 부족해지기 쉽다. 의식적으로 멈추는 시간을 두면 판단이 깊어진다.'},
+    none:'겉 글자에서 수가 보이지 않아도 지혜나 성찰이 부족하다고 단정하지 않는다. 실제로 쉼 없이 움직이고 있다면 판단 전에 멈추어 돌아볼 시간을 둔다.'},
 };
 
 /** @param {{ratios?:Record<string,number>|object,counts?:Record<string,number>,dominant?:string}} [fiveElements] */
@@ -51,11 +52,11 @@ const FAMILIES = {
   비겁:['비견','겁재'], 식상:['식신','상관'], 재성:['편재','정재'], 관성:['편관','정관'], 인성:['편인','정인'],
 };
 const FAMILY_MEANING = {
-  비겁:{over:'주관과 자존심이 두드러지고 혼자 해내는 힘이 크다. 몫을 두고 사람과 부딪히기 쉬워 공동 자금과 동업은 규칙부터 정해야 한다.', none:'독자 추진력보다 주변과 맞추는 조율에 강하다. 지칠 때 기댈 협력자가 필요하다.'},
-  식상:{over:'표현과 재능, 말과 아이디어가 풍성하다. 힘을 밖으로 많이 내보내 쉽게 지치므로 시작보다 마무리에 일정을 배정해야 한다.', none:'생각을 밖으로 꺼내는 통로가 좁다. 기록·발표처럼 표현 루틴을 일부러 만들면 좋다.', weak:'신약과 겹치면 설기(洩氣)가 과하다고 본다. 휴식과 학습(인성)으로 보충한다.'},
-  재성:{over:'현실 감각과 관리 능력이 두드러지고 챙길 일과 사람이 많아 바쁘기 쉽다.', none:'돈 자체보다 의미와 사람을 좇는다. 재무 감각은 습관과 도구로 보완한다.', weak:'신약과 겹치면 재다신약(財多身弱)이라 한다. 감당할 수 있는 만큼만 맡을 때 재물이 온전히 남는다.'},
-  관성:{over:'책임과 기대가 무겁게 느껴지기 쉽다. 역할의 경계와 기준을 분명히 하는 것이 힘이 된다.', none:'틀에 매이지 않는 자유로움이 크다. 스스로 정한 마감과 규칙이 중심을 대신 잡아 준다.', weak:'신약과 겹치면 압박이 스트레스로 체감되기 쉽다(관살태과). 배움·쉼·조언자(인성)가 압박을 힘으로 바꾸는 통로다.'},
-  인성:{over:'생각과 배움이 깊다. 받는 것에 익숙해지면 실행이 늦어질 수 있다.', none:'후원보다 직접 부딪혀 배운다. 쉬어 가는 시간과 믿을 만한 조언자를 일부러 챙겨야 한다.', strong:'신강과 겹치면 배운 것을 현실의 결과물(재성)로 바꾸는 일이 균형을 잡아 준다.'},
+  비겁:{over:'자립과 주관을 자주 쓰는 분포다. 신강약·위치·조절 조건에 따라 버팀이 되거나 경쟁과 고집으로 치우칠 수 있어 공동 자금과 역할의 경계를 확인한다.', none:'겉·지장간에 비겁이 관측되지 않아도 주관과 추진력이 없다고 단정하지 않는다. 독립적인 판단과 도움받을 통로를 실제 생활에서 살핀다.'},
+  식상:{over:'표현·생산·즐거움을 자주 쓰는 분포다. 식신과 상관을 구분하고, 호기심과 새 자극·즉각적 만족 추구가 창작으로 이어지는 조건과 싫증·소모로 흐르는 조건을 함께 읽는다.', none:'식상이 관측되지 않아도 재능과 표현력의 부재는 아니다. 실제로 표현이 어렵다면 기록·발표 같은 작은 통로를 만든다.', weak:'기존 신약 판단과 겹치면 활동과 표현의 소모를 살피고, 휴식과 배움으로 보완할 여지를 확인한다.'},
+  재성:{over:'현실 감각과 자원 관리·기회 포착을 자주 쓰는 분포다. 정재·편재와 기존 강약에 따라 관리 능력 또는 손익 집착·눈앞의 이익 추구로 나타날 조건을 구분한다.', none:'재성이 관측되지 않아도 재무 능력과 재산의 부재가 아니다. 돈을 다루는 실제 습관과 기준을 살핀다.', weak:'신약과 겹친 재다신약(財多身弱)은 구조 후보로 읽고, 성과 욕구에 비해 감당 범위가 커지는 조건을 살핀다. 손실이나 수익을 확정하지 않는다.'},
+  관성:{over:'책임과 기준을 자주 쓰는 분포다. 정관의 질서와 편관의 위기 대응을 구분하고 역할이 실행력 또는 압박으로 바뀌는 조건을 살핀다.', none:'관성이 관측되지 않아도 책임감이나 도덕성의 결여로 읽지 않는다. 실제 생활의 마감과 책임 경계를 확인한다.', weak:'신약과 겹치면 책임이 압박으로 체감될 조건을 살핀다(관살태과의 후보). 인성의 존재만으로 해결을 확정하지 말고 배움·쉼·조언의 실제 통로를 확인한다.'},
+  인성:{over:'배움과 이해·탐구를 자주 쓰는 분포다. 정인의 수용과 편인의 독창성을 구분하고 준비와 해석이 실행을 대신하는 조건을 살핀다.', none:'인성이 관측되지 않아도 지능·학습 능력·돌봄의 부재는 아니다. 쉼과 조언을 얻는 실제 방식을 살핀다.', strong:'신강과 겹치면 준비가 길어지는 조건을 확인하고 배운 것을 표현이나 작은 결과물로 옮길 방법을 찾는다.'},
 };
 const COMBOS = [
   {name:'식상생재', test:n => (n.식신 || n.상관) && (n.편재 || n.정재), meaning:'재능과 표현이 수입과 성과로 이어지는 연결'},
@@ -65,8 +66,8 @@ const COMBOS = [
   {name:'관살혼잡', test:n => n.편관 && n.정관, meaning:'책임과 역할이 여러 갈래로 겹치기 쉬워 우선순위 고정이 필요한 구조'},
 ];
 
-/** @param {{tenGodsByPillar?:Record<string,any>, tenGods?:Record<string,number>|object, strength?:{isStrong?:boolean}}} [input] */
-export function buildTenGodProfile({ tenGodsByPillar = {}, tenGods = {}, strength = {} } = {}) {
+/** @param {{tenGodsByPillar?:Record<string,any>, tenGods?:Record<string,number>|object, strength?:{isStrong?:boolean}, pillars?:Record<string,any>, dayMaster?:string, jong?:object, advancedFactors?:object, timeUnknown?:boolean}} [input] */
+export function buildTenGodProfile({ tenGodsByPillar = {}, tenGods = {}, strength = {}, ...chart } = {}) {
   const surface = {}, hidden = {}, where = {};
   const add = (map, god, n = 1) => { if (god && god !== '일간') map[god] = (map[god] || 0) + n; };
   for (const position of POSITIONS) {
@@ -87,16 +88,17 @@ export function buildTenGodProfile({ tenGodsByPillar = {}, tenGods = {}, strengt
     const weight = Math.round(gods.reduce((n, g) => n + Number(tenGods[g] || 0), 0) * 100) / 100;
     const m = FAMILY_MEANING[family];
     const state = s >= 3 ? '발달' : s === 0 ? (h ? '잠재' : '부재') : '보통';
-    const note = state === '발달' ? [m.over, isStrong === false && m.weak, isStrong === true && m.strong].filter(Boolean).join(' ')
+    const note = state === '발달' ? [m.over, chart.jong?.isJong !== true && isStrong === false && m.weak, chart.jong?.isJong !== true && isStrong === true && m.strong].filter(Boolean).join(' ')
       : state === '부재' ? m.none : state === '잠재' ? `겉 글자에는 없고 지장간에 ${h}개 있다. 필요할 때 늦게 꺼내 쓰는 잠재력으로 읽는다.` : undefined;
     return {family, gods, visible:s, hidden:h, weight, state, ...(note ? {note} : {})};
   });
   const combos = COMBOS.filter(c => c.test(surface)).map(c => ({name:c.name, meaning:c.meaning, status:'구조 후보'}));
   const fam = Object.fromEntries(families.map(f => [f.family, f]));
   if (fam.비겁.visible >= 3 && fam.재성.visible >= 1) combos.push({name:'군겁쟁재', meaning:'비겁이 많고 재성이 드러나 몫과 돈을 두고 경쟁이 생기기 쉬운 구조', status:'구조 후보'});
-  if (fam.재성.visible >= 3 && isStrong === false) combos.push({name:'재다신약', meaning:'재성이 많은데 일간의 힘이 약해 맡는 범위를 감당 가능한 수준으로 줄여야 하는 구조', status:'강약 판단과 함께 성립'});
+  if (fam.재성.visible >= 3 && isStrong === false && chart.jong?.isJong !== true) combos.push({name:'재다신약', meaning:'재성이 많은데 일간의 힘이 약해 맡는 범위를 감당 가능한 수준으로 줄여야 하는 구조', status:'강약 판단과 함께 성립'});
   const top = Math.max(...families.map(f => f.visible));
   return {version:SAJU_SIGNALS_VERSION, visibleCount, surface, hidden, where, families,
+    temperament:buildSajuTemperamentProfile({...chart,tenGodsByPillar,strength}),
     leading:families.filter(f => f.visible === top && top > 0).map(f => f.family), combos,
     rule:'겉 글자는 일간을 뺀 천간과 각 지지의 본기 십성이다. 3개 이상은 발달, 0개는 부재(지장간에만 있으면 잠재)다. 조합은 겉 글자 공존 기준의 구조 후보이며 위치·통근·강약에 따라 작동 강도가 다르다. 개수는 우열이나 성공 확률이 아니다.'};
 }

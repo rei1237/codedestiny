@@ -7,6 +7,7 @@ import {
 } from "./guardian-fortune-runtime-contract.js";
 import { GUARDIAN_CATEGORY_ADAPTER_PRIORITY, text } from "./guardian-fortune-adapter-utils.js";
 import { buildFortuneQuestionFocus } from "./fortune-question-focus.js";
+import { sajuTemperamentPromptLines } from './saju-temperament.js';
 
 const MODE_SYSTEM_PROMPTS = Object.freeze({
   yeoni: [
@@ -108,6 +109,7 @@ function projectAdapter(name, data) {
     const value = safeText(data[field]);
     if (value) projected[field] = value;
   }
+  if (name === 'saju') projected.temperament = sajuTemperamentPromptLines(data);
   return Object.keys(projected).length ? projected : undefined;
 }
 

@@ -7,6 +7,7 @@ import { REASONING_OUTPUT_RULE_LINES } from "./fortune-reasoning-contract.js";
 import { escapeRawControlCharsInJsonStrings } from "./json-text-repair.js";
 import { buildZiweiPersonalityContextLines } from "./ziwei-personality-context.js";
 import { neoRelationshipStatusFocus, normalizeTopicKey } from "./neo-operation-room-compat.js";
+import { sajuTemperamentPromptLines } from './saju-temperament.js';
 
 const METHOD_LABELS = Object.freeze({
   saju: "사주",
@@ -261,6 +262,7 @@ export function buildNeoOperationRoomInitialPrompt(input, methodSummary) {
     "",
     "[계산 확정값]",
     JSON.stringify(methodSummary || {}),
+    ...(selectedMethod === 'saju' ? sajuTemperamentPromptLines(methodSummary) : []),
     "",
     "[선택 술수 작성 지침]",
     JSON.stringify(writingGuide),
@@ -512,6 +514,7 @@ export function buildNeoOperationRoomRefinedPrompt(consultation, realityCheck, p
     "",
     "[계산 확정값]",
     JSON.stringify(consultation?.methodSummary || {}),
+    ...(selectedMethod === 'saju' ? sajuTemperamentPromptLines(consultation?.methodSummary) : []),
     "",
     "[선택 술수 작성 지침]",
     JSON.stringify(writingGuide),
@@ -807,6 +810,10 @@ function neoBasisLines(section, ctx) {
     "[계산 확정값]",
     "아래 값은 서버가 계산한 확정값이다. 본문은 이 값과 어긋나면 안 되고, 표에 없는 수치는 새로 만들지 않는다.",
     ...factLines,
+    ...(ctx.selectedMethod === 'saju' && (section.basisGroups === '*' || safeArray(section.basisGroups).includes('core'))
+      ? [...sajuTemperamentPromptLines(ctx.methodSummary),
+        ...(ctx.methodSummary?.compat?.partnerDigest
+          ? ['[상대의 성향: 상대 명식의 제공 범위만 사용]',...sajuTemperamentPromptLines(ctx.methodSummary.compat.partnerDigest)] : [])] : []),
     ...(hidesTiming ? ["이 챕터에는 시기 흐름 표가 없다. 대운·세운·유년·다샤·트랜짓의 간지나 십성, 날짜를 새로 꺼내거나 추측하지 않는다. 시기 판단은 '주제 시기 흐름' 챕터가 맡는다."] : []),
     ...(labels.length ? ["", `[인용 가능한 항목명] ${labels.join(", ")}`] : []),
   ];
