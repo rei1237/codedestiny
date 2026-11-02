@@ -1,7 +1,7 @@
 # 사주 요리법 무료 웹툰 통합
-status: blocked
+status: in_progress
 updated: 2026-11-02
-next: 기존 main CI 실패와 문서 신선도 차단 해소 후, 다른 세션 변경과 사이트맵 생성물을 분리해 확정하고 push/CI 확인. 운영 공개는 별도 릴리스 절차.
+next: 독립 작업 공간의 요리 통합 트리 검사와 main push 후 CI 확인, 승인된 production 승격 및 라이브 무료 공개 검증.
 
 ## 결과
 - 기존 seo-five-elements 작업 디렉터리의 레시피 20개와 2D WebP를 재사용했다. 모음은 /recipes/ 하나, 상세는 기존 고유 슬러그 20개다.
@@ -32,3 +32,13 @@ next: 기존 main CI 실패와 문서 신선도 차단 해소 후, 다른 세션
 - 완료 시 확인된 체크아웃은 feat/world-cast-page다. 이 작업에서 새 브랜치/전환을 수행하지 않았다. main 통합으로 보고하지 않는다. 다른 세션의 체크아웃을 임의 전환하거나 병합하지 않았다.
 - 마지막 verify:sitemap-drift는 1040 URL 일치로 통과했다. 마지막 재생성 시 sitemap.xml 쓰기는 UNKNOWN 오류가 있었지만 선행 생성물과 갱신 원장에 대해 읽기 전용 일치 검사가 통과했다. 생성물 최종 커밋은 여전히 보류한다.
 - WebP 26개 포맷/크기 및 dashboard source/public mirror 일치 확인.
+
+## 2026-11-02 배포 재개
+- 사용자가 기존 CI/문서 문제 해결, main 통합, 실제 무료 공개 배포를 명시 승인했다.
+- 최신 main 문서 Last curated 2026-11-01 확인. 이전 로컬 날짜 문제는 최신 main을 사용하여 해소된다.
+- CI 제목 실패 수정 b8e04222e가 다른 작업에서 main에 먼저 반영되어 중복 수정은 제거하고 해당 main을 병합했다. 결제/광고 변경은 이번 작업에서 수정하지 않는다.
+- 격리 작업 경로: C:/Users/user/Documents/Codex/2026-11-02/new-chat/recipes-release-20261102-160222. 공유 D:/Development/code-destiny 체크아웃과 미커밋 변경은 보존한다.
+- 현재 트리의 문서 신선도 검사 통과. 신규 요리 21 URL 생성 후 전체 사이트맵 1058 URL 확인.
+- 기존 빌드의 라우트 목록을 사용한 소스 수준 hydrated-H1 검사: 226 경로 통과. 최종 빌드 전체 검증은 GitHub CI에서 수행한다.
+- 홈 읽을거리 정본 templates/home-funnel.html에 /recipes/ 직접 링크를 추가해 JavaScript 이전에도 모음/상세가 2홉 안에 발견되도록 했다. 생성된 index.html/공개 미러와 캐시 키를 함께 반영한다.
+- 2026-11-02 사용자 배포 요청은 이 릴리스 1회에 대한 승인이다. 기존 CI 실패 해결 이후 main에 통합하며, 공식 production workflow만 사용하고 실결제/운영 DB 변경은 수행하지 않는다.
