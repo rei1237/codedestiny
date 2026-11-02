@@ -4,7 +4,7 @@
 
 > 이 서비스의 **웹소설/비주얼 노벨은 브랜드 정체성**이다. 신규 화·개편·리라이팅을 할 때 이 문서의 "전체 흐름"에 맞춘다.
 > 텍스트 웹소설: `lib/stories/chapters/*.ts`(+ `lib/stories/data.ts`) → `app/stories/*`.
-> 비주얼 노벨(VN): 플레이어는 `public/codedestiny-novel.html`, 정본은 `content/novel/episodes.source.json`이다. 정본은 프롤로그+EP.01~EP.53 및 EP.51S~53S, **73화·7,844비트**이며, `public/data/novel/**`(플레이어 청크)와 `lib/stories/vn/episodes.generated.json`(텍스트 리더)은 같은 정본의 산출물이다.
+> 비주얼 노벨(VN): 플레이어는 `public/codedestiny-novel.html`, 정본은 `content/novel/episodes.source.json`이다. 정본은 프롤로그+EP.01~EP.53 및 EP.51S~53S, **73화·7,853비트**이며, `public/data/novel/**`(플레이어 청크)와 `lib/stories/vn/episodes.generated.json`(텍스트 리더)은 같은 정본의 산출물이다.
 
 ## 전체 스토리 흐름 = 만화 「이누야샤」 구조 참조
 
