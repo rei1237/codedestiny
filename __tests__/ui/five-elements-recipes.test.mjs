@@ -5,9 +5,11 @@ import { RECIPES, recipePath, recipeImage, recipeJsonLd } from '../../lib/lifest
 
 test('five flavour recipes have distinct stable URLs and real local assets', () => {
   assert.equal(new Set(RECIPES.map(recipePath)).size, RECIPES.length);
-  const weekly = RECIPES.filter((r) => r.week === '2026-10-26');
-  assert.equal(weekly.length, 5);
-  for (const taste of ['신맛', '쓴맛', '단맛', '매운맛', '짠맛']) assert.equal(weekly.filter((r) => r.taste === taste).length, 1);
+  for (const week of ['2026-10-26', '2026-11-02']) {
+    const weekly = RECIPES.filter((r) => r.week === week);
+    assert.equal(weekly.length, 5);
+    for (const taste of ['신맛', '쓴맛', '단맛', '매운맛', '짠맛']) assert.equal(weekly.filter((r) => r.taste === taste).length, 1);
+  }
   for (const recipe of RECIPES) {
     assert.match(recipePath(recipe), /^\/recipes\/[a-z-]+\/$/);
     assert.ok(existsSync(`public${recipeImage(recipe)}`));
