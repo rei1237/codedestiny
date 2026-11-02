@@ -8,6 +8,7 @@ const vedic = fixture('vedic', 'buildVedicPreviewPayload');
 vedic.consultation.vedicChart.calculationConfig.source = 'synthetic-mock';
 vedic.consultation.vedicChart.calculationMeta.source = 'synthetic-mock';
 const astrology = fixture('astrology', 'buildAstrologyPreviewPayload');
+const ziwei = fixture('ziwei', 'buildZiweiPreviewPayload');
 const newYear = fixture('new-year', 'buildNewYearPreviewPayload');
 const sukuyo = fixture('sukuyo-compatibility', 'buildSukuyoCompatibilityPreviewPayload');
 sukuyo.consultation.status = 'completed';
@@ -17,6 +18,8 @@ const karma = fixture('karma-destiny', 'buildKarmaDestinyPreviewPayload');
 const fusion = fixture('fusion-fortune', 'buildFusionPreviewResult');
 const { getProduct } = loadTsModule('worker/yeongnyangi/payments/catalog.ts');
 export const services = [
+  { key: 'ziwei', route: `/ziwei-ai/?cid=${savedId}`, endpoint: '/api/ziwei-ai/result', payload: ziwei,
+    conclusion: '지금은 스스로를 믿고 앞으로 나아가도 좋은 시기입니다.', module: 'app/ziwei-ai/ZiweiAiClient.tsx' },
   { key: 'vedic', route: `/vedic-ai/result/?id=${savedId}`, endpoint: '/api/vedic-ai/result', payload: vedic,
     conclusion: '게자리 라그나에 목성이 자리해 넓은 시야와 낙관적인 태도를 타고났습니다.', module: 'app/vedic-ai/result/VedicAiResultClient.tsx' },
   { key: 'astrology', route: `/astrology-ai/result/?id=${savedId}`, endpoint: `/api/astrology-ai/result/${savedId}`, payload: astrology,
@@ -65,6 +68,6 @@ export function mockResponse(url) {
   const service = services.find(item => item.endpoint === pathname);
   if (!service) return null;
   if (service.key === 'fusion' && url.searchParams.has('pending')) return { ok: true, consultation: null };
-  if (['sukuyo', 'fusion', 'new-year', 'vedic'].includes(service.key) && !url.search) return { ok: true, consultations: [], sessions: [] };
+  if (['ziwei', 'sukuyo', 'fusion', 'new-year', 'vedic'].includes(service.key) && !url.search) return { ok: true, consultations: [], sessions: [] };
   return service.payload;
 }

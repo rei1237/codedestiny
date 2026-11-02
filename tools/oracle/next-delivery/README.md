@@ -6,7 +6,7 @@
 node tools/oracle/next-delivery/verify-service-results.mjs
 ```
 
-설치된 Next/Playwright와 Chrome을 사용한다. 신규 의존성을 설치하지 않는다. 14개 결과 시나리오를 960px·390px에서 확인한다. 저장된 결론이 계산 근거보다 앞서는지, 근거가 기본 닫힘인지, 키보드 펼침/접힘과 새로고침 후 원문이 보존되는지 검사한다.
+설치된 Next/Playwright와 Chrome을 사용한다. 신규 의존성을 설치하지 않는다. 15개 결과 시나리오를 960px·390px에서 확인한다. 저장된 결론이 계산 근거보다 앞서는지, 근거가 기본 닫힘인지, 키보드 펼침/접힘과 새로고침 후 원문이 보존되는지 검사한다.
 
 `guard.cjs`는 환경 파일 로딩, 외부 Node 네트워크, Swiss·실 DB 모듈을 차단한다. `server.mjs`는 실제 Next 앱을 임시 경로에서 컴파일하고 Swiss webpack 의존성도 거부한다. 브라우저는 루프백만 허용하며 외부 폰트 차단을 기록한다. 실제 CDN 글꼴의 픽셀 동일성 검증은 아니다.
 

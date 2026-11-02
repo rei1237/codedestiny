@@ -78,7 +78,7 @@ try {
         const share = page.locator('[data-premium-share="letter"]');
         assert.ok(await conclusion.evaluate((el, panel) => Boolean(el.compareDocumentPosition(panel) & Node.DOCUMENT_POSITION_FOLLOWING), await share.elementHandle()), 'Share and review tools follow the purchased reading');
       }
-      const referenceSelector = 'details[data-result-reference], details[data-reading-evidence], details.kdo-evidence';
+      const referenceSelector = 'details[data-result-reference], details[data-reading-evidence], details[data-ziwei-chart-details], details.kdo-evidence';
       const references = page.locator(referenceSelector);
       const count = await references.count();
       assert.ok(count > 0, 'Reference content must actually be exercised');

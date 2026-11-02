@@ -1,0 +1,234 @@
+[
+  {
+    "name": "all",
+    "base": "87bd85731a24f2fb27e44395fd61918d51195ecf",
+    "browser": "156.0.8078.74",
+    "results": [
+      {
+        "service": "vedic",
+        "passed": true,
+        "references": 2,
+        "disclosureLabels": [
+          "이 상담이 계산한 값",
+          "상담 결과를 이미지로 정리하기"
+        ],
+        "savedHash": "3f5f7cac7a118d9a4059170670126aed0f61cb656e42c9e6e4093f5352727e1a",
+        "storedReads": 2
+      },
+      {
+        "service": "astrology",
+        "passed": true,
+        "references": 3,
+        "disclosureLabels": [
+          "이 상담이 계산한 값",
+          "상담 결과를 이미지로 정리하기"
+        ],
+        "savedHash": "9de3b1a58907e203b62f5aa79254aa534045783e6bb690d534e823e976e1b222",
+        "storedReads": 2
+      },
+      {
+        "service": "new-year",
+        "passed": true,
+        "references": 1,
+        "disclosureLabels": [
+          "이 상담이 계산한 값"
+        ],
+        "savedHash": "aea6d01d2eb927e930aef12156938140f823b02060528900ed83d10ab97d1052",
+        "storedReads": 2
+      },
+      {
+        "service": "sukuyo",
+        "passed": true,
+        "references": 1,
+        "disclosureLabels": [
+          "이 상담이 계산한 값"
+        ],
+        "savedHash": "aef3032bf54415431575d432e17b4e44eee89f1a2a2cb83a31183cd211110ac5",
+        "storedReads": 2
+      },
+      {
+        "service": "life-book",
+        "passed": true,
+        "references": 1,
+        "disclosureLabels": [
+          "기본 명식"
+        ],
+        "savedHash": "969a3181c266f1a834c77fa4a4de9acac02a263c0f880c7b6450373229bf6a4d",
+        "storedReads": 4
+      },
+      {
+        "service": "love-secret",
+        "passed": true,
+        "references": 1,
+        "disclosureLabels": [
+          "연애 명식 기초"
+        ],
+        "savedHash": "4a245c9746e436f7f4342bd4387fe4d95c59bc2abaf9101917f5e09d728d8c55",
+        "storedReads": 4
+      },
+      {
+        "service": "karma",
+        "passed": true,
+        "references": 15,
+        "disclosureLabels": [
+          "이 상담이 계산한 값",
+          "왜 이런 결론이 나왔나요?",
+          "흐름이 갈라지는 지점",
+          "왜 이런 결론이 나왔나요?",
+          "왜 이런 결론이 나왔나요?",
+          "왜 이런 결론이 나왔나요?",
+          "왜 이런 결론이 나왔나요?",
+          "왜 이런 결론이 나왔나요?",
+          "왜 이런 결론이 나왔나요?",
+          "왜 이런 결론이 나왔나요?",
+          "왜 이런 결론이 나왔나요?",
+          "왜 이런 결론이 나왔나요?",
+          "왜 이런 결론이 나왔나요?",
+          "왜 이런 결론이 나왔나요?",
+          "왜 이런 결론이 나왔나요?"
+        ],
+        "savedHash": "6bedae5a2d8a303124b697c03cdc95172e79d0074bd51f0ffe8d10eb7550576a",
+        "storedReads": 4
+      },
+      {
+        "service": "fusion",
+        "passed": true,
+        "references": 1,
+        "disclosureLabels": [
+          "함께 가리키는 흐름과 관점의 차이"
+        ],
+        "savedHash": "06206a14e9f23b7fc3a8888aa056e0ec2e8534945cbb92d45c094aac20fc9458",
+        "storedReads": 3
+      },
+      {
+        "service": "yeongnyangi-saju",
+        "passed": true,
+        "references": 1,
+        "disclosureLabels": [
+          "운세별 계산 근거"
+        ],
+        "savedHash": "6f047b7c5f544b7cbb067ee11a844433ffe61da2aac478f1406d84b855d45d29",
+        "storedReads": 4
+      },
+      {
+        "service": "yeongnyangi-ziwei",
+        "passed": true,
+        "references": 1,
+        "disclosureLabels": [
+          "운세별 계산 근거"
+        ],
+        "savedHash": "f448e5d8a33c2fc1f38aa56ec8d41a2d31a7519337059e059b0d2e062ed30d1b",
+        "storedReads": 4
+      },
+      {
+        "service": "yeongnyangi-sukuyo",
+        "passed": true,
+        "references": 1,
+        "disclosureLabels": [
+          "운세별 계산 근거"
+        ],
+        "savedHash": "be23f935b779be10eba0af7521cb026c74f93a3c7ce617e0b1c36e5a6a43c437",
+        "storedReads": 4
+      },
+      {
+        "service": "yeongnyangi-vedic",
+        "passed": true,
+        "references": 1,
+        "disclosureLabels": [
+          "운세별 계산 근거"
+        ],
+        "savedHash": "a14cc29e542a5c8dbd3d1172c71d400cae6c1e083727bbca2ba979dcc7f43bf5",
+        "storedReads": 4
+      },
+      {
+        "service": "yeongnyangi-astrology",
+        "passed": true,
+        "references": 1,
+        "disclosureLabels": [
+          "운세별 계산 근거"
+        ],
+        "savedHash": "6363f486556c93ebb127492490b43546c72b3adb2542bb5c656c89a946e8388c",
+        "storedReads": 4
+      },
+      {
+        "service": "yeongnyangi-tarot",
+        "passed": true,
+        "references": 1,
+        "disclosureLabels": [
+          "운세별 계산 근거"
+        ],
+        "savedHash": "0d3915ece0ed45f9a0e72cef14a67f696ee6192ef46289b8f383d1629c58b9da",
+        "storedReads": 4
+      }
+    ],
+    "errors": [],
+    "unknown": [],
+    "requests": 218,
+    "onlyGet": true,
+    "blockedRemoteFonts": 343,
+    "compiledModules": 621,
+    "storedPayloadsUnchanged": true,
+    "productionFlags": "OFF"
+  },
+  {
+    "name": "recheck-new-year",
+    "base": "87bd85731a24f2fb27e44395fd61918d51195ecf",
+    "browser": "156.0.8078.74",
+    "results": [
+      {
+        "service": "new-year",
+        "passed": true,
+        "references": 1,
+        "disclosureLabels": [
+          "이 상담이 계산한 값"
+        ],
+        "savedHash": "aea6d01d2eb927e930aef12156938140f823b02060528900ed83d10ab97d1052",
+        "storedReads": 2
+      }
+    ],
+    "errors": [],
+    "unknown": [],
+    "requests": 14,
+    "onlyGet": true,
+    "blockedRemoteFonts": 32,
+    "compiledModules": 210,
+    "storedPayloadsUnchanged": true,
+    "productionFlags": "OFF"
+  },
+  {
+    "name": "recheck-ziwei-new-year",
+    "base": "ec86d2e0f634a838575cf7ebfce400552087a301",
+    "browser": "156.0.8078.74",
+    "results": [
+      {
+        "service": "ziwei",
+        "passed": true,
+        "references": 2,
+        "disclosureLabels": [
+          "명반·계산 근거 보기",
+          "상담 결과를 이미지로 정리하기"
+        ],
+        "savedHash": "96997edb11c5adbc0729ba400d5a50fe4285a92ef7cb714740d8ca2184812f9f",
+        "storedReads": 2
+      },
+      {
+        "service": "new-year",
+        "passed": true,
+        "references": 1,
+        "disclosureLabels": [
+          "이 상담이 계산한 값"
+        ],
+        "savedHash": "aea6d01d2eb927e930aef12156938140f823b02060528900ed83d10ab97d1052",
+        "storedReads": 2
+      }
+    ],
+    "errors": [],
+    "unknown": [],
+    "requests": 30,
+    "onlyGet": true,
+    "blockedRemoteFonts": 62,
+    "compiledModules": 252,
+    "storedPayloadsUnchanged": true,
+    "productionFlags": "OFF"
+  }
+]
