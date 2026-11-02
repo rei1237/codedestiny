@@ -20,6 +20,7 @@
  */
 import { listCurrentPassOffers } from "../lib/pass-sale-policy.js";
 import { analyticsPaymentChannel } from './analytics-channel.js';
+import { readCheckoutAttribution } from '../../lib/marketing/growth-attribution.mjs';
 import { readGa4PurchaseContext, sendPendingGa4Refunds, withdrawGa4Consent } from './ga4-refunds.js';
 import { resolveOrderProductName } from "../lib/payment-product-name.js";
 import {
@@ -1325,6 +1326,7 @@ const ROUTES = {
         paypalCharge,
         idempotencyKey: String(product.featureKey || '').startsWith('yeongnyangi-') ? body.requestId : body.idempotencyKey,
         ga4PurchaseContext,
+        growthAttribution: readCheckoutAttribution(request, body.growthAttribution),
         profileId: body.profileId,
         partnerProfileId: body.partnerProfileId,
         contentKey: body.contentKey,
@@ -1457,6 +1459,7 @@ const ROUTES = {
           refundConsent,
           moonstoneDiscount,
           ga4PurchaseContext:await readGa4PurchaseContext(request,env),
+          growthAttribution: readCheckoutAttribution(request, body.growthAttribution),
           ...(product.fulfillmentType==='service_pack'?{purchaseType:preparedPurchaseType,giftDraft:preparedGiftDraft,expectedOrderId:body.expectedOrderId}:{}),
         });
         if(product.fulfillmentType==='service_pack'&&preparedPurchaseType==='GIFT') {

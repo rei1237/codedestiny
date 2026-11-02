@@ -167,12 +167,12 @@ export default function RootLayout({ children }) {
     <html lang="ko" dir="ltr" className={notoSansKRVariable} suppressHydrationWarning>
       <head>
         <script src="/js/pwa-lifecycle.js?v=moon-library-1" defer />
-        <Script src="/js/core/pass-verdict.js?v=build-c6bb42d3af70" strategy="beforeInteractive" />
+        <Script src="/js/core/pass-verdict.js?v=build-1bc9e40cfc33" strategy="beforeInteractive" />
         <Script src="/js/core/auth-hint.js?v=build-ce0e961efebc" strategy="beforeInteractive" />
         {/* 앱 판별 정본. checkout-entry 가 진입 분기에서 읽으므로 그보다 먼저 둔다. */}
         <Script src="/js/core/app-context.js?v=20260812-app-context-v1" strategy="beforeInteractive" />
         <Script src="/js/core/play-display-price.js" strategy="beforeInteractive" />
-        <Script src="/js/core/checkout-entry.js?v=build-c6bb42d3af70" strategy="beforeInteractive" />
+        <Script src="/js/core/checkout-entry.js?v=build-1bc9e40cfc33" strategy="beforeInteractive" />
         <Script src="/js/core/access-store.js?v=20260804-access-v3" strategy="beforeInteractive" />
         <Script src="/js/core/payment-service.js?v=20260804" strategy="beforeInteractive" />
         {/* GA4 측정 ID 는 공개 식별자다. 값이 없으면 analytics.js 가 통째로 no-op 이 되므로
@@ -185,7 +185,7 @@ export default function RootLayout({ children }) {
             }}
           />
         ) : null}
-        <Script src="/js/core/analytics.js?v=20261028-paid-search-v1" strategy="afterInteractive" />
+        <Script src="/js/core/analytics.js?v=20261102-paid-confirm-attribution-v2" strategy="afterInteractive" />
         <link rel="alternate" type="application/rss+xml" title={ROOT_LAYOUT_COPY.ko.insightsRssTitle} href="https://code-destiny.com/rss.xml" />
         {/* hreflang / og:site_name / og:locale 을 여기서 하드코딩하지 말 것.
             이 layout 은 모든 Next 라우트의 <head> 이므로, 홈 기준 값을 박으면 전 페이지가
