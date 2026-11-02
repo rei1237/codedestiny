@@ -1,11 +1,11 @@
-import { createHash } from 'node:crypto';
+import { sha256Text } from '../../lib/sha256-text.mjs';
 import { buildApprovedNatalAnalysis, GYEOKGUK_AUTHORITY_VERSION } from '../../lib/saju/gyeokguk-authority.mjs';
 import { authorityText } from '../../lib/saju/gyeokguk-authority-copy.mjs';
 
 const positions = ['year', 'month', 'day', 'hour'];
 const schema = 'saju-consumer-authority-v1';
 const copy = value => JSON.parse(JSON.stringify(value));
-const hash = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');
+const hash = value => sha256Text(JSON.stringify(value));
 function freeze(value) {
   if (value && typeof value === 'object') { Object.freeze(value); Object.values(value).forEach(freeze); }
   return value;

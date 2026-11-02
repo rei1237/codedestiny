@@ -1,3 +1,4 @@
+import { engineFactPrompt } from './engine-fact-snapshot.js';
 import { FUSION_PREMIUM_VERSION, FUSION_DOMAIN_CHAPTERS, FUSION_NARRATOR_BY_KEY, isPremiumFusion, isDomainFusion, premiumGroupTarget, premiumLengthFor, premiumTargetsFor } from "../../lib/fusion-premium-report.js";
 import { fusionLocaleLengthScale, FUSION_EXPERT_VERSION, FUSION_SYSTEM_KEYS, buildFusionEvidenceCrossCheck, fusionEvidenceReferences } from "./fusion-expert-contract.js";
 import { fusionVoiceText } from "./expert-character-persona-text.js";
@@ -464,6 +465,7 @@ function projectSystem(name, source) {
     const value = safeText(source[field]);
     if (value) projected[field] = value;
   }
+  if (source.engineFacts) projected.engineFacts = engineFactPrompt(source.engineFacts, name);
   if (source.expertEvidence) projected.expertEvidence = sanitizeExpertEvidence(source.expertEvidence);
   if (name === 'saju' && source.sajuAuthority) {
     projected.sajuAuthority = sajuAuthorityPromptFacts(source.sajuAuthority);

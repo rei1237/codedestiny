@@ -1,3 +1,4 @@
+import { engineFactPrompt } from './engine-fact-snapshot.js';
 import {
   GUARDIAN_FORTUNE_LIST_LIMITS,
   GUARDIAN_FORTUNE_RESULT_FIELDS,
@@ -79,6 +80,7 @@ function safeArray(value, maxItems = 4, maxText = 180) {
 
 function projectTarot(data) {
   return {
+    ...(data.engineFacts ? { engineFacts: engineFactPrompt(data.engineFacts, 'tarot') } : {}),
     spreadType: data.spreadType === "three_card" ? "three_card" : "one_card",
     spreadId: safeText(data.spreadId, 80),
     questionType: safeText(data.questionType, 80),
@@ -100,7 +102,7 @@ function projectAdapter(name, data) {
   if (name === "tarot") return projectTarot(data);
 
   const fields = PROMPT_ADAPTER_FIELDS[name] || [];
-  const projected = {};
+  const projected = data.engineFacts ? { engineFacts: engineFactPrompt(data.engineFacts, name) } : {};
   for (const field of fields) {
     if (Array.isArray(data[field])) {
       const values = safeArray(data[field]);

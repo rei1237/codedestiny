@@ -1,3 +1,4 @@
+import { createEngineFactSnapshot, SWISS_BLOCKED_SYSTEMS } from './engine-fact-snapshot.js';
 import { buildAstrologyAdapter } from "./guardian-fortune/adapters/astrology.js";
 import { buildSajuAdapter } from "./guardian-fortune/adapters/saju.js";
 import { buildSukuyoAdapter } from "./guardian-fortune/adapters/sukuyo.js";
@@ -296,6 +297,11 @@ export async function buildGuardianFortuneContext(input, options = {}) {
       continue;
     }
 
+    // A test-only injected provider is required for blocked astronomy paths.
+    if (options.captureEngineFacts === true && SWISS_BLOCKED_SYSTEMS.includes(adapterName)
+      && (options.env?.NODE_ENV !== 'test' || !options.adapters?.[adapterName])) {
+      return { ok: false, errorCode: 'ENGINE_PROVIDER_BLOCKED', warnings };
+    }
     const adapter = adapters[adapterName];
     if (typeof adapter !== "function") {
       const warning = createWarning(adapterName, "adapter_unavailable");
@@ -339,6 +345,7 @@ export async function buildGuardianFortuneContext(input, options = {}) {
 
   const context = {
     version: "guardian-fortune.v1",
+    ...(options.captureEngineFacts === true ? { factSnapshotProtocol: "engine-facts-v1" } : {}),
     inputSummary: {
       hasBirthTime: normalized.hasBirthTime,
       hasBirthPlace: normalized.hasBirthPlace,
@@ -368,6 +375,14 @@ export async function buildGuardianFortuneContext(input, options = {}) {
     if (!results[adapterName]) continue;
     const projection = PROJECTION_BY_ADAPTER[adapterName](results[adapterName]);
     if (options.fusionExpert && results[adapterName].expertEvidence) projection.expertEvidence = results[adapterName].expertEvidence;
+    if (options.captureEngineFacts === true) {
+      projection.engineFacts = createEngineFactSnapshot(adapterName, results[adapterName], normalized, {
+        support: unavailableClaims.some(claim => claim.startsWith(adapterName + '.')) ? 'pending' : 'candidate',
+        options: { targetDate: normalized.targetDate, locale: normalized.locale, topic: normalized.topic,
+          calendarType: normalized.calendarType, isLeapMonth: normalized.isLeapMonth === true,
+          hasBirthTime: normalized.hasBirthTime, hasBirthPlace: normalized.hasBirthPlace },
+      });
+    }
     if (projectionHasValue(projection)) context[adapterName] = projection;
   }
 
