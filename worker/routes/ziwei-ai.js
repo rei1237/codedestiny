@@ -1196,10 +1196,19 @@ function buildCanonicalZiweiFacts(chart) {
 // 🔴 양력 생년으로 세면 입춘 전 출생(예: 1월 1일생)이 평생 한 살씩 어긋난다.
 // meta.dayun 을 덮어쓰는 enforceZiweiChartFacts 와 확정값 사실 줄이 같은 기준을 써야 하므로
 // 두 곳이 이 함수 하나를 부른다.
+// Presentation context only: rebuilt from each durable prepared snapshot, never a
+// rollout selector or persistent field. Legacy results retain their original path.
+const preparedChartYears = new WeakMap();
+function preparedZiweiChart({ chart, preparationId }) {
+  const year = chart?.yearlyLuck?.year;
+  if (preparationId && Number.isInteger(year)) preparedChartYears.set(chart, year);
+  return chart;
+}
+
 function resolveCurrentMajorLuckByChartAge(chart) {
   const lunarYear = Number(chart?.lunar?.year);
   if (!Number.isFinite(lunarYear)) return null;
-  const age = new Date().getFullYear() - lunarYear + 1;
+  const age = (preparedChartYears.get(chart) ?? new Date().getFullYear()) - lunarYear + 1;
   const rows = Array.isArray(chart?.majorLuck) ? chart.majorLuck : [];
   const current = rows.find((row) => Number(row?.startAge) <= age && age <= Number(row?.endAge));
   return current ? { ...current, age } : null;
@@ -2413,7 +2422,7 @@ function buildSummaryCards(chart = {}, topic = "") {
 }
 
 function publicConsultation(doc) {
-  const chart = doc.llmMeta?.chartSnapshot || doc.ziweiChart || {};
+  const chart = preparedZiweiChart({ chart: doc.llmMeta?.chartSnapshot || doc.ziweiChart || {}, preparationId: doc.llmMeta?.calculationPreparationId });
   return {
     ok: true,
     sessionId: clean(doc.id),
@@ -2606,7 +2615,7 @@ async function handleStart(request, env, route = "/api/ziwei-ai/generate", recov
   try {
     if (existing?.status !== "delivery_pending") {
       const selection = await resolveZiweiPreparation({ model: ZiweiCalculationPreparation, userId: clean(auth.userId), requestId: idempotencyKey, inputHash: normalized.inputHash, input: normalized.input, rawBody: body, existing, action: "generate", year: new Date().getFullYear() });
-      initialChart = selection.chart; preparationId = selection.preparationId;
+      initialChart = preparedZiweiChart(selection); preparationId = selection.preparationId;
     }
   } catch (error) {
     return preparationFailed(error);
@@ -2647,7 +2656,7 @@ async function handleStart(request, env, route = "/api/ziwei-ai/generate", recov
     if (doc.status !== "delivery_pending") {
       // A concurrent lease holder's persisted snapshot wins over our preflight candidate.
       const chart = doc.llmMeta?.calculationPreparationId
-        ? (await resolveZiweiPreparation({ model: ZiweiCalculationPreparation, userId: clean(auth.userId), requestId: idempotencyKey, inputHash: normalized.inputHash, input: normalized.input, rawBody: body, existing: doc, action: "generate", year: new Date().getFullYear() })).chart
+        ? preparedZiweiChart(await resolveZiweiPreparation({ model: ZiweiCalculationPreparation, userId: clean(auth.userId), requestId: idempotencyKey, inputHash: normalized.inputHash, input: normalized.input, rawBody: body, existing: doc, action: "generate", year: new Date().getFullYear() }))
         : readZiweiExecutionSnapshot(doc) || initialChart;
       const resumeBody = { ...body, idempotencyKey, accessType: access.accessType }; delete resumeBody.accessToken;
       doc = await saveZiweiDelivery(locked, { llmMeta: { ...doc.llmMeta, chartSnapshot: chart, resumeBody: doc.llmMeta?.resumeBody || resumeBody } }, sessionId);
@@ -2775,7 +2784,7 @@ async function handleBasis(request, env) {
       await connectDb(env);
       const existing = await ZiweiAiConsultation.findOne({ userId: clean(userId), idempotencyKey: requestId }).lean();
       if (existing && (existing.inputHash !== normalized.inputHash || (existing.serviceType && existing.serviceType !== SERVICE_KEY))) return invalidInput(MESSAGES.invalidInput, 409);
-      chart = (await resolveZiweiPreparation({ model: ZiweiCalculationPreparation, userId: clean(userId), requestId, inputHash: normalized.inputHash, input: normalized.input, rawBody: body, existing, action: "basis", year: new Date().getFullYear() })).chart;
+      chart = preparedZiweiChart(await resolveZiweiPreparation({ model: ZiweiCalculationPreparation, userId: clean(userId), requestId, inputHash: normalized.inputHash, input: normalized.input, rawBody: body, existing, action: "basis", year: new Date().getFullYear() }));
     }
     return json(buildZiweiAnalysisBasis(chart, normalized.input.birthInfo));
   } catch (error) {

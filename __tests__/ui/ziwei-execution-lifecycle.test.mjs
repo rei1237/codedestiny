@@ -100,7 +100,8 @@ function setup({ old = false, on = false } = {}) {
   // Trusted test-only selection; production routes pass no ON option or body flag.
   const realResolve = context.resolveZiweiPreparation;
   context.resolveZiweiPreparation = options => realResolve({ ...options, calendarAuthorityV2: state.on });
-  for (const name of ['preparationFailed', 'handleEnsureAccess', 'handleBasis']) vm.runInContext(functionText(source, name), context);
+  vm.runInContext('const preparedChartYears = new WeakMap();', context);
+  for (const name of ['preparedZiweiChart', 'preparationFailed', 'handleEnsureAccess', 'handleBasis']) vm.runInContext(functionText(source, name), context);
   vm.runInContext(functionText(old ? baseline : source, 'handleStart'), context);
   state.start = (body = requestBody) => context.handleStart({ body }, {});
   state.prepare = (body = requestBody) => context.handleEnsureAccess({ body }, {});
