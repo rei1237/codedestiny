@@ -1,0 +1,68 @@
+{
+  "generator": "node scripts/generate-sitemap.mjs",
+  "signatureChanges": [
+    "/ziwei-ai/"
+  ],
+  "xmlChecks": [
+    {
+      "file": "public/sitemap-en.xml",
+      "onlyLastmodChanged": true,
+      "urls": 127
+    },
+    {
+      "file": "public/sitemap-ja.xml",
+      "onlyLastmodChanged": true,
+      "urls": 128
+    },
+    {
+      "file": "public/sitemap-ko.xml",
+      "onlyLastmodChanged": true,
+      "urls": 536
+    },
+    {
+      "file": "public/sitemap-zh-tw.xml",
+      "onlyLastmodChanged": true,
+      "urls": 119
+    },
+    {
+      "file": "public/sitemap-zh.xml",
+      "onlyLastmodChanged": true,
+      "urls": 127
+    },
+    {
+      "file": "public/sitemap.xml",
+      "onlyLastmodChanged": true,
+      "urls": 1037
+    },
+    {
+      "file": "sitemap-en.xml",
+      "onlyLastmodChanged": true,
+      "urls": 127
+    },
+    {
+      "file": "sitemap-ja.xml",
+      "onlyLastmodChanged": true,
+      "urls": 128
+    },
+    {
+      "file": "sitemap-ko.xml",
+      "onlyLastmodChanged": true,
+      "urls": 536
+    },
+    {
+      "file": "sitemap-zh-tw.xml",
+      "onlyLastmodChanged": true,
+      "urls": 119
+    },
+    {
+      "file": "sitemap-zh.xml",
+      "onlyLastmodChanged": true,
+      "urls": 127
+    },
+    {
+      "file": "sitemap.xml",
+      "onlyLastmodChanged": true,
+      "urls": 1037
+    }
+  ]
+}
