@@ -106,7 +106,10 @@ export function rewriteHeaders(text) {
     if (!/\bconnect-src\s+[^;]+/.test(line)) throw new Error("스테이징 CSP 에 connect-src 가 없습니다.");
     let updated = line.replace(/\bconnect-src\s+([^;]+)/, (_match, list) => {
       const allowed = list.trim().split(/\s+/);
-      for (const source of sources) if (!allowed.includes(source)) allowed.push(source);
+      // A bare HTTPS origin already allows its collect path; do not append a redundant path.
+      for (const source of sources) {
+        if (!allowed.includes(source) && !allowed.includes(new URL(source).origin)) allowed.push(source);
+      }
       return `connect-src ${compactConnectSources(allowed).join(" ")}`;
     });
     if (updated.length > 2000) updated = updated.replace(/;[ \t]+/g, ";");
@@ -196,6 +199,8 @@ function runSelfTest() {
   expect((csp.text.match(/https:\/\/www.google.com\/g\/collect/g) || []).length === 2, "기존 Analytics 수집 요청의 정확한 경로를 허용해야 한다.");
   expect(csp.text.includes("connect-src 'self' https://staging.code-destiny.com/api/ https://www.google.com/g/collect; object-src 'none'"), "다른 보안 지시문은 유지해야 한다.");
   expect(!rewriteHeaders(csp.text).changed, "CSP 허용 주소가 중복되면 안 된다.");
+  const coveredCollect = rewriteHeaders("/*\n  Content-Security-Policy: default-src 'self'; connect-src 'self' https://www.google.com; object-src 'none'\n");
+  expect(coveredCollect.text.includes("https://www.google.com") && !coveredCollect.text.includes("https://www.google.com/g/collect"), "기존 동일 HTTPS origin이 허용한 수집 경로를 중복 추가하면 안 된다.");
   const wildcardSources = ["'self'", "https://*.example.com", "https://api.example.com", "https://deep.api.example.com",
     "https://example.com", "https://badexample.com", "https://api.example.com:443", "https://api.example.com/path",
     "http://api.example.com", "https://*.127.0.0.1", "https://127.0.0.1", "https://api.example.com"];
