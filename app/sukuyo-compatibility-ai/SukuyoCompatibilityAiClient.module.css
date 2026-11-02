@@ -1947,12 +1947,13 @@
 
 .duoGrid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.9rem;
   align-items: stretch;
 }
 
 .duoCard {
+  min-width: 0;
   border: 1px solid rgba(255, 232, 182, 0.28);
   border-radius: 18px;
   padding: 1rem 1.05rem 1.15rem;
