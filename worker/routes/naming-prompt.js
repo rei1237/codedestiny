@@ -14,6 +14,7 @@ import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import { NAMING_DEFAULT_LOCALE, resolveNamingLocaleProfile } from "../lib/naming-locale-profile.js";
 import { labelElements, resolveNamingYongshin } from "../lib/saju-yongshin-policy.js";
+import { sajuTemperamentPromptLines } from '../lib/saju-temperament.js';
 
 const PRODUCT_TYPE = "naming_prompt";
 const FEATURE_KEY = "premium-naming-prompt";
@@ -674,6 +675,7 @@ ${profile.uncertaintyRule}
 ### 오행·십성 분포
 - 오행 분포: ${saju.fiveElementBalance}
 - 십성 분포: ${saju.tenGodBalance}
+${sajuTemperamentPromptLines({...saju,power:saju.raw?.mainShellEvidence?.power,jong:saju.raw?.mainShellEvidence?.jong,timeUnknown:input.birthTimeUnknown === true}).join('\n')}
 
 ### 신강/신약 · 조후
 - 신강/신약 판단 후보: ${saju.strengthAnalysis}

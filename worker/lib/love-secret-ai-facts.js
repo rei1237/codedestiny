@@ -8,6 +8,8 @@
 // 병렬 생성물끼리 일간·격국·용신·대운을 다르게 서술하는 것을 막는 앵커이며
 // (new-year-ai.js:1243 buildCanonicalNewYearFacts 선례), 날짜 날조를 막는 유일한 근거다.
 
+import { sajuTemperamentPromptLines } from './saju-temperament.js';
+
 const ELEMENT_KO = Object.freeze({ wood: "목", fire: "화", earth: "토", metal: "금", water: "수" });
 
 function clean(value, maxLength = 0) {
@@ -300,7 +302,11 @@ export function buildLoveSecretGroupFacts(sajuResult = {}, groupKey = "core") {
   const builder = GROUP_FACT_BUILDERS[groupKey] || GROUP_FACT_BUILDERS.core;
   const my = sajuResult.myChart || {};
   const partner = sajuResult.partnerChart || null;
-  return builder(my, partner, sajuResult);
+  return {
+    ...builder(my, partner, sajuResult),
+    나의성향근거:sajuTemperamentPromptLines(my),
+    ...(partner ? {상대성향근거:sajuTemperamentPromptLines(partner)} : {}),
+  };
 }
 
 /**
@@ -312,6 +318,8 @@ export function compactSajuForFollowUp(sajuResult = {}) {
   const partner = sajuResult.partnerChart || null;
   return {
     내명식: pillarLine(my),
+    나의성향근거:sajuTemperamentPromptLines(my),
+    ...(partner ? {상대성향근거:sajuTemperamentPromptLines(partner)} : {}),
     일간: my.reference?.dayMasterLabel || my.dayMaster,
     일간강약: my.strength,
     오행: my.fiveElements,
