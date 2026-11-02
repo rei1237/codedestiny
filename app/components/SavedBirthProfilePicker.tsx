@@ -1,10 +1,15 @@
 "use client";
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState, type CSSProperties } from "react";
 import { Moon, RefreshCw } from "lucide-react";
 import { selectedBirthProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
 import { readDestinyProfileAccountId, type DestinyProfileCard } from "@/app/_lib/profile-card-storage";
 import { useSavedBirthProfiles } from "@/app/hooks/useSavedBirthProfiles";
 import styles from "./SavedBirthProfilePicker.module.css";
+// Public artwork is owned by the component, like its other presentation data.
+// CSS consumers need not resolve a filesystem import for this public URL.
+const profileArtStyle = {
+  "--saved-profile-art": 'url("/images/home/illustrated/moon-floral-light-480.webp")',
+} as CSSProperties;
 const copy = {
  ko: {title:"저장된 프로필",choose:"프로필 선택하기",manual:"직접 입력하기",hint:"선택한 정보는 이번 운세에만 사용해요.",empty:"저장된 프로필이 없어요. 아래에 직접 입력해 주세요.",guest:"로그인하면 프로필 카드의 저장된 정보를 불러올 수 있어요.",error:"프로필을 불러오지 못했어요. 다시 확인하거나 직접 입력해 주세요.",loading:"프로필 확인 중",refresh:"프로필 목록 새로고침",solar:"양력",lunar:"음력",leap:"윤달",unknown:"시간 모름"},
  en: {title:"Saved profiles",choose:"Choose a profile",manual:"Enter details manually",hint:"This selection is used for this reading only.",empty:"No saved profiles. Enter your details below.",guest:"Sign in to use your saved profile cards.",error:"Profiles could not be loaded. Refresh or enter details below.",loading:"Loading profiles",refresh:"Refresh profiles",solar:"Solar",lunar:"Lunar",leap:"Leap month",unknown:"Time unknown"},
@@ -26,7 +31,7 @@ export default function SavedBirthProfilePicker({onSelect,label,disabled,classNa
   const text=copy[locale];
   const active=profiles.find(profile=>String(profile.id||profile.profileId)===selected);
   const seed=active?selectedBirthProfileSeed(active):null;
-  return <div className={styles.card+" "+className} data-saved-birth-profile="">
+  return <div className={styles.card+" "+className} style={profileArtStyle} data-saved-birth-profile="">
     <div className={styles.heading}><Moon aria-hidden size={19}/><label htmlFor={id}>{label||text.title}</label>
       {owner&&<button type="button" className={styles.refresh} aria-label={text.refresh} title={text.refresh} disabled={disabled||loading||selecting} onClick={()=>void reload()}><RefreshCw aria-hidden size={16}/></button>}
     </div>
