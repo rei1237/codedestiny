@@ -2,8 +2,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
+import ts from 'typescript';
 
 const source = readFileSync('js/cd-lang-suggest.js', 'utf8');
+const dictionary = readFileSync('lib/i18n/dictionary.ts', 'utf8');
+const normalizer = readFileSync('lib/i18n/locale-normalize.js', 'utf8').replaceAll('export ', '');
 const LINKS = {
   en: 'https://code-destiny.com/en/saju/',
   ja: 'https://code-destiny.com/ja/saju/',
@@ -145,9 +148,9 @@ test('falls back to navigator.language when languages is missing', () => {
 });
 
 test('is wired from the layout and the native language runtime, never from server output', () => {
-  assert.match(readFileSync('app/layout.js', 'utf8'), /<Script src="\/js\/cd-lang-suggest\.js" strategy="lazyOnload" \/>/);
+  assert.match(readFileSync('app/layout.js', 'utf8'), /<Script src="\/js\/cd-lang-suggest\.js\?v=20261102-lang-suggest-v2" strategy="lazyOnload" \/>/);
   const native = readFileSync('js/cd-lang-native.js', 'utf8');
-  assert.match(native, /script\.src = '\/js\/cd-lang-suggest\.js'/);
+  assert.match(native, /script\.src = '\/js\/cd-lang-suggest\.js\?v=20261102-lang-suggest-v2'/);
   assert.doesNotMatch(native, /cd-lang-suggest['"]\s*\)?\s*\.(innerHTML|insertAdjacent)/);
   assert.doesNotMatch(readFileSync('app/layout.js', 'utf8'), /id=["']cd-lang-suggest["']/);
 });
@@ -167,4 +170,98 @@ test('moves below the first visible h1 only when it overlaps in the top half', (
   assert.equal(run([40, 120]), '128px');
   assert.equal(run([200, 260]), '8px');
   assert.equal(run([30, 500]), '8px');
+});
+
+// ── shown language: URL prefix, else stored cd_lang, else cookie cd_locale, else ko ──
+function click(page) {
+  let prevented = null;
+  page.box().addEventListener('click', (event) => { prevented = event.defaultPrevented; event.preventDefault(); });
+  page.link().click();
+  return prevented;
+}
+const cookieOf = (window, name) => (window.document.cookie.match(new RegExp('(?:^|;\\s*)' + name + '=([^;]*)')) || [])[1];
+
+// detectLocale's own rule, run for real on the page the link lands on.
+function detectedAfter(window, path) {
+  const dom = new JSDOM('<html><body></body></html>', { url: 'https://code-destiny.com' + path, runScripts: 'outside-only' });
+  for (let i = 0; i < window.localStorage.length; i += 1) {
+    const key = window.localStorage.key(i);
+    dom.window.localStorage.setItem(key, window.localStorage.getItem(key));
+  }
+  for (const part of window.document.cookie.split(';')) if (part.trim()) dom.window.document.cookie = part.trim() + '; Path=/';
+  const detect = dictionary.slice(dictionary.indexOf('export function detectLocale'));
+  dom.window.eval(ts.transpileModule(normalizer + '\n' + detect.replace('export ', ''), { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText);
+  return dom.window.detectLocale();
+}
+
+test('an unprefixed page shows the stored language, so Korean is offered when English is stored', () => {
+  const page = visit('/saju/', ['ko-KR'], { storage: { cd_lang: 'en' } });
+  assert.equal(page.link().getAttribute('href'), '/saju/');
+  assert.equal(page.link().textContent, '한국어로 보기');
+  const fromCookie = visit('/saju/', ['ko-KR'], { cookie: 'cd_locale=en' });
+  assert.equal(fromCookie.link().textContent, '한국어로 보기');
+  const stored = visit('/saju/', ['ko-KR'], { storage: { cd_lang: 'ko' }, cookie: 'cd_locale=en' });
+  assert.equal(stored.box(), null);
+});
+
+test('stays silent when the stored language is already the browser language', () => {
+  assert.equal(visit('/saju/', ['en-US', 'ko'], { storage: { cd_lang: 'en' } }).box(), null);
+  assert.equal(visit('/saju/', ['fr-FR'], { storage: { cd_lang: 'fr' } }).box(), null);
+  assert.equal(visit('/saju/', ['ko-KR', 'en']).box(), null);
+  assert.equal(visit('/checkout/', ['ko-KR'], { alternates: [] }).box(), null);
+});
+
+test('the URL prefix beats the stored language', () => {
+  assert.equal(visit('/en/saju/', ['en-US'], { storage: { cd_lang: 'ko' } }).box(), null);
+  assert.equal(visit('/en/saju/', ['ko-KR'], { storage: { cd_lang: 'ko' } }).link().getAttribute('href'), '/saju/');
+});
+
+test('/ with English stored offers Korean at /', () => {
+  const page = visit('/', ['ko'], { alternates: [], storage: { cd_lang: 'en' } });
+  assert.equal(page.link().getAttribute('href'), '/');
+  assert.equal(page.link().textContent, '한국어로 보기');
+});
+
+test('clicking the link records the chosen language but never an explicit flag', () => {
+  const page = visit('/saju/', ['ko-KR'], { storage: { cd_lang: 'en' }, cookie: 'cd_locale=en; Path=/' });
+  assert.equal(click(page), false);
+  const { window } = page;
+  assert.equal(window.localStorage.getItem('cd_lang'), 'ko');
+  assert.equal(window.localStorage.getItem('cd_lang_ack'), '1');
+  assert.equal(window.localStorage.getItem('cd_locale_ack'), '1');
+  assert.equal(cookieOf(window, 'cd_locale'), 'ko');
+  assert.equal(cookieOf(window, 'cd_locale_ack'), '1');
+  assert.equal(cookieOf(window, 'cd_locale_explicit'), undefined);
+  assert.equal(window.localStorage.getItem('cd_lang_explicit'), null);
+  assert.equal(window.localStorage.getItem('cd_locale_explicit'), null);
+});
+
+test('Korean chosen on /en/saju/ is what /saju/ detects afterwards', () => {
+  const page = visit('/en/saju/', ['ko-KR']);
+  assert.equal(click(page), false);
+  assert.equal(page.window.localStorage.getItem('cd_lang'), 'ko');
+  assert.equal(detectedAfter(page.window, '/saju/'), 'ko');
+});
+
+test('an English choice is recorded like writeLocale and detected on the next page', () => {
+  const page = visit('/saju/', ['en-US']);
+  click(page);
+  assert.equal(page.window.localStorage.getItem('cd_lang'), 'en');
+  assert.equal(cookieOf(page.window, 'cd_locale'), 'en');
+  assert.equal(detectedAfter(page.window, '/saju/'), 'en');
+});
+
+test('a click survives storage that throws', () => {
+  const dom = new JSDOM('<!doctype html><html lang="ko"><head><link rel="alternate" hreflang="en" href="https://code-destiny.com/en/saju/"></head><body></body></html>', {
+    url: 'https://code-destiny.com/saju/',
+    runScripts: 'outside-only',
+  });
+  const { window } = dom;
+  Object.defineProperty(window.navigator, 'languages', { value: ['en'], configurable: true });
+  Object.defineProperty(window, 'localStorage', { get() { throw new Error('blocked'); }, configurable: true });
+  window.eval(source);
+  const link = window.document.querySelector('#cd-lang-suggest a');
+  window.document.addEventListener('click', (event) => event.preventDefault());
+  assert.doesNotThrow(() => link.click());
+  assert.equal(/(?:^|;\s*)cd_locale=en(?:;|$)/.test(window.document.cookie), true);
 });

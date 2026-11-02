@@ -642,7 +642,7 @@
     function load() {
       if (window.__cdLangSuggestLoaded) return;
       var script = document.createElement('script');
-      script.src = '/js/cd-lang-suggest.js';
+      script.src = '/js/cd-lang-suggest.js?v=20261102-lang-suggest-v2';
       script.async = true;
       (document.head || document.documentElement).appendChild(script);
     }

@@ -74,6 +74,31 @@ test('the URL decides the language: ?lang= and explicit cookie still redirect, p
   assert.equal(ko.status, 200);
 });
 
+test('every public destination the ?lang= and explicit-cookie mapping can produce is a real sitemap URL', async () => {
+  const locs = new Set([...readFileSync('sitemap.xml', 'utf8').matchAll(/<loc>([^<]+)<\/loc>/g)].map(match => match[1]));
+  const topics = runInNewContext(source.slice(source.indexOf('const LOCALIZED_ENTRY_TOPICS'), source.indexOf('function visitorLanguage')) + ';[...LOCALIZED_ENTRY_TOPICS, ...CORE_LANGUAGE_ENTRY_TOPICS];');
+  const paths = [...new Set(['/', '/ggulggul/', '/static/', '/privacy/', '/terms/', '/refund/', '/saju/compatibility/', '/sukuyo/compatibility/', '/checkout/', ...topics.map(topic => '/' + topic + '/')])];
+  const worker = edge();
+  let redirects = 0;
+  for (const lang of ['en', 'ja', 'zh', 'zh-CN', 'zh-Hant', 'zh-TW', 'ko', 'vi', 'de', 'fr']) for (const path of paths) {
+    for (const [url, headers] of [[path + '?lang=' + lang, {}], [path, { Cookie: 'cd_locale=' + lang + '; cd_locale_explicit=1' }]]) {
+      const response = await worker.fetch(visit(url, 'US', { headers }), asset);
+      const destination = response.headers.get('Location');
+      if (!destination) continue;
+      redirects += 1;
+      const target = new URL(destination);
+      assert.ok(locs.has('https://code-destiny.com' + target.pathname), lang + ' ' + url + ' -> ' + destination);
+    }
+  }
+  assert.ok(redirects > 100, 'the mapping must actually redirect: ' + redirects);
+});
+
+test('information pages without a zh-TW edition go to English, never to a missing /zh-tw/ URL', async () => {
+  const response = await edge().fetch(visit('/contact/?lang=zh-Hant', 'US'), asset);
+  assert.equal(response.status, 302);
+  assert.equal(new URL(response.headers.get('Location')).pathname, '/en/contact/');
+});
+
 test('explicit languages, query bytes, payment returns and crawler discovery remain stable', async () => {
   const worker = edge();
   for (const [path, headers, expected] of [

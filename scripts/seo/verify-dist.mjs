@@ -49,7 +49,7 @@ export const RULES = {
   "jsonld-dates": "fail",
   // dist/_worker.js 를 Pages 정적 서빙 흉내 앞에서 돌린 결과(edge-probe.mjs). 같은 URL 은 국가·UA 와 무관하게 같은 응답이어야 한다.
   // 슬래시 없는 디렉터리 URL 의 308 이 그대로 나가면 안 되고(워커가 절대 URL 301 하나로 접는다), 국가 302 가 없어야 하며,
-  // 크롤러 응답에 cd_geo_locale 쿠키나 no-store 가 없어야 한다(cd_geo_country·private 는 허용). 기준선 0건(2026-11-02 build:cf 산출물)이라 fail.
+  // 크롤러 응답에 cd_geo_locale 쿠키나 no-store 가 없어야 한다(cd_geo_country·private 는 허용). 기준선 0건(2026-11-02 20:10 KST build:cf 산출물)이라 fail.
   "edge-slash-308": "fail",
   "edge-country-302": "fail",
   "edge-crawler-cookie": "fail",

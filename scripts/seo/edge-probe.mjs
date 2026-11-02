@@ -1,6 +1,6 @@
 // Network-free edge probe: runs the Cloudflare Pages advanced-mode worker (dist/_worker.js) in a
 // Node vm in front of an emulation of Pages static serving, so build output alone shows
-// trailing-slash 308s, country 302s and crawler geo cookies.
+// trailing-slash redirects (slash308: any 3xx other than one absolute https 301), country 302s and crawler geo cookies.
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { extname, isAbsolute, join, relative, resolve } from 'node:path';
 import { runInNewContext } from 'node:vm';
@@ -79,7 +79,10 @@ export async function probeEdge({ workerSource, assets }) {
   const worker = loadWorker(workerSource);
   const result = { slash308: [], country302: [], crawlerCookie: [] };
   for (const path of ['/saju', '/en', '/ggulggul']) {
-    if ((await visit(worker, assets, path, 'KR', CHROME_UA)).status === 308) result.slash308.push(path);
+    // Violation: any 3xx that is not the worker's own one absolute https 301. 200 and 404 are not (a missing directory must not block publishing).
+    const response = await visit(worker, assets, path, 'KR', CHROME_UA);
+    const redirected = response.status >= 300 && response.status < 400;
+    if (redirected && !(response.status === 301 && /^https:\/\//i.test(response.headers.get('Location') || ''))) result.slash308.push(path);
   }
   if ((await visit(worker, assets, '/', 'US', CHROME_UA)).status === 302) result.country302.push('/ US');
   for (const { label: crawler, ua } of CRAWLERS) {

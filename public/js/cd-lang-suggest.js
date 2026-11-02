@@ -9,7 +9,7 @@
   window.__cdLangSuggestLoaded = true;
 
   var DISMISS_KEY = 'cd_lang_suggest_dismissed';
-  var ROOT_TABLE = { en: '/en/', ja: '/ja/', 'zh-CN': '/zh/', 'zh-TW': '/zh-tw/' };
+  var ROOT_TABLE = { ko: '/', en: '/en/', ja: '/ja/', 'zh-CN': '/zh/', 'zh-TW': '/zh-tw/' };
   var COPY = {
     en: ['This page is also available in English.', 'View in English', 'Close'],
     ko: ['이 페이지는 한국어로도 볼 수 있어요.', '한국어로 보기', '닫기'],
@@ -23,6 +23,15 @@
   }
   function writeStorage(key, value) {
     try { window.localStorage.setItem(key, value); } catch (e) { /* 기록 없음으로 본다 */ }
+  }
+  function readCookie(name) {
+    try {
+      var match = new RegExp('(?:^|;\\s*)' + name + '=([^;]*)').exec(document.cookie || '');
+      return match ? decodeURIComponent(match[1]) : '';
+    } catch (e) { return ''; }
+  }
+  function writeCookie(name, value) {
+    try { document.cookie = name + '=' + value + '; path=/; max-age=315360000; SameSite=Lax'; } catch (e) { /* 기록 없음으로 본다 */ }
   }
   function hasCookie(name, value) {
     try {
@@ -41,6 +50,7 @@
     return 'zh-CN';
   }
 
+  // 지금 화면에 보이는 언어. detectLocale 과 같은 순서: URL 접두어 → 저장된 cd_lang → cd_locale 쿠키 → ko.
   function currentLanguage(path) {
     var lower = path.toLowerCase();
     function under(prefix) { return lower === prefix || lower.indexOf(prefix + '/') === 0; }
@@ -48,7 +58,16 @@
     if (under('/ja')) return 'ja';
     if (under('/zh-tw')) return 'zh-TW';
     if (under('/zh')) return 'zh-CN';
-    return 'ko';
+    return normalize(readStorage('cd_lang')) || normalize(readCookie('cd_locale')) || 'ko';
+  }
+
+  // 링크를 누르면 고른 언어를 남긴 뒤 그대로 이동한다. 언어는 계속 URL 이 정하므로 explicit 표시는 남기지 않는다.
+  function rememberChoice(lang) {
+    writeStorage('cd_lang', lang);
+    writeCookie('cd_locale', encodeURIComponent(lang));
+    writeCookie('cd_locale_ack', '1');
+    writeStorage('cd_lang_ack', '1');
+    writeStorage('cd_locale_ack', '1');
   }
 
   function pathOf(href) {
@@ -142,6 +161,7 @@
     link.setAttribute('hreflang', lang);
     link.textContent = copy[1];
     link.style.cssText = 'color:#5b3fd4;font-weight:600;text-decoration:underline;white-space:nowrap;';
+    link.addEventListener('click', function () { rememberChoice(lang); });
 
     var close = document.createElement('button');
     close.setAttribute('type', 'button');

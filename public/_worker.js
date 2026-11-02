@@ -56,8 +56,10 @@ const DYNAMIC_FEED_PATHS = new Set(["/rss.xml", "/insights/rss.xml"]);
 // language or a URL: the URL, ?lang= and an explicit cd_locale choice do. Asset directories bypass this Worker.
 const VISITOR_LANGUAGES = new Set(["en", "ko", "ja", "zh-CN", "zh-TW", "vi", "hi", "ms", "de", "nl", "fr", "es"]);
 const LANGUAGE_PATHS = { ko: "", en: "en", ja: "ja", "zh-CN": "zh", "zh-TW": "zh-tw" };
-// Only routes with published translations. Tests verify every destination against
-// the sitemap so a locale prefix cannot create a silent 404.
+// Only routes with published translations. These topics are reached only through ?lang= and an
+// explicit cd_locale cookie (country and browser language never pick one); the "every public
+// destination is a real sitemap URL" test in __tests__/ui/visitor-country-routing.test.mjs checks each
+// destination against sitemap.xml, so a locale prefix cannot create a silent 404.
 const LOCALIZED_ENTRY_TOPICS = new Set(["astrology", "compatibility", "fortune", "insights", "saju", "sukuyo", "tarot", "today", "vedic", "yeongnyangi", "ziwei", "privacy-policy", "terms-of-service", "refund-policy"]);
 const CORE_LANGUAGE_ENTRY_TOPICS = new Set(["about", "contact", "faq", "disclaimer", "destiny-compass", "fortune-tea-house", "psychotest", "sukuyo-compatibility-ai"]);
 

@@ -47,6 +47,20 @@ test('edge probe reports slash 308, country 302 and crawler cookies from a worke
   assert.ok(result.crawlerCookie.length >= 1 && result.crawlerCookie.every((label) => label.includes('Mediapartners')));
 });
 
+test('the slash gate flags every 3xx except one absolute https 301, and never a 200 or 404', async () => {
+  const workerFor = (status, location) => `export default { async fetch(req) {
+    return new Response(${status === 200 || status === 404 ? "'x'" : 'null'}, { status: ${status}, headers: ${JSON.stringify(location ? { Location: location } : {})} }); } }`;
+  const probe = (status, location) => probeEdge({ workerSource: workerFor(status, location), assets: { fetch: async () => new Response('', { status: 200 }) } });
+  const all = ['/saju', '/en', '/ggulggul'];
+  assert.deepEqual((await probe(301, '/saju/')).slash308, all, 'relative 301');
+  assert.deepEqual((await probe(302, 'https://code-destiny.test/saju/')).slash308, all, '302');
+  assert.deepEqual((await probe(308, 'https://code-destiny.test/saju/')).slash308, all, 'absolute 308');
+  assert.deepEqual((await probe(301, 'http://code-destiny.test/saju/')).slash308, all, 'http 301');
+  assert.deepEqual((await probe(301, 'https://code-destiny.test/saju/')).slash308, [], 'absolute 301');
+  assert.deepEqual((await probe(200)).slash308, [], '200');
+  assert.deepEqual((await probe(404)).slash308, [], '404');
+});
+
 test('crawler responses may carry cd_geo_country and private/no-cache: only cd_geo_locale or no-store is a violation', async () => {
   const workerFor = (headers) => `export default { async fetch(req, env) {
     const res = await env.ASSETS.fetch(req);
