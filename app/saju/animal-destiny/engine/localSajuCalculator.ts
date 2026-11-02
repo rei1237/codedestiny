@@ -3,6 +3,12 @@ import { calculateNatalSaju, daeun, DAEUN_POLICY_VERSION, lunarToSolar, nodeTerm
 import { cmsRecord } from "@/lib/cms/build-text";
 import { standardMeridianForTimezone } from "@/worker/lib/birth-time-context.js";
 import { wallClockToUtcMillis } from "@/worker/lib/iana-offset.js";
+import { buildApprovedNatalAnalysis, buildApprovedFinalReport, buildApprovedStructuredReport } from "@/lib/saju/gyeokguk-authority.mjs";
+
+/** CR-008: execution policy is separate from birth data and defaults OFF. */
+export interface SajuAnalysisExecutionOptions {
+  gyeokgukAuthorityV2?: boolean;
+}
 
 const LOCAL_SAJU_CALCULATOR_TEXT_TRANSLATIONS = {
   ko: {
@@ -4390,7 +4396,10 @@ function buildScoringAnalysis(
   };
 }
 
-function calculateNatalAnalysis(pillars: LocalSajuResult["pillars"], input: LocalSajuInput): NatalAnalysisLocal {
+function calculateNatalAnalysis(pillars: LocalSajuResult["pillars"], input: LocalSajuInput, options: SajuAnalysisExecutionOptions = {}): NatalAnalysisLocal {
+  if (options.gyeokgukAuthorityV2 === true) {
+    return buildApprovedNatalAnalysis(pillars) as NatalAnalysisLocal;
+  }
   const dayStem = pillars.day.stem;
   const dayElement = STEM_ELEMENT[dayStem];
   const resourceElement = getProducerOf(dayElement);
@@ -5315,7 +5324,7 @@ function buildFinalAdvancedReport(args: {
  * - KASI 절기 기준과 동일한 간지 수식으로 연/월/일/시주 계산
  * - 공통 명식 정책: 지역 평균시(경도·과거 DST) 보정 후 일주·시주를 함께 확정
  */
-export function calculateLocalSaju(input: LocalSajuInput): LocalSajuResult {
+export function calculateLocalSaju(input: LocalSajuInput, options: SajuAnalysisExecutionOptions = {}): LocalSajuResult {
   if (input.locationType === "current" || input.usingCurrentLocation === true) {
     throw new Error("Birthplace coordinates are required; current-location coordinates cannot be used for natal saju.");
   }
@@ -5359,8 +5368,8 @@ export function calculateLocalSaju(input: LocalSajuInput): LocalSajuResult {
     next: solarTermWindow.next,
     ipchun: yearPillarResult.ipchun,
   };
-  const natalAnalysis = calculateNatalAnalysis(pillars, input);
-  const finalAdvancedReport = buildFinalAdvancedReport({
+  const natalAnalysis = calculateNatalAnalysis(pillars, input, options);
+  const finalAdvancedReport = options.gyeokgukAuthorityV2 === true ? buildApprovedFinalReport(natalAnalysis) : buildFinalAdvancedReport({
     input,
     pillars,
     solarTermBoundary,
@@ -5370,7 +5379,8 @@ export function calculateLocalSaju(input: LocalSajuInput): LocalSajuResult {
     trueSolarTimeUsed,
     natalAnalysis,
   });
-  const structuredAdvancedReport = buildStructuredAdvancedReport({
+  const structuredReportBuilder = options.gyeokgukAuthorityV2 === true ? buildApprovedStructuredReport : buildStructuredAdvancedReport;
+  const structuredAdvancedReport = structuredReportBuilder({
     input,
     pillars,
     solarTermBoundary,
