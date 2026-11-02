@@ -31,10 +31,10 @@ export async function fixtures(browser,base,product,width=390,{monthlyBalance=0}
  const authUser=()=>({...user,profileSubscription:{tier:'free',isActive:false,membershipCreditBalance:state.monthlyBalance}});
  state.profiles=[{profileId:'shared-profile',name:'QA 고객',birth:{year:1990,month:6,day:15,hour:14,minute:30},location:{label:'대한민국 부산'}}];state.profileCreates=0;state.creates=0;
  state.resources=[];state.blocked=[];state.http=[];state.apiInFlight=new Map();state.visited=[];state.pageErrorDetails=[];
- state.pageIds=new WeakMap();state.requestStartedAt=new WeakMap();let nextPageId=0;
+ state.pageIds=new WeakMap();state.requestStartedAt=new WeakMap();state.fulfilledRequests=new WeakSet();state.finishedRequests=new WeakSet();state.httpProof=new WeakMap();let nextPageId=0;
  context.on('request',request=>{const path=new URL(request.url()).pathname;if(path.startsWith('/api/')&&path!=='/api/billing/funnel-event'){state.requestStartedAt.set(request,Date.now());state.apiInFlight.set(request,request.frame().page());}});
- const finishRequest=request=>state.apiInFlight.delete(request);
- context.on('requestfinished',finishRequest);context.on('requestfailed',finishRequest);
+ const finishRequest=(request,finished=false)=>{if(finished){state.finishedRequests.add(request);const proof=state.httpProof.get(request);if(proof)proof.finished=true;}state.apiInFlight.delete(request);};
+ context.on('requestfinished',request=>finishRequest(request,true));context.on('requestfailed',request=>finishRequest(request));
  context.on('response',response=>{const url=new URL(response.url());if(url.pathname.startsWith('/_next/'))state.resources.push({path:url.pathname,status:response.status()});});
  context.on('requestfailed',request=>{const url=new URL(request.url());state.resources.push({path:url.pathname,status:null,failure:request.failure()?.errorText});});
  const page=await context.newPage();
@@ -72,7 +72,8 @@ export async function fixtures(browser,base,product,width=390,{monthlyBalance=0}
    // Intercepted Playwright requests report timing().startTime=0 until served.
    const startedAt=state.requestStartedAt.get(request)??Date.now();
    await route.fulfill({status,json:body,headers:{'Access-Control-Allow-Origin':base,'Access-Control-Allow-Credentials':'true','Cache-Control':'no-store','Pragma':'no-cache',...headers}});
-   state.http.push({path,method:request.method(),status,pageId,startedAt,paid:body?.fortune?.paid,read503:state.read503,activate503:state.activate503});
+   state.fulfilledRequests.add(request);
+   const proof={path,method:request.method(),status,pageId,startedAt,finished:state.finishedRequests.has(request),paid:body?.fortune?.paid,read503:state.read503,activate503:state.activate503};state.httpProof.set(request,proof);state.http.push(proof);
   };
   // Test fails closed on every unrecognised API; external hosts never reach a transport.
   if(url.origin!==base&&!(url.origin===QA_API_ORIGIN&&path.startsWith('/api/'))){state.blocked.push(url.hostname+url.pathname);return route.fulfill({status:403,body:'QA_EXTERNAL_NETWORK_BLOCKED'});}
@@ -272,8 +273,12 @@ export async function settleApiFixture(f){
  const result=f.state.auth&&new URL(f.page.url()).pathname==='/yeongnyangi/result/';
  const origin=await f.page.evaluate(()=>performance.timeOrigin);
  const pageId=f.state.pageIds.get(f.page);
- const ready=()=>!result||['/api/activation-rewards/status','/api/activation-rewards/snu/status'].every(path=>f.state.http.some(r=>r.path===path&&r.method==='GET'&&r.status===200&&r.pageId===pageId&&r.startedAt>=origin));
- const pending=()=>[...f.state.apiInFlight].filter(([request,page])=>page===f.page&&(f.state.requestStartedAt.get(request)??0)>=origin);
+ const bannerReads=new Set(['/api/activation-rewards/status','/api/activation-rewards/snu/status']);
+ const ready=()=>!result||[...bannerReads].every(path=>f.state.http.some(r=>r.path===path&&r.method==='GET'&&r.status===200&&r.finished&&r.pageId===pageId&&r.startedAt>=origin));
+ // Cached/cloned profile responses can retain a browser body stream after the
+ // fixture delivered all bytes. Banner reads still need browser completion:
+ // those are precisely the reads a subsequent reload can otherwise cancel.
+ const pending=()=>[...f.state.apiInFlight].filter(([request,page])=>page===f.page&&(f.state.requestStartedAt.get(request)??0)>=origin&&(!f.state.fulfilledRequests.has(request)||bannerReads.has(new URL(request.url()).pathname)));
  try{await waitFixture(()=>ready()&&pending().length===0);}
  catch(error){error.message+=`: document=${origin}; `+pending().map(([r])=>`${r.method()} ${new URL(r.url()).pathname}`).join(', ');throw error;}
 }

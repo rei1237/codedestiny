@@ -34,13 +34,14 @@ test('payment fixture recognises activation reads without granting rights or acc
   const pageId=f.state.pageIds.get(page);
   const previousDocument={};f.state.apiInFlight.set(previousDocument,page);f.state.requestStartedAt.set(previousDocument,100);
   const paths=['/api/activation-rewards/status','/api/activation-rewards/snu/status'];
-  f.state.http=paths.map(path=>({path,method:'GET',status:200,pageId,startedAt:100}));
+  f.state.http=paths.map(path=>({path,method:'GET',status:200,finished:true,pageId,startedAt:100}));
   let settled=false;const drain=settleApiFixture(f).then(()=>{settled=true;});
   await new Promise(resolve=>setTimeout(resolve,30));assert.equal(settled,false,'Prior document responses cannot release a reload');
-  const currentDocument={};f.state.apiInFlight.set(currentDocument,page);f.state.requestStartedAt.set(currentDocument,301);
-  f.state.http.push(...paths.map(path=>({path,method:'GET',status:200,pageId,startedAt:301})));
+  const deliveredProfile={url:()=>base+'/api/profile'};f.state.apiInFlight.set(deliveredProfile,page);f.state.requestStartedAt.set(deliveredProfile,301);f.state.fulfilledRequests.add(deliveredProfile);
+  const currentDocument={url:()=>base+'/api/activation-rewards/status'};f.state.apiInFlight.set(currentDocument,page);f.state.requestStartedAt.set(currentDocument,301);f.state.fulfilledRequests.add(currentDocument);
+  f.state.http.push(...paths.map(path=>({path,method:'GET',status:200,finished:true,pageId,startedAt:301})));
   await new Promise(resolve=>setTimeout(resolve,30));assert.equal(settled,false,'Current document requests still block reload');
-  f.state.apiInFlight.delete(currentDocument);await drain;assert(f.state.apiInFlight.has(previousDocument),'Old-document requests remain recorded without blocking the current one');
+  f.state.apiInFlight.delete(currentDocument);await drain;assert(f.state.apiInFlight.has(previousDocument),'Old-document requests remain recorded without blocking the current one');assert(f.state.apiInFlight.has(deliveredProfile),'A delivered cached read does not require draining an unused clone');
   const reward=await request('/api/activation-rewards/status');
   assert.equal(reward.status,200);assert.equal(reward.json.tutorial.eligible,false);
   assert.equal(reward.json.policy.review.trigger,'approved');assert.equal(typeof reward.json.policy.review.amount,'number');
