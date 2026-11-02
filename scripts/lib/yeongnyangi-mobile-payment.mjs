@@ -270,11 +270,12 @@ export async function settleApiFixture(f){
  // Result reloads must wait for this document's signed-in banner reads, not
  // a momentarily empty queue or a successful response from the previous tab.
  const result=f.state.auth&&new URL(f.page.url()).pathname==='/yeongnyangi/result/';
- const origin=result?await f.page.evaluate(()=>performance.timeOrigin):0;
+ const origin=await f.page.evaluate(()=>performance.timeOrigin);
  const pageId=f.state.pageIds.get(f.page);
  const ready=()=>!result||['/api/activation-rewards/status','/api/activation-rewards/snu/status'].every(path=>f.state.http.some(r=>r.path===path&&r.method==='GET'&&r.status===200&&r.pageId===pageId&&r.startedAt>=origin));
- try{await waitFixture(()=>ready()&&![...f.state.apiInFlight.values()].includes(f.page));}
- catch(error){error.message+=': '+[...f.state.apiInFlight.keys()].map(r=>`${r.method()} ${new URL(r.url()).pathname}`).join(', ');throw error;}
+ const pending=()=>[...f.state.apiInFlight].filter(([request,page])=>page===f.page&&(f.state.requestStartedAt.get(request)??0)>=origin);
+ try{await waitFixture(()=>ready()&&pending().length===0);}
+ catch(error){error.message+=`: document=${origin}; `+pending().map(([r])=>`${r.method()} ${new URL(r.url()).pathname}`).join(', ');throw error;}
 }
 
 async function waitResult(f){
