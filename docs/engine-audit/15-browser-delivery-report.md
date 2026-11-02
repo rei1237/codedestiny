@@ -1,8 +1,8 @@
 # 신규 계산의 실제 브라우저 결제 복귀·전달 검증
 
-status: in-progress
+status: done
 updated: 2026-11-02
-next: 통과한 변경을 로컬 커밋하고 커밋 상태 검사·임시 산출물 정리 후 종료. push/배포 금지.
+next: 이번 로컬 검증 완료. 별도 승인 범위가 정해지기 전 실 PG/LLM/DB·플래그 활성화·push/배포 금지.
 
 기준: `a81ebc0f6` / 구현 기준 `cf7c81a08`. 사용자는 실제 브라우저 검증 및 필요한 수정을 승인했고, DB·PG·LLM은 mock, 플래그 OFF·Swiss 차단·기존 저장/유료 결과 보존·push/배포 금지를 지정했다.
 
@@ -62,7 +62,7 @@ next: 통과한 변경을 로컬 커밋하고 커밋 상태 검사·임시 산�
 | 보호 파일 비교 | 기준 `a81ebc0f6` 대비 **38개 동일**, 승인 표시 변경 파일만 별도 before/after 기록 |
 | Impeccable 정적 탐지 | 종료 0, 발견 목록 `[]` |
 
-사주 어댑터의 금지 함수·KASI 입력·정규화·6개 엔진·결제 실행 파일·인증·DB 스키마·저장/유료 결과와 운영 의존성·설정은 변경하지 않았다. 실제 운영에 해당하는 변경은 `ZiweiAiClient.tsx`의 저장 메타정보 표시뿐이다. 테스트용 기존 하네스에는 보관함 읽기에 필요한 메모리 `find`/`limit`만 추가했다. 별도 브라우저 도구/보고서/증거를 추가했다.
+사주 어댑터의 금지 함수·KASI 입력·정규화·6개 엔진·결제 실행 파일·인증·DB 스키마·저장/유료 결과와 운영 의존성·기능 설정은 변경하지 않았다. 운영 실행 코드 변경은 `ZiweiAiClient.tsx`의 저장 메타정보 표시뿐이다. 테스트용 기존 하네스에는 보관함 읽기에 필요한 메모리 `find`/`limit`만 추가했다. 별도 브라우저 도구/보고서/증거와 아래 공식 생성 사이트맵을 추가·갱신했다.
 
 ## 완료 범위와 남은 확인
 
@@ -70,4 +70,13 @@ next: 통과한 변경을 로컬 커밋하고 커밋 상태 검사·임시 산�
 
 실 PG SDK/웹훅/결제사 쿠키, 실 LLM 내용, 실제 DB 내구성, 전체 Next 서버/SSR/공통 레이아웃, 물리 모바일 기기, 전체 CI/build는 미검증이다. Swiss 연결 전체 Worker 경로는 계속 차단했다. 기존 11번 보고서의 실제 DB·PG 승인 경계를 유지한다. 디자인 보조 문서의 기존 불일치 알림은 이번 기능 수정 범위에서 갱신하지 않았다.
 
-회귀 시 이번 표시 수정만 되돌린다. 기존 CR-006 reader·준비 ID/명반·OFF를 유지하고 구매 결과를 재계산하거나 다른 주문으로 대체하지 않는다. 로컬 커밋과 종료 정리 기록은 아래에 추가한다. push·배포는 하지 않는다.
+회귀 시 이번 표시 수정만 되돌린다. 기존 CR-006 reader·준비 ID/명반·OFF를 유지하고 구매 결과를 재계산하거나 다른 주문으로 대체하지 않는다. 되돌린 표시 소스에 맞춰 공식 사이트맵도 재생성한다.
+
+## 로컬 전달 기록
+
+- `7ccb7b1b0`: 표시 수정, 실제 브라우저 도구·7개 시나리오·91개 회귀 증거.
+- 첫 `npm run check:pre-push`는 변경된 자미 화면의 사이트맵 원장 불일치로 종료 1. [최초 출력](results/browser-delivery-20261102/committed-check-before-sitemap.json)을 그대로 보존했다. 엔진/결제 검사 실패는 아니었다.
+- `node --require ./scripts/lib/mock-network-guard.cjs scripts/generate-sitemap.mjs`로 정본 생성. XML 12개와 `config/sitemap-lastmod.json` 갱신: URL/우선순위/주기 불변, XML 변경은 lastmod뿐이다. 소스 서명 변경은 `/ziwei-ai/` 하나이고, 생성기의 정해진 주기에 따른 운세 날짜 갱신도 함께 포함됐다. 파일을 수동 편집하거나 검사 기대값을 바꾸지 않았다. [생성 범위 증거](results/browser-delivery-20261102/sitemap-generation.json).
+- `bc459b891be7d49c68643a0437d8eb174b2317c7`: 생성 사이트맵·증거 별도 커밋. 그 커밋 상태에서 **`npm run check:pre-push` 종료 0**: 홈 registry 63개, 공개 미러, 사이트맵 1,037 URL, llms 문서, SEO registry 통과. [최종 출력](results/browser-delivery-20261102/committed-check.json).
+- `git diff --check` 종료 0. 브라우저/로컬 HTTP는 각 실행 종료 때 닫았고 자기 `.tmp/engine-audit-browser-delivery/`만 절대 경로 확인 후 삭제했다. 기존 로컬 DB 자료·다른 세션 파일은 보존했다.
+- 완료 기록은 별도 로컬 문서 커밋으로 남긴다. 감사 누적 변경은 main 미통합이므로 기존 감사 워크트리를 보존한다. **push·배포 없음**. 전체 CI 통과나 실제 구매자 전달을 주장하지 않는다.
