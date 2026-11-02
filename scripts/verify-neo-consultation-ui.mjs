@@ -10,6 +10,9 @@ import { renderNeoEmailHomeEntry } from '../lib/brand/neo-email-home-entry.mjs';
 import { NEO_EMAIL_PORTRAIT } from '../lib/neo-consultation/contract.js';
 
 const root = process.cwd(), out = resolve(root,'build-cache/neo-consultation-ui');
+const profilePaperAsset = '/images/home/illustrated/moon-floral-light-480.webp';
+// Next serves this CSS URL from public; esbuild must preserve it, not resolve it as a module.
+await readFile(resolve(root,'public',profilePaperAsset.slice(1)));
 await mkdir(out,{recursive:true});
 const mock = createNeoMock();
 let createRequests = 0;
@@ -25,6 +28,7 @@ const shims = {
 };
 await build({
   stdin:{ contents:'import React from "react";import{createRoot}from"react-dom/client";import Customer from "./app/neo-consultation/NeoConsultationClient";import Admin from "./app/admin/neo-consultations/page";createRoot(document.getElementById("root")).render(location.pathname.startsWith("/admin")?<Admin/>:<Customer/>);', resolveDir:root, loader:'tsx'},
+  external:[profilePaperAsset],
   bundle:true, outfile:resolve(out,'app.js'), jsx:'automatic', define:{'process.env.NODE_ENV':'"development"'},
   plugins:[{name:'mock-boundaries',setup(builder){
     builder.onResolve({filter:/.*/},args => {
@@ -39,7 +43,7 @@ const server = createServer(async(req,res)=>{
   try {
     const origin='http://127.0.0.1:'+server.address().port;
     const path=new URL(req.url,origin).pathname;
-    if(/^\/assets\/yeongnyangi\/scenes\/(love|work-400|wealth-400|self-400)\.webp$/.test(path) || /^\/images\/home-questions\/(marriage|reunion)-400\.webp$/.test(path) || /^\/images\/neo-consultation\/moonlit-letter-(640|1280)\.webp$/.test(path) || path===NEO_EMAIL_PORTRAIT || /^\/images\/service-introductions\/neo-consultation(?:-(?:320|640|960))?\.webp$/.test(path)){res.setHeader('content-type','image/webp');res.end(await readFile(resolve(root,'public',path.slice(1))));return;}
+    if(path===profilePaperAsset || /^\/assets\/yeongnyangi\/scenes\/(love|work-400|wealth-400|self-400)\.webp$/.test(path) || /^\/images\/home-questions\/(marriage|reunion)-400\.webp$/.test(path) || /^\/images\/neo-consultation\/moonlit-letter-(640|1280)\.webp$/.test(path) || path===NEO_EMAIL_PORTRAIT || /^\/images\/service-introductions\/neo-consultation(?:-(?:320|640|960))?\.webp$/.test(path)){res.setHeader('content-type','image/webp');res.end(await readFile(resolve(root,'public',path.slice(1))));return;}
     if(path==='/home-preview/'){
       res.setHeader('content-type','text/html');
       res.end('<!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style>body{margin:0;padding:20px;background:#f6eff5}.cdh{max-width:1000px;margin:auto}*{box-sizing:border-box}</style><style>'+tokens+await readFile(resolve(root,'styles/home-funnel.css'),'utf8')+'</style><div class="cdh">'+renderNeoEmailHomeEntry()+'</div></html>');return;
@@ -65,6 +69,10 @@ const browser=await chromium.launch({headless:true});
 const errors=[], captures=[];
 try {
   const context=await browser.newContext();
+  const profilePaperResponse = await context.request.get(base+profilePaperAsset);
+  assert.equal(profilePaperResponse.status(),200);
+  assert.match(profilePaperResponse.headers()['content-type'],/^image\/webp/);
+  assert.deepEqual(await profilePaperResponse.body(),await readFile(resolve(root,'public',profilePaperAsset.slice(1))));
   await context.route('**/*',route=>new URL(route.request().url()).origin===base?route.continue():route.abort());
   const page=await context.newPage();page.on('pageerror',e=>{errors.push(e.message);console.error('[neo-ui] browser error:',e.message);});
   for(const width of [360,390,430,1280]){
