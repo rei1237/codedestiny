@@ -211,3 +211,27 @@ export function parseSitemapAlternates(xml) {
   }
   return map;
 }
+
+// 운영 응답 표본(Chrome·Googlebot·Yeti × 대표 경로)이 "같은 URL 은 UA 와 상관없이 같은 응답"을 지키는지 본다.
+// 순수 함수: samples 는 { path, agent, status, location, cacheControl, setCookie, challenge }[].
+// 챌린지가 붙었거나 403 인 표본은 비교·판정에서 뺀다(가짜 크롤러 UA 차단은 사이트 문제가 아니다).
+export function edgeSampleIssues(samples) {
+  const issues = [];
+  const usable = samples.filter(s => !s.challenge && s.status !== 403);
+  const byPath = new Map();
+  for (const s of usable) byPath.set(s.path, [...(byPath.get(s.path) || []), s]);
+  for (const [path, group] of byPath) {
+    const shape = s => JSON.stringify([s.status, s.location || '', s.cacheControl || '']);
+    if (new Set(group.map(shape)).size > 1) {
+      issues.push(`${path} differs by agent: ${group.map(s => `${s.agent}=${s.status} ${s.location || '-'} [${s.cacheControl || '-'}]`).join(' | ')}`);
+    }
+  }
+  for (const s of usable) {
+    if (/cd_geo_locale/.test(s.setCookie || '')) issues.push(`${s.path} ${s.agent}: Set-Cookie cd_geo_locale`);
+    if (s.status === 200 && /no-store/i.test(s.cacheControl || '')) issues.push(`${s.path} ${s.agent}: HTML 200 with Cache-Control no-store`);
+    if (s.path === '/saju' && (s.status !== 301 || !/^https:\/\//.test(s.location || ''))) {
+      issues.push(`${s.path} ${s.agent}: expected one absolute-URL 301, got ${s.status} ${s.location || '-'}`);
+    }
+  }
+  return issues;
+}

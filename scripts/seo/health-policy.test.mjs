@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  collectSitemapUrls, decodeHtml, getCanonical, getH1s, getHreflang, getInternalLinks, getJsonLd, getMeta, getTitle,
+  collectSitemapUrls, decodeHtml, edgeSampleIssues, getCanonical, getH1s, getHreflang, getInternalLinks, getJsonLd, getMeta, getTitle,
   hasNoindex, inspectPage, parseHeaderRobotsRules, parseSitemapAlternates, robotsAllows, sitemapDirectives,
 } from './health-policy.mjs';
 import { parseRobotsGroups } from '../lib/robots-groups.mjs';
@@ -155,4 +155,39 @@ test('getJsonLd keeps nested @graph shapes: arrays, graph in graph, bare contain
   const { nodes, errors } = getJsonLd(html);
   assert.deepEqual(errors, []);
   assert.deepEqual(nodes.map((n) => n['@id'] ?? n.name), ['#in-array', '#outer', '#inner', '#ctx-child', 'own-props', '#own-child']);
+});
+
+test('edgeSampleIssues: consistent samples are clean; per-agent drift, cd_geo_locale, no-store 200 and a non-301 slashless URL are issues', () => {
+  const ok = (path, agent, extra = {}) => ({ path, agent, status: 200, location: null, cacheControl: 'private', setCookie: 'cd_geo_country=KR; Path=/', challenge: null, ...extra });
+  const slashless = (agent, extra = {}) => ({ path: '/saju', agent, status: 301, location: 'https://code-destiny.com/saju/', cacheControl: 'no-store', setCookie: '', challenge: null, ...extra });
+  const agents = ['chrome', 'googlebot', 'yeti'];
+  const clean = agents.flatMap((agent) => [ok('/', agent), ok('/saju/', agent), slashless(agent)]);
+  assert.deepEqual(edgeSampleIssues(clean), []);
+
+  const drift = edgeSampleIssues(clean.map((s) => (s.path === '/' && s.agent === 'yeti' ? { ...s, cacheControl: 'public, max-age=0' } : s)));
+  assert.equal(drift.length, 1);
+  assert.match(drift[0], /^\/ differs by agent/);
+  assert.equal(edgeSampleIssues(clean.map((s) => (s.path === '/saju/' && s.agent === 'googlebot' ? { ...s, status: 302, location: '/en/' } : s))).length, 1);
+
+  const locale = edgeSampleIssues(clean.map((s) => (s.path === '/' && s.agent === 'chrome' ? { ...s, setCookie: 'cd_geo_country=KR; Path=/, cd_geo_locale=ko; Path=/' } : s)));
+  assert.equal(locale.length, 1);
+  assert.ok(locale.some((line) => /cd_geo_locale/.test(line)));
+
+  const noStore = edgeSampleIssues(agents.map((agent) => ok('/en/', agent, { cacheControl: 'private, no-store' })));
+  assert.equal(noStore.length, 3);
+  assert.ok(noStore.every((line) => /no-store/.test(line)));
+
+  const wrongStatus = edgeSampleIssues(agents.map((agent) => slashless(agent, { status: 308 })));
+  assert.equal(wrongStatus.length, 3);
+  const relative = edgeSampleIssues(agents.map((agent) => slashless(agent, { location: '/saju/' })));
+  assert.equal(relative.length, 3);
+});
+
+test('edgeSampleIssues: challenged or 403 samples are dropped from comparison and verdicts', () => {
+  const sample = (agent, extra = {}) => ({ path: '/', agent, status: 200, location: null, cacheControl: 'private', setCookie: '', challenge: null, ...extra });
+  const blocked = [sample('chrome'), sample('googlebot'),
+    sample('yeti', { status: 403, cacheControl: 'no-store', setCookie: 'cd_geo_locale=ko' }),
+    sample('bingbot', { cacheControl: 'no-store', challenge: 'challenge' })];
+  assert.deepEqual(edgeSampleIssues(blocked), []);
+  assert.deepEqual(edgeSampleIssues([]), []);
 });

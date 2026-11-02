@@ -47,9 +47,12 @@ export const RULES = {
   // 어느 노드든 datePublished·dateModified 가 있으면 ISO 8601 이고 검사 시각(now) 이하. 오프셋이 없으면 KST 로 읽는다.
   // 검사는 빌드 뒤에 돌므로 now ≥ 빌드 시각이다. 기준선 0건(2026-11-01 22:29 KST build:cf 산출물)이라 fail.
   "jsonld-dates": "fail",
-  "edge-slash-308": "warn",
-  "edge-country-302": "warn",
-  "edge-crawler-cookie": "warn",
+  // dist/_worker.js 를 Pages 정적 서빙 흉내 앞에서 돌린 결과(edge-probe.mjs). 같은 URL 은 국가·UA 와 무관하게 같은 응답이어야 한다.
+  // 슬래시 없는 디렉터리 URL 의 308 이 그대로 나가면 안 되고(워커가 절대 URL 301 하나로 접는다), 국가 302 가 없어야 하며,
+  // 크롤러 응답에 cd_geo_locale 쿠키나 no-store 가 없어야 한다(cd_geo_country·private 는 허용). 기준선 0건(2026-11-02 build:cf 산출물)이라 fail.
+  "edge-slash-308": "fail",
+  "edge-country-302": "fail",
+  "edge-crawler-cookie": "fail",
 };
 
 const EDGE_RULES = ["edge-slash-308", "edge-country-302", "edge-crawler-cookie"];

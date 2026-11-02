@@ -38,7 +38,7 @@ test('edge probe reports slash 308, country 302 and crawler cookies from a worke
     const u = new URL(req.url);
     if (u.pathname === '/' && req.cf?.country === 'US' && !/bot|Mediapartners/i.test(req.headers.get('user-agent'))) return new Response('', { status: 302, headers: { Location: '/en/' } });
     const res = await env.ASSETS.fetch(req);
-    if (/Mediapartners/.test(req.headers.get('user-agent'))) return new Response(res.body, { status: res.status, headers: { 'Set-Cookie': 'cd_geo_country=US', 'Cache-Control': 'private' } });
+    if (/Mediapartners/.test(req.headers.get('user-agent'))) return new Response(res.body, { status: res.status, headers: { 'Set-Cookie': 'cd_geo_locale=en', 'Cache-Control': 'private, no-store' } });
     return res; } }`;
   const assets = { fetch: async (req) => new URL(req.url).pathname === '/saju' ? new Response('', { status: 308, headers: { Location: '/saju/' } }) : new Response('<html></html>', { status: 200 }) };
   const result = await probeEdge({ workerSource, assets });
@@ -47,11 +47,24 @@ test('edge probe reports slash 308, country 302 and crawler cookies from a worke
   assert.ok(result.crawlerCookie.length >= 1 && result.crawlerCookie.every((label) => label.includes('Mediapartners')));
 });
 
+test('crawler responses may carry cd_geo_country and private/no-cache: only cd_geo_locale or no-store is a violation', async () => {
+  const workerFor = (headers) => `export default { async fetch(req, env) {
+    const res = await env.ASSETS.fetch(req);
+    return new Response(res.body, { status: res.status, headers: ${JSON.stringify(headers)} }); } }`;
+  const assets = { fetch: async () => new Response('<html></html>', { status: 200 }) };
+  const allowed = await probeEdge({ workerSource: workerFor({ 'Set-Cookie': 'cd_geo_country=US; Path=/', 'Cache-Control': 'private, no-cache' }), assets });
+  assert.deepEqual(allowed.crawlerCookie, []);
+  const locale = await probeEdge({ workerSource: workerFor({ 'Set-Cookie': 'cd_geo_locale=en; Path=/', 'Cache-Control': 'private' }), assets });
+  assert.equal(locale.crawlerCookie.length, 4);
+  const noStore = await probeEdge({ workerSource: workerFor({ 'Cache-Control': 'no-store' }), assets });
+  assert.equal(noStore.crawlerCookie.length, 4);
+});
+
 test('crawler probe sends Google\'s real Search Console inspection UA, which the worker\'s bot regex does not exclude', async () => {
   const workerSource = `export default { async fetch(req, env) {
     const res = await env.ASSETS.fetch(req);
     if (/bot|crawler|spider|slurp|yeti|facebookexternalhit|kakaotalk-scrap/i.test(req.headers.get('user-agent') || '')) return res;
-    return new Response(res.body, { status: res.status, headers: { 'Set-Cookie': 'cd_geo_country=US; Path=/', 'Cache-Control': 'private, no-store' } }); } }`;
+    return new Response(res.body, { status: res.status, headers: { 'Set-Cookie': 'cd_geo_locale=en; Path=/', 'Cache-Control': 'private, no-store' } }); } }`;
   const assets = { fetch: async () => new Response('<html></html>', { status: 200 }) };
   const { crawlerCookie } = await probeEdge({ workerSource, assets });
   assert.ok(crawlerCookie.includes('/ Google-InspectionTool'), JSON.stringify(crawlerCookie));
@@ -280,7 +293,8 @@ test('edge rules run the dist worker over emulated Pages assets, and are skipped
   assert.deepEqual(result.details['edge-slash-308'], ['/saju', '/en', '/ggulggul']);
   assert.equal(result.counts['edge-country-302'], 0);
   assert.equal(result.counts['edge-crawler-cookie'], 0);
-  assert.equal(result.warnings.length, 1);
+  assert.equal(result.failures.length, 1);
+  assert.deepEqual(result.warnings, []);
 
   const skipped = await inspectDist({ distDir: dir, edge: false, rules: ['edge-slash-308'] });
   assert.deepEqual(skipped.details.edge, ['skipped']);
@@ -304,7 +318,16 @@ test('distAssets emulates Pages static serving: 200 files, slashless-directory 3
   assert.equal((await get('/clip.mp4')).headers.get('Content-Type'), 'video/mp4');
 });
 
-test('an unloadable dist worker is a warning, never a failure: warn-graded edge rules must not block postbuild', async () => {
+test('the repository worker passes every edge rule', async () => {
+  const dir = writeDist({
+    'index.html': htmlPage('/'), 'saju/index.html': htmlPage('/saju/'), 'en/index.html': htmlPage('/en/'), 'ggulggul/index.html': htmlPage('/ggulggul/'),
+  });
+  const result = await probeEdge({ workerSource: readFileSync(new URL('../../public/_worker.js', import.meta.url), 'utf8'), assets: distAssets(dir) });
+  assert.deepEqual(result, { slash308: [], country302: [], crawlerCookie: [] });
+  for (const rule of ['edge-slash-308', 'edge-country-302', 'edge-crawler-cookie']) assert.equal(RULES[rule], 'fail', rule);
+});
+
+test('an unloadable dist worker is a warning, never a failure: a broken probe must not block postbuild', async () => {
   const dir = writeDist({ ...cleanFixture(), '_worker.js': 'import x from "./y.js";\nexport default app;\n' });
   const result = await inspectDist({ distDir: dir, rules: ['page-shape', 'edge-slash-308', 'edge-country-302', 'edge-crawler-cookie'] });
   assert.deepEqual(result.failures, []);
@@ -433,7 +456,7 @@ test('RULES grades are pinned rule by rule', () => {
     'sitemap-page': 'fail', 'sitemap-set': 'fail', 'page-shape': 'fail', 'internal-404': 'fail', 'home-identity': 'fail',
     'duplicate-title': 'warn', 'duplicate-description': 'warn', 'og-url': 'fail', 'og-home-title': 'fail', 'hreflang-sitemap': 'warn',
     'robots-policy': 'fail', 'jsonld-syntax': 'fail', 'jsonld-id-type': 'fail', 'organization-name': 'fail', 'jsonld-dates': 'fail',
-    'edge-slash-308': 'warn', 'edge-country-302': 'warn', 'edge-crawler-cookie': 'warn',
+    'edge-slash-308': 'fail', 'edge-country-302': 'fail', 'edge-crawler-cookie': 'fail',
   });
 });
 

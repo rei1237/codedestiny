@@ -86,7 +86,8 @@ export async function probeEdge({ workerSource, assets }) {
     for (const path of ['/', '/saju/']) {
       const response = await visit(worker, assets, path, 'US', ua);
       const cacheControl = response.headers.get('Cache-Control') || '';
-      if (/cd_geo/.test(response.headers.get('Set-Cookie') || '') || /private|no-store/i.test(cacheControl)) {
+      // Crawlers get cd_geo_country and `private` (the cookie makes the response per-visitor); a language cookie or no-store is the violation.
+      if (/cd_geo_locale/.test(response.headers.get('Set-Cookie') || '') || /no-store/i.test(cacheControl)) {
         result.crawlerCookie.push(`${path} ${crawler}`);
       }
     }
