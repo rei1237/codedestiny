@@ -1911,7 +1911,7 @@ export default function NewYearAiConsultationPage() {
   const seasonYear = Number(targetYearInfo?.year || form.targetYear);
   const ganzi = useMemo(() => yearGanzi(seasonYear), [seasonYear]);
   const seasonTheme = ELEMENT_THEMES[ganzi?.elementIndex ?? 2] || ELEMENT_THEMES[2];
-  const seasonCountdown = useMemo(() => buildSeasonCountdown(seasonYear), [seasonYear]);
+  const seasonCountdown = useMemo(() => clientReady ? buildSeasonCountdown(seasonYear) : "", [clientReady, seasonYear]);
   const themeVars = {
     "--nyai-accent": seasonTheme.accent,
     "--nyai-accent-soft": seasonTheme.soft,
@@ -2001,7 +2001,7 @@ export default function NewYearAiConsultationPage() {
             {!isBusy && <Sparkles size={16} />}
             <span>{statusText}</span>
           </div>
-          {seasonCountdown && <p className="nyai-countdown">{seasonCountdown}</p>}
+          <p className="nyai-countdown">{seasonCountdown || "\u00a0"}</p>
           {accessType && <p className="nyai-access">이용 방식: {accessType}</p>}
         </div>
       </section>
