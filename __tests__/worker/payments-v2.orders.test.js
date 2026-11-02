@@ -423,3 +423,12 @@ test('진로 리포트 5,000원 단건 주문·확정 재시도는 기존 멱등
  expect(await markOrderPaid(db,{orderId:first.merchantUid,order:first,pg})).not.toBeNull();
  expect(await markOrderPaid(db,{orderId:first.merchantUid,order:first,pg})).toBeNull();
 });
+
+
+test('checkout attribution is first-write order metadata and cannot alter amount or change on retry', async()=>{
+ const db=makeFakeDb();const attribution={campaignId:'ggulggul_2027_test',version:'paid-20261028-v1',consent:true,device:'mobile',content:'yearly_a'};
+ const order=await createOrder(db,{userId:USER,product:PRODUCT,idempotencyKey:'analytics-order',growthAttribution:attribution});
+ expect(order.paymentAmount).toBe(30000);expect(order.status).toBe('pending');expect(order.metadata.growthAttribution).toEqual(attribution);
+ const replay=await createOrder(db,{userId:USER,product:PRODUCT,idempotencyKey:'analytics-order',growthAttribution:{...attribution,content:'yearly_b'}});
+ expect(replay.merchantUid).toBe(order.merchantUid);expect(replay.metadata.growthAttribution.content).toBe('yearly_a');expect(replay.paymentAmount).toBe(30000);
+});

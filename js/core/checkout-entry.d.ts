@@ -197,6 +197,8 @@ export type PaymentChoiceCardSpec = {
 };
 
 declare const checkoutEntry: {
+  /** 서버가 검증한 승인 영수증만 계측하며 분석 초기화 전에는 메모리에 대기합니다. */
+  trackConfirmedPurchase(payload: unknown): boolean;
   requestPaypalPayment(request: object, charge?: PaypalCharge | null): Promise<{ paymentId?: string; code?: string; message?: string }>;
   VERSION: number;
   RETURN_KEY: string;
