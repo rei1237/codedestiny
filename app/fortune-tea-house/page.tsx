@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { siteSeo } from "@/lib/seo/siteSeo";
 import FortuneTeaHouseClient from "./FortuneTeaHouseClient";
+import TeaHouseExperience from "@/src/features/fortune-tea-house/FortuneTeaHousePage";
 import ServiceIntroSection from "@/app/components/ServiceIntroSection";
 import { createHreflangFromRoutes } from "@/lib/seo/createHreflang";
 import { introductionRoutes } from "@/lib/i18n/feature-introductions.mjs";
@@ -65,7 +66,7 @@ const teaHouseFaqItems = [
 
 export default function Page() {
   return (
-    <FortuneTeaHouseClient>
+    <FortuneTeaHouseClient landing={<TeaHouseExperience />}>
       <link rel="preload" as="image" href="/images/service-introductions/fortune-tea-house-960.webp" imageSrcSet="/images/service-introductions/fortune-tea-house-320.webp 320w, /images/service-introductions/fortune-tea-house-480.webp 480w, /images/service-introductions/fortune-tea-house-640.webp 640w, /images/service-introductions/fortune-tea-house-960.webp 960w" imageSizes="(max-width:700px) 100vw,60vw" fetchPriority="high" />
       <div className={roomStyles.publicGuide}><ResultSamples ids={['yeoni']}/><ServiceIntroSection label="운명의 찻집 안내" tone="yeoni">
         <h2>연이의 운명 찻집 이용 안내</h2>
