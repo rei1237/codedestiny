@@ -1,3 +1,5 @@
+import { SAJU_TEMPERAMENT_VERSION, sajuTemperamentPromptLines } from '../../../lib/saju-temperament.js';
+
 // Metadata and raw dates/coordinates never cross the explanation-provider boundary.
 const forbidden =
   /^(birth.*|solarDate.*|solarYear|solarMonth|solarDay|inputDate|correctedTime|latitude|lat|lon|location|place|timezone.*|lunar.*|calculatedAt|utc.*|julianDate|userId|profileId|summaryForPrompt|promptConfig|byName)$/i;
@@ -13,6 +15,12 @@ export function explanationFacts(value: unknown): unknown {
       )
       .map(explanationFacts);
   if (!value || typeof value !== "object") return value;
+  // Keep the full profile in calculated facts, but send the same compact reading lens
+  // used by other consultations. Both ask evidence and chapter facts pass here, so
+  // matching values can still be referenced once instead of being sent twice.
+  if ('version' in value && value.version === SAJU_TEMPERAMENT_VERSION &&
+      'tenGods' in value && Array.isArray(value.tenGods) && 'families' in value && Array.isArray(value.families))
+    return { version: value.version, lines: sajuTemperamentPromptLines(value) };
   const rawMoment = "solarYear" in value || "birthTimeContext" in value;
   return Object.fromEntries(
     Object.entries(value)

@@ -4,6 +4,7 @@ import { PAID_REPORT_MIN_BODY_CHARS } from "./paid-report-quality.js";
 import { basisGroup, basisItem, basisStage, buildAnalysisBasisPayload } from "./analysis-basis-contract.js";
 import { buildEvidenceRuleLines } from "./fortune-reasoning-contract.js";
 import { promptDepthLines } from '../../lib/saju/reading-depth.mjs';
+import { sajuTemperamentPromptLines } from './saju-temperament.js';
 import {
   SAJU_PROMPT_TEMPLATES,
   getSajuPromptTemplate,
@@ -26,7 +27,7 @@ const DEFAULT_TEXT = "제공되지 않음";
 
 export const SAJU_AI_PROMPT_FEATURE_KEY = "saju_ai_prompt_generator";
 export const SAJU_AI_PROMPT_PRICE = FEATURE_KEY_PRICE_TABLE[normalizePaidFeatureKey(SAJU_AI_PROMPT_FEATURE_KEY)].cost;
-export const SAJU_AI_PROMPT_VERSION = "saju-myeongsik-ai-v17-seasonal-depth";
+export const SAJU_AI_PROMPT_VERSION = "saju-myeongsik-ai-v18-temperament";
 export { SAJU_PROMPT_TEMPLATES, getSajuPromptTemplate, classifyQuestionToSajuDomain };
 
 // ── 상담문을 나눠 쓰는 단위 ────────────────────────────────────────────────
@@ -1345,6 +1346,7 @@ function buildSajuMyeongsikFactCard(factSnapshot, question) {
     "",
     "12. 이용자 질문",
     `- 질문: ${String(question || f.question || "").trim()}`,
+    ...sajuTemperamentPromptLines(f),
   ].join("\n");
 }
 

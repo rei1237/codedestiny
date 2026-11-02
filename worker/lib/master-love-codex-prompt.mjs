@@ -20,6 +20,7 @@
 
 import { formatZiweiChartForPrompt } from "./ziwei-deep-report-prompt.mjs";
 import { buildCodexEditorialContract } from "./master-love-codex-quality.js";
+import { sajuTemperamentPromptLines } from './saju-temperament.js';
 
 export const MASTER_LOVE_CODEX_META = Object.freeze({
   featureKey: "master-love-codex",
@@ -291,6 +292,7 @@ export function formatSajuForPrompt(saju, anchorsOnly = false) {
     if (clean(s.calculationMeta?.uncertainty)) lines.push(`- 유의: ${clean(s.calculationMeta.uncertainty)}`);
     return lines.join("\n");
   }
+  lines.push(...sajuTemperamentPromptLines(s));
   const elements = distributionText(s.fiveElements);
   if (elements) lines.push(`- 오행 분포: ${elements}`);
   const tenGods = distributionText(s.tenGods);
