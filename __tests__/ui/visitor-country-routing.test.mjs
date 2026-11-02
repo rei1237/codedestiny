@@ -132,9 +132,9 @@ test('keeps no-store on private HTML', async () => {
 });
 
 // `_headers` gives these routes the same `no-cache` as every other `/*/`, so only the worker can hold no-store.
-test('checkout and account HTML stay no-store under the asset no-cache', async () => {
+test('payment and signed-in HTML stay no-store under the asset no-cache', async () => {
   const env = { ASSETS: { fetch: async () => new Response('<html>content</html>', { headers: { 'Content-Type': 'text/html', 'Cache-Control': 'no-cache' } }) } };
-  for (const path of ['/checkout/', '/checkout/?plan=a', '/account/password/']) {
+  for (const path of ['/checkout/', '/checkout/?plan=a', '/account/password/', '/admin/', '/login/', '/diary/']) {
     assert.equal((await edge().fetch(visit(path, 'KR'), env)).headers.get('Cache-Control'), 'private, no-store', path);
   }
   for (const path of ['/saju/', '/checkout-guide/', '/accounting/']) {
