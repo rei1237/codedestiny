@@ -1,0 +1,216 @@
+{
+  "mode": "normal",
+  "engine": "on",
+  "message": "locator.click: Error: strict mode violation: locator('[data-ziwei-chart-details]').locator('summary') resolved to 2 elements:\n    1) <summary>명반·계산 근거 보기</summary> aka getByText('명반·계산 근거 보기')\n    2) <summary>이 상담이 계산한 값</summary> aka locator('summary').filter({ hasText: '이 상담이 계산한 값' })\n\n",
+  "pdfExceptions": [],
+  "pdfStyleErrors": [],
+  "errors": [],
+  "blocked": [
+    "https://assets.code-destiny.com/fonts/serif-latin/09941fb1c169.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/22b54ce7f9da.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/0fa5719f7323.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/4a7f3dcb2cc3.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/972d74532ce4.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/5aaab50eeb5d.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/5c6665edab37.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/68db3c4109cc.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/37f2e5c7951e.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/24f235a5910b.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/623ee24b811e.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/84a60324a3b8.woff2",
+    "https://assets.code-destiny.com/Mulmaru.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/d9b6283e0f2f.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/9bda8d102587.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/3a02d5b8cf74.woff2"
+  ],
+  "httpFailures": [
+    {
+      "path": "/api/ziwei-ai/prepare/",
+      "status": 402
+    }
+  ],
+  "api": [
+    {
+      "method": "GET",
+      "path": "/api/profile"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ziwei-ai/result"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ziwei-ai/result"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/snu/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/access-state"
+    },
+    {
+      "method": "POST",
+      "path": "/api/ziwei-ai/prepare"
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/me"
+    },
+    {
+      "method": "POST",
+      "path": "/api/ziwei-ai/basis"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ziwei-ai/result"
+    },
+    {
+      "method": "GET",
+      "path": "/api/billing/unlock-status"
+    },
+    {
+      "method": "POST",
+      "path": "/__audit/pg"
+    },
+    {
+      "method": "GET",
+      "path": "/api/billing/unlock-status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/snu/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/access-state"
+    },
+    {
+      "method": "GET",
+      "path": "/api/profile"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ziwei-ai/result"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ziwei-ai/result"
+    },
+    {
+      "method": "POST",
+      "path": "/api/ziwei-ai/generate"
+    },
+    {
+      "method": "GET",
+      "path": "/api/reviews/products"
+    },
+    {
+      "method": "GET",
+      "path": "/api/recommendations"
+    },
+    {
+      "method": "GET",
+      "path": "/api/billing/unlock-status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/snu/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/access-state"
+    },
+    {
+      "method": "GET",
+      "path": "/api/profile"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ziwei-ai/result"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ziwei-ai/result"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ziwei-ai/result"
+    },
+    {
+      "method": "GET",
+      "path": "/api/recommendations"
+    },
+    {
+      "method": "GET",
+      "path": "/api/reviews/products"
+    },
+    {
+      "method": "GET",
+      "path": "/api/billing/unlock-status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/access-state"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/snu/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/profile"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ziwei-ai/result"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ziwei-ai/result"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ziwei-ai/result"
+    },
+    {
+      "method": "GET",
+      "path": "/api/reviews/products"
+    },
+    {
+      "method": "GET",
+      "path": "/api/recommendations"
+    }
+  ],
+  "serverTail": "   Using tsconfig file: .tmp/engine-audit-next/tsconfig.json\n   \nYour tsconfig.json extends another configuration, which means we cannot add the Next.js TypeScript plugin automatically. To improve your development experience, we recommend adding the Next.js plugin (`\"plugins\": [{ \"name\": \"next\" }]`) manually to your TypeScript configuration. Learn more: https://nextjs.org/docs/app/api-reference/config/typescript#the-typescript-plugin\n\n\n   We detected TypeScript in your project and reconfigured your tsconfig.json file for you. Strict-mode is set to false by default.\n   The following suggested values were added to your tsconfig.json. These values can be changed to fit your project's needs:\n\n   \t- include was updated to add '.tmp/engine-audit-next/.next/types/**/*.ts'\n\n ○ Compiling /ziwei-ai ...\nBrowserslist: browsers data (caniuse-lite) is 8 months old. Please run:\n  npx update-browserslist-db@latest\n  Why you should do it regularly: https://github.com/browserslist/update-db#readme\n ✓ Compiled /ziwei-ai in 19.1s (2798 modules)\n GET /ziwei-ai/ 200 in 20212ms\n ⚠ Cross origin request detected from 127.0.0.1 to /_next/* resource. In a future major version of Next.js, you will need to explicitly configure \"allowedDevOrigins\" in next.config to allow this.\nRead more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins\n GET /ziwei-ai/?auditReturn=1 200 in 295ms\n ✓ Compiled in 633ms (1108 modules)\n GET /ziwei-ai/?auditReturn=1&lang=ko&cid=zwai_mock-uuid-2 200 in 635ms\n GET /ziwei-ai/ 200 in 254ms\n",
+  "pages": [
+    {
+      "url": "/ziwei-ai/?cid=zwai_mock-uuid-2",
+      "state": {
+        "documentId": "69c5d18d-ce68-444d-81c8-5386d0becfee",
+        "gateCalls": 0,
+        "resumed": null
+      },
+      "visibility": "visible",
+      "result": true,
+      "text": "뒤로\n홈\n紫微斗數\n\n무성 · 막힌 별을 녹으로 바꾸는 판결\n\n자미두수 전문가 상담\n\n명궁과 12궁의 별 흐름을 따라 지금 가장 궁금한 질문을 차분히 풀어드립니다.\n\n무성\n\n명반을 펼치겠습니다. 태어난 시각이 정확할수록 판결도 정확합니다.\n\n01\n막힌 별부터 판결\n\n명반에서 화기(化忌)가 걸린 궁을 먼저 짚고, 그 자리를 화록(化祿)으로 돌릴 구체적인 행동을 처방합니다.\n\n02\n12궁의 무대\n\n일·돈·관계처럼 지금 질문이 놓인 삶의 영역을 나눠 읽습니다.\n\n03\n별의 전환점\n\n현재 흐름에서 서두를 때와 정리할 때를 현실적인 언어로 짚습니다.\n\n별궁을 열기 위한 정보\n저장된 프로필\n\n저장된 프로필이 없어요. 아래에 직접 입력해 주세요.\n\n이름 또는 닉네임\n성별\n선택\n여성\n남성\n비공개\n생년월일\n출생시간\n양력/음력\n양력\n음력\n출생시간 모름\n상담 주제\n전체 명반 해석\n타고난 성향\n인생 방향\n직업/사업운\n학업/시험운\n재물운\n부동산/전택운\n연애/결혼운\n인간관계\n부모/가족운\n자녀/출산운\n건강/멘탈\n이동/이주운\n송사/분쟁\n현재 고민 상담\n별궁에 묻고 싶은 질문\n상담 이용 가격 30,000원\n별궁 전문가 상담 받기\n완성 상담\n별궁 기록이 완성되었습니다\nPDF 다운로드\n紫微斗數\n자미두수 별궁 상담\n\n합성 Next 검증 · 2023-02-04 · 전체 명반 해석\n\n무성\n\n판결합니다. 막힌 자리와 풀리는 자리를 함께 적었습니다.\n\n問\n지금 필요한 선택\n\n새로운 일을 더 맡기 전에, 지금 가장 중요한 한 가지부터 정리해 보세요. 해야 할 일과 기대에 응답하는 일을 구분하면 에너지를 어디에 쓸지 결정하기가 수월해집니다.\n\n核\n나의 강점을 쓰는 방법\n\n결정을 내릴 때 스스로 납득할 기준을 먼저 세워 보세요. 주변의 조언은 참고하되, 내 상황에서 감당할 수 있는 시간과 비용을 함께 적어 보면 선택의 이유가 분명해집니다.\n\n行\n이번 주의 작은 실천\n\n미뤄 둔 일 하나를 골라 이번 주에 끝낼 수 있는 크기로 나누세요. 시작 전에 완료 기준을 한 문장으로 적고, 주말에는 실제로 달라진 점을 확인해 보세요.\n\n무성\n\n이제 이 자리를 노래로 바꿔 볼게요.\n\n명반·계산 근거 보기\n상담 결과를 이미지로 정리하기\n상담을 읽고 난 마음, 연이에게 들려주세요.\n\n마음에 남은 문장이나 아쉬웠던 점을 솔직하게 남겨주세요. 다음 상담을 더 다정하게 준비하는 데 도움이 돼요.\n\n공개 승인 후 월정석 지급\n\n후기는 나중에 써도 괜찮아요. 횟수 제한 없이 매번 관리자 승인 후 지급돼요. 지급일부터 30일 동안 사용하며, 현금으로 바꿀 수는 없어요.\n\n상담 후기 남기기\n자미두수 전문가 상담 — 명궁·사화·대운 풀이\n\n자미두수 전문가 상담은 생년월일과 태어난 시간으로 12궁 명반을 세우고, 명궁과 신궁의 별자리 배치, 사화의 흐름, 지금 지나는 대운과 유년의 결을 함께 읽습니다. 직업과 진로는 관록궁, 재물은 재백궁, 인연은 부처궁 — 고민이 머무는 궁을 짚어 상담 문장으로 풀어 드립니다.\n\n명반을 몰라도 괜찮습니다. 입력한 정보로 명반 작성부터 해석까지 이어지며, 화기가 얽힌 자리는 과제로, 화록이 닿는 자리는 열리는 문으로 균형 있게 비춰 드립니다.\n\n자미두수는 명궁을 중심으로 12개 궁이 삶의 각 영역을 나누어 보여주는 체계입니다. 하나의 운명 전체를 뭉뚱그려 말하기보다, 지금 궁금한 주제가 머무는 궁을 짚어 그 자리의 별과 사화를 읽는 방식으로 접근합니다. 사주가 오행이라는 하나의 언어로 기질을 말한다면, 자미두수는 궁위라는 지도 위에서 삶의 영역을 나눠 보여주는 점이 다릅니다.\n\n이런 순간에 특히 도움이 됩니다\n진로나 이직처럼 관록궁의 흐름이 중요한 결정을 앞두고 판단이 필요할 때\n연애나 결혼처럼 부처궁의 흐름이 궁"
+    }
+  ]
+}

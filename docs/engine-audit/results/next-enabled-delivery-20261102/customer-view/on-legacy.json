@@ -1,0 +1,257 @@
+{
+  "mode": "legacy",
+  "engine": "on",
+  "cases": [
+    "full-next-payment-return-generation",
+    "full-next-reload-and-archive-preserve-paid-original",
+    "customer-reading-before-collapsed-chart-and-image-tools",
+    "full-layout-responsive-no-overflow"
+  ],
+  "browser": "156.0.8078.74",
+  "productionFlags": "OFF",
+  "customerView": true,
+  "pdfEvidence": null,
+  "selectionCalls": [
+    {
+      "action": "prepare",
+      "enabled": false,
+      "requestId": "zwai-60672aab-2777-4f89-ba79-9ceb199c2446",
+      "year": 2034,
+      "preparationId": "182a0bafb454f93e2737d157cdeb454df38acfbb5009a03238e77bf13dd7bd28",
+      "source": "korean-calendar-core",
+      "chartHash": "7a91a7cf56b80dcc708e4a86c2ccf42a309af860d3054b488209f9ffc490ff1f"
+    },
+    {
+      "action": "basis",
+      "enabled": false,
+      "requestId": "zwai-60672aab-2777-4f89-ba79-9ceb199c2446",
+      "year": 2034,
+      "preparationId": "182a0bafb454f93e2737d157cdeb454df38acfbb5009a03238e77bf13dd7bd28",
+      "source": "korean-calendar-core",
+      "chartHash": "7a91a7cf56b80dcc708e4a86c2ccf42a309af860d3054b488209f9ffc490ff1f"
+    },
+    {
+      "action": "generate",
+      "enabled": false,
+      "requestId": "zwai-60672aab-2777-4f89-ba79-9ceb199c2446",
+      "year": 2035,
+      "preparationId": "182a0bafb454f93e2737d157cdeb454df38acfbb5009a03238e77bf13dd7bd28",
+      "source": "korean-calendar-core",
+      "chartHash": "7a91a7cf56b80dcc708e4a86c2ccf42a309af860d3054b488209f9ffc490ff1f"
+    },
+    {
+      "action": "generate",
+      "enabled": false,
+      "requestId": "zwai-60672aab-2777-4f89-ba79-9ceb199c2446",
+      "year": 2035,
+      "preparationId": "182a0bafb454f93e2737d157cdeb454df38acfbb5009a03238e77bf13dd7bd28",
+      "source": "korean-calendar-core",
+      "chartHash": "7a91a7cf56b80dcc708e4a86c2ccf42a309af860d3054b488209f9ffc490ff1f"
+    }
+  ],
+  "prepareRace": [],
+  "preparations": [],
+  "errors": [],
+  "blocked": [
+    "https://assets.code-destiny.com/fonts/serif-latin/09941fb1c169.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/22b54ce7f9da.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/0fa5719f7323.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/4a7f3dcb2cc3.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/972d74532ce4.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/5aaab50eeb5d.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/5c6665edab37.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/68db3c4109cc.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/37f2e5c7951e.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/24f235a5910b.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/623ee24b811e.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/84a60324a3b8.woff2",
+    "https://assets.code-destiny.com/Mulmaru.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/d9b6283e0f2f.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/9bda8d102587.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/3a02d5b8cf74.woff2"
+  ],
+  "httpFailures": [
+    {
+      "path": "/api/ziwei-ai/prepare/",
+      "status": 402
+    }
+  ],
+  "requests": [
+    {
+      "method": "GET",
+      "path": "/api/me/access-state"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/snu/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/profile"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ziwei-ai/result"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ziwei-ai/result"
+    },
+    {
+      "method": "POST",
+      "path": "/api/ziwei-ai/prepare"
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/me"
+    },
+    {
+      "method": "POST",
+      "path": "/api/ziwei-ai/basis"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ziwei-ai/result"
+    },
+    {
+      "method": "GET",
+      "path": "/api/billing/unlock-status"
+    },
+    {
+      "method": "POST",
+      "path": "/__audit/pg"
+    },
+    {
+      "method": "GET",
+      "path": "/api/billing/unlock-status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/access-state"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/snu/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/profile"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ziwei-ai/result"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ziwei-ai/result"
+    },
+    {
+      "method": "POST",
+      "path": "/api/ziwei-ai/generate"
+    },
+    {
+      "method": "GET",
+      "path": "/api/reviews/products"
+    },
+    {
+      "method": "GET",
+      "path": "/api/recommendations"
+    },
+    {
+      "method": "GET",
+      "path": "/api/billing/unlock-status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/snu/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/access-state"
+    },
+    {
+      "method": "GET",
+      "path": "/api/profile"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ziwei-ai/result"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ziwei-ai/result"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ziwei-ai/result"
+    },
+    {
+      "method": "GET",
+      "path": "/api/reviews/products"
+    },
+    {
+      "method": "GET",
+      "path": "/api/recommendations"
+    },
+    {
+      "method": "GET",
+      "path": "/api/billing/unlock-status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/access-state"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/snu/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/profile"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ziwei-ai/result"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ziwei-ai/result"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ziwei-ai/result"
+    },
+    {
+      "method": "GET",
+      "path": "/api/reviews/products"
+    },
+    {
+      "method": "GET",
+      "path": "/api/recommendations"
+    }
+  ],
+  "resultHash": "5272216b48442ce429f7335e5ab65c7bd84100bf6a654b4c2047853a3f494536",
+  "chartHashes": [
+    "7a91a7cf56b80dcc708e4a86c2ccf42a309af860d3054b488209f9ffc490ff1f"
+  ],
+  "compiledModules": 236,
+  "llmCalls": 1,
+  "mockPgApprovals": 1,
+  "usageApplications": 1
+}

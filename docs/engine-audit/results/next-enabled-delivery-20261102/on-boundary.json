@@ -1,0 +1,261 @@
+{
+  "mode": "boundary",
+  "engine": "on",
+  "cases": [
+    "full-next-payment-return-generation",
+    "full-next-reload-and-archive-preserve-paid-original",
+    "full-layout-responsive-no-overflow"
+  ],
+  "browser": "156.0.8078.74",
+  "productionFlags": "OFF",
+  "selectionCalls": [
+    {
+      "action": "prepare",
+      "enabled": true,
+      "requestId": "zwai-e40e383c-f99f-4dbe-8c0a-b312ddb7f74e",
+      "year": 2034,
+      "preparationId": "1452765285e3cb8421d3ea4ef60260b041256ec7d8e73163f9dc7fef2d62b801",
+      "source": "kasi-jpl-expanded-20261101",
+      "chartHash": "9d6bef4908ac0d411d9e8d7e152eb3d76fa407d0cde61d22398e71e749885548"
+    },
+    {
+      "action": "basis",
+      "enabled": true,
+      "requestId": "zwai-e40e383c-f99f-4dbe-8c0a-b312ddb7f74e",
+      "year": 2034,
+      "preparationId": "1452765285e3cb8421d3ea4ef60260b041256ec7d8e73163f9dc7fef2d62b801",
+      "source": "kasi-jpl-expanded-20261101",
+      "chartHash": "9d6bef4908ac0d411d9e8d7e152eb3d76fa407d0cde61d22398e71e749885548"
+    },
+    {
+      "action": "generate",
+      "enabled": true,
+      "requestId": "zwai-e40e383c-f99f-4dbe-8c0a-b312ddb7f74e",
+      "year": 2035,
+      "preparationId": "1452765285e3cb8421d3ea4ef60260b041256ec7d8e73163f9dc7fef2d62b801",
+      "source": "kasi-jpl-expanded-20261101",
+      "chartHash": "9d6bef4908ac0d411d9e8d7e152eb3d76fa407d0cde61d22398e71e749885548"
+    },
+    {
+      "action": "generate",
+      "enabled": true,
+      "requestId": "zwai-e40e383c-f99f-4dbe-8c0a-b312ddb7f74e",
+      "year": 2035,
+      "preparationId": "1452765285e3cb8421d3ea4ef60260b041256ec7d8e73163f9dc7fef2d62b801",
+      "source": "kasi-jpl-expanded-20261101",
+      "chartHash": "9d6bef4908ac0d411d9e8d7e152eb3d76fa407d0cde61d22398e71e749885548"
+    }
+  ],
+  "prepareRace": [],
+  "preparations": [
+    {
+      "id": "1452765285e3cb8421d3ea4ef60260b041256ec7d8e73163f9dc7fef2d62b801",
+      "authorityVersion": "kasi-jpl-expanded-20261101",
+      "targetYear": 2034,
+      "chartHash": "9d6bef4908ac0d411d9e8d7e152eb3d76fa407d0cde61d22398e71e749885548"
+    }
+  ],
+  "errors": [],
+  "blocked": [
+    "https://assets.code-destiny.com/fonts/serif-latin/09941fb1c169.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/22b54ce7f9da.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/0fa5719f7323.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/4a7f3dcb2cc3.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/972d74532ce4.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/5aaab50eeb5d.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/5c6665edab37.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/68db3c4109cc.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/37f2e5c7951e.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/24f235a5910b.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/623ee24b811e.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/84a60324a3b8.woff2",
+    "https://assets.code-destiny.com/Mulmaru.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/d9b6283e0f2f.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/9bda8d102587.woff2",
+    "https://assets.code-destiny.com/fonts/serif-kr/3a02d5b8cf74.woff2"
+  ],
+  "httpFailures": [
+    {
+      "path": "/api/ziwei-ai/prepare/",
+      "status": 402
+    }
+  ],
+  "requests": [
+    {
+      "method": "GET",
+      "path": "/api/me/access-state"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/snu/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/profile"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ziwei-ai/result"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ziwei-ai/result"
+    },
+    {
+      "method": "POST",
+      "path": "/api/ziwei-ai/prepare"
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/me"
+    },
+    {
+      "method": "POST",
+      "path": "/api/ziwei-ai/basis"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ziwei-ai/result"
+    },
+    {
+      "method": "GET",
+      "path": "/api/billing/unlock-status"
+    },
+    {
+      "method": "POST",
+      "path": "/__audit/pg"
+    },
+    {
+      "method": "GET",
+      "path": "/api/billing/unlock-status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/snu/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/access-state"
+    },
+    {
+      "method": "GET",
+      "path": "/api/profile"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ziwei-ai/result"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ziwei-ai/result"
+    },
+    {
+      "method": "POST",
+      "path": "/api/ziwei-ai/generate"
+    },
+    {
+      "method": "GET",
+      "path": "/api/recommendations"
+    },
+    {
+      "method": "GET",
+      "path": "/api/reviews/products"
+    },
+    {
+      "method": "GET",
+      "path": "/api/billing/unlock-status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/snu/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/access-state"
+    },
+    {
+      "method": "GET",
+      "path": "/api/profile"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ziwei-ai/result"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ziwei-ai/result"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ziwei-ai/result"
+    },
+    {
+      "method": "GET",
+      "path": "/api/reviews/products"
+    },
+    {
+      "method": "GET",
+      "path": "/api/recommendations"
+    },
+    {
+      "method": "GET",
+      "path": "/api/billing/unlock-status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/activation-rewards/snu/status"
+    },
+    {
+      "method": "GET",
+      "path": "/api/me/access-state"
+    },
+    {
+      "method": "GET",
+      "path": "/api/profile"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ziwei-ai/result"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ziwei-ai/result"
+    },
+    {
+      "method": "GET",
+      "path": "/api/ziwei-ai/result"
+    },
+    {
+      "method": "GET",
+      "path": "/api/reviews/products"
+    },
+    {
+      "method": "GET",
+      "path": "/api/recommendations"
+    }
+  ],
+  "resultHash": "8fbaafd5b7e21fcc6254898545ea440f875d540267444c024a6486136964b76b",
+  "chartHashes": [
+    "9d6bef4908ac0d411d9e8d7e152eb3d76fa407d0cde61d22398e71e749885548"
+  ],
+  "compiledModules": 231,
+  "llmCalls": 1,
+  "mockPgApprovals": 1,
+  "usageApplications": 1
+}

@@ -1,0 +1,9 @@
+{
+  "message": "expect(locator).toBeVisible() failed\n\nLocator: getByRole('heading', { name: '저장된 상담 결과' })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"to.be.visible\" with timeout 5000ms\n  - waiting for getByRole('heading', { name: '저장된 상담 결과' })\n",
+  "errors": [
+    "Element type is invalid: expected a string (for built-in components) or a class/function (for composite components) but got: object.\n\nCheck the render method of `ReviewRewardBanner`.",
+    "Element type is invalid: expected a string (for built-in components) or a class/function (for composite components) but got: object.\n\nCheck the render method of `ReviewRewardBanner`.",
+    "Element type is invalid: expected a string (for built-in components) or a class/function (for composite components) but got: object.\n\nCheck the render method of `ReviewRewardBanner`."
+  ],
+  "external": []
+}

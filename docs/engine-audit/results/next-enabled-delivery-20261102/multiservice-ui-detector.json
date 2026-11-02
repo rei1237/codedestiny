@@ -1,0 +1,23 @@
+[
+  {
+    "antipattern": "layout-transition",
+    "name": "Layout property animation",
+    "description": "Animating width, height, padding, or margin causes layout thrash and janky performance. Use transform and opacity instead, or grid-template-rows for height animations.",
+    "severity": "warning",
+    "category": "quality",
+    "file": "D:\\Development\\code-destiny\\.codex-worktrees\\engine-audit-phase0-20261101-163440\\app\\new-year-ai-consultation\\NewYearAiClient.tsx",
+    "line": 2382,
+    "snippet": "transition: width"
+  },
+  {
+    "antipattern": "codex-grid-background",
+    "name": "Decorative grid-line background",
+    "description": "A decorative grid or line-field background drawn with hairline linear-gradient layers tiled by a fixed pixel cell is a recurring generated-UI signature. Reserve grid overlays for actual canvas, map, blueprint, or measurement surfaces; elsewhere use product structure or a plain surface.",
+    "severity": "advisory",
+    "category": "slop",
+    "file": "D:\\Development\\code-destiny\\.codex-worktrees\\engine-audit-phase0-20261101-163440\\app\\new-year-ai-consultation\\NewYearAiClient.tsx",
+    "line": 2293,
+    "snippet": "two-axis grid-line gradient background",
+    "advisory": true
+  }
+]
