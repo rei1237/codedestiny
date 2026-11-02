@@ -114,6 +114,7 @@ function projectAdapter(name, data) {
   }
   if (name === 'saju' && data.sajuAuthority) {
     projected.sajuAuthority = sajuAuthorityPromptFacts(data.sajuAuthority);
+    if (data.timingFacts) projected.timingFacts = data.timingFacts;
     projected.temperament = [...SAJU_AUTHORITY_PROMPT_RULES];
   } else if (name === 'saju') projected.temperament = sajuTemperamentPromptLines(data);
   return Object.keys(projected).length ? projected : undefined;

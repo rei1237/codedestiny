@@ -127,6 +127,7 @@ export function normalizeGuardianFortuneInput(input = {}, options = {}) {
 function projectSaju(data) {
   return {
     ...(data.sajuAuthority ? { sajuAuthority: data.sajuAuthority } : {}),
+    ...(data.sajuAuthority && data.timingFacts ? { timingFacts: data.timingFacts } : {}),
     dayMaster: data.dayMaster,
     tenGodsSummary: data.tenGodsSummary,
     fiveElementsSummary: data.fiveElementsSummary,

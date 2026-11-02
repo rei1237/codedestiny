@@ -469,6 +469,7 @@ function projectSystem(name, source) {
   if (source.expertEvidence) projected.expertEvidence = sanitizeExpertEvidence(source.expertEvidence);
   if (name === 'saju' && source.sajuAuthority) {
     projected.sajuAuthority = sajuAuthorityPromptFacts(source.sajuAuthority);
+    if (source.timingFacts) projected.timingFacts = source.timingFacts;
     projected.temperament = [...SAJU_AUTHORITY_PROMPT_RULES];
   } else if (name === 'saju') projected.temperament = sajuTemperamentPromptLines({...source,
     power:source.expertEvidence?.seasonalBalance?.runtimeInterpretation});

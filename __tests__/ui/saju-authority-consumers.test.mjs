@@ -278,3 +278,24 @@ test('fusion forwards all six pinned fixture systems without promoting or recalc
     assert.deepEqual(clone(output.systems[system].engineFacts.facts.candidate), ['unresolved']);
   }
 });
+
+
+test('new authority guardian keeps computed major/yearly luck through saved context and prompts without filling old records', async () => {
+  const birth = { ...sample, hasBirthTime: true };
+  const adapter = await api.buildSajuAdapter(birth, { gyeokgukAuthorityV2: true });
+  assert.equal(adapter.timingFacts.majorLuck.available, true);
+  assert.deepEqual(clone(adapter.timingFacts.majorLuck), clone(raw.majorLuck));
+  assert.deepEqual(clone(adapter.timingFacts.yearlyLuck), clone(raw.yearlyLuck));
+  const ctx = vm.createContext({}); load(ctx, 'worker/lib/guardian-fortune-context.js', ['projectSaju']);
+  const saved = clone(ctx.projectSaju(adapter));
+  const prompt = JSON.parse(api.formatGuardianFortuneContextForPrompt({ availableSystems: ['saju'], saju: saved, inputSummary: { category: 'saju' } }));
+  assert.match(JSON.stringify(prompt), /saju-timing-facts-v1/);
+  assert.match(JSON.stringify(prompt), new RegExp(raw.majorLuck.currentCycle.pillar));
+  const fusion = api.projectFusionFortuneContextForPrompt({ systems: { saju: saved } });
+  assert.deepEqual(clone(fusion.systems.saju.timingFacts), clone(adapter.timingFacts));
+  const unknown = await api.buildSajuAdapter({ ...birth, birthTime: '', hasBirthTime: false }, { gyeokgukAuthorityV2: true });
+  assert.equal(unknown.timingFacts.majorLuck.available, false);
+  assert.equal(unknown.timingFacts.majorLuck.currentCycle, undefined);
+  const oldPin = await api.buildSajuAdapter({}, { sajuAuthoritySnapshot: adapter.sajuAuthority, calculator: () => { throw Error('RECALCULATION'); } });
+  assert.equal(oldPin.timingFacts, undefined);
+});

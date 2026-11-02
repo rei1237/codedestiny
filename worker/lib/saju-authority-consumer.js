@@ -96,6 +96,10 @@ export function authorityGuardianResult(raw) {
   const a = pinned.analysis, r = a.evidence.reading;
   return { pillars: Object.fromEntries(positions.map(p => [p, pinned.pillars[p]?.ganji || null])),
     calculationMeta: raw.calculationMeta, sajuAuthority: pinned,
+    ...(raw.majorLuck ? { timingFacts: copy({ schema: 'saju-timing-facts-v1',
+      majorLuck: raw.majorLuck, yearlyLuck: raw.yearlyLuck || [],
+      rules: ['원국의 바탕, 대운의 배경, 세운의 변화를 함께 읽되 제공된 값만 사용합니다.',
+        'available=false이거나 현재 구간·시작일이 없으면 이를 추정하지 않습니다. 과거 사건이나 미래 결과를 확정하지 않습니다.'] }) } : {}),
     dayMaster: raw.dayMaster, personalityHook: r.summary, currentFlow: r.action,
     tenGodsSummary: r.career, fiveElementsSummary: a.yongshinAnalysis.requiredExplanation.whyThisElement,
     cautions: [a.yongshinAnalysis.requiredExplanation.whyThisElement],
