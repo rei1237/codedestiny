@@ -1,8 +1,8 @@
 # 신규 계산 결제 복귀·생성·전달 통합 검증
 
-status: verified-awaiting-local-commit
+status: done
 updated: 2026-11-02
-next: 로컬 커밋과 커밋 상태 검사 기록 후 종료. push·배포 금지.
+next: 이번 로컬 검증 완료. 실제 브라우저·PG 연결은 별도 범위 확정 후 진행하며 OFF·Swiss 차단 유지.
 
 기준 커밋: `e830856fc6b40515626c127bead965f482c13c15`. 현재 요청은 PG·LLM mock 통합 검증과 필요한 수정까지다. CR-005/006 승인 범위의 **자미 신규 단건 구매 경로**를 대상으로 한다. 모든 엔진 운영 연결/실결제 성공을 의미하지 않는다.
 
@@ -59,7 +59,9 @@ PG/LLM뿐 아니라 DB·인증·결제창도 mock이다. 13번 보고서의 전�
 | `check:fast` 계획만 확인 | 종료 0. critical 및 전체 테스트/Jest/Worker 경로 선택. 실제 전체 실행은 Swiss 차단 때문에 보류 |
 | 보호 파일 | 기준 대비 **38개 해시 동일**. 승인 수정한 자미 라우트는 별도 before/after 해시 기록 |
 
-검증 후 소스/검사/증거를 한 로컬 커밋에 보존하고, 커밋 상태의 `check:pre-push` 결과를 아래에 추가한다. 기존 워크트리의 다른 변경은 섞지 않았으며 감사 작업은 아직 main과 합치지 않는다.
+구현·통합 검사·증거는 로컬 커밋 `cf7c81a0881c959490ee52087299d05ed31c169c`에 보존했다. 그 깨끗한 커밋 트리에서 **`npm run check:pre-push` 종료 0**: 홈 registry 63개·공개 미러·사이트맵 1,037 URL·llms 문서·SEO registry를 확인했다. [커밋 상태 검사 출력](results/delivery-integration-20261102/committed-check.json)에 기록했다. `node --check worker/routes/ziwei-ai.js`와 `git diff --check`도 종료 0이다. 최종 완료 기록은 별도 로컬 문서 커밋으로 남긴다.
+
+기존 워크트리의 다른 변경은 섞지 않았다. 새 임시 서버/DB/스크래치 파일은 만들지 않았으며, 과거 승인 실험의 로컬 DB 자료와 다른 세션 파일은 보존했다. 감사 작업이 main에 미통합 상태이므로 전용 워크트리를 유지한다. push·배포는 하지 않았다.
 
 실 PG/LLM, 실제 브라우저·물리 기기, 운영 DB, 전체 CI/빌드는 미검증이다. 전체 `check:fast`와 `verify:ziwei-worker-chart-facts`는 Swiss 연결 전체 라우트 import가 포함되어 실행하지 않는다. 가드/핀 기대값을 완화하지 않는다. 기존 11번 보고서의 실 DB·PG 승인 단위를 유지한다.
 

@@ -1,0 +1,8 @@
+{
+  "commit": "cf7c81a0881c959490ee52087299d05ed31c169c",
+  "command": "npm run check:pre-push",
+  "status": 0,
+  "output": "\n> code-destiny@0.1.0 check:pre-push\n> npm run verify:home-service-registry && npm run verify:public-mirror-fresh && npm run verify:sitemap-drift && node scripts/generate-llms-txt.mjs --check && npm run verify:seo-entity-registry\n\n\n> code-destiny@0.1.0 verify:home-service-registry\n> node scripts/verify-home-service-registry.mjs\n\n[home-service-registry] OK — 레지스트리 63개 · 셸 결제 타일 32개 대조 · 무료 마커 키 1개 통과(fortune-prompt-hub) · 배치 대조 quick 6개 · recommended 6개 · 상세 문안 대조 63/63\n\n> code-destiny@0.1.0 verify:public-mirror-fresh\n> node scripts/verify-public-mirror-fresh.mjs\n\n[verify-public-mirror-fresh] OK — 생성기를 돌려도 미러가 바뀌지 않는다. 소스와 일치한다.\n\n> code-destiny@0.1.0 verify:sitemap-drift\n> node scripts/generate-sitemap.mjs --check\n\n[sitemap:check] OK — 추적본이 재생성 결과와 일치한다 (URL 1037개)\n[llms.txt] Generated 7320 chars -> llms.txt, public/llms.txt; 17573 chars -> llms-full.txt, public/llms-full.txt\n\n> code-destiny@0.1.0 verify:seo-entity-registry\n> node scripts/verify-seo-entity-registry.mjs\n\n[verify-seo-entity-registry] PASS profiles=63 built=false fusion=published",
+  "pushed": false,
+  "deployed": false
+}
