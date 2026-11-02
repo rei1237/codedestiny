@@ -433,8 +433,9 @@
   var naverFrame = null, naverReady = false;
   var naverPending = Object.create(null), naverSent = Object.create(null), naverInFlight = Object.create(null);
   function naverLocation() {
-    var path = global.location.pathname;
-    if (!/^\/(?:[a-z][a-z0-9-]{0,48}\/?)*$/i.test(path)) path = '/';
+    // Section paths only: never expose private dynamic routes or result IDs.
+    var section = /^\/(new-year-ai-consultation|points|checkout|ggulggul|yeongnyangi|saju|ziwei|vedic|tarot|records)(?:\/|$)/.exec(global.location.pathname);
+    var path = section ? '/' + section[1] + '/' : '/';
     var parts = String(global.location.search || '').replace(/^\?/, '').split('&').filter(function (pair) {
       return /^NaPm=[a-zA-Z0-9%|=._~-]{1,2048}$/.test(pair) ||
         /^utm_source=naver$|^utm_medium=cpc$|^utm_campaign=(paid_20261028_(naver|brand)|ggulggul_2027_test)$|^utm_content=([A-E]_ko|yearly_[abc])$|^utm_term=K(0[1-9]|10)$/.test(pair);
@@ -451,11 +452,11 @@
   }
   function clearNaverStorage() {
     try {
-      ['NA_SA','NA_SAC','NA_SAS','NA_MI','NA_CO','NVADID','NA_DA','_fwb','NA_TRIDTP','NA_NACC'].forEach(function (name) {
+      ['NA_SA','NA_SAC','NA_SAS','NA_MI','NA_CO','NVADID','NA_DA','_fwb','NA_TRIDTP','NA_NACC','NAC','NACT'].forEach(function (name) {
         document.cookie = name + '=; max-age=0; path=/; SameSite=Lax; Secure';
         document.cookie = name + '=; max-age=0; path=/; domain=code-destiny.com; SameSite=Lax; Secure';
       });
-      Object.keys(global.localStorage).filter(function (key) { return key.indexOf('cd:naver:purchase:') === 0; }).forEach(function (key) { global.localStorage.removeItem(key); });
+      Object.keys(global.localStorage).filter(function (key) { return key.indexOf('cd:naver:purchase:') === 0 || key === 'NAC' || key === 'NACT'; }).forEach(function (key) { global.localStorage.removeItem(key); });
     } catch (_) { /* Storage policy cannot block checkout. */ }
   }
   function syncNaverConsent() {

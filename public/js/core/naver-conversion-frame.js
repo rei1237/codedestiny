@@ -13,7 +13,7 @@
     if (started || !consent()) return;
     var url;
     try { url = new URL(value); } catch (_) { return; }
-    if (url.origin !== origin || url.hash || !/^\/(?:[a-z][a-z0-9-]{0,48}\/?)*$/i.test(url.pathname)) return;
+    if (url.origin !== origin || url.hash || !/^\/(?:$|(?:new-year-ai-consultation|points|checkout|ggulggul|yeongnyangi|saju|ziwei|vedic|tarot|records)\/$)/.test(url.pathname)) return;
     var pairs = url.search.slice(1).split('&').filter(Boolean);
     if (!pairs.every(function (pair) { return /^NaPm=[a-zA-Z0-9%|=._~-]{1,2048}$/.test(pair) || /^utm_source=naver$|^utm_medium=cpc$|^utm_campaign=(paid_20261028_(naver|brand)|ggulggul_2027_test)$|^utm_content=([A-E]_ko|yearly_[abc])$|^utm_term=K(0[1-9]|10)$/.test(pair); })) return;
     // Only this isolated document changes its virtual address; parent routing is untouched.
