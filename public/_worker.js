@@ -95,7 +95,9 @@ function visitorLocaleHeaders(headers, context, cacheControl = "private, no-stor
 
 // The cookie varies per country, so a shared cache must not store the HTML. Keep the asset's own
 // freshness directives (max-age, no-cache, no-store...) and only swap the visibility to private.
-function privateCacheControl(value) {
+// Payment and account pages stay no-store: `_headers` gives them the same no-cache as any other page.
+function privateCacheControl(value, pathname) {
+  if (/^\/(?:checkout|account)(?:\/|$)/.test(pathname)) return "private, no-store";
   const kept = String(value || "").split(",").map(part => part.trim())
     .filter(part => part && !/^(?:public|private|s-maxage(?:=.*)?)$/i.test(part));
   return `private, ${kept.length ? kept.join(", ") : "no-cache"}`;
@@ -828,7 +830,7 @@ export default {
     }
     const response = hardenResponse(request.url, assetResponse);
     if (visitorLocale && response.ok && /^text\/html\b/i.test(response.headers.get("Content-Type") || "")) {
-      visitorLocaleHeaders(response.headers, visitorLocale, privateCacheControl(response.headers.get("Cache-Control")));
+      visitorLocaleHeaders(response.headers, visitorLocale, privateCacheControl(response.headers.get("Cache-Control"), url.pathname));
     }
     return response;
   },

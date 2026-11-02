@@ -131,6 +131,17 @@ test('keeps no-store on private HTML', async () => {
   assert.equal(await htmlCacheControl('no-store'), 'private, no-store');
 });
 
+// `_headers` gives these routes the same `no-cache` as every other `/*/`, so only the worker can hold no-store.
+test('checkout and account HTML stay no-store under the asset no-cache', async () => {
+  const env = { ASSETS: { fetch: async () => new Response('<html>content</html>', { headers: { 'Content-Type': 'text/html', 'Cache-Control': 'no-cache' } }) } };
+  for (const path of ['/checkout/', '/checkout/?plan=a', '/account/password/']) {
+    assert.equal((await edge().fetch(visit(path, 'KR'), env)).headers.get('Cache-Control'), 'private, no-store', path);
+  }
+  for (const path of ['/saju/', '/checkout-guide/', '/accounting/']) {
+    assert.equal((await edge().fetch(visit(path, 'KR'), env)).headers.get('Cache-Control'), 'private, no-cache', path);
+  }
+});
+
 test('a conditional 304 passes through without a body or geo cookie', async () => {
   const env = { ASSETS: { fetch: async request => request.headers.get('If-None-Match')
     ? new Response(null, { status: 304, headers: { ETag: '"a"' } })
