@@ -479,24 +479,47 @@ function extractFirstTagText(xml, tagName) {
   return match ? String(match[1] || "").trim() : "";
 }
 
+const RSS_ITEM_LIMIT = 60;
+
+function rssItemKey(block) {
+  return extractFirstTagText(block, "guid") || extractFirstTagText(block, "link");
+}
+
 function mergeRssXml(staticXml, dynamicXml) {
   const base = String(staticXml || "");
-  if (!/<\/channel>/i.test(base)) return dynamicXml;
+  const channelEnd = base.search(/<\/channel>/i);
+  if (channelEnd < 0) return dynamicXml;
 
-  const seen = new Set(
-    extractXmlBlocks(base, "item")
-      .map((block) => extractFirstTagText(block, "guid") || extractFirstTagText(block, "link"))
-      .filter(Boolean),
-  );
-  const extraItems = extractXmlBlocks(dynamicXml, "item").filter((block) => {
-    const key = extractFirstTagText(block, "guid") || extractFirstTagText(block, "link");
-    if (!key || seen.has(key)) return false;
-    seen.add(key);
-    return true;
+  // Channel metadata before the first item and everything from </channel> on stay verbatim.
+  const firstItem = base.search(/<item\b/i);
+  const headEnd = firstItem >= 0 && firstItem < channelEnd ? firstItem : channelEnd;
+  const head = base.slice(0, headEnd).replace(/\s+$/, "");
+  const tail = base.slice(channelEnd - base.slice(0, channelEnd).match(/\s*$/)[0].length);
+
+  // Static first, so a static item wins over a dynamic one with the same guid/link.
+  const seen = new Set();
+  const items = [
+    ...extractXmlBlocks(base.slice(headEnd, channelEnd), "item"),
+    ...extractXmlBlocks(dynamicXml, "item"),
+  ]
+    .filter((block) => {
+      const key = rssItemKey(block);
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .map((block) => ({ block, time: Date.parse(extractFirstTagText(block, "pubDate")) }));
+
+  // Newest first; a missing or invalid pubDate sorts last. Array#sort is stable, so ties keep their order.
+  items.sort((a, b) => {
+    const aValid = !Number.isNaN(a.time);
+    const bValid = !Number.isNaN(b.time);
+    if (aValid && bValid) return b.time - a.time;
+    return Number(bValid) - Number(aValid);
   });
 
-  if (extraItems.length === 0) return base;
-  return base.replace(/<\/channel>/i, `${extraItems.join("\n")}\n  </channel>`);
+  const kept = items.slice(0, RSS_ITEM_LIMIT).map((item) => "\n    " + item.block);
+  return head + kept.join("") + tail;
 }
 
 async function serveDynamicFeed(request, env) {
