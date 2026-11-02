@@ -1,8 +1,8 @@
 # 전체 Next 앱의 mock 결제 복귀·생성·재열람 검증
 
-status: in-progress
+status: done
 updated: 2026-11-02
-next: 전체 Next 7개 및 회귀 96개 통과. 로컬 커밋 상태 검사와 종료 기록 후 완료. push/배포 금지.
+next: 이번 전체 Next mock 검증 완료. 실 PG/LLM/DB·활성화·운영 build/CI·push/배포는 별도 범위 확정 전 진행하지 않는다.
 
 기준 `50c697d8d`. 기존 감사 워크트리를 계속 사용한다. 공유 체크아웃의 다른 세션 변경은 보존한다. 사용자는 필요한 수정과 회귀를 승인했고 PG/LLM/DB mock, 플래그 OFF, Swiss 차단, 기존 저장·유료 결과 보존, push/배포 금지를 지정했다.
 
@@ -79,4 +79,10 @@ HTTP 402는 신규 유료 계산의 정상 준비 응답이고, storage-failure�
 
 이번에는 운영 TS/TSX/CSS 변경이 없고 전체 타입 검사·전체 build·CI는 실행하지 않았다. 실제 Next 컴파일과 변경 테스트 파일 lint, 보호 해시 검사를 수행했다. 새로 실행하지 않은 검사를 통과로 적지 않는다.
 
-로컬 커밋·종료 정리는 아래에 완료 기록을 추가한다. push·배포는 하지 않는다.
+## 로컬 완료 기록
+
+검증 도구·회귀·증거는 로컬 커밋 `be75f3d64`에 보존했다. 그 커밋 상태에서 **`npm run check:pre-push` 종료 0**: 홈 registry 63개, 공개 미러, 사이트맵 1,037 URL, llms 문서, SEO registry 통과. [커밋 상태 검사 출력](results/next-delivery-20261102/committed-check.json)에 기록했다. 공개 콘텐츠·SEO 메타데이터·사이트맵 변경은 없었다.
+
+각 실행의 Chrome·Next·mock HTTP 서버를 종료했다. 자기 `.tmp/engine-audit-next/`, `.tmp/engine-audit-browser-delivery/`, 초기 custom-server 확인에서 생성한 `.next/`는 절대 경로·링크 여부·생성 시각 확인 후 삭제했다. `.next/`는 이번 보고서 생성 이후 만들어진 캐시임을 확인했다. 최초 디버깅 캡처·중복 목록·임시 로그를 정리하고 최종 JSON 증거와 필요한 실패 기록을 보존했다. `next-env.d.ts`는 시작 시점과 같고 기존 로컬 DB 자료와 다른 세션 파일은 변경하지 않았다.
+
+완료 상태와 커밋 검사 증거는 별도 로컬 문서 커밋으로 남긴다. 감사 누적 변경이 main 미통합 상태이므로 기존 감사 워크트리는 보존한다. **push·배포 없음**. 이 결과를 운영 엔진 활성화나 실제 구매자 전달 성공으로 확대 해석하지 않는다.
