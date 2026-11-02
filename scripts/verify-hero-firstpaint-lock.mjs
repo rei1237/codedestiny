@@ -73,8 +73,18 @@ if (raw.includes('id="cdHomeFunnel"')) {
   const css = readFileSync(resolve(root, 'styles/home-funnel.css'), 'utf8');
   const link = raw.indexOf('href="/styles/home-funnel.css');
   assert(link > 0 && link < raw.indexOf('id="cdHomeFunnel"'), 'Home styles must precede first paint');
-  // 승인된 달빛 예화 히어로: 기존 정방형 연이 그림의 반응형 최대 크기를 예약한다.
+  // 승인된 반응형 연이 이미지: 최대 srcset 자산과 선언 크기를 대조해 첫 페인트 비율을 보장한다.
   assert.match(raw, /id="honeypigLogo"[^>]*srcset="[^"]*yeoni-character-480\.webp 480w[^"]*"[^>]*width="800" height="800" fetchpriority="high"/);
+  const sharp = (await import('sharp')).default;
+  const heroImage = raw.match(/<img\b[^>]*id="honeypigLogo"[^>]*>/)?.[0];
+  assert.ok(heroImage, 'Hero image must exist');
+  const candidates = heroImage.match(/srcset="([^"]+)"/)?.[1].split(',').map(value => value.trim().split(/\s+/));
+  assert.ok(candidates?.length, 'Hero must have responsive image candidates');
+  for (const [src, descriptor] of candidates) {
+    const metadata = await sharp(resolve(root, 'public', src.replace(/^\//, ''))).metadata();
+    assert.equal(descriptor, metadata.width + 'w', 'Responsive descriptor must match asset width');
+    assert.equal(metadata.width, metadata.height, 'Hero candidates must preserve square geometry');
+  }
   // 2026-10-13 네오 사자 히어로는 없어졌다. 다크 모드도 연이가 맞는다 — 되살아나지 않게 막는다.
   assert.doesNotMatch(raw, /data-character="neo"|neo-character-/);
   assert.equal((raw.match(/<link rel="preload" as="image"/g) || []).length, 1, 'Only the shared hero/payment art is preloaded');

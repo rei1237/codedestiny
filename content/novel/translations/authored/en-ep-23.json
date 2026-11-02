@@ -269,21 +269,21 @@
     },
     {
       "id": "ep-23:44",
-      "source": "내가 물어보니까 고양이가 그러더라. 돼지한테 말하면 꼬치에 독 넣는다고.",
-      "sourceHash": "39c97235edc5575c6710f5a51900da7987da61d34d54e30fa7edf442acb95d4e",
-      "t": "When I asked him, he said he'd poison my skewers if I told the pig."
+      "source": "말하려고 했어. 근데 네가 또 목소리를 잃을까 봐… 고양이 말대로 기다렸어.",
+      "sourceHash": "e8682ec5b4296e5c39d6d2350d5dd1257ecbfdfd7fa32cfd4180b1a157de0ce6",
+      "t": "I meant to tell you. But I was scared you’d lose your voice again… so I listened to him and waited."
     },
     {
       "id": "ep-23:45",
-      "source": "그런 말 안 했어. 꼬치를 다 먹어 버린다고 했지.",
-      "sourceHash": "64cc635a17f54525f81c666071210b5374c8f5e89064b0e8161e6b1cf7c5f293",
-      "t": "I never said that. I said I'd eat them all."
+      "source": "내가 말하지 말라고 했다. 모카한테 화내지 마.",
+      "sourceHash": "6b0635ccb285b7f59e5377249cd571249d94968fe14cbf72770e386d2b2bd73c",
+      "t": "I told him not to stop you. Don’t take it out on Moka."
     },
     {
       "id": "ep-23:46",
-      "source": "그게 더 잔인하거든!",
-      "sourceHash": "b14b2ec335bd0a571a9207eb1c6f485d1b009be39fdf99e4b3cf056541664f50",
-      "t": "That's even crueler!"
+      "source": "그래도 입 다문 건 나야. 네가 알았어야 했는데.",
+      "sourceHash": "da64914d4bcc8e0575053271cebbd21ceac425cc16cae717a098c3beeef3bbfb",
+      "t": "But I’m the one who kept quiet. You should have known."
     },
     {
       "id": "ep-23:47",
@@ -503,9 +503,9 @@
     },
     {
       "id": "ep-23:83",
-      "source": "그래. 그게 맞다.",
-      "sourceHash": "7f24f61895fb95ce9c22f2b3915212fa6545f90a9bb50f37e519aca76f34f3ec",
-      "t": "Yes. That's right."
+      "source": "…지금은 물러날게. 네 불이 가라앉을 때까지만.",
+      "sourceHash": "38684b68fbd3e5e73a3fa5ff7ca69895c3a5d798190ddc2401038b01eac644b4",
+      "t": "…I’ll step away for now. Just until your fire settles."
     },
     {
       "id": "ep-23:84",
@@ -599,9 +599,9 @@
     },
     {
       "id": "ep-23:99",
-      "source": "(나도 알았어. 다들 말 안 한 게 아니라, 내가 안 물어본 거야.)",
-      "sourceHash": "b601b5c7f41aa4a711eff1635487700fa6d8eef1c877029eb106e3c1f35dec03",
-      "t": "(I knew, too. It wasn't just that nobody told me. I didn't ask.)"
+      "source": "(괜찮다는 말을 믿고 싶었어. 그래도 숨긴 상처까지 내가 알아맞힐 수는 없잖아. 이번엔 같이 방법을 찾자고 해야 해.)",
+      "sourceHash": "e3c50cd80c4c5b8cb26cb7821c96c52a0e4906c74b19ad8a9f6020b7fe1c2aab",
+      "t": "(I wanted to believe he was fine. But I couldn’t guess at wounds he hid from me. This time, I have to ask him to find a way with me.)"
     },
     {
       "id": "ep-23:100",
