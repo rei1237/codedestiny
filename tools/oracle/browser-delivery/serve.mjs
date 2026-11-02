@@ -14,7 +14,7 @@ const folder = 'tools/oracle/browser-delivery';
 const out = path.resolve(root, '.tmp/engine-audit-browser-delivery');
 // Currency glyphs in lucide-react are unrelated to Swiss Ephemeris.
 const forbidden = /swiss(?!-franc)|sweph|swisseph|jyotish/i;
-export async function startBrowserFixture({ compileUi = true, extraMockApi } = {}) {
+export async function startBrowserFixture({ compileUi = true, extraMockApi, resultSections } = {}) {
   let compiled;
   if (compileUi) {
   fs.mkdirSync(out, { recursive: true });
@@ -39,12 +39,12 @@ export async function startBrowserFixture({ compileUi = true, extraMockApi } = {
   }
   const backend = createBackend();
   const requests = [], errors = [], pgReturns = [];
-  const bodyText = '합성 전달 검증 본문입니다. 준비한 명반과 기준 연도를 유지하며, 재열람 때 이 문장을 그대로 보여 줍니다.';
+  const bodyText = resultSections ? Object.values(resultSections)[0].body : '합성 전달 검증 본문입니다. 준비한 명반과 기준 연도를 유지하며, 재열람 때 이 문장을 그대로 보여 줍니다.';
   backend.context.generateInitialConsultation = async (_env, options) => {
     backend.llmInputs.push(wire({ chart: options.chart, input: options.input, groups: options.groups }));
     if (backend.holdGeneration) await backend.holdGeneration;
     if (backend.mockGenerationDelay) await new Promise(resolve => setTimeout(resolve, backend.mockGenerationDelay));
-    const groups = { foundation: { structure_core: { title: '합성 명반 전달 검증', body: bodyText } } };
+    const groups = { foundation: resultSections || { structure_core: { title: '합성 명반 전달 검증', body: bodyText } } };
     const meta = { synthetic: true, chartDigest: digest(options.chart) };
     await options.checkpoint({ groups, attempts: { foundation: 1 }, meta, rawResponses: {} });
     const text = backend.context.enforceZiweiChartFacts(JSON.stringify({ meta, sections: groups.foundation }), options.chart).text;
