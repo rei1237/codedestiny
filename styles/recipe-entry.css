@@ -6,5 +6,3 @@
 .rpt-recipe-entry__copy b{display:inline-flex;align-items:center;min-height:44px;text-decoration:underline;text-underline-offset:4px}
 .rpt-recipe-entry:focus-visible{outline:3px solid var(--cd-text);outline-offset:4px}
 @media(max-width:540px){.rpt-recipe-entry{grid-template-columns:1fr;gap:0}.rpt-recipe-entry__copy{padding:20px}.rpt-recipe-entry__copy strong{font-size:24px}}
-
-
