@@ -326,9 +326,9 @@
     },
     {
       "id": "ep-50:52",
-      "source": "네. 저희가 그 조항을 깜빡하고 있었습니다. 이 문은 앞으로 양쪽에서 열립니다.",
-      "sourceHash": "7708a1df9f4cc38e07d4e63d39960da81c7972123a0a0bb3e4dbd0af78b0248c",
-      "t": "Indeed. We had overlooked that clause. This door will now open from both sides.",
+      "source": "네. 이름에 딸린 기억도 주인에게 돌아갑니다. 수호자도 예외가 아니며, 이 문은 앞으로 양쪽에서 열립니다.",
+      "sourceHash": "f4319bf9ed85aeafd3d8ed79eb1116d3dc5598f54668b7ab4561a52c0fce451c",
+      "t": "Yes. The memories belonging to each name return to their owner too, including the guardian. From now on, this door opens both ways.",
       "nm": "Universe"
     },
     {
@@ -561,9 +561,9 @@
     },
     {
       "id": "ep-50:choice-answer",
-      "source": "기억과 인연은 두 문 모두에서 보존됩니다. 한 쪽은 오답이 아니며, 다른 한 쪽도 회피가 아닙니다.",
-      "sourceHash": "8284f7670f23239f6614c97409113bed3bb453946bd36b57fae771e2f33126a4",
-      "t": "Memories and bonds are preserved through both doors. One is not a wrong answer, nor is the other an escape."
+      "source": "네. 방금 쓰신 한 줄이 예전 귀환 규정을 바꿨습니다. 어느 문을 골라도 이름과 기억, 인연을 잃지 않습니다.",
+      "sourceHash": "f4e9831aaba660cb1ab72159b33081e0c545c19cab35b82cec1082f898661d53",
+      "t": "Yes. The line you just wrote has changed the old return rule. Whichever door you choose, you keep your names, memories, and bonds."
     },
     {
       "id": "ep-50:choice-neo",
