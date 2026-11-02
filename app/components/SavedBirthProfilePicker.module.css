@@ -31,14 +31,14 @@
    pale night text on this paper. Keep the 44px label vertically centered. */
 .card .heading label { display:flex; align-items:center; min-width:0; margin:0; padding:0; color:var(--cd-samples-ink); font-family:var(--font-body); font-size:1rem; font-weight:650; line-height:1.5; letter-spacing:normal; overflow-wrap:anywhere; }
 .refresh { display:grid; place-items:center; flex:0 0 44px; width:44px; height:44px; margin-left:auto; padding:0; border:1px solid color-mix(in srgb,var(--cd-samples-muted) 72%,var(--cd-samples-paper)); border-radius:var(--cd-r-sm); color:var(--cd-samples-muted); background:var(--cd-samples-paper); cursor:pointer; }
-.card select { box-sizing:border-box; width:100%; min-width:0; max-width:100%; min-height:52px; padding:12px 14px; border:1px solid color-mix(in srgb,var(--cd-samples-muted) 72%,var(--cd-samples-paper)); border-radius:var(--cd-r-sm); color:var(--cd-samples-ink); background:var(--cd-samples-sheet); color-scheme:light; font:inherit; font-size:16px; line-height:1.5; text-overflow:ellipsis; }
-.card option { color:var(--cd-samples-ink); background:var(--cd-samples-sheet); }
+.card[data-saved-birth-profile] select { box-sizing:border-box; width:100%; min-width:0; max-width:100%; min-height:52px; padding:12px 14px; border:1px solid color-mix(in srgb,var(--cd-samples-muted) 72%,var(--cd-samples-paper)); border-radius:var(--cd-r-sm); color:var(--cd-samples-ink); background:var(--cd-samples-sheet); color-scheme:light; font:inherit; font-size:16px; line-height:1.5; text-overflow:ellipsis; }
+.card[data-saved-birth-profile] option { color:var(--cd-samples-ink); background:var(--cd-samples-sheet); }
 .card p.hint { margin:10px 0 0; color:var(--cd-samples-muted); font-family:var(--font-body); font-size:.875rem; font-weight:500; line-height:1.65; letter-spacing:normal; word-break:keep-all; overflow-wrap:anywhere; }
-.card :is(select,button):focus-visible { outline:2px solid var(--cd-samples-rose); outline-offset:3px; }
+.card[data-saved-birth-profile] :is(select,button):focus-visible { outline:2px solid var(--cd-samples-rose); outline-offset:3px; }
 .card :disabled { opacity:.65; cursor:default; }
 .card ::selection { color:var(--cd-samples-ink); background:var(--cd-samples-blush); }
 @media(hover:hover) {
-  .card select:not(:disabled):hover,.refresh:not(:disabled):hover { border-color:var(--cd-samples-rose); }
+  .card[data-saved-birth-profile] select:not(:disabled):hover,.refresh:not(:disabled):hover { border-color:var(--cd-samples-rose); }
   .refresh:not(:disabled):hover { background:var(--cd-samples-sheet); }
 }
 @media(max-width:430px) { .card { padding-inline:16px; } }
