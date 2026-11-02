@@ -1,15 +1,17 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {EventEmitter} from 'node:events';
-import {fixtures} from '../../scripts/lib/yeongnyangi-mobile-payment.mjs';
+import {fixtures,settleApiFixture} from '../../scripts/lib/yeongnyangi-mobile-payment.mjs';
 
 test('payment fixture recognises activation reads without granting rights or accepting writes',async()=>{
  const base='http://127.0.0.1:31999';
  let handler;
+ const page=Object.assign(new EventEmitter(),{mainFrame:()=>frame,url:()=>base+'/yeongnyangi/result/',evaluate:async()=>300});
+ const frame={url:()=>base+'/yeongnyangi/result/'};
  const context=Object.assign(new EventEmitter(),{
   setDefaultTimeout(){},setDefaultNavigationTimeout(){},
   async addCookies(){},async exposeBinding(){},async addInitScript(){},
-  async newPage(){return {on(){}};},
+  async newPage(){return page;},
   async route(_pattern,callback){handler=callback;},
   async close(){this.emit('close');},
  });
@@ -21,6 +23,20 @@ test('payment fixture recognises activation reads without granting rights or acc
   return result;
  };
  try{
+  let release;
+  const hold=new Promise(resolve=>{release=resolve;});
+  const pending=handler({request:()=>({url:()=>base+'/api/activation-rewards/status',method:()=> 'GET'}),fulfill:()=>hold});
+  await Promise.resolve();assert.equal(f.state.http.length,0,'HTTP proof requires completed fulfillment');release();await pending;
+  const tracked={url:()=>base+'/api/activation-rewards/status',frame:()=>({page:()=>page}),failure:()=>({errorText:'net::ERR_ABORTED'})};
+  context.emit('request',tracked);page.emit('framenavigated',frame);
+  assert(f.state.apiInFlight.has(tracked),'Navigation is not request completion');context.emit('requestfailed',tracked);
+  assert.equal(f.state.apiInFlight.size,0);
+  const pageId=f.state.pageIds.get(page);
+  const paths=['/api/activation-rewards/status','/api/activation-rewards/snu/status'];
+  f.state.http=paths.map(path=>({path,method:'GET',status:200,pageId,startedAt:100}));
+  let settled=false;const drain=settleApiFixture(f).then(()=>{settled=true;});
+  await new Promise(resolve=>setTimeout(resolve,30));assert.equal(settled,false,'Prior document responses cannot release a reload');
+  f.state.http.push(...paths.map(path=>({path,method:'GET',status:200,pageId,startedAt:301})));await drain;
   const reward=await request('/api/activation-rewards/status');
   assert.equal(reward.status,200);assert.equal(reward.json.tutorial.eligible,false);
   assert.equal(reward.json.policy.review.trigger,'approved');assert.equal(typeof reward.json.policy.review.amount,'number');

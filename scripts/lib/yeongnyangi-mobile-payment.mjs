@@ -31,6 +31,7 @@ export async function fixtures(browser,base,product,width=390,{monthlyBalance=0}
  const authUser=()=>({...user,profileSubscription:{tier:'free',isActive:false,membershipCreditBalance:state.monthlyBalance}});
  state.profiles=[{profileId:'shared-profile',name:'QA 고객',birth:{year:1990,month:6,day:15,hour:14,minute:30},location:{label:'대한민국 부산'}}];state.profileCreates=0;state.creates=0;
  state.resources=[];state.blocked=[];state.http=[];state.apiInFlight=new Map();state.visited=[];state.pageErrorDetails=[];
+ state.pageIds=new WeakMap();let nextPageId=0;
  context.on('request',request=>{const path=new URL(request.url()).pathname;if(path.startsWith('/api/')&&path!=='/api/billing/funnel-event')state.apiInFlight.set(request,request.frame().page());});
  const finishRequest=request=>state.apiInFlight.delete(request);
  context.on('requestfinished',finishRequest);context.on('requestfailed',finishRequest);
@@ -38,8 +39,9 @@ export async function fixtures(browser,base,product,width=390,{monthlyBalance=0}
  context.on('requestfailed',request=>{const url=new URL(request.url());state.resources.push({path:url.pathname,status:null,failure:request.failure()?.errorText});});
  const page=await context.newPage();
  const attachPage=p=>{
+  if(state.pageIds.has(p))return;state.pageIds.set(p,++nextPageId);
   p.on('pageerror',e=>{state.errors.push(e.message);state.pageErrorDetails.push({message:e.message,page:new URL(p.url()).pathname,at:Date.now()});});
-  p.on('framenavigated',frame=>{if(frame!==p.mainFrame())return;state.visited.push(new URL(frame.url()).pathname);for(const [request,owner] of state.apiInFlight)if(owner===p)state.apiInFlight.delete(request);});
+  p.on('framenavigated',frame=>{if(frame!==p.mainFrame())return;state.visited.push(new URL(frame.url()).pathname);});
  };
  context.on('page',attachPage);attachPage(page);
  await context.exposeBinding('__fixturePortOne',async(_source,input)=>{
@@ -65,7 +67,12 @@ export async function fixtures(browser,base,product,width=390,{monthlyBalance=0}
  });
  await context.route('**/*',async route=>{
   const request=route.request(),url=new URL(request.url()),path=url.pathname;
-  const send=(body,status=200,headers={})=>{state.http.push({path,method:request.method(),status,paid:body?.fortune?.paid,read503:state.read503,activate503:state.activate503});return route.fulfill({status,json:body,headers:{'Access-Control-Allow-Origin':base,'Access-Control-Allow-Credentials':'true','Cache-Control':'no-store','Pragma':'no-cache',...headers}});};
+  const send=async(body,status=200,headers={})=>{
+   const pageId=request.frame?state.pageIds.get(request.frame().page()):undefined;
+   const startedAt=request.timing?.().startTime??Date.now();
+   await route.fulfill({status,json:body,headers:{'Access-Control-Allow-Origin':base,'Access-Control-Allow-Credentials':'true','Cache-Control':'no-store','Pragma':'no-cache',...headers}});
+   state.http.push({path,method:request.method(),status,pageId,startedAt,paid:body?.fortune?.paid,read503:state.read503,activate503:state.activate503});
+  };
   // Test fails closed on every unrecognised API; external hosts never reach a transport.
   if(url.origin!==base&&!(url.origin===QA_API_ORIGIN&&path.startsWith('/api/'))){state.blocked.push(url.hostname+url.pathname);return route.fulfill({status:403,body:'QA_EXTERNAL_NETWORK_BLOCKED'});}
   if(!path.startsWith('/api/')){
@@ -255,11 +262,17 @@ async function redirectBack(f,{noStorage=false,approved=true,code='',paymentId}=
  return redirect.href;
 }
 
-async function settleApiFixture(f){
+export async function settleApiFixture(f){
  // Complete the in-process HTTP fixture before the harness destroys its page.
  // Background media and lifecycle telemetry beacons are excluded; the real
  // payment polling/retry timers remain intact. Chromium may retain beacon requests.
- try{await waitFixture(()=>![...f.state.apiInFlight.values()].includes(f.page));}
+ // Result reloads must wait for this document's signed-in banner reads, not
+ // a momentarily empty queue or a successful response from the previous tab.
+ const result=f.state.auth&&new URL(f.page.url()).pathname==='/yeongnyangi/result/';
+ const origin=result?await f.page.evaluate(()=>performance.timeOrigin):0;
+ const pageId=f.state.pageIds.get(f.page);
+ const ready=()=>!result||['/api/activation-rewards/status','/api/activation-rewards/snu/status'].every(path=>f.state.http.some(r=>r.path===path&&r.method==='GET'&&r.status===200&&r.pageId===pageId&&r.startedAt>=origin));
+ try{await waitFixture(()=>ready()&&![...f.state.apiInFlight.values()].includes(f.page));}
  catch(error){error.message+=': '+[...f.state.apiInFlight.keys()].map(r=>`${r.method()} ${new URL(r.url()).pathname}`).join(', ');throw error;}
 }
 
