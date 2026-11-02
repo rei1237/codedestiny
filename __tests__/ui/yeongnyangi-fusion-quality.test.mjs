@@ -236,11 +236,13 @@ test('13A token ladder drops the 기준일 하루 근거 first and keeps one fac
  assert.deepEqual(fitted.dropped,['saju.todaySaju']);
  assert.ok(fitted.request.calculatedData.facts.some(f=>f.id==='ziwei.yearlyTimeline'),'the last ziwei fact stays');
 });
-test('13A both ask openings stay at or under 40,000 estimated input tokens with no today rows outside the period',async()=>{
+test('13A both ask openings stay at or under 40,000 estimated input tokens with no today rows outside the period',async(t)=>{
  for(const productId of ['fusion_saju_ziwei','fusion_all']){
   const row=await prepare(productId,'ask'),chapter=row.snapshot.manifest[0];
   const request=await captureRequest(row,chapter,true);
-  assert.ok(m.estimateRequestTokens(request)<=m.CHAPTER_INPUT_TOKEN_TARGET,`${productId}: ${m.estimateRequestTokens(request)}`);
+  const tokens=m.estimateRequestTokens(request);
+  t.diagnostic(`${productId}: ${tokens} estimated input tokens`);
+  assert.ok(tokens<=m.CHAPTER_INPUT_TOKEN_TARGET,`${productId}: ${tokens}`);
   const ids=request.calculatedData.facts.map(f=>f.id);
   assert.ok(!ids.some(id=>/^saju\.today/.test(id)),'기준일 is outside 내년 상반기');
   const askView=JSON.parse(request.domainRules).askFirstChapter;

@@ -15,6 +15,7 @@ import {normalizeSajuCompatInput} from '../../worker/lib/saju-compat-schema.js';
 import {requestBody} from '../fixtures/saju-compat-llm-fixture.mjs';
 import {formatSajuForPrompt} from '../../worker/lib/master-love-codex-prompt.mjs';
 import {buildCodexEvidence,formatCodexEvidence} from '../../worker/lib/master-love-codex-evidence.js';
+import {buildSajuTemperamentProfile,sajuTemperamentPromptLines} from '../../worker/lib/saju-temperament.js';
 
 // Build real TS/route prompt entrypoints in memory. The network guard stays installed;
 // no provider, paid operation, or DB method is invoked by these tests.
@@ -44,20 +45,37 @@ const counted=Object.fromEntries(['year','month','day','hour'].map(k=>[k,chart[k
 const input=m.saju.validateInput({personA:birth,question:'타고난 성향과 일의 선택을 어떻게 살피면 좋을까요?',readingMode:'personal'});
 const context=m.saju.buildContext(await m.saju.calculate(input,{asOf:'2026-11-02'}));
 
-test('Yeongnyangi standard prompt carries the full temperament through the privacy boundary',()=>{
+test('Yeongnyangi standard prompt carries compact temperament and its conditions through the privacy boundary',()=>{
   const prompt=m.buildPrompt(input,context,'salmon','사주 상담',['타고난 기질']);
   const f=prompt.calculatedData.facts.find(f=>f.label==='tenGodProfile');
-  assert.equal(f.value.temperament.facts.visibleCount,7);
-  assert.ok(f.value.temperament.tenGods.length);
+  const lens=f.value.temperament.lines.join('\n');
+  assert.match(lens,/일간을 제외한 겉 십성 7개/);
+  assert.match(lens,/욕구=.+; 선택=.+; 강점=.+; 과할 때=.+; 조절=/);
+  assert.match(lens,/지장간 개수는 겉 개수에 더하지 않는다/);
+  const full=context.facts.find(f=>f.label==='tenGodProfile').value.temperament;
+  assert.deepEqual(f.value.temperament.lines,sajuTemperamentPromptLines(full),'services share the same reading basis');
+  assert.ok(JSON.stringify(f.value.temperament).length<JSON.stringify(full).length);
   assert.match(prompt.system,/욕구 → 선택 습관/);
   assert.doesNotMatch(JSON.stringify(prompt.calculatedData),/1997-02-10|14:30/);
+});
+
+test('compact explanation evidence preserves unknown-time and jong-candidate limitations',()=>{
+  const full=buildSajuTemperamentProfile({...chart,timeUnknown:true,jong:{isJong:true,confirmedByUser:false}});
+  const compact=m.explanationFacts({temperament:full,birthDate:'1997-02-10'});
+  const text=JSON.stringify(compact);
+  assert.match(text,/시주 미상/);
+  assert.match(text,/종격 후보·성립 확인 필요/);
+  assert.match(text,/일반격의 과다 억제 해석을 자동 적용하지 않는다/);
+  assert.doesNotMatch(text,/1997-02-10/);
 });
 
 test('Yeongnyangi question evidence keeps personality conditions and v7 gives the owner the complete profile',()=>{
   const packet=m.buildEvidencePacket({contexts:{saju:context},today:'2026-11-02',tier:'salmon',birthTimeKnown:true});
   const atom=packet.facts.find(f=>f.label==='tenGodProfile');
-  assert.ok(atom.value.temperament.facts.monthMain);
-  assert.equal(typeof atom.value.temperament.facts.isStrong,'boolean');
+  const lens=atom.value.temperament.lines.join('\n');
+  assert.match(lens,/월지 본기 십성 \S+/);
+  assert.match(lens,/기존 억부 (신강|신약)/);
+  assert.match(lens,/월령·위치·기존 강약/);
   const product=m.products.find(p=>p.domain==='saju'&&p.fishId==='salmon'&&p.readingKind==='single');
   const chapters=m.readingManifestV7(product,{id:'personal'});
   const resolved=m.resolveV7Ledger(chapters,context,{asOf:'2026-11-02'});
