@@ -17,7 +17,7 @@ export default function ActivationEntry() {
     setData(null); setCampus(null); setClosed(false);
     if (excluded || !userKey || userKey === 'guest') return;
     let current = true, version = 0;
-    const refresh = () => { const turn = ++version; void Promise.all([activationApi<ActivationState>('status'), activationApi<CampusState>('snu/status')]).then(([reward, school]) => {
+    const refresh = () => { const turn = ++version; setData(null); void Promise.all([activationApi<ActivationState>('status'), activationApi<CampusState>('snu/status')]).then(([reward, school]) => {
       if (current && turn === version) { setData(reward); setCampus(school); }
     }).catch(() => {}); };
     refresh(); window.addEventListener('cd:activation-reward-updated', refresh);
