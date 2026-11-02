@@ -40,6 +40,9 @@ const server = createServer(async(req,res)=>{
     const origin='http://127.0.0.1:'+server.address().port;
     const path=new URL(req.url,origin).pathname;
     if(/^\/assets\/yeongnyangi\/scenes\/(love|work-400|wealth-400|self-400)\.webp$/.test(path) || /^\/images\/home-questions\/(marriage|reunion)-400\.webp$/.test(path) || /^\/images\/neo-consultation\/moonlit-letter-(640|1280)\.webp$/.test(path) || path===NEO_EMAIL_PORTRAIT || /^\/images\/service-introductions\/neo-consultation(?:-(?:320|640|960))?\.webp$/.test(path)){res.setHeader('content-type','image/webp');res.end(await readFile(resolve(root,'public',path.slice(1))));return;}
+    if(path==='/images/home/illustrated/moon-floral-light-480.webp'){
+      res.setHeader('content-type','image/webp');res.end(await readFile(resolve(root,'public',path.slice(1))));return;
+    }
     if(path==='/home-preview/'){
       res.setHeader('content-type','text/html');
       res.end('<!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style>body{margin:0;padding:20px;background:#f6eff5}.cdh{max-width:1000px;margin:auto}*{box-sizing:border-box}</style><style>'+tokens+await readFile(resolve(root,'styles/home-funnel.css'),'utf8')+'</style><div class="cdh">'+renderNeoEmailHomeEntry()+'</div></html>');return;
