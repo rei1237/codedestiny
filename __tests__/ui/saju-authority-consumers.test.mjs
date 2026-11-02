@@ -267,3 +267,14 @@ test('actual guardian paid seed selects only new saju; stored context resumes OF
   await ctx.deliverGuardianPaid({ ...request, input: { ...request.input, category: 'tarot' } });
   assert.equal(optionsSeen.at(-1).gyeokgukAuthorityV2, false);
 });
+
+test('fusion forwards all six pinned fixture systems without promoting or recalculating them', async () => {
+  const { createEngineFactSnapshot } = await import('../../worker/lib/engine-fact-snapshot.js');
+  for (const system of ['saju', 'ziwei', 'tarot', 'vedic', 'astrology', 'sukuyo']) {
+    const pinned = createEngineFactSnapshot(system, { status: 'pending', candidate: ['unresolved'], final: null }, { locale: 'ko', question: 'fixture' });
+    const output = api.projectFusionFortuneContextForPrompt({ systems: { [system]: { engineFacts: pinned } } });
+    assert.equal(output.systems[system].engineFacts.digest, pinned.digest);
+    assert.equal(output.systems[system].engineFacts.facts.final, null);
+    assert.deepEqual(clone(output.systems[system].engineFacts.facts.candidate), ['unresolved']);
+  }
+});

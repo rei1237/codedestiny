@@ -13,3 +13,14 @@ node tools/oracle/next-delivery/verify-service-results.mjs
 증거는 `.tmp/result-integration-evidence/`, 임시 번들은 `.tmp/engine-audit-next/`에 생성한다. 서버는 이 실행에서 만든 PID만 종료하며 `next-env.d.ts`는 실행 전 바이트로 복원한다. 스크린샷은 커밋하지 않는다.
 
 감사 브랜치의 엔진 ON/결제 생성 하네스는 이 UI 통합에 포함하지 않았다. 이 검사는 저장 결과 전달·표시 회귀이며, 전체 엔진의 천문 정확도나 실 결제 검증을 의미하지 않는다.
+
+## 현재 트리의 신규 자미 전달 검증
+
+승인 CR-001~006 선별 통합 뒤 아래 mock 전용 검사를 실행할 수 있다. 실제 PG/DB/LLM은 호출하지 않는다. 계산 import는 delivery-integration/consumer-source-pins.json으로 고정하고 guard.cjs를 유지한다. 산출물은 .tmp/all-engine-next-enabled 아래에만 둔다.
+
+```powershell
+node tools/oracle/next-delivery/verify.mjs --engine=on --case=normal --customer-view
+node tools/oracle/next-delivery/verify.mjs --engine=rollback --case=partial
+```
+
+기존 문서의 마지막 문단은 이전 상태다. 현재는 위 신규 자미 두 시나리오까지 검증했다. 전체 타로/Swiss/모든 상품의 신규 E2E를 의미하지 않는다.

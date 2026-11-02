@@ -377,7 +377,8 @@ export async function buildGuardianFortuneContext(input, options = {}) {
     if (options.fusionExpert && results[adapterName].expertEvidence) projection.expertEvidence = results[adapterName].expertEvidence;
     if (options.captureEngineFacts === true) {
       projection.engineFacts = createEngineFactSnapshot(adapterName, results[adapterName], normalized, {
-        support: unavailableClaims.some(claim => claim.startsWith(adapterName + '.')) ? 'pending' : 'candidate',
+        support: unavailableClaims.some(claim => claim.startsWith(adapterName + '.')) ? 'pending'
+          : ['pending', 'unsupported', 'not-evaluated'].includes(results[adapterName].support) ? results[adapterName].support : 'candidate',
         options: { targetDate: normalized.targetDate, locale: normalized.locale, topic: normalized.topic,
           calendarType: normalized.calendarType, isLeapMonth: normalized.isLeapMonth === true,
           hasBirthTime: normalized.hasBirthTime, hasBirthPlace: normalized.hasBirthPlace },

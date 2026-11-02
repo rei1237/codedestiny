@@ -49,7 +49,7 @@ test('three Swiss systems consume injected synthetic facts only; default provide
   const synthetic={evidence:['synthetic-fixture'],sunSummary:'fixture',lagnaSummary:'fixture',birthMansion:'fixture',support:'pending',candidates:['unresolved'],ascendant:null,houses:null};
   const built=await api.buildGuardianFortuneContext({...input,category},{now,captureEngineFacts:true,env:{NODE_ENV:'test'},adapters:{[category]:async()=>synthetic}});
   assert.equal(built.ok,true);const pin=built.context[category].engineFacts;
-  assert.deepEqual(clone(pin.facts),synthetic);assert.ok(api.formatGuardianFortuneContextForPrompt(built.context).includes(pin.digest));
+  assert.equal(pin.support,'pending');assert.deepEqual(clone(pin.facts),synthetic);assert.ok(api.formatGuardianFortuneContextForPrompt(built.context).includes(pin.digest));
  }
 });
 test('unknown time stays pending with no fabricated ziwei chart',async()=>{
@@ -78,6 +78,7 @@ test('actual paid producer/render resume stored facts after OFF without recalcul
  const state={input,context:clone(built.context),body:{requestId:'same-request'},parts:{},evidenceHash:'stored'};
  const part=await adapter.produce({id:'answer',minChars:400},state);assert.equal(calls,1);state.parts.answer=part.body;
  const reread=clone(adapter.render(state));assert.deepEqual(reread.result,answer);assert.equal(reread.engineFacts.tarot.digest,pin.digest);assert.equal(calls,1);
+ const lost=clone(state);delete lost.context.tarot.engineFacts;await assert.rejects(()=>adapter.produce({id:'answer',minChars:400},lost),/SNAPSHOT_REQUIRED/);assert.equal(calls,1);
  state.context.tarot.engineFacts.digest='corrupt';await assert.rejects(()=>adapter.produce({id:'answer',minChars:400},state));assert.equal(calls,1);
 });
 
