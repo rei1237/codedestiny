@@ -1,0 +1,11 @@
+{
+  "tool": "built-in image_gen",
+  "date": "2026-11-02",
+  "reference": "public/images/home/illustrated/yeoni-character-480.webp",
+  "source": "C:/Users/user/.codex/generated_images/01a12b74-17e4-7352-bc59-4440069b68f3/exec-a13d410c-4ecb-465a-9dcf-ab1aadf7d707.png",
+  "prompt": "Wide landscape 3:2 flat 2D storybook cover illustration for a cute Korean cooking webtoon. Reference is identity only: pink pig Yeoni with pink lotus flower on head, round dark eyes, purple ribbon, wearing ivory chef cap and apron. Warm pastel peach and cream kitchen, clean ink outlines and colored pencil texture, absolutely no 3D or photographic food. Yeoni welcomes readers with a wooden spoon and proud friendly smile, surrounded by FIVE little dishes representing varied flavours: lemon chickpea salad, chicory mushroom omelette, pumpkin risotto, ginger noodles, seaweed riceballs. Simple, clearly readable at small entry card size, big friendly face upper center, dishes across bottom. Tiny leaf, heart and steam drawings. Keep content safely inside margins. No text, letters, numbers, speech lettering or watermark. All text will be added as HTML.",
+  "outputs": [
+    "recipe-entry-2d.webp",
+    "recipe-entry-640.webp"
+  ]
+}

@@ -79,7 +79,7 @@
       "lastmod": "2026-11-01"
     },
     "/en/": {
-      "signature": "71aa51efc459109e",
+      "signature": "7a31597aa30cdba5",
       "lastmod": "2026-11-02"
     },
     "/en/about/": {
@@ -1055,7 +1055,7 @@
       "lastmod": "2026-11-02"
     },
     "/ggulggul/": {
-      "signature": "6e0d6d509447fd7a",
+      "signature": "b50e25bd1afb6353",
       "lastmod": "2026-11-02"
     },
     "/guides/": {
@@ -1127,7 +1127,7 @@
       "lastmod": "2026-10-31"
     },
     "/ja/": {
-      "signature": "71aa51efc459109e",
+      "signature": "7a31597aa30cdba5",
       "lastmod": "2026-11-02"
     },
     "/ja/about/": {
@@ -1822,6 +1822,90 @@
       "signature": "e76c9afdb7ec7ea9",
       "lastmod": "2026-11-01"
     },
+    "/recipes/": {
+      "signature": "2533d9e94c2e7dd2",
+      "lastmod": "2026-11-02"
+    },
+    "/recipes/apple-cabbage-wraps/": {
+      "signature": "e578056708c749de",
+      "lastmod": "2026-11-02"
+    },
+    "/recipes/carrot-corn-porridge/": {
+      "signature": "e578056708c749de",
+      "lastmod": "2026-11-02"
+    },
+    "/recipes/chicory-chicken-salad/": {
+      "signature": "e578056708c749de",
+      "lastmod": "2026-11-02"
+    },
+    "/recipes/chicory-mushroom-omelette/": {
+      "signature": "e578056708c749de",
+      "lastmod": "2026-11-02"
+    },
+    "/recipes/chicory-orange-toast/": {
+      "signature": "e578056708c749de",
+      "lastmod": "2026-11-02"
+    },
+    "/recipes/chicory-pear-barley/": {
+      "signature": "e578056708c749de",
+      "lastmod": "2026-11-02"
+    },
+    "/recipes/ginger-cabbage-udon/": {
+      "signature": "e578056708c749de",
+      "lastmod": "2026-11-02"
+    },
+    "/recipes/ginger-mushroom-rice-noodles/": {
+      "signature": "e578056708c749de",
+      "lastmod": "2026-11-02"
+    },
+    "/recipes/ginger-potato-rosti/": {
+      "signature": "e578056708c749de",
+      "lastmod": "2026-11-02"
+    },
+    "/recipes/ginger-scallion-tofu/": {
+      "signature": "e578056708c749de",
+      "lastmod": "2026-11-02"
+    },
+    "/recipes/lemon-chickpea-salad/": {
+      "signature": "e578056708c749de",
+      "lastmod": "2026-11-02"
+    },
+    "/recipes/lemon-white-bean-stew/": {
+      "signature": "e578056708c749de",
+      "lastmod": "2026-11-02"
+    },
+    "/recipes/miso-eggplant-tofu-bowl/": {
+      "signature": "e578056708c749de",
+      "lastmod": "2026-11-02"
+    },
+    "/recipes/nori-sesame-potatoes/": {
+      "signature": "e578056708c749de",
+      "lastmod": "2026-11-02"
+    },
+    "/recipes/plum-cucumber-soba/": {
+      "signature": "e578056708c749de",
+      "lastmod": "2026-11-02"
+    },
+    "/recipes/pumpkin-mushroom-risotto/": {
+      "signature": "e578056708c749de",
+      "lastmod": "2026-11-02"
+    },
+    "/recipes/pumpkin-oat-pancakes/": {
+      "signature": "e578056708c749de",
+      "lastmod": "2026-11-02"
+    },
+    "/recipes/seaweed-mushroom-soup/": {
+      "signature": "e578056708c749de",
+      "lastmod": "2026-11-02"
+    },
+    "/recipes/seaweed-tofu-riceballs/": {
+      "signature": "e578056708c749de",
+      "lastmod": "2026-11-02"
+    },
+    "/recipes/sweet-potato-apple-oats/": {
+      "signature": "e578056708c749de",
+      "lastmod": "2026-11-02"
+    },
     "/refund-policy/": {
       "signature": "a779ece87f769161",
       "lastmod": "2026-11-01"
@@ -2319,7 +2403,7 @@
       "lastmod": "2026-11-02"
     },
     "/zh-tw/": {
-      "signature": "71aa51efc459109e",
+      "signature": "7a31597aa30cdba5",
       "lastmod": "2026-11-02"
     },
     "/zh-tw/astrology/": {
@@ -2795,7 +2879,7 @@
       "lastmod": "2026-11-01"
     },
     "/zh/": {
-      "signature": "71aa51efc459109e",
+      "signature": "7a31597aa30cdba5",
       "lastmod": "2026-11-02"
     },
     "/zh/about/": {

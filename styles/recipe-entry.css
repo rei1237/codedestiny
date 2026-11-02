@@ -1,0 +1,8 @@
+.rpt-recipe-entry{display:grid;grid-template-columns:minmax(140px,1fr) minmax(0,1fr);align-items:center;gap:20px;margin:8px 0 28px;border:2px solid var(--cd-text);border-radius:20px;overflow:hidden;background:var(--cd-surface);color:var(--cd-text);text-decoration:none}
+.rpt-recipe-entry img{width:100%;height:auto;display:block;aspect-ratio:3/2;object-fit:cover}
+.rpt-recipe-entry__copy{display:grid;gap:10px;padding:16px 20px 16px 0;line-height:1.7;font-size:16px}
+.rpt-recipe-entry__copy strong{font-size:24px;line-height:1.4}
+.rpt-recipe-entry__badge{font-size:14px;font-weight:700}
+.rpt-recipe-entry__copy b{display:inline-flex;align-items:center;min-height:44px;text-decoration:underline;text-underline-offset:4px}
+.rpt-recipe-entry:focus-visible{outline:3px solid var(--cd-text);outline-offset:4px}
+@media(max-width:540px){.rpt-recipe-entry{grid-template-columns:1fr;gap:0}.rpt-recipe-entry__copy{padding:20px}.rpt-recipe-entry__copy strong{font-size:24px}}
