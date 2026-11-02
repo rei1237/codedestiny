@@ -88,7 +88,9 @@ export function matches(row, query) {
 function model(state, name) {
   const rows = state[name] = [];
   const query = action => {
-    const q = { lean: async () => structuredClone(action()), select: () => q, sort: () => q,
+    let limit = Infinity;
+    const q = { lean: async () => { const value = action(); return structuredClone(Array.isArray(value) ? value.slice(0, limit) : value); }, select: () => q, sort: () => q,
+      limit: count => { limit = count; return q; },
       then: (ok, fail) => q.lean().then(ok, fail), catch: fail => q.lean().catch(fail) };
     return q;
   };
@@ -105,6 +107,7 @@ function model(state, name) {
     return row;
   };
   return {
+    find: filter => query(() => rows.filter(row => matches(row, filter))),
     findOne: filter => query(() => rows.find(row => matches(row, filter)) || null),
     findById: id => query(() => rows.find(row => row._id === id) || null),
     create: async data => {

@@ -369,7 +369,7 @@ const ZWV_CSS = `
 `;
 
 // 대한(10년 주기) 타임라인 — 서버 계산 majorLuck을 나이순으로 그리고 현재 나이를 표시
-function MajorLuckTimeline({ chart, birthDate }: { chart?: ZiweiChart; birthDate?: string }) {
+function MajorLuckTimeline({ chart, birthDate, currentLuck }: { chart?: ZiweiChart; birthDate?: string; currentLuck?: NonNullable<StructuredZiweiResult["meta"]>["dayun"] }) {
   const copy = useZiweiAiCopy();
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const cycles = useMemo(() => (
@@ -382,9 +382,11 @@ function MajorLuckTimeline({ chart, birthDate }: { chart?: ZiweiChart; birthDate
 
   const birthYear = Number(String(birthDate || "").slice(0, 4));
   const age = Number.isFinite(birthYear) && birthYear > 1900 ? new Date().getFullYear() - birthYear + 1 : null;
-  const currentIndex = age != null
-    ? cycles.findIndex((cycle) => Number(cycle.startAge) <= age && age <= Number(cycle.endAge))
-    : -1;
+  // The delivered report owns its highlighted cycle, including after a year
+  // change. Only old reports without stored major-luck metadata use the old age path.
+  const currentIndex = currentLuck
+    ? cycles.findIndex((cycle) => cycle.palaceName === currentLuck.current_palace && cycle.range === currentLuck.age_range)
+    : age != null ? cycles.findIndex((cycle) => Number(cycle.startAge) <= age && age <= Number(cycle.endAge)) : -1;
   const palaceByName = new Map((chart?.palaces || []).map((palace) => [palace.name, palace]));
   const selected = selectedIndex != null ? cycles[selectedIndex] : (currentIndex >= 0 ? cycles[currentIndex] : null);
   const selectedPalace = selected ? palaceByName.get(selected.palaceName || "") : null;
@@ -1419,7 +1421,7 @@ export default function ZiweiAiPage() {
                   </section>
                 )}
 
-                <MajorLuckTimeline chart={consultation.ziweiChart} birthDate={consultation.birthInfo?.birthDate} />
+                <MajorLuckTimeline chart={consultation.ziweiChart} birthDate={consultation.birthInfo?.birthDate} currentLuck={structuredResult?.meta?.dayun} />
 
                 <section className="chartDataPanel" data-ziwei-pdf-section data-ziwei-chart-data="basic-chart-v20260630">
                   <div className="chartDataHeader">
