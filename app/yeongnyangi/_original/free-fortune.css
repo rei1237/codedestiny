@@ -424,3 +424,13 @@
 @keyframes anchovy-sigh-cloud{from{opacity:0;transform:translateY(6px)}35%{opacity:1}to{opacity:0;transform:translateY(-18px)}}
 @keyframes anchovy-look-up{from{transform:translateY(5px) rotate(-5deg)}to{transform:none}}
 @media(prefers-reduced-motion:reduce){.ynOriginal .anchovy-cat.unimpressed>img:first-child{transform:none}}
+
+/* Keep the shared card editor legible inside the night reading surface. */
+.ynOriginal .free-reading [data-public-insight="yeongnyangi"] {
+  color:var(--yn-ivory);background:var(--yn-surface);border-color:var(--yn-line);
+}
+.ynOriginal .free-reading [data-public-insight="yeongnyangi"] :is(button,textarea,select,input[type="text"]) {
+  color:var(--yn-ivory);background:var(--yn-raised);border-color:var(--yn-line);
+}
+.ynOriginal .free-reading [data-public-insight="yeongnyangi"] :is(p,small,summary,label) {color:var(--yn-ivory)}
+.ynOriginal .free-reading .free-natal-note {color:var(--yn-muted);font-size:14px;line-height:1.75;max-width:65ch}
