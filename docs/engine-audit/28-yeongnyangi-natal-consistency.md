@@ -72,3 +72,4 @@ date: 2026-11-02
 - check:fast --base=5072c4497 --plan은 critical. 전체 test:node/build:worker/test:jest 의존 그래프는 Swiss 차단 제약 때문에 실행하지 않았다. 표적 mock 검사로 대체했으며 전체 빌드/CI 통과를 주장하지 않는다.
 - SEO: 결과 화면의 기존 색인·canonical·상품 정책 유지. 신규 공개 경로 없음. 사이트맵은 기존 생성기로 변경 서명만 갱신.
 - 대운은 기존 시기 해석 경로에 유지하며 출생 성향 고정 자료에서 분리했다. 기존 pin에 없는 대운을 재계산하지 않는다.
+- check:pre-push 최종 전체 통과(사이트맵 1,058 URL, mirror/llms/SEO registry/repo hygiene). 작업 트리 clean 확인, push/배포 없음.
