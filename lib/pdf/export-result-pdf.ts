@@ -2,6 +2,7 @@ import type { jsPDF as JsPDFInstance } from "jspdf";
 import { buildAssetsPublicUrl } from "@/lib/r2-public-url";
 import { REPORT_COVER_THEMES, type ReportCoverTheme } from "./report-cover-theme";
 import { loadReportArt, type ReportArt } from "./report-art";
+import { withOpenResultReferences } from './with-open-result-references';
 
 const PAGE_WIDTH_MM = 210;
 const PAGE_HEIGHT_MM = 297;
@@ -39,6 +40,8 @@ export type ExportResultPdfOptions = {
   watermarkText?: string;
   jpegQuality?: number;
   scale?: number;
+  /** Optional consumer-specific preparation of the capture clone, never the live result. */
+  prepareCapture?: (document: Document, element: HTMLElement) => void;
 };
 
 let fontBase64Promise: Promise<PdfFontMap> | null = null;
@@ -196,6 +199,10 @@ function addFooterToAllPages(pdf: JsPDFInstance, watermarkText: string, bodyFont
  * 운명의 찻집 3종(사주·사주궁합·수쿠요)도 이 유틸을 쓴다. 타로 앨범은 자체 PDF 가 있어 예외다.
  */
 export async function exportResultPdf(options: ExportResultPdfOptions): Promise<void> {
+  return withOpenResultReferences(document.body, () => captureResultPdf(options));
+}
+
+async function captureResultPdf(options: ExportResultPdfOptions): Promise<void> {
   const {
     captureTargets,
     fileName,
@@ -204,6 +211,7 @@ export async function exportResultPdf(options: ExportResultPdfOptions): Promise<
     watermarkText = "Code Destiny · 꿀꿀운세",
     jpegQuality = 0.88,
     scale = 2,
+    prepareCapture,
   } = options;
 
   const [{ default: html2canvas }, jsPdfModule] = await Promise.all([
@@ -240,7 +248,7 @@ export async function exportResultPdf(options: ExportResultPdfOptions): Promise<
     }
     document.body.appendChild(sheet);
     try {
-      const canvas = await html2canvas(sheet, { backgroundColor: "#ffffff", scale, useCORS: true });
+      const canvas = await html2canvas(sheet, { backgroundColor: "#ffffff", scale, useCORS: true, onclone: prepareCapture });
       addCapturedCanvasAsPages(pdf, canvas, jpegQuality, false, sheet);
     } finally { sheet.remove(); }
   }
@@ -250,7 +258,10 @@ export async function exportResultPdf(options: ExportResultPdfOptions): Promise<
   for (const element of elements) {
     const canvas = await html2canvas(element, { backgroundColor, scale, useCORS: true,
       // The capture clone must load off-screen art; do not wait on the live reader's lazy images.
-      onclone: (_document, clonedElement) => { clonedElement.querySelectorAll("img").forEach(image => { image.loading = "eager"; }); },
+      onclone: (document, clonedElement) => {
+        clonedElement.querySelectorAll("img").forEach(image => { image.loading = "eager"; });
+        prepareCapture?.(document, clonedElement);
+      },
     });
     if (!canvas.width || !canvas.height) continue;
     addCapturedCanvasAsPages(pdf, canvas, jpegQuality, !isFirstContentPage, element);

@@ -190,10 +190,10 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
         )}
 
         {/* 기간별 기준 값 — 매 기간 실제로 다른 값이다 */}
-        <section aria-labelledby="facts-heading" className={`mt-8 p-5 ${CARD}`}>
-          <h2 id="facts-heading" className={`break-keep text-sm font-extrabold ${ACCENT}`}>
+        <section className={`mt-8 p-5 ${CARD}`}>
+          <details><summary id="facts-heading" className={`min-h-11 cursor-pointer break-keep text-sm font-extrabold ${ACCENT}`}>
             {`${currentPeriodLabel} · ${copy.facts}`}
-          </h2>
+          </summary>
           <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 text-sm sm:grid-cols-4">
             {vm.facts.map((fact) => (
               <div key={fact.label}>
@@ -201,7 +201,7 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
                 <dd {...markerAttrs(fact.valueI18n)} className="mt-0.5 break-keep font-bold">{fact.value}</dd>
               </div>
             ))}
-          </dl>
+          </dl></details>
           <p {...markerAttrs(vm.narrativeI18n)} className={`mt-4 break-keep text-sm leading-7 ${MUTED}`}>{vm.narrative}</p>
         </section>
 
@@ -241,8 +241,8 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
               ))}
             </div>
 
-            {/* 숫자를 감추지 않는다 — 어떤 값에서 나왔는지 그대로 적는다 */}
-            <h3 className={`mt-6 break-keep text-xs font-extrabold ${ACCENT}`}>{copy.basis}</h3>
+            <details>
+            <summary className={`mt-6 min-h-11 cursor-pointer break-keep text-xs font-extrabold ${ACCENT}`}>{copy.basis}</summary>
             <ul className="mt-2 space-y-1.5">
               {vm.basis.map((axis) => (
                 <li key={axis.label} className={`flex flex-wrap items-baseline gap-x-2 break-keep text-xs leading-6 ${MUTED}`}>
@@ -254,6 +254,7 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
                 </li>
               ))}
             </ul>
+            </details>
           </div>
         </section>
 
@@ -412,12 +413,12 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
           <h3 className={`mt-5 break-keep text-sm font-extrabold ${ACCENT}`}>{copy.habit}</h3>
           <p className={`mt-2 break-keep text-sm leading-7 ${MUTED}`}>{profile.luckyHabit}</p>
 
-          {period !== "tomorrow" && (<>
-          <h3 className={`mt-5 break-keep text-sm font-extrabold ${ACCENT}`}>{copy.reading}</h3>
+          {period !== "tomorrow" && (<details>
+          <summary className={`mt-5 min-h-11 cursor-pointer break-keep text-sm font-extrabold ${ACCENT}`}>{copy.reading}</summary>
           <p className={`mt-2 break-keep text-sm leading-7 ${MUTED}`}>
             {preparationReading}
           </p>
-          </>)}
+          </details>)}
         </section>
 
         {/* 궁합 */}

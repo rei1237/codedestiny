@@ -325,12 +325,12 @@ export default function FortunePeriodHubPage({ params }: { params: { period: str
           )}
 
           {period === "tomorrow" && (
-            <section aria-labelledby="reading-guide-heading" className={tomorrowStyles.guide}>
-              <h2 id="reading-guide-heading">{copy.readingGuide}</h2>
+            <details className={tomorrowStyles.guide}>
+              <summary>{copy.readingGuide}</summary>
               <ol>{copy.readingSteps.map((step) => (
                 <li key={step.title}><h3>{step.title}</h3><p>{step.body}</p></li>
               ))}</ol>
-            </section>
+            </details>
           )}
 
           <section aria-labelledby="personal-reading-heading" className={tomorrowStyles.guide}>

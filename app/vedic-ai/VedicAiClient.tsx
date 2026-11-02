@@ -1,4 +1,6 @@
 "use client";
+import ResultReference from '@/components/fortune/ResultReference';
+import { normalizeCaptureColors } from '@/lib/pdf/normalize-capture-colors';
 import dynamic from 'next/dynamic';
 import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
 import BirthTimeInput from "@/app/components/BirthTimeInput";
@@ -188,6 +190,7 @@ const SECTION_TITLES = [
 // 결과 카드의 표시 순서. LLM이 내보낸 키 순서를 그대로 믿으면 근거 섹션이 본문 앞에 끼어들고,
 // 구 7섹션 상담은 아예 다른 순서로 열린다. 여기 없는 키(근거 섹션 등)는 원래 순서를 유지한 채 뒤에 붙는다.
 const ORDERED_SECTION_KEYS = [
+  "core_answer",
   "karma_origin",
   "dharma_artha",
   "relationship_soul",
@@ -2819,6 +2822,7 @@ export function StructuredReadingResult({
       const { exportResultPdf } = await import("@/lib/pdf/export-result-pdf");
       await exportResultPdf({
         captureTargets: ["#vedic-result-body"],
+        prepareCapture: normalizeCaptureColors,
         fileName: `vedic-reading-${safeFilePart(name || "result")}.pdf`,
         backgroundColor: "#0a0818",
         cover: {
@@ -2856,6 +2860,26 @@ export function StructuredReadingResult({
         </button>
       </div>
 
+      {sectionEntries.map(([key, rawSection], index) => {
+        const section = asRecord(rawSection);
+        const { ko, sans } = splitBilingual(toText(section.title) || key);
+        const article = (
+          <article className={`${styles.structuredSection} ${styles.revealItem}`} style={{ animationDelay: `${index * 70}ms` }} key={key}>
+            <div className={styles.structuredSectionHead}>
+              <span className={styles.sectionBadge} aria-hidden="true">{SECTION_GLYPHS[key] || "✦"}</span>
+              <h3>
+                <span className={styles.sectionTitleKo}>{ko}</span>
+                {sans ? <em className={styles.sectionTitleSans}>{sans}</em> : null}
+              </h3>
+            </div>
+            <ConsultationReading kind="vedic" value={section.body} index={index} />
+          </article>
+        );
+        return ['reading_guide', 'calculation_basis'].includes(key)
+          ? <ResultReference key={key} label={toText(section.title) || undefined}>{article}</ResultReference>
+          : article;
+      })}
+      <ResultReference>
       {basis && (
         <section className={styles.revealItem} style={{ animationDelay: "0ms" }}>
           <AnalysisBasisPanel basis={basis} />
@@ -2924,22 +2948,7 @@ export function StructuredReadingResult({
         ))}
       </section>
 
-      {sectionEntries.map(([key, rawSection], index) => {
-        const section = asRecord(rawSection);
-        const { ko, sans } = splitBilingual(toText(section.title) || key);
-        return (
-          <article className={`${styles.structuredSection} ${styles.revealItem}`} style={{ animationDelay: `${420 + index * 70}ms` }} key={key}>
-            <div className={styles.structuredSectionHead}>
-              <span className={styles.sectionBadge} aria-hidden="true">{SECTION_GLYPHS[key] || "✦"}</span>
-              <h3>
-                <span className={styles.sectionTitleKo}>{ko}</span>
-                {sans ? <em className={styles.sectionTitleSans}>{sans}</em> : null}
-              </h3>
-            </div>
-            <ConsultationReading kind="vedic" value={section.body} index={index} />
-          </article>
-        );
-      })}
+      </ResultReference>
     </div>
   );
 }
@@ -3451,35 +3460,6 @@ export default function VedicAiClient() {
             </div>
           ) : (
             <>
-              <div className={styles.summaryHeader}>
-                <span>{consultation.status === "completed" ? copy.summaryHeading : "저장된 분석을 읽으며 기다려 주세요"}</span>
-              </div>
-              <div className={`${styles.summaryGrid} ${styles.revealItem}`} style={{ animationDelay: "0ms" }}>
-                <article><span>{copy.lagnaBilingual}</span><strong>{summary.lagna || toText(lagna.signKo || lagna.sign) || copy.birthTimeRequiredFallback}</strong></article>
-                <article><span>{copy.moonNakshatraBilingual}</span><strong>{summary.nakshatra || toText(moon.nakshatra) || copy.dashFallback}</strong></article>
-                <article><span>{copy.currentDashaBilingual}</span><strong>{summary.currentDasha || copy.dashFallback}</strong></article>
-                <article><span>{copy.summaryStrongGrahasLabel}</span><strong>{summary.strongGrahas?.length ? summary.strongGrahas.join(", ") : copy.dashFallback}</strong></article>
-                <article><span>{copy.summaryMajorBhavasLabel}</span><strong>{summary.majorBhavas?.length ? summary.majorBhavas.join(", ") : copy.dashFallback}</strong></article>
-              </div>
-
-              <div className={`${styles.keywordRow} ${styles.revealItem}`} style={{ animationDelay: "70ms" }}>
-                {(summary.keywords || []).slice(0, 4).map((keyword) => <span key={keyword}>{keyword}</span>)}
-              </div>
-
-              <div className={`${styles.chartCards} ${styles.revealItem}`} style={{ animationDelay: "140ms" }}>
-                <article>
-                  <span>D1 Rashi</span>
-                  <strong>{planetSummary(chart, "Sun") || copy.d1SunFallback}</strong>
-                  <p>{planetSummary(chart, "Rahu") || copy.d1RahuFallback}</p>
-                </article>
-                <article>
-                  <span>D9 Navamsa</span>
-                  <strong>{toText(asRecord(asRecord(summary.d9).Venus).sign) || vargaPlanetSign(chart, "d9", "Venus") || copy.d9VenusFallback}</strong>
-                  <p>{copy.d9Body}</p>
-                </article>
-              </div>
-
-              <PaidResultImageGuide domain="vedic" status={consultation.status} content={consultation.messages.filter(message=>message.role==="assistant").map(message=>message.content)} basis={consultation.analysisBasis} />
               <div className={styles.chatList}>
                 {consultation.messages.map((message, index) => {
                   const structured = message.role === "assistant" ? parseStructuredReading(message.content) : null;
@@ -3512,6 +3492,38 @@ export default function VedicAiClient() {
                   );
                 })}
               </div>
+              <ResultReference>
+              <div className={styles.summaryHeader}>
+                <span>{consultation.status === "completed" ? copy.summaryHeading : "저장된 분석을 읽으며 기다려 주세요"}</span>
+              </div>
+              <div className={`${styles.summaryGrid} ${styles.revealItem}`} style={{ animationDelay: "0ms" }}>
+                <article><span>{copy.lagnaBilingual}</span><strong>{summary.lagna || toText(lagna.signKo || lagna.sign) || copy.birthTimeRequiredFallback}</strong></article>
+                <article><span>{copy.moonNakshatraBilingual}</span><strong>{summary.nakshatra || toText(moon.nakshatra) || copy.dashFallback}</strong></article>
+                <article><span>{copy.currentDashaBilingual}</span><strong>{summary.currentDasha || copy.dashFallback}</strong></article>
+                <article><span>{copy.summaryStrongGrahasLabel}</span><strong>{summary.strongGrahas?.length ? summary.strongGrahas.join(", ") : copy.dashFallback}</strong></article>
+                <article><span>{copy.summaryMajorBhavasLabel}</span><strong>{summary.majorBhavas?.length ? summary.majorBhavas.join(", ") : copy.dashFallback}</strong></article>
+              </div>
+
+              <div className={`${styles.keywordRow} ${styles.revealItem}`} style={{ animationDelay: "70ms" }}>
+                {(summary.keywords || []).slice(0, 4).map((keyword) => <span key={keyword}>{keyword}</span>)}
+              </div>
+
+              <div className={`${styles.chartCards} ${styles.revealItem}`} style={{ animationDelay: "140ms" }}>
+                <article>
+                  <span>D1 Rashi</span>
+                  <strong>{planetSummary(chart, "Sun") || copy.d1SunFallback}</strong>
+                  <p>{planetSummary(chart, "Rahu") || copy.d1RahuFallback}</p>
+                </article>
+                <article>
+                  <span>D9 Navamsa</span>
+                  <strong>{toText(asRecord(asRecord(summary.d9).Venus).sign) || vargaPlanetSign(chart, "d9", "Venus") || copy.d9VenusFallback}</strong>
+                  <p>{copy.d9Body}</p>
+                </article>
+              </div>
+
+
+              </ResultReference>
+              <PaidResultImageGuide domain="vedic" status={consultation.status} content={consultation.messages.filter(message=>message.role==="assistant").map(message=>message.content)} basis={consultation.analysisBasis} />
             </>
           )}
         </section>

@@ -4,6 +4,7 @@ import type { AnalysisBasis, BasisGroup, BasisItem } from "@/lib/fortune/analysi
 import GlossaryTerm from "./GlossaryTerm";
 import styles from "./analysis-basis.module.css";
 import { currentFortuneSharedCopy } from "./_lib/fortune-shared-copy";
+import ResultReference from './ResultReference';
 
 const COPY = currentFortuneSharedCopy();
 
@@ -34,7 +35,7 @@ export default function AnalysisBasisPanel({
   if (!groups.length) return null;
 
   return (
-    <section className={`${styles.panel} ${className}`.trim()} aria-label={title}>
+    <ResultReference label={title}><section className={`${styles.panel} ${className}`.trim()} aria-label={title}>
       <div className={styles.panelHead}>
         <h2 className={styles.panelTitle}>{title}</h2>
         {note && <p className={styles.panelNote}>{note}</p>}
@@ -44,7 +45,7 @@ export default function AnalysisBasisPanel({
           <BasisGroupCard key={group.key} group={group} />
         ))}
       </div>
-    </section>
+    </section></ResultReference>
   );
 }
 

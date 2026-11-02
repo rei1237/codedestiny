@@ -1,4 +1,5 @@
 "use client";
+import ResultReference from '@/components/fortune/ResultReference';
 import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
 import { trackConsultationCompleted } from '@/lib/analytics';
 import BirthTimeInput from "@/app/components/BirthTimeInput";
@@ -2209,12 +2210,13 @@ export default function NewYearAiConsultationPage() {
                       />
                     </RevealBlock>
                   )}
+                  <DomainConsultationCards bodies={domainBodies} />
                   {index === 0 && (
                     <RevealBlock index={1}>
-                      <SajuProfilePanel profile={sajuProfile} />
+                      <ResultReference><SajuProfilePanel profile={sajuProfile} /></ResultReference>
                     </RevealBlock>
                   )}
-                  <DomainConsultationCards bodies={domainBodies} />
+
                   {index === 0 && <ConsultationIllustration kind="newYear" />}
                   {index === 0 && (
                     <RevealBlock index={4}>
