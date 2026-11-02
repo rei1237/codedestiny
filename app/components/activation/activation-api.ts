@@ -5,7 +5,7 @@ export type ActivationState = {
   accountId: string;
   policy: { tutorial: { amount: number; days: number }; firstPaid: { amount: number; days: number }; review: { amount: number; days: number; trigger: string } };
   wallet: { balance: number; nextExpiry?: string; minimumProductKRW: number };
-  tutorial: { eligible: boolean; legacySignupReceived: boolean; profileId?: string; receipt?: RewardReceipt };
+  tutorial: { eligible: boolean; guideEligible?: boolean; legacySignupReceived: boolean; profileId?: string; receipt?: RewardReceipt };
   firstPaid: { receipt?: RewardReceipt };
   recommendations: { featureKey: string; title: string; description: string; href: string; amountKRW: number; moonstonesAllowed: boolean }[];
   granted?: boolean; replayed?: boolean;

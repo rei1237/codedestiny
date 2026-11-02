@@ -133,6 +133,7 @@
 /public/js/consultation-sample-guide.d.mts
 /public/js/consultation-sample-guide.mjs
 /public/js/core/access-store.js
+/public/js/core/activation-guide-state.mjs
 /public/js/core/activation-reward-policy.mjs
 /public/js/core/analytics.js
 /public/js/core/app-context.d.ts

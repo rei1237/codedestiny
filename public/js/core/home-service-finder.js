@@ -498,7 +498,18 @@
   }
 
   var catalogue = null;
+  var sourceObserver = null;
+  function invalidateSources(records) {
+    var selector = TILE_CLASS_SELECTOR + ',.feat-collection,.tarot-collection';
+    var changed = records.some(function (record) {
+      if (record.target instanceof Element && record.target.closest('[data-cd-finder-results]')) return false;
+      return Array.prototype.some.call(record.addedNodes, isSource) || Array.prototype.some.call(record.removedNodes, isSource);
+    });
+    function isSource(node) { return node instanceof Element && (node.matches(selector) || !!node.querySelector(selector)); }
+    if (changed) { catalogue = null; featureImageIndex = null; }
+  }
   function ensureCatalogue() {
+    if (sourceObserver) invalidateSources(sourceObserver.takeRecords());
     if (catalogue) return catalogue;
     var known = Object.create(null);
     CURATED.forEach(function (item) {
@@ -523,6 +534,9 @@
     /* 기타 체계는 명시적으로 분류한다. 미분류 외부 타일도 검색/기타에서 접근은 보존한다. */
     var wantsEtc = methods.indexOf("etc") !== -1;
     var variants = queryVariants(query);
+    var terms = String(state.query || "").trim().split(/\s+/).filter(Boolean).map(function (term) {
+      return queryVariants(norm(term));
+    });
 
     return ensureCatalogue().filter(function (item) {
       if (state.region && state.region !== "all" && regionsOf(item).indexOf(state.region) === -1) return false;
@@ -534,7 +548,8 @@
       /* 항목이 걸치는 버킷 중 하나라도 선택된 칩과 겹치면 통과한다 — 범위 가격이
          시작가 버킷에만 갇히지 않게 하는 지점이다. */
       if (buckets.length && !item.buckets.some(function (b) { return buckets.indexOf(b) !== -1; })) return false;
-      if (query && !variants.some(function (v) { return item.hay.indexOf(v) !== -1; })) return false;
+      if (query && !variants.some(function (v) { return item.hay.indexOf(v) !== -1; })
+        && !terms.every(function (words) { return words.some(function (word) { return item.hay.indexOf(word) !== -1; }); })) return false;
       return true;
     });
   }
@@ -618,8 +633,7 @@
   /* 운명의 문 디스커버용 — 이름/설명/가격 3단 카드 */
   function renderRichResults(panel, list, state, opts) {
     opts = opts || {};
-    // 타일은 부팅 뒤에도 붙고 떨어진다(모바일 지연 마운트). 첫 렌더 시점의 색인을 굳히지 않는다.
-    featureImageIndex = null;
+    // Source collection/locale events invalidate the image index; typing does not rescan the document.
     panel.textContent = "";
     if (!list.length && opts.emptyState) {
       panel.appendChild(opts.emptyState());
@@ -808,8 +822,6 @@
         return;
       }
       /* 아무것도 고르지 않은 상태 = 기본 목록. 필터를 켰다가 모두 끄면 이리로 되돌아온다. */
-      // 전체 검색을 열고 조작할 때만 색인을 갱신한다. 새로 분리·추가된 타일도 누락하지 않는다.
-      if (config.showAll) catalogue = null;
       var list = active || config.showAll ? filterServices(current) : DEFAULT_PICKS;
       renderRichResults(panel, list, current, renderOpts);
       if (summary) summary.textContent = active
@@ -850,6 +862,10 @@
             other.setAttribute("aria-pressed", "false");
           });
           if (!wasOn) chip.setAttribute("aria-pressed", "true");
+          if (config.showAll) {
+            root.setAttribute("data-cd-region", "all");
+            root.querySelector('[data-cd-explore]').open = false;
+          }
           /* 목적을 고르면 방식·가격 필터를 드러낸다(단계적 탐색). */
           if (progressive) progressive.hidden = wasOn;
           render();
@@ -857,7 +873,7 @@
       });
     }
 
-    /* 방식·가격 칩 — 다중 선택 */
+    /* 모든 운세의 방식은 단일 선택. 기존 디스커버의 방식·가격 다중 선택은 유지한다. */
     if (config.filterChipSelector) {
       var multiAttrs = [config.methodAttr, config.priceAttr].filter(Boolean);
       var multiSelector = multiAttrs
@@ -867,6 +883,11 @@
       Array.prototype.forEach.call(fchips, function (fchip) {
         fchip.addEventListener("click", function () {
           var on = fchip.getAttribute("aria-pressed") === "true";
+          if (config.showAll && fchip.hasAttribute(config.methodAttr)) {
+            fchips.forEach(function (other) { other.setAttribute("aria-pressed", "false"); });
+            root.setAttribute("data-cd-region", "all");
+            root.querySelector('[data-cd-explore]').open = false;
+          }
           fchip.setAttribute("aria-pressed", on ? "false" : "true");
           render();
         });
@@ -875,11 +896,16 @@
 
     if (input) {
       var timer = 0;
-      input.addEventListener("input", function () {
+      var composing = false;
+      function search() {
         if (config.showAll) root.setAttribute("data-cd-region", "all");
         window.clearTimeout(timer);
+        if (composing) return;
         timer = window.setTimeout(render, 120);
-      });
+      }
+      input.addEventListener("input", search);
+      input.addEventListener("compositionstart", function () { composing = true; window.clearTimeout(timer); });
+      input.addEventListener("compositionend", function () { composing = false; search(); });
       /* 카탈로그를 첫 타이핑 때 만들면 결과가 입력 뒤 500ms 를 넘겨 나타나 사용자 입력에
          귀속되지 못하고 CLS 로 계상된다(실측 0.3185 — docs/handoff/mobile-home-perf.md).
          🔴 focus 안에서 동기로 만들지 말 것 — 비용이 focus 지연으로 옮겨갈 뿐이다. */
@@ -896,6 +922,7 @@
     if (config.showAll) root.querySelectorAll("[data-region]").forEach(function (button) {
       button.addEventListener("click", function () {
         root.setAttribute("data-cd-region", button.getAttribute("data-region"));
+        root.querySelectorAll('.cd-af__chip,.cd-af__fchip').forEach(function (chip) { chip.setAttribute('aria-pressed', 'false'); });
         if (input) input.value = "";
         render();
       });
@@ -952,7 +979,8 @@
     var input = document.getElementById("cdAllFortunesSearch");
     if (input && typeof saved.query === "string") input.value = saved.query;
     root.setAttribute("data-cd-region", norm(saved.query) ? "all" : regionById(saved.region).id);
-    var wanted = { "data-purpose": saved.purposes || [], "data-method": saved.methods || [] };
+    var wanted = { "data-purpose": Array.isArray(saved.purposes) ? saved.purposes.slice(0, 1) : [],
+      "data-method": Array.isArray(saved.methods) ? saved.methods.slice(0, 1) : [] };
     Object.keys(wanted).forEach(function (attr) {
       var chips = root.querySelectorAll("[" + attr + "]");
       Array.prototype.forEach.call(chips, function (chip) {
@@ -1083,6 +1111,7 @@
   function attachAllFortunes(host, before) {
     var af = ensureAllFortunes();
     if (!af || !host) return false;
+    if (!catalogue) af.api.render();
     if (af.root.parentNode !== host || (before && af.root.nextSibling !== before)) {
       host.insertBefore(af.root, before || null);
     }
@@ -1126,6 +1155,26 @@
 
   function boot() {
     bootAllFortunes();
+    // The inline bottom navigation can open before this deferred script finishes loading.
+    // Complete that first request instead of requiring a second tap to attach the search.
+    var pendingOverview = document.getElementById('cdMobileFortuneOverview');
+    if (pendingOverview && pendingOverview.classList.contains('is-open')) {
+      attachAllFortunes(pendingOverview, pendingOverview.firstChild);
+    }
+    var sourceRoot = document.getElementById('inputPage');
+    if (sourceRoot) {
+      sourceObserver = new MutationObserver(invalidateSources);
+      sourceObserver.observe(sourceRoot, { childList: true, subtree: true });
+    }
+    function invalidateCatalogue() { catalogue = null; featureImageIndex = null; }
+    document.addEventListener('cd:collection-toggle', invalidateCatalogue);
+    window.addEventListener('cd:locale-ready', invalidateCatalogue);
+    // Warm source metadata before navigation when a pointer or keyboard approaches the real entry.
+    function prepareEntry(event) {
+      if (event.target instanceof Element && event.target.closest('[data-action="cdOpenAllFortunes"],#cdMobileBottomNav [data-nav-key="fortunes"]')) warmCatalogue();
+    }
+    document.addEventListener('pointerover', prepareEntry, { passive: true });
+    document.addEventListener('focusin', prepareEntry);
     var home = document.getElementById("cdHomeFunnel");
     var finder = document.getElementById("cdFinder");
     /* 홈 검색은 늘 펼쳐져 있다(2026-10-01). 입력 전에는 결과를 그리지 않으므로 마운트는 가볍다. */

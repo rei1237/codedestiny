@@ -25,13 +25,18 @@ export async function legacySignupRewardReceived(user) {
 export async function readActivationRewards(userId) {
   const user = await User.findById(userId).select('profileSubscription').lean();
   if (!user) throw error(401, 'UNAUTHORIZED', '로그인 상태를 다시 확인해 주세요.');
-  const [receipts, legacy] = await Promise.all([
+  const [receipts, legacy, creditGrant] = await Promise.all([
     Promise.all(['tutorial', 'first_paid'].map(kind => ActivationReward.findById(activationRewardId(userId, kind)).lean())).then(rows => rows.filter(Boolean)), legacySignupRewardReceived(user),
+    MonthlyCreditLedger.findOne({ userId: user._id, type: 'MONTHLY_CREDIT_GRANT', amount: { $gt: 0 } }).select('_id').lean(),
   ]);
   const lots = user.profileSubscription?.membershipCreditLots || [];
   const normalized = ensureLotsForBalance(user.profileSubscription, Date.now());
   const tutorial = receipts.find(row => row.kind === 'tutorial');
   const firstPaid = receipts.find(row => row.kind === 'first_paid');
+  // This flag controls the invitation only; it does not change any reward or payment policy.
+  const receivedMoonstones = Boolean(creditGrant) || Number(user.profileSubscription?.membershipCreditGranted) > 0
+    || Number(user.profileSubscription?.membershipCreditBalance) > 0 || lots.some(lot => Number(lot.amount) > 0)
+    || receipts.some(receipt => receipt.status === 'granted');
   const recommendations = [
     { featureKey: 'yeongnyangi-saju-salmon', title: '영냥이의 한 걸음 깊은 상담', description: '지금 고민을 질문으로 남기고, 나에게 맞는 해석을 받아 보세요.', href: '/yeongnyangi/fortune/' },
     { featureKey: 'fortune-tea-house-saju-consultation', title: '연이의 사주 상담', description: '마음에 남은 고민을 조금 더 다정하게 풀어볼까요?', href: '/fortune-tea-house/' },
@@ -43,7 +48,8 @@ export async function readActivationRewards(userId) {
   return { accountId: String(userId), policy: { tutorial: TUTORIAL_REWARD, firstPaid: FIRST_PAID_REWARD, review: { amount: REVIEW_REWARD_AMOUNT, days: 30, trigger: 'approved' } },
     wallet: { balance: normalized.balance, nextExpiry: resolveNextExpiry(lots, Date.now()), minimumProductKRW: MOONSTONE_MIN_PRODUCT_KRW },
     recommendations,
-    tutorial: { eligible: !legacy && tutorial?.status !== 'granted', legacySignupReceived: legacy, profileId: tutorial?.profileId || null, receipt: publicReceipt(tutorial) },
+    tutorial: { eligible: !legacy && tutorial?.status !== 'granted', guideEligible: !legacy && !tutorial && !receivedMoonstones,
+      legacySignupReceived: legacy, profileId: tutorial?.profileId || null, receipt: publicReceipt(tutorial) },
     firstPaid: { receipt: publicReceipt(firstPaid) } };
 }
 
