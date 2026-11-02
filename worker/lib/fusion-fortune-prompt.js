@@ -1,6 +1,7 @@
 import { FUSION_PREMIUM_VERSION, FUSION_DOMAIN_CHAPTERS, FUSION_NARRATOR_BY_KEY, isPremiumFusion, isDomainFusion, premiumGroupTarget, premiumLengthFor, premiumTargetsFor } from "../../lib/fusion-premium-report.js";
 import { fusionLocaleLengthScale, FUSION_EXPERT_VERSION, FUSION_SYSTEM_KEYS, buildFusionEvidenceCrossCheck, fusionEvidenceReferences } from "./fusion-expert-contract.js";
 import { fusionVoiceText } from "./expert-character-persona-text.js";
+import { sajuTemperamentPromptLines } from './saju-temperament.js';
 /**
  * 초융합 운세 프롬프트.
  *
@@ -463,6 +464,8 @@ function projectSystem(name, source) {
     if (value) projected[field] = value;
   }
   if (source.expertEvidence) projected.expertEvidence = sanitizeExpertEvidence(source.expertEvidence);
+  if (name === 'saju') projected.temperament = sajuTemperamentPromptLines({...source,
+    power:source.expertEvidence?.seasonalBalance?.runtimeInterpretation});
   const evidence = safeArray(source.evidence, 6, 80);
   if (evidence.length) projected.evidence = evidence;
   return Object.keys(projected).length ? projected : undefined;

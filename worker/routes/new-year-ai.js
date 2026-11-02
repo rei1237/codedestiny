@@ -1,6 +1,7 @@
 import { runWithAiLocale, storedAiLocale } from '../lib/ai-locale-context.js';
 import {calculateNatalSaju} from "../../lib/korean-calendar/index.js";
 import { buildSajuNatalAnalysis, SAJU_ELEMENT_KO } from "../lib/saju-natal-analysis.js";
+import { sajuTemperamentPromptLines } from '../lib/saju-temperament.js';
 import { buildLuckNatalInteractions } from '../lib/life-book-ai-saju.js';
 import { PREVENTION_VERSION, PREVENTION_RULES, buildSajuPrevention, preventionPillarDetails, canonicalPreventionPillar, preventionTiming, hasUnsupportedPreventionClaim } from '../lib/fortune-prevention.js';
 import { trimPaidReportText } from "../lib/paid-report-length.js";
@@ -1373,7 +1374,7 @@ function buildCanonicalNewYearFacts(fortuneData = {}) {
   const target = fortuneData.targetYear || {};
   const trigger = fortuneData.advancedSajuSummary?.daewoonSewoon?.annualEventTrigger || null;
   const monthly = Array.isArray(fortuneData.monthlyFlow) ? fortuneData.monthlyFlow : [];
-  const lines = [];
+  const lines = sajuTemperamentPromptLines({...fortuneData.saju,natalAnalysis:fortuneData.natalAnalysis,calculationMeta:fortuneData.calculationMeta});
   if (target.pillar) {
     lines.push(`세운: ${target.year}년 ${target.pillar} (천간 ${target.stem}=${target.stemElement}, 지지 ${target.branch}=${target.branchElement}, 일간 기준 십신 ${target.tenGodToDayMaster || "미산출"})`);
   }
