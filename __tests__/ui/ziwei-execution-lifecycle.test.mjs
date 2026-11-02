@@ -97,9 +97,7 @@ function setup({ old = false, on = false } = {}) {
   vm.runInContext(adapterAst.statements.filter(n => !ts.isImportDeclaration(n)).map(n => n.getText(adapterAst).replace(/^export /, '')).join('\n'), context);
   const preparationAst = ts.createSourceFile('preparation.js', preparationSource, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
   vm.runInContext(preparationAst.statements.filter(n => !ts.isImportDeclaration(n)).map(n => n.getText(preparationAst).replace(/^export /, '')).join('\n'), context);
-  // Trusted test-only selection; production routes pass no ON option or body flag.
-  const realResolve = context.resolveZiweiPreparation;
-  context.resolveZiweiPreparation = options => realResolve({ ...options, calendarAuthorityV2: state.on });
+  // Exercise the actual route selector with trusted server environment only.
   vm.runInContext('const preparedChartYears = new WeakMap();', context);
   for (const name of ['preparedZiweiChart', 'preparationFailed', 'handleEnsureAccess', 'handleBasis']) vm.runInContext(functionText(source, name), context);
   vm.runInContext(functionText(old ? baseline : source, 'handleStart'), context);
