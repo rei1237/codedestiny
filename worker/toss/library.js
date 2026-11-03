@@ -18,7 +18,7 @@ export async function libraryPage(rows,read,readTarot=async()=>null,readNative=a
       let saved={state:row.requestId?'READ_FAILED':'UNASSIGNED'};
       try{saved=await readNative(row);}catch{/* Keep the purchase visible without inventing a new entitlement. */}
       if(row.status==='REFUNDED')saved={state:'REFUNDED'};
-      return {orderId:row._id,sku:row.sku,productId:row.productId,serviceId:row.serviceId,nativeService:row.nativeService,
+      return {orderId:row._id,sku:row.sku,productId:row.productId,serviceId:row.serviceId,nativeService:row.nativeService,featureKey:row.featureKey,
         requestId:row.requestId,status:row.status,createdAt:row.grantedAt,...saved,completedSections:saved.state==='COMPLETED'?1:0,totalSections:1};
     }
     if(row.tarotFlowId){

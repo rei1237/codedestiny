@@ -1889,6 +1889,9 @@ async function runLoveSecretPaymentGate(paymentPayload: BillingPaymentPayload, i
 export default function LoveSecretAiPage({ paymentNotice }: { paymentNotice?: string } = {}) {
   useProductView('love-secret-ai-consultation', 'love');
   const copy = useLoveSecretClientCopy();
+  const permissionFailure = "구매 내역에 접근할 권한을 확인할 수 없어요. 구매한 계정과 주문 내역을 확인해 주세요.";
+  const serverFailure = paymentNotice ? "상담 상태를 확인하지 못했어요. 결제가 완료되었다면 다시 결제하지 말고 구매 복구 또는 고객지원에서 확인해 주세요." : copy.errorMessages.serverError;
+  const generationFailure = paymentNotice ? "상담 상태를 확인하지 못했어요. 결제가 완료되었다면 다시 결제하지 말고 구매 복구 또는 고객지원에서 확인해 주세요." : copy.errorMessages.llmError;
   const [form, setForm] = useState<ConsultationForm>(() => buildInitialForm());
   const [step, setStep] = useState(0);
   const [phase, setPhase] = useState<Phase>("idle");
@@ -2084,9 +2087,10 @@ export default function LoveSecretAiPage({ paymentNotice }: { paymentNotice?: st
       if (!isCurrent()) return { ok: false } as ConsultationResult;
       const { response, payload } = await getJson<ConsultationResult>(`/api/love-secret-ai/result?${query.toString()}`);
       if (!isCurrent()) return { ok: false } as ConsultationResult;
+      if (paymentNotice && response.status === 403) throw new Error(permissionFailure);
       if (response.status === 202 && payload.status !== "partial") continue;
       if (payload?.ok && payload.sessionId) return payload;
-      if (!response.ok || payload?.ok === false) throw new Error(payload?.message || copy.errorMessages.llmError);
+      if (!response.ok || payload?.ok === false) throw new Error(payload?.message || generationFailure);
     }
     throw new Error(copy.errorMessages.resultTimeout);
   }
@@ -2104,12 +2108,14 @@ export default function LoveSecretAiPage({ paymentNotice }: { paymentNotice?: st
     setProgressIndex(0);
     markPaidAttemptGenerationStarted("love_secret_ai_generate_start");
     const attemptId = activeAttemptId();
-    let { payload: result } = await postJson<ConsultationResult>("/api/love-secret-ai/generate", {
+    let { response: generationResponse, payload: result } = await postJson<ConsultationResult>("/api/love-secret-ai/generate", {
       ...payload,
       ...access,
       attemptId: attemptId || payload.attemptId,
     }, idempotencyKey);
     if (!isCurrent()) return false;
+
+    if (paymentNotice && generationResponse.status === 403) throw new Error(permissionFailure);
 
     for (let cycle = 0; cycle < 8; cycle += 1) {
       if (result.status === "completed" && result.saved === true) break;
@@ -2120,8 +2126,9 @@ export default function LoveSecretAiPage({ paymentNotice }: { paymentNotice?: st
       const partialUrl = buildResultUrl({ sessionId: result.sessionId, requestId: idempotencyKey, pending: true });
       setResultUrl(partialUrl);
       if (document.hidden) break;
-      ({ payload: result } = await postJson<ConsultationResult>("/api/love-secret-ai/generate", { resumeSessionId: result.sessionId }, idempotencyKey));
+      ({ response: generationResponse, payload: result } = await postJson<ConsultationResult>("/api/love-secret-ai/generate", { resumeSessionId: result.sessionId }, idempotencyKey));
       if (!isCurrent()) return false;
+      if (paymentNotice && generationResponse.status === 403) throw new Error(permissionFailure);
     }
     const completed = result.status === "completed" && result.saved === true ? result : null;
 
@@ -2138,8 +2145,8 @@ export default function LoveSecretAiPage({ paymentNotice }: { paymentNotice?: st
     }
 
     if (result.reason === "PAYMENT_VERIFY_FAILED") throw new Error(copy.errorMessages.paymentVerifyFailed);
-    if (result.reason === "LLM_ERROR") throw new Error(copy.errorMessages.llmError);
-    throw new Error(result.message || copy.errorMessages.serverError);
+    if (result.reason === "LLM_ERROR") throw new Error(generationFailure);
+    throw new Error(result.message || serverFailure);
   }
 
   // 모바일 PortOne 리다이렉트로 handleSubmit 의 await 가 죽은 뒤, 복귀한 새 문서에서 생성을 이어받는다.
@@ -2158,9 +2165,9 @@ export default function LoveSecretAiPage({ paymentNotice }: { paymentNotice?: st
       return await startConsultation(payload, idempotencyKey, extractPayment(grant?.payload, idempotencyKey));
     } catch (caught) {
       if (!isCurrent()) return false;
-      const message = caught instanceof TypeError ? copy.errorMessages.networkError : caught instanceof Error ? caught.message : copy.errorMessages.serverError;
+      const message = caught instanceof TypeError ? copy.errorMessages.networkError : caught instanceof Error ? caught.message : serverFailure;
       markPaidAttemptFailed(message || "love_secret_ai_generate_failed");
-      setError(message || copy.errorMessages.serverError);
+      setError(message || serverFailure);
       setPhase("error");
       return false;
     } finally {
@@ -2176,7 +2183,7 @@ export default function LoveSecretAiPage({ paymentNotice }: { paymentNotice?: st
     if (pendingGeneration) {
       startLockRef.current = true;
       try { await startConsultation(pendingGeneration.payload, pendingGeneration.key, pendingGeneration.access); }
-      catch (caught) { if (isCurrent()) { setError(friendlyErrorMessage(caught, copy.errorMessages.serverError)); setPhase("error"); } }
+      catch (caught) { if (isCurrent()) { setError(friendlyErrorMessage(caught, serverFailure)); setPhase("error"); } }
       finally { if (isCurrent()) startLockRef.current = false; }
       return;
     }
@@ -2228,8 +2235,9 @@ export default function LoveSecretAiPage({ paymentNotice }: { paymentNotice?: st
     holdPaidFeatureGateOpen({ requestId: idempotencyKey, maxMs: 8000 });
 
     try {
-      const { payload: access } = await postJson<EnsureAccessResult>("/api/love-secret-ai/prepare", payload, idempotencyKey);
+      const { response: accessResponse, payload: access } = await postJson<EnsureAccessResult>("/api/love-secret-ai/prepare", payload, idempotencyKey);
       if (!isCurrent()) return;
+      if (paymentNotice && accessResponse.status === 403) throw new Error(permissionFailure);
       if (access.ok) {
         completePaidFeatureGateCheck({
           featureKey: SERVICE_TYPE,
@@ -2259,13 +2267,13 @@ export default function LoveSecretAiPage({ paymentNotice }: { paymentNotice?: st
         await startConsultation(buildPayload(form, idempotencyKey), idempotencyKey, payment);
         return;
       }
-      throw new Error(("message" in access && access.message) || copy.errorMessages.serverError);
+      throw new Error(("message" in access && access.message) || serverFailure);
     } catch (caught) {
       if (!isCurrent()) return;
-      const message = caught instanceof TypeError ? copy.errorMessages.networkError : caught instanceof Error ? caught.message : copy.errorMessages.serverError;
+      const message = caught instanceof TypeError ? copy.errorMessages.networkError : caught instanceof Error ? caught.message : serverFailure;
       const paymentCancelled = message === copy.errorMessages.paymentCancelled;
       markPaidAttemptFailed(message || "love_secret_ai_generate_failed");
-      setError(message || copy.errorMessages.serverError);
+      setError(message || serverFailure);
       setPhase("error");
       failPaidFeatureGateCheck({
         featureKey: SERVICE_TYPE,
@@ -2273,7 +2281,7 @@ export default function LoveSecretAiPage({ paymentNotice }: { paymentNotice?: st
         title: copy.passCheckFailedTitle,
         reason: copy.passCheckReason,
         paymentMode: "MEMBERSHIP_PASS",
-        message: message || copy.errorMessages.serverError,
+        message: message || serverFailure,
         cancelled: paymentCancelled,
       });
       setResultOpenMessage(copy.resultFailedSubmit);

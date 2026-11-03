@@ -47,3 +47,9 @@ test('original tea records retain their native result link and never use the gen
  const refunded=(await libraryPage([{...native,status:'REFUNDED'}],forbidden,forbidden,read)).purchases[0];
  assert.equal(refunded.state,'REFUNDED');assert.equal(refunded.href,undefined);
 });
+
+test('native life-fortune retains its feature key for the original purchased title',async()=>{
+ const native={...row(4),nativeService:'life-book',featureKey:'life-fortune-ai-consultation'};
+ const result=(await libraryPage([native],async()=>null,async()=>null,async()=>({state:'COMPLETED',href:'/life-book-ai/result/'}))).purchases[0];
+ assert.equal(result.featureKey,'life-fortune-ai-consultation');assert.equal(result.nativeService,'life-book');
+});

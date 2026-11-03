@@ -1256,6 +1256,8 @@ const INVALID_INPUT_MESSAGE = REASON_COPY.INVALID_INPUT;
 const SERVER_ERROR_MESSAGE = REASON_COPY.SERVER_ERROR;
 const LLM_ERROR_MESSAGE = REASON_COPY.LLM_ERROR;
 const NETWORK_ERROR_MESSAGE = REASON_COPY.NETWORK;
+const TOSS_PERMISSION_MESSAGE = "구매 내역에 접근할 권한을 확인할 수 없어요. 구매한 계정과 주문 내역을 확인해 주세요.";
+const TOSS_UNCERTAIN_DELIVERY_MESSAGE = "상담 상태를 확인하지 못했어요. 결제가 완료되었다면 다시 결제하지 말고 구매 복구 또는 고객지원에서 확인해 주세요.";
 
 const defaultForm = (): ConsultationForm => ({
   name: "",
@@ -1535,7 +1537,7 @@ export default function LifeBookAiClient({ paymentNotice }: { paymentNotice?: st
         return true;
       }
       if (outcome.status === "failed") {
-        const error = new Error(reasonCopy(outcome.reason, outcome.message || LLM_ERROR_MESSAGE));
+        const error = new Error(paymentNotice && outcome.httpStatus === 403 ? TOSS_PERMISSION_MESSAGE : paymentNotice && ['SERVER_ERROR','LLM_ERROR','RESULT_EMPTY','SAJU_CALCULATION_FAILED','GENERATION_ALREADY_FAILED','GENERATION_STALLED'].includes(String(outcome.reason || '').toUpperCase()) ? TOSS_UNCERTAIN_DELIVERY_MESSAGE : reasonCopy(outcome.reason, outcome.message || LLM_ERROR_MESSAGE));
         (error as Error & { refunded?: boolean }).refunded = outcome.data?.refunded === true;
         throw error;
       }
@@ -1549,7 +1551,7 @@ export default function LifeBookAiClient({ paymentNotice }: { paymentNotice?: st
     // 요청 예산을 다 쓰면 결과 화면에서 저장된 섹션 다음부터 이어받는다.
     goToResult(idempotencyKey);
     return false;
-  }, [goToResult, captureDeliveryScope]);
+  }, [goToResult, captureDeliveryScope, paymentNotice]);
 
   // 모바일 PortOne 리다이렉트로 submit 의 await 가 죽은 뒤, 복귀한 새 문서에서 생성을 이어받는다.
   // 🔴 게이트를 다시 타지 않고 게이트 없는 코어(runGeneration)를 원래 requestId 로 부른다.
@@ -1574,7 +1576,7 @@ export default function LifeBookAiClient({ paymentNotice }: { paymentNotice?: st
       return await runGeneration(payload, requestId, access);
     } catch (err) {
       if (!isCurrent()) return false;
-      const message = friendlyErrorMessage(err, SERVER_ERROR_MESSAGE);
+      const message = friendlyErrorMessage(err, paymentNotice ? TOSS_UNCERTAIN_DELIVERY_MESSAGE : SERVER_ERROR_MESSAGE);
       setRefunded((err as { refunded?: boolean })?.refunded === true);
       setError(message);
       setStatus("error");
@@ -1630,6 +1632,11 @@ export default function LifeBookAiClient({ paymentNotice }: { paymentNotice?: st
       const prepared = await prepareLifeBook<PrepareResult>(payload, requestId);
       const access = prepared.data;
       retryRef.current = { payload, requestId, access: null, mode };
+      if (paymentNotice && prepared.httpStatus === 403) {
+        setError(TOSS_PERMISSION_MESSAGE);
+        setStatus("error");
+        return;
+      }
 
       if (access.ok) {
         completePaidFeatureGateCheck({
@@ -1699,14 +1706,14 @@ export default function LifeBookAiClient({ paymentNotice }: { paymentNotice?: st
         await runGeneration(payload, requestId, { billingGate: gate.data as Record<string, unknown> });
         return;
       }
-      throw new Error(("message" in denied && denied.message) ? denied.message : SERVER_ERROR_MESSAGE);
+      throw new Error(("message" in denied && denied.message) ? denied.message : (paymentNotice ? TOSS_UNCERTAIN_DELIVERY_MESSAGE : SERVER_ERROR_MESSAGE));
     } catch (err) {
       if (!isCurrent()) return false;
       // 🔴 개발자 문구가 화면에 뜨지 않게 마지막 안전망을 통과시킨다(한글 없는 메시지는 콘솔로만 간다).
       // Error 객체를 그대로 넘긴다. 문자열을 넘기면 늘 폴백이 돼 결제 취소·네트워크 안내까지 "서버 오류"로 바뀌었다.
       const message = err instanceof TypeError
         ? NETWORK_ERROR_MESSAGE
-        : friendlyErrorMessage(err, SERVER_ERROR_MESSAGE);
+        : friendlyErrorMessage(err, paymentNotice ? TOSS_UNCERTAIN_DELIVERY_MESSAGE : SERVER_ERROR_MESSAGE);
       const paymentCancelled = message === PAYMENT_CANCELLED_MESSAGE;
       setRefunded((err as { refunded?: boolean })?.refunded === true);
       setError(message);
@@ -1744,7 +1751,7 @@ export default function LifeBookAiClient({ paymentNotice }: { paymentNotice?: st
       await runGeneration(stashed.payload, stashed.requestId, stashed.access);
     } catch (err) {
       if (!isCurrent()) return false;
-      const message = friendlyErrorMessage(err, SERVER_ERROR_MESSAGE);
+      const message = friendlyErrorMessage(err, paymentNotice ? TOSS_UNCERTAIN_DELIVERY_MESSAGE : SERVER_ERROR_MESSAGE);
       setError(message);
       setStatus("error");
     } finally {

@@ -4,6 +4,7 @@ import {TossError} from './policy.js';
 import {unseal} from './crypto.js';
 import {assertNativeIntent} from './native-consultation.js';
 import {bindNativeTossRequest} from './native-context.js';
+import {nativeFailureResponse} from './native-failure.js';
 import {nativeIntentId,nativeOwnerFilter,prepareNativeConsultation,verifiedIntent} from './native-tea.js';
 import {nativeLifeBookContract,nativeLifeBookStoredState,handleLifeBookAiRoutes} from '../routes/life-book-ai.js';
 
@@ -69,7 +70,7 @@ export async function handleNativeLifeBook(request,env,auth,path){
       return Response.json({ok:true,status:'partial',retryable:true,sessionId:'toss_'+row._id},{status:202});
     }
   }
-  return response;
+  return nativeFailureResponse(response);
 }
 
 export async function nativeLifeBookLibraryItem(env,auth,purchase){
