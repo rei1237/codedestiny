@@ -170,3 +170,23 @@ test('D8: single-system follow-ups keep the 60-second timeout; assorted and omak
   assert.equal(t.sent.options.timeoutMs,ms,String(fishId));
  }
 });
+
+test('oversized history offers a same-entitlement thread before provider call and resumes with the saved draft',async()=>{
+ const t=globalThis.__conversationTest;
+ const previous=Array.from({length:2},(_,index)=>({id:`old-${index}`,question:`이전 질문 ${index}`,intentId:`old-${index}`,reply:{kind:'answer',text:'이전 답변입니다. '.repeat(1500),sources:['saju.pillars']}}));
+ t.row.snapshot.questionContract={...t.row.snapshot.questionContract,followups:4};
+ t.row.chapters=Array.from({length:20},(_,index)=>({id:`long-${index}`,title:`기존 상담 ${index}`,summary:'기존 상담의 정확한 요약입니다. '.repeat(300),highlights:[]}));
+ t.row.generationCheckpoint={conversation:{revision:2,used:2,closed:false,calls:2,exchanges:previous,threadId:'thread-0',threadIndex:0}};
+ const rolloverId='44444444-4444-4444-8444-444444444444';
+ await questionConversation({},user,id,{id:rolloverId,question:'이 맥락에서 다음 행동을 알려 주세요.'});
+ assert.equal(t.calls,0,'provider must not run before rollover');
+ let c=t.row.generationCheckpoint.conversation;
+ assert.equal(c.used,2);assert.equal(c.calls,2);assert.equal(c.continuation.id,rolloverId);assert.equal(c.pending,undefined);
+ await questionConversation({},user,id,{action:'continue',id:rolloverId});
+ c=t.row.generationCheckpoint.conversation;
+ assert.equal(c.used,2);assert.equal(c.archivedThreads.length,1);assert.deepEqual(c.draft,{id:rolloverId,question:'이 맥락에서 다음 행동을 알려 주세요.'});
+ assert.equal(c.exchanges.length,0);
+ await questionConversation({},user,id,{id:c.draft.id,question:c.draft.question});
+ assert.equal(t.calls,1);assert.equal(t.row.generationCheckpoint.conversation.used,3);
+ assert.equal(t.row.generationCheckpoint.conversation.archivedThreads[0].exchanges.length,2);
+});

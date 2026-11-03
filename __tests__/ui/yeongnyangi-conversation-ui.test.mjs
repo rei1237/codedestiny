@@ -49,3 +49,31 @@ test('visible followups require an explicit send, retain every remaining slot an
  assert.match(text(),/기존 결과와 대화는 계속 다시 볼 수 있어요/);
  assert.equal(new Set(calls.map(c=>c.body.id)).size,2);
 });
+
+test('context limit requires an explicit same-entitlement thread transition and restores the unsent draft',async t=>{
+ const dom=new JSDOM('<div id="root"></div>',{url:'https://test.invalid/yeongnyangi/result/?id='+'a'.repeat(64)});
+ const keys=['window','document','navigator','IS_REACT_ACT_ENVIRONMENT','__conversationRequest'];
+ const saved=new Map(keys.map(key=>[key,Object.getOwnPropertyDescriptor(globalThis,key)]));
+ for(const key of keys)Object.defineProperty(globalThis,key,{configurable:true,writable:true,value:key==='IS_REACT_ACT_ENVIRONMENT'?true:dom.window[key]});
+ const {createRoot}=require('react-dom/client');
+ const mod={exports:{}};new Function('require','module','exports',bundle.outputFiles[0].text)(require,mod,mod.exports);
+ const Conversation=mod.exports.default;
+ const offerId='44444444-4444-4444-8444-444444444444';
+ let row={id:'a'.repeat(64),conversation:{limit:4,used:2,remaining:2,closed:false,ready:true,thread:{id:'thread-0',index:0},archivedThreads:[],exchanges:[],continuation:{id:offerId,reason:'context_limit',question:'작성 중이던 질문'}}};
+ const calls=[];
+ globalThis.__conversationRequest=async(path,body)=>{
+  calls.push({path,body});assert.match(path,/conversation\/continue$/);assert.deepEqual(body,{id:offerId});
+  row={...row,conversation:{...row.conversation,thread:{id:'opaque-next-thread',index:1},archivedThreads:[{id:'thread-0',index:0,exchanges:[]}],continuation:undefined,draft:{id:offerId,question:'작성 중이던 질문'}}};
+  return {fortune:row};
+ };
+ function Page(){const [value,setValue]=React.useState(row);return React.createElement(Conversation,{row:value,onRow:setValue});}
+ const root=createRoot(document.getElementById('root'));
+ t.after(async()=>{await act(async()=>root.unmount());dom.window.close();for(const [key,descriptor]of saved)descriptor?Object.defineProperty(globalThis,key,descriptor):delete globalThis[key];});
+ await act(async()=>root.render(React.createElement(Page)));
+ const button=[...document.querySelectorAll('button')].find(node=>node.textContent==='새 대화에서 이어가기');
+ assert.ok(button);assert.equal(calls.length,0);assert.match(document.body.textContent,/남은 추가 질문 횟수와 작성한 질문은 그대로/);
+ await act(async()=>button.click());
+ assert.equal(calls.length,1);assert.equal(document.getElementById('question-conversation-input').value,'작성 중이던 질문');
+ assert.equal(new URL(window.location.href).searchParams.get('thread'),'opaque-next-thread');
+ assert.match(document.body.textContent,/2회 남았어요/);
+});
