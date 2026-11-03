@@ -167,17 +167,13 @@ test('i18n-missing-text counts sitemap pages that ship a useT placeholder in any
   });
   assert.equal(dirty.counts['i18n-missing-text'], 1);
   assert.match(dirty.details['i18n-missing-text'][0], /\/a\/: 번역을 준비 중입니다, Translation pending/);
-  const scoped = await inspectDist({
-    distDir: writeDist({
-      ...cleanFixture(),
-      'a/index.html': htmlPage('/a/', { body: '<!-- "Translation pending" 설명 --><script>// "Translation pending" 설명\nrun();</script>' }),
-      'b/index.html': htmlPage('/b/', { body: '<script>self.__next_f.push([1,"Translation pending"])</script>' }),
-    }),
+  const count = async (body) => (await inspectDist({
+    distDir: writeDist({ ...cleanFixture(), 'a/index.html': htmlPage('/a/', { body }) }),
     edge: false,
     rules: ['i18n-missing-text'],
-  });
-  assert.equal(scoped.counts['i18n-missing-text'], 1, 'comments and plain scripts are not copy; React stream data is');
-  assert.match(scoped.details['i18n-missing-text'][0], /\/b\/: Translation pending/);
+  })).counts['i18n-missing-text'];
+  assert.equal(await count('<!-- "Translation pending" 설명 --><script>// "Translation pending" 설명\nrun();</script>'), 0, 'comments and plain scripts are not copy');
+  assert.equal(await count('<script>self.__next_f.push([1,"Translation pending"])</script>'), 1, 'React stream data is copy');
 });
 
 test('og-url is a failing rule and og-home-title counts sub-pages that repeat the home og:title', async () => {
