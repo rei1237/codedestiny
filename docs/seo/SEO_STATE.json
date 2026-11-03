@@ -4830,5 +4830,86 @@
     "stagingRun": "2026-10-30 스테이징(0e64bb929) 대상: 13쪽 모두 200, noindex·robots 차단·운영 canonical 65건 감지(스테이징 보호의 정상 동작)",
     "productionRun": "2026-10-30 운영(81200d3cc, 승격 런 40937365074 성공, IndexNow 통지 스텝 성공) 대상: 2027 13쪽 이상 0건(exit 0). 재제출은 사용자가 수동으로 진행",
     "resubmission": "사용자 승인(2026-10-30). Chrome 확장 미연결·GSC API 자격 없음으로 이 세션은 미실행. 운영 배포 뒤 체크리스트로 진행"
+  },
+  "yeongnyangiAeo20261103": {
+    "observedAt": "2026-11-03",
+    "productionSha": "79ef4a4ed",
+    "stage": "pre-change baseline",
+    "gsc28Days": {
+      "all": {
+        "clicks": 21,
+        "impressions": 264,
+        "ctr": 8,
+        "averagePosition": 21.8
+      },
+      "pageFilterYeongnyangi": {
+        "filter": "*/yeongnyangi/",
+        "clicks": 1,
+        "impressions": 16,
+        "ctr": 6.2,
+        "averagePosition": 3.8
+      },
+      "indexReport": {
+        "updated": "2026-10-23",
+        "indexed": 403,
+        "notIndexedDisplayed": "1.78천"
+      }
+    },
+    "ga4": {
+      "period": {
+        "start": "2026-10-06",
+        "end": "2026-11-02"
+      },
+      "sessions": 733,
+      "channels": {
+        "organicSocial": 298,
+        "unassigned": 160,
+        "organicSearch": 109,
+        "referral": 102,
+        "direct": 52,
+        "paidSearch": 11,
+        "aiAssistant": 1
+      },
+      "aiAssistantEngagedSessions": 0,
+      "aiAssistantKeyEvents": 0
+    },
+    "bingWebmaster": null,
+    "bingCopilot": null,
+    "naver": null,
+    "aiQuestionSet": {
+      "questions": 8,
+      "runsPerQuestion": 1,
+      "platforms": {
+        "chatgpt": "temporary chat, signed in",
+        "perplexity": "signed out",
+        "gemini": "signed in, account history may personalize"
+      },
+      "nonBrandQuestions": 6,
+      "nonBrandMentions": {
+        "chatgpt": 0,
+        "perplexity": 0,
+        "gemini": 1
+      },
+      "nonBrandSiteCitations": {
+        "chatgpt": 0,
+        "perplexity": 0,
+        "gemini": null
+      },
+      "brandQuestionsAnswered": {
+        "chatgpt": 2,
+        "perplexity": 2,
+        "gemini": 2
+      },
+      "chatgptLinkDecoration": "cited links carried utm_source=chatgpt.com",
+      "rawAnswers": "D:\\Development\\seo-audit\\code-destiny-20261103\\ai-baseline\\",
+      "table": "docs/seo/2026-10-15-brand-root/aeo-evaluation.csv"
+    },
+    "limitations": [
+      "Single run per question; answers vary between runs.",
+      "Gemini citation chips were not captured after the first question, so its citation count is unmeasured.",
+      "Bing Webmaster, Copilot and Naver were not measured: the first two showed sign-in walls, Naver was out of this run.",
+      "This is a before-change baseline. No effect of the change is measured or implied."
+    ],
+    "nextCheck": "Repeat the same question set no earlier than 28 days after production promotion, and read GA4 ai_source only after the custom dimension is registered."
   }
 }
