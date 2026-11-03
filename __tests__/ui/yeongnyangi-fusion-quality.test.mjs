@@ -237,6 +237,8 @@ test('13A token ladder drops the 기준일 하루 근거 first and keeps one fac
  assert.ok(fitted.request.calculatedData.facts.some(f=>f.id==='ziwei.yearlyTimeline'),'the last ziwei fact stays');
 });
 test('13A both ask openings stay at or under 40,000 estimated input tokens with no today rows outside the period',async(t)=>{
+ // The tarot draw is real randomness and moves fusion_all by about 200 tokens; pin it so the budget check is deterministic.
+ t.mock.method(globalThis.crypto,'getRandomValues',array=>array.fill(0));
  for(const productId of ['fusion_saju_ziwei','fusion_all']){
   const row=await prepare(productId,'ask'),chapter=row.snapshot.manifest[0];
   const request=await captureRequest(row,chapter,true);
