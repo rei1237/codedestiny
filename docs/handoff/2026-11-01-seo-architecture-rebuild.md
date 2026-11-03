@@ -21,6 +21,7 @@ next: "superpowers:writing-plans로 묶음 ③ B+A3 원장·hreflang 계획을 �
 ## 지금 상태
 
 - 운영 SHA `bf9c77a64`(2026-11-03, 다른 세션의 릴리스 런 https://github.com/rei1237/codedestiny/actions/runs/41658891499). 앞선 운영 `a221a78eb` 위에 `ai_source` 키 수정, 스타일시트 캐시 키, 서비스 선택 화면 분리(`683b1c716`), Toss·Fusion 수정이 더해졌다. 묶음 ③은 시작하지 않았다.
+  - 2026-11-04 릴리스 런 41729564058(`914fca524`)은 배포 전 테스트에서 막혀 운영이 바뀌지 않았다. 원인과 수정은 `docs/handoff/2026-11-03-aeo-remaining-work.md`의 "운영 재반영 대기"를 본다.
   - 실측(2026-11-04, 한국 IP, Chrome UA, `Accept: text/html`): `/version.json`·`/api/version`이 `bf9c77a64`. `/`·`/saju/`·`/en/saju/` 200 `private, no-cache`. `/checkout/`·`/account/password/`·`/admin/`·`/login/`·`/diary/` 200 `private, no-store`. `/saju`·`/index.html` 절대 URL 301 `no-store`. `/?lang=en` 302 `private, no-store`. 해외 IP는 측정하지 않았다.
   - `/`, `/yeongnyangi/`, `/saju/`, `/insights/`가 `analytics.js?v=20261103-ai-source-v1`을 읽고 파일에 `ai_source`가 있다. GA4 수신은 측정하지 않았다.
 - 묶음 ① main push 완료(2026-11-02, origin/main `32397321e` 위로 rebase). 운영 배포는 2026-11-02 사용자 승인으로 1회 실행했다(https://github.com/rei1237/codedestiny/actions/runs/41335766465, `98643c274..6d514ecaf` 66커밋). 계획은 `docs/superpowers/plans/2026-11-01-seo-bundle-1-v0-a2-d1.md`(`e00cf2f88`).
