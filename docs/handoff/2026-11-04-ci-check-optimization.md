@@ -33,6 +33,8 @@ next: "pr-ci.yml의 CI required와 classify가 Checkout 때문에 5분 제한에
 
 - [ ] **9. 고아 워크트리 재발 방지.** `git worktree remove --force`가 긴 경로에서 "Filename too long"으로 멈추면 등록만 풀리고 파일이 남는다. 2026-11-04 실측 11개 중 6개가 이렇게 실패했다. 판정: 제거 절차가 `core.longpaths` 또는 Node `rmSync`로 끝까지 지우고 남은 폴더가 0개다. 정리 기록은 `D:\Development\Storage-Maintenance\2026-11-04\`다.
 
+용량과 미참조 스크립트 파일 정리는 `2026-11-04-storage-and-code-cleanup.md`가 맡는다. 6번의 `verify:*` 판정은 그 문서 6번과 함께 본다.
+
 ## 정본 예시
 
 - 티어 판정: `scripts/lib/change-risk.mjs`, `scripts/resolve-ci-tier.mjs`
