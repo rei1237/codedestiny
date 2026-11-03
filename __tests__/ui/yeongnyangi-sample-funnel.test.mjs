@@ -12,7 +12,7 @@ test('sample exposure fires only when visible, once, with no input or URL data',
  const context={exports:{},require:id=>id==='react'?{useEffect:fn=>{effect=fn;}}:{trackEvent:(...args)=>events.push(args)},window:{IntersectionObserver:true},document:{getElementById:()=>({querySelector:()=>heading})},IntersectionObserver:class{constructor(fn){callback=fn;}observe(node){observe=node;}disconnect(){disconnected++;}}};
  context.module={exports:{}};
  vm.runInNewContext(bundled.outputFiles[0].text,context);
- context.module.exports.default({targetId:'example',itemId:'yeongnyangi-saju-mackerel'});
+ context.module.exports.default({targetId:'example',itemId:'yeongnyangi-saju-mackerel',contentId:'mackerel-question-v1'});
  const cleanup=effect();
  assert.equal(observe,heading);
  callback([{isIntersecting:false}]);assert.equal(events.length,0);
@@ -27,7 +27,7 @@ test('hero and hub read mackerel facts from the catalog and explain which flow h
  const hero=readFileSync('app/yeongnyangi/_components/NightHero.tsx','utf8');
  assert.match(hero,/고등어 질문 상담 \{starter\.priceKRW\.toLocaleString\('ko-KR'\)\}원 · 한 체계 · 신규 한국어 질문 기준 \{EXPANDED_CHAPTERS\.mackerel\}챕터 · \{FOLLOWUP_LIMITS\.mackerel===0\?'추가 질문 없음'/);
  const hub=readFileSync('app/yeongnyangi/1000-won-fortune/page.tsx','utf8');
- assert.match(hub,/상담 종류를 골라 시작하는 사주 고등어 상담은 \{mackerels\[0\]\.chapterCount\}개 챕터/);
+ assert.match(hub,/새 질문으로 시작하는 사주 고등어 상담은 \{EXPANDED_CHAPTERS\.mackerel\}개 챕터/);
  assert.match(hub,/새 한국어 질문으로 시작하면 같은 \{PRICE\}에 \{EXPANDED_CHAPTERS\.mackerel\}개 챕터/);
  assert.match(readFileSync('public/llms.txt','utf8'),/영냥이 상담 가격과 챕터 범위: https:\/\/code-destiny\.com\/yeongnyangi\/#yn-prices/);
 });
@@ -49,17 +49,18 @@ test('landing Offer is the mackerel server price and all six systems share it',a
  }
 });
 
-test('question CTA selects a supported mackerel consultation and sample precedes long comparison',async()=>{
+test('question CTA enters the expanded mackerel question flow and sample precedes long comparison',async()=>{
  const page=readFileSync('app/yeongnyangi/1000-won-fortune/page.tsx','utf8');
  const href=page.match(/const QUESTION_HREF='([^']+)'/)[1];
  const params=new URL(href,'https://code-destiny.com').searchParams;
- const result=await build({stdin:{contents:"export {products} from './worker/yeongnyangi/payments/catalog'; export {consultationKinds,supportsKind} from './worker/yeongnyangi/fortune/consultation-kinds';",resolveDir:process.cwd(),loader:'ts'},bundle:true,write:false,format:'cjs',platform:'node'});
+ const result=await build({stdin:{contents:"export {products} from './worker/yeongnyangi/payments/catalog';",resolveDir:process.cwd(),loader:'ts'},bundle:true,write:false,format:'cjs',platform:'node'});
  const sandbox={exports:{},module:{exports:{}}};sandbox.module.exports=sandbox.exports;
  vm.runInNewContext(result.outputFiles[0].text,sandbox);
- const {products,consultationKinds,supportsKind}=sandbox.module.exports;
+ const {products}=sandbox.module.exports;
  const product=products.find(p=>p.domain===params.get('domain')&&p.fishId===params.get('fish')&&p.readingKind==='single');
- const kind=consultationKinds[product.domain].find(k=>k.id===params.get('consultationKind'));
- assert.equal(product.priceKRW,5000);assert.equal(kind.question,true);assert.equal(supportsKind(product,kind),true);
+ assert.equal(product.priceKRW,5000);assert.equal(params.get('flow'),'question');assert.equal(params.has('consultationKind'),false);
+ assert.match(page,/contentId="mackerel-question-v1"/);
+ assert.match(readFileSync('app/yeongnyangi/_components/YeongnyangiGuide.tsx','utf8'),/contentId="tarot-salmon-question-v1"/);
  assert.ok(page.indexOf('id="example"')<page.indexOf('id="systems"'));
  assert.match(page,/실제 고객 데이터나 AI가 생성한 상담 원문이 아니/);
 });

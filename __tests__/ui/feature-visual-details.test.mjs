@@ -315,7 +315,6 @@ test('popup journey preserves image previews and escapes FAQ without adding chec
     assert.doesNotMatch(html, /onclick=|href="(?:javascript:|\/checkout|\/payment)/);
     const founderLinks = new Set(detail.founder ? ['/about/#author', '/yeongnyangi/#founder-records'] : []);
     for (const link of html.matchAll(/href="([^"]+)"/g)) {
-      if (detail.consultationGuide && link[1] === 'https://claude.ai/artifact/PtPUfhaiHM37ebpxtr4nQV') continue;
       if (!founderLinks.has(link[1])) assert.match(link[1], /^\/features\/[a-z0-9-]+\/$/);
     }
     assert.doesNotMatch(renderFeatureDetailPanels(detail), /data-feature-conversion-request/);
