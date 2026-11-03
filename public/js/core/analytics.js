@@ -150,7 +150,8 @@
 
   gtag("consent", "default", { analytics_storage: analyticsStorageState() });
   gtag("js", new Date());
-  gtag("config", measurementId, Object.assign({page_location: pageLocation()}, paidCampaignParams(growthAttribution())));
+  var initialAiSource = aiSourceLabel();
+  gtag("config", measurementId, Object.assign({page_location: pageLocation()}, initialAiSource ? {ai_source: initialAiSource} : {}, paidCampaignParams(growthAttribution())));
 
   /**
    * 이벤트 전송. 실패해도 절대 던지지 않는다 — 계측이 기능을 깨뜨려선 안 된다.
@@ -182,6 +183,25 @@
       }
       if (allowed.test(current || '')) global.sessionStorage.setItem('cd:insight:campaign', JSON.stringify({value:current,until:Date.now()+1800000}));
       var saved = JSON.parse(global.sessionStorage.getItem('cd:insight:campaign') || 'null');
+      return saved && saved.until > Date.now() && allowed.test(saved.value) ? saved.value : '';
+    } catch (_) { return ''; }
+  }
+  // AI attribution is a small label from exact hosts or ChatGPT's exact UTM, never the referrer text.
+  // Direct, same-host, lookalike and search traffic stays unclassified.
+  function aiSourceLabel() {
+    try {
+      var hosts = {'chatgpt.com':'chatgpt','chat.openai.com':'chatgpt','perplexity.ai':'perplexity','www.perplexity.ai':'perplexity','gemini.google.com':'gemini','copilot.microsoft.com':'copilot','copilot.com':'copilot','claude.ai':'claude'};
+      var allowed = /^(chatgpt|perplexity|gemini|copilot|claude)$/;
+      var referrerHost = document.referrer ? new URL(document.referrer).hostname.toLowerCase() : '';
+      var current = Object.prototype.hasOwnProperty.call(hosts, referrerHost) ? hosts[referrerHost] : '';
+      if (!referrerHost && new URLSearchParams(global.location.search).get('utm_source') === 'chatgpt.com') current = 'chatgpt';
+      if (analyticsStorageState() !== 'granted') {
+        global.sessionStorage.removeItem('cd:ai:source');
+        return current;
+      }
+      if (current) global.sessionStorage.setItem('cd:ai:source', JSON.stringify({value:current,until:Date.now()+1800000}));
+      else if (referrerHost && referrerHost !== global.location.hostname) global.sessionStorage.removeItem('cd:ai:source');
+      var saved = JSON.parse(global.sessionStorage.getItem('cd:ai:source') || 'null');
       return saved && saved.until > Date.now() && allowed.test(saved.value) ? saved.value : '';
     } catch (_) { return ''; }
   }
@@ -269,6 +289,8 @@
       if (crmId) safeParams.crm_campaign = crmId;
       var insight = insightCampaign();
       if (insight) safeParams.share_campaign = insight;
+      var aiSource = aiSourceLabel();
+      if (aiSource) safeParams.ai_source = aiSource;
       var growth = growthAttribution();
       if (growth) { safeParams.growth_campaign = growth.campaignId; safeParams.growth_version = growth.version; }
       if (growth && growth.version === 'paid-20261028-v1') {
