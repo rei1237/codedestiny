@@ -4910,6 +4910,73 @@
       "Bing Webmaster, Copilot and Naver were not measured: the first two showed sign-in walls, Naver was out of this run.",
       "This is a before-change baseline. No effect of the change is measured or implied."
     ],
-    "nextCheck": "Repeat the same question set no earlier than 28 days after production promotion, and read GA4 ai_source only after the custom dimension is registered."
+    "nextCheck": "Repeat the same question set no earlier than 28 days after production promotion, and read GA4 ai_source only after the custom dimension is registered.",
+    "ownerTasks20261104": {
+      "observedAt": "2026-11-04",
+      "ga4": {
+        "propertyId": "526361229",
+        "dimension": "AI Source",
+        "scope": "event",
+        "parameter": "ai_source",
+        "status": "created and verified in list"
+      },
+      "gsc": {
+        "url": "https://code-destiny.com/yeongnyangi/",
+        "status": "indexed",
+        "userCanonical": "https://code-destiny.com/yeongnyangi/",
+        "googleCanonical": "https://code-destiny.com/yeongnyangi/",
+        "lastCrawlDisplayed": "2026-11-03 17:36:54",
+        "indexRequest": "not submitted; already indexed"
+      },
+      "cloudflare": {
+        "period": "last 7 days",
+        "botFightMode": "off",
+        "browserIntegrityCheck": "off",
+        "managedRuleset": "always active",
+        "customRules": "Allow Verified Bots active; AI user-agent block, exploit scanner block and overseas challenge disabled",
+        "rateLimit": "Block-Infinite-Loop active: URI path starts with /",
+        "crawlerCounts": {
+          "OAI-SearchBot": {
+            "allowedDisplayed": "8.4k",
+            "unsuccessful": 157
+          },
+          "Googlebot": {
+            "allowedDisplayed": "5.76k",
+            "unsuccessful": 429
+          },
+          "BingBot": {
+            "allowedDisplayed": "1.86k",
+            "unsuccessful": 182
+          },
+          "PerplexityBot": {
+            "allowedDisplayed": "413",
+            "unsuccessful": 152
+          },
+          "Claude-SearchBot": {
+            "allowedDisplayed": "15",
+            "unsuccessful": 87
+          }
+        },
+        "aggregateStatus": "AI metrics: 403 14; 404 approximately 2.35k; 2xx approximately 21.1k",
+        "limitations": "Unsuccessful is not synonymous with blocked or 403. Bot- and URL-specific 2xx/403/challenge, Yeti, rule attribution, JS Detections, Bot score and Managed robots status not measured."
+      },
+      "profiles": {
+        "codeMismatchCount": 1,
+        "description": "Threads profile says 500 moonstones on signup; inspected code sets signup grant to 0 and describes tutorial completion. Production setting not independently verified. Full pinned-post audit incomplete.",
+        "approvalRequired": "Profile and published text edits require item-by-item owner approval."
+      },
+      "skipped": [
+        {
+          "task": "Bing Webmaster",
+          "reason": "sign-in screen; owner login required",
+          "observedAt": "2026-11-04"
+        },
+        {
+          "task": "Copilot Q17-Q24",
+          "reason": "sign-in screen; owner login required",
+          "observedAt": "2026-11-04"
+        }
+      ]
+    }
   }
 }

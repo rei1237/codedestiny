@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-11-04
-next: "로그인 세션을 확인하고 작업 1(GA4 ai_source 등록)부터 한다"
+next: "Bing·Copilot 로그인 후 미측정 작업과 Cloudflare 세부 기록·프로필 고정 글 점검을 마치고 제안별 적용 여부를 확인한다"
 ---
 
 # 영냥이 AEO 소유자 작업 (Codex 실행용)
@@ -140,3 +140,31 @@ git worktree remove --force '<워크트리>'
 - 묶음 ③과 `docs/handoff/2026-11-02-seo-post-promotion-followups.md`.
 - `https://claude.ai/artifact/PtPUfhaiHM37ebpxtr4nQV`의 공유 해제. 소유자가 판단한다.
 - 네이버 답변 측정. `naver` 값은 이번에도 `null`로 둔다.
+
+
+## 2026-11-04 실행 기록
+
+- GA4: 속성 526361229의 기존 맞춤 측정기준 0개를 확인한 뒤 AI Source / 이벤트 / ai_source를 등록하고 목록에서 확인했다. 등록 후 유입 값은 미측정.
+- Bing Webmaster 및 Copilot: 로그인 화면. 소유자 로그인 필요. 등록 여부·수치와 Q17~Q24는 미측정이며 CSV와 원문을 변경하지 않았다.
+- GSC: 영냥이 URL 색인됨. 두 표준 URL은 검사 URL과 일치. 최근 크롤링 화면 표기 2026-11-03 17:36:54. 재요청하지 않았다.
+- Cloudflare: Bot Fight Mode와 Browser Integrity Check 꺼짐, 관리 규칙셋 항상 활성. Allow Verified Bots 활성; AI 사용자 에이전트 차단·스캐너 차단·해외 민감 페이지 챌린지 비활성. Block-Infinite-Loop 속도 제한 활성. 최근 7일 AI 통계 전체 403 14건, 404 약 2.35천 건. 봇·URL별 상태와 규칙 원인은 미측정이며 실패를 차단으로 간주하지 않는다. 상세는 SEO_STATE. 설정 변경 없음.
+
+| 채널 | 관측된 이름·소개 | 홈 링크 | 검토 |
+|---|---|---|---|
+| YouTube | 코드 데스티니, 공식 채널 | 있음 | 서비스명 소개 개선 제안 |
+| Threads | 꿀꿀 운세 공식, 사주 등 소개 | 표시됨 | 가입 시 월정석 500개 문구와 코드의 가입 지급 0이 다름; 운영 설정 별도 확인 필요 |
+| Instagram | Code:Destiny_official, 종합 운세 플랫폼 | 화면에서 확인 안 됨 | 게시물은 프로필 링크로 유도; 설정 확인 필요 |
+| 네이버 블로그 | 유명인 사주, 코드데스티니 / 영냥이 | 프로필에서 확인 안 됨 | 서비스명과 홈 링크 명확화 제안 |
+| WordPress | 꿀꿀 운세 인사이트 | CODE DESTINY | 소개에 URL 텍스트, 관련 기능 링크 있음 | 질문 예시 글은 영냥이 링크가 이미 있음 |
+| X | Code:Destiny_official, 영문 슬로건 | 표시됨 | 서비스명 소개 개선 제안 |
+
+고정 글 전수와 가격·무료 범위 대조는 미완료. 카탈로그는 가격을 별도 registry에서 가져온다. 아래는 소유자 항목별 적용 답변을 기다리는 초안이며 외부 게시물은 수정하지 않았다.
+
+- Threads 현재: 가입 시 5천원 상당 월정석 500개 → 제안: 해당 문장 삭제. 코드상 가입 지급은 0이며 500 월정석은 무료 사주 튜토리얼 완료 보상으로 설명된다. 운영 확인 전 대체 혜택은 쓰지 않는다.
+- YouTube 현재: 코드 데스티니 공식 채널 → 제안: CODE DESTINY가 운영하는 꿀꿀 운세 공식 채널입니다. 기존 홈 링크 유지.
+- Instagram 현재: 운명을 코드로 풀어내는 code:destiny, 종합 운세 플랫폼 → 제안: CODE DESTINY가 운영하는 꿀꿀 운세. 사주·타로·자미두수·점성술을 통해 나의 흐름을 살펴보세요. 홈 링크 설정 여부 확인.
+- 네이버 현재: 정밀 사주 분석 및 다양한 운세 서비스, 서비스 홍보로만 쓴다는 소개 → 제안: CODE DESTINY가 운영하는 꿀꿀 운세의 사주와 다양한 운세 이야기를 전합니다. 서비스 안내: https://code-destiny.com/
+- X 현재: Code Your Fate. Command Your Freedom. → 제안: CODE DESTINY가 운영하는 꿀꿀 운세. 사주·타로와 다양한 운세를 통해 나의 흐름을 살펴보세요.
+- WordPress 질문 예시 글(https://ggulggulinsights.wordpress.com/2026/10/25/fortune-consultation-question-guide/): 영냥이에게 고민을 적어 보라는 문장 뒤에 상담 구성과 이용 조건을 영냥이 상담 화면에서 확인하라는 문장과 https://code-destiny.com/yeongnyangi/ 링크를 제안. 하단에 같은 목적지 링크가 이미 있으므로 필수 정정은 아니다.
+
+ goodbyejieun 소유 관계는 미확인. 공식 채널로 판단하지 않으며 소유자 확인 필요.
