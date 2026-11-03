@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-11-04
-next: "Bing·Copilot 로그인 후 미측정 작업과 Cloudflare 세부 기록·프로필 고정 글 점검을 마치고 제안별 적용 여부를 확인한다"
+next: "Threads·Instagram·X 프로필 미적용 항목과 Cloudflare 세부 기록을 확인한다"
 ---
 
 # 영냥이 AEO 소유자 작업 (Codex 실행용)
@@ -168,3 +168,18 @@ git worktree remove --force '<워크트리>'
 - WordPress 질문 예시 글(https://ggulggulinsights.wordpress.com/2026/10/25/fortune-consultation-question-guide/): 영냥이에게 고민을 적어 보라는 문장 뒤에 상담 구성과 이용 조건을 영냥이 상담 화면에서 확인하라는 문장과 https://code-destiny.com/yeongnyangi/ 링크를 제안. 하단에 같은 목적지 링크가 이미 있으므로 필수 정정은 아니다.
 
  goodbyejieun 소유 관계는 미확인. 공식 채널로 판단하지 않으며 소유자 확인 필요.
+
+
+## 2026-11-04 소유자 승인 후 적용
+
+소유자가 프로필 수정 제안 전체를 승인했고 로그인 필요한 작업은 건너뛰도록 지시했다. goodbyejieun은 소유자의 계정이지만 공식 채널에서 제외한다.
+
+- YouTube: 공식 채널 설명의 첫 문장을 승인된 문장으로 바꾸고 게시 완료 알림 확인. 나머지 소개와 기존 홈 링크 유지.
+- 네이버 블로그: 소개를 승인된 문구와 서비스 URL로 바꾸고 성공 알림 확인.
+- WordPress: 상담 질문 예시 글에 승인된 안내 문장 및 영냥이 링크 추가, 글 업데이트 완료 확인.
+- Instagram: 저장된 계정 목록에 대상 공식 계정이 없고 기존 계정 로그인만 표시되어 건너뜀.
+- Threads: 현재 다른 계정으로 접속되어 있으며 편집 권한 또는 계정 전환을 확인하지 못해 미적용.
+- X: 이전 확인에서 다른 계정으로 접속되어 있었고, 이번 편집 권한 확인 중 브라우저 연결이 끊겨 미적용.
+- Bing Webmaster와 Copilot: 로그인 작업을 건너뛰라는 지시에 따라 재시도하지 않음.
+
+위의 기존 제안 목록은 승인 당시 기록이다. 완료된 항목을 재적용하지 않는다.

@@ -4976,7 +4976,22 @@
           "reason": "sign-in screen; owner login required",
           "observedAt": "2026-11-04"
         }
-      ]
+      ],
+      "profileUpdates": {
+        "observedAt": "2026-11-04",
+        "approvedAll": true,
+        "applied": [
+          "YouTube channel description",
+          "Naver blog introduction",
+          "WordPress consultation question guide"
+        ],
+        "notApplied": {
+          "Instagram": "target account not in saved accounts; login required",
+          "Threads": "active account differs; edit access not established",
+          "X": "active account differed on prior observation; browser connection interrupted before access check"
+        },
+        "goodbyejieun": "owner account; excluded from official channels"
+      }
     }
   }
 }
