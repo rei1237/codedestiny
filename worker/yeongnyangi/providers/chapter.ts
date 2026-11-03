@@ -626,7 +626,7 @@ export class StructuredChapterProvider implements FortuneChapterProvider {
         ...(input.chapter.questionPolicy&&input.analysis.contexts.astrology?{astrologyPeriodContract:'트랜짓 등 시기 계산이 제공되지 않으면 올해 보너스 장도 사건 예측으로 쓰지 않는다. 요청한 기간은 질문 또는 준비·점검 기간이며 그 기간에 전환점이나 새로운 기회가 찾아온다는 근거가 아니다. 특정 시기의 좋고 나쁨 대신 출생 기질에 맞는 선택 조건과 확인할 현실 신호를 설명한다.'}:{}),
         citationContract: '최상위 sources에는 모든 blocks[].sources의 합집합을 빠짐없이 넣는다. sources는 CALCULATED_DATA.facts의 id를 그대로 사용한다. label이나 새 ID를 만들지 않는다.',
         blockContract: hasReadingSections(input.chapter.version)?'sections의 각 ID에 대응하는 blocks를 순서대로 생성한다. title은 구매 언어로 된 자연스러운 소제목. paragraphs는 각각 500자 이하, 보통 150~350자. 소절 목표 분량이 500자를 넘으면 문장 단위로 끊어 여러 문단으로 나눈다. 본문은 blocks에만 쓰고 analysis는 빈 배열, example과 advice는 빈 문자열이다. 각 block의 sources에 실제 사용한 제공 근거 ID를 넣는다. evidence 소절에는 근거가 제공된 각 체계의 출처를 포함하고 모든 생선에서 서로 다른 실제 근거를 교차 검토하고 근거가 부족하면 개수를 채우기 위해 만들지 않는다. 소절별 minimumChars와 역할을 충족한다.':isStructuredReading(input.chapter.version)?'blocks는 requiredSections의 모든 제목을 그대로 사용하고 문단당 500자 이하의 짧은 해설 문단을 담는다. analysis는 빈 배열. example과 advice는 blocks를 반복하지 않는 사례와 실행이다.':undefined,
-        expertSubchapterContract: isStructuredReading(input.chapter.version)?expertSubchapterPromptLines({feature:'영냥이 전문가 상담'}):undefined,
+        expertSubchapterContract: isStructuredReading(input.chapter.version)?expertSubchapterPromptLines({feature:'전문가 상담',compact:true}):undefined,
         narrativeTask: !isStructuredReading(input.chapter.version)&&tier==='mackerel'?[
           '첫인상만 다룬다. 말이나 일을 시작하기 전에 무엇을 관찰하는 사람인지 한 가지 장면으로 보여준다. 책임 분배 조언은 하지 않는다.',
           '내면의 선택 기준만 다룬다. 두 선택지 사이에서 마음이 움직이는 기준과 그 반대 가능성을 설명한다. 첫인상과 책임 분배를 재설명하지 않는다.',
