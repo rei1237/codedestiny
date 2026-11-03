@@ -198,7 +198,7 @@ export default async function InsightsPage() {
         CLS 0.275 이력이 있어 클라이언트에서만 나타나는 블록을 위에 두지 않는다).
         🔴 H1 은 이 하나뿐이어야 한다 — InsightsCosmicClient 의 제목은 h2 다.
       */}
-      <header className="moon-container moon-hero"><div><a href="/ggulggul/">꿀꿀운세</a><h1>운세 인사이트</h1><p>내 사주를 이해하는 달빛 지식 서재</p></div><Image src="/images/feature-details/fusion-fortune-hero-v2.webp" width={640} height={420} alt="" priority /></header>
+      <header className="moon-container moon-hero"><div><a href="/ggulggul/">꿀꿀 운세로 돌아가기</a><h1>운세 인사이트</h1><p>내 사주를 이해하는 달빛 지식 서재</p><p className="moon-hero-hint">사주와 타로, 별의 이야기를<br />궁금한 주제부터 천천히 읽어보세요.</p><a className="moon-hero-search" href="#insight-search">궁금한 글 찾기 <span aria-hidden="true">↓</span></a></div><Image src="/images/home/illustrated/yeoni-character-480.webp" width={480} height={480} sizes="(max-width: 600px) 112px, 240px" alt="책과 찻잔 곁에서 안내하는 꽃돼지 연이" priority /></header>
       <section className="moon-container cd-guide-index" aria-labelledby="insight-reading-next">
         <h2 id="insight-reading-next" className="cd-guide-index__title">{SEARCH_READING_PATHS.ko.heading}</h2>
         <p className="cd-guide-index__lede">{SEARCH_READING_PATHS.ko.lead}</p>

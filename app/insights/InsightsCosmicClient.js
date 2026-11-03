@@ -315,6 +315,7 @@ export default function InsightsCosmicClient({
   const [sort, setSort] = useState("latest");
   const [searchInput, setSearchInput] = useState("");
   const [query, setQuery] = useState("");
+  const [archiveReady, setArchiveReady] = useState(false);
 
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(seedPool.length > PAGE_SIZE);
@@ -492,6 +493,7 @@ export default function InsightsCosmicClient({
       setSort(params.get('sort') === 'popular' ? 'popular' : 'latest');
       setPage(Math.max(1, Math.min(100, Number(params.get('page')) || 1)));
       archiveUrlReady.current = true;
+      setArchiveReady(true);
     };
     restore(); window.addEventListener('popstate',restore);
     return () => window.removeEventListener('popstate',restore);
@@ -528,25 +530,27 @@ export default function InsightsCosmicClient({
   }
 
   return (
-    <main className="moon-library">
+    <main className="moon-library" aria-busy={!archiveReady || loading}>
       <section className="mx-auto w-full max-w-6xl px-4 py-8 md:px-6 md:py-10 space-y-6">
-        <section className="rounded-2xl border border-[#d8cdbb] bg-[#fffdf8] p-4 md:p-5 space-y-3">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-2">
+        <section className="moon-search-panel" role="search" aria-label="운세 인사이트 글 찾기" id="insight-search">
+          <label className="moon-search-label" htmlFor="insight-query">어떤 이야기가 궁금하세요?</label>
+          <div className="moon-search-controls">
             <input
+              id="insight-query"
+              type="search"
               value={searchInput}
               onChange={(event) => setSearchInput(event.target.value)}
               onKeyDown={(event) => {
-                if (event.key === "Enter") setQuery(searchInput.trim());
+                if (event.key === "Enter" && !event.nativeEvent.isComposing) setQuery(searchInput.trim());
               }}
-              aria-label="무엇이 궁금한가요?"
-              placeholder="무엇이 궁금한가요?"
-              className="md:col-span-5 rounded-xl border border-[#d8cdbb] bg-[#fffdf8] px-3 py-2.5 text-sm text-[#242139] placeholder:text-[#242139] focus:border-amber-300/60 focus:outline-none"
+              placeholder="예: 오행, 연애, 타로 카드"
+              className="moon-query-input"
             />
-            <details className="md:col-span-6"><summary className="moon-reading-summary">분야·태그·정렬</summary><div className="moon-filters">
+            <details className="moon-search-options"><summary className="moon-reading-summary">분야·태그·정렬</summary><div className="moon-filters">
             <select aria-label="분야"
               value={category}
               onChange={(event) => setCategory(event.target.value)}
-              className="md:col-span-2 rounded-xl border border-[#d8cdbb] bg-[#fffdf8] px-3 py-2.5 text-sm text-[#242139] focus:border-amber-300/60 focus:outline-none"
+              className="md:col-span-2 rounded-xl border border-[var(--cd-line-strong)] bg-[var(--cd-surface)] px-3 py-2.5 text-sm text-[var(--cd-text)] focus:border-amber-300/60 focus:outline-none"
             >
               <option value="">{insightsCosmicClientText("insightsCosmic.009")}</option>
               {activeCategories.map((value) => (
@@ -556,7 +560,7 @@ export default function InsightsCosmicClient({
             <select aria-label="태그"
               value={tag}
               onChange={(event) => setTag(event.target.value)}
-              className="md:col-span-2 rounded-xl border border-[#d8cdbb] bg-[#fffdf8] px-3 py-2.5 text-sm text-[#242139] focus:border-amber-300/60 focus:outline-none"
+              className="md:col-span-2 rounded-xl border border-[var(--cd-line-strong)] bg-[var(--cd-surface)] px-3 py-2.5 text-sm text-[var(--cd-text)] focus:border-amber-300/60 focus:outline-none"
             >
               <option value="">{insightsCosmicClientText("insightsCosmic.010")}</option>
               {activeTags.map((value) => (
@@ -566,7 +570,7 @@ export default function InsightsCosmicClient({
             <select aria-label="정렬"
               value={sort}
               onChange={(event) => setSort(event.target.value)}
-              className="md:col-span-2 rounded-xl border border-[#d8cdbb] bg-[#fffdf8] px-3 py-2.5 text-sm text-[#242139] focus:border-amber-300/60 focus:outline-none"
+              className="md:col-span-2 rounded-xl border border-[var(--cd-line-strong)] bg-[var(--cd-surface)] px-3 py-2.5 text-sm text-[var(--cd-text)] focus:border-amber-300/60 focus:outline-none"
             >
               <option value="latest">{insightsCosmicClientText("insightsCosmic.011")}</option>
               <option value="popular">편집 추천</option>
@@ -575,7 +579,7 @@ export default function InsightsCosmicClient({
             <button
               type="button"
               onClick={() => setQuery(searchInput.trim())}
-              className="md:col-span-1 rounded-xl border border-amber-300/40 bg-amber-300/15 px-3 py-2.5 text-sm text-[#242139] transition hover:bg-amber-300/30 focus:outline-none focus:ring-2 focus:ring-amber-300/50"
+              className="moon-search-submit"
             >
               검색
             </button>
@@ -583,13 +587,14 @@ export default function InsightsCosmicClient({
         </section>
 
 
-        <nav className="flex gap-2 overflow-x-auto pb-1" aria-label="운세 인사이트 카테고리">
+        <nav className="moon-category-tabs" aria-label="운세 인사이트 카테고리">
           {categoryTabs.map((value) => {
             const active = category === value;
             return (
               <button
                 key={value || "all"}
                 type="button"
+                aria-pressed={active}
                 onClick={() => {
                   setCategory(value);
                   setTag("");
@@ -597,8 +602,8 @@ export default function InsightsCosmicClient({
                 }}
                 className={`shrink-0 rounded-full border px-3.5 py-2 text-sm font-semibold transition ${
                   active
-                    ? "border-amber-200 bg-amber-100/15 text-[#242139]"
-                    : "border-[#d8cdbb] bg-[#fffdf8] text-[#242139] hover:border-amber-200/45 hover:text-[#242139]"
+                    ? "border-amber-200 bg-amber-100/15 text-[var(--cd-text)]"
+                    : "border-[var(--cd-line-strong)] bg-[var(--cd-surface)] text-[var(--cd-text)] hover:border-amber-200/45 hover:text-[var(--cd-text)]"
                 }`}
               >
                 {value || "전체"}
@@ -609,7 +614,7 @@ export default function InsightsCosmicClient({
 
         {activeRecommended.length > 0 ? (
           <section className="space-y-3">
-            <h2 className="text-lg font-semibold text-[#242139]">추천 글</h2>
+            <h2 className="text-lg font-semibold text-[var(--cd-text)]">추천 글</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {activeRecommended.slice(0,2).map((item) => {
                 const image = buildCardImage(item);
@@ -632,8 +637,8 @@ export default function InsightsCosmicClient({
                       <div className="h-40 w-full bg-gradient-to-br from-amber-300/15 to-pink-300/10" />
                     )}
                     <div className="p-4">
-                      <p className="text-[11px] text-[#242139]">{item.category || "인사이트"} · {formatDate(item.publishedAt || item.updatedAt)}</p>
-                      <h3 className="mt-2 text-sm font-semibold leading-6 text-[#242139] group-hover:text-[#242139]">{item.title}</h3>
+                      <p className="text-[13px] text-[var(--cd-text)]">{item.category || "인사이트"} · {formatDate(item.publishedAt || item.updatedAt)}</p>
+                      <h3 className="mt-2 text-sm font-semibold leading-6 text-[var(--cd-text)] group-hover:text-[var(--cd-text)]">{item.title}</h3>
                     </div>
                   </Link>
                 );
@@ -643,23 +648,24 @@ export default function InsightsCosmicClient({
         ) : null}
 
         <section className="space-y-3">
-          <div className="flex items-center justify-between gap-2">
-            <h2 className="text-lg font-semibold text-[#242139]">{sortTagLabel(sort)}</h2>
-            <span className="text-xs text-[#242139]">{activeItems.length.toLocaleString("ko-KR")}개 표시</span>
+          <div className="flex items-center justify-between gap-2" aria-live="polite">
+            <h2 className="text-lg font-semibold text-[var(--cd-text)]">{sortTagLabel(sort)}</h2>
+            <span className="text-xs text-[var(--cd-text)]">{activeItems.length.toLocaleString("ko-KR")}개 표시</span>
           </div>
 
           {error ? (
-            <div className="rounded-xl border border-rose-300/40 bg-rose-300/10 px-4 py-3 text-sm text-rose-100">{error}</div>
+            <div className="moon-search-notice" role="status">{error}</div>
           ) : null}
 
           {loading ? (
-            <div className="rounded-2xl border border-[#d8cdbb] bg-[#fffdf8] px-4 py-12 text-sm text-[#242139]">목록을 불러오는 중...</div>
+            <div className="rounded-2xl border border-[var(--cd-line-strong)] bg-[var(--cd-surface)] px-4 py-12 text-sm text-[var(--cd-text)]">목록을 불러오는 중...</div>
           ) : null}
 
           {!loading && activeItems.length === 0 ? (
-            <div className="rounded-2xl border border-[#d8cdbb] bg-[#fffdf8] px-4 py-12 text-center text-sm text-[#242139]">
+            <div className="rounded-2xl border border-[var(--cd-line-strong)] bg-[var(--cd-surface)] px-4 py-12 text-center text-sm text-[var(--cd-text)]">
               <p>{insightsCosmicClientText("insightsCosmic.013")}</p>
-              <p className="mt-2 text-[#242139]">검색어를 조금 넓히거나, 다른 카테고리의 인사이트를 살펴보세요.</p>
+              <p className="mt-2 text-[var(--cd-text)]">검색어를 조금 넓히거나, 다른 카테고리의 인사이트를 살펴보세요.</p>
+              <button type="button" className="moon-empty-reset" onClick={() => { setSearchInput(''); setQuery(''); setCategory(''); setTag(''); setPage(1); }}>조건을 지우고 전체 글 보기</button>
             </div>
           ) : null}
 
@@ -671,7 +677,7 @@ export default function InsightsCosmicClient({
                   const serviceLink = normalizeText(item.serviceLink, 240);
                   const ctaLabel = normalizeText(item.ctaLabel, 80) || "관련 운세 보기";
                   return (
-                    <article key={item.slug} className="group rounded-2xl border border-[#d8cdbb] bg-[#fffdf8] overflow-hidden hover:border-amber-300/40 hover:bg-[#fffdf8] transition">
+                    <article key={item.slug} className="moon-article-card group">
                       {image.url ? (
                         <img
                           src={image.url}
@@ -689,15 +695,15 @@ export default function InsightsCosmicClient({
                         <div className="h-44 w-full bg-gradient-to-br from-indigo-300/10 to-sky-300/10" />
                       )}
                       <div className="p-4">
-                        <p className="text-[11px] text-[#242139]">{item.categoryLabel || item.category || "인사이트"}</p>
-                        <h3 className="mt-2 text-base font-semibold leading-6 text-[#242139] group-hover:text-[#242139]">{item.title}</h3>
-                        {item.subtitle ? <p className="mt-2 text-sm text-[#242139] line-clamp-2">{item.subtitle}</p> : null}
-                        <p className="mt-3 text-sm text-[#242139] line-clamp-3 leading-6">{item.excerpt}</p>
-                        <p className="mt-3 text-xs text-[#242139]">{formatDate(item.publishedAt || item.updatedAt)} · 약 {Math.max(1, Number(item.readingTime || 1))}분 읽기</p>
+                        <p className="text-[13px] text-[var(--cd-text)]">{item.categoryLabel || item.category || "인사이트"}</p>
+                        <h3 className="mt-2 text-base font-semibold leading-6 text-[var(--cd-text)] group-hover:text-[var(--cd-text)]">{item.title}</h3>
+                        {item.subtitle ? <p className="mt-2 text-sm text-[var(--cd-text)] line-clamp-2">{item.subtitle}</p> : null}
+                        <p className="mt-3 text-sm text-[var(--cd-text)] line-clamp-3 leading-6">{item.excerpt}</p>
+                        <p className="mt-3 text-xs text-[var(--cd-text)]">{formatDate(item.publishedAt || item.updatedAt)} · 약 {Math.max(1, Number(item.readingTime || 1))}분 읽기</p>
                         {Array.isArray(item.tags) && item.tags.length > 0 ? (
                           <div className="mt-3 flex flex-wrap gap-1.5">
                             {item.tags.slice(0, 5).map((value) => (
-                              <span key={`${item.slug}-${value}`} className="rounded-full border border-[#d8cdbb] bg-white/5 px-2 py-0.5 text-[11px] text-[#242139]">#{value}</span>
+                              <span key={`${item.slug}-${value}`} className="rounded-full border border-[var(--cd-line-strong)] bg-white/5 px-2 py-0.5 text-[13px] text-[var(--cd-text)]">#{value}</span>
                             ))}
                           </div>
                         ) : null}
@@ -705,21 +711,21 @@ export default function InsightsCosmicClient({
                         <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
                           <Link
                             href={`/insights/${item.slug}`}
-                            className="inline-flex items-center justify-center rounded-lg border border-[#d8cdbb] bg-white/10 px-3 py-2 text-xs text-[#242139] hover:bg-white/15"
+                            className="inline-flex items-center justify-center rounded-lg border border-[var(--cd-line-strong)] bg-white/10 px-3 py-2 text-xs text-[var(--cd-text)] hover:bg-white/15"
                           >
                             상세 글 보기
                           </Link>
                           {serviceLink ? (
                             <Link
                               href={serviceLink}
-                              className="inline-flex items-center justify-center rounded-lg border border-amber-300/40 bg-amber-300/15 px-3 py-2 text-xs text-[#242139] hover:bg-amber-300/30"
+                              className="inline-flex items-center justify-center rounded-lg border border-amber-300/40 bg-amber-300/15 px-3 py-2 text-xs text-[var(--cd-text)] hover:bg-amber-300/30"
                             >
                               {ctaLabel}
                             </Link>
                           ) : (
                             <Link
                               href="/insights"
-                              className="inline-flex items-center justify-center rounded-lg border border-amber-300/25 bg-amber-300/10 px-3 py-2 text-xs text-[#242139]"
+                              className="inline-flex items-center justify-center rounded-lg border border-amber-300/25 bg-amber-300/10 px-3 py-2 text-xs text-[var(--cd-text)]"
                             >
                               관련 글 더 보기
                             </Link>
@@ -737,7 +743,7 @@ export default function InsightsCosmicClient({
                     type="button"
                     onClick={onLoadMore}
                     disabled={loadingMore && apiMode}
-                    className="rounded-xl border border-[#d8cdbb] bg-white/5 px-5 py-2.5 text-sm text-[#242139] hover:bg-white/10 disabled:opacity-60"
+                    className="rounded-xl border border-[var(--cd-line-strong)] bg-white/5 px-5 py-2.5 text-sm text-[var(--cd-text)] hover:bg-white/10 disabled:opacity-60"
                   >
                     {loadingMore && apiMode ? "불러오는 중..." : "더보기"}
                   </button>
@@ -749,17 +755,17 @@ export default function InsightsCosmicClient({
           ) : null}
         </section>
         {children}
-        <details><summary>운세 인사이트 안내</summary><header className="rounded-3xl border border-[#d8cdbb] bg-[#fffdf8] p-5 md:p-7 ">
-          <h2 className="mt-2 text-2xl md:text-4xl font-semibold leading-tight text-[#242139]">운세 인사이트 허브</h2>
-          <p className="mt-3 text-sm md:text-base text-[#242139] leading-7">
+        <details><summary>운세 인사이트 안내</summary><header className="rounded-3xl border border-[var(--cd-line-strong)] bg-[var(--cd-surface)] p-5 md:p-7 ">
+          <h2 className="mt-2 text-2xl md:text-4xl font-semibold leading-tight text-[var(--cd-text)]">운세 인사이트 허브</h2>
+          <p className="mt-3 text-sm md:text-base text-[var(--cd-text)] leading-7">
             흩어진 질문이 조용히 한 줄로 모이도록,
             사주와 타로, 별의 언어를 차분한 해석 순서로 정리했습니다.
           </p>
-          <p className="mt-2 text-sm text-[#242139] leading-7">
+          <p className="mt-2 text-sm text-[var(--cd-text)] leading-7">
             사주, 자미두수, 숙요점, 타로, 점성술의 결을 함께 살피며
             지금 필요한 선택의 감각을 천천히 비춰볼 수 있습니다.
           </p>
-          <p className="mt-3 text-xs text-[#242139]">총 {activeTotalCount.toLocaleString("ko-KR")}개 글</p>
+          <p className="mt-3 text-xs text-[var(--cd-text)]">총 {activeTotalCount.toLocaleString("ko-KR")}개 글</p>
         </header></details>
         {famousSajuItems.length > 0 ? (
           <details><summary>인물 사례 둘러보기</summary>
@@ -767,20 +773,20 @@ export default function InsightsCosmicClient({
             <div className="grid gap-5 p-4 md:p-6 lg:grid-cols-[0.85fr_1.15fr]">
               <div className="flex min-w-0 flex-col justify-between gap-5">
                 <div>
-                  <p className="text-xs font-semibold tracking-[0.18em] text-[#242139]">FAMOUS SAJU MAGAZINE</p>
-                  <h2 className="mt-2 text-2xl font-semibold leading-tight text-[#242139]">유명인 사주 분석</h2>
-                  <p className="mt-3 text-sm leading-7 text-[#242139]">
+                  <p className="text-xs font-semibold tracking-[0.18em] text-[var(--cd-text)]">FAMOUS SAJU MAGAZINE</p>
+                  <h2 className="mt-2 text-2xl font-semibold leading-tight text-[var(--cd-text)]">유명인 사주 분석</h2>
+                  <p className="mt-3 text-sm leading-7 text-[var(--cd-text)]">
                     공개 자료로 확인 가능한 생년월일만 조심스럽게 놓고, 역사 인물과 대중문화 인물의 선택과 상징을 사주 언어로 읽습니다.
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-[#242139]">인기 키워드</p>
+                  <p className="text-sm font-semibold text-[var(--cd-text)]">인기 키워드</p>
                   <div className="mt-3 flex flex-wrap gap-2">
                     {FAMOUS_SAJU_POPULAR_KEYWORDS.map((keyword) => (
                       <Link
                         key={keyword.label}
                         href={keyword.href}
-                        className="rounded-full border border-[#d8cdbb] bg-white/5 px-3 py-1.5 text-xs text-[#242139] transition hover:border-amber-200/50 hover:text-[#242139]"
+                        className="rounded-full border border-[var(--cd-line-strong)] bg-white/5 px-3 py-1.5 text-xs text-[var(--cd-text)] transition hover:border-amber-200/50 hover:text-[var(--cd-text)]"
                       >
                         {keyword.label}
                       </Link>
@@ -789,7 +795,7 @@ export default function InsightsCosmicClient({
                 </div>
                 <Link
                   href="/insights/famous-saju"
-                  className="inline-flex w-fit items-center justify-center rounded-lg border border-amber-200/40 bg-amber-100/15 px-4 py-2 text-sm font-semibold text-[#242139] transition hover:bg-amber-100/25"
+                  className="inline-flex w-fit items-center justify-center rounded-lg border border-amber-200/40 bg-amber-100/15 px-4 py-2 text-sm font-semibold text-[var(--cd-text)] transition hover:bg-amber-100/25"
                 >
                   유명인 사주 전체 보기
                 </Link>
@@ -803,7 +809,7 @@ export default function InsightsCosmicClient({
                     <Link
                       key={`famous-${item.slug}`}
                       href={href}
-                      className="group overflow-hidden rounded-2xl border border-[#d8cdbb] bg-white/[0.055] transition hover:border-amber-200/45 hover:bg-white/[0.08]"
+                      className="group overflow-hidden rounded-2xl border border-[var(--cd-line-strong)] bg-white/[0.055] transition hover:border-amber-200/45 hover:bg-white/[0.08]"
                     >
                       {image.url ? (
                         <img
@@ -822,15 +828,15 @@ export default function InsightsCosmicClient({
                         <div className="h-36 w-full bg-gradient-to-br from-amber-300/20 to-fuchsia-300/10 sm:h-32" />
                       )}
                       <div className="p-4">
-                        <div className="flex flex-wrap items-center gap-2 text-[11px] text-[#242139]">
+                        <div className="flex flex-wrap items-center gap-2 text-[13px] text-[var(--cd-text)]">
                           <span>{formatDate(item.publishedAt || item.updatedAt)}</span>
                           <span>{item.readingTime ? `약 ${item.readingTime}분 읽기` : "원문 읽기"}</span>
                         </div>
-                        <h3 className="mt-2 text-base font-semibold leading-6 text-[#242139] group-hover:text-[#242139]">{item.title}</h3>
-                        <p className="mt-2 line-clamp-2 text-sm leading-6 text-[#242139]">{item.excerpt}</p>
+                        <h3 className="mt-2 text-base font-semibold leading-6 text-[var(--cd-text)] group-hover:text-[var(--cd-text)]">{item.title}</h3>
+                        <p className="mt-2 line-clamp-2 text-sm leading-6 text-[var(--cd-text)]">{item.excerpt}</p>
                         <div className="mt-3 flex flex-wrap gap-1.5">
                           {item.tags.slice(0, 3).map((value) => (
-                            <span key={`${item.slug}-${value}`} className="rounded-full border border-[#d8cdbb] bg-white/5 px-2 py-0.5 text-[11px] text-[#242139]">
+                            <span key={`${item.slug}-${value}`} className="rounded-full border border-[var(--cd-line-strong)] bg-white/5 px-2 py-0.5 text-[13px] text-[var(--cd-text)]">
                               #{value}
                             </span>
                           ))}
