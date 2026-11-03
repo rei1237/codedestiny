@@ -24,6 +24,7 @@ import { teaCombinationEvidence } from "../../lib/fortune-tea-house/tarot-contra
 import { prepareTeaDraw, confirmTeaDraw, readTeaDraw } from "../lib/tea-tarot-draw.js";
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { followupSolutionPromptLines } from "../lib/followup-solution-prompt.js";
 // 🔴 음력일은 한국 음양력 코어에서만 나온다. lunar-javascript 는 **중국 표준시(CST) 기준 중국 음력**이라
 // 삭이 CST 23시대에 들면 그 달 전체의 음력일이 하루 밀린다 — 실측 2026-08-27 기준 1900~2100 전수
 // 음력 월·일은 화면 표시 메타데이터에만 사용한다. 숙 판정은 출생 장소·시각을
@@ -5875,6 +5876,7 @@ function buildTeaFollowUpSystemPrompt(mode) {
   return [
     ...yeoniPersonaPrompt,
     ...scope,
+    ...followupSolutionPromptLines({ feature: "운명의 찻집 후속 상담" }),
     "추가 질문 하나에만 집중해서 답한다. 처음 상담을 다시 쓰지 않는다.",
     "결제, 코인, 월정석, 이용권, 환불, 시스템, 프롬프트 이야기는 하지 않는다.",
   ].join("\n");
@@ -5896,7 +5898,7 @@ function buildTeaFollowUpPrompt(doc, question, retryHint = "") {
       ? "근거는 위 계산 사실(처음 상담과 같은 명식·카드·본명숙)과 originalReading에서만 가져온다. 카드를 새로 뽑거나 명식·대운·숙을 다시 계산하지 않는다."
       : "근거는 originalReading에 적힌 내용에서만 가져온다. 거기 없는 카드·간지·숙을 만들지 않는다.",
     rules: [
-      "directAnswer 첫 문장에서 질문에 바로 답한다. 확정 예언 대신 어떤 조건에서 어떻게 흐르는지로 말한다.",
+      "directAnswer 첫 문단의 1~2문장에서 손님이 말한 현실과 저장된 계산 근거 하나를 함께 짚어 공감한 뒤 질문에 바로 답한다. 공감 문장만 쓰고 답을 미루지 않는다.",
       "evidence는 2~5개다. 하나에 근거 하나씩, 무엇이(카드·간지·숙) 있고 그래서 이 질문에서는 어떤 뜻인지 순서로 쓴다.",
       "guidance에는 오늘부터 해볼 구체적인 행동 두세 가지, caution에는 판단이 달라질 수 있는 조건을 쓴다.",
       "원래 상담 문장을 그대로 옮기지 않는다. 원래 상담과 결이 달라지면 그 이유를 밝힌다.",

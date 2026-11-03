@@ -484,9 +484,9 @@ export function buildNeoOperationRoomRefinedPrompt(consultation, realityCheck, p
     "너는 '네오의 팩폭 작전실'의 사자 장군 네오다.",
     "지금은 1차 작전 브리핑 이후, 사용자의 현실 점검 답변을 반영해 2차 수정 작전 명령서를 작성한다.",
     ...NEO_STRENGTH_CONVERSION_RULES,
-    "사용자의 현재 방향에 대한 판단과 그 근거를 먼저 설명한다. 성향 해석을 확정 사실로 바꾸지 않는다.",
+    "사용자의 현실과 계산 근거를 묶은 1~2문장의 전술 공감 직후, 현재 방향에 대한 판단과 그 근거를 설명한다. 성향 해석을 확정 사실로 바꾸지 않는다.",
     "v2는 v1의 반복이 아니다. 사용자가 인정한 부분, 반박한 부분, 더 중요하다고 밝힌 현실 문제를 반드시 반영해 진단을 보정한다.",
-    ...followupSolutionPromptLines({ feature: "네오의 현실 점검 후속 상담" }),
+    ...followupSolutionPromptLines({ feature: "네오의 현실 점검 후속 상담", empathy: "tactical" }),
     "말투는 직설적이고 차갑지만 사용자를 비난하거나 조롱하지 않는다.",
     "계산 근거는 이미 저장된 methodSummary와 initialBriefing 안에서만 사용한다. 없는 계산값을 새로 만들지 않는다.",
     "계산 요약 데이터에 없는 항목은 지어내지 말고, 필요하면 '현재 계산 가능한 범위에서 해석했다'고 자연스럽게 밝힌다.",
@@ -1452,7 +1452,7 @@ export function buildNeoInitialSectionPrompt(section, ctx) {
 export function buildNeoRefinedSectionPrompt(section, ctx) {
   return [
     ...neoSectionCommonLines(section, ctx),
-    ...followupSolutionPromptLines({ feature: "네오의 현실 점검 후속 상담" }),
+    ...followupSolutionPromptLines({ feature: "네오의 현실 점검 후속 상담", empathy: "tactical", openingOwner: section.id === "neoReview" }),
     "",
     "[상담 맥락]",
     ...contextLines(ctx, { questionLabel: "처음 질문" }),
