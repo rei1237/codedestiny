@@ -70,11 +70,12 @@ export function purchase(product:SaleProduct,requestId:string,onDone:()=>void,on
   if(!isToss())throw new ApiError('TOSS_APP_REQUIRED');
   if(!IAP.createOneTimePurchaseOrder.isSupported())throw new ApiError('IAP_NOT_SUPPORTED');
   let clean:()=>void=()=>{},granted=false,settled=false;
+  const fail=(error:unknown)=>{if(settled)return;settled=true;clean();onError(error);};
   clean=IAP.createOneTimePurchaseOrder({options:{sku:product.sku,processProductGrant:async({orderId})=>{
     granted=false;
     try{const receipt=await api<Receipt>('/orders/grant',{sku:product.sku,orderId,requestId});granted=validReceipt(receipt,orderId)&&receipt.requestId===requestId;return granted;}
-    catch(error){onError(error);return false;}
-  }},onEvent:()=>{if(settled)return;settled=true;clean();if(granted)onDone();else onError(new ApiError('GRANT_NOT_DURABLE'));},onError:error=>{if(settled)return;settled=true;clean();onError(error);}});
+    catch(error){fail(error);return false;}
+  }},onEvent:()=>{if(settled)return;settled=true;clean();if(granted)onDone();else onError(new ApiError('GRANT_NOT_DURABLE'));},onError:fail});
   return ()=>clean();
 }
 export function purchaseTarotLibrary(product:TarotLibraryProduct,input:unknown,onDone:(orderId:string)=>void,onError:(error:unknown)=>void){
@@ -82,11 +83,12 @@ export function purchaseTarotLibrary(product:TarotLibraryProduct,input:unknown,o
   if(!isToss())throw new ApiError('TOSS_APP_REQUIRED');
   if(!IAP.createOneTimePurchaseOrder.isSupported())throw new ApiError('IAP_NOT_SUPPORTED');
   let clean:()=>void=()=>{},grantedOrder='',settled=false;
+  const fail=(error:unknown)=>{if(settled)return;settled=true;clean();onError(error);};
   clean=IAP.createOneTimePurchaseOrder({options:{sku:product.sku,processProductGrant:async({orderId})=>{
     grantedOrder='';
     try{const receipt=await api<Receipt>('/tarot-library/orders/grant',{sku:product.sku,orderId,input});const granted=validReceipt(receipt,orderId);grantedOrder=granted?orderId:'';return granted;}
-    catch(error){onError(error);return false;}
-  }},onEvent:()=>{if(settled)return;settled=true;clean();if(grantedOrder)onDone(grantedOrder);else onError(new ApiError('GRANT_NOT_DURABLE'));},onError:error=>{if(settled)return;settled=true;clean();onError(error);}});
+    catch(error){fail(error);return false;}
+  }},onEvent:()=>{if(settled)return;settled=true;clean();if(grantedOrder)onDone(grantedOrder);else onError(new ApiError('GRANT_NOT_DURABLE'));},onError:fail});
   return ()=>clean();
 }
 export async function restorePurchases(){
