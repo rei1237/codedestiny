@@ -11,7 +11,7 @@ const template = read("templates/home-funnel.html");
 
 // 2026-10-23 강약: 대표 상담 덱 → 초융합 시그니처 띠 → 무료로 먼저(여섯 장) → 꿀방울 출석 → 1:1 상담(연이·네오) → 질문 카테고리 → 이용권 → 모든 운세 버튼 → 작은 운세 모음 → 뮤직비디오 → 달빛 이야기.
 // Approved 2026-11-03 refinement keeps pass comparison immediately after concern discovery.
-const flow = ['{{yehwaHome}}', 'id="cdhPass"', 'id="cdhFusionSignatureSlot"', 'id="cdhNeoLetterSlot"', 'id="cdhFeatured"', 'id="cdhQuickSlot"', 'data-cd-honey-widget', 'class="cdh-all-cta"', 'id="cdhLightFortunes"', 'class="cdh-story"', 'id="cdhMoonlightMv"'];
+const flow = ['{{yehwaHome}}', 'id="cdhPass"', 'id="cdhFusionSignatureSlot"', 'id="cdhNeoLetterSlot"', 'id="cdhFeatured"', 'id="cdhQuickSlot"', 'data-cd-honey-widget', 'class="cdh-all-cta"', 'id="cdhLightFortunes"', 'id="cdhMoonlightMv"', 'class="cdh-story"'];
 for (let i = 1; i < flow.length; i += 1) {
   const prev = template.indexOf(flow[i - 1]);
   const next = template.indexOf(flow[i]);
@@ -68,7 +68,9 @@ const { JSDOM } = require('jsdom');
 const homeDocument = new JSDOM(home).window.document;
 const signatureSection = homeDocument.querySelector('#cdSignatureConsult')?.outerHTML || '';
 assert.ok(homeDocument.querySelector('#cdSignatureConsult #cdConcernPick'), 'Concern selection belongs to the consultation section');
-assert.ok(homeDocument.querySelector('.cdh-story #cdhMoonlightMv'), 'Music video belongs to the single story disclosure');
+assert.ok(homeDocument.querySelector('#cdhMoonlightMv'), 'Music video stays on the home');
+assert.equal(homeDocument.querySelector('#cdhMoonlightMv').closest('details'), null, 'Music video stays visible outside disclosures');
+assert.ok(homeDocument.querySelector('.cdh-story .cdh-story__card--music[href="/music/"]'), 'Playlist remains in the story disclosure');
 assert.equal(homeDocument.querySelectorAll('#cdhMoonlightMv').length, 1);
 assert.doesNotMatch(template, /음악으로 쉬어가기/);
 assert.ok(signatureSection, '대표 운명 상담 섹션을 찾지 못했습니다');

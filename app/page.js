@@ -1,3 +1,4 @@
+import HomeMusicVideo from './components/HomeMusicVideo';
 import Link from 'next/link';
 import { RecommendationFooter } from './components/recommendations/RecommendationResult';
 import { publicSeoPages, siteSeo } from "../lib/seo/siteSeo";
@@ -171,6 +172,7 @@ export default function HomePage() {
             </Link>
           </li>)}</ul>
         </section>
+        <HomeMusicVideo />
         <HelpDesk />
         <details id="homeExplore" data-home-disclosure="explore" className={styles.explore}>
           <summary className={styles.exploreSummary}><span><NativeHomeText>더 둘러보기</NativeHomeText></span><span className={styles.disclosureMark} aria-hidden="true" /></summary>

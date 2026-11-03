@@ -1,3 +1,4 @@
+import { moonlightVideo } from '../../lib/marketing/moonlight-video.mjs';
 import { renderPassBenefits, passBenefitOffers } from '../../lib/marketing/pass-benefits.mjs';
 import { JSDOM } from 'jsdom';
 import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
@@ -13,7 +14,7 @@ import { brandCopy } from '../../lib/seo/brand-copy.mjs';
 import { renderYehwaHome } from '../../lib/marketing/yehwa-home.mjs';
 
 const original = readFileSync('index.html', 'utf8');
-const vars = {};
+const vars = {mvSrc720:moonlightVideo.src720,mvSrc1080:moonlightVideo.src1080,mvCaptions:moonlightVideo.captions};
 vars.consultationMethods = renderConsultationMethodGuide('ggul-consultation-methods');
 
 // 가벼운 체험만 선별한다. 유료 표시는 서버 상품 정본에서 생성한다.

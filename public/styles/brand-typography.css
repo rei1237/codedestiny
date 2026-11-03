@@ -1,0 +1,28 @@
+/* 한자 전용 폴백. Pretendard(=CodeDestinyBody)·Mulmaru(display)·Jamsil(premium)·Nanum Myeongjo(serif)
+   에는 한자 글리프가 없거나 불완전해, 작명첩의 한자 이름·자미두수의 命宮/紫微斗數 같은 병기가
+   두부(□)로 뜨거나 폰트마다 제각각으로 렌더됐다. unicode-range 로 한자 블록에만 걸리므로
+   한글·라틴 렌더링은 그대로다. OS 내장 폰트만 쓰므로 CSP(font-src)·R2 업로드가 필요 없고,
+   설치된 폰트가 하나도 없으면 이 패밀리만 조용히 실패해 뒤 폴백으로 넘어간다. */
+@font-face {
+	font-family: "CodeDestinyHan";
+	src: local("Malgun Gothic"), local("Apple SD Gothic Neo"), local("Noto Sans CJK KR"), local("Noto Sans KR"),
+		local("Source Han Sans KR"), local("PingFang SC"), local("Hiragino Sans GB"), local("Microsoft YaHei"),
+		local("Noto Sans SC");
+	font-weight: 100 900;
+	font-style: normal;
+	font-display: swap;
+	unicode-range: U+2E80-2FDF, U+3005-3007, U+3021-3029, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF;
+}
+
+/* Shared Korean UI roles. Existing Gowun Dodum OFL subsets are in fonts-serif.css.
+   Legacy role names remain compatible; they no longer select unrelated display faces. */
+:root,
+.font-noto-sans-kr-offline {
+  --font-body: "CodeDestinyHan", "CodeDestinyBody", "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --font-display: "CodeDestinyHan", "CodeDestinyPlayful", var(--font-body);
+  --font-serif: var(--font-display);
+  --font-premium: var(--font-body);
+  --font-playful: var(--font-display);
+  --font-decorative: var(--font-display);
+  --font-noto-sans-kr: var(--font-body);
+}

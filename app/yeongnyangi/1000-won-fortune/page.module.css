@@ -8,7 +8,7 @@
 }
 .hub h1,
 .hub h2 {
-  font-family: "Yeongnyangi Myeongjo", serif;
+  font-family: var(--font-display);
   letter-spacing: -0.03em;
   line-height: 1.35;
 }

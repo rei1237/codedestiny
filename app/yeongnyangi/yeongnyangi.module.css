@@ -2,7 +2,7 @@
   background: var(--yn-deep);
   color: var(--yn-ivory);
   min-height: 100dvh;
-  font-family: "Yeongnyangi Noto", var(--font-noto-sans-kr), sans-serif;
+  font-family: var(--font-body);
   line-height: 1.75;
   padding-bottom: var(--toss-service-bottom, env(safe-area-inset-bottom));
   color-scheme: dark;
@@ -73,7 +73,7 @@
   display: inline-block;
 }
 .nav > a {
-  font-family: "Yeongnyangi Myeongjo", serif;
+  font-family: var(--font-display);
   color: var(--yn-gold);
   font-size: 1.08rem;
 }
@@ -96,7 +96,7 @@
 }
 .consultation h1,
 .reader h1 {
-  font-family: "Yeongnyangi Myeongjo", serif;
+  font-family: var(--font-display);
   color: var(--yn-ivory);
   font-size: clamp(2rem, 4vw, 3.2rem);
   font-weight: 700;
@@ -105,7 +105,7 @@
   margin: 0 0 12px;
 }
 .consultation h2 {
-  font-family: "Yeongnyangi Myeongjo", serif;
+  font-family: var(--font-display);
 }
 .consultation > header p,
 .consultation > p {
@@ -173,7 +173,7 @@
   object-fit: contain;
 }
 .fishes strong {
-  font-family: "Yeongnyangi Myeongjo", serif;
+  font-family: var(--font-display);
   font-size: 1.1rem;
   color: var(--yn-ivory);
 }
@@ -289,9 +289,9 @@
 .checkoutSection { padding-top:24px; border-top:1px solid var(--yn-line); margin-top:26px; }
 .checkoutTotal { display:flex; align-items:center; justify-content:space-between; gap:12px; }
 .checkoutTotal > span { color:var(--yn-muted); font-size:.9rem; }
-.checkoutTotal > strong { font-size:1.7rem; font-family:"Yeongnyangi Myeongjo",serif; color:var(--yn-gold); white-space:nowrap; }
-.checkoutTotal small { margin-left:4px; font:400 .9rem "Yeongnyangi Noto",sans-serif; }
-.checkoutTotal .totalPlanned { font:500 .9rem "Yeongnyangi Noto",sans-serif; color:var(--yn-muted); }
+.checkoutTotal > strong { font-size:1.7rem; font-family:var(--font-body); font-variant-numeric:tabular-nums; color:var(--yn-gold); white-space:nowrap; }
+.checkoutTotal small { margin-left:4px; font:400 .9rem var(--font-body); }
+.checkoutTotal .totalPlanned { font:500 .9rem var(--font-body); color:var(--yn-muted); }
 .page .checkoutButton { width:100%; justify-content:space-between; margin-top:10px; min-height:var(--yn-btn-h); border-color:var(--yn-gold); border-radius:var(--yn-btn-radius); background:var(--yn-gold); color:var(--yn-deep); }
 .page button.checkoutButton:not([aria-pressed]):not(.retryButton):hover:not(:disabled) { background:var(--yn-gold-hover); border-color:var(--yn-gold-hover); transform:none; }
 .page button.checkoutButton:disabled { background:var(--yn-raised); border-color:var(--yn-line); color:var(--yn-muted); opacity:1; }
@@ -405,7 +405,7 @@
   gap: 8px;
 }
 .contents h2 {
-  font-family: "Yeongnyangi Myeongjo", serif;
+  font-family: var(--font-display);
   color: var(--yn-gold);
 }
 .contents a[aria-disabled="true"] {
@@ -418,7 +418,7 @@
   scroll-margin-top: 24px;
 }
 .chapter h2 {
-  font-family: "Yeongnyangi Myeongjo", serif;
+  font-family: var(--font-display);
   color: var(--yn-ivory);
   font-size: 1.9rem;
   line-height: 1.5;
@@ -466,7 +466,7 @@
   text-decoration: none;
 }
 .library h2 {
-  font-family: "Yeongnyangi Myeongjo", serif;
+  font-family: var(--font-display);
   font-size: 1.2rem;
   margin: 0;
   color: var(--yn-ivory);
@@ -701,7 +701,7 @@
 .skyEntry img { flex:0 0 132px; width:132px; height:132px; object-fit:contain; filter:drop-shadow(0 8px 12px rgba(74,42,91,.18)); }
 .skyEntryCopy { display:flex; min-width:0; flex-direction:column; align-items:flex-start; }
 .skyEntryKicker { margin:0 0 5px; color:#8e6b3d; font-size:11px; font-weight:800; letter-spacing:.14em; line-height:1.4; }
-.skyEntry strong { display:block; color:#392346; font-family:"Yeongnyangi Myeongjo",serif; font-size:clamp(1.45rem,4vw,1.8rem); letter-spacing:-.04em; line-height:1.3; }
+.skyEntry strong { display:block; color:#392346; font-family:var(--font-display); font-size:clamp(1.45rem,4vw,1.8rem); letter-spacing:-.04em; line-height:1.3; }
 .skyEntryDescription { display:block; margin:7px 0 13px; color:#674f70; font-size:14px; line-height:1.55; word-break:keep-all; }
 .skyEntryAction { display:inline-flex; align-items:center; gap:5px; min-height:44px; padding:8px 14px; border:1px solid rgba(117,65,173,.34); border-radius:999px; background:#f1e5f5; color:#5b3471; font-size:13px; font-weight:800; line-height:1.2; }
 .skyEntryAction svg { width:15px; height:15px; fill:none; stroke:currentColor; stroke-linecap:round; stroke-linejoin:round; stroke-width:1.8; }
@@ -772,7 +772,7 @@
 .tarotRitualShell{position:relative;isolation:isolate;overflow:hidden;min-height:540px;margin:28px 0;padding:clamp(24px,5vw,54px);border:1px solid #8f7aa9;border-radius:28px;background:linear-gradient(155deg,#0b1022 0%,#17122e 58%,#29183a 100%);box-shadow:0 22px 50px #09061166;color:#f8f2ff;text-align:center}
 .tarotRitualShell::before{content:"";position:absolute;z-index:-1;inset:-30% 10% auto;height:72%;background:radial-gradient(ellipse,#c8b6ff30 0%,#7dd3fc12 38%,transparent 70%);pointer-events:none}
 .ritualStars{position:absolute;z-index:-1;inset:0;pointer-events:none}.ritualStars span{position:absolute;width:3px;height:3px;border-radius:50%;background:#f6e2ad;box-shadow:0 0 12px #f6e2ad;animation:ritualStar 3.4s ease-in-out infinite}.ritualStars span:nth-child(1){left:8%;top:18%}.ritualStars span:nth-child(2){left:18%;top:72%;animation-delay:-1s}.ritualStars span:nth-child(3){left:31%;top:12%;animation-delay:-2.2s}.ritualStars span:nth-child(4){left:44%;top:82%;animation-delay:-.6s}.ritualStars span:nth-child(5){left:58%;top:19%;animation-delay:-1.6s}.ritualStars span:nth-child(6){left:69%;top:68%;animation-delay:-2.8s}.ritualStars span:nth-child(7){left:82%;top:25%;animation-delay:-.2s}.ritualStars span:nth-child(8){left:91%;top:78%;animation-delay:-1.8s}.ritualStars span:nth-child(9){left:25%;top:45%;animation-delay:-2.5s}.ritualStars span:nth-child(10){left:74%;top:43%;animation-delay:-.9s}.ritualStars span:nth-child(11){left:51%;top:53%;animation-delay:-2s}.ritualStars span:nth-child(12){left:94%;top:9%;animation-delay:-1.3s}
-.ritualSound{position:absolute;z-index:2;top:16px;right:16px;display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:8px 12px;border:1px solid #9d89b7;border-radius:999px;background:#0d1024d9;color:#e8ddf4}.ritualSound span{font-size:.8rem}.tarotRitualShell h2{max-width:22ch;margin:0 auto 12px;color:#fff4db;font:700 clamp(1.45rem,4vw,2.15rem)/1.35 "Yeongnyangi Myeongjo",serif;text-wrap:balance}.tarotRitualShell p{max-width:62ch;margin:0 auto 24px;color:#ddd0e9;line-height:1.8;word-break:keep-all}.ritualFocus{display:grid;place-items:center;min-height:430px}.ritualFocus>button,.ritualPrimary{min-height:50px;margin:18px auto 0;padding:12px 24px;border:1px solid #f1d59c;border-radius:999px;background:#e8d09b;color:#201329;font-weight:800}.ritualFocus>button:disabled,.ritualPrimary:disabled{cursor:not-allowed;opacity:.52}.ritualFocus>button:focus-visible,.ritualPrimary:focus-visible,.ritualSound:focus-visible,.cardFan button:focus-visible,.ritualSpread button:focus-visible{outline:3px solid #7dd3fc;outline-offset:4px}
+.ritualSound{position:absolute;z-index:2;top:16px;right:16px;display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:8px 12px;border:1px solid #9d89b7;border-radius:999px;background:#0d1024d9;color:#e8ddf4}.ritualSound span{font-size:.8rem}.tarotRitualShell h2{max-width:22ch;margin:0 auto 12px;color:#fff4db;font:700 clamp(1.45rem,4vw,2.15rem)/1.35 var(--font-display);text-wrap:balance}.tarotRitualShell p{max-width:62ch;margin:0 auto 24px;color:#ddd0e9;line-height:1.8;word-break:keep-all}.ritualFocus{display:grid;place-items:center;min-height:430px}.ritualFocus>button,.ritualPrimary{min-height:50px;margin:18px auto 0;padding:12px 24px;border:1px solid #f1d59c;border-radius:999px;background:#e8d09b;color:#201329;font-weight:800}.ritualFocus>button:disabled,.ritualPrimary:disabled{cursor:not-allowed;opacity:.52}.ritualFocus>button:focus-visible,.ritualPrimary:focus-visible,.ritualSound:focus-visible,.cardFan button:focus-visible,.ritualSpread button:focus-visible{outline:3px solid #7dd3fc;outline-offset:4px}
 .breathRing{display:grid;place-items:center;width:150px;height:150px;margin:0 0 30px;border:1px solid #e6cf9c;border-radius:50%;box-shadow:0 0 0 18px #ad92e314,0 0 50px #9d7fe44d;animation:ritualBreath 3s ease-in-out infinite}.breathRing span{font-size:2rem;color:#f4dda9;font-variant-numeric:tabular-nums}
 .shuffleDeck{position:relative;width:160px;height:240px;margin:0 auto 34px}.shuffleDeck picture{position:absolute;inset:0;display:block;animation:ritualShuffle 1.05s cubic-bezier(.2,.8,.2,1) infinite}.shuffleDeck picture:nth-child(2){animation-delay:-.21s}.shuffleDeck picture:nth-child(3){animation-delay:-.42s}.shuffleDeck picture:nth-child(4){animation-delay:-.63s}.shuffleDeck picture:nth-child(5){animation-delay:-.84s}.shuffleDeck img{display:block;width:100%;height:100%;border-radius:10px;object-fit:cover;box-shadow:0 12px 30px #05040a80}
 .ritualHeader{margin:24px auto 28px}.ritualHeader strong{color:#f1d59c}.cardFan{position:relative;height:310px;margin:0 auto 24px;max-width:760px}.cardFan button{position:absolute;left:50%;bottom:12px;width:110px;padding:0;border:0;background:transparent;transform-origin:50% 120%;transform:translateX(-50%) rotate(calc(var(--fan-offset)*3.5deg)) translateX(calc(var(--fan-offset)*60px));transition:transform .35s cubic-bezier(.2,.8,.2,1),filter .25s}.cardFan button:hover:not([aria-pressed=true]){transform:translateX(-50%) rotate(calc(var(--fan-offset)*3.5deg)) translateX(calc(var(--fan-offset)*60px)) translateY(-16px);filter:drop-shadow(0 0 12px #ccb4ff)}.cardFan button[aria-pressed=true]{z-index:1;transform:translateX(-50%) rotate(calc(var(--fan-offset)*3.5deg)) translateX(calc(var(--fan-offset)*60px)) translateY(-34px);filter:drop-shadow(0 0 16px #f1d59c)}.cardFan img{display:block;width:100%;height:auto;aspect-ratio:2/3;border-radius:8px}.cardFan button span{position:absolute;display:grid;place-items:center;right:-7px;top:-7px;width:28px;height:28px;border-radius:50%;background:#f1d59c;color:#201329;font-weight:800}
