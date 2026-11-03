@@ -1,18 +1,23 @@
 ---
-status: active
-updated: 2026-11-03
-next: "작업 1의 4단계: 77c6d007f 운영 배포. 권한 분류기가 막았으므로 사용자 결정을 기다린 뒤 5~6단계와 작업 3 질문으로 잇는다"
+status: done
+updated: 2026-11-04
+next: "없음. 소유자 수동 작업과 2026-12-01 재측정만 남는다. 아래 진행 결과를 본다"
 ---
 
 # 영냥이 AEO 남은 작업
 
 ## 진행 결과
 
-- 작업 1의 1~3단계 완료. 키 수정 `77c6d007f`를 main에 push했고 PR CI 런 41612491943이 성공했다. 운영보다 앞선 커밋은 이 커밋과 문서 커밋 2개뿐이다.
-- 작업 1의 4단계 차단. `gh workflow run ... mode=production`을 Claude Code 권한 분류기가 거부했다(Production Deploy). 운영은 아직 `a221a78eb`이고 결함도 그대로다. 우회하지 않았다.
-- 작업 2 조사 완료, 코드는 고치지 않았다.
-  - **`/ggulggul/` 돼지 이미지.** `styles/first-visit-guide.css`는 `141fefda6`에서 스프라이트를 4프레임으로 바꿨는데, HTML이 `?v=` 없이 참조하고 `/styles/*.css`는 1년 immutable이다. 엣지(SEA)에 옛판 5,938바이트(Age 약 81,357초, `gzip`과 Chrome식 Accept-Encoding)와 새판 6,333바이트(`identity`, `br`)가 공존했다. 옛판을 받으면 3프레임 규칙이 적용돼 두 번째 돼지가 잘린다. 새판을 받은 브라우저에서는 정상이다. `public/ggulggul/index.html`의 무버전 `/styles/` 참조는 12개이고, 스테일을 실측한 것은 이 파일뿐이다.
-  - **Browser Shadow의 WebKit 오류.** `webkit-reload-checkout`의 `activation-rewards` 읽기 2건이 `scripts/lib/yeongnyangi-mobile-payment.mjs:380`의 `navigationReads`에 없어 실패로 집계된다. `b0dd185f4`는 통과, `0a36d57d6`부터 실패다. AEO 첫 커밋 `f8c659d2a`보다 앞서므로 AEO 변경이 시작점은 아니다. 새로고침에 취소된 읽기라는 것은 추정이고 재현하지 않았다. 런 41508619649의 실패는 별개의 `ProtocolError`다.
+아래 "지금 상태"부터는 2026-11-03 18:30 KST 시점의 기록이다. 최종 결과는 이 절을 본다.
+
+- **작업 1 완료.** 키 수정 `77c6d007f`가 운영에 반영됐다. 다른 세션의 릴리스 런 41658891499가 `bf9c77a64`를 운영에 올렸고, 이 AEO 세션은 운영 배포를 하지 않았다. 앞서 낸 런 41645119233은 배포 전에 취소돼 운영을 바꾸지 않았다.
+- **라이브 재측정(2026-11-04, 한국 IP).** `/version.json`·`/api/version`이 `bf9c77a64`. `/yeongnyangi/`, `/`, `/saju/`, `/insights/`가 모두 `analytics.js?v=20261103-ai-source-v1`을 읽고 파일에 `ai_source`가 2건 있다. 캐시 헤더와 리다이렉트는 이전 측정과 같다. 증거는 `D:\Development\seo-audit\code-destiny-20261103\live-after-ai-source\`다. 미측정: 해외 IP, 실제 크롤러와 WAF, 영상 재생, 결제·로그인 화면, GA4 수신.
+- **작업 2 돼지 이미지 완료.** 원인은 무버전 CSS와 1년 immutable 조합이었다. `01be950ce`로 HTML 참조에 `?v=`를 붙이고 `__tests__/ui/static-css-cache-keys.test.mjs`로 고정했다. 라이브 `/ggulggul/`은 `first-visit-guide.css?v=build-6a507f2c285e`를 읽고, 무버전 `/styles/` 참조가 0건이다. Chrome 모바일 3회 모두 `aspect-ratio: 5/6`, 이미지 폭 400%로 한 프레임만 보인다. WebKit과 실제 휴대폰은 측정하지 않았다.
+- **작업 2 WebKit 완료.** 하네스 분류를 `55b7a3a47`(`activation-rewards` 읽기), `fbfaf07b7`(`/yeongnyangi/library/`의 GET 목록 읽기) 두 번 고쳤다. 앱 코드는 고치지 않았다. 수동 런 41662159066이 114건 전부 통과했고 WebKit은 43건이다. 전에는 간헐 실패였으므로 1회 통과로 재발 없음을 뜻하지는 않는다. 취소된 읽기라는 판단은 코드와 CI 기록에서 나온 추정이고, 로컬에서 WebKit으로 재현하지 않았다.
+- **SEO Operations.** `54f8c5ebf`로 `Test detector` 앞에 `npm ci`를 넣었다. 로컬 65/65 통과, 다음 예약 실행의 CI 결과는 아직 보지 못했다.
+- **기타.** `2401224a0`는 스타일시트 키 변경에 따른 시그니처 갱신이다. `/`는 `683b1c716`부터 서비스 선택 화면이라 MV가 없고 MV는 `/ggulggul/`에 있다. 그래서 `root-mv.cjs`는 더는 맞지 않는다. `/premium-unlock/`의 "프리미엄 해금 페이지를 여는 중입니다."는 동적 import 로딩 문구이고, 1회 측정에서 8.6초 뒤 실제 내용으로 바뀌었다. 고치지 않았다.
+- **남긴 후속.** `content/product-details/*/editable-layout.html` 153개의 무버전 `/styles/service-intro-fonts.css`, `js/core/profile-character-card.mjs:38`의 동적 무버전 링크, 런 41661777631의 `--pages-only` 차단(다른 세션 런, 운영 영향 없음, 원인 미조사).
+- **작업 3은 사용자 결정으로 남긴다.** 허브 CTA `consultationKind=ask`의 5장·8장, `SampleExposure` ID `tarot-salmon`·`mackerel-question-v1`, claude.ai 가이드 링크, 대운·세운 가이드 링크의 편집 재검토.
 
 ## 왜
 
