@@ -2373,6 +2373,22 @@
         "life": "Nội dung bạn nhận được · Báo cáo cuộc đời theo từng chương",
         "saju": "Nội dung bạn nhận được · Lá số Tứ trụ · Luận giải cơ bản"
       }
+    },
+    "helpEntry": {
+      "label": "Hướng dẫn Ggulggul",
+      "art": "Yeoni hướng dẫn bên sách và tách trà",
+      "titleA": "Khi có thắc mắc,",
+      "titleB": "hãy tìm hướng đi",
+      "leadA": "Từ cách bắt đầu đến kết quả đã lưu,",
+      "leadB": "Cùng Yeoni tìm hướng dẫn bạn cần.",
+      "about": "Giới thiệu Ggulggul",
+      "nav": "Hướng dẫn và trợ giúp",
+      "faqNote": "Tìm hướng dẫn bắt đầu sử dụng.",
+      "records": "Xem lại kết quả",
+      "recordsNote": "Xem lại tư vấn đã lưu trong Ggulggul.",
+      "contact": "Liên hệ",
+      "contactNote": "Cho chúng tôi biết câu hỏi hoặc lỗi gặp phải.",
+      "example": "Ví dụ kết quả công khai"
     }
   },
   "terms": {

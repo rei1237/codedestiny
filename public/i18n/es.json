@@ -2373,6 +2373,22 @@
         "life": "Qué recibirás · Informe de vida por capítulos",
         "saju": "Qué recibirás · Carta Saju · Interpretación básica"
       }
+    },
+    "helpEntry": {
+      "label": "Guía de Ggulggul",
+      "art": "Yeoni te guía junto a un libro y una taza de té",
+      "titleA": "Cuando surgen dudas,",
+      "titleB": "encuentra tu camino",
+      "leadA": "Desde cómo empezar hasta tus lecturas guardadas,",
+      "leadB": "Encuentra la ayuda que necesitas con Yeoni.",
+      "about": "Acerca de Ggulggul",
+      "nav": "Orientación y ayuda",
+      "faqNote": "Consulta cómo empezar y usar el servicio.",
+      "records": "Ver mis resultados",
+      "recordsNote": "Revisa tus consultas guardadas en Ggulggul.",
+      "contact": "Contactar",
+      "contactNote": "Cuéntanos tus dudas o problemas.",
+      "example": "Ejemplo de lectura pública"
     }
   },
   "terms": {
