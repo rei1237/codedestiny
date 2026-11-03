@@ -147,7 +147,14 @@ function readMissingTexts() {
 }
 
 const MISSING_TEXTS = readMissingTexts();
-const i18nMissingTexts = (html) => MISSING_TEXTS.filter((text) => html.includes(text));
+// 주석과 일반 인라인 스크립트의 설명 문구는 화면 문구가 아니다. React 스트리밍 데이터(__next_f)는 크롤러가 읽는 본문이라 남긴다.
+const servedCopy = (html) => html
+  .replace(/<script\b[^>]*>([\s\S]*?)<\/script>/gi, (tag, body) => (/^\s*self\.__next_f\b/.test(body) ? tag : ""))
+  .replace(/<!--[\s\S]*?-->/g, "");
+const i18nMissingTexts = (html) => {
+  const copy = servedCopy(html);
+  return MISSING_TEXTS.filter((text) => copy.includes(text));
+};
 
 function loadSite(distDir, origin) {
   const { files, locs } = sitemapLocs(distDir);
