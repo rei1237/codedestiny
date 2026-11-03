@@ -12,7 +12,7 @@ async function adapter(available=true){
  const bundle=await build({entryPoints:[path.resolve(import.meta.dirname,'../src/platform.ts')],bundle:true,write:false,format:'cjs',platform:'node',plugins:[{name:'offline-sdk',setup(b){
   b.onResolve({filter:/^(@apps-in-toss\/web-framework|\.\/release)$/},args=>({path:args.path,namespace:'mock'}));
   b.onLoad({filter:/.*/,namespace:'mock'},args=>({contents:args.path==='./release'?'export const SERVICE_AVAILABLE='+available+';':`
-   export const Environment={environment:'sandbox'},TossAuth={},Storage={},Share={};
+   export const Environment={environment:'sandbox'},TossAuth={},Storage={removeItem:async()=>{}},Share={};
    const buy=options=>{globalThis.tossRecoveryTest.purchaseOptions=options;return ()=>{};};buy.isSupported=()=>true;
    export const IAP={createOneTimePurchaseOrder:buy,getPendingOrders:async()=>({orders:globalThis.tossRecoveryTest.orders}),completeProductGrant:async({params})=>{const s=globalThis.tossRecoveryTest;s.ack.push(params.orderId);return !s.failAck;}};
   `}));
@@ -43,6 +43,16 @@ test('an SDK acknowledgement failure remains recoverable and is never counted as
  globalThis.fetch=async()=>Response.json({orderId:'saved',entitlement:'granted',durable:true});
  try{assert.deepEqual(await restore(),{recovered:0,failed:1});}
  finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
+});
+
+test('expired login stops recovery and preserves the authentication error',async()=>{
+ const {state,restore}=await adapter(),previous=globalThis.fetch;
+ state.orders=[{orderId:'expired',sku:'first'},{orderId:'later',sku:'second'}];
+ globalThis.fetch=async(_url,options)=>{state.requests.push(JSON.parse(options.body));return Response.json({error:'SESSION_EXPIRED'},{status:401});};
+ try{
+  await assert.rejects(restore(),error=>error.code==='SESSION_EXPIRED'&&error.status===401);
+  assert.equal(state.requests.length,1);assert.deepEqual(state.ack,[]);
+ }finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
 });
 
 for(const kind of ['purchase','purchaseTarot'])test(kind+' refuses SDK success without a durable matching grant and settles once',async()=>{

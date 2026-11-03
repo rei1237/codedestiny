@@ -113,7 +113,7 @@ export async function restorePurchases(){
       if(!validReceipt(receipt,order.orderId))throw new ApiError('GRANT_NOT_DURABLE');
       if(!await IAP.completeProductGrant({params:{orderId:order.orderId}}))throw new ApiError('GRANT_ACK_PENDING');
       recovered++;
-    }catch{failed++;}
+    }catch(error){if(error instanceof ApiError&&error.status===401)throw error;failed++;}
   }
   return {recovered,failed};
 }
