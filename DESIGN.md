@@ -23,7 +23,7 @@ colors:
   legacy-pearl-mist: "#EDEFF5"
 typography:
   display:
-    fontFamily: "'CodeDestinyDisplay', var(--font-body)"
+    fontFamily: "var(--font-display)"
     fontSize: "clamp(1.5rem, 3vw, 2.05rem)"
     fontWeight: 700
     letterSpacing: "-0.01em"
@@ -45,7 +45,7 @@ typography:
     fontSize: "0.76rem"
     note: "--cd-t-caption(styles/theme-tokens.css:365). 보조 설명·메타 줄."
   premium:
-    fontFamily: "'CodeDestinySerifKR', var(--font-display)"
+    fontFamily: "var(--font-body)"
     lineHeight: 1.75
   label:
     fontFamily: "var(--font-body)"
@@ -56,7 +56,7 @@ typography:
     note: "CodeDestinySerifLatin = Cinzel(OFL) 라틴, CodeDestinySerifKR = Nanum Myeongjo(OFL) 한글. Latin을 앞에 두는 이유: Cinzel unicode-range에 한글이 없어 한글은 자동으로 KR로 내려가고, 영문 킥커는 의도한 Cinzel로 렌더된다(순서를 뒤집으면 ASCII를 포함한 KR 청크가 먼저 걸려 영문까지 명조가 된다). @font-face는 Google과 동일한 unicode-range 청크 94개를 R2(assets.code-destiny.com/fonts/)로 미러링한 생성물 styles/fonts-serif.css에 있다 — 셸은 link, App Router는 globals.css @import. 손으로 고치지 말고 'node scripts/build-serif-font-assets.mjs'로 재생성하고, 'npm run verify:r2-fonts'(Pages 배포 게이트)로 R2 존재+CSP font-src 정합을 확인한다. 라이선스 고지: assets.code-destiny.com/fonts/OFL.txt. 사용처: 홈 .cd-home-guide 킥커/제목, destiny-compass 제목/킥커(var(--font-serif)), 초융합 리딩 본문·섹션 제목(app/fusion-fortune/fusion-fortune.module.css 의 .reading/.readingTitle → var(--fx-serif) → var(--font-serif)). 초융합은 2만 자 장문이라 조작 UI(버튼·라벨·상태 칩)는 Pretendard 를 유지하고 **읽는 글만** 명조로 간다."
   brand-han:
     fontFamily: "'CodeDestinyHan', 'Malgun Gothic', 'Apple SD Gothic Neo', 'Noto Sans CJK KR', 'Noto Sans KR', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei'"
-    note: "한자 전용 폴백. styles/globals.css 의 @font-face 'CodeDestinyHan' 은 OS 내장 폰트만 local()로 잡고 unicode-range 를 한자 블록(U+2E80-2FDF, U+3005-3007, U+3021-3029, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF)으로 제한한다. --font-body/display/premium/playful/decorative/serif 스택 맨 앞에 두는 이유: 브랜드 서체(Pretendard·Mulmaru·Gowun Dodum·Nanum Myeongjo)에 한자가 없거나 불완전해 작명첩 한자 이름·자미두수 命宮/紫微斗數 병기가 두부(□)로 뜨거나 화면마다 다르게 렌더됐다. unicode-range 덕에 한글·라틴 렌더링은 영향 없음. 웹폰트 다운로드도 CSP 변경도 없다."
+    note: "한자 전용 폴백. styles/brand-typography.css 의 @font-face 'CodeDestinyHan' 은 OS 내장 폰트만 local()로 잡고 unicode-range 를 한자 블록(U+2E80-2FDF, U+3005-3007, U+3021-3029, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF)으로 제한한다. --font-body/display/premium/playful/decorative/serif 스택 맨 앞에 두는 이유: 브랜드 서체(Pretendard·Mulmaru·Gowun Dodum·Nanum Myeongjo)에 한자가 없거나 불완전해 작명첩 한자 이름·자미두수 命宮/紫微斗數 병기가 두부(□)로 뜨거나 화면마다 다르게 렌더됐다. unicode-range 덕에 한글·라틴 렌더링은 영향 없음. 웹폰트 다운로드도 CSP 변경도 없다."
   brand-tech:
     fontFamily: "'Orbitron', 'Space Grotesk', 'Share Tech Mono', 'NeoDunggeunmo', 'Courier New', monospace"
   brand-korean:
@@ -187,6 +187,9 @@ Code Destiny는 한 명의 사용자가 언제든 펼쳐볼 수 있는 두 권�
 - **수정 방향**: 대비 미달 시 텍스트 색만 바꾸지 말고 **표면과 텍스트를 한 세트로** 조정한다(Two Covers Rule). 계열은 유지한다(Hue-Stays Rule).
 
 ## 3. Typography
+
+**2026-11-03 통합 규칙(아래 과거 서체 설명보다 우선):** 꿀꿀 운세·영냥이의 제목과 짧은 캐릭터 안내는 기존 OFL 고운돋움(`CodeDestinyPlayful`), 본문·가격·입력·긴 결과는 기존 native 본문 스택이다. 정본은 `styles/brand-typography.css`. `--font-display/serif/playful/decorative`는 같은 제목 역할, `--font-body/premium`은 본문 역할이다. 모바일·데스크톱에서 서체를 바꾸지 않는다. 한자 전용 local 폴백을 유지하며 새 폰트 다운로드나 픽셀 서체를 추가하지 않는다. 영냥이의 남색·금색 팔레트는 유지한다.
+
 
 **Display Font:** `CodeDestinyDisplay` (fallback: `CodeDestinyBody` → Pretendard → 시스템 한글 폰트)
 **Body Font:** `CodeDestinyBody`, `Pretendard`, `Apple SD Gothic Neo`, `Malgun Gothic`, `Segoe UI`, system-ui

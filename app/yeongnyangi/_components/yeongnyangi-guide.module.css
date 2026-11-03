@@ -42,7 +42,7 @@
   scroll-margin-top: 24px;
 }
 .guide h2 {
-  font-family: "Yeongnyangi Myeongjo", serif;
+  font-family: var(--font-display);
   color: var(--yn-gold);
   font-size: clamp(1.5rem, 2.6vw, 1.75rem);
   letter-spacing: -0.03em;
@@ -98,7 +98,7 @@
 .guide summary { min-height: 44px; padding: 12px 0; cursor: pointer; color: var(--yn-gold); }
 .guide summary:focus-visible { outline: 2px solid var(--yn-gold); outline-offset: 4px; }
 .volume { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 16px; padding: 20px 0; }
-.volume strong { color: var(--yn-gold); font-family: 'Yeongnyangi Myeongjo', serif; font-size: 24px; }
+.volume strong { color: var(--yn-gold); font-family: var(--font-display); font-size: 24px; }
 .faq > details { border-bottom: 1px solid var(--yn-line); }
 .sample details p { margin-top: 14px; }
 .tableWrap {
@@ -127,7 +127,7 @@
 }
 .tableWrap tbody th {
   color: var(--yn-gold);
-  font-family: "Yeongnyangi Myeongjo", serif;
+  font-family: var(--font-display);
   font-size: clamp(1rem, 3vw, 1.25rem);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
@@ -166,5 +166,5 @@
 .panel { border-bottom: 1px solid var(--yn-line); }
 .panel > summary { font-weight: 700; }
 .faqBlock { margin-top: 24px; }
-.faqBlock > h3 { font-family: "Yeongnyangi Myeongjo", serif; color: var(--yn-gold); font-size: 1.15rem; margin: 0 0 4px; }
+.faqBlock > h3 { font-family: var(--font-display); color: var(--yn-gold); font-size: 1.15rem; margin: 0 0 4px; }
 .faqBlock .craftedOverview{margin-inline:0}.faqBlock .craftedOverview>summary{padding-inline:0}

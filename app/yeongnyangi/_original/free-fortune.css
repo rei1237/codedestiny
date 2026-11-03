@@ -54,7 +54,7 @@
   margin-bottom: 24px;
 }
 .ynOriginal .free-welcome h2 {
-  font-family: "Yeongnyangi Myeongjo", serif;
+  font-family: var(--font-display);
   font-size: 32px !important;
   line-height: 1.45 !important;
   color: #fff3e2;
@@ -195,7 +195,7 @@
   border-top: 1px solid #72567f;
 }
 .ynOriginal .free-fortune h3 {
-  font-family: "Yeongnyangi Myeongjo", serif;
+  font-family: var(--font-display);
   font-size: 25px;
   margin: 0 0 16px;
 }
@@ -339,8 +339,7 @@
   max-height: 360px;
   overflow: auto;
   font:
-    13px/1.8 "Yeongnyangi Noto",
-    sans-serif;
+    13px/1.8 var(--font-body);
   padding: 16px;
   background: #1e122b;
   border-radius: 10px;
@@ -414,7 +413,7 @@
 
 /* Only runs after the server confirms a newly unlocked daily reading. */
 .ynOriginal .anchovy-cat.unimpressed>img:first-child{transform:translateY(5px) rotate(-5deg)}
-.ynOriginal .anchovy-sigh{position:absolute;right:8px;top:35px;color:#f7e5c3;font-family:"Yeongnyangi Myeongjo",serif;font-size:24px;pointer-events:none}
+.ynOriginal .anchovy-sigh{position:absolute;right:8px;top:35px;color:#f7e5c3;font-family:var(--font-display);font-size:24px;pointer-events:none}
 @media(prefers-reduced-motion:no-preference){
  .ynOriginal .anchovy-cat.unimpressed>img:first-child{animation:anchovy-long-sigh 1.6s ease-out both}
  .ynOriginal .anchovy-sigh{animation:anchovy-sigh-cloud 1.6s ease-out both}

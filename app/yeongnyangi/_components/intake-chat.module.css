@@ -13,7 +13,7 @@
 .chat button:disabled { opacity: .5; cursor: not-allowed; }
 .chat :is(button,a,input,select,textarea):focus-visible { outline: 2px solid var(--yn-gold); outline-offset: 3px; }
 .chat .header { display: flex; align-items: center; gap: 12px; padding: 14px 20px; border-bottom: 1px solid var(--yn-line); background: var(--yn-deep); flex-shrink: 0; }
-.chat .header h1 { font-family: 'Yeongnyangi Myeongjo', serif; font-size: var(--yn-t-section); font-weight: 700; line-height: 1.35; margin: 0; }
+.chat .header h1 { font-family: var(--font-display); font-size: var(--yn-t-section); font-weight: 700; line-height: 1.35; margin: 0; }
 .chat .header p { margin: 0; color: var(--yn-muted); font-size: 13px; }
 .chat .header > :is(button,a) { display: grid; place-items: center; min-width: 44px; background: none; border: 0; color: var(--yn-ivory); }
 .chat .header img, .chat .current img, .chat .cat img { object-fit: contain; flex-shrink: 0; border-radius: 30%; }

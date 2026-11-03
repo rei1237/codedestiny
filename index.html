@@ -598,7 +598,7 @@ html.cd-boot-gate{scrollbar-gutter:auto;overflow:hidden}
 html.cd-boot-gate .cd-boot-gate__veil{position:fixed;inset:0;z-index:100400;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;background:#1b1028;color:#fff5e5}
 html.cd-boot-gate .cd-boot-gate__art{position:absolute;top:50%;left:0;width:100%;height:auto;max-height:100vh;max-height:100dvh;transform:translateY(-50%);object-fit:contain;object-position:center}
 html.cd-boot-gate .cd-boot-gate__intro{position:absolute;top:0;left:0;right:0;padding:max(env(safe-area-inset-top),6vh) 20px 16px;background:#1b1028;text-align:center}
-html.cd-boot-gate .cd-boot-gate__word{display:block;font-family:var(--font-serif,'Noto Serif KR',serif);font-size:clamp(1.75rem,6vw,2.5rem);font-weight:700;line-height:1.35;letter-spacing:-.025em;color:#fff5e5;text-shadow:0 2px 14px #1b1028}
+html.cd-boot-gate .cd-boot-gate__word{display:block;font-family:var(--font-display);font-size:clamp(1.75rem,6vw,2.5rem);font-weight:700;line-height:1.35;letter-spacing:-.025em;color:#fff5e5;text-shadow:0 2px 14px #1b1028}
 html.cd-boot-gate .cd-boot-gate__welcome{margin:10px 0 0;font-size:.9rem;line-height:1.6;color:#fff0d6;text-shadow:0 2px 10px #1b1028}
 html.cd-boot-gate .cd-boot-gate__footer{position:absolute;bottom:max(calc(env(safe-area-inset-bottom) + 24px),6vh);display:flex;flex-direction:column;align-items:center;gap:14px;padding:16px 24px;background:#1b1028;border-radius:20px}
 html.cd-boot-gate .cd-boot-gate__message{font-size:.875rem;line-height:1.5;color:#f6e5cf}
@@ -702,7 +702,7 @@ img { background-color: transparent; }
 .btn-agree { flex: 2 1 0%; padding: 14px; background: linear-gradient(135deg, var(--point-color, #FF8BA7), var(--point-color, #FFB7B2)); color: rgb(255, 255, 255); border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; border-radius: 14px; font-size: 0.95rem; font-weight: 700; cursor: pointer; box-shadow: rgba(255, 139, 167, 0.3) 0px 4px 12px; transition: 0.2s; font-family: inherit; }
 .logo-area { text-align: center; padding: 20px 0px 28px; }
 .honeypig-logo-icon, .normal-logo .pig-svg-wrap img { display: block; width: 130px; height: 130px; object-fit: contain; border-radius: 50%; box-shadow: rgba(255, 139, 167, 0.3) 0px 4px 12px; }
-.logo-area h1 { font-family: "Noto Serif KR", serif; color: var(--pink); font-size: 1.9rem; font-weight: 700; margin-top: 8px; }
+.logo-area h1 { font-family: var(--font-display); color: var(--pink); font-size: 1.9rem; font-weight: 700; margin-top: 8px; }
 .logo-area p { color: rgb(187, 187, 187); font-size: 0.85rem; margin-top: 4px; }
 @media (max-width: 768px) {
 input, select, textarea { font-size: max(1rem, 16px) !important; }
@@ -731,7 +731,7 @@ button, .tog-btn, .btn-main, .btn-sub, .feature-card { min-height: 48px; }
 .lang-icon-svg { width: 28px; height: 28px; display: block; }
 .lang-main { min-width: 0px; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 1px; position: relative; z-index: 1; }
 .lang-main-row { display: inline-flex; align-items: center; gap: 6px; }
-.lang-trigger .lang-label { flex: 0 0 auto; font-size: 0.96rem; font-family: Cinzel, "Noto Serif KR", serif; font-weight: 700; letter-spacing: 0.08em; text-shadow: rgba(255, 235, 255, 0.52) 0px 0px 14px; }
+.lang-trigger .lang-label { flex: 0 0 auto; font-size: 0.96rem; font-family: var(--font-display); font-weight: 700; letter-spacing: 0.08em; text-shadow: rgba(255, 235, 255, 0.52) 0px 0px 14px; }
 .lang-trigger .lang-arrow { display: none; font-size: 0.75rem; transition: transform 0.24s; color: rgba(248, 230, 255, 0.92); }
 .lang-dropdown { position: absolute; top: calc(100% + 9px); right: 0px; display: grid; grid-template-columns: repeat(2, minmax(0px, 1fr)); gap: 6px; padding: 10px; min-width: 232px; max-width: 280px; border-radius: 18px; border: 1px solid rgba(224, 197, 255, 0.28); background: linear-gradient(160deg, rgba(11, 9, 28, 0.98) 0%, rgba(24, 14, 58, 0.98) 56%, rgba(16, 31, 77, 0.98) 100%); box-shadow: rgba(6, 4, 18, 0.66) 0px 24px 56px, rgba(166, 102, 255, 0.22) 0px 0px 28px; backdrop-filter: blur(14px); opacity: 0; visibility: hidden; transform: translateY(-8px) scale(0.96); transition: opacity 0.22s, transform 0.22s, visibility 0.22s; }
 @media (max-width: 680px) {
@@ -780,7 +780,7 @@ html:has(#destinyFlowerStudioOverlay.is-show) { scrollbar-gutter: auto !importan
 @media (pointer: coarse) {
 .wrap { contain: layout; }
 }
-#sajuLoaderOverlay { position: fixed; inset: 0px; background: radial-gradient(circle, rgb(27, 23, 37) 0%, rgb(5, 5, 5) 100%); z-index: 9999999; display: none; align-items: center; justify-content: center; flex-direction: column; color: rgb(229, 192, 123); font-family: "Noto Serif KR", serif; overflow: hidden; }
+#sajuLoaderOverlay { position: fixed; inset: 0px; background: radial-gradient(circle, rgb(27, 23, 37) 0%, rgb(5, 5, 5) 100%); z-index: 9999999; display: none; align-items: center; justify-content: center; flex-direction: column; color: rgb(229, 192, 123); font-family: var(--font-display); overflow: hidden; }
 :root { --dp-gold: #FFD700; --dp-gold-dim: rgba(255,215,0,0.55); --dp-gold-glow: rgba(255,215,0,0.25); --dp-space: #0B0E14; --dp-glass: rgba(255,255,255,0.05); --dp-glass-border: rgba(255,215,0,0.18); --dp-purple: rgba(120,80,220,0.35); }
 .dp-form-quota[hidden] { display: none !important; }
 .oracle-result-box-m.is-empty .oracle-result-inner { display: none; }
@@ -974,7 +974,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
 <meta property="og:description" content="꿀꿀 운세는 대통령 운세를 미리 짚은 명리학자 박병하(네오)가 만든 운세 서비스예요. 사주·자미두수·베다점·숙요점·타로·휴먼 디자인·MBTI를 만나보세요.">
 <meta property="og:url" content="https://code-destiny.com/">
 <meta property="og:locale" content="ko_KR">
-<meta property="og:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-88f32967168a">
+<meta property="og:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-ee3ecca5010b">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="꿀꿀운세 HONEY FORTUNE — 꽃돼지 연이 카메오와 서비스 소개가 담긴 CODE DESTINY 명함 카드">
@@ -983,7 +983,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="대통령 운세를 미리 짚은 명리학자가 만든 운세 | 꿀꿀 운세">
 <meta name="twitter:description" content="꿀꿀 운세는 대통령 운세를 미리 짚은 명리학자 박병하(네오)가 만든 운세 서비스예요. 사주·자미두수·베다점·숙요점·타로·휴먼 디자인·MBTI를 만나보세요.">
-<meta name="twitter:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-88f32967168a">
+<meta name="twitter:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-ee3ecca5010b">
 <meta name="twitter:image:alt" content="꿀꿀운세 HONEY FORTUNE — 꽃돼지 연이 카메오와 서비스 소개가 담긴 CODE DESTINY 명함 카드">
 <script type="application/ld+json">
 {
@@ -1105,7 +1105,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
     {
       "@type": "ImageObject",
       "@id": "https://code-destiny.com/#primaryimage",
-      "url": "https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-88f32967168a",
+      "url": "https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-ee3ecca5010b",
       "width": 1200,
       "height": 630
     },
@@ -1466,6 +1466,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
 
   <script data-marker="cd-early-theme-v20260706">/* 첫 페인트 전에 테마 클래스 확정 — 다크 플래시 방지 (연이=기본) */
 (function(){try{if(localStorage.getItem('fortuneThemeModeStateV1')==='neo'){document.documentElement.classList.add('neo-mode');}}catch(e){}}());</script>
+  <link rel="stylesheet" href="/styles/brand-typography.css">
   <style id="cd-main-shell-critical-v20260604">
 @font-face{font-family:'CodeDestinyBody';src:local('Pretendard'),local('Apple SD Gothic Neo'),local('Malgun Gothic');font-weight:400 900;font-style:normal;font-display:swap}
 @font-face{font-family:'CodeDestinyDisplay';src:url('https://assets.code-destiny.com/Mulmaru.woff2') format('woff2');font-weight:400;font-style:normal;font-display:swap}
@@ -1473,7 +1474,6 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
 /* 브랜드 세리프(CodeDestinySerifLatin/KR)는 /styles/fonts-serif.css 로 분리했다 —
    R2 미러 청크 94개를 unicode-range 로 나눠 선언하므로 크리티컬 인라인에 두기엔 너무 길다.
    생성물이라 손으로 고치지 말 것: node scripts/build-serif-font-assets.mjs */
-:root{--font-body:'CodeDestinyBody','Pretendard','Apple SD Gothic Neo','Malgun Gothic','Segoe UI',system-ui,-apple-system,sans-serif;--font-display:'CodeDestinyDisplay',var(--font-body);--font-premium:'CodeDestinySerifKR',var(--font-display);--font-playful:'CodeDestinyPlayful',var(--font-display);--font-decorative:'CodeDestinyDecorative',var(--font-display)}
 *,*::before,*::after{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%;scrollbar-gutter:stable both-edges}
 body{margin:0;padding:0;font-family:var(--font-body);font-size:16px;line-height:1.62;letter-spacing:0;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;-webkit-overflow-scrolling:touch;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y:none;touch-action:pan-y;padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -1519,7 +1519,7 @@ body.neo-mode .logo-area p{color:rgba(200,170,255,0.7);font-size:.9rem;margin-to
 .saju-calc-loading-overlay{display:none;position:fixed;inset:0;z-index:9999998;align-items:center;justify-content:center;flex-direction:column;gap:var(--cd-space-md,16px);background:radial-gradient(ellipse at 50% 38%,color-mix(in srgb,var(--cd-accent-soft) 42%,transparent),transparent 62%),linear-gradient(165deg,var(--cd-surface),var(--cd-bg) 58%,var(--cd-surface-2));background-color:var(--cd-bg);color:var(--cd-text);text-align:center;padding:var(--cd-space-lg,24px);opacity:1;transition:opacity .44s ease;isolation:isolate}
 .saju-calc-loading-overlay--visible{display:flex}
 .saju-calc-loading-overlay__flower{background:transparent;width:clamp(220px,64vw,300px);height:auto;aspect-ratio:1;object-fit:contain;filter:drop-shadow(0 18px 24px color-mix(in srgb,var(--cd-accent) 12%,transparent));animation:sajuFlowerUnfold 1.8s cubic-bezier(.16,1,.3,1) both}
-.saju-calc-loading-overlay__text{margin:0;max-width:24em;color:var(--cd-text);font-family:'CodeDestinySerifKR','Nanum Myeongjo','Noto Serif KR','AppleMyungjo','Batang',serif;font-size:clamp(17px,4.4vw,21px);font-weight:700;line-height:1.9;letter-spacing:.055em;text-indent:.055em;word-break:keep-all;text-wrap:balance;-webkit-font-smoothing:antialiased}
+.saju-calc-loading-overlay__text{margin:0;max-width:24em;color:var(--cd-text);font-family:var(--font-display);font-size:clamp(17px,4.4vw,21px);font-weight:700;line-height:1.9;letter-spacing:.055em;text-indent:.055em;word-break:keep-all;text-wrap:balance;-webkit-font-smoothing:antialiased}
 .saju-calc-loading-overlay--leaving{opacity:0;pointer-events:none}
 .saju-result--arriving{animation:sajuResultArrive .44s cubic-bezier(.16,1,.3,1) both}
 @keyframes sajuFlowerUnfold{from{transform:translateY(12px) scale(.92);opacity:.45}to{transform:translateY(0) scale(1);opacity:1}}
@@ -3475,7 +3475,7 @@ body.cd-overlay-shell-open #langWrap{opacity:0;visibility:hidden;pointer-events:
   }
   .cd-pm-title {
     margin: 2px 0 0;
-    font-family: "CodeDestinySerifLatin", "Nanum Myeongjo", "Noto Serif KR", var(--font-display, serif), serif;
+    font-family: var(--font-display);
     font-size: clamp(1.5rem, 2.6vw, 2.35rem);
     font-weight: 700;
     line-height: 1.22;
@@ -4904,13 +4904,7 @@ body.cd-overlay-shell-open #langWrap{opacity:0;visibility:hidden;pointer-events:
 
 <style id="cd-mobile-font-performance-v20260702" data-marker="mobile-font-performance-v20260702">
 @media (max-width: 768px), (hover: none) and (pointer: coarse) {
-  :root{
-    --font-body:'CodeDestinyBody','Apple SD Gothic Neo','Malgun Gothic','Segoe UI',system-ui,-apple-system,sans-serif;
-    --font-display:var(--font-body);
-    --font-premium:var(--font-body);
-    --font-playful:var(--font-body);
-    --font-decorative:var(--font-body);
-  }
+  /* Same rounded heading and readable body roles at every viewport. */
   html,
   body{
     font-family:var(--font-body)!important;
@@ -5395,7 +5389,7 @@ html.cd-mobile-runtime body.neo-mode #destinyCardForm .dp-kakao-referral-url{bac
 <link rel="stylesheet" href="/styles/yehwa-home.css">
 <link rel="stylesheet" href="/styles/first-visit-guide.css">
 <link rel="stylesheet" href="/styles/consultation-method-guide.css">
-<link rel="stylesheet" href="/styles/home-mv.css?v=build-7215ceea7805">
+<link rel="stylesheet" href="/styles/home-mv.css?v=build-84566ee1b5f7">
 <link rel="stylesheet" href="/styles/concern-first-home.css?v=build-c7dc3948451f">
 <link rel="stylesheet" href="/styles/my-garden.css?v=build-db1f20b10cff">
 <link rel="stylesheet" href="/styles/profile-characters.css" data-profile-characters>
@@ -6123,7 +6117,7 @@ html.cd-mobile-runtime:not(.cd-hero-ambient-idle) .cd-onestep__num{animation-pla
       }
       .moon-music-entry__copy strong {
         color: var(--mm-text);
-        font-family: 'CodeDestinySerifLatin','CodeDestinySerifKR','Nanum Myeongjo','Gowun Batang','Noto Serif KR','AppleMyungjo','Batang',Georgia,serif;
+        font-family: var(--font-display);
         font-size: 1.22rem;
         font-weight: 700;
         line-height: 1.34;
@@ -6338,7 +6332,7 @@ html.cd-mobile-runtime:not(.cd-hero-ambient-idle) .cd-onestep__num{animation-pla
         html.neo-mode .moon-music-entry__copy strong,
         .moon-music-entry__copy strong {
           color: var(--mm-text) !important;
-          font-family: 'CodeDestinySerifLatin','CodeDestinySerifKR','Nanum Myeongjo','Gowun Batang','Noto Serif KR','AppleMyungjo','Batang',Georgia,serif !important;
+          font-family: var(--font-display) !important;
           font-size: .98rem !important;
           line-height: 1.34 !important;
           text-shadow: none !important;
@@ -6913,7 +6907,7 @@ html:not(.neo-mode) .moon-story-entry__title {
   color: #3D2B45 !important; background: none !important;
   -webkit-text-fill-color: #3D2B45 !important;
   -webkit-background-clip: border-box !important; background-clip: border-box !important;
-  font-family: "Nanum Myeongjo", "Noto Serif KR", var(--font-display), serif !important;
+  font-family: var(--font-display) !important;
   font-size: 1.24rem !important; letter-spacing: 0.01em !important; text-shadow: none !important;
 }
 html:not(.neo-mode) .moon-story-entry__desc { color: rgba(61,43,69,0.72) !important; }
@@ -7982,8 +7976,8 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
     .cd-public-site-share input{width:100%;min-height:44px;padding:10px;font-size:16px;background:var(--cd-surface);color:var(--cd-text);border:1px solid var(--cd-border)}
     .cd-public-site-share input[hidden]{display:none}
     .cd-home-guide__head{text-align:center;margin:0 auto clamp(26px,5vw,40px);max-width:64ch}
-    .cd-home-guide__kicker{display:inline-block;font-family:'CodeDestinySerifLatin',Georgia,'Times New Roman',serif;font-size:.95rem;letter-spacing:.3em;text-indent:.3em;font-weight:600;text-transform:uppercase;color:var(--cd-accent,#b31955);margin-bottom:16px}
-    .cd-home-guide__title{font-family:'CodeDestinySerifLatin','CodeDestinySerifKR','Nanum Myeongjo','Gowun Batang',var(--font-body);font-weight:700;font-size:clamp(1.5rem,4.8vw,2.15rem);line-height:1.3;letter-spacing:-.01em;color:var(--cd-text,#3c1830);margin:0 0 14px;word-break:keep-all;text-wrap:balance}
+    .cd-home-guide__kicker{display:inline-block;font-family:var(--font-display);font-size:.95rem;letter-spacing:.3em;text-indent:.3em;font-weight:600;text-transform:uppercase;color:var(--cd-accent,#b31955);margin-bottom:16px}
+    .cd-home-guide__title{font-family:var(--font-display);font-weight:700;font-size:clamp(1.5rem,4.8vw,2.15rem);line-height:1.3;letter-spacing:-.01em;color:var(--cd-text,#3c1830);margin:0 0 14px;word-break:keep-all;text-wrap:balance}
     .cd-home-guide__title::after{content:"";display:block;width:52px;height:2px;margin:16px auto 0;border-radius:999px;background:linear-gradient(90deg,var(--cd-accent,#b31955),var(--cd-gold,#ead089))}
     .cd-home-guide__lead{font-size:clamp(.94rem,2.4vw,1.02rem);line-height:1.8;color:var(--cd-text-muted,#70445c);margin:0;word-break:keep-all;text-wrap:pretty}
     .cd-home-guide__grid{list-style:none;margin:0 0 clamp(22px,4vw,32px);padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
@@ -9513,22 +9507,11 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
 </details>
 <!-- 달빛 이야기 — 라이트 노벨·달빛 음악을 한 묶음으로. 열면 표지와 소개가 담긴 두 장의 서재 카드가 펼쳐진다(JS 없음). -->
 
-<details class="cdh-story">
-  <summary class="cdh-story__toggle"><span class="cdh-story__backs" aria-hidden="true"><img src="/images/fortune-tea-house/moonlight-tarot-card-back.webp" width="120" height="180" alt="" loading="lazy" decoding="async"><img src="/images/fortune-tea-house/moonlight-tarot-card-back.webp" width="120" height="180" alt="" loading="lazy" decoding="async"></span><span class="cdh-story__label"><strong data-cd-trans="home.simpleHome.storyTitle">달빛 이야기</strong><small data-cd-trans="home.simpleHome.storyNote">노벨과 음악</small></span><span class="cdh-disclosure-state"><span class="cdh-when-closed" data-cd-trans="home.choice.expand">펼치기</span><span class="cdh-when-open" data-cd-trans="home.choice.collapse">접기</span></span><span class="cdh-story__chev" aria-hidden="true"></span></summary>
-  <div class="cdh-story__spread">
-    <a class="cdh-story__card cdh-story__card--novel" href="/codedestiny-novel.html">
-      <span class="cdh-story__window"><img src="/images/novel/yeongnyangi-cover-640.webp" srcset="/images/novel/yeongnyangi-cover-640.webp 640w, /images/novel/yeongnyangi-cover-960.webp 960w" sizes="(max-width:640px) calc(100vw - 48px), 400px" width="640" height="427" alt="인간형 연이와 영냥이, 모카, 윤달, 서한비가 등장하는 운명 모험 표지" loading="lazy" decoding="async" data-cd-trans-attr="alt:home.guideCopy.novelAlt"></span>
-      <strong class="cdh-story__name" data-cd-trans="footer.story.novel">라이트 노벨</strong>
-      <small class="cdh-story__note" data-cd-trans="home.guideCopy.storyNote">영냥이와 연이, 잃어버린 운명을 찾는 여행</small>
-    </a>
-
-  </div>
 <section class="cdh-mv" id="cdhMoonlightMv" aria-labelledby="cdhMvTitle" data-cd-funnel-section="moonlight_mv" data-marker="cdh-mv-moonlight-destiny-v20261015">
   <img class="cdh-mv__orn cdh-mv__orn--start" src="/images/home/mv/ornament-lotus-branch-320.webp" srcset="/images/home/mv/ornament-lotus-branch-320.webp 320w, /images/home/mv/ornament-lotus-branch-640.webp 640w" sizes="(max-width: 600px) 132px, 260px" width="320" height="280" loading="lazy" decoding="async" alt="">
   <img class="cdh-mv__orn cdh-mv__orn--end" src="/images/home/mv/ornament-lotus-branch-320.webp" srcset="/images/home/mv/ornament-lotus-branch-320.webp 320w, /images/home/mv/ornament-lotus-branch-640.webp 640w" sizes="(max-width: 600px) 132px, 260px" width="320" height="280" loading="lazy" decoding="async" alt="">
   <header class="cdh-mv__head">
     <img class="cdh-mv__crest" src="/images/home/mv/ornament-lotus-crest-160.webp" srcset="/images/home/mv/ornament-lotus-crest-160.webp 160w, /images/home/mv/ornament-lotus-crest-320.webp 320w" sizes="168px" width="160" height="58" loading="lazy" decoding="async" alt="">
-    <p class="cdh-mv__eyebrow">MOONLIGHT DESTINY&nbsp;· MUSIC&nbsp;VIDEO</p>
     <h2 id="cdhMvTitle" data-cd-trans="home.mv.title">달빛 운명여행</h2>
     <p class="cdh-mv__lead" data-cd-trans="home.mv.lead">작은 등불 하나에서 시작해 다섯 하늘을 건너, 두 달 아래에서 다시 만나는 이야기</p>
     <p class="cdh-mv__meta" data-cd-trans="home.mv.meta">1분 33초 · 한국어 가사 자막</p>
@@ -9557,6 +9540,18 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
     </div>
   </div>
 </section>
+<details class="cdh-story">
+  <summary class="cdh-story__toggle"><span class="cdh-story__backs" aria-hidden="true"><img src="/images/fortune-tea-house/moonlight-tarot-card-back.webp" width="120" height="180" alt="" loading="lazy" decoding="async"><img src="/images/fortune-tea-house/moonlight-tarot-card-back.webp" width="120" height="180" alt="" loading="lazy" decoding="async"></span><span class="cdh-story__label"><strong data-cd-trans="home.simpleHome.storyTitle">달빛 이야기</strong><small data-cd-trans="home.simpleHome.storyNote">노벨과 음악</small></span><span class="cdh-disclosure-state"><span class="cdh-when-closed" data-cd-trans="home.choice.expand">펼치기</span><span class="cdh-when-open" data-cd-trans="home.choice.collapse">접기</span></span><span class="cdh-story__chev" aria-hidden="true"></span></summary>
+  <div class="cdh-story__spread">
+    <a class="cdh-story__card cdh-story__card--novel" href="/codedestiny-novel.html">
+      <span class="cdh-story__window"><img src="/images/novel/yeongnyangi-cover-640.webp" srcset="/images/novel/yeongnyangi-cover-640.webp 640w, /images/novel/yeongnyangi-cover-960.webp 960w" sizes="(max-width:640px) calc(100vw - 48px), 400px" width="640" height="427" alt="인간형 연이와 영냥이, 모카, 윤달, 서한비가 등장하는 운명 모험 표지" loading="lazy" decoding="async" data-cd-trans-attr="alt:home.guideCopy.novelAlt"></span>
+      <strong class="cdh-story__name" data-cd-trans="footer.story.novel">라이트 노벨</strong>
+      <small class="cdh-story__note" data-cd-trans="home.guideCopy.storyNote">영냥이와 연이, 잃어버린 운명을 찾는 여행</small>
+    </a>
+
+    <a class="cdh-story__card cdh-story__card--music" href="/music/"><span class="cdh-story__window"><img src="/images/home/mv/moonlight-destiny-poster-640.webp" width="640" height="360" loading="lazy" decoding="async" alt=""></span><strong class="cdh-story__name" data-cd-trans="home.mv.playlist">음악 플레이리스트</strong><small class="cdh-story__note" data-cd-trans="home.mv.more">달빛 음악 더 듣기</small></a>
+  </div>
+
 </details>
 <!-- 색인 대상 허브로 가는 정본 내부 링크. 크롤러가 착지하는 /ggulggul/ 에서 2홉 안에 모든 색인 라우트가
      닿아야 한다(scripts/verify-internal-link-depth.mjs). 2026-10-17 "직관성" 단순화로 홈 안내 섹션은 뺐지만
@@ -9903,7 +9898,7 @@ html body .dp-destiny-panel__toggle[aria-expanded="true"] .dp-destiny-panel__che
            걸어 rem 이 12.5% 줄어든다. 카드 본문이 10px 대로 떨어지던 원인. */
         .cd-sig{max-width:1240px;margin:20px auto 0;padding:0 20px;--cd-sig-stagger:140ms}
         .cd-sig__head{margin:0 0 16px;text-align:center}
-        .cd-sig__title{margin:0;font-family:'CodeDestinySerifLatin','CodeDestinySerifKR','Nanum Myeongjo','Gowun Batang',var(--font-body);font-size:clamp(22px,5vw,32px);font-weight:700;letter-spacing:-.01em;line-height:1.3;color:var(--cd-text,#3c1830);word-break:keep-all;text-wrap:balance}
+        .cd-sig__title{margin:0;font-family:var(--font-display);font-size:clamp(22px,5vw,32px);font-weight:700;letter-spacing:-.01em;line-height:1.3;color:var(--cd-text,#3c1830);word-break:keep-all;text-wrap:balance}
         .cd-sig__title::after{content:"";display:block;width:52px;height:2px;margin:14px auto 0;border-radius:999px;background:linear-gradient(90deg,var(--cd-accent,#b31955),#ead089)}
         /* fortune-ui.css:791 의 `.logo-area p{color:#bbb;font-size:.85rem}` 가 (0,1,1) 로 이겨서
            이 섹션의 <p> 를 회색 13.6px 로 끌어내린다 — 클래스를 겹쳐 특이도를 (0,2,0) 으로 올린다. */
@@ -10120,7 +10115,7 @@ html body .cd-ai-feats__links li{display:flex}
 html body .cd-ai-feats__links a{position:relative;display:flex;flex-direction:column;gap:9px;width:100%;padding:clamp(15px,1.7vw,19px) clamp(14px,1.5vw,18px) clamp(16px,1.9vw,21px);border-radius:14px;text-decoration:none;border:1px solid rgba(244,190,209,.18);background:rgba(255,241,247,.045);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);transition:transform var(--cd-dur-base,220ms) var(--cd-ease-out,cubic-bezier(.22,.61,.36,1)),border-color var(--cd-dur-base,220ms) ease,background-color var(--cd-dur-base,220ms) ease,box-shadow var(--cd-dur-base,220ms) ease}
 html body .cd-ai-feats__glyph{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;width:40px;height:40px;border-radius:12px;color:#ead089;border:1px solid rgba(234,208,137,.34);background:rgba(234,208,137,.08);transition:color var(--cd-dur-base,220ms) ease,border-color var(--cd-dur-base,220ms) ease,background-color var(--cd-dur-base,220ms) ease}
 html body .cd-ai-feats__glyph svg{width:21px;height:21px;display:block}
-html body .cd-ai-feats__links strong{font-family:'CodeDestinySerifLatin','CodeDestinySerifKR','Nanum Myeongjo','Gowun Batang',var(--font-body);font-size:.98rem;font-weight:700;line-height:1.34;letter-spacing:-.01em;color:#fff1f7;word-break:keep-all;text-wrap:balance}
+html body .cd-ai-feats__links strong{font-family:var(--font-display);font-size:.98rem;font-weight:700;line-height:1.34;letter-spacing:-.01em;color:#fff1f7;word-break:keep-all;text-wrap:balance}
 html body .cd-ai-feats__meta{font-family:var(--font-body);font-size:.765rem;line-height:1.55;color:rgba(255,214,232,.86);word-break:keep-all}
 html body .cd-ai-feats__links a:hover,html body .cd-ai-feats__links a:focus-visible{transform:translateY(-4px);border-color:rgba(234,208,137,.5);background:rgba(255,241,247,.085);box-shadow:0 18px 44px -18px rgba(179,25,85,.55),0 0 0 1px rgba(234,208,137,.42)}
 html body .cd-ai-feats__links a:hover .cd-ai-feats__glyph{color:#fff1f7;border-color:rgba(234,208,137,.66);background:rgba(234,208,137,.2)}
@@ -10263,7 +10258,7 @@ html body .moon-story-entry--novel .moon-story-entry__kicker::before{
 }
 html body .moon-story-entry--novel .moon-story-entry__title{
   margin:2px 0 0!important;
-  font-family:'CodeDestinySerifLatin','CodeDestinySerifKR','Nanum Myeongjo','Gowun Batang',var(--font-body,serif)!important;
+  font-family:var(--font-display)!important;
   font-weight:700!important;font-size:clamp(1.28rem,2.3vw,1.82rem)!important;line-height:1.34!important;
   letter-spacing:-.01em!important;color:var(--nv-ink)!important;-webkit-text-fill-color:var(--nv-ink)!important;
   text-shadow:none!important;word-break:keep-all;text-wrap:balance
@@ -10450,7 +10445,7 @@ html body #inputPage .cd-concern .moon-section-kicker{font-size:.66rem!important
 /* cd-expert-consult-luxe-v20260731 — 위 헤더 규칙은 .cd-fortune-pick·.cd-svc-index 와 공유한다.
    전문가 상담 섹션만 다크 패널로 갈아입었으므로 #cdAiFeatures 로 스코프해 여기서만 덮는다
    (id 2개로 위 :is() 규칙보다 특이도가 확실히 높다 — 나머지 두 섹션은 그대로 둔다). */
-html body #inputPage #cdAiFeatures .moon-section-head h2{font-family:'CodeDestinySerifLatin','CodeDestinySerifKR','Nanum Myeongjo','Gowun Batang',var(--font-body)!important;font-size:clamp(1.42rem,3vw,2.05rem)!important;font-weight:700!important;line-height:1.34!important;letter-spacing:-.01em!important;margin:12px 0 0!important;word-break:keep-all;text-wrap:balance}
+html body #inputPage #cdAiFeatures .moon-section-head h2{font-family:var(--font-display)!important;font-size:clamp(1.42rem,3vw,2.05rem)!important;font-weight:700!important;line-height:1.34!important;letter-spacing:-.01em!important;margin:12px 0 0!important;word-break:keep-all;text-wrap:balance}
 html:not(.neo-mode) body #inputPage #cdAiFeatures .moon-section-head h2{color:#fff1f7!important;-webkit-text-fill-color:#fff1f7!important;text-shadow:0 0 26px rgba(234,208,137,.28)!important}
 html.neo-mode body #inputPage #cdAiFeatures .moon-section-head h2{color:#f4eeff!important;-webkit-text-fill-color:#f4eeff!important;text-shadow:0 0 26px rgba(196,181,253,.32)!important}
 html body #inputPage #cdAiFeatures .moon-section-kicker{font-size:.64rem!important;color:#ead089!important;-webkit-text-fill-color:#ead089!important;background:transparent!important;border:1px solid rgba(234,208,137,.42)!important}
@@ -10499,7 +10494,7 @@ html.neo-mode body #inputPage #cdAiFeatures .moon-section-kicker{color:#e8d5a3!i
      걸어 카드 제목만 산세리프로 떨어지기 때문. 브랜드 세리프는 같은 홈의 .cd-home-guide__title 이 모바일에서
      이미 받아오고 있어 추가 요청 비용은 0이고, 데스크탑/모바일 서체가 갈리는 편이 더 나쁘다. */
   html body #inputPage #cdAiFeatures .cd-ai-feats__links strong {
-    font-family: 'CodeDestinySerifLatin', 'CodeDestinySerifKR', 'Nanum Myeongjo', 'Gowun Batang', var(--font-body) !important;
+    font-family: var(--font-display) !important;
     font-size: .97rem !important; line-height: 1.34 !important;
   }
   html body #inputPage .cd-ai-feats__meta { font-size: .82rem !important; line-height: 1.5 !important; }
@@ -10619,7 +10614,7 @@ html.neo-mode body .cd-atmos__layer--near{background-image:radial-gradient(1.1px
 html body #cdPickReason .cd-pick-why__character{display:block;width:120px;height:150px;max-width:100%;object-fit:contain;border:0;border-radius:0;background:none;box-shadow:none}
 .cd-pick-why__copy{display:flex;flex-direction:column;align-items:flex-start;gap:var(--cd-sp-sm);min-width:0}
 html body #cdPickReason .cd-pick-why__text{margin:0;font-size:var(--cd-t-body);line-height:1.75;color:var(--cdh-muted);text-align:left;word-break:keep-all;overflow-wrap:anywhere;text-wrap:pretty}
-.cd-pick-why__text b,.cd-pick-why__copy>strong{font-family:var(--font-serif,"CodeDestinySerifKR",serif);font-size:var(--cd-t-card);font-weight:700;color:var(--cdh-ink);line-height:1.5;word-break:keep-all}
+.cd-pick-why__text b,.cd-pick-why__copy>strong{font-family:var(--font-display);font-size:var(--cd-t-card);font-weight:700;color:var(--cdh-ink);line-height:1.5;word-break:keep-all}
 .cd-pick-why__note{font-size:var(--cd-t-body);line-height:1.75;color:var(--cdh-muted);word-break:keep-all;overflow-wrap:anywhere}
 .cd-pick-why__actions{display:flex;align-items:center;flex-wrap:wrap;gap:var(--cd-sp-sm)}
 .cd-pick-why__go{display:inline-flex;align-items:center;justify-content:center;gap:var(--cd-sp-sm);min-height:44px;padding:10px 14px;border:1px solid color-mix(in srgb,var(--cdh-gold) 36%,var(--cdh-line));border-radius:var(--cd-r-control);background:var(--cdh-gold-soft);color:var(--cdh-ink);font-size:var(--cd-t-body);font-weight:800;text-decoration:none;word-break:keep-all}
@@ -19320,7 +19315,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
     if (!shareUrl) return Promise.reject(new Error('share_url_missing'));
     // 지금 보고 있는 언어의 셸·미리보기 카드로 공유한다(js/share.js). 아직 안 실렸으면 서버 URL 그대로.
     if (typeof window.cdLocalizeShareUrl === 'function') shareUrl = window.cdLocalizeShareUrl(shareUrl);
-    var shareImageUrl = 'https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-88f32967168a';
+    var shareImageUrl = 'https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-ee3ecca5010b';
     if (typeof window.cdLocalizeShareImage === 'function') shareImageUrl = window.cdLocalizeShareImage(shareImageUrl);
     renderShareUrl(shareUrl, tr('kakaoReferral.rewardReady', '초대 링크가 준비됐어요. 친구 가입 완료 시 추천 보상이 지급됩니다.'));
     return loadKakaoSdk(payload.kakaoJavascriptKey).then(function(ok){
@@ -33191,7 +33186,7 @@ function updateBadge() {
 (function(){
   'use strict';
   var D={
-    '#destinyCardForm':{cat:'사주 · 무료 운명 카드',fallbackTitle:'🌙 나의 달빛 운명 카드',tagline:'생년월일과 출생시간을 바탕으로 사주, 오늘의 흐름, 궁합, 별자리 서비스로 이어지는 기본 프로필을 만듭니다.',feats:['이름·생년월일·출생시간 기반 기본 운명 카드 생성','출생시간을 모를 때 낮 12시 기준으로 보수 계산','사주 결과와 주요 운세 서비스 바로가기 자동 연결','저장한 프로필로 무료·프리미엄 리딩을 더 빠르게 시작'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/%EC%82%AC%EC%A3%BC%EB%B3%B4%EB%8A%94%20%EC%97%B0%EC%9D%B4.webp?v=build-88f32967168a',fallbackCta:'운명 카드 만들기'},
+    '#destinyCardForm':{cat:'사주 · 무료 운명 카드',fallbackTitle:'🌙 나의 달빛 운명 카드',tagline:'생년월일과 출생시간을 바탕으로 사주, 오늘의 흐름, 궁합, 별자리 서비스로 이어지는 기본 프로필을 만듭니다.',feats:['이름·생년월일·출생시간 기반 기본 운명 카드 생성','출생시간을 모를 때 낮 12시 기준으로 보수 계산','사주 결과와 주요 운세 서비스 바로가기 자동 연결','저장한 프로필로 무료·프리미엄 리딩을 더 빠르게 시작'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/%EC%82%AC%EC%A3%BC%EB%B3%B4%EB%8A%94%20%EC%97%B0%EC%9D%B4.webp?v=build-ee3ecca5010b',fallbackCta:'운명 카드 만들기'},
     gotoZiweiPremium:{cat:'프리미엄 · 자미두수 전문가 상담',fallbackTitle:'자미두수 전문가 상담',tagline:'명궁·신궁·12궁·사화·대운·세운 흐름을 바탕으로 지금의 질문에 답합니다.',feats:['입력은 무료 — 상담 생성 버튼을 누를 때 30,000원 단건 결제 또는 이용권·월정석 확인','결제 확인이 끝나면 상담문이 바로 생성','명궁·재백·관록·부부·질액궁을 질문에 맞춰 연결 해석','상담 결과를 화면에서 바로 확인하고 추가 질문 이어가기'],cost:'30,000원 · 전문가 상담',ct:'paid',img:"/images/service-introductions/ziwei-ai.webp",fallbackCta:'자미두수 상담 받기'},
     '/neo-operation-room':{cat:'프리미엄 · 운명 작전실',fallbackTitle:'네오의 팩폭 운명 작전실',tagline:'사주·자미두수·베다점·점성술의 지도를 한 장의 전략처럼 펼쳐, 지금 밀리는 전선과 다시 잡아야 할 기준을 또렷하게 짚습니다.',feats:['30,000원 상담 이용권 확인','결제 완료 후 네오의 작전실로 바로 이동','사주와 별자리 흐름을 함께 비추는 종합 상담','현재 고민에 맞춘 선택 기준과 다음 행동 정리'],cost:'30,000원 · 전문가 상담',ct:'paid',img:"/images/service-introductions/neo-operation-room.webp",fallbackCta:'작전실 열기'},
     openNamingPromptModal:{cat:'작명 · 전문가 상담',fallbackTitle:'훈민정음 작명소',tagline:'생년월일시와 원하는 이름 조건을 바탕으로 용신·소리오행·한자 의미·수리 풀이를 종합해 전문가가 직접 이름을 짓고, 그 결과를 만든 프롬프트 원문까지 함께 드립니다.',feats:['입력과 무료 초안 추천은 무료로 열립니다','프리미엄 작명 시작 시 30,000원 단건 결제 또는 이용권·월정석 확인이 진행됩니다','사주 보완, 인명용 한자, 소리오행, 자원오행, 원형이정 수리를 종합한 완성형 결과 제공','결제 검증 후 전문가 작명 결과와 PDF 저장, 생성에 사용된 프롬프트 원문까지 다시 확인할 수 있습니다'],cost:'30,000원 · 이용권/월정석 가능',ct:'paid',img:"/images/service-introductions/naming-ai.webp",fallbackCta:'작명 시작하기'},
@@ -40088,7 +40083,7 @@ html.neo-mode .tile-pvw-overlay.pvw-prem .tile-pvw-cta-sticky,body.neo-mode .til
     font-weight: 900;
   }
   .saju-newyear-seal strong {
-    font-family: CodeDestinyDisplay, CodeDestinyBody, serif;
+    font-family: var(--font-display);
     font-size: 2rem;
     line-height: 1;
     letter-spacing: 0;
@@ -40366,8 +40361,8 @@ html.neo-mode .tile-pvw-overlay.pvw-prem .tile-pvw-cta-sticky,body.neo-mode .til
   .cd-mobile-collection-head{position:relative;gap:10px!important}
   .cd-mobile-collection-head::before{content:"";flex:0 0 auto;width:22px;height:22px;margin-left:2px;border-radius:50%;box-shadow:inset 7px -3px 0 #9a6b2e;transform:rotate(-18deg)}
   body.neo-mode .cd-mobile-collection-head::before{box-shadow:inset 7px -3px 0 #e8d5a3}
-  .cd-mobile-collection-title{font-family:"CodeDestinySerifKR",var(--font-premium,"Nanum Myeongjo","Gowun Batang",serif)!important;font-weight:700!important;font-size:1.02rem;letter-spacing:-.01em!important}
-  .cd-mobile-collection-title::before{content:"FUN FORTUNES" / "";display:block;margin-bottom:1px;font-family:CodeDestinySerifLatin,Georgia,serif;font-size:.58rem;font-weight:800;letter-spacing:.2em;line-height:1.2;color:#8a5e26}
+  .cd-mobile-collection-title{font-family:var(--font-display)!important;font-weight:700!important;font-size:1.02rem;letter-spacing:-.01em!important}
+  .cd-mobile-collection-title::before{content:"FUN FORTUNES" / "";display:block;margin-bottom:1px;font-family:var(--font-display);font-size:.58rem;font-weight:800;letter-spacing:.2em;line-height:1.2;color:#8a5e26}
   body.neo-mode .cd-mobile-collection-title::before{color:#e8d5a3}
   .cd-mobile-collection-chrome.is-compact .cd-mobile-collection-title::before{display:none}
   .cd-mobile-collection-chrome.is-compact .cd-mobile-collection-head::before{width:18px;height:18px;box-shadow:inset 6px -2px 0 #9a6b2e}
@@ -40388,8 +40383,8 @@ html.neo-mode .tile-pvw-overlay.pvw-prem .tile-pvw-cta-sticky,body.neo-mode .til
   .cd-afy-hero__persona{flex:0 0 auto;width:76px;height:76px;border:3px solid #fff7eb;border-radius:50%;object-fit:cover;object-position:50% 14%;background:#fff3f5;box-shadow:0 8px 18px rgba(141,53,98,.18)}
   #cdMobileFortuneOverview .cd-afy-hero__persona{width:76px!important;height:76px!important;max-width:none!important;aspect-ratio:1/1}
   .cd-afy-hero__copy{position:relative;min-width:0;display:grid;gap:3px}
-  .cd-afy-hero__kicker{font-family:CodeDestinySerifLatin,Georgia,serif;font-size:.6rem;font-weight:800;letter-spacing:.2em;line-height:1.3;color:#8a5e26}
-  .cd-afy-hero__title{margin:0;font-family:"CodeDestinySerifKR",var(--font-premium,"Nanum Myeongjo","Gowun Batang",serif);font-size:1.22rem;font-weight:700;line-height:1.3;letter-spacing:-.02em;color:#3c1830;word-break:keep-all}
+  .cd-afy-hero__kicker{font-family:var(--font-display);font-size:.6rem;font-weight:800;letter-spacing:.2em;line-height:1.3;color:#8a5e26}
+  .cd-afy-hero__title{margin:0;font-family:var(--font-display);font-size:1.22rem;font-weight:700;line-height:1.3;letter-spacing:-.02em;color:#3c1830;word-break:keep-all}
   .cd-afy-hero__meta{margin:0;font-size:.74rem;font-weight:600;line-height:1.5;color:#70445c;word-break:keep-all}
   .cd-afy-hero__moon{position:absolute;top:12px;right:16px;width:20px;height:20px;border-radius:50%;box-shadow:inset 6px -3px 0 #9a6b2e;transform:rotate(-18deg);opacity:.8}
   #cdMobileFortuneOverview .cd-afy-hero__flower{display:block;right:-34px;bottom:-42px;width:132px;height:132px;opacity:.26}
@@ -40399,7 +40394,7 @@ html.neo-mode .tile-pvw-overlay.pvw-prem .tile-pvw-cta-sticky,body.neo-mode .til
   body.neo-mode .cd-afy-hero__title{color:#f4eeff}
   body.neo-mode .cd-afy-hero__meta{color:#d8c8ea}
   body.neo-mode .cd-afy-hero__moon{box-shadow:inset 6px -3px 0 #e8d5a3}
-  #cdMobileFortuneOverview .cd-fov__heading{font-family:"CodeDestinySerifKR",var(--font-premium,"Nanum Myeongjo","Gowun Batang",serif);font-size:.94rem;font-weight:700;color:#3c1830}
+  #cdMobileFortuneOverview .cd-fov__heading{font-family:var(--font-display);font-size:.94rem;font-weight:700;color:#3c1830}
   #cdMobileFortuneOverview .cd-fov__heading::after{content:"";flex:1 1 auto;height:1px;margin-left:8px;background:linear-gradient(90deg,rgba(154,107,46,.5),transparent)}
   body.neo-mode #cdMobileFortuneOverview .cd-fov__heading{color:#f4eeff}
   body.neo-mode #cdMobileFortuneOverview .cd-fov__heading::after{background:linear-gradient(90deg,rgba(232,213,163,.45),transparent)}
@@ -40411,7 +40406,7 @@ html.neo-mode .tile-pvw-overlay.pvw-prem .tile-pvw-cta-sticky,body.neo-mode .til
   #cdMobileFortuneOverview .cd-fov__cat-thumb>img{display:block;width:100%;height:100%;object-fit:cover}
   body.neo-mode #cdMobileFortuneOverview :is(.cd-fov__cat-thumb,.cd-fov__cat-icon){background:radial-gradient(120% 90% at 50% 0%,rgba(167,139,250,.3),transparent 60%),linear-gradient(150deg,#171231,#0d0a20)}
   #cdMobileFortuneOverview :is(.cd-fov__cat-name,.cd-fov__cat-count,.cd-fov__cat-sub){position:relative;padding-inline:4px}
-  #cdMobileFortuneOverview .cd-fov__cat-name{font-family:"CodeDestinySerifKR",var(--font-premium,"Nanum Myeongjo","Gowun Batang",serif);font-size:.94rem;font-weight:700}
+  #cdMobileFortuneOverview .cd-fov__cat-name{font-family:var(--font-display);font-size:.94rem;font-weight:700}
   #cdMobileFortuneOverview .cd-fov__cat-count{color:#8a5e26}
   body.neo-mode #cdMobileFortuneOverview .cd-fov__cat-count{color:#e8d5a3}
   #cdMobileFortuneOverview .cd-fov__cat-flower{display:block;right:-24px;bottom:-26px;width:76px;height:76px;opacity:.2}
@@ -40429,7 +40424,7 @@ html.neo-mode .tile-pvw-overlay.pvw-prem .tile-pvw-cta-sticky,body.neo-mode .til
   html body.neo-mode #inputPage #cdAllFortunesStage #premiumVvipCollection .feat-collection__header{display:block!important}
   html body:not(.neo-mode) #inputPage #cdAllFortunesStage .cd-mobile-collection-fullscreen :is(.feat-collection__title,.tarot-collection__title){color:#fff8ec!important;-webkit-text-fill-color:#fff8ec!important;text-shadow:0 1px 10px rgba(20,8,24,.45)!important}
   html body:not(.neo-mode) #inputPage #cdAllFortunesStage .cd-mobile-collection-fullscreen :is(.feat-collection__subtitle,.tarot-collection__subtitle,.tarot-collection__sub){color:rgba(255,244,236,.92)!important;-webkit-text-fill-color:rgba(255,244,236,.92)!important}
-  .cd-mobile-collection-fullscreen :is(.feat-collection__title,.tarot-collection__title){font-family:"CodeDestinySerifKR",var(--font-premium,"Nanum Myeongjo","Gowun Batang",serif)!important;font-weight:700!important}
+  .cd-mobile-collection-fullscreen :is(.feat-collection__title,.tarot-collection__title){font-family:var(--font-display)!important;font-weight:700!important}
   /* .fc-toggle-btn::after(absolute·2px·반짝임)를 흐름 안으로 되돌린다. 헤더가 어두운 카드라 샴페인 금색 하나로 쓴다. */
   #inputPage #cdAllFortunesStage .cd-mobile-collection-fullscreen :is(.feat-collection__header,.tarot-collection__header)::after{content:""!important;display:block!important;position:static!important;inset:auto!important;flex:1 0 100%;grid-column:1/-1;width:min(220px,70%)!important;height:14px!important;margin:12px auto 2px!important;opacity:1!important;transform:none!important;animation:none!important;background:radial-gradient(circle,#e8d5a3 0 3px,transparent 3.5px) center/14px 14px no-repeat,linear-gradient(90deg,transparent,rgba(232,213,163,.6) 20%,rgba(232,213,163,.6) 42%,transparent 44%,transparent 56%,rgba(232,213,163,.6) 58%,rgba(232,213,163,.6) 80%,transparent) center/100% 1px no-repeat!important}
   html body:not(.neo-mode) .cd-mobile-collection-fullscreen :is(.tarot-tile,.feature-card){border-radius:16px!important;border:1px solid rgba(183,121,110,.34)!important;background:#fffdfb!important;box-shadow:0 12px 24px -14px rgba(141,53,98,.34)!important}
@@ -40981,7 +40976,7 @@ html.neo-mode .tile-pvw-overlay.pvw-prem .tile-pvw-cta-sticky,body.neo-mode .til
     stroke-linejoin: round !important;
   }
   html.cd-mobile-runtime #inputPage :is(#animalCollection,#meditationCollection,#tarotCollection,#oracleCollection,#cosmicCollection,#flowerCollection,#miscCollection):not(.cd-mobile-collection-fullscreen) :is(.feat-collection__title,.tarot-collection__title) {
-    font-family: "CodeDestinySerifKR","CodeDestinySerifLatin","Nanum Myeongjo","Noto Serif KR",serif !important;
+    font-family: var(--font-display) !important;
     font-size: 1rem !important;
     font-weight: 800 !important;
     letter-spacing: -.015em !important;
@@ -41055,7 +41050,7 @@ html.neo-mode .tile-pvw-overlay.pvw-prem .tile-pvw-cta-sticky,body.neo-mode .til
                   .sy-basic-calendar__identity{display:flex;align-items:center;gap:10px;min-width:0}
                   .sy-basic-calendar__crescent{width:25px;height:25px;color:var(--moon-star);opacity:0;animation:syMoonFadeIn 400ms ease forwards;filter:drop-shadow(0 0 14px rgba(255,242,194,0.5));flex:0 0 auto}
                   .sy-basic-calendar__month-label{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-                  .sy-basic-calendar__title{color:var(--moon-text-primary);font-family:var(--font-voice,"Noto Serif KR",serif);font-size:18px;font-weight:900;line-height:1.25;text-shadow:0 0 18px rgba(255,244,210,0.22)}
+                  .sy-basic-calendar__title{color:var(--moon-text-primary);font-family:var(--font-display);font-size:18px;font-weight:900;line-height:1.25;text-shadow:0 0 18px rgba(255,244,210,0.22)}
                   .sy-basic-calendar__month{width:112px;border:1px solid rgba(220,230,255,0.28);border-radius:999px;background:rgba(8,12,27,0.68);color:var(--moon-text-secondary);font-size:12px;color-scheme:dark;outline:none;padding:6px 8px;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.03)}
                   .sy-basic-calendar__copy{margin:5px 0 0;color:var(--moon-text-muted);font-size:12px;line-height:1.45;word-break:keep-all}
                   .sy-basic-calendar__stars{position:absolute;inset:8px 74px auto auto;width:84px;height:36px;pointer-events:none}
@@ -41085,7 +41080,7 @@ html.neo-mode .tile-pvw-overlay.pvw-prem .tile-pvw-cta-sticky,body.neo-mode .til
                   .day--today .sy-basic-cal-day__num{width:26px;height:26px;color:var(--moon-star)}
                   .day--today .sy-basic-cal-day__num:before{content:"";position:absolute;inset:0;border-radius:999px;background:linear-gradient(135deg,#fff4c9,#aebfff);box-shadow:0 0 16px rgba(255,244,201,0.24)}
                   .sy-basic-cal-day__star{color:var(--moon-auspicious);font-size:11px;line-height:1}
-                  .sy-basic-cal-day__name{color:var(--moon-text-secondary);font-family:"Noto Serif KR",serif;font-size:11px;font-weight:800;line-height:1.35;word-break:keep-all}
+                  .sy-basic-cal-day__name{color:var(--moon-text-secondary);font-family:var(--font-display);font-size:11px;font-weight:800;line-height:1.35;word-break:keep-all}
                   .day--today .sy-basic-cal-day__name{color:#fff2c2}
                   .day--inauspicious .sy-basic-cal-day__name{color:#d9c8ff}
                   .sy-basic-cal-day__badge{margin-top:auto;color:var(--moon-auspicious);font-size:10px;font-weight:900;letter-spacing:0;line-height:1.25}
@@ -41101,7 +41096,7 @@ html.neo-mode .tile-pvw-overlay.pvw-prem .tile-pvw-cta-sticky,body.neo-mode .til
                   .sy-basic-calendar__legend-scale{margin:0;color:var(--moon-text-muted);font-size:11px;line-height:1.4}
                   .sy-basic-calendar__detail{background:linear-gradient(155deg,rgba(24,29,57,0.98),rgba(9,12,28,0.98));border-top:1px solid rgba(218,228,255,0.2);padding:20px 22px;border-radius:0 0 18px 18px;animation:syMoonSlideUp 200ms ease-out;position:relative;z-index:1}
                   .sy-basic-calendar__detail-kicker{margin:0 0 6px;color:var(--moon-text-secondary);font-size:12px;font-weight:800;line-height:1.4}
-                  .sy-basic-calendar__detail h4{margin:0;color:var(--moon-text-primary);font-family:var(--font-voice,"Noto Serif KR",serif);font-size:22px;line-height:1.35}
+                  .sy-basic-calendar__detail h4{margin:0;color:var(--moon-text-primary);font-family:var(--font-display);font-size:22px;line-height:1.35}
                   .sy-basic-calendar__detail-sub{margin:6px 0 0;color:var(--moon-text-secondary);font-size:13px;line-height:1.65;word-break:keep-all}
                   .sy-basic-calendar__cta{margin-top:14px;border:1px solid rgba(255,242,194,0.36);border-radius:10px;background:linear-gradient(135deg,#263058,#121832);color:var(--moon-star);padding:11px 22px;font-size:13px;font-weight:900;cursor:pointer;transition:opacity 120ms ease,transform 120ms ease,box-shadow 120ms ease;box-shadow:0 0 18px rgba(255,242,194,0.08)}
                   .sy-basic-calendar__cta:hover{opacity:.85;transform:translateY(-1px)}
@@ -41123,7 +41118,7 @@ html.neo-mode .tile-pvw-overlay.pvw-prem .tile-pvw-cta-sticky,body.neo-mode .til
     .cd-social-footer{box-sizing:border-box;width:min(760px,90%);margin:18px auto 0;padding:15px 14px;border:1px solid rgba(255,228,174,.34);border-radius:14px;background:linear-gradient(145deg,rgba(9,19,44,.92),rgba(12,23,52,.82) 58%,rgba(35,26,58,.72)),linear-gradient(120deg,rgba(255,220,160,.1),rgba(255,190,220,.07),rgba(135,183,255,.08));box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 16px 30px rgba(2,8,24,.34);text-align:center}
     .cd-social-footer__header{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px 12px}
     .cd-social-footer__kicker{color:#ffdca3;font-size:10px;font-weight:800;letter-spacing:.16em;text-transform:uppercase}
-    .cd-social-footer__title{color:#fff8e8;font-family:"Noto Serif KR","Iowan Old Style","Times New Roman",serif;font-size:clamp(1rem,1.7vw,1.18rem);line-height:1.35}
+    .cd-social-footer__title{color:#fff8e8;font-family:var(--font-display);font-size:clamp(1rem,1.7vw,1.18rem);line-height:1.35}
     .cd-social-footer__grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px;margin-top:12px}
     .cd-social-footer__link{--cd-social-accent:#dbeafe;--cd-social-border:rgba(219,234,254,.34);--cd-social-glow:rgba(219,234,254,.2);min-height:46px;display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--cd-social-border);border-radius:12px;background:rgba(5,12,28,.58);color:#f8fbff;font-size:12.5px;font-weight:800;line-height:1;text-decoration:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.08);transition:transform .22s ease,border-color .22s ease,background .22s ease,box-shadow .22s ease}
     .cd-social-footer__link:hover,.cd-social-footer__link:focus-visible{border-color:var(--cd-social-accent);background:rgba(255,255,255,.075);box-shadow:0 12px 26px var(--cd-social-glow),inset 0 1px 0 rgba(255,255,255,.12);outline:none;transform:translateY(-2px)}

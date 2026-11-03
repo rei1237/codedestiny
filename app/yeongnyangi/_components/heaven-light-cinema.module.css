@@ -7,18 +7,18 @@
 .card[data-deal=pending]{opacity:0;transform:translateY(24px) rotate(0) scale(.96)}
 .card[data-deal=go]{animation:dealCard 750ms var(--mv-ease) backwards}
 .card::before{content:"";position:absolute;inset:4px;z-index:2;border:1px solid var(--yn-gold);border-radius:calc(var(--mv-radius) - 4px);pointer-events:none}
-.numeral{position:absolute;top:-15px;left:50%;z-index:3;display:grid;place-items:center;min-width:48px;height:26px;padding-inline:12px;border:1px solid var(--yn-gold);border-radius:999px;transform:translateX(-50%);background:var(--yn-night);color:var(--yn-gold);font:700 .8125rem/1 "Yeongnyangi Myeongjo",serif;letter-spacing:.14em}
+.numeral{position:absolute;top:-15px;left:50%;z-index:3;display:grid;place-items:center;min-width:48px;height:26px;padding-inline:12px;border:1px solid var(--yn-gold);border-radius:999px;transform:translateX(-50%);background:var(--yn-night);color:var(--yn-gold);font:700 .8125rem/1 var(--font-display);letter-spacing:.14em}
 .art{display:block;flex:none;width:100%;aspect-ratio:4/5;overflow:hidden;border:1px solid var(--yn-gold);border-radius:calc(var(--mv-radius) - 8px);background:var(--yn-deep)}
 .art img{display:block;width:100%;height:100%;object-fit:cover;object-position:center 40%;transform:translate(var(--mv-px,0px),var(--mv-py,0px)) scale(1.04);transition:transform 450ms var(--mv-ease)}
 .copy{display:flex;flex-direction:column;align-items:center;padding:14px 10px 2px;text-align:center}
 .copy::before{content:"";width:28px;height:1px;margin-bottom:10px;background:var(--yn-gold)}
 .cinema .eyebrow{margin:0;font-size:var(--yn-t-caption);font-weight:700;line-height:1.5;letter-spacing:.08em;color:var(--yn-gold)}
-.cinema .name{margin:4px 0 0;font:700 clamp(1.4rem,5.4vw,1.65rem)/1.3 "Yeongnyangi Myeongjo",serif;letter-spacing:.05em;color:var(--yn-ivory)}
+.cinema .name{margin:4px 0 0;font:700 clamp(1.4rem,5.4vw,1.65rem)/1.3 var(--font-display);letter-spacing:.05em;color:var(--yn-ivory)}
 .cinema .cardLink{padding:0;border:0;background:none;color:inherit;font:inherit;letter-spacing:inherit;cursor:pointer}
 .cinema .cardLink::after{content:"";position:absolute;inset:0;z-index:4;border-radius:var(--mv-radius)}
 .cinema .cardLink:focus-visible{outline:none}
 .card:has(.cardLink:focus-visible){outline:3px solid var(--yn-gold);outline-offset:6px;transform:translateY(-12px) rotate(0) scale(1.025)}
-.cinema .line{margin:8px 0 0;font:400 .9375rem/1.65 "Yeongnyangi Myeongjo",serif;color:var(--yn-ivory);word-break:keep-all;text-wrap:balance}
+.cinema .line{margin:8px 0 0;font:400 .9375rem/1.65 var(--font-display);color:var(--yn-ivory);word-break:keep-all;text-wrap:balance}
 .cinema .meta{margin:6px 0 0;font-size:var(--yn-t-caption);line-height:1.5;color:var(--yn-muted)}
 .action{display:flex;align-items:center;justify-content:center;gap:6px;min-height:44px;margin-top:2px;color:var(--yn-gold);font-size:.8125rem;font-weight:700;letter-spacing:.02em}
 .foil{position:absolute;inset:8px 8px auto;aspect-ratio:4/5;z-index:3;overflow:hidden;border-radius:calc(var(--mv-radius) - 8px);pointer-events:none}
@@ -39,12 +39,12 @@
 .stage{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;min-width:0;width:min(1120px,100%,max(320px,calc((100vh - 340px) * 16 / 9)));width:min(1120px,100%,max(320px,calc((100dvh - 340px) * 16 / 9)))}
 .bar{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .cinema .kicker{margin:0;font-size:var(--yn-t-caption);font-weight:700;line-height:1.5;letter-spacing:.08em;color:var(--yn-gold)}
-.cinema .bar h2{margin:2px 0 0;font:700 clamp(1.25rem,3vw,1.75rem)/1.3 "Yeongnyangi Myeongjo",serif;letter-spacing:.05em;color:var(--yn-ivory)}
+.cinema .bar h2{margin:2px 0 0;font:700 clamp(1.25rem,3vw,1.75rem)/1.3 var(--font-display);letter-spacing:.05em;color:var(--yn-ivory)}
 .cinema .close{display:grid;place-items:center;flex:none;width:44px;height:44px;padding:0;border:1px solid var(--yn-line);border-radius:999px;background:var(--yn-night);color:var(--yn-ivory)}
 .screen{position:relative;aspect-ratio:16/9;overflow:hidden;border:1px solid var(--yn-line);border-radius:var(--yn-radius);background:var(--yn-deep)}
 .video{position:absolute;inset:0;display:block;width:100%;height:100%;background:var(--yn-deep)}
 /* 가사 자막은 글꼴·크기·바탕만 바꾼다. iOS 전체 화면에서는 시스템 자막 스타일이 우선한다. */
-.video::cue{font-family:"Yeongnyangi Myeongjo",serif;font-size:clamp(15px,2.1vw,22px);background:color-mix(in srgb,var(--yn-deep) 72%,transparent)}
+.video::cue{font-family:var(--font-display);font-size:clamp(15px,2.1vw,22px);background:color-mix(in srgb,var(--yn-deep) 72%,transparent)}
 .video:focus-visible{outline:3px solid var(--yn-gold);outline-offset:-3px}
 .cinema .cover{position:absolute;inset:0;display:block;width:100%;height:100%;padding:0;border:0;border-radius:inherit;background:linear-gradient(0deg,color-mix(in srgb,var(--yn-deep) 60%,transparent),transparent 45%);color:var(--yn-ivory);cursor:pointer}
 .cinema .cover:focus-visible{outline:3px solid transparent;outline-offset:-3px;box-shadow:inset 0 0 0 4px var(--yn-deep),inset 0 0 0 7px var(--yn-gold)}
@@ -54,7 +54,7 @@
 /* 영상 끝: 검게 닫힌 마지막 화면 위에서 운세로 잇는다. 다시 재생하면 사라진다. */
 .end{position:absolute;inset:0;display:grid;place-content:center;justify-items:center;gap:14px;padding:16px;background:radial-gradient(ellipse at 50% 50%,color-mix(in srgb,var(--yn-gold) 12%,transparent),transparent 62%),color-mix(in srgb,var(--yn-deep) 80%,transparent);text-align:center;animation:theatreIn 600ms ease-out both}
 .end::before{content:"";width:28px;height:1px;background:var(--yn-gold)}
-.cinema .endTitle{margin:0;font:700 clamp(1.125rem,3vw,1.75rem)/1.35 "Yeongnyangi Myeongjo",serif;letter-spacing:.04em;color:var(--yn-ivory);word-break:keep-all}
+.cinema .endTitle{margin:0;font:700 clamp(1.125rem,3vw,1.75rem)/1.35 var(--font-display);letter-spacing:.04em;color:var(--yn-ivory);word-break:keep-all}
 .endActions{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 10px}
 .cinema .endPrimary,.cinema .endSecondary{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 18px;border:1px solid var(--yn-gold);border-radius:var(--yn-btn-radius);background:var(--yn-gold);color:var(--yn-deep);font-size:.9375rem;font-weight:700}
 .cinema .endPrimary{box-shadow:0 0 18px color-mix(in srgb,var(--yn-gold) 35%,transparent)}

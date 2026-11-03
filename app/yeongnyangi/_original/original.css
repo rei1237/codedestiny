@@ -441,8 +441,8 @@
   --ivory: var(--yn-ivory);
   --muted: var(--yn-muted);
   --paper: #f7f0e8;
-  --serif: "Yeongnyangi Myeongjo", serif;
-  --sans: "Yeongnyangi Noto", sans-serif;
+  --serif: var(--font-display);
+  --sans: var(--font-body);
   color-scheme: dark;
 }
 .ynOriginal * {
@@ -583,7 +583,7 @@
 }
 .ynOriginal .brand small {
   display: block;
-  font-family: "CodeDestinySerifLatin", var(--sans);
+  font-family: var(--font-display);
   font-weight: 600;
   font-size: 7px;
   letter-spacing: 2.6px;
@@ -1390,7 +1390,7 @@
   margin-top: 7px;
 }
 .ynOriginal .footer > span {
-  font-family: "CodeDestinySerifLatin", var(--sans);
+  font-family: var(--font-display);
   font-weight: 600;
   font-size: 8px;
   letter-spacing: 2px;
