@@ -25,4 +25,14 @@
 
 공개 웹에서 확인된 주소는 [개인정보처리방침](https://code-destiny.com/privacy/), [이용약관](https://code-destiny.com/terms/), [문의](https://code-destiny.com/contact/)다. 2026-11-04에 세 주소와 [환불 안내](https://code-destiny.com/refund-policy/)의 HTTP HEAD 200 응답을 확인했다. 본문은 검색 도구의 캐시로 확인했으며 토스 앱 내 연결은 미검증이다. 공개 개인정보 문서는 웹 가입 및 포트원·이니시스 중심으로 설명하므로 토스 로그인·인앱결제의 실제 처리·국외 이전·삭제 절차를 충족한다고 판단할 수 없다.
 
+## 공식 기준별 미완료 체크리스트
+
+- [ ] [비게임 출시 가이드](https://developers-apps-in-toss.toss.im/checklist/app-nongame): 등록할 기능의 직접 진입, 뒤로가기·닫기·홈, 기기 변경 후 기록과 접근성을 실제 기기에서 확인한다. `apps/toss/src/main.tsx`, `apps/toss/service/Screens.jsx`만으로 전체 경로 통과를 뜻하지 않는다.
+- [ ] 같은 가이드의 라이트 모드·핀치 줌·권한 거부·속도·브리지 중복 호출을 확인한다. `apps/toss/apps-in-toss.config.ts`는 내비게이션을 light로 설정하지만 원본 결과 화면 CSS와 viewport는 별도 검증이 필요하다.
+- [ ] [서비스 오픈 정책](https://developers-apps-in-toss.toss.im/intro/guide): 토스 로그인만 사용하고 디지털 상품은 인앱 결제로 처리하며, 주요 기능을 외부 사이트나 중첩 웹뷰로 넘기지 않는다. 각 콘텐츠의 사전 AI 고지·결과 표시 및 금지 표현도 검토한다.
+- [ ] [토스 로그인 안내](https://developers-apps-in-toss.toss.im/guide/authentication/intro): 실제 수집 항목·약관 URL·국외 이전·연결 해제 콜백 및 재연결 처리를 콘솔 설정과 대조한다. 앱 내 임시 고지는 최종 방침이 아니다.
+- [ ] [인앱 결제 안내](https://developers-apps-in-toss.toss.im/guide/monetization/in-app-payment): 상품명·유형·SKU·실제 가격·승인 상태를 대조하고, 결제 전 권한과 취소·실패·중복·환불·미결 주문 복구를 공식 테스트 환경과 기기에서 확인한다.
+- [ ] [미니앱 등록 안내](https://developers-apps-in-toss.toss.im/guide/operation/console-workspace): 앱 이름·카테고리·600×600 로고·스크린샷·설명·주요 기능과 심사 재현 절차를 실제 출시 내용에 맞게 준비한다.
+- [ ] [토스 앱 테스트 안내](https://developers-apps-in-toss.toss.im/guide/operation/toss): 최신 번들을 올린 테스트 스킴으로 출시 대상 전체 경로를 검증한다. 실제 과금이 필요한 경우 별도 승인 전 진행하지 않는다.
+
 실결제, 유료 LLM, 운영 DB 접근을 개발 테스트에 사용하지 않는다. 최종 제출은 전체 차단 항목 해소, main CI 확인, 제출 내용·잔여 위험 설명 및 사용자 승인 후에만 한다.
