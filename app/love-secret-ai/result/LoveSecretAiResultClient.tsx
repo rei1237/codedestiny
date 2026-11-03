@@ -839,7 +839,7 @@ function buildResultEndpoint() {
   return `/api/love-secret-ai/result${query.toString() ? `?${query.toString()}` : ""}`;
 }
 
-export default function LoveSecretAiResultClient() {
+export default function LoveSecretAiResultClient({ paymentSurface }: { paymentSurface?: "toss" } = {}) {
   const copy = useLoveSecretResultCopy();
   const [consultation, setConsultation] = useState<Consultation | null>(null);
   const [loading, setLoading] = useState(true);
@@ -874,6 +874,7 @@ export default function LoveSecretAiResultClient() {
           : await authFetch(buildResultEndpoint());
         const payload = await response.json().catch(() => ({})) as Consultation;
         if (!alive || !isCurrent()) return;
+        if (paymentSurface === "toss" && response.status === 403) { setConsultation(null); setPending(false); setError("구매 내역에 접근할 권한을 확인할 수 없어요. 구매한 계정과 주문 내역을 확인해 주세요."); return; }
         const resumeId = payload.sessionId || payload.resultId;
         if ((payload.status === "partial" || payload.reason === "RESULT_STORAGE_UNAVAILABLE") && resumeId) {
           if (payload.status === "partial") setConsultation(payload);
@@ -887,6 +888,7 @@ export default function LoveSecretAiResultClient() {
             if (!alive || !isCurrent()) return;
             const next = await resumed.json().catch(() => ({})) as Consultation;
             if (!alive || !isCurrent()) return;
+            if (paymentSurface === "toss" && resumed.status === 403) { setConsultation(null); setPending(false); setError("구매 내역에 접근할 권한을 확인할 수 없어요. 구매한 계정과 주문 내역을 확인해 주세요."); return; }
             if (!resumed.ok) throw new Error(next.message || copy.loadResultFailedError);
             if (next.status === "completed" && next.saved === true) {
               setConsultation(next); setPending(false); return;
@@ -934,7 +936,7 @@ export default function LoveSecretAiResultClient() {
     // 마운트 시 1회만 로드한다; 로딩 중 로케일이 바뀌어도 진행 중인 폴링을 재시작하지 않는다
     // (copy.* 는 에러 메시지 문구일 뿐 재요청 트리거가 아니다).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reloadEpoch]);
+  }, [reloadEpoch, paymentSurface]);
 
   // 스크롤 진행률은 리렌더 없이 DOM 에 직접 쓴다(스크롤 프레임마다 setState 하면 결과 전체가 다시 그려진다).
   useEffect(() => {

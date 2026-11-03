@@ -3,9 +3,9 @@ import {LazyMotion,domAnimation} from 'framer-motion';
 import {SafeArea,graniteEvent} from '@apps-in-toss/web-framework';
 import {ToastProvider} from '@/app/components/Toast';
 import {clearClientAuthState} from '@/app/_lib/auth-client';
-import {refreshAuth} from '@/app/_lib/auth-store';
+import {refreshAuth,handleSessionInvalidated} from '@/app/_lib/auth-store';
 import {SERVICE_AVAILABLE} from '../src/release';
-import {canonicalResponse,restoreSession,recoverAfterAuthentication,login,isToss} from '../src/platform';
+import {canonicalResponse,restoreSession,recoverAfterAuthentication,onSessionInvalidated,login,isToss} from '../src/platform';
 import {createServiceFetch} from './transport.mjs';
 import Checkout from './Checkout';
 import YeongnyangiLayout from '@/app/yeongnyangi/layout';
@@ -60,10 +60,10 @@ export default function ServiceScreens(){
   const offHome=graniteEvent.addEventListener('homeEvent',{onEvent:()=>location.assign('/')});
   return()=>{offArea();offBack();offHome();document.documentElement.style.removeProperty('--toss-service-bottom');};
  },[]);
- useEffect(()=>{install();let live=true;clearClientAuthState();const showError=error=>{if(!live||error?.code==='SESSION_CHANGED')return;if(error?.status===401)clearClientAuthState();if(SERVICE_AVAILABLE)setRecoveryMessage(error?.status===403?'구매 내역에 접근할 권한을 확인할 수 없어요. 구매한 계정과 주문 내역을 확인해 주세요.':['IAP_NOT_SUPPORTED','UNSUPPORTED_APP_VERSION'].includes(error?.code)?'현재 토스 앱에서는 구매 복구를 지원하지 않아요. 앱 업데이트 후 다시 확인해 주세요.':'구매 내역을 확인하지 못했어요. 추가 결제 전에 로그인과 연결 상태를 확인해 주세요.');};void restoreSession().then(async authenticated=>{if(!authenticated)return;await refreshAuth({force:true});if(live)setReady(true);try{const notice=await recoverAfterAuthentication(true);if(live&&notice)setRecoveryMessage(notice);}catch(error){showError(error);}finally{if(live)setRecoveryEpoch(value=>value+1);}}).catch(showError).finally(()=>{if(live)setReady(true);});return()=>{live=false;};},[]);
+ useEffect(()=>{install();let live=true;const offSession=onSessionInvalidated(()=>handleSessionInvalidated({redirect:false}));clearClientAuthState();const showError=error=>{if(!live||error?.code==='SESSION_CHANGED')return;if(error?.status===401)clearClientAuthState();if(SERVICE_AVAILABLE)setRecoveryMessage(error?.status===403?'구매 내역에 접근할 권한을 확인할 수 없어요. 구매한 계정과 주문 내역을 확인해 주세요.':['IAP_NOT_SUPPORTED','UNSUPPORTED_APP_VERSION'].includes(error?.code)?'현재 토스 앱에서는 구매 복구를 지원하지 않아요. 앱 업데이트 후 다시 확인해 주세요.':'구매 내역을 확인하지 못했어요. 추가 결제 전에 로그인과 연결 상태를 확인해 주세요.');};void restoreSession().then(async authenticated=>{if(!authenticated)return;await refreshAuth({force:true});if(live)setReady(true);try{const notice=await recoverAfterAuthentication(true);if(live&&notice)setRecoveryMessage(notice);}catch(error){showError(error);}finally{if(live)setRecoveryEpoch(value=>value+1);}}).catch(showError).finally(()=>{if(live)setReady(true);});return()=>{live=false;offSession();};},[]);
  const recoveryBanner=recoveryMessage?<div role="status"><p>{recoveryMessage}</p><a href="/recovery">구매 내역 복구하기</a></div>:null;
- if(location.pathname.startsWith('/life-book-ai')){const Screen=location.pathname.includes('/result')?LifeBookResult:LifeBook;return <LazyMotion features={domAnimation}><ToastProvider/>{recoveryBanner}{ready?<Suspense fallback={<p role="status">인생의 책을 열고 있어요.</p>}><Screen/></Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</LazyMotion>;}
- if(location.pathname.startsWith('/love-secret-ai')){const Screen=location.pathname.includes('/result')?LoveSecretResult:LoveSecret;return <LazyMotion features={domAnimation}><ToastProvider/>{recoveryBanner}{ready?<Suspense fallback={<p role="status">연애 비책을 열고 있어요.</p>}><Screen/></Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</LazyMotion>;}
+ if(location.pathname.startsWith('/life-book-ai')){const Screen=location.pathname.includes('/result')?LifeBookResult:LifeBook;return <LazyMotion features={domAnimation}><ToastProvider/>{recoveryBanner}{ready?<Suspense fallback={<p role="status">인생의 책을 열고 있어요.</p>}><Screen {...(Screen===LifeBookResult?{paymentSurface:'toss'}:{})}/></Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</LazyMotion>;}
+ if(location.pathname.startsWith('/love-secret-ai')){const Screen=location.pathname.includes('/result')?LoveSecretResult:LoveSecret;return <LazyMotion features={domAnimation}><ToastProvider/>{recoveryBanner}{ready?<Suspense fallback={<p role="status">연애 비책을 열고 있어요.</p>}><Screen {...(Screen===LoveSecretResult?{paymentSurface:'toss'}:{})}/></Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</LazyMotion>;}
  if(location.pathname.startsWith('/fusion-fortune'))return <LazyMotion features={domAnimation}><ToastProvider/>{recoveryBanner}{ready?<Suspense fallback={<p role="status">초융합 운세를 열고 있어요.</p>}><Fusion/></Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</LazyMotion>;
  const tea=location.pathname.startsWith('/fortune-tea-house');
  if(location.pathname.startsWith('/neo-operation-room')){

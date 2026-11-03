@@ -12,9 +12,10 @@ export function createServiceFetch({nativeFetch,send,origin}) {
         const response=await send('/canonical'+url.pathname.slice('/api'.length)+url.search,request);
         if(response.ok)return response;
         const payload=await response.clone().json().catch(()=>null);
-        if(typeof payload?.error==='string'||[401,403].includes(response.status)&&payload&&typeof payload==='object'){
-          const headers=new Headers(response.headers);headers.delete('content-length');
-          return Response.json({...payload,...(typeof payload.error==='string'?{code:payload.error,error:{code:payload.error}}:{}),...(response.status===403?{message:'구매 내역에 접근할 권한을 확인할 수 없어요. 구매한 계정과 주문 내역을 확인해 주세요.'}:response.status===401?{message:'기록과 구매를 확인하려면 토스 로그인이 필요해요.'}:{})},{status:response.status,headers});
+        if(typeof payload?.error==='string'||[401,403].includes(response.status)){
+          const headers=new Headers(response.headers);headers.delete('content-length');headers.set('content-type','application/json');
+          const body=payload&&typeof payload==='object'&&!Array.isArray(payload)?payload:{};
+          return Response.json({...body,...(typeof body.error==='string'?{code:body.error,error:{code:body.error}}:[401,403].includes(response.status)&&!body.error?{code:response.status===401?'LOGIN_REQUIRED':'ACCESS_DENIED',error:{code:response.status===401?'LOGIN_REQUIRED':'ACCESS_DENIED'}}:{}),...(response.status===403?{message:'구매 내역에 접근할 권한을 확인할 수 없어요. 구매한 계정과 주문 내역을 확인해 주세요.'}:response.status===401?{message:'기록과 구매를 확인하려면 토스 로그인이 필요해요.'}:{})},{status:response.status,headers});
         }
         return response;
       }

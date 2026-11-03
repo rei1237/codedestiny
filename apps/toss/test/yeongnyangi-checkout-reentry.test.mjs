@@ -19,7 +19,7 @@ const bundle=await build({entryPoints:[source],bundle:true,write:false,platform:
   export default function Checkout({draft}){globalThis.checkoutReentry.drafts.push(draft);return React.createElement('div',{'data-checkout':true},draft.product.name);}
   export const canonicalResponse=(...args)=>globalThis.checkoutReentry.send(...args);
   export const LazyMotion=()=>null,domAnimation={},SafeArea={},graniteEvent={},ToastProvider=()=>null;
-  export const clearClientAuthState=()=>{},refreshAuth=()=>{},SERVICE_AVAILABLE=false,restoreSession=()=>{},recoverAfterAuthentication=()=>{},login=()=>{},isToss=()=>false,createServiceFetch=()=>{};
+  export const clearClientAuthState=()=>{},refreshAuth=()=>{},handleSessionInvalidated=()=>{},SERVICE_AVAILABLE=false,restoreSession=()=>{},recoverAfterAuthentication=()=>{},onSessionInvalidated=()=>()=>{},login=()=>{},isToss=()=>false,createServiceFetch=()=>{};
  `}));
 }}]});
 const loaded=new Module(path.resolve(import.meta.dirname,'checkout-reentry.cjs'));

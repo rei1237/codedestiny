@@ -1372,7 +1372,7 @@ function ChapterProse({ value = "", live, className }: { value?: string; live: b
   );
 }
 
-function LifeBookResultContent() {
+function LifeBookResultContent({ paymentSurface }: { paymentSurface?: "toss" }) {
   const copy = useLifeBookResultCopy();
   const params = useSearchParams();
   const attemptId = toText(params?.get("attemptId") || params?.get("sessionId") || "");
@@ -1413,6 +1413,7 @@ function LifeBookResultContent() {
         : await authFetch(`/api/life-book-ai/result?attemptId=${encodeURIComponent(attemptId)}`);
       let payload = await response.json().catch(() => ({})) as LifeBookResult;
       if (!isCurrent()) return;
+      if (paymentSurface === "toss" && response.status === 403) { setResult(null); setError("구매 내역에 접근할 권한을 확인할 수 없어요. 구매한 계정과 주문 내역을 확인해 주세요."); setLoading(false); return; }
       if (response.status === 202 && ["partial", "delivery_pending"].includes(payload.status || "")) {
         setResult(payload); setLoading(false);
         if (document.hidden || resumeCallsRef.current >= 12) return;
@@ -1425,6 +1426,7 @@ function LifeBookResultContent() {
           });
           const next = await resumed.json().catch(() => ({})) as LifeBookResult;
           if (!isCurrent()) return;
+          if (paymentSurface === "toss" && resumed.status === 403) { setResult(null); setError("구매 내역에 접근할 권한을 확인할 수 없어요. 구매한 계정과 주문 내역을 확인해 주세요."); setLoading(false); return; }
           if (!resumed.ok || next.ok === false) throw new Error(toText(next.message) || copy.loadFailed);
           payload = next;
           setResult(next); setError("");
@@ -1480,7 +1482,7 @@ function LifeBookResultContent() {
     } finally {
       if (isCurrent()) setLoading(false);
     }
-  }, [attemptId, pending, copy, captureDeliveryScope]);
+  }, [attemptId, pending, copy, captureDeliveryScope, paymentSurface]);
 
   useEffect(() => {
     void loadResult();
@@ -1993,10 +1995,10 @@ function LifeBookResultContent() {
   );
 }
 
-export default function LifeBookAiResultClient() {
+export default function LifeBookAiResultClient({ paymentSurface }: { paymentSurface?: "toss" } = {}) {
   return (
     <Suspense fallback={<LoadingState />}>
-      <LifeBookResultContent />
+      <LifeBookResultContent paymentSurface={paymentSurface} />
     </Suspense>
   );
 }

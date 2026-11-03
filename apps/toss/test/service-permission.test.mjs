@@ -11,3 +11,7 @@ for(const payload of [{error:'ORDER_OWNERSHIP_MISMATCH'},{reason:'RESULT_NOT_AVA
 test('transport keeps a returned 401 code and requests login',async()=>{
  const request=createServiceFetch({origin:'https://miniapp.example',nativeFetch:()=>{throw Error('web fallback forbidden');},send:async()=>Response.json({error:'SESSION_EXPIRED'},{status:401})});const response=await request('/api/life-book-ai/result'),body=await response.json();assert.equal(response.status,401);assert.equal(body.error.code,'SESSION_EXPIRED');assert.match(body.message,/로그인/);
 });
+
+for(const status of [401,403])test('transport retains '+status+' for a non-JSON upstream response',async()=>{
+ const request=createServiceFetch({origin:'https://miniapp.example',nativeFetch:()=>{throw Error('web fallback forbidden');},send:async()=>new Response('gateway failure',{status,headers:{'content-type':'text/html'}})});const response=await request('/api/records'),body=await response.json();assert.equal(response.status,status);assert.equal(response.headers.get('content-type'),'application/json');assert.match(body.message,status===401?/로그인/:/접근할 권한/);assert.equal(body.code,status===401?'LOGIN_REQUIRED':'ACCESS_DENIED');
+});
