@@ -53,7 +53,7 @@ export default function DiaryRecordCard() {
   const percent = total > 0 ? Math.round((Math.min(done, total) / total) * 100) : 0;
 
   return (
-    <section className={styles.card} aria-label={copy.title}>
+    <section id="diary-today-record" className={`${styles.card} ${styles.recordAnchor}`} aria-label={copy.title}>
       <header className={styles.cardHead}>
         <h2 className={styles.cardTitle}>{copy.title}</h2>
       </header>

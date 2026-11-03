@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import DiaryStoreProvider, { useDiaryToday, useDiaryWriter } from "@/app/diary/_components/DiaryStoreProvider";
+import { useDiaryToday, useDiaryWriter } from "@/app/diary/_components/DiaryStoreProvider";
 import { smallActionsFor, pickSmallAction, type DiarySmallAction } from "@/app/diary/_lib/small-action-pool";
 import { toggleTodo } from "@/app/diary/_lib/ext-writes";
 import { dayGroupOf } from "@/lib/diary/fortune-adapter";
@@ -20,8 +20,8 @@ type Product = { productId: string; title: string; honeyCost: number };
 type Status = "loading" | "guest" | "ready" | "error";
 const QUEST_PREFIX = "home-quest:";
 
-function DailyContent() {
-  const { hydrated, ymd, ext, entry, chart } = useDiaryToday();
+export default function HomeDaily() {
+  const { hydrated, ymd, ext, chart } = useDiaryToday();
   const { updateExtDay, refresh } = useDiaryWriter();
   const [status, setStatus] = useState<Status>("loading");
   const [honey, setHoney] = useState<Honey | null>(null);
@@ -114,7 +114,7 @@ function DailyContent() {
       <img src="/images/yeoni/welcome/yeoni-mark-v1-96.webp" width="64" height="64" alt="" /></div>
     <div className={styles.story}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/images/home/yeoni-daily-journal-v1.webp" width="960" height="540" alt="다이어리를 쓰는 꽃돼지 연이" /><p>“오늘은 어떤 작은 이야기를 남겨볼까요?” <span>— 연이</span></p></div>
+      <img src="/images/home/yeoni-diary-garden-v1.webp" width="960" height="492" alt="다이어리를 쓰는 꽃돼지 연이" /><p>“오늘은 어떤 작은 이야기를 남겨볼까요?” <span>— 연이</span></p></div>
     <div className={styles.topline}>
       <div className={styles.profile}><span className={styles.label}>나의 운명 카드</span><strong>{status === "loading" ? "확인 중이에요" : status === "guest" ? "로그인하고 내 카드 만나기" : profile ? `${profile.name || "나의"} 카드` : status === "error" ? "프로필을 확인해 주세요" : "프로필 카드 확인하기"}</strong>
         {progress && <div className={styles.growth}><strong>Lv. {progress.currentLevel}</strong><progress value={progress.currentLevelExp} max={Math.max(1, progress.nextLevelExp)} aria-label="다음 레벨까지의 경험치" /><small>계정 공통 경험치 {progress.currentLevelExp} / {progress.nextLevelExp}</small></div>}
@@ -123,7 +123,7 @@ function DailyContent() {
         {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
         <a href="/ggulggul/?action=dpOpenList">카드 관리 <span aria-hidden="true">→</span></a></div>
       <div className={styles.honey}><span className={styles.label}>나의 꿀방울</span><strong>{status === "ready" && honey ? `${honey.balance}방울` : "출석하고 모아보세요"}</strong>
-        {status === "ready" && honey ? <><p>{honey.streak > 0 ? `${honey.streak}일 연속 출석 · ` : ""}보너스까지 {honey.nextBonusIn}일</p><div className={styles.days} aria-label={`연속 출석 ${honey.streak}일, 다음 보너스까지 ${honey.nextBonusIn}일`}>{Array.from({ length: Math.min(honey.streakEvery, 14) }, (_, index) => <span key={index} className={index < (honey.streak % honey.streakEvery || (honey.attended && honey.streak > 0 ? honey.streakEvery : 0)) ? styles.dayDone : ""} aria-hidden="true">{index + 1}</span>)}</div><button type="button" disabled={busy || honey.attended} onClick={() => void loadHoney("POST")}>{busy ? "출석 확인 중" : honey.attended ? "출석 완료" : "오늘 출석하기"}</button></> : status === "guest" ? <Link className={styles.button} href="/login/?next=%2F%23daily-home-title">로그인하고 출석하기</Link> : status === "error" ? <button type="button" onClick={() => { setStatus("loading"); void loadHoney(); }}>다시 확인하기</button> : <p>출석 정보를 확인하고 있어요.</p>}
+        {status === "ready" && honey ? <><p>{honey.streak > 0 ? `${honey.streak}일 연속 출석 · ` : ""}보너스까지 {honey.nextBonusIn}일</p><div className={styles.days} aria-label={`연속 출석 ${honey.streak}일, 다음 보너스까지 ${honey.nextBonusIn}일`}>{Array.from({ length: Math.min(honey.streakEvery, 14) }, (_, index) => <span key={index} className={index < (honey.streak % honey.streakEvery || (honey.attended && honey.streak > 0 ? honey.streakEvery : 0)) ? styles.dayDone : ""} aria-hidden="true">{index + 1}</span>)}</div><button type="button" disabled={busy || honey.attended} onClick={() => void loadHoney("POST")}>{busy ? "출석 확인 중" : honey.attended ? "출석 완료" : "오늘 출석하기"}</button></> : status === "guest" ? <Link className={styles.button} href="/login/?next=%2Fdiary%2F%23daily-home-title">로그인하고 출석하기</Link> : status === "error" ? <button type="button" onClick={() => { setStatus("loading"); void loadHoney(); }}>다시 확인하기</button> : <p>출석 정보를 확인하고 있어요.</p>}
       </div>
     </div>
     <p className={styles.rule}>{honey ? `${honey.attendanceEvery === 1 ? "하루 한 번 출석하면 1방울, " : "출석 보상과 "}${honey.streakEvery}일 연속 출석마다 추가 ${honey.streakBonus}방울을 받을 수 있어요.` : "출석으로 꿀방울을 모아보세요."} 꿀방울은 지정된 상품에서 사용할 수 있어요.</p>
@@ -132,9 +132,7 @@ function DailyContent() {
       {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
       <a href="/ggulggul/?action=cdOpenAllFortunes">꿀꿀 운세에서 더 살펴보기</a></details>
     <div className={styles.quest}><div><span className={styles.label}>오늘의 개운 퀘스트</span><h3>{quest ? quest.text : picked?.action.name || "오늘의 작은 행동을 고르고 있어요"}</h3><p>{quest ? savedAction?.tip || "오늘 고른 작은 행동을 실천해 보세요." : picked?.action.tip || "잠시만 기다려 주세요."}</p></div><div className={styles.actions}>{quest ? <button type="button" aria-pressed={Boolean(quest.done)} onClick={toggleQuest}>{quest.done ? "실천 완료 · 되돌리기" : "실천 완료하기"}</button> : <><button type="button" disabled={!picked} onClick={selectQuest}>오늘의 실천으로 담기</button><button type="button" className={styles.secondary} disabled={!picked} onClick={() => setPicked(pickSmallAction(pool, picked?.index ?? -1))}>다른 행동 보기</button></>}</div></div>
-    <div className={styles.diary}><div><strong>운기 다이어리</strong><p>{entry && (entry.memoNote || entry.nightLog || entry.moodEmoji || entry.reviewNote) ? "오늘의 기록을 이어서 살펴보세요." : "오늘의 마음을 한 줄 남겨보세요."}</p><small>기록은 이 기기의 브라우저에 저장돼요.</small></div><Link href="/diary/" onClick={() => trackEvent("daily_home_diary_open", { surface: "home" })}>다이어리 열기 <span aria-hidden="true">→</span></Link></div>
+    <div className={styles.diary}><div><strong>오늘의 기록</strong><p>아래에서 오늘 한 줄을 남겨요.</p></div><a href="#diary-today-record">기록하러 가기 <span aria-hidden="true">↓</span></a></div>
     <p className={styles.footnote}>퀘스트는 일상을 위한 작은 제안이에요. 꿀방울은 지급되지 않으며, 로그인하면 기존 성장 규칙에 따라 경험치를 쌓을 수 있어요.</p>
   </section>;
 }
-
-export default function HomeDaily() { return <DiaryStoreProvider><DailyContent /></DiaryStoreProvider>; }

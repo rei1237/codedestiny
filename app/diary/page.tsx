@@ -1,3 +1,4 @@
+import HomeDaily from "@/app/components/HomeDaily";
 import DiaryFlowCard from "./_components/DiaryFlowCard";
 import DiaryPlanCard from "./_components/DiaryPlanCard";
 import DiaryRecordCard from "./_components/DiaryRecordCard";
@@ -12,6 +13,7 @@ import DiarySelfCard from "./_components/DiarySelfCard";
 export default function DiaryHomePage() {
   return (
     <>
+      <HomeDaily />
       <DiaryFlowCard />
       <DiarySelfCard />
       <DiaryPlanCard />

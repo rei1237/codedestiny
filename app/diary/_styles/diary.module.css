@@ -191,7 +191,7 @@ html[data-cd-theme="neo"] .shell {
   height: var(--cd-btn-h);
   padding: 0;
   border: 1px solid var(--dy-line-ui);
-  border-radius: var(--cd-r-control);
+  border-radius: var(--cd-r-pill);
   background: transparent;
   color: var(--dy-text);
   font-size: var(--cd-t-body);
@@ -321,7 +321,10 @@ html[data-cd-theme="neo"] .shell {
   border: 1px solid var(--dy-line);
   border-radius: var(--cd-r-card);
   background: var(--dy-surface-2);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--dy-text) 7%, transparent);
 }
+
+.recordAnchor { scroll-margin-top: 5rem; }
 
 /* 첫 카드만 강조선을 준다 — 홈에서 가장 먼저 읽어야 하는 것이 오늘의 결이다. */
 .cardLead {

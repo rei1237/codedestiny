@@ -1,5 +1,7 @@
-.daily { width: min(100%, 720px); box-sizing: border-box; padding: clamp(20px, 4vw, 32px); border: 1px solid var(--cd-border); border-radius: var(--cd-r-section); background: var(--cd-surface); color: var(--cd-text); box-shadow: 0 12px 32px color-mix(in srgb, var(--cd-text) 9%, transparent); }
+.daily { width: min(100%, 720px); margin-inline: auto; box-sizing: border-box; padding: clamp(20px, 4vw, 32px); border: 1px solid var(--cd-border); border-radius: var(--cd-r-section); background: var(--cd-surface); color: var(--cd-text); box-shadow: 0 12px 32px color-mix(in srgb, var(--cd-text) 9%, transparent); }
 .intro { margin-bottom: 20px; }
+.daily h2 { margin: 0; color: var(--cd-text); font-family: var(--font-display, inherit); }
+.daily h3 { color: var(--cd-text); }
 .daily .intro h2 { font-size: var(--cd-t-section); line-height: 1.35; }
 .daily p { margin: 0; }
 .intro p, .rule, .footnote, .diary small { color: var(--cd-text-muted); font-size: .875rem; }
@@ -8,7 +10,7 @@
 .label { color: var(--cd-text-muted); font-size: .8rem; font-weight: 700; }
 .profile strong, .honey strong { font-size: 1.1rem; }
 .daily a { display: inline-flex; align-items: center; min-height: 44px; font-weight: 700; text-decoration-thickness: 1px; }
-.daily button, .daily .button { min-height: 44px; border: 1px solid var(--cd-text); border-radius: var(--cd-r-control); padding: 8px 16px; background: var(--cd-text); color: var(--cd-bg); font: inherit; font-weight: 700; cursor: pointer; text-decoration: none; }
+.daily button, .daily .button { min-height: 44px; border: 1px solid var(--cd-text); border-radius: var(--cd-r-pill); padding: 8px 16px; background: var(--cd-text); color: var(--cd-bg); font: inherit; font-weight: 700; cursor: pointer; text-decoration: none; }
 .daily button:disabled { opacity: .65; cursor: default; }
 .daily :where(button, a):focus-visible { outline: 2px solid var(--cd-focus-ring); outline-offset: 3px; }
 .honey p { font-size: .875rem; color: var(--cd-text-muted); }
@@ -27,7 +29,7 @@
 .intro img { width: 64px; height: 64px; object-fit: contain; flex: none; }
 .story { position: relative; overflow: hidden; border-radius: var(--cd-r-card); background: var(--cd-bg); margin-bottom: 16px; }
 .story img { display: block; width: 100%; height: clamp(150px, 31vw, 230px); object-fit: cover; object-position: center 52%; }
-.story p { position: absolute; inset: auto 12px 12px; width: fit-content; max-width: calc(100% - 24px); padding: 8px 12px; border-radius: var(--cd-r-control); background: var(--cd-surface); color: var(--cd-text); font-size: .875rem; font-weight: 700; box-shadow: 0 4px 16px color-mix(in srgb, var(--cd-text) 18%, transparent); }
+.story p { padding: 10px 14px; background: var(--cd-surface); color: var(--cd-text); font-size: .875rem; font-weight: 700; }
 .story p span { white-space: nowrap; font-weight: 400; }
 .growth { width: 100%; display: grid; grid-template-columns: auto 1fr; align-items: center; column-gap: 8px; }
 .growth strong { font-size: .9rem; }
@@ -41,10 +43,10 @@
 .rewards ul { list-style: none; padding: 0; margin: 6px 0 12px; }
 .rewards li { display: flex; justify-content: space-between; gap: 12px; font-size: .875rem; }
 .rewards a { font-size: .875rem; }
-@media (max-width: 600px) { .daily { padding: 18px; } .intro img { width: 48px; height: 48px; } .story img { height: 120px; } }
+@media (max-width: 600px) { .daily { padding: 18px; } .intro img { width: 48px; height: 48px; } .story img { height: 150px; object-position: 65% center; } }
 @media (max-width: 350px) { .topline { grid-template-columns: 1fr; } }
 .days { display: flex; gap: 3px; flex-wrap: wrap; }
-.days span { display: grid; place-items: center; width: 22px; height: 22px; border: 1px solid var(--cd-border); border-radius: var(--cd-r-pill); font-size: .75rem; }
+.days span { display: grid; place-items: center; width: 26px; height: 26px; border: 1px solid var(--cd-border); border-radius: var(--cd-r-pill); font-size: .75rem; }
 .days .dayDone { background: var(--cd-accent); color: var(--cd-bg); border-color: var(--cd-accent); font-weight: 700; }
 .growth progress { appearance: none; border: 0; border-radius: var(--cd-r-pill); overflow: hidden; background: var(--cd-border); }
 .growth progress::-webkit-progress-bar { background: var(--cd-border); }
