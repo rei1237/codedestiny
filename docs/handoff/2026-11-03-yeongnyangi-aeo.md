@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-11-03
-next: "승인 패킷(D:\\Development\\seo-audit\\code-destiny-20261103\\approval-packet.md)의 push·승격 승인을 받은 뒤 그 순서대로 진행한다"
+next: "승격 28일 뒤 이후 같은 질문 세트로 재측정한다. 그 전에는 아래 소유자 수동 작업만 남는다"
 ---
 
 # 영냥이 AEO/GEO 개선
@@ -10,15 +10,11 @@ next: "승인 패킷(D:\\Development\\seo-audit\\code-destiny-20261103\\approval
 
 AI 검색과 검색엔진이 꿀꿀 운세의 영냥이, 특히 5,000원 고등어 상담을 정확한 사실로 찾아 인용할 수 있게 만든다. 추천을 보장하는 작업이 아니다.
 
-## 첫 행동
-
-1. 워크트리: `D:\Development\codedestiny-worktrees\yeongnyangi-aeo-20261103-140559`, 브랜치 `wt/yeongnyangi-aeo-20261103-140559`.
-2. 승인 패킷을 읽는다. push와 운영 승격은 승인 전에는 하지 않는다.
-3. push 직전에 `git fetch origin`, 리베이스, `npm run sitemap:generate`로 원장을 다시 만든다. `config/sitemap-lastmod.json` 충돌은 병합하지 말고 재생성한다.
-
 ## 지금 상태
 
-코드와 문서는 워크트리에 커밋되어 있고, push·배포는 하지 않았다. 증거는 `D:\Development\seo-audit\code-destiny-20261103\`에 있다. AI 질문 세트 원문은 그 아래 `ai-baseline\`이다.
+코드와 문서는 main에 올렸다. 운영 반영 여부와 SHA는 `docs/handoff/2026-11-01-seo-architecture-rebuild.md`의 "지금 상태"를 본다. 증거는 `D:\Development\seo-audit\code-destiny-20261103\`에 있다. AI 질문 세트 원문은 그 아래 `ai-baseline\`이다.
+
+대운·세운 가이드(`app/insights/adsense-ready-articles.js`)에는 영냥이 링크를 넣지 않았다. 원고가 `docs/adsense/review/ai-editorial-reviews.json`에 해시로 고정되어 있어, 넣으려면 편집 검수를 다시 받아야 한다.
 
 ## 소유자 수동 작업
 
