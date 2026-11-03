@@ -87,7 +87,21 @@ export async function login(){
   try{session=await api<{token:string}>('/login',code);}catch(error){if(attempt!==loginAttempt)throw new ApiError('SESSION_CHANGED','',409);throw error;}
   if(attempt!==loginAttempt)throw new ApiError('SESSION_CHANGED','',409);
   token=session.token;const writeEpoch=++sessionEpoch,sessionToken=token;
-  await queueStorage(async()=>{if(sessionEpoch===writeEpoch)await Storage.setItem('toss-session',sessionToken);});
+  try{await queueStorage(async()=>{if(sessionEpoch===writeEpoch)await Storage.setItem('toss-session',sessionToken);});}
+  catch(error){
+    if(sessionEpoch===writeEpoch&&token===sessionToken){
+      const clearing=clearSession(false),cleared=sessionEpoch;
+      for(const listener of sessionListeners){if(token!==null||sessionEpoch!==cleared||loginAttempt!==attempt)break;try{listener();}catch{/* A UI observer cannot change the authentication result. */}}
+      try{await clearing;}catch{/* Storage may still contain an earlier session; keep the in-memory session closed. */}
+    }
+    if(attempt!==loginAttempt)throw new ApiError('SESSION_CHANGED','',409);
+    if(error instanceof ApiError&&(error.status===401||error.status===403))throw error;
+    if(typeof error==='object'&&error&&'status' in error&&(error.status===401||error.status===403)){
+      const code='code' in error&&typeof error.code==='string'?error.code:error.status===403?'ACCESS_DENIED':'LOGIN_REQUIRED';
+      throw new ApiError(code,'',error.status);
+    }
+    throw new ApiError('SESSION_STORAGE_FAILED');
+  }
   if(attempt!==loginAttempt||sessionEpoch!==writeEpoch)throw new ApiError('SESSION_CHANGED','',409);
 }
 export async function clearSession(cancelPendingLogin=true){if(cancelPendingLogin)loginAttempt++;token=null;const clearEpoch=++sessionEpoch;if(isToss())await queueStorage(async()=>{if(sessionEpoch===clearEpoch)await Storage.removeItem('toss-session');});return clearEpoch;}

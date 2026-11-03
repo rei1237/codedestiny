@@ -57,6 +57,7 @@ export const errors:Record<string,string>={
   PARTNER_REQUIRED:'두 사람의 관계 상담에는 상대방의 출생정보가 필요해요.',
   TOSS_APP_REQUIRED:'토스 앱에서 열어 주세요. 브라우저에서는 화면과 결과 예시를 살펴볼 수 있어요.',
   TOSS_RELEASE_PENDING:'서비스 등록을 확인하고 있어요. 지금은 구매할 수 없어요.',
+  SESSION_STORAGE_FAILED:'로그인 정보를 저장하지 못했어요. 토스 앱을 다시 열고 시도해 주세요.',
   LOGIN_REQUIRED:'기록과 구매를 확인하려면 토스 로그인이 필요해요.',SESSION_EXPIRED:'로그인 시간이 만료되었어요. 다시 로그인해 주세요.',
   USER_CANCELED:'결제를 취소했어요. 다시 선택할 수 있어요.',PAYMENT_PENDING:'결제 상태를 확인하고 있어요. 다시 결제하지 말고 구매 복구를 이용해 주세요.',
   PAYMENT_IN_PROGRESS:'결제 진행 중이에요. 열린 결제창을 먼저 확인해 주세요.',

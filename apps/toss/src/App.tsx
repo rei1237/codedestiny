@@ -12,7 +12,7 @@ import {lazy,Suspense,useEffect,useRef,useState,type FormEvent} from 'react';
 import {TextField,TextArea} from '@toss/tds-mobile';
 import {Button} from './Button';
 import {SafeArea,Screen,graniteEvent} from '@apps-in-toss/web-framework';
-import {api,ApiError,isToss,login,logout,restoreSession,saleProducts,tarotLibraryProducts,purchase,restorePurchases,recoverAfterAuthentication,unlinkCurrentSession,event,type SaleProduct,type TarotLibraryProduct} from './platform';
+import {api,ApiError,isToss,login,logout,restoreSession,saleProducts,tarotLibraryProducts,purchase,restorePurchases,recoverAfterAuthentication,unlinkCurrentSession,onSessionInvalidated,event,type SaleProduct,type TarotLibraryProduct} from './platform';
 import {errors,questions,readings,birthSystems,consultationServices,selectionFor} from './content';
 
 const ResultEvidence=lazy(()=>import('./ResultEvidence'));
@@ -58,7 +58,7 @@ export default function App(){
   const [library,setLibrary]=useState<Purchase[]>([]),[restoredOrder,setRestoredOrder]=useState<Purchase|null>(null),[tarotLibraryOrderId,setTarotLibraryOrderId]=useState('');
   const [libraryCursor,setLibraryCursor]=useState<string|null>(null);
   const [recoveryEpoch,setRecoveryEpoch]=useState(0);
-  const libraryEpoch=useRef(0);
+  const libraryEpoch=useRef(0),authEpoch=useRef(0);
   const [agreed,setAgreed]=useState(false),[returnAfterLogin,setReturnAfterLogin]=useState<Page>('library');
   const cleanPurchase=useRef<(()=>void)|null>(null),attempt=useRef(crypto.randomUUID()),titleRef=useRef<HTMLHeadingElement>(null),depth=useRef(0);
   const reading=readings.find(p=>p.id===selected)||readings[0],sale=products.find(p=>p.id===selected);
@@ -76,8 +76,9 @@ export default function App(){
     let live=true;
     function pop(){depth.current=Math.max(0,depth.current-1);setPage(currentPage());const params=new URLSearchParams(location.search);setResultId(params.get('id')||'');const product=params.get('product');if(readings.some(r=>r.id===product))setSelected(product!);}
     window.addEventListener('popstate',pop);
-    let offBack=()=>{},offHome=()=>{},offArea=()=>{};
+    let offBack=()=>{},offHome=()=>{},offArea=()=>{},offSession=()=>{};
     if(isToss()){
+      offSession=onSessionInvalidated(()=>{if(!live)return;authEpoch.current++;libraryEpoch.current++;setLoggedIn(false);setResult(null);setLibrary([]);setLibraryCursor(null);setDraft(null);setRestoredOrder(null);setTarotLibraryOrderId('');setQuestion('');setBirth(emptyBirth());setPartner(emptyBirth());setScope({situation:'',options:'',period:'',constraints:'',relationshipType:''});setMessage(errors.SESSION_EXPIRED);});
       const area=(insets:{bottom:number})=>document.documentElement.style.setProperty('--safe-bottom',`${insets.bottom}px`);
       area(SafeArea.get());offArea=SafeArea.subscribe({onEvent:area});
       offBack=graniteEvent.addEventListener('backEvent',{onEvent:()=>{if(depth.current>0)history.back();else void Screen.close();}});
@@ -87,23 +88,23 @@ export default function App(){
       void tarotLibraryProducts().then(setTarotProducts).catch(failure);
     }
     event('home_view',{screen:'home'});
-    return()=>{live=false;window.removeEventListener('popstate',pop);offBack();offHome();offArea();cleanPurchase.current?.();};
+    return()=>{live=false;window.removeEventListener('popstate',pop);offBack();offHome();offArea();offSession();cleanPurchase.current?.();};
   },[]);
   useEffect(()=>{titleRef.current?.focus({preventScroll:true});},[page]);
   useEffect(()=>{
     if(page!=='library'||!loggedIn)return;
-    let live=true;libraryEpoch.current++;setLibraryState('loading');setLibraryCursor(null);
-    api<{purchases:Purchase[];nextCursor:string|null}>('/library').then(data=>{if(live){setLibrary(data.purchases);setLibraryCursor(data.nextCursor);setLibraryState('ready');}}).catch(error=>{if(live){setLibraryState('error');failure(error);}});
+    let live=true;const epoch=authEpoch.current;libraryEpoch.current++;setLibraryState('loading');setLibraryCursor(null);
+    api<{purchases:Purchase[];nextCursor:string|null}>('/library').then(data=>{if(live&&authEpoch.current===epoch){setLibrary(data.purchases);setLibraryCursor(data.nextCursor);setLibraryState('ready');}}).catch(error=>{if(live&&authEpoch.current===epoch){setLibraryState('error');failure(error);}});
     return()=>{live=false;libraryEpoch.current++;};
   },[page,loggedIn,recoveryEpoch]);
   useEffect(()=>{
     if(page!=='result'||!resultId||!loggedIn)return;
-    let live=true,timer:ReturnType<typeof setTimeout>;
+    let live=true,timer:ReturnType<typeof setTimeout>;const epoch=authEpoch.current;
     async function read(){
       try{
-        const data=await api<Result>(`/results/${resultId}`);if(!live)return;setResult(data);
+        const data=await api<Result>(`/results/${resultId}`);if(!live||authEpoch.current!==epoch)return;setResult(data);
         if(!['COMPLETED','REFUNDED'].includes(data.state)&&!data.recovery.reviewRequired)timer=setTimeout(()=>{if(!document.hidden)void read();},10000);
-      }catch(error){if(live)failure(error);}
+      }catch(error){if(live&&authEpoch.current===epoch)failure(error);}
     }
     const visible=()=>{if(!document.hidden){clearTimeout(timer);void read();}};
     void read();document.addEventListener('visibilitychange',visible);

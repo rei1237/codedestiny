@@ -12,7 +12,7 @@ async function adapter(available=true){
  const bundle=await build({entryPoints:[path.resolve(import.meta.dirname,'../src/platform.ts')],bundle:true,write:false,format:'cjs',platform:'node',plugins:[{name:'offline-sdk',setup(b){
   b.onResolve({filter:/^(@apps-in-toss\/web-framework|\.\/release)$/},args=>({path:args.path,namespace:'mock'}));
   b.onLoad({filter:/.*/,namespace:'mock'},args=>({contents:args.path==='./release'?'export const SERVICE_AVAILABLE='+available+';':`
-   export const Environment={environment:'sandbox'},TossAuth={login:async()=>({authorizationCode:'mock',referrer:'SANDBOX'})},Storage={getItem:async()=>{const s=globalThis.tossRecoveryTest,value=s.stored||null;if(s.getStarted)s.getStarted();if(s.getWait)await s.getWait;return value;},removeItem:async()=>{const s=globalThis.tossRecoveryTest;if(s.removeStarted)s.removeStarted();if(s.removeWait)await s.removeWait;s.stored=null;},setItem:async(_key,value)=>{const s=globalThis.tossRecoveryTest;if(s.setStarted)s.setStarted();if(s.setWait)await s.setWait;s.stored=value;}},Share={};
+   export const Environment={environment:'sandbox'},TossAuth={login:async()=>({authorizationCode:'mock',referrer:'SANDBOX'})},Storage={getItem:async()=>{const s=globalThis.tossRecoveryTest,value=s.stored||null;if(s.getStarted)s.getStarted();if(s.getWait)await s.getWait;return value;},removeItem:async()=>{const s=globalThis.tossRecoveryTest;if(s.removeError)throw Error('storage remove failed');if(s.removeStarted)s.removeStarted();if(s.removeWait)await s.removeWait;s.stored=null;},setItem:async(_key,value)=>{const s=globalThis.tossRecoveryTest;if(s.setStarted)s.setStarted();if(s.setWait)await s.setWait;if(s.storageFailure)throw s.storageFailure;if(s.setError||s.failSetFor===value)throw Error('storage unavailable');s.stored=value;}},Share={};
    const buy=options=>{const s=globalThis.tossRecoveryTest;s.purchaseOptions=options;if(s.synchronousThrow)throw Object.assign(Error('NETWORK_ERROR'),{code:'NETWORK_ERROR'});if(s.synchronousCancel)options.onError({code:'USER_CANCELED'});return ()=>{s.cleanupCount=(s.cleanupCount||0)+1;};};buy.isSupported=()=>true;
    const pending=async()=>{const s=globalThis.tossRecoveryTest;s.pendingCalls=(s.pendingCalls||0)+1;return s.malformed?undefined:{orders:s.orders};};pending.isSupported=()=>globalThis.tossRecoveryTest.supportPending!==false;const complete=async({params})=>{const s=globalThis.tossRecoveryTest;s.ack.push(params.orderId);return !s.failAck;};complete.isSupported=()=>globalThis.tossRecoveryTest.supportComplete!==false;export const IAP={createOneTimePurchaseOrder:buy,getPendingOrders:pending,completeProductGrant:complete};
   `}));
@@ -329,5 +329,44 @@ test('a cancellation after grant started remains uncertain and does not report a
 test('synchronous SDK failure blocks another payment even after an empty recovery',async()=>{
  const {state,restore,purchase}=await adapter(),previous=globalThis.fetch;
  try{await restore();state.synchronousThrow=true;assert.throws(()=>purchase({sku:'first'},'request',()=>{},()=>{}),e=>e.code==='NETWORK_ERROR');await restore();state.synchronousThrow=false;assert.throws(()=>purchase({sku:'second'},'request',()=>{},()=>{}),e=>e.code==='PAYMENT_STATUS_UNCERTAIN');}
+ finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
+});
+
+test('failed session storage must not leave the failed login active',async()=>{
+ const {state,login,api}=await adapter(),previous=globalThis.fetch;state.setError=true;let seen;
+ globalThis.fetch=async(url,options)=>{if(new URL(url).pathname.endsWith('/login'))return Response.json({token:'failed-session'});seen=options.headers.Authorization||null;return Response.json({ok:true});};
+ try{await assert.rejects(login(),e=>e.code==='SESSION_STORAGE_FAILED');await api('/session');assert.equal(seen,null);}
+ finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
+});
+
+test('failed login storage clears previous stored token and notifies the shell',async()=>{
+ const {state,login,onInvalidated}=await adapter(),previous=globalThis.fetch;let notified=0;state.stored='previous';state.setError=true;onInvalidated(()=>notified++);globalThis.fetch=async()=>Response.json({token:'failed-session'});
+ try{await assert.rejects(login(),e=>e.code==='SESSION_STORAGE_FAILED');assert.equal(state.stored,null);assert.equal(notified,1);}
+ finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
+});
+
+test('an old failed storage write cannot invalidate a newer pending login',async()=>{
+ const {state,login,api,onInvalidated}=await adapter(),previous=globalThis.fetch;let release,started,logins=0,notified=0,seen;const wait=new Promise(r=>{release=r}),begun=new Promise(r=>{started=r});state.setWait=wait;state.setStarted=started;state.failSetFor='old';onInvalidated(()=>notified++);
+ globalThis.fetch=async(url,options)=>{if(new URL(url).pathname.endsWith('/login'))return Response.json({token:++logins===1?'old':'new'});seen=options.headers.Authorization;return Response.json({ok:true});};
+ try{const old=login();await begun;const newer=login();release();await assert.rejects(old,e=>e.code==='SESSION_CHANGED');await newer;await api('/session');assert.equal(seen,'Bearer new');assert.equal(state.stored,'new');assert.equal(notified,0);}
+ finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
+});
+
+test('failed storage removal still clears the in-memory token and notifies the shell',async()=>{
+ const {state,login,api,onInvalidated}=await adapter(),previous=globalThis.fetch;let notified=0,seen;state.stored='previous';state.setError=true;state.removeError=true;onInvalidated(()=>notified++);
+ globalThis.fetch=async(url,options)=>{if(new URL(url).pathname.endsWith('/login'))return Response.json({token:'failed-session'});seen=options.headers.Authorization||null;return Response.json({ok:true});};
+ try{await assert.rejects(login(),e=>e.code==='SESSION_STORAGE_FAILED');await api('/session');assert.equal(seen,null);assert.equal(notified,1);assert.equal(state.stored,'previous');}
+ finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
+});
+
+test('the shell is invalidated before delayed storage cleanup completes',async()=>{
+ const {state,login,onInvalidated}=await adapter(),previous=globalThis.fetch;let release,started,notified=0;const wait=new Promise(r=>{release=r}),begun=new Promise(r=>{started=r});state.setError=true;state.removeWait=wait;state.removeStarted=started;onInvalidated(()=>notified++);globalThis.fetch=async()=>Response.json({token:'failed-session'});
+ try{const pending=login();await begun;assert.equal(notified,1);release();await assert.rejects(pending,e=>e.code==='SESSION_STORAGE_FAILED');}
+ finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
+});
+
+test('storage permission denial keeps its status and code while discarding the session',async()=>{
+ const {state,login,api}=await adapter(),previous=globalThis.fetch;let seen;state.storageFailure={status:403,code:'STORAGE_DENIED'};globalThis.fetch=async(url,options)=>{if(new URL(url).pathname.endsWith('/login'))return Response.json({token:'failed-session'});seen=options.headers.Authorization||null;return Response.json({ok:true});};
+ try{await assert.rejects(login(),e=>e.status===403&&e.code==='STORAGE_DENIED');await api('/session');assert.equal(seen,null);}
  finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
 });
