@@ -482,7 +482,7 @@ test('RULES grades are pinned rule by rule', () => {
     'sitemap-page': 'fail', 'sitemap-set': 'fail', 'page-shape': 'fail', 'internal-404': 'fail', 'home-identity': 'fail',
     'duplicate-title': 'warn', 'duplicate-description': 'warn', 'og-url': 'fail', 'og-home-title': 'fail', 'hreflang-sitemap': 'warn',
     'robots-policy': 'fail', 'jsonld-syntax': 'fail', 'jsonld-id-type': 'fail', 'organization-name': 'fail', 'jsonld-dates': 'fail',
-    'i18n-missing-text': 'warn',
+    'i18n-missing-text': 'fail',
     'edge-slash-308': 'fail', 'edge-country-302': 'fail', 'edge-crawler-cookie': 'fail',
   });
 });
