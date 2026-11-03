@@ -31,7 +31,7 @@ test('pending purchases use server-owned product routing and acknowledge durable
   return Response.json({orderId:body.orderId,entitlement:'granted',durable:body.orderId==='saved'});
  };
  try{
-  assert.deepEqual(await restore(),{recovered:1,failed:2});
+  assert.deepEqual(await restore(),{recovered:1,failed:2,denied:0});
   assert.deepEqual(state.ack,['saved']);assert.equal(state.requests.length,3);
   assert.ok(state.requests.every(body=>Object.keys(body).sort().join(',')==='orderId,sku'));
  }finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
@@ -41,7 +41,15 @@ test('an SDK acknowledgement failure remains recoverable and is never counted as
  const {state,restore}=await adapter(),previous=globalThis.fetch;
  state.orders=[{orderId:'saved',sku:'tarot'}];state.failAck=true;
  globalThis.fetch=async()=>Response.json({orderId:'saved',entitlement:'granted',durable:true});
- try{assert.deepEqual(await restore(),{recovered:0,failed:1});}
+ try{assert.deepEqual(await restore(),{recovered:0,failed:1,denied:0});}
+ finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
+});
+
+test('access denial is distinguished and does not prevent recovery of another order',async()=>{
+ const {state,restore}=await adapter(),previous=globalThis.fetch;
+ state.orders=[{orderId:'denied',sku:'first'},{orderId:'saved',sku:'second'}];
+ globalThis.fetch=async(_url,options)=>{const body=JSON.parse(options.body);return body.orderId==='denied'?Response.json({error:'ORDER_OWNERSHIP_MISMATCH'},{status:403}):Response.json({orderId:'saved',entitlement:'granted',durable:true});};
+ try{assert.deepEqual(await restore(),{recovered:1,failed:0,denied:1});assert.deepEqual(state.ack,['saved']);}
  finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
 });
 

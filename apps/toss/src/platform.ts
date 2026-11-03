@@ -106,16 +106,16 @@ export function purchaseTarotLibrary(product:TarotLibraryProduct,input:unknown,o
 export async function restorePurchases(){
   if(!isToss())throw new ApiError('TOSS_APP_REQUIRED');
   const pending=await IAP.getPendingOrders();
-  let recovered=0,failed=0;
+  let recovered=0,failed=0,denied=0;
   for(const order of pending?.orders||[]){
     try{
       const receipt=await api<Receipt>('/orders/restore',{orderId:order.orderId,sku:order.sku});
       if(!validReceipt(receipt,order.orderId))throw new ApiError('GRANT_NOT_DURABLE');
       if(!await IAP.completeProductGrant({params:{orderId:order.orderId}}))throw new ApiError('GRANT_ACK_PENDING');
       recovered++;
-    }catch(error){if(error instanceof ApiError&&error.status===401)throw error;failed++;}
+    }catch(error){if(error instanceof ApiError&&error.status===401)throw error;if(error instanceof ApiError&&error.status===403)denied++;else failed++;}
   }
-  return {recovered,failed};
+  return {recovered,failed,denied};
 }
 export async function shareService(){
   const link=await Share.createLink({path:`intoss://${APP_NAME}/?source=share`});
