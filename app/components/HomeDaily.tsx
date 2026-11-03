@@ -116,7 +116,7 @@ function DailyContent() {
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src="/images/home/yeoni-daily-journal-v1.webp" width="960" height="540" alt="다이어리를 쓰는 꽃돼지 연이" /><p>“오늘은 어떤 작은 이야기를 남겨볼까요?” <span>— 연이</span></p></div>
     <div className={styles.topline}>
-      <div className={styles.profile}><span className={styles.label}>나의 운명 카드</span><strong>{status === "loading" ? "확인 중이에요" : status === "guest" ? "로그인하고 내 카드 만나기" : profile ? `${profile.name || "나의"} 카드` : status === "error" ? "프로필을 확인해 주세요" : "첫 카드 만들기"}</strong>
+      <div className={styles.profile}><span className={styles.label}>나의 운명 카드</span><strong>{status === "loading" ? "확인 중이에요" : status === "guest" ? "로그인하고 내 카드 만나기" : profile ? `${profile.name || "나의"} 카드` : status === "error" ? "프로필을 확인해 주세요" : "프로필 카드 확인하기"}</strong>
         {progress && <div className={styles.growth}><strong>Lv. {progress.currentLevel}</strong><progress value={progress.currentLevelExp} max={Math.max(1, progress.nextLevelExp)} aria-label="다음 레벨까지의 경험치" /><small>계정 공통 경험치 {progress.currentLevelExp} / {progress.nextLevelExp}</small></div>}
         {status === "ready" && !progress && <small>{progress === undefined ? "성장 기록을 확인하고 있어요." : "성장 기록을 불러오지 못했어요. 잠시 후 다시 확인해 주세요."}</small>}
         {/* The static shell has no Next RSC payload. */}
