@@ -1,5 +1,5 @@
 import '../../../scripts/lib/mock-network-guard.cjs';
-import test from 'node:test';
+import test,{beforeEach} from 'node:test';
 import assert from 'node:assert/strict';
 import {build} from 'esbuild';
 import {createRequire} from 'node:module';
@@ -13,9 +13,12 @@ const bundle=await build({entryPoints:[path.join(root,'apps/toss/src/platform.ts
  b.onLoad({filter:/.*/,namespace:'fixture'},()=>({contents:sdk,loader:'js'}));
  b.onLoad({filter:/[\\/]release\.ts$/},()=>({contents:'export const SERVICE_AVAILABLE=true;',loader:'ts'}));
 }}]});
-const loaded=new Module(path.join(root,'toss-purchase-callback-test.cjs'));
-loaded._compile(bundle.outputFiles[0].text,loaded.id);
-await loaded.exports.restorePurchases();
+let loaded;
+beforeEach(async()=>{
+ loaded=new Module(path.join(root,'toss-purchase-callback-test.cjs'));
+ loaded._compile(bundle.outputFiles[0].text,loaded.id);
+ await loaded.exports.restorePurchases();
+});
 const product={sku:'test-only'};
 
 for(const kind of ['consultation','tarot'])test(`${kind} grant failure is reported once despite later SDK events`,async()=>{

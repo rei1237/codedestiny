@@ -13,7 +13,7 @@ async function adapter(available=true){
   b.onResolve({filter:/^(@apps-in-toss\/web-framework|\.\/release)$/},args=>({path:args.path,namespace:'mock'}));
   b.onLoad({filter:/.*/,namespace:'mock'},args=>({contents:args.path==='./release'?'export const SERVICE_AVAILABLE='+available+';':`
    export const Environment={environment:'sandbox'},TossAuth={login:async()=>({authorizationCode:'mock',referrer:'SANDBOX'})},Storage={getItem:async()=>{const s=globalThis.tossRecoveryTest,value=s.stored||null;if(s.getStarted)s.getStarted();if(s.getWait)await s.getWait;return value;},removeItem:async()=>{const s=globalThis.tossRecoveryTest;if(s.removeStarted)s.removeStarted();if(s.removeWait)await s.removeWait;s.stored=null;},setItem:async(_key,value)=>{const s=globalThis.tossRecoveryTest;if(s.setStarted)s.setStarted();if(s.setWait)await s.setWait;s.stored=value;}},Share={};
-   const buy=options=>{globalThis.tossRecoveryTest.purchaseOptions=options;return ()=>{};};buy.isSupported=()=>true;
+   const buy=options=>{const s=globalThis.tossRecoveryTest;s.purchaseOptions=options;if(s.synchronousThrow)throw Object.assign(Error('NETWORK_ERROR'),{code:'NETWORK_ERROR'});if(s.synchronousCancel)options.onError({code:'USER_CANCELED'});return ()=>{s.cleanupCount=(s.cleanupCount||0)+1;};};buy.isSupported=()=>true;
    const pending=async()=>{const s=globalThis.tossRecoveryTest;s.pendingCalls=(s.pendingCalls||0)+1;return s.malformed?undefined:{orders:s.orders};};pending.isSupported=()=>globalThis.tossRecoveryTest.supportPending!==false;const complete=async({params})=>{const s=globalThis.tossRecoveryTest;s.ack.push(params.orderId);return !s.failAck;};complete.isSupported=()=>globalThis.tossRecoveryTest.supportComplete!==false;export const IAP={createOneTimePurchaseOrder:buy,getPendingOrders:pending,completeProductGrant:complete};
   `}));
  }}]});
@@ -266,4 +266,68 @@ for(const kind of ['logout','unlink'])test('old '+kind+' cannot cancel a newer l
 test('an old 401 cannot invalidate a newer login already in progress',async()=>{
  const {state,login,canonical,onInvalidated,api}=await adapter(),previous=globalThis.fetch;let releaseOld,releaseLogin,oldStarted,loginStarted,logins=0,seen='',invalidations=0;const oldWait=new Promise(r=>{releaseOld=r}),loginWait=new Promise(r=>{releaseLogin=r}),oldBegun=new Promise(r=>{oldStarted=r}),loginBegun=new Promise(r=>{loginStarted=r});onInvalidated(()=>invalidations++);globalThis.fetch=async(url,options)=>{const p=new URL(url).pathname;if(p.endsWith('/login')){if(++logins===1)return Response.json({token:'old-session'});loginStarted();await loginWait;return Response.json({token:'new-session'});}if(p.endsWith('/canonical/records')){oldStarted();await oldWait;return Response.json({error:'SESSION_EXPIRED'},{status:401});}seen=options.headers.Authorization;return Response.json({ok:true});};
  try{await login();const old=canonical('/canonical/records',new Request('https://miniapp.example/api/records'));await oldBegun;const newer=login();await loginBegun;releaseOld();await assert.rejects(old,e=>e.code==='SESSION_CHANGED');assert.equal(invalidations,0);releaseLogin();await newer;await api('/session');assert.equal(seen,'Bearer new-session');assert.equal(state.stored,'new-session');}finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
+});
+
+test('a second purchase call while the native sheet is open is refused',async()=>{
+ const {state,restore,purchase,purchaseTarot}=await adapter(),previous=globalThis.fetch;
+ try{await restore();purchase({sku:'first'},'request',()=>{},()=>{});const first=state.purchaseOptions;assert.throws(()=>purchaseTarot({sku:'second'},'input',()=>{},()=>{}),error=>error.code==='PAYMENT_IN_PROGRESS');assert.equal(state.purchaseOptions,first);}
+ finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
+});
+
+test('cancellation unlocks a retry but an uncertain failure blocks the session',async()=>{
+ const {state,restore,purchase,purchaseTarot}=await adapter(),previous=globalThis.fetch;
+ try{await restore();purchase({sku:'first'},'request',()=>{},()=>{});state.purchaseOptions.onError({code:'USER_CANCELED'});purchaseTarot({sku:'second'},'input',()=>{},()=>{});state.purchaseOptions.onError({code:'NETWORK_ERROR'});assert.throws(()=>purchase({sku:'third'},'request',()=>{},()=>{}),e=>e.code==='PAYMENT_STATUS_UNCERTAIN');await restore();assert.throws(()=>purchase({sku:'third'},'request',()=>{},()=>{}),e=>e.code==='PAYMENT_STATUS_UNCERTAIN');}
+ finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
+});
+
+test('abandoning an open purchase blocks another even after an empty recovery',async()=>{
+ const {state,restore,purchase}=await adapter(),previous=globalThis.fetch;
+ try{await restore();const cleanup=purchase({sku:'first'},'request',()=>{},()=>{});const first=state.purchaseOptions;await assert.rejects(restore(),e=>e.code==='PAYMENT_IN_PROGRESS');cleanup();assert.throws(()=>purchase({sku:'second'},'request',()=>{},()=>{}),e=>e.code==='PAYMENT_STATUS_UNCERTAIN');assert.equal(await first.options.processProductGrant({orderId:'old'}),false);await restore();assert.throws(()=>purchase({sku:'second'},'request',()=>{},()=>{}),e=>e.code==='PAYMENT_STATUS_UNCERTAIN');}
+ finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
+});
+
+test('old cleanup cannot release the lock of a later purchase',async()=>{
+ const {state,restore,purchase,purchaseTarot}=await adapter(),previous=globalThis.fetch;
+ globalThis.fetch=async()=>Response.json({orderId:'paid',requestId:'request',entitlement:'granted',durable:true});
+ try{await restore();const oldCleanup=purchase({sku:'first'},'request',()=>{},()=>{});assert.equal(await state.purchaseOptions.options.processProductGrant({orderId:'paid'}),true);state.purchaseOptions.onEvent({type:'success'});purchaseTarot({sku:'second'},'input',()=>{},()=>{});oldCleanup();assert.throws(()=>purchase({sku:'third'},'request',()=>{},()=>{}),e=>e.code==='PAYMENT_IN_PROGRESS');}
+ finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
+});
+
+test('a purchase completed after switching accounts cannot navigate to the old result',async()=>{
+ const {state,restore,purchase,login}=await adapter(),previous=globalThis.fetch;let sessions=0,done=0,error;
+ globalThis.fetch=async(url)=>new URL(url).pathname.endsWith('/login')?Response.json({token:'user-'+ ++sessions}):Response.json({orderId:'paid',requestId:'request',entitlement:'granted',durable:true});
+ try{await login();await restore();purchase({sku:'first'},'request',()=>done++,e=>{error=e;});assert.equal(await state.purchaseOptions.options.processProductGrant({orderId:'paid'}),true);await login();state.purchaseOptions.onEvent({type:'success'});assert.equal(done,0);assert.equal(error.code,'SESSION_CHANGED');}
+ finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
+});
+
+test('synchronous SDK cancellation cleans up once and permits retry',async()=>{
+ const {state,restore,purchase}=await adapter(),previous=globalThis.fetch;let errors=0;
+ try{await restore();state.synchronousCancel=true;const oldCleanup=purchase({sku:'first'},'request',()=>{},()=>errors++);assert.equal(errors,1);assert.equal(state.cleanupCount,1);oldCleanup();assert.equal(state.cleanupCount,1);state.synchronousCancel=false;purchase({sku:'second'},'request',()=>{},()=>{});assert.equal(state.purchaseOptions.options.sku,'second');}
+ finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
+});
+
+test('reentrant payment during media pause cannot open a second native sheet',async()=>{
+ const {state,restore,purchase,purchaseTarot}=await adapter(),previous=globalThis.fetch,previousDocument=globalThis.document;let blocked;
+ try{await restore();globalThis.document={visibilityState:'visible',querySelectorAll:()=>[{paused:false,pause(){try{purchaseTarot({sku:'second'},'input',()=>{},()=>{});}catch(error){blocked=error.code;}},isConnected:false}]};purchase({sku:'first'},'request',()=>{},()=>{});assert.equal(blocked,'PAYMENT_IN_PROGRESS');assert.equal(state.purchaseOptions.options.sku,'first');state.purchaseOptions.onError({code:'USER_CANCELED'});}
+ finally{globalThis.fetch=previous;globalThis.document=previousDocument;delete globalThis.tossRecoveryTest;}
+});
+
+test('a grant response after leaving the screen is not acknowledged early',async()=>{
+ const {state,restore,purchase}=await adapter(),previous=globalThis.fetch;let release,started;const wait=new Promise(r=>{release=r}),begun=new Promise(r=>{started=r});
+ globalThis.fetch=async()=>{started();await wait;return Response.json({orderId:'paid',requestId:'request',entitlement:'granted',durable:true});};
+ try{await restore();const cleanup=purchase({sku:'first'},'request',()=>assert.fail('late success'),()=>{});const grant=state.purchaseOptions.options.processProductGrant({orderId:'paid'});await begun;cleanup();release();assert.equal(await grant,false);assert.throws(()=>purchase({sku:'second'},'request',()=>{},()=>{}),e=>e.code==='PAYMENT_STATUS_UNCERTAIN');}
+ finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
+});
+
+test('a cancellation after grant started remains uncertain and does not report a clean cancellation',async()=>{
+ const {state,restore,purchase}=await adapter(),previous=globalThis.fetch;let release,started,reported;const wait=new Promise(r=>{release=r}),begun=new Promise(r=>{started=r});
+ globalThis.fetch=async()=>{started();await wait;return Response.json({orderId:'paid',requestId:'request',entitlement:'granted',durable:true});};
+ try{await restore();purchase({sku:'first'},'request',()=>{},error=>{reported=error;});const grant=state.purchaseOptions.options.processProductGrant({orderId:'paid'});await begun;state.purchaseOptions.onError({code:'USER_CANCELED'});assert.equal(reported.code,'PAYMENT_STATUS_UNCERTAIN');assert.throws(()=>purchase({sku:'second'},'request',()=>{},()=>{}),e=>e.code==='PAYMENT_STATUS_UNCERTAIN');release();assert.equal(await grant,false);}
+ finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
+});
+
+test('synchronous SDK failure blocks another payment even after an empty recovery',async()=>{
+ const {state,restore,purchase}=await adapter(),previous=globalThis.fetch;
+ try{await restore();state.synchronousThrow=true;assert.throws(()=>purchase({sku:'first'},'request',()=>{},()=>{}),e=>e.code==='NETWORK_ERROR');await restore();state.synchronousThrow=false;assert.throws(()=>purchase({sku:'second'},'request',()=>{},()=>{}),e=>e.code==='PAYMENT_STATUS_UNCERTAIN');}
+ finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
 });
