@@ -7,21 +7,23 @@ export function isToss(){try{return ['toss','sandbox'].includes(Environment.envi
 export class ApiError extends Error {constructor(public code:string,public errorId='',public status=0){super(code);}}
 export async function api<T>(path:string,body?:unknown):Promise<T>{
   if(!SERVICE_AVAILABLE)throw new ApiError('TOSS_RELEASE_PENDING');
+  const requestToken=token;
   const response=await fetch(API+path,{method:body===undefined?'GET':'POST',credentials:'omit',
-    headers:{...(body===undefined?{}:{'Content-Type':'application/json'}),...(token?{Authorization:`Bearer ${token}`}:{})},
+    headers:{...(body===undefined?{}:{'Content-Type':'application/json'}),...(requestToken?{Authorization:`Bearer ${requestToken}`}:{})},
     ...(body===undefined?{}:{body:JSON.stringify(body)}),signal:AbortSignal.timeout(path.endsWith('/conversation')||body!==undefined&&path.startsWith('/tarot-library/results/')?75000:20000)});
   const data=await response.json();
-  if(!response.ok){if(response.status===401)await clearSession();throw new ApiError(data.error,data.errorId,response.status);}
+  if(!response.ok){if(response.status===401&&token===requestToken)await clearSession();throw new ApiError(data.error,data.errorId,response.status);}
   return data;
 }
 /** Original screen contract, with Toss credentials only (never web cookies). */
 export async function canonicalResponse(path:string,request:Request):Promise<Response>{
   if(!SERVICE_AVAILABLE)throw new ApiError('TOSS_RELEASE_PENDING','',503);
   if(!/^\/canonical\//.test(path)||!['GET','POST'].includes(request.method))throw new ApiError('NOT_FOUND','',404);
+  const requestToken=token;
   const response=await fetch(API+path,{method:request.method,credentials:'omit',
-    headers:{'Content-Type':'application/json',...(token?{Authorization:`Bearer ${token}`}:{})},
+    headers:{'Content-Type':'application/json',...(requestToken?{Authorization:`Bearer ${requestToken}`}:{})},
     ...(request.method==='POST'?{body:await request.text()}:{}),signal:request.signal});
-  if(response.status===401)await clearSession();
+  if(response.status===401&&token===requestToken)await clearSession();
   return response;
 }
 export async function restoreSession(){
@@ -103,13 +105,25 @@ export function purchaseTarotLibrary(product:TarotLibraryProduct,input:unknown,o
   }},onEvent:()=>{if(settled)return;settled=true;clean();if(grantedOrder)onDone(grantedOrder);else onError(new ApiError('GRANT_NOT_DURABLE'));},onError:fail});}catch(error){resumeMedia();throw error;}
   return ()=>clean();
 }
-export async function restorePurchases(){
+type RecoveryCounts={recovered:number;failed:number;denied:number};
+let recoveryInFlight:{token:string|null;promise:Promise<RecoveryCounts>}|null=null;
+export function restorePurchases():Promise<RecoveryCounts>{
+  if(recoveryInFlight?.token===token)return recoveryInFlight.promise;
+  const promise=restorePurchasesOnce(token);
+  recoveryInFlight={token,promise};
+  const clear=()=>{if(recoveryInFlight?.promise===promise)recoveryInFlight=null;};
+  void promise.then(clear,clear);
+  return promise;
+}
+async function restorePurchasesOnce(sessionToken:string|null):Promise<RecoveryCounts>{
   if(!isToss())throw new ApiError('TOSS_APP_REQUIRED');
   const pending=await IAP.getPendingOrders();
   let recovered=0,failed=0,denied=0;
   for(const order of pending?.orders||[]){
     try{
+      if(token!==sessionToken)throw new ApiError('SESSION_EXPIRED','',401);
       const receipt=await api<Receipt>('/orders/restore',{orderId:order.orderId,sku:order.sku});
+      if(token!==sessionToken)throw new ApiError('SESSION_EXPIRED','',401);
       if(!validReceipt(receipt,order.orderId))throw new ApiError('GRANT_NOT_DURABLE');
       if(!await IAP.completeProductGrant({params:{orderId:order.orderId}}))throw new ApiError('GRANT_ACK_PENDING');
       recovered++;
