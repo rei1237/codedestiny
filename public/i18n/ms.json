@@ -2373,6 +2373,22 @@
         "life": "Apa yang anda terima · Laporan kehidupan mengikut bab",
         "saju": "Apa yang anda terima · Carta Saju · Tafsiran asas"
       }
+    },
+    "helpEntry": {
+      "label": "Panduan Ggulggul",
+      "art": "Yeoni membimbing di sisi buku dan cawan teh",
+      "titleA": "Apabila ada persoalan,",
+      "titleB": "temui arah anda",
+      "leadA": "Daripada mula menggunakan hingga hasil tersimpan,",
+      "leadB": "Cari bantuan yang diperlukan bersama Yeoni.",
+      "about": "Tentang Ggulggul",
+      "nav": "Panduan dan bantuan",
+      "faqNote": "Cari panduan untuk mula menggunakan.",
+      "records": "Lihat hasil saya",
+      "recordsNote": "Baca semula konsultasi tersimpan di Ggulggul.",
+      "contact": "Hubungi kami",
+      "contactNote": "Maklumkan soalan atau masalah anda.",
+      "example": "Contoh hasil bacaan awam"
     }
   },
   "terms": {

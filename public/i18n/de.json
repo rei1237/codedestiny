@@ -2373,6 +2373,22 @@
         "life": "Das erhältst du · Lebensbericht nach Kapiteln",
         "saju": "Das erhältst du · Saju-Diagramm · Grunddeutung"
       }
+    },
+    "helpEntry": {
+      "label": "Ggulggul-Hilfe",
+      "art": "Yeoni begleitet dich neben Buch und Teetasse",
+      "titleA": "Wenn Fragen aufkommen,",
+      "titleB": "finde deinen Weg",
+      "leadA": "Vom Einstieg bis zu gespeicherten Ergebnissen,",
+      "leadB": "Finde mit Yeoni die passende Hilfe.",
+      "about": "Über Ggulggul",
+      "nav": "Anleitung und Hilfe",
+      "faqNote": "Hier findest du Hinweise zum Einstieg.",
+      "records": "Meine Ergebnisse ansehen",
+      "recordsNote": "Lies deine gespeicherten Ggulggul-Beratungen erneut.",
+      "contact": "Kontakt",
+      "contactNote": "Teile uns Fragen oder Probleme mit.",
+      "example": "Öffentliches Ergebnisbeispiel"
     }
   },
   "terms": {

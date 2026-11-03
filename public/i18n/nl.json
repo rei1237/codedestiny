@@ -2373,6 +2373,22 @@
         "life": "Wat je ontvangt · Levensrapport per hoofdstuk",
         "saju": "Wat je ontvangt · Saju-kaart · Basisinterpretatie"
       }
+    },
+    "helpEntry": {
+      "label": "Ggulggul-hulpgids",
+      "art": "Yeoni helpt je naast een boek en een theekop",
+      "titleA": "Als je vragen hebt,",
+      "titleB": "vind je de weg",
+      "leadA": "Van beginnen tot opgeslagen resultaten,",
+      "leadB": "Vind samen met Yeoni de hulp die je nodig hebt.",
+      "about": "Over Ggulggul",
+      "nav": "Uitleg en hulp",
+      "faqNote": "Vind uitleg om te beginnen.",
+      "records": "Mijn resultaten bekijken",
+      "recordsNote": "Lees je opgeslagen Ggulggul-adviezen opnieuw.",
+      "contact": "Contact opnemen",
+      "contactNote": "Laat ons je vragen of problemen weten.",
+      "example": "Voorbeeld van een openbare lezing"
     }
   },
   "terms": {

@@ -1,10 +1,18 @@
 ---
 status: active
 updated: 2026-11-03
-next: "작업 1: app/layout.js의 analytics 캐시 키를 올려 ai_source 결함을 고치고, 승인 해석을 사용자에게 알린 뒤 운영에 1회 배포한다"
+next: "작업 1의 4단계: 77c6d007f 운영 배포. 권한 분류기가 막았으므로 사용자 결정을 기다린 뒤 5~6단계와 작업 3 질문으로 잇는다"
 ---
 
 # 영냥이 AEO 남은 작업
+
+## 진행 결과
+
+- 작업 1의 1~3단계 완료. 키 수정 `77c6d007f`를 main에 push했고 PR CI 런 41612491943이 성공했다. 운영보다 앞선 커밋은 이 커밋과 문서 커밋 2개뿐이다.
+- 작업 1의 4단계 차단. `gh workflow run ... mode=production`을 Claude Code 권한 분류기가 거부했다(Production Deploy). 운영은 아직 `a221a78eb`이고 결함도 그대로다. 우회하지 않았다.
+- 작업 2 조사 완료, 코드는 고치지 않았다.
+  - **`/ggulggul/` 돼지 이미지.** `styles/first-visit-guide.css`는 `141fefda6`에서 스프라이트를 4프레임으로 바꿨는데, HTML이 `?v=` 없이 참조하고 `/styles/*.css`는 1년 immutable이다. 엣지(SEA)에 옛판 5,938바이트(Age 약 81,357초, `gzip`과 Chrome식 Accept-Encoding)와 새판 6,333바이트(`identity`, `br`)가 공존했다. 옛판을 받으면 3프레임 규칙이 적용돼 두 번째 돼지가 잘린다. 새판을 받은 브라우저에서는 정상이다. `public/ggulggul/index.html`의 무버전 `/styles/` 참조는 12개이고, 스테일을 실측한 것은 이 파일뿐이다.
+  - **Browser Shadow의 WebKit 오류.** `webkit-reload-checkout`의 `activation-rewards` 읽기 2건이 `scripts/lib/yeongnyangi-mobile-payment.mjs:380`의 `navigationReads`에 없어 실패로 집계된다. `b0dd185f4`는 통과, `0a36d57d6`부터 실패다. AEO 첫 커밋 `f8c659d2a`보다 앞서므로 AEO 변경이 시작점은 아니다. 새로고침에 취소된 읽기라는 것은 추정이고 재현하지 않았다. 런 41508619649의 실패는 별개의 `ProtocolError`다.
 
 ## 왜
 

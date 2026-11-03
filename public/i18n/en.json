@@ -2373,6 +2373,22 @@
         "life": "What you receive · Life report organized by chapter",
         "saju": "What you receive · Saju chart · Basic interpretation"
       }
+    },
+    "helpEntry": {
+      "label": "Ggulggul help guide",
+      "art": "Yeoni guides you beside a book and teacup",
+      "titleA": "When questions arise,",
+      "titleB": "find your way",
+      "leadA": "From getting started to saved readings,",
+      "leadB": "Find the help you need with Yeoni.",
+      "about": "About Ggulggul",
+      "nav": "Guidance and help",
+      "faqNote": "Find instructions for getting started.",
+      "records": "View saved results",
+      "recordsNote": "Revisit readings saved in Ggulggul.",
+      "contact": "Contact us",
+      "contactNote": "Tell us about questions or problems.",
+      "example": "Public reading example"
     }
   },
   "terms": {

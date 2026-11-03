@@ -28,6 +28,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
+          cache: npm
+      # The detector tests import parse5 and dotenv through scripts/seo-public-inventory.mjs and keyword-research.mjs.
+      - name: Install dependencies
+        run: npm ci
       - name: Test detector with mock inputs
         run: node --test scripts/seo/*.test.mjs
       - name: Daily public health

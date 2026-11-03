@@ -2373,6 +2373,22 @@
         "life": "Ce que vous recevez · Rapport de vie par chapitre",
         "saju": "Ce que vous recevez · Thème Saju · Interprétation de base"
       }
+    },
+    "helpEntry": {
+      "label": "Guide de Ggulggul",
+      "art": "Yeoni vous guide près d’un livre et d’une tasse de thé",
+      "titleA": "Quand une question se pose,",
+      "titleB": "retrouvez votre chemin",
+      "leadA": "Des premiers pas aux résultats enregistrés,",
+      "leadB": "Trouvez l’aide nécessaire avec Yeoni.",
+      "about": "À propos de Ggulggul",
+      "nav": "Conseils et aide",
+      "faqNote": "Consultez les conseils pour commencer.",
+      "records": "Revoir mes résultats",
+      "recordsNote": "Relisez vos consultations enregistrées dans Ggulggul.",
+      "contact": "Nous contacter",
+      "contactNote": "Signalez vos questions ou problèmes.",
+      "example": "Exemple de résultat public"
     }
   },
   "terms": {
