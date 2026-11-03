@@ -1,0 +1,25 @@
+.daily { width: min(100%, 720px); box-sizing: border-box; padding: clamp(20px, 4vw, 32px); border: 1px solid var(--cd-border); border-radius: var(--cd-r-section); background: var(--cd-surface); color: var(--cd-text); box-shadow: 0 12px 32px color-mix(in srgb, var(--cd-text) 9%, transparent); }
+.intro { margin-bottom: 20px; }
+.daily .intro h2 { font-size: var(--cd-t-section); line-height: 1.35; }
+.daily p { margin: 0; }
+.intro p, .rule, .footnote, .diary small { color: var(--cd-text-muted); font-size: .875rem; }
+.topline { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; padding-block: 18px; border-block: 1px solid var(--cd-border); }
+.profile, .honey { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; min-width: 0; }
+.label { color: var(--cd-text-muted); font-size: .8rem; font-weight: 700; }
+.profile strong, .honey strong { font-size: 1.1rem; }
+.daily a { display: inline-flex; align-items: center; min-height: 44px; font-weight: 700; text-decoration-thickness: 1px; }
+.daily button, .daily .button { min-height: 44px; border: 1px solid var(--cd-text); border-radius: var(--cd-r-control); padding: 8px 16px; background: var(--cd-text); color: var(--cd-bg); font: inherit; font-weight: 700; cursor: pointer; text-decoration: none; }
+.daily button:disabled { opacity: .65; cursor: default; }
+.daily :where(button, a):focus-visible { outline: 2px solid var(--cd-focus-ring); outline-offset: 3px; }
+.honey p { font-size: .875rem; color: var(--cd-text-muted); }
+.rule { margin-top: 12px !important; }
+.notice { margin-top: 8px !important; font-weight: 700; }
+.quest { display: flex; justify-content: space-between; align-items: end; gap: 18px; padding-block: 22px; border-bottom: 1px solid var(--cd-border); }
+.daily .quest h3 { margin: 3px 0; font-size: var(--cd-t-card); }
+.quest p, .diary p { font-size: .9rem; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; flex-shrink: 0; }
+.daily .secondary { background: transparent; color: var(--cd-text); }
+.diary { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-top: 16px; }
+.diary small { display: block; }
+.footnote { margin-top: 12px !important; }
+@media (max-width: 600px) { .topline { gap: 12px; } .quest { align-items: flex-start; flex-direction: column; } .actions { flex-shrink: 1; } .diary { align-items: flex-start; flex-direction: column; gap: 0; } }
