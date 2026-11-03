@@ -1,0 +1,128 @@
+---
+status: active
+updated: 2026-11-03
+next: "작업 1: app/layout.js의 analytics 캐시 키를 올려 ai_source 결함을 고치고, 승인 해석을 사용자에게 알린 뒤 운영에 1회 배포한다"
+---
+
+# 영냥이 AEO 남은 작업
+
+## 왜
+
+2026-11-03 운영 배포 뒤 남은 일을 새 세션에서 잇는다. 사용자 요청 원문은 "남은 작업들도 진행해줘 새 새션에서 진행하도록 인수인계해서 진행하자"다.
+
+가장 급한 일은 내 실수로 남은 결함이다. `js/core/analytics.js`를 고치면서 `app/layout.js`의 고정 캐시 키를 올리지 않아, `/yeongnyangi/`를 포함한 Next 페이지에서 AI 유입 라벨 `ai_source`가 동작하지 않는다.
+
+## 첫 행동
+
+1. 저장소 위치를 확인한다. 작업 위치는 `D:\Development\codedestiny-worktrees\yeongnyangi-aeo-20261103-140559`이고, 브랜치는 `wt/yeongnyangi-aeo-20261103-140559`다. 없거나 더럽다면 `scripts/create-safe-worktree.ps1`로 새로 만든다. 루트 체크아웃은 쓰지 않는다.
+2. `git fetch origin` 뒤 `git log --format='%h %s' a221a78eb..origin/main`으로 운영보다 앞선 커밋을 확인한다. `curl -s https://code-destiny.com/version.json`으로 운영 SHA도 다시 확인한다.
+3. 아래 "승인 범위"에 적은 내 해석을 사용자에게 한 줄로 알리고 작업 1을 시작한다. 답을 기다리느라 멈추지는 않는다.
+
+## 지금 상태
+
+2026-11-03 18:30 KST 무렵 실측이다.
+
+- 운영: `a221a78eb1c667a4e00976f562e62f5298f48503`. 런은 https://github.com/rei1237/codedestiny/actions/runs/41601761405 이고 성공했다.
+- 롤백 기준: `ed3f7f2d1`.
+- origin/main: `6ae9f0298` (문서만 추가, 배포 안 함). PR CI는 통과했다. 이 SHA의 스케줄 Release 런은 판단 단계만 돌고 배포를 건너뛰었다.
+- 결함 근거: `/`, `/yeongnyangi/`, `/saju/`, `/insights/`는 `analytics.js?v=20261103-discovery-v1`을 읽는다. 이 응답은 엣지 캐시 HIT(Age 5128)였고 `ai_source`가 0건이었다. `/ggulggul/`, `/en/`, `/static/`은 `build-46cffa3b99f9` 키로 라벨이 들어 있는 파일을 읽는다.
+- 키 사용처: 코드에서 `discovery-v1`은 `app/layout.js:188` 한 곳이다. 이 키를 고정한 테스트는 없다.
+- 미측정: 해외 IP, 실제 크롤러와 WAF, 영상 재생, 결제·로그인 화면, 변경 후 AI 답변.
+
+## 승인 범위
+
+앞 세션의 운영 배포 승인 1회는 런 41601761405로 소진됐다. 그 보고에서 `ai_source` 수정은 "승인해 주시면 진행하겠습니다"라고 물었고, 사용자가 "남은 작업들도 진행해줘"라고 답했다.
+
+내 해석은 다음과 같다. 사용자가 확인해 준 것은 아니므로 첫 행동에서 알린다.
+
+- **포함:** `ai_source` 키 수정의 운영 배포 1회.
+- **먼저 확인:** 그 배포에 다른 세션의 기능 코드 커밋이 함께 올라가면, 커밋 목록을 보여 주고 승격 전에 확인받는다. 문서만 바꾼 커밋은 목록만 보고한다.
+- **제외:** 묶음 ③, `docs/handoff/2026-11-02-seo-post-promotion-followups.md`, SEO Operations의 Test detector 실패, 아래 작업 3의 제품 변경. 사용자가 따로 말할 때만 한다.
+
+## 지켜야 할 것
+
+사용자 원문이다. 그대로 유효하다.
+
+- "롤백은 git revert 후 재배포만 해. force-push, reset --hard, stash, 로컬 wrangler 배포는 금지야."
+- "루트 체크아웃 D:\Development\code-destiny와 다른 세션 워크트리는 건드리지 마."
+- ".env*, package-lock.json, ads.txt, worker/, public/_routes.json, js/core/checkout-entry.js, 결제·인증·DB·운세 계산 로직은 수정하지 마."
+- "실결제, 운영 DB 쓰기, 과금 LLM 호출은 하지 마."
+- "SEO Operations의 Test detector 실패는 11/01부터 있던 별도 문제야. 이번에 고치지 말고 후속으로만 남겨 둬."
+- "묶음 ③과 docs/handoff/2026-11-02-seo-post-promotion-followups.md는 시작하지 마."
+- "다른 세션 커밋이 더 올라오면 새 HEAD로 다시 확인해. 다른 사람 커밋 때문에 빨간불이면 그 커밋을 보고하고 위에 push하거나 배포하지 마."
+- 배포 "실패하면 원인을 보고하고 임의로 다시 돌리지 마."
+- AEO 원 지시: "특정 AI가 추천하지 않았더라도 추천했다고 허위 보고하지 않는다." "출처가 확인되지 않는 직접 유입을 임의로 AI 추천 유입으로 분류하지 않는다." "확인되지 않은 성과나 검색 노출 보장은 보고하지 않는다."
+
+## 작업 절차
+
+push: `git fetch` → `git rebase origin/main` → `npm run check:pre-push` → `git push origin HEAD:main`. `git add` 전에 `git status`와 `git diff --stat`을 보고, 파일 이름을 지정해 스테이지한다.
+
+CI: main 맨 위 SHA의 PR CI가 끝날 때까지 `gh run watch --exit-status`로 기다린다. Browser Shadow는 필수 게이트 밖이다. PR CI로 판단한다.
+
+배포: `gh workflow run cloudflare-pages-deploy.yml --ref main -f mode=production --repo rei1237/codedestiny`. 런 URL을 사용자에게 전하고 끝까지 결과를 확인한다.
+
+함정:
+
+- `build:cf`를 돌리면 rss 4개(`insights/rss.xml`, `public/insights/rss.xml`, `public/rss.xml`, `rss.xml`)가 바뀐다. `git checkout --`으로 되돌리고 커밋하지 않는다.
+- `js/core/analytics.js`를 다시 고치면 정적 미러의 `build-<hash>` 키도 바뀐다. 그때는 `npm run sync:public` 결과를 함께 커밋한다.
+- `config/sitemap-lastmod.json` 충돌은 병합하지 말고 `npm run sitemap:generate`로 다시 만든다.
+- 측정 스크립트는 `D:\Development\seo-audit\code-destiny-20261103\scripts\`에 있다. `live-measure.sh`의 두 검사는 믿지 않는다. `aiSourceLabel` 검색은 코드가 압축돼서 항상 0이므로 `ai_source`를 센다. `cdhMoonlightMv` 검사는 `/`에 맞지 않으므로 홈 영상은 `root-mv.cjs`로 본다.
+
+## 작업 1: ai_source 수정과 운영 배포
+
+1. `app/layout.js:188`의 키를 새 값(예: `20261103-ai-source-v1`)으로 올린다. 다른 파일은 바꾸지 않는다.
+2. 대상 테스트 `__tests__/ui/purchase-analytics.test.mjs`를 돌리고 커밋한 뒤 위 절차로 push하고 PR CI를 확인한다.
+3. 다른 세션 커밋을 확인한다(`git log a221a78eb..origin/main`). "승인 범위"에 따라 진행한다.
+4. 운영에 1회 배포하고 `/version.json`의 SHA를 확인한다.
+5. 라이브를 재측정한다.
+   - `/yeongnyangi/`, `/`, `/saju/`, `/insights/`의 HTML이 새 키를 쓰고, 그 키의 응답에서 `ai_source`가 1건 이상인지 센다.
+   - `live-measure.sh`, `root-mv.cjs`, `mv-shots.cjs`로 앞 배포의 측정 항목(상태 코드, Cache-Control, 리다이렉트, 플레이스홀더 0건, JSON-LD, robots, 영상)이 그대로인지 본다. 결과는 `live-after-ai-source\`에 따로 저장하도록 `OUT` 경로를 바꿔 실행한다.
+6. `docs/seo/SEO_STATE.json:429`의 `productionObservedSha`, `docs/handoff/2026-11-01-seo-architecture-rebuild.md`의 "지금 상태", `docs/handoff/2026-11-03-yeongnyangi-aeo.md`의 결함 문단을 고친다. 문서 커밋은 재배포하지 않는다.
+
+같은 실수를 막는 가드(`analytics.js`가 바뀌면 키도 바뀌었는지 검사)는 이번에 넣지 않는다. 필요성만 후속으로 보고한다.
+
+성공 기준은 라벨이 배포됐다는 것까지다. 실제 AI 유입 건수나 GA4 보고서 값은 이 작업으로 확인되지 않으므로 성과로 보고하지 않는다.
+
+## 작업 2: 조사 후 보고 (고치지 않음)
+
+원인을 확인해 보고만 한다. 고치려면 사용자에게 묻는다.
+
+- **Browser Shadow의 WebKit 오류.** `/api/activation-rewards/status`와 `/snu/status`가 "due to access control checks"로 실패한다. `a221a78eb`와 `25bfc0940` 모두에서 났고, 내 변경 때문인지는 확인되지 않았다. 필수 게이트는 아니다.
+- **`/ggulggul/` 모바일 첫 방문 안내의 잘린 두 번째 돼지 이미지.** 스크린샷은 `D:\Development\seo-audit\code-destiny-20261103\live-after\mv-mobile-guide.png`다. 문구는 `js/first-visit-copy.mjs`에 있다. 조사 전이고 다른 세션 작업일 수 있으니 `git log`부터 본다.
+
+## 작업 3: 사용자 결정이 필요한 것
+
+코드를 바꾸지 않고, 작업 1·2가 끝난 뒤 한 번에 묻는다.
+
+- 허브 CTA(`consultationKind=ask`)는 같은 가격에 5챕터이고 랜딩 고등어는 8챕터다. 문구로 차이만 밝혀 둔 상태다. 결제 흐름에 닿으므로 CTA 변경은 결정이 필요하다.
+- `SampleExposure`의 샘플 ID가 다르다(`tarot-salmon`과 `mackerel-question-v1`). 어느 쪽을 정본으로 할지 정해야 한다.
+- `/premium-unlock/` 플레이스홀더가 사용자 화면에 보인다. noindex이고 사이트맵 밖이다.
+- 가이드의 claude.ai 링크(`https://claude.ai/artifact/PtPUfhaiHM37ebpxtr4nQV`)를 유지할지 정해야 한다.
+- 대운·세운 가이드에 영냥이 링크를 넣으려면 편집 검수를 다시 받아야 한다. 원고 해시가 `docs/adsense/review/ai-editorial-reviews.json`에 고정돼 있다.
+- 구매 이벤트 중복과 실구매 대사는 자연 발생 주문으로만 검증된다.
+- GA4 CSP 수정 `wt/ga4-csp-diagnosis-20261030-103058`이 main에 없다. 다른 세션 워크트리이므로 승인 없이 건드리지 않는다.
+
+## 소유자만 할 수 있는 것
+
+마지막 보고에 그대로 다시 적는다.
+
+- GA4 맞춤 측정기준 `ai_source` 등록. 작업 1의 배포 뒤에 해야 값이 쌓인다.
+- Bing Webmaster, Copilot 로그인 뒤 기준선 조회.
+- WordPress 링크, 프로필 정합, 실제 후기, Cloudflare WAF 실제 봇 처리 확인.
+- 선택: GSC에서 `/yeongnyangi/` URL 검사. 사이트맵 재제출은 필요 없다.
+
+## 나중에
+
+- 승격 28일 뒤(2026-12-01 이후) `aeo-evaluation.csv` Q17~Q24 재측정. 절차는 `docs/handoff/2026-11-03-yeongnyangi-aeo.md`에 있다.
+- 11/07 관측 뒤 묶음 ④ 판단. 후보 문안은 같은 문서에 있다.
+
+## 끝낼 때
+
+`status: done`으로 바꾸고 결과 SHA를 적는다. 워크트리를 지울 때는 `node_modules` 정션을 먼저 끊는다.
+
+```powershell
+(Get-Item -LiteralPath '<워크트리>\node_modules' -Force).Delete()
+git worktree remove --force '<워크트리>'
+```
+
+보고는 한국어로 하고, 실측과 추정을 나누고, 함께 올라간 다른 세션 커밋을 적는다.

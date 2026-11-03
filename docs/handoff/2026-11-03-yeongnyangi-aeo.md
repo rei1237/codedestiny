@@ -12,7 +12,7 @@ AI 검색과 검색엔진이 꿀꿀 운세의 영냥이, 특히 5,000원 고등�
 
 ## 지금 상태
 
-`ai_source` 라벨은 Next 페이지(`/yeongnyangi/` 포함)에서 아직 동작하지 않는다. `app/layout.js`의 고정 캐시 키가 엣지 캐시의 옛 `analytics.js`를 돌려준다. 키를 올려 재배포하기 전에는 이 라벨로 AI 유입을 집계하지 않는다.
+`ai_source` 라벨은 Next 페이지(`/yeongnyangi/` 포함)에서 아직 동작하지 않는다. `app/layout.js`의 고정 캐시 키가 엣지 캐시의 옛 `analytics.js`를 돌려준다. 키를 올려 재배포하기 전에는 이 라벨로 AI 유입을 집계하지 않는다. 수정과 남은 작업은 `docs/handoff/2026-11-03-aeo-remaining-work.md`에서 잇는다.
 
 코드와 문서는 main에 올렸다. 운영 반영 여부와 SHA는 `docs/handoff/2026-11-01-seo-architecture-rebuild.md`의 "지금 상태"를 본다. 증거는 `D:\Development\seo-audit\code-destiny-20261103\`에 있다. AI 질문 세트 원문은 그 아래 `ai-baseline\`이다.
 
