@@ -163,6 +163,7 @@ function clientFixture({ storageFailure = false, switchAccount = false } = {}) {
   const calls = []; let completed = 0, current = true;
   const pendingGenerationRef = { current: null };
   const ctx = vm.createContext({ nativeTossContext:()=>null, document: { hidden: false },
+    paymentNotice: undefined, permissionFailure: '권한 오류', serverFailure: '서버 오류', generationFailure: '생성 오류',
     captureDeliveryScope: () => () => current, pendingGenerationRef,
     setPhase() {}, releasePaidFeatureGate() {}, setProgressIndex() {}, markPaidAttemptGenerationStarted() {},
     activeAttemptId: () => 'paid-attempt', pollResult: async () => { throw new Error('UNEXPECTED_POLL'); },
@@ -173,7 +174,7 @@ function clientFixture({ storageFailure = false, switchAccount = false } = {}) {
     postJson: async (path, body, key) => {
       calls.push({ path, body, key });
       if (switchAccount) current = false;
-      return { payload: storageFailure ? { ok: false, reason: 'RESULT_STORAGE_UNAVAILABLE' } : {
+      return { response: { status: 200 }, payload: storageFailure ? { ok: false, reason: 'RESULT_STORAGE_UNAVAILABLE' } : {
         ok: true, sessionId: 'stored-session', status: calls.length === 6 ? 'completed' : 'partial', saved: calls.length === 6,
         messages: [{ role: 'assistant', content: '부분 본문' }], completedGroups: Array(calls.length).fill('group'),
       } };
