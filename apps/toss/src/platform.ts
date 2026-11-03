@@ -12,10 +12,16 @@ function queueStorage(operation:()=>Promise<void>){const pending=storageQueue.th
 async function invalidateCurrentSession(requestToken:string|null,requestEpoch:number,requestAttempt:number){
   if(token!==requestToken||sessionEpoch!==requestEpoch||loginAttempt!==requestAttempt)throw new ApiError('SESSION_CHANGED','',409);
   if(!requestToken)return;
-  const invalidated=await clearSession(false);
-  if(token!==null||sessionEpoch!==invalidated||loginAttempt!==requestAttempt)throw new ApiError('SESSION_CHANGED','',409);
+  const clearing=clearSession(false),invalidated=sessionEpoch;
   for(const listener of sessionListeners){if(token!==null||sessionEpoch!==invalidated||loginAttempt!==requestAttempt)break;try{listener();}catch{/* A UI observer cannot change the authentication result. */}}
+  let cleanupError:unknown;
+  try{await clearing;}catch(error){cleanupError=error;}
   if(token!==null||sessionEpoch!==invalidated||loginAttempt!==requestAttempt)throw new ApiError('SESSION_CHANGED','',409);
+  if(cleanupError instanceof ApiError&&(cleanupError.status===401||cleanupError.status===403))throw cleanupError;
+  if(typeof cleanupError==='object'&&cleanupError&&'status' in cleanupError&&(cleanupError.status===401||cleanupError.status===403)){
+    const code='code' in cleanupError&&typeof cleanupError.code==='string'?cleanupError.code:cleanupError.status===403?'ACCESS_DENIED':'LOGIN_REQUIRED';
+    throw new ApiError(code,'',cleanupError.status);
+  }
 }
 export function isToss(){try{return ['toss','sandbox'].includes(Environment.environment);}catch{return false;}}
 export class ApiError extends Error {constructor(public code:string,public errorId='',public status=0){super(code);}}
@@ -89,17 +95,25 @@ export async function login(){
   token=session.token;const writeEpoch=++sessionEpoch,sessionToken=token;
   try{await queueStorage(async()=>{if(sessionEpoch===writeEpoch)await Storage.setItem('toss-session',sessionToken);});}
   catch(error){
+    let cleanupError:unknown,clearedEpoch:number|undefined;
     if(sessionEpoch===writeEpoch&&token===sessionToken){
       const clearing=clearSession(false),cleared=sessionEpoch;
+      clearedEpoch=cleared;
       for(const listener of sessionListeners){if(token!==null||sessionEpoch!==cleared||loginAttempt!==attempt)break;try{listener();}catch{/* A UI observer cannot change the authentication result. */}}
-      try{await clearing;}catch{/* Storage may still contain an earlier session; keep the in-memory session closed. */}
+      try{await clearing;}catch(failure){cleanupError=failure;}
     }
-    if(attempt!==loginAttempt)throw new ApiError('SESSION_CHANGED','',409);
+    if(attempt!==loginAttempt||sessionEpoch!==(clearedEpoch??writeEpoch))throw new ApiError('SESSION_CHANGED','',409);
     if(error instanceof ApiError&&(error.status===401||error.status===403))throw error;
     if(typeof error==='object'&&error&&'status' in error&&(error.status===401||error.status===403)){
       const code='code' in error&&typeof error.code==='string'?error.code:error.status===403?'ACCESS_DENIED':'LOGIN_REQUIRED';
       throw new ApiError(code,'',error.status);
     }
+    if(cleanupError instanceof ApiError&&(cleanupError.status===401||cleanupError.status===403))throw cleanupError;
+    if(typeof cleanupError==='object'&&cleanupError&&'status' in cleanupError&&(cleanupError.status===401||cleanupError.status===403)){
+      const code='code' in cleanupError&&typeof cleanupError.code==='string'?cleanupError.code:cleanupError.status===403?'ACCESS_DENIED':'LOGIN_REQUIRED';
+      throw new ApiError(code,'',cleanupError.status);
+    }
+    if(typeof error==='object'&&error&&'code' in error&&typeof error.code==='string')throw error;
     throw new ApiError('SESSION_STORAGE_FAILED');
   }
   if(attempt!==loginAttempt||sessionEpoch!==writeEpoch)throw new ApiError('SESSION_CHANGED','',409);

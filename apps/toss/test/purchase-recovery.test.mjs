@@ -12,7 +12,7 @@ async function adapter(available=true){
  const bundle=await build({entryPoints:[path.resolve(import.meta.dirname,'../src/platform.ts')],bundle:true,write:false,format:'cjs',platform:'node',plugins:[{name:'offline-sdk',setup(b){
   b.onResolve({filter:/^(@apps-in-toss\/web-framework|\.\/release)$/},args=>({path:args.path,namespace:'mock'}));
   b.onLoad({filter:/.*/,namespace:'mock'},args=>({contents:args.path==='./release'?'export const SERVICE_AVAILABLE='+available+';':`
-   export const Environment={environment:'sandbox'},TossAuth={login:async()=>({authorizationCode:'mock',referrer:'SANDBOX'})},Storage={getItem:async()=>{const s=globalThis.tossRecoveryTest,value=s.stored||null;if(s.getStarted)s.getStarted();if(s.getWait)await s.getWait;return value;},removeItem:async()=>{const s=globalThis.tossRecoveryTest;if(s.removeError)throw Error('storage remove failed');if(s.removeStarted)s.removeStarted();if(s.removeWait)await s.removeWait;s.stored=null;},setItem:async(_key,value)=>{const s=globalThis.tossRecoveryTest;if(s.setStarted)s.setStarted();if(s.setWait)await s.setWait;if(s.storageFailure)throw s.storageFailure;if(s.setError||s.failSetFor===value)throw Error('storage unavailable');s.stored=value;}},Share={};
+   export const Environment={environment:'sandbox'},TossAuth={login:async()=>({authorizationCode:'mock',referrer:'SANDBOX'})},Storage={getItem:async()=>{const s=globalThis.tossRecoveryTest,value=s.stored||null;if(s.getStarted)s.getStarted();if(s.getWait)await s.getWait;return value;},removeItem:async()=>{const s=globalThis.tossRecoveryTest;if(s.removeFailure)throw s.removeFailure;if(s.removeError)throw Error('storage remove failed');if(s.removeStarted)s.removeStarted();if(s.removeWait)await s.removeWait;s.stored=null;},setItem:async(_key,value)=>{const s=globalThis.tossRecoveryTest;if(s.setStarted)s.setStarted();if(s.setWait)await s.setWait;if(s.storageFailure)throw s.storageFailure;if(s.setError||s.failSetFor===value)throw Error('storage unavailable');s.stored=value;}},Share={};
    const buy=options=>{const s=globalThis.tossRecoveryTest;s.purchaseOptions=options;if(s.synchronousThrow)throw Object.assign(Error('NETWORK_ERROR'),{code:'NETWORK_ERROR'});if(s.synchronousCancel)options.onError({code:'USER_CANCELED'});return ()=>{s.cleanupCount=(s.cleanupCount||0)+1;};};buy.isSupported=()=>true;
    const pending=async()=>{const s=globalThis.tossRecoveryTest;s.pendingCalls=(s.pendingCalls||0)+1;return s.malformed?undefined:{orders:s.orders};};pending.isSupported=()=>globalThis.tossRecoveryTest.supportPending!==false;const complete=async({params})=>{const s=globalThis.tossRecoveryTest;s.ack.push(params.orderId);return !s.failAck;};complete.isSupported=()=>globalThis.tossRecoveryTest.supportComplete!==false;export const IAP={createOneTimePurchaseOrder:buy,getPendingOrders:pending,completeProductGrant:complete};
   `}));
@@ -185,7 +185,7 @@ test('current canonical 401 clears only the current session and notifies once',a
 
 test('delayed storage removal cannot erase or invalidate a newer login',async()=>{
  const {state,login,canonical,onInvalidated,api}=await adapter(),previous=globalThis.fetch;let release,started,invalidations=0,logins=0,seen='';const wait=new Promise(r=>{release=r}),begun=new Promise(r=>{started=r});onInvalidated(()=>invalidations++);globalThis.fetch=async(url,options)=>{const p=new URL(url).pathname;if(p.endsWith('/login'))return Response.json({token:++logins===1?'old-session':'new-session'});if(p.endsWith('/canonical/records'))return Response.json({error:'SESSION_EXPIRED'},{status:401});seen=options.headers.Authorization;return Response.json({ok:true});};
- try{await login();state.removeWait=wait;state.removeStarted=started;const request=canonical('/canonical/records',new Request('https://miniapp.example/api/records'));await begun;const newLogin=login();await new Promise(r=>setImmediate(r));release();await assert.rejects(request,e=>e.code==='SESSION_CHANGED');await newLogin;await api('/session');assert.equal(seen,'Bearer new-session');assert.equal(state.stored,'new-session');assert.equal(invalidations,0);}finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
+ try{await login();state.removeWait=wait;state.removeStarted=started;const request=canonical('/canonical/records',new Request('https://miniapp.example/api/records'));await begun;assert.equal(invalidations,1);const newLogin=login();await new Promise(r=>setImmediate(r));release();await assert.rejects(request,e=>e.code==='SESSION_CHANGED');await newLogin;await api('/session');assert.equal(seen,'Bearer new-session');assert.equal(state.stored,'new-session');assert.equal(invalidations,1);}finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
 });
 
 test('a delayed session restore does not overwrite a newer login',async()=>{
@@ -368,5 +368,35 @@ test('the shell is invalidated before delayed storage cleanup completes',async()
 test('storage permission denial keeps its status and code while discarding the session',async()=>{
  const {state,login,api}=await adapter(),previous=globalThis.fetch;let seen;state.storageFailure={status:403,code:'STORAGE_DENIED'};globalThis.fetch=async(url,options)=>{if(new URL(url).pathname.endsWith('/login'))return Response.json({token:'failed-session'});seen=options.headers.Authorization||null;return Response.json({ok:true});};
  try{await assert.rejects(login(),e=>e.status===403&&e.code==='STORAGE_DENIED');await api('/session');assert.equal(seen,null);}
+ finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
+});
+
+test('current 401 clears the UI even when stored-token removal fails',async()=>{
+ const {state,login,api,onInvalidated}=await adapter(),previous=globalThis.fetch;let notified=0,seen;onInvalidated(()=>notified++);globalThis.fetch=async(url,options)=>{const p=new URL(url).pathname;if(p.endsWith('/login'))return Response.json({token:'active'});if(p.endsWith('/expired'))return Response.json({error:'SESSION_EXPIRED'},{status:401});seen=options.headers.Authorization||null;return Response.json({ok:true});};
+ try{await login();state.removeError=true;await assert.rejects(api('/expired'),e=>e.status===401&&e.code==='SESSION_EXPIRED');await api('/session');assert.equal(seen,null);assert.equal(notified,1);assert.equal(state.stored,'active');}
+ finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
+});
+
+test('a 403 while removing an expired token stays an explicit permission error',async()=>{
+ const {state,login,api,onInvalidated}=await adapter(),previous=globalThis.fetch;let notified=0;onInvalidated(()=>notified++);globalThis.fetch=async(url)=>new URL(url).pathname.endsWith('/login')?Response.json({token:'active'}):Response.json({error:'SESSION_EXPIRED'},{status:401});
+ try{await login();state.removeFailure={status:403,code:'STORAGE_DENIED'};await assert.rejects(api('/expired'),e=>e.status===403&&e.code==='STORAGE_DENIED');assert.equal(notified,1);}
+ finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
+});
+
+test('permission denial during cleanup of a failed login remains explicit',async()=>{
+ const {state,login}=await adapter(),previous=globalThis.fetch;state.setError=true;state.removeFailure={status:403,code:'STORAGE_DENIED'};globalThis.fetch=async()=>Response.json({token:'failed'});
+ try{await assert.rejects(login(),e=>e.status===403&&e.code==='STORAGE_DENIED');}
+ finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
+});
+
+test('a 401 during cleanup retains its specific authentication code',async()=>{
+ const {state,login,api}=await adapter(),previous=globalThis.fetch;globalThis.fetch=async(url)=>new URL(url).pathname.endsWith('/login')?Response.json({token:'active'}):Response.json({error:'SESSION_EXPIRED'},{status:401});
+ try{await login();state.removeFailure={status:401,code:'STORAGE_AUTH_REQUIRED'};await assert.rejects(api('/expired'),e=>e.status===401&&e.code==='STORAGE_AUTH_REQUIRED');}
+ finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
+});
+
+test('an SDK storage error retains its original code',async()=>{
+ const {state,login}=await adapter(),previous=globalThis.fetch;state.storageFailure={code:'UNSUPPORTED_APP_VERSION'};globalThis.fetch=async()=>Response.json({token:'failed'});
+ try{await assert.rejects(login(),e=>e.code==='UNSUPPORTED_APP_VERSION');}
  finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
 });
