@@ -4990,7 +4990,12 @@
           "Threads": "active account differs; edit access not established",
           "X": "active account differed on prior observation; browser connection interrupted before access check"
         },
-        "goodbyejieun": "owner account; excluded from official channels"
+        "goodbyejieun": "owner account; excluded from official channels",
+        "recheck20261104": {
+          "instagram": "Approved bio saved and confirmed after reload. Website links can only be edited in mobile app.",
+          "threads": "Active session remains @youngyangi91; official profile has no edit control; approved deletion not applied.",
+          "x": "Active session remains @bb067412797704; target account not in switch menu; approved bio not applied."
+        }
       }
     }
   }
