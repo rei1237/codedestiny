@@ -11,7 +11,7 @@ import styles from './records.module.css';
 
 export type SavedRecord = { id: string; source: string; key: string; serviceId: string; serviceName: string; title: string; question: string; createdAt: string | null; status: string; character: string; group: string; href: string; startHref: string; nativeHref: string; recoveryHref?: string };
 type Page = { ok: boolean; items: SavedRecord[]; failures: { source: string; name: string }[]; nextCursor?: string | null; retryCursor?: string };
-export default function RecordsClient({ showWebReception = true }: { showWebReception?: boolean } = {}) {
+export default function RecordsClient({ showWebReception = true, refreshKey = 0 }: { showWebReception?: boolean; refreshKey?: number } = {}) {
   const auth = useAuthStore(), locale = useLocale(), c = recordsCopy(locale);
   const userKey = String(auth.user?.id || auth.user?.userId || '');
   const [search, setSearch] = useState(''), [group, setGroup] = useState('all');
@@ -66,7 +66,7 @@ export default function RecordsClient({ showWebReception = true }: { showWebRece
     return () => { window.clearTimeout(timeout); controller.abort(); };
     // requestPage intentionally captures the current search and filter for this epoch.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [auth.authReady, auth.isAuthenticated, readyUser, userKey, search, group, retry]);
+  }, [auth.authReady, auth.isAuthenticated, readyUser, userKey, search, group, retry, refreshKey]);
   useEffect(() => {
     if (loading || !items.length || !pendingScroll.current) return;
     const y = pendingScroll.current; pendingScroll.current = 0;

@@ -1683,8 +1683,9 @@ export default function LifeBookAiClient({ paymentNotice }: { paymentNotice?: st
         const gate = await runBillingCoinGate(billingInput);
         if (!gate.ok || !gate.data) {
           const code = String(gate.error?.code || "").toUpperCase();
+          if (paymentNotice && (gate.status === 403 || ['RECOVERY_IN_PROGRESS','RECOVERY_REQUIRED','IAP_NOT_SUPPORTED','UNSUPPORTED_APP_VERSION','TOSS_RELEASE_PENDING'].includes(code)) && gate.error?.message) throw new Error(gate.error.message);
           if (code === "AUTH_REQUIRED" || code === "LOGIN_REQUIRED") throw new Error(LOGIN_REQUIRED_MESSAGE);
-          if (code === "PAYMENT_CANCELLED") throw new Error(PAYMENT_CANCELLED_MESSAGE);
+          if (code === "PAYMENT_CANCELLED" || (paymentNotice && code === "USER_CANCELED")) throw new Error(PAYMENT_CANCELLED_MESSAGE);
           throw new Error(PAYMENT_VERIFY_FAILED_MESSAGE);
         }
         console.info("[LifeBook AI Payment Success]", {
@@ -1721,7 +1722,7 @@ export default function LifeBookAiClient({ paymentNotice }: { paymentNotice?: st
     } finally {
       if (isCurrent()) startLockRef.current = false;
     }
-  }, [form, runGeneration, isBusy, copy, buildResume, captureDeliveryScope]);
+  }, [form, runGeneration, isBusy, copy, buildResume, captureDeliveryScope, paymentNotice]);
 
   // 확정 실패 후 사용자가 직접 누르는 재시도. 이미 환불이 끝난 세션은 새 키(=새 결제)로 다시 연다.
   const handleRetry = useCallback(async () => {

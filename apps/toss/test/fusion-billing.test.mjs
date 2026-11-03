@@ -10,7 +10,7 @@ const bundle=await build({entryPoints:[path.join(root,'apps/toss/service/billing
  b.onResolve({filter:/^@\/app\/hooks\/usePaidResume$/},()=>({path:'resume',namespace:'mock'}));
  b.onLoad({filter:/.*/,namespace:'mock'},()=>({contents:'export const unpackPaidResumeArg=JSON.parse;',loader:'js'}));
  b.onLoad({filter:/app[\\/]_lib[\\/]billing-client\.ts$/},()=>({contents:'export const runPaidAccessGate=()=>{throw Error("WEB_GATE_FORBIDDEN")};',loader:'js'}));
- b.onLoad({filter:/apps[\\/]toss[\\/]src[\\/]platform\.ts$/},()=>({contents:`const s=globalThis.__fusionBilling;export const api=async(path,body)=>{s.calls.push({path,body});if(s.unavailable)throw Object.assign(Error('unavailable'),{code:'TOSS_RELEASE_PENDING',status:503});return {id:'intent',sku:'mock-sku',paid:s.paid,amountKRW:50000,orderId:'original-order'};};export const nativeSaleProducts=async()=>s.recoveryBusy?[{sku:'mock-sku',approvedPriceKRW:50000}]:[];export const purchase=()=>{if(s.recoveryBusy)throw Object.assign(Error('RECOVERY_IN_PROGRESS'),{code:'RECOVERY_IN_PROGRESS'});throw Error('LIVE_PURCHASE_FORBIDDEN')};`,loader:'js'}));
+ b.onLoad({filter:/apps[\\/]toss[\\/]src[\\/]platform\.ts$/},()=>({contents:`const s=globalThis.__fusionBilling;export const api=async(path,body)=>{s.calls.push({path,body});if(s.unavailable)throw Object.assign(Error('unavailable'),{code:'TOSS_RELEASE_PENDING',status:503});if(s.denied)throw Object.assign(Error('ORDER_OWNERSHIP_MISMATCH'),{code:'ORDER_OWNERSHIP_MISMATCH',status:403});return {id:'intent',sku:'mock-sku',paid:s.paid,amountKRW:50000,orderId:'original-order'};};export const nativeSaleProducts=async()=>(s.recoveryBusy||s.cancelled)?[{sku:'mock-sku',approvedPriceKRW:50000}]:[];export const purchase=()=>{if(s.cancelled)throw Object.assign(Error('USER_CANCELED'),{code:'USER_CANCELED'});if(s.recoveryBusy)throw Object.assign(Error('RECOVERY_IN_PROGRESS'),{code:'RECOVERY_IN_PROGRESS'});throw Error('LIVE_PURCHASE_FORBIDDEN')};`,loader:'js'}));
 }}]});
 const loaded=new Module(path.join(root,'fusion-billing-test.cjs'));loaded.paths=Module._nodeModulePaths(root);loaded._compile(bundle.outputFiles[0].text,loaded.id);
 
@@ -53,4 +53,16 @@ test('native billing presents recovery-in-progress guidance before purchase',asy
  globalThis.location={search:''};globalThis.window={addEventListener:()=>{},removeEventListener:()=>{}};state.unavailable=false;state.paid=false;state.recoveryBusy=true;
  try{const result=await loaded.exports.runBillingCoinGate({featureKey:'life-book-ai-consultation',requestId:'original-life-request',resume:{args:{payload:JSON.stringify({birthDate:'1990-01-01'})}}});assert.equal(result.error.code,'RECOVERY_IN_PROGRESS');assert.match(result.error.message,/구매 내역을 확인/);}
  finally{state.recoveryBusy=false;state.paid=true;delete globalThis.location;delete globalThis.window;}
+});
+
+test('native billing preserves permission denial and provides account guidance',async()=>{
+ globalThis.location={search:''};state.unavailable=false;state.denied=true;
+ try{const result=await loaded.exports.runBillingCoinGate({featureKey:'life-book-ai-consultation',requestId:'same-request',resume:{args:{payload:JSON.stringify({birthDate:'1990-01-01'})}}});assert.equal(result.status,403);assert.equal(result.error.code,'ORDER_OWNERSHIP_MISMATCH');assert.match(result.error.message,/구매한 계정과 주문 내역/);}
+ finally{state.denied=false;delete globalThis.location;}
+});
+
+test('native billing retains the SDK cancellation code and gives cancellation guidance',async()=>{
+ globalThis.location={search:''};globalThis.window={addEventListener:()=>{},removeEventListener:()=>{}};state.unavailable=false;state.paid=false;state.cancelled=true;
+ try{const result=await loaded.exports.runBillingCoinGate({featureKey:'love-secret-ai-consultation',requestId:'same-request',resume:{args:{payload:JSON.stringify({birthDate:'1990-01-01'})}}});assert.equal(result.error.code,'USER_CANCELED');assert.match(result.error.message,/결제를 취소/);}
+ finally{state.cancelled=false;state.paid=true;delete globalThis.location;delete globalThis.window;}
 });

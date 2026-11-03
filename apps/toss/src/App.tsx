@@ -67,6 +67,7 @@ export default function App(){
     if(error instanceof ApiError&&error.code==='SESSION_CHANGED')return;
     const code=error instanceof ApiError?error.code:typeof error==='object'&&error&&'code' in error?String(error.code):'REQUEST_FAILED';
     setMessage((errors[code]||(error instanceof ApiError&&error.status===403?'접근 권한을 확인할 수 없어요. 구매한 계정과 주문 내역을 확인해 주세요.':errors.REQUEST_FAILED))+(error instanceof ApiError&&error.errorId?` 오류번호: ${error.errorId}`:''));
+    if(error instanceof ApiError&&error.status===403)setResult(null);
     if(error instanceof ApiError&&error.status===401){setLoggedIn(false);setResult(null);setLibrary([]);setDraft(null);setQuestion('');setBirth(emptyBirth());setPartner(emptyBirth());setScope({situation:'',options:'',period:'',constraints:'',relationshipType:''});}
   }
   async function run(task:()=>Promise<void>){if(busy)return;setBusy(true);setMessage('');try{await task();}catch(error){failure(error);}finally{setBusy(false);}}

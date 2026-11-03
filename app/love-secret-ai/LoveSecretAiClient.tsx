@@ -1859,7 +1859,7 @@ function extractPayment(result: unknown, fallbackRequestId: string) {
   };
 }
 
-async function runLoveSecretPaymentGate(paymentPayload: BillingPaymentPayload, idempotencyKey: string, copy: LoveSecretClientCopy, resume?: PaidResumeDescriptor) {
+async function runLoveSecretPaymentGate(paymentPayload: BillingPaymentPayload, idempotencyKey: string, copy: LoveSecretClientCopy, resume?: PaidResumeDescriptor, tossPayment = false) {
   const runtimeGate = asRecord(paymentPayload.runtimeGate);
   const gateResult = await runBillingCoinGate({
     resume,
@@ -1879,7 +1879,8 @@ async function runLoveSecretPaymentGate(paymentPayload: BillingPaymentPayload, i
   });
   if (!isPaymentGranted(gateResult)) {
     const code = String(gateResult.error?.code || "").toUpperCase();
-    if (code === "PAYMENT_CANCELLED") throw new Error(copy.errorMessages.paymentCancelled);
+    if (tossPayment && (gateResult.status === 403 || ['RECOVERY_IN_PROGRESS','RECOVERY_REQUIRED','IAP_NOT_SUPPORTED','UNSUPPORTED_APP_VERSION','TOSS_RELEASE_PENDING'].includes(code)) && gateResult.error?.message) throw new Error(gateResult.error.message);
+    if (code === "PAYMENT_CANCELLED" || (tossPayment && code === "USER_CANCELED")) throw new Error(copy.errorMessages.paymentCancelled);
     throw new Error(copy.errorMessages.paymentVerifyFailed);
   }
   return extractPayment(gateResult, idempotencyKey);
@@ -2253,7 +2254,7 @@ export default function LoveSecretAiPage({ paymentNotice }: { paymentNotice?: st
         const payment = await runLoveSecretPaymentGate(gatePayload, idempotencyKey, copy, buildResume({
           idempotencyKey,
           payload: packPaidResumeArg(payload),
-        }));
+        }), Boolean(paymentNotice));
         if (!isCurrent()) return;
         await startConsultation(buildPayload(form, idempotencyKey), idempotencyKey, payment);
         return;
