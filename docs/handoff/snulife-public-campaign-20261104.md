@@ -14,7 +14,7 @@ next: "main CI 완료 확인 후 정식 캠페인 활성화, 실제 코드 검�
 - `scripts/configure-snulife-public.mjs`, `.github/workflows/snulife-public-campaign.yml`, 관련 모의 테스트를 준비했다. 운영 설정이 이미 존재하면 중단하고 검수 설정은 보존하며 정식 코드를 마지막에 쓴다. Workflow는 main 수동 실행 전용이며 production release와 동시 실행하지 않는다.
 - `node --test __tests__/ui/configure-snulife-public.test.mjs` 3개 통과. 통합 후 `check:fast -- --committed-head --base=origin/main`의 유료 게이트 90/90과 그 안의 전체 `npm test`가 통과했다. 이어지는 중복 전체 검사는 저장소의 로컬 반복 금지 규칙에 따라 중단했으므로 check:fast 전체 완료로 보지 않는다. 통합 후 `npm run check:pre-push` 전체 통과.
 - 원격 main의 기존 CI 실패를 해결하기 위해 `4c13d36d0`에서 공통 상담 요청의 상담자 이름 혼입과 융합 요청 길이를 수정하고 관련 불변성 기준을 갱신했으며, `441451c42`에서 사이트맵 서명을 정리했다. 상담자·융합 33개, 199조합 불변성, 프롬프트 검사와 부하로 시간 초과된 검사 재실행이 통과했다. 융합 전체의 추정 입력량은 39,974/40,000으로 여유가 작다.
-- 캠페인 설정은 통합 커밋 `bd6a07411a3ccead617ece5ad621e8143748d66f`로 main에 push했다. 공식 [PR CI 41714543536](https://github.com/rei1237/codedestiny/actions/runs/41714543536)은 마지막 확인 시 in_progress이며 성공 여부는 미확인이다. CI 성공 전 운영 설정을 실행하거나 검증 완료로 발송하지 않는다.
+- 캠페인 설정은 통합 커밋 `bd6a07411a3ccead617ece5ad621e8143748d66f`로 main에 push했다. 공식 [PR CI 41714543536](https://github.com/rei1237/codedestiny/actions/runs/41714543536)은 2026-11-04 05:49 KST 확인 시 전체 진행 중이나 Critical checks의 Test가 실패했다(443 suites 통과, 1 실패). 다른 작업의 `e7bd13e9f`에서 추가된 `__tests__/worker/followup-context.test.mjs`가 Jest에서 실행되며 `Your test suite must contain at least one test` 오류가 났다. CI 성공 전 운영 설정을 실행하거나 검증 완료로 발송하지 않는다.
 - 운영 `/snu/`는 코드 입력 가능한 로그인 계정이 있었으나 브라우저 연결이 끊겨 복구 시도가 실패했다. 이미 검수 혜택을 받은 계정은 유효 코드 확인을 건너뛴다. 정확한 미수령 계정으로 확인해야 한다.
 - 별도 main 체크아웃 `C:/Users/user/Documents/Codex/worktrees/yeongnyangi-blue-passes-20261024-050530`에는 다른 작업의 미커밋 변경이 있다. 작업자의 파일을 수정하거나 지우지 않는다.
 
