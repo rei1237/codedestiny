@@ -50,9 +50,9 @@ test('public home and Korean app keep Korean copy with unchanged markup', () => 
   }
 });
 
-test('packaged home waits for navigation before loading another route; web keeps automatic prefetch', () => {
+test('both service selectors wait for navigation before loading another route', () => {
   assert.equal(render(true, 'ko').querySelectorAll('a')[1].getAttribute('data-prefetch'), 'false');
-  assert.equal(render(false, 'ko').querySelectorAll('a')[1].getAttribute('data-prefetch'), 'auto');
+  assert.equal(render(false, 'ko').querySelectorAll('a')[1].getAttribute('data-prefetch'), 'false');
 });
 
 test('home sets prefetch on the existing Link boundary without a client wrapper', () => {

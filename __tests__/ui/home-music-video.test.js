@@ -14,12 +14,12 @@ test('home film is visible without opening a story disclosure and playlist remai
   assert.ok(doc.querySelector('.cdh-story__card--novel'));
   assert.ok(film.querySelector('track[kind="subtitles"]'));
 });
-test('both homes keep explicit playback and shared media sources', async () => {
+test('service home keeps explicit playback and the service selector stays focused', async () => {
   const { moonlightVideo } = await import('../../lib/marketing/moonlight-video.mjs');
   assert.ok(read('index.html').includes(moonlightVideo.src720));
   const component = read('app/components/HomeMusicVideo.jsx');
   assert.match(component, /preload="none"/);
   assert.doesNotMatch(component, /autoPlay/);
   assert.match(component, /controls playsInline/);
-  assert.match(read('app/page.js'), /<HomeMusicVideo\s*\/>/);
+  assert.doesNotMatch(read('app/page.js'), /<HomeMusicVideo\s*\/>/);
 });

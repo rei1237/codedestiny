@@ -31,14 +31,10 @@ const locales = ['ko', 'ja', 'en', 'zh-CN', 'zh-TW', 'vi', 'hi', 'es', 'fr', 'de
         assert.equal(await page.locator('[data-home-card="yeoni"] a').getAttribute('href'), '/ggulggul/');
         assert.equal(await page.locator('[data-home-card="yn"] a').getAttribute('href'), '/yeongnyangi/');
         assert.equal(await page.locator('#homeCardTitle').evaluate(e => e.closest('[lang]').lang), native ? locale : 'ko');
-        assert.equal(await page.locator('[data-home-disclosure="guide"]').evaluate(e => e.open), true);
-        assert.equal(await page.locator('#homeExplore').evaluate(e => e.open), false);
-        assert.equal(await page.evaluate(() => localStorage.getItem('cd_lang')), locale);
-        await page.locator('[data-home-disclosure="guide"] > summary').focus();
-        await page.keyboard.press('Enter');
-        assert.equal(await page.locator('[data-home-disclosure="guide"]').evaluate(e => e.open), false);
-        await page.keyboard.press('Enter');
-        assert.equal(await page.locator('.consultation-tutorial__service:visible').count(), 2);
+        assert.equal(await page.locator('#homeExplore').count(), 0);
+        assert.equal(await page.locator('[data-yh-home], video, [data-recommendation-product]').count(), 0);
+        await page.locator('[data-home-card="yeoni"] a').focus();
+        assert.equal(await page.locator('[data-home-card="yeoni"] a').evaluate(e => e === document.activeElement), true);
         // Live native-app locale changes must not replace or collapse the guide.
         await page.evaluate(() => {
           window.__cdAppLanguage = 'ja';
@@ -46,7 +42,7 @@ const locales = ['ko', 'ja', 'en', 'zh-CN', 'zh-TW', 'vi', 'hi', 'es', 'fr', 'de
         });
         if (native) await page.waitForFunction(() => document.querySelector('#homeCardTitle').closest('[lang]').lang === 'ja');
         assert.equal(await page.locator('[data-home-card]').count(), 2);
-        assert.equal(await page.locator('[data-home-disclosure="guide"]').evaluate(e => e.open), true);
+        assert.equal(await page.locator('[data-home-card="yeoni"] a').getAttribute('href'), '/ggulggul/');
         assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
         assert.deepEqual(errors, []);
         console.log('PASS stored locale, live locale, cards and disclosure:', locale);
@@ -57,8 +53,8 @@ const locales = ['ko', 'ja', 'en', 'zh-CN', 'zh-TW', 'vi', 'hi', 'es', 'fr', 'de
       if (native) await context.addInitScript(() => { window.__CODE_DESTINY_RUNTIME_TARGET = 'mobile-app'; });
       const page = await context.newPage();
       await page.goto(new URL('/?lang=ja#homeServices', base).href, { waitUntil: 'networkidle' });
-      assert.equal(await page.locator('[data-home-card]').count(), 2);
-      assert.equal(await page.locator('#homeExplore').evaluate(e => e.open), true);
+      assert.ok(new URL(page.url()).pathname.startsWith('/ggulggul/'));
+      assert.equal(await page.locator('#homeServices').count(), 1);
       assert.equal(await page.evaluate(() => localStorage.getItem('cd_lang')), 'ja');
       console.log('PASS Japanese query and deep link');
     } finally { await context.close(); }

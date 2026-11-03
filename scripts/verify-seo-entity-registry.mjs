@@ -141,7 +141,7 @@ if (shouldVerifyBuild) {
   if (fs.existsSync(brandOutputPath)) {
     const brandHtml = fs.readFileSync(brandOutputPath, "utf8");
     assert(brandHtml.includes("꿀꿀 운세"), "Brand name is missing from built home");
-    assert(brandHtml.includes('href="/saju'), "Saju category link is missing from built home");
+    assert(brandHtml.includes('href="/ggulggul/"') && brandHtml.includes('href="/yeongnyangi/"'), "Both service entry links must exist on the selection page");
   }
 
   const fusionOutputPath = getOutputHtmlPath("/fusion-fortune");

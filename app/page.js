@@ -1,28 +1,14 @@
-import HomeMusicVideo from './components/HomeMusicVideo';
 import Link from 'next/link';
-import { RecommendationFooter } from './components/recommendations/RecommendationResult';
 import { publicSeoPages, siteSeo } from "../lib/seo/siteSeo";
-import { buildServiceJsonLd, buildWebPageJsonLd, buildFaqPageJsonLd, buildAuthorPersonJsonLd } from "../lib/structured-data";
+import { buildServiceJsonLd, buildWebPageJsonLd, buildAuthorPersonJsonLd } from "../lib/structured-data";
 import { serializeJsonLd } from "../lib/seo/json-ld.mjs";
 import { brandCopy } from "../lib/seo/brand-copy.mjs";
 import { BRAND_FACTS } from "../lib/brand/brand-facts.mjs";
 import { FOOTER_BYLINE, FOOTER_LINKS, FOOTER_NOTICE, FOOTER_TRUST_LINKS } from "../lib/brand/site-footer";
 import { BUSINESS_IDENTITY } from "../lib/site-policy-config";
-import { HOME_ACCURACY_FAQ, HOME_DIFFERENTIATION_FAQ } from "../lib/brand/differentiation-faqs.mjs";
-import { HOME_CATEGORIES, HOME_CONCERNS } from "../lib/seo/home-discovery.mjs";
-import { getSignProfile } from "../lib/fortune/sign-profiles";
 import LegacyHomeEntry from "./components/LegacyHomeEntry";
 import HomeCardDeck from "./components/HomeCardDeck";
-import HelpDesk from "./components/HelpDesk";
-import HomeEntryState from "./components/HomeEntryState";
-import YehwaHome from './components/YehwaHome';
-import { renderYehwaHome } from '../lib/marketing/yehwa-home.mjs';
-import homeCatalog from '../lib/marketing/yehwa-home.generated.json';
 import { NativeHomeRoot, NativeHomeNav, NativeHomeText, NativeHomeCardLink, NativeHomeDictionaryText } from "./components/NativeHomeCopy";
-import { PriceBadge } from "./components/PriceBadge";
-import ConsultationDiscovery from "./components/ConsultationDiscovery";
-import ConsultationMethodGuide from "./components/ConsultationMethodGuide";
-import { CONSULTATION_METHOD_FAQS } from "../lib/brand/consultation-methods.mjs";
 import "./yeongnyangi/night-tokens.css";
 import "./yeongnyangi/yehwa-night.generated.css";
 import styles from "./home-main.module.css";
@@ -30,11 +16,11 @@ import { IS_APP_BUILD } from "../lib/app-build-target";
 
 // `/` 는 꿀꿀 운세의 공식 대표 홈이다(2026-10-15). 상담 앱 입구는 /ggulggul/ 이고,
 // 기능 쿼리가 붙은 `/` 요청은 워커가 앱으로 보낸다(public/_worker.js 루트 분기).
-// 두 캐릭터 카드의 직접 진입을 유지하고, 아래에 공개 HTML 서비스 탐색을 제공한다.
+// 두 서비스 선택은 이 화면에서, 상담 탐색과 이용 안내는 각 서비스 홈에서 제공한다.
 const { service, characters } = BRAND_FACTS;
 const YEONGNYANGI = characters.find((character) => character.key === "yeongnyangi");
-const HOME_TITLE = brandCopy('homeSearchTitle');
-const HOME_DESCRIPTION = brandCopy('homeSearchDescription');
+const HOME_TITLE = "꿀꿀 운세 · 운세보는 영냥이 | 서비스 선택";
+const HOME_DESCRIPTION = "꽃돼지 꿀꿀운세에서 사주·타로와 주제별 운세를 고르거나, 운세보는 영냥이에게 궁금한 질문과 상황을 들려주세요. 나에게 맞는 상담을 선택하세요.";
 // summary_large_image 카드라 1200×630 공유 이미지를 쓴다. 정적 홈 셸(index.html)과 같은 그림이다.
 const HOME_IMAGE = siteSeo.defaultOgImage;
 const ART = "/images/home/illustrated";
@@ -80,30 +66,10 @@ export const metadata = {
 // 두 상담가의 역할과 실제 진입을 한 링크로 묶는다.
 // /ggulggul/ 은 Next RSC 페이로드가 없는 정적 셸이라 next/link 대신 <a> 로 연다(external).
 const CARDS = [
-  { key: "yeoni", className: "yeoniCard", art: "yeoni", name: "꿀꿀 운세", href: service.appEntryPath, external: true, tag: "사주·타로부터 주제별 리포트까지", action: "운세 골라보기" },
-  { key: "yn", className: "ynCard", art: "yeongnyangi", name: "운세보는 영냥이", href: YEONGNYANGI.path, tag: "내 질문과 상황을 바탕으로 깊이 읽기", action: "영냥이 만나기", night: true },
+  { key: "yeoni", className: "yeoniCard", art: "yeoni", name: "꽃돼지 꿀꿀운세", href: service.appEntryPath, external: true, tag: "사주·타로부터 주제별 운세와 상담을 골라보세요.", action: "꿀꿀운세 들어가기" },
+  { key: "yn", className: "ynCard", art: "yeongnyangi", name: "운세보는 영냥이", href: YEONGNYANGI.path, tag: "궁금한 질문과 상황을 중심으로 깊이 살펴보세요.", action: "영냥이 만나기", night: true },
 ];
 const CARD_ART_SIZES = "(min-width: 800px) 306px, (min-width: 641px) 38vw, 42vw";
-// 대표 상담 3종은 접힌 탐색 영역 밖에서 처음부터 읽고 선택할 수 있다.
-// 그림·질문은 /ggulggul/ 대표 덱(scripts/design/build-home-funnel.mjs)과 같고, 가격은 서버 정본(PriceBadge)이 말한다.
-const SIGNATURE_CONSULTATIONS = [
-  { key: "love-secret", title: "연애 비책", master: "연이 · 서한비", href: "/love-secret-ai/", art: "love-secret-ai", featureKey: "love-secret-ai-consultation", question: "두 사람의 마음과 관계의 흐름을 함께 살펴봐요.", action: "연애 비책 시작하기" },
-  { key: "new-year", title: "신년운세", master: "네오", href: "/new-year-ai-consultation/", art: "new-year-ai", featureKey: "new-year-ai-consultation", question: "한 해의 기회와 주의할 시기, 선택의 방향을 짚어봐요.", action: "신년운세 받기" },
-  { key: "life-book", title: "인생의 책", master: "윤달", href: "/life-book-ai/", art: "life-book-ai", featureKey: "life-book-ai-consultation", question: "타고난 성향부터 인생의 큰 흐름까지, 한 권으로 읽어요.", action: "인생의 책 펼치기" },
-];
-const SIGNATURE_ART = "/images/service-introductions";
-const RESULT_EXAMPLE = getSignProfile("rat");
-const HOME_FAQS = [
-  ...CONSULTATION_METHOD_FAQS,
-  { question: "꿀꿀 운세와 꿀꿀운세, 코드 데스티니는 어떤 관계인가요?", answer: brandCopy("aliases") },
-  HOME_ACCURACY_FAQ,
-  HOME_DIFFERENTIATION_FAQ,
-  { question: "꽃돼지 연이와 영냥이는 어떻게 다른가요?", answer: "꽃돼지 연이의 앱에서는 사주·타로·자미두수 등 원하는 도구를 골라 이용해요. 운세보는 영냥이는 사주보는 고양이 상담 서비스로, 구체적인 질문과 상황을 바탕으로 고민을 풀어가요. 같은 운영자가 제공하며, 이용 범위와 결제 조건은 각 서비스에서 안내해요." },
-  { question: "어디까지 무료로 이용할 수 있나요?", answer: "기본 사주·만세력·타로와 공개 별자리·띠별 운세를 무료로 시작할 수 있어요. 심층 리포트와 AI 상담은 별도 유료 상품이 있으며, 이용권·월정석·단건 결제의 적용 여부와 금액은 각 상품의 결제 전 안내를 확인해 주세요." },
-  { question: "태어난 시간을 몰라도 볼 수 있나요?", answer: "사주는 출생 시간 모름을 선택해 시주를 제외하고 살펴볼 수 있어요. 자미두수 명반과 점성술의 상승궁 등은 출생 시간에 따라 달라지므로 해당 도구의 입력 안내를 확인해 주세요. 시간이 필요 없는 질문형 타로도 선택할 수 있어요." },
-  { question: "이전에 구매한 결과는 어디에서 다시 보나요?", answer: "결제한 계정으로 로그인한 뒤 꽃돼지 서비스 결과는 나의 기록 보관함(/records/)에서, 영냥이 상담은 영냥이 상담 기록(/yeongnyangi/library/)에서 다시 열 수 있어요. 문의와 오류 신고는 문의 페이지, 환불 기준은 환불정책에서 확인해 주세요." },
-];
-
 function discoveryTracking(serviceKey, placement = "directory") {
   return { "data-cd-cross-sell": "/", "data-cd-target-service": serviceKey, "data-cd-cta-placement": placement };
 }
@@ -118,21 +84,21 @@ export default function HomePage() {
   ];
   return <>
     <LegacyHomeEntry />
-    <HomeEntryState />
     {/* This public Korean entry stays visible regardless of a saved reading language. */}
     <NativeHomeRoot className={styles.page}>
       <header className={styles.brandRow}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img className={styles.brandMark} src="/fuctionassets/%EC%97%B0%EC%9D%B4.webp" width={96} height={96} alt="" decoding="async" />
         <span className={styles.wordmark}>{service.name}</span>
-        <nav className={styles.entryNav} aria-label="홈 주요 메뉴"><a href="/?action=cdOpenAllFortunes">검색</a><a href="/login/">계정</a></nav>
       </header>
 
       <main className={styles.stage}>
-        <YehwaHome html={renderYehwaHome(homeCatalog)} />
+        <div className={styles.head}>
+          <h1 id="homeCardTitle" className={styles.title}><NativeHomeText>꿀꿀 운세에서 어떤 운세를 만나볼까요?</NativeHomeText></h1>
+          <p className={styles.lead}><NativeHomeText>마음이 향하는 상담 공간을 골라보세요.</NativeHomeText></p>
+        </div>
 
         {/* 카드 제목(h2)의 링크를 카드 크기로 늘려 카드 전체가 한 링크다. 설명 두 줄은 aria-describedby 로 읽힌다. */}
-        <h2 id="homeCardTitle" className={styles.adviserTitle}>상담가와 이야기 나누기</h2>
         <HomeCardDeck className={styles.deck}>
           {CARDS.map((card, index) => {
             const linkProps = { href: card.href, className: styles.cardLink, "aria-describedby": `${card.key}CardTag`, ...discoveryTracking(card.key === "yeoni" ? "ggulggul" : "yeongnyangi", "primary") };
@@ -154,95 +120,14 @@ export default function HomePage() {
             </li>;
           })}
         </HomeCardDeck>
-        <ConsultationMethodGuide id="home-consultation-methods" variant="entry" />
-        {/* 카드 전체가 한 링크다. 클릭 귀속은 /ggulggul/ 덱과 같은 섹션 키(signature_consult)로 남는다(js/core/analytics.js). */}
-        <section className={styles.signature} aria-labelledby="homeSignature" data-cd-funnel-section="signature_consult">
-          <div className={styles.signatureHeading}><svg className={styles.signatureMoon} width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="currentColor" strokeWidth="1.25" aria-hidden="true"><path d="M26 5a15 15 0 1 0 9 23A15 15 0 0 1 26 5Z"/><path d="M29 12v8m-4-4h8M15 29c-4-2-5-5-4-8 4 1 6 4 4 8Zm0 0c4-2 5-5 4-8-4 1-6 4-4 8Z"/></svg><h2 id="homeSignature"><NativeHomeText>마음이 머무는 대표 상담</NativeHomeText></h2><p><NativeHomeText>연애, 한 해, 인생. 지금의 고민에 가까운 이야기를 골라보세요.</NativeHomeText></p></div>
-          <ul className={styles.signatureList}>{SIGNATURE_CONSULTATIONS.map((item, index) => <li key={item.key} data-home-signature={item.key}>
-            <Link prefetch={IS_APP_BUILD ? false : undefined} href={item.href} className={styles.signatureCard}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img className={styles.signatureArt} src={`${SIGNATURE_ART}/${item.art}-640.webp`} srcSet={`${SIGNATURE_ART}/${item.art}-320.webp 320w, ${SIGNATURE_ART}/${item.art}-640.webp 640w`} sizes="(min-width: 641px) 320px, 38vw" width={640} height={427} alt="" loading="lazy" decoding="async" />
-              <div className={styles.signatureCopy}>
-                <h3><NativeHomeText>{item.title}</NativeHomeText></h3>
-                <span className={styles.signatureMaster}><NativeHomeText>{item.master}</NativeHomeText></span>
-                <p className={styles.signatureQuestion}><NativeHomeText>{item.question}</NativeHomeText></p>
-                <PriceBadge featureKey={item.featureKey} className={styles.signaturePrice} />
-                <span className={index === 0 ? styles.signaturePrimary : styles.signatureLink}><NativeHomeText>{item.action}</NativeHomeText><span aria-hidden="true">→</span></span>
-              </div>
-            </Link>
-          </li>)}</ul>
-        </section>
-        <HomeMusicVideo />
-        <HelpDesk />
-        <details id="homeExplore" data-home-disclosure="explore" className={styles.explore}>
-          <summary className={styles.exploreSummary}><span><NativeHomeText>더 둘러보기</NativeHomeText></span><span className={styles.disclosureMark} aria-hidden="true" /></summary>
-          <div className={styles.exploreContent}>
-        <ConsultationDiscovery />
-        <div className={styles.discovery}>
-          <section className={styles.section} aria-labelledby="homeServices">
-            <div className={styles.sectionHeading}><h2 id="homeServices"><NativeHomeText>어떤 운세가 궁금하세요?</NativeHomeText></h2><p><NativeHomeText>익숙한 사주부터 새로운 별의 이야기까지.</NativeHomeText></p></div>
-            <ul className={styles.serviceList}>
-              {HOME_CATEGORIES.map(item => <li key={item.key}>
-                <Link prefetch={IS_APP_BUILD ? false : undefined} href={item.href} {...discoveryTracking(item.key)}>
-                  <span className={styles.methodDoor}>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img className={styles.methodArt} src={item.image} width={320} height={213} alt="" loading="lazy" decoding="async" />
-                  </span>
-                  <div className={styles.methodCopy}><h3>{["saju", "tarot", "sukuyo", "vedic", "ziwei", "astrology"].includes(item.key) ? <NativeHomeDictionaryText translationKey={`home.nav.${item.key}`}>{item.title}</NativeHomeDictionaryText> : <NativeHomeText>{item.title}</NativeHomeText>}</h3><p><NativeHomeText>{item.description}</NativeHomeText></p></div>
-                  <svg className={styles.linkArrow} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6" /></svg>
-                </Link>
-              </li>)}
-            </ul>
-            <NativeHomeNav className={styles.quickLinks} aria-label="바로 확인하는 운세">
-              <Link prefetch={IS_APP_BUILD ? false : undefined} href="/manse/" {...discoveryTracking("manse")}><NativeHomeText>만세력으로 명식 확인하기</NativeHomeText></Link>
-              <Link prefetch={IS_APP_BUILD ? false : undefined} href="/fortune/tomorrow/" {...discoveryTracking("zodiac")}><NativeHomeText>내일 운세 보기</NativeHomeText></Link>
-              <Link prefetch={IS_APP_BUILD ? false : undefined} href="/fortune/monthly/" {...discoveryTracking("zodiac")}><NativeHomeText>이번 달 운세 보기</NativeHomeText></Link>
-            </NativeHomeNav>
-          </section>
-          <section className={styles.section} aria-labelledby="homeConcerns">
-            <div className={styles.sectionHeading}><h2 id="homeConcerns"><NativeHomeText>지금 마음에 걸리는 이야기</NativeHomeText></h2><p><NativeHomeText>연애·일·돈·관계, 질문에서 시작해도 좋아요.</NativeHomeText></p></div>
-            <ul className={styles.concernList}>{HOME_CONCERNS.map(item => <li key={item.title}>
-              <Link prefetch={IS_APP_BUILD ? false : undefined} href={item.href} {...discoveryTracking(item.key, "related")}><h3><NativeHomeText>{item.title}</NativeHomeText></h3><p><NativeHomeText>{item.description}</NativeHomeText></p></Link>
-            </li>)}</ul>
-            <div className={styles.advisers}>
-              <Link prefetch={IS_APP_BUILD ? false : undefined} href="/fortune-tea-house/" {...discoveryTracking("tea", "related")}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={`${ART}/yeoni-hanbok-240.webp`} width={240} height={360} alt="" loading="lazy" decoding="async" />
-                <span><strong><NativeHomeText>연이의 운명의 찻집</NativeHomeText></strong><span><NativeHomeText>마음을 정리하는 다정한 편지</NativeHomeText></span><b><NativeHomeText>연이에게 이야기하기</NativeHomeText> <span aria-hidden="true">→</span></b></span>
-              </Link>
-              <Link prefetch={IS_APP_BUILD ? false : undefined} href="/neo-operation-room/" {...discoveryTracking("neo", "related")}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={`${ART}/neo-human-240.webp`} width={240} height={360} alt="" loading="lazy" decoding="async" />
-                <span><strong><NativeHomeText>네오의 팩폭 전략실</NativeHomeText></strong><span><NativeHomeText>복잡한 고민을 실행할 전략으로</NativeHomeText></span><b><NativeHomeText>네오와 전략 세우기</NativeHomeText> <span aria-hidden="true">→</span></b></span>
-              </Link>
-            </div>
-          </section>
-          <section className={`${styles.section} ${styles.readingSection}`} aria-labelledby="homeExample">
-            <div className={styles.sectionHeading}><h2 id="homeExample"><NativeHomeText>결과를 읽고, 작은 행동으로</NativeHomeText></h2><p><NativeHomeText>기질 설명과 현실적인 조언을 함께 읽어보세요. 아래는 공개 쥐띠 운세에 쓰이는 해설의 일부예요.</NativeHomeText></p></div>
-            <figure className={styles.readingExample}><figcaption><NativeHomeText>쥐띠 운세의 기질·습관 해설 예시</NativeHomeText></figcaption><blockquote><p><NativeHomeText>{RESULT_EXAMPLE.strength}</NativeHomeText></p><p><NativeHomeText>{RESULT_EXAMPLE.luckyHabit}</NativeHomeText></p></blockquote><p className={styles.exampleNote}><NativeHomeText>개인 사주 결과가 아닌 공통 기질 해설이에요. 날짜별 운세에서는 해당 날짜의 일진과 별의 흐름도 함께 확인할 수 있어요.</NativeHomeText></p><Link prefetch={IS_APP_BUILD ? false : undefined} href="/fortune/tomorrow/rat/" {...discoveryTracking("zodiac", "next_step")}><NativeHomeText>쥐띠 내일 운세 전체 읽기</NativeHomeText></Link></figure>
-          </section>
-          <section className={styles.section} aria-labelledby="homeMethods">
-            <div className={styles.sectionHeading}><h2 id="homeMethods"><NativeHomeText>서로 다른 체계, 나를 이해하는 여러 관점</NativeHomeText></h2></div>
-            <dl className={styles.methods}>
-              <div><dt><NativeHomeText>사주와 자미두수</NativeHomeText></dt><dd><NativeHomeText>사주는 생년월일시의 오행·십성·운의 흐름을, 자미두수는 별이 놓인 12궁 명반을 중심으로 읽어요. 꽃돼지 사주와 꽃돼지 자미두수는 각 체계에 맞는 입력과 해석을 제공해요.</NativeHomeText></dd></div>
-              <div><dt><NativeHomeText>숙요점·베다점·서양 점성술</NativeHomeText></dt><dd><NativeHomeText>숙요점은 본명숙과 관계 유형, 베다점은 항성황도에 따른 라그나·다샤, 서양 점성술은 출생차트의 태양·달·상승궁을 살펴봐요. 같은 이름의 별이나 궁이라도 계산 기준과 해석을 섞지 않아요.</NativeHomeText></dd></div>
-              <div><dt><NativeHomeText>타로와 고민 상담</NativeHomeText></dt><dd><NativeHomeText>타로는 질문과 카드의 상징을 통해 마음과 선택지를 읽어요. 영냥이 질문 상담과 운명의 찻집, 네오의 팩폭 전략실에서는 내 상황을 정리하고 실천할 조언을 찾아갈 수 있어요.</NativeHomeText></dd></div>
-            </dl>
-            <p className={styles.methodLink}><NativeHomeText>여러 체계를 함께 읽는 방식은</NativeHomeText> <Link prefetch={IS_APP_BUILD ? false : undefined} href="/fusion-fortune/"><NativeHomeText>초융합 운세 안내</NativeHomeText></Link><NativeHomeText>에서 확인할 수 있어요.</NativeHomeText></p>
-            <p className={styles.byline}><Link prefetch={IS_APP_BUILD ? false : undefined} href="/about/#author"><NativeHomeDictionaryText translationKey="footer.byline">{FOOTER_BYLINE}</NativeHomeDictionaryText></Link></p>
-          </section>
-          <section className={styles.section} aria-labelledby="homeFaq">
-            <div className={styles.sectionHeading}><h2 id="homeFaq"><NativeHomeText>시작하기 전에 궁금한 점</NativeHomeText></h2><p><NativeHomeText>꿀꿀 운세의 공식 홈페이지는 code-destiny.com이에요. CODE DESTINY(코드 데스티니)가 운영해요.</NativeHomeText></p></div>
-            <div className={styles.faqList}>{HOME_FAQS.map(item => <details key={item.question}><summary><NativeHomeText>{item.question}</NativeHomeText></summary><p><NativeHomeText>{item.answer}</NativeHomeText>{item.link && <> <Link prefetch={IS_APP_BUILD ? false : undefined} href={item.link.href}><NativeHomeText>{item.link.label}</NativeHomeText></Link></>}</p></details>)}</div>
-            <details className={styles.history} data-brand-history=""><summary><NativeHomeText>이전 서비스 이름 안내</NativeHomeText></summary><p><NativeHomeText>{BRAND_FACTS.historyKo}</NativeHomeText> <NativeHomeText>같은 계정으로 이전 구매 내역과 저장된 결과를 확인할 수 있어요.</NativeHomeText></p></details>
-            <NativeHomeNav className={styles.quickLinks} aria-label="상담 방식과 이용 안내"><Link prefetch={IS_APP_BUILD ? false : undefined} href="/about/"><NativeHomeText>운영자와 해석 방식</NativeHomeText></Link><Link prefetch={IS_APP_BUILD ? false : undefined} href="/editorial-policy/"><NativeHomeText>콘텐츠 편집 원칙</NativeHomeText></Link><Link prefetch={IS_APP_BUILD ? false : undefined} href="/faq/"><NativeHomeText>전체 이용 안내</NativeHomeText></Link></NativeHomeNav>
-          </section>
-        </div>
-          </div>
-        </details>
+        <nav className={styles.entryHelp} aria-label="서비스 이용 도움말">
+          <Link prefetch={IS_APP_BUILD ? false : undefined} href="/faq/"><NativeHomeText>이용 안내</NativeHomeText></Link>
+          <Link prefetch={IS_APP_BUILD ? false : undefined} href="/records/"><NativeHomeText>꿀꿀 운세 기록</NativeHomeText></Link>
+          <Link prefetch={IS_APP_BUILD ? false : undefined} href="/yeongnyangi/library/"><NativeHomeText>영냥이 상담 기록</NativeHomeText></Link>
+        </nav>
+        <p className={styles.entryNote}><NativeHomeText>이용권과 상담 기록은 서비스별로 확인해 주세요.</NativeHomeText></p>
       </main>
 
-      <RecommendationFooter brand="ggulggul" locale="ko"/>
       <footer className={styles.footer}>
         <NativeHomeNav className={styles.footerNav} aria-label="정책과 문의">
           {FOOTER_LINKS.map(link => <Link prefetch={IS_APP_BUILD ? false : undefined} key={link.href} href={link.href} className={link.strong ? styles.footerStrong : undefined}><NativeHomeDictionaryText translationKey={link.trans}>{link.text}</NativeHomeDictionaryText></Link>)}
@@ -252,6 +137,7 @@ export default function HomePage() {
           {FOOTER_TRUST_LINKS.map(link => <Link prefetch={IS_APP_BUILD ? false : undefined} key={link.href} href={link.href}><NativeHomeDictionaryText translationKey={link.trans}>{link.text}</NativeHomeDictionaryText></Link>)}
           {!IS_APP_BUILD && <button type="button" data-cd-cookie-settings className={styles.footerButton}>쿠키 설정</button>}
         </NativeHomeNav>
+        <p className={styles.byline}><Link prefetch={IS_APP_BUILD ? false : undefined} href="/about/#author"><NativeHomeDictionaryText translationKey="footer.byline">{FOOTER_BYLINE}</NativeHomeDictionaryText></Link></p>
         <p className={styles.business}>
           <span><NativeHomeText>상호</NativeHomeText> {BUSINESS_IDENTITY.companyName}</span><span><NativeHomeText>대표</NativeHomeText> {BUSINESS_IDENTITY.representative}</span><span><NativeHomeText>사업자등록번호</NativeHomeText> {BUSINESS_IDENTITY.registrationNumber}</span>
           <span><NativeHomeText>통신판매업 신고</NativeHomeText> {BUSINESS_IDENTITY.mailOrderNumber}</span><span><NativeHomeText>전화</NativeHomeText> {BUSINESS_IDENTITY.phone}</span><span><NativeHomeText>이메일</NativeHomeText> {BUSINESS_IDENTITY.email}</span>
@@ -259,18 +145,7 @@ export default function HomePage() {
         </p>
         <p className={styles.notice}><NativeHomeDictionaryText translationKey="footer.disclaimerNote">{FOOTER_NOTICE}</NativeHomeDictionaryText></p>
       </footer>
-      <nav className={styles.bottomNav} aria-label="주요 메뉴">
-        {[
-          {icon:'home',label:'홈',href:'/'},
-          {icon:'fortunes',label:'전체 운세',href:'/?action=cdOpenAllFortunes'},
-          {icon:'library',label:'보관함',href:'/?action=cdOpenLibrary'},
-          {icon:'my',label:'마이',href:'/?action=cdOpenAccount'},
-        ].map(item=><a key={item.icon} href={item.href} aria-current={item.icon==='home'?'page':undefined}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={`/images/navigation/${item.icon}.svg`} width={22} height={22} alt=""/><span>{item.label}</span>
-        </a>)}
-      </nav>
     </NativeHomeRoot>
-    <script type="application/ld+json" dangerouslySetInnerHTML={{__html:serializeJsonLd([webPageJsonLd, founderJsonLd, ...serviceJsonLd, buildFaqPageJsonLd(HOME_FAQS)])}} />
+    <script type="application/ld+json" dangerouslySetInnerHTML={{__html:serializeJsonLd([webPageJsonLd, founderJsonLd, ...serviceJsonLd])}} />
   </>;
 }

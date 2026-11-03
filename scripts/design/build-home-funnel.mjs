@@ -40,7 +40,6 @@ const introductionArt = JSON.parse(readFileSync('lib/marketing/service-introduct
 // 무료로 먼저 — 여섯 체계. 모두 레지스트리의 '무료 시작' 항목이고 액션도 레지스트리에서 읽는다(오늘의 운세는 전체 운세 시트에 남긴다).
 const registryWindow = {};
 runInNewContext(readFileSync('js/core/service-registry.js', 'utf8'), { window: registryWindow });
-vars.yehwaHome = renderYehwaHome(registryWindow.__cdServiceRegistry);
 writeFileSync('lib/marketing/yehwa-home.generated.json', JSON.stringify(registryWindow.__cdServiceRegistry, null, 2) + '\n');
 const FREE_CARDS = [
   { id: 'saju', key: 'freeSaju', title: '무료 사주', noteKo: '생년월일로 바로 보기', attrs: 'data-cdh-free ' },
@@ -355,6 +354,10 @@ vars.pass = '<link rel="stylesheet" href="/styles/pass-benefits.css">' + localiz
   <a class="cdh-pass__btn" href="/points/?source=flower-membership" data-cd-trans="home.gardenCopy.passCta">나에게 맞는 이용권 확인하기</a>
 </section>`;
 const template = readFileSync('templates/home-funnel.html', 'utf8');
+// Keep the existing pass renderer between concern results and records/navigation.
+vars.yehwaHome = renderYehwaHome(registryWindow.__cdServiceRegistry, {
+  passHtml: '<div class="cdh-slot cdh-slot--pass" id="cdhPass"><div id="cdhPassSlot">' + vars.pass + '</div></div>',
+});
 let homeHtml = template.replace(/\{\{(\w+)\}\}/g, (_token, key) => {
   if (!(key in vars)) throw new Error(`Unknown home funnel template token: ${key}`);
   return vars[key];
