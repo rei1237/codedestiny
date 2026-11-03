@@ -377,6 +377,10 @@ export async function verifyMobilePayments({base,products,systemNames}){
     if(path==='/api/reviews/products'&&detail?.page==='/yeongnyangi/result/'
       &&f.state.approved&&f.row.paid&&f.row.state==='COMPLETED'&&f.row.chapters.length===product.chapterCount
       &&f.state.http.some(response=>response.path===path&&response.method==='GET'&&response.status===200))return false;
+    // generation-interrupted leaves the library right after load. Library catches its GET list read and retries once
+    // (two messages); POST to this path only happens on the checkout flow, never on /yeongnyangi/library/.
+    if(path==='/api/yeongnyangi/requests'&&detail?.page==='/yeongnyangi/library/'
+      &&f.state.approved&&f.row.paid&&f.row.state==='COMPLETED'&&f.row.chapters.length===product.chapterCount)return false;
     const navigationReads=new Set(['/api/auth/me','/api/me/access-state','/api/profile','/api/billing/balance','/api/payments/birth-profile-pending','/api/payments/service-packs/quote','/api/payments/service-packs/catalog','/api/recommendations','/api/activation-rewards/status','/api/activation-rewards/snu/status','/version.json']);
     return !path||!navigationReads.has(path);
    });
