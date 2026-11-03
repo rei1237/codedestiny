@@ -20,6 +20,8 @@ AI 검색과 검색엔진이 꿀꿀 운세의 영냥이, 특히 5,000원 고등�
 
 ## 소유자 수동 작업
 
+Codex 실행 지시는 `docs/handoff/2026-11-04-owner-tasks-codex.md`에 있다.
+
 - GA4 맞춤 측정기준 `ai_source` 등록. 등록 전에는 GA4 보고서에 값이 나오지 않는다.
 - Bing Webmaster, Copilot 로그인 뒤 기준선 조회. 이번에는 로그인 벽으로 빈칸이다.
 - 외부 작업(WordPress 링크, 프로필 정합, 기고, 실제 후기, Cloudflare WAF 실제 봇 처리 확인)은 승인 없이 하지 않는다.
