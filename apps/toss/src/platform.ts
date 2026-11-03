@@ -75,10 +75,18 @@ function pausePaymentMedia(){
   const restore=()=>{if(restored||document.visibilityState!=='visible')return;restored=true;if(waiting)document.removeEventListener('visibilitychange',restore);playing.forEach(media=>{if(media.isConnected&&media.paused)void media.play().catch(()=>{});});};
   return ()=>{if(restored||waiting)return;if(document.visibilityState==='visible')restore();else{waiting=true;document.addEventListener('visibilitychange',restore);}};
 }
+function recoverySupported(){
+  try{return IAP.getPendingOrders.isSupported()&&IAP.completeProductGrant.isSupported();}catch{return false;}
+}
+function requireRecoveryReady(){
+  if(!recoverySupported())throw new ApiError('IAP_NOT_SUPPORTED');
+  if(recoveryInFlight?.token===token)throw new ApiError('RECOVERY_IN_PROGRESS');
+  if(recoveryState?.token!==token||recoveryState.state!=='ready')throw new ApiError('RECOVERY_REQUIRED');
+}
 export function purchase(product:SaleProduct,requestId:string,onDone:()=>void,onError:(error:unknown)=>void){
   if(!SERVICE_AVAILABLE)throw new ApiError('TOSS_RELEASE_PENDING');
   if(!isToss())throw new ApiError('TOSS_APP_REQUIRED');
-  if(recoveryInFlight?.token===token)throw new ApiError('RECOVERY_IN_PROGRESS');
+  requireRecoveryReady();
   if(!IAP.createOneTimePurchaseOrder.isSupported())throw new ApiError('IAP_NOT_SUPPORTED');
   let unsubscribe:()=>void=()=>{},granted=false,settled=false;
   const resumeMedia=pausePaymentMedia();
@@ -94,7 +102,7 @@ export function purchase(product:SaleProduct,requestId:string,onDone:()=>void,on
 export function purchaseTarotLibrary(product:TarotLibraryProduct,input:unknown,onDone:(orderId:string)=>void,onError:(error:unknown)=>void){
   if(!SERVICE_AVAILABLE)throw new ApiError('TOSS_RELEASE_PENDING');
   if(!isToss())throw new ApiError('TOSS_APP_REQUIRED');
-  if(recoveryInFlight?.token===token)throw new ApiError('RECOVERY_IN_PROGRESS');
+  requireRecoveryReady();
   if(!IAP.createOneTimePurchaseOrder.isSupported())throw new ApiError('IAP_NOT_SUPPORTED');
   let unsubscribe:()=>void=()=>{},grantedOrder='',settled=false;
   const resumeMedia=pausePaymentMedia();
@@ -116,17 +124,21 @@ export async function recoverAfterAuthentication(authenticated:boolean):Promise<
   return authenticated?recoveryNotice(await restorePurchases()):'';
 }
 let recoveryInFlight:{token:string|null;promise:Promise<RecoveryCounts>}|null=null;
+let recoveryState:{token:string|null;state:'checking'|'ready'|'blocked'}|null=null;
 export function restorePurchases():Promise<RecoveryCounts>{
   if(recoveryInFlight?.token===token)return recoveryInFlight.promise;
-  const promise=restorePurchasesOnce(token);
-  recoveryInFlight={token,promise};
-  const clear=()=>{if(recoveryInFlight?.promise===promise)recoveryInFlight=null;};
-  void promise.then(clear,clear);
+  const sessionToken=token;
+  recoveryState={token:sessionToken,state:'checking'};
+  const promise=restorePurchasesOnce(sessionToken);
+  recoveryInFlight={token:sessionToken,promise};
+  void promise.then(counts=>{if(recoveryInFlight?.promise===promise){recoveryState={token:sessionToken,state:counts.failed||counts.denied?'blocked':'ready'};recoveryInFlight=null;}},()=>{if(recoveryInFlight?.promise===promise){recoveryState={token:sessionToken,state:'blocked'};recoveryInFlight=null;}});
   return promise;
 }
 async function restorePurchasesOnce(sessionToken:string|null):Promise<RecoveryCounts>{
   if(!isToss())throw new ApiError('TOSS_APP_REQUIRED');
+  if(!recoverySupported())throw new ApiError('IAP_NOT_SUPPORTED');
   const pending=await IAP.getPendingOrders();
+  if(!pending||!Array.isArray(pending.orders))throw new ApiError('RECOVERY_STATUS_UNAVAILABLE');
   let recovered=0,failed=0,denied=0;
   for(const order of pending?.orders||[]){
     try{
@@ -136,7 +148,7 @@ async function restorePurchasesOnce(sessionToken:string|null):Promise<RecoveryCo
       if(!validReceipt(receipt,order.orderId))throw new ApiError('GRANT_NOT_DURABLE');
       if(!await IAP.completeProductGrant({params:{orderId:order.orderId}}))throw new ApiError('GRANT_ACK_PENDING');
       recovered++;
-    }catch(error){if(token!==sessionToken)throw new ApiError('SESSION_CHANGED','',409);if(error instanceof ApiError&&error.status===401)throw error;if(error instanceof ApiError&&error.status===403)denied++;else failed++;}
+    }catch(error){if(token!==sessionToken)throw new ApiError('SESSION_CHANGED','',409);if(error instanceof ApiError&&error.status===401)throw error;if(typeof error==='object'&&error&&'code' in error&&error.code==='UNSUPPORTED_APP_VERSION')throw error;if(error instanceof ApiError&&error.status===403)denied++;else failed++;}
   }
   return {recovered,failed,denied};
 }

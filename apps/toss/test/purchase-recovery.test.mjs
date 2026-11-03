@@ -14,7 +14,7 @@ async function adapter(available=true){
   b.onLoad({filter:/.*/,namespace:'mock'},args=>({contents:args.path==='./release'?'export const SERVICE_AVAILABLE='+available+';':`
    export const Environment={environment:'sandbox'},TossAuth={login:async()=>({authorizationCode:'mock',referrer:'SANDBOX'})},Storage={removeItem:async()=>{},setItem:async()=>{}},Share={};
    const buy=options=>{globalThis.tossRecoveryTest.purchaseOptions=options;return ()=>{};};buy.isSupported=()=>true;
-   export const IAP={createOneTimePurchaseOrder:buy,getPendingOrders:async()=>{const s=globalThis.tossRecoveryTest;s.pendingCalls=(s.pendingCalls||0)+1;return {orders:s.orders};},completeProductGrant:async({params})=>{const s=globalThis.tossRecoveryTest;s.ack.push(params.orderId);return !s.failAck;}};
+   const pending=async()=>{const s=globalThis.tossRecoveryTest;s.pendingCalls=(s.pendingCalls||0)+1;return s.malformed?undefined:{orders:s.orders};};pending.isSupported=()=>globalThis.tossRecoveryTest.supportPending!==false;const complete=async({params})=>{const s=globalThis.tossRecoveryTest;s.ack.push(params.orderId);return !s.failAck;};complete.isSupported=()=>globalThis.tossRecoveryTest.supportComplete!==false;export const IAP={createOneTimePurchaseOrder:buy,getPendingOrders:pending,completeProductGrant:complete};
   `}));
  }}]});
  const loaded=new Module('purchase-recovery-check.cjs');loaded._compile(bundle.outputFiles[0].text,loaded.id);
@@ -91,6 +91,24 @@ test('new purchases wait for pending-order recovery to finish',async()=>{
  }finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
 });
 
+for(const unsupported of ['supportPending','supportComplete'])test(unsupported+' prevents both recovery and new purchases',async()=>{
+ const {state,restore,purchase,purchaseTarot}=await adapter();state[unsupported]=false;
+ try{
+  await assert.rejects(restore(),error=>error.code==='IAP_NOT_SUPPORTED');
+  for(const buy of [purchase,purchaseTarot])assert.throws(()=>buy({sku:'mock'},'request',()=>{},()=>{}),error=>error.code==='IAP_NOT_SUPPORTED');
+  assert.equal(state.pendingCalls,undefined);assert.equal(state.purchaseOptions,undefined);
+ }finally{delete globalThis.tossRecoveryTest;}
+});
+
+test('a malformed or failed recovery blocks purchase until a successful retry',async()=>{
+ const {state,restore,purchase}=await adapter();state.malformed=true;
+ try{
+  await assert.rejects(restore(),error=>error.code==='RECOVERY_STATUS_UNAVAILABLE');
+  assert.throws(()=>purchase({sku:'mock'},'request',()=>{},()=>{}),error=>error.code==='RECOVERY_REQUIRED');
+  state.malformed=false;await restore();purchase({sku:'mock'},'request',()=>{},()=>{});assert.ok(state.purchaseOptions);
+ }finally{delete globalThis.tossRecoveryTest;}
+});
+
 test('a changed session cannot acknowledge an earlier session recovery',async()=>{
  const {state,restore,login}=await adapter(),previous=globalThis.fetch;
  state.orders=[{orderId:'saved',sku:'tarot'}];let release,started;
@@ -129,7 +147,7 @@ test('expired login stops recovery and preserves the authentication error',async
 });
 
 for(const kind of ['purchase','purchaseTarot'])test(kind+' refuses SDK success without a durable matching grant and settles once',async()=>{
- const adapterResult=await adapter(),{state}=adapterResult,previous=globalThis.fetch;
+ const adapterResult=await adapter(),{state}=adapterResult,previous=globalThis.fetch;await adapterResult.restore();
  let done=0;const errors=[];
  globalThis.fetch=async()=>Response.json({orderId:'order',requestId:'other-request',entitlement:'granted',durable:kind==='purchase'});
  try{
@@ -140,7 +158,7 @@ for(const kind of ['purchase','purchaseTarot'])test(kind+' refuses SDK success w
  }finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
 });
 for(const kind of ['purchase','purchaseTarot'])test(kind+' completes only after durable grant, with duplicate event ignored',async()=>{
- const adapterResult=await adapter(),{state}=adapterResult,previous=globalThis.fetch;let done=0;
+ const adapterResult=await adapter(),{state}=adapterResult,previous=globalThis.fetch;await adapterResult.restore();let done=0;
  globalThis.fetch=async()=>Response.json({orderId:'order',requestId:'request',entitlement:'granted',durable:true});
  try{
   adapterResult[kind]({sku:'mock'},kind==='purchase'?'request':{},()=>done++,error=>assert.fail(error));

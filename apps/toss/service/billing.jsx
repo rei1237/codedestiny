@@ -37,7 +37,7 @@ export async function runBillingCoinGate(options){
   const saved=await api('/native/'+service+'/intents/'+intent.id);
   if(!saved.paid)throw new Error('결제한 상담의 저장 상태를 확인하지 못했어요. 구매 복구를 이용해 주세요.');
   return {ok:true,status:200,raw:{},data:{pricing:{amountKRW:intent.amountKRW,featureKey:options.featureKey},consume:{transactionId:saved.orderId,chargedCoins:0,accessType:'single_purchase',paymentMode:'TOSS_IAP'},accessGrant:{allowed:true,accessMethod:'TOSS_IAP'},payment:{orderId:saved.orderId},requestId:options.requestId}};
- }catch(error){return {ok:false,status:error.status||503,raw:{},error:{code:error.code||'PURCHASE_FAILED',message:error.code==='TOSS_RELEASE_PENDING'?'상품 등록과 검수가 완료되면 상담을 시작할 수 있어요.':error.code==='RECOVERY_IN_PROGRESS'?'구매 내역을 확인하고 있어요. 잠시 후 다시 시도해 주세요.':error.message||'결제 상태를 확인하지 못했어요. 구매 복구를 이용해 주세요.'}};}
+ }catch(error){return {ok:false,status:error.status||503,raw:{},error:{code:error.code||'PURCHASE_FAILED',message:error.code==='TOSS_RELEASE_PENDING'?'상품 등록과 검수가 완료되면 상담을 시작할 수 있어요.':error.code==='RECOVERY_IN_PROGRESS'?'구매 내역을 확인하고 있어요. 잠시 후 다시 시도해 주세요.':['IAP_NOT_SUPPORTED','UNSUPPORTED_APP_VERSION'].includes(error.code)?'현재 토스 앱에서는 구매 복구를 지원하지 않아요. 앱 업데이트 후 다시 확인해 주세요.':error.code==='RECOVERY_REQUIRED'?'새 결제 전에 구매 내역 복구에서 이전 주문을 확인해 주세요.':error.message||'결제 상태를 확인하지 못했어요. 구매 복구를 이용해 주세요.'}};}
  finally{pending=false;}
 }
 
