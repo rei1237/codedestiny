@@ -64,6 +64,7 @@ const localEvidence={
  'neo-operation-room':{tossRoute:'/neo-operation-room/',status:'local-partial',inputContract:'worker/toss/native-neo.js',resultRenderer:'apps/toss/service/Screens.jsx',storageContract:'owned-TossPurchase; device-and-console-approval-pending'},
  'fusion-fortune':{tossRoute:'/fusion-fortune/',status:'local-partial',inputContract:'worker/toss/native-fusion.js',resultRenderer:'apps/toss/service/Fusion.jsx',storageContract:'owned-TossPurchase; device-and-console-approval-pending'},
  'life-book-ai':{tossRoute:'/life-book-ai/',status:'local-partial',inputContract:'worker/toss/native-life-book.js',resultRenderer:'apps/toss/service/LifeBook.jsx',storageContract:'owned-TossPurchase; device-and-console-approval-pending'},
+ 'life-fortune-report':{tossRoute:'/life-book-ai/',status:'local-partial',inputContract:'worker/routes/life-book-ai.js:nativeLifeBookContract (lifeFortune mode)',resultRenderer:'apps/toss/service/LifeBook.jsx + app/life-book-ai/LifeBookAiClient.tsx',storageContract:'owned-TossPurchase with life-fortune-ai-consultation feature; device-and-console-approval-pending',verification:'apps/toss/test/fusion-billing.test.mjs covers payload and request id only; full parity pending'},
  'love-secret-ai':{tossRoute:'/love-secret-ai/',status:'local-partial',inputContract:'worker/toss/native-love-secret.js',resultRenderer:'apps/toss/service/LoveSecret.jsx',storageContract:'owned-TossPurchase; device-and-console-approval-pending'},
 };
 // These active library links are absent from all three feature registries.

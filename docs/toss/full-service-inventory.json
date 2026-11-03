@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "69a6b358c25b0bb5f6dc92053dc0c6086169626e",
+  "sourceCommit": "4f5ee05972d7627176624e531fb516e4d3f86f94",
   "scope": "Source discovery plus explicitly verified aliases; not a count of implemented services. Unmapped contracts are blocking work, not exclusions.",
   "sourceCounts": {
     "home": 63,
@@ -3540,12 +3540,13 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/life-book-ai/",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "worker/routes/life-book-ai.js:nativeLifeBookContract (lifeFortune mode)",
+      "resultRenderer": "apps/toss/service/LifeBook.jsx + app/life-book-ai/LifeBookAiClient.tsx",
+      "storageContract": "owned-TossPurchase with life-fortune-ai-consultation feature; device-and-console-approval-pending",
+      "verification": "apps/toss/test/fusion-billing.test.mjs covers payload and request id only; full parity pending"
     },
     {
       "id": "life-skill-tree",

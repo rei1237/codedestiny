@@ -8,6 +8,9 @@ next: 대표 상담의 토스 결제·추가 질문·복구를 검증하고 미�
 
 ## 2026-11-04 계속 작업
 
+- 최신 재분류: 인생 총운은 `LifeBookAiClient` 모드, 별도 `life-fortune-ai-consultation` 키, `nativeLifeBookContract`, 토스 구매·저장 검증과 모의 billing 계약이 확인되어 부분 구현으로 분류했다. 후보 90, 부분 24, 추가 추적 66. 실제 SKU·기기·전체 계약은 미검증이다.
+
+
 - 원장 최신 재계산: `animal-guardian-unlock`은 `index.html`의 `inlineAliases`와 홈 레지스트리 `featureKey`가 같은 `animal-destiny-unlock`을 가리켜 `animal-destiny`와 합쳤다. 후보 90, 부분 23, 추가 추적 67. 이전 시점 수치는 아래 이력으로 남긴다.
 
 
