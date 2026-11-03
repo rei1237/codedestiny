@@ -16,8 +16,11 @@ exports.renderGuide = function renderGuide(locale, { scene = 0, active = true, s
     if (name === 'react') return { ...React, useState: value => [typeof value === 'number' ? scene : value, () => {}] };
     if (name === '@/lib/i18n/useT') return { useLocale: () => locale, useT: namespace => {
       if (namespace !== 'firstVisitGuide') throw Error('Unexpected namespace');
+      // 서버 렌더링의 useT는 사전이 없어 ko에서 자리표시 문구를 돌려준다. ko 본문이 사전에 기대면 이 문구가 나온다.
+      if (locale === 'ko') return () => '번역을 준비 중입니다';
       return key => { const value = copy[key.replace(/^firstVisitGuide\./, '')]; if (!value) throw Error('Missing: ' + key); return value; };
     } };
+    if (name === '@/public/i18n/ko/firstVisitGuide.json') return { __esModule: true, default: JSON.parse(fs.readFileSync(path.join(root, 'public/i18n/ko/firstVisitGuide.json'), 'utf8')) };
     if (name === '../_lib/use-first-visit') return { useFirstVisit: () => ({ state: { status: active ? 'active' : 'new', step: 1 }, scope: 'guest' }) };
     if (name === '../_lib/use-profiles') return { useProfiles: () => ({ profiles: selected ? [{ profileId: 'fixture' }] : [], profileId: selected ? 'fixture' : '', loading: false, guest: true }) };
     if (name === './ProfilePicker') return { __esModule: true, default: props => React.createElement('div', { 'data-profile-locale': props.locale }) };

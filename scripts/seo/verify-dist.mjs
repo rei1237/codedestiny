@@ -12,7 +12,7 @@
  */
 import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { BRAND_FACTS } from "../../lib/brand/brand-facts.mjs";
 import { renderRobotsTxt } from "../../lib/seo/robots-policy.mjs";
 import { checkSitemapPage, htmlFileFor, redirectSources, sitemapLocs } from "../verify-sitemap-canonical.mjs";
@@ -47,6 +47,8 @@ export const RULES = {
   // 어느 노드든 datePublished·dateModified 가 있으면 ISO 8601 이고 검사 시각(now) 이하. 오프셋이 없으면 KST 로 읽는다.
   // 검사는 빌드 뒤에 돌므로 now ≥ 빌드 시각이다. 기준선 0건(2026-11-01 22:29 KST build:cf 산출물)이라 fail.
   "jsonld-dates": "fail",
+  // 사전 없이 서버에서 렌더링된 useT 자리표시 문구("번역을 준비 중입니다" 등)가 사이트맵 페이지 HTML에 남으면 안 된다.
+  "i18n-missing-text": "warn",
   // dist/_worker.js 를 Pages 정적 서빙 흉내 앞에서 돌린 결과(edge-probe.mjs). 같은 URL 은 국가·UA 와 무관하게 같은 응답이어야 한다.
   // 슬래시 없는 디렉터리 URL 의 308 이 그대로 나가면 안 되고(워커가 절대 URL 301 하나로 접는다), 국가 302 가 없어야 하며,
   // 크롤러 응답에 cd_geo_locale 쿠키나 no-store 가 없어야 한다(cd_geo_country·private 는 허용). 기준선 0건(2026-11-02 20:10 KST build:cf 산출물)이라 fail.
@@ -134,12 +136,24 @@ function jsonLdFacts(html) {
   return { errors, declarations, dates };
 }
 
+// 정본은 lib/i18n/dictionary.ts 의 MISSING_TEXT 다. 형태가 바뀌어 일부만 읽히면 규칙이 조용히 약해지므로 던진다.
+function readMissingTexts() {
+  const source = readFileSync(join(dirname(fileURLToPath(import.meta.url)), "../../lib/i18n/dictionary.ts"), "utf8");
+  const block = source.match(/const MISSING_TEXT\b[^=]*=\s*\{([\s\S]*?)\n\};/)?.[1] ?? "";
+  const texts = [...block.matchAll(/:\s*"([^"]+)"/g)].map(([, text]) => text);
+  if (texts.length < 12) throw new Error(`verify-dist: MISSING_TEXT ${texts.length}개만 읽음(12개 이상이어야 함)`);
+  return texts;
+}
+
+const MISSING_TEXTS = readMissingTexts();
+const i18nMissingTexts = (html) => MISSING_TEXTS.filter((text) => html.includes(text));
+
 function loadSite(distDir, origin) {
   const { files, locs } = sitemapLocs(distDir);
   const pages = [...locs].map((loc) => {
     const file = locFile(loc, distDir);
     const html = readText(file);
-    return { loc, path: safePathname(loc), file, facts: html == null ? null : pageFacts(html, loc, origin) };
+    return { loc, path: safePathname(loc), file, facts: html == null ? null : { ...pageFacts(html, loc, origin), missingTexts: i18nMissingTexts(html) } };
   });
   return { files, pages };
 }
@@ -254,6 +268,10 @@ function checkDuplicates(site, field) {
     groups.get(value).push(path);
   }
   return [...groups].filter(([, paths]) => paths.length > 1).map(([value, paths]) => `"${value}" ← ${paths.length}쪽 (예: ${sample(paths)})`);
+}
+
+function checkI18nMissingText(site) {
+  return site.pages.flatMap(({ loc, facts }) => (facts?.missingTexts.length ? [`${loc}: ${facts.missingTexts.join(", ")}`] : []));
 }
 
 function checkOgUrl(site) {
@@ -456,6 +474,7 @@ export async function inspectDist({ distDir, origin = BRAND_FACTS.service.siteUr
   if (wants("jsonld-id-type")) details["jsonld-id-type"] = checkJsonLdIdType(site);
   if (wants("organization-name")) details["organization-name"] = checkOrganizationName(site);
   if (wants("jsonld-dates")) details["jsonld-dates"] = checkJsonLdDates(site, now);
+  if (wants("i18n-missing-text")) details["i18n-missing-text"] = checkI18nMissingText(site);
   let edgeError = null;
   if (EDGE_RULES.some(wants)) {
     if (edge && isFile(join(distDir, "_worker.js"))) {

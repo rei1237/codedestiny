@@ -3,6 +3,7 @@ import {useEffect,useRef,useState} from 'react';
 import Image from 'next/image';
 import {ArrowRight,X} from 'lucide-react';
 import {useLocale,useT} from '@/lib/i18n/useT';
+import koGuide from '@/public/i18n/ko/firstVisitGuide.json';
 import ProfilePicker from './ProfilePicker';
 import {useProfiles} from '../_lib/use-profiles';
 import {useFirstVisit} from '../_lib/use-first-visit';
@@ -15,7 +16,8 @@ function GuideArt({step=0}:{step?:number}){
 export default function FirstVisitGuide(){
  const locale=useLocale();
  const translate=useT('firstVisitGuide');
- const t=(key:string)=>translate('firstVisitGuide.'+key);
+ // 안내 문구는 서버 HTML에 들어간다. 서버에는 사전이 없으므로 ko는 정적 JSON을 읽어 자리표시 문구가 크롤러에 나가지 않게 한다.
+ const t=(key:string)=>locale==='ko'?(koGuide.firstVisitGuide as Record<string,string>)[key]:translate('firstVisitGuide.'+key);
  const scenes=['profile','concern','choice'].map(key=>({id:key,label:t(key+'Label'),title:t(key+'Title'),speech:t(key+'Speech')}));
  const {state,scope}=useFirstVisit();
  const profiles=useProfiles();

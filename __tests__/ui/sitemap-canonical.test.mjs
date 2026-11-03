@@ -157,6 +157,18 @@ test('verify-dist flags a violating page by rule id', async () => {
   assert.equal(result.counts['sitemap-set'], 1);
 });
 
+test('i18n-missing-text counts sitemap pages that ship a useT placeholder in any locale', async () => {
+  const clean = await inspectDist({ distDir: writeDist(cleanFixture()), edge: false, rules: ['i18n-missing-text'] });
+  assert.equal(clean.counts['i18n-missing-text'], 0);
+  const dirty = await inspectDist({
+    distDir: writeDist({ ...cleanFixture(), 'a/index.html': htmlPage('/a/', { body: '<p>번역을 준비 중입니다</p><p>Translation pending</p>' }) }),
+    edge: false,
+    rules: ['i18n-missing-text'],
+  });
+  assert.equal(dirty.counts['i18n-missing-text'], 1);
+  assert.match(dirty.details['i18n-missing-text'][0], /\/a\/: 번역을 준비 중입니다, Translation pending/);
+});
+
 test('og-url is a failing rule and og-home-title counts sub-pages that repeat the home og:title', async () => {
   assert.equal(RULES['og-url'], 'fail');
   assert.equal(RULES['og-home-title'], 'fail');
@@ -470,6 +482,7 @@ test('RULES grades are pinned rule by rule', () => {
     'sitemap-page': 'fail', 'sitemap-set': 'fail', 'page-shape': 'fail', 'internal-404': 'fail', 'home-identity': 'fail',
     'duplicate-title': 'warn', 'duplicate-description': 'warn', 'og-url': 'fail', 'og-home-title': 'fail', 'hreflang-sitemap': 'warn',
     'robots-policy': 'fail', 'jsonld-syntax': 'fail', 'jsonld-id-type': 'fail', 'organization-name': 'fail', 'jsonld-dates': 'fail',
+    'i18n-missing-text': 'warn',
     'edge-slash-308': 'fail', 'edge-country-302': 'fail', 'edge-crawler-cookie': 'fail',
   });
 });
