@@ -477,6 +477,7 @@ const handleDebugRoutes = createLazyRouteHandler("./routes/debug.js", () => impo
 const handleYogaGuruRoutes = createLazyRouteHandler("./routes/yoga-guru.js", () => import("./routes/yoga-guru.js"), "handleYogaGuruRoutes");
 const handleSajuCompatBasicRoutes = createLazyRouteHandler("./routes/saju-compat-basic.js", () => import("./routes/saju-compat-basic.js"), "handleSajuCompatBasicRoutes");
 const handleDestinyFlowerRoutes = createLazyRouteHandler("./routes/destiny-flower.js", () => import("./routes/destiny-flower.js"), "handleDestinyFlowerRoutes");
+const handleHeukwolRoutes = createLazyRouteHandler("./routes/heukwol.js", () => import("./routes/heukwol.js"), "handleHeukwolRoutes");
 const handleSibylRoutes = createLazyRouteHandler("./routes/sibyl.js", () => import("./routes/sibyl.js"), "handleSibylRoutes");
 const handleOracleRoutes = createLazyRouteHandler("./routes/oracle.js", () => import("./routes/oracle.js"), "handleOracleRoutes");
 const handlePaidNarrativeIntentRoutes = createLazyRouteHandler("./routes/paid-narrative-intent.js", () => import("./routes/paid-narrative-intent.js"), "handlePaidNarrativeIntentRoutes");
@@ -1753,6 +1754,7 @@ const app = {
         return withCorsHeaders(request, env, await handleDestinyFlowerRoutes(request, env));
       }
 
+      if (url.pathname.startsWith("/api/heukwol/")) return runAiRouteWithSecurity(request, env, "heukwol", handleHeukwolRoutes, ctx);
       if (url.pathname === "/api/sibyl" || url.pathname.startsWith("/api/sibyl/")) {
         return withCorsHeaders(request, env, await handleSibylRoutes(request, env));
       }

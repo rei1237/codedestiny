@@ -23,6 +23,7 @@ const loadAdapters = {
   'destiny-compass-ai': () => import('../routes/destiny-compass-ai.js'),
   'relationship-boundary-test': () => import('../routes/relationship-boundary-test.js'),
   'naming-prompt': () => import('../routes/naming-prompt.js'),
+  'heukwol': () => import('../routes/heukwol.js'),
   'celestial-harmony': () => import('../routes/celestial-harmony.js'),
   'fortune': () => import('../routes/fortune.js'),
   'karma-destiny-ai': () => import('../routes/karma-destiny-ai.js'),
@@ -31,7 +32,7 @@ const loadAdapters = {
 const IDLE_MS = 300000, MAX_AGE_MS = 7 * 86400000, TASK_MS = 240000, WAVE_MS = 65000;
 export function consultationRecoveryFilter(now, extra) {
   return { ...extra, _id: { $gte: Types.ObjectId.createFromTime(Math.floor((now - MAX_AGE_MS) / 1000)) },
-    status: { $in: ['generating', 'partial', 'delivery_pending', ...(extra.featureKey === 'tarot-celestial-harmony' ? ['pending'] : [])] },
+    status: { $in: ['generating', 'partial', 'delivery_pending', ...(['tarot-celestial-harmony','heukwol-warning-consultation'].includes(extra.featureKey) ? ['pending'] : [])] },
     updatedAt: { $lt: new Date(now - IDLE_MS) }, userId: { $exists: true, $ne: null } };
 }
 export async function runConsultationRecovery(env, options = {}) {
