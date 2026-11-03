@@ -136,7 +136,9 @@ async function assertEssentials(page, label) {
       const story = await page.locator('.cdh-story__card').evaluateAll((cards) => cards.map((card) => ({ href: card.getAttribute('href'), top: Math.round(card.getBoundingClientRect().top), visible: card.getBoundingClientRect().width > 0 })));
       assert.deepEqual(story.map((card) => card.href), ['/codedestiny-novel.html'], `${width}px story holds novel and music`);
       assert.ok(story.every(card => card.visible), 'novel remains visible inside the story');
-      assert.equal(await page.locator('.cdh-story #cdhMoonlightMv').count(), 1, 'the existing music video belongs to the story');
+      assert.equal(await page.locator('#cdhMoonlightMv').count(), 1, 'the existing music video remains on the home');
+      assert.equal(await page.locator('details #cdhMoonlightMv').count(), 0, 'the music video stays outside collapsed disclosures');
+      assert.equal(await page.locator('.cdh-story .cdh-story__card--music[href="/music/"]').count(), 1, 'the playlist occupies the former video slot');
       assert.equal(await page.locator('.cdh-story a[href="/music/"]').count(), 1, 'one music destination without a duplicate card');
       await page.locator('.cdh-story__toggle').click();
 
