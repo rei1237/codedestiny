@@ -57,6 +57,7 @@ export default function App(){
   const [libraryState,setLibraryState]=useState<'loading'|'ready'|'error'>('loading');
   const [library,setLibrary]=useState<Purchase[]>([]),[restoredOrder,setRestoredOrder]=useState<Purchase|null>(null),[tarotLibraryOrderId,setTarotLibraryOrderId]=useState('');
   const [libraryCursor,setLibraryCursor]=useState<string|null>(null);
+  const [recoveryEpoch,setRecoveryEpoch]=useState(0);
   const libraryEpoch=useRef(0);
   const [agreed,setAgreed]=useState(false),[returnAfterLogin,setReturnAfterLogin]=useState<Page>('library');
   const cleanPurchase=useRef<(()=>void)|null>(null),attempt=useRef(crypto.randomUUID()),titleRef=useRef<HTMLHeadingElement>(null),depth=useRef(0);
@@ -80,7 +81,7 @@ export default function App(){
       area(SafeArea.get());offArea=SafeArea.subscribe({onEvent:area});
       offBack=graniteEvent.addEventListener('backEvent',{onEvent:()=>{if(depth.current>0)history.back();else void Screen.close();}});
       offHome=graniteEvent.addEventListener('homeEvent',{onEvent:()=>go('home')});
-      SERVICE_AVAILABLE&&void restoreSession().then(async authenticated=>{if(!live)return;setLoggedIn(authenticated);if(authenticated){const notice=await recoverAfterAuthentication(true);if(live&&notice)setMessage(notice);}}).catch(error=>{if(live)failure(error);});
+      SERVICE_AVAILABLE&&void restoreSession().then(async authenticated=>{if(!live)return;setLoggedIn(authenticated);if(authenticated){try{const notice=await recoverAfterAuthentication(true);if(live&&notice)setMessage(notice);}finally{if(live)setRecoveryEpoch(value=>value+1);}}}).catch(error=>{if(live)failure(error);});
       void saleProducts().then(setProducts).catch(failure);
       void tarotLibraryProducts().then(setTarotProducts).catch(failure);
     }
@@ -93,7 +94,7 @@ export default function App(){
     let live=true;libraryEpoch.current++;setLibraryState('loading');setLibraryCursor(null);
     api<{purchases:Purchase[];nextCursor:string|null}>('/library').then(data=>{if(live){setLibrary(data.purchases);setLibraryCursor(data.nextCursor);setLibraryState('ready');}}).catch(error=>{if(live){setLibraryState('error');failure(error);}});
     return()=>{live=false;libraryEpoch.current++;};
-  },[page,loggedIn]);
+  },[page,loggedIn,recoveryEpoch]);
   useEffect(()=>{
     if(page!=='result'||!resultId||!loggedIn)return;
     let live=true,timer:ReturnType<typeof setTimeout>;
@@ -106,7 +107,7 @@ export default function App(){
     const visible=()=>{if(!document.hidden){clearTimeout(timer);void read();}};
     void read();document.addEventListener('visibilitychange',visible);
     return()=>{live=false;clearTimeout(timer);document.removeEventListener('visibilitychange',visible);};
-  },[page,resultId,loggedIn]);
+  },[page,resultId,loggedIn,recoveryEpoch]);
   function choose(id:string){setSelected(id);setDraft(null);setRestoredOrder(null);attempt.current=crypto.randomUUID();go('product',`?product=${id}`);event('product_view',{productId:id,screen:'product'});}
   async function prepare(){
     if(!sale)throw new ApiError('TOSS_RELEASE_PENDING');
@@ -165,7 +166,7 @@ export default function App(){
       {plan.missing.length>0&&<ul className="muted">{plan.missing.map(text=><li key={text}>{text}</li>)}</ul>}
       <Button type="submit" display="block" loading={busy} disabled={!agreed||plan.missing.length>0||!!plan.unsupported||selected!==selectionFor(activeService,activeDomain,plan.fish)||!isTarot&&(birth.unknown||decision.target==='pair'&&partner.unknown)&&(activeDomain!=='saju'||selected.endsWith('_flounder')||selected.endsWith('_tuna'))}>{loggedIn?'제공 항목 확인하기':'토스 로그인하고 이어가기'}</Button>
     </form></>}
-    {page==='login'&&<>{heading('토스 로그인','상담을 안전하게 보관해요','구매와 기록을 본인 계정에 연결하기 위해 토스 로그인이 필요해요.')}<CharacterGuide id="yeongnyangi" title="이야기를 다시 찾을 수 있도록">로그인하면 같은 토스 계정의 구매와 기록을 확인할 수 있어요.</CharacterGuide><p>이름과 이메일은 받지 않아요. 기존 CODE DESTINY 웹 계정과 기록은 자동으로 합쳐지지 않아요.</p><Button display="block" loading={busy} onClick={()=>void run(async()=>{event('login_start');await login();setLoggedIn(true);go(returnAfterLogin);event('login_completed');void recoverAfterAuthentication(true).then(notice=>{if(notice)setMessage(notice);}).catch(failure);})}>토스로 로그인하기</Button><Button display="block" variant="weak" onClick={()=>{event('login_cancelled');go('home');}}>지금은 둘러보기</Button></>}
+    {page==='login'&&<>{heading('토스 로그인','상담을 안전하게 보관해요','구매와 기록을 본인 계정에 연결하기 위해 토스 로그인이 필요해요.')}<CharacterGuide id="yeongnyangi" title="이야기를 다시 찾을 수 있도록">로그인하면 같은 토스 계정의 구매와 기록을 확인할 수 있어요.</CharacterGuide><p>이름과 이메일은 받지 않아요. 기존 CODE DESTINY 웹 계정과 기록은 자동으로 합쳐지지 않아요.</p><Button display="block" loading={busy} onClick={()=>void run(async()=>{event('login_start');await login();setLoggedIn(true);go(returnAfterLogin);event('login_completed');void recoverAfterAuthentication(true).then(notice=>{if(notice)setMessage(notice);}).catch(failure).finally(()=>setRecoveryEpoch(value=>value+1));})}>토스로 로그인하기</Button><Button display="block" variant="weak" onClick={()=>{event('login_cancelled');go('home');}}>지금은 둘러보기</Button></>}
     {page==='purchase'&&<>{heading('최종 확인',restoredOrder?'복구한 상담을 이어갈게요':'이 내용으로 상담할까요?')}{draft&&sale?<><section className="paper"><h2>{reading.serviceName} · {reading.name}</h2><ol>{draft.manifest.map((item,i)=><li key={i}>{item.title}</li>)}</ol><p>상담 생성 1회 · 결과 보관과 재열람 포함</p><PaymentIdentity serviceId={activeService} fish={reading.fish}/><strong className="price">{restoredOrder?'이미 구매한 권한 사용':sale.displayAmount}</strong></section><p>생성 중 나가도 기록 보관함에서 이어볼 수 있어요. 실제 완료된 항목을 차례로 보여드려요.</p><Button display="block" loading={busy||purchasing} disabled={purchasing} onClick={()=>void run(async()=>{
       if(restoredOrder){await api('/orders/grant',{orderId:restoredOrder.orderId,sku:restoredOrder.sku,requestId:draft.id});setResultId(draft.id);go('result',`?id=${draft.id}`);return;}
       event('purchase_started',{productId:selected});cleanPurchase.current?.();setPurchasing(true);
