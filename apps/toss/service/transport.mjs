@@ -11,7 +11,7 @@ export function createServiceFetch({nativeFetch,send,origin}) {
       try{
         const response=await send('/canonical'+url.pathname.slice('/api'.length)+url.search,request);
         if(response.ok)return response;
-        const payload=await response.clone().json().catch(()=>null);
+        let payload;try{payload=await response.clone().json();}catch(error){if(error?.code==='SESSION_CHANGED')throw error;payload=null;}
         if(typeof payload?.error==='string'||[401,403].includes(response.status)){
           const headers=new Headers(response.headers);headers.delete('content-length');headers.set('content-type','application/json');
           const body=payload&&typeof payload==='object'&&!Array.isArray(payload)?payload:{};

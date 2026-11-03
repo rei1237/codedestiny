@@ -4,45 +4,69 @@ export const APP_NAME='ai-saju-studio';
 const API='https://code-destiny.com/api/toss';
 let token:string|null=null;
 let sessionEpoch=0;
+let loginAttempt=0;
 let storageQueue:Promise<void>=Promise.resolve();
 const sessionListeners=new Set<()=>void>();
 export function onSessionInvalidated(listener:()=>void){sessionListeners.add(listener);return ()=>sessionListeners.delete(listener);}
 function queueStorage(operation:()=>Promise<void>){const pending=storageQueue.then(operation,operation);storageQueue=pending.then(()=>{},()=>{});return pending;}
-async function invalidateCurrentSession(requestToken:string|null,requestEpoch:number){
-  if(token!==requestToken||sessionEpoch!==requestEpoch)throw new ApiError('SESSION_CHANGED','',409);
+async function invalidateCurrentSession(requestToken:string|null,requestEpoch:number,requestAttempt:number){
+  if(token!==requestToken||sessionEpoch!==requestEpoch||loginAttempt!==requestAttempt)throw new ApiError('SESSION_CHANGED','',409);
   if(!requestToken)return;
-  const invalidated=await clearSession();
-  if(token!==null||sessionEpoch!==invalidated)throw new ApiError('SESSION_CHANGED','',409);
-  for(const listener of sessionListeners){if(token!==null||sessionEpoch!==invalidated)break;try{listener();}catch{/* A UI observer cannot change the authentication result. */}}
-  if(token!==null||sessionEpoch!==invalidated)throw new ApiError('SESSION_CHANGED','',409);
+  const invalidated=await clearSession(false);
+  if(token!==null||sessionEpoch!==invalidated||loginAttempt!==requestAttempt)throw new ApiError('SESSION_CHANGED','',409);
+  for(const listener of sessionListeners){if(token!==null||sessionEpoch!==invalidated||loginAttempt!==requestAttempt)break;try{listener();}catch{/* A UI observer cannot change the authentication result. */}}
+  if(token!==null||sessionEpoch!==invalidated||loginAttempt!==requestAttempt)throw new ApiError('SESSION_CHANGED','',409);
 }
 export function isToss(){try{return ['toss','sandbox'].includes(Environment.environment);}catch{return false;}}
 export class ApiError extends Error {constructor(public code:string,public errorId='',public status=0){super(code);}}
 export async function api<T>(path:string,body?:unknown):Promise<T>{
   if(!SERVICE_AVAILABLE)throw new ApiError('TOSS_RELEASE_PENDING');
-  const requestToken=token,requestEpoch=sessionEpoch;
+  const requestToken=token,requestEpoch=sessionEpoch,requestAttempt=loginAttempt;
   const response=await fetch(API+path,{method:body===undefined?'GET':'POST',credentials:'omit',
     headers:{...(body===undefined?{}:{'Content-Type':'application/json'}),...(requestToken?{Authorization:`Bearer ${requestToken}`}:{})},
     ...(body===undefined?{}:{body:JSON.stringify(body)}),signal:AbortSignal.timeout(path.endsWith('/conversation')||body!==undefined&&path.startsWith('/tarot-library/results/')?75000:20000)});
+  if(path!=='/login'&&(token!==requestToken||sessionEpoch!==requestEpoch))throw new ApiError('SESSION_CHANGED','',409);
   if(response.status===401){
-    if(path!=='/login')await invalidateCurrentSession(requestToken,requestEpoch);
+    if(path!=='/login')await invalidateCurrentSession(requestToken,requestEpoch,requestAttempt);
+    const invalidationEpoch=sessionEpoch,failure=await response.json().catch(()=>({}));
+    if(path!=='/login'&&(sessionEpoch!==invalidationEpoch||loginAttempt!==requestAttempt))throw new ApiError('SESSION_CHANGED','',409);
+    throw new ApiError(typeof failure.error==='string'?failure.error:'SESSION_EXPIRED',failure.errorId,401);
+  }
+  if(response.status===403){
     const failure=await response.json().catch(()=>({}));
-    throw new ApiError(failure.error||'SESSION_EXPIRED',failure.errorId,401);
+    if(path!=='/login'&&(token!==requestToken||sessionEpoch!==requestEpoch))throw new ApiError('SESSION_CHANGED','',409);
+    throw new ApiError(typeof failure.error==='string'?failure.error:'ACCESS_DENIED',failure.errorId,403);
   }
   const data=await response.json();
+  if(path!=='/login'&&(token!==requestToken||sessionEpoch!==requestEpoch))throw new ApiError('SESSION_CHANGED','',409);
   if(!response.ok)throw new ApiError(data.error,data.errorId,response.status);
   return data;
+}
+function guardSessionResponse(response:Response,requestToken:string|null,requestEpoch:number,requestAttempt?:number){
+  if(!response.body)return response;
+  const reader=response.body.getReader();
+  const current=()=>token===requestToken&&sessionEpoch===requestEpoch&&(requestAttempt===undefined||loginAttempt===requestAttempt);
+  const stream=new ReadableStream<Uint8Array>({
+    async pull(controller){
+      if(!current()){void reader.cancel().catch(()=>{});controller.error(new ApiError('SESSION_CHANGED','',409));return;}
+      try{const part=await reader.read();if(!current()){void reader.cancel().catch(()=>{});controller.error(new ApiError('SESSION_CHANGED','',409));return;}if(part.done)controller.close();else controller.enqueue(part.value);}
+      catch(error){controller.error(error);}
+    },
+    cancel(reason){return reader.cancel(reason);},
+  },{highWaterMark:0});
+  return new Response(stream,{status:response.status,statusText:response.statusText,headers:response.headers});
 }
 /** Original screen contract, with Toss credentials only (never web cookies). */
 export async function canonicalResponse(path:string,request:Request):Promise<Response>{
   if(!SERVICE_AVAILABLE)throw new ApiError('TOSS_RELEASE_PENDING','',503);
   if(!/^\/canonical\//.test(path)||!['GET','POST'].includes(request.method))throw new ApiError('NOT_FOUND','',404);
-  const requestToken=token,requestEpoch=sessionEpoch;
+  const requestToken=token,requestEpoch=sessionEpoch,requestAttempt=loginAttempt;
   const response=await fetch(API+path,{method:request.method,credentials:'omit',
     headers:{'Content-Type':'application/json',...(requestToken?{Authorization:`Bearer ${requestToken}`}:{})},
     ...(request.method==='POST'?{body:await request.text()}:{}),signal:request.signal});
-  if(response.status===401)await invalidateCurrentSession(requestToken,requestEpoch);
-  return response;
+  if(token!==requestToken||sessionEpoch!==requestEpoch)throw new ApiError('SESSION_CHANGED','',409);
+  if(response.status===401){await invalidateCurrentSession(requestToken,requestEpoch,requestAttempt);return guardSessionResponse(response,token,sessionEpoch,requestAttempt);}
+  return guardSessionResponse(response,requestToken,requestEpoch);
 }
 export async function restoreSession(){
   if(!isToss())return false;
@@ -56,13 +80,26 @@ export async function restoreSession(){
 export async function login(){
   if(!isToss())throw new ApiError('TOSS_APP_REQUIRED');
   if(!SERVICE_AVAILABLE)throw new ApiError('TOSS_RELEASE_PENDING');
+  const attempt=++loginAttempt;
   const code=await TossAuth.login();
-  const session=await api<{token:string}>('/login',code);
+  if(attempt!==loginAttempt)throw new ApiError('SESSION_CHANGED','',409);
+  let session:{token:string};
+  try{session=await api<{token:string}>('/login',code);}catch(error){if(attempt!==loginAttempt)throw new ApiError('SESSION_CHANGED','',409);throw error;}
+  if(attempt!==loginAttempt)throw new ApiError('SESSION_CHANGED','',409);
   token=session.token;const writeEpoch=++sessionEpoch,sessionToken=token;
   await queueStorage(async()=>{if(sessionEpoch===writeEpoch)await Storage.setItem('toss-session',sessionToken);});
+  if(attempt!==loginAttempt||sessionEpoch!==writeEpoch)throw new ApiError('SESSION_CHANGED','',409);
 }
-export async function clearSession(){token=null;const clearEpoch=++sessionEpoch;if(isToss())await queueStorage(async()=>{if(sessionEpoch===clearEpoch)await Storage.removeItem('toss-session');});return clearEpoch;}
-export async function logout(){try{await api('/logout',{});}finally{await clearSession();}}
+export async function clearSession(cancelPendingLogin=true){if(cancelPendingLogin)loginAttempt++;token=null;const clearEpoch=++sessionEpoch;if(isToss())await queueStorage(async()=>{if(sessionEpoch===clearEpoch)await Storage.removeItem('toss-session');});return clearEpoch;}
+export async function unlinkCurrentSession(){
+  const unlinkEpoch=sessionEpoch,unlinkAttempt=loginAttempt;
+  const result=await api<{remoteUnlink:string}>('/unlink',{});
+  if(sessionEpoch!==unlinkEpoch||loginAttempt!==unlinkAttempt)throw new ApiError('SESSION_CHANGED','',409);
+  const cleared=await clearSession();
+  if(token!==null||sessionEpoch!==cleared||loginAttempt!==unlinkAttempt+1)throw new ApiError('SESSION_CHANGED','',409);
+  return result;
+}
+export async function logout(){const logoutEpoch=sessionEpoch,logoutAttempt=++loginAttempt;try{await api('/logout',{});}finally{if(sessionEpoch!==logoutEpoch||loginAttempt!==logoutAttempt)throw new ApiError('SESSION_CHANGED','',409);const cleared=await clearSession(false);if(token!==null||sessionEpoch!==cleared||loginAttempt!==logoutAttempt)throw new ApiError('SESSION_CHANGED','',409);}}
 export type CatalogProduct={id:string;name:string;sku:string;approvedPriceKRW:number;chapters:number;available:boolean};
 export type SaleProduct=CatalogProduct&{displayAmount:string};
 export async function saleProducts():Promise<SaleProduct[]>{

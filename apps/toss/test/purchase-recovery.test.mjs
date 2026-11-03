@@ -12,13 +12,13 @@ async function adapter(available=true){
  const bundle=await build({entryPoints:[path.resolve(import.meta.dirname,'../src/platform.ts')],bundle:true,write:false,format:'cjs',platform:'node',plugins:[{name:'offline-sdk',setup(b){
   b.onResolve({filter:/^(@apps-in-toss\/web-framework|\.\/release)$/},args=>({path:args.path,namespace:'mock'}));
   b.onLoad({filter:/.*/,namespace:'mock'},args=>({contents:args.path==='./release'?'export const SERVICE_AVAILABLE='+available+';':`
-   export const Environment={environment:'sandbox'},TossAuth={login:async()=>({authorizationCode:'mock',referrer:'SANDBOX'})},Storage={getItem:async()=>{const s=globalThis.tossRecoveryTest,value=s.stored||null;if(s.getStarted)s.getStarted();if(s.getWait)await s.getWait;return value;},removeItem:async()=>{const s=globalThis.tossRecoveryTest;if(s.removeStarted)s.removeStarted();if(s.removeWait)await s.removeWait;s.stored=null;},setItem:async(_key,value)=>{globalThis.tossRecoveryTest.stored=value;}},Share={};
+   export const Environment={environment:'sandbox'},TossAuth={login:async()=>({authorizationCode:'mock',referrer:'SANDBOX'})},Storage={getItem:async()=>{const s=globalThis.tossRecoveryTest,value=s.stored||null;if(s.getStarted)s.getStarted();if(s.getWait)await s.getWait;return value;},removeItem:async()=>{const s=globalThis.tossRecoveryTest;if(s.removeStarted)s.removeStarted();if(s.removeWait)await s.removeWait;s.stored=null;},setItem:async(_key,value)=>{const s=globalThis.tossRecoveryTest;if(s.setStarted)s.setStarted();if(s.setWait)await s.setWait;s.stored=value;}},Share={};
    const buy=options=>{globalThis.tossRecoveryTest.purchaseOptions=options;return ()=>{};};buy.isSupported=()=>true;
    const pending=async()=>{const s=globalThis.tossRecoveryTest;s.pendingCalls=(s.pendingCalls||0)+1;return s.malformed?undefined:{orders:s.orders};};pending.isSupported=()=>globalThis.tossRecoveryTest.supportPending!==false;const complete=async({params})=>{const s=globalThis.tossRecoveryTest;s.ack.push(params.orderId);return !s.failAck;};complete.isSupported=()=>globalThis.tossRecoveryTest.supportComplete!==false;export const IAP={createOneTimePurchaseOrder:buy,getPendingOrders:pending,completeProductGrant:complete};
   `}));
  }}]});
  const loaded=new Module('purchase-recovery-check.cjs');loaded._compile(bundle.outputFiles[0].text,loaded.id);
- return {state,restore:loaded.exports.restorePurchases,auto:loaded.exports.recoverAfterAuthentication,purchase:loaded.exports.purchase,purchaseTarot:loaded.exports.purchaseTarotLibrary,login:loaded.exports.login,api:loaded.exports.api,canonical:loaded.exports.canonicalResponse,onInvalidated:loaded.exports.onSessionInvalidated,restoreSession:loaded.exports.restoreSession};
+ return {state,restore:loaded.exports.restorePurchases,auto:loaded.exports.recoverAfterAuthentication,purchase:loaded.exports.purchase,purchaseTarot:loaded.exports.purchaseTarotLibrary,login:loaded.exports.login,logout:loaded.exports.logout,unlinkCurrentSession:loaded.exports.unlinkCurrentSession,clearSession:loaded.exports.clearSession,api:loaded.exports.api,canonical:loaded.exports.canonicalResponse,onInvalidated:loaded.exports.onSessionInvalidated,restoreSession:loaded.exports.restoreSession};
 }
 
 test('pending purchases use server-owned product routing and acknowledge durable grants only',async()=>{
@@ -206,4 +206,64 @@ test('a non-JSON 401 still expires the current session and reports authenticatio
 test('a rejected new login does not discard an existing authenticated session',async()=>{
  const {state,login,api,onInvalidated}=await adapter(),previous=globalThis.fetch;let logins=0,invalidations=0,seen='';onInvalidated(()=>invalidations++);globalThis.fetch=async(url,options)=>{if(new URL(url).pathname.endsWith('/login'))return ++logins===1?Response.json({token:'old-session'}):Response.json({error:'TOSS_TOKEN_INVALID'},{status:401});seen=options.headers.Authorization;return Response.json({ok:true});};
  try{await login();await assert.rejects(login(),e=>e.code==='TOSS_TOKEN_INVALID'&&e.status===401);await api('/session');assert.equal(seen,'Bearer old-session');assert.equal(state.stored,'old-session');assert.equal(invalidations,0);}finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
+});
+
+test('an old logout response cannot clear a newer login',async()=>{
+ const {state,login,logout,api}=await adapter(),previous=globalThis.fetch;let release,started,logins=0,seen='';const wait=new Promise(r=>{release=r}),begun=new Promise(r=>{started=r});globalThis.fetch=async(url,options)=>{const p=new URL(url).pathname;if(p.endsWith('/login'))return Response.json({token:++logins===1?'old-session':'new-session'});if(p.endsWith('/logout')){started();await wait;return Response.json({ok:true});}seen=options.headers.Authorization;return Response.json({ok:true});};
+ try{await login();const oldLogout=logout();await begun;await login();release();await assert.rejects(oldLogout,e=>e.code==='SESSION_CHANGED');await api('/session');assert.equal(seen,'Bearer new-session');assert.equal(state.stored,'new-session');}finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
+});
+
+test('an earlier login response cannot overwrite a later login',async()=>{
+ const {state,login,api}=await adapter(),previous=globalThis.fetch;let release,started,logins=0,seen='';const wait=new Promise(r=>{release=r}),begun=new Promise(r=>{started=r});globalThis.fetch=async(url,options)=>{const p=new URL(url).pathname;if(p.endsWith('/login')){if(++logins===1){started();await wait;return Response.json({token:'old-session'});}return Response.json({token:'new-session'});}seen=options.headers.Authorization;return Response.json({ok:true});};
+ try{const oldLogin=login();await begun;await login();release();await assert.rejects(oldLogin,e=>e.code==='SESSION_CHANGED');await api('/session');assert.equal(seen,'Bearer new-session');assert.equal(state.stored,'new-session');}finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
+});
+
+test('an older login finishing storage cannot report success after a newer login',async()=>{
+ const {state,login,api}=await adapter(),previous=globalThis.fetch;let release,started,logins=0,seen='';const wait=new Promise(r=>{release=r}),begun=new Promise(r=>{started=r});state.setWait=wait;state.setStarted=started;globalThis.fetch=async(url,options)=>{if(new URL(url).pathname.endsWith('/login'))return Response.json({token:++logins===1?'old-session':'new-session'});seen=options.headers.Authorization;return Response.json({ok:true});};
+ try{const oldLogin=login();await begun;const newLogin=login();await new Promise(r=>setImmediate(r));state.setWait=null;release();await assert.rejects(oldLogin,e=>e.code==='SESSION_CHANGED');await newLogin;await api('/session');assert.equal(seen,'Bearer new-session');assert.equal(state.stored,'new-session');}finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
+});
+
+test('explicit session clearing cancels an earlier in-flight login',async()=>{
+ const {state,login,clearSession}=await adapter(),previous=globalThis.fetch;let release,started;const wait=new Promise(r=>{release=r}),begun=new Promise(r=>{started=r});globalThis.fetch=async()=>{started();await wait;return Response.json({token:'old-session'});};
+ try{const pending=login();await begun;await clearSession();release();await assert.rejects(pending,e=>e.code==='SESSION_CHANGED');assert.equal(state.stored,null);}finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
+});
+
+for(const kind of ['api','canonical'])test('old '+kind+' success cannot disclose data into a newer session',async()=>{
+ const {login,api,canonical}=await adapter(),previous=globalThis.fetch;let release,started,logins=0,seen='';const wait=new Promise(r=>{release=r}),begun=new Promise(r=>{started=r});globalThis.fetch=async(url,options)=>{const p=new URL(url).pathname;if(p.endsWith('/login'))return Response.json({token:++logins===1?'old-session':'new-session'});if(p.endsWith('/old-data')||p.endsWith('/canonical/records')){started();await wait;return Response.json({secret:'old-account'});}seen=options.headers.Authorization;return Response.json({ok:true});};
+ try{await login();const pending=kind==='api'?api('/old-data'):canonical('/canonical/records',new Request('https://miniapp.example/api/records'));await begun;await login();release();await assert.rejects(pending,e=>e.code==='SESSION_CHANGED'&&e.status===409);await api('/session');assert.equal(seen,'Bearer new-session');}finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
+});
+
+test('old API data parsed after account change is discarded',async()=>{
+ const {login,api}=await adapter(),previous=globalThis.fetch;let release,started,logins=0;const wait=new Promise(r=>{release=r}),begun=new Promise(r=>{started=r});globalThis.fetch=async url=>{const p=new URL(url).pathname;if(p.endsWith('/login'))return Response.json({token:++logins===1?'old-session':'new-session'});if(p.endsWith('/old-data'))return {ok:true,status:200,json:async()=>{started();await wait;return {secret:'old-account'};}};return Response.json({ok:true});};
+ try{await login();const pending=api('/old-data');await begun;await login();release();await assert.rejects(pending,e=>e.code==='SESSION_CHANGED'&&e.status===409);}finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
+});
+
+test('an old unlink response cannot clear a newer login',async()=>{
+ const {state,login,unlinkCurrentSession,api}=await adapter(),previous=globalThis.fetch;let release,started,logins=0,seen='';const wait=new Promise(r=>{release=r}),begun=new Promise(r=>{started=r});globalThis.fetch=async(url,options)=>{const p=new URL(url).pathname;if(p.endsWith('/login'))return Response.json({token:++logins===1?'old-session':'new-session'});if(p.endsWith('/unlink')){started();await wait;return Response.json({remoteUnlink:'completed'});}seen=options.headers.Authorization;return Response.json({ok:true});};
+ try{await login();const oldUnlink=unlinkCurrentSession();await begun;await login();release();await assert.rejects(oldUnlink,e=>e.code==='SESSION_CHANGED');await api('/session');assert.equal(seen,'Bearer new-session');assert.equal(state.stored,'new-session');}finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
+});
+
+test('current-session unlink clears its token only after the server confirms',async()=>{
+ const {state,login,unlinkCurrentSession}=await adapter(),previous=globalThis.fetch;globalThis.fetch=async url=>new URL(url).pathname.endsWith('/login')?Response.json({token:'current-session'}):Response.json({remoteUnlink:'completed'});
+ try{await login();assert.equal((await unlinkCurrentSession()).remoteUnlink,'completed');assert.equal(state.stored,null);}finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
+});
+
+test('a non-JSON 403 preserves permission denial without clearing the session',async()=>{
+ const {state,login,api,onInvalidated}=await adapter(),previous=globalThis.fetch;let invalidations=0;onInvalidated(()=>invalidations++);globalThis.fetch=async url=>new URL(url).pathname.endsWith('/login')?Response.json({token:'current-session'}):new Response('gateway refusal',{status:403});
+ try{await login();await assert.rejects(api('/result'),e=>e.code==='ACCESS_DENIED'&&e.status===403);assert.equal(state.stored,'current-session');assert.equal(invalidations,0);}finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
+});
+
+test('a late parsed 401 cannot invalidate a newer login',async()=>{
+ const {state,login,api}=await adapter(),previous=globalThis.fetch;let release,started,logins=0;const wait=new Promise(r=>{release=r}),begun=new Promise(r=>{started=r});globalThis.fetch=async url=>{if(new URL(url).pathname.endsWith('/login'))return Response.json({token:++logins===1?'old-session':'new-session'});return {status:401,ok:false,json:async()=>{started();await wait;return {error:'SESSION_EXPIRED'};}};};
+ try{await login();const pending=api('/old-denied');await begun;await login();release();await assert.rejects(pending,e=>e.code==='SESSION_CHANGED'&&e.status===409);assert.equal(state.stored,'new-session');}finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
+});
+
+for(const kind of ['logout','unlink'])test('old '+kind+' cannot cancel a newer login already in progress',async()=>{
+ const {state,login,logout,unlinkCurrentSession,api}=await adapter(),previous=globalThis.fetch;let releaseOld,releaseLogin,oldStarted,loginStarted,logins=0,seen='';const oldWait=new Promise(r=>{releaseOld=r}),loginWait=new Promise(r=>{releaseLogin=r}),oldBegun=new Promise(r=>{oldStarted=r}),loginBegun=new Promise(r=>{loginStarted=r});globalThis.fetch=async(url,options)=>{const p=new URL(url).pathname;if(p.endsWith('/login')){if(++logins===1)return Response.json({token:'old-session'});loginStarted();await loginWait;return Response.json({token:'new-session'});}if(p.endsWith('/logout')||p.endsWith('/unlink')){oldStarted();await oldWait;return Response.json({remoteUnlink:'completed'});}seen=options.headers.Authorization;return Response.json({ok:true});};
+ try{await login();const old=kind==='logout'?logout():unlinkCurrentSession();await oldBegun;const newer=login();await loginBegun;releaseOld();await assert.rejects(old,e=>e.code==='SESSION_CHANGED');releaseLogin();await newer;await api('/session');assert.equal(seen,'Bearer new-session');assert.equal(state.stored,'new-session');}finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
+});
+
+test('an old 401 cannot invalidate a newer login already in progress',async()=>{
+ const {state,login,canonical,onInvalidated,api}=await adapter(),previous=globalThis.fetch;let releaseOld,releaseLogin,oldStarted,loginStarted,logins=0,seen='',invalidations=0;const oldWait=new Promise(r=>{releaseOld=r}),loginWait=new Promise(r=>{releaseLogin=r}),oldBegun=new Promise(r=>{oldStarted=r}),loginBegun=new Promise(r=>{loginStarted=r});onInvalidated(()=>invalidations++);globalThis.fetch=async(url,options)=>{const p=new URL(url).pathname;if(p.endsWith('/login')){if(++logins===1)return Response.json({token:'old-session'});loginStarted();await loginWait;return Response.json({token:'new-session'});}if(p.endsWith('/canonical/records')){oldStarted();await oldWait;return Response.json({error:'SESSION_EXPIRED'},{status:401});}seen=options.headers.Authorization;return Response.json({ok:true});};
+ try{await login();const old=canonical('/canonical/records',new Request('https://miniapp.example/api/records'));await oldBegun;const newer=login();await loginBegun;releaseOld();await assert.rejects(old,e=>e.code==='SESSION_CHANGED');assert.equal(invalidations,0);releaseLogin();await newer;await api('/session');assert.equal(seen,'Bearer new-session');assert.equal(state.stored,'new-session');}finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
 });

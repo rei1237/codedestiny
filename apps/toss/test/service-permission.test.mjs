@@ -15,3 +15,7 @@ test('transport keeps a returned 401 code and requests login',async()=>{
 for(const status of [401,403])test('transport retains '+status+' for a non-JSON upstream response',async()=>{
  const request=createServiceFetch({origin:'https://miniapp.example',nativeFetch:()=>{throw Error('web fallback forbidden');},send:async()=>new Response('gateway failure',{status,headers:{'content-type':'text/html'}})});const response=await request('/api/records'),body=await response.json();assert.equal(response.status,status);assert.equal(response.headers.get('content-type'),'application/json');assert.match(body.message,status===401?/로그인/:/접근할 권한/);assert.equal(body.code,status===401?'LOGIN_REQUIRED':'ACCESS_DENIED');
 });
+
+test('transport does not turn an account change during error-body reading into a stale 401',async()=>{
+ const request=createServiceFetch({origin:'https://miniapp.example',nativeFetch:()=>{throw Error('web fallback forbidden');},send:async()=>new Response(new ReadableStream({start(c){c.error(Object.assign(new Error('changed'),{code:'SESSION_CHANGED',status:409}));}}),{status:401})});const response=await request('/api/records'),body=await response.json();assert.equal(response.status,409);assert.equal(body.code,'SESSION_CHANGED');
+});
