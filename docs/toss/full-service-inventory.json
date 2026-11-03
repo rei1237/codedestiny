@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "683b1c716f4dc313d6c52a7de0bcf6f69ccc6283",
+  "sourceCommit": "3f6b9934ca51f84f42edb20799579d81a5092ec5",
   "scope": "Source discovery plus explicitly verified aliases; not a count of implemented services. Unmapped contracts are blocking work, not exclusions.",
   "sourceCounts": {
     "home": 63,
@@ -5207,12 +5207,12 @@
       "aliasEvidence": [
         "js/core/service-registry.js"
       ],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/daily",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "worker/toss/daily.js",
+      "resultRenderer": "apps/toss/src/DailyReadings.tsx",
+      "storageContract": "server-owned-daily-result; horary-and-full-web-parity-pending"
     },
     {
       "id": "vedic",
