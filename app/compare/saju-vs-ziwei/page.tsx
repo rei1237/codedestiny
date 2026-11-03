@@ -202,6 +202,7 @@ export default function SajuVsZiweiPage() {
         <Link href="/ziwei/" className="cd-chip">자미두수 보러 가기</Link>
         <Link href="/saju/guide/" className="cd-chip">사주 기본 가이드</Link>
         <Link href="/ziwei/guide/" className="cd-chip">자미두수 가이드</Link>
+        <Link href="/yeongnyangi/" className="cd-chip">한 체계로 고민을 읽는 영냥이 상담</Link>
         <Link href="/methodology/" className="cd-chip">콘텐츠 방법론</Link>
         <Link href="/disclaimer/" className="cd-chip">면책 고지</Link>
       </nav>

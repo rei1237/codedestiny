@@ -21,6 +21,7 @@ const METHODOLOGY_TEXT_TRANSLATIONS = {
     humanDesignGuide: "휴먼 디자인 계산과 이용 안내",
     disclaimer: "면책 고지",
     contact: "문의하기",
+    yeongnyangi: "영냥이 상담 안내",
     editorial: "콘텐츠 편집 원칙",
     sections: [
       {
@@ -92,6 +93,7 @@ const METHODOLOGY_TEXT_TRANSLATIONS = {
     humanDesignGuide: "Human Design calculation and usage guide",
     disclaimer: "Disclaimer",
     contact: "Contact",
+    yeongnyangi: "Yeongnyangi consultation",
     sections: [
       { title: "Content Standards", body: "Saju, tarot, Zi Wei Dou Shu, astrology, and Sukuyo use different symbolic systems. 꿀꿀운세 explains the basic concepts separately and writes result text so users can review real choices." },
       { title: "Review and Updates", body: "Public guides and FAQs are checked so broken copy, exaggerated wording, and internal work notes are not exposed. When policies or features change, related documents and internal links are updated together." },
@@ -111,6 +113,7 @@ const METHODOLOGY_TEXT_TRANSLATIONS = {
     humanDesignGuide: "ヒューマンデザインの計算と使い方",
     disclaimer: "免責事項",
     contact: "お問い合わせ",
+    yeongnyangi: "ヨンニャンイ相談の案内",
     sections: [
       { title: "コンテンツ作成基準", body: "四柱推命、タロット、紫微斗数、占星術、宿曜はそれぞれ異なる象徴体系を用います。꿀꿀운세は各体系の基本概念を分けて説明し、結果文は現実の選択肢を見直せるように作成します。" },
       { title: "検証と更新", body: "公開ガイドとFAQは、表現ミス、誇張表現、内部作業用の文言が露出しないよう点検します。サービス方針や機能が変わる場合は、関連文書と内部リンクもあわせて更新します。" },
@@ -161,6 +164,7 @@ export default function MethodologyPage() {
 
       <nav className="cd-chip-wrap" aria-label={methodologyCopy.relatedAria}>
         <Link href="/faq" className="cd-chip">{methodologyCopy.faq}</Link>
+        <Link href="/yeongnyangi/" className="cd-chip">{methodologyCopy.yeongnyangi}</Link>
         <Link href="/guides" className="cd-chip">{methodologyCopy.insightGuide}</Link>
         <Link href="/human-design/guide/" className="cd-chip">{methodologyCopy.humanDesignGuide}</Link>
         <Link href="/disclaimer" className="cd-chip">{methodologyCopy.disclaimer}</Link>
