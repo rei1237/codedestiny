@@ -18,7 +18,7 @@ async function adapter(available=true){
   `}));
  }}]});
  const loaded=new Module('purchase-recovery-check.cjs');loaded._compile(bundle.outputFiles[0].text,loaded.id);
- return {state,restore:loaded.exports.restorePurchases,purchase:loaded.exports.purchase,purchaseTarot:loaded.exports.purchaseTarotLibrary,login:loaded.exports.login,api:loaded.exports.api};
+ return {state,restore:loaded.exports.restorePurchases,auto:loaded.exports.recoverAfterAuthentication,purchase:loaded.exports.purchase,purchaseTarot:loaded.exports.purchaseTarotLibrary,login:loaded.exports.login,api:loaded.exports.api};
 }
 
 test('pending purchases use server-owned product routing and acknowledge durable grants only',async()=>{
@@ -65,6 +65,19 @@ test('simultaneous recovery requests share one attempt and later retries remain 
  }finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
 });
 
+test('automatic recovery waits for authentication and shares an overlapping manual recovery',async()=>{
+ const {state,restore,auto}=await adapter(),previous=globalThis.fetch;
+ state.orders=[{orderId:'saved',sku:'tarot'}];let release;
+ const gate=new Promise(resolve=>{release=resolve;});
+ globalThis.fetch=async()=>{await gate;return Response.json({orderId:'saved',entitlement:'granted',durable:true});};
+ try{
+  assert.equal(await auto(false),'');assert.equal(state.pendingCalls,undefined);
+  const automatic=auto(true),manual=restore();release();
+  assert.match(await automatic,/1건 복구/);assert.equal((await manual).recovered,1);
+  assert.equal(state.pendingCalls,1);assert.deepEqual(state.ack,['saved']);
+ }finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
+});
+
 test('a changed session cannot acknowledge an earlier session recovery',async()=>{
  const {state,restore,login}=await adapter(),previous=globalThis.fetch;
  state.orders=[{orderId:'saved',sku:'tarot'}];let release,started;
@@ -72,7 +85,7 @@ test('a changed session cannot acknowledge an earlier session recovery',async()=
  globalThis.fetch=async(url)=>{if(new URL(url).pathname.endsWith('/login'))return Response.json({token:'new-session'});started();await gate;return Response.json({orderId:'saved',entitlement:'granted',durable:true});};
  try{
   const recovery=restore();await requestStarted;await login();release();
-  await assert.rejects(recovery,error=>error.code==='SESSION_EXPIRED'&&error.status===401);assert.deepEqual(state.ack,[]);
+  await assert.rejects(recovery,error=>error.code==='SESSION_CHANGED'&&error.status===409);assert.deepEqual(state.ack,[]);
  }finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
 });
 

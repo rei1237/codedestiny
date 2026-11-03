@@ -5,7 +5,7 @@ import {ToastProvider} from '@/app/components/Toast';
 import {clearClientAuthState} from '@/app/_lib/auth-client';
 import {refreshAuth} from '@/app/_lib/auth-store';
 import {SERVICE_AVAILABLE} from '../src/release';
-import {canonicalResponse,restoreSession,login,isToss} from '../src/platform';
+import {canonicalResponse,restoreSession,recoverAfterAuthentication,login,isToss} from '../src/platform';
 import {createServiceFetch} from './transport.mjs';
 import Checkout from './Checkout';
 import YeongnyangiLayout from '@/app/yeongnyangi/layout';
@@ -47,7 +47,7 @@ function PreparedCheckout(){
  return error?<p role="alert">{error}</p>:row?<Checkout draft={{product:row.product,question:row.consultation?.question,chapters:row.manifest.length,ready:row.state==='CREATED'||row.paid,onPrepare:async()=>row}}/>:<p role="status">상담을 확인하고 있어요.</p>;
 }
 export default function ServiceScreens(){
- const [ready,setReady]=useState(false),[error,setError]=useState(''),[busy,setBusy]=useState(false);
+ const [ready,setReady]=useState(false),[error,setError]=useState(''),[busy,setBusy]=useState(false),[recoveryMessage,setRecoveryMessage]=useState('');
  useEffect(()=>{
   if(!isToss())return;
   const area=({bottom})=>document.documentElement.style.setProperty('--toss-service-bottom',`${bottom}px`);
@@ -60,18 +60,19 @@ export default function ServiceScreens(){
   const offHome=graniteEvent.addEventListener('homeEvent',{onEvent:()=>location.assign('/')});
   return()=>{offArea();offBack();offHome();document.documentElement.style.removeProperty('--toss-service-bottom');};
  },[]);
- useEffect(()=>{install();let live=true;clearClientAuthState();void restoreSession().then(authenticated=>authenticated?refreshAuth({force:true}):undefined).catch(()=>{}).finally(()=>{if(live)setReady(true);});return()=>{live=false;};},[]);
- if(location.pathname.startsWith('/life-book-ai')){const Screen=location.pathname.includes('/result')?LifeBookResult:LifeBook;return <LazyMotion features={domAnimation}><ToastProvider/>{ready?<Suspense fallback={<p role="status">인생의 책을 열고 있어요.</p>}><Screen/></Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</LazyMotion>;}
- if(location.pathname.startsWith('/love-secret-ai')){const Screen=location.pathname.includes('/result')?LoveSecretResult:LoveSecret;return <LazyMotion features={domAnimation}><ToastProvider/>{ready?<Suspense fallback={<p role="status">연애 비책을 열고 있어요.</p>}><Screen/></Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</LazyMotion>;}
- if(location.pathname.startsWith('/fusion-fortune'))return <LazyMotion features={domAnimation}><ToastProvider/>{ready?<Suspense fallback={<p role="status">초융합 운세를 열고 있어요.</p>}><Fusion/></Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</LazyMotion>;
+ useEffect(()=>{install();let live=true;clearClientAuthState();const showError=error=>{if(!live||error?.code==='SESSION_CHANGED')return;if(error?.status===401)clearClientAuthState();if(SERVICE_AVAILABLE)setRecoveryMessage(error?.status===403?'구매 내역에 접근할 권한을 확인할 수 없어요. 구매한 계정과 주문 내역을 확인해 주세요.':'구매 내역을 확인하지 못했어요. 추가 결제 전에 로그인과 연결 상태를 확인해 주세요.');};void restoreSession().then(async authenticated=>{if(!authenticated)return;await refreshAuth({force:true});try{const notice=await recoverAfterAuthentication(true);if(live&&notice)setRecoveryMessage(notice);}catch(error){showError(error);}}).catch(showError).finally(()=>{if(live)setReady(true);});return()=>{live=false;};},[]);
+ const recoveryBanner=recoveryMessage?<p role="status">{recoveryMessage}</p>:null;
+ if(location.pathname.startsWith('/life-book-ai')){const Screen=location.pathname.includes('/result')?LifeBookResult:LifeBook;return <LazyMotion features={domAnimation}><ToastProvider/>{recoveryBanner}{ready?<Suspense fallback={<p role="status">인생의 책을 열고 있어요.</p>}><Screen/></Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</LazyMotion>;}
+ if(location.pathname.startsWith('/love-secret-ai')){const Screen=location.pathname.includes('/result')?LoveSecretResult:LoveSecret;return <LazyMotion features={domAnimation}><ToastProvider/>{recoveryBanner}{ready?<Suspense fallback={<p role="status">연애 비책을 열고 있어요.</p>}><Screen/></Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</LazyMotion>;}
+ if(location.pathname.startsWith('/fusion-fortune'))return <LazyMotion features={domAnimation}><ToastProvider/>{recoveryBanner}{ready?<Suspense fallback={<p role="status">초융합 운세를 열고 있어요.</p>}><Fusion/></Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</LazyMotion>;
  const tea=location.pathname.startsWith('/fortune-tea-house');
  if(location.pathname.startsWith('/neo-operation-room')){
   const Screen=location.pathname.includes('/result')?NeoResult:location.pathname.includes('/strategy-books')?NeoBooks:Neo;
-  return <LazyMotion features={domAnimation}><ToastProvider/>{ready?<Suspense fallback={<p role="status">전략실을 열고 있어요.</p>}>{Screen===NeoResult?<NeoResult availability={SERVICE_AVAILABLE?undefined:releaseAvailability}/>:<Screen/>}</Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</LazyMotion>;
+  return <LazyMotion features={domAnimation}><ToastProvider/>{recoveryBanner}{ready?<Suspense fallback={<p role="status">전략실을 열고 있어요.</p>}>{Screen===NeoResult?<NeoResult availability={SERVICE_AVAILABLE?undefined:releaseAvailability}/>:<Screen/>}</Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</LazyMotion>;
  }
- if(location.pathname.startsWith('/records'))return <LazyMotion features={domAnimation}><ToastProvider/>{ready?<Suspense fallback={<p role="status">기록을 불러오고 있어요.</p>}><Records showWebReception={false}/></Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</LazyMotion>;
- if(tea)return <LazyMotion features={domAnimation}><ToastProvider/>{ready?<Suspense fallback={<p role="status">찻집을 열고 있어요.</p>}>{new URLSearchParams(location.search).get('resultId')?<SavedTea resultId={new URLSearchParams(location.search).get('resultId')}/>:<Tea paymentSurface="toss"/>}</Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</LazyMotion>;
- if(location.pathname.startsWith('/login'))return <YeongnyangiLayout><section className={styles.consultation}><header className={styles.spiritIntro}><img src="/assets/yeongnyangi/original/login.webp" width={440} height={557} alt=""/><div><h1>토스로 상담 시작하기</h1><p>같은 토스 계정으로 저장한 상담을 다시 읽을 수 있어요.</p><button className={styles.primaryAction} disabled={busy} onClick={async()=>{setBusy(true);try{await login();const next=new URLSearchParams(location.search).get('next')||'/yeongnyangi/fortune/';location.replace((/^\/(yeongnyangi|fortune-tea-house|neo-operation-room|fusion-fortune|life-book-ai|love-secret-ai|records|checkout)(\/|\?|$)/.test(next))?next:'/yeongnyangi/fortune/');}catch{setError('로그인을 완료하지 못했어요. 출시 상태와 연결을 확인한 뒤 다시 시도해 주세요.');setBusy(false);}}}>{busy?'로그인 중':'토스로 로그인하기'}</button>{error&&<p role="alert">{error}</p>}</div></header></section></YeongnyangiLayout>;
+ if(location.pathname.startsWith('/records'))return <LazyMotion features={domAnimation}><ToastProvider/>{recoveryBanner}{ready?<Suspense fallback={<p role="status">기록을 불러오고 있어요.</p>}><Records showWebReception={false}/></Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</LazyMotion>;
+ if(tea)return <LazyMotion features={domAnimation}><ToastProvider/>{recoveryBanner}{ready?<Suspense fallback={<p role="status">찻집을 열고 있어요.</p>}>{new URLSearchParams(location.search).get('resultId')?<SavedTea resultId={new URLSearchParams(location.search).get('resultId')}/>:<Tea paymentSurface="toss"/>}</Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</LazyMotion>;
+ if(location.pathname.startsWith('/login'))return <YeongnyangiLayout><section className={styles.consultation}>{recoveryBanner}<header className={styles.spiritIntro}><img src="/assets/yeongnyangi/original/login.webp" width={440} height={557} alt=""/><div><h1>토스로 상담 시작하기</h1><p>같은 토스 계정으로 저장한 상담을 다시 읽을 수 있어요.</p><button className={styles.primaryAction} disabled={busy} onClick={async()=>{setBusy(true);try{await login();const next=new URLSearchParams(location.search).get('next')||'/yeongnyangi/fortune/';location.replace((/^\/(yeongnyangi|fortune-tea-house|neo-operation-room|fusion-fortune|life-book-ai|love-secret-ai|records|checkout)(\/|\?|$)/.test(next))?next:'/yeongnyangi/fortune/');}catch{setError('로그인을 완료하지 못했어요. 출시 상태와 연결을 확인한 뒤 다시 시도해 주세요.');setBusy(false);}}}>{busy?'로그인 중':'토스로 로그인하기'}</button>{error&&<p role="alert">{error}</p>}</div></header></section></YeongnyangiLayout>;
  const Screen=location.pathname.startsWith('/checkout')?PreparedCheckout:location.pathname.includes('/result')?Result:location.pathname.includes('/library')?Library:Consultation;
- return <LazyMotion features={domAnimation}><ToastProvider/><YeongnyangiLayout>{ready?<Suspense fallback={<p role="status">상담실을 불러오고 있어요.</p>}><Screen/></Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</YeongnyangiLayout></LazyMotion>;
+ return <LazyMotion features={domAnimation}><ToastProvider/>{recoveryBanner}<YeongnyangiLayout>{ready?<Suspense fallback={<p role="status">상담실을 불러오고 있어요.</p>}><Screen/></Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</YeongnyangiLayout></LazyMotion>;
 }

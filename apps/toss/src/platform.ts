@@ -106,6 +106,13 @@ export function purchaseTarotLibrary(product:TarotLibraryProduct,input:unknown,o
   return ()=>clean();
 }
 type RecoveryCounts={recovered:number;failed:number;denied:number};
+export function recoveryNotice(counts:RecoveryCounts):string{
+  if(!counts.recovered&&!counts.failed&&!counts.denied)return '';
+  return `${counts.recovered}건 복구, ${counts.failed}건 확인 필요.${counts.denied?` ${counts.denied}건은 접근 권한 확인이 필요해요. 구매한 계정과 주문 내역을 확인해 주세요.`:''} 추가 결제 전에 기록 보관함을 확인해 주세요.`;
+}
+export async function recoverAfterAuthentication(authenticated:boolean):Promise<string>{
+  return authenticated?recoveryNotice(await restorePurchases()):'';
+}
 let recoveryInFlight:{token:string|null;promise:Promise<RecoveryCounts>}|null=null;
 export function restorePurchases():Promise<RecoveryCounts>{
   if(recoveryInFlight?.token===token)return recoveryInFlight.promise;
@@ -121,13 +128,13 @@ async function restorePurchasesOnce(sessionToken:string|null):Promise<RecoveryCo
   let recovered=0,failed=0,denied=0;
   for(const order of pending?.orders||[]){
     try{
-      if(token!==sessionToken)throw new ApiError('SESSION_EXPIRED','',401);
+      if(token!==sessionToken)throw new ApiError('SESSION_CHANGED','',409);
       const receipt=await api<Receipt>('/orders/restore',{orderId:order.orderId,sku:order.sku});
-      if(token!==sessionToken)throw new ApiError('SESSION_EXPIRED','',401);
+      if(token!==sessionToken)throw new ApiError('SESSION_CHANGED','',409);
       if(!validReceipt(receipt,order.orderId))throw new ApiError('GRANT_NOT_DURABLE');
       if(!await IAP.completeProductGrant({params:{orderId:order.orderId}}))throw new ApiError('GRANT_ACK_PENDING');
       recovered++;
-    }catch(error){if(error instanceof ApiError&&error.status===401)throw error;if(error instanceof ApiError&&error.status===403)denied++;else failed++;}
+    }catch(error){if(token!==sessionToken)throw new ApiError('SESSION_CHANGED','',409);if(error instanceof ApiError&&error.status===401)throw error;if(error instanceof ApiError&&error.status===403)denied++;else failed++;}
   }
   return {recovered,failed,denied};
 }
