@@ -11,6 +11,12 @@
 
 `/reviews/?write=1`에서 후기 작성, 공유 문구 복사, 이미지 저장, SNS 이동, 게시글 주소 제출을 제공한다. `/reviews/`에서 최근 신청·지급 내역을 조회한다. `/admin/reviews/`에서 SNS 링크·보상 참여 표시를 확인하고 승인·반려·지급 재시도한다.
 
+결과 하단과 후기 작성 화면은 별점 1~5만으로도 비공개 접수할 수 있다. 빠른 후기 태그와 한 줄 의견은 선택 사항이다. 서비스 내 공개 동의는 제출과 분리하며 기본값은 OFF다. 사용자가 별도로 동의한 후기만 관리자 승인 후 공개 목록에 나타나고, 작성자는 이름 일부나 프로필 이미지 없이 항상 `익명의 운세손님`으로 표시한다. 연락처·이메일·생년월일·주문 식별자로 보이는 값은 공개 응답 직전에 한 번 더 가린다. 동의 철회와 후기 숨김은 보상 원장 및 중복 검증 이력을 삭제하지 않는 방식으로 처리한다.
+
+보상 금액·승인·만료·사용 범위는 기존 정책을 그대로 따른다. UI는 서버의 `rewardPolicy`를 표시하며 숫자를 따로 하드코딩하지 않는다. 별점의 높고 낮음은 승인 기회나 지급 조건에 영향을 주지 않는다.
+
+GA4에는 원문 후기, 사용자 식별자, 상담 질문을 보내지 않는다. `review_ui_view`, `review_rating_select`, `review_submit`, `review_reward_status`, `review_share_select`, `review_sns_proof_submit` 이벤트에는 화면 위치·별점·선택 태그 수·작성 시간·상태처럼 비식별 퍼널 값만 기록한다.
+
 네이버 블로그와 네이버 공유창은 [공식 블로그 가이드](https://developers.naver.com/docs/share/share/) 및 [네이버 공유 가이드](https://developers.naver.com/docs/share/navershare/)를 사용한다. 스레드는 [공식 Web Intents](https://developers.facebook.com/documentation/threads/threads-web-intents)의 post composer를 연다. 인스타그램·다음 카페는 문구 복사, 이미지 저장 후 직접 게시한다. 기기 공유창은 지원 기기에서 제공하며 게시 성공을 자동 판정하지 않는다.
 
 SNS 주소는 본인과 관리자 응답에만 포함하며 공개 후기 응답에는 포함하지 않는다. 서버에서 해당 주소를 가져오지 않는다. 공유에는 공개 홈페이지 주소만 넣는다.

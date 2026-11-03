@@ -2,7 +2,7 @@ export const REVIEW_REWARD_IMAGE = "/images/reviews/yeoni-yeongnyangi-moonstone-
 export const REVIEW_WRITE_URL = "/reviews/?write=1";
 export const PAID_REVIEW_CHARACTERS = {
   ggulggul: { name: '연이', image: REVIEW_REWARD_IMAGE },
-  yeongnyangi: { name: '영냥이', image: REVIEW_REWARD_IMAGE },
+  yeongnyangi: { name: '영냥이', image: '/assets/yeongnyangi/original/hero-480.webp' },
 };
 export const reviewRewardCopy = {
   title: "후기는 나중에 남겨도 괜찮아요",
