@@ -65,30 +65,41 @@ export async function tarotLibraryProducts():Promise<TarotLibraryProduct[]>{
 }
 type Receipt={orderId:string;requestId:string|null;entitlement:string;durable:boolean};
 const validReceipt=(r:Receipt,id:string)=>r.orderId===id&&r.entitlement==='granted'&&r.durable===true;
+function pausePaymentMedia(){
+  if(typeof document==='undefined')return ()=>{};
+  const playing=Array.from(document.querySelectorAll<HTMLMediaElement>('audio,video')).filter(media=>!media.paused);
+  playing.forEach(media=>media.pause());
+  let restored=false;
+  return ()=>{if(restored)return;restored=true;if(document.visibilityState!=='visible')return;playing.forEach(media=>{if(media.isConnected&&media.paused)void media.play().catch(()=>{});});};
+}
 export function purchase(product:SaleProduct,requestId:string,onDone:()=>void,onError:(error:unknown)=>void){
   if(!SERVICE_AVAILABLE)throw new ApiError('TOSS_RELEASE_PENDING');
   if(!isToss())throw new ApiError('TOSS_APP_REQUIRED');
   if(!IAP.createOneTimePurchaseOrder.isSupported())throw new ApiError('IAP_NOT_SUPPORTED');
-  let clean:()=>void=()=>{},granted=false,settled=false;
+  let unsubscribe:()=>void=()=>{},granted=false,settled=false;
+  const resumeMedia=pausePaymentMedia();
+  const clean=()=>{unsubscribe();resumeMedia();};
   const fail=(error:unknown)=>{if(settled)return;settled=true;clean();onError(error);};
-  clean=IAP.createOneTimePurchaseOrder({options:{sku:product.sku,processProductGrant:async({orderId})=>{
+  try{unsubscribe=IAP.createOneTimePurchaseOrder({options:{sku:product.sku,processProductGrant:async({orderId})=>{
     granted=false;
     try{const receipt=await api<Receipt>('/orders/grant',{sku:product.sku,orderId,requestId});granted=validReceipt(receipt,orderId)&&receipt.requestId===requestId;return granted;}
     catch(error){fail(error);return false;}
-  }},onEvent:()=>{if(settled)return;settled=true;clean();if(granted)onDone();else onError(new ApiError('GRANT_NOT_DURABLE'));},onError:fail});
+  }},onEvent:()=>{if(settled)return;settled=true;clean();if(granted)onDone();else onError(new ApiError('GRANT_NOT_DURABLE'));},onError:fail});}catch(error){resumeMedia();throw error;}
   return ()=>clean();
 }
 export function purchaseTarotLibrary(product:TarotLibraryProduct,input:unknown,onDone:(orderId:string)=>void,onError:(error:unknown)=>void){
   if(!SERVICE_AVAILABLE)throw new ApiError('TOSS_RELEASE_PENDING');
   if(!isToss())throw new ApiError('TOSS_APP_REQUIRED');
   if(!IAP.createOneTimePurchaseOrder.isSupported())throw new ApiError('IAP_NOT_SUPPORTED');
-  let clean:()=>void=()=>{},grantedOrder='',settled=false;
+  let unsubscribe:()=>void=()=>{},grantedOrder='',settled=false;
+  const resumeMedia=pausePaymentMedia();
+  const clean=()=>{unsubscribe();resumeMedia();};
   const fail=(error:unknown)=>{if(settled)return;settled=true;clean();onError(error);};
-  clean=IAP.createOneTimePurchaseOrder({options:{sku:product.sku,processProductGrant:async({orderId})=>{
+  try{unsubscribe=IAP.createOneTimePurchaseOrder({options:{sku:product.sku,processProductGrant:async({orderId})=>{
     grantedOrder='';
     try{const receipt=await api<Receipt>('/tarot-library/orders/grant',{sku:product.sku,orderId,input});const granted=validReceipt(receipt,orderId);grantedOrder=granted?orderId:'';return granted;}
     catch(error){fail(error);return false;}
-  }},onEvent:()=>{if(settled)return;settled=true;clean();if(grantedOrder)onDone(grantedOrder);else onError(new ApiError('GRANT_NOT_DURABLE'));},onError:fail});
+  }},onEvent:()=>{if(settled)return;settled=true;clean();if(grantedOrder)onDone(grantedOrder);else onError(new ApiError('GRANT_NOT_DURABLE'));},onError:fail});}catch(error){resumeMedia();throw error;}
   return ()=>clean();
 }
 export async function restorePurchases(){

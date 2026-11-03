@@ -7,7 +7,7 @@ import path from 'node:path';
 
 const root=path.resolve(import.meta.dirname,'../../..');
 const Module=createRequire(import.meta.url)('node:module');
-const sdk=`const create=options=>{const s=globalThis.__purchaseCallbacks;s.options=options;return ()=>{s.cleaned++}};create.isSupported=()=>true; export const IAP={createOneTimePurchaseOrder:create};export const Environment={environment:'sandbox'};export const TossAuth={},Storage={},Share={};`;
+const sdk=`const create=options=>{const s=globalThis.__purchaseCallbacks;if(s.throwOnCreate)throw Error('SDK unavailable');s.options=options;return ()=>{s.cleaned++}};create.isSupported=()=>true; export const IAP={createOneTimePurchaseOrder:create};export const Environment={environment:'sandbox'};export const TossAuth={},Storage={},Share={};`;
 const bundle=await build({entryPoints:[path.join(root,'apps/toss/src/platform.ts')],bundle:true,platform:'node',format:'cjs',write:false,plugins:[{name:'mock-sdk',setup(b){
  b.onResolve({filter:/^@apps-in-toss\/web-framework$/},()=>({path:'sdk',namespace:'fixture'}));
  b.onLoad({filter:/.*/,namespace:'fixture'},()=>({contents:sdk,loader:'js'}));
@@ -30,4 +30,42 @@ for(const kind of ['consultation','tarot'])test(`${kind} grant failure is report
   assert.equal(errors.length,1);assert.equal(errors[0].message,'offline grant failure');
   assert.equal(completed,0);assert.equal(state.cleaned,1);
  }finally{globalThis.fetch=originalFetch;delete globalThis.__purchaseCallbacks;}
+});
+
+test('media resumes if the SDK cannot open the purchase sheet',()=>{
+ globalThis.__purchaseCallbacks={cleaned:0,throwOnCreate:true};
+ const originalDocument=globalThis.document;
+ const media={paused:false,isConnected:true,plays:0,pause(){this.paused=true;},play(){this.plays++;this.paused=false;return Promise.resolve();}};
+ globalThis.document={visibilityState:'visible',querySelectorAll:()=>[media]};
+ try{assert.throws(()=>loaded.exports.purchase(product,'request',()=>{},()=>{}),/SDK unavailable/);assert.equal(media.plays,1);}
+ finally{globalThis.document=originalDocument;delete globalThis.__purchaseCallbacks;}
+});
+
+test('media resumes after a durable grant and is not restarted twice',async()=>{
+ const state=globalThis.__purchaseCallbacks={cleaned:0};
+ const originalDocument=globalThis.document,originalFetch=globalThis.fetch;
+ const media={paused:false,isConnected:true,plays:0,pause(){this.paused=true;},play(){this.plays++;this.paused=false;return Promise.resolve();}};
+ globalThis.document={visibilityState:'visible',querySelectorAll:()=>[media]};
+ globalThis.fetch=async()=>Response.json({orderId:'order',requestId:'request',entitlement:'granted',durable:true});
+ try{
+  let done=0;loaded.exports.purchase(product,'request',()=>done++,()=>assert.fail('unexpected error'));
+  assert.equal(await state.options.options.processProductGrant({orderId:'order'}),true);
+  state.options.onEvent({});state.options.onEvent({});assert.equal(done,1);assert.equal(media.plays,1);
+ }finally{globalThis.document=originalDocument;globalThis.fetch=originalFetch;delete globalThis.__purchaseCallbacks;}
+});
+
+for(const kind of ['consultation','tarot'])test(`${kind} pauses playing media until the payment flow ends`,()=>{
+ const state=globalThis.__purchaseCallbacks={cleaned:0};
+ const originalDocument=globalThis.document;
+ const media=(paused)=>({paused,isConnected:true,pauses:0,plays:0,pause(){this.pauses++;this.paused=true;},play(){this.plays++;this.paused=false;return Promise.resolve();}});
+ const playing=media(false),alreadyPaused=media(true);
+ globalThis.document={visibilityState:'visible',querySelectorAll:()=>[playing,alreadyPaused]};
+ try{
+  const errors=[];
+  if(kind==='tarot')loaded.exports.purchaseTarotLibrary(product,{},()=>assert.fail('unexpected success'),error=>errors.push(error));
+  else loaded.exports.purchase(product,'request',()=>assert.fail('unexpected success'),error=>errors.push(error));
+  assert.equal(playing.pauses,1);assert.equal(playing.plays,0);assert.equal(alreadyPaused.pauses,0);
+  state.options.onError(new Error('cancelled'));state.options.onError(new Error('duplicate'));
+  assert.equal(playing.plays,1);assert.equal(alreadyPaused.plays,0);assert.equal(errors.length,1);
+ }finally{globalThis.document=originalDocument;delete globalThis.__purchaseCallbacks;}
 });
