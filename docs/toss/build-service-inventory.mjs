@@ -30,7 +30,7 @@ const rows=[...ids.values()].sort((a,b)=>a.id.localeCompare(b.id));
 const aliases={
  'destiny-flower':'flower','astrology-flower':'flower','ziwei-flower':'flower','sukuyo-flower':'flower',
  sukyo:'sukuyo','stonehenge-rune':'stonehenge-runes','love-simulation':'love-code',
- 'daily-fortune':'today-hub','saju-lifebook':'life-book-ai',
+ 'daily-fortune':'today-hub','saju-lifebook':'life-book-ai','animal-guardian-unlock':'animal-destiny',
 };
 const aliasEvidence={
  flower:['app/flower/destiny/page.tsx','app/flower/astrology/page.tsx','app/flower/jamidusu/page.tsx','app/flower/sukuyo/page.tsx'],
@@ -39,6 +39,7 @@ const aliasEvidence={
  'love-code':['js/core/index-inline-runtime.js:openLoveSimulation'],
  'today-hub':['js/core/service-registry.js'],
  'life-book-ai':['js/core/service-registry.js','app/_lib/serviceFeatureRegistry.ts'],
+ 'animal-destiny':['js/core/service-registry.js:animal-destiny-unlock','index.html:animal-guardian-unlock.inlineAliases'],
 };
 const groups=new Map();
 for(const row of rows){

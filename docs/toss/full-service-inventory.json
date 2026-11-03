@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "3f6b9934ca51f84f42edb20799579d81a5092ec5",
+  "sourceCommit": "69a6b358c25b0bb5f6dc92053dc0c6086169626e",
   "scope": "Source discovery plus explicitly verified aliases; not a count of implemented services. Unmapped contracts are blocking work, not exclusions.",
   "sourceCounts": {
     "home": 63,
@@ -2692,7 +2692,8 @@
     {
       "id": "animal-destiny",
       "discoveryIds": [
-        "animal-destiny"
+        "animal-destiny",
+        "animal-guardian-unlock"
       ],
       "evidence": [
         {
@@ -2710,22 +2711,7 @@
           "entry": "/saju/animal-destiny/",
           "featureKey": null,
           "accessEvidence": null
-        }
-      ],
-      "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
-      "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
-    },
-    {
-      "id": "animal-guardian-unlock",
-      "discoveryIds": [
-        "animal-guardian-unlock"
-      ],
-      "evidence": [
+        },
         {
           "source": "shell-visual-details",
           "id": "animal-guardian-unlock",
@@ -2735,7 +2721,10 @@
           "accessEvidence": null
         }
       ],
-      "aliasEvidence": [],
+      "aliasEvidence": [
+        "js/core/service-registry.js:animal-destiny-unlock",
+        "index.html:animal-guardian-unlock.inlineAliases"
+      ],
       "status": "requires-full-flow-port-and-verification",
       "tossRoute": null,
       "sku": null,
