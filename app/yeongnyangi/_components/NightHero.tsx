@@ -3,6 +3,8 @@ import {brandCopy} from '@/lib/seo/brand-copy.mjs';
 import {useEffect,useRef,useState} from 'react';
 import {ArrowRight,PawPrint} from 'lucide-react';
 import {products} from '@/worker/yeongnyangi/payments/catalog';
+import {EXPANDED_CHAPTERS} from '@/worker/yeongnyangi/fortune/consultation-expansion';
+import {FOLLOWUP_LIMITS} from '@/worker/yeongnyangi/fortune/ask/question-policy';
 import LaunchPlannedPrice from '@/app/components/LaunchPlannedPrice';
 import {launchOffer,plannedPriceFor} from '@/lib/brand/launch-offer';
 import styles from './night-hero.module.css';
@@ -23,6 +25,7 @@ export default function NightHero(){
     <a className={styles.primary} href="#questions" data-cd-business-entry="question"><PawPrint size={20} aria-hidden="true"/>내 고민 상담하기<ArrowRight size={19} aria-hidden="true"/></a>
    </div>
    <p className={styles.price}>{planned!==null?<>선착순 {launchOffer.limit.toLocaleString('ko-KR')}명 체험가 · <LaunchPlannedPrice amount={planned}/></>:null}<span className={styles.keep}>질문 상담 {starter.priceKRW.toLocaleString('ko-KR')}원부터</span> · 질문 범위에 따라 안내</p>
+   <p className={styles.price}>고등어 질문 상담 {starter.priceKRW.toLocaleString('ko-KR')}원 · 한 체계 · 신규 한국어 질문 기준 {EXPANDED_CHAPTERS.mackerel}챕터 · {FOLLOWUP_LIMITS.mackerel===0?'추가 질문 없음':`추가 질문 ${FOLLOWUP_LIMITS.mackerel}회`}</p>
   </div>
   <div className={styles.character}>
    <button className={`${styles.cat} ${petted?styles.petted:''}`} aria-label="영냥이 쓰다듬기" onClick={()=>{setGreeting(value=>(value+1)%greetings.length);setPetted(true);if(timer.current)clearTimeout(timer.current);timer.current=setTimeout(()=>setPetted(false),360);}}>
