@@ -2345,6 +2345,33 @@
       "sibylName": "Sibyl Annual Preparation Report",
       "sibylDescription": "Periods to watch, preparation by area, and practical next steps.",
       "rangePrice": "KRW {from}–{to}"
+    },
+    "cro": {
+      "love": "Liefde & hereniging",
+      "money": "Geld & ondernemen",
+      "career": "Werk & loopbaan",
+      "relationship": "Compatibiliteit & relaties",
+      "yearly": "Dit & volgend jaar",
+      "introduction": "Saju, tarot en advies bij je vragen.",
+      "freeIntroduction": "Begin met een gratis Saju-lezing.",
+      "freeStart": "Gratis Saju starten",
+      "paidLabel": "Betaald ·",
+      "result": {
+        "relationship": "Relatierapport met Saju en Zi Wei Dou Shu",
+        "consultation": "Advies afgestemd op je vraag",
+        "love": "Persoonlijk liefdesrapport",
+        "yearly": "Trends voor het gekozen jaar · Advies per periode",
+        "life": "Levensrapport per hoofdstuk",
+        "saju": "Saju-kaart · Basisinterpretatie"
+      },
+      "resultSummary": {
+        "relationship": "Wat je ontvangt · Relatierapport met Saju en Zi Wei Dou Shu",
+        "consultation": "Wat je ontvangt · Advies afgestemd op je vraag",
+        "love": "Wat je ontvangt · Persoonlijk liefdesrapport",
+        "yearly": "Wat je ontvangt · Trends voor het gekozen jaar · Advies per periode",
+        "life": "Wat je ontvangt · Levensrapport per hoofdstuk",
+        "saju": "Wat je ontvangt · Saju-kaart · Basisinterpretatie"
+      }
     }
   },
   "terms": {

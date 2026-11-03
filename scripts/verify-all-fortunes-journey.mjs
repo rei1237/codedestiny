@@ -17,11 +17,14 @@ const evidence = path.join(root, '.tmp', 'service-search');
 fs.mkdirSync(evidence, { recursive: true });
 const VIEWPORTS = [
   { w: 320, h: 568, mobile: true },
+  { w: 375, h: 812, mobile: true },
   { w: 390, h: 844, mobile: true },
+  { w: 430, h: 932, mobile: true },
   { w: 768, h: 1024, mobile: true },
   { w: 820, h: 1180, mobile: true },
   { w: 1024, h: 768, mobile: true },
   { w: 1280, h: 900, mobile: false },
+  { w: 1440, h: 900, mobile: false },
 ];
 const widthArg = (process.argv.find((a) => a.startsWith('--widths=')) || '').slice(9);
 const widths = widthArg.split(',').map(Number).filter(Boolean);
@@ -166,7 +169,7 @@ try {
       }
 
       // 3) 동의어: '이직'(직장·진로 표기), '자미'(자미두수), '별자리'(점성술).
-      for (const q of ['이직', '자미', '별자리', '나크샤트라']) {
+      for (const q of ['남친', '여친', '돈', '이직', '재회', '내년', '자미', '별자리', '나크샤트라']) {
         await typeQuery(page, q);
         const n = await page.locator(CARDS).count();
         if (!n) fail(tag, `synonym query "${q}" found nothing`);
@@ -213,7 +216,7 @@ try {
       await typeQuery(page, '오늘');
       await page.click(`${ROOT} .fortune-gateway__chip, ${ROOT} .cd-af__chip[data-purpose="today"]`);
       await page.waitForTimeout(300);
-      const link = page.locator('#cdAllFortunesResults a.fortune-gateway__rec[href^="/"]:not([data-pvw-paid])').first();
+      const link = page.locator('#cdAllFortunesResults a.fortune-gateway__rec[href^="/"]:not([data-pvw-paid]):not([data-action])').first();
       if (!(await link.count())) { fail(tag, 'no free same-origin card to follow'); continue; }
       await Promise.all([page.waitForURL((u) => !u.pathname.startsWith('/ggulggul'), { timeout: 15000 }), link.click()]);
       await page.goBack({ waitUntil: 'load' });

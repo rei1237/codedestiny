@@ -3,6 +3,7 @@
     "image": "/images/service-introductions/master-love-codex-320.webp",
     "imageAlt": "마스터의 마스터 인연의 서 상담 장면",
     "id": "master-love-codex",
+    "resultFormat": "사주·자미두수 관계 리포트",
     "name": "마스터 인연의 서",
     "question": "사람은 바뀌는데, 연애의 고민은 왜 비슷할까?",
     "desc": "나의 연애 패턴은 개인판으로, 두 사람의 차이는 궁합판으로 읽어요",
@@ -29,6 +30,7 @@
     "image": "/images/service-introductions/fortune-tea-house-320.webp",
     "imageAlt": "연이의 운명의 찻집 상담 장면",
     "id": "fortune-tea-house",
+    "resultFormat": "질문에 맞춘 상담 해설",
     "name": "운명의 찻집",
     "question": "이 마음, 어떻게 정리하면 좋을까?",
     "desc": "따뜻한 연이와 나누는 마음 상담",
@@ -57,6 +59,7 @@
   {
     "image": "/images/service-introductions/love-secret-ai-320.webp",
     "id": "love-secret-ai",
+    "resultFormat": "개인 연애 리포트",
     "name": "연애 비책",
     "question": "지금 우리 연애, 어디쯤 와 있을까?",
     "desc": "지금 연애의 흐름과 마음을 짚는 AI 상담",
@@ -254,6 +257,7 @@
   {
     "image": "/images/service-introductions/new-year-ai-320.webp",
     "id": "new-year-ai",
+    "resultFormat": "선택한 해의 흐름 · 시기별 조언",
     "name": "신년운세",
     "question": "올해 나에게 가장 중요한 일은 뭘까?",
     "desc": "새해의 큰 흐름과 기회를 미리 보는 운세",
@@ -270,7 +274,7 @@
       "saju",
       "ai"
     ],
-    "keys": "신년 새해 올해 세운 사주",
+    "keys": "신년 새해 올해 내년 연간운세 세운 사주",
     "badge": "대표",
     "roles": [
       "recommended"
@@ -298,6 +302,7 @@
   {
     "image": "/images/service-introductions/life-book-ai-320.webp",
     "id": "life-book-ai",
+    "resultFormat": "챕터별 인생 리포트",
     "name": "인생의 책",
     "question": "내 인생의 황금기는 언제일까?",
     "desc": "삶의 이야기를 한 권의 책으로 엮는 리딩",
@@ -469,6 +474,7 @@
     "image": "/images/service-introductions/saju-320.webp",
     "imageAlt": "꽃돼지 연이의 사주 정밀 분석 상담 장면",
     "id": "saju",
+    "resultFormat": "사주 명식 · 기본 해석",
     "quickHref": "/?action=cdOneStepFreeSajuEntry",
     "name": "사주",
     "question": "나는 어떤 결의 사람일까?",

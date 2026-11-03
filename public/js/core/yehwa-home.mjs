@@ -43,6 +43,12 @@ export function mountYehwaHome(root) {
     if (rect.bottom > availableBottom || rect.top < 0) guide.scrollIntoView({block:'start',behavior:'instant'});
   }
   root.addEventListener('click', event => {
+    const serviceLink = event.target.closest('a[data-cd-service-id]');
+    if (serviceLink && root.contains(serviceLink)) {
+      root.ownerDocument.defaultView.cdTrackDiscovery?.('select_item', {
+        itemId: serviceLink.dataset.cdServiceId, itemListId: 'home',
+      });
+    }
     const button = event.target.closest('button');
     if (!button || !root.contains(button)) return;
     if (button.hasAttribute('data-yh-concern')) {

@@ -41,6 +41,7 @@ import { packPaidResumeArg, unpackPaidResumeArg, usePaidResume, type PaidResumeD
 import { readAiProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { PriceBadge } from "@/app/components/PriceBadge";
+import ProductJourneyLinks, { useProductView } from "@/app/components/ProductJourneyLinks";
 import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import ProductMasterStrip from "@/app/components/ProductMasterStrip";
 import { MasterProfileGroup } from "@/components/fortune/MasterProfile";
@@ -1885,6 +1886,7 @@ async function runLoveSecretPaymentGate(paymentPayload: BillingPaymentPayload, i
 }
 
 export default function LoveSecretAiPage({ paymentNotice }: { paymentNotice?: string } = {}) {
+  useProductView('love-secret-ai-consultation', 'love');
   const copy = useLoveSecretClientCopy();
   const [form, setForm] = useState<ConsultationForm>(() => buildInitialForm());
   const [step, setStep] = useState(0);
@@ -2521,6 +2523,7 @@ function LoveSecretHero({ onStart, busy, mastersHref }: { onStart: () => void; b
           </button>
           <PriceBadge featureKey="love-secret-ai-consultation" prefix={copy.priceLabelPrefix} className={intro.price} />
         </div>
+        {copy === LOVE_SECRET_CLIENT_COPY.ko && !busy && <ProductJourneyLinks sampleId="love-secret" />}
       </div>
     </header>
   );

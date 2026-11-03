@@ -3,11 +3,16 @@ import { readFileSync, existsSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
 import { runInNewContext } from 'node:vm';
-import { renderYehwaHome, HOME_CONCERN_GROUPS } from '../../lib/marketing/yehwa-home.mjs';
+import { execFileSync } from 'node:child_process';
+const baseline = process.argv.includes('--baseline');
+const committed = file => execFileSync('git',['show','HEAD:'+file],{encoding:'utf8'});
+const {renderYehwaHome, HOME_CONCERN_GROUPS} = baseline
+ ? await import('data:text/javascript;base64,'+Buffer.from(committed('lib/marketing/yehwa-home.mjs')).toString('base64'))
+ : await import('../../lib/marketing/yehwa-home.mjs');
 const registry = {};
-runInNewContext(readFileSync('js/core/service-registry.js','utf8'),{window:registry});
+runInNewContext(baseline ? committed('js/core/service-registry.js') : readFileSync('js/core/service-registry.js','utf8'),{window:registry});
 const catalog = registry.__cdServiceRegistry;
-assert.deepEqual(JSON.parse(readFileSync('lib/marketing/yehwa-home.generated.json','utf8')),JSON.parse(JSON.stringify(catalog)),'generated catalog retains every original service');
+if (!baseline) assert.deepEqual(JSON.parse(readFileSync('lib/marketing/yehwa-home.generated.json','utf8')),JSON.parse(JSON.stringify(catalog)),'generated catalog retains every original service');
 const out = path.resolve(process.env.YEHWA_SCREENSHOTS || 'build-cache/yehwa-home');
 mkdirSync(out,{recursive:true});
 const publicRoot = path.resolve('public');
@@ -15,13 +20,14 @@ const mime = {'.html':'text/html','.js':'text/javascript','.mjs':'text/javascrip
 const browser = await chromium.launch({headless:true});
 const report = [];
 try {
- for (const width of [360,390,430,1440]) {
+ for (const width of [375,430,768,1440]) {
   const page = await browser.newPage({viewport:{width,height:900},reducedMotion:'reduce'});
   const errors=[];
   page.on('pageerror',error=>errors.push(error.message));
   await page.route('**/*', route=>{
    const url=new URL(route.request().url());
    if(url.hostname!=='yehwa.local')return route.abort();
+   if(baseline && ['/styles/yehwa-home.css','/js/core/yehwa-home.mjs'].includes(url.pathname))return route.fulfill({body:committed(url.pathname.slice(1)),contentType:mime[path.extname(url.pathname)]});
    if(url.pathname==='/fixture')return route.fulfill({contentType:'text/html',body:`<!doctype html><html lang="ko"><head><meta charset="utf-8"><link rel="stylesheet" href="/styles/theme-tokens.css"><link rel="stylesheet" href="/styles/yehwa-motifs.css"><link rel="stylesheet" href="/styles/yehwa-home.css"><style>@font-face{font-family:CodeDestinySerifKR;src:url('/fonts/NanumMyeongjo-Bold.woff2')}body{margin:0;padding:20px;background:var(--cd-bg);--font-serif:CodeDestinySerifKR,serif;--font-body:Arial,sans-serif}*{box-sizing:border-box}</style></head><body><div id="cdHomeFunnel">${renderYehwaHome(catalog)}</div><script type="module" src="/js/core/yehwa-home.mjs"></script></body></html>`});
    const file=path.resolve(publicRoot,'.'+decodeURIComponent(url.pathname==='/'||url.pathname==='/ggulggul/'?'/static/index.html':url.pathname));
    if(!file.startsWith(publicRoot+path.sep)||!existsSync(file))return route.fulfill({status:404,body:''});
@@ -29,6 +35,12 @@ try {
   });
   await page.goto('https://yehwa.local/' + (process.env.YEHWA_FULL_SHELL ? 'static/index.html' : 'fixture')); 
   await page.locator('[data-yh-mounted]').waitFor();
+  if (!baseline) {
+   const free = page.locator('.yh-free-start');
+   assert.equal(await free.getAttribute('href'),catalog.find(item=>item.id==='saju').quickHref);
+   assert.ok(await free.evaluate(node=>{const r=node.getBoundingClientRect();return r.height>=44&&r.bottom<innerHeight;}),'free start visible without scrolling');
+   await free.focus();assert.equal(await free.evaluate(node=>node===document.activeElement),true);
+  }
   assert.equal(await page.locator('.yh-card-list:visible .yh-card').count(),3);
   for(const group of HOME_CONCERN_GROUPS){
    await page.locator(`[data-yh-concern="${group.id}"]`).click();

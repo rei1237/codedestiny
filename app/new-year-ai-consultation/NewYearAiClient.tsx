@@ -27,6 +27,7 @@ import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 import { isRetriableResultPollFailure, runAccessCheckWithTransientRetry } from "@/app/_lib/consultationResultPolling";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { PriceBadge } from "@/app/components/PriceBadge";
+import ProductJourneyLinks, { useProductView } from "@/app/components/ProductJourneyLinks";
 import { ExpertStickyCta } from "@/app/components/expert-consulting/ExpertConsultationFrame";
 import { toDisplayText } from "@/lib/llm-text";
 import {
@@ -1486,6 +1487,7 @@ const NYAI_READING_ROOM_CSS = `
 `;
 
 export default function NewYearAiConsultationPage() {
+  useProductView(FEATURE_KEY, 'yearly');
   const [clientReady, setClientReady] = useState(false);
   useEffect(() => { setClientReady(true); }, []);
   const copy = useNewYearAiCopy();
@@ -2002,6 +2004,7 @@ export default function NewYearAiConsultationPage() {
             <span>{statusText}</span>
           </div>
           <p className="nyai-countdown">{seasonCountdown || "\u00a0"}</p>
+          {copy === NEW_YEAR_AI_COPY.ko && !isBusy && <ProductJourneyLinks sampleId="new-year" />}
           {accessType && <p className="nyai-access">이용 방식: {accessType}</p>}
         </div>
       </section>

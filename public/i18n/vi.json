@@ -2345,6 +2345,33 @@
       "sibylName": "Sibyl Annual Preparation Report",
       "sibylDescription": "Periods to watch, preparation by area, and practical next steps.",
       "rangePrice": "KRW {from}–{to}"
+    },
+    "cro": {
+      "love": "Tình yêu · Tái hợp",
+      "money": "Tài chính · Kinh doanh",
+      "career": "Công việc · Sự nghiệp",
+      "relationship": "Độ hợp · Các mối quan hệ",
+      "yearly": "Vận trình năm nay · Năm tới",
+      "introduction": "Tứ trụ, tarot và tư vấn theo mối quan tâm.",
+      "freeIntroduction": "Bắt đầu với phần luận Tứ trụ miễn phí.",
+      "freeStart": "Bắt đầu Tứ trụ miễn phí",
+      "paidLabel": "Trả phí ·",
+      "result": {
+        "relationship": "Báo cáo mối quan hệ theo Tứ trụ và Tử vi Đẩu số",
+        "consultation": "Luận giải tư vấn theo câu hỏi của bạn",
+        "love": "Báo cáo tình yêu cá nhân",
+        "yearly": "Vận trình năm đã chọn · Lời khuyên theo giai đoạn",
+        "life": "Báo cáo cuộc đời theo từng chương",
+        "saju": "Lá số Tứ trụ · Luận giải cơ bản"
+      },
+      "resultSummary": {
+        "relationship": "Nội dung bạn nhận được · Báo cáo mối quan hệ theo Tứ trụ và Tử vi Đẩu số",
+        "consultation": "Nội dung bạn nhận được · Luận giải tư vấn theo câu hỏi của bạn",
+        "love": "Nội dung bạn nhận được · Báo cáo tình yêu cá nhân",
+        "yearly": "Nội dung bạn nhận được · Vận trình năm đã chọn · Lời khuyên theo giai đoạn",
+        "life": "Nội dung bạn nhận được · Báo cáo cuộc đời theo từng chương",
+        "saju": "Nội dung bạn nhận được · Lá số Tứ trụ · Luận giải cơ bản"
+      }
     }
   },
   "terms": {

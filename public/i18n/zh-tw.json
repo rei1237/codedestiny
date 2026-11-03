@@ -2345,6 +2345,33 @@
       "sibylName": "西比拉年度準備報告",
       "sibylDescription": "關注時期、分領域準備和實際行動。",
       "rangePrice": "{from}–{to}韓元"
+    },
+    "cro": {
+      "love": "戀愛·復合",
+      "money": "財運·事業",
+      "career": "工作·職涯方向",
+      "relationship": "合盤·人際關係",
+      "yearly": "今年·明年運勢",
+      "introduction": "四柱、塔羅與針對不同煩惱的諮詢。",
+      "freeIntroduction": "從免費四柱解讀開始吧。",
+      "freeStart": "開始免費四柱解讀",
+      "paidLabel": "付費 ·",
+      "result": {
+        "relationship": "四柱與紫微斗數關係報告",
+        "consultation": "針對問題的諮詢解讀",
+        "love": "個人戀愛報告",
+        "yearly": "所選年份的運勢走向 · 分階段建議",
+        "life": "按章節呈現的人生報告",
+        "saju": "四柱命盤 · 基礎解讀"
+      },
+      "resultSummary": {
+        "relationship": "你將獲得 · 四柱與紫微斗數關係報告",
+        "consultation": "你將獲得 · 針對問題的諮詢解讀",
+        "love": "你將獲得 · 個人戀愛報告",
+        "yearly": "你將獲得 · 所選年份的運勢走向 · 分階段建議",
+        "life": "你將獲得 · 按章節呈現的人生報告",
+        "saju": "你將獲得 · 四柱命盤 · 基礎解讀"
+      }
     }
   },
   "terms": {

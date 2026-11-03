@@ -114,9 +114,8 @@
   // ad_* 는 일부러 선언하지 않는다. 같은 Google 태그를 쓰는 AdSense 의 현재 동작까지 바뀌는데
   // 그건 이 변경의 범위가 아니다(선언하지 않으면 종전과 같다).
   /*
-   * GA4 에 보내는 주소는 경로와 utm_* 뿐이다. 토큰·결과 ID 같은 나머지 쿼리는 계속 뗀다.
-   * 🔴 utm_* 까지 떼면 캠페인 귀속이 통째로 사라진다 — 2026-09-21 승격부터 실제로 그랬다
-   *    (docs/analytics-kpi.md 2026-09-24 절). 원래 인코딩을 지키려고 파싱하지 않고 쌍 단위로 고른다.
+   * GA4 주소는 경로와 공개 캠페인 코드만 포함한다. 자유 입력 UTM·토큰·결과 쿼리는 제외한다.
+   * 알려진 캠페인의 귀속은 유지하며 새 캠페인은 공개 코드 허용 목록에 등록한다.
    */
   function pageLocation() {
     // Paid campaign URLs carry public codes only, including the initial GA config.
@@ -133,10 +132,20 @@
       });
       return global.location.origin + global.location.pathname + '?' + publicQuery.toString();
     }
-    var campaign = String(global.location.search || "").replace(/^\?/, "").split("&").filter(function (pair) {
-      return /^utm_[a-z_]+=./.test(pair);
+    // Public campaign vocabulary only; free-form UTM can contain personal data.
+    var publicQuery = new URLSearchParams();
+    var publicFields = {
+      utm_source:/^(naver|google|naver_blog|youtube|tiktok|x|threads|kakao|email|copy|native|image|share|facebook|instagram|line|twitter)$/,
+      utm_medium:/^(cpc|social|organic_social|channel|email|newsletter|share|organic|referral)$/,
+      utm_campaign:/^(s1_launch|public_share|yeongnyangi_result|yeongnyangi_daily|insight_ggulggul|insight_yeongnyangi|yeoni-weekly|neo-depth|yeongnyangi-ask|autumn-pause|welcome|crm-[a-z0-9][a-z0-9-]{2,79}|email-weekly-[0-9]{4}-[0-9]{2}-[0-9]{2}|threads_[0-9]{8}_(saju|ziwei|vedic|numerology)|threads_queue_t[0-9]{2}_v1|growth_20261012|growth_20261021)$/,
+      utm_content:/^((W[0-9]{2}-)?[A-Z][A-Z0-9-]{1,10}_(ko|en|ja)|(yeoni-weekly|neo-depth|yeongnyangi-ask|autumn-pause|welcome)(-wideimage-v1)?)$/
+    };
+    Object.keys(publicFields).forEach(function (key) {
+      var value = paidQuery.get(key) || '';
+      if (publicFields[key].test(value)) publicQuery.set(key,value);
     });
-    return global.location.origin + global.location.pathname + (campaign.length ? "?" + campaign.join("&") : "");
+    var campaign = publicQuery.toString();
+    return global.location.origin + global.location.pathname + (campaign ? '?' + campaign : '');
   }
 
   gtag("consent", "default", { analytics_storage: analyticsStorageState() });
@@ -248,7 +257,14 @@
   global.cdTrack = function cdTrack(eventName, params) {
     if (!eventName) return false;
     try {
+      // Existing AuthShell emits signup only after successful registration.
+      // Normalize once; do not also emit the historical name or copy auth data.
+      if (eventName === 'signup') eventName = 'sign_up';
       var safeParams = Object.assign({}, params || {});
+      if (eventName === 'sign_up') {
+        if (['password','social'].indexOf(safeParams.method) < 0) return false;
+        safeParams = {method:safeParams.method};
+      }
       var crmId = crmCampaign();
       if (crmId) safeParams.crm_campaign = crmId;
       var insight = insightCampaign();
@@ -272,6 +288,30 @@
       /* Failed queue insertion must not consume the purchase dedupe key. */
       return false;
     }
+  };
+
+  // No query/text/name field: only catalogue IDs and resolved intent enums.
+  global.cdTrackDiscovery = function (eventName, input) {
+    if (['view_item','select_item','view_search_results','search_result_select'].indexOf(eventName) < 0) return false;
+    input = input || {};
+    var list = ['home','discovery','search','related','landing'].indexOf(input.itemListId) >= 0 ? input.itemListId : 'discovery';
+    var intent = ['all','love','money','career','relationship','yearly','method','consultation','unknown'].indexOf(input.intentId) >= 0 ? input.intentId : 'unknown';
+    var params = {item_list_id:list,intent_id:intent,metric_version:1};
+    if (eventName === 'view_search_results') {
+      if (!Number.isSafeInteger(input.resultCount) || input.resultCount < 0) return false;
+      // GA search_term contains a public category code, never the entered text.
+      params.search_term = intent;
+      params.result_count = Math.min(input.resultCount,10000);
+    } else {
+      if (!/^[a-z][a-z0-9_-]{0,99}$/.test(input.itemId || '')) return false;
+      params.items = [{item_id:input.itemId,item_list_id:list}];
+      if (typeof input.value === 'number' && Number.isFinite(input.value) && input.value >= 0) {
+        params.currency = 'KRW';
+        params.value = input.value;
+        params.items[0].price = input.value;
+      }
+    }
+    return global.cdTrack(eventName,params);
   };
 
   function portalPayload(link) {
@@ -356,7 +396,15 @@
     finishPortalArrival();
   }
 
-  growthAttribution();
+  // Count an explicit paid URL arrival, not every later page that inherits it.
+  var landingAttribution = growthAttribution();
+  var landingQuery = new URLSearchParams(global.location.search || '');
+  if (landingAttribution && landingAttribution.version === 'paid-20261028-v1'
+      && landingQuery.get('utm_source') === 'naver' && landingQuery.get('utm_medium') === 'cpc'
+      && landingQuery.get('utm_campaign') === landingAttribution.campaignId) {
+    var landingPath = /^\/(?:new-year-ai-consultation|love-secret-ai|life-book-ai|yeongnyangi|ggulggul|saju)\/$/.test(global.location.pathname) ? global.location.pathname : '/';
+    global.cdTrack('ad_landing_view',{landing_path:landingPath,metric_version:1});
+  }
   if (crmCampaign()) global.cdTrack('crm_landing_visit', { landing_path: global.location.pathname });
   var purchaseEvents = Object.create(null);
   function persistObservedPurchases() {

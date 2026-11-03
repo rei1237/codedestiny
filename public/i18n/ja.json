@@ -2345,6 +2345,33 @@
       "sibylName": "シビラ年間備えレポート",
       "sibylDescription": "注意する時期・分野別の備え・現実的な行動。",
       "rangePrice": "{from}～{to}ウォン"
+    },
+    "cro": {
+      "love": "恋愛・復縁",
+      "money": "金運・事業",
+      "career": "仕事・進路",
+      "relationship": "相性・人間関係",
+      "yearly": "今年・来年の運勢",
+      "introduction": "四柱推命・タロットとお悩み別の相談。",
+      "freeIntroduction": "無料の四柱推命から始めてみましょう。",
+      "freeStart": "無料の四柱推命を始める",
+      "paidLabel": "有料 ·",
+      "result": {
+        "relationship": "四柱推命・紫微斗数の関係レポート",
+        "consultation": "質問に合わせた相談の解説",
+        "love": "個人の恋愛レポート",
+        "yearly": "選んだ年の流れ · 時期ごとのアドバイス",
+        "life": "章ごとの人生レポート",
+        "saju": "四柱推命の命式 · 基本解説"
+      },
+      "resultSummary": {
+        "relationship": "受け取れる内容 · 四柱推命・紫微斗数の関係レポート",
+        "consultation": "受け取れる内容 · 質問に合わせた相談の解説",
+        "love": "受け取れる内容 · 個人の恋愛レポート",
+        "yearly": "受け取れる内容 · 選んだ年の流れ · 時期ごとのアドバイス",
+        "life": "受け取れる内容 · 章ごとの人生レポート",
+        "saju": "受け取れる内容 · 四柱推命の命式 · 基本解説"
+      }
     }
   },
   "terms": {

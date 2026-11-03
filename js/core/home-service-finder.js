@@ -159,7 +159,8 @@
     ["결혼", "배우자", "혼인", "결혼운"],
     ["재회", "다시만남", "헤어진"],
     ["궁합", "케미", "상성"],
-    ["연애", "사랑", "썸", "인연"],
+    ["연애", "사랑", "썸", "인연", "남친", "여친", "남자친구", "여자친구"],
+    ["신년", "새해", "올해", "내년", "연간운세"],
     ["자미두수", "자미", "紫微"],
     ["숙요점", "숙요", "27수", "이십칠수"],
     ["베다점", "베다", "나크샤트라", "인도점성술"],
@@ -181,6 +182,20 @@
       });
     });
     return out;
+  }
+
+  // Only a fixed public intent code leaves this component, never the typed query.
+  function searchIntent(query) {
+    var value = norm(query);
+    if (!value) return "all";
+    if (/신년|새해|올해|내년|연간/.test(value)) return "yearly";
+    if (/남친|여친|남자친구|여자친구|연애|사랑|썸|재회|인연/.test(value)) return "love";
+    if (/궁합|케미|상성|인간관계/.test(value)) return "relationship";
+    if (/돈|재물|금전|사업|재정|재테크/.test(value)) return "money";
+    if (/이직|취업|직장|진로|퇴사|커리어|직업/.test(value)) return "career";
+    if (/상담|질문|영냥이/.test(value)) return "consultation";
+    if (/사주|타로|자미|숙요|베다|점성|별자리|만세력/.test(value)) return "method";
+    return "unknown";
   }
 
   var BUCKET_ORDER = ["free", "low", "mid", "high", "premium", "vvip"];
@@ -231,6 +246,7 @@
       name: item.name,
       question: item.question || "",
       desc: item.desc || "",
+      resultFormat: item.resultFormat || "",
       href: item.href || "",
       action: item.action || "",
       dedupeHref: item.dedupeHref || "",
@@ -248,7 +264,9 @@
       image: item.image || "",
       imageAlt: item.imageAlt || (item.name ? item.name + " 대표 이미지" : "운세 서비스 대표 이미지"),
       tagged: true,
-      hay: norm([item.name, item.question, item.desc, item.price, item.keys].join(" "))
+      hay: norm([item.name, item.question, item.desc, item.price, item.keys,
+        (item.purposes || []).map(function (purpose) { return PURPOSE_LABEL[purpose] ? PURPOSE_LABEL[purpose].label : ''; }).join(' ')
+      ].join(" "))
     };
   });
 
@@ -558,6 +576,7 @@
   function openerNode(item, className) {
     var node = document.createElement(item.href ? "a" : "button");
     node.className = className;
+    if (item.id) node.setAttribute("data-cd-service-id", item.id);
     if (item.href) node.setAttribute("href", item.href);
     else node.type = "button";
     if (item.action) node.setAttribute("data-action", item.action);
@@ -745,6 +764,12 @@
         node.appendChild(masters);
       }
 
+      if (item.resultFormat) {
+        var format = document.createElement("span");
+        format.className = "fortune-gateway__rec-desc";
+        format.textContent = item.resultFormat;
+        node.appendChild(format);
+      }
       var foot = document.createElement("span");
       foot.className = "fortune-gateway__rec-foot";
       var price = document.createElement("i");
@@ -806,6 +831,10 @@
 
     function render() {
       var current = state();
+      if (!current.query) lastTrackedQuery = "";
+      root.querySelectorAll('[data-search-query]').forEach(function (chip) {
+        chip.setAttribute('aria-pressed', String(norm(chip.getAttribute('data-search-query')) === norm(current.query)));
+      });
       var active = current.query || current.purposes.length || current.methods.length || current.buckets.length || current.region !== "all";
       if (config.showAll) renderRegion(root, current);
       if (clearButton) clearButton.hidden = !current.query;
@@ -897,11 +926,20 @@
     if (input) {
       var timer = 0;
       var composing = false;
+      var lastTrackedQuery = "";
+      function trackSearch() {
+        var query = norm(input.value);
+        if (!query || query === lastTrackedQuery) return;
+        lastTrackedQuery = query;
+        if (typeof window.cdTrackDiscovery === 'function') window.cdTrackDiscovery('view_search_results', {
+          itemListId: 'search', intentId: searchIntent(query), resultCount: filterServices(state()).length
+        });
+      }
       function search() {
         if (config.showAll) root.setAttribute("data-cd-region", "all");
         window.clearTimeout(timer);
         if (composing) return;
-        timer = window.setTimeout(render, 120);
+        timer = window.setTimeout(function () { render(); trackSearch(); }, 120);
       }
       input.addEventListener("input", search);
       input.addEventListener("compositionstart", function () { composing = true; window.clearTimeout(timer); });
@@ -910,6 +948,17 @@
          귀속되지 못하고 CLS 로 계상된다(실측 0.3185 — docs/handoff/mobile-home-perf.md).
          🔴 focus 안에서 동기로 만들지 말 것 — 비용이 focus 지연으로 옮겨갈 뿐이다. */
       input.addEventListener("focus", warmCatalogue, { once: true });
+      root.querySelectorAll('[data-search-query]').forEach(function (chip) {
+        chip.addEventListener('click', function () {
+          var active = chip.getAttribute('aria-pressed') === 'true';
+          root.querySelectorAll('[data-purpose],[data-method]').forEach(function (other) { other.setAttribute('aria-pressed', 'false'); });
+          input.value = active ? '' : chip.getAttribute('data-search-query');
+          if (config.showAll) root.setAttribute('data-cd-region', 'all');
+          window.clearTimeout(timer);
+          render();
+          trackSearch();
+        });
+      });
     }
     if (clearButton && input) {
       clearButton.addEventListener('click', function () {
@@ -1039,6 +1088,13 @@
       }
       var card = target.closest("#cdAllFortunesResults a[href], #cdAllFortunesResults button");
       if (!card) return;
+      var itemId = card.getAttribute('data-cd-service-id');
+      if (itemId && typeof window.cdTrackDiscovery === 'function') {
+        var query = document.getElementById('cdAllFortunesSearch').value;
+        var detail = { itemId: itemId, itemListId: 'search', intentId: searchIntent(query) };
+        window.cdTrackDiscovery('select_item', detail);
+        if (norm(query)) window.cdTrackDiscovery('search_result_select', detail);
+      }
       var box = afScroller(root);
       afWrite({ scrollTop: box ? box.scrollTop : 0, returnAt: Date.now() });
       // 공용 디스패처(document 버블)보다 이 리스너가 먼저 돈다 — 실행 전에 닫는다.
