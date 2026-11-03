@@ -27,6 +27,7 @@ import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { calculateLifeBookAiSaju } from "../lib/life-book-ai-saju.js";
 import { sajuTemperamentPromptLines } from '../lib/saju-temperament.js';
+import { expertSubchapterPromptLines } from '../lib/expert-subchapter-prompt.js';
 import { canStripForbiddenText } from "../lib/llm-leak-guard.js";
 import {clampSyncLlmTimeoutMs, PAID_LLM_PARTS_PER_REQUEST } from "../lib/sync-llm-timeout.js";
 import { handleBillingRoutes, BILLING_SNAPSHOT_USER_PROJECTION } from "./billing.js";
@@ -1131,6 +1132,7 @@ function buildSystemPrompt(consultationType = "lifeBook") {
     "각 장은 자연스러운 한국어 문장으로 충분히 길고 구체적으로 작성하되, 같은 표현과 같은 결론을 반복하지 않습니다.",
     "사용자가 실제로 오늘 선택할 수 있는 행동 조언을 포함하고, 조언은 감정 위로와 현실적 방향이 함께 느껴지게 씁니다.",
     "PDF, 다운로드, 진행률, job, prompt, system, AI 같은 기술 표현은 결과에 드러내지 않습니다.",
+    ...expertSubchapterPromptLines({ feature: isFortune ? "인생 총운 전문가 상담" : "인생의 책" }),
   ].join("\n");
 }
 
@@ -1301,6 +1303,10 @@ function buildSectionPrompt(input, sajuSlice, section, digest = "") {
       "[이미 쓰인 다른 조각의 첫 문장들 — 같은 문장·같은 결론을 반복하지 마세요]",
       digest,
     );
+  }
+
+  if (section.kind !== "frame") {
+    lines.push("", ...expertSubchapterPromptLines({ feature: reportName }));
   }
 
   lines.push(

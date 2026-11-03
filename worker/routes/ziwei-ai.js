@@ -173,7 +173,7 @@ const SECTION_TITLES = Object.freeze({
 // 섹션별 작성 규칙. 그룹 프롬프트는 자기가 맡은 섹션의 규칙만 싣는다.
 const SECTION_RULES = Object.freeze({
   reading_guide: "reading_guide는 3~4문장입니다. 첫 문장은 사용자의 질문에 대한 답을 결론부터 한 문장으로 말하고, 이어서 이 명반을 어떤 순서로 읽으면 좋은지 안내하세요. '한 폭의 그림처럼'류의 상투적·일반론적 도입 대신, 실제 명궁 주성·신궁 위치·현재 대운궁을 직접 짚어 '먼저 명궁의 OO별로 타고난 성향을, 신궁으로 후천의 힘을 보고, 질문과 가까운 OO궁과 삼방사정으로 이어 읽으세요'처럼 이 사람의 명반에 맞춘 구체적 길잡이로 쓰세요. 이 문단만은 3단 구조를 적용하지 않습니다.",
-  personality_profile: "personality_profile은 [핵심 성향 Context]에 따라 이 명반 전체를 종합해 '이 사람은 기본적으로 어떤 사람인가'를 서술하는 자리입니다. 명궁·신궁·삼방사정·사화에서 반복되는 성향을 우선하여, 핵심 성격 → 겉과 속의 차이 → 장점과 그림자 → 인간관계를 맺는 방식과 화났을 때·상처받을 때의 반응 → 사고방식(직관형/분석형, 결정 속도) 순으로 자연스럽게 엮으세요. 이후 essence 이하 섹션들이 참조할 전제이므로, 개별 별의 사전적 정의 나열이 아니라 통합된 사람의 모습으로 마무리하세요.",
+  personality_profile: "personality_profile은 [핵심 성향 Context]에 따라 이 명반 전체를 종합해 '이 사람은 기본적으로 어떤 사람인가'를 서술하는 자리입니다. 명궁 주성·강약을 출발점으로 신궁·명궁 삼방사정·사화에서 같은 방향으로 반복되는 신호와 서로 다른 욕구를 우선하여, 핵심 성격 → 겉과 속의 차이 → 장점이 그림자로 뒤집히는 조건 → 인간관계를 맺는 방식과 화났을 때·상처받았을 때의 반응 → 사고방식과 결정 속도 → 에너지를 회복하는 방식 순으로 자연스럽게 엮으세요. 실제 생활에서 확인할 수 있는 서로 다른 장면을 최소 2개 넣고 마지막에는 계산 근거를 압축한 한 문장 요약과 스스로 대조할 질문을 붙이세요. 이후 essence 이하 섹션들이 참조할 전제이므로, 개별 별의 사전적 정의 나열이나 다른 명반에도 붙는 일반론으로 마무리하지 마세요.",
   essence: "essence는 personality_profile에서 정리한 핵심 성향을 전제로, 명궁 주성과 강약을 첫 흐름에 자연스럽게 밝히고 신궁·보성·살성의 영향까지 통합하세요.",
   flow: "flow는 화록·화권·화과·화기 네 별을 모두 별 이름으로 직접 언급하고, 계산 확정값의 궁 위치 그대로 각 사화가 놓인 궁의 욕망, 힘, 인정, 막힘을 현실적인 언어로 풀어주세요.",
   triad_axis: "triad_axis는 질문과 가장 가까운 궁의 삼방사정, 대궁, 협조궁을 함께 읽어 에너지가 들어오고 새는 길을 밝히세요. [계산 확정값]의 '삼방사정 회조' 줄에 적힌 궁과 별을 이름으로 인용하고, 회조하는 별의 강약 표기(별 이름 뒤 괄호의 묘·왕·득·리·평·불·함)를 근거로 그 축이 실제로 힘을 들여보내는지 새게 하는지 판정하세요.",
@@ -1541,7 +1541,7 @@ function buildSectionGroupPrompt(input, chart, group) {
     `- 이 부분의 body 합산은 제목과 공백 제외 ${Number(group.targetChars).toLocaleString("ko-KR")}자 이상 ${Number(Math.ceil(group.targetChars * SECTION_GROUP_MAX_OVER_TARGET)).toLocaleString("ko-KR")}자 이하로 작성하세요. 문장만 늘리지 말고 자미두수 전문가가 실제로 더 살필 파트를 각 흐름에 고르게 나누어 주세요.`,
     "- 섹션별 최소 분량(반드시 지킬 것. 짧게 쓰고 넘어가면 상담이 성립하지 않습니다):",
     ...sectionKeys.map((key) => `  · ${key}: 최소 ${Number(charTargets[key] || 0).toLocaleString("ko-KR")}자`),
-    "- 분량을 채우려고 같은 말을 바꿔 쓰지 마세요. 명반에서 아직 인용하지 않은 별·궁·강약 표기·사화 배치를 새로 끌어와 근거를 더하고, 그 근거가 현실에서 어떤 장면으로 나타나는지 구체적인 예를 들어 늘리세요.",
+    "- 분량을 채우려고 같은 말을 바꿔 쓰지 마세요. 명반에서 아직 인용하지 않은 별·궁·강약 표기·사화 배치를 새로 끌어와 근거를 더하고, 그 근거가 현실에서 어떤 장면으로 나타나는지 구체적인 예를 들어 늘리세요. 앞 섹션이 이미 설명한 성향은 한 줄로만 연결하고 다시 정의하지 마세요.",
     "",
     ...buildSharedSectionRuleLines(chart),
     "",
@@ -1662,7 +1662,7 @@ async function generateConsultationText(env, prompt, options = {}) {
     ttlSeconds: 30 * 24 * 60 * 60,
     // v4(2026-08-19): essence 그룹에 personality_profile 섹션을 추가하고 공유 헤더에 성향 Context를
     // 삽입했다. v3 캐시는 옛 섹션 구성으로 남아 있어 그대로 두면 30일간 새 구조 없이 히트한다.
-    keyExtra: `ziwei-ai-v4${options.cacheKeyExtra ? `-${options.cacheKeyExtra}` : ""}`,
+    keyExtra: `ziwei-ai-v5${options.cacheKeyExtra ? `-${options.cacheKeyExtra}` : ""}`,
   };
   // 초기 상담은 대형 구조화 JSON이라 JSON 모드(responseMimeType) + 잘림 반응형 재시도로
   // 첫 생성이 잘리지 않게 보장한다. follow-up 등 프로즈 응답은 기존 단발 호출을 유지한다.

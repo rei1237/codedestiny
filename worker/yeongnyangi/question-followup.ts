@@ -1,5 +1,6 @@
 import {CONSULTATION_COUNSEL_GUIDE} from '../../lib/fortune/consultation-counsel.mjs';
 import {tokensRequiredForChars} from '../lib/llm-budget.js';
+import {followupSolutionPromptText} from '../lib/followup-solution-prompt.js';
 import {buildRecognition} from './prompts/domain/recognition';
 import {readerEvidence,readerCounsel} from './prompts/domain/reader-counsel';
 import {personaPrompt} from './providers/chapter';
@@ -77,7 +78,7 @@ export async function questionConversation(env:any,userId:string,id:string,body:
  const thinkingBudget=tunaModel?TUNA_FOLLOWUP_THINKING_BUDGET:0;
  try{
   const response=await callGeminiText(env,input,{
-   systemPrompt:personaPrompt(snapshot.persona,snapshot.voiceStyle)+"\n"+SYSTEM+"\n"+CONSULTATION_COUNSEL_GUIDE+"\n"+recognitionContract+"\n"+recognitionDelivery+"\n"+[counsel.numbers,counsel.opening,counsel.counseling].join("\n"),temperature:0.3,maxOutputTokens:Math.max(8192,2*(budgetGuide?Math.max(4096,tokensRequiredForChars(budgetGuide[1])):4096))+thinkingBudget,thinkingBudget,timeoutMs:followupTimeoutMs(snapshot),maxProviderAttempts:1,
+   systemPrompt:personaPrompt(snapshot.persona,snapshot.voiceStyle)+"\n"+SYSTEM+"\n"+followupSolutionPromptText({feature:'영냥이 후속 상담'})+"\n"+CONSULTATION_COUNSEL_GUIDE+"\n"+recognitionContract+"\n"+recognitionDelivery+"\n"+[counsel.numbers,counsel.opening,counsel.counseling].join("\n"),temperature:0.3,maxOutputTokens:Math.max(8192,2*(budgetGuide?Math.max(4096,tokensRequiredForChars(budgetGuide[1])):4096))+thinkingBudget,thinkingBudget,timeoutMs:followupTimeoutMs(snapshot),maxProviderAttempts:1,
    ...(tunaModel?{model:tunaModel}:{}),
    fallbackToWorkersAI:false,responseMimeType:'application/json',taskType:'yeongnyangi-followup',
    logContext:{requestId:id,sectionGroup:'followup',attempt:next.pending!.attempts},
