@@ -418,6 +418,8 @@ on:
       #    커밋은 결제 게이트가 깨어나지 않았다.
       - "app/components/service-packs/**"
       - "app/yeongnyangi/_components/Consultation.tsx"
+      # 랜딩 Service 의 고등어 Offer. verify:paid-service-offer 규칙 6 이 트리거 등록을 요구한다.
+      - "app/yeongnyangi/page.tsx"
       - "worker/yeongnyangi/payments/**"
   # ⚠️ 이 게이트의 가드는 트리거 paths 밖 파일도 읽는다(예: verify:nakshatra-premium 은 규약
   #    문서를 읽는다). paths 에 안 걸리는 커밋이 가드를 깨뜨릴 수 있다 — 2026-08-11 에 실제로

@@ -32,6 +32,23 @@ test('hero and hub read mackerel facts from the catalog and explain which flow h
  assert.match(readFileSync('public/llms.txt','utf8'),/영냥이 상담 가격과 챕터 범위: https:\/\/code-destiny\.com\/yeongnyangi\/#yn-prices/);
 });
 
+test('landing Offer is the mackerel server price and all six systems share it',async()=>{
+ const page=readFileSync('app/yeongnyangi/page.tsx','utf8');
+ assert.ok(page.includes('buildKrwOffer("yeongnyangi-saju-mackerel",PATH)'));
+ assert.doesNotMatch(page,/aggregateRating|reviewCount|ratingValue/);
+ const {getBillingFeaturePricing}=await import('../../worker/lib/billing-feature-registry.js');
+ const result=await build({stdin:{contents:"export {products} from './worker/yeongnyangi/payments/catalog';",resolveDir:process.cwd(),loader:'ts'},bundle:true,write:false,format:'cjs',platform:'node'});
+ const sandbox={exports:{},module:{exports:{}}};sandbox.module.exports=sandbox.exports;
+ vm.runInNewContext(result.outputFiles[0].text,sandbox);
+ const mackerels=sandbox.module.exports.products.filter(p=>p.readingKind==='single'&&p.fishId==='mackerel');
+ assert.equal(mackerels.length,6);
+ const amount=getBillingFeaturePricing({featureKey:'yeongnyangi-saju-mackerel'}).pricing.amountKRW;
+ for(const product of mackerels){
+  assert.equal(product.priceKRW,amount,product.id);
+  assert.equal(getBillingFeaturePricing({featureKey:product.cdFeatureKey}).pricing.amountKRW,amount,product.cdFeatureKey);
+ }
+});
+
 test('question CTA selects a supported mackerel consultation and sample precedes long comparison',async()=>{
  const page=readFileSync('app/yeongnyangi/1000-won-fortune/page.tsx','utf8');
  const href=page.match(/const QUESTION_HREF='([^']+)'/)[1];
