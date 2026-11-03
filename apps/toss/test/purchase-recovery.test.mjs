@@ -78,6 +78,19 @@ test('automatic recovery waits for authentication and shares an overlapping manu
  }finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
 });
 
+test('new purchases wait for pending-order recovery to finish',async()=>{
+ const {state,restore,purchase,purchaseTarot}=await adapter(),previous=globalThis.fetch;
+ state.orders=[{orderId:'saved',sku:'tarot'}];let release;
+ const gate=new Promise(resolve=>{release=resolve;});
+ globalThis.fetch=async()=>{await gate;return Response.json({orderId:'saved',entitlement:'granted',durable:true});};
+ try{
+  const recovery=restore();
+  for(const buy of [purchase,purchaseTarot])assert.throws(()=>buy({sku:'mock'},'request',()=>{},()=>{}),error=>error.code==='RECOVERY_IN_PROGRESS');
+  assert.equal(state.purchaseOptions,undefined);release();await recovery;
+  purchase({sku:'mock'},'request',()=>{},()=>{});assert.ok(state.purchaseOptions);
+ }finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
+});
+
 test('a changed session cannot acknowledge an earlier session recovery',async()=>{
  const {state,restore,login}=await adapter(),previous=globalThis.fetch;
  state.orders=[{orderId:'saved',sku:'tarot'}];let release,started;

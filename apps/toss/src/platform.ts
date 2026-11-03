@@ -78,6 +78,7 @@ function pausePaymentMedia(){
 export function purchase(product:SaleProduct,requestId:string,onDone:()=>void,onError:(error:unknown)=>void){
   if(!SERVICE_AVAILABLE)throw new ApiError('TOSS_RELEASE_PENDING');
   if(!isToss())throw new ApiError('TOSS_APP_REQUIRED');
+  if(recoveryInFlight?.token===token)throw new ApiError('RECOVERY_IN_PROGRESS');
   if(!IAP.createOneTimePurchaseOrder.isSupported())throw new ApiError('IAP_NOT_SUPPORTED');
   let unsubscribe:()=>void=()=>{},granted=false,settled=false;
   const resumeMedia=pausePaymentMedia();
@@ -93,6 +94,7 @@ export function purchase(product:SaleProduct,requestId:string,onDone:()=>void,on
 export function purchaseTarotLibrary(product:TarotLibraryProduct,input:unknown,onDone:(orderId:string)=>void,onError:(error:unknown)=>void){
   if(!SERVICE_AVAILABLE)throw new ApiError('TOSS_RELEASE_PENDING');
   if(!isToss())throw new ApiError('TOSS_APP_REQUIRED');
+  if(recoveryInFlight?.token===token)throw new ApiError('RECOVERY_IN_PROGRESS');
   if(!IAP.createOneTimePurchaseOrder.isSupported())throw new ApiError('IAP_NOT_SUPPORTED');
   let unsubscribe:()=>void=()=>{},grantedOrder='',settled=false;
   const resumeMedia=pausePaymentMedia();

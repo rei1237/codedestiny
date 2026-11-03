@@ -59,6 +59,7 @@ export const errors:Record<string,string>={
   TOSS_RELEASE_PENDING:'서비스 등록을 확인하고 있어요. 지금은 구매할 수 없어요.',
   LOGIN_REQUIRED:'기록과 구매를 확인하려면 토스 로그인이 필요해요.',SESSION_EXPIRED:'로그인 시간이 만료되었어요. 다시 로그인해 주세요.',
   USER_CANCELED:'결제를 취소했어요. 다시 선택할 수 있어요.',PAYMENT_PENDING:'결제 상태를 확인하고 있어요. 다시 결제하지 말고 구매 복구를 이용해 주세요.',
+  RECOVERY_IN_PROGRESS:'구매 내역을 확인하고 있어요. 잠시 후 다시 시도해 주세요.',
   IAP_NOT_SUPPORTED:'현재 토스 앱에서 결제를 지원하지 않아요. 앱 업데이트 후 다시 확인해 주세요.',
   ORDER_REFUNDED:'환불된 주문이에요. 문의가 있다면 주문번호와 함께 고객지원으로 알려 주세요.',
   REQUEST_FAILED:'요청을 완료하지 못했어요. 입력과 연결 상태를 확인해 주세요. 결제했다면 구매 복구를 이용해 주세요.',

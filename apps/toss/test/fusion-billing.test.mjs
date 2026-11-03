@@ -10,7 +10,7 @@ const bundle=await build({entryPoints:[path.join(root,'apps/toss/service/billing
  b.onResolve({filter:/^@\/app\/hooks\/usePaidResume$/},()=>({path:'resume',namespace:'mock'}));
  b.onLoad({filter:/.*/,namespace:'mock'},()=>({contents:'export const unpackPaidResumeArg=JSON.parse;',loader:'js'}));
  b.onLoad({filter:/app[\\/]_lib[\\/]billing-client\.ts$/},()=>({contents:'export const runPaidAccessGate=()=>{throw Error("WEB_GATE_FORBIDDEN")};',loader:'js'}));
- b.onLoad({filter:/apps[\\/]toss[\\/]src[\\/]platform\.ts$/},()=>({contents:`const s=globalThis.__fusionBilling;export const api=async(path,body)=>{s.calls.push({path,body});if(s.unavailable)throw Object.assign(Error('unavailable'),{code:'TOSS_RELEASE_PENDING',status:503});return {id:'intent',paid:s.paid,amountKRW:50000,orderId:'original-order'};};export const nativeSaleProducts=async()=>[];export const purchase=()=>{throw Error('LIVE_PURCHASE_FORBIDDEN')};`,loader:'js'}));
+ b.onLoad({filter:/apps[\\/]toss[\\/]src[\\/]platform\.ts$/},()=>({contents:`const s=globalThis.__fusionBilling;export const api=async(path,body)=>{s.calls.push({path,body});if(s.unavailable)throw Object.assign(Error('unavailable'),{code:'TOSS_RELEASE_PENDING',status:503});return {id:'intent',sku:'mock-sku',paid:s.paid,amountKRW:50000,orderId:'original-order'};};export const nativeSaleProducts=async()=>s.recoveryBusy?[{sku:'mock-sku',approvedPriceKRW:50000}]:[];export const purchase=()=>{if(s.recoveryBusy)throw Object.assign(Error('RECOVERY_IN_PROGRESS'),{code:'RECOVERY_IN_PROGRESS'});throw Error('LIVE_PURCHASE_FORBIDDEN')};`,loader:'js'}));
 }}]});
 const loaded=new Module(path.join(root,'fusion-billing-test.cjs'));loaded.paths=Module._nodeModulePaths(root);loaded._compile(bundle.outputFiles[0].text,loaded.id);
 
@@ -47,4 +47,10 @@ test('Love Secret keeps original payload and idempotency key in its own intent',
  const result=await loaded.exports.runBillingCoinGate({featureKey:'love-secret-ai-consultation',requestId:input.requestId,resume:{args:{payload:JSON.stringify(input)}}});
  assert.equal(result.ok,true);assert.deepEqual(state.calls[0],{path:'/native/love-secret/prepare',body:{input}});
  delete globalThis.location;
+});
+
+test('native billing presents recovery-in-progress guidance before purchase',async()=>{
+ globalThis.location={search:''};globalThis.window={addEventListener:()=>{},removeEventListener:()=>{}};state.unavailable=false;state.paid=false;state.recoveryBusy=true;
+ try{const result=await loaded.exports.runBillingCoinGate({featureKey:'life-book-ai-consultation',requestId:'original-life-request',resume:{args:{payload:JSON.stringify({birthDate:'1990-01-01'})}}});assert.equal(result.error.code,'RECOVERY_IN_PROGRESS');assert.match(result.error.message,/구매 내역을 확인/);}
+ finally{state.recoveryBusy=false;state.paid=true;delete globalThis.location;delete globalThis.window;}
 });
