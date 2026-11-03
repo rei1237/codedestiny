@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "4f5ee05972d7627176624e531fb516e4d3f86f94",
+  "sourceCommit": "15dbfa62001f012359635b3332256936b6cba9af",
   "scope": "Source discovery plus explicitly verified aliases; not a count of implemented services. Unmapped contracts are blocking work, not exclusions.",
   "sourceCounts": {
     "home": 63,
@@ -4521,29 +4521,6 @@
       "storageContract": null
     },
     {
-      "id": "saju-animal",
-      "discoveryIds": [
-        "saju-animal"
-      ],
-      "evidence": [
-        {
-          "source": "react-registry",
-          "id": "saju-animal",
-          "name": "사주 가디언 아트",
-          "entry": "/saju-guardian",
-          "featureKey": null,
-          "accessEvidence": "free"
-        }
-      ],
-      "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
-      "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
-    },
-    {
       "id": "saju-compatibility",
       "discoveryIds": [
         "saju-compatibility"
@@ -4592,9 +4569,18 @@
     {
       "id": "saju-guardian",
       "discoveryIds": [
+        "saju-animal",
         "saju-guardian"
       ],
       "evidence": [
+        {
+          "source": "react-registry",
+          "id": "saju-animal",
+          "name": "사주 가디언 아트",
+          "entry": "/saju-guardian",
+          "featureKey": null,
+          "accessEvidence": "free"
+        },
         {
           "source": "home-registry",
           "id": "saju-guardian",
@@ -4612,13 +4598,18 @@
           "accessEvidence": null
         }
       ],
-      "aliasEvidence": [],
+      "aliasEvidence": [
+        "index.html:openSajuGuardianPage -> /saju-guardian",
+        "app/_lib/serviceFeatureRegistry.ts:saju-animal.launchRoute",
+        "app/saju-guardian/SajuGuardianClient.tsx:verifyGuardianUnlockAccess; registry free/paid descriptions conflict"
+      ],
       "status": "requires-full-flow-port-and-verification",
       "tossRoute": null,
       "sku": null,
       "inputContract": null,
       "resultRenderer": null,
-      "storageContract": null
+      "storageContract": null,
+      "verification": "same screen; free registry description conflicts with paid unlock evidence; access contract must be reconciled before port"
     },
     {
       "id": "saju-sibyl",

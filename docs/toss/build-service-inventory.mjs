@@ -30,7 +30,7 @@ const rows=[...ids.values()].sort((a,b)=>a.id.localeCompare(b.id));
 const aliases={
  'destiny-flower':'flower','astrology-flower':'flower','ziwei-flower':'flower','sukuyo-flower':'flower',
  sukyo:'sukuyo','stonehenge-rune':'stonehenge-runes','love-simulation':'love-code',
- 'daily-fortune':'today-hub','saju-lifebook':'life-book-ai','animal-guardian-unlock':'animal-destiny',
+ 'daily-fortune':'today-hub','saju-lifebook':'life-book-ai','animal-guardian-unlock':'animal-destiny','saju-animal':'saju-guardian',
 };
 const aliasEvidence={
  flower:['app/flower/destiny/page.tsx','app/flower/astrology/page.tsx','app/flower/jamidusu/page.tsx','app/flower/sukuyo/page.tsx'],
@@ -40,6 +40,7 @@ const aliasEvidence={
  'today-hub':['js/core/service-registry.js'],
  'life-book-ai':['js/core/service-registry.js','app/_lib/serviceFeatureRegistry.ts'],
  'animal-destiny':['js/core/service-registry.js:animal-destiny-unlock','index.html:animal-guardian-unlock.inlineAliases'],
+ 'saju-guardian':['index.html:openSajuGuardianPage -> /saju-guardian','app/_lib/serviceFeatureRegistry.ts:saju-animal.launchRoute','app/saju-guardian/SajuGuardianClient.tsx:verifyGuardianUnlockAccess; registry free/paid descriptions conflict'],
 };
 const groups=new Map();
 for(const row of rows){
@@ -48,6 +49,7 @@ for(const row of rows){
   status:'requires-full-flow-port-and-verification',tossRoute:null,sku:null,inputContract:null,resultRenderer:null,storageContract:null});
  const group=groups.get(canonicalId);group.discoveryIds.push(row.id);group.evidence.push(...row.evidence);
 }
+if(groups.has('saju-guardian'))groups.get('saju-guardian').verification='same screen; free registry description conflicts with paid unlock evidence; access contract must be reconciled before port';
 for(const [id,entry,api] of [['pet-saju','pet-saju.html','/api/pet-saju/blueprint'],['ziwei-island','destiny-island.html','/api/ziwei-island/blueprint']]){
  if(!fs.readFileSync(path.join(root,'index.html'),'utf8').includes('/'+entry))throw new Error('Missing active entry: '+entry);
  if(!fs.readFileSync(path.join(root,entry),'utf8').includes(api))throw new Error('Missing calculation API: '+api);
