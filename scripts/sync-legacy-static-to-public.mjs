@@ -1197,6 +1197,13 @@ if (existsSync(publicIndex) || existsSync(rootIndexPath)) {
     if (stamped !== source) writeFileSyncWithRetry(sourcePath, Buffer.from(stamped, 'utf8'));
     writeFileSyncWithRetry(resolve(publicDir, page), Buffer.from(stamped, 'utf8'));
   }
+  // These pages hand-manage their script keys, so only their immutable /styles/ refs are recomputed here.
+  for (const page of [resolve(rootDir, 'pet-saju.html'), resolve(publicDir, 'pet-saju.html'), resolve(publicDir, 'codedestiny-novel.html')]) {
+    if (!existsSync(page)) continue;
+    const source = readFileSync(page, 'utf8');
+    const stamped = source.replace(/\/styles\/[^"?]+\.css\?v=[a-zA-Z0-9_-]+/g, (ref) => restampAssetCacheRefs(ref, 'index.html', buildTimestamp, assetKeys));
+    if (stamped !== source) writeFileSyncWithRetry(page, Buffer.from(stamped, 'utf8'));
+  }
 }
 
 /**

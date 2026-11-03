@@ -315,7 +315,7 @@ function localizedPassBenefits() {
     return dom.window.document.body.innerHTML;
   } finally { dom.window.close(); }
 }
-vars.pass = '<link rel="stylesheet" href="/styles/pass-benefits.css">' + localizedPassBenefits() + `<section class="cdh-pass" data-cd-localized-pass aria-labelledby="cdhPassTitle" data-design-marker="moonlight-pass-banner-v20260626">
+vars.pass = '<link rel="stylesheet" href="/styles/pass-benefits.css?v=build-000000000000">' + localizedPassBenefits() + `<section class="cdh-pass" data-cd-localized-pass aria-labelledby="cdhPassTitle" data-design-marker="moonlight-pass-banner-v20260626">
   <div class="cdh-pass__intro">
     <img class="cdh-pass__mascot" src="/images/home/yeoni-pass-mascot-240.webp" srcset="/images/home/yeoni-pass-mascot-240.webp 240w, /images/home/yeoni-pass-mascot-480.webp 480w" sizes="(max-width: 640px) 104px, 168px" alt="이용권 카드를 들고 웃는 꽃돼지 연이" data-cd-trans-attr="alt:home.gardenCopy.passMascotAlt" width="240" height="240" loading="lazy" decoding="async">
     <div class="cdh-pass__copy">
@@ -439,8 +439,8 @@ if (marker.test(cleaned)) {
 }
 
 // Result samples now live on their own application pages. Do not load their stylesheet on the home shell.
-if (!updated.includes('href="/styles/consultation-method-guide.css"')) {
-  updated = updated.replace('<link rel="stylesheet" href="/styles/home-funnel.css">', '<link rel="stylesheet" href="/styles/home-funnel.css">\n<link rel="stylesheet" href="/styles/consultation-method-guide.css">');
+if (!updated.includes('href="/styles/consultation-method-guide.css')) {
+  updated = updated.replace('<link rel="stylesheet" href="/styles/home-funnel.css">', '<link rel="stylesheet" href="/styles/home-funnel.css">\n<link rel="stylesheet" href="/styles/consultation-method-guide.css?v=build-000000000000">');
 }
 updated = updated.replace(/\s*<link rel="stylesheet" href="\/styles\/result-samples\.css(?:\?v=[^"]*)?">/g, '');
 
