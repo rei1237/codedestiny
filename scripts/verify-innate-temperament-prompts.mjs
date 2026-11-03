@@ -5,7 +5,8 @@ import { expertSubchapterPromptLines } from "../worker/lib/expert-subchapter-pro
 import { followupSolutionPromptLines } from "../worker/lib/followup-solution-prompt.js";
 import { buildFortuneQuestionPromptPackage } from "../worker/lib/fortune-question-prompt.js";
 import { buildFollowUpConsultationPrompt } from "../worker/lib/love-secret-ai-prompt.js";
-import { buildNeoOperationRoomRefinedPrompt } from "../worker/lib/neo-operation-room-prompt.js";
+import { buildNeoOperationRoomRefinedPrompt, buildNeoRefinedSectionPrompt, NEO_REFINED_SECTIONS } from "../worker/lib/neo-operation-room-prompt.js";
+import { FOLLOWUP_FEATURE_REGISTRY } from "../worker/lib/followup-feature-registry.js";
 import { __ziweiAiTestUtils } from "../worker/routes/ziwei-ai.js";
 
 const fixtures = {
@@ -75,9 +76,18 @@ const expertContract = expertSubchapterPromptLines({ feature: "검증용 전문�
 assert.ok(expertContract.includes("상위 장 ID·제목·순서·개수와 기존 JSON 필드는 그대로 유지"));
 assert.ok(expertContract.includes("2~6개의 소단락을 유동적으로 설계"));
 assert.ok(expertContract.includes("같은 근거와 결론을 다른 소단락에서 다시 설명하지 않는다"));
+const compactExpert = expertSubchapterPromptLines({ feature: "전문가 상담", compact: true }).join("\n");
+assert.ok(compactExpert.length < expertContract.length);
+assert.ok(compactExpert.includes("장 ID·제목·순서·개수와 JSON 필드를 유지"));
+assert.ok(compactExpert.includes("실제 근거와 생활 조건, 선택 기준"));
+assert.ok(!compactExpert.includes("영냥"));
+assert.ok(expertSubchapterPromptLines({ compact: true, schemaMode: "metadata" }).join("\n").includes("subchapters"));
 
 const followupContract = followupSolutionPromptLines({ feature: "검증용 후속 상담" }).join("\n");
 assert.ok(followupContract.includes("[추가 질문 해결 계약]"));
+assert.ok(followupContract.includes("[운세 근거 공감 계약]"));
+assert.ok(followupContract.includes("사용자가 새로 밝힌 현실이나 감정"));
+assert.ok(followupContract.includes("범용 공감만 쓰지 않는다"));
 assert.ok(followupContract.includes("어떤 새 조건 때문에 수정되는지"));
 assert.ok(followupContract.includes("가장 권하는 행동 하나"));
 assert.ok(followupContract.includes("멈추거나 다시 판단할 관찰 신호"));
@@ -87,6 +97,20 @@ assert.ok(loveFollowup.includes("[추가 질문 해결 계약]"));
 
 const neoFollowup = buildNeoOperationRoomRefinedPrompt({ selectedMethod: "saju", question: "이직할까요?" }, { freeform: "제안이 들어왔습니다." });
 assert.ok(neoFollowup.includes("[추가 질문 해결 계약]"));
+assert.ok(neoFollowup.includes("전술적으로 인정"));
+const neoCtx = { selectedMethod: "saju", question: "이직할까요?", realityCheck: { freeform: "제안이 들어왔습니다." }, methodSummary: {}, initialBriefing: {} };
+const neoReviewPrompt = buildNeoRefinedSectionPrompt(NEO_REFINED_SECTIONS.find(section => section.id === "neoReview"), neoCtx);
+const neoOtherPrompts = NEO_REFINED_SECTIONS.filter(section => section.id !== "neoReview").map(section => buildNeoRefinedSectionPrompt(section, neoCtx));
+assert.ok(neoReviewPrompt.includes("[운세 근거 공감 계약]"));
+assert.ok(neoReviewPrompt.includes("전술적으로 인정"));
+assert.ok(neoOtherPrompts.every(prompt => !prompt.includes("[운세 근거 공감 계약]") && prompt.includes("[공감 반복 금지]")));
+
+assert.equal(new Set(FOLLOWUP_FEATURE_REGISTRY.map(row => row.id)).size,FOLLOWUP_FEATURE_REGISTRY.length);
+for(const row of FOLLOWUP_FEATURE_REGISTRY){
+  assert.ok(row.prompt&&row.context&&row.route&&row.source,`${row.id}: 후속 상담 등록 정보 누락`);
+  const source=readFileSync(new URL(`../${row.source}`,import.meta.url),'utf8');
+  assert.match(source,/followupSolutionPrompt|questionConversation/,`${row.id}: 공통 후속 상담 계약 연결 누락`);
+}
 
 const yeongnyangiFollowupSource = readFileSync(new URL("../worker/yeongnyangi/question-followup.ts", import.meta.url), "utf8");
 assert.ok(yeongnyangiFollowupSource.includes("followupSolutionPromptText({feature:'영냥이 후속 상담'})"));

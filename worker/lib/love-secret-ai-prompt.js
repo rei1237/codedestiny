@@ -4,6 +4,7 @@ import { countPaidReportBodyChars, hasRepeatedReportPassage } from "./paid-repor
 import { buildLoveSecretGroupFacts, compactSajuForFollowUp } from "./love-secret-ai-facts.js";
 import { expertSubchapterPromptLines } from "./expert-subchapter-prompt.js";
 import { followupSolutionPromptLines } from "./followup-solution-prompt.js";
+import { compactFollowupMessages } from "./followup-context.js";
 
 const FORBIDDEN_RESULT_PATTERNS = Object.freeze([
   /\bAI\b/i,
@@ -353,9 +354,10 @@ export function buildLoveSecretGroupPrompt(input = {}, sajuResult = {}, group, o
 
 export function buildFollowUpConsultationPrompt(consultation = {}, userMessage = "") {
   const messages = Array.isArray(consultation.messages)
-    ? consultation.messages.slice(-8).map((message) => ({
+    ? compactFollowupMessages(consultation.messages, { maxChars: 16000, recent: 2 }).map((message) => ({
       role: message.role,
       content: clean(message.content, 2400),
+      ...(message.compacted ? { compacted: true } : {}),
     }))
     : [];
   return [
@@ -377,7 +379,7 @@ export function buildFollowUpConsultationPrompt(consultation = {}, userMessage =
     "",
     ...followupSolutionPromptLines({ feature: "연애 비책 후속 상담" }),
     "",
-    "첫 문장부터 사용자의 추가 질문에 답합니다.",
+    "첫 근거 공감 문단을 짧게 마친 뒤 사용자의 추가 질문에 바로 답합니다.",
     "이전 상담은 필요한 만큼만 이어받고, 새 질문과 무관한 전체 요약으로 흐르지 않습니다.",
     "명식과 궁합 근거는 관계 언어로 짧게 풀어 사용자가 지금의 마음과 선택을 이해하도록 돕습니다.",
     "상대방의 마음을 단정하지 말고, 사용자가 건강한 선택을 할 수 있도록 현실적인 다음 행동을 제안합니다.",

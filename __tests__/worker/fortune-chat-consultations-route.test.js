@@ -107,3 +107,11 @@ test.each(['draw','conversation'])('question action %s verifies chat identity be
  expect((await handleFortuneChatRoutes(request('/'+id+'/'+action,'POST',{}),on)).status).toBe(404);
  expect(operation).not.toHaveBeenCalled();
 });
+test('conversation continuation stays in the owned consultation and never opens a new purchase',async()=>{
+ read.mockResolvedValue({...chatRow,featureKey:'fortune-chat-question-salmon'});
+ const continuationId='44444444-4444-4444-8444-444444444444';
+ const response=await handleFortuneChatRoutes(request('/'+id+'/conversation/continue','POST',{id:continuationId}),on);
+ expect(response.status).toBe(200);
+ expect(conversation).toHaveBeenCalledWith(on,userId,id,{id:continuationId,action:'continue'});
+ expect(prepare).not.toHaveBeenCalled();expect(activate).not.toHaveBeenCalled();
+});

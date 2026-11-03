@@ -107,9 +107,10 @@ export async function handleFortuneChatConsultations(request, env, path) {
     if (/^\/consultations\/catalog\/?$/.test(path)) {
       return method === 'GET' ? json({ok:true,enabled:enabled(env),version:QUESTION_POLICY_VERSION,products:chatQuestionProducts().map(product=>({...product,scope:questionScopes[product.fishId],followups:FOLLOWUP_LIMITS[product.fishId]}))}, {headers:{'Cache-Control':'no-store'}}) : notFound();
     }
-    const match = path.match(/^\/consultations(?:\/([a-f0-9]{64})(?:\/(activate|generate|draw|conversation))?)?\/?$/);
+    const match = path.match(/^\/consultations(?:\/([a-f0-9]{64})(?:\/(activate|generate|draw|conversation)(?:\/(continue))?)?)?\/?$/);
     if (!match) return notFound();
-    const [, id, action] = match;
+    const [, id, action, conversationAction] = match;
+    if (conversationAction && action !== 'conversation') return notFound();
     const auth = await requireUserFromRequest(request, env);
     if (method !== 'GET') {
       const security = await enforceSensitiveEndpointSecurity({ env, request, userId: auth.userId, endpoint: `fortune-chat:consultations:${action || 'create'}`,
@@ -151,7 +152,7 @@ export async function handleFortuneChatConsultations(request, env, path) {
     if ((action === 'draw' || action === 'conversation') && method === 'POST') {
       await readChat(env, auth.userId, id);
       const body = await readJson(request);
-      const row = action === 'draw' ? await drawTarotSpread(env, auth.userId, id, body) : await questionConversation(env, auth.userId, id, body);
+      const row = action === 'draw' ? await drawTarotSpread(env, auth.userId, id, body) : await questionConversation(env, auth.userId, id, conversationAction === 'continue' ? { ...body, action: 'continue' } : body);
       return json({ok:true,consultation:await present(env,auth.userId,row)},noStore);
     }
     if (action === 'generate' && method === 'POST') {

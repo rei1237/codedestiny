@@ -1,6 +1,15 @@
 export const EXPERT_SUBCHAPTER_MARKER = "[전문가 소단락 설계 계약]";
 
-export function expertSubchapterPromptLines({ feature = "전문가 상담", schemaMode = "text" } = {}) {
+export function expertSubchapterPromptLines({ feature = "전문가 상담", schemaMode = "text", compact = false } = {}) {
+  if (compact) return [
+    EXPERT_SUBCHAPTER_MARKER,
+    `- ${feature}의 장 ID·제목·순서·개수와 JSON 필드를 유지한다. 근거와 질문에 따라 장 안에 2~6개 소단락을 유동적으로 설계하되 근거가 적으면 합친다.`,
+    "- 소단락마다 다른 질문 하나에 실제 근거와 생활 조건, 선택 기준을 연결한다. 구체적인 제목을 쓰고 같은 근거·결론이나 첫 장의 성향을 반복하지 않는다.",
+    "- 제공되지 않은 사건·감정·직업·상대 마음·시기는 만들지 않는다. 근거가 부족하면 한계를 밝히고, 새 정보가 없는 문단은 합친다.",
+    schemaMode === "metadata"
+      ? "- 내부 계획은 출력하지 않는다. 기존 subchapters 범위가 본문을 중복·누락 없이 가리키게 한다."
+      : "- 내부 계획은 출력하지 않는다. 별도 필드 없이 기존 본문의 소제목과 문단으로 구분한다.",
+  ];
   return [
     EXPERT_SUBCHAPTER_MARKER,
     `- ${feature}의 상위 장 ID·제목·순서·개수와 기존 JSON 필드는 그대로 유지한다. 상위 장을 합치거나 삭제하거나 다른 장의 책임 범위를 가져오지 않는다.`,
