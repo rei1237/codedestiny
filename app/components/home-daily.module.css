@@ -23,3 +23,30 @@
 .diary small { display: block; }
 .footnote { margin-top: 12px !important; }
 @media (max-width: 600px) { .topline { gap: 12px; } .quest { align-items: flex-start; flex-direction: column; } .actions { flex-shrink: 1; } .diary { align-items: flex-start; flex-direction: column; gap: 0; } }
+.intro { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.intro img { width: 64px; height: 64px; object-fit: contain; flex: none; }
+.story { position: relative; overflow: hidden; border-radius: var(--cd-r-card); background: var(--cd-bg); margin-bottom: 16px; }
+.story img { display: block; width: 100%; height: clamp(150px, 31vw, 230px); object-fit: cover; object-position: center 52%; }
+.story p { position: absolute; inset: auto 12px 12px; width: fit-content; max-width: calc(100% - 24px); padding: 8px 12px; border-radius: var(--cd-r-control); background: var(--cd-surface); color: var(--cd-text); font-size: .875rem; font-weight: 700; box-shadow: 0 4px 16px color-mix(in srgb, var(--cd-text) 18%, transparent); }
+.story p span { white-space: nowrap; font-weight: 400; }
+.growth { width: 100%; display: grid; grid-template-columns: auto 1fr; align-items: center; column-gap: 8px; }
+.growth strong { font-size: .9rem; }
+.growth progress { width: 100%; height: 10px; accent-color: var(--cd-accent); }
+.growth small { grid-column: 1 / -1; color: var(--cd-text-muted); }
+.rewards { margin-top: 12px; border-radius: var(--cd-r-control); background: var(--cd-bg); padding: 0 14px; }
+.rewards summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 700; }
+.rewards summary::after { content: '+'; margin-left: auto; font-size: 1.2rem; }
+.rewards[open] summary::after { content: '−'; }
+.rewards p { font-size: .875rem; margin-bottom: 10px; }
+.rewards ul { list-style: none; padding: 0; margin: 6px 0 12px; }
+.rewards li { display: flex; justify-content: space-between; gap: 12px; font-size: .875rem; }
+.rewards a { font-size: .875rem; }
+@media (max-width: 600px) { .daily { padding: 18px; } .intro img { width: 48px; height: 48px; } .story img { height: 120px; } }
+@media (max-width: 350px) { .topline { grid-template-columns: 1fr; } }
+.days { display: flex; gap: 3px; flex-wrap: wrap; }
+.days span { display: grid; place-items: center; width: 22px; height: 22px; border: 1px solid var(--cd-border); border-radius: var(--cd-r-pill); font-size: .75rem; }
+.days .dayDone { background: var(--cd-accent); color: var(--cd-bg); border-color: var(--cd-accent); font-weight: 700; }
+.growth progress { appearance: none; border: 0; border-radius: var(--cd-r-pill); overflow: hidden; background: var(--cd-border); }
+.growth progress::-webkit-progress-bar { background: var(--cd-border); }
+.growth progress::-webkit-progress-value { background: var(--cd-accent); }
+.growth progress::-moz-progress-bar { background: var(--cd-accent); }
