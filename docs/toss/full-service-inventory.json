@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "bad2656a5cd2d9126bf5320a0395dfc1a0847486",
+  "sourceCommit": "683b1c716f4dc313d6c52a7de0bcf6f69ccc6283",
   "scope": "Source discovery plus explicitly verified aliases; not a count of implemented services. Unmapped contracts are blocking work, not exclusions.",
   "sourceCounts": {
     "home": 63,
@@ -218,8 +218,8 @@
           "id": "career-style",
           "name": "나의 일 스타일",
           "entry": "/saju/career-style/",
-          "featureKey": null,
-          "accessEvidence": "무료 시작"
+          "featureKey": "saju-career-style",
+          "accessEvidence": "5,000원"
         }
       ],
       "toss": {
@@ -2886,8 +2886,8 @@
           "id": "career-style",
           "name": "나의 일 스타일",
           "entry": "/saju/career-style/",
-          "featureKey": null,
-          "accessEvidence": "무료 시작"
+          "featureKey": "saju-career-style",
+          "accessEvidence": "5,000원"
         }
       ],
       "aliasEvidence": [],
@@ -3245,12 +3245,12 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/fortune-tea-house/",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "worker/toss/native-tea.js",
+      "resultRenderer": "apps/toss/service/Screens.jsx",
+      "storageContract": "owned-TossPurchase; device-and-console-approval-pending"
     },
     {
       "id": "fusion-fortune",
@@ -3276,12 +3276,12 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/fusion-fortune/",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "worker/toss/native-fusion.js",
+      "resultRenderer": "apps/toss/service/Fusion.jsx",
+      "storageContract": "owned-TossPurchase; device-and-console-approval-pending"
     },
     {
       "id": "geomancy-oracle",
@@ -3528,12 +3528,12 @@
         "js/core/service-registry.js",
         "app/_lib/serviceFeatureRegistry.ts"
       ],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/life-book-ai/",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "worker/toss/native-life-book.js",
+      "resultRenderer": "apps/toss/service/LifeBook.jsx",
+      "storageContract": "owned-TossPurchase; device-and-console-approval-pending"
     },
     {
       "id": "life-fortune-report",
@@ -3639,12 +3639,12 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/love-secret-ai/",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "worker/toss/native-love-secret.js",
+      "resultRenderer": "apps/toss/service/LoveSecret.jsx",
+      "storageContract": "owned-TossPurchase; device-and-console-approval-pending"
     },
     {
       "id": "luck-sync-diary",
@@ -4088,12 +4088,12 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/neo-operation-room/",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "worker/toss/native-neo.js",
+      "resultRenderer": "apps/toss/service/Screens.jsx",
+      "storageContract": "owned-TossPurchase; device-and-console-approval-pending"
     },
     {
       "id": "neville-meditation",
