@@ -69,8 +69,9 @@ function pausePaymentMedia(){
   if(typeof document==='undefined')return ()=>{};
   const playing=Array.from(document.querySelectorAll<HTMLMediaElement>('audio,video')).filter(media=>!media.paused);
   playing.forEach(media=>media.pause());
-  let restored=false;
-  return ()=>{if(restored)return;restored=true;if(document.visibilityState!=='visible')return;playing.forEach(media=>{if(media.isConnected&&media.paused)void media.play().catch(()=>{});});};
+  let restored=false,waiting=false;
+  const restore=()=>{if(restored||document.visibilityState!=='visible')return;restored=true;if(waiting)document.removeEventListener('visibilitychange',restore);playing.forEach(media=>{if(media.isConnected&&media.paused)void media.play().catch(()=>{});});};
+  return ()=>{if(restored||waiting)return;if(document.visibilityState==='visible')restore();else{waiting=true;document.addEventListener('visibilitychange',restore);}};
 }
 export function purchase(product:SaleProduct,requestId:string,onDone:()=>void,onError:(error:unknown)=>void){
   if(!SERVICE_AVAILABLE)throw new ApiError('TOSS_RELEASE_PENDING');

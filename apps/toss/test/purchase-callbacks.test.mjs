@@ -54,6 +54,19 @@ test('media resumes after a durable grant and is not restarted twice',async()=>{
  }finally{globalThis.document=originalDocument;globalThis.fetch=originalFetch;delete globalThis.__purchaseCallbacks;}
 });
 
+test('media waits for the app to become visible before resuming',()=>{
+ const state=globalThis.__purchaseCallbacks={cleaned:0},originalDocument=globalThis.document;
+ const media={paused:false,isConnected:true,plays:0,pause(){this.paused=true;},play(){this.plays++;this.paused=false;return Promise.resolve();}};
+ let listener;
+ const document={visibilityState:'visible',querySelectorAll:()=>[media],addEventListener:(_event,fn)=>{listener=fn;},removeEventListener:()=>{listener=null;}};
+ globalThis.document=document;
+ try{
+  loaded.exports.purchase(product,'request',()=>{},()=>{});document.visibilityState='hidden';state.options.onError(new Error('cancelled'));
+  assert.equal(media.plays,0);assert.equal(typeof listener,'function');
+  document.visibilityState='visible';listener();assert.equal(media.plays,1);assert.equal(listener,null);
+ }finally{globalThis.document=originalDocument;delete globalThis.__purchaseCallbacks;}
+});
+
 for(const kind of ['consultation','tarot'])test(`${kind} pauses playing media until the payment flow ends`,()=>{
  const state=globalThis.__purchaseCallbacks={cleaned:0};
  const originalDocument=globalThis.document;
