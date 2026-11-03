@@ -165,6 +165,8 @@
 .fishDepth dd { margin: 0; color: var(--yn-muted); }
 .panel { border-bottom: 1px solid var(--yn-line); }
 .panel > summary { font-weight: 700; }
+.chapters { margin: 12px 0; padding-inline-start: 1.5em; }
+.chapters li { margin-block: 4px; }
 .faqBlock { margin-top: 24px; }
 .faqBlock > h3 { font-family: var(--font-display); color: var(--yn-gold); font-size: 1.15rem; margin: 0 0 4px; }
 .faqBlock .craftedOverview{margin-inline:0}.faqBlock .craftedOverview>summary{padding-inline:0}
