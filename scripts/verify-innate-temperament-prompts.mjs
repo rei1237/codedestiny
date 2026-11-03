@@ -75,6 +75,12 @@ const expertContract = expertSubchapterPromptLines({ feature: "검증용 전문�
 assert.ok(expertContract.includes("상위 장 ID·제목·순서·개수와 기존 JSON 필드는 그대로 유지"));
 assert.ok(expertContract.includes("2~6개의 소단락을 유동적으로 설계"));
 assert.ok(expertContract.includes("같은 근거와 결론을 다른 소단락에서 다시 설명하지 않는다"));
+const compactExpert = expertSubchapterPromptLines({ feature: "전문가 상담", compact: true }).join("\n");
+assert.ok(compactExpert.length < expertContract.length);
+assert.ok(compactExpert.includes("장 ID·제목·순서·개수와 JSON 필드를 유지"));
+assert.ok(compactExpert.includes("실제 근거와 생활 조건, 선택 기준"));
+assert.ok(!compactExpert.includes("영냥"));
+assert.ok(expertSubchapterPromptLines({ compact: true, schemaMode: "metadata" }).join("\n").includes("subchapters"));
 
 const followupContract = followupSolutionPromptLines({ feature: "검증용 후속 상담" }).join("\n");
 assert.ok(followupContract.includes("[추가 질문 해결 계약]"));
