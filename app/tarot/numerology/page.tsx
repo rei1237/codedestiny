@@ -182,6 +182,8 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/tarot/numerology",
   },
+  // canonical 을 상수로 빼지 않고 같은 리터럴을 두 번 적는다 — verify-adsense-readiness 의
+  // verifyPublicFeatureMetadataSource 가 소스에서 `canonical: "/tarot/numerology"` 를 글자 그대로 찾는다.
   openGraph: pageOpenGraph("/tarot/numerology"),
 };
 

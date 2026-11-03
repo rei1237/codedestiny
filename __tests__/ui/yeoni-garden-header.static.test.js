@@ -12,9 +12,9 @@ const toggleRules = css.match(/[^}]*#cdhThemeSlot[^}]*\}/g) || [];
 
 test("헤더 로고는 연이 얼굴 그림이고 옛 月花 글자 상자가 없다", () => {
   const header = template.slice(template.indexOf('<header class="cdh-top"'), template.indexOf("</header>"));
-  assert.match(header, /<img class="cdh-brand__mark" src="\/images\/yeoni\/welcome\/yeoni-mark-v1-96\.webp"[^>]*width="40" height="40" alt=""/);
+  assert.match(header, /<img class="cdh-brand__mark" src="\/fuctionassets\/%EC%97%B0%EC%9D%B4\.webp"[^>]*width="40" height="40" alt=""/);
   assert.doesNotMatch(header, /月花/);
-  for (const w of [96, 192]) assert.ok(fs.existsSync(path.join(root, `public/images/yeoni/welcome/yeoni-mark-v1-${w}.webp`)));
+  assert.ok(fs.existsSync(path.join(root, "public/fuctionassets/연이.webp")));
 });
 
 test("모드 토글은 이름과 터치 영역이 확보된 두 칸 세그먼트다", () => {

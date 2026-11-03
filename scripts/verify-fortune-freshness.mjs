@@ -93,7 +93,7 @@ function utcToYmd(date) {
   return date.toISOString().slice(0, 10);
 }
 
-/** 각 기간 페이지의 Article JSON-LD `datePublished` 가 가져야 할 날짜(KST 달력 기준) */
+/** 각 기간 페이지의 기간 표식 `<time data-cd-fortune-range-marker datetime>` 이 가져야 할 날짜(KST 달력 기준) */
 function expectedDateFor(period, todayYmd) {
   if (period === "today") return todayYmd;
   if (period === "tomorrow") return kstYmdNextDay(todayYmd);
@@ -108,20 +108,15 @@ function expectedDateFor(period, todayYmd) {
   throw new Error(`[fortune-freshness] 기대값 규칙이 없는 기간입니다: ${period}. 이 가드를 함께 고치세요.`);
 }
 
-function extractArticleDate(html) {
-  const blocks = [...html.matchAll(/<script type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g)];
-  for (const block of blocks) {
-    let parsed;
-    try {
-      parsed = JSON.parse(block[1]);
-    } catch {
-      continue;
-    }
-    if (parsed && parsed["@type"] === "Article" && typeof parsed.datePublished === "string") {
-      return parsed.datePublished.slice(0, 10);
-    }
-  }
-  return null;
+/**
+ * 화면에 보이는 기간 표식의 날짜. 빌드 가드(scripts/lib/fortune-date-contract.mjs)가 보는 바로 그 표식이다.
+ * Article datePublished 는 발행 정책(lib/fortune/article-dates.mjs)상 대상일 전날일 수 있어 신선도 신호로 쓰지 않는다.
+ * 발행 워크플로는 npm ci 없이 이 스크립트를 돌리므로 HTML 파서 대신 태그만 읽는다. 표식이 정확히 하나가 아니면 null.
+ */
+function extractRangeMarkerDate(html) {
+  const dates = [...html.matchAll(/<time\b[^>]*\bdata-cd-fortune-range-marker\b[^>]*>/gi)]
+    .map((tag) => tag[0].match(/\bdatetime="(\d{4}-\d{2}-\d{2})"/i)?.[1] ?? null);
+  return dates.length === 1 ? dates[0] : null;
 }
 
 /** 엣지 캐시가 옛 응답을 물고 있는지 판단할 수 있는 헤더만 추린다. */
@@ -153,14 +148,12 @@ async function checkOnce(period, sign, todayYmd) {
     return { url, expected, found: null, cache, ok: false, reason: "빈 셸('운세를 불러오는 중입니다')이 서빙되고 있습니다" };
   }
 
-  const found = extractArticleDate(html);
+  const found = extractRangeMarkerDate(html);
   if (!found) {
-    return { url, expected, found: null, cache, ok: false, reason: "Article JSON-LD 의 datePublished 를 찾지 못했습니다" };
+    return { url, expected, found: null, cache, ok: false, reason: "기간 표식 <time data-cd-fortune-range-marker datetime> 을 하나 찾지 못했습니다" };
   }
-  // 내일 운세의 datePublished 는 빌드 시각이라 대상일 전날(=오늘)이다(lib/fortune/article-dates.mjs).
-  // 오늘·주간·월간은 정확히 맞아야 한다. 전날 빌드가 남아 있으면 오늘 쪽은 어제, 내일 쪽은 그 전날이라 둘 다 걸린다.
-  const accepted = period === "tomorrow" ? [expected, todayYmd] : [expected];
-  if (!accepted.includes(found)) {
+  // 표식은 대상 기간의 시작일 그 자체라 모든 기간이 정확히 맞아야 한다.
+  if (found !== expected) {
     return { url, expected, found, cache, ok: false, reason: `날짜가 낡았습니다 — 기대 ${expected}, 실제 ${found}` };
   }
   return { url, expected, found, cache, ok: true, date: found };

@@ -1,8 +1,9 @@
 import { TUTORIAL_REWARD } from './core/activation-reward-policy.mjs';
 import { hasCompleteSnuGift, mountSnuReadingContents } from './core/snu-reading-flow.mjs';
+import { hideActivationGuideToday, isActivationGuideHidden, rememberFreeSajuViewed, shouldShowTutorialGuide } from './core/activation-guide-state.mjs';
 
 const prefix = '/api/activation-rewards/';
-let account = null, campus = null, revision = 0, tutorialPending = false, pendingTutorialProfileId = '';
+let account = null, campus = null, revision = 0, tutorialPending = false, pendingTutorialProfileId = '', sajuViewed = false;
 
 async function request(path, body) {
   const init = { method: body === undefined ? 'GET' : 'POST', credentials: 'include', cache: 'no-store',
@@ -23,19 +24,18 @@ function renderNote(text, href, action) {
   const image = document.createElement('img'); image.src = '/assets/service-intro/yeoni-gift.webp'; image.width = 54; image.height = 61; image.alt = '';
   const copy = document.createElement('div'), label = document.createElement('p'); label.textContent = text;
   const link = document.createElement('a'); link.href = href; link.textContent = action;
-  const close = document.createElement('button'); close.type = 'button'; close.setAttribute('aria-label', '연이 안내 접기'); close.textContent = '닫기'; close.addEventListener('click', () => note.remove());
-  copy.append(label, link); note.append(image, copy, close); document.body.append(note);
+  const close = document.createElement('button'); close.type = 'button'; close.textContent = '오늘 하루 보지 않기';
+  close.addEventListener('click', () => { hideActivationGuideToday(account?.accountId); note.remove(); });
+  copy.append(label, link, close); note.append(image, copy); document.body.append(note);
 }
 
 function showAccountNote() {
-  if (!account) return;
+  document.getElementById('cdActivationGuide')?.remove();
+  if (!account || isActivationGuideHidden(account.accountId)) return;
   if (campus?.verified && !hasCompleteSnuGift(campus))
     renderNote('등록한 SNULIFE 사주 선물을 이어서 열어보세요.', '/snu/', '등록한 사주 선물 확인하기');
-  else if (account.tutorial.eligible && account.tutorial.receipt?.status !== 'started')
+  else if (!sajuViewed && shouldShowTutorialGuide(account))
     renderNote(`연이랑 무료 사주를 보고 월정석 ${TUTORIAL_REWARD.amount}개를 받아볼까요?`, '/first-steps/', '첫걸음 안내 보기');
-  else if (account.tutorial.receipt?.status === 'started')
-    renderNote('무료 사주를 확인했어요. 첫걸음 선물을 받아볼까요?', '/first-steps/', '월정석 선물 받기');
-  else renderNote(`내 월정석 ${account.wallet.balance.toLocaleString('ko-KR')}개, 어디에 쓸 수 있을까요?`, '/first-steps/', '월정석 사용법 보기');
 }
 
 async function refresh() {
@@ -43,7 +43,9 @@ async function refresh() {
   try {
     const [reward, school] = await Promise.all([request('status'), request('snu/status')]);
     if (turn !== revision) return;
-    account = reward; campus = school; showAccountNote(); showSnuContents(); void startPendingTutorial();
+    account = reward; campus = school;
+    if (sajuViewed) rememberFreeSajuViewed(account.accountId);
+    showAccountNote(); showSnuContents(); void startPendingTutorial();
   } catch { if (turn === revision) { account = null; campus = null; document.getElementById('cdActivationGuide')?.remove(); } }
 }
 
@@ -53,7 +55,7 @@ async function startPendingTutorial() {
   try {
     const result = await request('tutorial/start', { profileId });
     if (turn === revision) { account = result; pendingTutorialProfileId = ''; showAccountNote(); }
-  } catch (error) { if (turn === revision) renderNote(error.message, '/first-steps/', '선물 다시 확인하기'); }
+  } catch { /* The explicit first-steps page handles retries; do not interrupt the reading. */ }
   finally { if(turn === revision)tutorialPending = false; }
 }
 function showSnuContents() {
@@ -64,9 +66,11 @@ function showSnuContents() {
 }
 document.addEventListener('destinyProfileChanged', () => document.getElementById('snuReadingContents')?.remove());
 window.addEventListener('cd:saju-summary-ready', () => {
+  sajuViewed = true; rememberFreeSajuViewed(account?.accountId);
+  document.getElementById('cdActivationGuide')?.remove();
   showSnuContents();
   const profileId = typeof window._sajuPromptResolveProfileId === 'function' ? window._sajuPromptResolveProfileId() : '';
-  if (!profileId) { if(account)renderNote('내 프로필을 저장하고 무료 사주를 보면 첫걸음 선물을 받을 수 있어요.', '/first-steps/', '연이의 안내 보기'); return; }
+  if (!profileId) return;
   pendingTutorialProfileId = profileId; void startPendingTutorial();
 });
 
@@ -96,9 +100,12 @@ export async function showLegacyCompletionBenefits() {
   } catch { /* Saved consultations remain readable when benefits are unavailable. */ }
 }
 
+window.addEventListener('cd:activation-reward-updated', () => { document.getElementById('cdActivationGuide')?.remove(); void refresh(); });
+window.addEventListener('cd:activation-guide-hidden', showAccountNote);
+window.addEventListener('storage', showAccountNote);
 window.addEventListener('cd:destiny-profile-server-ready', () => { void refresh(); });
 window.addEventListener('cd:auth-changed', event => {
-  revision++; account = null; campus = null; pendingTutorialProfileId = ''; tutorialPending = false;
+  revision++; account = null; campus = null; pendingTutorialProfileId = ''; tutorialPending = false; sajuViewed = false;
   document.querySelector('.cd-activation-dialog')?.remove(); document.getElementById('cdActivationGuide')?.remove();
   document.getElementById('snuReadingContents')?.remove();
   if (String(event.detail?.event || '').toLowerCase() !== 'logout') void refresh();

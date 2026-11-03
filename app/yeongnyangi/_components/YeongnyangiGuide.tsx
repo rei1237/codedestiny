@@ -1,6 +1,6 @@
 import PublicRecordLink from '@/app/components/PublicRecordLink';
 import {products,systemNames,packages,type Product} from '@/worker/yeongnyangi/payments/catalog';
-import {questionScopes,FOLLOWUP_LIMITS} from '@/worker/yeongnyangi/fortune/ask/question-policy';
+import {questionManifest,questionScopes,FOLLOWUP_LIMITS,QUESTION_POLICY_VERSION} from '@/worker/yeongnyangi/fortune/ask/question-policy';
 import type {DomainId} from '@/worker/yeongnyangi/fortune/shared/contracts';
 import SampleExposure from './SampleExposure';
 import styles from './yeongnyangi-guide.module.css';
@@ -21,6 +21,9 @@ const single=(domain:DomainId,fish:string)=>{const p=products.find(item=>item.re
 const tierRows=TIERS.map(tier=>{const items=DOMAINS.map(domain=>single(domain,tier));const prices=[...new Set(items.map(p=>p.priceKRW))];if(prices.length!==1)throw new Error(`영냥이 ${tier} 가격이 체계마다 다르다: ${prices.join(',')}`);return {tier,name:packages[tier].name,price:prices[0],depth:questionScopes[tier],followups:FOLLOWUP_LIMITS[tier]};});
 export const LOWEST_PRICE=won(tierRows[0].price);
 const SYSTEMS=DOMAINS.map(domain=>systemNames[domain]).join(', ');
+const EXAMPLE_QUESTION='헤어진 뒤 연락이 없어요. 제가 먼저 연락해도 될까요?';
+const mackerelChapters=questionManifest('saju','mackerel',{version:QUESTION_POLICY_VERSION,category:'love',target:'self',horizon:'current',period:'',situation:'헤어진 뒤 연락이 끊겼어요',options:'',constraints:'',confirmed:true},undefined,EXAMPLE_QUESTION);
+if(mackerelChapters.length!==EXPANDED_CHAPTERS.mackerel)throw new Error(`영냥이 고등어 장 구성이 ${mackerelChapters.length}개다.`);
 const tarotExcerpts=(()=>{
  const excerpts=resultSamples.find(sample=>sample.id==='yn-tarot')?.excerpts;
  if(!excerpts||excerpts.length<4)throw new Error('Yeongnyangi tarot sample requires four source excerpts.');
@@ -31,6 +34,8 @@ export const YEONGNYANGI_FAQS=[
  {question:'사주 보는 고양이 영냥이는 어떤 서비스인가요?',answer:`영냥이는 꿀꿀운세(CODE DESTINY)가 운영하는 유료 운세 상담 캐릭터예요. ${SYSTEMS} 중 하나를 골라 고민의 답과 근거, 생활 속 선택과 실천을 챕터로 나눠 살펴봐요. "사주보는고양이"처럼 붙여 써서 찾아도 같은 서비스예요.`},
  {question:'운세보는 영냥이와 꿀꿀 운세는 어떤 관계인가요?',answer:'운세보는 영냥이는 꿀꿀 운세 안의 사주보는 고양이 상담 서비스예요. 운영자는 CODE DESTINY(코드 데스티니)로 같고, 공식 홈페이지는 https://code-destiny.com/, 영냥이 상담 입구는 https://code-destiny.com/yeongnyangi/예요.'},
  {question:'가장 저렴한 상담은 얼마인가요?',answer:`고등어 상담이 ${LOWEST_PRICE}이고, 여섯 체계 모두 같은 가격이에요. 결제창에서 총액과 적용 수단을 한 번 더 확인한 뒤에 결제돼요.`},
+ {question:`${LOWEST_PRICE} 고등어 상담은 무엇을 다루나요?`,answer:`${SYSTEMS} 중 한 체계를 골라 한 가지 고민을 묻는 질문형 상담이에요. 신규 한국어 질문 기준 ${EXPANDED_CHAPTERS.mackerel}챕터로 ${questionScopes.mackerel}을 담아요.`},
+ {question:'추가 질문은 몇 번 할 수 있나요?',answer:`${tierRows.map(row=>row.name+(row.followups?` ${row.followups}회`:' 없음')).join(', ')}예요. 저장된 상담 근거로 답할 수 있는 범위에서 이용해요.`},
  {question:'결제하고 나면 결과는 언제, 어디서 보나요?',answer:'결제가 확인되면 영냥이가 상담을 쓰기 시작해요. 보통 몇 분 안에 완성되고, 화면을 닫아도 같은 계정의 내 상담에서 이어서 확인하고 다시 열 수 있어요.'},
  {question:'상담이 만들어지지 않으면 어떻게 되나요?',answer:'내 상담 화면에서 진행 상태를 확인할 수 있어요. 문제가 계속되면 결제 내역과 함께 문의하기로 알려 주세요. 환불 기준은 환불 정책을 따라요.'},
  {question:'꿀꿀운세의 무료 운세와는 무엇이 다른가요?',answer:'무료 페이지는 정해진 항목의 계산 결과와 기본 풀이를 보여 줘요. 영냥이 상담은 같은 계산을 출발점으로 삼아 내가 고른 주제와 질문을 반영한 글을 새로 쓰고, 결과를 계정에 보관해요.'},
@@ -55,6 +60,12 @@ export default function YeongnyangiGuide(){
 
   <section id="yn-before" aria-labelledby="yn-guide-title">
    <h2 id="yn-guide-title">결제 전에 알아두기</h2>
+   <details id="yn-mackerel" className={styles.panel}><summary>{LOWEST_PRICE} 고등어 상담의 {EXPANDED_CHAPTERS.mackerel}챕터 구성</summary>
+    <p>사주 고등어 상담에 아래 질문을 남겼을 때의 장 제목이에요.</p>
+    <p className={styles.note}>가상 질문 · 질문과 체계에 따라 제목이 달라져요. 질문: “{EXAMPLE_QUESTION}”</p>
+    <ol className={styles.chapters}>{mackerelChapters.map(row=><li key={row.key}>{row.title}</li>)}</ol>
+    <p><a href={fishRows[0].href}>사주 고등어 상담 시작하기</a></p>
+   </details>
    <details id="yn-example" className={styles.panel}><summary>실제 상담 예시 · “지금 회사에 남을까, 다른 길로 옮길까?”</summary>
     <p className={styles.note}>가상 프로필로 생성한 영냥이 타로·연어 샘플에서 발췌했어요. 전체 샘플은 약 3.5만 자이며 아래는 그 일부예요. 실제 고객 후기가 아니며 현재 상품의 보장 분량을 뜻하지 않아요.</p>
     <blockquote className={styles.sample} data-sample-exposure="">

@@ -226,6 +226,12 @@ button{font-family:inherit;color:inherit;background:none;border:none;cursor:poin
   background-repeat:no-repeat;background-size:400% 400%;
   -webkit-mask-image:linear-gradient(to bottom,#000 90%,transparent 100%);mask-image:linear-gradient(to bottom,#000 90%,transparent 100%)}
 .char.pig.pigsheet:not(.mirror).dim{filter:brightness(.86) saturate(.94);transform:scale(.97)}
+/* Atelier original: four 320×384 cells, no generated 4×4 sheet. */
+.char.atelier[data-who]{width:clamp(190px,32vh,350px);height:auto;aspect-ratio:5/6;max-height:none;bottom:clamp(185px,26vh,260px);background-repeat:no-repeat;background-size:400% 100%;background-position:0% 0%;mask-image:none;-webkit-mask-image:none}
+.char.pig.atelier:not(.mirror){width:clamp(158px,26.667vh,283px);height:auto}
+.char.neo.atelier,.char.ln.atelier,.char.lns.atelier,.char.rab.atelier{height:auto;aspect-ratio:5/6;background-size:400% 100%}
+.char.mirror.atelier{width:clamp(190px,32vh,350px);height:auto;aspect-ratio:5/6}
+@media(max-width:760px){.char.atelier[data-who],.char.pig.atelier:not(.mirror){width:min(32vw,180px);height:auto;bottom:clamp(208px,27vh,260px)}}
 /* 초기 미러 = 거울에 비친 반전 꽃돼지(우측·반전, 좌상단 float 미적용) */
 .char.mirror.pig{left:auto;right:2vw;bottom:0;height:clamp(220px,40vh,440px);max-height:none;z-index:1}
 /* 모카(동료)·까마귀(빌런) 스프라이트 — 네오처럼 대화창 위로 부양 + height 캡(하반신 겹침 방지) */
@@ -241,10 +247,10 @@ button{font-family:inherit;color:inherit;background:none;border:none;cursor:poin
 /* 윤달(개편 2026-10): 허리까지 흉상이라 연이·서한비와 머리 크기를 맞추려 1.45배 키우고, 늘어난 만큼 아래로 내리되 턱이 대사창 위에 오게 둔다(허리는 화면 밖) */
 .char.yun{height:min(119vh,1190px);max-height:none;bottom:max(-21vh,-210px)}
 .char.muTrue{height:clamp(260px,43vh,490px);max-height:none;bottom:clamp(160px,23vh,225px)}
-.char.neo.neoCat{width:clamp(170px,29vh,330px);height:auto;aspect-ratio:3/4;object-fit:contain;bottom:clamp(165px,23vh,230px);background:none}
+.char.neo.neoCat:not(.atelier){width:clamp(170px,29vh,330px);height:auto;aspect-ratio:3/4;object-fit:contain;bottom:clamp(165px,23vh,230px);background:none}
 .char.slotR.neoCat{right:2vw}
 .char.slotR.neoh{right:1vw}
-@media(max-width:600px){.char.neo.neoCat{width:min(28vh,42vw);height:auto;bottom:clamp(190px,26vh,245px)}}
+@media(max-width:600px){.char.neo.neoCat:not(.atelier){width:min(28vh,42vw);height:auto;bottom:clamp(190px,26vh,245px)}}
 /* 인간 네오 — 기존 은발 디자인. EP.27부터 위치 기반으로 복원한다. */
 .char.neoh{width:clamp(230px,38vh,430px);height:auto;aspect-ratio:362/543;max-height:none;bottom:clamp(210px,26vh,260px);object-fit:contain}
 /* 모바일 캐릭터 폭 예산.
@@ -533,7 +539,7 @@ body.novel-paused *{animation-play-state:paused!important}
 #player[data-shot="impact"] #charLayer{background:linear-gradient(165deg,transparent 45%,rgba(233,196,106,.14) 45.3%,transparent 46%)}
 @media(max-width:760px){
   .char.tiger{width:min(39vw,200px);height:auto;bottom:clamp(208px,28vh,260px)}
-  .char[data-who="yeon"]:not(.pig):not(.sheet){height:min(47vh,340px);width:min(42vw,180px);bottom:clamp(220px,27vh,280px)}
+  .char[data-who="yeon"]:not(.pig):not(.sheet):not(.atelier){height:min(47vh,340px);width:min(42vw,180px);bottom:clamp(220px,27vh,280px)}
   .char.yun{height:min(52vh,380px);width:min(54vw,220px);bottom:clamp(220px,27vh,280px)}
 }
 @media (hover:none) and (pointer:coarse){
@@ -936,7 +942,39 @@ var YUN_EXPR=["base","sly","serious","surprise","pain","void","laugh","sad"];
 /* who → sprite (form 반영) */
 var NEO_LION_EXPR={neutral:"neutral",soft:"soft",surprise:"surprise",laugh:"smile",grin:"soft",sly:"serious",lecture:"talk",talk:"talk",deadpan:"calm",shock:"surprise",calm:"calm",smirk:"soft",greet:"talk",bliss:"smile",serious:"serious",smile:"smile",angry:"serious",sad:"sad",think:"calm",serene:"calm",fear:"surprise"};
 var NEO_HUMAN_EXPR={neutral:"hneutral",soft:"hsoft",surprise:"hspeak",laugh:"hsmile",grin:"hsmile",sly:"hcalm",lecture:"hpoint",talk:"hspeak",deadpan:"hcalm",shock:"hache",calm:"hcalm",smirk:"hsmile",greet:"hpoint",bliss:"hsmile",serious:"harms",smile:"hsmile",angry:"harms",sad:"hache",think:"hcalm",serene:"hsoft",fear:"hache"};
+var ATELIER_CAST={yeon:"yeoni",neo:"neo_cat",ln:"luna",lns:"luna_sis",moka:"moka",yun:"yun",pje:"seohanbi",mu:"museong",crow:"raven",rab:"cheongtokki"};
+var atelierReady={},atelierRequested={};
+function atelierKey(who,expr,form,neoForm){
+  // Preserve story-specific emotions, injuries, revelations and wedding poses.
+  if(["base","normal","neutral","talk","greet","soft","calm","think","lecture","tired"].indexOf(expr||"neutral")<0)return null;
+  if(who==="mu"&&!(expr&&MU_TRUE[expr]))return null;
+  if(who==="yeon")return form==="pig"?"yeoni_pig":"yeoni";
+  if(who==="neo")return neoForm==="human"?"neo":"neo_cat";
+  return ATELIER_CAST[who]||null;
+}
+function atelierUrl(key){return key==="yeoni_pig"?"/assets/yeoni/atelier/talking-pig.webp":"/assets/novel/atelier/"+key+".webp";}
+function atelierSprite(who,expr,form,neoForm){
+  var key=atelierKey(who,expr,form,neoForm);if(!key)return null;
+  if(!atelierRequested[key]){
+    atelierRequested[key]=true;
+    var probe=new Image();
+    probe.onload=function(){
+      atelierReady[key]=true;
+      // Refresh only a still-matching current role and form; never revive an old scene.
+      if(typeof S!=="undefined"&&S.screen==="player"){
+        ["l","c","r"].forEach(function(slot){var el=document.getElementById("char_"+slot);if(el&&atelierKey(el.dataset.who,el.dataset.expr,S.form,S.neoForm)===key)updateSlotExpr(slot,el.dataset.who,el.dataset.expr);});
+        if(S.typing)playAtelierSpeech(S.active);
+      }
+    };
+    // Failed or pending sheets keep the existing expression image and story controls.
+    probe.src=atelierUrl(key);
+  }
+  if(!atelierReady[key])return null;
+  var cls=who==="yeon"?(form==="pig"?"pig":""):who==="neo"?(neoForm==="human"?"neoh":"neo neoCat"):who==="mu"?"muTrue":who;
+  return {url:atelierUrl(key),cls:cls+" atelier",sheet:true,size:"400% 100%",pos:"0% 0%"};
+}
 function spriteMaster(who,expr,form,neoForm){
+  var atelier=atelierSprite(who,expr,form,neoForm);if(atelier)return atelier;
   if(who==="tiger")return {url:"/images/novel/hanbi/"+(["base","talk","surprise","angry","sad","water"].indexOf(expr)>=0?expr:"base")+".webp",cls:"tiger"};
   if(who==="yun")return {url:"/images/novel/remaster/yun/"+(YUN_EXPR.indexOf(expr)>=0?expr:"base")+".webp",cls:"yun"};
   if(who==="neo"){
@@ -1011,7 +1049,7 @@ var reduceMQ=typeof window.matchMedia==="function"?window.matchMedia("(prefers-r
 S.reduce=reduceMQ.matches;
 /* body.reduce-motion 을 붙이는 곳이 한 군데도 없어 그 CSS 두 줄이 죽어 있었다 —
    설정에서 "모션 줄이기"를 켜도 배경 연출이 그대로 돌았다. */
-function applyReduceMotion(){document.body.classList.toggle("reduce-motion",!!S.reduce);if(S.reduce&&fxLayer)clearSceneEffects();}
+function applyReduceMotion(){document.body.classList.toggle("reduce-motion",!!S.reduce);if(S.reduce){stopAtelierSpeech();if(fxLayer)clearSceneEffects();}}
 applyReduceMotion();
 /* OS 설정을 읽는 시점이 부팅 한 번뿐이라, 읽는 도중 접근성 설정을 바꿔도 반영되지 않았다.
    단 설정 패널에서 손으로 켜고 끈 뒤에는 OS 변화가 그 선택을 덮지 않는다. */
@@ -1663,6 +1701,7 @@ function setCharImg(el,url){
 function updateSlotExpr(slot,who,expr){ /* className/show를 안 건드리고 표정만 교체(깜빡임 방지) */
   if(_hydrating){setSlot(slot,who,expr);return;} /* 리플레이: 상태 전용 경로로 넘긴다 */
   var el=document.getElementById("char_"+slot);if(!el){setSlot(slot,who,expr);return;}
+  el.dataset.expr=expr||"neutral";
   var sp=spriteFor(who,expr,S.form,S.neoForm);
   /* cls 변동(영냥이↔인간 네오 등 형태 전환) 시엔 전체 재생성 — 안 하면 인간 초상이 고양이 3:4 박스에 찌그러짐 */
   var wantCls=("char "+slotMap[slot]+" "+(sp.cls||"")).replace(/\s+/g," ").trim();
@@ -1717,7 +1756,7 @@ function setSlot(slot,who,expr){
      붙이는 사이 한 프레임 깜빡였다. 🔴 다른 캐릭터로 바뀔 때는 절대 유지하지 않는다(옛 픽셀이
      새 이미지를 기다리며 남아 유령 겹침이 된다). .dim 은 updateActive() 가 같은 틱에 다시 계산한다. */
   var keepShown=(el.dataset.who===who&&el.classList.contains("show"));
-  el.className="char "+slotMap[slot]+" "+(sp.cls||"")+(keepShown?" show":"");el.dataset.who=who;S.slotWho[slot]=who;
+  el.className="char "+slotMap[slot]+" "+(sp.cls||"")+(keepShown?" show":"");el.dataset.who=who;el.dataset.expr=expr||"neutral";S.slotWho[slot]=who;
   if(sp.sheet){
     el.setAttribute("role","img");el.setAttribute("aria-label",who);
     el.style.backgroundImage="url('"+sp.url+"')";el.style.backgroundPosition=sp.pos||"";el.style.backgroundSize=sp.size||"";
@@ -1745,6 +1784,20 @@ var NAME={yeon:"연이",neo:"네오",mu:"무성",geo:"거울 속 연이",moka:"�
 /* 네오는 인간이 되기 전까지 고양이 영냥이로 불린다. */
 function speakerName(s,ep,bi){return s==="neo"&&neoFormAt(ep,bi)!=="human"?nt("영냥이"):nt(NAME[s]||"");}
 function speakerIcon(s,ep,bi){if(NOVEL_LOCALE!=="ko")return speakerName(s,ep,bi).slice(0,2)||"·";return s==="neo"&&neoFormAt(ep,bi)!=="human"?"냥":(ICON[s]||"달");}
+function stopAtelierSpeech(){
+  document.querySelectorAll(".atelier").forEach(function(el){if(el.getAnimations)el.getAnimations().forEach(function(animation){if(animation.id==="atelier-speech")animation.cancel();});});
+}
+function playAtelierSpeech(speaker){
+  stopAtelierSpeech();
+  if(S.reduce||S.skip)return;
+  var slot=slotOfWho(speaker),el=slot&&document.getElementById("char_"+slot);
+  if(!el||!el.classList.contains("atelier")||typeof el.animate!=="function")return;
+  // Luna sheets have mouth:false in the source: use only idle/blink cells 0 and 1.
+  var blink=speaker==="ln"||speaker==="lns";
+  var frames=blink?[0,1,0]:[2,3,2,0];
+  var speech=el.animate(frames.map(function(frame){return {backgroundPosition:(frame*100/3)+"% 0%"};}),{duration:blink?330:440,iterations:blink?1:2,easing:"steps(1,end)"});
+  speech.id="atelier-speech";
+}
 function showDialogue(b){
   document.getElementById("player").dataset.shot=b.shot||"medium";
   clearTimeout(typeTimer);
@@ -1754,6 +1807,7 @@ function showDialogue(b){
   spkIcon.textContent=b.nm?"?":speakerIcon(spk,S.ep,S.bi);spkName.textContent=b.nm||speakerName(spk,S.ep,S.bi);
   fullText=b.t||"";shownLen=0;dlgBody.replaceChildren(document.createTextNode(""));
   dlg.dataset.done="false";dlg.dataset.typing="true";S.typing=true;
+  playAtelierSpeech(spk);
   // log + 자동 책갈피
   /* 로그는 openLog 가 마지막 60줄만 그린다 — 전체 비트를 통째로 들고 있을 이유가 없어 상한을 둔다. */
   LOG.push({s:spk,t:fullText,nm:b.nm||(spk==="neo"?speakerName(spk,S.ep,S.bi):undefined)});
@@ -1776,6 +1830,7 @@ function typeStep(){
 var _skipTimer=0,_inSkipStep=false;
 function scheduleSkipStep(){clearTimeout(_skipTimer);_skipTimer=setTimeout(doSkipStep,120);}
 function finishType(){
+  stopAtelierSpeech();
   clearTimeout(typeTimer);shownLen=fullText.length;dlgBody.textContent=fullText;
   dlg.dataset.typing="false";dlg.dataset.done="true";S.typing=false;
   if(S.auto)scheduleAuto();
@@ -2293,7 +2348,7 @@ function requestedNovelLocale(){
   var saved='';try{saved=localStorage.getItem('cd:novel:language')||'';}catch(_){}
   var cookies=document.cookie.split(';').map(function(value){return value.trim();});
   function cookie(name){var item=cookies.find(function(value){return value.indexOf(name+'=')===0;});return item?decodeURIComponent(item.slice(name.length+1)):'';}
-  var site=window.__cdAppLanguage||new URLSearchParams(location.search).get('lang')||(cookie('cd_locale_explicit')==='1'?cookie('cd_locale'):'')||cookie('cd_geo_locale')||cookie('cd_locale');
+  var site=window.__cdAppLanguage||new URLSearchParams(location.search).get('lang')||(cookie('cd_locale_explicit')==='1'?cookie('cd_locale'):'')||cookie('cd_locale');
   var tag=(new URLSearchParams(location.search).get('novelLang')||saved||site||navigator.language||'en').toLowerCase().replace(/_/g,'-');
   if(/^ko(?:-|$)/.test(tag))return 'ko';if(/^ja(?:-|$)/.test(tag))return 'ja';
   if(/^zh(?:-|$)/.test(tag))return /(?:^|-)(?:hant|tw|hk|mo)(?:-|$)/.test(tag)?'zh-TW':'zh-CN';

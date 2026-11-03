@@ -114,18 +114,17 @@
   // ad_* 는 일부러 선언하지 않는다. 같은 Google 태그를 쓰는 AdSense 의 현재 동작까지 바뀌는데
   // 그건 이 변경의 범위가 아니다(선언하지 않으면 종전과 같다).
   /*
-   * GA4 에 보내는 주소는 경로와 utm_* 뿐이다. 토큰·결과 ID 같은 나머지 쿼리는 계속 뗀다.
-   * 🔴 utm_* 까지 떼면 캠페인 귀속이 통째로 사라진다 — 2026-09-21 승격부터 실제로 그랬다
-   *    (docs/analytics-kpi.md 2026-09-24 절). 원래 인코딩을 지키려고 파싱하지 않고 쌍 단위로 고른다.
+   * GA4 주소는 경로와 공개 캠페인 코드만 포함한다. 자유 입력 UTM·토큰·결과 쿼리는 제외한다.
+   * 알려진 캠페인의 귀속은 유지하며 새 캠페인은 공개 코드 허용 목록에 등록한다.
    */
   function pageLocation() {
     // Paid campaign URLs carry public codes only, including the initial GA config.
     var paidQuery = new URLSearchParams(global.location.search || '');
-    if (/^paid_20261028_(naver|brand)$/.test(paidQuery.get('utm_campaign') || '')) {
+    if (/^(paid_20261028_(naver|brand)|ggulggul_2027_test)$/.test(paidQuery.get('utm_campaign') || '')) {
       var publicQuery = new URLSearchParams();
       var publicFields = {
-        utm_source:/^naver$/,utm_medium:/^cpc$/,utm_campaign:/^paid_20261028_(naver|brand)$/,
-        utm_content:/^[A-E]_ko$/,utm_term:/^K(0[1-9]|10)$/
+        utm_source:/^naver$/,utm_medium:/^cpc$/,utm_campaign:/^(paid_20261028_(naver|brand)|ggulggul_2027_test)$/,
+        utm_content:/^([A-E]_ko|yearly_[abc])$/,utm_term:/^K(0[1-9]|10)$/
       };
       Object.keys(publicFields).forEach(function (key) {
         var value = paidQuery.get(key) || '';
@@ -133,15 +132,26 @@
       });
       return global.location.origin + global.location.pathname + '?' + publicQuery.toString();
     }
-    var campaign = String(global.location.search || "").replace(/^\?/, "").split("&").filter(function (pair) {
-      return /^utm_[a-z_]+=./.test(pair);
+    // Public campaign vocabulary only; free-form UTM can contain personal data.
+    var publicQuery = new URLSearchParams();
+    var publicFields = {
+      utm_source:/^(naver|google|naver_blog|youtube|tiktok|x|threads|kakao|email|copy|native|image|share|facebook|instagram|line|twitter)$/,
+      utm_medium:/^(cpc|social|organic_social|channel|email|newsletter|share|organic|referral)$/,
+      utm_campaign:/^(s1_launch|public_share|yeongnyangi_result|yeongnyangi_daily|insight_ggulggul|insight_yeongnyangi|yeoni-weekly|neo-depth|yeongnyangi-ask|autumn-pause|welcome|crm-[a-z0-9][a-z0-9-]{2,79}|email-weekly-[0-9]{4}-[0-9]{2}-[0-9]{2}|threads_[0-9]{8}_(saju|ziwei|vedic|numerology)|threads_queue_t[0-9]{2}_v1|growth_20261012|growth_20261021)$/,
+      utm_content:/^((W[0-9]{2}-)?[A-Z][A-Z0-9-]{1,10}_(ko|en|ja)|(yeoni-weekly|neo-depth|yeongnyangi-ask|autumn-pause|welcome)(-wideimage-v1)?)$/
+    };
+    Object.keys(publicFields).forEach(function (key) {
+      var value = paidQuery.get(key) || '';
+      if (publicFields[key].test(value)) publicQuery.set(key,value);
     });
-    return global.location.origin + global.location.pathname + (campaign.length ? "?" + campaign.join("&") : "");
+    var campaign = publicQuery.toString();
+    return global.location.origin + global.location.pathname + (campaign ? '?' + campaign : '');
   }
 
   gtag("consent", "default", { analytics_storage: analyticsStorageState() });
   gtag("js", new Date());
-  gtag("config", measurementId, {page_location: pageLocation()});
+  var initialAiSource = aiSourceLabel();
+  gtag("config", measurementId, Object.assign({page_location: pageLocation()}, initialAiSource ? {ai_source: initialAiSource} : {}, paidCampaignParams(growthAttribution())));
 
   /**
    * 이벤트 전송. 실패해도 절대 던지지 않는다 — 계측이 기능을 깨뜨려선 안 된다.
@@ -176,22 +186,54 @@
       return saved && saved.until > Date.now() && allowed.test(saved.value) ? saved.value : '';
     } catch (_) { return ''; }
   }
+  // AI attribution is a small label from exact hosts or ChatGPT's exact UTM, never the referrer text.
+  // Direct, same-host, lookalike and search traffic stays unclassified.
+  function aiSourceLabel() {
+    try {
+      var hosts = {'chatgpt.com':'chatgpt','chat.openai.com':'chatgpt','perplexity.ai':'perplexity','www.perplexity.ai':'perplexity','gemini.google.com':'gemini','copilot.microsoft.com':'copilot','copilot.com':'copilot','claude.ai':'claude'};
+      var allowed = /^(chatgpt|perplexity|gemini|copilot|claude)$/;
+      var referrerHost = document.referrer ? new URL(document.referrer).hostname.toLowerCase() : '';
+      var current = Object.prototype.hasOwnProperty.call(hosts, referrerHost) ? hosts[referrerHost] : '';
+      if (!referrerHost && new URLSearchParams(global.location.search).get('utm_source') === 'chatgpt.com') current = 'chatgpt';
+      if (analyticsStorageState() !== 'granted') {
+        global.sessionStorage.removeItem('cd:ai:source');
+        return current;
+      }
+      if (current) global.sessionStorage.setItem('cd:ai:source', JSON.stringify({value:current,until:Date.now()+1800000}));
+      else if (referrerHost && referrerHost !== global.location.hostname) global.sessionStorage.removeItem('cd:ai:source');
+      var saved = JSON.parse(global.sessionStorage.getItem('cd:ai:source') || 'null');
+      return saved && saved.until > Date.now() && allowed.test(saved.value) ? saved.value : '';
+    } catch (_) { return ''; }
+  }
   // Public campaign codes only; no post text, user identifiers or result IDs.
+  function paidCampaignCookie(value, until) {
+    try {
+      var age = value ? Math.max(0, Math.min(1800, Math.floor((until - Date.now()) / 1000))) : 0;
+      document.cookie = 'cd_paid_campaign=' + (value ? encodeURIComponent(JSON.stringify(value)) : '') + '; path=/; max-age=' + age + '; SameSite=Lax; Secure';
+    } catch (_) { /* Campaign labels cannot block navigation or payments. */ }
+  }
   function growthAttribution() {
     try {
       var key = 'cd:growth:campaign';
       var returnKey = key + ':paid-return';
-      if (analyticsStorageState() !== 'granted') { global.sessionStorage.removeItem(key); global.localStorage.removeItem(returnKey); return null; }
+      if (analyticsStorageState() !== 'granted') { global.sessionStorage.removeItem(key); global.localStorage.removeItem(returnKey); paidCampaignCookie(null); return null; }
       var allowed = /^(threads_[0-9]{8}_(saju|ziwei|vedic|numerology)|threads_queue_t[0-9]{2}_v1)$/;
       // growth-20261012-v2: 4주 캠페인(블로그·YouTube·TikTok·X). 원고 ID(B01_ko)는 공개 코드라 함께 둔다.
       var allowedV2 = /^growth_(20261012_(naver_blog|youtube|tiktok|x)|20261021_(naver_blog|youtube))$/;
       var contentV2 = /^(W[0-9]{2}-)?[A-Z][A-Z0-9-]{1,10}_(ko|en|ja)$/;
-      var paidCampaigns = /^(paid_20261028_naver|paid_20261028_brand)$/;
-      var paidContent = /^[A-E]_ko$/;
+      var paidCampaigns = /^(paid_20261028_naver|paid_20261028_brand|ggulggul_2027_test)$/;
+      var paidContent = /^([A-E]_ko|yearly_[abc])$/;
       var paidKeyword = /^K(0[1-9]|10)$/;
       var query = new URLSearchParams(global.location.search);
       var campaign = query.get('utm_source') === 'threads' && /^(social|organic_social)$/.test(query.get('utm_medium') || '') ? query.get('utm_campaign') : '';
       var campaignV2 = /^(growth_20261012|growth_20261021)$/.test(query.get('utm_campaign') || '') && query.get('utm_medium') === 'social' ? query.get('utm_campaign') + '_' + (query.get('utm_source') || '') : '';
+      // A later explicitly tagged source wins; never carry an old paid label into it.
+      if (query.has('utm_source') && !(paidCampaigns.test(query.get('utm_campaign') || '') && query.get('utm_source') === 'naver' && query.get('utm_medium') === 'cpc')) {
+        global.localStorage.removeItem(returnKey);
+        paidCampaignCookie(null);
+        var prior = JSON.parse(global.sessionStorage.getItem(key) || 'null');
+        if (prior && paidCampaigns.test(prior.campaignId)) global.sessionStorage.removeItem(key);
+      }
       if (paidCampaigns.test(query.get('utm_campaign') || '') && query.get('utm_source') === 'naver' && query.get('utm_medium') === 'cpc') {
         global.sessionStorage.setItem(key, JSON.stringify({campaignId:query.get('utm_campaign'),content:paidContent.test(query.get('utm_content') || '') ? query.get('utm_content') : '',keyword:paidKeyword.test(query.get('utm_term') || '') ? query.get('utm_term') : '',until:Date.now()+1800000}));
       }
@@ -213,25 +255,46 @@
         global.localStorage.setItem(returnKey, JSON.stringify({campaignId:saved.campaignId,until:saved.until,
           content:paidContent.test(saved.content || '') ? saved.content : '',keyword:paidKeyword.test(saved.keyword || '') ? saved.keyword : ''}));
       }
-      if (!saved || saved.until <= Date.now() || !(paid || v2 || allowed.test(saved.campaignId))) { global.sessionStorage.removeItem(key); return null; }
+      if (!saved || saved.until <= Date.now() || !(paid || v2 || allowed.test(saved.campaignId))) { global.sessionStorage.removeItem(key); paidCampaignCookie(null); return null; }
       var device = global.innerWidth < 768 ? 'mobile' : 'desktop';
-      if (paid) return Object.assign({campaignId:saved.campaignId,consent:true,version:'paid-20261028-v1',device:device},paidContent.test(saved.content || '') ? {content:saved.content} : {},paidKeyword.test(saved.keyword || '') ? {keyword:saved.keyword} : {});
+      if (paid) {
+        var label = Object.assign({campaignId:saved.campaignId,consent:true,version:'paid-20261028-v1',device:device},paidContent.test(saved.content || '') ? {content:saved.content} : {},paidKeyword.test(saved.keyword || '') ? {keyword:saved.keyword} : {});
+        paidCampaignCookie(label, saved.until);
+        return label;
+      }
+      paidCampaignCookie(null);
       if (v2) return contentV2.test(saved.content || '') ? {campaignId:saved.campaignId,consent:true,version:'growth-20261012-v2',device:device,content:saved.content} : {campaignId:saved.campaignId,consent:true,version:'growth-20261012-v2',device:device};
       return {campaignId:saved.campaignId,consent:true,version:'growth-20260929-v1',device:device};
     } catch (_) { return null; }
   }
   global.cdReadGrowthAttribution = growthAttribution;
+  function paidCampaignParams(attribution) {
+    if (!attribution || attribution.version !== 'paid-20261028-v1') return {};
+    return Object.assign({campaign_source:'naver',campaign_medium:'cpc',campaign_name:attribution.campaignId},
+      attribution.content ? {campaign_content:attribution.content} : {},
+      attribution.keyword ? {campaign_term:attribution.keyword} : {});
+  }
   global.cdTrack = function cdTrack(eventName, params) {
-    if (!eventName) return;
+    if (!eventName) return false;
     try {
+      // Existing AuthShell emits signup only after successful registration.
+      // Normalize once; do not also emit the historical name or copy auth data.
+      if (eventName === 'signup') eventName = 'sign_up';
       var safeParams = Object.assign({}, params || {});
+      if (eventName === 'sign_up') {
+        if (['password','social'].indexOf(safeParams.method) < 0) return false;
+        safeParams = {method:safeParams.method};
+      }
       var crmId = crmCampaign();
       if (crmId) safeParams.crm_campaign = crmId;
       var insight = insightCampaign();
       if (insight) safeParams.share_campaign = insight;
+      var aiSource = aiSourceLabel();
+      if (aiSource) safeParams.ai_source = aiSource;
       var growth = growthAttribution();
       if (growth) { safeParams.growth_campaign = growth.campaignId; safeParams.growth_version = growth.version; }
       if (growth && growth.version === 'paid-20261028-v1') {
+        Object.assign(safeParams, paidCampaignParams(growth));
         if (growth.content) safeParams.campaign_creative = growth.content;
         if (growth.keyword) safeParams.campaign_keyword = growth.keyword;
       }
@@ -242,9 +305,35 @@
       if (eventName === 'checkout_pg_opened') global.cdTrack('begin_checkout', {
         currency:'KRW',items:/^[a-zA-Z0-9_-]{1,100}$/.test(safeParams.feature_key || '') ? [{item_id:safeParams.feature_key,quantity:1}] : []
       });
+      return true;
     } catch (_sendError) {
-      /* 계측 실패는 무시한다 */
+      /* Failed queue insertion must not consume the purchase dedupe key. */
+      return false;
     }
+  };
+
+  // No query/text/name field: only catalogue IDs and resolved intent enums.
+  global.cdTrackDiscovery = function (eventName, input) {
+    if (['view_item','select_item','view_search_results','search_result_select'].indexOf(eventName) < 0) return false;
+    input = input || {};
+    var list = ['home','discovery','search','related','landing'].indexOf(input.itemListId) >= 0 ? input.itemListId : 'discovery';
+    var intent = ['all','love','money','career','relationship','yearly','method','consultation','unknown'].indexOf(input.intentId) >= 0 ? input.intentId : 'unknown';
+    var params = {item_list_id:list,intent_id:intent,metric_version:1};
+    if (eventName === 'view_search_results') {
+      if (!Number.isSafeInteger(input.resultCount) || input.resultCount < 0) return false;
+      // GA search_term contains a public category code, never the entered text.
+      params.search_term = intent;
+      params.result_count = Math.min(input.resultCount,10000);
+    } else {
+      if (!/^[a-z][a-z0-9_-]{0,99}$/.test(input.itemId || '')) return false;
+      params.items = [{item_id:input.itemId,item_list_id:list}];
+      if (typeof input.value === 'number' && Number.isFinite(input.value) && input.value >= 0) {
+        params.currency = 'KRW';
+        params.value = input.value;
+        params.items[0].price = input.value;
+      }
+    }
+    return global.cdTrack(eventName,params);
   };
 
   function portalPayload(link) {
@@ -329,7 +418,15 @@
     finishPortalArrival();
   }
 
-  growthAttribution();
+  // Count an explicit paid URL arrival, not every later page that inherits it.
+  var landingAttribution = growthAttribution();
+  var landingQuery = new URLSearchParams(global.location.search || '');
+  if (landingAttribution && landingAttribution.version === 'paid-20261028-v1'
+      && landingQuery.get('utm_source') === 'naver' && landingQuery.get('utm_medium') === 'cpc'
+      && landingQuery.get('utm_campaign') === landingAttribution.campaignId) {
+    var landingPath = /^\/(?:new-year-ai-consultation|love-secret-ai|life-book-ai|yeongnyangi|ggulggul|saju)\/$/.test(global.location.pathname) ? global.location.pathname : '/';
+    global.cdTrack('ad_landing_view',{landing_path:landingPath,metric_version:1});
+  }
   if (crmCampaign()) global.cdTrack('crm_landing_visit', { landing_path: global.location.pathname });
   var purchaseEvents = Object.create(null);
   function persistObservedPurchases() {
@@ -401,11 +498,83 @@
       observation:'browser_render',metric_version:2
     });
   };
+  // Naver's SDK reads full location/referrer. Keep it in a same-origin, no-referrer
+  // measurement frame whose URL excludes checkout tokens, hashes and private queries.
+  var naverFrame = null, naverReady = false;
+  var naverPending = Object.create(null), naverSent = Object.create(null), naverInFlight = Object.create(null);
+  function naverLocation() {
+    // Section paths only: never expose private dynamic routes or result IDs.
+    var section = /^\/(new-year-ai-consultation|points|checkout|ggulggul|yeongnyangi|saju|ziwei|vedic|tarot|records)(?:\/|$)/.exec(global.location.pathname);
+    var path = section ? '/' + section[1] + '/' : '/';
+    var parts = String(global.location.search || '').replace(/^\?/, '').split('&').filter(function (pair) {
+      return /^NaPm=[a-zA-Z0-9%|=._~-]{1,2048}$/.test(pair) ||
+        /^utm_source=naver$|^utm_medium=cpc$|^utm_campaign=(paid_20261028_(naver|brand)|ggulggul_2027_test)$|^utm_content=([A-E]_ko|yearly_[abc])$|^utm_term=K(0[1-9]|10)$/.test(pair);
+    });
+    return global.location.origin + path + (parts.length ? '?' + parts.join('&') : '');
+  }
+  function flushNaverPurchases() {
+    if (!naverReady || !naverFrame || readConsent() !== 'accepted') return;
+    Object.keys(naverPending).forEach(function (id) {
+      if (naverInFlight[id] || naverSent[id]) return;
+      naverInFlight[id] = true;
+      naverFrame.contentWindow.postMessage({kind:'cd:naver:purchase',receipt:naverPending[id]},global.location.origin);
+    });
+  }
+  function clearNaverStorage() {
+    try {
+      ['NA_SA','NA_SAC','NA_SAS','NA_MI','NA_CO','NVADID','NA_DA','_fwb','NA_TRIDTP','NA_NACC','NAC','NACT'].forEach(function (name) {
+        document.cookie = name + '=; max-age=0; path=/; SameSite=Lax; Secure';
+        document.cookie = name + '=; max-age=0; path=/; domain=code-destiny.com; SameSite=Lax; Secure';
+      });
+      Object.keys(global.localStorage).filter(function (key) { return key.indexOf('cd:naver:purchase:') === 0 || key === 'NAC' || key === 'NACT'; }).forEach(function (key) { global.localStorage.removeItem(key); });
+    } catch (_) { /* Storage policy cannot block checkout. */ }
+  }
+  function syncNaverConsent() {
+    if (!productionOrigin) return;
+    if (readConsent() !== 'accepted') {
+      clearNaverStorage();
+      if (naverFrame) naverFrame.remove();
+      naverFrame = null; naverReady = false;
+      naverPending = Object.create(null); naverInFlight = Object.create(null);
+      return;
+    }
+    if (naverFrame) return;
+    naverFrame = document.createElement('iframe');
+    naverFrame.id = 'cd-naver-conversion'; naverFrame.hidden = true;
+    naverFrame.title = '전환 측정'; naverFrame.setAttribute('aria-hidden','true');
+    naverFrame.setAttribute('referrerpolicy','no-referrer');
+    naverFrame.src = '/analytics/naver-conversion.html';
+    naverFrame.onload = function () {
+      if (naverFrame && readConsent() === 'accepted') naverFrame.contentWindow.postMessage({kind:'cd:naver:init',url:naverLocation()},global.location.origin);
+    };
+    (document.body || document.documentElement).appendChild(naverFrame);
+  }
+  function queueNaverPurchase(id, value, item) {
+    if (readConsent() !== 'accepted' || !productionOrigin || naverSent[id]) return;
+    try { if (global.localStorage.getItem('cd:naver:purchase:' + id)) return; } catch (_) {}
+    if (Object.keys(naverPending).length >= 32 && !naverPending[id]) return;
+    naverPending[id] = {id:id,value:value,item:item};
+    syncNaverConsent(); flushNaverPurchases();
+  }
+  global.addEventListener('message',function (event) {
+    if (!naverFrame || event.origin !== global.location.origin || event.source !== naverFrame.contentWindow || readConsent() !== 'accepted') return;
+    var data = event.data || {};
+    if (data.kind === 'cd:naver:ready') { naverReady = true; flushNaverPurchases(); }
+    if (data.kind === 'cd:naver:ack' && naverPending[data.id] && naverInFlight[data.id]) {
+      delete naverInFlight[data.id];
+      if (data.sent === true) {
+        naverSent[data.id] = true; delete naverPending[data.id];
+        try { global.localStorage.setItem('cd:naver:purchase:' + data.id,'1'); } catch (_) {}
+      }
+    }
+  });
+  syncNaverConsent();
+
   // Call only with a successful server confirmation, never the PG popup callback.
   global.cdTrackConfirmedPurchase = function (payload) {
     try {
       var payment = payload && (payload.payment || payload.order);
-      if (!payment || !/^(paid|success|fulfilled)$/i.test(String(payment.status || ''))) return false;
+      if (payload.ok === false || !payment || !/^(paid|success|fulfilled)$/i.test(String(payment.status || ''))) return false;
       // Unknown older receipts remain reconcilable in the PG audit, never guessed as live revenue.
       if (payment.analyticsChannel !== 'LIVE') return false;
       var id = String(payment.merchantUid || payment.orderId || '');
@@ -413,22 +582,24 @@
       // 지급 완료 봉투(worker/payments/compat.js legacyConfirmEnvelope)는 featureKey 를 accessGrant 안에만 싣는다.
       var item = String(payload.featureKey || (payload.accessGrant && payload.accessGrant.featureKey) || payment.featureKey || payment.productId || payment.paymentType || 'fortune');
       if (!/^[a-zA-Z0-9_-]{1,100}$/.test(item)) item = 'fortune';
-      if (!/^[a-zA-Z0-9_-]{1,160}$/.test(id) || !Number.isFinite(value) || value <= 0) return false;
+      if (!/^[a-zA-Z0-9_-]{1,160}$/.test(id) || !Number.isSafeInteger(value) || value <= 0) return false;
       var key = 'cd:purchase:' + id;
       var persisted = readConsent() === 'accepted';
       var seen = purchaseEvents[key];
       if (persisted) { try { seen = seen || global.localStorage.getItem(key); } catch (_) {} }
       if (!seen) {
         // The confirmation can follow SPA navigation from the initial page.
-        global.cdTrack('purchase', {transaction_id:id,value:value,currency:'KRW',page_location:pageLocation(),items:[{item_id:item,price:value,quantity:1}]});
+        if (!global.cdTrack('purchase', {transaction_id:id,value:value,currency:'KRW',page_location:pageLocation(),items:[{item_id:item,price:value,quantity:1}]})) return false;
         purchaseEvents[key] = true;
         if (persisted) { try { global.localStorage.setItem(key, '1'); } catch (_) {} }
+        queueNaverPurchase(id,value,item);
       }
+      flushNaverPurchases();
       var granted = !/^(GRANT_PENDING|PENDING_CONFIRMATION)$/.test(String(payload.code || '').toUpperCase()) && payload.activationPending !== true && payload.recoveryRequired !== true && payment.entitlementGranted !== false;
       var grantSeen = purchaseEvents[key + ':grant'];
       if (persisted) { try { grantSeen = grantSeen || global.localStorage.getItem(key + ':grant'); } catch (_) {} }
       if (granted && !grantSeen) {
-        global.cdTrack('entitlement_granted', {transaction_id:id,item_id:item});
+        if (!global.cdTrack('entitlement_granted', {transaction_id:id,item_id:item})) return false;
         purchaseEvents[key + ':grant'] = true;
         if (persisted) { try { global.localStorage.setItem(key + ':grant', '1'); } catch (_) {} }
       }
@@ -440,6 +611,10 @@
    * 동의 배너에서 선택이 바뀐 뒤 호출된다(index.html 의 commit()).
    * 배너를 누른 그 순간부터 반영되어야 하므로 페이지를 새로 고칠 때까지 기다리지 않는다.
    */
+  var pendingPurchases = global.__cdPendingConfirmedPurchases || [];
+  global.__cdPendingConfirmedPurchases = [];
+  pendingPurchases.forEach(function (receipt) { global.cdTrackConfirmedPurchase(receipt); });
+
   var withdrawalInFlight = false;
   function receiptCookie(name) {
     var values=String(document.cookie || '').split(';').map(function(v){return v.trim();}).filter(function(v){return v.indexOf(name+'=')===0;});
@@ -477,7 +652,9 @@
   }
   global.cdSyncConsent = function cdSyncConsent() {
     syncServerConsent();
+    syncNaverConsent();
     persistObservedPurchases();
+    growthAttribution();
     try {
       global.gtag("consent", "update", { analytics_storage: analyticsStorageState() });
     } catch (_consentError) {

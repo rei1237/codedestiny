@@ -11,7 +11,11 @@
  *     그리고 `user-agent: mediapartners-google[\s\S]*?disallow: /` 가 파일을 가로질러
  *     CCBot 의 줄에 매치돼 "blocks Mediapartners-Google" 오탐까지 났다
  *
- * 세 번째 사본이 생기지 않도록 여기 한 곳에서만 파싱한다.
+ * 세 번째 사본이 생기지 않도록 여기 한 곳에서만 파싱한다. 경로별 허용 판정(robotsAllows)도 같은 파싱을 쓴다
+ * (2026-11-02, scripts/seo/health-policy.mjs 에 있던 두 번째 파서를 합쳤다).
+ *
+ * 그룹 경계는 Google robots.txt 파서와 같다: `#` 뒤는 줄 중간이라도 주석이고, Allow·Disallow 만
+ * User-agent 목록을 끝낸다. Sitemap·Crawl-delay·Host 같은 다른 줄은 그룹을 나누지 않는다.
  */
 
 /** robots.txt 텍스트 → [{ agents: string[], allow: string[], disallow: string[] }] */
@@ -20,8 +24,8 @@ export function parseRobotsGroups(robotsText) {
   let current = null;
 
   for (const raw of String(robotsText || "").split(/\r?\n/)) {
-    const line = raw.trim();
-    if (!line || line.startsWith("#")) continue;
+    const line = raw.replace(/#.*/, "").trim();
+    if (!line) continue;
 
     const agent = /^User-agent:\s*(.+)$/i.exec(line);
     if (agent) {
@@ -50,11 +54,47 @@ export function parseRobotsGroups(robotsText) {
       if (allow[1].trim()) current.allow.push(allow[1].trim());
       continue;
     }
-
-    if (/^(Crawl-delay|Sitemap|Host):/i.test(line)) current.hasRules = true;
   }
 
   return groups.map(({ agents, allow, disallow }) => ({ agents, allow, disallow }));
+}
+
+/**
+ * 그 봇이 그 경로를 긁어도 되는가. 이름이 정확히 맞는 그룹(대소문자 무시)을 모두 합치고, 없으면 `*` 그룹을 쓴다.
+ * 가장 긴 규칙이 이기고 길이가 같으면 Allow 가 이긴다. `*` 는 아무 글자, 끝의 `$` 는 경로 끝.
+ */
+export function robotsAllows(robotsText, pathname, agent = "googlebot") {
+  const name = agent.toLowerCase();
+  const groups = parseRobotsGroups(robotsText);
+  const named = (target) => groups.filter((group) => group.agents.some((value) => value.toLowerCase() === target));
+  const selected = named(name).length ? named(name) : named("*");
+  const rules = selected
+    .flatMap((group) => [
+      ...group.allow.map((value) => ({ allow: true, value })),
+      ...group.disallow.map((value) => ({ allow: false, value })),
+    ])
+    .filter((rule) => {
+      const pattern = rule.value.replace(/[.+?^{}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*");
+      return new RegExp(`^${pattern}`).test(pathname);
+    })
+    .sort((a, b) => b.value.replace(/[*$]/g, "").length - a.value.replace(/[*$]/g, "").length || Number(b.allow) - Number(a.allow));
+  return rules[0]?.allow ?? true;
+}
+
+/**
+ * 두 robots.txt 의 판정을 비교할 표본. 주어진 기본 UA·경로에 각 텍스트의 User-agent 이름과
+ * Allow·Disallow 경로(`*` 는 x 로, 끝 `$` 는 떼어)를 더한다 — 파일에 적힌 봇과 규칙은 빠짐없이 밟는다.
+ */
+export function robotsSamples(texts, { agents = [], paths = [] } = {}) {
+  const agentSet = new Set(agents);
+  const pathSet = new Set(paths);
+  for (const text of texts) {
+    for (const group of parseRobotsGroups(text)) {
+      for (const agent of group.agents) agentSet.add(agent);
+      for (const path of [...group.allow, ...group.disallow]) pathSet.add(path.replace(/\*/g, "x").replace(/\$$/, ""));
+    }
+  }
+  return { agents: [...agentSet], paths: [...pathSet] };
 }
 
 /** 이름이 색인 크롤러(= 사이트맵·광고 계약의 대상)에 해당하는가. */

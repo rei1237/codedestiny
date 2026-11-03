@@ -2,6 +2,7 @@ import '../../scripts/lib/mock-network-guard.cjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {build} from 'esbuild';
+import {readFileSync} from 'node:fs';
 import {createRequire} from 'node:module';
 import {getYeongnyangiSpread} from '../../lib/tarot/yeongnyangi-spread-catalog.mjs';
 const require=createRequire(import.meta.url),Module=require('node:module');
@@ -33,6 +34,14 @@ test('legacy snapshots keep the historical total split 20% into followups',()=>{
   assert.deepEqual(budget.total,[...m.v6ReadingPolicies[tier].target]);
   for(const i of [0,1])assert.equal(budget.initial[i]+budget.followups*budget.followup[i],budget.total[i]);
  }
+});
+test('the landing chapter table comes from the question manifest: 8 chapters and no followups for mackerel',()=>{
+ assert.equal(m.EXPANDED_CHAPTERS.mackerel,8);
+ assert.equal(m.FOLLOWUP_LIMITS.mackerel,0);
+ const guide=readFileSync('app/yeongnyangi/_components/YeongnyangiGuide.tsx','utf8');
+ assert.ok(guide.includes("questionManifest('saju','mackerel',{version:QUESTION_POLICY_VERSION"));
+ assert.ok(guide.includes('가상 질문 · 질문과 체계에 따라 제목이 달라져요'));
+ assert.ok(guide.includes('mackerelChapters.map('));
 });
 test('every system opens with nature and current flow, then strengths, then the answer, within the tier budget',()=>{
  for(const domain of ['saju','ziwei','sukuyo','vedic','astrology','tarot'])for(const tier of ['mackerel','salmon','flounder','tuna']){

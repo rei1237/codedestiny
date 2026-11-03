@@ -48,20 +48,27 @@ export function checkSitemapPage(html, loc) {
   return failures;
 }
 
+// exact 는 `_redirects` 정확 일치 원천 + 워커 표의 합집합이다. worker 는 워커 CONSOLIDATED_PAGE_REDIRECTS 만 따로 담는다
+// (워커는 후행 슬래시를 떼고 찾지만 `_redirects` 는 글자 그대로 맞추므로 호출부가 구분할 수 있게).
+// 표는 배포되는 dist/_worker.js 에서 읽는다(빌드가 public/_worker.js 를 바이트 그대로 복사한다). 파일이 없으면 던진다.
 export function redirectSources(dist = DIST) {
   const exact = new Set(WORKER_REDIRECT_PATHS);
   const prefixes = [];
-  for (const line of readFileSync(join(dist, "_redirects"), "utf8").split(/\r?\n/)) {
+  const redirectsFile = join(dist, "_redirects");
+  if (!existsSync(redirectsFile)) throw new Error(`${redirectsFile} 없음`);
+  for (const line of readFileSync(redirectsFile, "utf8").split(/\r?\n/)) {
     const [source, , status = "301"] = line.trim().split(/\s+/);
     if (!source || source.startsWith("#") || status.startsWith("200")) continue;
     if (source.endsWith("/*")) prefixes.push(source.slice(0, -1));
     else if (!source.includes(":")) exact.add(source);
   }
-  const worker = readFileSync("public/_worker.js", "utf8");
-  const table = worker.match(/const CONSOLIDATED_PAGE_REDIRECTS = (\{[\s\S]*?\});/);
-  if (!table) throw new Error("public/_worker.js 에서 CONSOLIDATED_PAGE_REDIRECTS 를 찾지 못했습니다.");
-  for (const source of Object.keys(JSON.parse(table[1]))) exact.add(source);
-  return { exact, prefixes };
+  const workerFile = join(dist, "_worker.js");
+  if (!existsSync(workerFile)) throw new Error(`${workerFile} 없음`);
+  const table = readFileSync(workerFile, "utf8").match(/const CONSOLIDATED_PAGE_REDIRECTS = (\{[\s\S]*?\});/);
+  if (!table) throw new Error(`${workerFile} 에서 CONSOLIDATED_PAGE_REDIRECTS 를 찾지 못했습니다.`);
+  const worker = new Set(Object.keys(JSON.parse(table[1])));
+  for (const source of worker) exact.add(source);
+  return { exact, prefixes, worker };
 }
 
 export function htmlFiles(dir, out = []) {

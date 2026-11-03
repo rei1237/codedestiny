@@ -1,6 +1,6 @@
 // Network-free edge probe: runs the Cloudflare Pages advanced-mode worker (dist/_worker.js) in a
 // Node vm in front of an emulation of Pages static serving, so build output alone shows
-// trailing-slash 308s, country 302s and crawler geo cookies.
+// trailing-slash redirects (slash308: any 3xx other than one absolute https 301), country 302s and crawler geo cookies.
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { extname, isAbsolute, join, relative, resolve } from 'node:path';
 import { runInNewContext } from 'node:vm';
@@ -17,6 +17,7 @@ const CONTENT_TYPES = {
   '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8',
   '.json': 'application/json; charset=utf-8', '.xml': 'application/xml; charset=utf-8', '.txt': 'text/plain; charset=utf-8',
   '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.ico': 'image/x-icon',
+  '.gif': 'image/gif', '.avif': 'image/avif', '.woff2': 'font/woff2', '.webmanifest': 'application/manifest+json', '.mp4': 'video/mp4',
 };
 
 // Same loading trick as __tests__/ui/visitor-country-routing.test.mjs. fetch is a trap: a plain GET
@@ -30,6 +31,11 @@ export function loadWorker(source) {
 
 // Pages static serving: a file is 200, `/dir` with dir/index.html is a 308 to `/dir/`, `/dir/` serves
 // its index.html, `/page` serves page.html, anything else (or anything outside distDir) is 404.
+// Where real Pages differs (not emulated, so counts describe the worker, not the full production response):
+//   - `/x.html` is 200 here; Pages 308s it to `/x`. `/dir/index.html` is 200 here; Pages 308s it to `/dir/`.
+//   - `/dir/` with only dir.html (no dir/index.html) is 404 here; Pages still resolves it to dir.html.
+//   - `_redirects` and `_headers` are not applied.
+// The vm context is not a sandbox and has no timeout: only run a dist this repo built.
 export function distAssets(distDir) {
   const root = resolve(distDir);
   const fileAt = (relPath) => {
@@ -73,14 +79,18 @@ export async function probeEdge({ workerSource, assets }) {
   const worker = loadWorker(workerSource);
   const result = { slash308: [], country302: [], crawlerCookie: [] };
   for (const path of ['/saju', '/en', '/ggulggul']) {
-    if ((await visit(worker, assets, path, 'KR', CHROME_UA)).status === 308) result.slash308.push(path);
+    // Violation: any 3xx that is not the worker's own one absolute https 301. 200 and 404 are not (a missing directory must not block publishing).
+    const response = await visit(worker, assets, path, 'KR', CHROME_UA);
+    const redirected = response.status >= 300 && response.status < 400;
+    if (redirected && !(response.status === 301 && /^https:\/\//i.test(response.headers.get('Location') || ''))) result.slash308.push(path);
   }
   if ((await visit(worker, assets, '/', 'US', CHROME_UA)).status === 302) result.country302.push('/ US');
   for (const { label: crawler, ua } of CRAWLERS) {
     for (const path of ['/', '/saju/']) {
       const response = await visit(worker, assets, path, 'US', ua);
       const cacheControl = response.headers.get('Cache-Control') || '';
-      if (/cd_geo/.test(response.headers.get('Set-Cookie') || '') || /private|no-store/i.test(cacheControl)) {
+      // Crawlers get cd_geo_country and `private` (the cookie makes the response per-visitor); a language cookie or no-store is the violation.
+      if (/cd_geo_locale/.test(response.headers.get('Set-Cookie') || '') || /no-store/i.test(cacheControl)) {
         result.crawlerCookie.push(`${path} ${crawler}`);
       }
     }

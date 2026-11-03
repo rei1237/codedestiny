@@ -27,9 +27,11 @@ const ResultSharing = dynamic(() => import('./ResultSharing'), { ssr: false });
 const SummaryReportView = dynamic(() => import('./SummaryReport'), { ssr: false });
 import FishReceipt from './FishReceipt';
 import {OrderReference} from './OrderRecovery';
-import TarotDrawRitual,{tarotRitualCompleted} from './TarotDrawRitual';
-import TarotCardPick from './tarot/TarotCardPick';
-import TarotSpreadReveal,{spreadCards} from './tarot/TarotSpreadReveal';
+import {tarotRitualCompleted,spreadCards} from '../_lib/tarot-presentation-state';
+function TarotPresentationLoading(){const {siteLocale}=useReadingLanguage();return <p role="status" className={styles.loading}>{readingCopy(siteLocale).loading}</p>;}
+const TarotDrawRitual=dynamic(()=>import('./TarotDrawRitual'),{ssr:false,loading:TarotPresentationLoading});
+const TarotCardPick=dynamic(()=>import('./tarot/TarotCardPick'),{ssr:false,loading:TarotPresentationLoading});
+const TarotSpreadReveal=dynamic(()=>import('./tarot/TarotSpreadReveal'),{ssr:false,loading:TarotPresentationLoading});
 import {useReadingLanguage} from '../_lib/use-reading-language';
 import {localizedSystem,localizedTier,localizedKind} from '../_lib/consultation-locale-copy';
 // Completed-reading tools load after the record selects them. The reading body

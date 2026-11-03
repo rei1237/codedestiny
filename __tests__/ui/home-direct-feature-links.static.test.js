@@ -10,19 +10,20 @@ const registry = read("js/core/service-registry.js");
 const template = read("templates/home-funnel.html");
 
 // 2026-10-23 강약: 대표 상담 덱 → 초융합 시그니처 띠 → 무료로 먼저(여섯 장) → 꿀방울 출석 → 1:1 상담(연이·네오) → 질문 카테고리 → 이용권 → 모든 운세 버튼 → 작은 운세 모음 → 뮤직비디오 → 달빛 이야기.
-// Approved pass-benefits entry (93e3dea40) precedes the consultation flow.
-const flow = ['id="cdhPass"', 'id="cdhFusionSignatureSlot"', 'id="cdhNeoLetterSlot"', 'id="cdhFeatured"', 'id="cdhQuickSlot"', 'data-cd-honey-widget', 'class="cdh-all-cta"', 'id="cdhLightFortunes"', 'class="cdh-story"', 'id="cdhMoonlightMv"'];
+// Approved 2026-11-03 refinement keeps pass comparison immediately after concern discovery.
+const flow = ['{{yehwaHome}}', 'id="cdhPass"', 'id="cdhFusionSignatureSlot"', 'id="cdhNeoLetterSlot"', 'id="cdhFeatured"', 'id="cdhQuickSlot"', 'data-cd-honey-widget', 'class="cdh-all-cta"', 'id="cdhLightFortunes"', 'id="cdhMoonlightMv"', 'class="cdh-story"'];
 for (let i = 1; i < flow.length; i += 1) {
   const prev = template.indexOf(flow[i - 1]);
   const next = template.indexOf(flow[i]);
   assert.ok(prev >= 0 && next > prev, `${flow[i - 1]} 가 ${flow[i]} 보다 먼저 와야 합니다`);
 }
 // 첫 화면 검색과 기존 하단 전체 운세 버튼은 같은 검색을 여는 별도 진입점이다.
-for (const entryClass of ['cdh-search-entry', 'cdh-all-cta__btn']) {
+for (const entryClass of ['cdh-all-cta__btn']) {
   const entry = template.match(new RegExp(`<a class="${entryClass}"[^>]*>`))?.[0] || '';
   assert.match(entry, /href="\/\?action=cdOpenAllFortunes" data-action="cdOpenAllFortunes"/, `${entryClass}는 기존 전체 운세 검색을 열어야 합니다`);
 }
-assert.ok(template.indexOf('class="cdh-search-entry"') < template.indexOf('id="cdhFeatured"'), '검색 진입점은 대표 상담 앞에서 바로 사용할 수 있어야 합니다');
+assert.ok(template.indexOf('{{yehwaHome}}') < template.indexOf('id="cdhFeatured"'), '고민과 전체 검색 진입은 대표 상담 앞에 둡니다');
+assert.match(home, /class="yh-links"[\s\S]*?data-action="cdOpenAllFortunes"/);
 // 나머지 입구는 홈에 펼치지 않고 모든 운세 시트 하나로 연다.
 for (const gone of ['id="cdhMore"', 'id="cdhServices"', 'id="cdhConcern"', 'id="cdhTodaySlot"', 'id="cdhFlowerTitle"', 'data-cdh-chemi', '{{fusionRecommendation}}', '{{lightRecommendations}}', '{{consultationDiscovery}}']) {
   assert.ok(!template.includes(gone), `${gone} 는 홈 흐름에서 빠졌습니다`);
@@ -67,7 +68,9 @@ const { JSDOM } = require('jsdom');
 const homeDocument = new JSDOM(home).window.document;
 const signatureSection = homeDocument.querySelector('#cdSignatureConsult')?.outerHTML || '';
 assert.ok(homeDocument.querySelector('#cdSignatureConsult #cdConcernPick'), 'Concern selection belongs to the consultation section');
-assert.ok(homeDocument.querySelector('.cdh-story #cdhMoonlightMv'), 'Music video belongs to the single story disclosure');
+assert.ok(homeDocument.querySelector('#cdhMoonlightMv'), 'Music video stays on the home');
+assert.equal(homeDocument.querySelector('#cdhMoonlightMv').closest('details'), null, 'Music video stays visible outside disclosures');
+assert.ok(homeDocument.querySelector('.cdh-story .cdh-story__card--music[href="/music/"]'), 'Playlist remains in the story disclosure');
 assert.equal(homeDocument.querySelectorAll('#cdhMoonlightMv').length, 1);
 assert.doesNotMatch(template, /음악으로 쉬어가기/);
 assert.ok(signatureSection, '대표 운명 상담 섹션을 찾지 못했습니다');
@@ -102,13 +105,15 @@ for (const entry of [
   if (action) assert.ok(sourceEntry.includes(`action: "${action}"`), `서비스 레지스트리 직접 실행 액션이 없습니다: ${id} -> ${action}`);
 }
 
-// 전체 검색은 검색 → 지역 탐색 → 대표 상담 복귀 링크 → 기존 필터 순서다.
+// 검색·필터를 먼저 조작하고 결과를 바로 본다. 공간 탐색은 접어 두고 대표 상담 복귀 링크는 결과 뒤에 보존한다.
 const afRoot = template.indexOf('id="cdAllFortunesRoot"');
 const afSearch = template.indexOf('id="cdAllFortunesSearch"');
 const afExplore = template.indexOf('data-cd-explore');
 const afLink = template.indexOf('data-cd-af-signature');
 const afFilters = template.indexOf('id="cdAllFortunesMethodTitle"');
-assert.ok(afRoot > 0 && afSearch > afRoot && afExplore > afSearch && afLink > afExplore && afFilters > afLink, 'search and exploration precede the preserved signature link and filters');
+const afResults = template.indexOf('id="cdAllFortunesResults"');
+assert.ok(afRoot > 0 && afSearch > afRoot && afFilters > afSearch && afExplore > afFilters && afResults > afExplore && afLink > afResults, 'search and filters precede optional exploration and results; the home link stays after results');
+assert.match(template, /<details class="cd-af__explore" data-cd-explore aria-labelledby="cdAllFortunesExploreTitle">/, 'space exploration is collapsed by default');
 assert.match(template.slice(afRoot, afSearch), /^id="cdAllFortunesRoot">\s*<div class="cd-af__search" role="search">\s*<input type="search"\s*$/, 'search is the first content element');
 assert.ok(template.includes('href="/ggulggul/#cdSignatureConsult" data-cd-af-signature'), 'signature link points at the home deck');
 

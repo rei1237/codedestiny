@@ -436,3 +436,139 @@ test('refund requires a server full cash receipt; partial or credit restoration 
  const rows=w.dataLayer.filter(r=>r[1]==='refund_observed');assert.equal(rows.length,1);assert.equal(rows[0][2].value,5000);assert.equal(rows[0][2].transaction_id,'refund-fixture');
  assert.equal(w.dataLayer.filter(r=>r[1]==='refund').length,0,'history viewing must not backfill a refund at the wrong time');dom.window.close();
 });
+
+
+test('active 2027 Naver campaign survives URL loss, reload and return tab and labels the server purchase', async()=>{
+ const first=boot('https://code-destiny.com/new-year-ai-consultation/?utm_source=naver&utm_medium=cpc&utm_campaign=ggulggul_2027_test&utm_content=yearly_b&NaPm=private&question=private',{consent:'accepted'}),w=first.window;
+ const approval={ok:true,payment:{merchantUid:'fixture-2027-order',paymentAmount:30000,status:'paid',analyticsChannel:'LIVE'},featureKey:'new-year-ai-consultation'};
+ try {
+  const config=w.dataLayer.find(row=>row[0]==='config')[2];
+  assert.equal(config.campaign_source,'naver');assert.equal(config.campaign_medium,'cpc');assert.equal(config.campaign_name,'ggulggul_2027_test');
+  w.history.replaceState({},'', '/new-year-ai-consultation/');
+  w.cdTrackConfirmedPurchase(approval);w.cdTrackConfirmedPurchase(approval);
+  const purchases=w.dataLayer.filter(row=>row[1]==='purchase');assert.equal(purchases.length,1);
+  assert.equal(purchases[0][2].transaction_id,'fixture-2027-order');assert.equal(purchases[0][2].value,30000);
+  assert.equal(purchases[0][2].campaign_name,'ggulggul_2027_test');assert.equal(purchases[0][2].campaign_content,'yearly_b');
+  assert.equal(JSON.stringify(w.dataLayer).includes('private'),false);
+  const stored=Object.fromEntries(Object.keys(w.localStorage).map(key=>[key,w.localStorage.getItem(key)]));
+  const returned=boot('https://code-destiny.com/new-year-ai-consultation/',{consent:'accepted',stored});
+  try {returned.window.cdTrackConfirmedPurchase(approval);assert.equal(returned.window.dataLayer.filter(row=>row[1]==='purchase').length,0);assert.equal(returned.window.cdReadGrowthAttribution().campaignId,'ggulggul_2027_test');}finally{returned.window.close();}
+  w.document.cookie='cd_cookie_consent=essential; path=/';w.cdSyncConsent();assert.equal(w.cdReadGrowthAttribution(),null);
+ }finally{w.close();}
+});
+
+test('delayed analytics boot drains only minimal verified receipts and deduplicates confirmation replay',()=>{
+ const dom=new JSDOM('<!doctype html><html><head></head><body></body></html>',{url:'https://code-destiny.com/new-year-ai-consultation/',runScripts:'outside-only'}),w=dom.window;
+ try {
+  w.document.cookie='cd_cookie_consent=accepted; path=/';
+  w.eval(readFileSync(new URL('../../js/core/checkout-entry.js',import.meta.url),'utf8'));
+  const approval={ok:true,featureKey:'new-year-ai-consultation',payment:{merchantUid:'fixture-late-tag',paymentAmount:30000,status:'paid',analyticsChannel:'LIVE'},question:'private',birthDate:'private'};
+  for(const bad of [{paymentId:'popup-callback'},{...approval,ok:false},{...approval,payment:{...approval.payment,status:'pending'}},{...approval,payment:{...approval.payment,analyticsChannel:'TEST'}}])w.__cdCheckoutEntry.trackConfirmedPurchase(bad);
+  assert.equal(w.__cdPendingConfirmedPurchases,undefined);
+  w.cdTrackConfirmedPurchase(approval);w.__cdCheckoutEntry.trackConfirmedPurchase(approval);
+  assert.equal(JSON.stringify(w.__cdPendingConfirmedPurchases).includes('private'),false);
+  w.eval(source);assert.equal(w.__cdPendingConfirmedPurchases.length,0);
+  const purchases=w.dataLayer.filter(row=>row[1]==='purchase');assert.equal(purchases.length,1);assert.equal(purchases[0][2].value,30000);
+  w.__cdCheckoutEntry.trackConfirmedPurchase(approval);assert.equal(w.dataLayer.filter(row=>row[1]==='purchase').length,1);
+ }finally{w.close();}
+});
+
+test('queue insertion failure does not consume a purchase dedupe key or grant marker',()=>{
+ const dom=boot(undefined,{consent:'accepted'}),w=dom.window,approval={payment:{merchantUid:'fixture-queue-failure',paymentAmount:30000,status:'paid',analyticsChannel:'LIVE'}};
+ try {const gtag=w.gtag;w.gtag=()=>{throw Error('mock queue unavailable')};assert.equal(w.cdTrackConfirmedPurchase(approval),false);assert.equal(w.localStorage.getItem('cd:purchase:fixture-queue-failure'),null);w.gtag=gtag;assert.equal(w.cdTrackConfirmedPurchase(approval),true);assert.equal(w.dataLayer.filter(row=>row[1]==='purchase').length,1);}finally{w.close();}
+});
+
+test('checkout campaign metadata requires current unambiguous consent and drops click identity and PII',async()=>{
+ const {readCheckoutAttribution}=await import('../../lib/marketing/growth-attribution.mjs');
+ const value={campaignId:'ggulggul_2027_test',version:'paid-20261028-v1',consent:true,device:'mobile',content:'yearly_a',NaPm:'private',question:'private',value:1};
+ for(const cookie of ['', 'cd_cookie_consent=essential', 'cd_cookie_consent=accepted; cd_cookie_consent=essential'])assert.equal(readCheckoutAttribution(new Request('https://code-destiny.com/',{headers:{cookie}}),value),undefined);
+ const normalized=readCheckoutAttribution(new Request('https://code-destiny.com/',{headers:{cookie:'cd_cookie_consent=accepted'}}),value);
+ assert.equal(normalized.campaignId,'ggulggul_2027_test');assert.equal(normalized.content,'yearly_a');assert.equal(JSON.stringify(normalized).includes('private'),false);assert.equal(normalized.value,undefined);
+});
+
+
+test('an explicitly tagged later source cannot inherit the previous Naver paid campaign',()=>{
+ const dom=boot('https://code-destiny.com/?utm_source=naver&utm_medium=cpc&utm_campaign=ggulggul_2027_test',{consent:'accepted'}),w=dom.window;
+ try {assert.equal(w.cdReadGrowthAttribution().campaignId,'ggulggul_2027_test');w.history.replaceState({},'', '/?utm_source=google&utm_medium=organic&utm_campaign=other');assert.equal(w.cdReadGrowthAttribution(),null);assert.equal(w.localStorage.getItem('cd:growth:campaign:paid-return'),null);}finally{w.close();}
+});
+
+
+test('consented public campaign cookie links the real prepare route without changing frozen billing clients',async()=>{
+ const {readCheckoutAttribution}=await import('../../lib/marketing/growth-attribution.mjs');
+ const dom=boot('https://code-destiny.com/new-year-ai-consultation/?utm_source=naver&utm_medium=cpc&utm_campaign=ggulggul_2027_test&utm_content=yearly_c&NaPm=private',{consent:'accepted'}),w=dom.window;
+ try {
+  const cookie=w.document.cookie;
+  const label=readCheckoutAttribution(new Request('https://code-destiny.com/api/billing/checkout',{headers:{cookie}}));
+  assert.equal(label.campaignId,'ggulggul_2027_test');assert.equal(label.content,'yearly_c');assert.equal(JSON.stringify(label).includes('private'),false);
+  assert.equal(readCheckoutAttribution(new Request('https://code-destiny.com/',{headers:{cookie:cookie+'; cd_analytics_revoke_pending=1'}})),undefined);
+  w.document.cookie='cd_cookie_consent=essential; path=/';w.cdSyncConsent();
+  assert.equal(w.document.cookie.includes('cd_paid_campaign='),false);
+  assert.equal(readCheckoutAttribution(new Request('https://code-destiny.com/',{headers:{cookie:w.document.cookie}})),undefined);
+ }finally{w.close();}
+});
+
+function bootFrom(url,referrer,{consent='',session={}}={}){
+ const dom=new JSDOM('<!doctype html><html><head></head><body></body></html>',{url,...(referrer?{referrer}:{}),runScripts:'outside-only'});
+ if(consent)dom.window.document.cookie=`cd_cookie_consent=${consent}; path=/`;
+ for(const [key,value] of Object.entries(session))dom.window.sessionStorage.setItem(key,value);
+ dom.window.eval(source);return dom;
+}
+const firstConfig=w=>w.dataLayer.find(row=>row[0]==='config')[2];
+
+test('AI source labels only exact assistant hosts and never sends the referrer text',()=>{
+ for(const [host,label] of [['chatgpt.com','chatgpt'],['chat.openai.com','chatgpt'],['www.perplexity.ai','perplexity'],['perplexity.ai','perplexity'],['gemini.google.com','gemini'],['copilot.microsoft.com','copilot'],['copilot.com','copilot'],['claude.ai','claude']]){
+  const dom=bootFrom('https://code-destiny.com/yeongnyangi/',`https://${host}/c/private-thread?q=secret`),w=dom.window;
+  assert.equal(firstConfig(w).ai_source,label,host);
+  w.cdTrack('view_item',{item_id:'yeongnyangi-saju-mackerel'});
+  assert.equal(w.dataLayer.at(-1)[2].ai_source,label,host);
+  assert.doesNotMatch(JSON.stringify(Array.from(w.dataLayer,row=>Array.from(row))),/private-thread|secret/);
+  dom.window.close();
+ }
+});
+
+test('direct, same-host, lookalike and search traffic is not classified as AI',()=>{
+ const cases=[
+  ['https://code-destiny.com/yeongnyangi/',''],
+  ['https://code-destiny.com/yeongnyangi/','https://code-destiny.com/'],
+  ['https://code-destiny.com/yeongnyangi/','https://chatgpt.com.evil.example/'],
+  ['https://code-destiny.com/yeongnyangi/','https://notchatgpt.com/'],
+  ['https://code-destiny.com/yeongnyangi/','https://www.google.com/'],
+  ['https://code-destiny.com/yeongnyangi/','https://search.naver.com/'],
+  ['https://code-destiny.com/yeongnyangi/','https://www.bing.com/'],
+  ['https://code-destiny.com/yeongnyangi/?utm_source=ChatGPT.com',''],
+  ['https://code-destiny.com/yeongnyangi/?utm_source=chatgpt.com.evil',''],
+  ['https://code-destiny.com/yeongnyangi/?utm_source=chatgpt.com','https://www.google.com/'],
+ ];
+ for(const [url,referrer] of cases){
+  const dom=bootFrom(url,referrer,{consent:'accepted'}),w=dom.window;
+  assert.equal(firstConfig(w).ai_source,undefined,url+' '+referrer);
+  w.cdTrack('view_item',{item_id:'yeongnyangi-saju-mackerel'});
+  assert.equal(w.dataLayer.at(-1)[2].ai_source,undefined,url+' '+referrer);
+  assert.equal(w.sessionStorage.getItem('cd:ai:source'),null);
+  dom.window.close();
+ }
+ const utm=bootFrom('https://code-destiny.com/yeongnyangi/?utm_source=chatgpt.com','');
+ assert.equal(firstConfig(utm.window).ai_source,'chatgpt');
+ utm.window.close();
+});
+
+test('AI source persists for the session only with consent and a new external source clears it',()=>{
+ const denied=bootFrom('https://code-destiny.com/yeongnyangi/','https://chatgpt.com/',{session:{'cd:ai:source':JSON.stringify({value:'claude',until:Date.now()+60000})}});
+ assert.equal(firstConfig(denied.window).ai_source,'chatgpt');
+ assert.equal(denied.window.sessionStorage.getItem('cd:ai:source'),null);
+ denied.window.close();
+ const landed=bootFrom('https://code-destiny.com/yeongnyangi/','https://chatgpt.com/',{consent:'accepted'});
+ const saved=landed.window.sessionStorage.getItem('cd:ai:source');
+ assert.equal(JSON.parse(saved).value,'chatgpt');
+ landed.window.close();
+ const internal=bootFrom('https://code-destiny.com/yeongnyangi/fortune/','https://code-destiny.com/yeongnyangi/',{consent:'accepted',session:{'cd:ai:source':saved}});
+ assert.equal(firstConfig(internal.window).ai_source,'chatgpt');
+ internal.window.close();
+ const other=bootFrom('https://code-destiny.com/','https://www.google.com/',{consent:'accepted',session:{'cd:ai:source':saved}});
+ assert.equal(firstConfig(other.window).ai_source,undefined);
+ assert.equal(other.window.sessionStorage.getItem('cd:ai:source'),null);
+ other.window.close();
+ const expired=bootFrom('https://code-destiny.com/','',{consent:'accepted',session:{'cd:ai:source':JSON.stringify({value:'chatgpt',until:Date.now()-1})}});
+ assert.equal(firstConfig(expired.window).ai_source,undefined);
+ expired.window.close();
+});

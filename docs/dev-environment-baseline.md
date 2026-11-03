@@ -56,10 +56,42 @@ VS Code 설정은 개인 경로·자동승인을 제외한 항목만 공유한�
 
 중첩 워크트리 ESLint가 상위 설정을 상속해 플러그인이 충돌하던 문제는 root:true로, Next가 부모 lockfile을 root로 선택하던 문제는 outputFileTracingRoot로 수정했다. dev는 포트 점유 시 기존 서버를 건드리지 않고 중단한다. 테스트는 절대 preload 경로를 사용해 다른 cwd의 자식 Node에도 mock 차단이 유지된다.
 
-check:fast는 커밋 전 검사다. check:all은 커밋 후 push 전 검사이며, clean HEAD를 요구하는 기존 public-mirror-fresh 검사를 초반에 실행한다. 검사의 clean 조건을 약화하지 않는다. push 후에는 main CI(`CI required`) 결과만 확인하고, 스테이징 SHA·응답 확인은 필요한 경우에만 한다. 프로덕션 승격은 별도 명시 승인 때만 한다.
+check:fast는 커밋 전 검사다. 커밋 후 push 전에는 `npm run check:pre-push`(커밋된 트리, 약 15s)만 돈다. check:all은 pr-ci guards+critical의 로컬 재현이라 일상 흐름에서 쓰지 않고 수동 조사용으로만 남긴다([delivery-and-ci](context/delivery-and-ci.md#전달-흐름과-위험-영역-검증)). check:all은 clean HEAD를 요구하는 기존 public-mirror-fresh 검사를 초반에 실행한다. 검사의 clean 조건을 약화하지 않는다. push 후에는 main CI(`CI required`) 결과만 확인하고, 스테이징 SHA·응답 확인은 필요한 경우에만 한다. 프로덕션 승격은 별도 명시 승인 때만 한다.
 
 독립 설치 시 npm audit는 기존 lockfile에 취약점 경고 77건(높음 22건)을 보고했다. 도달 가능성·운영 영향은 미분석이며 의존성 자동 업데이트는 하지 않았다. 별도 보안 검토 대상으로 남긴다.
 
 최종 통합 검증: 최신 main을 격리 브랜치에 통합한 뒤 lint·typecheck·public-mirror-fresh·guard-wiring 통과. 초기 전체 계획에서 env 키 등록 누락을 발견해 정본에 추가하고 재검사했으며, 이미 통과한 정적 검사에 이어 추가/잔여 47개 검사와 Worker dry-run 빌드가 통과했다. Jest는 217 suites / 2401 tests 통과(100.216초), 종료 후 타이머 지연은 별도 진단한다. CI critical 정적 명령을 YAML과 대조한 로컬 계획의 누락은 0개다. CI 전용 설치·캐시·배포 단계까지 로컬에서 재현한다는 의미는 아니다.
 
 Jest 종료 지연은 찻집 mock 3스위트의 남은 그룹 deadline(최대 66초)으로 재현했다. 응답/콘텐츠를 검사하는 해당 스위트에만 fake timers와 teardown을 적용해 24개 테스트가 총 2.117초에 정상 종료했다. 제품 타이머와 실제 timeout 계약 테스트는 변경하지 않았다.
+
+## 2026-11-02 최적화 전후
+
+측정 위치: 워크트리 `wt/dev-env-optimization-20261102-002423`(base `fd675f0da`)과 메인 체크아웃(읽기 전용). 2회 이상 잰 항목은 두 값을 적는다. 시작 시 node.exe 83개·여유 RAM 1.1GB, 사후 측정 때 node.exe 1~7개·여유 RAM 4.3GB 라 자원 경합 차이가 섞여 있다.
+
+| 항목 | 전 | 후 | 바뀐 것 |
+|---|---:|---:|---|
+| 깨끗한 트리 `check:fast` | critical 34단계(전체 실행 약 27분) | 1.0초, "검사할 변경 없음" | 빈 diff 조기 종료(로컬 fast·ui·worker 만) |
+| `styles/*.css` 만 수정 `--plan` | fast 7단계(typecheck 포함) | fast 6단계 | CSS·이미지·문서는 typecheck 생략 |
+| `app/**/*.module.css` 만 수정 `--plan` | standard 8단계 | standard 7단계 | 같음 |
+| `i18n/authored/*.json` 수정 `--plan` | critical(미분류) | fast 7단계 | low 분류 |
+| 미추적 `outputs/x.json` | critical(미분류) | 변경 목록에 안 잡힘 | `.gitignore` |
+| 결제 파일 `lib/payment/*` `--plan` | critical 34단계 | critical 34단계 | 유지(회귀 없음) |
+| `npm run lint` | 37.8 / 36.6초 | 캐시 생성 52.9초, 재사용 8.2 / 11.3초 | eslint content 캐시 |
+| `npm run check:pre-push` | 약 15초 | 15.6초 | 위생 가드 추가(1.3초) |
+| typecheck | cold 85.6초 / warm 11.2초 | — | 변경 없음 |
+| test:node | 281.6 / 290.9초, 4,083개 중 2 실패(Playwright 미설치) | 4,086개 전부 통과 | headless shell 설치(환경) |
+| test:jest | 827.8초, 443스위트·7,240개 통과 | 384.8초(전체 critical 실행 안), 같은 수 통과 | 변경 없음 — 차이는 자원 경합 |
+| mock dev ready | — | 2.4 / 1.1초 | — |
+| 홈 `/` 첫 응답 | — | 20.2 / 12.5초(첫 컴파일 포함) | — |
+| `app/channel/page.module.css` 수정 뒤 재컴파일 | — | 0.54 / 0.61초 | — |
+| `build:cf`(로컬) | — | 411초 | — |
+| 루트 전체 `rg -l` | 32.4초 | 16.3초(cold) / 0.3초 | 미추적 산출물·검수 이미지 `.ignore` |
+| 범위 지정 `rg -l` | 0.5초 | 0.13~0.28초 | — |
+| `git grep -l`(메인) | 7.2초 | 7.2초(cold) / 0.9초 | — |
+| `git status`(메인) | 181~200ms | 87~143ms | — |
+| 추적 파일 | 21,009 | 16,883(워크트리) | 검수 PNG·WebP 5,504개 추적 해제 |
+| `.git` | loose 66,881개 7.78GiB + pack 1.41GiB | loose 0 + pack 3.42GiB | `refs/codex` 114개 bundle 백업 뒤 삭제, 기본 `git gc` |
+
+`.git` pack 3.42GiB 중 0.83GiB 는 2주가 지나지 않은 도달 불가 객체(cruft)라 다음 기본 gc 에서 회수된다. 백업: `D:\Development\backups\codex-refs-20261102.bundle`(72 ref, 나머지 42개는 origin/main 에 이미 있어 `codex-refs-20261102.list` 의 SHA 로 복원), `D:\Development\backups\code-destiny-product-details-verification-20261102\`(6,060파일).
+
+남은 병목: test:jest(6~14분, runInBand), test:node(약 290초), 전체 critical 실행. `build:cf` 는 추적 중인 `rss.xml` 4개를 다시 쓴다(새 인사이트 글이 추적본에 없다) — 별도 확인 대상.

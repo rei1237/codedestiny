@@ -1,7 +1,7 @@
 .opening{width:min(760px,100% - 40px);margin:36px auto 0;color:var(--yn-ivory)}
 .head{margin:0 0 14px}
 .eyebrow{margin:0 0 4px;font-size:14px;font-weight:700;letter-spacing:.06em;color:var(--yn-gold)}
-.head h2{margin:0;font-family:"Yeongnyangi Myeongjo",serif;font-size:clamp(1.6rem,3.2vw,2.1rem);line-height:1.35;letter-spacing:-.02em;color:var(--yn-ivory)}
+.head h2{margin:0;font-family:var(--font-display);font-size:clamp(1.6rem,3.2vw,2.1rem);line-height:1.35;letter-spacing:-.02em;color:var(--yn-ivory)}
 .lead{margin:6px 0 0;font-size:15px;line-height:1.7;color:var(--yn-muted);word-break:keep-all}
 .screen{position:relative;aspect-ratio:16/9;overflow:hidden;border:1px solid var(--yn-line);border-radius:var(--yn-radius);background:var(--yn-night)}
 .video{position:absolute;inset:0;display:block;width:100%;height:100%;background:var(--yn-deep)}

@@ -64,31 +64,8 @@ export function inspectPage({ url, status, html, xRobots = '', indexable = true 
   if (descriptions.length > 1) issues.push(`description count ${descriptions.length}`);
   return issues;
 }
-export function robotsAllows(text, pathname, agent = 'googlebot') {
-  agent = agent.toLowerCase();
-  const groups = [];
-  let group = { agents: [], rules: [], hasDirectives: false };
-  for (const line of text.split(/\r?\n/)) {
-    const match = line.replace(/#.*/, '').trim().match(/^(user-agent|allow|disallow):\s*(.*)$/i);
-    if (!match) continue;
-    const [, rawKey, value] = match;
-    if (rawKey.toLowerCase() === 'user-agent') {
-      if (group.hasDirectives) { groups.push(group); group = { agents: [], rules: [], hasDirectives: false }; }
-      group.agents.push(value.toLowerCase());
-    } else {
-      group.hasDirectives = true;
-      if (value) group.rules.push({ allow: rawKey.toLowerCase() === 'allow', value });
-    }
-  }
-  groups.push(group);
-  const specific = groups.filter(g => g.agents.includes(agent));
-  const selected = specific.length ? specific : groups.filter(g => g.agents.includes('*'));
-  const rules = selected.flatMap(g => g.rules).filter(rule => {
-    const pattern = rule.value.replace(/[.+?^{}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*');
-    return new RegExp(`^${pattern}`).test(pathname);
-  }).sort((a, b) => b.value.replace(/[*$]/g, '').length - a.value.replace(/[*$]/g, '').length || Number(b.allow) - Number(a.allow));
-  return rules[0]?.allow ?? true;
-}
+// robots.txt 판정은 scripts/lib/robots-groups.mjs 한 곳에서 한다(가드들과 같은 파서).
+export { robotsAllows } from '../lib/robots-groups.mjs';
 
 // Shared HTML / sitemap / header parsers. Pure string functions: no network, no filesystem.
 export function stripTags(html) {
@@ -100,21 +77,18 @@ export function stripTags(html) {
     .trim();
 }
 
+// 한 번에 푼다: `&amp;lt;` 는 `&lt;` 로 남는다(이중 해제 금지).
+const HTML_ENTITIES = { quot: '"', '#39': "'", amp: '&', lt: '<', gt: '>' };
 export function decodeHtml(value = '') {
-  return value
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, ' ')
-    .trim();
+  return value.replace(/&(quot|#39|amp|lt|gt);/g, (_, name) => HTML_ENTITIES[name]).trim();
 }
 
 const tagAttributes = (html, tag) => [...html.matchAll(new RegExp(`<${tag}(?=[\\s/>])[^>]*>`, 'gi'))].map(m => attributes(m[0]));
 const hasRelToken = (attrs, token) => (attrs.rel || '').toLowerCase().split(/\s+/).includes(token);
 
+// 인라인 <svg> 의 <title> 은 아이콘 이름이지 문서 제목이 아니다.
 export function getTitle(html) {
-  return decodeHtml(html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] || '').replace(/\s+/g, ' ');
+  return decodeHtml(html.replace(/<svg\b[\s\S]*?<\/svg>/gi, '').match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] || '').replace(/\s+/g, ' ');
 }
 
 export function getCanonical(html) {
@@ -159,6 +133,9 @@ export function getJsonLd(html) {
 // schema.org Date/DateTime (ISO 8601) → epoch ms, or null when it is not ISO 8601 or not a real date/time.
 // No offset is read as KST (+09:00), the site's calendar; a date alone is 00:00 KST of that day.
 // The machine time zone is never used (CI runs in UTC, local machines in KST).
+// The offset may also be basic form (+0900) after an extended date. Strict ISO 8601 forbids mixing the
+// two forms, but %z-style formatters emit it and Date.parse reads it to the same instant as +09:00.
+// This guard exists to catch wrong or unreadable dates, not to lint offset spelling, so it is accepted on purpose.
 const ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2})(?::(\d{2})(\.\d+)?)?(Z|[+-]\d{2}:?\d{2})?)?$/;
 export function parseJsonLdDate(value) {
   const match = typeof value === 'string' ? ISO_DATE.exec(value.trim()) : null;
@@ -233,4 +210,28 @@ export function parseSitemapAlternates(xml) {
     map.set(decodeHtml(loc), alternates);
   }
   return map;
+}
+
+// 운영 응답 표본(Chrome·Googlebot·Yeti × 대표 경로)이 "같은 URL 은 UA 와 상관없이 같은 응답"을 지키는지 본다.
+// 순수 함수: samples 는 { path, agent, status, location, cacheControl, setCookie, challenge }[].
+// 챌린지가 붙었거나 403 인 표본은 비교·판정에서 뺀다(가짜 크롤러 UA 차단은 사이트 문제가 아니다).
+export function edgeSampleIssues(samples) {
+  const issues = [];
+  const usable = samples.filter(s => !s.challenge && s.status !== 403);
+  const byPath = new Map();
+  for (const s of usable) byPath.set(s.path, [...(byPath.get(s.path) || []), s]);
+  for (const [path, group] of byPath) {
+    const shape = s => JSON.stringify([s.status, s.location || '', s.cacheControl || '']);
+    if (new Set(group.map(shape)).size > 1) {
+      issues.push(`${path} differs by agent: ${group.map(s => `${s.agent}=${s.status} ${s.location || '-'} [${s.cacheControl || '-'}]`).join(' | ')}`);
+    }
+  }
+  for (const s of usable) {
+    if (/cd_geo_locale/.test(s.setCookie || '')) issues.push(`${s.path} ${s.agent}: Set-Cookie cd_geo_locale`);
+    if (s.status === 200 && /no-store/i.test(s.cacheControl || '')) issues.push(`${s.path} ${s.agent}: HTML 200 with Cache-Control no-store`);
+    if (s.path === '/saju' && (s.status !== 301 || !/^https:\/\//.test(s.location || ''))) {
+      issues.push(`${s.path} ${s.agent}: expected one absolute-URL 301, got ${s.status} ${s.location || '-'}`);
+    }
+  }
+  return issues;
 }

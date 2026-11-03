@@ -111,6 +111,84 @@ function boot({ url = "https://code-destiny.com/", consent = "", measurementId =
 const events = (calls) => calls.filter((c) => c[0] === "event");
 const eventNames = (calls) => events(calls).map((c) => c[1]);
 
+/* CRO: only public campaign vocabulary and search intent codes leave the browser. */
+{
+  const { window, calls } = boot({url:'https://code-destiny.com/saju/?utm_source=naver&utm_medium=cpc&utm_campaign=person%40example.com&utm_content=01012345678&utm_term=19900101&question=private#secret'});
+  const location = calls.find(c => c[0] === 'config')[2].page_location;
+  assert.equal(location,'https://code-destiny.com/saju/?utm_source=naver&utm_medium=cpc');
+  window.cdTrackDiscovery('view_search_results',{intentId:'money',itemListId:'search',resultCount:3,query:'person@example.com',question:'private',birthDate:'19900101'});
+  window.cdTrackDiscovery('search_result_select',{intentId:'money',itemListId:'search',itemId:'wealth-ai',value:30000,email:'person@example.com'});
+  window.cdTrackDiscovery('select_item',{itemId:'free-saju',itemListId:'home',value:0});
+  const recorded = window.dataLayer.map(c=>Array.from(c)).filter(c=>c[0]==='event');
+  const search = recorded.find(c=>c[1]==='view_search_results')[2];
+  assert.equal(search.search_term,'money');
+  assert.equal(search.result_count,3);
+  assert.equal('query' in search,false);
+  const selected = recorded.find(c=>c[1]==='search_result_select')[2];
+  assert.equal(selected.items[0].item_id,'wealth-ai');
+  assert.equal(selected.value,30000);
+  assert.equal(selected.currency,'KRW');
+  assert.equal(recorded.find(c=>c[1]==='select_item')[2].value,0);
+  assert.doesNotMatch(JSON.stringify(recorded),/person@example|private|19900101/);
+  assert.equal(window.cdTrackDiscovery('purchase',{itemId:'wealth-ai'}),false);
+  assert.equal(window.cdTrackDiscovery('view_item',{itemId:'person@example.com'}),false);
+  assert.equal(window.cdTrackDiscovery('view_search_results',{resultCount:-1}),false);
+  window.cdTrackDiscovery('view_search_results',{intentId:'private question',resultCount:0});
+  assert.equal(Array.from(window.dataLayer.at(-1))[2].search_term,'unknown');
+}
+{
+  for (const query of [
+    'utm_source=threads&utm_medium=social&utm_campaign=threads_20261103_saju',
+    'utm_source=email&utm_medium=newsletter&utm_campaign=email-weekly-2026-11-03&utm_content=yeoni-weekly',
+    'utm_source=naver_blog&utm_medium=social&utm_campaign=growth_20261012&utm_content=B01_ko',
+    'utm_source=copy&utm_medium=share&utm_campaign=public_share',
+    'utm_source=threads&utm_medium=social&utm_campaign=s1_launch',
+    'utm_source=image&utm_medium=share&utm_campaign=yeongnyangi_result',
+    'utm_source=native&utm_medium=share&utm_campaign=yeongnyangi_daily',
+    'utm_source=naver&utm_medium=cpc&utm_campaign=ggulggul_2027_test&utm_content=yearly_a&utm_term=K01',
+  ]) {
+    const {calls}=boot({url:'https://code-destiny.com/?'+query});
+    assert.equal(calls.find(c=>c[0]==='config')[2].page_location,'https://code-destiny.com/?'+query);
+  }
+}
+/* Existing server-confirmed revenue contract: failures/tests never count; repeats count once. */
+{
+  const {window}=boot();
+  const payment={status:'paid',analyticsChannel:'LIVE',merchantUid:'cro-order-1',paymentAmount:30000,featureKey:'wealth-ai'};
+  for (const invalid of [{...payment,status:'failed'},{...payment,analyticsChannel:'TEST'},{...payment,paymentAmount:0}]) {
+    assert.equal(window.cdTrackConfirmedPurchase({payment:invalid}),false);
+  }
+  assert.equal(window.cdTrackConfirmedPurchase({payment}),true);
+  assert.equal(window.cdTrackConfirmedPurchase({payment}),true);
+  const purchase=window.dataLayer.map(c=>Array.from(c)).filter(c=>c[0]==='event'&&c[1]==='purchase');
+  assert.equal(purchase.length,1);
+  assert.equal(purchase[0][2].transaction_id,'cro-order-1');
+  assert.equal(purchase[0][2].value,30000);
+}
+
+/* Verified registration is normalized, never inferred from login/page visits. */
+{
+  const {window}=boot();
+  window.cdTrack('signup',{method:'password',email:'private@example.com',birthYear:'1990'});
+  window.cdTrack('signup',{method:'social'});
+  assert.equal(window.cdTrack('sign_up',{method:'private@example.com'}),false);
+  const calls=window.dataLayer.map(c=>Array.from(c));
+  assert.equal(events(calls).filter(c=>c[1]==='signup').length,0);
+  assert.equal(events(calls).filter(c=>c[1]==='sign_up').length,2);
+  assert.equal(JSON.stringify(events(calls).filter(c=>c[1]==='sign_up').map(c=>Object.keys(c[2]))),JSON.stringify([['method'],['method']]));
+  assert.doesNotMatch(JSON.stringify(events(calls)),/private@example|1990/);
+}
+{
+  const url='https://code-destiny.com/new-year-ai-consultation/?utm_source=naver&utm_medium=cpc&utm_campaign=ggulggul_2027_test&utm_content=yearly_a';
+  const {window,calls}=boot({url,consent:'accepted'});
+  assert.equal(eventNames(calls).filter(n=>n==='ad_landing_view').length,1);
+  window.eval(ANALYTICS_SOURCE);
+  assert.equal(eventNames(window.dataLayer.map(c=>Array.from(c))).filter(n=>n==='ad_landing_view').length,1);
+  assert.equal(eventNames(boot({url,consent:'essential'}).calls).includes('ad_landing_view'),false);
+  const internal=boot({consent:'accepted',beforeEval(win){win.localStorage.setItem('cd:growth:campaign:paid-return',JSON.stringify({campaignId:'ggulggul_2027_test',until:Date.now()+60000}));}});
+  assert.equal(eventNames(internal.calls).includes('ad_landing_view'),false);
+}
+
 /* ① 동의 기본값이 config 보다 먼저 들어가는가 */
 {
   const { calls } = boot();

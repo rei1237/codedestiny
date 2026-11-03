@@ -27,6 +27,7 @@ import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 import { isRetriableResultPollFailure, runAccessCheckWithTransientRetry } from "@/app/_lib/consultationResultPolling";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { PriceBadge } from "@/app/components/PriceBadge";
+import ProductJourneyLinks, { useProductView } from "@/app/components/ProductJourneyLinks";
 import { ExpertStickyCta } from "@/app/components/expert-consulting/ExpertConsultationFrame";
 import { toDisplayText } from "@/lib/llm-text";
 import {
@@ -181,9 +182,10 @@ function getNewYearAiCopy(locale: LoadingLocale): NewYearAiCopy {
 
 /** 이 파일 전용 로케일 훅 — 여러 하위 컴포넌트가 각자 useState+useEffect를 반복하지 않도록 공용화. */
 function useNewYearAiCopy(): NewYearAiCopy {
-  const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
+  const [locale, setLocale] = useState<LoadingLocale>("ko");
   useEffect(() => {
     const sync = () => setLocale(getCurrentLoadingLocale());
+    sync();
     window.addEventListener("languagechange", sync);
     window.addEventListener("cd:locale-ready", sync);
     return () => { window.removeEventListener("languagechange", sync); window.removeEventListener("cd:locale-ready", sync); };
@@ -1471,7 +1473,7 @@ const NYAI_READING_ROOM_CSS = `
   .nyai-page .nyai-intro-art {
     background:
       linear-gradient(rgba(21, 8, 12, .78), rgba(21, 8, 12, .78)),
-      url('/fuctionassets/new-year-almanac-v1.webp') 68% center / cover no-repeat;
+      url('/fuctionassets/new-year-almanac-v1-960.webp') 68% center / cover no-repeat;
   }
 }
 @media (max-width: 720px) {
@@ -1485,6 +1487,9 @@ const NYAI_READING_ROOM_CSS = `
 `;
 
 export default function NewYearAiConsultationPage() {
+  useProductView(FEATURE_KEY, 'yearly');
+  const [clientReady, setClientReady] = useState(false);
+  useEffect(() => { setClientReady(true); }, []);
   const copy = useNewYearAiCopy();
   const [form, setForm] = useState<ConsultationForm>(() => buildInitialForm());
   const [status, setStatus] = useState<FlowStatus>("idle");
@@ -1908,7 +1913,7 @@ export default function NewYearAiConsultationPage() {
   const seasonYear = Number(targetYearInfo?.year || form.targetYear);
   const ganzi = useMemo(() => yearGanzi(seasonYear), [seasonYear]);
   const seasonTheme = ELEMENT_THEMES[ganzi?.elementIndex ?? 2] || ELEMENT_THEMES[2];
-  const seasonCountdown = useMemo(() => buildSeasonCountdown(seasonYear), [seasonYear]);
+  const seasonCountdown = useMemo(() => clientReady ? buildSeasonCountdown(seasonYear) : "", [clientReady, seasonYear]);
   const themeVars = {
     "--nyai-accent": seasonTheme.accent,
     "--nyai-accent-soft": seasonTheme.soft,
@@ -1965,7 +1970,7 @@ export default function NewYearAiConsultationPage() {
       <section className="nyai-panel nyai-intro" aria-label={copy.introSectionAria}>
         <div className="nyai-intro-art" aria-hidden="true" />
         <div className="nyai-orbit" aria-hidden="true" />
-        <div className="nyai-consult-card" aria-label={copy.consultCardAria}>
+        {clientReady && (<div className="nyai-consult-card" aria-label={copy.consultCardAria}>
           <span className="nyai-eyebrow">상담 대상자 요약</span>
           <div className="nyai-consult-year">
             <span>상담 연도</span>
@@ -1981,7 +1986,7 @@ export default function NewYearAiConsultationPage() {
             <span><b>이름</b>{form.userName.trim() || "아직 비어 있습니다"}</span>
             <span><b>생년월일</b>{form.birthDate || "아직 비어 있습니다"}</span>
           </div>
-        </div>
+        </div>)}
         <div className="nyai-intro-copy">
           <span className="nyai-eyebrow">서비스 소개</span>
           <h2><Moon size={20} aria-hidden="true" /> 신년운세 전문가 상담</h2>
@@ -1998,15 +2003,16 @@ export default function NewYearAiConsultationPage() {
             {!isBusy && <Sparkles size={16} />}
             <span>{statusText}</span>
           </div>
-          {seasonCountdown && <p className="nyai-countdown">{seasonCountdown}</p>}
+          <p className="nyai-countdown">{seasonCountdown || "\u00a0"}</p>
+          {copy === NEW_YEAR_AI_COPY.ko && !isBusy && <ProductJourneyLinks sampleId="new-year" />}
           {accessType && <p className="nyai-access">이용 방식: {accessType}</p>}
         </div>
       </section>
 
       {/* 위 소개 판·아래 작업 영역과 같은 폭(최대 1180). 540으로 묶여 768에서 본문 744보다 좁았다(2026-10-30 QA). */}
-      {getCurrentLoadingLocale() === "ko" && <div style={{ width: "100%", maxWidth: 1180, margin: "24px auto" }}><CraftedProductDisclosure featureKey={FEATURE_KEY} /></div>}
+      {copy === NEW_YEAR_AI_COPY.ko && <div style={{ width: "100%", maxWidth: 1180, margin: "24px auto" }}><CraftedProductDisclosure featureKey={FEATURE_KEY} /></div>}
       <section className="nyai-workspace">
-        <form data-moonlit-form="" id="new-year-form" className="nyai-form nyai-panel" onSubmit={handleSubmit}>
+        {clientReady && (<form data-moonlit-form="" id="new-year-form" className="nyai-form nyai-panel" onSubmit={handleSubmit}>
           <div className="nyai-form-title">
             <CalendarDays size={18} />
             <h2>새해 상담에 필요한 정보를 알려주세요</h2>
@@ -2141,9 +2147,9 @@ export default function NewYearAiConsultationPage() {
             {isBusy ? <Loader2 size={18} className="nyai-spin" /> : <WalletCards size={18} />}
             <span>{isBusy ? statusText : "신년운세 전문가 상담 받기"}</span>
           </button>
-        </form>
+        </form>)}
         {/* 다른 대표 상담 두 곳과 같은 규칙 — 폼이 아직 아래에 있을 때만, 제출 버튼과 같은 라벨로 뜬다. 폼(.nyai-panel)은 backdrop-filter 라 fixed 기준 상자가 되므로 폼 밖에 둔다. */}
-        {!isBusy && <ExpertStickyCta theme="newYear" targetId="new-year-form" label="신년운세 전문가 상담 받기" price={<PriceBadge featureKey="new-year-ai-consultation" prefix="상담 이용 가격 " />} />}
+        {!isBusy && (clientReady && (<ExpertStickyCta theme="newYear" targetId="new-year-form" label="신년운세 전문가 상담 받기" price={<PriceBadge featureKey="new-year-ai-consultation" prefix="상담 이용 가격 " />} />))}
 
         <section className="nyai-chat nyai-panel" aria-live="polite">
           <div className="nyai-chat-head">

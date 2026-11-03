@@ -1,3 +1,4 @@
+import HomeMusicVideo from './components/HomeMusicVideo';
 import Link from 'next/link';
 import { RecommendationFooter } from './components/recommendations/RecommendationResult';
 import { publicSeoPages, siteSeo } from "../lib/seo/siteSeo";
@@ -14,6 +15,9 @@ import LegacyHomeEntry from "./components/LegacyHomeEntry";
 import HomeCardDeck from "./components/HomeCardDeck";
 import HelpDesk from "./components/HelpDesk";
 import HomeEntryState from "./components/HomeEntryState";
+import YehwaHome from './components/YehwaHome';
+import { renderYehwaHome } from '../lib/marketing/yehwa-home.mjs';
+import homeCatalog from '../lib/marketing/yehwa-home.generated.json';
 import { NativeHomeRoot, NativeHomeNav, NativeHomeText, NativeHomeCardLink, NativeHomeDictionaryText } from "./components/NativeHomeCopy";
 import { PriceBadge } from "./components/PriceBadge";
 import ConsultationDiscovery from "./components/ConsultationDiscovery";
@@ -119,17 +123,16 @@ export default function HomePage() {
     <NativeHomeRoot className={styles.page}>
       <header className={styles.brandRow}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img className={styles.brandMark} src="/images/yeoni/welcome/yeoni-mark-v1-96.webp" width={96} height={96} alt="" decoding="async" />
+        <img className={styles.brandMark} src="/fuctionassets/%EC%97%B0%EC%9D%B4.webp" width={96} height={96} alt="" decoding="async" />
         <span className={styles.wordmark}>{service.name}</span>
+        <nav className={styles.entryNav} aria-label="홈 주요 메뉴"><a href="/?action=cdOpenAllFortunes">검색</a><a href="/login/">계정</a></nav>
       </header>
 
       <main className={styles.stage}>
-        <div className={styles.head}>
-          <h1 id="homeCardTitle" className={styles.title}><NativeHomeText>꿀꿀 운세에서 어떤 운세를 만나볼까요?</NativeHomeText></h1>
-
-        </div>
+        <YehwaHome html={renderYehwaHome(homeCatalog)} />
 
         {/* 카드 제목(h2)의 링크를 카드 크기로 늘려 카드 전체가 한 링크다. 설명 두 줄은 aria-describedby 로 읽힌다. */}
+        <h2 id="homeCardTitle" className={styles.adviserTitle}>상담가와 이야기 나누기</h2>
         <HomeCardDeck className={styles.deck}>
           {CARDS.map((card, index) => {
             const linkProps = { href: card.href, className: styles.cardLink, "aria-describedby": `${card.key}CardTag`, ...discoveryTracking(card.key === "yeoni" ? "ggulggul" : "yeongnyangi", "primary") };
@@ -169,6 +172,7 @@ export default function HomePage() {
             </Link>
           </li>)}</ul>
         </section>
+        <HomeMusicVideo />
         <HelpDesk />
         <details id="homeExplore" data-home-disclosure="explore" className={styles.explore}>
           <summary className={styles.exploreSummary}><span><NativeHomeText>더 둘러보기</NativeHomeText></span><span className={styles.disclosureMark} aria-hidden="true" /></summary>
@@ -255,6 +259,17 @@ export default function HomePage() {
         </p>
         <p className={styles.notice}><NativeHomeDictionaryText translationKey="footer.disclaimerNote">{FOOTER_NOTICE}</NativeHomeDictionaryText></p>
       </footer>
+      <nav className={styles.bottomNav} aria-label="주요 메뉴">
+        {[
+          {icon:'home',label:'홈',href:'/'},
+          {icon:'fortunes',label:'전체 운세',href:'/?action=cdOpenAllFortunes'},
+          {icon:'library',label:'보관함',href:'/?action=cdOpenLibrary'},
+          {icon:'my',label:'마이',href:'/?action=cdOpenAccount'},
+        ].map(item=><a key={item.icon} href={item.href} aria-current={item.icon==='home'?'page':undefined}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={`/images/navigation/${item.icon}.svg`} width={22} height={22} alt=""/><span>{item.label}</span>
+        </a>)}
+      </nav>
     </NativeHomeRoot>
     <script type="application/ld+json" dangerouslySetInnerHTML={{__html:serializeJsonLd([webPageJsonLd, founderJsonLd, ...serviceJsonLd, buildFaqPageJsonLd(HOME_FAQS)])}} />
   </>;

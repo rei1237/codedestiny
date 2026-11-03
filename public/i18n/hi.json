@@ -39,7 +39,8 @@
       "linkFortuneHub": "Zodiac Fortunes",
       "linkStories": "Yeoni's Destiny Novel",
       "authorNote": "इस साइट को दस वर्ष के अनुभव वाले म्योंगरी (कोरियाई चतुर्स्तंभ) विशेषज्ञ Park Byeong-ha ने बनाया है, और साजू तथा मानसेरयोक की व्याख्याओं की अंतिम समीक्षा भी उन्हीं की है। गणना म्योंगरी और ज्योतिष के शास्त्रीय नियमों पर चलती है, और पाठक तक पहुँचने वाला हर वाक्य मनुष्य की ज़िम्मेदारी है।",
-      "authorLink": "निर्माता और समीक्षा मानदंड देखें"
+      "authorLink": "निर्माता और समीक्षा मानदंड देखें",
+      "linkRecipes": "योनी के पाँच तत्वों के व्यंजन · मुफ्त कॉमिक्स"
     },
     "reviews": {
       "kicker": "REAL REVIEWS",
@@ -1969,7 +1970,8 @@
       "ch4": "खिलना",
       "ch5": "सही timing",
       "lyrics": "गीत के बोल",
-      "more": "और चाँदनी संगीत सुनें"
+      "more": "और चाँदनी संगीत सुनें",
+      "playlist": "संगीत प्लेलिस्ट"
     },
     "passCopy": {
       "myTitle": "मेरे पास",
@@ -2309,6 +2311,67 @@
           "fit": "जब किसी एक निर्णय के मानदंड और कार्ययोजना चाहिए",
           "delivery": "समीक्षित उत्तर ईमेल से भेजा जाता है"
         }
+      }
+    },
+    "yehwa": {
+      "titleA": "What would you like",
+      "titleB": "to explore today?",
+      "leadA": "Start with what is",
+      "leadB": "on your mind.",
+      "tour": "Explore with Yeoni",
+      "concern": "What is on your mind?",
+      "love": "Love & relationships",
+      "work": "Money & work",
+      "self": "About myself",
+      "flow": "What lies ahead",
+      "family": "Family & daily life",
+      "results": "Readings to explore",
+      "view": "View reading",
+      "all": "Browse all readings",
+      "records": "Revisit my readings",
+      "pigRecords": "Ggulggul records",
+      "catRecords": "Yeongnyangi records",
+      "line1": "Shall we start with what is on your mind today?",
+      "line2": "Read the description and terms. Choose a reading to see its details.",
+      "line3": "Find past readings in each service’s records. Ggulggul and Yeongnyangi records stay separate.",
+      "done": "Finish guide",
+      "previous": "Previous",
+      "next": "Next",
+      "skip": "Skip",
+      "findLabel": "Find a reading by concern",
+      "libraryLabel": "All readings and records",
+      "guideLabel": "Yeoni’s screen guide",
+      "close": "Close guide",
+      "codexDescription": "Explore your relationship patterns individually or compare two people’s differences.",
+      "sibylName": "Sibyl Annual Preparation Report",
+      "sibylDescription": "Periods to watch, preparation by area, and practical next steps.",
+      "rangePrice": "KRW {from}–{to}"
+    },
+    "cro": {
+      "love": "प्रेम · पुनर्मिलन",
+      "money": "धन · व्यवसाय",
+      "career": "काम · करियर",
+      "relationship": "अनुकूलता · रिश्ते",
+      "yearly": "इस वर्ष · अगले वर्ष",
+      "introduction": "साजू, टैरो और आपकी चिंताओं के अनुसार परामर्श।",
+      "freeIntroduction": "मुफ़्त साजू व्याख्या से शुरुआत करें।",
+      "freeStart": "मुफ़्त साजू शुरू करें",
+      "paidLabel": "सशुल्क ·",
+      "result": {
+        "relationship": "साजू और ज़ी वेई डौ शू संबंध रिपोर्ट",
+        "consultation": "आपके प्रश्न के अनुरूप परामर्श व्याख्या",
+        "love": "व्यक्तिगत प्रेम रिपोर्ट",
+        "yearly": "चुने हुए वर्ष के रुझान · समय के अनुसार सलाह",
+        "life": "अध्यायों में जीवन रिपोर्ट",
+        "saju": "साजू चार्ट · मूल व्याख्या"
+      },
+      "resultSummary": {
+        "relationship": "आपको क्या मिलेगा · साजू और ज़ी वेई डौ शू संबंध रिपोर्ट",
+        "consultation": "आपको क्या मिलेगा · आपके प्रश्न के अनुरूप परामर्श व्याख्या",
+        "love": "आपको क्या मिलेगा · व्यक्तिगत प्रेम रिपोर्ट",
+        "yearly": "आपको क्या मिलेगा · चुने हुए वर्ष के रुझान · समय के अनुसार सलाह",
+        "life": "आपको क्या मिलेगा · अध्यायों में जीवन रिपोर्ट",
+        "saju": "आपको क्या मिलेगा · साजू चार्ट · मूल व्याख्या"
       }
     }
   },

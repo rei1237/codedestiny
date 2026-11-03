@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-11-02
-next: "묶음 ① 운영 배포 승인을 받는다(승인 패킷 갱신 → gh workflow run cloudflare-pages-deploy.yml -f mode=production → /version.json 확인), 그 뒤 superpowers:writing-plans로 묶음 ② A1 엣지 계획을 쓴다"
+updated: 2026-11-03
+next: "superpowers:writing-plans로 묶음 ③ B+A3 원장·hreflang 계획을 쓴다(묶음 ② 운영 반영은 2026-11-03 실측 끝, 작은 후속은 docs/handoff/2026-11-02-seo-post-promotion-followups.md)"
 ---
 
 # SEO 아키텍처 재구축
@@ -13,20 +13,30 @@ next: "묶음 ① 운영 배포 승인을 받는다(승인 패킷 갱신 → gh 
 
 ## 첫 행동
 
-1. 이 워크트리에서 이어 간다: `D:\Development\codedestiny-worktrees\seo-architecture-rebuild-20261101-135310`(브랜치 `wt/seo-architecture-rebuild-20261101-135310`). 새 워크트리를 만들지 않는다. 두 문서는 아직 origin/main에 없으니 이 경로에서 읽는다.
+1. 이 워크트리에서 이어 간다: `D:\Development\codedestiny-worktrees\seo-architecture-rebuild-20261101-135310`(브랜치 `wt/seo-architecture-rebuild-20261101-135310`). 새 워크트리를 만들지 않는다. 두 문서는 origin/main에도 있다.
 2. `git fetch origin` → `git status` → `git log --oneline -3`. origin/main이 앞서 있으면 `git rebase origin/main`.
 3. 설계 문서를 끝까지 읽고 superpowers:writing-plans로 묶음 ① 계획을 쓴다. 브레인스토밍과 설계 승인은 끝났다. 설계 문서의 '확정된 결정'·'설계 판단'은 다시 묻지 않고, 운영 승격만 묶음마다 승인받는다.
 4. `D:\Development\seo-data\code-destiny\2026-11-01\`(Codex 수집본, `manifest.csv`·`README.md`)이 생겼는지 본다. 생겼으면 설계 문서 근거 부록 6(원인 판정)과 묶음 ④ 매핑에 반영한다.
 
 ## 지금 상태
 
-- 묶음 ① main push 완료(2026-11-02, origin/main `32397321e` 위로 rebase). 운영 배포는 사용자가 아직 승인하지 않았다(push만 요청). 계획은 `docs/superpowers/plans/2026-11-01-seo-bundle-1-v0-a2-d1.md`(`e00cf2f88`).
+- 운영 SHA `a221a78eb`(2026-11-03, 사용자 승인 1회 배포 런 https://github.com/rei1237/codedestiny/actions/runs/41601761405). 영냥이 AEO 작업(`docs/handoff/2026-11-03-yeongnyangi-aeo.md`)과 다른 세션의 CRO·영상·글꼴 커밋이 들어 있다. 묶음 ③은 시작하지 않았다.
+  - 실측(한국 IP, Chrome UA, `Accept: text/html`): `/version.json`·`/api/version`이 `a221a78eb`. `/`·`/saju/`·`/en/saju/` 200 `private, no-cache`. `/checkout/`·`/account/password/`·`/admin/`·`/login/`·`/diary/` 200 `private, no-store`. `/saju`·`/index.html` 절대 URL 301 `no-store`. `/?lang=en` 302 `private, no-store`. 해외 IP는 측정하지 않았다.
+  - 후속: `app/layout.js`의 `analytics.js?v=20261103-discovery-v1` 고정 키가 엣지 캐시의 옛 파일을 돌려줘 Next 페이지에는 `ai_source`가 없다. 정적 미러 페이지(`/ggulggul/`, `/en/` 등)에만 있다. 키를 올려 재배포해야 한다.
+- 묶음 ① main push 완료(2026-11-02, origin/main `32397321e` 위로 rebase). 운영 배포는 2026-11-02 사용자 승인으로 1회 실행했다(https://github.com/rei1237/codedestiny/actions/runs/41335766465, `98643c274..6d514ecaf` 66커밋). 계획은 `docs/superpowers/plans/2026-11-01-seo-bundle-1-v0-a2-d1.md`(`e00cf2f88`).
   - 커밋(rebase 후): T1 `cc57c748f`·`78e5cd1f9`, T2 `f4e76db9a`·`ad9e418d1`, T3 `6492b2ca7`·`f4f268314`, T4 `9807f5e50`·`ebecc316a`, T5 `f71eafb85`, T6 `023be9a18`, T7 `cdd15f625`, T8 `d7ba36b65`, T9 `53c4959ca`, 최종 검토 수정 `29ec78b93`.
   - 태스크마다 새 검토자, 끝에 Opus 전체 검토. Important 1건(jsonld-dates 시각 비교 → 새벽 빌드 거짓 실패)은 KST 날짜 비교로 고쳤다.
   - rebase 충돌은 생성 파일(`config/sitemap-lastmod.json`, sitemap XML)뿐이었고 커밋마다 `npm run sitemap:generate`로 다시 만들었다. 운세 페이지 lastmod가 11-02로 하루 넘어간 것은 일일 갱신분이다.
 - verify-dist(로컬 build:cf): 실패 규칙 전부 0. og:url 8 → 0(실패로 승격). 경고 hreflang 185(80·1·100·4)와 엣지 3/1/4는 묶음 ②·③ 몫이다.
 - 증거와 승인 패킷: `D:\Development\seo-audit\code-destiny-20261101\bundle-1\`(`approval-packet.md`, verify-dist 전후 JSON, `regression\` 로그, `sdd-ledger.md` 원장).
-- 운영은 `98643c274`(11/01 13:35Z 빌드)에 머물러 있다. main에는 묶음 ① 말고도 다른 세션 커밋이 운영 배포를 기다린다. 배포 승인 패킷에는 `git log 98643c274..origin/main`을 새로 뽑아 넣는다.
+- 묶음 ② 운영 반영 확인(2026-11-03). 운영 `/version.json`과 `/api/version`이 `79ef4a4ed`이고 그 안에 묶음 ②가 있다. 다음 승격 승인 패킷에는 운영 `/version.json`의 SHA로 `git log <운영 SHA>..origin/main`을 새로 뽑아 넣는다.
+  - 커밋: 계획 `c0b29aa84`, T1 `599acf294`, T2 `574f76429`, T3 `c3ea9a19d`·`8fda3bce1`, T4 `7a6255d28`, T5 `ce132b37a`, T6 `374d9e690`, 사이트맵 `4b38d006d`, 전체 검토 수정 `485e905ca`, 미러 `d27cbd970`, no-store `8032698e8`·`89615a5c5`, h1 검사기 예외 `c5f71bec0`.
+  - 실측(한국 IP): HTML `private, no-cache`, `/checkout/`·`/account/`·`/admin/`·`/login/`·`/diary/`는 `private, no-store`, 슬래시 없는 경로·`/index.html`은 절대 URL 301, `/?lang=en` 302, Googlebot 헤더가 Chrome과 같다. 해외 IP는 vm 하네스로만 확인했다.
+  - 계획의 "`_headers`가 `/checkout/`에 no-store를 준다"는 틀렸다. `/*/`의 `no-cache`만 받고, 옛 워커의 일괄 no-store가 지켜 왔다. 지금은 `privateCacheControl`의 경로 목록이 지킨다.
+  - `verify-hydrated-h1-integrity`에 `/yeongnyangi/result` 예외를 넣었다(`f19f5c471` 이후 오탐). 결제된 상담 화면의 브라우저 확인은 안 했다.
+  - 내가 실행한 승격 런 41471987438은 프리뷰 스모크의 CSS HTTP 500으로 막혔고 원인은 모른다. 묶음 ②는 다른 사람이 실행한 런 41571861422로 들어갔다.
+  - 스케줄 SEO Operations는 `Test detector with mock inputs`(`keyword-research`, `public-inventory` 테스트)에서 실패한다. 11/01 런에도 같은 실패가 있어 묶음 ② 때문이 아니다. 아직 고치지 않았다.
+  - 증거와 승인 패킷: `D:\Development\seo-audit\code-destiny-20261101\bundle-2\`(`approval-packet.md`, `sdd-ledger.md`, `regression\`).
 - 미룬 사소한 항목(약 45건)은 별도 세션으로 넘겼다: `docs/handoff/2026-11-02-seo-bundle-1-followups.md`. 이 흐름은 묶음 ②부터 이어 간다. `verify-dist.mjs`를 같이 고치므로 자주 rebase한다.
 - Codex 수집본 없음. 11/07 홈 title D+30 관찰 대기.
 
@@ -44,11 +54,11 @@ next: "묶음 ① 운영 배포 승인을 받는다(승인 패킷 갱신 → gh 
 
 ## 단계
 
-- [ ] 묶음 ① — verify-dist 실패 0, 경고가 감사 수치를 재현(og:url 8쪽, hreflang 100/80/8), 운영 `/version.json` SHA 일치
+- [x] 묶음 ① — verify-dist 실패 0, 경고가 감사 수치를 재현(og:url 8쪽, hreflang 100/80/8), 운영 `/version.json` SHA 일치
   - [x] 로컬: 구현·검토·회귀 통과, verify-dist 실패 0, 승인 패킷 작성
   - [x] main push (2026-11-02, HEAD는 이 문서 커밋)
-  - [ ] 운영 배포 승인 → `/version.json` SHA 일치
-- [ ] 묶음 ② — vm 하네스 5개국×3UA 불변, 절대 Location 301 한 번, 결제 회귀 통과
+  - [x] 운영 배포 승인(2026-11-02, 후속 정리 그룹 D 포함) → 승격 런 https://github.com/rei1237/codedestiny/actions/runs/41335766465 (main `6d514ecaf`). `/version.json` gitSha `6d514ecaf` 일치 확인(2026-11-02), 작은 후속은 `docs/handoff/2026-11-02-seo-post-promotion-followups.md`
+- [x] 묶음 ② — vm 하네스 5개국×3UA 불변, 절대 Location 301 한 번, 결제 회귀 통과
 - [ ] 묶음 ③ — 전 URL 색인 상태 diff 0, HTML과 사이트맵의 hreflang 집합 일치
 - [ ] Codex 수집본 반영 → 묶음 ④ → 묶음 ⑤ → F
 - [ ] 최종 산출물 6종(설계 문서 '최종 산출물')

@@ -40,6 +40,19 @@
 /app/insights/articles.js
 /app/saju/love-simulation/_data/loveCodeMvp.ts
 
+# 검수 스크린샷·생성 산출물·마케팅 미디어 — 코드 검색에 걸릴 내용이 없고 파일 수만 많다(2026-11-02).
+# 위 헤더와 같은 계약이다 — Grep(rg)에서만 빠지고 Read·git grep·Glob 은 그대로 본다.
+/outputs/
+/docs/product-details/verification/
+/artifacts/
+/marketing/**/*.png
+/marketing/**/*.jpg
+/marketing/**/*.jpeg
+/marketing/**/*.webp
+/marketing/**/*.gif
+/marketing/**/*.mp4
+/marketing/**/*.mov
+
 # >>> sync:public 생성 미러 — 자동 생성, 직접 편집 금지 >>>
 /public/AnalysisEngine.js
 /public/HwatuFortune.js
@@ -111,6 +124,7 @@
 /public/js/basic-fortune-detail.mjs
 /public/js/cd-google-translate-lazy.js
 /public/js/cd-lang-native.js
+/public/js/cd-lang-suggest.js
 /public/js/cd-lazy-feature-loader.js
 /public/js/chunks/compat.chunk.js
 /public/js/chunks/extra-fortune.chunk.js
@@ -120,6 +134,7 @@
 /public/js/consultation-sample-guide.d.mts
 /public/js/consultation-sample-guide.mjs
 /public/js/core/access-store.js
+/public/js/core/activation-guide-state.mjs
 /public/js/core/activation-reward-policy.mjs
 /public/js/core/analytics.js
 /public/js/core/app-context.d.ts
@@ -151,6 +166,7 @@
 /public/js/core/init.js
 /public/js/core/kasi-calendar-service.js
 /public/js/core/korean-calendar.js
+/public/js/core/naver-conversion-frame.js
 /public/js/core/oracle/crafted-details.mjs
 /public/js/core/paid-editorial-report.mjs
 /public/js/core/paid-narrative-reader.js
@@ -194,6 +210,7 @@
 /public/js/core/sukuyo-astronomy.js
 /public/js/core/uiBindings.js
 /public/js/core/vedic/crafted-details.mjs
+/public/js/core/yehwa-home.mjs
 /public/js/destiny-profile.js
 /public/js/dream-ledger.js
 /public/js/dream-meaning-library.js
@@ -309,6 +326,7 @@
 /public/styles/app-shell.css
 /public/styles/astro-reading.css
 /public/styles/basic-fortune-library.css
+/public/styles/brand-typography.css
 /public/styles/concern-first-home.css
 /public/styles/consultation-discovery.css
 /public/styles/consultation-editorial.css
@@ -341,6 +359,7 @@
 /public/styles/press-coverage.css
 /public/styles/profile-characters.css
 /public/styles/pwa-lifecycle.css
+/public/styles/recipe-entry.css
 /public/styles/recommendations.css
 /public/styles/result-samples.css
 /public/styles/review-reward.css
@@ -354,6 +373,7 @@
 /public/styles/tarot-year-fortune.css
 /public/styles/theme-tokens.css
 /public/styles/trust-stories.css
+/public/styles/yehwa-home.css
 /public/styles/yehwa-motifs-nav.css
 /public/styles/yehwa-motifs.css
 /public/tadagochi.html

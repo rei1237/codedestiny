@@ -228,9 +228,11 @@ test('restored hero artwork, catalog reuse, and collection previews stay in sync
   assert.match(masterAssets, /humanHero:\s*"\/images\/service-introductions\/master-love-codex-960\.webp"/);
   assert.match(masterAssets, /cover:\s*"\/feature-details\/assets\/master-love-codex-960\.webp"/);
   assert.ok(fs.existsSync('public/feature-details/assets/master-love-codex-960.webp'));
-  // The existing video and novel share the story disclosure; the music destination remains available.
+  // The video is visible before the story disclosure; both music entries remain available.
   assert.ok(fragment.querySelector('.cdh-story .cdh-story__card[href="/codedestiny-novel.html"]'), 'light novel card stays on the home');
-  assert.ok(fragment.querySelector('.cdh-story #cdhMoonlightMv .cdh-mv__more[href="/music/"]'), 'music remains reachable from the existing video');
+  assert.equal(fragment.querySelector('#cdhMoonlightMv').closest('details'), null, 'video stays visible by default');
+  assert.ok(fragment.querySelector('.cdh-story .cdh-story__card--music[href="/music/"]'), 'playlist replaces the former video slot');
+  assert.ok(fragment.querySelector('#cdhMoonlightMv .cdh-mv__more[href="/music/"]'), 'music remains reachable from the existing video');
 });
 
 test('music entry responds to its card width without clipping actions', () => {

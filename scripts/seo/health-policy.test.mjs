@@ -1,9 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  collectSitemapUrls, getCanonical, getH1s, getHreflang, getInternalLinks, getJsonLd, getMeta, getTitle,
+  collectSitemapUrls, decodeHtml, edgeSampleIssues, getCanonical, getH1s, getHreflang, getInternalLinks, getJsonLd, getMeta, getTitle,
   hasNoindex, inspectPage, parseHeaderRobotsRules, parseSitemapAlternates, robotsAllows, sitemapDirectives,
 } from './health-policy.mjs';
+import { parseRobotsGroups } from '../lib/robots-groups.mjs';
 
 test('declared index reaches child URLs without treating sitemap files as pages', async () => {
   const base = 'https://example.com';
@@ -54,6 +55,13 @@ test('crawler-specific group, longest path and allow tie', () => {
   assert.equal(robotsAllows('User-agent: *\nDisallow: /saju/\nAllow: /saju/', '/saju/'), true);
   assert.equal(robotsAllows('User-agent: *\nDisallow: /*?v=', '/about/?v=123'), false);
   assert.equal(robotsAllows('User-agent: Googlebot\nDisallow:\nUser-agent: *\nDisallow: /', '/saju/'), true);
+});
+
+test('robots groups ignore trailing comments and only Allow/Disallow close the agent list', () => {
+  assert.equal(robotsAllows('User-agent: GPTBot # training\nDisallow: / # all', '/saju/', 'GPTBot'), false);
+  const sitemapBetween = 'User-agent: CCBot\nSitemap: https://example.com/s.xml\nUser-agent: GPTBot\nDisallow: /';
+  assert.equal(robotsAllows(sitemapBetween, '/saju/', 'CCBot'), false);
+  assert.deepEqual(parseRobotsGroups(sitemapBetween), [{ agents: ['CCBot', 'GPTBot'], allow: [], disallow: ['/'] }]);
 });
 
 test('Yeti exclusions are checked independently of Googlebot and wildcard access', () => {
@@ -123,6 +131,21 @@ test('getHreflang decodes entities like getCanonical and sitemap alternates', ()
   assert.deepEqual(getHreflang(html), [{ lang: 'ko', href: 'https://code-destiny.com/a/?b=1&c=2' }]);
   assert.equal(getHreflang(html)[0].href, getCanonical(html)[0]);
 });
+test('decodeHtml decodes each entity once and keeps > as >', () => {
+  assert.equal(decodeHtml('A &gt; B'), 'A > B');
+  assert.equal(decodeHtml('&amp;lt;b&amp;gt;'), '&lt;b&gt;');
+  assert.equal(decodeHtml('&quot;x&#39; &amp; y'), '"x\x27 & y');
+});
+test('shared parsers read uppercase tags, any attribute order and single-quoted values', () => {
+  const html = "<TITLE>T</TITLE><LINK HREF='https://code-destiny.com/a/' REL='canonical'><META CONTENT=\"d\" NAME=\"description\"><SCRIPT data-x=\"1\" TYPE='application/ld+json'>{\"@type\":\"Thing\"}</SCRIPT>";
+  assert.equal(getTitle(html), 'T');
+  assert.deepEqual(getCanonical(html), ['https://code-destiny.com/a/']);
+  assert.deepEqual(getMeta(html, 'description'), ['d']);
+  assert.deepEqual(getJsonLd(html).nodes, [{ '@type': 'Thing' }]);
+});
+test('getTitle skips <title> inside inline <svg>', () => {
+  assert.equal(getTitle('<svg><title>icon</title></svg><title>Page</title>'), 'Page');
+});
 test('getJsonLd keeps nested @graph shapes: arrays, graph in graph, bare containers dropped, containers with properties kept', () => {
   const ld = (s) => `<script type="application/ld+json">${s}</script>`;
   const html = ld('[{"@graph":[{"@id":"#in-array"}]}]')
@@ -132,4 +155,39 @@ test('getJsonLd keeps nested @graph shapes: arrays, graph in graph, bare contain
   const { nodes, errors } = getJsonLd(html);
   assert.deepEqual(errors, []);
   assert.deepEqual(nodes.map((n) => n['@id'] ?? n.name), ['#in-array', '#outer', '#inner', '#ctx-child', 'own-props', '#own-child']);
+});
+
+test('edgeSampleIssues: consistent samples are clean; per-agent drift, cd_geo_locale, no-store 200 and a non-301 slashless URL are issues', () => {
+  const ok = (path, agent, extra = {}) => ({ path, agent, status: 200, location: null, cacheControl: 'private', setCookie: 'cd_geo_country=KR; Path=/', challenge: null, ...extra });
+  const slashless = (agent, extra = {}) => ({ path: '/saju', agent, status: 301, location: 'https://code-destiny.com/saju/', cacheControl: 'no-store', setCookie: '', challenge: null, ...extra });
+  const agents = ['chrome', 'googlebot', 'yeti'];
+  const clean = agents.flatMap((agent) => [ok('/', agent), ok('/saju/', agent), slashless(agent)]);
+  assert.deepEqual(edgeSampleIssues(clean), []);
+
+  const drift = edgeSampleIssues(clean.map((s) => (s.path === '/' && s.agent === 'yeti' ? { ...s, cacheControl: 'public, max-age=0' } : s)));
+  assert.equal(drift.length, 1);
+  assert.match(drift[0], /^\/ differs by agent/);
+  assert.equal(edgeSampleIssues(clean.map((s) => (s.path === '/saju/' && s.agent === 'googlebot' ? { ...s, status: 302, location: '/en/' } : s))).length, 1);
+
+  const locale = edgeSampleIssues(clean.map((s) => (s.path === '/' && s.agent === 'chrome' ? { ...s, setCookie: 'cd_geo_country=KR; Path=/, cd_geo_locale=ko; Path=/' } : s)));
+  assert.equal(locale.length, 1);
+  assert.ok(locale.some((line) => /cd_geo_locale/.test(line)));
+
+  const noStore = edgeSampleIssues(agents.map((agent) => ok('/en/', agent, { cacheControl: 'private, no-store' })));
+  assert.equal(noStore.length, 3);
+  assert.ok(noStore.every((line) => /no-store/.test(line)));
+
+  const wrongStatus = edgeSampleIssues(agents.map((agent) => slashless(agent, { status: 308 })));
+  assert.equal(wrongStatus.length, 3);
+  const relative = edgeSampleIssues(agents.map((agent) => slashless(agent, { location: '/saju/' })));
+  assert.equal(relative.length, 3);
+});
+
+test('edgeSampleIssues: challenged or 403 samples are dropped from comparison and verdicts', () => {
+  const sample = (agent, extra = {}) => ({ path: '/', agent, status: 200, location: null, cacheControl: 'private', setCookie: '', challenge: null, ...extra });
+  const blocked = [sample('chrome'), sample('googlebot'),
+    sample('yeti', { status: 403, cacheControl: 'no-store', setCookie: 'cd_geo_locale=ko' }),
+    sample('bingbot', { cacheControl: 'no-store', challenge: 'challenge' })];
+  assert.deepEqual(edgeSampleIssues(blocked), []);
+  assert.deepEqual(edgeSampleIssues([]), []);
 });

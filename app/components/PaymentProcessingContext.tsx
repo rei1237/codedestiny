@@ -1227,46 +1227,31 @@ export function PaymentProcessingProvider({
     };
   }, [profileOnly]);
 
-  // 유료 CTA 클릭 "전"에 결제 런타임(/js/destiny-profile.js, ~400KB — 결제 선택창을 여는 코드)을
-  // 미리 받아 둔다. app/hooks/useCoinGate.ts 는 자기 마운트 시점에 이미 이걸 하지만, 그 훅을 쓰지
-  // 않는 화면(AI 상담류 등 다수 — 위 구독 스냅샷 워밍과 같은 사각지대)은 클릭 시점까지 미뤄져 있었다.
-  // runBillingCoinGateInternal 이 eligibility 조회와 병렬로 로드를 시작하는 안전망은 이미 있지만,
-  // 그건 "클릭과 동시 시작"일 뿐 "클릭 전에 이미 끝나 있음"은 아니다. 여기(앱 전역 Provider) 한 곳에
-  // idle 콜백에서는 정적 파일만 받는다. 레거시 프로필·번역 초기화까지 실행하면 상담의 첫 화면과
-  // 경쟁한다. 실제 클릭과 결제창의 기존 로더는 실행·준비 확인·실패 재시도를 그대로 담당한다.
+  // First-paint resources take priority over the optional payment runtime download.
+  // Warm on the first interactive pointer/keyboard intent; the existing click loader
+  // still owns execution, readiness, retries and every server access check.
   useEffect(() => {
     if (typeof window === "undefined" || profileOnly) return;
     let cancelled = false;
-    let idleHandle: number | null = null;
-    let timer: ReturnType<typeof setTimeout> | null = null;
-
     const prewarmPaidRuntimeGate = async () => {
-      if (cancelled) return;
       try {
         const { prefetchPaidServiceRuntimeGate } = await import("../_lib/billing-client");
         if (!cancelled) prefetchPaidServiceRuntimeGate();
       } catch {
-        // 프리페치 실패는 무시한다 — 클릭 시점의 병렬 로드가 여전히 안전망이다.
+        // The user-initiated payment loader remains responsible for retrying.
       }
     };
-
-    const idleWindow = window as Window & {
-      requestIdleCallback?: (cb: () => void, opts?: { timeout?: number }) => number;
-      cancelIdleCallback?: (handle: number) => void;
+    const events = ["pointerover", "pointerdown", "focusin"] as const;
+    const removeIntentListeners = () => {
+      events.forEach(name => document.removeEventListener(name, warmOnIntent));
     };
-    if (typeof idleWindow.requestIdleCallback === "function") {
-      idleHandle = idleWindow.requestIdleCallback(prewarmPaidRuntimeGate, { timeout: 4000 });
-    } else {
-      timer = setTimeout(prewarmPaidRuntimeGate, 2000);
-    }
-
-    return () => {
-      cancelled = true;
-      if (idleHandle !== null && typeof idleWindow.cancelIdleCallback === "function") {
-        idleWindow.cancelIdleCallback(idleHandle);
-      }
-      if (timer !== null) clearTimeout(timer);
+    const warmOnIntent = (event: Event) => {
+      if (!(event.target instanceof Element) || !event.target.closest("a[href], button, input, select, textarea, [role='button']")) return;
+      removeIntentListeners();
+      void prewarmPaidRuntimeGate();
     };
+    events.forEach(name => document.addEventListener(name, warmOnIntent, { passive: true }));
+    return () => { cancelled = true; removeIntentListeners(); };
   }, [profileOnly]);
 
   const setPaymentLoadingVariant = useCallback((variant: PaymentLoadingVariant) => {

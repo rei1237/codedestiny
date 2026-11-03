@@ -10,27 +10,27 @@
   "beats": [
     {
       "id": "ep-51:1",
-      "source": "일주일이 지났다. 연이의 휴대폰 검색 기록은 박으로 시작하는 이름으로 가득했다. 박민수, 박준호, 박성훈. 전부 아니었다.",
-      "sourceHash": "e71ba8355d9c6fe69ed9ba2955d035ed6e3ae6f11754684f0ecbb4cd5ad442fe",
-      "t": "A week passed. Yeoni's search history filled with names beginning with Park. Park Minsu, Park Junho, Park Seonghun. None right."
+      "source": "일주일이 지났다. 문은 각자를 현실의 원래 자리로 돌려보냈다. 연이는 박병하의 이름도 얼굴도 기억했지만, 지금 사는 곳과 연락처는 알지 못했다.",
+      "sourceHash": "82e79e0ec4e6de255bebcf90d3dc42bd91a09bde55ebec0ed0034b89d0be89f0",
+      "t": "A week passed. The door had returned everyone to their original place in reality. Yeoni remembered Park Byeongha’s name and face, but had no current address or phone number for him."
     },
     {
       "id": "ep-51:2",
-      "source": "박 씨만 검색해서는 끝이 없겠네. 다른 단서부터 찾아야겠다.",
-      "sourceHash": "a0aa337c9b37478204931ae56828c1a9308a3b01cbe208d1516c73c514390ac6",
-      "t": "Searching only Parks will never end. Better find another clue."
+      "source": "이름은 안 잊었는데 주소를 안 물어봤네. 양말 얘기할 시간에 번호부터 교환할걸.",
+      "sourceHash": "f5b01ecf15a993a8924e667fe5a6d5337979b3f58bcfdab82218505c4ad15515",
+      "t": "I remembered his name, but never asked for his address. We should have exchanged numbers instead of talking about socks."
     },
     {
       "id": "ep-51:3",
-      "source": "메모장 마지막 장은 이제 줄이 늘어 있었다. 박 뭐시기. 하얀 머리일 수도. 양말에 집착함. 별점에 예민함.",
-      "sourceHash": "fe243ee2dd9926bed56e27758b0a7ca88779c4a8053a66833f68b0bb3e0db386",
-      "t": "The notebook's last page had gained more lines. Park-whatever. Possibly white hair. Obsessed with socks. Sensitive about star ratings."
+      "source": "메모장에는 박병하라는 이름 아래 찾을 곳들이 적혀 있었다. 정류장, 학교 근처, 강변. 양말에 집착함, 별점에 예민함이라는 옛 메모도 그대로였다.",
+      "sourceHash": "c15f73409aa1b5acb900ac3c3917a269dc7c16d7fd9f27daf683c20eb6e47da6",
+      "t": "Under Park Byeongha’s name, the notebook listed places to look: the bus stop, near campus, the riverside. The old notes remained too: obsessed with socks; sensitive about star ratings."
     },
     {
       "id": "ep-51:4",
-      "source": "단서가 이게 다라니. 탐정이었으면 해고야.",
-      "sourceHash": "43684a040f2ae001d37cc20bc70aca346d65293b626a207f40e49fd52c715c9f",
-      "t": "That's all my clues? If I were a detective, I'd be fired."
+      "source": "찾으면 첫마디는 정했어. 휴대폰 내놔. 이번엔 번호부터 저장해.",
+      "sourceHash": "1a089d410fe1289d1f4c103fcceb6915013de221e419ce07c2ab5ef6ef82bc9f",
+      "t": "I know the first thing I’ll say when I find him. Hand over your phone. This time, we save our numbers first."
     },
     {
       "id": "ep-51:5",
@@ -328,21 +328,21 @@
     },
     {
       "id": "ep-51:54",
-      "source": "박 씨 찾는다면서요. 사백만 명 중에.",
-      "sourceHash": "ea442d86ba64ec341d7ed426d75c670b39528fb2c58f030be706bdb01796ed73",
-      "t": "You're looking for a Park, I hear. Among four million of them."
+      "source": "병하 씨가 조금 전에 다녀갔어요. 연이 씨 수업 끝나는 시간 묻고, 번호 남겼어요.",
+      "sourceHash": "662789929d4513930c60158ffcf6bd589ed4430219cd9ce561a51cef1ae678f0",
+      "t": "Byeongha was here a little while ago. He asked when your classes ended and left his number."
     },
     {
       "id": "ep-51:55",
-      "source": "그건 어떻게 알아요?",
-      "sourceHash": "97d809f052b13e53f717921dbc170d401e851e01b96cffb688a768475ed13f8f",
-      "t": "How do you know?"
+      "source": "여기 왔었어요? 그걸 왜 이제 말해요!",
+      "sourceHash": "25340a1766c70b5e38369196e2ddd4203f060ac097d9a513abf215426bb77cfc",
+      "t": "He was here? Why are you only telling me now?"
     },
     {
       "id": "ep-51:56",
-      "source": "검색 기록 다 보이게 휴대폰 들고 다니시잖아요. 점술가는 관찰이 반이에요.",
-      "sourceHash": "3c4b66548acb8f5012646ed8f135b648ef56eeb319ed0f03f9c16982ef87fae7",
-      "t": "You walk around holding your phone with your search history visible. Half of divination is observation."
+      "source": "지금 드리려고요. 서로 밖에서 찾느라 엇갈렸나 봐요. 이번엔 약속부터 잡아요.",
+      "sourceHash": "afa1e0cd36188f4cb5039902f93d3de22fa37a2dff860ca055563b0d092e710b",
+      "t": "I was about to give it to you. You must have kept missing each other while out searching. This time, arrange to meet."
     },
     {
       "id": "ep-51:57",
@@ -352,9 +352,9 @@
     },
     {
       "id": "ep-51:58",
-      "source": "庚이 돌아와 있네요. 끊겼던 연결이 다시 이어졌어요. 그분을 찾을 단서가 될 수 있겠어요.",
-      "sourceHash": "099aef804f05111bd79dc6ba78db2225693538ce90564622c53f7d6ad1561676",
-      "t": "Gyeong has returned. The severed connection is restored. It could be a clue to finding him."
+      "source": "庚이 돌아와 있네요. 끊겼던 연결이 다시 이어졌어요. 이제 두 분이 약속을 이어 가면 되겠네요.",
+      "sourceHash": "47b748213c3abe077b14c000a72cea82ea7179688fb2b89e3ba87a0df3d9f27b",
+      "t": "Geng is back. The severed connection has joined again. Now the two of you can keep it going, one promise at a time."
     },
     {
       "id": "ep-51:59",
@@ -364,21 +364,21 @@
     },
     {
       "id": "ep-51:60",
-      "source": "이번 주 세운을 보면, 동쪽 물가. 꽃이 지기 전. 귀인이 서 있는 자리예요.",
-      "sourceHash": "b7d4728b08b61741f208914a21644b5f0b9d639b239cde3afb184bef6d829d1c",
-      "t": "Looking at this week's yearly influence: an eastern waterside. Before the blossoms fall. Where a helpful person stands."
+      "source": "동쪽 강변은 어때요? 꽃이 아직 남아 있더라고요. 이번 건 점이 아니라 산책 코스 추천이에요.",
+      "sourceHash": "d1149d0574611417a9e2f84b3410fe07426c0a59a00e52369f16760ac752425b",
+      "t": "How about the eastern riverside? There are still blossoms there. That’s a walking-route suggestion, not a prediction."
     },
     {
       "id": "ep-51:61",
-      "source": "동쪽 물가면 강이잖아요. 서울에 강변이 몇 킬로인데요.",
-      "sourceHash": "8a65239efc164ad7d9bd216cd8a5bab5202239ecec409321d5be622ea18cf2fd",
-      "t": "Eastern waterside means the river. Do you know how many kilometers of riverbank Seoul has?"
+      "source": "목요일엔 네 시 전에 수업 끝나요. 그때 괜찮은지 물어볼게요.",
+      "sourceHash": "0dfa9d1795f5ad08c3a824ff804d9e8a0317fbc9a11a9b7aa3916ae03bfabf5a",
+      "t": "My Thursday classes finish before four. I’ll ask if that works for him."
     },
     {
       "id": "ep-51:62",
-      "source": "그건 다리로 찾으세요. 점은 방향까지만이에요. 나머지는 발품이고요.",
-      "sourceHash": "3407f8fc0e575130c46d37340a8de83cd80737acd4c5cc14a980cb2bda36306e",
-      "t": "Find the rest with your legs. A reading gives direction. The rest is footwork."
+      "source": "좋아요. 벤치 위치도 같이 정해요. 동쪽 물가만 적으면 또 강변을 다 도실 테니까.",
+      "sourceHash": "8d3467eb4b5a3a39c67d34e3490e42d2d2544cb0414d5fad5d7e4a0fa56af52e",
+      "t": "Good. Pick an exact bench too. If you only write “eastern waterside,” you’ll end up searching the whole river again."
     },
     {
       "id": "ep-51:63",
@@ -430,15 +430,15 @@
     },
     {
       "id": "ep-51:71",
-      "source": "나는 기억 못 해요.",
-      "sourceHash": "775528e0b39a6882485e9822cf323356bcac232e6bd28a0cb98849815a5039c1",
-      "t": "I don't remember."
+      "source": "그 봄을 직접 살아 본 기억은 없어요. 여기서 한비 씨가 해 준 이야기는 기억해요.",
+      "sourceHash": "724dc6a86bee679cbf8eff0b4310f58bc71ab821346739ca7b21f0b646ca6fb7",
+      "t": "I don’t have memories of living through that spring myself. But I remember what you told me about it."
     },
     {
       "id": "ep-51:72",
-      "source": "알아요. 그래서 좋았어요. 연이 씨가 그 봄을 몰라서, 제가 처음부터 다시 갚을 수 있으니까.",
-      "sourceHash": "d1e827bb0e2c48b1faae10067ba946365258c1d15cbb3079332eec47e52df970",
-      "t": "I know. That made me glad. Because you didn't know that spring, I could begin repaying you from the start."
+      "source": "알아요. 그 봄의 우리를 지금 연이 씨에게 돌려달라고 할 수는 없죠. 지금의 제가 한 일부터 갚을게요.",
+      "sourceHash": "e3eaabfc2277b0d8a2ca2eb3e73560b9a7ed1b439c07fb3abed9c2a99f5b97ed",
+      "t": "I know. I can’t ask you to give me back who we were that spring. I’ll start by making amends for what I’ve done now."
     },
     {
       "id": "ep-51:73",
@@ -460,9 +460,9 @@
     },
     {
       "id": "ep-51:76",
-      "source": "서한비의 얼굴이 무너졌다. 광기 컷의 무너짐이 아니었다. 오래 버티던 사람이 마침내 앉아 버리는 쪽에 가까웠다.",
-      "sourceHash": "0360d9a46a327193351ed0fd39aa6467af1057c6798ab5ba7719841b4c4f8233",
-      "t": "Seo Hanbi's face crumpled. Not into the collapse of madness. More like someone who had held on for a long time finally sitting down."
+      "source": "서한비는 고개를 숙였다. 우산 안으로 한 발 들어오려다 멈췄다. 손잡이에 손을 보탤지조차 묻지 못하고 젖은 소매만 쥐었다.",
+      "sourceHash": "eef9c00f21919555d6a8060e2d09341ce7bd6135680eb6515f8e1c950132b86c",
+      "t": "Seohanbi lowered her head. She began to step under the umbrella, then stopped. Unable even to ask whether she could help hold it, she gripped her wet sleeve."
     },
     {
       "id": "ep-51:77",
@@ -484,9 +484,9 @@
     },
     {
       "id": "ep-51:80",
-      "source": "연이는 우산 손잡이를 고쳐 쥐었다. 빗물이 우산 끝에서 줄지어 떨어졌다.",
-      "sourceHash": "d4184358185ecd3e159a88f28f889bee94e12bdbddb66b289c73b20144052858",
-      "t": "Yeoni adjusted their grip on the umbrella. Rain ran in lines from its edge."
+      "source": "연이는 흙 묻은 한비의 손과 우물가에서 끊어진 고리를 떠올렸다. 그 손이 한 일을 잊은 것은 아니었다. 다만 지금도 돌려주려 애쓰는 손을 계속 밀어내고 싶지는 않았다.",
+      "sourceHash": "cb7c515ec46c297d6809fa6ac4de53bd0f21025cf54087e26089a3f93e7c47c2",
+      "t": "Yeoni remembered Hanbi’s earth-stained hands and the ring broken by the well. She hadn’t forgotten what those hands had done. But she no longer wanted to keep pushing away hands that were still trying to give things back."
     },
     {
       "id": "ep-51:81",
@@ -502,9 +502,9 @@
     },
     {
       "id": "ep-51:83",
-      "source": "근데 그거랑 별개로. 이제 용서해. 내가 정했어.",
-      "sourceHash": "00119cd03a60d05cd5fee27210ab0ebff17ea9497710df6cb16b9e0662ba7d63",
-      "t": "But separately from that, I forgive you now. I've decided."
+      "source": "나한테 한 일은, 이제 용서할게요. 아무 일 없던 사이로 바로 돌아가진 못해도, 다시 알아가고 싶어요.",
+      "sourceHash": "d74cd6b233f43cdb33db1ee6124578e1e6c4d22a3d9ee9031e2904ff4c598fdb",
+      "t": "For what you did to me, I forgive you now. We can’t go straight back to how things were, but I want to get to know you again."
     },
     {
       "id": "ep-51:84",
@@ -520,21 +520,21 @@
     },
     {
       "id": "ep-51:86",
-      "source": "하나도 안 쉬웠어요. 일주일 내내 생각했어요. 박 씨 찾는 틈틈이.",
-      "sourceHash": "ccb8ab4de2ae8b50866ccde3d3704b0a36b8460e8e8ad15140fd7d0f6bb03260",
-      "t": "It wasn't easy at all. I thought about it all week. Between searching for Parks."
+      "source": "쉽지 않았어요. 고리를 끊던 날부터 계속 생각했어요. 오늘도 도망가지 않고 화분을 들고 온 걸 봤고요.",
+      "sourceHash": "e55294a35d959783967a52d9cf1340444540b5c9043236cc69ed62a48345d482",
+      "t": "It wasn’t easy. I’ve been thinking about it since you broke the ring. And today I saw you come back with those flowerpots instead of running away."
     },
     {
       "id": "ep-51:87",
-      "source": "틈틈이요?",
-      "sourceHash": "768912ba41f99be34a00ea4c80904a31c7e6f1568712c6e2cb8e42bccbb45580",
-      "t": "Between?"
+      "source": "그래도 제가 또 서툴면요. 무심코 장부부터 찾으면.",
+      "sourceHash": "502185f856bcd8e2abfa6b1e897ed1a65e943be94811a2208bc60c78728bef98",
+      "t": "What if I get it wrong again? If I reach for the ledger without thinking?"
     },
     {
       "id": "ep-51:88",
-      "source": "박 씨가 메인이에요. 미안해요.",
-      "sourceHash": "cd742e1a9097f7727d2f1e8937284d8572caa92c57acc446aee8e80456cf4dfe",
-      "t": "The Park search is the main event. Sorry."
+      "source": "그때 말할게요. 나도 참다가 한꺼번에 소리치진 않을게요. 우산부터 같이 들어요. 제 팔 아파요.",
+      "sourceHash": "513f7589e850656381660a79361bbc848c7e74f2efe4d771a78ab0facbd206b7",
+      "t": "Then I’ll tell you. I won’t bottle everything up until I shout either. For now, help me hold this umbrella. My arm hurts."
     },
     {
       "id": "ep-51:89",
@@ -580,9 +580,9 @@
     },
     {
       "id": "ep-51:96",
-      "source": "메모장에 적어 놨거든요. 박 뭐시기 바로 위에.",
-      "sourceHash": "65e5e7984303a497f986fd45df774abe1a537ad96bec186415fef5b526158e01",
-      "t": "I wrote it in my notebook. Right above Park-whatever."
+      "source": "메모장에 적어 놨거든요. 병하 연락처 물어보기 바로 위에.",
+      "sourceHash": "ab8142c94c6fbd709afb202dff2ab2175f21719cd50fd7b9cbc56d1699659418",
+      "t": "I wrote it in my notebook. Right above “Ask Byeongha for his number.”"
     },
     {
       "id": "ep-51:97",
@@ -646,9 +646,9 @@
     },
     {
       "id": "ep-51:107",
-      "source": "버스 문이 닫혔다. 연이는 창에 손바닥을 붙였다. 남자는 동쪽, 강 쪽으로 걸어가고 있었다.",
-      "sourceHash": "b9528bd9761ce6ea8779a28f34ece61a4be69eae3b93ea7a70541cb23dd3a1b5",
-      "t": "The bus doors closed. Yeoni pressed a palm to the window. The man walked east, toward the river."
+      "source": "연이가 버스에 오르자 문이 닫혔다. 남자를 돌아보는 사이 휴대폰이 울렸다. 목요일 네 시, 강변 벤치. 병하의 짧은 답장이었다.",
+      "sourceHash": "1e96adfdbd3c494ab25df27f44fbcfa3cd5a3d7b249c4fd68704bfb2552c80db",
+      "t": "The bus doors closed behind Yeoni. As she looked back at the man, her phone chimed. Thursday, four o’clock, the riverside bench. A short reply from Byeongha."
     },
     {
       "id": "ep-51:108",
@@ -658,21 +658,21 @@
     },
     {
       "id": "ep-51:109",
-      "source": "몰라요. 모르는 사람이에요. 근데 재채기 소리가.",
-      "sourceHash": "cf21b928584cbd1bde06a143aab5440748bfc01a2f8a6f604ee95b79f5777002",
-      "t": "No idea. A stranger. But that sneeze..."
+      "source": "병하 같아요. 재채기 소리가 똑같았어요. 방금 답장도 왔어요.",
+      "sourceHash": "80eae6bfaa07803e93665836ae2ae7f7b57913a8aadea41fad2e878bd2ab872c",
+      "t": "I think that’s Byeongha. His sneeze sounded the same. And he just replied."
     },
     {
       "id": "ep-51:110",
-      "source": "연이는 말을 끝맺지 못했다. 가방 속 메모장을 꺼내 마지막 줄 아래에 급하게 적었다. 하얀 우산. 고양이 알레르기. 강 쪽.",
-      "sourceHash": "823d001018cfc2429068d3aa6c2e5fffb514861a0b2c9fe5f621d6fcfc0039e1",
-      "t": "Yeoni couldn't finish. They pulled out the notebook and hurriedly wrote beneath the last line: White umbrella. Cat allergy. Toward the river."
+      "source": "연이는 번호를 네오로 저장했다. 이제 멀어지는 뒷모습을 놓쳐도 다시 부를 방법이 있었다. 손가락이 덜 떨릴 때까지 화면을 쥐고 있었다.",
+      "sourceHash": "0f704bdc0adfbda4bf77f78e029290438fffbe15f0302daa3e9368295f664898",
+      "t": "Yeoni saved the number as Neo. Even if she lost sight of his retreating back, she now had a way to call him again. She held the screen until her fingers stopped trembling so much."
     },
     {
       "id": "ep-51:111",
-      "source": "동쪽 물가. 꽃이 지기 전.",
-      "sourceHash": "fa6c9021b2c3723b33b996f8a54057b59ae03babf37ff0b729ef058e4a5cd6f1",
-      "t": "Eastern waterside. Before the blossoms fall."
+      "source": "목요일 네 시. 이번엔 운 말고, 약속.",
+      "sourceHash": "649f0cb345106e425cff1edbb1ae1d3b9eea17b351300e910a52d362cb8f5698",
+      "t": "Thursday at four. This time, an appointment—not a prediction."
     }
   ]
 }

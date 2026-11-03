@@ -39,7 +39,8 @@
       "linkFortuneHub": "Zodiac Fortunes",
       "linkStories": "Yeoni's Destiny Novel",
       "authorNote": "Laman ini dibina oleh Park Byeong-ha, pengamal myeongri (Empat Tiang Korea) dengan pengalaman sepuluh tahun, dan semakan akhir teks Saju serta Manseryeok juga datang daripada tangan yang sama. Pengiraan mengikut peraturan klasik myeongri dan astrologi, manakala setiap ayat yang sampai kepada pembaca ialah tanggungjawab manusia.",
-      "authorLink": "Lihat pembina dan kriteria semakan"
+      "authorLink": "Lihat pembina dan kriteria semakan",
+      "linkRecipes": "Resipi lima unsur Yeoni · Komik percuma"
     },
     "reviews": {
       "kicker": "REAL REVIEWS",
@@ -1969,7 +1970,8 @@
       "ch4": "Mekar",
       "ch5": "Masa yang tepat",
       "lyrics": "Lirik",
-      "more": "Dengar lagi muzik cahaya bulan"
+      "more": "Dengar lagi muzik cahaya bulan",
+      "playlist": "Senarai main muzik"
     },
     "passCopy": {
       "myTitle": "Pas saya",
@@ -2309,6 +2311,67 @@
           "fit": "Apabila anda memerlukan kriteria dan pelan tindakan bagi satu pilihan",
           "delivery": "Jawapan yang disemak dihantar melalui e-mel"
         }
+      }
+    },
+    "yehwa": {
+      "titleA": "What would you like",
+      "titleB": "to explore today?",
+      "leadA": "Start with what is",
+      "leadB": "on your mind.",
+      "tour": "Explore with Yeoni",
+      "concern": "What is on your mind?",
+      "love": "Love & relationships",
+      "work": "Money & work",
+      "self": "About myself",
+      "flow": "What lies ahead",
+      "family": "Family & daily life",
+      "results": "Readings to explore",
+      "view": "View reading",
+      "all": "Browse all readings",
+      "records": "Revisit my readings",
+      "pigRecords": "Ggulggul records",
+      "catRecords": "Yeongnyangi records",
+      "line1": "Shall we start with what is on your mind today?",
+      "line2": "Read the description and terms. Choose a reading to see its details.",
+      "line3": "Find past readings in each service’s records. Ggulggul and Yeongnyangi records stay separate.",
+      "done": "Finish guide",
+      "previous": "Previous",
+      "next": "Next",
+      "skip": "Skip",
+      "findLabel": "Find a reading by concern",
+      "libraryLabel": "All readings and records",
+      "guideLabel": "Yeoni’s screen guide",
+      "close": "Close guide",
+      "codexDescription": "Explore your relationship patterns individually or compare two people’s differences.",
+      "sibylName": "Sibyl Annual Preparation Report",
+      "sibylDescription": "Periods to watch, preparation by area, and practical next steps.",
+      "rangePrice": "KRW {from}–{to}"
+    },
+    "cro": {
+      "love": "Cinta · Kembali bersama",
+      "money": "Kewangan · Perniagaan",
+      "career": "Kerja · Kerjaya",
+      "relationship": "Keserasian · Hubungan",
+      "yearly": "Tahun ini · Tahun depan",
+      "introduction": "Saju, tarot dan panduan mengikut persoalan anda.",
+      "freeIntroduction": "Mulakan dengan bacaan Saju percuma.",
+      "freeStart": "Mulakan Saju percuma",
+      "paidLabel": "Berbayar ·",
+      "result": {
+        "relationship": "Laporan hubungan Saju dan Zi Wei Dou Shu",
+        "consultation": "Huraian panduan mengikut soalan anda",
+        "love": "Laporan cinta peribadi",
+        "yearly": "Aliran tahun pilihan · Nasihat mengikut tempoh",
+        "life": "Laporan kehidupan mengikut bab",
+        "saju": "Carta Saju · Tafsiran asas"
+      },
+      "resultSummary": {
+        "relationship": "Apa yang anda terima · Laporan hubungan Saju dan Zi Wei Dou Shu",
+        "consultation": "Apa yang anda terima · Huraian panduan mengikut soalan anda",
+        "love": "Apa yang anda terima · Laporan cinta peribadi",
+        "yearly": "Apa yang anda terima · Aliran tahun pilihan · Nasihat mengikut tempoh",
+        "life": "Apa yang anda terima · Laporan kehidupan mengikut bab",
+        "saju": "Apa yang anda terima · Carta Saju · Tafsiran asas"
       }
     }
   },

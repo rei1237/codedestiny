@@ -3,7 +3,6 @@
 import dynamic from "next/dynamic";
 
 const NamingAiClient = dynamic(() => import("./NamingAiClient"), {
-  ssr: false,
   loading: () => <NamingAiShell />,
 });
 

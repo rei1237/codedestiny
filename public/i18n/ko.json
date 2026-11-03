@@ -31,7 +31,8 @@
       "linkFortuneHub": "띠·별자리 운세",
       "linkStories": "연이의 운명 노벨",
       "authorNote": "이 사이트를 만들고 사주·만세력 해설 문안을 최종 검수하는 사람은 10년 경력의 명리학자 박병하입니다. 계산은 명리학과 점성술의 고전 규칙이 맡고, 사람에게 건네는 문장은 사람이 책임집니다.",
-      "authorLink": "만드는 사람과 검수 기준 보기"
+      "authorLink": "만드는 사람과 검수 기준 보기",
+      "linkRecipes": "연이의 사주 요리법 · 무료 웹툰"
     },
     "reviews": {
       "kicker": "REAL REVIEWS",
@@ -1818,7 +1819,8 @@
       "ch4": "개화",
       "ch5": "진짜 timing",
       "lyrics": "가사 자막",
-      "more": "달빛 음악 더 듣기"
+      "more": "달빛 음악 더 듣기",
+      "playlist": "음악 플레이리스트"
     },
     "passCopy": {
       "myTitle": "내 이용권",
@@ -2158,6 +2160,67 @@
           "fit": "한 가지 선택의 기준과 실행안이 필요할 때",
           "delivery": "검수한 답변을 이메일로 전달"
         }
+      }
+    },
+    "yehwa": {
+      "titleA": "오늘은 어떤 이야기가",
+      "titleB": "궁금하세요?",
+      "leadA": "마음에 남은 고민부터",
+      "leadB": "천천히 골라보세요.",
+      "tour": "연이와 함께 둘러보기",
+      "concern": "어떤 고민이 있나요?",
+      "love": "연애·관계",
+      "work": "돈·일",
+      "self": "나의 성향",
+      "flow": "앞으로의 흐름",
+      "family": "가족·생활",
+      "results": "마음을 살펴보는 상담",
+      "view": "상담 살펴보기",
+      "all": "전체 운세 보기",
+      "records": "나의 상담 다시 보기",
+      "pigRecords": "꿀꿀 운세 기록",
+      "catRecords": "영냥이 상담 기록",
+      "line1": "오늘 마음에 남은 이야기부터 골라볼까요?",
+      "line2": "상담 내용과 이용 조건을 살펴보세요. 마음에 맞는 상담을 고르면 자세한 안내로 이어져요.",
+      "line3": "지난 상담은 서비스별 기록에서 찾아볼 수 있어요. 꿀꿀 운세와 영냥이 기록을 나누어 두었어요.",
+      "done": "안내 마치기",
+      "previous": "이전",
+      "next": "다음",
+      "skip": "건너뛰기",
+      "findLabel": "고민으로 상담 찾기",
+      "libraryLabel": "전체 운세와 상담 기록",
+      "guideLabel": "연이의 화면 안내",
+      "close": "안내 닫기",
+      "codexDescription": "나의 연애 패턴은 개인판으로, 두 사람의 차이는 궁합판으로 읽어요",
+      "sibylName": "시빌라 연간 대비 리포트",
+      "sibylDescription": "주의 시기·분야별 대비·현실적인 개운 행동",
+      "rangePrice": "{from}원~{to}원"
+    },
+    "cro": {
+      "love": "연애·재회",
+      "money": "재물·사업",
+      "career": "직장·진로",
+      "relationship": "궁합·인간관계",
+      "yearly": "올해·내년 운세",
+      "introduction": "사주·타로와 고민별 상담.",
+      "freeIntroduction": "무료 사주부터 시작해 보세요.",
+      "freeStart": "무료 사주 시작하기",
+      "paidLabel": "유료 ·",
+      "result": {
+        "relationship": "사주·자미두수 관계 리포트",
+        "consultation": "질문에 맞춘 상담 해설",
+        "love": "개인 연애 리포트",
+        "yearly": "선택한 해의 흐름 · 시기별 조언",
+        "life": "챕터별 인생 리포트",
+        "saju": "사주 명식 · 기본 해석"
+      },
+      "resultSummary": {
+        "relationship": "받는 결과 · 사주·자미두수 관계 리포트",
+        "consultation": "받는 결과 · 질문에 맞춘 상담 해설",
+        "love": "받는 결과 · 개인 연애 리포트",
+        "yearly": "받는 결과 · 선택한 해의 흐름 · 시기별 조언",
+        "life": "받는 결과 · 챕터별 인생 리포트",
+        "saju": "받는 결과 · 사주 명식 · 기본 해석"
       }
     }
   },

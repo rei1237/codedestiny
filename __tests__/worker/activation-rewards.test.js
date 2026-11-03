@@ -68,3 +68,17 @@ test('a month-old ambiguous partial grant requires review instead of another lot
 });
 
 test('missing server payment time cannot qualify for the new reward',async()=>{payment={_id:'undated'};delivered={_id:'result'};expect(await api.findFirstDeliveredCashPurchase(UID)).toBeNull();});
+
+test('invitation is limited to no reading receipt and no previous moonstone grant',async()=>{
+ expect((await api.readActivationRewards(UID)).tutorial.guideEligible).toBe(true);
+ await api.startFreeSajuTutorial(UID,'own');
+ const read=await api.readActivationRewards(UID);expect(read.tutorial.guideEligible).toBe(false);expect(read.tutorial.eligible).toBe(true);
+ expect(grant).not.toHaveBeenCalled();
+});
+test.each(['balance','counter','lot','ledger'])('past moonstones suppress only the invitation: %s',async evidence=>{
+ if(evidence==='balance')user.profileSubscription.membershipCreditBalance=1;
+ if(evidence==='counter')user.profileSubscription.membershipCreditGranted=500;
+ if(evidence==='lot')user.profileSubscription.membershipCreditLots=[{lotId:'review',amount:500,remaining:0,expiresAt:new Date(0)}];
+ if(evidence==='ledger')ledgerRead.mockImplementation(filter=>chain(filter.amount?{_id:'historical-grant'}:null));
+ const result=await api.readActivationRewards(UID);expect(result.tutorial.guideEligible).toBe(false);expect(result.tutorial.eligible).toBe(true);expect(grant).not.toHaveBeenCalled();
+});

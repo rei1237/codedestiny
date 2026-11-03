@@ -1,5 +1,7 @@
 "use client";
 
+import { TalismanArt, TalismanPicker } from "./Talisman";
+import { DEFAULT_TALISMAN_ID, migrateTalisman, talismanCopy } from "./talisman-data";
 import { useCompanionDaily } from "./use-companion-daily";
 import { companionCopy, systemLabel, categoryLabel } from "./companion-copy";
 
@@ -30,17 +32,6 @@ import {
 import { isMobileAppRuntime } from "../_lib/auth-client";
 import { SHELL_HOME_PATH } from "@/lib/navigation/shellHome";
 import { getCurrentLoadingLocale, INTL_LOCALE_BY_LOADING_LOCALE, type LoadingLocale } from "@/constants/loadingMessages";
-
-// ── 꽃돼지(연이) 마스코트 — R1: 앱 번들 로컬 '단일 컷' 이미지(오프라인 동작) ──
-// (기존 R2 CDN URL은 화면 켜지는 순간 네트워크가 없어 404. flower-pig-5-*는 스프라이트 시트라
-//  통짜로 나오던 문제 → 잘라진 단일 캐릭터(꽃돼지-Photoroom·꽃돼지2-Photoroom)를 ASCII로 복사해 사용.)
-const PIG_FALLBACK = "/images/fortune-tea-house/flower-pig-single-a.webp";
-const PIG_POSES: readonly { key: string; url: string }[] = [
-  { key: "yeongnyangi", url: "/assets/yeongnyangi/original/hero-480.webp" },
-  { key: "yeoni", url: "/assets/yeongnyangi/companion/yeoni.webp" },
-  { key: "pig1", url: "/images/fortune-tea-house/flower-pig-single-a.webp" },
-  { key: "pig2", url: "/images/fortune-tea-house/flower-pig-single-b.webp" },
-];
 
 const FONT_COLORS: readonly { key: string; hex: string }[] = [
   { key: "white", hex: "#ffffff" },
@@ -722,6 +713,7 @@ interface LockPrefs {
   backgroundKey: string;
   buttonStyleKey: string;
   pigPoseKey: string;
+  talismanId: string;
   changeOnLaunch: boolean;
   affirmationCats: string[]; // 듣고 싶은 확언 분야(비어 있으면 전체)
   dailyFortuneSystem: DailyFortuneSystem; // 오늘의 운세 점술 선택
@@ -749,6 +741,7 @@ function buildDefaultState(copy: LockScreenCopy): LockState {
       backgroundKey: "twilight",
       buttonStyleKey: "glass",
       pigPoseKey: "yeongnyangi",
+      talismanId: DEFAULT_TALISMAN_ID,
       changeOnLaunch: true,
       affirmationCats: [],
       dailyFortuneSystem: "sukuyo",
@@ -791,6 +784,7 @@ function mergeState(raw: unknown, copy: LockScreenCopy): LockState {
   if (obj.prefs && typeof obj.prefs === "object") {
     // Existing night reminders remain active until their owner opts into quiet hours.
     base.prefs = { ...base.prefs, ...obj.prefs, quietEnabled: obj.prefs.quietEnabled ?? false };
+    base.prefs.talismanId = migrateTalisman(obj.prefs.talismanId, obj.prefs.pigPoseKey);
     if (!Array.isArray(base.prefs.alarms)) base.prefs.alarms = buildDefaultState(copy).prefs.alarms;
     if (!Array.isArray(base.prefs.affirmationCats)) base.prefs.affirmationCats = [];
     if (!DAILY_SYSTEM_KEYS.includes(base.prefs.dailyFortuneSystem)) base.prefs.dailyFortuneSystem = "sukuyo";
@@ -860,12 +854,13 @@ async function pushAlarmsToNative(prefs: LockPrefs) {
 
 // ── 페이저 카드: 오늘의 운세 + 변주 시퀀스(R6) ────────────────
 type PagerCard = { type: "daily" } | { type: "seq"; card: LockScreenCard };
-type Sheet = "none" | "settings" | "theme" | "alarms" | "readlist";
+type Sheet = "talisman" | "none" | "settings" | "theme" | "alarms" | "readlist";
 
 export default function LockScreenFortuneClient() {
   const copy = useLockScreenCopy();
   const locale = getCurrentLoadingLocale();
   const extra = companionCopy(locale);
+  const charmCopy = talismanCopy(locale);
   // D-1: 웹에서는 의미 없으므로 노출하지 않는다(앱/네이티브 잠금화면 WebView만 통과).
   const [runtimeOk, setRuntimeOk] = useState<boolean | null>(null);
   const [state, setState] = useState<LockState | null>(null);
@@ -1030,16 +1025,11 @@ export default function LockScreenFortuneClient() {
 
   const bg = useMemo(() => BACKGROUNDS.find((b) => b.key === state?.prefs.backgroundKey) || BACKGROUNDS[0], [state?.prefs.backgroundKey]);
   const fontColor = useMemo(() => (FONT_COLORS.find((c) => c.key === state?.prefs.fontColorKey) || FONT_COLORS[0]).hex, [state?.prefs.fontColorKey]);
-  const pig = useMemo(() => PIG_POSES.find((p) => p.key === state?.prefs.pigPoseKey) || PIG_POSES[0], [state?.prefs.pigPoseKey]);
+
   const scale = state?.prefs.fontScale ?? 1;
   const subColor = bg.dark ? "rgba(255,255,255,.74)" : "rgba(20,16,40,.66)";
   const chipBg = bg.dark ? "rgba(255,255,255,.14)" : "rgba(20,16,40,.1)";
   const panelBg = bg.dark ? "rgba(10,10,26,.55)" : "rgba(255,255,255,.6)";
-
-  const onPigError = (e: { currentTarget: HTMLImageElement }) => {
-    const t = e.currentTarget;
-    if (t.src.indexOf(PIG_FALLBACK) < 0) t.src = PIG_FALLBACK;
-  };
 
   if (runtimeOk !== true || !state || !content) {
     return (
@@ -1055,7 +1045,6 @@ export default function LockScreenFortuneClient() {
   const current = pagerCards[idx];
   const isQuote = current?.type === "seq" && current.card.kind === "quote";
   const kindLabel = current?.type === "daily" ? extra.daily : isQuote ? extra.quote : extra.affirmation;
-  const art = pig.key === "yeongnyangi" ? (isQuote ? "/assets/yeongnyangi/companion/quote.webp" : current?.type === "daily" ? "/assets/yeongnyangi/companion/daily.webp" : pig.url) : pig.url;
   const visibleText = current?.type === "seq" ? (locale !== "ko" ? (isQuote ? extra.ownLine : extra.ownAffirmation) : current.card.quote?.text || current.card.affirmation || current.card.coreEnergy || current.card.greeting || current.card.knowledge?.text || "") : "";
   const saveText = () => {
     if (!visibleText) return;
@@ -1069,27 +1058,35 @@ export default function LockScreenFortuneClient() {
   return (
     <main className="cd-companion" style={{ background: bg.css, color: bg.dark ? (state.prefs.fontColorKey === "ink" ? "#fff9ef" : fontColor) : (state.prefs.fontColorKey === "gold" ? "#70551c" : "#241c35") }}>
       <header className="cd-companion-header">
-        <div><p>{dateLabel} · KST</p><h1>{extra.title}</h1></div>
+        <div><p>{dateLabel} · KST</p><h1>{charmCopy.title}</h1></div>
         <button type="button" onClick={() => setSheet("settings")} aria-label={extra.settings}>☷</button>
       </header>
-      <nav className="cd-companion-tabs" aria-label={extra.kind}>
-        {([['daily', extra.daily], ['quote', extra.quote], ['affirmation', extra.affirmation]] as const).map(([kind, label]) => {
-          const target = pagerCards.findIndex(c => kind === 'daily' ? c.type === 'daily' : c.type === 'seq' && c.card.kind === kind);
-          return <button type="button" key={kind} disabled={target < 0} aria-pressed={kindLabel === label} onClick={() => setPage(target)}>{label}</button>;
-        })}
-      </nav>
-      <article className="cd-companion-reading" aria-live="polite" style={{ fontSize: `${scale}rem` }}>
-        {current?.type === "daily" ? <>
+      <div className="cd-talisman-change"><button type="button" onClick={() => setSheet("talisman")}>{charmCopy.change}</button></div>
+      <TalismanArt id={state.prefs.talismanId} locale={locale} />
+      {state.prefs.affirmationEnabled && <section className="cd-companion-affirmation" style={{fontSize: scale + "rem"}}><h2>{extra.affirmation}</h2><p>{locale === "ko" ? content.affirmation : extra.ownAffirmation}</p></section>}
+      <section id="companion-daily" className="cd-companion-daily" aria-label={extra.daily} style={{fontSize: scale + "rem"}}>
+        {state.prefs.dailyEnabled && <h2>{extra.daily}</h2>}
+        {state.prefs.dailyEnabled && <>
           <select aria-label={copy.dailyFortuneSystemHeading} value={dailySystem} onChange={e => updatePrefs({dailyFortuneSystem:e.target.value as DailyFortuneSystem})} style={{minHeight:48,maxWidth:"100%",padding:12,borderRadius:12,background:bg.dark?"#211a32":"#fff9ee",color:"inherit"}}>{DAILY_FORTUNE_SYSTEMS.map(system=><option key={system.key} value={system.key}>{systemLabel(locale, system.key, system.label)}</option>)}</select>
-          {dailyFortune ? <DailyFortuneCard fortune={dailyFortune} scale={scale} subColor={subColor} panelBg={panelBg} dark={bg.dark} copy={copy} /> : <><p className="cd-companion-sentence">{extra.unavailable}</p><button type="button" onClick={daily.retry}>{extra.retry}</button></>}
+          {dailyFortune ? <DailyFortuneCard fortune={dailyFortune} scale={scale} subColor={subColor} panelBg={panelBg} dark={bg.dark} copy={copy} /> : !daily.failed && !daily.data ? <p role="status">{copy.dailyFortuneLoading}</p> : <><p>{extra.unavailable}</p><button type="button" onClick={daily.retry}>{extra.retry}</button></>}
           <p className="cd-companion-source">{daily.data?.date || content.dateKey} · KST</p>
           {legacyReference && <details><summary>{extra.source}</summary><DailyFortuneCard fortune={legacyReference} scale={scale} subColor={subColor} panelBg={panelBg} dark={bg.dark} copy={copy} /></details>}
           <a href={locale === "ko" ? "/today/" : `${locale === "zh-CN" ? "/zh" : locale === "zh-TW" ? "/zh-tw" : ["en","ja"].includes(locale) ? "/" + locale : "/en"}/today/`}>{extra.web}</a>
-        </> : current ? <>
+        </>}
+      </section>
+      <nav className="cd-companion-tabs" aria-label={extra.kind}>
+        {([['daily', extra.daily], ['quote', extra.quote], ['affirmation', extra.affirmation]] as const).map(([kind, label]) => {
+          const target = pagerCards.findIndex(c => kind === 'daily' ? c.type === 'daily' : c.type === 'seq' && c.card.kind === kind);
+          return <button type="button" key={kind} disabled={target < 0} aria-pressed={kindLabel === label} onClick={() => { setPage(target); if (kind === "daily") document.getElementById("companion-daily")?.scrollIntoView({block:"start"}); }}>{label}</button>;
+        })}
+      </nav>
+      <article className="cd-companion-reading" aria-live="polite" style={{ fontSize: `${scale}rem` }}>
+        {current?.type === "seq" ? <>
+
           <p className="cd-companion-sentence">{visibleText}</p>
           {isQuote && <p className="cd-companion-source">{locale === "ko" ? current.card.quote?.author : extra.ownAuthor}</p>}
-        </> : <p>{extra.noContent}</p>}
-        <img src={art} onError={onPigError} width={192} height={192} alt="" className="cd-companion-cat" />
+        </> : !total ? <p>{extra.noContent}</p> : null}
+
       </article>
       <div className="cd-companion-actions">
         <button type="button" disabled={total < 2} onClick={() => setPage(p => p - 1)}>{extra.previous}</button>
@@ -1100,7 +1097,8 @@ export default function LockScreenFortuneClient() {
       <p role="status" className="cd-companion-source">{announcement}</p>
       {locale === "ko" && <p className="cd-companion-source" style={{textAlign:"center",marginTop:20}}>{copy.todaysFlowerPrefix} · {content.flower.name} — {content.flower.meaning}</p>}
       <a className="cd-companion-return" href="/yeongnyangi/">{extra.close}</a>
-      {sheet !== "none" && <SettingsSheet sheet={sheet} setSheet={setSheet} state={state} updatePrefs={updatePrefs} updateAlarm={updateAlarm} copy={copy} />}
+      {sheet === "talisman" && <TalismanPicker id={state.prefs.talismanId} locale={locale} onClose={() => setSheet("none")} onApply={id => { updatePrefs({talismanId:id}); setSheet("none"); setAnnouncement(charmCopy.saved); }} />}
+      {sheet !== "none" && sheet !== "talisman" && <SettingsSheet sheet={sheet} setSheet={setSheet} state={state} updatePrefs={updatePrefs} updateAlarm={updateAlarm} copy={copy} />}
     </main>
   );
 }
@@ -1260,16 +1258,7 @@ function SettingsSheet({
                 })}
               </div>
             </div>
-            <div>
-              <p className="mb-2 text-sm font-bold text-slate-300">{extra.themeCharacter}</p>
-              <div className="grid grid-cols-4 gap-2.5">
-                {PIG_POSES.map((p) => (
-                  <button key={p.key} type="button" aria-pressed={prefs.pigPoseKey === p.key} onClick={() => updatePrefs({ pigPoseKey: p.key })} className={`grid place-items-center rounded-2xl border-2 p-2 ${prefs.pigPoseKey === p.key ? "border-fuchsia-300 bg-white/10" : "border-white/10 bg-white/5"}`}>
-                    <img src={p.url} alt={p.key === "yeongnyangi" ? extra.yeongnyangi : p.key === "yeoni" ? "Yeoni · 연이" : copy.pigPoseLabel[p.key]} width={44} height={44} className="h-11 w-11 object-contain" />
-                  </button>
-                ))}
-              </div>
-            </div>
+            <MenuButton label={talismanCopy(getCurrentLoadingLocale()).change} value={talismanCopy(getCurrentLoadingLocale()).preview} onClick={() => setSheet("talisman")} />
             <div>
               <p className="mb-2 text-sm font-bold text-slate-300">{copy.buttonTextureHeading}</p>
               <div className="grid grid-cols-4 gap-2.5">

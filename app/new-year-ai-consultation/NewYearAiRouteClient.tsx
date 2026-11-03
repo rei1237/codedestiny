@@ -3,7 +3,6 @@
 import dynamic from "next/dynamic";
 
 const NewYearAiClient = dynamic(() => import("./NewYearAiClient"), {
-  ssr: false,
   loading: () => <NewYearAiShell />,
 });
 

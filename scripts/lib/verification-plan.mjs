@@ -63,6 +63,13 @@ export function collectChanges({ root = process.cwd(), base = "origin/main", hea
   return { baseSha, headSha, files: [...files].sort(), deletedOrRenamedFiles: [...deletedOrRenamedFiles].sort(), hasDeletionOrRename: deletedOrRenamedFiles.size > 0, embeddedRepos, complete: errors.length === 0, errors };
 }
 
+// 깨끗한 작업 트리는 "검사할 변경이 없다"이지 "모른다"가 아니다. 계획 자체는 빈 diff 를 계속
+// fail-closed(critical)로 보고, 이 판정은 로컬 작업 트리 모드의 실행기만 쓴다(2026-11-02: 커밋 직후
+// check:fast 가 34단계 전체 검증을 돌았다). git 수집이 실패하면 complete=false 라 여기 걸리지 않는다.
+export function nothingToVerify(changes) {
+  return changes.complete === true && !(changes.files || []).length && !changes.hasDeletionOrRename;
+}
+
 // Read the existing critical contract rather than duplicating its guard list.
 export function criticalSteps(scripts) {
   const command = scripts["check:critical"];
@@ -186,6 +193,9 @@ export function createVerificationPlan(changes, { profile = "fast", skipBuild = 
   const failClosed = !changes.complete || !files.length || unknown;
   const critical = failClosed || sourceRemoval || shared || forceCritical || deep.required || risk.level === "high" || ["payment", "all"].includes(profile);
   const docsOnly = !critical && profile === "fast" && files.every((file) => /(?:\.mdx?$|^docs\/)/i.test(file));
+  // CSS·이미지·문서는 tsc 입력이 아니다(`*.module.css` 는 types/css-modules.d.ts 의 와일드카드 선언).
+  // 그래서 결과가 바뀔 수 없는 typecheck 만 뺀다. 소스를 텍스트로 읽는 test:node 는 그대로 돈다.
+  const presentationOnly = files.every((file) => /\.(?:css|scss|sass|less|svg|png|jpe?g|webp|gif|ico|avif|mdx?)$/i.test(file));
   const tier = critical ? "critical" : risk.level === "low" ? "fast" : "standard";
   const needsBuild = !docsOnly && tier !== "fast";
   const both = failClosed || sourceRemoval || shared || deep.required || ["payment", "all"].includes(profile) || forceCritical || files.some((file) => /(?:payment|billing|auth|login|entitlement|unlock|pass-verdict)/i.test(file));
@@ -209,7 +219,7 @@ export function createVerificationPlan(changes, { profile = "fast", skipBuild = 
     add({ kind: "lint-changed" });
     if (critical) npm("lint");
     npm("verify:sitemap-drift");
-    npm("typecheck");
+    if (critical || !presentationOnly) npm("typecheck");
     // Static guards read source as text, outside Jest's import graph.
     npm("test:node");
     if (critical) {

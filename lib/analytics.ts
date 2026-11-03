@@ -9,9 +9,21 @@
  * 그래서 호출부는 존재 여부나 실패를 검사할 필요가 없다.
  */
 
+export type DiscoveryEvent = "view_item" | "select_item" | "view_search_results" | "search_result_select";
+export type DiscoveryIntent = "all" | "love" | "money" | "career" | "relationship" | "yearly" | "method" | "consultation" | "unknown";
+export type DiscoveryPayload = {
+  itemId?: string;
+  itemListId?: "home" | "discovery" | "search" | "related" | "landing";
+  intentId?: DiscoveryIntent;
+  resultCount?: number;
+  /** Actual catalogue KRW amount; omit when the price is not known. */
+  value?: number;
+};
+
 declare global {
   interface Window {
     cdReadGrowthAttribution?: () => {campaignId:string;consent:true;version:string;device:string;content?:string;keyword?:string}|null;
+    cdTrackDiscovery?: (eventName: DiscoveryEvent, payload: DiscoveryPayload) => boolean;
     cdAnalyticsReady?: () => void;
     cdTrack?: (eventName: string, params?: Record<string, unknown>) => void;
     cdTrackConfirmedPurchase?: (payload: unknown) => boolean;
@@ -55,4 +67,9 @@ export function trackConsultationCompleted(record: {id: string; status: string; 
 }
 export function trackConfirmedRefund(order: unknown): void {
   whenReady(() => window.cdTrackConfirmedRefund?.(order));
+}
+
+/** Public catalogue IDs and resolved search categories only; never raw input. */
+export function trackDiscovery(eventName: DiscoveryEvent, payload: DiscoveryPayload): void {
+  whenReady(() => window.cdTrackDiscovery?.(eventName, payload));
 }

@@ -39,7 +39,8 @@
       "linkFortuneHub": "Zodiac Fortunes",
       "linkStories": "Yeoni's Destiny Novel",
       "authorNote": "Ce site est conçu par Park Byeong-ha, praticien de myeongri (les Quatre Piliers coréens) fort de dix ans d'expérience, qui relit également en dernier ressort les textes de Saju et de Manseryeok. Les calculs suivent les règles classiques du myeongri et de l'astrologie, et chaque phrase remise au lecteur relève de la responsabilité d'une personne.",
-      "authorLink": "Voir qui le réalise et les critères de relecture"
+      "authorLink": "Voir qui le réalise et les critères de relecture",
+      "linkRecipes": "Recettes des cinq éléments de Yeoni · BD gratuites"
     },
     "reviews": {
       "kicker": "REAL REVIEWS",
@@ -1969,7 +1970,8 @@
       "ch4": "Floraison",
       "ch5": "Le vrai timing",
       "lyrics": "Paroles",
-      "more": "Écouter plus de musique au clair de lune"
+      "more": "Écouter plus de musique au clair de lune",
+      "playlist": "Playlist musicale"
     },
     "passCopy": {
       "myTitle": "Mes pass",
@@ -2309,6 +2311,67 @@
           "fit": "Pour définir les critères et le plan d’action d’une décision",
           "delivery": "Réponse vérifiée envoyée par e-mail"
         }
+      }
+    },
+    "yehwa": {
+      "titleA": "What would you like",
+      "titleB": "to explore today?",
+      "leadA": "Start with what is",
+      "leadB": "on your mind.",
+      "tour": "Explore with Yeoni",
+      "concern": "What is on your mind?",
+      "love": "Love & relationships",
+      "work": "Money & work",
+      "self": "About myself",
+      "flow": "What lies ahead",
+      "family": "Family & daily life",
+      "results": "Readings to explore",
+      "view": "View reading",
+      "all": "Browse all readings",
+      "records": "Revisit my readings",
+      "pigRecords": "Ggulggul records",
+      "catRecords": "Yeongnyangi records",
+      "line1": "Shall we start with what is on your mind today?",
+      "line2": "Read the description and terms. Choose a reading to see its details.",
+      "line3": "Find past readings in each service’s records. Ggulggul and Yeongnyangi records stay separate.",
+      "done": "Finish guide",
+      "previous": "Previous",
+      "next": "Next",
+      "skip": "Skip",
+      "findLabel": "Find a reading by concern",
+      "libraryLabel": "All readings and records",
+      "guideLabel": "Yeoni’s screen guide",
+      "close": "Close guide",
+      "codexDescription": "Explore your relationship patterns individually or compare two people’s differences.",
+      "sibylName": "Sibyl Annual Preparation Report",
+      "sibylDescription": "Periods to watch, preparation by area, and practical next steps.",
+      "rangePrice": "KRW {from}–{to}"
+    },
+    "cro": {
+      "love": "Amour et retrouvailles",
+      "money": "Argent et affaires",
+      "career": "Travail et carrière",
+      "relationship": "Compatibilité et relations",
+      "yearly": "Cette année et la suivante",
+      "introduction": "Saju, tarot et conseils selon vos préoccupations.",
+      "freeIntroduction": "Commencez par une lecture Saju gratuite.",
+      "freeStart": "Commencer Saju gratuitement",
+      "paidLabel": "Payant ·",
+      "result": {
+        "relationship": "Rapport relationnel Saju et Zi Wei Dou Shu",
+        "consultation": "Conseils adaptés à votre question",
+        "love": "Rapport amoureux personnel",
+        "yearly": "Tendances de l’année choisie · Conseils par période",
+        "life": "Rapport de vie par chapitre",
+        "saju": "Thème Saju · Interprétation de base"
+      },
+      "resultSummary": {
+        "relationship": "Ce que vous recevez · Rapport relationnel Saju et Zi Wei Dou Shu",
+        "consultation": "Ce que vous recevez · Conseils adaptés à votre question",
+        "love": "Ce que vous recevez · Rapport amoureux personnel",
+        "yearly": "Ce que vous recevez · Tendances de l’année choisie · Conseils par période",
+        "life": "Ce que vous recevez · Rapport de vie par chapitre",
+        "saju": "Ce que vous recevez · Thème Saju · Interprétation de base"
       }
     }
   },

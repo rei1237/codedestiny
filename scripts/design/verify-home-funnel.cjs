@@ -26,7 +26,7 @@ function contrast(foreground, background) {
 async function assertEssentials(page, label) {
   assert.equal(await page.locator('a[href="/mini-games/"], a[href="/saju/love-simulation/"], a[href*="secret-house_real"]').count(), 0, label + ': paused content has no home entry');
   const essentials = [
-    ['hero CTA', '.cdh-hero .cdh-primary'],
+    ['concern selection', '.yh-choices'],
     ['signature deck', '#cdSignatureConsult'],
     ['sample guide', '#cdSignatureConsult .cd-sig__samples-link[href="/consultation-samples/"]'],
     ['free first', '#cdQuickServices'],
@@ -105,9 +105,9 @@ async function assertEssentials(page, label) {
         assert.equal(await page.locator(selector).isVisible(), false, `${width}px ${selector} stays off the home screen`);
       }
 
-      assert.match(await page.locator('#cdhTitle').innerText(), /명리학자/, `${width}px hero states who designed the consultations`);
-      assert.equal(await page.locator('.cdh-hero .cdh-primary').getAttribute('href'), '#cdSignatureConsult', `${width}px hero CTA leads to the deck`);
-      assert.match(await page.locator('.cdh-hero .cdh-primary').evaluate((node) => getComputedStyle(node).backgroundImage), /gradient/, `${width}px hero CTA is the gold Brand pill`);
+      assert.match(await page.locator('#cdhTitle').innerText(), /어떤 이야기/, 'hero invites concern selection');
+      assert.equal(await page.locator('[data-yh-concern]').count(), 5, 'five concern groups');
+      assert.equal(await page.locator('.yh-links [data-action="cdOpenAllFortunes"]').count(), 1, 'full catalog remains available');
       assert.equal(await page.locator('#cdQuickServices .cdh-free-card').count(), 6, `${width}px free first offers the six methods`);
       assert.equal(await page.locator('#cdQuickServices .cdh-free-card').first().getAttribute('data-cdh-free'), '', `${width}px the first free card opens the one-step saju`);
       // 초융합 시그니처 띠: 다섯 마스터 · 50,000원 · 초융합 페이지로.
@@ -136,7 +136,9 @@ async function assertEssentials(page, label) {
       const story = await page.locator('.cdh-story__card').evaluateAll((cards) => cards.map((card) => ({ href: card.getAttribute('href'), top: Math.round(card.getBoundingClientRect().top), visible: card.getBoundingClientRect().width > 0 })));
       assert.deepEqual(story.map((card) => card.href), ['/codedestiny-novel.html'], `${width}px story holds novel and music`);
       assert.ok(story.every(card => card.visible), 'novel remains visible inside the story');
-      assert.equal(await page.locator('.cdh-story #cdhMoonlightMv').count(), 1, 'the existing music video belongs to the story');
+      assert.equal(await page.locator('#cdhMoonlightMv').count(), 1, 'the existing music video remains on the home');
+      assert.equal(await page.locator('details #cdhMoonlightMv').count(), 0, 'the music video stays outside collapsed disclosures');
+      assert.equal(await page.locator('.cdh-story .cdh-story__card--music[href="/music/"]').count(), 1, 'the playlist occupies the former video slot');
       assert.equal(await page.locator('.cdh-story a[href="/music/"]').count(), 1, 'one music destination without a duplicate card');
       await page.locator('.cdh-story__toggle').click();
 

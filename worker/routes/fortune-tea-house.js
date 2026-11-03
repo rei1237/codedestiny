@@ -1,5 +1,6 @@
 import { HONEY_LETTER_COST, TAROT_ALBUM_UNLOCK_COST, isHoneySpendProduct, HONEY_SCOPE_MESSAGE } from '../lib/honey-unlock-catalog.js';
 import { canonicalTeaSaju, withTeaSajuLongitude } from "../lib/tea-saju-facts.js";
+import { sajuTemperamentPromptLines } from '../lib/saju-temperament.js';
 import { specialistSections, specialistTarget, specialistRules, isTeaSajuSpecialist, specialistCheckpointGroups, hasSajuHealthPrediction } from "../lib/tea-saju-specialist.js";
 import { buildTeaSajuMonthlyRows } from "../lib/tea-saju-monthly.js";
 import { buildTeaSukuyoMonthlyRhythm } from "../lib/tea-sukuyo-monthly.js";
@@ -1991,6 +1992,8 @@ function buildFortuneTeaSajuMyeongsikFacts(request, saju, includeGuests = false)
       .join(" | ");
     return {
       fixedTenGodTable: factSnapshot.fixedTenGodTable,
+      temperament:sajuTemperamentPromptLines({...factSnapshot,power:saju?.usefulGodEvidence?.power || factSnapshot.power,
+        timeUnknown:request?.birthTimeUnknown === true}),
       ...(includeGuests ? { guestManifest: buildSajuGuests({ facts: factSnapshot, decisions: saju?.usefulGodEvidence, timing: buildFortuneTeaTimingFacts(saju) }) } : {}),
       tenGodFixedTable: (factSnapshot.fixedTenGodTable || [])
         .map((row) => `${row.stem}${row.stemKorean ? `(${row.stemKorean})` : ""}=${row.tenGod}`)

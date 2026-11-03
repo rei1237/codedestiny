@@ -39,7 +39,8 @@
       "linkFortuneHub": "生肖・星座运势",
       "linkStories": "Yeoni 的命运小说",
       "authorNote": "本站由拥有十年经验的命理师 Park Byeong-ha 打造，八字与万年历的解说文稿亦经其最终审定。推算依循命理与占星的古典规则，而交到读者手中的每一句话由人负责。",
-      "authorLink": "了解制作者与审定标准"
+      "authorLink": "了解制作者与审定标准",
+      "linkRecipes": "妍伊的五行食谱 · 免费漫画"
     },
     "reviews": {
       "kicker": "REAL REVIEWS",
@@ -1969,7 +1970,8 @@
       "ch4": "花开",
       "ch5": "真正的timing",
       "lyrics": "歌词字幕",
-      "more": "收听更多月光音乐"
+      "more": "收听更多月光音乐",
+      "playlist": "音乐播放列表"
     },
     "passCopy": {
       "myTitle": "我的使用券",
@@ -2309,6 +2311,67 @@
           "fit": "需要某项选择的判断标准和执行方案时",
           "delivery": "审核后的答复通过邮件发送"
         }
+      }
+    },
+    "yehwa": {
+      "titleA": "今天想聊些什么",
+      "titleB": "呢？",
+      "leadA": "从心里的疑问开始",
+      "leadB": "慢慢挑选吧。",
+      "tour": "跟延伊逛一逛",
+      "concern": "有什么心事？",
+      "love": "恋爱·关系",
+      "work": "金钱·工作",
+      "self": "我的性格",
+      "flow": "未来的趋势",
+      "family": "家庭·生活",
+      "results": "探索内心的咨询",
+      "view": "了解咨询",
+      "all": "查看全部运势",
+      "records": "重温我的咨询",
+      "pigRecords": "Ggulggul记录",
+      "catRecords": "灵喵咨询记录",
+      "line1": "从今天挂心的事开始，好吗？",
+      "line2": "查看咨询内容和使用条件，选择后可查看详细说明。",
+      "line3": "以往的咨询保存在各服务的记录中，Ggulggul与灵喵的记录分别显示。",
+      "done": "结束引导",
+      "previous": "上一步",
+      "next": "下一步",
+      "skip": "跳过",
+      "findLabel": "按心事寻找咨询",
+      "libraryLabel": "全部运势和咨询记录",
+      "guideLabel": "延伊的页面引导",
+      "close": "关闭引导",
+      "codexDescription": "个人版探索恋爱模式，合盘版理解两人的差异。",
+      "sibylName": "西比拉年度准备报告",
+      "sibylDescription": "关注时期、分领域准备和实际行动。",
+      "rangePrice": "{from}–{to}韩元"
+    },
+    "cro": {
+      "love": "恋爱·复合",
+      "money": "财运·事业",
+      "career": "工作·职业方向",
+      "relationship": "合盘·人际关系",
+      "yearly": "今年·明年运势",
+      "introduction": "四柱、塔罗与针对不同烦恼的咨询。",
+      "freeIntroduction": "从免费四柱解读开始吧。",
+      "freeStart": "开始免费四柱解读",
+      "paidLabel": "付费 ·",
+      "result": {
+        "relationship": "四柱与紫微斗数关系报告",
+        "consultation": "针对问题的咨询解读",
+        "love": "个人恋爱报告",
+        "yearly": "所选年份的运势走向 · 分阶段建议",
+        "life": "按章节呈现的人生报告",
+        "saju": "四柱命盘 · 基础解读"
+      },
+      "resultSummary": {
+        "relationship": "你将获得 · 四柱与紫微斗数关系报告",
+        "consultation": "你将获得 · 针对问题的咨询解读",
+        "love": "你将获得 · 个人恋爱报告",
+        "yearly": "你将获得 · 所选年份的运势走向 · 分阶段建议",
+        "life": "你将获得 · 按章节呈现的人生报告",
+        "saju": "你将获得 · 四柱命盘 · 基础解读"
       }
     }
   },

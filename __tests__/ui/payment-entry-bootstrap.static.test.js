@@ -7,7 +7,7 @@ const root = path.resolve(__dirname, "../..");
 const billingSource = fs.readFileSync(path.join(root, "app/_lib/billing-client.ts"), "utf8");
 const providerSource = fs.readFileSync(path.join(root, "app/components/PaymentProcessingContext.tsx"), "utf8");
 const warmupStart = providerSource.indexOf("const warmIfAuthenticated");
-const warmupEnd = providerSource.indexOf("const setPaymentLoadingVariant", warmupStart);
+const warmupEnd = providerSource.indexOf("// First-paint resources take priority", warmupStart);
 const warmupSection = providerSource.slice(warmupStart, warmupEnd);
 
 test("entry billing warmup applies failure cooldown and Retry-After", () => {
@@ -26,7 +26,7 @@ test("entry billing warmup no longer retries on pointer or visibility events", (
 });
 
 // D-4: useCoinGate 를 쓰지 않는 화면(AI 상담류 등)도 클릭 전에 결제 런타임(destiny-profile.js)이
-// 받아지도록, 앱 전역 Provider 한 곳에서 idle 콜백으로 프리페치한다(app/components/PaymentProcessingContext.tsx).
+// 받아지도록, 앱 전역 Provider 한 곳에서 실제 조작 의도에만 프리페치한다.
 const prewarmStart = providerSource.indexOf("const prewarmPaidRuntimeGate");
 const prewarmEnd = providerSource.indexOf("const setPaymentLoadingVariant", prewarmStart);
 const prewarmSection = providerSource.slice(prewarmStart, prewarmEnd);
@@ -36,7 +36,7 @@ test("payment runtime gate is prewarmed from the app-wide provider (covers scree
   assert.match(prewarmSection, /import\("\.\.\/_lib\/billing-client"\)/);
   assert.match(prewarmSection, /prefetchPaidServiceRuntimeGate/);
   assert.doesNotMatch(prewarmSection, /loadPaidServiceRuntimeGate/);
-  assert.match(prewarmSection, /requestIdleCallback/);
-  // idle 콜백이 없는 환경(구형 브라우저)에서도 결국 프리페치되도록 setTimeout 폴백을 유지한다.
-  assert.match(prewarmSection, /setTimeout\(prewarmPaidRuntimeGate/);
+  assert.match(prewarmSection, /pointerover/);
+  assert.match(prewarmSection, /focusin/);
+  assert.doesNotMatch(prewarmSection, /requestIdleCallback|setTimeout/);
 });

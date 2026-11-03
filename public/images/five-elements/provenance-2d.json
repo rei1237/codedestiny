@@ -1,0 +1,75 @@
+{
+  "tool": "built-in image_gen",
+  "generatedAt": "2026-10-12 Asia/Seoul",
+  "style": "flat 2D storybook, Yeoni chef character reference",
+  "reference": "public/images/home/illustrated/yeoni-character-480.webp",
+  "export": "1200px wide WebP; chef 320px square; sharp quality84; originals preserved",
+  "assets": [
+    {
+      "key": "wood",
+      "file": "wood-2d.webp",
+      "source": "C:\\Users\\user\\.codex\\generated_images\\01a12b74-17e4-7352-bc59-4440069b68f3\\exec-cdbb89d1-875a-4b28-ad81-103e829582e5.png",
+      "prompt": "Create a polished flat 2D storybook illustration for a Korean recipe page, landscape 3:2. Clean warm ink outlines, hand-painted pastel peach and cream blocks, simplified food shapes, charming editorial picture-book drawing. Absolutely NO photorealism, NO 3D rendering, NO realistic glossy materials. Character reference is the supplied pink pig Yeoni: pink lotus flower on head, round snout, dark eyes, purple ribbon; now wearing a small ivory chef apron and chef cap behind the flower. Preserve recognizable identity but render entirely in flat 2D. Show the finished dish prominently in the foreground and smaller Yeoni preparing that same dish behind it in a tidy pastel kitchen. All food and props fully illustrated. No text, letters, labels, numbers, logos, watermark or speech bubbles. No unrelated food. Lemon chickpea cucumber parsley salad with radish slices. Yeoni squeezes lemon into a small dressing bowl; whole cooked chickpeas, diced cucumber and radishes in foreground."
+    },
+    {
+      "key": "fire",
+      "file": "fire-2d.webp",
+      "source": "C:\\Users\\user\\.codex\\generated_images\\01a12b74-17e4-7352-bc59-4440069b68f3\\exec-85627888-f1c9-48ca-8b4b-50a80c6568c8.png",
+      "prompt": "Create a polished flat 2D storybook illustration for a Korean recipe page, landscape 3:2. Clean warm ink outlines, hand-painted pastel peach and cream blocks, simplified food shapes, charming editorial picture-book drawing. Absolutely NO photorealism, NO 3D rendering, NO realistic glossy materials. Character reference is the supplied pink pig Yeoni: pink lotus flower on head, round snout, dark eyes, purple ribbon; now wearing a small ivory chef apron and chef cap behind the flower. Preserve recognizable identity but render entirely in flat 2D. Show the finished dish prominently in the foreground and smaller Yeoni preparing that same dish behind it in a tidy pastel kitchen. All food and props fully illustrated. No text, letters, labels, numbers, logos, watermark or speech bubbles. No unrelated food. Grilled chicken chicory salad with roasted red pepper and cherry tomatoes. Clearly cooked sliced chicken breast, leafy frilly chicory. Yeoni uses tongs to turn pepper strips in skillet."
+    },
+    {
+      "key": "earth",
+      "file": "earth-2d.webp",
+      "source": "C:\\Users\\user\\.codex\\generated_images\\01a12b74-17e4-7352-bc59-4440069b68f3\\exec-31a8c418-19d6-4332-9cbc-30a6fee3d815.png",
+      "prompt": "Create a polished flat 2D storybook illustration for a Korean recipe page, landscape 3:2. Clean warm ink outlines, hand-painted pastel peach and cream blocks, simplified food shapes, charming editorial picture-book drawing. Absolutely NO photorealism, NO 3D rendering, NO realistic glossy materials. Character reference is the supplied pink pig Yeoni: pink lotus flower on head, round snout, dark eyes, purple ribbon; now wearing a small ivory chef apron and chef cap behind the flower. Preserve recognizable identity but render entirely in flat 2D. Show the finished dish prominently in the foreground and smaller Yeoni preparing that same dish behind it in a tidy pastel kitchen. All food and props fully illustrated. No text, letters, labels, numbers, logos, watermark or speech bubbles. No unrelated food. Golden pumpkin mushroom risotto in shallow bowl with thyme. Yeoni gently stirs a pot of rice with wooden spoon, small jug of stock nearby, pumpkin cubes and mushrooms."
+    },
+    {
+      "key": "metal",
+      "file": "metal-2d.webp",
+      "source": "C:\\Users\\user\\.codex\\generated_images\\01a12b74-17e4-7352-bc59-4440069b68f3\\exec-6ce2d81c-8386-44e0-882c-1128bc926936.png",
+      "prompt": "Create a polished flat 2D storybook illustration for a Korean recipe page, landscape 3:2. Clean warm ink outlines, hand-painted pastel peach and cream blocks, simplified food shapes, charming editorial picture-book drawing. Absolutely NO photorealism, NO 3D rendering, NO realistic glossy materials. Character reference is the supplied pink pig Yeoni: pink lotus flower on head, round snout, dark eyes, purple ribbon; now wearing a small ivory chef apron and chef cap behind the flower. Preserve recognizable identity but render entirely in flat 2D. Show the finished dish prominently in the foreground and smaller Yeoni preparing that same dish behind it in a tidy pastel kitchen. All food and props fully illustrated. No text, letters, labels, numbers, logos, watermark or speech bubbles. No unrelated food. Ginger scallion tofu with shiitake. Golden rectangular tofu slices and mushrooms with thin light soy glaze. Yeoni turns a tofu rectangle with spatula in skillet."
+    },
+    {
+      "key": "water",
+      "file": "water-2d.webp",
+      "source": "C:\\Users\\user\\.codex\\generated_images\\01a12b74-17e4-7352-bc59-4440069b68f3\\exec-8e3dca80-c4e4-4338-b296-ce58c797e295.png",
+      "prompt": "Create a polished flat 2D storybook illustration for a Korean recipe page, landscape 3:2. Clean warm ink outlines, hand-painted pastel peach and cream blocks, simplified food shapes, charming editorial picture-book drawing. Absolutely NO photorealism, NO 3D rendering, NO realistic glossy materials. Character reference is the supplied pink pig Yeoni: pink lotus flower on head, round snout, dark eyes, purple ribbon; now wearing a small ivory chef apron and chef cap behind the flower. Preserve recognizable identity but render entirely in flat 2D. Show the finished dish prominently in the foreground and smaller Yeoni preparing that same dish behind it in a tidy pastel kitchen. All food and props fully illustrated. No text, letters, labels, numbers, logos, watermark or speech bubbles. No unrelated food. Clear wakame shiitake tofu soup. A soup bowl with seaweed, tofu cubes and mushroom slices. Yeoni carefully ladles soup from pot, no steam obscuring character."
+    },
+    {
+      "key": "plum-soba",
+      "file": "plum-soba-2d.webp",
+      "source": "C:\\Users\\user\\.codex\\generated_images\\01a12b74-17e4-7352-bc59-4440069b68f3\\exec-db49c9a4-822b-4b98-99b2-adcdf4be2389.png",
+      "prompt": "Create a polished flat 2D storybook illustration for a Korean recipe page, landscape 3:2. Clean warm ink outlines, hand-painted pastel peach and cream blocks, simplified food shapes, charming editorial picture-book drawing. Absolutely NO photorealism, NO 3D rendering, NO realistic glossy materials. Character reference is the supplied pink pig Yeoni: pink lotus flower on head, round snout, dark eyes, purple ribbon; now wearing a small ivory chef apron and chef cap behind the flower. Preserve recognizable identity but render entirely in flat 2D. Show the finished dish prominently in the foreground and smaller Yeoni preparing that same dish behind it in a tidy pastel kitchen. All food and props fully illustrated. No text, letters, labels, numbers, logos, watermark or speech bubbles. No unrelated food. Cold plum cucumber buckwheat noodles. Brown soba nest, thin cucumber matchsticks, radish and sesame, small dressing jug. Yeoni gently tosses cold noodles in bowl with chopsticks.\nRevision: Edit this flat 2D Yeoni recipe illustration, preserve the character, palette, kitchen and composition exactly. The actual dish is Korean maeshil syrup cucumber soba with a thin pale amber liquid dressing, NOT umeboshi paste. Remove ALL red paste from foreground bowl, mixing bowl and small side dish. Remove all dark nori seaweed strips; there is no seaweed in this recipe. Replace with thin pink-edged round radish slices among the cucumber and soba, a few sesame seeds, light liquid dressing only. Replace side dish of paste with a tiny bowl of pale amber liquid. Fix Yeoni's utensil to ONE pair of two wooden chopsticks held together in one hoof; other hoof steadies bowl. No other changes. Remain entirely 2D drawn, no text."
+    },
+    {
+      "key": "chicory-orange",
+      "file": "chicory-orange-2d.webp",
+      "source": "C:\\Users\\user\\.codex\\generated_images\\01a12b74-17e4-7352-bc59-4440069b68f3\\exec-049e9579-b04b-4e7a-94fb-8b8eb9016bc8.png",
+      "prompt": "Create a polished flat 2D storybook illustration for a Korean recipe page, landscape 3:2. Clean warm ink outlines, hand-painted pastel peach and cream blocks, simplified food shapes, charming editorial picture-book drawing. Absolutely NO photorealism, NO 3D rendering, NO realistic glossy materials. Character reference is the supplied pink pig Yeoni: pink lotus flower on head, round snout, dark eyes, purple ribbon; now wearing a small ivory chef apron and chef cap behind the flower. Preserve recognizable identity but render entirely in flat 2D. Show the finished dish prominently in the foreground and smaller Yeoni preparing that same dish behind it in a tidy pastel kitchen. All food and props fully illustrated. No text, letters, labels, numbers, logos, watermark or speech bubbles. No unrelated food. Chicory orange walnut open toast. Two wholegrain toasts with plain yogurt spread, leafy chicory, orange segments and chopped walnuts. Yeoni arranges an orange segment on toast."
+    },
+    {
+      "key": "sweet-potato-oats",
+      "file": "sweet-potato-oats-2d.webp",
+      "source": "C:\\Users\\user\\.codex\\generated_images\\01a12b74-17e4-7352-bc59-4440069b68f3\\exec-efa7190b-9f1a-477c-bd84-bed1d0337c45.png",
+      "prompt": "Create a polished flat 2D storybook illustration for a Korean recipe page, landscape 3:2. Clean warm ink outlines, hand-painted pastel peach and cream blocks, simplified food shapes, charming editorial picture-book drawing. Absolutely NO photorealism, NO 3D rendering, NO realistic glossy materials. Character reference is the supplied pink pig Yeoni: pink lotus flower on head, round snout, dark eyes, purple ribbon; now wearing a small ivory chef apron and chef cap behind the flower. Preserve recognizable identity but render entirely in flat 2D. Show the finished dish prominently in the foreground and smaller Yeoni preparing that same dish behind it in a tidy pastel kitchen. All food and props fully illustrated. No text, letters, labels, numbers, logos, watermark or speech bubbles. No unrelated food. Sweet potato apple oatmeal. Creamy rolled oats topped with golden cooked sweet potato cubes, tender apple slices and cinnamon, no honey drizzle. Yeoni stirs oats in saucepan."
+    },
+    {
+      "key": "ginger-mushroom-noodles",
+      "file": "ginger-mushroom-noodles-2d.webp",
+      "source": "C:\\Users\\user\\.codex\\generated_images\\01a12b74-17e4-7352-bc59-4440069b68f3\\exec-398fba9e-85dd-4633-bd5d-6b7482f312ff.png",
+      "prompt": "Create a polished flat 2D storybook illustration for a Korean recipe page, landscape 3:2. Clean warm ink outlines, hand-painted pastel peach and cream blocks, simplified food shapes, charming editorial picture-book drawing. Absolutely NO photorealism, NO 3D rendering, NO realistic glossy materials. Character reference is the supplied pink pig Yeoni: pink lotus flower on head, round snout, dark eyes, purple ribbon; now wearing a small ivory chef apron and chef cap behind the flower. Preserve recognizable identity but render entirely in flat 2D. Show the finished dish prominently in the foreground and smaller Yeoni preparing that same dish behind it in a tidy pastel kitchen. All food and props fully illustrated. No text, letters, labels, numbers, logos, watermark or speech bubbles. No unrelated food. Warm ginger mushroom rice noodle bowl with bok choy. White rice noodles, shiitake slices, julienned ginger and green bok choy in clear broth. Yeoni adds cooked bok choy with tongs."
+    },
+    {
+      "key": "seaweed-riceballs",
+      "file": "seaweed-riceballs-2d.webp",
+      "source": "C:\\Users\\user\\.codex\\generated_images\\01a12b74-17e4-7352-bc59-4440069b68f3\\exec-df9c1395-5a3c-487c-822f-a41feccdebea.png",
+      "prompt": "Create a polished flat 2D storybook illustration for a Korean recipe page, landscape 3:2. Clean warm ink outlines, hand-painted pastel peach and cream blocks, simplified food shapes, charming editorial picture-book drawing. Absolutely NO photorealism, NO 3D rendering, NO realistic glossy materials. Character reference is the supplied pink pig Yeoni: pink lotus flower on head, round snout, dark eyes, purple ribbon; now wearing a small ivory chef apron and chef cap behind the flower. Preserve recognizable identity but render entirely in flat 2D. Show the finished dish prominently in the foreground and smaller Yeoni preparing that same dish behind it in a tidy pastel kitchen. All food and props fully illustrated. No text, letters, labels, numbers, logos, watermark or speech bubbles. No unrelated food. Seaweed sesame tofu rice balls. Four small round rice balls speckled with nori and sesame, cucumber sticks alongside. Yeoni with clean cooking gloves shapes a rice ball over mixing bowl."
+    },
+    {
+      "key": "yeoni-chef",
+      "file": "yeoni-chef-2d.webp",
+      "source": "C:\\Users\\user\\.codex\\generated_images\\01a12b74-17e4-7352-bc59-4440069b68f3\\exec-3a8b2822-81cb-4ea8-8968-8ad6104f10d7.png",
+      "prompt": "Use the supplied pink lotus pig Yeoni as identity reference. Create ONE flat 2D storybook character portrait on solid warm ivory background, square canvas, full character comfortably in frame. Small cute pink pig with lotus blossom on head, dark round eyes, purple neck ribbon, ivory chef hat and apron, holding a wooden spoon and waving kindly with other hoof. Clean brown outlines, soft pastel watercolor blocks, simple expressive drawing, no 3D, no photographic texture, no text, no logo, no shadow halo. This is the cooking guide beside recipe steps, legible at 80px. No food or extra props."
+    }
+  ]
+}

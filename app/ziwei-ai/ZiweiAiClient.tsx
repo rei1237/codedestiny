@@ -159,9 +159,10 @@ function getZiweiAiCopy(locale: LoadingLocale): ZiweiAiCopy {
 }
 
 function useZiweiAiCopy(): ZiweiAiCopy {
-  const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
+  const [locale, setLocale] = useState<LoadingLocale>("ko");
   useEffect(() => {
     const sync = () => setLocale(getCurrentLoadingLocale());
+    sync();
     window.addEventListener("languagechange", sync);
     window.addEventListener("cd:locale-ready", sync);
     return () => {
@@ -832,6 +833,8 @@ function formatTransformation(value: string | undefined) {
 }
 
 export default function ZiweiAiPage() {
+  const [clientReady, setClientReady] = useState(false);
+  useEffect(() => { setClientReady(true); }, []);
   const copy = useZiweiAiCopy();
   const [form, setForm] = useState<FormState>(buildInitialZiweiForm);
   const [phase, setPhase] = useState<Phase>("idle");
@@ -1182,7 +1185,10 @@ export default function ZiweiAiPage() {
       <section className={`ziweiHero${musungOn ? " isMusung" : ""}`}>
         {musungOn ? (
           <div className="musungHeroArt">
-            <Image src={musungHero.src} alt={musungHero.alt} fill priority sizes="(min-width: 1400px) 1316px, 100vw" unoptimized />
+            <picture>
+              <source srcSet={[320, 480, 640, 960].map(width => `${introductionArt["ziwei-ai"].cardImage.replace("-320", `-${width}`)} ${width}w`).join(", ")} sizes="(min-width: 1400px) 1316px, 100vw" />
+              <Image src={musungHero.src} alt={musungHero.alt} fill unoptimized loading="eager" fetchPriority="high" sizes="(min-width: 1400px) 1316px, 100vw" />
+            </picture>
           </div>
         ) : (
           <div className="heroConstellation" aria-hidden="true">
@@ -1204,10 +1210,10 @@ export default function ZiweiAiPage() {
         <div className="heroSeparator" aria-hidden="true" />
       </section>
 
-      {!consultation && getCurrentLoadingLocale() === "ko" && <div className="craftedGuide"><CraftedProductDisclosure featureKey="ziwei-ai-consultation" /></div>}
+      {!consultation && copy === ZIWEI_AI_COPY.ko && <div className="craftedGuide"><CraftedProductDisclosure featureKey="ziwei-ai-consultation" /></div>}
       <section className="workspace">
         <ExpertValueCards theme={musungOn ? "musung" : "ziwei"} points={[musungOn ? { title: "막힌 별부터 판결", description: "명반에서 화기(化忌)가 걸린 궁을 먼저 짚고, 그 자리를 화록(化祿)으로 돌릴 구체적인 행동을 처방합니다." } : { title: "명궁의 기질", description: "명궁과 주요 별이 보여주는 기본 반응과 선택 습관을 살핍니다." }, { title: "12궁의 무대", description: "일·돈·관계처럼 지금 질문이 놓인 삶의 영역을 나눠 읽습니다." }, { title: "별의 전환점", description: "현재 흐름에서 서두를 때와 정리할 때를 현실적인 언어로 짚습니다." }]} />
-        <form data-moonlit-form="" id="ziwei-consultation-form" className="consultForm" onSubmit={handleSubmit}>
+        {clientReady && (<form data-moonlit-form="" id="ziwei-consultation-form" className="consultForm" onSubmit={handleSubmit}>
           <div className="formHeader flex-wrap">
             <div className="flex min-w-0 flex-1 items-center gap-2">
               <Sparkles size={20} />
@@ -1295,8 +1301,8 @@ export default function ZiweiAiPage() {
           {/* 캐릭터 한 줄은 사실 문구 앞에만 둔다 — 결제·재시도 안내는 그대로. */}
           {error && <ExpertCharacterStage character="musung" mood={musungError.mood} line={musungError.text} placement="inline" />}
           {error && <p className="error">{error}</p>}
-        </form>
-        <ExpertStickyCta theme={musungOn ? "musung" : "ziwei"} targetId={consultation ? "ziwei-saved-result" : "ziwei-consultation-form"} label={consultation ? "저장된 상담 읽기" : "별궁 상담 열기"} price={<PriceBadge featureKey="ziwei-ai-consultation" prefix="상담 이용 가격 " />} />
+        </form>)}
+        {clientReady && (<ExpertStickyCta theme={musungOn ? "musung" : "ziwei"} targetId={consultation ? "ziwei-saved-result" : "ziwei-consultation-form"} label={consultation ? "저장된 상담 읽기" : "별궁 상담 열기"} price={<PriceBadge featureKey="ziwei-ai-consultation" prefix="상담 이용 가격 " />} />)}
 
         <div className="resultPane" id="ziwei-saved-result">
           {isLoadingConsultation ? (
@@ -1504,7 +1510,7 @@ export default function ZiweiAiPage() {
            명궁(命宮) 같은 병기가 OS 폰트로 넘어가야 보인다. */
         .ziweiAiShell{--zwv-han:"Apple SD Gothic Neo","Malgun Gothic","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans CJK KR","Noto Sans KR";--zwv-body:"CodeDestinyHan","CodeDestinyBody","Pretendard",var(--zwv-han),system-ui,sans-serif;--zwv-serif:"CodeDestinySerifKR","CodeDestinyHan","Nanum Myeongjo","Noto Serif KR",var(--zwv-han),Georgia,serif;position:relative;min-height:100dvh;overflow:hidden;background:radial-gradient(ellipse at 22% 6%,rgba(116,82,170,.42),transparent 34%),radial-gradient(ellipse at 78% 18%,rgba(212,175,95,.20),transparent 28%),radial-gradient(ellipse at 52% 92%,rgba(83,121,177,.22),transparent 38%),linear-gradient(145deg,#050714 0%,#0d1027 42%,#161033 72%,#060712 100%);color:#f8fafc;padding:22px;font-family:var(--zwv-body)}
         .ziweiAiShell::before{content:"";position:absolute;inset:0;background-image:radial-gradient(circle,rgba(255,255,255,.72) 0 1px,transparent 1.4px),radial-gradient(circle,rgba(250,235,182,.58) 0 1px,transparent 1.2px);background-size:92px 92px,137px 137px;background-position:12px 18px,54px 36px;opacity:.22;pointer-events:none}
-        .ziweiAiShell::after{content:"";position:absolute;inset:-15% -10%;background:linear-gradient(112deg,transparent 12%,rgba(183,180,232,.10) 36%,rgba(236,204,132,.13) 48%,rgba(130,111,190,.10) 62%,transparent 84%);filter:blur(18px);transform:rotate(-7deg);pointer-events:none}
+        .ziweiAiShell::after{content:"";position:fixed;inset:-15vh -10vw;background:linear-gradient(112deg,transparent 12%,rgba(183,180,232,.10) 36%,rgba(236,204,132,.13) 48%,rgba(130,111,190,.10) 62%,transparent 84%);filter:blur(18px);transform:rotate(-7deg);pointer-events:none}
         .ziweiHero,.workspace,.craftedGuide{position:relative;z-index:1}
         .craftedGuide{max-width:540px;margin:24px auto}
         .ziweiHero{position:relative;min-height:315px;display:flex;align-items:flex-end;overflow:hidden;border:1px solid rgba(226,214,255,.24);border-radius:8px;background:radial-gradient(ellipse at 72% 34%,rgba(245,217,145,.16),transparent 33%),radial-gradient(ellipse at 84% 72%,rgba(143,167,255,.14),transparent 36%),linear-gradient(135deg,#05060d 0%,#111525 52%,#080a14 100%);box-shadow:0 28px 86px rgba(0,0,0,.42),inset 0 1px 0 rgba(255,255,255,.12)}
@@ -1519,7 +1525,7 @@ export default function ZiweiAiPage() {
         .heroBackdropText{position:absolute;right:4%;bottom:8%;z-index:1;color:rgba(235,229,255,.075);font-family:var(--font-premium);font-size:clamp(58px,13vw,172px);font-weight:900;line-height:.82;white-space:nowrap;text-shadow:0 0 38px rgba(216,180,254,.12)}
         .heroCopy{position:relative;z-index:2;max-width:760px;padding:42px 40px 54px}
         .eyebrow{display:inline-flex;align-items:center;gap:8px;margin:0 0 14px;color:#fde8a7;font-size:13px;font-weight:850}
-        .heroCopy h2{margin:0;color:#fffaf0;font-family:var(--font-premium);font-size:clamp(40px,7vw,78px);line-height:1.03;letter-spacing:0;text-shadow:0 0 28px rgba(252,211,77,.18)}
+        .heroCopy h2{margin:0;word-break:keep-all;text-wrap:balance;color:#fffaf0;font-family:var(--font-premium);font-size:clamp(40px,7vw,78px);line-height:1.03;letter-spacing:0;text-shadow:0 0 28px rgba(252,211,77,.18)}
         .heroCopy p:last-child{max-width:650px;margin:16px 0 0;color:#e6e0ff;font-size:17px;line-height:1.76;text-shadow:0 2px 18px rgba(3,5,14,.92)}
         .heroSeparator{position:absolute;left:0;right:0;bottom:0;height:54px;background:radial-gradient(ellipse at 30% 100%,rgba(244,214,148,.24),transparent 46%),linear-gradient(180deg,transparent,rgba(9,10,30,.84));pointer-events:none}
         .workspace{display:grid;grid-template-columns:minmax(320px,446px) minmax(0,1fr);gap:18px;max-width:1360px;margin:18px auto 0}

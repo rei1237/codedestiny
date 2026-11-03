@@ -1,6 +1,8 @@
 /* Opt-in birth/fortune controls only. Account, checkout and admin forms never receive this attribute. */
 [data-moonlit-form] { min-width:0; }
-[data-moonlit-form] :is(input:not([type=checkbox]):not([type=radio]):not([type=hidden]):not([type=range]):not([type=file]),select,textarea) {
+/* The shared profile picker owns its paper and control border. The input
+   exclusions inside :is() otherwise outrank that component's select styles. */
+[data-moonlit-form] :is(input:not([type=checkbox]):not([type=radio]):not([type=hidden]):not([type=range]):not([type=file]),select,textarea):not(:where([data-saved-birth-profile] select)) {
   box-sizing:border-box; min-height:48px; min-width:0; max-width:100%; padding:12px 14px;
   border:1px solid var(--cd-samples-line); border-radius:var(--cd-r-control);
   background:var(--cd-samples-paper); color:var(--cd-samples-ink); font-size:16px; line-height:1.5;

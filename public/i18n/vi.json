@@ -39,7 +39,8 @@
       "linkFortuneHub": "Zodiac Fortunes",
       "linkStories": "Yeoni's Destiny Novel",
       "authorNote": "Trang này do Park Byeong-ha, nhà nghiên cứu mệnh lý (Tứ Trụ) với mười năm kinh nghiệm, xây dựng và duyệt lần cuối các bài luận giải Tứ Trụ, lịch vạn niên. Phần tính toán tuân theo quy tắc cổ điển của mệnh lý và chiêm tinh, còn từng câu chữ trao đến người đọc thuộc trách nhiệm của con người.",
-      "authorLink": "Xem người thực hiện và tiêu chí duyệt"
+      "authorLink": "Xem người thực hiện và tiêu chí duyệt",
+      "linkRecipes": "Công thức ngũ hành của Yeoni · Truyện tranh miễn phí"
     },
     "reviews": {
       "kicker": "REAL REVIEWS",
@@ -1969,7 +1970,8 @@
       "ch4": "Nở hoa",
       "ch5": "Đúng thời điểm",
       "lyrics": "Phụ đề lời",
-      "more": "Nghe thêm nhạc ánh trăng"
+      "more": "Nghe thêm nhạc ánh trăng",
+      "playlist": "Danh sách nhạc"
     },
     "passCopy": {
       "myTitle": "Vé của tôi",
@@ -2309,6 +2311,67 @@
           "fit": "Khi cần tiêu chí và kế hoạch hành động cho một lựa chọn",
           "delivery": "Câu trả lời đã kiểm duyệt được gửi qua email"
         }
+      }
+    },
+    "yehwa": {
+      "titleA": "What would you like",
+      "titleB": "to explore today?",
+      "leadA": "Start with what is",
+      "leadB": "on your mind.",
+      "tour": "Explore with Yeoni",
+      "concern": "What is on your mind?",
+      "love": "Love & relationships",
+      "work": "Money & work",
+      "self": "About myself",
+      "flow": "What lies ahead",
+      "family": "Family & daily life",
+      "results": "Readings to explore",
+      "view": "View reading",
+      "all": "Browse all readings",
+      "records": "Revisit my readings",
+      "pigRecords": "Ggulggul records",
+      "catRecords": "Yeongnyangi records",
+      "line1": "Shall we start with what is on your mind today?",
+      "line2": "Read the description and terms. Choose a reading to see its details.",
+      "line3": "Find past readings in each service’s records. Ggulggul and Yeongnyangi records stay separate.",
+      "done": "Finish guide",
+      "previous": "Previous",
+      "next": "Next",
+      "skip": "Skip",
+      "findLabel": "Find a reading by concern",
+      "libraryLabel": "All readings and records",
+      "guideLabel": "Yeoni’s screen guide",
+      "close": "Close guide",
+      "codexDescription": "Explore your relationship patterns individually or compare two people’s differences.",
+      "sibylName": "Sibyl Annual Preparation Report",
+      "sibylDescription": "Periods to watch, preparation by area, and practical next steps.",
+      "rangePrice": "KRW {from}–{to}"
+    },
+    "cro": {
+      "love": "Tình yêu · Tái hợp",
+      "money": "Tài chính · Kinh doanh",
+      "career": "Công việc · Sự nghiệp",
+      "relationship": "Độ hợp · Các mối quan hệ",
+      "yearly": "Vận trình năm nay · Năm tới",
+      "introduction": "Tứ trụ, tarot và tư vấn theo mối quan tâm.",
+      "freeIntroduction": "Bắt đầu với phần luận Tứ trụ miễn phí.",
+      "freeStart": "Bắt đầu Tứ trụ miễn phí",
+      "paidLabel": "Trả phí ·",
+      "result": {
+        "relationship": "Báo cáo mối quan hệ theo Tứ trụ và Tử vi Đẩu số",
+        "consultation": "Luận giải tư vấn theo câu hỏi của bạn",
+        "love": "Báo cáo tình yêu cá nhân",
+        "yearly": "Vận trình năm đã chọn · Lời khuyên theo giai đoạn",
+        "life": "Báo cáo cuộc đời theo từng chương",
+        "saju": "Lá số Tứ trụ · Luận giải cơ bản"
+      },
+      "resultSummary": {
+        "relationship": "Nội dung bạn nhận được · Báo cáo mối quan hệ theo Tứ trụ và Tử vi Đẩu số",
+        "consultation": "Nội dung bạn nhận được · Luận giải tư vấn theo câu hỏi của bạn",
+        "love": "Nội dung bạn nhận được · Báo cáo tình yêu cá nhân",
+        "yearly": "Nội dung bạn nhận được · Vận trình năm đã chọn · Lời khuyên theo giai đoạn",
+        "life": "Nội dung bạn nhận được · Báo cáo cuộc đời theo từng chương",
+        "saju": "Nội dung bạn nhận được · Lá số Tứ trụ · Luận giải cơ bản"
       }
     }
   },

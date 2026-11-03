@@ -7,12 +7,14 @@ import HeavenLightCinema from "../_components/HeavenLightCinema";
 import SessionControls from "./SessionControls";
 import type {ProductOffers} from '../_components/ProductGuide';
 import {useReadingLanguage} from '../_lib/use-reading-language';
-import LocalizedFortuneHome from '../_components/LocalizedFortuneHome';
+import dynamic from 'next/dynamic';
 import {LocaleSwitcher} from '@/app/components/LocaleSwitcher';
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ArrowRight, Bookmark, ChevronRight, House, KeyRound, PawPrint, X } from "lucide-react";
 import { ggulggulFortuneHref, loginHref, socialLoginHref, type SocialProvider } from "./service-links";
+
+const LocalizedFortuneHome = dynamic(() => import('../_components/LocalizedFortuneHome'));
 
 // 2026-10-28 단순화: 한국어 홈은 히어로 → 뮤직비디오 → 고민으로 시작하기 → 가격·결제 전 안내 → 꿀꿀운세 한 줄 순서다.
 // 상담 방식 3지선다(영냥이·꿀꿀·네오)와 첫 방문 인라인 그림 안내는 홈에서 뺐다. 네오 작전 결정서는 꿀꿀운세 /neo-consultation/ 소속이다.

@@ -9,14 +9,22 @@ import path from 'node:path';
 import http from 'node:http';
 import { chromium } from 'playwright';
 import { watchForbiddenRequests } from './design/lib/forbidden-requests.mjs';
+import './lib/mock-network-guard.cjs';
 
 const root = process.cwd();
 const publicRoot = path.join(root, 'public');
+const evidence = path.join(root, '.tmp', 'service-search');
+fs.mkdirSync(evidence, { recursive: true });
 const VIEWPORTS = [
   { w: 320, h: 568, mobile: true },
+  { w: 375, h: 812, mobile: true },
   { w: 390, h: 844, mobile: true },
+  { w: 430, h: 932, mobile: true },
   { w: 768, h: 1024, mobile: true },
+  { w: 820, h: 1180, mobile: true },
+  { w: 1024, h: 768, mobile: true },
   { w: 1280, h: 900, mobile: false },
+  { w: 1440, h: 900, mobile: false },
 ];
 const widthArg = (process.argv.find((a) => a.startsWith('--widths=')) || '').slice(9);
 const widths = widthArg.split(',').map(Number).filter(Boolean);
@@ -82,10 +90,37 @@ async function typeQuery(page, text) {
 }
 
 try {
+  // Returning-session race: the real bottom tab is usable while the deferred finder is still downloading.
+  const earlyContext = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, serviceWorkers: 'block' });
+  let releaseFinder;
+  const finderReady = new Promise(resolve => { releaseFinder = resolve; });
+  await earlyContext.addInitScript(() => {
+    sessionStorage.setItem('cdBootGateShownV1', '1');
+    localStorage.setItem('cd:first-visit:v1:ggulggul:guest', JSON.stringify({ status: 'dismissed', step: 0 }));
+  });
+  await earlyContext.route('**/*', route => new URL(route.request().url()).origin === origin ? route.continue() : route.fulfill({ status: 403, body: 'QA_EXTERNAL_NETWORK_BLOCKED' }));
+  await earlyContext.route(/\/js\/core\/home-service-finder\.js/, async route => { await finderReady; await route.continue(); });
+  try {
+    const earlyPage = await earlyContext.newPage();
+    await earlyPage.goto(`${origin}/ggulggul/`, { waitUntil: 'commit' });
+    await earlyPage.waitForFunction(() => typeof window.cdOpenAllFortunes === 'function');
+    await earlyPage.locator('#cdMobileBottomNav [data-nav-key="fortunes"]').click();
+    releaseFinder();
+    await earlyPage.locator('#cdAllFortunesSearch').waitFor({ state: 'visible', timeout: 15000 });
+    await earlyPage.waitForFunction(() => document.querySelectorAll('#cdAllFortunesResults .fortune-gateway__rec').length > 20);
+    console.log('[all-fortunes] delayed finder: first bottom-tab tap recovered');
+  } finally { releaseFinder(); await earlyContext.close(); }
+
   for (const vp of viewports) {
     const tag = String(vp.w);
     const host = vp.mobile ? 'overview' : 'sheet';
     const context = await browser.newContext({ viewport: { width: vp.w, height: vp.h }, isMobile: vp.mobile, hasTouch: vp.mobile, deviceScaleFactor: 1, locale: 'ko-KR' });
+    await context.addInitScript(() => localStorage.setItem('cd:first-visit:v1:ggulggul:guest', JSON.stringify({ status: 'dismissed', step: 0 })));
+    await context.route('**/*', route => {
+      const url = new URL(route.request().url());
+      if (url.origin !== origin) return route.fulfill({ status: 403, body: 'QA_EXTERNAL_NETWORK_BLOCKED' });
+      return route.continue();
+    });
     const page = await context.newPage();
     const watch = watchForbiddenRequests(page);
     const errors = [];
@@ -93,16 +128,48 @@ try {
     try {
       // 1) 딥링크로 연다.
       await page.goto(`${origin}/ggulggul/?action=cdOpenAllFortunes`, { waitUntil: 'load', timeout: 60000 });
+      await page.waitForFunction(() => !document.documentElement.classList.contains('cd-boot-gate'), null, { timeout: 20000 });
       await page.waitForTimeout(1200);
       if (!(await waitRoot(page, `${tag} deeplink`, host))) continue;
 
-      // 2) 아무것도 고르지 않으면 레지스트리 전체.
-      const registryCount = await page.evaluate(() => (window.__cdServiceRegistry || []).length);
+      // 2) 전체에는 레지스트리와 컬렉션이 모두 포함되고 첫 결과는 첫 화면에 보인다.
+      const registryCount = await page.evaluate(() => window.CodeDestinyAllFortunes.filter({}).length);
       const full = await page.locator(CARDS).count();
       if (full !== registryCount || full < 20) fail(tag, `default cards ${full} != registry ${registryCount}`);
+      const firstTop = await page.locator(CARDS).first().evaluate(node => node.getBoundingClientRect().top);
+      if (firstTop >= vp.h - 60) fail(tag, `first results below fold: ${firstTop}`);
+      await page.screenshot({ path: path.join(evidence, `${tag}-search.png`) });
+      if (vp.mobile) {
+        // The bug lived above 768px on touch tablets; every chrome category must expose real cards.
+        const ids = await page.locator('#cdMobileCollectionChromeBar [data-collection-id]').evaluateAll(nodes => nodes.map(node => node.dataset.collectionId).filter(id => id !== '__overview'));
+        for (const id of ids) {
+          await page.locator(`#cdMobileCollectionChromeBar [data-collection-id="${id}"]`).click();
+          const visible = await page.waitForFunction(id => {
+            const node = document.getElementById(id), box = node.getBoundingClientRect();
+            const cards = [...node.querySelectorAll('.tarot-tile,.prem-card,.feature-card,.moon-preview-card,.lifebook-tile,.lovebible-tile,.lovesim-tile,.sibyl-entry-tile')];
+            return box.left >= -1 && box.top >= 0 && box.width >= innerWidth - 2 && box.height > innerHeight / 2
+              && cards.some(card => card.getClientRects().length && getComputedStyle(card).visibility === 'visible');
+          }, id, { timeout: 2500 }).then(() => true).catch(() => false);
+          if (!visible) {
+            const detail = await page.locator(`#${id}`).evaluate(node => ({ rect: node.getBoundingClientRect().toJSON(), cards: [...node.querySelectorAll('.tarot-tile,.prem-card')].map(card => ({ rect: card.getBoundingClientRect().toJSON(), visibility: getComputedStyle(card).visibility })) }));
+            fail(tag, `category ${id} has no visible card surface: ${JSON.stringify(detail)}`);
+          }
+          if (await page.locator(`#cdMobileCollectionChromeBar [data-collection-id="${id}"][aria-current="page"]`).count() !== 1) fail(tag, `category ${id} selected tab mismatch`);
+          if (id === 'animalCollection' || id === 'cosmicCollection') {
+            await page.waitForFunction(id => {
+              const node = document.getElementById(id), first = node.querySelector('.tarot-tile,.prem-card');
+              const images = [...node.querySelectorAll('img')].filter(image => { const rect = image.getBoundingClientRect(); return rect.width > 0 && rect.top < innerHeight && rect.bottom > 0; });
+              return first && Number(getComputedStyle(first).opacity) >= 0.99 && images.every(image => image.complete);
+            }, id, { timeout: 10000 });
+            await page.mouse.move(0, 0);
+            await page.screenshot({ path: path.join(evidence, `${tag}-${id}.png`) });
+          }
+        }
+        await page.locator('#cdMobileCollectionChromeBar [data-collection-id="__overview"]').click();
+      }
 
       // 3) 동의어: '이직'(직장·진로 표기), '자미'(자미두수), '별자리'(점성술).
-      for (const q of ['이직', '자미', '별자리', '나크샤트라']) {
+      for (const q of ['남친', '여친', '돈', '이직', '재회', '내년', '자미', '별자리', '나크샤트라']) {
         await typeQuery(page, q);
         const n = await page.locator(CARDS).count();
         if (!n) fail(tag, `synonym query "${q}" found nothing`);
@@ -119,10 +186,12 @@ try {
       if ((await page.locator(CARDS).count()) !== full) fail(tag, 'reset did not restore full list');
 
       // 5) 방식 칩 → 고민 칩으로 좁힌다.
+      await page.click(`${ROOT} .cd-af__fchip[data-method="saju"]`);
       await page.click(`${ROOT} .cd-af__fchip[data-method="tarot"]`);
       await page.waitForTimeout(250);
       const tarot = await page.locator(CARDS).count();
       if (!tarot || tarot >= full) fail(tag, `tarot chip count ${tarot}/${full}`);
+      if (await page.locator(`${ROOT} [data-method="saju"][aria-pressed="true"]`).count()) fail(tag, 'previous method remained selected');
       await page.click(`${ROOT} .cd-af__chip[data-purpose="love"]`);
       await page.waitForTimeout(250);
       const tarotLove = await page.locator(CARDS).count();
@@ -147,7 +216,7 @@ try {
       await typeQuery(page, '오늘');
       await page.click(`${ROOT} .fortune-gateway__chip, ${ROOT} .cd-af__chip[data-purpose="today"]`);
       await page.waitForTimeout(300);
-      const link = page.locator('#cdAllFortunesResults a.fortune-gateway__rec[href^="/"]:not([data-pvw-paid])').first();
+      const link = page.locator('#cdAllFortunesResults a.fortune-gateway__rec[href^="/"]:not([data-pvw-paid]):not([data-action])').first();
       if (!(await link.count())) { fail(tag, 'no free same-origin card to follow'); continue; }
       await Promise.all([page.waitForURL((u) => !u.pathname.startsWith('/ggulggul'), { timeout: 15000 }), link.click()]);
       await page.goBack({ waitUntil: 'load' });

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ROOT_OPEN_GRAPH } from "@/lib/seo/page-open-graph";
 import type { ReactNode } from "react";
 
 const YEON_STAR_HUG_LAYOUT_TEXT_TRANSLATIONS = {
@@ -32,6 +33,7 @@ export const metadata: Metadata = {
     canonical: "/yeon-star-hug",
   },
   openGraph: {
+    ...ROOT_OPEN_GRAPH,
     title: yeonStarHugLayoutCopy.title,
     description: yeonStarHugLayoutCopy.ogDescription,
     url: "/yeon-star-hug",

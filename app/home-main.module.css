@@ -34,7 +34,14 @@
 .page :where(a) { color: inherit; text-underline-offset: 0.25em; }
 .page :where(a, summary):focus-visible { outline: 2px solid var(--cd-focus-ring); outline-offset: 4px; border-radius: var(--cd-r-sm); }
 .page ::selection { background: var(--cd-text); color: var(--cd-bg); }
-.brandRow { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding-block: 16px 8px; }
+.brandRow { display: flex; align-items: center; gap: 8px; min-height: 44px; padding-block: 16px 8px; max-width:1120px; margin-inline:auto; }
+.entryNav {display:flex;gap:20px;margin-left:auto;font-size:14px}
+.entryNav a {display:inline-flex;align-items:center;min-height:44px;text-decoration:none}
+.adviserTitle {margin-top:24px!important;font-size:22px}
+.bottomNav{display:flex;justify-content:center;gap:32px;border-top:1px solid var(--hm-gold-line);padding:12px 0}
+.bottomNav a{display:flex;align-items:center;justify-content:center;gap:8px;min-height:48px;text-decoration:none;font-size:14px}
+.bottomNav [aria-current=page]{color:var(--cd-accent);font-weight:700}
+@media(max-width:700px){.page{padding-bottom:88px}.bottomNav{position:fixed;z-index:40;inset:auto 0 0;display:grid;grid-template-columns:repeat(4,1fr);gap:0;padding:8px 12px max(8px,env(safe-area-inset-bottom));background:var(--cd-surface)}.bottomNav a{flex-direction:column;gap:4px;font-size:12px}}
 .brandMark { width: 28px; height: 28px; flex: none; }
 .wordmark { font-family: var(--font-serif); font-size: 1rem; font-weight: 800; letter-spacing: 0.12em; }
 .stage { display: grid; justify-items: center; gap: 24px; padding-block: 20px 32px; }

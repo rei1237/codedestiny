@@ -17,6 +17,7 @@ import ShellHomeHardNavGuard from "./components/ShellHomeHardNavGuard";
 import ActivationEntry from './components/activation/ActivationEntry';
 import { SEO_CORE_KEYWORDS } from "../lib/seo-metadata";
 import { siteSeo } from "../lib/seo/siteSeo";
+import { ROOT_OPEN_GRAPH } from "../lib/seo/page-open-graph";
 import { serializeJsonLd } from "../lib/seo/json-ld.mjs";
 import {
   buildOrganizationJsonLd,
@@ -43,8 +44,6 @@ const ROOT_LAYOUT_COPY = {
 const ROOT_SEO = {
   title: "꿀꿀 운세 | 사주·타로·영냥이 상담",
   description: "꿀꿀 운세는 사주·타로 상담 서비스입니다. 꽃돼지 연이, 네오, 영냥이와 함께 자신의 기질과 관계를 살펴보고 일상에서 선택할 방향을 찾아보세요.",
-  ogTitle: siteSeo.defaultTitle,
-  ogDescription: siteSeo.defaultDescription,
 };
 
 export const metadata = {
@@ -100,21 +99,10 @@ export const metadata = {
   //    이 레이아웃의 메타데이터가 덮이므로, 홈의 canonical·hreflang 은 셸의 <head> 와
   //    사이트맵(scripts/generate-sitemap.mjs 의 i18nRouteGroups)이 담당한다.
   //    회귀 가드: scripts/verify-adsense-readiness.mjs 의 verifyNoInheritedHomeCanonical.
+
   // 하위 페이지가 홈 og:url·og:title 을 물려받지 않게 루트에는 공통 값(type·locale·siteName·images)만 둔다.
-  // 제목·설명·URL 은 각 페이지가 자기 openGraph 로 선언한다(홈은 app/page.js).
-  openGraph: {
-    type: "website",
-    locale: "ko_KR",
-    siteName: siteSeo.brandName,
-    images: [
-      {
-        url: siteSeo.defaultOgImage,
-        width: 1200,
-        height: 630,
-        alt: "꿀꿀 운세 사주·타로 상담 서비스",
-      },
-    ],
-  },
+  // 제목·설명·URL 은 각 페이지가 자기 openGraph 로 선언한다(홈은 app/page.js). 공통 값은 pageOpenGraph 와 한 벌이다.
+  openGraph: ROOT_OPEN_GRAPH,
   twitter: {
     card: siteSeo.twitterCard,
     images: [siteSeo.defaultOgImage],
@@ -179,12 +167,12 @@ export default function RootLayout({ children }) {
     <html lang="ko" dir="ltr" className={notoSansKRVariable} suppressHydrationWarning>
       <head>
         <script src="/js/pwa-lifecycle.js?v=moon-library-1" defer />
-        <Script src="/js/core/pass-verdict.js?v=build-c6bb42d3af70" strategy="beforeInteractive" />
+        <Script src="/js/core/pass-verdict.js?v=build-1bc9e40cfc33" strategy="beforeInteractive" />
         <Script src="/js/core/auth-hint.js?v=build-ce0e961efebc" strategy="beforeInteractive" />
         {/* 앱 판별 정본. checkout-entry 가 진입 분기에서 읽으므로 그보다 먼저 둔다. */}
         <Script src="/js/core/app-context.js?v=20260812-app-context-v1" strategy="beforeInteractive" />
         <Script src="/js/core/play-display-price.js" strategy="beforeInteractive" />
-        <Script src="/js/core/checkout-entry.js?v=build-c6bb42d3af70" strategy="beforeInteractive" />
+        <Script src="/js/core/checkout-entry.js?v=build-1bc9e40cfc33" strategy="beforeInteractive" />
         <Script src="/js/core/access-store.js?v=20260804-access-v3" strategy="beforeInteractive" />
         <Script src="/js/core/payment-service.js?v=20260804" strategy="beforeInteractive" />
         {/* GA4 측정 ID 는 공개 식별자다. 값이 없으면 analytics.js 가 통째로 no-op 이 되므로
@@ -197,7 +185,9 @@ export default function RootLayout({ children }) {
             }}
           />
         ) : null}
-        <Script src="/js/core/analytics.js?v=20261028-paid-search-v1" strategy="afterInteractive" />
+        <Script src="/js/core/analytics.js?v=20261103-ai-source-v1" strategy="afterInteractive" />
+        {/* 언어 제안 배너: 클라이언트 전용. 서버 출력에는 배너 DOM 이 없고, 스크립트는 이동시키지 않는다. */}
+        <Script src="/js/cd-lang-suggest.js?v=20261102-lang-suggest-v2" strategy="lazyOnload" />
         <link rel="alternate" type="application/rss+xml" title={ROOT_LAYOUT_COPY.ko.insightsRssTitle} href="https://code-destiny.com/rss.xml" />
         {/* hreflang / og:site_name / og:locale 을 여기서 하드코딩하지 말 것.
             이 layout 은 모든 Next 라우트의 <head> 이므로, 홈 기준 값을 박으면 전 페이지가

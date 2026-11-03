@@ -1,12 +1,12 @@
 .picker { color: var(--yn-ivory, #fff3e2); padding-block: 6px 22px; }
 .heading { display:flex; align-items:center; gap:14px; margin-bottom:18px; }
 .heading img { flex-shrink:0; border-radius:14px; background:#fff3e2; object-fit:contain; }
-.heading h3 { margin:0; font-family:"Yeongnyangi Myeongjo",serif; font-size:1.22rem; line-height:1.4; color:#fff3e2; }
+.heading h3 { margin:0; font-family:var(--font-display); font-size:1.22rem; line-height:1.4; color:#fff3e2; }
 .heading p { margin:5px 0 0; color:#c7b5ce; font-size:.88rem; line-height:1.6; }
 .list { display:grid; gap:8px; max-height:276px; overflow-y:auto; scrollbar-width:thin; padding:4px; margin:0 -4px 14px; }
 .picker .choice { display:flex; align-items:center; justify-content:flex-start; width:100%; min-height:68px; padding:10px 14px; gap:12px; border:1px solid #715e7e; border-radius:12px; background:#251a33; color:#fff3e2; text-align:left; font:inherit; cursor:pointer; transition:background-color 120ms,border-color 120ms; }
 .picker .choice[aria-pressed="true"] { background:#443057; border-color:#e9c78d; }
-.initial { display:grid; place-items:center; width:36px; height:36px; flex-shrink:0; border-radius:50%; background:#594166; color:#fff3e2; font-family:"Yeongnyangi Myeongjo",serif; }
+.initial { display:grid; place-items:center; width:36px; height:36px; flex-shrink:0; border-radius:50%; background:#594166; color:#fff3e2; font-family:var(--font-display); }
 .identity { display:grid; gap:3px; min-width:0; }
 .identity strong { overflow-wrap:anywhere; font-weight:650; line-height:1.5; }
 .identity small { color:#c7b5ce; font-size:.875rem; font-weight:400; }
@@ -23,7 +23,7 @@
 .error p { color:inherit; }
 .srOnly { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
 .profileForm { font-size:1rem;line-height:1.65;margin-top:24px; padding-top:24px; border-top:1px solid #715e7e; }
-.profileForm h3 { color:#fff3e2; font-family:"Yeongnyangi Myeongjo",serif; margin:0 0 10px; }
+.profileForm h3 { color:#fff3e2; font-family:var(--font-display); margin:0 0 10px; }
 .profileForm p { color:#c7b5ce; font-size:.875rem; line-height:1.7; }
 .profileForm label { display:block; margin:16px 0; color:#fff3e2; font-weight:600; }
 .profileForm input:not([type="checkbox"]),.profileForm select { box-sizing:border-box;display:block; width:100%; min-height:48px; padding:12px; margin-top:8px; border:1px solid #897095; border-radius:10px; background:#201629; color:#fff3e2; font:inherit; font-size:16px; }
@@ -37,7 +37,7 @@
 /* The partner page opts into paper; existing night and conversational forms stay unchanged. */
 .profileForm.paper { color: var(--cd-samples-ink); border-top-color: var(--cd-samples-line); color-scheme: light; }
 .profileForm.paper h3, .profileForm.paper label { color: var(--cd-samples-ink); }
-.profileForm.paper h3 { font-family: "Yeongnyangi Myeongjo", var(--font-serif); }
+.profileForm.paper h3 { font-family: var(--font-display); }
 .profileForm.paper p { color: var(--cd-samples-muted); }
 .profileForm.paper input:not([type="checkbox"]), .profileForm.paper select { background: var(--cd-samples-sheet); color: var(--cd-samples-ink); border-color: var(--cd-samples-muted); font-family: var(--font-body); }
 .profileForm.paper input::placeholder { color: var(--cd-samples-muted); }

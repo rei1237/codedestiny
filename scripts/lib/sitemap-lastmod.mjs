@@ -37,6 +37,26 @@ import { sliceFunction } from "./js-source-slice.mjs";
 
 const LEDGER_REL_PATH = "config/sitemap-lastmod.json";
 
+// v2(2026-11-02): 사이트 전역 모듈을 라우트 서명에서 빼고 라우트 SEO 프로필을 넣었다.
+const LEDGER_VERSION = 2;
+
+/**
+ * 원장 라우트의 이 비율 이상이 import 하는 파일은 "사이트 전역" 으로 보고 라우트 서명에서 뺀다.
+ *
+ * 🔴 왜 빼는가(2026-11-01 실측) — lib/seo/entity-registry.mjs·lib/brand/brand-facts.mjs 처럼
+ *    거의 모든 페이지가 import 하는 모듈을 한 줄 고치면 830개 중 329개 라우트의 lastmod 가 한꺼번에
+ *    올라갔다. 바뀐 것은 공용 메타·푸터·조직 스키마이지 그 페이지의 본문이 아니다. 전역 변경으로
+ *    사이트맵 절반이 "오늘 수정" 이 되면 구글은 lastmod 신호를 통째로 무시한다(이 원장이 생긴 이유).
+ *    대신 전역 파일 안의 라우트 전용 데이터 — 엔티티 레지스트리 프로필·publicSeoPages 항목 — 는
+ *    routeScopedSlice 로 잘라 그 라우트 서명에만 넣는다.
+ *
+ * 🔴 왜 0.8 인가 — 실측 분포에서 전역 묶음은 89~99%(brand-facts 828/830 … structured-data 737/830),
+ *    그 다음 층은 lib/korean-calendar/* 69%(572) 다. 두 층 사이 빈 구간의 한가운데라 라우트가 조금
+ *    늘고 줄어도 어느 파일도 경계를 넘나들지 않는다. 목록을 손으로 적지 않고 매번 실측한다
+ *    (CLAUDE.md 원칙 10).
+ */
+const SITE_WIDE_FAN_IN_RATIO = 0.8;
+
 // 확장자 없는 import 를 풀 때 시도하는 순서. .css 는 렌더 결과에 영향이 있으므로 포함한다.
 const RESOLVE_EXTENSIONS = [".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".json", ".css"];
 
@@ -270,7 +290,59 @@ function resolveLocalSpecifier(rootDir, fromRel, specifier) {
   return { kind: "unresolved" };
 }
 
-export function createSitemapLastmodLedger({ rootDir, today, volatileToday = today, previousSitemapPath }) {
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/** `{` 위치에서 짝이 맞는 `}` 까지. 짝을 못 찾으면 null(호출자가 파일 전체로 물러난다). */
+function balancedObjectAt(text, openIndex) {
+  let depth = 0;
+  for (let i = openIndex; i < text.length; i += 1) {
+    if (text[i] === "{") depth += 1;
+    else if (text[i] === "}" && --depth === 0) return text.slice(openIndex, i + 1);
+  }
+  return null;
+}
+
+/**
+ * 사이트 전역 파일 안에서 **이 라우트에만** 실리는 부분.
+ * `path: "/saju"` 를 가진 객체 리터럴(엔티티 레지스트리 프로필·publicSeoPages 항목)과, 그 안에서
+ * 참조한 번역 키(`"siteSeo.005": "…"`) 줄을 모은다. 전역 파일을 서명에서 뺀 대신 넣는 조각이라,
+ * 이 라우트의 제목·설명·키워드를 고치면 그 라우트만 올라간다.
+ * 객체를 잘라내지 못하면 파일 전체를 돌려준다 — 틀려도 "바뀜" 쪽으로 틀리게 한다.
+ */
+function routeScopedSlice(text, pathname) {
+  const key = pathname === "/" ? "/" : pathname.replace(/\/+$/, "");
+  const needle = new RegExp(`\\bpath:\\s*["']${escapeRegExp(key)}["']`, "g");
+  const slices = [];
+  let match;
+  while ((match = needle.exec(text)) !== null) {
+    let depth = 0;
+    let open = -1;
+    for (let i = match.index; i >= 0; i -= 1) {
+      if (text[i] === "}") depth += 1;
+      else if (text[i] === "{" && depth-- === 0) {
+        open = i;
+        break;
+      }
+    }
+    const block = open >= 0 ? balancedObjectAt(text, open) : null;
+    if (!block) return text;
+    slices.push(block);
+    for (const [, literal] of block.matchAll(/"([^"\n]+)"/g)) {
+      const keyLine = new RegExp(`^[ \\t]*"${escapeRegExp(literal)}"\\s*:.*$`, "m").exec(text);
+      if (keyLine) slices.push(keyLine[0]);
+    }
+  }
+  return slices.join("\n");
+}
+
+/**
+ * @param {object} options
+ * @param {string[]} [options.routes] 원장이 lastmod 를 정할 라우트 전체. 주면 사이트 전역 모듈
+ *   (SITE_WIDE_FAN_IN_RATIO)을 라우트 서명에서 뺀다. 생략하면 v1 처럼 전이 import 전부를 해싱한다.
+ */
+export function createSitemapLastmodLedger({ rootDir, today, volatileToday = today, previousSitemapPath, routes }) {
   // 🔴 기간이 늘었는데 주기 분류가 빠지면 여기서 멈춘다 — 미분류가 조용히 "매일" 로 새면
   //    이 원장이 없애려는 거짓 신호가 그대로 돌아온다.
   for (const period of readFortunePeriodIds(rootDir)) {
@@ -426,9 +498,7 @@ export function createSitemapLastmodLedger({ rootDir, today, volatileToday = tod
     return cadence(volatileToday);
   }
 
-  function signatureFor(pathname) {
-    const { files, extras, volatileSource } = sourcesFor(pathname);
-    if (volatileSource) volatileRoutes.add(pathname);
+  function hashSources(files, extras) {
     const hash = createHash("sha256");
     for (const rel of files) {
       hash.update(rel);
@@ -443,11 +513,57 @@ export function createSitemapLastmodLedger({ rootDir, today, volatileToday = tod
     return hash.digest("hex").slice(0, 16);
   }
 
+  function signaturesFor(pathname) {
+    const { pageFile, files, extras, volatileSource } = sourcesFor(pathname);
+    if (volatileSource) volatileRoutes.add(pathname);
+    const ownFiles = [];
+    const scoped = [...extras];
+    for (const rel of files) {
+      if (rel === pageFile || !siteWideFiles.has(rel)) {
+        ownFiles.push(rel);
+        continue;
+      }
+      const slice = routeScopedSlice(readNormalized(rel), pathname);
+      if (slice) scoped.push(`site-wide-slice:${rel}\n${slice}`);
+    }
+    return {
+      signature: hashSources(ownFiles, scoped),
+      // v1 원장과 비교할 때만 쓴다 — 알고리즘이 바뀌었다는 이유로 라우트가 한꺼번에 오늘이 되지 않게.
+      legacySignature: hashSources(files, [...extras]),
+    };
+  }
+
   const ledgerPath = resolve(rootDir, LEDGER_REL_PATH);
   let stored = {};
+  let storedVersion = LEDGER_VERSION;
   if (existsSync(ledgerPath)) {
     const parsed = JSON.parse(readFileSync(ledgerPath, "utf8"));
     stored = parsed && typeof parsed.routes === "object" && parsed.routes ? parsed.routes : {};
+    storedVersion = Number(parsed?.version) || 1;
+  }
+
+  // 라우트 그래프를 한 번 모두 풀어 파일별 fan-in 을 센다. 라우트의 자기 페이지 파일은 빼지 않는다.
+  // routes 를 안 주면(진단·테스트) v2 원장의 라우트를 모집단으로 써서 저장된 서명과 같은 기준으로 비교한다.
+  const population = Array.isArray(routes) && routes.length > 0
+    ? [...new Set(routes)]
+    : storedVersion >= LEDGER_VERSION ? Object.keys(stored) : [];
+  const siteWideFiles = new Set();
+  if (population.length > 0) {
+    const fanIn = new Map();
+    for (const pathname of population) {
+      let files;
+      try {
+        ({ files } = sourcesFor(pathname));
+      } catch (error) {
+        // 저장된 원장에만 남은(이제 해석되지 않는) 라우트는 모집단에서 뺀다. 넘겨받은 routes 는 그대로 던진다.
+        if (routes) throw error;
+        continue;
+      }
+      for (const rel of files) fanIn.set(rel, (fanIn.get(rel) || 0) + 1);
+    }
+    for (const [rel, count] of fanIn) {
+      if (count / population.length >= SITE_WIDE_FAN_IN_RATIO) siteWideFiles.add(rel);
+    }
   }
 
   // 원장 항목이 없을 때만 참고한다 — 최초 도입과 원장 유실을 지금 커밋된 사이트맵에서 복구하기
@@ -467,10 +583,11 @@ export function createSitemapLastmodLedger({ rootDir, today, volatileToday = tod
     lastmodFor(pathname) {
       if (decided.has(pathname)) return decided.get(pathname).lastmod;
 
-      const signature = signatureFor(pathname);
+      const { signature, legacySignature } = signaturesFor(pathname);
       const previous = stored[pathname];
+      const comparable = storedVersion < LEDGER_VERSION ? legacySignature : signature;
       const unchanged = Boolean(
-        previous && previous.signature === signature && /^\d{4}-\d{2}-\d{2}$/.test(previous.lastmod || ""),
+        previous && previous.signature === comparable && /^\d{4}-\d{2}-\d{2}$/.test(previous.lastmod || ""),
       );
       let lastmod;
       // 🔴 매일 바뀌는 데이터를 읽는 라우트는 서명이 그대로여도 내용이 달라졌다. 예전에는 서명에
@@ -536,7 +653,7 @@ export function createSitemapLastmodLedger({ rootDir, today, volatileToday = tod
       }
 
       const payload = {
-        version: 1,
+        version: LEDGER_VERSION,
         note:
           "사이트맵 lastmod 원장. scripts/lib/sitemap-lastmod.mjs 가 라우트별 소스 서명을 계산해 " +
           "다시 쓴다. 손으로 고치지 말고 npm run sitemap:generate 로 갱신할 것.",
@@ -553,7 +670,8 @@ export function createSitemapLastmodLedger({ rootDir, today, volatileToday = tod
 
     /** 진단용 — 특정 라우트가 어떤 소스로 해석됐는지 본다. */
     explain(pathname) {
-      return sourcesFor(pathname);
+      const sources = sourcesFor(pathname);
+      return { ...sources, siteWide: sources.files.filter((rel) => rel !== sources.pageFile && siteWideFiles.has(rel)) };
     },
   };
 }

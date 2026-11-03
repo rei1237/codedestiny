@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import { mkdir, writeFile } from 'node:fs/promises';
-import { collectSitemapUrls, inspectPage, robotsAllows, sitemapDirectives } from './seo/health-policy.mjs';
+import { collectSitemapUrls, edgeSampleIssues, inspectPage, robotsAllows, sitemapDirectives } from './seo/health-policy.mjs';
 
 const BASE = (process.env.SITE_URL || 'https://code-destiny.com').replace(/\/$/, '');
 // The Fusion input screen keeps its existing noindex policy; its public explanation hub is indexed.
@@ -15,14 +15,15 @@ const robotsAgents = ['googlebot', 'bingbot', 'yeti', 'oai-searchbot', 'perplexi
 const privatePaths = ['/api/billing/', '/admin/', '/account/', '/checkout/', '/points/', '/results/', '/records/', '/yeongnyangi/library/', '/yeongnyangi/room/'];
 const issues = [];
 const rows = [];
-async function get(path, probeUserAgent = userAgent) {
+async function get(path, probeUserAgent = userAgent, extraHeaders = {}) {
   const url = `${BASE}${path}`;
   try {
     const response = await fetch(url, { redirect: 'manual', signal: AbortSignal.timeout(15000),
-      headers: { 'User-Agent': probeUserAgent } });
+      headers: { 'User-Agent': probeUserAgent, ...extraHeaders } });
     return { url, status: response.status, html: await response.text(),
       xRobots: response.headers.get('x-robots-tag') || '', location: response.headers.get('location'),
-      challenge: response.headers.get('cf-mitigated') };
+      challenge: response.headers.get('cf-mitigated'),
+      cacheControl: response.headers.get('cache-control') || '', setCookie: response.headers.getSetCookie().join(', ') };
   } catch (error) { return { url, status: 0, html: '', error: error.message }; }
 }
 const robots = await get('/robots.txt');
@@ -37,6 +38,19 @@ const declared = await collectSitemapUrls(declaredSitemaps, BASE,
   path => path === '/sitemap.xml' ? Promise.resolve(sitemap) : get(path));
 const declaredUrls = declared.urls;
 issues.push(...declared.issues);
+// Same URL, same response for every UA (spec A1): read-only GETs with Accept: text/html, redirects left unfollowed.
+const edgeAgents = [
+  ['chrome', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36'],
+  ['googlebot', 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'],
+  ['yeti', userAgent],
+];
+const edgeSamples = [];
+for (const [agent, ua] of edgeAgents) for (const path of ['/', '/saju/', '/en/', '/saju']) {
+  const response = await get(path, ua, { Accept: 'text/html' });
+  edgeSamples.push({ path, agent, status: response.status, location: response.location || null,
+    cacheControl: response.cacheControl || '', setCookie: response.setCookie || '', challenge: response.challenge || null });
+}
+issues.push(...edgeSampleIssues(edgeSamples).map(issue => `edge sample: ${issue}`));
 // The canonical brand home is the root; a redirect to the app would lose this hub.
 const rootRedirect = await get('/');
 const rootIsLanding = rootRedirect.status === 200;
@@ -84,7 +98,7 @@ if (process.argv.includes('--probe-crawlers')) {
 const report = { checkedAt: new Date().toISOString(), base: BASE, sitemapCount: urls.length,
   coverage: 'brand, service, locale and fortune landings; public and private robots rules for five search crawlers; declared sitemap coverage for every URL',
   userAgent, robotsAgents, limitation: 'User-agent probe only; verified crawler IP access and actual indexing are not measured', declaredSitemaps,
-  sitemapFiles: declared.files, crawlerProbes, rootRedirect: { status: rootRedirect.status, location: rootRedirect.location }, rows, issues };
+  sitemapFiles: declared.files, crawlerProbes, edgeSamples, rootRedirect: { status: rootRedirect.status, location: rootRedirect.location }, rows, issues };
 await mkdir('seo-qa/operations', { recursive: true });
 await writeFile('seo-qa/operations/health.json', JSON.stringify(report, null, 2) + '\n');
 console.log(`[seo-health] ${rows.length} landings, ${urls.length} sitemap URLs, ${issues.length} issues`);

@@ -160,8 +160,8 @@ export default function SignFortunePage({ params }: { params: { period: string; 
     path: seo.path,
     category: `${kindLabel} 운세`,
     keywords: seo.keywords,
-    // 발행 = min(대상일 00:00 KST, 빌드 시각), 수정 = 빌드 시각. 내일 운세가 미래 발행일을 달지 않는다.
-    ...fortuneArticleDates(vm.dateKey),
+    // 발행 = min(대상일, 빌드 날) 00:00 KST, 수정 = 갱신 주기 시작. 내일 운세가 미래 발행일을 달지 않는다.
+    ...fortuneArticleDates(vm.period, vm.dateKey),
   });
   const breadcrumbJsonLd = buildBreadcrumbJsonLd([
     { name: "홈", path: "/" },

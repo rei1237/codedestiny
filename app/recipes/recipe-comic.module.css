@@ -1,0 +1,20 @@
+.shelf { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:28px 20px; margin-top:24px; }
+.cover { display:block; border:2px solid var(--ia-ink); border-radius:20px; overflow:hidden; color:var(--ia-ink); background:var(--ia-card); text-decoration:none; box-shadow:4px 5px 0 var(--ia-line); }
+.cover:focus-visible, .jump:focus-visible { outline:3px solid var(--ia-accent); outline-offset:5px; }
+.cover img { width:100%; height:auto; aspect-ratio:3/2; object-fit:cover; border-bottom:2px solid var(--ia-ink); }
+.coverCopy { padding:18px; }
+.coverCopy h4 { font-size:1.3rem; line-height:1.5; margin:8px 0; word-break:keep-all; }
+.coverCopy p { line-height:1.7; }
+.meta { font-size:.875rem; color:var(--ia-muted); }
+.chapter { display:inline-block; padding:4px 12px; border:1px solid var(--ia-accent); border-radius:999px; color:var(--ia-accent); background:var(--ia-soft); font-size:.875rem; font-weight:700; }
+.panels { list-style:none; padding:0; margin:28px 0; display:grid; gap:40px; }
+.panel { position:relative; border:2px solid var(--ia-ink); border-radius:22px; padding:24px; background:var(--ia-card); box-shadow:5px 6px 0 var(--ia-line); scroll-margin-top:24px; }
+.panel:nth-child(even) { background:var(--ia-soft); }
+.panel h3 { font-size:1.4rem; line-height:1.5; margin:12px 0 20px; color:var(--ia-ink); word-break:keep-all; }
+.scene { display:flex; align-items:center; gap:16px; margin-bottom:20px; }
+.scene img { width:120px; height:120px; object-fit:contain; flex-shrink:0; }
+.bubble { position:relative; border:2px solid var(--ia-ink); border-radius:24px 24px 24px 4px; background:var(--ia-card); padding:16px; color:var(--ia-ink); font-weight:700; line-height:1.7; }
+.caption { border-top:1px dashed var(--ia-line); padding-top:18px; font-size:1rem; line-height:1.95; word-break:keep-all; overflow-wrap:anywhere; }
+.panelNumber { color:var(--ia-accent); font-size:.875rem; font-weight:800; }
+.jump { display:inline-flex; align-items:center; min-height:48px; padding:8px 18px; border:1px solid var(--ia-accent); border-radius:999px; color:var(--ia-accent); background:var(--ia-card); text-decoration:none; font-weight:700; }
+@media(max-width:540px) { .shelf { grid-template-columns:1fr; gap:24px; } .panel { padding:20px 16px; } .scene { gap:10px; align-items:flex-end; } .scene img { width:88px; height:100px; } .bubble { padding:12px; } }

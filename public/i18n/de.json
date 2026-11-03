@@ -39,7 +39,8 @@
       "linkFortuneHub": "Zodiac Fortunes",
       "linkStories": "Yeoni's Destiny Novel",
       "authorNote": "Diese Seite stammt von Park Byeong-ha, einer Fachkraft für Myeongri (die koreanischen Vier Säulen) mit zehn Jahren Erfahrung, von der auch die abschließende Prüfung der Saju- und Manseryeok-Texte kommt. Die Berechnungen folgen den klassischen Regeln von Myeongri und Astrologie, und jeder Satz, der die Lesenden erreicht, liegt in menschlicher Verantwortung.",
-      "authorLink": "Wer dahintersteht und wie geprüft wird"
+      "authorLink": "Wer dahintersteht und wie geprüft wird",
+      "linkRecipes": "Yeonis Fünf-Elemente-Rezepte · Kostenlose Comics"
     },
     "reviews": {
       "kicker": "REAL REVIEWS",
@@ -1969,7 +1970,8 @@
       "ch4": "Blüte",
       "ch5": "Das wahre Timing",
       "lyrics": "Liedtext",
-      "more": "Mehr Mondlichtmusik hören"
+      "more": "Mehr Mondlichtmusik hören",
+      "playlist": "Musik-Playlist"
     },
     "passCopy": {
       "myTitle": "Meine Pässe",
@@ -2309,6 +2311,67 @@
           "fit": "Wenn du Kriterien und einen Aktionsplan für eine Entscheidung brauchst",
           "delivery": "Geprüfte Antwort per E-Mail"
         }
+      }
+    },
+    "yehwa": {
+      "titleA": "What would you like",
+      "titleB": "to explore today?",
+      "leadA": "Start with what is",
+      "leadB": "on your mind.",
+      "tour": "Explore with Yeoni",
+      "concern": "What is on your mind?",
+      "love": "Love & relationships",
+      "work": "Money & work",
+      "self": "About myself",
+      "flow": "What lies ahead",
+      "family": "Family & daily life",
+      "results": "Readings to explore",
+      "view": "View reading",
+      "all": "Browse all readings",
+      "records": "Revisit my readings",
+      "pigRecords": "Ggulggul records",
+      "catRecords": "Yeongnyangi records",
+      "line1": "Shall we start with what is on your mind today?",
+      "line2": "Read the description and terms. Choose a reading to see its details.",
+      "line3": "Find past readings in each service’s records. Ggulggul and Yeongnyangi records stay separate.",
+      "done": "Finish guide",
+      "previous": "Previous",
+      "next": "Next",
+      "skip": "Skip",
+      "findLabel": "Find a reading by concern",
+      "libraryLabel": "All readings and records",
+      "guideLabel": "Yeoni’s screen guide",
+      "close": "Close guide",
+      "codexDescription": "Explore your relationship patterns individually or compare two people’s differences.",
+      "sibylName": "Sibyl Annual Preparation Report",
+      "sibylDescription": "Periods to watch, preparation by area, and practical next steps.",
+      "rangePrice": "KRW {from}–{to}"
+    },
+    "cro": {
+      "love": "Liebe & Versöhnung",
+      "money": "Geld & Geschäft",
+      "career": "Arbeit & Karriere",
+      "relationship": "Kompatibilität & Beziehungen",
+      "yearly": "Dieses & nächstes Jahr",
+      "introduction": "Saju, Tarot und Beratung zu deinen Anliegen.",
+      "freeIntroduction": "Beginne mit einer kostenlosen Saju-Deutung.",
+      "freeStart": "Saju kostenlos starten",
+      "paidLabel": "Kostenpflichtig ·",
+      "result": {
+        "relationship": "Beziehungsbericht mit Saju und Zi Wei Dou Shu",
+        "consultation": "Beratung passend zu deiner Frage",
+        "love": "Persönlicher Liebesbericht",
+        "yearly": "Tendenzen im gewählten Jahr · Rat nach Zeitabschnitt",
+        "life": "Lebensbericht nach Kapiteln",
+        "saju": "Saju-Diagramm · Grunddeutung"
+      },
+      "resultSummary": {
+        "relationship": "Das erhältst du · Beziehungsbericht mit Saju und Zi Wei Dou Shu",
+        "consultation": "Das erhältst du · Beratung passend zu deiner Frage",
+        "love": "Das erhältst du · Persönlicher Liebesbericht",
+        "yearly": "Das erhältst du · Tendenzen im gewählten Jahr · Rat nach Zeitabschnitt",
+        "life": "Das erhältst du · Lebensbericht nach Kapiteln",
+        "saju": "Das erhältst du · Saju-Diagramm · Grunddeutung"
       }
     }
   },

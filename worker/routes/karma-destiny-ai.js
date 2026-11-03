@@ -1,4 +1,5 @@
 import { runWithAiLocale, storedAiLocale } from '../lib/ai-locale-context.js';
+import { sajuTemperamentPromptLines } from '../lib/saju-temperament.js';
 import { createHash } from "node:crypto";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { resolveForbiddenPatterns } from "../lib/llm-leak-guard.js";
@@ -1872,6 +1873,7 @@ function buildLensDigest(integratedResult, definition) {
       lines.push(`※ 다음 항목은 값이 있으나 단정하면 안 됩니다(가능성으로만 서술): ${packed.provisionalFields.join(", ")}`);
     }
     lines.push(JSON.stringify(packed.data));
+    if (id === 'saju' && role !== '배경') lines.push(...sajuTemperamentPromptLines(packed.data));
     if (packed.notCalculated.length) {
       // 🔴 없는 것을 명시해야 LLM 이 그 항목을 지어내지 않는다.
       lines.push(`※ 계산되지 않은 항목: ${packed.notCalculated.join(", ")} — 이 항목의 내용을 추정하거나 서술하지 마세요.`);

@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import intro from "@/app/components/expert-consulting/PremiumConsultationIntro.module.css";
 import { PriceBadge } from "@/app/components/PriceBadge";
+import ProductJourneyLinks, { useProductView } from "@/app/components/ProductJourneyLinks";
 import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import ProductMasterStrip from "@/app/components/ProductMasterStrip";
 import MasterProfile from "@/components/fortune/MasterProfile";
@@ -1393,6 +1394,7 @@ function buildBillingGateInput(paymentPayload: Record<string, unknown>, idempote
 export default function LifeBookAiClient({ paymentNotice }: { paymentNotice?: string } = {}) {
   const copy = useLifeBookClientCopy();
   const [form, setForm] = useState<ConsultationForm>(() => buildInitialForm());
+  useProductView(MODE_FEATURE_KEY[form.mode], 'consultation');
   const [status, setStatus] = useState<FlowStatus>("idle");
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
@@ -1775,6 +1777,7 @@ export default function LifeBookAiClient({ paymentNotice }: { paymentNotice?: st
               </a>
               {paymentNotice ? <span className={intro.price}>토스 단건 결제</span> : <PriceBadge featureKey={MODE_FEATURE_KEY[form.mode]} prefix={copy.priceLabelPrefix} className={intro.price} />}
             </div>
+            {copy === LIFE_BOOK_CLIENT_COPY.ko && !isBusy && <ProductJourneyLinks sampleId="life-book" />}
           </div>
         </header>
         {copy === LIFE_BOOK_CLIENT_COPY.ko && <CraftedProductDisclosure featureKey={MODE_FEATURE_KEY[form.mode]} />}

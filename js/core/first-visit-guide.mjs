@@ -21,13 +21,14 @@ function installGuide() {
     {label:guideText('sceneReadingLabel'),title:guideText('sceneReadingTitle'),speech:guideText('sceneReadingBody')},
     {label:guideText('sceneDeeperLabel'),title:guideText('sceneDeeperTitle'),speech:guideText('sceneDeeperBody')}
   ];
-  const art=(step=0)=>'<span class="cd-first__art" aria-hidden="true"><img src="/assets/yeoni/onboarding/first-steps-v1.webp" width="1800" height="600" alt="" style="left:-'+step*100+'%"></span>';
+  const art=()=>'<span class="cd-first__art cd-first__atelier" aria-hidden="true"><img src="/assets/yeoni/atelier/talking-pig.webp" width="1280" height="384" alt=""></span>';
   const story=document.createElement('div');story.className='cd-first__story';
   story.innerHTML=`<nav class="cd-first__scene-nav" data-first-aria="scenesLabel" aria-label="${guideText('scenesLabel')}">`+scenes().map((scene,index)=>'<button type="button" data-first-scene="'+index+'"><span>'+(index+1)+'</span>'+'<span data-first-copy="'+['sceneProfileLabel','sceneReadingLabel','sceneDeeperLabel'][index]+'">'+scene.label+'</span></button>').join('')+'</nav><div class="cd-first__scene">'+art()+`<div class="cd-first__speech" aria-live="polite"><span class="cd-first__speaker" data-first-copy="speaker">${guideText('speaker')}</span><h2></h2><p></p><button type="button" data-first-next></button></div></div>`;
   let sceneIndex=0,lastProgressStep=0;
   function showScene(index){
     sceneIndex=index;
-    story.querySelector('img').style.left='-'+index*100+'%';
+    const image = story.querySelector('img');
+    image.replaceWith(image.cloneNode());
     story.querySelector('h2').textContent=scenes()[index].title;
     story.querySelector('p').textContent=scenes()[index].speech;
     story.querySelector('[data-first-next]').textContent=index===2?guideText('restartScenes'):guideText('nextScene');
@@ -43,7 +44,7 @@ function installGuide() {
   const dialog = document.createElement('dialog');
   dialog.className = 'cd-first cd-first__welcome';
   dialog.setAttribute('aria-labelledby','cdFirstTitle');dialog.setAttribute('aria-describedby','cdFirstDescription');
-  dialog.innerHTML = `<button type="button" class="cd-first__close" data-first-aria="close" aria-label="${guideText('close')}" data-first-close><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button><img src="/images/yeoni/welcome/yeoni-welcome-v1-320.webp" width="144" height="144" alt=""><h2 id="cdFirstTitle"><span data-first-copy="welcomeTitle">${guideText('welcomeTitle')}</span><br><span data-first-copy="welcomeReading">${guideText('welcomeReading')}</span></h2><p id="cdFirstDescription"><span data-first-copy="welcomeBody">${guideText('welcomeBody')}</span><br><span data-first-copy="welcomeLater">${guideText('welcomeLater')}</span></p><button class="cd-first__primary" type="button" data-first-start data-first-copy="start">${guideText('start')}</button><button type="button" data-first-close data-first-copy="later">${guideText('later')}</button>`;
+  dialog.innerHTML = `<button type="button" class="cd-first__close" data-first-aria="close" aria-label="${guideText('close')}" data-first-close><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button><img src="/fuctionassets/%EC%97%B0%EC%9D%B4.webp" width="144" height="144" alt=""><h2 id="cdFirstTitle"><span data-first-copy="welcomeTitle">${guideText('welcomeTitle')}</span><br><span data-first-copy="welcomeReading">${guideText('welcomeReading')}</span></h2><p id="cdFirstDescription"><span data-first-copy="welcomeBody">${guideText('welcomeBody')}</span><br><span data-first-copy="welcomeLater">${guideText('welcomeLater')}</span></p><button class="cd-first__primary" type="button" data-first-start data-first-copy="start">${guideText('start')}</button><button type="button" data-first-close data-first-copy="later">${guideText('later')}</button>`;
   document.body.append(dialog);
   dialog.querySelector('img').remove();
   dialog.querySelector('[data-first-start]').before(story,howTo);

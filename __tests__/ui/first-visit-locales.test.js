@@ -13,6 +13,7 @@ for (const locale of ['ko','en','ja','zh-CN','zh-TW','vi','hi','es','fr','de','n
       assert.ok(doc.querySelector('a[href="#questions"]'));
       assert.ok(doc.querySelector('a[href="/yeongnyangi/room/#daily"]'));
       if (locale !== 'ko') assert.doesNotMatch(doc.body.textContent, /[가-힣]|Translation pending/);
+      assert.doesNotMatch(doc.documentElement.outerHTML, /번역을 준비 중입니다/);
       dom.window.close();
     }
     const dom = new JSDOM(renderGuide(locale, {active:false}));

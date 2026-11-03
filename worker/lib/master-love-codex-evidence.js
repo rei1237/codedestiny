@@ -1,4 +1,5 @@
 import { consultationForChapter } from "./master-love-codex-consultation.js";
+import { sajuTemperamentPromptLines } from './saju-temperament.js';
 // Calculation facts only. The model explains these records; it cannot create them.
 export const CODEX_EVIDENCE_VERSION = "codex-evidence-v4";
 
@@ -23,6 +24,11 @@ export function buildCodexEvidence({ chapter, saju, ziweiChart, partnerSaju, par
   for (const [subject, s, z] of [["self", saju, ziweiChart], ["partner", partnerSaju, partnerZiweiChart]]) {
     if (chapter.evidenceSubjects && !chapter.evidenceSubjects.includes(subject)) continue;
     if (!s && !z) continue;
+    if (s && /기질|일간|십성|식상|식신|상관|재성|인성|관성|신강약|전체/.test(focus)) {
+      const temperament = sajuTemperamentPromptLines(s);
+      // This record explicitly contains traditional interpretation, not a calculated personality.
+      if (temperament.length) add(subject, 'saju', 'temperament', {kind:'traditional-interpretation',lines:temperament}, 'provisional');
+    }
     for (const [pattern, key] of SAJU_FIELDS) {
       if (!pattern.test(focus)) continue;
       const certainty = s?.calculationMeta?.timeUnknown && ["majorLuck", "yearlyLuck"].includes(key) ? "provisional" : "calculated";

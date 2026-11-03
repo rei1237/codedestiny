@@ -253,7 +253,10 @@ export async function repairUnmarkedKoreanText(locale: RuntimeLocale): Promise<n
   return pending.length;
 }
 
-/** URL → 직접 선택 → IP 국가 → 이전 자동 설정 순으로 현재 로케일을 정한다. */
+/**
+ * 앱 언어 → 현재 페이지의 정적 언어 선택 → ?lang= → URL 접두어 → 저장된 cd_lang → cd_locale 쿠키 → ko 순으로 현재 로케일을 정한다.
+ * IP 국가와 cd_geo_* 쿠키는 보지 않는다(국가는 언어를 정하지 않는다).
+ */
 export function detectLocale(): RuntimeLocale {
   if (typeof window === "undefined") return "ko";
   const appLanguage = (window as typeof window & { __cdAppLanguage?: string }).__cdAppLanguage;
@@ -276,14 +279,6 @@ export function detectLocale(): RuntimeLocale {
       const fromPath = normalizeLocale(segment);
       if (fromPath !== "ko") return fromPath;
     }
-  } catch {}
-  try {
-    const cookies = String(document.cookie || "").split(";").map(part => part.trim());
-    let storedExplicit = false;
-    try { storedExplicit = window.localStorage.getItem("cd_lang_explicit") === "1"; } catch {}
-    const explicit = cookies.includes("cd_locale_explicit=1") || storedExplicit;
-    const geo = cookies.find(part => part.startsWith("cd_geo_locale="));
-    if (!explicit && geo) return normalizeLocale(decodeURIComponent(geo.slice("cd_geo_locale=".length)));
   } catch {}
   try {
     const stored = window.localStorage.getItem("cd_lang");

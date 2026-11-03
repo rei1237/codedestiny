@@ -55,6 +55,7 @@ const buildDir = resolve(rootDir, outDir);
  */
 const DECLARED_EXCEPTIONS = new Map([
   // ["/some/route", "왜 이 라우트는 하이드레이션 후 h1 이 2개여야 하는가"],
+  ["/yeongnyangi/result", "h1 은 2개가 되지 않는다. SavedReadingBoundary 가 마운트 뒤에만 Result 를 그려 서버 h1 은 0개이고, Result 의 h1 과 SpiritResult 의 h1 은 조기 return 으로 배타다. 정적 분석은 둘 다 알 수 없다."],
 ]);
 
 const failures = [];

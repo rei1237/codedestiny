@@ -8,9 +8,11 @@ import { chromium } from 'playwright';
 
 const option = (name, fallback) => process.argv.find(arg => arg.startsWith(`--${name}=`))?.slice(name.length + 3) || fallback;
 const root = process.cwd(), compiled = resolve(root, 'out');
-await stat(resolve(compiled, 'index.html')); // Never silently measure source/dev/old dist instead.
 const label = option('label', 'baseline'), out = resolve(option('out', '.tmp/web-perf'));
 const routes = option('routes', '/snu/,/astrology-ai/,/vedic-ai/,/ziwei-ai/,/nakshatra/ai/,/karma-destiny-ai/,/love-secret-ai/,/new-year-ai-consultation/,/life-book-ai/,/fusion-fortune/,/fortune-tea-house/,/neo-operation-room/,/master-love-codex/,/sukuyo-compatibility-ai/,/naming-ai/,/,/ggulggul/,/yeongnyangi/,/yeongnyangi/fortune/,/yeongnyangi/result/,/yeongnyangi/library/').split(',');
+// /ggulggul/ is the canonical static shell, independent of the Next export.
+// Every Next route still requires a compiled export; no source/dev fallback.
+if (routes.some(route => route !== '/ggulggul/')) await stat(resolve(compiled, 'index.html'));
 const runs = Number(option('runs', '3'));
 if (!Number.isInteger(runs) || runs < 1 || runs > 5) throw new Error('runs must be 1..5');
 const mime = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.webp': 'image/webp', '.svg': 'image/svg+xml', '.png': 'image/png', '.woff2': 'font/woff2', '.mp3': 'audio/mpeg', '.vtt': 'text/vtt' };

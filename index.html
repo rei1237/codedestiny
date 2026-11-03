@@ -55,12 +55,12 @@
      🔴 defer 금지 — 아래 부팅 게이트(cd-early-runtime-class-hoist)가 파싱 시점에 isApp() 을 부른다. -->
       <script src="/js/core/app-context.js?v=build-bcd47d1d364b"></script>
       <script src="/js/core/play-display-price.js" defer></script>
-      <script src="/js/core/checkout-entry.js?v=build-08282b076e95" defer></script>
+      <script src="/js/core/checkout-entry.js?v=build-3425af02692b" defer></script>
 <!-- GA4 측정 ID. 값을 채우면 그 즉시 계측이 켜지고, 비어 있으면 analytics.js 가 통째로 no-op 이다
      (플레이스홀더가 배포돼도 안전하다). 공개 식별자라 소스에 그대로 두어도 된다.
      Next 라우트는 app/layout.js 가 NEXT_PUBLIC_GA_MEASUREMENT_ID 로 같은 전역을 주입한다. -->
       <script>window.__CD_GA_ID = "";</script>
-      <script src="/js/core/analytics.js?v=build-99c335ea5aca" defer></script>
+      <script src="/js/core/analytics.js?v=build-46cffa3b99f9" defer></script>
       <script>
         window.tailwind = window.tailwind || {};
         tailwind.config = {
@@ -598,7 +598,7 @@ html.cd-boot-gate{scrollbar-gutter:auto;overflow:hidden}
 html.cd-boot-gate .cd-boot-gate__veil{position:fixed;inset:0;z-index:100400;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;background:#1b1028;color:#fff5e5}
 html.cd-boot-gate .cd-boot-gate__art{position:absolute;top:50%;left:0;width:100%;height:auto;max-height:100vh;max-height:100dvh;transform:translateY(-50%);object-fit:contain;object-position:center}
 html.cd-boot-gate .cd-boot-gate__intro{position:absolute;top:0;left:0;right:0;padding:max(env(safe-area-inset-top),6vh) 20px 16px;background:#1b1028;text-align:center}
-html.cd-boot-gate .cd-boot-gate__word{display:block;font-family:var(--font-serif,'Noto Serif KR',serif);font-size:clamp(1.75rem,6vw,2.5rem);font-weight:700;line-height:1.35;letter-spacing:-.025em;color:#fff5e5;text-shadow:0 2px 14px #1b1028}
+html.cd-boot-gate .cd-boot-gate__word{display:block;font-family:var(--font-display);font-size:clamp(1.75rem,6vw,2.5rem);font-weight:700;line-height:1.35;letter-spacing:-.025em;color:#fff5e5;text-shadow:0 2px 14px #1b1028}
 html.cd-boot-gate .cd-boot-gate__welcome{margin:10px 0 0;font-size:.9rem;line-height:1.6;color:#fff0d6;text-shadow:0 2px 10px #1b1028}
 html.cd-boot-gate .cd-boot-gate__footer{position:absolute;bottom:max(calc(env(safe-area-inset-bottom) + 24px),6vh);display:flex;flex-direction:column;align-items:center;gap:14px;padding:16px 24px;background:#1b1028;border-radius:20px}
 html.cd-boot-gate .cd-boot-gate__message{font-size:.875rem;line-height:1.5;color:#f6e5cf}
@@ -629,7 +629,7 @@ html.cd-boot-gate-out .cd-boot-gate__veil{opacity:0;transition:opacity .3s ease}
 <link rel="stylesheet" href="/styles/theme-tokens.css?v=build-dcbbfaffa6ab">
 <link rel="stylesheet" href="/styles/guide-primitives.css">
 <link rel="stylesheet" href="/styles/core-ui.css?v=build-1142c9554513">
-<link rel="stylesheet" href="/styles/yehwa-motifs.css?v=build-88ff48b497d6">
+<link rel="stylesheet" href="/styles/yehwa-motifs.css?v=build-f86a67587081">
 <link rel="stylesheet" href="/styles/yehwa-motifs-nav.css?v=build-39ff10dc6633">
  <!-- fortune-ui.css(583KB, brotli 127KB)는 셸에서 가장 큰 렌더 차단 자원이었고
       모바일 FCP 의 최대 단일 원인이었다. 렌더는 막지 않되 높은 우선순위로 받는다.
@@ -702,7 +702,7 @@ img { background-color: transparent; }
 .btn-agree { flex: 2 1 0%; padding: 14px; background: linear-gradient(135deg, var(--point-color, #FF8BA7), var(--point-color, #FFB7B2)); color: rgb(255, 255, 255); border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; border-radius: 14px; font-size: 0.95rem; font-weight: 700; cursor: pointer; box-shadow: rgba(255, 139, 167, 0.3) 0px 4px 12px; transition: 0.2s; font-family: inherit; }
 .logo-area { text-align: center; padding: 20px 0px 28px; }
 .honeypig-logo-icon, .normal-logo .pig-svg-wrap img { display: block; width: 130px; height: 130px; object-fit: contain; border-radius: 50%; box-shadow: rgba(255, 139, 167, 0.3) 0px 4px 12px; }
-.logo-area h1 { font-family: "Noto Serif KR", serif; color: var(--pink); font-size: 1.9rem; font-weight: 700; margin-top: 8px; }
+.logo-area h1 { font-family: var(--font-display); color: var(--pink); font-size: 1.9rem; font-weight: 700; margin-top: 8px; }
 .logo-area p { color: rgb(187, 187, 187); font-size: 0.85rem; margin-top: 4px; }
 @media (max-width: 768px) {
 input, select, textarea { font-size: max(1rem, 16px) !important; }
@@ -731,7 +731,7 @@ button, .tog-btn, .btn-main, .btn-sub, .feature-card { min-height: 48px; }
 .lang-icon-svg { width: 28px; height: 28px; display: block; }
 .lang-main { min-width: 0px; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 1px; position: relative; z-index: 1; }
 .lang-main-row { display: inline-flex; align-items: center; gap: 6px; }
-.lang-trigger .lang-label { flex: 0 0 auto; font-size: 0.96rem; font-family: Cinzel, "Noto Serif KR", serif; font-weight: 700; letter-spacing: 0.08em; text-shadow: rgba(255, 235, 255, 0.52) 0px 0px 14px; }
+.lang-trigger .lang-label { flex: 0 0 auto; font-size: 0.96rem; font-family: var(--font-display); font-weight: 700; letter-spacing: 0.08em; text-shadow: rgba(255, 235, 255, 0.52) 0px 0px 14px; }
 .lang-trigger .lang-arrow { display: none; font-size: 0.75rem; transition: transform 0.24s; color: rgba(248, 230, 255, 0.92); }
 .lang-dropdown { position: absolute; top: calc(100% + 9px); right: 0px; display: grid; grid-template-columns: repeat(2, minmax(0px, 1fr)); gap: 6px; padding: 10px; min-width: 232px; max-width: 280px; border-radius: 18px; border: 1px solid rgba(224, 197, 255, 0.28); background: linear-gradient(160deg, rgba(11, 9, 28, 0.98) 0%, rgba(24, 14, 58, 0.98) 56%, rgba(16, 31, 77, 0.98) 100%); box-shadow: rgba(6, 4, 18, 0.66) 0px 24px 56px, rgba(166, 102, 255, 0.22) 0px 0px 28px; backdrop-filter: blur(14px); opacity: 0; visibility: hidden; transform: translateY(-8px) scale(0.96); transition: opacity 0.22s, transform 0.22s, visibility 0.22s; }
 @media (max-width: 680px) {
@@ -780,7 +780,7 @@ html:has(#destinyFlowerStudioOverlay.is-show) { scrollbar-gutter: auto !importan
 @media (pointer: coarse) {
 .wrap { contain: layout; }
 }
-#sajuLoaderOverlay { position: fixed; inset: 0px; background: radial-gradient(circle, rgb(27, 23, 37) 0%, rgb(5, 5, 5) 100%); z-index: 9999999; display: none; align-items: center; justify-content: center; flex-direction: column; color: rgb(229, 192, 123); font-family: "Noto Serif KR", serif; overflow: hidden; }
+#sajuLoaderOverlay { position: fixed; inset: 0px; background: radial-gradient(circle, rgb(27, 23, 37) 0%, rgb(5, 5, 5) 100%); z-index: 9999999; display: none; align-items: center; justify-content: center; flex-direction: column; color: rgb(229, 192, 123); font-family: var(--font-display); overflow: hidden; }
 :root { --dp-gold: #FFD700; --dp-gold-dim: rgba(255,215,0,0.55); --dp-gold-glow: rgba(255,215,0,0.25); --dp-space: #0B0E14; --dp-glass: rgba(255,255,255,0.05); --dp-glass-border: rgba(255,215,0,0.18); --dp-purple: rgba(120,80,220,0.35); }
 .dp-form-quota[hidden] { display: none !important; }
 .oracle-result-box-m.is-empty .oracle-result-inner { display: none; }
@@ -974,7 +974,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
 <meta property="og:description" content="꿀꿀 운세는 대통령 운세를 미리 짚은 명리학자 박병하(네오)가 만든 운세 서비스예요. 사주·자미두수·베다점·숙요점·타로·휴먼 디자인·MBTI를 만나보세요.">
 <meta property="og:url" content="https://code-destiny.com/">
 <meta property="og:locale" content="ko_KR">
-<meta property="og:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-ca23fb048ad5">
+<meta property="og:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-d841c233697d">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="꿀꿀운세 HONEY FORTUNE — 꽃돼지 연이 카메오와 서비스 소개가 담긴 CODE DESTINY 명함 카드">
@@ -983,7 +983,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="대통령 운세를 미리 짚은 명리학자가 만든 운세 | 꿀꿀 운세">
 <meta name="twitter:description" content="꿀꿀 운세는 대통령 운세를 미리 짚은 명리학자 박병하(네오)가 만든 운세 서비스예요. 사주·자미두수·베다점·숙요점·타로·휴먼 디자인·MBTI를 만나보세요.">
-<meta name="twitter:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-ca23fb048ad5">
+<meta name="twitter:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-d841c233697d">
 <meta name="twitter:image:alt" content="꿀꿀운세 HONEY FORTUNE — 꽃돼지 연이 카메오와 서비스 소개가 담긴 CODE DESTINY 명함 카드">
 <script type="application/ld+json">
 {
@@ -1105,7 +1105,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
     {
       "@type": "ImageObject",
       "@id": "https://code-destiny.com/#primaryimage",
-      "url": "https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-ca23fb048ad5",
+      "url": "https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-d841c233697d",
       "width": 1200,
       "height": 630
     },
@@ -1466,6 +1466,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
 
   <script data-marker="cd-early-theme-v20260706">/* 첫 페인트 전에 테마 클래스 확정 — 다크 플래시 방지 (연이=기본) */
 (function(){try{if(localStorage.getItem('fortuneThemeModeStateV1')==='neo'){document.documentElement.classList.add('neo-mode');}}catch(e){}}());</script>
+  <link rel="stylesheet" href="/styles/brand-typography.css">
   <style id="cd-main-shell-critical-v20260604">
 @font-face{font-family:'CodeDestinyBody';src:local('Pretendard'),local('Apple SD Gothic Neo'),local('Malgun Gothic');font-weight:400 900;font-style:normal;font-display:swap}
 @font-face{font-family:'CodeDestinyDisplay';src:url('https://assets.code-destiny.com/Mulmaru.woff2') format('woff2');font-weight:400;font-style:normal;font-display:swap}
@@ -1473,7 +1474,6 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
 /* 브랜드 세리프(CodeDestinySerifLatin/KR)는 /styles/fonts-serif.css 로 분리했다 —
    R2 미러 청크 94개를 unicode-range 로 나눠 선언하므로 크리티컬 인라인에 두기엔 너무 길다.
    생성물이라 손으로 고치지 말 것: node scripts/build-serif-font-assets.mjs */
-:root{--font-body:'CodeDestinyBody','Pretendard','Apple SD Gothic Neo','Malgun Gothic','Segoe UI',system-ui,-apple-system,sans-serif;--font-display:'CodeDestinyDisplay',var(--font-body);--font-premium:'CodeDestinySerifKR',var(--font-display);--font-playful:'CodeDestinyPlayful',var(--font-display);--font-decorative:'CodeDestinyDecorative',var(--font-display)}
 *,*::before,*::after{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%;scrollbar-gutter:stable both-edges}
 body{margin:0;padding:0;font-family:var(--font-body);font-size:16px;line-height:1.62;letter-spacing:0;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;-webkit-overflow-scrolling:touch;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y:none;touch-action:pan-y;padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -1519,7 +1519,7 @@ body.neo-mode .logo-area p{color:rgba(200,170,255,0.7);font-size:.9rem;margin-to
 .saju-calc-loading-overlay{display:none;position:fixed;inset:0;z-index:9999998;align-items:center;justify-content:center;flex-direction:column;gap:var(--cd-space-md,16px);background:radial-gradient(ellipse at 50% 38%,color-mix(in srgb,var(--cd-accent-soft) 42%,transparent),transparent 62%),linear-gradient(165deg,var(--cd-surface),var(--cd-bg) 58%,var(--cd-surface-2));background-color:var(--cd-bg);color:var(--cd-text);text-align:center;padding:var(--cd-space-lg,24px);opacity:1;transition:opacity .44s ease;isolation:isolate}
 .saju-calc-loading-overlay--visible{display:flex}
 .saju-calc-loading-overlay__flower{background:transparent;width:clamp(220px,64vw,300px);height:auto;aspect-ratio:1;object-fit:contain;filter:drop-shadow(0 18px 24px color-mix(in srgb,var(--cd-accent) 12%,transparent));animation:sajuFlowerUnfold 1.8s cubic-bezier(.16,1,.3,1) both}
-.saju-calc-loading-overlay__text{margin:0;max-width:24em;color:var(--cd-text);font-family:'CodeDestinySerifKR','Nanum Myeongjo','Noto Serif KR','AppleMyungjo','Batang',serif;font-size:clamp(17px,4.4vw,21px);font-weight:700;line-height:1.9;letter-spacing:.055em;text-indent:.055em;word-break:keep-all;text-wrap:balance;-webkit-font-smoothing:antialiased}
+.saju-calc-loading-overlay__text{margin:0;max-width:24em;color:var(--cd-text);font-family:var(--font-display);font-size:clamp(17px,4.4vw,21px);font-weight:700;line-height:1.9;letter-spacing:.055em;text-indent:.055em;word-break:keep-all;text-wrap:balance;-webkit-font-smoothing:antialiased}
 .saju-calc-loading-overlay--leaving{opacity:0;pointer-events:none}
 .saju-result--arriving{animation:sajuResultArrive .44s cubic-bezier(.16,1,.3,1) both}
 @keyframes sajuFlowerUnfold{from{transform:translateY(12px) scale(.92);opacity:.45}to{transform:translateY(0) scale(1);opacity:1}}
@@ -3475,7 +3475,7 @@ body.cd-overlay-shell-open #langWrap{opacity:0;visibility:hidden;pointer-events:
   }
   .cd-pm-title {
     margin: 2px 0 0;
-    font-family: "CodeDestinySerifLatin", "Nanum Myeongjo", "Noto Serif KR", var(--font-display, serif), serif;
+    font-family: var(--font-display);
     font-size: clamp(1.5rem, 2.6vw, 2.35rem);
     font-weight: 700;
     line-height: 1.22;
@@ -4904,13 +4904,7 @@ body.cd-overlay-shell-open #langWrap{opacity:0;visibility:hidden;pointer-events:
 
 <style id="cd-mobile-font-performance-v20260702" data-marker="mobile-font-performance-v20260702">
 @media (max-width: 768px), (hover: none) and (pointer: coarse) {
-  :root{
-    --font-body:'CodeDestinyBody','Apple SD Gothic Neo','Malgun Gothic','Segoe UI',system-ui,-apple-system,sans-serif;
-    --font-display:var(--font-body);
-    --font-premium:var(--font-body);
-    --font-playful:var(--font-body);
-    --font-decorative:var(--font-body);
-  }
+  /* Same rounded heading and readable body roles at every viewport. */
   html,
   body{
     font-family:var(--font-body)!important;
@@ -5392,9 +5386,10 @@ html.cd-mobile-runtime body.neo-mode #destinyCardForm .dp-kakao-referral-url{bac
 </style>
 
 <link rel="stylesheet" href="/styles/home-funnel.css">
+<link rel="stylesheet" href="/styles/yehwa-home.css">
 <link rel="stylesheet" href="/styles/first-visit-guide.css">
 <link rel="stylesheet" href="/styles/consultation-method-guide.css">
-<link rel="stylesheet" href="/styles/home-mv.css?v=build-7215ceea7805">
+<link rel="stylesheet" href="/styles/home-mv.css?v=build-84566ee1b5f7">
 <link rel="stylesheet" href="/styles/concern-first-home.css?v=build-c7dc3948451f">
 <link rel="stylesheet" href="/styles/my-garden.css?v=build-db1f20b10cff">
 <link rel="stylesheet" href="/styles/profile-characters.css" data-profile-characters>
@@ -6122,7 +6117,7 @@ html.cd-mobile-runtime:not(.cd-hero-ambient-idle) .cd-onestep__num{animation-pla
       }
       .moon-music-entry__copy strong {
         color: var(--mm-text);
-        font-family: 'CodeDestinySerifLatin','CodeDestinySerifKR','Nanum Myeongjo','Gowun Batang','Noto Serif KR','AppleMyungjo','Batang',Georgia,serif;
+        font-family: var(--font-display);
         font-size: 1.22rem;
         font-weight: 700;
         line-height: 1.34;
@@ -6337,7 +6332,7 @@ html.cd-mobile-runtime:not(.cd-hero-ambient-idle) .cd-onestep__num{animation-pla
         html.neo-mode .moon-music-entry__copy strong,
         .moon-music-entry__copy strong {
           color: var(--mm-text) !important;
-          font-family: 'CodeDestinySerifLatin','CodeDestinySerifKR','Nanum Myeongjo','Gowun Batang','Noto Serif KR','AppleMyungjo','Batang',Georgia,serif !important;
+          font-family: var(--font-display) !important;
           font-size: .98rem !important;
           line-height: 1.34 !important;
           text-shadow: none !important;
@@ -6912,7 +6907,7 @@ html:not(.neo-mode) .moon-story-entry__title {
   color: #3D2B45 !important; background: none !important;
   -webkit-text-fill-color: #3D2B45 !important;
   -webkit-background-clip: border-box !important; background-clip: border-box !important;
-  font-family: "Nanum Myeongjo", "Noto Serif KR", var(--font-display), serif !important;
+  font-family: var(--font-display) !important;
   font-size: 1.24rem !important; letter-spacing: 0.01em !important; text-shadow: none !important;
 }
 html:not(.neo-mode) .moon-story-entry__desc { color: rgba(61,43,69,0.72) !important; }
@@ -7981,8 +7976,8 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
     .cd-public-site-share input{width:100%;min-height:44px;padding:10px;font-size:16px;background:var(--cd-surface);color:var(--cd-text);border:1px solid var(--cd-border)}
     .cd-public-site-share input[hidden]{display:none}
     .cd-home-guide__head{text-align:center;margin:0 auto clamp(26px,5vw,40px);max-width:64ch}
-    .cd-home-guide__kicker{display:inline-block;font-family:'CodeDestinySerifLatin',Georgia,'Times New Roman',serif;font-size:.95rem;letter-spacing:.3em;text-indent:.3em;font-weight:600;text-transform:uppercase;color:var(--cd-accent,#b31955);margin-bottom:16px}
-    .cd-home-guide__title{font-family:'CodeDestinySerifLatin','CodeDestinySerifKR','Nanum Myeongjo','Gowun Batang',var(--font-body);font-weight:700;font-size:clamp(1.5rem,4.8vw,2.15rem);line-height:1.3;letter-spacing:-.01em;color:var(--cd-text,#3c1830);margin:0 0 14px;word-break:keep-all;text-wrap:balance}
+    .cd-home-guide__kicker{display:inline-block;font-family:var(--font-display);font-size:.95rem;letter-spacing:.3em;text-indent:.3em;font-weight:600;text-transform:uppercase;color:var(--cd-accent,#b31955);margin-bottom:16px}
+    .cd-home-guide__title{font-family:var(--font-display);font-weight:700;font-size:clamp(1.5rem,4.8vw,2.15rem);line-height:1.3;letter-spacing:-.01em;color:var(--cd-text,#3c1830);margin:0 0 14px;word-break:keep-all;text-wrap:balance}
     .cd-home-guide__title::after{content:"";display:block;width:52px;height:2px;margin:16px auto 0;border-radius:999px;background:linear-gradient(90deg,var(--cd-accent,#b31955),var(--cd-gold,#ead089))}
     .cd-home-guide__lead{font-size:clamp(.94rem,2.4vw,1.02rem);line-height:1.8;color:var(--cd-text-muted,#70445c);margin:0;word-break:keep-all;text-wrap:pretty}
     .cd-home-guide__grid{list-style:none;margin:0 0 clamp(22px,4vw,32px);padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
@@ -9116,8 +9111,9 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
 <!-- 2026-10-17 "직관성": 홈은 짧은 히어로 → 대표 상담 덱 → 무료 세 장 → 이용권 → 모든 운세 버튼 → 링크 한 줄. 나머지 운세는 시트·기능 페이지에 그대로 있다. -->
 <div class="cdh cdh--simple cdh--focused" id="cdHomeFunnel" data-cd-funnel-section="home">
   <header class="cdh-top" aria-label="공통 헤더" data-cd-trans-attr="aria-label:home.guideCopy.header">
-    <a href="/ggulggul/" class="cdh-brand"><img class="cdh-brand__mark" src="/images/yeoni/welcome/yeoni-mark-v1-96.webp" srcset="/images/yeoni/welcome/yeoni-mark-v1-96.webp 1x, /images/yeoni/welcome/yeoni-mark-v1-192.webp 2x" width="40" height="40" alt="" decoding="async"><span>꿀꿀 운세<small data-cd-trans="home.simpleHome.tagline">명리학 기반 운세 상담</small></span></a>
+    <a href="/ggulggul/" class="cdh-brand"><img class="cdh-brand__mark" src="/fuctionassets/%EC%97%B0%EC%9D%B4.webp" width="40" height="40" alt="" decoding="async"><span>꿀꿀 운세<small data-cd-trans="home.simpleHome.tagline">명리학 기반 운세 상담</small></span></a>
     <nav class="cdh-nav" aria-label="홈 주요 메뉴" data-cd-trans-attr="aria-label:home.guideCopy.nav">
+      <a class="cdh-account-btn" href="#cdhPass" data-cd-trans="home.myGarden.pass">이용권 · 월정석</a>
       <a class="cdh-account-btn" href="/login/" id="cdhAccountBtn" data-cd-sheet-open="cdAccountSheet" data-cd-account-open data-auth="guest" role="button" aria-haspopup="dialog" aria-controls="cdAccountSheet" aria-expanded="false"><span class="cdh-account-btn__guest" data-cd-trans="home.funnelCopy.login">로그인</span><span class="cdh-account-btn__member" data-cd-trans="home.funnelCopy.account">내 계정</span></a>
     </nav>
     <div class="cdh-tools"><div id="cdhThemeSlot"></div><div id="cdhLanguageSlot"></div></div>
@@ -9189,15 +9185,7 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
             <input type="search" id="cdAllFortunesSearch" class="cd-af__input" placeholder="이직, 재회, 궁합처럼 찾아보세요" autocomplete="off" aria-label="모든 운세 검색" data-cd-trans-attr="aria-label:home.gardenCopy.allSearchLabel,placeholder:home.gardenCopy.allSearchPlaceholder">
             <button type="button" class="cd-af__clear" data-cd-search-clear aria-label="검색어 지우기" data-cd-trans-attr="aria-label:home.gardenCopy.allClear" hidden><span aria-hidden="true">×</span></button>
           </div>
-          <section class="cd-af__explore" data-cd-explore aria-labelledby="cdAllFortunesExploreTitle">
-            <div class="cd-af__explore-heading">
-              <h2 id="cdAllFortunesExploreTitle" data-cd-trans="home.worldSearch.heading">마음이 닿는 공간으로</h2>
-              <p data-cd-trans="home.worldSearch.hint">장소를 골라, 나에게 필요한 운세를 만나보세요.</p>
-            </div>
-            <div class="cd-af__regions" data-cd-regions role="group" aria-labelledby="cdAllFortunesExploreTitle"></div>
-            <div class="cd-af__region-intro" data-cd-region-intro hidden></div>
-          </section>
-          <a class="cd-af__signature" href="/ggulggul/#cdSignatureConsult" data-cd-af-signature><span data-cd-trans="home.gardenCopy.allSignatureLink">대표 상담 둘러보기</span><span aria-hidden="true">→</span></a>
+
           <div class="cd-af__group">
             <span class="cd-af__label" id="cdAllFortunesMethodTitle" data-cd-trans="shell.fortuneGatewayFilters.fortuneGatewayFilterRow.kx2ok">방식</span>
             <div class="cd-af__chips" role="group" aria-labelledby="cdAllFortunesMethodTitle">
@@ -9214,10 +9202,11 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
           <div class="cd-af__group">
             <span class="cd-af__label" id="cdAllFortunesPurposeTitle" data-cd-trans="home.gardenCopy.allPurpose">고민</span>
             <div class="cd-af__chips" role="group" aria-labelledby="cdAllFortunesPurposeTitle">
-              <button type="button" class="cd-af__chip" data-purpose="love" aria-pressed="false" data-cd-trans="shell.fortuneGatewayDiscover.fortuneGatewayChips.k180xm6d">❤️ 연애</button>
-              <button type="button" class="cd-af__chip" data-purpose="money" aria-pressed="false" data-cd-trans="shell.fortuneGatewayDiscover.fortuneGatewayChips.kkz7xh9">💰 재물</button>
-              <button type="button" class="cd-af__chip" data-purpose="career" aria-pressed="false" data-cd-trans="shell.fortuneGatewayDiscover.fortuneGatewayChips.kkzg05h">💼 직업</button>
-              <button type="button" class="cd-af__chip" data-purpose="compatibility" aria-pressed="false" data-cd-trans="shell.fortuneGatewayDiscover.fortuneGatewayChips.kkymdrk">💕 궁합</button>
+              <button type="button" class="cd-af__chip" data-purpose="love" aria-pressed="false" data-cd-trans="home.cro.love">연애·재회</button>
+              <button type="button" class="cd-af__chip" data-purpose="money" aria-pressed="false" data-cd-trans="home.cro.money">재물·사업</button>
+              <button type="button" class="cd-af__chip" data-purpose="career" aria-pressed="false" data-cd-trans="home.cro.career">직장·진로</button>
+              <button type="button" class="cd-af__chip" data-purpose="compatibility" aria-pressed="false" data-cd-trans="home.cro.relationship">궁합·인간관계</button>
+              <button type="button" class="cd-af__chip" data-search-query="신년" aria-pressed="false" data-cd-trans="home.cro.yearly">올해·내년 운세</button>
               <button type="button" class="cd-af__chip" data-purpose="today" aria-pressed="false" data-cd-trans="shell.fortuneGatewayDiscover.fortuneGatewayChips.kl9lspj">🌙 오늘</button>
               <button type="button" class="cd-af__chip" data-purpose="family" aria-pressed="false" data-cd-trans="shell.fortuneGatewayDiscover.fortuneGatewayChips.kfcewzb">🏠 가족/가정</button>
               <button type="button" class="cd-af__chip" data-purpose="life" aria-pressed="false" data-cd-trans="shell.fortuneGatewayDiscover.fortuneGatewayChips.kl5e4s6">🧭 인생</button>
@@ -9228,14 +9217,60 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
             <p class="cd-af__summary" id="cdAllFortunesSummary" aria-live="polite"></p>
             <button type="button" class="cd-af__reset" data-cd-finder-reset data-cd-trans="home.gardenCopy.allReset" hidden>조건 초기화</button>
           </div>
+          <details class="cd-af__explore" data-cd-explore aria-labelledby="cdAllFortunesExploreTitle">
+            <summary id="cdAllFortunesExploreTitle" data-cd-trans="home.worldSearch.heading">마음이 닿는 공간으로</summary>
+            <div class="cd-af__explore-heading">
+              <p data-cd-trans="home.worldSearch.hint">장소를 골라, 나에게 필요한 운세를 만나보세요.</p>
+            </div>
+            <div class="cd-af__regions" data-cd-regions role="group" aria-labelledby="cdAllFortunesExploreTitle"></div>
+            <div class="cd-af__region-intro" data-cd-region-intro hidden></div>
+          </details>
           <div class="cd-af__results" id="cdAllFortunesResults" aria-live="polite"></div>
+          <a class="cd-af__signature" href="/ggulggul/#cdSignatureConsult" data-cd-af-signature><span data-cd-trans="home.gardenCopy.allSignatureLink">대표 상담 둘러보기</span><span aria-hidden="true">→</span></a>
           <button type="button" class="cd-af__browse" data-cd-af-browse data-cd-trans="home.gardenCopy.allBrowse">카테고리로 둘러보기</button>
         </div>
       </div>
     </div>
   </dialog>
 
-<div class="cdh-slot cdh-slot--pass" id="cdhPass"><div id="cdhPassSlot"><link rel="stylesheet" href="/styles/pass-benefits.css"><section class="pb pb--honey" aria-labelledby="ggul-honey-pass-title" data-pass-benefits="honey">
+
+  <section class="yh-home" data-yh-home aria-label="고민으로 상담 찾기" data-cd-trans-attr="aria-label:home.yehwa.findLabel">
+    <div class="yh-hero" data-home-hero>
+      <div class="yh-greeting"><h1 id="cdhTitle"><span data-cd-trans="home.yehwa.titleA">오늘은 어떤 이야기가</span><br><span data-cd-trans="home.yehwa.titleB">궁금하세요?</span></h1><p><span>사주·타로와 고민별 상담.</span><br><span>무료 사주부터 시작해 보세요.</span></p><a class="yh-free-start" href="/?action=cdOneStepFreeSajuEntry" data-action="cdOneStepFreeSajuEntry" data-cd-service-id="saju">무료 사주 시작하기 <span aria-hidden="true">→</span></a><button type="button" class="yh-guide-open" data-yh-start><span data-cd-trans="home.yehwa.tour">연이와 함께 둘러보기</span> <span aria-hidden="true">→</span></button></div>
+      <div class="yh-art" aria-hidden="true"><img id="honeypigLogo" data-character="yeoni" src="/images/home/illustrated/yeoni-character-480.webp" srcset="/images/home/illustrated/yeoni-character-320.webp 320w, /images/home/illustrated/yeoni-character-480.webp 480w, /images/home/illustrated/yeoni-character-800.webp 800w" sizes="(max-width:600px) 34vw, 270px" width="800" height="800" fetchpriority="high" decoding="async" alt=""></div>
+    </div>
+    <section class="yh-concerns" aria-labelledby="yhConcernTitle" data-yh-target="0"><h2 id="yhConcernTitle" data-cd-trans="home.yehwa.concern">어떤 고민이 있나요?</h2><div class="yh-choices"><button type="button" data-yh-concern="love" aria-pressed="true" aria-controls="yhResults"><span class="yh-check" aria-hidden="true">✓</span><span data-cd-trans="home.yehwa.love">연애·관계</span></button><button type="button" data-yh-concern="work" aria-pressed="false" aria-controls="yhResults"><span class="yh-check" aria-hidden="true">✓</span><span data-cd-trans="home.yehwa.work">돈·일</span></button><button type="button" data-yh-concern="self" aria-pressed="false" aria-controls="yhResults"><span class="yh-check" aria-hidden="true">✓</span><span data-cd-trans="home.yehwa.self">나의 성향</span></button><button type="button" data-yh-concern="flow" aria-pressed="false" aria-controls="yhResults"><span class="yh-check" aria-hidden="true">✓</span><span data-cd-trans="home.yehwa.flow">앞으로의 흐름</span></button><button type="button" data-yh-concern="family" aria-pressed="false" aria-controls="yhResults"><span class="yh-check" aria-hidden="true">✓</span><span data-cd-trans="home.yehwa.family">가족·생활</span></button></div></section>
+    <section class="yh-results" id="yhResults" aria-labelledby="yhResultTitle" data-yh-target="1"><div class="yh-section-heading"><h2 id="yhResultTitle" data-cd-trans="home.yehwa.results">마음을 살펴보는 상담</h2><span data-yh-selection role="status" data-cd-trans="home.yehwa.love">연애·관계</span></div><div class="yh-card-list" data-yh-group="love"><a class="yh-card" href="/master-love-codex/" data-cd-service-id="master-love-codex" data-feature-key="master-love-codex" data-pvw-paid="1">
+      <img src="/images/service-introductions/master-love-codex-320.webp" width="96" height="96" alt="" loading="lazy" decoding="async">
+      <span class="yh-card-copy"><strong data-pvw-title data-cd-trans="home.guideCopy.codexTitle">마스터 인연의 서</strong><span data-cd-trans="home.yehwa.codexDescription">나의 연애 패턴은 개인판으로, 두 사람의 차이는 궁합판으로 읽어요</span><span class="yh-result-format">받는 결과 · 사주·자미두수 관계 리포트</span><span class="yh-card-foot"><span class="yh-price"><span>유료 · </span><b data-cd-trans="home.yehwa.rangePrice" data-cd-vars="{&quot;from&quot;:&quot;30,000&quot;,&quot;to&quot;:&quot;50,000&quot;}">30,000원~50,000원</b></span><span><span data-cd-trans="home.yehwa.view">상담 살펴보기</span> <span aria-hidden="true">→</span></span></span></span></a><a class="yh-card" href="/fortune-tea-house/" data-cd-service-id="fortune-tea-house" data-feature-key="fortune-tea-house-tarot-consultation" data-pvw-paid="1">
+      <img src="/images/service-introductions/fortune-tea-house-320.webp" width="96" height="96" alt="" loading="lazy" decoding="async">
+      <span class="yh-card-copy"><strong data-pvw-title>운명의 찻집</strong><span>따뜻한 연이와 나누는 마음 상담</span><span class="yh-result-format">받는 결과 · 질문에 맞춘 상담 해설</span><span class="yh-card-foot"><span class="yh-price"><span>유료 · </span><b data-cd-trans="home.yehwa.rangePrice" data-cd-vars="{&quot;from&quot;:&quot;5,000&quot;,&quot;to&quot;:&quot;15,000&quot;}">5,000원~15,000원</b></span><span><span data-cd-trans="home.yehwa.view">상담 살펴보기</span> <span aria-hidden="true">→</span></span></span></span></a><a class="yh-card" href="/love-secret-ai/" data-cd-service-id="love-secret-ai" data-feature-key="love-secret-ai-consultation" data-pvw-paid="1">
+      <img src="/images/service-introductions/love-secret-ai-320.webp" width="96" height="96" alt="" loading="lazy" decoding="async">
+      <span class="yh-card-copy"><strong data-pvw-title data-cd-trans="home.guideCopy.loveTitle">연애 비책</strong><span>지금 연애의 흐름과 마음을 짚는 AI 상담</span><span class="yh-result-format">받는 결과 · 개인 연애 리포트</span><span class="yh-card-foot"><span class="yh-price"><span>유료 · </span><b data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars="{&quot;amount&quot;:&quot;30,000&quot;}">30,000원</b></span><span><span data-cd-trans="home.yehwa.view">상담 살펴보기</span> <span aria-hidden="true">→</span></span></span></span></a></div><div class="yh-card-list" data-yh-group="work" hidden><a class="yh-card" href="/neo-operation-room/" data-cd-service-id="neo-operation-room" data-feature-key="neo-operation-room-consultation" data-pvw-paid="1">
+      <img src="/images/service-introductions/neo-operation-room-320.webp" width="96" height="96" alt="" loading="lazy" decoding="async">
+      <span class="yh-card-copy"><strong data-pvw-title>팩폭 전략소</strong><span>직설적인 네오가 짚는 현실 전략</span><span class="yh-card-foot"><span class="yh-price"><span>유료 · </span><b data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars="{&quot;amount&quot;:&quot;30,000&quot;}">30,000원</b></span><span><span data-cd-trans="home.yehwa.view">상담 살펴보기</span> <span aria-hidden="true">→</span></span></span></span></a><a class="yh-card" href="/destiny-compass/" data-cd-service-id="destiny-compass" data-feature-key="destiny-compass-life-voyage" data-pvw-paid="1">
+      <img src="/images/service-introductions/destiny-compass-320.webp" width="96" height="96" alt="" loading="lazy" decoding="async">
+      <span class="yh-card-copy"><strong data-pvw-title>운명의 나침반</strong><span>삶의 방향과 선택을 가늠하는 리딩</span><span class="yh-card-foot"><span class="yh-price"><span>유료 · </span><b data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars="{&quot;amount&quot;:&quot;7,000&quot;}">7,000원</b></span><span><span data-cd-trans="home.yehwa.view">상담 살펴보기</span> <span aria-hidden="true">→</span></span></span></span></a><a class="yh-card" href="/saju/sibyl/" data-cd-service-id="saju-sibyl" data-feature-key="premium-sibyl-dominator" data-pvw-paid="1">
+      <img src="/images/service-introductions/saju-sibyl-320.webp" width="96" height="96" alt="" loading="lazy" decoding="async">
+      <span class="yh-card-copy"><strong data-pvw-title data-cd-trans="home.yehwa.sibylName">시빌라 연간 대비 리포트</strong><span data-cd-trans="home.yehwa.sibylDescription">주의 시기·분야별 대비·현실적인 개운 행동</span><span class="yh-card-foot"><span class="yh-price"><span>유료 · </span><b data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars="{&quot;amount&quot;:&quot;20,000&quot;}">20,000원</b></span><span><span data-cd-trans="home.yehwa.view">상담 살펴보기</span> <span aria-hidden="true">→</span></span></span></span></a></div><div class="yh-card-list" data-yh-group="self" hidden><a class="yh-card" href="/fortune-tea-house/" data-cd-service-id="fortune-tea-house" data-feature-key="fortune-tea-house-tarot-consultation" data-pvw-paid="1">
+      <img src="/images/service-introductions/fortune-tea-house-320.webp" width="96" height="96" alt="" loading="lazy" decoding="async">
+      <span class="yh-card-copy"><strong data-pvw-title>운명의 찻집</strong><span>따뜻한 연이와 나누는 마음 상담</span><span class="yh-result-format">받는 결과 · 질문에 맞춘 상담 해설</span><span class="yh-card-foot"><span class="yh-price"><span>유료 · </span><b data-cd-trans="home.yehwa.rangePrice" data-cd-vars="{&quot;from&quot;:&quot;5,000&quot;,&quot;to&quot;:&quot;15,000&quot;}">5,000원~15,000원</b></span><span><span data-cd-trans="home.yehwa.view">상담 살펴보기</span> <span aria-hidden="true">→</span></span></span></span></a><a class="yh-card" href="/fortune-chat/" data-cd-service-id="fortune-chat" data-feature-key="fortune-chat-consultation" data-pvw-paid="1">
+      <img src="/images/service-introductions/fortune-chat-320.webp" width="96" height="96" alt="" loading="lazy" decoding="async">
+      <span class="yh-card-copy"><strong data-pvw-title>대화형 운명 상담</strong><span>연이·네오와 나누는 운명 대화</span><span class="yh-card-foot"><span class="yh-price"><span>유료 · </span><b data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars="{&quot;amount&quot;:&quot;5,000&quot;}">5,000원</b></span><span><span data-cd-trans="home.yehwa.view">상담 살펴보기</span> <span aria-hidden="true">→</span></span></span></span></a><a class="yh-card" href="/tarot/mindscan/" data-cd-service-id="tarot-mindscan" data-feature-key="tarot-mindscan" data-pvw-paid="1">
+      <img src="/images/service-introductions/tarot-mindscan-320.webp" width="96" height="96" alt="" loading="lazy" decoding="async">
+      <span class="yh-card-copy"><strong data-pvw-title>말과 행동 사이 타로</strong><span>겉말과 속마음의 간격을 재는 관계 리딩</span><span class="yh-card-foot"><span class="yh-price"><span>유료 · </span><b data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars="{&quot;amount&quot;:&quot;5,000&quot;}">5,000원</b></span><span><span data-cd-trans="home.yehwa.view">상담 살펴보기</span> <span aria-hidden="true">→</span></span></span></span></a></div><div class="yh-card-list" data-yh-group="flow" hidden><a class="yh-card" href="/fortune-tea-house/" data-cd-service-id="fortune-tea-house" data-feature-key="fortune-tea-house-tarot-consultation" data-pvw-paid="1">
+      <img src="/images/service-introductions/fortune-tea-house-320.webp" width="96" height="96" alt="" loading="lazy" decoding="async">
+      <span class="yh-card-copy"><strong data-pvw-title>운명의 찻집</strong><span>따뜻한 연이와 나누는 마음 상담</span><span class="yh-result-format">받는 결과 · 질문에 맞춘 상담 해설</span><span class="yh-card-foot"><span class="yh-price"><span>유료 · </span><b data-cd-trans="home.yehwa.rangePrice" data-cd-vars="{&quot;from&quot;:&quot;5,000&quot;,&quot;to&quot;:&quot;15,000&quot;}">5,000원~15,000원</b></span><span><span data-cd-trans="home.yehwa.view">상담 살펴보기</span> <span aria-hidden="true">→</span></span></span></span></a><a class="yh-card" href="/fortune-chat/" data-cd-service-id="fortune-chat" data-feature-key="fortune-chat-consultation" data-pvw-paid="1">
+      <img src="/images/service-introductions/fortune-chat-320.webp" width="96" height="96" alt="" loading="lazy" decoding="async">
+      <span class="yh-card-copy"><strong data-pvw-title>대화형 운명 상담</strong><span>연이·네오와 나누는 운명 대화</span><span class="yh-card-foot"><span class="yh-price"><span>유료 · </span><b data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars="{&quot;amount&quot;:&quot;5,000&quot;}">5,000원</b></span><span><span data-cd-trans="home.yehwa.view">상담 살펴보기</span> <span aria-hidden="true">→</span></span></span></span></a><a class="yh-card" href="/neo-operation-room/" data-cd-service-id="neo-operation-room" data-feature-key="neo-operation-room-consultation" data-pvw-paid="1">
+      <img src="/images/service-introductions/neo-operation-room-320.webp" width="96" height="96" alt="" loading="lazy" decoding="async">
+      <span class="yh-card-copy"><strong data-pvw-title>팩폭 전략소</strong><span>직설적인 네오가 짚는 현실 전략</span><span class="yh-card-foot"><span class="yh-price"><span>유료 · </span><b data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars="{&quot;amount&quot;:&quot;30,000&quot;}">30,000원</b></span><span><span data-cd-trans="home.yehwa.view">상담 살펴보기</span> <span aria-hidden="true">→</span></span></span></span></a></div><div class="yh-card-list" data-yh-group="family" hidden><a class="yh-card" href="/naming-ai/" data-cd-service-id="naming-ai" data-feature-key="premium-naming-prompt" data-pvw-paid="1">
+      <img src="/images/service-introductions/naming-ai-320.webp" width="96" height="96" alt="" loading="lazy" decoding="async">
+      <span class="yh-card-copy"><strong data-pvw-title>전문가 작명소</strong><span>이름의 기운과 의미를 짚는 작명 상담</span><span class="yh-card-foot"><span class="yh-price"><span>유료 · </span><b data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars="{&quot;amount&quot;:&quot;30,000&quot;}">30,000원</b></span><span><span data-cd-trans="home.yehwa.view">상담 살펴보기</span> <span aria-hidden="true">→</span></span></span></span></a></div></section>
+    <nav class="yh-links" aria-label="전체 운세와 상담 기록" data-yh-target="2" data-cd-trans-attr="aria-label:home.yehwa.libraryLabel"><a href="/?action=cdOpenAllFortunes" data-action="cdOpenAllFortunes"><span data-cd-trans="home.yehwa.all">전체 운세 보기</span> <span aria-hidden="true">→</span></a><details><summary data-cd-trans="home.yehwa.records">나의 상담 다시 보기</summary><a href="/records/">꿀꿀 운세 기록 <span aria-hidden="true">→</span></a><a href="/yeongnyangi/library/">영냥이 상담 기록 <span aria-hidden="true">→</span></a></details></nav>
+    <section class="yh-guide" data-yh-guide hidden aria-label="연이의 화면 안내" tabindex="-1" data-cd-trans-attr="aria-label:home.yehwa.guideLabel"><div class="yh-portrait" aria-hidden="true"><img src="/assets/yeoni/atelier/talking-pig.webp" width="1280" height="384" alt=""></div><div class="yh-speech"><div class="yh-guide-head"><strong>꽃돼지 연이</strong><span data-yh-progress></span><button type="button" data-yh-close aria-label="안내 닫기" data-cd-trans-attr="aria-label:home.yehwa.close">×</button></div><p data-yh-line aria-live="polite"></p><div class="yh-guide-actions"><button type="button" data-yh-skip data-cd-trans="home.yehwa.skip">건너뛰기</button><button type="button" data-yh-prev data-cd-trans="home.yehwa.previous">이전</button><button type="button" data-yh-next data-cd-trans="home.yehwa.next">다음</button></div></div></section>
+  </section>
+  <div class="cdh-slot cdh-slot--pass" id="cdhPass"><div id="cdhPassSlot"><link rel="stylesheet" href="/styles/pass-benefits.css"><section class="pb pb--honey" aria-labelledby="ggul-honey-pass-title" data-pass-benefits="honey">
     <div class="pb__intro"><div><h2 id="ggul-honey-pass-title" data-cd-trans="home.benefitsCopy.compactTitle">꿀단지 이용권</h2>
       <p data-cd-trans="home.benefitsCopy.intro">사주·타로·연애·인생 리포트, 필요한 순간에 꺼내 보세요.</p>
       </div>
@@ -9364,20 +9399,6 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
   </details>
   <a class="cdh-pass__btn" href="/points/?source=flower-membership" data-cd-trans="home.gardenCopy.passCta">나에게 맞는 이용권 확인하기</a>
 </section></div></div>
-  <section data-home-hero class="cdh-hero cdh-hero--compact" aria-labelledby="cdhTitle">
-    <div class="cdh-scene-copy">
-      <a class="cdh-hero__byline" href="/about/#author"><span data-cd-trans="home.simpleHome.byline">명리학자 박병하(네오) 소개</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
-      <h1 id="cdhTitle" data-cd-trans="home.simpleHome.title">10년 경력 명리학자가 설계한 대표 상담</h1>
-      <p class="cdh-scene-lead cdh-scene-lead--caption" data-cd-trans="home.simple.lead">상담은 유료예요. 가격과 결과 예시는 먼저 확인할 수 있어요.</p>
-      <div class="cdh-scene-actions">
-        <a class="cdh-primary cdh-scene-button" href="#cdSignatureConsult" data-cd-business-entry="question"><svg class="cdh-scene-button__lotus" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 26C10 22 10 13 16 5c6 8 6 17 0 21Z"/><path d="M16 26C8 25 5 18 6 10c7 3 10 8 10 16Zm0 0c8-1 11-8 10-16-7 3-10 8-10 16Z"/><path d="M16 26C8 28 2 23 2 16c6 1 11 4 14 10Zm0 0c8 2 14-3 14-10-6 1-11 4-14 10Z"/><path d="M10 29h12" fill="none"/></svg><span data-cd-trans="home.followup.start">대표 상담 고르기</span></a>
-        <a class="cdh-search-entry" href="/?action=cdOpenAllFortunes" data-action="cdOpenAllFortunes"><span class="cdh-search-entry__lotus" aria-hidden="true"></span><span><strong data-cd-trans="home.focused.find">원하는 운세 찾기</strong><small data-cd-trans="home.focused.searchHint">사주 · 타로 · 연애 · 신년운세</small></span><span aria-hidden="true">→</span></a>
-      </div>
-    </div>
-    <div class="cdh-scene-art" aria-hidden="true">
-      <img id="honeypigLogo" class="cdh-persona--yeoni" data-character="yeoni" data-lcp-candidate="1" src="/images/home/illustrated/yeoni-character-480.webp" srcset="/images/home/illustrated/yeoni-character-320.webp 320w, /images/home/illustrated/yeoni-character-480.webp 480w, /images/home/illustrated/yeoni-character-800.webp 800w" sizes="(max-width: 640px) 46vw, 400px" alt="" width="1280" height="1280" fetchpriority="high" decoding="async">
-    </div>
-  </section>
 
   <dialog class="cd-sheet" id="cdHoneySheet" data-cd-sheet aria-labelledby="cdHoneySheetTitle"><div class="cd-sheet__panel"><div class="cd-sheet__head"><h2 id="cdHoneySheetTitle" data-cd-trans="home.guideCopy.honeyTitle">꿀방울, 어디에 쓸 수 있나요?</h2><button type="button" class="cd-sheet__close" data-cd-sheet-close aria-label="꿀방울 사용처 닫기" data-cd-trans-attr="aria-label:home.guideCopy.honeyClose">×</button></div><div class="cd-sheet__body">
     <span class="cd-honey-eligible" data-cd-trans="home.guideCopy.honeyEligible">꿀방울 사용 가능처</span><p class="cd-honey-guide__lead" data-cd-trans="home.guideCopy.honeyLead">출석으로 모은 꿀방울로 꿀꿀운세의 지정된 기본 해석을 열 수 있어요. 아래에서 운세별 상품과 필요한 개수를 확인해 보세요.</p>
@@ -9464,6 +9485,7 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
 <section class="cdh-free" data-home-reveal="free" aria-labelledby="cdhFreeTitle">
   <h2 class="cdh-free__title" id="cdhFreeTitle" data-cd-trans="home.simpleHome.freeTitle">무료로 먼저</h2>
   <div class="cdh-slot" id="cdhQuickSlot"><section id="cdQuickServices" class="cdh-free__grid" aria-labelledby="cdhFreeTitle" data-cd-funnel-section="quick_services" data-marker="cd-quick-services-free-v20261017b"><a class="cdh-free-card" data-cdh-free href="/?action=cdOneStepFreeSajuEntry" data-action="cdOneStepFreeSajuEntry" data-cd-service-id="saju"><span class="cdh-free-card__medal" aria-hidden="true"><img src="/images/service-introductions/saju-320.webp" width="160" height="160" alt="" loading="lazy" decoding="async"></span><span class="cdh-free-card__copy"><strong data-cd-trans="home.simpleHome.freeSaju">무료 사주</strong><small data-cd-trans="home.simpleHome.freeSajuNote">생년월일로 바로 보기</small></span><span class="cdh-free-card__seal" data-cd-trans="home.simpleHome.freeBadge">무료</span></a><a class="cdh-free-card" href="/?action=cdHomeTarotEntry" data-action="cdHomeTarotEntry" data-cd-service-id="tarot"><span class="cdh-free-card__medal" aria-hidden="true"><img src="/images/service-introductions/tarot-320.webp" width="160" height="160" alt="" loading="lazy" decoding="async"></span><span class="cdh-free-card__copy"><strong data-cd-trans="home.simpleHome.freeTarot">타로</strong><small data-cd-trans="home.simpleHome.freeTarotNote">카드 한 장으로 가볍게</small></span><span class="cdh-free-card__seal" data-cd-trans="home.simpleHome.freeBadge">무료</span></a><a class="cdh-free-card" href="/?action=cdHomeZiweiEntry" data-action="cdHomeZiweiEntry" data-cd-service-id="ziwei"><span class="cdh-free-card__medal" aria-hidden="true"><img src="/images/service-introductions/ziwei-320.webp" width="160" height="160" alt="" loading="lazy" decoding="async"></span><span class="cdh-free-card__copy"><strong data-cd-trans="home.simpleHome.freeZiwei">자미두수</strong><small data-cd-trans="home.simpleHome.freeZiweiNote">12궁 명반 보기</small></span><span class="cdh-free-card__seal" data-cd-trans="home.simpleHome.freeBadge">무료</span></a><a class="cdh-free-card" href="/?action=cdHomeSukuyoEntry" data-action="cdHomeSukuyoEntry" data-cd-service-id="sukuyo"><span class="cdh-free-card__medal" aria-hidden="true"><img src="/images/service-introductions/sukuyo-320.webp" width="160" height="160" alt="" loading="lazy" decoding="async"></span><span class="cdh-free-card__copy"><strong data-cd-trans="home.simpleHome.freeSukuyo">숙요점</strong><small data-cd-trans="home.simpleHome.freeSukuyoNote">나의 본명숙 찾기</small></span><span class="cdh-free-card__seal" data-cd-trans="home.simpleHome.freeBadge">무료</span></a><a class="cdh-free-card" href="/?action=cdHomeVedicEntry" data-action="cdHomeVedicEntry" data-cd-service-id="vedic"><span class="cdh-free-card__medal" aria-hidden="true"><img src="/images/service-introductions/vedic-320.webp" width="160" height="160" alt="" loading="lazy" decoding="async"></span><span class="cdh-free-card__copy"><strong data-cd-trans="home.simpleHome.freeVedic">베다점</strong><small data-cd-trans="home.simpleHome.freeVedicNote">라그나·나크샤트라 보기</small></span><span class="cdh-free-card__seal" data-cd-trans="home.simpleHome.freeBadge">무료</span></a><a class="cdh-free-card" href="/?action=cdHomeAstroEntry" data-action="cdHomeAstroEntry" data-cd-service-id="astrology"><span class="cdh-free-card__medal" aria-hidden="true"><img src="/images/service-introductions/astrology-320.webp" width="160" height="160" alt="" loading="lazy" decoding="async"></span><span class="cdh-free-card__copy"><strong data-cd-trans="home.simpleHome.freeAstro">점성술</strong><small data-cd-trans="home.simpleHome.freeAstroNote">출생차트 행성 배치</small></span><span class="cdh-free-card__seal" data-cd-trans="home.simpleHome.freeBadge">무료</span></a></section></div>
+
 </section>
   <section class="cdh cdh-honey" data-cd-honey-widget aria-labelledby="cdHoneyTitle" hidden>
     <details class="cdh-honey__details"><summary><span id="cdHoneyTitle" data-cd-trans="home.guideCopy.honeyAttendance">출석 · 꿀방울</span><span class="cdh-honey__chip" data-cd-honey-streak hidden></span><div class="cdh-honey__wallet"><img src="/images/fortune-tea-house/honey-drop-jewel-v1.webp" width="192" height="192" loading="lazy" decoding="async" alt=""><p class="cdh-honey__balance"><span data-cd-trans="home.guideCopy.honeyMine">내가 모은 꿀방울</span><strong data-cd-honey-balance>확인 중</strong></p></div></summary>    <div class="cdh-honey__story">
@@ -9486,22 +9508,11 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
 </details>
 <!-- 달빛 이야기 — 라이트 노벨·달빛 음악을 한 묶음으로. 열면 표지와 소개가 담긴 두 장의 서재 카드가 펼쳐진다(JS 없음). -->
 
-<details class="cdh-story">
-  <summary class="cdh-story__toggle"><span class="cdh-story__backs" aria-hidden="true"><img src="/images/fortune-tea-house/moonlight-tarot-card-back.webp" width="120" height="180" alt="" loading="lazy" decoding="async"><img src="/images/fortune-tea-house/moonlight-tarot-card-back.webp" width="120" height="180" alt="" loading="lazy" decoding="async"></span><span class="cdh-story__label"><strong data-cd-trans="home.simpleHome.storyTitle">달빛 이야기</strong><small data-cd-trans="home.simpleHome.storyNote">노벨과 음악</small></span><span class="cdh-disclosure-state"><span class="cdh-when-closed" data-cd-trans="home.choice.expand">펼치기</span><span class="cdh-when-open" data-cd-trans="home.choice.collapse">접기</span></span><span class="cdh-story__chev" aria-hidden="true"></span></summary>
-  <div class="cdh-story__spread">
-    <a class="cdh-story__card cdh-story__card--novel" href="/codedestiny-novel.html">
-      <span class="cdh-story__window"><img src="/images/novel/yeongnyangi-cover-640.webp" srcset="/images/novel/yeongnyangi-cover-640.webp 640w, /images/novel/yeongnyangi-cover-960.webp 960w" sizes="(max-width:640px) calc(100vw - 48px), 400px" width="640" height="427" alt="인간형 연이와 영냥이, 모카, 윤달, 서한비가 등장하는 운명 모험 표지" loading="lazy" decoding="async" data-cd-trans-attr="alt:home.guideCopy.novelAlt"></span>
-      <strong class="cdh-story__name" data-cd-trans="footer.story.novel">라이트 노벨</strong>
-      <small class="cdh-story__note" data-cd-trans="home.guideCopy.storyNote">영냥이와 연이, 잃어버린 운명을 찾는 여행</small>
-    </a>
-
-  </div>
 <section class="cdh-mv" id="cdhMoonlightMv" aria-labelledby="cdhMvTitle" data-cd-funnel-section="moonlight_mv" data-marker="cdh-mv-moonlight-destiny-v20261015">
   <img class="cdh-mv__orn cdh-mv__orn--start" src="/images/home/mv/ornament-lotus-branch-320.webp" srcset="/images/home/mv/ornament-lotus-branch-320.webp 320w, /images/home/mv/ornament-lotus-branch-640.webp 640w" sizes="(max-width: 600px) 132px, 260px" width="320" height="280" loading="lazy" decoding="async" alt="">
   <img class="cdh-mv__orn cdh-mv__orn--end" src="/images/home/mv/ornament-lotus-branch-320.webp" srcset="/images/home/mv/ornament-lotus-branch-320.webp 320w, /images/home/mv/ornament-lotus-branch-640.webp 640w" sizes="(max-width: 600px) 132px, 260px" width="320" height="280" loading="lazy" decoding="async" alt="">
   <header class="cdh-mv__head">
     <img class="cdh-mv__crest" src="/images/home/mv/ornament-lotus-crest-160.webp" srcset="/images/home/mv/ornament-lotus-crest-160.webp 160w, /images/home/mv/ornament-lotus-crest-320.webp 320w" sizes="168px" width="160" height="58" loading="lazy" decoding="async" alt="">
-    <p class="cdh-mv__eyebrow">MOONLIGHT DESTINY&nbsp;· MUSIC&nbsp;VIDEO</p>
     <h2 id="cdhMvTitle" data-cd-trans="home.mv.title">달빛 운명여행</h2>
     <p class="cdh-mv__lead" data-cd-trans="home.mv.lead">작은 등불 하나에서 시작해 다섯 하늘을 건너, 두 달 아래에서 다시 만나는 이야기</p>
     <p class="cdh-mv__meta" data-cd-trans="home.mv.meta">1분 33초 · 한국어 가사 자막</p>
@@ -9530,6 +9541,18 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
     </div>
   </div>
 </section>
+<details class="cdh-story">
+  <summary class="cdh-story__toggle"><span class="cdh-story__backs" aria-hidden="true"><img src="/images/fortune-tea-house/moonlight-tarot-card-back.webp" width="120" height="180" alt="" loading="lazy" decoding="async"><img src="/images/fortune-tea-house/moonlight-tarot-card-back.webp" width="120" height="180" alt="" loading="lazy" decoding="async"></span><span class="cdh-story__label"><strong data-cd-trans="home.simpleHome.storyTitle">달빛 이야기</strong><small data-cd-trans="home.simpleHome.storyNote">노벨과 음악</small></span><span class="cdh-disclosure-state"><span class="cdh-when-closed" data-cd-trans="home.choice.expand">펼치기</span><span class="cdh-when-open" data-cd-trans="home.choice.collapse">접기</span></span><span class="cdh-story__chev" aria-hidden="true"></span></summary>
+  <div class="cdh-story__spread">
+    <a class="cdh-story__card cdh-story__card--novel" href="/codedestiny-novel.html">
+      <span class="cdh-story__window"><img src="/images/novel/yeongnyangi-cover-640.webp" srcset="/images/novel/yeongnyangi-cover-640.webp 640w, /images/novel/yeongnyangi-cover-960.webp 960w" sizes="(max-width:640px) calc(100vw - 48px), 400px" width="640" height="427" alt="인간형 연이와 영냥이, 모카, 윤달, 서한비가 등장하는 운명 모험 표지" loading="lazy" decoding="async" data-cd-trans-attr="alt:home.guideCopy.novelAlt"></span>
+      <strong class="cdh-story__name" data-cd-trans="footer.story.novel">라이트 노벨</strong>
+      <small class="cdh-story__note" data-cd-trans="home.guideCopy.storyNote">영냥이와 연이, 잃어버린 운명을 찾는 여행</small>
+    </a>
+
+    <a class="cdh-story__card cdh-story__card--music" href="/music/"><span class="cdh-story__window"><img src="/images/home/mv/moonlight-destiny-poster-640.webp" width="640" height="360" loading="lazy" decoding="async" alt=""></span><strong class="cdh-story__name" data-cd-trans="home.mv.playlist">음악 플레이리스트</strong><small class="cdh-story__note" data-cd-trans="home.mv.more">달빛 음악 더 듣기</small></a>
+  </div>
+
 </details>
 <!-- 색인 대상 허브로 가는 정본 내부 링크. 크롤러가 착지하는 /ggulggul/ 에서 2홉 안에 모든 색인 라우트가
      닿아야 한다(scripts/verify-internal-link-depth.mjs). 2026-10-17 "직관성" 단순화로 홈 안내 섹션은 뺐지만
@@ -9552,6 +9575,7 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
   <a href="/fortune/date/" aria-label="최근 30일 띠별 날짜 운세" data-cd-trans="home.overseasCopy.daily" data-cd-trans-attr="aria-label:home.guideCopy.dailyAria">날짜별 띠 운세</a>
   <a href="/saju/monthly/2026-09/" aria-label="2026년 9월 일간별 운세" data-cd-trans="home.overseasCopy.monthly" data-cd-trans-attr="aria-label:home.guideCopy.monthlyAria">일간별 월간 운세</a>
   <a href="/insights/" data-cd-trans="home.homeGuide.linkInsights">운세 인사이트</a>
+  <a href="/recipes/" data-cd-trans="home.homeGuide.linkRecipes">연이의 사주 요리법 · 무료 웹툰</a>
   <a href="/insights/famous-saju/" data-cd-trans="home.homeGuide.linkFamous">연예인·인물 사주</a>
   <a href="/guides/" data-cd-trans="home.homeGuide.linkGuideHub">운세 가이드</a>
   <a href="/saju/guide/" data-cd-trans="home.homeGuide.linkSajuGuide">사주 입문 가이드</a>
@@ -9875,7 +9899,7 @@ html body .dp-destiny-panel__toggle[aria-expanded="true"] .dp-destiny-panel__che
            걸어 rem 이 12.5% 줄어든다. 카드 본문이 10px 대로 떨어지던 원인. */
         .cd-sig{max-width:1240px;margin:20px auto 0;padding:0 20px;--cd-sig-stagger:140ms}
         .cd-sig__head{margin:0 0 16px;text-align:center}
-        .cd-sig__title{margin:0;font-family:'CodeDestinySerifLatin','CodeDestinySerifKR','Nanum Myeongjo','Gowun Batang',var(--font-body);font-size:clamp(22px,5vw,32px);font-weight:700;letter-spacing:-.01em;line-height:1.3;color:var(--cd-text,#3c1830);word-break:keep-all;text-wrap:balance}
+        .cd-sig__title{margin:0;font-family:var(--font-display);font-size:clamp(22px,5vw,32px);font-weight:700;letter-spacing:-.01em;line-height:1.3;color:var(--cd-text,#3c1830);word-break:keep-all;text-wrap:balance}
         .cd-sig__title::after{content:"";display:block;width:52px;height:2px;margin:14px auto 0;border-radius:999px;background:linear-gradient(90deg,var(--cd-accent,#b31955),#ead089)}
         /* fortune-ui.css:791 의 `.logo-area p{color:#bbb;font-size:.85rem}` 가 (0,1,1) 로 이겨서
            이 섹션의 <p> 를 회색 13.6px 로 끌어내린다 — 클래스를 겹쳐 특이도를 (0,2,0) 으로 올린다. */
@@ -10092,7 +10116,7 @@ html body .cd-ai-feats__links li{display:flex}
 html body .cd-ai-feats__links a{position:relative;display:flex;flex-direction:column;gap:9px;width:100%;padding:clamp(15px,1.7vw,19px) clamp(14px,1.5vw,18px) clamp(16px,1.9vw,21px);border-radius:14px;text-decoration:none;border:1px solid rgba(244,190,209,.18);background:rgba(255,241,247,.045);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);transition:transform var(--cd-dur-base,220ms) var(--cd-ease-out,cubic-bezier(.22,.61,.36,1)),border-color var(--cd-dur-base,220ms) ease,background-color var(--cd-dur-base,220ms) ease,box-shadow var(--cd-dur-base,220ms) ease}
 html body .cd-ai-feats__glyph{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;width:40px;height:40px;border-radius:12px;color:#ead089;border:1px solid rgba(234,208,137,.34);background:rgba(234,208,137,.08);transition:color var(--cd-dur-base,220ms) ease,border-color var(--cd-dur-base,220ms) ease,background-color var(--cd-dur-base,220ms) ease}
 html body .cd-ai-feats__glyph svg{width:21px;height:21px;display:block}
-html body .cd-ai-feats__links strong{font-family:'CodeDestinySerifLatin','CodeDestinySerifKR','Nanum Myeongjo','Gowun Batang',var(--font-body);font-size:.98rem;font-weight:700;line-height:1.34;letter-spacing:-.01em;color:#fff1f7;word-break:keep-all;text-wrap:balance}
+html body .cd-ai-feats__links strong{font-family:var(--font-display);font-size:.98rem;font-weight:700;line-height:1.34;letter-spacing:-.01em;color:#fff1f7;word-break:keep-all;text-wrap:balance}
 html body .cd-ai-feats__meta{font-family:var(--font-body);font-size:.765rem;line-height:1.55;color:rgba(255,214,232,.86);word-break:keep-all}
 html body .cd-ai-feats__links a:hover,html body .cd-ai-feats__links a:focus-visible{transform:translateY(-4px);border-color:rgba(234,208,137,.5);background:rgba(255,241,247,.085);box-shadow:0 18px 44px -18px rgba(179,25,85,.55),0 0 0 1px rgba(234,208,137,.42)}
 html body .cd-ai-feats__links a:hover .cd-ai-feats__glyph{color:#fff1f7;border-color:rgba(234,208,137,.66);background:rgba(234,208,137,.2)}
@@ -10235,7 +10259,7 @@ html body .moon-story-entry--novel .moon-story-entry__kicker::before{
 }
 html body .moon-story-entry--novel .moon-story-entry__title{
   margin:2px 0 0!important;
-  font-family:'CodeDestinySerifLatin','CodeDestinySerifKR','Nanum Myeongjo','Gowun Batang',var(--font-body,serif)!important;
+  font-family:var(--font-display)!important;
   font-weight:700!important;font-size:clamp(1.28rem,2.3vw,1.82rem)!important;line-height:1.34!important;
   letter-spacing:-.01em!important;color:var(--nv-ink)!important;-webkit-text-fill-color:var(--nv-ink)!important;
   text-shadow:none!important;word-break:keep-all;text-wrap:balance
@@ -10358,11 +10382,25 @@ html body footer .cd-footer-byline strong{font-family:var(--font-display,serif);
 html body footer .cd-footer-byline a:hover span,html body footer .cd-footer-byline a:focus-visible span{text-decoration:underline}
 html.neo-mode body footer .cd-footer-byline a{color:#f4eeff}
 /* legal bar */
-.cd-help-entry{max-width:960px;margin:32px auto;padding:24px;border:1px solid var(--cd-yehwa-line);border-radius:var(--cd-r-section);background:var(--cd-surface-quiet);color:var(--cd-text);text-align:left;box-sizing:border-box}
-.cd-help-entry h2{margin:0;font-family:var(--font-serif);font-size:1.5rem;line-height:1.5;color:var(--cd-text)}
-.cd-help-entry p{margin:10px 0 18px;line-height:1.7;color:var(--cd-text)}
-.cd-help-entry nav{display:flex;flex-wrap:wrap;gap:10px}
-.cd-help-entry nav a{flex:1 1 160px}
+.cd-help-entry { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); align-items: center; gap: 32px; width: 100%; max-width: 960px; box-sizing: border-box; margin: 40px auto; padding: clamp(24px, 4vw, 40px); border: 1px solid var(--cd-yehwa-line); border-radius: var(--cd-r-section); background: var(--cd-surface-quiet); color: var(--cd-text); text-align: left; font-family: var(--font-body, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif); line-height: 1.7; word-break: keep-all; overflow-wrap: anywhere; }
+.cd-help-intro { display: grid; grid-template-columns: 100px minmax(0,1fr); align-items: center; gap: 16px; min-width: 0; }
+.cd-help-mascot { width: 128px; max-width: 128%; height: auto; justify-self: center; background: transparent; }
+.cd-help-intro h2 { margin: 0; font: 700 clamp(1.25rem, 2.2vw, 1.6rem)/1.55 var(--font-serif, "CodeDestinySerifKR", "Nanum Myeongjo", serif); color: var(--cd-text); text-wrap: balance; }
+.cd-help-intro p { margin: 12px 0 4px; color: var(--cd-text); font-size: .875rem; }
+.cd-help-intro a { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; color: var(--cd-accent); font-size: .875rem; font-weight: 700; text-underline-offset: 5px; }
+.cd-help-links { display: grid; min-width: 0; }
+.cd-help-links a { display: grid; grid-template-columns: 24px minmax(0,1fr) 20px; align-items: center; gap: 14px; min-height: 80px; box-sizing: border-box; padding: 14px 4px; border-bottom: 1px solid var(--cd-line-strong); color: var(--cd-text); text-decoration: none; }
+.cd-help-links a:last-child { border-bottom: 0; }
+.cd-help-links strong, .cd-help-links small { display: block; }
+.cd-help-links strong { font-size: 1rem; }
+.cd-help-links small { margin-top: 4px; font-size: .875rem; line-height: 1.6; color: var(--cd-text); }
+.cd-help-links svg { width: 24px; height: 24px; fill: none; stroke: var(--cd-accent); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.cd-help-links .cd-help-arrow { width: 20px; height: 20px; }
+.cd-help-entry a:focus-visible { outline: 3px solid var(--cd-focus-ring); outline-offset: 4px; border-radius: var(--cd-r-sm); }
+.cd-help-entry a:hover { color: var(--cd-accent); text-decoration: underline; text-underline-offset: 5px; }
+.cd-help-entry a:active { color: var(--cd-text); }
+@media (max-width: 720px) { .cd-help-entry { grid-template-columns: minmax(0,1fr); gap: 16px; margin-block: 28px; } .cd-help-intro { grid-template-columns: minmax(0,1fr) 88px; gap: 12px; } .cd-help-mascot { grid-column: 2; grid-row: 1; width: 88px; max-width: 100%; } .cd-help-intro>div { grid-column: 1; grid-row: 1; } .cd-help-intro h2 { font-size: 1.3rem; } .cd-help-intro p br { display: none; } .cd-help-links a { min-height: 88px; } }
+
 html body footer .cd-footer-legal{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px 18px;width:100%;max-width:var(--cd-w-grid,1280px);margin:0 auto;padding:4px clamp(14px,3vw,26px) 14px;text-align:center}
 html body footer .cd-footer-legal__links{display:flex;flex-wrap:wrap;justify-content:center;gap:0 16px;min-width:0}
 html body footer .cd-footer-legal__break{flex:1 1 100%;height:0}
@@ -10408,7 +10446,7 @@ html body #inputPage .cd-concern .moon-section-kicker{font-size:.66rem!important
 /* cd-expert-consult-luxe-v20260731 — 위 헤더 규칙은 .cd-fortune-pick·.cd-svc-index 와 공유한다.
    전문가 상담 섹션만 다크 패널로 갈아입었으므로 #cdAiFeatures 로 스코프해 여기서만 덮는다
    (id 2개로 위 :is() 규칙보다 특이도가 확실히 높다 — 나머지 두 섹션은 그대로 둔다). */
-html body #inputPage #cdAiFeatures .moon-section-head h2{font-family:'CodeDestinySerifLatin','CodeDestinySerifKR','Nanum Myeongjo','Gowun Batang',var(--font-body)!important;font-size:clamp(1.42rem,3vw,2.05rem)!important;font-weight:700!important;line-height:1.34!important;letter-spacing:-.01em!important;margin:12px 0 0!important;word-break:keep-all;text-wrap:balance}
+html body #inputPage #cdAiFeatures .moon-section-head h2{font-family:var(--font-display)!important;font-size:clamp(1.42rem,3vw,2.05rem)!important;font-weight:700!important;line-height:1.34!important;letter-spacing:-.01em!important;margin:12px 0 0!important;word-break:keep-all;text-wrap:balance}
 html:not(.neo-mode) body #inputPage #cdAiFeatures .moon-section-head h2{color:#fff1f7!important;-webkit-text-fill-color:#fff1f7!important;text-shadow:0 0 26px rgba(234,208,137,.28)!important}
 html.neo-mode body #inputPage #cdAiFeatures .moon-section-head h2{color:#f4eeff!important;-webkit-text-fill-color:#f4eeff!important;text-shadow:0 0 26px rgba(196,181,253,.32)!important}
 html body #inputPage #cdAiFeatures .moon-section-kicker{font-size:.64rem!important;color:#ead089!important;-webkit-text-fill-color:#ead089!important;background:transparent!important;border:1px solid rgba(234,208,137,.42)!important}
@@ -10457,7 +10495,7 @@ html.neo-mode body #inputPage #cdAiFeatures .moon-section-kicker{color:#e8d5a3!i
      걸어 카드 제목만 산세리프로 떨어지기 때문. 브랜드 세리프는 같은 홈의 .cd-home-guide__title 이 모바일에서
      이미 받아오고 있어 추가 요청 비용은 0이고, 데스크탑/모바일 서체가 갈리는 편이 더 나쁘다. */
   html body #inputPage #cdAiFeatures .cd-ai-feats__links strong {
-    font-family: 'CodeDestinySerifLatin', 'CodeDestinySerifKR', 'Nanum Myeongjo', 'Gowun Batang', var(--font-body) !important;
+    font-family: var(--font-display) !important;
     font-size: .97rem !important; line-height: 1.34 !important;
   }
   html body #inputPage .cd-ai-feats__meta { font-size: .82rem !important; line-height: 1.5 !important; }
@@ -10577,7 +10615,7 @@ html.neo-mode body .cd-atmos__layer--near{background-image:radial-gradient(1.1px
 html body #cdPickReason .cd-pick-why__character{display:block;width:120px;height:150px;max-width:100%;object-fit:contain;border:0;border-radius:0;background:none;box-shadow:none}
 .cd-pick-why__copy{display:flex;flex-direction:column;align-items:flex-start;gap:var(--cd-sp-sm);min-width:0}
 html body #cdPickReason .cd-pick-why__text{margin:0;font-size:var(--cd-t-body);line-height:1.75;color:var(--cdh-muted);text-align:left;word-break:keep-all;overflow-wrap:anywhere;text-wrap:pretty}
-.cd-pick-why__text b,.cd-pick-why__copy>strong{font-family:var(--font-serif,"CodeDestinySerifKR",serif);font-size:var(--cd-t-card);font-weight:700;color:var(--cdh-ink);line-height:1.5;word-break:keep-all}
+.cd-pick-why__text b,.cd-pick-why__copy>strong{font-family:var(--font-display);font-size:var(--cd-t-card);font-weight:700;color:var(--cdh-ink);line-height:1.5;word-break:keep-all}
 .cd-pick-why__note{font-size:var(--cd-t-body);line-height:1.75;color:var(--cdh-muted);word-break:keep-all;overflow-wrap:anywhere}
 .cd-pick-why__actions{display:flex;align-items:center;flex-wrap:wrap;gap:var(--cd-sp-sm)}
 .cd-pick-why__go{display:inline-flex;align-items:center;justify-content:center;gap:var(--cd-sp-sm);min-height:44px;padding:10px 14px;border:1px solid color-mix(in srgb,var(--cdh-gold) 36%,var(--cdh-line));border-radius:var(--cd-r-control);background:var(--cdh-gold-soft);color:var(--cdh-ink);font-size:var(--cd-t-body);font-weight:800;text-decoration:none;word-break:keep-all}
@@ -12220,7 +12258,6 @@ html[data-cd-lang]:not([data-cd-lang="ko"]) #cdPickWhyJosa{display:none}
       <div class="cd-mobile-bottom-nav__main">
         <a class="cd-mobile-bottom-nav__item" data-nav-key="home" data-nav-icon="⌂" href="/ggulggul/" aria-label="홈" data-cd-trans="shell.cdMobileBottomNav.cdMobileBottomNavMain.k16bs" data-cd-trans-attr="aria-label:shell.cdMobileBottomNav.cdMobileBottomNavMain.k16bs">홈</a>
         <a class="cd-mobile-bottom-nav__item" data-nav-key="fortunes" data-nav-icon="✦" href="/?action=cdOpenAllFortunes" data-action="cdOpenAllFortunes" aria-label="모든 운세 둘러보기" data-cd-trans="shell.cdMobileBottomNav.cdMobileBottomNavMain.k16cq4to" data-cd-trans-attr="aria-label:shell.cdMobileBottomNav.cdMobileBottomNavMain.k1mpcz5w.ariaLabel">모든 운세</a>
-        <a class="cd-mobile-bottom-nav__item" data-nav-key="consult" data-nav-icon="✿" href="/consultations/" aria-label="대표 상담 고르기" data-cd-trans="shell.cdMobileBottomNav.cdMobileBottomNavMain.consult" data-cd-trans-attr="aria-label:shell.cdMobileBottomNav.cdMobileBottomNavMain.consultTab.ariaLabel">대표 상담</a>
         <a class="cd-mobile-bottom-nav__item" data-nav-key="library" data-nav-icon="▤" href="/records/" aria-label="내 보관함" data-cd-trans="shell.cdMobileBottomNav.cdMobileBottomNavMain.library" data-cd-trans-attr="aria-label:shell.cdMobileBottomNav.cdMobileBottomNavMain.libraryTab.ariaLabel">보관함</a>
         <a class="cd-mobile-bottom-nav__item" data-nav-key="my" data-nav-icon="☰" href="/?action=cdOpenAccount" data-action="cdOpenAccount" aria-label="마이페이지" data-cd-trans="shell.cdMobileBottomNav.cdMobileBottomNavMain.kwp0s" data-cd-trans-attr="aria-label:shell.cdMobileBottomNav.cdMobileBottomNavMain.k164wabc.ariaLabel">마이</a>
       </div>
@@ -12767,12 +12804,7 @@ html[data-cd-lang]:not([data-cd-lang="ko"]) #cdPickWhyJosa{display:none}
         panel.textContent = '';
         // 검색·방식·고민 블록(js/core/home-service-finder.js) — 데스크톱 시트와 같은 노드를 옮겨 단다.
         if (window.CodeDestinyAllFortunes) window.CodeDestinyAllFortunes.attach(panel);
-        var explore = panel.querySelector('[data-cd-explore]');
-        if (explore) {
-          var previousHero = explore.querySelector('.cd-afy-hero');
-          if (previousHero) previousHero.remove();
-          explore.prepend(buildOverviewHero());
-        }
+
 
         var favSection = buildPinSection('★ 즐겨찾기', readIdList(FAVORITES_KEY));
         if (favSection) panel.appendChild(favSection);
@@ -19039,14 +19071,11 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
   <script type="module" src="/js/recommendations-footer.mjs"></script>
   <footer id="cdSiteFooter" style="text-align:center;padding:12px 0 20px; display:flex; flex-direction:column; align-items:center;" role="contentinfo">
     <section class="cd-help-entry" aria-label="꿀꿀 운세 이용 길잡이">
-      <h2>궁금한 순간에도, 길을 잃지 않도록</h2>
-      <p>시작 방법부터 저장한 결과까지, 필요한 안내를 바로 찾아보세요.</p>
-      <nav aria-label="이용 안내와 도움">
-        <a href="/faq/" class="cd-yehwa-button cd-yehwa-button--primary">자주 묻는 질문</a>
-        <a href="/records/" class="cd-yehwa-button cd-yehwa-button--secondary">내 결과 다시 보기</a>
-        <a href="/contact/" class="cd-yehwa-button cd-yehwa-button--secondary">문의하기</a>
-        <a href="/about/" class="cd-yehwa-button cd-yehwa-button--secondary">서비스 소개</a>
-      </nav>
+      <div class="cd-help-intro">
+        <img class="cd-help-mascot" src="/images/home/illustrated/yeoni-character-320.webp" srcset="/images/home/illustrated/yeoni-character-320.webp 320w, /images/home/illustrated/yeoni-character-480.webp 480w" sizes="(max-width: 720px) 88px, 128px" width="320" height="320" alt="책과 찻잔 곁에서 안내하는 꽃돼지 연이" loading="lazy" decoding="async">
+        <div><h2>궁금한 순간에도,<br>길을 잃지 않도록</h2><p>시작 방법부터 저장한 결과까지,<br> 연이와 함께 필요한 안내를 찾아봐요.</p><a href="/about/">꿀꿀 운세 서비스 소개 <span aria-hidden="true">→</span></a></div>
+      </div>
+      <nav class="cd-help-links" aria-label="이용 안내와 도움"><a href="/faq/"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 9a3 3 0 0 1 6 0c0 2-3 2-3 4m0 3h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg><span><strong>자주 묻는 질문</strong><small>시작 방법과 이용 안내를 찾아봐요.</small></span><svg class="cd-help-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a><a href="/records/"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14v15H5ZM3 2h18v3H3Zm6 7h6"/></svg><span><strong>내 결과 다시 보기</strong><small>꿀꿀 운세에 저장한 상담을 꺼내봐요.</small></span><svg class="cd-help-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a><a href="/contact/"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v12H9l-5 4Zm4 5h8m-8 3h5"/></svg><span><strong>문의하기</strong><small>이용 중 궁금한 점이나 오류를 알려주세요.</small></span><svg class="cd-help-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a></nav>
     </section>
 
     <!-- 2026-10-16 "직관성": 모든 푸터가 같은 최소 규격이다(lib/brand/site-footer.ts) — 전문성 한 줄 → 정책 링크 → 안내 한 줄 → 사업자 정보.
@@ -19150,23 +19179,24 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
      운명의 문 디스커버와 전체 서비스 인덱스가 이 한 벌을 함께 쓴다. 인라인으로 되돌리지 말 것 —
      8KB 를 넘으면 외부 청크로 빠지며 data-marker 가 사라진다.
      🔴 레지스트리가 엔진보다 먼저 실행돼야 한다(defer 는 문서 순서를 지킨다). -->
-<script defer src="/js/core/service-registry.js?v=build-47d8a611c01b" data-marker="cd-home-service-registry-v20260819"></script>
-<script defer src="/js/core/home-service-finder.js?v=build-e90d65d797de" data-marker="cd-home-service-finder-v20260819"></script>
+<script defer src="/js/core/service-registry.js?v=build-e59dc238a442" data-marker="cd-home-service-registry-v20260819"></script>
+<script defer src="/js/core/home-service-finder.js?v=build-c2ccf569cfb4" data-marker="cd-home-service-finder-v20260819"></script>
 <script defer src="/js/core/shell-sheet.js?v=build-4af43b6a03e3"></script>
 <script defer src="/js/core/saju/reading-navigation.js"></script>
 <script defer src="/js/core/home-surface-motion.js"></script>
 <script defer src="/js/core/home-funnel.js?v=build-094d50e66f5d"></script>
+<script type="module" src="/js/core/yehwa-home.mjs"></script>
 <script type="module" src="/js/core/first-visit-guide.mjs"></script>
 <script defer src="/js/core/home-mv.js?v=build-8a8b2c3c4b77"></script>
 <script type="module" src="/js/signup-benefit-exit.js?v=build-a9356597e519"></script>
-<link rel="stylesheet" href="/styles/activation-entry.css?v=build-64932cd21fda">
-<script type="module" src="/js/activation-entry.mjs?v=build-d6b3781e7a12"></script>
+<link rel="stylesheet" href="/styles/activation-entry.css?v=build-a4cadd7842d3">
+<script type="module" src="/js/activation-entry.mjs?v=build-651b282c85d4"></script>
 <script defer src="/js/mobile-interaction-patch.js?v=build-3cfaf6eefee2" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/basicFortunePresentation.js?v=build-6891fb41d4aa" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
 <script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-ba2380db1771" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
-<script defer src="/js/core/index-inline-runtime.js?v=build-efe325125582" data-cd-saju-prompt-marker="saju-ai-consultation-flow-v20260706 saju-ai-calibration-v20260706 saju-ai-llm-result-v20260625 sukuyo-guardian-drawing-v20260625 sukuyo-pastlife-v2-20260621" data-cd-kemet-ai-prompt-marker="kemet-ai-prompt-generator-v20260619"></script>
+<script defer src="/js/core/index-inline-runtime.js?v=build-65be9b10d2eb" data-cd-saju-prompt-marker="saju-ai-consultation-flow-v20260706 saju-ai-calibration-v20260706 saju-ai-llm-result-v20260625 sukuyo-guardian-drawing-v20260625 sukuyo-pastlife-v2-20260621" data-cd-kemet-ai-prompt-marker="kemet-ai-prompt-generator-v20260619"></script>
 <script defer src="/js/pwa-install-prompt.js?v=build-1c2525b7d8f2"></script>
 <script data-cd-lazy-src="/js/admin-flower.js" data-cd-mobile-delay="2"></script>
 <div class="share-toast" id="shareToast" role="status" aria-live="polite"></div>
@@ -19286,7 +19316,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
     if (!shareUrl) return Promise.reject(new Error('share_url_missing'));
     // 지금 보고 있는 언어의 셸·미리보기 카드로 공유한다(js/share.js). 아직 안 실렸으면 서버 URL 그대로.
     if (typeof window.cdLocalizeShareUrl === 'function') shareUrl = window.cdLocalizeShareUrl(shareUrl);
-    var shareImageUrl = 'https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-ca23fb048ad5';
+    var shareImageUrl = 'https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-d841c233697d';
     if (typeof window.cdLocalizeShareImage === 'function') shareImageUrl = window.cdLocalizeShareImage(shareImageUrl);
     renderShareUrl(shareUrl, tr('kakaoReferral.rewardReady', '초대 링크가 준비됐어요. 친구 가입 완료 시 추천 보상이 지급됩니다.'));
     return loadKakaoSdk(payload.kakaoJavascriptKey).then(function(ok){
@@ -32721,7 +32751,7 @@ function updateBadge() {
 <script data-cd-noncritical-src="/js/mobile-performance-bootstrap.js?v=build-beb4707bd01d" data-cd-mobile-delay="1"></script>
 <script src="/js/io-image-lazy-loader.js?v=build-f664e08ef72f" defer></script>
 <script src="/js/noncritical-defer-loader.js?v=build-b6b3cead1433" defer></script>
-<script src="/js/cd-lang-native.js?v=build-31991d8beb1f" defer></script>
+<script src="/js/cd-lang-native.js?v=build-5a82d90485c6" defer></script>
 <script data-cd-noncritical-src="/js/image-fallback.js" data-cd-mobile-delay="1"></script>
 <script data-cd-noncritical-src="/js/runtime-stability.js?v=build-8f716f175bea" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
 <script data-cd-noncritical-src="/js/touch-perf.js" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
@@ -33157,7 +33187,7 @@ function updateBadge() {
 (function(){
   'use strict';
   var D={
-    '#destinyCardForm':{cat:'사주 · 무료 운명 카드',fallbackTitle:'🌙 나의 달빛 운명 카드',tagline:'생년월일과 출생시간을 바탕으로 사주, 오늘의 흐름, 궁합, 별자리 서비스로 이어지는 기본 프로필을 만듭니다.',feats:['이름·생년월일·출생시간 기반 기본 운명 카드 생성','출생시간을 모를 때 낮 12시 기준으로 보수 계산','사주 결과와 주요 운세 서비스 바로가기 자동 연결','저장한 프로필로 무료·프리미엄 리딩을 더 빠르게 시작'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/%EC%82%AC%EC%A3%BC%EB%B3%B4%EB%8A%94%20%EC%97%B0%EC%9D%B4.webp?v=build-ca23fb048ad5',fallbackCta:'운명 카드 만들기'},
+    '#destinyCardForm':{cat:'사주 · 무료 운명 카드',fallbackTitle:'🌙 나의 달빛 운명 카드',tagline:'생년월일과 출생시간을 바탕으로 사주, 오늘의 흐름, 궁합, 별자리 서비스로 이어지는 기본 프로필을 만듭니다.',feats:['이름·생년월일·출생시간 기반 기본 운명 카드 생성','출생시간을 모를 때 낮 12시 기준으로 보수 계산','사주 결과와 주요 운세 서비스 바로가기 자동 연결','저장한 프로필로 무료·프리미엄 리딩을 더 빠르게 시작'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/%EC%82%AC%EC%A3%BC%EB%B3%B4%EB%8A%94%20%EC%97%B0%EC%9D%B4.webp?v=build-d841c233697d',fallbackCta:'운명 카드 만들기'},
     gotoZiweiPremium:{cat:'프리미엄 · 자미두수 전문가 상담',fallbackTitle:'자미두수 전문가 상담',tagline:'명궁·신궁·12궁·사화·대운·세운 흐름을 바탕으로 지금의 질문에 답합니다.',feats:['입력은 무료 — 상담 생성 버튼을 누를 때 30,000원 단건 결제 또는 이용권·월정석 확인','결제 확인이 끝나면 상담문이 바로 생성','명궁·재백·관록·부부·질액궁을 질문에 맞춰 연결 해석','상담 결과를 화면에서 바로 확인하고 추가 질문 이어가기'],cost:'30,000원 · 전문가 상담',ct:'paid',img:"/images/service-introductions/ziwei-ai.webp",fallbackCta:'자미두수 상담 받기'},
     '/neo-operation-room':{cat:'프리미엄 · 운명 작전실',fallbackTitle:'네오의 팩폭 운명 작전실',tagline:'사주·자미두수·베다점·점성술의 지도를 한 장의 전략처럼 펼쳐, 지금 밀리는 전선과 다시 잡아야 할 기준을 또렷하게 짚습니다.',feats:['30,000원 상담 이용권 확인','결제 완료 후 네오의 작전실로 바로 이동','사주와 별자리 흐름을 함께 비추는 종합 상담','현재 고민에 맞춘 선택 기준과 다음 행동 정리'],cost:'30,000원 · 전문가 상담',ct:'paid',img:"/images/service-introductions/neo-operation-room.webp",fallbackCta:'작전실 열기'},
     openNamingPromptModal:{cat:'작명 · 전문가 상담',fallbackTitle:'훈민정음 작명소',tagline:'생년월일시와 원하는 이름 조건을 바탕으로 용신·소리오행·한자 의미·수리 풀이를 종합해 전문가가 직접 이름을 짓고, 그 결과를 만든 프롬프트 원문까지 함께 드립니다.',feats:['입력과 무료 초안 추천은 무료로 열립니다','프리미엄 작명 시작 시 30,000원 단건 결제 또는 이용권·월정석 확인이 진행됩니다','사주 보완, 인명용 한자, 소리오행, 자원오행, 원형이정 수리를 종합한 완성형 결과 제공','결제 검증 후 전문가 작명 결과와 PDF 저장, 생성에 사용된 프롬프트 원문까지 다시 확인할 수 있습니다'],cost:'30,000원 · 이용권/월정석 가능',ct:'paid',img:"/images/service-introductions/naming-ai.webp",fallbackCta:'작명 시작하기'},
@@ -40054,7 +40084,7 @@ html.neo-mode .tile-pvw-overlay.pvw-prem .tile-pvw-cta-sticky,body.neo-mode .til
     font-weight: 900;
   }
   .saju-newyear-seal strong {
-    font-family: CodeDestinyDisplay, CodeDestinyBody, serif;
+    font-family: var(--font-display);
     font-size: 2rem;
     line-height: 1;
     letter-spacing: 0;
@@ -40123,7 +40153,7 @@ html.neo-mode .tile-pvw-overlay.pvw-prem .tile-pvw-cta-sticky,body.neo-mode .til
      레이아웃/페인트 containment 를 만들어 position:fixed 의 기준을 뷰포트가 아니라 그 박스로
      바꿔버린다. 그래서 그 그룹의 컬렉션만 전체화면이 358px 폭에 갇혀 카드가 161px 로 좁아졌다
      (다른 컬렉션은 390px·177px). data-mobile-active-group 은 전체화면 스크립트가 이미 붙이는 훅이다. */
-  .fg-group[data-mobile-active-group="true"]{content-visibility:visible!important;contain:none!important;contain-intrinsic-size:auto!important}
+  .fg-group[data-mobile-active-group="true"],.fg-group[data-mobile-active-group="true"]>.fg-group__cards{content-visibility:visible!important;contain:none!important;contain-intrinsic-size:auto!important}
 
   /* 상단 오프셋은 크롬바 실측 높이(--cd-collection-chrome-h)를 따른다.
      예전엔 48px 상수였는데 크롬바가 2행이 되면서 콘텐츠가 바 아래로 숨었다. */
@@ -40332,8 +40362,8 @@ html.neo-mode .tile-pvw-overlay.pvw-prem .tile-pvw-cta-sticky,body.neo-mode .til
   .cd-mobile-collection-head{position:relative;gap:10px!important}
   .cd-mobile-collection-head::before{content:"";flex:0 0 auto;width:22px;height:22px;margin-left:2px;border-radius:50%;box-shadow:inset 7px -3px 0 #9a6b2e;transform:rotate(-18deg)}
   body.neo-mode .cd-mobile-collection-head::before{box-shadow:inset 7px -3px 0 #e8d5a3}
-  .cd-mobile-collection-title{font-family:"CodeDestinySerifKR",var(--font-premium,"Nanum Myeongjo","Gowun Batang",serif)!important;font-weight:700!important;font-size:1.02rem;letter-spacing:-.01em!important}
-  .cd-mobile-collection-title::before{content:"FUN FORTUNES" / "";display:block;margin-bottom:1px;font-family:CodeDestinySerifLatin,Georgia,serif;font-size:.58rem;font-weight:800;letter-spacing:.2em;line-height:1.2;color:#8a5e26}
+  .cd-mobile-collection-title{font-family:var(--font-display)!important;font-weight:700!important;font-size:1.02rem;letter-spacing:-.01em!important}
+  .cd-mobile-collection-title::before{content:"FUN FORTUNES" / "";display:block;margin-bottom:1px;font-family:var(--font-display);font-size:.58rem;font-weight:800;letter-spacing:.2em;line-height:1.2;color:#8a5e26}
   body.neo-mode .cd-mobile-collection-title::before{color:#e8d5a3}
   .cd-mobile-collection-chrome.is-compact .cd-mobile-collection-title::before{display:none}
   .cd-mobile-collection-chrome.is-compact .cd-mobile-collection-head::before{width:18px;height:18px;box-shadow:inset 6px -2px 0 #9a6b2e}
@@ -40354,8 +40384,8 @@ html.neo-mode .tile-pvw-overlay.pvw-prem .tile-pvw-cta-sticky,body.neo-mode .til
   .cd-afy-hero__persona{flex:0 0 auto;width:76px;height:76px;border:3px solid #fff7eb;border-radius:50%;object-fit:cover;object-position:50% 14%;background:#fff3f5;box-shadow:0 8px 18px rgba(141,53,98,.18)}
   #cdMobileFortuneOverview .cd-afy-hero__persona{width:76px!important;height:76px!important;max-width:none!important;aspect-ratio:1/1}
   .cd-afy-hero__copy{position:relative;min-width:0;display:grid;gap:3px}
-  .cd-afy-hero__kicker{font-family:CodeDestinySerifLatin,Georgia,serif;font-size:.6rem;font-weight:800;letter-spacing:.2em;line-height:1.3;color:#8a5e26}
-  .cd-afy-hero__title{margin:0;font-family:"CodeDestinySerifKR",var(--font-premium,"Nanum Myeongjo","Gowun Batang",serif);font-size:1.22rem;font-weight:700;line-height:1.3;letter-spacing:-.02em;color:#3c1830;word-break:keep-all}
+  .cd-afy-hero__kicker{font-family:var(--font-display);font-size:.6rem;font-weight:800;letter-spacing:.2em;line-height:1.3;color:#8a5e26}
+  .cd-afy-hero__title{margin:0;font-family:var(--font-display);font-size:1.22rem;font-weight:700;line-height:1.3;letter-spacing:-.02em;color:#3c1830;word-break:keep-all}
   .cd-afy-hero__meta{margin:0;font-size:.74rem;font-weight:600;line-height:1.5;color:#70445c;word-break:keep-all}
   .cd-afy-hero__moon{position:absolute;top:12px;right:16px;width:20px;height:20px;border-radius:50%;box-shadow:inset 6px -3px 0 #9a6b2e;transform:rotate(-18deg);opacity:.8}
   #cdMobileFortuneOverview .cd-afy-hero__flower{display:block;right:-34px;bottom:-42px;width:132px;height:132px;opacity:.26}
@@ -40365,7 +40395,7 @@ html.neo-mode .tile-pvw-overlay.pvw-prem .tile-pvw-cta-sticky,body.neo-mode .til
   body.neo-mode .cd-afy-hero__title{color:#f4eeff}
   body.neo-mode .cd-afy-hero__meta{color:#d8c8ea}
   body.neo-mode .cd-afy-hero__moon{box-shadow:inset 6px -3px 0 #e8d5a3}
-  #cdMobileFortuneOverview .cd-fov__heading{font-family:"CodeDestinySerifKR",var(--font-premium,"Nanum Myeongjo","Gowun Batang",serif);font-size:.94rem;font-weight:700;color:#3c1830}
+  #cdMobileFortuneOverview .cd-fov__heading{font-family:var(--font-display);font-size:.94rem;font-weight:700;color:#3c1830}
   #cdMobileFortuneOverview .cd-fov__heading::after{content:"";flex:1 1 auto;height:1px;margin-left:8px;background:linear-gradient(90deg,rgba(154,107,46,.5),transparent)}
   body.neo-mode #cdMobileFortuneOverview .cd-fov__heading{color:#f4eeff}
   body.neo-mode #cdMobileFortuneOverview .cd-fov__heading::after{background:linear-gradient(90deg,rgba(232,213,163,.45),transparent)}
@@ -40377,7 +40407,7 @@ html.neo-mode .tile-pvw-overlay.pvw-prem .tile-pvw-cta-sticky,body.neo-mode .til
   #cdMobileFortuneOverview .cd-fov__cat-thumb>img{display:block;width:100%;height:100%;object-fit:cover}
   body.neo-mode #cdMobileFortuneOverview :is(.cd-fov__cat-thumb,.cd-fov__cat-icon){background:radial-gradient(120% 90% at 50% 0%,rgba(167,139,250,.3),transparent 60%),linear-gradient(150deg,#171231,#0d0a20)}
   #cdMobileFortuneOverview :is(.cd-fov__cat-name,.cd-fov__cat-count,.cd-fov__cat-sub){position:relative;padding-inline:4px}
-  #cdMobileFortuneOverview .cd-fov__cat-name{font-family:"CodeDestinySerifKR",var(--font-premium,"Nanum Myeongjo","Gowun Batang",serif);font-size:.94rem;font-weight:700}
+  #cdMobileFortuneOverview .cd-fov__cat-name{font-family:var(--font-display);font-size:.94rem;font-weight:700}
   #cdMobileFortuneOverview .cd-fov__cat-count{color:#8a5e26}
   body.neo-mode #cdMobileFortuneOverview .cd-fov__cat-count{color:#e8d5a3}
   #cdMobileFortuneOverview .cd-fov__cat-flower{display:block;right:-24px;bottom:-26px;width:76px;height:76px;opacity:.2}
@@ -40395,7 +40425,7 @@ html.neo-mode .tile-pvw-overlay.pvw-prem .tile-pvw-cta-sticky,body.neo-mode .til
   html body.neo-mode #inputPage #cdAllFortunesStage #premiumVvipCollection .feat-collection__header{display:block!important}
   html body:not(.neo-mode) #inputPage #cdAllFortunesStage .cd-mobile-collection-fullscreen :is(.feat-collection__title,.tarot-collection__title){color:#fff8ec!important;-webkit-text-fill-color:#fff8ec!important;text-shadow:0 1px 10px rgba(20,8,24,.45)!important}
   html body:not(.neo-mode) #inputPage #cdAllFortunesStage .cd-mobile-collection-fullscreen :is(.feat-collection__subtitle,.tarot-collection__subtitle,.tarot-collection__sub){color:rgba(255,244,236,.92)!important;-webkit-text-fill-color:rgba(255,244,236,.92)!important}
-  .cd-mobile-collection-fullscreen :is(.feat-collection__title,.tarot-collection__title){font-family:"CodeDestinySerifKR",var(--font-premium,"Nanum Myeongjo","Gowun Batang",serif)!important;font-weight:700!important}
+  .cd-mobile-collection-fullscreen :is(.feat-collection__title,.tarot-collection__title){font-family:var(--font-display)!important;font-weight:700!important}
   /* .fc-toggle-btn::after(absolute·2px·반짝임)를 흐름 안으로 되돌린다. 헤더가 어두운 카드라 샴페인 금색 하나로 쓴다. */
   #inputPage #cdAllFortunesStage .cd-mobile-collection-fullscreen :is(.feat-collection__header,.tarot-collection__header)::after{content:""!important;display:block!important;position:static!important;inset:auto!important;flex:1 0 100%;grid-column:1/-1;width:min(220px,70%)!important;height:14px!important;margin:12px auto 2px!important;opacity:1!important;transform:none!important;animation:none!important;background:radial-gradient(circle,#e8d5a3 0 3px,transparent 3.5px) center/14px 14px no-repeat,linear-gradient(90deg,transparent,rgba(232,213,163,.6) 20%,rgba(232,213,163,.6) 42%,transparent 44%,transparent 56%,rgba(232,213,163,.6) 58%,rgba(232,213,163,.6) 80%,transparent) center/100% 1px no-repeat!important}
   html body:not(.neo-mode) .cd-mobile-collection-fullscreen :is(.tarot-tile,.feature-card){border-radius:16px!important;border:1px solid rgba(183,121,110,.34)!important;background:#fffdfb!important;box-shadow:0 12px 24px -14px rgba(141,53,98,.34)!important}
@@ -40947,7 +40977,7 @@ html.neo-mode .tile-pvw-overlay.pvw-prem .tile-pvw-cta-sticky,body.neo-mode .til
     stroke-linejoin: round !important;
   }
   html.cd-mobile-runtime #inputPage :is(#animalCollection,#meditationCollection,#tarotCollection,#oracleCollection,#cosmicCollection,#flowerCollection,#miscCollection):not(.cd-mobile-collection-fullscreen) :is(.feat-collection__title,.tarot-collection__title) {
-    font-family: "CodeDestinySerifKR","CodeDestinySerifLatin","Nanum Myeongjo","Noto Serif KR",serif !important;
+    font-family: var(--font-display) !important;
     font-size: 1rem !important;
     font-weight: 800 !important;
     letter-spacing: -.015em !important;
@@ -41021,7 +41051,7 @@ html.neo-mode .tile-pvw-overlay.pvw-prem .tile-pvw-cta-sticky,body.neo-mode .til
                   .sy-basic-calendar__identity{display:flex;align-items:center;gap:10px;min-width:0}
                   .sy-basic-calendar__crescent{width:25px;height:25px;color:var(--moon-star);opacity:0;animation:syMoonFadeIn 400ms ease forwards;filter:drop-shadow(0 0 14px rgba(255,242,194,0.5));flex:0 0 auto}
                   .sy-basic-calendar__month-label{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-                  .sy-basic-calendar__title{color:var(--moon-text-primary);font-family:var(--font-voice,"Noto Serif KR",serif);font-size:18px;font-weight:900;line-height:1.25;text-shadow:0 0 18px rgba(255,244,210,0.22)}
+                  .sy-basic-calendar__title{color:var(--moon-text-primary);font-family:var(--font-display);font-size:18px;font-weight:900;line-height:1.25;text-shadow:0 0 18px rgba(255,244,210,0.22)}
                   .sy-basic-calendar__month{width:112px;border:1px solid rgba(220,230,255,0.28);border-radius:999px;background:rgba(8,12,27,0.68);color:var(--moon-text-secondary);font-size:12px;color-scheme:dark;outline:none;padding:6px 8px;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.03)}
                   .sy-basic-calendar__copy{margin:5px 0 0;color:var(--moon-text-muted);font-size:12px;line-height:1.45;word-break:keep-all}
                   .sy-basic-calendar__stars{position:absolute;inset:8px 74px auto auto;width:84px;height:36px;pointer-events:none}
@@ -41051,7 +41081,7 @@ html.neo-mode .tile-pvw-overlay.pvw-prem .tile-pvw-cta-sticky,body.neo-mode .til
                   .day--today .sy-basic-cal-day__num{width:26px;height:26px;color:var(--moon-star)}
                   .day--today .sy-basic-cal-day__num:before{content:"";position:absolute;inset:0;border-radius:999px;background:linear-gradient(135deg,#fff4c9,#aebfff);box-shadow:0 0 16px rgba(255,244,201,0.24)}
                   .sy-basic-cal-day__star{color:var(--moon-auspicious);font-size:11px;line-height:1}
-                  .sy-basic-cal-day__name{color:var(--moon-text-secondary);font-family:"Noto Serif KR",serif;font-size:11px;font-weight:800;line-height:1.35;word-break:keep-all}
+                  .sy-basic-cal-day__name{color:var(--moon-text-secondary);font-family:var(--font-display);font-size:11px;font-weight:800;line-height:1.35;word-break:keep-all}
                   .day--today .sy-basic-cal-day__name{color:#fff2c2}
                   .day--inauspicious .sy-basic-cal-day__name{color:#d9c8ff}
                   .sy-basic-cal-day__badge{margin-top:auto;color:var(--moon-auspicious);font-size:10px;font-weight:900;letter-spacing:0;line-height:1.25}
@@ -41067,7 +41097,7 @@ html.neo-mode .tile-pvw-overlay.pvw-prem .tile-pvw-cta-sticky,body.neo-mode .til
                   .sy-basic-calendar__legend-scale{margin:0;color:var(--moon-text-muted);font-size:11px;line-height:1.4}
                   .sy-basic-calendar__detail{background:linear-gradient(155deg,rgba(24,29,57,0.98),rgba(9,12,28,0.98));border-top:1px solid rgba(218,228,255,0.2);padding:20px 22px;border-radius:0 0 18px 18px;animation:syMoonSlideUp 200ms ease-out;position:relative;z-index:1}
                   .sy-basic-calendar__detail-kicker{margin:0 0 6px;color:var(--moon-text-secondary);font-size:12px;font-weight:800;line-height:1.4}
-                  .sy-basic-calendar__detail h4{margin:0;color:var(--moon-text-primary);font-family:var(--font-voice,"Noto Serif KR",serif);font-size:22px;line-height:1.35}
+                  .sy-basic-calendar__detail h4{margin:0;color:var(--moon-text-primary);font-family:var(--font-display);font-size:22px;line-height:1.35}
                   .sy-basic-calendar__detail-sub{margin:6px 0 0;color:var(--moon-text-secondary);font-size:13px;line-height:1.65;word-break:keep-all}
                   .sy-basic-calendar__cta{margin-top:14px;border:1px solid rgba(255,242,194,0.36);border-radius:10px;background:linear-gradient(135deg,#263058,#121832);color:var(--moon-star);padding:11px 22px;font-size:13px;font-weight:900;cursor:pointer;transition:opacity 120ms ease,transform 120ms ease,box-shadow 120ms ease;box-shadow:0 0 18px rgba(255,242,194,0.08)}
                   .sy-basic-calendar__cta:hover{opacity:.85;transform:translateY(-1px)}
@@ -41089,7 +41119,7 @@ html.neo-mode .tile-pvw-overlay.pvw-prem .tile-pvw-cta-sticky,body.neo-mode .til
     .cd-social-footer{box-sizing:border-box;width:min(760px,90%);margin:18px auto 0;padding:15px 14px;border:1px solid rgba(255,228,174,.34);border-radius:14px;background:linear-gradient(145deg,rgba(9,19,44,.92),rgba(12,23,52,.82) 58%,rgba(35,26,58,.72)),linear-gradient(120deg,rgba(255,220,160,.1),rgba(255,190,220,.07),rgba(135,183,255,.08));box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 16px 30px rgba(2,8,24,.34);text-align:center}
     .cd-social-footer__header{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px 12px}
     .cd-social-footer__kicker{color:#ffdca3;font-size:10px;font-weight:800;letter-spacing:.16em;text-transform:uppercase}
-    .cd-social-footer__title{color:#fff8e8;font-family:"Noto Serif KR","Iowan Old Style","Times New Roman",serif;font-size:clamp(1rem,1.7vw,1.18rem);line-height:1.35}
+    .cd-social-footer__title{color:#fff8e8;font-family:var(--font-display);font-size:clamp(1rem,1.7vw,1.18rem);line-height:1.35}
     .cd-social-footer__grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px;margin-top:12px}
     .cd-social-footer__link{--cd-social-accent:#dbeafe;--cd-social-border:rgba(219,234,254,.34);--cd-social-glow:rgba(219,234,254,.2);min-height:46px;display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--cd-social-border);border-radius:12px;background:rgba(5,12,28,.58);color:#f8fbff;font-size:12.5px;font-weight:800;line-height:1;text-decoration:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.08);transition:transform .22s ease,border-color .22s ease,background .22s ease,box-shadow .22s ease}
     .cd-social-footer__link:hover,.cd-social-footer__link:focus-visible{border-color:var(--cd-social-accent);background:rgba(255,255,255,.075);box-shadow:0 12px 26px var(--cd-social-glow),inset 0 1px 0 rgba(255,255,255,.12);outline:none;transform:translateY(-2px)}
@@ -41368,7 +41398,7 @@ html body:not(.neo-mode) #authQuickLinks[data-marker] div.cd-user-card .cd-user-
 #cdMobileBottomNav *{box-sizing:border-box}
 #cdMobileBottomNav .cd-mobile-bottom-nav__main{
   display:grid;
-  grid-template-columns:repeat(5,minmax(0,1fr));
+  grid-template-columns:repeat(4,minmax(0,1fr));
   gap:4px;
   min-width:0;
   max-width:560px;

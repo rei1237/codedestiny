@@ -65,6 +65,19 @@ function globHasRobotsTag(lines, range) {
   return lines.slice(range.start + 1, range.end).some((line) => /^\s*X-Robots-Tag:\s*noindex/i.test(line));
 }
 
+// Only bare HTTPS hosts covered by an existing HTTPS wildcard are redundant.
+// Leave apex hosts, paths, ports, IPs, other schemes and CSP keywords untouched.
+function compactConnectSources(sources) {
+  const unique = [...new Set(sources)];
+  const suffixes = unique.filter(source => /^https:\/\/\*\.[a-z\d.-]+$/i.test(source))
+    .map(source => source.slice("https://*".length).toLowerCase());
+  return unique.filter(source => {
+    if (!/^https:\/\/[a-z\d.-]+$/i.test(source)) return true;
+    const host = source.slice("https://".length).toLowerCase();
+    return !/[a-z]/.test(host) || !suffixes.some(suffix => host.endsWith(suffix));
+  });
+}
+
 /**
  * `/*` 블록에 전역 X-Robots-Tag 를 넣는다.
  *
@@ -91,11 +104,15 @@ export function rewriteHeaders(text) {
   const next = lines.map(line => {
     if (!/^\s*Content-Security-Policy:/i.test(line)) return line;
     if (!/\bconnect-src\s+[^;]+/.test(line)) throw new Error("스테이징 CSP 에 connect-src 가 없습니다.");
-    const updated = line.replace(/\bconnect-src\s+([^;]+)/, (_match, list) => {
+    let updated = line.replace(/\bconnect-src\s+([^;]+)/, (_match, list) => {
       const allowed = list.trim().split(/\s+/);
-      for (const source of sources) if (!allowed.includes(source)) allowed.push(source);
-      return `connect-src ${allowed.join(" ")}`;
+      // A bare HTTPS origin already allows its collect path; do not append a redundant path.
+      for (const source of sources) {
+        if (!allowed.includes(source) && !allowed.includes(new URL(source).origin)) allowed.push(source);
+      }
+      return `connect-src ${compactConnectSources(allowed).join(" ")}`;
     });
+    if (updated.length > 2000) updated = updated.replace(/;[ \t]+/g, ";");
     if (updated.length > 2000) throw new Error("스테이징 CSP 가 Pages 헤더 줄 길이 제한을 넘었습니다.");
     return updated;
   }).join("\n");
@@ -182,9 +199,22 @@ function runSelfTest() {
   expect((csp.text.match(/https:\/\/www.google.com\/g\/collect/g) || []).length === 2, "기존 Analytics 수집 요청의 정확한 경로를 허용해야 한다.");
   expect(csp.text.includes("connect-src 'self' https://staging.code-destiny.com/api/ https://www.google.com/g/collect; object-src 'none'"), "다른 보안 지시문은 유지해야 한다.");
   expect(!rewriteHeaders(csp.text).changed, "CSP 허용 주소가 중복되면 안 된다.");
+  const coveredCollect = rewriteHeaders("/*\n  Content-Security-Policy: default-src 'self'; connect-src 'self' https://www.google.com; object-src 'none'\n");
+  expect(coveredCollect.text.includes("https://www.google.com") && !coveredCollect.text.includes("https://www.google.com/g/collect"), "기존 동일 HTTPS origin이 허용한 수집 경로를 중복 추가하면 안 된다.");
+  const wildcardSources = ["'self'", "https://*.example.com", "https://api.example.com", "https://deep.api.example.com",
+    "https://example.com", "https://badexample.com", "https://api.example.com:443", "https://api.example.com/path",
+    "http://api.example.com", "https://*.127.0.0.1", "https://127.0.0.1", "https://api.example.com"];
+  expect(JSON.stringify(compactConnectSources(wildcardSources)) === JSON.stringify(wildcardSources.filter((source, i) =>
+    ![2, 3, 11].includes(i))), "중복 HTTPS 하위 호스트만 줄이고 apex·유사 도메인·포트·경로·다른 스킴·IP·키워드는 유지해야 한다.");
+  const longCsp = "/*\n  Content-Security-Policy: default-src 'self'; connect-src 'self' "
+    + Array.from({ length: 80 }, (_, i) => `https://source-${i}.example.test`).join(" ") + "; object-src 'none'\n";
+  let oversizedThrew = false;
+  try { rewriteHeaders(longCsp); } catch (error) { oversizedThrew = /2000|줄 길이 제한/.test(error.message); }
+  expect(oversizedThrew, "중복·공백을 줄여도 큰 CSP 는 2000자 제한을 우회하면 안 된다.");
   const actualHeaders = readFileSync(resolve("_headers"), "utf8");
   const actualCsp = rewriteHeaders(actualHeaders);
   expect(actualCsp.text.split(/\r?\n/).filter(line => /Content-Security-Policy:/.test(line)).every(line => line.length <= 2000), "실제 CSP 도 Pages 2000자 제한 안에 있어야 한다.");
+  expect(!rewriteHeaders(actualCsp.text).changed, "실제 CSP 를 축약한 뒤 다시 변환해도 바뀌면 안 된다.");
   expect(readFileSync(resolve("_headers"), "utf8") === actualHeaders, "운영 헤더 정본은 수정하면 안 된다.");
 
   // 🔴 이 레포의 실제 _headers 모양. 다른 경로에 이미 X-Robots-Tag 가 있어도 전역 블록에는

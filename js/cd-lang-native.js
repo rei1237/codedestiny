@@ -144,9 +144,6 @@
     if (urlLang) return urlLang;
     var pathLang = getPathPrefixLang();
     if (pathLang) return pathLang;
-    var geoLang = readCookie('cd_geo_locale');
-    var explicitLang = readStoredValue('cd_lang_explicit') === '1' || readCookie('cd_locale_explicit') === '1';
-    if (geoLang && !explicitLang) return normalizeLang(geoLang);
     if (hasSavedLangAck()) {
       var stored = readStoredValue('cd_lang');
       if (stored) return normalizeLang(stored);
@@ -635,6 +632,22 @@
         nativeChangeLanguage(btn.getAttribute('data-lang'), btn);
       }, true);
     }
+    loadLanguageSuggest();
+  }
+
+  // 언어 제안 배너는 이동시키지 않는 클라이언트 전용 안내다. 창 load 뒤에 한 번만 불러온다.
+  function loadLanguageSuggest() {
+    if (window.__cdLangSuggestLoaded || window.__cdLangSuggestRequested) return;
+    window.__cdLangSuggestRequested = true;
+    function load() {
+      if (window.__cdLangSuggestLoaded) return;
+      var script = document.createElement('script');
+      script.src = '/js/cd-lang-suggest.js?v=20261102-lang-suggest-v2';
+      script.async = true;
+      (document.head || document.documentElement).appendChild(script);
+    }
+    if (document.readyState === 'complete') load();
+    else window.addEventListener('load', load);
   }
 
   if (document.readyState === 'loading') {

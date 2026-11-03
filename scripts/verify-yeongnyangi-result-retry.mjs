@@ -17,13 +17,15 @@ createRoot(document.getElementById('root')).render(<main className={styles.page}
  plugins:[{name:'result-fixtures',setup(b){
   b.onResolve({filter:/\/api$/},()=>({path:'api',namespace:'fixture'}));
   b.onResolve({filter:/^@\/lib\/analytics$/},()=>({path:'analytics',namespace:'fixture'}));
+  // Recovery owns delivery, not post-result reward/recommendation integrations.
+  b.onResolve({filter:/^@\/app\/components\/(ReviewRewardBanner|activation\/ResultBenefits|recommendations\/RecommendationResult)$/},()=>({path:'after-result',namespace:'fixture'}));
   b.onResolve({filter:/^\.\/(ReadingBook|ReadingIdentity|SpiritResult|ReadingLoading|ResultSharing)$/},()=>({path:'child',namespace:'fixture'}));
   b.onLoad({filter:/.*/,namespace:'fixture'},({path})=>({loader:'js',contents:path==='api'?`
 export class FortuneApiError extends Error {constructor(code,message,status){super(message);this.code=code;this.status=status;this.retryable=true;this.retryAfterSeconds=0;}}
 window.calls={read:0,generate:0,payments:1,provider:0};window.activateCalls=0;
 const caseName=new URLSearchParams(location.search).get('case'),activateCase=caseName==='activate',unpaidCase=caseName==='unpaid';
 const id='a'.repeat(64),manifest=[{id:'first'},{id:'second'},{id:'third'}],stored={summary:'이미 저장된 첫 장'};
-const row={id,paid:true,state:'FORTUNE_FAILED',errorCode:'AUTOMATIC_RECOVERY_STOPPED',product:{name:'사주',fishName:'고등어'},chapters:[stored],manifest,recovery:{requestId:id,savedChapters:1,totalChapters:3,providerNeeded:true,retryable:true,canRetryNow:true,nextAction:'retry'}};
+const row={id,paid:true,state:'FORTUNE_FAILED',errorCode:'AUTOMATIC_RECOVERY_STOPPED',product:{id:'saju_mackerel',name:'사주',fishName:'고등어',domain:'saju',systems:['saju']},chapters:[stored],manifest,recovery:{requestId:id,savedChapters:1,totalChapters:3,providerNeeded:true,retryable:true,canRetryNow:true,nextAction:'retry'}};
 export async function fortuneApi(path){
  if(unpaidCase){
   // 결제 전: 상담은 읽히지만 결제가 확인되지 않는다(activate → 402 PAYMENT_REQUIRED).
@@ -43,7 +45,7 @@ export async function fortuneApi(path){
 export function resultPath(id){return '/yeongnyangi/result/?id='+encodeURIComponent(id);}
 export function loginForCurrentPage(){throw Error('unexpected login');}
 export function checkoutPath(){if(activateCase||unpaidCase)return '#checkout';throw Error('paid retry must not enter checkout');}
-`:path==='analytics'?'export function trackFortuneDelivery(){} export function trackFortuneView(){}':path==='style'?'export default {};':'export default function Child(){return null;}'}));
+`:path==='analytics'?'export function trackFortuneDelivery(){} export function trackFortuneView(){} export function trackEvent(){}':path==='after-result'?'export default function Child(){return null;} export function RecommendationResult(){return null;}':path==='style'?'export default {};':'export default function Child(){return null;}'}));
  }}]});
 const js=bundle.outputFiles.find(f=>f.path.endsWith('.js')).text;
 const css=bundle.outputFiles.find(f=>f.path.endsWith('.css')).text;

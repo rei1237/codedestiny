@@ -40,6 +40,9 @@ const server = createServer(async(req,res)=>{
     const origin='http://127.0.0.1:'+server.address().port;
     const path=new URL(req.url,origin).pathname;
     if(/^\/assets\/yeongnyangi\/scenes\/(love|work-400|wealth-400|self-400)\.webp$/.test(path) || /^\/images\/home-questions\/(marriage|reunion)-400\.webp$/.test(path) || /^\/images\/neo-consultation\/moonlit-letter-(640|1280)\.webp$/.test(path) || path===NEO_EMAIL_PORTRAIT || /^\/images\/service-introductions\/neo-consultation(?:-(?:320|640|960))?\.webp$/.test(path)){res.setHeader('content-type','image/webp');res.end(await readFile(resolve(root,'public',path.slice(1))));return;}
+    if(path==='/images/home/illustrated/moon-floral-light-480.webp'){
+      res.setHeader('content-type','image/webp');res.end(await readFile(resolve(root,'public',path.slice(1))));return;
+    }
     if(path==='/home-preview/'){
       res.setHeader('content-type','text/html');
       res.end('<!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style>body{margin:0;padding:20px;background:#f6eff5}.cdh{max-width:1000px;margin:auto}*{box-sizing:border-box}</style><style>'+tokens+await readFile(resolve(root,'styles/home-funnel.css'),'utf8')+'</style><div class="cdh">'+renderNeoEmailHomeEntry()+'</div></html>');return;
@@ -199,10 +202,14 @@ try {
     await expect(entry.locator('img')).toHaveCount(1);
     await entry.locator('.cdh-neo-letter__art img').waitFor();
     // Resizing <picture> can replace an in-flight image and reject decode().
-    // Wait for the selected source and loaded pixels; broken assets still fail.
+    // Poll decoding and source stability together; broken assets still fail.
     await expect(page.locator('picture img')).toHaveAttribute('srcset', /neo-consultation-320\.webp 320w.*neo-consultation-960\.webp 960w/);
-    await expect.poll(()=>page.evaluate(()=>[...document.images].every(img=>img.complete && img.naturalWidth>0))).toBe(true);
-    await page.evaluate(async()=>{await Promise.all([...document.images].map(img=>img.decode()));});
+    await expect.poll(()=>page.evaluate(async()=>{
+      const images=[...document.images],sources=images.map(img=>img.currentSrc);
+      const decoded=await Promise.allSettled(images.map(img=>img.decode()));
+      return images.length>0 && decoded.every(result=>result.status==='fulfilled')
+        && images.every((img,i)=>img.complete && img.naturalWidth>0 && img.naturalHeight>0 && img.currentSrc===sources[i]);
+    })).toBe(true);
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
     const path=resolve(out,'home-'+width+'.png');await page.screenshot({path,fullPage:true});captures.push(path);
     const details = entry.locator('details');

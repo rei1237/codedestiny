@@ -1,5 +1,4 @@
 import PublicReadingGuide from "../components/PublicReadingGuide";
-import Image from "next/image";
 import InsightsCosmicRouteClient from "./InsightsCosmicRouteClient";
 import { FEATURE_GUIDES } from "./feature-guides";
 import { INSIGHT_SEED_ARTICLES } from "./seed-articles";
@@ -12,7 +11,6 @@ import { publishedCelebritySajuSeeds } from "../../lib/famous-saju/celebrity-saj
 import { getCelebrityEditorial } from "../../lib/famous-saju/celebrity-editorial";
 import { INSIGHT_DISCOVERY_COPY } from "./discovery-copy.mjs";
 import { SEARCH_READING_PATHS } from "../../lib/i18n/search-reading-paths.mjs";
-import { getPexelsSectionImage, resolvePexelsInsightImageRequest } from "../../lib/server/pexels";
 
 const discoveryCopy = INSIGHT_DISCOVERY_COPY.ko;
 const pageTitle = discoveryCopy.title;
@@ -119,39 +117,10 @@ function buildFamousSajuInsightItems() {
   }));
 }
 
-async function enrichInsightImageItems(items) {
-  const imageByKey = new Map();
-
-  for (const item of items) {
-    const request = resolvePexelsInsightImageRequest(item);
-    const key = `${request.section}:${request.query}`;
-    if (!imageByKey.has(key)) {
-      imageByKey.set(key, await getPexelsSectionImage(request.query, request.section));
-    }
-  }
-
-  return items.map((item) => {
-    const request = resolvePexelsInsightImageRequest(item);
-    const image = imageByKey.get(`${request.section}:${request.query}`);
-    if (!image?.src) return item;
-    return {
-      ...item,
-      coverImage: image.src,
-      coverImageAlt: image.alt || item.coverImageAlt || `${item.title} 대표 이미지`,
-      featuredImage: {
-        ...(item.featuredImage || {}),
-        url: image.src,
-        alt: image.alt || item.featuredImage?.alt || item.coverImageAlt || `${item.title} 대표 이미지`,
-        width: item.featuredImage?.width || 1200,
-        height: item.featuredImage?.height || 630,
-      },
-    };
-  });
-}
-
 export default async function InsightsPage() {
-  const initialFamousSajuItems = (await enrichInsightImageItems(buildFamousSajuInsightItems())).map(toClientInsightItem);
-  const initialInsightItems = (await enrichInsightImageItems(INSIGHT_SEED_ARTICLES)).map(toClientInsightItem);
+  // Keep authored covers; the client reuses local responsive artwork for generic images.
+  const initialFamousSajuItems = buildFamousSajuInsightItems().map(toClientInsightItem);
+  const initialInsightItems = INSIGHT_SEED_ARTICLES.map(toClientInsightItem);
   const initialAllItems = [...initialInsightItems, ...initialFamousSajuItems];
   const initialItems = initialAllItems.slice(0, 12);
   const initialRecommended = EDITORIAL_READING_SLUGS.map((slug) => initialInsightItems.find((article) => article.slug === slug)).filter(Boolean).slice(0, 6);
@@ -198,7 +167,7 @@ export default async function InsightsPage() {
         CLS 0.275 이력이 있어 클라이언트에서만 나타나는 블록을 위에 두지 않는다).
         🔴 H1 은 이 하나뿐이어야 한다 — InsightsCosmicClient 의 제목은 h2 다.
       */}
-      <header className="moon-container moon-hero"><div><a href="/ggulggul/">꿀꿀운세</a><h1>운세 인사이트</h1><p>내 사주를 이해하는 달빛 지식 서재</p></div><Image src="/images/feature-details/fusion-fortune-hero-v2.webp" width={640} height={420} alt="" priority /></header>
+      <header className="moon-container moon-hero"><div><a href="/ggulggul/">꿀꿀 운세로 돌아가기</a><h1>운세 인사이트</h1><p>내 사주를 이해하는 달빛 지식 서재</p><p className="moon-hero-hint">사주와 타로, 별의 이야기를<br />궁금한 주제부터 천천히 읽어보세요.</p><a className="moon-hero-search" href="#insight-search">궁금한 글 찾기 <span aria-hidden="true">↓</span></a></div><img src="/images/home/illustrated/yeoni-character-480.webp" srcSet="/images/home/illustrated/yeoni-character-320.webp 320w, /images/home/illustrated/yeoni-character-480.webp 480w, /images/home/illustrated/yeoni-character-800.webp 800w" width={480} height={480} sizes="(max-width: 600px) 112px, 240px" alt="책과 찻잔 곁에서 안내하는 꽃돼지 연이" fetchPriority="high" decoding="async" /></header>
       <section className="moon-container cd-guide-index" aria-labelledby="insight-reading-next">
         <h2 id="insight-reading-next" className="cd-guide-index__title">{SEARCH_READING_PATHS.ko.heading}</h2>
         <p className="cd-guide-index__lede">{SEARCH_READING_PATHS.ko.lead}</p>
@@ -250,7 +219,7 @@ export default async function InsightsPage() {
       <section className="mx-auto w-full max-w-6xl px-4 pb-6 md:px-6" aria-labelledby="insight-famous-reading"><details><summary className="moon-reading-summary">같은 일주, 다른 삶 · 인물 사례 읽기</summary>
         <div className="cd-guide-index">
           <h2 id="insight-famous-reading" className="cd-guide-index__title">{discoveryCopy.reviewedTitle}</h2>
-          <Image src="/images/feature-details/famous-saju-hero-v2.webp" width={1200} height={675} sizes="(min-width:768px) 672px, 100vw" alt="" loading="lazy" className="mb-5 aspect-video w-full max-w-2xl rounded-xl object-cover" />
+          <img src="/images/service-introductions/famous-saju-640.webp" srcSet="/images/service-introductions/famous-saju-320.webp 320w, /images/service-introductions/famous-saju-640.webp 640w, /images/service-introductions/famous-saju-960.webp 960w" width={960} height={640} sizes="(min-width:768px) 672px, calc(100vw - 36px)" alt="" loading="lazy" decoding="async" className="mb-5 aspect-video w-full max-w-2xl rounded-xl object-cover" />
           <p className="cd-guide-index__lede">{discoveryCopy.reviewedLead}</p>
           <ul className="cd-guide-index__grid">
             {publishedCelebritySajuSeeds.filter((person) => getCelebrityEditorial(person.slug)?.reviewedAt).map((person) => (

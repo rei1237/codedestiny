@@ -26,6 +26,7 @@ import { appendExpertPersona, expertPersonaText } from "../lib/expert-character-
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { calculateLifeBookAiSaju } from "../lib/life-book-ai-saju.js";
+import { sajuTemperamentPromptLines } from '../lib/saju-temperament.js';
 import { canStripForbiddenText } from "../lib/llm-leak-guard.js";
 import {clampSyncLlmTimeoutMs, PAID_LLM_PARTS_PER_REQUEST } from "../lib/sync-llm-timeout.js";
 import { handleBillingRoutes, BILLING_SNAPSHOT_USER_PROJECTION } from "./billing.js";
@@ -1256,6 +1257,7 @@ function buildSectionPrompt(input, sajuSlice, section, digest = "") {
     "",
     "[계산 가능한 사주 명리 데이터]",
     JSON.stringify(sajuSlice),
+    ...sajuTemperamentPromptLines(sajuSlice),
     "",
     "[이번에 쓸 조각]",
   ];

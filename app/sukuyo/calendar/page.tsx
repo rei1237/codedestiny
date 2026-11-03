@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ROOT_OPEN_GRAPH } from "@/lib/seo/page-open-graph";
 import SukuyoCalendarRouteClient from "./SukuyoCalendarRouteClient";
 
 const SUKUYO_CALENDAR_PAGE_TEXT_TRANSLATIONS = {
@@ -32,6 +33,7 @@ export const metadata: Metadata = {
     canonical: "/sukuyo/calendar",
   },
   openGraph: {
+    ...ROOT_OPEN_GRAPH,
     title: sukuyoCalendarPageCopy.title,
     description: sukuyoCalendarPageCopy.description,
     url: "https://code-destiny.com/sukuyo/calendar",

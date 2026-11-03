@@ -1,4 +1,4 @@
-.cdh{--cdh-bg: #fff9f4;--cdh-surface: #f8e4ea;--cdh-card: #ffffff;--cdh-ink: #402a38;--cdh-muted: #6b4d5e;--cdh-accent: #b53660;--cdh-line: rgba(181, 54, 96, .18);--cdh-gold: #7e6028;--cdh-gold-soft: #fff3d6;--cdh-lilac: #6e5a8e;--cdh-lilac-soft: #f1eaf8;width:min(100%,1280px);margin-inline:auto;color:var(--cdh-ink);font-family:var( --font-body, "CodeDestinyBody", "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif );line-height:1.65;text-align:left;isolation:isolate}html.neo-mode .cdh,body.neo-mode .cdh{--cdh-bg: #0a0818;--cdh-surface: #171126;--cdh-card: #211931;--cdh-ink: #f4eeff;--cdh-muted: #d8c8ea;--cdh-accent: #c4b5fd;--cdh-line: rgba(196, 181, 253, .28);--cdh-gold: #e8d5a3;--cdh-gold-soft: #2a2242}.cdh *,.cdh *:before,.cdh *:after{box-sizing:border-box}.cdh [hidden]{display:none!important}.cdh :is(h1,h2,h3){margin:0;color:var(--cdh-ink);line-height:1.35;letter-spacing:-.03em;word-break:keep-all;text-wrap:balance}.cdh-section-head h2,.cdh-services>h1,#cdHomeFunnel .moon-section-head :is(h2,h3),#cdHomeFunnel #cdTodayHubTitle,#cdHomeFunnel .cd-sig__title,#cdHomeFunnel #cdhShareTitle{font-family:"CodeDestinySerifKR",var(--font-premium, "Nanum Myeongjo", "Gowun Batang", serif);font-weight:700}.cdh h1{font-size:clamp(2rem,4vw,4rem);font-weight:780}.cdh h2{font-size:clamp(1.65rem,2.8vw,2.65rem);font-weight:740}.cdh p{margin:0;word-break:keep-all}.cdh em{color:var(--cdh-accent);font-style:normal}.cdh a{color:inherit;text-decoration:none}.cdh :is(button,input,summary){font:inherit}.cdh :is(button,a,summary){touch-action:manipulation}.cdh :is(a,button,input,summary):focus-visible{outline:3px solid var(--cdh-accent);outline-offset:3px}.cdh .cdh-intro{margin-bottom:10px;color:var(--cdh-gold);font-size:.76rem;font-family:CodeDestinySerifLatin,Georgia,serif;font-weight:800;letter-spacing:.12em}.cdh .cdh-lead{max-width:64ch;margin-top:14px;color:var(--cdh-muted)}.cdh-top{position:relative;z-index:20;display:grid;grid-template-columns:minmax(190px,1fr) auto minmax(270px,1fr);align-items:center;gap:20px;min-height:72px;padding:10px clamp(18px,3vw,40px);border-bottom:1px solid var(--cdh-line)}.cdh-brand{display:inline-flex;align-items:center;justify-self:start;gap:10px;font-size:1.2rem;font-weight:800}.cdh-brand__mark{flex:0 0 auto;width:40px;height:40px;border-radius:50%;background:var(--cdh-surface);object-fit:cover}.cdh-brand>span{display:grid;line-height:1.1}.cdh-brand small{margin-top:4px;font-size:.52rem;letter-spacing:.14em}.cdh-nav,.cdh-tools{display:flex;align-items:center;gap:14px}.cdh-nav a{display:inline-flex;align-items:center;min-height:44px;color:var(--cdh-muted);font-size:.84rem;font-weight:700}.cdh-tools{justify-self:end}
+.cdh{--cdh-bg: #fff9f4;--cdh-surface: #f8e4ea;--cdh-card: #ffffff;--cdh-ink: #402a38;--cdh-muted: #6b4d5e;--cdh-accent: #b53660;--cdh-line: rgba(181, 54, 96, .18);--cdh-gold: #7e6028;--cdh-gold-soft: #fff3d6;--cdh-lilac: #6e5a8e;--cdh-lilac-soft: #f1eaf8;width:min(100%,1280px);margin-inline:auto;color:var(--cdh-ink);font-family:var( --font-body, "CodeDestinyBody", "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif );line-height:1.65;text-align:left;isolation:isolate}html.neo-mode .cdh,body.neo-mode .cdh{--cdh-bg: #0a0818;--cdh-surface: #171126;--cdh-card: #211931;--cdh-ink: #f4eeff;--cdh-muted: #d8c8ea;--cdh-accent: #c4b5fd;--cdh-line: rgba(196, 181, 253, .28);--cdh-gold: #e8d5a3;--cdh-gold-soft: #2a2242}.cdh *,.cdh *:before,.cdh *:after{box-sizing:border-box}.cdh [hidden]{display:none!important}.cdh :is(h1,h2,h3){margin:0;color:var(--cdh-ink);line-height:1.35;letter-spacing:-.03em;word-break:keep-all;text-wrap:balance}.cdh-section-head h2,.cdh-services>h1,#cdHomeFunnel .moon-section-head :is(h2,h3),#cdHomeFunnel #cdTodayHubTitle,#cdHomeFunnel .cd-sig__title,#cdHomeFunnel #cdhShareTitle{font-family:var(--font-display);font-weight:700}.cdh h1{font-size:clamp(2rem,4vw,4rem);font-weight:780}.cdh h2{font-size:clamp(1.65rem,2.8vw,2.65rem);font-weight:740}.cdh p{margin:0;word-break:keep-all}.cdh em{color:var(--cdh-accent);font-style:normal}.cdh a{color:inherit;text-decoration:none}.cdh :is(button,input,summary){font:inherit}.cdh :is(button,a,summary){touch-action:manipulation}.cdh :is(a,button,input,summary):focus-visible{outline:3px solid var(--cdh-accent);outline-offset:3px}.cdh .cdh-intro{margin-bottom:10px;color:var(--cdh-gold);font-size:.76rem;font-family:var(--font-display);font-weight:800;letter-spacing:.12em}.cdh .cdh-lead{max-width:64ch;margin-top:14px;color:var(--cdh-muted)}.cdh-top{position:relative;z-index:20;display:grid;grid-template-columns:minmax(190px,1fr) auto minmax(270px,1fr);align-items:center;gap:20px;min-height:72px;padding:10px clamp(18px,3vw,40px);border-bottom:1px solid var(--cdh-line)}.cdh-brand{display:inline-flex;align-items:center;min-height:44px;justify-self:start;gap:10px;font-size:1.2rem;font-weight:800}.cdh-brand__mark{flex:0 0 auto;width:40px;height:40px;border-radius:50%;background:var(--cdh-surface);object-fit:cover}.cdh-brand>span{display:grid;line-height:1.1}.cdh-brand small{margin-top:4px;font-size:.52rem;letter-spacing:.14em}.cdh-nav,.cdh-tools{display:flex;align-items:center;gap:14px}.cdh-nav a{display:inline-flex;align-items:center;min-height:44px;color:var(--cdh-muted);font-size:.84rem;font-weight:700}.cdh-tools{justify-self:end}
 .cdh{--cdh-card:#fff8ef}
 html.neo-mode .cdh,body.neo-mode .cdh{--cdh-card:#211931}
 /* 연이 정원 헤더 언어 선택(2026-10-06 달빛 예화): 로즈골드 테두리 알약 + 불투명 달 원판 속 지구본 + "LANGUAGE / 원어명" + 셰브런.
@@ -57,7 +57,7 @@ html.neo-mode .cdh,body.neo-mode .cdh{--cdh-card:#211931}
 #cdhLanguageSlot .lang-btn[data-lang=ms]:before{content:"Melayu"}
 :is(html,body).neo-mode #cdhLanguageSlot #langWrap .lang-dropdown{border-color:rgba(232,213,163,.4)!important;background:#1b1530!important;box-shadow:0 22px 44px -18px rgba(0,0,0,.8)!important}
 /* 모바일: 달 원판 + 원어명(짧게) + 셰브런만. LANGUAGE 머리글은 숨긴다. */
-@media (max-width:640px){#cdhLanguageSlot #langWrap .lang-dropdown{width:min(308px,calc(100vw - 32px))!important;max-width:calc(100vw - 32px)!important}#cdhLanguageSlot #langWrap .lang-trigger{gap:6px!important;min-height:44px!important;padding:4px 11px 4px 4px!important}#cdhLanguageSlot #langWrap .lang-icon{width:32px!important;height:32px!important}#cdhLanguageSlot #langWrap .lang-main:before{display:none!important}:root[data-cd-lang] #cdhLanguageSlot #langWrap .lang-label:after{font-size:.8rem}:root[data-cd-lang=zh-CN] #cdhLanguageSlot .lang-label:after{content:"简体"}:root[data-cd-lang=zh-TW] #cdhLanguageSlot .lang-label:after{content:"繁體"}:root[data-cd-lang=vi] #cdhLanguageSlot .lang-label:after{content:"Việt"}:root[data-cd-lang=nl] #cdhLanguageSlot .lang-label:after{content:"NL"}}
+@media (max-width:640px){#cdhLanguageSlot #langWrap .lang-dropdown{width:min(308px,calc(100vw - 32px))!important;max-width:calc(100vw - 32px)!important}#cdhLanguageSlot #langWrap .lang-trigger{gap:6px!important;width:110px!important;min-height:48px!important;padding:4px 11px 4px 4px!important}#cdhLanguageSlot #langWrap .lang-icon{width:32px!important;height:32px!important}#cdhLanguageSlot #langWrap .lang-main:before{display:none!important}:root[data-cd-lang] #cdhLanguageSlot #langWrap .lang-label:after{font-size:.8rem}:root[data-cd-lang=zh-CN] #cdhLanguageSlot .lang-label:after{content:"简体"}:root[data-cd-lang=zh-TW] #cdhLanguageSlot .lang-label:after{content:"繁體"}:root[data-cd-lang=vi] #cdhLanguageSlot .lang-label:after{content:"Việt"}:root[data-cd-lang=nl] #cdhLanguageSlot .lang-label:after{content:"NL"}}
 @media (prefers-reduced-motion:reduce){#cdhLanguageSlot #langWrap :is(.lang-trigger,.lang-arrow){transition:none!important}}
 #cdhLanguageSlot .lang-icon::before{content:"";display:block;width:18px;height:18px;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M3 12h18M12 3c2.6 2.8 3.9 5.8 3.9 9s-1.3 6.2-3.9 9c-2.6-2.8-3.9-5.8-3.9-9S9.4 5.8 12 3z'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.8'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M3 12h18M12 3c2.6 2.8 3.9 5.8 3.9 9s-1.3 6.2-3.9 9c-2.6-2.8-3.9-5.8-3.9-9S9.4 5.8 12 3z'/%3E%3C/svg%3E") center/contain no-repeat}#cdhThemeSlot .theme-switch-wrapper--appbar{display:flex!important;position:static!important;align-items:center!important;margin:0!important;padding:0!important;transform:none!important;border:0!important;width: 100% !important}#cdhThemeSlot .theme-toggle-label,#cdhThemeSlot .tsw-input{position:absolute!important;width:1px!important;height:1px!important;clip-path:inset(50%)!important}/* 2026-10-17 달빛 예화 모드 토글: 금빛 hairline 아이보리 캡슐 + 미끄러지는 썸 하나(::before). 공유 마크업의 ☀️/🌙 이모지는
  * 글자 크기 0 으로 숨기고 같은 자리에 해·달 선 아이콘을 mask 로 그린다. 활성 칸은 aria-pressed 또는 #themeCheckbox:checked 로 안다. */
@@ -164,7 +164,7 @@ html.neo-mode .cdh-kakao,body.neo-mode .cdh-kakao{--cdh-kakao-well:color-mix(in 
 .cdh-kakao__card:before{content:"";position:absolute;inset:0;z-index:0;border-radius:inherit;padding:1px;background:linear-gradient(120deg,var(--cdh-gold),transparent 32%,transparent 68%,var(--cdh-gold));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:.55;pointer-events:none}
 .cdh-kakao__card>*{position:relative;z-index:1}
 /* One phrase cut verbatim from the bubbles. The sprig above it is its own line box, so it never overlaps the text. */
-.cdh-kakao__quote{margin:0;padding:16px 16px 12px;color:var(--cdh-kakao-gold);font-family:"CodeDestinySerifKR",var(--font-premium,serif);font-size:17.5px;line-height:1.5;word-break:keep-all;overflow-wrap:anywhere;text-wrap:balance}
+.cdh-kakao__quote{margin:0;padding:16px 16px 12px;color:var(--cdh-kakao-gold);font-family:var(--font-display);font-size:17.5px;line-height:1.5;word-break:keep-all;overflow-wrap:anywhere;text-wrap:balance}
 .cdh-kakao__quote:before{content:"";display:block;width:112px;height:40px;margin:0 0 8px -6px;background:var(--cdh-gold);opacity:var(--cdh-kakao-motif);-webkit-mask:var(--cd-yehwa-mask-branch-spray) left center/contain no-repeat;mask:var(--cd-yehwa-mask-branch-spray) left center/contain no-repeat}
 .cdh-kakao__bar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0;padding:10px 16px;border-bottom:1px solid var(--cdh-kakao-hair);color:var(--cdh-kakao-gold);font-size:12px;font-weight:700;letter-spacing:.02em}
 .cdh-kakao__quote+.cdh-kakao__bar{border-top:1px solid var(--cdh-kakao-hair)}
@@ -214,7 +214,7 @@ html.neo-mode .cdh-kakao__quote:before,body.neo-mode .cdh-kakao__quote:before{ba
 .cd-yn-portal-overlay__moon{width:24px;height:24px;margin-bottom:22px;border-radius:50%;box-shadow:inset 6px -3px #e5c58e;transform:rotate(-20deg)}
 .cd-yn-portal-overlay__portrait{display:block;width:96px;height:112px;padding:5px;overflow:hidden;border:1px solid #bca476;border-radius:52px 52px 12px 12px;background:#21192e}
 .cd-yn-portal-overlay__portrait img{display:block;width:100%;height:100%;object-fit:contain;border-radius:46px 46px 8px 8px}
-.cd-yn-portal-overlay__title{margin:24px 0 8px;font-family:"CodeDestinySerifKR",var(--font-premium,serif);font-size:clamp(22px,5vw,28px);font-weight:700;line-height:1.5;color:#f3eee5;word-break:normal;overflow-wrap:anywhere;max-width:100%}
+.cd-yn-portal-overlay__title{margin:24px 0 8px;font-family:var(--font-display);font-size:clamp(22px,5vw,28px);font-weight:700;line-height:1.5;color:#f3eee5;word-break:normal;overflow-wrap:anywhere;max-width:100%}
 .cd-yn-portal-overlay__note{margin:0;font-family:var(--font-body,sans-serif);font-size:13px;line-height:1.7;color:#bac9da;word-break:keep-all}
 .cd-yn-portal-overlay__line{width:64px;height:1px;margin-top:26px;background:#bca476;transform-origin:center;animation:cdYnPortalLine .64s cubic-bezier(.16,1,.3,1) both}
 @keyframes cdYnPortalLine{from{transform:scaleX(.15);opacity:0}to{transform:scaleX(1);opacity:1}}
@@ -233,7 +233,7 @@ html.neo-mode .cdh-kakao__quote:before,body.neo-mode .cdh-kakao__quote:before{ba
 .cdh-pass__intro{display:flex;align-items:center;gap:clamp(14px,2.4vw,26px)}
 .cdh-pass__mascot{flex:none;width:clamp(96px,13vw,168px);height:auto;border-radius:50%;background:#fff6f1;box-shadow:0 12px 30px #8d35621f}
 .cdh-pass__eyebrow{display:inline-block;margin-bottom:8px;padding:4px 11px;border:1px solid var(--cdh-line);border-radius:999px;color:var(--cdh-gold);font-size:.72rem;font-weight:800}
-.cdh .cdh-pass__title{font-family:"CodeDestinySerifKR",var(--font-premium, "Nanum Myeongjo", "Gowun Batang", serif);font-size:clamp(1.2rem,2.4vw,1.65rem)}
+.cdh .cdh-pass__title{font-family:var(--font-display);font-size:clamp(1.2rem,2.4vw,1.65rem)}
 .cdh-pass__desc{margin:6px 0 0;color:var(--cdh-muted);font-size:.9rem;line-height:1.6}
 .cdh-pass__tiers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:0;padding:0;list-style:none}
 .cdh-pass__tier-link{position:relative;display:grid;align-content:start;gap:3px;height:100%;padding:16px 14px;border:1px solid var(--cdh-line);border-radius:18px;background:var(--cdh-card);color:var(--cdh-ink)!important;text-decoration:none;transition:transform .2s,border-color .2s}
@@ -254,7 +254,7 @@ html.neo-mode .cdh-kakao__quote:before,body.neo-mode .cdh-kakao__quote:before{ba
 .cdh-more__summary::-webkit-details-marker{display:none}
 .cdh-more__summary img{flex:none;width:52px;height:52px;object-fit:contain}
 .cdh-more__copy{display:grid;flex:1;gap:9px;min-width:0}
-.cdh-more__copy strong{max-width:24ch;color:var(--cdh-ink);font-family:'CodeDestinySerifKR',serif;font-size:1.25rem;line-height:1.5;word-break:keep-all}
+.cdh-more__copy strong{max-width:24ch;color:var(--cdh-ink);font-family:var(--font-display);font-size:1.25rem;line-height:1.5;word-break:keep-all}
 .cdh-more__copy small{color:var(--cdh-muted);font-size:.78rem;line-height:1.5}
 .cdh-more__arrow{flex:none;width:44px;height:44px;padding:12px;border:1px solid color-mix(in srgb,var(--cdh-gold) 40%,transparent);border-radius:50%;background:var(--cdh-card);color:var(--cdh-gold);transition:transform .2s}
 .cdh-more[open] .cdh-more__arrow{transform:rotate(180deg)}
@@ -369,7 +369,7 @@ html.neo-mode #cdHomeFunnel #cdTodayHub{--td-line:rgba(232,213,163,.62);--td-lin
 #cdHomeFunnel #cdTodayHub .cd-today__head{display:flex;flex-direction:column;align-items:center}
 .cd-today__art{display:block;width:var(--td-art-w);height:calc(var(--td-art-w)*.8);margin:0 auto 14px;padding:5px;border-radius:calc(var(--td-art-w)/2) calc(var(--td-art-w)/2) 20px 20px;background:linear-gradient(180deg,var(--td-face-top),var(--td-track));box-shadow:0 0 0 1px var(--td-line),0 16px 30px -18px var(--td-shadow)}
 .cd-today__art img{display:block;width:100%;height:100%;object-fit:cover;object-position:50% 48%;border-radius:calc(var(--td-art-w)/2 - 5px) calc(var(--td-art-w)/2 - 5px) 15px 15px;background:transparent!important}
-html body #cdHomeFunnel #cdTodayHub .cd-today__date{gap:10px;font-family:"CodeDestinySerifLatin","CodeDestinySerifKR","Nanum Myeongjo","Noto Serif KR",serif;font-weight:700;letter-spacing:.06em;color:var(--td-gold-ink)}
+html body #cdHomeFunnel #cdTodayHub .cd-today__date{gap:10px;font-family:var(--font-display);font-weight:700;letter-spacing:.06em;color:var(--td-gold-ink)}
 html body #cdHomeFunnel #cdTodayHub .cd-today__date:before,html body #cdHomeFunnel #cdTodayHub .cd-today__date:after{content:"";flex:0 0 22px;height:1px;background:var(--td-line)}
 #cdHomeFunnel #cdTodayHub .cd-today__tabs{padding:5px;border:1px solid var(--td-line-soft);border-radius:999px;background:var(--td-track)}
 #cdHomeFunnel #cdTodayHub .cd-today__tab{border-radius:999px}
@@ -393,9 +393,9 @@ html.neo-mode #cdHomeFunnel #cdTodayHub .cd-today__pig{box-shadow:0 0 0 2px #f4e
    데스크톱에서 가짜 굵게가 됐다. 본문·카드 소제목(h3)은 기기 글꼴 그대로, 히어로 h1 은 손대지 않는다.
    🔴 #inputPage … .moon-section-head h2{font-family:var(--font-display)!important} 를 이겨야 해서 id 두 개 + !important.
    🔴 전역 *{font-family:var(--font-body)} 때문에 제목 안 번역 span 은 상속을 못 받는다 — span 도 직접 지정한다. */
-html body #inputPage #cdHomeFunnel :is(#cdhServicesTitle,#cdConcernPickTitle,#fortuneGatewayTitle,#cdQuickTitle,#cdhPassTitle,#cdDiaryPlannerTitle,#cdhExploreTitle,#cdPressTitle,#cdhRecordsTitle,#cdHomeGuideTitle,#cdFeedbackGateTitle,.cd-reviews__title,.cd-review-invite__copy h2,.feat-collection__title,.tarot-collection__title,:is(#fortuneGatewayTitle,#cdDiaryPlannerTitle)>span){font-family:"CodeDestinySerifKR","CodeDestinySerifLatin","Nanum Myeongjo","Noto Serif KR",serif!important;font-weight:700!important;font-synthesis-weight:none}
+html body #inputPage #cdHomeFunnel :is(#cdhServicesTitle,#cdConcernPickTitle,#fortuneGatewayTitle,#cdQuickTitle,#cdhPassTitle,#cdDiaryPlannerTitle,#cdhExploreTitle,#cdPressTitle,#cdhRecordsTitle,#cdHomeGuideTitle,#cdFeedbackGateTitle,.cd-reviews__title,.cd-review-invite__copy h2,.feat-collection__title,.tarot-collection__title,:is(#fortuneGatewayTitle,#cdDiaryPlannerTitle)>span){font-family:var(--font-display)!important;font-weight:700!important;font-synthesis-weight:none}
 /* 영문 키커는 Cinzel — 한글이 섞이면 그 글자만 본문 글꼴로 떨어진다. */
-html body #inputPage #cdHomeFunnel :is(.moon-section-kicker,.fortune-gateway__door-kicker,.moon-music-entry__kicker,.moon-story-entry__kicker){font-family:"CodeDestinySerifLatin",var(--font-body,sans-serif)!important;font-weight:700;letter-spacing:.14em!important}
+html body #inputPage #cdHomeFunnel :is(.moon-section-kicker,.fortune-gateway__door-kicker,.moon-music-entry__kicker,.moon-story-entry__kicker){font-family:var(--font-display)!important;font-weight:700;letter-spacing:.14em!important}
 .cdh-ask{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin-top:22px;padding-top:18px;border-top:1px solid var(--cdh-line)}.cdh-ask__title{flex:1 1 100%;color:var(--cdh-ink);font-size:.95rem;font-weight:760;word-break:keep-all}.cdh-ask__meta{color:var(--cdh-muted);font-size:.78rem}
 @media (max-width:640px){.cdh-ask{display:grid;gap:8px;margin-top:14px;padding-top:12px}.cdh-ask__title{font-size:.86rem}.cdh-ask__meta{font-size:.72rem;text-align:center}}
 /* 계정 시트(cd-account-sheet-v20261002) — js/core/shell-sheet.js 가 body 직속 <dialog> 를 showModal 로 띄운다.
@@ -511,7 +511,7 @@ html.neo-mode #cdHomeFunnel #cdTodayHub .cd-today__tarot{border-color:#c4b5fd;co
 }
 #cdHomeFunnel .cd-concern__q-title{
   padding-right:14px;
-  font-family:"CodeDestinySerifKR","Nanum Myeongjo","Gowun Batang",serif;
+  font-family:var(--font-display);
   font-size:1.08rem;
   font-weight:700;
   line-height:1.45;
@@ -609,10 +609,10 @@ html.neo-mode .cd-af,body.neo-mode .cd-af{--cd-af-ink:#f4eeff;--cd-af-muted:#d8c
 /* 다크 모드도 같은 달빛 꽃정원이다 — 자두·와인빛 밤 버전. */
 html.neo-mode .cdh-hero { --cdh-scene-image: url('/images/home/illustrated/yeoni-moon-garden-night-1280.webp'); }
 #cdHomeFunnel .cdh-scene-copy { position: relative; z-index: 2; }
-#cdHomeFunnel .cdh-scene-copy h1 { font-family: "CodeDestinySerifKR", "Batang", serif; font-size: clamp(30px, 3.6vw, 52px); font-weight: 700; line-height: 1.5; letter-spacing: -.025em; color: var(--cdh-ink); word-break: keep-all; }
+#cdHomeFunnel .cdh-scene-copy h1 { font-family: var(--font-display); font-size: clamp(30px, 3.6vw, 52px); font-weight: 700; line-height: 1.5; letter-spacing: -.025em; color: var(--cdh-ink); word-break: keep-all; }
 #cdHomeFunnel .cdh-scene-copy h1 span { font-family: inherit; font-weight: inherit; }
 #cdHomeFunnel .cdh-scene-copy h1 [data-cd-trans="home.gardenCopy.heroTitleEm"] { color: var(--cdh-muted); }
-#cdHomeFunnel .cdh-scene-inscription { display:flex; align-items:center; gap:16px; margin:0 0 22px; font-family:"CodeDestinySerifKR", "Batang", serif; font-size:14px; line-height:1.7; letter-spacing:.18em; color:var(--cdh-gold); }
+#cdHomeFunnel .cdh-scene-inscription { display:flex; align-items:center; gap:16px; margin:0 0 22px; font-family:var(--font-display); font-size:14px; line-height:1.7; letter-spacing:.18em; color:var(--cdh-gold); }
 .cdh-scene-inscription::after { content:""; width:72px; height:1px; background:var(--cd-yehwa-line); }
 #cdHomeFunnel .cdh-scene-lead { max-width:38em; margin: 20px 0 28px; font-size: 16px; line-height:1.8; color: var(--cdh-ink); word-break:keep-all; }
 .cdh-scene-actions { display:flex; flex-wrap:wrap; gap:14px; }
@@ -687,7 +687,7 @@ html.neo-mode #cdHomeFunnel { --cdh-page-art: url('/images/home/illustrated/moon
 #cdHomeFunnel .cdh-chemi::after { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, #120b26 0%, #120b26 34%, rgba(18,11,38,.72) 52%, rgba(18,11,38,.12) 100%); }
 .cdh-chemi__copy { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; max-width: 420px; padding: 24px 28px; }
 .cdh-chemi__copy em { color: #ffd98a; font-size: 12px; font-style: normal; font-weight: 800; letter-spacing: .14em; }
-.cdh-chemi__copy strong { color: #fff; font-family: 'CodeDestinySerifKR',serif; font-size: 26px; line-height: 1.4; word-break: keep-all; }
+.cdh-chemi__copy strong { color: #fff; font-family: var(--font-display); font-size: 26px; line-height: 1.4; word-break: keep-all; }
 .cdh-chemi__copy small { color: #e4dcf3; font-size: 13px; line-height: 1.6; word-break: keep-all; }
 .cdh-chemi__go { display: inline-flex; align-items: center; min-height: 48px; margin-top: 8px; padding: 0 18px; border-radius: 999px; background: #ffd98a; color: #1a1030; font-size: 14px; font-weight: 800; }
 #cdHomeFunnel .cdh-chemi:focus-visible { outline: 2px solid #9fe3ff; outline-offset: 3px; }
@@ -703,7 +703,7 @@ html.neo-mode #cdHomeFunnel { --cdh-page-art: url('/images/home/illustrated/moon
 .cdh-author__portrait{flex:none;width:80px}
 #cdHomeFunnel .cdh-author__portrait img{display:block;width:100%;height:auto;object-fit:contain}
 .cdh-author__copy{min-width:0}
-#cdHomeFunnel .cdh-author h2{font-family:var(--font-serif,"CodeDestinySerifKR",serif);font-size:var(--cd-t-card);font-weight:600;line-height:1.5;text-wrap:balance}
+#cdHomeFunnel .cdh-author h2{font-family:var(--font-display);font-size:var(--cd-t-card);font-weight:600;line-height:1.5;text-wrap:balance}
 .cdh-author__lead{max-width:65ch;margin-top:var(--cd-sp-sm)!important;color:var(--cdh-muted);font-size:var(--cd-t-body);line-height:1.8;word-break:keep-all}
 .cdh-author__experience{display:flex;flex-wrap:wrap;gap:var(--cd-sp-sm) var(--cd-sp-lg);margin:var(--cd-sp-md) 0;padding:0;list-style:none}
 .cdh-author__experience li{font-size:var(--cd-t-caption);line-height:1.8;color:var(--cdh-muted);word-break:keep-all}
@@ -721,7 +721,7 @@ html.neo-mode #cdHomeFunnel { --cdh-page-art: url('/images/home/illustrated/moon
 @media(max-width:520px){#cdHomeFunnel .cdh-author{padding:var(--cd-sp-md)}.cdh-author__portrait{width:64px}.cdh-author__experience{gap:4px var(--cd-sp-md)}.cdh-author__reviews>div{grid-template-columns:minmax(0,1fr);gap:var(--cd-sp-md)}}
 #cdHomeFunnel .cdh-portal { position: relative; display: grid; grid-template-columns: minmax(0,1fr) 43%; min-height: 212px; overflow: hidden; border: 1px solid var(--cdh-line); border-radius: 18px; background: var(--cdh-card); box-shadow: 0 12px 32px -24px var(--cdh-ink); }
 .cdh-portal__copy { min-width: 0; position: relative; z-index: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 12px; padding: 28px; }
-.cdh-portal__copy strong { color: var(--cdh-ink); font-family: 'CodeDestinySerifKR',serif; font-size: 24px; line-height: 1.4; word-break: normal; overflow-wrap: anywhere; }
+.cdh-portal__copy strong { color: var(--cdh-ink); font-family: var(--font-display); font-size: 24px; line-height: 1.4; word-break: normal; overflow-wrap: anywhere; }
 .cdh-portal__copy small { color: var(--cdh-muted); font-size: 13px; line-height: 1.7; word-break: keep-all; }
 .cdh-portal__go { display: inline-flex; align-items: center; min-height: 44px; margin-top: auto; color: var(--cdh-accent); font-size: 13px; font-weight: 700; }
 .cdh-portal__art { position: relative; min-width: 0; overflow: hidden; border-radius: 90px 0 0 0; }
@@ -750,7 +750,7 @@ html body:has(#cdHomeFunnel) #inputPage :is(#cdAppInstall,#cdFinalCtaBand){displ
 :is(#emailSubBoxHome,#emailSubBox){position:relative;isolation:isolate;width:100%;max-width:760px;padding:32px clamp(22px,4vw,42px);border:1px solid var(--home-line);border-radius:22px;background:var(--home-paper);box-shadow:0 16px 40px -32px #49303f;transition:none;text-align:left;color:var(--home-ink)}
 :is(#emailSubBoxHome,#emailSubBox)::before{content:'';position:absolute;inset:8px;z-index:-1;border:1px solid color-mix(in srgb,var(--home-line) 55%,transparent);border-radius:16px;background:linear-gradient(90deg,var(--home-paper) 40%,transparent),var(--home-art) right top / 200px auto no-repeat;opacity:.45;pointer-events:none}
 :is(#emailSubBoxHome,#emailSubBox) .sub-header{margin-bottom:14px}
-:is(#emailSubBoxHome,#emailSubBox) .sub-title{font-family:'CodeDestinySerifKR',serif;font-size:clamp(19px,4.8vw,24px);line-height:1.5;color:var(--home-ink)!important;letter-spacing:-.025em}
+:is(#emailSubBoxHome,#emailSubBox) .sub-title{font-family:var(--font-display);font-size:clamp(19px,4.8vw,24px);line-height:1.5;color:var(--home-ink)!important;letter-spacing:-.025em}
 :is(#emailSubBoxHome,#emailSubBox) .sub-desc{max-width:54ch;margin-bottom:20px;color:var(--home-muted);font-size:14px;line-height:1.75}
 :is(#emailSubBoxHome,#emailSubBox) .sub-daily-group{max-width:none;margin:0 0 18px;gap:4px;align-items:flex-start;text-align:left}
 :is(#emailSubBoxHome,#emailSubBox) .sub-daily-option{color:var(--home-ink);font-size:14px;min-height:44px;font-weight:600}
@@ -763,7 +763,7 @@ html body:has(#cdHomeFunnel) #inputPage :is(#cdAppInstall,#cdFinalCtaBand){displ
 :is(#emailSubBoxHome,#emailSubBox) :is(input,button):focus-visible{outline:2px solid var(--home-gold);outline-offset:3px}
 #cdSiteFooter{background:var(--home-paper);color:var(--home-ink)}
 #cdSiteFooter .cd-footer-byline{padding-top:28px;border-top:1px solid var(--home-line)}
-#cdSiteFooter .cd-footer-byline strong{font-family:'CodeDestinySerifKR',serif;color:var(--home-gold)}
+#cdSiteFooter .cd-footer-byline strong{font-family:var(--font-display);color:var(--home-gold)}
 #cdSiteFooter .cd-footer-legal{padding:8px 28px 24px;gap:12px 16px}
 @media(max-width:640px){
   :is(#emailSubBoxHome,#emailSubBox) .sub-form{flex-direction:column}
@@ -782,7 +782,7 @@ html body:has(#cdHomeFunnel) #inputPage :is(#cdAppInstall,#cdFinalCtaBand){displ
 }
 #cdHomeFunnel .cdh-public-bridge::before{content:"";position:absolute;inset:7px;z-index:-1;border:1px solid color-mix(in srgb,var(--cdh-gold) 14%,transparent);border-radius:calc(var(--cd-r-card) - 7px);pointer-events:none}
 #cdHomeFunnel .cdh-public-bridge::after{content:"";position:absolute;right:16px;bottom:4px;z-index:-1;width:110px;height:60px;background:var(--cdh-gold);opacity:.12;pointer-events:none;-webkit-mask:var(--cd-yehwa-mask-branch-spray) center/contain no-repeat;mask:var(--cd-yehwa-mask-branch-spray) center/contain no-repeat}
-#cdHomeFunnel .cdh-public-bridge strong{grid-column:2;min-width:0;font-family:var(--font-serif,"CodeDestinySerifKR",serif);font-size:var(--cd-t-card);font-weight:700;line-height:1.6;letter-spacing:-.025em;word-break:keep-all;overflow-wrap:anywhere;text-wrap:balance}
+#cdHomeFunnel .cdh-public-bridge strong{grid-column:2;min-width:0;font-family:var(--font-display);font-size:var(--cd-t-card);font-weight:700;line-height:1.6;letter-spacing:-.025em;word-break:keep-all;overflow-wrap:anywhere;text-wrap:balance}
 #cdHomeFunnel .cdh-public-bridge__seal{grid-column:1;grid-row:1/3;width:44px;height:44px;background:var(--cdh-gold);-webkit-mask:var(--cd-yehwa-mask-seal) center/contain no-repeat;mask:var(--cd-yehwa-mask-seal) center/contain no-repeat}
 #cdHomeFunnel .cdh-public-bridge__detail{grid-column:2;color:var(--cdh-muted);font-size:var(--cd-t-body);line-height:1.6}
 #cdHomeFunnel .cdh-public-bridge__arrow{grid-column:3;grid-row:1/3;align-self:center;color:var(--cdh-gold)}
@@ -794,12 +794,12 @@ html body:has(#cdHomeFunnel) #inputPage :is(#cdAppInstall,#cdFinalCtaBand){displ
 
 /* Reading entrances stay visible outside the collapsed service catalogue. */
 .cdh-reading{max-width:960px;margin:var(--cd-sp-xl,32px) auto;padding:var(--cd-sp-lg,24px);border-top:1px solid var(--cdh-line)}
-.cdh-reading>h2{font-family:"CodeDestinySerifKR",var(--font-premium,serif);margin-bottom:var(--cd-sp-lg,24px)}
+.cdh-reading>h2{font-family:var(--font-display);margin-bottom:var(--cd-sp-lg,24px)}
 .cdh-reading__grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:var(--cd-sp-lg,24px)}
 .cdh-reading__story{display:flex;min-width:0;flex-direction:column;overflow:hidden;border:1px solid var(--cdh-line);border-radius:var(--cd-r-card,20px);background:var(--cdh-card)}
 .cdh-reading__story>img{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover}
 .cdh-reading__copy{display:flex;flex:1;flex-direction:column;align-items:flex-start;gap:var(--cd-sp-sm,12px);padding:var(--cd-sp-lg,24px)}
-.cdh-reading__copy h3{font-family:"CodeDestinySerifKR",var(--font-premium,serif);font-size:var(--cd-t-h3,1.4rem)}
+.cdh-reading__copy h3{font-family:var(--font-display);font-size:var(--cd-t-h3,1.4rem)}
 .cdh-reading__copy p{color:var(--cdh-muted);font-size:var(--cd-t-body,1rem);line-height:1.7;word-break:keep-all}
 /* 추천 순서의 세 주력 입구. 상세/결제 컨트롤은 기존 카드를 그대로 사용한다. */
 .cdh-fusion-recommendation .cd-sig-card{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);width:100%;max-width:none}
@@ -888,7 +888,7 @@ html.neo-mode #cdHomeFunnel{--cdh-moon-art:url('/images/home/illustrated/moon-fl
 .cdh .cdh-neo-letter{display:grid;grid-template-columns:minmax(0,1fr);gap:0;position:relative;margin:32px 0;padding:0;background:var(--cd-neo-letter-night);color:var(--cd-neo-letter-paper);border:1px solid var(--cd-neo-letter-line);border-radius:var(--cd-r-section);overflow:hidden}
 .cdh .cdh-neo-letter__art{display:block;min-width:0;line-height:0}.cdh .cdh-neo-letter__art img{display:block;width:100%;height:auto;aspect-ratio:3/2;object-fit:contain}
 .cdh .cdh-neo-letter__copy{min-width:0;padding:clamp(22px,3vw,32px)}
-.cdh .cdh-neo-letter h2{color:var(--cd-neo-letter-paper);font-family:var(--font-serif,'Noto Serif KR',serif);font-size:clamp(26px,3vw,34px);font-weight:600;letter-spacing:-.03em;line-height:1.4;margin:0 0 14px}
+.cdh .cdh-neo-letter h2{color:var(--cd-neo-letter-paper);font-family:var(--font-display);font-size:clamp(26px,3vw,34px);font-weight:600;letter-spacing:-.03em;line-height:1.4;margin:0 0 14px}
 .cdh .cdh-neo-letter p{color:var(--cd-neo-letter-silver);font-size:1rem;line-height:1.75;margin:12px 0}
 .cdh .cdh-neo-letter .cdh-neo-letter__method{margin:0 0 8px;color:var(--cd-neo-letter-gold);font-size:.875rem;font-weight:600}
 .cdh .cdh-neo-letter .cdh-neo-letter__price{margin:20px 0 0;font-variant-numeric:tabular-nums;color:var(--cd-neo-letter-gold);font-weight:600}
@@ -1031,17 +1031,18 @@ html.neo-mode .cdh,body.neo-mode .cdh{--cdh-glass-line:color-mix(in srgb,var(--c
 
 /* 2026-10-17 "직관성" 단순 홈: 짧은 히어로 → 대표 상담 덱 → 무료 세 장 → 이용권 → 모든 운세 버튼 → 링크 한 줄.
  * 채움 버튼은 히어로 "대표 상담 고르기" 하나다. 나머지는 라인·텍스트로 위계를 낮춘다. */
-/* 헤더 한 줄: 모바일은 테마 이름을 숨기되, 2개의 선 아이콘과 선택 썸은 충분히 크게 유지한다. */
+/* 모바일 헤더는 두 줄로 배치한다. 동적 도움말·테마·언어 도구의 자리를 첫 페인트부터 확보한다. */
 @media(max-width:640px){
-  #cdHomeFunnel .cdh-top{grid-template-columns:minmax(max-content,1fr) auto auto;align-items:center;gap:6px;padding-inline:12px}
+  #cdHomeFunnel .cdh-top{grid-template-columns:minmax(0,1fr) auto;grid-template-rows:44px 48px;align-items:center;gap:6px;padding-inline:12px}
   #cdHomeFunnel .cdh-brand{min-width:max-content;gap:8px}
-  #cdHomeFunnel .cdh-top .cdh-nav{grid-column:2;grid-row:1}
-  #cdHomeFunnel .cdh-top .cdh-tools{grid-column:3;grid-row:1}
+  #cdHomeFunnel .cdh-top .cdh-nav{grid-column:2;grid-row:1;min-width:124px;justify-content:flex-start}
+  #cdHomeFunnel .cdh-top .cdh-tools{grid-column:1/-1;grid-row:2;justify-self:stretch;justify-content:space-between;min-height:48px}
+  #cdHomeFunnel #cdhLanguageSlot{width:110px;min-width:110px;min-height:48px}
   #cdHomeFunnel .cdh-brand small{display:none}
   #cdHomeFunnel .cdh-account-btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px 12px;border:1px solid color-mix(in srgb,var(--cdh-accent) 38%,transparent);border-radius:13px;color:var(--cdh-accent);font-size:.82rem;font-weight:800;line-height:1;white-space:nowrap}
   #cdHomeFunnel .cdh-account-btn[data-auth="member"]{border-color:#b53660;background:#b53660;color:#fff;box-shadow:0 6px 16px -10px rgba(181,54,96,.7)}
   #cdHomeFunnel .cdh-account-btn[data-auth="member"]:hover{background:#972647}
-  #cdHomeFunnel #cdhThemeSlot{width:96px;min-width:96px;max-width:96px;--cdh-toggle-padding:2px;--cdh-toggle-radius:15px;--cdh-toggle-background:color-mix(in srgb,var(--cdh-card) 88%,var(--cdh-gold-soft))}
+  #cdHomeFunnel #cdhThemeSlot{width:96px;min-width:96px;max-width:96px;min-height:48px;--cdh-toggle-padding:2px;--cdh-toggle-radius:15px;--cdh-toggle-background:color-mix(in srgb,var(--cdh-card) 88%,var(--cdh-gold-soft))}
   #cdHomeFunnel #cdhThemeSlot .theme-switch-wrapper--appbar{width:96px!important;min-width:96px!important}
   #cdHomeFunnel #cdhThemeSlot .theme-switch-pill:before{top:2px!important;bottom:2px!important;left:2px!important;width:calc(50% - 2px)!important;border-radius:11px!important;background:var(--cdh-surface)!important;box-shadow:inset 0 0 0 1.5px var(--cdh-accent),0 3px 9px -5px rgba(181,54,96,.5)!important}
   #cdHomeFunnel #cdhThemeSlot .tsp-name{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;clip-path:inset(50%)!important;white-space:nowrap!important}
@@ -1296,7 +1297,7 @@ html body:has(#cdHomeFunnel) #inputPage{padding-bottom:0!important}
 #cdHomeFunnel .cdh-fusion-sig__art:hover img{transform:scale(1.03)}
 #cdHomeFunnel .cdh-fusion-sig__body{display:grid;gap:14px;min-width:0}
 #cdHomeFunnel .cdh-fusion-sig__eyebrow{color:var(--cdh-gold);font-family:var(--font-body);font-size:var(--cd-t-caption);font-weight:800;letter-spacing:.06em}
-#cdHomeFunnel .cdh-fusion-sig__title{font-family:"CodeDestinySerifKR",var(--font-premium,serif);font-size:clamp(1.8rem,3.2vw,2.6rem)}
+#cdHomeFunnel .cdh-fusion-sig__title{font-family:var(--font-display);font-size:clamp(1.8rem,3.2vw,2.6rem)}
 #cdHomeFunnel .cdh-fusion-sig__lead{color:var(--cdh-muted);line-height:1.75}
 #cdHomeFunnel .cdh-fusion-sig__masters{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:0;padding:0;list-style:none}
 #cdHomeFunnel .cdh-fusion-sig__masters li{display:grid;justify-items:center;gap:6px;min-width:0;text-align:center}
@@ -1304,7 +1305,7 @@ html body:has(#cdHomeFunnel) #inputPage{padding-bottom:0!important}
 #cdHomeFunnel .cdh-fusion-sig__masters a{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;text-decoration:none}
 #cdHomeFunnel .cdh-fusion-sig__masters a:hover{box-shadow:0 0 0 3px var(--cdh-gold-soft)}
 #cdHomeFunnel .cdh-fusion-sig__masters span{display:grid;gap:2px;min-width:0}
-#cdHomeFunnel .cdh-fusion-sig__masters b{font-family:"CodeDestinySerifKR",serif;font-size:.9rem}
+#cdHomeFunnel .cdh-fusion-sig__masters b{font-family:var(--font-display);font-size:.9rem}
 #cdHomeFunnel .cdh-fusion-sig__masters small{color:var(--cdh-muted);font-size:.7rem;line-height:1.4;word-break:keep-all}
 #cdHomeFunnel .cdh-fusion-sig__chips{display:grid;gap:8px}
 #cdHomeFunnel .cdh-fusion-sig__chips p{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
@@ -1326,7 +1327,7 @@ html.neo-mode #cdHomeFunnel .cdh-fusion-sig__cta b,body.neo-mode #cdHomeFunnel .
 #cdHomeFunnel .cdh-other{margin:clamp(32px,4vw,52px) 40px 0}
 #cdHomeFunnel .cdh-qcat{max-width:none;margin:0;padding:0}
 #cdHomeFunnel .cdh-qcat__head{display:grid;justify-items:center;gap:12px;margin:0 0 18px;text-align:center}
-#cdHomeFunnel .cdh-qcat__title{font-family:"CodeDestinySerifKR",var(--font-premium,serif);font-size:clamp(1.4rem,2.4vw,1.9rem)}
+#cdHomeFunnel .cdh-qcat__title{font-family:var(--font-display);font-size:clamp(1.4rem,2.4vw,1.9rem)}
 #cdHomeFunnel .cdh-qcat__voice{display:inline-flex;align-items:center;gap:10px;margin:0;text-align:left}
 #cdHomeFunnel .cdh-qcat__voice img{width:40px;height:40px;border-radius:50%;object-fit:cover;background:var(--cdh-gold-soft);box-shadow:0 0 0 1px color-mix(in srgb,var(--cdh-gold) 55%,transparent)}
 #cdHomeFunnel .cdh-qcat__voice>span{position:relative;display:grid;gap:1px;padding:8px 14px;border:1px solid color-mix(in srgb,var(--cdh-gold) 30%,var(--cdh-line));border-radius:4px 16px 16px 16px;background:var(--cdh-card);font-size:.92rem;line-height:1.45}
@@ -1335,7 +1336,7 @@ html.neo-mode #cdHomeFunnel .cdh-fusion-sig__cta b,body.neo-mode #cdHomeFunnel .
 #cdHomeFunnel .cd-concern__card{position:relative;display:grid;grid-template-rows:auto auto auto;gap:3px;padding:0 0 12px;overflow:hidden;border:1px solid color-mix(in srgb,var(--cdh-gold) 26%,var(--cdh-line));border-radius:16px;background:var(--cdh-card);color:var(--cdh-ink);box-shadow:none;transform:none;transition:border-color .2s ease,box-shadow .2s ease}
 #cdHomeFunnel .cd-concern__card-media{aspect-ratio:16/9;background:var(--cdh-gold-soft)}
 #cdHomeFunnel .cd-concern__card-media img{background:none}
-#cdHomeFunnel .cd-concern__card-label{margin:6px 14px 0;font-family:"CodeDestinySerifKR",serif;font-size:1rem;font-weight:700}
+#cdHomeFunnel .cd-concern__card-label{margin:6px 14px 0;font-family:var(--font-display);font-size:1rem;font-weight:700}
 #cdHomeFunnel .cd-concern__card-desc{margin:0 14px;color:var(--cdh-muted);font-size:.76rem}
 #cdHomeFunnel .cd-concern__card[aria-expanded="true"]{background:var(--cdh-card);color:var(--cdh-ink);border-color:var(--cdh-gold);box-shadow:inset 0 0 0 1px var(--cdh-gold),0 14px 30px -24px color-mix(in srgb,var(--cdh-gold) 80%,transparent);transform:none}
 #cdHomeFunnel .cd-concern__card[aria-expanded="true"] .cd-concern__card-desc{color:var(--cdh-muted)}
@@ -1506,11 +1507,14 @@ html.neo-mode #cdHomeFunnel .cdh-scene-art #honeypigLogo{box-shadow:none!importa
 @media(max-width:380px){.cdh-cal{padding:12px}.cdh-cal__board{gap:4px}.cdh-cal__day{min-height:42px}.cdh-cal__day img{width:20px;height:20px}}
 /* All-readings world exploration. These rules never style the main home or other finders. */
 #cdAllFortunes .cd-sheet__body,html body #cdMobileFortuneOverview{padding-top:0;scroll-padding-block-start:80px}
-#cdAllFortunesRoot{gap:20px;--cd-af-surface:var(--cd-surface,#fffaf7)}
+#cdAllFortunesRoot{gap:12px;--cd-af-surface:var(--cd-surface,#fffaf7)}
 #cdAllFortunesRoot .cd-af__search{position:sticky;top:0;z-index:3;padding:8px 0;background:var(--cd-af-surface);border-radius:0;isolation:isolate}
-#cdAllFortunesRoot .cd-af__search::before{content:"";position:absolute;inset:0 -20px;z-index:-1;background:var(--cd-af-surface);border-bottom:1px solid var(--cd-af-line);pointer-events:none}
+#cdAllFortunesRoot .cd-af__search::before{content:"";position:absolute;inset:0;z-index:-1;background:var(--cd-af-surface);border-bottom:1px solid var(--cd-af-line);pointer-events:none}
 #cdAllFortunesRoot .cd-af__clear{top:10px}
-#cdAllFortunesRoot .cd-af__explore{display:grid;gap:24px;min-width:0;padding:12px 0 24px;border-bottom:1px solid color-mix(in srgb,var(--cd-gold) 40%,var(--cd-af-line))}
+#cdAllFortunesRoot .cd-af__explore{min-width:0;padding:0 0 12px;border-bottom:1px solid var(--cd-af-line)}
+#cdAllFortunesRoot .cd-af__explore>summary{display:list-item;min-height:44px;align-content:center;color:var(--cd-af-accent);font-size:1rem;font-weight:700;cursor:pointer}
+#cdAllFortunesRoot .cd-af__explore>summary:focus-visible{outline:2px solid var(--cd-af-accent);outline-offset:2px}
+#cdAllFortunesRoot .cd-af__explore[open]>*+*{margin-top:16px}
 #cdAllFortunesRoot [hidden]{display:none!important}
 #cdAllFortunesRoot .cd-af__explore-heading h2{margin:0;color:var(--cd-af-ink);font:700 clamp(1.5rem,2.6vw,2rem)/1.5 "CodeDestinySerifKR",var(--font-premium,serif);text-wrap:balance;letter-spacing:-.025em}
 #cdAllFortunesRoot .cd-af__explore-heading p{margin:6px 0 0;color:var(--cd-af-muted);font-size:.9rem;line-height:1.6}
@@ -1674,3 +1678,8 @@ html.neo-mode #cdHomeFunnel .cdh-scene-art #honeypigLogo{box-shadow:none!importa
 #cdHomeFunnel #cdhQuestionSlot>.cdh-other{width:100%;margin-inline:0}
 
 @media(max-width:599px){#cdHomeFunnel .cdh-consult-browser .cd-soulcat-entry__actions{display:grid;grid-template-columns:minmax(0,1fr)}#cdHomeFunnel .cdh-consult-browser .cd-soulcat-entry__cta{box-sizing:border-box;min-width:0}}
+
+/* Keep pass discovery near the home introduction without changing checkout controls. */
+#cdHomeFunnel .cdh-nav{flex-wrap:wrap;gap:8px}
+#cdHomeFunnel .cdh-nav>a{border-radius:var(--cd-r-pill);min-height:44px}
+@media(max-width:640px){#cdHomeFunnel .cdh-top .cdh-nav{min-width:0;justify-content:flex-end}#cdHomeFunnel .cdh-nav>a{font-size:12px;padding-inline:8px}}

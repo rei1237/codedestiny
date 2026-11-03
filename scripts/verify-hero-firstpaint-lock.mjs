@@ -73,8 +73,18 @@ if (raw.includes('id="cdHomeFunnel"')) {
   const css = readFileSync(resolve(root, 'styles/home-funnel.css'), 'utf8');
   const link = raw.indexOf('href="/styles/home-funnel.css');
   assert(link > 0 && link < raw.indexOf('id="cdHomeFunnel"'), 'Home styles must precede first paint');
-  // 2026-10-03 운세 정원 히어로: 원형 로고 대신 정원 그림(1536x1024). 크기 속성 + CSS 비율로 첫 페인트 자리를 고정한다.
-  assert.match(raw, /id="honeypigLogo"[^>]*srcset="[^"]*yeoni-character-480\.webp 480w[^"]*"[^>]*width="1280" height="1280" fetchpriority="high"/);
+  // 승인된 반응형 연이 이미지: 최대 srcset 자산과 선언 크기를 대조해 첫 페인트 비율을 보장한다.
+  assert.match(raw, /id="honeypigLogo"[^>]*srcset="[^"]*yeoni-character-480\.webp 480w[^"]*"[^>]*width="800" height="800" fetchpriority="high"/);
+  const sharp = (await import('sharp')).default;
+  const heroImage = raw.match(/<img\b[^>]*id="honeypigLogo"[^>]*>/)?.[0];
+  assert.ok(heroImage, 'Hero image must exist');
+  const candidates = heroImage.match(/srcset="([^"]+)"/)?.[1].split(',').map(value => value.trim().split(/\s+/));
+  assert.ok(candidates?.length, 'Hero must have responsive image candidates');
+  for (const [src, descriptor] of candidates) {
+    const metadata = await sharp(resolve(root, 'public', src.replace(/^\//, ''))).metadata();
+    assert.equal(descriptor, metadata.width + 'w', 'Responsive descriptor must match asset width');
+    assert.equal(metadata.width, metadata.height, 'Hero candidates must preserve square geometry');
+  }
   // 2026-10-13 네오 사자 히어로는 없어졌다. 다크 모드도 연이가 맞는다 — 되살아나지 않게 막는다.
   assert.doesNotMatch(raw, /data-character="neo"|neo-character-/);
   assert.equal((raw.match(/<link rel="preload" as="image"/g) || []).length, 1, 'Only the shared hero/payment art is preloaded');
@@ -82,8 +92,12 @@ if (raw.includes('id="cdHomeFunnel"')) {
   assert.doesNotMatch(css, /(?:min-)?height:\s*100(?:d|s)?vh/);
   assert.match(css, /\.cdh-scene-art img\s*\{[^}]*width:\s*100%[^}]*aspect-ratio:\s*1[^}]*object-fit:\s*contain/);
   assert.doesNotMatch(css, /html\.neo-mode #cdHomeFunnel \.cdh-persona--yeoni\s*\{\s*display:\s*none/, 'dark mode keeps Yeoni visible');
-  // 2026-10-15 승인된 명조 히어로: 모바일에서도 문구·버튼 아래 캐릭터 공간을 미리 확보한다.
-  assert.match(css, /\.cdh-hero\s*\{[^}]*grid-template-columns:\s*minmax\(0,1fr\)[^}]*min-height:\s*440px/, 'mobile hero reserves approved stacked geometry');
+  const yehwaCss = readFileSync(resolve(root, 'styles/yehwa-home.css'), 'utf8');
+  const yehwaLink = raw.indexOf('href="/styles/yehwa-home.css');
+  assert(yehwaLink > 0 && yehwaLink < raw.indexOf('class="yh-hero"'), 'Yehwa styles must precede hero markup');
+  assert.match(yehwaCss, /\.yh-art img\s*\{[^}]*width:\s*100%[^}]*aspect-ratio:\s*1[^}]*object-fit:\s*contain/, 'hero image reserves square geometry');
+  assert.match(yehwaCss, /\.yh-hero\s*\{[^}]*grid-template-columns:1\.2fr 1fr[^}]*min-height:280px/, 'desktop hero reserves approved geometry');
+  assert.match(yehwaCss, /@media\(max-width:600px\)\{\.yh-hero\{[^}]*grid-template-columns:minmax\(0,1\.45fr\) minmax\(0,1fr\)/, 'mobile hero preserves adjacent copy and art');
   assert.match(css, /\.cdh\s*\{[^}]*width:\s*min\(100%,\s*1280px\)/, 'responsive desktop canvas');
   assert.ok(!css.includes('max-width:430px'), 'legacy fixed mobile canvas is removed');
   // 2026-10-03 운세 정원 개편: 신뢰 칩·말풍선은 첫 화면 중복 장식이라 코드째 지웠다 — 되살아나지 않게 막는다.

@@ -18,6 +18,7 @@ interface CodexArtworkProps {
 /** A failed request keeps its frame and accessible name without showing broken-image text. */
 export default function CodexArtwork({ src, alt, width, height, sizes, className = "", priority = false }: CodexArtworkProps) {
   const [failed, setFailed] = useState(false);
+  const responsiveHero = src === "/images/service-introductions/master-love-codex-960.webp";
 
   return (
     <span className={`${styles.artwork} ${className}`} role={failed ? "img" : undefined} aria-label={failed ? alt : undefined}>
@@ -25,6 +26,8 @@ export default function CodexArtwork({ src, alt, width, height, sizes, className
         <span className={styles.artworkFallback} aria-hidden="true">
           <BookOpen size={42} strokeWidth={1} />
         </span>
+      ) : responsiveHero ? (
+        <img src={src} srcSet="/images/service-introductions/master-love-codex-320.webp 320w, /images/service-introductions/master-love-codex-640.webp 640w, /images/service-introductions/master-love-codex-960.webp 960w" alt={alt} width={width} height={height} sizes={sizes} loading={priority ? "eager" : "lazy"} fetchPriority={priority ? "high" : undefined} decoding="async" onError={() => setFailed(true)} />
       ) : (
         <Image
           src={src}

@@ -12,17 +12,9 @@ import TarotCardArt from './TarotCardArt';
 import styles from '../yeongnyangi.module.css';
 import relationshipStyles from './relationship.module.css';
 
-type Stage='focus'|'shuffle'|'choose'|'reveal'|'reading';
-type Stored={stage:Stage;selected:number[];revealed:number;completed?:boolean};
-const stages:Stage[]=['focus','shuffle','choose','reveal','reading'];
-const key=(id:string)=>`cd:yn:tarot-ritual:v1:${id}`;
-function stored(id:string):Stored|null{
- try{const value=JSON.parse(localStorage.getItem(key(id))||'null');return value&&stages.includes(value.stage)&&Array.isArray(value.selected)&&Number.isInteger(value.revealed)?value:null;}catch{return null;}
-}
-export function tarotRitualCompleted(id:string){return stored(id)?.completed===true;}
-// The v3 spread reveal keeps its progress under the same key, so the result page's ritual gate reads both.
-export {stored as storedRitual,save as saveRitual};
-function save(id:string,value:Stored){try{localStorage.setItem(key(id),JSON.stringify(value));}catch{/* The saved cards stay on the server; storage only remembers presentation progress. */}}
+import {storedRitual as stored,saveRitual as save,type TarotRitualStage as Stage} from '../_lib/tarot-presentation-state';
+// Keep existing import paths for consumers of the original presentation helpers.
+export {storedRitual,saveRitual,tarotRitualCompleted} from '../_lib/tarot-presentation-state';
 function chime(){
  try{
   const AudioCtor=window.AudioContext||(window as typeof window&{webkitAudioContext?:typeof AudioContext}).webkitAudioContext;

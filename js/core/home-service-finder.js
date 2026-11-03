@@ -159,7 +159,8 @@
     ["결혼", "배우자", "혼인", "결혼운"],
     ["재회", "다시만남", "헤어진"],
     ["궁합", "케미", "상성"],
-    ["연애", "사랑", "썸", "인연"],
+    ["연애", "사랑", "썸", "인연", "남친", "여친", "남자친구", "여자친구"],
+    ["신년", "새해", "올해", "내년", "연간운세"],
     ["자미두수", "자미", "紫微"],
     ["숙요점", "숙요", "27수", "이십칠수"],
     ["베다점", "베다", "나크샤트라", "인도점성술"],
@@ -181,6 +182,20 @@
       });
     });
     return out;
+  }
+
+  // Only a fixed public intent code leaves this component, never the typed query.
+  function searchIntent(query) {
+    var value = norm(query);
+    if (!value) return "all";
+    if (/신년|새해|올해|내년|연간/.test(value)) return "yearly";
+    if (/남친|여친|남자친구|여자친구|연애|사랑|썸|재회|인연/.test(value)) return "love";
+    if (/궁합|케미|상성|인간관계/.test(value)) return "relationship";
+    if (/돈|재물|금전|사업|재정|재테크/.test(value)) return "money";
+    if (/이직|취업|직장|진로|퇴사|커리어|직업/.test(value)) return "career";
+    if (/상담|질문|영냥이/.test(value)) return "consultation";
+    if (/사주|타로|자미|숙요|베다|점성|별자리|만세력/.test(value)) return "method";
+    return "unknown";
   }
 
   var BUCKET_ORDER = ["free", "low", "mid", "high", "premium", "vvip"];
@@ -231,6 +246,7 @@
       name: item.name,
       question: item.question || "",
       desc: item.desc || "",
+      resultFormat: item.resultFormat || "",
       href: item.href || "",
       action: item.action || "",
       dedupeHref: item.dedupeHref || "",
@@ -248,7 +264,9 @@
       image: item.image || "",
       imageAlt: item.imageAlt || (item.name ? item.name + " 대표 이미지" : "운세 서비스 대표 이미지"),
       tagged: true,
-      hay: norm([item.name, item.question, item.desc, item.price, item.keys].join(" "))
+      hay: norm([item.name, item.question, item.desc, item.price, item.keys,
+        (item.purposes || []).map(function (purpose) { return PURPOSE_LABEL[purpose] ? PURPOSE_LABEL[purpose].label : ''; }).join(' ')
+      ].join(" "))
     };
   });
 
@@ -498,7 +516,18 @@
   }
 
   var catalogue = null;
+  var sourceObserver = null;
+  function invalidateSources(records) {
+    var selector = TILE_CLASS_SELECTOR + ',.feat-collection,.tarot-collection';
+    var changed = records.some(function (record) {
+      if (record.target instanceof Element && record.target.closest('[data-cd-finder-results]')) return false;
+      return Array.prototype.some.call(record.addedNodes, isSource) || Array.prototype.some.call(record.removedNodes, isSource);
+    });
+    function isSource(node) { return node instanceof Element && (node.matches(selector) || !!node.querySelector(selector)); }
+    if (changed) { catalogue = null; featureImageIndex = null; }
+  }
   function ensureCatalogue() {
+    if (sourceObserver) invalidateSources(sourceObserver.takeRecords());
     if (catalogue) return catalogue;
     var known = Object.create(null);
     CURATED.forEach(function (item) {
@@ -523,6 +552,9 @@
     /* 기타 체계는 명시적으로 분류한다. 미분류 외부 타일도 검색/기타에서 접근은 보존한다. */
     var wantsEtc = methods.indexOf("etc") !== -1;
     var variants = queryVariants(query);
+    var terms = String(state.query || "").trim().split(/\s+/).filter(Boolean).map(function (term) {
+      return queryVariants(norm(term));
+    });
 
     return ensureCatalogue().filter(function (item) {
       if (state.region && state.region !== "all" && regionsOf(item).indexOf(state.region) === -1) return false;
@@ -534,7 +566,8 @@
       /* 항목이 걸치는 버킷 중 하나라도 선택된 칩과 겹치면 통과한다 — 범위 가격이
          시작가 버킷에만 갇히지 않게 하는 지점이다. */
       if (buckets.length && !item.buckets.some(function (b) { return buckets.indexOf(b) !== -1; })) return false;
-      if (query && !variants.some(function (v) { return item.hay.indexOf(v) !== -1; })) return false;
+      if (query && !variants.some(function (v) { return item.hay.indexOf(v) !== -1; })
+        && !terms.every(function (words) { return words.some(function (word) { return item.hay.indexOf(word) !== -1; }); })) return false;
       return true;
     });
   }
@@ -543,6 +576,7 @@
   function openerNode(item, className) {
     var node = document.createElement(item.href ? "a" : "button");
     node.className = className;
+    if (item.id) node.setAttribute("data-cd-service-id", item.id);
     if (item.href) node.setAttribute("href", item.href);
     else node.type = "button";
     if (item.action) node.setAttribute("data-action", item.action);
@@ -618,8 +652,7 @@
   /* 운명의 문 디스커버용 — 이름/설명/가격 3단 카드 */
   function renderRichResults(panel, list, state, opts) {
     opts = opts || {};
-    // 타일은 부팅 뒤에도 붙고 떨어진다(모바일 지연 마운트). 첫 렌더 시점의 색인을 굳히지 않는다.
-    featureImageIndex = null;
+    // Source collection/locale events invalidate the image index; typing does not rescan the document.
     panel.textContent = "";
     if (!list.length && opts.emptyState) {
       panel.appendChild(opts.emptyState());
@@ -731,6 +764,12 @@
         node.appendChild(masters);
       }
 
+      if (item.resultFormat) {
+        var format = document.createElement("span");
+        format.className = "fortune-gateway__rec-desc";
+        format.textContent = item.resultFormat;
+        node.appendChild(format);
+      }
       var foot = document.createElement("span");
       foot.className = "fortune-gateway__rec-foot";
       var price = document.createElement("i");
@@ -792,6 +831,10 @@
 
     function render() {
       var current = state();
+      if (!current.query) lastTrackedQuery = "";
+      root.querySelectorAll('[data-search-query]').forEach(function (chip) {
+        chip.setAttribute('aria-pressed', String(norm(chip.getAttribute('data-search-query')) === norm(current.query)));
+      });
       var active = current.query || current.purposes.length || current.methods.length || current.buckets.length || current.region !== "all";
       if (config.showAll) renderRegion(root, current);
       if (clearButton) clearButton.hidden = !current.query;
@@ -808,8 +851,6 @@
         return;
       }
       /* 아무것도 고르지 않은 상태 = 기본 목록. 필터를 켰다가 모두 끄면 이리로 되돌아온다. */
-      // 전체 검색을 열고 조작할 때만 색인을 갱신한다. 새로 분리·추가된 타일도 누락하지 않는다.
-      if (config.showAll) catalogue = null;
       var list = active || config.showAll ? filterServices(current) : DEFAULT_PICKS;
       renderRichResults(panel, list, current, renderOpts);
       if (summary) summary.textContent = active
@@ -850,6 +891,10 @@
             other.setAttribute("aria-pressed", "false");
           });
           if (!wasOn) chip.setAttribute("aria-pressed", "true");
+          if (config.showAll) {
+            root.setAttribute("data-cd-region", "all");
+            root.querySelector('[data-cd-explore]').open = false;
+          }
           /* 목적을 고르면 방식·가격 필터를 드러낸다(단계적 탐색). */
           if (progressive) progressive.hidden = wasOn;
           render();
@@ -857,7 +902,7 @@
       });
     }
 
-    /* 방식·가격 칩 — 다중 선택 */
+    /* 모든 운세의 방식은 단일 선택. 기존 디스커버의 방식·가격 다중 선택은 유지한다. */
     if (config.filterChipSelector) {
       var multiAttrs = [config.methodAttr, config.priceAttr].filter(Boolean);
       var multiSelector = multiAttrs
@@ -867,6 +912,11 @@
       Array.prototype.forEach.call(fchips, function (fchip) {
         fchip.addEventListener("click", function () {
           var on = fchip.getAttribute("aria-pressed") === "true";
+          if (config.showAll && fchip.hasAttribute(config.methodAttr)) {
+            fchips.forEach(function (other) { other.setAttribute("aria-pressed", "false"); });
+            root.setAttribute("data-cd-region", "all");
+            root.querySelector('[data-cd-explore]').open = false;
+          }
           fchip.setAttribute("aria-pressed", on ? "false" : "true");
           render();
         });
@@ -875,15 +925,40 @@
 
     if (input) {
       var timer = 0;
-      input.addEventListener("input", function () {
+      var composing = false;
+      var lastTrackedQuery = "";
+      function trackSearch() {
+        var query = norm(input.value);
+        if (!query || query === lastTrackedQuery) return;
+        lastTrackedQuery = query;
+        if (typeof window.cdTrackDiscovery === 'function') window.cdTrackDiscovery('view_search_results', {
+          itemListId: 'search', intentId: searchIntent(query), resultCount: filterServices(state()).length
+        });
+      }
+      function search() {
         if (config.showAll) root.setAttribute("data-cd-region", "all");
         window.clearTimeout(timer);
-        timer = window.setTimeout(render, 120);
-      });
+        if (composing) return;
+        timer = window.setTimeout(function () { render(); trackSearch(); }, 120);
+      }
+      input.addEventListener("input", search);
+      input.addEventListener("compositionstart", function () { composing = true; window.clearTimeout(timer); });
+      input.addEventListener("compositionend", function () { composing = false; search(); });
       /* 카탈로그를 첫 타이핑 때 만들면 결과가 입력 뒤 500ms 를 넘겨 나타나 사용자 입력에
          귀속되지 못하고 CLS 로 계상된다(실측 0.3185 — docs/handoff/mobile-home-perf.md).
          🔴 focus 안에서 동기로 만들지 말 것 — 비용이 focus 지연으로 옮겨갈 뿐이다. */
       input.addEventListener("focus", warmCatalogue, { once: true });
+      root.querySelectorAll('[data-search-query]').forEach(function (chip) {
+        chip.addEventListener('click', function () {
+          var active = chip.getAttribute('aria-pressed') === 'true';
+          root.querySelectorAll('[data-purpose],[data-method]').forEach(function (other) { other.setAttribute('aria-pressed', 'false'); });
+          input.value = active ? '' : chip.getAttribute('data-search-query');
+          if (config.showAll) root.setAttribute('data-cd-region', 'all');
+          window.clearTimeout(timer);
+          render();
+          trackSearch();
+        });
+      });
     }
     if (clearButton && input) {
       clearButton.addEventListener('click', function () {
@@ -896,6 +971,7 @@
     if (config.showAll) root.querySelectorAll("[data-region]").forEach(function (button) {
       button.addEventListener("click", function () {
         root.setAttribute("data-cd-region", button.getAttribute("data-region"));
+        root.querySelectorAll('.cd-af__chip,.cd-af__fchip').forEach(function (chip) { chip.setAttribute('aria-pressed', 'false'); });
         if (input) input.value = "";
         render();
       });
@@ -952,7 +1028,8 @@
     var input = document.getElementById("cdAllFortunesSearch");
     if (input && typeof saved.query === "string") input.value = saved.query;
     root.setAttribute("data-cd-region", norm(saved.query) ? "all" : regionById(saved.region).id);
-    var wanted = { "data-purpose": saved.purposes || [], "data-method": saved.methods || [] };
+    var wanted = { "data-purpose": Array.isArray(saved.purposes) ? saved.purposes.slice(0, 1) : [],
+      "data-method": Array.isArray(saved.methods) ? saved.methods.slice(0, 1) : [] };
     Object.keys(wanted).forEach(function (attr) {
       var chips = root.querySelectorAll("[" + attr + "]");
       Array.prototype.forEach.call(chips, function (chip) {
@@ -1011,6 +1088,13 @@
       }
       var card = target.closest("#cdAllFortunesResults a[href], #cdAllFortunesResults button");
       if (!card) return;
+      var itemId = card.getAttribute('data-cd-service-id');
+      if (itemId && typeof window.cdTrackDiscovery === 'function') {
+        var query = document.getElementById('cdAllFortunesSearch').value;
+        var detail = { itemId: itemId, itemListId: 'search', intentId: searchIntent(query) };
+        window.cdTrackDiscovery('select_item', detail);
+        if (norm(query)) window.cdTrackDiscovery('search_result_select', detail);
+      }
       var box = afScroller(root);
       afWrite({ scrollTop: box ? box.scrollTop : 0, returnAt: Date.now() });
       // 공용 디스패처(document 버블)보다 이 리스너가 먼저 돈다 — 실행 전에 닫는다.
@@ -1083,6 +1167,7 @@
   function attachAllFortunes(host, before) {
     var af = ensureAllFortunes();
     if (!af || !host) return false;
+    if (!catalogue) af.api.render();
     if (af.root.parentNode !== host || (before && af.root.nextSibling !== before)) {
       host.insertBefore(af.root, before || null);
     }
@@ -1126,6 +1211,26 @@
 
   function boot() {
     bootAllFortunes();
+    // The inline bottom navigation can open before this deferred script finishes loading.
+    // Complete that first request instead of requiring a second tap to attach the search.
+    var pendingOverview = document.getElementById('cdMobileFortuneOverview');
+    if (pendingOverview && pendingOverview.classList.contains('is-open')) {
+      attachAllFortunes(pendingOverview, pendingOverview.firstChild);
+    }
+    var sourceRoot = document.getElementById('inputPage');
+    if (sourceRoot) {
+      sourceObserver = new MutationObserver(invalidateSources);
+      sourceObserver.observe(sourceRoot, { childList: true, subtree: true });
+    }
+    function invalidateCatalogue() { catalogue = null; featureImageIndex = null; }
+    document.addEventListener('cd:collection-toggle', invalidateCatalogue);
+    window.addEventListener('cd:locale-ready', invalidateCatalogue);
+    // Warm source metadata before navigation when a pointer or keyboard approaches the real entry.
+    function prepareEntry(event) {
+      if (event.target instanceof Element && event.target.closest('[data-action="cdOpenAllFortunes"],#cdMobileBottomNav [data-nav-key="fortunes"]')) warmCatalogue();
+    }
+    document.addEventListener('pointerover', prepareEntry, { passive: true });
+    document.addEventListener('focusin', prepareEntry);
     var home = document.getElementById("cdHomeFunnel");
     var finder = document.getElementById("cdFinder");
     /* 홈 검색은 늘 펼쳐져 있다(2026-10-01). 입력 전에는 결과를 그리지 않으므로 마운트는 가볍다. */

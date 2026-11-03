@@ -10,6 +10,10 @@ const compact = text => String(text || '').replace(/\s+/g, '');
 const textOf = node => node.nodeName === '#text' ? node.value : (node.childNodes || []).map(textOf).join(' ');
 const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
 const kstYmdOf = ms => new Date(ms + KST_OFFSET_MS).toISOString().slice(0, 10);
+const kstStartMs = ymd => Date.parse(`${ymd}T00:00:00+09:00`);
+// 렌더(next build)와 검사(postbuild) 사이의 최대 간격. 일요일·월말 23:59 에 렌더한 주간·월간 페이지를
+// 자정 뒤에 검사해도 렌더 시점 기준으로 맞으면 통과시킨다. 빌드가 이보다 길어지면 늘린다.
+export const FORTUNE_RENDER_WINDOW_MS = 3 * 60 * 60 * 1000;
 const short = ymd => `${Number(ymd.slice(5, 7))}월${Number(ymd.slice(8, 10))}일`;
 function expectedLabels(period, businessDate, periodDate) {
   const date = periodDate || (period === 'today' ? businessDate : period === 'tomorrow' ? kstYmdNextDay(businessDate) : period === 'weekly' ? kstWeekStartYmd(businessDate) : period === 'monthly' ? kstMonthStartYmd(businessDate) : null);
@@ -68,12 +72,14 @@ export function verifyFortuneDateContract(html, { period, businessDate = kstYmdT
   check(evidence.times[0]?.dateTime === expected.date, `body time datetime must be ${expected.date}`);
   check(compact(evidence.times[0]?.text).includes(expected.body), `visible body range must contain ${expected.body}`);
   check(evidence.articles.length === 1, 'exactly one Article is required');
-  // 내일 운세는 대상일 전날 빌드되므로 발행 시각이 전날이다(min(대상일 00:00 KST, 빌드 시각)).
+  // 발행일 = min(대상일, 빌드 날) 00:00 KST(lib/fortune/article-dates.mjs). 전날이 맞는 경우는 대상일보다 먼저
+  // 빌드됐을 때뿐이다 — 내일 운세는 늘 그렇고, 그 밖의 기간은 빌드 시각이 대상일 00:00 KST 보다 앞설 때만.
   const published = parseJsonLdDate(evidence.articles[0]?.datePublished);
   const modified = parseJsonLdDate(evidence.articles[0]?.dateModified);
+  const publishDays = period === 'tomorrow' || buildMs < kstStartMs(expected.date) ? [expected.date, kstYmdPreviousDay(expected.date)] : [expected.date];
   check(published !== null, 'Article datePublished must be an ISO 8601 date-time');
   check(published === null || published <= buildMs, 'Article datePublished must not be after build time');
-  check(published !== null && [expected.date, kstYmdPreviousDay(expected.date)].includes(kstYmdOf(published)), `Article datePublished must be ${expected.date} or the day before`);
+  check(published !== null && publishDays.includes(kstYmdOf(published)), `Article datePublished must be ${publishDays.join(' or ')}`);
   check(modified !== null && published !== null && published <= modified && modified <= buildMs, 'Article dateModified is required and must be within publish..build');
   check(compact(evidence.articles[0]?.headline) === title, 'Article headline and title must agree');
   return { ok: failures.length === 0, expectedDate: expected.date, failures, evidence };
@@ -99,7 +105,17 @@ export function resolveFortuneBuildDateContext({ rootDir, now = new Date() }) {
   return { dailySource: manifest ? 'fortune/data/run-manifest.json' : 'KST clock fallback', businessDate: dates.today, rangeBusinessDate: clockDate, dates };
 }
 
-export function verifyFortuneBuildDates({ rootDir, outputDir, dateContext = resolveFortuneBuildDateContext({ rootDir }), periods, signIds }) {
+// 검사 시각과 렌더 창 앞 시각의 날짜 문맥. 둘의 날짜가 같으면 하나만 남는다. buildTime 은 그 시점이다.
+export function resolveFortuneBuildDateContexts({ rootDir, now = new Date(), renderWindowMs = FORTUNE_RENDER_WINDOW_MS }) {
+  const contexts = [];
+  for (const at of [now, new Date(now.getTime() - renderWindowMs)]) {
+    const context = { ...resolveFortuneBuildDateContext({ rootDir, now: at }), buildTime: at };
+    if (!contexts.some(seen => JSON.stringify(seen.dates) === JSON.stringify(context.dates))) contexts.push(context);
+  }
+  return contexts;
+}
+
+export function verifyFortuneBuildDates({ rootDir, outputDir, dateContext, dateContexts = dateContext ? [dateContext] : resolveFortuneBuildDateContexts({ rootDir }), periods, signIds }) {
   const read = relative => readFileSync(resolve(rootDir, relative), 'utf8');
   if (!periods) {
     const match = read('lib/fortune/periods.ts').match(/FORTUNE_PERIOD_IDS[^=]*=\s*\[([^\]]*)\]/);
@@ -114,8 +130,9 @@ export function verifyFortuneBuildDates({ rootDir, outputDir, dateContext = reso
     let html;
     try { html = readFileSync(resolve(rootDir, outputDir, 'fortune', period, sign, 'index.html'), 'utf8'); }
     catch { failures.push(`${route}: generated HTML missing`); continue; }
-    const result = verifyFortuneDateContract(html, { period, periodDate: dateContext.dates[period] });
-    failures.push(...result.failures.map(message => `${route}: ${message}`));
+    // 한 후보 문맥에라도 맞으면 통과. 실패 보고는 검사 시각 문맥(첫 후보) 기준이다.
+    const results = dateContexts.map(context => verifyFortuneDateContract(html, { period, periodDate: context.dates[period], ...(context.buildTime ? { buildTime: context.buildTime } : {}) }));
+    if (!results.some(result => result.ok)) failures.push(...results[0].failures.map(message => `${route}: ${message}`));
   }
-  return { ok: failures.length === 0, ...dateContext, count: periods.length * signIds.length, failures };
+  return { ok: failures.length === 0, ...dateContexts[0], count: periods.length * signIds.length, failures };
 }

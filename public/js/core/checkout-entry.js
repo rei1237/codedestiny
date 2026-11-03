@@ -36,6 +36,8 @@
   var api = factory();
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   if (typeof globalThis !== "undefined") globalThis.__cdCheckoutEntry = api;
+  // Existing confirmation callers can queue before afterInteractive analytics loads.
+  if (typeof window !== "undefined" && typeof window.cdTrackConfirmedPurchase !== "function") window.cdTrackConfirmedPurchase = api.trackConfirmedPurchase;
 })(function () {
   "use strict";
 
@@ -2145,8 +2147,34 @@
     });
   }
 
+  // Called only after server confirmation. The PG popup callback is not purchase evidence.
+  // Bounded, minimal in-memory receipts survive delayed analytics initialization.
+  function trackConfirmedPurchase(payload) {
+    try {
+      var win = typeof window !== 'undefined' ? window : null;
+      if (!win || !payload || payload.ok === false) return false;
+      if (typeof win.cdTrackConfirmedPurchase === 'function' && win.cdTrackConfirmedPurchase !== trackConfirmedPurchase) return win.cdTrackConfirmedPurchase(payload);
+      var payment = payload.payment || payload.order;
+      if (!payment || payment.analyticsChannel !== 'LIVE' || !/^(paid|success|fulfilled)$/i.test(payment.status || '')) return false;
+      var id = String(payment.merchantUid || payment.orderId || '');
+      var amount = Number(payment.paymentAmount == null ? payment.amountKRW : payment.paymentAmount);
+      if (!/^[a-zA-Z0-9_-]{1,160}$/.test(id) || !Number.isSafeInteger(amount) || amount <= 0) return false;
+      var item = String(payload.featureKey || (payload.accessGrant && payload.accessGrant.featureKey) || payment.featureKey || payment.productId || 'fortune');
+      var receipt = {ok:true,code:payload.code,activationPending:payload.activationPending === true,recoveryRequired:payload.recoveryRequired === true,
+        featureKey:/^[a-zA-Z0-9_-]{1,100}$/.test(item) ? item : 'fortune',
+        payment:{merchantUid:id,paymentAmount:amount,status:'paid',analyticsChannel:'LIVE',entitlementGranted:payment.entitlementGranted}};
+      var queue = win.__cdPendingConfirmedPurchases || (win.__cdPendingConfirmedPurchases = []);
+      var index = queue.findIndex(function (entry) { return entry.payment.merchantUid === id; });
+      if (index >= 0) {
+        if (!receipt.recoveryRequired && !receipt.activationPending && !/^(GRANT_PENDING|PENDING_CONFIRMATION)$/i.test(receipt.code || '')) queue[index] = receipt;
+      } else if (queue.length < 32) queue.push(receipt);
+      return false;
+    } catch (_) { return false; }
+  }
+
   return {
     VERSION: 1,
+    trackConfirmedPurchase: trackConfirmedPurchase,
     requestPaypalPayment: requestPaypalPayment,
     buildPaidResumeContext: buildPaidResumeContext,
     peekCheckoutReturn: function () { return consumeCheckoutReturn(true); },

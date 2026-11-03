@@ -16,8 +16,14 @@ test("fusion fortune renders the premium flow and optimized hero asset", () => {
   assert.match(client, /여섯 체계 교차 판정/);
   assert.match(client, /체계별 6장 · 영역별 8장/);
   assert.match(client, /fusion-fortune-masters-v3-960\.webp/);
-  assert.match(client, /priority/);
-  assert.ok(fs.existsSync(path.join(root, "public/images/service-introductions/fusion-fortune-masters-v3-960.webp")));
+  const hero = client.match(/<img\b[^>]*className=\{styles\.heroImage\}[^>]*>/)?.[0];
+  assert.ok(hero, "the responsive hero keeps its own image element");
+  assert.match(hero, /fetchPriority="high"/);
+  assert.match(hero, /loading="eager"/);
+  for (const width of [320, 640, 960]) {
+    assert.ok(hero.includes(`fusion-fortune-masters-v3-${width}.webp ${width}w`));
+    assert.ok(fs.existsSync(path.join(root, `public/images/service-introductions/fusion-fortune-masters-v3-${width}.webp`)));
+  }
 });
 
 test("fusion fortune charges through the shared coin gate, not its own PortOne flow", () => {

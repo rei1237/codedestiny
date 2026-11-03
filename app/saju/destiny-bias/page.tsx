@@ -1,4 +1,5 @@
 import DestinyBiasRouteClient from "./DestinyBiasRouteClient";
+import { ROOT_OPEN_GRAPH } from "@/lib/seo/page-open-graph";
 import MyDestinyBiasShell from "./components/MyDestinyBiasShell";
 import ImmersiveRelatedLinks from "../../components/ImmersiveRelatedLinks";
 import ServiceIntroSection from "../../components/ServiceIntroSection";
@@ -36,6 +37,7 @@ export const metadata = {
     canonical: "https://code-destiny.com/saju/destiny-bias",
   },
   openGraph: {
+    ...ROOT_OPEN_GRAPH,
     type: "website",
     url: "https://code-destiny.com/saju/destiny-bias",
     title: destinyBiasPageCopy.ogTitle,
