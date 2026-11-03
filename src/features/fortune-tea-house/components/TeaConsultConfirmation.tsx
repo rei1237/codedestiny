@@ -10,6 +10,7 @@ import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure"
 import { useLocale } from "@/lib/i18n/useT";
 import type { FortuneTeaHouseQuestionInput } from "../data/consult";
 import { useTeaHouseCopy } from "../lib/teaHouseCopy";
+import { tossTeaPaymentCopy } from "../lib/tossPaymentCopy";
 import TeaHouseButton from "./TeaHouseButton";
 import TeaCalculationPolicy from "./TeaCalculationPolicy";
 import styles from "../styles/tea-confirm.module.css";
@@ -27,7 +28,7 @@ const KO = {
 type Draft={attemptId:string;status:string;deckSize:number;cards?:unknown[];spread:{cardCount:number;title:string;positions:{id:string;label:string}[]}};
 type TeaSpread={id:string;cardCount:number;positions:{id:string}[]};
 const availableSpreads:TeaSpread[]=teaSpreads;
-export default function TeaConsultConfirmation({input,cupId,onConfirm,onBack,busy=false}:{input:FortuneTeaHouseQuestionInput;cupId:string;onConfirm:(input:FortuneTeaHouseQuestionInput)=>void;onBack:()=>void;busy?:boolean}){
+export default function TeaConsultConfirmation({paymentSurface="web",input,cupId,onConfirm,onBack,busy=false}:{paymentSurface?:"web"|"toss";input:FortuneTeaHouseQuestionInput;cupId:string;onConfirm:(input:FortuneTeaHouseQuestionInput)=>void;onBack:()=>void;busy?:boolean}){
  const copy=useTeaHouseCopy("confirmation",KO);
  const locale=useLocale();
  const spreadsCopy=useTeaHouseCopy("spreadV2",teaSpreadCopy);
@@ -61,8 +62,8 @@ export default function TeaConsultConfirmation({input,cupId,onConfirm,onBack,bus
  }
  return <section className={styles.confirm} aria-labelledby="tea-confirm-title">
   <h2 id="tea-confirm-title">{copy.titleKo}</h2><p>{copy.question}</p><blockquote>{input.question}</blockquote>
-  <p>{copy.scope}</p><p>{copy.price}: <strong>{getFortuneTeaHouseConsultPriceLabel(input.consultationMode,isTarot?size:undefined,input.sajuReportVersion)}</strong></p><p>{copy.policy}</p>
-  {locale==="ko"&&<CraftedProductDisclosure featureKey={getFortuneTeaHouseConsultFeatureKey(input.consultationMode,isTarot?size:undefined,input.sajuReportVersion)}/>}
+  <p>{copy.scope}</p><p>{copy.price}: <strong>{getFortuneTeaHouseConsultPriceLabel(input.consultationMode,isTarot?size:undefined,input.sajuReportVersion)}</strong></p><p>{paymentSurface==="toss"?tossTeaPaymentCopy(locale).policy:copy.policy}</p>
+  {locale==="ko"&&<CraftedProductDisclosure featureKey={getFortuneTeaHouseConsultFeatureKey(input.consultationMode,isTarot?size:undefined,input.sajuReportVersion)} panelTextOverrides={paymentSurface==="toss"?{"editorial-5":"상담에서 요청하는 정보와 지금 가장 궁금한 질문을 준비해 주세요.\n\n토스 단건 결제는 결제 단계에서 확인해 주세요."}:undefined}/>}
   {!isTarot&&<div><h3>{copy.information}</h3><ul>{people.map((person,index)=>person&&<li key={index}>{[
     "name" in person ? person.name : input.nickname,person.birthDate,
     person.calendarType==="lunar" ? copy.lunar : copy.solar,person.isLeapMonth ? copy.leap : "",
@@ -79,6 +80,6 @@ export default function TeaConsultConfirmation({input,cupId,onConfirm,onBack,bus
    </>}
   </>}
   {error&&<p role="alert">{error}{!getAuthState().user&&<a href="/login/?next=%2Ffortune-tea-house%2F">{copy.login}</a>}</p>}
-  <div className={styles.actions}><TeaHouseButton variant="ghost" onClick={onBack} disabled={busy||loading}>{copy.edit}</TeaHouseButton><TeaHouseButton disabled={loading||(isTarot&&draft?.status!=="drawn")} loading={busy} onClick={()=>{trackEvent("tea_consult_confirmed",{method:input.consultationMode});onConfirm({...input,consultationVersion:"tea-v2",...(isTarot?{attemptId:draft!.attemptId,tarotSpreadId:spreadId,tarotSpread:size}:{})});}}>{copy.continue}</TeaHouseButton></div>
+  <div className={styles.actions}><TeaHouseButton variant="ghost" onClick={onBack} disabled={busy||loading}>{copy.edit}</TeaHouseButton><TeaHouseButton disabled={loading||(isTarot&&draft?.status!=="drawn")} loading={busy} onClick={()=>{trackEvent("tea_consult_confirmed",{method:input.consultationMode});onConfirm({...input,consultationVersion:"tea-v2",...(isTarot?{attemptId:draft!.attemptId,tarotSpreadId:spreadId,tarotSpread:size}:{})});}}>{paymentSurface==="toss"?tossTeaPaymentCopy(locale).action:copy.continue}</TeaHouseButton></div>
  </section>;
 }

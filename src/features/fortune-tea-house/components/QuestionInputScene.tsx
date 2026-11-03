@@ -29,6 +29,7 @@ import styles from "../styles/tea-question.module.css";
 
 import { useTeaHouseCopy } from "../lib/teaHouseCopy";
 type QuestionInputSceneProps = {
+  paymentSurface?: "web" | "toss";
   selectedCup: TeaHouseCup;
   initialInput?: Partial<FortuneTeaHouseQuestionInput>;
   onSubmit: (input: FortuneTeaHouseQuestionInput) => void;
@@ -398,7 +399,7 @@ const KO = {
   topicSyncNotice: "{cup} 상담은 {topic}으로 고정되어 있어요.",
 };
 
-export default function QuestionInputScene({ selectedCup, initialInput, onSubmit, onBack, onDraftChange, isSubmitting = false, submitError = "", priceLabels = {} }: QuestionInputSceneProps) {
+export default function QuestionInputScene({ paymentSurface = "web", selectedCup, initialInput, onSubmit, onBack, onDraftChange, isSubmitting = false, submitError = "", priceLabels = {} }: QuestionInputSceneProps) {
   const copy = useTeaHouseCopy("questionInput", KO);
   const categories = useTeaHouseCopy("questionCategories", CATEGORY_KO);
   const [consultationMode, setConsultationMode] = useState<FortuneTeaHouseConsultMode>(initialInput?.consultationMode || "tarot");
@@ -832,7 +833,7 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
 
   const sukuyoAutoQuestionPreview = consultationMode === "sukuyo" ? buildSukuyoAutoQuestion() : "";
 
-  if (confirmation) return <TeaConsultConfirmation input={confirmation} cupId={selectedCup.id} onBack={() => setConfirmation(null)} onConfirm={onSubmit} busy={isSubmitting}/>;
+  if (confirmation) return <TeaConsultConfirmation paymentSurface={paymentSurface} input={confirmation} cupId={selectedCup.id} onBack={() => setConfirmation(null)} onConfirm={onSubmit} busy={isSubmitting}/>;
 
   return (
     <section className={`${styles.questionScene}`} aria-labelledby="teaQuestionTitle">

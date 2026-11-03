@@ -569,7 +569,7 @@ function isServerReadableSukuyoBirthDate(value?: string) {
   return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
 }
 
-export default function FortuneTeaHousePage() {
+export default function FortuneTeaHousePage({paymentSurface = "web"}: {paymentSurface?: "web" | "toss"} = {}) {
   const authState = useAuthStore();
   const recoveryOwner = toText(authState.user?.id || authState.user?.userId || authState.user?._id || authState.user?.uid);
   const [stage, setStage] = useState<TeaHouseStage>("landing");
@@ -1573,6 +1573,7 @@ export default function FortuneTeaHousePage() {
     if (stage === "landing") {
       return (
         <FortuneTeaHouseLanding
+          paymentSurface={paymentSurface}
           hasSeenPrologue={hasSeenEntryPrologue}
           soundControl={soundControl}
           onEnter={enterTeaHouse}
@@ -1608,6 +1609,7 @@ export default function FortuneTeaHousePage() {
             <a href="/fortune-tea-house/?history=1">내 상담함 확인하기</a>
           </div>
         </section>}{renderSavedSections()}<QuestionInputScene
+          paymentSurface={paymentSurface}
           key={`${recoveryOwner}:${questionInput.attemptId || "draft"}`}
           selectedCup={selectedCup}
           initialInput={questionInput}
