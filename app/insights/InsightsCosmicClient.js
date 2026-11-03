@@ -162,7 +162,7 @@ function normalizePost(raw) {
     categoryLabel,
     tags,
     coverImage: normalizeText(raw?.coverImage || raw?.featuredImage?.url || raw?.thumbnailUrl, 1200),
-    coverImageAlt: normalizeText(raw?.featuredImage?.alt || title || "운세 인사이트 이미지", 280),
+    coverImageAlt: normalizeText(raw?.coverImageAlt || raw?.featuredImage?.alt || title || "운세 인사이트 이미지", 280),
     serviceLink,
     ctaLabel: normalizeText(raw?.ctaLabel || raw?.cta?.title || "관련 운세 보기", 100),
     seoTitle: normalizeText(raw?.seoTitle || raw?.metaTitle || raw?.seo?.metaTitle || title, 240),
@@ -243,14 +243,46 @@ function formatDate(value) {
   });
 }
 
+// Reuse the existing service illustrations; retain article-specific covers.
+const CARD_ART = {
+  '/fuctionassets/saju.webp': 'saju',
+  '/fuctionassets/lovebible.webp': 'master-love-codex',
+  '/fuctionassets/flower4.webp': 'love-secret-ai',
+  '/fuctionassets/jami.webp': 'ziwei',
+  '/fuctionassets/sukyo.webp': 'sukuyo',
+  '/fuctionassets/tarolove.webp': 'tarot',
+  '/fuctionassets/veda.webp': 'vedic',
+  '/fuctionassets/jumsung.webp': 'astrology',
+  '/fuctionassets/heamong.webp': 'dream',
+  '/fuctionassets/돈밝히는 연이.webp': 'life-fortune-ai',
+  '/fuctionassets/meditation.webp': 'cosmic-soul-meditation',
+  '/fuctionassets/premiumstar.webp': 'fortune-prompt-hub',
+  '/fuctionassets/유명인 사주 분석.webp': 'famous-saju',
+  '/images/feature-details/famous-saju-hero-v2.webp': 'famous-saju',
+};
+
+function cardArt(url) {
+  let path = url;
+  try { path = decodeURI(url); } catch { /* Preserve malformed external URLs for the existing error fallback. */ }
+  const name = CARD_ART[path];
+  if (name) {
+    const base = `/images/service-introductions/${name}`;
+    return { url: `${base}-640.webp`, srcSet: [320, 640, 960].map(width => `${base}-${width}.webp ${width}w`).join(', ') };
+  }
+  if (path === '/images/saju/nature/gap-960.webp') {
+    return { url, srcSet: '/images/saju/nature/gap-480.webp 480w, /images/saju/nature/gap-960.webp 960w' };
+  }
+  return { url, srcSet: undefined };
+}
+
 function buildCardImage(item) {
   const url = String(item?.coverImage || item?.featuredImage?.url || "").trim();
   const alt = String(item?.coverImageAlt || item?.featuredImage?.alt || item?.title || "인사이트 대표 이미지").trim();
   const fallbackUrl = resolveCardFallbackImage(item);
   return {
-    url: url || fallbackUrl,
+    ...cardArt(url || fallbackUrl),
     alt,
-    fallbackUrl,
+    fallbackUrl: cardArt(fallbackUrl).url,
   };
 }
 
@@ -279,6 +311,7 @@ function handleCardImageError(event) {
   const fallbackUrl = event.currentTarget.getAttribute("data-fallback-src") || "";
   if (!fallbackUrl || event.currentTarget.dataset.fallbackApplied === "true") return;
   event.currentTarget.dataset.fallbackApplied = "true";
+  event.currentTarget.removeAttribute('srcset');
   event.currentTarget.src = fallbackUrl;
 }
 
@@ -623,12 +656,13 @@ export default function InsightsCosmicClient({
                     {image.url ? (
                       <img
                         src={image.url}
+                        srcSet={image.srcSet}
                         alt={image.alt}
                         loading="lazy"
                         decoding="async"
                         width={640}
                         height={400}
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        sizes="88px"
                         data-fallback-src={image.fallbackUrl}
                         onError={handleCardImageError}
                         className="h-40 w-full object-cover"
@@ -681,12 +715,13 @@ export default function InsightsCosmicClient({
                       {image.url ? (
                         <img
                           src={image.url}
+                          srcSet={image.srcSet}
                           alt={image.alt}
                           loading="lazy"
                           decoding="async"
                           width={704}
                           height={440}
-                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                          sizes="(max-width: 767px) calc(100vw - 32px), (max-width: 1023px) calc((100vw - 68px) / 2), 360px"
                           data-fallback-src={image.fallbackUrl}
                           onError={handleCardImageError}
                           className="h-44 w-full object-cover"
@@ -814,6 +849,7 @@ export default function InsightsCosmicClient({
                       {image.url ? (
                         <img
                           src={image.url}
+                          srcSet={image.srcSet}
                           alt={image.alt}
                           loading="lazy"
                           decoding="async"
