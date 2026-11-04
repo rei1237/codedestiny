@@ -79,7 +79,7 @@ export default function StoryPanel({onClose,onDaily,inRoom=false,soundControls,o
         <button autoFocus onClick={close}>건너뛰기</button>
         <details className={styles.music}><summary>음향</summary>{soundControls??<StoryMusic mood={mood}/>}</details>
       </header>
-      <div className={styles.cover}><small>영냥이의 프롤로그</small><h1>내 이름이<br/>네오였던 밤</h1></div>
+      <div className={styles.cover}><small>영냥이의 프롤로그</small><h2>내 이름이<br/>네오였던 밤</h2></div>
       {main.slice(0,mirror+1).map((s,i)=><Frame key={s.id} scene={s} index={i}/>)}
       <section className={styles.choice}><h2>거울 앞의 네오에게</h2>
         <button aria-pressed={choice==='a'} onClick={()=>setChoice('a')}>말없이 곁에 앉는다</button>
