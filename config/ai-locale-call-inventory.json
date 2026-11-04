@@ -140,6 +140,16 @@
     ]
   },
   {
+    "file": "scripts/configure-snulife-public.mjs",
+    "matches": [
+      {
+        "line": 16,
+        "kind": "provider-url",
+        "symbol": "direct REST"
+      }
+    ]
+  },
+  {
     "file": "scripts/configure-snulife-review.mjs",
     "matches": [
       {
@@ -288,7 +298,7 @@
         "symbol": "./structured-consultation.js"
       },
       {
-        "line": 902,
+        "line": 903,
         "kind": "call",
         "symbol": "callGeminiJsonWithRetry"
       }
@@ -688,22 +698,22 @@
     "file": "worker/routes/fortune-tea-house.js",
     "matches": [
       {
-        "line": 25,
+        "line": 26,
         "kind": "import-or-injected-call",
         "symbol": "../lib/gemini.js"
       },
       {
-        "line": 4411,
+        "line": 4416,
         "kind": "call",
         "symbol": "callGeminiText"
       },
       {
-        "line": 5609,
+        "line": 5614,
         "kind": "call",
         "symbol": "callGeminiText"
       },
       {
-        "line": 5917,
+        "line": 5923,
         "kind": "call",
         "symbol": "callGeminiText"
       }
@@ -753,32 +763,32 @@
     "file": "worker/routes/karma-destiny-ai.js",
     "matches": [
       {
-        "line": 14,
+        "line": 15,
         "kind": "import-or-injected-call",
         "symbol": "../lib/gemini.js"
       },
       {
-        "line": 1517,
+        "line": 1521,
         "kind": "call",
         "symbol": "callGeminiText"
       },
       {
-        "line": 1544,
+        "line": 1548,
         "kind": "call",
         "symbol": "callGeminiText"
       },
       {
-        "line": 1632,
+        "line": 1636,
         "kind": "call",
         "symbol": "callGeminiText"
       },
       {
-        "line": 1672,
+        "line": 1676,
         "kind": "call",
         "symbol": "callGeminiText"
       },
       {
-        "line": 2000,
+        "line": 2005,
         "kind": "call",
         "symbol": "callGeminiText"
       }
@@ -798,7 +808,7 @@
         "symbol": "../lib/gemini.js"
       },
       {
-        "line": 1493,
+        "line": 1501,
         "kind": "call",
         "symbol": "callGeminiText"
       }
@@ -873,17 +883,17 @@
     "file": "worker/routes/neo-operation-room.js",
     "matches": [
       {
-        "line": 28,
+        "line": 29,
         "kind": "import-or-injected-call",
         "symbol": "../lib/gemini.js"
       },
       {
-        "line": 29,
+        "line": 30,
         "kind": "import-or-injected-call",
         "symbol": "../../lib/gemini-provider-errors.mjs"
       },
       {
-        "line": 1056,
+        "line": 1057,
         "kind": "call",
         "symbol": "callGeminiText"
       }
@@ -893,22 +903,22 @@
     "file": "worker/routes/new-year-ai.js",
     "matches": [
       {
-        "line": 24,
+        "line": 25,
         "kind": "import-or-injected-call",
         "symbol": "../lib/gemini.js"
       },
       {
-        "line": 25,
+        "line": 26,
         "kind": "import-or-injected-call",
         "symbol": "../../lib/gemini-provider-errors.mjs"
       },
       {
-        "line": 1888,
+        "line": 1889,
         "kind": "call",
         "symbol": "callGeminiText"
       },
       {
-        "line": 2030,
+        "line": 2031,
         "kind": "call",
         "symbol": "callGeminiText"
       }
@@ -1103,12 +1113,12 @@
     "file": "worker/yeongnyangi/question-followup.ts",
     "matches": [
       {
-        "line": 14,
+        "line": 16,
         "kind": "import-or-injected-call",
         "symbol": "../lib/gemini.js"
       },
       {
-        "line": 79,
+        "line": 96,
         "kind": "call",
         "symbol": "callGeminiText"
       }

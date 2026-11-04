@@ -8,7 +8,6 @@ import {renderConsultationSampleGuide} from '../../js/consultation-sample-guide.
 import {renderFeatureDetailPanels} from '../../js/feature-detail-panels.mjs';
 import {NODE_TEST_PATTERNS} from '../../scripts/lib/mock-test-config.mjs';
 const representative=samples.filter(item=>item.group==='대표 상담');
-const source='https://claude.ai/artifact/PtPUfhaiHM37ebpxtr4nQV';
 
 test('comparison preserves seven products, anchors, official art and four Yeongnyangi links',()=>{
   assert.deepEqual(representative.map(item=>item.id),['fusion','codex','love-secret','new-year','neo','yeoni','life-book']);
@@ -41,9 +40,8 @@ test('each detail has one immediately readable example and two native disclosure
     assert.equal(doc.querySelector('details').hasAttribute('open'),false);
     for(const example of examples){
       if(example.dataset.exampleKind==='result'){
-        assert.equal(example.querySelector('a').getAttribute('href'),source);
+        assert.equal(example.querySelector('a'),null);
         assert.match(example.textContent,/가상 프로필/);
-        assert.match(example.textContent,/발췌 출처/);
       }else assert.match(example.textContent,/실제 생성 결과 아님/);
     }
   }
@@ -73,7 +71,7 @@ test('generated feature introductions use the same guide and retain conversion a
   }
 });
 
-test('guide escapes content and only links the approved public source',()=>{
+test('guide escapes content and links no external source',()=>{
   const guide=structuredClone(representative[0].guide);
   guide.audience='<script>bad()</script>';
   guide.examples=[{title:'<img onerror=bad()>',text:'<script>bad()</script>',kind:'result',sourceUrl:'javascript:bad()',sourceLabel:'bad'}];

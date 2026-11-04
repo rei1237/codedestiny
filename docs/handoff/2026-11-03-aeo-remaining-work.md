@@ -1,7 +1,7 @@
 ---
 status: done
 updated: 2026-11-04
-next: "없음. 소유자 수동 작업과 2026-12-01 재측정만 남는다. 아래 진행 결과를 본다"
+next: "없음. 소유자 작업은 docs/handoff/2026-11-04-owner-tasks-codex.md로 넘겼고 2026-12-01 재측정만 남는다"
 ---
 
 # 영냥이 AEO 남은 작업
@@ -17,7 +17,8 @@ next: "없음. 소유자 수동 작업과 2026-12-01 재측정만 남는다. 아
 - **SEO Operations.** `54f8c5ebf`로 `Test detector` 앞에 `npm ci`를 넣었다. 로컬 65/65 통과, 다음 예약 실행의 CI 결과는 아직 보지 못했다.
 - **기타.** `2401224a0`는 스타일시트 키 변경에 따른 시그니처 갱신이다. `/`는 `683b1c716`부터 서비스 선택 화면이라 MV가 없고 MV는 `/ggulggul/`에 있다. 그래서 `root-mv.cjs`는 더는 맞지 않는다. `/premium-unlock/`의 "프리미엄 해금 페이지를 여는 중입니다."는 동적 import 로딩 문구이고, 1회 측정에서 8.6초 뒤 실제 내용으로 바뀌었다. 고치지 않았다.
 - **남긴 후속.** `content/product-details/*/editable-layout.html` 153개의 무버전 `/styles/service-intro-fonts.css`, `js/core/profile-character-card.mjs:38`의 동적 무버전 링크, 런 41661777631의 `--pages-only` 차단(다른 세션 런, 운영 영향 없음, 원인 미조사).
-- **작업 3은 사용자 결정으로 남긴다.** 허브 CTA `consultationKind=ask`의 5장·8장, `SampleExposure` ID `tarot-salmon`·`mackerel-question-v1`, claude.ai 가이드 링크, 대운·세운 가이드 링크의 편집 재검토.
+- **작업 3 결정 완료(2026-11-04).** 사용자가 "결정이 필요한 것은 사업적으로 가장 괜찮은 선택으로 진행해 니가 판단해줘"라고 위임했다. 결정과 근거는 아래 작업 3에 있다.
+- **운영 재반영 완료(2026-11-04).** 릴리스 런 41729564058(`914fca524`)이 타로 난수로 흔들리는 토큰 테스트에 막혀 `46f083c19`로 고정했다. 사용자 승인으로 런 41739205895가 `9ecd08743`을 올렸고 `/version.json`·`/api/version`이 같은 SHA다. `/yeongnyangi/1000-won-fortune/`은 200이고 CTA 링크가 있으며 claude.ai 링크는 0건이다.
 
 ## 왜
 
@@ -103,21 +104,20 @@ CI: main 맨 위 SHA의 PR CI가 끝날 때까지 `gh run watch --exit-status`�
 - **Browser Shadow의 WebKit 오류.** `/api/activation-rewards/status`와 `/snu/status`가 "due to access control checks"로 실패한다. `a221a78eb`와 `25bfc0940` 모두에서 났고, 내 변경 때문인지는 확인되지 않았다. 필수 게이트는 아니다.
 - **`/ggulggul/` 모바일 첫 방문 안내의 잘린 두 번째 돼지 이미지.** 스크린샷은 `D:\Development\seo-audit\code-destiny-20261103\live-after\mv-mobile-guide.png`다. 문구는 `js/first-visit-copy.mjs`에 있다. 조사 전이고 다른 세션 작업일 수 있으니 `git log`부터 본다.
 
-## 작업 3: 사용자 결정이 필요한 것
+## 작업 3: 결정 기록
 
-코드를 바꾸지 않고, 작업 1·2가 끝난 뒤 한 번에 묻는다.
+2026-11-04 결정이다. 전환·원가 효과는 측정하지 않았다.
 
-- 허브 CTA(`consultationKind=ask`)는 같은 가격에 5챕터이고 랜딩 고등어는 8챕터다. 문구로 차이만 밝혀 둔 상태다. 결제 흐름에 닿으므로 CTA 변경은 결정이 필요하다.
-- `SampleExposure`의 샘플 ID가 다르다(`tarot-salmon`과 `mackerel-question-v1`). 어느 쪽을 정본으로 할지 정해야 한다.
-- `/premium-unlock/` 플레이스홀더가 사용자 화면에 보인다. noindex이고 사이트맵 밖이다.
-- 가이드의 claude.ai 링크(`https://claude.ai/artifact/PtPUfhaiHM37ebpxtr4nQV`)를 유지할지 정해야 한다.
-- 대운·세운 가이드에 영냥이 링크를 넣으려면 편집 검수를 다시 받아야 한다. 원고 해시가 `docs/adsense/review/ai-editorial-reviews.json`에 고정돼 있다.
-- 구매 이벤트 중복과 실구매 대사는 자연 발생 주문으로만 검증된다.
-- GA4 CSP 수정 `wt/ga4-csp-diagnosis-20261030-103058`이 main에 없다. 다른 세션 워크트리이므로 승인 없이 건드리지 않는다.
+- **허브 CTA: 8챕터 질문 경로로 바꿈.** `/yeongnyangi/1000-won-fortune/`의 CTA를 `consultationKind=ask`에서 `/yeongnyangi/fortune/?flow=question&domain=saju&fish=mackerel`로 바꿨다. 같은 5,000원에 5챕터 경로로 보내면 구매자가 손해이고 랜딩 문구와도 어긋난다. `YeongnyangiGuide`의 `fishRows`가 이미 쓰는 경로이고 worker·결제·가격은 고치지 않았다. 운영에서 이 URL이 질문 입력 화면으로 열리는 것을 비로그인 390px로 확인했다(결제 안 함). 8챕터의 LLM 원가 증가는 측정하지 않았다. 메뉴에서 상담 종류를 고르는 경로의 5챕터는 그대로다.
+- **`SampleExposure`: 샘플별 ID로 분리.** 정본을 하나로 합치지 않았다. `contentId`를 필수 prop으로 바꿔 타로·연어 샘플은 `tarot-salmon-question-v1`, 고등어 샘플은 `mackerel-question-v1`로 보낸다. 타로·연어 샘플이 고등어로 기록되던 측정 오류를 고쳤다. 과거 데이터는 `item_id`로 구분한다.
+- **claude.ai 링크: 공개 화면 3곳에서 제거.** `YeongnyangiGuide.tsx`, `js/consultation-sample-guide.mjs`, `js/feature-detail-panels.mjs`다. 대상 페이지는 링크 공유 상태이고 제목이 옛 서비스명이며, 시험 프로필, 모델명, 호출 수, 비용, 토큰, 품질 이슈가 보인다. 아티팩트 자체는 삭제하지 않았고 공유 해제는 소유자가 판단한다. `content/product-details/*/manifest.json`, `lib/marketing/result-samples.json`, `public/feature-details/*.json`의 `sourceUrl` 데이터는 남겼다. 화면에 링크로 나오지 않지만 공개 JSON에 URL 문자열은 남아 있다.
+- **대운·세운 가이드: 링크를 넣지 않음.** 애드센스 검수 원고 해시가 깨져 재검수가 필요한데 이득이 불확실하다.
+- **`/premium-unlock/`: 고치지 않음.** 2026-11-04 3회 재측정이 2,083·2,185·2,336ms였다(이전 1회 8.6초). noindex이고 사이트맵 밖이다.
+- **결정이 아니라 조건 대기.** 구매 이벤트 중복과 실구매 대사는 자연 발생 주문으로만 검증된다. GA4 CSP 수정 `wt/ga4-csp-diagnosis-20261030-103058`은 다른 세션 워크트리이므로 건드리지 않았다.
 
-## 소유자만 할 수 있는 것
+## 소유자 작업
 
-마지막 보고에 그대로 다시 적는다.
+Codex가 실행하도록 `docs/handoff/2026-11-04-owner-tasks-codex.md`로 넘겼다. 실제 후기는 사람만 쓸 수 있어 제외했다. 아래는 원래 목록이다.
 
 - GA4 맞춤 측정기준 `ai_source` 등록. 작업 1의 배포 뒤에 해야 값이 쌓인다.
 - Bing Webmaster, Copilot 로그인 뒤 기준선 조회.

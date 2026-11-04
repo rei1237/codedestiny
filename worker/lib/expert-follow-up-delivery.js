@@ -5,6 +5,7 @@ import { ServiceExecutionTransaction } from './models.js';
 import { isPaidResultRevoked } from './paid-result-revocation.js';
 import { json } from './http.js';
 import { runWithAiLocale, storedAiLocale } from './ai-locale-context.js';
+import { compactFollowupMessages } from './followup-context.js';
 
 const receiptFrom = doc => {
   const requestId = String(doc?.metadata?.paidNarrative?.body?.requestId || '');
@@ -78,7 +79,8 @@ export function expertFollowUpNarrativeAdapter({ featureKey, generate, consultat
       featureKey, reportType: 'expertFollowUp', verify,
       seed: async () => ({ input: consultation, prompt: '', minBodyChars: 180, tasks: [{ id: 'answer', prompt: '', minChars: 180 }] }),
       produce: async (_task, state) => {
-        const answer = await runWithAiLocale(storedAiLocale(state.input), () => generate(state.input, state.body.message));
+        const boundedInput = { ...state.input, messages: compactFollowupMessages(state.input?.messages, { maxChars: 16000, recent: 2 }) };
+        const answer = await runWithAiLocale(storedAiLocale(state.input), () => generate(boundedInput, state.body.message));
         if (!answer?.text || answer.isMock || /mock/i.test(`${answer.provider || ''} ${answer.model || ''}`)) return null;
         const body = normalizeNarrativeBody(answer.text);
         return completeNarrativeBody(body) ? { evidenceHash: state.evidenceHash, body, rawText: answer.rawText || answer.text } : null;
