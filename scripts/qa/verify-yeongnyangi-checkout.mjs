@@ -73,7 +73,7 @@ try{
    await pay.click();await page.getByText('결제를 취소했어요. 상담 내용은 그대로 남아 있어요.').waitFor();
    assert.notEqual(requests.at(-1).consultationAttemptId,requests[0].consultationAttemptId,'edited question gets a new intent');
    assert.ok(!page.url().includes(encodeURIComponent(requests.at(-1).question)));
-   assert.equal(await page.getByRole('radio',{name:/월정석.*사용.*보유/}).count(),0,'mackerel keeps its moonstone exclusion');
+   assert.equal(await page.getByRole('radio',{name:/월정석.*사용.*보유/}).count(),1,'mackerel reaches the 10,000 KRW moonstone minimum');
    await page.getByText('상담 방식·깊이 변경하기',{exact:true}).click();await page.locator('input[value=salmon]').check();
    await page.getByRole('radio',{name:/월정석.*사용.*보유/}).check();
    await page.getByRole('button',{name:'상담 시작하기',exact:true}).focus();await page.keyboard.press('Enter');

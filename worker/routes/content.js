@@ -1,5 +1,7 @@
 import { connectDb } from "../lib/db.js";
 import { Insight } from "../lib/models.js";
+import { renderInsightsRss } from "../../lib/seo/insights-rss.mjs";
+import { sanitizeInsightHtml } from "./insights.js";
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound } from "../lib/http.js";
 import { readCmsThroughCache } from "../lib/cms-cache.js";
 import {
@@ -126,11 +128,6 @@ function resolveSiteOrigin(env) {
 function toIsoDate(value, fallback = new Date()) {
   const date = value ? new Date(value) : fallback;
   return Number.isNaN(date.getTime()) ? fallback.toISOString() : date.toISOString();
-}
-
-function toRssDate(value, fallback = new Date()) {
-  const date = value ? new Date(value) : fallback;
-  return Number.isNaN(date.getTime()) ? fallback.toUTCString() : date.toUTCString();
 }
 
 function buildPublicStatusQuery(now = new Date()) {
@@ -280,7 +277,12 @@ async function listPublicFeedItems(env, isSitemap) {
     staleTtlSeconds: INSIGHT_PUBLIC_STALE_TTL_SECONDS,
     load: async () => {
       await connectDb(env);
-      const items = await Insight.find(buildPublicStatusQuery())
+      const publicStatus = buildPublicStatusQuery();
+      const query = isSitemap ? publicStatus : {
+        $and: [publicStatus, { noIndex: { $ne: true } },
+          { $or: [{ type: "fortune_insight" }, { type: { $exists: false } }, { type: "" }] }],
+      };
+      const items = await Insight.find(query)
         .sort({ publishedAt: -1, updatedAt: -1, createdAt: -1 })
         .limit(isSitemap ? SITEMAP_MAX_ITEMS : FEED_MAX_ITEMS)
         .lean();
@@ -327,40 +329,13 @@ function buildContentSitemapXml(items, env) {
 }
 
 function buildContentRssXml(items, env, requestPath = "/rss.xml") {
-  const origin = resolveSiteOrigin(env);
-  const feedUrl = `${origin}${requestPath === "/insights/rss.xml" ? "/insights/rss.xml" : "/rss.xml"}`;
-  const now = new Date();
-  const rssItems = items.slice(0, FEED_MAX_ITEMS).map((item) => {
-    // 🔴 후행 슬래시 필수 — 이 항목들은 public/_worker.js 가 정적 rss.xml 에 병합하므로,
-    // 형태가 다르면 라이브 피드 안에서 리다이렉트되는 URL 과 아닌 URL 이 섞인다.
-    const link = `${origin}/insights/${encodeURIComponent(item.slug)}/`;
-    return [
-      "    <item>",
-      `      <title>${escapeXml(item.title || "Untitled")}</title>`,
-      `      <link>${escapeXml(link)}</link>`,
-      `      <guid isPermaLink="true">${escapeXml(link)}</guid>`,
-      `      <description>${escapeXml(item.summary || item.seo?.metaDescription || "")}</description>`,
-      `      <category>${escapeXml(item.category || "Insights")}</category>`,
-      `      <pubDate>${escapeXml(toRssDate(item.publishedAt || item.updatedAt || item.createdAt, now))}</pubDate>`,
-      "    </item>",
-    ].join("\n");
-  });
-
-  return [
-    '<?xml version="1.0" encoding="UTF-8"?>',
-    '<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">',
-    "  <channel>",
-    "    <title>Code Destiny Insights RSS</title>",
-    `    <link>${escapeXml(`${origin}/insights`)}</link>`,
-    "    <description>Code Destiny insights</description>",
-    "    <language>ko</language>",
-    `    <lastBuildDate>${escapeXml(now.toUTCString())}</lastBuildDate>`,
-    `    <atom:link href="${escapeXml(feedUrl)}" rel="self" type="application/rss+xml" />`,
-    ...rssItems,
-    "  </channel>",
-    "</rss>",
-    "",
-  ].join("\n");
+  const articles = items.map(item => ({
+    ...item,
+    description: item.summary || item.seo?.metaDescription,
+    contentHtml: sanitizeInsightHtml(item.contentHtml || item.content),
+    publishedAt: item.publishedAt || item.createdAt,
+  }));
+  return renderInsightsRss(articles, resolveSiteOrigin(env), requestPath);
 }
 
 async function handleContentFeed(path, request, env) {

@@ -25,6 +25,7 @@ import {
   normalizeFusionVisualization,
 } from "./fusion-fortune-visual.js";
 import { buildGuardianFortuneContext } from "./guardian-fortune-context.js";
+import { sajuAuthorityOn } from "./saju-authority-consumer.js";
 import { buildIntegratedInsight } from "./guardian-fortune-insight.js";
 import { buildFortuneQuestionFocus } from "./fortune-question-focus.js";
 import { createGeminiContextCache, deleteGeminiContextCache, pickGeminiKeys } from "./gemini.js";
@@ -1588,7 +1589,7 @@ export async function generateFusionFortuneRequest({ input = {}, userId = "", re
       priorSnapshot = await onRecoveryRequested(deliveryLease) || priorSnapshot;
     }
     const calculationDate = priorSnapshot?.calculatedAt ? new Date(priorSnapshot.calculatedAt) : priorResult?.expertMeta?.calculatedAt ? new Date(priorResult.expertMeta.calculatedAt) : now;
-    const contextResult = priorSnapshot?.context ? { ok: true, context: priorSnapshot.context } : await contextBuilder(normalized, { now: calculationDate, env, onStage, ...(normalized.contextVersion === 2 ? { tarotSeed: `${userId}:${safeId}` } : {}) });
+    const contextResult = priorSnapshot?.context ? { ok: true, context: priorSnapshot.context } : await contextBuilder(normalized, { now: calculationDate, env, onStage, gyeokgukAuthorityV2: !priorResult && sajuAuthorityOn(env), ...(normalized.contextVersion === 2 ? { tarotSeed: `${userId}:${safeId}` } : {}) });
     if (!contextResult?.ok) throw Object.assign(new Error("context"), { code: FUSION_FORTUNE_ERROR_CODES.CONTEXT_FAILED });
     if (!priorSnapshot?.context && typeof onSnapshot === "function") await onSnapshot({ requestId: safeId, input: normalized, context: contextResult.context, calculatedAt: calculationDate.toISOString(), lease: deliveryLease });
     throwIfFusionFortuneAborted(abortSignal);

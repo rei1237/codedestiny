@@ -21,7 +21,7 @@ const INDEX_RUNTIME_TEXT_TRANSLATIONS = {
     "indexRuntime.label.007": "상승궁",
     "indexRuntime.label.008": "달궁",
     "indexRuntime.label.009": "신강/신약",
-    "indexRuntime.label.010": "용신",
+    "indexRuntime.label.010": "보완 후보",
     "indexRuntime.label.011": "조후",
     "indexRuntime.aria-label.002": "운명의 꽃 연동하기",
     "indexRuntime.confirm.003": "🔒 로그인이 필요한 서비스입니다.\\\\n로그인 후 이용해 주세요.",
@@ -1924,7 +1924,7 @@ var __cdLazyActionLoaders = {
   openTarotSelfEsteemModal: function() { return __cdLoadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-86062dc39929'); },
   openTarotYearFortuneModal: function() { return __cdLoadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-d5a7f78af64e'); },
   openSibylModal: function() {
-    return __cdLoadScriptOnce('/js/sibyl-system.js?v=build-1969477b5929').then(function() {
+    return __cdLoadScriptOnce('/js/sibyl-system.js?v=build-3fbcc77d4ee7').then(function() {
       if (typeof window.openSibylModal === 'function') window.openSibylModal();
     });
   },
@@ -1978,7 +1978,7 @@ var __cdLazyActionLoaders = {
   //    git grep 'luck-sync-diary.js' 에 index.html 0건). 그래서 모달 쪽은 자기 델리게이션으로
   //    열지 않고 window.openLegacyLuckSyncDiary 만 내놓고, 로드 후 재호출은 아래
   //    __cdInvokeAction 이 맡는다(둘 다 열면 두 번째 클릭부터 모달을 두 번 만든다).
-  openLegacyLuckSyncDiary: function() { return __cdLoadScriptOnce('/js/luck-sync-diary.js?v=build-06b31420b9ca'); },
+  openLegacyLuckSyncDiary: function() { return __cdLoadScriptOnce('/js/luck-sync-diary.js?v=build-fb3af7622cf6'); },
   // 사주 결과 공유 버튼 3종. shareKakao/shareInstagram/shareSajuResultImage 는
   // js/share.js 안에 정의되는데 그 파일이 noncritical-defer-loader(첫 feature-intent
   // 탭/45초 타임아웃/백그라운드 전환 중 하나가 있어야 로드)로만 실려서, 결과 화면
@@ -2183,7 +2183,7 @@ window.__cdLoadScriptOnce = __cdLoadScriptOnce;
 // 구형 운기 다이어리는 결과 화면에서만 지연 로드된다. 첫 클릭에 스크립트를
 // 실은 뒤 내부 위임이 사라질 수 있으므로, 준비가 끝나면 공개 API를 직접 호출한다.
 function __cdOpenLegacyLuckSyncDiaryProxy() {
-  return __cdLoadScriptOnce('/js/luck-sync-diary.js?v=build-06b31420b9ca').then(function() {
+  return __cdLoadScriptOnce('/js/luck-sync-diary.js?v=build-fb3af7622cf6').then(function() {
     if (window.LuckSyncDiary && typeof window.LuckSyncDiary.open === 'function') {
       return window.LuckSyncDiary.open();
     }
@@ -2289,16 +2289,16 @@ function __cdEnsureSajuCoreLoaded() {
     '/js/core/saju/natal-core.generated.js?v=build-38051d7297a0',
     '/js/core/kasi-calendar-service.js?v=build-99c5568a4710',
     '/js/compat-llm-prompts.js?v=build-f4b380e036d0',
-    '/js/saju-engine.js?v=build-c23c543a2715',
+    '/js/saju-engine.js?v=build-070b648ccccc',
       '/js/core/saju/extremeTResult.js?v=build-5f0576c62518',
       /* 숙요 정본(Swiss 항성 달 황경). quantum.js 의 calcSukuyoData 가 이것 없이는 수(宿)를 내지 않는다. */
       '/js/core/sukuyo-astronomy.js?v=build-5198c8e4c8b2',
-      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-98459d2f9c55',
+      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-58d6b2f6dfcf',
     '/js/core/saju/basicFortunePresentation.js?v=build-6891fb41d4aa',
     '/js/core/saju/modalProfileState.js?v=build-70bc2c91ff63',
-    '/js/core/saju/reportDashboard.js?v=build-9f5fedad1806',
+    '/js/core/saju/reportDashboard.js?v=build-35d12652631c',
     '/js/saju-engine-continuation.js?v=build-f4d87e14c1c7',
-    '/js/entertain-engine.js?v=build-ee0a2907709d',
+    '/js/entertain-engine.js?v=build-6f912a91e8e5',
     /* 체인은 순차 reduce라 앞에 끼우면 이 파일의 실패가 뒤쪽 전체를 죽인다 — 신규 카드 스크립트는 맨 뒤에 둔다. */
     '/js/core/saju/dopamineResult.js?v=build-2e244f8ece95'
   ];
@@ -2450,7 +2450,7 @@ function __cdEnsureSajuCompatModules() {
   if (window.__cdSajuCompat) return Promise.resolve(window.__cdSajuCompat);
   if (__cdSajuCompatLoadPromise) return __cdSajuCompatLoadPromise;
   __cdSajuCompatLoadPromise = Promise.all([
-    import('/js/saju-compat-render.mjs?v=build-4b9a2d23bc4a'),
+    import('/js/saju-compat-render.mjs?v=build-78f98aa75845'),
     import('/js/saju-compat-flow.mjs?v=build-b7c7a53904fd'),
     import('/js/core/paid-narrative-reader.js?v=build-c9b681355666')
   ]).then(function(mods) {
@@ -6062,7 +6062,9 @@ function _dfGetSajuBadges(selection) {
   else if (typeof saju.is_strong === 'boolean') strength = saju.is_strong ? '신강' : '신약';
   else strength = '판정 대기';
 
-  var yongshin = _dfJoinElementLabels(saju.yongshin_elements || analysis.yongshin_elements || []);
+  var yongshin = Array.isArray(saju.yongshin_candidates)
+    ? (_dfJoinElementLabels(saju.yongshin_candidates) || '판정 보류')
+    : _dfJoinElementLabels(saju.yongshin_elements || analysis.yongshin_elements || []);
   var johu = _dfJohuLabel(saju.johu_type || saju.johuType || analysis.johuType || analysis.johu_type || '');
 
   return {
@@ -6390,7 +6392,7 @@ function _dfRenderStudioSpecimen(selection, sourceLabel, badges, flowerData) {
     [_dfUiText('specimen.mark.' + markSource + '.primary', marks[0]), flowerData.day_master_badge],
     [_dfUiText('specimen.mark.' + markSource + '.secondary', marks[1]), flowerData.season_label]
   ];
-  if (badges && badges.mode === 'saju' && badges.yongshin && badges.yongshin !== '판정 대기') rows.push([_dfUiText('specimen.yongshin', '용신'), _dfBadgeText(badges.yongshin)]);
+  if (badges && badges.mode === 'saju' && badges.yongshin && badges.yongshin !== '판정 대기') rows.push([_dfUiText('specimen.yongshin', '보완 후보'), _dfBadgeText(badges.yongshin)]);
   rows = rows.filter(function(row) { return String(row[1] || '').trim(); });
   el.innerHTML = rows.map(function(row) {
     return '<div class="df-specimen-row"><dt>' + _dfEscapeHtml(row[0]) + '</dt><dd>' + _dfEscapeHtml(String(row[1]).trim()) + '</dd></div>';
@@ -7351,7 +7353,7 @@ function _dfBuildAtelierExtension(selection, sourceLabel, badges, flowerData, sa
       _dfUiText('atelier.saju.matrixNutrient', '🧪 가드너의 영양제: {value}', { value: nutrient })
     ];
     observationLog = _dfUiText('atelier.saju.log', '정원사의 관찰 일지: 오늘 정원은 {soil}의 결을 띠며, {root} 흐름으로 생장 에너지가 움직입니다. 겉으로 조용해 보여도 뿌리층에서는 다음 개화를 위한 힘이 단단히 저장되고 있습니다.', { soil: soil, root: root });
-    secretRecipe = _dfUiText('atelier.saju.recipe', '비밀 레시피: 북쪽 또는 동쪽 창가에 푸른 잎 식물을 두고, 아침 10분은 몸을 풀고 저녁 10분은 호흡을 고르세요. 하루 두 번의 리듬 고정이 용신 기운을 가장 빠르게 끌어올립니다.');
+    secretRecipe = _dfUiText('atelier.saju.recipe', '비밀 레시피: 북쪽 또는 동쪽 창가에 푸른 잎 식물을 두고, 아침 10분은 몸을 풀고 저녁 10분은 호흡을 고르세요. 하루 두 번의 리듬 고정이 보완 후보 기운을 가장 빠르게 끌어올립니다.');
     flowerLanguage = _dfUiText('atelier.saju.flowerLanguage', '운명의 꽃말: 단단한 뿌리는 늦어 보여도 결국 가장 높게 핀다.');
     gardenerWord = _dfUiText('atelier.saju.gardenerWord', '이 꽃을 위한 가드너의 한 마디: 조급함보다 축적을 믿으세요. 오늘의 작은 관리가 다음 계절의 큰 결실을 만듭니다.');
     particleMood = _dfUiText('atelier.saju.particle', '{source} 기운의 미세한 움직임을 입자로 번역하면 "{particle}" 무드가 가장 조화롭습니다.', { source: sourceLabel, particle: flower.particle_type || 'petal' });
@@ -7383,7 +7385,7 @@ function _dfBuildPromptBadgeLine(selection) {
   if (badges.mode === 'astrology') {
     return _dfUiText('prompt.badgesAstrology', '점성술 배지: 태양궁 {sun} / 상승궁 {rising} / 달궁 {moon}', { sun: _dfBadgeText(_dfOneLineText(badges.sun, '미확인')), rising: _dfBadgeText(_dfOneLineText(badges.rising, '미확인')), moon: _dfBadgeText(_dfOneLineText(badges.moon, '미확인')) });
   }
-  return _dfUiText('prompt.badgesSaju', '사주 배지: 신강/신약 {strength} / 용신 {yongshin} / 조후 {johu}', { strength: _dfBadgeText(_dfOneLineText(badges.strength, '판정 대기')), yongshin: _dfBadgeText(_dfOneLineText(badges.yongshin, '판정 대기')), johu: _dfBadgeText(_dfOneLineText(badges.johu, '판정 대기')) });
+  return _dfUiText('prompt.badgesSaju', '사주 배지: 신강/신약 {strength} / 보완 후보 {yongshin} / 조후 {johu}', { strength: _dfBadgeText(_dfOneLineText(badges.strength, '판정 대기')), yongshin: _dfBadgeText(_dfOneLineText(badges.yongshin, '판정 대기')), johu: _dfBadgeText(_dfOneLineText(badges.johu, '판정 대기')) });
 }
 
 function _dfBuildArtPrompt(selection) {
@@ -9046,9 +9048,9 @@ function __cdEnsureSukuyoZiweiCoreLoaded() {
     /* 원국 판정 정본(전역 SajuNatalCore). saju-engine 의 detectJong 이 이것 없이는 던진다. */
     '/js/core/saju/natal-core.generated.js?v=build-38051d7297a0',
     '/js/compat-llm-prompts.js?v=build-f4b380e036d0',
-      '/js/saju-engine.js?v=build-c23c543a2715',
+      '/js/saju-engine.js?v=build-070b648ccccc',
       '/js/core/sukuyo-astronomy.js?v=build-5198c8e4c8b2',
-      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-98459d2f9c55'
+      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-58d6b2f6dfcf'
   ];
 
   /* 🔴 예전에는 이 체인 앞에 lunar-javascript CDN 대기가 있었고, 그것이 reject 되면 생년월일
@@ -10085,7 +10087,7 @@ function resetTarotForCategorySelection() {
   var overlay = document.getElementById('tarotModalOverlay');
   if (!overlay || overlay.style.display === 'none') return;
   _resetTarotUI();
-  if (typeof window.setTarotMode === 'function') window.setTarotMode(window.tarotSpreadMode || 'one');
+  if (typeof window.setTarotMode === 'function') window.setTarotMode(window.tarotSpreadMode || 'three');
 }
 window.resetTarotForCategorySelection = resetTarotForCategorySelection;
 function openTarotModal() {
@@ -10118,7 +10120,7 @@ function openTarotModal() {
     state.pending = __cdEnsureSajuCoreLoaded()
       .then(function() {
         if (state.open && state.generation === generation && overlay.style.display !== 'none' && typeof window.setTarotMode === 'function') {
-          window.setTarotMode(window.tarotSpreadMode || 'one');
+          window.setTarotMode(window.tarotSpreadMode || 'three');
         }
       })
       .catch(function(err) {
@@ -10128,7 +10130,7 @@ function openTarotModal() {
         if (state.generation === generation) state.pending = null;
       });
   } else if (typeof window.setTarotMode === 'function') {
-    window.setTarotMode(window.tarotSpreadMode || 'one');
+    window.setTarotMode(window.tarotSpreadMode || 'three');
   }
 }
 function closeTarotModal() {
@@ -10237,7 +10239,7 @@ function updateCompatUI() {
     desc.textContent = '연애/결혼: 감정, 온기, 일지·십성 간의 조화가 중심에 머뭅니다.';
     btn.innerHTML = '💗 연애 궁합 분석하기';
   } else if (v === 'business') {
-    desc.textContent = '사업/동업: 역할·책임·용신·상극을 중심으로 실무적·재무적 적합성을 평가합니다.';
+    desc.textContent = '사업/동업: 역할·책임·보완 후보·상극을 중심으로 실무적·재무적 적합성을 평가합니다.';
     btn.innerHTML = '💼 사업 궁합 분석하기';
   } else {
     desc.textContent = '친구/동료: 우정·협업·에너지 호흡을 중심으로 편안함과 시너지 포인트를 안내합니다.';

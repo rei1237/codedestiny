@@ -83,9 +83,9 @@ test('both personas draw the same numbers in different words, with the old key i
     assert.doesNotMatch(yeon,/냥|돼지/);assert.doesNotMatch(neo,/돼지|사자|갈기/);
   }
   const climate=rich.climate(facts,'pig');
-  for(const item of ['한난조습이란 무엇인가요?','조후 밸런스 처방','개선법','조후 용신과 억부 용신'])assert.ok(climate.includes(item),item);
+  for(const item of ['한난조습이란 무엇인가요?','조후 밸런스 처방','개선법','조후 보완과 억부 보완 후보'])assert.ok(climate.includes(item),item);
   const strength=rich.strength(facts,'pig');
-  for(const item of ['용신','희신','기신','왜 신','대운 방향 한눈에','득령','억부(抑扶)란 무엇인가요?'])assert.ok(strength.includes(item),item);
+  for(const item of ['보완 후보','주의 오행','왜 신','대운 방향 한눈에','득령','억부(抑扶)란 무엇인가요?'])assert.ok(strength.includes(item),item);
 });
 
 test('a jong chart is read by its dominant force, and a leftover survey note is not shown',()=>{

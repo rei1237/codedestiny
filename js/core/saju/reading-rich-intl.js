@@ -14,8 +14,8 @@
   var COPY = {};
   COPY.en = {
     el: {wood:'Wood (木)', fire:'Fire (火)', earth:'Earth (土)', metal:'Metal (金)', water:'Water (水)'},
-    role: {'용신':'Key balance (用神)', '희신':'Supportive (喜神)', '기신':'Strain (忌神)', '구신':'Added strain (仇神)'},
-    roleShort: {'용신':'Key balance', '희신':'Supportive', '기신':'Strain', '구신':'Added strain'},
+    role: {'보완 후보':'Support candidate', '주의 오행':'Element to watch'},
+    roleShort: {'보완 후보':'Support candidate', '주의 오행':'Element to watch'},
     stem: {'甲':'Jia · Yang Wood', '乙':'Yi · Yin Wood', '丙':'Bing · Yang Fire', '丁':'Ding · Yin Fire', '戊':'Wu · Yang Earth', '己':'Ji · Yin Earth', '庚':'Geng · Yang Metal', '辛':'Xin · Yin Metal', '壬':'Ren · Yang Water', '癸':'Gui · Yin Water'},
     stage12: {
       '장생':['Growth (長生)', 'the start of growing · energy for learning and beginning'], '목욕':['Bathing (沐浴)', 'first contact with the world · curiosity, sensitivity, change'],
@@ -42,7 +42,7 @@
       names: ['Recover first', 'Steady', 'Smooth', 'Strong momentum'], ends: ['Slow down', 'Strong'], caption: 'Energy gauge {bp}%', aria: 'Energy gauge {bp}% for {when}',
       tags: {fast:'Accelerate', even:'Balanced', rest:'Pause'}, boost: '{el} boost', tblCap: 'Energy arriving {when} and your day stem',
       godHead: ['Reading {when} by ten gods', 'Judgement by ten god'], nothing: ['No clash with your chart stands out. Read an important message once more before sending.', 'No notable relation. Recheck important messages before sending.'], checkHead: ['Please keep in mind', 'Checkpoints'],
-      boostHead: 'Lucky booster', boostLabel: 'Element to add', boostNote: ['A light everyday tip for adding what is lacking. Enjoy it as a small change of mood.', 'An everyday tip for supplementing the key balance element. No effect is guaranteed.'],
+      boostHead: 'Lucky booster', boostLabel: 'Element to add', boostNote: ['A light everyday tip for adding what is lacking. Enjoy it as a small change of mood.', 'An everyday tip for supplementing the support candidate element. No effect is guaranteed.'],
       god: {'비견':['A time when your own judgement gets clearer. Deciding alone is fine, but write the reason in one line so you do not waver later.', 'Independent judgement is favourable. Record the reason in one line.'], '겁재':['Competitiveness and drive rise together. Postpone impulsive spending or bets by a day and you will feel easier.', 'Competition and impulse grow. Hold impulsive spending for a day.'], '식신':['Joy and ideas well up. Make one idea you have into something, however small, right away.', 'Productivity rises. Move one idea into an action step now.'], '상관':['Words and expression carry weight. Good for presentations and creative work; read a contract or an official statement once more before sending it out.', 'Expression strengthens. Recheck official documents and statements before release.'], '편재':['Chances and swings grow together. Start with small things you have confirmed rather than big bets.', 'Chance and volatility are both large. Proceed with small, verified items.'], '정재':['A time when careful practical work shines. Sorting income and spending once will lighten your mind.', 'Accuracy rises. Sort your income and spending records.'], '편관':['You may feel pressure. Rather than shouldering all of it, pick one thing you will keep and hold on, and it returns as trust.', 'Pressure comes. Focusing on one core duty returns as trust.'], '정관':['A time when duty and trust show. Good for official papers and procedures.', 'Suited to official procedures. Make your scope of responsibility clear.'], '편인':['Intuition grows sharp. Jot down the hunches that come and check them in a small way.', 'Intuition leads. Record hunches and run a small check.'], '정인':['A good time for learning and sorting things out. Asking a trusted person for advice makes your thinking clear.', 'Learning and analysis are efficient. Ask a trusted adviser.']},
       tone: {open:['Energy comes in with some strength. Pick one thing to do and finish it first, and you can ride the flow well.', 'Energy-surplus band. Finish one top-priority item first.'], care:['A time to look after your inner battery first. Slow down a little, and mistakes drop and relationships ease.', 'Energy-care band. Lower the speed and add one more check step.']},
       sumHead: ['Yeoni’s word', 'Yeongnyangi’s summary']}
@@ -50,8 +50,8 @@
 
   COPY.ja = {
     el: {wood:'木', fire:'火', earth:'土', metal:'金', water:'水'},
-    role: {'용신':'要の調和（用神）', '희신':'支え（喜神）', '기신':'負担（忌神）', '구신':'さらなる負担（仇神）'},
-    roleShort: {'용신':'要の調和', '희신':'支え', '기신':'負担', '구신':'さらなる負担'},
+    role: {'보완 후보':'補完候補', '주의 오행':'注意の五行'},
+    roleShort: {'보완 후보':'補完候補', '주의 오행':'注意の五行'},
     stem: {'甲':'甲（陽の木）', '乙':'乙（陰の木）', '丙':'丙（陽の火）', '丁':'丁（陰の火）', '戊':'戊（陽の土）', '己':'己（陰の土）', '庚':'庚（陽の金）', '辛':'辛（陰の金）', '壬':'壬（陽の水）', '癸':'癸（陰の水）'},
     animal: {'子':'鼠', '丑':'牛', '寅':'虎', '卯':'兎', '辰':'龍', '巳':'蛇', '午':'馬', '未':'羊', '申':'猿', '酉':'鶏', '戌':'犬', '亥':'猪'},
     stage12: {
@@ -79,7 +79,7 @@
       names: ['まず回復', '安定', '順調', '勢いが強い'], ends: ['ゆっくり', '強い'], caption: '気のゲージ {bp}%', aria: '{when}の気のゲージ {bp}%',
       tags: {fast:'加速', even:'バランス', rest:'一休み'}, boost: '{el}を足す', tblCap: '{when}届く気とあなたの日干',
       godHead: ['{when}を十神で読む', '十神別の判定'], nothing: ['命式との衝突は目立ちません。大事なメッセージは、送る前にもう一度読み返しましょう。', '目立つ関係はなし。大事なメッセージは送る前に再確認する。'], checkHead: ['心に留めておいてください', '確認ポイント'],
-      boostHead: 'ラッキーブースター', boostLabel: '足す五行', boostNote: ['足りないものを足す、軽い日常のヒントです。小さな気分転換として楽しんでください。', '要の調和の五行を補う日常のヒント。効果を保証するものではない。'],
+      boostHead: 'ラッキーブースター', boostLabel: '足す五行', boostNote: ['足りないものを足す、軽い日常のヒントです。小さな気分転換として楽しんでください。', '補完候補の五行を補う日常のヒント。効果を保証するものではない。'],
       god: {'비견':['自分の判断が明確になる時期です。一人で決めても構いませんが、あとで迷わないよう、理由を一行で書いておきましょう。', '自立した判断が有利。理由を一行で記録する。'], '겁재':['競争心と意欲が一緒に高まります。衝動的な出費や賭けは一日延ばすと、気持ちが楽になります。', '競争と衝動が増す。衝動的な出費は一日保留する。'], '식신':['喜びとアイデアがわいてきます。思いついたアイデアを一つ、小さくてもすぐに形にしてみましょう。', '生産性が上がる。アイデアを一つ今すぐ行動のステップにする。'], '상관':['言葉と表現に重みが出ます。発表や創作に向いていますが、契約書や公式な声明は、出す前にもう一度読み返してください。', '表現が強まる。公式文書と声明は公開前に再確認する。'], '편재':['機会と変動が一緒に大きくなります。大きな賭けより、確認済みの小さなことから始めましょう。', '機会も変動も大きい。確認済みの小さな案件で進める。'], '정재':['丁寧な実務が光る時期です。収入と支出を一度整理すると、心が軽くなります。', '正確さが上がる。収支の記録を整理する。'], '편관':['圧力を感じるかもしれません。すべてを背負うより、守ると決めたことを一つ選んで持ち続けると、信頼として返ってきます。', '圧力が来る。核心の責任を一つに絞ると信頼として返る。'], '정관':['責任と信頼が表れる時期です。公式な書類や手続きに向いています。', '公式な手続きに向く。責任の範囲を明確にする。'], '편인':['直感が冴えます。浮かんだ予感を書き留め、小さく確かめてみましょう。', '直感が主導。予感を記録し、小さく検証する。'], '정인':['学びと整理に良い時期です。信頼できる人に助言を求めると、考えがはっきりします。', '学びと分析が効率的。信頼できる相談相手に聞く。']},
       tone: {open:['気がある程度の強さで入ってきます。やることを一つ選んでまず終わらせれば、流れにうまく乗れます。', '気の余剰帯。最優先の一件を先に終える。'], care:['内なるバッテリーを先に労る時期です。少しゆっくりすると、ミスが減って人間関係も和らぎます。', '気のケア帯。速度を落とし、確認の段階を一つ増やす。']},
       sumHead: ['Yeoniのひとこと', 'Yeongnyangiの要約']}
@@ -87,8 +87,8 @@
 
   COPY['zh-CN'] = {
     el: {wood:'木', fire:'火', earth:'土', metal:'金', water:'水'},
-    role: {'용신':'关键平衡（用神）', '희신':'助力（喜神）', '기신':'负担（忌神）', '구신':'加重负担（仇神）'},
-    roleShort: {'용신':'关键平衡', '희신':'助力', '기신':'负担', '구신':'加重负担'},
+    role: {'보완 후보':'补充候选', '주의 오행':'留意五行'},
+    roleShort: {'보완 후보':'补充候选', '주의 오행':'留意五行'},
     stem: {'甲':'甲（阳木）', '乙':'乙（阴木）', '丙':'丙（阳火）', '丁':'丁（阴火）', '戊':'戊（阳土）', '己':'己（阴土）', '庚':'庚（阳金）', '辛':'辛（阴金）', '壬':'壬（阳水）', '癸':'癸（阴水）'},
     animal: {'子':'鼠', '丑':'牛', '寅':'虎', '卯':'兔', '辰':'龙', '巳':'蛇', '午':'马', '未':'羊', '申':'猴', '酉':'鸡', '戌':'狗', '亥':'猪'},
     stage12: {
@@ -116,7 +116,7 @@
       names: ['先恢复', '平稳', '顺畅', '势头强劲'], ends: ['放慢', '强劲'], caption: '能量仪表 {bp}%', aria: '{when}的能量仪表 {bp}%',
       tags: {fast:'加速', even:'平衡', rest:'暂停'}, boost: '补{el}', tblCap: '{when}到来的能量与你的日干',
       godHead: ['用十神读{when}', '按十神判断'], nothing: ['没有明显与命盘相冲的地方。重要的消息发出前，再读一遍。', '没有明显的关系。重要消息发出前再次确认。'], checkHead: ['请留意', '检查要点'],
-      boostHead: '幸运加成', boostLabel: '要补的五行', boostNote: ['补充所缺的轻松日常小提示。当作一点小小的心情调剂来享受吧。', '补充关键平衡五行的日常提示。不保证任何效果。'],
+      boostHead: '幸运加成', boostLabel: '要补的五行', boostNote: ['补充所缺的轻松日常小提示。当作一点小小的心情调剂来享受吧。', '补充补充候选五行的日常提示。不保证任何效果。'],
       god: {'비견':['自己的判断会更清晰的时期。独自决定也可以，但用一句话写下理由，以免之后动摇。', '独立判断有利。用一句话记录理由。'], '겁재':['好胜心与干劲一起上升。把冲动的花销或赌注推迟一天，心里会更轻松。', '竞争与冲动增强。冲动的花销搁置一天。'], '식신':['喜悦与点子涌现。把你想到的一个点子，哪怕很小，立刻做成点什么。', '产出力上升。现在就把一个点子化为行动步骤。'], '상관':['言语与表达有分量。适合演讲与创作；合同或正式声明发出前，请再读一遍。', '表达增强。正式文件与声明发布前再次确认。'], '편재':['机会与波动同时变大。先从确认过的小事开始，而不是大的赌注。', '机会与波动都大。以小而已验证的事项推进。'], '정재':['细致务实的工作发光的时期。梳理一遍收入与支出，心会变轻。', '准确度上升。整理收支记录。'], '편관':['你可能感到压力。与其全部扛下，不如选一件你要坚守的事，坚持住，它会以信任的形式回来。', '压力来临。聚焦一项核心责任，会以信任的形式回报。'], '정관':['责任与信任显现的时期。适合办理正式文件和手续。', '适合办理正式手续。明确责任范围。'], '편인':['直觉变得敏锐。记下浮现的预感，并小范围地验证。', '直觉主导。记录预感并小范围验证。'], '정인':['适合学习与整理的好时机。向信任的人请教，思路会变清晰。', '学习与分析高效。请教可信赖的顾问。']},
       tone: {open:['能量以不弱的力度进来。挑一件要做的事先做完，就能顺势而行。', '能量富余区间。先完成最优先的一件事。'], care:['先照顾好内在电量的时期。稍微放慢，失误会减少，人际也会缓和。', '能量养护区间。降低速度，多加一个确认步骤。']},
       sumHead: ['Yeoni 的话', 'Yeongnyangi 的总结']}
@@ -124,8 +124,8 @@
 
   COPY['zh-TW'] = {
     el: {wood:'木', fire:'火', earth:'土', metal:'金', water:'水'},
-    role: {'용신':'關鍵平衡（用神）', '희신':'助力（喜神）', '기신':'負擔（忌神）', '구신':'加重負擔（仇神）'},
-    roleShort: {'용신':'關鍵平衡', '희신':'助力', '기신':'負擔', '구신':'加重負擔'},
+    role: {'보완 후보':'補充候選', '주의 오행':'留意五行'},
+    roleShort: {'보완 후보':'補充候選', '주의 오행':'留意五行'},
     stem: {'甲':'甲（陽木）', '乙':'乙（陰木）', '丙':'丙（陽火）', '丁':'丁（陰火）', '戊':'戊（陽土）', '己':'己（陰土）', '庚':'庚（陽金）', '辛':'辛（陰金）', '壬':'壬（陽水）', '癸':'癸（陰水）'},
     animal: {'子':'鼠', '丑':'牛', '寅':'虎', '卯':'兔', '辰':'龍', '巳':'蛇', '午':'馬', '未':'羊', '申':'猴', '酉':'雞', '戌':'狗', '亥':'豬'},
     stage12: {
@@ -153,7 +153,7 @@
       names: ['先恢復', '平穩', '順暢', '勢頭強勁'], ends: ['放慢', '強勁'], caption: '能量儀表 {bp}%', aria: '{when}的能量儀表 {bp}%',
       tags: {fast:'加速', even:'平衡', rest:'暫停'}, boost: '補{el}', tblCap: '{when}到來的能量與你的日干',
       godHead: ['用十神讀{when}', '按十神判斷'], nothing: ['沒有明顯與命盤相沖的地方。重要的訊息發出前，再讀一遍。', '沒有明顯的關係。重要訊息發出前再次確認。'], checkHead: ['請留意', '檢查要點'],
-      boostHead: '幸運加成', boostLabel: '要補的五行', boostNote: ['補充所缺的輕鬆日常小提示。當作一點小小的心情調劑來享受吧。', '補充關鍵平衡五行的日常提示。不保證任何效果。'],
+      boostHead: '幸運加成', boostLabel: '要補的五行', boostNote: ['補充所缺的輕鬆日常小提示。當作一點小小的心情調劑來享受吧。', '補充補充候選五行的日常提示。不保證任何效果。'],
       god: {'비견':['自己的判斷會更清晰的時期。獨自決定也可以，但用一句話寫下理由，以免之後動搖。', '獨立判斷有利。用一句話記錄理由。'], '겁재':['好勝心與幹勁一起上升。把衝動的花費或賭注延後一天，心裡會更輕鬆。', '競爭與衝動增強。衝動的花費擱置一天。'], '식신':['喜悅與點子湧現。把你想到的一個點子，哪怕很小，立刻做成點什麼。', '產出力上升。現在就把一個點子化為行動步驟。'], '상관':['言語與表達有分量。適合演講與創作；合約或正式聲明發出前，請再讀一遍。', '表達增強。正式文件與聲明發布前再次確認。'], '편재':['機會與波動同時變大。先從確認過的小事開始，而不是大的賭注。', '機會與波動都大。以小而已驗證的事項推進。'], '정재':['細緻務實的工作發光的時期。梳理一遍收入與支出，心會變輕。', '準確度上升。整理收支記錄。'], '편관':['你可能感到壓力。與其全部扛下，不如選一件你要堅守的事，堅持住，它會以信任的形式回來。', '壓力來臨。聚焦一項核心責任，會以信任的形式回報。'], '정관':['責任與信任顯現的時期。適合辦理正式文件和手續。', '適合辦理正式手續。明確責任範圍。'], '편인':['直覺變得敏銳。記下浮現的預感，並小範圍地驗證。', '直覺主導。記錄預感並小範圍驗證。'], '정인':['適合學習與整理的好時機。向信任的人請教，思路會變清晰。', '學習與分析高效。請教可信賴的顧問。']},
       tone: {open:['能量以不弱的力度進來。挑一件要做的事先做完，就能順勢而行。', '能量富餘區間。先完成最優先的一件事。'], care:['先照顧好內在電量的時期。稍微放慢，失誤會減少，人際也會緩和。', '能量養護區間。降低速度，多加一個確認步驟。']},
       sumHead: ['Yeoni 的話', 'Yeongnyangi 的總結']}

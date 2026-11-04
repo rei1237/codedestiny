@@ -109,7 +109,7 @@ describe("KRW 주문 생성은 판매 종료 키를 닫는다", () => {
   test("회당 키와 타로·숙요·베다·점성 주문은 그대로 만들어진다", async () => {
     const db = makeDb();
     seedUser(db);
-    for (const featureKey of ["fortune-chat-consultation", "tarot-myeongri-three-card", "sukuyo-nature-deep-dive", "vedic_basic_reading", "astro_basic_deep_pack"]) {
+    for (const featureKey of ["fortune-chat-consultation", "tarot-year-fortune", "sukuyo-nature-deep-dive", "vedic_basic_reading", "astro_basic_deep_pack"]) {
       const { response, payload } = await post(db, "/orders", { featureKey, profileId: "p1", idempotencyKey: `open-${featureKey}` });
       expect({ featureKey, status: response.status, code: payload.code }).toEqual({ featureKey, status: 200, code: undefined });
     }

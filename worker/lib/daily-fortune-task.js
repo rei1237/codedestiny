@@ -1,6 +1,7 @@
 import { connectDb, withMongoRetry } from "./db.js";
 import { DailyFortuneSubscription } from "./models.js";
 import { sendEmail } from "./resend.js";
+import { approvedSajuLabels, consumerPillars, sajuAuthorityOn } from "./saju-authority-consumer.js";
 import { escapeTelegramHtml, sendTelegramMessage } from "./telegram.js";
 
 const STEMS = ["갑", "을", "병", "정", "무", "기", "경", "신", "임", "계"];
@@ -162,7 +163,21 @@ function getPreviewLine(preview) {
   return [scoreText, grade, advice].filter(Boolean).join(" · ");
 }
 
-function buildSajuMailContext(sub, today) {
+// 메일은 매일 새로 만든다. 스냅샷이 불완전하면 단일 오행을 되살리지 않고 보류로 보낸다.
+function approvedMailFacts(sub, pillars) {
+  // 구독에는 시간 미상 표시가 없어 출생시가 비어 있으면 미상으로 본다.
+  const rows = [["year", pillars.y], ["month", pillars.m], ["day", pillars.d], ["hour", sub.birthHour == null ? null : pillars.h]]
+    .filter(([, value]) => value?.g && value?.j)
+    .map(([position, value]) => ({ position, stem: value.g, branch: value.j }));
+  try {
+    const labels = approvedSajuLabels(consumerPillars(rows));
+    return { yongshin: labels.yongshinLabel, avoidElements: labels.gisinLabel, approved: { names: labels.candidateNames } };
+  } catch {
+    return { yongshin: "판정 보류", avoidElements: "판정 보류", approved: { names: [] } };
+  }
+}
+
+function buildSajuMailContext(sub, today, { authorityEnabled = false } = {}) {
   const snapshot = sub.sajuSnapshot && typeof sub.sajuSnapshot === "object" ? sub.sajuSnapshot : null;
   if (!snapshot || !snapshot.pillars || !snapshot.pillars.d) {
     throw new Error("missing_saju_snapshot");
@@ -184,10 +199,26 @@ function buildSajuMailContext(sub, today) {
     yearFlow: today.yearPillar,
     dailyPreview: getPreviewLine(snapshot.dailyPreview),
     monthlyPreview: getPreviewLine(snapshot.monthlyPreview),
+    ...(authorityEnabled ? approvedMailFacts(sub, p) : {}),
   };
 }
 
 function buildSajuFortuneHtml(ctx) {
+  const names = ctx.approved?.names || [];
+  const candidates = names.join("·");
+  const remedy = !ctx.approved
+    ? `${ctx.yongshin} 기운을 살리는 선택을 가까이 두고, ${ctx.avoidElements} 기운이 과해지는 말과 소비는 한 박자 늦추세요.`
+    : names.length
+      ? `${candidates} 기운은 도움이 될 수 있는 후보로 참고하고, 한 가지 오행을 정답처럼 붙들기보다 오늘 일정과 컨디션에 맞춰 조절하세요.`
+      : "현재 정보로는 도움이 되는 기운을 하나로 정하지 않고 보류합니다. 오늘은 일정과 컨디션을 기준으로 조절하세요.";
+  const lucky = !ctx.approved
+    ? `보완 기운 ${ctx.yongshin}을 떠올리게 하는 색이나 물건을 가까이 두세요.`
+    : names.length
+      ? `${candidates} 후보 중 끌리는 기운의 색이나 물건을 가까이 두세요.`
+      : "오늘 마음이 편안해지는 색이나 물건을 가까이 두세요.";
+  const caution = ctx.approved
+    ? "마음이 급해지는 순간에는 바로 답하지 말고 숨을 고른 뒤 움직이면 좋습니다."
+    : `${ctx.avoidElements}의 결이 강해지는 순간에는 바로 답하지 말고 숨을 고른 뒤 움직이면 좋습니다.`;
   const focus = ctx.dailyPreview || `${ctx.dayMaster}${ctx.dayBranch} 원국 위로 ${ctx.todayPillar} 일진이 내려앉으며 하루의 결이 선명하게 드러납니다.`;
   const monthlyLine = ctx.monthlyPreview
     ? `<div style="margin:16px 0 0; padding:14px 16px; border-radius:16px; background:#fffaf0; border:1px solid #fde68a;"><div style="margin:0 0 5px; color:#92400e; font-size:12px; font-weight:900; letter-spacing:.08em;">이번 달 배경</div><p style="margin:0; color:#78350f; font-size:14px; line-height:1.72;">${escapeHtml(ctx.monthlyPreview)}</p></div>`
@@ -201,19 +232,19 @@ function buildSajuFortuneHtml(ctx) {
     <div style="margin:18px 0; padding:18px; border-radius:22px; background:linear-gradient(135deg,#f8fafc 0%,#eef2ff 100%); border:1px solid #dbeafe;">
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">
         <tr><td style="padding:0 0 12px; color:#475569; font-size:13px; line-height:1.6;">중심 기운</td><td style="padding:0 0 12px; color:#312e81; font-size:15px; font-weight:900; text-align:right;">${escapeHtml(ctx.dayPillar)} 일주</td></tr>
-        <tr><td style="padding:0 0 12px; color:#475569; font-size:13px; line-height:1.6;">오늘의 보완</td><td style="padding:0 0 12px; color:#047857; font-size:15px; font-weight:900; text-align:right;">${escapeHtml(ctx.yongshin)}</td></tr>
-        <tr><td style="padding:0; color:#475569; font-size:13px; line-height:1.6;">잠시 낮출 결</td><td style="padding:0; color:#be123c; font-size:15px; font-weight:900; text-align:right;">${escapeHtml(ctx.avoidElements)}</td></tr>
+        <tr><td style="padding:0 0 12px; color:#475569; font-size:13px; line-height:1.6;">${ctx.approved ? "도움 기운" : "오늘의 보완"}</td><td style="padding:0 0 12px; color:#047857; font-size:15px; font-weight:900; text-align:right;">${escapeHtml(ctx.yongshin)}</td></tr>
+        <tr><td style="padding:0; color:#475569; font-size:13px; line-height:1.6;">${ctx.approved ? "주의 기운" : "잠시 낮출 결"}</td><td style="padding:0; color:#be123c; font-size:15px; font-weight:900; text-align:right;">${escapeHtml(ctx.avoidElements)}</td></tr>
       </table>
     </div>
     <div style="margin:18px 0; padding:18px; border-radius:22px; background:#ffffff; border:1px solid #e2e8f0; box-shadow:0 10px 24px rgba(15,23,42,.06);">
       <p style="margin:0 0 12px; color:#475569; font-size:14px; line-height:1.78;"><strong style="color:#4f46e5;">중심 기운</strong> ${escapeHtml(ctx.dayPillar)} 일주의 ${escapeHtml(ctx.dayMaster)} 기운이 오늘의 ${escapeHtml(ctx.todayPillar)} 일진과 만나, 먼저 마음의 결을 정돈한 뒤 움직일 때 복이 맑게 열립니다.</p>
-      <p style="margin:0; color:#475569; font-size:14px; line-height:1.78;"><strong style="color:#4f46e5;">오늘의 처방</strong> ${escapeHtml(ctx.yongshin)} 기운을 살리는 선택을 가까이 두고, ${escapeHtml(ctx.avoidElements)} 기운이 과해지는 말과 소비는 한 박자 늦추세요.</p>
+      <p style="margin:0; color:#475569; font-size:14px; line-height:1.78;"><strong style="color:#4f46e5;">오늘의 처방</strong> ${escapeHtml(remedy)}</p>
     </div>
     ${monthlyLine}
     <p style="margin:18px 0 10px; color:#334155; font-size:15px; line-height:1.82;">오늘은 큰 결론보다 작은 질서를 세우는 날입니다. 아침에는 해야 할 일을 세 가지로 줄이고, 오후에는 관계에서 먼저 부드러운 표현을 고르세요. 밤에는 내일로 넘길 감정과 오늘 마무리할 감정을 조용히 나누면 운의 흐름이 한결 가벼워집니다.</p>
     <div style="margin:18px 0; padding:18px; border-radius:22px; background:linear-gradient(135deg,#fff7ed 0%,#fff1f2 100%); border:1px solid #fed7aa;">
-      <p style="margin:0 0 10px; color:#7c2d12; font-size:14px; line-height:1.78;"><strong>행운 포인트</strong> 보완 기운 ${escapeHtml(ctx.yongshin)}을 떠올리게 하는 색이나 물건을 가까이 두세요.</p>
-      <p style="margin:0; color:#7c2d12; font-size:14px; line-height:1.78;"><strong>주의 신호</strong> ${escapeHtml(ctx.avoidElements)}의 결이 강해지는 순간에는 바로 답하지 말고 숨을 고른 뒤 움직이면 좋습니다.</p>
+      <p style="margin:0 0 10px; color:#7c2d12; font-size:14px; line-height:1.78;"><strong>행운 포인트</strong> ${escapeHtml(lucky)}</p>
+      <p style="margin:0; color:#7c2d12; font-size:14px; line-height:1.78;"><strong>주의 신호</strong> ${escapeHtml(caution)}</p>
     </div>
     <p style="margin:0; color:#312e81; font-size:15px; line-height:1.75; font-weight:700;">당신의 오늘이 어제보다 더 반짝이길 바랄게요. - 꽃돼지 연이 드림</p>
   `;
@@ -331,7 +362,7 @@ export async function sendSingleFortune(env, sub, options = {}) {
   let coordBlockHtml;
   let fortuneHtmlContent;
   if (personalized) {
-    const ctx = buildSajuMailContext(sub, pillars);
+    const ctx = buildSajuMailContext(sub, pillars, { authorityEnabled: sajuAuthorityOn(env) });
     coordBlockHtml = `
         <div style="margin:0 0 22px; padding:18px; border-radius:20px; background:linear-gradient(135deg,#eef2ff,#faf5ff); border:1px solid #ddd6fe;">
           <div style="color:#4c1d95; font-size:13px; font-weight:800; letter-spacing:.03em; margin-bottom:10px;">오늘의 명식 좌표</div>
@@ -345,7 +376,7 @@ export async function sendSingleFortune(env, sub, options = {}) {
               <td style="padding:7px 0; color:#1e1b4b; font-size:14px; font-weight:800; text-align:right;">${escapeHtml(ctx.todayPillar)}</td>
             </tr>
             <tr>
-              <td style="padding:7px 0; color:#64748b; font-size:13px;">보완 기운</td>
+              <td style="padding:7px 0; color:#64748b; font-size:13px;">${ctx.approved ? "도움 기운" : "보완 기운"}</td>
               <td style="padding:7px 0; color:#1e1b4b; font-size:14px; font-weight:800; text-align:right;">${escapeHtml(ctx.yongshin)}</td>
             </tr>
           </table>
@@ -610,3 +641,5 @@ export async function runDailyFortuneTask(env, options = {}) {
     abortedReason,
   };
 }
+
+export const __dailyFortuneTestUtils = { buildSajuMailContext, buildSajuFortuneHtml };

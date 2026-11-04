@@ -42,7 +42,7 @@ function fixture(balance = 60) {
 }
 
 test('꿀방울 개별 상품은 모두 출생 기반이며 유료 상품은 전환에서 제외하고, 묶음 포함 6종은 판매 목록에 없다', () => {
-  expect(HONEY_UNLOCK_PRODUCTS).toHaveLength(19);
+  expect(HONEY_UNLOCK_PRODUCTS).toHaveLength(18);
   expect(HONEY_UNLOCK_PRODUCTS.filter(p => p.honeyCost === 6)).toHaveLength(0);
   for (const key of SOLD_OUT_HONEY_KEYS) expect(HONEY_UNLOCK_PRODUCTS.some(p => p.featureKey === key || p.productId === key)).toBe(false);
   for (const p of HONEY_UNLOCK_PRODUCTS) {
@@ -101,10 +101,16 @@ test('기존 구매 권리가 있으면 잔액이 없어도 추가 차감하지 
 
 test('꿀꿀 기본 상품만 허용하며 영냥이와 별도 상담은 제외한다', async () => {
   const f = fixture(999);
-  for (const productId of ['yeongnyangi-mackerel', 'fortune-tea-house-tarot-consultation', 'neo-operation-room', 'tarot-reunion-reading']) {
+  for (const productId of ['yeongnyangi-mackerel', 'fortune-tea-house-tarot-consultation', 'neo-operation-room', 'tarot-reunion-reading', 'tarot-myeongri-three-card']) {
     await expect(f.run({ productId })).rejects.toMatchObject({ status: 400 });
   }
-  expect(HONEY_UNLOCK_PRODUCTS.filter(p=>p.billingType==='per_use').map(p=>p.productId)).toEqual(['compat-sukuyo-compatibility','tarot-myeongri-three-card']);
+  expect(HONEY_UNLOCK_PRODUCTS.filter(p=>p.billingType==='per_use').map(p=>p.productId)).toEqual(['compat-sukuyo-compatibility']);
+});
+test('명리 타로 세 장은 신규 판매만 닫고 과거 주문 대조용 가격을 유지한다', async () => {
+  const { FEATURE_KEY_PRICE_TABLE } = await import('../../worker/lib/paid-feature-registry.js');
+  const { assertFeatureEnabled } = await import('../../worker/lib/billing-feature-registry.js');
+  expect(FEATURE_KEY_PRICE_TABLE['tarot-myeongri-three-card'].cost).toBe(50);
+  expect(assertFeatureEnabled({ featureKey: 'tarot-myeongri-three-card' }).ok).toBe(false);
 });
 const pairInput = { date:'1990-05-01',calType:'solar',hour:12,minute:0,gender:'F' };
 test('궁합 꿀방울은 같은 요청에 한 번만 차감하고 상대 변경·타계정 재사용을 거부한다', async () => {
@@ -116,15 +122,14 @@ test('궁합 꿀방울은 같은 요청에 한 번만 차감하고 상대 변경
   await expect(f.run({...args,profileId:'foreign',requestId:args.requestId.replace('|one|','|foreign|')})).rejects.toMatchObject({status:403});
   await expect(f.run({...args,userId:'other'})).rejects.toMatchObject({status:403});
 });
-test('회당 꿀방울 잔액 부족·원장 오류는 차감하지 않으며 타로도 영구 권리를 만들지 않는다', async () => {
+test('회당 꿀방울 잔액 부족은 차감하지 않고, 판매 종료된 명리 타로는 새로 차감하지 않는다', async () => {
   const short=fixture(29);
   await expect(short.run({productId:'compat-sukuyo-compatibility',requestId:'sukuyo-paid:compat-sukuyo-compatibility|one|hnyabcdef',input:pairInput})).rejects.toMatchObject({status:402});
   expect(short.read()).toEqual({balance:29,grants:[],ledgers:[]});
   const f=fixture(60);
   const input={cat:'love',cards:JSON.stringify([{id:'1',rev:false},{id:'2',rev:true},{id:'3',rev:false}])};
-  expect((await f.run({productId:'tarot-myeongri-three-card',requestId:'tarot-myeongri-three-card:hnyabcdef',input})).spent).toBe(30);
-  expect((await f.run({productId:'tarot-myeongri-three-card',requestId:'tarot-myeongri-three-card:hnyabcdef',input})).spent).toBe(0);
-  expect(f.read().grants).toEqual([]);
+  await expect(f.run({productId:'tarot-myeongri-three-card',requestId:'tarot-myeongri-three-card:hnyabcdef',input})).rejects.toMatchObject({status:400});
+  expect(f.read()).toEqual({balance:60,grants:[],ledgers:[]});
 });
 
 test('실제 꿀방울 원장 writer와 reader가 동일 증빙을 읽고 다른 계정·프로필·상품은 거절한다', async () => {

@@ -108,5 +108,6 @@ export function extendRelationshipContext(self:DomainContext,partner:DomainConte
  }
  const extended=context(self.domain,{...a,relationshipVersion:RELATIONSHIP_VERSION,relationshipBasis:basis,relationshipComparison:comparison,relationshipTiming:timing,...(b?{partnerChart:b}: {})},[...self.limitations,...(partner?.limitations||[])]);
  // 원국 판정 기준은 본인 명식의 것을 그대로 둔다(reading-presentation이 이전 기준 저장본을 가른다).
- return self.natalCore?{...extended,natalCore:self.natalCore}:extended;
+ const carried=self.approvedSajuRules?{...extended,approvedSajuRules:self.approvedSajuRules}:extended;
+ return self.natalCore?{...carried,natalCore:self.natalCore}:carried;
 }

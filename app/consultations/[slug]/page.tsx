@@ -6,6 +6,8 @@ import {PriceBadge} from '@/app/components/PriceBadge';
 import {consultationStories} from '../stories';
 import {storyMasters,storyOutcomes} from '../story-masters';
 import {storyDialogue} from '../story-dialogue';
+import StoryLeaf from '../StoryLeaf';
+import {storyPreludes} from '../story-preludes';
 import styles from './story.module.css';
 type Props={params:Promise<{slug:string}>};
 export function generateStaticParams(){return Object.keys(consultationStories).map(slug=>({slug}));}
@@ -21,7 +23,7 @@ export default async function ConsultationStory({params}:Props){
   <link rel="stylesheet" href="/styles/service-intro-fonts.css"/>
   <nav className={styles.nav}><a href="/consultations/">상담의 정원</a><a href={service.href}>이야기 건너뛰기</a></nav>
   <header className={styles.cover}><p>달빛 아래, 당신을 기다리는 이야기</p><h1>{service.name}</h1><p className={styles.lead}>{story.lead}</p><a href="#story" className={styles.action}>이야기 읽기</a></header>
-  <section id="story" aria-label={`${service.name} 도입 웹툰`}><Image unoptimized src={`/images/consultation-webtoons/${slug}.webp`} alt={`${story.voices} ${storyDialogue[slug]}`} width={724} height={2172} className={styles.webtoon} loading="eager"/></section>
+  <section id="story" aria-label={`${service.name} 도입 웹툰`}><StoryLeaf label="서장 · 상담실의 한 장면" title={storyPreludes[slug][0]} portraits={storyMasters[slug]} lines={storyPreludes[slug].slice(1)}/><Image unoptimized src={`/images/consultation-webtoons/${slug}.webp`} alt={`${story.voices} ${storyDialogue[slug]}`} width={724} height={2172} className={styles.webtoon} loading="eager"/></section>
   <section className={styles.reading} aria-label="이야기에서 상담으로">
    {(storyMasters[slug]||[]).map(master=><div key={master.name} className={styles.master}><Image unoptimized src={master.avatar} width={72} height={72} alt=""/><div><h2>{master.name}</h2><p>{master.role}</p><p className={styles.voice}>{master.line}</p></div></div>)}
    {storyOutcomes[slug].map(([title,body])=><article key={title}><h3>{title}</h3><p>{body}</p></article>)}

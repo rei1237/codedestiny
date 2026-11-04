@@ -102,7 +102,7 @@ export async function handleHeukwolRoutes(request,env) {
     const card=await ProfileCard.findOne({userId,profileId:input.profileId}).lean();
     if(!card)return error(400,'PROFILE_REQUIRED','저장한 프로필을 선택해 주세요.');
     const birth=profileCardSolarBirth(card);
-    const analysis=buildHeukwolAnalysis(birth,input.year);
+    const analysis=buildHeukwolAnalysis(birth,input.year,undefined,{env});
     const pricing=getBillingFeaturePricing({featureKey:HEUKWOL_FEATURE_KEY}).pricing;
     if(path.endsWith('/prepare'))return json({ok:true,pricing,year:analysis.year,method:analysis.method});
     const proof=await verifyPerUsePayment(env,{userId,featureKey:HEUKWOL_FEATURE_KEY,coinPrice:pricing.cost,requestId,requireExisting:true,profileId:input.profileId});

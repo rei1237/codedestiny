@@ -154,6 +154,20 @@
     "nl": "Vanaf ₩10,000",
     "ms": "Dari ₩10,000"
   },
+  "home.concernPick.price.from15000": {
+    "ko": "15,000원부터",
+    "en": "From ₩15,000",
+    "ja": "15,000ウォン〜",
+    "zh-CN": "15,000韩元起",
+    "zh-TW": "15,000韓元起",
+    "vi": "Từ ₩15,000",
+    "hi": "₩15,000 से",
+    "es": "Desde ₩15,000",
+    "fr": "À partir de ₩15,000",
+    "de": "Ab ₩15,000",
+    "nl": "Vanaf ₩15,000",
+    "ms": "Dari ₩15,000"
+  },
   "home.concernPick.price.from30000": {
     "ko": "30,000원부터",
     "en": "From ₩30,000",

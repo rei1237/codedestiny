@@ -23,7 +23,7 @@ import LocalizedGuideScreen from '../_components/LocalizedGuideScreen';
 
 // 천원 운세·천원사주 허브(docs/seo/YEONGNYANGI_SEARCH_STRATEGY.md). 주소는 그대로 두고 내용만 바꿨다.
 // 2026-11-04 부터 옛 1,000원 사주 리포트 3종(FUN)은 개별 판매를 마치고 사주 전체 풀이 평생 소장(saju_lifetime_bundle)에 들어 있다.
-// 이 페이지는 묶음 안내이고, 영냥이 고등어 상담은 정식가(5,000원)로 안내한다.
+// 이 페이지는 묶음 안내이고, 영냥이 고등어 상담은 정식가(10,000원)로 안내한다.
 // 🔴 가격·챕터·분량·입력 조건을 여기 숫자로 적지 말 것 — 결제 가격표와 상담 매니페스트에서 빌드 때 읽는다.
 //    묶음 가격은 정본 가격표(PIG_COIN_UNLOCK_PRODUCTS)에서 읽고, 없거나 0원이면 빌드를 멈춘다. 옛 개별 가격 1,000원은 어디에도 적지 않는다.
 // Service 에 Offer 를 붙이지 않는다 — buildKrwOffer 는 verify:paid-service-offer 가 결제 CI 트리거·결제 상수 대조 등록을 요구한다. 가격은 본문 표가 정본 가격표에서 읽는다.
@@ -67,7 +67,7 @@ const sukuyoPair=readingManifest(single('sukuyo','mackerel'),'general','compatib
 const FAQS=[
  {question:'천원 운세로 찾던 사주 리포트는 어디서 볼 수 있나요?',answer:`${FUN.map(item=>item.name).join(', ')} ${FUN.length}가지는 따로 팔지 않고 ${SAJU_BUNDLE_LABEL}(${BUNDLE_PRICE}) 안에 들어 있어요. 무료 만세력 결과 화면에서 묶음 안내를 열 수 있고, 이미 구매하신 리포트는 계속 열어 보실 수 있어요. 달빛 럭키 리추얼은 로또 번호와 번호별 해석, 금전 루틴을 한 리포트에 담아요. 내 질문을 AI가 챕터로 길게 풀어 주는 영냥이 상담은 고등어 ${PRICE}부터예요.`},
  {question:`${SAJU_BUNDLE_LABEL}에는 무엇이 들어 있나요?`,answer:`원국 해석과 라이트 사주 풀이·대운 분석, 정적 궁합 풀이, 퀀텀 명리, 나의 매력 클래스, 인생 스킬 트리, 건강 리포트, 달빛 럭키 리추얼 같은 사주 리포트가 한 번 결제(${BUNDLE_PRICE})로 영구히 열려요. 구매한 생년월일의 사주에 붙고 이용 기간이 없어요. 상담과 궁합 상담처럼 그때그때 만드는 콘텐츠는 묶음에 포함되지 않아요. 앱(Google Play) 결제는 아직 준비 중이라 웹에서 이용해 주세요.`},
- {question:'영냥이 상담도 천원인가요?',answer:`아니요. 2026년 10월 12일부터 영냥이 고등어 상담은 사주, 자미두수, 숙요점, 베다점, 점성술, 타로 여섯 가지 모두 ${PRICE}이에요. 더 깊은 상담은 ${TIERS.slice(1).map(fish=>`${packages[fish].name} ${won(single('saju',fish).priceKRW)}`).join(', ')}으로 구성되며, 초융합 상담도 별도 가격이에요. 선택한 상품의 가격과 이용권 적용 여부는 결제창에서 확인해 주세요.`},
+ {question:'영냥이 상담도 천원인가요?',answer:`아니요. 영냥이 고등어 상담은 사주, 자미두수, 숙요점, 베다점, 점성술, 타로 여섯 가지 모두 ${PRICE}이에요. 더 깊은 상담은 ${TIERS.slice(1).map(fish=>`${packages[fish].name} ${won(single('saju',fish).priceKRW)}`).join(', ')}으로 구성되며, 초융합 상담도 별도 가격이에요. 선택한 상품의 가격과 이용권 적용 여부는 결제창에서 확인해 주세요.`},
  {question:'영냥이 상담은 이용권이나 월정석으로도 볼 수 있나요?',answer:'패밀리 꿀단지 이용권은 적용됩니다. 다른 이용권 등급과 월정석은 적용되지 않으며, 패밀리 꿀단지가 없다면 카드·카카오페이 등의 단건 결제로 이용할 수 있어요.'},
  {question:'출생시간을 모르면 상담할 수 없나요?',answer:'고등어 사주 상담은 출생시간 없이도 상담할 수 있어요. 자미두수, 숙요점, 베다점, 점성술은 출생시간으로 계산이 달라지므로 시간이 필요하고, 타로는 출생정보 없이 질문만으로 상담해요.'},
  {question:'영냥이 상담으로 궁합도 볼 수 있나요?',answer:`숙요점 고등어 상담에서 궁합 상대 프로필을 함께 고르면 두 사람의 관계를 ${sukuyoPair.length}개 챕터로 읽어요. 다른 운세의 궁합 지원 여부와 필요한 정보는 상담 종류에서 확인할 수 있어요. 꿀꿀운세 궁합 페이지도 함께 둘러볼 수 있어요.`},
@@ -146,7 +146,7 @@ export default function Page(){
   <LaunchOfferBanner/>
   <section aria-labelledby="what">
    <h2 id="what">천원사주·천원운세와 영냥이 상담</h2>
-   <p>천원 운세, 천원운세로 찾으시던 사주 리포트 {FUN.length}가지는 이제 {SAJU_BUNDLE_LABEL}({BUNDLE_PRICE})에 들어 있어요. 2026년 10월 12일부터 영냥이 상담은 고등어 {PRICE}부터 시작하며, 패밀리 꿀단지 이용권 한도 또는 단건 결제로 한 번의 상담 결과를 받아요. 자동 결제는 아니에요.</p>
+   <p>천원 운세, 천원운세로 찾으시던 사주 리포트 {FUN.length}가지는 이제 {SAJU_BUNDLE_LABEL}({BUNDLE_PRICE})에 들어 있어요. 영냥이 상담은 고등어 {PRICE}부터 시작하며, 패밀리 꿀단지 이용권 한도 또는 단건 결제로 한 번의 상담 결과를 받아요. 자동 결제는 아니에요.</p>
    <p>고등어 상담은 사주가 {mackerels[0].chapterCount}개, 다른 체계가 {chapterRange(mackerels.slice(1))} 챕터로 구성돼요. 상담 종류를 골라 시작할 때의 챕터 수예요. 이 페이지의 질문 버튼이나 영냥이 첫 화면의 질문 상담에서 새 한국어 질문으로 시작하면 같은 {PRICE}에 {EXPANDED_CHAPTERS.mackerel}개 챕터로 구성돼요. 상담 전체 분량은 {a4Label(consultationBudget('mackerel').initial)}({A4_PAGE_NOTE})이고, 챕터마다 {mackerelPolicy.depth.join(' → ')} 순서로 내용을 담아요. 짧은 운세 문장 한 줄이 아니라, 왜 그렇게 읽었는지와 오늘 해볼 수 있는 첫 행동까지 함께 받는 구성이에요.</p>
    <p>운세마다 해석·궁합 등 제공하는 상담 종류를 먼저 골라요. 무엇이든 물어보기에서는 {TOPICS} 등의 주제를 고르고 궁금한 질문을 1,000자까지 남겨요. 타로는 카드에 물어볼 질문을 따로 적어요.</p>
   </section>

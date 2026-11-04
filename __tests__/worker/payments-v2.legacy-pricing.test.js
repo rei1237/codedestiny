@@ -18,7 +18,7 @@ import {
   resolveLegacyProduct,
   resolveLegacyPricingResult,
 } from "../../worker/payments/legacy-pricing.js";
-import { getBillingFeaturePricing } from "../../worker/lib/billing-feature-registry.js";
+import { assertFeatureEnabled, getBillingFeaturePricing } from "../../worker/lib/billing-feature-registry.js";
 import { listProducts } from "../../worker/payments/catalog.js";
 import { legacyMoonstoneEnvelope } from "../../worker/payments/compat.js";
 
@@ -39,7 +39,8 @@ test("🔴 후보 체인은 구 resolvePricingFromBody(billing.js)와 글자 그
 });
 
 test("featureKey 직접 해석은 구 레지스트리 결과와 금액이 같다", () => {
-  const sample = listProducts().slice(0, 12);
+  // 판매 종료 상품은 금액 비교 대상이 아니다. 새 결제 거절은 바로 아래 테스트에서 본다.
+  const sample = listProducts().filter((item) => assertFeatureEnabled({ featureKey: item.featureKey }).ok).slice(0, 12);
   expect(sample.length).toBeGreaterThan(5);
   for (const item of sample) {
     const product = resolveLegacyProduct({ featureKey: item.featureKey });
@@ -49,6 +50,12 @@ test("featureKey 직접 해석은 구 레지스트리 결과와 금액이 같다
     expect(product.priceKRW).toBe(oldKrw);
     expect(product.priceCoins).toBe(Math.floor(Number(old.pricing?.cost || 0)));
   }
+});
+
+test("판매를 닫은 명리 타로 세 장은 레거시 결제 경로에서도 새 결제를 거절한다", () => {
+  expect(() => resolveLegacyProduct({ featureKey: "tarot-myeongri-three-card" })).toThrow(
+    expect.objectContaining({ code: "PRODUCT_SALE_DISABLED" }),
+  );
 });
 
 test("featureKey 가 일반 키여도 후보(serviceKey·productId)로 해석된다 — 구 폴백 체인 승계", () => {

@@ -1472,6 +1472,16 @@ describe("saju_lifetime_bundle natal reading", () => {
     gender: c.gender, name: c.name, mode, place: c.place, jongDecision: c.jong, now: new Date(PARITY.now), ...(lang ? { lang } : {}),
   }).parts;
 
+  test("승인 판정을 켜면 묶음 원국 해석도 승인 강약을 쓴다: 시각 미상은 판정 보류, 끄면 옛 문장", () => {
+    const c = PARITY.cases.find((entry) => entry.id === "unknown-f-1978");
+    const parts = (authorityEnabled) => buildSajuSectionHtml({
+      featureKey: BUNDLE, birth: { calendarDate: c.date, calType: c.calType, hour: c.hour, minute: c.minute, timeKnown: false },
+      gender: c.gender, name: c.name, mode: "pig", place: c.place, now: new Date(PARITY.now), authorityEnabled,
+    }).parts;
+    expect(parts(true).strength).toContain("판정 보류");
+    expect(parts(false).strength).not.toContain("판정 보류");
+  });
+
   test("미구매는 402이고 응답에 본문이 없다", async () => {
     const result = await request(BUNDLE_INPUT);
     const { pricing } = getBillingFeaturePricing({ featureKey: BUNDLE });

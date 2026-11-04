@@ -10,6 +10,7 @@ import {
   getPublicFlowerCard,
   withDestinyFlowerLocale,
 } from "../lib/destiny-flower-engine.js";
+import { sajuAuthorityOn } from "../lib/saju-authority-consumer.js";
 
 /** 아틀리에 전체 해금 키. `worker/lib/paid-feature-registry.js` 의 `unlock.flower_fc` 와 같은 값이다. */
 export const FLOWER_UNLOCK_FEATURE_KEY = "flower-fc";
@@ -17,7 +18,7 @@ export const FLOWER_UNLOCK_FEATURE_KEY = "flower-fc";
 const SOURCES = Object.freeze(["saju", "astrology", "jamidusu", "sukuyo"]);
 
 const MATCHER_BY_SOURCE = Object.freeze({
-  saju: (payload) => matchDestinyFlower(payload, { limit: 5 }),
+  saju: (payload, env) => matchDestinyFlower(payload, { limit: 5, approvedSajuWording: sajuAuthorityOn(env) }),
   astrology: (payload) => matchAstrologyFlower(payload, { source: "astrology" }),
   jamidusu: (payload) => matchJamidusuFlower(payload, { source: "jamidusu" }),
   sukuyo: (payload) => matchSukuyoFlower(payload, { source: "sukuyo" }),
@@ -55,7 +56,7 @@ async function handleMatch(request, env) {
   const sources = {};
   for (const source of normalizeSources(body.sources)) {
     try {
-      sources[source] = withDestinyFlowerLocale(lang, () => MATCHER_BY_SOURCE[source](payload)) || null;
+      sources[source] = withDestinyFlowerLocale(lang, () => MATCHER_BY_SOURCE[source](payload, env)) || null;
     } catch (error) {
       // 한 체계가 실패해도 나머지 셋은 내보낸다 — 넷을 한 화면에 그리는 4-up 이 통째로 비지 않게.
       console.warn("[destiny-flower] match failed", source, String(error?.message || error).slice(0, 200));

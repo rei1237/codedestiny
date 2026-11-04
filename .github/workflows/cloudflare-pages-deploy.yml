@@ -132,6 +132,7 @@ jobs:
       #   (2) 한 출력이 두 타깃을 뜻하면 표현식 오타 하나가 곧 프로덕션 배포다.
       proceed_staging: ${{ steps.decide.outputs.proceed_staging }}
       dispatch_staging: ${{ steps.decide.outputs.dispatch_staging }}
+      workshop_pending: ${{ steps.decide.outputs.workshop_pending }}
     steps:
       - name: Checkout release SHA
         uses: actions/checkout@v4
@@ -218,7 +219,12 @@ jobs:
             exit 0
           fi
           DRIFTED=$(printf '%s' "$OUT" | jq -r '.drifted // "error"')
-          if [ "${DRIFTED}" = "true" ]; then
+          WORKSHOP=$(node local/edition-workshop/staging-queue.mjs) || WORKSHOP=unavailable
+          if [ "$WORKSHOP" = "pending" ]; then
+            echo "workshop_pending=true" >> "$GITHUB_OUTPUT"
+            DISPATCH_STAGING=true
+            emit
+          elif [ "${DRIFTED}" = "true" ]; then
             DISPATCH_STAGING=true
             emit
             echo "::warning::스테이징이 main HEAD 와 다릅니다. 최신 스테이징 배포를 비동기로 예약합니다."
@@ -239,7 +245,11 @@ jobs:
       - name: Queue latest main for staging
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh workflow run cloudflare-pages-deploy.yml --ref main -f mode=staging -R ${{ github.repository }}
+          WORKSHOP_PENDING: ${{ needs.gate.outputs.workshop_pending }}
+        run: |
+          flags=()
+          if [ "$WORKSHOP_PENDING" = "true" ]; then flags+=(-f allow_redeploy=true); fi
+          gh workflow run cloudflare-pages-deploy.yml --ref main -f mode=staging "${flags[@]}" -R ${{ github.repository }}
 
   release:
     needs: gate
@@ -567,6 +577,7 @@ jobs:
       # 이라는 이유로 https://code-destiny.com 을 빌드에 인라인해, 스테이징 화면이 프로덕션 API 를
       # 호출하고 CSP(connect-src 'self')에도 걸린다.
       NEXT_PUBLIC_API_BASE_URL: ${{ vars.CD_STAGING_ORIGIN || 'https://staging.code-destiny.com' }}
+      NEXT_PUBLIC_EDITION_WORKSHOP: staging
       # 🔴 NEXT_PUBLIC_SITE_URL 을 스테이징으로 세우지 말 것. 이 값은 SEO 메타 전용이고
       #    (lib/seo.v2.ts SEO_V2_SITE.siteUrl -> canonical·sitemap·robots host), 세우는 순간
       #    Next 가 만든 robots.txt 의 Sitemap 이 스테이징 주소가 되어 postbuild 의
@@ -604,6 +615,12 @@ jobs:
           key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
+
+      - name: Install isolated staging EVM and QR tooling
+        run: npm install --prefix local/edition-workshop --ignore-scripts --package-lock=false --no-audit --no-fund
+
+      - name: Verify named edition issuance and character QR
+        run: node --test local/edition-workshop/studio.test.mjs
 
       - name: Fail fast when the staging project is unconfigured
         run: |
@@ -659,6 +676,10 @@ jobs:
       # 로컬에서 매번 별도로 npm run deploy:smoke -- --base <staging-url> 로 확인해야 했다
       # (2026-09-10 인수인계: 세션이 중단되면 이 확인 자체가 누락됐다). verify:deployed-sha는
       # SHA 일치만 보고 응답 내용은 보지 않으므로 중복이 아니다.
+      - name: Verify printed staging QR without login on mobile
+        if: ${{ !cancelled() && steps.deploy.outcome == 'success' }}
+        run: node local/edition-workshop/check-staging-phone.mjs
+
       - name: Run staging smoke checks
         if: ${{ !cancelled() && steps.deploy.outcome == 'success' }}
         run: npm run deploy:smoke -- --base "${CD_STAGING_ORIGIN}"

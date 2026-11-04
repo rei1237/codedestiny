@@ -56,11 +56,11 @@ var CHUNG_TEXT_NEO=[
   [' 목(木) 기운까지 함께 들어와 토(土)의 완충이 약해지니 계약·말·지출을 더 신중히 살피세요.',' 목(木) 기운까지 같이 들어와서 토(土)의 완충이 약해지니까 계약·말·지출을 더 신중하게 살펴 봐.'],
   ['금 일간이 꼭 필요로 하는 화(火)가 수(水)와 부딪칩니다. 전통 해석은 이를 불이 쇠를 단련하는 장면으로 읽어, 부담 속에서 실력이 다듬어지는 흐름으로 봅니다.','금 일간한테 꼭 필요한 화(火)가 수(水)랑 부딪쳐. 전통 해석은 이걸 불이 쇠를 단련하는 장면으로 읽어서, 부담 속에서 실력이 다듬어지는 흐름으로 봐.'],
   ['이 충합니다. ','이 충해. '],
-  ['기신으로 읽힌 요소를 제어하는 방향이지만, 실제 변화는 통근과 주변 생조에 따라 달라집니다.','기신으로 읽힌 요소를 제어하는 방향이지만, 실제 변화는 통근과 주변 생조에 따라 달라져.'],
+  ['주의 오행으로 읽힌 요소를 제어하는 방향이지만, 실제 변화는 통근과 주변 생조에 따라 달라집니다.','주의 오행으로 읽힌 요소를 제어하는 방향이지만, 실제 변화는 통근과 주변 생조에 따라 달라져.'],
   ['과 충이 생깁니다. 기존 역할이나 선택 기준의 조정이 필요할 수 있으며, 다른 생조 관계가 이를 완화하는지 함께 봅니다.','과 충이 생겨. 기존 역할이나 선택 기준을 조정해야 할 수도 있고, 다른 생조 관계가 이걸 완화하는지도 같이 봐.'],
   ['합화 검토 조건이 갖춰진 관계입니다. 다른 글자의 도움과 방해를 함께 확인하며 원국의 균형을 읽습니다.','합화 검토 조건이 갖춰진 관계야. 다른 글자의 도움과 방해를 같이 확인하면서 원국의 균형을 읽어.'],
   ['지지에서 물과 불이 부딪치며 금 일간의 단련이 이어집니다. 혼란이 큰 만큼 버티며 다듬은 결과가 남기 쉬운 흐름으로 읽습니다.','지지에서 물과 불이 부딪치면서 금 일간의 단련이 이어져. 혼란이 큰 만큼 버티며 다듬은 결과가 남기 쉬운 흐름으로 읽어.'],
-  ['기신으로 읽힌 작용을 제어할 여지가 있으나, 생활 기반의 조정 부담과 완화 조건도 함께 살펴야 합니다.','기신으로 읽힌 작용을 제어할 여지는 있지만, 생활 기반을 조정하는 부담과 완화 조건도 같이 살펴 봐.'],
+  ['주의 오행으로 읽힌 작용을 제어할 여지가 있으나, 생활 기반의 조정 부담과 완화 조건도 함께 살펴야 합니다.','주의 오행으로 읽힌 작용을 제어할 여지는 있지만, 생활 기반을 조정하는 부담과 완화 조건도 같이 살펴 봐.'],
   ['과 충이 생겨 기반을 다시 조율하는 과제가 생길 수 있습니다. 합·생조가 완충하는지 살피며 사건을 확정하지 않습니다.','과 충이 생겨서 기반을 다시 조율할 과제가 생길 수도 있어. 합·생조가 완충하는지 살피고, 이것만으로 사건을 단정하진 않아.']
 ];
 function _sajuNeoChungText(text){
@@ -295,7 +295,7 @@ function _buildMonthCommandFromEngine(p, natal, pw, neo) {
     elementBalanceImpact = '월령 오행(' + base.dominantElement + ')과 원국 비율(' + monthElementRatio.toFixed(0) + '%)이 비교적 균형적입니다. 과도한 보정보다 지속 가능한 운영이 유리합니다.';
   }
 
-  var powerLabel = (pw && typeof pw.isStrong === 'boolean') ? (pw.isStrong ? '신강' : '신약') : '미확인';
+  var powerLabel = (pw && typeof pw.isStrong === 'boolean') ? (pw.isStrong ? '신강' : '신약') : (pw && pw.strengthPending ? '보류' : '미확인');
   var strengthAnalysis = '현재 억부 판정은 ' + powerLabel + '입니다. 월령 관계(' + (dayStem ? relation : '미확인') + ')를 함께 보면 ';
   if (hint === 'veryStrong' || hint === 'strong') {
     strengthAnalysis += '계절이 일간 체력을 보조하는 축이 강해, 신강/신약 판단에서 "환경 지원" 근거가 분명합니다.';
@@ -399,7 +399,7 @@ function renderSummary(p,johu,natal){
   var tsInfo=TS_DB[dominant]||TS_DB['식신'];
   var dayNames={wood:'성장하는 나무',fire:'타오르는 불꽃',earth:'포용하는 대지',metal:'단단한 바위',water:'흐르는 강물'};
   var ratStr=Object.keys(natal.ratios).map(function(e){return EL_K[e]+' '+natal.ratios[e].toFixed(0)+'%';}).join(' · ');
-  var pw=G_POWER,jg=G_JONG;
+  var pw=window.__cdShownPower||G_POWER,jg=G_JONG;
   /* body.neo-mode는 지연 로드되는 share.js가 붙이므로, 부트 시 동기 적용되는 html.neo-mode도 함께 본다 */
   var _isNeoSaju=(typeof NEO_MODE!=='undefined'&&NEO_MODE)
     ||(document.documentElement&&document.documentElement.classList.contains('neo-mode'))
@@ -434,7 +434,8 @@ function renderSummary(p,johu,natal){
        (renderSummary 는 runtime-stability 의 wrapCriticalFn 으로 감싸여 있어 참조 예외 1건이
         결과 화면 전체를 폴백으로 날린다.) */
     var powerTxt=(pw&&typeof pw.score==='number')?(Math.round(pw.score)+'점'):'측정값';
-    var strongTxt=(pw&&pw.isStrong)?'신강(身强)':'신약(身弱)';
+    var strengthPending=!!(pw&&pw.strengthPending);
+    var strongTxt=strengthPending?'아직 확정하지 않은 강약':(pw&&pw.isStrong)?'신강(身强)':'신약(身弱)';
     var tsRank=Object.keys(cnt).sort(function(a,b){return cnt[b]-cnt[a];});
     var tsSecond=tsRank[1]||'두 번째 십성';
     var tsList=tsRank.slice(0,3).map(function(t){return t+'('+cnt[t]+')';}).join(' · ')||'십성 분포';
@@ -501,15 +502,15 @@ function renderSummary(p,johu,natal){
       }
       if(key==='eokbu'){
         return depthParagraph('강약을 활용하는 법',
-          '지금 구조는 '+(pw&&pw.isStrong?'일간의 힘이 비교적 강한 편':'일간의 힘이 외부 도움과 조율을 필요로 하는 편')+'으로 읽혀. '+(jg&&jg.isJong?'종격 가능성도 같이 검토되는 구조라서, 한 방향의 힘을 덮어놓고 누르기보다 실제 삶에서 오래 갈 수 있는지 확인하는 과정이 중요해.':'일반적인 억부 흐름에서는 강한 쪽을 설기하거나 부족한 쪽을 보완하는 균형 감각이 핵심이야.')+' 용신 후보는 '+yong+', 조심해서 다룰 기운은 '+kij+_sajuJo(kij,'으로','로')+' 정리돼.')+
+          '지금 구조는 '+(strengthPending?'강약 판정을 보류한 상태야. ':(pw&&pw.isStrong?'일간의 힘이 비교적 강한 편':'일간의 힘이 외부 도움과 조율을 필요로 하는 편')+'으로 읽혀. ')+(jg&&jg.isJong?'종격 가능성도 같이 검토되는 구조라서, 한 방향의 힘을 덮어놓고 누르기보다 실제 삶에서 오래 갈 수 있는지 확인하는 과정이 중요해.':'일반적인 억부 흐름에서는 강한 쪽을 설기하거나 부족한 쪽을 보완하는 균형 감각이 핵심이야.')+' 보완 후보는 '+yong+', 조심해서 다룰 기운은 '+kij+_sajuJo(kij,'으로','로')+' 정리돼.')+
           depthParagraph('선택의 기준',
-            '좋은 선택은 용신이라는 이름을 무작정 따르는 게 아니야. 그 기운을 썼을 때 집중력·회복력·관계의 안정이 실제로 좋아지는지 확인하는 선택이지. 반대로 기신으로 읽힌 기운도 필요한 역할이 있으니까, 없애려 하기보다 양과 속도를 조절하는 식으로 다가가 봐.')+
+            '좋은 선택은 보완 후보라는 이름을 무작정 따르는 게 아니야. 그 기운을 썼을 때 집중력·회복력·관계의 안정이 실제로 좋아지는지 확인하는 선택이지. 반대로 주의 오행으로 읽힌 기운도 필요한 역할이 있으니까, 없애려 하기보다 양과 속도를 조절하는 식으로 다가가 봐.')+
           depthParagraph('수치가 뜻하는 것',
-            '강약 판정의 근거가 되는 점수는 '+powerTxt+'이고 '+strongTxt+' 쪽에 놓여. 이 수치는 절대 등급이 아니라, 일간이 계절·뿌리·도움 글자에서 얼마나 지지를 받는지 합산한 상대값이야. 경계선에 가까울수록 환경 영향이 커서, 같은 사람도 직장·사는 곳·인간관계가 바뀌면 체감하는 힘이 달라져.')+
-          depthParagraph('용신과 기신의 쓰임새',
+            '강약 판정의 근거가 되는 점수는 '+powerTxt+'이고 '+(strengthPending?'지금은 판정을 보류하고 참고로만 봐.':strongTxt+' 쪽에 놓여.')+' 이 수치는 절대 등급이 아니라, 일간이 계절·뿌리·도움 글자에서 얼마나 지지를 받는지 합산한 상대값이야. 경계선에 가까울수록 환경 영향이 커서, 같은 사람도 직장·사는 곳·인간관계가 바뀌면 체감하는 힘이 달라져.')+
+          depthParagraph('보완 후보와 주의 오행의 쓰임새',
             yong+'은 "더하면 숨통이 트이는 기운"이고 '+kij+'는 "이미 충분하거나 넘치기 쉬운 기운"이야. '+(jg&&jg.isJong?'종격에 가까운 구조에서는 일반 억부 공식이 거꾸로 작동할 수 있어서, 강한 흐름을 억지로 누르는 선택이 오히려 소모로 이어지기도 해.':'일반 억부 구조에서는 넘치는 쪽을 덜어 내고 모자란 쪽을 채우는 단순한 원칙이 대체로 잘 맞아.')+' 어느 쪽이든 최종 기준은 이론이 아니라 실제 컨디션 변화야.')+
           depthParagraph('흔한 오해 바로잡기',
-            '용신을 행운의 부적처럼 다루는 해석은 위험해. 용신은 결과를 보장하는 장치가 아니라 힘의 배분을 조절하는 방향 표시고, 기신이라고 불린 기운도 삶의 어떤 국면에서는 꼭 필요해. 예를 들어 통제와 마감을 맡는 기운이 전혀 없으면, 재능이 있어도 결과로 맺히지 않거든.')+
+            '보완 후보를 행운의 부적처럼 다루는 해석은 위험해. 보완 후보는 결과를 보장하는 장치가 아니라 힘의 배분을 조절하는 방향 표시고, 주의 오행이라고 불린 기운도 삶의 어떤 국면에서는 꼭 필요해. 예를 들어 통제와 마감을 맡는 기운이 전혀 없으면, 재능이 있어도 결과로 맺히지 않거든.')+
           depthParagraph('스스로 확인할 질문',
             '최근 6개월 중에 성과가 제일 좋았던 시기에 뭘 늘리고 뭘 줄였는지 적어 봐. 그 목록이 '+yong+' 쪽에 가까웠는지 '+kij+' 쪽에 가까웠는지 대조해 보면, 이 장의 판정이 네 경험이랑 맞는지 직접 검증할 수 있어.')+actionNeo;
       }
@@ -631,7 +632,7 @@ function renderSummary(p,johu,natal){
           depthParagraph('현실적인 수호선',
             (elMoneyAdviceNeo[domE]||'계약이랑 지출 기록은 꼼꼼히 확인해 봐.')+' 운세는 투자 수익이나 손실을 보장하지 않아. 중요한 금융 결정은 감당할 수 있는 범위와 검증된 정보 안에서 판단해 봐.')+
           depthParagraph('재성보다 중요한 감당할 힘',
-            '재물은 십성에서 재성(財星) 자리로 읽지만, 실제로 쌓이는지를 정하는 건 재성의 개수가 아니라 그걸 감당할 힘이야. '+strongTxt+' 판정('+powerTxt+')으로 보면 '+((pw&&pw.isStrong)?'기회를 잡는 추진력은 충분한 편이라, 관리와 마감 체계를 붙일 때 수익 폭이 커질 수 있어.':'큰 판을 혼자 감당하기보다 검증된 구조 안에서 반복 가능한 수입부터 쌓는 쪽이 안전해.'))+
+            '재물은 십성에서 재성(財星) 자리로 읽지만, 실제로 쌓이는지를 정하는 건 재성의 개수가 아니라 그걸 감당할 힘이야. '+(strengthPending?'강약 판정을 보류했으니까 작은 규모로 확인하면서 넓혀 가는 쪽이 안전해.':strongTxt+' 판정('+powerTxt+')으로 보면 ')+(strengthPending?'':(pw&&pw.isStrong)?'기회를 잡는 추진력은 충분한 편이라, 관리와 마감 체계를 붙일 때 수익 폭이 커질 수 있어.':'큰 판을 혼자 감당하기보다 검증된 구조 안에서 반복 가능한 수입부터 쌓는 쪽이 안전해.'))+
           depthParagraph('판단이 급해지는 구간',
             ((monthReading&&monthReading.wealthImpact)||'계절의 압력이 돈에 대한 판단 속도에 영향을 줄 수 있어.')+' 수입원·고정비·비상금을 한 장에 적어 두면 "흐름이 좋은 시기"와 "판단이 급해지는 시기"를 구분할 수 있어. 손실은 대부분 정보가 없어서가 아니라 결정에 쓴 시간이 짧아서 생기거든.')+
           depthParagraph('꼭 지켜야 할 한계',
@@ -722,15 +723,15 @@ function renderSummary(p,johu,natal){
     }
     if(key==='eokbu'){
       return depthParagraph('강약을 활용하는 법',
-        '현재 구조는 '+(pw&&pw.isStrong?'일간의 힘이 비교적 강한 편':'일간의 힘이 외부 도움과 조율을 필요로 하는 편')+'으로 읽힙니다. '+(jg&&jg.isJong?'종격 가능성이 함께 검토되는 구조이므로 한 방향의 힘을 무조건 억누르기보다 실제 삶에서 지속 가능한지 확인하는 과정이 중요합니다.':'일반적인 억부 흐름에서는 강한 부분을 설기하거나 부족한 부분을 보완하는 균형 감각이 핵심입니다.')+' 용신 후보는 '+yong+', 조심해서 다룰 기운은 '+kij+_sajuJo(kij,'으로','로')+' 정리됩니다.')+
+        '현재 구조는 '+(strengthPending?'강약 판정을 보류한 상태입니다. ':(pw&&pw.isStrong?'일간의 힘이 비교적 강한 편':'일간의 힘이 외부 도움과 조율을 필요로 하는 편')+'으로 읽힙니다. ')+(jg&&jg.isJong?'종격 가능성이 함께 검토되는 구조이므로 한 방향의 힘을 무조건 억누르기보다 실제 삶에서 지속 가능한지 확인하는 과정이 중요합니다.':'일반적인 억부 흐름에서는 강한 부분을 설기하거나 부족한 부분을 보완하는 균형 감각이 핵심입니다.')+' 보완 후보는 '+yong+', 조심해서 다룰 기운은 '+kij+_sajuJo(kij,'으로','로')+' 정리됩니다.')+
         depthParagraph('선택의 기준',
-          '좋은 선택은 용신이라는 이름을 맹목적으로 따르는 것이 아니라, 그 기운을 활용했을 때 집중력·회복력·관계의 안정이 실제로 좋아지는지 확인하는 선택입니다. 반대로 기신으로 읽힌 기운도 필요한 역할이 있으므로 없애기보다 양과 속도를 조절하는 방식으로 접근하세요.')+
+          '좋은 선택은 보완 후보라는 이름을 맹목적으로 따르는 것이 아니라, 그 기운을 활용했을 때 집중력·회복력·관계의 안정이 실제로 좋아지는지 확인하는 선택입니다. 반대로 주의 오행으로 읽힌 기운도 필요한 역할이 있으므로 없애기보다 양과 속도를 조절하는 방식으로 접근하세요.')+
         depthParagraph('수치가 뜻하는 것',
-          '강약 판정의 근거가 되는 점수는 '+powerTxt+'이며 '+strongTxt+' 쪽에 놓입니다. 이 수치는 절대 등급이 아니라 일간이 계절·뿌리·도움의 글자에서 얼마나 지지를 받는지를 합산한 상대값입니다. 경계선에 가까울수록 환경의 영향이 커지므로, 같은 사람도 직장·거주지·인간관계가 바뀌면 체감하는 힘이 달라집니다.')+
-        depthParagraph('용신과 기신의 쓰임새',
+          '강약 판정의 근거가 되는 점수는 '+powerTxt+'이며 '+(strengthPending?'지금은 판정을 보류하고 참고값으로만 봅니다.':strongTxt+' 쪽에 놓입니다.')+' 이 수치는 절대 등급이 아니라 일간이 계절·뿌리·도움의 글자에서 얼마나 지지를 받는지를 합산한 상대값입니다. 경계선에 가까울수록 환경의 영향이 커지므로, 같은 사람도 직장·거주지·인간관계가 바뀌면 체감하는 힘이 달라집니다.')+
+        depthParagraph('보완 후보와 주의 오행의 쓰임새',
           yong+'은 "더하면 숨통이 트이는 기운"이고 '+kij+'는 "이미 충분하거나 넘치기 쉬운 기운"입니다. '+(jg&&jg.isJong?'종격에 가까운 구조에서는 일반 억부 공식이 반대로 작동할 수 있어, 강한 흐름을 억지로 누르는 선택이 오히려 소모로 이어지기도 합니다.':'일반 억부 구조에서는 넘치는 쪽을 덜어내고 부족한 쪽을 채우는 단순한 원칙이 대체로 잘 맞습니다.')+' 어느 쪽이든 최종 기준은 이론이 아니라 실제 컨디션의 변화입니다.')+
         depthParagraph('흔한 오해 바로잡기',
-          '용신을 행운의 부적처럼 다루는 해석은 위험합니다. 용신은 결과를 보장하는 장치가 아니라 힘의 배분을 조절하는 방향 표시이며, 기신이라 불린 기운도 삶의 어떤 국면에서는 반드시 필요합니다. 예컨대 통제와 마감을 담당하는 기운이 전혀 없으면 재능이 있어도 결과로 맺히지 않습니다.')+
+          '보완 후보를 행운의 부적처럼 다루는 해석은 위험합니다. 보완 후보는 결과를 보장하는 장치가 아니라 힘의 배분을 조절하는 방향 표시이며, 주의 오행이라 불린 기운도 삶의 어떤 국면에서는 반드시 필요합니다. 예컨대 통제와 마감을 담당하는 기운이 전혀 없으면 재능이 있어도 결과로 맺히지 않습니다.')+
         depthParagraph('스스로 확인할 질문',
           '최근 6개월 중 성과가 가장 좋았던 시기에 무엇을 늘리고 무엇을 줄였는지 적어 보세요. 그 목록이 '+yong+' 쪽에 가까웠는지 '+kij+' 쪽에 가까웠는지 대조하면, 이 장의 판정이 내 경험과 맞는지 스스로 검증할 수 있습니다.')+action;
     }
@@ -852,7 +853,7 @@ function renderSummary(p,johu,natal){
         depthParagraph('현실적인 수호선',
           (elMoneyAdvice[domE]||'계약과 지출 기록을 꼼꼼히 확인하세요.')+' 운세는 투자 수익이나 손실을 보장하지 않으므로, 중요한 금융 결정은 감당 가능한 범위와 검증된 정보 안에서 판단하세요.')+
         depthParagraph('재성보다 중요한 감당할 힘',
-          '재물은 십성에서 재성(財星)의 자리로 읽지만, 실제 축적을 결정하는 것은 재성의 개수가 아니라 그것을 감당할 힘입니다. '+strongTxt+' 판정('+powerTxt+')에서 보면 '+((pw&&pw.isStrong)?'기회를 잡는 추진력은 충분한 편이므로 관리와 마감의 체계를 붙일 때 수익의 폭이 커집니다.':'큰 판을 혼자 감당하기보다 검증된 구조 안에서 반복 가능한 수입을 먼저 쌓는 편이 안전합니다.'))+
+          '재물은 십성에서 재성(財星)의 자리로 읽지만, 실제 축적을 결정하는 것은 재성의 개수가 아니라 그것을 감당할 힘입니다. '+(strengthPending?'강약 판정을 보류했으므로 작은 규모로 확인하면서 넓혀 가는 편이 안전합니다.':strongTxt+' 판정('+powerTxt+')에서 보면 ')+(strengthPending?'':(pw&&pw.isStrong)?'기회를 잡는 추진력은 충분한 편이므로 관리와 마감의 체계를 붙일 때 수익의 폭이 커집니다.':'큰 판을 혼자 감당하기보다 검증된 구조 안에서 반복 가능한 수입을 먼저 쌓는 편이 안전합니다.'))+
         depthParagraph('판단이 급해지는 구간',
           ((monthReading&&monthReading.wealthImpact)||'계절의 압력이 돈에 대한 판단 속도에 영향을 줍니다.')+' 수입원·고정비·비상금을 한 장에 적어 두면 "흐름이 좋은 시기"와 "판단이 급해지는 시기"를 구분할 수 있습니다. 대부분의 손실은 정보가 없어서가 아니라 결정에 쓴 시간이 짧아서 생깁니다.')+
         depthParagraph('반드시 지켜야 할 한계',
@@ -907,7 +908,7 @@ function renderSummary(p,johu,natal){
   function summaryPersonalDepth(key){
     var source=window.SajuReadingDepth;
     if(!source)return '';
-    var facts={p:p,power:pw,johu:johu,jong:jg,unknown:!!window.__cdSajuTimeUnknown};
+    var facts={p:p,power:pw,johu:johu,jong:jg,gyeokguk:window.__cdShownGyeokguk||undefined,unknown:!!window.__cdSajuTimeUnknown};
     var depthPersona=_isNeoSaju?'neo':undefined;
     var sections=[];
     if(key==='wollyeong'){var month=source.monthReading(p.d.g,p.m.j,depthPersona);if(month)sections=month.sections;}
@@ -1121,7 +1122,7 @@ function renderSummary(p,johu,natal){
     johu.advice+'<br><br>'+
     subHead('조후(調候)란 무엇인가','#1565C0')+
     '<div style="font-size:.84rem;line-height:1.85">'+
-    (_isNeoSaju?'조후는 사주의 계절적 균형을 보는 명리학의 핵심 이론이야. 태어난 달이 정하는 계절에 따라 사주 전체의 차갑고 따뜻한 균형이 달라지거든. 여름 사주(巳·午·未월 출생)는 이미 화(火) 기운이 넘치니까 차고 적신 수(水)와 금(金) 기운이 용신이 돼. 반대로 겨울 사주(亥·子·丑월 출생)는 수(水)가 강해서 화(火)와 목(木)으로 온기를 보태 줘야 해. 조후가 맞는 운이 들어오면 삶의 전반적인 컨디션이 좋아지고 일·건강·관계가 한결 유연해질 수 있어. 조후가 어긋난 운에는 의욕이 떨어지거나 몸이 먼저 신호를 보낼 수도 있어. 그러니까 대운을 읽을 때는 조후부터 꼭 챙겨 봐.</div>':'조후는 사주의 계절적 균형을 분석하는 명리학의 핵심 이론입니다. 생월(태어난 달)이 결정하는 계절에 따라 사주 전체의 차갑고 따뜻함의 균형이 달라집니다. 여름 사주(巳·午·未월 출생)는 이미 화(火) 기운이 과잉이므로 차고 적신 수(水)와 금(金) 기운이 용신이 됩니다. 반대로 겨울 사주(亥·子·丑월 출생)는 수(水)가 강해 화(火)와 목(木)으로 온기를 보강해야 합니다. 조후가 맞는 운이 들어올 때 삶의 전반적인 컨디션이 좋아지고 사업·건강·대인관계가 유연해집니다. 조후가 어긋난 운에는 의욕 저하나 건강 이상으로 나타날 수 있으니, 대운 해석 시 반드시 조후를 먼저 체크해야 합니다.</div>')+
+    (_isNeoSaju?'조후는 사주의 계절적 균형을 보는 명리학의 핵심 이론이야. 태어난 달이 정하는 계절에 따라 사주 전체의 차갑고 따뜻한 균형이 달라지거든. 여름 사주(巳·午·未월 출생)는 이미 화(火) 기운이 넘치니까 차고 적신 수(水)와 금(金) 기운이 보완 후보가 돼. 반대로 겨울 사주(亥·子·丑월 출생)는 수(水)가 강해서 화(火)와 목(木)으로 온기를 보태 줘야 해. 조후가 맞는 운이 들어오면 삶의 전반적인 컨디션이 좋아지고 일·건강·관계가 한결 유연해질 수 있어. 조후가 어긋난 운에는 의욕이 떨어지거나 몸이 먼저 신호를 보낼 수도 있어. 그러니까 대운을 읽을 때는 조후부터 꼭 챙겨 봐.</div>':'조후는 사주의 계절적 균형을 분석하는 명리학의 핵심 이론입니다. 생월(태어난 달)이 결정하는 계절에 따라 사주 전체의 차갑고 따뜻함의 균형이 달라집니다. 여름 사주(巳·午·未월 출생)는 이미 화(火) 기운이 과잉이므로 차고 적신 수(水)와 금(金) 기운이 보완 후보가 됩니다. 반대로 겨울 사주(亥·子·丑월 출생)는 수(水)가 강해 화(火)와 목(木)으로 온기를 보강해야 합니다. 조후가 맞는 운이 들어올 때 삶의 전반적인 컨디션이 좋아지고 사업·건강·대인관계가 유연해집니다. 조후가 어긋난 운에는 의욕 저하나 건강 이상으로 나타날 수 있으니, 대운 해석 시 반드시 조후를 먼저 체크해야 합니다.</div>')+
     '<br>'+subHead('실생활 적용법','#1976D2')+
     '<div style="font-size:.84rem;line-height:1.85">'+
     (_isNeoSaju
@@ -1141,24 +1142,25 @@ function renderSummary(p,johu,natal){
           '억부(신강/신약) 원칙을 우선적으로 배제하고, '+EL_KO[jg.dominant]+' 에너지를 돕는 운이 길(吉)하고, 거스르는 운은 흉(凶)합니다.<br><br>'+
           '✓ 종격이란? — 오행 중 한 가지가 75% 이상을 차지할 때, 그 기운에 순응하는 것이 원칙입니다. 역행은 오히려 파국을 부릅니다.')+
        '</div>'
+      :pw&&pw.strengthPending
+        ?'<span class="power-badge" style="font-size:.78rem;padding:3px 10px">판정 보류</span>'+
+         '<div style="margin-top:8px;font-size:.85rem;line-height:1.78">억부 참고 점수: <b>'+pw.score+'점</b><br><br>'+
+         (_isNeoSaju?'출생 시각이 없거나 근거가 모자라서 신강·신약을 확정하지 않아. 점수는 참고로만 봐.':'출생 시각이 없거나 근거가 모자라 신강·신약을 확정하지 않았습니다. 점수는 참고값으로만 살펴보세요.')+
+         '</div>'
       :pw
         ?'<span class="power-badge '+(pw.isStrong?'pb-strong':'pb-weak')+'" style="font-size:.78rem;padding:3px 10px">'+(pw.isStrong?'🔥 신강':'💧 신약')+'</span>'+
          '<div style="margin-top:8px;font-size:.85rem;line-height:1.78">억부 점수: <b>'+pw.score+'점</b><br><br>'+
          (_isNeoSaju
            ?(pw.isStrong
              ?'<b>신강</b>은 일간이 원국에서 도움을 탄탄하게 받는다는 뜻이야. 에너지가 넘치니까 설기(洩氣)·재(財)·관(官)으로 빠져나가는 운이 올 때 성취가 터질 수 있지.<br>'+
-              '✓ 용신: '+pw.yongshin.map(function(e){return EL_KO[e];}).join(', ')+'<br>'+
-              '✓ 기신: '+pw.kijishin.map(function(e){return EL_KO[e];}).join(', ')
+              '✓ 보완 후보: '+(pw.yongshin.map(function(e){return EL_KO[e];}).join(', ')||'판정 보류')+(pw.kijishin.length?'<br>✓ 주의 오행: '+pw.kijishin.map(function(e){return EL_KO[e];}).join(', '):'')
              :'<b>신약</b>은 일간이 외부 압박에 비해 자체 에너지가 부족하다는 뜻이지, 나쁘다는 게 아니야. 비겁(비견·겁재)이나 인성(편인·정인) 운이 올 때 자존감이랑 귀인이 같이 올 수 있어. 기다리면 너한테도 차례가 와.<br>'+
-              '✓ 용신: '+pw.yongshin.map(function(e){return EL_KO[e];}).join(', ')+'<br>'+
-              '✓ 기신: '+pw.kijishin.map(function(e){return EL_KO[e];}).join(', '))
+              '✓ 보완 후보: '+(pw.yongshin.map(function(e){return EL_KO[e];}).join(', ')||'판정 보류')+(pw.kijishin.length?'<br>✓ 주의 오행: '+pw.kijishin.map(function(e){return EL_KO[e];}).join(', '):''))
            :(pw.isStrong
              ?'<b>신강</b>이란 일간이 원국에서 도움받는 기운이 탄탄한 사주입니다. 에너지가 넘쳐 설기(洩氣)·재(財)·관(官)으로 빠져나가는 운이 올 때 사회적 성취가 폭발합니다.<br>'+
-              '✓ 용신: '+pw.yongshin.map(function(e){return EL_KO[e];}).join(', ')+'<br>'+
-              '✓ 기신: '+pw.kijishin.map(function(e){return EL_KO[e];}).join(', ')
+              '✓ 보완 후보: '+(pw.yongshin.map(function(e){return EL_KO[e];}).join(', ')||'판정 보류')+(pw.kijishin.length?'<br>✓ 주의 오행: '+pw.kijishin.map(function(e){return EL_KO[e];}).join(', '):'')
              :'<b>신약</b>이란 일간이 외부 압박에 비해 자체 에너지가 부족한 사주입니다. 비겁(비견·겁재)이나 인성(편인·정인)이 오는 운에서 자존감과 귀인이 동시에 옵니다.<br>'+
-              '✓ 용신: '+pw.yongshin.map(function(e){return EL_KO[e];}).join(', ')+'<br>'+
-              '✓ 기신: '+pw.kijishin.map(function(e){return EL_KO[e];}).join(', ')))+
+              '✓ 보완 후보: '+(pw.yongshin.map(function(e){return EL_KO[e];}).join(', ')||'판정 보류')+(pw.kijishin.length?'<br>✓ 주의 오행: '+pw.kijishin.map(function(e){return EL_KO[e];}).join(', '):'')))+
          '</div>'
         :(_isNeoSaju?'억부 계산 중이거나 데이터가 부족해. 조금 있다가 다시 봐 줘.':'억부 계산 중 또는 사주 데이터가 부족합니다.')),
     '#9C27B0','rgba(243,229,245,.7)');
@@ -1459,8 +1461,8 @@ function renderSummary(p,johu,natal){
     }).join('');
   } else {
     _sinsalBodyHtml = '<div style="font-size:.84rem;line-height:1.78;color:#666">'+(_isNeoSaju
-      ?'주요 신살 해당 없음 — 신살 없이도 순수한 오행 매력으로 승부하는 타입이야. 용신 오행이랑 일간 기질 자체가 이미 네 강점이라는 뜻이지.'
-      :'주요 신살 해당 없음 — 신살에 의존하지 않는 순수한 오행 매력의 소유자입니다. 용신 오행과 일간의 기질 자체가 당신의 매력과 강점을 만들어냅니다.')+'</div>';
+      ?'주요 신살 해당 없음 — 신살 없이도 순수한 오행 매력으로 승부하는 타입이야. 보완 후보 오행이랑 일간 기질 자체가 이미 네 강점이라는 뜻이지.'
+      :'주요 신살 해당 없음 — 신살에 의존하지 않는 순수한 오행 매력의 소유자입니다. 보완 후보 오행과 일간의 기질 자체가 당신의 매력과 강점을 만들어냅니다.')+'</div>';
   }
   html+=box('sinsal','💫 ⑨ 신살(神殺) 분석 — 타고난 특수 에너지',
     subHead('내 사주의 신살 목록','#6a1b9a')+
@@ -1591,11 +1593,11 @@ function renderSummary(p,johu,natal){
     li(_isNeoSaju
       ?['강점인 <b>'+dominant+'</b> 에너지, 일이랑 관계에 마음껏 써 봐',
         '약점인 <b>'+EL_K[domE]+'</b> 과잉, 의식해서 다스려 봐',
-        '용신 에너지 '+((pw&&pw.yongshin)||[]).map(function(e){return EL_KO[e];}).join('·')+' 꾸준히 생활에 들여 봐',
+        '보완 후보 에너지 '+((pw&&pw.yongshin)||[]).map(function(e){return EL_KO[e];}).join('·')+' 꾸준히 생활에 들여 봐',
         '귀인('+(guiinNounByDomNeo[domE]||'성장을 돕는 멘토')+')과의 인연, 일부러라도 만들어 가 봐']
       :['강점인 <b>'+dominant+'</b> 에너지를 일과 관계에 최대한 활용하세요',
         '약점인 <b>'+EL_K[domE]+'</b> 과잉을 의식적으로 다스리세요',
-        '용신 에너지 '+((pw&&pw.yongshin)||[]).map(function(e){return EL_KO[e];}).join('·')+'를 생활에 꾸준히 흡수하세요',
+        '보완 후보 에너지 '+((pw&&pw.yongshin)||[]).map(function(e){return EL_KO[e];}).join('·')+'를 생활에 꾸준히 흡수하세요',
         '귀인('+guiinByDom[domE]+')과의 인연을 의도적으로 만들어가세요'])+
     subHead((_isNeoSaju?'10년 관점으로 본 커리어 흐름':'10년 관점 커리어 전략'),'#6a1b9a')+
     '<div style="font-size:.84rem;line-height:1.78;margin-top:4px">'+
@@ -1605,10 +1607,10 @@ function renderSummary(p,johu,natal){
     (_isNeoSaju
       ?'<b>① 주간 리뷰 (매주 일요일 20분)</b>: 이번 주에 무슨 결정을 했고 결과가 어땠는지 적어 봐. <b>'+dominant+'</b> 에너지가 잘 발현된 순간, 낭비된 순간을 기록하면 패턴이 보이거든. 그럼 다음 주 행동이 달라져.<br><br>'+
        '<b>② 귀인 접점 늘리기 (월 2회)</b>: 네 성장 방향이랑 같은 사람들이 모이는 데 정기적으로 나가 봐. 귀인은 찾아다니는 게 아니라 그런 환경 안에서 자연스럽게 만나는 거야.<br><br>'+
-       '<b>③ 용신 에너지 흡수 (매일)</b>: 용신 색상 소품을 지니거나, 방향에 알람을 맞추거나, 용신 음식을 식단에 넣거나 — 이런 작은 조율 하나가 에너지 균형을 지켜 줘. 어렵지 않으니까 오늘 하나만 골라 봐.'
+       '<b>③ 보완 후보 에너지 흡수 (매일)</b>: 보완 후보 색상 소품을 지니거나, 방향에 알람을 맞추거나, 보완 후보 음식을 식단에 넣거나 — 이런 작은 조율 하나가 에너지 균형을 지켜 줘. 어렵지 않으니까 오늘 하나만 골라 봐.'
       :'<b>① 주간 리뷰 (매주 일요일 20분)</b>: 이번 주 어떤 결정을 했고, 어떤 결과가 왔는가? <b>'+dominant+'</b> 에너지가 잘 발현된 순간과 낭비된 순간을 기록하세요. 패턴이 보이면 다음 주 행동이 달라집니다.<br><br>'+
        '<b>② 귀인 접점 늘리기 (월 2회)</b>: 당신의 성장 방향과 같은 사람들이 모이는 공간에 정기적으로 참여하세요. 귀인은 찾는 것이 아니라 환경 안에서 자연스럽게 만나는 것입니다.<br><br>'+
-       '<b>③ 용신 에너지 흡수 (매일)</b>: 용신 색상의 소품을 몸에 지니거나, 방향에 알람을 맞추거나, 용신 음식을 식단에 포함하는 등 작은 일상의 조율이 에너지 균형을 유지합니다.')+'</div>',
+       '<b>③ 보완 후보 에너지 흡수 (매일)</b>: 보완 후보 색상의 소품을 몸에 지니거나, 방향에 알람을 맞추거나, 보완 후보 음식을 식단에 포함하는 등 작은 일상의 조율이 에너지 균형을 유지합니다.')+'</div>',
     '#9C27B0','rgba(243,229,245,.7)');
 
   /* ───────────────────────────────
@@ -1701,6 +1703,11 @@ function generateDetailedAdvice(p,pw,jg,dominant,dayMaster,domE,natal,deep){
     out+='<b style="font-size:.9rem;color:#6A1B9A">🌀 '+jg.name+' 특별 조언</b><br>';
     out+='<span style="font-size:.86rem;line-height:1.85;color:#4A148C">'+(jongElAdvice[jg.dominant]||'종격의 지배 오행을 극한까지 키우는 것이 성공의 열쇠입니다.')+'</span>';
     out+='</div>';
+  }else if(pw&&pw.strengthPending){
+    out+='<div style="background:rgba(243,244,246,.8);border-radius:10px;padding:14px;margin-bottom:12px;border-left:4px solid #9CA3AF">';
+    out+='<b style="font-size:.9rem;color:#374151">강약 판정 보류 — 참고 조언</b><br>';
+    out+='<span style="font-size:.86rem;line-height:1.85;color:#1F2937">출생 시각이 없거나 근거가 모자라 신강·신약을 확정하지 않았습니다. 힘이 남는 날과 쉽게 지치는 날을 며칠 기록해 보고, 그 기록을 기준으로 일의 규모를 정해 보세요.</span>';
+    out+='</div>';
   }else if(pw&&pw.isStrong){
     out+='<div style="background:rgba(255,243,224,.8);border-radius:10px;padding:14px;margin-bottom:12px;border-left:4px solid #FF9800">';
     out+='<b style="font-size:.9rem;color:#E65100">🔥 신강(身强) 사주 — 에너지 수호 조언</b><br>';
@@ -1772,6 +1779,8 @@ function generateNeoFactPunch(p,pw,jg,dominant,dayMaster,domE,natal,deep){
   var powerPunch='';
   if(jg&&jg.isJong){
     powerPunch='<b>종격 사주</b> — 이 사주의 핵심은 하나야. '+EL_KO[jg.dominant]+' 기운이 압도적인 너는, 그 기운을 거스르는 선택을 할 때마다 삶이 삐걱거릴 수 있어. 취미, 직업, 인간관계 모두 '+EL_KO[jg.dominant]+' 에너지가 흐르는 방향으로 맞춰 봐. 반대 에너지는 너한테 독이 될 수 있어. 많은 사람이 사회적 기대나 주변 압박 때문에 자기 기운과 반대로 선택하거든. 너한테는 그게 특히 무겁게 돌아올 수 있어. 타고난 기운을 따르는 용기, 그게 지금 필요한 거야.';
+  }else if(pw&&pw.strengthPending){
+    powerPunch='<b>강약 판정 보류</b> — 출생 시각이 없거나 근거가 모자라서 신강·신약을 확정하지 않아. 힘이 남는 날과 쉽게 지치는 날을 며칠 적어 봐. 그 기록이 일의 규모를 정하는 기준이야.';
   }else if(pw&&pw.isStrong){
     powerPunch='<b>신강 사주</b> — 에너지가 넘쳐. 그게 숙제야. 넘치는 에너지가 갈 곳을 못 찾으면 고집, 독선, 과한 경쟁으로 타 버릴 수 있거든. 주변 사람들이 요즘 지쳐 보이진 않아? 에너지를 건강하게 쏟아낼 구조(운동, 봉사, 창작, 리더 역할)를 꼭 만들어 봐. 억누르면 더 크게 터질 수 있어. 에너지를 맞는 방향으로 쏟는 것, 그게 신강 사주가 잘 풀리는 공식이야. 지금 네 에너지가 건강하게 흐르고 있는지 스스로한테 물어봐.';
   }else{
@@ -1865,8 +1874,8 @@ function buildDaewunReadingGuide(age, gan, zhi, ev) {
   relations=relations.concat(getDaewunBranchEvidence(zhi,p,!!window.__cdSajuTimeUnknown));
   var cycle=(window.G_DAEWUN||[]).find(function(row){return Number(row.age)===Number(age)&&row.g===gan&&row.j===zhi;});
   return api.cycleMarkup({age:age,startYear:cycle&&cycle.startYear||Number(BIRTH_YEAR)+Number(age)-1,day:p.d.g,month:p.m.j,
-    dominant:G_NATAL&&G_NATAL.dominant,power:G_POWER,jong:G_JONG,climate:G_JOHU&&G_JOHU.type,
-    depth:window.SajuReadingDepth&&window.SajuReadingDepth.buildDepthFacts({p:p,power:G_POWER,johu:G_JOHU,jong:G_JONG,unknown:!!window.__cdSajuTimeUnknown},document.body.classList.contains('neo-mode')?'neo':undefined),
+    dominant:G_NATAL&&G_NATAL.dominant,power:window.__cdShownPower||G_POWER,jong:G_JONG,climate:G_JOHU&&G_JOHU.type,
+    depth:window.SajuReadingDepth&&window.SajuReadingDepth.buildDepthFacts({p:p,power:window.__cdShownPower||G_POWER,gyeokguk:window.__cdShownGyeokguk||undefined,johu:G_JOHU,jong:G_JONG,unknown:!!window.__cdSajuTimeUnknown},document.body.classList.contains('neo-mode')?'neo':undefined),
     stem:{char:gan,element:GAN[gan].e,god:getTenGod(p.d.g,gan),roots:knownKeys.flatMap(function(key){return (CD_JANGGAN[p[key].j]||[]).filter(function(hidden){return GAN[hidden].e===GAN[gan].e;}).map(function(hidden){return {position:labels[key],branch:p[key].j,hiddenStem:hidden};});}),balance:getQuantumElType(GAN[gan].e,p,G_JONG,G_POWER,G_JOHU)},
     branch:{char:zhi,element:JI[zhi].e,god:getTenGod(p.d.g,zhi),hiddenStems:(CD_JANGGAN[zhi]||[]).map(function(hidden,index){return {stem:hidden,god:getTenGod(p.d.g,hidden),layer:index===(CD_JANGGAN[zhi]||[]).length-1?'정기':index===0?'여기':'중기'};}),balance:getQuantumElType(JI[zhi].e,p,G_JONG,G_POWER,G_JOHU)},
     godCounts:counts,relations:relations,unknown:!!window.__cdSajuTimeUnknown,
@@ -1875,7 +1884,7 @@ function buildDaewunReadingGuide(age, gan, zhi, ev) {
 }
 // 세운 한 해의 간지·판정·영역 문구. 대운 풀이의 10년 세운과 종합의 올해·내년 처방이 이 한 경로로 읽는다.
 function _sajuSeunYearReading(yr){
-  var jg=G_JONG,pw=G_POWER,jh=G_JOHU;
+  var jg=G_JONG,pw=window.__cdShownPower||G_POWER,jh=G_JOHU;
   var yBazi=_coreEightChar(yr,6,15,12,0);
 
   try {
@@ -1908,18 +1917,20 @@ function _sajuSeunYearReading(yr){
   var ukbuYText='';
   if(jg&&jg.isJong){
     ukbuYText=ygd.e===jg.dominant||yzd.e===jg.dominant?(neo?'🌀 종격의 흐름을 돕는 해 — 강점이랑 지나친 쏠림을 같이 살펴 봐.':'🌀 종격의 흐름을 돕는 해 — 강점과 과도한 쏠림을 함께 살피세요.'):'🙂 종격 중립의 해';
+  }else if(pw&&pw.strengthPending){
+    ukbuYText=neo?'🕊️ 판정 보류 — 출생 시각이 없거나 근거가 모자라서 이 해의 강약 유불리는 확정하지 않아.':'🕊️ 판정 보류 — 출생 시각이 없거나 근거가 모자라 이 해의 강약 유불리는 확정하지 않습니다.';
   }else if(pw){
     var hasY=pw.yongshin.indexOf(ygd.e)>=0||pw.yongshin.indexOf(yzd.e)>=0;
     var hasK=pw.kijishin.indexOf(ygd.e)>=0||pw.kijishin.indexOf(yzd.e)>=0;
-    ukbuYText=hasY?'✅ <span class="notranslate">용신운</span> — '+(pw.isStrong?'에너지 활용과 사회적 역할을 살필 때':'도움을 받는 방식과 회복 여건을 살필 때'):
-      hasK?'⚠️ <span class="notranslate">기신운</span> — '+(pw.isStrong?'내실 다지는 시기':'소모 주의, 회복 우선'):'🙂 중립운';
+    ukbuYText=hasY?'✅ <span class="notranslate">보완 오행 운</span> — '+(pw.isStrong?'에너지 활용과 사회적 역할을 살필 때':'도움을 받는 방식과 회복 여건을 살필 때'):
+      hasK?'⚠️ <span class="notranslate">부담 오행 운</span> — '+(pw.isStrong?'내실 다지는 시기':'소모 주의, 회복 우선'):'🙂 중립운';
   }
   if(yEv.hasChungBonus){
-    var ybText = yEv.chungBonusText ? (neo?_sajuNeoChungText(yEv.chungBonusText):yEv.chungBonusText) :(neo?'충과 기신의 작용을 같이 살펴 봐.':'충과 기신의 작용을 함께 살펴보세요.');
+    var ybText = yEv.chungBonusText ? (neo?_sajuNeoChungText(yEv.chungBonusText):yEv.chungBonusText) :(neo?'충과 주의 오행의 작용을 같이 살펴 봐.':'충과 주의 오행의 작용을 함께 살펴보세요.');
     ukbuYText += '<br><span style="color:#E65100;font-size:0.85rem;font-weight:bold;margin-top:4px;display:inline-block;">' + ybText + '</span>';
   }
   if(yEv.hasChungPenalty){
-    var ypText = yEv.chungPenaltyText ? (neo?_sajuNeoChungText(yEv.chungPenaltyText):yEv.chungPenaltyText) :(neo?'충이 용신의 작용에 주는 부담을 살펴 봐.':'충이 용신의 작용에 주는 부담을 살펴보세요.');
+    var ypText = yEv.chungPenaltyText ? (neo?_sajuNeoChungText(yEv.chungPenaltyText):yEv.chungPenaltyText) :(neo?'충이 보완 후보의 작용에 주는 부담을 살펴 봐.':'충이 보완 후보의 작용에 주는 부담을 살펴보세요.');
     ukbuYText += '<br><span style="color:#D32F2F;font-size:0.85rem;font-weight:bold;margin-top:4px;display:inline-block;">' + ypText + '</span>';
   }
 
@@ -1993,7 +2004,7 @@ function _sajuDaewunTransitionHtml(age,gan,zhi){
   var cur=rows[idx], prev=rows[idx-1], next=rows[idx+1];
   var neo=document.body.classList.contains('neo-mode');
   function balance(part,char,el){
-    var type=getQuantumElType(el,p,G_JONG,G_POWER,G_JOHU);
+    var type=getQuantumElType(el,p,G_JONG,window.__cdShownPower||G_POWER,G_JOHU);
     return part+' '+char+'('+EL_K[el]+')의 기운은 '+(type==='good'?'현재 명식의 균형을 돕는 후보':type==='bad'?'현재 명식에서 부담을 늘릴 수 있는 기운':'균형의 유불리가 뚜렷하지 않은 기운');
   }
   function shift(label,from,to,todo){
@@ -2003,7 +2014,7 @@ function _sajuDaewunTransitionHtml(age,gan,zhi){
   }
   var items=[];
   function balanceNeo(part,char,el){
-    var type=getQuantumElType(el,p,G_JONG,G_POWER,G_JOHU);
+    var type=getQuantumElType(el,p,G_JONG,window.__cdShownPower||G_POWER,G_JOHU);
     return part+' '+char+'('+EL_K[el]+') 기운은 '+(type==='good'?'지금 명식의 균형을 돕는 후보로 보여':type==='bad'?'지금 명식에서 부담을 늘릴 수 있는 쪽으로 보여':'균형에 유리한지 불리한지가 아직 뚜렷하지 않아');
   }
   function shiftNeo(label,from,to,todo){

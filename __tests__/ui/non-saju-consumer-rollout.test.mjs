@@ -8,6 +8,7 @@ import vm from 'node:vm';
 import { calculateZiweiConsumerChart } from '../../worker/lib/ziwei-consumer-chart.js';
 import { calculateZiweiAiChart } from '../../worker/lib/ziwei-ai-chart.js';
 import { prepareZiweiExecutionChart } from '../../worker/lib/ziwei-execution-adapter.js';
+import { resolveZiweiPreparation } from '../../worker/lib/ziwei-calculation-preparation.js';
 const input={birthDate:'2000-05-15',birthTime:'08:30',calendarType:'solar',gender:'male'};
 const clone=x=>JSON.parse(JSON.stringify(x));
 const compiled=await build({stdin:{contents:"export * from './worker/yeongnyangi/fortune/shared/consumer-facts.ts';export * from './worker/yeongnyangi/fortune/shared/privacy.ts';",resolveDir:process.cwd()},bundle:true,write:false,platform:'node',format:'cjs',plugins:[{name:'deny',setup(b){b.onResolve({filter:/.*/},a=>{if(!a.path.startsWith('.')||/swiss|ephemeris|sweph|models|db\.js/.test(a.path))throw Error('BLOCKED:'+a.path)})}}]});
@@ -15,11 +16,49 @@ const sandbox=vm.createContext({module:{exports:{}},TextEncoder});vm.runInContex
 test('new ziwei server selection is OFF by default and body cannot select it',()=>{
  for(const env of [{},{ZIWEI_CALENDAR_AUTHORITY_V2:true},{ZIWEI_CALENDAR_AUTHORITY_V2:'false'}])assert.deepEqual(calculateZiweiConsumerChart({...input,calendarAuthorityV2:true},{env,year:2026}),calculateZiweiAiChart({...input,calendarAuthorityV2:true},{year:2026}));
 });
-test('approved ziwei selection shares exact chart and rejects outside pilot without fallback',()=>{
+test('approved ziwei selection shares exact chart across adapter and consumers',()=>{
  const chart=calculateZiweiConsumerChart(input,{env:{ZIWEI_CALENDAR_AUTHORITY_V2:'true'},year:2026});
  assert.deepEqual(chart,prepareZiweiExecutionChart(input,{calendarAuthorityV2:true,year:2026}));
  assert.equal(chart.lunar.source,'kasi-jpl-expanded-20261101');
- assert.throws(()=>calculateZiweiConsumerChart({...input,birthDate:'1988-05-15'},{env:{ZIWEI_CALENDAR_AUTHORITY_V2:'true'}}),/OUTSIDE_PILOT/);
+});
+const ziweiOn={env:{ZIWEI_CALENDAR_AUTHORITY_V2:'true'},year:2026};
+test('dates outside the verified lunar table keep the current chart instead of failing',()=>{
+ for(const birth of [{...input,birthDate:'1988-05-15'},{...input,birthDate:'1965-02-10',birthTime:'03:00'},{...input,birthDate:'1975-03-08',calendarType:'lunar'},{...input,birthDate:'1993-05-15',birthTime:'',birthTimeUnknown:true}]){
+  const chart=calculateZiweiConsumerChart(birth,ziweiOn);
+  assert.deepEqual(chart,calculateZiweiAiChart(birth,{year:2026}));
+  assert.notEqual(chart.lunar.source,'kasi-jpl-expanded-20261101');
+ }
+});
+test('verified dates use the new table for every birth-time and place shape',()=>{
+ for(const birth of [{...input,birthTime:'',birthTimeUnknown:true},{...input,birthPlace:{name:'부산',latitude:35.1796,longitude:129.0756,timezone:'Asia/Seoul'}},{...input,birthDate:'2000-03-08',calendarType:'lunar'}]){
+  const chart=calculateZiweiConsumerChart(birth,ziweiOn);
+  assert.equal(chart.lunar.source,'kasi-jpl-expanded-20261101');
+  assert.deepEqual(chart.palaces,calculateZiweiAiChart(birth,{year:2026}).palaces);
+ }
+});
+test('invalid birth input still fails under the new selection',()=>{
+ assert.throws(()=>calculateZiweiConsumerChart({...input,birthDate:'2000-13-40'},ziweiOn),/INVALID/);
+});
+function preparationModel(){
+ const rows=new Map();
+ return {rows,findById:id=>({lean:async()=>rows.has(id)?clone(rows.get(id)):null}),create:async row=>{rows.set(row._id,clone(row));}};
+}
+const prepared=(model,birth,extra={})=>resolveZiweiPreparation({model,userId:'user-1',requestId:'request-key-0001',inputHash:'hash-'+birth.birthDate,input:birth,rawBody:{calculationProtocol:'ziwei-prepared-v1'},action:'prepare',year:2026,calendarAuthorityV2:true,...extra});
+test('preparation records the calendar the chart actually used and generate reuses it',async()=>{
+ for(const [birthDate,version] of [['1988-05-15','legacy'],['2000-05-15','kasi-jpl-expanded-20261101']]){
+  const model=preparationModel(),birth={...input,birthDate};
+  const first=await prepared(model,birth);
+  assert.equal([...model.rows.values()][0].authorityVersion,version);
+  const again=await prepared(model,birth,{action:'generate'});
+  assert.equal(again.preparationId,first.preparationId);assert.deepEqual(again.chart,first.chart);
+ }
+});
+test('a request prepared before rollout still generates; a lost prepared request does not recalculate',async()=>{
+ const birth={...input,birthDate:'1988-05-15'};
+ const oldClient=await prepared(preparationModel(),birth,{action:'generate',rawBody:{}});
+ assert.equal(oldClient.preparationId,null);
+ assert.deepEqual(oldClient.chart,calculateZiweiAiChart(birth,{year:2026}));
+ await assert.rejects(prepared(preparationModel(),birth,{action:'generate'}),/CALCULATION_PREPARATION_REQUIRED/);
 });
 test('saved ziwei basis survives OFF, year change and legacy storage; missing partial basis fails closed',()=>{
  const chart=calculateZiweiConsumerChart(input,{env:{ZIWEI_CALENDAR_AUTHORITY_V2:'true'},year:2026});
@@ -77,11 +116,24 @@ test('actual master-love and neo chart consumers use one approved selection for 
  const {buildCodexConsultation}=await import('../../worker/lib/master-love-codex-consultation.js');
  const env={ZIWEI_CALENDAR_AUTHORITY_V2:'true'}, now=new Date('2026-11-02T00:00:00Z');
  const normalized={birthInfo:input,partnerInfo:{...input,gender:'female'}};
- const ctx=vm.createContext({Date,calculateZiweiConsumerChart,calculateLifeBookAiSaju,asObject:v=>v,clean:v=>String(v||''),buildMasterLoveCodexCompatibility:()=>({mock:true})});
+ const ctx=vm.createContext({Date,sajuAuthorityOn:()=>false,calculateZiweiConsumerChart,calculateLifeBookAiSaju,asObject:v=>v,clean:v=>String(v||''),buildMasterLoveCodexCompatibility:()=>({mock:true})});
  load(ctx,'worker/routes/master-love-codex.js','buildCharts');const pair=ctx.buildCharts(normalized,now,env);
  assert.equal(pair.ziweiChart.lunar.source,'kasi-jpl-expanded-20261101');assert.equal(pair.partnerZiweiChart.lunar.source,pair.ziweiChart.lunar.source);
  const consultation=buildCodexConsultation({questions:['관계의 흐름은?']},'compat',pair,input,normalized.partnerInfo,now);assert.ok(consultation.records.some(r=>r.system==='ziwei'));
  Object.assign(ctx,{summarizeZiwei:chart=>({chart}),withCompat:(summary,_input,_system,self,partner)=>({...summary,self,partner})});load(ctx,'worker/routes/neo-operation-room.js','calculateMethodSummary');
  const neo=await ctx.calculateMethodSummary(env,{input:{selectedMethod:'ziwei',birthInfo:input,partnerBirthInfo:normalized.partnerInfo}},{});
  assert.equal(neo.self.lunar.source,'kasi-jpl-expanded-20261101');assert.equal(neo.partner.lunar.source,neo.self.lunar.source);
+});
+test('island report, heukwol and karma read the approved chart for new calculations',async()=>{
+ const { __ziweiIslandReportTestUtils:island } = await import('../../worker/routes/ziwei-island-report.js');
+ const { buildHeukwolAnalysis } = await import('../../worker/lib/heukwol-analysis.js');
+ const { buildKarmaDestinyIntegratedResult } = await import('../../worker/lib/karma-destiny-ai-calculations.js');
+ const env={ZIWEI_CALENDAR_AUTHORITY_V2:'true'},date='1903-10-28',now=new Date('2026-11-04T00:00:00Z');
+ const islandBody={birthDate:date,birthTime:'08:30',calendarType:'solar',gender:'female',date:'2027-01-01'};
+ assert.notDeepEqual(island.buildReportFromBirth(islandBody,env),island.buildReportFromBirth(islandBody));
+ const birth={date,time:'08:30',timeKnown:true,gender:'female'};
+ assert.notDeepEqual(buildHeukwolAnalysis(birth,2027,now,{env}),buildHeukwolAnalysis(birth,2027,now));
+ const karmaBirth={birthDate:date,birthTime:'08:30',calendarType:'solar',gender:'female'};
+ const on=await buildKarmaDestinyIntegratedResult(env,karmaBirth),off=await buildKarmaDestinyIntegratedResult({},karmaBirth);
+ assert.notDeepEqual(on.lenses.ziwei.data,off.lenses.ziwei.data);
 });

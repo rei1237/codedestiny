@@ -1,12 +1,13 @@
 import { solarToLunar } from "../../lib/korean-calendar/index.js";
 import { buildAstroLocalChartJson, normalizeAstroPremiumBirthInput, toSwissChartInputFromBirthInput } from "./astro-premium-generator.js";
 import { calculateLifeBookAiSaju } from "./life-book-ai-saju.js";
+import { overlayApprovedLifeBookChart } from "./saju-authority-consumer.js";
 import { getSukuyoByIndex, relationFromForwardDistance } from "./sukuyo-premium.js";
 import { calculateSukuyoForMoment } from "./sukuyo-astronomy.js";
 import { getSwissVedicPlanets, getSwissWesternChart } from "./swiss-ephemeris.js";
 import { buildVimshottariDasha } from "./vedic-derived-calculations.js";
 import { buildVedicLocalChartJson } from "./vedic-premium-generator.js";
-import { calculateZiweiAiChart } from "./ziwei-ai-chart.js";
+import { calculateZiweiConsumerChart } from "./ziwei-consumer-chart.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 다섯 렌즈(관점) 정의
@@ -376,6 +377,7 @@ function compactSaju(calculated = {}, { birthTimeUnknown = false, age = null } =
     })),
     yearlyLuck: safeArray(calculated.yearlyLuck).slice(0, 3),
     fortuneFacts: calculated.fortuneFacts,
+    ...(calculated.approvedSaju ? { approvedSaju: calculated.approvedSaju } : {}),
     calculationMeta: calculated.calculationMeta,
   };
 }
@@ -790,7 +792,9 @@ export async function buildKarmaDestinyIntegratedResult(env, birthInfo = {}, opt
 
   // ── 사주 — 시간 미상이어도 시주만 빠지고 나머지는 온전하다 ──────────────
   try {
-    const calculated = calculateLifeBookAiSaju(birthInfo);
+    // 새 상담만 승인 판정을 쓴다. 저장 결과는 호출부가 이 함수를 타지 않고 그대로 재사용한다.
+    const rawSaju = calculateLifeBookAiSaju(birthInfo);
+    const calculated = options.authorityEnabled === true ? overlayApprovedLifeBookChart(rawSaju) : rawSaju;
     lenses.saju = lensBlock("saju", {
       confidence: "full",
       data: compactSaju(calculated, { birthTimeUnknown, age }),
@@ -839,7 +843,7 @@ export async function buildKarmaDestinyIntegratedResult(env, birthInfo = {}, opt
 
   // ── 자미두수 — 시간 미상이면 명궁 자체가 어긋나므로 provisional ─────────
   try {
-    const chart = calculateZiweiAiChart({ birthInfo });
+    const chart = calculateZiweiConsumerChart({ birthInfo }, { env });
     lenses.ziwei = lensBlock("ziwei", {
       confidence: birthTimeUnknown ? "provisional" : "full",
       data: compactZiwei(chart, { age }),

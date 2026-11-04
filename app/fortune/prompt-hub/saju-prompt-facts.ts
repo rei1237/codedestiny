@@ -10,6 +10,8 @@ import { BRANCH_HANGUL, branchIndexOf, daeun, formatPillar, STEM_HANJA, stemInde
 import { CHANG_SHENG, CHANG_SHENG_OFFSET, getXun, getXunKong, NAYIN } from "@/lib/saju/myeongri-tables";
 import { calculateLocalSaju, type LocalSajuResult } from "../../saju/animal-destiny/engine/localSajuCalculator";
 import { projectApprovedGyeokguk } from "@/lib/saju/gyeokguk-authority.mjs";
+import { ENGINE_ROLLOUT_FLAGS } from "@/worker/lib/engine-rollout.js";
+import { approvedSajuLabels, sajuAuthorityOn } from "@/worker/lib/saju-authority-consumer.js";
 
 export type SajuFactsInput = {
   birthDate: string;
@@ -255,7 +257,7 @@ function buildDaewoonLines(local: LocalSajuResult, birth: ParsedYmd, hm: { hour:
  * 사주 명식 산출 데이터 블록. 생년월일을 못 읽거나 엔진이 실패하면 빈 문자열을 돌려주어
  * 호출부가 조용히 골격만 출력하도록 한다(숙요점 산출기와 같은 계약).
  */
-export function buildSajuPromptFacts(input: SajuFactsInput): string {
+export function buildSajuPromptFacts(input: SajuFactsInput, { authorityEnabled = sajuAuthorityOn(ENGINE_ROLLOUT_FLAGS) } = {}): string {
   try {
     const birth = parseYmd(input.birthDate);
     if (!birth) return "";
@@ -288,6 +290,7 @@ export function buildSajuPromptFacts(input: SajuFactsInput): string {
     const gyeokguk = asRecord(approved.gyeokgukAnalysis);
     const yongshin = asRecord(approved.yongshinAnalysis);
     const johu = asRecord(natal.johu);
+    const labels = authorityEnabled ? approvedSajuLabels(local.pillars) : null;
     const evidence = asRecord(local.calculationEvidence);
     const solarDate = formatDate(asRecord(evidence.solarDate) as unknown as ParsedYmd);
 
@@ -304,8 +307,8 @@ export function buildSajuPromptFacts(input: SajuFactsInput): string {
     );
     lines.push(...buildManseryeokLines(pillars as never, text(dayMaster.stem) || local.dayStem));
 
-    const strength = text(dayMaster.strength);
-    const strengthIndex = num(dayMaster.strengthIndex);
+    const strength = labels ? labels.strength : text(dayMaster.strength);
+    const strengthIndex = labels ? null : num(dayMaster.strengthIndex);
     lines.push(
       `- 일간: ${text(dayMaster.stem) || local.dayStem}(${text(dayMaster.elementKo)}, ${dayMaster.polarity === "yin" ? "음" : "양"})` +
         `${strength ? ` · 신강신약 ${strength}` : ""}${strengthIndex === null ? "" : ` (강약지수 ${strengthIndex})`}`,
@@ -350,12 +353,14 @@ export function buildSajuPromptFacts(input: SajuFactsInput): string {
     lines.push(
       `- 용신: 단일 용신은 확정하지 않음 · ${usefulCandidates.length ? `도움이 되는 기운 후보 ${usefulCandidates.join(", ")}` : "후보도 판정 보류"}`,
     );
-    if (text(johu.urgentElementKo)) {
+    if (labels) {
+      if (labels.johuCandidateNames.length) lines.push(`- 조후(調候) 후보: ${labels.johuCandidateNames.join(", ")} (확정 용신 아님)`);
+    } else if (text(johu.urgentElementKo)) {
       lines.push(`- 조후(調候) 급한 오행: ${text(johu.urgentElementKo)}${johu.priorityOverSuppressing ? " (억부보다 우선)" : ""}`);
     }
 
     // 심각도 높은 것부터 다섯 개까지만. 전부 늘어놓으면 해석의 초점이 흐려진다.
-    const issues = (Array.isArray(natal.structuralIssues) ? natal.structuralIssues : [])
+    const issues = (!labels && Array.isArray(natal.structuralIssues) ? natal.structuralIssues : [])
       .map((row) => asRecord(row))
       .filter((row) => text(row.label))
       .sort((a, b) => (num(b.severity) ?? 0) - (num(a.severity) ?? 0))
@@ -375,6 +380,8 @@ export function buildSajuPromptFacts(input: SajuFactsInput): string {
           ? HOUR_POLICY_LABEL[local.hourPillarTimePolicy] || local.hourPillarTimePolicy
           : "보정 미적용(출생 시각 미상)"),
     );
+
+    if (labels) lines.push(...labels.promptRules.map((rule: string) => `- 해석 규칙: ${rule}`));
 
     lines.push("");
     lines.push(

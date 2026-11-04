@@ -201,19 +201,19 @@ export const FEATURE_KEY_REASON_COSTS = Object.freeze(
 
 // 영냥이 책 상품은 Family 이용권 권리를 유지하고 월정석을 제휴 가치로 받는다.
 // 일반 이용권은 제외하며 월정석은 1개당 10원으로 복원한다(2026-10-03 승인, 10-05 가격 전환).
-// 2026-10-11 프리미엄 개편: 고등어 5,000원, 생선 비율 1:2:3:6.
+// 2026-11-04 인상: 고등어 10,000원, 연어 15,000원, 광어 20,000원, 참치 30,000원, 모둠 50,000원, 오마카세 70,000원.
 // Code Destiny 가격 정본. worker/yeongnyangi/payments/catalog.ts가 이 값을 읽는다.
 const YEONGNYANGI_SYSTEMS = Object.freeze({
   saju: "사주", ziwei: "자미두수", sukuyo: "숙요", vedic: "베다점", astrology: "서양 점성술", tarot: "타로",
 });
 const YEONGNYANGI_FISH = Object.freeze({
-  mackerel: ["고등어", 5000], salmon: ["연어", 10000], flounder: ["광어", 15000], tuna: ["참치", 30000],
+  mackerel: ["고등어", 10000], salmon: ["연어", 15000], flounder: ["광어", 20000], tuna: ["참치", 30000],
 });
 const YEONGNYANGI_FUSIONS = Object.freeze([
-  ["fusion-saju-ziwei", "사주 + 자미두수", "생선 모둠 세트", 40000],
-  ["fusion-sukuyo-vedic", "숙요 + 베다점", "생선 모둠 세트", 40000],
-  ["fusion-astrology-tarot", "서양 점성술 + 타로", "생선 모둠 세트", 40000],
-  ["fusion-all", "사주 + 자미두수 + 숙요 + 베다점 + 서양 점성술 + 타로", "생선 오마카세", 60000],
+  ["fusion-saju-ziwei", "사주 + 자미두수", "생선 모둠 세트", 50000],
+  ["fusion-sukuyo-vedic", "숙요 + 베다점", "생선 모둠 세트", 50000],
+  ["fusion-astrology-tarot", "서양 점성술 + 타로", "생선 모둠 세트", 50000],
+  ["fusion-all", "사주 + 자미두수 + 숙요 + 베다점 + 서양 점성술 + 타로", "생선 오마카세", 70000],
 ]);
 function buildYeongnyangiEntry(name, fishName, amountKRW) {
   return { cost: amountKRW / 100, amountKRW, reason: `영냥이 ${name} ${fishName}`, paymentScope: "direct_or_family", membershipCreditAllowed: true, membershipCreditMultiplier: 1 };
@@ -227,9 +227,12 @@ const YEONGNYANGI_RAW_PRICE_ENTRIES = Object.freeze(Object.fromEntries([
 ]));
 export const YEONGNYANGI_PAID_FEATURE_KEYS = Object.freeze(Object.keys(YEONGNYANGI_RAW_PRICE_ENTRIES));
 
+// 2026-11-04 영냥이 인상과 분리: 연이·네오 질문 상담은 인상 전 가격을 유지한다.
+const CHAT_QUESTION_AMOUNT_KRW = Object.freeze({ mackerel: 5000, salmon: 10000, flounder: 15000, tuna: 30000 });
 const CHAT_QUESTION_PRICES = Object.fromEntries(CHAT_QUESTION_FISH.map(fish => {
-  const [name, amountKRW] = YEONGNYANGI_FISH[fish];
-  // Same tier prices; retain fortune-chat PASS/MONTHLY policy rather than copying Yeongnyangi rights.
+  const [name] = YEONGNYANGI_FISH[fish];
+  const amountKRW = CHAT_QUESTION_AMOUNT_KRW[fish];
+  // Retain fortune-chat PASS/MONTHLY policy rather than copying Yeongnyangi rights.
   return [chatQuestionFeatureKey(fish), {cost:amountKRW/100, amountKRW, reason:'연이·네오 질문 상담 · '+name}];
 }));
 // 2026-10-07 사용자 승인: 확인된 정적 저가 상품의 신규 결제는 1,000원. 과거 주문 스냅샷은 유지.
@@ -241,7 +244,8 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "tarot-year-fortune": { cost: 100, amountKRW: 10000, reason: "십이지신 천운 타로" },
   "tarot-love-relationship": { cost: 50, reason: "우리는 무슨 사이? 타로 리딩" },
   "tarot-reunion-reading": { cost: 50, reason: "재회운 타로 리딩" },
-  "tarot-myeongri-three-card": { cost: 50, reason: "명리학 타로 3장 스프레드" },
+  // 2026-11-05 승인: 세 장 풀이가 무료가 되어 신규 판매를 닫는다. 구매자 재개와 과거 주문 대조를 위해 키와 가격은 남긴다.
+  "tarot-myeongri-three-card": { saleEnabled: false, cost: 50, reason: "명리학 타로 3장 스프레드" },
   "tarot-mindscan": { cost: 50, reason: "마인드 스캔 타로 리딩" },
   "tarot-celestial-harmony": { cost: 100, reason: "셀레스티얼 하모니 타로 리딩" },
   "tarot-crystal-soul-reading": { cost: 50, reason: "크리스탈 소울 타로 리딩" },

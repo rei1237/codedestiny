@@ -503,7 +503,7 @@ export function buildLoveSecretGroundingTerms(sajuResult = {}) {
     [dayBranch, dayBranch ? clean(my.pillarDetails?.day?.branchElement, 4) : ""],
     [clean(reference.dominantTenGod, 12)],
     [clean(my.gyeokguk?.finalGyeokguk, 12)],
-    [clean(reference.yongshinElementLabel, 4), clean(reference.yongshinElement, 12)],
+    my.approvedSaju ? [] : [clean(reference.yongshinElementLabel, 4), clean(reference.yongshinElement, 12)],
     [currentCycle],
     partner ? [clean(partner.dayMaster, 4), clean(partner.reference?.dayMasterLabel, 12).replace(/\(.*\)/, "")] : [],
     ["일간"],

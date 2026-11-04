@@ -180,7 +180,7 @@ function renderSkillTree(p, natal){
   }
   area.setAttribute('data-skilltree-ui-marker','skilltree-rpg-v20260613');
   var dg=p.d.g;
-  var pw=G_POWER, jg=G_JONG;
+  var pw=window.__cdShownPower||G_POWER, jg=G_JONG;
   var dayEl=(GAN[dg]&&GAN[dg].e)||'earth';
   var elKo={wood:'목',fire:'화',earth:'토',metal:'금',water:'수'};
   var seasonEl=(p.m&&JI[p.m.j]&&JI[p.m.j].e)||'';
@@ -332,7 +332,7 @@ function renderSkillTree(p, natal){
     +'<span class="sk-rpg-chip">MAIN '+_rpgEsc(groupName)+'</span>'
     +'<span class="sk-rpg-chip">월령 '+_rpgEsc(seasonName)+'</span>'
     +'<span class="sk-rpg-chip">성장축 '+_rpgEsc(growthAxisName)+'</span>'
-    +'<span class="sk-rpg-chip">'+(pw&&pw.isStrong?'신강형':'신약형')+'</span>'
+    +'<span class="sk-rpg-chip">'+(pw&&pw.strengthPending?'강약 판정 보류':pw&&pw.isStrong?'신강형':'신약형')+'</span>'
     +(jg&&jg.isJong?'<span class="sk-rpg-chip">종격 모드</span>':'')
     +'</div>'
     +'</div>'

@@ -4897,6 +4897,10 @@ async function handleSiteDeploy(request, env) {
     throw createHttpError(400, "지원하지 않는 사이트 반영 방식입니다.", { code: "VALIDATION_ERROR" });
   }
 
+  return dispatchSiteRelease(env, mode);
+}
+
+async function dispatchSiteRelease(env, mode) {
   const token = String(getEnv(env, "GITHUB_DEPLOY_TOKEN") || "").trim();
   if (!token) {
     throw createHttpError(503, "GITHUB_DEPLOY_TOKEN이 설정되지 않아 사이트 반영을 트리거할 수 없습니다.", { code: "DEPLOY_TOKEN_MISSING" });
@@ -4933,6 +4937,12 @@ export async function handleAdminRoutes(request, env) {
   try {
     const method = request.method.toUpperCase();
     const path = getRoutePath(request, "/api/admin");
+
+    if (path === "/editions") {
+      await authorizeAdminRequest(request, env);
+      const { manageEditions } = await import("./edition-studio.js");
+      return await manageEditions(request, env, () => dispatchSiteRelease(env, "staging"));
+    }
 
     if (path === "/neo-consultations" || path.startsWith("/neo-consultations/")) {
       const actor = await authorizeAdminRequest(request, env);

@@ -7,6 +7,7 @@ import { createSajuSectionRuntime } from "./runtime.generated.mjs";
 import { buildSukuyoFromMoonLongitude } from "../sukuyo-coordinate.js";
 import { buildSecretHouseStep } from "./secret-house.js";
 import { buildAnimalDestinyReading } from "./animal-destiny.js";
+import { approvedDisplaySaju, approvedSajuLabels } from "../saju-authority-consumer.js";
 
 // 사주 종합(section_summary)·대운 풀이(section_daewun)·퀀텀 명리 엔진(rpt_quantumCard)·
 // 극T 관계 회로(sukuyo-extreme-t-relationship)·숙요 인연 도감(sukuyo-relationship-encyclopedia)·숙요 본성 심화 해석(sukuyo-nature-deep-dive)
@@ -355,11 +356,19 @@ export function buildSajuSectionHtml(input) {
   const pillar = (x) => ({ g: x.g, j: x.j, gE: (rt.GAN[x.g] || {}).e, jE: (rt.JI[x.j] || {}).e });
   const p = { y: pillar(yp), m: pillar(mp), d: pillar(dp), h: pillar(hp) };
 
+  if (input.authorityEnabled === true && featureKey === "rpt_quantumCard") {
+    window.__cdApprovedSaju = approvedSajuLabels({ year: yp.g + yp.j, month: mp.g + mp.j, day: dp.g + dp.j, hour: timeUnknown ? null : hp.g + hp.j });
+  }
+
   const natal = calcNatalElement(p);
   const johu = analyzeJohu(p);
   let power = calcPower(p);
   const jong = detectJong(p);
   power = applyRuntimeYongshinPolicy(power, jong, johu);
+  // 점수 입력 G_POWER 는 그대로 두고, 고객에게 보이는 렌더러만 승인 판정을 읽는다.
+  const shown = input.authorityEnabled === true ? approvedDisplaySaju(power, p, timeUnknown) : null;
+  window.__cdShownPower = shown?.power || null;
+  window.__cdShownGyeokguk = shown?.gyeokguk || null;
   rt.seed({
     GENDER: gender, USER_NAME: escapeHtml(String(input.name || "").trim().slice(0, 40) || "사용자"),
     BIRTH_YEAR: birthYear, CURRENT_AGE: currentAge, DAY_GAN: dp.g,
@@ -436,7 +445,7 @@ export function buildSajuSectionHtml(input) {
     // 묶음: 원국 해석(일주·십성·조후·억부·절기). 계산은 위와 같은 원국·조후·강약·종격이고, 문장은 브라우저가 아니라 여기서만 만든다.
     // 풀이 이름은 이스케이프 전 값을 넘긴다(본문 조립이 칸마다 이스케이프한다).
     const parts = rt.buildNatalReadingParts({
-      p, natal, johu, power, jong, name: String(input.name || "").trim().slice(0, 40) || "사용자", unknown: timeUnknown, mode: neo ? "neo" : "pig", lang: input.lang || "ko",
+      p, natal, johu, power: shown?.power || power, gyeokguk: shown?.gyeokguk || null, jong, name: String(input.name || "").trim().slice(0, 40) || "사용자", unknown: timeUnknown, mode: neo ? "neo" : "pig", lang: input.lang || "ko",
       solar: { year: meta.civil.year, month: meta.civil.month, day: meta.civil.day, hour, minute },
     });
     return { parts };

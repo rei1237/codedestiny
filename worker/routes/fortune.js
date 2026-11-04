@@ -5303,7 +5303,7 @@ async function handleSajuAIConsultationStatus(request, auth, path = "", env = nu
 }
 
 // 명식 근거만 계산해 돌려준다. 프롬프트 빌더를 그대로 태워, 상담문이 인용할 확정값과 같은 원본을 쓴다.
-async function handleSajuAIConsultationBasis(request) {
+async function handleSajuAIConsultationBasis(request, env) {
   const body = await readJson(request);
   const sajuResult = body?.sajuResult;
   if (!sajuResult || typeof sajuResult !== "object") {
@@ -5314,7 +5314,13 @@ async function handleSajuAIConsultationBasis(request) {
     // buildSajuAIPrompt 는 프롬프트용 질문 분류 때문에 5자 이상을 요구하므로, 여기서 반환하는
     // analysisBasis(질문과 무관하게 factSnapshot에서만 파생)에는 영향 없는 자리표시 질문으로 채운다.
     const question = String(body?.question || "").trim() || "명식 근거 확인";
-    const built = buildSajuAIPrompt({ question, sajuResult });
+    // 상담 본문이 승인 판정을 쓰는데 대기 화면만 단일 용신을 보여 주지 않도록 미리보기도 같은 판정으로 만든다.
+    const sajuAuthority = env?.SAJU_GYEOKGUK_AUTHORITY_V2 === "true"
+      ? selectSajuPromptAuthority(sajuResult, { enabled: true, hasExistingRecord: false })
+      : null;
+    const built = sajuAuthority
+      ? buildSajuAIPromptWithDomain({ question, sajuResult, sajuAuthority })
+      : buildSajuAIPrompt({ question, sajuResult });
     if (!built?.analysisBasis) return buildSajuAIPromptError("CALCULATION_FAILED", "명식 근거를 계산하지 못했습니다.", 503);
     return json(built.analysisBasis);
   } catch (error) {
@@ -7069,7 +7075,7 @@ export async function handleFortuneRoutes(request, env, ctx = null) {
       const userId = await peekAccessTokenUserId(request, env);
       if (!userId) return buildSajuAIPromptError("AUTH_REQUIRED", "로그인이 필요합니다.", 401);
       trace.authVerified = true;
-      return await handleSajuAIConsultationBasis(request);
+      return await handleSajuAIConsultationBasis(request, env);
     }
 
     if (method === "POST" && (path === "/saju/ai-prompt" || path === "/saju/question-prompt" || path === "/saju-ai-consultation/create")) {

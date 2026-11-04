@@ -1007,7 +1007,7 @@
       "title": "THE MYSTIC TAROT",
       "subtitle": "Cards and ten gods open today’s choice together.",
       "oneCardMode": "One-card reading",
-      "threeCardMode": "Three-card flow · 5,000 KRW",
+      "threeCardMode": "Three-card reading · Free",
       "categories": {
         "daily": "Today’s fortune",
         "love": "Love fortune",
@@ -1029,7 +1029,7 @@
         "present": "The core energy now",
         "next": "The next standard for choice"
       },
-      "openFlowReading": "Open flow reading · 5,000 KRW",
+      "openFlowReading": "Open flow reading",
       "retryOtherConcern": "Spread another concern",
       "aiPromptTitle": "Myeongri tarot prompt to ask AI next",
       "afterPaymentBadge": "After payment reading",
@@ -1358,7 +1358,8 @@
         "w1000": "₩1,000",
         "from5000": "From ₩5,000",
         "w7000": "₩7,000",
-        "from30000": "From ₩30,000"
+        "from30000": "From ₩30,000",
+        "from15000": "From ₩15,000"
       },
       "chip": {
         "love": "Their feelings · My next love",
@@ -1631,7 +1632,7 @@
       "reviewsPosted": "posted on blog",
       "reviewsFine": "Reviews reflect personal experience and do not guarantee results. Saju readings are for reference only.",
       "offerNote": "The 1:1 sessions were held by Neo in person; the ₩5,000 reading is delivered by a calculation engine with AI commentary.",
-      "offerCta": "Try the ₩5,000 Saju reading →",
+      "offerCta": "Try the ₩10,000 Saju reading →",
       "expertiseTitle": "Rules for the calculation, AI for the commentary",
       "expertise": {
         "engine": "The natal chart is built with fixed calculation rules, and the AI writes its commentary from that result. If the commentary names a day or hour pillar that differs from the calculation, the server rejects it.",
@@ -3745,7 +3746,7 @@
           "season": "Like you, born in {season}, this flower blooms brightest in {season}."
         },
         "flowerLanguage": {
-          "yongshin": "'{language}' — the words this flower, steeped in your useful element {elements}, offers you.",
+          "yongshin": "'{language}' — the words this flower, steeped in your support candidate {elements}, offers you.",
           "dayMaster": "'{language}' — the words this flower offers you, a {dayMasterBadge} day master."
         },
         "shareHook": {
@@ -21944,7 +21945,7 @@
     "scoreLine": "Saju-only compatibility score: {score}/100",
     "overview": {
       "title": "🧭 Compatibility overview",
-      "note": "This result is calculated from Saju alone. Day-stem and day-branch harmonies and clashes, seasonal balance, useful and harmful elements, and the ten-gods structure are combined into a score of {score}/100."
+      "note": "This result is calculated from Saju alone. Day-stem and day-branch harmonies and clashes, seasonal balance, support candidates and caution elements, and the ten-gods structure are combined into a score of {score}/100."
     },
     "energy": {
       "title": "🌡️ Energy harmony",
@@ -21981,11 +21982,11 @@
       "DAY_BRANCH_HE": "Your day branches (the spouse position) form a six-harmony, bringing strong comfort and attraction when you are together.",
       "DAY_STEM_CHONG": "Your day stems clash (沖), so the highs are strong but so are the collisions. It is a roller-coaster pairing.",
       "DAY_BRANCH_CHONG": "Your day branches clash (沖), so your daily patterns and emotional rhythms may move differently. Adjusting to each other matters.",
-      "YONGSHIN_COMMON": "You both rely on {elements} energy as your useful element, so your core direction in life is very similar.",
-      "YONGSHIN_CLASH": "In particular, {elements} energy is a useful element for one of you but a harmful element for the other, so you may collide sensitively on that theme.",
-      "KIJI_CONTROL_FORWARD": "Harmful-element control: your partner's characters ({by}) clear your harmful elements ({chars}) through clash (沖). This is the core of a top-tier match: the other person drives out your bad energy.",
-      "KIJI_CONTROL_REVERSE": "Reverse control: your characters ({by}) clear your partner's harmful elements through clash. You also bring your partner a sense of release.",
-      "HE_TRAP": "Harmony trap: {self} and {partner} form a harmony (合), and the resulting element ({element}) strengthens your harmful element. It looks like a good fit on the surface, but harmful energy can build up inside. Tell comfort apart from dependence."
+      "YONGSHIN_COMMON": "You both rely on {elements} energy as your support candidate, so your core direction in life is very similar.",
+      "YONGSHIN_CLASH": "In particular, {elements} energy is a support candidate for one of you but a caution element for the other, so you may collide sensitively on that theme.",
+      "KIJI_CONTROL_FORWARD": "Caution-element control: your partner's characters ({by}) clear your caution elements ({chars}) through clash (沖). This is the core of a top-tier match: the other person drives out your bad energy.",
+      "KIJI_CONTROL_REVERSE": "Reverse control: your characters ({by}) clear your partner's caution elements through clash. You also bring your partner a sense of release.",
+      "HE_TRAP": "Harmony trap: {self} and {partner} form a harmony (合), and the resulting element ({element}) strengthens your caution element. It looks like a good fit on the surface, but harmful energy can build up inside. Tell comfort apart from dependence."
     },
     "element": {
       "wood": "Wood (木)",

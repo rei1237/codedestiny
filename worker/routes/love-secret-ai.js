@@ -26,6 +26,7 @@ import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { cmsPromptText } from "../lib/cms-prompts.js";
 import { appendExpertPersona, resolveExpertPersona } from "../lib/expert-character-personas.js";
 import { calculateLoveSecretAiSaju, normalizeLoveSecretAiInput } from "../lib/love-secret-ai-calculation.js";
+import { sajuAuthorityOn } from "../lib/saju-authority-consumer.js";
 import {
   LOVE_SECRET_AI_GROUPS,
   LOVE_SECRET_AI_GROUP_MIN_CHARS,
@@ -1282,7 +1283,7 @@ function publicChartSummary(chart = {}) {
       dayElementLabel: clean(chart?.reference?.dayElementLabel, 12),
       dominantElementLabel: clean(chart?.reference?.dominantElementLabel, 12),
       deficientElementLabel: clean(chart?.reference?.deficientElementLabel, 12),
-      yongshinElementLabel: clean(chart?.reference?.yongshinElementLabel, 12),
+      yongshinElementLabel: clean(chart?.reference?.yongshinElementLabel, 24),
       dayMasterLabel: clean(chart?.reference?.dayMasterLabel, 20),
     },
     strength: clean(chart?.strength, 60),
@@ -1545,7 +1546,7 @@ async function handleStart(request, env, route = "/api/love-secret-ai/generate",
   let sajuResult;
   try {
     logLoveSecretAi("Fortune Data Start", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
-    sajuResult = existing?.sajuResult ? readRepresentativeFacts(existing.sajuResult, 'love-secret') : calculateLoveSecretAiSaju(normalized);
+    sajuResult = existing?.sajuResult ? readRepresentativeFacts(existing.sajuResult, 'love-secret') : calculateLoveSecretAiSaju(normalized, { authorityEnabled: !existing && sajuAuthorityOn(env) });
     // A new seed pins the shared facts once; already pinned retries keep their original grounding text.
     if (!sajuResult.consumerFactIdentity) sajuResult.facts = buildLoveSecretGroundingFacts(sajuResult);
     if (!existing) sajuResult = pinRepresentativeFacts(sajuResult, env, 'love-secret');

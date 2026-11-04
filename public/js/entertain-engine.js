@@ -978,8 +978,8 @@
     }
     var tag = '균형 유지';
     if (lacking.indexOf(element) >= 0) tag = '보완 미션 연결';
-    else if (yong.indexOf(element) >= 0) tag = '용신 강화';
-    else if (hee.indexOf(element) >= 0) tag = '희신 보조';
+    else if (yong.indexOf(element) >= 0) tag = '보완 후보 강화';
+    else if (hee.indexOf(element) >= 0) tag = '보조 후보 강화';
     else if (dominant.indexOf(element) >= 0) tag = '과다 진정';
     return { tag: tag, detail: matching ? matching.text : (meta.short + ' 기운을 살리는 오늘의 성장 포인트') };
   }
@@ -1539,7 +1539,7 @@
       +   '</section>'
       +   '<section class="ent-rpg-card ent-rpg-card--abilities">'
       +     '<div class="ent-rpg-card__title">' + escapeRpgHtml(abilityTitle) + '</div>'
-      +     '<div class="ent-rpg-card__sub">용신 ' + escapeRpgHtml(yongDisplay) + ' · 희신 ' + escapeRpgHtml(heeDisplay) + ' · 기신 ' + escapeRpgHtml(giDisplay) + '<br>오늘의 운명은 ' + escapeRpgHtml((dayMaster.stemKo || '일간') + ' ' + (dayMaster.elementKo || '오행')) + '에서 가장 선명하게 드러납니다.</div>'
+      +     '<div class="ent-rpg-card__sub">보완 후보 ' + escapeRpgHtml(yongDisplay) + ' · 보조 후보 ' + escapeRpgHtml(heeDisplay) + ' · 주의 오행 ' + escapeRpgHtml(giDisplay) + '<br>오늘의 운명은 ' + escapeRpgHtml((dayMaster.stemKo || '일간') + ' ' + (dayMaster.elementKo || '오행')) + '에서 가장 선명하게 드러납니다.</div>'
       +     '<div class="ent-rpg-card__label">해금한 스킬</div>'
       +     '<div class="ent-rpg-chip-wrap">' + ownSkillHtml.join('') + '</div>'
       +     '<div class="ent-rpg-card__label">잠긴 스킬</div>'

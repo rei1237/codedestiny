@@ -1,5 +1,6 @@
 import { runWithAiLocale, storedAiLocale } from '../lib/ai-locale-context.js';
 import { sajuTemperamentPromptLines } from '../lib/saju-temperament.js';
+import { sajuAuthorityOn } from '../lib/saju-authority-consumer.js';
 import { createHash } from "node:crypto";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { resolveForbiddenPatterns } from "../lib/llm-leak-guard.js";
@@ -1835,6 +1836,8 @@ function packLens(block, budgetChars) {
     data[key] = value;
     used += size;
   }
+  // 예산에 밀려 빠지면 용신 후보를 단일 용신으로 읽을 수 있어 판정 사실은 항상 싣는다.
+  if (block.id === "saju" && block.data?.approvedSaju) data.approvedSaju = block.data.approvedSaju;
   return {
     confidence: block.confidence,
     provisionalFields: safeArray(block.provisionalFields),
@@ -2612,7 +2615,7 @@ async function handleStart(request, env, recoveryAuth = null) {
     savingSeed = false;
     logKarmaAi("LLM Fortune Data Start", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
     const integratedResult = (resumable && existing?.integratedResult)
-      || await buildKarmaDestinyIntegratedResult(env, normalized.input.birthInfo, { lensUsageWeights: LENS_USAGE_WEIGHTS, requestUrl: request.url });
+      || await buildKarmaDestinyIntegratedResult(env, normalized.input.birthInfo, { lensUsageWeights: LENS_USAGE_WEIGHTS, requestUrl: request.url, authorityEnabled: !existing && sajuAuthorityOn(env) });
     if (!resumable || !existing?.integratedResult) {
       integratedResult.relationshipAnalysis = buildRelationshipAnalysis(normalized.input.relationshipContext, integratedResult.lenses);
     }

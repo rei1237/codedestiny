@@ -269,7 +269,7 @@ test("꿀방울 카탈로그와 앱 티어에 포함 키 신규 판매가 없다
     expect({ key, product: getHoneyUnlockProduct(key), spend: isHoneySpendProduct(key) }).toEqual({ key, product: null, spend: false });
   }
   // 점성·자미두수·숙요·베다 상품과 회당 상품은 남는다.
-  for (const key of ["astro_basic_deep_pack", "ziwei_twelve_palaces", "sukuyo-nature-deep-dive", "vedic_basic_reading", "tarot-myeongri-three-card"]) {
+  for (const key of ["astro_basic_deep_pack", "ziwei_twelve_palaces", "sukuyo-nature-deep-dive", "vedic_basic_reading"]) {
     expect(getHoneyUnlockProduct(key)).toMatchObject({ featureKey: key });
   }
 

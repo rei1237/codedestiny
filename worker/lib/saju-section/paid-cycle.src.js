@@ -77,7 +77,7 @@ function buildCycle(input, selected) {
   add('천간에서 읽는 선택과 표현',roleText(input.stem,a,'대운의 천간')+rootText);
   var hidden=Array.isArray(input.branch.hiddenStems)?input.branch.hiddenStems.filter(function(row){return row&&row.stem&&row.god;}):[];
   var hiddenList=hidden.map(function(row){return row.stem+'('+row.god+(row.layer?' · '+row.layer:'')+')';}).join(', ');
-  var hiddenText=neo?(hidden.length?' 지장간은 지지 안에 담긴 천간이야. 이번 지지에서 제공된 장간은 이렇게 보여: '+hiddenList+'. 대표 십성과 함께 읽되, 장간이 있다는 것만으로 투간이나 통근, 용신 성립을 새로 판단하지는 않아.':' 지지의 십성은 대표 기운을 기준으로 읽고, 지장간 전체를 하나의 성향으로 단정하지 않아.'):hidden.length?' 지장간은 지지 안에 담긴 천간입니다. 이번 지지에서 제공된 장간은 '+hidden.map(function(row){return row.stem+'('+row.god+(row.layer?' · '+row.layer:'')+')';}).join(', ')+'입니다. 대표 십성과 함께 읽되 장간의 존재만으로 투간이나 통근, 용신 성립을 새로 판단하지 않습니다.':' 지지의 십성은 대표 기운을 기준으로 읽으며 지장간 전체를 하나의 성향으로 단정하지 않습니다.';
+  var hiddenText=neo?(hidden.length?' 지장간은 지지 안에 담긴 천간이야. 이번 지지에서 제공된 장간은 이렇게 보여: '+hiddenList+'. 대표 십성과 함께 읽되, 장간이 있다는 것만으로 투간이나 통근, 보완 후보 성립을 새로 판단하지는 않아.':' 지지의 십성은 대표 기운을 기준으로 읽고, 지장간 전체를 하나의 성향으로 단정하지 않아.'):hidden.length?' 지장간은 지지 안에 담긴 천간입니다. 이번 지지에서 제공된 장간은 '+hidden.map(function(row){return row.stem+'('+row.god+(row.layer?' · '+row.layer:'')+')';}).join(', ')+'입니다. 대표 십성과 함께 읽되 장간의 존재만으로 투간이나 통근, 보완 후보 성립을 새로 판단하지 않습니다.':' 지지의 십성은 대표 기운을 기준으로 읽으며 지장간 전체를 하나의 성향으로 단정하지 않습니다.';
   var branchReading=input.stem.god===input.branch.god?(neo?'대운의 지지 '+input.branch.char+'('+elName(input.branch.element)+')도 일간 '+input.day+'에게 '+input.branch.god+'로 읽혀. 천간에서 드러나는 '+b.name+'의 주제가 생활의 기반에서도 반복되는 구조야. 겉으로 고른 방향을 일상에서도 이어 갈 수 있는지 살펴봐.':'대운의 지지 '+input.branch.char+'('+elName(input.branch.element)+')도 일간 '+input.day+'에게 '+input.branch.god+'로 읽힙니다. 천간에서 드러나는 '+b.name+'의 주제가 생활의 기반에서도 반복되는 구조입니다. 겉으로 선택한 방향을 일상에서 지속할 수 있는지 살펴보세요.'):roleText(input.branch,b,'대운의 지지');
   add('지지에서 읽는 생활의 바탕',branchReading+hiddenText+'\n\n'+(neo?(input.stem.god===input.branch.god?'위아래 글자가 같은 주제를 반복해. 강점은 충분히 쓰되, 한 방식에만 몰두하지 않는 여유도 챙겨 봐.':'겉으로 펼칠 일과 일상에서 챙길 기반이 서로 다를 수 있어. 둘 중 하나를 버리기보다 함께 감당할 순서를 정해 봐.'):(input.stem.god===input.branch.god?'위아래 글자가 같은 주제를 반복합니다. 강점을 충분히 쓰되 한 방식에만 몰두하지 않는 여유도 필요합니다.':'겉으로 펼칠 일과 일상에서 챙길 기반이 서로 다를 수 있습니다. 두 주제 중 하나를 버리기보다 함께 감당할 순서를 정해보세요.')));
   var climate=input.climate==='cold'||input.climate==='cool'?'차가운 쪽':input.climate==='hot'||input.climate==='warm'?'따뜻한 쪽':'한쪽 온도에 크게 치우치지 않는 쪽';
@@ -88,7 +88,7 @@ function buildCycle(input, selected) {
   var relations=(input.relations||[]).map(function(r){
     if(neo){
       var said='대운 '+r.src+'과 원국 '+(r.positions||[]).map(positionName).join('·')+'의 '+r.partner+' 사이에서 '+r.type+' 관계가 보여. ';
-      if(r.isChung||r.type.indexOf('충')>=0)said+='충은 두 기운이 맞부딪치는 관계라서, 기존 역할과 생활 기반이 바뀔 가능성을 살펴. 희신·기신 가운데 어느 쪽이 영향을 받는지에 따라 의미가 달라지고, 충 하나로 이별·사고나 발복을 정하지 않아.';
+      if(r.isChung||r.type.indexOf('충')>=0)said+='충은 두 기운이 맞부딪치는 관계라서, 기존 역할과 생활 기반이 바뀔 가능성을 살펴. 보조 후보·주의 오행 가운데 어느 쪽이 영향을 받는지에 따라 의미가 달라지고, 충 하나로 이별·사고나 발복을 정하지 않아.';
       else if(r.type.indexOf('합')>=0)said+=r.transformed===true?'지금 적용한 기준에서는 합 관계와 합화 조건이 함께 확인돼서, '+elName(r.hapEl)+'으로 작용하는 근거를 읽어. 바뀐 기운이 명식에 필요한지, 부담을 주는지는 다시 나눠 봐야 해.':'합은 글자들이 묶여 작용하는 관계야. '+(r.hapEl?elName(r.hapEl)+'으로 모이는 방향은 합화 후보이고, ':'')+'합이 있다는 것과 다른 오행으로 합화하는 건 달라. 월령·통근·쟁합·충의 조건을 확인하기 전에는 원래 기운이 사라졌다고 보지 않아.';
       else if(r.type.indexOf('형')>=0)said+='형은 같은 문제를 거듭 조정해야 하는 긴장으로 읽을 수 있어. 해당 자리의 십성과 다른 합충을 같이 살피고, 질병이나 처벌을 확정하지 않아.';
       else if(r.type.indexOf('파')>=0||r.type.indexOf('해')>=0)said+='파·해는 관계에 균열이 있거나 조율이 필요한 지점을 보조적으로 살피는 관계야. 실제 마찰이 있는지 확인하고, 약속과 역할을 구체적으로 맞추는 데 써 봐.';
@@ -97,7 +97,7 @@ function buildCycle(input, selected) {
       return said;
     }
     var relation='대운 '+r.src+'과 원국 '+(r.positions||[]).map(positionName).join('·')+'의 '+r.partner+' 사이에 '+r.type+'이 관찰됩니다. ';
-    if(r.isChung||r.type.indexOf('충')>=0)relation+='충은 두 기운이 맞부딪치는 관계로, 기존 역할과 생활 기반의 변화 가능성을 살핍니다. 희신·기신 가운데 어느 쪽이 영향을 받는지에 따라 의미가 달라지며 충 하나로 이별·사고나 발복을 정하지 않습니다.';
+    if(r.isChung||r.type.indexOf('충')>=0)relation+='충은 두 기운이 맞부딪치는 관계로, 기존 역할과 생활 기반의 변화 가능성을 살핍니다. 보조 후보·주의 오행 가운데 어느 쪽이 영향을 받는지에 따라 의미가 달라지며 충 하나로 이별·사고나 발복을 정하지 않습니다.';
     else if(r.type.indexOf('합')>=0)relation+=r.transformed===true?'현재 적용한 기준에서는 합 관계와 합화 조건이 함께 확인되어 '+elName(r.hapEl)+'으로 작용하는 근거를 읽습니다. 변화한 기운이 명식에 필요한지와 부담을 주는지를 다시 구분해야 합니다.':'합은 글자들이 묶여 작용하는 관계입니다. '+(r.hapEl?elName(r.hapEl)+'으로 모이는 방향은 합화 후보이며, ':'')+'합이 있다는 것과 다른 오행으로 합화하는 것은 다릅니다. 월령·통근·쟁합·충의 조건을 확인하기 전에는 원래 기운이 사라졌다고 보지 않습니다.';
     else if(r.type.indexOf('형')>=0)relation+='형은 같은 문제를 거듭 조정해야 하는 긴장으로 읽을 수 있습니다. 해당 자리의 십성과 다른 합충을 함께 살피며 질병이나 처벌을 확정하지 않습니다.';
     else if(r.type.indexOf('파')>=0||r.type.indexOf('해')>=0)relation+='파·해는 관계의 균열이나 조율이 필요한 지점을 보조적으로 살피는 관계입니다. 실제 마찰이 있는지 확인하고 약속과 역할을 구체적으로 맞추는 데 활용하세요.';

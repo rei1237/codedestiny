@@ -12,7 +12,7 @@ const preparePair = declaration('handleConsult').body.statements.find(node => ts
 const birth = { birthDate:'1990-05-05',birthTime:'10:30',calendarType:'solar',timezone:'Asia/Seoul',gender:'female' };
 function prepare(user = birth, partner = { ...birth, birthDate:'1992-03-12',gender:'male' }) {
   const context = { canonicalTeaSaju, withTeaSajuLongitude, buildFortuneTeaSajuSnapshotFromParts, buildSajuResultSection,
-    serverDraft:{}, consultRequest:{consultationMode:'sajuCompatibility',consultationVersion:'tea-v2',sajuCompatibility:{user,partner,focus:'관계의 흐름',relationshipType:'연인'}} };
+    sajuAuthorityOn: () => false, env: {}, serverDraft:{}, consultRequest:{consultationMode:'sajuCompatibility',consultationVersion:'tea-v2',sajuCompatibility:{user,partner,focus:'관계의 흐름',relationshipType:'연인'}} };
   vm.createContext(context);
   vm.runInContext(preparePair.getText(ast) + '\n' + declaration('assertSajuCalculationBasis').getText(ast), context);
   return context;

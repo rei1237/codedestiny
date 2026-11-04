@@ -1007,7 +1007,7 @@
       "title": "DAS MYSTISCHE TAROT",
       "subtitle": "Karten und zehn Götter eröffnen gemeinsam die heutige Wahl.",
       "oneCardMode": "Eine Karte lesen",
-      "threeCardMode": "Drei-Karten-Flow · 5.000 KRW",
+      "threeCardMode": "Drei-Karten-Legung · Kostenlos",
       "categories": {
         "daily": "Das heutige Vermögen",
         "love": "Liebesglück",
@@ -1029,7 +1029,7 @@
         "present": "Die Kernenergie jetzt",
         "next": "Der nächste Standard zur Auswahl"
       },
-      "openFlowReading": "Open-Flow-Lesung · 5.000 KRW",
+      "openFlowReading": "Legung öffnen",
       "retryOtherConcern": "Verbreiten Sie ein weiteres Anliegen",
       "aiPromptTitle": "Myeongri-Tarot-Aufforderung, als nächstes die KI zu fragen",
       "afterPaymentBadge": "Nach Zahlungsablesung",
@@ -1358,7 +1358,8 @@
         "w1000": "₩1,000",
         "from5000": "Ab ₩5,000",
         "w7000": "₩7,000",
-        "from30000": "Ab ₩30,000"
+        "from30000": "Ab ₩30,000",
+        "from15000": "Ab ₩15,000"
       },
       "chip": {
         "love": "Die Gefühle der anderen Person · Meine nächste Beziehung",
@@ -1631,7 +1632,7 @@
       "reviewsPosted": "im Blog veröffentlicht",
       "reviewsFine": "Die Stimmen geben persönliche Erfahrungen wieder und garantieren keine Ergebnisse. Saju-Deutungen dienen nur der Orientierung.",
       "offerNote": "Die 1:1-Beratungen führte Neo persönlich; die Deutung für ₩5.000 entsteht aus einer Berechnungs-Engine mit KI-Kommentar.",
-      "offerCta": "Saju-Deutung für ₩5.000 ansehen →",
+      "offerCta": "Saju-Deutung für ₩10.000 ansehen →",
       "expertiseTitle": "Berechnung nach Regeln, Kommentar von der KI",
       "expertise": {
         "engine": "Das Geburtsdiagramm entsteht nach festen Rechenregeln, die KI schreibt den Kommentar auf Basis dieses Ergebnisses. Nennt der Kommentar eine Tages- oder Stundensäule, die vom Ergebnis abweicht, verwirft der Server ihn.",

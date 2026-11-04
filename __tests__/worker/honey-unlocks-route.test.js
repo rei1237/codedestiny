@@ -15,7 +15,7 @@ test('public catalog exposes eligible Ggulggul prices without unrelated spending
   const response = await route(new Request('https://example.test/api/honey/catalog'), {});
   const data = await response.json();
   expect(auth).not.toHaveBeenCalled();
-  expect(data.products).toHaveLength(19);
+  expect(data.products).toHaveLength(18);
   // 2026-11-04: 묶음 포함 키는 꿀방울 신규 판매 목록에 없다(판매 종료 키는 판매 표면에 없어야 한다).
   for (const key of ['saju-career-style', 'section_summary', 'section_daewun', 'rpt_specialCharmCard', 'rpt_skillTreeCard', 'rpt_villainCard']) {
     expect(data.products.some(row => row.productId === key)).toBe(false);

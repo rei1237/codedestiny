@@ -1,6 +1,6 @@
 # 모든 엔진 소비 경로 적용 목록
 
-status: partial-default-off
+status: rolled-out-see-29
 date: 2026-11-02
 
 기준 HEAD c7f46acf26fc1e7881635a9bce7d2f905d17ee1e. 초기 트리 clean. 전체 엔진·상품 연결 완료 문서가 아니다. 발견한 43개 소비 경로군을 아래에 분리하며, 미확인·미연결을 완료 집계에 넣지 않는다. 개별 상품의 신규 생성 E2E와 기존 저장 화면 회귀는 별개다.

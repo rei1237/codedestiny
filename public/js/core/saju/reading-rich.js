@@ -215,7 +215,7 @@
     var pw = facts.power || {};
     if (facts.jong && facts.jong.isJong) return '';
     var y = (pw.yongshin || []).indexOf(el), k = (pw.kijishin || []).indexOf(el);
-    return y === 0 ? '용신' : y > 0 ? '희신' : k === 0 ? '기신' : k > 0 ? '구신' : '';
+    return y >= 0 ? '보완 후보' : k >= 0 ? '주의 오행' : '';
   }
   function hiddenText(L, j) {
     var list = (L.CD_JANGGAN && L.CD_JANGGAN[j]) || [];
@@ -271,7 +271,7 @@
       }
       if(root.SajuReadingDepth){
         var depth=root.SajuReadingDepth;
-        var balanceFor=function(el){var role=roleOf(facts,el);return /용신|희신/.test(role)?'good':/기신|구신/.test(role)?'bad':'neutral';};
+        var balanceFor=function(el){var role=roleOf(facts,el);return /보완 후보|보조 후보/.test(role)?'good':/주의 오행|주의 오행/.test(role)?'bad':'neutral';};
         var action=depth.cycleActions({stem:{char:r.g,god:sg,balance:balanceFor(gd.e)},branch:{char:r.j,god:bg,balance:balanceFor(jd.e)},power:facts.power,jong:facts.jong,month:p.m.j,depth:facts.depth||depth.buildDepthFacts(facts)},neo?'neo':undefined);
         if(action.length) body+=section(year?'올해 해볼 작은 실천':'지금 대운에서 먼저 해볼 일',action.map(function(item){return '<h4>'+esc(item.title.replace(/대운/g,year?'세운':'대운'))+'</h4>'+para(item.text.replace(/대운/g,year?'세운':'대운'));}).join(''));
       }
@@ -323,7 +323,7 @@
     var items = (row.adviceItems || []).slice(0, 3).map(function (a) { return {tag:plain(a.title), text:plain(a.body), tone:a.type === 'warn' ? 'care' : a.type === 'good' ? 'good' : ''}; }).filter(function (a) { return a.text; });
     html += section(neo ? '체크 포인트' : '이건 꼭 챙겨 주세요', items.length ? chips(items) : para(neo ? '특이한 관계는 없어. 중요한 메시지는 보내기 전에 한 번 더 확인해 봐.' : '원국과 크게 부딪히는 관계는 없어요. 중요한 메시지는 보내기 전에 한 번 더 읽어 보면 좋아요.'));
     var boost = [['행운 컬러', lb.color, '色'], ['장소 · 방향', lt.action, '方'], [when + '의 한 끗', lb.item, '物'], ['무드 세팅', lb.material, '感']].filter(function (x) { return x[1]; });
-    if (boost.length) html += section('행운의 부스터', tiles(boost) + '<p class="saju-rich__note">' + esc(neo ? '용신 오행을 채우는 생활 팁이야. 효과를 약속하진 않아.' : '부족한 기운을 생활에서 가볍게 더하는 팁이에요. 분위기를 바꾸는 정도로 즐겨 주세요.') + '</p>');
+    if (boost.length) html += section('행운의 부스터', tiles(boost) + '<p class="saju-rich__note">' + esc(neo ? '보완 후보 오행을 채우는 생활 팁이야. 효과를 약속하진 않아.' : '부족한 기운을 생활에서 가볍게 더하는 팁이에요. 분위기를 바꾸는 정도로 즐겨 주세요.') + '</p>');
     html += section(neo ? '영냥이의 정리' : '연이의 한마디', para(DAY_TONE[good ? 'open' : 'care'][k]));
     return wrap(mode, html, facts);
   }
