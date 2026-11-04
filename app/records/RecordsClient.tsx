@@ -11,19 +11,19 @@ import styles from './records.module.css';
 
 export type SavedRecord = { id: string; source: string; key: string; serviceId: string; serviceName: string; title: string; question: string; createdAt: string | null; status: string; character: string; group: string; href: string; startHref: string; nativeHref: string; recoveryHref?: string };
 type Page = { ok: boolean; items: SavedRecord[]; failures: { source: string; name: string }[]; nextCursor?: string | null; retryCursor?: string };
-export default function RecordsClient({ showWebReception = true, refreshKey = 0 }: { showWebReception?: boolean; refreshKey?: number } = {}) {
+export default function RecordsClient({ showWebReception = true, refreshKey = 0, paymentSurface = 'web' }: { showWebReception?: boolean; refreshKey?: number; paymentSurface?: 'web' | 'toss' } = {}) {
   const auth = useAuthStore(), locale = useLocale(), c = recordsCopy(locale);
-  const userKey = String(auth.user?.id || auth.user?.userId || '');
+  const userKey = String(auth.user?.id || auth.user?.userId || auth.user?._id || auth.user?.uid || '').trim();
   const [search, setSearch] = useState(''), [group, setGroup] = useState('all');
   const [items, setItems] = useState<SavedRecord[]>([]), [failures, setFailures] = useState<Page['failures']>([]);
-  const [cursor, setCursor] = useState<string | null>(null), [loading, setLoading] = useState(true), [error, setError] = useState(false), [retry, setRetry] = useState(0);
+  const [cursor, setCursor] = useState<string | null>(null), [loading, setLoading] = useState(true), [error, setError] = useState<'denied' | 'unavailable' | ''>(''), [retry, setRetry] = useState(0);
   const [readyUser, setReadyUser] = useState('');
   const epoch = useRef(0), restore = useRef({ y: 0, pages: 1 }), pages = useRef(0);
   const pendingScroll = useRef(0);
   const key = `records:preferences:${userKey}`;
   useEffect(() => { if (!getAuthState().authReady) void refreshAuth({ silent: true }).catch(() => {}); }, []);
   useEffect(() => {
-    epoch.current++; setItems([]); setFailures([]); setCursor(null); setError(false);
+    epoch.current++; setItems([]); setFailures([]); setCursor(null); setError('');
     let saved: { search?: string; group?: string; y?: number; pages?: number } = {};
     try { saved = JSON.parse(sessionStorage.getItem(key) || '{}'); } catch { /* Preferences are optional. */ }
     setSearch(saved.search || ''); setGroup(['all','report','chat','chart'].includes(saved.group || '') ? saved.group! : 'all');
@@ -39,15 +39,15 @@ export default function RecordsClient({ showWebReception = true, refreshKey = 0 
   async function requestPage(next: string | null, signal?: AbortSignal): Promise<Page> {
     const query = new URLSearchParams({ q: search.trim(), group }); if (next) query.set('cursor', next);
     const response = await authFetch(`/api/records?${query}`, { cache: 'no-store', signal });
-    const data = await response.json() as Page;
-    if (!response.ok || !data.ok) throw new Error('RECORD_QUERY_FAILED');
+    const data = await response.json().catch(() => null) as (Page & { code?: string; error?: { code?: string } }) | null;
+    if (!response.ok || !data?.ok) throw Object.assign(new Error('RECORD_QUERY_FAILED'), { status: response.status, code: data?.code || data?.error?.code });
     return data;
   }
   useEffect(() => {
-    if (!auth.authReady || !auth.isAuthenticated || readyUser !== userKey) { if (auth.authReady && !auth.isAuthenticated) setLoading(false); return; }
+    if (!auth.authReady || !auth.isAuthenticated || readyUser !== userKey || (paymentSurface === 'toss' && !userKey)) { if (auth.authReady && !auth.isAuthenticated) setLoading(false); return; }
     const controller = new AbortController(), current = ++epoch.current;
     const timeout = window.setTimeout(() => {
-      setLoading(true); setError(false); setItems([]); setFailures([]); pages.current = 0;
+      setLoading(true); setError(''); setItems([]); setFailures([]); pages.current = 0;
       void (async () => {
         let next: string | null = null, collected: SavedRecord[] = [], missing: Page['failures'] = [];
         try {
@@ -59,14 +59,14 @@ export default function RecordsClient({ showWebReception = true, refreshKey = 0 
           setItems(collected); setFailures(missing); setCursor(next);
           const y = restore.current.y; restore.current = { y: 0, pages: 1 };
           pendingScroll.current = y;
-        } catch { if (!controller.signal.aborted && epoch.current === current) { setError(true); setCursor(null); } }
+        } catch (cause) { if (!controller.signal.aborted && epoch.current === current) { setError(paymentSurface === 'toss' && isAccessDenied(cause) ? 'denied' : 'unavailable'); setCursor(null); } }
         finally { if (epoch.current === current) setLoading(false); }
       })();
     }, 250);
     return () => { window.clearTimeout(timeout); controller.abort(); };
     // requestPage intentionally captures the current search and filter for this epoch.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [auth.authReady, auth.isAuthenticated, readyUser, userKey, search, group, retry, refreshKey]);
+  }, [auth.authReady, auth.isAuthenticated, readyUser, userKey, search, group, retry, refreshKey, paymentSurface]);
   useEffect(() => {
     if (loading || !items.length || !pendingScroll.current) return;
     const y = pendingScroll.current; pendingScroll.current = 0;
@@ -75,14 +75,14 @@ export default function RecordsClient({ showWebReception = true, refreshKey = 0 
   }, [loading, items]);
   async function loadMore() {
     if (loading || !cursor) return;
-    const current = epoch.current; setLoading(true); setError(false);
+    const current = epoch.current; setLoading(true); setError('');
     try { const data = await requestPage(cursor); if (current !== epoch.current) return; setItems(old => mergeRecords(old, data.items)); setFailures(data.failures || []); setCursor(data.nextCursor || null); pages.current++; }
-    catch { if (current === epoch.current) setError(true); }
+    catch (cause) { if (current === epoch.current) { const denied = paymentSurface === 'toss' && isAccessDenied(cause); if (denied) { setItems([]); setFailures([]); setCursor(null); } setError(denied ? 'denied' : 'unavailable'); } }
     finally { if (current === epoch.current) setLoading(false); }
   }
   const statusLabel = (status: string) => (c as Record<string, string>)[status] || c.saved;
   return <RecordFrame title={c.title} lead={c.lead}>
-    {auth.status === 'error' || auth.status === 'temporarilyOffline' ? <section role="alert" className="space-y-3 py-8"><h2 className="text-xl font-semibold">{c.error}</h2><p>{c.errorLead}</p><button className={recordButton} onClick={() => void refreshAuth({ silent: true }).catch(() => {})}>{c.retry}</button></section> : auth.authReady && !auth.isAuthenticated ? <section className="space-y-3 py-8"><h2 className="text-xl font-semibold">{c.loginTitle}</h2><p>{c.loginLead}</p><a className={recordButton} href="/login/?next=%2Frecords%2F">{c.login}</a></section> : <>
+    {auth.status === 'error' || auth.status === 'temporarilyOffline' ? <section role="alert" className="space-y-3 py-8"><h2 className="text-xl font-semibold">{c.error}</h2><p>{c.errorLead}</p><button className={recordButton} onClick={() => void refreshAuth({ silent: true }).catch(() => {})}>{c.retry}</button></section> : auth.authReady && !auth.isAuthenticated ? <section className="space-y-3 py-8"><h2 className="text-xl font-semibold">{c.loginTitle}</h2><p>{c.loginLead}</p><a className={recordButton} href="/login/?next=%2Frecords%2F">{c.login}</a></section> : paymentSurface === 'toss' && auth.authReady && auth.isAuthenticated && !userKey ? <section role="alert"><p>로그인 계정을 확인하지 못했어요. 다시 시도해 주세요.</p><button className={recordButton} onClick={() => void refreshAuth({ silent: true }).catch(() => {})}>{c.retry}</button></section> : !auth.authReady || readyUser !== userKey ? <p role="status">{c.loading}</p> : <>
       {showWebReception && locale === 'ko' && <p className={styles.neoRecords}><a href="/neo-consultation/#neo-records">네오 작전 결정서 접수 내역 확인하기</a> · 답변은 받으신 이메일에서 확인해 주세요.</p>}
       <div className={styles.tools}>
         <label className={styles.search}><Search size={20} aria-hidden /><span className="sr-only">{c.search}</span><input type="search" value={search} onChange={event => { restore.current = { y: 0, pages: 1 }; setSearch(event.target.value); }} placeholder={c.search} className="min-w-0 flex-1 bg-transparent py-3 text-base outline-none" /></label>
@@ -90,7 +90,7 @@ export default function RecordsClient({ showWebReception = true, refreshKey = 0 
         <p className={styles.sortLabel}>{c.latest}</p>
       </div>
       {!!failures.length && <section role="status" className="mb-5 rounded-[var(--cd-r-card)] border border-[var(--cd-border)] p-4"><p className="font-semibold">{c.partialError}</p><p className="my-2 text-sm">{failures.map(item => item.name).join(' · ')}</p><button className={recordButton} onClick={() => void loadMore()} disabled={loading}>{c.retry}</button></section>}
-      {error && <section role="alert" className="mb-5 space-y-3 rounded-[var(--cd-r-card)] border border-[var(--cd-border)] p-5"><h2 className="font-semibold">{c.error}</h2><p>{c.errorLead}</p><button className={recordButton} onClick={() => cursor ? void loadMore() : setRetry(old => old + 1)} disabled={loading}>{c.retry}</button></section>}
+      {error && <section role="alert" className="mb-5 space-y-3 rounded-[var(--cd-r-card)] border border-[var(--cd-border)] p-5"><h2 className="font-semibold">{error === 'denied' ? '구매 내역에 접근할 권한을 확인할 수 없어요.' : c.error}</h2><p>{error === 'denied' ? '구매한 계정과 주문 내역을 확인해 주세요.' : c.errorLead}</p><button className={recordButton} onClick={() => cursor ? void loadMore() : setRetry(old => old + 1)} disabled={loading}>{c.retry}</button></section>}
       <div className={styles.shelf}>{items.map(item => {
         const service = recordService(item.source);
         return <article key={item.key} className={styles.record}>
@@ -108,6 +108,7 @@ export default function RecordsClient({ showWebReception = true, refreshKey = 0 
     </>}
   </RecordFrame>;
 }
+function isAccessDenied(cause: unknown) { return !!cause && typeof cause === 'object' && (('status' in cause && cause.status === 403) || ('code' in cause && cause.code === 'ACCESS_DENIED')); }
 export function mergeRecords(previous: SavedRecord[], next: SavedRecord[]) {
   return [...new Map([...previous, ...next].map(item => [item.key, item])).values()].sort((a,b) => (Date.parse(b.createdAt || '') || 0) - (Date.parse(a.createdAt || '') || 0) || b.key.localeCompare(a.key));
 }
