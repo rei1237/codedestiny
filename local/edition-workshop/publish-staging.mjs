@@ -17,7 +17,7 @@ export async function publishStaging({target,origin,directory,stateRoot,entries=
   const dest=path.join(directory,RECORDS.slice(1));
   await fs.mkdir(dest,{recursive:true});
   const catalog=[];
-  for(const {id,character,title,cap,issueCount,pins,studio=false} of entries) {
+  for(const {id,character,title,cap,issueCount,pins,studio=false,portraitVersion} of entries) {
     if (!/^[a-z0-9-]+$/.test(id) || !Number.isInteger(issueCount) || issueCount<1 || issueCount>cap || (!studio && pins.length!==issueCount)) {
       throw Error('스테이징 에디션 설정이나 발행 기록 고정값이 누락됐습니다: '+id);
     }
@@ -25,7 +25,7 @@ export async function publishStaging({target,origin,directory,stateRoot,entries=
     const dir=await fs.mkdtemp(path.join(stateRoot,'edition-'));
     let w;
     try {
-      w=await openWorkshop(dir,{seed:sha('rehearsal-only/'+id),genesis,codeFor});
+      w=await openWorkshop(dir,{seed:sha('rehearsal-only/'+id),genesis,codeFor,legacyYeoni:portraitVersion!==2});
       await w.mutate({action:'draft',id,character,title,cap},'staging-release');
       await w.mutate({action:'seal',id},'staging-release');
       for(let serial=1;serial<=issueCount;serial++) await w.mutate({action:'mint',id,serial},'staging-release');

@@ -6,12 +6,14 @@ import { id as hash, ZeroHash } from 'ethers';
 import {characterQR} from './character-qr.mjs';
 import { openChain } from './chain.mjs';
 
-const art = {yeoni:'/assets/mascot/yeoni-reading-guide-v1.webp', cat:'/assets/yeongnyangi/original/hero-800.webp'};
+import {editionPortraits as art} from '../../lib/editions/artwork.mjs';
+const legacyYeoni = '/assets/mascot/yeoni-reading-guide-v1.webp';
 const publicDir = new URL('../../public/', import.meta.url);
 function reject(status,message) { throw Object.assign(Error(message),{status}); }
-function artwork(character) {
+function artwork(character, legacy=false) {
   if (!Object.hasOwn(art,character)) reject(400,'캐릭터를 선택해 주세요.');
-  return createHash('sha256').update(fs.readFileSync(new URL('.'+art[character],publicDir))).digest('hex');
+  const asset = legacy && character==='yeoni' ? legacyYeoni : art[character];
+  return createHash('sha256').update(fs.readFileSync(new URL('.'+asset,publicDir))).digest('hex');
 }
 function commitment(e) { return hash(JSON.stringify([e.id,e.character,e.title,e.cap,e.digest])); }
 export async function openWorkshop(dir, rehearsal) {
@@ -44,7 +46,7 @@ export async function openWorkshop(dir, rehearsal) {
     if (body.action === 'draft') {
       const title = String(body.title||'').trim();
       if (!title || title.length>80 || !Number.isSafeInteger(body.cap) || body.cap<1 || body.cap>100000) reject(400,'상품명과 발행 한도(1~100,000)를 확인해 주세요.');
-      const digest = artwork(body.character), id = body.id || randomUUID();
+      const digest = artwork(body.character,rehearsal?.legacyYeoni), id = body.id || randomUUID();
       const old = q('select stage from editions where id=?').get(id);
       if (old && old.stage !== 'draft') reject(409,'확정한 에디션은 바꿀 수 없어요.');
       q(`insert into editions values(?,?,?,?,?,'draft',?,?) on conflict(id) do update set
@@ -111,10 +113,12 @@ export async function openWorkshop(dir, rehearsal) {
     const e = edition(r.id), key = hash(e.id), token = await c.number(key,r.serial);
     const [s,owner,voidHash,events,receipt] = await Promise.all([c.series(key),c.ownerOf(token),c.invalidation(token),
       c.queryFilter(c.filters.Issued(key,r.serial),0,'latest'),provider.getTransactionReceipt(r.tx)]);
-    if (s.cap !== BigInt(e.cap) || s.work !== commitment(e) || artwork(e.character)!==e.digest || owner !== await c.issuer() ||
+    const digestMatches = artwork(e.character)===e.digest || (e.character==='yeoni' && artwork('yeoni',true)===e.digest);
+    if (s.cap !== BigInt(e.cap) || s.work !== commitment(e) || !digestMatches || owner !== await c.issuer() ||
       events.length !== 1 || events[0].args.tokenId !== token || events[0].args.codeHash !== hash(code) || events[0].transactionHash !== r.tx ||
       !receipt || receipt.status!==1 || receipt.to?.toLowerCase()!==c.target.toLowerCase()) reject(409,'발행 기록과 작품 정보가 일치하지 않아요.');
-    return {status:voidHash!==ZeroHash?'void':'verified',character:e.character,title:e.title,image:art[e.character],
+    const image = e.character==='yeoni' && artwork('yeoni')!==e.digest ? legacyYeoni : art[e.character];
+    return {status:voidHash!==ZeroHash?'void':'verified',character:e.character,title:e.title,image,
       cap:e.cap,serial:r.serial,issued:Number(s.issued),digest:e.digest,contract:c.target,chainId:31337,token:String(token),tx:r.tx,block:receipt.blockNumber};
   }
   let tail = Promise.resolve();

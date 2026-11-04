@@ -1,5 +1,7 @@
 # Codex 진입점
 
+꽃돼지 연이의 새 일러스트·QR·프로필은 [연이 공식 프로필 시트](docs/design/character-references/yeoni-profile-v1.png)를 기준으로 한다. 연분홍 몸, 머리의 분홍 연꽃, 보라색 스카프와 원본 비율을 유지한다.
+
 Code Destiny는 한국어 운세·상담 서비스다. 한국어로 보고한다.
 
 ## 시작

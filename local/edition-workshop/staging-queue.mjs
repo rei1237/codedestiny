@@ -20,7 +20,7 @@ export async function readReleaseQueue(request=fetch) {
         !['cat','yeoni'].includes(character) || !Number.isInteger(cap) || cap<1 || cap>100 ||
         !Number.isInteger(issueCount) || issueCount<1 || issueCount>cap) throw Error('발행 요청 값 오류');
     const pins=[];
-    return {id,title,character,cap,issueCount,pins,studio:true};
+    return {id,title,character,cap,issueCount,pins,studio:true,portraitVersion:product.portraitVersion};
   });
   for (const item of previous) {
     const entry=entries.find(e=>e.id===item.editionId);
