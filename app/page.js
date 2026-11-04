@@ -32,7 +32,7 @@ export const metadata = {
   metadataBase: new URL(service.siteUrl),
   title: { absolute: HOME_TITLE },
   description: HOME_DESCRIPTION,
-  keywords: [service.name, ...service.alternateNames, `${service.name} 공식`, YEONGNYANGI.serviceName, "무료 사주", "무료 타로", "영냥이", "자미두수", "베다점", "숙요점", "휴먼 디자인", "MBTI", ...publicSeoPages.home.keywords],
+  keywords: [service.name, ...service.alternateNames, `${service.name} 공식`, YEONGNYANGI.serviceName, "무료 만세력", "무료 타로", "영냥이", "자미두수", "베다점", "숙요점", "휴먼 디자인", "MBTI", ...publicSeoPages.home.keywords],
   // 대표 홈은 자기 자신만 정본으로 둔다. /ggulggul/ 로케일 클러스터(hreflang)와 섞지 않는다.
   alternates: { canonical: service.homeUrl },
   robots: {

@@ -33,11 +33,11 @@ type SeoPageKey = "home" | "ziwei" | "sukuyo" | "today";
 export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleContent>> = {
   home: {
     ko: {
-      title: "무료 사주팔자 · 타로 · 오늘의 운세 | 꿀꿀 운세",
+      title: "무료 만세력 · 타로 · 오늘의 운세 | 꿀꿀 운세",
       description: "사주, 타로, 자미두수, 숙요점, 오늘의 운세를 한곳에서 확인하고 지금 필요한 흐름을 차분히 읽어보세요.",
-      h1: "무료 사주팔자 · 타로 · 오늘의 운세",
+      h1: "무료 만세력 · 타로 · 오늘의 운세",
       intro: "꿀꿀운세는 생년월일과 질문의 맥락을 바탕으로 여러 운세 체계를 차분히 연결해 주는 한국어 운세 공간입니다.",
-      mainKeyword: "무료 사주팔자",
+      mainKeyword: "무료 만세력",
       relatedKeywords: ["오늘의 운세", "무료 타로", "자미두수", "숙요점"],
       valuePoints: ["사주와 타로를 한 화면에서 비교", "초보자도 읽기 쉬운 상담형 문장", "심화 리포트로 이어지는 구조"],
       cta: { label: "오늘의 흐름 보기", href: "/today" },

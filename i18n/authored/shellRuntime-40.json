@@ -183,18 +183,18 @@
     "ms": "The seat each of the three coordinates takes"
   },
   "shellRuntime.f2268": {
-    "ko": "무료 사주와 프리미엄 리포트는 무엇이 다른가요?",
-    "en": "What is the difference between the free saju and the premium report?",
-    "ja": "無料の四柱とプレミアムレポートは何が違いますか？",
-    "zh-CN": "免费八字与付费报告有什么不同？",
-    "zh-TW": "免費八字與付費報告有什麼不同？",
-    "vi": "What is the difference between the free saju and the premium report?",
-    "hi": "What is the difference between the free saju and the premium report?",
-    "es": "What is the difference between the free saju and the premium report?",
-    "fr": "What is the difference between the free saju and the premium report?",
-    "de": "What is the difference between the free saju and the premium report?",
-    "nl": "What is the difference between the free saju and the premium report?",
-    "ms": "What is the difference between the free saju and the premium report?"
+    "ko": "무료 만세력과 프리미엄 리포트는 무엇이 다른가요?",
+    "en": "What is the difference between the free Manseryeok chart and the premium report?",
+    "ja": "無料の万年暦とプレミアムレポートは何が違いますか？",
+    "zh-CN": "免费万年历与付费报告有什么不同？",
+    "zh-TW": "免費萬年曆與付費報告有什麼不同？",
+    "vi": "What is the difference between the free Manseryeok chart and the premium report?",
+    "hi": "What is the difference between the free Manseryeok chart and the premium report?",
+    "es": "What is the difference between the free Manseryeok chart and the premium report?",
+    "fr": "What is the difference between the free Manseryeok chart and the premium report?",
+    "de": "What is the difference between the free Manseryeok chart and the premium report?",
+    "nl": "What is the difference between the free Manseryeok chart and the premium report?",
+    "ms": "What is the difference between the free Manseryeok chart and the premium report?"
   },
   "shellRuntime.f2269": {
     "ko": "부족한 오행이 있으면 반드시 보충해야 하나요?",
@@ -337,18 +337,18 @@
     "ms": "Where the reading closes"
   },
   "shellRuntime.f2279": {
-    "ko": "무료 사주 풀이 — 사주팔자 오행·십성·대운",
-    "en": "Free saju reading — the five elements, ten gods and major cycles of your chart",
-    "ja": "無料四柱鑑定——四柱推命の五行・十星・大運",
-    "zh-CN": "免费八字解读——八字的五行、十神与大运",
-    "zh-TW": "免費八字解讀——八字的五行、十神與大運",
-    "vi": "Free saju reading — the five elements, ten gods and major cycles of your chart",
-    "hi": "Free saju reading — the five elements, ten gods and major cycles of your chart",
-    "es": "Free saju reading — the five elements, ten gods and major cycles of your chart",
-    "fr": "Free saju reading — the five elements, ten gods and major cycles of your chart",
-    "de": "Free saju reading — the five elements, ten gods and major cycles of your chart",
-    "nl": "Free saju reading — the five elements, ten gods and major cycles of your chart",
-    "ms": "Free saju reading — the five elements, ten gods and major cycles of your chart"
+    "ko": "무료 만세력 — 사주팔자 원국과 오행 분포",
+    "en": "Free Manseryeok chart — your Saju natal chart and five-element distribution",
+    "ja": "無料の万年暦——四柱推命の命式と五行の分布",
+    "zh-CN": "免费万年历——八字原局与五行分布",
+    "zh-TW": "免費萬年曆——八字原局與五行分布",
+    "vi": "Free Manseryeok chart — your Saju natal chart and five-element distribution",
+    "hi": "Free Manseryeok chart — your Saju natal chart and five-element distribution",
+    "es": "Free Manseryeok chart — your Saju natal chart and five-element distribution",
+    "fr": "Free Manseryeok chart — your Saju natal chart and five-element distribution",
+    "de": "Free Manseryeok chart — your Saju natal chart and five-element distribution",
+    "nl": "Free Manseryeok chart — your Saju natal chart and five-element distribution",
+    "ms": "Free Manseryeok chart — your Saju natal chart and five-element distribution"
   },
   "shellRuntime.f2280": {
     "ko": "출생 시간을 몰라도 사주를 볼 수 있나요?",

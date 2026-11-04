@@ -4479,7 +4479,7 @@ async function restoreSajuLoginDraft() {
     if (draft.gender === 'M' || draft.gender === 'F') setGender(draft.gender);
     window.__cdBirthTimeUnknown = draft.timeUnknown === true;
     document.querySelectorAll('input[name="calType"]').forEach(function(el) { el.checked = el.value === draft.calendar; });
-    setSajuFormStatus('입력 정보를 불러왔어요. 로그인 후 무료 사주를 이어서 볼 수 있어요.', 'info');
+    setSajuFormStatus('입력 정보를 불러왔어요. 로그인 후 무료 만세력을 이어서 볼 수 있어요.', 'info');
     // Do not redirect again when the user cancels login or uses browser Back.
     var status = typeof window.__dpVerifyResultSession === 'function' ? await window.__dpVerifyResultSession() : 'unavailable';
     if (status !== 'authenticated') return;

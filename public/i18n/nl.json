@@ -1939,7 +1939,7 @@
       "all": "Bekijk alle lezingen",
       "light": "Probeer een korte lezing",
       "free": "Gratis starten · Verdieping kost extra",
-      "benefit": "Voltooi de gratis saju-uitleg voor 500 maanstenen",
+      "benefit": "Voltooi de gratis Manseryeok-uitleg voor 500 maanstenen",
       "benefitNote": "30 dagen geldig. Bij de standaardkoers gelijk aan 5.000 KRW; verbruik verschilt per product. Geen contant geld en niet voor passen. Alleen voor korting op geschikte diensten vanaf 10.000 KRW.",
       "join": "Registreer met Kakao of e-mail",
       "signatureDescription": "Bekijk consulten en voorbeeldresultaten voor jouw vraag.",
@@ -1999,7 +1999,7 @@
       "title": "Uitgelichte consulten, ontworpen door een Myeongri-specialist met 10 jaar ervaring",
       "freeTitle": "Eerst gratis",
       "miniGames": "Mini-waarzegspellen",
-      "freeSaju": "Gratis Saju",
+      "freeSaju": "Gratis Manseryeok",
       "freeSajuNote": "Direct met je geboortedatum",
       "freeToday": "Daghoroscoop",
       "freeTodayNote": "Elke dag een nieuwe lezing",
@@ -2360,8 +2360,8 @@
       "relationship": "Compatibiliteit & relaties",
       "yearly": "Dit & volgend jaar",
       "introduction": "Saju, tarot en advies bij je vragen.",
-      "freeIntroduction": "Begin met een gratis Saju-lezing.",
-      "freeStart": "Gratis Saju starten",
+      "freeIntroduction": "Begin met een gratis Manseryeok-overzicht.",
+      "freeStart": "Gratis Manseryeok starten",
       "paidLabel": "Betaald ·",
       "result": {
         "relationship": "Relatierapport met Saju en Zi Wei Dou Shu",
@@ -3155,7 +3155,7 @@
     "neoSubline": "Geen extra sentiment. Alleen de feiten blijven over.",
     "signup": "Schrijf je in",
     "login": "Log in",
-    "guestMoonstoneTeaser": "Voltooi de gratis saju-uitleg voor 500 maanstenen · korting op geschikte diensten vanaf 10.000 KRW",
+    "guestMoonstoneTeaser": "Voltooi de gratis Manseryeok-uitleg voor 500 maanstenen · korting op geschikte diensten vanaf 10.000 KRW",
     "loadingGreeting": "Uw account op één lijn brengen",
     "loadingChip": "SESSIESYNC",
     "loadingTitle": "Uw inloggegevens worden geladen",
@@ -3195,8 +3195,8 @@
     "passCheckingGreeting": "Pas wordt gecontroleerd",
     "passCheckingNote": "We synchroniseren veilig uw Maanlichtsteen Pas en lidmaatschapsniveau.",
     "exitBenefit": {
-      "title": "Voltooi de gratis saju-uitleg voor {amount} maanstenen",
-      "copy": "Eenmalig ophalen na inloggen en gratis saju met je opgeslagen profiel. Eerdere ontvangers van het registratiecadeau ontvangen geen tweede gift. Ter waarde van 5.000 KRW. Vanaf uitgifte {days} dagen geldig voor korting op geschikte diensten vanaf 10.000 KRW.",
+      "title": "Voltooi de gratis Manseryeok-uitleg voor {amount} maanstenen",
+      "copy": "Eenmalig ophalen na inloggen en gratis Manseryeok met je opgeslagen profiel. Eerdere ontvangers van het registratiecadeau ontvangen geen tweede gift. Ter waarde van 5.000 KRW. Vanaf uitgifte {days} dagen geldig voor korting op geschikte diensten vanaf 10.000 KRW.",
       "note": "De kosten verschillen per product. Geen geld en niet bruikbaar om passen te kopen.",
       "join": "Registreren met Kakao",
       "email": "Registreren met e-mail"
@@ -21832,7 +21832,7 @@
     "more": "Read more",
     "sample": "Sample · a fictional chart",
     "sampleNote": "An example of the format, not your personal result.",
-    "paidDifference": "Prepared explanations are matched to the chart calculated from your birth details. Build on the temperament covered in the free reading with longer-term cycles and themed interpretations.",
+    "paidDifference": "Prepared explanations are matched to the chart calculated from your birth details. Build on the natal chart shown in the free Manseryeok with longer-term cycles and themed interpretations.",
     "paidDaeun": "Read how life shifts every ten years and from year to year, and see which choices to prepare for now in work, relationships and money.",
     "paidSummary": "Your temperament, elements and Ten Gods, personality and relationships, life strategy, and guidance for this year and next, gathered into one reading of your chart.",
     "recovery": "Reopen the chart with the same account and profile and check access. If payment succeeded but access is missing, do not pay again; contact support with the payment record.",
@@ -21921,7 +21921,8 @@
     "neoClosing": "Whether it is a relationship or work, do not make a major decision from the chart alone. Look at what people actually do, the terms you agreed to and the costs you can bear. I am not trying to corner you. I only want your choices to become a little clearer. Start with whatever you can genuinely do today, meow.",
     "letterVerdictJong": "a structure that follows momentum gathering in one direction",
     "letterVerdictStrong": "a structure with relatively ample strength to make your own path",
-    "letterVerdictWeak": "a structure that shines more comfortably with support nearby and time to prepare"
+    "letterVerdictWeak": "a structure that shines more comfortably with support nearby and time to prepare",
+    "paidBundle": "Saju full reading, lifetime access · One payment opens every Saju reading, including this one, permanently. You are not charged per reading."
   },
   "sajuCompat": {
     "selfFallback": "Ik",

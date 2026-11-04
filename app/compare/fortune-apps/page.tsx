@@ -273,7 +273,7 @@ export default function FortuneAppsComparePage() {
       <GuideCta target={GUIDE_CTA_TARGETS["/compare/fortune-apps"]} />
 
       <nav className="cd-chip-wrap" aria-label="관련 문서 링크">
-        <Link href="/saju/" className="cd-chip">무료 사주 풀이</Link>
+        <Link href="/saju/" className="cd-chip">무료 만세력</Link>
         <Link href="/tarot/" className="cd-chip">무료 타로 리딩</Link>
         <Link href="/astrology/" className="cd-chip">무료 점성술</Link>
         <Link href="/today/" className="cd-chip">오늘의 운세</Link>

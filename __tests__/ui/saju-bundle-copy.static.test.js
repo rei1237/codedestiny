@@ -42,7 +42,6 @@ const BUNDLE_POPUP_IDS = [
 ];
 
 const PRICE_RE = /\d[\d,]*\s*원|FUN_PRICE/;
-const stripSharedFreeReward = (text) => text.replace(/무료 사주 첫걸음/g, '');
 
 async function importPolicy() {
   const policy = await import(pathToFileURL(path.join(root, 'worker/lib/saju-bundle-policy.js')).href);
@@ -138,9 +137,7 @@ test('무료 사주 표기가 사라졌다', () => {
   for (const rel of ['lib/seo/entity-registry.mjs', 'lib/seo-landing-pages.js', 'lib/saju/saju-service-catalog.mjs', 'llms.txt', 'app/yeongnyangi/1000-won-fortune/page.tsx']) {
     assert.match(read(rel), /무료 만세력/, `${rel}: "무료 만세력"이 없다`);
   }
-  // index.html: 활성화 보상 이름인 "무료 사주 첫걸음"은 별도 상품명이라 이 작업 밖이다. 나머지는 없어야 한다.
-  const index = stripSharedFreeReward(read('index.html'));
-  assert.doesNotMatch(index, /무료 사주/, 'index.html: "무료 사주"가 남아 있다');
+  assert.doesNotMatch(read('index.html'), /무료 ?사주/, 'index.html: "무료 사주"가 남아 있다');
   // 무료로 열린 것처럼 보이는 popup 문구도 같이 정리한다.
   const html = read('index.html');
   for (const id of GATED_POPUP_IDS) {
@@ -197,4 +194,63 @@ test('색인 소개 페이지의 공개 소개와 예시는 그대로 열려 있
   assert.match(landing, /sections:/);
   // 무료 범위를 만세력·원국으로 밝히고, 나머지는 평생 소장 묶음이라고 숨기지 않고 말한다.
   assert.match(landing, /사주 전체 풀이 평생 소장/);
+});
+
+test('개별 판매 서비스 목록의 가격 노출 키가 판매 종료 키와 겹치지 않는다', async () => {
+  const { policy } = await importPolicy();
+  const catalog = await import(pathToFileURL(path.join(root, 'lib/saju/saju-service-catalog.mjs')).href);
+  const closed = new Set(policy.SAJU_BUNDLE_SALE_CLOSED_KEYS);
+  const leaked = catalog.SAJU_SERVICE_ITEMS.filter((item) => item.featureKey && closed.has(item.featureKey)).map((item) => item.featureKey);
+  assert.deepEqual(leaked, [], `/saju/#services 에 판매 종료 키의 개별 가격이 노출된다: ${leaked.join(', ')}`);
+});
+
+test('사주 궁합 소개는 무료로 열려 있다고 말하지 않는다', () => {
+  const pages = read('lib/seo-landing-pages.js');
+  const compat = pages.split('\n').filter((line) => /seoLanding\.(title|description)\.006/.test(line)).join('\n');
+  assert.ok(compat, '궁합 소개 줄을 찾지 못함');
+  assert.doesNotMatch(compat, /무료/, '궁합은 볼 때마다 결제하는 분석이다');
+});
+
+test('결과 화면 정적 결제 안내가 묶음 이름과 한 번 결제를 말한다', async () => {
+  const { policy } = await importPolicy();
+  const personas = read('js/core/saju/reading-personas.js');
+  assert.match(personas, /paidBundle/);
+  assert.ok(personas.includes(policy.SAJU_BUNDLE_LABEL), '결제 안내에 묶음 표시 이름이 없다');
+  assert.match(personas, /saju-static-offer__bundle/);
+});
+
+// 고객에게 보이는 곳에 "무료 사주"를 새로 쓰면 실패한다. 무료 범위는 만세력(원국)과 한 줄 성향뿐이다.
+// 허용 목록: 주석에만 남은 파일. 파일 안에서도 주석 줄에 있는 것만 통과시킨다. scripts/ 는 주석 줄만 허용한다.
+const FREE_SAJU_COMMENT_ONLY_FILES = new Set([
+  'app/_lib/mobile-tabs.ts', 'app/compare/fortune-apps/page.tsx', 'app/components/guide-cta-targets.js',
+  'js/core/analytics.js', 'js/core/home-service-finder.js', 'js/core/saju/destiny-anatomy/boot.js',
+  'js/core/saju/destiny-anatomy/engine.js', 'js/core/signup-benefit-policy.mjs', 'js/destiny-profile.js',
+  'styles/destiny-anatomy.css', 'styles/fortune-ui.css', 'styles/home-funnel.css',
+]);
+const FREE_SAJU_COMMENT_ONLY_PREFIXES = ['scripts/'];
+// 검색어 조사용 시드 목록이다. 고객에게 보이는 문구가 아니라 실제 검색어 "무료사주"를 그대로 적는다.
+const FREE_SAJU_ALLOWED_FILES = new Set(['scripts/seo/keyword-research.mjs']);
+
+function isCommentHit(line) {
+  const trimmed = line.trim();
+  const hit = line.search(/무료 ?사주/);
+  return /^(\/\/|\/\*|\*|#)/.test(trimmed) || /(\/\/|\/\*)/.test(line.slice(0, hit));
+}
+
+test('고객 노출 면에 "무료 사주"가 새로 생기지 않는다', () => {
+  const { execFileSync } = require('node:child_process');
+  const out = execFileSync('git', ['grep', '-n', '-E', '무료 ?사주', '--', '.',
+    ':(exclude)public', ':(exclude)docs', ':(exclude)__tests__', ':(exclude)marketing'],
+  { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+  const offenders = [];
+  for (const row of out.split(/\r?\n/).filter(Boolean)) {
+    const m = row.match(/^([^:]+):(\d+):(.*)$/);
+    if (!m) { offenders.push(row); continue; }
+    const [, file, lineNo, line] = m;
+    if (FREE_SAJU_ALLOWED_FILES.has(file)) continue;
+    const commentOnly = FREE_SAJU_COMMENT_ONLY_FILES.has(file) || FREE_SAJU_COMMENT_ONLY_PREFIXES.some((prefix) => file.startsWith(prefix));
+    if (commentOnly && isCommentHit(line)) continue;
+    offenders.push(`${file}:${lineNo}`);
+  }
+  assert.deepEqual(offenders, [], `"무료 사주"를 "무료 만세력"으로 바꿔야 한다: ${offenders.join(', ')}`);
 });

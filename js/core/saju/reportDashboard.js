@@ -418,9 +418,9 @@ window.openRelationshipBoundaryTestRoute = function() {
   }
 };
 
-var S4C_TAG_TEXT = '#사주네컷 #코드데스티니 #꿀꿀 만세력 #무료 사주 #무료 운세 #대박 운세 #신년운세 #성격테스트 #2026운세';
+var S4C_TAG_TEXT = '#사주네컷 #코드데스티니 #꿀꿀 만세력 #무료 만세력 #무료 운세 #대박 운세 #신년운세 #성격테스트 #2026운세';
 var _s4cCanvasLoader = null;
-var S4C_TAG_LIST = ['#사주네컷', '#코드데스티니', '#꿀꿀만세력', '#무료사주', '#무료운세', '#대박운세', '#신년운세', '#성격테스트', '#2026운세'];
+var S4C_TAG_LIST = ['#사주네컷', '#코드데스티니', '#꿀꿀만세력', '#무료만세력', '#무료운세', '#대박운세', '#신년운세', '#성격테스트', '#2026운세'];
 var S4C_VARIANT_STORAGE_KEY = 'cd_saju_fourcut_variant_v20260617_mz';
 
 function _s4cGetVariantDefs() {
@@ -1553,7 +1553,7 @@ function renderReportDashboard() {
     gridHtml += '</section>';
   });
   gridHtml += '</div>';
-  container.innerHTML = "<a class=\"rpt-recipe-entry\" href=\"/recipes/\" aria-label=\"무료 사주 요리법, 연이의 요리 웹툰 읽기\"><img src=\"/images/five-elements/recipe-entry-640.webp\" width=\"640\" height=\"427\" alt=\"오행 요리를 차린 꽃돼지 연이\" loading=\"lazy\" decoding=\"async\"><span class=\"rpt-recipe-entry__copy\"><span class=\"rpt-recipe-entry__badge\">무료 공개 · 요리 웹툰</span><strong>사주 요리법</strong><span>오늘은 어떤 맛이 당기나요?<br>연이와 한 컷씩 만드는 오행의 식탁</span><b>요리법 모아보기 →</b></span></a>" + gridHtml;
+  container.innerHTML = "<a class=\"rpt-recipe-entry\" href=\"/recipes/\" aria-label=\"오행 요리법, 연이의 요리 웹툰 읽기\"><img src=\"/images/five-elements/recipe-entry-640.webp\" width=\"640\" height=\"427\" alt=\"오행 요리를 차린 꽃돼지 연이\" loading=\"lazy\" decoding=\"async\"><span class=\"rpt-recipe-entry__copy\"><span class=\"rpt-recipe-entry__badge\">무료 공개 · 요리 웹툰</span><strong>사주 요리법</strong><span>오늘은 어떤 맛이 당기나요?<br>연이와 한 컷씩 만드는 오행의 식탁</span><b>요리법 모아보기 →</b></span></a>" + gridHtml;
   if (!document.getElementById("rpt-recipe-entry-style")) {
     var recipeStyles = document.createElement("link");
     recipeStyles.id = "rpt-recipe-entry-style";

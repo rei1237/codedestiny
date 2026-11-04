@@ -1939,7 +1939,7 @@
       "all": "Xem tất cả nội dung",
       "light": "Thử xem nhẹ nhàng",
       "free": "Bắt đầu miễn phí · Chuyên sâu tính phí riêng",
-      "benefit": "Hoàn thành hướng dẫn saju miễn phí để nhận 500 đá mặt trăng",
+      "benefit": "Hoàn thành hướng dẫn lịch vạn niên miễn phí để nhận 500 đá mặt trăng",
       "benefitNote": "Có hiệu lực 30 ngày. Tương đương 5.000 KRW theo tỷ lệ thông thường; mức trừ tùy sản phẩm. Không phải tiền mặt và không dùng mua thẻ. Chỉ giảm giá dịch vụ áp dụng từ 10.000 KRW.",
       "join": "Đăng ký bằng Kakao hoặc email",
       "signatureDescription": "Xem tư vấn và kết quả mẫu phù hợp với điều bạn quan tâm.",
@@ -1999,7 +1999,7 @@
       "title": "Tư vấn tiêu biểu do chuyên gia Myeongri 10 năm kinh nghiệm thiết kế",
       "freeTitle": "Bắt đầu miễn phí",
       "miniGames": "Trò chơi vận mệnh mini",
-      "freeSaju": "Saju miễn phí",
+      "freeSaju": "Lịch vạn niên miễn phí",
       "freeSajuNote": "Xem ngay theo ngày sinh",
       "freeToday": "Vận hôm nay",
       "freeTodayNote": "Luận giải mới mỗi ngày",
@@ -2360,8 +2360,8 @@
       "relationship": "Độ hợp · Các mối quan hệ",
       "yearly": "Vận trình năm nay · Năm tới",
       "introduction": "Tứ trụ, tarot và tư vấn theo mối quan tâm.",
-      "freeIntroduction": "Bắt đầu với phần luận Tứ trụ miễn phí.",
-      "freeStart": "Bắt đầu Tứ trụ miễn phí",
+      "freeIntroduction": "Bắt đầu với lịch vạn niên miễn phí.",
+      "freeStart": "Bắt đầu Lịch vạn niên miễn phí",
       "paidLabel": "Trả phí ·",
       "result": {
         "relationship": "Báo cáo mối quan hệ theo Tứ trụ và Tử vi Đẩu số",
@@ -3155,7 +3155,7 @@
     "neoSubline": "Không có thêm ý kiến gì. Chỉ có sự thật vẫn còn.",
     "signup": "Đăng ký",
     "login": "Đăng nhập",
-    "guestMoonstoneTeaser": "Hoàn thành hướng dẫn saju miễn phí để nhận 500 đá mặt trăng · giảm giá dịch vụ đủ điều kiện từ 10.000 KRW",
+    "guestMoonstoneTeaser": "Hoàn thành hướng dẫn lịch vạn niên miễn phí để nhận 500 đá mặt trăng · giảm giá dịch vụ đủ điều kiện từ 10.000 KRW",
     "loadingGreeting": "Căn chỉnh ánh sao cho tài khoản của bạn",
     "loadingChip": "ĐỒNG BỘ PHIÊN",
     "loadingTitle": "Đang tải thông tin đăng nhập của bạn",
@@ -3195,8 +3195,8 @@
     "passCheckingGreeting": "Đang kiểm tra Thẻ Pass",
     "passCheckingNote": "Đang điều chỉnh Thẻ Pass Ánh Trăng và cấp độ thành viên một cách an toàn.",
     "exitBenefit": {
-      "title": "Hoàn thành hướng dẫn saju miễn phí để nhận {amount} đá mặt trăng",
-      "copy": "Nhận một lần sau khi đăng nhập và xem saju miễn phí với hồ sơ đã lưu. Không cấp lại nếu đã nhận quà đăng ký. Trị giá 5.000 KRW. Dùng trong {days} ngày cho dịch vụ áp dụng từ 10.000 KRW.",
+      "title": "Hoàn thành hướng dẫn lịch vạn niên miễn phí để nhận {amount} đá mặt trăng",
+      "copy": "Nhận một lần sau khi đăng nhập và xem lịch vạn niên miễn phí với hồ sơ đã lưu. Không cấp lại nếu đã nhận quà đăng ký. Trị giá 5.000 KRW. Dùng trong {days} ngày cho dịch vụ áp dụng từ 10.000 KRW.",
       "note": "Số đá cần dùng tùy sản phẩm. Không phải tiền mặt và không dùng để mua gói.",
       "join": "Đăng ký với Kakao",
       "email": "Đăng ký bằng email"
@@ -21832,7 +21832,7 @@
     "more": "Read more",
     "sample": "Sample · a fictional chart",
     "sampleNote": "An example of the format, not your personal result.",
-    "paidDifference": "Prepared explanations are matched to the chart calculated from your birth details. Build on the temperament covered in the free reading with longer-term cycles and themed interpretations.",
+    "paidDifference": "Prepared explanations are matched to the chart calculated from your birth details. Build on the natal chart shown in the free Manseryeok with longer-term cycles and themed interpretations.",
     "paidDaeun": "Read how life shifts every ten years and from year to year, and see which choices to prepare for now in work, relationships and money.",
     "paidSummary": "Your temperament, elements and Ten Gods, personality and relationships, life strategy, and guidance for this year and next, gathered into one reading of your chart.",
     "recovery": "Reopen the chart with the same account and profile and check access. If payment succeeded but access is missing, do not pay again; contact support with the payment record.",
@@ -21921,7 +21921,8 @@
     "neoClosing": "Whether it is a relationship or work, do not make a major decision from the chart alone. Look at what people actually do, the terms you agreed to and the costs you can bear. I am not trying to corner you. I only want your choices to become a little clearer. Start with whatever you can genuinely do today, meow.",
     "letterVerdictJong": "a structure that follows momentum gathering in one direction",
     "letterVerdictStrong": "a structure with relatively ample strength to make your own path",
-    "letterVerdictWeak": "a structure that shines more comfortably with support nearby and time to prepare"
+    "letterVerdictWeak": "a structure that shines more comfortably with support nearby and time to prepare",
+    "paidBundle": "Saju full reading, lifetime access · One payment opens every Saju reading, including this one, permanently. You are not charged per reading."
   },
   "sajuCompat": {
     "selfFallback": "Tôi",

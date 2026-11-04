@@ -38,7 +38,7 @@ export const SEO_LINK_GROUPS = [
     title: siteFooterHubText("siteFooter.001"),
     links: [
       { href: "/", text: "꿀꿀 운세 브랜드 안내" },
-      { href: "/saju/", text: "무료 사주풀이 보기" },
+      { href: "/saju/", text: "무료 만세력 보기" },
       { href: "/manse/", text: "꿀꿀 만세력 확인하기" },
       { href: "/today/", text: "오늘의 운세 확인하기" },
       // 🔴 /fortune/{today,tomorrow,weekly,monthly} 101개는 사이트맵에만 있고 **유입 내부 링크가

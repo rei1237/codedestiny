@@ -42,7 +42,7 @@ const DEFAULT_FAQS = [
 const DEFAULT_RELATED_LABELS = {
   "/": "꿀꿀 운세 홈",
   "/manse": "무료 만세력 사주 분석",
-  "/saju": "무료 사주팔자 분석",
+  "/saju": "무료 만세력 보기",
   "/saju/monthly/2026-09": "2026년 9월 일간별 운세",
   "/saju/compatibility": "사주 궁합 해석",
   "/compatibility": "궁합 보기",

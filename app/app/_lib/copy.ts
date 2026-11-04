@@ -169,7 +169,7 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     todayRecommendLabel: "오늘의 추천",
     heroHeadline: "운명을 여는 첫 장면을 골라보세요.",
     heroBody: "사주와 타로, 별자리와 캐릭터 상담이 한 화면에서 조용히 이어집니다.",
-    freeSajuButton: "무료 사주",
+    freeSajuButton: "무료 만세력",
     tarotCardButton: "타로 카드",
     spotlightAriaLabel: "대표 상담",
     spotlightSectionTitle: "대표 모드",

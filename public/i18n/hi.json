@@ -1939,7 +1939,7 @@
       "all": "सभी पाठ देखें",
       "light": "हल्का पाठ आज़माएँ",
       "free": "शुरुआत मुफ़्त · विस्तृत पाठ का अलग शुल्क",
-      "benefit": "मुफ्त साजू ट्यूटोरियल पूरा करने पर 500 मूनस्टोन",
+      "benefit": "मुफ्त मान्सेर्योक ट्यूटोरियल पूरा करने पर 500 मूनस्टोन",
       "benefitNote": "30 दिन मान्य। सामान्य दर पर 5,000 KRW के बराबर; कटौती उत्पाद पर निर्भर है। नकद या पास खरीदने के लिए नहीं। केवल 10,000 KRW या अधिक की पात्र सेवाओं पर छूट के लिए।",
       "join": "Kakao या ईमेल से पंजीकरण करें",
       "signatureDescription": "अपनी चिंता के अनुसार परामर्श और नमूना परिणाम देखें।",
@@ -1999,7 +1999,7 @@
       "title": "10 वर्षों के अनुभव वाले Myeongri विशेषज्ञ द्वारा तैयार प्रमुख परामर्श",
       "freeTitle": "पहले मुफ़्त में",
       "miniGames": "मिनी भाग्य खेल",
-      "freeSaju": "मुफ़्त साजू",
+      "freeSaju": "मुफ़्त मान्सेर्योक",
       "freeSajuNote": "जन्मतिथि से तुरंत देखें",
       "freeToday": "आज का राशिफल",
       "freeTodayNote": "हर दिन नया फलादेश",
@@ -2360,8 +2360,8 @@
       "relationship": "अनुकूलता · रिश्ते",
       "yearly": "इस वर्ष · अगले वर्ष",
       "introduction": "साजू, टैरो और आपकी चिंताओं के अनुसार परामर्श।",
-      "freeIntroduction": "मुफ़्त साजू व्याख्या से शुरुआत करें।",
-      "freeStart": "मुफ़्त साजू शुरू करें",
+      "freeIntroduction": "मुफ़्त मान्सेर्योक चार्ट से शुरुआत करें।",
+      "freeStart": "मुफ़्त मान्सेर्योक शुरू करें",
       "paidLabel": "सशुल्क ·",
       "result": {
         "relationship": "साजू और ज़ी वेई डौ शू संबंध रिपोर्ट",
@@ -3155,7 +3155,7 @@
     "neoSubline": "कोई अतिरिक्त भावना नहीं। केवल तथ्य बचे हैं।",
     "signup": "साइन अप करें",
     "login": "लॉग इन करें",
-    "guestMoonstoneTeaser": "मुफ्त साजू ट्यूटोरियल पूरा करने पर 500 मूनस्टोन · 10,000 KRW से अधिक की पात्र सेवाओं पर छूट",
+    "guestMoonstoneTeaser": "मुफ्त मान्सेर्योक ट्यूटोरियल पूरा करने पर 500 मूनस्टोन · 10,000 KRW से अधिक की पात्र सेवाओं पर छूट",
     "loadingGreeting": "आपके खाते की स्टारलाइट को संरेखित करना",
     "loadingChip": "सत्र सिंक",
     "loadingTitle": "आपकी लॉगिन जानकारी लोड हो रही है",
@@ -3195,8 +3195,8 @@
     "passCheckingGreeting": "पास की जाँच की जा रही है",
     "passCheckingNote": "हम आपके मूनलाइट पास और सदस्यता स्तर को सुरक्षित रूप से सिंक कर रहे हैं।",
     "exitBenefit": {
-      "title": "मुफ्त साजू ट्यूटोरियल पूरा करने पर {amount} मूनस्टोन",
-      "copy": "लॉग इन करके सहेजी गई अपनी प्रोफ़ाइल से मुफ्त साजू देखने के बाद एक बार लें। पहले पंजीकरण उपहार पाने वालों को दोबारा नहीं मिलेगा। 5,000 KRW मूल्य। जारी होने से {days} दिनों तक 10,000 KRW या अधिक की पात्र सेवाओं पर छूट के लिए।",
+      "title": "मुफ्त मान्सेर्योक ट्यूटोरियल पूरा करने पर {amount} मूनस्टोन",
+      "copy": "लॉग इन करके सहेजी गई अपनी प्रोफ़ाइल से मुफ्त मान्सेर्योक देखने के बाद एक बार लें। पहले पंजीकरण उपहार पाने वालों को दोबारा नहीं मिलेगा। 5,000 KRW मूल्य। जारी होने से {days} दिनों तक 10,000 KRW या अधिक की पात्र सेवाओं पर छूट के लिए।",
       "note": "प्रत्येक उत्पाद की मूनस्टोन लागत अलग है। नकद नहीं है और पास खरीदने के लिए नहीं है।",
       "join": "Kakao से पंजीकरण",
       "email": "ईमेल से पंजीकरण"
@@ -21832,7 +21832,7 @@
     "more": "Read more",
     "sample": "Sample · a fictional chart",
     "sampleNote": "An example of the format, not your personal result.",
-    "paidDifference": "Prepared explanations are matched to the chart calculated from your birth details. Build on the temperament covered in the free reading with longer-term cycles and themed interpretations.",
+    "paidDifference": "Prepared explanations are matched to the chart calculated from your birth details. Build on the natal chart shown in the free Manseryeok with longer-term cycles and themed interpretations.",
     "paidDaeun": "Read how life shifts every ten years and from year to year, and see which choices to prepare for now in work, relationships and money.",
     "paidSummary": "Your temperament, elements and Ten Gods, personality and relationships, life strategy, and guidance for this year and next, gathered into one reading of your chart.",
     "recovery": "Reopen the chart with the same account and profile and check access. If payment succeeded but access is missing, do not pay again; contact support with the payment record.",
@@ -21921,7 +21921,8 @@
     "neoClosing": "Whether it is a relationship or work, do not make a major decision from the chart alone. Look at what people actually do, the terms you agreed to and the costs you can bear. I am not trying to corner you. I only want your choices to become a little clearer. Start with whatever you can genuinely do today, meow.",
     "letterVerdictJong": "a structure that follows momentum gathering in one direction",
     "letterVerdictStrong": "a structure with relatively ample strength to make your own path",
-    "letterVerdictWeak": "a structure that shines more comfortably with support nearby and time to prepare"
+    "letterVerdictWeak": "a structure that shines more comfortably with support nearby and time to prepare",
+    "paidBundle": "Saju full reading, lifetime access · One payment opens every Saju reading, including this one, permanently. You are not charged per reading."
   },
   "sajuCompat": {
     "selfFallback": "मैं",

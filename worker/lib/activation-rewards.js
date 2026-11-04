@@ -54,7 +54,7 @@ export async function readActivationRewards(userId) {
 }
 
 async function ownedProfile(userId, profileId) {
-  if (!profileId || String(profileId).length > 80) throw error(400, 'PROFILE_REQUIRED', '내 프로필을 저장한 뒤 무료 사주를 다시 확인해 주세요.');
+  if (!profileId || String(profileId).length > 80) throw error(400, 'PROFILE_REQUIRED', '내 프로필을 저장한 뒤 무료 만세력을 다시 확인해 주세요.');
   const card = await ProfileCard.findOne({ userId: String(userId), profileId: String(profileId) }).select('profileId birth').lean();
   if (!computeBirthKey(card)) throw error(403, 'INVALID_PROFILE', '저장된 내 프로필을 선택해 주세요.');
   return card;
@@ -101,7 +101,7 @@ export async function settleActivationReward(userId, kind, { profileId = '' } = 
     const user = await User.findById(userId).select('profileSubscription').lean();
     if (!user) throw error(401, 'UNAUTHORIZED', '로그인이 필요해요.');
     if (await legacySignupRewardReceived(user)) return { alreadyReceived: true, ...(await readActivationRewards(userId)) };
-    if (!receipt || receipt.profileId !== String(profileId)) throw error(409, 'TUTORIAL_REQUIRED', '내 프로필로 무료 사주를 확인한 뒤 선물을 받아 주세요.');
+    if (!receipt || receipt.profileId !== String(profileId)) throw error(409, 'TUTORIAL_REQUIRED', '내 프로필로 무료 만세력을 확인한 뒤 선물을 받아 주세요.');
     await ownedProfile(userId, profileId);
   } else if (kind === 'first_paid') {
     const order = await findFirstDeliveredCashPurchase(userId);
@@ -120,7 +120,7 @@ export async function settleActivationReward(userId, kind, { profileId = '' } = 
   if (!lot) throw error(503, 'REWARD_PENDING', '선물 기록을 확인 중이에요. 잠시 후 다시 확인해 주세요.');
   await MonthlyCreditLedger.updateOne({ userId: owner, type: 'MONTHLY_CREDIT_GRANT', sourceId: _id }, { $setOnInsert: {
     userId: owner, type: 'MONTHLY_CREDIT_GRANT', sourceId: _id, amount, beforeBalance: result.beforeBalance,
-    afterBalance: result.afterBalance, reason: kind === 'tutorial' ? '무료 사주 튜토리얼 완료 선물' : '첫 유료 상담 이용 선물',
+    afterBalance: result.afterBalance, reason: kind === 'tutorial' ? '무료 만세력 튜토리얼 완료 선물' : '첫 유료 상담 이용 선물',
     serviceKey: kind === 'tutorial' ? 'tutorial_bonus' : 'first_paid_bonus', metadata: { policyVersion: ACTIVATION_REWARD_VERSION, proofId: receipt.proofId || receipt.profileId },
   } }, { upsert: true });
   await ActivationReward.updateOne({ _id }, { $set: { status: 'granted', amount, grantedAt: lot.grantedAt, expiresAt: lot.expiresAt } });

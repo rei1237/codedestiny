@@ -637,7 +637,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "seo": {
         "title": "사주 가디언 아트 소개 | 꿀꿀 운세",
-        "description": "생년월일의 일주와 오행 기운으로 60갑자 가디언 카드를 확인하는 무료 사주 가디언 아트입니다.",
+        "description": "생년월일의 일주와 오행 기운으로 60갑자 가디언 카드를 확인하는 사주 가디언 아트입니다.",
         "keywords": ["사주 가디언", "일주 가디언", "60갑자", "사주 가디언 아트"]
       },
       "premiumOptions": []

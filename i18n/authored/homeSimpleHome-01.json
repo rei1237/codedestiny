@@ -112,18 +112,18 @@
     "ms": "Imej utama permainan tilikan mini"
   },
   "home.simpleHome.freeSaju": {
-    "ko": "무료 사주",
-    "en": "Free Saju",
-    "ja": "無料四柱推命",
-    "zh-CN": "免费八字",
-    "zh-TW": "免費八字",
-    "vi": "Saju miễn phí",
-    "hi": "मुफ़्त साजू",
-    "es": "Saju gratis",
-    "fr": "Saju gratuit",
-    "de": "Kostenloses Saju",
-    "nl": "Gratis Saju",
-    "ms": "Saju percuma"
+    "ko": "무료 만세력",
+    "en": "Free Manseryeok",
+    "ja": "無料の万年暦",
+    "zh-CN": "免费万年历",
+    "zh-TW": "免費萬年曆",
+    "vi": "Lịch vạn niên miễn phí",
+    "hi": "मुफ़्त मान्सेर्योक",
+    "es": "Manseryeok gratis",
+    "fr": "Manseryeok gratuit",
+    "de": "Kostenloses Manseryeok",
+    "nl": "Gratis Manseryeok",
+    "ms": "Manseryeok percuma"
   },
   "home.simpleHome.freeSajuNote": {
     "ko": "생년월일로 바로 보기",
