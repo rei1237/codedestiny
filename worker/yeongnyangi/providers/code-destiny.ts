@@ -8,6 +8,7 @@ import { messages } from '../fortune/shared/prompt';
 import { getEnv } from '../../lib/env.js';
 import { CHAPTER_TIMEOUT_MS } from '../chapter-delivery-contract.js';
 import { chapterResponseCache } from './response-cache';
+import { resumableContextCache } from '../../lib/resumable-context-cache.js';
 
 // Gemini's responseSchema uses the OpenAPI subset, not JSON Schema.
 function providerSchema(value: any): any {
@@ -63,14 +64,18 @@ export class CodeDestinyProvider implements LLMProvider {
     // The system instructions already travel in systemPrompt. Send the user
     // payload once, without embedding and escaping the whole message array.
     let payload=messages(request)[1].content;
+    let sharedPrefix='';
     if(request.deliveryContract || request.outputBudgetVersion===CONCISE_READING_VERSION){
       // The actual responseSchema carries the same output contract below. Keep
       // each fact/rule once and avoid escaping the entire domain JSON as text.
-      const {OUTPUT_SCHEMA:_schema,...data}=JSON.parse(payload);
+      const {OUTPUT_SCHEMA:_schema,CALCULATED_DATA,...data}=JSON.parse(payload);
       data.DOMAIN_CONTEXT=JSON.parse(request.domainRules);
-      payload=JSON.stringify(data);
+      // Facts lead because chapters of an order share them; the rules differ per chapter.
+      payload=JSON.stringify({CALCULATED_DATA,...data});
+      sharedPrefix=`{"CALCULATED_DATA":${JSON.stringify(CALCULATED_DATA)},`;
     }
-    const send=(model:string|undefined,reasoningTask:'tuna-synthesis'|undefined,timeoutMs:number)=>callGeminiText(this.env, payload, {
+    const send=(model:string|undefined,reasoningTask:'tuna-synthesis'|undefined,timeoutMs:number,geminiCachedContent?:unknown)=>callGeminiText(this.env, payload, {
+      geminiCachedContent,
       locale:request.locale || 'ko',
       // The persona sets the speech level; keep the shared Korean directive from forcing 존댓말 over it.
       outputRegister:'persona',
@@ -86,7 +91,13 @@ export class CodeDestinyProvider implements LLMProvider {
       cache:chapterResponseCache(this.env,this.cacheContext.owner,this.logContext.requestId,String(this.logContext.sectionGroup),this.cacheContext.skipRead),
       logContext:this.logContext,
     });
-    let response=await send(this.model,this.reasoningTask,this.timeoutMs);
+    // Orders without an owner (benchmarks) stay outside the cache, as they do for the response cache.
+    const {cache:contextCache,spentMs}=await resumableContextCache(this.env,{
+      scope:this.cacheContext.owner&&this.logContext.requestId?[this.cacheContext.owner,this.logContext.requestId]:undefined,
+      attempt:this.logContext.attempt,prompt:payload,prefix:sharedPrefix,systemPrompt:request.system,
+      locale:request.locale || 'ko',outputRegister:'persona',model:this.model,reasoningTask:this.reasoningTask,
+    });
+    let response=await send(this.model,this.reasoningTask,this.timeoutMs-spentMs,contextCache);
     // Pro refused before writing (retired 404, 429, 5xx): the same attempt sends the prompt to Flash.
     // A Pro timeout has spent the time; its receipt moves the next attempt (tunaProUnavailable).
     const cause=proFallbackCause(selectGeminiModel(this.model,this.reasoningTask),response);

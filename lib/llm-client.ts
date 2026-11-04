@@ -752,7 +752,7 @@ export async function createGeminiContextCache(
   input: GeminiContextCacheInput,
   env?: CloudflareEnv,
 ): Promise<GeminiContextCache | null> {
-  if (!isGeminiContextCacheEnabled(env)) return null;
+  if (!isGeminiContextCacheEnabled(env) || isStagingLlmMockEnabled(env)) return null;
 
   const prefix = String(input?.prefix || "");
   if (prefix.length < GEMINI_CONTEXT_CACHE_MIN_PREFIX_CHARS) return null;

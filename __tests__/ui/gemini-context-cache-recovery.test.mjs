@@ -83,6 +83,16 @@ test('a persona-register cache is referenced by a persona-register call', async 
   assert.equal(generation.systemInstruction, undefined);
 });
 
+// Staging answers from a mock, so a cache there would spend real provider money for nothing.
+test('the staging mock never creates a provider cache', async () => {
+  const { bodies, handler } = generationRecorder(() => Response.json(success));
+  const cache = await withFetch(handler, () => createGeminiContextCache({ prefix: PREFIX }, {
+    ...env, APP_ENV: 'staging', STAGING_LLM_MOCK_ENABLED: 'true', WORKERS_AI_ENABLED: 'false',
+  }));
+  assert.equal(cache, null);
+  assert.equal(bodies.length, 0);
+});
+
 // A queue message rebuilds the handle from the stored name plus the prompt it is about to send.
 test('a restored handle matches the call exactly as a created one does', async () => {
   const { bodies, handler } = generationRecorder(() => Response.json(success));
