@@ -17,7 +17,7 @@ function MoodImage({mood,locale}:{mood?:string;locale:ReadingLocale}){
   return <figure className={styles.spiritMood}><img src={moodAssets[mood as Mood]} width={360} height={300} loading="lazy" alt={copy.moodAlt}/></figure>;
 }
 
-export default function SpiritResult({row,onRow}:{row:FortuneRecord;onRow:(next:FortuneRecord)=>void}){
+export default function SpiritResult({row,onRow,paymentSurface}:{row:FortuneRecord;onRow:(next:FortuneRecord)=>void;paymentSurface?:"toss"}){
   const locale=row.locale||'ko';
   const [message,setMessage]=useState('');
   const [followup,setFollowup]=useState('');
@@ -58,7 +58,7 @@ export default function SpiritResult({row,onRow}:{row:FortuneRecord;onRow:(next:
       </article>)}
       {isTwoStage&&row.state==='AWAITING_FOLLOWUP'&&row.followup?.status==='available'&&<section className={styles.followupPanel}><h2>{copy.followupTitle}</h2><p>{copy.followupDescription}</p><div className={styles.followupChips}>{row.followup.suggestions.map(suggestion=><button type="button" key={suggestion} onClick={()=>setFollowup(suggestion)}>{suggestion}</button>)}</div><form onSubmit={submitFollowup}><label htmlFor="sky-followup">{copy.followupTitle}</label><textarea id="sky-followup" required minLength={5} maxLength={600} rows={3} value={followup} onChange={event=>setFollowup(event.target.value)} placeholder={copy.followupPlaceholder}/><button type="submit" disabled={busy}>{busy?copy.followupBusy:copy.followupSubmit}</button></form>{message&&<p role="alert">{message}</p>}</section>}
       {isTwoStage&&row.followup?.used&&row.state==='COMPLETED'&&<p role="status">{copy.followupUsed}</p>}
-      {row.state==='COMPLETED'&&<section className={styles.chapter}><h2>{copy.finalTitle}</h2><p>{row.chapters.at(-1)?.persona}</p><button onClick={()=>void share()}>{copy.share}</button>{message&&<p role="status">{message}</p>}</section>}
+      {row.state==='COMPLETED'&&<section className={styles.chapter}><h2>{copy.finalTitle}</h2><p>{row.chapters.at(-1)?.persona}</p>{paymentSurface !== "toss" && <button onClick={()=>void share()}>{copy.share}</button>}{message&&<p role="status">{message}</p>}</section>}
     </>}
     <p>{questionSkyCopyFor(locale).input.notice}</p><nav className={styles.spiritLinks} aria-label={copy.noticeNavigation}><a href={`/yeongnyangi/library/?lang=${locale}`}>{copy.library}</a><a href={`/yeongnyangi/fortune/?mode=spirit&lang=${locale}`}>{copy.newReading}</a></nav>
   </div>;
