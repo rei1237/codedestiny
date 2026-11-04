@@ -10,6 +10,7 @@ import { isPaidResultRevoked } from "./paid-result-revocation.js";
 import { countPaidReportBodyChars, dropRepeatedReportSentences, hasRepeatedReportPassage } from "./paid-report-quality.js";
 import { selectNarrativeCandidate, narrativeRepairTask, narrativePriorDigest, normalizeNarrativeBody, narrativeTextFromJson, NARRATIVE_RESPONSE_SCHEMA } from "./paid-narrative-candidate.js";
 import { runWithPaidGenerationContext, getPaidGenerationRaw } from "./paid-generation-context.js";
+import { contextCacheOptions } from "./resumable-context-cache.js";
 
 const hash = value => createHash("sha256").update(JSON.stringify(value)).digest("hex");
 const failure = resultId => Object.assign(new Error("Result storage unavailable"), { code: "RESULT_STORAGE_UNAVAILABLE", resultId });
@@ -76,6 +77,16 @@ function respond(doc, render, busy = false, measure) {
     resultId: doc.executionKey, resumeBody: { resumeResultId: doc.executionKey },
     completedParts: Object.keys(state.parts), totalParts: state.tasks.length, busy, retryAfterMs: busy ? 5000 : 1000,
   }, { status: 202 });
+}
+
+// Every part repeats state.prompt, so later parts of an order read it from the context cache.
+export async function generateDefaultNarrativePart(env, state, prompt, timeoutMs) {
+  return callGeminiJsonWithRetry(env, prompt, {
+    systemPrompt: state.systemPrompt, taskType: "fortune", temperature: 0.55, attempts: 1,
+    responseSchema: NARRATIVE_RESPONSE_SCHEMA, baseTokens: 9500, capTokens: 9500, fallbackToWorkersAI: false,
+    ...await contextCacheOptions(env, { prompt, prefix: state.prompt, systemPrompt: state.systemPrompt,
+      timeoutMs: Math.min(45000, Math.max(15000, Number(timeoutMs) || 45000)) }),
+  });
 }
 
 // Uses the existing execution collection; no provider call survives beyond its own
@@ -164,11 +175,7 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
           value = await runWithAiLocale(state.locale, () => produce(task, state));
           ai = value ? { ok: true } : null;
         } else {
-          ai = await runWithAiLocale(state.locale, () => callGeminiJsonWithRetry(env, prompt, {
-            systemPrompt: state.systemPrompt, taskType: "fortune", temperature: 0.55, attempts: 1,
-            responseSchema: NARRATIVE_RESPONSE_SCHEMA,
-            timeoutMs: Math.min(45000, Math.max(15000, Number(timeoutMs) || 45000)), baseTokens: 9500, capTokens: 9500, fallbackToWorkersAI: false,
-          }));
+          ai = await runWithAiLocale(state.locale, () => generateDefaultNarrativePart(env, state, prompt, timeoutMs));
           try { value = JSON.parse(ai?.text || ""); } catch { value = salvageTruncatedJsonObject(ai?.text || ""); }
           if (value && !value.evidenceHash) value.evidenceHash = state.evidenceHash;
         }

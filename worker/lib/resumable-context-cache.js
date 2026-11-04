@@ -3,6 +3,7 @@ import { getAmbientAiLocale } from "./ai-locale-context.js";
 import { getEnv } from "./env.js";
 import { createGeminiContextCache, restoreGeminiContextCache } from "./gemini.js";
 import { createLlmCacheStore } from "./llm-cache-store.js";
+import { getPaidGenerationContext } from "./paid-generation-context.js";
 
 const MIN_PREFIX_CHARS = 4000;
 const CACHE_TTL_SECONDS = 600;
@@ -75,4 +76,17 @@ export async function resumableContextCache(env, input) {
   } finally {
     clearTimeout(timer);
   }
+}
+
+/**
+ * The options a paid route spreads into its provider call. Scope and attempt come from the paid
+ * generation context unless the route has its own; a call that knows neither stays plain.
+ */
+export async function contextCacheOptions(env, { timeoutMs, ...input }) {
+  const context = getPaidGenerationContext();
+  const scope = input.scope ?? (context?.requestId ? [context.requestId] : undefined);
+  const attempt = input.attempt ?? context?.attempt;
+  if (!Number.isInteger(attempt)) return { timeoutMs };
+  const { cache, spentMs } = await resumableContextCache(env, { ...input, scope, attempt });
+  return { ...(cache ? { geminiCachedContent: cache } : {}), timeoutMs: timeoutMs - spentMs };
 }

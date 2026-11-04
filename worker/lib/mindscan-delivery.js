@@ -1,3 +1,4 @@
+import { contextCacheOptions } from './resumable-context-cache.js';
 import { pinTarotNarrativeSeed, assertTarotNarrativeSnapshot } from './tarot-fact-consumer.js';
 import { narrativePriorDigest, normalizeNarrativeBody, parseNarrativeResponse, NARRATIVE_RESPONSE_SCHEMA } from './paid-narrative-candidate.js';
 import { buildMindscanDeliveryFacts } from '../../lib/tarot/mindscan-reading.mjs';
@@ -90,9 +91,11 @@ export function mindscanNarrativeAdapter(env) {
   return { featureKey: 'tarot-mindscan', reportType: 'mindscan', render,
     produce: async (task, state) => {
       assertTarotNarrativeSnapshot(state);
-      const ai = await callGeminiText(env, `${state.prompt}\n[이번 부분 ${task.id}] ${task.prompt}${narrativePriorDigest(state, task)}\nJSON {"body":"본문"}만 출력한다. 제목·기호·공백 제외 최소 ${task.minChars}자, 목표 ${Math.ceil(task.minChars * 1.3)}~${Math.ceil(task.minChars * 1.5)}자. 짧은 문단으로 나누고 같은 문장을 반복하지 않는다.`, {
-        timeoutMs: 45000, maxOutputTokens: 9500, thinkingBudget: 0, temperature: 0.55,
+      const prompt = `${state.prompt}\n[이번 부분 ${task.id}] ${task.prompt}${narrativePriorDigest(state, task)}\nJSON {"body":"본문"}만 출력한다. 제목·기호·공백 제외 최소 ${task.minChars}자, 목표 ${Math.ceil(task.minChars * 1.3)}~${Math.ceil(task.minChars * 1.5)}자. 짧은 문단으로 나누고 같은 문장을 반복하지 않는다.`;
+      const ai = await callGeminiText(env, prompt, {
+        maxOutputTokens: 9500, thinkingBudget: 0, temperature: 0.55,
         fallbackToWorkersAI: false, responseMimeType: 'application/json', responseSchema: NARRATIVE_RESPONSE_SCHEMA,
+        ...await contextCacheOptions(env, { prompt, prefix: state.prompt, timeoutMs: 45000 }),
       });
       if (!ai?.ok || ai.isMock || /mock/i.test(`${ai.provider || ''} ${ai.model || ''}`)) return null;
       const value = parseNarrativeResponse(ai.text, state.evidenceHash);
