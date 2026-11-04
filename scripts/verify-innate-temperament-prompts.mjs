@@ -113,6 +113,6 @@ for(const row of FOLLOWUP_FEATURE_REGISTRY){
 }
 
 const yeongnyangiFollowupSource = readFileSync(new URL("../worker/yeongnyangi/question-followup.ts", import.meta.url), "utf8");
-assert.ok(yeongnyangiFollowupSource.includes("followupSolutionPromptText({feature:'영냥이 후속 상담'})"));
+assert.ok(yeongnyangiFollowupSource.includes("followupSolutionPromptText({feature:'후속 상담'})"));
 
 console.log("[verify:innate-temperament-prompts] PASS: 5개 체계 정확도, 전문가 소단락, 후속 질문 해결, 자미두수 분량 배분");

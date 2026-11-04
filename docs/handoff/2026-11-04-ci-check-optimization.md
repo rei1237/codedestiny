@@ -33,6 +33,8 @@ next: "pr-ci.yml의 CI required와 classify가 Checkout 때문에 5분 제한에
 
 - [ ] **9. 고아 워크트리 재발 방지.** `git worktree remove --force`가 긴 경로에서 "Filename too long"으로 멈추면 등록만 풀리고 파일이 남는다. 2026-11-04 실측 11개 중 6개가 이렇게 실패했다. 판정: 제거 절차가 `core.longpaths` 또는 Node `rmSync`로 끝까지 지우고 남은 폴더가 0개다. 정리 기록은 `D:\Development\Storage-Maintenance\2026-11-04\`다.
 
+- [ ] **10. `verify-deployed-assets`의 타임아웃 오분류** (`scripts/verify-deployed-assets.mjs:303-308`). `edgePoisoned`가 우회 요청이 200인지만 본다. 스테이징 런 41736216123(`9ecd08743`)은 `bare=ERR:timeout bypass=200` 2건을 "엣지 캐시 404"로 분류해 실패했고, 같은 SHA의 운영 런은 성공했다. 판정: 첫 요청이 실제 404일 때만 오염으로 분류하고, 타임아웃은 재시도 대상으로 다룬다. 진짜 엣지 404는 계속 하드 실패로 남는지 시험으로 고정한다.
+
 용량과 미참조 스크립트 파일 정리는 `2026-11-04-storage-and-code-cleanup.md`가 맡는다. 6번의 `verify:*` 판정은 그 문서 6번과 함께 본다.
 
 ## 정본 예시
