@@ -24,11 +24,11 @@ const loaded=new Module(path.resolve(import.meta.dirname,'tarot-recovery-ui.cjs'
 loaded.paths=Module._nodeModulePaths(path.resolve(import.meta.dirname,'..'));loaded._compile(bundle.outputFiles[0].text,loaded.id);
 const TarotLibrary=loaded.exports.default,orderId='01900000-1111-7111-8111-000000000042';
 const result={flowId:'tarot-mindscan',title:'저장된 리딩',question:'질문',cards:[],summary:'완료된 원문'};
-async function mount(api,onError=error=>{throw error;}){
+async function mount(api,onError=error=>{throw error;},initialLoggedIn=true,initialId=orderId){
  const calls=[];globalThis.tarotRecoveryUi={api:async(...args)=>{calls.push(args);return api(...args);}};
  const root=createRoot(document.getElementById('root'));
- await React.act(async()=>{root.render(React.createElement(TarotLibrary,{products:[],loggedIn:true,initialOrderId:orderId,onLogin:()=>assert.fail(),onError,onBack:()=>{}}));});
- return {calls,close:()=>React.act(()=>root.unmount())};
+ const props={products:[],loggedIn:initialLoggedIn,initialOrderId:initialId,onLogin:()=>assert.fail(),onError,onBack:()=>{}};await React.act(async()=>{root.render(React.createElement(TarotLibrary,props));});
+ return {calls,setAuth:value=>React.act(async()=>root.render(React.createElement(TarotLibrary,{...props,loggedIn:value}))),close:()=>React.act(()=>root.unmount())};
 }
 async function click(text){
  const button=[...document.querySelectorAll('button')].find(item=>item.textContent===text);
@@ -69,5 +69,27 @@ test('a denied reading does not imply ownership or offer to continue generation'
   assert.doesNotMatch(document.body.textContent,/새로 결제하지 않아도|추가 결제 없이 이어서 생성/);
   await click('진행 상태 확인하기');
   assert.deepEqual(view.calls,[[`/tarot-library/results/${orderId}`],[`/tarot-library/results/${orderId}`,undefined]]);
+ }finally{view.close();}
+});
+
+
+test('a paid saved reading disappears immediately when the session expires',async()=>{
+ const view=await mount(()=>({flowId:result.flowId,state:'completed',result,canRetryNow:false}));
+ try{assert.match(document.body.textContent,/완료된 원문/);await view.setAuth(false);assert.doesNotMatch(document.body.textContent,/완료된 원문/);}finally{view.close();}
+});
+
+test('a late paid reading response cannot restore a result after session expiry',async()=>{
+ let finish,started;const begun=new Promise(resolve=>{started=resolve;});
+ const view=await mount((_path,body)=>body?new Promise(resolve=>{finish=resolve;started();}):{flowId:result.flowId,state:'generation_failed',result:null,canRetryNow:true});
+ try{await click('추가 결제 없이 이어서 생성');await begun;await view.setAuth(false);await React.act(async()=>finish({state:'completed',result,canRetryNow:false}));assert.doesNotMatch(document.body.textContent,/완료된 원문/);}finally{view.close();}
+});
+
+
+test('a guest question remains intact when the user logs in',async()=>{
+ const view=await mount(()=>assert.fail('guest input should not fetch'),()=>{},false,'');
+ try{
+  await React.act(async()=>document.querySelector('.tarot-library-item').click());
+  const field=document.querySelector('textarea');await React.act(async()=>{Object.getOwnPropertyDescriptor(dom.window.HTMLTextAreaElement.prototype,'value').set.call(field,'지금 나에게 필요한 방향은?');field.dispatchEvent(new dom.window.Event('input',{bubbles:true}));});
+  await view.setAuth(true);assert.equal(document.querySelector('textarea').value,'지금 나에게 필요한 방향은?');
  }finally{view.close();}
 });

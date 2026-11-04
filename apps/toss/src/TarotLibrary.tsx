@@ -64,13 +64,13 @@ function Result({result,onRestart}:{result:LocalResult;onRestart:()=>void}){
 }
 
 export default function TarotLibrary({products,loggedIn,onLogin,onError,onBack,initialOrderId='',onRereadClosed}:{products:TarotLibraryProduct[];loggedIn:boolean;onLogin:()=>void;onError:(error:unknown)=>void;onBack:()=>void;initialOrderId?:string;onRereadClosed?:()=>void}){
-  const purchaseCleanup=useRef<(()=>void)|null>(null),alive=useRef(false),requestEpoch=useRef(0);
+  const purchaseCleanup=useRef<(()=>void)|null>(null),alive=useRef(false),requestEpoch=useRef(0),previousLogin=useRef(loggedIn);
   useEffect(()=>{alive.current=true;return()=>{alive.current=false;requestEpoch.current++;purchaseCleanup.current?.();};},[]);
   const [shuffledDeck,setShuffledDeck]=useState(()=>shuffleTarotDeck(deck));
   const [flowId,setFlowId]=useState(''),[question,setQuestion]=useState(''),[birthDate,setBirthDate]=useState(''),[gem,setGem]=useState('amethyst'),[drawStarted,setDrawStarted]=useState(false),[picks,setPicks]=useState<number[]>([]),[paidReady,setPaidReady]=useState(false),[buying,setBuying]=useState(false),[result,setResult]=useState<LocalResult|null>(null),[retryOrderId,setRetryOrderId]=useState(''),[restoring,setRestoring]=useState(false);
   const flow=useMemo(()=>flows.find(item=>item.id===flowId)||null,[flowId]);
   const [recoveredOrderId,setRecoveredOrderId]=useState(''),[canResume,setCanResume]=useState(false);
-  const reset=()=>{requestEpoch.current++;purchaseCleanup.current?.();purchaseCleanup.current=null;setBuying(false);setFlowId('');setQuestion('');setBirthDate('');setGem('amethyst');setDrawStarted(false);setPicks([]);setPaidReady(false);setResult(null);setRetryOrderId('');setRecoveredOrderId('');onRereadClosed?.();};
+  const reset=()=>{requestEpoch.current++;purchaseCleanup.current?.();purchaseCleanup.current=null;setBuying(false);setFlowId('');setQuestion('');setBirthDate('');setGem('amethyst');setDrawStarted(false);setPicks([]);setPaidReady(false);setResult(null);setRetryOrderId('');setRecoveredOrderId('');setCanResume(false);onRereadClosed?.();};
   const acceptStored=(stored:StoredReading,orderId:string)=>{
     if(stored.flowId)setFlowId(stored.flowId);
     if(stored.result){setResult(stored.result);return;}
@@ -78,10 +78,10 @@ export default function TarotLibrary({products,loggedIn,onLogin,onError,onBack,i
     setRetryOrderId(orderId);setCanResume(stored.canRetryNow);
   };
   const resumeReading=async(orderId:string,body?:unknown)=>{
-    setBuying(true);
-    try{acceptStored(await api<StoredReading>(`/tarot-library/results/${orderId}`,body),orderId);}
-    catch(error){setRetryOrderId(orderId);setCanResume(false);onError(error);}
-    finally{setBuying(false);}
+    const epoch=++requestEpoch.current;setBuying(true);
+    try{const stored=await api<StoredReading>(`/tarot-library/results/${orderId}`,body);if(alive.current&&epoch===requestEpoch.current)acceptStored(stored,orderId);}
+    catch(error){if(alive.current&&epoch===requestEpoch.current){setRetryOrderId(orderId);setCanResume(false);onError(error);}}
+    finally{if(alive.current&&epoch===requestEpoch.current)setBuying(false);}
   };
   useEffect(()=>{
     if(!initialOrderId||!loggedIn)return;
@@ -92,6 +92,9 @@ export default function TarotLibrary({products,loggedIn,onLogin,onError,onBack,i
     }).catch(error=>{if(active){setRetryOrderId(initialOrderId);setCanResume(false);onError(error);}}).finally(()=>{if(active)setRestoring(false);});
     return()=>{active=false;};
   },[initialOrderId,loggedIn]);
+  const sessionLost=previousLogin.current&&!loggedIn;
+  useEffect(()=>{if(previousLogin.current&&!loggedIn)reset();previousLogin.current=loggedIn;},[loggedIn]);
+  if(sessionLost)return <section className="tarot-library"><p role="status">로그인 상태가 종료되어 이전 결과를 닫고 있어요.</p></section>;
   if(restoring)return <section className="tarot-library"><p role="status">저장된 타로 리딩을 다시 열고 있어요.</p></section>;
   if(result)return <Result result={result} onRestart={reset}/>;
   if(retryOrderId)return <section className="tarot-library"><h1>{flow?.name||'타로 리딩'}</h1><p className="notice" role="status">{canResume?'구매한 리딩을 이어서 만들 수 있어요. 추가 결제는 필요하지 않아요.':'저장된 결과와 진행 상태를 다시 확인해 주세요. 결제 내역과 접근 권한을 확인해 주세요.'}</p><Button display="block" loading={buying} disabled={buying} onClick={()=>void resumeReading(retryOrderId,canResume?{}:undefined)}>{canResume?'추가 결제 없이 이어서 생성':'진행 상태 확인하기'}</Button><Button variant="weak" display="block" onClick={reset}>리딩 목록</Button></section>;
