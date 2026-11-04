@@ -12,7 +12,7 @@ export function generateStaticParams(){return Object.keys(consultationStories).m
 export async function generateMetadata({params}:Props):Promise<Metadata>{
  const {slug}=await params;const service=RECORD_SERVICES.find(item=>item.id===slug),story=consultationStories[slug];
  if(!service||!story)return {};
- return {title:`${service.name} · 상담 이야기`,description:story.basis,alternates:{canonical:`/consultations/${slug}/`}};
+ return {title:`${service.name} · 상담 이야기`,description:story.basis,robots:{index:false,follow:false},alternates:{canonical:`/consultations/${slug}/`}};
 }
 export default async function ConsultationStory({params}:Props){
  const {slug}=await params,story=consultationStories[slug],service=RECORD_SERVICES.find(item=>item.id===slug);

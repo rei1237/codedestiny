@@ -355,6 +355,21 @@
     ]
   },
   {
+    "file": "worker/lib/heukwol-report.js",
+    "matches": [
+      {
+        "line": 2,
+        "kind": "import-or-injected-call",
+        "symbol": "./structured-consultation.js"
+      },
+      {
+        "line": 81,
+        "kind": "call",
+        "symbol": "generate"
+      }
+    ]
+  },
+  {
     "file": "worker/lib/llm-usage-meter.js",
     "matches": [
       {
