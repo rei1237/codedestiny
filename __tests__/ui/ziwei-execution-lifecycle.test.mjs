@@ -10,7 +10,7 @@ import { createHash } from 'node:crypto';
 // Execute actual orchestration functions, never import the payment/Swiss route graph.
 const routeFile = 'worker/routes/ziwei-ai.js';
 const source = fs.readFileSync(routeFile, 'utf8');
-const baseline = execFileSync('git', ['show', `91021aa3a20856f5b4cca6abd8b560ac36ef46ad:${routeFile}`], { encoding: 'utf8', maxBuffer: 2 * 1024 * 1024 });
+const baseline = execFileSync('git', ['show', `20904183a1b0276584ed6f74313bf1e6cdeaf442:${routeFile}`], { encoding: 'utf8', maxBuffer: 2 * 1024 * 1024 });
 const adapterSource = fs.readFileSync('worker/lib/ziwei-execution-adapter.js', 'utf8');
 const preparationSource = fs.readFileSync('worker/lib/ziwei-calculation-preparation.js', 'utf8');
 function functionText(text, name) {
