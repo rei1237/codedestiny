@@ -30,7 +30,8 @@ for (const locale of ['en', 'ja', 'zh-CN', 'zh-TW', 'vi', 'hi', 'es', 'fr', 'de'
     await new Promise(resolve => win.setTimeout(resolve, 150));
     const leftovers = [];
     for (const root of win.document.querySelectorAll(selectors)) for (const el of [root, ...root.querySelectorAll('*')]) {
-      if (el.closest('script,style,svg,template')) continue;
+      // 라이트 운세 상품명 목록은 비한국어에서 통째로 숨는 .pb 안에만 있다(pass-benefits-light.test.mjs가 확인).
+      if (el.closest('script,style,svg,template,[data-cd-korean-only]')) continue;
       for (const child of el.childNodes) if (child.nodeType === 3 && korean(child.textContent)) leftovers.push(child.textContent.trim());
       for (const attr of ['aria-label', 'title', 'placeholder', 'alt']) if (korean(el.getAttribute(attr))) leftovers.push(attr + ': ' + el.getAttribute(attr));
     }

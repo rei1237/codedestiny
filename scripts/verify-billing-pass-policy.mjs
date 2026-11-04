@@ -883,7 +883,8 @@ assertContains(indexSource, "월정석은 이벤트성 선불 재화입니다.",
 assertContains(indexSource, "패밀리 꿀단지 이용권이 적용되었습니다.", "static family license pass success copy");
 assertContains(indexSource, 'href="/points/?source=flower-membership"', "the concise home pass offer links to the shop");
 assertContains(indexSource, "나에게 맞는 이용권 확인하기", "restored Yeoni guide links to pass comparison");
-assertContains(indexSource, "기존에 구매한 이용권은 구매 당시 조건을 유지합니다", "static offer preserves historical pass rights");
+assertContains(indexSource, "이미 구매한 이용권의 상담 한도는 그대로이고", "static offer preserves historical pass rights");
+assertContains(indexSource, "라이트 운세 혜택은 사용 중인 이용권에도 적용됩니다", "static offer says the light benefit reaches active passes");
 assertNotContains(indexSource, "forceDeduct: false", "static membership pass probe no longer sends the deprecated coin flag");
 assertNotContains(indexSource, "forceDeduct: true", "static paid flows never enable the deprecated coin flag");
 assertContains(indexSource, "opts.__cdPaymentGateAuthorized !== true", "static paid service gate checks pass before payment choice");

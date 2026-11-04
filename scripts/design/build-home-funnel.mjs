@@ -1,5 +1,6 @@
 import { moonlightVideo } from '../../lib/marketing/moonlight-video.mjs';
 import { renderPassBenefits, passBenefitOffers } from '../../lib/marketing/pass-benefits.mjs';
+import lightFortunes from '../../lib/payment/light-fortunes.generated.json' with { type: 'json' };
 import { JSDOM } from 'jsdom';
 import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
@@ -300,7 +301,15 @@ function localizedPassBenefits() {
   const copy = JSON.parse(readFileSync('i18n/authored/homeOverseas-09.json', 'utf8'));
   const labels = new Map(Object.entries(copy).filter(([, value]) => !value.ko.includes('{')).map(([key, value]) => [value.ko, { key }]));
   const add = (key, values) => labels.set(copy[key].ko.replace(/\{(\w+)\}/g, (_, name) => values[name]), { key, values });
+  const lightCount = String(lightFortunes.count);
+  add('home.benefitsCopy.lightBanner', { count: lightCount });
+  add('home.benefitsCopy.lightLine', { count: lightCount });
+  add('home.benefitsCopy.lightListTitle', { count: lightCount });
+  add('home.benefitsCopy.lightWorth', { amount: lightFortunes.valueKRW.toLocaleString('ko-KR') });
   for (const offer of passBenefitOffers('honey')) {
+    add('home.benefitsCopy.consultAmount', { amount: offer.consultLimit.toLocaleString('ko-KR') });
+    if (!offer.family) add('home.benefitsCopy.consultCap', { amount: offer.cap.toLocaleString('ko-KR') });
+    if (!offer.family) add('home.benefitsCopy.signatureLimit', { amount: offer.cap.toLocaleString('ko-KR') });
     add('home.benefitsCopy.percent', { amount: String(Math.floor((1 - offer.price / offer.value) * 100)) });
     add('home.benefitsCopy.saving', { amount: (offer.value - offer.price).toLocaleString('ko-KR') });
     if (!offer.family) add('home.benefitsCopy.cap', { amount: offer.cap.toLocaleString('ko-KR') });
@@ -350,7 +359,8 @@ vars.pass = '<link rel="stylesheet" href="/styles/pass-benefits.css?v=build-0000
       <span class="cdh-pass__tier-line" data-cd-trans="home.overseasCopy.passTotal" data-cd-vars='{"amount":"${Number(plan.monthlyLimitCoin * 100).toLocaleString('en-US')}"}'>누적 ${won(plan.monthlyLimitCoin * 100)}까지</span>
     </a></li>`).join('')}
   </ul>
-  <p class="cdh-pass__note" data-cd-trans="home.gardenCopy.passNote">작은·중간·큰 꿀단지는 꿀꿀 운세에, 패밀리 꿀단지는 꿀꿀 운세와 영냥이 유료 리딩에 적용됩니다. 기존에 구매한 이용권은 구매 당시 조건을 유지합니다.</p>
+  <p class="cdh-pass__light" data-cd-trans="home.gardenCopy.passLight" data-cd-vars='{"count":"${lightFortunes.count}","amount":"${lightFortunes.valueKRW.toLocaleString('en-US')}"}'>모든 꿀단지에 라이트 운세 ${lightFortunes.count}종이 횟수 제한 없이 포함돼요. 각 1회 기준 ${won(lightFortunes.valueKRW)} 상당이며, 대표 상담은 제외예요.</p>
+  <p class="cdh-pass__note" data-cd-trans="home.gardenCopy.passNote">작은·중간·큰 꿀단지는 꿀꿀 운세에, 패밀리 꿀단지는 꿀꿀 운세와 영냥이 유료 리딩에 적용됩니다. 이미 구매한 이용권의 상담 한도는 그대로이고, 라이트 운세 혜택은 사용 중인 이용권에도 적용됩니다.</p>
   <details class="cdh-pass__packs"><summary class="cdh-pass__group">
     <img class="cdh-pass__pack-guide" src="/assets/yeongnyangi/original/hero-800.webp" alt="" width="800" height="800" loading="lazy" decoding="async">
     <span class="cdh-pass__pack-heading"><span data-cd-trans="home.passCopy.packTitle">영냥이 전용 이용권</span><small data-cd-trans="home.passCopy.packNote">영냥이 세트는 같은 생선 상담에만 1회씩 사용돼요. 꽃돼지 이용권과 따로 적용돼요.</small></span>

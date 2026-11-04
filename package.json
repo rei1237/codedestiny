@@ -112,6 +112,7 @@
     "r2:cache-metadata:apply": "node scripts/apply-r2-cache-metadata.mjs --apply",
     "verify:cf:migration": "node scripts/verify-cloudflare-migration-readiness.mjs",
     "verify:style-sync": "node scripts/verify-style-sync.mjs",
+    "verify:light-fortunes": "node scripts/lib/build-light-fortunes.mjs --check",
     "verify:public-parity": "node scripts/verify-public-parity.mjs",
     "verify:public-api-edge-cache": "node scripts/verify-public-api-edge-cache.mjs",
     "verify:credential-cache": "node scripts/verify-credential-cache.mjs",
