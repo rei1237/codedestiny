@@ -16,7 +16,8 @@ test('named staging products survive reload, retries and releases; customer QR d
   const bucket={
     async get(){const value=stored;return value ? {etag:String(version),json:async()=>JSON.parse(value)} : null;},
     async put(key,body,{onlyIf}){
-      if (version===0 ? onlyIf.etagDoesNotMatch!=='*' : onlyIf.etagMatches!==String(version)) return null;
+      const createsNew = onlyIf instanceof Headers && onlyIf.get('If-None-Match')==='*';
+      if (createsNew ? version!==0 : onlyIf.etagMatches!==String(version)) return null;
       stored=body;version++;return {etag:String(version)};
     }
   };
@@ -29,7 +30,8 @@ test('named staging products survive reload, retries and releases; customer QR d
   const product={action:'add',title:'달빛을 품은 영냥이',id,character:'cat',cap:2};
   await assert.rejects(manageEditions(request(product),{...env,APP_ENV:'production'},dispatch),/찾을 수/);
   await assert.rejects(post({...product,cap:0}),/한도/);
-  await post(product);
+  const additions=await Promise.allSettled([post(product),post(product)]);
+  assert.equal(additions.filter(r=>r.status==='fulfilled').length,1);
   assert.equal((await (await post(product)).json()).products.length,1);
   assert.deepEqual((await (await readIssueQueue(request(),env)).json()).products,[]);
   const mint={action:'mint',id,serial:1};

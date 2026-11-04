@@ -50,7 +50,7 @@ export async function manageEditions(request, env, dispatch) {
   } else {
     throw createHttpError(400, "상품 추가 또는 발행을 선택해 주세요.");
   }
-  const onlyIf = previous ? {etagMatches:previous.etag} : {etagDoesNotMatch:"*"};
+  const onlyIf = previous ? {etagMatches:previous.etag} : new Headers({"If-None-Match":"*"});
   if (!await bucket.put(key, JSON.stringify(products), {onlyIf})) {
     throw createHttpError(409, "다른 창에서 목록을 변경했어요. 새로고침한 뒤 다시 시도해 주세요.");
   }
