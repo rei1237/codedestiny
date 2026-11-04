@@ -8885,7 +8885,7 @@
   "seoLanding": {
     "description": {
       "001": "Voer je geboortedatum en -tijd in het gratis Manseryeok in om je Vier Pijlers-kaart en een tendens in één zin te zien. Tien Goden, geluks-cycli en de stroom van geld, liefde en werk vervolg je in de volledige, betaalde Saju-lezing.",
-      "002": "We leggen uit hoe je de Vier Pijlers (BaZi) geboortekaart, Vijf Elementen, Tien Goden en geluk-cyclus stromen kunt controleren op basis van je geboortedatum en -tijd.",
+      "002": "Voer je geboortedatum in en bekijk in het gratis Manseryeok de kaart van je Vier Pijlers en de balans van de Vijf Elementen. We leggen uit waarom het resultaat verandert met je geboortetijd en de grenzen van de zonneperioden; de duiding van de Tien Goden en de geluks-cyclustabel loopt door in de volledige Saju-lezing met levenslange toegang.",
       "003": "De dagelijkse reading helpt je om de conditie van de dag, relaties en werkprioriteiten licht te controleren en keuzes te organiseren om in de praktijk te brengen.",
       "004": "De dagelijkse reading pagina helpt je om snel je conditie, relatiestromen en agendaprioriteiten te controleren wanneer je de dag begint of afsluit.",
       "005": "We onderzoeken het relatie-ritme, de communicatiestijl en herstelpunten bij conflicten van twee personen vanuit het perspectief van Vier Pijlers (BaZi) en readings, en organiseren dit als realistische gespreksstandaarden.",
@@ -8907,8 +8907,8 @@
       "021": "De Nieuwjaarsreading PDF is een premium reading-document dat de carrière, financiën, relaties en gezondheidsstromen van het nieuwe jaar per maand bekijkt."
     },
     "title": {
-      "001": "Gratis Manseryeok: geboortekaart | Vier Pijlers, Vijf Elementen, Tien Goden en geluks-cycli lezen",
-      "002": "Het gratis Manseryeok lezen | Vier Pijlers, Vijf Elementen en geluks-cyclustabel",
+      "001": "Gratis Manseryeok: geboortekaart | Vier Pijlers en balans van de Vijf Elementen",
+      "002": "Het gratis Manseryeok lezen | Vier Pijlers-kaart en balans van de Vijf Elementen",
       "003": "Gratis Dagelijkse Reading | Dagelijkse Stroom en Keuzegids",
       "004": "Direct Dagelijkse Reading | Conditie·Relatie·Agenda Check",
       "005": "Gratis compatibiliteitsgids | Saju, Sukuyo en tarot vergeleken",
@@ -14025,10 +14025,10 @@
       }
     },
     "rpt_tTestCard": {
-      "fallbackTitle": "Check your logic temperature -- where reason responds before emotion -- for free.",
-      "tagline": "The Frozen Logic -- a free Saju-based test that playfully diagnoses how close your thinking and judgment pattern is to Thinking (T).",
-      "premiumIntro": "The Extreme-T Test doesn't define your personality -- it's a free, playful reflection of how much your judgment leans toward reason.",
-      "fallbackCta": "Diagnose for Free",
+      "fallbackTitle": "Bekijk je logische temperatuur, waarbij de rede eerder reageert dan het gevoel.",
+      "tagline": "The Frozen Logic: een speelse test op basis van Saju die laat zien hoe dicht je denk- en oordeelspatroon bij T ligt, inbegrepen in de volledige Saju-lezing met levenslange toegang.",
+      "premiumIntro": "De Extreme-T-test legt je persoonlijkheid niet vast. Hij laat zien hoe sterk je oordeel naar de rede neigt.",
+      "fallbackCta": "Diagnose starten",
       "feats": {
         "0": "Measures the metal element, authority, expression and climate in your chart to produce a T score of 0–100 and a tier",
         "1": "Shows four stats: metal hardware, forced-control instinct, blunt-fact debugging and the cold-dry formation",
@@ -14048,7 +14048,7 @@
         "3": "Six summary chips plus today’s mission"
       },
       "premiumOutcomes": {
-        "0": "You can use it free right now.",
+        "0": "Deze lezing is inbegrepen in de volledige Saju-lezing met levenslange toegang.",
         "1": "[Relationship Circuit], [Love Algorithm], [Reality Processing], [Saju-based Extreme-T Reading] and [Debugging Prescription] open after a separate unlock.",
         "2": "The test is for reference and fun."
       },
@@ -14081,8 +14081,8 @@
           "a": "No. You do not answer questionnaire items. It scores the metal element, authority, expression and climate in your natal chart, for fun."
         },
         "1": {
-          "q": "How much is free?",
-          "a": "The T score, tier, type name, four stats, [Strength Scan], [Fatal Bug], today’s mission and the summary card are all free."
+          "q": "Wat kan ik zien?",
+          "a": "De T-score, het niveau, de typenaam, vier statistieken, [Strength Scan], [Fatal Bug], de missie van vandaag en de samenvattingskaart openen met de volledige Saju-lezing met levenslange toegang."
         },
         "2": {
           "q": "Why can’t I see the relationship sections?",
@@ -14091,10 +14091,10 @@
       }
     },
     "rpt_hormone_vibe_section": {
-      "fallbackTitle": "Check for free whether your charm pulls strongly like a Teto type, or seeps in gently like an Egen type.",
-      "tagline": "A free analysis, based on your Saju, that splits the grain of your charm energy into Teto and Egen styles.",
-      "premiumIntro": "The Teto/Egen analysis doesn't rank one above the other -- it's a free organization of how your charm pulls people in.",
-      "fallbackCta": "Check for Free",
+      "fallbackTitle": "Ontdek of je charme krachtig aantrekt zoals het Teto-type of zacht doordringt zoals het Egen-type.",
+      "tagline": "Een analyse op basis van je Saju die je charme-energie verdeelt in de stijlen Teto en Egen, inbegrepen in de volledige Saju-lezing met levenslange toegang.",
+      "premiumIntro": "De Teto/Egen-analyse zet het ene type niet boven het andere. Ze laat zien op welke manier je charme mensen aantrekt.",
+      "fallbackCta": "Nu bekijken",
       "feats": {
         "0": "Tallies the Ten Gods across all seven positions except the day stem",
         "1": "Groups the Ten Gods into peers, output, resource, authority and wealth",
@@ -14110,10 +14110,10 @@
         "0": "Teto and Egen scores with a type reading",
         "1": "Ten Gods tallied across seven positions excluding the day stem",
         "2": "Weightings for the five groups: peers, output, resource, authority, wealth",
-        "3": "Free, with no extra payment"
+        "3": "Inbegrepen in de volledige Saju-lezing met levenslange toegang"
       },
       "premiumOutcomes": {
-        "0": "You can use it right now, for free.",
+        "0": "Deze lezing is inbegrepen in de volledige Saju-lezing met levenslange toegang.",
         "1": "The analysis is for reference and entertainment.",
         "2": "Your charm type can vary by situation."
       },
@@ -14150,16 +14150,16 @@
           "a": "It uses only the Ten Gods in your natal chart, so the same birth date and time always gives the same result."
         },
         "2": {
-          "q": "Do I need to pay?",
-          "a": "No. It opens inside your Saju result with no extra payment."
+          "q": "Moet ik hier apart voor betalen?",
+          "a": "Er is geen losse betaling. Dit opent samen met de volledige Saju-lezing met levenslange toegang."
         }
       }
     },
     "rpt_lottoCard": {
-      "fallbackTitle": "Get today's lucky numbers drawn from your Saju's Five Elements and number symbolism, for free.",
-      "tagline": "A free, for-fun feature that seeds five games from your natal chart plus today’s day pillar and luck cycle.",
-      "premiumIntro": "The Saju Lotto is a fun feature that doesn't predict a win -- it freely draws a symbolic number that fits today's fortune.",
-      "fallbackCta": "Draw Numbers for Free",
+      "fallbackTitle": "Ontvang de geluksgetallen van vandaag, getrokken uit de Vijf Elementen van je Saju en de symboliek van getallen.",
+      "tagline": "Een functie voor symbolische getallen die vijf combinaties trekt uit je geboortekaart, de dagpijler van vandaag en je geluks-cyclus, inbegrepen in de volledige Saju-lezing met levenslange toegang.",
+      "premiumIntro": "De Saju Lotto voorspelt geen winst. Hij trekt symbolische getallen die passen bij het geluk van vandaag.",
+      "fallbackCta": "Getallen trekken",
       "feats": {
         "0": "Seeds the numbers from your natal chart plus today’s day pillar, luck cycle and round counter",
         "1": "Builds five games at once and labels them flow, stable, reversal, instinct and balance",
@@ -14175,10 +14175,10 @@
         "0": "Numbers seeded from your chart, today’s day pillar and luck cycle",
         "1": "Five games at once, each with a concept name",
         "2": "Redraw to raise the round counter and get a new set",
-        "3": "Free, with no extra payment"
+        "3": "Inbegrepen in de volledige Saju-lezing met levenslange toegang"
       },
       "premiumOutcomes": {
-        "0": "You can use it right now, for free.",
+        "0": "Deze lezing is inbegrepen in de volledige Saju-lezing met levenslange toegang.",
         "1": "This is fun content that doesn't guarantee a win.",
         "2": "Please judge an actual purchase carefully."
       },
@@ -14216,15 +14216,15 @@
         },
         "2": {
           "q": "Can I save or share the number card?",
-          "a": "The free number draw has no save or share feature. You read it directly on screen."
+          "a": "De getallentrekking heeft geen functie om op te slaan of te delen. Je bekijkt de getallen direct op het scherm."
         }
       }
     },
     "rpt_sajuFourCutCard": {
-      "fallbackTitle": "Make a four-cut photo-strip reinterpreting your Saju data in a fun, snapshot-style sentiment, for free.",
-      "tagline": "A free, fun feature packing blunt-but-relatable roast lines into a four-cut strip, ready to save and share.",
-      "premiumIntro": "The Saju Four-Cut doesn't state your fortune definitively -- it's free content that lets you enjoy your Saju as a fun, snapshot-style card.",
-      "fallbackCta": "Make a Four-Cut for Free",
+      "fallbackTitle": "Maak een vierluik dat je Saju-gegevens opnieuw verbeeldt in fotohokjesstijl.",
+      "tagline": "Directe maar herkenbare zinnen in vier beelden, klaar om op te slaan en te delen, inbegrepen in de volledige Saju-lezing met levenslange toegang.",
+      "premiumIntro": "Het Saju-vierluik velt geen oordeel over je lot. Je geniet van je Saju als één vel in fotohokjesstijl.",
+      "fallbackCta": "Vierluik maken",
       "feats": {
         "0": "Builds four-cut lines from today’s day pillar energy",
         "1": "Lets you switch between four versions: form check, reply warmth, routine save and impulse lock",
@@ -14244,7 +14244,7 @@
         "3": "Image save plus KakaoTalk, device share or link copy"
       },
       "premiumOutcomes": {
-        "0": "You can use it right now, for free.",
+        "0": "Deze lezing is inbegrepen in de volledige Saju-lezing met levenslange toegang.",
         "1": "The sentences are for reference and entertainment.",
         "2": "The existing service standard applies."
       },
@@ -14281,16 +14281,16 @@
           "a": "Yes. You can save the four cuts as an image with your stickers in place."
         },
         "2": {
-          "q": "Do I need to pay?",
-          "a": "No. It opens inside your Saju result with no extra payment."
+          "q": "Moet ik hier apart voor betalen?",
+          "a": "Er is geen losse betaling. Dit opent samen met de volledige Saju-lezing met levenslange toegang."
         }
       }
     },
     "rpt_dopamineCard": {
-      "fallbackTitle": "Check for free whether you're someone who chases new stimulation, or someone who loves stability more.",
-      "tagline": "A free report that converts your stimulation-seeking tendency into a score and grade based on your Saju flow, showing an 8-axis stimulation radar, your absorption areas, and today's mission.",
+      "fallbackTitle": "Ontdek of je nieuwe prikkels najaagt of meer van stabiliteit houdt.",
+      "tagline": "Een rapport dat je prikkelzucht op basis van de stroom van je Saju omzet in een score en een graad, met een radar met 8 assen, je verdiepingsgebieden en de missie van vandaag, inbegrepen in de volledige Saju-lezing met levenslange toegang.",
       "premiumIntro": "This doesn't diagnose addiction -- it's a fun read, through your Saju flow, of where you draw energy from and where you burn out quickly.",
-      "fallbackCta": "See Your Stimulation Score for Free",
+      "fallbackCta": "Mijn prikkelindex bekijken",
       "feats": {
         "0": "Converts your stimulation-seeking tendency into a 0–100 score, an SSS–D grade and a type name",
         "1": "Draws an eight-axis stimulation radar: new experiences, social media, shopping, gaming, study, travel, romance and exercise",
@@ -14311,7 +14311,7 @@
         "4": "Save and share the result card"
       },
       "premiumOutcomes": {
-        "0": "You can use it right now, for free.",
+        "0": "Deze lezing is inbegrepen in de volledige Saju-lezing met levenslange toegang.",
         "1": "This is content for temperament reference and entertainment.",
         "2": "The existing service standard applies."
       },

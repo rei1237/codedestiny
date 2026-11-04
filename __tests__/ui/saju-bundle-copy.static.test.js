@@ -357,10 +357,7 @@ test('다른 언어 문구도 "무료 사주"를 약속하지 않는다', () => 
 // 배포되는 번역 사전(public/i18n)의 값도 본다. 사전은 화면이 실제로 읽는 값이라 코드만 고쳐서는 낡은 문구가 남는다.
 // 허용 목록은 "사주 기반이지만 진짜 무료인 별도 상품"만 담는다. 키 단위로 이유를 적는다.
 const I18N_FREE_SAJU_ALLOWED = {
-  'featureMarketing.rpt_tTestCard.tagline': '무료 사주 기반 성향 테스트(별도 무료 상품)',
-  'featureMarketing.rpt_lottoCard.fallbackTitle': '무료 행운 번호 카드(별도 무료 상품)',
   'featureMarketing.rpt_aiPromptCard.premiumIntro': '사주 프롬프트는 별도 결제 없는 무료 도구',
-  'shellRuntime.s449': '사주 네컷은 별도 결제 없는 무료 콘텐츠',
   'shellRuntime.s466': '사주 프롬프트는 별도 결제 없는 무료 도구',
 };
 const I18N_LANGS = ['ko', 'en', 'ja', 'zh-cn', 'zh-tw', 'vi', 'hi', 'es', 'fr', 'de', 'nl', 'ms'];
@@ -395,4 +392,103 @@ test('배포 번역 사전 값에 "무료 사주"가 남아 있지 않다(허용
   assert.deepEqual(offenders, [], `사전 값을 "무료 만세력" 기준으로 고쳐야 한다: ${offenders.join(', ')}`);
   // 허용 목록이 낡아 아무 데도 안 걸리는 항목을 들고 있으면 걷어 낸다.
   assert.deepEqual(Object.keys(I18N_FREE_SAJU_ALLOWED).filter((k) => !used.has(k)), [], '허용 목록에 더는 필요 없는 항목이 있다');
+});
+
+// 묶음 전용 카드는 손으로 고른 키 목록이 아니라 생성된 마케팅 원본으로 정한다. 원본이 "평생 소장에 포함"이라고 적은 카드가 대상이다.
+const MARKETING_ITEMS = JSON.parse(read('lib/marketing/feature-marketing-copy.generated.json')).items;
+const BUNDLE_ONLY_DICT_NS = Object.values(MARKETING_ITEMS)
+  .filter(({ copy }) => /평생 소장/.test(copy.badge || '') || (copy.trustNotes || []).some((note) => /평생 소장에 포함/.test(note)))
+  .map(({ dictNs }) => dictNs)
+  .sort();
+const CLAIMS_FREE_RE = /(?<![\p{L}\p{N}-])free(?:ly)?(?![\p{L}\p{N}-])|(?<!\p{L})gratis|gratuit|kostenlos|percuma|miễn phí|無料|免费|免費|मुफ़?्त|निःशुल्क|무료|no extra (?:payment|charge)|追加決済|追加料金|无需额外|無需額外/iu;
+
+test('묶음 전용 카드 목록은 잠금 코드와 일치한다', () => {
+  const offer = read('js/core/saju/bundle-offer.js');
+  const groups = offer.match(/var CARD_GROUPS = \{[\s\S]*?\n  \};/)[0];
+  const gatedCards = ['lotto', 'shared', 'hormone'].flatMap((group) =>
+    [...groups.match(new RegExp(`${group}: \\[(.*)\\]`))[1].matchAll(/\['([\w-]+)', \[/g)].map((m) => m[1]));
+  assert.equal(gatedCards.length, 5, '잠금 코드에서 카드 목록을 읽지 못했다');
+  const closedKeys = [...offer.match(/var SALE_CLOSED_KEYS = \{[\s\S]*?\n  \};/)[0].matchAll(/'?((?:rpt_|animal-destiny-)[\w-]+)'?: 1/g)].map((m) => m[1]);
+  assert.ok(closedKeys.length >= 9, '판매 종료 키를 읽지 못했다');
+  const expected = [...gatedCards.map((id) => `rpt_${id}`), ...closedKeys].map((key) => key.replace(/-/g, '_'));
+  assert.deepEqual([...new Set(expected)].filter((ns) => !BUNDLE_ONLY_DICT_NS.includes(ns)), [], '잠금 코드의 카드가 묶음 전용 목록에서 빠졌다');
+  // 진짜 무료 도구와, 묶음을 안내만 하는 만세력 카드는 대상이 아니다.
+  for (const ns of ['rpt_aiPromptCard', 'saju']) assert.ok(!BUNDLE_ONLY_DICT_NS.includes(ns), `${ns}는 묶음 전용 카드가 아니다`);
+});
+
+test('무료 표현 가드는 12개 언어 표현을 잡고 정상 문구는 통과시킨다', () => {
+  const mustHit = [
+    'Diagnose for Free', 'You can use it free right now.', 'A free, for-fun feature', 'draw freely',
+    'no extra payment', '無料で診断する', '追加決済なしで', '免费诊断', '无需额外付费', '免費診斷', '無需額外付費',
+    'Chẩn đoán miễn phí', 'मुफ़्त में जाँचें', 'निःशुल्क', 'Diagnóstico gratis', 'contenido gratuito',
+    'Diagnostic gratuit', 'Kostenlos prüfen', 'kostenloser Inhalt', 'Gratis testen', 'Uji secara percuma', '무료로 진단하기',
+  ];
+  for (const sample of mustHit) assert.ok(CLAIMS_FREE_RE.test(sample), `가드에 걸려야 한다: ${sample}`);
+  const mustPass = ['Check it now', 'Included in the Saju full reading, lifetime access', 'a stress-free evening', '生涯保存に含まれます', 'Sin pago individual'];
+  for (const sample of mustPass) assert.ok(!CLAIMS_FREE_RE.test(sample), `가드가 잘못 걸리면 안 된다: ${sample}`);
+});
+
+test('묶음 전용 카드의 사전·원본 문구는 12개 언어 어디서도 무료를 말하지 않는다', () => {
+  const offenders = [];
+  let scanned = 0;
+  for (const lang of I18N_LANGS) {
+    const marketing = JSON.parse(read(`public/i18n/${lang}.json`)).featureMarketing || {};
+    for (const ns of BUNDLE_ONLY_DICT_NS) {
+      for (const [key, value] of Object.entries(flattenStrings(marketing[ns] || {}))) {
+        scanned += 1;
+        if (CLAIMS_FREE_RE.test(value)) offenders.push(`${lang}:featureMarketing.${ns}.${key}`);
+      }
+    }
+    const shell = flattenStrings(JSON.parse(read(`public/i18n/${lang}/shellRuntime.json`)));
+    // 같은 카드의 문구를 담은 셸 키도 함께 본다(극T·로또·네컷·테토에겐).
+    for (const key of ['s197', 's375', 's376', 's378', 's449', 's452', 's948'].map((id) => `shellRuntime.${id}`)) {
+      if (CLAIMS_FREE_RE.test(shell[key] || '')) offenders.push(`${lang}:${key}`);
+    }
+  }
+  assert.ok(scanned > 500, `사전에서 묶음 전용 카드 문구를 읽지 못했다: ${scanned}개`);
+  for (const { copy, dictNs } of Object.values(MARKETING_ITEMS)) {
+    if (!BUNDLE_ONLY_DICT_NS.includes(dictNs)) continue;
+    for (const [key, value] of Object.entries(flattenStrings(copy))) {
+      if (key === 'ct') continue; // ct는 화면 동작 값이고 고객 문구가 아니다.
+      if (CLAIMS_FREE_RE.test(value)) offenders.push(`generated:${dictNs}.${key}`);
+    }
+  }
+  assert.deepEqual(offenders, [], `묶음 전용 카드가 무료를 말한다: ${offenders.join(', ')}`);
+});
+
+// 대운표·십성 풀이는 묶음에서 열린다(section_daewun). "무료 만세력"을 내건 검색 문구가 이들을 무료처럼 읽히게 하면 안 된다.
+const GATED_READING_RE = /대운|십성|Ten Gods|Luck Cycle|十神|大運|大运|Thập Thần|Đại vận|दस देव|दशा चक्र|Diez Dioses|ciclos? de fortuna|Dix Dieux|cycles? de chance|Zehn Götter|Glückszykl|Tien Goden|geluks-?cycl|Sepuluh Dewa|kitaran nasib/iu;
+const LIFETIME_BUNDLE_RE = /평생 소장|lifetime|生涯|终身|終身|trọn đời|आजीवन|de por vida|à vie|lebenslang|levenslang|seumur hidup/iu;
+
+test('만세력·사주 검색 문구는 대운표나 십성을 무료처럼 내걸지 않는다', () => {
+  const offenders = [];
+  const checkTitle = (id, title) => { if (GATED_READING_RE.test(title)) offenders.push(id); };
+  const checkDescription = (id, text) => { if (GATED_READING_RE.test(text) && !LIFETIME_BUNDLE_RE.test(text)) offenders.push(id); };
+  for (const lang of I18N_LANGS) {
+    const flat = flattenStrings(JSON.parse(read(`public/i18n/${lang}.json`)));
+    assert.ok(flat['seoLanding.title.002'], `${lang} 사전에서 검색 문구를 읽지 못했다`);
+    checkTitle(`${lang}:seoLanding.title.001`, flat['seoLanding.title.001']);
+    checkTitle(`${lang}:seoLanding.title.002`, flat['seoLanding.title.002']);
+    checkDescription(`${lang}:seoLanding.description.002`, flat['seoLanding.description.002']);
+  }
+  const landing = read('lib/seo-landing-pages.js');
+  for (const key of ['seoLanding.title.001', 'seoLanding.title.002']) checkTitle(`ko-source:${key}`, landing.match(new RegExp(`"${key}": "(.*)"`))[1]);
+  checkDescription('ko-source:seoLanding.description.002', landing.match(/"seoLanding\.description\.002": "(.*)"/)[1]);
+  checkTitle('ko-source:siteSeo.005', read('lib/seo/siteSeo.ts').match(/"siteSeo\.005": "(.*)"/)[1]);
+  assert.deepEqual(offenders, [], `검색 문구가 묶음 풀이를 무료처럼 내건다: ${offenders.join(', ')}`);
+});
+
+test('비교 페이지 안내는 "사주 기본 풀이"를 무료로 약속하지 않는다', () => {
+  const OLD_BASIC_RE = /사주 기본 풀이|basic saju|四柱の基本|八字基础|八字基礎/iu;
+  const offenders = [];
+  for (const lang of I18N_LANGS) {
+    const shell = flattenStrings(JSON.parse(read(`public/i18n/${lang}/shellRuntime.json`)));
+    for (const key of ['shellRuntime.f2602', 'shellRuntime.f2609']) {
+      assert.ok(shell[key], `${lang}:${key} 값을 읽지 못했다`);
+      if (OLD_BASIC_RE.test(shell[key])) offenders.push(`${lang}:${key}`);
+    }
+  }
+  if (OLD_BASIC_RE.test(read('app/compare/fortune-apps/page.tsx'))) offenders.push('app/compare/fortune-apps/page.tsx');
+  if (OLD_BASIC_RE.test(read('i18n/authored/shellRuntime-51.json'))) offenders.push('i18n/authored/shellRuntime-51.json');
+  assert.deepEqual(offenders, [], `무료 만세력과 유료 풀이로 나눠 적어야 한다: ${offenders.join(', ')}`);
 });

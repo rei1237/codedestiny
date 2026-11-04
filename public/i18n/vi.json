@@ -8885,7 +8885,7 @@
   "seoLanding": {
     "description": {
       "001": "Nhập ngày giờ sinh vào Lịch vạn niên miễn phí để xem mệnh bàn Tứ Trụ và một dòng xu hướng tính cách. Thập Thần, đại vận và dòng chảy tài vận, tình duyên, sự nghiệp được xem tiếp trong bản giải đầy đủ Saju có phí.",
-      "002": "Hướng dẫn cách kiểm tra Tứ Trụ Bát Tự, Ngũ Hành, Thập Thần và dòng chảy đại vận dựa trên ngày, tháng, năm, giờ sinh.",
+      "002": "Nhập ngày sinh để xem mệnh bàn Tứ Trụ và cân bằng Ngũ Hành trên Lịch vạn niên miễn phí. Bài viết giải thích vì sao kết quả thay đổi theo giờ sinh và ranh giới tiết khí; phần luận giải Thập Thần và bảng Đại vận tiếp tục trong bản giải Saju đầy đủ, sở hữu trọn đời.",
       "003": "Vận mệnh hôm nay giúp bạn nhẹ nhàng kiểm tra tình trạng, các mối quan hệ, ưu tiên công việc trong ngày và sắp xếp các lựa chọn để thực hiện.",
       "004": "Trang Vận mệnh hôm nay giúp bạn nhanh chóng kiểm tra tình trạng, dòng chảy mối quan hệ, ưu tiên lịch trình khi bắt đầu hoặc kết thúc một ngày.",
       "005": "Xem xét nhịp điệu mối quan hệ, cách giao tiếp, điểm phục hồi xung đột của hai người từ góc độ Tứ Trụ và vận mệnh, sau đó sắp xếp thành tiêu chuẩn đối thoại thực tế.",
@@ -8907,8 +8907,8 @@
       "021": "PDF Vận mệnh năm mới là tài liệu vận mệnh Premium xem xét dòng chảy sự nghiệp, tài lộc, mối quan hệ, sức khỏe hàng tháng trong năm mới."
     },
     "title": {
-      "001": "Lịch vạn niên miễn phí – Mệnh bàn Tứ Trụ | Cách đọc Ngũ Hành·Thập Thần·Đại vận",
-      "002": "Cách xem Lịch vạn niên miễn phí | Tứ Trụ·Ngũ Hành·Bảng Đại vận",
+      "001": "Lịch vạn niên miễn phí – Mệnh bàn Tứ Trụ | Xem Tứ Trụ và cân bằng Ngũ Hành",
+      "002": "Cách xem Lịch vạn niên miễn phí | Mệnh bàn Tứ Trụ và cân bằng Ngũ Hành",
       "003": "Xem Vận mệnh hôm nay miễn phí | Hướng dẫn dòng chảy và lựa chọn trong ngày",
       "004": "Kiểm tra Vận mệnh hôm nay ngay | Kiểm tra tình trạng·mối quan hệ·lịch trình",
       "005": "Hướng dẫn hợp duyên | Giới thiệu miễn phí, so sánh Tứ Trụ·Tú Diệu·Tarot",
@@ -14025,10 +14025,10 @@
       }
     },
     "rpt_tTestCard": {
-      "fallbackTitle": "Check your logic temperature -- where reason responds before emotion -- for free.",
-      "tagline": "The Frozen Logic -- a free Saju-based test that playfully diagnoses how close your thinking and judgment pattern is to Thinking (T).",
-      "premiumIntro": "The Extreme-T Test doesn't define your personality -- it's a free, playful reflection of how much your judgment leans toward reason.",
-      "fallbackCta": "Diagnose for Free",
+      "fallbackTitle": "Hãy xem nhiệt độ logic của bạn, nơi lý trí phản ứng trước cảm xúc.",
+      "tagline": "The Frozen Logic: bài kiểm tra vui dựa trên Saju cho biết lối suy nghĩ và phán đoán của bạn gần với T đến mức nào, nằm trong bản giải Saju đầy đủ, sở hữu trọn đời.",
+      "premiumIntro": "Bài kiểm tra Cực T không định nghĩa tính cách của bạn mà phản chiếu phán đoán của bạn nghiêng về lý trí đến đâu.",
+      "fallbackCta": "Chẩn đoán",
       "feats": {
         "0": "Measures the metal element, authority, expression and climate in your chart to produce a T score of 0–100 and a tier",
         "1": "Shows four stats: metal hardware, forced-control instinct, blunt-fact debugging and the cold-dry formation",
@@ -14048,7 +14048,7 @@
         "3": "Six summary chips plus today’s mission"
       },
       "premiumOutcomes": {
-        "0": "You can use it free right now.",
+        "0": "Phần luận giải này nằm trong bản giải Saju đầy đủ, sở hữu trọn đời.",
         "1": "[Relationship Circuit], [Love Algorithm], [Reality Processing], [Saju-based Extreme-T Reading] and [Debugging Prescription] open after a separate unlock.",
         "2": "The test is for reference and fun."
       },
@@ -14081,8 +14081,8 @@
           "a": "No. You do not answer questionnaire items. It scores the metal element, authority, expression and climate in your natal chart, for fun."
         },
         "1": {
-          "q": "How much is free?",
-          "a": "The T score, tier, type name, four stats, [Strength Scan], [Fatal Bug], today’s mission and the summary card are all free."
+          "q": "Tôi xem được những gì?",
+          "a": "Điểm T, hạng, tên kiểu, bốn chỉ số, [Strength Scan], [Fatal Bug], nhiệm vụ hôm nay và thẻ tóm tắt đều mở trong bản giải Saju đầy đủ, sở hữu trọn đời."
         },
         "2": {
           "q": "Why can’t I see the relationship sections?",
@@ -14091,10 +14091,10 @@
       }
     },
     "rpt_hormone_vibe_section": {
-      "fallbackTitle": "Check for free whether your charm pulls strongly like a Teto type, or seeps in gently like an Egen type.",
-      "tagline": "A free analysis, based on your Saju, that splits the grain of your charm energy into Teto and Egen styles.",
-      "premiumIntro": "The Teto/Egen analysis doesn't rank one above the other -- it's a free organization of how your charm pulls people in.",
-      "fallbackCta": "Check for Free",
+      "fallbackTitle": "Hãy xem sức hút của bạn thuộc kiểu Teto kéo mạnh hay kiểu Egen thấm dần.",
+      "tagline": "Phân tích dựa trên Saju chia năng lượng sức hút của bạn thành hai phong cách Teto và Egen, nằm trong bản giải Saju đầy đủ, sở hữu trọn đời.",
+      "premiumIntro": "Phân tích Teto/Egen không phân hơn kém mà cho thấy sức hút của bạn thu hút người khác theo cách nào.",
+      "fallbackCta": "Xem ngay",
       "feats": {
         "0": "Tallies the Ten Gods across all seven positions except the day stem",
         "1": "Groups the Ten Gods into peers, output, resource, authority and wealth",
@@ -14110,10 +14110,10 @@
         "0": "Teto and Egen scores with a type reading",
         "1": "Ten Gods tallied across seven positions excluding the day stem",
         "2": "Weightings for the five groups: peers, output, resource, authority, wealth",
-        "3": "Free, with no extra payment"
+        "3": "Nằm trong bản giải Saju đầy đủ, sở hữu trọn đời"
       },
       "premiumOutcomes": {
-        "0": "You can use it right now, for free.",
+        "0": "Phần luận giải này nằm trong bản giải Saju đầy đủ, sở hữu trọn đời.",
         "1": "The analysis is for reference and entertainment.",
         "2": "Your charm type can vary by situation."
       },
@@ -14150,16 +14150,16 @@
           "a": "It uses only the Ten Gods in your natal chart, so the same birth date and time always gives the same result."
         },
         "2": {
-          "q": "Do I need to pay?",
-          "a": "No. It opens inside your Saju result with no extra payment."
+          "q": "Tôi có phải thanh toán riêng không?",
+          "a": "Không có khoản thanh toán riêng. Phần này mở cùng với bản giải Saju đầy đủ, sở hữu trọn đời."
         }
       }
     },
     "rpt_lottoCard": {
-      "fallbackTitle": "Get today's lucky numbers drawn from your Saju's Five Elements and number symbolism, for free.",
-      "tagline": "A free, for-fun feature that seeds five games from your natal chart plus today’s day pillar and luck cycle.",
-      "premiumIntro": "The Saju Lotto is a fun feature that doesn't predict a win -- it freely draws a symbolic number that fits today's fortune.",
-      "fallbackCta": "Draw Numbers for Free",
+      "fallbackTitle": "Nhận con số may mắn hôm nay, được rút từ Ngũ Hành trong Saju và ý nghĩa biểu tượng của các con số.",
+      "tagline": "Tính năng số biểu tượng rút năm tổ hợp từ mệnh bàn, ngày hôm nay và Đại vận của bạn, nằm trong bản giải Saju đầy đủ, sở hữu trọn đời.",
+      "premiumIntro": "Saju Lotto không dự đoán trúng thưởng mà rút những con số biểu tượng hợp với vận hôm nay.",
+      "fallbackCta": "Rút số",
       "feats": {
         "0": "Seeds the numbers from your natal chart plus today’s day pillar, luck cycle and round counter",
         "1": "Builds five games at once and labels them flow, stable, reversal, instinct and balance",
@@ -14175,10 +14175,10 @@
         "0": "Numbers seeded from your chart, today’s day pillar and luck cycle",
         "1": "Five games at once, each with a concept name",
         "2": "Redraw to raise the round counter and get a new set",
-        "3": "Free, with no extra payment"
+        "3": "Nằm trong bản giải Saju đầy đủ, sở hữu trọn đời"
       },
       "premiumOutcomes": {
-        "0": "You can use it right now, for free.",
+        "0": "Phần luận giải này nằm trong bản giải Saju đầy đủ, sở hữu trọn đời.",
         "1": "This is fun content that doesn't guarantee a win.",
         "2": "Please judge an actual purchase carefully."
       },
@@ -14216,15 +14216,15 @@
         },
         "2": {
           "q": "Can I save or share the number card?",
-          "a": "The free number draw has no save or share feature. You read it directly on screen."
+          "a": "Phần rút số không có chức năng lưu hay chia sẻ. Bạn xem trực tiếp trên màn hình."
         }
       }
     },
     "rpt_sajuFourCutCard": {
-      "fallbackTitle": "Make a four-cut photo-strip reinterpreting your Saju data in a fun, snapshot-style sentiment, for free.",
-      "tagline": "A free, fun feature packing blunt-but-relatable roast lines into a four-cut strip, ready to save and share.",
-      "premiumIntro": "The Saju Four-Cut doesn't state your fortune definitively -- it's free content that lets you enjoy your Saju as a fun, snapshot-style card.",
-      "fallbackCta": "Make a Four-Cut for Free",
+      "fallbackTitle": "Tạo dải bốn khung diễn giải lại dữ liệu Saju của bạn theo phong cách photo booth.",
+      "tagline": "Những câu nói thẳng mà vẫn đồng cảm được gói trong bốn khung, có thể lưu và chia sẻ, nằm trong bản giải Saju đầy đủ, sở hữu trọn đời.",
+      "premiumIntro": "Bốn khung Saju không khẳng định vận mệnh mà giúp bạn thưởng thức Saju của mình như một tấm ảnh kiểu photo booth.",
+      "fallbackCta": "Tạo bốn khung",
       "feats": {
         "0": "Builds four-cut lines from today’s day pillar energy",
         "1": "Lets you switch between four versions: form check, reply warmth, routine save and impulse lock",
@@ -14244,7 +14244,7 @@
         "3": "Image save plus KakaoTalk, device share or link copy"
       },
       "premiumOutcomes": {
-        "0": "You can use it right now, for free.",
+        "0": "Phần luận giải này nằm trong bản giải Saju đầy đủ, sở hữu trọn đời.",
         "1": "The sentences are for reference and entertainment.",
         "2": "The existing service standard applies."
       },
@@ -14281,16 +14281,16 @@
           "a": "Yes. You can save the four cuts as an image with your stickers in place."
         },
         "2": {
-          "q": "Do I need to pay?",
-          "a": "No. It opens inside your Saju result with no extra payment."
+          "q": "Tôi có phải thanh toán riêng không?",
+          "a": "Không có khoản thanh toán riêng. Phần này mở cùng với bản giải Saju đầy đủ, sở hữu trọn đời."
         }
       }
     },
     "rpt_dopamineCard": {
-      "fallbackTitle": "Check for free whether you're someone who chases new stimulation, or someone who loves stability more.",
-      "tagline": "A free report that converts your stimulation-seeking tendency into a score and grade based on your Saju flow, showing an 8-axis stimulation radar, your absorption areas, and today's mission.",
+      "fallbackTitle": "Hãy xem bạn là người theo đuổi kích thích mới hay yêu sự ổn định hơn.",
+      "tagline": "Báo cáo quy đổi xu hướng tìm kiếm kích thích thành điểm và hạng theo dòng chảy Saju, kèm radar kích thích 8 trục, lĩnh vực đắm chìm và nhiệm vụ hôm nay, nằm trong bản giải Saju đầy đủ, sở hữu trọn đời.",
       "premiumIntro": "This doesn't diagnose addiction -- it's a fun read, through your Saju flow, of where you draw energy from and where you burn out quickly.",
-      "fallbackCta": "See Your Stimulation Score for Free",
+      "fallbackCta": "Xem chỉ số kích thích",
       "feats": {
         "0": "Converts your stimulation-seeking tendency into a 0–100 score, an SSS–D grade and a type name",
         "1": "Draws an eight-axis stimulation radar: new experiences, social media, shopping, gaming, study, travel, romance and exercise",
@@ -14311,7 +14311,7 @@
         "4": "Save and share the result card"
       },
       "premiumOutcomes": {
-        "0": "You can use it right now, for free.",
+        "0": "Phần luận giải này nằm trong bản giải Saju đầy đủ, sở hữu trọn đời.",
         "1": "This is content for temperament reference and entertainment.",
         "2": "The existing service standard applies."
       },

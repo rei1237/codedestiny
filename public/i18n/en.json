@@ -8885,7 +8885,7 @@
   "seoLanding": {
     "description": {
       "001": "Enter your birth date and time in the free Manseryeok to see your Four Pillars natal chart and a one-line tendency. Ten Gods, luck cycles and the flow of wealth, love and career continue in the full paid Saju reading.",
-      "002": "Learn how to check your Four Pillars (BaZi), Five Elements, Ten Gods, and luck cycle flow based on your birth date and time.",
+      "002": "Check your Four Pillars natal chart and Five Elements balance in the free Manseryeok using your birth date. We explain why results change with birth time and solar-term boundaries; Ten Gods and luck cycle table readings continue in the Saju full reading, lifetime access.",
       "003": "Today's reading helps you lightly check your daily condition, relationships, and work priorities, and organize choices to act upon.",
       "004": "The Today's Reading page helps you quickly check your condition, relationship flow, and schedule priorities when starting or ending your day.",
       "005": "Examine two people's relationship rhythm, communication style, and conflict recovery points from a Four Pillars and reading perspective, and organize them into practical conversation standards.",
@@ -8907,8 +8907,8 @@
       "021": "The New Year Reading PDF is a premium reading document that examines career, wealth, relationships, and health flows by month for the new year."
     },
     "title": {
-      "001": "Free Manseryeok Natal Chart | How to Read Four Pillars, Five Elements, Ten Gods and Luck Cycles",
-      "002": "How to Read a Free Manseryeok | Four Pillars, Five Elements and Luck Cycle Table",
+      "001": "Free Manseryeok Natal Chart | See Your Four Pillars and Five Elements Balance",
+      "002": "How to Read a Free Manseryeok | Four Pillars Natal Chart and Five Elements Balance",
       "003": "View Today's Reading Free | Daily Flow & Choice Guide",
       "004": "Check Today's Reading Now | Condition·Relationships·Schedule Check",
       "005": "Compatibility Guide | Free Overview Comparing Saju, Sukuyo and Tarot",
@@ -14025,10 +14025,10 @@
       }
     },
     "rpt_tTestCard": {
-      "fallbackTitle": "Check your logic temperature -- where reason responds before emotion -- for free.",
-      "tagline": "The Frozen Logic -- a free Saju-based test that playfully diagnoses how close your thinking and judgment pattern is to Thinking (T).",
-      "premiumIntro": "The Extreme-T Test doesn't define your personality -- it's a free, playful reflection of how much your judgment leans toward reason.",
-      "fallbackCta": "Diagnose for Free",
+      "fallbackTitle": "Check your logic temperature, where reason responds before emotion.",
+      "tagline": "The Frozen Logic: a playful Saju-based test of how close your thinking and judgment pattern is to Thinking (T), included in the Saju full reading, lifetime access.",
+      "premiumIntro": "The Extreme-T Test doesn't define your personality. It reflects how much your judgment leans toward reason.",
+      "fallbackCta": "Run the Diagnosis",
       "feats": {
         "0": "Measures the metal element, authority, expression and climate in your chart to produce a T score of 0–100 and a tier",
         "1": "Shows four stats: metal hardware, forced-control instinct, blunt-fact debugging and the cold-dry formation",
@@ -14048,7 +14048,7 @@
         "3": "Six summary chips plus today’s mission"
       },
       "premiumOutcomes": {
-        "0": "You can use it free right now.",
+        "0": "This reading is included in the Saju full reading, lifetime access.",
         "1": "[Relationship Circuit], [Love Algorithm], [Reality Processing], [Saju-based Extreme-T Reading] and [Debugging Prescription] open after a separate unlock.",
         "2": "The test is for reference and fun."
       },
@@ -14081,8 +14081,8 @@
           "a": "No. You do not answer questionnaire items. It scores the metal element, authority, expression and climate in your natal chart, for fun."
         },
         "1": {
-          "q": "How much is free?",
-          "a": "The T score, tier, type name, four stats, [Strength Scan], [Fatal Bug], today’s mission and the summary card are all free."
+          "q": "What does it cover?",
+          "a": "The T score, tier, type name, four stats, [Strength Scan], [Fatal Bug], today's mission and the summary card all open with the Saju full reading, lifetime access."
         },
         "2": {
           "q": "Why can’t I see the relationship sections?",
@@ -14091,10 +14091,10 @@
       }
     },
     "rpt_hormone_vibe_section": {
-      "fallbackTitle": "Check for free whether your charm pulls strongly like a Teto type, or seeps in gently like an Egen type.",
-      "tagline": "A free analysis, based on your Saju, that splits the grain of your charm energy into Teto and Egen styles.",
-      "premiumIntro": "The Teto/Egen analysis doesn't rank one above the other -- it's a free organization of how your charm pulls people in.",
-      "fallbackCta": "Check for Free",
+      "fallbackTitle": "See whether your charm pulls strongly like a Teto type or seeps in gently like an Egen type.",
+      "tagline": "An analysis based on your Saju that splits your charm energy into Teto and Egen styles, included in the Saju full reading, lifetime access.",
+      "premiumIntro": "The Teto/Egen analysis doesn't rank one above the other. It lays out how your charm draws people in.",
+      "fallbackCta": "Check Now",
       "feats": {
         "0": "Tallies the Ten Gods across all seven positions except the day stem",
         "1": "Groups the Ten Gods into peers, output, resource, authority and wealth",
@@ -14110,10 +14110,10 @@
         "0": "Teto and Egen scores with a type reading",
         "1": "Ten Gods tallied across seven positions excluding the day stem",
         "2": "Weightings for the five groups: peers, output, resource, authority, wealth",
-        "3": "Free, with no extra payment"
+        "3": "Included in the Saju full reading, lifetime access"
       },
       "premiumOutcomes": {
-        "0": "You can use it right now, for free.",
+        "0": "This reading is included in the Saju full reading, lifetime access.",
         "1": "The analysis is for reference and entertainment.",
         "2": "Your charm type can vary by situation."
       },
@@ -14150,16 +14150,16 @@
           "a": "It uses only the Ten Gods in your natal chart, so the same birth date and time always gives the same result."
         },
         "2": {
-          "q": "Do I need to pay?",
-          "a": "No. It opens inside your Saju result with no extra payment."
+          "q": "Do I pay for it separately?",
+          "a": "There is no separate payment. It opens together with the Saju full reading, lifetime access."
         }
       }
     },
     "rpt_lottoCard": {
-      "fallbackTitle": "Get today's lucky numbers drawn from your Saju's Five Elements and number symbolism, for free.",
-      "tagline": "A free, for-fun feature that seeds five games from your natal chart plus today’s day pillar and luck cycle.",
-      "premiumIntro": "The Saju Lotto is a fun feature that doesn't predict a win -- it freely draws a symbolic number that fits today's fortune.",
-      "fallbackCta": "Draw Numbers for Free",
+      "fallbackTitle": "Get today's lucky numbers drawn from your Saju's Five Elements and number symbolism.",
+      "tagline": "A symbolic number feature that seeds five combinations from your natal chart plus today's day pillar and luck cycle, included in the Saju full reading, lifetime access.",
+      "premiumIntro": "The Saju Lotto doesn't predict a win. It draws symbolic numbers that fit today's fortune.",
+      "fallbackCta": "Draw Numbers",
       "feats": {
         "0": "Seeds the numbers from your natal chart plus today’s day pillar, luck cycle and round counter",
         "1": "Builds five games at once and labels them flow, stable, reversal, instinct and balance",
@@ -14175,10 +14175,10 @@
         "0": "Numbers seeded from your chart, today’s day pillar and luck cycle",
         "1": "Five games at once, each with a concept name",
         "2": "Redraw to raise the round counter and get a new set",
-        "3": "Free, with no extra payment"
+        "3": "Included in the Saju full reading, lifetime access"
       },
       "premiumOutcomes": {
-        "0": "You can use it right now, for free.",
+        "0": "This reading is included in the Saju full reading, lifetime access.",
         "1": "This is fun content that doesn't guarantee a win.",
         "2": "Please judge an actual purchase carefully."
       },
@@ -14216,15 +14216,15 @@
         },
         "2": {
           "q": "Can I save or share the number card?",
-          "a": "The free number draw has no save or share feature. You read it directly on screen."
+          "a": "The number draw has no save or share feature. You read it directly on screen."
         }
       }
     },
     "rpt_sajuFourCutCard": {
-      "fallbackTitle": "Make a four-cut photo-strip reinterpreting your Saju data in a fun, snapshot-style sentiment, for free.",
-      "tagline": "A free, fun feature packing blunt-but-relatable roast lines into a four-cut strip, ready to save and share.",
-      "premiumIntro": "The Saju Four-Cut doesn't state your fortune definitively -- it's free content that lets you enjoy your Saju as a fun, snapshot-style card.",
-      "fallbackCta": "Make a Four-Cut for Free",
+      "fallbackTitle": "Make a four-cut strip that reinterprets your Saju data in a photo-booth mood.",
+      "tagline": "Blunt but relatable lines packed into four cuts, ready to save and share, included in the Saju full reading, lifetime access.",
+      "premiumIntro": "The Saju Four-Cut doesn't state your fortune definitively. It lets you enjoy your Saju as a single photo-booth-style card.",
+      "fallbackCta": "Make a Four-Cut",
       "feats": {
         "0": "Builds four-cut lines from today’s day pillar energy",
         "1": "Lets you switch between four versions: form check, reply warmth, routine save and impulse lock",
@@ -14244,7 +14244,7 @@
         "3": "Image save plus KakaoTalk, device share or link copy"
       },
       "premiumOutcomes": {
-        "0": "You can use it right now, for free.",
+        "0": "This reading is included in the Saju full reading, lifetime access.",
         "1": "The sentences are for reference and entertainment.",
         "2": "The existing service standard applies."
       },
@@ -14281,16 +14281,16 @@
           "a": "Yes. You can save the four cuts as an image with your stickers in place."
         },
         "2": {
-          "q": "Do I need to pay?",
-          "a": "No. It opens inside your Saju result with no extra payment."
+          "q": "Do I pay for it separately?",
+          "a": "There is no separate payment. It opens together with the Saju full reading, lifetime access."
         }
       }
     },
     "rpt_dopamineCard": {
-      "fallbackTitle": "Check for free whether you're someone who chases new stimulation, or someone who loves stability more.",
-      "tagline": "A free report that converts your stimulation-seeking tendency into a score and grade based on your Saju flow, showing an 8-axis stimulation radar, your absorption areas, and today's mission.",
+      "fallbackTitle": "See whether you chase new stimulation or love stability more.",
+      "tagline": "A report that converts your stimulation-seeking tendency into a score and grade from your Saju flow, with an 8-axis stimulation radar, absorption areas and today's mission, included in the Saju full reading, lifetime access.",
       "premiumIntro": "This doesn't diagnose addiction -- it's a fun read, through your Saju flow, of where you draw energy from and where you burn out quickly.",
-      "fallbackCta": "See Your Stimulation Score for Free",
+      "fallbackCta": "See Your Stimulation Score",
       "feats": {
         "0": "Converts your stimulation-seeking tendency into a 0–100 score, an SSS–D grade and a type name",
         "1": "Draws an eight-axis stimulation radar: new experiences, social media, shopping, gaming, study, travel, romance and exercise",
@@ -14311,7 +14311,7 @@
         "4": "Save and share the result card"
       },
       "premiumOutcomes": {
-        "0": "You can use it right now, for free.",
+        "0": "This reading is included in the Saju full reading, lifetime access.",
         "1": "This is content for temperament reference and entertainment.",
         "2": "The existing service standard applies."
       },
