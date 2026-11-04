@@ -83,7 +83,7 @@ beforeEach(()=>{owner=uid;fault=null;lostConfirmation=false;revokedSource=-1;ref
 });
 afterEach(()=>{expect(fetchBlock).not.toHaveBeenCalled();fetchBlock.mockRestore()});
 async function generate(extra={}){return route(new Request('https://mock.test/api/human-design-report/generate',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({reportId:'saved-hd',...extra})}),{})}
-for(const accessType of ['pass','membership_credit','paid'])it(`${accessType} saves 18 units in five requests`,async()=>{docs[0].accessType=accessType;for(let i=0;i<5;i++)expect((await generate()).status).toBe(i<4?202:200);expect(docs[0].status).toBe('completed');expect(docs[0].totalChars).toBeGreaterThanOrEqual(20000);expect(provider).toHaveBeenCalledTimes(18);expect((await generate()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(18);expect(refund).not.toHaveBeenCalled()});
+for(const accessType of ['pass','membership_credit','paid'])it(`${accessType} saves 18 units in five requests`,async()=>{docs[0].accessType=accessType;for(let i=0;i<5;i++)expect((await generate()).status).toBe(i<4?202:200);expect(docs[0].status).toBe('completed');expect(docs[0].totalChars).toBeGreaterThanOrEqual(7400);expect(provider).toHaveBeenCalledTimes(18);expect((await generate()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(18);expect(refund).not.toHaveBeenCalled()});
 for(const status of ['delivery_pending','completed'])for(const kind of ['throw','null','confirm'])it(`${status} ${kind} never refunds or regenerates`,async()=>{for(let i=0;i<4;i++)await generate();fault={status,kind};const res=await generate();expect(res.status).toBe(503);expect(await res.json()).toMatchObject({reason:'RESULT_STORAGE_UNAVAILABLE',resultId:'saved-hd',retryable:true});expect(refund).not.toHaveBeenCalled();expect((await generate()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(18)});
 it('checkpoint failure preserves later siblings',async()=>{fault={count:1,kind:'throw'};expect((await generate()).status).toBe(503);expect(docs[0].sections.filter(row=>row.status==='ok')).toHaveLength(3);expect(refund).not.toHaveBeenCalled();for(let i=0;i<5;i++)await generate();expect(docs[0].status).toBe('completed');expect(provider).toHaveBeenCalledTimes(19)});
 for(const source of [0,1,2,3])it(`refunded source ${source} cannot resume`,async()=>{revokedSource=source;expect((await generate()).status).toBe(402);expect(provider).not.toHaveBeenCalled()});
@@ -139,5 +139,13 @@ it('quality resume cannot reset a spent chapter budget',async()=>{
 it('server completes the saved report without browser authentication or another purchase',async()=>{
  await generate();const {resumeConsultationOnServer}=await import('../../worker/routes/human-design-report.js');
  for(let i=0;i<5&&docs[0].status!=='completed';i++)await resumeConsultationOnServer({},docs[0]);
+ expect(docs[0].status).toBe('completed');expect(provider).toHaveBeenCalledTimes(18);expect(refund).not.toHaveBeenCalled();
+});
+it('human design delivers a result at the new target',async()=>{
+ const {HD_REPORT_TARGET_CHARS,HD_REPORT_DELIVER_MIN_TOTAL_CHARS}=await import('../../worker/lib/human-design-report-contract.js');
+ expect(HD_REPORT_TARGET_CHARS).toBe(12000);expect(HD_REPORT_DELIVER_MIN_TOTAL_CHARS).toBeLessThan(12000);
+ const total=specs.reduce((sum,spec)=>sum+Math.ceil(spec.minChars/0.8),0);expect(total).toBeGreaterThanOrEqual(12000);expect(total).toBeLessThan(12600);
+ provider.mockImplementation(async(_env,key)=>{const spec=specs.find(row=>row.key===key);let body='';for(let i=0;body.replace(/\s/g,'').length<Math.ceil(spec.minChars/0.8);i++)body+=`${key}의 ${i}번째 계산 근거와 생활 선택을 살펴보며 반대 조건과 구체적인 행동을 함께 설명합니다.\n`;return{ok:true,text:JSON.stringify({body,keyPoints:[]})}});
+ for(let i=0;i<5;i++)await generate();
  expect(docs[0].status).toBe('completed');expect(provider).toHaveBeenCalledTimes(18);expect(refund).not.toHaveBeenCalled();
 });

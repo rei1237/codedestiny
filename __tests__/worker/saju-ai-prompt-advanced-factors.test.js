@@ -318,6 +318,22 @@ describe("상담문 완결성 검증 (validateSajuAIResultText)", () => {
     expect(validation.qualityIssues.length.advisory).toBe(true);
   });
 
+  test("사주 AI 질문 delivers a result at the new target", () => {
+    expect(sajuPrompt.SAJU_AI_MIN_RESULT_CHARS).toBe(12000);
+    expect(sajuPrompt.SAJU_AI_SECTION_GROUPS).toHaveLength(5);
+    for (const group of sajuPrompt.SAJU_AI_SECTION_GROUPS) {
+      expect(group.targetMinChars).toBe(2400);
+      expect(group.minChars).toBeLessThanOrEqual(1920);
+    }
+    const built = buildCareerPrompt();
+    const extra = Array.from({length: 400}, (_, i) => `${i}번째 관찰에서는 생활의 선택과 다른 조건을 차례로 비교해 다음 행동을 고릅니다.`).join(" ");
+    const closingAt = CONCISE_COMPLETE_CAREER_RESULT.lastIndexOf("\n\n");
+    const text = `${CONCISE_COMPLETE_CAREER_RESULT.slice(0, closingAt)}\n\n${extra}${CONCISE_COMPLETE_CAREER_RESULT.slice(closingAt)}`;
+    const validation = fortuneRoute.validateSajuAIResultText(text, built.factSnapshot, {domain: "career", categoryRubric: built.categoryRubric});
+    expect(validation.ok).toBe(true);
+    expect(validation.qualityIssues?.length ?? null).toBeNull();
+  });
+
   test("카테고리 세 항목이 직접 답변되면 경미한 누락은 경고로 전달한다", () => {
     const built = buildCareerPrompt();
     const validation = fortuneRoute.validateSajuAIResultText(CONCISE_COMPLETE_CAREER_RESULT, built.factSnapshot, {
@@ -402,7 +418,7 @@ describe("상담문 완결성 검증 (validateSajuAIResultText)", () => {
       expect(prompt).toContain("같은 일간·월령·십성표·용신 후보");
       expect(prompt).toContain("합의 존재와 합화의 성립");
       expect(prompt).not.toContain("동업 손실, 사업 적합성을 만들지 말고");
-      expect([group.minChars, group.targetMinChars, group.maxChars]).toEqual([4000, 5000, 6000]);
+      expect([group.minChars, group.targetMinChars, group.maxChars]).toEqual([1920, 2400, 2800]);
     }
   });
 

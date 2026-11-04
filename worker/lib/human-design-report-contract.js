@@ -28,15 +28,15 @@ export const HD_REPORT_VERSION = "human-design-report-v1";
 
 export const HD_REPORT_LOCALES = Object.freeze([...AI_OUTPUT_LOCALES]);
 
-/** 상품이 광고하는 분량. 섹션 minChars 합이 이 값을 넘어야 한다(아래 자체 검사). */
-export const HD_REPORT_TARGET_CHARS = 25000;
+/** 상품의 목표 분량. 프롬프트 목표는 minChars / 0.8 이라, 섹션 minChars 합이 이 값의 80%를 넘어야 한다(아래 자체 검사). */
+export const HD_REPORT_TARGET_CHARS = 12000;
 
 /**
  * 🔴 전달 하한. 여기를 넘으면 일부 섹션이 실패해도 **결제를 유지하고 전달**한다
  *    (worker/lib/llm-result-delivery.js 의 경량 보장 계약). 미달이면 환불한다.
  *    "리포트라고 부를 수 있는가" 의 경계이지 목표 분량이 아니다.
  */
-export const HD_REPORT_DELIVER_MIN_TOTAL_CHARS = 20000;
+export const HD_REPORT_DELIVER_MIN_TOTAL_CHARS = 7400;
 export const HD_REPORT_DELIVER_MIN_SECTIONS = 14;
 
 /** 저장 문서가 감당할 상한. 섹션 maxChars 합보다 커야 한다(아래 자체 검사). */
@@ -44,7 +44,7 @@ export const HD_REPORT_MAX_TOTAL_CHARS = 60000;
 
 // ── 생성 예산 ────────────────────────────────────────────────────────────────
 //
-// 🔴 엣지 응답 데드라인이 100초라 25,000자를 한 요청에 담을 수 없다(인생의 책 실측:
+// 🔴 엣지 응답 데드라인이 100초라 12,000자(약 90초)를 한 요청에 안전하게 담을 수 없다(인생의 책 실측:
 //    30,000자 ≈ 45,000토큰, gemini-2.5-flash 비스트리밍 ~200tok/s → 225초). 그래서 한 요청은
 //    웨이브 하나만 돌리고 클라이언트가 끝날 때까지 반복 호출한다.
 
@@ -58,7 +58,7 @@ export const HD_REPORT_LOCK_TTL_MS = 90000;
 export const HD_REPORT_STALE_MS = 3 * 60 * 1000;
 export const HD_REPORT_MAX_WAVES = 40; // Preserve the previous 10 × 4 part-attempt budget.
 export const HD_REPORT_MAX_SECTION_ATTEMPTS = 2;
-/** 섹션 하나의 출력 토큰 상한. 최장 섹션(4,000자 ≈ 6,000토큰)에 여유를 둔다. */
+/** 섹션 하나의 출력 토큰 상한. 최장 섹션(1,320자)보다 넉넉히 둔다. 잘리면 전달이 실패하므로 분량만큼 낮추지 않는다. */
 export const HD_REPORT_SECTION_MAX_OUTPUT_TOKENS = 9000;
 
 /**
@@ -81,24 +81,24 @@ const SUBSECTION_SOURCE = Object.freeze({
  *   요구 28의 "제공받은 계산 데이터만 사용" 을 기계로 잡는 지점이다.
  */
 export const HD_REPORT_SECTIONS = Object.freeze([
-  { key: "executiveSummary", order: 1, minChars: 800, maxChars: 2600, needsEvidence: false, subsections: null },
-  { key: "energyBlueprint", order: 2, minChars: 1100, maxChars: 2900, needsEvidence: true, subsections: null },
-  { key: "type", order: 3, minChars: 1400, maxChars: 3200, needsEvidence: true, subsections: null },
-  { key: "strategy", order: 4, minChars: 1300, maxChars: 3100, needsEvidence: true, subsections: null },
-  { key: "authority", order: 5, minChars: 1400, maxChars: 3200, needsEvidence: true, subsections: null },
-  { key: "profile", order: 6, minChars: 1400, maxChars: 3200, needsEvidence: true, subsections: null },
-  { key: "centersDefined", order: 7, minChars: 2000, maxChars: 3800, needsEvidence: true, subsections: SUBSECTION_SOURCE.DEFINED_CENTERS },
-  { key: "centersOpen", order: 8, minChars: 2000, maxChars: 3800, needsEvidence: true, subsections: SUBSECTION_SOURCE.OPEN_CENTERS },
-  { key: "channels", order: 9, minChars: 2200, maxChars: 4000, needsEvidence: true, subsections: SUBSECTION_SOURCE.CHANNELS },
-  { key: "gatesCore", order: 10, minChars: 1500, maxChars: 3300, needsEvidence: true, subsections: SUBSECTION_SOURCE.CORE_GATES },
-  { key: "planetaryActivations", order: 11, minChars: 1500, maxChars: 3300, needsEvidence: true, subsections: SUBSECTION_SOURCE.ACTIVATIONS },
-  { key: "incarnationCross", order: 12, minChars: 1200, maxChars: 3000, needsEvidence: true, subsections: null },
-  { key: "lifeRelational", order: 13, minChars: 1600, maxChars: 3400, needsEvidence: false, subsections: SUBSECTION_SOURCE.FIXED, fixedSubsections: ["love", "communication", "social"] },
-  { key: "lifeWork", order: 14, minChars: 1400, maxChars: 3200, needsEvidence: false, subsections: SUBSECTION_SOURCE.FIXED, fixedSubsections: ["career", "money"] },
-  { key: "lifeSelf", order: 15, minChars: 1400, maxChars: 3200, needsEvidence: false, subsections: SUBSECTION_SOURCE.FIXED, fixedSubsections: ["growth", "decision"] },
-  { key: "conditioningShadow", order: 16, minChars: 1400, maxChars: 3200, needsEvidence: true, subsections: SUBSECTION_SOURCE.OPEN_CENTERS },
-  { key: "practicalGuide", order: 17, minChars: 1500, maxChars: 3300, needsEvidence: false, subsections: null },
-  { key: "finalSynthesis", order: 18, minChars: 800, maxChars: 2600, needsEvidence: false, subsections: null },
+  { key: "executiveSummary", order: 1, minChars: 300, maxChars: 800, needsEvidence: false, subsections: null },
+  { key: "energyBlueprint", order: 2, minChars: 400, maxChars: 900, needsEvidence: true, subsections: null },
+  { key: "type", order: 3, minChars: 520, maxChars: 1020, needsEvidence: true, subsections: null },
+  { key: "strategy", order: 4, minChars: 480, maxChars: 980, needsEvidence: true, subsections: null },
+  { key: "authority", order: 5, minChars: 520, maxChars: 1020, needsEvidence: true, subsections: null },
+  { key: "profile", order: 6, minChars: 520, maxChars: 1020, needsEvidence: true, subsections: null },
+  { key: "centersDefined", order: 7, minChars: 740, maxChars: 1240, needsEvidence: true, subsections: SUBSECTION_SOURCE.DEFINED_CENTERS },
+  { key: "centersOpen", order: 8, minChars: 740, maxChars: 1240, needsEvidence: true, subsections: SUBSECTION_SOURCE.OPEN_CENTERS },
+  { key: "channels", order: 9, minChars: 820, maxChars: 1320, needsEvidence: true, subsections: SUBSECTION_SOURCE.CHANNELS },
+  { key: "gatesCore", order: 10, minChars: 560, maxChars: 1060, needsEvidence: true, subsections: SUBSECTION_SOURCE.CORE_GATES },
+  { key: "planetaryActivations", order: 11, minChars: 560, maxChars: 1060, needsEvidence: true, subsections: SUBSECTION_SOURCE.ACTIVATIONS },
+  { key: "incarnationCross", order: 12, minChars: 440, maxChars: 940, needsEvidence: true, subsections: null },
+  { key: "lifeRelational", order: 13, minChars: 590, maxChars: 1090, needsEvidence: false, subsections: SUBSECTION_SOURCE.FIXED, fixedSubsections: ["love", "communication", "social"] },
+  { key: "lifeWork", order: 14, minChars: 520, maxChars: 1020, needsEvidence: false, subsections: SUBSECTION_SOURCE.FIXED, fixedSubsections: ["career", "money"] },
+  { key: "lifeSelf", order: 15, minChars: 520, maxChars: 1020, needsEvidence: false, subsections: SUBSECTION_SOURCE.FIXED, fixedSubsections: ["growth", "decision"] },
+  { key: "conditioningShadow", order: 16, minChars: 520, maxChars: 1020, needsEvidence: true, subsections: SUBSECTION_SOURCE.OPEN_CENTERS },
+  { key: "practicalGuide", order: 17, minChars: 560, maxChars: 1060, needsEvidence: false, subsections: null },
+  { key: "finalSynthesis", order: 18, minChars: 300, maxChars: 800, needsEvidence: false, subsections: null },
 ]);
 
 export const HD_REPORT_SECTION_KEYS = Object.freeze(HD_REPORT_SECTIONS.map((section) => section.key));
@@ -120,16 +120,16 @@ export function hdReportFallbackMinChars(spec) {
     throw new Error("human-design-report-contract: 섹션 key 가 중복이다.");
   }
   const minSum = HD_REPORT_SECTIONS.reduce((sum, section) => sum + section.minChars, 0);
-  if (minSum < HD_REPORT_TARGET_CHARS) {
-    throw new Error(`human-design-report-contract: 섹션 minChars 합(${minSum})이 광고 분량(${HD_REPORT_TARGET_CHARS})에 못 미친다.`);
+  if (minSum < HD_REPORT_TARGET_CHARS * 0.8) {
+    throw new Error(`human-design-report-contract: 섹션 minChars 합(${minSum})이 목표 분량(${HD_REPORT_TARGET_CHARS})의 80%에 못 미친다.`);
   }
   const maxSum = HD_REPORT_SECTIONS.reduce((sum, section) => sum + section.maxChars, 0);
   if (maxSum > HD_REPORT_MAX_TOTAL_CHARS) {
     throw new Error(`human-design-report-contract: 섹션 maxChars 합(${maxSum})이 저장 상한(${HD_REPORT_MAX_TOTAL_CHARS})을 넘는다.`);
   }
   for (const section of HD_REPORT_SECTIONS) {
-    if (section.maxChars - section.minChars < 1500) {
-      throw new Error(`human-design-report-contract: ${section.key} 의 분량 여유가 1500자 미만이다.`);
+    if (section.maxChars - section.minChars < 500) {
+      throw new Error(`human-design-report-contract: ${section.key} 의 분량 여유가 500자 미만이다.`);
     }
   }
 }
@@ -188,13 +188,13 @@ export function requiredSubsectionIds(spec, allowed) {
 /**
  * 개수에 따라 실목표를 조절한다.
  *
- * 🔴 고정 자수를 강요하면 채널이 2개인 사람에게 2,200자를 채우라고 시키는 꼴이라 반복이 나온다
+ * 🔴 고정 자수를 강요하면 채널이 2개인 사람에게 긴 분량을 채우라고 시키는 꼴이라 반복이 나온다
  *    (요구 4가 금지한 것). 반대로 개수만큼 곱하면 채널 0개인 리플렉터의 하한이 무너진다.
  *    그래서 바닥은 개수와 무관하게 두고 그 위에서만 늘린다.
  */
 export function effectiveMinChars(spec, subsectionCount) {
   const base = Math.round(spec.minChars * 0.62);
-  const scaled = base + (260 * Math.max(0, Number(subsectionCount || 0) - 3));
+  const scaled = base + (120 * Math.max(0, Number(subsectionCount || 0) - 3));
   return Math.max(base, Math.min(scaled, spec.maxChars - 400));
 }
 

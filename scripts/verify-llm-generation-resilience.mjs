@@ -19,6 +19,8 @@ import {
   tokensRequiredForChars,
 } from "../worker/lib/llm-budget.js";
 import { EDGE_RESPONSE_DEADLINE_MS, SYNC_LLM_TIMEOUT_CEILING_MS } from "../worker/lib/sync-llm-timeout.js";
+// 5천 원 상품(그룹·섹션 3,000자 미만)은 판정 하한과 프롬프트 상한의 간격도 짧다. 토큰 여유 1,500자는 그대로 요구한다.
+const SHORT_PRODUCT_LENGTH_HEADROOM_CHARS = 500;
 
 const LABEL = "[verify:llm-generation-resilience]";
 // degrade 관문이 쓰는 값과 같아야 한다(각 라우트의 hasRenderableLlmText(..., { minChars: 400 })).
@@ -345,14 +347,15 @@ function assertNeverThrows(feature, label, run) {
       maxOutputTokens: SAJU_AI_SECTION_MAX_OUTPUT_TOKENS,
       tokenConstantName: "SAJU_AI_SECTION_MAX_OUTPUT_TOKENS",
       sourcePath: "worker/lib/saju-ai-prompt.js",
+      minLengthHeadroomChars: SHORT_PRODUCT_LENGTH_HEADROOM_CHARS,
     });
   }
-  // 그룹 합이 배달 하한을 덮는지 — 그룹을 줄이다 하한이 깨지는 회귀를 막는다.
+  // 그룹 합이 목표 분량의 하한 몫(×0.8)을 덮는지 — 그룹을 줄이다 분량이 무너지는 회귀를 막는다.
   const sectionMinTotal = SAJU_AI_SECTION_GROUPS.reduce((sum, group) => sum + group.minChars, 0);
   checks += 1;
   assert(
-    sectionMinTotal >= SAJU_AI_MIN_RESULT_CHARS,
-    `${feature}: 그룹 minChars 합 ${sectionMinTotal} < 배달 하한 ${SAJU_AI_MIN_RESULT_CHARS}`,
+    sectionMinTotal >= SAJU_AI_MIN_RESULT_CHARS * 0.8,
+    `${feature}: 그룹 minChars 합 ${sectionMinTotal} < 목표 분량 ${SAJU_AI_MIN_RESULT_CHARS}의 80%`,
   );
   // 웨이브2는 웨이브1보다 짧은 예산에서 도는데도 그룹 하한은 채워야 한다.
   const sajuRouteSource = read("worker/routes/fortune.js");
@@ -437,15 +440,16 @@ function assertNeverThrows(feature, label, run) {
     maxOutputTokens: COMPASS_SECTION_MAX_OUTPUT_TOKENS,
     tokenConstantName: "COMPASS_SECTION_MAX_OUTPUT_TOKENS",
     sourcePath: "worker/lib/destiny-compass-report-contract.js",
+    minLengthHeadroomChars: SHORT_PRODUCT_LENGTH_HEADROOM_CHARS,
   });
 }
 
 // ── 예산 가드 ─────────────────────────────────────────
-function assertBudget(feature, { minChars, maxChars, maxOutputTokens, tokenConstantName, sourcePath }) {
+function assertBudget(feature, { minChars, maxChars, maxOutputTokens, tokenConstantName, sourcePath, minLengthHeadroomChars = MIN_BUDGET_HEADROOM_CHARS }) {
   const lengthHeadroom = maxChars - minChars;
   assert(
-    lengthHeadroom >= MIN_BUDGET_HEADROOM_CHARS,
-    `${feature}: 분량 여유가 ${lengthHeadroom}자뿐 (요구 ${MIN_BUDGET_HEADROOM_CHARS}자) — 상한 ${maxChars}, 하한 ${minChars}`,
+    lengthHeadroom >= minLengthHeadroomChars,
+    `${feature}: 분량 여유가 ${lengthHeadroom}자뿐 (요구 ${minLengthHeadroomChars}자) — 상한 ${maxChars}, 하한 ${minChars}`,
   );
 
   const headroom = tokenHeadroomChars(maxOutputTokens, maxChars);
@@ -1122,7 +1126,7 @@ for (const [path, key] of CLAMPED_PROMPT_ROUTES) {
 const MAX_FLOOR_TO_TARGET = 0.8;
 const PAID_PART_TARGETS = [
   // [파일, 판정 하한 코드, 하한, 프롬프트 목표 문구, 목표 하한, 한 호출 출력 상한(자), 토큰 코드, maxOutputTokens]
-  ["worker/lib/feature-question-delivery.js", "minChars: 2200", 2200, "목표 2800~3200자", 2800, 3200, "maxOutputTokens: 9500", 9500],
+  ["worker/lib/feature-question-delivery.js", "minChars: 960", 960, "목표 1200~1400자", 1200, 1400, "maxOutputTokens: 9500", 9500],
   ["worker/routes/dream.js", "minChars: 1250", 1250, "목표 ${Math.ceil(task.minChars * 1.3)}~${Math.ceil(task.minChars * 1.5)}자", 1625, 1875, "maxOutputTokens: 9500", 9500],
   ["worker/routes/oracle.js", "minChars: 1800", 1800, "목표 ${Math.ceil(task.minChars * 1.3)}~${Math.ceil(task.minChars * 1.5)}자", 2340, 2700, "maxOutputTokens: 11000", 11000],
   ["worker/lib/naming-report-delivery.js", "function chapterAccepted(state, id) { return Boolean(state.chapters?.[id]); }", 0, "목표 3,200~3,700자", 3200, 3700, "String(chapter.id), 9500)", 9500],
@@ -1132,7 +1136,7 @@ const PAID_PART_TARGETS = [
   ["worker/naming-engine/report.ts", "const NARRATION_MIN_FIELD_CHARS = 20;", 20, "80~140자", 80, 3900, "NARRATION_MAX_OUTPUT_TOKENS = 9500;", 9500],
   // 천상의 조화 카드 한 호출은 긴 필드 여섯 개를 함께 쓴다.
   ["worker/lib/celestial-report-delivery.js", "? 100 : 40", 100, "목표 130~150자", 130, 6 * 150, "CELESTIAL_HARMONY_MAX_OUTPUT_TOKENS,7000", 7000],
-  ["worker/lib/relationship-report-delivery.js", "const RELATIONSHIP_PART_MIN_CHARS = 2000;", 2000, "목표 2600~3000자", 2600, 3000, "capTokens: 9500", 9500],
+  ["worker/lib/relationship-report-delivery.js", "const RELATIONSHIP_PART_MIN_CHARS = 880;", 880, "목표 1100~1250자", 1100, 1250, "capTokens: 9500", 9500],
 ];
 for (const [path, floorCode, floor, targetPhrase, targetLow, outputMaxChars, tokenCode, maxOutputTokens] of PAID_PART_TARGETS) {
   const source = read(path);
@@ -1178,7 +1182,7 @@ const MIN_REJECT_OVER_TARGET = 1.15;
       ],
       tokens: saju.SAJU_AI_SECTION_MAX_OUTPUT_TOKENS,
       rows: saju.SAJU_AI_SECTION_GROUPS.map((g) => ({ key: g.key, floor: g.minChars, targetLow: g.targetMinChars, targetHigh: g.maxChars, rejectMax: 0 })),
-      totalMin: saju.SAJU_AI_MIN_RESULT_CHARS,
+      totalMin: saju.SAJU_AI_MIN_RESULT_CHARS * MAX_FLOOR_TO_TARGET,
     },
     {
       feature: "astrology",

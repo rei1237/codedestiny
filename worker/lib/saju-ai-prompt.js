@@ -1,6 +1,5 @@
 import { FEATURE_KEY_PRICE_TABLE, normalizePaidFeatureKey } from "./paid-feature-registry.js";
 import { buildFortuneQuestionPromptPackage } from "./fortune-question-prompt.js";
-import { PAID_REPORT_MIN_BODY_CHARS } from "./paid-report-quality.js";
 import { basisGroup, basisItem, basisStage, buildAnalysisBasisPayload } from "./analysis-basis-contract.js";
 import { buildEvidenceRuleLines } from "./fortune-reasoning-contract.js";
 import { promptDepthLines } from '../../lib/saju/reading-depth.mjs';
@@ -61,9 +60,9 @@ export const SAJU_AI_SECTION_GROUPS = Object.freeze([
       Object.freeze({ no: 1, title: "질문에 대한 핵심 답변" }),
       Object.freeze({ no: 2, title: "이 명식의 중심 성향" }),
     ]),
-    minChars: 4000,
-    targetMinChars: 5000,
-    maxChars: 6000,
+    minChars: 1920,
+    targetMinChars: 2400,
+    maxChars: 2800,
     guide: "사용자의 질문에 첫 문단에서 조건부로 답한 뒤 일간·월령·강약·격국 가운데 실제 핵심 근거를 골라 중심 성향을 설명하세요. 강점과 그 힘이 과하거나 막힐 때의 모습을 함께 풀고, 다음 챕터도 같은 중심 판단을 이어 가도록 기준을 분명히 하세요.",
   }),
   Object.freeze({
@@ -73,9 +72,9 @@ export const SAJU_AI_SECTION_GROUPS = Object.freeze([
       Object.freeze({ no: 3, title: "십성 구조 해석" }),
       Object.freeze({ no: 4, title: "오행 균형 해석" }),
     ]),
-    minChars: 4000,
-    targetMinChars: 5000,
-    maxChars: 6000,
+    minChars: 1920,
+    targetMinChars: 2400,
+    maxChars: 2800,
     guide: "3장은 확정표의 십성과 제공된 생극·제화 관계로 역할과 반복 패턴을, 4장은 월령·통근·오행의 분포와 조후로 힘의 쓰임을 설명하세요. 비겁과 동업의 경쟁, 식상과 생산처럼 전통적 해석을 하되 신강약·재성의 수용력·조절 근거에 따라 성립하거나 완화되는 조건을 붙이세요. 오행의 개수만으로 성격·재정 통제력·질환을 정하지 말고 과다와 부족의 장점·그늘을 함께 설명하며 두 장의 근거를 반복하지 마세요.",
   }),
   Object.freeze({
@@ -85,9 +84,9 @@ export const SAJU_AI_SECTION_GROUPS = Object.freeze([
       Object.freeze({ no: 5, title: "현재 고민과 명식의 연결" }),
       Object.freeze({ no: 6, title: "일/돈/관계/연애/건강 리듬" }),
     ]),
-    minChars: 4000,
-    targetMinChars: 5000,
-    maxChars: 6000,
+    minChars: 1920,
+    targetMinChars: 2400,
+    maxChars: 2800,
     guide: "5장은 질문의 쟁점을 계산된 명식과 연결하고, 6장은 관련 생활 영역을 서로 다른 근거로 자세히 다루세요. 재물·직업·동업의 기회와 부담은 재성·식상·비겁·관성의 실제 배치와 성립·완화 조건으로 해석한 뒤 수입·지출·역할·계약에서 확인할 장면을 붙이세요. 질문에 없는 개인사를 만들거나 손실·성공을 보장하지 마세요. 오행 개수는 성향의 경향으로만 언급하고, 오행이 많거나 없다는 것을 연봉·승진·재물의 증감이나 특정 장기·질환과 연결하지 마세요(5장의 고민 설명도 같습니다). 건강은 수면·회복·업무량 같은 생활 리듬만 다루고, 불편이 이어지면 의료 확인을 권하는 데서 멈춥니다. 6장 안의 영역별 소제목은 번호 없이 굵은 글씨로만 쓰세요.",
   }),
   Object.freeze({
@@ -97,9 +96,9 @@ export const SAJU_AI_SECTION_GROUPS = Object.freeze([
       Object.freeze({ no: 7, title: "대운의 전환점" }),
       Object.freeze({ no: 8, title: "올해의 흐름" }),
     ]),
-    minChars: 4000,
-    targetMinChars: 5000,
-    maxChars: 6000,
+    minChars: 1920,
+    targetMinChars: 2400,
+    maxChars: 2800,
     guide: "7장은 원국을 바탕으로 제공된 대운 순서·간지·전환 조건을, 8장은 세운이 원국과 해당 대운의 주제를 강화하거나 조정하는 근거를 설명하세요. 시기별 기회·주의점은 계산된 십성·합충·용신 후보와 성립·완화 조건으로 풀되 특정 나이의 수익·손실·사건을 확정하지 않습니다. 지나온 개인사를 사실로 쓰거나 월운 없이 월·상하반기 차이를 만들지 마세요. 점수·등급·성공 확률을 옮기지 말고 다음 구간에서 달라지는 근거와 현실의 확인 기준을 제시하세요.",
   }),
   Object.freeze({
@@ -111,23 +110,23 @@ export const SAJU_AI_SECTION_GROUPS = Object.freeze([
       Object.freeze({ no: 11, title: "30일 실천 가이드" }),
       Object.freeze({ no: 12, title: "마지막 한마디" }),
     ]),
-    minChars: 4000,
-    targetMinChars: 5000,
-    maxChars: 6000,
+    minChars: 1920,
+    targetMinChars: 2400,
+    maxChars: 2800,
     guide: "9장은 앞 장의 판단이 달라지는 반대 조건과 반복 패턴을, 10장은 같은 명리 근거를 살리는 선택과 소모시키는 선택을 비교하세요. 11장은 행동·확인 방법·다음 판단 기준을 정리하고 12장은 공통 답·근거·주의·첫 행동을 새 예언 없이 요약합니다. 명식으로 특정 금융상품이나 무리한 사업 확장을 권하지 마세요. 오행의 색상·방향이 돈을 끌어당긴다는 설명 대신 해당 해석을 생활의 역할·속도·자원 배분에 어떻게 적용하는지와 현실적인 확인 방법을 함께 제시하세요.",
   }),
 ]);
 
 /**
- * 그룹 하나의 LLM 출력 상한. charsAllowedByTokens(12000) = 8,000자로 그룹 maxChars(6,000)를
- * 2,000자 덮는다 — 소제목·줄바꿈 몫과 토크나이저 오차를 흡수하는 완충이다.
+ * 그룹 하나의 LLM 출력 상한. charsAllowedByTokens(12000) = 8,000자로 그룹 maxChars(2,800)를
+ * 충분히 덮는다 — 소제목·줄바꿈 몫과 토크나이저 오차를 흡수하는 완충이다.
  * (같은 값의 선례: worker/routes/astrology-ai.js ASTROLOGY_AI_SECTION_MAX_OUTPUT_TOKENS)
  */
 export const SAJU_AI_SECTION_MAX_OUTPUT_TOKENS = 12000;
 
-// New reports complete only after all chapter bodies meet this floor and storage is confirmed.
-// Historical purchased reports keep their existing read contract.
-export const SAJU_AI_MIN_RESULT_CHARS = PAID_REPORT_MIN_BODY_CHARS;
+// 이 상품 전용 분량 경고 기준(그룹 목표 2,400자 × 5). 미달은 경고일 뿐 결제된 결과를 막지 않는다.
+// 이미 구매한 결과는 기존 읽기 계약을 유지한다.
+export const SAJU_AI_MIN_RESULT_CHARS = 12000;
 
 export const SAJU_AI_CATEGORY_RUBRICS = Object.freeze({
   career: Object.freeze({
