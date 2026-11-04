@@ -1,6 +1,9 @@
 import { CHAT_QUESTION_FISH, chatQuestionFeatureKey } from '../../lib/fortune/chat-products.js';
 import { calculateMembershipCreditCost, normalizePaidFeaturePricingShape } from "./billing-policy.js";
 import { isMusicTrackFeatureKey } from "../../lib/music-access-policy.js";
+// saju-bundle-policy.js 도 이 파일에서 normalizePaidFeatureKey 를 가져온다(순환). 아래 두 값은 함수 안에서만 쓰므로
+// 어느 쪽이 먼저 로드돼도 안전하다. 모듈 최상위에서 부르는 코드를 여기 두지 말 것.
+import { SAJU_BUNDLE_FEATURE_KEY, isSajuBundleSaleClosed } from "./saju-bundle-policy.js";
 
 // 러브 코드는 새 이용마다 결제한다. 과거 계정 해금은 저장된 기존 권한으로 계속 읽는다.
 // 과거 결제/셸 키는 읽기 호환용 별칭으로만 유지한다.
@@ -424,9 +427,17 @@ export function meetsMoonstoneMinimum(amountKRW) {
   return Number.isSafeInteger(amountKRW) && amountKRW >= MOONSTONE_MIN_PRODUCT_KRW;
 }
 
+/**
+ * 사주 영구 묶음(2026-11-04): 묶음과 묶음 포함·판매 종료 키(isSajuBundleSaleClosed)는 이용권·월정석 대상이 아니다.
+ * 묶음은 단건 결제로만 사고(29,000원), 포함 키는 신규 개별 판매가 닫혔다. 가격행은 그대로 두고 판정만 모은다 —
+ * 과거 구매 증빙 비교·환불·확정이 같은 행을 쓰기 때문이다. 이 판정 하나가 getPaidFeaturePaymentPolicy, 카탈로그의
+ * passExcluded·monthlyExcluded, 이용권 커버리지 목록(pass-cost-catalog)을 함께 끈다.
+ */
 export function isDirectOnlyPaidFeatureKey(featureKey) {
   const key = normalizePaidFeatureKey(featureKey);
-  return Boolean(key) && FEATURE_KEY_PRICE_TABLE[key]?.paymentScope === PAYMENT_SCOPE_DIRECT_ONLY;
+  if (!key) return false;
+  if (key === SAJU_BUNDLE_FEATURE_KEY || isSajuBundleSaleClosed(key)) return true;
+  return FEATURE_KEY_PRICE_TABLE[key]?.paymentScope === PAYMENT_SCOPE_DIRECT_ONLY;
 }
 
 /** 이용권 중 Family만 허용한다. 월정석 예외는 getPaidFeaturePaymentPolicy가 판정한다. */

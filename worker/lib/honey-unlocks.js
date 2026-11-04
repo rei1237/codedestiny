@@ -5,6 +5,7 @@ import { resolveBirthUnlockIdentity } from './birth-scoped-unlock-identity.js';
 import { findActivePaidContentUnlock, grantPermanentUnlock, invalidateAccessReadCaches } from './content-unlocks.js';
 import { createHttpError } from './http.js';
 import { getHoneyUnlockProduct } from './honey-unlock-catalog.js';
+import { SAJU_BUNDLE_FEATURE_KEY, isSajuBundleSaleClosed } from './saju-bundle-policy.js';
 import { HONEY_SCOPE, honeyCollections, honeyAttendanceStatus, withHoneyTransaction } from './honey-wallet.js';
 
 const fail = (status, code, message) => createHttpError(status, message, { code });
@@ -12,7 +13,10 @@ const hash = value => createHash('sha256').update(value).digest('hex');
 
 // Injected storage keeps concurrency/rollback tests entirely offline.
 export async function unlockHoneyContent({ userId, productId, profileId, requestId, input }, store) {
-  const product = getHoneyUnlockProduct(productId);
+  // 판매 종료 키는 카탈로그에서 빠졌지만, 이미 꿀방울로 산 사람의 재요청은 보유 확인으로 열어야 한다.
+  // 그래서 보유 확인 뒤·차감 전에 409로 닫는 최소 상품 정보를 따로 둔다.
+  const saleClosed = isSajuBundleSaleClosed(productId);
+  const product = saleClosed ? { productId, featureKey: productId, billingType: 'birth_unlock', honeyCost: 0 } : getHoneyUnlockProduct(productId);
   if (!product || product.productId !== productId) throw fail(400, 'INVALID_HONEY_PRODUCT', '콘텐츠를 다시 선택해 주세요.');
   if (product.billingType === 'per_use') return unlockHoneyUse({ userId, product, profileId, requestId, input }, store);
   if (!/^[\w:.-]{8,160}$/.test(String(requestId || ''))) throw fail(400, 'INVALID_REQUEST_ID', '요청을 다시 확인해 주세요.');
@@ -29,6 +33,7 @@ export async function unlockHoneyContent({ userId, productId, profileId, request
       unlockMap: { [product.featureKey]: true } });
     const existing = await store.findUnlock(target);
     if (existing) return response(0, Boolean(request), String(existing.evidenceId || existing._id || receiptKey));
+    if (saleClosed) throw createHttpError(409, '이 항목은 개별 판매가 끝났어요. 사주 전체 풀이 평생 소장으로 열 수 있어요.', { code: 'PRODUCT_SALE_ENDED', featureKey: product.featureKey, bundleFeatureKey: SAJU_BUNDLE_FEATURE_KEY });
     const receipt = await store.ledgers.findOne({ _id: receiptKey }, { session });
     if (receipt || request) throw fail(409, 'HONEY_UNLOCK_REVIEW_REQUIRED', '이전 해금 내역을 확인해야 해요. 고객센터에 문의해 주세요.');
     await store.ledgers.insertOne({ _id: requestKey, userId, type: 'unlock_request', amount: 0, receiptKey, serviceScope: HONEY_SCOPE, createdAt: new Date() }, { session });

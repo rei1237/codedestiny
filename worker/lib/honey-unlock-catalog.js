@@ -1,4 +1,5 @@
 import { getBillingFeaturePricing } from './billing-feature-registry.js';
+import { isSajuBundleSaleClosed } from './saju-bundle-policy.js';
 // Honey is an alternative unlock method; cash prices remain authoritative in the paid registry.
 const entries = [
   ['saju-career-style', '나의 일 스타일', '기본 사주', null, '성향·월지·여섯 업무 조건과 작은 진로 실험을 담은 여덟 장 리포트', 'openCareerStyleRoute'],
@@ -30,7 +31,8 @@ const perUseEntries = [
   ['compat-sukuyo-compatibility', '숙요 궁합 상세', '숙요', null, '두 사람의 관계 패턴과 구체적인 행동 조언', 'cdHomeSukuyoEntry'],
   ['tarot-myeongri-three-card', '기본 타로 세 장 해석', '타로', null, '선택한 세 장의 흐름과 실천 조언', 'openTarotModal'],
 ];
-export const HONEY_UNLOCK_PRODUCTS = Object.freeze(entries.concat(perUseEntries).map(([featureKey, title, group, honeyCost, description, action]) => {
+// 사주 영구 묶음 포함·판매 종료 키는 꿀방울로도 신규 판매하지 않는다. 이미 산 권리는 honey-unlocks.js가 보유 확인으로 그대로 연다.
+export const HONEY_UNLOCK_PRODUCTS = Object.freeze(entries.concat(perUseEntries).filter(([featureKey]) => !isSajuBundleSaleClosed(featureKey)).map(([featureKey, title, group, honeyCost, description, action]) => {
   const { pricing } = getBillingFeaturePricing({ featureKey });
   // The two Saju reports follow the approved 5,000 KRW / 30-drop pricing proportion.
   // This is a product pricing rule, never a redeemable cash value of the reward.

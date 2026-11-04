@@ -15,16 +15,19 @@ test('public catalog exposes eligible Ggulggul prices without unrelated spending
   const response = await route(new Request('https://example.test/api/honey/catalog'), {});
   const data = await response.json();
   expect(auth).not.toHaveBeenCalled();
-  expect(data.products).toHaveLength(25);
-  expect(data.products.find(row => row.productId === 'section_summary')).toMatchObject({ cashPriceKRW: 10000, honeyCost: 60 });
-  expect(data.products.find(row => row.productId === 'section_daewun')).toMatchObject({ cashPriceKRW: 20000, honeyCost: 120 });
+  expect(data.products).toHaveLength(19);
+  // 2026-11-04: 묶음 포함 키는 꿀방울 신규 판매 목록에 없다(판매 종료 키는 판매 표면에 없어야 한다).
+  for (const key of ['saju-career-style', 'section_summary', 'section_daewun', 'rpt_specialCharmCard', 'rpt_skillTreeCard', 'rpt_villainCard']) {
+    expect(data.products.some(row => row.productId === key)).toBe(false);
+  }
+  expect(data.products.find(row => row.productId === 'ziwei_decade_luck')).toMatchObject({ cashPriceKRW: 5000, honeyCost: 30 });
   expect(data.otherUses).toEqual([]);
   expect(response.headers.get('Cache-Control')).toContain('no-store');
 });
 test('only authenticated owner and three allowed input fields reach the atomic service', async () => {
-  const response = await route(request({ productId: 'section_summary', profileId: 'profile', requestId: 'request-1', userId: 'victim', honeyCost: 0, birthIdentity: { birthKey: 'forged' } }), {});
+  const response = await route(request({ productId: 'ziwei_decade_luck', profileId: 'profile', requestId: 'request-1', userId: 'victim', honeyCost: 0, birthIdentity: { birthKey: 'forged' } }), {});
   expect(response.status).toBe(200);
-  expect(spend).toHaveBeenCalledWith({}, 'owner', { productId: 'section_summary', profileId: 'profile', requestId: 'request-1' });
+  expect(spend).toHaveBeenCalledWith({}, 'owner', { productId: 'ziwei_decade_luck', profileId: 'profile', requestId: 'request-1' });
   expect(purge).toHaveBeenCalledTimes(1);
   expect(response.headers.get('Cache-Control')).toContain('no-store');
 });

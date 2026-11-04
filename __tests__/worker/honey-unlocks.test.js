@@ -9,7 +9,9 @@ beforeAll(async () => {
   ({ HONEY_UNLOCK_PRODUCTS } = await import('../../worker/lib/honey-unlock-catalog.js'));
   ({ isBirthScopedUnlockFeatureKey } = await import('../../worker/lib/paid-feature-registry.js'));
 });
-const base = { userId: 'owner', profileId: 'one', productId: 'rpt_specialCharmCard', requestId: 'request-001' };
+const base = { userId: 'owner', profileId: 'one', productId: 'ziwei_decade_luck', requestId: 'request-001' };
+// 2026-11-04: 묶음 포함 키(rpt_specialCharmCard 등)는 꿀방울 신규 판매에서 빠졌다. 기본 상품은 판매 중인 출생 기반 키(30개)를 쓴다.
+const SOLD_OUT_HONEY_KEYS = ['saju-career-style', 'section_summary', 'section_daewun', 'rpt_specialCharmCard', 'rpt_skillTreeCard', 'rpt_villainCard'];
 
 function fixture(balance = 60) {
   let state = { balance, grants: [], ledgers: [] }, queue = Promise.resolve();
@@ -39,9 +41,10 @@ function fixture(balance = 60) {
   return { store, read: () => state, run: overrides => unlockHoneyContent({ ...base, ...overrides }, store) };
 }
 
-test('정본의 6개·30개 개별 상품은 모두 출생 기반이며 유료 상품은 전환에서 제외한다', () => {
-  expect(HONEY_UNLOCK_PRODUCTS).toHaveLength(25);
-  expect(HONEY_UNLOCK_PRODUCTS.filter(p => p.honeyCost === 6)).toHaveLength(2);
+test('꿀방울 개별 상품은 모두 출생 기반이며 유료 상품은 전환에서 제외하고, 묶음 포함 6종은 판매 목록에 없다', () => {
+  expect(HONEY_UNLOCK_PRODUCTS).toHaveLength(19);
+  expect(HONEY_UNLOCK_PRODUCTS.filter(p => p.honeyCost === 6)).toHaveLength(0);
+  for (const key of SOLD_OUT_HONEY_KEYS) expect(HONEY_UNLOCK_PRODUCTS.some(p => p.featureKey === key || p.productId === key)).toBe(false);
   for (const p of HONEY_UNLOCK_PRODUCTS) {
     expect(p.serviceScope).toBe('GGULGGUL');
     expect(isBirthScopedUnlockFeatureKey(p.featureKey)).toBe(p.billingType === 'birth_unlock');
@@ -50,7 +53,7 @@ test('정본의 6개·30개 개별 상품은 모두 출생 기반이며 유료 �
   }
   for (const key of ['saju_ai_question_prompt', 'fortune-prompt-hub-generate']) expect(HONEY_UNLOCK_PRODUCTS.some(p => p.featureKey === key)).toBe(false);
 });
-test.each([['rpt_specialCharmCard', 6], ['vedic_basic_reading', 30], ['saju-career-style', 30], ['section_summary', 60], ['section_daewun', 120]])('서버 가격 %s, 요청의 가격 조작 무시', async (productId, price) => {
+test.each([['ziwei_decade_luck', 30], ['vedic_basic_reading', 30], ['astro_basic_deep_pack', 30]])('서버 가격 %s, 요청의 가격 조작 무시', async (productId, price) => {
   const f = fixture(150);
   expect((await f.run({ productId, honeyCost: 0 })).spent).toBe(price);
   expect(f.read().balance).toBe(150 - price);
@@ -58,10 +61,10 @@ test.each([['rpt_specialCharmCard', 6], ['vedic_basic_reading', 30], ['saju-care
 test('동시 요청·응답 유실·같은 출생의 다른 프로필은 한 번만 차감한다', async () => {
   const f = fixture();
   const replies = await Promise.all([f.run(), f.run({ requestId: 'request-002' }), f.run({ profileId: 'same-birth' })]);
-  expect(replies.reduce((sum, r) => sum + r.spent, 0)).toBe(6);
-  expect(f.read().balance).toBe(54);
+  expect(replies.reduce((sum, r) => sum + r.spent, 0)).toBe(30);
+  expect(f.read().balance).toBe(30);
   expect((await f.run()).spent).toBe(0);
-  expect((await f.run({ profileId: 'different', requestId: 'request-003' })).spent).toBe(6);
+  expect((await f.run({ profileId: 'different', requestId: 'request-003' })).spent).toBe(30);
 });
 test('잔액 부족과 권리 저장 실패는 원장·차감을 모두 롤백한다', async () => {
   const short = fixture(5);
@@ -76,8 +79,18 @@ test('다른 계정·소유하지 않은 프로필·재사용 요청은 권리�
   await expect(f.run({ userId: 'other' })).rejects.toMatchObject({ status: 403 });
   await expect(f.run({ profileId: 'foreign' })).rejects.toMatchObject({ status: 403 });
   await f.run();
-  await expect(f.run({ productId: 'rpt_skillTreeCard' })).rejects.toMatchObject({ status: 409 });
-  expect(f.read().balance).toBe(54);
+  await expect(f.run({ productId: 'vedic_basic_reading' })).rejects.toMatchObject({ status: 409 });
+  expect(f.read().balance).toBe(30);
+});
+test.each(SOLD_OUT_HONEY_KEYS)('판매가 끝난 %s 는 꿀방울로 새로 사지 못하고 차감·원장·권리가 없다(409 PRODUCT_SALE_ENDED)', async productId => {
+  const f = fixture(999);
+  await expect(f.run({ productId })).rejects.toMatchObject({ status: 409, payload: { code: 'PRODUCT_SALE_ENDED', bundleFeatureKey: 'saju_lifetime_bundle' } });
+  expect(f.read()).toEqual({ balance: 999, grants: [], ledgers: [] });
+});
+test.each(SOLD_OUT_HONEY_KEYS)('이미 산 %s 는 꿀방울 재요청에서 무차감으로 열린다', async productId => {
+  const f = fixture(0); f.store.findUnlock = async () => ({ source: 'HONEY', active: true });
+  expect(await f.run({ productId })).toMatchObject({ unlocked: true, spent: 0 });
+  expect(f.read().ledgers).toHaveLength(0);
 });
 test('기존 구매 권리가 있으면 잔액이 없어도 추가 차감하지 않는다', async () => {
   const f = fixture(0); f.store.findUnlock = async () => ({ source: 'PAID', active: true });
@@ -129,8 +142,8 @@ test('실제 꿀방울 원장 writer와 reader가 동일 증빙을 읽고 다른
   }
 });
 
-test('진로 리포트는 잔액 부족·실패 재시도·동시 해금·다른 카드·재로그인에서 중복 차감하지 않는다', async () => {
- const productId='saju-career-style';
+test('판매 중인 30개 출생 상품은 잔액 부족·실패 재시도·동시 해금·다른 카드·재로그인에서 중복 차감하지 않는다', async () => {
+ const productId='vedic_basic_reading';
  const short=fixture(29); await expect(short.run({productId})).rejects.toMatchObject({status:402}); expect(short.read().balance).toBe(29);
  const f=fixture(60), grant=f.store.grant;
  f.store.grant=async()=>{throw Error('grant failure');};

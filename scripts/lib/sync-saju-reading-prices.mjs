@@ -1,6 +1,5 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { getHoneyUnlockProduct } from '../../worker/lib/honey-unlock-catalog.js';
 import { getBillingFeaturePricing } from '../../worker/lib/billing-feature-registry.js';
 
 // Presentation seeds use the same resolver as billing; no second price table.
@@ -22,8 +21,11 @@ export function syncSajuReadingPrices(root) {
     html = html.replace(new RegExp(`<button\\b(?=[^>]*data-unlock-key="${featureKey}")[^>]*>`, 'g'), tag =>
       tag.replace(/data-unlock-cost="\d+"/, `data-unlock-cost="${cost}"`));
   }
-  const career=getHoneyUnlockProduct('saju-career-style');
-  const careerLabel=career.cashPriceKRW.toLocaleString('ko-KR')+'원 또는 꿀방울 '+career.honeyCost+'개';
+  // 꿀방울 판매가 닫혔으므로 일 스타일 라벨은 현금가만 쓴다(레지스트리 가격행 그대로).
+  const careerPricing=getBillingFeaturePricing({featureKey:'saju-career-style'});
+  if(!careerPricing.ok || !Number.isSafeInteger(careerPricing.pricing.amountKRW)) throw new Error('Missing career style price');
+  const career={cashPriceKRW:careerPricing.pricing.amountKRW};
+  const careerLabel=career.cashPriceKRW.toLocaleString('ko-KR')+'원';
   updated=updated.replace(/(id:"career-style"[^\n]+?badge:")[^"]*(")/, '$1'+careerLabel+'$2');
   html=html.replace(/(<span data-career-style-price>)[^<]*(<\/span>)/g, '$1'+careerLabel+'$2');
   if (updated !== source) writeFileSync(dashboard, updated);

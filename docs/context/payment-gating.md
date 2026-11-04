@@ -344,3 +344,16 @@
 - 꿀 카탈로그(`honey-unlock-catalog.js`, `i18n/authored/honeyUI-02.json`): 꿀로 묶음을 살 수 있게 할지는 상품 결정이다.
 - `payment-p0-inventory.json`: 묶음은 PIG 테이블에 있어 `listProducts()`에 나오지 않고, 인벤토리 검증은 featureKey 집합만 비교하므로 변경 없이 통과한다.
 - `service-registry.js`, `serviceFeatureRegistry.ts`, `fortune.js`, `billing-feature-registry.js`: 화면과 읽기 경로 작업(Task 2, 5)에서 다룬다.
+
+### 개별 신규 판매 종료 (Task 3, 2026-11-04)
+
+묶음 포함 키 12개와 판매 종료 키 18개(`isSajuBundleSaleClosed`)는 **신규 개별 구매**만 닫는다. 묶음(`saju_lifetime_bundle`)과 가격행(`LEGACY_UNLOCK_PRODUCTS_65DE451` 포함)은 그대로이고, 기존 구매·확정·환불·정산·과거 구매 증빙 비교는 이 판정을 타지 않는다.
+
+- 응답 계약: HTTP 409, 코드 `PRODUCT_SALE_ENDED`, 본문에 `featureKey`와 `bundleFeatureKey: "saju_lifetime_bundle"`. 화면(Task 5)이 이 필드로 묶음 안내를 연다. V2 결제 컨텍스트는 meta를 응답에 싣지 않으므로 이 코드에 한해 두 키만 `worker/payments/index.js`의 오류 응답에 허용한다.
+- 순서: **보유(묶음 별칭 포함) 확인 → 판매 종료 409 → 차감·주문 생성**. 산 것은 `already_unlocked`로 계속 열린다. `LEGACY_COIN_BLOCKED`보다도 앞이다.
+- 이용권·월정석 제외: `isDirectOnlyPaidFeatureKey`(`paid-feature-registry.js`)가 묶음과 판매 종료 키에 true를 주어 `directOnly`·`monthlyExcluded`·`allowedPaymentMethods ["DIRECT_KRW"]`, 카탈로그 `passExcluded`, 이용권 커버 목록(`pass-cost-catalog`)에서 한 번에 빠진다. `SAJU_BUNDLE_ONLY` 분기는 건드리지 않았다.
+- 꿀방울: 판매 종료 키 6개(`saju-career-style`, `section_summary`, `section_daewun`, `rpt_specialCharmCard`, `rpt_skillTreeCard`, `rpt_villainCard`)가 `HONEY_UNLOCK_PRODUCTS`에서 빠진다. 이미 꿀방울로 산 계정의 재요청은 `unlockHoneyContent`가 보유 확인으로 열고, 비보유는 차감 전에 409다. 꿀방울로 묶음을 사는 경로는 만들지 않았다.
+- 앱: Play 결제 의도(`/google/intent`)·`/products`·`/free-grant`가 판매 종료 키에 409를 준다. 묶음 SKU `cd_content_tier_19`는 막지 않는다. 이미 만든 의도의 `/google/verify`·`/restore`·RTDN은 닫지 않는다.
+- 확정 경로: `findOwnedEntitlement`가 묶음 별칭을 읽도록 맞췄다. 지급(`grantEntitlement`)은 별칭을 보지 않아, 닫히기 전에 만든 포함 키 주문이 확정되면 개별 권리 행이 그대로 남는다.
+- 주의: `createOrder`가 닫힌 키를 막으므로, 같은 멱등키로 닫히기 전에 만든 **미결제** 주문을 다시 열려는 재시도도 409다. 결제된 주문의 확정·환불은 `createOrder`를 쓰지 않아 영향이 없다.
+- 화면 문구(홈의 "5,000원 또는 꿀방울 30개" 등)와 `sync:public`은 Task 5가 다룬다. `scripts/lib/sync-saju-reading-prices.mjs`는 꿀방울 가격을 읽지 않고 현금가만 쓰도록 바꿨다.

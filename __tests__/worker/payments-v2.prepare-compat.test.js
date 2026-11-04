@@ -72,9 +72,9 @@ const LEGACY_PREPARE_ORDER_KEYS = [
 ];
 
 test.each([
-  ["section_daewun", "사주 대운 분석"],
-  ["section_summary", "라이트 사주 풀이"],
-])("사주 %s 주문명은 공통 버튼 문구 대신 상품명을 사용한다", async (featureKey, expectedName) => {
+  ["saju-guardian-unlock", "사주 가디언 소환진 해금"],
+  ["ziwei_decade_luck", "자미두수 대한 흐름 해금"],
+])("판매 중인 출생 기반 %s 주문명은 공통 버튼 문구 대신 상품명을 사용한다", async (featureKey, expectedName) => {
   const db = makeFakePaymentDb({ profileCards: [testCard("p1", { userId: USER })] });
   seedUser(db);
   const { response, payload } = await postPrepare(db, {
@@ -95,7 +95,7 @@ test("🔴 출생 기반 상품은 profileId 없이 결제를 시작하지 않�
   const db = makeFakePaymentDb({ profileCards: [testCard("profile-current-1", { userId: USER })] });
   seedUser(db);
   const { response, payload } = await postPrepare(db, {
-    paymentType: "digital_content", featureKey: "section_daewun", idempotencyKey: "no-profile-daewun",
+    paymentType: "digital_content", featureKey: "ziwei_decade_luck", idempotencyKey: "no-profile-ziwei",
   });
   expect(response.status).toBe(400);
   expect(JSON.stringify(payload)).toContain("MISSING_PROFILE_ID");

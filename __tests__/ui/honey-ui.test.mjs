@@ -102,7 +102,9 @@ test('all product button adapters preserve cash handlers and show server honey p
       assert.equal(button.nextElementSibling.querySelector('strong').textContent, `${item.honeyCost}개`);
       button.click();
     }
-    assert.equal(cashClicks, 23);
+    // 2026-11-04: 묶음 포함 6종이 꿀방울 판매에서 빠져 출생 기반 17종이다(카탈로그에서 센다).
+    assert.equal(cashClicks, HONEY_UNLOCK_PRODUCTS.filter(item => item.billingType === 'birth_unlock').length);
+    assert.equal(cashClicks, 17);
   } finally { app.close(); }
 });
 test('double clicks coalesce and stale account responses cannot overwrite the new balance', async () => {
@@ -172,7 +174,7 @@ test('use guide groups catalog products and labels costs, eligibility and per-re
  const app=await setup();try{
  const d=app.win.document;d.body.insertAdjacentHTML('beforeend','<button data-cd-sheet-open="cdHoneySheet">사용처 보기</button><div id="cdHoneySheet"><p data-cd-honey-sheet-state></p><div data-cd-honey-uses></div></div>');
  d.querySelector('[data-cd-sheet-open]').click();await tick();await tick();
- assert.equal(d.querySelectorAll('.cd-honey-use-group').length,6);
+ assert.equal(d.querySelectorAll('.cd-honey-use-group').length,new Set(HONEY_UNLOCK_PRODUCTS.map(p=>p.group)).size);
  assert.equal(d.querySelectorAll('.cd-honey-use').length,HONEY_UNLOCK_PRODUCTS.length);
  assert.equal(d.querySelectorAll('.cd-honey-use .cd-honey-eligible').length,HONEY_UNLOCK_PRODUCTS.length);
  for(const row of d.querySelectorAll('.cd-honey-use')){assert.match(row.querySelector('.cd-honey-use__meta').textContent,/꿀방울 \d+개/);assert.ok(row.querySelector('a').getAttribute('aria-label'));}
@@ -215,13 +217,14 @@ test('reduced motion still announces credit; no credit and failed requests never
 });
 
 for (const locale of ['en', 'ja', 'zh-CN', 'zh-TW', 'vi', 'hi', 'es', 'fr', 'de', 'nl', 'ms']) {
-  test(locale + ': all 25 products, prices, controls and a cancelled confirmation use the locale', async () => {
+  test(locale + ': all 19 products, prices, controls and a cancelled confirmation use the locale', async () => {
     const app = await setup('ok', { locale });
     try {
       const { win } = app, doc = win.document;
       doc.body.insertAdjacentHTML('beforeend', '<button data-cd-sheet-open="cdHoneySheet">open</button><dialog id="cdHoneySheet" open><p data-cd-honey-sheet-state></p><div data-cd-honey-uses></div></dialog><button id="useHoney"></button><dialog id="cdHoneyUnlockSheet"><h3 data-honey-confirm-title></h3><p data-honey-confirm-cost></p><p data-honey-confirm-condition></p><button data-honey-confirm></button></dialog>');
       doc.querySelector('[data-cd-sheet-open]').click(); await tick();
-      assert.equal(doc.querySelectorAll('.cd-honey-use').length, 25);
+      assert.equal(doc.querySelectorAll('.cd-honey-use').length, HONEY_UNLOCK_PRODUCTS.length);
+      assert.equal(HONEY_UNLOCK_PRODUCTS.length, 19);
       for (const row of doc.querySelectorAll('.cd-honey-use')) {
         assert.doesNotMatch(row.textContent + row.querySelector('a').getAttribute('aria-label'), /[가-힣]|\{\w+\}|honeyUI\./);
         const key = new URL(row.querySelector('a').href).searchParams.get('honeyContent');
