@@ -172,7 +172,17 @@ test('use guide groups catalog products and labels costs, eligibility and per-re
  const app=await setup();try{
  const d=app.win.document;d.body.insertAdjacentHTML('beforeend','<button data-cd-sheet-open="cdHoneySheet">사용처 보기</button><div id="cdHoneySheet"><p data-cd-honey-sheet-state></p><div data-cd-honey-uses></div></div>');
  d.querySelector('[data-cd-sheet-open]').click();await tick();await tick();
- assert.equal(d.querySelectorAll('.cd-honey-use-group').length,5);
+ const expectedGroups = [];
+ for (const product of HONEY_UNLOCK_PRODUCTS) {
+  const title = ['기본 사주', '재미 사주'].includes(product.group) ? '사주' : product.group;
+  let group = expectedGroups.find(item => item.title === title);
+  if (!group) expectedGroups.push(group = {title, products: []});
+  group.products.push(product.title);
+ }
+ assert.deepEqual(Array.from(d.querySelectorAll('.cd-honey-use-group'), group => ({
+  title: group.querySelector('summary strong').textContent,
+  products: Array.from(group.querySelectorAll('.cd-honey-use h4'), item => item.textContent),
+ })), expectedGroups, 'Guide groups contain every catalogue product exactly once and in order');
  assert.equal(d.querySelectorAll('.cd-honey-use').length,HONEY_UNLOCK_PRODUCTS.length);
  assert.equal(d.querySelectorAll('.cd-honey-use .cd-honey-eligible').length,HONEY_UNLOCK_PRODUCTS.length);
  for(const row of d.querySelectorAll('.cd-honey-use')){assert.match(row.querySelector('.cd-honey-use__meta').textContent,/꿀방울 \d+개/);assert.ok(row.querySelector('a').getAttribute('aria-label'));}
