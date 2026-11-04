@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import { readFileSync } from 'node:fs';
 import { calcPower, analyzeJohu } from '../../worker/yeongnyangi/fortune/saju-runtime.mjs';
-import { loadRichWithNatal } from '../lib/saju-rich-with-natal.mjs';
+import { loadRichWithNatal, fullReadingDepthSource } from '../lib/saju-rich-with-natal.mjs';
 
 // The page globals the display layer reads: engine tables from the static shell, copied as-is.
 const engine=readFileSync('js/saju-engine.js','utf8');
@@ -254,7 +254,7 @@ test('climate base follows the month branch (12 steps) and the worker policy cop
 
 test('nature imagery follows calculated stem and solar month, independent of narrator',()=>{
   // ilju 의 여덟 관점은 reading-depth 가 있어야 나온다. 다른 테스트에 영향이 없도록 별도 컨텍스트에서 읽는다.
-  const {rich}=loadRichWithNatal('',readFileSync('js/core/saju/reading-depth.generated.js','utf8'));
+  const {rich}=loadRichWithNatal('',fullReadingDepthSource());
   const facts=factsOf(charts[3]);
   const count=(html,re)=>(html.match(re)||[]).length;
   const art=/<figure class="saju-nature"/g;

@@ -176,6 +176,37 @@ test('legacy results cap cards, retain result actions and hide failed requests',
  } finally {for(const k of names){if(saved[k]===undefined)delete globalThis[k];else globalThis[k]=saved[k];}dom.window.close();}
 });
 
+test('legacy saju tags come from the free ilju advice, not from the server-filled list', async () => {
+ const { JSDOM } = await import('jsdom');
+ const dom = new JSDOM('<html lang="ko"><body><main><ul id="iljuAdviceList"><li>안내 한 덩어리</li></ul><button id="save">결과 저장</button></main></body></html>', {url:'http://localhost/'});
+ const names=['window','document','sessionStorage','location','fetch','setInterval','clearInterval'];
+ const saved=Object.fromEntries(names.map(k=>[k,globalThis[k]]));
+ try {
+  for(const k of ['window','document','sessionStorage','location'])globalThis[k]=k==='window'?dom.window:dom.window[k];
+  globalThis.setInterval=()=>0;globalThis.clearInterval=()=>{};
+  const { mountSajuRecommendation, iljuAdviceLines }=await import('../../js/recommendations-legacy.mjs');
+  // 앞 3문장만, 태그는 걷어낸다(서버 목록 규칙과 같다).
+  assert.deepEqual(iljuAdviceLines('<b>하나.</b> 둘! 셋? 넷. 다섯.'),['하나.','둘!','셋?']);
+  assert.deepEqual(iljuAdviceLines(''),[]);
+  assert.deepEqual(iljuAdviceLines(undefined),[]);
+  const host=document.querySelector('main'),save=document.querySelector('#save');
+  let requested;
+  globalThis.fetch=async url=>{requested=new URL(url,'http://localhost');return {ok:true,json:async()=>({enabled:true,products:[]})};};
+  // 잠금 상태의 서버 칸(안내 한 덩어리)이나 아직 비어 있는 칸과 상관없이 같은 태그가 나온다.
+  await mountSajuRecommendation(host,save,iljuAdviceLines('집중 시간을 확보하세요. 둘째 문장.'));
+  assert.equal(requested.searchParams.get('topic'),'focus');
+  host.querySelector('#iljuAdviceList').innerHTML='';
+  requested=null;
+  await mountSajuRecommendation(host,save,iljuAdviceLines('집중 시간을 확보하세요. 둘째 문장.'));
+  assert.equal(requested.searchParams.get('topic'),'focus');
+  // 목록을 주면 화면은 읽지 않는다: 목록이 비면 태그도 없다.
+  host.querySelector('#iljuAdviceList').innerHTML='<li>집중 시간을 확보하세요.</li>';
+  requested=null;
+  await mountSajuRecommendation(host,save,[]);
+  assert.equal(requested?.searchParams.has('topic')??false,false);
+ } finally {for(const k of names){if(saved[k]===undefined)delete globalThis[k];else globalThis[k]=saved[k];}dom.window.close();}
+});
+
 test('legacy refresh keeps the cards a reader is looking at when nothing changed', async () => {
  const { JSDOM } = await import('jsdom');
  const dom = new JSDOM('<html lang="ko"><body><main><button id="save">결과 저장</button></main></body></html>', {url:'http://localhost/',pretendToBeVisual:true});

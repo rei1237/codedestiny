@@ -1467,9 +1467,9 @@ describe("saju_lifetime_bundle natal reading", () => {
   const PART_KEYS = ["ilju", "ten", "climate", "strength", "terms"];
   const slotsOf = (html) => Object.fromEntries([...String(html).matchAll(/<template data-natal-slot="([^"]+)">([\s\S]*?)<\/template>/g)].map((m) => [m[1], m[2]]));
   const godsOf = (html) => Object.fromEntries([...String(html).matchAll(/<template data-natal-god="([^"]+)">([\s\S]*?)<\/template>/g)].map((m) => [m[1], m[2]]));
-  const bundleFor = (c, mode) => buildSajuSectionHtml({
+  const bundleFor = (c, mode, lang) => buildSajuSectionHtml({
     featureKey: BUNDLE, birth: { calendarDate: c.date, calType: c.calType, hour: c.hour, minute: c.minute, timeKnown: c.timeKnown !== false },
-    gender: c.gender, name: c.name, mode, place: c.place, jongDecision: c.jong, now: new Date(PARITY.now),
+    gender: c.gender, name: c.name, mode, place: c.place, jongDecision: c.jong, now: new Date(PARITY.now), ...(lang ? { lang } : {}),
   }).parts;
 
   test("미구매는 402이고 응답에 본문이 없다", async () => {
@@ -1516,6 +1516,20 @@ describe("saju_lifetime_bundle natal reading", () => {
     expect(forged.body.parts).toEqual(buildSajuSectionHtml({ featureKey: BUNDLE, birth: CARD_BIRTH, gender: "M", name: "테스트", mode: "pig", lang: "ko" }).parts);
   });
 
+  test("프로필 없이는 해금이 있어도 400이고 본문이 없다", async () => {
+    grant({}, BUNDLE);
+    // 계정 단위 해금(USER 범위 행)이 있어도 프로필 없는 요청은 본문 생년월일로 계산하지 않는다.
+    grant({ scope: "USER", profileId: "__user__" }, BUNDLE);
+    const { profileId, ...noProfile } = BUNDLE_INPUT;
+    for (const body of [noProfile, { ...noProfile, profileId: "   " }, { ...noProfile, birth: { date: "1985-11-02", calType: "solar", hour: 6, minute: 5 }, calendarDate: "1985-11-02", gender: "F" }]) {
+      const result = await request(body);
+      expect(result.status).toBe(400);
+      expect(result.body).toMatchObject({ ok: false, code: "MISSING_PROFILE_ID", featureKey: BUNDLE, requiresProfile: true });
+      expect(result.body.parts).toBeUndefined();
+      expect(JSON.stringify(result.body)).not.toContain("<template");
+    }
+  });
+
   test("권한 조회 장애는 503이다", async () => {
     grant({}, BUNDLE);
     connectDb.mockRejectedValue(new Error("private database connection information"));
@@ -1526,22 +1540,40 @@ describe("saju_lifetime_bundle natal reading", () => {
     expect(JSON.stringify(result.body)).not.toContain("private database");
   });
 
-  test("출생 시각 미상은 시각 의존 값을 지어내지 않는다", async () => {
+  // 출생 시각 미상 계약: 서버는 정오(12:00)를 가정해 원국을 계산하고(report.js), 시주 글자도 십성·조후·억부 계산에 들어간다.
+  // 그 값은 비우지 않고 이전 브라우저와 같게 "정오 대입" 안내와 함께 보낸다. 값을 못 구할 때만 빈 문자열이다.
+  // 일부러 다른 칸은 절기뿐이다: 정오 가정으로 구간 진행률·경계 안내를 지어내던 t24-pill·t24-meter·t24-caution 을 걷고 t24-unknown-note 를 단다.
+  test("출생 시각 미상은 정오 가정 값에 안내를 달고 절기 진행률·경계 안내만 걷는다", async () => {
     cards.push(testCard("p4", { ...BIRTH, timeUnknown: true }));
     grant({ profileId: birthProfileId("p4"), purchaseProfileId: "p4" }, BUNDLE);
     const unknown = await request({ ...BUNDLE_INPUT, profileId: "p4" });
     expect(unknown.status).toBe(200);
+    const parts = unknown.body.parts;
     const known = buildSajuSectionHtml({ featureKey: BUNDLE, birth: CARD_BIRTH, gender: "M", name: "테스트", mode: "pig", lang: "ko" }).parts;
-    // 시주가 없는 원국: 십성 개수에 시주 글자가 들지 않고, 절기는 출생 시각이 정한 구간 진행률·경계 안내를 내지 않는다.
-    expect(unknown.body.parts.terms).not.toContain("t24-meter");
-    expect(unknown.body.parts.terms).not.toContain("t24-pill");
-    expect(unknown.body.parts.terms).not.toContain("t24-caution");
-    expect(unknown.body.parts.terms).toContain("t24-domain");
-    expect(unknown.body.parts.terms).toContain("출생 시각을 모르면");
+    for (const key of PART_KEYS) expect(typeof parts[key]).toBe("string");
+    // 정오 가정 값은 비어 있지 않고, 정오 대입 안내와 함께 나온다.
+    for (const [key, slot] of [["ilju", "sajuIljuRich"], ["ten", "sajuTenOverview"], ["climate", "johuContent"], ["strength", "ukbuSection"]]) {
+      const html = slotsOf(parts[key])[slot];
+      expect(html.length).toBeGreaterThan(100);
+      expect(html).toContain("정오");
+      expect(html).not.toBe(slotsOf(known[key])[slot]);
+    }
+    expect(slotsOf(parts.ilju).sajuElementReading).not.toBe(slotsOf(known.ilju).sajuElementReading);
+    expect(Object.keys(godsOf(parts.ten)).length).toBeGreaterThan(0);
+    expect(slotsOf(parts.ten).tsGrid).not.toBe(slotsOf(known.ten).tsGrid);
+    // 시각과 무관한 일주 문장 칸은 시각을 아는 경우와 같다.
+    for (const slot of ["iljuSummaryList", "iljuDetailList", "iljuAdviceList", "iljuKeywords", "iljuDetailsInfo"]) expect(slotsOf(parts.ilju)[slot]).toBe(slotsOf(known.ilju)[slot]);
+    // 절기: 구간 진행률·경계 안내는 없고, 월령·계절 칸과 모름 안내만 있다.
+    expect(parts.terms).not.toContain("t24-meter");
+    expect(parts.terms).not.toContain("t24-pill");
+    expect(parts.terms).not.toContain("t24-caution");
+    expect(parts.terms).toContain("t24-domain");
+    expect(parts.terms).toContain("t24-unknown-note");
+    expect(parts.terms).toContain("출생 시각을 모르면");
     expect(known.terms).toContain("t24-meter");
+    expect(known.terms).toContain("t24-pill");
+    expect(known.terms).not.toContain("t24-unknown-note");
     expect(known.terms).not.toContain("출생 시각을 모르면");
-    expect(unknown.body.parts.ten).not.toBe(known.ten);
-    for (const key of PART_KEYS) expect(typeof unknown.body.parts[key]).toBe("string");
   });
 
   // PARITY.natal[id][mode]: HEAD 클라이언트(renderIlju·render24Terms·renderTenshin·renderJohu·renderUkbu + 십성 상세 모달)가 같은 출생·같은 now 로 칸마다 넣은 HTML 의 sha256.
@@ -1557,5 +1589,57 @@ describe("saju_lifetime_bundle natal reading", () => {
     if (c.timeKnown === false) delete wantSlots.terms24Grid;
     for (const [key, hash] of Object.entries(wantSlots)) expect([key, slotHashes[key]]).toEqual([key, hash]);
     expect(Object.fromEntries(Object.entries(godsOf(parts.ten)).map(([key, html]) => [key, sha256(html)]))).toEqual(wantGods);
+  });
+
+  // 비한국어 구매자도 옛 브라우저와 같은 번역 본문을 받는다(서버가 요청 lang 으로 만든다).
+  // PARITY.natalIntl[lang][id][mode]: HEAD 브라우저가 그 언어로 칸마다 넣은 HTML 의 sha256(번역 풀이 틀·reading-rich-intl 문장).
+  // 일주 키워드·일주 해설 한 줄·24절기 칸은 옛 브라우저도 모든 언어에서 한국어였으므로 해시 대신 한국어 본문과 같은지 본다.
+  const KO_ONLY_SLOTS = ["iljuDetailsInfo", "terms24Grid"];
+  const natalSlotsOf = (parts) => ({ ...slotsOf(parts.ilju), ...slotsOf(parts.ten), ...slotsOf(parts.climate), ...slotsOf(parts.strength), ...slotsOf(parts.terms) });
+  const INTL_LANGS = Object.keys(PARITY.natalIntl);
+  const INTL_RENDERS = INTL_LANGS.flatMap((lang) => PARITY.renders.map((render) => [lang, render.id, render.mode]));
+  test("번역 parity 사례가 지원 언어 네 벌을 모두 덮는다", () => {
+    expect(INTL_LANGS).toEqual(["en", "ja", "zh-CN", "zh-TW"]);
+  });
+  test.each(INTL_RENDERS)("natal slots in %s equal the HEAD client engine output: %s %s", (lang, id, mode) => {
+    const c = PARITY.cases.find((entry) => entry.id === id);
+    const parts = bundleFor(c, mode, lang);
+    const got = natalSlotsOf(parts);
+    const { gods: wantGods, ...wantSlots } = PARITY.natalIntl[lang][id][mode];
+    for (const [key, hash] of Object.entries(wantSlots)) expect([key, sha256(got[key] || "")]).toEqual([key, hash]);
+    expect(Object.fromEntries(Object.entries(godsOf(parts.ten)).map(([key, html]) => [key, sha256(html)]))).toEqual(wantGods);
+    const ko = natalSlotsOf(bundleFor(c, mode));
+    for (const key of KO_ONLY_SLOTS) {
+      if (c.timeKnown === false && key === "terms24Grid") continue;
+      expect([key, got[key]]).toEqual([key, ko[key]]);
+    }
+  });
+  test.each(["vi", "hi", "es", "fr", "de", "nl", "ms"])("%s 구매자는 옛 브라우저처럼 영어 본문을 받는다", (lang) => {
+    for (const render of PARITY.renders.slice(0, 6)) {
+      const c = PARITY.cases.find((entry) => entry.id === render.id);
+      expect(bundleFor(c, render.mode, lang)).toEqual(bundleFor(c, render.mode, "en"));
+    }
+  });
+  test("언어 표기는 엔진 정규화를 따르고, 지원하지 않는 언어는 옛 브라우저처럼 한국어다", () => {
+    const render = PARITY.renders[0];
+    const c = PARITY.cases.find((entry) => entry.id === render.id);
+    const ko = bundleFor(c, render.mode);
+    const en = bundleFor(c, render.mode, "en");
+    expect(en).not.toEqual(ko);
+    expect(bundleFor(c, render.mode, "en-US")).toEqual(en);
+    expect(bundleFor(c, render.mode, "zh-Hans")).toEqual(bundleFor(c, render.mode, "zh-CN"));
+    expect(bundleFor(c, render.mode, "zh-HK")).toEqual(bundleFor(c, render.mode, "zh-TW"));
+    for (const lang of ["xx", "tlh", "ko-KR", ""]) expect(bundleFor(c, render.mode, lang)).toEqual(ko);
+  });
+  test("번역 본문에 한국어 일주·월령 문장 틀이 섞이지 않는다", () => {
+    // 일주 요약 줄은 한국어 사례 문장(dayReading)이 아니라 번역 블록이다.
+    const render = PARITY.renders[0];
+    const c = PARITY.cases.find((entry) => entry.id === render.id);
+    const en = natalSlotsOf(bundleFor(c, render.mode, "en"));
+    const ko = natalSlotsOf(bundleFor(c, render.mode));
+    expect(en.iljuSummaryList).not.toEqual(ko.iljuSummaryList);
+    expect(en.iljuSummaryList).not.toMatch(/[가-힣]/);
+    expect(en.johuContent).not.toMatch(/[가-힣]/);
+    expect(en.ukbuSection).not.toMatch(/[가-힣]/);
   });
 });

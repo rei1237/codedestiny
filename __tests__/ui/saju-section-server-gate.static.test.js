@@ -85,7 +85,13 @@ test("종합·대운 유료 렌더러와 문장이 브라우저 경로에 없다
     "ILJU_INNATE_DB", "_buildHeroSVG", "addTenGodWeight", "lockedDB", "levelUpText",
     "홀로서기의 전투 기술", "마르지 않는 영원한 영감의 원천",
     // 원국 해석(saju_lifetime_bundle): 일주·십성·조후·억부·절기. 생성기 이름과 해석 전용 문장만 본다 — 일주 표(ILJU_DB)·십성 표(TS_DB/TS_DEEP)는 계산·무료 상세 모달·section_summary 가 함께 쓰는 공용 표라 넣지 않는다.
-    // reading-rich-intl.js 의 climateVersus(비한국어 조후 문장)도 넣지 않는다: 옮긴 구간에서는 호출되지 않는 비한국어 보조 본문이라 서버 전달 대상에서 제외하고 후속으로 둔다.
+    // 비한국어 원국 해석(reading-rich-intl.js 의 조후·억부·십성·일주 문장과 climateVersus)은 서버 전용 paid-natal-intl.src.js 로 옮겼다. 공개 reading-rich-intl.js 에는 무료 화면의 flow·daily 만 남는다.
+    // 일주·월령 문장 원천(reading-depth)은 서버 전용 lib/saju/reading-depth.mjs 에만 두고, 공개 reading-depth.generated.js 는 reading-depth-public.mjs 만 싣는다.
+    "climateVersus", "natalIntl", "PILLAR_NOTES", "dayReadingNeo", "monthReadingNeo", "contextualReadingNeo",
+    "기준을 세우고 앞장서는 힘이 있어요. 그 기준이 굳어지면 도움을 받아도 간섭처럼 느낄 수 있어요", "일주의 성향만으로 수입이나 투자 성과를 알 수는 없어요",
+    "스스로 정한 방향을 지키려는 갑목과 먼저 생각을 모으는 자수의 결이 만나요", "완수한 일과 아직 자라는 일을 나눠 적고",
+    "like a tall tree growing straight up: it sets a direction, takes the lead and holds its pride",
+    "天へまっすぐ伸びる大樹のように、方向を定めて先頭に立ち、誇りを守る気質", "像笔直向上生长的大树，认准方向、愿意带头，也守着自己的骄傲", "像筆直向上生長的大樹，認準方向、願意帶頭，也守著自己的驕傲",
     "ILJU_WORD", "STAGE12", "buildIljuKeywords", "곧게 자라는 나무는 한 번에 크지 않아요", "일지에 비겁이 있어 배우자 자리에 나와 닮은 기운이 앉아 있어요",
     "FAMILY_OVER", "COMBOS", "스스로 정하고 스스로 책임질 때 편안해지는 자기 기준의 기운이에요", "식상과 재성이 함께 있어 재능이 수입으로 이어지는 흐름이 보여요",
     "비견(比肩)은 일간과 오행도 음양도 같은 글자",
@@ -121,6 +127,10 @@ test("종합·대운 유료 렌더러와 문장이 브라우저 경로에 없다
     assert.ok(natal.includes("function " + name + "("), `${name} 정본이 서버에 없다`);
   }
   for (const name of ["ILJU_WORD", "CLIMATE_COPY", "COMBOS", "STEM_NOTE"]) assert.ok(natal.includes("var " + name + " ="), `${name} 정본이 서버에 없다`);
+  // 비한국어 원국 해석 문장과 일주·월령 문장 원천도 서버에 있어야 한다(공개 파일에서 지우고 서버에 안 두는 실수 방지).
+  const intl = read("worker/lib/saju-section/paid-natal-intl.src.js");
+  assert.ok(intl.includes("function climateVersus(") && intl.includes("var natalIntl ="), "비한국어 원국 해석 정본이 서버에 없다");
+  assert.ok(read("lib/saju/reading-depth.mjs").includes("export const PILLAR_NOTES"), "일주 문장 원천 정본이 서버에 없다");
 });
 
 test("극T 해금 패널 문장의 번역은 공개 사전(public/i18n)에 없다", () => {

@@ -223,6 +223,12 @@ export async function handleSajuSection(request, env = {}) {
     if (ZIWEI_COMPAT_FEATURE_KEYS.includes(featureKey)) return await handleZiweiCompat(env, auth, body, featureKey);
 
     const profileId = String(body?.profileId || "").trim();
+    // 묶음은 저장된 프로필의 출생 정보 단위로만 연다. 프로필 없이 들어오면 계정 단위 해금(readAccountLegacyUnlock)과 본문 생년월일로
+    // 계산하게 되어, 한 번 산 묶음 해금이 아무 생년월일의 해석을 여는 열쇠가 된다.
+    if (featureKey === "saju_lifetime_bundle" && !profileId) return json({
+      ok: false, reason: "MISSING_PROFILE_ID", code: "MISSING_PROFILE_ID", featureKey, requiresProfile: true,
+      message: "프로필을 저장한 뒤 구매해 주세요.",
+    }, { status: 400 });
     const readBirth = (key) => (profileId
       ? readProfileBirthUnlock(env, { userId: auth.userId, profileId, featureKey: key })
       : readAccountLegacyUnlock(env, { userId: auth.userId, featureKey: key }));

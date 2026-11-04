@@ -436,7 +436,7 @@ export function buildSajuSectionHtml(input) {
     // 묶음: 원국 해석(일주·십성·조후·억부·절기). 계산은 위와 같은 원국·조후·강약·종격이고, 문장은 브라우저가 아니라 여기서만 만든다.
     // 풀이 이름은 이스케이프 전 값을 넘긴다(본문 조립이 칸마다 이스케이프한다).
     const parts = rt.buildNatalReadingParts({
-      p, natal, johu, power, jong, name: String(input.name || "").trim().slice(0, 40) || "사용자", unknown: timeUnknown, mode: neo ? "neo" : "pig",
+      p, natal, johu, power, jong, name: String(input.name || "").trim().slice(0, 40) || "사용자", unknown: timeUnknown, mode: neo ? "neo" : "pig", lang: input.lang || "ko",
       solar: { year: meta.civil.year, month: meta.civil.month, day: meta.civil.day, hour, minute },
     });
     return { parts };

@@ -632,9 +632,9 @@ function natalListHtml(items, fallback) {
   return safe.map(function (item) { return '<li>' + iljuEscapeHtml(item) + '</li>'; }).join('');
 }
 
-function buildNatalIljuPart(ctx, model, richFacts, mode) {
+function buildNatalIljuPart(ctx, model, richFacts, mode, lang) {
   var p = ctx.p, key = p.d.g + p.d.j, data = ILJU_DB[key];
-  var neo = mode === 'neo', c = P.langCopy('ko');
+  var neo = mode === 'neo', c = P.langCopy(lang);
   var elementLabel = NATAL_STEM_ELEMENT[p.d.g] || '목(木)';
   var summaryLines = data ? iljuBullets(data.summary, 3) : ['일주는 나의 본질을 보여주는 핵심 축입니다.', '일간과 일지의 조합으로 성향이 형성됩니다.', '요약/상세/조언 순서로 읽어보세요.'];
   var detailLines = data ? [data.personality, data.professional, data.relationship].filter(Boolean).map(iljuSanitizeText) : ['상세 분석 데이터를 준비하고 있어요.'];
@@ -648,12 +648,13 @@ function buildNatalIljuPart(ctx, model, richFacts, mode) {
     ? 'ⓘ 전문 용어 참고: ' + iljuSanitizeText(data.details)
     : 'ⓘ 일간(' + p.d.g + ') · 일지(' + p.d.j + ') 기반 기본 분석';
   var elementReading = P.markup(model.elements, model, true);
-  var iljuRich = ilju(richFacts, mode);
-  if (iljuRich && root.SajuReadingDepth) {
+  // 한국어는 위 ko 생성기, 그 밖의 언어는 다국어판(natalIntl)이 만든다. 비한국어는 ILJU_DB 목록이 한국어라 세 목록을 짧은 블록으로 덮는다(옛 브라우저와 같다).
+  var iljuRich = lang === 'ko' ? ilju(richFacts, mode) : natalIntl.forLang(lang).ilju(richFacts, mode);
+  if (lang === 'ko' && iljuRich && root.SajuReadingDepth) {
     var reading = root.SajuReadingDepth.dayReading(key);
     if (reading) summaryHtml = '<li>' + P.esc(reading.summary) + '</li>';
   }
-  if (!iljuRich) {
+  if (!iljuRich || lang !== 'ko') {
     summaryHtml = '<li>' + P.esc(model.day.blocks[0].text) + '</li>';
     detailHtml = (neo ? '' : '<li>' + P.esc(model.day.evidence) + '</li>') + '<li>' + P.esc(model.day.blocks[1].text) + '</li>';
     adviceHtml = '<li>' + P.esc(model.day.blocks[2].text) + '</li>' + (model.unknown ? '<li>' + P.esc(c.unknown) + '</li>' : '');
@@ -668,10 +669,11 @@ function buildNatalIljuPart(ctx, model, richFacts, mode) {
     + natalSlot('iljuDetailsInfo', iljuEscapeHtml(detailsInfo));
 }
 
-function buildNatalTenPart(model, richFacts, mode) {
-  var c = P.langCopy('ko');
-  var overview = tenOverview(richFacts, mode);
-  var grid = tenCards(richFacts, mode) || model.ten.map(function (g) {
+function buildNatalTenPart(model, richFacts, mode, lang) {
+  var c = P.langCopy(lang);
+  var rich = lang === 'ko' ? { tenOverview: tenOverview, tenCards: tenCards, godDetail: godDetail } : natalIntl.forLang(lang);
+  var overview = rich.tenOverview(richFacts, mode);
+  var grid = rich.tenCards(richFacts, mode) || model.ten.map(function (g) {
     return '<button class="saju-ten-button" type="button" data-saju-god="' + P.esc(g.key) + '"><strong>' + P.esc(g.reading.title) + '</strong><span>' + P.esc(g.reading.blocks[0].text) + '</span><small>' + P.esc(c.more) + ' · ' + g.count + '</small></button>';
   }).join('');
   var html = natalSlot('sajuTenOverview', overview || '') + natalSlot('tsGrid', grid);
@@ -681,7 +683,7 @@ function buildNatalTenPart(model, richFacts, mode) {
     if (shown[god]) return _;
     shown[god] = true;
     var item = model.ten.find(function (g) { return P.esc(g.key) === god; });
-    if (item) html += natalGodSlot(item.key, godDetail(item.key, richFacts, mode) || P.markup(item.reading, model, true));
+    if (item) html += natalGodSlot(item.key, rich.godDetail(item.key, richFacts, mode) || P.markup(item.reading, model, true));
     return _;
   });
   return html;
@@ -734,26 +736,28 @@ function buildNatalTermsPart(ctx) {
 
 /**
  * 원국 해석 다섯 덩어리를 만든다(묶음 saju_lifetime_bundle 구매 계정에게만 라우트가 부른다).
- * @param {{p:object, natal:object, johu:object, power:object, jong:object, name?:string, unknown?:boolean, mode?:string,
+ * @param {{p:object, natal:object, johu:object, power:object, jong:object, name?:string, unknown?:boolean, mode?:string, lang?:string,
  *   solar:{year:number,month:number,day:number,hour:number,minute:number}}} ctx
  * @returns {{ilju:string, ten:string, climate:string, strength:string, terms:string}} 칸 이름이 붙은 <template> 문자열. 못 만드는 덩어리는 "".
  */
 function buildNatalReadingParts(ctx) {
   var p = ctx.p, mode = ctx.mode === 'neo' ? 'neo' : 'pig';
-  // 풀이 문장 틀은 한국어다. 지원하지 않는 언어는 서버가 한국어 본문을 준다.
-  root._sajuEngineCurrentLang = function () { return 'ko'; };
+  // 요청 언어(ko·en·ja·vi·hi·es·fr·de·nl·ms·zh-CN·zh-TW)로 풀이 문장을 만든다. 지원하지 않는 언어는 옛 브라우저처럼 한국어다.
+  var lang = _sajuEngineNormalizeLang(ctx.lang);
+  root._sajuEngineCurrentLang = function () { return lang; };
   var ten = {};
   [p.y.g, p.y.j, p.m.g, p.m.j, p.d.j, p.h.g, p.h.j].forEach(function (ch) { var g = getTenGod(p.d.g, ch); if (g && g !== '?') ten[g] = (ten[g] || 0) + 1; });
   var facts = { name: ctx.name, p: p, natal: ctx.natal, ten: ten, johu: ctx.johu, power: ctx.power, jong: ctx.jong, unknown: ctx.unknown === true, flow: [] };
   if (root.SajuReadingDepth) facts.depth = root.SajuReadingDepth.buildDepthFacts(facts);
   facts.lib = { GAN: GAN, JI: JI, getTenGod: getTenGod, CD_JANGGAN: CD_JANGGAN, cdTwelveStage: cdTwelveStage, CD_PALACE: CD_PALACE, KE: KE, cdGongMangBranches: cdGongMangBranches, parentOf: parentOf, SHENG: SHENG, GAEUN_DB: GAEUN_DB, NEO_GAEUN_DB: NEO_GAEUN_DB };
-  var model = P.build(facts, mode, 'ko');
+  var model = P.build(facts, mode, lang);
   var parts = { ilju: '', ten: '', climate: '', strength: '', terms: buildNatalTermsPart(ctx) };
   if (!model) return parts;
-  var richFacts = Object.assign({}, facts, { warning: P.pick(P.langCopy('ko'), 'unknown', mode === 'neo') });
-  parts.ilju = buildNatalIljuPart(ctx, model, richFacts, mode);
-  parts.ten = buildNatalTenPart(model, richFacts, mode);
-  parts.climate = natalSlot('johuContent', climate(richFacts, mode) || P.markup(model.climate, model, false));
-  parts.strength = natalSlot('ukbuSection', strength(richFacts, mode) || P.markup(model.strength, model, false));
+  var richFacts = Object.assign({}, facts, { warning: P.pick(P.langCopy(lang), 'unknown', mode === 'neo') });
+  var rich = lang === 'ko' ? { climate: climate, strength: strength } : natalIntl.forLang(lang);
+  parts.ilju = buildNatalIljuPart(ctx, model, richFacts, mode, lang);
+  parts.ten = buildNatalTenPart(model, richFacts, mode, lang);
+  parts.climate = natalSlot('johuContent', rich.climate(richFacts, mode) || P.markup(model.climate, model, false));
+  parts.strength = natalSlot('ukbuSection', rich.strength(richFacts, mode) || P.markup(model.strength, model, false));
   return parts;
 }
