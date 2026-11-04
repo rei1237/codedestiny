@@ -27,7 +27,6 @@ import {
   CURRENT_PASS_POLICY_VERSION,
   V4_PASS_POLICY_VERSION,
   PREVIOUS_PASS_POLICY_VERSION,
-  isPassPolicyMix,
   LEGACY_PASS_POLICY_VERSION,
   PRIOR_PASS_POLICY_VERSION,
 } from "../../lib/payment/pass-policy.js";
@@ -94,7 +93,7 @@ import {
   resolvePassPlan,
   revokePassGrantForOrder,
 } from "./passes.js";
-import { computePassExpiry, evaluatePassTierTransition, isPassBudgetExhausted } from "../lib/profile-limits.js";
+import { computePassExpiry, evaluatePassTierTransition, isPassPolicyConflict } from "../lib/profile-limits.js";
 import {
   isPassLikeProductType,
   resolveCanonicalEntitlement,
@@ -493,9 +492,8 @@ const PASS_FAILURE_CODES = Object.freeze({
 });
 
 /* 🔴 "다음 달에 다시 열린다"고 쓰지 말 것 — 사이클 키가 이용권 만료일이라 기간 안에서 리셋이
-   없고, 2026-09-04 정책은 한도를 다 쓰면 그 자리에서 이용권을 끝낸다(profile-limits.js
-   isPassBudgetExhausted). 이 문구가 나오는 남은 경우는 잔여가 최저가보다는 커서 아직 종료되지
-   않았지만 이번 건은 못 덮는 상태뿐이다. verify:pass-tier-policy 가 리셋 문구 0건을 단언한다. */
+   없다. 한도를 다 쓴 이용권은 라이트 운세만 열고 상담은 이 문구로 막는다(profile-limits.js isPassBudgetExhausted).
+   verify:pass-tier-policy 가 리셋 문구 0건을 단언한다. */
 const PASS_FAILURE_MESSAGES = Object.freeze({
   monthly_pass_limit_exceeded: "이번 이용권의 남은 한도로는 이 서비스를 열 수 없습니다. 원화 단건 결제 또는 월정석으로 이용해 주세요.",
   pass_access_conflict: "이용권 상태를 확인하지 못했습니다. 원화 단건 결제 또는 월정석으로 이용해 주세요.",
@@ -599,7 +597,7 @@ async function handlePassPrepare({ request, env, ctx, userId, body, withDb }) {
     /* 🔴 enforcePassPurchasePolicy 에는 위에서 **정가 plan** 을 넘겼다 — 패밀리 등급의 상위상품
        구매 차단처럼 구매 정책은 상품 가치 기준이어야 하고, 청구가로 판정하면 스테이징에서만
        정책이 달라진다. 주문에 실리는 금액만 청구가로 바꾼다. */
-    if (!gifts && isPassPolicyMix(userDoc?.profileSubscription || {}, plan)) throw paymentError("PASS_POLICY_CONFLICT", "현재 이용권이 종료된 후 새 이용권을 구매해 주세요.");
+    if (!gifts && isPassPolicyConflict(userDoc?.profileSubscription || {}, plan)) throw paymentError("PASS_POLICY_CONFLICT", "현재 이용권이 종료된 후 새 이용권을 구매해 주세요.");
     const chargePlan = chargeKRW === Number(plan.wonPrice) ? plan : { ...plan, wonPrice: chargeKRW };
     const created = await createPayablePassOrder(db, { userId, plan: chargePlan, idempotencyKey, paymentMethod, paidResume, purchaseType, giftDraft, foreignCard, refundConsent, paypalCharge, ga4PurchaseContext:await readGa4PurchaseContext(request,env) });
     if (gifts) await gifts.ensureGiftForOrder(db, created);
@@ -1872,18 +1870,8 @@ const ROUTES = {
           freeBySubscription: true,
         })
         : "";
-      /* 🔴 소진을 유발한 **이 요청**이 클라이언트에 종료를 알리는 유일한 기회다. 다음 요청은 이용권이
-         이미 없어 no_active_pass 로 떨어지는데, 그 전에 스냅샷이 "보유"라고 답하면 낙관 통과 →
-         402 → 결제창의 왕복이 한 번 더 돈다. 판정은 소비 후 누적액 하나로 파생한다(플래그 배선 없음).
-         멱등 재생·이미 해금 경로에서도 같은 답이 나온다 — 이용권이 끝난 것은 사실이기 때문이다. */
-      const passEnded = isPassBudgetExhausted(
-        outcome.coverage.tier,
-        outcome.user?.profileSubscription?.monthlySpendCoin,
-        outcome.coverage.budgetCoin,
-        outcome.user?.profileSubscription,
-      );
       const envelope = legacyPassCheckEnvelope({
-        product, requestId, profileId, unlock, premiumAccessToken, passEnded,
+        product, requestId, profileId, unlock, premiumAccessToken,
         coverage: outcome.coverage,
         entitlement: outcome.entitlement,
         user: outcome.user,

@@ -1,4 +1,4 @@
-import { currentPassPlan, passPolicyVersion, isPassPolicyMix } from "../../lib/payment/pass-policy.js";
+import { currentPassPlan, passPolicyVersion } from "../../lib/payment/pass-policy.js";
 import { PaymentError, contractFor } from "../payments/errors.js";
 import { connectDb, mongoose } from "../lib/db.js";
 import { getEnv } from "../lib/env.js";
@@ -31,6 +31,7 @@ import {
   buildPassCycleFields,
   computePassExpiry,
   evaluatePassTierTransition,
+  isPassPolicyConflict,
   normalizePassTier,
 } from "../lib/profile-limits.js";
 import { AppPurchaseIntent, APP_PURCHASE_INTENT_TTL_MS } from "../lib/app-store-models.js";
@@ -1004,7 +1005,7 @@ function buildEntitlementUpdate({ product, googlePurchase, now, priorSubscriptio
     },
   };
 
-  // 이용권은 기간·자동갱신 없음(한도 소진 시 종료)이라 Play `inapp`으로 판다. `subs`가 아니므로
+  // 이용권은 기간·자동갱신 없음이라 Play `inapp`으로 판다. `subs`가 아니므로
   // productType이 아니라 passTier로 판정해야 한다.
   const passTier = normalizePassTier(cleanText(product.passTier || product.subscriptionTier));
   if (product.kind === "pass" && passTier) {
@@ -1017,7 +1018,7 @@ function buildEntitlementUpdate({ product, googlePurchase, now, priorSubscriptio
     }
     // 같은 등급을 활성 중에 다시 사면 한도가 쌓인다(이용권 기간은 없다, 2026-10-11) — 웹 카드 결제와
     // 정확히 같은 규칙이다(profile-limits.js computePassExpiry · buildPassCycleFields).
-    if (isPassPolicyMix(priorSubscription || {}, product, now)) throw Object.assign(new Error("현재 이용권이 종료된 후 수령해 주세요."), { code: "PASS_POLICY_CONFLICT", status: 409 });
+    if (isPassPolicyConflict(priorSubscription || {}, product, now)) throw Object.assign(new Error("현재 이용권이 종료된 후 수령해 주세요."), { code: "PASS_POLICY_CONFLICT", status: 409 });
     const transition = evaluatePassTierTransition(priorSubscription, passTier, now);
     const expiresAt = googlePurchase?.expiryTimeMillis
       ? new Date(Number(googlePurchase.expiryTimeMillis))

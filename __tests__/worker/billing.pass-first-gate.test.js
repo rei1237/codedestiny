@@ -228,12 +228,23 @@ describe("옛 결제 경로의 라이트 운세", () => {
 
   test("legacy gate opens light with exhausted budget and no spend increment", async () => {
     const result = await consumeTierPassIfAvailable({}, USER_ID, pricing(50, LIGHT_KEY), "light-1", {});
-    expect(result).toMatchObject({ ok: true, passEnded: false, accessType: "membership_pass" });
+    expect(result).toMatchObject({ ok: true, accessType: "membership_pass" });
+    expect(result).not.toHaveProperty("passEnded");
     expect(store.writes).toHaveLength(1);
     const { filter, update } = store.writes[0];
     expect(Object.keys(update[0].$set)).not.toEqual(expect.arrayContaining(["profileSubscription.monthlySpendCoin"]));
     expect(update[0].$set.recentConsumeRequestIds).toBeDefined();
     expect(JSON.stringify(filter)).not.toContain("monthlySpendCoin");
+  });
+
+  test("legacy gate does not close the pass when LLM empties the budget", async () => {
+    const before = store.user.profileSubscription;
+    store.user = { ...store.user, profileSubscription: { ...before, monthlySpendCoin: MONTHLY_PASS_LIMITS.standard - 50 } };
+    const result = await consumeTierPassIfAvailable({}, USER_ID, pricing(50, LLM_KEY), "llm-last", {});
+    expect(result.ok).toBe(true);
+    expect(result).not.toHaveProperty("passEnded");
+    expect(store.writes).toHaveLength(1);
+    expect(JSON.stringify(store.writes[0].update)).not.toContain("passExhaustedAt");
   });
 
   test("legacy gate still blocks LLM with exhausted budget", async () => {

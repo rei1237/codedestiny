@@ -615,9 +615,8 @@
     return storeMonthlyQuotaFromPayload(userId, { monthlySpendRemaining: remainingCoin });
   }
 
-  // coin-gate 성공 200 이 "이 건으로 월 한도를 다 써서 이용권이 종료됐다"고 알리면(서버 정본은
-  // worker/lib/profile-limits.js isPassBudgetExhausted → compat.js membershipPass.passEnded)
-  // 로컬 스냅샷을 즉시 미보유로 내린다. 안 내리면 다음 진입이 낙관 통과 → 402 → 결제창으로
+  // 2026-11-04 이전 서버의 옛 응답 전용. 지금 서버는 소진으로 이용권을 끝내지 않아 passEnded 를 보내지 않는다.
+  // coin-gate 성공 200 이 "이 건으로 이용권이 종료됐다"고 알리면 로컬 스냅샷을 즉시 미보유로 내린다. 안 내리면 다음 진입이 낙관 통과 → 402 → 결제창으로
   // 한 왕복을 더 돈다.
   //
   // 🔴 storeStatus/buildSnapshotFromStatus 를 태우지 않는다 — 그 경로는 이용권 상태가 없는

@@ -3,7 +3,7 @@
 // billing-feature-registry.js)이 이미 있어서 import 경로는 그대로 살려 둔다.
 // billing-policy.js 는 import·env·전역이 없는 순수 상수 모듈이라 클라이언트 번들
 // (app/app/store/AppPassStoreClient.tsx 가 이 파일을 import 한다)에 들어가도 안전하다.
-import { PREVIOUS_PASS_POLICY_VERSION, previousPassPlan, CURRENT_PASS_POLICY_VERSION, V4_PASS_POLICY_VERSION, v4PassPlan, PRIOR_PASS_POLICY_VERSION, LEGACY_PASS_POLICY_VERSION, currentPassPlan, priorPassPlan, passPolicyVersion } from "../../lib/payment/pass-policy.js";
+import { PREVIOUS_PASS_POLICY_VERSION, previousPassPlan, CURRENT_PASS_POLICY_VERSION, V4_PASS_POLICY_VERSION, v4PassPlan, PRIOR_PASS_POLICY_VERSION, LEGACY_PASS_POLICY_VERSION, currentPassPlan, priorPassPlan, passPolicyVersion, isPassPolicyMix } from "../../lib/payment/pass-policy.js";
 import { KRW_PER_COIN } from "./billing-policy.js";
 
 export { KRW_PER_COIN };
@@ -182,7 +182,7 @@ const PASS_DAY_MS = 86_400_000;
 
 /* ── 이용권 기간 없음(2026-10-11 사용자 결정) ─────────────────────────────
  * 프로필 개수 상한이 없어져 이용권에 30일 기간을 둘 이유가 사라졌다. 이용권은 **한도를 다 쓰면**
- * 끝나고(buildPassTerminationFields), 시간이 지나서는 끝나지 않는다.
+ * 시간이 지나서 끝나지 않는다. 상담 한도를 다 써도 끝나지 않고 라이트 운세가 계속 열린다(2026-11-04).
  * 표현은 "만료일 = 활성화 시각 + 100년"이다. expiresAt 을 없애지 않고 사실상 무기한으로 쓰는 이유:
  *   ① 활성 판정(normalizeHoneyPassEntitlement · canUseByPass · evaluatePassTierTransition · 클라
  *      pass-verdict.js 등)이 전부 `expiresAt > now` 를 본다. 이 판정들을 새 분기로 바꾸면 결제
@@ -219,6 +219,8 @@ export function evaluatePassTierTransition(currentSubscription, requestedTier, n
   const expiresAt = sub.expiresAt ? new Date(sub.expiresAt) : null;
   const hasActive = activeTier !== "free" && expiresAt instanceof Date && !Number.isNaN(expiresAt.getTime()) && expiresAt.getTime() > now.getTime();
   if (!hasActive) return { code: "NEW", activeTier: "free" };
+  // 소진 상태의 구매는 처음 산 것과 같다. 등급 제한도, 사용액 이월도 없다.
+  if (isActivePassBudgetExhausted(sub, now)) return { code: "NEW", activeTier: "free" };
   const activeRank = PASS_TIER_RANK[activeTier] ?? 0;
   const requestedRank = PASS_TIER_RANK[requestedTier] ?? 0;
   if (requestedRank < activeRank) return { code: "DOWNGRADE_BLOCKED", activeTier };
@@ -276,7 +278,7 @@ export function buildPassCycleFields({ priorSubscription, tier: tierInput, expir
     && Number.isFinite(priorExpiresAt.getTime())
     && priorExpiresAt.getTime() > new Date(now).getTime();
   const priorTier = normalizePassTier(prior.passTier || prior.tier);
-  if (!priorActive || !priorTier) {
+  if (!priorActive || !priorTier || isActivePassBudgetExhausted(prior, now)) {
     return { premiumUseCycleKey: cycleKey, premiumUseCount: 0, monthlySpendCoin: 0, monthlyLimitCoin: baseCoin };
   }
   const priorCycleKey = priorExpiresAt.toISOString();
@@ -295,10 +297,9 @@ export function buildPassCycleFields({ priorSubscription, tier: tierInput, expir
  * 이용권 주문 환불 회수가 profileSubscription 에 적을 필드(접두 없는 키).
  *
  * 기간이 없으므로 되감을 기간도 없다. 그 주문이 더한 한도(등급 기본 한도 1회분)를 빼서 되돌린다.
- *   - 남는 한도가 없거나(첫 구매·업그레이드 주문 환불) 남은 한도로 열 수 있는 게 없으면 종료한다.
- *     종료 필드는 강등 필드와 같은 집합이고 만료일을 now 로 당긴다(소진 종료와 같은 표현).
- *   - 남는 한도가 있으면(같은 등급 재구매분 환불) 한도만 줄인다. 만료일·사이클 키·사용액은 그대로라
- *     이미 쓴 금액이 되살아나지 않는다.
+ *   - 남는 한도가 없으면(첫 구매·업그레이드 주문 환불) 종료한다. 종료 필드는 강등 필드와 같은 집합이고 만료일을 now 로 당긴다.
+ *   - 남는 한도가 있으면(같은 등급 재구매분 환불) 한도만 줄인다. 사용액이 남은 한도를 넘어도 이용권은 유지한다.
+ *     앞선 구매로 얻은 라이트 운세 권리는 환불로 사라지지 않고, 이미 쓴 금액도 되살아나지 않는다.
  * 저장 한도가 없던 문서(재구매 이력 없음)는 등급 기본값 1회분이므로 0 이 남아 종료된다.
  */
 export function buildPassRefundRevokeFields({ subscription, now = new Date() } = {}) {
@@ -309,11 +310,7 @@ export function buildPassRefundRevokeFields({ subscription, now = new Date() } =
   const currentKey = current && Number.isFinite(current.getTime()) ? current.toISOString() : "";
   const stackedCoin = resolveMonthlyPassLimitCoin(sub, tier, currentKey);
   const remainingLimitCoin = Math.max(0, stackedCoin - baseCoin);
-  const usedCoin = currentKey && String(sub.premiumUseCycleKey || "") === currentKey
-    ? Math.max(0, Math.floor(Number(sub.monthlySpendCoin || 0)))
-    : 0;
-  // isPassBudgetExhausted 는 기본 한도보다 작은 예산을 기본값으로 올려 읽으므로 여기서는 잔여를 직접 본다.
-  if (remainingLimitCoin - usedCoin >= minPassCoverableCoinForTier(tier)) {
+  if (remainingLimitCoin > 0) {
     return { downgraded: false, fields: { monthlyLimitCoin: remainingLimitCoin, updatedAt: now } };
   }
   return {
@@ -358,11 +355,10 @@ export function resolveMonthlySpendQuota(profileSubscription, entitlement, coinC
   return { applies: true, cycleKey, limitCoin, usedCoin, remainingCoin, exceeded };
 }
 
-// ── 월 한도 소진 = 이용권 종료 ────────────────────────────────────────────
-// 사이클 키가 이용권 자신의 만료일이라, 한 이용권 안에서 한도가 리셋되는 일은
-// 구조적으로 없다(resolvePremiumQuotaCycleKey). 한도를 다 쓴 이용권은 금전적 가치가 0이다.
-// 2026-09-04 정책은 "소진되면 그 자리에서 종료"다. 2026-10-11 부터는 기간이 없어(computePassExpiry)
-// 이것이 이용권이 끝나는 유일한 조건이고, 다시 사면 새 이용권이 새 한도로 시작한다(사용자 확정).
+// ── 상담 한도 소진 ──
+// 사이클 키가 이용권 자신의 만료일이라 한 이용권 안에서 한도가 리셋되는 일은 없다.
+// 2026-11-04 부터 소진은 이용권을 끝내지 않는다. 라이트 운세는 계속 열리고, 상담만 단건 결제나
+// 재구매로 안내한다. 소진 상태에서 사면 어떤 등급이든 새 이용권으로 시작한다.
 //
 // 소진 판정은 "잔여가 0"이 아니라 **"잔여로 열 수 있는 게 하나도 없다"**이다.
 // 잔여 2,000원처럼 어떤 상품도 못 여는 잔돈을 남겨 두면, 사용자에게는 이용권이
@@ -373,8 +369,8 @@ export function resolveMonthlySpendQuota(profileSubscription, entitlement, coinC
 // (js/core/pass-verdict.js)가 숫자를 미러링하는 정본이고, 이 레포의 크로스파일
 // 숫자 합의 방식은 "미러 상수 + 가드 단언"이다. verify:pass-tier-policy 가
 // registry 를 전수로 읽어 이 값과 대조하므로, 더 싼 상품이 생기면 즉시 실패한다.
-export const MIN_PASS_COVERABLE_COIN = 10; // 2026-10-09 천원 사주 콘텐츠 5종(1,000원)이 최저 커버 상품
-export const FAMILY_MIN_PASS_COVERABLE_COIN = 10; // Family 최저 커버 상품도 같은 천원 사주 콘텐츠
+export const MIN_PASS_COVERABLE_COIN = 50; // 2026-11-04 라이트 운세를 뺀 판매 상품의 최저가(5,000원)
+export const FAMILY_MIN_PASS_COVERABLE_COIN = 50; // Family 도 같은 기준
 
 export function minPassCoverableCoinForTier(tier) {
   return normalizePassTier(tier) === PASS_TIERS.FAMILY
@@ -402,31 +398,20 @@ export function isPassBudgetExhausted(tier, usedCoin, limitCoin, subscription = 
   return budgetCoin - used < threshold;
 }
 
-/**
- * 조기 종료가 profileSubscription 에 적는 필드 집합($set 의 값 부분).
- * 🔴 등급 강등 필드는 환불 회수(passes.js revokePassGrantForOrder)와 **같은 집합**이다 —
- * 두 벌로 갈리면 한쪽만 고쳐 "만료됐는데 등급이 남은" 문서가 생긴다.
- * 만료일을 now 로 당기는 것이 핵심이다: 활성 판정이 전부 expiresAt 을 보므로
- * (아래 resolveHoneyPassEntitlement · canUseByPass · evaluatePassCoverage) 새 분기를
- * 만들지 않고도 하위 판정 전부가 자동으로 뒤집힌다.
- */
-export function buildPassTerminationFields({ now = new Date(), previousExpiresAt = null } = {}) {
-  const previous = previousExpiresAt ? new Date(previousExpiresAt) : null;
-  return {
-    expiresAt: now,
-    tier: "free",
-    passTier: "",
-    passLimit: 0,
-    maxCoveredCoin: 0,
-    freeLimit: 0,
-    // 쌓인 한도도 함께 내린다. 만료일이 바뀌어 사이클 키가 어긋나면 어차피 무시되지만,
-    // 끝난 이용권 문서에 살아 있는 한도 숫자를 남기지 않는다.
-    monthlyLimitCoin: 0,
-    passExhaustedAt: now,
-    // CS·환불 문의 때 "왜 끝났나"(소진 전 만료일)를 설명하는 유일한 증거다.
-    passExhaustedFromExpiresAt: previous && Number.isFinite(previous.getTime()) ? previous : null,
-    updatedAt: now,
-  };
+/** 활성 이용권의 상담 한도가 소진됐는가. 만료된 이용권과 이용권 없음은 소진이 아니다. 사이클 키가 어긋나면 사용액은 0 이다. */
+export function isActivePassBudgetExhausted(sub, now = new Date()) {
+  if (!sub || typeof sub !== "object") return false;
+  const tier = normalizePassTier(sub.passTier || sub.tier);
+  const expiry = sub.expiresAt ? new Date(sub.expiresAt) : null;
+  if (!tier || !expiry || !Number.isFinite(expiry.getTime()) || expiry.getTime() <= new Date(now).getTime()) return false;
+  const cycleKey = expiry.toISOString();
+  const usedCoin = String(sub.premiumUseCycleKey || "") === cycleKey ? sub.monthlySpendCoin : 0;
+  return isPassBudgetExhausted(tier, usedCoin, resolveMonthlyPassLimitCoin(sub, tier, cycleKey), sub);
+}
+
+/** 정책 버전 혼합 거부. 소진된 옛 버전 이용권까지 막으면 새 이용권을 영영 살 수 없다. */
+export function isPassPolicyConflict(prior, next, now = new Date()) {
+  return isPassPolicyMix(prior || {}, next, now) && !isActivePassBudgetExhausted(prior, now);
 }
 
 export const PASS_TIER_UI = Object.freeze({

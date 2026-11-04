@@ -6,14 +6,12 @@
 // (worker/lib/nakshatra-paid-access.js 의 4)분기 · worker/routes/master-love-codex.js)에서는
 // monthlySpendCoin 이 **한 번도 증가하지 않았다**. 누적이 안 쌓이니 월 누적 한도에 도달하는 것이
 // 구조적으로 불가능했고, 그 자리에서 읽던 resolveMonthlySpendQuota 검사는 참이 될 수 없는
-// 조건이었으며, 소진 종료(terminatePassOnBudgetExhaustion)도 영원히 트리거되지 않았다.
+// 조건이었다.
 //
 // 🔴 여기서 판정 로직을 새로 만들지 않는다. 정본은 worker/payments/passes.js 하나이고 이 파일은
 //    그 정본을 부르는 얇은 어댑터다. 등급·한도·소진 규칙의 사본을 여기 두지 말 것.
 //
-// 🔴 소진 플래그를 새로 만들지 않는다. consumePassCoverage 가 차감 직후 소진을 판정해
-//    expiresAt 을 now 로 당기고, 활성 판정이 전부 expiresAt 을 보므로 하위 게이트가 자동으로
-//    전부 닫힌다(passes.js applyBudgetExhaustionTermination 주석).
+// 소진은 이용권을 끝내지 않는다(2026-11-04). 상담은 잔여 한도 검사로 막고 라이트 운세는 그대로 연다.
 import { createHash } from "node:crypto";
 import { User, PointHistory } from "./models.js";
 import { invalidateAccessStateCacheForUser } from "./access-state-cache.js";

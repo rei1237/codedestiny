@@ -69,9 +69,7 @@ import {
 import { hasUserScopedPermanentUnlock } from "../lib/paid-content-read-access.js";
 import { isBirthUnlockIdentityError, resolveBirthUnlockIdentity } from "../lib/birth-scoped-unlock-identity.js";
 import {
-  buildPassTerminationFields,
   computePassExpiry,
-  isPassBudgetExhausted,
   normalizePassTier,
   PASS_LIMITS,
   resolvePassPolicy,
@@ -937,47 +935,14 @@ async function consumeTierPassIfAvailable(env, authUserId, pricing, requestId, b
     return { ok: false, reason: "pass_access_conflict", featureKey, coinCost, amountKRW, passTier: usage.tier };
   }
 
-  /* 월 한도 소진 → 이용권 조기 종료(2026-09-04 정책). 이 경로는 아직 살아 있다 — paymentMode 가
-     비어 있는 coin-gate 요청은 UNSPECIFIED 로 판정돼 V2 로 재작성되지 않고 여기로 온다
-     (worker/index.js coin-gate 분기 + payment-service.js resolvePaymentCommand). 같은 카운터를
-     올리므로 여기서 종료하지 않으면 정책이 결제 경로에 따라 갈린다.
-     🔴 정책 정본은 profile-limits.js 하나이고, V2(passes.js applyBudgetExhaustionTermination)와
-     이곳은 그 정본을 각자의 드라이버로 쓰기만 한다 — 판정을 복제하지 말 것. */
-  let passEnded = false;
-  if (monthlyQuota.applies && isPassBudgetExhausted(
-    usage.tier,
-    updatedUser?.profileSubscription?.monthlySpendCoin,
-    monthlyQuota.limitCoin,
-    updatedUser?.profileSubscription,
-  )) {
-    const terminationSet = {};
-    const fields = buildPassTerminationFields({
-      now,
-      previousExpiresAt: updatedUser?.profileSubscription?.expiresAt || null,
-    });
-    for (const [key, value] of Object.entries(fields)) terminationSet[`profileSubscription.${key}`] = value;
-    // 방금 소비한 그 이용권이 아직 살아 있을 때만 끈다 — 병렬 소비에서 두 번째는 no-op 이고,
-    // 그 사이 새 이용권을 샀다면 새 것을 끄지 않는다.
-    const terminated = await User.updateOne({
-      _id: authUserId,
-      "profileSubscription.premiumUseCycleKey": monthlyQuota.cycleKey,
-      "profileSubscription.expiresAt": { $gt: now },
-    }, { $set: terminationSet });
-    passEnded = Number(terminated?.matchedCount ?? terminated?.n ?? 0) > 0;
-    if (passEnded) {
-      updatedUser.profileSubscription = { ...(updatedUser.profileSubscription || {}), ...fields };
-    }
-  }
-
   // 차감 직후 모든 읽기 경로가 DB 최신 사용액을 보도록 사용자 단위로 무효화한다.
-  // 종료 여부와 무관하게 실행해야 Family 사용액이 60초 동안 0원으로 남지 않는다.
+  // 빠뜨리면 Family 사용액이 60초 동안 0원으로 남는다.
   invalidateBillingBalanceCacheForUser(authUserId);
   invalidatePaidAccessDecisionCacheForUser(authUserId);
   try { invalidateAccessStateCacheForUser(String(authUserId || "")); } catch {}
 
   return {
     ok: true,
-    passEnded,
     tier: usage.tier,
     passTier: usage.tier,
     accessMethod: usage.tier === "family" ? "family" : "pass",
@@ -4122,9 +4087,6 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
           freeLimit: subscriptionPass.freeLimit,
           passLimit: subscriptionPass.passLimit || subscriptionPass.freeLimit,
           maxCoveredCoin: subscriptionPass.maxCoveredCoin || subscriptionPass.passLimit || subscriptionPass.freeLimit,
-            // 월 한도를 다 써서 이 건을 끝으로 이용권이 종료됐다(2026-09-04 정책). V2 봉투(compat.js
-            // legacyPassCheckEnvelope)와 같은 필드여야 클라이언트 판정기가 두 경로에서 같은 동작을 한다.
-            ...(tierPassConsume.passEnded ? { passEnded: true, passEndedAt: new Date().toISOString() } : {}),
           },
           user: {
           id: String(authCheck.auth.userId || ""),
@@ -4772,7 +4734,7 @@ function buildDevPassPatch(tier, now) {
   const normalizedTier = normalizePassTier(tier);
   const passLimit = Number(PASS_LIMITS[normalizedTier] || 0);
   const profileLimit = resolveProfileLimitForClient();
-  // 실결제와 같은 표현(기간 없음 — 한도 소진 시 종료)으로 맞춘다.
+  // 실결제와 같은 표현(기간 없음)으로 맞춘다.
   const expiresAt = computePassExpiry({ transition: { code: "NEW" }, paidAt: now, now });
   return {
     tier: normalizedTier,
