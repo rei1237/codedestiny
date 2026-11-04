@@ -65,6 +65,111 @@
   // 캐시를 "모름"으로 버려 한도 소진자가 매번 낙관 통과→백그라운드 402 를 겪었다(2026-09-03).
   // 거부 사유 문자열은 서버 billing.js 의 deny reason 과 같은 값을 쓴다.
   var REASON_MONTHLY_LIMIT = "monthly_pass_limit_exceeded";
+  // 라이트 운세는 상담 한도를 쓰지 않아 소진 뒤에도 열린다. 서버 정본은 worker/lib/light-fortune-catalog.js,
+  // 별칭은 worker/lib/paid-feature-registry.js 이고 verify:pass-tier-policy 가 두 목록을 대조한다.
+  var LIGHT_FORTUNE_FEATURE_KEYS = [
+    "physiognomy-compatibility",
+    "physiognomy-pastlife-compatibility",
+    "physiognomy-ogwan-mole-deep",
+    "tarot-year-fortune",
+    "tarot-reunion-reading",
+    "tarot-myeongri-three-card",
+    "tarot-crystal-soul-reading",
+    "tarot-numerology-reading",
+    "maya-prompt-generator",
+    "tarot-ijik",
+    "royal-tea-oracle",
+    "ifa-oracle",
+    "neville-meditation",
+    "cosmic-soul-meditation",
+    "sukuyo-extreme-t-relationship",
+    "sukuyo-relationship-encyclopedia",
+    "sukuyo-nature-deep-dive",
+    "sukuyo-past-life-reading",
+    "sukyo_yearly_fortune_unlock",
+    "compat-astro-synastry",
+    "compat-astro-direct-synastry",
+    "compat-ziwei-compatibility",
+    "compat-sukuyo-compatibility",
+    "vedic-compatibility-per-use",
+    "nakshatra-compat",
+    "nakshatra-muhurta",
+    "nakshatra-vvip-codex",
+    "destiny-compass-crossroads",
+    "destiny-compass-life-voyage",
+    "destiny-compass-future-sim",
+    "openJuyukModal",
+    "openKemetModal",
+    "love-code",
+    "stonehenge-runes-single",
+    "stonehenge-runes-triad",
+    "stonehenge-runes-deep",
+    "stonehenge-runes-yearly",
+    "daily-fortune-reading",
+    "fortune-prompt-hub-generate",
+    "dream-prompt-generator",
+    "mbti-animal-compat",
+    "nakshatra-basic-reading",
+    "destiny-bias-analyze",
+    "destiny_meeting_place",
+    "vedic_prashna_prompt",
+    "vedic_basic_reading",
+    "astro_career_talent_deep",
+    "astro_talent_attraction_deep",
+    "astro_relationship_deep",
+    "astro_growth_shadow_deep",
+    "astro_stellar_career_room",
+    "astro_stellar_talent_room",
+    "astro_stellar_relationship_room",
+    "astro_stellar_growth_room",
+    "astro_yearly_transit",
+    "ziwei_decade_luck",
+    "ziwei_love_deep",
+    "ziwei_twelve_palaces",
+    "ziwei_symbolic_layer",
+    "ziwei_life_yearly_flow",
+    "premium-fpti-report",
+    "premium-sukuyo-compat-extra",
+    "flower-fc",
+    "olympus-fc",
+    "nakshatra-lord-report",
+    "nakshatra-dasha-map",
+  ];
+  var LIGHT_FORTUNE_FEATURE_ALIASES = [
+    "loveSimulation",
+    "openLoveSimulation",
+    "openjuyuk",
+    "openkemet",
+    "openTarotReunionModal",
+    "openTarotYearFortuneModal",
+    "showTarotFinalInterpretation",
+    "openDestinyFlowerStudio",
+    "openAstrologyFlowerStudio",
+    "openJamidusuFlowerStudio",
+    "openSukuyoFlowerStudio",
+    "openOlympusOracleModal",
+    "startCrystalSoulTarot",
+    "openCrystalSoulTarot",
+    "openTarotCrystalSoulModal",
+    "startIjikTarot",
+    "openIjikTarot",
+    "openRoyalTeaOracle",
+    "openIfaOracle",
+    "openNevilleMeditationPage",
+    "openCosmicSoulMeditation",
+    "premium_fpti_report",
+    "generateFptiDeepReport",
+    "openFptiDeepReport",
+    "extreme-t-relationship-circuit",
+  ];
+  var LIGHT_FORTUNE_LOOKUP = {};
+  LIGHT_FORTUNE_FEATURE_KEYS.concat(LIGHT_FORTUNE_FEATURE_ALIASES).forEach(function (key) {
+    LIGHT_FORTUNE_LOOKUP[key.toLowerCase()] = true;
+  });
+  function isLightFortuneKey(featureKey) {
+    var key = String(featureKey || "").trim().toLowerCase();
+    return Boolean(key) && Object.prototype.hasOwnProperty.call(LIGHT_FORTUNE_LOOKUP, key);
+  }
   var REASON_PASS_LIMIT = "snapshot_pass_limit_exceeded";
   var REASON_NONE = "subscription_snapshot_none";
   /* 🔴 '프리미엄 상담 포함 횟수'는 2026-08-24 폐지됐다(서버 정본
@@ -492,9 +597,10 @@
    * 스냅샷만으로 내릴 수 있는 이용권 판정의 단일 정본.
    *   coversNow   — 커버 확정(낙관 즉시 통과 후보, 서버 왕복 0)
    *   cannotCover — 미보유/한도초과 확정(결제창 직행, 서버 왕복 0)
+   *   featureKey  — 라이트 운세 키면 건당 상한만 보고 월 한도는 보지 않는다. 없으면 월 한도까지 본다.
    * 둘 다 false 면 "아직 모름" 이고 서버 판정으로 넘어간다. 🔴 지연·타임아웃은 미커버 근거가 아니다.
    */
-  function resolveVerdict(snapshot, coinCost) {
+  function resolveVerdict(snapshot, coinCost, featureKey) {
     var cost = Math.max(0, Math.floor(Number(coinCost || 0)));
     var result = {
       snapshot: snapshot || null,
@@ -533,7 +639,7 @@
     // 서버 재검사(consumeTierPassIfAvailable)가 맡고, 그 402 는 storeMonthlyQuotaFromPayload 로
     // 캐시에 반영돼 다음 진입부터 여기서 걸린다.
     var monthlyLimit = monthlyLimitForTier(snapshot.tier);
-    if (monthlyLimit > 0) {
+    if (monthlyLimit > 0 && !isLightFortuneKey(featureKey)) {
       // "캐시 없음"(null) 은 검사 생략, "잔여 0" 은 확정 거부 — numberOrNaN 이 둘을 가른다.
       var monthlyRemaining = numberOrNaN(snapshot.monthlySpendRemainingCoin);
       if (Number.isFinite(monthlyRemaining) && monthlyRemaining < cost) {
@@ -548,9 +654,9 @@
   }
 
   // 판정 결과 → 기존 런타임들이 주고받던 membershipCoverage 모양. 호출부를 바꾸지 않기 위한 어댑터다.
-  function coverageFromSnapshot(snapshot, coinCost, sourceLabel) {
+  function coverageFromSnapshot(snapshot, coinCost, sourceLabel, featureKey) {
     if (!snapshot) return null;
-    var verdict = resolveVerdict(snapshot, coinCost);
+    var verdict = resolveVerdict(snapshot, coinCost, featureKey);
     var cost = Math.max(0, Math.floor(Number(coinCost || 0)));
     return {
       tier: verdict.tier,
@@ -685,6 +791,9 @@
     removeSnapshot: removeSnapshot,
     buildSnapshotFromStatus: buildSnapshotFromStatus,
     storeStatus: storeStatus,
+    LIGHT_FORTUNE_FEATURE_KEYS: LIGHT_FORTUNE_FEATURE_KEYS,
+    LIGHT_FORTUNE_FEATURE_ALIASES: LIGHT_FORTUNE_FEATURE_ALIASES,
+    isLightFortuneKey: isLightFortuneKey,
     resolveVerdict: resolveVerdict,
     coverageFromSnapshot: coverageFromSnapshot,
     storeMonthlyQuotaFromPayload: storeMonthlyQuotaFromPayload,

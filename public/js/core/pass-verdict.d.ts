@@ -75,8 +75,11 @@ declare const passVerdict: {
   removeSnapshot(userId: string): void;
   buildSnapshotFromStatus(userId: string, status: unknown, source?: string): PassVerdictSnapshot;
   storeStatus(userId: string, status: unknown, source?: string): PassVerdictSnapshot | null;
-  resolveVerdict(snapshot: PassVerdictSnapshot | null, coinCost: number): PassVerdict;
-  coverageFromSnapshot(snapshot: PassVerdictSnapshot | null, coinCost: number, sourceLabel?: string): PassCoverage | null;
+  LIGHT_FORTUNE_FEATURE_KEYS: string[];
+  LIGHT_FORTUNE_FEATURE_ALIASES: string[];
+  isLightFortuneKey(featureKey?: string): boolean;
+  resolveVerdict(snapshot: PassVerdictSnapshot | null, coinCost: number, featureKey?: string): PassVerdict;
+  coverageFromSnapshot(snapshot: PassVerdictSnapshot | null, coinCost: number, sourceLabel?: string, featureKey?: string): PassCoverage | null;
   /** coin-gate 응답(200/402)의 monthlySpendRemaining 을 활성 스냅샷에만 반영한다(더 작은 값 우선). */
   storeMonthlyQuotaFromPayload(userId: string, payload: unknown): PassVerdictSnapshot | null;
   /** access-state 의 entitlementSnapshot.passUsage.remainingKRW 를 월 잔여로 시드한다(원화→코인, 요청 추가 0건). */

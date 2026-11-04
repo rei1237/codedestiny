@@ -18,7 +18,8 @@
  * 정규식이 리팩터링에 빗나가면 "검사 대상이 없어서 통과"가 되는 게 이 종류 가드의 전형적인
  * 사고인데, 그때 조용히 초록불이 되면 안 된다.
  */
-import { LIGHT_FORTUNE_AUDIT_EXCLUDED_KEYS, isLightFortuneFeatureKey } from "../worker/lib/light-fortune-catalog.js";
+import { LIGHT_FORTUNE_AUDIT_EXCLUDED_KEYS, LIGHT_FORTUNE_FEATURE_KEYS, isLightFortuneFeatureKey } from "../worker/lib/light-fortune-catalog.js";
+import { PAID_FEATURE_KEY_ALIASES } from "../worker/lib/paid-feature-registry.js";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -397,11 +398,23 @@ for (const file of localeFiles) {
 }
 
 
+/* 라이트 운세 미러: 어긋나면 소진 보유자가 라이트 운세에서 결제창을 만난다. */
+{
+  const mirror = (name) => {
+    const block = verdict.match(new RegExp("var " + name + " = \\[([^\\]]*)\\]"));
+    return block ? [...block[1].matchAll(/"([^"]+)"/g)].map((row) => row[1]).sort() : [];
+  };
+  const serverAliases = Object.entries(PAID_FEATURE_KEY_ALIASES)
+    .filter(([, key]) => LIGHT_FORTUNE_FEATURE_KEYS.includes(key)).map(([alias]) => alias).sort();
+  check("pass-verdict 라이트 운세 키가 서버 목록과 같다", JSON.stringify(mirror("LIGHT_FORTUNE_FEATURE_KEYS")) === JSON.stringify([...LIGHT_FORTUNE_FEATURE_KEYS].sort()));
+  check("pass-verdict 라이트 운세 별칭이 서버 목록과 같다", JSON.stringify(mirror("LIGHT_FORTUNE_FEATURE_ALIASES")) === JSON.stringify(serverAliases));
+}
+
 /* ── ⑥ 월 한도 소진 임계값이 레지스트리 최저가에서 파생됐는가 ────────────
-   2026-09-04 부터 이용권은 한도 소진 시 끝난다(2026-10-11 부터는 기간이 없어 소진이 유일한 종료 조건).
+   이용권은 기간이 없고 한도 소진으로 끝나지도 않는다(2026-11-04). 소진 뒤에는 라이트 운세만 열린다.
    소진 판정은 "잔여로 열 수 있는 유료 항목이 하나도 없을 때"이므로 임계는 레지스트리의
    최저가여야 한다. 더 싼 상품이 생겼는데 상수가 그대로면 아직 열 수 있는 이용권을 끄고
-   (환불 분쟁), 최저가가 올랐는데 그대로면 아무것도 못 여는 이용권이 남는다(원래 문제).
+   (환불 분쟁), 최저가가 올랐는데 그대로면 상담을 못 여는데 소진으로 읽히지 않는다.
 
    fail-closed: 커버 대상을 하나도 못 뽑으면 통과가 아니라 실패다. */
 const NOT_ON_SALE_REASONS = new Set(["판매 종료", "등록만 있고 쓰지 않는다"]);
