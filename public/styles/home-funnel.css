@@ -1683,3 +1683,13 @@ html.neo-mode #cdHomeFunnel .cdh-scene-art #honeypigLogo{box-shadow:none!importa
 #cdHomeFunnel .cdh-nav{flex-wrap:wrap;gap:8px}
 #cdHomeFunnel .cdh-nav>a{border-radius:var(--cd-r-pill);min-height:44px}
 @media(max-width:640px){#cdHomeFunnel .cdh-top .cdh-nav{min-width:0;justify-content:flex-end}#cdHomeFunnel .cdh-nav>a{font-size:12px;padding-inline:8px}}
+
+/* The featured chapter stays visible above the swipeable consultation deck. */
+#cdHomeFunnel .cd-story-spotlight{position:relative;margin:0 0 1.5rem}
+#cdHomeFunnel .cd-story-spotlight__feature{display:grid;grid-template-columns:clamp(5rem,21vw,10rem) minmax(0,1fr);align-items:center;gap:clamp(.85rem,3vw,2rem);padding:clamp(.8rem,2vw,1.4rem);background:#301d2b;color:#fff4e8;border:1px solid #ac8271;border-radius:14px;text-decoration:none}
+#cdHomeFunnel .cd-story-spotlight__feature img{display:block;width:100%;height:auto;border-radius:5px}
+#cdHomeFunnel .cd-story-spotlight__feature small{color:#f3cdb5;font-size:.8rem}
+#cdHomeFunnel .cd-story-spotlight__feature h3{margin:.3rem 0;font-family:'Yeongnyangi Myeongjo',serif;font-size:clamp(1.55rem,4vw,2.1rem);color:inherit}
+#cdHomeFunnel .cd-story-spotlight__feature p{margin:0 0 .6rem;font-size:.95rem;line-height:1.6;word-break:keep-all;color:inherit}
+#cdHomeFunnel .cd-story-spotlight__feature strong{color:#ffdbba}
+#cdHomeFunnel .cd-story-spotlight__more{display:inline-flex;min-height:44px;align-items:center;gap:.6rem;color:inherit;text-underline-offset:.2em}

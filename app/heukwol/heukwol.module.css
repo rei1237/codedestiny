@@ -3,3 +3,4 @@
 .overview{padding:22px;background:var(--cd-samples-blush);border-left:3px solid var(--hw-rose)}.overview h3{font-size:15px}.overview p{font-family:Yeongnyangi Myeongjo,serif;font-size:26px;margin:8px 0}.overview small{display:block;font-size:12px;line-height:1.8;color:var(--hw-muted)}.monthReading{display:block;min-height:48px;padding:12px 0;line-height:1.7}
 
 .secondary{min-height:48px;padding:10px 18px;border:1px solid var(--hw-rose);background:var(--cd-samples-sheet);color:var(--hw-rose);border-radius:var(--cd-r-control);cursor:pointer}.form>a,.result>a{display:inline-flex;align-items:center;min-height:44px}
+.writingScene{display:block;width:min(100%,26rem);height:auto;margin:0 auto 1.4rem;border-radius:12px;}
