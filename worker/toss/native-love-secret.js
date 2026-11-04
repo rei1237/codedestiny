@@ -87,7 +87,12 @@ export async function nativeLoveSecretLibraryItem(env,auth,purchase){
 
 export async function bindNativeLoveSecretRecovery(request,env,doc){
   const row=await TossNativeConsultation.findOne({nativeService:'love-secret',ownerId:doc.userId,requestId:doc.idempotencyKey}).lean();
-  if(!row)return false;
+  if(!row){
+    // A Toss owner must never resume against the web payment authority when
+    // the native order binding is missing, including after unlink.
+    if(await TossIdentity.findOne({ownerId:doc.userId}).lean())throw new TossError('RESULT_NOT_FOUND',404);
+    return false;
+  }
   if(env.TOSS_RELEASE_READY!=='true')throw new TossError('TOSS_RELEASE_PENDING',503);
   const identity=await TossIdentity.findOne({_id:row.identityId,ownerId:row.ownerId,active:true}).lean();
   if(!identity)throw new TossError('SESSION_EXPIRED',401);

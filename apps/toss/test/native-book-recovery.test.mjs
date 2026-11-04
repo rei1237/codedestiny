@@ -8,9 +8,9 @@ import path from 'node:path';
 const root=path.resolve(import.meta.dirname,'../../..');
 const Module=createRequire(import.meta.url)('node:module');
 const auth={_id:'identity',ownerId:'owner',userId:'owner',environment:'SANDBOX'};
-const state={row:null,doc:null,verified:0};globalThis.__bookRecovery=state;
+const state={row:null,doc:null,identity:null,verified:0};globalThis.__bookRecovery=state;
 const stubs={
- 'worker/toss/models.js':`const s=globalThis.__bookRecovery;export const TossIdentity={};export const TossNativeConsultation={findOne:q=>({lean:async()=>s.row&&Object.entries(q).every(([k,v])=>s.row[k]===v)?s.row:null})};`,
+ 'worker/toss/models.js':`const s=globalThis.__bookRecovery;export const TossIdentity={findOne:q=>({lean:async()=>s.identity&&Object.entries(q).every(([k,v])=>s.identity[k]===v)?s.identity:null})};export const TossNativeConsultation={findOne:q=>({lean:async()=>s.row&&Object.entries(q).every(([k,v])=>s.row[k]===v)?s.row:null})};`,
  'worker/toss/native-tea.js':`const s=globalThis.__bookRecovery;export const nativeOwnerFilter=(a,service)=>({identityId:a._id,ownerId:a.ownerId,environment:a.environment,nativeService:service});export const nativeIntentId=()=>{};export const prepareNativeConsultation=()=>{};export const verifiedIntent=async(_e,_a,row)=>{s.verified++;if(!row)throw Error('RESULT_NOT_FOUND');if(row.status==='refunded')throw Error('ORDER_REFUNDED');return row};`,
  'worker/toss/native-consultation.js':`export const assertNativeIntent=()=>{};`,
  'worker/toss/crypto.js':`export const unseal=()=>{};`,
@@ -34,4 +34,13 @@ for(const service of ['life-book','love-secret'])test(`${service} recovery uses 
  await assert.rejects(read({}, {...auth,ownerId:'other',userId:'other'},purchase),/RESULT_NOT_FOUND/);
  state.row.status='refunded';await assert.rejects(read({},auth,purchase),/ORDER_REFUNDED/);
  assert.ok(state.verified>=3);
+});
+
+test('love-secret recovery never falls back to web for a Toss owner with a missing order binding',async()=>{
+ state.row=null;state.identity={ownerId:'owner',active:false};
+ const request=new Request('https://internal.invalid');
+ const doc={userId:'owner',idempotencyKey:'request'};
+ await assert.rejects(loaded.exports.bindNativeLoveSecretRecovery(request,{},doc),/RESULT_NOT_FOUND/);
+ state.identity=null;
+ assert.equal(await loaded.exports.bindNativeLoveSecretRecovery(request,{},doc),false);
 });
