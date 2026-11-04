@@ -88,11 +88,11 @@ export function scoreLoveDay(day = {}, context = {}) {
 
   if (yongshin && (stemEl === yongshin || branchEl === yongshin)) {
     score += 12;
-    tags.push(`용신 ${ELEMENT_KO[yongshin]} 기운`);
+    tags.push(context.approvedTags ? `참고 오행 ${ELEMENT_KO[yongshin]} 기운` : `용신 ${ELEMENT_KO[yongshin]} 기운`);
   }
   if (gisin && (stemEl === gisin || branchEl === gisin)) {
     score -= 12;
-    tags.push(`기신 ${ELEMENT_KO[gisin]} 기운`);
+    tags.push(context.approvedTags ? `주의 오행 ${ELEMENT_KO[gisin]} 기운` : `기신 ${ELEMENT_KO[gisin]} 기운`);
   }
 
   const dayBranchRelations = getBranchPairRelations(branch, context.dayBranch);
@@ -163,6 +163,7 @@ export function buildLoveDayCalendar({
   gongmangBranches = [],
   startDateKst = "",
   days = 90,
+  approvedTags = false,
 } = {}) {
   const start = parseYmd(startDateKst);
   const total = Math.max(1, Math.min(180, Math.floor(Number(days) || 0) || 90));
@@ -174,6 +175,7 @@ export function buildLoveDayCalendar({
     dayStem: normalizeStemChar(dayStem),
     dayBranch: normalizeBranchChar(dayBranch),
     natalBranches: (Array.isArray(natalBranches) ? natalBranches : []).map(normalizeBranchChar).filter(Boolean),
+    approvedTags,
     yongshin: normalizeElementKey(yongshinElement),
     gisin: normalizeElementKey(gisinElement),
     dohwaSet: new Set((Array.isArray(dohwaBranches) ? dohwaBranches : []).map(normalizeBranchChar).filter(Boolean)),

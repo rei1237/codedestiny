@@ -13,6 +13,8 @@
  */
 import { computeNatalFromInput } from "@/app/saju/animal-destiny/lib/sajuAdapter";
 import { projectApprovedGyeokguk } from "@/lib/saju/gyeokguk-authority.mjs";
+import { ENGINE_ROLLOUT_FLAGS } from "@/worker/lib/engine-rollout.js";
+import { approvedSajuLabels, sajuAuthorityOn } from "@/worker/lib/saju-authority-consumer.js";
 import type { AnimalDestinyInput } from "@/app/saju/animal-destiny/lib/types";
 import type { Evidence } from "../types";
 
@@ -43,12 +45,14 @@ function topScores(map: unknown, n: number): string {
  *   어댑터 경로는 KASI 보정을 거칠 수 있어 드물게 일주가 달라질 수 있고, 그때 여기 값을
  *   근거로 내보내면 화면의 십이운성과 앞뒤가 맞지 않는 리포트가 나간다.
  */
-export function buildSajuNatalEvidence(birth: AnimalDestinyInput, expectedDayStem?: string): Evidence[] {
+export function buildSajuNatalEvidence(birth: AnimalDestinyInput, expectedDayStem?: string, { authorityEnabled = sajuAuthorityOn(ENGINE_ROLLOUT_FLAGS) } = {}): Evidence[] {
   let natal: Record<string, unknown>;
+  let approved: ReturnType<typeof approvedSajuLabels> | null = null;
   try {
     const local = computeNatalFromInput(birth);
     // 격국 근거는 승인 판정(natal-core)으로 읽는다. 어댑터의 옛 격국은 쓰지 않는다.
     natal = { ...asRecord(local.natalAnalysis), gyeokgukAnalysis: projectApprovedGyeokguk(local.pillars).gyeokgukAnalysis };
+    if (authorityEnabled) approved = approvedSajuLabels(local.pillars);
   } catch {
     return []; // 심층 근거는 부가 정보다 — 실패해도 결과 전체를 막지 않는다.
   }
@@ -64,8 +68,8 @@ export function buildSajuNatalEvidence(birth: AnimalDestinyInput, expectedDaySte
   };
 
   const elementKo = text(dayMaster.elementKo);
-  const strength = text(dayMaster.strength);
-  const strengthIndex = Number(dayMaster.strengthIndex);
+  const strength = approved ? approved.strength : text(dayMaster.strength);
+  const strengthIndex = approved ? NaN : Number(dayMaster.strengthIndex);
   push(
     "saju.dayMaster",
     `일간 ${stem}${elementKo ? `(${elementKo})` : ""}`,
@@ -109,7 +113,7 @@ export function buildSajuNatalEvidence(birth: AnimalDestinyInput, expectedDaySte
   push(
     "saju.yongshin",
     "용신",
-    [priority.length ? `우선순위 ${priority.join(" · ")}` : "", text(johu.urgentElementKo) ? `조후 급한 기운 ${text(johu.urgentElementKo)}` : ""]
+    (approved ? [approved.yongshinLabel, approved.johuCandidateNames.length ? `조후 후보 ${approved.johuCandidateNames.join(" · ")}` : ""] : [priority.length ? `우선순위 ${priority.join(" · ")}` : "", text(johu.urgentElementKo) ? `조후 급한 기운 ${text(johu.urgentElementKo)}` : ""])
       .filter(Boolean)
       .join(" / "),
     "core",

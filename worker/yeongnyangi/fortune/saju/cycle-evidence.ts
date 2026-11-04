@@ -55,5 +55,5 @@ export function withSajuCycleEvidence(context:DomainContext,asOf:string):DomainC
       })}};
   });
   const updated={...major,counselVersion:SAJU_CYCLE_VERSION,cycles,currentCycle:cycles.find((c:Row)=>c.index===major.currentCycle?.index)||null};
-  return {...context,facts:context.facts.map(f=>f.label==='majorLuck'?{...f,value:updated}:f.label==='advancedFactors'?{...f,value:natal}:f)};
+  return {...context,facts:context.facts.map(f=>f.label==='majorLuck'?{...f,value:updated}:f.label==='advancedFactors'?{...f,value:context.approvedSajuRules?{...natal,gyeokguk:values.advancedFactors.gyeokguk}:natal}:f)};
 }

@@ -119,7 +119,12 @@ export async function buildSajuAdapter(input, options = {}) {
 
   const connected = connectLifeBookSajuAuthority(raw, { enabled: options.gyeokgukAuthorityV2 === true,
     stored: options.sajuAuthoritySnapshot });
-  if (connected !== raw) return authorityGuardianResult(connected);
+  if (connected !== raw) {
+    const result = authorityGuardianResult(connected);
+    // 통합운세 전문가 근거에는 시기표가 필수다. 옛 용신·조후 필드는 넣지 않는다.
+    return options.fusionExpert ? { ...result, expertEvidence: { ...result.expertEvidence,
+      ...pickExpertFields(raw, ["majorLuck", "yearlyLuck", "natalInteractions"]) } } : result;
+  }
 
   const dayMaster = nonEmptyText(raw?.dayMaster, 80);
   const fiveElementsSummary = summarizeDistribution(raw?.fiveElements, "오행");

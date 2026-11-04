@@ -116,7 +116,7 @@ test('actual master-love and neo chart consumers use one approved selection for 
  const {buildCodexConsultation}=await import('../../worker/lib/master-love-codex-consultation.js');
  const env={ZIWEI_CALENDAR_AUTHORITY_V2:'true'}, now=new Date('2026-11-02T00:00:00Z');
  const normalized={birthInfo:input,partnerInfo:{...input,gender:'female'}};
- const ctx=vm.createContext({Date,calculateZiweiConsumerChart,calculateLifeBookAiSaju,asObject:v=>v,clean:v=>String(v||''),buildMasterLoveCodexCompatibility:()=>({mock:true})});
+ const ctx=vm.createContext({Date,sajuAuthorityOn:()=>false,calculateZiweiConsumerChart,calculateLifeBookAiSaju,asObject:v=>v,clean:v=>String(v||''),buildMasterLoveCodexCompatibility:()=>({mock:true})});
  load(ctx,'worker/routes/master-love-codex.js','buildCharts');const pair=ctx.buildCharts(normalized,now,env);
  assert.equal(pair.ziweiChart.lunar.source,'kasi-jpl-expanded-20261101');assert.equal(pair.partnerZiweiChart.lunar.source,pair.ziweiChart.lunar.source);
  const consultation=buildCodexConsultation({questions:['관계의 흐름은?']},'compat',pair,input,normalized.partnerInfo,now);assert.ok(consultation.records.some(r=>r.system==='ziwei'));

@@ -23,9 +23,19 @@ import {
 import { legacyJongShape } from "../../lib/saju/natal-core/index.mjs";
 import { gyeokgukClaimFact, gyeokgukPromptRules } from "../../lib/saju/gyeokguk-claim-guard.mjs";
 import { consumerPillars, selectSajuAuthority, readSajuAuthority, SAJU_AUTHORITY_PROMPT_RULES } from './saju-authority-consumer.js';
+import { authorityText } from '../../lib/saju/gyeokguk-authority-copy.mjs';
 
 export function selectSajuPromptAuthority(sajuResult, options = {}) {
   return selectSajuAuthority(consumerPillars(normalizeSajuPillarRows(sajuResult)), options);
+}
+
+// 근거 패널용 투영. 고정된 판정을 고객 라벨로만 옮기고 단일 오행을 만들지 않는다.
+function pinnedBasisSnapshot(factSnapshot, analysis) {
+  const gyeokguk = analysis.gyeokgukAnalysis, yongshin = analysis.yongshinAnalysis, unknown = authorityText('unknown');
+  const candidates = yongshin.status === 'pending' ? [unknown]
+    : yongshin.usefulCandidateNames?.length ? yongshin.usefulCandidateNames : [yongshin.coreYongshinKo].filter(Boolean);
+  return { ...factSnapshot, majorStructures: { gyeokguk: { name: gyeokguk.status === 'pending' ? unknown : gyeokguk.finalGyeokguk } },
+    yongshinKijishin: { yongshin: candidates, kijishin: [authorityText('notEvaluated')] } };
 }
 
 function buildPinnedSajuPrompt({ question, sajuResult, domain, mode }, snapshot) {
@@ -51,7 +61,7 @@ function buildPinnedSajuPrompt({ question, sajuResult, domain, mode }, snapshot)
   const generatedPrompt = [pack.generatedPrompt, ...SAJU_AUTHORITY_PROMPT_RULES, JSON.stringify(factSnapshot)].join('\n');
   return { ...pack, prompt: generatedPrompt, generatedPrompt, questionType, domain: resolvedDomain, domainLabel: template.domainKo,
     categoryRubric, promptVersion: `${SAJU_AI_PROMPT_VERSION}|${pinned.calculationVersion}`, factSnapshot,
-    factCard: JSON.stringify(factSnapshot), analysisBasis: { ...buildSajuAnalysisBasis(factSnapshot),
+    factCard: JSON.stringify(factSnapshot), analysisBasis: { ...buildSajuAnalysisBasis(pinnedBasisSnapshot(factSnapshot, analysis)),
       calculationVersion: pinned.calculationVersion, natalAnalysisId: analysis.evidence.natalAnalysisId },
     tenGodSnapshot: { dayMaster: factSnapshot.dayMaster, fixedTenGodTable: factSnapshot.fixedTenGodTable },
     advancedFactors: factSnapshot.majorStructures, keywordWeights: template.keywordWeights,

@@ -15,6 +15,7 @@ import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import { NAMING_DEFAULT_LOCALE, resolveNamingLocaleProfile } from "../lib/naming-locale-profile.js";
 import { labelElements, resolveNamingYongshin } from "../lib/saju-yongshin-policy.js";
 import { sajuTemperamentPromptLines } from '../lib/saju-temperament.js';
+import { approvedSajuLabels, sajuAuthorityOn } from "../lib/saju-authority-consumer.js";
 
 const PRODUCT_TYPE = "naming_prompt";
 const FEATURE_KEY = "premium-naming-prompt";
@@ -485,6 +486,59 @@ function buildSajuContext(input, mainShellEvidence = null, sajuEvidenceHash = ""
   };
 }
 
+// 새 계산의 고객 표시와 프롬프트 사실만 승인 판정으로 바꾼다. 작명 점수에 쓰는 오행 값은 그대로 둔다.
+function withApprovedSajuFacts(snapshot, input) {
+  if (!snapshot || snapshot.source === "input-fallback") return snapshot;
+  let labels;
+  try {
+    labels = approvedSajuLabels({
+      year: snapshot.yearPillar,
+      month: snapshot.monthPillar,
+      day: snapshot.dayPillar,
+      hour: input.birthTimeUnknown || snapshot.hourPillar === "미상" ? null : snapshot.hourPillar,
+    });
+  } catch {
+    // 기둥을 읽지 못해도 결제 뒤 작명 전달을 막지 않는다.
+    return snapshot;
+  }
+  return {
+    ...snapshot,
+    approvedSaju: {
+      status: labels.status,
+      gyeokguk: labels.gyeokgukStatus === "pending" || !labels.gyeokguk ? "판정 보류" : labels.gyeokguk,
+      strength: labels.strength,
+      yongshinLabel: labels.yongshinLabel,
+      gisinLabel: labels.gisinLabel,
+      promptRules: labels.promptRules,
+    },
+    strengthAnalysis: labels.strength,
+    usefulGodCandidates: labels.yongshinLabel,
+    supportiveGodCandidates: "",
+    unfavorableGodCandidates: labels.gisinLabel,
+    eokbuYongshin: "",
+    johuYongshin: "",
+    finalYongshin: labels.yongshinLabel,
+    eokbuKijishin: "",
+    johuKijishin: "",
+    finalKijishin: labels.gisinLabel,
+    jongAnalysis: "",
+    recommendedNameElements: String(snapshot.recommendedNameElements || "").replace("용신·희신 우선", "작명 계산 기준"),
+    avoidNameElements: String(snapshot.avoidNameElements || "").replace("기신·과다 오행 회피", "작명 계산 주의"),
+  };
+}
+
+// 저장되는 view 에 판정을 싣는다. 이전 레코드에는 없어 옛 문구 그대로 읽힌다.
+function withApprovedNamingView(view, approved) {
+  if (!approved) return view;
+  return {
+    ...view,
+    saju: { ...view.saju, approved },
+    notices: (view.notices || [])
+      .filter((code) => code !== "saju.jong-conditional")
+      .map((code) => (code === "saju.time-unknown" ? "saju.time-unknown-approved" : code)),
+  };
+}
+
 function buildFallbackSajuContext(input) {
   try {
     const profile = buildSajuProfile({
@@ -634,13 +688,14 @@ export function buildGeneratedPrompt(input, saju, locale = NAMING_DEFAULT_LOCALE
     ? `사용자가 제시한 후보 이름을 먼저 다루고, 이어서 새로 제안하는 이름을 다루세요. 각 이름을 ${profile.candidateAxes}으로 평가하세요.`
     : `새로 제안하는 이름 5~7개를 하나씩 다루세요. 각 이름을 ${profile.candidateAxes}으로 평가하세요.`;
 
+  const approved = saju.approvedSaju || null;
   return `${profile.persona} 당신에게 이름이란 한 사람의 운명을 여는 첫 번째 열쇠이며, 사주의 부족한 기운을 채워주는 가장 일상적이면서도 강력한 처방입니다. 지금부터 한 아이(또는 새 출발을 준비하는 한 사람)를 위해, 부모에게 직접 건네는 한 권의 "작명첩"을 씁니다.
 ${profile.promptContract}
 ## 핵심 원칙 — 반드시 지킬 것
 
-1. **용신(用神) 최우선**: 이름의 모든 요소(${profile.nameLayers})는 아래 사주 분석에서 도출된 용신·희신 오행을 보완하는 방향으로 선택하세요. ${profile.layerTiebreak}
+${approved ? `1. **작명 계산 기준 우선**: 이름의 모든 요소(${profile.nameLayers})는 아래 작명 계산 기준 오행을 보완하는 방향으로 선택하세요. 이 안내문에 나오는 '용신·희신'은 작명 계산 기준 오행을 뜻하며 확정된 용신이 아닙니다. ${profile.layerTiebreak}` : `1. **용신(用神) 최우선**: 이름의 모든 요소(${profile.nameLayers})는 아래 사주 분석에서 도출된 용신·희신 오행을 보완하는 방향으로 선택하세요. ${profile.layerTiebreak}`}
 ${genderNote}
-3. **용신 판단은 종합적으로**: 월령(계절)·일간 강약·신강/신약·조후·통근·투간을 모두 고려해 용신을 확인하세요. 아래 계산된 용신 후보는 수정하지 마세요. 억부·조후 해석이 다르면 각각의 적용 조건과 한계를 설명하세요.
+${approved ? "3. **사주 판정은 승인값 그대로**: 아래 격국과 용신 후보 상태를 수정하지 말고, 단일 용신이나 단일 기신으로 확정해 쓰지 마세요." : "3. **용신 판단은 종합적으로**: 월령(계절)·일간 강약·신강/신약·조후·통근·투간을 모두 고려해 용신을 확인하세요. 아래 계산된 용신 후보는 수정하지 마세요. 억부·조후 해석이 다르면 각각의 적용 조건과 한계를 설명하세요."}
 ${profile.legalCharRule}
 ${profile.modernBalanceRule}
 ${profile.uncertaintyRule}
@@ -683,7 +738,14 @@ ${sajuTemperamentPromptLines({...saju,power:saju.raw?.mainShellEvidence?.power,j
 
 ---
 
-## [용신 판단 근거 — 검증 요청]
+${approved ? `## [사주 판정 — 승인값, 수정 금지]
+- 격국: ${approved.gyeokguk}
+- 일간 강약: ${approved.strength}
+- 용신: ${approved.yongshinLabel}
+- 기신: ${approved.gisinLabel}
+${approved.promptRules.map((rule) => `- 해석 규칙: ${rule}`).join("\n")}
+
+아래 두 줄은 이름 글자를 고를 때 쓰는 작명 계산 기준입니다. 사주 판정이 아니므로 용신이나 기신이라고 부르지 마세요.` : `## [용신 판단 근거 — 검증 요청]
 아래는 사주 엔진이 도출한 용신/기신 후보입니다. **계산값을 재계산하거나 수정하지 말고, 억부·조후의 적용 조건과 상충하는 해석의 한계를 설명하세요.**
 
 - 억부용신 후보: ${saju.eokbuYongshin || "메인 사주 계산 기준 확인"}
@@ -693,14 +755,12 @@ ${sajuTemperamentPromptLines({...saju,power:saju.raw?.mainShellEvidence?.power,j
 - 억부기신 후보: ${saju.eokbuKijishin || "메인 사주 계산 기준 확인"}
 - 조후기신 후보: ${saju.johuKijishin || "메인 사주 계산 기준 확인"}
 - 최종 주의 오행: ${saju.finalKijishin || saju.unfavorableGodCandidates}
-- 종격/가종격 검토: ${saju.jongAnalysis || "종격 특이 신호 없음"}
+- 종격/가종격 검토: ${saju.jongAnalysis || "종격 특이 신호 없음"}`}
 - 이름으로 보완하면 좋은 오행: ${saju.recommendedNameElements}
 - 이름에서 피하면 좋은 오행: ${saju.avoidNameElements}
 
 ### 오행 적용 우선순위 (작명 시)
-1. 용신·희신 오행을 이름에 담는다 (자원오행 > 소리오행 순으로 우선)
-2. 조후가 필요하면 조후용신도 반영한다
-3. 과다한 오행·기신 오행은 피한다
+${approved ? "1. 작명 계산 기준 오행을 이름에 담는다 (자원오행 > 소리오행 순으로 우선)\n2. 조후 보완 오행이 있으면 함께 반영한다\n3. 과다한 오행과 작명 계산 주의 오행은 피한다" : "1. 용신·희신 오행을 이름에 담는다 (자원오행 > 소리오행 순으로 우선)\n2. 조후가 필요하면 조후용신도 반영한다\n3. 과다한 오행·기신 오행은 피한다"}
 4. 위 조건을 충족하는 범위에서 수리(획수) 길흉을 최적화한다
 
 ---
@@ -736,7 +796,7 @@ ${desiredNamesMarkdown(input.desiredNames)}
 (이 사주를 처음 펼쳐 본 작명가의 첫인상. 어떤 기운을 타고났고, 이름이 무엇을 채워줘야 하는지를 부모에게 말하듯 서너 문단으로.)
 
 ## 2. 사주 풀이와 용신 검증
-(명식·오행 분포·신강약·조후를 풀고, 위 용신/기신 후보를 계산값 그대로 유지하면서 판단 근거와 적용 조건을 함께. 목록 활용.)
+${approved ? "(명식·오행 분포·신강약·조후를 풀고, 위 격국과 용신 후보 상태를 그대로 전하면서 이름 글자 선택에는 작명 계산 기준을 썼다고 함께. 목록 활용.)" : "(명식·오행 분포·신강약·조후를 풀고, 위 용신/기신 후보를 계산값 그대로 유지하면서 판단 근거와 적용 조건을 함께. 목록 활용.)"}
 
 ## 3. 이 아이의 작명 원칙
 (이 사주에 맞춘 구체적 기준 — 담을 오행과 피할 오행, ${profile.principleAxes}, 성별·선호 반영 방침.)
@@ -1588,7 +1648,11 @@ async function handleBasis(request, env) {
   const input = normalizeInput(body.input || body);
   validateInput(input);
   if (!input.surnameHanja) throw createHttpError(400, "성씨 한자를 입력해 주세요.", { code: "NAMING_SURNAME_HANJA_REQUIRED" });
-  const { view, displayEvidence } = (await loadNamingV2()).namingBasis(input);
+  const basis = (await loadNamingV2()).namingBasis(input);
+  const { displayEvidence } = basis;
+  const view = sajuAuthorityOn(env)
+    ? withApprovedNamingView(basis.view, withApprovedSajuFacts(buildSajuContext(input, displayEvidence, ""), input)?.approvedSaju)
+    : basis.view;
   return json({
     ok: true,
     engineVersion: view.engineVersion,
@@ -1662,9 +1726,10 @@ async function handleGenerate(request, env, _routeContext = null, recoveryAuth =
   const wantV2 = original ? Boolean(original.engineVersion) : NAMING_ENGINE_VERSION === "v2" && Boolean(input.surnameHanja);
   const v2 = wantV2 ? await loadNamingV2() : null;
   const prepared = v2 && !original?.engine ? v2.prepareNaming(input) : null;
-  const engine = wantV2 ? original?.engine || prepared.view : null;
-  const sajuSnapshot = (original?.sajuSnapshot?.source !== "input-fallback" ? original?.sajuSnapshot : null)
+  const baseSajuSnapshot = (original?.sajuSnapshot?.source !== "input-fallback" ? original?.sajuSnapshot : null)
     || (prepared ? { ...buildSajuContext(input, prepared.displayEvidence, ""), source: "naming-engine-v2" } : buildSajuContext(input, sajuEvidence.evidence, sajuEvidence.evidenceHash));
+  const sajuSnapshot = !original && sajuAuthorityOn(env) ? withApprovedSajuFacts(baseSajuSnapshot, input) : baseSajuSnapshot;
+  const engine = wantV2 ? original?.engine || withApprovedNamingView(prepared.view, sajuSnapshot?.approvedSaju) : null;
   // 🔴 로케일은 `input` 밖에서 읽는다 — `input` 은 통째로 inputHash 가 되므로 여기에 넣으면
   //    (a) 배포 전 결제·배포 후 생성 사용자가 해시 불일치로 생성이 막히고
   //    (b) 언어만 바꿔 재요청할 때 같은 리딩에 30,000원이 다시 청구된다.
@@ -1804,7 +1869,7 @@ export async function handleNamingPromptRoutes(request, env, ctx = null) {
   }
 }
 
-export const __namingPromptExecutionTestUtils = { beginNamingGeneration, upsertExecutionRecord };
+export const __namingPromptExecutionTestUtils = { beginNamingGeneration, upsertExecutionRecord, withApprovedSajuFacts, withApprovedNamingView };
 
 export function resumeConsultationOnServer(env, doc) {
   if (!doc?.userId || !doc.executionId) throw new Error("RECOVERY_doc.executionId_REQUIRED");

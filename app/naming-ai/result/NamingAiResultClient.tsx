@@ -53,6 +53,7 @@ type NamingSajuSnapshot = {
   hourPillar?: string;
   dayMaster?: string;
   fiveElementBalance?: string;
+  approvedSaju?: unknown;
   usefulGodCandidates?: string;
   unfavorableGodCandidates?: string;
   recommendedNameElements?: string;
@@ -481,7 +482,7 @@ export default function NamingAiResultClient() {
                 {COPY.pdfTitle(familyName)}
               </h1>
               <p className="mt-4 max-w-3xl text-base leading-8 text-[color:var(--nm-t-e6ddfa)]">
-                {COPY.coverBody}
+                {saju?.approvedSaju ? COPY.coverBodyApproved : COPY.coverBody}
               </p>
               <dl className="mt-6 grid gap-x-8 gap-y-2 text-sm sm:grid-cols-2 lg:grid-cols-4">
                 <CoverRow label={COPY.rowGender} value={genderLabel(input?.gender)} />
@@ -493,7 +494,7 @@ export default function NamingAiResultClient() {
 
             {!v2Engine && input?.birthTimeUnknown && (
               <section data-naming-pdf-page className="rounded-3xl border border-[color:var(--nm-l-e8d5a3-25)] bg-[color:var(--nm-b-e8d5a3-7)] p-5 text-sm leading-7 text-[color:var(--nm-t-f2e9d3)]">
-                {COPY.hourUnknownNote}
+                {saju?.approvedSaju ? COPY.hourUnknownNoteApproved : COPY.hourUnknownNote}
               </section>
             )}
 

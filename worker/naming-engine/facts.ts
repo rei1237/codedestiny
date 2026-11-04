@@ -56,6 +56,8 @@ export interface EngineView {
     /** 원국 기둥·오행 개수(화면 요약용). 2026-10-04 이전 레코드에는 없다 — service.ts compute 가 채운다. */
     pillars?: Record<string, { g: string; j: string; gE?: string }>;
     counts?: Partial<Record<Element, number>>;
+    /** 승인 사주 판정(새 계산만). 이 값이 있으면 useful·caution 은 작명 계산 기준으로만 부른다. */
+    approved?: { status: string; gyeokguk: string; strength: string; yongshinLabel: string; gisinLabel: string; promptRules: string[] };
   };
   /** 추천 방식. Phase 6.5(2026-10-04) 이전 레코드에는 없다 — 없으면 "recommend" 로 읽는다. */
   strategy?: "recommend" | "choose";
@@ -173,15 +175,15 @@ export function meaningText(view: EngineView, candidate: EngineCandidateView): s
 }
 
 export function sajuSupportText(view: EngineView, candidate: EngineCandidateView): string {
-  const { useful, caution, derivedSupport } = view.saju;
+  const { useful, caution, derivedSupport, approved } = view.saju;
   return candidate.chars.map((char) => {
     if (!char.jawon) return `${char.ch}의 자원오행은 아직 분류 근거가 확정되지 않았습니다.`;
     const label = ELEMENT_LABEL[char.jawon];
     const head = `${char.ch}의 자원오행 ${label}${particle(label, "은", "는")}`;
-    if (useful.includes(char.jawon)) return `${head} 이 사주의 용신 오행이라 부족한 기운을 직접 채웁니다.`;
-    if (derivedSupport.includes(char.jawon)) return `${head} 용신을 생해 주는 오행이라 간접적으로 힘을 보탭니다.`;
+    if (useful.includes(char.jawon)) return approved ? `${head} 작명 계산 기준 오행이라 이름에서 직접 담았습니다.` : `${head} 이 사주의 용신 오행이라 부족한 기운을 직접 채웁니다.`;
+    if (derivedSupport.includes(char.jawon)) return approved ? `${head} 작명 계산 기준 오행을 생해 주는 오행이라 간접적으로 힘을 보탭니다.` : `${head} 용신을 생해 주는 오행이라 간접적으로 힘을 보탭니다.`;
     if (caution.includes(char.jawon)) return `${head} 이 사주에서 주의할 오행이라, 다른 글자와의 균형을 함께 보시길 권합니다.`;
-    return `${head} 용신·주의 오행 어느 쪽에도 기울지 않은 중립 오행입니다.`;
+    return approved ? `${head} 작명 계산 기준이나 주의 오행 어느 쪽에도 기울지 않은 중립 오행입니다.` : `${head} 용신·주의 오행 어느 쪽에도 기울지 않은 중립 오행입니다.`;
   }).join(" ");
 }
 
@@ -209,7 +211,9 @@ export function letterText(view: EngineView, candidate: EngineCandidateView): st
   const glosses = candidate.chars.map((char) => firstHun(char.hun)).filter(Boolean);
   const usefulChars = candidate.chars.filter((char) => char.jawon && view.saju.useful.includes(char.jawon));
   const saju = usefulChars.length
-    ? `사주에 필요한 ${labels([...new Set(usefulChars.map((char) => char.jawon as Element))])} 기운을 이름 글자가 채워 줍니다.`
+    ? (view.saju.approved
+      ? `작명 계산 기준으로 고른 ${labels([...new Set(usefulChars.map((char) => char.jawon as Element))])} 기운을 이름 글자에 담았습니다.`
+      : `사주에 필요한 ${labels([...new Set(usefulChars.map((char) => char.jawon as Element))])} 기운을 이름 글자가 채워 줍니다.`)
     : "사주의 균형을 해치지 않는 글자로 골랐습니다.";
   return [
     `${fullName(view, candidate)}${particle(candidate.hangul, "이라는", "라는")} 이름을 건넵니다.`,
@@ -229,7 +233,7 @@ export function summaryText(view: EngineView, candidate: EngineCandidateView): s
   const allGood = GRID_NAMES.every((grid) => candidate.grades[grid] === "good");
   const smooth = !candidate.sound.relations.includes("control");
   return [
-    useful ? "용신 오행을 담은 이름" : "사주 균형을 해치지 않는 이름",
+    useful ? (view.saju.approved ? "작명 계산 기준 오행을 담은 이름" : "용신 오행을 담은 이름") : "사주 균형을 해치지 않는 이름",
     allGood ? "수리 4격 모두 길" : "수리 4격 일부 반길·흉",
     smooth ? "소리 흐름 상생" : "소리 흐름 일부 상극",
   ].join(" · ");
@@ -327,7 +331,7 @@ function strongest(candidates: EngineCandidateView[], key: string): EngineCandid
 }
 
 export function engineChapterBody(id: number, view: EngineView, saju: SajuLines, narration: Narration | null): string {
-  const { useful, caution, derivedSupport, timeUnknown, jongConditional } = view.saju;
+  const { useful, caution, derivedSupport, timeUnknown, jongConditional, approved } = view.saju;
   const first = view.candidates[0];
   const top3 = view.candidates.slice(0, 3);
   const cautionText = caution.length ? labels(caution) : "뚜렷한 주의 오행 없음";
@@ -335,8 +339,10 @@ export function engineChapterBody(id: number, view: EngineView, saju: SajuLines,
     case 1:
       return [
         `${view.surname.hangul}씨 성을 이을 아이의 사주를 펼쳐 보면, 이름으로 채워 주면 좋은 오행은 ${labels(useful)}이고 조심해서 다룰 오행은 ${cautionText}입니다.`,
-        timeUnknown ? "출생 시간을 모르는 상태라 시주를 뺀 세 기둥으로 판단했습니다. 시간을 알게 되면 용신 판단이 달라질 수 있습니다." : "",
-        jongConditional ? "이 명식은 종격으로 볼 여지가 있어, 용신 판단에 조건이 붙는다는 점을 함께 말씀드립니다." : "",
+        approved
+          ? (timeUnknown ? "출생 시간을 모르는 상태라 격국과 용신은 판정을 보류했고, 이름 글자는 세 기둥의 작명 계산 기준으로 골랐습니다. 시간을 알게 되면 다시 확인할 수 있습니다." : "")
+          : timeUnknown ? "출생 시간을 모르는 상태라 시주를 뺀 세 기둥으로 판단했습니다. 시간을 알게 되면 용신 판단이 달라질 수 있습니다." : "",
+        !approved && jongConditional ? "이 명식은 종격으로 볼 여지가 있어, 용신 판단에 조건이 붙는다는 점을 함께 말씀드립니다." : "",
         `이번 작명은 인명용 한자 전체를 대상으로 자원오행·수리 4격·소리오행·실제 쓰임을 함께 계산해 후보를 골랐습니다.${first ? ` 첫 번째 후보는 ${fullName(view, first)}입니다.` : ""}`,
         first ? narrationFor(view, narration, first).meaning : "",
       ].filter(Boolean).join("\n\n");
@@ -344,12 +350,12 @@ export function engineChapterBody(id: number, view: EngineView, saju: SajuLines,
       return [
         `명식은 년주 ${saju.yearPillar || "미상"}, 월주 ${saju.monthPillar || "미상"}, 일주 ${saju.dayPillar || "미상"}, 시주 ${saju.hourPillar || "미상"}입니다. 일간은 ${saju.dayMaster || "미상"}이고 월령은 ${saju.monthCommand || "미상"}입니다.`,
         saju.fiveElementBalance ? `원국의 오행 분포는 ${saju.fiveElementBalance}입니다.${saju.strengthAnalysis ? ` 일간의 힘은 ${saju.strengthAnalysis}입니다.` : ""}` : "",
-        `메인 사주 엔진이 정한 최종 용신은 ${labels(useful)}, 주의 오행은 ${cautionText}입니다. 작명 엔진은 이 값을 다시 계산하지 않고 그대로 받아, 이름 글자의 자원오행이 용신과 맞으면 점수를 더하고 주의 오행이면 점수를 덜었습니다.${derivedSupport.length ? ` 용신을 생해 주는 ${labels(derivedSupport)}도 보조로 반영했습니다.` : ""}`,
+        approved ? `사주 판정은 격국 ${approved.gyeokguk}, 일간 강약 ${approved.strength}, 용신 ${approved.yongshinLabel}, 기신 ${approved.gisinLabel}입니다. 용신을 하나로 확정하지 않습니다. 이름 글자의 점수는 작명 계산 기준으로 매겼고, 그 기준 오행은 ${labels(useful)}, 주의 오행은 ${cautionText}입니다.${derivedSupport.length ? ` 기준 오행을 생해 주는 ${labels(derivedSupport)}도 보조로 반영했습니다.` : ""}` : `메인 사주 엔진이 정한 최종 용신은 ${labels(useful)}, 주의 오행은 ${cautionText}입니다. 작명 엔진은 이 값을 다시 계산하지 않고 그대로 받아, 이름 글자의 자원오행이 용신과 맞으면 점수를 더하고 주의 오행이면 점수를 덜었습니다.${derivedSupport.length ? ` 용신을 생해 주는 ${labels(derivedSupport)}도 보조로 반영했습니다.` : ""}`,
       ].filter(Boolean).join("\n\n");
     case 3:
       return [
         "이 아이의 이름은 네 가지 기준을 차례로 맞췄습니다.",
-        `첫째, 자원오행입니다. 한자가 본래 지닌 오행이 용신 ${labels(useful)}에 맞는 글자를 앞세웠습니다.${caution.length ? ` ${labels(caution)} 오행의 글자는 점수를 낮췄습니다.` : ""}`,
+        `첫째, 자원오행입니다. 한자가 본래 지닌 오행이 ${approved ? "작명 계산 기준" : "용신"} ${labels(useful)}에 맞는 글자를 앞세웠습니다.${caution.length ? ` ${labels(caution)} 오행의 글자는 점수를 낮췄습니다.` : ""}`,
         "둘째, 수리 4격입니다. 성과 이름의 획수로 원격·형격·이격·정격을 셈하고 81수리의 길흉을 따졌습니다. 특히 정격이 흉한 조합은 처음부터 후보에서 뺐습니다.",
         `셋째, 소리오행입니다. ${SOUND_MAPPING_LABEL[first?.sound.mapping || "modern"] || SOUND_MAPPING_LABEL.modern}을 기준으로, 이웃한 소리끼리 상생·비화로 이어지는지를 보았습니다.`,
         "넷째, 실제로 쓰기 좋은지입니다. 교육용 기초한자인지, 불용한자 관행에 걸리는지, 첫소리 ㄹ이나 같은 음절 반복처럼 부르기 불편한 점이 없는지를 함께 보았습니다. 삼재는 학파마다 해석이 달라 참고 지표로만 반영했습니다.",
@@ -370,7 +376,7 @@ export function engineChapterBody(id: number, view: EngineView, saju: SajuLines,
       const bySaju = strongest(top3, "saju");
       const bySuri = strongest(top3, "suri");
       const bySound = strongest(top3, "sound");
-      lines.push(`용신 기운을 가장 직접 채우고 싶다면 ${fullName(view, bySaju)}, 수리 균형을 중시한다면 ${fullName(view, bySuri)}, 부르는 소리를 우선한다면 ${fullName(view, bySound)}${particle(bySound.hangul, "이", "가")} 잘 맞습니다.`);
+      lines.push(`${view.saju.approved ? "작명 계산 기준 오행을" : "용신 기운을"} 가장 직접 채우고 싶다면 ${fullName(view, bySaju)}, 수리 균형을 중시한다면 ${fullName(view, bySuri)}, 부르는 소리를 우선한다면 ${fullName(view, bySound)}${particle(bySound.hangul, "이", "가")} 잘 맞습니다.`);
       return lines.join("\n\n");
     }
     case 6:
@@ -398,7 +404,7 @@ export function engineChapterBody(id: number, view: EngineView, saju: SajuLines,
         "출생신고 전에 대법원 전자가족관계등록시스템의 인명용 한자 조회에서 고른 한자가 등록 가능한지 한 번 더 확인해 주세요.",
         variant.length ? `${variant.join("·")} 글자는 법원 시스템에서 표준 코드가 아닌 이체 코드로 등록된 글자라, 신고 화면에서 글자 모양을 꼭 확인해야 합니다.` : "",
         lowConfidence.length ? `${lowConfidence.join("·")}의 자원오행은 분류 신뢰도가 낮아 전문가 검수 전의 참고값입니다.` : "",
-        timeUnknown ? "출생 시간을 알게 되면 시주를 넣어 용신을 다시 확인해 보시길 권합니다." : "",
+        timeUnknown ? (view.saju.approved ? "출생 시간을 알게 되면 시주를 넣어 격국과 용신 후보를 다시 확인해 보시길 권합니다." : "출생 시간을 알게 되면 시주를 넣어 용신을 다시 확인해 보시길 권합니다.") : "",
         view.notices.includes("sound.school-differs") ? "소리오행은 학파에 따라 배정이 달라질 수 있어, 다른 기준으로 보면 흐름 평가가 바뀔 수 있습니다." : "",
         "삼재는 학파마다 해석이 달라 참고 지표로만 보았습니다.",
         "마지막으로, 가족이 소리 내어 여러 번 불러 보고 아이의 형제자매 이름과도 나란히 놓아 보세요. 계산이 고른 후보 가운데 가장 마음이 편한 이름이 좋은 이름입니다.",

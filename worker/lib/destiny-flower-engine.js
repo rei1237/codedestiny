@@ -4358,7 +4358,8 @@ function buildSajuSignalPoints(profile, flower, matchedSignals, dayMasterScenari
       })
     ));
   }
-  if (signals.includes('yongshin_element')) {
+  // 승인 판정에는 단일 용신이 없다. 점수 입력은 두고 이 근거 문장만 내보내지 않는다.
+  if (signals.includes('yongshin_element') && !profile.approvedSajuWording) {
     points.push(point('yongshin', 'saju.rationaleLabel.yongshin', destinyFlowerText('saju.rationale.yongshin', {
       elements: elementText(saju.yongshin_elements || [])
     })));
@@ -4427,7 +4428,7 @@ function buildSajuFlowerLanguage(profile, flower, matchedSignals, dayMasterScena
   if (!language) return '';
   const signals = Array.isArray(matchedSignals) ? matchedSignals : [];
   const saju = (profile.domains && profile.domains.saju) || {};
-  const yongshin = signals.includes('yongshin_element') ? sharedElementText(flower, saju.yongshin_elements || []) : '';
+  const yongshin = signals.includes('yongshin_element') && !profile.approvedSajuWording ? sharedElementText(flower, saju.yongshin_elements || []) : '';
   if (yongshin) return destinyFlowerText('saju.flowerLanguage.yongshin', { language, elements: yongshin });
   const dayMasterBadge = (dayMasterScenario && dayMasterScenario.dayMasterBadge) || dayMasterLabel(saju.day_master) || '';
   if (dayMasterBadge) return destinyFlowerText('saju.flowerLanguage.dayMaster', { language, dayMasterBadge });
@@ -4710,9 +4711,9 @@ export function matchDestinyFlower(userData = {}, options = {}) {
     flower_data: flowerData,
     saju_verdict: sajuVerdict,
     narrative: buildRationale(profile, displayFlower, picked.matchedSignals, dayMasterScenario),
-    rationale_points: buildRationalePoints(profile, displayFlower, picked.matchedSignals, dayMasterScenario),
+    rationale_points: buildRationalePoints(options.approvedSajuWording ? { ...profile, approvedSajuWording: true } : profile, displayFlower, picked.matchedSignals, dayMasterScenario),
     bloom_story: buildSajuBloomStory(profile, displayFlower, picked.matchedSignals, dayMasterScenario),
-    destiny_flower_language: buildSajuFlowerLanguage(profile, displayFlower, picked.matchedSignals, dayMasterScenario),
+    destiny_flower_language: buildSajuFlowerLanguage(options.approvedSajuWording ? { ...profile, approvedSajuWording: true } : profile, displayFlower, picked.matchedSignals, dayMasterScenario),
     share_hook: buildSajuShareHook(profile, displayFlower, dayMasterScenario),
     fallback_logic: {
       used: Boolean(profile.domains && profile.domains.saju && profile.domains.saju.day_master_fallback_used),

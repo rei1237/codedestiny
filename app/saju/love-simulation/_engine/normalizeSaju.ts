@@ -6,6 +6,8 @@
 
 import type { AnimalDestinyInput } from "../../animal-destiny/lib/types";
 import { computeNatalFromInput, prefetchKasiContext } from "../../animal-destiny/lib/sajuAdapter";
+import { ENGINE_ROLLOUT_FLAGS } from "@/worker/lib/engine-rollout.js";
+import { approvedSajuLabels, sajuAuthorityOn } from "@/worker/lib/saju-authority-consumer.js";
 import type { ElementKey, NormalizedPillar, NormalizedSaju } from "./compatibilityTypes";
 import { branchElement, stemElement, stemPolarity } from "./relations";
 
@@ -46,7 +48,7 @@ function topElements(counts: Record<ElementKey, number>, limit = 2): ElementKey[
 }
 
 /** LocalSajuResult(natalAnalysis 포함) → NormalizedSaju. 실패 시 null. */
-function extractNormalized(local: ReturnType<typeof computeNatalFromInput>): NormalizedSaju | null {
+function extractNormalized(local: ReturnType<typeof computeNatalFromInput>, authorityEnabled = sajuAuthorityOn(ENGINE_ROLLOUT_FLAGS)): NormalizedSaju | null {
   const yearPillar = toPillar(local.pillars?.year);
   const monthPillar = toPillar(local.pillars?.month);
   const dayPillar = toPillar(local.pillars?.day);
@@ -74,6 +76,7 @@ function extractNormalized(local: ReturnType<typeof computeNatalFromInput>): Nor
     gisin,
     dayMasterStrength,
     timeUnknown: Boolean(local.timeUnknown),
+    ...(authorityEnabled ? { approvedYongshinLabel: approvedSajuLabels(local.pillars).yongshinLabel } : {}),
   };
 }
 
@@ -91,9 +94,9 @@ export async function normalizeSajuForPerson(input: AnimalDestinyInput): Promise
 }
 
 /** 프리셋 캐릭터 고정 원국 정규화. 양력이라 KASI 없이 동일 엔진(일주 동일). */
-export function normalizeCharacterChart(input: AnimalDestinyInput): NormalizedSaju | null {
+export function normalizeCharacterChart(input: AnimalDestinyInput, options: { authorityEnabled?: boolean } = {}): NormalizedSaju | null {
   try {
-    return extractNormalized(computeNatalFromInput(input));
+    return extractNormalized(computeNatalFromInput(input), options.authorityEnabled);
   } catch {
     return null;
   }

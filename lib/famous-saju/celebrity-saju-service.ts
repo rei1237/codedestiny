@@ -1,5 +1,8 @@
 import { calculateLocalSaju, type LocalSajuResult, type SajuPillarLocal } from "../../app/saju/animal-destiny/engine/localSajuCalculator";
 import { getTwelveStagesForPillars } from "../../app/saju/animal-destiny/lib/twelveStages";
+import { buildApprovedNatalAnalysis } from "../saju/gyeokguk-authority.mjs";
+import { ENGINE_ROLLOUT_FLAGS } from "../../worker/lib/engine-rollout.js";
+import { approvedSajuLabels, sajuAuthorityOn } from "../../worker/lib/saju-authority-consumer.js";
 import {
   categoryToSlug,
   famousSajuCategories,
@@ -2443,7 +2446,26 @@ export function getFamousSajuPersonBySlug(slug: string) {
   return getCelebrityBySlug(slug);
 }
 
-export function calculateFamousSaju(person: CelebritySajuSeed): FamousSajuCalculatedChart {
+// 승인 계산 결과만 쓰면 본문이 읽는 십성·월령·오행이 비어 "확인 필요"가 드러난다.
+// 전체 명식은 두고 강약·격국·용신 판정만 승인값으로 바꾼다.
+function withApprovedVerdict(saju: FamousSajuEngineResult): FamousSajuEngineResult {
+  const natal = asRecord(saju.natalAnalysis);
+  const approved = buildApprovedNatalAnalysis(saju.pillars);
+  return {
+    ...saju,
+    natalAnalysis: {
+      ...natal,
+      dayMaster: { ...asRecord(natal.dayMaster), strength: approved.dayMaster.strength, strengthIndex: undefined },
+      gyeokgukAnalysis: approved.gyeokgukAnalysis,
+      yongshinAnalysis: approved.yongshinAnalysis,
+      usefulElements: approved.usefulElements,
+      johu: approved.johu,
+      structuralIssues: [],
+    },
+  } as unknown as FamousSajuEngineResult;
+}
+
+export function calculateFamousSaju(person: CelebritySajuSeed, { authorityEnabled = sajuAuthorityOn(ENGINE_ROLLOUT_FLAGS) } = {}): FamousSajuCalculatedChart {
   const baseChart = {
     status: "needs_review" as const,
     person,
@@ -2484,7 +2506,8 @@ export function calculateFamousSaju(person: CelebritySajuSeed): FamousSajuCalcul
 
     // 사주 엔진 연결 핵심부: 유명인 데이터의 공개 생년월일만 입력하고, 시간이 검증되지 않으면 hasTime=false로 넘긴다.
     // calculateLocalSaju는 이 경우 내부 기준 시각을 계산 편의용으로만 쓰고 hourPillar를 null로 돌려주므로, 화면에는 삼주만 노출된다.
-    const saju = calculateLocalSaju(engineInput) as FamousSajuEngineResult;
+    const legacy = calculateLocalSaju(engineInput) as FamousSajuEngineResult;
+    const saju = authorityEnabled ? withApprovedVerdict(legacy) : legacy;
     return {
       status: "calculated",
       person,
@@ -2600,8 +2623,17 @@ export function buildFamousSajuArticle(person: CelebritySajuSeed, calculatedChar
   const daewoonText = daewoonStartAge !== null
     ? `${saju.daewoonDirection === "forward" ? "순행" : saju.daewoonDirection === "reverse" ? "역행" : "방향 확인"} · 시작 ${daewoonStartAge}세`
     : "대운 시작값 확인 필요";
+  // 승인 판정 명식은 단일 보완 기운이 없다. 후보·보류 상태를 문장별로 자연스럽게 잇는다.
+  const approved = recordString(yongshinAnalysis, "calculationVersion") ? approvedSajuLabels(saju.pillars) : null;
+  const usefulPending = approved?.status === "pending";
   const usefulText = usefulElementKo.length ? usefulElementKo.join(" · ") : johuUseful || "보완 기운 확인 필요";
-  const visibleUsefulText = usefulText;
+  const visibleUsefulText = approved ? approved.yongshinLabel : usefulText;
+  const usefulObjectMark = /[화토수]$/.test(visibleUsefulText) ? "를" : "을";
+  const usefulPhrase = usefulPending ? "아직 확정하지 않은 보완 기운" : `보완 기운 ${visibleUsefulText}`;
+  const usefulObject = usefulPending ? `${usefulPhrase}을` : `보완 기운 ${visibleUsefulText}${approved ? usefulObjectMark : "을"}`;
+  const usefulStatement = !approved ? `보완 기운은 ${visibleUsefulText} 축으로 놓습니다.`
+    : usefulPending ? "보완 기운은 지금 정보만으로 하나로 정하지 않고 판정을 보류합니다."
+      : `보완 기운은 하나로 정하지 않고 ${visibleUsefulText}${usefulObjectMark} 함께 살핍니다.`;
   const finalGyeokguk = recordString(gyeokgukAnalysis, "finalGyeokguk")
     || recordString(gyeokRequired, "finalGyeokguk")
     || "격국 확인 필요";
@@ -2613,7 +2645,8 @@ export function buildFamousSajuArticle(person: CelebritySajuSeed, calculatedChar
   const gyeokReasonLens = /[흐름힘]$/.test(gyeokReason) ? `${gyeokReason}으로` : `${gyeokReason}로`;
   const yongshinReason = personalizeFamousFortuneSentence(alignGyeokStrengthLanguage(
     formatAccessibleFortuneTerms(
-      recordString(yongshinJudgment, "reason")
+      approved?.yongshinExplanation
+        || recordString(yongshinJudgment, "reason")
         || yongshinReasons.slice(0, 2).join(" / ")
         || "조후와 억부, 격국의 균형을 함께 보아 보완 기운의 축을 조심스럽게 잡습니다."
     ),
@@ -2690,7 +2723,7 @@ export function buildFamousSajuArticle(person: CelebritySajuSeed, calculatedChar
   const daewoonHowToUse = formatAccessibleFortuneTerms(
     recordString(daewoonAnalysis, "howToUse")
       || recordString(daewoonRequired, "howToUse")
-      || `보완 기운 ${visibleUsefulText}의 쓰임이 살아나는 선택은 길게 가져가고, 과한 기운은 정리와 휴식으로 덜어내는 것이 좋습니다.`
+      || `${usefulPhrase}의 쓰임이 살아나는 선택은 길게 가져가고, 과한 기운은 정리와 휴식으로 덜어내는 것이 좋습니다.`
   );
   const bestYearRows = recordRows(daewoonAnalysis, "bestYears").length ? recordRows(daewoonAnalysis, "bestYears") : recordRows(daewoonRequired, "bestYears");
   const cautionYearRows = recordRows(daewoonAnalysis, "cautionYears").length ? recordRows(daewoonAnalysis, "cautionYears") : recordRows(daewoonRequired, "cautionYears");
@@ -2728,7 +2761,7 @@ export function buildFamousSajuArticle(person: CelebritySajuSeed, calculatedChar
     : "월운은 원국의 보완 기운을 살리는 달과 과한 기운을 덜어야 하는 달로 나누어 보면 좋습니다.";
   const quantumAxis = `${dayMasterLabel} · ${monthElement} 월령 · ${finalGyeokguk} · 보완 기운 ${visibleUsefulText}`;
   const analysisBadge = saju.timeUnknown ? "명리 해석 · 출생 시간 미상 / 시주 제외" : "명리 해석 · 시주 포함";
-  const coreKeywords = uniqueKeywords([dayMasterLabel, `${dayElement} 일간`, `${elementProfile.dominantElement} 기운`, finalGyeokguk, ...person.tags]).slice(0, 5);
+  const coreKeywords = uniqueKeywords([dayMasterLabel, `${dayElement} 일간`, `${elementProfile.dominantElement} 기운`, ...(approved?.gyeokgukStatus === "pending" ? [] : [finalGyeokguk]), ...person.tags]).slice(0, 5);
   const annualPrescriptionForBody = /^대운의 기반은 유지하되 세운 사건은 분야별로 쪼개어 직업, 돈, 관계의 실행 순서를 분리한다\.?$/.test(annualPrescription)
     ? pickFamousVariant([
       `${person.nameKo}의 세운 사건은 직업, 돈, 관계를 한꺼번에 묶지 말고 먼저 흔들리는 영역부터 분리해 보아야 합니다.`,
@@ -2779,7 +2812,7 @@ export function buildFamousSajuArticle(person: CelebritySajuSeed, calculatedChar
   ], sectionVariantSeed, 10);
   const monthCommandClosing = pickFamousVariant([
     `여기에 일간 강약, 오행 세력, 십성의 표면 리듬, 보완 기운을 겹쳐 보면 ${person.nameKo}의 운명 지도가 조금씩 입체적으로 살아납니다. 오행 분포는 ${elementRanking || "확인 필요"}이고, 십성 흐름은 ${topTenGods} 순서가 두드러집니다. 그래서 ${person.nameKo}의 배열은 성향만 말하는 것이 아니라, 어떤 환경에서 빛이 커지고 어떤 과잉에서 스스로 지치는지까지 함께 보여 줍니다.`,
-    `일간의 힘과 오행의 쏠림, 십성의 드러나는 결, 보완 기운 ${visibleUsefulText}을 함께 놓으면 이 명식의 쓰임이 훨씬 분명해집니다. 오행 분포는 ${elementRanking || "확인 필요"}이고, 십성 흐름은 ${topTenGods} 순서가 두드러지므로, 강점은 어디서 살아나고 피로는 어느 대목에서 쌓이는지 구분할 수 있습니다.`,
+    `일간의 힘과 오행의 쏠림, 십성의 드러나는 결, ${usefulObject} 함께 놓으면 이 명식의 쓰임이 훨씬 분명해집니다. 오행 분포는 ${elementRanking || "확인 필요"}이고, 십성 흐름은 ${topTenGods} 순서가 두드러지므로, 강점은 어디서 살아나고 피로는 어느 대목에서 쌓이는지 구분할 수 있습니다.`,
     `월령만 따로 떼어 보면 평면적인 성향 분석에 머물지만, ${dayElement} 일간의 강약과 ${elementProfile.dominantElement}의 쏠림, 십성의 표면 리듬을 겹치면 실제 무대에서 쓰이는 힘이 보입니다. 오행 분포는 ${elementRanking || "확인 필요"}이고, 십성은 ${topTenGods} 순서로 선명합니다.`,
   ], sectionVariantSeed, 11);
   const gyeokClosing = pickFamousVariant([
@@ -2827,7 +2860,7 @@ export function buildFamousSajuArticle(person: CelebritySajuSeed, calculatedChar
       title: famousSajuCopy("section.gyeokUseful"),
       imageQuery: "purple galaxy stars destiny chart mystical",
       imageSection: "default",
-      body: `격국은 ${finalGyeokguk}의 결로 읽힙니다. 이런 격국은 ${gyeokReasonLens}에서 비롯되며, 보완 기운은 ${visibleUsefulText} 축으로 놓습니다. 판단 근거는 ${formatReasonSentences(yongshinReason, person.nameKo)} ${gyeokClosing}`,
+      body: `격국은 ${finalGyeokguk}의 결로 읽힙니다. 이런 격국은 ${gyeokReasonLens}에서 비롯되며, ${usefulStatement} 판단 근거는 ${formatReasonSentences(yongshinReason, person.nameKo)} ${gyeokClosing}`,
     },
     {
       title: categoryVoice.careerTitle,
@@ -2855,7 +2888,7 @@ export function buildFamousSajuArticle(person: CelebritySajuSeed, calculatedChar
       imageSection: "default",
       body: annualRows.length
         ? `${annualKnownLead} 현재 세운 축은 ${annualLabel}로 읽히고, 핵심 분류는 ${annualClassification}입니다. ${annualScoreReason} 좋은 해의 문은 ${bestYearText}로 열리고, 조심해야 할 해의 경계는 ${cautionYearText}로 나타납니다. ${transformationText} 월운은 더 짧은 호흡의 신호이므로 ${monthlyText} 이 흐름에서는 한 해를 한 단어로 길흉 단정하기보다, 직업·돈·관계·몸 중 어느 영역이 먼저 움직이는지 차례대로 보는 것이 좋습니다.`
-        : `${annualUnknownLead} 현재 연도별 흐름이 충분하지 않을 때는 특정 해를 꾸며 말하지 않고, 원국의 강한 기운과 보완 기운 ${visibleUsefulText}, 그리고 대운의 ${daewoonChange} 흐름이 만나는 방식을 먼저 봅니다. ${annualPrescriptionForBody} ${annualUnknownClosing}`,
+        : `${annualUnknownLead} 현재 연도별 흐름이 충분하지 않을 때는 특정 해를 꾸며 말하지 않고, 원국의 강한 기운과 ${usefulPhrase}, 그리고 대운의 ${daewoonChange} 흐름이 만나는 방식을 먼저 봅니다. ${annualPrescriptionForBody} ${annualUnknownClosing}`,
     },
     {
       title: categoryVoice.adviceTitle,

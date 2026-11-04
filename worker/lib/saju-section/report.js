@@ -7,6 +7,7 @@ import { createSajuSectionRuntime } from "./runtime.generated.mjs";
 import { buildSukuyoFromMoonLongitude } from "../sukuyo-coordinate.js";
 import { buildSecretHouseStep } from "./secret-house.js";
 import { buildAnimalDestinyReading } from "./animal-destiny.js";
+import { approvedSajuLabels } from "../saju-authority-consumer.js";
 
 // 사주 종합(section_summary)·대운 풀이(section_daewun)·퀀텀 명리 엔진(rpt_quantumCard)·
 // 극T 관계 회로(sukuyo-extreme-t-relationship)·숙요 인연 도감(sukuyo-relationship-encyclopedia)·숙요 본성 심화 해석(sukuyo-nature-deep-dive)
@@ -354,6 +355,10 @@ export function buildSajuSectionHtml(input) {
   rt.attachKasiDaewunBridge(bazi, Object.assign({ second: 0 }, meta.termClock), meta.civil.year);
   const pillar = (x) => ({ g: x.g, j: x.j, gE: (rt.GAN[x.g] || {}).e, jE: (rt.JI[x.j] || {}).e });
   const p = { y: pillar(yp), m: pillar(mp), d: pillar(dp), h: pillar(hp) };
+
+  if (input.authorityEnabled === true && featureKey === "rpt_quantumCard") {
+    window.__cdApprovedSaju = approvedSajuLabels({ year: yp.g + yp.j, month: mp.g + mp.j, day: dp.g + dp.j, hour: timeUnknown ? null : hp.g + hp.j });
+  }
 
   const natal = calcNatalElement(p);
   const johu = analyzeJohu(p);

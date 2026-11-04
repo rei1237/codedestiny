@@ -103,6 +103,57 @@ export function lifeBookPillars(raw) {
   }));
 }
 
+/** 프롬프트·화면에 함께 싣는 승인 판정 요약. 보류면 격국 이름도 보류로 보여 준다(시주에 따라 갈리는 후보이기 때문). */
+export function approvedSajuFacts(labels) {
+  return { status: labels.status, gyeokguk: labels.gyeokgukStatus === 'pending' ? authorityText('unknown') : labels.gyeokguk,
+    gyeokgukStatus: labels.gyeokgukStatus, gyeokgukReason: labels.gyeokgukReason, strength: labels.strength, isStrong: labels.isStrong,
+    yongshinLabel: labels.yongshinLabel, yongshinExplanation: labels.yongshinExplanation, gisinLabel: labels.gisinLabel,
+    candidateNames: labels.candidateNames, johuCandidateNames: labels.johuCandidateNames, promptRules: labels.promptRules,
+    calculationVersion: labels.calculationVersion, natalAnalysisId: labels.natalAnalysisId };
+}
+
+/**
+ * 라이프북 명식 위에 승인 판정만 덮는다. 대운·세운·오행처럼 서비스가 읽는 값은 그대로 둔다.
+ * usefulGod 는 '후보 목·수' 같은 라벨이라 charAt(0) 로 오행을 뽑는 입력에 넘기면 안 된다.
+ * 궁합 점수·일진 점수처럼 알고리즘 입력이 필요한 곳은 덮기 전의 raw 를 쓴다.
+ */
+const SINGLE_YONGSHIN_TEXT = [
+  [/용신 연결|기신 연결/g, '오행 연결 참고'],
+  [/용신·희신성 지장간이 함께 열려 기회로 쓰일 여지가 큽니다|기신성 지장간이 열릴 수 있어 부담과 갈등을 낮추어 다뤄야 합니다/g, '희기 판단은 단정하지 말고 질문 주제와 함께 살펴야 합니다'],
+];
+
+/** 신살·개고의 희기 표현은 단일 용신으로 계산됐다. 계산은 그대로 두고 프롬프트로 나갈 값만 판정 없는 표현으로 바꾼다. */
+export function withoutSingleYongshinText(value) {
+  if (typeof value === 'string') return SINGLE_YONGSHIN_TEXT.reduce((text, [pattern, to]) => text.replace(pattern, to), value);
+  if (Array.isArray(value)) return value.map(withoutSingleYongshinText);
+  if (!value || Object.getPrototypeOf(value) !== Object.prototype) return value;
+  return Object.fromEntries(Object.entries(value).map(([key, item]) => [key,
+    key === 'favorable' || key === 'isFavorableOverall' ? null : withoutSingleYongshinText(item)]));
+}
+
+export function overlayApprovedLifeBookChart(raw, labels = approvedSajuLabels(lifeBookPillars(raw))) {
+  const facts = approvedSajuFacts(labels), season = raw.seasonalBalance, gyeokguk = raw.advancedFactors?.gyeokguk, reading = raw.fortuneFacts;
+  return { ...raw, strength: labels.strength, usefulGod: labels.yongshinLabel, unfavorableGod: labels.gisinLabel, approvedSaju: facts,
+    ...(raw.natalAnalysis ? { natalAnalysis: overlayApprovedNatalAnalysis(raw.natalAnalysis, labels) } : {}),
+    ...(season ? { seasonalBalance: { ...season, adjustment: labels.yongshinExplanation,
+      runtimeInterpretation: { ...season.runtimeInterpretation, isStrong: labels.isStrong, yongshin: labels.candidates, kijishin: [],
+        johuCandidates: labels.johuCandidateNames, limitation: labels.yongshinExplanation } } } : {}),
+    ...(raw.shinsal ? { shinsal: withoutSingleYongshinText(raw.shinsal) } : {}),
+    ...(gyeokguk ? { advancedFactors: { ...withoutSingleYongshinText(raw.advancedFactors), gyeokguk: { ...gyeokguk, finalGyeokguk: facts.gyeokguk, finalType: null,
+      judgmentReason: labels.gyeokgukReason, judgmentReasonNeo: labels.gyeokgukReason, status: labels.gyeokgukStatus } } } : {}),
+    ...(reading ? { fortuneFacts: { ...reading,
+      ...(reading.readingBase ? { readingBase: { ...reading.readingBase, strength: labels.strength, usefulGod: labels.yongshinLabel, unfavorableGod: labels.gisinLabel } } : {}),
+      ...(reading.elementBalance ? { elementBalance: { ...reading.elementBalance, seasonalAdjustment: labels.yongshinExplanation } } : {}) } } : {}) };
+}
+
+/** 궁합의 보완 지표는 오행 수량 계산값이다. 점수 입력은 그대로 두고 이름만 판정이 아님을 밝힌다. */
+export function approvedCompatSupportFacts(support, selfLabels, partnerLabels) {
+  if (!support) return support;
+  const side = row => row && { countHintElement: row.usefulElement, countExcessElement: row.unfavorableElement, supplied: row.supplied, suppliedCount: row.suppliedCount, amplified: row.amplified };
+  return { basis: '오행 수량 보완 지표 — 확정 용신·기신 판정 아님', self: side(support.self), partner: side(support.partner), mutual: support.mutual,
+    selfStrength: selfLabels.strength, partnerStrength: partnerLabels.strength, selfYongshin: selfLabels.yongshinLabel, partnerYongshin: partnerLabels.yongshinLabel };
+}
+
 /** Wrapper projection; the engine and existing saved snapshots are untouched. */
 export function connectLifeBookSajuAuthority(raw, options = {}) {
   if (options.hasExistingRecord) {

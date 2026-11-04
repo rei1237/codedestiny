@@ -812,6 +812,7 @@ function neoBasisLines(section, ctx) {
     "[계산 확정값]",
     "아래 값은 서버가 계산한 확정값이다. 본문은 이 값과 어긋나면 안 되고, 표에 없는 수치는 새로 만들지 않는다.",
     ...factLines,
+    ...(ctx.selectedMethod === 'saju' ? safeArray(ctx.methodSummary?.approvedRules) : []),
     ...(ctx.selectedMethod === 'saju' && (section.basisGroups === '*' || safeArray(section.basisGroups).includes('core'))
       ? [...sajuTemperamentPromptLines(ctx.methodSummary),
         ...(ctx.methodSummary?.compat?.partnerDigest

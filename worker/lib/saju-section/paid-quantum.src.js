@@ -9,7 +9,9 @@ function renderQuantumStrategy(p, natal, bazi){
   if(!area||!card)return;
   window.__cdQuantumRendered=true;
 
-  var pw=G_POWER, jg=G_JONG;
+  // 승인 판정이 오면 강약·용신 표시를 승인값으로 읽는다. 옛 종격·단일 기신은 고객에게 보이지 않는다.
+  var qApproved=window.__cdApprovedSaju||null;
+  var pw=qApproved?Object.assign({},G_POWER,{isStrong:qApproved.isStrong,yongshin:qApproved.candidates,kijishin:[],johuYongshin:qApproved.johuCandidates,johuKijishin:[]}):G_POWER, jg=qApproved?null:G_JONG;
   var qSameChart=typeof G_PILLARS!=='undefined' && G_PILLARS && ['y','m','d','h'].every(function(k){
     var left=p[k]||{}, right=G_PILLARS[k]||{};
     return (left.g||'')===(right.g||'') && (left.j||'')===(right.j||'');
@@ -27,6 +29,7 @@ function renderQuantumStrategy(p, natal, bazi){
 
   /* ── 오행 유형 판별 (용신/기신/중립) ── */
   function elType(el){
+    if(qApproved)return qApproved.candidates.indexOf(el)>=0?'good':'neutral';
     return getQuantumElType(el, p, jg, pw, G_JOHU);
   }
 
@@ -89,7 +92,7 @@ function renderQuantumStrategy(p, natal, bazi){
     var facts=[];
     var dwEl=dz?(JI[dz]&&JI[dz].e):(dg?(GAN[dg]&&GAN[dg].e):null);
     if(dwEl){
-      var role={good:'용신권',bad:'기신권',neutral:'중립권'}[elType(dwEl)]||'중립권';
+      var role=qTypeLabel(elType(dwEl));
       facts.push('현재 대운의 지지 중심 오행은 <b>'+qEsc(EL_K[dwEl])+'</b>이며 이 명식에서는 '+role+'으로 분류됩니다. 월령과 한난조습, 일간의 세력에 따른 해석이므로 성취나 손실을 뜻하는 확정 판정은 아닙니다.');
     }else{
       facts.push(qTimeUnknown?'태어난 시각을 알 수 없어 대운의 정확한 시작 시점과 현재 구간은 확정하지 않습니다. 확인된 원국 범위에서 성향과 선택의 조건을 살핍니다.':'현재 대운 구간이 확인되지 않았습니다. 대운표의 시작 나이와 출생 정보를 먼저 확인하세요.');
@@ -146,7 +149,7 @@ function renderQuantumStrategy(p, natal, bazi){
     return (EL_E[el]||'')+' '+(EL_K[el]||el||'미확인');
   }
   function qTypeLabel(type){
-    return {good:'용신권',bad:'기신권',neutral:'중립권'}[type]||'중립권';
+    return {good:qApproved?'용신 후보권':'용신권',bad:'기신권',neutral:'중립권'}[type]||'중립권';
   }
   function qTypeClass(type){
     return {good:'qm-chip-good',bad:'qm-chip-bad',neutral:'qm-chip-neutral'}[type]||'qm-chip-neutral';
@@ -194,9 +197,9 @@ function renderQuantumStrategy(p, natal, bazi){
       if(el===whoControls(jg.dominant))sources.push('종격 역행 기운');
     }
     if(pw){
-      if(qArr(pw.yongshin).indexOf(el)>=0)sources.push('억부·조후 통합 용신');
+      if(qArr(pw.yongshin).indexOf(el)>=0)sources.push(qApproved?'용신 후보':'억부·조후 통합 용신');
       if(qArr(pw.kijishin).indexOf(el)>=0)sources.push('억부·조후 통합 기신');
-      if(qArr(pw.johuYongshin).indexOf(el)>=0)sources.push('조후 보강');
+      if(qArr(pw.johuYongshin).indexOf(el)>=0)sources.push(qApproved?'조후 후보':'조후 보강');
       if(qArr(pw.johuKijishin).indexOf(el)>=0)sources.push('조후 과열/냉각 주의');
     }
     if(!sources.length)sources.push(type==='good'?'보강 가치':'중립 관찰');
@@ -535,7 +538,7 @@ function renderQuantumStrategy(p, natal, bazi){
   /* ── 명식 구조 섹션 ── */
   var yongList=(jg&&jg.isJong)?[jg.dominant,jg.parEl].filter(Boolean):(pw?pw.yongshin:[]);
   var kiList=(jg&&jg.isJong)?[whoControls(jg.dominant)]:(pw?pw.kijishin:[]);
-  var structType=(jg&&jg.isJong)?jg.name+(jg.pct>=90?'(眞)':'(假)'):(pw?(pw.isStrong?'정격 신강':'정격 신약'):'정격');
+  var structType=qApproved?(qApproved.gyeokgukStatus==='pending'?'격국 판정 보류':qApproved.gyeokguk):(jg&&jg.isJong)?jg.name+(jg.pct>=90?'(眞)':'(假)'):(pw?(pw.isStrong?'정격 신강':'정격 신약'):'정격');
   var structTagCls=(jg&&jg.isJong)?'qm-tag-jong':(pw&&pw.isStrong?'qm-tag-strong':'qm-tag-weak');
 
   var dwLabel=(dg||dz)?('현재 대운 · '+(dg||'')+(dz?(' '+dz):'')):(qTimeUnknown?'시각 미상 · 대운 시점 미확정':'대운 구간 미확인');
@@ -546,9 +549,9 @@ function renderQuantumStrategy(p, natal, bazi){
   var johuLabel=G_JOHU
     ? [G_JOHU.badgeTxt||'',G_JOHU.type==='insufficient'?'':G_JOHU.type||'',G_JOHU.moistType==='insufficient'?'습조 판단 보류':G_JOHU.moistType||''].filter(Boolean).join(' · ')
     : '조후 미확인';
-  var powerLabel=pw?(pw.isStrong?'신강':'신약'):'강약 미확인';
-  var yongHtml=qUnique(yongList).length?qUnique(yongList).map(function(el){return qElementChip(el,'good');}).join(''):'<span class="qm-el-chip qm-chip-neutral">용신 미확인</span>';
-  var kiHtml=qUnique(kiList).length?qUnique(kiList).map(function(el){return qElementChip(el,'bad');}).join(''):'<span class="qm-el-chip qm-chip-neutral">기신 미확인</span>';
+  var powerLabel=qApproved?qApproved.strength:pw?(pw.isStrong?'신강':'신약'):'강약 미확인';
+  var yongHtml=qUnique(yongList).length?qUnique(yongList).map(function(el){return qElementChip(el,'good');}).join(''):'<span class="qm-el-chip qm-chip-neutral">'+(qApproved?qEsc(qApproved.yongshinLabel):'용신 미확인')+'</span>';
+  var kiHtml=qUnique(kiList).length?qUnique(kiList).map(function(el){return qElementChip(el,'bad');}).join(''):'<span class="qm-el-chip qm-chip-neutral">'+(qApproved?qEsc(qApproved.gisinLabel):'기신 미확인')+'</span>';
   var elementMatrix=qElements.map(function(el){
     var type=elType(el);
     return {element:el,label:qElLabel(el),type:type,typeLabel:qTypeLabel(type),count:qElementCounts[el]||0,source:qSourceText(el,type)};
@@ -607,7 +610,7 @@ function renderQuantumStrategy(p, natal, bazi){
       '<div class="qm-oracle-card"><div class="qm-oracle-label">월령 좌표</div><div class="qm-oracle-value">'+qEsc((p.m.j||'-')+' 월령')+'</div><div class="qm-oracle-meta">'+qEsc(qElLabel(monthEl))+' 계절성이 조후 판단의 바탕입니다.</div></div>'+
     '</div>'+
     '<div class="qm-dual-grid">'+
-      '<div class="qm-mini-panel"><div class="qm-mini-title">용신 라인</div><div class="qm-yong-list">'+yongHtml+'</div></div>'+
+      '<div class="qm-mini-panel"><div class="qm-mini-title">'+(qApproved?'용신 후보':'용신 라인')+'</div><div class="qm-yong-list">'+yongHtml+'</div></div>'+
       '<div class="qm-mini-panel"><div class="qm-mini-title">기신 라인</div><div class="qm-yong-list">'+kiHtml+'</div></div>'+
     '</div>'+
     (qGyeokguk?(
@@ -727,7 +730,10 @@ function renderQuantumStrategy(p, natal, bazi){
   function qFlowIcon(res){ return (res&&res.icon)||''; }
   function qFlowBattery(res){ return (res&&typeof res.batteryPercent==='number')?res.batteryPercent:null; }
   function qFlowAdvice(res,limit){
-    var items=qArr(res&&res.adviceItems).slice(0,limit||2);
+    var items=qArr(res&&res.adviceItems);
+    // 운 조언은 옛 단일 용신·기신 기준 문장이다. 승인 판정에서는 그 문장을 내보내지 않는다.
+    if(qApproved)items=items.filter(function(a){return !/용신|기신|忌神|用神/.test((a.title||'')+(a.body||''));});
+    items=items.slice(0,limit||2);
     if(!items.length)return '';
     return items.map(function(a){
       return '<div class="qm-oracle-meta" style="margin-top:5px"><b>'+qEsc(a.title||'')+'</b> '+qEsc(a.body||'')+'</div>';
@@ -861,11 +867,11 @@ function renderQuantumStrategy(p, natal, bazi){
   var qDecisionTone=qChungCount>0
     ? '충이 있는 궁위의 역할과 현실의 변화 조건을 함께 살펴야 합니다. 충을 용신 파괴나 기신 제거로 단정하지 않습니다.'
     : (qHapCount>0?'합의 성립과 합화를 구분하며, 월령·통근·투간 등 확인된 조건을 기준으로 읽습니다.':'수집된 합충이 없어도 길흉이 정해지는 것은 아닙니다. 오행의 균형과 현실의 상황을 함께 살핍니다.');
-  var qProfessionalSummary=structType+'의 그릇 위로 '+qElementNames(favorableElements.concat(qUnique(yongList)))+' 기운이 살아나고, '+qElementNames(cautionElements.concat(qUnique(kiList)))+' 기운은 조용히 눌러야 할 자리로 비칩니다. 주도 십성은 '+mainTenGod+(mainTenGodCount?' '+mainTenGodCount+'회':'')+'로 떠오르며, '+qTenGodTone(mainTenGod)+' '+qDecisionTone;
+  var qProfessionalSummary=(qApproved?structType+'의 명식입니다. 도움이 되는 기운은 하나로 정하지 않고 '+qApproved.yongshinLabel+' 상태로 살피며, 부담이 되는 기운은 추가 판정이 필요합니다. 주도 십성은 ':structType+'의 그릇 위로 '+qElementNames(favorableElements.concat(qUnique(yongList)))+' 기운이 살아나고, '+qElementNames(cautionElements.concat(qUnique(kiList)))+' 기운은 조용히 눌러야 할 자리로 비칩니다. 주도 십성은 ')+mainTenGod+(mainTenGodCount?' '+mainTenGodCount+'회':'')+'로 떠오르며, '+qTenGodTone(mainTenGod)+' '+qDecisionTone;
   var qCounselHtml=
-    '<div class="qm-action-item"><div class="qm-action-num">命</div><div class="qm-action-text"><b>격국의 중심</b><br>'+qEsc(structType+' · '+powerLabel+'의 골격 위에 '+johuLabel+'의 온습이 깔립니다. 일간 '+(p.d.g||'-')+' '+dayMasterName+'은 '+qElLabel(dayEl)+'의 결로 서 있고, 월령 '+(p.m.j||'-')+'은 '+qElLabel(monthEl)+'의 계절문을 엽니다.')+'</div></div>'+
+    '<div class="qm-action-item"><div class="qm-action-num">命</div><div class="qm-action-text"><b>격국의 중심</b><br>'+qEsc((qApproved&&qApproved.status==='pending'?'출생 시각이 확정되지 않아 격국과 강약은 판정을 보류합니다. 바탕에는 '+johuLabel+'의 온습이 깔립니다. 일간 ':structType+' · '+powerLabel+'의 골격 위에 '+johuLabel+'의 온습이 깔립니다. 일간 ')+(p.d.g||'-')+' '+dayMasterName+'은 '+qElLabel(dayEl)+'의 결로 서 있고, 월령 '+(p.m.j||'-')+'은 '+qElLabel(monthEl)+'의 계절문을 엽니다.')+'</div></div>'+
     '<div class="qm-action-item"><div class="qm-action-num">神</div><div class="qm-action-text"><b>십성의 초점</b><br>'+qEsc(mainTenGod+'('+qTenGodGroup(mainTenGod)+')이 가장 선명하게 떠오릅니다. '+qTenGodTone(mainTenGod))+'</div></div>'+
-    '<div class="qm-action-item"><div class="qm-action-num">運</div><div class="qm-action-text"><b>대운·세운의 문</b><br>'+qEsc(dwLabel+'과 '+seLabel+'이 원국의 용신·기신을 건드리는 자리에서 '+qDecision+'의 결론이 맺힙니다. '+qDecisionTone)+'</div></div>';
+    '<div class="qm-action-item"><div class="qm-action-num">運</div><div class="qm-action-text"><b>대운·세운의 문</b><br>'+qEsc(dwLabel+'과 '+seLabel+'이 '+(qApproved?'원국의 균형을':'원국의 용신·기신을')+' 건드리는 자리에서 '+qDecision+'의 결론이 맺힙니다. '+qDecisionTone)+'</div></div>';
   /* 판단축 칩 — 실제로 산출된 것만 켠다(과거에는 6개가 조건 없이 항상 표시됐다) */
   var qAxisChips=(function(){
     var axes=[
@@ -970,7 +976,7 @@ function renderQuantumStrategy(p, natal, bazi){
       '</div>'+
 
       '<div class="qm-section">'+
-        '<div class="qm-sec-head"><span class="qm-sec-icon">✦</span><span class="qm-sec-title s1">명식 구조와 용신 매트릭스</span></div>'+
+        '<div class="qm-sec-head"><span class="qm-sec-icon">✦</span><span class="qm-sec-title s1">'+(qApproved?'명식 구조와 용신 후보':'명식 구조와 용신 매트릭스')+'</span></div>'+
         '<div class="qm-panel">'+
           structureHtml+
         '</div>'+
@@ -1021,7 +1027,7 @@ function renderQuantumStrategy(p, natal, bazi){
       '</div>'+
 
       '<details class="qm-section qm-fold">'+
-        '<summary class="qm-sec-head"><span class="qm-sec-icon">◇</span><span class="qm-sec-title s4">오행별 용신/기신 판정(요약)</span></summary>'+
+        '<summary class="qm-sec-head"><span class="qm-sec-icon">◇</span><span class="qm-sec-title s4">'+(qApproved?'오행별 용신 후보(요약)':'오행별 용신/기신 판정(요약)')+'</span></summary>'+
         '<div class="qm-panel"><div class="qm-element-grid">'+
           elementMatrixHtml+
         '</div></div>'+
@@ -1085,7 +1091,7 @@ function renderQuantumStrategy(p, natal, bazi){
       '<div class="qm-section">'+
         '<div class="qm-sec-head"><span class="qm-sec-icon">◆</span><span class="qm-sec-title s3">핵심 운세 판정</span></div>'+
         '<div class="qm-panel">'+
-          qSafeHtmlList(facts,'원국의 중심이 크게 흔들리지 않습니다. 용신 루틴을 유지하며 세운의 작은 변화를 관찰하세요.','qm-fact-text')+
+          qSafeHtmlList(facts,'원국의 중심이 크게 흔들리지 않습니다. '+(qApproved?'균형을 돕는 루틴을':'용신 루틴을')+' 유지하며 세운의 작은 변화를 관찰하세요.','qm-fact-text')+
         '</div>'+
       '</div>'+
 

@@ -9,6 +9,7 @@ import { logPerUsePaymentProof, verifyPerUsePayment } from "../lib/nakshatra-pai
 import { claimRequestBillingEvidence, evidenceClaimErrorBody } from "../lib/billing-evidence-claim.js";
 import { SAJU_SECTION_FEATURE_KEYS, SUKUYO_COMPAT_FEATURE_KEYS, ZIWEI_COMPAT_FEATURE_KEYS, SajuSectionInputError, buildSajuSectionHtml, sukuyoNatureMoment } from "../lib/saju-section/report.js";
 import { calculateSukuyoForMoment } from "../lib/sukuyo-astronomy.js";
+import { sajuAuthorityOn } from "../lib/saju-authority-consumer.js";
 
 const degraded = () => json({
   ok: false, reason: "TEMPORARY_UNAVAILABLE", retryable: true,
@@ -281,6 +282,7 @@ export async function handleSajuSection(request, env = {}) {
       featureKey, birth, gender: gender === "M" ? "M" : "F",
       name: body?.name, mode: body?.mode === "neo" ? "neo" : "pig", lang: typeof body?.lang === "string" ? body.lang.slice(0, 8) : "ko",
       place: body?.place, daewun: body?.daewun, encyclopedia: body?.encyclopedia, energy: body?.energy, sukuyo, house: body?.house,
+      authorityEnabled: sajuAuthorityOn(env),
     });
     return json({ ok: true, unlocked: true, featureKey, ...result });
   } catch (error) {

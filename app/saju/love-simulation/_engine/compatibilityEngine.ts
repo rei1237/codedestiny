@@ -183,12 +183,14 @@ export function computeCompatibilityProfile(
   const partnerFeedsSelf = Boolean(selfCore && partner.strongElements.includes(selfCore));
   const selfFeedsPartner = Boolean(partnerCore && self.strongElements.includes(partnerCore));
   const fulfillCount = (partnerFeedsSelf ? 1 : 0) + (selfFeedsPartner ? 1 : 0);
+  // 점수 입력은 옛 값을 유지한다(승인 판정에는 단일 용신이 없다). 문구에서만 단일 용신·기신 단정을 뺀다.
+  const approvedLabel = self.approvedYongshinLabel;
   if (fulfillCount > 0) {
     const targets = [
-      partnerFeedsSelf && selfCore ? `상대의 기운이 당신의 용신(${ko(selfCore)})을 채워 줍니다` : "",
-      selfFeedsPartner && partnerCore ? `당신의 기운이 상대의 용신(${ko(partnerCore)})을 채워 줍니다` : "",
+      partnerFeedsSelf && selfCore ? (approvedLabel ? "상대의 기운이 당신의 균형을 돕는 쪽으로 작용할 수 있습니다" : `상대의 기운이 당신의 용신(${ko(selfCore)})을 채워 줍니다`) : "",
+      selfFeedsPartner && partnerCore ? (approvedLabel ? "당신의 기운이 상대의 균형을 돕는 쪽으로 작용할 수 있습니다" : `당신의 기운이 상대의 용신(${ko(partnerCore)})을 채워 줍니다`) : "",
     ].filter(Boolean).join("; ");
-    addIndicator("element.yongshinFulfill", "용신 상호충족", `${targets}. 필요한 기운을 서로 보태 주는 관계라 오래 함께할수록 안정이 쌓입니다.`, fulfillCount === 2 ? "high" : "medium", [
+    addIndicator("element.yongshinFulfill", approvedLabel ? "기운 상호 보완" : "용신 상호충족", approvedLabel ? `${targets}. 서로의 기운을 보태 주는 면이 있어 오래 함께할수록 안정이 쌓일 수 있습니다. (용신: ${approvedLabel})` : `${targets}. 필요한 기운을 서로 보태 주는 관계라 오래 함께할수록 안정이 쌓입니다.`, fulfillCount === 2 ? "high" : "medium", [
       { dim: "stability", amount: fulfillCount === 2 ? 70 : 45 },
       { dim: "longevity", amount: fulfillCount === 2 ? 55 : 35 },
     ]);
@@ -197,7 +199,7 @@ export function computeCompatibilityProfile(
   const selfFeedsPartnerGisin = Boolean(partner.gisin.length && self.strongElements.some((e) => partner.gisin.includes(e)));
   const gisinCount = (partnerFeedsSelfGisin ? 1 : 0) + (selfFeedsPartnerGisin ? 1 : 0);
   if (gisinCount > 0) {
-    addIndicator("element.gisinSupply", "기신 자극", `서로에게 부담이 되는 기운(기신)을 키우는 조합이 있어, 지칠 때 그 기운이 먼저 올라올 수 있습니다.`, "medium", [
+    addIndicator("element.gisinSupply", approvedLabel ? "기운 부담" : "기신 자극", approvedLabel ? "서로의 강한 기운이 부담으로 겹칠 수 있는 조합이 있어, 지칠 때 그 기운이 먼저 올라올 수 있습니다." : `서로에게 부담이 되는 기운(기신)을 키우는 조합이 있어, 지칠 때 그 기운이 먼저 올라올 수 있습니다.`, "medium", [
       { dim: "conflict", amount: gisinCount === 2 ? 60 : 45 },
     ]);
   }
@@ -347,7 +349,7 @@ export function computeCompatibilityProfile(
 
   const dataGaps: string[] = [];
   if (self.timeUnknown || partner.timeUnknown) dataGaps.push("출생 시간이 없어 시주(時柱)는 제외하고 계산했습니다.");
-  if (!self.coreYongshin || !partner.coreYongshin) dataGaps.push("용신 정보가 일부 확인되지 않아 오행 보완 판단을 보수적으로 봤습니다.");
+  if (!approvedLabel && (!self.coreYongshin || !partner.coreYongshin)) dataGaps.push("용신 정보가 일부 확인되지 않아 오행 보완 판단을 보수적으로 봤습니다.");
 
   return {
     engineVersion: ENGINE_VERSION,

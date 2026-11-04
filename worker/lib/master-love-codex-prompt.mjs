@@ -298,8 +298,12 @@ export function formatSajuForPrompt(saju, anchorsOnly = false) {
   if (elements) lines.push(`- 오행 분포: ${elements}`);
   const tenGods = distributionText(s.tenGods);
   if (tenGods) lines.push(`- 십성 분포: ${tenGods}`);
-  if (clean(s.usefulGod)) lines.push(`- 보완 축(용신 방향): ${clean(s.usefulGod)}`);
-  if (clean(s.unfavorableGod)) lines.push(`- 과다 주의(기신 방향): ${clean(s.unfavorableGod)}`);
+  if (s.approvedSaju) {
+    lines.push(`- 격국: ${s.approvedSaju.gyeokguk}`, `- 용신: ${s.approvedSaju.yongshinLabel} (${s.approvedSaju.status})`, `- 기신: ${s.approvedSaju.gisinLabel}`, ...s.approvedSaju.promptRules.map(rule => `  · ${rule}`));
+  } else {
+    if (clean(s.usefulGod)) lines.push(`- 보완 축(용신 방향): ${clean(s.usefulGod)}`);
+    if (clean(s.unfavorableGod)) lines.push(`- 과다 주의(기신 방향): ${clean(s.unfavorableGod)}`);
+  }
   const seasonal = s.seasonalBalance || {};
   if (clean(seasonal.season) || clean(seasonal.climate)) {
     lines.push(`- 조후(월령): ${clean(seasonal.season)} ${clean(seasonal.climate)} · ${clean(seasonal.dayMasterSeasonalState)}`);
