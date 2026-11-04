@@ -929,6 +929,8 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
      🔴 data-cd-noncritical-style-src 로 옮기지 말 것 — 그 로더는 모바일에서 최대 45초까지 미룬다. -->
 <link rel="stylesheet" href="/styles/fonts-serif.css?v=build-f6348323021d" media="print" onload="this.onload=null;this.media='all'">
 <noscript><link rel="stylesheet" href="/styles/fonts-serif.css?v=build-f6348323021d"></noscript>
+<!-- 명리 타로 무료 세 장 무대. 모달을 열 때 이미 있어야 하므로 noncritical 로더(모바일 최대 45초 지연)에 넣지 않는다. -->
+<link rel="stylesheet" href="/styles/tarot-ritual.css?v=build-d871aa3b9548" media="print" onload="this.onload=null;this.media='all'">
 <link rel="preload" href="/styles/cosmic-main.css?v=build-85433ecedad9" as="style">
 
 <title>Korean Saju, Tarot & Birth Charts | 꿀꿀 운세</title>
@@ -974,7 +976,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
 <meta property="og:description" content="Explore Korean Saju, Zi Wei Dou Shu, Sukuyo and tarot in English. Compare traditions, check birth-chart inputs and choose a reading for your question.">
 <meta property="og:url" content="https://code-destiny.com/en/">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="https://code-destiny.com/og/code-destiny-og-en.png?v=build-c767a2220537">
+<meta property="og:image" content="https://code-destiny.com/og/code-destiny-og-en.png?v=build-5620639b2867">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="꿀꿀운세 HONEY FORTUNE — a CODE DESTINY calling card with a cameo of Yeoni the flower pig and an overview of the service">
@@ -983,7 +985,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Korean Saju, Tarot & Birth Charts | 꿀꿀 운세">
 <meta name="twitter:description" content="Explore Korean Saju, Zi Wei Dou Shu, Sukuyo and tarot in English. Compare traditions, check birth-chart inputs and choose a reading for your question.">
-<meta name="twitter:image" content="https://code-destiny.com/og/code-destiny-og-en.png?v=build-c767a2220537">
+<meta name="twitter:image" content="https://code-destiny.com/og/code-destiny-og-en.png?v=build-5620639b2867">
 <meta name="twitter:image:alt" content="꿀꿀운세 HONEY FORTUNE — a CODE DESTINY calling card with a cameo of Yeoni the flower pig and an overview of the service">
 <script type="application/ld+json">
 {
@@ -1146,7 +1148,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
     {
       "@type": "ImageObject",
       "@id": "https://code-destiny.com/#primaryimage",
-      "url": "https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-c767a2220537",
+      "url": "https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-5620639b2867",
       "width": 1200,
       "height": 630
     },
@@ -19106,25 +19108,37 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
             </div>
 
             <div class="tarot-mode-toggle" id="tarotModeToggle">
-              <button type="button" class="tarot-mode-btn active" data-action="setTarotMode" data-action-args="one" data-cd-trans data-key="home.myeongriTarot.oneCardMode">한 장 리딩</button>
-              <button type="button" class="tarot-mode-btn" data-action="setTarotMode" data-action-args="three" data-cd-trans data-key="home.myeongriTarot.threeCardMode">세 장 흐름 · 5,000원</button>
+              <button type="button" class="tarot-mode-btn active" data-action="setTarotMode" data-action-args="three" data-cd-trans data-key="home.myeongriTarot.threeCardMode">세 장 리딩 · 무료</button>
+              <button type="button" class="tarot-mode-btn" data-action="setTarotMode" data-action-args="one" data-cd-trans data-key="home.myeongriTarot.oneCardMode">한 장 리딩</button>
             </div>
 
             <div class="oracle-cats-m" id="tarotCats">
-              <div class="oracle-cat-btn-m" data-action="selectTarotCategory" data-action-args="daily" data-action-pass-self="append" data-cd-trans data-key="home.myeongriTarot.categories.daily">🌙 오늘의 운세</div>
-              <div class="oracle-cat-btn-m" data-action="selectTarotCategory" data-action-args="love" data-action-pass-self="append" data-cd-trans data-key="home.myeongriTarot.categories.love">💘 연애운</div>
-              <div class="oracle-cat-btn-m" data-action="selectTarotCategory" data-action-args="reunion" data-action-pass-self="append" data-cd-trans data-key="home.myeongriTarot.categories.reunion">💌 재회운</div>
-              <div class="oracle-cat-btn-m" data-action="selectTarotCategory" data-action-args="career" data-action-pass-self="append" data-cd-trans data-key="home.myeongriTarot.categories.career">💼 직장·커리어운</div>
-              <div class="oracle-cat-btn-m" data-action="selectTarotCategory" data-action-args="money" data-action-pass-self="append" data-cd-trans data-key="home.myeongriTarot.categories.money">💰 재물운</div>
-              <div class="oracle-cat-btn-m" data-action="selectTarotCategory" data-action-args="health" data-action-pass-self="append" data-cd-trans data-key="home.myeongriTarot.categories.health">🌿 건강운</div>
-              <div class="oracle-cat-btn-m" data-action="selectTarotCategory" data-action-args="exam" data-action-pass-self="append" data-cd-trans data-key="home.myeongriTarot.categories.exam">📝 시험·합격운</div>
-              <div class="oracle-cat-btn-m" data-action="selectTarotCategory" data-action-args="people" data-action-pass-self="append" data-cd-trans data-key="home.myeongriTarot.categories.people">🤝 대인관계운</div>
+              <div class="oracle-cat-btn-m" data-action="selectTarotCategory" data-action-args="daily" data-action-pass-self="append" data-cd-trans data-key="home.myeongriTarot.categories.daily">오늘의 운세</div>
+              <div class="oracle-cat-btn-m" data-action="selectTarotCategory" data-action-args="love" data-action-pass-self="append" data-cd-trans data-key="home.myeongriTarot.categories.love">연애운</div>
+              <div class="oracle-cat-btn-m" data-action="selectTarotCategory" data-action-args="reunion" data-action-pass-self="append" data-cd-trans data-key="home.myeongriTarot.categories.reunion">재회운</div>
+              <div class="oracle-cat-btn-m" data-action="selectTarotCategory" data-action-args="career" data-action-pass-self="append" data-cd-trans data-key="home.myeongriTarot.categories.career">직장·커리어운</div>
+              <div class="oracle-cat-btn-m" data-action="selectTarotCategory" data-action-args="money" data-action-pass-self="append" data-cd-trans data-key="home.myeongriTarot.categories.money">재물운</div>
+              <div class="oracle-cat-btn-m" data-action="selectTarotCategory" data-action-args="health" data-action-pass-self="append" data-cd-trans data-key="home.myeongriTarot.categories.health">건강운</div>
+              <div class="oracle-cat-btn-m" data-action="selectTarotCategory" data-action-args="exam" data-action-pass-self="append" data-cd-trans data-key="home.myeongriTarot.categories.exam">시험·합격운</div>
+              <div class="oracle-cat-btn-m" data-action="selectTarotCategory" data-action-args="people" data-action-pass-self="append" data-cd-trans data-key="home.myeongriTarot.categories.people">대인관계운</div>
             </div>
 
-            <div class="ritual-text-m" id="tarotRitualMsg" data-cd-trans data-key="home.myeongriTarot.ritualDefault">"고민의 문을 하나 선택하면 카드의 결을 펼칩니다."</div>
+            <div class="ritual-text-m" id="tarotRitualMsg" role="status" data-cd-trans data-key="home.myeongriTarot.ritualDefault">"고민의 문을 하나 선택하면 카드의 결을 펼칩니다."</div>
 
-            <!-- 원카드 씬 (기본) -->
-            <div class="oracle-scene-m oracle-scene-one" id="tarotSceneOne">
+            <div class="tarot-ritual-scenes">
+            <canvas id="tarotRitualMotes" aria-hidden="true"></canvas>
+
+            <!-- 무료 세 장 리딩 무대 (기본) -->
+            <section id="tarotRitualStage" aria-label="세 장 리딩" hidden>
+              <div class="slots" id="tarotRitualSlots"></div>
+              <div class="fan-box" id="tarotRitualFanBox">
+                <div class="fan" id="tarotRitualFan" role="group" aria-label="카드 덱"></div>
+                <p class="fan-hint">옆으로 밀어 보고, 마음이 머무는 카드를 눌러 주세요</p>
+              </div>
+            </section>
+
+            <!-- 원카드 씬 -->
+            <div class="oracle-scene-m oracle-scene-one" id="tarotSceneOne" style="display:none;">
               <div class="oracle-card-m" id="tarotCardEl" data-action="startTarotReading">
                 <div class="oracle-face-m oracle-back-m" id="tarotCardBack"></div>
                 <div class="oracle-face-m oracle-front-m" id="tarotCardFront">
@@ -19133,7 +19147,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
               </div>
             </div>
 
-            <!-- 쓰리카드 스프레드 씬 -->
+            <!-- 예전 세 장 씬: 5,000원 구매자 결제 후 재개 전용 -->
             <div class="oracle-scene-m oracle-scene-three" id="tarotSceneThree" style="display:none;">
               <div class="tarot-spread-guide" id="tarotSpreadGuide" data-cd-trans data-key="home.myeongriTarot.spreadGuideInitial">첫 번째 카드로 지금까지의 흐름을 확인해 주세요</div>
               <div class="tarot-spread-cards" id="tarotSpreadCards">
@@ -19167,6 +19181,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
               </div>
               <button type="button" class="tarot-final-btn" id="tarotFinalBtn" data-action="showTarotFinalInterpretation" disabled data-cd-trans data-key="home.myeongriTarot.openFlowReading">흐름 리딩 보기 · 5,000원</button>
             </div>
+            </div>
 
             <div id="tarotResultContainer" class="oracle-result-box-m is-empty">
               <div class="oracle-result-skeleton" aria-hidden="true">
@@ -19183,7 +19198,13 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
               <div class="oracle-result-inner">
               <div style="font-family:var(--font-decorative); color:#ead089; font-size:1.4rem; text-align:center; margin-bottom:14px; text-shadow:0 2px 10px rgba(234,208,137,0.35); padding-bottom:10px; border-bottom:1px solid rgba(234,208,137,0.2);" id="tarotCardName"></div>
               <div class="oracle-text-m" id="destinyFortune"></div>
+              <div id="tarotFreeBody"></div>
               <div style="margin-top:16px; padding-top:16px; border-top:1px dashed rgba(234,208,137,0.25); color:#e3b4c6; font-size:0.95rem; font-style:italic; text-align:center;" id="tarotOracleText"></div>
+              <div id="tarotFreeCta" hidden>
+                <b>내 질문으로 더 깊이 듣고 싶다면</b>
+                <p>여기까지는 카드의 구조를 읽은 무료 풀이예요. 찻집에서 질문을 적고 세 장을 새로 뽑으면, 연이가 내 상황에 맞춰 길게 풀어 드려요. 추가 질문 1회가 포함돼요.</p>
+                <a href="/en/fortune-tea-house/">연이의 찻집 상담 · 5,000원</a>
+              </div>
 
               <div class="tarot-action-btns" style="display:flex; gap:10px; margin-top:20px;">
                 <button data-action="shareTarotKakao" class="btn-kakao" style="flex:1; font-size:0.9rem; padding:12px;">
@@ -20912,7 +20933,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
 <script data-cd-lazy-src="/js/core/saju/basicFortunePresentation.js?v=build-6891fb41d4aa" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
 <script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-ba2380db1771" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
-<script defer src="/js/core/index-inline-runtime.js?v=build-59e936460269" data-cd-saju-prompt-marker="saju-ai-consultation-flow-v20260706 saju-ai-calibration-v20260706 saju-ai-llm-result-v20260625 sukuyo-guardian-drawing-v20260625 sukuyo-pastlife-v2-20260621" data-cd-kemet-ai-prompt-marker="kemet-ai-prompt-generator-v20260619"></script>
+<script defer src="/js/core/index-inline-runtime.js?v=build-5cd87493bce8" data-cd-saju-prompt-marker="saju-ai-consultation-flow-v20260706 saju-ai-calibration-v20260706 saju-ai-llm-result-v20260625 sukuyo-guardian-drawing-v20260625 sukuyo-pastlife-v2-20260621" data-cd-kemet-ai-prompt-marker="kemet-ai-prompt-generator-v20260619"></script>
 <script defer src="/js/pwa-install-prompt.js?v=build-1c2525b7d8f2"></script>
 <script data-cd-lazy-src="/js/admin-flower.js" data-cd-mobile-delay="2"></script>
 <div class="share-toast" id="shareToast" role="status" aria-live="polite"></div>
@@ -21032,7 +21053,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
     if (!shareUrl) return Promise.reject(new Error('share_url_missing'));
     // 지금 보고 있는 언어의 셸·미리보기 카드로 공유한다(js/share.js). 아직 안 실렸으면 서버 URL 그대로.
     if (typeof window.cdLocalizeShareUrl === 'function') shareUrl = window.cdLocalizeShareUrl(shareUrl);
-    var shareImageUrl = 'https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-c767a2220537';
+    var shareImageUrl = 'https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-5620639b2867';
     if (typeof window.cdLocalizeShareImage === 'function') shareImageUrl = window.cdLocalizeShareImage(shareImageUrl);
     renderShareUrl(shareUrl, tr('kakaoReferral.rewardReady', '초대 링크가 준비됐어요. 친구 가입 완료 시 추천 보상이 지급됩니다.'));
     return loadKakaoSdk(payload.kakaoJavascriptKey).then(function(ok){
@@ -34902,7 +34923,7 @@ function updateBadge() {
 (function(){
   'use strict';
   var D={
-    '#destinyCardForm':{cat:'사주 · 무료 운명 카드',fallbackTitle:'🌙 나의 달빛 운명 카드',tagline:'생년월일과 출생시간을 바탕으로 사주, 오늘의 흐름, 궁합, 별자리 서비스로 이어지는 기본 프로필을 만듭니다.',feats:['이름·생년월일·출생시간 기반 기본 운명 카드 생성','출생시간을 모를 때 낮 12시 기준으로 보수 계산','사주 결과와 주요 운세 서비스 바로가기 자동 연결','저장한 프로필로 무료·프리미엄 리딩을 더 빠르게 시작'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/%EC%82%AC%EC%A3%BC%EB%B3%B4%EB%8A%94%20%EC%97%B0%EC%9D%B4.webp?v=build-c767a2220537',fallbackCta:'운명 카드 만들기'},
+    '#destinyCardForm':{cat:'사주 · 무료 운명 카드',fallbackTitle:'🌙 나의 달빛 운명 카드',tagline:'생년월일과 출생시간을 바탕으로 사주, 오늘의 흐름, 궁합, 별자리 서비스로 이어지는 기본 프로필을 만듭니다.',feats:['이름·생년월일·출생시간 기반 기본 운명 카드 생성','출생시간을 모를 때 낮 12시 기준으로 보수 계산','사주 결과와 주요 운세 서비스 바로가기 자동 연결','저장한 프로필로 무료·프리미엄 리딩을 더 빠르게 시작'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/%EC%82%AC%EC%A3%BC%EB%B3%B4%EB%8A%94%20%EC%97%B0%EC%9D%B4.webp?v=build-5620639b2867',fallbackCta:'운명 카드 만들기'},
     gotoZiweiPremium:{cat:'프리미엄 · 자미두수 전문가 상담',fallbackTitle:'자미두수 전문가 상담',tagline:'명궁·신궁·12궁·사화·대운·세운 흐름을 바탕으로 지금의 질문에 답합니다.',feats:['입력은 무료 — 상담 생성 버튼을 누를 때 30,000원 단건 결제 또는 이용권·월정석 확인','결제 확인이 끝나면 상담문이 바로 생성','명궁·재백·관록·부부·질액궁을 질문에 맞춰 연결 해석','상담 결과를 화면에서 바로 확인하고 추가 질문 이어가기'],cost:'30,000원 · 전문가 상담',ct:'paid',img:"/images/service-introductions/ziwei-ai.webp",fallbackCta:'자미두수 상담 받기'},
     '/neo-operation-room':{cat:'프리미엄 · 운명 작전실',fallbackTitle:'네오의 팩폭 운명 작전실',tagline:'사주·자미두수·베다점·점성술의 지도를 한 장의 전략처럼 펼쳐, 지금 밀리는 전선과 다시 잡아야 할 기준을 또렷하게 짚습니다.',feats:['30,000원 상담 이용권 확인','결제 완료 후 네오의 작전실로 바로 이동','사주와 별자리 흐름을 함께 비추는 종합 상담','현재 고민에 맞춘 선택 기준과 다음 행동 정리'],cost:'30,000원 · 전문가 상담',ct:'paid',img:"/images/service-introductions/neo-operation-room.webp",fallbackCta:'작전실 열기'},
     openNamingPromptModal:{cat:'작명 · 전문가 상담',fallbackTitle:'훈민정음 작명소',tagline:'생년월일시와 원하는 이름 조건을 바탕으로 용신·소리오행·한자 의미·수리 풀이를 종합해 전문가가 직접 이름을 짓고, 그 결과를 만든 프롬프트 원문까지 함께 드립니다.',feats:['입력과 무료 초안 추천은 무료로 열립니다','프리미엄 작명 시작 시 30,000원 단건 결제 또는 이용권·월정석 확인이 진행됩니다','사주 보완, 인명용 한자, 소리오행, 자원오행, 원형이정 수리를 종합한 완성형 결과 제공','결제 검증 후 전문가 작명 결과와 PDF 저장, 생성에 사용된 프롬프트 원문까지 다시 확인할 수 있습니다'],cost:'30,000원 · 이용권/월정석 가능',ct:'paid',img:"/images/service-introductions/naming-ai.webp",fallbackCta:'작명 시작하기'},

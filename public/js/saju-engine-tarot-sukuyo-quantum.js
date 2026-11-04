@@ -810,7 +810,7 @@ var TAROT_CONTEXT = {
 var curTarotCat = null;
 var isReading = false;
 var autoStartTimer = null;
-var tarotSpreadMode = 'one'; // 'one' | 'three'
+var tarotSpreadMode = 'three'; // 'one' | 'three'
 var tarotThreeCardState = { cards: [], revealedIndex: -1 };
 var tarotReadingTimer = null;
 var tarotLifecycleToken = 0;
@@ -1115,20 +1115,28 @@ function buildMyeongriTarotAiPrompt(cardsData, category, labels, readings, advic
 
 function setTarotMode(mode) {
   invalidateTarotFlow();
-  if (isReading) return;
+  // 풀이 도중 전환하면 완료 콜백이 토큰에 막혀 돌지 않는다. 플래그가 남으면 분야·모드 버튼이 모두 멈추므로
+  // 여기서 풀고, 타자 효과도 끊어 비워 둔 결과 칸에 글자가 다시 차지 않게 한다.
+  if (isReading) {
+    isReading = false;
+    var streamTimers = window.__ritualStreamTimers || {};
+    Object.keys(streamTimers).forEach(function(id) {
+      clearTimeout(streamTimers[id]);
+      streamTimers[id] = null;
+    });
+    var gatheringCard = document.getElementById('tarotCardEl');
+    if (gatheringCard) gatheringCard.style.animation = '';
+  }
   tarotSpreadMode = mode;
   var sceneOne = document.getElementById('tarotSceneOne');
   var sceneThree = document.getElementById('tarotSceneThree');
   var btns = document.querySelectorAll('.tarot-mode-btn');
   if (!sceneOne || !sceneThree) return;
   var craftedOffer = document.querySelector('[data-crafted-static-offer="tarot-myeongri-three-card"]');
-  if (craftedOffer) craftedOffer.hidden = mode !== 'three';
+  if (craftedOffer) craftedOffer.hidden = true;
   if (mode === 'three') {
     sceneOne.style.display = 'none';
-    sceneThree.style.display = 'flex';
-    if (craftedOffer) import('/js/core/saju/crafted-product-details.mjs').then(function(module) {
-      if (craftedOffer.isConnected) module.mountCraftedStaticOffer(craftedOffer);
-    }).catch(function() {});
+    sceneThree.style.display = 'none';
     btns.forEach(function(b) {
       b.classList.toggle('active', b.getAttribute('data-action-args') === 'three');
     });
@@ -1144,14 +1152,12 @@ function setTarotMode(mode) {
   var resultEl = document.getElementById('tarotResultContainer');
   if (resultEl) resultEl.classList.add('is-empty');
   resetMyeongriTarotAiPromptPanel();
-  // 모드 전환 시 이미 카테고리가 선택되어 있으면 즉시 덱 준비
-  if (mode === 'three' && curTarotCat && isTarotModalActive()) {
-    startThreeCardFlow();
-  }
+  tarotRitualSetStage(mode === 'three');
 }
 
 function selectTarotCategory(cat, btn) {
   if(isReading) return;
+  if (tarotSpreadMode === 'three' && tarotRitual.picked > 0) return;
   invalidateTarotFlow();
   curTarotCat = cat;
   
@@ -1167,6 +1173,18 @@ function selectTarotCategory(cat, btn) {
   // 리추얼 메시지 초기화
   var msgEl = document.getElementById('tarotRitualMsg');
   var catCtx = TAROT_CONTEXT[cat] || { label: mapCategoryToMyeongriCategory(cat) };
+  if (tarotSpreadMode === 'three') {
+    // 구매자 재개 화면(예전 씬)에서 분야를 고르면 새 무대로 돌아온다.
+    var ritualStage = document.getElementById('tarotRitualStage');
+    if (ritualStage && ritualStage.hidden) {
+      var legacyScene = document.getElementById('tarotSceneThree');
+      if (legacyScene) legacyScene.style.display = 'none';
+      resetMyeongriTarotAiPromptPanel();
+      tarotRitualSetStage(true);
+    }
+    tarotRitualSay(tarotRitualCategoryLabel() + '의 질문 위에 카드를 펼칩니다. 끌리는 세 장을 골라 주세요.');
+    return;
+  }
   if (msgEl) {
     msgEl.innerHTML = catCtx
       ? `🌿 <b>${catCtx.label}</b>의 질문 위에 카드를 펼칩니다. 잠시 호흡을 고르세요.`
@@ -1196,11 +1214,6 @@ function selectTarotCategory(cat, btn) {
   }
   var focusOverlay = document.getElementById('tarotFocusOverlay');
   if (focusOverlay) focusOverlay.classList.remove('active');
-
-  if (tarotSpreadMode === 'three') {
-    startThreeCardFlow();
-    return;
-  }
 
   // [수정: 클릭 없이 자동 진행] — 원카드 모드
   var token = tarotLifecycleToken;
@@ -1421,6 +1434,52 @@ function callTarotEngine(endpoint, payload) {
   return Promise.resolve().then(tryNext);
 }
 
+// 운명 찻집(caretaro) 78장. 정본은 lib/tarot/caretaro-card-images.mjs 이고 이 파일은 동기 함수에서 써야 해서
+// 표를 따로 둔다. __tests__/ui/tarot-master-reading.test.mjs 가 아래 마커 구간을 실행해 정본과 대조한다.
+/* caretaro-table:start */
+var TAROT_CARETARO_BY_SHORT = (function() {
+  var table = Object.create(null);
+  var pad = function(n) { return (n < 10 ? '0' : '') + n; };
+  [
+    ['thefool', '바보'], ['themagician', '마법사'], ['thehighpriestess', '고위여사제'], ['theempress', '여황제'],
+    ['theemperor', '황제'], ['thehierophant', '교황'], ['thelovers', '연인'], ['thechariot', '전차'],
+    ['thestrength', '힘'], ['thehermit', '은둔자'], ['wheeloffortune', '운명의수레바퀴'], ['justice', '정의'],
+    ['thehangedman', '매달린남자'], ['death', '죽음'], ['temperance', '절제'], ['thedevil', '악마'],
+    ['thetower', '탑'], ['thestar', '별'], ['themoon', '달'], ['thesun', '태양'], ['judgement', '심판'], ['theworld', '세계']
+  ].forEach(function(row, i) {
+    table[row[0]] = { code: 'M' + pad(i), basename: row[1] };
+  });
+  table.strength = table.thestrength;
+  var ranks = ['ace', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'page', 'knight', 'queen', 'king'];
+  var courtLabels = { 1: '에이스', 11: '페이지', 12: '기사', 13: '퀸', 14: '킹' };
+  [['wands', 'W', '완드'], ['cups', 'C', '컵'], ['swords', 'S', '소드'], ['pentacles', 'P', '펜타클']].forEach(function(suit) {
+    ranks.forEach(function(rank, i) {
+      var n = i + 1;
+      var label = suit[1] === 'C' && n === 13 ? '여왕' : (courtLabels[n] || n);
+      table[rank + 'of' + suit[0]] = { code: suit[1] + pad(n), basename: suit[2] + label };
+    });
+  });
+  return table;
+})();
+/* caretaro-table:end */
+
+function tarotCaretaroEntry(shortName) {
+  return TAROT_CARETARO_BY_SHORT[String(shortName || '').trim().toLowerCase().replace(/\s+/g, '')] || null;
+}
+
+var TAROT_CARETARO_WIDTH = 480;
+function tarotCaretaroUrl(shortName) {
+  var entry = tarotCaretaroEntry(shortName);
+  if (!entry) return '';
+  return 'https://assets.code-destiny.com/cdn-cgi/image/width=' + TAROT_CARETARO_WIDTH +
+    ',format=auto,fit=scale-down/DestinyCafe/caretaro/' + encodeURIComponent(entry.basename + '.webp');
+}
+
+// 찻집 그림은 원격에서 축소해 오므로 느린 망에서 1.8초를 넘길 수 있다. 일찍 포기하면 공개 덱으로 덮인다.
+function tarotImageProbeTimeout(url) {
+  return String(url).indexOf('/DestinyCafe/caretaro/') >= 0 ? 5000 : 1800;
+}
+
 var TAROT_LOCAL_BASE = '/tarot-cards/';
 var TAROT_SHORT_TO_FILENAME = {
   thefool: 'thefool.webp', themagician: 'themagician.webp', thehighpriestess: 'thehighpriestess.webp',
@@ -1457,6 +1516,8 @@ function getTarotImageCandidates(shortName) {
   if (!rawName) return [];
 
   var out = [];
+  var caretaroUrl = tarotCaretaroUrl(rawName);
+  if (caretaroUrl) out.push(caretaroUrl);
   var key = rawName.toLowerCase().replace(/\s+/g, '');
   var localFn = TAROT_SHORT_TO_FILENAME[key] || TAROT_SHORT_TO_FILENAME[rawName];
   if (localFn) {
@@ -1515,7 +1576,7 @@ function loadTarotImage(shortName, onReady) {
       if (done) return;
       done = true;
       tryLoad();
-    }, 1800);
+    }, tarotImageProbeTimeout(url));
     probe.onload = function() {
       if (done) return;
       done = true;
@@ -1582,7 +1643,7 @@ function applyTarotImageToFace(frontEl, imgEl, shortName, altText) {
       if (done) return;
       done = true;
       tryNext();
-    }, 1800);
+    }, tarotImageProbeTimeout(url));
     probe.onload = function() {
       if (done) return;
       done = true;
@@ -2940,12 +3001,10 @@ function flipTarotSpreadCard(index) {
   var cardEl = document.querySelector('.tarot-spread-card[data-action-args="' + idx + '"]');
   if (!cardEl || cardEl.classList.contains('flipped')) return;
   
-  playTarotFlipSound();
   syncTarotSpreadCardFace(cardEl); // 인라인 style 제거 → CSS 클래스 우선 적용
   cardEl.classList.add('flipped');
   cardEl.classList.add('is-revealing');
   setTimeout(function() { cardEl.classList.remove('is-revealing'); }, 800);
-  createGoldDust(cardEl);
   tarotThreeCardState.revealedIndex = idx;
   
   var labels = getTarotSpreadLabels(curTarotCat);
@@ -2962,33 +3021,8 @@ function flipTarotSpreadCard(index) {
   } else if (idx === 2) {
     if (guideEl) guideEl.textContent = '세 장의 카드가 모두 드러났습니다. 통합 리딩을 시작합니다.';
     var finalBtn = document.getElementById('tarotFinalBtn');
-    if (finalBtn) {
-      finalBtn.disabled = false;
-      syAttachHoneyUse(finalBtn, MYEONGRI_TAROT_THREE_CARD_FEATURE_KEY, function () {
-        if (tarotSpreadMode !== 'three' || tarotThreeCardState.revealedIndex !== 2) return null;
-        var descriptor = buildMyeongriTarotResumeDescriptor();
-        return descriptor ? { descriptor: descriptor, input: descriptor.args } : null;
-      }, function (captured) { return runMyeongriTarotResume(captured.descriptor); });
-    }
+    if (finalBtn) finalBtn.disabled = false;
   }
-}
-
-function playTarotFlipSound() {
-  try {
-    var ctx = window.__tarotAudioContext || (window.__tarotAudioContext = new (window.AudioContext || window.webkitAudioContext)());
-    if (ctx.state === 'suspended') ctx.resume();
-    var osc = ctx.createOscillator();
-    var gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.frequency.setValueAtTime(400, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(800, ctx.currentTime + 0.08);
-    osc.type = 'sine';
-    gain.gain.setValueAtTime(0.15, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 0.15);
-  } catch (e) {}
 }
 
 function showTarotFinalInterpretation() {
@@ -3062,6 +3096,478 @@ function _runShowTarotFinalInterpretation() {
       });
     }, 350);
   }, 80);
+}
+
+/* ── 무료 세 장 리딩 무대 ──────────────────────────────────────────────────────
+   덱에서 세 장을 직접 고르고, 한 장씩 빛과 함께 뒤집은 뒤 무료 풀이를 펼친다. 소리와 서버 호출은 없다.
+   연출 값은 승인 목업을 따른다(docs/superpowers/specs/2026-11-05-free-tarot-premium-design.md).
+   5,000원 구매자의 재개는 이 무대를 쓰지 않고 예전 씬(#tarotSceneThree)과 예전 결과를 그대로 쓴다. */
+var TAROT_RITUAL_POSITIONS = ['지금까지의 흐름', '현재의 결', '다음 선택 기준'];
+var TAROT_RITUAL_SLOT_KEYS = ['past', 'present', 'future'];
+var tarotRitual = { deck: [], picked: 0, revealed: 0, busy: false, bound: false };
+var tarotRitualEnginePromise = null;
+var tarotRitualMoteList = [];
+var tarotRitualMotesRunning = false;
+var tarotRitualFanTick = false;
+
+function tarotRitualReduced() {
+  return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+}
+
+// 모달을 닫거나 모드를 바꾸면 토큰이 바뀌어 예약된 연출이 이전 상태에 쓰지 않는다.
+function tarotRitualLater(fn, ms) {
+  var token = tarotLifecycleToken;
+  setTimeout(function() {
+    if (token !== tarotLifecycleToken || !isTarotModalActive()) return;
+    fn();
+  }, tarotRitualReduced() ? 0 : ms);
+}
+
+function tarotRitualSay(text) {
+  var msgEl = document.getElementById('tarotRitualMsg');
+  if (!msgEl) return;
+  msgEl.textContent = text;
+  msgEl.style.opacity = 1;
+}
+
+function tarotRitualLoadEngine() {
+  if (!tarotRitualEnginePromise) {
+    tarotRitualEnginePromise = import('/js/core/tarot/master-reading.mjs').catch(function(err) {
+      tarotRitualEnginePromise = null;
+      throw err;
+    });
+  }
+  return tarotRitualEnginePromise;
+}
+
+function tarotRitualCategoryLabel() {
+  var active = document.querySelector('#tarotCats .oracle-cat-btn-m.active');
+  return active ? String(active.textContent || '').trim() : '오늘의 운세';
+}
+
+function tarotRitualSetChipsLocked(locked) {
+  var cats = document.getElementById('tarotCats');
+  if (!cats) return;
+  cats.classList.toggle('is-locked', locked);
+  Array.prototype.forEach.call(cats.children, function(chip) {
+    if (locked) chip.setAttribute('aria-disabled', 'true');
+    else chip.removeAttribute('aria-disabled');
+  });
+}
+
+function tarotRitualClearResult() {
+  var resultEl = document.getElementById('tarotResultContainer');
+  if (resultEl) {
+    resultEl.classList.add('is-empty');
+    resultEl.classList.remove('tarot-master-result');
+  }
+  ['tarotCardName', 'destinyFortune', 'tarotOracleText', 'tarotFreeBody'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.innerHTML = '';
+  });
+  var oracleEl = document.getElementById('tarotOracleText');
+  if (oracleEl) oracleEl.classList.remove('show');
+  var cta = document.getElementById('tarotFreeCta');
+  if (cta) cta.hidden = true;
+}
+
+function tarotRitualSetStage(on) {
+  var stage = document.getElementById('tarotRitualStage');
+  if (!stage) return;
+  var modal = stage.closest('.glass-oracle-modal');
+  var finalBtn = document.getElementById('tarotFinalBtn');
+  if (finalBtn) finalBtn.style.display = '';
+  stage.hidden = !on;
+  if (modal) modal.classList.toggle('is-ritual', on);
+  tarotRitualBind();
+  tarotThreeCardState = { cards: [], revealedIndex: -1 };
+  tarotRitual.picked = 0;
+  tarotRitual.revealed = 0;
+  tarotRitual.busy = false;
+  tarotRitualMoteList = [];
+  tarotRitualClearResult();
+  tarotRitualSetChipsLocked(false);
+  if (on) tarotRitualReset();
+}
+
+function showMyeongriLegacySpreadScene() {
+  var stage = document.getElementById('tarotRitualStage');
+  var sceneThree = document.getElementById('tarotSceneThree');
+  var finalBtn = document.getElementById('tarotFinalBtn');
+  if (stage) {
+    stage.hidden = true;
+    var modal = stage.closest('.glass-oracle-modal');
+    if (modal) modal.classList.remove('is-ritual');
+  }
+  if (sceneThree) sceneThree.style.display = 'flex';
+  // 재개된 구매자에게 결제 버튼을 다시 보이지 않는다.
+  if (finalBtn) finalBtn.style.display = 'none';
+}
+
+// TAROT_DATA 는 메이저 22장이고 구매자 재개가 그 id 로 카드를 복원하므로 그대로 둔다. 무대에서만 마이너 56장을 더한다.
+function tarotRitualFullDeck() {
+  var deck = Array.isArray(TAROT_DATA) ? TAROT_DATA.slice() : [];
+  var ranks = ['ace', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'page', 'knight', 'queen', 'king'];
+  var courtLabels = { 1: '에이스', 11: '페이지', 12: '기사', 13: '퀸', 14: '킹' };
+  [['wands', '완드'], ['cups', '컵'], ['swords', '소드'], ['pentacles', '펜타클']].forEach(function(suit) {
+    ranks.forEach(function(rank, i) {
+      var short = rank + 'of' + suit[0];
+      deck.push({ id: short, name: short, name_kr: suit[1] + ' ' + (courtLabels[i + 1] || (i + 1)), short: short, type: 'minor', sipsinTag: '', desc: '' });
+    });
+  });
+  return deck;
+}
+
+function tarotRitualReset() {
+  var stage = document.getElementById('tarotRitualStage');
+  var slots = document.getElementById('tarotRitualSlots');
+  var fan = document.getElementById('tarotRitualFan');
+  var fanBox = document.getElementById('tarotRitualFanBox');
+  if (!stage || !slots || !fan || !fanBox) return;
+  stage.classList.remove('ready');
+  fanBox.classList.remove('done');
+
+  if (!curTarotCat) curTarotCat = 'daily';
+  var chip = document.querySelector('#tarotCats .oracle-cat-btn-m[data-action-args="' + curTarotCat + '"]');
+  if (chip) {
+    Array.prototype.forEach.call(chip.parentElement.children, function(el) { el.classList.remove('active'); });
+    chip.classList.add('active');
+  }
+
+  var deck = tarotRitualFullDeck();
+  for (var i = deck.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var tmp = deck[i]; deck[i] = deck[j]; deck[j] = tmp;
+  }
+  tarotRitual.deck = deck;
+
+  slots.innerHTML = TAROT_RITUAL_POSITIONS.map(function(label, n) {
+    return '<div class="slot" data-i="' + n + '"><span>' + label + '</span>' +
+      '<button class="flip" type="button" disabled aria-label="' + label + ' 카드">' +
+      '<span class="empty"></span><span class="bloom"></span><span class="after"></span><span class="ring"></span>' +
+      '<span class="inner"><span class="side b"></span><span class="side f"><img alt="" decoding="async" style="visibility:hidden"></span></span>' +
+      '</button><strong></strong></div>';
+  }).join('');
+
+  var html = '';
+  for (var k = 0; k < deck.length; k++) {
+    html += '<button type="button" data-i="' + k + '" aria-label="' + (k + 1) + '번째 카드 고르기"></button>';
+  }
+  fan.innerHTML = html;
+  fan.style.scrollBehavior = 'auto';
+  requestAnimationFrame(function() {
+    fan.scrollLeft = (fan.scrollWidth - fan.clientWidth) / 2;
+    tarotRitualLayoutFan();
+    fan.style.scrollBehavior = '';
+  });
+
+  var overlay = document.getElementById('tarotModalOverlay');
+  if (overlay) overlay.scrollTop = 0;
+  tarotRitualSay('고민의 문을 고른 뒤, 끌리는 카드 세 장을 골라 주세요.');
+}
+
+function tarotRitualBind() {
+  if (tarotRitual.bound) return;
+  var fan = document.getElementById('tarotRitualFan');
+  var slots = document.getElementById('tarotRitualSlots');
+  if (!fan || !slots) return;
+  tarotRitual.bound = true;
+  fan.addEventListener('click', function(e) {
+    var btn = e.target.closest('button');
+    if (btn) tarotRitualPick(btn);
+  });
+  fan.addEventListener('scroll', function() {
+    if (tarotRitualFanTick) return;
+    tarotRitualFanTick = true;
+    requestAnimationFrame(tarotRitualLayoutFan);
+  }, { passive: true });
+  window.addEventListener('resize', tarotRitualLayoutFan);
+  slots.addEventListener('click', function(e) {
+    var flip = e.target.closest('.flip');
+    if (flip && !flip.disabled) tarotRitualReveal(flip);
+  });
+}
+
+function tarotRitualLayoutFan() {
+  tarotRitualFanTick = false;
+  var fan = document.getElementById('tarotRitualFan');
+  if (!fan || !fan.clientWidth) return;
+  var width = fan.clientWidth;
+  Array.prototype.forEach.call(fan.children, function(btn) {
+    var d = (btn.offsetLeft - fan.scrollLeft + 44 - width / 2) / width;
+    if (Math.abs(d) > 1.2) {
+      btn.style.transform = '';
+      return;
+    }
+    var lift = btn.classList.contains('taken') ? -30 : 0;
+    btn.style.transform = 'translateY(' + (d * d * 64 + lift) + 'px) rotate(' + (d * 26) + 'deg)';
+  });
+}
+
+function tarotRitualPick(btn) {
+  var R = tarotRitual;
+  if (R.picked >= 3 || btn.classList.contains('taken')) return;
+  var card = R.deck[parseInt(btn.getAttribute('data-i'), 10)];
+  if (!card) return;
+  tarotRitualSetChipsLocked(true);
+  tarotRitualLoadEngine().catch(function() {});
+  btn.classList.add('taken');
+  btn.disabled = true;
+  tarotRitualLayoutFan();
+
+  var slot = document.getElementById('tarotRitualSlots').children[R.picked];
+  var data = { card: card, isReversed: Math.random() < 0.5, imgUrl: '', position: TAROT_RITUAL_SLOT_KEYS[R.picked] };
+  tarotThreeCardState.cards.push(data);
+  var img = slot.querySelector('img');
+  if (data.isReversed) img.classList.add('rev');
+  // 뒤집기 전에 그림을 받아 둔다. 찻집 그림이 막히면 공개 덱으로 넘어간다.
+  applyTarotImageToFace(null, img, card.short, card.name_kr + ' 카드');
+  var dir = data.isReversed ? '역행' : '순행';
+  slot.querySelector('strong').innerHTML = escapeTarotHtml(card.name_kr) + '<i>' + dir + '</i>';
+  slot.classList.add('filled');
+  tarotRitualMotes(slot.querySelector('.flip'), 14);
+  R.picked += 1;
+  if (R.picked < 3) {
+    tarotRitualSay(R.picked === 1 ? '두 번째 카드를 골라 주세요.' : '마지막 한 장을 골라 주세요.');
+    return;
+  }
+  tarotRitualSay('세 장이 모두 놓였어요.');
+  tarotRitualLater(function() {
+    document.getElementById('tarotRitualFanBox').classList.add('done');
+    document.getElementById('tarotRitualStage').classList.add('ready');
+    tarotRitualArmNext();
+  }, 900);
+}
+
+function tarotRitualArmNext() {
+  var slot = document.getElementById('tarotRitualSlots').children[tarotRitual.revealed];
+  var flip = slot.querySelector('.flip');
+  flip.disabled = false;
+  flip.classList.add('next');
+  tarotRitualSay(TAROT_RITUAL_POSITIONS[tarotRitual.revealed] + ' 자리의 카드를 눌러 주세요.');
+}
+
+function tarotRitualReveal(flip) {
+  var R = tarotRitual;
+  if (R.busy) return;
+  R.busy = true;
+  flip.disabled = true;
+  flip.classList.remove('next');
+  flip.classList.add('gather');
+  var slot = flip.parentNode;
+  var i = parseInt(slot.getAttribute('data-i'), 10);
+  tarotRitualSay('빛이 모이고 있어요…');
+  tarotRitualLater(function() {
+    flip.classList.remove('gather');
+    flip.classList.add('turn');
+    tarotRitualMotes(flip, 46);
+    tarotRitualLater(function() {
+      slot.classList.add('revealed');
+      var data = tarotThreeCardState.cards[i];
+      tarotThreeCardState.revealedIndex = i;
+      tarotRitualSay(data.card.name_kr + ' ' + (data.isReversed ? '역행' : '순행') + ', ' + TAROT_RITUAL_POSITIONS[i] + '의 자리에 놓였어요.');
+      R.revealed += 1;
+      R.busy = false;
+      if (R.revealed < 3) {
+        tarotRitualLater(tarotRitualArmNext, 800);
+        return;
+      }
+      tarotRitualSay('세 장의 이야기를 잇고 있어요…');
+      tarotRitualLater(_runFreeTarotMasterReading, 1500);
+    }, 1300);
+  }, 1000);
+}
+
+function tarotRitualBlock(index, html, cls) {
+  return '<div style="--i:' + index + '"' + (cls ? ' class="' + cls + '"' : '') + '>' + html + '</div>';
+}
+
+function tarotRitualPositionsHtml(rows) {
+  return '<h2>자리별 읽기</h2><div class="pos">' + rows.map(function(row) {
+    return '<div><img class="' + (row.reversed ? 'rev' : '') + '" src="' + escapeTarotHtml(row.src) + '" alt="">' +
+      '<p><b>' + escapeTarotHtml(row.label) + '</b><em>' + escapeTarotHtml(row.title) + '</em>' + escapeTarotHtml(row.text) + '</p></div>';
+  }).join('') + '</div>';
+}
+
+function tarotRitualSlotImage(i) {
+  var slots = document.getElementById('tarotRitualSlots');
+  var img = slots && slots.children[i] ? slots.children[i].querySelector('img') : null;
+  return img ? (img.getAttribute('src') || '') : '';
+}
+
+function _runFreeTarotMasterReading() {
+  var token = tarotLifecycleToken;
+  var cardsData = tarotThreeCardState.cards.slice();
+  var category = curTarotCat || 'daily';
+  tarotRitualLoadEngine().then(function(engine) {
+    if (token !== tarotLifecycleToken) return;
+    var reading = engine.buildMasterReading({
+      cards: cardsData.map(function(data) {
+        var entry = tarotCaretaroEntry(data.card.short);
+        return { code: entry ? entry.code : '', reversed: data.isReversed };
+      }),
+      category: category,
+      surface: 'modal',
+      positions: TAROT_RITUAL_POSITIONS
+    });
+    var sipsin = engine.sipsinNote(reading.positions.map(function(row, n) {
+      return { name: row.name, tenGod: resolveMainTenGod(cardsData[n].card) };
+    }));
+    tarotRitualRenderReading(reading, sipsin);
+  }).catch(function(err) {
+    if (token !== tarotLifecycleToken) return;
+    if (window.console && console.warn) console.warn('[tarot] 풀이 엔진을 불러오지 못했어요', err);
+    tarotRitualRenderFallback(cardsData);
+  });
+}
+
+function tarotRitualRenderReading(reading, sipsin) {
+  var i = 1;
+  var body = '';
+  body += tarotRitualBlock(i++, tarotRitualPositionsHtml(reading.positions.map(function(row, n) {
+    return {
+      src: tarotRitualSlotImage(n),
+      reversed: row.reversed,
+      label: row.label,
+      title: row.name + (row.dirLabel ? ' ' + row.dirLabel : ''),
+      text: row.text
+    };
+  })));
+  body += tarotRitualBlock(i++, '<h2>덱의 기운</h2><dl class="energy">' + reading.energy.map(function(row) {
+    return '<div><dt>' + escapeTarotHtml(row.label) + '</dt><dd><b>' + escapeTarotHtml(row.head) + '</b>' + escapeTarotHtml(row.body) + '</dd></div>';
+  }).join('') + '</dl>');
+  body += tarotRitualBlock(i++, '<h2>카드 사이의 이야기</h2><p>' + escapeTarotHtml(reading.between) + '</p>');
+  body += tarotRitualBlock(i++, '<h2>십성의 결</h2><p>' + escapeTarotHtml(sipsin) + '</p>');
+  body += tarotRitualBlock(i++, '<h2>' + escapeTarotHtml(reading.categoryLabel) + ' 종합</h2><div class="synth">' +
+    '<div><h3>흐름</h3><p>' + escapeTarotHtml(reading.synthesis.flow) + '</p></div>' +
+    '<div><h3>살펴볼 점</h3><p>' + escapeTarotHtml(reading.synthesis.caution) + '</p></div>' +
+    '<div class="act"><h3>오늘 해 볼 한 가지</h3><p>' + escapeTarotHtml(reading.synthesis.action) + '</p></div></div>');
+  tarotRitualFillResult({
+    names: reading.positions.map(function(row) { return row.name + (row.dirLabel ? ' ' + row.dirLabel : ''); }).join(' · '),
+    verdict: '<div class="verdict" style="--i:0"><small>' + escapeTarotHtml(reading.categoryLabel) + ' · 세 장을 모두 읽은 결론</small><p>' + escapeTarotHtml(reading.verdict) + '</p></div>',
+    body: body,
+    close: '<p>“' + escapeTarotHtml(reading.close) + '”</p><small>꽃돼지 연이</small>',
+    nextIndex: i
+  });
+}
+
+// 엔진을 받지 못해도 자리별 읽기는 남긴다.
+function tarotRitualRenderFallback(cardsData) {
+  var body = tarotRitualBlock(1, tarotRitualPositionsHtml(cardsData.map(function(data, n) {
+    var dir = data.isReversed ? '역행' : '순행';
+    return {
+      src: tarotRitualSlotImage(n),
+      reversed: data.isReversed,
+      label: TAROT_RITUAL_POSITIONS[n],
+      title: data.card.name_kr + ' ' + dir,
+      text: data.card.desc || '이 자리의 풀이는 다시 펼치면 함께 볼 수 있어요.'
+    };
+  })));
+  tarotRitualFillResult({
+    names: cardsData.map(function(data) { return data.card.name_kr + (data.isReversed ? ' 역행' : ' 순행'); }).join(' · '),
+    verdict: '<div class="verdict" style="--i:0"><small>종합 풀이를 불러오지 못했어요</small><p>자리별 읽기를 먼저 보여 드려요. 다시 펼치면 종합까지 볼 수 있어요.</p></div>',
+    body: body,
+    close: '',
+    nextIndex: 2
+  });
+}
+
+function tarotRitualFillResult(parts) {
+  var resultEl = document.getElementById('tarotResultContainer');
+  var nameEl = document.getElementById('tarotCardName');
+  var fortuneEl = document.getElementById('destinyFortune');
+  var bodyEl = document.getElementById('tarotFreeBody');
+  var oracleEl = document.getElementById('tarotOracleText');
+  var cta = document.getElementById('tarotFreeCta');
+  if (!resultEl || !fortuneEl || !bodyEl || !oracleEl) return;
+  // 이름과 결론, 연이 마무리만 공유 문구로 쓰인다(js/share.js shareTarotKakao).
+  if (nameEl) nameEl.textContent = parts.names;
+  fortuneEl.innerHTML = parts.verdict;
+  bodyEl.innerHTML = parts.body;
+  var index = parts.nextIndex;
+  oracleEl.innerHTML = parts.close;
+  oracleEl.style.setProperty('--i', index++);
+  if (cta) {
+    cta.style.setProperty('--i', index++);
+    cta.hidden = false;
+  }
+  var actions = resultEl.querySelector('.tarot-action-btns');
+  if (actions) actions.style.setProperty('--i', index);
+  resultEl.classList.add('tarot-master-result');
+  resultEl.classList.remove('is-empty');
+  tarotRitualSay('세 장의 풀이가 펼쳐졌어요.');
+  if (tarotRitualReduced()) return;
+  tarotRitualLater(function() {
+    var overlay = document.getElementById('tarotModalOverlay');
+    if (!overlay) return;
+    var top = overlay.scrollTop + resultEl.getBoundingClientRect().top - overlay.getBoundingClientRect().top - 16;
+    overlay.scrollTo({ top: top, behavior: 'smooth' });
+  }, 500);
+}
+
+/* 빛 입자: 카드 주변에서 천천히 떠오르는 작은 빛. 세 장 무대와 한 장 모드가 함께 쓴다. */
+function tarotRitualMotes(el, count) {
+  if (tarotRitualReduced() || !el) return;
+  var canvas = document.getElementById('tarotRitualMotes');
+  if (!canvas || !canvas.getContext) return;
+  var box = canvas.getBoundingClientRect();
+  var rect = el.getBoundingClientRect();
+  if (!box.width || !box.height) return;
+  var dpr = Math.min(window.devicePixelRatio || 1, 2);
+  var w = Math.round(box.width * dpr);
+  var h = Math.round(box.height * dpr);
+  if (canvas.width !== w || canvas.height !== h) {
+    canvas.width = w;
+    canvas.height = h;
+  }
+  for (var i = 0; i < count; i++) {
+    tarotRitualMoteList.push({
+      x: rect.left - box.left + Math.random() * rect.width,
+      y: rect.top - box.top + rect.height * (0.3 + Math.random() * 0.8),
+      vx: (Math.random() - 0.5) * 0.25,
+      vy: -(0.2 + Math.random() * 0.6),
+      s: 0.6 + Math.random() * 1.9,
+      life: 0,
+      max: 80 + Math.random() * 110
+    });
+  }
+  if (!tarotRitualMotesRunning) {
+    tarotRitualMotesRunning = true;
+    requestAnimationFrame(tarotRitualMotesTick);
+  }
+}
+
+function tarotRitualMotesTick() {
+  var canvas = document.getElementById('tarotRitualMotes');
+  if (!canvas) {
+    tarotRitualMotesRunning = false;
+    return;
+  }
+  var g = canvas.getContext('2d');
+  var dpr = canvas.width / (canvas.getBoundingClientRect().width || 1);
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  g.clearRect(0, 0, canvas.width, canvas.height);
+  tarotRitualMoteList = tarotRitualMoteList.filter(function(m) { return m.life < m.max; });
+  tarotRitualMoteList.forEach(function(m) {
+    m.life += 1;
+    m.x += m.vx;
+    m.y += m.vy;
+    var a = Math.sin(Math.PI * m.life / m.max);
+    g.beginPath();
+    g.fillStyle = 'rgba(230,201,127,' + (a * 0.85) + ')';
+    g.arc(m.x, m.y, m.s, 0, 6.283);
+    g.fill();
+    g.beginPath();
+    g.fillStyle = 'rgba(230,201,127,' + (a * 0.14) + ')';
+    g.arc(m.x, m.y, m.s * 3.6, 0, 6.283);
+    g.fill();
+  });
+  if (tarotRitualMoteList.length) {
+    requestAnimationFrame(tarotRitualMotesTick);
+    return;
+  }
+  tarotRitualMotesRunning = false;
+  g.clearRect(0, 0, canvas.width, canvas.height);
 }
 
 /* ── 명리 타로 3장: 결제 후 자동 재개 ──────────────────────────────────────────
@@ -3175,6 +3681,7 @@ function runMyeongriTarotResume(descriptor) {
     // setTarotMode 가 tarotThreeCardState 를 비우고 curTarotCat 이 있으면 새로 뽑으므로, 씬 전환을
     // 먼저 끝낸 뒤에 카테고리와 카드를 얹는다.
     setTarotMode('three');
+    showMyeongriLegacySpreadScene();
     curTarotCat = cat;
     tarotThreeCardState = { cards: restored, revealedIndex: 2 };
     paintMyeongriTarotResumedSpread(restored);
@@ -3253,8 +3760,7 @@ function _runStartTarotReading() {
     frontEl.setAttribute('aria-label', picked.name_kr + ' (' + picked.name + ')');
     frontEl.style.transform = 'rotateY(180deg)' + (isReversed ? ' rotate(180deg)' : '');
     card.classList.add('flipped');
-    playTarotFlipSound();
-    createGoldDust(card);
+    tarotRitualMotes(card, 46);
     msgEl.innerHTML = '✦ ' + picked.name_kr + '(' + picked.name + ') — 명리 타로가 오늘의 결로 선택했습니다.';
     var direction = isReversed ? '역행(逆行)' : '순행(順行)';
     var cardNameEl = document.getElementById('tarotCardName');
@@ -3412,19 +3918,6 @@ function streamRitualHtmlTyped(htmlStr, targetId, onComplete) {
   }
 
   type();
-}
-
-function createGoldDust(element) {
-  var rect = element.getBoundingClientRect();
-  for(var i=0; i<18; i++) {
-    var dust = document.createElement('div');
-    dust.className = 'gold-dust';
-    dust.style.left = (Math.random() * rect.width) + 'px';
-    dust.style.top = (Math.random() * rect.height) + 'px';
-    dust.style.animationDelay = (Math.random() * 0.5) + 's';
-    element.appendChild(dust);
-    setTimeout(() => dust.remove(), 2400); // 청소 — dustFloat 2.4s 와 맞춤
-  }
 }
 
 // 구형 함수 대체

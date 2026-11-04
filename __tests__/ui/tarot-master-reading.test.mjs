@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import vm from 'node:vm';
 import { buildSource, BANNED_SENTENCE, OUTPUT_PATH, toHaeyo } from '../../scripts/build-tarot-master-data.mjs';
 import {
   buildMasterReading,
@@ -113,6 +114,23 @@ test('찻집 카드 주소는 정본 규칙과 같다', () => {
   }
   assert.equal(caretaroImageUrl('M18'), buildCaretaroCardImageUrl('M18'));
   assert.equal(caretaroImageUrl('X'), '');
+});
+
+test('모달의 찻집 카드 표는 정본과 일치하고 모달의 모든 카드를 덮는다', () => {
+  const source = readFileSync(new URL('../../js/saju-engine-tarot-sukuyo-quantum.js', import.meta.url), 'utf8');
+  const section = (start, end) => source.slice(source.indexOf(start), source.indexOf(end));
+  const context = {};
+  vm.runInNewContext(`${section('/* caretaro-table:start */', '/* caretaro-table:end */')}
+this.table = TAROT_CARETARO_BY_SHORT;`, context);
+  const entries = Object.values(context.table);
+  assert.deepEqual(
+    Object.fromEntries(entries.map((entry) => [entry.code, entry.basename])),
+    CARETARO_BASENAME_BY_CODE,
+  );
+  const filenames = section('var TAROT_SHORT_TO_FILENAME = {', 'function getTarotImageCandidates');
+  const shorts = [...filenames.matchAll(/(\w+):\s*'/g)].map((match) => match[1]);
+  assert.equal(shorts.length, 79);
+  assert.deepEqual(shorts.filter((short) => !context.table[short]), []);
 });
 
 test('말투 변환은 불규칙 활용을 지킨다', () => {

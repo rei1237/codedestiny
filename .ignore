@@ -208,6 +208,8 @@
 /public/js/core/snu-reading-flow.mjs
 /public/js/core/standalone-ai-locale.js
 /public/js/core/sukuyo-astronomy.js
+/public/js/core/tarot/master-reading-data.mjs
+/public/js/core/tarot/master-reading.mjs
 /public/js/core/uiBindings.js
 /public/js/core/vedic/crafted-details.mjs
 /public/js/core/yehwa-home.mjs
@@ -370,6 +372,7 @@
 /public/styles/tarot-healing-dawn.css
 /public/styles/tarot-love-mystic.css
 /public/styles/tarot-reunion-lighthouse.css
+/public/styles/tarot-ritual.css
 /public/styles/tarot-year-fortune.css
 /public/styles/theme-tokens.css
 /public/styles/trust-stories.css
