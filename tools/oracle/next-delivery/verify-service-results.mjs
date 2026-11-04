@@ -97,7 +97,9 @@ try {
         await summary.focus(); await page.keyboard.press('Enter');
         await expect(reference).toHaveAttribute('open', '');
         await expect(content).toBeVisible();
-        assert.equal(await reference.textContent(), savedText, 'Opening must preserve original');
+        // 영냥이 차트는 처음 펼칠 때 지연 로딩된다. 로딩이 끝나야 하고, 저장 원문은 그대로 남아야 한다.
+        await expect(reference).not.toContainText('기록을 불러오고 있어요', { timeout: 60000 });
+        assert.ok((await reference.textContent()).includes(savedText), 'Opening must preserve original');
         await page.keyboard.press('Enter');
         await expect(reference).not.toHaveAttribute('open', '');
       }

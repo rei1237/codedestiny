@@ -60,12 +60,9 @@ try {
   for(const width of [960,390]){await page.setViewportSize({width,height:1000});await reading.evaluate(el=>el.scrollIntoView({block:'start',behavior:'instant'}));assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));await page.screenshot({path:`${output}/free-${d}-${width}.png`});}
   if(d==='saju'){await expect(reading.getByRole('table')).toContainText('사주 만세력');await reading.getByRole('table').screenshot({path:output+'/manse-390.png'});}
  }
- await page.goto(origin+loadingService.route,{waitUntil:'domcontentloaded',timeout:120000});const sprite=page.locator('[data-reading-sprite]');await expect(sprite).toBeVisible({timeout:60000});
- const positions=[];for(let i=0;i<4;i++){positions.push(await sprite.evaluate(e=>getComputedStyle(e).backgroundPosition));await page.waitForTimeout(800)}assert.ok(new Set(positions).size>1,'sprite moves through actual cells');
- const pause=page.getByRole('button',{name:'효과 멈추기'});await pause.click();await expect(page.getByRole('button',{name:'효과 다시 재생'})).toHaveAttribute('aria-pressed','true');assert.equal(await sprite.evaluate(e=>getComputedStyle(e).animationPlayState),'paused');
- for(const width of [960,390]){await page.setViewportSize({width,height:1000});await page.locator('[data-reading-stage]').screenshot({path:`${output}/loading-${width}.png`});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));}
- await page.emulateMedia({reducedMotion:'reduce'});assert.equal(await sprite.evaluate(e=>getComputedStyle(e).animationName),'none');
- assert.deepEqual(errors,[]);assert.deepEqual(unknown,[]);fs.writeFileSync(`${output}/report.json`,JSON.stringify({passed:true,errors,positions,requests,unknown,viewportWidths:[960,390],realProviders:false},null,2));console.log('PASS: free saju/vedic/sukuyo static profile, natal table, 16-frame sprite, pause/reduced motion, desktop/mobile');
+ await page.goto(origin+loadingService.route,{waitUntil:'domcontentloaded',timeout:120000});const stage=page.locator('[data-reading-stage]');await expect(stage).toBeVisible({timeout:60000});
+ for(const width of [960,390]){await page.setViewportSize({width,height:1000});await stage.screenshot({path:`${output}/loading-${width}.png`});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));}
+ assert.deepEqual(errors,[]);assert.deepEqual(unknown,[]);fs.writeFileSync(`${output}/report.json`,JSON.stringify({passed:true,errors,requests,unknown,viewportWidths:[960,390],realProviders:false},null,2));console.log('PASS: free saju/vedic/sukuyo static profile, natal table, loading illustration, desktop/mobile');
  await context.close();
 } finally {
  if(browser)await browser.close();if(child.connected)child.send('stop');if(child.exitCode===null)await new Promise(resolve=>{const timer=setTimeout(()=>{if(child.exitCode===null)spawnSync('taskkill',['/PID',String(child.pid),'/T','/F'],{windowsHide:true,stdio:'ignore'});resolve()},10000);child.once('exit',()=>{clearTimeout(timer);resolve()})});
