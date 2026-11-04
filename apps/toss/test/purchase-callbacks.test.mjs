@@ -7,7 +7,7 @@ import path from 'node:path';
 
 const root=path.resolve(import.meta.dirname,'../../..');
 const Module=createRequire(import.meta.url)('node:module');
-const sdk=`const create=options=>{const s=globalThis.__purchaseCallbacks;if(s.throwOnCreate)throw Error('SDK unavailable');s.options=options;return ()=>{s.cleaned++}};create.isSupported=()=>true;const pending=async()=>({orders:[]});pending.isSupported=()=>true;const complete=async()=>true;complete.isSupported=()=>true;export const IAP={createOneTimePurchaseOrder:create,getPendingOrders:pending,completeProductGrant:complete};export const Environment={environment:'sandbox'};export const TossAuth={},Storage={},Share={};`;
+const sdk=`const create=options=>{const s=globalThis.__purchaseCallbacks;if(s.throwOnCreate)throw Error('SDK unavailable');s.options=options;return ()=>{s.cleaned++}};create.isSupported=()=>true;const pending=async()=>({orders:[]});pending.isSupported=()=>true;const complete=async()=>true;complete.isSupported=()=>true;export const IAP={createOneTimePurchaseOrder:create,getPendingOrders:pending,completeProductGrant:complete};export const Environment={environment:'sandbox'};export const TossAuth={login:async()=>({authorizationCode:'mock'})},Storage={setItem:async()=>{}},Share={};`;
 const bundle=await build({entryPoints:[path.join(root,'apps/toss/src/platform.ts')],bundle:true,platform:'node',format:'cjs',write:false,plugins:[{name:'mock-sdk',setup(b){
  b.onResolve({filter:/^@apps-in-toss\/web-framework$/},()=>({path:'sdk',namespace:'fixture'}));
  b.onLoad({filter:/.*/,namespace:'fixture'},()=>({contents:sdk,loader:'js'}));
@@ -17,6 +17,7 @@ let loaded;
 beforeEach(async()=>{
  loaded=new Module(path.join(root,'toss-purchase-callback-test.cjs'));
  loaded._compile(bundle.outputFiles[0].text,loaded.id);
+ const previous=globalThis.fetch;globalThis.fetch=async()=>Response.json({token:'fixture-token'});try{await loaded.exports.login();}finally{globalThis.fetch=previous;}
  await loaded.exports.restorePurchases();
 });
 const product={sku:'test-only'};

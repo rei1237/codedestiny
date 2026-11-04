@@ -166,11 +166,12 @@ function recoverySupported(){
   try{return IAP.getPendingOrders.isSupported()&&IAP.completeProductGrant.isSupported();}catch{return false;}
 }
 function requireRecoveryReady(){
+  if(!token)throw new ApiError('LOGIN_REQUIRED');
   if(paymentInFlight)throw new ApiError('PAYMENT_IN_PROGRESS');
   if(paymentUncertain)throw new ApiError('PAYMENT_STATUS_UNCERTAIN');
   if(!recoverySupported())throw new ApiError('IAP_NOT_SUPPORTED');
-  if(recoveryInFlight?.token===token)throw new ApiError('RECOVERY_IN_PROGRESS');
-  if(recoveryState?.token!==token||recoveryState.state!=='ready')throw new ApiError('RECOVERY_REQUIRED');
+  if(recoveryInFlight&&recoveryInFlight.token===token&&recoveryInFlight.epoch===sessionEpoch)throw new ApiError('RECOVERY_IN_PROGRESS');
+  if(!recoveryState||recoveryState.token!==token||recoveryState.epoch!==sessionEpoch||recoveryState.state!=='ready')throw new ApiError('RECOVERY_REQUIRED');
 }
 let paymentInFlight:symbol|null=null;
 let paymentUncertain=false;
@@ -184,7 +185,7 @@ export function purchase(product:SaleProduct,requestId:string,onDone:()=>void,on
   const attempt=paymentInFlight=Symbol('purchase');
   let resumeMedia:()=>void;
   try{resumeMedia=pausePaymentMedia();}catch(error){if(paymentInFlight===attempt)paymentInFlight=null;throw error;}
-  const blockRecovery=()=>{if(token===requestToken&&sessionEpoch===requestEpoch)recoveryState={token,state:'blocked'};};
+  const blockRecovery=()=>{if(token===requestToken&&sessionEpoch===requestEpoch)recoveryState={token,epoch:sessionEpoch,state:'blocked'};};
   const clean=()=>{if(cleaned)return;cleaned=true;if(!settled){settled=true;paymentUncertain=true;blockRecovery();}if(paymentInFlight===attempt)paymentInFlight=null;unsubscribe();resumeMedia();};
   const fail=(error:unknown)=>{if(settled)return;settled=true;const canceled=typeof error==='object'&&error&&'code' in error&&error.code==='USER_CANCELED';if(grantStarted||!canceled){paymentUncertain=true;blockRecovery();}clean();onError(grantStarted&&canceled?new ApiError('PAYMENT_STATUS_UNCERTAIN'):error);};
   try{unsubscribe=IAP.createOneTimePurchaseOrder({options:{sku:product.sku,processProductGrant:async({orderId})=>{
@@ -206,7 +207,7 @@ export function purchaseTarotLibrary(product:TarotLibraryProduct,input:unknown,o
   const attempt=paymentInFlight=Symbol('purchase');
   let resumeMedia:()=>void;
   try{resumeMedia=pausePaymentMedia();}catch(error){if(paymentInFlight===attempt)paymentInFlight=null;throw error;}
-  const blockRecovery=()=>{if(token===requestToken&&sessionEpoch===requestEpoch)recoveryState={token,state:'blocked'};};
+  const blockRecovery=()=>{if(token===requestToken&&sessionEpoch===requestEpoch)recoveryState={token,epoch:sessionEpoch,state:'blocked'};};
   const clean=()=>{if(cleaned)return;cleaned=true;if(!settled){settled=true;paymentUncertain=true;blockRecovery();}if(paymentInFlight===attempt)paymentInFlight=null;unsubscribe();resumeMedia();};
   const fail=(error:unknown)=>{if(settled)return;settled=true;const canceled=typeof error==='object'&&error&&'code' in error&&error.code==='USER_CANCELED';if(grantStarted||!canceled){paymentUncertain=true;blockRecovery();}clean();onError(grantStarted&&canceled?new ApiError('PAYMENT_STATUS_UNCERTAIN'):error);};
   try{unsubscribe=IAP.createOneTimePurchaseOrder({options:{sku:product.sku,processProductGrant:async({orderId})=>{
@@ -226,33 +227,38 @@ export function recoveryNotice(counts:RecoveryCounts):string{
 export async function recoverAfterAuthentication(authenticated:boolean):Promise<string>{
   return authenticated?recoveryNotice(await restorePurchases()):'';
 }
-let recoveryInFlight:{token:string|null;promise:Promise<RecoveryCounts>}|null=null;
-let recoveryState:{token:string|null;state:'checking'|'ready'|'blocked'}|null=null;
+let recoveryInFlight:{token:string|null;epoch:number;promise:Promise<RecoveryCounts>}|null=null;
+let recoveryState:{token:string|null;epoch:number;state:'checking'|'ready'|'blocked'}|null=null;
 export function restorePurchases():Promise<RecoveryCounts>{
+  if(!isToss())return Promise.reject(new ApiError('TOSS_APP_REQUIRED'));
+  if(!token)return Promise.reject(new ApiError('LOGIN_REQUIRED'));
   if(paymentInFlight)return Promise.reject(new ApiError('PAYMENT_IN_PROGRESS'));
-  if(recoveryInFlight?.token===token)return recoveryInFlight.promise;
-  const sessionToken=token;
-  recoveryState={token:sessionToken,state:'checking'};
-  const promise=restorePurchasesOnce(sessionToken);
-  recoveryInFlight={token:sessionToken,promise};
-  void promise.then(counts=>{if(recoveryInFlight?.promise===promise){recoveryState={token:sessionToken,state:counts.failed||counts.denied?'blocked':'ready'};recoveryInFlight=null;}},()=>{if(recoveryInFlight?.promise===promise){recoveryState={token:sessionToken,state:'blocked'};recoveryInFlight=null;}});
+  if(recoveryInFlight&&recoveryInFlight.token===token&&recoveryInFlight.epoch===sessionEpoch)return recoveryInFlight.promise;
+  const sessionToken=token,epoch=sessionEpoch;
+  recoveryState={token:sessionToken,epoch,state:'checking'};
+  const promise=restorePurchasesOnce(sessionToken,epoch);
+  recoveryInFlight={token:sessionToken,epoch,promise};
+  void promise.then(counts=>{if(recoveryInFlight?.promise===promise){recoveryState={token:sessionToken,epoch,state:counts.failed||counts.denied?'blocked':'ready'};recoveryInFlight=null;}},()=>{if(recoveryInFlight?.promise===promise){recoveryState={token:sessionToken,epoch,state:'blocked'};recoveryInFlight=null;}});
   return promise;
 }
-async function restorePurchasesOnce(sessionToken:string|null):Promise<RecoveryCounts>{
+async function restorePurchasesOnce(sessionToken:string|null,epoch:number):Promise<RecoveryCounts>{
   if(!isToss())throw new ApiError('TOSS_APP_REQUIRED');
   if(!recoverySupported())throw new ApiError('IAP_NOT_SUPPORTED');
   const pending=await IAP.getPendingOrders();
+  if(token!==sessionToken||sessionEpoch!==epoch)throw new ApiError('SESSION_CHANGED','',409);
   if(!pending||!Array.isArray(pending.orders))throw new ApiError('RECOVERY_STATUS_UNAVAILABLE');
   let recovered=0,failed=0,denied=0;
   for(const order of pending?.orders||[]){
     try{
-      if(token!==sessionToken)throw new ApiError('SESSION_CHANGED','',409);
+      if(token!==sessionToken||sessionEpoch!==epoch)throw new ApiError('SESSION_CHANGED','',409);
       const receipt=await api<Receipt>('/orders/restore',{orderId:order.orderId,sku:order.sku});
-      if(token!==sessionToken)throw new ApiError('SESSION_CHANGED','',409);
+      if(token!==sessionToken||sessionEpoch!==epoch)throw new ApiError('SESSION_CHANGED','',409);
       if(!validReceipt(receipt,order.orderId))throw new ApiError('GRANT_NOT_DURABLE');
-      if(!await IAP.completeProductGrant({params:{orderId:order.orderId}}))throw new ApiError('GRANT_ACK_PENDING');
+      const acknowledged=await IAP.completeProductGrant({params:{orderId:order.orderId}});
+      if(token!==sessionToken||sessionEpoch!==epoch)throw new ApiError('SESSION_CHANGED','',409);
+      if(!acknowledged)throw new ApiError('GRANT_ACK_PENDING');
       recovered++;
-    }catch(error){if(token!==sessionToken)throw new ApiError('SESSION_CHANGED','',409);if(error instanceof ApiError&&error.status===401)throw error;if(typeof error==='object'&&error&&'code' in error&&error.code==='UNSUPPORTED_APP_VERSION')throw error;if(error instanceof ApiError&&error.status===403)denied++;else failed++;}
+    }catch(error){if(error instanceof ApiError&&error.status===401)throw error;if(token!==sessionToken||sessionEpoch!==epoch)throw new ApiError('SESSION_CHANGED','',409);if(typeof error==='object'&&error&&'code' in error&&error.code==='UNSUPPORTED_APP_VERSION')throw error;if(error instanceof ApiError&&error.status===403)denied++;else failed++;}
   }
   return {recovered,failed,denied};
 }

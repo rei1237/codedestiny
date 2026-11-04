@@ -62,3 +62,9 @@ test('direct result can be read again after session expiry and login',async()=>{
  try{await React.act(async()=>view.state.invalidate());const resume=[...document.querySelectorAll('button')].find(button=>button.textContent.includes('로그인하고 결과 보기'));assert.ok(resume);await React.act(async()=>resume.click());const login=[...document.querySelectorAll('button')].find(button=>button.textContent.includes('토스로 로그인하기'));assert.ok(login);await React.act(async()=>login.click());assert.match(document.body.textContent,/다시 확인한 결과/);assert.ok(reads>=2);}
  finally{await view.close();history.replaceState({},'', '/');}
 });
+
+test('an unknown 401 code still asks for login rather than showing a general error',async()=>{
+ history.replaceState({},'', '/result?id=result-1');const view=await mount(true,'',{api:async()=>({errorStatus:401})});
+ try{assert.match(document.body.textContent,/로그인 시간이 만료/);assert.doesNotMatch(document.body.textContent,/오류/);}
+ finally{await view.close();history.replaceState({},'', '/');}
+});
