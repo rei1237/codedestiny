@@ -10,7 +10,7 @@ next: "S5(신년 허브) — S4 완료(`18ca99c9c`·`7bf374a77`) 뒤 선행 조�
 
 - 사용자 요청(2026-09-23): 경쟁 서비스 비교 개선을 이어받아 UI/UX·결제 속도·서버 최적화·SEO·GEO까지 끝까지 가는 계획.
 - 판단: 병목은 전환율이 아니라 **모수**다. 순서 = ① 측정이 맞는지 ② 유입(검색·AI·소셜·공유) ③ 첫인상·결제·결과 속도 ④ 고정비. 전환 UI는 실제 결함 제거만 한다.
-- 🔴 **세션 순서의 정본은 이 문서다.** 선행 문서는 세부 기록으로 둔다: [conversion-sharing-20260922.md](conversion-sharing-20260922.md) · [google-seo-rebuild-20260921.md](google-seo-rebuild-20260921.md) · [business-refactor.md](business-refactor.md) · [service-reform-20260920.md](service-reform-20260920.md) · `docs/conversion-sharing-plan-20260922.md` · `docs/consultation-sharing-coverage-20260923.md`.
+- 🔴 **세션 순서의 정본은 이 문서다.** 선행 문서는 세부 기록으로 둔다: [conversion-sharing-20260922.md](conversion-sharing-20260922.md) · google-seo-rebuild-20260921.md (삭제됨, git 이력 참조) · [business-refactor.md](business-refactor.md) · service-reform-20260920.md (삭제됨, git 이력 참조) · `docs/conversion-sharing-plan-20260922.md` · `docs/consultation-sharing-coverage-20260923.md`.
 
 ## 지금 상태
 

@@ -4,7 +4,7 @@
 
 ---
 
-너는 Code Destiny의 시니어 모바일 UX 디자이너이자 프론트엔드 개발자다. `D:\Development\code-destiny`에서 `docs/handoff/2026-10-05-records-consultations-yehwa-ui.md`를 먼저 읽고 실제 구현과 검증까지 완료하라.
+너는 Code Destiny의 시니어 모바일 UX 디자이너이자 프론트엔드 개발자다. `D:\Development\code-destiny`에서 `docs/handoff/2026-10-05-records-consultations-yehwa-ui.md` (삭제됨, git 이력 참조)를 먼저 읽고 실제 구현과 검증까지 완료하라.
 
 기록 통합 기능은 main 커밋 `d0953b251b202fbe441e68d8c3638e451c9750ea`에 구현됐고 CI가 통과했다. 나는 스테이징 반영을 확인했지만 현재 UI가 마음에 들지 않는다. 이번 작업은 **달빛 예화(月花) 스타일의 기록 보관함·상담 허브 개편과 각 서비스 고유의 저장 결과 읽기 경험 개선**이다. 분석·디자인 제안·정적 목업으로 끝내지 마라. 백엔드 통합을 처음부터 다시 만들지 마라.
 

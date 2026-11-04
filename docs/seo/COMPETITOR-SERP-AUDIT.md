@@ -1,6 +1,6 @@
 # 경쟁사 SERP 감사 & 검색의도 키워드 확장
 
-작성 2026-09-18. 원 요청 22개 항목(`docs/handoff/2026-09-17-seo-p1-followup.md`)
+작성 2026-09-18. 원 요청 22개 항목(`docs/handoff/2026-09-17-seo-p1-followup.md` (삭제됨, git 이력 참조))
 중 P7로 착수. 대상: code-destiny.com(사주·타로·자미두수·서양점성술·숙요점·
 베다점).
 
