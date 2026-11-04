@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {LIBRARY_PAGE_SIZE,libraryFilter,libraryPage} from '../../../worker/toss/library.js';
+import {TossError} from '../../../worker/toss/policy.js';
 const date=new Date('2026-10-08T00:00:00.000Z');
 const row=index=>({_id:`01900000-1111-7111-8111-${String(index).padStart(12,'0')}`,identityId:'owner',environment:'DEFAULT',productId:'saju_mackerel',serviceId:'yeongnyangi',requestId:'saved',status:'PURCHASED',grantedAt:date});
 const saved={productId:'saju_mackerel',state:'COMPLETED',chapters:[{}],snapshot:{manifest:[{}]}};
@@ -20,6 +21,15 @@ test('read failure keeps paid row and cannot appear as a new unassigned consulta
  const page=await libraryPage([row(1)],async()=>{throw new Error('private database details');});
  assert.equal(page.purchases[0].state,'READ_FAILED');assert.equal(page.purchases[0].requestId,'saved');
  assert.ok(!JSON.stringify(page).includes('private database'));
+});
+test('authorization errors remain distinct for consultation, tarot and native records',async()=>{
+ const denied=async()=>{throw new TossError('ACCESS_DENIED',403);};
+ const expired=async()=>{throw new TossError('SESSION_EXPIRED',401);};
+ for(const errorReader of [denied,expired]){
+  await assert.rejects(libraryPage([row(1)],errorReader),error=>error.status===401||error.status===403);
+  await assert.rejects(libraryPage([{...row(2),tarotFlowId:'tarot-mindscan'}],async()=>null,errorReader),error=>error.status===401||error.status===403);
+  await assert.rejects(libraryPage([{...row(3),nativeService:'tea'}],async()=>null,async()=>null,errorReader),error=>error.status===401||error.status===403);
+ }
 });
 test('wrong persona evidence is hidden; refunded purchases stay refunded despite a stale complete result',async()=>{
  const mismatch=await libraryPage([row(1)],async()=>({...saved,persona:'neo'}));
