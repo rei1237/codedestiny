@@ -67,7 +67,7 @@ test('native billing retains the SDK cancellation code and gives cancellation gu
  finally{state.cancelled=false;state.paid=true;delete globalThis.location;delete globalThis.window;}
 });
 
-for(const [code,message] of [['PAYMENT_IN_PROGRESS',/결제 진행 중/],['PAYMENT_STATUS_UNCERTAIN',/다시 열고 구매 내역/],['LOGIN_REQUIRED',/토스 로그인이 필요/]])test('native billing keeps '+code+' guidance',async()=>{
+for(const [code,message] of [['PAYMENT_IN_PROGRESS',/결제 진행 중/],['PAYMENT_STATUS_UNCERTAIN',/다시 열고 구매 내역/],['LOGIN_REQUIRED',/토스 로그인이 필요/],['SESSION_CHECK_FAILED',/로그인 상태를 확인하지 못했어요/],['SESSION_CHANGED',/로그인 상태가 바뀌었어요/]])test('native billing keeps '+code+' guidance',async()=>{
  globalThis.location={search:''};globalThis.window={addEventListener:()=>{},removeEventListener:()=>{}};state.unavailable=false;state.paid=false;state.paymentError=code;
  try{const result=await loaded.exports.runBillingCoinGate({featureKey:'life-book-ai-consultation',requestId:'original-life-request',resume:{args:{payload:JSON.stringify({birthDate:'1990-01-01'})}}});assert.equal(result.error.code,code);assert.match(result.error.message,message);}
  finally{state.paymentError=null;state.paid=true;delete globalThis.location;delete globalThis.window;}
