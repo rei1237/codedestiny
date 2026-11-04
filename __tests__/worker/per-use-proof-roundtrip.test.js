@@ -104,6 +104,9 @@ beforeAll(async () => {
       User: { findById: () => ({ select: () => ({ lean: async () => userDoc }) }) },
       // monthly-credit-store.js 가 모듈 최상단에서 읽는다(lot CAS 는 주입으로 대체하지만 import 는 산다).
       RECENT_CONSUME_REQUEST_ID_CAP: 50,
+      // payments/passes.js 가 이용권 사용 이력 조회에 쓴다. 이 테스트 경로에서는 호출되지 않는다.
+      CONTENT_ENTITLEMENT_STATUSES: { ACTIVE: "ACTIVE" },
+      ContentEntitlement: {},
     })),
   ]);
 

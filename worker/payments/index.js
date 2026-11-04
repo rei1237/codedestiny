@@ -91,6 +91,7 @@ import {
   presentPassSubscription,
   recordPassUsageEvidence,
   resolvePassPlan,
+  findPassUseSinceOrder,
   revokePassGrantForOrder,
 } from "./passes.js";
 import { computePassExpiry, evaluatePassTierTransition, isPassPolicyConflict } from "../lib/profile-limits.js";
@@ -231,16 +232,23 @@ async function applyNonPaidPgEventState(db, { eventType, orderId }) {
     // 이용권은 ContentEntitlement 가 아니라 User.profileSubscription 이라 회수 경로가 따로 있다 —
     // 없으면 환불된 이용권이 만료일까지 활성으로 남는다(2026-09-03 발견). 이 주문이 최신 활성 주문이
     // 아니면(lastPassOrderId 불일치) 손대지 않고 아래 검토 마커로 사람이 본다.
-    const revoked = String(order.paymentType || "") === "membership_pass"
+    const isPassOrder = String(order.paymentType || "") === "membership_pass";
+    const revoked = isPassOrder
       ? await revokePassGrantForOrder(db, {
         userId: order.userId,
         orderId,
         durationMonths: Number(order?.metadata?.durationMonths || 1),
       })
       : await revokeEntitlementForOrder(db, { orderId });
-    await recordPgCancellationMarkers(db, { orderId, partial: false, reviewRequired: !revoked });
+    // 돈은 이미 돌아갔으니 회수는 그대로 하되, 쓴 이용권이면 사람이 정산을 확인하게 표시한다.
+    // 조회 실패도 쓴 것으로 본다. 틀려도 검토 한 건이 늘 뿐이다.
+    const passUse = isPassOrder
+      ? await findPassUseSinceOrder(db, { userId: order.userId, paidAt: order.paidAt || order.createdAt }).catch(() => null)
+      : undefined;
+    const reviewRequired = !revoked || (isPassOrder && (!passUse || passUse.hasUse));
+    await recordPgCancellationMarkers(db, { orderId, partial: false, reviewRequired });
     invalidateBalanceSnapshot(order?.userId);
-    return { event: "cancelled", refunded, revoked, reviewRequired: !revoked };
+    return { event: "cancelled", refunded, revoked, reviewRequired, ...(isPassOrder ? { passUse } : {}) };
   }
   return { ignored: true, status };
 }

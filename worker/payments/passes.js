@@ -18,7 +18,7 @@
 import { assertPaypalOrderMatches } from './paypal.js';
 import { PREVIOUS_PASS_POLICY_VERSION, previousPassPlan, CURRENT_PASS_POLICY_VERSION, V4_PASS_POLICY_VERSION, v4PassPlan, PRIOR_PASS_POLICY_VERSION, LEGACY_PASS_POLICY_VERSION, currentPassPlan, priorPassPlan, passPolicyVersion } from "../../lib/payment/pass-policy.js";
 import { assertPassSaleAllowed } from "../lib/pass-sale-policy.js";
-import { Payment, PointHistory, User } from "../lib/models.js";
+import { CONTENT_ENTITLEMENT_STATUSES, ContentEntitlement, Payment, PointHistory, User } from "../lib/models.js";
 import { createHash } from "node:crypto";
 import {
   FAMILY_PASS_MAX_COVERED_COIN,
@@ -670,6 +670,31 @@ export async function findPassUsageEvidence(db, userId, featureKey, requestId) {
     _id: passUsageEvidenceId(userId, featureKey, requestId), userId: toObjectId(userId), featureKey,
     "metadata.refundedForServiceExecution": { $ne: true },
   });
+}
+
+/* 라이트 운세는 한도를 차감하지 않아 한도 사용액으로는 "미사용"처럼 보인다. 환불 판단은 증빙을 센다.
+   billing.js 의 일부 기록은 소문자 표기를 쓰므로 두 표기를 모두 본다. */
+const PASS_USE_ACCESS_METHODS = ["PASS", "FAMILY", "pass", "family"];
+
+export async function findPassUseSinceOrder(db, { userId, paidAt }) {
+  const uid = toObjectId(userId);
+  const since = paidAt instanceof Date ? paidAt : new Date(paidAt || NaN);
+  if (!uid || !Number.isFinite(since.getTime())) throw new Error("PASS_USE_LOOKUP_INVALID_INPUT");
+  const evidenceFilter = {
+    userId: uid,
+    createdAt: { $gt: since },
+    "metadata.accessMethod": { $in: PASS_USE_ACCESS_METHODS },
+    "metadata.refundedForServiceExecution": { $ne: true },
+  };
+  const useCount = await db.countDocuments(PointHistory, evidenceFilter);
+  const lightUseCount = await db.countDocuments(PointHistory, { ...evidenceFilter, "metadata.passBudgetExempt": true });
+  const ownedUnlockCount = await db.countDocuments(ContentEntitlement, {
+    userId: String(userId),
+    source: "PASS",
+    status: CONTENT_ENTITLEMENT_STATUSES.ACTIVE,
+    unlockedAt: { $gt: since },
+  });
+  return { useCount, lightUseCount, ownedUnlockCount, hasUse: useCount > 0 || ownedUnlockCount > 0 };
 }
 
 function mergeUpdate(base, extra) {

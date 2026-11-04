@@ -41,6 +41,8 @@ type ListResponse = {
   pagination: { page: number; pageSize: number; total: number; totalPages: number };
 };
 
+type PassUse = { useCount: number; lightUseCount: number; ownedUnlockCount: number; hasUse: boolean };
+
 type DetailResponse = {
   order: AdminOrder;
   portOne: { status: string; amount: number; currency: string; paidAt: string | null; payMethod: string; receiptUrl: string } | null;
@@ -48,6 +50,7 @@ type DetailResponse = {
   buyer: { id: string; email: string; name: string; points: number; passTier: string; passExpiresAt: string | null } | null;
   webhookEvents: { eventId: string; eventType: string; status: string; attempts: number; receivedAt?: string; lastError?: string }[];
   failureLogs: { source: string; stage: string; code: string; message: string; status: number; createdAt?: string }[];
+  passUse: PassUse | null;
   entitlements: { serviceKey: string; contentKey: string; status: string; source: string; createdAt?: string }[];
 };
 
@@ -56,6 +59,7 @@ type RefundResponse = {
   unlockRevoked: boolean;
   adminReviewRequired: boolean;
   revocation: Record<string, unknown> | null;
+  passUse: PassUse | null;
 };
 
 const STATUS_TONE: Record<string, string> = {
@@ -231,6 +235,7 @@ export default function AdminOrdersPage() {
       const data = await adminFetch<RefundResponse>(`/api/admin/orders/${order.id}/refund`, { method: "POST", body });
       setNotice(
         `환불 완료 — 상태 ${data.orderState} / 권한회수 ${data.unlockRevoked ? "됨" : "안 됨"}`
+        + (data.passUse ? ` · 라이트 운세 사용 ${data.passUse.lightUseCount}건 · 이용권 해금 보유 ${data.passUse.ownedUnlockCount}건` : "")
         + (data.adminReviewRequired ? " · ⚠️ 관리자 검토 필요(자동 회수가 완전하지 않음)" : ""),
       );
       await loadDetail(order.id);
@@ -349,6 +354,8 @@ export default function AdminOrdersPage() {
                   <Row label="최근변경" value={formatDate(order.updatedAt)} />
                   <Row label="confirm 시도" value={String(order.confirmAttempts ?? 0)} />
                   {order.failureCode ? <Row label="실패코드" value={`${order.failureCode} @ ${order.failureStage || "-"}`} /> : null}
+                  {detail?.passUse ? <Row label="라이트 운세 사용" value={`${detail.passUse.lightUseCount}건 (이용권 사용 전체 ${detail.passUse.useCount}건)`} /> : null}
+                  {detail?.passUse ? <Row label="이용권 해금 보유" value={`${detail.passUse.ownedUnlockCount}건`} /> : null}
                   {detail?.buyer ? <Row label="구매자" value={`${detail.buyer.email || detail.buyer.name || detail.buyer.id}`} /> : null}
                   {detail?.buyer ? <Row label="이용권" value={`${detail.buyer.passTier || "free"} (${formatDate(detail.buyer.passExpiresAt)})`} /> : null}
                 </div>
