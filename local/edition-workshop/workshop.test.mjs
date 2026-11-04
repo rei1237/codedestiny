@@ -1,0 +1,53 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {mkdtemp,rm,mkdir} from 'node:fs/promises';
+import {fileURLToPath} from 'node:url';
+import path from 'node:path';
+import jsQR from 'jsqr';
+import { PNG } from 'pngjs';
+import {id as hash} from 'ethers';
+import {openWorkshop} from './workshop.mjs';
+
+test('local EVM: cap, issuance recovery, independent proof, printed QR and restart',async t=>{
+  const root=fileURLToPath(new URL('.state/',import.meta.url)); await mkdir(root,{recursive:true});
+  const dir=await mkdtemp(path.join(root,'test-'));
+  let w=await openWorkshop(dir);
+  t.after(async()=>{await w.close();await rm(dir,{recursive:true,force:true});});
+  const draft=(await w.mutate({action:'draft',title:'연이의 달빛 카드',character:'yeoni',cap:3},'test')).editions[0];
+  const {id}=draft, key=hash(id);
+  const op=(action,extra={},hook)=>w.mutate({id,action,...extra},'test',hook);
+  await op('seal');
+  const c=w.chain.contract;
+  const other=await w.chain.provider.getSigner(1);
+  await assert.rejects(c.connect(other).mint(key,1,hash('extra')));
+  await assert.rejects(c.seal(key,5,hash('replacement')));
+  await assert.rejects(op('mint',{serial:1},()=>{throw Error('simulated timeout');}),/timeout/);
+  assert.equal(w.list().editions[0].issues[0].state,'pending');
+  await Promise.all([op('mint',{serial:1}),op('mint',{serial:1})]);
+  await op('mint',{serial:2}); await op('mint',{serial:3});
+  await assert.rejects(c.mint(key,4,hash('extra'))); await assert.rejects(c.mint(key,1,hash('extra')));
+  await assert.rejects(op('mint',{serial:4})); assert.equal((await c.series(key)).issued,3n);
+  const rows=w.list().editions[0].issues;const code=rows[0].code;
+  const proof=await w.verify(code); assert.equal(proof.status,'verified'); assert.equal(proof.serial,1);
+  for(const method of ['approve','transferFrom','safeTransferFrom(address,address,uint256)']){
+    const args=method==='approve'?[other.address,proof.token]:[await c.issuer(),other.address,proof.token];
+    await assert.rejects(c[method](...args));
+  }
+  await assert.rejects(c.setApprovalForAll(other.address,true));
+  const qr=await w.qr(code,'http://127.0.0.1:3000');
+  const png=PNG.sync.read(Buffer.from(qr.png.split(',')[1],'base64'));
+  const decoded=jsQR(new Uint8ClampedArray(png.data),png.width,png.height);
+  assert.equal(decoded.data,qr.url);
+  await assert.rejects(w.verify('unknown'),/찾을/);
+  w.db.prepare('update issues set code=? where id=? and serial=1').run('replaced',id);
+  await assert.rejects(w.verify('replaced'),/일치하지/);
+  w.db.prepare('update issues set code=? where id=? and serial=1').run(code,id);
+  w.db.prepare('update editions set title=? where id=?').run('바뀐 제목',id);
+  await assert.rejects(w.verify(code),/일치하지/);
+  w.db.prepare('update editions set title=? where id=?').run(draft.title,id);
+  await op('void',{serial:2,reason:'실물 파손'});assert.equal((await w.verify(rows[1].code)).status,'void');
+  await assert.rejects(w.qr(rows[1].code,'http://localhost:3000'),/무효/);
+  await w.close();w=await openWorkshop(dir);
+  assert.equal((await w.verify(code)).tx,proof.tx);
+  assert.equal((await w.chain.contract.series(key)).issued,3n);
+});
