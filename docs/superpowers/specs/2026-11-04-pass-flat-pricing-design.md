@@ -21,7 +21,7 @@
 
 - LLM 한도, 건당 상한, 프로필 수 변경
 - 라이트 운세 이용 기간 도입 (기간 없이 유지)
-- 찻집(5천~1만5천 원), 3만 원 이상 상담, 영냥이 가격 변경
+- 찻집(5천~1만5천 원), 3만 원 이상 상담 가격 변경
 - 이미 결제한 주문의 차액 환불
 - 소진으로 이미 종료된 이용권 복구
 - 월정석 최소 금액(10,000원) 변경, 음악 트랙 정책 변경
@@ -83,7 +83,7 @@
 | LLM | `tarot-celestial-harmony`, `palm-reading-general`, `relationship-boundary-test`, `compat-saju-compatibility`, `saju_ai_question_prompt`, `tarot-prompt-maker-deep`, `tarot-prompt-maker-master`, `ziwei_ai_prompt_generator`, `astrology_ai_prompt_generator`, `vedic_ai_prompt_generator`, `sukuyo_ai_prompt_generator` | 10,000 | **5,000** |
 | LLM | `human-design-report`, `destiny-compass-deep-report` | 7,000 | **5,000** |
 | LLM | 기존 5,000원 상품 | 5,000 | 유지 |
-| 유지 | 찻집, 3만 원 이상 상담, `ziwei-deep-pdf`, `fusion-fortune-consultation`, `master-love-codex*`, `heukwol-warning-consultation`, `neo-email-consultation`, `premium-naming-prompt`, 영냥이 전 상품 | 현행 | 유지 |
+| 유지 | 찻집, 3만 원 이상 상담, `ziwei-deep-pdf`, `fusion-fortune-consultation`, `master-love-codex*`, `heukwol-warning-consultation`, `neo-email-consultation`, `premium-naming-prompt` | 현행 | 유지 |
 | 유지 | 판매 종료(`historical`)와 미사용(`registry-only`) 키, `profile-card-manage`, 음악 트랙 | 현행 | 유지 |
 
 `premium_divination_pack`(30,000)은 판매 진입로가 없으면 그대로 두고, 있으면 5,000원으로 내린다.
@@ -292,3 +292,7 @@
 ## 2026-11-04 변경: 사주 항목은 묶음 전용
 
 사용자 결정으로 `section_daewun`, `section_summary`, `section_compat`, `rpt_quantumCard`, `rpt_specialCharmCard`, `rpt_skillTreeCard`, `rpt_healthReportCard`, `rpt_energyCoordCard`, `rpt_villainCard`, `rpt_secretHouseEntryCard`, `animal-destiny-unlock`, `saju-career-style`, `tetogen_deep_report`, `fun.quantumLotto.ritualReport`와 옛 별칭 `travelDestiny`, `healthReport`, `rpgCharacter`, `secretHouseEpisodes`는 라이트 운세가 아니다. 가격은 바꾸지 않으며 판매 표면은 묶음 작업이 정리한다. 이미 산 권리는 그대로다. 이 문서의 표와 332,000원·74종은 이 변경 전 값이며, 표시 금액은 빌드 때 계산한다. 이용권 가격 A안은 유지한다.
+
+## 2026-11-04 변경: 영냥이 인상
+
+사용자가 작업 도중 영냥이 가격과 전용 이용권 가격을 올리도록 지시했다. 고등어 10,000 / 연어 15,000 / 광어 20,000 / 참치 30,000 / 모둠 50,000 / 오마카세 70,000원이다. 전용 이용권은 `-small-v7`(정책 `yeongnyangi-pack-20261104-repricing`) 40,000 / 60,000 / 80,000 / 120,000원, 8회·90일이다. 채팅 질문 상담은 같은 가격을 따르고 `fortune-chat-consultation`은 5,000원을 유지한다. v3~v5는 무기한, v6은 90일을 유지하며 이미 산 이용권은 인상 뒤에도 같은 생선 상담을 차감한다. 분량과 챕터는 바꾸지 않는다.

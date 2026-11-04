@@ -198,19 +198,19 @@ export const FEATURE_KEY_REASON_COSTS = Object.freeze(
 
 // 영냥이 책 상품은 Family 이용권 권리를 유지하고 월정석을 제휴 가치로 받는다.
 // 일반 이용권은 제외하며 월정석은 1개당 10원으로 복원한다(2026-10-03 승인, 10-05 가격 전환).
-// 2026-10-11 프리미엄 개편: 고등어 5,000원, 생선 비율 1:2:3:6.
+// 2026-11-04 인상: 고등어 10,000원, 연어 15,000원, 광어 20,000원, 참치 30,000원, 모둠 50,000원, 오마카세 70,000원.
 // Code Destiny 가격 정본. worker/yeongnyangi/payments/catalog.ts가 이 값을 읽는다.
 const YEONGNYANGI_SYSTEMS = Object.freeze({
   saju: "사주", ziwei: "자미두수", sukuyo: "숙요", vedic: "베다점", astrology: "서양 점성술", tarot: "타로",
 });
 const YEONGNYANGI_FISH = Object.freeze({
-  mackerel: ["고등어", 5000], salmon: ["연어", 10000], flounder: ["광어", 15000], tuna: ["참치", 30000],
+  mackerel: ["고등어", 10000], salmon: ["연어", 15000], flounder: ["광어", 20000], tuna: ["참치", 30000],
 });
 const YEONGNYANGI_FUSIONS = Object.freeze([
-  ["fusion-saju-ziwei", "사주 + 자미두수", "생선 모둠 세트", 40000],
-  ["fusion-sukuyo-vedic", "숙요 + 베다점", "생선 모둠 세트", 40000],
-  ["fusion-astrology-tarot", "서양 점성술 + 타로", "생선 모둠 세트", 40000],
-  ["fusion-all", "사주 + 자미두수 + 숙요 + 베다점 + 서양 점성술 + 타로", "생선 오마카세", 60000],
+  ["fusion-saju-ziwei", "사주 + 자미두수", "생선 모둠 세트", 50000],
+  ["fusion-sukuyo-vedic", "숙요 + 베다점", "생선 모둠 세트", 50000],
+  ["fusion-astrology-tarot", "서양 점성술 + 타로", "생선 모둠 세트", 50000],
+  ["fusion-all", "사주 + 자미두수 + 숙요 + 베다점 + 서양 점성술 + 타로", "생선 오마카세", 70000],
 ]);
 function buildYeongnyangiEntry(name, fishName, amountKRW) {
   return { cost: amountKRW / 100, amountKRW, reason: `영냥이 ${name} ${fishName}`, paymentScope: "direct_or_family", membershipCreditAllowed: true, membershipCreditMultiplier: 1 };

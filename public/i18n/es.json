@@ -1358,7 +1358,8 @@
         "w1000": "₩1,000",
         "from5000": "Desde ₩5,000",
         "w7000": "₩7,000",
-        "from30000": "Desde ₩30,000"
+        "from30000": "Desde ₩30,000",
+        "from15000": "Desde ₩15,000"
       },
       "chip": {
         "love": "Sus sentimientos · Mi próxima relación",
@@ -1631,7 +1632,7 @@
       "reviewsPosted": "publicado en el blog",
       "reviewsFine": "Las opiniones reflejan experiencias personales y no garantizan resultados. La lectura Saju es solo orientativa.",
       "offerNote": "Las consultas 1:1 las hacía Neo en persona; la lectura de ₩5.000 se ofrece con un motor de cálculo y comentarios de IA.",
-      "offerCta": "Ver la lectura Saju de ₩5.000 →",
+      "offerCta": "Ver la lectura Saju de ₩10.000 →",
       "expertiseTitle": "Cálculo con reglas fijas, comentario con IA",
       "expertise": {
         "engine": "La carta natal se construye con reglas de cálculo fijas y la IA redacta el comentario a partir de ese resultado. Si el comentario cita un pilar del día o de la hora distinto del calculado, el servidor lo descarta.",

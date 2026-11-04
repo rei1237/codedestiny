@@ -17,7 +17,7 @@
 - 가격 인상 전 금액을 취소선이나 "인상 전 마지막 기회" 문구로 쓰지 않는다. 취소선은 단건 합계 비교에만 쓴다.
 - 이용권 가격: 작은 14,900 / 중간 34,900 / 큰 64,900 / 패밀리 154,000원. 한도·건당 상한·프로필 수는 v4와 같다.
 - 새 정책 버전은 `flower-20261104`, planId는 `{tier}_1m_v5`, 앱 SKU는 `cd_pass_{tier}_30d_v5`다. 패밀리는 웹 전용이다.
-- 변경 금지: `LEGACY_UNLOCK_PRODUCTS_65DE451`, `PASS_MONTHLY_WON`, `PAID_REPORT_MIN_BODY_CHARS`(20,000), `marketing/campaigns/`, 찻집·3만 원 이상 상담·영냥이 가격, 월정석 최소 금액, 음악 트랙.
+- 변경 금지: `LEGACY_UNLOCK_PRODUCTS_65DE451`, `PASS_MONTHLY_WON`, `PAID_REPORT_MIN_BODY_CHARS`(20,000), `marketing/campaigns/`, 찻집·3만 원 이상 상담 가격(영냥이는 Task 2A에서 사용자 지시로 인상), 월정석 최소 금액, 음악 트랙.
 - 라이트 표시가 없는 상품은 LLM으로 보고 차감한다. 확인되지 않으면 항상 차감 쪽이다.
 - 유료 LLM 분량은 목표다. 결제 뒤 전달 성공이 우선이므로 분량을 낮출 때 전달 하한도 함께 낮춘다.
 - 이미 `expiresAt`이 지난 이용권은 되살리지 않는다.

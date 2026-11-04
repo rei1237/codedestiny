@@ -49,7 +49,7 @@ const LOWERED_LLM_KEYS = [
   'human-design-report',
   'destiny-compass-deep-report',
 ];
-// 변경 전 레지스트리에서 복사한 값. 찻집·3만 원 이상 상담·영냥이는 가격을 바꾸지 않는다.
+// 변경 전 레지스트리에서 복사한 값. 찻집·3만 원 이상 상담은 가격을 바꾸지 않는다.
 const KEPT_PRICES = {
   'fortune-tea-house-tarot-five-consultation': 7000,
   'fortune-tea-house-saju-consultation': 10000,
@@ -66,11 +66,6 @@ const KEPT_PRICES = {
   'life-book-ai-consultation': 30000,
   'love-secret-ai-consultation': 30000,
   'new-year-ai-consultation': 30000,
-  'yeongnyangi-saju-salmon': 10000,
-  'yeongnyangi-saju-flounder': 15000,
-  'yeongnyangi-saju-tuna': 30000,
-  'yeongnyangi-fusion-saju-ziwei': 40000,
-  'yeongnyangi-fusion-all': 60000,
   'premium-sibyl-dominator': 20000,
   premiumDivinationPack: 30000,
 };
@@ -99,6 +94,26 @@ describe('균일가', () => {
     for (const [featureKey, price] of Object.entries(KEPT_PRICES)) {
       expect([featureKey, resolveProduct({ featureKey }).priceKRW]).toEqual([featureKey, price]);
     }
+  });
+});
+
+describe('영냥이 2026-11-04 인상', () => {
+  const FISH = { mackerel: 10000, salmon: 15000, flounder: 20000, tuna: 30000 };
+  const SYSTEMS = ['saju', 'ziwei', 'sukuyo', 'vedic', 'astrology', 'tarot'];
+
+  test.each(Object.entries(FISH))('%s costs %i in every system and in chat questions', (fish, price) => {
+    for (const system of SYSTEMS) {
+      expect(resolveProduct({ featureKey: `yeongnyangi-${system}-${fish}` }).priceKRW).toBe(price);
+    }
+    expect(resolveProduct({ featureKey: `fortune-chat-question-${fish}` }).priceKRW).toBe(price);
+  });
+
+  test('fusion prices rise and the base chat consultation stays', () => {
+    for (const slug of ['saju-ziwei', 'sukuyo-vedic', 'astrology-tarot']) {
+      expect(resolveProduct({ featureKey: `yeongnyangi-fusion-${slug}` }).priceKRW).toBe(50000);
+    }
+    expect(resolveProduct({ featureKey: 'yeongnyangi-fusion-all' }).priceKRW).toBe(70000);
+    expect(resolveProduct({ featureKey: 'fortune-chat-consultation' }).priceKRW).toBe(5000);
   });
 });
 
