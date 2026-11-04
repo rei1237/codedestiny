@@ -5282,6 +5282,8 @@ async function calculate(run){
       + timeCorrectionStr;
 
     try { renderManse(p); } catch(e) { console.error('Manse 에러:', e); }
+    // 무료 한 줄 성향. 권한 조회와 무관하게 원국 바로 아래에 동기로 그린다(js/core/saju/natal-one-liner.generated.js).
+    try { _cdRenderNatalOneLiner(p); } catch(e) { console.error('NatalOneLiner 에러:', e); }
     try { render24Terms(pillarDateCtx || primaryDateCtx || window.G_KASI_CONTEXT, p); } catch(e) { console.error('Terms24 에러:', e); }
     try { renderIlju(p); } catch(e) { console.error('Ilju 에러:', e); }
     try { renderTenshin(p); } catch(e) { console.error('Tenshin 에러:', e); }
@@ -5313,6 +5315,10 @@ async function calculate(run){
     window.dispatchEvent(new CustomEvent('cd:saju-summary-ready',{detail:{p:p,johu:johu,natal:natal}}));
     // 원국 해석(일주·십성·조후·억부·절기)은 사주 영구 묶음 해금 계정에게만 서버가 준다. 위 render* 가 깔아 둔 안내 칸을 채운다.
     try { if (_cdSajuGateUnlocked(_CD_NATAL_BUNDLE_KEY) && window.CdSajuSectionClient) window.CdSajuSectionClient.loadNatalReading({force:true}); } catch(e) { console.error('NatalReading 에러:', e); }
+    // 묶음 안내 카드와 묶음 전용 렌더러. 묶음이 닫혀 있으면 안내만 깔고 아무 카드도 만들지 않는다(해제되면 같은 함수가 다시 그린다).
+    window.__cdLastBundleArgs={p:p,natal:natal,bazi:bazi,johu:johu};
+    _cdBundleSurfaceRenderKey='';
+    try { _cdRenderBundleSurfaces(); } catch(e) { console.error('BundleSurfaces 에러:', e); }
     // 에너지 원정 리포트 본문은 서버(/api/saju/section, rpt_energyCoordCard)가 해금을 확인한 뒤 카드를 열 때 배달한다.
     // 여기서는 무료 스텁만 깐다(js/saju-engine-tarot-sukuyo-quantum.js renderEnergyCoordStub).
     try {
@@ -5329,13 +5335,7 @@ async function calculate(run){
         maxAttempts: 24
       });
     } catch(e) { console.error('HealthReport 에러:', e); }
-    try {
-      if (!invokeOptionalGlobalRenderer('renderTTest', [p, natal, johu, G_POWER])) {
-        runDeferredSajuTasks([function(){ try { invokeOptionalGlobalRenderer('renderTTest', [p, natal, johu, G_POWER]); } catch(_){ } }]);
-      }
-    } catch(e) { console.error('TTest 에러:', e, e.stack); }
     runDeferredSajuTasks([
-      function() { try { invokeOptionalGlobalRenderer('renderLottoNumbers', [natal, bazi]); } catch(e) { console.error('LottoNumbers 에러:', e); } },
       function() { try { renderSukuyo(p, natal, bazi, typeof lunarDateObj !== 'undefined' ? lunarDateObj : null); } catch(e) { console.error('Sukuyo 에러:', e); } },
       /* 퀀텀 명리 엔진은 스텁만 먼저 깔고, 전체 판별은 카드가 열릴 때 계산한다.
          (계산량이 크고, 열기 전에는 유료 내용이 DOM·전역에 남지 않아야 한다.
@@ -5345,20 +5345,7 @@ async function calculate(run){
       function() { try { renderSajuQuestionPromptGenerator(); } catch(e) { console.error('SajuQuestionPrompt 에러:', e); } },
       function() { try { renderDaewun(bazi); } catch(e) { console.error('Daewun 에러:', e, e.stack); } },
       function() { try { renderCurrentSeasonSummary(bazi); } catch(e) { console.error('CurrentSeasonSummary 에러:', e); } },
-      function() {
-        try {
-          var _dailyMonthlyPromise = renderDailyMonthlyFortune(p);
-          if (_dailyMonthlyPromise && typeof _dailyMonthlyPromise.catch === 'function') {
-            _dailyMonthlyPromise.catch(function(e){ console.error('DailyMonthlyFortune 에러:', e, e && e.stack); });
-          }
-        } catch(e) { console.error('DailyMonthlyFortune 에러:', e, e && e.stack); }
-      },
-      function() { try { renderLetter(p); } catch(e) { console.error('Letter 에러:', e); } },
-      function() { try { renderTodayDestinyCard(p); } catch(e) { console.error('TodayDestinyCard 에러:', e); } },
-      function() { try { findSimilarCelebs(p); } catch(e) { console.error('SimilarCelebs 에러:', e); } },
       function() { try { renderVillainStub(p); } catch(e) { console.error('Villain 에러:', e); } },
-      function() { try { renderHormoneVibe(p, G_POWER); } catch(e) { console.error('HormoneVibe 에러:', e, e.stack); } },
-      function() { try { invokeOptionalGlobalRenderer('renderDopamineReport', [p, natal, G_POWER, johu]); } catch(e) { console.error('Dopamine 에러:', e); } },
       // 관계 분석은 대상자를 입력하는 전용 화면으로 연결한다. 구형 본인 명식 결과를
       // 함께 생성하면 같은 제목의 카드가 중복되고 새 입력 흐름을 건너뛴다.
       function() { try { renderReportDashboard(); } catch(e) { console.error('ReportDashboard 에러:', e); }
@@ -22049,6 +22036,61 @@ function _calculateMonthBranchBySolarTermFromParts(parts) {
     return '';
   }
 }
+
+// ── 사주 영구 묶음(saju_lifetime_bundle) 표면 ──
+// 묶음 판정의 단일 입구. 권한 조회가 실패하거나 모듈이 없으면 닫힘으로 떨어진다(원국·한 줄 성향은 영향 없음).
+function _cdSajuBundleOpen(){
+  try{ return !!(window.CdSajuBundleOffer&&window.CdSajuBundleOffer.isOpen()); }catch(_){ return false; }
+}
+// 극T 기본·테토/에겐·사주 네컷·도파민은 기존 section_summary 구매자도 계속 본다(자동 승급 없음). 묶음 해금은 section_summary 로도 펼쳐진다.
+function _cdSajuSharedTileOpen(){
+  return _cdSajuBundleOpen()||_cdSajuGateUnlocked('section_summary');
+}
+// 원국 바로 아래 한 줄 성향. 일주 키(예: 甲子)만 쓰며 서버 호출·권한 판정이 없다.
+function _cdRenderNatalOneLiner(p){
+  var host=document.getElementById('sajuNatalOneLiner');
+  if(!host||!p||!p.d)return;
+  var line=window.CdSajuNatalOneLiner?window.CdSajuNatalOneLiner.get(String(p.d.g||'')+String(p.d.j||'')):'';
+  host.textContent=line||'';
+  host.hidden=!line;
+}
+var _cdBundleSurfaceRenderKey='';
+// 묶음 안내 카드는 닫혀 있을 때만, 묶음 전용 카드는 열려 있을 때만 그린다. 해금 이벤트에서도 같은 함수가 다시 돈다.
+function _cdRenderBundleSurfaces(){
+  var args=window.__cdLastBundleArgs;
+  var offerHost=document.getElementById('sajuBundleOffer');
+  var open=_cdSajuBundleOpen();
+  if(offerHost&&window.CdSajuBundleOffer){
+    try{ if(open)window.CdSajuBundleOffer.removeInline(offerHost); else window.CdSajuBundleOffer.renderInline(offerHost); }catch(_){}
+  }
+  if(!args||!args.p)return;
+  var p=args.p,natal=args.natal,bazi=args.bazi,johu=args.johu;
+  var shared=_cdSajuSharedTileOpen();
+  var key=(open?'b':'-')+(shared?'s':'-')+'|'+String(p.d&&p.d.g)+String(p.d&&p.d.j)+'|'+String(p.y&&p.y.g)+String(p.m&&p.m.j);
+  if(key===_cdBundleSurfaceRenderKey)return;
+  var tasks=[];
+  if(_cdSajuBundleOpen()){
+    tasks.push(function(){ invokeOptionalGlobalRenderer('renderLottoNumbers',[natal,bazi]); });
+    tasks.push(function(){
+      var pr=renderDailyMonthlyFortune(p);
+      if(pr&&typeof pr.catch==='function')pr.catch(function(e){ console.error('DailyMonthlyFortune 에러:',e); });
+    });
+    tasks.push(function(){ renderLetter(p); });
+    tasks.push(function(){ renderTodayDestinyCard(p); });
+    tasks.push(function(){ findSimilarCelebs(p); });
+  }
+  if(_cdSajuSharedTileOpen()){
+    tasks.push(function(){ invokeOptionalGlobalRenderer('renderTTest',[p,natal,johu,G_POWER]); });
+    tasks.push(function(){ renderHormoneVibe(p,G_POWER); });
+    tasks.push(function(){ invokeOptionalGlobalRenderer('renderDopamineReport',[p,natal,G_POWER,johu]); });
+    tasks.push(function(){ invokeOptionalGlobalRenderer('renderSajuFourCutContent',[]); });
+  }
+  if(!tasks.length)return;
+  _cdBundleSurfaceRenderKey=key;
+  runDeferredSajuTasks(tasks.map(function(fn){ return function(){ try{ fn(); }catch(e){ console.error('[saju] bundle surface error',e); } }; }));
+}
+window.addEventListener('cd:unlocks-changed',function(){ try{ _cdRenderBundleSurfaces(); }catch(_){} });
+window.addEventListener('cd:tile-locks-updated',function(){ try{ _cdRenderBundleSurfaces(); }catch(_){} });
 
 // 🔴 사주 섹션 게이트 판정. 잠금 상태의 단일 소유자는 index.html 의 unlockedFeatureMap 이고
 // 노출 지점은 window.isTileKeyUnlocked 다(zwBasicPaidFeatureUnlocked 와 같은 계약).

@@ -12,22 +12,12 @@ export function syncSajuReadingPrices(root) {
 
   const file = join(root, 'index.html');
   let html = readFileSync(file, 'utf8');
-  for (const featureKey of ['section_daewun', 'section_summary']) {
-    const result = getBillingFeaturePricing({ featureKey });
-    if (!result.ok || !Number.isSafeInteger(result.pricing.amountKRW)) throw new Error(`Missing price: ${featureKey}`);
-    const { amountKRW, cost } = result.pricing;
-    updated = updated.replace(new RegExp(`(lockKey:'${featureKey}',\\s*coinCost:)\\d+`, 'g'), `$1${cost}`);
-    html = html.replace(new RegExp(`(<span\\b[^>]*data-saju-price-key="${featureKey}"[^>]*>)[^<]*(</span>)`, 'g'), `$1${amountKRW.toLocaleString('ko-KR')}원$2`);
-    html = html.replace(new RegExp(`<button\\b(?=[^>]*data-unlock-key="${featureKey}")[^>]*>`, 'g'), tag =>
-      tag.replace(/data-unlock-cost="\d+"/, `data-unlock-cost="${cost}"`));
-  }
-  // 꿀방울 판매가 닫혔으므로 일 스타일 라벨은 현금가만 쓴다(레지스트리 가격행 그대로).
-  const careerPricing=getBillingFeaturePricing({featureKey:'saju-career-style'});
-  if(!careerPricing.ok || !Number.isSafeInteger(careerPricing.pricing.amountKRW)) throw new Error('Missing career style price');
-  const career={cashPriceKRW:careerPricing.pricing.amountKRW};
-  const careerLabel=career.cashPriceKRW.toLocaleString('ko-KR')+'원';
-  updated=updated.replace(/(id:"career-style"[^\n]+?badge:")[^"]*(")/, '$1'+careerLabel+'$2');
-  html=html.replace(/(<span data-career-style-price>)[^<]*(<\/span>)/g, '$1'+careerLabel+'$2');
+  // 개별 판매가 끝난 사주 상품(section_summary·section_daewun·일 스타일 등)의 가격은 다시 쓰지 않는다.
+  // 화면에는 사주 묶음(saju_lifetime_bundle)만 값을 가진다 — 결제 버튼의 비용 속성을 레지스트리 가격행에 맞춘다.
+  const bundle = getBillingFeaturePricing({ featureKey: 'saju_lifetime_bundle' });
+  if (!bundle.ok || !Number.isSafeInteger(bundle.pricing.cost)) throw new Error('Missing saju_lifetime_bundle price');
+  html = html.replace(/<button\b(?=[^>]*data-unlock-key="saju_lifetime_bundle")[^>]*>/g, tag =>
+    tag.replace(/data-unlock-cost="\d+"/, `data-unlock-cost="${bundle.pricing.cost}"`));
   if (updated !== source) writeFileSync(dashboard, updated);
   const sibyl = getBillingFeaturePricing({featureKey:'premium-sibyl-dominator'});
   if (!sibyl.ok || !Number.isSafeInteger(sibyl.pricing.amountKRW)) throw new Error('Missing Sibyl price');
@@ -35,6 +25,6 @@ export function syncSajuReadingPrices(root) {
   if (html !== readFileSync(file, 'utf8')) writeFileSync(file, html);
   const registryFile=join(root,'js/core/service-registry.js');
   const registry=readFileSync(registryFile,'utf8');
-  const updatedRegistry=registry.replace(/(featureKey: "saju-career-style", price: ")[^"]*(")/, '$1'+career.cashPriceKRW.toLocaleString('ko-KR')+'원$2').replace(/(featureKey: "premium-sibyl-dominator",\s*price: ")[^"]*(")/, '$1'+sibyl.pricing.amountKRW.toLocaleString('ko-KR')+'원$2');
+  const updatedRegistry=registry.replace(/(featureKey: "premium-sibyl-dominator",\s*price: ")[^"]*(")/, '$1'+sibyl.pricing.amountKRW.toLocaleString('ko-KR')+'원$2');
   if(updatedRegistry!==registry) writeFileSync(registryFile,updatedRegistry);
 }

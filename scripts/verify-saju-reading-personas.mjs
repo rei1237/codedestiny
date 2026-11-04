@@ -56,8 +56,14 @@ try {
     await page.locator('#destinyCardForm').screenshot({path:resolve(out,`input-${width}.png`)});
     await page.evaluate(()=>document.querySelector('[data-action="checkPrivacyAndCalculate"]').click());
     await page.evaluate(()=>{const b=document.querySelector('[data-action="agreeAndCalculate"]');if(b)b.click();});
-    await page.waitForFunction(baseline=>window.G_PILLARS&&(baseline||document.querySelector('#tsGrid [data-saju-god]')&&document.querySelector('#dailyPanel .saju-reading')),baseline,{timeout:60000});
+    await page.waitForFunction(baseline=>window.G_PILLARS&&(baseline||document.querySelector('#tsGrid [data-saju-god]')),baseline,{timeout:60000});
     if(baseline){await page.locator('#iljuCard').scrollIntoViewIfNeeded();await page.screenshot({path:resolve(out,`result-before-${width}.png`)});await page.locator('[data-unlock-key="section_summary"]').first().scrollIntoViewIfNeeded();await page.screenshot({path:resolve(out,`paid-before-${width}.png`)});results.push({width,catHeight});await context.close();continue;}
+    // 잠금 전(사주 영구 묶음 미보유): 원국과 한 줄 성향만 있고 묶음 안의 카드는 아직 그려지지 않는다. 해금 이벤트 뒤에 나타난다.
+    await page.waitForFunction(()=>(document.getElementById('sajuNatalOneLiner')?.textContent||'').trim().length>0);
+    assert.equal(await page.locator('#dailyPanel .saju-reading').count(),0,'Bundle cards stay hidden before unlock');
+    assert.equal(await page.evaluate(()=>window.CdSajuBundleOffer.isOpen()),false);
+    await page.evaluate(()=>{window.isTileKeyUnlocked=key=>key==='saju_lifetime_bundle';window.dispatchEvent(new Event('cd:unlocks-changed'));});
+    await page.waitForFunction(()=>document.querySelector('#dailyPanel .saju-reading'),null,{timeout:60000});
     const facts=()=>page.evaluate(()=>JSON.stringify({p:G_PILLARS,n:G_NATAL,power:G_POWER,johu:G_JOHU,dw:G_DAEWUN,price:[...document.querySelectorAll('[data-saju-price-key]')].map(e=>e.textContent)}));
     const before=await facts();
     await page.locator('#sajuReadingHeader').scrollIntoViewIfNeeded();await page.screenshot({path:resolve(out,`result-yeon-${width}.png`)});

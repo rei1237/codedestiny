@@ -151,7 +151,7 @@ var LOVE_CODE_FEATURE = {
 };
 
 var REPORT_CARDS = [
-  {id:"career-style",target:"careerStyle",thumb:"career-style-yeoni.webp",label:"나의 일 스타일",desc:"성향과 월지로 내게 맞는 업무 조건을 탐색해요.",note:"프로필 카드로 보는 여덟 장의 자기이해 리포트",cta:"리포트 해금 안내 보기",action:"openCareerStyleRoute",coinCost:0,mainLock:false,badge:"5,000원",category:"self"},
+  {id:"career-style",target:"careerStyle",thumb:"career-style-yeoni.webp",label:"나의 일 스타일",desc:"성향과 월지로 내게 맞는 업무 조건을 탐색해요.",note:"프로필 카드로 보는 여덟 장의 자기이해 리포트입니다. 사주 묶음에 포함돼요.",cta:"사주 묶음 안내 보기",action:"openCareerStyleRoute",coinCost:0,mainLock:false,badge:"묶음 포함",category:"self"},
   { id:'meryok',     label:_reportDashboardText("rd.label.001"),      desc:'신살 스탯 · 도화 · 역마 지수를 확인해보세요.',          note:'요즘 왜 유독 시선이 꽂히는지, 내 매력 포인트를 한 번에 읽어드립니다.', cta:_reportDashboardText("rd.cta.004"), thumb:'meryok-new.webp', accent:'#f472b6', glow:'rgba(244,114,182,.55)', target:'specialCharmCard',   coinCost:10  },
   { id:'quantum',    thumb:'퀀텀 명리 엔진.webp', label:_reportDashboardText("rd.label.002"),        desc:'합화 우선 분석으로 나만의 천기 지도가 열립니다.',      note:'한 번 해금하면 합화·용신 보정·천기 전략 리포트 전체가 계속 머뭅니다.', cta:_reportDashboardText("rd.cta.005"),          accent:'#38bdf8', glow:'rgba(56,189,248,.55)',  target:'quantumCard',        lockKey:'rpt_quantumCard', coinCost:100, badge:'10,000원 · 영구 해금'  },
   { id:'sajuhealth', thumb:'명리 헬스 리포트.webp', label:_reportDashboardText("rd.label.003"),      desc:'오행 균형과 건강 약점 신호를 점검해보세요.',             note:'놓치기 쉬운 몸의 신호를 사주 관점으로 풀어, 수호 우선순위를 정리해드립니다.', cta:_reportDashboardText("rd.cta.006"),      accent:'#4ade80', glow:'rgba(74,222,128,.55)',  target:'healthReportCard',   coinCost:50  },
@@ -161,7 +161,7 @@ var REPORT_CARDS = [
   { id:'tetoegen',   thumb:'테토VS에겐.webp', label:_reportDashboardText("rd.label.007"),          desc:'사주 기반으로 나의 매력 에너지 결을 분석합니다.',       note:'강하게 끌어당기는 타입인지, 부드럽게 스며드는 타입인지 종합 풀이 안에서 보여드립니다.', cta:_reportDashboardText("rd.cta.010"),      accent:'#fb923c', glow:'rgba(251,146,60,.55)',  target:'hormone-vibe-section', lockKey:'section_summary', coinCost:100  },
   { id:'trip',       thumb:'사주로 보는 여행지.webp', label:_reportDashboardText("rd.label.008"),     desc:'사주 오행 균형 기준으로 지금 맞는 여행지를 안내합니다.', note:'국내/해외 추천 좌표와 방향 포인트를 함께 확인해 이동 운을 끌어올려보세요.', cta:_reportDashboardText("rd.cta.011"),         accent:'#2dd4bf', glow:'rgba(45,212,191,.55)',  target:'energyCoordCard',    coinCost:70  },
   { id:'vilun',      label:_reportDashboardText("rd.label.009"),        desc:'내 인생을 흔드는 위험 유형을 분석합니다.',               note:'유난히 소모되는 관계의 패턴을 파악하고, 피해야 할 시그널을 정리해드립니다.', cta:_reportDashboardText("rd.cta.012"),          accent:'#f87171', thumb:'vilun-new.webp', glow:'rgba(248,113,113,.55)', target:'villainCard',         coinCost:50  },
-  { id:'lotto',      thumb:'사주 로또.webp', label:_reportDashboardText("rd.label.010"),       desc:'번호와 번호별 해석, 금전 루틴을 담은 달빛 럭키 리추얼 리포트는 회당 1,000원입니다.', note:'오늘 운의 파동을 상징 번호와 작은 금전 루틴으로 살펴봅니다.', cta:_reportDashboardText("rd.cta.013"), accent:'#fde047', glow:'rgba(253,224,71,.55)', target:'lottoCard', coinCost:10 },
+  { id:'lotto',      thumb:'사주 로또.webp', label:_reportDashboardText("rd.label.010"),       desc:'번호와 번호별 해석, 금전 루틴을 담은 달빛 럭키 리추얼 리포트입니다. 사주 묶음에 포함돼요.', note:'오늘 운의 파동을 상징 번호와 작은 금전 루틴으로 살펴봅니다.', cta:_reportDashboardText("rd.cta.013"), accent:'#fde047', glow:'rgba(253,224,71,.55)', target:'lottoCard', coinCost:10 },
   { id:'fortunePlanner', thumb:'사주 다이어리.webp', label:'갓생 다이어리', desc:'오늘의 일정·할 일을 다이어리 한 화면에서 정리해보세요.', note:'운세 해석이 아닌 기록 도구로 이동합니다.', cta:'다이어리 열기', accent:'#818cf8', glow:'rgba(129,140,248,.55)', action:'openFortunePlanner', coinCost:0, badge:'기록 도구' },
   // 이전 버전(셸 모달) 다이어리의 유일한 진입점이다. 새 /diary 앱은 홈 카드가 맡고,
   // 이전 버전은 여기 — 원국이 이미 계산돼 G_PILLARS 가 살아있는 결과 화면 안 — 에서만 연다.
@@ -1226,6 +1226,21 @@ window.handleReportThumbError = handleReportThumbError;
   };
 })();
 
+// 묶음 판정(js/core/saju/bundle-offer.js). 권한 조회가 실패하거나 모듈이 없으면 닫힘으로 본다.
+function _rptBundleOpen() {
+  try { return !!(window.CdSajuBundleOffer && window.CdSajuBundleOffer.isOpen()); } catch (_e) { return false; }
+}
+// 극T·테토/에겐·네컷·도파민은 기존 라이트 풀이(section_summary) 구매자에게도 계속 열린다(자동 업그레이드 없음).
+function _rptSharedTileOpen() {
+  if (_rptBundleOpen()) return true;
+  try { return typeof window.isTileKeyUnlocked === 'function' && window.isTileKeyUnlocked('section_summary') === true; } catch (_e) { return false; }
+}
+function _rptBundleCoveredKey(lockKey) {
+  var key = String(lockKey || '');
+  if (key === 'saju_lifetime_bundle') return true;
+  try { return !!(window.CdSajuBundleOffer && window.CdSajuBundleOffer.isSaleClosedKey(key)); } catch (_e) { return false; }
+}
+
 function _sajuFunTryRecoverTargetCard(targetId) {
   if (!targetId) return false;
 
@@ -1239,7 +1254,7 @@ function _sajuFunTryRecoverTargetCard(targetId) {
 
     switch (targetId) {
       case 'lottoCard':
-        if (typeof renderLottoNumbers === 'function' && natal) renderLottoNumbers(natal, bazi);
+        if (_rptBundleOpen() && typeof renderLottoNumbers === 'function' && natal) renderLottoNumbers(natal, bazi);
         break;
       case 'quantumCard':
         // 본문은 서버(/api/saju/section, rpt_quantumCard)가 해금을 확인한 뒤 배달한다.
@@ -1262,10 +1277,10 @@ function _sajuFunTryRecoverTargetCard(targetId) {
         if (window.CdSajuSectionClient && p && natal) window.CdSajuSectionClient.loadCard('rpt_skillTreeCard');
         break;
       case 'tTestCard':
-        if (typeof renderTTest === 'function' && p && natal) renderTTest(p, natal, johu, power);
+        if (_rptSharedTileOpen() && typeof renderTTest === 'function' && p && natal) renderTTest(p, natal, johu, power);
         break;
       case 'hormone-vibe-section':
-        if (typeof renderHormoneVibe === 'function' && p && power) renderHormoneVibe(p, power);
+        if (_rptSharedTileOpen() && typeof renderHormoneVibe === 'function' && p && power) renderHormoneVibe(p, power);
         break;
       case 'energyCoordCard':
         // 본문은 서버(/api/saju/section, rpt_energyCoordCard)가 해금을 확인한 뒤 배달한다.
@@ -1276,10 +1291,10 @@ function _sajuFunTryRecoverTargetCard(targetId) {
         if (window.CdSajuSectionClient && p && power) window.CdSajuSectionClient.loadCard('rpt_villainCard');
         break;
       case 'sajuFourCutCard':
-        if (typeof renderSajuFourCutContent === 'function') renderSajuFourCutContent();
+        if (_rptSharedTileOpen() && typeof renderSajuFourCutContent === 'function') renderSajuFourCutContent();
         break;
       case 'dopamineCard':
-        if (typeof window.renderDopamineReport === 'function' && p && natal) window.renderDopamineReport(p, natal, power, johu);
+        if (_rptSharedTileOpen() && typeof window.renderDopamineReport === 'function' && p && natal) window.renderDopamineReport(p, natal, power, johu);
         break;
       default:
         break;
@@ -1383,7 +1398,8 @@ function renderReportDashboard() {
     var relationshipHost = document.getElementById('resultPage');
     if (relationshipHost) relationshipHost.appendChild(relationshipEntry);
   }
-  try { renderSajuFourCutContent(); } catch (fourCutErr) { console.warn('[SajuFourCut] 렌더 실패:', fourCutErr); }
+  // 네컷은 라이트 풀이 또는 사주 묶음을 가진 사람에게만 만든다(권한 조회가 실패해도 닫힘).
+  try { if (_rptSharedTileOpen()) renderSajuFourCutContent(); } catch (fourCutErr) { console.warn('[SajuFourCut] 렌더 실패:', fourCutErr); }
 
   var container = document.getElementById('reportDashboard');
   var dashCard  = document.getElementById('reportDashboardCard');
@@ -1468,6 +1484,8 @@ function renderReportDashboard() {
       var thumbSrc = '/fuctionassets/' + encodeURIComponent(rawThumb).replace(/%2F/g, '/');
       var tileWonPrice = (Number(b.coinCost || 0) * 100).toLocaleString('ko-KR') + '원';
       var tilePriceText = (b.coinCost > 0) ? ((b.mainLock === false || b.selfGated) ? ('1회 ' + tileWonPrice) : ('🔒 ' + tileWonPrice + ' · 잠금 콘텐츠')) : '무료';
+      // 판매가 끝난 개별 상품과 묶음 키 타일은 개별 가격 대신 묶음 포함으로 보여 준다.
+      if (b.coinCost > 0 && b.mainLock !== false && !b.selfGated && _rptBundleCoveredKey(b.lockKey || ('rpt_' + b.target))) tilePriceText = '🔒 사주 묶음 포함';
       var tilePriceClass = (b.coinCost > 0) ? ((b.mainLock === false || b.selfGated) ? 'rpt-v2-price-badge is-per-use' : 'rpt-v2-price-badge') : 'rpt-v2-price-badge is-free';
       gridHtml += '<button type="button" class="rpt-v2-img-wrap" data-rpt-preview-src="' + thumbSrc + '" data-rpt-preview-title="' + img.label + '" aria-label="' + img.label + ' 이미지 크게 보기">';
       gridHtml += '<img class="rpt-v2-img" src="' + thumbSrc + '" alt="' + img.label + '" loading="lazy" decoding="async" onerror="handleReportThumbError(this)">';

@@ -89,7 +89,7 @@ test("종합·대운 유료 렌더러와 문장이 브라우저 경로에 없다
     // 일주·월령 문장 원천(reading-depth)은 서버 전용 lib/saju/reading-depth.mjs 에만 두고, 공개 reading-depth.generated.js 는 reading-depth-public.mjs 만 싣는다.
     "climateVersus", "natalIntl", "PILLAR_NOTES", "dayReadingNeo", "monthReadingNeo", "contextualReadingNeo",
     "기준을 세우고 앞장서는 힘이 있어요. 그 기준이 굳어지면 도움을 받아도 간섭처럼 느낄 수 있어요", "일주의 성향만으로 수입이나 투자 성과를 알 수는 없어요",
-    "스스로 정한 방향을 지키려는 갑목과 먼저 생각을 모으는 자수의 결이 만나요", "완수한 일과 아직 자라는 일을 나눠 적고",
+    "겉으로 결단한 뒤에도 속으로는 충분한 근거를 찾고 있을 수 있어요", "완수한 일과 아직 자라는 일을 나눠 적고",
     "like a tall tree growing straight up: it sets a direction, takes the lead and holds its pride",
     "天へまっすぐ伸びる大樹のように、方向を定めて先頭に立ち、誇りを守る気質", "像笔直向上生长的大树，认准方向、愿意带头，也守着自己的骄傲", "像筆直向上生長的大樹，認準方向、願意帶頭，也守著自己的驕傲",
     "ILJU_WORD", "STAGE12", "buildIljuKeywords", "곧게 자라는 나무는 한 번에 크지 않아요", "일지에 비겁이 있어 배우자 자리에 나와 닮은 기운이 앉아 있어요",

@@ -5662,6 +5662,13 @@
         var dpCheckoutError = new Error(_dpReadBillingMessage(checkoutRes.payload, '결제 준비에 실패했습니다.'));
         dpCheckoutError.code = checkoutErrCode;
         dpCheckoutError.status = Number(checkoutRes.status || 0);
+        // 판매 종료된 사주 상품(409 PRODUCT_SALE_ENDED + bundleFeatureKey)은 결제창 대신 묶음 안내를 연다.
+        // 프로필이 없는 400 MISSING_PROFILE_ID 는 막다른 길이 아니라 프로필 저장 안내로 보낸다(requiresProfile).
+        try {
+          if (window.CdSajuBundleOffer && typeof window.CdSajuBundleOffer.handleBillingError === 'function'
+            && window.CdSajuBundleOffer.handleBillingError(dpCheckoutError.status, checkoutRes.payload)) dpCheckoutError.saleEnded = true;
+        } catch (_dpSaleEndedErr) {}
+        if (checkoutErrCode === 'MISSING_PROFILE_ID' || (checkoutRes.payload && checkoutRes.payload.requiresProfile === true)) dpCheckoutError.requiresProfile = true;
         throw dpCheckoutError;
       }
 
@@ -5676,7 +5683,9 @@
           checkoutPayload.requestId ||
           '',
         ).trim();
+        // 서버가 alreadyUnlocked(묶음·개별 보유)로 답하면 주문이 없으니 결제창 없이 해금된 것으로 돌려준다.
         var allowDirectCheckoutAccessBypass = opts.allowServerAccessBypass === true && opts.forceDirectPayment !== true;
+        if (checkoutData && checkoutData.alreadyUnlocked === true) allowDirectCheckoutAccessBypass = true;
         if (allowDirectCheckoutAccessBypass && (accessGrant || consume || _dpIsCheckoutAccessBypass(checkoutData, checkoutPayload.featureKey || opts.featureKey || ''))) {
           var freePaymentPayload = Object.assign({}, checkoutData, {
             transactionId: freeTxHint,

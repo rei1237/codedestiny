@@ -98,6 +98,11 @@ const server=createServer(async(request,response)=>{
     assert.equal(await link.getAttribute('aria-current'),'location');
     assert.equal(await page.evaluate(()=>document.activeElement.id),id);
   }
+  // 잠금 전: 묶음 안의 카드 자리(오늘의 일진·월운)는 비어 있고 묶음 안내 자리만 있다. 해제 뒤에는 묶음 안내 카드가 남지 않는다.
+  assert.equal(await page.locator('#dailyPanel .saju-reading').count(),0,'bundle card hidden before unlock');
+  assert(await page.locator('#sajuBundleOffer').count()>=1,'bundle offer host is mounted');
+  await page.evaluate(()=>{window.isTileKeyUnlocked=key=>key==='saju_lifetime_bundle';window.dispatchEvent(new Event('cd:unlocks-changed'));});
+  assert.equal(await page.locator('#sajuBundleOffer [data-cd-bundle-inline]').count(),0,'bundle offer card is removed after unlock');
   await page.screenshot({path:path.join(output,`after-saju-${width}.png`)});
  }
  if(phase==='after')assert.deepEqual(errors,[], 'no browser errors');

@@ -67,6 +67,14 @@ const server=http.createServer((req,res)=>{
  await page.setViewportSize({width:390,height:844});
 
  const card=page.locator('#destinyAnatomyCard');
+ // 잠금 전(사주 영구 묶음 미보유): 카드는 비어 있고 자산·차트 요청도 없다. 해금 이벤트 뒤에만 계산 결과가 나타난다.
+ assert.equal(await page.evaluate(()=>window.CdSajuBundleOffer.isOpen()),false);
+ assert.equal(await card.evaluate(el=>el.hidden||el.innerHTML.trim()===''),true);
+ assert.equal(await page.locator('[data-da-trigger]').count(),0);
+ assert.equal(apis.filter(r=>r.path.includes('/human-design/chart')||r.path.includes('/vedic-ai/basis')).length,0);
+ await page.evaluate(()=>{window.isTileKeyUnlocked=key=>key==='saju_lifetime_bundle';window.dispatchEvent(new Event('cd:unlocks-changed'));});
+ await page.waitForSelector('[data-da-trigger]',{state:'attached'});
+ assert.equal(await page.evaluate(()=>window.CdSajuBundleOffer.isOpen()),true);
  await card.evaluate(el=>el.scrollIntoView({block:'start'}));await page.waitForTimeout(400);
  await page.screenshot({path:path.join(out,'initial.png')});
  // content-visibility:auto can omit offscreen pixels from full-element captures.

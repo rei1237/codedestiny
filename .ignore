@@ -181,6 +181,7 @@
 /public/js/core/profile-characters.mjs
 /public/js/core/profile-element-badge.mjs
 /public/js/core/saju/basicFortunePresentation.js
+/public/js/core/saju/bundle-offer.js
 /public/js/core/saju/crafted-product-details.mjs
 /public/js/core/saju/destiny-anatomy/boot.js
 /public/js/core/saju/destiny-anatomy/copy.js
@@ -192,6 +193,7 @@
 /public/js/core/saju/extremeTResult.js
 /public/js/core/saju/modalProfileState.js
 /public/js/core/saju/natal-core.generated.js
+/public/js/core/saju/natal-one-liner.generated.js
 /public/js/core/saju/reading-depth.generated.js
 /public/js/core/saju/reading-navigation.js
 /public/js/core/saju/reading-personas.js

@@ -3745,6 +3745,8 @@ function elColor(e){
 }
 
 async function renderDailyMonthlyFortune(p){
+  /* 사주 묶음(saju_lifetime_bundle) 안의 카드다. 묶음이 닫혀 있거나 권한 조회가 실패하면 아무것도 만들지 않는다. */
+  try{if(!(window.CdSajuBundleOffer&&window.CdSajuBundleOffer.isOpen()))return;}catch(_bundleGuardErr){return;}
   var card=document.getElementById('dailyMonthlyCard');
   if(!card)return;
   card.style.display='block';
@@ -3788,6 +3790,8 @@ async function renderDailyMonthlyFortune(p){
 }
 
 function renderLetter(p){
+  /* 사주 묶음(saju_lifetime_bundle) 안의 카드다. 닫힘이면 만들지 않는다. */
+  try{if(!(window.CdSajuBundleOffer&&window.CdSajuBundleOffer.isOpen()))return;}catch(_bundleGuardErr){return;}
   if (window.SajuReadingPresentation) return window.SajuReadingPresentation.render('letter');
   var isNeoSaju = isNeoSajuModeActive();
   var pw=G_POWER,jg=G_JONG;
@@ -4479,11 +4483,13 @@ window.openLottoRitualReport=function(){
     perUseAuthorized=sessionStorage.getItem(paidUseKey)==='1';
     if(perUseAuthorized)sessionStorage.removeItem(paidUseKey);
   }catch(_e){}
-  var legacyUnlocked=typeof window.isTileKeyUnlocked==='function'&&window.isTileKeyUnlocked(LOTTO_RITUAL_FEATURE_KEY);
+  /* 개별 권리(이미 구매한 사람) 또는 사주 묶음(saju_lifetime_bundle)으로 연다. 이 리포트는 생성 모델을 부르지 않고 이 기기에서 만든다. */
+  var bundleOpen=false;
+  try{bundleOpen=!!(window.CdSajuBundleOffer&&window.CdSajuBundleOffer.isOpen());}catch(_bundleErr){}
+  var legacyUnlocked=bundleOpen||(typeof window.isTileKeyUnlocked==='function'&&window.isTileKeyUnlocked(LOTTO_RITUAL_FEATURE_KEY));
   if(!perUseAuthorized&&!legacyUnlocked){
-    var btn=document.querySelector('[data-action="openLottoRitualReport"][data-feature-key="'+LOTTO_RITUAL_FEATURE_KEY+'"]');
-    if(btn&&document.activeElement!==btn){btn.click();return;}
-    alert('달빛 럭키 리추얼 리포트는 1회 1,000원으로 이용할 수 있습니다.');
+    /* 개별 판매는 끝났다. 결제창 대신 묶음 안내를 연다(프로필이 없으면 안내가 저장부터 권한다). */
+    if(window.CdSajuBundleOffer&&typeof window.CdSajuBundleOffer.open==='function')window.CdSajuBundleOffer.open({source:'lotto-ritual'});
     return;
   }
   var state=window.__cdLottoRitualState||{};
@@ -4550,6 +4556,8 @@ window.shareLottoRitualText=function(){
 };
 
 function renderLottoNumbers(natal, bazi){
+  /* 사주 묶음(saju_lifetime_bundle) 안의 카드다. 닫힘이면 만들지 않는다. */
+  try{if(!(window.CdSajuBundleOffer&&window.CdSajuBundleOffer.isOpen()))return;}catch(_bundleGuardErr){return;}
   var area=document.getElementById('lottoSection');
   var card=document.getElementById('lottoCard');
   if(!area||!card||!natal)return;

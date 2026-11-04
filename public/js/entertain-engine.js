@@ -2746,6 +2746,10 @@
   var TETOGEN_DEEP_REPORT_KRW = 5000;
 
   function isTetogenDeepReportUnlocked() {
+    // 개별 권리 또는 사주 묶음(saju_lifetime_bundle)으로 열린다. 상세 풀이는 이 기기에서 계산하며 생성 모델을 부르지 않는다.
+    try {
+      if (w.CdSajuBundleOffer && typeof w.CdSajuBundleOffer.isOpen === 'function' && w.CdSajuBundleOffer.isOpen()) return true;
+    } catch (_) {}
     try {
       if (typeof w.isTileKeyUnlocked === 'function' && w.isTileKeyUnlocked(TETOGEN_DEEP_REPORT_FEATURE_KEY)) return true;
     } catch (_) {}
@@ -2839,9 +2843,10 @@
       + '</div>'
       + '<ul class="tetogen-premium-gate__list">' + teaserItems + '</ul>'
       + '<div class="tetogen-premium-gate__action">'
-      + '<strong>' + TETOGEN_DEEP_REPORT_KRW.toLocaleString('ko-KR') + '원</strong>'
-      + '<button type="button" class="tetogen-premium-gate__cta" data-tetogen-unlock="1">' + (unlocked ? '상세 리포트 열림' : '상세 리포트 열기') + '</button>'
-      + '<small data-tetogen-status>' + (unlocked ? '이미 열린 흐름입니다.' : '결제 후 남은 해석이 펼쳐집니다.') + '</small>'
+      // 개별 판매는 끝났다. 잠겨 있으면 가격 대신 사주 묶음 안내로 이어진다(이미 산 사람은 위 unlocked 로 열린다).
+      + (unlocked ? '' : '<strong>사주 묶음 포함</strong>')
+      + '<button type="button" class="tetogen-premium-gate__cta" data-tetogen-unlock="1">' + (unlocked ? '상세 리포트 열림' : '묶음 안내 보기') + '</button>'
+      + '<small data-tetogen-status>' + (unlocked ? '이미 열린 흐름입니다.' : '사주 묶음으로 남은 해석이 펼쳐집니다.') + '</small>'
       + '</div>'
       + '</div>'
       + (unlocked ? buildTetogenDeepReportBody(vibe, p, power, hapData) : '')
@@ -2885,7 +2890,19 @@
     }
 
     if (!button) return;
+    // 묶음을 산 직후(해금 이벤트)에는 새로고침 없이 상세 풀이를 펼친다.
+    if (!shell.__cdBundleUnlockBound) {
+      shell.__cdBundleUnlockBound = true;
+      w.addEventListener('cd:unlocks-changed', function () {
+        if (shell.isConnected && isTetogenDeepReportUnlocked()) reveal(null);
+      });
+    }
     button.addEventListener('click', function () {
+      // 판매 종료: 결제창 대신 사주 묶음 안내를 연다.
+      if (w.CdSajuBundleOffer && typeof w.CdSajuBundleOffer.open === 'function') {
+        w.CdSajuBundleOffer.open({ source: 'tetogen-deep-report' });
+        return;
+      }
       var settled = false;
       function settle(payload) {
         if (settled) return;
