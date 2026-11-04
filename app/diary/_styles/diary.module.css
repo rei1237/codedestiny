@@ -2139,3 +2139,11 @@ html[data-cd-theme="neo"] .shell {
   font-size: var(--cd-t-caption);
   color: var(--dy-muted);
 }
+
+/* 같은 다이어리 저장·성취 표시를 운명 카드 안에서 사용한다. */
+.recordEmbedded { color:#492440; }
+.recordEmbedded .cardTitle { color:#492440; }
+.recordEmbedded .emptySmall,.recordEmbedded .fieldLabel { color:#75536b; }
+.recordEmbedded .input { color:#492440; background:#fff; border-color:#cba8b9; }
+.recordEmbedded .achieveTrack { background:#ecd9e2; }
+.recordEmbedded .achieveFill { background:#a6437b; }
