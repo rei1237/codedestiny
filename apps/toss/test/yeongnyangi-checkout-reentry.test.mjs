@@ -59,3 +59,13 @@ test('leaving before the verified read completes cannot navigate or reopen check
  await React.act(async()=>finish(Response.json({fortune:{...fortune,paid:true}})));
  assert.deepEqual(view.redirects,[]);assert.equal(view.drafts.length,0);
 });
+
+for(const status of [401,403])test('non-JSON denied checkout read preserves '+status,async()=>{
+ const view=await mount(async()=>new Response('refused',{status}));
+ try{assert.equal(view.drafts.length,0);assert.match(document.querySelector('[role="alert"]').textContent,status===401?/로그인/:/권한/);}finally{await view.close();}
+});
+
+test('a checkout read permission error code without HTTP status remains explicit',async()=>{
+ const view=await mount(async()=>{throw Object.assign(new Error('ACCESS_DENIED'),{code:'ACCESS_DENIED'});});
+ try{assert.equal(view.drafts.length,0);assert.match(document.querySelector('[role="alert"]').textContent,/권한/);}finally{await view.close();}
+});

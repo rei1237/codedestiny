@@ -3,14 +3,24 @@ import {purchase,saleProducts} from '../src/platform';
 import {useAuthStore} from '@/app/_lib/auth-store';
 import styles from '@/app/checkout/yeongnyangi-checkout.module.css';
 
+function checkoutError(error,fallback){
+ if(error?.status===403||error?.code==='ACCESS_DENIED')return '접근 권한을 확인할 수 없어요. 구매한 계정과 주문 내역을 확인해 주세요.';
+ if(error?.status===401||['LOGIN_REQUIRED','SESSION_EXPIRED'].includes(error?.code))return '토스 로그인 상태를 확인한 뒤 다시 시도해 주세요.';
+ if(error?.code==='SESSION_CHECK_FAILED')return '로그인 상태를 확인하지 못했어요. 연결 상태를 확인한 뒤 다시 시도해 주세요.';
+ if(error?.code==='SESSION_CHANGED')return '로그인 상태가 바뀌었어요. 다시 확인해 주세요.';
+ if(error?.code==='USER_CANCELED')return '결제를 취소했어요. 다시 선택할 수 있어요.';
+ if(error?.code==='UNSUPPORTED_APP_VERSION'&&typeof error.message==='string'&&error.message.trim()&&error.message!==error.code)return error.message;
+ if(['IAP_NOT_SUPPORTED','UNSUPPORTED_APP_VERSION'].includes(error?.code))return '현재 토스 앱에서는 이 기능을 지원하지 않아요. 앱 업데이트 후 다시 확인해 주세요.';
+ return fallback;
+}
 export default function TossCheckout({draft}){
  const {isAuthenticated}=useAuthStore();
  const [sales,setSales]=useState([]),[busy,setBusy]=useState(false),[error,setError]=useState('');
  const cleanup=useRef(()=>{}),locked=useRef(false);
- useEffect(()=>{let active=true;void saleProducts().then(rows=>{if(active)setSales(rows);}).catch(()=>{if(active)setError('상품 정보를 불러오지 못했어요. 다시 열어 주세요.');});return()=>{active=false;cleanup.current();};},[]);
+ useEffect(()=>{let active=true;void saleProducts().then(rows=>{if(active)setSales(rows);}).catch(error=>{if(active)setError(checkoutError(error,'상품 정보를 불러오지 못했어요. 다시 열어 주세요.'));});return()=>{active=false;cleanup.current();};},[]);
  if(!draft)return <p>상담 입력 화면에서 시작해 주세요.</p>;
  const sale=sales.find(item=>item.id===draft.product.id);
- function fail(){locked.current=false;setBusy(false);setError('결제 상태를 확인하지 못했어요. 결제한 상담은 구매 복구에서 확인해 주세요.');}
+ function fail(error){locked.current=false;setBusy(false);setError(checkoutError(error,'결제 상태를 확인하지 못했어요. 구매 내역을 확인해 주세요.'));}
  async function pay(){
   if(locked.current||!sale)return;locked.current=true;setBusy(true);setError('');
   try{
@@ -18,7 +28,7 @@ export default function TossCheckout({draft}){
    if(!row){locked.current=false;setBusy(false);return;}
    if(row.paid){location.assign('/yeongnyangi/result/?id='+encodeURIComponent(row.id));return;}
    cleanup.current=purchase(sale,row.id,()=>location.assign('/yeongnyangi/result/?id='+encodeURIComponent(row.id)),fail);
-  }catch{fail();}
+  }catch(error){fail(error);}
  }
  return <section className={styles.checkout} data-yn-checkout data-yn-night aria-labelledby="yn-checkout-title">
   <header className={styles.header}><div className={styles.intro}><h1 id="yn-checkout-title">마음을 맡길 준비</h1><p>당신의 질문을 품고,<br/>영냥이가 푸른 달빛을 밝힐게요.</p></div><div className={styles.art} aria-hidden="true"><img src="/assets/yeongnyangi/checkout-moonblue.webp" width={640} height={640} alt=""/></div><blockquote className={styles.question}>{draft.question}</blockquote></header>
