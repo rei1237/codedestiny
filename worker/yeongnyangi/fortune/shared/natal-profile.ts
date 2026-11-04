@@ -4,6 +4,7 @@ import type {DomainContext,FortuneInput,CalculationOptions} from './contracts';
 import {engineFactDigest} from '../../../lib/engine-fact-snapshot.js';
 import {buildSajuTemperamentProfile} from '../../../lib/saju-temperament.js';
 import {GRAHA_KEYWORDS,GRAHA_KO} from '../../../lib/vedic-derived-calculations.js';
+import {projectApprovedGyeokguk} from '../../../../lib/saju/gyeokguk-authority.mjs';
 
 export const NATAL_PROFILE_VERSION='natal-reading-v1';
 export const NATAL_PROFILE_RULE='natalProfile의 scope=birth는 출생 명반으로 만든 고정 성향 기준이다. scope=draw는 저장된 타로 배열의 선택 패턴으로, 타고난 성격으로 부르지 않는다. 무료 해설과 같은 sourceDigest·관찰 근거·강점/주의점을 유지한다. 오늘 운세·다샤·대운·트랜짓으로 타고난 성향을 바꾸지 않는다. 성향을 다루는 절에서는 각 근거를 동기→선택 습관→관계/일의 구체적 장면→강점이 과해지는 조건→조절 행동 순서로 2~3문단 깊게 설명한다. 무료 문장을 반복해 분량을 채우지 말고 상반된 단서와 예외를 함께 설명한다. 타고난 성향은 확정적 성격 진단이 아니며 값이 없는 특징은 만들지 않는다.';
@@ -17,6 +18,16 @@ const keys:Record<string,string[]>={
 };
 const text=(v:unknown)=>typeof v==='string'||typeof v==='number'?String(v):'';
 const list=(v:unknown):string[]=>Array.isArray(v)?v.filter(x=>typeof x==='string'):[];
+const ija=(word:string)=>{const code=word.charCodeAt(word.length-1)-0xac00;return code>=0&&code<=11171&&code%28?'이야':'야'};
+// The approved copy and temperament table are shared with formal reports; 영냥이 says them in its own voice.
+const VOICE:[RegExp,string][]=[[/보세요./g,'봐.'],[/어렵습니다./g,'어려워.'],[/보류합니다./g,'보류할게.'],[/띕니다./g,'띄어.'],[/쉽습니다./g,'쉬워.'],[/입니다./g,'이야.'],[/아닙니다./g,'아니야.'],[/좋습니다./g,'좋아.'],[/됩니다./g,'돼.'],[/있습니다./g,'있어.'],[/않습니다./g,'않아.'],[/합니다./g,'해.']];
+const voiced=(copy:string)=>VOICE.reduce((s,[from,to])=>s.replace(from,to),copy);
+const caution=(shadow:string,action:string)=>`${shadow.replace(/쉬움$/,'쉬워')}. ${action.replace(/끝낸다$/,'끝내 봐').replace(/옮긴다$/,'옮겨 봐').replace(/한다$/,'해 봐')}.`;
+// Charts the approved profile cannot read (malformed or partial test fixtures) keep the temperament reading alone.
+function approvedReading(pillars:Record<string,unknown>|undefined){
+ const rows=Object.fromEntries(['year','month','day','hour'].flatMap(k=>{const v=pillars?.[k];return typeof v==='string'&&v.length===2?[[k,{stem:v[0],branch:v[1]}]]:[]}));
+ try{return projectApprovedGyeokguk(rows)}catch{return null}
+}
 export function buildNatalProfile(c:DomainContext):NatalProfile|undefined {
  if(!keys[c.domain])return;
  const f=Object.fromEntries(c.facts.map(x=>[x.label,x.value])) as Record<string,any>;
@@ -31,7 +42,15 @@ export function buildNatalProfile(c:DomainContext):NatalProfile|undefined {
   for(const [k,label] of [['year','년주'],['month','월주'],['day','일주'],['hour','시주']])basis.push({label,value:text(f.pillars?.[k])||'미상'});
   const p=buildSajuTemperamentProfile({...f,strength:f.strengthHeuristic,timeUnknown:!f.pillars?.hour});
   const traits=(p?.tenGods||[]).filter((x:any)=>x.facts.visible>0).sort((a:any,b:any)=>Number(b.facts.monthMain)-Number(a.facts.monthMain)||b.facts.visible-a.facts.visible).slice(0,3);
-  for(const t of traits){basis.push({label:t.god,value:`드러난 자리 ${t.facts.visible}곳${t.facts.monthMain?' · 월지 본기':''}`});paragraphs.push(`${t.god}의 단서에서는 ${t.interpretation.desire}를 읽어. ${t.interpretation.choice}이 반복되는지 살펴봐.`);paragraphs.push(`강점은 ${t.interpretation.strength}야. 다만 ${t.interpretation.shadow}의 모습도 나타날 수 있어. ${t.interpretation.action}.`)}
+  const approved=approvedReading(f.pillars);
+  if(approved){const pending=approved.gyeokgukAnalysis.status==='pending';basis.push({label:'격국',value:pending?'판정 보류':text(approved.gyeokgukAnalysis.finalGyeokguk)||'판정 보류'},{label:'도움이 되는 기운 후보',value:approved.yongshinAnalysis.usefulCandidateNames.join(' · ')||'판정 보류'})}
+  for(const t of traits)basis.push({label:t.god,value:`드러난 자리 ${t.facts.visible}곳${t.facts.monthMain?' · 월지 본기':''}`});
+  const [lead,...others]=traits.map((t:any)=>t.interpretation);
+  if(lead)paragraphs.push(`네 바탕에서 가장 먼저 보이는 건 ${lead.desire}${ija(lead.desire)}. 그래서 ${lead.choice}을 자주 하는 편이고, 강점은 ${lead.strength}${ija(lead.strength)}.`);
+  if(approved)paragraphs.push(voiced(approved.reading.summary),`일 쪽부터 짚어 볼게. ${voiced(approved.reading.career)}`,`돈 쪽도 짚어 볼게. ${voiced(approved.reading.wealth)}`);
+  for(const t of others)paragraphs.push(`또 ${t.desire}도 함께 보여. 여기서 나오는 강점은 ${t.strength}${ija(t.strength)}.`);
+  if(lead)paragraphs.push(`조심할 점도 있어. ${caution(lead.shadow,lead.action)}`);
+  if(approved)paragraphs.push(`바로 해볼 일도 하나 줄게. ${voiced(approved.reading.action)}`);
  }else if(c.domain==='sukuyo'){
   const p=f.personA||{};const name=text(p.name||p.nameKo||p.mansion?.name);
   if(name){basis.push({label:'본명숙',value:name});paragraphs.push(`네 본명숙은 ${name}이야. 태어난 순간의 달 위치에서 읽는 바탕으로, 오늘의 숙이나 상대의 숙 때문에 이 값이 바뀌지는 않아.`)}

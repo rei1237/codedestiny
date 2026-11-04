@@ -12,6 +12,7 @@
  *    엔진이 status:"not_supplied" 를 돌려준다 — 없는 것을 근거로 만들지 않는다.
  */
 import { computeNatalFromInput } from "@/app/saju/animal-destiny/lib/sajuAdapter";
+import { projectApprovedGyeokguk } from "@/lib/saju/gyeokguk-authority.mjs";
 import type { AnimalDestinyInput } from "@/app/saju/animal-destiny/lib/types";
 import type { Evidence } from "../types";
 
@@ -45,7 +46,9 @@ function topScores(map: unknown, n: number): string {
 export function buildSajuNatalEvidence(birth: AnimalDestinyInput, expectedDayStem?: string): Evidence[] {
   let natal: Record<string, unknown>;
   try {
-    natal = asRecord(asRecord(computeNatalFromInput(birth)).natalAnalysis);
+    const local = computeNatalFromInput(birth);
+    // 격국 근거는 승인 판정(natal-core)으로 읽는다. 어댑터의 옛 격국은 쓰지 않는다.
+    natal = { ...asRecord(local.natalAnalysis), gyeokgukAnalysis: projectApprovedGyeokguk(local.pillars).gyeokgukAnalysis };
   } catch {
     return []; // 심층 근거는 부가 정보다 — 실패해도 결과 전체를 막지 않는다.
   }
@@ -113,7 +116,7 @@ export function buildSajuNatalEvidence(birth: AnimalDestinyInput, expectedDaySte
   );
 
   const gyeokguk = asRecord(natal.gyeokgukAnalysis);
-  if (text(gyeokguk.finalGyeokguk)) {
+  if (text(gyeokguk.finalGyeokguk) && gyeokguk.status !== "pending") {
     push("saju.gyeokguk", `격국 ${text(gyeokguk.finalGyeokguk)}`, text(gyeokguk.finalType) || "격국 판정", "core");
   }
 

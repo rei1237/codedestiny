@@ -9,6 +9,7 @@
 import { BRANCH_HANGUL, branchIndexOf, daeun, formatPillar, STEM_HANJA, stemIndexOf, TERM_NAME_KO } from "@/lib/korean-calendar";
 import { CHANG_SHENG, CHANG_SHENG_OFFSET, getXun, getXunKong, NAYIN } from "@/lib/saju/myeongri-tables";
 import { calculateLocalSaju, type LocalSajuResult } from "../../saju/animal-destiny/engine/localSajuCalculator";
+import { projectApprovedGyeokguk } from "@/lib/saju/gyeokguk-authority.mjs";
 
 export type SajuFactsInput = {
   birthDate: string;
@@ -282,8 +283,10 @@ export function buildSajuPromptFacts(input: SajuFactsInput): string {
     const monthCommand = asRecord(natal.monthCommand);
     const fiveElements = asRecord(natal.fiveElements);
     const tenGods = asRecord(natal.tenGods);
-    const gyeokguk = asRecord(natal.gyeokgukAnalysis);
-    const yongshin = asRecord(natal.yongshinAnalysis);
+    // 격국·용신은 승인 판정(natal-core)으로 읽는다. 계산기의 옛 격국은 절반 가까이 종격으로 잘못 판정한다.
+    const approved = projectApprovedGyeokguk(local.pillars);
+    const gyeokguk = asRecord(approved.gyeokgukAnalysis);
+    const yongshin = asRecord(approved.yongshinAnalysis);
     const johu = asRecord(natal.johu);
     const evidence = asRecord(local.calculationEvidence);
     const solarDate = formatDate(asRecord(evidence.solarDate) as unknown as ParsedYmd);
@@ -325,54 +328,28 @@ export function buildSajuPromptFacts(input: SajuFactsInput): string {
     if (hiddenTenGods) lines.push(`- 십성(지장간에 숨은 것): ${hiddenTenGods}`);
 
     const finalGyeokguk = text(gyeokguk.finalGyeokguk);
-    if (finalGyeokguk) {
+    if (text(gyeokguk.status) === "pending") {
+      // 판정 보류인데 잠정 이름을 쓰면 프롬프트가 확정값으로 읽는다.
+      lines.push("- 격국: 판정 보류(출생 시각 또는 성립 조건 확인 필요)");
+    } else if (finalGyeokguk) {
       const candidates = Array.isArray(gyeokguk.candidates) ? (gyeokguk.candidates as Array<Record<string, unknown>>) : [];
       const top = asRecord(candidates.find((row) => text(row.name) === finalGyeokguk) || candidates[0]);
       // 월지 지장간 후보의 reason 문자열은 엔진이 조사를 잘못 붙여 만든다("정가 천간에 투출"). 구조화 필드로 다시 쓴다.
       const reason =
         text(top.source) === "월지 지장간" && text(top.monthHiddenStem)
           ? `월지 ${text(monthCommand.branch)}의 ${text(top.hiddenRole)} ${text(top.monthHiddenStem)}(${text(top.tenGod)}) ${top.protruded ? "천간 투출" : "천간 미투출"}`
-          : text(top.reason);
+          : text(top.reason) || text(gyeokguk.judgmentReason);
       lines.push(
         `- 격국: ${finalGyeokguk}(${text(gyeokguk.finalType)})${reason ? ` — ${reason}` : ""}` +
           (text(top.caution) ? ` · 주의: ${text(top.caution)}` : ""),
       );
     }
 
-    const yongshinKo = text(yongshin.coreYongshinKo);
-    if (yongshinKo) {
-      const heesin = (yongshin.heesinKo as string[] | undefined)?.filter(Boolean) || [];
-      const gisin = (yongshin.gisinKo as string[] | undefined)?.filter(Boolean) || [];
-      lines.push(
-        `- 용신: ${yongshinKo}${heesin.length ? ` · 희신 ${heesin.join(", ")}` : ""}${gisin.length ? ` · 기신 ${gisin.join(", ")}` : ""}`,
-      );
-      // 🔴 judgment.reason 문자열은 쓰지 않는다 — 오행 중복·조사 오류는 엔진에서 고쳤지만(2026-09-04),
-      //    한 문장에 뭉쳐 있어 도구별로 잘라 쓸 수 없다. 같은 판단을 구조화된 필드에서 직접 조립한다.
-      const judgment = asRecord(yongshin.judgment);
-      const judgeParts = [
-        text(judgment.dayMasterStrength) && `일간 ${text(judgment.dayMasterStrength)}`,
-        text(judgment.gyeokguk) && `격국 ${text(judgment.gyeokguk)}`,
-        ELEMENT_KO[text(judgment.strongestElement)] && `최강 오행 ${ELEMENT_KO[text(judgment.strongestElement)]}`,
-      ].filter(Boolean);
-      if (judgeParts.length) lines.push(`- 용신 판단 근거: ${judgeParts.join(" · ")}`);
-      const disease = asRecord(yongshin.disease);
-      if (text(disease.name)) lines.push(`- 병약(病藥): ${text(disease.name)} — ${text(disease.reason)}`);
-      const required = asRecord(yongshin.requiredExplanation);
-      const roots = [
-        ...(Array.isArray(required.heavenlyStemLocations) ? (required.heavenlyStemLocations as Array<Record<string, unknown>>) : []).map(
-          (row) => `${PILLAR_KO[text(row.pillar)] || text(row.pillar)} 천간 ${text(row.stem)}`,
-        ),
-        ...(Array.isArray(required.branchLocations) ? (required.branchLocations as Array<Record<string, unknown>>) : []).map(
-          (row) => `${PILLAR_KO[text(row.pillar)] || text(row.pillar)} 지지 ${text(row.branch)}`,
-        ),
-        ...(Array.isArray(required.hiddenStemLocations) ? (required.hiddenStemLocations as Array<Record<string, unknown>>) : []).map(
-          (row) => `${PILLAR_KO[text(row.pillar)] || text(row.pillar)} ${text(row.branch)} 지장간 ${text(row.stem)}`,
-        ),
-      ];
-      lines.push(
-        `- 용신 ${yongshinKo}의 원국 소재: ${required.existsInNatalChart === false || !roots.length ? "원국에 없음(대운·세운에서 들어올 때만 발현)" : roots.join(", ")}`,
-      );
-    }
+    // 승인 프로필은 단일 용신을 정하지 않는다. 축별 후보만 있으니 하나로 좁혀 쓰지 않는다.
+    const usefulCandidates = (yongshin.usefulCandidateNames as string[] | undefined)?.filter(Boolean) || [];
+    lines.push(
+      `- 용신: 단일 용신은 확정하지 않음 · ${usefulCandidates.length ? `도움이 되는 기운 후보 ${usefulCandidates.join(", ")}` : "후보도 판정 보류"}`,
+    );
     if (text(johu.urgentElementKo)) {
       lines.push(`- 조후(調候) 급한 오행: ${text(johu.urgentElementKo)}${johu.priorityOverSuppressing ? " (억부보다 우선)" : ""}`);
     }

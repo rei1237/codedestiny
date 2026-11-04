@@ -30,6 +30,12 @@ test('saju natal profile ignores annual/major luck, preserves unknown hour and u
  const facts={pillars:{year:'庚辰',month:'辛巳',day:'癸酉',hour:null},dayMaster:'癸',yearlyLuck:{year:2026},majorLuck:{pillar:'甲子'}};const first=api.context('saju',facts);const second=api.context('saju',{...facts,yearlyLuck:{year:2030},majorLuck:{pillar:'乙丑'}});
  assert.deepEqual(clone(api.buildNatalProfile(first)),clone(api.buildNatalProfile(second)));assert.ok(api.buildNatalProfile(first).basis.some(b=>b.label==='시주'&&b.value==='미상'));
 });
+test('saju natal profile leads with the person, keeps one voice and never names a single useful element',()=>{
+ const profile=hour=>api.buildNatalProfile(api.context('saju',{pillars:{year:'庚午',month:'辛巳',day:'壬午',hour},dayMaster:'壬'}));
+ const timed=profile('丁未');const untimed=profile(null);
+ for(const p of [timed,untimed]){assert.match(p.summary,/^네 바탕에서/);const body=p.paragraphs.join(' ');assert.doesNotMatch(body,/습니다|세요.|쉬움|한다./);assert.match(body,/일 쪽부터/);assert.match(body,/돈 쪽도/)}
+ assert.equal(timed.basis.find(b=>b.label==='격국').value,'편인격');assert.equal(untimed.basis.find(b=>b.label==='격국').value,'판정 보류');assert.equal(untimed.basis.find(b=>b.label==='도움이 되는 기운 후보').value,'판정 보류');
+});
 test('actual free natal branch has no today-moon calculation and reuses paid natal profile',async()=>{
  const source=fs.readFileSync('worker/yeongnyangi/fortune/free/readings.ts','utf8');const ast=ts.createSourceFile('readings.ts',source,ts.ScriptTarget.Latest,true);const fn=ast.statements.find(n=>ts.isFunctionDeclaration(n)&&n.name?.text==='calculateFree');
  const sandbox=vm.createContext({...api,domains:{vedic:api.vedic,sukuyo:api.sukuyo},freeCategories:[{id:'vedic',label:'베다점'},{id:'sukuyo',label:'숙요점'}],FortuneError:Error,buildDomainPrompt:(d,i,c)=>JSON.stringify(api[d].buildPrompt(i,c,'mackerel')),withContinuation:x=>x});vm.runInContext(ts.transpile(fn.getText(ast).replace('export ','')),sandbox);
