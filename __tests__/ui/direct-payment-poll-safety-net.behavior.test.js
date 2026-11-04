@@ -48,9 +48,10 @@ function boot(options) {
   if (typeof window.AbortController === "undefined") window.AbortController = AbortController;
   if (typeof window.CSS === "undefined") window.CSS = { escape: (s) => String(s) };
 
-  const calls = { status: [], confirm: [], resumed: [] };
-  window.alert = () => {};
-  window._cdSetCoinGateOverlay = () => {};
+  const calls = { status: [], confirm: [], resumed: [], alerts: [], overlayOpens: 0, finished: 0 };
+  window.alert = (message) => { calls.alerts.push(String(message)); };
+  window._cdSetCoinGateOverlay = (open) => { if (open) calls.overlayOpens += 1; };
+  window.addEventListener("cd:direct-payment-resumed", () => { calls.finished += 1; });
   window.Element.prototype.scrollIntoView = function () {};
   window.CodeDestinyUserAccessCache = { refreshUserAccessAfterPayment: () => Promise.resolve() };
   window.fetch = (url, init) => {
@@ -61,7 +62,9 @@ function boot(options) {
     }
     if (target.indexOf("/api/billing/confirm") >= 0) {
       calls.confirm.push(JSON.parse(String((init && init.body) || "{}")));
-      if (opts.pendingOnce && calls.confirm.length === 1) return Promise.resolve(jsonResponse({ ok: true, code: 'GRANT_PENDING', recoveryRequired: true }));
+      if (opts.confirmStatus) return Promise.resolve(jsonResponse({ ok: false, message: "fail" }, opts.confirmStatus));
+      if (opts.profileSelection) return Promise.resolve(jsonResponse({ ok: true, code: 'GRANT_PENDING', recoveryRequired: true, profileSelectionRequired: true }));
+      if (opts.pendingAlways || (opts.pendingOnce && calls.confirm.length === 1)) return Promise.resolve(jsonResponse({ ok: true, code: 'GRANT_PENDING', recoveryRequired: true }));
       return Promise.resolve(jsonResponse({ ok: true, unlocked: true, featureKey: "neville-meditation" }));
     }
     return Promise.resolve(jsonResponse({ ok: true }));
@@ -78,7 +81,7 @@ function boot(options) {
   }
 
   window.eval(checkoutEntryJs);
-  window.__cdCheckoutEntry.registerPaidResumeHandler("poll-fixture", () => { calls.resumed.push(Date.now()); return true; });
+  window.__cdCheckoutEntry.registerPaidResumeHandler("poll-fixture", () => { calls.resumed.push(Date.now()); return opts.handlerResult !== false; });
   if (typeof opts.beforeProfile === "function") opts.beforeProfile(window);
   window.eval(profileJs);
   // 리다이렉트 신호가 없으므로 부팅 시의 복귀 시도는 아무 것도 하지 않아야 한다(조용한 폴백은 60초 후).
@@ -151,6 +154,57 @@ test('paid approval followed by GRANT_PENDING keeps polling until the same order
     assert.ok(calls.confirm.every(body => body.merchantUid === ORDER_ID));
     assert.equal(calls.resumed.length, 1);
   } finally { window.close(); }
+});
+
+// 🔴 재개가 false 면 예전에는 3초마다 확정·대기 오버레이·카드 재생성을 반복했다(25초 9회).
+test("확정이 끝났는데 재개가 실패하면 카드를 한 번만 그리고 폴링을 끝내며, 탭 복귀로 다시 시작하지 않는다", async () => {
+  const { window, calls } = boot({ order: { id: ORDER_ID, status: "paid" }, handlerResult: false });
+  try {
+    window.__cdDirectOrderPollHook.start(ORDER_ID);
+    await waitFor(() => calls.finished === 1, "first resume", POLL_WAIT_MS);
+    const card = window.document.getElementById("cdDirectResumeCard");
+    assert.ok(card, "복귀 카드가 없다");
+    const statusBefore = calls.status.length;
+    window.document.dispatchEvent(new window.Event("visibilitychange"));
+    window.dispatchEvent(new window.PageTransitionEvent("pageshow", { persisted: true }));
+    await new Promise((r) => setTimeout(r, 4000));
+    assert.equal(calls.confirm.length, 1);
+    assert.equal(calls.status.length, statusBefore, "끝난 주문의 폴링이 다시 시작됐다");
+    assert.equal(window.document.getElementById("cdDirectResumeCard"), card, "카드를 다시 그렸다");
+    assert.ok(window.localStorage.getItem(RESUME_KEY), "지금 열기를 위해 티켓을 보존한다");
+  } finally { window.close(); }
+});
+
+test("지급 보류가 이어져도 폴링은 계속하되 전체 화면 안내는 첫 시도에만 띄운다", async () => {
+  const { window, calls } = boot({ order: { id: ORDER_ID, status: "paid" }, pendingAlways: true });
+  try {
+    window.__cdDirectOrderPollHook.start(ORDER_ID);
+    await waitFor(() => calls.confirm.length >= 1, "first confirm", POLL_WAIT_MS);
+    await new Promise((r) => setTimeout(r, 50));
+    const opensAfterFirst = calls.overlayOpens;
+    assert.ok(opensAfterFirst >= 1, "첫 시도에는 안내가 보여야 한다");
+    await waitFor(() => calls.confirm.length >= 3, "polling continues", 9000);
+    assert.equal(calls.overlayOpens, opensAfterFirst, "재시도마다 오버레이가 다시 떴다");
+  } finally { window.__cdDirectOrderPollHook.stop(); window.close(); }
+});
+
+test("프로필 선택이 필요한 주문은 폴링으로 풀리지 않으므로 확정을 반복하지 않는다", async () => {
+  const { window, calls } = boot({ order: { id: ORDER_ID, status: "paid" }, profileSelection: true });
+  try {
+    window.__cdDirectOrderPollHook.start(ORDER_ID);
+    await waitFor(() => calls.confirm.length === 1, "first confirm", POLL_WAIT_MS);
+    await new Promise((r) => setTimeout(r, 4000));
+    assert.equal(calls.confirm.length, 1);
+  } finally { window.close(); }
+});
+
+test("확정 오류가 이어져도 폴링 재시도마다 경고창을 띄우지 않는다", async () => {
+  const { window, calls } = boot({ order: { id: ORDER_ID, status: "paid" }, confirmStatus: 400 });
+  try {
+    window.__cdDirectOrderPollHook.start(ORDER_ID);
+    await waitFor(() => calls.confirm.length >= 3, "polling continues", 12000);
+    assert.equal(calls.alerts.length, 1, "재시도마다 경고창이 다시 떴다");
+  } finally { window.__cdDirectOrderPollHook.stop(); window.close(); }
 });
 
 test('bfcache, visibility and online activation recover without browser back or duplicate execution', async () => {

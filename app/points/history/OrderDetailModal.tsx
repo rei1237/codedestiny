@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { LoadingLocale } from "@/constants/loadingMessages";
 import type { OrderDetailViewModel } from "./order-view-model";
 import styles from "./PointHistoryClient.module.css";
@@ -22,6 +22,9 @@ const COPY = {
     amount: "결제 금액",
     method: "결제 방식",
     order: "주문번호",
+    copy: "복사",
+    copied: "복사됨",
+    copyFailed: "복사 실패",
     approval: "승인번호",
     benefit: "지급된 상품 또는 이용권",
     receipt: "영수증 보기",
@@ -37,6 +40,9 @@ const COPY = {
     amount: "Amount",
     method: "Payment method",
     order: "Order number",
+    copy: "Copy",
+    copied: "Copied",
+    copyFailed: "Copy failed",
     approval: "Approval number",
     benefit: "Granted product or pass",
     receipt: "View receipt",
@@ -58,6 +64,7 @@ function statusClass(status: OrderDetailViewModel["status"]) {
 export default function OrderDetailModal({ locale, order, loading, error, onRetry, onClose }: Props) {
   const copy = locale === "ko" ? COPY.ko : COPY.en;
   const closeRef = useRef<HTMLButtonElement>(null);
+  const [copyLabel, setCopyLabel] = useState<string>(copy.copy);
   const purchasedAt = order ? (() => {
     const date = new Date(order.purchasedAt);
     return Number.isNaN(date.getTime()) ? order.purchasedAt : date.toLocaleString(locale === "ko" ? "ko-KR" : "en-US");
@@ -101,7 +108,29 @@ export default function OrderDetailModal({ locale, order, loading, error, onRetr
               <div className={styles.detailRow}><dt>{copy.date}</dt><dd>{purchasedAt}</dd></div>
               {order.amount ? <div className={styles.detailRow}><dt>{copy.amount}</dt><dd>{order.amount.value.toLocaleString()} {order.amount.currency}</dd></div> : null}
               {order.paymentMethod ? <div className={styles.detailRow}><dt>{copy.method}</dt><dd>{order.paymentMethod}</dd></div> : null}
-              <div className={styles.detailRow}><dt>{copy.order}</dt><dd className={styles.mono}>{order.orderNumberMasked}</dd></div>
+              <div className={styles.detailRow}>
+                <dt>{copy.order}</dt>
+                <dd className={styles.mono}>
+                  {order.orderNumber ? (
+                    <>
+                      <span>{order.orderNumber}</span>
+                      <button
+                        type="button"
+                        className={styles.orderCopy}
+                        aria-live="polite"
+                        onClick={async () => {
+                          try {
+                            await navigator.clipboard.writeText(order.orderNumber);
+                            setCopyLabel(copy.copied);
+                          } catch {
+                            setCopyLabel(copy.copyFailed);
+                          }
+                        }}
+                      >{copyLabel}</button>
+                    </>
+                  ) : order.orderNumberMasked}
+                </dd>
+              </div>
               {order.approvalNumberMasked ? <div className={styles.detailRow}><dt>{copy.approval}</dt><dd className={styles.mono}>{order.approvalNumberMasked}</dd></div> : null}
             </dl>
             {order.entitlements.length ? (
