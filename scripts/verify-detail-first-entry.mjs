@@ -31,6 +31,9 @@ try {
   for (const width of [360, 390, 430, 1280]) {
     const context = await browser.newContext({ viewport: { width, height: 900 },
       isMobile: width < 500, hasTouch: width < 500, reducedMotion: 'reduce', serviceWorkers: 'block' });
+    // This verifier owns the paid-card detail flow. Keep the independent home
+    // consultation popup from intercepting the cards under test.
+    await context.addInitScript(() => sessionStorage.setItem('cd_signature_consult_session_closed_v1', '1'));
     const paid = [], errors = [];
     await context.route('**/*', async route => {
       const url = new URL(route.request().url());
@@ -70,6 +73,18 @@ try {
         const group = await concern.getAttribute('data-yh-group');
         await page.locator('[data-yh-concern="' + group + '"]').click();
         await expect(card).toBeVisible();
+      }
+      // Move carousel cards into the active window before opening them. The
+      // off-screen cards are inert by design and cannot receive restored focus.
+      const signatureIndex = await card.evaluate(element => {
+        const grid = element.closest('#cdSigGrid');
+        return grid ? Array.from(grid.children).indexOf(element) : -1;
+      });
+      if (signatureIndex >= 0) {
+        const dots = page.locator('[data-sig-dots] [data-sig-slide]');
+        const lastDotIndex = Math.max(0, (await dots.count()) - 1);
+        await dots.nth(Math.min(signatureIndex, lastDotIndex)).click();
+        await expect.poll(() => card.evaluate(element => !element.inert)).toBe(true);
       }
       await card.scrollIntoViewIfNeeded();
       await card.click();
