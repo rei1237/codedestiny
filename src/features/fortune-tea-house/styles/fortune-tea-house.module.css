@@ -2263,13 +2263,16 @@
      프레임도 같은 만큼 줄어야 씬 바닥이 시스템 UI 아래로 내려가지 않는다(60 = 92 - 32). */
   min-height: calc(100svh - 60px - max(32px, env(safe-area-inset-bottom, 0px)));
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   align-items: center;
 }
 
 .sceneStage {
   width: 100%;
+  min-width: 0;
   min-height: inherit;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   align-items: center;
   will-change: opacity, transform;
 }
