@@ -1603,6 +1603,7 @@ const ROUTES = {
       let billingType = "per_use";
       let directOnly = false;
       let familyPassOnly = false;
+      let lightFortune = false;
       try {
         const catalogItem = resolveProduct({ featureKey: product.featureKey });
         billingType = String(catalogItem.billingType || "per_use");
@@ -1746,6 +1747,7 @@ const ROUTES = {
         passExcluded = catalogItem.passExcluded === true;
         directOnly = catalogItem.directOnly === true;
         familyPassOnly = catalogItem.familyPassOnly === true;
+        lightFortune = catalogItem.lightFortune === true;
       } catch { /* 카탈로그 미등재는 아래 일반 경로로 */ }
       if (passExcluded) {
         const message = directOnly
@@ -1761,7 +1763,7 @@ const ROUTES = {
       const outcome = await withDb(env, ctx, async (db) => {
         const user = await db.findOne(User, { _id: toObjectId(userId) });
         const entitlement = resolveCanonicalEntitlement(user || {});
-        const coverage = evaluatePassCoverage({ user, entitlement, coinCost: product.priceCoins });
+        const coverage = evaluatePassCoverage({ user, entitlement, coinCost: product.priceCoins, lightFortune });
 
         if (familyPassOnly && String(entitlement?.passTier || entitlement?.tier || "").toLowerCase() !== "family") {
           const replayed = await hasConsumedPassFeature(user, product.featureKey, requestId, db);

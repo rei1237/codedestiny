@@ -255,7 +255,7 @@ describe("라우트 — 왕복 예산·소비·봉투", () => {
     async function birthItem() {
       const { listProducts: list } = await import("../../worker/payments/catalog.js");
       const { isBirthScopedUnlockFeatureKey } = await import("../../worker/lib/paid-feature-registry.js");
-      return list().find((p) => p.billingType !== "per_use" && !p.passExcluded && !p.familyPassOnly
+      return list().find((p) => p.billingType !== "per_use" && !p.passExcluded && !p.familyPassOnly && !p.lightFortune
         && Number(p.priceCoins) > 0 && Number(p.priceCoins) <= PASS_LIMITS.family && isBirthScopedUnlockFeatureKey(p.featureKey));
     }
     const CARDS = [testCard("p1", { userId: USER }), testCard("p2", { userId: USER }), testCard("p3", { userId: USER, day: 18 })];

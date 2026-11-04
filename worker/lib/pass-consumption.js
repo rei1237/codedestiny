@@ -18,6 +18,7 @@ import { createHash } from "node:crypto";
 import { User, PointHistory } from "./models.js";
 import { invalidateAccessStateCacheForUser } from "./access-state-cache.js";
 import { mongoose, mongoTransactionOptions } from "./db.js";
+import { isLightFortuneFeatureKey } from "./light-fortune-catalog.js";
 import { scopeConnection } from "./db-scope-connection.js";
 
 function invalidatePassUsageReadCaches(userId) {
@@ -167,7 +168,7 @@ export async function consumePassForFeature({ user, entitlement, userId, feature
   if(String(featureKey || '').startsWith('yeongnyangi-'))return consumeYeongnyangiFamily({user,entitlement,userId,featureKey,requestId,coinCost,db});
   const { buildPassConsumeMarker, consumePassCoverage, evaluatePassCoverage, recordPassUsageEvidence } = await loadPassPolicy();
   const cost = Math.max(0, Math.floor(Number(coinCost) || 0));
-  const coverage = evaluatePassCoverage({ user, entitlement, coinCost: cost });
+  const coverage = evaluatePassCoverage({ user, entitlement, coinCost: cost, lightFortune: isLightFortuneFeatureKey(featureKey) });
   // 멱등: 같은 (기능, requestId) 재시도가 예산을 두 번 깎지 않는다.
   // 정본과 같은 마커·같은 배열을 쓰므로 coin-gate 경로와도 서로 중복 차감하지 않는다.
   const markers = Array.isArray(user?.recentConsumeRequestIds) ? user.recentConsumeRequestIds : [];
@@ -271,6 +272,8 @@ async function consumeYeongnyangiFamily({user,entitlement,userId,featureKey,requ
  * @returns {Promise<{refunded:boolean, amount?:number, skipped?:boolean, reason?:string}>}
  */
 export async function refundPassCoverage({ userId, cycleKey, cost, refundId, restorePass = null, sourcePointHistoryId = null, sourceFeatureKey = '', sourceRequestId = '', db = nativeDb }) {
+  // 라이트 운세는 사용액을 올린 적이 없으므로 되돌릴 것도 없다.
+  if (isLightFortuneFeatureKey(sourceFeatureKey)) return { refunded: false, skipped: true, reason: "PASS_BUDGET_EXEMPT" };
   const amount = Math.max(0, Math.floor(Number(cost) || 0));
   const key = String(cycleKey || "").trim();
   if (!userId || amount <= 0 || !key || !refundId) return { refunded: false, skipped: true };

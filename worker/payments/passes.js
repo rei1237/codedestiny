@@ -401,7 +401,7 @@ export function buildPassConsumeMarker(featureKey, requestId) {
  * 커버 판정. **읽기 0회** — 호출부가 이미 읽은 User 문서로만 판단한다.
  * @returns {{ covered: boolean, reason?: string, tier?: string, ... }}
  */
-export function evaluatePassCoverage({ user, entitlement, coinCost }) {
+export function evaluatePassCoverage({ user, entitlement, coinCost, lightFortune = false }) {
   const cost = Math.max(0, Math.floor(Number(coinCost || 0)));
   const sub = user?.profileSubscription && typeof user.profileSubscription === "object" ? user.profileSubscription : {};
   const tier = normalizePassTier(entitlement?.passTier || entitlement?.tier);
@@ -420,6 +420,14 @@ export function evaluatePassCoverage({ user, entitlement, coinCost }) {
 
   if (cost > perItemLimit) {
     return { covered: false, reason: "price_exceeds_pass_limit", tier, perItemLimit, coinCost: cost };
+  }
+  // 라이트 운세는 금액 한도를 쓰지 않는다. 건당 상한만 보고 마커·증빙은 그대로 남긴다.
+  if (lightFortune) {
+    return {
+      covered: true, tier, perItemLimit, coinCost: cost, budgetExempt: true,
+      budgetApplies: false, budgetCoin, usedCoin, cycleKey,
+      remainingCoin: Math.max(0, budgetCoin - usedCoin), sameCycle: false,
+    };
   }
   if (budgetApplies && usedCoin + cost > budgetCoin) {
     return {
@@ -497,13 +505,14 @@ export function describePassEligibility({ user, entitlement, product } = {}) {
     return { ...base, eligible: false, reason: "pass_excluded", deductKRW: 0 };
   }
 
-  const coverage = evaluatePassCoverage({ user, entitlement, coinCost: priceCoins });
+  const lightFortune = product?.lightFortune === true;
+  const coverage = evaluatePassCoverage({ user, entitlement, coinCost: priceCoins, lightFortune });
   return {
     ...base,
     eligible: coverage.covered === true,
     reason: coverage.covered === true ? "covered" : String(coverage.reason || "not_covered"),
     // 차감은 정상 판매가 기준이다 — 할인·쿠폰·프로모션가가 아니라 canonical price.
-    deductKRW: coverage.covered === true ? canonicalPriceKRW : 0,
+    deductKRW: coverage.covered === true && !lightFortune ? canonicalPriceKRW : 0,
   };
 }
 
@@ -688,7 +697,8 @@ export async function recordPassUsageEvidence(db, { userId, product, requestId, 
         passPolicyVersion: String(user?.profileSubscription?.passPolicyVersion || ""),
         passProfileLimit: Number(user?.profileSubscription?.profileLimit || 0),
         passLimit: Number(coverage.perItemLimit || 0),
-        monthlySpendUsed: Number(coverage.usedCoin || 0) + Number(coverage.coinCost || 0),
+        monthlySpendUsed: Number(coverage.usedCoin || 0) + (coverage.budgetExempt ? 0 : Number(coverage.coinCost || 0)),
+        ...(coverage.budgetExempt ? { passBudgetExempt: true } : {}),
       },
       createdAt: now,
       updatedAt: now,
