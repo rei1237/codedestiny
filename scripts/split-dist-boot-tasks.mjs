@@ -142,6 +142,8 @@ let wrappedBytes = 0;
 for (const file of collectHtml(DIST)) {
   const original = readFileSync(file, "utf8");
   const rel = relative(DIST, file).replace(/\\/g, "/");
+  // 파일당 한 번만 만든다. <script> 마다 만들면 큰 셸에서 이 단계가 CI 기준 52초가 된다(2026-11-04 실측).
+  const lowered = original.toLowerCase();
 
   let out = "";
   let cursor = 0;
@@ -152,7 +154,7 @@ for (const file of collectHtml(DIST)) {
   while ((m = OPEN_RE.exec(original)) !== null) {
     const attrs = m[1] || "";
     const bodyStart = m.index + m[0].length;
-    const close = original.toLowerCase().indexOf("</script>", bodyStart);
+    const close = lowered.indexOf("</script>", bodyStart);
     if (close === -1) break;
     OPEN_RE.lastIndex = close + "</script>".length;
     if (!isPlainInline(attrs)) continue;
