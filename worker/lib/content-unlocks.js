@@ -1000,10 +1000,19 @@ export async function getUnlockedContentSnapshot({
       ? [activeExpiryClause()]
       : [activeExpiryClause(), accountScopeClause],
   };
-  if (normalizedServiceKeys.length === 1) {
-    query.serviceKey = normalizedServiceKeys[0];
-  } else if (normalizedServiceKeys.length > 1) {
-    query.serviceKey = { $in: normalizedServiceKeys };
+  // 서비스 필터가 있어도 사주 영구 묶음 행은 항상 함께 읽는다. 묶음 행의 serviceKey 는 saju 라서,
+  // 다른 서비스만 묻는 조회가 그 행과 포함 키 펼침을 놓치지 않게 한다(펼침은 아래에서 한 번 더 일어난다).
+  if (normalizedServiceKeys.length > 0) {
+    const serviceKeyClause = normalizedServiceKeys.length === 1
+      ? { serviceKey: normalizedServiceKeys[0] }
+      : { serviceKey: { $in: normalizedServiceKeys } };
+    query.$and.push({
+      $or: [
+        serviceKeyClause,
+        { featureKey: SAJU_BUNDLE_FEATURE_KEY },
+        { contentKey: SAJU_BUNDLE_FEATURE_KEY },
+      ],
+    });
   }
 
   const birthPidSet = new Set(birthPids);

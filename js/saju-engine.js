@@ -22046,6 +22046,25 @@ function _cdSajuBundleOpen(){
 function _cdSajuSharedTileOpen(){
   return _cdSajuBundleOpen()||_cdSajuGateUnlocked('section_summary');
 }
+// 테토/에겐 카드는 심화 리포트(tetogen_deep_report)만 산 사람에게도 열린다. 묶음·section_summary 와 별개로 개별 키를 본다.
+function _cdSajuHormoneOpen(){
+  return _cdSajuSharedTileOpen()||_cdSajuGateUnlocked('tetogen_deep_report');
+}
+// 로또 카드는 묶음, 타일 키(rpt_lottoCard), 리추얼 리포트 키 중 하나로 열린다.
+function _cdSajuLottoOpen(){
+  try{ return !!(window.CdSajuBundleOffer&&window.CdSajuBundleOffer.isLottoOpen()); }catch(_){ return false; }
+}
+// 닫힌 쪽 카드 정리. 다른 프로필·직접 입력으로 바뀌었을 때 앞 프로필의 카드 내용이 남지 않는다.
+function _cdClearClosedBundleCards(open,lotto,shared,hormone){
+  var offer=window.CdSajuBundleOffer;
+  if(!offer||typeof offer.clearCards!=='function')return;
+  try{
+    if(!open)offer.clearCards('bundle');
+    if(!lotto)offer.clearCards('lotto');
+    if(!shared)offer.clearCards('shared');
+    if(!hormone)offer.clearCards('hormone');
+  }catch(_){}
+}
 // 원국 바로 아래 한 줄 성향. 일주 키(예: 甲子)만 쓰며 서버 호출·권한 판정이 없다.
 function _cdRenderNatalOneLiner(p){
   var host=document.getElementById('sajuNatalOneLiner');
@@ -22066,22 +22085,31 @@ function _cdRenderBundleSurfaces(){
   if(!args||!args.p)return;
   var p=args.p,natal=args.natal,bazi=args.bazi,johu=args.johu;
   var shared=_cdSajuSharedTileOpen();
-  var key=(open?'b':'-')+(shared?'s':'-')+'|'+String(p.d&&p.d.g)+String(p.d&&p.d.j)+'|'+String(p.y&&p.y.g)+String(p.m&&p.m.j);
+  var lotto=open||_cdSajuLottoOpen();
+  var hormone=shared||_cdSajuHormoneOpen();
+  _cdClearClosedBundleCards(open,lotto,shared,hormone);
+  var key=(open?'b':'-')+(shared?'s':'-')+(lotto?'l':'-')+(hormone?'h':'-')+'|'+String(p.d&&p.d.g)+String(p.d&&p.d.j)+'|'+String(p.y&&p.y.g)+String(p.m&&p.m.j);
   if(key===_cdBundleSurfaceRenderKey)return;
   var tasks=[];
-  if(_cdSajuBundleOpen()){
+  if(lotto){
     tasks.push(function(){ invokeOptionalGlobalRenderer('renderLottoNumbers',[natal,bazi]); });
+  }
+  if(open){
     tasks.push(function(){
       var pr=renderDailyMonthlyFortune(p);
       if(pr&&typeof pr.catch==='function')pr.catch(function(e){ console.error('DailyMonthlyFortune 에러:',e); });
     });
-    tasks.push(function(){ renderLetter(p); });
+    tasks.push(function(){ var lb=document.getElementById('letterBox'); if(lb)lb.style.display='block'; renderLetter(p); });
     tasks.push(function(){ renderTodayDestinyCard(p); });
     tasks.push(function(){ findSimilarCelebs(p); });
   }
-  if(_cdSajuSharedTileOpen()){
+  if(shared){
     tasks.push(function(){ invokeOptionalGlobalRenderer('renderTTest',[p,natal,johu,G_POWER]); });
+  }
+  if(hormone){
     tasks.push(function(){ renderHormoneVibe(p,G_POWER); });
+  }
+  if(shared){
     tasks.push(function(){ invokeOptionalGlobalRenderer('renderDopamineReport',[p,natal,G_POWER,johu]); });
     tasks.push(function(){ invokeOptionalGlobalRenderer('renderSajuFourCutContent',[]); });
   }

@@ -356,3 +356,26 @@ test("영구 해금 목록은 묶음 행의 포함 키를 내보낸다", async (
   const withoutProfile = await resolvePersistedUnlockFeatures(TEST_USER_ID, [SAJU_BUNDLE_FEATURE_KEY], "", {});
   for (const key of SAJU_BUNDLE_ALIAS_MEMBER_KEYS) expect(withoutProfile).not.toContain(key);
 });
+
+test("서비스 필터가 붙은 조회도 묶음 행을 읽고 포함 키로 펼친다", async () => {
+  await grantBundle();
+
+  // 묶음 행은 saju 서비스 행이다. 다른 서비스만 묻는 조회에서도 사라지지 않는다.
+  const filtered = await getUnlockedContentSnapshot({ userId: TEST_USER_ID, profileId: "profile-1", serviceKeys: ["ziwei"] });
+  expect(filtered.docs).toHaveLength(1);
+  expect(filtered.featureKeys).toEqual(expect.arrayContaining([...SAJU_BUNDLE_ALIAS_MEMBER_KEYS, SAJU_BUNDLE_FEATURE_KEY]));
+  expect(filtered.unlockMap.section_daewun).toBe(true);
+  // 다른 프로필(출생 정보가 다름)은 필터가 있어도 열리지 않는다.
+  const other = await getUnlockedContentSnapshot({ userId: TEST_USER_ID, profileId: "profile-2", serviceKey: "ziwei" });
+  expect(other.docs).toHaveLength(0);
+  expect(other.featureKeys).toEqual([]);
+
+  const response = await handleAccessRoutes(
+    new Request("https://example.com/api/access/unlocks?profileId=profile-1&serviceKey=ziwei"),
+    {},
+  );
+  const payload = await response.json();
+  for (const contentKey of ["saju.daeunAnalysis", "saju.fullReading", "saju.compatibility"]) {
+    expect(payload.unlocks[contentKey].unlocked).toBe(true);
+  }
+});

@@ -153,7 +153,7 @@ var LOVE_CODE_FEATURE = {
 var REPORT_CARDS = [
   {id:"career-style",target:"careerStyle",thumb:"career-style-yeoni.webp",label:"나의 일 스타일",desc:"성향과 월지로 내게 맞는 업무 조건을 탐색해요.",note:"프로필 카드로 보는 여덟 장의 자기이해 리포트입니다. 사주 묶음에 포함돼요.",cta:"사주 묶음 안내 보기",action:"openCareerStyleRoute",coinCost:0,mainLock:false,badge:"묶음 포함",category:"self"},
   { id:'meryok',     label:_reportDashboardText("rd.label.001"),      desc:'신살 스탯 · 도화 · 역마 지수를 확인해보세요.',          note:'요즘 왜 유독 시선이 꽂히는지, 내 매력 포인트를 한 번에 읽어드립니다.', cta:_reportDashboardText("rd.cta.004"), thumb:'meryok-new.webp', accent:'#f472b6', glow:'rgba(244,114,182,.55)', target:'specialCharmCard',   coinCost:10  },
-  { id:'quantum',    thumb:'퀀텀 명리 엔진.webp', label:_reportDashboardText("rd.label.002"),        desc:'합화 우선 분석으로 나만의 천기 지도가 열립니다.',      note:'한 번 해금하면 합화·용신 보정·천기 전략 리포트 전체가 계속 머뭅니다.', cta:_reportDashboardText("rd.cta.005"),          accent:'#38bdf8', glow:'rgba(56,189,248,.55)',  target:'quantumCard',        lockKey:'rpt_quantumCard', coinCost:100, badge:'10,000원 · 영구 해금'  },
+  { id:'quantum',    thumb:'퀀텀 명리 엔진.webp', label:_reportDashboardText("rd.label.002"),        desc:'합화 우선 분석으로 나만의 천기 지도가 열립니다.',      note:'사주 영구 묶음을 해금하면 합화·용신 보정·천기 전략 리포트 전체가 계속 머뭅니다.', cta:_reportDashboardText("rd.cta.005"),          accent:'#38bdf8', glow:'rgba(56,189,248,.55)',  target:'quantumCard',        lockKey:'rpt_quantumCard', coinCost:100, badge:'사주 묶음 포함'  },
   { id:'sajuhealth', thumb:'명리 헬스 리포트.webp', label:_reportDashboardText("rd.label.003"),      desc:'오행 균형과 건강 약점 신호를 점검해보세요.',             note:'놓치기 쉬운 몸의 신호를 사주 관점으로 풀어, 수호 우선순위를 정리해드립니다.', cta:_reportDashboardText("rd.cta.006"),      accent:'#4ade80', glow:'rgba(74,222,128,.55)',  target:'healthReportCard',   coinCost:50  },
   { id:'sajuprompt', thumb:'사주 프롬프트.webp', label:_reportDashboardText("rd.label.004"),      desc:'물상·아바타·이상형 얼굴 등 AI 이미지 프롬프트 구성을 확인해보세요.', note:'라이트 사주 풀이 해금 기준을 따릅니다. 종합 운세 프롬프트는 프롬프트 허브에서 단건 결제로 만들 수 있어요.', cta:_reportDashboardText("rd.cta.007"),    accent:'#c084fc', glow:'rgba(192,132,252,.55)', target:'aiPromptCard', lockKey:'section_summary', coinCost:100 },
   { id:'sajurpg',    thumb:'RPG 인생 스킬트리.webp', label:_reportDashboardText("rd.label.005"),        desc:'운명 RPG 스타일로 내 능력치 레벨을 확인합니다.',         note:'내 강점 스탯과 취약 스탯을 RPG처럼 시각화해 성장 루트를 제시합니다.', cta:_reportDashboardText("rd.cta.008"),        accent:'#fbbf24', glow:'rgba(251,191,36,.55)',  target:'skillTreeCard',      coinCost:10  },
@@ -1235,6 +1235,16 @@ function _rptSharedTileOpen() {
   if (_rptBundleOpen()) return true;
   try { return typeof window.isTileKeyUnlocked === 'function' && window.isTileKeyUnlocked('section_summary') === true; } catch (_e) { return false; }
 }
+// 로또 카드는 묶음, rpt_lottoCard 타일 키, 리추얼 리포트 키 중 하나로 열린다.
+function _rptLottoOpen() {
+  if (_rptBundleOpen()) return true;
+  try { return !!(window.CdSajuBundleOffer && window.CdSajuBundleOffer.isLottoOpen()); } catch (_e) { return false; }
+}
+// 테토/에겐 카드는 심화 리포트(tetogen_deep_report)만 산 사람에게도 열린다.
+function _rptHormoneOpen() {
+  if (_rptSharedTileOpen()) return true;
+  try { return typeof window.isTileKeyUnlocked === 'function' && window.isTileKeyUnlocked('tetogen_deep_report') === true; } catch (_e) { return false; }
+}
 function _rptBundleCoveredKey(lockKey) {
   var key = String(lockKey || '');
   if (key === 'saju_lifetime_bundle') return true;
@@ -1254,7 +1264,7 @@ function _sajuFunTryRecoverTargetCard(targetId) {
 
     switch (targetId) {
       case 'lottoCard':
-        if (_rptBundleOpen() && typeof renderLottoNumbers === 'function' && natal) renderLottoNumbers(natal, bazi);
+        if (_rptLottoOpen() && typeof renderLottoNumbers === 'function' && natal) renderLottoNumbers(natal, bazi);
         break;
       case 'quantumCard':
         // 본문은 서버(/api/saju/section, rpt_quantumCard)가 해금을 확인한 뒤 배달한다.
@@ -1280,7 +1290,7 @@ function _sajuFunTryRecoverTargetCard(targetId) {
         if (_rptSharedTileOpen() && typeof renderTTest === 'function' && p && natal) renderTTest(p, natal, johu, power);
         break;
       case 'hormone-vibe-section':
-        if (_rptSharedTileOpen() && typeof renderHormoneVibe === 'function' && p && power) renderHormoneVibe(p, power);
+        if (_rptHormoneOpen() && typeof renderHormoneVibe === 'function' && p && power) renderHormoneVibe(p, power);
         break;
       case 'energyCoordCard':
         // 본문은 서버(/api/saju/section, rpt_energyCoordCard)가 해금을 확인한 뒤 배달한다.

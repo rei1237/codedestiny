@@ -3746,7 +3746,7 @@ function elColor(e){
 
 async function renderDailyMonthlyFortune(p){
   /* 사주 묶음(saju_lifetime_bundle) 안의 카드다. 묶음이 닫혀 있거나 권한 조회가 실패하면 아무것도 만들지 않는다. */
-  try{if(!(window.CdSajuBundleOffer&&window.CdSajuBundleOffer.isOpen()))return;}catch(_bundleGuardErr){return;}
+  try{if(!(window.CdSajuBundleOffer&&window.CdSajuBundleOffer.isOpen())){try{window.CdSajuBundleOffer&&window.CdSajuBundleOffer.clearCards('bundle');}catch(_clearErr){}return;}}catch(_bundleGuardErr){return;}
   var card=document.getElementById('dailyMonthlyCard');
   if(!card)return;
   card.style.display='block';
@@ -3791,7 +3791,7 @@ async function renderDailyMonthlyFortune(p){
 
 function renderLetter(p){
   /* 사주 묶음(saju_lifetime_bundle) 안의 카드다. 닫힘이면 만들지 않는다. */
-  try{if(!(window.CdSajuBundleOffer&&window.CdSajuBundleOffer.isOpen()))return;}catch(_bundleGuardErr){return;}
+  try{if(!(window.CdSajuBundleOffer&&window.CdSajuBundleOffer.isOpen())){try{window.CdSajuBundleOffer&&window.CdSajuBundleOffer.clearCards('bundle');}catch(_clearErr){}return;}}catch(_bundleGuardErr){return;}
   if (window.SajuReadingPresentation) return window.SajuReadingPresentation.render('letter');
   var isNeoSaju = isNeoSajuModeActive();
   var pw=G_POWER,jg=G_JONG;
@@ -4486,7 +4486,9 @@ window.openLottoRitualReport=function(){
   /* 개별 권리(이미 구매한 사람) 또는 사주 묶음(saju_lifetime_bundle)으로 연다. 이 리포트는 생성 모델을 부르지 않고 이 기기에서 만든다. */
   var bundleOpen=false;
   try{bundleOpen=!!(window.CdSajuBundleOffer&&window.CdSajuBundleOffer.isOpen());}catch(_bundleErr){}
-  var legacyUnlocked=bundleOpen||(typeof window.isTileKeyUnlocked==='function'&&window.isTileKeyUnlocked(LOTTO_RITUAL_FEATURE_KEY));
+  var lottoOpen=false;
+  try{lottoOpen=!!(window.CdSajuBundleOffer&&window.CdSajuBundleOffer.isLottoOpen());}catch(_lottoErr){}
+  var legacyUnlocked=bundleOpen||lottoOpen||(typeof window.isTileKeyUnlocked==='function'&&window.isTileKeyUnlocked(LOTTO_RITUAL_FEATURE_KEY));
   if(!perUseAuthorized&&!legacyUnlocked){
     /* 개별 판매는 끝났다. 결제창 대신 묶음 안내를 연다(프로필이 없으면 안내가 저장부터 권한다). */
     if(window.CdSajuBundleOffer&&typeof window.CdSajuBundleOffer.open==='function')window.CdSajuBundleOffer.open({source:'lotto-ritual'});
@@ -4557,7 +4559,7 @@ window.shareLottoRitualText=function(){
 
 function renderLottoNumbers(natal, bazi){
   /* 사주 묶음(saju_lifetime_bundle) 안의 카드다. 닫힘이면 만들지 않는다. */
-  try{if(!(window.CdSajuBundleOffer&&window.CdSajuBundleOffer.isOpen()))return;}catch(_bundleGuardErr){return;}
+  try{if(!(window.CdSajuBundleOffer&&window.CdSajuBundleOffer.isLottoOpen())){try{window.CdSajuBundleOffer&&window.CdSajuBundleOffer.clearCards('lotto');}catch(_clearErr){}return;}}catch(_bundleGuardErr){return;}
   var area=document.getElementById('lottoSection');
   var card=document.getElementById('lottoCard');
   if(!area||!card||!natal)return;
@@ -4775,7 +4777,7 @@ function renderLottoNumbers(natal, bazi){
           '<p>번호별 상징 해석과 이번 주 금전 루틴을 확인해보세요.</p>'+
           '<button type="button" class="lc-ritual-cta-btn" data-action="openLottoRitualReport" data-feature-key="'+LOTTO_RITUAL_FEATURE_KEY+'" data-coin-cost="10">'+
             '<span class="tarot-tile__title">달빛 럭키 리추얼 리포트</span>'+
-            '<small>회당 1,000원으로 리포트 열기</small>'+
+            '<small>사주 영구 묶음에 포함된 리포트 열기</small>'+
           '</button>'+
           '<em>구매 즉시 열람되는 디지털 콘텐츠이며, 복권 결과를 예측하거나 보장하지 않습니다.</em>'+
         '</div>'+

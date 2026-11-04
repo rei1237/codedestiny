@@ -5666,7 +5666,7 @@
         // 프로필이 없는 400 MISSING_PROFILE_ID 는 막다른 길이 아니라 프로필 저장 안내로 보낸다(requiresProfile).
         try {
           if (window.CdSajuBundleOffer && typeof window.CdSajuBundleOffer.handleBillingError === 'function'
-            && window.CdSajuBundleOffer.handleBillingError(dpCheckoutError.status, checkoutRes.payload)) dpCheckoutError.saleEnded = true;
+            && window.CdSajuBundleOffer.handleBillingError(dpCheckoutError.status, checkoutRes.payload, { featureKey: String((checkoutPayload && checkoutPayload.featureKey) || (opts && opts.featureKey) || '') })) dpCheckoutError.saleEnded = true;
         } catch (_dpSaleEndedErr) {}
         if (checkoutErrCode === 'MISSING_PROFILE_ID' || (checkoutRes.payload && checkoutRes.payload.requiresProfile === true)) dpCheckoutError.requiresProfile = true;
         throw dpCheckoutError;

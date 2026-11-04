@@ -867,7 +867,8 @@
     "href": "/saju/animal-destiny/",
     "action": "openAnimalDestinyRoute",
     "featureKey": "animal-destiny-unlock",
-    "price": "7,000원",
+    "price": "묶음 포함",
+    "badge": "사주 묶음 포함",
     "purposes": [
       "self",
       "career",

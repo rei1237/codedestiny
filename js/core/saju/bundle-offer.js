@@ -53,6 +53,42 @@
     }
   }
 
+  // 묶음 또는 그 키 자체의 보유로 열리는지. 로또 번호·테토/에겐 상세처럼 키별 보유가 있는 카드가 쓴다.
+  function isKeyOpen(key) {
+    if (isOpen()) return true;
+    try {
+      return typeof root.isTileKeyUnlocked === 'function' && root.isTileKeyUnlocked(key) === true;
+    } catch (_e) {
+      return false;
+    }
+  }
+  function isLottoOpen() {
+    return isKeyOpen('rpt_lottoCard') || isKeyOpen('fun.quantumLotto.ritualReport');
+  }
+
+  // 잠긴 쪽 정리. 다른 프로필·직접 입력으로 바뀌었을 때 앞 프로필의 카드 내용이 남지 않게 비우고 숨긴다.
+  var CARD_GROUPS = {
+    bundle: [['dailyMonthlyCard', ['dailyPanel', 'monthlyPanel']], ['letterBox', ['letterContent']], ['similarCelebCard', ['similarCelebResult']], ['destinySection', []]],
+    lotto: [['lottoCard', ['lottoSection']]],
+    shared: [['tTestCard', ['tTestResult']], ['dopamineCard', ['dopamineResult']], ['sajuFourCutCard', ['sajuFourCutResult']]],
+    hormone: [['hormone-vibe-section', ['hormoneVibeResult']]]
+  };
+  function clearCards(group) {
+    var doc = root.document;
+    var list = CARD_GROUPS[group];
+    if (!doc || !list) return;
+    for (var i = 0; i < list.length; i += 1) {
+      var card = doc.getElementById(list[i][0]);
+      if (card) card.style.display = 'none';
+      for (var j = 0; j < list[i][1].length; j += 1) {
+        var inner = doc.getElementById(list[i][1][j]);
+        if (inner) inner.innerHTML = '';
+      }
+    }
+    if (group === 'lotto') { try { root.__cdLottoRitualState = null; } catch (_e) { /* 선택 */ } }
+    if (group === 'bundle') { try { root.quantumProfile = null; } catch (_e) { /* 선택 */ } }
+  }
+
   function savedProfileId() {
     try {
       return typeof root.cdBirthScopeCurrentProfileId === 'function' ? String(root.cdBirthScopeCurrentProfileId() || '').trim() : '';
@@ -73,6 +109,11 @@
       + esc(t('saju.bundle.pay', PRICE_LABEL + '으로 영구 소장하기')) + '</button>';
   }
 
+  function saveButtonHtml() {
+    return '<button type="button" class="cd-bundle-offer__save" data-cd-bundle-save-profile>'
+      + esc(t('saju.bundle.saveProfile', '이 출생 정보를 프로필로 저장하기')) + '</button>';
+  }
+
   function detailHtml(profileMissing) {
     var items = INCLUDED.map(function (line) { return '<li>' + esc(t('saju.bundle.item.' + INCLUDED.indexOf(line), line)) + '</li>'; }).join('');
     var guidance = profileMissing
@@ -88,7 +129,7 @@
       + '<p class="cd-bundle-offer__sample">' + esc(t('saju.bundle.sample', SAMPLE)) + '</p>'
       + '<p class="cd-bundle-offer__own">' + esc(t('saju.bundle.own', '구매한 생년월일의 사주에 영구히 붙고, 이용 기간이나 다시 결제할 일이 없어요. 상담·궁합 상담처럼 그때그때 만드는 콘텐츠는 묶음에 포함되지 않아요.')) + '</p>'
       + guidance
-      + (profileMissing ? '' : payButtonHtml())
+      + (profileMissing ? saveButtonHtml() : payButtonHtml())
       + '</div>';
   }
 
@@ -105,7 +146,7 @@
       + '.cd-bundle-offer__price{margin:0 0 10px;font-size:.92rem}.cd-bundle-offer__price strong{font-size:1.2rem}'
       + '.cd-bundle-offer__list{margin:0 0 10px;padding-left:18px;font-size:.86rem;line-height:1.6;word-break:keep-all}'
       + '.cd-bundle-offer__sample,.cd-bundle-offer__own,.cd-bundle-offer__guide{margin:0 0 10px;font-size:.82rem;line-height:1.6;word-break:keep-all;color:#4b4560}'
-      + '.cd-bundle-offer__pay,.cd-bundle-offer__more{display:flex;align-items:center;justify-content:center;width:100%;min-height:44px;border:0;border-radius:10px;font-weight:800;font-size:.9rem;cursor:pointer;background:linear-gradient(90deg,#ffd54f,#ff8c00);color:#1a0a3a}'
+      + '.cd-bundle-offer__pay,.cd-bundle-offer__more,.cd-bundle-offer__save{display:flex;align-items:center;justify-content:center;width:100%;min-height:44px;border:0;border-radius:10px;font-weight:800;font-size:.9rem;cursor:pointer;background:linear-gradient(90deg,#ffd54f,#ff8c00);color:#1a0a3a}'
       + '.cd-bundle-inline{margin:12px 0;padding:14px;border-radius:14px;border:1px solid rgba(187,163,113,.5);background:rgba(255,248,230,.6);color:#1f1b2d}'
       + '.cd-bundle-inline__title{margin:0 0 4px;font-size:.98rem}.cd-bundle-inline__desc{margin:0 0 10px;font-size:.84rem;line-height:1.55;word-break:keep-all}';
     root.document.head.appendChild(style);
@@ -114,6 +155,48 @@
   function close() {
     var el = root.document && root.document.getElementById(OVERLAY_ID);
     if (el) el.hidden = true;
+  }
+
+  // 프로필 저장 뒤 안내로 돌아오기 위한 대기 상태. 저장 흐름은 기존 dpSaveProfile(프로필 카드 저장)을 그대로 쓴다.
+  var pendingReturn = null;
+  var RETURN_POLL_MS = 300;
+  var RETURN_MAX_POLLS = 40;
+  function resumeAfterProfile() {
+    if (!pendingReturn) return;
+    if (!savedProfileId()) return;
+    var source = pendingReturn.source;
+    pendingReturn = null;
+    open({ source: source || 'profile-saved' });
+  }
+  function pollForProfile(token) {
+    if (!pendingReturn || pendingReturn.token !== token) return;
+    if (savedProfileId()) { resumeAfterProfile(); return; }
+    pendingReturn.polls += 1;
+    if (pendingReturn.polls >= RETURN_MAX_POLLS) { pendingReturn = null; return; }
+    root.setTimeout(function () { pollForProfile(token); }, RETURN_POLL_MS);
+  }
+  function startProfileSave(source) {
+    if (typeof root.dpSaveProfile !== 'function') {
+      notice(t('saju.bundle.saveProfileUnavailable', '프로필 카드 화면에서 출생 정보를 저장해 주세요.'));
+      return false;
+    }
+    var token = String(Date.now()) + Math.random().toString(36).slice(2, 6);
+    pendingReturn = { source: source, token: token, polls: 0 };
+    close();
+    try {
+      root.dpSaveProfile();
+    } catch (_e) {
+      pendingReturn = null;
+      return false;
+    }
+    pollForProfile(token);
+    return true;
+  }
+  if (root.addEventListener) {
+    ['cd:profile-changed', 'cd:profile-card-published', 'destinyProfileChanged'].forEach(function (name) {
+      root.addEventListener(name, function () { try { resumeAfterProfile(); } catch (_e) { /* 안내 복귀는 선택 */ } });
+      if (root.document && root.document.addEventListener) root.document.addEventListener(name, function () { try { resumeAfterProfile(); } catch (_e) { /* 선택 */ } });
+    });
   }
 
   function open(options) {
@@ -125,7 +208,7 @@
     }
     ensureStyle();
     var source = options && options.source ? String(options.source).slice(0, 60) : '';
-    var profileMissing = !savedProfileId();
+    var profileMissing = !savedProfileId() || (options && options.requireProfile === true);
     var el = doc.getElementById(OVERLAY_ID);
     if (!el) {
       el = doc.createElement('div');
@@ -135,6 +218,7 @@
         if (target === el || (target && target.closest && target.closest('[data-cd-bundle-close]'))) { close(); return; }
         // 결제 길(tryUnlockFeature)이 자기 결제창을 띄우므로 안내는 먼저 걷는다.
         if (target && target.closest && target.closest('.cd-bundle-offer__pay')) close();
+        if (target && target.closest && target.closest('[data-cd-bundle-save-profile]')) startProfileSave(el.getAttribute('data-source') || '');
       });
       doc.addEventListener('keydown', function (event) { if (event.key === 'Escape') close(); });
       doc.body.appendChild(el);
@@ -194,8 +278,23 @@
     return String(payload.bundleFeatureKey || (err && err.bundleFeatureKey) || (data && data.bundleFeatureKey) || '').trim();
   }
 
+  function isProfileRequired(status, payload) {
+    if (!payload || typeof payload !== 'object') return false;
+    var err = payload.error && typeof payload.error === 'object' ? payload.error : null;
+    var data = payload.data && typeof payload.data === 'object' ? payload.data : null;
+    if (payload.requiresProfile === true || (err && err.requiresProfile === true) || (data && data.requiresProfile === true)) return true;
+    var code = readCode(payload);
+    return (Number(status) === 400 || Number(status) === 403) && (code === 'MISSING_PROFILE_ID' || code === 'PROFILE_REQUIRED' || code === 'INVALID_PROFILE');
+  }
+
   // 판매 종료 응답(409 PRODUCT_SALE_ENDED + bundleFeatureKey)이면 안내를 열고 true 를 돌려준다.
-  function handleBillingError(status, payload) {
+  // 묶음 또는 판매 종료 키의 결제가 프로필 없음(requiresProfile)으로 막힌 경우도 같은 안내의 프로필 저장 단계로 보낸다(context.featureKey).
+  function handleBillingError(status, payload, context) {
+    var ctxKey = context && context.featureKey ? String(context.featureKey).trim() : '';
+    if (ctxKey && (ctxKey === BUNDLE_KEY || isSaleClosedKey(ctxKey)) && isProfileRequired(status, payload)) {
+      open({ source: 'profile-required', requireProfile: true });
+      return true;
+    }
     var code = readCode(payload);
     if (code !== 'PRODUCT_SALE_ENDED' && !(Number(status) === 409 && readBundleKey(payload) === BUNDLE_KEY)) return false;
     open({ source: 'sale-ended' });
@@ -236,6 +335,11 @@
     open: open,
     close: close,
     isOpen: isOpen,
+    isKeyOpen: isKeyOpen,
+    isLottoOpen: isLottoOpen,
+    clearCards: clearCards,
+    isProfileRequired: isProfileRequired,
+    startProfileSave: startProfileSave,
     renderInline: renderInline,
     removeInline: removeInline,
     handleBillingError: handleBillingError
