@@ -55,6 +55,13 @@ test('an older result response cannot restore content after a newer denial',asyn
  finally{await view.close();delete document.hidden;history.replaceState({},'', '/');}
 });
 
+test('changing a direct result URL hides the previous result while the new one loads',async()=>{
+ history.replaceState({},'', '/result?id=result-1');const pending=new Promise(()=>{});
+ const view=await mount(true,'',{api:async(path)=>path.endsWith('result-1')?{id:'result-1',state:'COMPLETED',chapters:[{title:'결과',summary:'이전 결과'}],manifest:[{title:'결과'}],recovery:{savedChapters:1,totalChapters:1,canRetryNow:false,reviewRequired:false}}:pending});
+ try{assert.match(document.body.textContent,/이전 결과/);await React.act(async()=>{history.pushState({},'', '/result?id=result-2');window.dispatchEvent(new dom.window.PopStateEvent('popstate'));});assert.doesNotMatch(document.body.textContent,/이전 결과/);}
+ finally{await view.close();history.replaceState({},'', '/');}
+});
+
 test('library distinguishes life-fortune and life-book purchase titles',async()=>{
  history.replaceState({},'', '/library');const base={status:'PURCHASED',state:'UNASSIGNED',nativeService:'life-book',createdAt:'2026-01-01'};
  const view=await mount(true,'',{api:async()=>({purchases:[{...base,orderId:'book',featureKey:'life-book-ai-consultation'},{...base,orderId:'fortune',featureKey:'life-fortune-ai-consultation'}],nextCursor:null})});

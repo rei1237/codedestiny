@@ -124,6 +124,14 @@ test('pair scope requires a second explicit target, preserves unknown time and n
 });
 test('followup without an owned purchase never reaches a generation call',async()=>{const r=await request({id:crypto.randomUUID(),question:'내 질문'},'/results/'+'a'.repeat(64)+'/conversation');assert.equal(r.status,404);assert.equal(calls.followups,0);});
 
+test('a direct consultation result without a Toss purchase never reads the saved record',async()=>{
+ const previous={purchase:mocks.purchase,read:mocks.read};let reads=0;
+ mocks.purchase=filter=>({lean:async()=>{assert.equal(filter.identityId,auth._id);assert.equal(filter.environment,auth.environment);return null;}});
+ mocks.read=async()=>{reads++;throw Error('unowned result must not be read');};
+ try{const id='a'.repeat(64);const response=await handleTossRoutes(new Request('https://code-destiny.com/api/toss/results/'+id,{headers:{Origin:'https://ai-saju-studio.private-apps.tossmini.com'}}),{TOSS_RELEASE_READY:'true'});assert.equal(response.status,404);assert.equal(reads,0);}
+ finally{Object.assign(mocks,previous);}
+});
+
 test('original result contract rereads the owner-bound saved result and rejects refunded orders',async()=>{
  const previous={purchase:mocks.purchase,read:mocks.read,lookupOrder:mocks.lookupOrder};
  const id='a'.repeat(64),orderId='01900000-1111-7111-8111-000000000042';
