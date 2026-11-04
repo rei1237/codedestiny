@@ -43,7 +43,7 @@ test('a revoked result removes its stale continue action after a permission deni
 test('a failed result recheck hides previously approved content and continuation',async()=>{
  history.replaceState({},'', '/result?id=result-1');let finish,ready=false;const wait=new Promise(resolve=>{finish=()=>{ready=true;resolve();};});
  const view=await mount(true,'',{wait,api:async()=>ready?{errorStatus:404}:{id:'result-1',state:'PARTIAL',chapters:[{title:'결과',summary:'이전 결과'}],manifest:[{title:'결과'}],recovery:{savedChapters:1,totalChapters:2,canRetryNow:true,reviewRequired:false}}});
- try{assert.match(document.body.textContent,/추가 결제 없이 이어서 생성/);await React.act(async()=>finish());assert.doesNotMatch(document.body.textContent,/추가 결제 없이 이어서 생성|이전 결과/);}finally{await view.close();history.replaceState({},'', '/');}
+ try{assert.match(document.body.textContent,/추가 결제 없이 이어서 생성/);await React.act(async()=>finish());assert.doesNotMatch(document.body.textContent,/추가 결제 없이 이어서 생성|이전 결과/);ready=false;const retry=[...document.querySelectorAll('button')].find(button=>button.textContent.includes('다시 확인하기'));assert.ok(retry);await React.act(async()=>retry.click());assert.match(document.body.textContent,/이전 결과/);}finally{await view.close();history.replaceState({},'', '/');}
 });
 
 test('an older result response cannot restore content after a newer denial',async()=>{
