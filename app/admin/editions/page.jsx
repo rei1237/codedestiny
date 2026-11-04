@@ -1,7 +1,8 @@
 'use client';
 import {useEffect,useState} from 'react';
 import {adminFetch} from '../_lib/admin-api';
-import {enabled,Ticket,characters} from '../../editions/workshop-ui';
+import {useWorkshopMode,Ticket,characters} from '../../editions/workshop-ui';
+import StagingPrints from './staging-prints';
 import s from '../../editions/workshop.module.css';
 
 const empty={title:'',character:'yeoni',cap:3,channel:'스마트스토어',sku:''};
@@ -19,8 +20,10 @@ export default function Workshop(){
       setNotice(action?'기록을 확인했어요.':'');
     }catch(err){setNotice(err.message || '기록을 다시 확인해 주세요.');}finally{setBusy(false);}
   }
-  useEffect(()=>{if(enabled)run();},[]);
-  if(!enabled)return <main className={s.sheet}>공방이 열리지 않았어요.</main>;
+  const mode=useWorkshopMode();
+  useEffect(()=>{if(mode==='local')run();},[mode]);
+  if(mode==='staging')return <StagingPrints/>;
+  if(mode==='closed')return <main className={s.sheet}>공방이 열리지 않았어요.</main>;
   return <main className={s.sheet}><header><small>성장 공방 · 로컬 개발 체인</small><h1>한정판 공방</h1>
     <p>작품과 한도를 확정한 뒤, 실물에 넣을 발행증을 준비해요.</p></header>
     <section><h2>{form.id?'초안 수정':'새 에디션'}</h2><form onSubmit={e=>{e.preventDefault();run({...form,action:'draft'});}}>

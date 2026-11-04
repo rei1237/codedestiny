@@ -4,8 +4,9 @@ import ganache from 'ganache';
 import solc from 'solc';
 import { BrowserProvider, ContractFactory, Contract, randomBytes, hexlify } from 'ethers';
 
-export async function openChain(dir, db) {
-  const source = fs.readFileSync(new URL('Edition.sol', import.meta.url), 'utf8');
+export async function openChain(dir, db, rehearsal) {
+  // solc commits source bytes to the bytecode metadata. Replays must match on Windows and Linux.
+  const source = fs.readFileSync(new URL('Edition.sol', import.meta.url), 'utf8').replace(/\r\n/g,'\n');
   const input = { language:'Solidity', sources:{ 'Edition.sol':{content:source} }, settings:{
     evmVersion:'shanghai', outputSelection:{'*':{'*':['abi','evm.bytecode.object']}} }};
   const compiled = JSON.parse(solc.compile(JSON.stringify(input)));
@@ -13,9 +14,10 @@ export async function openChain(dir, db) {
   const {abi,evm} = compiled.contracts['Edition.sol'].Edition;
   const get = k => db.prepare('select value from settings where key=?').get(k)?.value;
   const put = (k,v) => db.prepare('insert into settings values(?,?)').run(k,v);
-  if (!get('seed')) put('seed',hexlify(randomBytes(32)));
+  if (!get('seed')) put('seed',rehearsal?.seed ?? hexlify(randomBytes(32)));
   const rpc = ganache.provider({database:{dbPath:path.join(dir,'chain')}, logging:{quiet:true},
-    chain:{chainId:31337,hardfork:'shanghai'}, wallet:{seed:get('seed'),totalAccounts:2}});
+    chain:{chainId:31337,hardfork:'shanghai', ...(rehearsal ? {time:new Date(rehearsal.genesis)} : {})},
+    ...(rehearsal ? {miner:{timestampIncrement:1}} : {}), wallet:{seed:get('seed'),totalAccounts:2}});
   const provider = new BrowserProvider(rpc,undefined,{cacheTimeout:-1,pollingInterval:30});
   const signer = await provider.getSigner(0);
   let contract;

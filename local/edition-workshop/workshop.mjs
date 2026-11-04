@@ -14,7 +14,7 @@ function artwork(character) {
   return createHash('sha256').update(fs.readFileSync(new URL('.'+art[character],publicDir))).digest('hex');
 }
 function commitment(e) { return hash(JSON.stringify([e.id,e.character,e.title,e.cap,e.digest])); }
-export async function openWorkshop(dir) {
+export async function openWorkshop(dir, rehearsal) {
   fs.mkdirSync(dir,{recursive:true});
   const db = new DatabaseSync(path.join(dir,'workshop.sqlite'));
   db.exec(`pragma journal_mode=WAL;
@@ -22,7 +22,7 @@ export async function openWorkshop(dir) {
     create table if not exists editions(id text primary key,character text,title text,cap integer,digest text,stage text,channel text,sku text);
     create table if not exists issues(id text,serial integer,code text unique,state text,tx text,reason text,primary key(id,serial));
     create table if not exists audit(at text default CURRENT_TIMESTAMP,id text,actor text,action text);`);
-  const chain = await openChain(dir,db);
+  const chain = await openChain(dir,db,rehearsal);
   const {contract:c,provider} = chain;
   const q = s=>db.prepare(s);
   const edition = id=>q('select * from editions where id=?').get(id) || reject(404,'에디션을 찾을 수 없어요.');
@@ -69,7 +69,8 @@ export async function openWorkshop(dir) {
       if (!r) {
         const s = await c.series(key);
         if (s.issued !== BigInt(n-1) || s.work !== commitment(e)) reject(409,'다음 발행 번호와 작품을 확인해 주세요.');
-        q("insert into issues values(?,?,?,'pending',null,null)").run(e.id,n,randomBytes(12).toString('hex'));
+        const code = rehearsal ? rehearsal.codeFor(e.id,n) : randomBytes(12).toString('hex');
+        q("insert into issues values(?,?,?,'pending',null,null)").run(e.id,n,code);
         audit(e.id,actor,n+'번 발행 접수'); r = issue(e.id,n);
       }
       if (await reconcile(e,r)) {
