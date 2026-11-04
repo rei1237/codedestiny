@@ -1232,6 +1232,48 @@
 		outline: 2px solid #a78bfa;
 		outline-offset: 2px;
 	}
+	.cd-guide-index__publication {
+		display: grid;
+		gap: 8px;
+		min-height: 100%;
+		padding-right: 44px;
+	}
+	.cd-guide-index__publication time {
+		font-size: var(--cd-t-caption, 0.76rem);
+		font-variant-numeric: tabular-nums;
+		color: rgba(232, 213, 163, 0.9);
+	}
+	.cd-guide-index__publication strong {
+		font-family: var(--font-serif);
+		font-size: var(--cd-t-card, 1.1rem);
+		line-height: 1.55;
+		color: #fbf8ff;
+		text-wrap: pretty;
+	}
+	.cd-guide-index__publication span {
+		display: -webkit-box;
+		overflow: hidden;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 3;
+		font-size: var(--cd-t-body, 0.9rem);
+		line-height: 1.7;
+		color: rgba(222, 215, 245, 0.78);
+	}
+	.cd-guide-index__publication-links {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 10px 20px;
+	}
+	.cd-guide-index__publication-links a {
+		color: #f0dca8;
+		text-decoration: underline;
+		text-decoration-thickness: 1px;
+		text-underline-offset: 4px;
+	}
+	.cd-guide-index__publication-links a:focus-visible {
+		outline: 2px solid #a78bfa;
+		outline-offset: 3px;
+	}
 
 	@media (min-width: 720px) {
 		.cd-guide .cd-card-grid {
