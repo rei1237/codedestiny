@@ -58,6 +58,7 @@ const PAID_SERVICE_ADMIN_AUTH_PATHS = Object.freeze([
   "/api/karma-destiny-ai",
   "/api/soul-origin",
   "/api/sibyl",
+  "/api/heukwol",
   "/api/fpti",
   "/api/celestial-harmony",
   "/api/tarot",

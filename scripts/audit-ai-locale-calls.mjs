@@ -34,7 +34,7 @@ for (const file of files) {
       const callee = node.expression.getText(ast);
       const injected = (file === 'worker/routes/dream.js' && callee === 'dreamGeminiCaller')
         || (file === 'worker/lib/guardian-fortune-llm.js' && callee === 'providerCall')
-        || (file === 'worker/lib/threads-ai-writer.js' && callee === 'generate');
+        || (['worker/lib/threads-ai-writer.js', 'worker/lib/heukwol-report.js'].includes(file) && callee === 'generate');
       if (injected || gateways.test(callee) || /(?:\.AI\.run|chat\.completions\.create|responses\.create|generateContent|generateContentStream|generateText|streamText)$/.test(callee)) {
         matches.push({ line: ast.getLineAndCharacterOfPosition(node.getStart(ast)).line + 1, kind: 'call', symbol: callee });
       }

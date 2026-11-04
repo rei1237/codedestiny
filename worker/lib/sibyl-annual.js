@@ -21,7 +21,7 @@ function evidenceFor(saju, pillar, id, label) {
   const interactions = buildLuckNatalInteractions(pillar, saju.pillarDetails, { includeGroups: true });
   return { id, label, pillar, tenGod: tenGodFor(saju.dayMaster, pillar[0]), tensions: flatten(interactions,TENSION), supports: flatten(interactions,SUPPORT) };
 }
-function relevance(e, domain) {
+export function sibylEvidencePriority(e, domain) {
   // An ordinal review priority, never an event probability or diagnostic score.
   return e.tensions.reduce((sum, item) => sum + (item.pillars.some(p => domain.pillars.includes(p)) ? 2 : 1), 0)
     + (domain.gods.includes(e.tenGod) ? 1 : 0);
@@ -49,7 +49,7 @@ export function buildSibylAnnual(birth, year) {
     return { ...evidenceFor(saju,pillar,`month-${index+1}`,`${term.month}월 절입 구간`), start:dateLabel(term), end:dateLabel(terms[start+index+1]), month:term.month };
   });
   const domains = DOMAINS.map(domain => {
-    const ranked = months.map(m => ({ ...m, priority:relevance(m,domain) + relevance(annual,domain) + (major ? relevance(major,domain) : 0) })).sort((a,b) => b.priority-a.priority || a.start.localeCompare(b.start));
+    const ranked = months.map(m => ({ ...m, priority:sibylEvidencePriority(m,domain) + sibylEvidencePriority(annual,domain) + (major ? sibylEvidencePriority(major,domain) : 0) })).sort((a,b) => b.priority-a.priority || a.start.localeCompare(b.start));
     const peak = ranked[0].priority;
     const periods = ranked.filter(m => m.priority === peak).map(m => ({ id:m.id, label:m.label, start:m.start, end:m.end }));
     const sources = [annual,...(major ? [major] : []),...months.filter(m => periods.some(p => p.id===m.id))];

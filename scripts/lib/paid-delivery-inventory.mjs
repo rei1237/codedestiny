@@ -39,6 +39,7 @@ export const LLM_DELIVERY_ADAPTERS=Object.freeze([
   [/^human-design-report$/, 'worker/routes/human-design-report.js',null,'route-delivery'],
   [/^destiny-compass-deep-report$/, 'worker/routes/destiny-compass-ai.js',null,'route-delivery'],
   [/^tarot-celestial-harmony$/, 'worker/lib/celestial-report-delivery.js','worker/lib/consultation-recovery-task.js','route-delivery'],
+  [/^heukwol-warning-consultation$/, 'worker/routes/heukwol.js','worker/lib/consultation-recovery-task.js','route-delivery'],
   [/^premium-naming-prompt$/, 'worker/routes/naming-prompt.js',null,'route-delivery'],
   [/^life-(book|fortune)-ai-consultation$/, 'worker/routes/life-book-ai.js',null,'route-delivery'],
   [/^neo-operation-room-consultation$/, 'worker/routes/neo-operation-room.js',null,'route-delivery'],

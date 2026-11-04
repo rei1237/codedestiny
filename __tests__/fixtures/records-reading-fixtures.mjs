@@ -58,6 +58,7 @@ export const sharedFeatureFixtures = {
  'fortune-chat-consultation':{answer:finalBody},
  'palm-reading-general':{report:{oneLiner:'저장된 손금',love:'저장된 연애 흐름',wealth:'저장된 재물 흐름',advice:finalBody},lines:{lifeLine:{summary:'저장된 생명선'},heartLine:{summary:'저장된 감정선'}}},
  'tarot-celestial-harmony':{cards,reading:{chapters:[chapter]}},
+ 'heukwol-warning-consultation':{year:2027,analysis:{months:[]},chapters:[{key:'temperament',title:'타고난 성향',warning:'조건부 경고',interpretation:'원인 해석',strategy:'실행 조언',checkpoints:['확인할 조건'],content:finalBody}]},
  'premium-fpti-report':{chapters:Array.from({length:7},(_,index)=>({order:index+1,title:'성향 '+(index+1),sections:[{title:'행동 패턴',body:index===6?finalBody:'저장된 성향 해석',strength:'저장된 강점',risk:'저장된 주의점',action:'저장된 행동'}],chapterSummary:'저장된 챕터 요약'}))},
 };
 for (const suffix of ['standard','deep','master']) sharedFeatureFixtures['tarot-prompt-maker-'+suffix]=structuredClone(sharedFeatureFixtures['tarot-prompt-maker']);
