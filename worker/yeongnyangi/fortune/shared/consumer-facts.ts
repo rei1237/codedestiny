@@ -1,4 +1,5 @@
-import { createEngineFactSnapshot, readEngineFactSnapshot } from '../../../lib/engine-fact-snapshot.js';
+import { createEngineFactSnapshot, engineFactContains, readEngineFactSnapshot, resealEngineFactSnapshot } from '../../../lib/engine-fact-snapshot.js';
+import { FortuneError } from './contracts';
 import type { DomainContext, FortuneInput, CalculationOptions } from './contracts';
 
 export function pinDomainFacts(c: DomainContext, input: FortuneInput, options: CalculationOptions = {}): DomainContext {
@@ -9,22 +10,25 @@ export function pinDomainFacts(c: DomainContext, input: FortuneInput, options: C
   return { ...c, engineFactProtocol: 'engine-facts-v1', engineFacts };
 }
 
+// Preparation enriches facts after calculate() pinned them, so the purchase seals its finished facts.
+// Facts take their JSON form here so the stored row and the sealed copy compare equal after any round-trip.
+export function sealDomainFacts(c: DomainContext): DomainContext {
+  if (!c.engineFacts) return c;
+  const engineFacts = resealEngineFactSnapshot(c.engineFacts, { facts: c.facts, limitations: c.limitations, engineVersion: c.engineVersion });
+  return { ...c, facts: JSON.parse(JSON.stringify(c.facts)), engineFacts };
+}
+
+// Status 500: a stored snapshot cannot be repaired by the buyer. Detail carries IDs only, never fact values.
 export function validateDomainFacts(c: DomainContext): DomainContext {
-  if (c.engineFactProtocol === 'engine-facts-v1' && !c.engineFacts) throw new Error('ENGINE_FACT_SNAPSHOT_REQUIRED');
+  if (c.engineFactProtocol === 'engine-facts-v1' && !c.engineFacts) throw new FortuneError('ENGINE_FACT_SNAPSHOT_REQUIRED', 500, c.domain);
   if (c.engineFacts) {
-    const pinned = readEngineFactSnapshot(c.engineFacts, { system: c.domain });
+    let pinned;
+    try { pinned = readEngineFactSnapshot(c.engineFacts, { system: c.domain }); }
+    catch { throw new FortuneError('ENGINE_FACT_SNAPSHOT_INVALID', 500, c.domain); }
     for (const fact of pinned.facts.facts) {
       const current = c.facts.find(row => row.id === fact.id);
-      if (!current || !containsFacts(current, fact)) throw new Error('ENGINE_FACT_CONTEXT_MISMATCH');
+      if (!current || !engineFactContains(current, fact)) throw new FortuneError('ENGINE_FACT_CONTEXT_MISMATCH', 500, String(fact.id));
     }
   }
   return c;
-}
-
-// Reading-only enrichment may add explanations; it may not replace the pinned facts.
-function containsFacts(current: unknown, original: unknown): boolean {
-  if (!original || typeof original !== 'object') return current === original;
-  if (!current || typeof current !== 'object' || Array.isArray(current) !== Array.isArray(original)) return false;
-  if (Array.isArray(original) && (current as unknown[]).length !== original.length) return false;
-  return Object.entries(original).every(([key, value]) => containsFacts((current as Record<string, unknown>)[key], value));
 }

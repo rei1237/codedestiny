@@ -6,6 +6,7 @@ import {cycleTag} from './major-luck';
 export const SAJU_CYCLE_VERSION='saju-cycle-evidence-v1';
 type Row=Record<string,any>;
 const pick=(row:Row,keys:string[])=>Object.fromEntries(keys.filter(key=>row?.[key]!==undefined).map(key=>[key,row[key]]));
+const GYEOKGUK_JUDGMENT=['finalGyeokguk','finalType','judgmentReason','confident','monthBranch','monthHiddenStems','candidates'];
 const luckRow=(row:Row,scope:string)=>({scope,stem:row.heavenlyStem||row.pillar?.[0],branch:row.earthlyBranch||row.pillar?.[1],
   age:row.startDate?undefined:row.startAge,year:row.year,label:scope==='daewoon'?(row.startDate?cycleTag(row):`${row.startYear}–${row.endYear} ${row.pillar}`):`${row.year} ${row.pillar}`});
 
@@ -43,6 +44,8 @@ export function withSajuCycleEvidence(context:DomainContext,asOf:string):DomainC
   const source={pillars,power:values.strengthHeuristic,jong:values.jong,promptConfig:values.advancedFactors.promptConfig};
   const calculate=(rows:Row[])=>projectAdvancedFactors(buildSajuAdvancedFactors(source,undefined,{luckRows:rows}));
   const natal=calculate([]);
+  // This recalculation only strips decade rows; the seal below must not turn its judgment into the approved one.
+  natal.gyeokguk={...natal.gyeokguk,...pick(projectAdvancedFactors(values.advancedFactors).gyeokguk,GYEOKGUK_JUDGMENT)};
   const annual=Array.isArray(values.yearlyLuck)?values.yearlyLuck:[];
   const cycles=major.cycles.map((cycle:Row)=>{
     const advanced=calculate([luckRow(cycle,'daewoon')]);

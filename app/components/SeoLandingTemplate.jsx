@@ -1,5 +1,6 @@
 import { serializeJsonLd } from "../../lib/seo/json-ld.mjs";
 import { getFortuneLanding } from "../../lib/fortune-landings.mjs";
+import { HOME_QUICK_LINKS } from "../../lib/seo/home-discovery.mjs";
 import landingStyles from "./fortune-landing.module.css";
 import PublicRecordLink from './PublicRecordLink';
 import { getIntentCopy } from '../../lib/seo/intent-copy.mjs';
@@ -41,11 +42,11 @@ const DEFAULT_FAQS = [
 
 const DEFAULT_RELATED_LABELS = {
   "/": "꿀꿀 운세 홈",
-  "/manse": "무료 만세력 사주 분석",
+  "/manse": "만세력으로 명식 확인하기",
   "/saju": "무료 사주팔자 분석",
   "/saju/monthly/2026-09": "2026년 9월 일간별 운세",
   "/saju/compatibility": "사주 궁합 해석",
-  "/compatibility": "궁합 보기",
+  "/compatibility": "체계별 궁합 비교",
   "/tarot": "무료 타로 카드 리딩",
   "/tarot/reunion": "재회 타로 리딩",
   "/tarot/mindscan": "상대 마음 타로",
@@ -55,7 +56,7 @@ const DEFAULT_RELATED_LABELS = {
   "/ziwei/chart": "자미두수 명반과 심화 상담 안내",
   "/astrology": "점성술 출생차트",
   "/human-design/guide": "휴먼 디자인 계산과 이용 안내",
-  "/sukuyo": "숙요점 27숙 궁합",
+  "/sukuyo": "숙요점 본명숙과 27숙 안내",
   "/sukuyo/compatibility": "숙요 궁합 계산과 관계 유형",
   "/nakshatra": "나크샤트라와 27숙 비교",
   "/vedic": "베다 점성술",
@@ -215,10 +216,11 @@ export default function SeoLandingTemplate({ page, hero = null, services = null 
      선택 필드라 넘기지 않은 랜딩의 출력은 그대로다. */
   const nextStep = page?.nextStep?.href && page.nextStep.label ? page.nextStep : null;
 
+  const homeLink = HOME_QUICK_LINKS.find(link => link.href === page.path.replace(/\/$/, "") + "/");
   const breadcrumb = [
     { name: copy.breadcrumbHome, path: "/" },
-    { name: copy.breadcrumbServices, path: "/guides" },
-    { name: page.breadcrumbLabel || (fortuneLanding ? getFortuneLanding(page.path).name : page.h1), path: page.path },
+    ...(!homeLink ? [{ name: copy.breadcrumbServices, path: "/guides" }] : []),
+    { name: homeLink?.title || page.breadcrumbLabel || (fortuneLanding ? getFortuneLanding(page.path).name : page.h1), path: homeLink?.href || page.path },
   ];
   /* 본문을 고친 날(page.dateModified, 선택 필드)은 화면의 검수 노트와 WebPage JSON-LD 에 같은 값으로
      싣는다. 넘기지 않은 랜딩의 출력은 그대로다. */

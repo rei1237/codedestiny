@@ -407,3 +407,5 @@ c2d3fec8b507a9a8a554f112a3ffceeb2fc00554:worker/lib/saju-section/runtime.generat
 d23588ed49f703557f85ca82da5dc1cf4d227dcb:docs/engine-audit/results/gyeokguk-profile-comparison.json:generic-api-key:2178
 62b460518cd2054e009a000bde65b6be2174b5cc:__tests__/fixtures/result-presentation-preservation.json:generic-api-key:85
 62b460518cd2054e009a000bde65b6be2174b5cc:__tests__/fixtures/result-presentation-preservation.json:generic-api-key:124
+# 2026-11-05 오탐: 생성 런타임의 번역 맵 값("Api Karma" 라벨 옆 문자열) — 비밀값 아님
+c223e5eab1333d20a86f5de54f726cdae252872a:worker/lib/saju-section/runtime.generated.mjs:generic-api-key:9

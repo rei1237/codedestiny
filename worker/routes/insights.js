@@ -117,7 +117,7 @@ function sanitizeNumericDimension(rawValue) {
   return String(normalized);
 }
 
-function sanitizeInsightHtml(rawHtml) {
+export function sanitizeInsightHtml(rawHtml) {
   let html = String(rawHtml || "");
 
   html = html

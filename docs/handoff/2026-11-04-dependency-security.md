@@ -1,21 +1,29 @@
 ---
-status: blocked
+status: active
 updated: 2026-11-04
-next: "사용자가 package-lock.json 수정을 승인하면 runtime 경고부터 Capacitor 8.4.3, Next 15.5.28, DOMPurify 3.4.17 순서로 묶음별 PR을 낸다"
+next: "development 경고를 메이저 업데이트 없이 풀리는 것부터 묶고, 스토어 재배포 일정은 사용자가 정하면 진행한다"
 ---
 
 # 의존성 보안 경고 정리
 
 ## 왜
 
-GitHub Dependabot 경고가 127건 열려 있다. 이전 작업 제약 ".env*, package-lock.json, ads.txt, worker/ ... 수정하지 마"에 걸려 업그레이드하지 않았다. 이 문서는 승인 뒤 바로 시작하기 위한 조사 결과다.
+GitHub Dependabot 경고가 127건 열려 있었다. 사용자가 2026-11-04에 `package-lock.json` 수정을 포함한 업그레이드를 승인했다("니가 직접 진행해", "승인할께").
 
 ## 지금 상태
 
 2026-11-04 실측이다.
 
-- 127건: critical 8, high 57, medium 49, low 13. 범위는 runtime 49, development 78. 파일은 `package-lock.json` 125, `apps/mobile/package.json` 2.
-- 아무것도 업그레이드하지 않았다.
+- 업그레이드 전 127건: critical 8, high 57, medium 49, low 13. 범위는 runtime 49, development 78. 파일은 `package-lock.json` 125, `apps/mobile/package.json` 2. 업그레이드 뒤 Dependabot 수는 push 후 다시 잰다.
+- 올린 버전: next 15.5.29, `@next/bundle-analyzer`·`eslint-config-next` 15.5.28 이상, Capacitor 8.4.3(루트 `~8.4.3`, 모바일 고정), dompurify 3.4.17, tiptap 3.32.2 단일화, nanoid 3.3.20, postcss 8.5.32(next 내부 포함, `overrides`), prosemirror-view 1.42.9, source-map-js 1.2.2, ip-address 10.7.6.
+- `npm audit` 재집계. `--omit=dev`는 high 1, moderate 3이다. 전체는 critical 1, high 23, moderate 63, low 2다.
+- runtime 잔여와 제외 사유:
+
+| 패키지 | 등급 | 제외 사유 |
+|---|---|---|
+| `sharp` 0.34.5 | high | `app lib worker js components`에서 import하지 않고 `scripts/`의 빌드 처리에서만 쓴다. 입력은 저장소 안 이미지다. 수정판 0.35.5는 메이저 취급이고 next·miniflare가 0.34 계열을 끌어온다 |
+| `mongoose` 9.3.0 | moderate | 수정판은 9.7.2다. 실제 DB 없이 결제·프로필 경로를 검증할 수 없어 따로 올린다 |
+| `satori` 0.15, `workers-og` | moderate | satori 수정판 0.33.5는 `workers-og`가 끌어오는 범위 밖이다. OG 이미지 렌더 회귀 검증이 함께 필요하다 |
 
 | 패키지 | 설치 | 수정 버전 | 범위 | GHSA | 지금 노출 |
 |---|---|---|---|---|---|
@@ -28,12 +36,12 @@ GitHub Dependabot 경고가 127건 열려 있다. 이전 작업 제약 ".env*, p
 
 ## 남은 작업
 
-- [ ] **1. 사용자 승인.** `package-lock.json` 수정 허용, Capacitor 스토어 재배포 여부.
-- [ ] **2. Capacitor 8.4.3.** 루트와 `apps/mobile/package.json`을 함께 올린다. 판정: 안드로이드·iOS 빌드 성공, 스토어 배포 일정은 사용자가 정한다.
-- [ ] **3. Next 15.5.28.** 판정: `npm run check:fast`, 정적 export 빌드, 스테이징 릴리스 통과.
-- [ ] **4. DOMPurify 3.4.17.** 판정: 살균을 쓰는 화면 테스트 통과.
-- [ ] **5. 나머지 runtime 경고 재집계.** 위 묶음 뒤 경고 수를 다시 잰다. 판정: runtime critical·high 0건, 남은 것은 사유를 표로 적는다.
-- [ ] **6. development 78건.** runtime이 끝난 뒤 메이저 업데이트 없이 풀리는 것만 묶는다.
+- [x] **1. 사용자 승인.** `package-lock.json` 수정은 승인됐다.
+- [ ] **2. Capacitor 8.4.3.** 의존성은 올렸다. 안드로이드·iOS 네이티브 빌드와 스토어 재배포는 실행하지 않았고 일정은 사용자가 정한다. 그 전까지 설치된 앱에는 수정이 닿지 않는다.
+- [x] **3. Next 15.5.29.** `check:fast`(node 4,248, Jest 7,282)와 `build:cf`(verify-dist 실패 0) 통과.
+- [x] **4. DOMPurify 3.4.17.** 같은 `check:fast`로 확인.
+- [ ] **5. 나머지 runtime 경고.** 위 표의 `sharp`, `mongoose`, `satori`가 남았다. 각각 제외 사유의 검증을 갖춘 뒤 올린다.
+- [ ] **6. development 경고.** `proxy-addr`(critical), `@opennextjs/cloudflare`, `lighthouse` 등이다. 메이저 업데이트 없이 풀리는 것만 묶는다.
 
 ## 정본 예시
 

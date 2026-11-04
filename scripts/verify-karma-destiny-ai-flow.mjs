@@ -105,7 +105,7 @@ assertIncludes(routeSource, "buildChapterEvidence", "server-side evidence extrac
 assertNotIncludes(routeSource, "payload?.lensContribution", "lens contribution must not come from the LLM");
 assertIncludes(calculationSource, "computeLensContribution", "deterministic lens contribution");
 assertIncludes(calculationSource, "buildSukuyoRelationAxis", "sukuyo relation axis wired");
-assertIncludes(calculationSource, "calculateZiweiAiChart", "ziwei engine wired");
+assertIncludes(calculationSource, "calculateZiweiConsumerChart", "ziwei engine wired");
 assertIncludes(calculationSource, "calculateSukuyoForMoment", "sukuyo astronomy engine wired");
 assertIncludes(calculationSource, "timezoneOffset", "sukuyo local-time normalization wired");
 assertIncludes(calculationSource, "buildVimshottariDasha", "real vedic dasha wired");
