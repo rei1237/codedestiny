@@ -1,6 +1,6 @@
 # 3~5천 원 균일가와 라이트 운세 자유 이용 설계
 
-작성일: 2026-11-04 · 기준 커밋: origin/main 6eec763f0 · 상태: 사용자 승인 대기
+작성일: 2026-11-04 · 기준 커밋: origin/main 6eec763f0 · 상태: 사용자 승인 완료, 이용권 가격 확정
 
 ## 1. 의도
 
@@ -47,7 +47,7 @@
 | 라이트 운세를 쓴 이용권 환불 | 자동 환불을 막고 관리자가 검토 |
 | 약관 | 배포일에 공지와 함께 시행 |
 | 1,000원 3종 | 인상하지 않고 유지 |
-| 이용권 가격 | 혜택이 늘어난 만큼 인상. 금액은 6.5의 안으로 승인 대기 |
+| 이용권 가격 | 혜택이 늘어난 만큼 인상. 14,900 / 34,900 / 64,900 / 154,000원 확정 |
 
 ## 4. 접근 방식
 
@@ -141,6 +141,9 @@
 - 이 규칙은 정책 버전 충돌보다 먼저 적용한다. 소진된 옛 버전 이용권은 활성으로 남아 있어도 `PASS_POLICY_CONFLICT`로 막지 않는다. 막으면 새 이용권을 영영 살 수 없게 된다.
 - **소진 기준:** 소진은 "남은 한도로 LLM 상품을 열 수 없음"이다. 라이트 운세는 한도를 쓰지 않으므로 전 상품 최저가와 분리한다. 판매 중인 LLM 최저가는 5,000원(50코인)이므로(인벤토리 재확인) `MIN_PASS_COVERABLE_COIN`과 `FAMILY_MIN_PASS_COVERABLE_COIN`을 50으로 올리고, `verify:pass-tier-policy`의 대조 기준을 "라이트를 뺀 판매 상품 최저가"로 바꾼다. 같은 기준을 `js/core/pass-verdict.js` 미러, `lib/payment/pass-eligibility.ts`, `buildPassRefundRevokeFields`, `compat.js`의 `membershipPass.passEnded`에 적용한다.
 - 이미 `expiresAt`이 지난 소진 이용권은 복구하지 않는다.
+- **종료 경로는 두 곳이다.** `applyBudgetExhaustionTermination`과 옛 coin-gate 경로 `worker/routes/billing.js`의 `consumeTierPassIfAvailable` 둘 다 닫지 않게 한다. 옛 경로의 누적 한도 판정(`resolveMonthlySpendQuota`, `worker/lib/entitlement-policy.js` 포함)도 라이트 상품을 면제한다.
+- **`passEnded`를 보내지 않는다.** `worker/payments/index.js`와 `worker/routes/billing.js`가 소진 때 보내는 `passEnded`를 받으면 클라이언트가 스냅샷을 미보유로 내려 라이트 운세까지 막는다. 소진은 남은 한도 갱신으로만 전달한다.
+- **재구매분 환불:** 소진 상태에서 산 이용권을 환불해 앞선 구매분의 한도가 남으면 이용권을 유지하고 한도만 줄인다. 첫 구매와 업그레이드 환불은 지금처럼 종료한다.
 
 ### 6.3 환불
 
@@ -152,27 +155,29 @@
 - 사용 이력이 있으면 고객에게 고객센터 안내를 보여 주고, 관리자 화면에 라이트 운세 사용 건수와 해금형 상품 보유 여부를 표시한다.
 - 부분 환불 공식은 새로 만들지 않는다. 금액은 관리자가 약관 기준으로 판단한다.
 - 사용 이력이 없는 이용권의 환불은 지금과 같다.
+- **PG 콘솔 취소:** 돈이 이미 돌아간 뒤에 도착하므로 막지 못한다. 회수는 그대로 하고 관리자 검토 표시만 남긴다.
+- **한도 복구 금지:** 라이트 사용은 전달 실패 환불(`refundPassCoverage`)이 한도를 되돌리지 않게 증빙에 `passBudgetExempt:true`를 남긴다. 되돌리면 공짜 한도가 생긴다.
 
 ### 6.4 남용 방지
 
 기존 인증과 요청 제한을 유지한다. 해금 상품은 출생 프로필 단위라 프로필 수로 제한된다. 약관에 "비정상적인 자동화 이용 제한"이 없으면 추가한다.
 
-### 6.5 이용권 가격 인상 (금액 승인 대기)
+### 6.5 이용권 가격 인상
 
 **가격 기준:** 네 등급에 똑같은 혜택이 늘었으므로 라이트 운세 한 건 값(5,000원)만큼 똑같이 올린다. 라이트 운세는 작은 꿀단지에도 들어 있어 상위 등급을 살 이유는 이제 상담 한도와 건당 상한뿐이다. 등급 사이 금액 차이를 벌리면 업그레이드 유인이 줄어든다.
 
-| 이용권 | 현재 | 제안 | 상담 한도 | 건당 상한 |
+| 이용권 | 현재 | 변경 | 상담 한도 | 건당 상한 |
 | --- | --- | --- | --- | --- |
 | 작은 꿀단지 | 9,900 | **14,900** | 20,000 | 5,000 |
 | 중간 꿀단지 | 29,900 | **34,900** | 60,000 | 10,000 |
 | 큰 꿀단지 | 59,900 | **64,900** | 120,000 | 30,000 |
 | 패밀리 꿀단지 | 149,000 | **154,000** | 350,000 | 제한 없음 |
 
-작은 꿀단지는 5,000원 운세 3건(15,000원)이면 본전이다. 더 올리는 대안은 14,900 / 39,900 / 79,900 / 179,000이다. 앞의 세 금액은 v3 때의 판매가와 같지만, 그때보다 상담 한도가 적으므로 비교 문구로 쓰지 않는다.
+작은 꿀단지는 5,000원 운세 3건(15,000원)이면 본전이다.
 
 **구현**
 
-- `lib/payment/pass-policy.js`에 새 정책 버전(`flower-<배포일>`), `planId` `{tier}_1m_v5`, 앱 SKU `cd_pass_{tier}_30d_v5`를 추가한다. 한도·상한·프로필 수는 v4와 같고 가격만 다르다. v4 요금제는 지난 주문을 읽기 위해 그대로 남긴다. `PASS_MONTHLY_WON`은 레거시 버전 가격표이므로 바꾸지 않는다.
+- `lib/payment/pass-policy.js`에 새 정책 버전(`flower-20261104`, 식별자이므로 실제 배포일과 달라도 바꾸지 않음), `planId` `{tier}_1m_v5`, 앱 SKU `cd_pass_{tier}_30d_v5`를 추가한다. 한도·상한·프로필 수는 v4와 같고 가격만 다르다. v4 요금제는 지난 주문을 읽기 위해 그대로 남긴다. `PASS_MONTHLY_WON`은 레거시 버전 가격표이므로 바꾸지 않는다.
 - 버전 사다리를 함께 늘린다: `worker/payments/passes.js` `resolvePassPlan`, `worker/lib/profile-limits.js` `resolvePassPolicy`, `worker/lib/app-store-pricing.js`, `worker/lib/payment-product-name.js`, `worker/payments/index.js`의 planId 추론, `app/points/PointsClient.tsx`.
 - **v4와 v5는 혼합으로 보지 않는다.** 정책 혼합 거부는 한도가 다른 정책을 섞지 않으려는 규칙인데 두 버전은 한도가 같다. `isPassPolicyMix`에서 이 쌍을 빼야 v4 보유자가 지금처럼 연장과 업그레이드를 할 수 있다. 빼지 않으면 기간 없는 이용권이라 한도를 다 쓸 때까지 재구매가 막힌다. 그보다 옛 버전(legacy, v2, v3)은 지금처럼 막되, 소진되면 6.2에 따라 구매할 수 있다.
 - **기존 구매자:** 낸 가격과 한도는 그대로이고 라이트 운세 혜택만 추가된다. 재구매부터 새 가격이다. 차액은 받지도 돌려주지도 않는다.
@@ -192,7 +197,7 @@
 - **이용 가치** = 라이트 운세 가치 + 등급별 상담 한도
 - **절약률** = 1 − 구매 가격 ÷ 이용 가치, 소수점 버림
 
-판매 종료 키와 미사용 키는 합계에서 뺀다. 카탈로그 74종, 6.5 제안가 기준 계산은 아래와 같다. 해금 전용 상품이 감사를 통과하면 커진다.
+판매 종료 키와 미사용 키는 합계에서 뺀다. 카탈로그 74종, 6.5 확정가 기준 계산은 아래와 같다. 해금 전용 상품이 감사를 통과하면 커진다.
 
 | 이용권 | 가격 | 라이트 운세 | 상담 한도 | 이용 가치 | 최대 절약 |
 | --- | --- | --- | --- | --- | --- |
@@ -233,7 +238,7 @@
 - **구매·안내 화면:** `app/points/PointsClient.tsx`, `app/points/SubscriptionStatusCard.tsx`, `lib/payment/pass-eligibility.ts`, `app/checkout/checkout-copy.ts`, `app/_content/faq-copy.js`, `app/components/PolicyGuide.jsx`, `app/refund-policy/page.js`
 - **상태 카드:** 소진 시 "상담 한도 소진 · 라이트 운세 이용 중"으로 표시하고 재구매 버튼을 보여 준다.
 - **약관:** `app/terms-of-service/TermsContent.jsx`의 "이용 한도를 모두 사용하면 이용권이 종료", "판정 기준은 적용 가격 범위와 이용 한도 둘뿐"을 새 규칙으로 고친다. 같은 문단의 등급 금액을 새 `CURRENT_PASS_PLANS`와 일치시킨다. 라이트 운세는 기간 없이 이용할 수 있고, 이미 구매한 이용권의 가격은 바뀌지 않는다는 점을 적는다. `verify-payment-legal-copy`로 검증한다.
-- **약관 시행:** 규칙, 약관, 공지를 같은 날 내보낸다. 배포일로 `TERMS_EFFECTIVE_DATE`(`app/terms-of-service/TermsContent.jsx`), `ORDER_POLICY_VERSIONS.terms`(`worker/payments/policy-versions.js`), `AUTH_TERMS_VERSION`(`worker/routes/auth.js`)을 함께 올린다. 새 약관 버전이 기존 회원의 재동의를 강제하는 경로가 있는지 구현 때 확인하고, 있으면 보고한다. 사이트 공지 문구는 묶음 ③에 포함한다.
+- **약관 시행:** 규칙, 약관, 공지를 같은 날 내보낸다. 배포일로 `TERMS_EFFECTIVE_DATE`(`app/terms-of-service/TermsContent.jsx`), `ORDER_POLICY_VERSIONS.terms`(`worker/payments/policy-versions.js`), `AUTH_TERMS_VERSION`(`worker/routes/auth.js`)을 함께 올린다. 새 약관 버전이 기존 회원의 재동의를 강제하는 경로가 있는지 구현 때 확인하고, 있으면 보고한다. 사이트 전체 공지 기능은 없으므로 새로 만들지 않고, 약관 페이지 상단의 개정 안내와 홈 이용권 배너 아래 안내 링크로 공지한다.
 - **금지어 가드:** 고객 표시 파일에 "LLM"과 "비 LLM"이 들어가지 않는지 확인한다.
 
 ## 8. 배포 순서와 위험
