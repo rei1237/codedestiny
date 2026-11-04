@@ -489,6 +489,7 @@ export async function findActivePaidContentUnlock(input = {}) {
       profileId: target.profileId,
       featureKey: SAJU_BUNDLE_FEATURE_KEY,
       ...(input.session ? { session: input.session } : {}),
+      ...(input.findProfileCard ? { findProfileCard: input.findProfileCard } : {}),
       ...(input.birthIdentity && !input.birthIdentity.partnerBirthKey ? { birthIdentity: input.birthIdentity } : {}),
     });
   }

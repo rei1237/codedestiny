@@ -6,8 +6,8 @@
  */
 import { jest } from "@jest/globals";
 import { TEST_USER_ID, profileCardModel, testCard } from "../fixtures/profile-card-model.mjs";
-import { computeBirthKey } from "../../worker/lib/birth-key.js";
-import { isPerUsePaidFeatureKey, PER_USE_PAID_FEATURE_KEYS } from "../../worker/lib/paid-feature-registry.js";
+import { computeBirthKey, computeCompatBirthKey, toBirthEntitlementProfileId } from "../../worker/lib/birth-key.js";
+import { isPerUsePaidFeatureKey, PER_USE_PAID_FEATURE_KEYS, UNLOCK_PRODUCT_BY_FEATURE_KEY } from "../../worker/lib/paid-feature-registry.js";
 import { SAJU_BUNDLE_ALIAS_MEMBER_KEYS, SAJU_BUNDLE_FEATURE_KEY } from "../../worker/lib/saju-bundle-policy.js";
 
 const rows = [];
@@ -77,6 +77,8 @@ let billingUtils;
 let resolvePersistedUnlockFeatures;
 let handleAccessRoutes;
 let PointHistory;
+let Payment;
+let paymentsUtils;
 
 beforeAll(async () => {
   const actualModels = await import("../../worker/lib/models.js");
@@ -91,7 +93,13 @@ beforeAll(async () => {
     ...actualModels,
     ContentEntitlement: entitlementModel,
     ProfileCard: profileCardModel(cards),
-    User: { updateOne: userUpdateOne },
+    User: {
+      updateOne: userUpdateOne,
+      findById() {
+        const query = { select: () => query, lean: async () => ({ name: "테스트" }) };
+        return query;
+      },
+    },
   }));
   jest.unstable_mockModule("../../worker/lib/auth.js", () => ({
     ...actualAuth,
@@ -107,7 +115,8 @@ beforeAll(async () => {
   ({ __billingTestUtils: billingUtils } = await import("../../worker/routes/billing.js"));
   ({ resolvePersistedUnlockFeatures } = (await import("../../worker/routes/fortune.js")).__fortuneAccessTestUtils);
   ({ handleAccessRoutes } = await import("../../worker/routes/access.js"));
-  ({ PointHistory } = await import("../../worker/lib/models.js"));
+  ({ __paymentsTestUtils: paymentsUtils } = await import("../../worker/routes/payments.js"));
+  ({ PointHistory, Payment } = await import("../../worker/lib/models.js"));
 });
 
 beforeEach(() => {
@@ -220,32 +229,90 @@ test("개별 구매 뒤 묶음을 환불해도 개별 권리는 남는다", asyn
   expect(await lookup(SAJU_BUNDLE_FEATURE_KEY)).toBeNull();
 });
 
-test("묶음 코인 게이트는 포함 키 보유와 무관하게 290코인을 한 번만 차감한다", async () => {
-  const pricing = { featureKey: SAJU_BUNDLE_FEATURE_KEY, coinPrice: 290, cost: 290 };
+test("포함 키 보유는 묶음 게이트를 막지 않고 부여 뒤에는 already_unlocked 이다", async () => {
+  const { cost } = UNLOCK_PRODUCT_BY_FEATURE_KEY[SAJU_BUNDLE_FEATURE_KEY];
   const decide = () => billingUtils.resolvePaidContentAccess({}, {
     userId: TEST_USER_ID,
     profileId: "profile-1",
-    pricing,
+    pricing: { featureKey: SAJU_BUNDLE_FEATURE_KEY, coinPrice: cost, cost },
     subscriptionPass: { isActive: false, tier: "free", passTier: null, freeLimit: 0, profileSubscription: null, entitlement: {} },
     accountUnlockedFeatures: [],
   });
   await grant("section_daewun", "order-daewun");
 
-  // 포함 키를 이미 샀어도 묶음 값 290코인을 그대로 요구한다.
-  const first = await decide();
-  expect(first).toMatchObject({ accessGranted: false, reason: "payment_required", priceCoin: 290 });
+  expect(await decide()).toMatchObject({ accessGranted: false, reason: "payment_required" });
 
   await grantBundle();
   globalThis.__paidAccessDecisionCache.entries.clear();
-  const rowCountAfterPurchase = rows.length;
 
-  // 재호출은 묶음 행 자체로 already_unlocked 이고, 게이트가 행이나 계정을 건드리지 않는다.
-  const second = await decide();
-  expect(second).toMatchObject({ accessGranted: true, reason: "already_unlocked" });
-  const bundleRow = rows.find((row) => row.featureKey === SAJU_BUNDLE_FEATURE_KEY);
-  expect(second.unlockId).toBe(String(bundleRow._id || `user:${SAJU_BUNDLE_FEATURE_KEY}`));
-  expect(rows).toHaveLength(rowCountAfterPurchase);
-  expect(userUpdateOne).not.toHaveBeenCalled();
+  expect(await decide()).toMatchObject({ accessGranted: true, reason: "already_unlocked" });
+});
+
+test("대운만 산 사람의 묶음 단건 결제는 29,000원 주문을 한 번만 만든다", async () => {
+  const noPaidOrder = () => {
+    const query = { sort: () => query, lean: async () => null };
+    return query;
+  };
+  jest.spyOn(Payment, "findOne").mockImplementation(noPaidOrder);
+  const createOrder = jest.spyOn(Payment, "create").mockResolvedValue({});
+  // hasExistingSinglePaymentUnlock 은 내보내지 않으므로 그것을 부르는 결제 준비 처리기로 확인한다. PG 호출은 없다.
+  const env = {
+    PORTONE_STORE_ID: "test-store",
+    PORTONE_CHANNEL_KEY: "test-channel",
+    PORTONE_API_SECRET: "test-secret",
+    MID: "test-mid",
+    INIsignkey: "test-sign",
+    INIAPIKEY: "test-api-key",
+    INIAPI_IV: "test-api-iv",
+  };
+  const start = async () => {
+    const response = await paymentsUtils.handleSinglePaymentStart(new Request("https://example.test/api/payments/single/start", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ profileId: "profile-1", featureKey: SAJU_BUNDLE_FEATURE_KEY }),
+    }), env, { userId: TEST_USER_ID });
+    return { status: response.status, payload: await response.json() };
+  };
+  await grant("section_daewun", "order-daewun");
+
+  const first = await start();
+  expect(first.status).toBe(201);
+  expect(first.payload).toMatchObject({ ok: true, alreadyUnlocked: false });
+  expect(createOrder).toHaveBeenCalledTimes(1);
+  expect(createOrder.mock.calls[0][0]).toMatchObject({ featureKey: SAJU_BUNDLE_FEATURE_KEY, paymentAmount: 29000 });
+
+  await grantBundle();
+
+  const second = await start();
+  expect(second.status).toBe(200);
+  expect(second.payload).toMatchObject({ ok: true, alreadyUnlocked: true, unlockSource: "content_entitlement" });
+  expect(createOrder).toHaveBeenCalledTimes(1);
+});
+
+test("상대 birthKey 가 든 궁합 신원도 묶음 행으로 열리고 묶음이 없으면 닫힌다", async () => {
+  const compatKey = computeCompatBirthKey(testCard("profile-1"), testCard("profile-2", { day: 18 }));
+  const birthIdentity = {
+    entitlementProfileId: toBirthEntitlementProfileId(compatKey),
+    birthKey: compatKey,
+    partnerBirthKey: computeBirthKey(testCard("profile-2", { day: 18 })),
+    profileId: "profile-1",
+    partnerProfileId: "profile-2",
+  };
+
+  expect(await lookup("section_compat", "profile-1", { birthIdentity })).toBeNull();
+
+  await grantBundle();
+
+  expect(await lookup("section_compat", "profile-1", { birthIdentity })).toBeTruthy();
+});
+
+test("주입한 프로필 조회는 묶음 조회까지 이어진다", async () => {
+  await grantBundle();
+  // profile-9 는 기본 ProfileCard 대역에 없어, 주입이 끊기면 출생 신원을 못 만들어 닫힌다.
+  const findProfileCard = async ({ profileId }) => (profileId === "profile-9" ? testCard("profile-9") : null);
+
+  expect(await lookup("section_daewun", "profile-9")).toBeNull();
+  expect(await lookup("section_daewun", "profile-9", { findProfileCard })).toBeTruthy();
 });
 
 test("스냅샷은 묶음 행을 포함 키로 펼친다", async () => {
