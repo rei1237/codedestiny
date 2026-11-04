@@ -15,7 +15,7 @@ test('public catalog exposes eligible Ggulggul prices without unrelated spending
   const response = await route(new Request('https://example.test/api/honey/catalog'), {});
   const data = await response.json();
   expect(auth).not.toHaveBeenCalled();
-  expect(data.products).toHaveLength(25);
+  expect(data.products).toHaveLength(24);
   expect(data.products.find(row => row.productId === 'section_summary')).toMatchObject({ cashPriceKRW: 10000, honeyCost: 60 });
   expect(data.products.find(row => row.productId === 'section_daewun')).toMatchObject({ cashPriceKRW: 20000, honeyCost: 120 });
   expect(data.otherUses).toEqual([]);

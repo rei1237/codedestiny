@@ -1007,7 +1007,7 @@
       "title": "DE MYSTIEKE TAROT",
       "subtitle": "Kaarten en tien goden openen samen de keuze van vandaag.",
       "oneCardMode": "Eén kaart lezen",
-      "threeCardMode": "Driekaartenstroom · 5.000 KRW",
+      "threeCardMode": "Driekaartenlezing · Gratis",
       "categories": {
         "daily": "Het fortuin van vandaag",
         "love": "Liefdesfortuin",
@@ -1029,7 +1029,7 @@
         "present": "De kernenergie nu",
         "next": "De volgende standaard voor keuze"
       },
-      "openFlowReading": "Open-stroomwaarde · 5.000 KRW",
+      "openFlowReading": "Lezing bekijken",
       "retryOtherConcern": "Verspreid nog een zorg",
       "aiPromptTitle": "Myeongri-tarotprompt om AI vervolgens te vragen",
       "afterPaymentBadge": "Na het lezen van de betaling",

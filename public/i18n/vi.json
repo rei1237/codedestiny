@@ -1007,7 +1007,7 @@
       "title": "BÀI TAROT BÍ ẨN",
       "subtitle": "Thẻ bài và mười vị thần cùng nhau mở ra sự lựa chọn ngày hôm nay.",
       "oneCardMode": "Đọc một thẻ",
-      "threeCardMode": "Luồng ba thẻ · 5.000 KRW",
+      "threeCardMode": "Trải bài ba lá · Miễn phí",
       "categories": {
         "daily": "Vận may hôm nay",
         "love": "Tình yêu may mắn",
@@ -1029,7 +1029,7 @@
         "present": "Năng lượng cốt lõi bây giờ",
         "next": "Tiêu chuẩn lựa chọn tiếp theo"
       },
-      "openFlowReading": "Đọc luồng mở · 5.000 KRW",
+      "openFlowReading": "Xem luận giải",
       "retryOtherConcern": "Lây lan một mối lo ngại khác",
       "aiPromptTitle": "Lời nhắc tarot Myeongri hỏi AI tiếp theo",
       "afterPaymentBadge": "Sau khi đọc thanh toán",

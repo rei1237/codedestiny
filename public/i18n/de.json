@@ -1007,7 +1007,7 @@
       "title": "DAS MYSTISCHE TAROT",
       "subtitle": "Karten und zehn Götter eröffnen gemeinsam die heutige Wahl.",
       "oneCardMode": "Eine Karte lesen",
-      "threeCardMode": "Drei-Karten-Flow · 5.000 KRW",
+      "threeCardMode": "Drei-Karten-Legung · Kostenlos",
       "categories": {
         "daily": "Das heutige Vermögen",
         "love": "Liebesglück",
@@ -1029,7 +1029,7 @@
         "present": "Die Kernenergie jetzt",
         "next": "Der nächste Standard zur Auswahl"
       },
-      "openFlowReading": "Open-Flow-Lesung · 5.000 KRW",
+      "openFlowReading": "Legung öffnen",
       "retryOtherConcern": "Verbreiten Sie ein weiteres Anliegen",
       "aiPromptTitle": "Myeongri-Tarot-Aufforderung, als nächstes die KI zu fragen",
       "afterPaymentBadge": "Nach Zahlungsablesung",

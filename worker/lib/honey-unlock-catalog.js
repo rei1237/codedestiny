@@ -28,7 +28,6 @@ const entries = [
 
 const perUseEntries = [
   ['compat-sukuyo-compatibility', '숙요 궁합 상세', '숙요', null, '두 사람의 관계 패턴과 구체적인 행동 조언', 'cdHomeSukuyoEntry'],
-  ['tarot-myeongri-three-card', '기본 타로 세 장 해석', '타로', null, '선택한 세 장의 흐름과 실천 조언', 'openTarotModal'],
 ];
 export const HONEY_UNLOCK_PRODUCTS = Object.freeze(entries.concat(perUseEntries).map(([featureKey, title, group, honeyCost, description, action]) => {
   const { pricing } = getBillingFeaturePricing({ featureKey });
@@ -50,6 +49,6 @@ export function getHoneyUnlockProduct(value) {
 
 export const HONEY_SCOPE_MESSAGE = '꿀방울은 꿀꿀운세의 지정된 기본 운세 상품에서만 사용할 수 있어요.';
 export function isHoneySpendProduct(featureKey) { return getHoneyUnlockProduct(featureKey)?.serviceScope === 'GGULGGUL'; }
-// 운세 프롬프트 1회 생성은 HONEY_UNLOCK_PRODUCTS(홈 사용처 25상품) 밖에서 꿀방울 1개만 허용한다. 3,000원 단건 결제는 그대로다.
+// 운세 프롬프트 1회 생성은 HONEY_UNLOCK_PRODUCTS(홈 사용처 24상품) 밖에서 꿀방울 1개만 허용한다. 3,000원 단건 결제는 그대로다.
 export const HONEY_PROMPT_HUB_FEATURE_KEY = 'fortune-prompt-hub-generate';
 export function isHoneyPromptHubSpend(featureKey) { return String(featureKey || '') === HONEY_PROMPT_HUB_FEATURE_KEY; }

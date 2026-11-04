@@ -238,7 +238,8 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "tarot-year-fortune": { cost: 100, amountKRW: 10000, reason: "십이지신 천운 타로" },
   "tarot-love-relationship": { cost: 50, reason: "우리는 무슨 사이? 타로 리딩" },
   "tarot-reunion-reading": { cost: 50, reason: "재회운 타로 리딩" },
-  "tarot-myeongri-three-card": { cost: 50, reason: "명리학 타로 3장 스프레드" },
+  // 2026-11-05 승인: 세 장 풀이가 무료가 되어 신규 판매를 닫는다. 구매자 재개와 과거 주문 대조를 위해 키와 가격은 남긴다.
+  "tarot-myeongri-three-card": { saleEnabled: false, cost: 50, reason: "명리학 타로 3장 스프레드" },
   "tarot-mindscan": { cost: 50, reason: "마인드 스캔 타로 리딩" },
   "tarot-celestial-harmony": { cost: 100, reason: "셀레스티얼 하모니 타로 리딩" },
   "tarot-crystal-soul-reading": { cost: 50, reason: "크리스탈 소울 타로 리딩" },

@@ -1007,7 +1007,7 @@
       "title": "TAROT MISTIK",
       "subtitle": "Kad dan sepuluh tuhan membuka pilihan hari ini bersama-sama.",
       "oneCardMode": "Bacaan satu kad",
-      "threeCardMode": "Aliran tiga kad · 5,000 KRW",
+      "threeCardMode": "Bacaan tiga kad · Percuma",
       "categories": {
         "daily": "Rezeki hari ini",
         "love": "Cintakan nasib",
@@ -1029,7 +1029,7 @@
         "present": "Tenaga teras sekarang",
         "next": "Piawaian seterusnya untuk pilihan"
       },
-      "openFlowReading": "Bacaan aliran terbuka · 5,000 KRW",
+      "openFlowReading": "Lihat bacaan",
       "retryOtherConcern": "Sebarkan satu lagi kebimbangan",
       "aiPromptTitle": "Gesaan tarot Myeongri untuk bertanya kepada AI seterusnya",
       "afterPaymentBadge": "Selepas pembayaran dibaca",

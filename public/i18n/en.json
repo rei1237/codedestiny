@@ -1007,7 +1007,7 @@
       "title": "THE MYSTIC TAROT",
       "subtitle": "Cards and ten gods open today’s choice together.",
       "oneCardMode": "One-card reading",
-      "threeCardMode": "Three-card flow · 5,000 KRW",
+      "threeCardMode": "Three-card reading · Free",
       "categories": {
         "daily": "Today’s fortune",
         "love": "Love fortune",
@@ -1029,7 +1029,7 @@
         "present": "The core energy now",
         "next": "The next standard for choice"
       },
-      "openFlowReading": "Open flow reading · 5,000 KRW",
+      "openFlowReading": "Open flow reading",
       "retryOtherConcern": "Spread another concern",
       "aiPromptTitle": "Myeongri tarot prompt to ask AI next",
       "afterPaymentBadge": "After payment reading",

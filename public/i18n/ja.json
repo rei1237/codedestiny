@@ -1007,7 +1007,7 @@
       "title": "ミスティックタロット",
       "subtitle": "カードと十神が今日の選択を一緒に開きます。",
       "oneCardMode": "1 枚のカードの読み取り",
-      "threeCardMode": "3 カード フロー · 5,000 ウォン",
+      "threeCardMode": "3枚リーディング · 無料",
       "categories": {
         "daily": "今日の運勢",
         "love": "恋愛運",
@@ -1029,7 +1029,7 @@
         "present": "現在のコアエネルギー",
         "next": "次の選択基準"
       },
-      "openFlowReading": "オープンフロー読み取り · 5,000 ウォン",
+      "openFlowReading": "リーディングを見る",
       "retryOtherConcern": "別の懸念を広める",
       "aiPromptTitle": "ミョンリのタロット プロンプトで AI に次の質問をする",
       "afterPaymentBadge": "支払い後の読み取り",

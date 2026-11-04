@@ -1007,7 +1007,7 @@
       "title": "LE TAROT MYSTIQUE",
       "subtitle": "Les cartes et dix dieux ouvrent ensemble le choix d’aujourd’hui.",
       "oneCardMode": "Lecture d'une seule carte",
-      "threeCardMode": "Flux à trois cartes · 5 000 KRW",
+      "threeCardMode": "Tirage à trois cartes · Gratuit",
       "categories": {
         "daily": "La fortune d'aujourd'hui",
         "love": "Amour fortune",
@@ -1029,7 +1029,7 @@
         "present": "L'énergie de base maintenant",
         "next": "La prochaine norme à choisir"
       },
-      "openFlowReading": "Lecture de flux ouvert · 5 000 KRW",
+      "openFlowReading": "Voir le tirage",
       "retryOtherConcern": "Répandre une autre préoccupation",
       "aiPromptTitle": "Le tarot Myeongri invite à demander ensuite à l'IA",
       "afterPaymentBadge": "Après lecture du paiement",

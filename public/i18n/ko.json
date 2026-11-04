@@ -871,18 +871,18 @@
     },
     "myeongriTarot": {
       "title": "THE MYSTIC TAROT",
-      "subtitle": "카드와 십성이 함께 여는 오늘의 선택",
+      "subtitle": "운명 찻집 카드와 십성이 함께 여는 오늘의 선택",
       "oneCardMode": "한 장 리딩",
-      "threeCardMode": "세 장 흐름 · 5,000원",
+      "threeCardMode": "세 장 리딩 · 무료",
       "categories": {
-        "daily": "🌙 오늘의 운세",
-        "love": "💘 연애운",
-        "reunion": "💌 재회운",
-        "career": "💼 직장·커리어운",
-        "money": "💰 재물운",
-        "health": "🌿 건강운",
-        "exam": "📝 시험·합격운",
-        "people": "🤝 대인관계운"
+        "daily": "오늘의 운세",
+        "love": "연애운",
+        "reunion": "재회운",
+        "career": "직장·커리어운",
+        "money": "재물운",
+        "health": "건강운",
+        "exam": "시험·합격운",
+        "people": "대인관계운"
       },
       "ritualDefault": "\"고민의 문을 하나 선택하면 카드의 결을 펼칩니다.\"",
       "cardAlt": "Tarot card",
@@ -895,7 +895,7 @@
         "present": "현재의 핵심 기운",
         "next": "다음 선택 기준"
       },
-      "openFlowReading": "흐름 리딩 보기 · 5,000원",
+      "openFlowReading": "흐름 리딩 보기",
       "retryOtherConcern": "🌙 다른 고민 다시 펼치기",
       "aiPromptTitle": "AI에게 이어 묻는 명리 타로 프롬프트",
       "afterPaymentBadge": "결제 후 리딩",

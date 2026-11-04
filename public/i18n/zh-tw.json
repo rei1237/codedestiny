@@ -1007,7 +1007,7 @@
       "title": "神秘塔羅牌",
       "subtitle": "卡牌和十神一起开启今天的选择。",
       "oneCardMode": "一卡讀取",
-      "threeCardMode": "三卡流量·5,000韓元",
+      "threeCardMode": "三張牌解讀 · 免費",
       "categories": {
         "daily": "今天的運勢",
         "love": "愛情運勢",
@@ -1029,7 +1029,7 @@
         "present": "現在的核心能量",
         "next": "下一個選擇標準"
       },
-      "openFlowReading": "開放流量閱讀 · 5,000 韓元",
+      "openFlowReading": "查看解讀",
       "retryOtherConcern": "傳播另一個問題",
       "aiPromptTitle": "明里塔羅牌提示下一步詢問AI",
       "afterPaymentBadge": "付款閱讀後",
