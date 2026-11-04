@@ -2225,7 +2225,12 @@
       "signatureNavigation": "Navigasi konsultasi pilihan",
       "signaturePrevious": "Konsultasi sebelumnya",
       "signatureNext": "Konsultasi seterusnya",
-      "signatureYeoniDesc": "Yeoni membantu anda berbual tentang perkara yang mengganggu fikiran."
+      "signatureYeoniDesc": "Yeoni membantu anda berbual tentang perkara yang mengganggu fikiran.",
+      "webtoonBadge": "Webtoon konsultasi pilihan · 12 panel",
+      "webtoonTitle": "Amaran Bulan Hitam",
+      "webtoonDesc": "Adakah jalan lain selain masa depan yang diramalkan Bulan Hitam? Yeoni dan Neo meneliti sifat semula jadi dan aliran dua belas bulan anda untuk mengenal pasti pilihan yang wajar dielakkan.",
+      "webtoonStart": "Baca babak pertama",
+      "webtoonMore": "Lihat webtoon konsultasi pakar lain"
     },
     "playPrice": {
       "from": "Dari {price}",

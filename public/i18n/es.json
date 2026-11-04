@@ -2225,7 +2225,12 @@
       "signatureNavigation": "Navegación de consultas destacadas",
       "signaturePrevious": "Consulta anterior",
       "signatureNext": "Consulta siguiente",
-      "signatureYeoniDesc": "Yeoni te ayuda a conversar sobre lo que te preocupa."
+      "signatureYeoniDesc": "Yeoni te ayuda a conversar sobre lo que te preocupa.",
+      "webtoonBadge": "Webtoon de consulta destacado · 12 viñetas",
+      "webtoonTitle": "La advertencia de la Luna Negra",
+      "webtoonDesc": "¿Hay otro camino más allá del futuro anunciado por la Luna Negra? Yeoni y Neo revisan tu naturaleza y el flujo de los próximos doce meses para detectar qué decisiones conviene evitar.",
+      "webtoonStart": "Leer la primera escena",
+      "webtoonMore": "Ver webtoons de consulta de otros maestros"
     },
     "playPrice": {
       "from": "Desde {price}",

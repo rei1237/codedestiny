@@ -2225,7 +2225,12 @@
       "signatureNavigation": "Navigatie voor consulten",
       "signaturePrevious": "Vorig consult",
       "signatureNext": "Volgend consult",
-      "signatureYeoniDesc": "Yeoni praat met je over wat je bezighoudt."
+      "signatureYeoniDesc": "Yeoni praat met je over wat je bezighoudt.",
+      "webtoonBadge": "Uitgelichte consultatie-webtoon · 12 panelen",
+      "webtoonTitle": "De waarschuwing van de Zwarte Maan",
+      "webtoonDesc": "Is er een andere weg dan de toekomst die de Zwarte Maan voorspelt? Yeoni en Neo bekijken je aard en de komende twaalf maanden om keuzes te vinden die je beter kunt vermijden.",
+      "webtoonStart": "Lees de eerste scène",
+      "webtoonMore": "Bekijk consultatie-webtoons van andere meesters"
     },
     "playPrice": {
       "from": "Vanaf {price}",
