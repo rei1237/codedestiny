@@ -135,7 +135,7 @@ export async function nativeTeaLibraryItem(env,auth,purchase){
   const href='/fortune-tea-house/';
   if(!purchase.requestId)return {state:'UNASSIGNED',href:href+'?orderId='+encodeURIComponent(purchase._id)};
   const row=await TossNativeConsultation.findOne({_id:purchase.requestId,...ownerFilter(auth),orderId:purchase._id}).lean();
-  assertNativeIntent(row,auth);
+  await verifiedIntent(env,auth,row);
   const doc=await nativeTeaStoredState(env,auth.userId,row.resultId);
   if(doc&&(doc.generationRequestHash!==row.inputHash||doc.deliveryAccessKey!==purchase._id))throw new TossError('RESULT_NOT_FOUND',404);
   const completed=doc?.status==='completed';

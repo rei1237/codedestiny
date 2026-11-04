@@ -73,7 +73,7 @@ export async function handleNativeNeo(request,env,auth,path){
 export async function nativeNeoLibraryItem(env,auth,purchase){
   if(!purchase.requestId)return {state:'UNASSIGNED',href:'/neo-operation-room/?orderId='+encodeURIComponent(purchase._id)};
   const row=await TossNativeConsultation.findOne({_id:purchase.requestId,...ownerFilter(auth),orderId:purchase._id}).lean();
-  assertNativeIntent(row,auth);
+  await verifiedIntent(env,auth,row);
   const doc=await nativeNeoStoredState(env,auth.userId,row.requestId);
   if(doc&&(doc.inputHash!==row.inputHash||doc.paymentId!==purchase._id))throw new TossError('RESULT_NOT_FOUND',404);
   const resultId=doc?.id||'toss_'+row._id;

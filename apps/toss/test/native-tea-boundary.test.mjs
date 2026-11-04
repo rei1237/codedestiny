@@ -75,8 +75,10 @@ test('native adapter preserves immutable input, proves live orders and rereads t
   await assert.rejects(api.readNativeTeaIntent({}, {...auth,ownerId:'other'},prepared.id),/RESULT_NOT_FOUND/);
   await assert.rejects(api.readNativeTeaIntent({}, {...auth,environment:'DEFAULT'},prepared.id),/RESULT_NOT_FOUND/);
   state.order={...order,status:'REFUNDED'};
-  await assert.rejects(call('/results/original'),/ORDER_REFUNDED/);assert.equal(state.refunds,1);
+  await assert.rejects(api.nativeTeaLibraryItem({},auth,state.purchases[0]),/ORDER_REFUNDED/);
+  await assert.rejects(call('/results/original'),/ORDER_REFUNDED/);assert.equal(state.refunds,2);
   state.order=order;state.identity=false;
+  await assert.rejects(api.nativeTeaLibraryItem({},auth,state.purchases[0]),/SESSION_EXPIRED/);
   await assert.rejects(call('/results/original'),/SESSION_EXPIRED/);
   assert.equal(state.web,0);assert.ok(state.lookups>=3);
 });

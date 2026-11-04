@@ -81,8 +81,10 @@ test('Neo preserves its original input and saved result across first-checkpoint 
  await assert.rejects(call('/result?attemptId='+virtual,null,{...auth,ownerId:'other'}),/RESULT_NOT_FOUND/);
  await assert.rejects(call('/result?attemptId='+virtual,null,{...auth,environment:'DEFAULT'}),/RESULT_NOT_FOUND/);
  state.order={...order,status:'REFUNDED'};
+ await assert.rejects(api.nativeNeoLibraryItem({},auth,state.purchases[0]),/ORDER_REFUNDED/);
  await assert.rejects(call('/result?attemptId='+virtual),/ORDER_REFUNDED/);
  state.order=order;state.identity=false;
+ await assert.rejects(api.nativeNeoLibraryItem({},auth,state.purchases[0]),/SESSION_EXPIRED/);
  await assert.rejects(call('/result?attemptId='+virtual),/SESSION_EXPIRED/);
  assert.equal(state.web,0);
 });
