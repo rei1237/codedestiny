@@ -44,7 +44,7 @@ import { listProducts } from "../worker/payments/catalog.js";
 import { PASS_MONTHLY_WON } from "../lib/payment/pass-pricing.js";
 import { listServicePackPlans } from "../worker/payments/service-pack-policy.js";
 import {
-  PREVIOUS_PASS_PLANS, PREVIOUS_PASS_POLICY_VERSION, CURRENT_PASS_PLANS,
+  PREVIOUS_PASS_PLANS, PREVIOUS_PASS_POLICY_VERSION, V4_PASS_PLANS, V4_PASS_POLICY_VERSION, CURRENT_PASS_PLANS,
   CURRENT_PASS_POLICY_VERSION,
   PRIOR_PASS_PLANS,
   PRIOR_PASS_POLICY_VERSION,
@@ -215,9 +215,10 @@ function extractAll(label, source, patternFor) {
 
 // 사본 1 — 앱 SKU 테이블(모듈이라 직접 읽는다)
 const allAppPasses = listAppPassProducts();
-check("신규 v4 3개·v3 3개·v2 3개·기존 4개 앱 SKU 보존", allAppPasses.length === 13, `실제=${allAppPasses.length}`);
+check("신규 v5 3개·v4 3개·v3 3개·v2 3개·기존 4개 앱 SKU 보존", allAppPasses.length === 16, `실제=${allAppPasses.length}`);
 for (const [version, plans] of [
   [CURRENT_PASS_POLICY_VERSION, CURRENT_PASS_PLANS],
+  [V4_PASS_POLICY_VERSION, V4_PASS_PLANS],
   [PREVIOUS_PASS_POLICY_VERSION, PREVIOUS_PASS_PLANS],
   [PRIOR_PASS_POLICY_VERSION, PRIOR_PASS_PLANS],
 ]) {
@@ -275,7 +276,7 @@ const goldenPrice = extractAll("index.html goldenPackages price", shell, (tier) 
 for (const tier of TIERS) {
   if (goldenFree[tier] !== undefined) check(`셸 goldenPackages[${tier}].freeLimit`, goldenFree[tier] === PASS_LIMITS[tier], `실제=${goldenFree[tier]} 정본=${PASS_LIMITS[tier]}`);
   if (goldenMonthly[tier] !== undefined) check(`셸 goldenPackages[${tier}].monthlyLimit`, goldenMonthly[tier] === MONTHLY_PASS_LIMITS[tier], `실제=${goldenMonthly[tier]}`);
-  if (goldenPrice[tier] !== undefined) check(`셸 goldenPackages[${tier}].price`, goldenPrice[tier] === PASS_MONTHLY_WON[tier], `실제=${goldenPrice[tier]}`);
+  if (goldenPrice[tier] !== undefined) check(`셸 goldenPackages[${tier}].price`, goldenPrice[tier] === CURRENT_PASS_PLANS[tier]?.wonPrice, `실제=${goldenPrice[tier]} 정본=${CURRENT_PASS_PLANS[tier]?.wonPrice}`);
   if (goldenProfile[tier] !== undefined) {
     const want = HONEY_PASS_POLICY[tier].maxProfiles === 0 ? null : HONEY_PASS_POLICY[tier].maxProfiles;
     check(`셸 goldenPackages[${tier}].profileLimit`, goldenProfile[tier] === want, `실제=${goldenProfile[tier]} 정본=${want}`);
@@ -535,6 +536,7 @@ for (const hit of resetHits) failures.push(`리셋 문구: ${hit}`);
    홈 판매 배너에는 등급별 건당 금액과 영냥이 세트가 빠져 있었다. 셋 다 여기서 막는다. */
 const POLICY_TABLES = [
   [CURRENT_PASS_POLICY_VERSION, CURRENT_PASS_PLANS],
+  [V4_PASS_POLICY_VERSION, V4_PASS_PLANS],
   [PREVIOUS_PASS_POLICY_VERSION, PREVIOUS_PASS_PLANS],
   [PRIOR_PASS_POLICY_VERSION, PRIOR_PASS_PLANS],
 ];

@@ -23,7 +23,7 @@ describe("versioned flower passes", () => {
   });
   test("new VVIP covers one 30,000 product and prior v2 values remain readable", () => {
     const plan = currentPassPlan("vvip");
-    expect(plan.wonPrice).toBe(59900);
+    expect(plan.wonPrice).toBe(64900);
     expect(canUseByPass({ ...plan, isActive: true }, 300)).toBe(true);
     expect(canUseByPass({ ...plan, isActive: true }, 301)).toBe(false);
     expect(resolveMonthlyPassLimitCoin(plan, "vvip", "")).toBe(1200);
@@ -36,24 +36,19 @@ describe("versioned flower passes", () => {
     expect(isPassPolicyMix({ tier: "vvip", expiresAt }, currentPassPlan("vvip"), now)).toBe(true);
     expect(isPassPolicyMix({ tier: "vvip", expiresAt: "2026-09-01" }, currentPassPlan("vvip"), now)).toBe(false);
   });
-  test("approved prices open registered Play passes while Family and historical policies stay closed", () => {
+  test("web sells every v5 tier while Play stays closed until v5 SKUs are approved", () => {
     for (const tier of ["standard", "premium", "vvip", "family"]) {
       expect(auditPassSale(tier, "web")).toEqual({ eligible: true, reason: "APPROVED_WEB_PRICE_POLICY" });
       expect(() => assertPassSaleAllowed(currentPassPlan(tier), "web")).not.toThrow();
-      if (tier === "family") {
-        expect(auditPassSale(tier, "googlePlay")).toEqual({ eligible: false, reason: "APP_SKU_NOT_VERIFIED" });
-        expect(() => assertPassSaleAllowed(currentPassPlan(tier), "googlePlay")).toThrow();
-      } else {
-        expect(auditPassSale(tier, "googlePlay")).toEqual({ eligible: true, reason: "APPROVED_GOOGLE_PLAY_PRICE_POLICY" });
-        expect(() => assertPassSaleAllowed(currentPassPlan(tier), "googlePlay")).not.toThrow();
-        expect(() => assertPassSaleAllowed(previousPassPlan(tier), "googlePlay")).toThrow();
-      }
+      expect(auditPassSale(tier, "googlePlay")).toEqual({ eligible: false, reason: "APP_SKU_NOT_VERIFIED" });
+      expect(() => assertPassSaleAllowed(currentPassPlan(tier), "googlePlay")).toThrow();
+      expect(() => assertPassSaleAllowed(previousPassPlan(tier), "googlePlay")).toThrow();
     }
     expect(() => assertPassSaleAllowed({ tier: "family" })).toThrow();
   });
-  test("Family v4 preserves unlimited profiles with the approved 350,000 allowance", () => {
+  test("Family v5 preserves unlimited profiles with the approved 350,000 allowance", () => {
     const family = currentPassPlan("family");
-    expect(family).toMatchObject({ planId: "family_1m_v4", wonPrice: 149000, monthlyLimitCoin: 3500, profileLimit: 0 });
+    expect(family).toMatchObject({ planId: "family_1m_v5", wonPrice: 154000, monthlyLimitCoin: 3500, profileLimit: 0 });
     expect(family.monthlyLimitCoin * 100).toBe(350000);
     expect(canUseByPass({ ...family, isActive: true }, 500)).toBe(true);
     expect(isPassBudgetExhausted("family", 4990, 5000, family)).toBe(false);
@@ -91,7 +86,7 @@ test("real admission accepts the approved web plan and preserves a pre-cutover p
   }
   const current = currentPassPlan("vvip");
   const currentOrder = await createPassOrder(db, { userId, idempotencyKey: current.planId, plan: current });
-  expect(currentOrder.paymentAmount).toBe(59900);
+  expect(currentOrder.paymentAmount).toBe(64900);
   const legacy = resolvePassPlan("vvip", 1);
   db.rows.push({ userId, merchantUid: "historical-vvip", idempotencyKey: "old-pending", paymentType: "membership_pass",
     subscriptionTier: "vvip", paymentAmount: 59000, status: "pending", metadata: { durationMonths: 1 } });
@@ -109,12 +104,12 @@ test("public offers expose four approved web offers and cost coverage includes r
   const response = await __paymentsContextTestUtils.ROUTES["GET /pass-offers"].handle({ request: new Request("https://code-destiny.com/api/payments/pass-offers") });
   const body = await response.json();
   expect(body.offers.map(p => [p.tier, p.wonPrice, p.saleEnabled])).toEqual([
-    ["standard", 9900, true], ["premium", 29900, true], ["vvip", 59900, true], ["family", 149000, true],
+    ["standard", 14900, true], ["premium", 34900, true], ["vvip", 64900, true], ["family", 154000, true],
   ]);
   const playResponse = await __paymentsContextTestUtils.ROUTES["GET /pass-offers"].handle({ request: new Request("https://code-destiny.com/api/payments/pass-offers?channel=googlePlay") });
   const playBody = await playResponse.json();
   expect(playBody.offers.map(p => [p.tier, p.wonPrice, p.saleEnabled])).toEqual([
-    ["standard", 9900, true], ["premium", 29900, true], ["vvip", 59900, true], ["family", 149000, false],
+    ["standard", 14900, false], ["premium", 34900, false], ["vvip", 64900, false], ["family", 154000, false],
   ]);
   const catalog = listPassCostProducts(currentPassPlan("vvip"));
   expect(catalog.some(p => p.featureKey.includes("::"))).toBe(true);
@@ -180,7 +175,7 @@ test("real sale admission requires growth reserves and enough contribution to co
   const plan = currentPassPlan("standard");
   const products = Object.fromEntries(listPassCostProducts(plan).map(p => [p.featureKey, { priceKRW: p.priceKRW, maxCostKRW: 50, sourceRefs: ["fixture-only"] }]));
   const evidence = { reviewedAt: now.toISOString(), sourceRefs: ["fixture-only"], priceKRW: plan.wonPrice,
-    maxCoveredCoin: plan.maxCoveredCoin, monthlyLimitCoin: plan.monthlyLimitCoin, netRevenueKRW: 9000, paymentFeeKRW: 544.5, products,
+    maxCoveredCoin: plan.maxCoveredCoin, monthlyLimitCoin: plan.monthlyLimitCoin, netRevenueKRW: plan.wonPrice / 1.1, paymentFeeKRW: plan.wonPrice * 0.055, products,
     financials: { channel: "web", basis: "reviewed", reviewedAt: now.toISOString(), sourceRefs: ["fixture-only"], vatRate: 0.1,
       feeRate: 0.055, feeBasis: "gross", fixedMonthlyKRW: 108000, minimumMonthlySales: 200 },
     stress: { sourceRefs: ["fixture-only"], productCostMultiplier: 2, fixedMonthlyKRW: 540000 } };

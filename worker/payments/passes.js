@@ -16,7 +16,7 @@
  * 인라인(`index.html` goldenPackages)이고, payments.subscription-purchase.test.js 가 셸과 대조한다.
  */
 import { assertPaypalOrderMatches } from './paypal.js';
-import { PREVIOUS_PASS_POLICY_VERSION, previousPassPlan, CURRENT_PASS_POLICY_VERSION, PRIOR_PASS_POLICY_VERSION, LEGACY_PASS_POLICY_VERSION, currentPassPlan, priorPassPlan, passPolicyVersion, isPassPolicyMix } from "../../lib/payment/pass-policy.js";
+import { PREVIOUS_PASS_POLICY_VERSION, previousPassPlan, CURRENT_PASS_POLICY_VERSION, V4_PASS_POLICY_VERSION, v4PassPlan, PRIOR_PASS_POLICY_VERSION, LEGACY_PASS_POLICY_VERSION, currentPassPlan, priorPassPlan, passPolicyVersion, isPassPolicyMix } from "../../lib/payment/pass-policy.js";
 import { assertPassSaleAllowed } from "../lib/pass-sale-policy.js";
 import { Payment, PointHistory, User } from "../lib/models.js";
 import { createHash } from "node:crypto";
@@ -52,6 +52,7 @@ export function resolvePassPlan(tierInput, durationMonthsInput, policyVersion = 
   if (durationMonths !== 1) return null; // 30일 단품만 판다(구 카탈로그와 동일)
   if (policyVersion === PREVIOUS_PASS_POLICY_VERSION) return previousPassPlan(tier);
   if (policyVersion === CURRENT_PASS_POLICY_VERSION) return currentPassPlan(tier);
+  if (policyVersion === V4_PASS_POLICY_VERSION) return v4PassPlan(tier);
   if (policyVersion === PRIOR_PASS_POLICY_VERSION) return priorPassPlan(tier);
   if (policyVersion !== LEGACY_PASS_POLICY_VERSION) return null;
   const policy = HONEY_PASS_POLICY[tier];

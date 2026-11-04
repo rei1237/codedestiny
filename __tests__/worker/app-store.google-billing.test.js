@@ -251,14 +251,15 @@ beforeEach(() => {
   mockIntentFindOne.mockReturnValue({ sort: () => ({ lean: async () => null }) });
 });
 
-test("Family v4 Play SKU는 검증 전 판매 준비 중으로 실패 폐쇄한다", async () => {
+test("Family 현재 Play SKU는 검증 전 판매 준비 중으로 실패 폐쇄한다", async () => {
   const version=(await import("../../lib/payment/pass-policy.js")).CURRENT_PASS_POLICY_VERSION;
   const {status,payload}=await callRoute(new Request(`https://code-destiny.com/api/app-store/products?passTier=family&passPolicyVersion=${version}`));
   expect(status).toBe(503);
   expect(payload.code).toBe("APP_SKU_NOT_VERIFIED");
 });
 
-test.each(["standard", "premium", "vvip"])("승인된 %s v4 이용권은 결제 의도만 만들고 검증 전 지급하지 않는다", async (tier) => {
+// v5 SKU는 Play Console 등록 뒤 승인 목록에 오른다. 그때까지 결제 의도를 만들지 않는다.
+test.each(["standard", "premium", "vvip"])("미승인 %s v5 이용권은 결제 의도를 만들지 않고 지급하지 않는다", async (tier) => {
   const { currentPassPlan } = await import("../../lib/payment/pass-policy.js");
   const plan = currentPassPlan(tier);
   const { status, payload } = await callRoute(postJson("/google/intent", {
@@ -267,16 +268,16 @@ test.each(["standard", "premium", "vvip"])("승인된 %s v4 이용권은 결제 
     passPolicyVersion: plan.passPolicyVersion,
     requestId: `approved-pass-${tier}`,
   }));
-  expect(status).toBe(200);
-  expect(payload.data.product).toMatchObject({ productId: plan.appProductId, amountKRW: plan.wonPrice });
-  expect(mockIntentCreate).toHaveBeenCalledTimes(1);
+  expect(status).toBe(409);
+  expect(payload.code).toBe("PASS_SALE_NOT_READY");
+  expect(mockIntentCreate).not.toHaveBeenCalled();
   expect(mockPaymentCreate).not.toHaveBeenCalled();
   expect(mockUserFindByIdAndUpdate).not.toHaveBeenCalled();
   expect(acknowledgeCalls).toHaveLength(0);
   expect(global.fetch).not.toHaveBeenCalled();
 });
 
-test.each(["standard", "premium", "vvip"])("%s v4 이용권의 대기 결제는 지급·승인하지 않는다", async (tier) => {
+test.each(["standard", "premium", "vvip"])("%s 현재 이용권의 대기 결제는 지급·승인하지 않는다", async (tier) => {
   const { currentPassPlan } = await import("../../lib/payment/pass-policy.js");
   const plan = currentPassPlan(tier);
   googlePurchasePayload.purchaseState = 2;
@@ -290,7 +291,7 @@ test.each(["standard", "premium", "vvip"])("%s v4 이용권의 대기 결제는 
   expect(acknowledgeCalls).toHaveLength(0);
 });
 
-test.each(["standard", "premium", "vvip"])("%s v4 검증 완료 구매는 현재 가격·이용 한도·기간 없음 정책을 보존한다", async (tier) => {
+test.each(["standard", "premium", "vvip"])("%s 현재 이용권 검증 완료 구매는 현재 가격·이용 한도·기간 없음 정책을 보존한다", async (tier) => {
   const { currentPassPlan } = await import("../../lib/payment/pass-policy.js");
   const plan = currentPassPlan(tier);
   const before = Date.now();

@@ -116,6 +116,7 @@
   // 대조 가드: scripts/verify-pass-tier-policy.mjs. PASS_LIMIT_BY_TIER 는 legacy 정책 전용이다 —
   // 현행 큰 꿀단지(300)를 legacy 표(200)로 읽으면 홈·결제 화면이 실제 차감보다 좁게 보인다.
   var PASS_LIMIT_BY_POLICY = {
+    "flower-20261104": { standard: 50, premium: 100, vvip: 300, family: 999999999 },
     "flower-20260930": { standard: 50, premium: 100, vvip: 300, family: 999999999 },
     "flower-cost-20260921": { standard: 50, premium: 100, vvip: 300, family: 999999999 },
     "flower-20260921": { standard: 50, premium: 100, vvip: 300 }
@@ -295,6 +296,7 @@
     var spend = numberOrNaN(sub.monthlySpendCoin);
     if (!Number.isFinite(spend)) return NaN;
     var policyMonthlyLimits = {
+      "flower-20261104": { standard: 200, premium: 600, vvip: 1200, family: 3500 },
       "flower-20260930": { standard: 200, premium: 600, vvip: 1200, family: 3500 },
       "flower-cost-20260921": { standard: 400, premium: 1000, vvip: 2000, family: 5000 },
       "flower-20260921": { standard: 200, premium: 500, vvip: 900 }

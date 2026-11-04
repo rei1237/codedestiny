@@ -75,6 +75,9 @@ const PASS_LISTINGS = {
   cd_pass_standard_30d_v4: { title: "작은 꿀단지", coverage: "5,000원 이하" },
   cd_pass_premium_30d_v4: { title: "중간 꿀단지", coverage: "10,000원 이하" },
   cd_pass_vvip_30d_v4: { title: "큰 꿀단지", coverage: "30,000원 이하" },
+  cd_pass_standard_30d_v5: { title: "작은 꿀단지", coverage: "5,000원 이하" },
+  cd_pass_premium_30d_v5: { title: "중간 꿀단지", coverage: "10,000원 이하" },
+  cd_pass_vvip_30d_v5: { title: "큰 꿀단지", coverage: "30,000원 이하" },
 };
 
 const PASS_BY_SKU = Object.fromEntries(listAppPassProducts().map((pass) => [pass.productId, pass]));

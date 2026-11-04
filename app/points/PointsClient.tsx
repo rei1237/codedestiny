@@ -18,6 +18,8 @@ import { getSubscriptionTierLabel } from "../components/subscriptionNotice";
 import { getAssetUrlFromPublicPath } from "@/lib/r2-public-url";
 import {
   CURRENT_PASS_POLICY_VERSION,
+  V4_PASS_POLICY_VERSION,
+  v4PassPlan,
   PREVIOUS_PASS_POLICY_VERSION,
   previousPassPlan,
   PRIOR_PASS_POLICY_VERSION,
@@ -752,6 +754,7 @@ function getSubscriptionPolicyFreeLimit(
   const normalized = normalizeSubscriptionTier(tier);
   if (policyVersion === PREVIOUS_PASS_POLICY_VERSION) return previousPassPlan(normalized)?.maxCoveredCoin || 0;
   if (policyVersion === CURRENT_PASS_POLICY_VERSION) return currentPassPlan(normalized)?.maxCoveredCoin || 0;
+  if (policyVersion === V4_PASS_POLICY_VERSION) return v4PassPlan(normalized)?.maxCoveredCoin || 0;
   if (policyVersion === PRIOR_PASS_POLICY_VERSION) return priorPassPlan(normalized)?.maxCoveredCoin || 0;
   if (normalized === "family") return 999999999;
   if (normalized === "vvip") return 100;

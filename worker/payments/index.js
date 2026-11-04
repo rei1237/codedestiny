@@ -25,6 +25,7 @@ import { readGa4PurchaseContext, sendPendingGa4Refunds, withdrawGa4Consent } fro
 import { resolveOrderProductName } from "../lib/payment-product-name.js";
 import {
   CURRENT_PASS_POLICY_VERSION,
+  V4_PASS_POLICY_VERSION,
   PREVIOUS_PASS_POLICY_VERSION,
   isPassPolicyMix,
   LEGACY_PASS_POLICY_VERSION,
@@ -410,8 +411,10 @@ function resolvePassRequest(env, body = {}) {
     throw paymentError("INVALID_SUBSCRIPTION_DURATION", "이용권 기간이 올바르지 않습니다.");
   }
   const planIdHint = String(body.planId || "");
-  const inferredPolicyVersion = planIdHint.endsWith("_v4")
+  const inferredPolicyVersion = planIdHint.endsWith("_v5")
     ? CURRENT_PASS_POLICY_VERSION
+    : planIdHint.endsWith("_v4")
+      ? V4_PASS_POLICY_VERSION
     : planIdHint.endsWith("_v3")
       ? PREVIOUS_PASS_POLICY_VERSION
     : planIdHint.endsWith("_v2")

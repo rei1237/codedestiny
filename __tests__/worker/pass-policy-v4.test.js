@@ -1,5 +1,5 @@
 /** @jest-environment node */
-import { currentPassPlan, previousPassPlan, PREVIOUS_PASS_POLICY_VERSION, CURRENT_PASS_POLICY_VERSION } from '../../lib/payment/pass-policy.js';
+import { v4PassPlan, previousPassPlan, PREVIOUS_PASS_POLICY_VERSION, V4_PASS_POLICY_VERSION } from '../../lib/payment/pass-policy.js';
 import { resolvePassPolicy, buildPassCycleFields } from '../../worker/lib/profile-limits.js';
 import { resolvePassPlan, createPassOrder, activatePassSubscription, evaluatePassCoverage } from '../../worker/payments/passes.js';
 import { makeFakePaymentDb } from '../fixtures/fake-payment-db.mjs';
@@ -9,11 +9,11 @@ const require=createRequire(import.meta.url),verdict=require('../../js/core/pass
 const now=new Date('2026-09-30T00:00:00Z'),expiry='2026-10-30T00:00:00.000Z',userId='64b000000000000000000001';
 const cases=[['standard',9900,200,400],['premium',29900,600,1000],['vvip',59900,1200,2000],['family',149000,3500,5000]];
 test.each(cases)('%s v4 and v3 retain independent prices and budgets',async(tier,price,budget,oldBudget)=>{
- const next=currentPassPlan(tier),old=previousPassPlan(tier);
+ const next=v4PassPlan(tier),old=previousPassPlan(tier);
  expect(next).toMatchObject({wonPrice:price,monthlyLimitCoin:budget,planId:tier+'_1m_v4'});
  expect(resolvePassPlan(tier,1,PREVIOUS_PASS_POLICY_VERSION)).toEqual(old);
  expect(resolvePassPolicy(old).monthlyCoveredCoin).toBe(oldBudget);
- expect(buildPassCycleFields({tier,expiresAt:expiry,now,passPolicyVersion:CURRENT_PASS_POLICY_VERSION}).monthlyLimitCoin).toBe(budget);
+ expect(buildPassCycleFields({tier,expiresAt:expiry,now,passPolicyVersion:V4_PASS_POLICY_VERSION}).monthlyLimitCoin).toBe(budget);
  for(const [plan,limit] of [[next,budget],[old,oldBudget]]){
   const sub={...plan,isActive:true,expiresAt:expiry,premiumUseCycleKey:expiry,monthlySpendCoin:limit-50};
   expect(evaluatePassCoverage({user:{profileSubscription:sub},entitlement:sub,coinCost:50}).covered).toBe(true);
@@ -29,13 +29,13 @@ test.each(cases)('%s v4 and v3 retain independent prices and budgets',async(tier
  await expect(activatePassSubscription(db,{userId,plan:next,orderId:'new-'+tier,expiresAt:expiry,now,existing:user})).rejects.toMatchObject({code:'PASS_POLICY_CONFLICT'});
 });
 test('plan IDs infer the original policy on prepare and never map v3 to v4',()=>{
- for(const tier of cases.map(row=>row[0]))for(const plan of [previousPassPlan(tier),currentPassPlan(tier)]){
+ for(const tier of cases.map(row=>row[0]))for(const plan of [previousPassPlan(tier),v4PassPlan(tier)]){
   const resolved=__paymentsContextTestUtils.resolvePassRequest({}, {tier,planId:plan.planId,durationMonths:1,paymentMethod:'card_general'});
   expect(resolved.plan.passPolicyVersion).toBe(plan.passPolicyVersion);
  }
 });
 test('local snapshot knows both Family budgets',()=>{
- for(const [plan,limit] of [[currentPassPlan('family'),3500],[previousPassPlan('family'),5000]]) {
+ for(const [plan,limit] of [[v4PassPlan('family'),3500],[previousPassPlan('family'),5000]]) {
   const expiresAt=new Date(Date.now()+86400000).toISOString();
   const snapshot=verdict.buildSnapshotFromStatus(userId,{...plan,tier:'family',isActive:true,expiresAt,premiumUseCycleKey:expiresAt,monthlySpendCoin:100},'test');
   expect(snapshot.monthlySpendRemainingCoin).toBe(limit-100);

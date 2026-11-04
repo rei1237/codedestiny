@@ -1,4 +1,5 @@
 import { currentPassPlan, passPolicyVersion, isPassPolicyMix } from "../../lib/payment/pass-policy.js";
+import { PaymentError, contractFor } from "../payments/errors.js";
 import { connectDb, mongoose } from "../lib/db.js";
 import { getEnv } from "../lib/env.js";
 import { CONTENT_ENTITLEMENT_SOURCES, CONTENT_ENTITLEMENT_STATUSES, Payment, User } from "../lib/models.js";
@@ -1601,7 +1602,8 @@ export async function handleAppStoreRoutes(request, env) {
     if (["GET", "POST"].includes(method)) return notFound();
     return methodNotAllowed();
   } catch (error) {
-    const status = Number(error?.status || error?.statusCode || 0);
+    // PaymentError는 status를 오류표에 둔다. 판매 준비 중(PASS_SALE_NOT_READY)이 500이 되지 않게 표에서 읽는다.
+    const status = Number(error?.status || error?.statusCode || (error instanceof PaymentError ? contractFor(error.code).status : 0));
     if (status >= 400 && status < 600) {
       return json({
         ok: false,
