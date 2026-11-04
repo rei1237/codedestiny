@@ -21,6 +21,8 @@
 
 삭제 범위 조사 출발점: 토스 전용 `TossIdentity`, `TossSession`, `TossPurchase`, `TossNativeConsultation` 외에 토스 어댑터는 `ProfileCard`, `YeongnyangiRequest`, `PaidExecutionRecord`와 원본 인생의 책·연애 비책·네오·찻집 결과 경로를 사용한다. 찻집 원본은 결과·타로 초안·지갑·원장 컬렉션도 참조한다. 이는 코드상 조사 후보이며 모든 토스 경로의 실제 쓰기와 법정 보존 대상이 확인된 완전한 삭제 목록이 아니다. 재연결, 진행 중 생성, 환불과 보존 의무를 검증하기 전 운영 삭제를 실행하지 않는다.
 
+추가 조사: 찻집 그룹 생성은 `worker/routes/fortune-tea-house.js`의 `createLlmCacheStore`를 사용한다. `worker/lib/llm-cache-store.js`는 응답 텍스트를 `cacheKey`로 저장하며 찻집의 만료 기준은 30일이다. MongoDB TTL의 물리 삭제는 비동기이므로 실제 보관 기간을 30일 이내라고 단정할 수 없다. 이 인터페이스에는 사용자별 삭제 인자가 없으므로 토스 상담 응답이 캐시되는 조건과 삭제·만료 보장, 공유 캐시의 다른 사용자 데이터 보호를 확인해야 한다. 운영 캐시를 조회하지 않았다.
+
 [전자상거래법 시행령 제6조](https://www.law.go.kr/LSW/lsSideInfoP.do?docCls=jo&joBrNo=00&joNo=0006&lsiSeq=288143&urlMode=lsScJoRltInfoR)는 일정한 계약·청약철회 및 대금결제·공급 기록 5년, 소비자 불만·분쟁 처리 기록 3년을 규정한다. 토스 결제에서 각 사업자의 보존 주체·필드, 접근 분리 및 연결 해제 시 처리 방법은 별도로 확인해야 하며 이 근거만으로 상담 원문 보존을 정당화하지 않는다.
 
 공개 웹에서 확인된 주소는 [개인정보처리방침](https://code-destiny.com/privacy/), [이용약관](https://code-destiny.com/terms/), [문의](https://code-destiny.com/contact/)다. 2026-11-04에 세 주소와 [환불 안내](https://code-destiny.com/refund-policy/)의 HTTP HEAD 200 응답을 확인했다. 본문은 검색 도구의 캐시로 확인했으며 토스 앱 내 연결은 미검증이다. 공개 개인정보 문서는 웹 가입 및 포트원·이니시스 중심으로 설명하므로 토스 로그인·인앱결제의 실제 처리·국외 이전·삭제 절차를 충족한다고 판단할 수 없다.
@@ -32,6 +34,8 @@
 상품 등록 안내는 상품 이미지 1024×1024px, 공급가 10원 단위와 부가세를 더한 판매가를 요구한다. 기존 레지스트리의 실제 판매가와 콘솔 산출 판매가가 일치하는지 상품별로 대조하기 전 가격을 임의로 확정하지 않는다. [공식 인앱 결제 안내](https://developers-apps-in-toss.toss.im/guide/monetization/in-app-payment)
 
 콘솔 등록 화면에서 공급가 4,540원과 4,550원의 판매가는 각각 4,994원과 5,005원으로 표시됐다. 기존 5,000원 상품의 정확한 판매가를 이 입력 단위로 보존할 방법은 확인되지 않았다. 상품을 저장하거나 기존 가격을 변경하지 않았으며, 플랫폼의 예외 또는 정확한 매핑 확인이 필요하다.
+
+[상품 목록 SDK](https://developers-apps-in-toss.toss.im/documentation/sdk/domains-api/iap/iap.getproductitemlist)의 상품 응답에는 표시용 `displayAmount` 문자열이 있다. `apps/toss/src/platform.ts`는 SKU와 상품 유형을 연결해 이를 표시하고, `worker/toss/policy.js`의 주문 검증은 SKU·상태를 확인한다. 이 코드만으로 콘솔의 실제 판매가가 기존 레지스트리와 같다고 판정하지 않으며, 등록 상품마다 콘솔 대조가 필요하다.
 
 ## 공식 기준별 미완료 체크리스트
 
