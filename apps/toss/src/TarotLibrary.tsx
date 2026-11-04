@@ -70,7 +70,8 @@ export default function TarotLibrary({products,loggedIn,onLogin,onError,onBack,i
   const [flowId,setFlowId]=useState(''),[question,setQuestion]=useState(''),[birthDate,setBirthDate]=useState(''),[gem,setGem]=useState('amethyst'),[drawStarted,setDrawStarted]=useState(false),[picks,setPicks]=useState<number[]>([]),[paidReady,setPaidReady]=useState(false),[buying,setBuying]=useState(false),[result,setResult]=useState<LocalResult|null>(null),[retryOrderId,setRetryOrderId]=useState(''),[restoring,setRestoring]=useState(false);
   const flow=useMemo(()=>flows.find(item=>item.id===flowId)||null,[flowId]);
   const [recoveredOrderId,setRecoveredOrderId]=useState(''),[canResume,setCanResume]=useState(false);
-  const reset=()=>{requestEpoch.current++;purchaseCleanup.current?.();purchaseCleanup.current=null;setBuying(false);setRestoring(false);setFlowId('');setQuestion('');setBirthDate('');setGem('amethyst');setDrawStarted(false);setPicks([]);setPaidReady(false);setResult(null);setRetryOrderId('');setRecoveredOrderId('');setCanResume(false);onRereadClosed?.();};
+  const clearReading=()=>{requestEpoch.current++;purchaseCleanup.current?.();purchaseCleanup.current=null;setBuying(false);setRestoring(false);setFlowId('');setQuestion('');setBirthDate('');setGem('amethyst');setDrawStarted(false);setPicks([]);setPaidReady(false);setResult(null);setRetryOrderId('');setRecoveredOrderId('');setCanResume(false);};
+  const reset=()=>{clearReading();onRereadClosed?.();};
   const acceptStored=(stored:StoredReading,orderId:string)=>{
     if(stored.flowId)setFlowId(stored.flowId);
     if(stored.result){setResult(stored.result);return;}
@@ -93,7 +94,7 @@ export default function TarotLibrary({products,loggedIn,onLogin,onError,onBack,i
     return()=>{active=false;};
   },[initialOrderId,loggedIn]);
   const sessionLost=previousLogin.current&&!loggedIn;
-  useEffect(()=>{if(previousLogin.current&&!loggedIn)reset();previousLogin.current=loggedIn;},[loggedIn]);
+  useEffect(()=>{if(previousLogin.current&&!loggedIn)clearReading();previousLogin.current=loggedIn;},[loggedIn]);
   if(sessionLost)return <section className="tarot-library"><p role="status">로그인 상태가 종료되어 이전 결과를 닫고 있어요.</p></section>;
   if(restoring)return <section className="tarot-library"><p role="status">저장된 타로 리딩을 다시 열고 있어요.</p></section>;
   if(result)return <Result result={result} onRestart={reset}/>;

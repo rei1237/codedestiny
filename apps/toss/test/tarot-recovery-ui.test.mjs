@@ -27,7 +27,7 @@ const result={flowId:'tarot-mindscan',title:'저장된 리딩',question:'질문'
 async function mount(api,onError=error=>{throw error;},initialLoggedIn=true,initialId=orderId){
  const calls=[];globalThis.tarotRecoveryUi={api:async(...args)=>{calls.push(args);return api(...args);}};
  const root=createRoot(document.getElementById('root'));
- const props={products:[],loggedIn:initialLoggedIn,initialOrderId:initialId,onLogin:()=>assert.fail(),onError,onBack:()=>{}};await React.act(async()=>{root.render(React.createElement(TarotLibrary,props));});
+ const props={products:[],loggedIn:initialLoggedIn,initialOrderId:initialId,onLogin:()=>assert.fail(),onError,onBack:()=>{},onRereadClosed:()=>{globalThis.__tarotClosed=(globalThis.__tarotClosed||0)+1;}};await React.act(async()=>{root.render(React.createElement(TarotLibrary,props));});
  return {calls,setAuth:value=>React.act(async()=>root.render(React.createElement(TarotLibrary,{...props,loggedIn:value}))),close:()=>React.act(()=>root.unmount())};
 }
 async function click(text){
@@ -105,3 +105,7 @@ test('a guest question remains intact when the user logs in',async()=>{
   await view.setAuth(true);assert.equal(document.querySelector('textarea').value,'지금 나에게 필요한 방향은?');
  }finally{view.close();}
 });
+
+test('session expiry clears old result but keeps the direct order for a newly verified login',async()=>{globalThis.__tarotClosed=0;const view=await mount(()=>({flowId:result.flowId,state:'completed',result,canRetryNow:false}));try{assert.match(document.body.textContent,/완료된 원문/);await view.setAuth(false);assert.doesNotMatch(document.body.textContent,/완료된 원문/);assert.equal(globalThis.__tarotClosed,0);await view.setAuth(true);assert.equal(view.calls.length,2);assert.match(document.body.textContent,/완료된 원문/);}finally{view.close();}});
+
+test('a different account cannot reuse the previous account result after login',async()=>{let calls=0;const errors=[];const view=await mount(()=>++calls===1?{flowId:result.flowId,state:'completed',result,canRetryNow:false}:Promise.reject(Object.assign(new Error('denied'),{status:403,code:'ACCESS_DENIED'})),error=>errors.push(error));try{assert.match(document.body.textContent,/완료된 원문/);await view.setAuth(false);assert.doesNotMatch(document.body.textContent,/완료된 원문/);await view.setAuth(true);assert.doesNotMatch(document.body.textContent,/완료된 원문|추가 결제 없이 이어서 생성/);assert.equal(errors.at(-1).status,403);}finally{view.close();}});
