@@ -1,4 +1,5 @@
 import WeeklyFortune from "./WeeklyFortune";
+import Link from "next/link";
 import { buildSignViewModel } from "@/lib/fortune/build-view";
 import { SIGN_PROFILES } from "@/lib/fortune/sign-profiles";
 import { getPeriodReading } from "@/lib/fortune/period-readings";
@@ -50,10 +51,11 @@ const serviceJsonLd = buildServiceJsonLd({
   path: page.path,
   serviceType: "오늘의 운세",
 });
-const breadcrumbJsonLd = buildBreadcrumbJsonLd([
+const breadcrumb = [
   { name: "홈", path: "/" },
-  { name: "오늘의 운세", path: page.path },
-]);
+  { name: "오늘의 운세", path: "/today/" },
+];
+const breadcrumbJsonLd = buildBreadcrumbJsonLd(breadcrumb);
 const faqJsonLd = buildFaqPageJsonLd(page.faqs || []);
 
 export default function TodayLandingPage() {
@@ -64,6 +66,10 @@ export default function TodayLandingPage() {
           아래 두 서버 컴포넌트를 지우거나 줄이면 build:cf 의 verify-adsense-readiness 가 실패한다. */}
       <TodayHubClient weeklyContent={<WeeklyFortune readings={SIGN_PROFILES.flatMap(profile => { const vm = buildSignViewModel(profile, "weekly"); return vm ? [{ id: profile.id, name: profile.nameKo, kind: profile.kind, range: vm.rangeLabel, narrative: vm.narrative, advice: getPeriodReading(profile.id, "weekly", profile.reading), days: vm.weekDays || [] }] : []; })} />} dailyTarotCards={TAROT_CARDS.filter(card => card.arcana === "major").map((card, id) => ({id, name:card.nameKo, image:getTarotCardImageUrl({arcana:card.arcana,number:card.number})}))}>
         <TodaySystemPrimer />
+        <nav aria-label="현재 위치" className="mt-8 flex items-center gap-2 text-sm text-slate-300">
+          <Link className="inline-flex min-h-11 items-center underline" href={breadcrumb[0].path}>{breadcrumb[0].name}</Link>
+          <span aria-hidden="true">/</span><span aria-current="page">{breadcrumb[1].name}</span>
+        </nav>
         <TodayReadingGuide />
       </TodayHubClient>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageJsonLd) }} />

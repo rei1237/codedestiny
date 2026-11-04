@@ -7,6 +7,7 @@ import { BRAND_FACTS } from "../lib/brand/brand-facts.mjs";
 import { FOOTER_BYLINE, FOOTER_LINKS, FOOTER_NOTICE, FOOTER_TRUST_LINKS } from "../lib/brand/site-footer";
 import { BUSINESS_IDENTITY } from "../lib/site-policy-config";
 import LegacyHomeEntry from "./components/LegacyHomeEntry";
+import { HOME_QUICK_LINKS } from "../lib/seo/home-discovery.mjs";
 import HomeCardDeck from "./components/HomeCardDeck";
 import { NativeHomeRoot, NativeHomeNav, NativeHomeText, NativeHomeCardLink, NativeHomeDictionaryText } from "./components/NativeHomeCopy";
 import "./yeongnyangi/night-tokens.css";
@@ -120,6 +121,11 @@ export default function HomePage() {
             </li>;
           })}
         </HomeCardDeck>
+        {!IS_APP_BUILD && <nav className={styles.entryHelp} aria-label="주요 운세 바로가기">
+          {HOME_QUICK_LINKS.map(({ key, href, title }) => (
+            <Link key={key} href={href} prefetch={false} {...discoveryTracking(key)}>{title}</Link>
+          ))}
+        </nav>}
         <nav className={styles.entryHelp} aria-label="서비스 이용 도움말">
           <Link prefetch={IS_APP_BUILD ? false : undefined} href="/faq/"><NativeHomeText>이용 안내</NativeHomeText></Link>
           <Link prefetch={IS_APP_BUILD ? false : undefined} href="/records/"><NativeHomeText>꿀꿀 운세 기록</NativeHomeText></Link>
