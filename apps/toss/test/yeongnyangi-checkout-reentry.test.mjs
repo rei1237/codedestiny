@@ -18,7 +18,7 @@ const bundle=await build({entryPoints:[source],bundle:true,write:false,platform:
   import React from 'react';
   export default function Checkout({draft}){globalThis.checkoutReentry.drafts.push(draft);return React.createElement('div',{'data-checkout':true},draft.product.name);}
   export const canonicalResponse=(...args)=>globalThis.checkoutReentry.send(...args);
-  export const LazyMotion=()=>null,domAnimation={},SafeArea={},graniteEvent={},ToastProvider=()=>null;
+  export const LazyMotion=()=>null,domAnimation={},SafeArea={},graniteEvent={},ToastProvider=()=>null,dispatchServiceBack=()=>false;
   export const clearClientAuthState=()=>{},refreshAuth=()=>{},handleSessionInvalidated=()=>{},SERVICE_AVAILABLE=false,restoreSession=()=>{},recoverAfterAuthentication=()=>{},onSessionInvalidated=()=>()=>{},login=()=>{},isToss=()=>false,createServiceFetch=()=>{};
  `}));
 }}]});

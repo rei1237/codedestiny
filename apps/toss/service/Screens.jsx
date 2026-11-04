@@ -7,6 +7,7 @@ import {refreshAuth,handleSessionInvalidated} from '@/app/_lib/auth-store';
 import {SERVICE_AVAILABLE} from '../src/release';
 import {canonicalResponse,restoreSession,recoverAfterAuthentication,onSessionInvalidated,login,isToss} from '../src/platform';
 import {createServiceFetch} from './transport.mjs';
+import {dispatchServiceBack} from './native-back.mjs';
 import Checkout from './Checkout';
 import YeongnyangiLayout from '@/app/yeongnyangi/layout';
 import styles from '@/app/yeongnyangi/yeongnyangi.module.css';
@@ -54,6 +55,7 @@ export default function ServiceScreens(){
   area(SafeArea.get());
   const offArea=SafeArea.subscribe({onEvent:area});
   const offBack=graniteEvent.addEventListener('backEvent',{onEvent:()=>{
+   if(dispatchServiceBack())return;
    const previous=document.referrer&&new URL(document.referrer);
    if(previous?.origin===location.origin&&history.length>1)history.back();else location.assign('/');
   }});

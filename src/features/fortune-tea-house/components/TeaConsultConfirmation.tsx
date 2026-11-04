@@ -1,6 +1,6 @@
 "use client";
 import { trackEvent } from "@/lib/analytics";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { authFetch } from "@/app/_lib/auth-client";
 import { getAuthState } from "@/app/_lib/auth-store";
 import { teaSpreads, recommendTeaSpread } from "@/lib/fortune-tea-house/tarot-contract.mjs";
@@ -35,6 +35,12 @@ export default function TeaConsultConfirmation({paymentSurface="web",input,cupId
  const isTarot=input.consultationMode==="tarot";
  const [spreadId,setSpreadId]=useState<string>(()=>availableSpreads.find(s=>s.id===input.tarotSpreadId)?.id||recommendTeaSpread(input.question,input.tarotSpread)?.id||"yn_knot_three");
  const [draft,setDraft]=useState<Draft|null>(null),[picks,setPicks]=useState<number[]>([]),[loading,setLoading]=useState(false),[error,setError]=useState("");
+ useEffect(()=>{
+  if(paymentSurface!=="toss")return;
+  const onNativeBack=(event:Event)=>{event.preventDefault();if(!busy&&!loading)onBack();};
+  window.addEventListener("code-destiny:toss-back",onNativeBack,true);
+  return()=>window.removeEventListener("code-destiny:toss-back",onNativeBack,true);
+ },[paymentSurface,busy,loading,onBack]);
  const chosen=availableSpreads.find(s=>s.id===spreadId)!;
  const spreadCopy=spreadsCopy[chosen.id as keyof typeof spreadsCopy];
  const people=input.consultationMode==="sukuyo" ? [input.sukuyo?.user,input.sukuyo?.partner] : input.consultationMode==="sajuCompatibility" ? [input.sajuCompatibility?.user,input.sajuCompatibility?.partner] : [input];

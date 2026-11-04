@@ -7,6 +7,7 @@ import "./styles/tea-library.module.css";
 import "./styles/tea-tarot-artwork.module.css";
 import "./styles/tea-result-companion.module.css";
 import { readEntryBookmark, saveEntryBookmark } from "./lib/entryBookmark";
+import { handleTeaNativeBack } from "./lib/tossBack";
 import roomStyles from "./styles/tea-room.module.css";
 import "@/components/fortune/ConsultationShare.module.css";
 
@@ -1588,7 +1589,7 @@ export default function FortuneTeaHousePage({paymentSurface = "web"}: {paymentSu
     }
 
     if (isTeaHouseEntryStage(stage)) {
-      return <TeaHouseEntryScene stage={stage} onStageChange={goToStage} onComplete={completeEntryPrologue} onSkip={() => { setIsEntryPrologueSkipped(true); goToStage("teaSelect"); }} />;
+      return <TeaHouseEntryScene stage={stage} paymentSurface={paymentSurface} onStageChange={goToStage} onComplete={completeEntryPrologue} onSkip={() => { setIsEntryPrologueSkipped(true); goToStage("teaSelect"); }} />;
     }
 
     if (stage === "teaSelect") {
@@ -1657,8 +1658,22 @@ export default function FortuneTeaHousePage({paymentSurface = "web"}: {paymentSu
     return <TeaCupSelectionScene selectedCupId={selectedCup?.id} onSelect={selectTeaCup} />;
   }
 
+  useEffect(() => {
+    if (paymentSurface !== "toss") return;
+    const onNativeBack = (event: Event) => handleTeaNativeBack(event, {
+      stage, historyOpen: isHistoryOpen, albumOpen: isTarotAlbumOpen, submitting: isSubmitting,
+      closeHistory: () => setIsHistoryOpen(false), closeAlbum: () => setIsTarotAlbumOpen(false),
+      showBusy: () => setNotice("상담을 처리하고 있어요. 잠시만 기다려 주세요."),
+      selectTea: () => goToStage("teaSelect"), goLanding: returnToLanding,
+    });
+    const onOverlayBack = (event: Event) => { if (isHistoryOpen || isTarotAlbumOpen) onNativeBack(event); };
+    window.addEventListener("code-destiny:toss-overlay-back", onOverlayBack);
+    window.addEventListener("code-destiny:toss-back", onNativeBack);
+    return () => { window.removeEventListener("code-destiny:toss-overlay-back", onOverlayBack); window.removeEventListener("code-destiny:toss-back", onNativeBack); };
+  });
+
   return (
-    <FortuneTeaHouseImmersiveShell stage={stage} notice={notice} onBackToLanding={returnToLanding} soundControl={soundControl}>
+    <FortuneTeaHouseImmersiveShell stage={stage} notice={notice} onBackToLanding={returnToLanding} paymentSurface={paymentSurface} soundControl={soundControl}>
       <audio
         ref={bgmAudioRef}
         className={styles.bgmAudio}
