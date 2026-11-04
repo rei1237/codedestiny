@@ -431,34 +431,7 @@
     var c=langCopy(locale());
     // 한국어는 그래프·표가 있는 풍부한 판(reading-rich.js). 그 밖의 로케일과 자료 부족 시에는 기존 짧은 블록.
     var rich=richFor(locale()), facts=Object.assign({},state,{warning:pick(c,'unknown',model.mode==='neo')});
-    if(section==='ilju'||section==='all') {
-      var host=document.getElementById('iljuCard');
-      if(host&&!document.getElementById('sajuElementReading')){var el=document.createElement('section');el.id='sajuElementReading';host.insertBefore(el,host.querySelector('.ilju-v2-grid')||host.firstChild);}
-      write('sajuElementReading',markup(model.elements,model,true));
-      if(host&&!document.getElementById('sajuIljuRich')){var box0=document.createElement('section');box0.id='sajuIljuRich';host.appendChild(box0);}
-      var iljuRich=rich?rich.ilju(facts,model.mode):'';
-      write('sajuIljuRich',iljuRich);
-      // The detailed reader owns all eight topics. Keep the original fallback
-      // available when the bundle is absent, without displaying duplicate excerpts.
-      var hasDepth=!!(iljuRich&&root.SajuReadingDepth&&locale()==='ko');
-      if(hasDepth){var reading=root.SajuReadingDepth.dayReading(state.p.d.g+state.p.d.j);if(reading)write('iljuSummaryList','<li>'+esc(reading.summary)+'</li>');}
-      // 풍부한 판은 renderIlju 가 채운 ILJU_DB 목록(요약·상세·조언)을 그대로 두고 그 아래에 원국 표·연이의 한마디를 덧붙인다.
-      // 비한국어는 ILJU_DB 목록이 한국어라 풍부한 판이어도 이 세 목록은 짧은 블록으로 덮는다.
-      if(!iljuRich||locale()!=='ko'){
-        write('iljuSummaryList','<li>'+esc(model.day.blocks[0].text)+'</li>');
-        write('iljuDetailList',(model.mode==='neo'?'':'<li>'+esc(model.day.evidence)+'</li>')+'<li>'+esc(model.day.blocks[1].text)+'</li>');
-        write('iljuAdviceList','<li>'+esc(model.day.blocks[2].text)+'</li>'+(model.unknown?'<li>'+esc(c.unknown)+'</li>':''));
-      }
-    }
-    if(section==='ten'||section==='all') {
-      var grid=document.getElementById('tsGrid');
-      if(grid&&!document.getElementById('sajuTenOverview')){var box=document.createElement('section');box.id='sajuTenOverview';grid.parentNode.insertBefore(box,grid);}
-      write('sajuTenOverview',rich?rich.tenOverview(facts,model.mode):'');
-      write('tsGrid',(rich&&rich.tenCards(facts,model.mode))||model.ten.map(function(g){return '<button class="saju-ten-button" type="button" data-saju-god="'+esc(g.key)+'"><strong>'+esc(g.reading.title)+'</strong><span>'+esc(g.reading.blocks[0].text)+'</span><small>'+esc(c.more)+' · '+g.count+'</small></button>';}).join(''));
-      if(openGod&&document.getElementById('tsModal')?.classList.contains('show')) showGod(openGod,false);
-    }
-    if(section==='climate'||section==='all') write('johuContent',(rich&&rich.climate(facts,model.mode))||markup(model.climate,model,false));
-    if(section==='strength'||section==='all') write('ukbuSection',(rich&&rich.strength(facts,model.mode))||markup(model.strength,model,false));
+    // 일주·십성·조후·억부 본문은 사주 영구 묶음 서버 전달이다(CdSajuSectionClient.loadNatalReading). 여기서는 그리지 않는다.
     if(section==='flow'||section==='all') write('currentSeasonSummary',(rich&&rich.flow(facts,model.mode))||model.flow.map(function(r){return markup(r,model,true);}).join(''));
     if(section==='daily'||section==='all') daily.forEach(function(row,i){
       var gi=gods.indexOf(row.gGod), good=row.batteryPercent>=60;
@@ -484,12 +457,13 @@
       el.innerHTML='<img class="saju-static-offer__guide" src="/images/saju/'+(mode()==='neo'?'yeongnyangi-320.webp':'yeoni-moonlight-reading.webp')+'" width="384" height="256" alt="" loading="lazy" decoding="async"><strong class="saju-static-offer__price">'+esc(price?price.textContent:c.pricePending)+'</strong><p>'+esc(key==='section_daewun'?c.paidDaeun:c.paidSummary)+'</p><details data-saju-sample="'+key+'"><summary>'+esc(c.sample)+'</summary>'+markup(key==='section_daewun'?sample.flow[0]:sample.elements,sample,false)+'<p>'+esc(c.sampleNote)+'</p></details><p>'+esc(c.inputs)+'</p>';
     });
   }
+  // 십성 상세 본문은 사주 영구 묶음 서버가 카드와 함께 보낸 것을 CdSajuSectionClient 가 들고 있다. 없으면 열지 않는다.
   function showGod(key, open) {
-    var data=snapshot(), model=build(data,mode(),locale());if(!model)return false;
-    var item=model.ten.find(function(g){return g.key===key;});if(!item)return false;
-    var richApi=richFor(locale()),rich=richApi?richApi.godDetail(key,Object.assign({},data,{warning:pick(langCopy(locale()),'unknown',model.mode==='neo')}),model.mode):'';
-    root.ensureSajuDetailModal();openGod=key;write('modalBody',rich||markup(item.reading,model,true));if(open!==false)root.openSajuDetailModal();return true;
+    var html=root.CdSajuSectionClient&&typeof root.CdSajuSectionClient.godDetail==='function'?root.CdSajuSectionClient.godDetail(key):'';
+    if(!html)return false;
+    root.ensureSajuDetailModal();openGod=key;write('modalBody',html);if(open!==false)root.openSajuDetailModal();return true;
   }
+  function refreshGod() {if(openGod&&document.getElementById('tsModal')?.classList.contains('show'))showGod(openGod,false);}
   var preserving = false;
   function preserve(callback) {
     if(preserving){callback();return;}
@@ -504,7 +478,7 @@
   function changed() {preserve(function(){render('all');refreshCopy();if(typeof root.refreshDaewunReadingGuide==='function')root.refreshDaewunReadingGuide();if(!root.G_PILLARS)renderHeader();});if(root.G_PILLARS)import('/js/recommendations-legacy.mjs').then(function(m){return m.mountSajuRecommendation(document.getElementById('resultPage'),document.getElementById('shareSection'));}).catch(function(){});}
   // 화자 전환: 머리글(그림·버튼)을 다시 그리고, 해금된 종합 풀이는 새 화자로 서버에서 다시 받는다(펼친 대운은 changed 가 맡는다).
   function personaChanged() {preserve(function(){renderHeader();try{if(root.G_PILLARS&&typeof root.renderSummary==='function'&&(typeof root._cdSajuGateUnlocked!=='function'||root._cdSajuGateUnlocked('section_summary')))root.renderSummary();}catch(_){}changed();});root.dispatchEvent(new root.CustomEvent('cd:saju-persona-changed'));}
-  root.SajuReadingPresentation={build:build,render:render,changed:changed,showGod:showGod,setFlow:function(rows){flow=rows.map(function(r){return Object.assign({},r);});render('flow');},setDaily:function(day,month){daily=[day,month];render('daily');},copy:langCopy,sourceCopy:copy,escape:esc,locale:locale,refreshCopy:refreshCopy};
+  root.SajuReadingPresentation={build:build,render:render,changed:changed,showGod:showGod,refreshGod:refreshGod,setFlow:function(rows){flow=rows.map(function(r){return Object.assign({},r);});render('flow');},setDaily:function(day,month){daily=[day,month];render('daily');},copy:langCopy,sourceCopy:copy,escape:esc,locale:locale,refreshCopy:refreshCopy};
   if(typeof document==='undefined')return;
   document.addEventListener('click',function(event){
     var button=event.target.closest('#sajuReadingHeader [data-saju-mode]');

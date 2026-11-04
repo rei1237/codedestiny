@@ -3667,5 +3667,575 @@
     }
    }
   }
+ },
+ "natal": {
+  "solar-m-1990": {
+   "pig": {
+    "iljuSummaryList": "8f4193211f396642a3ecd9912f16c773ab01f7cb06a5c74b954b50651302523c",
+    "iljuDetailList": "3fef1b85870834144cdd5b7a70368620cd35be4b4251ddfe37893f5f70645e25",
+    "iljuAdviceList": "7e47af8af403aee89cd31a4bd987ed74c6ac2053502d37bdc744ade4a464e584",
+    "iljuKeywords": "0f0972277e97a287ebb23f00b82969b571afbff2ce975bd1654f2f314ec35243",
+    "iljuDetailsInfo": "c1c2578f3c4a596240cd86576471199ae5ae1285dba684fc5739b9f9dc1d6d1f",
+    "sajuElementReading": "22daee06d173af74775989c37d37776b569df94914e35b8929e9ce5999f41c45",
+    "sajuIljuRich": "00a330f1dc0e30b608bec4a0671dbcc2101ba2c308864ece74058f8c6eecca19",
+    "sajuTenOverview": "73d64b846a7a6d65bc877dcdfd9203ec1cdeae875b9a50b38f7365921c77f8d1",
+    "tsGrid": "407be6860c479cadcb1719dd08dc17510d0fa2219ab9fd2d483ea137a457f6c3",
+    "johuContent": "bfed24859e559cfa4ec3622d3d997a51782fa9ad0bdf6a460bb0bb4ef30292eb",
+    "ukbuSection": "be544390321288fa529716e3f785962e92d9a23d211f6ced32fac0edaea997e5",
+    "terms24Grid": "b5817143b697d2c53e895973fbdcbc5b931b9a7a99f3667b1c6d1f2d84021c41",
+    "gods": {
+     "비견": "f601133eb85da784ba8cda7055e2cbe3eb6299d8ced4713ef939fdff5b5100c0",
+     "겁재": "28d5657f28f1825b610a753ae79f8ec5b100a90d83ed937c5714d31fe5537924",
+     "상관": "51626bb26a183c67b261a37b07d63196503b2a17f26966db92dc89e58003b4ae",
+     "편관": "fa42408337f609b6da5a0f20bf3be540b23719cead3e487a5750e549d68e0581",
+     "정관": "48637ee975b7191412558ce599d252059c4fb19188bd2e65e2f8e9dd7abfada5",
+     "편인": "3f3a76f7d66c43cbc28af58534ffac9f04ec076da0d0257f89d981792af79116",
+     "정인": "a29eb7d454f110992187cb527791a012fdddc6304a52b0f1c89226005e9f5b4d"
+    }
+   },
+   "neo": {
+    "iljuSummaryList": "8f4193211f396642a3ecd9912f16c773ab01f7cb06a5c74b954b50651302523c",
+    "iljuDetailList": "3fef1b85870834144cdd5b7a70368620cd35be4b4251ddfe37893f5f70645e25",
+    "iljuAdviceList": "7e47af8af403aee89cd31a4bd987ed74c6ac2053502d37bdc744ade4a464e584",
+    "iljuKeywords": "0f0972277e97a287ebb23f00b82969b571afbff2ce975bd1654f2f314ec35243",
+    "iljuDetailsInfo": "c1c2578f3c4a596240cd86576471199ae5ae1285dba684fc5739b9f9dc1d6d1f",
+    "sajuElementReading": "28291531467b8c445b91ead1ddb2aca01217782da1c363adf264943a27fcb6bd",
+    "sajuIljuRich": "e7ad9aa19489c7e742b61c155e9c38d927610193c805a19448d5aefcad3f9cf4",
+    "sajuTenOverview": "826e92f992a4548e118ab1448a8121322089bb4b689d8b8a72347703bf785c8c",
+    "tsGrid": "4bb0fac940cb9b4e4c47c79d820695fc1fbbfafc2a08238571bf3b8111ac347e",
+    "johuContent": "adda38bc53bc04e90571c04cf446a4067c1cda86195ad4d2d9736d5bc28d04d6",
+    "ukbuSection": "681d2e62942991fe70d6514a3867c372de205fbb1995031853d903fa19e50416",
+    "terms24Grid": "b5817143b697d2c53e895973fbdcbc5b931b9a7a99f3667b1c6d1f2d84021c41",
+    "gods": {
+     "비견": "24c42ce5167a33fdb278d3ba42e9466995ba95ea20fc2a87ccd7f4c8d54a60f8",
+     "겁재": "0e72d49aecfc57aeef1ddee44cdb24f6bfc6d3b4f9a5a82af59fcecb9c359da9",
+     "상관": "205e4f758a5e089441f8afdfb2690eaaa546333f4963ce97506f206b0cf575da",
+     "편관": "ef7667e0b5cba3184e236d74b0f06c475d1ff61ddca844208f33e5439e9f7c2c",
+     "정관": "7c8f0869c65109b18a490a7944407bbf1955e1fc938b4ac1eb40813efed7f763",
+     "편인": "c5f14cd3d85415b55719f22f05f2a9f6ab1d127a16512e6431b6be5517e86786",
+     "정인": "3b9635b6985d05b633383556051411147afd79a69bfc28f6b7244616c146b8dd"
+    }
+   }
+  },
+  "solar-f-1985": {
+   "pig": {
+    "iljuSummaryList": "e5aef43830bff5e0efd5b72205a7ac69100e0852790b68ae9ac3d868e03604c5",
+    "iljuDetailList": "6429af1692e944c696b88d7f1b384d005fcc0074fa5a99d7a6c3b036b86e91d9",
+    "iljuAdviceList": "fa2838a1e33296f041365d4d726a2a46acf8b7a0773572359b7cc382df0203c9",
+    "iljuKeywords": "072b8696b8dea8c83ffa9ac98b6206ed16d0f640ac623e4b0d4d786a682dc61a",
+    "iljuDetailsInfo": "7acd30c75a274d1586e06c8f2bacdbd92f12943ae46a5b5334427b8fab98905f",
+    "sajuElementReading": "818187aa7530f6d9a0ce9478c20771f841116e1b664db61eb25f3ce157c785a8",
+    "sajuIljuRich": "05cdfd1f54031b503e6abe646a2d3b544b68858947ca927fd28bf019e95b4979",
+    "sajuTenOverview": "d33c5d22a882c369e0b44f05d53a4a1eedac1aa9b933d1206f43bf785ba5472d",
+    "tsGrid": "d3a2840a7719f04a3ebced90d0047e0d810fc39e379a339b0432c7b42a47c48a",
+    "johuContent": "d3af1536d58dbb96ec789fd95cb64f222de578dffd9f95c86c3eb83aa0f33cb1",
+    "ukbuSection": "5ffe1b8f7bc7358008a160c29d742d0c8349c42407996b2eea3686a1860daf7f",
+    "terms24Grid": "ef1db2797619ee23c5bfd0620cb0bc3cba06d09cd50f11f8731a1232dc389192",
+    "gods": {
+     "비견": "74e3a0e865c570759ccfe7788d166d815d02c1920a06fa42358e71df4b74988c",
+     "상관": "f0713c879302abc29cb3569117dbe070b8abcc848fb47e0349e2046a1c0d7bef",
+     "편재": "441d58b99143ad166254303e803b44026c685beb625d42bca7bd0a8d8e044169",
+     "정재": "5710760ce23fa27bd82a7385a70ec59a60df734fe91b7b5ac1982c212b7870fb"
+    }
+   },
+   "neo": {
+    "iljuSummaryList": "e5aef43830bff5e0efd5b72205a7ac69100e0852790b68ae9ac3d868e03604c5",
+    "iljuDetailList": "6429af1692e944c696b88d7f1b384d005fcc0074fa5a99d7a6c3b036b86e91d9",
+    "iljuAdviceList": "fa2838a1e33296f041365d4d726a2a46acf8b7a0773572359b7cc382df0203c9",
+    "iljuKeywords": "072b8696b8dea8c83ffa9ac98b6206ed16d0f640ac623e4b0d4d786a682dc61a",
+    "iljuDetailsInfo": "7acd30c75a274d1586e06c8f2bacdbd92f12943ae46a5b5334427b8fab98905f",
+    "sajuElementReading": "d8df9c3b47af26551703593fc26a6ea65d5b77c216b2e56659b8402a51cf57f9",
+    "sajuIljuRich": "496f625d29fc6180d826bf9224d3a791d5594b688ac807def1e713a07e56ac03",
+    "sajuTenOverview": "112dd45a82b6e77b66d870d010d077d7b678503423c2c1c5acd5a8f28b0af908",
+    "tsGrid": "bd53e1d7449a86f9137cc371d8dde16098edd4f505836f2250dcd164febc73cf",
+    "johuContent": "7c17f58af9870ad7aa908ab88eea4c2b62063fcb8813004260043fb66f5e4148",
+    "ukbuSection": "33fa07c4549951261da4e4e74928e37c4cc8c79b7849a9d5703a2fdde9ff0400",
+    "terms24Grid": "ef1db2797619ee23c5bfd0620cb0bc3cba06d09cd50f11f8731a1232dc389192",
+    "gods": {
+     "비견": "6db91181f6a71f8bc01939b4b26cdc7493cfab9c925d416d12e325c67ff7a913",
+     "상관": "561aaa439a099eeff5ec422f7faf47770cf05485c924207f70bd25eec8fa43c4",
+     "편재": "6953077656a734226168a92183cc7ec30798e5467f6b09d830b6884004d762d8",
+     "정재": "30466664fd684490b41b60239ba612d1af9d806796c2cb49030194fe2f258d00"
+    }
+   }
+  },
+  "unknown-f-1978": {
+   "pig": {
+    "iljuSummaryList": "733899bc904ecae83e5c86b36282b74690abe53c0577ec8cc7868a5717650a72",
+    "iljuDetailList": "edb53d90b8496508d3d3be06525db5d7b5cb19f4bd72e082ba7ff1380f3c9826",
+    "iljuAdviceList": "53c553b7286270357e376b2fcd24fc1e7a5925fcb8f5c31eff836afaf692e67c",
+    "iljuKeywords": "6650b550e0d1d35d52c832eda518459759211179e8d88841d15d64a99c167e46",
+    "iljuDetailsInfo": "dddb0057520a103375bc9fab998cacd4268350b15b75afcf669ceb1c673e470b",
+    "sajuElementReading": "08c1833a2b0b298aeb460c1c5b1532d8d8e81532463ae887430a400d090ba982",
+    "sajuIljuRich": "14f49e7cb210f5d3ebf7c44a27a09e1e5ca7164912f99a2df9e78ede9808d126",
+    "sajuTenOverview": "f7cbc95a1e99fe4e58450e163a88932b6a190ee5a589d94f3652d38da1b83e32",
+    "tsGrid": "4770e74b5c34f9c0d5257bdde5af76c3718747ed7e4f94422aed1f86dcdb4ead",
+    "johuContent": "f1d39e8f0078c3f3fedc32b6a6bdc9beb838bdf392751068e9beb4b334a41da2",
+    "ukbuSection": "229a459c20bdf0159e07bb71f5ad590e92d8e2bc2890ee7fbfe9378c9585c01f",
+    "terms24Grid": "7fcb47f082eea481291aea09f2b4e30ed67464938aa5cae1a90bb38e6d2715e4",
+    "gods": {
+     "비견": "e60246344b0c99d730c3a856137a77907b2b007b5bdcf9ae842d804b72f4fc00",
+     "겁재": "c50ce80c6afb9e2ddedd2962ea80e95ffcf8148569eef262529857aceef1d953",
+     "식신": "702831a9b795a664b42abbf8ab4ec196e3987af105ea08ba4b0e77a80f1992ae",
+     "편재": "22901866b947d39bf62400cba7acec2efa94c1560b20cb8c7b2f612559d8f342",
+     "편관": "4aeaada5be981663c0ca423cf98beb9ea59cd6384e6aef30f2b257b41eb0e5c6"
+    }
+   },
+   "neo": {
+    "iljuSummaryList": "733899bc904ecae83e5c86b36282b74690abe53c0577ec8cc7868a5717650a72",
+    "iljuDetailList": "edb53d90b8496508d3d3be06525db5d7b5cb19f4bd72e082ba7ff1380f3c9826",
+    "iljuAdviceList": "53c553b7286270357e376b2fcd24fc1e7a5925fcb8f5c31eff836afaf692e67c",
+    "iljuKeywords": "6650b550e0d1d35d52c832eda518459759211179e8d88841d15d64a99c167e46",
+    "iljuDetailsInfo": "dddb0057520a103375bc9fab998cacd4268350b15b75afcf669ceb1c673e470b",
+    "sajuElementReading": "350c3f002ff48535d7c114d5460317ec1e225b7a70fe665ec2e73d1305702ec4",
+    "sajuIljuRich": "a369542ba4a7d55b0d70598fd848f09004ac932236c27671efaa3e8d13cac1eb",
+    "sajuTenOverview": "c8837a5968b14bae6b5796780348baa93f0d998afbf924cc1fe3cfff97635868",
+    "tsGrid": "476fe352a804f231e5383812cec13f5adcd606088a541267899e00940698f873",
+    "johuContent": "826268741b48ac3a3d2f0c9e7b6a1bf2f7a051490db661e0c961982683a7bad7",
+    "ukbuSection": "a22346b3ef0cedf4989b20cfa3a83a8a59613cdda05fbca825746ec216aaf468",
+    "terms24Grid": "7fcb47f082eea481291aea09f2b4e30ed67464938aa5cae1a90bb38e6d2715e4",
+    "gods": {
+     "비견": "adf3d9f50193d122da2a987f93db57c28f17d64e6e6a86edb5e1bc2e8b4f8270",
+     "겁재": "cebe36192e782b4783731c70cd3b2f830bbb54979cc8862adc7054e28561a58b",
+     "식신": "3f43da9d3859e28d725413932f4b0fafc7a60a6fdb0e7671372a29139d959a83",
+     "편재": "9a77101eb9936e895c6c15a0cdbce5d75f05bb4be61326ebc13cde79a5f4e968",
+     "편관": "15f10020cb8381fb10e0561e2848b66793899e8fbfa4675ff1d0ce4de71ce7f3"
+    }
+   }
+  },
+  "lunar-m-1962": {
+   "pig": {
+    "iljuSummaryList": "a7abbda7b2cb9cb7a15224d6ef1c6ef536011b8bd50ee47f2ec2b18c06067217",
+    "iljuDetailList": "aef57fc820dc030cbb59e5948e50f6087938fdf04cc420c8a15b741f0e65657a",
+    "iljuAdviceList": "0c5146707ac52a63bfa8e9c6390c992f80286ca8ed827bc1ff2d4994080acd89",
+    "iljuKeywords": "414f97d97a88d6be4509305401e8c89d91b4efc26258d11b2d827d3f22af5367",
+    "iljuDetailsInfo": "08e9cbb9d82fb76f7e0c2da5a9d7cc8a04f56a127ca8d1603d00aa3e363227ea",
+    "sajuElementReading": "af176a202ece44a3b1bd691a784ee16a1659e3ef08f3b5b6ada27cdb2b507f8f",
+    "sajuIljuRich": "77f52da63fdd22aa34bd7bf7a7ef75e048ef9ef2a7cc4477bbcb48ed9a8f4b24",
+    "sajuTenOverview": "3442c133796952b390f7c107fb12a9c1bf042dbd590e35b01a1a6421cac736ec",
+    "tsGrid": "0926a643adaea8b76bf70435976af82f1dd7d015e820d6be29a79d82a887559e",
+    "johuContent": "e8296fc1776146abab146ad84902e370812bcff03c64c3864af383456a4d162c",
+    "ukbuSection": "cb81112772c8b25b3dec5d86299a5807aeb44d4b247eebfd359e7fc9d85ab3a2",
+    "terms24Grid": "cf8e9cacd90293ce53144b78aaafeb80e1a8f00ce5e73dd852e837fb04bfc6d8",
+    "gods": {
+     "비견": "c0fc59e1fc347f16f2b985f554d2e099e49b020d1c23ec9d626596a69c7e20e2",
+     "겁재": "00229e26575cff59ad249b314c987a4f3299869a01422874bc954d0b77b46b18",
+     "상관": "5812bf49256be69593af2b6088b266367129651a7b3b37150d104fd5217372d4",
+     "편재": "ebecb07694cfec5bb57578aab38fb5e114b8c7e155a307d87bf8a5f6cacc78d7",
+     "편관": "4668548660d17ed6185b347b4d7d7d7772bf7b296d5f25048459ee06b4d83334",
+     "편인": "49aebfce2b0e753de611df235fa3598f670c951cccb646eff38670f7257099ee",
+     "정인": "ee31e4f0e2c5f643db2dacc85a4971a5d673c6fa1185e958282d4ee8681edb94"
+    }
+   },
+   "neo": {
+    "iljuSummaryList": "a7abbda7b2cb9cb7a15224d6ef1c6ef536011b8bd50ee47f2ec2b18c06067217",
+    "iljuDetailList": "aef57fc820dc030cbb59e5948e50f6087938fdf04cc420c8a15b741f0e65657a",
+    "iljuAdviceList": "0c5146707ac52a63bfa8e9c6390c992f80286ca8ed827bc1ff2d4994080acd89",
+    "iljuKeywords": "414f97d97a88d6be4509305401e8c89d91b4efc26258d11b2d827d3f22af5367",
+    "iljuDetailsInfo": "08e9cbb9d82fb76f7e0c2da5a9d7cc8a04f56a127ca8d1603d00aa3e363227ea",
+    "sajuElementReading": "e357795f31737b18aedd1a5d9e93ab92e6842f377739a02c55e1154499f4301a",
+    "sajuIljuRich": "e7c17227fcc18b6e2a9f0ed1f881d77c5a0267ddd5be96500a42884289ead3c9",
+    "sajuTenOverview": "5cc50d859303bad639b4363c66bc2066afda43df1b52d34d6eff86483851efd1",
+    "tsGrid": "19857c4d826b55ca1c7ed33f9126245f94e9b75b695eb520695f44df2d569e37",
+    "johuContent": "72c39df64403f5a8aad7ef915371e1be686284ed247b24343884e8cc83adeb2b",
+    "ukbuSection": "f65d3472e3e5dac23a1d083e692ae6b4ae8381b95c10633076aad6d421f8d040",
+    "terms24Grid": "cf8e9cacd90293ce53144b78aaafeb80e1a8f00ce5e73dd852e837fb04bfc6d8",
+    "gods": {
+     "비견": "d86cd9f137216e917211d9875f1d759eaa90a4f5abc594da5380ef027f5f37c7",
+     "겁재": "ea08507905ce09fc6df2f69e733f048ce5d9000832f421f55086c5c0416efad7",
+     "상관": "e4f9fe3c07eb2c77b2d2449ce7e0869ad74c8f7a93fb00b577cff582e2b03939",
+     "편재": "4dcad73f71036f515bf557a3eef60768bd5e92a9b8397e9ee854dbdd9d4e2fd8",
+     "편관": "61fc6f19c97dbab1e158bbc44789d73b8f5f661f578c706961e491cddc6a8c53",
+     "편인": "f3e93ba22bf481c288b49890787cfb2290eb65c0d5436f2ff866015d1bcf0650",
+     "정인": "273235bf949090cd323a8b61a01bab9e09f9e0c1dfa928f1b3fd9fbb6799963f"
+    }
+   }
+  },
+  "leap-f-2020": {
+   "pig": {
+    "iljuSummaryList": "af8e523ecfa7fc6684bd32f6470c41cb322bfdd0e2fa5cb53a91b3d4ca281f28",
+    "iljuDetailList": "488ead289151ce4c3f99d85e9baa4a19a35f6c1f353b079f4e7b94a44b72072a",
+    "iljuAdviceList": "1386bc3ecd6b8b8785a991842d04f67d36b7e9d552909e348eb51266c8fd97e5",
+    "iljuKeywords": "a605b1941802f8b479134dd00cba94e203f48a31e523590a41fe87630c904d20",
+    "iljuDetailsInfo": "c277725581bf93a2e9f9801923e97429e70ef517759595194f2063bc1647de58",
+    "sajuElementReading": "1b31cc2947d911e9988c05135a8f6d38d82b6a73387cb17039a1075f0a777ad8",
+    "sajuIljuRich": "0ad5a4b4e2b190b6de08ad91a0c94c3ab4b1afdbb215199e1b7075c778773a07",
+    "sajuTenOverview": "63b38e7e0e25d07440f1403fd18b9d105eb880b147713b3a9352fe071906061b",
+    "tsGrid": "6a9c3146ceed081a76a6ece22b1d00a8df5d06823eaa14e924f0d105ad0b8239",
+    "johuContent": "de00da49eeda5737811f09e3ee646673b10868c58d916c43b13ea5a7f0372831",
+    "ukbuSection": "bb78838bbc9e0eea109298f2e0e9ddeb5189acaa2d32f3fa8fc7974f03b8422d",
+    "terms24Grid": "dc863c61d125978c9d06c078cfe476a31444d6ce2db3e37b2b4a8f14444d6dda",
+    "gods": {
+     "상관": "5d9f0b1fc99174e6c1715536b6c8e9ebc4ff129dfae32e2cd35a9feda224085e",
+     "편관": "f9fbd0aa09861e730cfe0170610d396040229bc56faffbb6820b8ff1ac3cdc4d",
+     "정관": "8f60e5df4730ccd5ece7055d9ec96c8feecd368770c92ee6862b27a44a73851f",
+     "편인": "6cc11c1c25607c9ed8a09e68ae797ebdee0c148e5e660d2de137a5abd268dd3e",
+     "정인": "c20cddf720acd11709ed55e3f8a9db70b86280e451baac7fa4f0636ae38c6660"
+    }
+   },
+   "neo": {
+    "iljuSummaryList": "af8e523ecfa7fc6684bd32f6470c41cb322bfdd0e2fa5cb53a91b3d4ca281f28",
+    "iljuDetailList": "488ead289151ce4c3f99d85e9baa4a19a35f6c1f353b079f4e7b94a44b72072a",
+    "iljuAdviceList": "1386bc3ecd6b8b8785a991842d04f67d36b7e9d552909e348eb51266c8fd97e5",
+    "iljuKeywords": "a605b1941802f8b479134dd00cba94e203f48a31e523590a41fe87630c904d20",
+    "iljuDetailsInfo": "c277725581bf93a2e9f9801923e97429e70ef517759595194f2063bc1647de58",
+    "sajuElementReading": "3874bd738379d5f7d1e0687d0da50bfb283ab0e92d3a28acee1248cb17b77bd6",
+    "sajuIljuRich": "4168d877fc50e7bc1b0a820eef012bb63ca6926f6ed74c048d15308a3261e38d",
+    "sajuTenOverview": "b17e11b59c7b87a31c94b5f948cae72a0106999942cefdfeaa26a6d460f7864b",
+    "tsGrid": "b655a68301b613bbacf5d4a2597e633b232c67475b31104e7baa556aee6917f3",
+    "johuContent": "ee6ba72da5b3c8b7d5f991b50c4ca2a6d74babe797cc54fdb733183253b1f2bd",
+    "ukbuSection": "5add4433c66328514c9885da8b2cef514817e9be0c8159459dcbb80eca5d6973",
+    "terms24Grid": "dc863c61d125978c9d06c078cfe476a31444d6ce2db3e37b2b4a8f14444d6dda",
+    "gods": {
+     "상관": "7e71d1680f9cc10e1c91cd54bbe1ee36341ec9216f30b5b068efb01e809bf627",
+     "편관": "6ac41acedb51b00f939fdf61575566df293b61385c49f6eb9bed2eaecd093686",
+     "정관": "f99bf85701501d822342d222d0615822cf1e485d03e150deb1dd935e4084e74f",
+     "편인": "7699b0c489c7d8cb08f1c1a3f5fc0332ed6aebcb2d64c8b79f5140a4205768c7",
+     "정인": "794126cdd64476fa88fdbe4db84502c39756c96f1df5015a475380a69b1fddce"
+    }
+   }
+  },
+  "newyear-m-2001": {
+   "pig": {
+    "iljuSummaryList": "fdf96ad1187af8158f9dd2f5e5296c7089129382e3f4ea73bfe3fddee1d854a1",
+    "iljuDetailList": "fc4d9b2b310ae01af20d1113e0af218f7aedd181b6dfe7ec8f617e52d40ea1e1",
+    "iljuAdviceList": "fa2838a1e33296f041365d4d726a2a46acf8b7a0773572359b7cc382df0203c9",
+    "iljuKeywords": "3d9099c47ea0d9ff1b5d613d7dcb6b0ee4f11b43736544e6735faacbaee9feec",
+    "iljuDetailsInfo": "3d48171d6012864ec6899a6e9f4219ae53c2c1c984dbb2840cbb94c238173392",
+    "sajuElementReading": "991f7d907bccb64565d6e74be0983dd817179007187e82edf924b04fb991b4e3",
+    "sajuIljuRich": "6b15757e2e0ba6d2585630cb023c3ea70b6995341d9dde6c93697232b10fa626",
+    "sajuTenOverview": "6688f2b70b7505dce65e092d8f64663c21b997dd260c874bebcb0e3d1e5d8b30",
+    "tsGrid": "381e7a317d5f7362fe4d08a5128932d1fd9e309ac830fa11e59471839e3cfee6",
+    "johuContent": "ffc10e74a253f6c0b4cb95e6458ec448937d2107cd3c0f19190a058c0019e928",
+    "ukbuSection": "d029cb76948208f2128794f6cebc43da4c7d0b335705b7cee8002f5793166135",
+    "terms24Grid": "f08737f075060a9dd4a9f0c658aa8864663701ecd354ba87e51cb2faf04893d2",
+    "gods": {
+     "비견": "262f683b10bc1ed524bfe698ba372515e229877f70c4ac718e99777d4ac570c8",
+     "편재": "62544a12ca26bcee402010688aa409708787954adf3b8e5581bb35ca24f097b3",
+     "편관": "cad6e0c1263b39e1fcbd5858e354e7bc97729128abce52b518415334887d053e",
+     "정인": "5b92452df1641d2dccced22786b14c6e9eba74030d42d24a5262e770de748127"
+    }
+   },
+   "neo": {
+    "iljuSummaryList": "fdf96ad1187af8158f9dd2f5e5296c7089129382e3f4ea73bfe3fddee1d854a1",
+    "iljuDetailList": "fc4d9b2b310ae01af20d1113e0af218f7aedd181b6dfe7ec8f617e52d40ea1e1",
+    "iljuAdviceList": "fa2838a1e33296f041365d4d726a2a46acf8b7a0773572359b7cc382df0203c9",
+    "iljuKeywords": "3d9099c47ea0d9ff1b5d613d7dcb6b0ee4f11b43736544e6735faacbaee9feec",
+    "iljuDetailsInfo": "3d48171d6012864ec6899a6e9f4219ae53c2c1c984dbb2840cbb94c238173392",
+    "sajuElementReading": "3f3cdc7b157bb7b985747b9e331abbb817bf47d6f97a363e5d3906f743b54695",
+    "sajuIljuRich": "606ac7e0ab2c4cefcf0438e76402cf693272c08510b2489291a1eb807906c01f",
+    "sajuTenOverview": "a5fa2df03dc5f414d030f45acd6a021262ccd02163a956f658ee5353a09eefcb",
+    "tsGrid": "b8101d3ef90daaffd17a29fbff7985a7324e40603a96f774a716ac0df340d168",
+    "johuContent": "40fc5525305ce394f33b9679bfab9c25cb61a14b416f917bf89139341783d323",
+    "ukbuSection": "2b00253a28d6692dda88658c76c29787bdb91b334c8f09fa755ff61650880bc1",
+    "terms24Grid": "f08737f075060a9dd4a9f0c658aa8864663701ecd354ba87e51cb2faf04893d2",
+    "gods": {
+     "비견": "b14c71d77c46419d37dd3538338d1818fea31b8a0fde98b192cd963cb8d01d1b",
+     "편재": "90ac6085122cf922a6b79fdd4c672bed14ca4f16dffa5997642c5efb5bb08c44",
+     "편관": "5148b79fa6a1fcbf97f27de63fa54452a414c13d3ae6e53b0b5b1f4c88bad2ed",
+     "정인": "efdc6256ae4666a5ba3fef69078adf2fe677b46e54d9fc9eddb813c6e8a48847"
+    }
+   }
+  },
+  "ny-f-1995": {
+   "pig": {
+    "iljuSummaryList": "5a3ba2304084a75bc3e6e9fa0bf5c9d4c04b605579dff7b0c7c582c7c151f783",
+    "iljuDetailList": "60221ff8314f9840fe7a1eb81236901c35bc18f94644fd32183a6f9287741947",
+    "iljuAdviceList": "12b90dbe3ff71255a43cd334052f04f587887c2f9e2f2f8221726be5a112b2a2",
+    "iljuKeywords": "d5b9e179b6a46516f72f99ddde6ee9284d3416af4401c7eacc537629a102c1e3",
+    "iljuDetailsInfo": "3d05c6ed8bff7233ad7e20c4db052561610e7e1df03a349282499884a8e04818",
+    "sajuElementReading": "b9de1a4644464c882595b2527f3a5714b73494a1807544da20c0b5f6caab8c32",
+    "sajuIljuRich": "05535fac9501aba8fb7f19fe91b5cbd2e06968a459db280ea1ba38654317484c",
+    "sajuTenOverview": "e1e69548ace89cef35520335fa12f71b12972cfc56dc76df7be942e8a61b7b5d",
+    "tsGrid": "baed8593167a22f501ef2936f869d8750ee55aff2b14972768a98c7d3ec2bba1",
+    "johuContent": "e61b55e030e2e7af51e56907ca1d1d7fe55f61aeb054683848c3b82f071e1e36",
+    "ukbuSection": "e047025baae61f51f92facf08eb7c36f399c0bb4000f74fad4da103bc8a85cda",
+    "terms24Grid": "94411998a1e6252f78c5f8b91951cd98732382a77f9ff13bbdcf6282d25575b2",
+    "gods": {
+     "비견": "52961b21817794c662b1c51cf7a45d197d3a7f1755afb9cb6f27827c53665fe9",
+     "겁재": "36161d65b6fd195bcd079ea5040881a36a207c891edf02909a648b66fbaf3426",
+     "식신": "f73a8053a5483b35f24d729a2f1b39077022bcb39da277022ca31b8a89f7e6ad",
+     "상관": "0228b293adce31705a6fc666dc6c9a7b0978a84d5181403d28013f689f7ededc",
+     "편관": "92a27b7c0442b7a9ac563da0f4870578943fd14aea1cecb3c0ed3d6f278a73e6",
+     "정관": "de4243e9f0baf7d88ad2f2bbe885034c3f06384e43e915ff1010e417e928331e"
+    }
+   },
+   "neo": {
+    "iljuSummaryList": "5a3ba2304084a75bc3e6e9fa0bf5c9d4c04b605579dff7b0c7c582c7c151f783",
+    "iljuDetailList": "60221ff8314f9840fe7a1eb81236901c35bc18f94644fd32183a6f9287741947",
+    "iljuAdviceList": "12b90dbe3ff71255a43cd334052f04f587887c2f9e2f2f8221726be5a112b2a2",
+    "iljuKeywords": "d5b9e179b6a46516f72f99ddde6ee9284d3416af4401c7eacc537629a102c1e3",
+    "iljuDetailsInfo": "3d05c6ed8bff7233ad7e20c4db052561610e7e1df03a349282499884a8e04818",
+    "sajuElementReading": "19e5e8385af8f03d193d3bd92e67657cc44a7406dd7d3c708f601df7326f5bc6",
+    "sajuIljuRich": "96cefd3f3b57c140a36dcf0acda4e90a9c1b396802388b0e4193d804b0eff02d",
+    "sajuTenOverview": "40fe131755601cf524d69b6045c3f46b5925c64f6ee3e9d69510ceb6a5706294",
+    "tsGrid": "7addd78f298e71aa18791810674850414cffb21b05b81d030a49deddb692f064",
+    "johuContent": "bdbd0254bef3055533a1eebd2574b06fe647668fc8911319d3de7b82cf977d50",
+    "ukbuSection": "9b57c2ecb12fbeaad918721aaee92afac68961fe33598816c85461d893e99428",
+    "terms24Grid": "94411998a1e6252f78c5f8b91951cd98732382a77f9ff13bbdcf6282d25575b2",
+    "gods": {
+     "비견": "48814ecfb77b85da67900c89c7c82a1d75c9ad252ad4656b790b946d9ef40a54",
+     "겁재": "8a169acdad73632fc7531817cb3fd77f9d0837bbe56439abab56021024091122",
+     "식신": "2987a024078e2a2e982bfcb007f0337945689019dc74e97315b19c27d92344fc",
+     "상관": "3e02fdfbcc1431e7301d54ebc9d88850fc2a7302d9cfd0dd6f16252e441e33a1",
+     "편관": "d9d5e6f200cb125e793b492bd465ba0966c3ab4cd428ba98b91b6b948047cd73",
+     "정관": "c7870071f9127d22ce404a5065eb8be61b794e564a566a46a3c1908d68103d2d"
+    }
+   }
+  },
+  "old-m-1941": {
+   "pig": {
+    "iljuSummaryList": "9bbd86c598b28c4d1f8bc41c1b55f4cf9b0bba96f62e0b59a0ea9b615148709c",
+    "iljuDetailList": "b231aff1c7734420c580f9942388d7aa9cc12322aedf6074ff20acc3897c5988",
+    "iljuAdviceList": "f71c3727320b99d92236f89b1c38e3221f1e0038fbda0cd8100d9124f2d4cf13",
+    "iljuKeywords": "8d6de2f04e7b9d481684455e9b8885377b7b57b8194b0ff95801f665afc2708e",
+    "iljuDetailsInfo": "44bab6c9d0a9b760592ae552f95cf3fec58d578ba8dab038f3bf008c886d9522",
+    "sajuElementReading": "0ecac06d8459ad27163798176476937d97101f23efe26e2cd94a61e18c4c9df4",
+    "sajuIljuRich": "f503a75d7c747d5de7898707837dfc0434ff3494109281f4b8f4db4bccf1f8b1",
+    "sajuTenOverview": "55e5a09d01bbed5ee95f78dc95828a22a4366679f8019cae9c119f7209518551",
+    "tsGrid": "d7a906fa1a1af53b2fe7da0e602804756f011dbdfc944e4c28a670499615ec83",
+    "johuContent": "54eb12025752311f295c8e6474f0b36a61e0d86b5b7618d95f2a67d14b4d06aa",
+    "ukbuSection": "b3b6d51516e90335647b7919272cf3ce91886727137a077b89b142d30e250e4b",
+    "terms24Grid": "4d7fcbe687e12903d7cc0223e857fc6eb19bd5043adaa7dab4ea7adf3bb549fe",
+    "gods": {
+     "비견": "b6bec50978f87e2970c2ed47247c753cd993aa8824e6866c8c6e786042b1d3aa",
+     "상관": "c5e781a277b3beba2f7cf3857a93bea76919801b6b17d3d9d7a3bde752d781ee",
+     "정관": "d3cb8f8c971ffda9a15333b6b88ac8bc196104ec3c67d59fec6f23281c7a71b1",
+     "편인": "109c73d469f2a5d5decce80140c216ab97e06acc771ab5d9ecf6de9e4fcec967"
+    }
+   },
+   "neo": {
+    "iljuSummaryList": "9bbd86c598b28c4d1f8bc41c1b55f4cf9b0bba96f62e0b59a0ea9b615148709c",
+    "iljuDetailList": "b231aff1c7734420c580f9942388d7aa9cc12322aedf6074ff20acc3897c5988",
+    "iljuAdviceList": "f71c3727320b99d92236f89b1c38e3221f1e0038fbda0cd8100d9124f2d4cf13",
+    "iljuKeywords": "8d6de2f04e7b9d481684455e9b8885377b7b57b8194b0ff95801f665afc2708e",
+    "iljuDetailsInfo": "44bab6c9d0a9b760592ae552f95cf3fec58d578ba8dab038f3bf008c886d9522",
+    "sajuElementReading": "9babfab8639d45e33bae88306bcc6d1771b2e451490499e0b3498ab028a1061e",
+    "sajuIljuRich": "6a16ddeabc87e942f9bca395cac92eb8e03baaf18c4e8c6cb381f0659c41dc81",
+    "sajuTenOverview": "dd87a7e03bfdf6f3e8a9de7a0edee1cbbcf063c862d8fc4b13c42498f95e04b4",
+    "tsGrid": "8cd6a9d306cd48d0e5b1a7c306797b8d14aef0ceffd1e8c6926bef4eab85f752",
+    "johuContent": "d855682830f9f7b1c584088e024583f8b20a456beb54eb8eb84349c2f1af2f77",
+    "ukbuSection": "657ec1b959f859c9bb07a46e20ca82c999681ba0302f5f8868ab6e786a270b4e",
+    "terms24Grid": "4d7fcbe687e12903d7cc0223e857fc6eb19bd5043adaa7dab4ea7adf3bb549fe",
+    "gods": {
+     "비견": "c756343ae307274f88684413b0ad08235e635e2162531f1b9d27f7572c5c52fe",
+     "상관": "0b142d00f8273ff74b5328ca581aea3efab3b357a2f183e4d3b0da699ca0983e",
+     "정관": "4b450c861756083e742aa18d5bb2a96a51eb639a6f3ddd796225fbbef3f898a8",
+     "편인": "5db17dfcc70e934201323ff1aa4ac0ea04e210e58dba797e2a84cc16dbbdd86f"
+    }
+   }
+  },
+  "young-f-2015": {
+   "pig": {
+    "iljuSummaryList": "a99b33fad926fa9553e8b11c189a59ecbeb7007aa18ddc4039df107093fe4d4c",
+    "iljuDetailList": "94600b9fe5df6168907e23dfe039d651c98970d808cefb3f9ff5f0df0a1f317d",
+    "iljuAdviceList": "1386bc3ecd6b8b8785a991842d04f67d36b7e9d552909e348eb51266c8fd97e5",
+    "iljuKeywords": "468af5efa8b0f50a788e71f76f7c5d0176316ef55af700f04917550a3f20e34a",
+    "iljuDetailsInfo": "bbd1fa8107a78edc4521dcb431f0c6d3c132abce948861eecad62aef44babdd1",
+    "sajuElementReading": "3c84a8d573ee9c2353757ccd70e68a5eef33bc8d935a6cce002dfc6d3b858c8f",
+    "sajuIljuRich": "6b277b7286d9ba85369744583109aec93babaad95b7616b2efe1af23883a5dca",
+    "sajuTenOverview": "f8cb99c02fcccccd9f2e86f29dc6d2964abcc38ff5fb45d72a6ec20ff54ad920",
+    "tsGrid": "2ad069307c89f82c4e574ca6167fd04483c8d13f38bdc4a91f1ea68dfcd67eef",
+    "johuContent": "8b1c23f39ef9d57951f8ca1db906c99fee8135ca811f9cc68d3463fdfd593518",
+    "ukbuSection": "9de880305de8db0128550bf78eccbb4c890bb58e1c0eb01d0a3977d1e7e2022e",
+    "terms24Grid": "9ec1d6e144f8844dc2f978e8056ccc435bf40cd1c95a8df1945c2b9e6a714c8e",
+    "gods": {
+     "식신": "889ba205424a83372a0f850399e7cf72cfe2d5c86c76880b139f98cec3cb98f3",
+     "편재": "37ac15655edc0d62a58ccbdf86d0deefc56a89e5648ffa1c91f4f624f097cabb",
+     "정재": "67f8eb5a692e93053e3e16d68e636a25f5e48230b8388d108b9c9d83e7a4a36c",
+     "편관": "a53c58517a7d1e856ee029cf33488fbd91016bb9bafa49b2f41b978621a17cfd",
+     "정관": "880ee297b6eb81c941ab5c892c9cfde3de86cb55bc5fb184986c8f507865b095",
+     "편인": "bd4ff5bfefbfdb5d3cdb8d13ac1b9ee91deb390dc2672376c3c8dd77173a9d40",
+     "정인": "bee238748954f2a6c3a566da9873b614bbc7742e59fa844bb46768a4f1dd519e"
+    }
+   },
+   "neo": {
+    "iljuSummaryList": "a99b33fad926fa9553e8b11c189a59ecbeb7007aa18ddc4039df107093fe4d4c",
+    "iljuDetailList": "94600b9fe5df6168907e23dfe039d651c98970d808cefb3f9ff5f0df0a1f317d",
+    "iljuAdviceList": "1386bc3ecd6b8b8785a991842d04f67d36b7e9d552909e348eb51266c8fd97e5",
+    "iljuKeywords": "468af5efa8b0f50a788e71f76f7c5d0176316ef55af700f04917550a3f20e34a",
+    "iljuDetailsInfo": "bbd1fa8107a78edc4521dcb431f0c6d3c132abce948861eecad62aef44babdd1",
+    "sajuElementReading": "d7c4b89e6d05501115c7adb6823b3b0f9dad406e35f36e3d302337a5b18536f7",
+    "sajuIljuRich": "dbe50ccdda68ea537b5ac3c166997a6e5c51e64b8ed1102bcf074233da5efee2",
+    "sajuTenOverview": "5454aac01534e74aaba50740a2d922caa997edf468624bfb21c9de14afb25c5f",
+    "tsGrid": "e69b3ce8c320001b09261781115e7621813bf093598aa258b11c12a1e2cb23a7",
+    "johuContent": "77ad1bd680e7870c78e57056c67985d0c5ddb386628c80fb12f7e8185e155b21",
+    "ukbuSection": "7b615f48d3384b2297c247fcb3675058130cb9129d2a947dfd6f09ad2139b4ac",
+    "terms24Grid": "9ec1d6e144f8844dc2f978e8056ccc435bf40cd1c95a8df1945c2b9e6a714c8e",
+    "gods": {
+     "식신": "3c6344485f496a1acc5c2ee58874e3b7fb0190ad434ccb4a7ac27754bd52d22d",
+     "편재": "f562894f162dc43032f26dccceb40b4312bb79be2f26747c60aa3b34b719b964",
+     "정재": "5e1bffd321d98efd8555486304871e74de4f43d3a877948d60a4fb91e25b8b5d",
+     "편관": "77abc7f18be17c3353996097c969610727c14fd9bcfb50c2000554a87a819dce",
+     "정관": "27d7406b43ed6092e2cd58548c563d6d2750fd0d4d7b339500ca35ac27c74058",
+     "편인": "d68debb4378c56f2e753738e1921cafed5c136cb60bab73cfa1ccb4f2e02e53e",
+     "정인": "36c619c1698cb873c44626e1a214b388d9a4fa2757f92efab829e227cc2e4e3f"
+    }
+   }
+  },
+  "jong-confirmed": {
+   "pig": {
+    "iljuSummaryList": "ac04073d074ae3dab8f1d9669d3e00b924ba8f4e7c1ccaa47bccdc30c2e1306e",
+    "iljuDetailList": "49817742fd9469f34b2f0572504a44117f385137b5a2ebad0fd3a1e029cf84fb",
+    "iljuAdviceList": "12b90dbe3ff71255a43cd334052f04f587887c2f9e2f2f8221726be5a112b2a2",
+    "iljuKeywords": "4baf8e55a6fd8f3e32771ca5df9e8147e893455e55ea03452d40fde3f3af6945",
+    "iljuDetailsInfo": "9696f110eafa198724daeabe0b46a9c16abed6640db9383d19d2db6210b1e65c",
+    "sajuElementReading": "80aea6a1f23c2d13f5349090f848683b602fb3a21544b6d86d76215b98a05e61",
+    "sajuIljuRich": "0502de941ab87e324927b58d2bbc1019f5e8e150ccd36ab33037c5a5c69268d4",
+    "sajuTenOverview": "4f107e2b36357a88948e3c44520a4512a562fab23060e92151f20a69ff825ac9",
+    "tsGrid": "5ee9f7b6004ba35297b0c07599a0ca1fec89c925c79700767f434589e26c6b80",
+    "johuContent": "bd1284149354551730c53884ccef6ddf58653aa2339be655ce0fc8ec41bb0534",
+    "ukbuSection": "a3cf296358011dfd486022b6c63dae4bac4a17f75d20f1195690fb07eb561202",
+    "terms24Grid": "c83846ca568cab4a78c2a59621d41fbe4ad8ad0f0e32878e1a96ba04423c1b4e",
+    "gods": {
+     "정재": "de196ada55e5ccbc5e815f4d2911bb1f5add6ed517589a4e2bcab75bf1d0cf42",
+     "편인": "b478dc48ba9a48035fbfe680be46d30cfb39d008cac004f04b9b1a394642057b",
+     "정인": "b8074b75a41f2c0138ff01432c060f99dbe4861ad6fc5763bb1c8a6bca06e6b2"
+    }
+   },
+   "neo": {
+    "iljuSummaryList": "ac04073d074ae3dab8f1d9669d3e00b924ba8f4e7c1ccaa47bccdc30c2e1306e",
+    "iljuDetailList": "49817742fd9469f34b2f0572504a44117f385137b5a2ebad0fd3a1e029cf84fb",
+    "iljuAdviceList": "12b90dbe3ff71255a43cd334052f04f587887c2f9e2f2f8221726be5a112b2a2",
+    "iljuKeywords": "4baf8e55a6fd8f3e32771ca5df9e8147e893455e55ea03452d40fde3f3af6945",
+    "iljuDetailsInfo": "9696f110eafa198724daeabe0b46a9c16abed6640db9383d19d2db6210b1e65c",
+    "sajuElementReading": "4ed25c61b8f9563f3a9ff4f12d4d71793b4fea2a26e23598f63959f0cb8e31da",
+    "sajuIljuRich": "3eb6eb250c019adfc2823e6b63817e0dcd39e11d3e8d12509c5260fa5d899576",
+    "sajuTenOverview": "96825b72c4552395e7c4c8d4de9b7f101d147d7b820f6e775858866e05b01614",
+    "tsGrid": "b2b3058b99405855de84d97f9857d4bcd71919c73cef1fe3dc85acbce100f2ad",
+    "johuContent": "d1816a1a7d26b82732eddeacfad7755d3017c4284256dca9c45783053727e16a",
+    "ukbuSection": "ec9c1594a7895c9a1668686afbc78d4204180034ab2cc783b3e4b3fa7ff311c9",
+    "terms24Grid": "c83846ca568cab4a78c2a59621d41fbe4ad8ad0f0e32878e1a96ba04423c1b4e",
+    "gods": {
+     "정재": "ac9fff497f083020278322b0e0397f6d6ea9c0d121f3ae846ce055ed2217dd38",
+     "편인": "015bcbb550dfd4c983fb5ef78cc02190304167bdad2f4827ff8b62b664b8f8d7",
+     "정인": "aba522e1a4f5064bca1b8aba849beb8ee85da861ffd13ca26c441560eeec7fe7"
+    }
+   }
+  },
+  "jong-rejected": {
+   "pig": {
+    "iljuSummaryList": "ac04073d074ae3dab8f1d9669d3e00b924ba8f4e7c1ccaa47bccdc30c2e1306e",
+    "iljuDetailList": "49817742fd9469f34b2f0572504a44117f385137b5a2ebad0fd3a1e029cf84fb",
+    "iljuAdviceList": "12b90dbe3ff71255a43cd334052f04f587887c2f9e2f2f8221726be5a112b2a2",
+    "iljuKeywords": "4baf8e55a6fd8f3e32771ca5df9e8147e893455e55ea03452d40fde3f3af6945",
+    "iljuDetailsInfo": "9696f110eafa198724daeabe0b46a9c16abed6640db9383d19d2db6210b1e65c",
+    "sajuElementReading": "80aea6a1f23c2d13f5349090f848683b602fb3a21544b6d86d76215b98a05e61",
+    "sajuIljuRich": "0502de941ab87e324927b58d2bbc1019f5e8e150ccd36ab33037c5a5c69268d4",
+    "sajuTenOverview": "4f107e2b36357a88948e3c44520a4512a562fab23060e92151f20a69ff825ac9",
+    "tsGrid": "5ee9f7b6004ba35297b0c07599a0ca1fec89c925c79700767f434589e26c6b80",
+    "johuContent": "bd1284149354551730c53884ccef6ddf58653aa2339be655ce0fc8ec41bb0534",
+    "ukbuSection": "a3cf296358011dfd486022b6c63dae4bac4a17f75d20f1195690fb07eb561202",
+    "terms24Grid": "c83846ca568cab4a78c2a59621d41fbe4ad8ad0f0e32878e1a96ba04423c1b4e",
+    "gods": {
+     "정재": "de196ada55e5ccbc5e815f4d2911bb1f5add6ed517589a4e2bcab75bf1d0cf42",
+     "편인": "b478dc48ba9a48035fbfe680be46d30cfb39d008cac004f04b9b1a394642057b",
+     "정인": "b8074b75a41f2c0138ff01432c060f99dbe4861ad6fc5763bb1c8a6bca06e6b2"
+    }
+   },
+   "neo": {
+    "iljuSummaryList": "ac04073d074ae3dab8f1d9669d3e00b924ba8f4e7c1ccaa47bccdc30c2e1306e",
+    "iljuDetailList": "49817742fd9469f34b2f0572504a44117f385137b5a2ebad0fd3a1e029cf84fb",
+    "iljuAdviceList": "12b90dbe3ff71255a43cd334052f04f587887c2f9e2f2f8221726be5a112b2a2",
+    "iljuKeywords": "4baf8e55a6fd8f3e32771ca5df9e8147e893455e55ea03452d40fde3f3af6945",
+    "iljuDetailsInfo": "9696f110eafa198724daeabe0b46a9c16abed6640db9383d19d2db6210b1e65c",
+    "sajuElementReading": "4ed25c61b8f9563f3a9ff4f12d4d71793b4fea2a26e23598f63959f0cb8e31da",
+    "sajuIljuRich": "3eb6eb250c019adfc2823e6b63817e0dcd39e11d3e8d12509c5260fa5d899576",
+    "sajuTenOverview": "96825b72c4552395e7c4c8d4de9b7f101d147d7b820f6e775858866e05b01614",
+    "tsGrid": "b2b3058b99405855de84d97f9857d4bcd71919c73cef1fe3dc85acbce100f2ad",
+    "johuContent": "d1816a1a7d26b82732eddeacfad7755d3017c4284256dca9c45783053727e16a",
+    "ukbuSection": "ec9c1594a7895c9a1668686afbc78d4204180034ab2cc783b3e4b3fa7ff311c9",
+    "terms24Grid": "c83846ca568cab4a78c2a59621d41fbe4ad8ad0f0e32878e1a96ba04423c1b4e",
+    "gods": {
+     "정재": "ac9fff497f083020278322b0e0397f6d6ea9c0d121f3ae846ce055ed2217dd38",
+     "편인": "015bcbb550dfd4c983fb5ef78cc02190304167bdad2f4827ff8b62b664b8f8d7",
+     "정인": "aba522e1a4f5064bca1b8aba849beb8ee85da861ffd13ca26c441560eeec7fe7"
+    }
+   }
+  },
+  "jong-unverified": {
+   "pig": {
+    "iljuSummaryList": "ac04073d074ae3dab8f1d9669d3e00b924ba8f4e7c1ccaa47bccdc30c2e1306e",
+    "iljuDetailList": "49817742fd9469f34b2f0572504a44117f385137b5a2ebad0fd3a1e029cf84fb",
+    "iljuAdviceList": "12b90dbe3ff71255a43cd334052f04f587887c2f9e2f2f8221726be5a112b2a2",
+    "iljuKeywords": "4baf8e55a6fd8f3e32771ca5df9e8147e893455e55ea03452d40fde3f3af6945",
+    "iljuDetailsInfo": "9696f110eafa198724daeabe0b46a9c16abed6640db9383d19d2db6210b1e65c",
+    "sajuElementReading": "80aea6a1f23c2d13f5349090f848683b602fb3a21544b6d86d76215b98a05e61",
+    "sajuIljuRich": "0502de941ab87e324927b58d2bbc1019f5e8e150ccd36ab33037c5a5c69268d4",
+    "sajuTenOverview": "4f107e2b36357a88948e3c44520a4512a562fab23060e92151f20a69ff825ac9",
+    "tsGrid": "5ee9f7b6004ba35297b0c07599a0ca1fec89c925c79700767f434589e26c6b80",
+    "johuContent": "bd1284149354551730c53884ccef6ddf58653aa2339be655ce0fc8ec41bb0534",
+    "ukbuSection": "a3cf296358011dfd486022b6c63dae4bac4a17f75d20f1195690fb07eb561202",
+    "terms24Grid": "c83846ca568cab4a78c2a59621d41fbe4ad8ad0f0e32878e1a96ba04423c1b4e",
+    "gods": {
+     "정재": "de196ada55e5ccbc5e815f4d2911bb1f5add6ed517589a4e2bcab75bf1d0cf42",
+     "편인": "b478dc48ba9a48035fbfe680be46d30cfb39d008cac004f04b9b1a394642057b",
+     "정인": "b8074b75a41f2c0138ff01432c060f99dbe4861ad6fc5763bb1c8a6bca06e6b2"
+    }
+   },
+   "neo": {
+    "iljuSummaryList": "ac04073d074ae3dab8f1d9669d3e00b924ba8f4e7c1ccaa47bccdc30c2e1306e",
+    "iljuDetailList": "49817742fd9469f34b2f0572504a44117f385137b5a2ebad0fd3a1e029cf84fb",
+    "iljuAdviceList": "12b90dbe3ff71255a43cd334052f04f587887c2f9e2f2f8221726be5a112b2a2",
+    "iljuKeywords": "4baf8e55a6fd8f3e32771ca5df9e8147e893455e55ea03452d40fde3f3af6945",
+    "iljuDetailsInfo": "9696f110eafa198724daeabe0b46a9c16abed6640db9383d19d2db6210b1e65c",
+    "sajuElementReading": "4ed25c61b8f9563f3a9ff4f12d4d71793b4fea2a26e23598f63959f0cb8e31da",
+    "sajuIljuRich": "3eb6eb250c019adfc2823e6b63817e0dcd39e11d3e8d12509c5260fa5d899576",
+    "sajuTenOverview": "96825b72c4552395e7c4c8d4de9b7f101d147d7b820f6e775858866e05b01614",
+    "tsGrid": "b2b3058b99405855de84d97f9857d4bcd71919c73cef1fe3dc85acbce100f2ad",
+    "johuContent": "d1816a1a7d26b82732eddeacfad7755d3017c4284256dca9c45783053727e16a",
+    "ukbuSection": "ec9c1594a7895c9a1668686afbc78d4204180034ab2cc783b3e4b3fa7ff311c9",
+    "terms24Grid": "c83846ca568cab4a78c2a59621d41fbe4ad8ad0f0e32878e1a96ba04423c1b4e",
+    "gods": {
+     "정재": "ac9fff497f083020278322b0e0397f6d6ea9c0d121f3ae846ce055ed2217dd38",
+     "편인": "015bcbb550dfd4c983fb5ef78cc02190304167bdad2f4827ff8b62b664b8f8d7",
+     "정인": "aba522e1a4f5064bca1b8aba849beb8ee85da861ffd13ca26c441560eeec7fe7"
+    }
+   }
+  },
+  "hwa-confirmed": {
+   "pig": {
+    "iljuSummaryList": "3bd9bedfa4d58d01ecd12939d70738b9ee41f56707cfd1fcc7ff4bb0e1dd9d56",
+    "iljuDetailList": "8d8f74a9fb6096df561914bb96b33f817b3b956e9083a7ff189ae66dc76a5ac8",
+    "iljuAdviceList": "7e47af8af403aee89cd31a4bd987ed74c6ac2053502d37bdc744ade4a464e584",
+    "iljuKeywords": "78cf54e9b67a1c23a69d61ac6834beaebf04c4eaf476d8c86ce1ec2792b774d6",
+    "iljuDetailsInfo": "88dd81c6341501772a8fa9bcf0a4a8d702644c16b406ba96ea5afcf64278f5c6",
+    "sajuElementReading": "574752422a7062e202b3849f60738a8e92a04dc4ae0586ba2829367d2c173a02",
+    "sajuIljuRich": "ebf710f8253cb4858e8f3c044a08f08b8ab9bc088b67fc2b3c900b16868382e9",
+    "sajuTenOverview": "f4135343131e420267b902106da3748c23481c9deacec26435e4990810c59cef",
+    "tsGrid": "ce7ca9736ce65ddacda3da54c2c5790f2bac8c8f64aa15d78960ff2d2e0d64d8",
+    "johuContent": "f167822083b2660548500dc486cf0c51809059ac7c04033b5b9fcfc2f065dd17",
+    "ukbuSection": "f97e5ca69998c6265d8d14aefa06665869b2ff11f0339926f307555f46a7853b",
+    "terms24Grid": "6770ca3746b45147bafdffa4baa6db1663feaaa2f89f9a329d166dcaee13b59a",
+    "gods": {
+     "식신": "6c79bc6daa2b405c9de8a7d569ebd0f675594111d7ba0a923e7d323f1ca18a9a",
+     "편재": "3012f271dbb448093ffd11055a6523f674c771e47c461d92ec7cbbc07716b237",
+     "정재": "9dd80ee338f4a3cc0e43ff6ac71038fac5c167d568e8fb73fd630d6587001455",
+     "편인": "4e58313cf561f052c921c6c75515c402bc56ba14c07f10a830ad8c9e13f5c30e",
+     "정인": "26bca48238a1b4a3f2da7cc7cc510f9f9574c777de1fae1889fa13c32ff137d6"
+    }
+   },
+   "neo": {
+    "iljuSummaryList": "3bd9bedfa4d58d01ecd12939d70738b9ee41f56707cfd1fcc7ff4bb0e1dd9d56",
+    "iljuDetailList": "8d8f74a9fb6096df561914bb96b33f817b3b956e9083a7ff189ae66dc76a5ac8",
+    "iljuAdviceList": "7e47af8af403aee89cd31a4bd987ed74c6ac2053502d37bdc744ade4a464e584",
+    "iljuKeywords": "78cf54e9b67a1c23a69d61ac6834beaebf04c4eaf476d8c86ce1ec2792b774d6",
+    "iljuDetailsInfo": "88dd81c6341501772a8fa9bcf0a4a8d702644c16b406ba96ea5afcf64278f5c6",
+    "sajuElementReading": "f97f465b790cb4950e8e5d957830f39af4c40b6cd26ddaa4cf1a909cbf8a37c4",
+    "sajuIljuRich": "629be9e210199ef88656d38f3a0d0621fc22f347b443ee5b77b2ca8bd91584c7",
+    "sajuTenOverview": "b0fcf4558e355b554bb12db1a9116de0523f21be7350d4fd1dad0175bbf31c3d",
+    "tsGrid": "600305c704135ca5eb34b84f9a55ade4ebe682332255f8a58a562b417bc8be44",
+    "johuContent": "1a69fd62e0a8cd91187cb4b57b86c175ad457e4572aab2ce8b87199a5b5b0eb0",
+    "ukbuSection": "b66285828a99e24f991f8673370b1f0f99f1dbe5d1e9d8f66474761e1eb46bd4",
+    "terms24Grid": "6770ca3746b45147bafdffa4baa6db1663feaaa2f89f9a329d166dcaee13b59a",
+    "gods": {
+     "식신": "0db2c9c48cf7327abb3e4ff03c34753159d572803477310568b503fa83e533f4",
+     "편재": "d34a4d94a63a16b066dc59081d934533a87759ef38eae13e043eb55593013c94",
+     "정재": "260e1ebeee7eaea19bbbeddd1387ea2252ed2f31b4f20b37623e9601c9cee512",
+     "편인": "7c3f1427f82a3eb08f381fc305ebf87cc31ee426519ecd1993a7396ed6092ab9",
+     "정인": "de0d7ba499fa25b6e2a284bbc7ed31cf7abcb6c660c2ccf54e01de4b4f2f1170"
+    }
+   }
+  }
  }
 }

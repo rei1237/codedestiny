@@ -3,14 +3,14 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import { readFileSync } from 'node:fs';
 import { calcPower, analyzeJohu } from '../../worker/yeongnyangi/fortune/saju-runtime.mjs';
+import { loadRichWithNatal } from '../lib/saju-rich-with-natal.mjs';
 
 // Same page globals as saju-reading-rich.test.mjs; the intl layer is loaded after the Korean one it builds on.
 const engine=readFileSync('js/saju-engine.js','utf8');
 const tables=engine.slice(engine.indexOf('var GAN={'),engine.indexOf('/* ─── 십성 DB ─── */'));
 const tenGod=engine.slice(engine.indexOf('function getTenGod(dayGan,target){'),engine.indexOf('function parseTimeZoneOffsetName'));
-const context=vm.createContext({});
-vm.runInContext(tables+tenGod+readFileSync('js/core/saju/reading-rich.js','utf8')+readFileSync('js/core/saju/reading-rich-intl.js','utf8'),context);
-const rich=context.SajuReadingRich, intl=context.SajuReadingRichIntl;
+const {context,rich}=loadRichWithNatal(readFileSync('js/core/saju/reading-rich-intl.js','utf8'));
+const intl=context.SajuReadingRichIntl;
 
 const LOCALES=['en','ja','zh-CN','zh-TW','vi','hi','es','fr','de','nl','ms'];
 const stems=['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'], branches=['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];

@@ -1458,3 +1458,104 @@ describe.each(ZIWEI_KEYS)("%s", (featureKey) => {
     else expect(result.decadeHtml).toBeUndefined();
   });
 });
+
+// 원국 해석(일주·십성·조후·억부·절기)은 saju_lifetime_bundle 로만 서버에서 내려온다.
+// parts 값은 <template data-natal-slot="칸 id"> 묶음(십성 상세는 data-natal-god)이다. 칸 내용의 sha256 은 HEAD 브라우저 엔진 출력의 sha256(PARITY.natal)과 같아야 한다.
+describe("saju_lifetime_bundle natal reading", () => {
+  const BUNDLE = "saju_lifetime_bundle";
+  const BUNDLE_INPUT = { ...INPUT, featureKey: BUNDLE };
+  const PART_KEYS = ["ilju", "ten", "climate", "strength", "terms"];
+  const slotsOf = (html) => Object.fromEntries([...String(html).matchAll(/<template data-natal-slot="([^"]+)">([\s\S]*?)<\/template>/g)].map((m) => [m[1], m[2]]));
+  const godsOf = (html) => Object.fromEntries([...String(html).matchAll(/<template data-natal-god="([^"]+)">([\s\S]*?)<\/template>/g)].map((m) => [m[1], m[2]]));
+  const bundleFor = (c, mode) => buildSajuSectionHtml({
+    featureKey: BUNDLE, birth: { calendarDate: c.date, calType: c.calType, hour: c.hour, minute: c.minute, timeKnown: c.timeKnown !== false },
+    gender: c.gender, name: c.name, mode, place: c.place, jongDecision: c.jong, now: new Date(PARITY.now),
+  }).parts;
+
+  test("미구매는 402이고 응답에 본문이 없다", async () => {
+    const result = await request(BUNDLE_INPUT);
+    const { pricing } = getBillingFeaturePricing({ featureKey: BUNDLE });
+    expect(result.status).toBe(402);
+    expect(result.body).toMatchObject({ ok: false, reason: "PAYMENT_REQUIRED", featureKey: BUNDLE, amountKRW: pricing.amountKRW, coinPrice: pricing.coinPrice });
+    expect(result.body.parts).toBeUndefined();
+    expect(result.body.html).toBeUndefined();
+    expect(JSON.stringify(result.body)).not.toContain("<template");
+  });
+
+  test("section_summary만 산 계정은 묶음 응답을 받지 못한다", async () => {
+    grant({}, "section_summary");
+    const result = await request(BUNDLE_INPUT);
+    expect(result.status).toBe(402);
+    expect(result.body.parts).toBeUndefined();
+    // 거꾸로 묶음을 샀다고 종합 풀이가 자동으로 열리는 것도 이 경로의 몫이 아니다 — 묶음 응답만 다섯 칸을 준다.
+    expect((await request(INPUT)).status).toBe(200);
+  });
+
+  test("구매 계정은 다섯 parts를 받는다", async () => {
+    grant({}, BUNDLE);
+    const result = await request(BUNDLE_INPUT);
+    expect(result.status).toBe(200);
+    expect(result.body).toMatchObject({ ok: true, unlocked: true, featureKey: BUNDLE });
+    expect(Object.keys(result.body.parts)).toEqual(PART_KEYS);
+    for (const key of PART_KEYS) expect(result.body.parts[key]).toEqual(expect.stringContaining("<template data-natal-slot="));
+    expect(result.body.html).toBeUndefined();
+    expect(Object.keys(slotsOf(result.body.parts.ilju))).toEqual(expect.arrayContaining(["sajuElementReading", "sajuIljuRich", "iljuSummaryList", "iljuDetailList", "iljuAdviceList", "iljuKeywords", "iljuDetailsInfo"]));
+    expect(Object.keys(slotsOf(result.body.parts.ten))).toEqual(expect.arrayContaining(["sajuTenOverview", "tsGrid"]));
+    expect(Object.keys(godsOf(result.body.parts.ten)).length).toBeGreaterThan(0);
+    expect(Object.keys(slotsOf(result.body.parts.climate))).toEqual(["johuContent"]);
+    expect(Object.keys(slotsOf(result.body.parts.strength))).toEqual(["ukbuSection"]);
+    expect(Object.keys(slotsOf(result.body.parts.terms))).toEqual(["terms24Grid"]);
+  });
+
+  test("요청 본문 생년월일을 바꿔도 프로필 출생 정보로 계산한다", async () => {
+    grant({}, BUNDLE);
+    const honest = await request(BUNDLE_INPUT);
+    const forged = await request({ ...BUNDLE_INPUT, birth: { date: "1985-11-02", calType: "solar", hour: 6, minute: 5 }, gender: "F", calendarDate: "1985-11-02" });
+    expect(forged.status).toBe(200);
+    expect(forged.body.parts).toEqual(honest.body.parts);
+    expect(forged.body.parts).toEqual(buildSajuSectionHtml({ featureKey: BUNDLE, birth: CARD_BIRTH, gender: "M", name: "테스트", mode: "pig", lang: "ko" }).parts);
+  });
+
+  test("권한 조회 장애는 503이다", async () => {
+    grant({}, BUNDLE);
+    connectDb.mockRejectedValue(new Error("private database connection information"));
+    const result = await request(BUNDLE_INPUT);
+    expect(result.status).toBe(503);
+    expect(result.body).toMatchObject({ reason: "TEMPORARY_UNAVAILABLE", retryable: true });
+    expect(result.body.parts).toBeUndefined();
+    expect(JSON.stringify(result.body)).not.toContain("private database");
+  });
+
+  test("출생 시각 미상은 시각 의존 값을 지어내지 않는다", async () => {
+    cards.push(testCard("p4", { ...BIRTH, timeUnknown: true }));
+    grant({ profileId: birthProfileId("p4"), purchaseProfileId: "p4" }, BUNDLE);
+    const unknown = await request({ ...BUNDLE_INPUT, profileId: "p4" });
+    expect(unknown.status).toBe(200);
+    const known = buildSajuSectionHtml({ featureKey: BUNDLE, birth: CARD_BIRTH, gender: "M", name: "테스트", mode: "pig", lang: "ko" }).parts;
+    // 시주가 없는 원국: 십성 개수에 시주 글자가 들지 않고, 절기는 출생 시각이 정한 구간 진행률·경계 안내를 내지 않는다.
+    expect(unknown.body.parts.terms).not.toContain("t24-meter");
+    expect(unknown.body.parts.terms).not.toContain("t24-pill");
+    expect(unknown.body.parts.terms).not.toContain("t24-caution");
+    expect(unknown.body.parts.terms).toContain("t24-domain");
+    expect(unknown.body.parts.terms).toContain("출생 시각을 모르면");
+    expect(known.terms).toContain("t24-meter");
+    expect(known.terms).not.toContain("출생 시각을 모르면");
+    expect(unknown.body.parts.ten).not.toBe(known.ten);
+    for (const key of PART_KEYS) expect(typeof unknown.body.parts[key]).toBe("string");
+  });
+
+  // PARITY.natal[id][mode]: HEAD 클라이언트(renderIlju·render24Terms·renderTenshin·renderJohu·renderUkbu + 십성 상세 모달)가 같은 출생·같은 now 로 칸마다 넣은 HTML 의 sha256.
+  // 출생 시각 미상 사례의 절기 칸만 일부러 다르다(위 테스트: 정오 가정으로 구간 진행률을 지어내던 것을 걷었다).
+  // iljuDetailsInfo 는 텍스트 칸이라 서버가 HTML 이스케이프해 보낸다 — 해시도 이스케이프한 값 기준이다.
+  test.each(PARITY.renders.map((render) => [render.id, render.mode]))("natal slots equal the HEAD client engine output: %s %s", (id, mode) => {
+    const c = PARITY.cases.find((entry) => entry.id === id);
+    const parts = bundleFor(c, mode);
+    const want = PARITY.natal[id][mode];
+    const got = { ...slotsOf(parts.ilju), ...slotsOf(parts.ten), ...slotsOf(parts.climate), ...slotsOf(parts.strength), ...slotsOf(parts.terms) };
+    const slotHashes = Object.fromEntries(Object.entries(got).map(([key, html]) => [key, sha256(html)]));
+    const { gods: wantGods, ...wantSlots } = want;
+    if (c.timeKnown === false) delete wantSlots.terms24Grid;
+    for (const [key, hash] of Object.entries(wantSlots)) expect([key, slotHashes[key]]).toEqual([key, hash]);
+    expect(Object.fromEntries(Object.entries(godsOf(parts.ten)).map(([key, html]) => [key, sha256(html)]))).toEqual(wantGods);
+  });
+});
