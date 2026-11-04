@@ -823,6 +823,11 @@ var myeongriTarotThreeCardPaymentPending = false;
 
 function invalidateTarotFlow() {
   tarotLifecycleToken += 1;
+  var fortuneTimers = window.__ritualStreamTimers;
+  if (fortuneTimers && fortuneTimers.destinyFortune) {
+    clearTimeout(fortuneTimers.destinyFortune);
+    fortuneTimers.destinyFortune = null;
+  }
   if (autoStartTimer) {
     clearTimeout(autoStartTimer);
     autoStartTimer = null;
@@ -1113,8 +1118,30 @@ function buildMyeongriTarotAiPrompt(cardsData, category, labels, readings, advic
   ].filter(Boolean).join('\n');
 }
 
+function resetTarotOneCardScene() {
+  var oracleEl = document.getElementById('tarotOracleText');
+  if (oracleEl) {
+    oracleEl.classList.remove('show');
+    oracleEl.innerHTML = '';
+  }
+  var cardNameEl = document.getElementById('tarotCardName');
+  if (cardNameEl) cardNameEl.innerHTML = '';
+  var card = document.getElementById('tarotCardEl');
+  if (card) {
+    card.classList.remove('flipped');
+    card.setAttribute('data-action', 'startTarotReading');
+    card.style.cursor = 'pointer';
+    card.classList.remove('divine-focus');
+    card.classList.add('tarot-card-container');
+  }
+  var focusOverlay = document.getElementById('tarotFocusOverlay');
+  if (focusOverlay) focusOverlay.classList.remove('active');
+}
+
 function setTarotMode(mode) {
   invalidateTarotFlow();
+  // 뒤집힌 한 장과 포커스 오버레이가 남으면 돌아왔을 때 이름 없는 카드가 무대를 가린다.
+  resetTarotOneCardScene();
   // 풀이 도중 전환하면 완료 콜백이 토큰에 막혀 돌지 않는다. 플래그가 남으면 분야·모드 버튼이 모두 멈추므로
   // 여기서 풀고, 타자 효과도 끊어 비워 둔 결과 칸에 글자가 다시 차지 않게 한다.
   if (isReading) {
@@ -1196,24 +1223,7 @@ function selectTarotCategory(cat, btn) {
   var resultEl = document.getElementById('tarotResultContainer');
   if (resultEl) resultEl.classList.add('is-empty');
   resetMyeongriTarotAiPromptPanel();
-  var oracleEl = document.getElementById('tarotOracleText');
-  if (oracleEl) {
-    oracleEl.classList.remove('show');
-    oracleEl.innerHTML='';
-  }
-  var cardNameEl = document.getElementById('tarotCardName');
-  if (cardNameEl) cardNameEl.innerHTML='';
-  
-  var card = document.getElementById('tarotCardEl');
-  if (card) {
-    card.classList.remove('flipped');
-    card.setAttribute('data-action', 'startTarotReading');
-    card.style.cursor = 'pointer';
-    card.classList.remove('divine-focus');
-    card.classList.add('tarot-card-container'); 
-  }
-  var focusOverlay = document.getElementById('tarotFocusOverlay');
-  if (focusOverlay) focusOverlay.classList.remove('active');
+  resetTarotOneCardScene();
 
   // [수정: 클릭 없이 자동 진행] — 원카드 모드
   var token = tarotLifecycleToken;
@@ -3082,12 +3092,16 @@ function _runShowTarotFinalInterpretation() {
   var fortuneEl = document.getElementById('destinyFortune');
   if (fortuneEl) fortuneEl.innerHTML = '';
   if (resultEl) resultEl.classList.remove('is-empty');
+  var flowToken = tarotLifecycleToken;
   setTimeout(function() {
+    if (flowToken !== tarotLifecycleToken) return;
     if (resultEl && typeof resultEl.scrollIntoView === 'function') {
       resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
     setTimeout(function() {
+      if (flowToken !== tarotLifecycleToken) return;
       streamRitualHtmlTyped(interpretation, 'destinyFortune', function() {
+        if (flowToken !== tarotLifecycleToken) return;
         var guide = document.getElementById('tarotSpreadGuide');
         if (guide) guide.textContent = '✨ 세 장의 명리 흐름이 완성되었습니다.';
         if (msgEl) msgEl.innerHTML = '🌟 카드와 십성의 신호를 오늘의 선택 기준으로 옮겨보세요.';
@@ -3392,7 +3406,11 @@ function tarotRitualPositionsHtml(rows) {
 function tarotRitualSlotImage(i) {
   var slots = document.getElementById('tarotRitualSlots');
   var img = slots && slots.children[i] ? slots.children[i].querySelector('img') : null;
-  return img ? (img.getAttribute('src') || '') : '';
+  var src = img ? (img.getAttribute('src') || '') : '';
+  if (src) return src;
+  // 이미지가 아직 안 왔으면 슬롯과 같은 첫 후보를 쓴다. 빈 src 는 현재 문서를 다시 요청한다.
+  var data = tarotThreeCardState.cards[i];
+  return (data && getTarotImageCandidates(data.card.short)[0]) || '';
 }
 
 function _runFreeTarotMasterReading() {
@@ -3578,6 +3596,7 @@ function tarotRitualMotesTick() {
 var MYEONGRI_TAROT_RESUME_KIND = 'myeongri-tarot-three-card';
 var MYEONGRI_TAROT_RESUME_WAIT_MS = 8000;
 var MYEONGRI_TAROT_RESUME_POLL_MS = 200;
+var MYEONGRI_TAROT_CORE_WAIT_MS = 20000;
 
 function myeongriTarotCheckoutEntry() {
   try { return window.__cdCheckoutEntry || null; } catch (e) { return null; }
@@ -3637,6 +3656,19 @@ function waitForMyeongriTarotModal(limitMs) {
   });
 }
 
+/* 결제 복귀 직후에는 이 파일이 실행되어 핸들러가 등록된 뒤에도 코어 체인이 남아 있다. 체인 끝의 setTarotMode 가
+   복원한 카드와 결과를 지우므로 체인이 끝난 뒤에 복원한다. 상한을 넘기면 false 로 '지금 열기' 카드에 넘긴다. */
+function waitForMyeongriTarotCoreSettled() {
+  var state = window.__cdTarotModalState;
+  var pending = state && state.pending;
+  if (!pending || typeof pending.then !== 'function') return Promise.resolve(true);
+  return new Promise(function(resolve) {
+    var timer = setTimeout(function() { resolve(false); }, MYEONGRI_TAROT_CORE_WAIT_MS);
+    var done = function() { clearTimeout(timer); resolve(true); };
+    pending.then(done, done);
+  });
+}
+
 /* 결제 직전에 보고 있던 스프레드를 그대로 되살린다 — startThreeCardFlow 의 슬롯 채우기를
    '뽑기 없이' 복원된 카드로 수행한다(다시 뽑으면 결제한 카드와 결과가 달라진다). */
 function paintMyeongriTarotResumedSpread(cardsData) {
@@ -3677,7 +3709,9 @@ function runMyeongriTarotResume(descriptor) {
   if (!cat || !restored) return false;
   // 🔴 표면을 여는 책임은 runPaidResume 하나다 — 여기서 또 열면 이중 이동으로 재개가 날아간다.
   return waitForMyeongriTarotModal(MYEONGRI_TAROT_RESUME_WAIT_MS).then(function(ready) {
-    if (!ready) return false;
+    return ready ? waitForMyeongriTarotCoreSettled() : false;
+  }).then(function(settled) {
+    if (!settled || !isTarotModalActive()) return false;
     // setTarotMode 가 tarotThreeCardState 를 비우고 curTarotCat 이 있으면 새로 뽑으므로, 씬 전환을
     // 먼저 끝낸 뒤에 카테고리와 카드를 얹는다.
     setTarotMode('three');
