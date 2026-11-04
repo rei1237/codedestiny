@@ -12,3 +12,8 @@ status: blocked
 - 현재 main은 `C:\Users\user\Documents\Codex\worktrees\yeongnyangi-blue-passes-20261024-050530`에 체크아웃돼 있으며 다른 세션의 미커밋 변경 8개가 있다. 다른 세션의 파일을 이동·수정·삭제하지 않는다. 확인 시 원격 main `bd6a07411`의 CI에서 Critical checks와 AI locale pipeline invariants가 실패했다: https://github.com/rei1237/codedestiny/actions/runs/41714543536/job/126191664387 , https://github.com/rei1237/codedestiny/actions/runs/41714543461/job/126191000923 .
 - 남은 일: 다른 세션의 변경이 안전하게 정리되고 원격 main CI가 복구되면 최신 main과 충돌 여부를 확인하고 이 작업을 main에 병합한다. 커밋된 트리에서 `npm run check:pre-push` 후 정상일 때만 `git push origin main`, 이후 main CI 확인. 완료 시 이 문서를 `status: done`으로 닫고 전용 워크트리를 정리한다. 운영 승격은 하지 않는다.
 - 추가 확인: 프로필 조회 유틸은 서버 오류와 빈 목록을 모두 null로 반환한다. 화면은 이를 빈 카드라고 단정하지 않고 카드 확인을 안내한다. 공용 계약을 확장하면 두 상태를 더 명확히 구분할 수 있다.
+
+## 2026-11-04 추가 진행
+- 원격 main `5f4fff87f2f791248ecf93768001932c69c94392`의 필수 CI 통과를 확인했고, 이를 전용 작업 트리에 병합한 커밋은 `2192c8a5eaa5119bd8e9af83a1cb3d3b8c2692f5`다. 다른 세션의 main 작업 공간은 건드리지 않았다.
+- `npm run check:fast -- --plan --base=5f4fff87f2f791248ecf93768001932c69c94392`, `npm run check:fast -- --base=5f4fff87f2f791248ecf93768001932c69c94392`, `npm run check:pre-push` 통과. 사이트맵 검증은 1,059개 URL 일치.
+- main 작업 공간의 다른 세션 미커밋 파일 8개 중 5개가 최신 main 변경과 겹쳐 안전한 main 갱신이 차단된다. main 병합, push, 배포는 아직 하지 않았다. 해당 세션이 변경을 안전하게 정리한 뒤 최신 main과 CI를 다시 확인하고 남은 전달 절차를 진행한다.
