@@ -37,6 +37,10 @@
 
 [상품 목록 SDK](https://developers-apps-in-toss.toss.im/documentation/sdk/domains-api/iap/iap.getproductitemlist)의 상품 응답에는 표시용 `displayAmount` 문자열이 있다. `apps/toss/src/platform.ts`는 SKU와 상품 유형을 연결해 이를 표시하고, `worker/toss/policy.js`의 주문 검증은 SKU·상태를 확인한다. 이 코드만으로 콘솔의 실제 판매가가 기존 레지스트리와 같다고 판정하지 않으며, 등록 상품마다 콘솔 대조가 필요하다.
 
+암호화 대조: `worker/toss/session.js`는 토스 사용자 키를 봉인하고 세션 토큰을 해시한다. `worker/toss/models.js`의 구매 모델은 주문 ID를 `_id`로, SKU·가격·상태를 일반 필드로 정의한다. 코드만으로 저장 계층의 암호화 설정이나 공식 가이드가 요구하는 결제 내역 암호화 범위를 증명할 수 없다. 실제 설정과 필요한 필드 보호를 확인하기 전 통과로 표시하지 않는다.
+
+연애 비책 시작 화면은 `8bba419a4`에서 토스 결제 전 결과 창을 열지 않고, 결과 조회가 권한 확인에 성공한 경우에만 결과 링크를 표시한다. 거부·오류 시 링크를 숨기고 기존 결제 후 복구 대상을 보존한다. 인생의 책 새 탭 링크도 토스에서 숨긴다. 기존 웹 동작은 유지하며 SDK·실기기 검증은 남았다.
+
 ## 공식 기준별 미완료 체크리스트
 
 - [ ] [비게임 출시 가이드](https://developers-apps-in-toss.toss.im/checklist/app-nongame): 등록할 기능의 직접 진입, 뒤로가기·닫기·홈, 기기 변경 후 기록과 접근성을 실제 기기에서 확인한다. `apps/toss/src/main.tsx`, `apps/toss/service/Screens.jsx`만으로 전체 경로 통과를 뜻하지 않는다. 토스 설정의 `withBackButton: true`와 찻집 내부 자체 뒤로가기 버튼이 동시에 노출될 가능성이 있다. 자체 버튼은 상담 입력과 결과를 초기화하므로 실제 기기의 노출과 단계 이동·복구를 함께 수정하고 검증해야 한다.
