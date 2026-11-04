@@ -81,8 +81,8 @@ export default function CareerStyleClient({bundlePriceKRW}:{bundlePriceKRW:numbe
    const requestKey=currentProfile+':bundle';
    if(!requests.current.has(requestKey))requests.current.set(requestKey,crypto.randomUUID());
    const requestId=requests.current.get(requestKey)!;
-   // 개별 판매는 끝났다. 열람 권리가 없으면 사주 영구 묶음 결제로 이어진다(묶음 보유자는 서버가 이 리포트도 열어 준다).
-   const payment=await runPaidAccessGate({featureKey:'saju_lifetime_bundle',profileId:pid,requestId,reason:'사주 영구 묶음 구매',resume:buildResume({profileId:pid})});
+   // 개별 판매는 끝났다. 열람 권리가 없으면 사주 전체 풀이 평생 소장 결제로 이어진다(묶음 보유자는 서버가 이 리포트도 열어 준다).
+   const payment=await runPaidAccessGate({featureKey:'saju_lifetime_bundle',profileId:pid,requestId,reason:'사주 전체 풀이 평생 소장 구매',resume:buildResume({profileId:pid})});
    if(!payment.ok){if(valid())setError(payment.message||'결제를 완료하지 않았어요. 기존 결제가 있다면 결과를 다시 확인해 주세요.');return;}
    if(valid())show(await read());
   }catch(e){if(valid())setError(e instanceof Error?e.message:'확인하지 못했어요. 잠시 후 다시 시도해 주세요.');}
@@ -111,12 +111,12 @@ export default function CareerStyleClient({bundlePriceKRW}:{bundlePriceKRW:numbe
  }
  return <section id="start" className={styles.start} aria-labelledby="start-title">
   <h2 id="start-title">내 프로필에서 시작하기</h2>
-  <p>소개와 위의 예시는 무료예요. 개인 리포트 여덟 장은 사주 영구 묶음({bundlePriceKRW.toLocaleString('ko-KR')}원, 한 번 결제로 영구 소장)에 포함되어 있어요. 이전에 이 리포트를 구매하신 분은 그대로 다시 읽으실 수 있어요.</p>
+  <p>소개와 위의 예시는 무료예요. 개인 리포트 여덟 장은 사주 전체 풀이 평생 소장({bundlePriceKRW.toLocaleString('ko-KR')}원, 한 번 결제로 영구 소장)에 포함되어 있어요. 이전에 이 리포트를 구매하신 분은 그대로 다시 읽으실 수 있어요.</p>
   <p>같은 계정·같은 출생정보로 해금한 결과는 저장된 원문을 추가 결제 없이 다시 읽을 수 있어요. 묶음은 저장한 프로필의 출생정보 기준으로 적용돼요.</p>
   <div className={styles.picker}><ProfilePicker state={state} locale="ko" showPolicyNote={false} onLogin={login}/></div>
   <div className={styles.paymentActions} aria-busy={busy}>
    <button className={styles.primary} type="button" disabled={busy||state.loading||(!state.guest&&!ready)} onClick={()=>void open()}>
-    {busy?'해금·결과 확인 중':state.loading?'프로필 확인 중':state.guest?'로그인하고 리포트 확인하기':owns?'결과 확인하기':'사주 영구 묶음으로 열기'}
+    {busy?'해금·결과 확인 중':state.loading?'프로필 확인 중':state.guest?'로그인하고 리포트 확인하기':owns?'결과 확인하기':'사주 전체 풀이 평생 소장으로 열기'}
    </button>
   </div>
   {error&&<p role="alert">{error}</p>}

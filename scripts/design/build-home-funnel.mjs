@@ -42,7 +42,7 @@ const registryWindow = {};
 runInNewContext(readFileSync('js/core/service-registry.js', 'utf8'), { window: registryWindow });
 writeFileSync('lib/marketing/yehwa-home.generated.json', JSON.stringify(registryWindow.__cdServiceRegistry, null, 2) + '\n');
 const FREE_CARDS = [
-  { id: 'saju', key: 'freeSaju', title: '무료 사주', noteKo: '생년월일로 바로 보기', attrs: 'data-cdh-free ' },
+  { id: 'saju', key: 'freeSaju', title: '무료 만세력', noteKo: '생년월일로 바로 보기', attrs: 'data-cdh-free ' },
   { id: 'tarot', key: 'freeTarot', title: '타로', noteKo: '카드 한 장으로 가볍게' },
   { id: 'ziwei', key: 'freeZiwei', title: '자미두수', noteKo: '12궁 명반 보기' },
   { id: 'sukuyo', key: 'freeSukuyo', title: '숙요점', noteKo: '나의 본명숙 찾기' },

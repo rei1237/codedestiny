@@ -9272,7 +9272,7 @@ function _cdNatalReadingStub(kind, locked){
   });
   var text = open
     ? def.title + '을 불러오는 중이에요.'
-    : def.title + '는 사주 영구 묶음에서 읽을 수 있어요. ' + def.text;
+    : def.title + '는 사주 전체 풀이 평생 소장에서 읽을 수 있어요. ' + def.text;
   host.innerHTML = def.item
     ? '<li data-natal-lock="' + kind + '">' + text + '</li>'
     : '<div class="cd-natal-lock" data-natal-lock="' + kind + '" style="padding:14px 16px;line-height:1.7;border-radius:14px;background:rgba(179,25,85,.06);color:inherit"><strong>' + def.title + '</strong><p style="margin:6px 0 0">' + text + '</p></div>';

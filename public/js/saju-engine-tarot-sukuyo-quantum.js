@@ -4777,7 +4777,7 @@ function renderLottoNumbers(natal, bazi){
           '<p>번호별 상징 해석과 이번 주 금전 루틴을 확인해보세요.</p>'+
           '<button type="button" class="lc-ritual-cta-btn" data-action="openLottoRitualReport" data-feature-key="'+LOTTO_RITUAL_FEATURE_KEY+'" data-coin-cost="10">'+
             '<span class="tarot-tile__title">달빛 럭키 리추얼 리포트</span>'+
-            '<small>사주 영구 묶음에 포함된 리포트 열기</small>'+
+            '<small>사주 전체 풀이 평생 소장에 포함된 리포트 열기</small>'+
           '</button>'+
           '<em>구매 즉시 열람되는 디지털 콘텐츠이며, 복권 결과를 예측하거나 보장하지 않습니다.</em>'+
         '</div>'+

@@ -1,4 +1,4 @@
-// 휴먼 디자인 풀이 문장 잠금 — 사주 영구 묶음을 가진 저장 프로필의 차트에서만 열린다.
+// 휴먼 디자인 풀이 문장 잠금 — 사주 전체 풀이 평생 소장을 가진 저장 프로필의 차트에서만 열린다.
 // 차트·이름·짧은 정의는 계속 무료이고, living-guide 의 풀이 문장만 묶음 뒤에 둔다.
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -97,7 +97,7 @@ test('LivingGuide 는 풀이가 없으면 아무것도 그리지 않고, 열리�
   assert.ok(html.includes(guide.ui.share), '공유 이미지 기능은 열린 뒤에만 나온다');
 });
 
-test('잠금 안내는 사주 영구 묶음으로 이어지고 가격을 적지 않는다', () => {
+test('잠금 안내는 사주 전체 풀이 평생 소장으로 이어지고 가격을 적지 않는다', () => {
   for (const locale of ['ko', 'en', 'ja', 'zh-CN', 'zh-TW']) {
     const html = renderToStaticMarkup(h(GuideLockedNotice, { locale }));
     assert.match(html, /href="\/saju\/"/);

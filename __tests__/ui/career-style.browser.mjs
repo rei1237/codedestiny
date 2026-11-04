@@ -44,7 +44,7 @@ try{
  assert.equal(await page.locator('h1').count(),1);assert.match(await page.locator('title').innerText(),/진로·적성/);
  assert.equal(await report.count(),0); // A forged local unlock never reveals the paid text.
  fs.mkdirSync('.tmp/career-style',{recursive:true});
- const bundleOpen=()=>page.getByRole('button',{name:'사주 영구 묶음으로 열기',exact:true});
+ const bundleOpen=()=>page.getByRole('button',{name:'사주 전체 풀이 평생 소장으로 열기',exact:true});
  for(const width of [360,1280]){
   await page.setViewportSize({width,height:1100});
   await page.locator('#start-title').evaluate(node=>node.scrollIntoView({block:'start',behavior:'instant'}));
@@ -55,7 +55,7 @@ try{
  }
  const lockedText=await page.locator('body').innerText();
  assert.doesNotMatch(lockedText,/5,000원|꿀방울|단건 결제/);
- assert.match(lockedText,/사주 영구 묶음/);
+ assert.match(lockedText,/사주 전체 풀이 평생 소장/);
  // 묶음(또는 과거 구매) 보유자는 서버가 열어 준다. 결제 없이 같은 버튼으로 읽는다.
  owned.add('card-a');
  await bundleOpen().click();await report.waitFor();
