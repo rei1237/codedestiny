@@ -43,6 +43,22 @@ export function readEngineFactSnapshot(snapshot, { system, input } = {}) {
   return copy(snapshot);
 }
 
+// Reading-only enrichment may add explanations; it may not replace the pinned facts.
+export function engineFactContains(current, original) {
+  if (!original || typeof original !== 'object') return current === original;
+  if (!current || typeof current !== 'object' || Array.isArray(current) !== Array.isArray(original)) return false;
+  if (Array.isArray(original) && current.length !== original.length) return false;
+  return Object.entries(original).every(([key, value]) => engineFactContains(current[key], value));
+}
+
+// Keeps the pinned identity (input, support, options) and replaces only the facts.
+// For server code finishing its own calculation, before the purchase is stored.
+export function resealEngineFactSnapshot(snapshot, facts) {
+  const { digest: _replaced, ...identity } = readEngineFactSnapshot(snapshot);
+  const payload = copy({ ...identity, facts });
+  return { ...payload, digest: digest(payload) };
+}
+
 export function engineFactPrompt(snapshot, system) {
   const saved = readEngineFactSnapshot(snapshot, { system });
   return { ...saved, rules: [
