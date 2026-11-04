@@ -124,3 +124,16 @@ test('actual master-love and neo chart consumers use one approved selection for 
  const neo=await ctx.calculateMethodSummary(env,{input:{selectedMethod:'ziwei',birthInfo:input,partnerBirthInfo:normalized.partnerInfo}},{});
  assert.equal(neo.self.lunar.source,'kasi-jpl-expanded-20261101');assert.equal(neo.partner.lunar.source,neo.self.lunar.source);
 });
+test('island report, heukwol and karma read the approved chart for new calculations',async()=>{
+ const { __ziweiIslandReportTestUtils:island } = await import('../../worker/routes/ziwei-island-report.js');
+ const { buildHeukwolAnalysis } = await import('../../worker/lib/heukwol-analysis.js');
+ const { buildKarmaDestinyIntegratedResult } = await import('../../worker/lib/karma-destiny-ai-calculations.js');
+ const env={ZIWEI_CALENDAR_AUTHORITY_V2:'true'},date='1903-10-28',now=new Date('2026-11-04T00:00:00Z');
+ const islandBody={birthDate:date,birthTime:'08:30',calendarType:'solar',gender:'female',date:'2027-01-01'};
+ assert.notDeepEqual(island.buildReportFromBirth(islandBody,env),island.buildReportFromBirth(islandBody));
+ const birth={date,time:'08:30',timeKnown:true,gender:'female'};
+ assert.notDeepEqual(buildHeukwolAnalysis(birth,2027,now,{env}),buildHeukwolAnalysis(birth,2027,now));
+ const karmaBirth={birthDate:date,birthTime:'08:30',calendarType:'solar',gender:'female'};
+ const on=await buildKarmaDestinyIntegratedResult(env,karmaBirth),off=await buildKarmaDestinyIntegratedResult({},karmaBirth);
+ assert.notDeepEqual(on.lenses.ziwei.data,off.lenses.ziwei.data);
+});

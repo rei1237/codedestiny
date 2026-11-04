@@ -6,7 +6,7 @@ import { calculateSukuyoForMoment } from "./sukuyo-astronomy.js";
 import { getSwissVedicPlanets, getSwissWesternChart } from "./swiss-ephemeris.js";
 import { buildVimshottariDasha } from "./vedic-derived-calculations.js";
 import { buildVedicLocalChartJson } from "./vedic-premium-generator.js";
-import { calculateZiweiAiChart } from "./ziwei-ai-chart.js";
+import { calculateZiweiConsumerChart } from "./ziwei-consumer-chart.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 다섯 렌즈(관점) 정의
@@ -839,7 +839,7 @@ export async function buildKarmaDestinyIntegratedResult(env, birthInfo = {}, opt
 
   // ── 자미두수 — 시간 미상이면 명궁 자체가 어긋나므로 provisional ─────────
   try {
-    const chart = calculateZiweiAiChart({ birthInfo });
+    const chart = calculateZiweiConsumerChart({ birthInfo }, { env });
     lenses.ziwei = lensBlock("ziwei", {
       confidence: birthTimeUnknown ? "provisional" : "full",
       data: compactZiwei(chart, { age }),

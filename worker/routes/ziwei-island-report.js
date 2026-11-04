@@ -12,7 +12,7 @@ import { getRoutePath, json, methodNotAllowed, notFound, readJson, HttpError } f
 import { getOptionalUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
 import { isTransientMongoError } from "../lib/db.js";
 import { readProfileBirthUnlock } from "../lib/paid-content-read-access.js";
-import { calculateZiweiAiChart } from "../lib/ziwei-ai-chart.js";
+import { calculateZiweiConsumerChart } from "../lib/ziwei-consumer-chart.js";
 import { buildIslandBlueprint } from "../lib/island/island-blueprint.js";
 import { buildIslandDeepReport } from "../lib/island/island-report.js";
 import { invalidIslandInput, normalizeIslandBirthInput } from "../lib/island/island-input.js";
@@ -62,13 +62,13 @@ function islandInputFromProfileBirth(body, birth) {
   };
 }
 
-function buildReportFromBirth(body) {
+function buildReportFromBirth(body, env = {}) {
   const { chartInput, date, birthYear } = normalizeIslandBirthInput(body);
   const currentYear = Number(date.slice(0, 4));
 
   let chart;
   try {
-    chart = calculateZiweiAiChart(chartInput, { year: currentYear });
+    chart = calculateZiweiConsumerChart(chartInput, { env, year: currentYear });
   } catch (error) {
     if (error?.code === "INVALID_INPUT") throw invalidIslandInput("생년월일 정보로 명반을 계산할 수 없습니다.");
     throw error;
@@ -131,7 +131,7 @@ async function handleReport(request, env) {
   }
 
   if (!access.birth) throw invalidIslandInput("프로필의 출생 정보를 확인해 주세요.");
-  const report = buildReportFromBirth(islandInputFromProfileBirth(body, access.birth));
+  const report = buildReportFromBirth(islandInputFromProfileBirth(body, access.birth), env);
   return json({ ok: true, unlocked: true, report }, { headers: { "Cache-Control": "no-store" } });
 }
 

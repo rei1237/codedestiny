@@ -1,5 +1,6 @@
 import { buildSibylAnnual, validateSibylYear, sibylEvidencePriority } from './sibyl-annual.js';
-import { calculateZiweiAiChart, FOUR_TRANSFORMATIONS } from './ziwei-ai-chart.js';
+import { FOUR_TRANSFORMATIONS } from './ziwei-ai-chart.js';
+import { calculateZiweiConsumerChart } from './ziwei-consumer-chart.js';
 import { solarToLunar, STEM_HANGUL } from '../../lib/korean-calendar/index.js';
 import { lunarMonthStemIndex } from '../../lib/ziwei-month-stem.js';
 import { buildNeoBasisPayload } from './neo-operation-room-basis.js';
@@ -17,7 +18,7 @@ function marks(chart, stem) {
 }
 
 /** Civil months, actual solar-term segments and lunar-month transformations stay separate. */
-export function buildHeukwolAnalysis(birth, requestedYear, now = new Date()) {
+export function buildHeukwolAnalysis(birth, requestedYear, now = new Date(), { env = {} } = {}) {
   const year = validateSibylYear(requestedYear, now);
   const gender = String(birth?.gender||'').toLowerCase();
   birth = {...birth, gender: ['m','male','남','남성'].includes(gender)?'male':['f','female','여','여성'].includes(gender)?'female':''};
@@ -25,8 +26,8 @@ export function buildHeukwolAnalysis(birth, requestedYear, now = new Date()) {
     throw new Error('HEUKWOL_BIRTH_TIME_REQUIRED');
   }
   const years = [buildSibylAnnual(birth, year - 1), buildSibylAnnual(birth, year)];
-  const chart = calculateZiweiAiChart({ birthDate:birth.date, birthTime:birth.time,
-    calendarType:'solar', gender:birth.gender, birthPlace:birth.birthPlace }, {year});
+  const chart = calculateZiweiConsumerChart({ birthDate:birth.date, birthTime:birth.time,
+    calendarType:'solar', gender:birth.gender, birthPlace:birth.birthPlace }, {env, year});
   const lunarSegments = [];
   // Enumerate the civil dates to retain every lunar new month, including leap months.
   for (let month = 1; month <= 12; month++) {
