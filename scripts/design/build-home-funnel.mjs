@@ -113,17 +113,17 @@ const QUESTION_CATEGORIES = [
   ] },
   { id: 'marriage', label: '결혼', chip: '결혼할 사람', img: '/images/home-questions/marriage', questions: [
     { id: 'marriagePartner', href: '/yeongnyangi/?question=partner#questions', key: 'yeongnyangi-saju-mackerel', master: 'yeongnyangi', t: '나는 어떤 사람과 결혼하게 될까?', b: '영냥이 · 사주', price: 'from5000' },
-    { id: 'marriageDate', href: '/nakshatra/muhurta/', key: 'nakshatra-muhurta', master: 'yun', t: '이 일, 언제 하면 좋을까?', b: '인도 점성술 · 택일 무후르타', price: 'w7000' },
+    { id: 'marriageDate', href: '/nakshatra/muhurta/', key: 'nakshatra-muhurta', master: 'yun', t: '이 일, 언제 하면 좋을까?', b: '인도 점성술 · 택일 무후르타', price: 'w5000' },
   ] },
   { id: 'money', label: '돈', chip: '돈이 풀리는 때', img: '/assets/yeongnyangi/scenes/wealth', questions: [
     { id: 'moneyWhen', href: '/yeongnyangi/?question=money#questions', key: 'yeongnyangi-saju-salmon', master: 'yeongnyangi', t: '내 돈은 언제부터 풀릴까?', b: '영냥이 · 사주', price: 'from10000' },
     { id: 'moneyWay', href: '/ziwei/chart/', master: 'musung', t: '나에게 맞는 돈 버는 방식은 뭘까?', b: '자미두수 명반', price: 'free' },
-    { id: 'moneyMonth', href: '/tarot/year/', key: 'tarot-year-fortune', master: 'yeoni', t: '돈이 모이는 달을 미리 알 수 있을까?', b: '타로 · 십이지신 천운 타로', price: 'w10000' },
+    { id: 'moneyMonth', href: '/tarot/year/', key: 'tarot-year-fortune', master: 'yeoni', t: '돈이 모이는 달을 미리 알 수 있을까?', b: '타로 · 십이지신 천운 타로', price: 'w5000' },
   ] },
   { id: 'career', label: '일', chip: '이직해도 될까', img: '/assets/yeongnyangi/scenes/work', questions: [
     { id: 'careerMove', href: '/tarot-ijik.html', key: 'tarot-ijik', master: 'yeoni', t: '지금 이직해도 괜찮을까?', b: '타로 · 이직 운명의 카드', price: 'w5000' },
     { id: 'careerFit', href: '/yeongnyangi/?question=career-astrology#questions', key: 'yeongnyangi-astrology-salmon', master: 'yeongnyangi', t: '나에게 맞는 일은 따로 있을까?', b: '영냥이 · 점성술', price: 'from10000' },
-    { id: 'careerTurn', href: '/destiny-compass/', key: 'destiny-compass-life-voyage', master: 'neo', t: '지금 방향을 바꿔도 될까?', b: '4체계 · 운명의 나침반', price: 'w7000' },
+    { id: 'careerTurn', href: '/destiny-compass/', key: 'destiny-compass-life-voyage', master: 'neo', t: '지금 방향을 바꿔도 될까?', b: '4체계 · 운명의 나침반', price: 'w5000' },
   ] },
   { id: 'future', label: '미래', chip: '내 인생의 황금기 · 올해 가장 중요한 일', img: '/assets/yeongnyangi/scenes/journey', questions: [
     { id: 'futurePrime', href: '/life-book-ai/', key: 'life-book-ai-consultation', master: 'yun', t: '내 인생의 황금기는 언제일까?', b: '사주 대운 · 인생의 책', price: 'w30000' },
@@ -137,7 +137,7 @@ const QUESTION_CATEGORIES = [
   ] },
   { id: 'people', label: '인간관계', chip: '가까워질수록 왜 지칠까?', img: '/images/home-questions/people', questions: [
     { id: 'peopleTired', href: '/yeongnyangi/readings/sukuyo/', key: 'yeongnyangi-sukuyo-mackerel', master: 'yeongnyangi', t: '가까워질수록 왜 지칠까?', b: '영냥이 · 숙요', price: 'from5000', alt: { href: '/index.html?action=openSukuyoModal', name: '숙요점' } },
-    { id: 'peopleMatch', href: '/nakshatra/compat/', key: 'nakshatra-compat', master: 'hanbi', t: '그 사람과 나, 어떤 궁합일까?', b: '인도 점성술·숙요 · 동서 통합 궁합', price: 'w20000' },
+    { id: 'peopleMatch', href: '/nakshatra/compat/', key: 'nakshatra-compat', master: 'hanbi', t: '그 사람과 나, 어떤 궁합일까?', b: '인도 점성술·숙요 · 동서 통합 궁합', price: 'w5000' },
     { id: 'peopleDistance', href: '/fortune-chat/', key: 'fortune-chat-consultation', master: 'yeoni', t: '이 관계, 거리를 둬야 할까?', b: '대화형 운명 상담', price: 'w5000' },
   ] },
 ];

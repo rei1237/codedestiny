@@ -132,3 +132,7 @@
 ## 사용자 결정 필요
 
 - `premium-sibyl-dominator`(20,000원)와 `premiumDivinationPack`(30,000원)은 2만 원 이상 후보였지만 모델 호출이나 모델 상품 권한이 있다. 가격을 내리지 않았다.
+
+## 2026-11-04 사주 항목 제외
+
+사용자 결정으로 사주 항목 18개 키를 라이트에서 뺐다. 언어 모델 사용 여부와 무관한 판매 정책 결정이며, 목록과 사유는 `worker/lib/light-fortune-catalog.js`의 `LIGHT_FORTUNE_AUDIT_EXCLUDED_KEYS`가 정본이다.

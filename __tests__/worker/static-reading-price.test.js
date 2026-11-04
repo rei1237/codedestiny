@@ -9,6 +9,8 @@ const {STATIC_READING_PRICE_KEYS: staticKeys} = priceKeys;
 test.each(staticKeys)('%s uses its approved price and cannot become free in the app',featureKey=>{
  const product=resolveProduct({featureKey});
  const amount = ({
+  "animal-destiny-unlock": 7000,
+  "rpt_quantumCard": 10000,
   "openJuyukModal": 3000,
   "turtleIChing": 3000,
   "openKemetModal": 3000,
@@ -20,16 +22,12 @@ test.each(staticKeys)('%s uses its approved price and cannot become free in the 
   "stonehenge-runes-yearly": 3000,
   "royal-tea-oracle": 3000,
   "ifa-oracle": 3000,
-  "nakshatra-compat": 20000,
-  "animal-destiny-unlock": 7000,
-  "rpt_quantumCard": 10000,
-  "nakshatra-muhurta": 7000,
  })[featureKey] || 5000;
  expect(product).toMatchObject({priceKRW:amount,priceCoins:amount/100,monthlyCost:amount/10});
  expect(getBillingFeaturePricing({featureKey}).pricing).toMatchObject({amountKRW:amount,cost:amount/100});
  expect(isAppFreeFeature(featureKey,product.priceCoins)).toBe(false);
 });
-test.each([['geomancy',5000],['animal-totem-basic',5000],['animal-totem-deep',5000],['saju-guardian-unlock',7000],['yeongnyangi-saju-mackerel',5000]])('%s uses its premium repricing amount', (featureKey,priceKRW)=>{
+test.each([['geomancy',5000],['animal-totem-basic',5000],['animal-totem-deep',5000],['saju-guardian-unlock',5000],['yeongnyangi-saju-mackerel',5000]])('%s uses its premium repricing amount', (featureKey,priceKRW)=>{
  expect(resolveProduct({featureKey}).priceKRW).toBe(priceKRW);
 });
 test('music stays free in the app while paid 1,000 won features use tier 15',()=>{

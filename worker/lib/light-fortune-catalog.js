@@ -4,19 +4,13 @@ import { normalizePaidFeatureKey } from './paid-feature-registry.js';
 
 /** 인벤토리 deterministic이 아닌 해금 전용 상품 중 감사를 통과한 키. */
 export const LIGHT_FORTUNE_UNLOCK_ONLY_KEYS = Object.freeze([
-  'saju-career-style',
   'flower-fc',
   'olympus-fc',
-  'rpgCharacter',
-  'travelDestiny',
-  'healthReport',
-  'section_daewun',
-  'section_summary',
-  'section_compat',
-  'secretHouseEpisodes',
   'nakshatra-lord-report',
   'nakshatra-dasha-map',
 ]);
+
+const SAJU_BUNDLE_ONLY = '2026-11-04 사용자 결정: 사주 항목은 29,000원 묶음으로만 새로 판다';
 
 /** 후보였지만 라이트에서 뺀 키와 사유. */
 export const LIGHT_FORTUNE_AUDIT_EXCLUDED_KEYS = Object.freeze({
@@ -31,6 +25,24 @@ export const LIGHT_FORTUNE_AUDIT_EXCLUDED_KEYS = Object.freeze({
   'ziwei-island-palace-consult': '판매 종료',
   'ziwei-island-deep-report': '판매 종료',
   'profile-card-manage': '판매 종료',
+  section_daewun: SAJU_BUNDLE_ONLY,
+  section_summary: SAJU_BUNDLE_ONLY,
+  section_compat: SAJU_BUNDLE_ONLY,
+  rpt_quantumCard: SAJU_BUNDLE_ONLY,
+  rpt_specialCharmCard: SAJU_BUNDLE_ONLY,
+  rpt_skillTreeCard: SAJU_BUNDLE_ONLY,
+  rpt_healthReportCard: SAJU_BUNDLE_ONLY,
+  rpt_energyCoordCard: SAJU_BUNDLE_ONLY,
+  rpt_villainCard: SAJU_BUNDLE_ONLY,
+  rpt_secretHouseEntryCard: SAJU_BUNDLE_ONLY,
+  'animal-destiny-unlock': SAJU_BUNDLE_ONLY,
+  'saju-career-style': SAJU_BUNDLE_ONLY,
+  tetogen_deep_report: SAJU_BUNDLE_ONLY,
+  'fun.quantumLotto.ritualReport': SAJU_BUNDLE_ONLY,
+  travelDestiny: SAJU_BUNDLE_ONLY,
+  healthReport: SAJU_BUNDLE_ONLY,
+  rpgCharacter: SAJU_BUNDLE_ONLY,
+  secretHouseEpisodes: SAJU_BUNDLE_ONLY,
   'sukuyo-monthly-fortune': '등록만 있고 쓰지 않는다',
   turtleIChing: '등록만 있고 쓰지 않는다',
   egyptOracle: '등록만 있고 쓰지 않는다',
@@ -80,7 +92,6 @@ export const LIGHT_FORTUNE_FEATURE_KEYS = Object.freeze([
   'stonehenge-runes-triad',
   'stonehenge-runes-deep',
   'stonehenge-runes-yearly',
-  'animal-destiny-unlock',
   'daily-fortune-reading',
   'fortune-prompt-hub-generate',
   'dream-prompt-generator',
@@ -105,16 +116,7 @@ export const LIGHT_FORTUNE_FEATURE_KEYS = Object.freeze([
   'ziwei_symbolic_layer',
   'ziwei_life_yearly_flow',
   'premium-fpti-report',
-  'tetogen_deep_report',
   'premium-sukuyo-compat-extra',
-  'rpt_specialCharmCard',
-  'rpt_quantumCard',
-  'rpt_healthReportCard',
-  'rpt_skillTreeCard',
-  'rpt_energyCoordCard',
-  'rpt_villainCard',
-  'rpt_secretHouseEntryCard',
-  'fun.quantumLotto.ritualReport',
   ...LIGHT_FORTUNE_UNLOCK_ONLY_KEYS,
 ]);
 

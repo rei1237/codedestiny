@@ -5505,7 +5505,7 @@ function generateSajuTreasureMapPrompt(p, natal){
   return 'personal wealth luck treasure map inspired by saju five elements, '+profile.symbol+', '+profile.tone+' palette, mystical illustrated map, glowing route lines, lucky objects, elegant Korean fortune scroll design, warm magical lighting, high-detail fantasy map, 8k --ar 16:9';
 }
 
-var ASTROLOGY_AI_PROMPT_COST = 100;
+var ASTROLOGY_AI_PROMPT_COST = 50;
 var ASTROLOGY_AI_PROMPT_MIN_LENGTH = 5;
 var ASTROLOGY_AI_PROMPT_MAX_LENGTH = 1000;
 
@@ -7827,9 +7827,9 @@ function _requestSajuQuestionPrompt(question, privacyOptions, domain, options) {
   return _cdAIPromptGate({
     featureKey: 'saju_ai_prompt_generator',
     reason: '사주 AI 상담 결과 생성',
-    cost: 100,
-    amountKrw: 10000,
-    paymentAmount: 10000,
+    cost: 50,
+    amountKrw: 5000,
+    paymentAmount: 5000,
     requestId: 'saju-ai-prompt:' + requestNonce,
     categoryKey: 'saju',
     action: 'cdSajuTabEntry',
@@ -12946,7 +12946,7 @@ function renderAstroInsightLegacyNeon() {
 
     function _astroSetCoinBalanceText(node, points) {
       if (!node) return;
-      node.textContent = '10,000원 · 이용권/단건결제 확인 후 생성';
+      node.textContent = '5,000원 · 이용권/단건결제 확인 후 생성';
     }
 
     function _astroBuildPromptHeaders() {
@@ -13223,7 +13223,7 @@ function renderAstroInsightLegacyNeon() {
         updateCount();
       });
       updateCount();
-      _astroSetPromptStatus(statusEl, '질문을 입력하면 10,000원 결제 확인 후 현재 차트와 최근 궁합 결과를 반영한 상담 답변을 생성합니다.', 'info');
+      _astroSetPromptStatus(statusEl, '질문을 입력하면 5,000원 결제 확인 후 현재 차트와 최근 궁합 결과를 반영한 상담 답변을 생성합니다.', 'info');
     }
     _astroMountPromptSection();
 
@@ -18555,7 +18555,7 @@ function renderZiwei(p, natal, targetId) {
       + '</div>';
   }
 
-  var _ZW_AI_PROMPT_COST = 100;
+  var _ZW_AI_PROMPT_COST = 50;
   var _ZW_AI_PROMPT_MAX_LENGTH = 1000;
   var _ZW_AI_PROMPT_MIN_LENGTH = 5;
   var _ZW_AI_PROMPT_FEATURE_KEY = 'ziwei_ai_prompt_generator';
@@ -19177,7 +19177,7 @@ function renderZiwei(p, natal, targetId) {
     });
 
     updateCount();
-    setStatus('질문 입력 후 버튼을 누르면 10,000원 결제 확인 후 상담 답변을 생성합니다.', 'info');
+    setStatus('질문 입력 후 버튼을 누르면 5,000원 결제 확인 후 상담 답변을 생성합니다.', 'info');
   }
 
   function _zwPortfolioBuildModalHtml(row, summary) {
@@ -23529,7 +23529,7 @@ async function runCompat(){
    먼저 끝내고, 생성·재개·보관은 서버(worker/routes/saju-compat-basic.js)가 한다. 이 파일은 연결만 하고,
    요청 본문·대기 기록·생성 실행은 js/saju-compat-flow.mjs, 화면 그리기는 js/saju-compat-render.mjs 가 맡는다.
    🔴 결제를 만들거나 환불하지 않는다. 생성이 실패하면 결제는 서버에 보존되고, 화면은 기존 결정론 결과 + 안내 + 이어받기 버튼이다. */
-var _SE_SAJU_COMPAT_COIN_COST = 100;
+var _SE_SAJU_COMPAT_COIN_COST = 50;
 var _SE_SAJU_COMPAT_PATH = '/api/saju-compat-basic/generate';
 var _seSajuCompatRun = 0; // 생성 세대 번호 — 새 실행이 시작되면 이전 실행은 화면을 더 건드리지 않는다.
 

@@ -10,7 +10,7 @@
 
 **목표**
 
-- 라이트 운세를 5,000원 이하로 맞춘다. 1,000원 3종은 유지하고 나머지는 3,000~5,000원이다.
+- 라이트 운세를 3,000~5,000원으로 맞춘다. 사주 항목 18개 키는 2026-11-04 사용자 결정으로 29,000원 묶음 전용이 되어 라이트·인하·이용권 무제한에서 빠지고 가격을 유지한다.
 - 찻집, 3만 원 이상 대표·전문가 상담, 영냥이를 뺀 LLM 상품을 5,000원으로 낮추고 분량을 약 12,000자로 줄인다.
 - 새 이용권 가격을 새 정책 버전과 새 앱 SKU로 판매한다. 이미 산 이용권의 가격과 한도는 바꾸지 않는다.
 - 활성 이용권 전 등급에서 라이트 운세를 한도 차감 없이 쓰게 한다.
@@ -288,3 +288,7 @@
 - `worker/payments/index.js`의 planId 없는 요청 레거시 해석
 - `dream.js`의 낡은 프롬프트 후보
 - 천체 생성 소진 시 자동 환불 경로
+
+## 2026-11-04 변경: 사주 항목은 묶음 전용
+
+사용자 결정으로 `section_daewun`, `section_summary`, `section_compat`, `rpt_quantumCard`, `rpt_specialCharmCard`, `rpt_skillTreeCard`, `rpt_healthReportCard`, `rpt_energyCoordCard`, `rpt_villainCard`, `rpt_secretHouseEntryCard`, `animal-destiny-unlock`, `saju-career-style`, `tetogen_deep_report`, `fun.quantumLotto.ritualReport`와 옛 별칭 `travelDestiny`, `healthReport`, `rpgCharacter`, `secretHouseEpisodes`는 라이트 운세가 아니다. 가격은 바꾸지 않으며 판매 표면은 묶음 작업이 정리한다. 이미 산 권리는 그대로다. 이 문서의 표와 332,000원·74종은 이 변경 전 값이며, 표시 금액은 빌드 때 계산한다. 이용권 가격 A안은 유지한다.

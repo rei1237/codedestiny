@@ -352,7 +352,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "description": "사용자의 질문을 카테고리로 분석하고 상황에 맞는 스프레드를 추천한 뒤, 직접 뽑은 카드를 바탕으로 AI가 실제 상담 결과를 작성합니다. 상담에 쓰인 Oracle Prompt 원문도 함께 열람할 수 있습니다.",
       "heroImageAlt": "타로 오라클 상담 대표 이미지",
       "tags": ["타로", "AI 상담", "스프레드", "전문가 리딩"],
-      "highlights": ["질문 자동 분류", "77개 스프레드 라이브러리", "카드 수에 따라 회당 5,000~10,000원 · 실제 AI 상담"],
+      "highlights": ["질문 자동 분류", "77개 스프레드 라이브러리", "회당 5,000원 · 실제 AI 상담"],
       "howItWorks": [
         {
           "title": "질문 입력",
@@ -381,7 +381,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
           "description": "포지션별 해석과 행동 조언을 담은 실제 상담 결과, 그리고 상담에 쓰인 Oracle Prompt 원문"
         }
       ],
-      "priceLabel": "5,000원~10,000원",
+      "priceLabel": "5,000원",
       "seo": {
         "title": "타로 오라클 상담 | 꿀꿀 운세",
         "description": "질문 기반 스프레드 선택과 카드 드로우로 실제 AI 타로 상담을 받는 타로 오라클 상담 소개 페이지입니다.",

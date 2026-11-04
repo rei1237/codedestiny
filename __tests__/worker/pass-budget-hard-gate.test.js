@@ -109,7 +109,7 @@ describe("레거시 이용권 카운터 복구 — 실제 문제 기능", () => 
   });
 
   test.each([
-    ["standard", "saju_ai_prompt_generator"],
+    ["standard", "fortune-tea-house-saju-consultation"],
     ["premium", "master-love-codex-compat"],
     ["vvip", "master-love-codex"],
     ["premium", "ziwei-ai-consultation"],

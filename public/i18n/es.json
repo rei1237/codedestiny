@@ -576,7 +576,7 @@
       "sajuFptiImgAlt": "Prueba FPTI de Saju",
       "basicFreeBadge": "Básico gratis",
       "price3000": "Una vez KRW 3,000",
-      "price5000": "Una vez 5,000 KRW",
+      "price5000": "Una vez 5.000 KRW",
       "price10000": "Una vez 10.000 KRW",
       "cosmicSoulPrice": "30 min 5 000 KRW · 60 min 10 000 KRW",
       "compatibilityPrice": "Compatibilidad KRW 5000",
@@ -15804,7 +15804,7 @@
       "faq": {
         "0": {
           "q": "How is the price determined?",
-          "a": "The price depends on the number of cards in your chosen spread. You can review it on the payment screen before paying."
+          "a": "Each reading costs KRW 5,000 regardless of the number of cards. You can review it on the payment screen before paying."
         },
         "1": {
           "q": "What happens if generation fails?",
