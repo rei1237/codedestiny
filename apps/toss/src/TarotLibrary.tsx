@@ -70,7 +70,7 @@ export default function TarotLibrary({products,loggedIn,onLogin,onError,onBack,i
   const [flowId,setFlowId]=useState(''),[question,setQuestion]=useState(''),[birthDate,setBirthDate]=useState(''),[gem,setGem]=useState('amethyst'),[drawStarted,setDrawStarted]=useState(false),[picks,setPicks]=useState<number[]>([]),[paidReady,setPaidReady]=useState(false),[buying,setBuying]=useState(false),[result,setResult]=useState<LocalResult|null>(null),[retryOrderId,setRetryOrderId]=useState(''),[restoring,setRestoring]=useState(false);
   const flow=useMemo(()=>flows.find(item=>item.id===flowId)||null,[flowId]);
   const [recoveredOrderId,setRecoveredOrderId]=useState(''),[canResume,setCanResume]=useState(false);
-  const reset=()=>{requestEpoch.current++;purchaseCleanup.current?.();purchaseCleanup.current=null;setBuying(false);setFlowId('');setQuestion('');setBirthDate('');setGem('amethyst');setDrawStarted(false);setPicks([]);setPaidReady(false);setResult(null);setRetryOrderId('');setRecoveredOrderId('');setCanResume(false);onRereadClosed?.();};
+  const reset=()=>{requestEpoch.current++;purchaseCleanup.current?.();purchaseCleanup.current=null;setBuying(false);setRestoring(false);setFlowId('');setQuestion('');setBirthDate('');setGem('amethyst');setDrawStarted(false);setPicks([]);setPaidReady(false);setResult(null);setRetryOrderId('');setRecoveredOrderId('');setCanResume(false);onRereadClosed?.();};
   const acceptStored=(stored:StoredReading,orderId:string)=>{
     if(stored.flowId)setFlowId(stored.flowId);
     if(stored.result){setResult(stored.result);return;}

@@ -84,6 +84,18 @@ test('a late paid reading response cannot restore a result after session expiry'
  try{await click('추가 결제 없이 이어서 생성');await begun;await view.setAuth(false);await React.act(async()=>finish({state:'completed',result,canRetryNow:false}));assert.doesNotMatch(document.body.textContent,/완료된 원문/);}finally{view.close();}
 });
 
+test('session expiry during initial recovery exits the loading state and ignores the late result',async()=>{
+ let finish;const view=await mount(()=>new Promise(resolve=>{finish=resolve;}));
+ try{
+  assert.match(document.body.textContent,/저장된 타로 리딩을 다시 열고 있어요/);
+  await view.setAuth(false);
+  assert.doesNotMatch(document.body.textContent,/저장된 타로 리딩을 다시 열고 있어요/);
+  assert.match(document.body.textContent,/카드에 담긴, 나의 이야기/);
+  await React.act(async()=>finish({flowId:result.flowId,state:'completed',result,canRetryNow:false}));
+  assert.doesNotMatch(document.body.textContent,/완료된 원문/);
+ }finally{view.close();}
+});
+
 
 test('a guest question remains intact when the user logs in',async()=>{
  const view=await mount(()=>assert.fail('guest input should not fetch'),()=>{},false,'');
