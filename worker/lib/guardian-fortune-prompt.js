@@ -1,3 +1,4 @@
+import { engineFactPrompt } from './engine-fact-snapshot.js';
 import {
   GUARDIAN_FORTUNE_LIST_LIMITS,
   GUARDIAN_FORTUNE_RESULT_FIELDS,
@@ -8,6 +9,7 @@ import {
 import { GUARDIAN_CATEGORY_ADAPTER_PRIORITY, text } from "./guardian-fortune-adapter-utils.js";
 import { buildFortuneQuestionFocus } from "./fortune-question-focus.js";
 import { sajuTemperamentPromptLines } from './saju-temperament.js';
+import { sajuAuthorityPromptFacts, SAJU_AUTHORITY_PROMPT_RULES } from './saju-authority-consumer.js';
 
 const MODE_SYSTEM_PROMPTS = Object.freeze({
   yeoni: [
@@ -78,6 +80,7 @@ function safeArray(value, maxItems = 4, maxText = 180) {
 
 function projectTarot(data) {
   return {
+    ...(data.engineFacts ? { engineFacts: engineFactPrompt(data.engineFacts, 'tarot') } : {}),
     spreadType: data.spreadType === "three_card" ? "three_card" : "one_card",
     spreadId: safeText(data.spreadId, 80),
     questionType: safeText(data.questionType, 80),
@@ -99,7 +102,7 @@ function projectAdapter(name, data) {
   if (name === "tarot") return projectTarot(data);
 
   const fields = PROMPT_ADAPTER_FIELDS[name] || [];
-  const projected = {};
+  const projected = data.engineFacts ? { engineFacts: engineFactPrompt(data.engineFacts, name) } : {};
   for (const field of fields) {
     if (Array.isArray(data[field])) {
       const values = safeArray(data[field]);
@@ -109,7 +112,11 @@ function projectAdapter(name, data) {
     const value = safeText(data[field]);
     if (value) projected[field] = value;
   }
-  if (name === 'saju') projected.temperament = sajuTemperamentPromptLines(data);
+  if (name === 'saju' && data.sajuAuthority) {
+    projected.sajuAuthority = sajuAuthorityPromptFacts(data.sajuAuthority);
+    if (data.timingFacts) projected.timingFacts = data.timingFacts;
+    projected.temperament = [...SAJU_AUTHORITY_PROMPT_RULES];
+  } else if (name === 'saju') projected.temperament = sajuTemperamentPromptLines(data);
   return Object.keys(projected).length ? projected : undefined;
 }
 

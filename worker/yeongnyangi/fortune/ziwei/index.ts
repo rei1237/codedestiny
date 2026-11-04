@@ -1,8 +1,9 @@
-import { calculateZiweiAiChart } from "../../../lib/ziwei-ai-chart.js";
+import { calculateZiweiConsumerChart } from "../../../lib/ziwei-consumer-chart.js";
 import { context, domain } from "../shared/domain";
 import {koreanCivilProfile} from '../shared/korean-time';
 import {calculateRelationshipZiwei} from '../relationship-calculation';
-import type { FortuneDomain } from "../shared/contracts";
+import { explanationFacts } from "../shared/privacy";
+import type { DomainContext, FortuneDomain } from "../shared/contracts";
 import { ZIWEI_READING_FRAME } from "./reading-rules";
 import { enrichZiweiContext } from "./reading-facts";
 import {buildZiweiBusinessBasis,buildZiweiHealthBasis} from './derived';
@@ -21,14 +22,15 @@ ${ZIWEI_READING_FRAME}`,
     "영냥이의 조언",
   ],
   async (input, options = {}) => {
-    if(options.relationshipReading)return calculateRelationshipZiwei(input.personA!,new Date(options.asOf||Date.now()).toISOString().slice(0,10));
+    if(options.relationshipReading)return calculateRelationshipZiwei(input.personA!,new Date(options.asOf||Date.now()).toISOString().slice(0,10),options.runtimeEnv);
     // 해외 출생 거부(SAJU_KST_REQUIRED)만 여기서 한다. 시계는 원본 그대로 넘기고 엔진이 출생지 경도·과거
     // 서머타임으로 한 번 보정한다(lib/ziwei-birth-clock.js) — KST 로 미리 바꾸면 서머타임이 두 번 빠진다.
     koreanCivilProfile(input.personA!);
-    const r = calculateZiweiAiChart(input.personA!,{year:new Date(new Date(options.asOf || Date.now()).getTime()+9*3600000).getUTCFullYear()});
+    const r = calculateZiweiConsumerChart(input.personA!,{env:options.runtimeEnv,year:new Date(new Date(options.asOf || Date.now()).getTime()+9*3600000).getUTCFullYear()});
     return context(
       "ziwei",
       {
+        ...(options.runtimeEnv?.ZIWEI_CALENDAR_AUTHORITY_V2 === 'true' ? { calculationBasis: { calendarSource: r.lunar.source } } : {}),
         lifePalace: r.lifePalace,
         bodyPalace: r.bodyPalace,
         palaces: r.palaces,
@@ -36,7 +38,7 @@ ${ZIWEI_READING_FRAME}`,
         majorLuck: r.majorLuck,
         minorLuck: r.minorLuck,
         yearlyLuck: r.yearlyLuck,
-        yearlyTimeline: Array.from({length:10},(_,i)=>calculateZiweiAiChart(input.personA!,{year:new Date(new Date(options.asOf||Date.now()).getTime()+9*3600000).getUTCFullYear()+i}).yearlyLuck),
+        yearlyTimeline: Array.from({length:10},(_,i)=>calculateZiweiConsumerChart(input.personA!,{env:options.runtimeEnv,year:new Date(new Date(options.asOf||Date.now()).getTime()+9*3600000).getUTCFullYear()+i}).yearlyLuck),
         sanFangSiZheng: r.sanFangSiZheng,
         // 재백궁+자녀궁(+전택·관록)을 궁간 비화로 이은 사업운 근거와 질액궁 중심 건강 근거(derived.ts).
         businessBasis: buildZiweiBusinessBasis(r.palaces,r.uncertainty?.birthTimeUnknown===true),
@@ -49,4 +51,8 @@ ${ZIWEI_READING_FRAME}`,
   },
 );
 // 저장 context 는 그대로 두고 프롬프트에 넣을 때만 궁 강약·관계·판단 문장을 붙인다(reading-facts.ts 머리말).
-export const ziwei: FortuneDomain = { ...base, buildPrompt: (i, c, f) => base.buildPrompt(i, enrichZiweiContext(c), f) };
+export const ziwei: FortuneDomain = { ...base, buildPrompt: (i, c, f) => {
+  // Validate the saved calculation before applying the existing reading-only enrichment.
+  const prompt = base.buildPrompt(i, c, f);
+  return { ...prompt, calculatedData: explanationFacts(enrichZiweiContext(c)) as DomainContext };
+} };

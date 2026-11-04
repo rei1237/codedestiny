@@ -1,0 +1,506 @@
+{
+  "provider": "korean-saju",
+  "version": "0.3.0",
+  "license": "MIT",
+  "licensePath": "D:\\Development\\code-destiny\\.codex-worktrees\\engine-audit-phase0-20261101-163440\\tools\\oracle-py\\.venv\\Lib\\site-packages\\korean_saju-0.3.0.dist-info\\licenses\\LICENSE",
+  "licenseSha256": "00d0b66bd90b3594c3013d4f519deba0291c338c609c99e237d407c604f64ce7",
+  "newDependencies": 0,
+  "network": "blocked",
+  "swiss": "blocked",
+  "calendarRecalculation": false,
+  "rows": [
+    {
+      "pillars": "戊辰丁巳庚午己卯",
+      "expected": "편인격",
+      "oracleRegular": "편인격",
+      "oracleAcceptedOuter": [],
+      "classification": "match",
+      "reason": "Regular name matches; not universal proof"
+    },
+    {
+      "pillars": "辛酉庚寅甲辰己巳",
+      "expected": "건록격",
+      "oracleRegular": "건록격",
+      "oracleAcceptedOuter": [],
+      "classification": "match",
+      "reason": "Regular name matches; not universal proof"
+    },
+    {
+      "pillars": "甲寅丁丑戊辰己未",
+      "expected": "월겁격",
+      "oracleRegular": "상관격",
+      "oracleAcceptedOuter": [],
+      "classification": "B",
+      "reason": "Identical pillars; profile and taxonomy differences require school adjudication"
+    },
+    {
+      "pillars": "戊辰己未甲寅戊辰",
+      "expected": "정재격",
+      "oracleRegular": "정재격",
+      "oracleAcceptedOuter": [
+        {
+          "name": "갑기합화토격",
+          "verdict": "진격(眞格)",
+          "reason": "합신 기 월간 위치",
+          "score": 100
+        }
+      ],
+      "classification": "B",
+      "reason": "Identical pillars; profile and taxonomy differences require school adjudication"
+    },
+    {
+      "pillars": "戊申辛酉乙未庚辰",
+      "expected": "편관격",
+      "oracleRegular": "편관격",
+      "oracleAcceptedOuter": [
+        {
+          "name": "을경합화금격",
+          "verdict": "진격(眞格)",
+          "reason": "합신 경 시간 위치",
+          "score": 100
+        }
+      ],
+      "classification": "B",
+      "reason": "Identical pillars; profile and taxonomy differences require school adjudication"
+    },
+    {
+      "pillars": "戊戌辛酉乙酉丁丑",
+      "expected": "가종살격(假從殺格)",
+      "oracleRegular": "편관격",
+      "oracleAcceptedOuter": [
+        {
+          "name": "종재격",
+          "verdict": "가격(假格)",
+          "reason": "종할 오행 토, 종할 오행 세력 31% < 80% (-30)",
+          "score": 70
+        },
+        {
+          "name": "종관살격",
+          "verdict": "가격(假格)",
+          "reason": "종할 오행 금, 종할 오행 세력 46% < 80% (-30)",
+          "score": 70
+        },
+        {
+          "name": "종아격",
+          "verdict": "가격(假格)",
+          "reason": "종할 오행 화, 종할 오행 세력 12% < 80% (-30)",
+          "score": 70
+        }
+      ],
+      "classification": "B",
+      "reason": "Identical pillars; profile and taxonomy differences require school adjudication"
+    },
+    {
+      "pillars": "戊戌辛酉乙酉辛巳",
+      "expected": "종살격(從殺格)",
+      "oracleRegular": "편관격",
+      "oracleAcceptedOuter": [
+        {
+          "name": "종재격",
+          "verdict": "가격(假格)",
+          "reason": "종할 오행 토, 종할 오행 세력 21% < 80% (-30)",
+          "score": 70
+        },
+        {
+          "name": "종관살격",
+          "verdict": "가격(假格)",
+          "reason": "종할 오행 금, 종할 오행 세력 53% < 80% (-30)",
+          "score": 70
+        },
+        {
+          "name": "종아격",
+          "verdict": "가격(假格)",
+          "reason": "종할 오행 화, 종할 오행 세력 18% < 80% (-30)",
+          "score": 70
+        }
+      ],
+      "classification": "B",
+      "reason": "Identical pillars; profile and taxonomy differences require school adjudication"
+    },
+    {
+      "pillars": "戊辰己未戊戌丁巳",
+      "expected": "가색격(稼穡格)",
+      "oracleRegular": "정인격",
+      "oracleAcceptedOuter": [],
+      "classification": "B",
+      "reason": "Identical pillars; profile and taxonomy differences require school adjudication"
+    },
+    {
+      "pillars": "戊辰己未辛丑戊戌",
+      "expected": "종강격(從强格)",
+      "oracleRegular": "편인격",
+      "oracleAcceptedOuter": [],
+      "classification": "B",
+      "reason": "Identical pillars; profile and taxonomy differences require school adjudication"
+    },
+    {
+      "pillars": "丙午戊戌甲戌己巳",
+      "expected": "화토격(化土格)",
+      "oracleRegular": "편재격",
+      "oracleAcceptedOuter": [
+        {
+          "name": "갑기합화토격",
+          "verdict": "진격(眞格)",
+          "reason": "합신 기 시간 위치",
+          "score": 100
+        },
+        {
+          "name": "종재격",
+          "verdict": "가격(假格)",
+          "reason": "종할 오행 토, 종할 오행 세력 41% < 80% (-30)",
+          "score": 70
+        },
+        {
+          "name": "종관살격",
+          "verdict": "가격(假格)",
+          "reason": "종할 오행 금, 종할 오행 세력 11% < 80% (-30)",
+          "score": 70
+        },
+        {
+          "name": "종아격",
+          "verdict": "가격(假格)",
+          "reason": "종할 오행 화, 종할 오행 세력 41% < 80% (-30)",
+          "score": 70
+        }
+      ],
+      "classification": "B",
+      "reason": "Identical pillars; profile and taxonomy differences require school adjudication"
+    },
+    {
+      "pillars": "癸未乙卯甲寅乙亥",
+      "expected": "곡직격(曲直格)",
+      "oracleRegular": "양인격",
+      "oracleAcceptedOuter": [],
+      "classification": "B",
+      "reason": "Identical pillars; profile and taxonomy differences require school adjudication"
+    },
+    {
+      "pillars": "丙寅甲午壬午丁未",
+      "expected": "종재격(從財格)",
+      "oracleRegular": "정재격",
+      "oracleAcceptedOuter": [
+        {
+          "name": "종재격",
+          "verdict": "가격(假格)",
+          "reason": "종할 오행 화, 종할 오행 세력 47% < 80% (-30)",
+          "score": 70
+        },
+        {
+          "name": "종관살격",
+          "verdict": "가격(假格)",
+          "reason": "종할 오행 토, 종할 오행 세력 25% < 80% (-30)",
+          "score": 70
+        },
+        {
+          "name": "종아격",
+          "verdict": "가격(假格)",
+          "reason": "종할 오행 목, 종할 오행 세력 22% < 80% (-30)",
+          "score": 70
+        }
+      ],
+      "classification": "B",
+      "reason": "Identical pillars; profile and taxonomy differences require school adjudication"
+    },
+    {
+      "pillars": "丁卯丙午甲午己巳",
+      "expected": "종아격(從兒格)",
+      "oracleRegular": "상관격",
+      "oracleAcceptedOuter": [],
+      "classification": "B",
+      "reason": "Identical pillars; profile and taxonomy differences require school adjudication"
+    },
+    {
+      "pillars": "壬寅丙午甲午己巳",
+      "expected": "상관격",
+      "oracleRegular": "정재격",
+      "oracleAcceptedOuter": [],
+      "classification": "B",
+      "reason": "Identical pillars; profile and taxonomy differences require school adjudication"
+    },
+    {
+      "pillars": "庚寅丙午丙戌甲午",
+      "expected": "염상격(炎上格)",
+      "oracleRegular": "양인격",
+      "oracleAcceptedOuter": [],
+      "classification": "B",
+      "reason": "Identical pillars; profile and taxonomy differences require school adjudication"
+    },
+    {
+      "pillars": "丁巳辛酉辛丑庚申",
+      "expected": "종혁격(從革格)",
+      "oracleRegular": "건록격",
+      "oracleAcceptedOuter": [],
+      "classification": "B",
+      "reason": "Identical pillars; profile and taxonomy differences require school adjudication"
+    },
+    {
+      "pillars": "庚申壬子壬辰癸亥",
+      "expected": "윤하격(潤下格)",
+      "oracleRegular": "양인격",
+      "oracleAcceptedOuter": [],
+      "classification": "B",
+      "reason": "Identical pillars; profile and taxonomy differences require school adjudication"
+    },
+    {
+      "pillars": "甲寅乙卯甲寅癸亥",
+      "expected": "종왕격(從旺格)",
+      "oracleRegular": "양인격",
+      "oracleAcceptedOuter": [],
+      "classification": "B",
+      "reason": "Identical pillars; profile and taxonomy differences require school adjudication"
+    },
+    {
+      "pillars": "辛酉乙卯甲辰己巳",
+      "expected": "양인격",
+      "oracleRegular": "양인격",
+      "oracleAcceptedOuter": [],
+      "classification": "match",
+      "reason": "Regular name matches; not universal proof"
+    },
+    {
+      "pillars": "丙午戊戌甲戌丁丑",
+      "expected": "가종재격(假從財格)",
+      "oracleRegular": "편재격",
+      "oracleAcceptedOuter": [
+        {
+          "name": "종재격",
+          "verdict": "가격(假格)",
+          "reason": "종할 오행 토, 종할 오행 세력 44% < 80% (-30)",
+          "score": 70
+        },
+        {
+          "name": "종관살격",
+          "verdict": "가격(假格)",
+          "reason": "종할 오행 금, 종할 오행 세력 11% < 80% (-30)",
+          "score": 70
+        },
+        {
+          "name": "종아격",
+          "verdict": "가격(假格)",
+          "reason": "종할 오행 화, 종할 오행 세력 36% < 80% (-30)",
+          "score": 70
+        }
+      ],
+      "classification": "B",
+      "reason": "Identical pillars; profile and taxonomy differences require school adjudication"
+    },
+    {
+      "pillars": "丙午戊戌甲戌己丑",
+      "expected": "화토격(化土格)",
+      "oracleRegular": "편재격",
+      "oracleAcceptedOuter": [
+        {
+          "name": "갑기합화토격",
+          "verdict": "진격(眞格)",
+          "reason": "합신 기 시간 위치",
+          "score": 100
+        },
+        {
+          "name": "종재격",
+          "verdict": "가격(假格)",
+          "reason": "종할 오행 토, 종할 오행 세력 50% < 80% (-30)",
+          "score": 70
+        },
+        {
+          "name": "종관살격",
+          "verdict": "가격(假格)",
+          "reason": "종할 오행 금, 종할 오행 세력 11% < 80% (-30)",
+          "score": 70
+        },
+        {
+          "name": "종아격",
+          "verdict": "가격(假格)",
+          "reason": "종할 오행 화, 종할 오행 세력 30% < 80% (-30)",
+          "score": 70
+        }
+      ],
+      "classification": "B",
+      "reason": "Identical pillars; profile and taxonomy differences require school adjudication"
+    },
+    {
+      "pillars": "戊申庚申乙酉己酉",
+      "expected": "화금격(化金格)",
+      "oracleRegular": "정관격",
+      "oracleAcceptedOuter": [
+        {
+          "name": "을경합화금격",
+          "verdict": "진격(眞格)",
+          "reason": "합신 경 월간 위치",
+          "score": 100
+        },
+        {
+          "name": "종재격",
+          "verdict": "가격(假格)",
+          "reason": "종할 오행 토, 종할 오행 세력 18% < 80% (-30)",
+          "score": 70
+        },
+        {
+          "name": "종관살격",
+          "verdict": "가격(假格)",
+          "reason": "종할 오행 금, 종할 오행 세력 62% < 80% (-30)",
+          "score": 70
+        },
+        {
+          "name": "종아격",
+          "verdict": "가격(假格)",
+          "reason": "종할 오행 화, 종할 오행 세력 0% < 80% (-30)",
+          "score": 70
+        }
+      ],
+      "classification": "B",
+      "reason": "Identical pillars; profile and taxonomy differences require school adjudication"
+    },
+    {
+      "pillars": "癸酉辛亥丙子癸丑",
+      "expected": "화수격(化水格)",
+      "oracleRegular": "지지합화격",
+      "oracleAcceptedOuter": [
+        {
+          "name": "병신합화수격",
+          "verdict": "진격(眞格)",
+          "reason": "합신 신 월간 위치",
+          "score": 100
+        },
+        {
+          "name": "종재격",
+          "verdict": "가격(假格)",
+          "reason": "종할 오행 금, 종할 오행 세력 28% < 80% (-30)",
+          "score": 70
+        },
+        {
+          "name": "종관살격",
+          "verdict": "가격(假格)",
+          "reason": "종할 오행 수, 종할 오행 세력 43% < 80% (-30)",
+          "score": 70
+        },
+        {
+          "name": "종아격",
+          "verdict": "가격(假格)",
+          "reason": "종할 오행 토, 종할 오행 세력 15% < 80% (-30)",
+          "score": 70
+        }
+      ],
+      "classification": "B",
+      "reason": "Identical pillars; profile and taxonomy differences require school adjudication"
+    },
+    {
+      "pillars": "乙酉乙卯丁亥壬子",
+      "expected": "화목격(化木格)",
+      "oracleRegular": "편인격",
+      "oracleAcceptedOuter": [
+        {
+          "name": "정임합화목격",
+          "verdict": "진격(眞格)",
+          "reason": "합신 임 시간 위치",
+          "score": 100
+        }
+      ],
+      "classification": "B",
+      "reason": "Identical pillars; profile and taxonomy differences require school adjudication"
+    },
+    {
+      "pillars": "丙午戊午癸巳丙午",
+      "expected": "화화격(化火格)",
+      "oracleRegular": "정재격",
+      "oracleAcceptedOuter": [
+        {
+          "name": "무계합화화격",
+          "verdict": "진격(眞格)",
+          "reason": "합신 무 월간 위치",
+          "score": 100
+        },
+        {
+          "name": "종재격",
+          "verdict": "가격(假格)",
+          "reason": "종할 오행 화, 종할 오행 세력 63% < 80% (-30)",
+          "score": 70
+        },
+        {
+          "name": "종관살격",
+          "verdict": "가격(假格)",
+          "reason": "종할 오행 토, 종할 오행 세력 25% < 80% (-30)",
+          "score": 70
+        },
+        {
+          "name": "종아격",
+          "verdict": "가격(假格)",
+          "reason": "종할 오행 목, 종할 오행 세력 0% < 80% (-30)",
+          "score": 70
+        }
+      ],
+      "classification": "B",
+      "reason": "Identical pillars; profile and taxonomy differences require school adjudication"
+    },
+    {
+      "pillars": "壬申辛亥丙子癸丑",
+      "expected": "편관격",
+      "oracleRegular": "편관격",
+      "oracleAcceptedOuter": [
+        {
+          "name": "병신합화수격",
+          "verdict": "진격(眞格)",
+          "reason": "합신 신 월간 위치",
+          "score": 100
+        },
+        {
+          "name": "종재격",
+          "verdict": "가격(假格)",
+          "reason": "종할 오행 금, 종할 오행 세력 23% < 80% (-30)",
+          "score": 70
+        },
+        {
+          "name": "종관살격",
+          "verdict": "가격(假格)",
+          "reason": "종할 오행 수, 종할 오행 세력 47% < 80% (-30)",
+          "score": 70
+        },
+        {
+          "name": "종아격",
+          "verdict": "가격(假格)",
+          "reason": "종할 오행 토, 종할 오행 세력 17% < 80% (-30)",
+          "score": 70
+        }
+      ],
+      "classification": "B",
+      "reason": "Identical pillars; profile and taxonomy differences require school adjudication"
+    },
+    {
+      "pillars": "丙午戊午癸巳丁巳",
+      "expected": "편재격",
+      "oracleRegular": "편재격",
+      "oracleAcceptedOuter": [
+        {
+          "name": "무계합화화격",
+          "verdict": "진격(眞格)",
+          "reason": "합신 무 월간 위치",
+          "score": 100
+        },
+        {
+          "name": "종재격",
+          "verdict": "가격(假格)",
+          "reason": "종할 오행 화, 종할 오행 세력 61% < 80% (-30)",
+          "score": 70
+        },
+        {
+          "name": "종관살격",
+          "verdict": "가격(假格)",
+          "reason": "종할 오행 토, 종할 오행 세력 22% < 80% (-30)",
+          "score": 70
+        },
+        {
+          "name": "종아격",
+          "verdict": "가격(假格)",
+          "reason": "종할 오행 목, 종할 오행 세력 0% < 80% (-30)",
+          "score": 70
+        }
+      ],
+      "classification": "B",
+      "reason": "Identical pillars; profile and taxonomy differences require school adjudication"
+    }
+  ],
+  "summary": {
+    "match": 3,
+    "B": 24,
+    "C": 0
+  }
+}

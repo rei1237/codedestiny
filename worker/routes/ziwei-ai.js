@@ -15,7 +15,7 @@ import { clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
 import { cmsPromptModelConfig, cmsPromptText } from "../lib/cms-prompts.js";
 import { appendExpertPersona } from "../lib/expert-character-personas.js";
 import { tokensRequiredForChars } from "../lib/llm-budget.js";
-import { MonthlyCreditLedger, Payment, PointHistory, PaidExecutionRecord, User, ZiweiAiConsultation } from "../lib/models.js";
+import { MonthlyCreditLedger, Payment, PointHistory, PaidExecutionRecord, User, ZiweiAiConsultation, ZiweiCalculationPreparation } from "../lib/models.js";
 import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { decryptPhoneNumber } from "../lib/pii-crypto.js";
 import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
@@ -33,6 +33,8 @@ import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
 import { hasRenderableLlmText, isCompleteLlmResponse } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { calculateZiweiAiChart, formatStarWithBrightness } from "../lib/ziwei-ai-chart.js";
+import { readZiweiExecutionSnapshot } from "../lib/ziwei-execution-adapter.js";
+import { resolveZiweiPreparation } from "../lib/ziwei-calculation-preparation.js";
 import { ZIWEI_STRENGTH_LEGEND } from "../../lib/ziwei-star-strength.js";
 import { basisGroup, basisItem, basisStage, buildAnalysisBasisPayload } from "../lib/analysis-basis-contract.js";
 import {
@@ -1194,10 +1196,19 @@ function buildCanonicalZiweiFacts(chart) {
 // 🔴 양력 생년으로 세면 입춘 전 출생(예: 1월 1일생)이 평생 한 살씩 어긋난다.
 // meta.dayun 을 덮어쓰는 enforceZiweiChartFacts 와 확정값 사실 줄이 같은 기준을 써야 하므로
 // 두 곳이 이 함수 하나를 부른다.
+// Presentation context only: rebuilt from each durable prepared snapshot, never a
+// rollout selector or persistent field. Legacy results retain their original path.
+const preparedChartYears = new WeakMap();
+function preparedZiweiChart({ chart, preparationId }) {
+  const year = chart?.yearlyLuck?.year;
+  if (preparationId && Number.isInteger(year)) preparedChartYears.set(chart, year);
+  return chart;
+}
+
 function resolveCurrentMajorLuckByChartAge(chart) {
   const lunarYear = Number(chart?.lunar?.year);
   if (!Number.isFinite(lunarYear)) return null;
-  const age = new Date().getFullYear() - lunarYear + 1;
+  const age = (preparedChartYears.get(chart) ?? new Date().getFullYear()) - lunarYear + 1;
   const rows = Array.isArray(chart?.majorLuck) ? chart.majorLuck : [];
   const current = rows.find((row) => Number(row?.startAge) <= age && age <= Number(row?.endAge));
   return current ? { ...current, age } : null;
@@ -2411,7 +2422,7 @@ function buildSummaryCards(chart = {}, topic = "") {
 }
 
 function publicConsultation(doc) {
-  const chart = doc.llmMeta?.chartSnapshot || doc.ziweiChart || {};
+  const chart = preparedZiweiChart({ chart: doc.llmMeta?.chartSnapshot || doc.ziweiChart || {}, preparationId: doc.llmMeta?.calculationPreparationId });
   return {
     ok: true,
     sessionId: clean(doc.id),
@@ -2456,17 +2467,21 @@ async function handleEnsureAccess(request, env, route = "/api/ziwei-ai/prepare")
   logZiweiAi("Payload Validated", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "ok", env }));
   if (idempotencyKey.length < 12) return invalidInput("요청 키가 누락되었습니다. 화면을 새로고침한 뒤 다시 시도해 주세요.");
 
+  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+  if (!auth) return loginRequired();
+
   try {
+    await connectDb(env);
     logZiweiAi("Chart Data Start", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "ok", env }));
-    calculateZiweiAiChart(normalized.input, { year: new Date().getFullYear() });
+    const existing = await ZiweiAiConsultation.findOne({ userId: clean(auth.userId), idempotencyKey }).lean();
+    if (existing && (existing.inputHash !== normalized.inputHash || (existing.serviceType && existing.serviceType !== SERVICE_KEY))) return invalidInput(MESSAGES.invalidInput, 409);
+    if (existing?.status === "completed") return json({ ...publicConsultation(existing), ...(body.calculationProtocol ? { calculationReady: true } : {}) });
+    await resolveZiweiPreparation({ model: ZiweiCalculationPreparation, userId: clean(auth.userId), requestId: idempotencyKey, inputHash: normalized.inputHash, input: normalized.input, rawBody: body, existing, action: "prepare", year: new Date().getFullYear(), calendarAuthorityV2: env?.ZIWEI_CALENDAR_AUTHORITY_V2 === 'true' });
     logZiweiAi("Chart Data Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "ok", env }));
   } catch (error) {
     logZiweiAi("Error", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "chart_data_failed", env, error }), "error");
-    return calculationFailed();
+    return preparationFailed(error);
   }
-
-  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
-  if (!auth) return loginRequired();
 
   const pricing = getPricing();
   logZiweiAi("Access Check Start", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: "checking", env }));
@@ -2474,6 +2489,7 @@ async function handleEnsureAccess(request, env, route = "/api/ziwei-ai/prepare")
     logZiweiAi("Access Check Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: "admin", env }));
     return json({
       ok: true,
+      ...(body.calculationProtocol ? { calculationReady: true } : {}),
       accessToken: await createAccessToken(env, {
         userId: auth.userId,
         accessType: "admin",
@@ -2484,7 +2500,6 @@ async function handleEnsureAccess(request, env, route = "/api/ziwei-ai/prepare")
     });
   }
 
-  await connectDb(env);
   const user = await withMongoRetry(env, () => loadBillingUser(auth.userId, env));
   if (!user) return loginRequired();
 
@@ -2497,6 +2512,7 @@ async function handleEnsureAccess(request, env, route = "/api/ziwei-ai/prepare")
     logZiweiAi("Access Check Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: tokenAccessType, env }));
     return json({
       ok: true,
+      ...(body.calculationProtocol ? { calculationReady: true } : {}),
       accessToken: await createAccessToken(env, {
         userId: auth.userId,
         accessType: tokenAccessType,
@@ -2526,6 +2542,7 @@ async function handleEnsureAccess(request, env, route = "/api/ziwei-ai/prepare")
   return json({
     ok: false,
     reason: "PAYMENT_REQUIRED",
+    ...(body.calculationProtocol ? { calculationReady: true } : {}),
     message: MESSAGES.paymentRequired,
     paymentPayload: payment.paymentPayload,
   }, { status: 402 });
@@ -2594,6 +2611,15 @@ async function handleStart(request, env, route = "/api/ziwei-ai/generate", recov
   if (existing && (existing.inputHash !== normalized.inputHash || (existing.serviceType && existing.serviceType !== SERVICE_KEY))) return invalidInput("같은 요청 키로 다른 상담 정보를 사용할 수 없습니다.", 409);
   if (existing?.status === "completed") return json(publicConsultation(existing));
   if (existing?.status === "generation_failed") return json({ ok: false, reason: "GENERATION_FAILED", message: MESSAGES.llmFailed }, { status: 409 });
+  let initialChart, preparationId;
+  try {
+    if (existing?.status !== "delivery_pending") {
+      const selection = await resolveZiweiPreparation({ model: ZiweiCalculationPreparation, userId: clean(auth.userId), requestId: idempotencyKey, inputHash: normalized.inputHash, input: normalized.input, rawBody: body, existing, action: "generate", year: new Date().getFullYear(), calendarAuthorityV2: env?.ZIWEI_CALENDAR_AUTHORITY_V2 === 'true' });
+      initialChart = preparedZiweiChart(selection); preparationId = selection.preparationId;
+    }
+  } catch (error) {
+    return preparationFailed(error);
+  }
   const access = await resolveStartAccess({ request, env, auth, body, normalized, pricing, idempotencyKey });
   if (!access.ok) return paymentVerifyFailed();
   logZiweiAi("Payment Guard Passed", { route, requestId: idempotencyKey, access: access.accessType });
@@ -2615,7 +2641,7 @@ async function handleStart(request, env, route = "/api/ziwei-ai/generate", recov
     } else {
       const resumeBody = { ...body, idempotencyKey, accessType: access.accessType };
       delete resumeBody.accessToken;
-      doc = await ZiweiAiConsultation.create({ ...owner, serviceType: SERVICE_KEY, idempotencyKey, inputHash: normalized.inputHash, birthInfo: normalized.input.birthInfo, topic: normalized.input.topic, userQuestion: normalized.input.userQuestion, accessType: access.accessType, paymentId: clean(access.paymentId, 160), status: "generating", generationLease: lease, messages: [], llmMeta: { resumeBody, groups: {}, attempts: {} } });
+      doc = await ZiweiAiConsultation.create({ ...owner, serviceType: SERVICE_KEY, idempotencyKey, inputHash: normalized.inputHash, birthInfo: normalized.input.birthInfo, topic: normalized.input.topic, userQuestion: normalized.input.userQuestion, accessType: access.accessType, paymentId: clean(access.paymentId, 160), status: "generating", generationLease: lease, messages: [], llmMeta: { resumeBody, groups: {}, attempts: {}, chartSnapshot: initialChart, ...(preparationId ? { calculationPreparationId: preparationId } : {}) } });
       doc = typeof doc.toObject === "function" ? doc.toObject() : doc;
     }
   } catch (error) {
@@ -2628,7 +2654,10 @@ async function handleStart(request, env, route = "/api/ziwei-ai/generate", recov
   const locked = { ...owner, generationLease: lease, status: { $ne: "completed" } };
   try {
     if (doc.status !== "delivery_pending") {
-      const chart = doc.llmMeta?.chartSnapshot || calculateZiweiAiChart(normalized.input, { year: new Date().getFullYear() });
+      // A concurrent lease holder's persisted snapshot wins over our preflight candidate.
+      const chart = doc.llmMeta?.calculationPreparationId
+        ? preparedZiweiChart(await resolveZiweiPreparation({ model: ZiweiCalculationPreparation, userId: clean(auth.userId), requestId: idempotencyKey, inputHash: normalized.inputHash, input: normalized.input, rawBody: body, existing: doc, action: "generate", year: new Date().getFullYear(), calendarAuthorityV2: env?.ZIWEI_CALENDAR_AUTHORITY_V2 === 'true' }))
+        : readZiweiExecutionSnapshot(doc) || initialChart;
       const resumeBody = { ...body, idempotencyKey, accessType: access.accessType }; delete resumeBody.accessToken;
       doc = await saveZiweiDelivery(locked, { llmMeta: { ...doc.llmMeta, chartSnapshot: chart, resumeBody: doc.llmMeta?.resumeBody || resumeBody } }, sessionId);
       const generated = await runWithAiLocale(storedAiLocale(doc), async () => generateInitialConsultation(env, { input: normalized.input, chart, groups: doc.llmMeta.groups, attempts: doc.llmMeta.attempts, meta: doc.llmMeta.reportMeta, rawResponses: doc.llmMeta.rawResponses,
@@ -2648,6 +2677,8 @@ async function handleStart(request, env, route = "/api/ziwei-ai/generate", recov
     if (access.accessType === "paid" && access.paymentId) await Payment.updateOne({ userId: auth.userId, featureKey: FEATURE_KEY, merchantUid: access.paymentId, status: { $in: ["paid", "success", "fulfilled"] } }, { $set: { status: "fulfilled", sessionId, reportId: sessionId, orderState: "UNLOCKED" } }).catch(() => {});
     return json(publicConsultation(doc));
   } catch (error) {
+    if (error?.code === "CALCULATION_SNAPSHOT_REQUIRED") return calculationFailed();
+    if (String(error?.code || "").startsWith("CALCULATION_PREPARATION_")) return preparationFailed(error);
     if (error?.code === "RESULT_STORAGE_UNAVAILABLE") return json(resultStorageFailurePayload(error), { status: 503 });
     // Once a complete body exists, payment/apply uncertainty must retry that same delivery, never refund or regenerate.
     if (doc.status === "delivery_pending") return json(resultStorageFailurePayload(resultStorageUnavailable(sessionId)), { status: 503 });
@@ -2727,22 +2758,39 @@ async function handleResult(request, env) {
   return json(publicConsultation(consultation));
 }
 
-// 계산 근거만 즉시 돌려준다 — LLM 미호출, DB 접근 없음, 과금 없음.
-// 생성이 도는 동안 대기 화면이 실제 명반 값을 보여 주기 위한 경로라 반드시 가벼워야 한다.
-// 신원 확인은 로컬 JWT 검증(peekAccessTokenUserId)만 써서 Mongo를 한 번도 건드리지 않는다.
+function preparationFailed(error) {
+  if (error?.code === "CALCULATION_SNAPSHOT_REQUIRED") return calculationFailed();
+  const code = String(error?.code || "");
+  const reason = code.startsWith("CALCULATION_PREPARATION_") ? code : "CALCULATION_PREPARATION_UNAVAILABLE";
+  const status = reason.endsWith("CONFLICT") ? 409 : reason.endsWith("INVALID") ? 422 : 503;
+  return json({ ok: false, reason, message: MESSAGES.calculationFailed, retryable: status === 503 }, { status });
+}
+
+// New protocol reads the prepared basis; legacy no-key previews retain their pure calculation contract.
 async function handleBasis(request, env) {
   const userId = await peekAccessTokenUserId(request, env);
   if (!userId) return loginRequired();
 
-  const normalized = normalizeConsultationInput(await readJson(request));
+  const body = await readJson(request);
+  const normalized = normalizeConsultationInput(body);
   if (!normalized.ok) return invalidInput(normalized.message);
 
+  const requestId = readIdempotencyKey(request, body);
+  const legacyPreview = !requestId && !body.calculationProtocol;
   try {
-    const chart = calculateZiweiAiChart(normalized.input, { year: new Date().getFullYear() });
+    let chart;
+    if (legacyPreview) chart = calculateZiweiAiChart(normalized.input, { year: new Date().getFullYear() });
+    else {
+      await connectDb(env);
+      const existing = await ZiweiAiConsultation.findOne({ userId: clean(userId), idempotencyKey: requestId }).lean();
+      if (existing && (existing.inputHash !== normalized.inputHash || (existing.serviceType && existing.serviceType !== SERVICE_KEY))) return invalidInput(MESSAGES.invalidInput, 409);
+      chart = preparedZiweiChart(await resolveZiweiPreparation({ model: ZiweiCalculationPreparation, userId: clean(userId), requestId, inputHash: normalized.inputHash, input: normalized.input, rawBody: body, existing, action: "basis", year: new Date().getFullYear(), calendarAuthorityV2: env?.ZIWEI_CALENDAR_AUTHORITY_V2 === 'true' }));
+    }
     return json(buildZiweiAnalysisBasis(chart, normalized.input.birthInfo));
   } catch (error) {
     console.warn("[ziwei-ai] basis failed", clean(error?.message || error, 200));
-    return calculationFailed();
+    if (legacyPreview) return calculationFailed();
+    return preparationFailed(error);
   }
 }
 

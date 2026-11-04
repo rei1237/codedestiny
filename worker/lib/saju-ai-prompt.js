@@ -22,6 +22,42 @@ import {
 } from "./saju-gyeokguk.js";
 import { legacyJongShape } from "../../lib/saju/natal-core/index.mjs";
 import { gyeokgukClaimFact, gyeokgukPromptRules } from "../../lib/saju/gyeokguk-claim-guard.mjs";
+import { consumerPillars, selectSajuAuthority, readSajuAuthority, SAJU_AUTHORITY_PROMPT_RULES } from './saju-authority-consumer.js';
+
+export function selectSajuPromptAuthority(sajuResult, options = {}) {
+  return selectSajuAuthority(consumerPillars(normalizeSajuPillarRows(sajuResult)), options);
+}
+
+function buildPinnedSajuPrompt({ question, sajuResult, domain, mode }, snapshot) {
+  const pinned = readSajuAuthority(snapshot, consumerPillars(normalizeSajuPillarRows(sajuResult)));
+  const analysis = pinned.analysis;
+  const resolvedDomain = String(domain || '').trim() || classifyQuestionToSajuDomain(question);
+  const template = getSajuPromptTemplate(resolvedDomain);
+  if (!template) throw new Error(`UNKNOWN_SAJU_DOMAIN:${resolvedDomain}`);
+  const questionType = classifySajuPromptQuestionType(question);
+  const pillars = Object.fromEntries(Object.entries(pinned.pillars).map(([key, value]) => [key, value ? { ...value, pillar: value.ganji } : null]));
+  const factSnapshot = { calculationVersion: pinned.calculationVersion, natalAnalysisId: analysis.evidence.natalAnalysisId,
+    domain: resolvedDomain, pillars, dayMaster: { ...analysis.dayMaster },
+    fixedTenGodTable: buildFixedTenGodTable(pillars.day.stem),
+    majorStructures: { gyeokguk: analysis.gyeokgukAnalysis, yongshin: analysis.yongshinAnalysis },
+    usefulElements: analysis.usefulElements, interpretation: analysis.evidence.reading,
+    limitations: analysis.evidence.limitations, interpretationRules: SAJU_AUTHORITY_PROMPT_RULES };
+  const categoryRubric = getSajuAICategoryRubric(resolvedDomain);
+  const pack = buildFortuneQuestionPromptPackage({ fortuneType: 'saju', fortuneLabel: '사주', expertLabel: '명리 상담가',
+    userQuestion: question, analysisResult: factSnapshot, profile: {}, mode: mode || resolvedDomain,
+    questionTypeLabel: template.domainKo, analysisAngles: buildSajuQuestionFocusAngles(questionType, resolvedDomain),
+    recommendedFollowUpQuestions: buildSajuFollowUps(questionType),
+    caution: SAJU_AUTHORITY_PROMPT_RULES[1], domainDataLines: [...SAJU_AUTHORITY_PROMPT_RULES], minPromptLength: 2600 });
+  const generatedPrompt = [pack.generatedPrompt, ...SAJU_AUTHORITY_PROMPT_RULES, JSON.stringify(factSnapshot)].join('\n');
+  return { ...pack, prompt: generatedPrompt, generatedPrompt, questionType, domain: resolvedDomain, domainLabel: template.domainKo,
+    categoryRubric, promptVersion: `${SAJU_AI_PROMPT_VERSION}|${pinned.calculationVersion}`, factSnapshot,
+    factCard: JSON.stringify(factSnapshot), analysisBasis: { ...buildSajuAnalysisBasis(factSnapshot),
+      calculationVersion: pinned.calculationVersion, natalAnalysisId: analysis.evidence.natalAnalysisId },
+    tenGodSnapshot: { dayMaster: factSnapshot.dayMaster, fixedTenGodTable: factSnapshot.fixedTenGodTable },
+    advancedFactors: factSnapshot.majorStructures, keywordWeights: template.keywordWeights,
+    qualityChecks: [], calibrationApplied: 0, sajuAuthority: pinned,
+    digestSource: [pinned.digest, resolvedDomain, question, generatedPrompt].join('\n') };
+}
 
 const DEFAULT_TEXT = "제공되지 않음";
 
@@ -2188,9 +2224,11 @@ export function buildSajuAIPromptWithDomain({
   mode,
   domain,
   calibration,
+  sajuAuthority,
 } = {}) {
   const normalizedQuestion = ensureValidQuestion(question);
   ensureSajuResultPresence(sajuResult);
+  if (sajuAuthority) return buildPinnedSajuPrompt({ question: normalizedQuestion, sajuResult, domain, mode }, sajuAuthority);
 
   const questionType = classifySajuPromptQuestionType(normalizedQuestion);
   const questionTypeLabel = QUESTION_TYPE_LABELS[questionType] || QUESTION_TYPE_LABELS.general;

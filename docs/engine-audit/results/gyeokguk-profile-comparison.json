@@ -1,0 +1,2250 @@
+{
+  "base": "87bd85731a24f2fb27e44395fd61918d51195ecf",
+  "referenceDate": "2026-11-02",
+  "profile": "rok-yangin-strictjong-v1",
+  "contractResults": [
+    {
+      "pillars": "辛酉庚寅甲辰己巳",
+      "name": "건록격",
+      "decision": "general",
+      "rule": "GK-ROK",
+      "status": "pass"
+    },
+    {
+      "pillars": "甲寅丁丑戊辰己未",
+      "name": "월겁격",
+      "decision": "general",
+      "rule": "GK-ROK",
+      "status": "pass"
+    },
+    {
+      "pillars": "戊辰己未甲寅戊辰",
+      "name": "정재격",
+      "decision": "general",
+      "rule": "GK-REGULAR",
+      "status": "pass"
+    },
+    {
+      "pillars": "戊申辛酉乙未庚辰",
+      "name": "편관격",
+      "decision": "general",
+      "rule": "GK-REGULAR",
+      "status": "pass"
+    },
+    {
+      "pillars": "戊戌辛酉乙酉",
+      "name": "편관격",
+      "decision": "pending",
+      "rule": "GK-REGULAR",
+      "status": "pass"
+    },
+    {
+      "pillars": "戊戌辛酉乙酉丁丑",
+      "name": "가종살격(假從殺格)",
+      "decision": "special",
+      "rule": "JONG-FALSE",
+      "status": "pass"
+    },
+    {
+      "pillars": "戊戌辛酉乙酉辛巳",
+      "name": "종살격(從殺格)",
+      "decision": "special",
+      "rule": "JONG-TRUE",
+      "status": "pass"
+    },
+    {
+      "pillars": "戊辰己未戊戌丁巳",
+      "name": "가색격(稼穡格)",
+      "decision": "special",
+      "rule": "ZW-JIASE",
+      "status": "pass"
+    },
+    {
+      "pillars": "丙戌戊戌戊午丁巳",
+      "name": "정인격",
+      "decision": "pending",
+      "rule": "GK-REGULAR",
+      "status": "pass"
+    },
+    {
+      "pillars": "戊辰己未辛丑戊戌",
+      "name": "종강격(從强格)",
+      "decision": "special",
+      "rule": "JONG-QIANG-WANG",
+      "status": "pass"
+    },
+    {
+      "pillars": "丙午戊戌甲戌己巳",
+      "name": "화토격(化土格)",
+      "decision": "special",
+      "rule": "HUA-01",
+      "status": "pass"
+    },
+    {
+      "pillars": "癸未乙卯甲寅乙亥",
+      "name": "곡직격(曲直格)",
+      "decision": "special",
+      "rule": "ZW-QUZHI",
+      "status": "pass"
+    },
+    {
+      "pillars": "丙寅甲午壬午丁未",
+      "name": "종재격(從財格)",
+      "decision": "special",
+      "rule": "JONG-TRUE",
+      "status": "pass"
+    },
+    {
+      "pillars": "丁卯丙午甲午己巳",
+      "name": "종아격(從兒格)",
+      "decision": "special",
+      "rule": "JONG-ER",
+      "status": "pass"
+    },
+    {
+      "pillars": "壬寅丙午甲午己巳",
+      "name": "상관격",
+      "decision": "general",
+      "rule": "GK-REGULAR",
+      "status": "pass"
+    },
+    {
+      "pillars": "庚寅丙午丙戌甲午",
+      "name": "염상격(炎上格)",
+      "decision": "special",
+      "rule": "ZW-YANSHANG",
+      "status": "pass"
+    },
+    {
+      "pillars": "丙巳辛酉庚丑庚申",
+      "name": "종혁격(從革格)",
+      "decision": "special",
+      "rule": "ZW-CONGGE",
+      "status": "pass"
+    },
+    {
+      "pillars": "庚申壬子壬辰癸亥",
+      "name": "윤하격(潤下格)",
+      "decision": "special",
+      "rule": "ZW-RUNXIA",
+      "status": "pass"
+    },
+    {
+      "pillars": "甲寅甲卯甲寅癸亥",
+      "name": "종왕격(從旺格)",
+      "decision": "special",
+      "rule": "JONG-QIANG-WANG",
+      "status": "pass"
+    }
+  ],
+  "samples": [
+    {
+      "input": {
+        "birthDate": "1960-02-15",
+        "birthTime": "08:30",
+        "gender": "male",
+        "calendarType": "solar"
+      },
+      "pillars": [
+        {
+          "position": "year",
+          "stem": "庚",
+          "branch": "子"
+        },
+        {
+          "position": "month",
+          "stem": "戊",
+          "branch": "寅"
+        },
+        {
+          "position": "day",
+          "stem": "癸",
+          "branch": "酉"
+        },
+        {
+          "position": "hour",
+          "stem": "丙",
+          "branch": "辰"
+        }
+      ],
+      "app": {
+        "name": "정재격",
+        "type": "일반격",
+        "reason": "월지 인의 중기 병이 천간에 투출하여 정재가 격으로 성립할 힘을 얻음"
+      },
+      "common": {
+        "name": "정재격",
+        "type": "일반격",
+        "pending": [],
+        "rule": "GK-REGULAR",
+        "reason": "월지 인 지장간의 정재가 천간에 투출되어 정재격이 뚜렷합니다."
+      },
+      "classification": "match",
+      "limitation": "Same pillars; different service rule profiles. Neither result is an independent oracle."
+    },
+    {
+      "input": {
+        "birthDate": "1960-02-15",
+        "birthTime": "",
+        "gender": "male",
+        "calendarType": "solar"
+      },
+      "pillars": [
+        {
+          "position": "year",
+          "stem": "庚",
+          "branch": "子"
+        },
+        {
+          "position": "month",
+          "stem": "戊",
+          "branch": "寅"
+        },
+        {
+          "position": "day",
+          "stem": "癸",
+          "branch": "酉"
+        }
+      ],
+      "app": {
+        "name": "화기격",
+        "type": "특수격",
+        "reason": "천간합이 화로 합화되어 화기격 후보가 됨"
+      },
+      "common": {
+        "name": "정관격",
+        "type": "일반격",
+        "pending": [],
+        "rule": "GK-REGULAR",
+        "reason": "월지 인 지장간의 정관이 천간에 투출되어 정관격이 뚜렷합니다. 시주에 따라 월령 구조가 정관격·상관격·정재격으로 갈려 확정하지 않습니다."
+      },
+      "classification": "B",
+      "limitation": "Same pillars; different service rule profiles. Neither result is an independent oracle."
+    },
+    {
+      "input": {
+        "birthDate": "1960-05-15",
+        "birthTime": "08:30",
+        "gender": "male",
+        "calendarType": "solar"
+      },
+      "pillars": [
+        {
+          "position": "year",
+          "stem": "庚",
+          "branch": "子"
+        },
+        {
+          "position": "month",
+          "stem": "辛",
+          "branch": "巳"
+        },
+        {
+          "position": "day",
+          "stem": "癸",
+          "branch": "卯"
+        },
+        {
+          "position": "hour",
+          "stem": "丙",
+          "branch": "辰"
+        }
+      ],
+      "app": {
+        "name": "정재격",
+        "type": "일반격",
+        "reason": "월지 사의 본기 병이 천간에 투출하여 정재가 격으로 성립할 힘을 얻음"
+      },
+      "common": {
+        "name": "정재격",
+        "type": "일반격",
+        "pending": [],
+        "rule": "GK-REGULAR",
+        "reason": "월지 사 지장간의 정재가 천간에 투출되어 정재격이 뚜렷합니다."
+      },
+      "classification": "match",
+      "limitation": "Same pillars; different service rule profiles. Neither result is an independent oracle."
+    },
+    {
+      "input": {
+        "birthDate": "1960-05-15",
+        "birthTime": "",
+        "gender": "male",
+        "calendarType": "solar"
+      },
+      "pillars": [
+        {
+          "position": "year",
+          "stem": "庚",
+          "branch": "子"
+        },
+        {
+          "position": "month",
+          "stem": "辛",
+          "branch": "巳"
+        },
+        {
+          "position": "day",
+          "stem": "癸",
+          "branch": "卯"
+        }
+      ],
+      "app": {
+        "name": "정인격",
+        "type": "일반격",
+        "reason": "월지 사의 중기 경이 천간에 투출하여 정인이 격으로 성립할 힘을 얻음"
+      },
+      "common": {
+        "name": "정인격",
+        "type": "일반격",
+        "pending": [],
+        "rule": "GK-REGULAR",
+        "reason": "월지 사 지장간의 정인이 천간에 투출되어 정인격이 뚜렷합니다. 시주에 따라 월령 구조가 정인격·정재격으로 갈려 확정하지 않습니다."
+      },
+      "classification": "match",
+      "limitation": "Same pillars; different service rule profiles. Neither result is an independent oracle."
+    },
+    {
+      "input": {
+        "birthDate": "1960-08-15",
+        "birthTime": "08:30",
+        "gender": "male",
+        "calendarType": "solar"
+      },
+      "pillars": [
+        {
+          "position": "year",
+          "stem": "庚",
+          "branch": "子"
+        },
+        {
+          "position": "month",
+          "stem": "甲",
+          "branch": "申"
+        },
+        {
+          "position": "day",
+          "stem": "乙",
+          "branch": "亥"
+        },
+        {
+          "position": "hour",
+          "stem": "庚",
+          "branch": "辰"
+        }
+      ],
+      "app": {
+        "name": "정관격",
+        "type": "일반격",
+        "reason": "월지 신의 본기 경이 천간에 투출하여 정관이 격으로 성립할 힘을 얻음"
+      },
+      "common": {
+        "name": "정관격",
+        "type": "일반격",
+        "pending": [],
+        "rule": "GK-REGULAR",
+        "reason": "월지 신 지장간의 정관이 천간에 투출되어 정관격이 뚜렷합니다."
+      },
+      "classification": "match",
+      "limitation": "Same pillars; different service rule profiles. Neither result is an independent oracle."
+    },
+    {
+      "input": {
+        "birthDate": "1960-08-15",
+        "birthTime": "",
+        "gender": "male",
+        "calendarType": "solar"
+      },
+      "pillars": [
+        {
+          "position": "year",
+          "stem": "庚",
+          "branch": "子"
+        },
+        {
+          "position": "month",
+          "stem": "甲",
+          "branch": "申"
+        },
+        {
+          "position": "day",
+          "stem": "乙",
+          "branch": "亥"
+        }
+      ],
+      "app": {
+        "name": "전왕격",
+        "type": "특수격",
+        "reason": "금 세력이 사주 전체를 압도하여 한 방향으로 몰리는 구조"
+      },
+      "common": {
+        "name": "정관격",
+        "type": "일반격",
+        "pending": [],
+        "rule": "GK-REGULAR",
+        "reason": "월지 신 지장간의 정관이 천간에 투출되어 정관격이 뚜렷합니다."
+      },
+      "classification": "B",
+      "limitation": "Same pillars; different service rule profiles. Neither result is an independent oracle."
+    },
+    {
+      "input": {
+        "birthDate": "1960-11-15",
+        "birthTime": "08:30",
+        "gender": "male",
+        "calendarType": "solar"
+      },
+      "pillars": [
+        {
+          "position": "year",
+          "stem": "庚",
+          "branch": "子"
+        },
+        {
+          "position": "month",
+          "stem": "丁",
+          "branch": "亥"
+        },
+        {
+          "position": "day",
+          "stem": "丁",
+          "branch": "未"
+        },
+        {
+          "position": "hour",
+          "stem": "甲",
+          "branch": "辰"
+        }
+      ],
+      "app": {
+        "name": "정인격",
+        "type": "일반격",
+        "reason": "월지 해의 중기 갑이 천간에 투출하여 정인이 격으로 성립할 힘을 얻음"
+      },
+      "common": {
+        "name": "정인격",
+        "type": "일반격",
+        "pending": [],
+        "rule": "GK-REGULAR",
+        "reason": "월지 해 지장간의 정인이 천간에 투출되어 정인격이 뚜렷합니다."
+      },
+      "classification": "match",
+      "limitation": "Same pillars; different service rule profiles. Neither result is an independent oracle."
+    },
+    {
+      "input": {
+        "birthDate": "1960-11-15",
+        "birthTime": "",
+        "gender": "male",
+        "calendarType": "solar"
+      },
+      "pillars": [
+        {
+          "position": "year",
+          "stem": "庚",
+          "branch": "子"
+        },
+        {
+          "position": "month",
+          "stem": "丁",
+          "branch": "亥"
+        },
+        {
+          "position": "day",
+          "stem": "丁",
+          "branch": "未"
+        }
+      ],
+      "app": {
+        "name": "전왕격",
+        "type": "특수격",
+        "reason": "수 세력이 사주 전체를 압도하여 한 방향으로 몰리는 구조"
+      },
+      "common": {
+        "name": "정관격",
+        "type": "일반격",
+        "pending": [],
+        "rule": "GK-REGULAR",
+        "reason": "월지 해 지장간의 정관을 기준으로 정관격으로 보되, 투출이 약해 확정도는 낮습니다. 시주에 따라 월령 구조가 정관격·정인격·상관격으로 갈려 확정하지 않습니다."
+      },
+      "classification": "B",
+      "limitation": "Same pillars; different service rule profiles. Neither result is an independent oracle."
+    },
+    {
+      "input": {
+        "birthDate": "1988-02-15",
+        "birthTime": "08:30",
+        "gender": "male",
+        "calendarType": "solar"
+      },
+      "pillars": [
+        {
+          "position": "year",
+          "stem": "戊",
+          "branch": "辰"
+        },
+        {
+          "position": "month",
+          "stem": "甲",
+          "branch": "寅"
+        },
+        {
+          "position": "day",
+          "stem": "庚",
+          "branch": "子"
+        },
+        {
+          "position": "hour",
+          "stem": "庚",
+          "branch": "辰"
+        }
+      ],
+      "app": {
+        "name": "편재격",
+        "type": "일반격",
+        "reason": "월지 인의 본기 갑이 천간에 투출하여 편재가 격으로 성립할 힘을 얻음"
+      },
+      "common": {
+        "name": "편재격",
+        "type": "일반격",
+        "pending": [],
+        "rule": "GK-REGULAR",
+        "reason": "월지 인 지장간의 편재가 천간에 투출되어 편재격이 뚜렷합니다."
+      },
+      "classification": "match",
+      "limitation": "Same pillars; different service rule profiles. Neither result is an independent oracle."
+    },
+    {
+      "input": {
+        "birthDate": "1988-02-15",
+        "birthTime": "",
+        "gender": "male",
+        "calendarType": "solar"
+      },
+      "pillars": [
+        {
+          "position": "year",
+          "stem": "戊",
+          "branch": "辰"
+        },
+        {
+          "position": "month",
+          "stem": "甲",
+          "branch": "寅"
+        },
+        {
+          "position": "day",
+          "stem": "庚",
+          "branch": "子"
+        }
+      ],
+      "app": {
+        "name": "전왕격",
+        "type": "특수격",
+        "reason": "목 세력이 사주 전체를 압도하여 한 방향으로 몰리는 구조"
+      },
+      "common": {
+        "name": "편재격",
+        "type": "일반격",
+        "pending": [],
+        "rule": "GK-REGULAR",
+        "reason": "월지 인 지장간의 편재가 천간에 투출되어 편재격이 뚜렷합니다."
+      },
+      "classification": "B",
+      "limitation": "Same pillars; different service rule profiles. Neither result is an independent oracle."
+    },
+    {
+      "input": {
+        "birthDate": "1988-05-15",
+        "birthTime": "08:30",
+        "gender": "male",
+        "calendarType": "solar"
+      },
+      "pillars": [
+        {
+          "position": "year",
+          "stem": "戊",
+          "branch": "辰"
+        },
+        {
+          "position": "month",
+          "stem": "丁",
+          "branch": "巳"
+        },
+        {
+          "position": "day",
+          "stem": "庚",
+          "branch": "午"
+        },
+        {
+          "position": "hour",
+          "stem": "己",
+          "branch": "卯"
+        }
+      ],
+      "app": {
+        "name": "전왕격",
+        "type": "특수격",
+        "reason": "화 세력이 사주 전체를 압도하여 한 방향으로 몰리는 구조"
+      },
+      "common": {
+        "name": "편인격",
+        "type": "일반격",
+        "pending": [],
+        "rule": "GK-REGULAR",
+        "reason": "월지 사 지장간의 편인이 천간에 투출되어 편인격이 뚜렷합니다."
+      },
+      "classification": "B",
+      "limitation": "Same pillars; different service rule profiles. Neither result is an independent oracle."
+    },
+    {
+      "input": {
+        "birthDate": "1988-05-15",
+        "birthTime": "",
+        "gender": "male",
+        "calendarType": "solar"
+      },
+      "pillars": [
+        {
+          "position": "year",
+          "stem": "戊",
+          "branch": "辰"
+        },
+        {
+          "position": "month",
+          "stem": "丁",
+          "branch": "巳"
+        },
+        {
+          "position": "day",
+          "stem": "庚",
+          "branch": "午"
+        }
+      ],
+      "app": {
+        "name": "전왕격",
+        "type": "특수격",
+        "reason": "화 세력이 사주 전체를 압도하여 한 방향으로 몰리는 구조"
+      },
+      "common": {
+        "name": "편인격",
+        "type": "일반격",
+        "pending": [],
+        "rule": "GK-REGULAR",
+        "reason": "월지 사 지장간의 편인이 천간에 투출되어 편인격이 뚜렷합니다. 시주에 따라 월령 구조가 편관격·편인격으로 갈려 확정하지 않습니다."
+      },
+      "classification": "B",
+      "limitation": "Same pillars; different service rule profiles. Neither result is an independent oracle."
+    },
+    {
+      "input": {
+        "birthDate": "1988-08-15",
+        "birthTime": "08:30",
+        "gender": "male",
+        "calendarType": "solar"
+      },
+      "pillars": [
+        {
+          "position": "year",
+          "stem": "戊",
+          "branch": "辰"
+        },
+        {
+          "position": "month",
+          "stem": "庚",
+          "branch": "申"
+        },
+        {
+          "position": "day",
+          "stem": "壬",
+          "branch": "寅"
+        },
+        {
+          "position": "hour",
+          "stem": "癸",
+          "branch": "卯"
+        }
+      ],
+      "app": {
+        "name": "편인격",
+        "type": "일반격",
+        "reason": "월지 신의 본기 경이 천간에 투출하여 편인이 격으로 성립할 힘을 얻음"
+      },
+      "common": {
+        "name": "편인격",
+        "type": "일반격",
+        "pending": [],
+        "rule": "GK-REGULAR",
+        "reason": "월지 신 지장간의 편인이 천간에 투출되어 편인격이 뚜렷합니다."
+      },
+      "classification": "match",
+      "limitation": "Same pillars; different service rule profiles. Neither result is an independent oracle."
+    },
+    {
+      "input": {
+        "birthDate": "1988-08-15",
+        "birthTime": "",
+        "gender": "male",
+        "calendarType": "solar"
+      },
+      "pillars": [
+        {
+          "position": "year",
+          "stem": "戊",
+          "branch": "辰"
+        },
+        {
+          "position": "month",
+          "stem": "庚",
+          "branch": "申"
+        },
+        {
+          "position": "day",
+          "stem": "壬",
+          "branch": "寅"
+        }
+      ],
+      "app": {
+        "name": "전왕격",
+        "type": "특수격",
+        "reason": "금 세력이 사주 전체를 압도하여 한 방향으로 몰리는 구조"
+      },
+      "common": {
+        "name": "편인격",
+        "type": "일반격",
+        "pending": [],
+        "rule": "GK-REGULAR",
+        "reason": "월지 신 지장간의 편인이 천간에 투출되어 편인격이 뚜렷합니다."
+      },
+      "classification": "B",
+      "limitation": "Same pillars; different service rule profiles. Neither result is an independent oracle."
+    },
+    {
+      "input": {
+        "birthDate": "1988-11-15",
+        "birthTime": "08:30",
+        "gender": "male",
+        "calendarType": "solar"
+      },
+      "pillars": [
+        {
+          "position": "year",
+          "stem": "戊",
+          "branch": "辰"
+        },
+        {
+          "position": "month",
+          "stem": "癸",
+          "branch": "亥"
+        },
+        {
+          "position": "day",
+          "stem": "甲",
+          "branch": "戌"
+        },
+        {
+          "position": "hour",
+          "stem": "戊",
+          "branch": "辰"
+        }
+      ],
+      "app": {
+        "name": "편인격",
+        "type": "일반격",
+        "reason": "월지 해의 본기 임이 편인으로 월령의 중심 후보"
+      },
+      "common": {
+        "name": "편재격",
+        "type": "일반격",
+        "pending": [],
+        "rule": "GK-REGULAR",
+        "reason": "월지 해 지장간의 편재가 천간에 투출되어 편재격이 뚜렷합니다."
+      },
+      "classification": "B",
+      "limitation": "Same pillars; different service rule profiles. Neither result is an independent oracle."
+    },
+    {
+      "input": {
+        "birthDate": "1988-11-15",
+        "birthTime": "",
+        "gender": "male",
+        "calendarType": "solar"
+      },
+      "pillars": [
+        {
+          "position": "year",
+          "stem": "戊",
+          "branch": "辰"
+        },
+        {
+          "position": "month",
+          "stem": "癸",
+          "branch": "亥"
+        },
+        {
+          "position": "day",
+          "stem": "甲",
+          "branch": "戌"
+        }
+      ],
+      "app": {
+        "name": "편인격",
+        "type": "일반격",
+        "reason": "월지 해의 본기 임이 편인으로 월령의 중심 후보"
+      },
+      "common": {
+        "name": "편재격",
+        "type": "일반격",
+        "pending": [],
+        "rule": "GK-REGULAR",
+        "reason": "월지 해 지장간의 편재가 천간에 투출되어 편재격이 뚜렷합니다. 시주에 따라 월령 구조가 편재격·편인격으로 갈려 확정하지 않습니다."
+      },
+      "classification": "B",
+      "limitation": "Same pillars; different service rule profiles. Neither result is an independent oracle."
+    },
+    {
+      "input": {
+        "birthDate": "1990-02-15",
+        "birthTime": "08:30",
+        "gender": "male",
+        "calendarType": "solar"
+      },
+      "pillars": [
+        {
+          "position": "year",
+          "stem": "庚",
+          "branch": "午"
+        },
+        {
+          "position": "month",
+          "stem": "戊",
+          "branch": "寅"
+        },
+        {
+          "position": "day",
+          "stem": "辛",
+          "branch": "亥"
+        },
+        {
+          "position": "hour",
+          "stem": "壬",
+          "branch": "辰"
+        }
+      ],
+      "app": {
+        "name": "정인격",
+        "type": "일반격",
+        "reason": "월지 인의 여기 무가 천간에 투출하여 정인이 격으로 성립할 힘을 얻음"
+      },
+      "common": {
+        "name": "정인격",
+        "type": "일반격",
+        "pending": [],
+        "rule": "GK-REGULAR",
+        "reason": "월지 인 지장간의 정인이 천간에 투출되어 정인격이 뚜렷합니다."
+      },
+      "classification": "match",
+      "limitation": "Same pillars; different service rule profiles. Neither result is an independent oracle."
+    },
+    {
+      "input": {
+        "birthDate": "1990-02-15",
+        "birthTime": "",
+        "gender": "male",
+        "calendarType": "solar"
+      },
+      "pillars": [
+        {
+          "position": "year",
+          "stem": "庚",
+          "branch": "午"
+        },
+        {
+          "position": "month",
+          "stem": "戊",
+          "branch": "寅"
+        },
+        {
+          "position": "day",
+          "stem": "辛",
+          "branch": "亥"
+        }
+      ],
+      "app": {
+        "name": "정인격",
+        "type": "일반격",
+        "reason": "월지 인의 여기 무가 천간에 투출하여 정인이 격으로 성립할 힘을 얻음"
+      },
+      "common": {
+        "name": "정인격",
+        "type": "일반격",
+        "pending": [],
+        "rule": "GK-REGULAR",
+        "reason": "월지 인 지장간의 정인이 천간에 투출되어 정인격이 뚜렷합니다. 시주에 따라 월령 구조가 정인격·정재격·정관격으로 갈려 확정하지 않습니다."
+      },
+      "classification": "match",
+      "limitation": "Same pillars; different service rule profiles. Neither result is an independent oracle."
+    },
+    {
+      "input": {
+        "birthDate": "1990-05-15",
+        "birthTime": "08:30",
+        "gender": "male",
+        "calendarType": "solar"
+      },
+      "pillars": [
+        {
+          "position": "year",
+          "stem": "庚",
+          "branch": "午"
+        },
+        {
+          "position": "month",
+          "stem": "辛",
+          "branch": "巳"
+        },
+        {
+          "position": "day",
+          "stem": "庚",
+          "branch": "辰"
+        },
+        {
+          "position": "hour",
+          "stem": "庚",
+          "branch": "辰"
+        }
+      ],
+      "app": {
+        "name": "편관격",
+        "type": "일반격",
+        "reason": "월지 사의 본기 병이 편관으로 월령의 중심 후보"
+      },
+      "common": {
+        "name": "편관격",
+        "type": "일반격",
+        "pending": [],
+        "rule": "GK-REGULAR",
+        "reason": "월지 사 지장간의 편관을 기준으로 편관격으로 보되, 투출이 약해 확정도는 낮습니다."
+      },
+      "classification": "match",
+      "limitation": "Same pillars; different service rule profiles. Neither result is an independent oracle."
+    },
+    {
+      "input": {
+        "birthDate": "1990-05-15",
+        "birthTime": "",
+        "gender": "male",
+        "calendarType": "solar"
+      },
+      "pillars": [
+        {
+          "position": "year",
+          "stem": "庚",
+          "branch": "午"
+        },
+        {
+          "position": "month",
+          "stem": "辛",
+          "branch": "巳"
+        },
+        {
+          "position": "day",
+          "stem": "庚",
+          "branch": "辰"
+        }
+      ],
+      "app": {
+        "name": "편관격",
+        "type": "일반격",
+        "reason": "월지 사의 본기 병이 편관으로 월령의 중심 후보"
+      },
+      "common": {
+        "name": "편관격",
+        "type": "일반격",
+        "pending": [],
+        "rule": "GK-REGULAR",
+        "reason": "월지 사 지장간의 편관을 기준으로 편관격으로 보되, 투출이 약해 확정도는 낮습니다. 시주에 따라 월령 구조가 편관격·편인격으로 갈려 확정하지 않습니다."
+      },
+      "classification": "match",
+      "limitation": "Same pillars; different service rule profiles. Neither result is an independent oracle."
+    },
+    {
+      "input": {
+        "birthDate": "1990-08-15",
+        "birthTime": "08:30",
+        "gender": "male",
+        "calendarType": "solar"
+      },
+      "pillars": [
+        {
+          "position": "year",
+          "stem": "庚",
+          "branch": "午"
+        },
+        {
+          "position": "month",
+          "stem": "甲",
+          "branch": "申"
+        },
+        {
+          "position": "day",
+          "stem": "壬",
+          "branch": "子"
+        },
+        {
+          "position": "hour",
+          "stem": "甲",
+          "branch": "辰"
+        }
+      ],
+      "app": {
+        "name": "종강격",
+        "type": "특수격",
+        "reason": "일간 또는 인비 세력이 강하고 뿌리가 있어 자신을 따르는 구조 후보"
+      },
+      "common": {
+        "name": "편인격",
+        "type": "일반격",
+        "pending": [],
+        "rule": "GK-REGULAR",
+        "reason": "월지 신 지장간의 편인이 천간에 투출되어 편인격이 뚜렷합니다."
+      },
+      "classification": "B",
+      "limitation": "Same pillars; different service rule profiles. Neither result is an independent oracle."
+    },
+    {
+      "input": {
+        "birthDate": "1990-08-15",
+        "birthTime": "",
+        "gender": "male",
+        "calendarType": "solar"
+      },
+      "pillars": [
+        {
+          "position": "year",
+          "stem": "庚",
+          "branch": "午"
+        },
+        {
+          "position": "month",
+          "stem": "甲",
+          "branch": "申"
+        },
+        {
+          "position": "day",
+          "stem": "壬",
+          "branch": "子"
+        }
+      ],
+      "app": {
+        "name": "종강격",
+        "type": "특수격",
+        "reason": "일간 또는 인비 세력이 강하고 뿌리가 있어 자신을 따르는 구조 후보"
+      },
+      "common": {
+        "name": "편인격",
+        "type": "일반격",
+        "pending": [],
+        "rule": "GK-REGULAR",
+        "reason": "월지 신 지장간의 편인이 천간에 투출되어 편인격이 뚜렷합니다."
+      },
+      "classification": "B",
+      "limitation": "Same pillars; different service rule profiles. Neither result is an independent oracle."
+    },
+    {
+      "input": {
+        "birthDate": "1990-11-15",
+        "birthTime": "08:30",
+        "gender": "male",
+        "calendarType": "solar"
+      },
+      "pillars": [
+        {
+          "position": "year",
+          "stem": "庚",
+          "branch": "午"
+        },
+        {
+          "position": "month",
+          "stem": "丁",
+          "branch": "亥"
+        },
+        {
+          "position": "day",
+          "stem": "甲",
+          "branch": "申"
+        },
+        {
+          "position": "hour",
+          "stem": "戊",
+          "branch": "辰"
+        }
+      ],
+      "app": {
+        "name": "편인격",
+        "type": "일반격",
+        "reason": "월지 해의 본기 임이 편인으로 월령의 중심 후보"
+      },
+      "common": {
+        "name": "편재격",
+        "type": "일반격",
+        "pending": [],
+        "rule": "GK-REGULAR",
+        "reason": "월지 해 지장간의 편재가 천간에 투출되어 편재격이 뚜렷합니다."
+      },
+      "classification": "B",
+      "limitation": "Same pillars; different service rule profiles. Neither result is an independent oracle."
+    },
+    {
+      "input": {
+        "birthDate": "1990-11-15",
+        "birthTime": "",
+        "gender": "male",
+        "calendarType": "solar"
+      },
+      "pillars": [
+        {
+          "position": "year",
+          "stem": "庚",
+          "branch": "午"
+        },
+        {
+          "position": "month",
+          "stem": "丁",
+          "branch": "亥"
+        },
+        {
+          "position": "day",
+          "stem": "甲",
+          "branch": "申"
+        }
+      ],
+      "app": {
+        "name": "편인격",
+        "type": "일반격",
+        "reason": "월지 해의 본기 임이 편인으로 월령의 중심 후보"
+      },
+      "common": {
+        "name": "편인격",
+        "type": "일반격",
+        "pending": [],
+        "rule": "GK-REGULAR",
+        "reason": "월지 해 지장간의 편인을 기준으로 편인격으로 보되, 투출이 약해 확정도는 낮습니다. 시주에 따라 월령 구조가 편인격·편재격으로 갈려 확정하지 않습니다."
+      },
+      "classification": "match",
+      "limitation": "Same pillars; different service rule profiles. Neither result is an independent oracle."
+    },
+    {
+      "input": {
+        "birthDate": "2000-02-15",
+        "birthTime": "08:30",
+        "gender": "male",
+        "calendarType": "solar"
+      },
+      "pillars": [
+        {
+          "position": "year",
+          "stem": "庚",
+          "branch": "辰"
+        },
+        {
+          "position": "month",
+          "stem": "戊",
+          "branch": "寅"
+        },
+        {
+          "position": "day",
+          "stem": "癸",
+          "branch": "卯"
+        },
+        {
+          "position": "hour",
+          "stem": "丙",
+          "branch": "辰"
+        }
+      ],
+      "app": {
+        "name": "종아격",
+        "type": "특수격",
+        "reason": "일간이 극도로 약하고 거역할 뿌리가 약해 압도 세력에 따르는 종격 후보"
+      },
+      "common": {
+        "name": "정재격",
+        "type": "일반격",
+        "pending": [],
+        "rule": "GK-REGULAR",
+        "reason": "월지 인 지장간의 정재가 천간에 투출되어 정재격이 뚜렷합니다."
+      },
+      "classification": "B",
+      "limitation": "Same pillars; different service rule profiles. Neither result is an independent oracle."
+    },
+    {
+      "input": {
+        "birthDate": "2000-02-15",
+        "birthTime": "",
+        "gender": "male",
+        "calendarType": "solar"
+      },
+      "pillars": [
+        {
+          "position": "year",
+          "stem": "庚",
+          "branch": "辰"
+        },
+        {
+          "position": "month",
+          "stem": "戊",
+          "branch": "寅"
+        },
+        {
+          "position": "day",
+          "stem": "癸",
+          "branch": "卯"
+        }
+      ],
+      "app": {
+        "name": "종아격",
+        "type": "특수격",
+        "reason": "일간이 극도로 약하고 거역할 뿌리가 약해 압도 세력에 따르는 종격 후보"
+      },
+      "common": {
+        "name": "정관격",
+        "type": "일반격",
+        "pending": [],
+        "rule": "GK-REGULAR",
+        "reason": "월지 인 지장간의 정관이 천간에 투출되어 정관격이 뚜렷합니다. 시주에 따라 월령 구조가 정관격·상관격·정재격으로 갈려 확정하지 않습니다."
+      },
+      "classification": "B",
+      "limitation": "Same pillars; different service rule profiles. Neither result is an independent oracle."
+    },
+    {
+      "input": {
+        "birthDate": "2000-05-15",
+        "birthTime": "08:30",
+        "gender": "male",
+        "calendarType": "solar"
+      },
+      "pillars": [
+        {
+          "position": "year",
+          "stem": "庚",
+          "branch": "辰"
+        },
+        {
+          "position": "month",
+          "stem": "辛",
+          "branch": "巳"
+        },
+        {
+          "position": "day",
+          "stem": "癸",
+          "branch": "酉"
+        },
+        {
+          "position": "hour",
+          "stem": "丙",
+          "branch": "辰"
+        }
+      ],
+      "app": {
+        "name": "정재격",
+        "type": "일반격",
+        "reason": "월지 사의 본기 병이 천간에 투출하여 정재가 격으로 성립할 힘을 얻음"
+      },
+      "common": {
+        "name": "정재격",
+        "type": "일반격",
+        "pending": [],
+        "rule": "GK-REGULAR",
+        "reason": "월지 사 지장간의 정재가 천간에 투출되어 정재격이 뚜렷합니다."
+      },
+      "classification": "match",
+      "limitation": "Same pillars; different service rule profiles. Neither result is an independent oracle."
+    },
+    {
+      "input": {
+        "birthDate": "2000-05-15",
+        "birthTime": "",
+        "gender": "male",
+        "calendarType": "solar"
+      },
+      "pillars": [
+        {
+          "position": "year",
+          "stem": "庚",
+          "branch": "辰"
+        },
+        {
+          "position": "month",
+          "stem": "辛",
+          "branch": "巳"
+        },
+        {
+          "position": "day",
+          "stem": "癸",
+          "branch": "酉"
+        }
+      ],
+      "app": {
+        "name": "정인격",
+        "type": "일반격",
+        "reason": "월지 사의 중기 경이 천간에 투출하여 정인이 격으로 성립할 힘을 얻음"
+      },
+      "common": {
+        "name": "정인격",
+        "type": "일반격",
+        "pending": [],
+        "rule": "GK-REGULAR",
+        "reason": "월지 사 지장간의 정인이 천간에 투출되어 정인격이 뚜렷합니다. 시주에 따라 월령 구조가 정인격·정재격으로 갈려 확정하지 않습니다."
+      },
+      "classification": "match",
+      "limitation": "Same pillars; different service rule profiles. Neither result is an independent oracle."
+    },
+    {
+      "input": {
+        "birthDate": "2000-08-15",
+        "birthTime": "08:30",
+        "gender": "male",
+        "calendarType": "solar"
+      },
+      "pillars": [
+        {
+          "position": "year",
+          "stem": "庚",
+          "branch": "辰"
+        },
+        {
+          "position": "month",
+          "stem": "甲",
+          "branch": "申"
+        },
+        {
+          "position": "day",
+          "stem": "乙",
+          "branch": "巳"
+        },
+        {
+          "position": "hour",
+          "stem": "庚",
+          "branch": "辰"
+        }
+      ],
+      "app": {
+        "name": "정관격",
+        "type": "일반격",
+        "reason": "월지 신의 본기 경이 천간에 투출하여 정관이 격으로 성립할 힘을 얻음"
+      },
+      "common": {
+        "name": "정관격",
+        "type": "일반격",
+        "pending": [],
+        "rule": "GK-REGULAR",
+        "reason": "월지 신 지장간의 정관이 천간에 투출되어 정관격이 뚜렷합니다."
+      },
+      "classification": "match",
+      "limitation": "Same pillars; different service rule profiles. Neither result is an independent oracle."
+    },
+    {
+      "input": {
+        "birthDate": "2000-08-15",
+        "birthTime": "",
+        "gender": "male",
+        "calendarType": "solar"
+      },
+      "pillars": [
+        {
+          "position": "year",
+          "stem": "庚",
+          "branch": "辰"
+        },
+        {
+          "position": "month",
+          "stem": "甲",
+          "branch": "申"
+        },
+        {
+          "position": "day",
+          "stem": "乙",
+          "branch": "巳"
+        }
+      ],
+      "app": {
+        "name": "종관살격",
+        "type": "특수격",
+        "reason": "일간이 극도로 약하고 거역할 뿌리가 약해 압도 세력에 따르는 종격 후보"
+      },
+      "common": {
+        "name": "정관격",
+        "type": "일반격",
+        "pending": [],
+        "rule": "GK-REGULAR",
+        "reason": "월지 신 지장간의 정관이 천간에 투출되어 정관격이 뚜렷합니다."
+      },
+      "classification": "B",
+      "limitation": "Same pillars; different service rule profiles. Neither result is an independent oracle."
+    },
+    {
+      "input": {
+        "birthDate": "2000-11-15",
+        "birthTime": "08:30",
+        "gender": "male",
+        "calendarType": "solar"
+      },
+      "pillars": [
+        {
+          "position": "year",
+          "stem": "庚",
+          "branch": "辰"
+        },
+        {
+          "position": "month",
+          "stem": "丁",
+          "branch": "亥"
+        },
+        {
+          "position": "day",
+          "stem": "丁",
+          "branch": "丑"
+        },
+        {
+          "position": "hour",
+          "stem": "甲",
+          "branch": "辰"
+        }
+      ],
+      "app": {
+        "name": "정인격",
+        "type": "일반격",
+        "reason": "월지 해의 중기 갑이 천간에 투출하여 정인이 격으로 성립할 힘을 얻음"
+      },
+      "common": {
+        "name": "정인격",
+        "type": "일반격",
+        "pending": [],
+        "rule": "GK-REGULAR",
+        "reason": "월지 해 지장간의 정인이 천간에 투출되어 정인격이 뚜렷합니다."
+      },
+      "classification": "match",
+      "limitation": "Same pillars; different service rule profiles. Neither result is an independent oracle."
+    },
+    {
+      "input": {
+        "birthDate": "2000-11-15",
+        "birthTime": "",
+        "gender": "male",
+        "calendarType": "solar"
+      },
+      "pillars": [
+        {
+          "position": "year",
+          "stem": "庚",
+          "branch": "辰"
+        },
+        {
+          "position": "month",
+          "stem": "丁",
+          "branch": "亥"
+        },
+        {
+          "position": "day",
+          "stem": "丁",
+          "branch": "丑"
+        }
+      ],
+      "app": {
+        "name": "종관살격",
+        "type": "특수격",
+        "reason": "일간이 극도로 약하고 거역할 뿌리가 약해 압도 세력에 따르는 종격 후보"
+      },
+      "common": {
+        "name": "정관격",
+        "type": "일반격",
+        "pending": [],
+        "rule": "GK-REGULAR",
+        "reason": "월지 해 지장간의 정관을 기준으로 정관격으로 보되, 투출이 약해 확정도는 낮습니다. 시주에 따라 월령 구조가 정관격·정인격·상관격으로 갈려 확정하지 않습니다."
+      },
+      "classification": "B",
+      "limitation": "Same pillars; different service rule profiles. Neither result is an independent oracle."
+    },
+    {
+      "input": {
+        "birthDate": "2023-02-15",
+        "birthTime": "08:30",
+        "gender": "male",
+        "calendarType": "solar"
+      },
+      "pillars": [
+        {
+          "position": "year",
+          "stem": "癸",
+          "branch": "卯"
+        },
+        {
+          "position": "month",
+          "stem": "甲",
+          "branch": "寅"
+        },
+        {
+          "position": "day",
+          "stem": "甲",
+          "branch": "辰"
+        },
+        {
+          "position": "hour",
+          "stem": "戊",
+          "branch": "辰"
+        }
+      ],
+      "app": {
+        "name": "전왕격",
+        "type": "특수격",
+        "reason": "목 세력이 사주 전체를 압도하여 한 방향으로 몰리는 구조"
+      },
+      "common": {
+        "name": "건록격",
+        "type": "일반격",
+        "pending": [],
+        "rule": "GK-ROK",
+        "reason": "월지 인이 일간 갑의 건록 자리라 건록격으로 봅니다. 건록격은 일반격이며, 다른 자리의 재·관·식상 쓰임인 용재(用財)를 함께 봅니다."
+      },
+      "classification": "B",
+      "limitation": "Same pillars; different service rule profiles. Neither result is an independent oracle."
+    },
+    {
+      "input": {
+        "birthDate": "2023-02-15",
+        "birthTime": "",
+        "gender": "male",
+        "calendarType": "solar"
+      },
+      "pillars": [
+        {
+          "position": "year",
+          "stem": "癸",
+          "branch": "卯"
+        },
+        {
+          "position": "month",
+          "stem": "甲",
+          "branch": "寅"
+        },
+        {
+          "position": "day",
+          "stem": "甲",
+          "branch": "辰"
+        }
+      ],
+      "app": {
+        "name": "전왕격",
+        "type": "특수격",
+        "reason": "목 세력이 사주 전체를 압도하여 한 방향으로 몰리는 구조"
+      },
+      "common": {
+        "name": "건록격",
+        "type": "일반격",
+        "pending": [],
+        "rule": "GK-ROK",
+        "reason": "월지 인이 일간 갑의 건록 자리라 건록격으로 봅니다. 건록격은 일반격이며, 다른 자리의 재·관·식상 쓰임인 용재(用財)를 함께 봅니다."
+      },
+      "classification": "B",
+      "limitation": "Same pillars; different service rule profiles. Neither result is an independent oracle."
+    },
+    {
+      "input": {
+        "birthDate": "2023-05-15",
+        "birthTime": "08:30",
+        "gender": "male",
+        "calendarType": "solar"
+      },
+      "pillars": [
+        {
+          "position": "year",
+          "stem": "癸",
+          "branch": "卯"
+        },
+        {
+          "position": "month",
+          "stem": "丁",
+          "branch": "巳"
+        },
+        {
+          "position": "day",
+          "stem": "癸",
+          "branch": "酉"
+        },
+        {
+          "position": "hour",
+          "stem": "丙",
+          "branch": "辰"
+        }
+      ],
+      "app": {
+        "name": "전왕격",
+        "type": "특수격",
+        "reason": "화 세력이 사주 전체를 압도하여 한 방향으로 몰리는 구조"
+      },
+      "common": {
+        "name": "정재격",
+        "type": "일반격",
+        "pending": [],
+        "rule": "GK-REGULAR",
+        "reason": "월지 사 지장간의 정재가 천간에 투출되어 정재격이 뚜렷합니다."
+      },
+      "classification": "B",
+      "limitation": "Same pillars; different service rule profiles. Neither result is an independent oracle."
+    },
+    {
+      "input": {
+        "birthDate": "2023-05-15",
+        "birthTime": "",
+        "gender": "male",
+        "calendarType": "solar"
+      },
+      "pillars": [
+        {
+          "position": "year",
+          "stem": "癸",
+          "branch": "卯"
+        },
+        {
+          "position": "month",
+          "stem": "丁",
+          "branch": "巳"
+        },
+        {
+          "position": "day",
+          "stem": "癸",
+          "branch": "酉"
+        }
+      ],
+      "app": {
+        "name": "전왕격",
+        "type": "특수격",
+        "reason": "화 세력이 사주 전체를 압도하여 한 방향으로 몰리는 구조"
+      },
+      "common": {
+        "name": "정재격",
+        "type": "일반격",
+        "pending": [],
+        "rule": "GK-REGULAR",
+        "reason": "월지 사 지장간의 정재를 기준으로 정재격으로 보되, 투출이 약해 확정도는 낮습니다. 시주에 따라 월령 구조가 정재격·정관격·정인격으로 갈려 확정하지 않습니다."
+      },
+      "classification": "B",
+      "limitation": "Same pillars; different service rule profiles. Neither result is an independent oracle."
+    },
+    {
+      "input": {
+        "birthDate": "2023-08-15",
+        "birthTime": "08:30",
+        "gender": "male",
+        "calendarType": "solar"
+      },
+      "pillars": [
+        {
+          "position": "year",
+          "stem": "癸",
+          "branch": "卯"
+        },
+        {
+          "position": "month",
+          "stem": "庚",
+          "branch": "申"
+        },
+        {
+          "position": "day",
+          "stem": "乙",
+          "branch": "巳"
+        },
+        {
+          "position": "hour",
+          "stem": "庚",
+          "branch": "辰"
+        }
+      ],
+      "app": {
+        "name": "정관격",
+        "type": "일반격",
+        "reason": "월지 신의 본기 경이 천간에 투출하여 정관이 격으로 성립할 힘을 얻음"
+      },
+      "common": {
+        "name": "정관격",
+        "type": "일반격",
+        "pending": [],
+        "rule": "GK-REGULAR",
+        "reason": "월지 신 지장간의 정관이 천간에 투출되어 정관격이 뚜렷합니다."
+      },
+      "classification": "match",
+      "limitation": "Same pillars; different service rule profiles. Neither result is an independent oracle."
+    },
+    {
+      "input": {
+        "birthDate": "2023-08-15",
+        "birthTime": "",
+        "gender": "male",
+        "calendarType": "solar"
+      },
+      "pillars": [
+        {
+          "position": "year",
+          "stem": "癸",
+          "branch": "卯"
+        },
+        {
+          "position": "month",
+          "stem": "庚",
+          "branch": "申"
+        },
+        {
+          "position": "day",
+          "stem": "乙",
+          "branch": "巳"
+        }
+      ],
+      "app": {
+        "name": "전왕격",
+        "type": "특수격",
+        "reason": "금 세력이 사주 전체를 압도하여 한 방향으로 몰리는 구조"
+      },
+      "common": {
+        "name": "정관격",
+        "type": "일반격",
+        "pending": [],
+        "rule": "GK-REGULAR",
+        "reason": "월지 신 지장간의 정관이 천간에 투출되어 정관격이 뚜렷합니다."
+      },
+      "classification": "B",
+      "limitation": "Same pillars; different service rule profiles. Neither result is an independent oracle."
+    },
+    {
+      "input": {
+        "birthDate": "2023-11-15",
+        "birthTime": "08:30",
+        "gender": "male",
+        "calendarType": "solar"
+      },
+      "pillars": [
+        {
+          "position": "year",
+          "stem": "癸",
+          "branch": "卯"
+        },
+        {
+          "position": "month",
+          "stem": "癸",
+          "branch": "亥"
+        },
+        {
+          "position": "day",
+          "stem": "丁",
+          "branch": "丑"
+        },
+        {
+          "position": "hour",
+          "stem": "甲",
+          "branch": "辰"
+        }
+      ],
+      "app": {
+        "name": "전왕격",
+        "type": "특수격",
+        "reason": "수 세력이 사주 전체를 압도하여 한 방향으로 몰리는 구조"
+      },
+      "common": {
+        "name": "정인격",
+        "type": "일반격",
+        "pending": [],
+        "rule": "GK-REGULAR",
+        "reason": "월지 해 지장간의 정인이 천간에 투출되어 정인격이 뚜렷합니다."
+      },
+      "classification": "B",
+      "limitation": "Same pillars; different service rule profiles. Neither result is an independent oracle."
+    },
+    {
+      "input": {
+        "birthDate": "2023-11-15",
+        "birthTime": "",
+        "gender": "male",
+        "calendarType": "solar"
+      },
+      "pillars": [
+        {
+          "position": "year",
+          "stem": "癸",
+          "branch": "卯"
+        },
+        {
+          "position": "month",
+          "stem": "癸",
+          "branch": "亥"
+        },
+        {
+          "position": "day",
+          "stem": "丁",
+          "branch": "丑"
+        }
+      ],
+      "app": {
+        "name": "종관살격",
+        "type": "특수격",
+        "reason": "일간이 극도로 약하고 거역할 뿌리가 약해 압도 세력에 따르는 종격 후보"
+      },
+      "common": {
+        "name": "정관격",
+        "type": "일반격",
+        "pending": [],
+        "rule": "GK-REGULAR",
+        "reason": "월지 해 지장간의 정관을 기준으로 정관격으로 보되, 투출이 약해 확정도는 낮습니다. 시주에 따라 월령 구조가 정관격·정인격·상관격으로 갈려 확정하지 않습니다."
+      },
+      "classification": "B",
+      "limitation": "Same pillars; different service rule profiles. Neither result is an independent oracle."
+    },
+    {
+      "input": {
+        "birthDate": "2026-02-15",
+        "birthTime": "08:30",
+        "gender": "male",
+        "calendarType": "solar"
+      },
+      "pillars": [
+        {
+          "position": "year",
+          "stem": "丙",
+          "branch": "午"
+        },
+        {
+          "position": "month",
+          "stem": "庚",
+          "branch": "寅"
+        },
+        {
+          "position": "day",
+          "stem": "庚",
+          "branch": "申"
+        },
+        {
+          "position": "hour",
+          "stem": "庚",
+          "branch": "辰"
+        }
+      ],
+      "app": {
+        "name": "편관격",
+        "type": "일반격",
+        "reason": "월지 인의 중기 병이 천간에 투출하여 편관이 격으로 성립할 힘을 얻음"
+      },
+      "common": {
+        "name": "편관격",
+        "type": "일반격",
+        "pending": [],
+        "rule": "GK-REGULAR",
+        "reason": "월지 인 지장간의 편관이 천간에 투출되어 편관격이 뚜렷합니다."
+      },
+      "classification": "match",
+      "limitation": "Same pillars; different service rule profiles. Neither result is an independent oracle."
+    },
+    {
+      "input": {
+        "birthDate": "2026-02-15",
+        "birthTime": "",
+        "gender": "male",
+        "calendarType": "solar"
+      },
+      "pillars": [
+        {
+          "position": "year",
+          "stem": "丙",
+          "branch": "午"
+        },
+        {
+          "position": "month",
+          "stem": "庚",
+          "branch": "寅"
+        },
+        {
+          "position": "day",
+          "stem": "庚",
+          "branch": "申"
+        }
+      ],
+      "app": {
+        "name": "편관격",
+        "type": "일반격",
+        "reason": "월지 인의 중기 병이 천간에 투출하여 편관이 격으로 성립할 힘을 얻음"
+      },
+      "common": {
+        "name": "편관격",
+        "type": "일반격",
+        "pending": [],
+        "rule": "GK-REGULAR",
+        "reason": "월지 인 지장간의 편관이 천간에 투출되어 편관격이 뚜렷합니다. 시주에 따라 월령 구조가 편관격·편재격으로 갈려 확정하지 않습니다."
+      },
+      "classification": "match",
+      "limitation": "Same pillars; different service rule profiles. Neither result is an independent oracle."
+    },
+    {
+      "input": {
+        "birthDate": "2026-05-15",
+        "birthTime": "08:30",
+        "gender": "male",
+        "calendarType": "solar"
+      },
+      "pillars": [
+        {
+          "position": "year",
+          "stem": "丙",
+          "branch": "午"
+        },
+        {
+          "position": "month",
+          "stem": "癸",
+          "branch": "巳"
+        },
+        {
+          "position": "day",
+          "stem": "己",
+          "branch": "丑"
+        },
+        {
+          "position": "hour",
+          "stem": "戊",
+          "branch": "辰"
+        }
+      ],
+      "app": {
+        "name": "종강격",
+        "type": "특수격",
+        "reason": "일간 또는 인비 세력이 강하고 뿌리가 있어 자신을 따르는 구조 후보"
+      },
+      "common": {
+        "name": "정인격",
+        "type": "일반격",
+        "pending": [],
+        "rule": "GK-REGULAR",
+        "reason": "월지 사 지장간의 정인이 천간에 투출되어 정인격이 뚜렷합니다."
+      },
+      "classification": "B",
+      "limitation": "Same pillars; different service rule profiles. Neither result is an independent oracle."
+    },
+    {
+      "input": {
+        "birthDate": "2026-05-15",
+        "birthTime": "",
+        "gender": "male",
+        "calendarType": "solar"
+      },
+      "pillars": [
+        {
+          "position": "year",
+          "stem": "丙",
+          "branch": "午"
+        },
+        {
+          "position": "month",
+          "stem": "癸",
+          "branch": "巳"
+        },
+        {
+          "position": "day",
+          "stem": "己",
+          "branch": "丑"
+        }
+      ],
+      "app": {
+        "name": "종강격",
+        "type": "특수격",
+        "reason": "일간 또는 인비 세력이 강하고 뿌리가 있어 자신을 따르는 구조 후보"
+      },
+      "common": {
+        "name": "정인격",
+        "type": "일반격",
+        "pending": [],
+        "rule": "GK-REGULAR",
+        "reason": "월지 사 지장간의 정인이 천간에 투출되어 정인격이 뚜렷합니다."
+      },
+      "classification": "B",
+      "limitation": "Same pillars; different service rule profiles. Neither result is an independent oracle."
+    },
+    {
+      "input": {
+        "birthDate": "2026-08-15",
+        "birthTime": "08:30",
+        "gender": "male",
+        "calendarType": "solar"
+      },
+      "pillars": [
+        {
+          "position": "year",
+          "stem": "丙",
+          "branch": "午"
+        },
+        {
+          "position": "month",
+          "stem": "丙",
+          "branch": "申"
+        },
+        {
+          "position": "day",
+          "stem": "辛",
+          "branch": "酉"
+        },
+        {
+          "position": "hour",
+          "stem": "壬",
+          "branch": "辰"
+        }
+      ],
+      "app": {
+        "name": "전왕격",
+        "type": "특수격",
+        "reason": "금 세력이 사주 전체를 압도하여 한 방향으로 몰리는 구조"
+      },
+      "common": {
+        "name": "상관격",
+        "type": "일반격",
+        "pending": [],
+        "rule": "GK-REGULAR",
+        "reason": "월지 신 지장간의 상관이 천간에 투출되어 상관격이 뚜렷합니다."
+      },
+      "classification": "B",
+      "limitation": "Same pillars; different service rule profiles. Neither result is an independent oracle."
+    },
+    {
+      "input": {
+        "birthDate": "2026-08-15",
+        "birthTime": "",
+        "gender": "male",
+        "calendarType": "solar"
+      },
+      "pillars": [
+        {
+          "position": "year",
+          "stem": "丙",
+          "branch": "午"
+        },
+        {
+          "position": "month",
+          "stem": "丙",
+          "branch": "申"
+        },
+        {
+          "position": "day",
+          "stem": "辛",
+          "branch": "酉"
+        }
+      ],
+      "app": {
+        "name": "전왕격",
+        "type": "특수격",
+        "reason": "금 세력이 사주 전체를 압도하여 한 방향으로 몰리는 구조"
+      },
+      "common": {
+        "name": "월겁격",
+        "type": "일반격",
+        "pending": [],
+        "rule": "GK-ROK",
+        "reason": "월령에서 취한 경(정기)이 겁재라 월겁격으로 봅니다. 월겁격은 일반격이며, 다른 자리의 재·관·식상 쓰임인 용관(用官)·용살(用煞)을 함께 봅니다. 시주에 따라 월령 구조가 정인격·월겁격·상관격으로 갈려 확정하지 않습니다."
+      },
+      "classification": "B",
+      "limitation": "Same pillars; different service rule profiles. Neither result is an independent oracle."
+    },
+    {
+      "input": {
+        "birthDate": "2026-11-15",
+        "birthTime": "08:30",
+        "gender": "male",
+        "calendarType": "solar"
+      },
+      "pillars": [
+        {
+          "position": "year",
+          "stem": "丙",
+          "branch": "午"
+        },
+        {
+          "position": "month",
+          "stem": "己",
+          "branch": "亥"
+        },
+        {
+          "position": "day",
+          "stem": "癸",
+          "branch": "巳"
+        },
+        {
+          "position": "hour",
+          "stem": "丙",
+          "branch": "辰"
+        }
+      ],
+      "app": {
+        "name": "상관격",
+        "type": "일반격",
+        "reason": "월지 해의 중기 갑이 상관으로 월령의 중심 후보"
+      },
+      "common": {
+        "name": "월겁격",
+        "type": "일반격",
+        "pending": [],
+        "rule": "GK-ROK",
+        "reason": "월령에서 취한 임(정기)이 겁재라 월겁격으로 봅니다. 월겁격은 일반격이며, 다른 자리의 재·관·식상 쓰임인 용재(用財)·용살(用煞)·용관(用官)을 함께 봅니다."
+      },
+      "classification": "B",
+      "limitation": "Same pillars; different service rule profiles. Neither result is an independent oracle."
+    },
+    {
+      "input": {
+        "birthDate": "2026-11-15",
+        "birthTime": "",
+        "gender": "male",
+        "calendarType": "solar"
+      },
+      "pillars": [
+        {
+          "position": "year",
+          "stem": "丙",
+          "branch": "午"
+        },
+        {
+          "position": "month",
+          "stem": "己",
+          "branch": "亥"
+        },
+        {
+          "position": "day",
+          "stem": "癸",
+          "branch": "巳"
+        }
+      ],
+      "app": {
+        "name": "전왕격",
+        "type": "특수격",
+        "reason": "수 세력이 사주 전체를 압도하여 한 방향으로 몰리는 구조"
+      },
+      "common": {
+        "name": "월겁격",
+        "type": "일반격",
+        "pending": [],
+        "rule": "GK-ROK",
+        "reason": "월령에서 취한 임(정기)이 겁재라 월겁격으로 봅니다. 월겁격은 일반격이며, 다른 자리의 재·관·식상 쓰임인 용재(用財)·용살(用煞)을 함께 봅니다. 시주에 따라 월령 구조가 월겁격·상관격·정관격으로 갈려 확정하지 않습니다."
+      },
+      "classification": "B",
+      "limitation": "Same pillars; different service rule profiles. Neither result is an independent oracle."
+    }
+  ],
+  "summary": {
+    "contracts": 19,
+    "samples": 48,
+    "schoolDifferences": 29
+  },
+  "protections": {
+    "productionChanges": false,
+    "storedResultWrites": 0,
+    "ioAttempts": 0,
+    "swiss": "blocked",
+    "engineFlags": "unchanged/OFF"
+  },
+  "sources": {
+    "app/saju/animal-destiny/lib/sajuAdapter.ts": "1b971929ae1acc5c53899c651f1b6c60ce490cd4668e645a2614fd458da53946",
+    "worker/lib/saju-gyeokguk.js": "005b9a1b7bca02ce313963570c65e4918f1d85207fb111b0969bb77e9f413b01",
+    "lib/saju/natal-core/index.mjs": "4a5a6313bb833f5f1952d9b49258c9ffaa94b406264940aebb5bef563ca51dfa",
+    "app/saju/animal-destiny/lib/twelveStages.ts": "cbd8dbee8e02d8d54b0ea258584d5087e806269094e88b7c796903b5f8ede634",
+    "app/saju/animal-destiny/engine/localSajuCalculator.ts": "9ee09f704ea3a8d5afbcd6b03b5786995f14020d0764e10748b413b612e53fde",
+    "app/saju/animal-destiny/lib/animalMapping.ts": "04761012d1806f584d17a3112c2a76ffe7a2d33ad8208b2a6e05f92a542ec18e",
+    "components/fortune/animal-twelve/animalTwelveData.ts": "d047e8184ce592566a64687c4d9ea40073b603870bff82dfd1986ab252fe0bee",
+    "lib/saju/natal-core/tables.mjs": "bfe4e7b679368b22b880d5d62b171593998398bc947d5f54b55bc9303f0f062f",
+    "lib/saju/natal-core/special.mjs": "54ca8dc6042fddd9d566c64e0e62c487c12a7b8ca21d65543a1387ae544b2a5b",
+    "lib/saju/natal-core/climate.mjs": "eba5b63d570259104e6272f641f4ec4210dcdf81747bf9a8f85df25a5b7af1e4",
+    "lib/saju/natal-core/relations.mjs": "7e107d5184ba320a420b7b5c679548471949706324c0755b0fe7eb0a80c30b5f",
+    "lib/saju/natal-core/version.mjs": "63aa209cbd94475ee51210e3e65d188d54b5e09ba4251c5a6ffe6b8a53704325",
+    "lib/saju/natal-core/strength.mjs": "579ec292c25a7b8e170fa8dd37524531e6fad08f77c40c7e9436cdab0e20386a",
+    "lib/saju/natal-core/gyeokguk.mjs": "f89207fc7cea969ceb257fde32c9c888203e79ef18e53a7e2234a0953cf80bcd",
+    "lib/cms/build-text.ts": "5d6af3536c7dc54d8cbbc6900afbb5fe7925ac99fffc387acb44d0eca064cd53",
+    "lib/cms/static-copy.mjs": "cecf31545b20b102d0a61624334fafeb270546b1681e1626eb37f935366d2a87",
+    "app/_content/cms.generated.json": "e7fb31abe2d96f08288f85661e3197868d0f01f7292a4185efcd0e4cff24bd8a",
+    "app/_lib/serviceCoinPrice.ts": "ac5651f27c57288aaf443aa410606b9938b49c83fc4c0f20ea1ba27fff9e7ad4",
+    "lib/korean-calendar/index.js": "451c229ea556cf513e31dbbbe71eef15d015cbf6186679db47ff9bef7c25903c",
+    "worker/lib/iana-offset.js": "35ab3e7c3e9c3aec4293ccd73c5342235dcb8daf7bbfbfede9ab7680c08aa8a1",
+    "worker/lib/birth-time-context.js": "9baf9dd6c1775096143b31689578bed24247b8fb573f3bc8d66329bdf650f839",
+    "worker/lib/paid-feature-registry.js": "b4bd86d8e02216b794e62891d83cb55617c68d39c0a4c26ab7d9b6f1cd5ae920",
+    "lib/korean-calendar/core.js": "82afd85e3055ac1b188f3366e063320b42471b40aba406dcac2719a5c28411dc",
+    "lib/korean-calendar/ganji.js": "4996af7c2eb81888551b790234dfc942e87ed1c2adc7d693f01664d1c4b7d1fc",
+    "lib/korean-calendar/daeun.js": "64711c91d98ee2fc92931e1235c6b4fdd3ab800f8f9ee1f7d9cf5f3b378e4d56",
+    "lib/korean-calendar/policy.js": "7211b8358842ebc1851a884a5899492b3bc31b606110de8be1f2a69cd0e6ea86",
+    "lib/korean-calendar/labels.js": "386a93abc2e8e3bdc6d2f9324a02d519339ce6f9434bddaf43cd7298858f2801",
+    "lib/korean-calendar/natal.js": "3c9fbabfa6251fad634e34ff79e590a0b93d971c073694c356ffea20fa58910f",
+    "lib/fortune/chat-products.js": "de79c035a9b43fb2993e64013f783b08f31474ca4f06bf07a0fc1983a8bc1b15",
+    "lib/korean-calendar/table.generated.js": "80de66f9dbab66a8ca771f737dd56d9591f1939b1357d6266c65faa133f1ad79",
+    "worker/lib/billing-policy.js": "a4241eb479f9b33535d487cc5b232e64ef215100fb58d984e758256acdd03254",
+    "lib/music-access-policy.js": "2a05d9951c4d36dcc7d303f9cbe6ee183dd2d588c478a03b346f7da8508ac813"
+  },
+  "oracle": {
+    "provider": "korean-saju",
+    "version": "0.3.0",
+    "input": {
+      "schemaVersion": 1,
+      "calendar": "solar",
+      "date": "1988-05-15",
+      "leapMonth": false,
+      "time": "08:30",
+      "timeUnknown": false,
+      "gender": "male",
+      "place": {
+        "timezone": "Asia/Seoul",
+        "latitude": 37.5665,
+        "longitude": 126.978
+      },
+      "referenceDate": "2026-11-02",
+      "options": {}
+    },
+    "policy": {
+      "timezone": "library-native KST",
+      "solarCorrection": "apparent (mandatory)",
+      "longitude": 126.978,
+      "yajaSiSeparated": true,
+      "solarTerms": "bundled KASI 2000–2027; library Meeus fallback outside"
+    },
+    "facts": {
+      "pillars": {
+        "year": "戊辰",
+        "month": "丁巳",
+        "day": "庚午",
+        "hour": "庚辰"
+      }
+    },
+    "school": {
+      "regularPattern": {
+        "gyeokguk": {
+          "name": "PYEONIN_GYEOK",
+          "hanja": "偏印格",
+          "hangul": "편인격"
+        },
+        "basis_stem": {
+          "name": "MU",
+          "hanja": "戊",
+          "hangul": "무"
+        },
+        "basis": "월지 여기 투간",
+        "is_seonggyeok": true,
+        "byeong": {
+          "name": "JEONGJAE",
+          "hanja": "正財",
+          "hangul": "정재"
+        },
+        "yak_sin": {
+          "name": "BIGYEON",
+          "hanja": "比肩",
+          "hangul": "비견"
+        },
+        "byeong_yak_reason": "재극인 → 비견 분재"
+      },
+      "specialPatterns": []
+    },
+    "limitations": [
+      "Bundled data is not a live KASI verification.",
+      "Historical standard-time/DST equivalence is unverified; library converts KST using its own convention.",
+      "School judgments are observations only, not replacement decisions."
+    ],
+    "classification": "D",
+    "note": "Hour pillar differs: no same-chart oracle adjudication."
+  }
+}

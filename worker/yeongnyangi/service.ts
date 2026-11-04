@@ -1,3 +1,5 @@
+import {attachNatalProfile} from './fortune/shared/natal-profile';
+import {pinDomainFacts} from './fortune/shared/consumer-facts';
 import {CONSULTATION_EXPANSION_VERSION} from './fortune/consultation-expansion';
 import {FUSION_BOOK_VERSION,DIRECT_FUSION_ANSWER} from './fortune/fusion-book';
 import {questionEvidence,questionPeriodTiming} from './fortune/ask/question-evidence';
@@ -366,7 +368,7 @@ export async function drawTarotSpread(env: Record<string, unknown>, userId: stri
   if(row.state!=='AWAITING_DRAW')throw new FortuneError('TAROT_DRAW_NOT_AVAILABLE',409);
   const spread=row.snapshot.tarotSpread;
   const {method,picks}=tarotPicks(body,spread.cardCount);
-  const tarot=domains.tarot.buildContext(tarotSpreadContext(spread,row.snapshot.tarotDeck,picks,row.snapshot.tarotInputs||{}));
+  const tarot=domains.tarot.buildContext(pinDomainFacts(attachNatalProfile(tarotSpreadContext(spread,row.snapshot.tarotDeck,picks,row.snapshot.tarotInputs||{}), row.snapshot.tarotInputs || {}, {runtimeEnv:env}), row.snapshot.tarotInputs || {}, {runtimeEnv:env}));
   return commitTarotDraw(env,userId,requestId,{context:tarot,draw:{version:TAROT_DECK_VERSION,method,picks,drawnAt:new Date().toISOString()}});
 }
 

@@ -79,6 +79,7 @@ import {
 import {
   buildSajuAIPrompt,
   buildSajuAIPromptWithDomain,
+  selectSajuPromptAuthority,
   SAJU_AI_PROMPT_FEATURE_KEY,
   SAJU_AI_PROMPT_PRICE,
   SAJU_AI_PROMPT_VERSION,
@@ -1195,7 +1196,7 @@ async function findSajuAIExecutionForRead({ auth, jobId = "", resultId = "", req
 // 대신 202(진행 중)로 수렴하고, 백그라운드(waitUntil) 생성의 완료/실패도 레코드로 전달된다.
 // 식별자(executionId·requestId·profileId)와 과금 필드는 완료 저장(saveSajuAIConsultationResultRecord)의
 // $setOnInsert와 동일 정본을 쓴다 — 불일치 시 폴링이 레코드를 못 찾아 404가 재발한다.
-async function beginSajuAIConsultationGeneratingRecord({ auth, body, profileId, requestId, resultId, consumePayload, paymentIdentity, chargedCoins, membershipCreditCost, env, existingExecution = null, leaseToken, payloadHash }) {
+async function beginSajuAIConsultationGeneratingRecord({ auth, body, profileId, requestId, resultId, consumePayload, paymentIdentity, chargedCoins, membershipCreditCost, env, existingExecution = null, leaseToken, payloadHash, sajuAuthority = null }) {
   const userId = String(auth?.userId || "").trim();
   const normalizedProfileId = String(profileId || "default").trim() || "default";
   const normalizedRequestId = String(requestId || "").trim();
@@ -1237,6 +1238,7 @@ async function beginSajuAIConsultationGeneratingRecord({ auth, body, profileId, 
         resultId: String(resultId || "").trim(),
         result: {
           ...(existingExecution?.result || {}),
+          ...(sajuAuthority ? { sajuAuthority } : {}),
           leaseToken,
           payloadHash,
           resumeBody: Object.fromEntries(["locale", "question", "sajuResult", "domain", "calibration", "profileId", "selectedProfileId", "requestId", "idempotencyKey", "transactionId", "ledgerId", "purchaseId", "paymentId", "accessType", "accessMethod", "paymentMode", "accessGrant", "accessDecision", "freeBySubscription", "consume", "payment", "_paymentContext"].filter((key) => body[key] !== undefined).map((key) => [key, body[key]])),
@@ -1313,6 +1315,7 @@ async function saveSajuAIConsultationResultRecord({ auth, body, profileId, reque
           promptVersion: builtPrompt?.promptVersion || SAJU_AI_PROMPT_VERSION,
           consultationType: "saju_myeongsik_ai",
           factSnapshot: builtPrompt?.factSnapshot || null,
+          ...(builtPrompt?.sajuAuthority ? { sajuAuthority: builtPrompt.sajuAuthority } : {}),
           tenGodSnapshot: builtPrompt?.tenGodSnapshot || null,
           promptDigest: String(promptDigest || "").trim(),
           progress,
@@ -4816,7 +4819,7 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
   const payloadHash = ((await sha256Hex(builtPrompt.digestSource)) || digestHex).slice(0, 120);
   const fallbackRequestId = `${String(auth?.userId || "").trim()}:${SAJU_AI_PROMPT_FEATURE_KEY}:${digestHex}`.slice(0, 120);
   const requestId = readAIPromptRequestId(body, fallbackRequestId);
-  const promptDigest = ((await sha256Hex(builtPrompt.prompt || builtPrompt.generatedPrompt || builtPrompt.digestSource)) || payloadHash).slice(0, 64);
+  let promptDigest = ((await sha256Hex(builtPrompt.prompt || builtPrompt.generatedPrompt || builtPrompt.digestSource)) || payloadHash).slice(0, 64);
   let resultId = buildSajuAIResultId(requestId, promptDigest);
 
   const sajuExecutionId = buildSajuAIPromptExecutionId({ userId: String(auth?.userId || "").trim(), profileId, requestId });
@@ -4934,6 +4937,21 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
     return buildSajuAIPromptError("RESULT_STORAGE_UNAVAILABLE", "상담 저장 상태를 확인하지 못했어요. 잠시 후 다시 시도해 주세요.", 503, { retryable: true, reason: "RESULT_STORAGE_UNAVAILABLE", resultId });
   }
   // 생성 시작 표시 — 이 레코드가 있어야 클라이언트 /status 폴링이 404 대신 202로 수렴한다.
+  // Only a new server-side execution can opt in. Reconnects use the stored
+  // authority even after OFF; an old execution without a pin stays legacy.
+  let sajuAuthority = null;
+  if (existingExecution?.result?.sajuAuthority || (!existingExecution && env?.SAJU_GYEOKGUK_AUTHORITY_V2 === "true")) {
+    try {
+      sajuAuthority = selectSajuPromptAuthority(sajuResult, {
+        enabled: env?.SAJU_GYEOKGUK_AUTHORITY_V2 === "true", hasExistingRecord: Boolean(existingExecution),
+        stored: existingExecution?.result?.sajuAuthority,
+      });
+      builtPrompt = buildSajuAIPromptWithDomain({ question, sajuResult, domain, sajuAuthority });
+      promptDigest = (await sha256Hex(builtPrompt.prompt)).slice(0, 64);
+    } catch {
+      return buildSajuAIPromptError("RESULT_STORAGE_UNAVAILABLE", "상담 저장 상태를 확인하지 못했어요. 잠시 후 다시 시도해 주세요.", 503, { retryable: true, resultId });
+    }
+  }
   const leaseToken = crypto.randomUUID();
   const claimedExecutionId = await beginSajuAIConsultationGeneratingRecord({
     auth,
@@ -4949,6 +4967,7 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
     existingExecution,
     leaseToken,
     payloadHash,
+    sajuAuthority,
   }).catch(() => null);
   if (!claimedExecutionId) {
     const current = await findSajuAIExecutionForRead({ auth, jobId: sajuExecutionId, resultId, requestId, profileId }).catch(() => null);

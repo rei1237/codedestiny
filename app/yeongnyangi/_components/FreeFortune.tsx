@@ -13,17 +13,19 @@ import {readDestinyProfileAccountId} from '@/app/_lib/profile-card-storage';
 import ProfilePicker from './ProfilePicker';
 import {useProfiles} from '../_lib/use-profiles';
 import '../_original/free-fortune.css';
+import NatalChartTable from './NatalChartTable';
 import ResultSharing from './ResultSharing';
 
-function Reading({reading}:{reading:FreeReading}){
+export function Reading({reading}:{reading:FreeReading}){
  useEffect(()=>{trackEvent("free_result_view",{feature_id:reading.category,surface:"yeongnyangi_free",content_type:reading.kind,content_version:reading.version});},[reading]);
  return <article className="free-reading">
-  <div className="free-reading-heading"><div><p>{reading.day} · {reading.kind==='reflection'?'질문과 상징 해설':reading.kind==='symbolic'?'상징 리딩':'계산 근거가 있는 해설'}</p><h3>{reading.title}</h3></div></div>
-  {reading.charts?.map((chart,index)=><details className="free-chart" key={chart.domain} open={index===0}><summary>{chart.title}</summary><p>{chart.source}</p>{chart.groups.map((group,index)=><section key={`${group.label}-${index}`}><h4>{group.label}</h4><dl>{group.items.map(item=><div key={`${item.label}-${item.value}`}><dt>{item.label}</dt><dd>{item.value}</dd></div>)}</dl></section>)}</details>)}
+  <div className="free-reading-heading"><div><p>{reading.natalProfile?'타고난 성향 · 출생 명반 기준':reading.day} · {reading.kind==='reflection'?'질문과 상징 해설':reading.kind==='symbolic'?'상징 리딩':'계산 근거가 있는 해설'}</p><h3>{reading.title}</h3></div></div>
   <div className="free-summary"><strong>짧게 말하면</strong><p>{reading.summary}</p></div>
-  <ResultSharing key={`${reading.category}-${reading.day}`} reading={reading}/>
-  <h4>영냥이가 조금 더 풀어줄게.</h4><div className="room-daily-message">{reading.paragraphs.map((text,index)=><p key={index}>{text}</p>)}</div>
+  {reading.charts?.filter(chart=>chart.domain==='saju').map(chart=><NatalChartTable key={chart.domain} chart={chart}/>)}
+  {reading.charts?.map((chart,index)=><details className="free-chart" key={chart.domain} open={!reading.natalProfile&&index===0}><summary>{chart.title}</summary><p>{chart.source}</p>{chart.groups.map((group,index)=><section key={`${group.label}-${index}`}><h4>{group.label}</h4><dl>{group.items.map(item=><div key={`${item.label}-${item.value}`}><dt>{item.label}</dt><dd>{item.value}</dd></div>)}</dl></section>)}</details>)}
+  <h4>{reading.natalProfile?'타고난 성향을 조금 더 풀어볼게.':'영냥이가 조금 더 풀어줄게.'}</h4>{reading.natalProfile&&<p className="free-natal-note">같은 출생 정보와 계산 기준에서는 유지되는 성향이야. 시기에 따른 운세와는 나누어 읽어줘.</p>}<div className="room-daily-message">{reading.paragraphs.map((text,index)=><p key={index}>{text}</p>)}</div>
   <details className="free-evidence"><summary>어떤 근거로 읽었을까?</summary><dl>{reading.basis.map((basis,index)=><div key={index}><dt>{basis.label}</dt><dd>{basis.value}</dd></div>)}</dl>{reading.limitations.map((item,index)=><p key={index}>{item}</p>)}</details>
+  <ResultSharing key={`${reading.category}-${reading.day}`} reading={reading}/>
   <FreeQuestionNext category={reading.category} source="yeongnyangi_free"/>
   <FreePromptContinuation prompt={reading.prompt}/>
  </article>;
@@ -32,7 +34,7 @@ function Reading({reading}:{reading:FreeReading}){
 export default function FreeFortune(){
  const [state,setState]=useState<AttendanceState|null>(null);
  const profileState=useProfiles(),profileId=profileState.profileId;
- const [category,setCategory]=useState('basic'),[reading,setReading]=useState<FreeReading|null>(null),[draft,setDraft]=useState<Record<string,string>>({question:''});
+ const [category,setCategory]=useState('saju'),[reading,setReading]=useState<FreeReading|null>(null),[draft,setDraft]=useState<Record<string,string>>({question:''});
  const [guest,setGuest]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const [reaction,setReaction]=useState<'idle'|'award'|'receive'|'unimpressed'|'ready'>('idle');
  const lock=useRef(false),version=useRef(0),timers=useRef<ReturnType<typeof setTimeout>[]>([]),currentDay=useRef('');
