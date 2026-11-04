@@ -2147,3 +2147,10 @@ html[data-cd-theme="neo"] .shell {
 .recordEmbedded .input { color:#492440; background:#fff; border-color:#cba8b9; }
 .recordEmbedded .achieveTrack { background:#ecd9e2; }
 .recordEmbedded .achieveFill { background:#a6437b; }
+
+.moreToday { width: min(100%, 720px); margin: 0 auto; }
+.moreToday > summary { display:flex; align-items:center; justify-content:space-between; min-height:48px; padding:12px 16px; border:1px solid var(--cd-border); border-radius:var(--cd-r-control); background:var(--cd-surface); color:var(--cd-text); font-weight:700; cursor:pointer; }
+.moreToday > summary::after { content:"+"; font-size:1.2rem; }
+.moreToday[open] > summary::after { content:"−"; }
+.moreToday > summary:focus-visible { outline:2px solid var(--cd-focus-ring); outline-offset:3px; }
+.moreToday > .card { margin-top:12px; }

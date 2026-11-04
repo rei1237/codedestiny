@@ -2,6 +2,7 @@ import HomeDaily from "@/app/components/HomeDaily";
 import DiaryFlowCard from "./_components/DiaryFlowCard";
 import DiaryPlanCard from "./_components/DiaryPlanCard";
 import DiarySelfCard from "./_components/DiarySelfCard";
+import styles from "./_styles/diary.module.css";
 
 /**
  * 다이어리 홈. 오늘의 기록은 운명 카드 안에 두고 흐름·나·계획은 아래에 이어 둔다.
@@ -13,9 +14,12 @@ export default function DiaryHomePage() {
   return (
     <>
       <HomeDaily />
-      <DiaryFlowCard />
-      <DiarySelfCard />
-      <DiaryPlanCard />
+      <details className={styles.moreToday}>
+        <summary>오늘의 흐름과 계획 자세히 보기</summary>
+        <DiaryFlowCard />
+        <DiarySelfCard />
+        <DiaryPlanCard />
+      </details>
     </>
   );
 }

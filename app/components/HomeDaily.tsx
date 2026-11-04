@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type TouchEvent } from "react";
 import Link from "next/link";
 import { useDiaryToday, useDiaryWriter } from "@/app/diary/_components/DiaryStoreProvider";
 import { smallActionsFor, pickSmallAction, type DiarySmallAction } from "@/app/diary/_lib/small-action-pool";
@@ -19,6 +19,12 @@ type Honey = { balance: number; attended: boolean; streak: number; nextBonusIn: 
 type Progress = { currentLevel: number; currentLevelExp: number; nextLevelExp: number };
 type Product = { productId: string; title: string; honeyCost: number };
 type Status = "loading" | "guest" | "ready" | "error";
+type CardPage = "attendance" | "quest" | "diary";
+const CARD_PAGES: { id: CardPage; label: string }[] = [
+  { id: "attendance", label: "출석" },
+  { id: "quest", label: "실천" },
+  { id: "diary", label: "기록" },
+];
 const QUEST_PREFIX = "home-quest:";
 
 export default function HomeDaily() {
@@ -32,6 +38,8 @@ export default function HomeDaily() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [picked, setPicked] = useState<{ action: DiarySmallAction; index: number } | null>(null);
+  const [cardPage, setCardPage] = useState<CardPage>("attendance");
+  const swipeStart = useRef<{ x: number; y: number } | null>(null);
   const quest = (ext[ymd]?.todos || []).find(item => item.id?.startsWith(QUEST_PREFIX));
   const pool = smallActionsFor(dayGroupOf(chart, ymd));
   const savedAction = quest ? pool.find(action => `${action.emoji} ${action.name}` === quest.text) || smallActionsFor(null).find(action => `${action.emoji} ${action.name}` === quest.text) : null;
@@ -77,6 +85,14 @@ export default function HomeDaily() {
     if (hydrated && ymd) setPicked(pickSmallAction(smallActionsFor(dayGroupOf(chart, ymd)), -1));
   }, [hydrated, ymd, chart]);
   useEffect(() => {
+    const openLinkedRecord = () => {
+      if (window.location.hash === "#diary-today-record") setCardPage("diary");
+    };
+    openLinkedRecord();
+    window.addEventListener("hashchange", openLinkedRecord);
+    return () => window.removeEventListener("hashchange", openLinkedRecord);
+  }, []);
+  useEffect(() => {
     const onFocus = () => { refresh(); void loadHoney(); };
     window.addEventListener("focus", onFocus);
     return () => window.removeEventListener("focus", onFocus);
@@ -109,11 +125,34 @@ export default function HomeDaily() {
     }
   }
 
+  function startSwipe(event: TouchEvent<HTMLElement>) {
+    const target = event.target;
+    if (target instanceof Element && target.closest("button, a, input, textarea, select, summary")) {
+      swipeStart.current = null;
+      return;
+    }
+    const touch = event.touches[0];
+    swipeStart.current = touch ? { x: touch.clientX, y: touch.clientY } : null;
+  }
+  function endSwipe(event: TouchEvent<HTMLElement>) {
+    const start = swipeStart.current;
+    swipeStart.current = null;
+    const touch = event.changedTouches[0];
+    if (!start || !touch) return;
+    const dx = touch.clientX - start.x;
+    const dy = touch.clientY - start.y;
+    if (Math.abs(dx) < 55 || Math.abs(dx) <= Math.abs(dy) * 1.3) return;
+    setCardPage(current => {
+      const index = CARD_PAGES.findIndex(page => page.id === current);
+      return CARD_PAGES[Math.max(0, Math.min(CARD_PAGES.length - 1, index + (dx < 0 ? 1 : -1)))].id;
+    });
+  }
+
   const greeting = honey?.attended
     ? (quest?.done ? "오늘도 함께해서 기뻐요!" : "출석했어요! 작은 실천도 함께할까요?")
     : "오늘도 함께해요!";
 
-  return <section className={styles.daily} aria-labelledby="daily-home-title">
+  return <section className={styles.daily} aria-labelledby="daily-home-title" onTouchStart={startSwipe} onTouchEnd={endSwipe} onTouchCancel={() => { swipeStart.current = null; }}>
     <header className={styles.cardHeader}>
       <div><p className={styles.eyebrow}>연이와 함께하는 하루</p><h2 id="daily-home-title">나의 운명 카드</h2></div>
       {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
@@ -130,6 +169,11 @@ export default function HomeDaily() {
       <p className={styles.speech}>{greeting}</p>
       <span className={styles.roomCaption}>연이의 작은 정원</span>
     </div>
+    <nav className={styles.pageNav} aria-label="운명 카드 메뉴">
+      {CARD_PAGES.map(page => <button key={page.id} type="button" className={cardPage === page.id ? styles.pageActive : ""} aria-pressed={cardPage === page.id} onClick={() => setCardPage(page.id)}>{page.label}</button>)}
+    </nav>
+    <div className={styles.pageBody}>
+    <div hidden={cardPage !== "attendance"}>
     <div className={styles.attendance}>
       <div className={styles.wallet}><span className={styles.drop} aria-hidden="true">●</span><span>나의 꿀방울<strong>{status === "ready" && honey ? `${honey.balance}방울` : "확인해 주세요"}</strong></span></div>
       {status === "ready" && honey ? <button type="button" disabled={busy || honey.attended} onClick={() => void loadHoney("POST")}>{busy ? "출석 확인 중" : honey.attended ? "오늘 출석 완료" : "오늘 출석하기"}</button> : status === "guest" ? <Link className={styles.button} href="/login/?next=%2Fdiary%2F%23daily-home-title">로그인하고 출석하기</Link> : status === "error" ? <button type="button" onClick={() => { setStatus("loading"); void loadHoney(); }}>다시 확인하기</button> : <span>출석 정보 확인 중</span>}
@@ -140,8 +184,16 @@ export default function HomeDaily() {
     <details className={styles.rewards}><summary>꿀방울은 어디에 쓰나요?</summary><p>출석해 꿀방울을 모아요. 하루를 놓치면 연속 출석은 다시 시작해요.</p>{products.length > 0 && <><strong>이런 곳에서 사용할 수 있어요</strong><ul>{products.map(item => <li key={item.productId}>{item.title} <b>{item.honeyCost}방울</b></li>)}</ul></>}<p>{honey && <>운세 프롬프트 1회에는 {honey.promptCost}방울이 필요해요. </>}사용 가능한 상품과 필요 방울 수는 각 상품에서 확인해 주세요.</p>
       {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
       <a href="/ggulggul/?action=cdOpenAllFortunes">꿀꿀 운세 살펴보기</a></details>
+    </div>
+    <div hidden={cardPage !== "quest"}>
     <div className={styles.quest}><div><span className={styles.label}>오늘의 작은 실천</span><h3>{quest ? quest.text : picked?.action.name || "오늘의 행동을 고르고 있어요"}</h3><p>{quest ? savedAction?.tip || "오늘 고른 작은 행동을 실천해 보세요." : picked?.action.tip || "잠시만 기다려 주세요."}</p></div><div className={styles.actions}>{quest ? <button type="button" aria-pressed={Boolean(quest.done)} onClick={toggleQuest}>{quest.done ? "완료 · 되돌리기" : "실천 완료하기"}</button> : <><button type="button" disabled={!picked} onClick={selectQuest}>실천으로 담기</button><button type="button" className={styles.secondary} disabled={!picked} onClick={() => setPicked(pickSmallAction(pool, picked?.index ?? -1))}>다른 행동</button></>}</div></div>
+    <p className={styles.footnote}>일상을 돌보는 작은 제안이에요. 꿀방울은 지급되지 않으며, 로그인 시 기존 성장 규칙에 따라 경험치를 쌓을 수 있어요.</p>
+    </div>
+    <div hidden={cardPage !== "diary"}>
     <div className={styles.diary}><DiaryRecordCard embedded /></div>
-    <p className={styles.footnote}>실천은 일상을 돌보는 제안이에요. 꿀방울은 지급되지 않으며, 로그인 시 기존 성장 규칙에 따라 경험치를 쌓을 수 있어요. 기록은 이 기기의 브라우저에 저장돼요.</p>
+    <p className={styles.footnote}>기록은 이 기기의 브라우저에 저장돼요.</p>
+    </div>
+    </div>
+    <p className={styles.pageHint}>옆으로 넘기거나 메뉴를 눌러 보세요 · {CARD_PAGES.findIndex(page => page.id === cardPage) + 1} / {CARD_PAGES.length}</p>
   </section>;
 }
