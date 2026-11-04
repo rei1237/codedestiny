@@ -101,12 +101,13 @@ export default function App(){
   },[page,loggedIn,recoveryEpoch]);
   useEffect(()=>{
     if(page!=='result'||!resultId||!loggedIn)return;
-    let live=true,timer:ReturnType<typeof setTimeout>;const epoch=authEpoch.current;
+    let live=true,timer:ReturnType<typeof setTimeout>,generation=0;const epoch=authEpoch.current;setResult(null);
     async function read(){
+      const current=++generation;
       try{
-        const data=await api<Result>(`/results/${resultId}`);if(!live||authEpoch.current!==epoch)return;setResult(data);
+        const data=await api<Result>(`/results/${resultId}`);if(!live||authEpoch.current!==epoch||current!==generation)return;setResult(data);
         if(!['COMPLETED','REFUNDED'].includes(data.state)&&!data.recovery.reviewRequired)timer=setTimeout(()=>{if(!document.hidden)void read();},10000);
-      }catch(error){if(live&&authEpoch.current===epoch)failure(error);}
+      }catch(error){if(live&&authEpoch.current===epoch&&current===generation){setResult(null);failure(error);}}
     }
     const visible=()=>{if(!document.hidden){clearTimeout(timer);void read();}};
     void read();document.addEventListener('visibilitychange',visible);

@@ -40,6 +40,21 @@ test('a revoked result removes its stale continue action after a permission deni
  try{assert.match(document.body.textContent,/추가 결제 없이 이어서 생성/);await React.act(async()=>finish());assert.equal(reads,2);assert.doesNotMatch(document.body.textContent,/추가 결제 없이 이어서 생성|이전 결과/);assert.match(document.body.textContent,/접근 권한을 확인할 수 없어요/);}finally{await view.close();history.replaceState({},'', '/');}
 });
 
+test('a failed result recheck hides previously approved content and continuation',async()=>{
+ history.replaceState({},'', '/result?id=result-1');let finish,ready=false;const wait=new Promise(resolve=>{finish=()=>{ready=true;resolve();};});
+ const view=await mount(true,'',{wait,api:async()=>ready?{errorStatus:404}:{id:'result-1',state:'PARTIAL',chapters:[{title:'결과',summary:'이전 결과'}],manifest:[{title:'결과'}],recovery:{savedChapters:1,totalChapters:2,canRetryNow:true,reviewRequired:false}}});
+ try{assert.match(document.body.textContent,/추가 결제 없이 이어서 생성/);await React.act(async()=>finish());assert.doesNotMatch(document.body.textContent,/추가 결제 없이 이어서 생성|이전 결과/);}finally{await view.close();history.replaceState({},'', '/');}
+});
+
+test('an older result response cannot restore content after a newer denial',async()=>{
+ history.replaceState({},'', '/result?id=result-1');Object.defineProperty(document,'hidden',{configurable:true,value:false});let release,reads=0;
+ const pending=new Promise(resolve=>{release=resolve;});
+ const result={id:'result-1',state:'PARTIAL',chapters:[{title:'결과',summary:'이전 결과'}],manifest:[{title:'결과'}],recovery:{savedChapters:1,totalChapters:2,canRetryNow:true,reviewRequired:false}};
+ const view=await mount(true,'',{api:async()=>++reads===1?result:reads===2?pending:{errorStatus:403}});
+ try{await React.act(async()=>document.dispatchEvent(new dom.window.Event('visibilitychange')));await React.act(async()=>document.dispatchEvent(new dom.window.Event('visibilitychange')));assert.doesNotMatch(document.body.textContent,/이전 결과|추가 결제 없이 이어서 생성/);await React.act(async()=>release(result));assert.doesNotMatch(document.body.textContent,/이전 결과|추가 결제 없이 이어서 생성/);}
+ finally{await view.close();delete document.hidden;history.replaceState({},'', '/');}
+});
+
 test('library distinguishes life-fortune and life-book purchase titles',async()=>{
  history.replaceState({},'', '/library');const base={status:'PURCHASED',state:'UNASSIGNED',nativeService:'life-book',createdAt:'2026-01-01'};
  const view=await mount(true,'',{api:async()=>({purchases:[{...base,orderId:'book',featureKey:'life-book-ai-consultation'},{...base,orderId:'fortune',featureKey:'life-fortune-ai-consultation'}],nextCursor:null})});
