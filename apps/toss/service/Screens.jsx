@@ -1,4 +1,4 @@
-import React,{lazy,Suspense,useEffect,useState} from 'react';
+import React,{lazy,Suspense,useEffect,useRef,useState} from 'react';
 import {LazyMotion,domAnimation} from 'framer-motion';
 import {SafeArea,Screen as TossScreen,graniteEvent} from '@apps-in-toss/web-framework';
 import {ToastProvider} from '@/app/components/Toast';
@@ -48,7 +48,8 @@ function PreparedCheckout(){
  return error?<p role="alert">{error}</p>:row?<Checkout draft={{product:row.product,question:row.consultation?.question,chapters:row.manifest.length,ready:row.state==='CREATED'||row.paid,onPrepare:async()=>row}}/>:<p role="status">상담을 확인하고 있어요.</p>;
 }
 function LetterEntry(){
- useEffect(()=>{location.replace('/catalog?adviser=yeoni');},[]);
+ const routed=useRef(false);
+ useEffect(()=>{if(routed.current)return;routed.current=true;location.replace('/catalog?adviser=yeoni');},[]);
  return <p role="status">연이 상담을 열고 있어요.</p>;
 }
 export default function ServiceScreens(){
