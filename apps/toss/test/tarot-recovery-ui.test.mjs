@@ -24,10 +24,10 @@ const loaded=new Module(path.resolve(import.meta.dirname,'tarot-recovery-ui.cjs'
 loaded.paths=Module._nodeModulePaths(path.resolve(import.meta.dirname,'..'));loaded._compile(bundle.outputFiles[0].text,loaded.id);
 const TarotLibrary=loaded.exports.default,orderId='01900000-1111-7111-8111-000000000042';
 const result={flowId:'tarot-mindscan',title:'저장된 리딩',question:'질문',cards:[],summary:'완료된 원문'};
-async function mount(api){
+async function mount(api,onError=error=>{throw error;}){
  const calls=[];globalThis.tarotRecoveryUi={api:async(...args)=>{calls.push(args);return api(...args);}};
  const root=createRoot(document.getElementById('root'));
- await React.act(async()=>{root.render(React.createElement(TarotLibrary,{products:[],loggedIn:true,initialOrderId:orderId,onLogin:()=>assert.fail(),onError:error=>{throw error;},onBack:()=>{}}));});
+ await React.act(async()=>{root.render(React.createElement(TarotLibrary,{products:[],loggedIn:true,initialOrderId:orderId,onLogin:()=>assert.fail(),onError,onBack:()=>{}}));});
  return {calls,close:()=>React.act(()=>root.unmount())};
 }
 async function click(text){
@@ -57,5 +57,17 @@ test('a recovered order with no input collects cards and resumes even without a 
   await click('선택한 카드 열기');await click('구매한 리딩 이어서 보기');
   assert.equal(view.calls[1][0],`/tarot-library/results/${orderId}`);assert.equal(view.calls[1][1].input.cards.length,5);
   assert.match(document.body.textContent,/완료된 원문/);
+ }finally{view.close();}
+});
+
+test('a denied reading does not imply ownership or offer to continue generation',async()=>{
+ const errors=[];
+ const denied=Object.assign(new Error('ACCESS_DENIED'),{code:'ACCESS_DENIED',status:403});
+ const view=await mount(()=>Promise.reject(denied),error=>errors.push(error));
+ try{
+  assert.deepEqual(errors,[denied]);
+  assert.doesNotMatch(document.body.textContent,/새로 결제하지 않아도|추가 결제 없이 이어서 생성/);
+  await click('진행 상태 확인하기');
+  assert.deepEqual(view.calls,[[`/tarot-library/results/${orderId}`],[`/tarot-library/results/${orderId}`,undefined]]);
  }finally{view.close();}
 });
