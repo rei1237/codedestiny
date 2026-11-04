@@ -1,6 +1,6 @@
 import React,{lazy,Suspense,useEffect,useState} from 'react';
 import {LazyMotion,domAnimation} from 'framer-motion';
-import {SafeArea,graniteEvent} from '@apps-in-toss/web-framework';
+import {SafeArea,Screen as TossScreen,graniteEvent} from '@apps-in-toss/web-framework';
 import {ToastProvider} from '@/app/components/Toast';
 import {clearClientAuthState} from '@/app/_lib/auth-client';
 import {refreshAuth,handleSessionInvalidated} from '@/app/_lib/auth-store';
@@ -57,7 +57,7 @@ export default function ServiceScreens(){
   const offBack=graniteEvent.addEventListener('backEvent',{onEvent:()=>{
    if(dispatchServiceBack())return;
    const previous=document.referrer&&new URL(document.referrer);
-   if(previous?.origin===location.origin&&history.length>1)history.back();else location.assign('/');
+   if(previous?.origin===location.origin&&history.length>1)history.back();else void TossScreen.close();
   }});
   const offHome=graniteEvent.addEventListener('homeEvent',{onEvent:()=>location.assign('/')});
   return()=>{offArea();offBack();offHome();document.documentElement.style.removeProperty('--toss-service-bottom');};
