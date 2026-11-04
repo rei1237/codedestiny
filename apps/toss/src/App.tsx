@@ -14,6 +14,7 @@ import {Button} from './Button';
 import {SafeArea,Screen,graniteEvent} from '@apps-in-toss/web-framework';
 import {api,ApiError,isToss,login,logout,restoreSession,saleProducts,tarotLibraryProducts,purchase,restorePurchases,recoverAfterAuthentication,unlinkCurrentSession,onSessionInvalidated,event,type SaleProduct,type TarotLibraryProduct} from './platform';
 import {errors,questions,readings,birthSystems,consultationServices,selectionFor} from './content';
+import {initialSelection} from './initial-selection.mjs';
 
 const ResultEvidence=lazy(()=>import('./ResultEvidence'));
 const BiasReading=lazy(()=>import('./BiasReading'));
@@ -37,7 +38,7 @@ function currentPage():Page {
 }
 
 export default function App(){
-  const [page,setPage]=useState<Page>(currentPage),[selected,setSelected]=useState(()=>new URLSearchParams(location.search).get('product')||readings[0].id);
+  const [page,setPage]=useState<Page>(currentPage),[selected,setSelected]=useState(()=>initialSelection(new URLSearchParams(location.search),readings,selectionFor));
   const selectedReading=readings.find(r=>r.id===selected)||readings[0];
   const activeDomain=selectedReading.domain;
   const activeService=selectedReading.serviceId;

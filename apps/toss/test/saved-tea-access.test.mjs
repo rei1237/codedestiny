@@ -33,7 +33,7 @@ test('saved tea preserves permission errors and never renders a previous owner o
 });
 
 test('the Toss saved tea and records routes pass their payment surface',async()=>{
- const dom=new JSDOM('<div id="root"></div>',{url:'http://localhost/fortune-tea-house/?resultId=example'});
+ const dom=new JSDOM('<div id="root"></div>',{url:'http://localhost/fortune-tea-house/?resultId=example&counsel=letter'});
  dom.window.fetch=globalThis.fetch;globalThis.window=dom.window;globalThis.document=dom.window.document;globalThis.location=dom.window.location;globalThis.IS_REACT_ACT_ENVIRONMENT=true;
  const entry=path.resolve(import.meta.dirname,'../service/Screens.jsx');
  const bundle=await build({entryPoints:[entry],bundle:true,write:false,platform:'node',format:'cjs',jsx:'automatic',external:['react','react/jsx-runtime'],plugins:[{name:'service-boundaries',setup(b){
@@ -43,6 +43,6 @@ test('the Toss saved tea and records routes pass their payment surface',async()=
  }}]});
  const loaded=new Module(entry+'.cjs');loaded.paths=Module._nodeModulePaths(path.resolve(import.meta.dirname,'..'));loaded._compile(bundle.outputFiles[0].text,loaded.id);
  let root=createRoot(document.getElementById('root'));
- try{await React.act(async()=>root.render(React.createElement(loaded.exports.default)));const saved=document.querySelector('[data-surface]');assert.ok(saved);assert.equal(saved.getAttribute('data-surface'),'toss');assert.equal(saved.getAttribute('data-result'),'example');await React.act(async()=>root.unmount());dom.window.history.replaceState({},'','/records/');root=createRoot(document.getElementById('root'));await React.act(async()=>root.render(React.createElement(loaded.exports.default)));assert.equal(document.querySelector('[data-surface]').getAttribute('data-surface'),'toss');}
+ try{await React.act(async()=>root.render(React.createElement(loaded.exports.default)));const saved=document.querySelector('[data-surface]');assert.ok(saved);assert.equal(saved.getAttribute('data-surface'),'toss');assert.equal(saved.getAttribute('data-result'),'example');await React.act(async()=>root.unmount());dom.window.history.replaceState({},'','/records/');root=createRoot(document.getElementById('root'));await React.act(async()=>root.render(React.createElement(loaded.exports.default)));assert.equal(document.querySelector('[data-surface]').getAttribute('data-surface'),'toss');await React.act(async()=>root.unmount());let destination='';globalThis.location={pathname:'/fortune-tea-house/',search:'?counsel=letter',origin:'http://localhost',replace:value=>{destination=value;}};root=createRoot(document.getElementById('root'));await React.act(async()=>root.render(React.createElement(loaded.exports.default)));assert.equal(destination,'/catalog?adviser=yeoni');await React.act(async()=>root.unmount());for(const query of ['?counsel=letter&consultation=old','?counsel=letter&session=old']){destination='';globalThis.location.search=query;root=createRoot(document.getElementById('root'));await React.act(async()=>root.render(React.createElement(loaded.exports.default)));assert.equal(destination,'');await React.act(async()=>root.unmount());}root=createRoot(document.getElementById('root'));}
  finally{await React.act(async()=>root.unmount());dom.window.close();}
 });
