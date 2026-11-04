@@ -456,6 +456,38 @@ describe("verify — 영구 해금(UNLOCK)과 이용권", () => {
     expect(set["profileSubscription.monthlySpendCoin"]).toBe(100);
   });
 
+  test("🔴 소진 중 구매는 환불 때 되돌릴 이전 이용권을 함께 적는다", async () => {
+    const { MONTHLY_PASS_LIMITS } = await import("../../worker/lib/profile-limits.js");
+    const priorExpiresAt = new Date(Date.now() + 3650 * 24 * 60 * 60 * 1000);
+    mockUserFindById.mockReturnValue({
+      lean: async () => ({
+        points: 0,
+        unlockedFeatures: [],
+        profileSubscription: {
+          tier: "standard",
+          passTier: "standard",
+          expiresAt: priorExpiresAt,
+          premiumUseCycleKey: priorExpiresAt.toISOString(),
+          monthlySpendCoin: MONTHLY_PASS_LIMITS.standard,
+          lastPassOrderId: "google:other-token-hash",
+        },
+      }),
+    });
+
+    const { status } = await callRoute(postJson("/google/verify", {
+      passTier: "standard",
+      productId: "cd_pass_standard_30d",
+      purchaseToken: "tok-pass-after-exhaust",
+    }));
+    expect(status).toBe(200);
+
+    const set = mockUserFindByIdAndUpdate.mock.calls[0][1].$set;
+    expect(set["profileSubscription.monthlySpendCoin"]).toBe(0);
+    expect(set["profileSubscription.exhaustedPassRestore"]).toMatchObject({
+      tier: "standard", expiresAt: priorExpiresAt, lastPassOrderId: "google:other-token-hash",
+    });
+  });
+
   test("🔴 같은 purchaseToken 재검증은 기간·한도를 다시 쌓지 않는다", async () => {
     const priorExpiresAt = new Date(Date.now() + 10 * 24 * 60 * 60 * 1000);
     mockUserFindById.mockReturnValue({

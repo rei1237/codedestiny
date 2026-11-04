@@ -27,6 +27,7 @@ import {
   KRW_PER_COIN,
   PASS_LIMITS,
   PASS_TIER_RANK,
+  buildExhaustedPassRestore,
   buildPassCycleFields,
   buildPassRefundRevokeFields,
   isPassPolicyConflict,
@@ -299,6 +300,7 @@ export async function activatePassSubscription(db, {
     "profileSubscription.premiumUseCount": cycle.premiumUseCount,
     "profileSubscription.monthlySpendCoin": cycle.monthlySpendCoin,
     "profileSubscription.monthlyLimitCoin": cycle.monthlyLimitCoin,
+    "profileSubscription.exhaustedPassRestore": buildExhaustedPassRestore({ priorSubscription: prior, tier: plan.tier, now }),
     "profileSubscription.updatedAt": now,
   };
   const filter = { _id: uid, passGrantOrderIds: { $ne: String(orderId) } };

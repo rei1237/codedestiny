@@ -28,6 +28,7 @@ import {
 // 쓴다. 두 벌을 두면 결제 경로에 따라 재구매 정책이 갈린다(원칙 6).
 import {
   PASS_LIMITS,
+  buildExhaustedPassRestore,
   buildPassCycleFields,
   computePassExpiry,
   evaluatePassTierTransition,
@@ -1040,6 +1041,7 @@ function buildEntitlementUpdate({ product, googlePurchase, now, priorSubscriptio
       "profileSubscription.premiumUseCount": cycle.premiumUseCount,
       "profileSubscription.monthlySpendCoin": cycle.monthlySpendCoin,
       "profileSubscription.monthlyLimitCoin": cycle.monthlyLimitCoin,
+      "profileSubscription.exhaustedPassRestore": buildExhaustedPassRestore({ priorSubscription, tier: passTier, now }),
     };
     if (passOrderId) update.$set["profileSubscription.lastPassOrderId"] = String(passOrderId);
   }

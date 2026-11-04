@@ -156,6 +156,8 @@ const userSchema = new mongoose.Schema({
     // (2026-09-05), 등급 상수 MONTHLY_PASS_LIMITS 만으로는 이번 사이클의 한도를 알 수 없다.
     // 0/미기록 = 등급 기본 한도. 정본: lib/profile-limits.js resolveMonthlyPassLimitCoin.
     monthlyLimitCoin: { type: Number, default: 0, min: 0 },
+    // 소진 상태에서 새 이용권을 샀을 때 덮어쓴 앞선 이용권. 그 주문을 환불하면 이 값으로 되돌린다.
+    exhaustedPassRestore: { type: mongoose.Schema.Types.Mixed, default: null },
     // 2026-11-04 이전 소진 종료의 기록이다. 새로 쓰지 않고, 옛 문서의 CS·환불 증거와 복구 판정에만 쓴다.
     passExhaustedAt: { type: Date, default: null },
     passExhaustedFromExpiresAt: { type: Date, default: null },

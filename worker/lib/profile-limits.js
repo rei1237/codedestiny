@@ -293,6 +293,29 @@ export function buildPassCycleFields({ priorSubscription, tier: tierInput, expir
   };
 }
 
+const EXHAUSTED_PASS_RESTORE_KEYS = [
+  "tier", "passTier", "planId", "passPolicyVersion", "durationMonths", "productType", "profileLimit",
+  "maxCoveredCoin", "freeLimit", "passLimit", "source", "startedAt", "expiresAt", "paymentMethod",
+  "lastPassOrderId", "premiumUseCycleKey", "premiumUseCount", "monthlySpendCoin", "monthlyLimitCoin",
+];
+
+/**
+ * 이용권 활성화가 함께 적을 exhaustedPassRestore 값.
+ * 소진 상태의 구매는 새 이용권으로 앞선 이용권을 덮어쓴다. 그 주문을 환불하면 앞선 이용권의 라이트 운세
+ * 권리가 돌아와야 하므로(만료가 없어 달리 되찾을 길이 없다) 덮어쓰기 전 값을 남긴다.
+ * 같은 등급 재구매는 앞선 주문의 복원값을 유지하고, 신규·업그레이드는 비운다(업그레이드 환불은 종료 규칙).
+ */
+export function buildExhaustedPassRestore({ priorSubscription, tier: tierInput, now = new Date() } = {}) {
+  const prior = priorSubscription && typeof priorSubscription === "object" ? priorSubscription : {};
+  if (isActivePassBudgetExhausted(prior, now)) {
+    return Object.fromEntries(EXHAUSTED_PASS_RESTORE_KEYS.filter((key) => prior[key] !== undefined).map((key) => [key, prior[key]]));
+  }
+  const priorExpiresAt = prior.expiresAt ? new Date(prior.expiresAt) : null;
+  const priorActive = Boolean(priorExpiresAt) && priorExpiresAt.getTime() > new Date(now).getTime();
+  const isExtension = priorActive && normalizePassTier(prior.passTier || prior.tier) === normalizePassTier(tierInput);
+  return isExtension ? prior.exhaustedPassRestore || null : null;
+}
+
 /**
  * 이용권 주문 환불 회수가 profileSubscription 에 적을 필드(접두 없는 키).
  *
@@ -300,6 +323,7 @@ export function buildPassCycleFields({ priorSubscription, tier: tierInput, expir
  *   - 남는 한도가 없으면(첫 구매·업그레이드 주문 환불) 종료한다. 종료 필드는 강등 필드와 같은 집합이고 만료일을 now 로 당긴다.
  *   - 남는 한도가 있으면(같은 등급 재구매분 환불) 한도만 줄인다. 사용액이 남은 한도를 넘어도 이용권은 유지한다.
  *     앞선 구매로 얻은 라이트 운세 권리는 환불로 사라지지 않고, 이미 쓴 금액도 되살아나지 않는다.
+ *   - 남는 한도가 없어도 소진 상태에서 산 주문이면(exhaustedPassRestore) 앞선 이용권을 소진 상태 그대로 되돌린다.
  * 저장 한도가 없던 문서(재구매 이력 없음)는 등급 기본값 1회분이므로 0 이 남아 종료된다.
  */
 export function buildPassRefundRevokeFields({ subscription, now = new Date() } = {}) {
@@ -312,6 +336,11 @@ export function buildPassRefundRevokeFields({ subscription, now = new Date() } =
   const remainingLimitCoin = Math.max(0, stackedCoin - baseCoin);
   if (remainingLimitCoin > 0) {
     return { downgraded: false, fields: { monthlyLimitCoin: remainingLimitCoin, updatedAt: now } };
+  }
+  const restore = sub.exhaustedPassRestore;
+  const restoreExpiresAt = restore?.expiresAt ? new Date(restore.expiresAt) : null;
+  if (restoreExpiresAt && restoreExpiresAt.getTime() > now.getTime()) {
+    return { downgraded: false, fields: { ...restore, exhaustedPassRestore: null, updatedAt: now } };
   }
   return {
     downgraded: true,

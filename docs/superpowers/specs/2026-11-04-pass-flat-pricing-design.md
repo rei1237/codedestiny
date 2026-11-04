@@ -143,7 +143,7 @@
 - 이미 `expiresAt`이 지난 소진 이용권은 복구하지 않는다.
 - **종료 경로는 두 곳이다.** `applyBudgetExhaustionTermination`과 옛 coin-gate 경로 `worker/routes/billing.js`의 `consumeTierPassIfAvailable` 둘 다 닫지 않게 한다. 옛 경로의 누적 한도 판정(`resolveMonthlySpendQuota`, `worker/lib/entitlement-policy.js` 포함)도 라이트 상품을 면제한다.
 - **`passEnded`를 보내지 않는다.** `worker/payments/index.js`와 `worker/routes/billing.js`가 소진 때 보내는 `passEnded`를 받으면 클라이언트가 스냅샷을 미보유로 내려 라이트 운세까지 막는다. 소진은 남은 한도 갱신으로만 전달한다.
-- **재구매분 환불:** 소진 상태에서 산 이용권을 환불해 앞선 구매분의 한도가 남으면 이용권을 유지하고 한도만 줄인다. 첫 구매와 업그레이드 환불은 지금처럼 종료한다.
+- **재구매분 환불:** 같은 등급 재구매분을 환불해 앞선 구매분의 한도가 남으면 이용권을 유지하고 한도만 줄인다. 소진 상태에서 산 이용권을 환불하면 앞선 이용권을 소진 상태 그대로 되돌려 라이트 운세 권리를 유지한다(`exhaustedPassRestore`). 첫 구매와 업그레이드 환불은 지금처럼 종료한다.
 
 ### 6.3 환불
 

@@ -13,6 +13,7 @@ import { resolveCanonicalEntitlement } from "../../worker/lib/entitlement-policy
 import {
   FAMILY_MIN_PASS_COVERABLE_COIN,
   MIN_PASS_COVERABLE_COIN,
+  buildExhaustedPassRestore,
   buildPassCycleFields,
   buildPassRefundRevokeFields,
   computePassExpiry,
@@ -218,6 +219,63 @@ describe("refund", () => {
     const result = buildPassRefundRevokeFields({ subscription: stacked, now: NOW });
     expect(result.downgraded).toBe(false);
     expect(result.fields).toEqual({ monthlyLimitCoin: base, updatedAt: NOW });
+  });
+
+  const applyRefund = (sub) => {
+    const { downgraded, fields } = buildPassRefundRevokeFields({ subscription: sub, now: NOW });
+    return { downgraded, after: { ...sub, ...fields } };
+  };
+
+  test("refund of a repurchase made while exhausted restores the earlier pass and its light rights", async () => {
+    const earlier = exhausted("standard", { lastPassOrderId: "earlier-order" });
+    const db = makeFakePaymentDb();
+    const user = { _id: USER, points: 0, profileSubscription: earlier };
+    db.rows.push(user);
+    const plan = currentPassPlan("premium");
+    const expiresAt = computePassExpiry({ transition: evaluatePassTierTransition(earlier, plan.tier, NOW), paidAt: NOW, now: NOW });
+    await activatePassSubscription(db, { userId: USER, plan, orderId: "repurchase", paidAt: NOW, expiresAt, now: NOW, existing: user });
+    const repurchased = db.rows.find((row) => String(row._id) === USER).profileSubscription;
+    expect(repurchased).toMatchObject({ tier: "premium", monthlySpendCoin: 0 });
+
+    const { downgraded, after } = applyRefund(repurchased);
+    expect(downgraded).toBe(false);
+    expect(after).toMatchObject({
+      tier: "standard", passTier: "standard", expiresAt: EXPIRES, lastPassOrderId: "earlier-order",
+      premiumUseCycleKey: EXPIRES.toISOString(), monthlySpendCoin: base, monthlyLimitCoin: base,
+      exhaustedPassRestore: null,
+    });
+    expect(isActivePassBudgetExhausted(after, NOW)).toBe(true);
+  });
+
+  test("restore keeps only the latest exhausted pass, without nesting", () => {
+    const older = { tier: "vvip", passTier: "vvip", expiresAt: EXPIRES };
+    const snapshot = buildExhaustedPassRestore({ priorSubscription: exhausted("standard", { exhaustedPassRestore: older }), tier: "premium", now: NOW });
+    expect(snapshot).toMatchObject({ tier: "standard", monthlySpendCoin: base });
+    expect(snapshot).not.toHaveProperty("exhaustedPassRestore");
+  });
+
+  test("restore survives a same-tier repurchase and is dropped by an upgrade", () => {
+    const restore = exhausted("standard");
+    const active = subscription("premium", 0, { exhaustedPassRestore: restore });
+    expect(buildExhaustedPassRestore({ priorSubscription: active, tier: "premium", now: NOW })).toBe(restore);
+    expect(buildExhaustedPassRestore({ priorSubscription: active, tier: "vvip", now: NOW })).toBeNull();
+  });
+
+  test("refund of a stacked repurchase keeps the restore for the earlier order", () => {
+    const restore = exhausted("standard");
+    const stacked = subscription("premium", 0, { monthlyLimitCoin: baseOf("premium") * 2, exhaustedPassRestore: restore });
+    const { downgraded, after } = applyRefund(stacked);
+    expect(downgraded).toBe(false);
+    expect(after).toMatchObject({ tier: "premium", monthlyLimitCoin: baseOf("premium"), exhaustedPassRestore: restore });
+  });
+
+  test("no restore for a first purchase, and an expired restore does not revive", () => {
+    expect(buildExhaustedPassRestore({ priorSubscription: {}, tier: "standard", now: NOW })).toBeNull();
+    const lapsed = exhausted("standard", { expiresAt: new Date(NOW.getTime() - 1000) });
+    expect(buildExhaustedPassRestore({ priorSubscription: lapsed, tier: "standard", now: NOW })).toBeNull();
+    const stale = subscription("premium", 0, { exhaustedPassRestore: lapsed });
+    expect(applyRefund(stale).downgraded).toBe(true);
+    expect(applyRefund(stale).after).toMatchObject({ tier: "free", monthlyLimitCoin: 0 });
   });
 
   test("refund of first purchase or upgrade terminates", () => {
