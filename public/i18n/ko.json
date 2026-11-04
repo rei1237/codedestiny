@@ -2098,7 +2098,8 @@
       "expand": "펼치기",
       "collapse": "접기",
       "samplesContext": "상담별 구성과",
-      "samplesAction": "예시 보기"
+      "samplesAction": "예시 보기",
+      "resume": "상담 카드 자동 넘김 다시 시작하기"
     },
     "benefitsCopy": {
       "title": "궁금한 운세,",

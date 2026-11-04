@@ -2249,7 +2249,8 @@
       "expand": "Ampliar",
       "collapse": "Contraer",
       "samplesContext": "Detalles de consulta",
-      "samplesAction": "Ver ejemplos"
+      "samplesAction": "Ver ejemplos",
+      "resume": "Reanudar el cambio automático"
     },
     "benefitsCopy": {
       "title": "¿Te intriga tu fortuna?",

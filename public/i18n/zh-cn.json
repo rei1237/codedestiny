@@ -2249,7 +2249,8 @@
       "expand": "展开",
       "collapse": "收起",
       "samplesContext": "咨询内容与",
-      "samplesAction": "查看示例"
+      "samplesAction": "查看示例",
+      "resume": "恢复自动切换卡片"
     },
     "benefitsCopy": {
       "title": "想了解运势？",

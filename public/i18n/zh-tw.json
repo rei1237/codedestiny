@@ -2249,7 +2249,8 @@
       "expand": "展開",
       "collapse": "收合",
       "samplesContext": "諮詢內容與",
-      "samplesAction": "查看範例"
+      "samplesAction": "查看範例",
+      "resume": "恢復自動切換卡片"
     },
     "benefitsCopy": {
       "title": "想了解運勢？",

@@ -2249,7 +2249,8 @@
       "expand": "Développer",
       "collapse": "Réduire",
       "samplesContext": "Contenu des consultations",
-      "samplesAction": "Voir les exemples"
+      "samplesAction": "Voir les exemples",
+      "resume": "Reprendre le défilement automatique"
     },
     "benefitsCopy": {
       "title": "Votre avenir vous intrigue ?",

@@ -2249,7 +2249,8 @@
       "expand": "開く",
       "collapse": "閉じる",
       "samplesContext": "相談内容と",
-      "samplesAction": "サンプルを見る"
+      "samplesAction": "サンプルを見る",
+      "resume": "カードの自動切り替えを再開"
     },
     "benefitsCopy": {
       "title": "気になる運勢を、",

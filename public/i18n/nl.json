@@ -2249,7 +2249,8 @@
       "expand": "Uitklappen",
       "collapse": "Inklappen",
       "samplesContext": "Inhoud van consulten",
-      "samplesAction": "Voorbeelden bekijken"
+      "samplesAction": "Voorbeelden bekijken",
+      "resume": "Automatisch wisselen hervatten"
     },
     "benefitsCopy": {
       "title": "Benieuwd naar je toekomst?",

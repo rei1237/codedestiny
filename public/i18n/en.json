@@ -2249,7 +2249,8 @@
       "expand": "Expand",
       "collapse": "Collapse",
       "samplesContext": "Consultation details",
-      "samplesAction": "View examples"
+      "samplesAction": "View examples",
+      "resume": "Resume automatic card changes"
     },
     "benefitsCopy": {
       "title": "Curious about your fortune?",

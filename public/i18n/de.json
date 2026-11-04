@@ -2249,7 +2249,8 @@
       "expand": "Aufklappen",
       "collapse": "Zuklappen",
       "samplesContext": "Beratungsinhalte",
-      "samplesAction": "Beispiele ansehen"
+      "samplesAction": "Beispiele ansehen",
+      "resume": "Automatischen Kartenwechsel fortsetzen"
     },
     "benefitsCopy": {
       "title": "Neugierig auf dein Schicksal?",
