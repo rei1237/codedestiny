@@ -864,7 +864,7 @@
       "step2Text": "Tarot, oracle, and saju readings inside your range open right away, with no payment window.",
       "step3Label": "Only deeper readings are paid per use",
       "step3Text": "Readings beyond your range continue to a one-time KRW payment only when you need them.",
-      "terminationNote": "When the usage limit is fully used, the pass ends. Buying again starts you with a new usage limit. Additional paid content is available by one-time payment or moonstones.",
+      "terminationNote": "Your pass stays active after the consultation allowance is used up, and Light Readings remain available. For more signature consultations, buy a new pass or use a one-time payment or moonstones.",
       "noExpiryNote": "No time limit · No auto-renewal"
     },
     "promptHub": {
@@ -2295,7 +2295,8 @@
       "consultCap": "(up to KRW {amount} each)",
       "consultNoCap": "(no per-service price cap)",
       "signatureLimit": "Signature consultations over KRW {amount} each cannot be used with this Honey Jar.",
-      "lightListTitle": "See the {count} included Light Readings"
+      "lightListTitle": "See the {count} included Light Readings",
+      "termsRevision": "Pass rules have changed. See the notice of revised terms"
     },
     "consultChoice": {
       "title": "Choose the consultation that fits your concern",
@@ -3145,7 +3146,7 @@
       "monthlyButton": "Pay with {credits} monthly credits",
       "monthlyButtonBusy": "Activating your pass with monthly credits...",
       "monthlyButtonShort": "{credits} needed · balance short",
-      "terminationNotice": "When the usage limit is fully used, the pass ends. Buying again starts you with a new usage limit. Additional paid content is available by one-time payment or moonstones."
+      "terminationNotice": "Your pass stays active after the consultation allowance is used up, and Light Readings remain available. For more signature consultations, buy a new pass or use a one-time payment or moonstones."
     },
     "access": {
       "passAppliedContinue": "Opened with your pass."

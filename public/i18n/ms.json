@@ -864,7 +864,7 @@
       "step2Text": "Bacaan tarot, orakel dan saju dalam julat anda terbuka terus, tanpa tetingkap pembayaran.",
       "step3Label": "Hanya bacaan lebih mendalam dibayar setiap guna",
       "step3Text": "Bacaan di luar julat anda diteruskan dengan pembayaran KRW sekali sahaja apabila diperlukan.",
-      "terminationNote": "Apabila had penggunaan habis digunakan, pas akan tamat. Membeli semula akan bermula dengan had penggunaan baharu. Kandungan berbayar tambahan boleh digunakan dengan bayaran sekali atau Batu Cahaya Bulan.",
+      "terminationNote": "Pas kekal aktif walaupun had konsultasi habis digunakan, dan Bacaan Ringan masih boleh digunakan. Untuk lebih banyak konsultasi utama, beli pas baharu atau guna bayaran sekali atau Batu Cahaya Bulan.",
       "noExpiryNote": "Tiada had tempoh · Tiada pembaharuan automatik"
     },
     "promptHub": {
@@ -2295,7 +2295,8 @@
       "consultCap": "(hingga {amount} KRW setiap satu)",
       "consultNoCap": "(tiada had harga setiap perkhidmatan)",
       "signatureLimit": "Konsultasi utama melebihi {amount} KRW tidak boleh digunakan dengan balang ini.",
-      "lightListTitle": "Lihat {count} Bacaan Ringan yang disertakan"
+      "lightListTitle": "Lihat {count} Bacaan Ringan yang disertakan",
+      "termsRevision": "Peraturan pas telah berubah. Lihat notis perubahan terma"
     },
     "consultChoice": {
       "title": "Pilih konsultasi yang sesuai dengan kebimbangan anda",
@@ -3145,7 +3146,7 @@
       "monthlyButton": "Bayar dengan {credits} kredit bulanan",
       "monthlyButtonBusy": "Mengaktifkan pas dengan kredit bulanan...",
       "monthlyButtonShort": "Perlu {credits} · baki tidak cukup",
-      "terminationNotice": "Apabila had penggunaan habis digunakan, pas akan tamat. Membeli semula akan bermula dengan had penggunaan baharu. Kandungan berbayar tambahan boleh digunakan dengan bayaran sekali atau Batu Cahaya Bulan."
+      "terminationNotice": "Pas kekal aktif walaupun had konsultasi habis digunakan, dan Bacaan Ringan masih boleh digunakan. Untuk lebih banyak konsultasi utama, beli pas baharu atau guna bayaran sekali atau Batu Cahaya Bulan."
     },
     "access": {
       "passAppliedContinue": "Dibuka dengan pas anda."

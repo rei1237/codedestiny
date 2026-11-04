@@ -864,7 +864,7 @@
       "step2Text": "所选范围内的塔罗、神谕、四柱解读，无需支付页面即可直接开启。",
       "step3Label": "仅范围外的深度解读按次支付",
       "step3Text": "范围外的深度解读，只在需要时用韩元支付一次。",
-      "terminationNote": "用完使用额度后，通行证即结束。再次购买将以新的使用额度开始。额外付费内容可通过单次付费或月精石使用。",
+      "terminationNote": "咨询额度用完后，通行证仍然保留，轻量运势可继续使用。如需继续使用招牌咨询，请重新购买通行证，或使用单次付费或月精石。",
       "noExpiryNote": "无期限限制 · 不自动续费"
     },
     "promptHub": {
@@ -2295,7 +2295,8 @@
       "consultCap": "(每项不超过{amount}韩元)",
       "consultNoCap": "(单项金额无上限)",
       "signatureLimit": "单项超过{amount}韩元的招牌咨询无法使用此蜜罐。",
-      "lightListTitle": "查看包含的{count}种轻量运势"
+      "lightListTitle": "查看包含的{count}种轻量运势",
+      "termsRevision": "通行证规则已更新。查看条款修订通知"
     },
     "consultChoice": {
       "title": "选择适合你烦恼的咨询",
@@ -3145,7 +3146,7 @@
       "monthlyButton": "使用月定石 {credits} 支付",
       "monthlyButtonBusy": "正在用月定石激活通行证...",
       "monthlyButtonShort": "需要月定石 {credits} · 余额不足",
-      "terminationNotice": "用完使用额度后，通行证即结束。再次购买将以新的使用额度开始。额外付费内容可通过单次付费或月精石使用。"
+      "terminationNotice": "咨询额度用完后，通行证仍然保留，轻量运势可继续使用。如需继续使用招牌咨询，请重新购买通行证，或使用单次付费或月精石。"
     },
     "access": {
       "passAppliedContinue": "已使用通行券打开。"

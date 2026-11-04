@@ -92,7 +92,7 @@ const LOGIN_RATE_LIMIT_DEFAULT_WINDOW_MS = 60 * 1000;
 // The same 500-stone welcome reward is now earned by completing the free-saju tutorial.
 // Existing signup lots are untouched; the ledger helper skips a zero amount.
 const SIGNUP_MONTHLY_CREDIT_GRANT = 0;
-const AUTH_TERMS_VERSION = "2026-04-11";
+const AUTH_TERMS_VERSION = "2026-11-04";
 // 🔴 app/privacy-policy/PrivacyPolicyContent.jsx 의 PRIVACY_POLICY_EFFECTIVE_DATE 와 같아야 한다.
 const AUTH_PRIVACY_VERSION = "2026-10-10";
 const REFERRAL_REWARD_MONTHLY_CREDIT = 100;

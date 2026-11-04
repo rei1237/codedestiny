@@ -864,7 +864,7 @@
       "step2Text": "Les lectures de tarot, d'oracle et de saju dans votre plage s'ouvrent aussitôt, sans fenêtre de paiement.",
       "step3Label": "Seules les lectures plus profondes sont payées à l'usage",
       "step3Text": "Les lectures hors de votre plage se poursuivent par un paiement unique en KRW uniquement quand vous en avez besoin.",
-      "terminationNote": "Lorsque la limite d'utilisation est épuisée, le pass prend fin. Un nouvel achat repart avec une nouvelle limite d'utilisation. Les contenus payants supplémentaires sont accessibles par paiement à l'unité ou avec des Pierres de Clair de Lune.",
+      "terminationNote": "Le pass reste actif une fois la limite de consultations épuisée, et les Lectures Légères restent accessibles. Pour d'autres consultations phares, achetez un nouveau pass ou utilisez le paiement à l'unité ou des Pierres de Clair de Lune.",
       "noExpiryNote": "Sans limite de durée · Sans renouvellement automatique"
     },
     "promptHub": {
@@ -2295,7 +2295,8 @@
       "consultCap": "(jusqu’à {amount} KRW chacune)",
       "consultNoCap": "(sans plafond de prix par service)",
       "signatureLimit": "Les consultations phares de plus de {amount} KRW ne sont pas couvertes par ce pot.",
-      "lightListTitle": "Voir les {count} Lectures Légères incluses"
+      "lightListTitle": "Voir les {count} Lectures Légères incluses",
+      "termsRevision": "Les règles du pass ont changé. Voir l'avis de modification des conditions"
     },
     "consultChoice": {
       "title": "Choisissez la consultation adaptée à votre préoccupation",
@@ -3145,7 +3146,7 @@
       "monthlyButton": "Payer avec {credits} crédits mensuels",
       "monthlyButtonBusy": "Activation du pass avec les crédits mensuels...",
       "monthlyButtonShort": "{credits} requis · solde insuffisant",
-      "terminationNotice": "Lorsque la limite d'utilisation est épuisée, le pass prend fin. Un nouvel achat repart avec une nouvelle limite d'utilisation. Les contenus payants supplémentaires sont accessibles par paiement à l'unité ou avec des Pierres de Clair de Lune."
+      "terminationNotice": "Le pass reste actif une fois la limite de consultations épuisée, et les Lectures Légères restent accessibles. Pour d'autres consultations phares, achetez un nouveau pass ou utilisez le paiement à l'unité ou des Pierres de Clair de Lune."
     },
     "access": {
       "passAppliedContinue": "Ouvert avec votre pass."

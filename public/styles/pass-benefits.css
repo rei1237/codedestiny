@@ -21,6 +21,7 @@ html:not([lang^="ko"]) .cdh .pb{display:none}html[lang^="ko"] [data-cd-localized
 .pb__banner{margin:0;padding:14px 16px;border:1px solid var(--pb-accent);border-radius:var(--cd-r-card,14px);background:color-mix(in srgb,var(--pb-selected) 40%,var(--cd-surface,#fff));color:var(--pb-ink)}
 .pb__banner strong{display:block;font-size:17px;line-height:1.45;letter-spacing:-.01em;overflow-wrap:anywhere}
 .pb__banner span{display:block;margin-top:4px;font-size:14px;line-height:1.55;overflow-wrap:anywhere}
+.pb .pb__revision{display:inline-block;margin-top:6px;padding:6px 0;font-size:14px;line-height:1.5;text-decoration:underline;text-underline-offset:3px;overflow-wrap:anywhere}
 .pb__includes{display:grid;gap:8px;list-style:none;margin:0 0 8px;padding:10px 0 0;border-top:1px solid var(--pb-line)}
 .pb__includes li{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:2px 12px;font-size:14px;line-height:1.5}
 .pb__includes li>span{min-width:0}

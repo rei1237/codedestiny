@@ -76,6 +76,7 @@ test('banner and panel copy', () => {
   assert.equal(text(banner.querySelector('strong')), `작은 꿀단지 하나면, 라이트 운세 ${data.count}종이 전부 열려요.`);
   assert.ok(text(banner).includes('대표 상담을 제외한 라이트 운세를 횟수 제한 없이 이용하세요. 중간·큰·패밀리 꿀단지에도 똑같이 포함돼요.'));
   assert.ok(banner.compareDocumentPosition(doc.querySelector('.pb__selection')) & 4, 'banner sits above the chooser');
+  assert.equal(banner.querySelector('a').getAttribute('href'), '/terms/#terms-revision');
 
   for (const [index, offer] of passBenefitOffers('honey').entries()) {
     const panel = doc.querySelector('#t-panel-' + index);
@@ -143,7 +144,7 @@ test('every new benefit copy is written in all twelve languages', () => {
   const copy = JSON.parse(read('i18n/authored/homeOverseas-09.json'));
   const shell = JSON.parse(read('i18n/authored/shellCopy-10.json'));
   const entries = [
-    ...['lightBanner', 'lightBannerSub', 'lightLine', 'lightWorth', 'consultLine', 'consultAmount', 'consultCap', 'consultNoCap', 'signatureLimit', 'lightListTitle', 'value', 'end', 'validity', 'compare']
+    ...['lightBanner', 'lightBannerSub', 'termsRevision', 'lightLine', 'lightWorth', 'consultLine', 'consultAmount', 'consultCap', 'consultNoCap', 'signatureLimit', 'lightListTitle', 'value', 'end', 'validity', 'compare']
       .map((key) => copy['home.benefitsCopy.' + key]),
     shell['home.gardenCopy.passLight'],
     shell['home.gardenCopy.passNote'],

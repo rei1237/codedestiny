@@ -864,7 +864,7 @@
       "step2Text": "Các lượt đọc tarot, thần dụ và tứ trụ trong phạm vi của bạn mở ra ngay, không cần cửa sổ thanh toán.",
       "step3Label": "Chỉ lượt đọc sâu ngoài phạm vi mới trả từng lần",
       "step3Text": "Lượt đọc sâu ngoài phạm vi chỉ tiếp tục bằng một lần thanh toán KRW khi bạn cần.",
-      "terminationNote": "Khi dùng hết hạn mức sử dụng, vé sẽ kết thúc. Mua lại sẽ bắt đầu với hạn mức sử dụng mới. Nội dung trả phí bổ sung có thể dùng bằng thanh toán một lần hoặc Nguyệt Tinh Thạch.",
+      "terminationNote": "Vé vẫn được giữ khi đã dùng hết hạn mức tư vấn và bạn vẫn dùng được các bài xem nhẹ. Để dùng thêm tư vấn tiêu biểu, hãy mua vé mới, thanh toán một lần hoặc dùng Nguyệt Tinh Thạch.",
       "noExpiryNote": "Không giới hạn thời gian · Không tự động gia hạn"
     },
     "promptHub": {
@@ -2295,7 +2295,8 @@
       "consultCap": "(tối đa {amount} KRW mỗi lần)",
       "consultNoCap": "(không giới hạn giá mỗi dịch vụ)",
       "signatureLimit": "Không thể dùng hũ này cho tư vấn tiêu biểu trên {amount} KRW mỗi lần.",
-      "lightListTitle": "Xem {count} bài xem nhẹ đi kèm"
+      "lightListTitle": "Xem {count} bài xem nhẹ đi kèm",
+      "termsRevision": "Quy định về vé đã thay đổi. Xem thông báo sửa đổi điều khoản"
     },
     "consultChoice": {
       "title": "Chọn hình thức tư vấn phù hợp với điều bạn đang băn khoăn",
@@ -3145,7 +3146,7 @@
       "monthlyButton": "Thanh toán bằng {credits} nguyệt thạch",
       "monthlyButtonBusy": "Đang kích hoạt vé bằng nguyệt thạch...",
       "monthlyButtonShort": "Cần {credits} · số dư không đủ",
-      "terminationNotice": "Khi dùng hết hạn mức sử dụng, vé sẽ kết thúc. Mua lại sẽ bắt đầu với hạn mức sử dụng mới. Nội dung trả phí bổ sung có thể dùng bằng thanh toán một lần hoặc Nguyệt Tinh Thạch."
+      "terminationNotice": "Vé vẫn được giữ khi đã dùng hết hạn mức tư vấn và bạn vẫn dùng được các bài xem nhẹ. Để dùng thêm tư vấn tiêu biểu, hãy mua vé mới, thanh toán một lần hoặc dùng Nguyệt Tinh Thạch."
     },
     "access": {
       "passAppliedContinue": "Đã mở bằng thẻ của bạn."

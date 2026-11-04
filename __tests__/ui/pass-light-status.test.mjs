@@ -92,6 +92,13 @@ test('old termination sentence is gone from purchase and status screens', () => 
   }
 });
 
+test('home and checkout notes no longer say the pass ends when the allowance runs out', () => {
+  for (const path of ['index.html', 'i18n/authored/shellCopy-01.json', 'i18n/authored/passNoExpiry-01.json']) {
+    assert.doesNotMatch(read(path), /이용 한도를 모두 사용하면 이용권이 종료/, path);
+  }
+  assert.ok(read('index.html').includes('상담 한도를 다 써도 이용권은 유지되고'));
+});
+
 test('open-ended label no longer says the pass ends, in every language', () => {
   const text = read('lib/payment/pass-expiry.ts');
   assert.ok(text.includes('기간 제한 없음 · 자동 갱신 없음'));

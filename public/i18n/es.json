@@ -864,7 +864,7 @@
       "step2Text": "Las lecturas de tarot, oráculo y saju dentro de tu rango se abren al instante, sin ventana de pago.",
       "step3Label": "Solo las lecturas más profundas se pagan por uso",
       "step3Text": "Las lecturas fuera de tu rango continúan con un pago único en KRW solo cuando lo necesitas.",
-      "terminationNote": "Cuando se agota el límite de uso, el pase termina. Si lo vuelves a comprar, empiezas con un nuevo límite de uso. El contenido adicional de pago está disponible con un pago único o Piedras de Luz Lunar.",
+      "terminationNote": "El pase sigue activo aunque agotes el límite de consultas, y puedes seguir usando las Lecturas Ligeras. Para más consultas destacadas, compra un pase nuevo o usa un pago único o Piedras de Luz Lunar.",
       "noExpiryNote": "Sin límite de tiempo · Sin renovación automática"
     },
     "promptHub": {
@@ -2295,7 +2295,8 @@
       "consultCap": "(hasta {amount} KRW cada una)",
       "consultNoCap": "(sin tope de precio por servicio)",
       "signatureLimit": "Las consultas destacadas de más de {amount} KRW no están disponibles con este tarro.",
-      "lightListTitle": "Ver las {count} Lecturas Ligeras incluidas"
+      "lightListTitle": "Ver las {count} Lecturas Ligeras incluidas",
+      "termsRevision": "Las reglas del pase han cambiado. Ver el aviso de cambios en los términos"
     },
     "consultChoice": {
       "title": "Elige la consulta que mejor encaja con tu inquietud",
@@ -3145,7 +3146,7 @@
       "monthlyButton": "Pagar con {credits} créditos mensuales",
       "monthlyButtonBusy": "Activando tu pase con créditos mensuales...",
       "monthlyButtonShort": "Se necesitan {credits} · saldo insuficiente",
-      "terminationNotice": "Cuando se agota el límite de uso, el pase termina. Si lo vuelves a comprar, empiezas con un nuevo límite de uso. El contenido adicional de pago está disponible con un pago único o Piedras de Luz Lunar."
+      "terminationNotice": "El pase sigue activo aunque agotes el límite de consultas, y puedes seguir usando las Lecturas Ligeras. Para más consultas destacadas, compra un pase nuevo o usa un pago único o Piedras de Luz Lunar."
     },
     "access": {
       "passAppliedContinue": "Abierto con su pase."

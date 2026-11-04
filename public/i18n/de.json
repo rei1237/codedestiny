@@ -864,7 +864,7 @@
       "step2Text": "Tarot-, Orakel- und Saju-Readings innerhalb deines Bereichs öffnen sich sofort, ganz ohne Bezahlfenster.",
       "step3Label": "Nur tiefere Readings kosten pro Nutzung",
       "step3Text": "Readings außerhalb deines Bereichs führen nur bei Bedarf zu einer einmaligen KRW-Zahlung.",
-      "terminationNote": "Wenn das Nutzungslimit aufgebraucht ist, endet der Pass. Bei einem erneuten Kauf beginnst du mit einem neuen Nutzungslimit. Zusätzliche kostenpflichtige Inhalte sind per Einzelzahlung oder mit Mondlichtsteinen verfügbar.",
+      "terminationNote": "Der Pass bleibt aktiv, auch wenn das Beratungslimit aufgebraucht ist, und leichte Deutungen bleiben verfügbar. Für weitere Signature-Beratungen kaufe einen neuen Pass oder nutze eine Einzelzahlung oder Mondlichtsteine.",
       "noExpiryNote": "Ohne Laufzeitbegrenzung · Keine automatische Verlängerung"
     },
     "promptHub": {
@@ -2295,7 +2295,8 @@
       "consultCap": "(bis {amount} KRW je Nutzung)",
       "consultNoCap": "(keine Preisobergrenze je Dienst)",
       "signatureLimit": "Signature-Beratungen über {amount} KRW sind mit diesem Topf nicht nutzbar.",
-      "lightListTitle": "Die {count} enthaltenen leichten Deutungen ansehen"
+      "lightListTitle": "Die {count} enthaltenen leichten Deutungen ansehen",
+      "termsRevision": "Die Pass-Regeln haben sich geändert. Hinweis zur Änderung der Bedingungen ansehen"
     },
     "consultChoice": {
       "title": "Wähle die Beratung, die zu deinem Anliegen passt",
@@ -3145,7 +3146,7 @@
       "monthlyButton": "Mit {credits} Monatsguthaben bezahlen",
       "monthlyButtonBusy": "Pass wird mit Monatsguthaben aktiviert...",
       "monthlyButtonShort": "{credits} nötig · Guthaben zu gering",
-      "terminationNotice": "Wenn das Nutzungslimit aufgebraucht ist, endet der Pass. Bei einem erneuten Kauf beginnst du mit einem neuen Nutzungslimit. Zusätzliche kostenpflichtige Inhalte sind per Einzelzahlung oder mit Mondlichtsteinen verfügbar."
+      "terminationNotice": "Der Pass bleibt aktiv, auch wenn das Beratungslimit aufgebraucht ist, und leichte Deutungen bleiben verfügbar. Für weitere Signature-Beratungen kaufe einen neuen Pass oder nutze eine Einzelzahlung oder Mondlichtsteine."
     },
     "access": {
       "passAppliedContinue": "Mit Ihrem Pass geöffnet."

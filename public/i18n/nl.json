@@ -864,7 +864,7 @@
       "step2Text": "Tarot-, orakel- en saju-readings binnen je bereik openen meteen, zonder betaalvenster.",
       "step3Label": "Alleen diepere readings betaal je per keer",
       "step3Text": "Readings buiten je bereik gaan alleen bij behoefte door met een eenmalige KRW-betaling.",
-      "terminationNote": "Zodra de gebruikslimiet op is, stopt de pas. Koop je opnieuw, dan begin je met een nieuwe gebruikslimiet. Extra betaalde content is beschikbaar via eenmalige betaling of Maanlichtstenen.",
+      "terminationNote": "Je pas blijft actief als de consultlimiet op is, en lichte duidingen blijven beschikbaar. Voor meer signature-consulten koop je een nieuwe pas of gebruik je een eenmalige betaling of Maanlichtstenen.",
       "noExpiryNote": "Geen tijdslimiet · Geen automatische verlenging"
     },
     "promptHub": {
@@ -2295,7 +2295,8 @@
       "consultCap": "(tot {amount} KRW per keer)",
       "consultNoCap": "(geen prijsplafond per dienst)",
       "signatureLimit": "Signature-consulten boven {amount} KRW zijn niet beschikbaar met deze pot.",
-      "lightListTitle": "Bekijk de {count} inbegrepen lichte duidingen"
+      "lightListTitle": "Bekijk de {count} inbegrepen lichte duidingen",
+      "termsRevision": "De pasregels zijn gewijzigd. Bekijk de melding over de gewijzigde voorwaarden"
     },
     "consultChoice": {
       "title": "Kies het consult dat bij je vraag past",
@@ -3145,7 +3146,7 @@
       "monthlyButton": "Betalen met {credits} maandtegoed",
       "monthlyButtonBusy": "Pas wordt geactiveerd met maandtegoed...",
       "monthlyButtonShort": "{credits} nodig · saldo te laag",
-      "terminationNotice": "Zodra de gebruikslimiet op is, stopt de pas. Koop je opnieuw, dan begin je met een nieuwe gebruikslimiet. Extra betaalde content is beschikbaar via eenmalige betaling of Maanlichtstenen."
+      "terminationNotice": "Je pas blijft actief als de consultlimiet op is, en lichte duidingen blijven beschikbaar. Voor meer signature-consulten koop je een nieuwe pas of gebruik je een eenmalige betaling of Maanlichtstenen."
     },
     "access": {
       "passAppliedContinue": "Geopend met je pas."

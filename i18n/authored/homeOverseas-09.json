@@ -475,6 +475,20 @@
     "nl": "Gebruik lichte duidingen onbeperkt, behalve de signature-consulten. Ook de middelgrote, grote en familiepot bevatten ze.",
     "ms": "Guna Bacaan Ringan tanpa had kekerapan, kecuali konsultasi utama. Balang Sederhana, Besar dan Keluarga turut menyertakannya."
   },
+  "home.benefitsCopy.termsRevision": {
+    "ko": "이용권 규칙이 바뀌었어요. 약관 개정 안내 보기",
+    "en": "Pass rules have changed. See the notice of revised terms",
+    "ja": "利用券のルールが変わりました。規約改定のお知らせを見る",
+    "zh-CN": "通行证规则已更新。查看条款修订通知",
+    "zh-TW": "通行證規則已更新。查看條款修訂通知",
+    "vi": "Quy định về vé đã thay đổi. Xem thông báo sửa đổi điều khoản",
+    "hi": "पास के नियम बदल गए हैं। शर्तों में बदलाव की सूचना देखें",
+    "es": "Las reglas del pase han cambiado. Ver el aviso de cambios en los términos",
+    "fr": "Les règles du pass ont changé. Voir l'avis de modification des conditions",
+    "de": "Die Pass-Regeln haben sich geändert. Hinweis zur Änderung der Bedingungen ansehen",
+    "nl": "De pasregels zijn gewijzigd. Bekijk de melding over de gewijzigde voorwaarden",
+    "ms": "Peraturan pas telah berubah. Lihat notis perubahan terma"
+  },
   "home.benefitsCopy.lightLine": {
     "ko": "라이트 운세 {count}종 횟수 제한 없이",
     "en": "{count} Light Readings, unlimited uses",
