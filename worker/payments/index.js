@@ -373,6 +373,44 @@ async function buildLegacyPrepareCustomer(env, user, userId) {
    구 핸들러에도 없었음이 전수 조사로 확정됐다(passes.js 머리주석). */
 
 /** 구 billing.js handleCheckout/handleConfirm 의 isSubscription 판별과 같은 정본을 쓴다. */
+/**
+ * 묶음 포함·판매 종료 키의 신규 구매 입구(/orders·/prepare·/moonstone/spend) 공통 가드.
+ * 🔴 보유 확인이 먼저다 — 이미 가진 사람(개별 구매자·묶음 보유 프로필)에게 PRODUCT_SALE_ENDED(409)와
+ * bundleFeatureKey 를 주면 화면이 "묶음으로 열 수 있어요"를 띄워 가진 것을 또 사라고 권한다.
+ * 보유자는 true 로 돌려 호출부가 "이미 보유" 응답을 내게 하고, 미보유자는 여기서 409 로 던진다.
+ * 어느 쪽에서도 주문·차감·원장·권리 쓰기는 없다(읽기 한 번). 닫히지 않은 키는 false 이고 DB 를 열지 않는다.
+ */
+async function guardSaleClosedEntry({ env, ctx, userId, product, body, withDb }) {
+  if (!isSajuBundleSaleClosed(product.featureKey)) return false;
+  const owned = await withDb(env, ctx, (db) => findOwnedForSaleGate(db, {
+    userId, product,
+    profileId: String(body.profileId || body.selectedProfileId || "").trim(),
+    partnerProfileId: body.partnerProfileId, contentKey: body.contentKey, scope: body.scope,
+  }));
+  if (!owned) assertProductSaleOpen(product);
+  ctx.paymentStatus = "ALREADY_UNLOCKED";
+  return true;
+}
+
+/** 위 가드의 보유자 응답. 월정석 게이트·checkout 우회 판정기가 읽는 alreadyUnlocked 관례를 따르며 주문 키·결제 증빙은 싣지 않는다. */
+function alreadyOwnedSaleClosedBody(product) {
+  const featureKey = String(product.featureKey || "");
+  return {
+    ok: true,
+    alreadyUnlocked: true,
+    featureKey,
+    message: "이미 보유한 콘텐츠예요. 바로 열 수 있어요.",
+    data: {
+      alreadyUnlocked: true,
+      accessType: "already_unlocked",
+      featureKey,
+      charged: 0,
+      unlockedFeatures: [featureKey],
+      unlockMap: { [featureKey]: true },
+    },
+  };
+}
+
 function isPassLikeBody(body = {}) {
   return isPassLikeProductType(resolveServerProductType({
     body,
@@ -1310,8 +1348,11 @@ const ROUTES = {
         productId: body.productId, featureKey: body.featureKey, reason: body.reason,
       });
       if (unitProduct.featureKey === 'neo-email-consultation') throw paymentError('INVALID_REQUEST','상담 화면에서 결제를 준비해 주세요.');
-      // 묶음 포함·판매 종료 키의 신규 주문은 PayPal 환율 조회·주문 생성보다 먼저 닫는다(확정·환불 경로는 이 라우트가 아니다).
-      assertProductSaleOpen(unitProduct);
+      // 묶음 포함·판매 종료 키: 보유자는 "이미 보유", 미보유자는 PayPal 환율 조회·주문 생성보다 먼저 409 로 닫는다(확정·환불 경로는 이 라우트가 아니다).
+      if (await guardSaleClosedEntry({ env, ctx, userId, product: unitProduct, body, withDb })) {
+        ctx.productId = unitProduct.productId;
+        return json(alreadyOwnedSaleClosedBody(unitProduct));
+      }
       const availability = assertFeatureEnabled(unitProduct);
       if (!availability.ok) throw paymentError(availability.code, availability.message);
       const product = withChargeAmount(env, unitProduct);
@@ -1363,8 +1404,11 @@ const ROUTES = {
       // 첫 배선은 catalog(resolveProduct)를 썼는데, mode/reportMode/categoryKey 변형 가격을 잃어
       // 해당 기능의 단건 결제가 400(금액 불일치)으로 막히는 라이브 결함이었다(2026-08-12 수정).
       let listedProduct = preparedProduct || resolveLegacyProduct(body);
-      // 묶음 포함·판매 종료 키의 신규 주문은 금액 대조·PayPal 환율 조회·주문 생성보다 먼저 닫는다.
-      assertProductSaleOpen(listedProduct);
+      // 묶음 포함·판매 종료 키: 보유자는 "이미 보유"(주문 키 없음 — 클라이언트는 결제창을 열지 않는다), 미보유자는 금액 대조·PayPal 환율 조회·주문 생성보다 먼저 409.
+      if (await guardSaleClosedEntry({ env, ctx, userId, product: listedProduct, body, withDb })) {
+        ctx.productId = listedProduct.productId;
+        return json(alreadyOwnedSaleClosedBody(listedProduct));
+      }
       const availability = assertFeatureEnabled(listedProduct);
       if (!availability.ok) throw paymentError(availability.code, availability.message);
       if (listedProduct.featureKey === 'neo-email-consultation') {
@@ -1940,8 +1984,11 @@ const ROUTES = {
     auth: "required",
     async handle({ request, env, ctx, userId, body, withDb }) {
       const product = resolveProduct({ productId: body.productId, featureKey: body.featureKey, reason: body.reason });
-      // 직접 차감 입구다(보유 확인이 없다). 판매 종료 키·묶음은 월정석 제외 402 보다 판매 종료 409 가 먼저 읽히게 한다.
-      assertProductSaleOpen(product);
+      // 직접 차감 입구다. 판매 종료 키는 보유 확인이 먼저(보유자는 차감·지급 없이 "이미 보유"), 미보유자는 월정석 제외 402 보다 판매 종료 409 가 먼저 읽히게 한다.
+      if (await guardSaleClosedEntry({ env, ctx, userId, product, body, withDb })) {
+        ctx.productId = product.productId;
+        return json({ ...alreadyOwnedSaleClosedBody(product), replayed: true });
+      }
       if (product.monthlyExcluded) {
         throw paymentError("MONTHLY_NOT_ALLOWED", "이 상품의 다른 결제 방식을 선택해 주세요.");
       }

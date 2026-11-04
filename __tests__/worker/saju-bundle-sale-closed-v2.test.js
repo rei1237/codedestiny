@@ -253,3 +253,87 @@ describe("findOwnedEntitlement는 묶음 별칭을 읽는다(공유 리더와 �
     expect(entitlementRows(db).map((row) => row.featureKey).sort()).toEqual(["section_daewun", SAJU_BUNDLE_FEATURE_KEY].sort());
   });
 });
+
+describe("보유자는 /orders·/prepare·/moonstone/spend 에서도 구매 유도 없이 이미 보유로 답한다", () => {
+  const OWNED_FEATURE = "section_daewun";
+  const ENTRIES = [
+    ["/orders", (id) => ({ featureKey: OWNED_FEATURE, profileId: "p2", idempotencyKey: `owned-orders-${id}` }), {}],
+    ["/prepare", (id) => ({ paymentType: "digital_content", featureKey: OWNED_FEATURE, profileId: "p2", idempotencyKey: `owned-prepare-${id}` }), { legacyEnvelope: "prepare" }],
+    ["/moonstone/spend", (id) => ({ featureKey: OWNED_FEATURE, profileId: "p2", idempotencyKey: `owned-spend-${id}` }), {}],
+  ];
+
+  async function seedOwner(db, kind) {
+    if (kind === "bundle") return grantBundle(db, "p1"); // p2 는 p1 과 같은 출생
+    return grantEntitlement(db, { userId: USER, product: resolveProduct({ featureKey: OWNED_FEATURE }), orderId: "cdoldorder000000000000000000000000000", profileId: "p1" });
+  }
+
+  const OWNER_KINDS = ["bundle", "individual"];
+  for (const kind of OWNER_KINDS) {
+    for (const [path, makeBody, extra] of ENTRIES) {
+      test(`${kind === "bundle" ? "묶음 보유 프로필" : "기존 개별 구매자"}: ${path} 는 200 이미 보유이고 주문·차감·원장·권리 변경이 없다`, async () => {
+        const db = makeDb();
+        const user = seedUser(db, { credit: 100000 });
+        await seedOwner(db, kind);
+        const entitlementsBefore = entitlementRows(db).length;
+        const { response, payload } = await post(db, path, makeBody(kind), extra);
+        expect(response.status).toBe(200);
+        expect(payload).toMatchObject({ ok: true, alreadyUnlocked: true, featureKey: OWNED_FEATURE });
+        expect(payload.data).toMatchObject({ alreadyUnlocked: true, accessType: "already_unlocked", featureKey: OWNED_FEATURE });
+        // 구매 유도 신호가 전혀 없어야 한다 — 화면이 bundleFeatureKey 로 묶음 안내를 연다.
+        const text = JSON.stringify(payload);
+        expect(text).not.toContain("PRODUCT_SALE_ENDED");
+        expect(text).not.toContain(SAJU_BUNDLE_FEATURE_KEY);
+        expect(text).not.toContain("bundleFeatureKey");
+        // 클라이언트가 주문 키·금액을 찾지 못해야 결제창이 열리지 않는다(index.html _cdFindCheckoutOrder · destiny-profile.js _dpFindCheckoutOrder).
+        for (const key of ["merchantUid", "paymentId", "orderId", "paymentAmount", "totalAmount", "amountKRW", "amount", "order", "checkout", "accessGrant", "consume"]) {
+          expect(Object.keys(payload)).not.toContain(key);
+          expect(Object.keys(payload.data)).not.toContain(key);
+        }
+        expect(orderRows(db)).toHaveLength(0);
+        expect(ledgerCount(db)).toBe(0);
+        expect(user.profileSubscription.membershipCreditBalance).toBe(100000);
+        expect(entitlementRows(db)).toHaveLength(entitlementsBefore);
+      });
+    }
+  }
+
+  test("같은 입구라도 미보유(다른 출생)는 409 PRODUCT_SALE_ENDED 와 bundleFeatureKey 를 받는다", async () => {
+    const db = makeDb();
+    const user = seedUser(db, { credit: 100000 });
+    await grantBundle(db, "p1");
+    for (const [path, makeBody, extra] of ENTRIES) {
+      const body = { ...makeBody("other"), profileId: "p3" };
+      const { response, payload } = await post(db, path, body, extra);
+      expect({ path, status: response.status }).toEqual({ path, status: 409 });
+      expect(JSON.stringify(payload)).toContain("PRODUCT_SALE_ENDED");
+      expect(JSON.stringify(payload)).toContain(SAJU_BUNDLE_FEATURE_KEY);
+    }
+    expect(orderRows(db)).toHaveLength(0);
+    expect(ledgerCount(db)).toBe(0);
+    expect(user.profileSubscription.membershipCreditBalance).toBe(100000);
+    expect(entitlementRows(db)).toHaveLength(1);
+  });
+
+  test("남의 프로필 id 는 보유 판정에서 거절되고 주문·차감은 없다", async () => {
+    const db = makeDb();
+    const user = seedUser(db, { credit: 100000 });
+    await grantBundle(db, "p1");
+    for (const [path, makeBody, extra] of ENTRIES) {
+      const { response } = await post(db, path, { ...makeBody("foreign"), profileId: "not-my-profile" }, extra);
+      expect({ path, ok: response.status === 200 }).toEqual({ path, ok: false });
+    }
+    expect(orderRows(db)).toHaveLength(0);
+    expect(ledgerCount(db)).toBe(0);
+    expect(user.profileSubscription.membershipCreditBalance).toBe(100000);
+  });
+
+  test("판매 중인 키와 묶음 자체는 보유 확인 없이 지금처럼 주문된다", async () => {
+    const db = makeDb();
+    seedUser(db);
+    await grantBundle(db, "p1");
+    const open = await post(db, "/orders", { featureKey: "ziwei_decade_luck", profileId: "p2", idempotencyKey: "open-after-owner-1" });
+    expect(open.response.status).toBe(200);
+    expect(open.payload.alreadyUnlocked).toBeUndefined();
+    expect(orderRows(db)).toHaveLength(1);
+  });
+});
