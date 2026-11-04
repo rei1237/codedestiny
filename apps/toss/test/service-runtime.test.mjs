@@ -75,12 +75,12 @@ test('canonical catalog is fail-closed; profiles use owner-scoped immutable retr
   assert.equal((await canonicalModule.canonicalProfiles({ownerId:'owner-a'})).profiles[0].name,'first');
   assert.equal((await canonicalModule.canonicalProfiles({ownerId:'owner-b'})).profiles[0].name,'second');
   assert.ok(writes.every(row=>row.filter.userId&&row.update.$set===undefined));
-  const row={_id:'01900000-1111-7111-8111-000000000042',requestId:'a'.repeat(64),productId:product.id,serviceId:'yeongnyangi',status:'GRANTED',grantedAt:new Date().toISOString()};
+  const row={_id:'01900000-1111-7111-8111-000000000042',requestId:'a'.repeat(64),productId:product.id,approvedPriceKRW:product.priceKRW,serviceId:'yeongnyangi',status:'GRANTED',grantedAt:new Date().toISOString()};
   const original={...product,name:'구매 당시 상품명',priceKRW:1234};
   let reads=0;
-  const page=await canonicalModule.canonicalLibraryPage([row],async id=>{reads++;assert.equal(id,row.requestId);return {productId:product.id,state:'COMPLETED',chapters:[{}],snapshot:{product:original,locale:'en',manifest:[{}]}};});
+  const page=await canonicalModule.canonicalLibraryPage([row],async id=>{reads++;assert.equal(id,row.requestId);return {_id:id,paymentClaimOrderId:row._id,accessMethod:'TOSS_IAP',amountKRW:row.approvedPriceKRW,productId:product.id,state:'COMPLETED',chapters:[{}],snapshot:{product:original,locale:'en',manifest:[{}]}};},async()=>{});
   assert.equal(reads,1);assert.deepEqual(page.fortunes[0].product,original);assert.equal(page.fortunes[0].locale,'en');assert.equal(page.fortunes[0].canRetry,false);
   const refunded=await canonicalModule.canonicalLibraryPage([{...row,status:'REFUNDED'}],async()=>({productId:product.id,state:'COMPLETED',snapshot:{product:original}}));
-  assert.equal(refunded.fortunes[0].paid,false);assert.equal(refunded.fortunes[0].state,'REFUNDED');
+  assert.deepEqual(refunded.fortunes,[]);
  }finally{delete globalThis.__canonicalProfileStore;}
 });

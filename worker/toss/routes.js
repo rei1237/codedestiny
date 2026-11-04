@@ -10,7 +10,7 @@ import {purchaseStore,recordTossRefund} from './purchases.js';
 import {ProfileCard,PaidExecutionRecord} from '../lib/models.js';
 import {incrementRateLimit} from '../lib/rate-limit.js';
 import {resolveStoredProduct} from '../yeongnyangi/payments/catalog.ts';
-import {consultationService,consultationSelection,requestMatchesService} from './services.js';
+import {consultationService,consultationSelection,requestMatchesService,requestMatchesPurchase} from './services.js';
 import {LIBRARY_PAGE_SIZE,libraryFilter,libraryPage} from './library.js';
 import {questionDecision,questionTopic,assertQuestionOrder} from '../yeongnyangi/fortune/ask/question-policy.ts';
 import {prepareFortune,presentFortune,drawTarotSpread,experienceCheckFortune} from '../yeongnyangi/service.ts';
@@ -20,6 +20,18 @@ import {enqueueConsultation} from '../yeongnyangi/queue.js';
 import {canonicalProducts,canonicalSale,canonicalProfiles,prepareCanonicalFortune,drawCanonicalFortune,canonicalLibraryPage} from './canonical-yeongnyangi.js';
 import {forwardServiceResponse} from './service-response.js';
 import {attachTarotLibraryInput,deliverTarotLibraryOrder,grantTarotLibraryOrder,tarotLibraryFlow,tarotLibraryProduct,tarotLibraryResult} from './tarot-library.js';
+
+async function verifyLibraryOrder(env,auth,purchase){
+  if(purchase.identityId!==auth._id||String(purchase.ownerId)!==String(auth.ownerId)||purchase.environment!==auth.environment)throw new TossError('ORDER_OWNERSHIP_MISMATCH',403);
+  const order=await lookupOrder(env,auth.userKey,purchase._id);
+  if(order.orderId!==purchase._id||order.sku!==purchase.sku)throw new TossError('ORDER_MISMATCH',403);
+  if(order.status==='REFUNDED'){await recordTossRefund(auth,order);throw new TossError('ORDER_REFUNDED',409);}
+  checkOrder(order,{orderId:purchase._id,sku:purchase.sku});
+}
+
+async function readNativeLibraryItem(env,auth,row){
+  return row.nativeService==='love-secret'?(await import('./native-love-secret.js')).nativeLoveSecretLibraryItem(env,auth,row):row.nativeService==='life-book'?(await import('./native-life-book.js')).nativeLifeBookLibraryItem(env,auth,row):row.nativeService==='fusion'?(await import('./native-fusion.js')).nativeFusionLibraryItem(env,auth,row):row.nativeService==='neo'?(await import('./native-neo.js')).nativeNeoLibraryItem(env,auth,row):(await import('./native-tea.js')).nativeTeaLibraryItem(env,auth,row);
+}
 
 async function bodyOf(request) {
   if(!request.headers.get('Content-Type')?.startsWith('application/json'))throw new TossError('JSON_REQUIRED',415);
@@ -69,7 +81,12 @@ export async function handleTossRoutes(request,env) {
     }
     const auth=await requireTossSession(request,env);
     await limit(env,auth._id,'authenticated',120);
-    if(path==='/canonical/records'&&request.method==='GET')return reply(await (await import('./native-tea.js')).nativeTeaRecords(env,auth,url.searchParams));
+    if(path==='/canonical/records'&&request.method==='GET'){
+      const rows=await TossPurchase.find(libraryFilter(auth,url.searchParams.get('cursor'))).sort({grantedAt:-1,_id:-1}).limit(LIBRARY_PAGE_SIZE+1).lean();
+      const {unifiedRecordsPage}=await import('./unified-records.js');
+      return reply(await unifiedRecordsPage(rows,id=>readRequest(env,auth.userId,id),row=>PaidExecutionRecord.findOne({orderId:row._id,userId:String(auth.ownerId)}).lean(),
+        row=>readNativeLibraryItem(env,auth,row),row=>verifyLibraryOrder(env,auth,row),{group:url.searchParams.get('group')||'all',query:(url.searchParams.get('q')||'').slice(0,160),source:url.searchParams.get('source')||''}));
+    }
     if(path==='/native/catalog'&&request.method==='GET'){
       const {nativeTeaCatalog}=await import('./native-tea.js');
       return reply({products:nativeTeaCatalog()});
@@ -161,7 +178,7 @@ export async function handleTossRoutes(request,env) {
     }
     if(path==='/canonical/yeongnyangi/requests'&&request.method==='GET'){
       const rows=await TossPurchase.find({...libraryFilter(auth,url.searchParams.get('cursor')),serviceId:'yeongnyangi',tarotFlowId:''}).sort({grantedAt:-1,_id:-1}).limit(LIBRARY_PAGE_SIZE+1).lean();
-      return reply(await canonicalLibraryPage(rows,id=>readRequest(env,auth.userId,id)));
+      return reply(await canonicalLibraryPage(rows,id=>readRequest(env,auth.userId,id),row=>verifyLibraryOrder(env,auth,row)));
     }
     const canonicalDraw=path.match(/^\/canonical\/yeongnyangi\/requests\/([a-f0-9]{64})\/tarot-draw$/);
     if(canonicalDraw&&request.method==='POST'){
@@ -261,7 +278,7 @@ export async function handleTossRoutes(request,env) {
     if(path==='/library'&&request.method==='GET') {
       const rows=await TossPurchase.find(libraryFilter(auth,url.searchParams.get('cursor'))).sort({grantedAt:-1,_id:-1}).limit(LIBRARY_PAGE_SIZE+1).lean();
       return reply(await libraryPage(rows,id=>readRequest(env,auth.userId,id),row=>PaidExecutionRecord.findOne({orderId:row._id,userId:String(auth.ownerId)}).lean(),
-        async row=>row.nativeService==='love-secret'?(await import('./native-love-secret.js')).nativeLoveSecretLibraryItem(env,auth,row):row.nativeService==='life-book'?(await import('./native-life-book.js')).nativeLifeBookLibraryItem(env,auth,row):row.nativeService==='fusion'?(await import('./native-fusion.js')).nativeFusionLibraryItem(env,auth,row):row.nativeService==='neo'?(await import('./native-neo.js')).nativeNeoLibraryItem(env,auth,row):(await import('./native-tea.js')).nativeTeaLibraryItem(env,auth,row)));
+        row=>readNativeLibraryItem(env,auth,row),row=>verifyLibraryOrder(env,auth,row)));
     }
     const tarotResultMatch=path.match(/^\/tarot-library\/results\/([a-f0-9-]{36})$/);
     if(tarotResultMatch&&request.method==='POST') {
@@ -295,7 +312,7 @@ export async function handleTossRoutes(request,env) {
       if(!purchase)throw new TossError('RESULT_NOT_FOUND',404);
       if(canonical&&consultationService(purchase).id!=='yeongnyangi')throw new TossError('RESULT_NOT_FOUND',404);
       const owned=await readRequest(env,auth.userId,resultMatch[1]);
-      if(!requestMatchesService(owned,purchase))throw new TossError('RESULT_NOT_FOUND',404);
+      if(!requestMatchesPurchase(owned,purchase))throw new TossError('RESULT_NOT_FOUND',404);
       const order=await lookupOrder(env,auth.userKey,purchase._id);
       if(order.sku!==purchase.sku||order.orderId!==purchase._id)throw new TossError('ORDER_MISMATCH',403);
       if(order.status==='REFUNDED'){await recordTossRefund(auth,order);throw new TossError('ORDER_REFUNDED',409);}

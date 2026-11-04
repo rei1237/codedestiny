@@ -1,11 +1,11 @@
 import {TossError,validateOrderId} from './policy.js';
-import {consultationSelection,requestMatchesService} from './services.js';
-export const LIBRARY_PAGE_SIZE=50;
+import {consultationSelection,requestMatchesPurchase} from './services.js';
+export const LIBRARY_PAGE_SIZE=20;
 function preserveAuthorizationError(error){
   if(error?.status===401||error?.status===403)throw error;
 }
 export function libraryFilter(auth,cursor){
-  const filter={identityId:auth._id,environment:auth.environment};
+  const filter={identityId:auth._id,ownerId:auth.ownerId,environment:auth.environment};
   if(!cursor)return filter;
   if(typeof cursor!=='string'||cursor.length!==61)throw new TossError('LIBRARY_CURSOR_INVALID');
   const stamp=cursor.slice(0,24),id=cursor.slice(25);
@@ -14,12 +14,17 @@ export function libraryFilter(auth,cursor){
   validateOrderId(id);
   return {...filter,$or:[{grantedAt:{$lt:date}},{grantedAt:date,_id:{$lt:id}}]};
 }
-export async function libraryPage(rows,read,readTarot=async()=>null,readNative=async()=>{throw new Error('NATIVE_READ_UNAVAILABLE');}){
+export async function libraryPage(rows,read,readTarot=async()=>null,readNative=async()=>{throw new Error('NATIVE_READ_UNAVAILABLE');},verify=async()=>{throw new Error('ORDER_VERIFICATION_UNAVAILABLE');}){
   const page=rows.slice(0,LIBRARY_PAGE_SIZE);
+  let active=0;const waiting=[];
+  const withSlot=async task=>{if(active>=4)await new Promise(resolve=>waiting.push(resolve));else active++;try{return await task();}finally{const next=waiting.shift();if(next)next();else active--;}};
+  const blocked=(row,state)=>({orderId:row._id,sku:row.sku,productId:row.productId,serviceId:row.serviceId||'yeongnyangi',nativeService:row.nativeService,featureKey:row.featureKey,selectionId:row.tarotFlowId||(!row.nativeService?consultationSelection(row):undefined),requestId:row.requestId,status:state==='REFUNDED'?'REFUNDED':row.status,createdAt:row.grantedAt,state,completedSections:0,totalSections:null});
   const purchases=await Promise.all(page.map(async row=>{
+    if(row.status==='REFUNDED')return blocked(row,'REFUNDED');
+    if(!(row.nativeService&&row.requestId)){try{await withSlot(()=>verify(row));}catch(error){preserveAuthorizationError(error);return blocked(row,error?.code==='ORDER_REFUNDED'?'REFUNDED':'READ_FAILED');}}
     if(row.nativeService){
       let saved={state:row.requestId?'READ_FAILED':'UNASSIGNED'};
-      try{saved=await readNative(row);}catch(error){preserveAuthorizationError(error);/* Keep the purchase visible without inventing a new entitlement. */}
+      try{saved=await withSlot(()=>readNative(row));}catch(error){preserveAuthorizationError(error);if(error?.code==='ORDER_REFUNDED')return blocked(row,'REFUNDED');/* Keep the purchase visible without inventing a new entitlement. */}
       if(row.status==='REFUNDED')saved={state:'REFUNDED'};
       return {orderId:row._id,sku:row.sku,productId:row.productId,serviceId:row.serviceId,nativeService:row.nativeService,featureKey:row.featureKey,
         requestId:row.requestId,status:row.status,createdAt:row.grantedAt,...saved,completedSections:saved.state==='COMPLETED'?1:0,totalSections:1};
@@ -35,7 +40,7 @@ export async function libraryPage(rows,read,readTarot=async()=>null,readNative=a
     if(row.requestId){
       try{
         const saved=await read(row.requestId);
-        if(saved&&requestMatchesService(saved,row)){result=saved;state=saved.state;}
+        if(saved&&requestMatchesPurchase(saved,row)){result=saved;state=saved.state;}
       }catch(error){preserveAuthorizationError(error);/* Keep the verified purchase visible; a read failure is never a fresh entitlement. */}
     }
     if(row.status==='REFUNDED')state='REFUNDED';

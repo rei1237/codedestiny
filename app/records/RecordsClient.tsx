@@ -77,7 +77,7 @@ export default function RecordsClient({ showWebReception = true, refreshKey = 0,
     if (loading || !cursor) return;
     const current = epoch.current; setLoading(true); setError('');
     try { const data = await requestPage(cursor); if (current !== epoch.current) return; setItems(old => mergeRecords(old, data.items)); setFailures(data.failures || []); setCursor(data.nextCursor || null); pages.current++; }
-    catch (cause) { if (current === epoch.current) { const denied = paymentSurface === 'toss' && isAccessDenied(cause); if (denied) { setItems([]); setFailures([]); setCursor(null); } setError(denied ? 'denied' : 'unavailable'); } }
+    catch (cause) { if (current === epoch.current) { const denied = paymentSurface === 'toss' && isAccessDenied(cause); if (paymentSurface === 'toss') { setItems([]); setFailures([]); setCursor(null); } setError(denied ? 'denied' : 'unavailable'); } }
     finally { if (current === epoch.current) setLoading(false); }
   }
   const statusLabel = (status: string) => (c as Record<string, string>)[status] || c.saved;
@@ -103,7 +103,8 @@ export default function RecordsClient({ showWebReception = true, refreshKey = 0,
         </article>;
       })}</div>
       {loading && <div role="status" className="my-5 space-y-3"><p className="text-sm">{c.loading}</p>{!items.length && [1,2,3].map(id => <div key={id} aria-hidden className="h-36 animate-pulse rounded-[var(--cd-r-card)] bg-[var(--cd-surface)]" />)}</div>}
-      {!loading && !error && !failures.length && !items.length && <section className={styles.emptyState}><img src="/images/yeoni/garden/yeoni-garden-library-empty-v1-320.webp" width="160" height="160" alt="" /><h2 className="text-xl font-semibold">{search || group !== 'all' ? c.emptySearch : c.empty}</h2><p>{c.emptyLead}</p><a className={recordButton} href="/consultations/">{c.hub}</a></section>}
+      {!loading && !error && !failures.length && !items.length && cursor && <p role="status">일치하는 기록을 더 확인할 수 있어요.</p>}
+      {!loading && !error && !failures.length && !items.length && !cursor && <section className={styles.emptyState}><img src="/images/yeoni/garden/yeoni-garden-library-empty-v1-320.webp" width="160" height="160" alt="" /><h2 className="text-xl font-semibold">{search || group !== 'all' ? c.emptySearch : c.empty}</h2><p>{c.emptyLead}</p><a className={recordButton} href={paymentSurface === 'toss' ? '/' : '/consultations/'}>{c.hub}</a></section>}
       {cursor && !loading && <button className={`${recordButton} mt-5 w-full`} onClick={() => void loadMore()}>{c.more}</button>}
     </>}
   </RecordFrame>;

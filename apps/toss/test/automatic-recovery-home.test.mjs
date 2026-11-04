@@ -98,3 +98,13 @@ test('unsupported product listing shows the SDK update guidance',async()=>{
  try{assert.match(document.body.textContent,/토스 앱을 최신 버전으로 업데이트해 주세요/);}
  finally{await view.close();}
 });
+
+test('unverified library purchase cannot open its saved result',async()=>{
+ history.replaceState({},'', '/library');const view=await mount(true,'',{api:async()=>({purchases:[{orderId:'order-1',requestId:'result-1',productId:'saju_mackerel',serviceId:'yeongnyangi',status:'PURCHASED',state:'READ_FAILED',createdAt:'2026-01-01'}],nextCursor:null})});
+ try{const row=[...document.querySelectorAll('button')].find(button=>button.textContent.includes('상태 확인이 지연돼요'));assert.ok(row);assert.equal(row.disabled,true);await React.act(async()=>row.click());assert.equal(location.pathname,'/library');assert.match(row.textContent,/구매 복구/);}finally{await view.close();history.replaceState({},'', '/');}
+});
+
+for(const status of [403,503])test(`Toss library pagination ${status} removes earlier result links`,async()=>{
+ history.replaceState({},'', '/library');let calls=0;const view=await mount(true,'',{api:async()=>++calls===1?{purchases:[{orderId:'order-1',requestId:'result-1',productId:'saju_mackerel',serviceId:'yeongnyangi',status:'PURCHASED',state:'COMPLETED',createdAt:'2026-01-01'}],nextCursor:'next'}:{errorStatus:status}});
+ try{assert.ok(document.querySelector('button.record'));const more=[...document.querySelectorAll('button')].find(button=>button.textContent.includes('이전 구매 기록 더 보기'));assert.ok(more);await React.act(async()=>more.click());assert.equal(document.querySelector('button.record'),null);assert.match(document.body.textContent,/기록을 불러오지 못했어요/);if(status===403)assert.match(document.body.textContent,/접근 권한/);}finally{await view.close();history.replaceState({},'', '/');}
+});

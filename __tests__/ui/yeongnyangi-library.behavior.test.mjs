@@ -13,7 +13,7 @@ const { build } = require('esbuild');
 const entry = fileURLToPath(new URL('../../app/yeongnyangi/_components/Library.tsx', import.meta.url));
 const fixtures = {
   './OrderRecovery': 'export const OrderLookup=()=>null;',
-  '../_lib/reading-copy': 'export const readingCopy=()=>({library:"영냥이 보관함",loading:"불러오는 중",empty:"기록 없음",more:"더 보기",retry:"다시 불러오기",view:"결과 보기",login:"로그인",loginHint:"로그인이 필요합니다",language:"언어"});',
+  '../_lib/reading-copy': 'export const readingCopy=()=>({library:"영냥이 보관함",loading:"불러오는 중",empty:"기록 없음",more:"더 보기",retry:"다시 불러오기",recovery:"이어쓰기",view:"결과 보기",login:"로그인",loginHint:"로그인이 필요합니다",language:"언어"});',
   '../_lib/result-state-copy': 'export const resultStateCopy=()=>({loadFailed:"조회 실패"});',
   '@/worker/yeongnyangi/fortune/reading-locale': 'export const readingLanguageNames={ko:"한국어"};',
   '../_lib/use-reading-language': 'export const useReadingLanguage=()=>({siteLocale:"ko"});',
@@ -33,7 +33,7 @@ const page = (ids,cursor=null) => ({fortunes:ids.map(row),nextCursor:cursor});
 class ApiError extends Error {constructor(status){super('조회 실패');this.status=status;this.retryable=false;this.retryAfterSeconds=0;}}
 function pending(){let resolve,reject;const promise=new Promise((a,b)=>{resolve=a;reject=b;});return {promise,resolve,reject};}
 
-async function mount(t,request){
+async function mount(t,request,props={}){
   const dom=new JSDOM('<div id="root"></div>',{url:'https://test.invalid/yeongnyangi/library/'});
   const keys=['window','document','navigator','CustomEvent','StorageEvent','IS_REACT_ACT_ENVIRONMENT','__yn'];
   const saved=new Map(keys.map(key=>[key,Object.getOwnPropertyDescriptor(globalThis,key)]));
@@ -42,7 +42,7 @@ async function mount(t,request){
   new Function('require','module','exports',bundle.outputFiles[0].text)(require,fixtureModule,fixtureModule.exports);
   const root=createRoot(document.getElementById('root'));
   t.after(async()=>{await act(async()=>root.unmount());dom.window.close();for(const key of keys){const descriptor=saved.get(key);if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key];}});
-  await act(async()=>root.render(React.createElement(fixtureModule.exports.default)));
+  await act(async()=>root.render(React.createElement(fixtureModule.exports.default,props)));
   return {text:()=>document.body.textContent,links:()=>[...document.querySelectorAll('a[href*="/result/"]')].map(a=>a.href),event:async detail=>act(async()=>window.dispatchEvent(new CustomEvent('cd:auth-changed',{detail}))),owner:async scope=>act(async()=>{globalThis.__yn.scope=scope;for(const notify of globalThis.__yn.listeners)notify();})};
 }
 
@@ -79,4 +79,17 @@ test('an error after an empty list is never presented as no records',async t=>{
 test('missing saved product does not hide the record or crash other rows',async t=>{
   const data=page(['legacy','valid']);data.fortunes[0].product=null;
   const ui=await mount(t,async()=>data);assert.equal(ui.links().length,2);assert.match(ui.links()[0],/id=legacy/);
+});
+
+for(const status of [401,403,503])test(`Toss refresh ${status} hides old results and offers appropriate recovery`,async t=>{
+ let calls=0;const ui=await mount(t,async()=>{if(++calls===1)return page(['private']);throw new ApiError(status);},{paymentSurface:'toss'});
+ assert.equal(ui.links().length,1);await ui.event({event:'login'});assert.equal(ui.links().length,0);if(status===401)assert.match(ui.text(),/로그인이 필요/);else if(status===403)assert.match(ui.text(),/접근할 권한/);else assert.match(ui.text(),/조회 실패/);
+});
+
+test('Toss denied continuation immediately hides its prior result link',async t=>{
+ const data=page(['private']);data.fortunes[0].canRetry=true;const ui=await mount(t,async path=>{if(path.endsWith('/generate'))throw new ApiError(403);return data;},{paymentSurface:'toss'});assert.equal(ui.links().length,1);const resume=[...document.querySelectorAll('button')].find(button=>button.textContent==='이어쓰기');assert.ok(resume);await act(async()=>resume.click());assert.equal(ui.links().length,0);assert.match(ui.text(),/접근할 권한/);
+});
+
+test('a delayed library response cannot restore links after Toss continuation denial',async t=>{
+ const data=page(['private']);data.fortunes[0].canRetry=true;const stale=pending();let reads=0;const ui=await mount(t,async path=>{if(path.endsWith('/generate'))throw new ApiError(403);return ++reads===1?data:stale.promise;},{paymentSurface:'toss'});await ui.event({event:'login'});const resume=[...document.querySelectorAll('button')].find(button=>button.textContent==='이어쓰기');assert.ok(resume);await act(async()=>resume.click());assert.equal(ui.links().length,0);await act(async()=>stale.resolve(data));assert.equal(ui.links().length,0);assert.match(ui.text(),/접근할 권한/);
 });

@@ -22,3 +22,11 @@ export function requestMatchesService(row,product) {
   if(service.persona)return row.persona===service.persona&&row.snapshot?.persona===service.persona&&isChatFeatureKey(row.featureKey);
   return !row.persona&&!row.snapshot?.persona&&!isChatFeatureKey(row.featureKey);
 }
+// A matching product/persona alone is not evidence that this order funded the request.
+export function requestMatchesPurchase(row,purchase) {
+  return Boolean(purchase?._id&&purchase.requestId&&row?._id&&row.paymentClaimOrderId)
+    &&requestMatchesService(row,purchase)&&row.accessMethod==='TOSS_IAP'
+    &&String(row.paymentClaimOrderId||'')===String(purchase._id||'')
+    &&String(row._id||'')===String(purchase.requestId||'')
+    &&Number.isInteger(purchase.approvedPriceKRW)&&row.amountKRW===purchase.approvedPriceKRW;
+}

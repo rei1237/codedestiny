@@ -13,7 +13,7 @@ import {readDestinyProfileAccountId} from '@/app/_lib/profile-card-storage';
 import {subscribeAuth} from '@/app/_lib/auth-store';
 import styles from '../yeongnyangi.module.css';
 const ART={login:['/assets/yeongnyangi/original/login.webp',440,557],signup:['/assets/yeongnyangi/original/signup.webp',440,445],hero:['/assets/yeongnyangi/hero.webp',480,480]} as const;
-export default function Library(){
+export default function Library({paymentSurface}:{paymentSurface?:'toss'}={}){
  const {siteLocale:locale}=useReadingLanguage();
  const copy=readingCopy(locale),stateCopy=resultStateCopy(locale);
  const [cursor,setCursor]=useState<string|null>(null),[loading,setLoading]=useState(false);
@@ -40,11 +40,12 @@ export default function Library(){
    setCursor(data.nextCursor);
   }catch(reason){
    if(!current())return;
+   if(paymentSurface==='toss'){setRows(null);setCursor(null);setRecoverError(null);}
    if(reason instanceof FortuneApiError&&reason.status===401)setNeedsLogin(true);
    retryAt.current=Date.now()+(reason instanceof FortuneApiError?reason.retryAfterSeconds*1000:0);
-   setError(reason instanceof FortuneApiError&&reason.code==='REQUEST_TIMEOUT'?'응답이 늦어지고 있어요. 잠시 후 다시 불러와 주세요.':friendlyErrorMessage(reason,'상담 기록을 불러오지 못했어요. 다시 시도해 주세요.'));
+   setError(paymentSurface==='toss'&&reason instanceof FortuneApiError&&reason.status===403?'구매 내역에 접근할 권한을 확인할 수 없어요. 구매한 계정과 주문 내역을 확인해 주세요.':reason instanceof FortuneApiError&&reason.code==='REQUEST_TIMEOUT'?'응답이 늦어지고 있어요. 잠시 후 다시 불러와 주세요.':friendlyErrorMessage(reason,'상담 기록을 불러오지 못했어요. 다시 시도해 주세요.'));
   }finally{if(version===revision.current){active.current=null;setLoading(false);}}
- },[]);
+ },[paymentSurface]);
  useEffect(()=>{
   // auth-client 는 refresh 가 실패한 뒤에야 logout 을 발행한다. 여기서 다시 조회하면 401→refresh→logout 이 끝없이 돈다.
   let account=readDestinyProfileAccountId();
@@ -70,6 +71,7 @@ export default function Library(){
   if(recovering)return;setRecovering(row.id);setRecoverError(null);
   try{await fortuneApi(`requests/${row.id}/generate`,{});window.location.assign(`${resultPath(row.id,locale)}&source=library`);}
   catch(reason){
+   if(paymentSurface==='toss'){revision.current++;active.current?.abort();active.current=null;setLoading(false);setRows(null);setCursor(null);setRecovering('');requestedCursor.current=null;if(reason instanceof FortuneApiError&&reason.status===401){setNeedsLogin(true);return;}setError(reason instanceof FortuneApiError&&reason.status===403?'구매 내역에 접근할 권한을 확인할 수 없어요. 구매한 계정과 주문 내역을 확인해 주세요.':'상담 기록을 확인하지 못했어요. 다시 불러와 주세요.');return;}
    if(reason instanceof FortuneApiError&&reason.status===401){loginForCurrentPage();return;}
    setRecoverError({id:row.id,message:locale!=='ko'?stateCopy.generateFailed:friendlyErrorMessage(reason,stateCopy.generateFailed)});setRecovering('');void load();
   }
