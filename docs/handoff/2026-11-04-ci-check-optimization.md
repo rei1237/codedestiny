@@ -1,7 +1,7 @@
 ---
-status: active
+status: done
 updated: 2026-11-04
-next: "워크트리 wt/ci-check-opt-20261104-165659의 9커밋을 재검증 뒤 push하고 배수한다"
+next: "없음. 남은 관찰(CI required 10회, Typecheck Checkout)은 '다음 세션 순서'에 있다"
 ---
 
 # CI·로컬 검사 최적화
@@ -14,9 +14,10 @@ next: "워크트리 wt/ci-check-opt-20261104-165659의 9커밋을 재검증 뒤 
 
 ## 지금 상태
 
+- 끝났다. 전체가 `76647ddaa`까지 main에 있다(스테이징 배포·운영 승격은 하지 않았다).
 - 사용자가 판단 4건을 위임했다("가장 효율적으로 판단해서 진행해"). 결정은 아래 '결정' 절에 있다.
-- 구현 커밋은 워크트리 `D:Developmentcodedestiny-worktreesci-check-opt-20261104-165659`에서 push를 기다린다. main은 `74a9339b7`에서 초록으로 돌아왔다.
-- 이전 검증의 Jest 83건은 `74a9339b7`(worker 목 정렬)이 올라오기 전 main 결함이었다.
+- 최종 검증: `b04d28a30` 위 10커밋을 `check:fast --base`로 돌려 `test:node` 4,349건, Jest 7,282건 전부 통과(1,319초), `check:pre-push` 통과(35초).
+- 이전 검증의 Jest 83건은 `74a9339b7`(worker 목 정렬) 전 main 결함이었고, 이 범위에서 재현되지 않았다.
 
 ## 작업 결과
 
@@ -55,8 +56,10 @@ next: "워크트리 wt/ci-check-opt-20261104-165659의 9커밋을 재검증 뒤 
 | 실패 시 merge-base 재실행 | 약 1,250초 추가 | 측정 안 함(재실행 경로는 그대로) |
 | check:fast 전체(7커밋, critical 티어) | 없음 | 1,066초(main 결함으로 Jest에서 실패 종료) |
 | check:fast(테스트 커밋 1개 범위) | 없음 | 1,209초(통과) |
+| check:fast 전체(10커밋, 최종) | 없음 | 1,319초(통과) |
+| check:pre-push | 없음 | 35초(통과) |
 
-수정 전 값은 동시 실행 수가 달라 수정 후 값과 같은 조건의 비교가 아니다. 판정 기준인 "작은 변경의 push 전 대기 시간"은 `check:pre-push`까지 잰 값이 없어 아직 미달이다.
+수정 전 값은 동시 실행 수가 달라 수정 후 값과 같은 조건의 비교가 아니다. `check:pre-push`는 35초다. 위 값은 `package.json` 변경이 낀 critical 티어이며, 작은 변경의 `check:fast` 전후 비교는 재지 않았다.
 
 ### 셰도 10회 비교
 
