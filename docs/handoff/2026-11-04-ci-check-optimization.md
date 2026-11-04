@@ -1,7 +1,7 @@
 ---
-status: blocked
+status: active
 updated: 2026-11-04
-next: "main CI가 초록이 되면 워크트리 wt/ci-check-opt-20261104-165659의 커밋을 rebase·check:fast·check:pre-push 뒤 push하고, 사용자 판단 4건(아래 '사용자 판단') 답을 받아 처리한다"
+next: "워크트리 wt/ci-check-opt-20261104-165659의 9커밋을 재검증 뒤 push하고 배수한다"
 ---
 
 # CI·로컬 검사 최적화
@@ -14,25 +14,22 @@ next: "main CI가 초록이 되면 워크트리 wt/ci-check-opt-20261104-165659�
 
 ## 지금 상태
 
-- 구현 6커밋과 이 문서 커밋이 워크트리 `D:Developmentcodedestiny-worktreesci-check-opt-20261104-165659`에 있고 **push되지 않았다.** origin/main `ae4011920` 기준이며, rebase하면 아래 SHA는 바뀐다.
-- 막힌 이유: main CI가 빨간색이다. `a7101ab6d`는 성공했지만 다음 `ae4011920`(런 41824034817)과 `b8847f333`(런 41825608004)이 실패했다. 다른 세션의 사주·자미 통합에서 온 것으로 보인다. 범위 밖이라 고치지 않았고, 빨간 main 위에는 push하지 않는다.
-  - Critical checks(`ae4011920`): Jest 6개 스위트 83건. `'../lib/saju-ai-prompt.js' does not provide an export named 'selectSajuPromptAuthority'`. 원본에는 export가 있어 시험의 모듈 목이 낡은 것으로 보인다(추정).
-  - Static guards(두 런): `__tests__/ui/ziwei-execution-lifecycle.test.mjs` 실패. 로그에 `git show 91021aa3a…:worker/routes/ziwei-ai.js` 실패가 함께 찍힌다.
-- 이 커밋들의 검증: `ae4011920` 위 7커밋 전체를 critical 티어로 돌려 `test:node` 4,349건 통과, Jest는 7,282건 중 83건 실패다. 실패는 main CI의 Jest 실패와 스위트·건수·오류가 같고, 이 커밋들은 worker 파일을 건드리지 않는다. **`check:pre-push`는 아직 돌리지 않았다.**
-- push된 것은 `65e841877`(1번) 하나다.
+- 사용자가 판단 4건을 위임했다("가장 효율적으로 판단해서 진행해"). 결정은 아래 '결정' 절에 있다.
+- 구현 커밋은 워크트리 `D:Developmentcodedestiny-worktreesci-check-opt-20261104-165659`에서 push를 기다린다. main은 `74a9339b7`에서 초록으로 돌아왔다.
+- 이전 검증의 Jest 83건은 `74a9339b7`(worker 목 정렬)이 올라오기 전 main 결함이었다.
 
 ## 작업 결과
 
 - [~] **1. `CI required` 5분 제한.** `65e841877`로 두 잡이 미디어를 받지 않는다. 10회 연속 판정은 아직이다(수정 후 4회 관찰, timeout 0).
-- [~] **2. Checkout 병목.** `3b7c14d33`(미push)로 Typecheck·lint도 미디어를 받지 않는다. 병목은 이력 깊이가 아니라 HEAD 블롭이다. 런 41717397600에서 fetch 18초, checkout 457초였고, 작업 트리 1,049MiB 중 미디어가 약 767MiB다. 그래서 깊이를 줄이는 대신 미디어 제외 sparse를 쓴다. 미디어 없는 복제본에서 lint 16초, typecheck 144초, 오류 0건이었다. guards·critical·build는 전체 유지다. deploy·landing-watchdog·paid-flow-gates·secret-scan의 체크아웃은 조사하지 않았다. fast lane 전후 수치는 push 후에 잰다.
+- [~] **2. Checkout 병목.** `350bff281`로 Typecheck·lint도 미디어를 받지 않는다. 병목은 이력 깊이가 아니라 HEAD 블롭이다. 런 41717397600에서 fetch 18초, checkout 457초였고, 작업 트리 1,049MiB 중 미디어가 약 767MiB다. 그래서 깊이를 줄이는 대신 미디어 제외 sparse를 쓴다. 미디어 없는 복제본에서 lint 16초, typecheck 144초, 오류 0건이었다. guards·critical·build는 전체 유지다. deploy·landing-watchdog·paid-flow-gates·secret-scan의 체크아웃은 조사하지 않았다. fast lane 전후 수치는 push 후에 잰다.
 - [~] **3. 게이트 중복.** 표는 아래에 있다. CI 안의 큰 중복은 없었고, 큰 중복은 로컬(5번에서 해결)과 릴리스(4번, 남음)였다.
-- [x] **4. 릴리스 재검사.** 설계와 실측이 끝났다. 재사용 가능했던 런이 표본 0/11이라 그대로 두자고 제안한다. 아래 절을 본다.
-- [~] **5. 로컬 paid-gate-suite.** `72fc3ec92`(미push). check:fast가 이미 돈 항목을 스위트에서 `--skip-exact`로 뺀다. 측정은 아래 표에 있다.
-- [~] **6. 미배선 `verify:*`.** 정본(`verify-guard-wiring --report`) 기준 343개 중 배선 276, 미배선 67이다. 문서의 83은 낡은 수치였고, 예시 중 adsense-readiness·seo-dist·deployed-assets·public-parity는 이미 배선돼 있다. 판정표는 아래에 있다. 삭제는 사용자 답을 받은 뒤에 한다.
-- [x] **7. 불안정 테스트.** `2d7620f70`(미push). `sync-main-freshness` 시험은 훅의 git 제한 5초가 부하에서 걸릴 수 있어 시험에서 120초로 늘렸다. `mock-test-runner`는 25초 제한을 120초로 늘렸다. 제한을 1ms로 낮추면 16건 중 9건이 조용한 철수 형태로 실패해 제한이 원인이 될 수 있음을 확인했지만, 수정 전 코드로 동시 6회를 돌려도 재현되지 않아 평소 간헐 실패의 원인으로 확정하지는 못했다. `birth-profile-claim-card.behavior`는 1회 관측, 재실행 9회 통과라 고치지 않았다. 전수 판정은 하지 못했다. `Math.random` 시험 5개는 임시 파일명·ID 용도로 보이고, `new Date`·`Date.now` 사용 시험 146개(가짜 타이머 11개)는 읽지 않았다.
-- [~] **8. 이전 문서 미결.** split은 해결(`faeb70256`, 미push). 같은 입력 96.7초→17.4초, 출력 해시 동일(1,876개 HTML + 합성 2개). 컴파일 캐시 효과는 미측정이다. 복원 적중 6회 표본이 77~88초이고 미적중 표본이 없다. 캐시 비용은 복원 17~39초 + 저장 15~26초, 크기 525MB다. schedule은 사용자 판단 사항이다.
-- [x] **9. 고아 워크트리.** `e39abe3c1`(미push). `npm run worktree:remove -- <경로>`가 끝까지 지우고, 폴더나 등록이 남으면 실패한다. 임시 저장소 시험 5건 통과. 실제 첫 사용은 이 워크트리 배수다. `codedestiny-worktrees` 아래 미등록 폴더 `_tools`, `build-cache`, `inicis-overseas-card-p2-direct-legal-20260918-160111`, `sd-shots`, `ziwei-logs-20261017`은 지우지 않았다.
-- [x] **10. `verify-deployed-assets`.** `ab4b8c0a9`(미push). 첫 요청이 실제 404일 때만 오염으로 분류하고, 타임아웃은 재시도한다. 진짜 엣지 404의 하드 실패는 시험으로 고정했다.
+- [x] **4. 릴리스 재검사.** 설계와 실측이 끝났다. 재사용 가능했던 런이 표본 0/11이라 C(그대로 둠)로 닫았다. 아래 절을 본다.
+- [~] **5. 로컬 paid-gate-suite.** `38e4fa9e3`. check:fast가 이미 돈 항목을 스위트에서 `--skip-exact`로 뺀다. 측정은 아래 표에 있다.
+- [~] **6. 미배선 `verify:*`.** 정본(`verify-guard-wiring --report`) 기준 343개 중 배선 276, 미배선 67이다. 문서의 83은 낡은 수치였고, 예시 중 adsense-readiness·seo-dist·deployed-assets·public-parity는 이미 배선돼 있다. 판정표는 아래에 있다. 별칭 17개를 `78004a7e9`로 지워 326개 중 배선 276, 미배선 50이 됐다. 나머지는 '결정' 절대로 유지한다.
+- [x] **7. 불안정 테스트.** `7752352b8`. `sync-main-freshness` 시험은 훅의 git 제한 5초가 부하에서 걸릴 수 있어 시험에서 120초로 늘렸다. `mock-test-runner`는 25초 제한을 120초로 늘렸다. 제한을 1ms로 낮추면 16건 중 9건이 조용한 철수 형태로 실패해 제한이 원인이 될 수 있음을 확인했지만, 수정 전 코드로 동시 6회를 돌려도 재현되지 않아 평소 간헐 실패의 원인으로 확정하지는 못했다. `birth-profile-claim-card.behavior`는 1회 관측, 재실행 9회 통과라 고치지 않았다. 전수 판정은 하지 못했다. `Math.random` 시험 5개는 임시 파일명·ID 용도로 보이고, `new Date`·`Date.now` 사용 시험 146개(가짜 타이머 11개)는 읽지 않았다.
+- [~] **8. 이전 문서 미결.** split은 해결(`3c6e3b594`). 같은 입력 96.7초→17.4초, 출력 해시 동일(1,876개 HTML + 합성 2개). 컴파일 캐시 효과는 미측정이다. 복원 적중 6회 표본이 77~88초이고 미적중 표본이 없다. 캐시 비용은 복원 17~39초 + 저장 15~26초, 크기 525MB다. schedule은 유지로 결정했다.
+- [x] **9. 고아 워크트리.** `f3bf46264`. `npm run worktree:remove -- <경로>`가 끝까지 지우고, 폴더나 등록이 남으면 실패한다. 임시 저장소 시험 5건 통과. 실제 첫 사용은 이 워크트리 배수다. `codedestiny-worktrees` 아래 미등록 폴더 `_tools`, `build-cache`, `inicis-overseas-card-p2-direct-legal-20260918-160111`, `sd-shots`, `ziwei-logs-20261017`은 지우지 않았다.
+- [x] **10. `verify-deployed-assets`.** `cb55bd4aa`. 첫 요청이 실제 404일 때만 오염으로 분류하고, 타임아웃은 재시도한다. 진짜 엣지 404의 하드 실패는 시험으로 고정했다.
 
 ## 측정
 
@@ -63,7 +60,17 @@ next: "main CI가 초록이 되면 워크트리 wt/ci-check-opt-20261104-165659�
 
 ### 셰도 10회 비교
 
-티어 판정은 critical 7, fast 3이었고 그중 failClosed가 5회다. fast로 판정된 3회에도 실제 CI는 Typecheck·Static guards를 모두 돌렸고, 문서만 바뀐 커밋에 1,412초가 들었다. 기존 검사는 하나도 끄지 않았다. 셰도 판정을 실제 건너뛰기로 올리는 일은 사용자 판단 사항이다.
+티어 판정은 critical 7, fast 3이었고 그중 failClosed가 5회다. fast로 판정된 3회에도 실제 CI는 Typecheck·Static guards를 모두 돌렸고, 문서만 바뀐 커밋에 1,412초가 들었다. 기존 검사는 하나도 끄지 않았다.
+
+이 10회만으로는 판단이 어려워 범위를 넓혀 재비교했다. 2026-10-24 이후 main push 249회를 직전 런 SHA와의 diff로 분류했다(실측).
+
+| 바뀐 파일 | push | Static guards 실행 | 평균(초) | 가드 실패 |
+|---|---|---|---|---|
+| `docs/handoff`만 | 27 | 27 | 1,094 | 계약 위반 2, 넘어온 빨간불 3, 취소 1 |
+| context·dev 등 포함 문서 | 11 | 11 | 973 | 4(미분석) |
+| 평문 `docs`만 | 9 | 0 | 0 | 0 |
+
+"넘어온 빨간불" 3건(`5e71e454a`, `370dff1e3`, `f7995f761`)은 직전 main 런이 이미 실패였다. 코드 경로의 가드는 다음 코드 push에서 그대로 돈다. 이 비교로 `b5459ae41`에서 인수인계 문서 전용 push의 Static guards를 건너뛴다. 계약 검사는 guards가 skip될 때 classify에서 돈다. 회당 약 18분, 11일에 약 8.2시간의 러너 시간이 준다(같은 빈도일 때의 추정).
 
 ## 3번 실행 위치 표
 
@@ -210,20 +217,21 @@ next: "main CI가 초록이 되면 워크트리 wt/ci-check-opt-20261104-165659�
 
 별도로 `D:\Development\Storage-Maintenance\2026-11-04\script-verdicts.md`가 배선 후보로 든 6개(verify-admin-saju-prompt-kasi-calendar, verify-cro-search.test, verify-heukwol, verify-innate-temperament-prompts, verify-palm-dev-module-boundary, verify-ziwei-basic-consult-prompt)는 호출처가 없고 정적 검증을 통과한다. 게이트 추가라 사용자 승인 사항이다.
 
-## 사용자 판단
+## 결정
 
-1. **6번:** 별칭 삭제 후보 17개를 지워도 되는가. 사용자 확인 7개 중 쓰는 것이 있는가. 배선 후보 8개(2+6)를 게이트에 넣을 것인가.
-2. **4번:** 제안대로 C(그대로 둠)로 닫을 것인가, 절감이 적어도 A를 구현할 것인가.
-3. **8번 schedule:** `cloudflare-pages-deploy.yml`의 20분 주기(하루 72회)를 유지할 것인가. 30회 표본 전부 성공, 평균 42초이고 게이트 판정으로 끝나는 것으로 보인다(추정).
-4. **셰도:** 10회 비교 결과를 근거로 문서만 바뀐 커밋에서 Static guards 등을 건너뛰게 할 것인가. 기존 검사를 끄는 변경이라 승인 없이는 하지 않는다.
+사용자 위임에 따라 다음과 같이 정했다.
+
+1. **별칭 17개 삭제**(`78004a7e9`). 마이그레이션 파일은 남겼고 `node scripts/migrations/<파일> --check`로 부를 수 있다.
+2. **수동 도구 7개 유지.** 쓰는지 알 수 없고 실행 비용이 없다.
+3. **배선 후보 8개는 넣지 않음.** 목표가 검사 줄이기이고 2개는 현재 실패한다.
+4. **릴리스 재검사는 C로 닫음.** 재사용 가능 0/11.
+5. **schedule 유지.** 30회 전부 성공, 평균 42초.
+6. **인수인계 문서 전용 push는 Static guards를 건너뜀**(`b5459ae41`). context·dev·루트 `.md`는 가드가 실제로 읽으므로 유지한다. 롤백은 그 커밋 revert 한 번이다.
 
 ## 다음 세션 순서
 
-1. `gh run list --repo rei1237/codedestiny --workflow pr-ci.yml --branch main --limit 5`로 main을 확인한다. 빨간색이면 push하지 않고 보고한다.
-2. 워크트리에서 `git fetch origin`, `git rebase origin/main`, `npm run check:fast -- --committed-head --base=$(git merge-base HEAD origin/main)`, `npm run check:pre-push`, `git push origin HEAD:main`.
-3. push 후 CI required·Risk tier 10회 누적과 Typecheck and lint Checkout을 잰다.
-4. 사용자 답에 따라 6번 삭제, 4번 구현, schedule, 셰도를 처리한다.
-5. 다른 체크아웃에서 `npm run worktree:remove -- <이 워크트리 경로>`로 배수하고, 메모리 `worktree-remove-long-paths`를 새 명령 기준으로 고친다.
+1. `CI required`·`Risk tier` 10회 누적과 `Typecheck and lint`의 Checkout을 다음으로 잰다. `gh run list --repo rei1237/codedestiny --workflow pr-ci.yml --branch main --event push --limit 10` 뒤 런마다 `gh run view <id> --json jobs`.
+2. 인수인계 문서 전용 push에서 Static guards가 skipped이고 Risk tier의 계약 스텝이 돌았는지 본다.
 
 ## 범위 밖으로 발견한 것(보고만)
 
@@ -258,6 +266,6 @@ gh run list --repo rei1237/codedestiny --workflow pr-ci.yml --branch main --limi
 
 ## 모르는 것
 
-- 미배선 verify 중 사람이 손으로 쓰는 것의 수. 사용자에게 물어야 한다.
+- 미배선 verify 중 사람이 손으로 쓰는 것의 수. 그래서 7개를 유지했다.
 - 컴파일 캐시 미적중 시 시간. 표본이 없다.
 - 릴리스의 `test:node` 시작 시각 기준 CI 증거 비율. 4번 표본은 배포 잡 첫 스텝을 기준으로 쟀다.
