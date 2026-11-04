@@ -89,7 +89,7 @@ export async function runRelationshipDelivery(env, auth, supplied, callbacks) {
       const wave = await generateRelationshipWave(env, stored.llmMeta, async delivery => {
         const meta = { ...stored.llmMeta, delivery };
         stored = await save(filter, { llmMeta: meta, ...relationshipContent(meta), status: Object.keys(delivery.parts).length ? "partial" : "generating" });
-      });
+      }, { cacheScope: [userId, sessionId] });
       stored = await save(filter, { llmMeta: { ...stored.llmMeta, limited: wave.limited } });
       if (wave.knownFailed) {
         // An explicitly reviewed repair preserves the customer's original debit.

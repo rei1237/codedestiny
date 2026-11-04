@@ -1784,7 +1784,7 @@ async function handleGenerate(request, env, _routeContext = null, recoveryAuth =
         snapshot = { ...snapshot, delivery: state, generatedResult: delivery.namingChaptersText(state.chapters),
           nameCards: state.candidates?.cards || [], finalPick: state.candidates?.finalPick || null };
         await saveNamingDelivery(filter, { status: snapshot.generatedResult ? "partial" : "generating", result: { namingPrompt: snapshot } });
-      });
+      }, { cacheScope: [String(auth.userId), claim.executionId] });
       snapshot = { ...snapshot, delivery: wave.state, limited: wave.limited };
       const current = await saveNamingDelivery(filter, { result: { namingPrompt: snapshot } });
       if (wave.limited && delivery.confirmedEmptyNamingFailure(wave.state)) {

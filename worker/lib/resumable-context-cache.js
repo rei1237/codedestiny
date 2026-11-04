@@ -1,7 +1,7 @@
 import { selectGeminiModel } from "../../lib/gemini-model-policy.js";
 import { getAmbientAiLocale } from "./ai-locale-context.js";
 import { getEnv } from "./env.js";
-import { createGeminiContextCache, restoreGeminiContextCache } from "./gemini.js";
+import { createGeminiContextCache, pickGeminiKeys, restoreGeminiContextCache } from "./gemini.js";
 import { createLlmCacheStore } from "./llm-cache-store.js";
 import { getPaidGenerationContext } from "./paid-generation-context.js";
 
@@ -62,6 +62,8 @@ export async function resumableContextCache(env, input) {
   if (!scope || typeof prefix !== "string" || prefix.length < MIN_PREFIX_CHARS) return NO_CACHE;
   if (typeof prompt !== "string" || !prompt.startsWith(prefix) || Number(attempt) > 1) return NO_CACHE;
   if (["0", "false", "off"].includes(String(getEnv(env, "GEMINI_CONTEXT_CACHE") || "").trim().toLowerCase())) return NO_CACHE;
+  // With no key the call never reaches Gemini, so there is nothing to discount.
+  if (!pickGeminiKeys().some((name) => String(getEnv(env, name) || "").trim())) return NO_CACHE;
   const startedAt = Date.now();
   let timer;
   try {

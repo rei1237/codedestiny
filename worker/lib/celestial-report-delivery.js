@@ -1,6 +1,7 @@
 import { salvageTruncatedJsonObject } from '../../lib/llm-text.js';
 import { PAID_LLM_PARTS_PER_REQUEST } from "./sync-llm-timeout.js";
 import { callGeminiText } from "./gemini.js";
+import { contextCacheOptions } from "./resumable-context-cache.js";
 import { runWithAiLocale } from "./ai-locale-context.js";
 import { countPaidReportBodyChars, hasRepeatedReportPassage } from "./paid-report-quality.js";
 
@@ -50,7 +51,7 @@ function validateSummary(value) {
 
 // Each completed card is saved immediately; a request contains at most four 45s calls.
 // The six existing long card sections retain their 500-character minimum.
-export async function generateCelestialWave(env, snapshot, checkpoint) {
+export async function generateCelestialWave(env, snapshot, checkpoint, { cacheScope } = {}) {
   let delivery = structuredClone(snapshot.delivery || {version:1,parts:{},attempts:{},invalidAttempts:{}});
   delivery.short ||= {};
   const missing = pendingParts(delivery).slice(0, PAID_LLM_PARTS_PER_REQUEST);
@@ -72,11 +73,13 @@ export async function generateCelestialWave(env, snapshot, checkpoint) {
     const repair=drafts[id] ? `\n[저장된 초안 보완]\n${drafts[id]}\n위 초안의 해석 방향을 보존하고 기준에 못 미친 필드의 근거·반대 조건·행동 조언만 보완한 같은 객체 전체를 다시 출력하세요. 같은 문장 반복이나 새 계산값으로 분량을 채우지 마세요.` : "";
     const requestPrompt=`${snapshot.prompt}\n\n[이번 호출 범위가 전체 출력 형식보다 우선합니다]\n${instruction}${repair}`;
     try {
-      ai=await runWithAiLocale(snapshot.locale||"ko",()=>callGeminiText(env,requestPrompt,{
-        model:["CELESTIAL_HARMONY_GEMINI_MODEL", "GEMINI_MODEL", "PREMIUM_GEMINI_MODEL"].map(key=>String(env?.[key]||"").trim()).find(Boolean),
+      const model=["CELESTIAL_HARMONY_GEMINI_MODEL", "GEMINI_MODEL", "PREMIUM_GEMINI_MODEL"].map(key=>String(env?.[key]||"").trim()).find(Boolean);
+      ai=await runWithAiLocale(snapshot.locale||"ko",async()=>callGeminiText(env,requestPrompt,{
+        model,
         maxProviderAttempts:1,taskType:"fortune",temperature:boundedSetting(env?.CELESTIAL_HARMONY_TEMPERATURE,0.68,0,1),
-        timeoutMs:boundedSetting(env?.CELESTIAL_HARMONY_PROVIDER_TIMEOUT_MS,45000,15000,45000),
         maxOutputTokens:boundedSetting(env?.CELESTIAL_HARMONY_MAX_OUTPUT_TOKENS,11000,8000,11000),fallbackToWorkersAI:false,logContext:{sectionGroup:id},
+        ...await contextCacheOptions(env,{prompt:requestPrompt,prefix:snapshot.prompt,model,scope:cacheScope,attempt:delivery.attempts[id],
+          timeoutMs:boundedSetting(env?.CELESTIAL_HARMONY_PROVIDER_TIMEOUT_MS,45000,15000,45000)}),
       }));
     } catch { return; }
     const value=ai?.ok && !/mock/i.test(ai.provider||"") ? parse(ai.text) : null;

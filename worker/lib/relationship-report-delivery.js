@@ -1,5 +1,6 @@
 import { PAID_LLM_PARTS_PER_REQUEST } from "./sync-llm-timeout.js";
 import { callGeminiJsonWithRetry } from "./structured-consultation.js";
+import { contextCacheOptions } from "./resumable-context-cache.js";
 import { jsonSchemaFromExample } from "./json-text-repair.js";
 import { runWithAiLocale } from "./ai-locale-context.js";
 import { countPaidReportBodyChars, hasRepeatedReportPassage, paidReportBody } from "./paid-report-quality.js";
@@ -59,7 +60,12 @@ export function relationshipContent(meta) {
     sections: meta.titles.map((title, i) => ({ title, body: [meta.delivery.parts[String(i * 2)]?.body, meta.delivery.parts[String(i * 2 + 1)]?.body].filter(Boolean).join("\n\n") })),
   };
 }
-export async function generateRelationshipWave(env, meta, checkpoint) {
+// Every section prompt holds the same guardrails and facts up to its scene line.
+const sharedSectionText = (prompt) => {
+  const scene = String(prompt || "").indexOf("[이번에 쓸 장면]");
+  return scene > 0 ? prompt.slice(0, scene) : "";
+};
+export async function generateRelationshipWave(env, meta, checkpoint, { cacheScope } = {}) {
   let delivery = structuredClone(meta.delivery);
   const score = relationshipScoreAnchor(meta);
   delivery.short ||= {};
@@ -81,12 +87,14 @@ export async function generateRelationshipWave(env, meta, checkpoint) {
     const requestPrompt = `${frame ? meta.framePrompt : meta.sectionPrompts[chapter]}\n\n${instruction}${repair}`;
     let response;
     try {
-      response = await runWithAiLocale(meta.locale || "ko", () => callGeminiJsonWithRetry(env, requestPrompt, {
+      response = await runWithAiLocale(meta.locale || "ko", async () => callGeminiJsonWithRetry(env, requestPrompt, {
         temperature: 0.72, baseTokens: 9500, capTokens: 9500, attempts: 1,
         responseSchema: jsonSchemaFromExample(frame
           ? { evidenceHash: '', character: { title: '', caption: '' }, summary: '', finalMessage: '' }
           : { evidenceHash: '', body: '' }),
-        timeoutMs: 45000, taskType: "fortune", fallbackToWorkersAI: false,
+        taskType: "fortune", fallbackToWorkersAI: false,
+        // The frame prompt has its own opening, so it stays outside the sections' cache.
+        ...await contextCacheOptions(env, { prompt: requestPrompt, prefix: frame ? "" : sharedSectionText(meta.sectionPrompts[chapter]), scope: cacheScope, attempt: delivery.attempts[id], timeoutMs: 45000 }),
       }));
     } catch { return; }
     let value;

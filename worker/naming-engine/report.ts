@@ -256,8 +256,8 @@ export function namingChaptersTextV2(chapters: Record<string, ChapterRecord> = {
 }
 
 export interface WaveDeps {
-  /** (prompt, part, maxOutputTokens) → callGeminiText 결과. 래퍼가 로케일·호출 옵션을 고정한다. */
-  call: (prompt: string, part: string, maxOutputTokens: number) => Promise<any>;
+  /** (prompt, part, maxOutputTokens, attempt) → callGeminiText 결과. 래퍼가 로케일·호출 옵션을 고정한다. */
+  call: (prompt: string, part: string, maxOutputTokens: number, attempt: number) => Promise<any>;
   partsPerRequest: number;
   chapterTitles: string[];
 }
@@ -280,7 +280,7 @@ export async function generateNamingWaveV2(snapshot: any, checkpoint: (state: Na
       await persist();
       let ai: any;
       try {
-        ai = await deps.call(narrationPrompt(snapshot), "narration", NARRATION_MAX_OUTPUT_TOKENS);
+        ai = await deps.call(narrationPrompt(snapshot), "narration", NARRATION_MAX_OUTPUT_TOKENS, state.attempts.narration);
       } catch {
         if ((state.attempts.narration || 0) < MAX_ATTEMPTS) return { state, limited: false };
         ai = null;
@@ -317,7 +317,7 @@ export async function generateNamingWaveV2(snapshot: any, checkpoint: (state: Na
     const title = titleOf(id);
     let ai: any;
     try {
-      ai = await deps.call(chapterPrompt(snapshot, id, title, state.drafts[id]), String(id), CHAPTER_MAX_OUTPUT_TOKENS);
+      ai = await deps.call(chapterPrompt(snapshot, id, title, state.drafts[id]), String(id), CHAPTER_MAX_OUTPUT_TOKENS, state.attempts[id]);
     } catch { return; }
     const value = usable(ai) ? parseJson(ai.text) : null;
     const save = async () => {

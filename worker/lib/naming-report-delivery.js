@@ -2,6 +2,7 @@ import { salvageTruncatedJsonObject } from '../../lib/llm-text.js';
 import { normalizeNarrativeBody } from './paid-narrative-candidate.js';
 import { PAID_LLM_PARTS_PER_REQUEST } from "./sync-llm-timeout.js";
 import { callGeminiText } from "./gemini.js";
+import { contextCacheOptions } from "./resumable-context-cache.js";
 import { parseNamingResultCards } from "./naming-result-cards.js";
 import { countPaidReportBodyChars, hasRepeatedReportPassage } from "./paid-report-quality.js";
 import { runWithAiLocale } from "./ai-locale-context.js";
@@ -29,12 +30,13 @@ function parseJson(text) {
 function usable(ai) { return ai?.ok && !/mock/i.test(ai.provider || ""); }
 
 // One bounded wave per HTTP request. Attempt reservations precede every provider call.
-export async function generateNamingWave(env, snapshot, checkpoint) {
+export async function generateNamingWave(env, snapshot, checkpoint, { cacheScope } = {}) {
   let state = structuredClone(snapshot.delivery || { version: 1, attempts: {}, chapters: {}, candidates: null });
   state.invalidAttempts ||= {};
-  const call = (prompt, part, maxOutputTokens) => runWithAiLocale(snapshot.locale || "ko", () => callGeminiText(env, prompt, {
-    maxProviderAttempts: 1, taskType: "fortune", temperature: 0.72, timeoutMs: 45000, maxOutputTokens, fallbackToWorkersAI: false,
+  const call = (prompt, part, maxOutputTokens) => runWithAiLocale(snapshot.locale || "ko", async () => callGeminiText(env, prompt, {
+    maxProviderAttempts: 1, taskType: "fortune", temperature: 0.72, maxOutputTokens, fallbackToWorkersAI: false,
     logContext: { sectionGroup: part },
+    ...await contextCacheOptions(env, { prompt, prefix: snapshot.generatedPrompt, scope: cacheScope, attempt: state.attempts[part], timeoutMs: 45000 }),
   }));
   const persist = () => checkpoint(structuredClone(state));
   if (!state.candidates) {

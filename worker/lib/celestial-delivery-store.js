@@ -77,7 +77,7 @@ export async function runCelestialDelivery(request,env,auth,supplied,{verify,leg
     if(!celestialDeliveryComplete(snapshot.delivery)) {
       const wave=await generateCelestialWave(env,snapshot,async delivery=>{
         snapshot={...snapshot,delivery};stored=await save(filter,{metadata:{...stored.metadata,celestialDelivery:snapshot}});
-      });
+      },{cacheScope:[auth.userId,id]});
       snapshot={...snapshot,delivery:wave.delivery,limited:wave.limited};
       stored=await save(filter,{metadata:{...stored.metadata,celestialDelivery:snapshot}});
     }

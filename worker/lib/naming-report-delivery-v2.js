@@ -1,6 +1,7 @@
 // 작명 v2 LLM 호출부(설계서 §9·§10). 후보·수치는 결정론 엔진이 정하고, 서술 검사·교정·웨이브 로직은
 // worker/naming-engine/report.ts 에 있다. 이 파일은 호출 옵션·로케일만 고정한다 — v1 과 같은 1콜/요청·폴백 없음.
 import { callGeminiText } from "./gemini.js";
+import { contextCacheOptions } from "./resumable-context-cache.js";
 import { runWithAiLocale } from "./ai-locale-context.js";
 import { PAID_LLM_PARTS_PER_REQUEST } from "./sync-llm-timeout.js";
 import { createHttpError } from "./http.js";
@@ -34,10 +35,11 @@ export function namingBasis(input) {
   try { return namingBasisV2(input); } catch (error) { throw engineHttpError(error); }
 }
 
-export async function generateNamingWave(env, snapshot, checkpoint) {
-  const call = (prompt, part, maxOutputTokens) => runWithAiLocale(snapshot.locale || "ko", () => callGeminiText(env, prompt, {
-    maxProviderAttempts: 1, taskType: "fortune", temperature: 0.72, timeoutMs: 45000, maxOutputTokens, fallbackToWorkersAI: false,
+export async function generateNamingWave(env, snapshot, checkpoint, { cacheScope } = {}) {
+  const call = (prompt, part, maxOutputTokens, attempt) => runWithAiLocale(snapshot.locale || "ko", async () => callGeminiText(env, prompt, {
+    maxProviderAttempts: 1, taskType: "fortune", temperature: 0.72, maxOutputTokens, fallbackToWorkersAI: false,
     logContext: { sectionGroup: `v2:${part}` },
+    ...await contextCacheOptions(env, { prompt, prefix: snapshot.generatedPrompt, scope: cacheScope, attempt, timeoutMs: 45000 }),
   }));
   return generateNamingWaveV2(snapshot, checkpoint, { call, partsPerRequest: PAID_LLM_PARTS_PER_REQUEST, chapterTitles: NAMING_CHAPTERS });
 }
