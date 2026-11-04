@@ -39,7 +39,7 @@ export async function manageEditions(request, env, dispatch) {
       throw createHttpError(409, "이미 다른 상품이 저장됐어요. 목록을 새로고침해 주세요.");
     }
     if (products.length >= 100) throw createHttpError(409, "테스트 상품은 100개까지 등록할 수 있어요.");
-    products.unshift({id:body.id,title,character:body.character,cap:body.cap,issueCount:0});
+    products.unshift({id:body.id,title,character:body.character,cap:body.cap,issueCount:0,portraitVersion:2});
   } else if (body.action === "mint") {
     if (!product) throw createHttpError(404, "상품을 찾을 수 없어요.");
     if (!Number.isInteger(body.serial) || body.serial < 1 || body.serial > product.cap || body.serial > product.issueCount+1) {

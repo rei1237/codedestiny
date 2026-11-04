@@ -1,15 +1,16 @@
 import sharp from 'sharp';
 import QRCode from 'qrcode';
+import {editionPortraits} from '../../lib/editions/artwork.mjs';
 import {fileURLToPath} from 'node:url';
 
 const designs = {
-  yeoni:{art:'mascot/yeoni-reading-guide-v1.webp', paper:'#fff0ef', ink:'#472537', accent:'#c57184', name:'YEONI'},
-  cat:{art:'yeongnyangi/original/hero-800.webp', paper:'#edeefa', ink:'#282445', accent:'#7471ab', name:'YEONGNYANGI'},
+  yeoni:{paper:'#fff0ef', ink:'#472537', accent:'#c57184', name:'YEONI'},
+  cat:{paper:'#edeefa', ink:'#282445', accent:'#7471ab', name:'YEONGNYANGI'},
 };
 
 export async function characterQR(url, character, serial) {
   const design = designs[character];
-  const art = fileURLToPath(new URL('../../public/assets/'+design.art,import.meta.url));
+  const art = fileURLToPath(new URL('../../public'+editionPortraits[character],import.meta.url));
   const portrait = await sharp(art).resize(106,106,{fit:'contain',background:'#ffffff00'}).png().toBuffer();
   const matrix = QRCode.create(url,{errorCorrectionLevel:'Q'});
   // Render at a whole number of pixels per module, including the four-module quiet zone.
