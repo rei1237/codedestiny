@@ -1089,9 +1089,10 @@ export function packText(template:string,values:Record<string,string|number>){re
 // 세트 이름은 서버 정책표의 한국어 고정값(label)이다. ko 는 그대로, 다른 로케일은 어종·회수로 다시 짓는다(표시 전용 — 주문·스냅샷 비교는 label 원문).
 export function packName(pack:{label:string;fishId:string;totalUses:number},locale:LoadingLocale){return locale==='ko'?pack.label:packText(servicePackCopy(locale).packName,{fish:localizedTier(pack.fishId,locale),total:pack.totalUses});}
 
-// v3–v5 retain the no-expiry promise; only the approved v6 snapshot has a usage period.
+const EXPIRING_PACK_POLICIES=['yeongnyangi-pack-20261029-eight-90','yeongnyangi-pack-20261104-repricing'];
+// v3–v5 retain the no-expiry promise; only the approved v6 and v7 snapshots have a usage period.
 export function packDuration(pack:{policyVersion?:string;validityDays?:number|null},locale:LoadingLocale){
-  if(pack.policyVersion!=='yeongnyangi-pack-20261029-eight-90')return servicePackCopy(locale).validity;
+  if(!EXPIRING_PACK_POLICIES.includes(pack.policyVersion??''))return servicePackCopy(locale).validity;
   return typeof pack.validityDays==='number' && pack.validityDays>0 ? new Intl.NumberFormat(locale,{style:'unit',unit:'day',unitDisplay:'long'}).format(pack.validityDays) : servicePackCopy(locale).unavailable;
 }
 export function packScope(pack:{fishId:string;totalUses:number;policyVersion:string;validityDays:number|null},locale:LoadingLocale){

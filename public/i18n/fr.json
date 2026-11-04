@@ -1358,7 +1358,8 @@
         "w1000": "₩1,000",
         "from5000": "À partir de ₩5,000",
         "w7000": "₩7,000",
-        "from30000": "À partir de ₩30,000"
+        "from30000": "À partir de ₩30,000",
+        "from15000": "À partir de ₩15,000"
       },
       "chip": {
         "love": "Ses sentiments · Ma prochaine relation",
@@ -1631,7 +1632,7 @@
       "reviewsPosted": "publié sur le blog",
       "reviewsFine": "Ces avis reflètent des expériences personnelles et ne garantissent aucun résultat. La lecture Saju est donnée à titre indicatif.",
       "offerNote": "Les consultations individuelles étaient menées par Neo en personne ; la lecture à 5 000 ₩ repose sur un moteur de calcul et un commentaire d’IA.",
-      "offerCta": "Voir la lecture Saju à 5 000 ₩ →",
+      "offerCta": "Voir la lecture Saju à 10 000 ₩ →",
       "expertiseTitle": "Le calcul suit des règles, l’IA rédige le commentaire",
       "expertise": {
         "engine": "Le thème natal est établi selon des règles de calcul fixes, et l’IA rédige son commentaire à partir de ce résultat. Si le commentaire cite un pilier du jour ou de l’heure différent du calcul, le serveur le rejette.",

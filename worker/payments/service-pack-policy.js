@@ -31,25 +31,38 @@ const PREVIOUS_SERVICE_PACK_PLANS = Object.fromEntries([
 const NO_EXPIRY_SERVICE_PACK_PLANS = Object.fromEntries(Object.entries(PREVIOUS_SERVICE_PACK_PLANS)
   .map(([id, plan]) => [id.replace('-v4', '-v5'), Object.freeze({...plan,
     validityDays: null, policyVersion: 'yeongnyangi-pack-20261024-no-expiry'})]));
-export const CURRENT_SERVICE_PACK_POLICY = 'yeongnyangi-pack-20261029-eight-90';
-const CURRENT_SERVICE_PACK_PLANS = Object.fromEntries(Object.entries(NO_EXPIRY_SERVICE_PACK_PLANS)
+const EIGHT_USE_POLICY = 'yeongnyangi-pack-20261029-eight-90';
+const EIGHT_USE_SERVICE_PACK_PLANS = Object.fromEntries(Object.entries(NO_EXPIRY_SERVICE_PACK_PLANS)
   .map(([id, plan]) => [id.replace('-v5', '-v6'), Object.freeze({...plan,
     name: plan.name.replace('5회', '8회'), totalUses: 8, validityDays: 90,
-    policyVersion: CURRENT_SERVICE_PACK_POLICY})]));
-export const SERVICE_PACK_PLANS = Object.freeze({ ...LEGACY_SERVICE_PACK_PLANS, ...PREVIOUS_SERVICE_PACK_PLANS, ...NO_EXPIRY_SERVICE_PACK_PLANS, ...CURRENT_SERVICE_PACK_PLANS });
+    policyVersion: EIGHT_USE_POLICY})]));
+// Approved 2026-11-04 with the single-price rise: eight uses, 90 days, half of the eight single prices.
+export const CURRENT_SERVICE_PACK_POLICY = 'yeongnyangi-pack-20261104-repricing';
+const CURRENT_SERVICE_PACK_PLANS = Object.fromEntries([
+  ['mackerel', '고등어', 40000],
+  ['salmon', '연어', 60000],
+  ['flounder', '광어', 80000],
+  ['tuna', '참치', 120000],
+].map(([fishId, label, priceKRW]) => [
+  `yeongnyangi-pack-${fishId}-small-v7`,
+  Object.freeze({ name: `${label} 세트 8회`, fishId, priceKRW, totalUses: 8, validityDays: 90,
+    policyVersion: CURRENT_SERVICE_PACK_POLICY }),
+]));
+const EXPIRING_POLICIES = Object.freeze([EIGHT_USE_POLICY, CURRENT_SERVICE_PACK_POLICY]);
+export const SERVICE_PACK_PLANS = Object.freeze({ ...LEGACY_SERVICE_PACK_PLANS, ...PREVIOUS_SERVICE_PACK_PLANS, ...NO_EXPIRY_SERVICE_PACK_PLANS, ...EIGHT_USE_SERVICE_PACK_PLANS, ...CURRENT_SERVICE_PACK_PLANS });
 const FISH = Object.freeze(['mackerel','salmon','flounder','tuna']);
 
 // Historical definitions remain readable for fulfillment, gifts and order recovery.
-// Approved 2026-10-29: new purchases only, unchanged price, eight uses over 90 days.
+// Only the 2026-11-04 packs are on sale; 2026-10-29 packs keep their price and 90-day expiry.
 export const SERVICE_PACK_SALE_IDS = Object.freeze(Object.keys(SERVICE_PACK_PLANS)
-  .filter(id => id.endsWith('-small-v6')));
+  .filter(id => id.endsWith('-small-v7')));
 export function isRetiredServicePack(planId) {
   return Boolean(SERVICE_PACK_PLANS[planId]) && !SERVICE_PACK_SALE_IDS.includes(planId);
 }
 
 // The 2026-10-24 no-expiry promise continues for all earlier snapshots.
 export function hasServicePackExpiry(snapshot) {
-  return snapshot?.policyVersion === CURRENT_SERVICE_PACK_POLICY;
+  return EXPIRING_POLICIES.includes(snapshot?.policyVersion);
 }
 export function servicePackExpiry(snapshot, startsAt) {
   return hasServicePackExpiry(snapshot)
