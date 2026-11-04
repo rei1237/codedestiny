@@ -316,6 +316,26 @@ const CLASSIC_MODULES = Object.freeze([
   "lib/korean-calendar/natal.js",
 ]);
 
+/**
+ * 권위 조회(CR-001/002)는 계산마다 명시적으로 켜는 서버·앱 경로다. 정적 셸은 켜지 않으므로
+ * 조회표 130KB를 싣지 않고, 켜려 하면 조용히 옛 표로 답하는 대신 던지는 자리표시만 둔다.
+ */
+function classicAuthorityStub() {
+  const source = readFileSync(join(REPO_ROOT, "lib/korean-calendar/authority-data.generated.js"), "utf8");
+  const constant = (name) => {
+    const m = source.match(new RegExp(`export const ${name} = ('[^']*'|"[^"]*")`));
+    if (!m) throw new Error(`authority-data.generated.js 에서 ${name} 을 못 읽었다`);
+    return `const ${name} = ${m[1]};`;
+  };
+  return [
+    constant("VERIFIED_AUTHORITY_VERSION"),
+    constant("VERIFIED_AUTHORITY_FINGERPRINT"),
+    'function authorityUnavailable() { const error = new RangeError("AUTHORITY_UNAVAILABLE_IN_CLASSIC"); error.code = "AUTHORITY_UNAVAILABLE_IN_CLASSIC"; throw error; }',
+    "const authorityMetadata = authorityUnavailable, verifiedLunarMonthForSolar = authorityUnavailable, verifiedLunarMonth = authorityUnavailable, verifiedNodeTermWindow = authorityUnavailable;",
+    "",
+  ].join("\n");
+}
+
 /** 모듈 구문을 걷어낸다. 남으면 던진다 — 조용히 반쪽짜리 파일을 내는 것이 최악이다. */
 function stripModuleSyntax(rel, source) {
   const out = source
@@ -387,6 +407,7 @@ function renderClassic(table) {
     '"use strict";',
     tableBody.trimStart(),
     "",
+    classicAuthorityStub(),
     ...modules,
     "",
     "root.KoreanCalendar = Object.freeze({",
