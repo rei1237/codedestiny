@@ -515,3 +515,15 @@ for(const kind of ['rawPurchase','rawTarot'])test(kind+' ignores SDK success if 
   assert.equal(done,0);assert.equal(reported.code,'SESSION_CHANGED');releaseLogin(Response.json({token:'new-session'}));await login;
  }finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
 });
+
+
+test('session verification blocks a concurrent purchase before the SDK opens',async()=>{
+ const a=await adapter(true,true),{state}=a,previous=globalThis.fetch;await a.restore();let release;
+ globalThis.fetch=()=>new Promise(resolve=>{release=resolve;});
+ try{
+  const cleanup=a.rawPurchase({sku:'first'},'request',()=>{},()=>{});
+  assert.throws(()=>a.rawTarot({sku:'second'},{},()=>{},()=>{}),e=>e.code==='PAYMENT_IN_PROGRESS');
+  assert.equal(state.purchaseOptions,undefined);cleanup();release(Response.json({authenticated:true}));await tick();
+  assert.equal(state.purchaseOptions,undefined);
+ }finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
+});
