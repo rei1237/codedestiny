@@ -1,7 +1,7 @@
 ---
 status: blocked
 updated: 2026-11-04
-next: 기존 main CI 실패를 고친 뒤 오가닉 마케팅 커밋을 main에 전달
+next: 최신 main PR CI 완료와 main 체크아웃 정리를 확인한 뒤 오가닉 마케팅 커밋을 전달
 ---
 
 # WordPress 운세 신문 오가닉 재유통 인수인계
@@ -10,8 +10,9 @@ next: 기존 main CI 실패를 고친 뒤 오가닉 마케팅 커밋을 main에 
 
 - 작업 디렉터리: `D:\Development\code-destiny\.codex-worktrees\organic-marketing-20261104-180112`
 - 구현 커밋: `09f8d3329582b2b23ae2e9078fa4b2756b5be212`
-- push: 보류. `origin/main`의 기존 커밋 `65e8418779a0b926d6eee399a182966da1a2efcc`에서 PR CI가 실패 중이다.
-- 기존 CI 실패: `__tests__/ui/home-overseas-runtime.test.mjs`가 흑월 웹툰 한국어 문구의 해외 로케일 잔존을 감지한다. 이 작업의 WordPress·인사이트 변경과 무관하다.
+- push: 보류. 최신 `origin/main` `6eec763f087fe84502e4db22e04047d86c12ba21`의 PR CI가 실행 중이다: https://github.com/rei1237/codedestiny/actions/runs/41815536887
+- 이전 CI 실패는 `__tests__/ui/home-overseas-runtime.test.mjs`가 흑월 웹툰 한국어 문구의 해외 로케일 잔존을 감지한 건이었다. 이 작업의 WordPress·인사이트 변경과 무관하다.
+- `main` 체크아웃은 `e6aa5a287322ebfe98edf792af15ff969dcf2cf9`에 머물러 있고, 상담 접근·꿀 지갑 관련 8개 파일에 다른 세션의 미커밋 변경이 있어 clean하지 않다. 해당 변경은 건드리지 않았다.
 
 ## 완료한 작업
 
@@ -31,4 +32,4 @@ next: 기존 main CI 실패를 고친 뒤 오가닉 마케팅 커밋을 main에 
 
 ## 재개 명령
 
-`D:\Development\code-destiny\.codex-worktrees\organic-marketing-20261104-180112`에서 이 문서를 읽고, 작업 트리가 clean한지와 구현 커밋 `09f8d3329582b2b23ae2e9078fa4b2756b5be212`를 확인한다. 먼저 `origin/main`의 PR CI가 초록인지 확인하고, 초록이면 최신 `origin/main` 위로 재배치한 뒤 `npm run check:pre-push`를 통과시켜 `main`에 push한다. 전달 후 워크트리와 `wt/organic-marketing-20261104-180112` 브랜치를 정리한다.
+`D:\Development\code-destiny\.codex-worktrees\organic-marketing-20261104-180112`에서 이 문서를 읽고, 작업 트리가 clean한지와 구현 커밋 `09f8d3329582b2b23ae2e9078fa4b2756b5be212`를 확인한다. 먼저 `origin/main`의 PR CI가 초록인지와 `main` 체크아웃의 다른 세션 변경이 정리됐는지 확인한다. 둘 다 안전하면 최신 `origin/main` 위로 재배치한 뒤 `npm run check:pre-push`를 통과시켜 `main`에 push한다. 전달 후 워크트리와 `wt/organic-marketing-20261104-180112` 브랜치를 정리한다.
