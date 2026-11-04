@@ -582,7 +582,8 @@
 
   window.changeLanguage = nativeChangeLanguage;
   window.addEventListener('cd:locale-ready', function (event) {
-    if (!event.detail || event.detail.source !== 'android') return;
+    // 이동 없이 언어만 적용한다. 결제 재개(paid-resume)가 문서를 다시 열면 재개가 끊겨 무한 반복된다.
+    if (!event.detail || (event.detail.source !== 'android' && event.detail.source !== 'paid-resume')) return;
     selectedPageLang = normalizeLang(event.detail.lang);
     setSavedLang(selectedPageLang);
     syncLanguageUiSoon(selectedPageLang);
