@@ -52,11 +52,11 @@
     "hero": {
       "eyebrow": "CODE DESTINY",
       "brandLine": "Colección Celestial de Destino",
-      "titleLine1": "Cuatro Pilares y tarot gratis",
+      "titleLine1": "Manseryeok y tarot gratis",
       "titleAccent": "Horóscopo de hoy",
       "titleLine3": "bajo una misma luz lunar",
       "lead": "Consulta los Cuatro Pilares, tarot, Zi Wei Dou Shu, astrología, astrología Sukuyo, compatibilidad y el horóscopo de hoy en un espacio sereno. Introduce tus datos de nacimiento o tu pregunta actual y recibe una lectura que ordena el momento antes de tu próxima decisión.",
-      "primaryCta": "Leer mis Cuatro Pilares gratis",
+      "primaryCta": "Ver mi Manseryeok gratis",
       "tarotCta": "Sacar cartas del tarot",
       "logoAlt": "Logotipo de Yeoni de cerdo de miel"
     },
@@ -178,7 +178,7 @@
       "genderLabel": "Género",
       "female": "Mujer",
       "male": "Hombre",
-      "submit": "Lectura gratis de Cuatro Pilares",
+      "submit": "Ver Manseryeok gratis",
       "saveProfile": "Guardar carta de perfil",
       "saveOptional": "Opcional",
       "kakaoEvent": "Evento de compartir en Kakao",
@@ -1252,7 +1252,7 @@
       "neoLogoAlt": "Logotipo de Honey Yeoni"
     },
     "hero2": {
-      "title": "De los Cuatro Pilares gratis a Zi Wei Dou Shu y la astrología: quién eres en este instante",
+      "title": "Del Manseryeok gratis a Zi Wei Dou Shu y la astrología: quién eres en este instante",
       "lead": "La sabiduría de Oriente y Occidente se une a los expertos para interpretar tu historia.",
       "primaryCta": "✦ Crea tu carta del destino",
       "journeyCta": "✦ Comienza tu viaje del destino"
@@ -1260,7 +1260,7 @@
     "oneStep": {
       "heading": "Today's One Step",
       "s1": {
-        "title": "Free Saju Chart",
+        "title": "Manseryeok gratis",
         "desc": "Start by knowing yourself"
       },
       "s2": {
@@ -5391,7 +5391,7 @@
         "faq": "Preguntas frecuentes"
       },
       "home": "Regreso a casa",
-      "freeSaju": "Ver lectura gratuita de Saju"
+      "freeSaju": "Ver el Manseryeok gratis"
     },
     "tryAgainLater": "Vuelva a intentarlo en breve."
   },
@@ -5400,7 +5400,7 @@
       "kicker": "La primera energía de taegeuk",
       "title": "Las luces blancas y oscuras de taegeuk iluminan el centro de tu carta.",
       "desc": "En el gráfico, la energía se mueve a través del pilar del día, los diez dioses, el equilibrio estacional y la fuerza de apoyo. Las puertas más profundas de la fortuna se abren silenciosamente donde se necesitan.",
-      "navAria": "Ir a interpretación gratuita de saju",
+      "navAria": "Ir a la interpretación de Saju",
       "nav": {
         "manse": "Gráfico",
         "ilju": "Pilar de día",
@@ -5448,7 +5448,7 @@
       "johuTitle": "Análisis de calidez y sequedad estacional",
       "ukbuTitle": "Fuerza de soporte y análisis de patrones de seguimiento",
       "currentSeasonTitle": "🍃 Mi momento actual · Yo este año",
-      "currentSeasonIntro": "En Saju, la pregunta más frecuente es «¿Y ahora, este año?». Empezamos, gratis, por la estación vital que atraviesas (tu gran ciclo de suerte) y el flujo de este año."
+      "currentSeasonIntro": "En Saju, la pregunta más frecuente es «¿Y ahora, este año?». Empezamos por la estación vital que atraviesas (tu gran ciclo de suerte) y el flujo de este año."
     },
     "ilju": {
       "dashboard": "TABLERO DEL PILAR DEL DÍA",
@@ -7315,7 +7315,7 @@
     "sq_9794_attr_aria_label": "Gráfico de radar de compatibilidad Sukuyo"
   },
   "shell": {
-    "CODEDESTINY": "꿀꿀 운세 | Cuatro Pilares (BaZi) · Tarot · Zi Wei Dou Shu · Compatibilidad gratis — Lecturas de la suerte",
+    "CODEDESTINY": "꿀꿀 운세 | Manseryeok gratis · Cuatro Pilares (BaZi) · Tarot · Zi Wei Dou Shu · Compatibilidad — Lecturas de la suerte",
     "cdCookieConsentCopy": {
       "cdCookieConsentActions": {
         "kniuoqf": "Aceptar",
@@ -8524,7 +8524,7 @@
     "005": "Organiza la carta natal, las 12 casas y los símbolos zodiacales para que los principiantes los entiendan fácilmente.",
     "006": "Criterios y exención de responsabilidad para leer el contenido de la lectura de forma segura y equilibrada.",
     "007": "Guía de iniciación a Cuatro Pilares (BaZi)",
-    "008": "Análisis gratuito de Cuatro Pilares (BaZi) con Manse Calendar",
+    "008": "Cómo leer el Manseryeok gratis",
     "009": "Interpretación básica de Cuatro Pilares (BaZi) con Manse Calendar",
     "010": "¿Cómo funciona la lectura de tarot?",
     "011": "Lectura gratuita de cartas de tarot",
@@ -8536,7 +8536,7 @@
     "017": "Carta natal astrológica gratuita",
     "018": "Carta natal de Zi Wei Dou Shu de las 12 casas",
     "019": "Señales clave para reconocer una buena compatibilidad",
-    "020": "Interpretación gratuita de compatibilidad de Cuatro Pilares (BaZi)",
+    "020": "Compatibilidad de Cuatro Pilares (BaZi)",
     "021": "Ver gratis la suerte en el amor",
     "022": "FAQ sobre el uso seguro de los servicios de lectura",
     "023": "Ver gratis la lectura de hoy",
@@ -8884,7 +8884,7 @@
   },
   "seoLanding": {
     "description": {
-      "001": "Esta es una página de guía gratuita de Cuatro Pilares (BaZi) que examina las tendencias y el flujo de elecciones a través de la estructura básica de los Cuatro Pilares (BaZi), el equilibrio de los Cinco Elementos, los Diez Dioses y el ciclo de fortuna.",
+      "001": "Introduce tu fecha y hora de nacimiento en el Manseryeok gratis para ver tu carta de los Cuatro Pilares y una frase sobre tu tendencia. Los Diez Dioses, los ciclos de fortuna y el flujo de dinero, amor y trabajo continúan en la lectura completa de Saju de pago.",
       "002": "Le guía sobre cómo verificar los Cuatro Pilares (BaZi), los Cinco Elementos, los Diez Dioses y el flujo del ciclo de fortuna de su carta natal basándose en su fecha y hora de nacimiento.",
       "003": "La lectura de hoy le ayuda a revisar ligeramente su condición diaria, relaciones y prioridades laborales, y a organizar las elecciones a tomar.",
       "004": "La página de la lectura de hoy le ayuda a revisar brevemente su condición, el flujo de sus relaciones y las prioridades de su horario al comenzar o terminar el día.",
@@ -8907,12 +8907,12 @@
       "021": "El PDF de la lectura de Año Nuevo es un documento de lectura premium que examina el flujo de la carrera, la riqueza, las relaciones y la salud del Año Nuevo mes a mes."
     },
     "title": {
-      "001": "Análisis gratuito de Cuatro Pilares (BaZi) | Flujo de Cinco Elementos·Diez Dioses·Ciclo de fortuna",
-      "002": "Análisis gratuito de Cuatro Pilares (BaZi) de la carta natal | Interpretación de Cinco Elementos·Diez Dioses·Ciclo de fortuna",
+      "001": "Carta natal gratis con Manseryeok | Cómo leer Cuatro Pilares, Cinco Elementos, Diez Dioses y ciclos de fortuna",
+      "002": "Cómo leer el Manseryeok gratis | Cuatro Pilares, Cinco Elementos y tabla de ciclos de fortuna",
       "003": "Ver lectura de hoy gratis | Guía de flujo y elecciones diarias",
       "004": "Ver lectura de hoy al instante | Revisión de condición·relación·horario",
-      "005": "Ver compatibilidad gratis | Análisis de Cuatro Pilares (BaZi)·relación amorosa",
-      "006": "Interpretación gratuita de compatibilidad de Cuatro Pilares (BaZi) | Flujo de relación y estilo de comunicación",
+      "005": "Guía gratuita de compatibilidad | Saju, Sukuyo y tarot comparados",
+      "006": "Compatibilidad Saju — Tendencias de dos personas y lectura de la relación | 꿀꿀 운세",
       "007": "Lectura gratuita de cartas del tarot | Interpretación de amor·reconciliación·corazón",
       "008": "Lectura de tarot de reconciliación | Posibilidad de reconexión y distancia",
       "009": "Tarot del corazón de la otra persona | Flujo del corazón y señales de la relación",
@@ -16314,7 +16314,7 @@
       "badge": "Free compatibility reading"
     },
     "saju": {
-      "tagline": "A basic reading that calculates the eight characters of your saju and lays out your innate temperament and the large turns of your life. You can start for free.",
+      "tagline": "Calcula los ocho caracteres de tu Saju y te muestra gratis tu carta natal, el equilibrio de los Cinco Elementos y una frase sobre tu tendencia. La lectura de los Diez Dioses y los ciclos de fortuna continúa en la lectura completa de Saju de pago.",
       "feats": [
         "When you can't put your own disposition into words",
         "When you want to see the broad arc of your life once",
@@ -16331,7 +16331,7 @@
         "How does the broad arc of my life run?",
         "What kind of period am I in now?"
       ],
-      "fallbackCta": "See your Manseryeok free",
+      "fallbackCta": "Ver tu carta Manseryeok gratis",
       "headline": "Explore the broad patterns of your life through your birth date and time.",
       "badge": "Start for free"
     },

@@ -52,11 +52,11 @@
     "hero": {
       "eyebrow": "CODE DESTINY",
       "brandLine": "Koleksi Takdir Cakerawala",
-      "titleLine1": "Empat Tiang & Tarot Percuma",
+      "titleLine1": "Manseryeok & Tarot Percuma",
       "titleAccent": "Ramalan Hari Ini",
       "titleLine3": "dalam satu cahaya bulan",
       "lead": "Terokai Empat Tiang, tarot, Zi Wei Dou Shu, astrologi, astrologi Sukuyo, keserasian dan ramalan hari ini dalam ruang yang tenang. Masukkan maklumat kelahiran atau soalan semasa anda, lalu terima bacaan yang menjernihkan saat sebelum pilihan seterusnya.",
-      "primaryCta": "Mulakan bacaan Empat Tiang percuma",
+      "primaryCta": "Lihat Manseryeok percuma saya",
       "tarotCta": "Cabut kad tarot",
       "logoAlt": "Logo Babi Madu Yeoni"
     },
@@ -178,7 +178,7 @@
       "genderLabel": "Jantina",
       "female": "Perempuan",
       "male": "Lelaki",
-      "submit": "Bacaan Empat Tiang percuma",
+      "submit": "Lihat Manseryeok percuma",
       "saveProfile": "Simpan kad profil",
       "saveOptional": "Pilihan",
       "kakaoEvent": "Acara kongsi Kakao",
@@ -1252,7 +1252,7 @@
       "neoLogoAlt": "Logo Honey Yeoni"
     },
     "hero2": {
-      "title": "Daripada Empat Tiang percuma hingga Zi Wei Dou Shu dan astrologi — diri anda pada saat ini",
+      "title": "Daripada Manseryeok percuma hingga Zi Wei Dou Shu dan astrologi — diri anda pada saat ini",
       "lead": "Kebijaksanaan Timur-Barat bertemu wawasan pakar untuk mentafsir kisah anda.",
       "primaryCta": "✦ Cipta kad takdir anda",
       "journeyCta": "✦ Mulakan Perjalanan Takdir Anda"
@@ -1260,7 +1260,7 @@
     "oneStep": {
       "heading": "Today's One Step",
       "s1": {
-        "title": "Free Saju Chart",
+        "title": "Manseryeok percuma",
         "desc": "Start by knowing yourself"
       },
       "s2": {
@@ -5391,7 +5391,7 @@
         "faq": "Soalan lazim"
       },
       "home": "Pulang ke rumah",
-      "freeSaju": "Lihat bacaan Saju percuma"
+      "freeSaju": "Lihat Manseryeok percuma"
     },
     "tryAgainLater": "Sila cuba sebentar lagi."
   },
@@ -5400,7 +5400,7 @@
       "kicker": "Tenaga pertama taegeuk",
       "title": "Lampu putih dan gelap taegeuk menerangi bahagian tengah carta anda.",
       "desc": "Dalam carta, tenaga bergerak melalui tiang hari, sepuluh tuhan, keseimbangan bermusim dan kekuatan sokongan. Pintu rezeki yang lebih dalam terbuka dengan senyap di mana mereka diperlukan.",
-      "navAria": "Pergi ke tafsiran saju percuma",
+      "navAria": "Pergi ke tafsiran Saju",
       "nav": {
         "manse": "Carta",
         "ilju": "Tiang hari",
@@ -5448,7 +5448,7 @@
       "johuTitle": "Analisis kehangatan dan kekeringan bermusim",
       "ukbuTitle": "Kekuatan sokongan dan analisis corak berikut",
       "currentSeasonTitle": "🍃 Fasa saya kini · Saya tahun ini",
-      "currentSeasonIntro": "Soalan paling kerap dalam Saju ialah “Jadi sekarang, bagaimana tahun ini?” Kami mula, secara percuma, dengan musim hidup yang sedang anda lalui (kitaran nasib besar) dan aliran tahun ini."
+      "currentSeasonIntro": "Soalan paling kerap dalam Saju ialah “Jadi sekarang, bagaimana tahun ini?” Kami mula dengan musim hidup yang sedang anda lalui (kitaran nasib besar) dan aliran tahun ini."
     },
     "ilju": {
       "dashboard": "PAPAN PEmuka TIANG HARI",
@@ -7315,7 +7315,7 @@
     "sq_9794_attr_aria_label": "Carta Radar Keserasian Sukuyo"
   },
   "shell": {
-    "CODEDESTINY": "꿀꿀 운세 | Empat Tiang (BaZi) Percuma·Tarot·Zi Wei Dou Shu·Keserasian — Bacaan Bertuah",
+    "CODEDESTINY": "꿀꿀 운세 | Manseryeok Percuma·Empat Tiang (BaZi)·Tarot·Zi Wei Dou Shu·Keserasian — Bacaan Bertuah",
     "cdCookieConsentCopy": {
       "cdCookieConsentActions": {
         "kniuoqf": "Setuju",
@@ -8524,7 +8524,7 @@
     "005": "Menerangkan carta kelahiran, 12 rumah, dan simbol zodiak dengan cara yang mudah difahami oleh pemula.",
     "006": "Piawaian dan penafian untuk membaca kandungan bacaan dengan selamat dan seimbang.",
     "007": "Panduan Pengenalan Empat Tiang (BaZi)",
-    "008": "Analisis Empat Tiang (BaZi) Manse Calendar Percuma",
+    "008": "Cara membaca Manseryeok percuma",
     "009": "Tafsiran Asas Empat Tiang (BaZi) Manse Calendar",
     "010": "Bagaimana Pembacaan Tarot Berfungsi",
     "011": "Pembacaan Kad Tarot Percuma",
@@ -8536,7 +8536,7 @@
     "017": "Carta Kelahiran Astrologi Percuma",
     "018": "Papan 12 Rumah Zi Wei Dou Shu",
     "019": "Isyarat Utama untuk Mengenali Keserasian Baik",
-    "020": "Tafsiran Keserasian Empat Tiang (BaZi) Percuma",
+    "020": "Keserasian Empat Tiang (BaZi)",
     "021": "Lihat Nasib Cinta Percuma",
     "022": "Soalan Lazim Penggunaan Perkhidmatan Bacaan dengan Selamat",
     "023": "Lihat Bacaan Hari Ini Percuma",
@@ -8884,7 +8884,7 @@
   },
   "seoLanding": {
     "description": {
-      "001": "Ini adalah halaman panduan Empat Tiang (BaZi) percuma yang mengkaji kecenderungan dan aliran pilihan melalui struktur asas Empat Tiang (BaZi), keseimbangan Lima Unsur, Sepuluh Dewa, dan kitaran nasib.",
+      "001": "Masukkan tarikh dan masa lahir dalam Manseryeok percuma untuk melihat carta Empat Tiang dan satu baris kecenderungan. Sepuluh Dewa, kitaran nasib serta aliran wang, cinta dan kerjaya disambung dalam bacaan penuh Saju berbayar.",
       "002": "Kami membimbing anda tentang cara menyemak carta kelahiran Empat Tiang (BaZi), Lima Unsur, Sepuluh Dewa, dan aliran kitaran nasib berdasarkan tarikh dan masa lahir anda.",
       "003": "Bacaan harian membantu anda menyemak keadaan, hubungan, dan keutamaan kerja anda secara ringkas dan menyusun pilihan untuk tindakan.",
       "004": "Halaman bacaan harian membantu anda menyemak keadaan, aliran hubungan, dan keutamaan jadual anda secara ringkas apabila anda memulakan atau menyusun hari anda.",
@@ -8907,12 +8907,12 @@
       "021": "PDF Bacaan Tahun Baru adalah dokumen bacaan premium yang mengkaji aliran kerjaya, kekayaan, hubungan, dan kesihatan Tahun Baru secara bulanan."
     },
     "title": {
-      "001": "Analisis Empat Tiang (BaZi) Percuma | Aliran Lima Unsur·Sepuluh Dewa·Kitaran Nasib",
-      "002": "Analisis Empat Tiang (BaZi) Kalendar Abadi Percuma | Tafsiran Lima Unsur·Sepuluh Dewa·Kitaran Nasib",
+      "001": "Carta kelahiran Manseryeok percuma | Cara membaca Empat Tiang, Lima Unsur, Sepuluh Dewa dan kitaran nasib",
+      "002": "Cara membaca Manseryeok percuma | Empat Tiang, Lima Unsur dan jadual kitaran nasib",
       "003": "Lihat Bacaan Harian Percuma | Panduan Aliran dan Pilihan Harian",
       "004": "Semak Bacaan Harian Segera | Semakan Keadaan·Hubungan·Jadual",
-      "005": "Lihat Keserasian Percuma | Analisis Hubungan Empat Tiang (BaZi)·Percintaan",
-      "006": "Tafsiran Keserasian Empat Tiang (BaZi) Percuma | Aliran Hubungan dan Cara Komunikasi",
+      "005": "Panduan keserasian percuma | Saju, Sukuyo dan tarot dibandingkan",
+      "006": "Keserasian Saju — Kecenderungan dua orang dan bacaan hubungan | 꿀꿀 운세",
       "007": "Bacaan Kad Tarot Percuma | Tafsiran Percintaan·Penyatuan Semula·Hati",
       "008": "Bacaan Tarot Penyatuan Semula | Kemungkinan dan Jarak untuk Bersatu Semula",
       "009": "Tarot Hati Pasangan | Aliran Hati dan Isyarat Hubungan",
@@ -16314,7 +16314,7 @@
       "badge": "Free compatibility reading"
     },
     "saju": {
-      "tagline": "A basic reading that calculates the eight characters of your saju and lays out your innate temperament and the large turns of your life. You can start for free.",
+      "tagline": "Mengira lapan aksara Saju anda dan memaparkan secara percuma carta, keseimbangan Lima Unsur serta satu baris kecenderungan. Tafsiran Sepuluh Dewa dan kitaran nasib disambung dalam bacaan penuh Saju berbayar.",
       "feats": [
         "When you can't put your own disposition into words",
         "When you want to see the broad arc of your life once",
@@ -16331,7 +16331,7 @@
         "How does the broad arc of my life run?",
         "What kind of period am I in now?"
       ],
-      "fallbackCta": "See your Manseryeok free",
+      "fallbackCta": "Lihat carta Manseryeok percuma",
       "headline": "Explore the broad patterns of your life through your birth date and time.",
       "badge": "Start for free"
     },

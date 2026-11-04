@@ -52,11 +52,11 @@
     "hero": {
       "eyebrow": "CODE DESTINY",
       "brandLine": "Hemelse collectie voor je lot",
-      "titleLine1": "Gratis Vier Pijlers & Tarot",
+      "titleLine1": "Gratis Manseryeok & Tarot",
       "titleAccent": "Je dagorakel",
       "titleLine3": "in één rustig maanlicht",
       "lead": "Ontdek de Vier Pijlers, tarot, Zi Wei Dou Shu, astrologie, Sukuyo-astrologie, compatibiliteit en je dagorakel in één rustige omgeving. Vul je geboortegegevens of huidige vraag in en krijg een lezing die het moment voor je volgende keuze helder maakt.",
-      "primaryCta": "Start gratis Vier-Pijlers-lezing",
+      "primaryCta": "Bekijk mijn gratis Manseryeok",
       "tarotCta": "Trek tarotkaarten",
       "logoAlt": "Honey Pig Yeoni-logo"
     },
@@ -178,7 +178,7 @@
       "genderLabel": "Geslacht",
       "female": "Vrouw",
       "male": "Man",
-      "submit": "Gratis Vier-Pijlers-lezing",
+      "submit": "Bekijk gratis Manseryeok",
       "saveProfile": "Profielkaart opslaan",
       "saveOptional": "Optioneel",
       "kakaoEvent": "Kakao-deelevent",
@@ -1252,7 +1252,7 @@
       "neoLogoAlt": "Honey Yeoni-logo"
     },
     "hero2": {
-      "title": "Van gratis Vier Pijlers tot Zi Wei Dou Shu en astrologie – wie jij nu bent",
+      "title": "Van gratis Manseryeok tot Zi Wei Dou Shu en astrologie – wie jij nu bent",
       "lead": "Oosterse en westerse wijsheid ontmoet expertinzicht om jouw verhaal te duiden.",
       "primaryCta": "✦ Maak je lotskaart",
       "journeyCta": "✦ Begin je lotsreis"
@@ -1260,7 +1260,7 @@
     "oneStep": {
       "heading": "Today's One Step",
       "s1": {
-        "title": "Free Saju Chart",
+        "title": "Gratis Manseryeok",
         "desc": "Start by knowing yourself"
       },
       "s2": {
@@ -5391,7 +5391,7 @@
         "faq": "Veelgestelde vragen"
       },
       "home": "Terug naar huis",
-      "freeSaju": "Bekijk gratis Saju-lezing"
+      "freeSaju": "Bekijk het gratis Manseryeok"
     },
     "tryAgainLater": "Probeer het binnenkort opnieuw."
   },
@@ -5400,7 +5400,7 @@
       "kicker": "De eerste energie van taegeuk",
       "title": "De witte en donkere lichten van taegeuk verlichten het midden van uw kaart.",
       "desc": "In het diagram beweegt de energie zich door de dagpijler, tien goden, seizoensbalans en ondersteunende kracht. Diepere deuren van fortuin gaan stilletjes open waar ze nodig zijn.",
-      "navAria": "Ga naar gratis saju-interpretatie",
+      "navAria": "Ga naar de Saju-interpretatie",
       "nav": {
         "manse": "Grafiek",
         "ilju": "Dagpijler",
@@ -5448,7 +5448,7 @@
       "johuTitle": "Analyse van seizoenswarmte en droogte",
       "ukbuTitle": "Ondersteuningssterkte en volgende patroonanalyse",
       "currentSeasonTitle": "🍃 Waar ik nu sta · Ik dit jaar",
-      "currentSeasonIntro": "De meestgestelde vraag in Saju is: “En nu, hoe zit dit jaar?” We beginnen gratis met het levensseizoen dat je doormaakt (je grote geluksscyclus) en de stroom van dit jaar."
+      "currentSeasonIntro": "De meestgestelde vraag in Saju is: “En nu, hoe zit dit jaar?” We beginnen met het levensseizoen dat je doormaakt (je grote geluksscyclus) en de stroom van dit jaar."
     },
     "ilju": {
       "dashboard": "DAGPIJLERDASHBOARD",
@@ -7315,7 +7315,7 @@
     "sq_9794_attr_aria_label": "Sukuyo compatibiliteitsradarchart"
   },
   "shell": {
-    "CODEDESTINY": "꿀꿀 운세 | Gratis Vier Pijlers (BaZi)·Tarot·Zi Wei Dou Shu·Compatibiliteit — Geluksreading",
+    "CODEDESTINY": "꿀꿀 운세 | Gratis Manseryeok·Vier Pijlers (BaZi)·Tarot·Zi Wei Dou Shu·Compatibiliteit — Geluksreading",
     "cdCookieConsentCopy": {
       "cdCookieConsentActions": {
         "kniuoqf": "Akkoord",
@@ -8524,7 +8524,7 @@
     "005": "Geboortekaart, 12 huizen en sterrenbeeldsymbolen eenvoudig uitgelegd voor beginners.",
     "006": "Richtlijnen en disclaimer voor het veilig en evenwichtig lezen van reading-content.",
     "007": "Vier Pijlers (BaZi) beginnersgids",
-    "008": "Gratis Vier Pijlers (BaZi) analyse",
+    "008": "Het gratis Manseryeok leren lezen",
     "009": "Basisinterpretatie Vier Pijlers (BaZi)",
     "010": "Hoe tarotreadings werken",
     "011": "Gratis tarotkaartreading",
@@ -8536,7 +8536,7 @@
     "017": "Gratis astrologische geboortekaart",
     "018": "Zi Wei Dou Shu 12 huizen",
     "019": "Belangrijke signalen voor goede compatibiliteit",
-    "020": "Gratis Vier Pijlers (BaZi) compatibiliteitsanalyse",
+    "020": "Vier Pijlers (BaZi) compatibiliteit",
     "021": "Gratis liefdes reading bekijken",
     "022": "FAQ voor veilig gebruik van reading-services",
     "023": "Gratis dagelijkse reading bekijken",
@@ -8884,7 +8884,7 @@
   },
   "seoLanding": {
     "description": {
-      "001": "Dit is een gratis introductiepagina voor Vier Pijlers (BaZi) die de basisstructuur, Vijf Elementen balans, Tien Goden en geluk-cyclus analyseert om je neigingen en keuzestromen te bekijken.",
+      "001": "Voer je geboortedatum en -tijd in het gratis Manseryeok in om je Vier Pijlers-kaart en een tendens in één zin te zien. Tien Goden, geluks-cycli en de stroom van geld, liefde en werk vervolg je in de volledige, betaalde Saju-lezing.",
       "002": "We leggen uit hoe je de Vier Pijlers (BaZi) geboortekaart, Vijf Elementen, Tien Goden en geluk-cyclus stromen kunt controleren op basis van je geboortedatum en -tijd.",
       "003": "De dagelijkse reading helpt je om de conditie van de dag, relaties en werkprioriteiten licht te controleren en keuzes te organiseren om in de praktijk te brengen.",
       "004": "De dagelijkse reading pagina helpt je om snel je conditie, relatiestromen en agendaprioriteiten te controleren wanneer je de dag begint of afsluit.",
@@ -8907,12 +8907,12 @@
       "021": "De Nieuwjaarsreading PDF is een premium reading-document dat de carrière, financiën, relaties en gezondheidsstromen van het nieuwe jaar per maand bekijkt."
     },
     "title": {
-      "001": "Gratis Vier Pijlers (BaZi) Analyse | Vijf Elementen·Tien Goden·geluk-cyclus Stromen",
-      "002": "Gratis Vier Pijlers (BaZi) Analyse | Vijf Elementen·Tien Goden·geluk-cyclus Interpretatie",
+      "001": "Gratis Manseryeok: geboortekaart | Vier Pijlers, Vijf Elementen, Tien Goden en geluks-cycli lezen",
+      "002": "Het gratis Manseryeok lezen | Vier Pijlers, Vijf Elementen en geluks-cyclustabel",
       "003": "Gratis Dagelijkse Reading | Dagelijkse Stroom en Keuzegids",
       "004": "Direct Dagelijkse Reading | Conditie·Relatie·Agenda Check",
-      "005": "Gratis Compatibiliteit | Vier Pijlers (BaZi)·Liefdesrelatie Analyse",
-      "006": "Gratis Vier Pijlers (BaZi) Compatibiliteit | Relatiestroom en Communicatiestijl",
+      "005": "Gratis compatibiliteitsgids | Saju, Sukuyo en tarot vergeleken",
+      "006": "Saju-compatibiliteit — Neigingen van twee mensen en relatielezing | 꿀꿀 운세",
       "007": "Gratis Tarotkaart Reading | Liefde·Hereniging·Hart Interpretatie",
       "008": "Hereniging Tarot Reading | Kans op Hereniging en Afstand",
       "009": "Tarot voor de gedachten van de ander | Hartstroom en Relatiesignalen",
@@ -16314,7 +16314,7 @@
       "badge": "Free compatibility reading"
     },
     "saju": {
-      "tagline": "A basic reading that calculates the eight characters of your saju and lays out your innate temperament and the large turns of your life. You can start for free.",
+      "tagline": "Berekent de acht tekens van je Saju en toont gratis je kaart, de balans van de Vijf Elementen en een tendens in één zin. De uitleg van de Tien Goden en geluks-cycli vervolg je in de volledige, betaalde Saju-lezing.",
       "feats": [
         "When you can't put your own disposition into words",
         "When you want to see the broad arc of your life once",
@@ -16331,7 +16331,7 @@
         "How does the broad arc of my life run?",
         "What kind of period am I in now?"
       ],
-      "fallbackCta": "See your Manseryeok free",
+      "fallbackCta": "Bekijk je gratis Manseryeok",
       "headline": "Explore the broad patterns of your life through your birth date and time.",
       "badge": "Start for free"
     },

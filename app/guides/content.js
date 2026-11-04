@@ -7,7 +7,7 @@ const HIGH_VALUE_CONTENT_TEXT_TRANSLATIONS = {
     "highValueContent.005": "출생차트, 12궁, 별자리 상징을 입문자가 이해하기 쉽게 정리합니다.",
     "highValueContent.006": "운세 콘텐츠를 안전하고 균형 있게 읽기 위한 기준과 면책 고지입니다.",
     "highValueContent.007": "사주팔자 입문 가이드",
-    "highValueContent.008": "무료 만세력 사주 분석",
+    "highValueContent.008": "무료 만세력 보는 법",
     "highValueContent.009": "사주 만세력 기본 해석",
     "highValueContent.010": "타로 리딩은 어떻게 작동하나요",
     "highValueContent.011": "무료 타로 카드 리딩",

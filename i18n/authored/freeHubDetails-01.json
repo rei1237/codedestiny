@@ -197,18 +197,18 @@
     "ms": "See free compatibility"
   },
   "featureMarketing.saju.tagline": {
-    "ko": "사주팔자 여덟 글자를 계산해 타고난 기질과 인생의 큰 굴곡을 정리해 주는 기본 해석입니다. 무료로 시작할 수 있어요.",
-    "en": "A basic reading that calculates the eight characters of your saju and lays out your innate temperament and the large turns of your life. You can start for free.",
-    "ja": "四柱八字を計算し、生まれ持った気質と人生の大きな変化を整理する基本鑑定です。無料で始められます。",
-    "zh-CN": "计算四柱八字，梳理先天气质与人生大幅转折的基础解读，可免费开始。",
-    "zh-TW": "計算四柱八字，梳理先天氣質與人生大幅轉折的基礎解讀，可免費開始。",
-    "vi": "A basic reading that calculates the eight characters of your saju and lays out your innate temperament and the large turns of your life. You can start for free.",
-    "hi": "A basic reading that calculates the eight characters of your saju and lays out your innate temperament and the large turns of your life. You can start for free.",
-    "es": "A basic reading that calculates the eight characters of your saju and lays out your innate temperament and the large turns of your life. You can start for free.",
-    "fr": "A basic reading that calculates the eight characters of your saju and lays out your innate temperament and the large turns of your life. You can start for free.",
-    "de": "A basic reading that calculates the eight characters of your saju and lays out your innate temperament and the large turns of your life. You can start for free.",
-    "nl": "A basic reading that calculates the eight characters of your saju and lays out your innate temperament and the large turns of your life. You can start for free.",
-    "ms": "A basic reading that calculates the eight characters of your saju and lays out your innate temperament and the large turns of your life. You can start for free."
+    "ko": "사주팔자 여덟 글자를 계산해 원국과 오행 균형, 한 줄 성향을 무료로 보여 드립니다. 십성·대운 풀이는 사주 전체 풀이 평생 소장에서 이어집니다.",
+    "en": "Calculates the eight characters of your Saju and shows your natal chart, Five Elements balance and a one-line tendency for free. Ten Gods and luck-cycle readings continue in the full paid Saju reading.",
+    "ja": "四柱八字を計算し、原局・五行バランス・一行の傾向を無料でお見せします。十神・大運の読み解きは、有料の四柱推命フルリーディングで続けてご覧いただけます。",
+    "zh-CN": "计算四柱八字，免费呈现命盘、五行均衡和一句话性格倾向。十神、大运的解读可在付费的四柱完整解读中继续查看。",
+    "zh-TW": "計算四柱八字，免費呈現命盤、五行均衡與一句話性格傾向。十神、大運的解讀可在付費的四柱完整解讀中繼續查看。",
+    "vi": "Tính toán tám chữ Tứ Trụ và cho bạn xem miễn phí mệnh bàn, cân bằng Ngũ Hành cùng một dòng xu hướng tính cách. Phần giải Thập Thần và đại vận được xem tiếp trong bản giải đầy đủ Saju có phí.",
+    "hi": "आपके साजू के आठ अक्षर निकालकर जन्म चार्ट, पंच तत्व संतुलन और एक पंक्ति का स्वभाव मुफ़्त दिखाता है। दस देव और दशा चक्र की व्याख्या सशुल्क पूर्ण साजू रीडिंग में आगे देखी जा सकती है।",
+    "es": "Calcula los ocho caracteres de tu Saju y te muestra gratis tu carta natal, el equilibrio de los Cinco Elementos y una frase sobre tu tendencia. La lectura de los Diez Dioses y los ciclos de fortuna continúa en la lectura completa de Saju de pago.",
+    "fr": "Calcule les huit caractères de votre Saju et vous montre gratuitement votre thème natal, l’équilibre des Cinq Éléments et une phrase sur votre tendance. La lecture des Dix Dieux et des cycles de chance se poursuit dans la lecture complète du Saju, payante.",
+    "de": "Berechnet die acht Zeichen deines Saju und zeigt dir kostenlos dein Chart, die Balance der Fünf Elemente und eine Ein-Satz-Tendenz. Die Deutung der Zehn Götter und Glückszyklen folgt in der kostenpflichtigen vollständigen Saju-Deutung.",
+    "nl": "Berekent de acht tekens van je Saju en toont gratis je kaart, de balans van de Vijf Elementen en een tendens in één zin. De uitleg van de Tien Goden en geluks-cycli vervolg je in de volledige, betaalde Saju-lezing.",
+    "ms": "Mengira lapan aksara Saju anda dan memaparkan secara percuma carta, keseimbangan Lima Unsur serta satu baris kecenderungan. Tafsiran Sepuluh Dewa dan kitaran nasib disambung dalam bacaan penuh Saju berbayar."
   },
   "featureMarketing.saju.headline": {
     "ko": "생년월일시 하나로 삶의 큰 흐름부터 펼쳐 보세요.",
@@ -379,18 +379,18 @@
     "ms": "It calmly explains your innate traits and current patterns without frightening predictions of good or bad fortune."
   },
   "featureMarketing.saju.fallbackCta": {
-    "ko": "무료로 사주 보기",
-    "en": "See your Manseryeok free",
-    "ja": "無料で万年暦を見る",
-    "zh-CN": "免费看万年历",
-    "zh-TW": "免費看萬年曆",
-    "vi": "See your Manseryeok free",
-    "hi": "See your Manseryeok free",
-    "es": "See your Manseryeok free",
-    "fr": "See your Manseryeok free",
-    "de": "See your Manseryeok free",
-    "nl": "See your Manseryeok free",
-    "ms": "See your Manseryeok free"
+    "ko": "무료 만세력 보기",
+    "en": "See your free Manseryeok chart",
+    "ja": "無料の万年暦を見る",
+    "zh-CN": "查看免费万年历",
+    "zh-TW": "查看免費萬年曆",
+    "vi": "Xem lịch vạn niên miễn phí",
+    "hi": "अपना मुफ़्त मान्सेर्योक चार्ट देखें",
+    "es": "Ver tu carta Manseryeok gratis",
+    "fr": "Voir votre thème Manseryeok gratuit",
+    "de": "Kostenloses Manseryeok ansehen",
+    "nl": "Bekijk je gratis Manseryeok",
+    "ms": "Lihat carta Manseryeok percuma"
   },
   "featureMarketing.tarot.tagline": {
     "ko": "질문을 정하고 카드를 뽑으면 그 상징이 지금의 감정과 선택을 어떻게 비추는지 풀어 주는 기본 타로입니다.",

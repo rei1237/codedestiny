@@ -52,11 +52,11 @@
     "hero": {
       "eyebrow": "CODE DESTINY",
       "brandLine": "Celestial Fortune Collection",
-      "titleLine1": "Free Saju & Tarot",
+      "titleLine1": "Free Manseryeok & Tarot",
       "titleAccent": "Today's Fortune",
       "titleLine3": "Held in One Calm Space",
       "lead": "Explore Saju, tarot, Zi Wei Dou Shu, astrology, Sukuyo compatibility, and today's fortune in one quiet space. Share your birth details or a present question, and let the reading clarify the flow before your next choice.",
-      "primaryCta": "Start Free Saju Reading",
+      "primaryCta": "Start Free Manseryeok",
       "tarotCta": "Draw Tarot Cards",
       "logoAlt": "Honey Pig Yeoni logo"
     },
@@ -178,7 +178,7 @@
       "genderLabel": "Gender",
       "female": "Female",
       "male": "Male",
-      "submit": "Start Free Saju Reading",
+      "submit": "View Free Manseryeok",
       "saveProfile": "Save profile card",
       "saveOptional": "Optional",
       "kakaoEvent": "Kakao share event",
@@ -1260,7 +1260,7 @@
     "oneStep": {
       "heading": "Today's One Step",
       "s1": {
-        "title": "Free Saju Chart",
+        "title": "Free Manseryeok Chart",
         "desc": "Start by knowing yourself"
       },
       "s2": {
@@ -5391,7 +5391,7 @@
         "faq": "Frequently asked questions"
       },
       "home": "Return home",
-      "freeSaju": "View free Saju reading"
+      "freeSaju": "View free Manseryeok"
     },
     "tryAgainLater": "Please try again shortly."
   },
@@ -5400,7 +5400,7 @@
       "kicker": "The first energy of taegeuk",
       "title": "The white and dark lights of taegeuk illuminate the center of your chart.",
       "desc": "In the chart, energy moves through the day pillar, ten gods, seasonal balance, and support strength. Deeper doors of fortune open quietly where they are needed.",
-      "navAria": "Go to free saju interpretation",
+      "navAria": "Go to Saju interpretation",
       "nav": {
         "manse": "Chart",
         "ilju": "Day pillar",
@@ -5448,7 +5448,7 @@
       "johuTitle": "Seasonal warmth and dryness analysis",
       "ukbuTitle": "Support strength and following pattern analysis",
       "currentSeasonTitle": "🍃 Where I am now · This year's me",
-      "currentSeasonIntro": "The question people ask most in Saju is “So, how about now — this year?” We start, for free, with the life season you are passing through (your major luck cycle) and the flow of this year."
+      "currentSeasonIntro": "The question people ask most in Saju is “So, how about now — this year?” We start with the life season you are passing through (your major luck cycle) and the flow of this year."
     },
     "ilju": {
       "dashboard": "DAY PILLAR DASHBOARD",
@@ -8524,7 +8524,7 @@
     "005": "Simplifying birth charts, 12 houses, and zodiac symbols for beginners.",
     "006": "Criteria and disclaimer for safely and balancedly reading fortune-telling content.",
     "007": "Four Pillars (BaZi) Intro Guide",
-    "008": "Free Four Pillars (BaZi) Analysis",
+    "008": "How to Read a Free Manseryeok",
     "009": "Four Pillars (BaZi) Basic Interpretation",
     "010": "How Tarot Readings Work",
     "011": "Free Tarot Card Reading",
@@ -8536,7 +8536,7 @@
     "017": "Free Astrology Birth Chart",
     "018": "Zi Wei Dou Shu 12 Houses",
     "019": "Key Signs of Good Compatibility",
-    "020": "Free Four Pillars (BaZi) Compatibility",
+    "020": "Four Pillars (BaZi) Compatibility",
     "021": "View Free Love Reading",
     "022": "FAQ for Safe Use of Reading Services",
     "023": "View Today's Free Reading",
@@ -8884,7 +8884,7 @@
   },
   "seoLanding": {
     "description": {
-      "001": "This free Four Pillars (BaZi) guide page explores tendencies and choices through the basic structure of Four Pillars, Five Elements balance, Ten Gods, and luck cycle.",
+      "001": "Enter your birth date and time in the free Manseryeok to see your Four Pillars natal chart and a one-line tendency. Ten Gods, luck cycles and the flow of wealth, love and career continue in the full paid Saju reading.",
       "002": "Learn how to check your Four Pillars (BaZi), Five Elements, Ten Gods, and luck cycle flow based on your birth date and time.",
       "003": "Today's reading helps you lightly check your daily condition, relationships, and work priorities, and organize choices to act upon.",
       "004": "The Today's Reading page helps you quickly check your condition, relationship flow, and schedule priorities when starting or ending your day.",
@@ -8907,12 +8907,12 @@
       "021": "The New Year Reading PDF is a premium reading document that examines career, wealth, relationships, and health flows by month for the new year."
     },
     "title": {
-      "001": "Free Four Pillars (BaZi) Analysis | Five Elements·Ten Gods·Luck Cycle Flow",
-      "002": "Free Four Pillars (BaZi) Analysis | Five Elements·Ten Gods·Luck Cycle Interpretation",
+      "001": "Free Manseryeok Natal Chart | How to Read Four Pillars, Five Elements, Ten Gods and Luck Cycles",
+      "002": "How to Read a Free Manseryeok | Four Pillars, Five Elements and Luck Cycle Table",
       "003": "View Today's Reading Free | Daily Flow & Choice Guide",
       "004": "Check Today's Reading Now | Condition·Relationships·Schedule Check",
-      "005": "View Free Compatibility | Four Pillars·Love Relationship Analysis",
-      "006": "Free Four Pillars Compatibility Interpretation | Relationship Flow & Communication Style",
+      "005": "Compatibility Guide | Free Overview Comparing Saju, Sukuyo and Tarot",
+      "006": "Saju Compatibility — Two People’s Tendencies and Relationship Reading | 꿀꿀 운세",
       "007": "Free Tarot Card Reading | Love·Reunion·Heart Interpretation",
       "008": "Reunion Tarot Reading | Possibility & Distance to Reconnect",
       "009": "Other's Heart Tarot | Heart Flow & Relationship Signals",
@@ -16314,7 +16314,7 @@
       "badge": "Free compatibility reading"
     },
     "saju": {
-      "tagline": "A basic reading that calculates the eight characters of your saju and lays out your innate temperament and the large turns of your life. You can start for free.",
+      "tagline": "Calculates the eight characters of your Saju and shows your natal chart, Five Elements balance and a one-line tendency for free. Ten Gods and luck-cycle readings continue in the full paid Saju reading.",
       "feats": [
         "When you can't put your own disposition into words",
         "When you want to see the broad arc of your life once",
@@ -16331,7 +16331,7 @@
         "How does the broad arc of my life run?",
         "What kind of period am I in now?"
       ],
-      "fallbackCta": "See your Manseryeok free",
+      "fallbackCta": "See your free Manseryeok chart",
       "headline": "Explore the broad patterns of your life through your birth date and time.",
       "badge": "Start for free"
     },

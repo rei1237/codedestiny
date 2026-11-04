@@ -281,19 +281,118 @@ const NON_KO_FREE_SAJU_FILES = [
   'app/components/auth/AuthShell.tsx',
   'lib/seo/i18nKeywords.ts',
 ];
+// 정규식은 String.raw 로 쓴다. 일반 따옴표 문자열에 '\s'를 쓰면 백슬래시가 사라져 's'가 되고, 라틴 문자 패턴이 조용히 죽는다.
+// GAP: 구분자(| · — – . , ; :)를 넘지 않는 단어 최대 2개. "무료 ... 사주" 사이에 제목 구분이 끼면 다른 문장으로 본다.
+const GAP = String.raw`(?:[^\s|·—–.,;:]+\s+){0,2}`;
+const GAP3 = String.raw`(?:[^\s|·—–.,;:]+\s+){0,3}`;
 const NON_KO_FREE_SAJU_PATTERN = new RegExp([
-  '無料.{0,3}四柱', '免[费費].{0,3}四柱', '免[费費]看八字', '免[费費].{0,3}八字', '無料で四柱',
-  'free\s+(?:saju|bazi)', 'saju\s+free', '(?:saju|bazi)\s+(?:gratuit|gratis|gratuito|percuma)',
-  '(?:gratuit|gratis|gratuito|percuma)\s+(?:saju|bazi)', 'kostenlos\w*\s+(?:saju|bazi)',
-  'miễn phí.{0,12}(?:Tứ Trụ|Bát Tự)', 'मुफ़्त.{0,6}(?:साज|बाज़ी)',
-].join('|'), 'i');
+  // 한·중·일: "무료 사주" 계열
+  String.raw`무료 ?사주`,
+  String.raw`無料.{0,3}四柱`, String.raw`免[费費].{0,3}四柱`, String.raw`免[费費]看八字`, String.raw`免[费費].{0,3}八字`, String.raw`無料で四柱`,
+  // en
+  String.raw`free\s+(?:saju|bazi|four\s+pillars)`, String.raw`saju\s+free`, String.raw`(?:saju|bazi|four\s+pillars)\s+(?:\([^)]*\)\s+)?${GAP3}free\b`,
+  // es
+  String.raw`(?:saju|bazi)\s+(?:gratis|gratuit[ao]s?)`, String.raw`(?:gratis|gratuit[ao]s?)\s+${GAP}(?:saju|bazi|cuatro\s+pilares)`,
+  String.raw`cuatro\s+pilares\s+(?:\([^)]*\)\s+)?${GAP3}gratis`,
+  // fr
+  String.raw`(?:saju|bazi)\s+gratuit`, String.raw`gratuit\w*\s+${GAP}(?:saju|bazi|quatre\s+piliers)`,
+  String.raw`quatre\s+piliers\s+(?:\([^)]*\)\s+)?${GAP3}gratuit`,
+  // de
+  String.raw`kostenlos\w*\s+${GAP}(?:saju|bazi|vier\s+s.ulen)`, String.raw`vier\s+s.ulen\s+(?:\([^)]*\)\s+)?${GAP3}kostenlos`,
+  // nl
+  String.raw`gratis\s+${GAP}(?:saju|bazi|vier\s+pijlers)`, String.raw`vier\s+pijlers\s+(?:\([^)]*\)\s+)?${GAP3}gratis`,
+  // ms
+  String.raw`(?:saju|bazi)\s+percuma`, String.raw`percuma\s+${GAP}(?:saju|bazi|empat\s+tiang)`,
+  String.raw`empat\s+tiang\s+(?:\([^)]*\)\s+)?${GAP3}percuma`,
+  // vi
+  String.raw`miễn phí\s+${GAP}(?:tứ trụ|bát tự)`, String.raw`(?:tứ trụ|bát tự)\s+(?:\([^)]*\)\s+)?${GAP3}miễn phí`,
+  // hi (नुक्ता 유무 모두)
+  String.raw`(?:मुफ़?्त|निःशुल्क)\s+${GAP}(?:साज|बाज़?ी|फ़?ोर\s+पिलर|चार\s+स्तंभ)`,
+].join('|').normalize('NFC'), 'i');
+const hitsNonKoFreeSaju = (text) => NON_KO_FREE_SAJU_PATTERN.test(String(text).normalize('NFC'));
+
+test('다른 언어 "무료 사주" 가드 정규식이 실제로 걸린다', () => {
+  // 가드가 죽어 있으면 파일 검사가 무조건 통과한다. 언어마다 걸려야 하는 문구와 걸리면 안 되는 문구를 못 박는다.
+  const mustHit = {
+    en: ['Free Saju & Tarot', 'Free Four Pillars (BaZi) Compatibility', 'Four Pillars (BaZi) reading is free'],
+    ja: ['無料の四柱推命', '無料四柱推命分析'],
+    'zh-CN': ['免费八字占算', '免费四柱八字分析'],
+    'zh-TW': ['免費四柱八字分析', '免費看八字'],
+    de: ['Kostenlose Vier Säulen (BaZi) Analyse', 'Kostenloses Saju'],
+    nl: ['Gratis Vier Pijlers (BaZi) Analyse', 'Vier Pijlers (BaZi) analyse gratis'],
+    ms: ['Analisis Empat Tiang (BaZi) Percuma', 'Bacaan Empat Tiang percuma'],
+    hi: ['मुफ्त फोर पिलर्स (बाज़ी)', 'मुफ़्त चार स्तंभ पाठ'],
+    es: ['Cuatro Pilares (BaZi) gratis', 'Análisis gratuito de Cuatro Pilares'],
+    fr: ['Quatre Piliers gratuits', 'Analyse gratuite des Quatre Piliers (BaZi)'],
+    vi: ['Phân tích Tứ Trụ Bát Tự miễn phí', 'Tứ Trụ miễn phí'],
+    ko: ['무료 사주 보기', '무료사주'],
+  };
+  for (const [lang, samples] of Object.entries(mustHit)) {
+    for (const s of samples) assert.ok(hitsNonKoFreeSaju(s), `${lang} 문구가 가드에 걸려야 한다: ${s}`);
+  }
+  const mustPass = [
+    'Free Manseryeok Natal Chart | How to Read Four Pillars',
+    'Enter your birth date in the free Manseryeok to see your Four Pillars natal chart',
+    'Kostenloses Manseryeok: Geburtschart | Vier Säulen, Fünf Elemente',
+    'Lịch vạn niên miễn phí – Mệnh bàn Tứ Trụ',
+    'Manseryeok gratis · Cuatro Pilares (BaZi) · Tarot',
+    '無料の万年暦で見る四柱の原局',
+    '免费万年历命盘 | 四柱五行',
+    '무료 만세력 사주 원국 보기',
+  ];
+  for (const s of mustPass) assert.ok(!hitsNonKoFreeSaju(s), `가드가 잘못 걸리면 안 된다: ${s}`);
+});
+
 
 test('다른 언어 문구도 "무료 사주"를 약속하지 않는다', () => {
   const offenders = [];
   for (const rel of NON_KO_FREE_SAJU_FILES) {
     read(rel).split(/\r?\n/).forEach((line, idx) => {
-      if (NON_KO_FREE_SAJU_PATTERN.test(line) && !isCommentHit(line)) offenders.push(`${rel}:${idx + 1}`);
+      if (hitsNonKoFreeSaju(line) && !isCommentHit(line)) offenders.push(`${rel}:${idx + 1}`);
     });
   }
   assert.deepEqual(offenders, [], `다른 언어에서도 "무료 만세력"으로 써야 한다: ${offenders.join(', ')}`);
+});
+
+// 배포되는 번역 사전(public/i18n)의 값도 본다. 사전은 화면이 실제로 읽는 값이라 코드만 고쳐서는 낡은 문구가 남는다.
+// 허용 목록은 "사주 기반이지만 진짜 무료인 별도 상품"만 담는다. 키 단위로 이유를 적는다.
+const I18N_FREE_SAJU_ALLOWED = {
+  'featureMarketing.rpt_tTestCard.tagline': '무료 사주 기반 성향 테스트(별도 무료 상품)',
+  'featureMarketing.rpt_lottoCard.fallbackTitle': '무료 행운 번호 카드(별도 무료 상품)',
+  'featureMarketing.rpt_aiPromptCard.premiumIntro': '사주 프롬프트는 별도 결제 없는 무료 도구',
+  'shellRuntime.s449': '사주 네컷은 별도 결제 없는 무료 콘텐츠',
+  'shellRuntime.s466': '사주 프롬프트는 별도 결제 없는 무료 도구',
+};
+const I18N_LANGS = ['ko', 'en', 'ja', 'zh-cn', 'zh-tw', 'vi', 'hi', 'es', 'fr', 'de', 'nl', 'ms'];
+function flattenStrings(obj, prefix = '', out = {}) {
+  for (const [k, v] of Object.entries(obj)) {
+    const key = prefix ? `${prefix}.${k}` : k;
+    if (v && typeof v === 'object') flattenStrings(v, key, out);
+    else if (typeof v === 'string') out[key] = v;
+  }
+  return out;
+}
+
+test('배포 번역 사전 값에 "무료 사주"가 남아 있지 않다(허용 목록 제외)', () => {
+  const offenders = [];
+  const used = new Set();
+  for (const lang of I18N_LANGS) {
+    const files = [[`public/i18n/${lang}.json`, '']];
+    for (const ns of ['shellRuntime', 'firstVisitGuide', 'loveSimulationScenes']) {
+      if (fs.existsSync(path.join(root, `public/i18n/${lang}/${ns}.json`))) files.push([`public/i18n/${lang}/${ns}.json`, `${ns}.`]);
+    }
+    for (const [rel, nsPrefix] of files) {
+      const flat = flattenStrings(JSON.parse(read(rel)));
+      for (const [key, value] of Object.entries(flat)) {
+        if (!hitsNonKoFreeSaju(value)) continue;
+        // 네임스페이스 파일의 키는 'shellRuntime.s449' 꼴이 이미 접두어를 품고 있으면 그대로 쓴다.
+        const id = key.startsWith(nsPrefix) ? key : `${nsPrefix}${key}`;
+        if (Object.hasOwn(I18N_FREE_SAJU_ALLOWED, id)) { used.add(id); continue; }
+        offenders.push(`${lang}:${id}`);
+      }
+    }
+  }
+  assert.deepEqual(offenders, [], `사전 값을 "무료 만세력" 기준으로 고쳐야 한다: ${offenders.join(', ')}`);
+  // 허용 목록이 낡아 아무 데도 안 걸리는 항목을 들고 있으면 걷어 낸다.
+  assert.deepEqual(Object.keys(I18N_FREE_SAJU_ALLOWED).filter((k) => !used.has(k)), [], '허용 목록에 더는 필요 없는 항목이 있다');
 });

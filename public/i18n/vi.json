@@ -52,11 +52,11 @@
     "hero": {
       "eyebrow": "CODE DESTINY",
       "brandLine": "Bộ sưu tập thiên tài",
-      "titleLine1": "Tứ trụ & Tarot miễn phí",
+      "titleLine1": "Lịch vạn niên & Tarot miễn phí",
       "titleAccent": "Vận may hôm nay",
       "titleLine3": "Tất cả ở một nơi",
       "lead": "Khám phá Tứ trụ, tarot, Tử Vi Đẩu Số, chiêm tinh, khả năng tương thích Tú Diệu và vận may ngày nay trong một không gian yên tĩnh. Nhập chi tiết ngày sinh của bạn hoặc một câu hỏi và nhận bài đọc làm rõ thời điểm trước lựa chọn tiếp theo của bạn.",
-      "primaryCta": "Bắt đầu đọc Tứ trụ miễn phí",
+      "primaryCta": "Xem Lịch vạn niên miễn phí",
       "tarotCta": "Rút bài Tarot",
       "logoAlt": "Logo Honey Pig Yeoni"
     },
@@ -178,7 +178,7 @@
       "genderLabel": "Giới tính",
       "female": "Nữ giới",
       "male": "Nam giới",
-      "submit": "Bắt đầu phân tích Tứ trụ miễn phí",
+      "submit": "Xem Lịch vạn niên miễn phí",
       "saveProfile": "Lưu thẻ hồ sơ",
       "saveOptional": "Không bắt buộc",
       "kakaoEvent": "Sự kiện chia sẻ Kakao",
@@ -1252,7 +1252,7 @@
       "neoLogoAlt": "Logo Honey Yeoni"
     },
     "hero2": {
-      "title": "Từ Tứ Trụ miễn phí đến Tử Vi Đẩu Số và chiêm tinh — con người bạn ngay lúc này",
+      "title": "Từ Lịch vạn niên miễn phí đến Tử Vi Đẩu Số và chiêm tinh — con người bạn ngay lúc này",
       "lead": "Trí tuệ Đông-Tây kết hợp cùng chuyên gia để giải mã câu chuyện của riêng bạn.",
       "primaryCta": "✦ Tạo thẻ vận mệnh của bạn",
       "journeyCta": "✦ Bắt đầu hành trình định mệnh"
@@ -1260,7 +1260,7 @@
     "oneStep": {
       "heading": "Today's One Step",
       "s1": {
-        "title": "Free Saju Chart",
+        "title": "Lịch vạn niên miễn phí",
         "desc": "Start by knowing yourself"
       },
       "s2": {
@@ -5391,7 +5391,7 @@
         "faq": "Câu hỏi thường gặp"
       },
       "home": "Trở về nhà",
-      "freeSaju": "Xem sách Saju miễn phí"
+      "freeSaju": "Xem Lịch vạn niên miễn phí"
     },
     "tryAgainLater": "Vui lòng thử lại sau."
   },
@@ -5400,7 +5400,7 @@
       "kicker": "Năng lượng đầu tiên của taegeuk",
       "title": "Ánh sáng trắng và tối của taegeuk chiếu sáng trung tâm biểu đồ của bạn.",
       "desc": "Trong biểu đồ, năng lượng di chuyển qua trụ ngày, mười vị thần, cân bằng các mùa và sức mạnh hỗ trợ. Những cánh cửa may mắn sâu sắc hơn sẽ lặng lẽ mở ra ở những nơi cần thiết.",
-      "navAria": "Truy cập phiên dịch saju miễn phí",
+      "navAria": "Đi tới phần giải thích Saju",
       "nav": {
         "manse": "Biểu đồ",
         "ilju": "Trụ cột ngày",
@@ -5448,7 +5448,7 @@
       "johuTitle": "Phân tích độ ấm và độ khô theo mùa",
       "ukbuTitle": "Sức mạnh hỗ trợ và phân tích mẫu sau",
       "currentSeasonTitle": "🍃 Thời vận hiện tại · Tôi trong năm nay",
-      "currentSeasonIntro": "Trong Tứ Trụ, câu hỏi thường gặp nhất là “Vậy bây giờ, năm nay thì sao?”. Chúng tôi bắt đầu miễn phí với mùa đời bạn đang đi qua (đại vận) và dòng chảy của năm nay (tuế vận)."
+      "currentSeasonIntro": "Trong Tứ Trụ, câu hỏi thường gặp nhất là “Vậy bây giờ, năm nay thì sao?”. Chúng tôi bắt đầu với mùa đời bạn đang đi qua (đại vận) và dòng chảy của năm nay (tuế vận)."
     },
     "ilju": {
       "dashboard": "BẢNG ĐIỀU KHIỂN TRỤC NGÀY",
@@ -7315,7 +7315,7 @@
     "sq_9794_attr_aria_label": "Biểu đồ radar Túc Diệu nhân duyên"
   },
   "shell": {
-    "CODEDESTINY": "꿀꿀 운세 | Tứ Trụ (Bát Tự)·Tarot·Tử Vi Đẩu Số·Hợp Duyên Miễn Phí — Vận Mệnh May Mắn",
+    "CODEDESTINY": "꿀꿀 운세 | Lịch vạn niên miễn phí·Tứ Trụ (Bát Tự)·Tarot·Tử Vi Đẩu Số·Hợp Duyên — Vận Mệnh May Mắn",
     "cdCookieConsentCopy": {
       "cdCookieConsentActions": {
         "kniuoqf": "Đồng ý",
@@ -8524,7 +8524,7 @@
     "005": "Tổng hợp biểu đồ sinh, 12 cung, biểu tượng cung hoàng đạo dễ hiểu cho người mới bắt đầu.",
     "006": "Tiêu chuẩn và tuyên bố miễn trừ trách nhiệm để đọc nội dung vận mệnh một cách an toàn và cân bằng.",
     "007": "Hướng dẫn nhập môn Tứ Trụ (Bát Tự)",
-    "008": "Phân tích Tứ Trụ (Bát Tự) Vạn Niên Lịch miễn phí",
+    "008": "Cách xem Lịch vạn niên miễn phí",
     "009": "Giải thích cơ bản Tứ Trụ (Bát Tự) Vạn Niên Lịch",
     "010": "Đọc Tarot hoạt động như thế nào",
     "011": "Đọc bài Tarot miễn phí",
@@ -8536,7 +8536,7 @@
     "017": "Biểu đồ sinh chiêm tinh miễn phí",
     "018": "Lá số Tử Vi Đẩu Số 12 cung",
     "019": "Dấu hiệu cốt lõi để nhận biết hợp duyên tốt",
-    "020": "Giải thích hợp duyên Tứ Trụ (Bát Tự) miễn phí",
+    "020": "Xem hợp duyên Tứ Trụ (Bát Tự)",
     "021": "Xem vận tình duyên miễn phí",
     "022": "FAQ về việc sử dụng dịch vụ vận mệnh an toàn",
     "023": "Xem vận mệnh hôm nay miễn phí",
@@ -8884,7 +8884,7 @@
   },
   "seoLanding": {
     "description": {
-      "001": "Đây là trang hướng dẫn Tứ Trụ miễn phí, xem xét xu hướng và dòng chảy lựa chọn thông qua cấu trúc cơ bản của Tứ Trụ Bát Tự, cân bằng Ngũ Hành, Thập Thần và đại vận.",
+      "001": "Nhập ngày giờ sinh vào Lịch vạn niên miễn phí để xem mệnh bàn Tứ Trụ và một dòng xu hướng tính cách. Thập Thần, đại vận và dòng chảy tài vận, tình duyên, sự nghiệp được xem tiếp trong bản giải đầy đủ Saju có phí.",
       "002": "Hướng dẫn cách kiểm tra Tứ Trụ Bát Tự, Ngũ Hành, Thập Thần và dòng chảy đại vận dựa trên ngày, tháng, năm, giờ sinh.",
       "003": "Vận mệnh hôm nay giúp bạn nhẹ nhàng kiểm tra tình trạng, các mối quan hệ, ưu tiên công việc trong ngày và sắp xếp các lựa chọn để thực hiện.",
       "004": "Trang Vận mệnh hôm nay giúp bạn nhanh chóng kiểm tra tình trạng, dòng chảy mối quan hệ, ưu tiên lịch trình khi bắt đầu hoặc kết thúc một ngày.",
@@ -8907,12 +8907,12 @@
       "021": "PDF Vận mệnh năm mới là tài liệu vận mệnh Premium xem xét dòng chảy sự nghiệp, tài lộc, mối quan hệ, sức khỏe hàng tháng trong năm mới."
     },
     "title": {
-      "001": "Phân tích Tứ Trụ Bát Tự miễn phí | Dòng chảy Ngũ Hành·Thập Thần·Đại vận",
-      "002": "Phân tích Tứ Trụ Vạn Niên Lịch miễn phí | Giải thích Ngũ Hành·Thập Thần·Đại vận",
+      "001": "Lịch vạn niên miễn phí – Mệnh bàn Tứ Trụ | Cách đọc Ngũ Hành·Thập Thần·Đại vận",
+      "002": "Cách xem Lịch vạn niên miễn phí | Tứ Trụ·Ngũ Hành·Bảng Đại vận",
       "003": "Xem Vận mệnh hôm nay miễn phí | Hướng dẫn dòng chảy và lựa chọn trong ngày",
       "004": "Kiểm tra Vận mệnh hôm nay ngay | Kiểm tra tình trạng·mối quan hệ·lịch trình",
-      "005": "Xem hợp duyên miễn phí | Phân tích Tứ Trụ·mối quan hệ tình yêu",
-      "006": "Giải thích hợp duyên Tứ Trụ miễn phí | Dòng chảy mối quan hệ và cách giao tiếp",
+      "005": "Hướng dẫn hợp duyên | Giới thiệu miễn phí, so sánh Tứ Trụ·Tú Diệu·Tarot",
+      "006": "Hợp duyên Tứ Trụ — Khuynh hướng của hai người và cách đọc mối quan hệ | 꿀꿀 운세",
       "007": "Đọc bài Tarot miễn phí | Giải thích tình yêu·tái hợp·tâm ý",
       "008": "Đọc Tarot tái hợp | Khả năng tái hợp và khoảng cách",
       "009": "Tarot tâm ý đối phương | Dòng chảy tâm ý và tín hiệu mối quan hệ",
@@ -16314,7 +16314,7 @@
       "badge": "Free compatibility reading"
     },
     "saju": {
-      "tagline": "A basic reading that calculates the eight characters of your saju and lays out your innate temperament and the large turns of your life. You can start for free.",
+      "tagline": "Tính toán tám chữ Tứ Trụ và cho bạn xem miễn phí mệnh bàn, cân bằng Ngũ Hành cùng một dòng xu hướng tính cách. Phần giải Thập Thần và đại vận được xem tiếp trong bản giải đầy đủ Saju có phí.",
       "feats": [
         "When you can't put your own disposition into words",
         "When you want to see the broad arc of your life once",
@@ -16331,7 +16331,7 @@
         "How does the broad arc of my life run?",
         "What kind of period am I in now?"
       ],
-      "fallbackCta": "See your Manseryeok free",
+      "fallbackCta": "Xem lịch vạn niên miễn phí",
       "headline": "Explore the broad patterns of your life through your birth date and time.",
       "badge": "Start for free"
     },

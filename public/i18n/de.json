@@ -52,11 +52,11 @@
     "hero": {
       "eyebrow": "CODE DESTINY",
       "brandLine": "Himmlische Schicksalssammlung",
-      "titleLine1": "Kostenlose Vier Säulen & Tarot",
+      "titleLine1": "Kostenloses Manseryeok & Tarot",
       "titleAccent": "Dein Tagesorakel",
       "titleLine3": "in einem ruhigen Mondlicht",
       "lead": "Entdecke die Vier Säulen, Tarot, Zi Wei Dou Shu, Astrologie, Sukuyo-Astrologie, Kompatibilität und dein Tagesorakel in einem ruhigen Raum. Gib deine Geburtsdaten oder deine aktuelle Frage ein, und die Deutung klärt den Moment vor deiner nächsten Entscheidung.",
-      "primaryCta": "Kostenlose Vier-Säulen-Deutung starten",
+      "primaryCta": "Kostenloses Manseryeok ansehen",
       "tarotCta": "Tarotkarten ziehen",
       "logoAlt": "Honey Pig Yeoni-Logo"
     },
@@ -178,7 +178,7 @@
       "genderLabel": "Geschlecht",
       "female": "Weiblich",
       "male": "Männlich",
-      "submit": "Kostenlose Vier-Säulen-Deutung",
+      "submit": "Kostenloses Manseryeok ansehen",
       "saveProfile": "Profilkarte speichern",
       "saveOptional": "Optional",
       "kakaoEvent": "Kakao-Teilen-Event",
@@ -1252,7 +1252,7 @@
       "neoLogoAlt": "Honey Yeoni-Logo"
     },
     "hero2": {
-      "title": "Von den kostenlosen Vier Säulen bis Zi Wei Dou Shu und Astrologie – wer du in diesem Moment bist",
+      "title": "Vom kostenlosen Manseryeok bis Zi Wei Dou Shu und Astrologie – wer du in diesem Moment bist",
       "lead": "Östliche und westliche Weisheit trifft Experten-Einsicht, um deine Geschichte zu deuten.",
       "primaryCta": "✦ Erstelle deine Schicksalskarte",
       "journeyCta": "✦ Deine Schicksalsreise beginnen"
@@ -1260,7 +1260,7 @@
     "oneStep": {
       "heading": "Today's One Step",
       "s1": {
-        "title": "Free Saju Chart",
+        "title": "Kostenloses Manseryeok",
         "desc": "Start by knowing yourself"
       },
       "s2": {
@@ -5391,7 +5391,7 @@
         "faq": "Häufig gestellte Fragen"
       },
       "home": "Rückkehr nach Hause",
-      "freeSaju": "Kostenlose Saju-Lesung ansehen"
+      "freeSaju": "Kostenloses Manseryeok ansehen"
     },
     "tryAgainLater": "Bitte versuchen Sie es in Kürze noch einmal."
   },
@@ -5400,7 +5400,7 @@
       "kicker": "Die erste Energie von Taegeuk",
       "title": "Die weißen und dunklen Lichter von Taegeuk erhellen die Mitte Ihres Diagramms.",
       "desc": "Im Diagramm bewegt sich die Energie durch die Tagessäule, die zehn Götter, das saisonale Gleichgewicht und die Unterstützungsstärke. Tiefere Türen des Glücks öffnen sich leise dort, wo sie gebraucht werden.",
-      "navAria": "Gehen Sie zur kostenlosen Saju-Interpretation",
+      "navAria": "Zur Saju-Interpretation gehen",
       "nav": {
         "manse": "Diagramm",
         "ilju": "Tagessäule",
@@ -5448,7 +5448,7 @@
       "johuTitle": "Saisonale Wärme- und Trockenheitsanalyse",
       "ukbuTitle": "Unterstützungsstärke und folgende Musteranalyse",
       "currentSeasonTitle": "🍃 Meine aktuelle Phase · Ich dieses Jahr",
-      "currentSeasonIntro": "Die häufigste Frage im Saju lautet: „Und jetzt – wie sieht dieses Jahr aus?“ Wir beginnen kostenlos mit der Lebensphase, die du gerade durchläufst (dein großer Glückszyklus), und dem Verlauf dieses Jahres."
+      "currentSeasonIntro": "Die häufigste Frage im Saju lautet: „Und jetzt – wie sieht dieses Jahr aus?“ Wir beginnen mit der Lebensphase, die du gerade durchläufst (dein großer Glückszyklus), und dem Verlauf dieses Jahres."
     },
     "ilju": {
       "dashboard": "TAGES-SÄULEN-DASHBOARD",
@@ -7315,7 +7315,7 @@
     "sq_9794_attr_aria_label": "Sukuyo (27 Nakshatras) Beziehungs-Radar-Diagramm"
   },
   "shell": {
-    "CODEDESTINY": "꿀꿀 운세 | Kostenlose Vier Säulen (BaZi)·Tarot·Zi Wei Dou Shu·Partnerschaftsanalyse — Glücks-Deutung",
+    "CODEDESTINY": "꿀꿀 운세 | Kostenloses Manseryeok·Vier Säulen (BaZi)·Tarot·Zi Wei Dou Shu·Partnerschaftsanalyse — Glücks-Deutung",
     "cdCookieConsentCopy": {
       "cdCookieConsentActions": {
         "kniuoqf": "Zustimmen",
@@ -8524,7 +8524,7 @@
     "005": "Geburtschart, 12 Häuser und Sternzeichensymbole leicht verständlich für Einsteiger.",
     "006": "Kriterien und Haftungsausschluss für eine sichere und ausgewogene Deutung von Inhalten.",
     "007": "Vier Säulen (BaZi) Einsteiger-Guide",
-    "008": "Kostenlose Vier Säulen (BaZi) Analyse",
+    "008": "Das kostenlose Manseryeok lesen",
     "009": "Vier Säulen (BaZi) Grundinterpretation",
     "010": "Wie funktioniert Tarot-Reading?",
     "011": "Kostenloses Tarotkarten-Reading",
@@ -8536,7 +8536,7 @@
     "017": "Kostenloses Geburtshoroskop",
     "018": "Zi Wei Dou Shu 12 Häuser Geburtsdiagramm",
     "019": "Wichtige Anzeichen für eine gute Partnerschaftsanalyse",
-    "020": "Kostenlose Vier Säulen (BaZi) Partnerschaftsanalyse",
+    "020": "Vier Säulen (BaZi) Partnerschaftsanalyse",
     "021": "Kostenloses Liebesglück anzeigen",
     "022": "FAQ zur sicheren Nutzung des Deutungsdienstes",
     "023": "Kostenlose Tagesdeutung anzeigen",
@@ -8884,7 +8884,7 @@
   },
   "seoLanding": {
     "description": {
-      "001": "Dies ist eine kostenlose Einführungsseite zu den Vier Säulen (BaZi), die die grundlegende Struktur, das Gleichgewicht der Fünf Elemente, die Zehn Götter und den Glückszyklus analysiert, um Tendenzen und Entscheidungsabläufe zu untersuchen.",
+      "001": "Gib Geburtsdatum und -zeit im kostenlosen Manseryeok ein, um dein Vier-Säulen-Chart und eine Ein-Satz-Tendenz zu sehen. Zehn Götter, Glückszyklen und der Verlauf von Geld, Liebe und Beruf folgen in der kostenpflichtigen vollständigen Saju-Deutung.",
       "002": "Wir erklären, wie Sie Ihr Geburtsdiagramm der Vier Säulen (BaZi), die Fünf Elemente, die Zehn Götter und den Glückszyklus basierend auf Ihrem Geburtsdatum und Ihrer Geburtszeit überprüfen können.",
       "003": "Das Tageshoroskop hilft Ihnen, Ihren Zustand, Ihre Beziehungen und die Prioritäten Ihrer Arbeit für den Tag leicht zu überprüfen und Entscheidungen zu treffen.",
       "004": "Die Tageshoroskop-Seite hilft Ihnen, Ihren Zustand, Beziehungsabläufe und Terminprioritäten kurz zu überprüfen, wenn Sie den Tag beginnen oder abschließen.",
@@ -8907,12 +8907,12 @@
       "021": "Das Neujahrs-Deutung PDF ist ein Premium-Deutungsdokument, das die Karriere-, Vermögens-, Beziehungs- und Gesundheitsabläufe des neuen Jahres monatlich untersucht."
     },
     "title": {
-      "001": "Kostenlose Vier Säulen (BaZi) Analyse | Fünf Elemente·Zehn Götter·Glückszyklus",
-      "002": "Kostenlose Vier Säulen (BaZi) Analyse | Fünf Elemente·Zehn Götter·Glückszyklus Deutung",
+      "001": "Kostenloses Manseryeok: Geburtschart | Vier Säulen, Fünf Elemente, Zehn Götter und Glückszyklen lesen",
+      "002": "Das kostenlose Manseryeok lesen | Vier Säulen, Fünf Elemente und Glückszyklus-Tabelle",
       "003": "Kostenloses Tageshoroskop | Tagesablauf und Auswahlhilfe",
       "004": "Tageshoroskop sofort prüfen | Zustand·Beziehung·Terminprüfung",
-      "005": "Kostenlose Partnerschaftsanalyse | Vier Säulen (BaZi)·Liebesbeziehungsanalyse",
-      "006": "Kostenlose Vier Säulen (BaZi) Partnerschaftsanalyse | Beziehungsfluss und Kommunikationsweise",
+      "005": "Kostenloser Partnerschafts-Guide | Saju, Sukuyo und Tarot im Vergleich",
+      "006": "Saju-Partnerschaft — Tendenzen zweier Menschen und Beziehungsdeutung | 꿀꿀 운세",
       "007": "Kostenloses Tarotkarten-Reading | Liebe·Wiedervereinigung·Herzdeutung",
       "008": "Wiedervereinigungs-Tarot-Reading | Möglichkeit der Wiedervereinigung und Distanz",
       "009": "Partner-Herz-Tarot | Herzfluss und Beziehungssignale",
@@ -16314,7 +16314,7 @@
       "badge": "Free compatibility reading"
     },
     "saju": {
-      "tagline": "A basic reading that calculates the eight characters of your saju and lays out your innate temperament and the large turns of your life. You can start for free.",
+      "tagline": "Berechnet die acht Zeichen deines Saju und zeigt dir kostenlos dein Chart, die Balance der Fünf Elemente und eine Ein-Satz-Tendenz. Die Deutung der Zehn Götter und Glückszyklen folgt in der kostenpflichtigen vollständigen Saju-Deutung.",
       "feats": [
         "When you can't put your own disposition into words",
         "When you want to see the broad arc of your life once",
@@ -16331,7 +16331,7 @@
         "How does the broad arc of my life run?",
         "What kind of period am I in now?"
       ],
-      "fallbackCta": "See your Manseryeok free",
+      "fallbackCta": "Kostenloses Manseryeok ansehen",
       "headline": "Explore the broad patterns of your life through your birth date and time.",
       "badge": "Start for free"
     },
