@@ -174,6 +174,7 @@ const signatureProducts = [
     href: '/love-secret-ai/',
     title: '연애 비책',
     question: '마음부터 들려주세요. 두 분 사이의 거리는 서한비가 재어 드릴게요.',
+    popupCopy: '두 사람 사이의 거리와 반복되는 관계 패턴을 함께 살펴보세요.',
     image: '/images/home/love-secret-masters-v1-1200.webp',
     imageSrcset: '/images/home/love-secret-masters-v1-600.webp 600w, /images/home/love-secret-masters-v1-1200.webp 1200w',
     imageAlt: '달빛 찻집에서 찻잔을 든 연이와 관계 장부를 곁에 둔 서한비',
@@ -187,6 +188,7 @@ const signatureProducts = [
     href: '/new-year-ai-consultation/',
     title: '신년운세',
     question: '올해 판세는 내가 먼저 읽는다. 어디서 밀고, 언제 멈출까?',
+    popupCopy: '올해 어디서 밀고 언제 멈출지, 시기별 판세와 행동 기준을 정리해요.',
     image: '/images/home/new-year-neo-v1-1200.webp',
     imageSrcset: '/images/home/new-year-neo-v1-600.webp 600w, /images/home/new-year-neo-v1-1200.webp 1200w',
     imageAlt: '새해 첫 해가 드는 작전실에서 열두 달 작전판을 짚는 네오와 백사자',
@@ -200,6 +202,7 @@ const signatureProducts = [
     href: '/life-book-ai/',
     title: '인생의 책',
     question: '당신의 인생, 첫 장부터 읽어 드릴게요.',
+    popupCopy: '타고난 기질과 인생의 큰 흐름을 한 권의 이야기처럼 읽어 드려요.',
     image: '/images/home/life-book-yun-v2-1200.webp',
     imageSrcset: '/images/home/life-book-yun-v2-600.webp 600w, /images/home/life-book-yun-v2-1200.webp 1200w',
     imageAlt: '달빛 서고에서 빛이 오르는 녹색 인생의 책을 펼친 윤달과 흰 고양이',
@@ -213,6 +216,7 @@ const signatureProducts = [
     href: '/neo-operation-room/',
     title: '네오의 팩폭 전략실',
     question: '고민은 충분히 했다. 이제 무엇부터 바꿀까?',
+    popupCopy: '고민을 정리하고 지금 실행할 작전을 현실적으로 세워보세요.',
     image: '/images/feature-details/neo-operation-room-hero-v2-textless.webp',
     imageAlt: '달빛 전략실에서 선택의 판세를 정리하는 네오',
     featureKey: 'neo-operation-room-consultation',
@@ -225,6 +229,7 @@ const signatureProducts = [
     href: '/fortune-tea-house/',
     title: '연이의 운명 찻집',
     question: '재회부터 사업까지, 어떤 선택이 고민인가요?',
+    popupCopy: '재회부터 사업까지, 마음에 걸린 선택을 연이와 차분히 풀어보세요.',
     image: '/images/home/yeoni-tea-together-v1-1200.webp',
     imageAlt: '한복 입은 연이와 꽃돼지가 함께 차를 건네는 운명의 찻집',
     featureKey: 'fortune-tea-house-tarot-consultation',
@@ -237,6 +242,7 @@ const signatureProducts = [
     href: '/master-love-codex/',
     title: '마스터 인연의 서',
     question: '사람은 바뀌는데, 연애의 고민은 왜 비슷할까?',
+    popupCopy: '비슷한 연애 고민이 반복되는 이유를 나의 인연 패턴부터 읽어보세요.',
     image: '/images/feature-details/master-love-codex-hero-v3.webp',
     imageAlt: '달빛 아래 인연의 지도를 펼쳐 보는 마스터 인연의 서',
     featureKey: 'master-love-codex',
@@ -258,6 +264,7 @@ const signaturePrice = (featureKey, suffix = '') => {
   if (!Number.isSafeInteger(amount) || amount <= 0) throw new Error(`Missing signature consultation price: ${featureKey}`);
   return `${amount.toLocaleString('ko-KR')}원${suffix}`;
 };
+const escapeAttribute = (value) => String(value).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 // 마스터 칩 — 아바타는 build-master-avatars.mjs 가 만든 128px 한 장. 이름이 옆에 있으니 이미지는 장식(alt="").
 const signatureMaster = ({ caption, names, avatars }) => `<span class="cd-sig-card__masters"><span class="cd-sig-card__avatars" aria-hidden="true">${avatars.map((key) => `<img src="/images/master-profiles/avatars/${key}.webp" width="48" height="48" alt="" loading="lazy" decoding="async">`).join('')}</span><span class="cd-sig-card__master"><span>${caption}</span> <b>${names}</b></span></span>`;
 // 타로 덱 — 카드 한 장이 상담 하나. 숫자는 장식(aria-hidden)이고, 카드 이름은 제목이 말한다.
@@ -270,8 +277,8 @@ const introCards = [
 const introCardMarkup = introCards.map((card) => `<a class="cd-sig-card cd-sig-card--intro" data-cd-signature-id="${card.id}"${card.id === 'yeongnyangi-question' ? ' data-cd-portal-placement="home_hero"' : ''} href="${card.href}"><span class="cd-yehwa-seal" aria-hidden="true"></span><span class="cd-sig-card__top"></span><span class="cd-sig-card__media"><img class="cd-sig-card__img" src="${card.image}"${card.id === 'fortune-chat' ? ' srcset="/images/service-introductions/fortune-chat-yeoni-640.webp 640w, /images/service-introductions/fortune-chat-yeoni-960.webp 960w, /images/service-introductions/fortune-chat-yeoni.webp 1536w" sizes="(max-width: 760px) calc(100vw - 64px), (max-width: 1000px) 44vw, 360px"' : ' srcset="/images/service-introductions/yeongnyangi-question-v2-640.webp 640w, /images/service-introductions/yeongnyangi-question-v2-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), (max-width: 1000px) 44vw, 360px"'} width="640" height="360" alt="" loading="lazy" decoding="async"></span><span class="cd-sig-card__body"><span class="cd-sig-card__title">${card.title}</span><span class="cd-sig-card__q">${card.desc}</span><span class="cd-sig-card__cta"><span${card.id === 'yeongnyangi-question' ? ' data-cd-trans="home.yeongnyangiEntry.start"' : ''}>${card.action}</span> <i aria-hidden="true">→</i></span></span></a>`).join('');
 vars.signature = `<section data-cd-funnel-section="signature_consult" class="cd-sig cd-sig--curated cd-sig--deck cd-choice" id="cdSignatureConsult" data-marker="cd-signature-consult-v20261016" aria-labelledby="cdSignatureTitle" lang="ko">
   <img class="cd-choice__branch cd-choice__branch--left" src="/images/home/mv/ornament-lotus-branch-640.webp" width="320" height="280" alt="" loading="lazy"><img class="cd-choice__branch cd-choice__branch--right" src="/images/home/mv/ornament-lotus-branch-640.webp" width="320" height="280" alt="" loading="lazy"><div class="cd-sig__head"><img class="cd-choice__crest" src="/images/home/mv/ornament-lotus-crest-320.webp" width="160" height="58" alt="" loading="lazy"><h2 class="cd-sig__title" id="cdSignatureTitle">지금 필요한 상담을 골라보세요</h2><p class="cd-sig__sub">상담 방식을 먼저 살펴보고, 마음에 남은 고민을 골라보세요.</p></div>
-  <div class="cd-sig__viewport" id="cdSigViewport" tabindex="0" aria-label="대표 상담 카드"><div class="cd-sig__grid" id="cdSigGrid">${introCardMarkup}${[...signatureProducts].sort((a,b)=>['fortune-tea-house','life-book-ai','new-year-ai','love-secret-ai','neo-operation-room','master-love-codex'].indexOf(a.id)-['fortune-tea-house','life-book-ai','new-year-ai','love-secret-ai','neo-operation-room','master-love-codex'].indexOf(b.id)).map((product, index) => `<a class="cd-sig-card cd-sig-card--${product.className}" data-cd-service-id="${product.id}" href="${product.href}" aria-label="${product.title} — ${product.cta}" data-pvw-paid="true"${product.priceSuffix === '부터' ? ' data-price-from="true"' : ''}><span class="cd-yehwa-seal" aria-hidden="true"></span><span class="cd-sig-card__top"><span class="cd-sig-card__numeral" aria-hidden="true">${TAROT_NUMERALS[index]}</span></span><span class="cd-sig-card__media"><img class="cd-sig-card__img" width="1200" height="675" loading="lazy" decoding="async" src="${product.image}"${product.imageSrcset ? ` srcset="${product.imageSrcset}"` : ''} sizes="(max-width: 699px) 82vw, (max-width: 1023px) 45vw, 360px" alt="${product.imageAlt}"></span><span class="cd-sig-card__body">${signatureMaster(product.master)}<span class="cd-sig-card__title">${product.title}</span><span class="cd-sig-card__q">${product.question}</span><span class="cd-sig-card__price" data-cd-play-price data-cd-play-feature="${product.featureKey}"${product.priceSuffix ? ' data-cd-play-kind="from"' : ''}>${signaturePrice(product.featureKey, product.priceSuffix)}</span><span class="cd-sig-card__cta"><span>${product.cta}</span> <i aria-hidden="true">→</i></span></span></a>`).join('')}</div></div>
-  <div class="cd-sig__controls" hidden aria-label="상담 카드 이동"><div class="cd-choice__dots" data-sig-dots aria-label="상담 카드 위치"></div><div class="cd-choice__arrows"><button type="button" data-sig-prev aria-controls="cdSigViewport" aria-label="이전 상담"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m6-6-6 6 6 6"/></svg></button><span data-sig-position aria-live="off"></span><button type="button" data-sig-next aria-controls="cdSigViewport" aria-label="다음 상담"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button><button type="button" class="cd-sig__pause" data-sig-pause aria-pressed="false" aria-label="상담 카드 넘김 멈추기"><svg class="cd-choice__pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6v12m6-12v12"/></svg><svg class="cd-choice__play" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h10v10H7Z"/></svg></button></div></div>
+  <div class="cd-sig__viewport" id="cdSigViewport" tabindex="0" aria-label="대표 상담 카드"><div class="cd-sig__grid" id="cdSigGrid">${introCardMarkup}${[...signatureProducts].sort((a,b)=>['fortune-tea-house','life-book-ai','new-year-ai','love-secret-ai','neo-operation-room','master-love-codex'].indexOf(a.id)-['fortune-tea-house','life-book-ai','new-year-ai','love-secret-ai','neo-operation-room','master-love-codex'].indexOf(b.id)).map((product, index) => `<a class="cd-sig-card cd-sig-card--${product.className}" data-cd-service-id="${product.id}" data-cd-popup-copy="${escapeAttribute(product.popupCopy)}" href="${product.href}" aria-label="${product.title} — ${product.cta}" data-pvw-paid="true"${product.priceSuffix === '부터' ? ' data-price-from="true"' : ''}><span class="cd-yehwa-seal" aria-hidden="true"></span><span class="cd-sig-card__top"><span class="cd-sig-card__numeral" aria-hidden="true">${TAROT_NUMERALS[index]}</span></span><span class="cd-sig-card__media"><img class="cd-sig-card__img" width="1200" height="675" loading="lazy" decoding="async" src="${product.image}"${product.imageSrcset ? ` srcset="${product.imageSrcset}"` : ''} sizes="(max-width: 699px) 82vw, (max-width: 1023px) 45vw, 360px" alt="${product.imageAlt}"></span><span class="cd-sig-card__body">${signatureMaster(product.master)}<span class="cd-sig-card__title">${product.title}</span><span class="cd-sig-card__q">${product.question}</span><span class="cd-sig-card__price" data-cd-play-price data-cd-play-feature="${product.featureKey}"${product.priceSuffix ? ' data-cd-play-kind="from"' : ''}>${signaturePrice(product.featureKey, product.priceSuffix)}</span><span class="cd-sig-card__cta"><span>${product.cta}</span> <i aria-hidden="true">→</i></span></span></a>`).join('')}</div></div>
+  <div class="cd-sig__controls" hidden aria-label="상담 카드 이동"><div class="cd-choice__dots" data-sig-dots aria-label="상담 카드 위치"></div><div class="cd-choice__arrows"><button type="button" data-sig-prev aria-controls="cdSigViewport" aria-label="이전 상담"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m6-6-6 6 6 6"/></svg></button><span data-sig-position aria-live="off"></span><button type="button" data-sig-next aria-controls="cdSigViewport" aria-label="다음 상담"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button><button type="button" class="cd-sig__pause" data-sig-pause aria-pressed="false" aria-label="상담 카드 넘김 멈추기"><svg class="cd-choice__pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6v12m6-12v12"/></svg><svg class="cd-choice__play" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 6 10 6-10 6Z"/></svg></button></div></div>
   <div class="cd-choice__concerns" id="cdhQuestionSlot">${vars.questionCategories}</div>
   <a class="cd-sig__samples-link" href="/consultation-samples/"><svg class="cd-choice__moon" viewBox="0 0 64 64" aria-hidden="true"><circle class="cd-choice__moon-orbit" cx="31" cy="32" r="29"/><path class="cd-choice__moon-crescent" d="M36 9a24 24 0 1 0 20 35A27 27 0 0 1 36 9Z"/><path class="cd-choice__moon-star" d="m48 10 1.7 5.3L55 17l-5.3 1.7L48 24l-1.7-5.3L41 17l5.3-1.7Z"/><path class="cd-choice__moon-star cd-choice__moon-star--small" d="m54 29 1 3 3 1-3 1-1 3-1-3-3-1 3-1Z"/><path class="cd-choice__moon-orbit" d="M17 50c8 6 19 7 28 2"/><circle cx="37" cy="29" r=".8" fill="currentColor" stroke="none"/></svg><span class="cd-choice__samples-label"><span>상담별 구성과</span> <strong>예시 보기</strong></span><svg class="cd-choice__cta-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg></a>
 </section>`;
