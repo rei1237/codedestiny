@@ -17,7 +17,7 @@ function MoodImage({mood,locale}:{mood?:string;locale:ReadingLocale}){
   return <figure className={styles.spiritMood}><img src={moodAssets[mood as Mood]} width={360} height={300} loading="lazy" alt={copy.moodAlt}/></figure>;
 }
 
-export default function SpiritResult({row,onRow,paymentSurface}:{row:FortuneRecord;onRow:(next:FortuneRecord)=>void;paymentSurface?:"toss"}){
+export default function SpiritResult({row,onRow,paymentSurface,onFollowupStart,onFollowupResult,onFollowupError}:{row:FortuneRecord;onRow:(next:FortuneRecord)=>void;paymentSurface?:"toss";onFollowupStart?:()=>number;onFollowupResult?:(next:FortuneRecord,epoch:number)=>void;onFollowupError?:(error:unknown,epoch:number)=>boolean}){
   const locale=row.locale||'ko';
   const [message,setMessage]=useState('');
   const [followup,setFollowup]=useState('');
@@ -34,8 +34,9 @@ export default function SpiritResult({row,onRow,paymentSurface}:{row:FortuneReco
   async function submitFollowup(event:React.FormEvent){
     event.preventDefault();if(busy)return;
     setBusy(true);setMessage('');
-    try{const {fortune}=await fortuneApi<{fortune:FortuneRecord}>(`requests/${row.id}/follow-up`,{question:followup});onRow(fortune);}
-    catch(error){setMessage(error instanceof FortuneApiError?copy.errors[error.code as keyof typeof copy.errors]||(locale==='ko'?error.message:copy.errors.FOLLOWUP_NOT_AVAILABLE):copy.errors.FOLLOWUP_NOT_AVAILABLE);}
+    const epoch=onFollowupStart?.();
+    try{const {fortune}=await fortuneApi<{fortune:FortuneRecord}>(`requests/${row.id}/follow-up`,{question:followup});if(onFollowupResult&&epoch!==undefined)onFollowupResult(fortune,epoch);else onRow(fortune);}
+    catch(error){if(onFollowupError&&epoch!==undefined&&onFollowupError(error,epoch))return;setMessage(error instanceof FortuneApiError?copy.errors[error.code as keyof typeof copy.errors]||(locale==='ko'?error.message:copy.errors.FOLLOWUP_NOT_AVAILABLE):copy.errors.FOLLOWUP_NOT_AVAILABLE);}
     finally{setBusy(false);}
   }
   if(!spirit)return null;

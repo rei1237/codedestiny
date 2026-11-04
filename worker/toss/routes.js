@@ -35,8 +35,8 @@ export async function handleTossRoutes(request,env) {
   const url=new URL(request.url);
   let path=url.pathname.slice('/api/toss'.length);
   const canonical=path.startsWith('/canonical/');
-  const canonicalResult=path.match(/^\/canonical\/yeongnyangi\/requests\/([a-f0-9]{64})(\/(?:generate|activate|conversation))?$/);
-  if(canonicalResult)path='/results/'+canonicalResult[1]+(canonicalResult[2]==='/conversation'?'/conversation':canonicalResult[2]?'/resume':'');
+  const canonicalResult=path.match(/^\/canonical\/yeongnyangi\/requests\/([a-f0-9]{64})(\/(?:generate|activate|conversation|follow-up))?$/);
+  if(canonicalResult)path='/results/'+canonicalResult[1]+(canonicalResult[2]==='/conversation'?'/conversation':canonicalResult[2]==='/follow-up'?'/follow-up':canonicalResult[2]?'/resume':'');
   const headers={'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','Vary':'Origin','X-Content-Type-Options':'nosniff'};
   const reply=(data,status=200)=>new Response(JSON.stringify(data),{status,headers});
   try {
@@ -265,7 +265,7 @@ export async function handleTossRoutes(request,env) {
     }
     const tarotResultMatch=path.match(/^\/tarot-library\/results\/([a-f0-9-]{36})$/);
     if(tarotResultMatch&&request.method==='POST') {
-      const orderId=tarotResultMatch[1],purchase=await TossPurchase.findOne({_id:orderId,identityId:auth._id,environment:auth.environment,tarotFlowId:{$type:'string',$ne:''}}).lean();
+      const orderId=tarotResultMatch[1],purchase=await TossPurchase.findOne({_id:orderId,identityId:auth._id,ownerId:auth.ownerId,environment:auth.environment,tarotFlowId:{$type:'string',$ne:''}}).lean();
       if(!purchase)throw new TossError('RESULT_NOT_FOUND',404);
       const order=await lookupOrder(env,auth.userKey,orderId);
       if(order.sku!==purchase.sku||order.orderId!==orderId)throw new TossError('ORDER_MISMATCH',403);
@@ -276,7 +276,7 @@ export async function handleTossRoutes(request,env) {
       return reply(await deliverTarotLibraryOrder({store:purchaseStore,auth,orderId,flowId:purchase.tarotFlowId,env}));
     }
     if(tarotResultMatch&&request.method==='GET') {
-      const orderId=tarotResultMatch[1],purchase=await TossPurchase.findOne({_id:orderId,identityId:auth._id,environment:auth.environment,tarotFlowId:{$type:'string',$ne:''}}).lean();
+      const orderId=tarotResultMatch[1],purchase=await TossPurchase.findOne({_id:orderId,identityId:auth._id,ownerId:auth.ownerId,environment:auth.environment,tarotFlowId:{$type:'string',$ne:''}}).lean();
       if(!purchase)throw new TossError('RESULT_NOT_FOUND',404);
       const order=await lookupOrder(env,auth.userKey,orderId);
       if(order.sku!==purchase.sku||order.orderId!==orderId)throw new TossError('ORDER_MISMATCH',403);
@@ -285,9 +285,9 @@ export async function handleTossRoutes(request,env) {
       const execution=await PaidExecutionRecord.findOne({orderId,userId:String(auth.ownerId)}).lean();
       return reply(tarotLibraryResult(execution,tarotLibraryFlow(purchase.tarotFlowId)),execution?.status==='completed'?200:202);
     }
-    const resultMatch=path.match(/^\/results\/([a-f0-9]{64})(\/(?:resume|conversation))?$/);
+    const resultMatch=path.match(/^\/results\/([a-f0-9]{64})(\/(?:resume|conversation|follow-up))?$/);
     if(resultMatch&&request.method===(resultMatch[2]?'POST':'GET')) {
-      const purchase=await TossPurchase.findOne({identityId:auth._id,requestId:resultMatch[1],environment:auth.environment}).lean();
+      const purchase=await TossPurchase.findOne({identityId:auth._id,ownerId:auth.ownerId,requestId:resultMatch[1],environment:auth.environment}).lean();
       if(!purchase&&canonical&&request.method==='GET'){
         const pending=await readRequest(env,auth.userId,resultMatch[1]);
         if(!pending.persona&&!pending.accessMethod&&!pending.paymentId&&['CREATED','AWAITING_DRAW'].includes(pending.state))return reply({fortune:presentFortune(pending)});
@@ -307,6 +307,16 @@ export async function handleTossRoutes(request,env) {
         const {retryFortune}=await import('../yeongnyangi/retry.js');
         const row=await retryFortune(env,auth.userId,resultMatch[1]);
         return reply({fortune:presentFortune(row)},row.state==='COMPLETED'?200:202);
+      }
+      if(resultMatch[2]==='/follow-up'){
+        if(!canonical)throw new TossError('NOT_FOUND',404);
+        if(owned.accessMethod!=='TOSS_IAP')throw new TossError('RESULT_NOT_FOUND',404);
+        await limit(env,auth._id,'sky-followup',4);
+        const input=await bodyOf(request);
+        if(!input||typeof input!=='object'||Array.isArray(input))throw new TossError('FOLLOWUP_INPUT_INVALID',400);
+        const {submitQuestionSkyFollowup}=await import('../yeongnyangi/service.ts');
+        try{return reply({fortune:presentFortune(await submitQuestionSkyFollowup(env,auth.userId,resultMatch[1],input.question))},202);}
+        catch(error){const known={FOLLOWUP_INPUT_INVALID:400,FOLLOWUP_NOT_AVAILABLE:409,FOLLOWUP_ALREADY_USED:409};if(Object.hasOwn(known,error?.code))throw new TossError(error.code,known[error.code]);throw error;}
       }
       if(resultMatch[2]==='/conversation'){
         await limit(env,auth._id,'followup',4);

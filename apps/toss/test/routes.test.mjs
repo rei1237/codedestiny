@@ -34,7 +34,7 @@ const stubMap={
  'worker/toss/purchases.js':"export const purchaseStore={};export const recordTossRefund=()=>{};",
  'worker/lib/models.js':"export const ProfileCard={updateOne:globalThis.__tossRouteMocks.profile};export const PaidExecutionRecord={findOne:()=>({lean:async()=>null})};",
  'worker/lib/rate-limit.js':"export const incrementRateLimit=async()=>({count:1});",
- 'worker/yeongnyangi/service.ts':"export const experienceCheckFortune=async()=>({check:null});export const prepareFortune=globalThis.__tossRouteMocks.prepare;export const presentFortune=x=>x;export const drawTarotSpread=(...args)=>globalThis.__tossRouteMocks.draw(...args);",
+ 'worker/yeongnyangi/service.ts':"export const submitQuestionSkyFollowup=(...args)=>globalThis.__tossRouteMocks.skyFollowup(...args);export const experienceCheckFortune=async()=>({check:null});export const prepareFortune=globalThis.__tossRouteMocks.prepare;export const presentFortune=x=>x;export const drawTarotSpread=(...args)=>globalThis.__tossRouteMocks.draw(...args);",
  'worker/yeongnyangi/repository.js':"export const readRequest=(...args)=>globalThis.__tossRouteMocks.read(...args);export const resumeRequest=()=>{};",
  'worker/yeongnyangi/queue.js':"export const enqueueConsultation=()=>{};",
  'worker/yeongnyangi/fortune/index.ts':"export const domains={};",
@@ -126,7 +126,7 @@ test('followup without an owned purchase never reaches a generation call',async(
 
 test('a direct consultation result without a Toss purchase never reads the saved record',async()=>{
  const previous={purchase:mocks.purchase,read:mocks.read};let reads=0;
- mocks.purchase=filter=>({lean:async()=>{assert.equal(filter.identityId,auth._id);assert.equal(filter.environment,auth.environment);return null;}});
+ mocks.purchase=filter=>({lean:async()=>{assert.equal(filter.identityId,auth._id);assert.equal(filter.ownerId,auth.ownerId);assert.equal(filter.environment,auth.environment);return null;}});
  mocks.read=async()=>{reads++;throw Error('unowned result must not be read');};
  try{const id='a'.repeat(64);const response=await handleTossRoutes(new Request('https://code-destiny.com/api/toss/results/'+id,{headers:{Origin:'https://ai-saju-studio.private-apps.tossmini.com'}}),{TOSS_RELEASE_READY:'true'});assert.equal(response.status,404);assert.equal(reads,0);}
  finally{Object.assign(mocks,previous);}
@@ -136,7 +136,7 @@ test('original result contract rereads the owner-bound saved result and rejects 
  const previous={purchase:mocks.purchase,read:mocks.read,lookupOrder:mocks.lookupOrder};
  const id='a'.repeat(64),orderId='01900000-1111-7111-8111-000000000042';
  const saved={_id:id,productId:'saju_mackerel',state:'COMPLETED',snapshot:{},chapters:[{body:'서버에 저장된 원문'}]};
- mocks.purchase=filter=>({lean:async()=>{assert.equal(filter.identityId,auth._id);assert.equal(filter.environment,auth.environment);assert.equal(filter.requestId,id);return {_id:orderId,sku:'saved-sku',productId:saved.productId,serviceId:'yeongnyangi'};}});
+ mocks.purchase=filter=>({lean:async()=>{assert.equal(filter.identityId,auth._id);assert.equal(filter.ownerId,auth.ownerId);assert.equal(filter.environment,auth.environment);assert.equal(filter.requestId,id);return {_id:orderId,sku:'saved-sku',productId:saved.productId,serviceId:'yeongnyangi'};}});
  mocks.read=async(_env,owner,requestId)=>{assert.equal(owner,auth.userId);assert.equal(requestId,id);return saved;};
  let status='PURCHASED';mocks.lookupOrder=async(_env,key)=>{assert.equal(key,auth.userKey);return {orderId,sku:'saved-sku',status};};
  const get=()=>handleTossRoutes(new Request('https://code-destiny.com/api/toss/canonical/yeongnyangi/requests/'+id,{headers:{Origin:'https://ai-saju-studio.private-apps.tossmini.com'}}),{TOSS_RELEASE_READY:'true'});
@@ -196,7 +196,7 @@ test('chat preparation derives persona and domain from server catalog, ignoring 
 
 test('tarot resume rejects an unpaid or cancelled partner order before attaching input or generating',async()=>{
  const previous=mocks.purchase,orderId='01900000-1111-7111-8111-000000000042';
- mocks.purchase=filter=>({lean:async()=>{assert.equal(filter.identityId,auth._id);assert.equal(filter.environment,auth.environment);return {_id:orderId,sku:'owned-sku',tarotFlowId:'tarot-mindscan'};}});
+ mocks.purchase=filter=>({lean:async()=>{assert.equal(filter.identityId,auth._id);assert.equal(filter.ownerId,auth.ownerId);assert.equal(filter.environment,auth.environment);return {_id:orderId,sku:'owned-sku',tarotFlowId:'tarot-mindscan'};}});
  mocks.deliveries=0;
  try{for(const status of ['PAYMENT_PENDING','CANCELLED','UNKNOWN']){
   mocks.lookupOrder=async()=>({orderId,sku:'owned-sku',status});
@@ -264,3 +264,5 @@ for(const kind of ['consultation','tarot'])test('stored '+kind+' purchase restor
   assert.equal(generic,kind==='tarot'?0:1);assert.equal(mocks.grants.length,kind==='tarot'?1:0);assert.equal(mocks.deliveries,0);
  }finally{Object.assign(mocks,previous);mocks.grants.length=0;}
 });
+
+test('Toss sky followup checks the owned paid order before reusing the original one-question flow',async()=>{const prev={purchase:mocks.purchase,lookupOrder:mocks.lookupOrder,read:mocks.read,skyFollowup:mocks.skyFollowup};const id='a'.repeat(64),orderId='01900000-1111-7111-8111-000000000042',owned={productId:'saju_mackerel',accessMethod:'TOSS_IAP'},order={orderId,sku:'sku',status:'PURCHASED'};let called=0;mocks.read=async()=>owned;mocks.lookupOrder=async()=>order;mocks.skyFollowup=async(_env,user,requestId,question)=>{called++;assert.equal(user,auth.userId);assert.equal(requestId,id);assert.equal(question,'이 관계에서 내가 조심할 점은 무엇인가요?');return {state:'PAID'};};try{mocks.purchase=()=>({lean:async()=>null});assert.equal((await request({question:'x'},'/canonical/yeongnyangi/requests/'+id+'/follow-up')).status,404);assert.equal(called,0);mocks.purchase=()=>({lean:async()=>({_id:orderId,sku:'sku',serviceId:'yeongnyangi',productId:'saju_mackerel'})});order.status='REFUNDED';assert.equal((await request({question:'x'},'/canonical/yeongnyangi/requests/'+id+'/follow-up')).status,409);assert.equal(called,0);order.status='PURCHASED';assert.equal((await request({question:'이 관계에서 내가 조심할 점은 무엇인가요?'},'/canonical/yeongnyangi/requests/'+id+'/follow-up')).status,202);assert.equal(called,1);assert.equal((await request({question:'x'},'/results/'+id+'/follow-up')).status,404);assert.equal(called,1);mocks.skyFollowup=async()=>{throw Object.assign(new Error('private'),{code:'FOLLOWUP_ALREADY_USED',status:409});};const used=await request({question:'x'},'/canonical/yeongnyangi/requests/'+id+'/follow-up');assert.equal(used.status,409);assert.equal((await used.json()).error,'FOLLOWUP_ALREADY_USED');}finally{Object.assign(mocks,prev);}});

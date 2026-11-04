@@ -111,9 +111,19 @@ export default function Result({paymentSurface}:{paymentSurface?:"toss"}={}){
   return ()=>{document.removeEventListener('visibilitychange',restore);document.title=original;};
  },[row]);
  function hideDeniedTossResult(e:unknown){
-  if(paymentSurface !== 'toss'||!(e instanceof FortuneApiError)||![401,403].includes(e.status))return false;
+  if(paymentSurface !== 'toss')return false;
+  if(!(e instanceof FortuneApiError)){if(mounted.current){setRow(null);setError('구매 상태를 확인할 수 없어요. 다시 결제하지 말고 주문 내역을 확인해 주세요.');}return true;}
+  const orderUnverified=e.status===0||[402,404,408,429].includes(e.status)||e.status>=500||['ORDER_REFUNDED','ORDER_NOT_PAID','INVALID_RESPONSE','RECOVERY_ID_MISMATCH'].includes(e.code);
+  if(![401,403].includes(e.status)&&!orderUnverified)return false;
   if(!mounted.current)return true;
-  setRow(null);setError(e.status===401?'기록과 구매를 확인하려면 토스 로그인이 필요해요.':'구매 내역에 접근할 권한을 확인할 수 없어요. 구매한 계정과 주문 내역을 확인해 주세요.');return true;
+  setRow(null);setError(e.status===401?'기록과 구매를 확인하려면 토스 로그인이 필요해요.':e.code==='ORDER_REFUNDED'?'환불된 주문이에요. 주문 내역을 확인해 주세요.':orderUnverified?'구매 상태를 확인할 수 없어요. 다시 결제하지 말고 주문 내역을 확인해 주세요.':'구매 내역에 접근할 권한을 확인할 수 없어요. 구매한 계정과 주문 내역을 확인해 주세요.');return true;
+ }
+ function startTossFollowup(){return ++permissionEpoch.current;}
+ function finishTossFollowup(next:FortuneRecord,epoch:number){if(mounted.current&&epoch===permissionEpoch.current&&row)setRow(sameRequest(next,row.id));}
+ function failTossFollowup(error:unknown,epoch:number){
+  if(!mounted.current||epoch!==permissionEpoch.current)return true;
+  if(hideDeniedTossResult(error)){if(error instanceof FortuneApiError&&error.status===401)loginForCurrentPage();return true;}
+  return false;
  }
  async function generate(id:string){
   if(lock.current)return;lock.current=true;setBusy(true);setError('');
@@ -216,7 +226,7 @@ export default function Result({paymentSurface}:{paymentSurface?:"toss"}={}){
  if(row?.consultation?.spirit||row?.consultation?.questionSky)return <section className={styles.reader}>
   {row.paid&&row.state!=='REFUNDED'&&<FishReceipt product={row.product} locale={row.locale}/>}
   {loading}
-  <SpiritResult row={row} onRow={setRow} paymentSurface={paymentSurface}/>
+  <SpiritResult row={row} onRow={setRow} paymentSurface={paymentSurface} {...(paymentSurface === "toss" ? {onFollowupStart:startTossFollowup,onFollowupResult:finishTossFollowup,onFollowupError:failTossFollowup} : {})}/>
   {row.state==='COMPLETED'&&<>{shouldInvitePaidReview(row)&&<ReviewRewardBanner afterResult brand="yeongnyangi" locale={row.locale||'ko'}/>}<ResultBenefits requestId={row.id} locale={row.locale||'ko'}/><ResultBridge row={row} locale={row.locale} paymentSurface={paymentSurface}/><ResultSharing key={row.id} row={row}/><RecommendationResult service={row.product.id} locale={row.locale} brand="yeongnyangi" practiceTags={chapterAdviceTopics(row.chapters)}/></>}
   {row.state==='REFUNDED'?<p>{stateCopy.refunded}</p>:!row.paid?<><p>{stateCopy.paymentRequired}</p>{payWatching&&<p role="status">{stateCopy.paymentWaiting}</p>}<button onClick={()=>window.location.reload()}>{stateCopy.checkPayment}</button>{!error&&<a className={styles.primaryAction} href={checkoutPath(row,siteLocale)}>{copy.checkout}</a>}</>:!['COMPLETED','AWAITING_FOLLOWUP'].includes(row.state)&&<>
     {row.errorCode==='DELIVERY_REFUND_PENDING'?<p role="status">{deliveryRefundCopy(row.locale)}</p>:row.recovery?.canRetryNow?<><p role="alert">{copy.recoveryStopped}</p><button className={styles.retryButton} disabled={busy} onClick={()=>void generate(row.id)}><PawPrint size={18} aria-hidden="true"/>{copy.recovery}</button></>:['GENERATION_REVIEW_REQUIRED','AUTOMATIC_RECOVERY_STOPPED','ASK_LIMITED_REVIEW_REQUIRED','DELIVERY_REFUND_PENDING'].includes(row.errorCode||'')?<p role="status">{copy.held}</p>:row.errorCode==='PAYMENT_NOT_ACTIVE'?<p role="alert">{copy.support}</p>:<p>{stateCopy.serverResume}</p>}
