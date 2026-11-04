@@ -182,7 +182,8 @@ test("등록된 영구 해금 상품은 기존 지급 서비스 키로 동일한
     const target = resolvePaidContentUnlockTarget(input);
     const birthScoped = BIRTH_SCOPED_UNLOCK_FEATURE_KEYS.includes(featureKey);
     await findActivePaidContentUnlock(input);
-    const filter = findOne.mock.calls.at(-1)[0];
+    // 포함 키는 개별 행이 없으면 묶음 행을 한 번 더 조회한다. 여기서는 개별 조회 필터를 본다.
+    const filter = findOne.mock.calls[0][0];
     const base = { userId: TEST_USER_ID, contentKey: target.contentKey, status: 'ACTIVE', expiresAt: null,
       scope: birthScoped ? 'BIRTH' : 'USER', profileId: birthScoped ? (featureKey === 'section_compat' ? toBirthEntitlementProfileId(computeCompatBirthKey(testCard('profile-1'), testCard('profile-1'))) : BIRTH_PROFILE_ID) : '__user__' };
     for (const serviceKey of [resolvePaidContentServiceKey(featureKey, featureKey), resolvePaidContentServiceKey(featureKey), 'paid_content']) {

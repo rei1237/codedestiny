@@ -45,7 +45,7 @@ test("별칭 포함 키는 전부 출생 기반 영구 해금이다", () => {
   }
 });
 
-test("판매 종료 키는 포함 키를 모두 담고 옛 키 6개를 더한다", () => {
+test("판매 종료 키는 포함 키를 모두 담고 묶음 별칭 밖의 키 6개를 더한다", () => {
   const closed = new Set(SAJU_BUNDLE_SALE_CLOSED_KEYS);
   for (const key of SAJU_BUNDLE_ALIAS_MEMBER_KEYS) expect(closed.has(key)).toBe(true);
   for (const key of ["tetogen_deep_report", "fun.quantumLotto.ritualReport", "travelDestiny", "healthReport", "rpgCharacter", "secretHouseEpisodes"]) {

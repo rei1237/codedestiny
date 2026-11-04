@@ -20,6 +20,11 @@ import {
   toBirthEntitlementProfileId,
 } from "./birth-key.js";
 import { resolveBirthUnlockIdentity, tryResolveBirthUnlockIdentity } from "./birth-scoped-unlock-identity.js";
+import {
+  SAJU_BUNDLE_ALIAS_MEMBER_KEYS,
+  SAJU_BUNDLE_FEATURE_KEY,
+  isSajuBundleAliasMember,
+} from "./saju-bundle-policy.js";
 
 // 계정 스코프(프로필 무관) 엔타이틀먼트의 profileId 자리표시자. 읽기 절(buildProfileScopeClause)과
 // 쓰기 경로가 같은 값을 써야 하므로 정산 코드(payments.js)에서도 이 상수를 가져다 쓴다.
@@ -474,7 +479,18 @@ export async function findActivePaidContentUnlock(input = {}) {
     });
     if (input.session) query.session(input.session);
     const doc = await query.lean();
-    return presentBirthScopedDoc(doc, target.profileId);
+    if (doc) return presentBirthScopedDoc(doc, target.profileId);
+    /* 사주 영구 묶음: 포함 키는 개별 행이 없으면 같은 출생 정보의 묶음 행으로 열린다. 호출부마다 감싸지 않고
+       공유 리더 여기 한 곳에서 처리한다. 묶음 키는 포함 키가 아니라서 재귀는 한 번으로 끝난다.
+       상대 birthKey 가 섞인 궁합 신원과 포함 키 전용 serviceKey·contentKey 는 묶음 조회에 넘기지 않는다. */
+    if (!isSajuBundleAliasMember(resolveUnlockedFeatureKeyFromContentKey(target.contentKey))) return null;
+    return findActivePaidContentUnlock({
+      userId: target.userId,
+      profileId: target.profileId,
+      featureKey: SAJU_BUNDLE_FEATURE_KEY,
+      ...(input.session ? { session: input.session } : {}),
+      ...(input.birthIdentity && !input.birthIdentity.partnerBirthKey ? { birthIdentity: input.birthIdentity } : {}),
+    });
   }
 
   const profileScopeClause = target.profileId
@@ -1022,6 +1038,15 @@ export async function getUnlockedContentSnapshot({
       if (isBirthScopedLegacyDoc(doc, normalizedProfileId)) {
         (isLegacyAccountUnlockRow(doc) ? legacyAccountFeatureKeys : legacyProfileFeatureKeys).push(featureKey);
       }
+    }
+  }
+
+  // 사주 영구 묶음 행은 포함 키로 펼친다. 실제 행 목록(docs)은 그대로 둔다.
+  if (unlockMap[SAJU_BUNDLE_FEATURE_KEY]) {
+    for (const memberKey of SAJU_BUNDLE_ALIAS_MEMBER_KEYS) {
+      contentKeys.push(PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY[memberKey] || memberKey);
+      featureKeys.push(memberKey);
+      unlockMap[memberKey] = true;
     }
   }
 

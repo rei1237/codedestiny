@@ -2,6 +2,7 @@ import { appendBasicFortunePersona } from '../lib/expert-character-personas.js';
 import { getAmbientAiLocale } from '../lib/ai-locale-context.js';
 import { toAiLocale } from '../../lib/i18n/ai-locale.js';
 import {validateSajuNatalPayload} from "../lib/saju-correction.js";
+import { SAJU_BUNDLE_ALIAS_MEMBER_KEYS, SAJU_BUNDLE_FEATURE_KEY } from "../lib/saju-bundle-policy.js";
 import { deliverFeatureQuestion, readFeatureQuestionRequest } from '../lib/feature-question-delivery.js';
 import { deliverGuardianPaid } from '../lib/guardian-paid-delivery.js';
 import { connectDb, mongoose, withMongoRetry, mongoTransactionOptions } from "../lib/db.js";
@@ -2549,6 +2550,7 @@ function getSubscriptionTierRank(tierRaw) {
 }
 
 const PERSISTENT_UNLOCK_ALIAS_MAP = Object.freeze({
+  [SAJU_BUNDLE_FEATURE_KEY]: [...SAJU_BUNDLE_ALIAS_MEMBER_KEYS],
   "olympus-profile-fc": ["olympus-fc"],
   "olympus-fc": ["olympus-profile-fc"],
   "flower-fc": ["flower-destiny", "flower-astro", "flower-ziwei", "flower-sukuyo"],

@@ -26,7 +26,10 @@ export const SAJU_BUNDLE_ALIAS_MEMBER_KEYS = Object.freeze([
   "saju-career-style",
 ]);
 
-/** 신규 개별 판매·이용권·서비스 팩만 닫는 키. 뒤의 옛 키 6개의 읽기는 기존 별칭이 그대로 처리한다. */
+/**
+ * 신규 개별 판매·이용권·서비스 팩만 닫는 키. 포함 키 뒤의 6개는 묶음 별칭 밖이다.
+ * 마지막 옛 키 4개의 읽기는 기존 별칭이 처리한다. tetogen_deep_report, fun.quantumLotto.ritualReport 는 출생 기반이 아니라 별칭이 없다.
+ */
 export const SAJU_BUNDLE_SALE_CLOSED_KEYS = Object.freeze([
   ...SAJU_BUNDLE_ALIAS_MEMBER_KEYS,
   "tetogen_deep_report",
