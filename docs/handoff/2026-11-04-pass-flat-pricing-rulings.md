@@ -55,12 +55,12 @@
 - Task 9: Ruling: index.html L31548 타일 조기 판정과 L26162·26172·26182는 키 미전달 유지 — 로그인 프롬프트·hasActivePass 용도이고 이후 서버 경로로 넘어감 — 키 없는 fast path의 소진 처리는 결제창→이용권 카드 재검사에 맡겨 한 단계 더 보일 수 있음.
 - Task 9: Ruling: tile-unlock-balance-separation 정적 단언을 새 인자에 맞게 수정, mock-test-runner 실패는 동시 Jest 실행에 의한 타이밍 실패로 단독 5/5 통과 확인 — 틀리면 러너 회귀를 놓침 — T14 전체 실행에서 재확인.
 - Task 9: Ruling: 커밋 10f71e639은 정적 단언 1건이 실패한 상태로 만들어졌고(sed 실패 뒤 체인이 이어짐) 바로 다음 커밋에서 수정 — 미푸시라 이력 재작성 없이 후속 커밋 선택 — 이 커밋 하나만 체리픽하면 테스트가 깨짐.
-- Task 9: Ruling: 브리프가 빠뜨린 index.html 다섯 번째 호출부(셸 fast path)에도 featureKey 전달 — 그 경로가 소진 시 결제창으로 직행하므로 — 틀려도 서버 판정이 최종이라 비용은 왕복 한 번.
-- Task 9: Ruling: 키 미러 외에 별칭 25개 미러도 추가, verify:pass-tier-policy가 대조 — 별칭 키 호출자가 결제창으로 빠지지 않게 — 목록 유지 비용 증가, 가드가 어긋남을 잡음.
-- Task 9: Ruling: billing-client·셸 fast path는 소스 단언으로 검증 — 브라우저 전역 의존이 커서 단위 실행 비용이 큼 — 동작 회귀는 소스 단언이 못 잡을 수 있음.
-- Task 9: Ruling: index.html L31548 타일 조기 판정과 L26162·26172·26182는 키 미전달 유지 — 로그인 프롬프트·hasActivePass 용도이고 이후 서버 경로로 넘어감 — 소진 시 결제창→이용권 카드 재검사로 한 단계 더 보일 수 있음.
-- Task 9: Ruling: node 스위트의 mock-test-runner 실패는 동시 Jest 실행에 의한 타이밍 실패로 판정, 단독 5/5 통과 — 틀리면 러너 회귀를 놓침 — T14 전체 실행에서 재확인.
 - Task 10: Ruling: 사용 이력은 PointHistory PASS/FAMILY 표시(대소문자 표기 둘 다, 서비스 실패 환불 제외)와 PASS 출처 ACTIVE 해금으로 판단 — 라이트는 한도 차감이 없어 사용액으로 볼 수 없다 — 틀리면 과차단으로 고객센터 문의 증가
+- Task 10: Ruling: 셀프 취소에서 사용 이력 조회 실패는 차단(409)으로 닫는다 — 모르면 돈을 돌려주지 않고 사람에게 넘긴다 — 틀리면 DB 장애 때 미사용 고객도 문의가 필요
+- Task 10: Ruling: PG 콘솔 취소는 돈이 이미 돌아간 뒤라 회수는 그대로 하고 reviewRequired 마커만 남긴다. 조회 실패도 검토로 표시 — 틀리면 검토 건수 증가
+- Task 10: Ruling: 운영자 환불·주문 상세의 사용 이력 조회 실패는 null로 degrade — 이미 끝난 환불을 실패로 돌리지 않고 화면을 띄운다 — 틀리면 운영자가 사용 건수 없이 판단
+- Task 10: Ruling: 브리프의 HQ 파일 대신 app/admin/orders/page.tsx에 사용 건수를 표시 — 환불이 실제로 일어나는 화면이 여기다 — 관리자 HQ 화면에는 라이트 사용 건수가 안 보인다
+- Task 10: Ruling: check:payment가 앞선 Task 누락을 발견 — VVIP AMOUNT_KRW 30000(실제 결제 금액 버그)와 옛 가드 값 5종을 fix(pricing) 별도 커밋으로 수정. T3·T4에서 check:payment를 돌리지 않은 내 누락 — 이후 Task는 매번 돌린다
 - Task 10: Ruling: verify-payment-freeze --update로 매니페스트 갱신, 결제 캐시 핀 교체(destiny-profile build-bda38255f60f, core build-2f69b55d59b1) — 환불 판단과 T8·T9 런타임 변경에 따른 의도한 변경 — 틀리면 동결 검사가 변경을 놓침
 - Task 10: Ruling: check:payment의 npm test 실패 5건(home-choice-carousel 4, sitemap-volatile-lastmod-kst 1)은 기존 실패로 판단 — 테스트와 소스(js/core/home-funnel.js, generate-sitemap 등)가 origin/main 6eec763f0과 동일 — 그 외 실패 0을 통과 조건으로 삼는다 — 틀리면 무관 판단이 틀린 만큼 회귀를 놓침
 - Task 11: Ruling: 이용 가치·절약률이 플랜 값(352,000/95% 등)과 다름 — 사주 18키 제외 후 66종 304,000원 기준으로 빌드에서 계산(324,000/95, 364,000/90, 424,000/84, 654,000/76) — 틀리면 표시 금액만 재빌드.
