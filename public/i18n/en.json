@@ -3745,7 +3745,7 @@
           "season": "Like you, born in {season}, this flower blooms brightest in {season}."
         },
         "flowerLanguage": {
-          "yongshin": "'{language}' — the words this flower, steeped in your useful element {elements}, offers you.",
+          "yongshin": "'{language}' — the words this flower, steeped in your support candidate {elements}, offers you.",
           "dayMaster": "'{language}' — the words this flower offers you, a {dayMasterBadge} day master."
         },
         "shareHook": {
@@ -21943,7 +21943,7 @@
     "scoreLine": "Saju-only compatibility score: {score}/100",
     "overview": {
       "title": "🧭 Compatibility overview",
-      "note": "This result is calculated from Saju alone. Day-stem and day-branch harmonies and clashes, seasonal balance, useful and harmful elements, and the ten-gods structure are combined into a score of {score}/100."
+      "note": "This result is calculated from Saju alone. Day-stem and day-branch harmonies and clashes, seasonal balance, support candidates and caution elements, and the ten-gods structure are combined into a score of {score}/100."
     },
     "energy": {
       "title": "🌡️ Energy harmony",
@@ -21980,11 +21980,11 @@
       "DAY_BRANCH_HE": "Your day branches (the spouse position) form a six-harmony, bringing strong comfort and attraction when you are together.",
       "DAY_STEM_CHONG": "Your day stems clash (沖), so the highs are strong but so are the collisions. It is a roller-coaster pairing.",
       "DAY_BRANCH_CHONG": "Your day branches clash (沖), so your daily patterns and emotional rhythms may move differently. Adjusting to each other matters.",
-      "YONGSHIN_COMMON": "You both rely on {elements} energy as your useful element, so your core direction in life is very similar.",
-      "YONGSHIN_CLASH": "In particular, {elements} energy is a useful element for one of you but a harmful element for the other, so you may collide sensitively on that theme.",
-      "KIJI_CONTROL_FORWARD": "Harmful-element control: your partner's characters ({by}) clear your harmful elements ({chars}) through clash (沖). This is the core of a top-tier match: the other person drives out your bad energy.",
-      "KIJI_CONTROL_REVERSE": "Reverse control: your characters ({by}) clear your partner's harmful elements through clash. You also bring your partner a sense of release.",
-      "HE_TRAP": "Harmony trap: {self} and {partner} form a harmony (合), and the resulting element ({element}) strengthens your harmful element. It looks like a good fit on the surface, but harmful energy can build up inside. Tell comfort apart from dependence."
+      "YONGSHIN_COMMON": "You both rely on {elements} energy as your support candidate, so your core direction in life is very similar.",
+      "YONGSHIN_CLASH": "In particular, {elements} energy is a support candidate for one of you but a caution element for the other, so you may collide sensitively on that theme.",
+      "KIJI_CONTROL_FORWARD": "Caution-element control: your partner's characters ({by}) clear your caution elements ({chars}) through clash (沖). This is the core of a top-tier match: the other person drives out your bad energy.",
+      "KIJI_CONTROL_REVERSE": "Reverse control: your characters ({by}) clear your partner's caution elements through clash. You also bring your partner a sense of release.",
+      "HE_TRAP": "Harmony trap: {self} and {partner} form a harmony (合), and the resulting element ({element}) strengthens your caution element. It looks like a good fit on the surface, but harmful energy can build up inside. Tell comfort apart from dependence."
     },
     "element": {
       "wood": "Wood (木)",

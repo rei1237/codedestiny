@@ -2105,7 +2105,7 @@ var ENERGY_COORD_DB={
     theme:'화산 지형·예술 도시·야경 에너지',
     domestic:[
       {icon:'🌋',name:'제주 성산일출봉 화산 지대',coord:'33.4581°N 126.9424°E',desc:'10만년 전 화산 폭발로 생성된 응회암 지형. 해가 처음 뜨는 방위와 화산 지열이 결합된 화(火) 에너지의 성지. 일출 시 기운 최고점.'},
-      {icon:'🎆',name:'여수 밤바다 돌산공원',coord:'34.7461°N 127.7389°E',desc:'남해 위 찬란한 야경. 물 위 반사된 불(火) 에너지가 증폭되는 지형학적 조건. 여수 남향 기운이 화 용신을 극대화.'},
+      {icon:'🎆',name:'여수 밤바다 돌산공원',coord:'34.7461°N 127.7389°E',desc:'남해 위 찬란한 야경. 물 위 반사된 불(火) 에너지가 증폭되는 지형학적 조건. 여수 남향 기운이 화 보완 후보를 극대화.'},
       {icon:'🎨',name:'부산 감천문화마을 야경',coord:'35.0975°N 129.0106°E',desc:'산 경사면 위 색채 예술 마을. 남쪽 바다를 향해 열린 지형이 화(火) 기운을 안정 흡수. 예술적 열정·시각 에너지 충전지.'},
       {icon:'🗼',name:'서울 남산타워 야경',coord:'37.5511°N 126.9882°E',desc:'도심 한가운데 우뚝 솟은 불의 상징. 수많은 불빛이 모여 강력한 화(火) 에너지를 발산하는 수도의 심장부.'},
       {icon:'🌅',name:'포항 호미곶 해맞이 광장',coord:'36.0772°N 129.5683°E',desc:'한반도에서 가장 먼저 해가 뜨는 곳. 떠오르는 태양의 폭발적인 양(陽) 기운과 화(火) 에너지를 직접 수신합니다.'}
@@ -2131,7 +2131,7 @@ var ENERGY_COORD_DB={
     global:[
       {icon:'🏔️',name:'페루 마추픽추 황토 고원',coord:'13.1631°S 72.5450°W',desc:'해발 2,430m 황토 암반 위 잉카 성채. 지구 중심의 대지 에너지가 수직 상승하는 지점. 토(土) 기운을 지구 규모로 체험할 수 있는 최강 좌표.'},
       {icon:'🐉',name:'중국 시안 황토고원·병마용',coord:'34.3853°N 109.2732°E',desc:'중원(中原) 황토의 심장. 수천 년 토(土) 에너지가 대지에 농축된 문명의 발원지. 황토고원 특유의 중후한 땅 기운이 안정과 실력을 키웁니다.'},
-      {icon:'🗿',name:'이집트 룩소르 사막 고대 신전',coord:'25.6872°N 32.6396°E',desc:'나일강 유역 건조 황토 대지의 에너지 집중처. 3,000년 역사 에너지가 사막 무풍지대에 보존. 안정·뿌리 기운이 필요한 토(土) 용신 최적 해외지.'},
+      {icon:'🗿',name:'이집트 룩소르 사막 고대 신전',coord:'25.6872°N 32.6396°E',desc:'나일강 유역 건조 황토 대지의 에너지 집중처. 3,000년 역사 에너지가 사막 무풍지대에 보존. 안정·뿌리 기운이 필요한 토(土) 보완 후보에 맞는 해외지.'},
       {icon:'🏜️',name:'미국 그랜드 캐니언',coord:'36.1069°N 112.1129°W',desc:'수억 년의 지층이 그대로 드러난 대자연의 경이. 지구의 뼈대와 살을 직접 마주하며 거대한 토(土) 에너지를 흡수합니다.'},
       {icon:'🎈',name:'튀르키예 카파도키아 기암괴석',coord:'38.6431°N 34.8289°E',desc:'화산재가 굳어 만들어진 응회암 지대. 대지의 기운이 독특한 형태로 솟아오른 토(土) 에너지의 신비로운 결절지.'}
     ]
@@ -2709,6 +2709,8 @@ function _syncDestinyFlowerSajuSnapshot(reason) {
     var environment = _dfInferEnvironment(weights, season);
     var yongshin = _dfArrayCopy(G_POWER && G_POWER.yongshin);
     var kishin = _dfArrayCopy(G_POWER && G_POWER.kijishin);
+    var _dfShown = (window.cdApprovedSajuFacts && window.cdApprovedSajuFacts().power) || null;
+    var yongshinCandidates = _dfShown ? _dfArrayCopy(_dfShown.yongshin) : null;
     var dayStem = (G_PILLARS.d && G_PILLARS.d.g) || DAY_GAN || '';
     var dayStemElement = (G_PILLARS.d && G_PILLARS.d.gE) || '';
     // snapshot birth must align with profile.birth (civil/original time),
@@ -2742,6 +2744,7 @@ function _syncDestinyFlowerSajuSnapshot(reason) {
         dayStem: dayStem,
         dayStemElement: dayStemElement,
         yongshin_elements: yongshin,
+        yongshin_candidates: yongshinCandidates,
         kishin_elements: kishin,
         isStrong: !!(G_POWER && G_POWER.isStrong),
         power_label: (G_POWER && typeof G_POWER.isStrong === 'boolean') ? (G_POWER.isStrong ? '신강' : '신약') : '',
@@ -2757,6 +2760,7 @@ function _syncDestinyFlowerSajuSnapshot(reason) {
         dayStem: dayStem,
         dayStemElement: dayStemElement,
         yongshin_elements: yongshin,
+        yongshin_candidates: yongshinCandidates,
         kishin_elements: kishin,
         is_strong: !!(G_POWER && G_POWER.isStrong),
         power_label: (G_POWER && typeof G_POWER.isStrong === 'boolean') ? (G_POWER.isStrong ? '신강' : '신약') : '',
@@ -4054,11 +4058,11 @@ function evalDaewun(ganChar,zhiChar){
     } else if (ganScore > 0 && isUnfavorable(tEl, false, tChar)) {
       chungBonus += 15;
       hasChungBonus = true;
-      chungBonusText = "<b>천간충과 기신의 작용</b> 운의 천간과 원국의 " + tChar + "이 충합니다. 기신으로 읽힌 요소를 제어하는 방향이지만, 실제 변화는 통근과 주변 생조에 따라 달라집니다.";
+      chungBonusText = "<b>천간충과 주의 오행의 작용</b> 운의 천간과 원국의 " + tChar + "이 충합니다. 주의 오행으로 읽힌 요소를 제어하는 방향이지만, 실제 변화는 통근과 주변 생조에 따라 달라집니다.";
     } else if (ganScore < 0 && isFavorable(tEl, false, tChar)) {
       chungPenalty -= 15;
       hasChungPenalty = true;
-      chungPenaltyText = "<b>천간충과 용신의 작용</b> 원국에서 도움이 되는 " + tChar + "과 충이 생깁니다. 기존 역할이나 선택 기준의 조정이 필요할 수 있으며, 다른 생조 관계가 이를 완화하는지 함께 봅니다.";
+      chungPenaltyText = "<b>천간충과 보완 후보의 작용</b> 원국에서 도움이 되는 " + tChar + "과 충이 생깁니다. 기존 역할이나 선택 기준의 조정이 필요할 수 있으며, 다른 생조 관계가 이를 완화하는지 함께 봅니다.";
     } else if (ganScore > 0 && ganEl !== finalGanEl) {
       chungBonus += 10;
       hasChungBonus = true;
@@ -4079,18 +4083,18 @@ function evalDaewun(ganChar,zhiChar){
       hasChungBonus = true;
       var tJohu = getJohuScore(tEl, true, tChar);
       if(tJohu < -5) {
-      chungBonusText += (chungBonusText?"<br><br>":"") + "<b>지지충의 작용</b> " + zhiChar + "과 원국의 " + tChar + "이 충합니다. 기신으로 읽힌 작용을 제어할 여지가 있으나, 생활 기반의 조정 부담과 완화 조건도 함께 살펴야 합니다.";
+      chungBonusText += (chungBonusText?"<br><br>":"") + "<b>지지충의 작용</b> " + zhiChar + "과 원국의 " + tChar + "이 충합니다. 주의 오행으로 읽힌 작용을 제어할 여지가 있으나, 생활 기반의 조정 부담과 완화 조건도 함께 살펴야 합니다.";
       } else {
-      chungBonusText += (chungBonusText?"<br><br>":"") + "<b>지지충의 작용</b> " + zhiChar + "과 원국의 " + tChar + "이 충합니다. 기신으로 읽힌 작용을 제어할 여지가 있으나, 생활 기반의 조정 부담과 완화 조건도 함께 살펴야 합니다.";
+      chungBonusText += (chungBonusText?"<br><br>":"") + "<b>지지충의 작용</b> " + zhiChar + "과 원국의 " + tChar + "이 충합니다. 주의 오행으로 읽힌 작용을 제어할 여지가 있으나, 생활 기반의 조정 부담과 완화 조건도 함께 살펴야 합니다.";
       }
     } else if (zhiScore < 0 && isFavorable(tEl, true, tChar)) {
       chungPenalty -= 20;
       hasChungPenalty = true;
-      chungPenaltyText += (chungPenaltyText?"<br><br>":"") + "<b>지지충과 용신의 작용</b> 도움이 되는 " + tChar + "과 충이 생겨 기반을 다시 조율하는 과제가 생길 수 있습니다. 합·생조가 완충하는지 살피며 사건을 확정하지 않습니다.";
+      chungPenaltyText += (chungPenaltyText?"<br><br>":"") + "<b>지지충과 보완 후보의 작용</b> 도움이 되는 " + tChar + "과 충이 생겨 기반을 다시 조율하는 과제가 생길 수 있습니다. 합·생조가 완충하는지 살피며 사건을 확정하지 않습니다.";
     } else if (zhiScore > 0 && zhiEl !== finalZhiEl) {
       chungBonus += 15;
       hasChungBonus = true;
-      chungBonusText += (chungBonusText?"<br><br>":"") + "<b>지지충의 작용</b> " + zhiChar + "과 원국의 " + tChar + "이 충합니다. 기신으로 읽힌 작용을 제어할 여지가 있으나, 생활 기반의 조정 부담과 완화 조건도 함께 살펴야 합니다.";
+      chungBonusText += (chungBonusText?"<br><br>":"") + "<b>지지충의 작용</b> " + zhiChar + "과 원국의 " + tChar + "이 충합니다. 주의 오행으로 읽힌 작용을 제어할 여지가 있으나, 생활 기반의 조정 부담과 완화 조건도 함께 살펴야 합니다.";
     }
   }
 
@@ -4116,7 +4120,7 @@ function evalDaewun(ganChar,zhiChar){
         jiheBonusTxt += '🔗 <b>지지 육합('+zhiChar+oz+') 강화!</b> '+(EL_K[heEl]||heEl)+' 오행이 합으로 강화됩니다.';
       } else if(bs < 0){
         jiheBonus += bs;
-        jiheBonusTxt += '⚠️ 지지 육합으로 기신 오행 강화.';
+        jiheBonusTxt += '⚠️ 지지 육합으로 주의 오행 강화.';
       }
     });
   }
@@ -4137,7 +4141,7 @@ function evalDaewun(ganChar,zhiChar){
         samhapBonusTxt = '<b>삼합(三合) 구성</b> '+sh.m.join('·')+'이 함께 있어 '+(EL_K[sh.el]||sh.el)+'의 연결을 읽습니다. 합화 여부와 유불리는 월령·통근·충의 조건을 함께 확인합니다.';
       } else if(bs < 0){
         samhapBonus += bs;
-        samhapBonusTxt = '⚠️ <b>삼합 기신 강화!</b> 삼합으로 흉신 오행이 집중됩니다.';
+        samhapBonusTxt = '⚠️ <b>삼합 주의 오행 강화!</b> 삼합으로 흉신 오행이 집중됩니다.';
       }
     } else if(matchCnt >= 1) { // 반합
       var bs2 = isFavorable(sh.el, true, zhiChar) ? 10 : (isUnfavorable(sh.el, true, zhiChar) ? -10 : 0);
@@ -4171,8 +4175,8 @@ function evalDaewun(ganChar,zhiChar){
     else evalSummary = '🙂 '+jongLabel+' 중립운';
   } else {
     var pos = []; var neg = [];
-    if(ganJohu > 0 || zhiJohu > 5) pos.push("조후용신");
-    if(ganJohu < 0 || zhiJohu < -5) neg.push("조후기신");
+    if(ganJohu > 0 || zhiJohu > 5) pos.push("조후 보완");
+    if(ganJohu < 0 || zhiJohu < -5) neg.push("조후 부담");
     if(ganEokbu > 0 || zhiEokbu > 5) pos.push("억부희용");
     if(ganEokbu < 0 || zhiEokbu < -5) neg.push("억부기구");
 
@@ -5371,6 +5375,7 @@ async function calculate(run){
       '<b>현재 나이:</b> 만 '+(CURRENT_AGE-1)+'세 — '+
       (G_JONG&&G_JONG.isJong&&G_JONG.isGaJong?'<b style="color:#7B1FA2">가종격(假從格) 사주</b> <span style="font-size:.75rem;color:#9C27B0">('+G_JONG.name+')</span> — 지배 오행 중심 판단':
        G_JONG&&G_JONG.isJong?'<b style="color:#9C27B0">종격(眞從格) 사주</b> — 지배 오행 중심 판단':
+        (window.cdApprovedSajuFacts&&(window.cdApprovedSajuFacts().power||{}).strengthPending)?'<b style="color:#6B7280">강약 판정 보류</b> — 출생 시각이 없거나 근거가 부족해요':
         G_POWER&&G_POWER.isStrong?'<b style="color:#FF8BA7">신강 사주</b> — 억부+조후 통합 판단':
         '<b style="color:#2196F3">신약 사주</b> — 억부+조후 통합 판단');
 
@@ -7879,7 +7884,7 @@ function _buildSajuQuestionPromptHtml() {
     + '<fieldset class="consultation-domains"><legend>질문의 주제</legend>' + domainHtml + '</fieldset>'
     + '<fieldset class="consultation-privacy"><legend>상담에 전달할 원문 정보</legend><label><input type="checkbox" data-saju-ai-hide-name checked>이름 원문 제외</label><label><input type="checkbox" data-saju-ai-hide-birth checked>원본 생년월일 제외</label><label><input type="checkbox" data-saju-ai-hide-time checked>원본 출생시간 제외</label></fieldset>'
     + '<p>원문 정보는 기본으로 가리고, 계산된 명식은 해석 근거로 사용합니다.</p>'
-    + '<details data-saju-ai-calib class="consultation-calibration"><summary>과거 경험을 바탕으로 운의 해석을 개인화합니다 · 선택</summary><div><p>기억나는 해의 경험을 적으면 대운·세운 해석의 강조와 예시에 반영합니다. 격국·용신 같은 원국 판정은 바뀌지 않고, 사연은 쓰지 않아도 됩니다.</p><div data-saju-ai-calib-rows>' + _sajuPromptBuildCalibRowHtml() + _sajuPromptBuildCalibRowHtml() + '</div><button data-saju-ai-calib-add type="button" aria-label="경험 추가">경험 추가</button><span data-saju-ai-calib-nudge></span></div></details>'
+    + '<details data-saju-ai-calib class="consultation-calibration"><summary>과거 경험을 바탕으로 운의 해석을 개인화합니다 · 선택</summary><div><p>기억나는 해의 경험을 적으면 대운·세운 해석의 강조와 예시에 반영합니다. 격국·보완 후보 같은 원국 판정은 바뀌지 않고, 사연은 쓰지 않아도 됩니다.</p><div data-saju-ai-calib-rows>' + _sajuPromptBuildCalibRowHtml() + _sajuPromptBuildCalibRowHtml() + '</div><button data-saju-ai-calib-add type="button" aria-label="경험 추가">경험 추가</button><span data-saju-ai-calib-nudge></span></div></details>'
     + '<button data-saju-ai-generate type="button" class="consultation-primary">상담 시작하기</button><p>단건 결제 <strong data-consultation-price>가격 확인 중</strong> · 결제 전 사용할 방식을 확인합니다.</p></div></details>'
     + '<div class="consultation-recovery"><button data-saju-ai-regenerate type="button" style="display:none">같은 상담 이어 받기</button><button data-saju-ai-archive type="button" style="display:none">상담 보관함 · 저장된 상담 보기</button><button data-saju-ai-resume type="button" style="display:none">이전 상담문 이어보기</button></div>'
     + '<div data-saju-ai-status role="status" aria-live="polite"></div>'
@@ -9893,7 +9898,7 @@ function buildSeasonalFortuneContext(ctx, p){
   var nearBoundary = ratio != null && (elapsed <= 1000 * 60 * 60 * 24 || (total - elapsed) <= 1000 * 60 * 60 * 24);
   var season = _t24SeasonProfile(monthBranch);
   var johu = (typeof G_JOHU !== 'undefined' && G_JOHU) ? G_JOHU : null;
-  var power = (typeof G_POWER !== 'undefined' && G_POWER) ? G_POWER : null;
+  var power = window.__cdShownPower || (window.cdApprovedSajuFacts && window.cdApprovedSajuFacts().power) || ((typeof G_POWER !== 'undefined' && G_POWER) ? G_POWER : null);
   var monthPillar = (p.m.g || '') + (p.m.j || '');
   var monthPillarKo = ((GAN[p.m.g] && GAN[p.m.g].n) || p.m.g || '') + '·' + ((JI[p.m.j] && JI[p.m.j].a) || p.m.j || '');
   var yong = _dfUniqueElements(power && power.yongshin).slice(0, 2).map(function(e){ return EL_K[e] || e; });
@@ -10369,10 +10374,10 @@ function renderUkbu(p){
     var yong=(pw.yongshin||[]).filter(Boolean);
     var ki=(pw.kijishin||[]).filter(Boolean);
     var yongChips=yong.map(function(e,i){
-      return '<span class="uk-el good">'+EL_E[e]+' '+EL_K[e]+' <small>'+(_ukbuTenGod(dayEl,e)||(i===0?'용신':'희신'))+'</small></span>';
+      return '<span class="uk-el good">'+EL_E[e]+' '+EL_K[e]+' <small>'+(_ukbuTenGod(dayEl,e)||(i===0?'보완 후보':'보조 후보'))+'</small></span>';
     }).join('');
     var kiChips=ki.map(function(e){
-      return '<span class="uk-el bad">'+EL_E[e]+' '+EL_K[e]+' <small>'+(_ukbuTenGod(dayEl,e)||'기신')+'</small></span>';
+      return '<span class="uk-el bad">'+EL_E[e]+' '+EL_K[e]+' <small>'+(_ukbuTenGod(dayEl,e)||'주의 오행')+'</small></span>';
     }).join('');
 
     html+='<div class="uk-card '+(strong?'is-strong':'is-weak')+'">'+
@@ -10397,7 +10402,7 @@ function renderUkbu(p){
 
       '<div class="uk-block"><div class="uk-head">🌟 나를 살리는 기운 · 조심할 기운</div>'+
       '<div class="uk-yongshin">'+yongChips+kiChips+'</div>'+
-      '<div class="uk-body" style="margin-top:9px">초록으로 표시한 <b>용신·희신</b>의 오행이 대운·세운으로 들어올 때 일이 풀리고 귀인이 옵니다. 붉게 표시한 <b>기신·구신</b>이 강해지는 시기엔 한 템포 늦추고, 무리한 확장이나 큰 결정은 미루세요.</div></div>'+
+      '<div class="uk-body" style="margin-top:9px">초록으로 표시한 <b>보완 후보</b>의 오행이 대운·세운으로 들어올 때 일이 풀리고 귀인이 옵니다. 붉게 표시한 <b>주의 오행</b>이 강해지는 시기엔 한 템포 늦추고, 무리한 확장이나 큰 결정은 미루세요.</div></div>'+
 
       '<div class="uk-block"><div class="uk-head">🧭 대운 방향 한눈에</div>'+
       '<div class="uk-body">'+
@@ -24049,7 +24054,7 @@ function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name){
     var commonY=yong1.filter(function(e){return yong2.indexOf(e)>=0;});
     if(commonY.length){
       score+=4;
-      reasons.push('두 사람 모두 '+commonY.map(function(e){return EL_E[e]+EL_K[e];}).join(', ')+' 기운을 용신으로 삼아, 인생을 바라보는 핵심 방향이 매우 비슷합니다.');
+      reasons.push('두 사람 모두 '+commonY.map(function(e){return EL_E[e]+EL_K[e];}).join(', ')+' 기운을 보완 후보로 삼아, 인생을 바라보는 핵심 방향이 매우 비슷합니다.');
       addReasonFact('YONGSHIN_COMMON',4,{elements:commonY.slice()});
     }
     var commonSet={};
@@ -24063,7 +24068,7 @@ function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name){
     });
     if(clashEls.length){
       score-=4;
-      reasons.push('특히 '+clashEls.map(function(e){return EL_E[e]+EL_K[e];}).join(', ')+' 기운은 한쪽에게는 용신, 다른 한쪽에게는 기신으로 작용해, 그 주제에서는 민감하게 부딪힐 수 있는 구조입니다.');
+      reasons.push('특히 '+clashEls.map(function(e){return EL_E[e]+EL_K[e];}).join(', ')+' 기운은 한쪽에게는 보완 후보, 다른 한쪽에게는 주의 오행으로 작용해, 그 주제에서는 민감하게 부딪힐 수 있는 구조입니다.');
       addReasonFact('YONGSHIN_CLASH',-4,{elements:clashEls.slice()});
     }
   }
@@ -24101,7 +24106,7 @@ function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name){
     });
     if(kijiControlEvents.length){
       score+=5;
-      reasons.push('⭐ 흉신 제어: 상대의 글자('+kijiControlEvents.map(function(e){return e.by;}).join(', ')+')가 당신의 기신('+kijiControlEvents.map(function(e){return e.char;}).join(', ')+')을 충(沖)으로 제거해줍니다. 상대방이 당신의 나쁜 기운을 몰아내주는 최고 궁합의 핵심 요인입니다.');
+      reasons.push('⭐ 흉신 제어: 상대의 글자('+kijiControlEvents.map(function(e){return e.by;}).join(', ')+')가 당신의 주의 오행('+kijiControlEvents.map(function(e){return e.char;}).join(', ')+')을 충(沖)으로 제거해줍니다. 상대방이 당신의 나쁜 기운을 몰아내주는 최고 궁합의 핵심 요인입니다.');
       addReasonFact('KIJI_CONTROL_FORWARD',5,{events:kijiControlEvents.map(function(e){return{char:e.char,by:e.by};})});
     }
   }
@@ -24118,7 +24123,7 @@ function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name){
     });
     if(p2KijiEvents.length){
       score+=4;
-      reasons.push('⭐ 역방향 흉신 제어: 당신의 글자('+p2KijiEvents.map(function(e){return e.by;}).join(', ')+')가 상대의 기신을 충으로 제거해줍니다. 당신도 상대에게 해방감을 주는 존재입니다.');
+      reasons.push('⭐ 역방향 흉신 제어: 당신의 글자('+p2KijiEvents.map(function(e){return e.by;}).join(', ')+')가 상대의 주의 오행을 충으로 제거해줍니다. 당신도 상대에게 해방감을 주는 존재입니다.');
       addReasonFact('KIJI_CONTROL_REVERSE',4,{events:p2KijiEvents.map(function(e){return{char:e.char,by:e.by};})});
     }
   }
@@ -24136,7 +24141,7 @@ function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name){
       if(rEl&&kiji1_ext.indexOf(rEl)>=0){
         heTrapFound=true;
         score-=4;
-        reasons.push('🚨 합의 함정: '+c1+'와 '+c2+'가 합(合)을 이루면서 결과 오행('+EL_K[rEl]+')이 당신의 기신을 강화합니다. 겉은 잘 맞아 보이나 속으로 해로운 에너지가 쌓이는 구조입니다. 편안함과 중독을 구분하세요.');
+        reasons.push('🚨 합의 함정: '+c1+'와 '+c2+'가 합(合)을 이루면서 결과 오행('+EL_K[rEl]+')이 당신의 주의 오행을 강화합니다. 겉은 잘 맞아 보이나 속으로 해로운 에너지가 쌓이는 구조입니다. 편안함과 중독을 구분하세요.');
         addReasonFact('HE_TRAP',-4,{self:c1,partner:c2,resultElement:rEl});
       }
     });
@@ -24155,7 +24160,7 @@ function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name){
   var integratedScore = scoreMyeongri;
 
   var grade,gradeCls,gradeLabel,gradeComment;
-  if(score>=13){grade='S급';gradeCls='grade-s';gradeLabel='🌟 전생의 은인';gradeComment='서로의 부족한 에너지를 보완하는 흐름이 강하게 읽히는 관계입니다. 기신으로 읽힌 부담도 함께 조절할 여지가 있어, 배려와 공동 목표가 더해지면 안정적으로 성장할 수 있습니다.';}
+  if(score>=13){grade='S급';gradeCls='grade-s';gradeLabel='🌟 전생의 은인';gradeComment='서로의 부족한 에너지를 보완하는 흐름이 강하게 읽히는 관계입니다. 주의 오행으로 읽힌 부담도 함께 조절할 여지가 있어, 배려와 공동 목표가 더해지면 안정적으로 성장할 수 있습니다.';}
   else if(score>=8){grade='A급';gradeCls='grade-a';gradeLabel='✨ 운명 궁합';gradeComment='기본 코드와 에너지 방향이 잘 맞는 강한 인연입니다. 노력과 배려가 더해지면 오래 함께 성장할 수 있는 무게 있는 궁합입니다.';}
   else if(score>=3){grade='B급';gradeCls='grade-b';gradeLabel='😊 인연 궁합';gradeComment='맞는 부분과 조율이 필요한 부분이 섞여 있지만 충분히 잘 자라날 수 있는 궁합입니다. 서로의 차이를 자원으로 바라보는 시각이 필요합니다.';}
   else if(score>=-2){grade='C급';gradeCls='grade-c';gradeLabel='🙂 평범한 인연';gradeComment='특별히 좋지도 나쁘지도 않은 인연입니다. 운명보다는 선택과 노력이 이 관계의 방향을 결정합니다.';}
@@ -24186,9 +24191,9 @@ function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name){
 
   var emotionalSummary = sok.text.split('<br><br>')[0] || '두 사람의 감정 리듬을 명리 중심으로 해석한 요약입니다.';
   var conflictSummary = heTrapFound
-    ? '끌림은 강하지만 합의 결과가 기신을 건드려 오래 갈수록 답답함이 쌓일 수 있습니다. 편안함과 정체를 구분하는 합의가 핵심입니다.'
+    ? '끌림은 강하지만 합의 결과가 주의 오행을 건드려 오래 갈수록 답답함이 쌓일 수 있습니다. 편안함과 정체를 구분하는 합의가 핵심입니다.'
     : clashEls.length
-      ? '한쪽의 용신이 다른 한쪽의 기신이 되는 구간이 있어, 생활 방식과 우선순위를 정할 때 쉽게 예민해질 수 있습니다.'
+      ? '한쪽의 보완 후보가 다른 한쪽의 주의 오행이 되는 구간이 있어, 생활 방식과 우선순위를 정할 때 쉽게 예민해질 수 있습니다.'
       : '큰 충돌축은 약한 편이지만, 강한 끌림이 있는 만큼 말하지 않은 기대치가 갈등으로 바뀌지 않도록 기준을 미리 맞추는 편이 좋습니다.';
   var practicalSummary = type==='business'
     ? '일정, 권한, 돈의 흐름을 문서로 고정할수록 궁합 장점이 실적으로 이어집니다. 감정 조율보다 역할 설계가 먼저입니다.'
@@ -24209,7 +24214,7 @@ function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name){
     if(reason.indexOf('합')>=0) return '끌림과 편안함이 생기는 지점입니다. 다만 익숙함이 기대치로 굳지 않도록 각자의 속도와 경계를 확인해 주세요.';
     if(reason.indexOf('충')>=0||reason.indexOf('상극')>=0) return '차이가 행동과 말투의 마찰로 드러날 수 있는 지점입니다. 문제를 사람의 성격으로 단정하지 말고 상황별 규칙으로 조정해 보세요.';
     if(reason.indexOf('생')>=0||reason.indexOf('도와')>=0) return '서로의 성장을 돕는 자원입니다. 도움을 주는 쪽과 받는 쪽이 고정되지 않도록 역할을 번갈아 나누는 것이 좋습니다.';
-    if(reason.indexOf('기신')>=0||reason.indexOf('용신')>=0) return '한쪽의 생활 리듬을 다른 쪽이 보완하는 구조입니다. 고마움을 당연하게 여기지 않고 구체적인 배려로 돌려주세요.';
+    if(reason.indexOf('주의 오행')>=0||reason.indexOf('보완 후보')>=0) return '한쪽의 생활 리듬을 다른 쪽이 보완하는 구조입니다. 고마움을 당연하게 여기지 않고 구체적인 배려로 돌려주세요.';
     return '관계에서 실제로 반복되는지 관찰해 볼 수 있는 포인트입니다. 맞지 않는 부분은 억지로 끼워 맞추지 말고 두 사람의 경험을 기준으로 조정하세요.';
   };
   var factHtml=factLines.map(function(f){return '<div class="compat-check-item compat-fact-item"><span class="compat-check-icon" style="color:#d81b60; font-size:1.1rem">🔥</span><span>'+f+'</span></div>';}).join('');
@@ -24237,7 +24242,7 @@ function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name){
   }
 
   if(type==='love'){
-    advLines.push('<b>[연애 시크릿]:</b> 상대방이 지쳐 있을 때 다정한 위로 한마디에 더해, 그 사람의 용신(보완이 필요한 오행)과 연결되는 색이나 데이트 코스(예: 수(水)기운이 필요하면 조용한 물가, 화(火)기운이 필요하면 밝고 따뜻한 야외)를 선택해 보세요. 상징을 현실의 휴식과 대화로 번역하면 서로의 회복을 더 직접적으로 도울 수 있습니다.');
+    advLines.push('<b>[연애 시크릿]:</b> 상대방이 지쳐 있을 때 다정한 위로 한마디에 더해, 그 사람의 보완 후보(보완이 필요한 오행)과 연결되는 색이나 데이트 코스(예: 수(水)기운이 필요하면 조용한 물가, 화(火)기운이 필요하면 밝고 따뜻한 야외)를 선택해 보세요. 상징을 현실의 휴식과 대화로 번역하면 서로의 회복을 더 직접적으로 도울 수 있습니다.');
   }else if(type==='business'){
     advLines.push('<b>[동업 시크릿]:</b> 천생연분의 파트너십일지라도 돈의 흐름 앞에서는 반드시 시험대에 오르게 됩니다. 궁합이 좋다고 대충 넘기려 하지 마세요. 역할, 권한, 손절 매뉴얼, 이익 분배율을 가장 안 친한 남처럼 문서로 남겨두는 것만이 이 환상적인 동업을 영원히 비즈니스로 지켜주는 무적의 방패입니다.');
   }else{
@@ -24269,7 +24274,7 @@ function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name){
     '<div class="compat-section">'+
     '<div class="compat-section-title">🧭 사주 궁합 총평</div>'+
     '<div style="font-size:.8rem;color:#4e5358;line-height:1.7">'
-      +'이번 결과는 <b>사주 명리만</b>으로 계산했습니다. 일간·일지 합충, 조후, 용신/기신, 십성 구조를 합산해 <b>'+integratedScore+'</b>/100으로 정리했습니다.'+
+      +'이번 결과는 <b>사주 명리만</b>으로 계산했습니다. 일간·일지 합충, 조후, 보완 후보·주의 오행, 십성 구조를 합산해 <b>'+integratedScore+'</b>/100으로 정리했습니다.'+
     '</div>'+
     '</div>'+
     '<div class="compat-section">'+
@@ -24734,7 +24739,7 @@ function buildDwQmSection(g,j){
   if(!results.length)return '';
   var rows=results.map(function(row){
     var label=row.type.indexOf('간')===0?(row.isChung?'천간충':'천간합'):(row.isChung?'지지충':'육합');
-    var detail=row.isChung?'서로 다른 방향의 힘이 만나는 관계입니다. 원국에서 맡는 십성과 용신·기신의 작용을 함께 보며 변화의 부담과 기회를 구분합니다.':
+    var detail=row.isChung?'서로 다른 방향의 힘이 만나는 관계입니다. 원국에서 맡는 십성과 보완 후보·주의 오행의 작용을 함께 보며 변화의 부담과 기회를 구분합니다.':
       row.transformed?'이 엔진의 월령·투간·통근 및 쟁합·충 확인 조건을 충족해 '+EL_K[row.hapEl]+' 기운으로 평가합니다. 합화의 해석 기준은 학파에 따라 달라질 수 있습니다.':
       '합 관계는 있으나 합화 조건이 충분하지 않아 각 글자의 원래 오행을 유지해 해석합니다.';
     return '<div style="padding:10px 12px;background:#fff;border:1px solid #F0EEF0;border-radius:10px;font-size:.8rem;line-height:1.7"><b>'+row.src+'·'+row.partner+' '+label+'</b><p>'+detail+'</p>'+
@@ -24773,8 +24778,8 @@ function renderDaewun(bazi){
   if(card) card.style.display = 'block';
   var jg=G_JONG,pw=G_POWER;
   var jongTag = jg&&jg.isJong ? (jg.isGaJong ? '가종격(假從格)' : '진종격(眞從格)') : '';
-  var legendItems=['<span style="background:#E8F5E9;color:#2E7D32;padding:3px 9px;border-radius:99px;font-weight:700;font-size:.77rem">🌟 조후/<span class="notranslate">용신운</span> · 도움 되는 흐름</span>',
-    '<span style="background:#FFEBEE;color:#C62828;padding:3px 9px;border-radius:99px;font-weight:700;font-size:.77rem">🌧️ <span class="notranslate">기신운</span> · 조절이 필요한 흐름</span>',
+  var legendItems=['<span style="background:#E8F5E9;color:#2E7D32;padding:3px 9px;border-radius:99px;font-weight:700;font-size:.77rem">🌟 조후/<span class="notranslate">보완 오행 운</span> · 도움 되는 흐름</span>',
+    '<span style="background:#FFEBEE;color:#C62828;padding:3px 9px;border-radius:99px;font-weight:700;font-size:.77rem">🌧️ <span class="notranslate">부담 오행 운</span> · 조절이 필요한 흐름</span>',
     '<span style="background:#E3F2FD;color:#1565C0;padding:3px 9px;border-radius:99px;font-weight:700;font-size:.77rem">✨ 합화(合化) 반영</span>'
     +(jg&&jg.isJong?'<span style="background:#EDE7F6;color:#6A1B9A;padding:3px 9px;border-radius:99px;font-weight:600;font-size:.72rem">🌀 '+jongTag+'</span>':'')];
   document.getElementById('dwLegend').innerHTML=legendItems.join('');

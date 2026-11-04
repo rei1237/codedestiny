@@ -23,8 +23,8 @@
     famMeaning: {same:['Energy like your own', 'allies and self-reliance'], parent:['Energy that supports you', 'learning and backing'], drain:['Energy you give out', 'expression and talent'], wealth:['Energy you manage', 'resources and practical results'], control:['Energy that shapes you', 'duty and structure']},
     pos: {yg:'Year stem', yj:'Year branch', mg:'Month stem', mj:'Month branch', dg:'Day stem', dj:'Day branch', hg:'Hour stem', hj:'Hour branch'},
     palace: {y:{label:'Year pillar', palace:'Ancestors · early life', span:'ages 0–15', domain:'roots, family, childhood setting'}, m:{label:'Month pillar', palace:'Parents · youth', span:'ages 16–30', domain:'parents, siblings, entering society'}, d:{label:'Day pillar', palace:'Self · partner', span:'ages 31–45', domain:'yourself and the partner palace'}, h:{label:'Hour pillar', palace:'Children · later life', span:'age 46+', domain:'children, later years, results'}},
-    role: {'용신':'Key balance (用神)', '희신':'Supportive (喜神)', '기신':'Strain (忌神)', '구신':'Added strain (仇神)'},
-    roleShort: {'용신':'Key balance', '희신':'Supportive', '기신':'Strain', '구신':'Added strain'},
+    role: {'보완 후보':'Support candidate', '주의 오행':'Element to watch'},
+    roleShort: {'보완 후보':'Support candidate', '주의 오행':'Element to watch'},
     noonMark: ' (noon assumed)', unknownCell: 'Unknown', none: '—',
     stem: {'甲':'Jia · Yang Wood', '乙':'Yi · Yin Wood', '丙':'Bing · Yang Fire', '丁':'Ding · Yin Fire', '戊':'Wu · Yang Earth', '己':'Ji · Yin Earth', '庚':'Geng · Yang Metal', '辛':'Xin · Yin Metal', '壬':'Ren · Yang Water', '癸':'Gui · Yin Water'},
     stemNote: {
@@ -76,11 +76,12 @@
       cols:['Position', 'Character', 'Element', 'Temp.', 'Damp · dry'], base:'Seasonal base', total:'Total', dampWord:'damp', dryWord:'dry',
       gaugeTemp:{ends:['Cold 寒', 'Hot 暖'], caption:'Temperature score {score}', aria:'Temperature gauge: score {score}, {type}'},
       gaugeHumid:{ends:['Dry 燥', 'Damp 濕'], caption:'Damp {wet} · dry {dry} (difference {diff})', aria:'Moisture gauge: {wet} damp signals, {dry} dry signals, {moist}'},
-      vNone:['The temperature is even, so there is no urgent energy to add for climate. Reading the key balance from the strength side is enough.', 'Temperature is even, so no climate energy is urgent. Judge mainly by the strength balance.'],
+      vNone:['The temperature is even, so there is no urgent energy to add for climate. Reading the support candidate from the strength side is enough.', 'Temperature is even, so no climate energy is urgent. Judge mainly by the strength balance.'],
       vJong:['By climate, {need} energy is welcome. But this chart was examined as a following structure, so follow the gathered momentum first and treat climate as an everyday supplement.', 'Climate wants {need}. Because the chart is a following structure, following the gathered momentum comes first.'],
-      vSame:['The {need} energy that is welcome by climate overlaps with the key balance from strength ({yong}). Both views point the same way, so keeping this energy steadily near you is the clearest supplement.', 'Climate need ({need}) overlaps the strength-based key balance ({yong}). Same direction, so the supplement priority is clear.'],
+      vPend:['Climate welcomes {need}, but the support candidates from strength are still open, so read climate as a reference for now.', 'Climate points to {need}. Strength candidates are open, so treat climate as a reference.'],
+      vSame:['The {need} energy that is welcome by climate overlaps with the support candidate from strength ({yong}). Both views point the same way, so keeping this energy steadily near you is the clearest supplement.', 'Climate need ({need}) overlaps the strength-based support candidate ({yong}). Same direction, so the supplement priority is clear.'],
       vExtreme:['Climate points to {need} and strength to {yong}, so the directions differ a little. With the temperature leaning strongly one way, put the seasonal balance of climate first and read strength second.', 'Climate points to {need}, strength to {yong}. The directions differ. Temperature is extreme, so climate leads and strength supports.'],
-      vMild:['Climate points to {need} and strength to {yong}, so the directions differ a little. The temperature is not extreme, so centre on the key balance from strength and treat climate as a seasonal helper.', 'Climate points to {need}, strength to {yong}. The directions differ. Temperature is not extreme, so strength leads and climate supports.'],
+      vMild:['Climate points to {need} and strength to {yong}, so the directions differ a little. The temperature is not extreme, so centre on the support candidate from strength and treat climate as a seasonal helper.', 'Climate points to {need}, strength to {yong}. The directions differ. Temperature is not extreme, so strength leads and climate supports.'],
       vNote:['Climate looks at the temperature and moisture of the birth season; strength looks at how large or small the day stem’s power is. Neither is treated as the only answer; the chart decides which comes first.', 'Climate reads the season’s warmth and moisture; strength reads whether the day stem has too much or too little power. Neither alone is the answer.'],
       what:'What are warmth, cold, dryness and damp?', whatText:['These describe the temperature (cold or hot) and moisture (dry or damp) of a chart. Just as nature has seasons and weather, a person’s temperament is said to have a climate, and this helps you see in which setting you feel at ease and use your strength well.', 'Warmth and moisture of the chart. They show in which environment strength is used well.'],
       four:[['Cold (寒)', 'The condensed energy of winter. Read as a calm, careful strength that consolidates inward.'], ['Warm (暖)', 'The outgoing energy of summer. Read as passion, expression and strength that reaches outward.'], ['Dry (燥)', 'The firm energy of autumn. Read as clear cut-offs and an uncluttered grain.'], ['Damp (濕)', 'The tangled energy of spring. Read as empathy, friendliness and growing together.']],
@@ -117,9 +118,10 @@
       stemStrong:['Because you have plenty of strength, you shine more when you spend it outward. Sharing results, helping people and taking responsible roles keep you balanced. Holding everything alone can feel stifling.', 'You carry surplus power, so efficiency comes from spending it outward. Share results and take responsible roles.'],
       stemWeak:['Your strength is used best beside people and settings that recognise you. Rather than pushing to the front, lay the roots first with learning, preparation and cooperation.', 'Resources run short, so secure the roots with preparation, learning and cooperation. Leading too hard is costly.'],
       stemLine:['{stem}: {note}. ', '{stem}: {note}. '],
-      godHead:['Energies that support you · energies to watch', 'Key balance / strain'], godTags:{good:['Key balance', 'Supportive'], care:['Strain', 'Added strain']},
-      godText:['When Key balance and Supportive elements arrive through a cycle, things tend to go smoothly and help is easier to meet. When Strain elements grow strong, slow down a beat and look a little longer before large expansions or decisions.', 'Things tend to go well when Key balance and Supportive elements arrive through cycles; when Strain elements grow stronger, a lower expansion speed is safer.'],
-      godWhat:'What are Key balance, Supportive, Strain and Added strain?', godWhatText:'The Key balance element (用神) is what the chart most needs for balance, and the Supportive element (喜神) helps it. The Strain element (忌神) harms the Key balance, the Added strain element (仇神) feeds the Strain, and a neutral element (閑神) leans neither way. This chart’s calculation sorts all five elements into supporting and burdening sides, so no neutral element is kept apart.',
+      godHead:['Support candidates / watch', 'Support candidates / watch'], godTags:{good:['Support candidate'], care:['Element to watch']},
+      godText:['Support candidates are elements worth checking when a cycle brings them. Read them as a guide, not a fixed answer, and compare them with how your days actually go.', 'Support candidates are elements to check when cycles bring them. They are a guide, not a fixed answer.'],
+      godWhat:'What is a support candidate?', godWhatText:'A support candidate is an element reviewed for balance from the strength and climate readings. It is not one confirmed answer, and burdening elements are not judged separately. Without a birth time the candidates stay open too.',
+      pendText:['Without a birth time or enough evidence, strong or weak stays open. Treat the score and gauge below as a reference only.', 'Open: no birth time or not enough evidence, so strong or weak is not fixed. The gauge is reference only.'], pendBadge:'Open', pendRef:'Reference {score}',
       cycHead:'Direction of cycles at a glance', cycStrong:['Cycles of Output, Wealth and Authority, which spend energy outward and turn it into achievement, are where social results tend to ripen.', 'Output, Wealth and Authority cycles, meaning power spent outward and turned into results, are favourable.'], cycWeak:['Cycles of Peers and Resource, which fill and support you, are where confidence and help tend to arrive together.', 'Peers and Resource cycles, meaning you are filled and supported, are favourable.'],
       what:'What is strength (抑扶)?', whatText:'Strength looks for balance by pressing down the day stem when it is too strong (抑) and lifting it when it is weak (扶). In this chart the month branch weighs most (same element +40, Resource +27, Authority −27, Output −10). The day branch is +13 for the same element or Resource and −9 for Authority; the other five characters are +7 for the same element or Resource and −7 for Authority. A total of 30 or more is read as strong and below that as weak, and the stage names only label score ranges. The score is not a grade of a person’s ability or worth.'},
 
@@ -200,7 +202,7 @@
       names: ['Recover first', 'Steady', 'Smooth', 'Strong momentum'], ends: ['Slow down', 'Strong'], caption: 'Energy gauge {bp}%', aria: 'Energy gauge {bp}% for {when}',
       tags: {fast:'Accelerate', even:'Balanced', rest:'Pause'}, boost: '{el} boost', tblCap: 'Energy arriving {when} and your day stem',
       godHead: ['Reading {when} by ten gods', 'Judgement by ten god'], nothing: ['No clash with your chart stands out. Read an important message once more before sending.', 'No notable relation. Recheck important messages before sending.'], checkHead: ['Please keep in mind', 'Checkpoints'],
-      boostHead: 'Lucky booster', boostLabel: 'Element to add', boostNote: ['A light everyday tip for adding what is lacking. Enjoy it as a small change of mood.', 'An everyday tip for supplementing the key balance element. No effect is guaranteed.'],
+      boostHead: 'Lucky booster', boostLabel: 'Element to add', boostNote: ['A light everyday tip for adding what is lacking. Enjoy it as a small change of mood.', 'An everyday tip for supplementing the support candidate element. No effect is guaranteed.'],
       god: {'비견':['A time when your own judgement gets clearer. Deciding alone is fine, but write the reason in one line so you do not waver later.', 'Independent judgement is favourable. Record the reason in one line.'], '겁재':['Competitiveness and drive rise together. Postpone impulsive spending or bets by a day and you will feel easier.', 'Competition and impulse grow. Hold impulsive spending for a day.'], '식신':['Joy and ideas well up. Make one idea you have into something, however small, right away.', 'Productivity rises. Move one idea into an action step now.'], '상관':['Words and expression carry weight. Good for presentations and creative work; read a contract or an official statement once more before sending it out.', 'Expression strengthens. Recheck official documents and statements before release.'], '편재':['Chances and swings grow together. Start with small things you have confirmed rather than big bets.', 'Chance and volatility are both large. Proceed with small, verified items.'], '정재':['A time when careful practical work shines. Sorting income and spending once will lighten your mind.', 'Accuracy rises. Sort your income and spending records.'], '편관':['You may feel pressure. Rather than shouldering all of it, pick one thing you will keep and hold on, and it returns as trust.', 'Pressure comes. Focusing on one core duty returns as trust.'], '정관':['A time when duty and trust show. Good for official papers and procedures.', 'Suited to official procedures. Make your scope of responsibility clear.'], '편인':['Intuition grows sharp. Jot down the hunches that come and check them in a small way.', 'Intuition leads. Record hunches and run a small check.'], '정인':['A good time for learning and sorting things out. Asking a trusted person for advice makes your thinking clear.', 'Learning and analysis are efficient. Ask a trusted adviser.']},
       tone: {open:['Energy comes in with some strength. Pick one thing to do and finish it first, and you can ride the flow well.', 'Energy-surplus band. Finish one top-priority item first.'], care:['A time to look after your inner battery first. Slow down a little, and mistakes drop and relationships ease.', 'Energy-care band. Lower the speed and add one more check step.']},
       sumHead: ['Yeoni’s word', 'Yeongnyangi’s summary']}
@@ -214,8 +216,8 @@
     famMeaning: {same:['自分と同じ気', '仲間意識と自立心'], parent:['あなたを支える気', '学びと後ろ盾'], drain:['外へ出していく気', '表現と才能'], wealth:['あなたが扱う気', '資源と現実的な成果'], control:['あなたを形づくる気', '責任と秩序']},
     pos: {yg:'年干', yj:'年支', mg:'月干', mj:'月支', dg:'日干', dj:'日支', hg:'時干', hj:'時支'},
     palace: {y:{label:'年柱', palace:'祖先・幼少期', span:'0〜15歳', domain:'ルーツ・家族・幼い頃の環境'}, m:{label:'月柱', palace:'両親・青年期', span:'16〜30歳', domain:'両親・きょうだい・社会への入口'}, d:{label:'日柱', palace:'自分・配偶者', span:'31〜45歳', domain:'自分自身と配偶者の宮'}, h:{label:'時柱', palace:'子ども・晩年', span:'46歳〜', domain:'子ども・晩年・結実'}},
-    role: {'용신':'要の調和（用神）', '희신':'支え（喜神）', '기신':'負担（忌神）', '구신':'さらなる負担（仇神）'},
-    roleShort: {'용신':'要の調和', '희신':'支え', '기신':'負担', '구신':'さらなる負担'},
+    role: {'보완 후보':'補完候補', '주의 오행':'注意の五行'},
+    roleShort: {'보완 후보':'補完候補', '주의 오행':'注意の五行'},
     noonMark: '（正午で仮定）', unknownCell: '不明', none: '—',
     stem: {'甲':'甲（陽の木）', '乙':'乙（陰の木）', '丙':'丙（陽の火）', '丁':'丁（陰の火）', '戊':'戊（陽の土）', '己':'己（陰の土）', '庚':'庚（陽の金）', '辛':'辛（陰の金）', '壬':'壬（陽の水）', '癸':'癸（陰の水）'},
     animal: {'子':'鼠', '丑':'牛', '寅':'虎', '卯':'兎', '辰':'龍', '巳':'蛇', '午':'馬', '未':'羊', '申':'猿', '酉':'鶏', '戌':'犬', '亥':'猪'},
@@ -269,11 +271,12 @@
       cols:['位置', '文字', '五行', '温度', '湿・乾'], base:'季節の基準', total:'合計', dampWord:'湿', dryWord:'乾',
       gaugeTemp:{ends:['寒', '暖'], caption:'温度スコア {score}', aria:'温度ゲージ：スコア {score}、{type}'},
       gaugeHumid:{ends:['燥', '濕'], caption:'湿 {wet} · 乾 {dry}（差 {diff}）', aria:'湿度ゲージ：湿の兆し{wet}、乾の兆し{dry}、{moist}'},
-      vNone:['温度が均衡しているため、気候の面で急いで足すべき気はありません。強弱の側から要の調和を読めば十分です。', '温度は均衡。気候上、急ぐ気はない。強弱バランスを中心に判断する。'],
+      vNone:['温度が均衡しているため、気候の面で急いで足すべき気はありません。強弱の側から補完候補を読めば十分です。', '温度は均衡。気候上、急ぐ気はない。強弱バランスを中心に判断する。'],
       vJong:['気候では{need}の気が歓迎されます。ただしこの命式は従格として見立てたので、集まった勢いに従うことを優先し、気候は日常の補助として扱ってください。', '気候は{need}を求める。従格のため、集まった勢いに従うのが先。'],
-      vSame:['気候で歓迎される{need}の気は、強弱で見た要の調和（{yong}）と重なります。二つの見方が同じ方向を指しているので、この気を身近に保ち続けるのが最も明快な補い方です。', '気候の必要（{need}）が強弱の要の調和（{yong}）と重なる。方向が同じで、補う優先順位は明確。'],
+      vPend:['気候では{need}の気が歓迎されますが、強弱の補完候補は保留中なので、気候も参考としてご覧ください。', '気候は{need}。強弱の候補は保留中なので、気候も参考。'],
+      vSame:['気候で歓迎される{need}の気は、強弱で見た補完候補（{yong}）と重なります。二つの見方が同じ方向を指しているので、この気を身近に保ち続けるのが最も明快な補い方です。', '気候の必要（{need}）が強弱の補完候補（{yong}）と重なる。方向が同じで、補う優先順位は明確。'],
       vExtreme:['気候は{need}、強弱は{yong}を指していて、方向が少し異なります。温度が大きく片側に傾いているので、気候の季節バランスを先に置き、強弱は二番目に読んでください。', '気候は{need}、強弱は{yong}。方向が異なる。温度が極端なので気候が先導し、強弱が補う。'],
-      vMild:['気候は{need}、強弱は{yong}を指していて、方向が少し異なります。温度は極端ではないので、強弱から出る要の調和を中心にし、気候は季節の助けとして扱ってください。', '気候は{need}、強弱は{yong}。方向が異なる。温度は極端でないので強弱が先導し、気候が補う。'],
+      vMild:['気候は{need}、強弱は{yong}を指していて、方向が少し異なります。温度は極端ではないので、強弱から出る補完候補を中心にし、気候は季節の助けとして扱ってください。', '気候は{need}、強弱は{yong}。方向が異なる。温度は極端でないので強弱が先導し、気候が補う。'],
       vNote:['気候は生まれた季節の温度と湿度を、強弱は日干の力が大きいか小さいかを見ます。どちらか一つだけを答えとはせず、命式によってどちらを先にするかが決まります。', '気候は季節の温湿度、強弱は日干の力の過不足を読む。どちらか一方だけが答えではない。'],
       what:'暖・寒・燥・湿とは？', whatText:['命式の温度（寒い・熱い）と湿度（乾き・湿り）を表す言葉です。自然に季節や天気があるように、人の気質にも気候があるとされ、どんな環境で安らぎ、力を発揮しやすいかが見えてきます。', '命式の温度と湿度。どの環境で力が活きるかを示す。'],
       four:[['寒', '冬の凝縮した気。内側へ固める、落ち着いて慎重な力と読みます。'], ['暖', '夏の外へ向かう気。情熱と表現、外へ伸びる力と読みます。'], ['燥', '秋の引き締まった気。きっぱりした区切りと、すっきりした質感と読みます。'], ['濕', '春の絡み合う気。共感と親しみやすさ、共に育つ力と読みます。']],
@@ -310,9 +313,10 @@
       stemStrong:['力が十分にあるので、外へ使うほど輝きます。成果を分かち合い、人を助け、責任ある役割を担うとバランスが取れます。すべてを一人で抱え込むと息苦しくなりやすいでしょう。', '余力があるので、外へ使うと効率が上がる。成果を共有し、責任ある役割を担う。'],
       stemWeak:['あなたの力は、あなたを認めてくれる人や環境のそばで最もよく活きます。前に出ようと押すより、学び・準備・協力で先に根を張ってください。', '資源が不足気味。準備・学び・協力で根を固める。無理に主導すると損が大きい。'],
       stemLine:['{stem}：{note}。', '{stem}：{note}。'],
-      godHead:['あなたを支える気 · 気をつける気', '要の調和／負担'], godTags:{good:['要の調和', '支え'], care:['負担', 'さらなる負担']},
-      godText:['要の調和と支えの五行が運として巡ってくると、物事が順調に進み、助けにも出会いやすくなります。負担の五行が強まるときは、大きな拡大や決断の前に一拍置いて、少し長く見てください。', '要の調和と支えの五行が運で巡ると順調。負担の五行が強まるときは拡大の速度を落とす方が安全。'],
-      godWhat:'要の調和・支え・負担・さらなる負担とは？', godWhatText:'要の調和（用神）は命式が均衡のために最も必要とする五行、支え（喜神）はそれを助ける五行です。負担（忌神）は要の調和を損なう五行、さらなる負担（仇神）は負担を育てる五行、中立（閑神）はどちらにも傾かない五行です。この命式の計算では五行すべてを支える側と負担になる側に分けるため、別枠の中立は置いていません。',
+      godHead:['補完候補 / 注意', '補完候補 / 注意'], godTags:{good:['補完候補'], care:['注意の五行']},
+      godText:['補完候補は、運で巡ってきたときに確かめたい五行です。決まった答えではなく目安として、実際の毎日と照らし合わせてください。', '補完候補は運で巡ったときに確かめる五行。決まった答えではなく目安。'],
+      godWhat:'補完候補とは', godWhatText:'補完候補は、強弱と調候からバランスを見るときに検討する五行です。一つに確定した判定ではなく、負担になる五行も別に判定しません。出生時刻が不明なら候補も保留します。',
+      pendText:['出生時刻がないか根拠が足りないため、身強・身弱を確定していません。下の点数とゲージは参考値としてご覧ください。', '保留。出生時刻がないか根拠が足りず、身強・身弱は確定しない。ゲージは参考値。'], pendBadge:'判定保留', pendRef:'参考 {score}',
       cycHead:'運の方向を一目で', cycStrong:['食傷・財星・官星の運は、気を外へ使って成果に変えるもので、社会的な結果が実りやすい時期です。', '食傷・財星・官星の運（力を外へ使って成果にする）が追い風。'], cycWeak:['比劫・印星の運は、あなたを満たして支えるもので、自信と助けが一緒に届きやすい時期です。', '比劫・印星の運（満たされ支えられる）が追い風。'],
       what:'強弱（抑扶）とは？', whatText:'強弱は、日干が強すぎれば抑え（抑）、弱ければ引き上げる（扶）ことで均衡を探す見方です。この命式では月支の比重が最も大きく（同じ五行 +40、印星 +27、官星 −27、食傷 −10）、日支は同じ五行か印星なら +13、官星なら −9、残りの五字は同じ五行か印星なら +7、官星なら −7 です。合計 30 以上を強い、それ未満を弱いと読み、段階の名前は点数帯のラベルにすぎません。このスコアは人の能力や価値の等級ではありません。'},
 
@@ -393,7 +397,7 @@
       names: ['まず回復', '安定', '順調', '勢いが強い'], ends: ['ゆっくり', '強い'], caption: '気のゲージ {bp}%', aria: '{when}の気のゲージ {bp}%',
       tags: {fast:'加速', even:'バランス', rest:'一休み'}, boost: '{el}を足す', tblCap: '{when}届く気とあなたの日干',
       godHead: ['{when}を十神で読む', '十神別の判定'], nothing: ['命式との衝突は目立ちません。大事なメッセージは、送る前にもう一度読み返しましょう。', '目立つ関係はなし。大事なメッセージは送る前に再確認する。'], checkHead: ['心に留めておいてください', '確認ポイント'],
-      boostHead: 'ラッキーブースター', boostLabel: '足す五行', boostNote: ['足りないものを足す、軽い日常のヒントです。小さな気分転換として楽しんでください。', '要の調和の五行を補う日常のヒント。効果を保証するものではない。'],
+      boostHead: 'ラッキーブースター', boostLabel: '足す五行', boostNote: ['足りないものを足す、軽い日常のヒントです。小さな気分転換として楽しんでください。', '補完候補の五行を補う日常のヒント。効果を保証するものではない。'],
       god: {'비견':['自分の判断が明確になる時期です。一人で決めても構いませんが、あとで迷わないよう、理由を一行で書いておきましょう。', '自立した判断が有利。理由を一行で記録する。'], '겁재':['競争心と意欲が一緒に高まります。衝動的な出費や賭けは一日延ばすと、気持ちが楽になります。', '競争と衝動が増す。衝動的な出費は一日保留する。'], '식신':['喜びとアイデアがわいてきます。思いついたアイデアを一つ、小さくてもすぐに形にしてみましょう。', '生産性が上がる。アイデアを一つ今すぐ行動のステップにする。'], '상관':['言葉と表現に重みが出ます。発表や創作に向いていますが、契約書や公式な声明は、出す前にもう一度読み返してください。', '表現が強まる。公式文書と声明は公開前に再確認する。'], '편재':['機会と変動が一緒に大きくなります。大きな賭けより、確認済みの小さなことから始めましょう。', '機会も変動も大きい。確認済みの小さな案件で進める。'], '정재':['丁寧な実務が光る時期です。収入と支出を一度整理すると、心が軽くなります。', '正確さが上がる。収支の記録を整理する。'], '편관':['圧力を感じるかもしれません。すべてを背負うより、守ると決めたことを一つ選んで持ち続けると、信頼として返ってきます。', '圧力が来る。核心の責任を一つに絞ると信頼として返る。'], '정관':['責任と信頼が表れる時期です。公式な書類や手続きに向いています。', '公式な手続きに向く。責任の範囲を明確にする。'], '편인':['直感が冴えます。浮かんだ予感を書き留め、小さく確かめてみましょう。', '直感が主導。予感を記録し、小さく検証する。'], '정인':['学びと整理に良い時期です。信頼できる人に助言を求めると、考えがはっきりします。', '学びと分析が効率的。信頼できる相談相手に聞く。']},
       tone: {open:['気がある程度の強さで入ってきます。やることを一つ選んでまず終わらせれば、流れにうまく乗れます。', '気の余剰帯。最優先の一件を先に終える。'], care:['内なるバッテリーを先に労る時期です。少しゆっくりすると、ミスが減って人間関係も和らぎます。', '気のケア帯。速度を落とし、確認の段階を一つ増やす。']},
       sumHead: ['Yeoniのひとこと', 'Yeongnyangiの要約']}
@@ -407,8 +411,8 @@
     famMeaning: {same:['与自己相同的能量', '同伴意识与自立'], parent:['支持你的能量', '学习与靠山'], drain:['向外输出的能量', '表达与才华'], wealth:['你去经营的能量', '资源与现实成果'], control:['塑造你的能量', '责任与秩序']},
     pos: {yg:'年干', yj:'年支', mg:'月干', mj:'月支', dg:'日干', dj:'日支', hg:'时干', hj:'时支'},
     palace: {y:{label:'年柱', palace:'祖辈 · 早年', span:'0–15岁', domain:'根基、家庭、童年环境'}, m:{label:'月柱', palace:'父母 · 青年', span:'16–30岁', domain:'父母、兄弟姐妹、踏入社会'}, d:{label:'日柱', palace:'自己 · 伴侣', span:'31–45岁', domain:'自己与伴侣宫'}, h:{label:'时柱', palace:'子女 · 晚年', span:'46岁以后', domain:'子女、晚年、成果'}},
-    role: {'용신':'关键平衡（用神）', '희신':'助力（喜神）', '기신':'负担（忌神）', '구신':'加重负担（仇神）'},
-    roleShort: {'용신':'关键平衡', '희신':'助力', '기신':'负担', '구신':'加重负担'},
+    role: {'보완 후보':'补充候选', '주의 오행':'留意五行'},
+    roleShort: {'보완 후보':'补充候选', '주의 오행':'留意五行'},
     noonMark: '（按正午计）', unknownCell: '不详', none: '—',
     stem: {'甲':'甲（阳木）', '乙':'乙（阴木）', '丙':'丙（阳火）', '丁':'丁（阴火）', '戊':'戊（阳土）', '己':'己（阴土）', '庚':'庚（阳金）', '辛':'辛（阴金）', '壬':'壬（阳水）', '癸':'癸（阴水）'},
     animal: {'子':'鼠', '丑':'牛', '寅':'虎', '卯':'兔', '辰':'龙', '巳':'蛇', '午':'马', '未':'羊', '申':'猴', '酉':'鸡', '戌':'狗', '亥':'猪'},
@@ -461,11 +465,12 @@
       cols:['位置', '字', '五行', '温度', '湿 · 燥'], base:'季节基准', total:'合计', dampWord:'湿', dryWord:'燥',
       gaugeTemp:{ends:['寒', '暖'], caption:'温度分数 {score}', aria:'温度仪表：分数 {score}，{type}'},
       gaugeHumid:{ends:['燥', '濕'], caption:'湿 {wet} · 燥 {dry}（差 {diff}）', aria:'湿度仪表：{wet}个潮湿信号，{dry}个干燥信号，{moist}'},
-      vNone:['温度均衡，所以气候方面没有急需补充的能量。从强弱一侧读关键平衡就足够了。', '温度均衡，气候上无急需能量。以强弱平衡为主判断。'],
+      vNone:['温度均衡，所以气候方面没有急需补充的能量。从强弱一侧读补充候选就足够了。', '温度均衡，气候上无急需能量。以强弱平衡为主判断。'],
       vJong:['从气候看，{need}能量是受欢迎的。但这张命盘按从格来看，应先顺着聚集的势头，把气候当作日常的辅助。', '气候需要{need}。因为是从格，先顺着聚集的势头。'],
-      vSame:['气候所需的{need}能量，与强弱得出的关键平衡（{yong}）重合。两种看法方向一致，把这种能量稳定地留在身边，是最清晰的补足方式。', '气候所需（{need}）与强弱的关键平衡（{yong}）重合。方向一致，补足的优先级明确。'],
+      vPend:['气候上欢迎{need}能量，但强弱的补充候选尚未判定，所以气候也请仅作参考。', '气候指向{need}。强弱候选未定，气候也仅作参考。'],
+      vSame:['气候所需的{need}能量，与强弱得出的补充候选（{yong}）重合。两种看法方向一致，把这种能量稳定地留在身边，是最清晰的补足方式。', '气候所需（{need}）与强弱的补充候选（{yong}）重合。方向一致，补足的优先级明确。'],
       vExtreme:['气候指向{need}，强弱指向{yong}，方向略有不同。温度明显偏向一边，所以先考虑气候的季节平衡，再把强弱放在第二位。', '气候指向{need}，强弱指向{yong}。方向不同。温度极端，因此气候为主、强弱为辅。'],
-      vMild:['气候指向{need}，强弱指向{yong}，方向略有不同。温度并不极端，所以以强弱得出的关键平衡为中心，把气候当作季节上的帮手。', '气候指向{need}，强弱指向{yong}。方向不同。温度不极端，因此强弱为主、气候为辅。'],
+      vMild:['气候指向{need}，强弱指向{yong}，方向略有不同。温度并不极端，所以以强弱得出的补充候选为中心，把气候当作季节上的帮手。', '气候指向{need}，强弱指向{yong}。方向不同。温度不极端，因此强弱为主、气候为辅。'],
       vNote:['气候看的是出生季节的温度与湿度，强弱看的是日干的力量大还是小。两者都不被当作唯一答案，由命盘决定先看哪一个。', '气候读季节的冷暖干湿，强弱读日干力量的多寡。单看任何一方都不是答案。'],
       what:'暖、寒、燥、湿是什么？', whatText:['这些词描述命盘的温度（冷或热）与湿度（干或潮）。就像自然有四季和天气，人的气质也被认为有气候，由此可以看出你在怎样的环境里安心、更能发挥所长。', '命盘的冷暖与干湿。显示在怎样的环境里力量用得好。'],
       four:[['寒', '冬天凝聚的能量。读作向内收敛、沉静而谨慎的力量。'], ['暖', '夏天外放的能量。读作热情、表达与向外伸展的力量。'], ['燥', '秋天紧致的能量。读作干脆的取舍与清爽的质地。'], ['濕', '春天交织的能量。读作共情、亲和与共同成长。']],
@@ -502,9 +507,10 @@
       stemStrong:['你力量充足，向外使用时更能发光。分享成果、帮助他人、担任负责的角色能让你保持平衡。一个人包揽一切反而容易觉得憋闷。', '你有富余的力量，向外使用效率更高。分享成果，担任负责的角色。'],
       stemWeak:['你的力量在认可你的人和环境旁边用得最好。与其硬挤到前面，不如先用学习、准备与合作把根扎好。', '资源偏少，用准备、学习与合作稳住根基。过度强出头代价大。'],
       stemLine:['{stem}：{note}。', '{stem}：{note}。'],
-      godHead:['支持你的能量 · 需要留意的能量', '关键平衡 / 负担'], godTags:{good:['关键平衡', '助力'], care:['负担', '加重负担']},
-      godText:['当关键平衡与助力的五行随运势到来时，事情往往顺利，也更容易遇到帮助。当负担的五行转强时，在大幅扩张或做决定之前，放慢一拍、多看一会儿。', '关键平衡与助力五行随运势到来时往往顺利；负担五行转强时，降低扩张速度更稳妥。'],
-      godWhat:'关键平衡、助力、负担、加重负担是什么？', godWhatText:'关键平衡（用神）是命盘为了平衡最需要的五行，助力（喜神）是帮助它的五行。负担（忌神）是损害关键平衡的五行，加重负担（仇神）是滋养负担的五行，中性（闲神）则不偏向任何一边。本命盘的算法把五行全部分成支持与负担两侧，所以不单独保留中性五行。',
+      godHead:['补充候选 / 留意', '补充候选 / 留意'], godTags:{good:['补充候选'], care:['留意五行']},
+      godText:['补充候选是运势带来时值得确认的五行。请把它当作参考而不是定论，并与实际生活对照。', '补充候选是运势带来时要确认的五行。只是参考，不是定论。'],
+      godWhat:'什么是补充候选', godWhatText:'补充候选是从强弱和调候看平衡时一并检视的五行。它不是确定的单一判定，也不另行判定负担五行。没有出生时间时，候选同样保留不定。',
+      pendText:['没有出生时间或依据不足，因此未确定身强或身弱。下面的分数和量表仅供参考。', '暂不判定。没有出生时间或依据不足，身强身弱未定。量表仅供参考。'], pendBadge:'暂不判定', pendRef:'参考 {score}',
       cycHead:'运势方向一览', cycStrong:['食伤、财星、官星的运势，是把能量向外使用并转化为成就的运势，社会成果容易成熟。', '食伤、财星、官星运势（力量向外使用并化为成果）有利。'], cycWeak:['比劫、印星的运势，是充实并支持你的运势，自信与帮助往往一起到来。', '比劫、印星运势（被充实、被支持）有利。'],
       what:'什么是强弱（抑扶）？', whatText:'强弱是通过日干太强时压制（抑）、偏弱时扶助（扶）来寻找平衡的看法。在这张命盘里，月支分量最重（同五行 +40，印星 +27，官星 −27，食伤 −10）。日支与日干同五行或为印星时 +13，为官星时 −9；其余五字同五行或为印星时 +7，为官星时 −7。合计 30 以上读作强，低于 30 读作弱，阶段名称只是分数区间的标签。这个分数不是对一个人能力或价值的评级。'},
 
@@ -585,7 +591,7 @@
       names: ['先恢复', '平稳', '顺畅', '势头强劲'], ends: ['放慢', '强劲'], caption: '能量仪表 {bp}%', aria: '{when}的能量仪表 {bp}%',
       tags: {fast:'加速', even:'平衡', rest:'暂停'}, boost: '补{el}', tblCap: '{when}到来的能量与你的日干',
       godHead: ['用十神读{when}', '按十神判断'], nothing: ['没有明显与命盘相冲的地方。重要的消息发出前，再读一遍。', '没有明显的关系。重要消息发出前再次确认。'], checkHead: ['请留意', '检查要点'],
-      boostHead: '幸运加成', boostLabel: '要补的五行', boostNote: ['补充所缺的轻松日常小提示。当作一点小小的心情调剂来享受吧。', '补充关键平衡五行的日常提示。不保证任何效果。'],
+      boostHead: '幸运加成', boostLabel: '要补的五行', boostNote: ['补充所缺的轻松日常小提示。当作一点小小的心情调剂来享受吧。', '补充补充候选五行的日常提示。不保证任何效果。'],
       god: {'비견':['自己的判断会更清晰的时期。独自决定也可以，但用一句话写下理由，以免之后动摇。', '独立判断有利。用一句话记录理由。'], '겁재':['好胜心与干劲一起上升。把冲动的花销或赌注推迟一天，心里会更轻松。', '竞争与冲动增强。冲动的花销搁置一天。'], '식신':['喜悦与点子涌现。把你想到的一个点子，哪怕很小，立刻做成点什么。', '产出力上升。现在就把一个点子化为行动步骤。'], '상관':['言语与表达有分量。适合演讲与创作；合同或正式声明发出前，请再读一遍。', '表达增强。正式文件与声明发布前再次确认。'], '편재':['机会与波动同时变大。先从确认过的小事开始，而不是大的赌注。', '机会与波动都大。以小而已验证的事项推进。'], '정재':['细致务实的工作发光的时期。梳理一遍收入与支出，心会变轻。', '准确度上升。整理收支记录。'], '편관':['你可能感到压力。与其全部扛下，不如选一件你要坚守的事，坚持住，它会以信任的形式回来。', '压力来临。聚焦一项核心责任，会以信任的形式回报。'], '정관':['责任与信任显现的时期。适合办理正式文件和手续。', '适合办理正式手续。明确责任范围。'], '편인':['直觉变得敏锐。记下浮现的预感，并小范围地验证。', '直觉主导。记录预感并小范围验证。'], '정인':['适合学习与整理的好时机。向信任的人请教，思路会变清晰。', '学习与分析高效。请教可信赖的顾问。']},
       tone: {open:['能量以不弱的力度进来。挑一件要做的事先做完，就能顺势而行。', '能量富余区间。先完成最优先的一件事。'], care:['先照顾好内在电量的时期。稍微放慢，失误会减少，人际也会缓和。', '能量养护区间。降低速度，多加一个确认步骤。']},
       sumHead: ['Yeoni 的话', 'Yeongnyangi 的总结']}
@@ -599,8 +605,8 @@
     famMeaning: {same:['與自己相同的能量', '同伴意識與自立'], parent:['支持你的能量', '學習與靠山'], drain:['向外輸出的能量', '表達與才華'], wealth:['由你去經營的能量', '資源與現實成果'], control:['塑造你的能量', '責任與秩序']},
     pos: {yg:'年干', yj:'年支', mg:'月干', mj:'月支', dg:'日干', dj:'日支', hg:'時干', hj:'時支'},
     palace: {y:{label:'年柱', palace:'祖輩 · 早年', span:'0–15歲', domain:'根基、家庭、童年環境'}, m:{label:'月柱', palace:'父母 · 青年', span:'16–30歲', domain:'父母、兄弟姊妹、踏入社會'}, d:{label:'日柱', palace:'自己 · 伴侶', span:'31–45歲', domain:'自己與伴侶宮'}, h:{label:'時柱', palace:'子女 · 晚年', span:'46歲以後', domain:'子女、晚年、成果'}},
-    role: {'용신':'關鍵平衡（用神）', '희신':'助力（喜神）', '기신':'負擔（忌神）', '구신':'加重負擔（仇神）'},
-    roleShort: {'용신':'關鍵平衡', '희신':'助力', '기신':'負擔', '구신':'加重負擔'},
+    role: {'보완 후보':'補充候選', '주의 오행':'留意五行'},
+    roleShort: {'보완 후보':'補充候選', '주의 오행':'留意五行'},
     noonMark: '（以正午計）', unknownCell: '不詳', none: '—',
     stem: {'甲':'甲（陽木）', '乙':'乙（陰木）', '丙':'丙（陽火）', '丁':'丁（陰火）', '戊':'戊（陽土）', '己':'己（陰土）', '庚':'庚（陽金）', '辛':'辛（陰金）', '壬':'壬（陽水）', '癸':'癸（陰水）'},
     animal: {'子':'鼠', '丑':'牛', '寅':'虎', '卯':'兔', '辰':'龍', '巳':'蛇', '午':'馬', '未':'羊', '申':'猴', '酉':'雞', '戌':'狗', '亥':'豬'},
@@ -653,11 +659,12 @@
       cols:['位置', '字', '五行', '溫度', '濕 · 燥'], base:'季節基準', total:'合計', dampWord:'濕', dryWord:'燥',
       gaugeTemp:{ends:['寒', '暖'], caption:'溫度分數 {score}', aria:'溫度儀表：分數 {score}，{type}'},
       gaugeHumid:{ends:['燥', '濕'], caption:'濕 {wet} · 燥 {dry}（差 {diff}）', aria:'濕度儀表：{wet}個潮濕訊號，{dry}個乾燥訊號，{moist}'},
-      vNone:['溫度均衡，所以氣候方面沒有急需補充的能量。從強弱一側讀關鍵平衡就足夠了。', '溫度均衡，氣候上無急需能量。以強弱平衡為主判斷。'],
+      vNone:['溫度均衡，所以氣候方面沒有急需補充的能量。從強弱一側讀補充候選就足夠了。', '溫度均衡，氣候上無急需能量。以強弱平衡為主判斷。'],
       vJong:['從氣候看，{need}能量是受歡迎的。但這張命盤按從格來看，應先順著聚集的勢頭，把氣候當作日常的輔助。', '氣候需要{need}。因為是從格，先順著聚集的勢頭。'],
-      vSame:['氣候所需的{need}能量，與強弱得出的關鍵平衡（{yong}）重合。兩種看法方向一致，把這種能量穩定地留在身邊，是最清晰的補足方式。', '氣候所需（{need}）與強弱的關鍵平衡（{yong}）重合。方向一致，補足的優先順序明確。'],
+      vPend:['氣候上歡迎{need}能量，但強弱的補充候選尚未判定，所以氣候也請僅作參考。', '氣候指向{need}。強弱候選未定，氣候也僅作參考。'],
+      vSame:['氣候所需的{need}能量，與強弱得出的補充候選（{yong}）重合。兩種看法方向一致，把這種能量穩定地留在身邊，是最清晰的補足方式。', '氣候所需（{need}）與強弱的補充候選（{yong}）重合。方向一致，補足的優先順序明確。'],
       vExtreme:['氣候指向{need}，強弱指向{yong}，方向略有不同。溫度明顯偏向一邊，所以先考慮氣候的季節平衡，再把強弱放在第二位。', '氣候指向{need}，強弱指向{yong}。方向不同。溫度極端，因此氣候為主、強弱為輔。'],
-      vMild:['氣候指向{need}，強弱指向{yong}，方向略有不同。溫度並不極端，所以以強弱得出的關鍵平衡為中心，把氣候當作季節上的幫手。', '氣候指向{need}，強弱指向{yong}。方向不同。溫度不極端，因此強弱為主、氣候為輔。'],
+      vMild:['氣候指向{need}，強弱指向{yong}，方向略有不同。溫度並不極端，所以以強弱得出的補充候選為中心，把氣候當作季節上的幫手。', '氣候指向{need}，強弱指向{yong}。方向不同。溫度不極端，因此強弱為主、氣候為輔。'],
       vNote:['氣候看的是出生季節的溫度與濕度，強弱看的是日干的力量大還是小。兩者都不被當作唯一答案，由命盤決定先看哪一個。', '氣候讀季節的冷暖乾濕，強弱讀日干力量的多寡。單看任何一方都不是答案。'],
       what:'暖、寒、燥、濕是什麼？', whatText:['這些詞描述命盤的溫度（冷或熱）與濕度（乾或潮）。就像自然有四季和天氣，人的氣質也被認為有氣候，由此可以看出你在怎樣的環境裡安心、更能發揮所長。', '命盤的冷暖與乾濕。顯示在怎樣的環境裡力量用得好。'],
       four:[['寒', '冬天凝聚的能量。讀作向內收斂、沉靜而謹慎的力量。'], ['暖', '夏天外放的能量。讀作熱情、表達與向外伸展的力量。'], ['燥', '秋天緊緻的能量。讀作乾脆的取捨與清爽的質地。'], ['濕', '春天交織的能量。讀作共感、親和與共同成長。']],
@@ -694,9 +701,10 @@
       stemStrong:['你力量充足，向外使用時更能發光。分享成果、幫助他人、擔任負責的角色能讓你保持平衡。一個人包攬一切反而容易覺得憋悶。', '你有富餘的力量，向外使用效率更高。分享成果，擔任負責的角色。'],
       stemWeak:['你的力量在認可你的人和環境旁邊用得最好。與其硬擠到前面，不如先用學習、準備與合作把根紮好。', '資源偏少，用準備、學習與合作穩住根基。過度強出頭代價大。'],
       stemLine:['{stem}：{note}。', '{stem}：{note}。'],
-      godHead:['支持你的能量 · 需要留意的能量', '關鍵平衡 / 負擔'], godTags:{good:['關鍵平衡', '助力'], care:['負擔', '加重負擔']},
-      godText:['當關鍵平衡與助力的五行隨運勢到來時，事情往往順利，也更容易遇到幫助。當負擔的五行轉強時，在大幅擴張或做決定之前，放慢一拍、多看一會兒。', '關鍵平衡與助力五行隨運勢到來時往往順利；負擔五行轉強時，降低擴張速度更穩妥。'],
-      godWhat:'關鍵平衡、助力、負擔、加重負擔是什麼？', godWhatText:'關鍵平衡（用神）是命盤為了平衡最需要的五行，助力（喜神）是幫助它的五行。負擔（忌神）是損害關鍵平衡的五行，加重負擔（仇神）是滋養負擔的五行，中性（閒神）則不偏向任何一邊。本命盤的演算法把五行全部分成支持與負擔兩側，所以不單獨保留中性五行。',
+      godHead:['補充候選 / 留意', '補充候選 / 留意'], godTags:{good:['補充候選'], care:['留意五行']},
+      godText:['補充候選是運勢帶來時值得確認的五行。請把它當作參考而不是定論，並與實際生活對照。', '補充候選是運勢帶來時要確認的五行。只是參考，不是定論。'],
+      godWhat:'什麼是補充候選', godWhatText:'補充候選是從強弱和調候看平衡時一併檢視的五行。它不是確定的單一判定，也不另行判定負擔五行。沒有出生時間時，候選同樣保留不定。',
+      pendText:['沒有出生時間或依據不足，因此未確定身強或身弱。下面的分數和量表僅供參考。', '暫不判定。沒有出生時間或依據不足，身強身弱未定。量表僅供參考。'], pendBadge:'暫不判定', pendRef:'參考 {score}',
       cycHead:'運勢方向一覽', cycStrong:['食傷、財星、官星的運勢，是把能量向外使用並轉化為成就的運勢，社會成果容易成熟。', '食傷、財星、官星運勢（力量向外使用並化為成果）有利。'], cycWeak:['比劫、印星的運勢，是充實並支持你的運勢，自信與幫助往往一起到來。', '比劫、印星運勢（被充實、被支持）有利。'],
       what:'什麼是強弱（抑扶）？', whatText:'強弱是透過日干太強時壓制（抑）、偏弱時扶助（扶）來尋找平衡的看法。在這張命盤裡，月支分量最重（同五行 +40，印星 +27，官星 −27，食傷 −10）。日支與日干同五行或為印星時 +13，為官星時 −9；其餘五字同五行或為印星時 +7，為官星時 −7。合計 30 以上讀作強，低於 30 讀作弱，階段名稱只是分數區間的標籤。這個分數不是對一個人能力或價值的評級。'},
 
@@ -777,7 +785,7 @@
       names: ['先恢復', '平穩', '順暢', '勢頭強勁'], ends: ['放慢', '強勁'], caption: '能量儀表 {bp}%', aria: '{when}的能量儀表 {bp}%',
       tags: {fast:'加速', even:'平衡', rest:'暫停'}, boost: '補{el}', tblCap: '{when}到來的能量與你的日干',
       godHead: ['用十神讀{when}', '按十神判斷'], nothing: ['沒有明顯與命盤相沖的地方。重要的訊息發出前，再讀一遍。', '沒有明顯的關係。重要訊息發出前再次確認。'], checkHead: ['請留意', '檢查要點'],
-      boostHead: '幸運加成', boostLabel: '要補的五行', boostNote: ['補充所缺的輕鬆日常小提示。當作一點小小的心情調劑來享受吧。', '補充關鍵平衡五行的日常提示。不保證任何效果。'],
+      boostHead: '幸運加成', boostLabel: '要補的五行', boostNote: ['補充所缺的輕鬆日常小提示。當作一點小小的心情調劑來享受吧。', '補充補充候選五行的日常提示。不保證任何效果。'],
       god: {'비견':['自己的判斷會更清晰的時期。獨自決定也可以，但用一句話寫下理由，以免之後動搖。', '獨立判斷有利。用一句話記錄理由。'], '겁재':['好勝心與幹勁一起上升。把衝動的花費或賭注延後一天，心裡會更輕鬆。', '競爭與衝動增強。衝動的花費擱置一天。'], '식신':['喜悅與點子湧現。把你想到的一個點子，哪怕很小，立刻做成點什麼。', '產出力上升。現在就把一個點子化為行動步驟。'], '상관':['言語與表達有分量。適合演講與創作；合約或正式聲明發出前，請再讀一遍。', '表達增強。正式文件與聲明發布前再次確認。'], '편재':['機會與波動同時變大。先從確認過的小事開始，而不是大的賭注。', '機會與波動都大。以小而已驗證的事項推進。'], '정재':['細緻務實的工作發光的時期。梳理一遍收入與支出，心會變輕。', '準確度上升。整理收支記錄。'], '편관':['你可能感到壓力。與其全部扛下，不如選一件你要堅守的事，堅持住，它會以信任的形式回來。', '壓力來臨。聚焦一項核心責任，會以信任的形式回報。'], '정관':['責任與信任顯現的時期。適合辦理正式文件和手續。', '適合辦理正式手續。明確責任範圍。'], '편인':['直覺變得敏銳。記下浮現的預感，並小範圍地驗證。', '直覺主導。記錄預感並小範圍驗證。'], '정인':['適合學習與整理的好時機。向信任的人請教，思路會變清晰。', '學習與分析高效。請教可信賴的顧問。']},
       tone: {open:['能量以不弱的力度進來。挑一件要做的事先做完，就能順勢而行。', '能量富餘區間。先完成最優先的一件事。'], care:['先照顧好內在電量的時期。稍微放慢，失誤會減少，人際也會緩和。', '能量養護區間。降低速度，多加一個確認步驟。']},
       sumHead: ['Yeoni 的話', 'Yeongnyangi 的總結']}
@@ -810,7 +818,7 @@
       var vars = {need:need.map(function (e) { return C.el[e]; }).join(' · '), yong:yong.slice(0, 2).map(function (e) { return C.el[e]; }).join(' · ')};
       var extreme = j.type === 'cold' || j.type === 'hot', same = need.some(function (e) { return yong.indexOf(e) >= 0; });
       var c = C.climate, t = [];
-      t.push(fmt(pick(!need.length ? c.vNone : jong ? c.vJong : same ? c.vSame : extreme ? c.vExtreme : c.vMild, k), vars));
+      t.push(fmt(pick(!need.length ? c.vNone : !yong.length ? c.vPend : jong ? c.vJong : same ? c.vSame : extreme ? c.vExtreme : c.vMild, k), vars));
       t.push(pick(c.vNote, k));
       return t.map(para).join('');
     }
@@ -856,7 +864,11 @@
       var dayEl = pw.dayEl || (L.GAN[dg] && L.GAN[dg].e), stemName = C.stem[dg] || dg;
       var parts = Rich.powerParts(p, L), ok = Rich.powerMatches(parts, pw), strong = !!pw.isStrong, st = stageName(pw.score), html = '';
       var g = s.gauge, gaugeHtml = gauge({kind:'power', value:pw.score, min:-71, max:88, base:30, zones:[-20, 10, 30, 50, 70], names:C.stage, ends:g.ends, baseLabel:g.baseLabel, caption:fmt(g.caption, {score:pw.score}), aria:fmt(g.aria, {score:pw.score, stage:st})});
-      if (jg && jg.isJong) {
+      if (pw.strengthPending) {
+        html += section(C.strengthLead[k], hero(s.pendBadge, [fmt(s.pendRef, {score:pw.score})]) + para(s.pendText[k]), 'saju-rich__lead');
+        html += gaugeHtml;
+        if ((pw.yongshin || []).length) html += section(s.godHead[k], chips(godChips(L, dayEl, pw.yongshin, s.godTags.good, 'good', facts)));
+      } else if (jg && jg.isJong) {
         var dom = C.el[jg.dominant] || '', pc = jg.pct != null ? fmt(s.jongPct, {pct:jg.pct}) : '', key = jongKey(jg.name), kindName = s.jongHead[k];
         html += section(C.strengthLead[k], hero(kindName, [dom + (jg.pct != null ? ' ' + jg.pct + '%' : ''), fmt(s.jongBadge, {score:pw.score})]) + para(fmt(s.jongLead[k], {dom:dom, pct:pc, name:kindName})), 'saju-rich__lead');
         html += gaugeHtml;
@@ -893,7 +905,7 @@
     function tenOverview(facts, mode) {
       var p = facts && facts.p, L = lib(facts), m = p && Rich.godMap(p, L);
       if (!m) return '';
-      var k = mode === 'neo' ? 1 : 0, t = C.ten, dayEl = L.GAN[p.d.g].e, strong = !!(facts.power && facts.power.isStrong), html = '';
+      var k = mode === 'neo' ? 1 : 0, t = C.ten, dayEl = L.GAN[p.d.g].e, strong = !!(facts.power && (facts.power.strengthPending ? facts.power.referenceIsStrong : facts.power.isStrong)), html = '';
       var fams = FAMILY_ORDER.map(function (f) {
         var gs = GODS.filter(function (g) { return GOD_FAMILY[g] === f; }), el = K.familyEl(L, dayEl, f);
         return {f:f, gods:gs, el:el, role:roleName(el, facts), surface:gs.reduce(function (a, g) { return a + (m.surface[g] || 0); }, 0), hidden:gs.reduce(function (a, g) { return a + (m.hidden[g] || 0); }, 0)};
@@ -934,7 +946,7 @@
       html += section(t.natureHead[k], para(d.nature[k]));
       var rows = where.map(function (w) { var pal = C.palace[w.key]; return [C.pos[w.key + w.side] + hourMark(facts, w.key), w.char, pal.label + ' · ' + pal.palace, (w.side === 'g' ? t.outer : t.base) + ' · ' + pal.domain]; });
       html += section(t.sitHead[k], (rows.length ? table(fmt(t.modalCap, {god:C.godName[key]}), t.modalCols, rows) : '') +
-        para(fmt(t.sitText[k], {n:where.length, h:m.hidden[key] || 0}) + (role ? fmt(t.roleText[k], {role:C.roleShort[role], tail:k === 0 ? (role === '용신' || role === '희신' ? t.roleGood : t.roleCare) : ''}) : '')));
+        para(fmt(t.sitText[k], {n:where.length, h:m.hidden[key] || 0}) + (role ? fmt(t.roleText[k], {role:C.roleShort[role], tail:k === 0 ? (role === '보완 후보' ? t.roleGood : t.roleCare) : ''}) : '')));
       html += section(t.careerHead, para(d.career));
       html += section(t.loveHead[k], para(d.love));
       html += section(t.adviceHead[k], para(d.advice[k]));

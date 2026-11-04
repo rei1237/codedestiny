@@ -196,11 +196,11 @@ const quantum = (over, authorityEnabled) => {
   return html.replace(/<style[\s\S]*?<\/style>/g, ' ').replace(/<script[\s\S]*?<\/script>/g, ' ').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
 };
 
-test('양자 카드: OFF 는 옛 표기, ON 은 후보권, 시각 미상은 보류', () => {
+test('양자 카드: 표기는 후보권, 시각 미상은 보류', () => {
   const off = quantum({}, false);
-  assert.doesNotMatch(off, /용신 후보권/);
+  assert.doesNotMatch(off, /용신|기신권/);
   const on = quantum({}, true);
-  assert.match(on, /용신 후보권/);
+  assert.match(on, /보완 후보권/);
   assert.doesNotMatch(on, /기신\(忌神\)|용신으로 분류된|기신권/);
   assert.doesNotMatch(on, BROKEN);
   const pending = quantum({ timeKnown: false, hour: undefined, minute: undefined }, true);
@@ -296,6 +296,27 @@ test('운명의 꽃: 고른 꽃과 점수는 그대로, 고객 문장에서만 �
   const on = matchDestinyFlower(payload, { limit: 5, approvedSajuWording: true });
   assert.equal(on.flower.id, off.flower.id);
   assert.deepEqual(on.candidates.map((row) => row.score), off.candidates.map((row) => row.score));
-  assert.ok(off.rationale_points.some((row) => /용신/.test(JSON.stringify(row))));
-  assert.doesNotMatch(JSON.stringify([on.rationale_points, on.destiny_flower_language]), /용신/);
+  assert.ok(off.rationale_points.some((row) => /보완 후보/.test(JSON.stringify(row))));
+  assert.doesNotMatch(JSON.stringify([off.rationale_points, off.destiny_flower_language, on.rationale_points, on.destiny_flower_language]), /용신/);
+});
+
+test('유료 섹션: 승인값 켜면 후보만 보이고, 시각 미상은 판정 보류', async () => {
+  const { buildSajuSectionHtml, SAJU_SECTION_FEATURE_KEYS } = await import('../../worker/lib/saju-section/report.js');
+  const strip = (h) => h.replace(/<(style|script)[\s\S]*?<\/\1>/g, ' ').replace(/<[^>]+>/g, ' ');
+  const render = (featureKey, birth, mode = 'normal') => strip(buildSajuSectionHtml({
+    featureKey, birth, gender: 'F', mode, now: new Date('2026-11-04T00:00:00Z'), place: {}, authorityEnabled: true,
+  }).html);
+  const known = { calendarDate: '1990-05-15', calType: 'solar', timeKnown: true, hour: 8, minute: 30 };
+  const unknown = { calendarDate: '1990-05-15', calType: 'solar', timeKnown: false };
+  const keys = SAJU_SECTION_FEATURE_KEYS.filter((k) => /^section_/.test(k) && k !== 'section_daewun');
+  assert.ok(keys.length > 0);
+  for (const featureKey of keys) {
+    for (const birth of [known, unknown]) {
+      for (const mode of ['normal', 'neo']) {
+        assert.doesNotMatch(render(featureKey, birth, mode), /undefined|용신|희신|(?<![가-힣])기신|(?<![가-힣])구신/, `${featureKey}/${mode}`);
+      }
+    }
+  }
+  assert.match(render('section_summary', unknown), /판정 보류/);
+  assert.doesNotMatch(render('section_summary', known), /판정 보류/);
 });

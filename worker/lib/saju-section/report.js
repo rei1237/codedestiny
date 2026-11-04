@@ -7,7 +7,7 @@ import { createSajuSectionRuntime } from "./runtime.generated.mjs";
 import { buildSukuyoFromMoonLongitude } from "../sukuyo-coordinate.js";
 import { buildSecretHouseStep } from "./secret-house.js";
 import { buildAnimalDestinyReading } from "./animal-destiny.js";
-import { approvedSajuLabels } from "../saju-authority-consumer.js";
+import { approvedDisplaySaju, approvedSajuLabels } from "../saju-authority-consumer.js";
 
 // 사주 종합(section_summary)·대운 풀이(section_daewun)·퀀텀 명리 엔진(rpt_quantumCard)·
 // 극T 관계 회로(sukuyo-extreme-t-relationship)·숙요 인연 도감(sukuyo-relationship-encyclopedia)·숙요 본성 심화 해석(sukuyo-nature-deep-dive)
@@ -365,6 +365,10 @@ export function buildSajuSectionHtml(input) {
   let power = calcPower(p);
   const jong = detectJong(p);
   power = applyRuntimeYongshinPolicy(power, jong, johu);
+  // 점수 입력 G_POWER 는 그대로 두고, 고객에게 보이는 렌더러만 승인 판정을 읽는다.
+  const shown = input.authorityEnabled === true ? approvedDisplaySaju(power, p, timeUnknown) : null;
+  window.__cdShownPower = shown?.power || null;
+  window.__cdShownGyeokguk = shown?.gyeokguk || null;
   rt.seed({
     GENDER: gender, USER_NAME: escapeHtml(String(input.name || "").trim().slice(0, 40) || "사용자"),
     BIRTH_YEAR: birthYear, CURRENT_AGE: currentAge, DAY_GAN: dp.g,

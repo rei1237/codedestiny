@@ -346,7 +346,7 @@ const FAMOUS_SAJU_COPY_KO = {
   "magazine.tenGodElements": "십성·오행",
   "magazine.tenGodElementsDesc": "일간의 힘, 오행의 밝고 어두운 결, 십성의 표면 리듬을 함께 읽었습니다.",
   "magazine.gyeokUseful": "격국·보완 기운",
-  "magazine.gyeokUsefulDesc": "전문 기준의 용신·희신·기신 판단은 월령과 조후, 억부의 균형을 겹쳐 보되 확정이 어려운 부분은 잠정 기준으로 낮춰 보았습니다.",
+  "magazine.gyeokUsefulDesc": "전문 기준의 보완 후보·주의 오행 판단은 월령과 조후, 억부의 균형을 겹쳐 보되 확정이 어려운 부분은 잠정 기준으로 낮춰 보았습니다.",
   "magazine.cycles": "대운·세운",
   "magazine.selfReadingTitle": "내 사주는 한 편의 이야기로 더 선명하게 열립니다",
   "magazine.selfReadingDesc": "생년월일과 생시를 직접 입력하면 계산값에 맞춘 사주 흐름을 볼 수 있습니다.",

@@ -615,7 +615,7 @@
       "sajuBadgesAria": "四柱核心分析バッジ",
       "badgeStrength": "身強/身弱",
       "waiting": "判定待ち",
-      "badgeYongshin": "用神",
+      "badgeYongshin": "補完候補",
       "badgeJohu": "調候",
       "narrative": "四柱の五行読みにもとづき、あなたの運命を象徴する花の物語を整えています。",
       "imageAlt": "運命の花アトリエのプレビュー",
@@ -3676,7 +3676,7 @@
           "dayMasterSame": "日干{dayMasterBadge}と同じ{element}の気を宿した花です。",
           "strengthRelease": "命式が身強なので、満ちあふれた気を外へ解き放つ{elements}の気をもつ花を重視しました。",
           "strengthSupport": "命式が身弱なので、日干を後押しする{elements}の気をもつ花を重視しました。",
-          "yongshin": "この花には、命式に必要な用神の気が込められています — {elements}。",
+          "yongshin": "この花には、命式に必要な補完候補の気が込められています — {elements}。",
           "johuWarm": "命式が冷えて湿りがちなので、日差しのように温めてくれる暖かな花を重視しました。",
           "johuCool": "命式が暑く乾きがちなので、熱を冷ましてくれる水気の多い花を重視しました。"
         },
@@ -3745,7 +3745,7 @@
           "season": "{season}に生まれたあなたのように、この花も{season}にいちばん明るく咲きます。"
         },
         "flowerLanguage": {
-          "yongshin": "「{language}」— 用神の{elements}の気を宿したこの花が、あなたに贈る言葉です。",
+          "yongshin": "「{language}」— 補完候補の{elements}の気を宿したこの花が、あなたに贈る言葉です。",
           "dayMaster": "「{language}」— 日干が{dayMasterBadge}のあなたに、この花が贈る言葉です。"
         },
         "shareHook": {
@@ -3786,7 +3786,7 @@
           "dayMaster": "日干の気質",
           "strengthRelease": "身強",
           "strengthSupport": "身弱",
-          "yongshin": "用神",
+          "yongshin": "補完候補",
           "johuWarm": "調候 · 寒湿",
           "johuCool": "調候 · 温燥"
         }
@@ -4978,7 +4978,7 @@
               "secondary": "月"
             }
           },
-          "yongshin": "用神"
+          "yongshin": "補完候補"
         },
         "bouquet": {
           "sourcesAll": "四つの占術",
@@ -5328,7 +5328,7 @@
           "badgesSukuyo": "宿曜バッジ：{mansion} / 月相 {phase} / 守護動物 {guardian}",
           "badgesJamidusu": "紫微斗数バッジ：今日の強い星 {star} / 星の明るさ {brightness} / 宮位 {palace}",
           "badgesAstrology": "占星術バッジ：太陽星座 {sun} / アセンダント {rising} / 月星座 {moon}",
-          "badgesSaju": "四柱推命バッジ：身強/身弱 {strength} / 用神 {yongshin} / 調候 {johu}",
+          "badgesSaju": "四柱推命バッジ：身強/身弱 {strength} / 補完候補 {yongshin} / 調候 {johu}",
           "symbolismFallback": "運命の流れを象徴する花",
           "narrativeFallback": "運命の花の物語",
           "scenarioFallback": "開花シナリオにもとづく演出",
@@ -8566,7 +8566,7 @@
       "007": "上昇宮",
       "008": "月宮",
       "009": "身強/身弱",
-      "010": "用神",
+      "010": "補完候補",
       "011": "調候"
     },
     "message": {
@@ -21943,7 +21943,7 @@
     "scoreLine": "命理のみの相性スコア: {score}/100",
     "overview": {
       "title": "🧭 相性の総評",
-      "note": "今回の結果は四柱推命だけで算出しました。日干・日支の合と沖、調候、用神・忌神、十神の構造を合算して{score}/100にまとめています。"
+      "note": "今回の結果は四柱推命だけで算出しました。日干・日支の合と沖、調候、補完候補・注意五行、十神の構造を合算して{score}/100にまとめています。"
     },
     "energy": {
       "title": "🌡️ エネルギーの調和",
@@ -21980,11 +21980,11 @@
       "DAY_BRANCH_HE": "日支(配偶者の位置)で六合が成り立ち、一緒にいると安らぎと惹かれ合う力を強く感じる構造です。",
       "DAY_STEM_CHONG": "日干が沖を成し、良い点も強い反面、ぶつかる時は大きくぶつかるジェットコースター型の相性です。",
       "DAY_BRANCH_CHONG": "日支が沖を成し、生活パターンや感情のリズムが異なる動きをすることがあります。調整が大切です。",
-      "YONGSHIN_COMMON": "二人とも{elements}の気を用神とし、人生を見る核心的な方向がとても似ています。",
-      "YONGSHIN_CLASH": "特に{elements}の気は、片方には用神、もう片方には忌神として働き、そのテーマでは敏感にぶつかりやすい構造です。",
-      "KIJI_CONTROL_FORWARD": "凶神の制御: 相手の文字({by})があなたの忌神({chars})を沖で取り除いてくれます。相手があなたの悪い気を追い払ってくれる、最高の相性の核心要因です。",
-      "KIJI_CONTROL_REVERSE": "逆方向の凶神制御: あなたの文字({by})が相手の忌神を沖で取り除きます。あなたも相手に解放感を与える存在です。",
-      "HE_TRAP": "合の罠: {self}と{partner}が合を成し、結果の五行({element})があなたの忌神を強めます。表向きは合っているように見えて、内側では有害なエネルギーが溜まる構造です。安らぎと依存を区別してください。"
+      "YONGSHIN_COMMON": "二人とも{elements}の気を補完候補とし、人生を見る核心的な方向がとても似ています。",
+      "YONGSHIN_CLASH": "特に{elements}の気は、片方には補完候補、もう片方には注意五行として働き、そのテーマでは敏感にぶつかりやすい構造です。",
+      "KIJI_CONTROL_FORWARD": "凶神の制御: 相手の文字({by})があなたの注意五行({chars})を沖で取り除いてくれます。相手があなたの悪い気を追い払ってくれる、最高の相性の核心要因です。",
+      "KIJI_CONTROL_REVERSE": "逆方向の凶神制御: あなたの文字({by})が相手の注意五行を沖で取り除きます。あなたも相手に解放感を与える存在です。",
+      "HE_TRAP": "合の罠: {self}と{partner}が合を成し、結果の五行({element})があなたの注意五行を強めます。表向きは合っているように見えて、内側では有害なエネルギーが溜まる構造です。安らぎと依存を区別してください。"
     },
     "element": {
       "wood": "木",

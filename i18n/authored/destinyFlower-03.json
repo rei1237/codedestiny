@@ -2535,11 +2535,11 @@
     "ms": "Lencana astrologi: tanda matahari {sun} / ascendant {rising} / tanda bulan {moon}"
   },
   "fortune.destinyFlower.ui.prompt.badgesSaju": {
-    "ko": "사주 배지: 신강/신약 {strength} / 용신 {yongshin} / 조후 {johu}",
+    "ko": "사주 배지: 신강/신약 {strength} / 보완 후보 {yongshin} / 조후 {johu}",
     "en": "Saju badges: strength {strength} / useful element {yongshin} / seasonal balance {johu}",
-    "ja": "四柱推命バッジ：身強/身弱 {strength} / 用神 {yongshin} / 調候 {johu}",
-    "zh-CN": "八字徽章：身强/身弱 {strength} / 用神 {yongshin} / 调候 {johu}",
-    "zh-TW": "八字徽章：身強/身弱 {strength} / 用神 {yongshin} / 調候 {johu}",
+    "ja": "四柱推命バッジ：身強/身弱 {strength} / 補完候補 {yongshin} / 調候 {johu}",
+    "zh-CN": "八字徽章：身强/身弱 {strength} / 补益候选 {yongshin} / 调候 {johu}",
+    "zh-TW": "八字徽章：身強/身弱 {strength} / 補益候選 {yongshin} / 調候 {johu}",
     "vi": "Huy hiệu Tứ Trụ: Thân Cường/Thân Nhược {strength} / Dụng Thần {yongshin} / Điều Hậu {johu}",
     "hi": "साजू बैज: बल {strength} / उपयोगी तत्व {yongshin} / ऋतु संतुलन {johu}",
     "es": "Insignias Saju: fuerza {strength} / elemento útil {yongshin} / equilibrio estacional {johu}",

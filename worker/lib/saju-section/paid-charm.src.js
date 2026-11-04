@@ -31,7 +31,7 @@
     else if(yemPct===maxStat && yemPct>=40) charmAxis = 'yem';
     else if(hwaPct===maxStat && hwaPct>=40) charmAxis = 'hwa';
 
-    var powerInfo = (typeof G_POWER !== 'undefined' && G_POWER) ? G_POWER : null;
+    var powerInfo = window.__cdShownPower || ((typeof G_POWER !== 'undefined' && G_POWER) ? G_POWER : null);
     var powerLabel = powerInfo && typeof powerInfo.isStrong === 'boolean' ? (powerInfo.isStrong ? '신강' : '신약') : '';
     var dayStemName = ((GAN[p.d.g]||{}).n) || p.d.g || '';
     var dayStemHint = dayStemName ? ' 바탕에는 ' + dayStemName + ' 일간 특유의 결도 깔려 있습니다.' : '';

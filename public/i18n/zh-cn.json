@@ -615,7 +615,7 @@
       "sajuBadgesAria": "八字核心分析徽章",
       "badgeStrength": "身强/身弱",
       "waiting": "等待判定",
-      "badgeYongshin": "用神",
+      "badgeYongshin": "补益候选",
       "badgeJohu": "调候",
       "narrative": "正在依据八字五行解读，确定代表您命运之花的故事。",
       "imageAlt": "命运之花工坊预览",
@@ -3676,7 +3676,7 @@
           "dayMasterSame": "这是一朵与你的{dayMasterBadge}日干同样蕴含{element}之气的花。",
           "strengthRelease": "你的八字身强，因此我们更看重能把满溢之气向外疏泄的{elements}之气的花。",
           "strengthSupport": "你的八字身弱，因此我们更看重能扶助日干的{elements}之气的花。",
-          "yongshin": "这朵花蕴含你的八字所需的用神之气 — {elements}。",
+          "yongshin": "这朵花蕴含你的八字所需的补益候选之气 — {elements}。",
           "johuWarm": "你的八字偏寒湿，因此我们更看重能像阳光一样带来温暖的花。",
           "johuCool": "你的八字偏燥热，因此我们更看重水分充足、能消散热气的花。"
         },
@@ -3745,7 +3745,7 @@
           "season": "就像生于{season}的你，这朵花也在{season}开得最灿烂。"
         },
         "flowerLanguage": {
-          "yongshin": "“{language}” — 这朵蕴含用神{elements}之气的花，想对你说的话。",
+          "yongshin": "“{language}” — 这朵蕴含补益候选{elements}之气的花，想对你说的话。",
           "dayMaster": "“{language}” — 这朵花想对日干为{dayMasterBadge}的你说的话。"
         },
         "shareHook": {
@@ -3786,7 +3786,7 @@
           "dayMaster": "日干特质",
           "strengthRelease": "身强",
           "strengthSupport": "身弱",
-          "yongshin": "用神",
+          "yongshin": "补益候选",
           "johuWarm": "调候 · 寒湿",
           "johuCool": "调候 · 温燥"
         }
@@ -4978,7 +4978,7 @@
               "secondary": "月"
             }
           },
-          "yongshin": "用神"
+          "yongshin": "补益候选"
         },
         "bouquet": {
           "sourcesAll": "四种占术",
@@ -5328,7 +5328,7 @@
           "badgesSukuyo": "宿曜徽章：{mansion} / 月相 {phase} / 守护动物 {guardian}",
           "badgesJamidusu": "紫微斗数徽章：今日强星 {star} / 星曜亮度 {brightness} / 宫位 {palace}",
           "badgesAstrology": "占星徽章：太阳星座 {sun} / 上升星座 {rising} / 月亮星座 {moon}",
-          "badgesSaju": "八字徽章：身强/身弱 {strength} / 用神 {yongshin} / 调候 {johu}",
+          "badgesSaju": "八字徽章：身强/身弱 {strength} / 补益候选 {yongshin} / 调候 {johu}",
           "symbolismFallback": "象征命运流向的花",
           "narrativeFallback": "命运之花叙事",
           "scenarioFallback": "基于开花情境的演绎",
@@ -7055,7 +7055,7 @@
     "sq_1976_attr_label": "冲突与协调",
     "sq_2672_prop_title": "⚡ 极致发福和谐",
     "sq_2677_prop_title": "⚡ 过犹不及警告",
-    "sq_2681_prop_title": "✨ 喜用神充电",
+    "sq_2681_prop_title": "✨ 喜补益候选充电",
     "sq_2689_prop_title": "🤝 地支合",
     "sq_3024_prop_label": "春(3~5月)",
     "sq_3025_prop_label": "夏(6~7月)",
@@ -8566,7 +8566,7 @@
       "007": "上升宫",
       "008": "月亮宫",
       "009": "身强/身弱",
-      "010": "用神",
+      "010": "补益候选",
       "011": "调候"
     },
     "message": {
@@ -21943,7 +21943,7 @@
     "scoreLine": "仅命理合盘得分：{score}/100",
     "overview": {
       "title": "🧭 合盘总评",
-      "note": "本次结果仅以四柱命理计算。综合日干、日支的合与冲、调候、用神/忌神及十神结构，得出 {score}/100。"
+      "note": "本次结果仅以四柱命理计算。综合日干、日支的合与冲、调候、补益候选/注意五行及十神结构，得出 {score}/100。"
     },
     "energy": {
       "title": "🌡️ 能量调和",
@@ -21980,11 +21980,11 @@
       "DAY_BRANCH_HE": "日支（配偶位）形成六合，相处时会强烈感到安心与吸引。",
       "DAY_STEM_CHONG": "日干相冲，优点突出，但碰撞时也很激烈，是过山车型的搭配。",
       "DAY_BRANCH_CHONG": "日支相冲，生活节奏与情绪节奏可能不同步，磨合很重要。",
-      "YONGSHIN_COMMON": "两人都以{elements}之气为用神，看待人生的核心方向非常相近。",
-      "YONGSHIN_CLASH": "尤其{elements}之气对一方是用神，对另一方却是忌神，在这一主题上容易敏感碰撞。",
-      "KIJI_CONTROL_FORWARD": "制化凶神：对方的字（{by}）以冲化解你的忌神（{chars}）。对方为你驱散不良之气，是最佳搭配的关键因素。",
-      "KIJI_CONTROL_REVERSE": "反向制化：你的字（{by}）以冲化解对方的忌神。你同样能带给对方释放感。",
-      "HE_TRAP": "合的陷阱：{self}与{partner}成合，所化五行（{element}）会增强你的忌神。表面看似契合，内里却会积聚不利的能量。请分清安心与依赖。"
+      "YONGSHIN_COMMON": "两人都以{elements}之气为补益候选，看待人生的核心方向非常相近。",
+      "YONGSHIN_CLASH": "尤其{elements}之气对一方是补益候选，对另一方却是注意五行，在这一主题上容易敏感碰撞。",
+      "KIJI_CONTROL_FORWARD": "制化凶神：对方的字（{by}）以冲化解你的注意五行（{chars}）。对方为你驱散不良之气，是最佳搭配的关键因素。",
+      "KIJI_CONTROL_REVERSE": "反向制化：你的字（{by}）以冲化解对方的注意五行。你同样能带给对方释放感。",
+      "HE_TRAP": "合的陷阱：{self}与{partner}成合，所化五行（{element}）会增强你的注意五行。表面看似契合，内里却会积聚不利的能量。请分清安心与依赖。"
     },
     "element": {
       "wood": "木",

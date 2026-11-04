@@ -95,6 +95,32 @@ export function overlayApprovedNatalAnalysis(analysis, labels) {
     limitation: labels.yongshinExplanation };
 }
 
+/**
+ * 정적 사주 페이지·유료 섹션의 표시용 판정. 대운·궁합 점수 입력(G_POWER)은 덮지 않고 사본만 돌려준다.
+ * p 는 {y,m,d,h:{g,j}}. 강약을 정하지 못하면 isStrong 은 null, strengthPending 은 true, 기존 값은 referenceIsStrong 에 둔다.
+ */
+export function approvedDisplaySaju(power, p, unknown) {
+  const text = {}, rows = {};
+  for (const position of positions) {
+    const row = p?.[position[0]];
+    if (!row?.g || !row?.j || (position === 'hour' && unknown)) continue;
+    text[position] = row.g + row.j;
+    rows[position] = { stem: row.g, branch: row.j };
+  }
+  try {
+    const labels = approvedSajuLabels(text);
+    const { gyeokgukAnalysis } = projectApprovedGyeokguk(rows);
+    return {
+      power: { ...power, isStrong: labels.isStrong, referenceIsStrong: power?.isStrong,
+        strengthPending: labels.isStrong === null, yongshin: labels.candidates, kijishin: [],
+        johuYongshin: labels.johuCandidates, approved: labels },
+      gyeokguk: labels.gyeokgukStatus === 'pending' ? { ...gyeokgukAnalysis, confident: false } : gyeokgukAnalysis,
+    };
+  } catch {
+    return { power: { ...power, isStrong: null, referenceIsStrong: power?.isStrong, strengthPending: true, yongshin: [], kijishin: [], johuYongshin: [] }, gyeokguk: null };
+  }
+}
+
 export function lifeBookPillars(raw) {
   return consumerPillars(positions.flatMap(position => {
     if (position === 'hour' && raw.calculationMeta?.timeUnknown) return [];

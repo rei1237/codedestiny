@@ -508,7 +508,7 @@
       "sajuBadgesAria": "사주 핵심 분석 배지",
       "badgeStrength": "신강/신약",
       "waiting": "판정 대기",
-      "badgeYongshin": "용신",
+      "badgeYongshin": "보완 후보",
       "badgeJohu": "조후",
       "narrative": "사주 오행 판독을 바탕으로, 당신의 운명을 대표하는 꽃의 서사를 확정하고 있습니다.",
       "imageAlt": "운명의 꽃 아틀리에 프리뷰",
@@ -4089,7 +4089,7 @@
     "sq_1976_attr_label": "충돌과 조율",
     "sq_2672_prop_title": "⚡ 극대 극의 발복 조화",
     "sq_2677_prop_title": "⚡ 과유불급 경고",
-    "sq_2681_prop_title": "✨ 용신 충전",
+    "sq_2681_prop_title": "✨ 보완 후보 충전",
     "sq_2689_prop_title": "🤝 지지합",
     "sq_3024_prop_label": "봄(3~5월)",
     "sq_3025_prop_label": "여름(6~7월)",
@@ -5489,7 +5489,7 @@
       "007": "상승궁",
       "008": "달궁",
       "009": "신강/신약",
-      "010": "용신",
+      "010": "보완 후보",
       "011": "조후"
     },
     "message": {
@@ -10429,7 +10429,7 @@
     "scoreLine": "명리 전용 궁합 점수: {score}/100",
     "overview": {
       "title": "🧭 사주 궁합 총평",
-      "note": "이번 결과는 사주 명리만으로 계산했습니다. 일간·일지 합충, 조후, 용신/기신, 십성 구조를 합산해 {score}/100으로 정리했습니다."
+      "note": "이번 결과는 사주 명리만으로 계산했습니다. 일간·일지 합충, 조후, 보완 후보·주의 오행, 십성 구조를 합산해 {score}/100으로 정리했습니다."
     },
     "energy": {
       "title": "🌡️ 에너지 조화",
@@ -10466,11 +10466,11 @@
       "DAY_BRANCH_HE": "일지(배우자 자리)에서 육합이 이루어져, 같이 있을 때 편안함과 끌림이 강하게 느껴지는 구조입니다.",
       "DAY_STEM_CHONG": "일간이 충(沖)을 이루어, 좋은 점도 강하지만 부딪칠 때 크게 부딪히는 롤러코스터형 궁합이에요.",
       "DAY_BRANCH_CHONG": "일지가 충(沖)을 이루어, 생활 패턴이나 감정 리듬이 다르게 움직일 수 있습니다. 조율이 중요해요.",
-      "YONGSHIN_COMMON": "두 사람 모두 {elements} 기운을 용신으로 삼아, 인생을 바라보는 핵심 방향이 매우 비슷합니다.",
-      "YONGSHIN_CLASH": "특히 {elements} 기운은 한쪽에게는 용신, 다른 한쪽에게는 기신으로 작용해, 그 주제에서는 민감하게 부딪힐 수 있는 구조입니다.",
-      "KIJI_CONTROL_FORWARD": "흉신 제어: 상대의 글자({by})가 당신의 기신({chars})을 충(沖)으로 제거해줍니다. 상대방이 당신의 나쁜 기운을 몰아내주는 최고 궁합의 핵심 요인입니다.",
-      "KIJI_CONTROL_REVERSE": "역방향 흉신 제어: 당신의 글자({by})가 상대의 기신을 충으로 제거해줍니다. 당신도 상대에게 해방감을 주는 존재입니다.",
-      "HE_TRAP": "합의 함정: {self}와 {partner}가 합(合)을 이루면서 결과 오행({element})이 당신의 기신을 강화합니다. 겉은 잘 맞아 보이나 속으로 해로운 에너지가 쌓이는 구조입니다. 편안함과 중독을 구분하세요."
+      "YONGSHIN_COMMON": "두 사람 모두 {elements} 기운을 보완 후보로 삼아, 인생을 바라보는 핵심 방향이 매우 비슷합니다.",
+      "YONGSHIN_CLASH": "특히 {elements} 기운은 한쪽에게는 보완 후보, 다른 한쪽에게는 주의 오행으로 작용해, 그 주제에서는 민감하게 부딪힐 수 있는 구조입니다.",
+      "KIJI_CONTROL_FORWARD": "흉신 제어: 상대의 글자({by})가 당신의 주의 오행({chars})을 충(沖)으로 제거해줍니다. 상대방이 당신의 나쁜 기운을 몰아내주는 최고 궁합의 핵심 요인입니다.",
+      "KIJI_CONTROL_REVERSE": "역방향 흉신 제어: 당신의 글자({by})가 상대의 주의 오행을 충으로 제거해줍니다. 당신도 상대에게 해방감을 주는 존재입니다.",
+      "HE_TRAP": "합의 함정: {self}와 {partner}가 합(合)을 이루면서 결과 오행({element})이 당신의 주의 오행을 강화합니다. 겉은 잘 맞아 보이나 속으로 해로운 에너지가 쌓이는 구조입니다. 편안함과 중독을 구분하세요."
     },
     "element": {
       "wood": "목(木)",
@@ -10675,7 +10675,7 @@
           "season": "{season}에 태어난 당신처럼, 이 꽃도 {season}에 가장 환하게 피어나요."
         },
         "flowerLanguage": {
-          "yongshin": "'{language}' — 용신 {elements} 기운을 머금은 이 꽃이 당신에게 건네는 말이에요.",
+          "yongshin": "'{language}' — 보완 후보 {elements} 기운을 머금은 이 꽃이 당신에게 건네는 말이에요.",
           "dayMaster": "'{language}' — {dayMasterBadge} 일간인 당신에게 이 꽃이 건네는 말이에요."
         },
         "shareHook": {
@@ -10841,7 +10841,7 @@
           "dayMasterSame": "{dayMasterBadge} 일간과 같은 {element} 기운을 품은 꽃이에요.",
           "strengthRelease": "사주가 신강해 차오른 기운을 밖으로 풀어 주는 {elements} 기운의 꽃에 무게를 두었어요.",
           "strengthSupport": "사주가 신약해 일간을 북돋아 주는 {elements} 기운의 꽃에 무게를 두었어요.",
-          "yongshin": "이 꽃에는 사주에 필요한 용신 기운이 담겨 있어요 — {elements}.",
+          "yongshin": "이 꽃에는 사주를 보완할 후보 기운이 담겨 있어요 — {elements}.",
           "johuWarm": "사주가 차고 습한 편이라 햇볕처럼 데워 줄 따뜻한 꽃에 무게를 두었어요.",
           "johuCool": "사주가 덥고 메마른 편이라 열기를 식혀 줄 물기 많은 꽃에 무게를 두었어요.",
           "scenario": "{reason}",
@@ -10851,7 +10851,7 @@
           "dayMaster": "일간 기질",
           "strengthRelease": "신강",
           "strengthSupport": "신약",
-          "yongshin": "용신",
+          "yongshin": "보완 후보",
           "johuWarm": "조후 · 한습",
           "johuCool": "조후 · 온조"
         },
@@ -10888,7 +10888,7 @@
               "secondary": "달"
             }
           },
-          "yongshin": "용신"
+          "yongshin": "보완 후보"
         },
         "bouquet": {
           "sourcesAll": "네 갈래 점술",
@@ -11238,7 +11238,7 @@
           "badgesSukuyo": "숙요 배지: {mansion} / 달 위상 {phase} / 수호동물 {guardian}",
           "badgesJamidusu": "자미두수 배지: 오늘의 강한 별 {star} / 별 밝기 {brightness} / 궁위 {palace}",
           "badgesAstrology": "점성술 배지: 태양궁 {sun} / 상승궁 {rising} / 달궁 {moon}",
-          "badgesSaju": "사주 배지: 신강/신약 {strength} / 용신 {yongshin} / 조후 {johu}",
+          "badgesSaju": "사주 배지: 신강/신약 {strength} / 보완 후보 {yongshin} / 조후 {johu}",
           "symbolismFallback": "운명의 흐름을 상징하는 꽃",
           "narrativeFallback": "운명의 꽃 서사",
           "scenarioFallback": "개화 시나리오 기반 연출",

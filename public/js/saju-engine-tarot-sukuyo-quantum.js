@@ -166,7 +166,7 @@ var SAJU_QUANTUM_TEXT_TRANSLATIONS = {
     "sq_1976_attr_label": "충돌과 조율",
     "sq_2672_prop_title": "⚡ 극대 극의 발복 조화",
     "sq_2677_prop_title": "⚡ 과유불급 경고",
-    "sq_2681_prop_title": "✨ 용신 충전",
+    "sq_2681_prop_title": "✨ 보완 후보 충전",
     "sq_2689_prop_title": "🤝 지지합",
     "sq_3024_prop_label": "봄(3~5월)",
     "sq_3025_prop_label": "여름(6~7월)",
@@ -3607,10 +3607,10 @@ function analyzeFortuneGZ(gz, p, label){
     adviceItems.push({
       type:'warn',
       title:_sajuQuantumText("sq_2677_prop_title"),
-      body:'오늘 들어오는 기운('+incomingElText+')이 원국의 기신(忌神) '+overlappedGiText+'와(과) 겹칩니다. 원국의 균형을 더 치우치게 하는지 살필 대목입니다. 일정과 책임이 과도해진 부분이 있는지 확인하고 감당할 범위를 정하세요.'
+      body:'오늘 들어오는 기운('+incomingElText+')이 원국의 주의 오행 '+overlappedGiText+'와(과) 겹칩니다. 원국의 균형을 더 치우치게 하는지 살필 대목입니다. 일정과 책임이 과도해진 부분이 있는지 확인하고 감당할 범위를 정하세요.'
     });
   }else if(isYong){
-    adviceItems.push({type:'good',title:_sajuQuantumText("sq_2681_prop_title"),body:'오늘 들어오는 '+gGod+'·'+jGod+' 기운이 용신으로 분류된 오행과 연결됩니다. 준비해 온 일을 점검할 계기로 삼되, 계약이나 금전 결정은 실제 조건과 자료로 판단하세요.'});
+    adviceItems.push({type:'good',title:_sajuQuantumText("sq_2681_prop_title"),body:'오늘 들어오는 '+gGod+'·'+jGod+' 기운이 보완 후보로 분류된 오행과 연결됩니다. 준비해 온 일을 점검할 계기로 삼되, 계약이나 금전 결정은 실제 조건과 자료로 판단하세요.'});
   }
   hyungAlerts.forEach(function(h){
     adviceItems.push({type:'warn',title:'🔺 형살 발생 — '+h.split(' — ')[0],body:h.split(' — ')[1]||h});
@@ -3878,8 +3878,8 @@ function renderLetter(p){
       '<p class="letter-para">넌 '+EL_K[dayEl]+'의 기운을 타고났다. '+ (neoGanLetter[dg]||'네 고집부터 꺾어야 뭐라도 될 거다.') +'</p>'+
       (dayAnimal&&neoAnimalLetter[dayAnimal]?'<p class="letter-para">🐾 '+neoAnimalLetter[dayAnimal]+'</p>':'')+
       neoPowerPara+
-      '<p class="letter-para">운이 나쁘다고 징징대지 마라. 겨울이 왔다고 죽는 게 아니라, 겨울에 반팔 입고 돌아다니니까 얼어 죽는 거다. 지금 당장 당신의 기신(忌神) 짓을 멈추고, 용신(用神)의 방향으로 움직여라. 사주는 당신이 어떤 옷을 입어야 가장 잘 어울리는지 알려주는 거다. 여름 사주가 겨울옷을 입고 땀 흘리면서 "왜 나만 힘들어"라고 하면 누가 동정하겠어?</p>'+
-      '<p class="letter-para">그리고 주변 관계도 점검해라. 당신의 용신에 해당하는 사람이 곁에 있으면 삶이 풀리고, 기신에 해당하는 인간이 옆에 붙어있으면 아무리 뛰어도 제자리다. 냉정하게 잘라낼 건 자르고, 소중한 건 목숨 걸고 지켜라. 인간관계도 천기가다.</p>'+
+      '<p class="letter-para">운이 나쁘다고 징징대지 마라. 겨울이 왔다고 죽는 게 아니라, 겨울에 반팔 입고 돌아다니니까 얼어 죽는 거다. 지금 당장 당신의 주의 오행 짓을 멈추고, 보완 후보의 방향으로 움직여라. 사주는 당신이 어떤 옷을 입어야 가장 잘 어울리는지 알려주는 거다. 여름 사주가 겨울옷을 입고 땀 흘리면서 "왜 나만 힘들어"라고 하면 누가 동정하겠어?</p>'+
+      '<p class="letter-para">그리고 주변 관계도 점검해라. 당신의 보완 후보에 해당하는 사람이 곁에 있으면 삶이 풀리고, 주의 오행에 해당하는 인간이 옆에 붙어있으면 아무리 뛰어도 제자리다. 냉정하게 잘라낼 건 자르고, 소중한 건 목숨 걸고 지켜라. 인간관계도 천기가다.</p>'+
       '<p class="letter-para">하지만 명심해라. 사주가 아무리 엉망이어도, 결국 그 패를 쥐고 게임을 하는 건 당신이다. <b>당신은 생각보다 강하고, 당신의 인생은 아직 끝나지 않았다.</b> 지금까지 살아남은 것 자체가 증거다. 당신은 여태 수많은 힘든 순간을 이겨냈잖아. 그때마다 "이번엔 진짜 안 될 것 같다"고 생각했을 거다. 근데 어? 여기까지 왔잖아. 이번에도 될 거다. 핑계는 여기까지다. 이제 당신의 진짜 패를 보여줄 차례다. 일어나라.</p>'+
       '<p style="text-align:right;font-style:italic;color:#FFD700;font-weight:700;font-size:.82rem">— 팩폭 사자 쌈바 🦁</p>';
   } else {
@@ -3907,7 +3907,7 @@ function renderEnergyCoordStub(){
   var area=document.getElementById('energyCoordSection');
   var card=document.getElementById('energyCoordCard');
   if(!area||!card)return;
-  var chips=['부족 오행 진단','용신·희신 여행 처방','국내 추천 좌표','해외 추천 좌표','월별 여행 좌표','오늘의 에너지 룰렛','여행 미션 체크리스트'];
+  var chips=['부족 오행 진단','보완 후보 여행 처방','국내 추천 좌표','해외 추천 좌표','월별 여행 좌표','오늘의 에너지 룰렛','여행 미션 체크리스트'];
   area.innerHTML=
     '<div data-cd-summary-fallback="1" style="border:1px solid rgba(148,163,184,.28);border-radius:18px;background:linear-gradient(145deg,rgba(8,13,31,.94),rgba(18,27,54,.9));color:#e2e8f0;padding:18px;">'+
       '<div style="font-size:1.02rem;font-weight:900;color:#fff;">🧭 에너지 원정 리포트</div>'+
@@ -4355,7 +4355,7 @@ function buildLottoRitualReport(state){
     priceCoins:30,
     moneyCondition:{
       title:_sajuQuantumText("sq_5224_prop_title"),
-      body:(moneyMoodMap[element]||moneyMoodMap.water)+' 용신/희신 축은 '+lottoElementText(state.primary)+'과 '+lottoElementText(state.secondary)+'로 짚습니다.',
+      body:(moneyMoodMap[element]||moneyMoodMap.water)+' 보완 후보 축은 '+lottoElementText(state.primary)+'과 '+lottoElementText(state.secondary)+'로 짚습니다.',
       points:['충동 지출은 메모 후 하루 미루기','작은 기회는 크게 기대하지 않고 관찰하기','정리해야 할 소비 패턴 하나만 고르기']
     },
     numberInsights:numberInsights,
@@ -4754,7 +4754,7 @@ function renderLottoNumbers(natal, bazi){
         '<div class="lc-wave-box">'+
           '<div class="lc-wave-label">현재 수리 파동</div>'+
           '<span class="lc-resonance" style="color:'+tag.color+'">'+lottoEsc(lottoElementText(primary))+'</span>'+
-          '<span style="font-size:.78rem;color:#a08040"> &nbsp;|&nbsp; 용신/희신 기반 숫자 축: '+lottoEsc(resonanceNums)+'</span>'+
+          '<span style="font-size:.78rem;color:#a08040"> &nbsp;|&nbsp; 보완 후보 기반 숫자 축: '+lottoEsc(resonanceNums)+'</span>'+
         '</div>'+
         '<div class="lc-games">'+gamesHTML+'</div>'+
         '<div class="lc-reason">'+

@@ -3745,7 +3745,7 @@
           "season": "Như bạn sinh vào {season}, loài hoa này cũng nở rực rỡ nhất vào {season}."
         },
         "flowerLanguage": {
-          "yongshin": "'{language}' — lời nhắn bông hoa mang khí {elements} của dụng thần gửi đến bạn.",
+          "yongshin": "'{language}' — lời nhắn bông hoa mang khí {elements} của ứng viên bổ trợ gửi đến bạn.",
           "dayMaster": "'{language}' — lời bông hoa này gửi đến bạn, người có nhật chủ {dayMasterBadge}."
         },
         "shareHook": {
@@ -21943,7 +21943,7 @@
     "scoreLine": "Điểm tương hợp chỉ theo Tứ trụ: {score}/100",
     "overview": {
       "title": "🧭 Tổng quan tương hợp",
-      "note": "Kết quả chỉ tính theo Tứ trụ. Hợp–xung can chi ngày, cân bằng mùa, dụng thần–kỵ thần và cấu trúc thập thần được tổng hợp thành {score}/100."
+      "note": "Kết quả chỉ tính theo Tứ trụ. Hợp–xung can chi ngày, cân bằng mùa, ứng viên bổ trợ–hành cần lưu ý và cấu trúc thập thần được tổng hợp thành {score}/100."
     },
     "energy": {
       "title": "🌡️ Hài hòa năng lượng",
@@ -21980,11 +21980,11 @@
       "DAY_BRANCH_HE": "Chi ngày ở cung phối ngẫu tạo lục hợp, có thể mang cảm giác gần gũi và thu hút khi ở bên nhau.",
       "DAY_STEM_CHONG": "Can ngày xung (沖), nên điểm mạnh và va chạm đều dễ trở nên rõ nét.",
       "DAY_BRANCH_CHONG": "Chi ngày xung (沖), khiến nếp sống và nhịp cảm xúc khác nhau. Điều chỉnh cho nhau rất quan trọng.",
-      "YONGSHIN_COMMON": "Cả hai lấy {elements} làm dụng thần, nên hướng sống cốt lõi khá tương đồng.",
-      "YONGSHIN_CLASH": "{elements} là dụng thần của một người nhưng là kỵ thần của người kia, nên chủ đề này dễ nhạy cảm.",
-      "KIJI_CONTROL_FORWARD": "Chế ngự kỵ thần: các chữ của đối phương ({by}) xung với kỵ thần của bạn ({chars}). Theo mô hình này, sự đối chiếu ấy có thể giảm một điểm bất lợi.",
-      "KIJI_CONTROL_REVERSE": "Chiều ngược lại: các chữ của bạn ({by}) xung với kỵ thần của đối phương, có thể mang cảm giác được giải tỏa.",
-      "HE_TRAP": "Bẫy của hợp: {self} và {partner} tạo hợp (合), nhưng hành sinh ra ({element}) tăng kỵ thần. Cảm giác hợp nhau có thể đi cùng lệ thuộc; hãy phân biệt thoải mái với bám víu."
+      "YONGSHIN_COMMON": "Cả hai lấy {elements} làm ứng viên bổ trợ, nên hướng sống cốt lõi khá tương đồng.",
+      "YONGSHIN_CLASH": "{elements} là ứng viên bổ trợ của một người nhưng là hành cần lưu ý của người kia, nên chủ đề này dễ nhạy cảm.",
+      "KIJI_CONTROL_FORWARD": "Chế ngự hành cần lưu ý: các chữ của đối phương ({by}) xung với hành cần lưu ý của bạn ({chars}). Theo mô hình này, sự đối chiếu ấy có thể giảm một điểm bất lợi.",
+      "KIJI_CONTROL_REVERSE": "Chiều ngược lại: các chữ của bạn ({by}) xung với hành cần lưu ý của đối phương, có thể mang cảm giác được giải tỏa.",
+      "HE_TRAP": "Bẫy của hợp: {self} và {partner} tạo hợp (合), nhưng hành sinh ra ({element}) tăng hành cần lưu ý. Cảm giác hợp nhau có thể đi cùng lệ thuộc; hãy phân biệt thoải mái với bám víu."
     },
     "element": {
       "wood": "Mộc (木)",

@@ -33,6 +33,7 @@
       strong: '일간을 지지하는 힘이 비교적 큰 구조입니다. 혼자 끌고 가는 힘과 나누어 맡기는 여유를 함께 살펴보세요.',
       weak: '일간의 힘에 비해 주변 역할의 요구가 큰 구조입니다. 도움과 준비 시간을 확보하는 방식이 단서가 됩니다.',
       jong: '한 방향의 기세를 따르는 종격 가능성이 검토된 구조입니다. 일반 신강·신약 조언을 그대로 적용하지 않습니다.',
+      strengthPending: '출생 시각이 없으면 강약을 확정하지 않습니다. 아래 점수는 참고값으로만 살펴보세요.',
       strengthBasis: '기존 억부 점수 {score} · 보완 후보 {support}. 점수는 사람의 능력이나 가치를 매기는 등급이 아닙니다.',
       strengthAction: '역할을 늘리기 전에 시간과 지원을 확인하세요. 선택 후의 집중력·소모·회복을 기록해 기준을 조정하세요.',
       flowBasis: '{label} {stem}{branch} · 기존 평가 점수 {score}. 길흉의 확정 예측이 아닌 흐름을 비교하는 참고값입니다.',
@@ -93,6 +94,7 @@
       strongNeo: '일간을 받쳐 주는 힘이 비교적 큰 구조야. 혼자 끌고 가는 힘이랑 나눠 맡기는 여유를 같이 살펴 봐.',
       weakNeo: '일간의 힘에 비해 주변 역할이 바라는 게 큰 구조야. 도움과 준비 시간을 확보하는 방식이 단서가 될 수 있어.',
       jongNeo: '한 방향의 기세를 따르는 종격 가능성이 검토된 구조야. 보통의 신강·신약 조언을 그대로 대지는 않아.',
+      strengthPendingNeo: '출생 시각이 없으면 강약을 확정하지 않아. 아래 점수는 참고로만 봐.',
       strengthBasisNeo: '기존 억부 점수 {score} · 보완 후보 {support}. 점수는 네 능력이나 가치를 매기는 등급이 아니야.',
       strengthActionNeo: '역할을 늘리기 전에 시간과 지원부터 확인해 봐. 고른 뒤의 집중력·소모·회복을 적어 두고 기준을 조정하면 돼.',
       flowBasisNeo: '{label} {stem}{branch} · 기존 평가 점수 {score}. 길흉을 확정하는 예측이 아니라 흐름을 비교하는 참고값이야.',
@@ -208,6 +210,7 @@
       "strong": "The day stem receives relatively strong support. Consider both independent effort and sharing responsibilities.",
       "weak": "Surrounding demands are relatively large compared with support for the day stem. Preparation and help are useful questions to explore.",
       "jong": "The engine considers a following structure. Ordinary strong/weak advice does not apply unchanged.",
+      "strengthPending": "Without a birth time the strength reading stays open. Treat the score below as a reference only.",
       "strengthBasis": "Existing support score {score} · balancing candidates {support}. This does not rank your ability or worth.",
       "strengthAction": "Check time and support before adding a responsibility. Review focus, effort and recovery after the choice.",
       "flowBasis": "{label} {stem}{branch} · existing score {score}. A comparison aid, not a certain prediction.",
@@ -362,7 +365,7 @@
     var j=input.johu||{}, pw=input.power||{}, jong=input.jong||{};
     var cool=j.type==='cool'||j.type==='cold', warm=j.type==='warm'||j.type==='hot';
     model.climate=section(c.climate,pick(c,cool?'cold':warm?'hot':'neutral',neo),fmt(pick(c,'climateBasis',neo),{score:j.score,wet:j.moistCnt,dry:j.dryCnt}),cool?c.scenes[4]:warm?c.scenes[1]:c.scenes[2],pick(c,'climateAction',neo));
-    model.strength=section(c.strength,pick(c,jong.isJong?'jong':pw.isStrong?'strong':'weak',neo),fmt(pick(c,'strengthBasis',neo),{score:pw.score,support:(pw.yongshin||[]).map(function(e){return c.names[elements.indexOf(e)]||e;}).join(' · ')}),pw.isStrong?c.scenes[0]:c.scenes[2],pick(c,'strengthAction',neo));
+    model.strength=section(c.strength,pick(c,pw.strengthPending?'strengthPending':jong.isJong?'jong':pw.isStrong?'strong':'weak',neo),fmt(pick(c,'strengthBasis',neo),{score:pw.score,support:(pw.yongshin||[]).map(function(e){return c.names[elements.indexOf(e)]||e;}).join(' · ')}),pw.isStrong?c.scenes[0]:c.scenes[2],pick(c,'strengthAction',neo));
     model.flow=(input.flow||[]).map(function(row) { var good=row.score>=60, tone=pick(c,good?'flowOpen':'flowCare',neo); return section(row.kind==='year'?c.year:c.period,tone,fmt(pick(c,'flowBasis',neo),{label:row.kind==='year'?c.year:c.period,stem:row.g,branch:row.j,score:row.score}),tone,pick(c,good?'flowRuleOpen':'flowRuleCare',neo)); });
     var name=String(input.name||'').trim();
     if(c.letterOpening && c.neoOpening) {
@@ -382,7 +385,9 @@
     var p=root.G_PILLARS, ten={};
     [p.y.g,p.y.j,p.m.g,p.m.j,p.d.j,p.h.g,p.h.j].forEach(function(ch){var g=root.getTenGod(p.d.g,ch);if(g&&g!=='?')ten[g]=(ten[g]||0)+1;});
     var birth=root.G_KASI_CONTEXT||{};
-    var facts={name:root.USER_NAME,p:p,natal:root.G_NATAL,ten:ten,johu:root.G_JOHU,power:root.G_POWER,jong:root.G_JONG,unknown:birth.unknownHour===true||birth.timeDefault===true||root.__cdSajuTimeUnknown===true,flow:flow};
+    var approved=root.cdApprovedSajuFacts?root.cdApprovedSajuFacts():null;
+    var facts={name:root.USER_NAME,p:p,natal:root.G_NATAL,ten:ten,johu:root.G_JOHU,power:(approved&&approved.power)||root.G_POWER,jong:root.G_JONG,unknown:birth.unknownHour===true||birth.timeDefault===true||root.__cdSajuTimeUnknown===true,flow:flow};
+    if(approved&&approved.gyeokguk) facts.gyeokguk=approved.gyeokguk;
     if(root.SajuReadingDepth) facts.depth=root.SajuReadingDepth.buildDepthFacts(facts);
     return facts;
   }

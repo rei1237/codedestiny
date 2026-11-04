@@ -235,14 +235,14 @@
     pig: {
       lead:'연이가 읽은 기후', env:'조후로 본 삶의 환경', parts:'글자별 온도·습도 기여', count:'온도를 움직이는 네 기운',
       verdict:'{season}의 월령에 태어난 원국이에요. 계절이 정한 기본 온도 {base}에 여덟 글자의 온기와 냉기를 더하면 온도 점수는 {score}, {type}으로 읽혀요. 습조는 습한 신호 {wet}개와 건조한 신호 {dry}개로 {moist}이에요.',
-      versus:'조후 용신과 억부 용신', rx:'조후 밸런스 처방 · 생활 개선법',
+      versus:'조후 보완과 억부 보완 후보', rx:'조후 밸런스 처방 · 생활 개선법',
       rxIntro:'명리에서 부족한 기운을 채우는 상징을 생활 언어로 옮겼어요. 마음에 드는 것 하나만 골라 일주일쯤 시도해 보세요.',
       moistRx:'습조 보완', notHealth:'생활 처방은 명리의 상징을 옮긴 것이며 건강·의료 조언이 아니에요. 몸에 불편이 있다면 전문가와 먼저 상의해 주세요.'
     },
     neo: {
       lead:'영냥이의 진단', env:'조후로 본 환경 유형', parts:'글자별 온도·습도 기여', count:'온도를 움직이는 네 기운',
       verdict:'판정은 {type}, 습조는 {moist}야. {season} 월령 기본값 {base}에 글자별 기여를 더하면 온도 점수 {score}, 습 {wet} · 조 {dry}로 나와.',
-      versus:'조후 용신 대 억부 용신', rx:'조후 밸런스 처방 · 생활 개선법',
+      versus:'조후 보완 대 억부 보완 후보', rx:'조후 밸런스 처방 · 생활 개선법',
       rxIntro:'부족한 기운을 생활에서 채우는 방법이야. 하나만 골라 일주일 해 보고, 컨디션이 어떻게 달라지는지 적어 봐.',
       moistRx:'습조 보완', notHealth:'생활 처방은 명리 상징을 생활 말로 옮긴 거고, 건강·의료 조언은 아니야. 몸이 불편하면 전문가한테 먼저 물어봐.'
     }
@@ -250,17 +250,18 @@
   function johuNeed(type) { return type === 'cold' || type === 'cool' ? ['fire', 'wood'] : type === 'hot' || type === 'warm' ? ['water', 'metal'] : []; }
   function climateVersus(facts, neo) {
     var j = facts.johu, pw = facts.power, need = johuNeed(j.type), yong = (pw && pw.yongshin) || [];
-    if (TEMP_INDEX[j.type] == null) return para(neo ? '한난 판정을 보류했으니까 조후로 채울 기운은 정하지 않아. 억부 용신을 중심으로 봐.' : '한난 판정을 보류했기 때문에 조후로 채울 기운은 정하지 않아요. 억부에서 고른 용신을 중심으로 읽어요.');
+    if (TEMP_INDEX[j.type] == null) return para(neo ? '한난 판정을 보류했으니까 조후로 채울 기운은 정하지 않아. 억부 보완 후보를 중심으로 봐.' : '한난 판정을 보류했기 때문에 조후로 채울 기운은 정하지 않아요. 억부에서 고른 보완 후보를 중심으로 읽어요.');
     var jong = facts.jong && facts.jong.isJong;
     var needText = need.map(function (e) { return EL[e]; }).join('·');
     var yongText = yong.slice(0, 2).map(function (e) { return EL[e]; }).join('·');
     var extreme = j.type === 'cold' || j.type === 'hot';
     var same = need.some(function (e) { return yong.indexOf(e) >= 0; });
     var t = [];
-    if (!need.length) t.push(neo ? '온도가 고른 편이라 조후로 급하게 채울 기운은 없어. 억부 용신을 중심으로 보면 돼.' : '온도가 고른 편이라 조후로 급히 채울 기운은 따로 없어요. 그래서 억부에서 고른 용신을 중심으로 읽으면 충분해요.');
+    if (need.length && !yong.length) t.push(neo ? '조후는 ' + needText + ' 기운을 꼽아. 억부 보완 후보는 판정을 보류했으니까 조후도 참고로만 봐.' : '조후로는 ' + needText + ' 기운이 반가워요. 다만 억부 보완 후보는 판정을 보류했으니 조후도 참고로만 살펴보세요.');
+    else if (!need.length) t.push(neo ? '온도가 고른 편이라 조후로 급하게 채울 기운은 없어. 억부 보완 후보를 중심으로 보면 돼.' : '온도가 고른 편이라 조후로 급히 채울 기운은 따로 없어요. 그래서 억부에서 고른 보완 후보를 중심으로 읽으면 충분해요.');
     else if (jong) t.push(neo ? '조후는 ' + needText + ' 기운을 원해. 다만 종격으로 검토된 원국이라서 모인 기세를 따르는 판단이 먼저야.' : '조후로 보면 ' + needText + ' 기운이 반가운 원국이에요. 다만 종격으로 검토된 구조라서, 모인 기세를 따르는 판단을 먼저 두고 조후는 생활의 보완으로 살펴요.');
-    else if (same) t.push(neo ? '조후에 필요한 기운(' + needText + ')과 억부 용신(' + yongText + ')이 겹쳐. 같은 쪽을 가리키니까 뭘 먼저 채울지 분명하지.' : '조후로 반가운 ' + needText + ' 기운과 억부로 고른 용신(' + yongText + ')이 서로 겹쳐요. 두 관점이 같은 쪽을 가리키니, 이 기운을 생활에서 꾸준히 곁에 두는 것이 가장 분명한 보완이에요.');
-    else t.push(neo ? '조후는 ' + needText + ', 억부는 ' + yongText + ' 기운을 꼽아. 방향이 다르지. ' + (extreme ? '한난이 극단이라서 조후를 앞에 두고 억부는 보조로 둬.' : '한난이 극단은 아니라서 억부를 앞에 두고 조후는 보조로 둬.') : '조후로는 ' + needText + ' 기운이, 억부로는 ' + yongText + ' 기운이 먼저 꼽혀 방향이 조금 달라요. ' + (extreme ? '온도가 한쪽으로 크게 기운 원국에서는 계절의 균형을 먼저 맞추는 조후를 앞에 두고, 억부는 그다음으로 살펴요.' : '온도가 극단까지 기울지는 않았으니 억부의 용신을 중심에 두고, 조후는 계절이 바뀔 때 챙기는 보조로 살펴요.'));
+    else if (same) t.push(neo ? '조후에 필요한 기운(' + needText + ')과 억부 보완 후보(' + yongText + ')가 겹쳐. 같은 쪽을 가리키니까 뭘 먼저 채울지 분명하지.' : '조후로 반가운 ' + needText + ' 기운과 억부로 고른 보완 후보(' + yongText + ')가 서로 겹쳐요. 두 관점이 같은 쪽을 가리키니, 이 기운을 생활에서 꾸준히 곁에 두는 것이 가장 분명한 보완이에요.');
+    else t.push(neo ? '조후는 ' + needText + ', 억부는 ' + yongText + ' 기운을 꼽아. 방향이 다르지. ' + (extreme ? '한난이 극단이라서 조후를 앞에 두고 억부는 보조로 둬.' : '한난이 극단은 아니라서 억부를 앞에 두고 조후는 보조로 둬.') : '조후로는 ' + needText + ' 기운이, 억부로는 ' + yongText + ' 기운이 먼저 꼽혀 방향이 조금 달라요. ' + (extreme ? '온도가 한쪽으로 크게 기운 원국에서는 계절의 균형을 먼저 맞추는 조후를 앞에 두고, 억부는 그다음으로 살펴요.' : '온도가 극단까지 기울지는 않았으니 억부의 보완 후보를 중심에 두고, 조후는 계절이 바뀔 때 챙기는 보조로 살펴요.'));
     t.push(neo ? '조후는 계절의 한난조습을, 억부는 일간 힘의 과부족을 보는 기준이야. 둘 중 하나만 정답이라고 보지 않아.' : '조후는 태어난 계절의 온도와 습도를, 억부는 일간이 감당하는 힘의 크고 작음을 보는 기준이에요. 어느 한쪽만 정답으로 두지 않고, 원국의 상황에 따라 앞뒤를 정해요.');
     return t.map(para).join('');
   }
@@ -350,7 +351,11 @@
     var parts = powerParts(p, L), ok = powerMatches(parts, pw), strong = !!pw.isStrong, st = stage(pw.score);
     var html = '';
     var gaugeHtml = gauge({kind:'power', value:pw.score, min:-71, max:88, base:30, zones:[-20, 10, 30, 50, 70], names:['극신약', '신약', '중화에 가까운 신약', '중화에 가까운 신강', '신강', '극신강'], ends:['신약 쪽', '신강 쪽'], baseLabel:'기준 30', caption:'억부 점수 ' + pw.score + '점 (판정 기준 30점)', aria:'억부 게이지: 점수 ' + pw.score + '점, ' + st + ', 판정 기준 30점'});
-    if (jg && jg.isJong) {
+    if (pw.strengthPending) {
+      html += section(neo ? '영냥이의 진단' : '연이가 읽은 힘의 모양', hero('판정 보류', ['억부 참고 ' + pw.score + '점']) + para(neo ? '판정 보류. 출생 시각이 없거나 근거가 모자라서 신강·신약을 확정하지 않아. 게이지 점수는 참고로만 봐.' : '출생 시각이 없거나 근거가 모자라 신강·신약을 확정하지 않았어요. 아래 점수와 게이지는 참고값으로만 살펴보세요.'), 'saju-rich__lead');
+      html += gaugeHtml;
+      if ((pw.yongshin || []).length) html += section(neo ? '보완 후보' : '살펴볼 보완 후보', chips(godChips(L, dayEl, pw.yongshin, ['보완 후보'], 'good')));
+    } else if (jg && jg.isJong) {
       var dom = EL[jg.dominant] || '';
       html += section(neo ? '영냥이의 진단' : '연이가 읽은 힘의 모양', hero(jg.name || '종격', [dom + (jg.pct != null ? ' ' + jg.pct + '%' : ''), '억부 ' + pw.score + '점 (참고)']) + para(neo ? '판정: ' + (jg.name || '종격') + '. ' + dom + ' 기운이 ' + (jg.pct != null ? jg.pct + '%로 ' : '') + '원국을 이끌어. 그래서 일반적인 신강·신약 공식은 대지 않아.' : '당신의 원국은 ' + dom + ' 기운이 ' + (jg.pct != null ? jg.pct + '%로 ' : '') + '크게 모인 ' + (jg.name || '종격') + '으로 검토됐어요. 이런 구조는 일반적인 신강·신약 잣대로 재지 않고, 모인 기세를 따르는 쪽으로 읽어요.'), 'saju-rich__lead');
       html += gaugeHtml;
@@ -379,9 +384,9 @@
         (neo ? '월령에 일지와 나머지 글자가 돕는 힘·누르는 힘을 더하면 합계가 ' + pw.score + '점이야.' : '여기에 일지와 나머지 글자가 일간을 돕거나 누르는 힘을 더해 저울질하면 ' + pw.score + '점이 나와요. ' + (strong ? '스스로 버틸 힘이 넉넉한 쪽이라 신강으로 읽어요.' : '바깥의 요구에 비해 자기 힘이 조금 모자란 쪽이라 신약으로 읽어요. 약점이 아니라 섬세함과 유연함의 바탕이에요.'))));
       var note = STEM_NOTE[dg] || '타고난 기질이 뚜렷한 편';
       html += section('일간 ' + dayName + '의 결', para(neo ? dayName + ' 일간: ' + note + '이야. ' + (strong ? '힘이 남는 구조라서 밖으로 써서 덜어낼 때 효율이 나. 성과를 나누고 책임 있는 역할을 맡아 봐.' : '자원이 모자란 구조라서 준비·배움·협력으로 뿌리부터 챙기는 게 먼저야. 무리해서 앞장서면 비용이 클 수 있어.') : dayName + ' 일간은 ' + note + '이에요. ' + (strong ? '힘이 넉넉한 만큼, 그 힘을 밖으로 써서 덜어낼 때 더 빛나는 구조로 읽어요. 성과를 나누고, 사람을 돕고, 책임 있는 역할을 맡는 일이 균형을 잡아 줘요. 모든 것을 혼자 쥐고 있으면 오히려 답답해질 수 있어요.' : '나를 알아주는 사람과 환경 곁에서 실력을 쌓을 때 힘이 잘 쓰이는 구조예요. 무리해서 앞장서기보다 배움과 준비, 협력으로 뿌리를 먼저 다져 보세요.')));
-      html += section(neo ? '용신·희신 / 기신·구신' : '나를 살리는 기운 · 조심할 기운', chips(godChips(L, dayEl, pw.yongshin || [], ['용신', '희신'], 'good').concat(godChips(L, dayEl, pw.kijishin || [], ['기신', '구신'], 'care'))) +
-        para(neo ? '용신·희신 오행이 대운·세운으로 들어올 때 일이 풀리기 쉽고, 기신·구신이 강해지는 시기에는 확장 속도를 늦추는 편이 안전해.' : '용신·희신의 오행이 대운이나 세운으로 들어올 때 일이 수월하게 풀리고 도움을 만나기 쉬워요. 기신·구신이 강해지는 시기에는 한 템포 늦추고, 무리한 확장이나 큰 결정은 조금 더 살펴본 뒤에 해도 늦지 않아요.') +
-        more('용신·희신·기신·구신·한신이란', para('용신(用神)은 원국의 균형을 잡는 데 가장 필요한 기운, 희신(喜神)은 용신을 돕는 기운이에요. 기신(忌神)은 용신을 해치는 기운, 구신(仇神)은 기신을 돕는 기운이고, 한신(閑神)은 어느 쪽에도 크게 기울지 않는 기운이에요. 이 원국의 계산은 다섯 오행을 돕는 쪽과 부담 쪽으로 모두 나누기 때문에 한신은 따로 두지 않아요.')));
+      html += section(neo ? '보완 후보 / 주의 오행' : '나를 살리는 기운 · 조심할 기운', chips(godChips(L, dayEl, pw.yongshin || [], ['보완 후보', '보완 후보'], 'good').concat(godChips(L, dayEl, pw.kijishin || [], ['주의 오행', '주의 오행'], 'care'))) +
+        para(neo ? '보완 후보 오행이 대운·세운으로 들어올 때 일이 풀리기 쉽고, 주의 오행이 강해지는 시기에는 확장 속도를 늦추는 편이 안전해.' : '보완 후보의 오행이 대운이나 세운으로 들어올 때 일이 수월하게 풀리고 도움을 만나기 쉬워요. 주의 오행이 강해지는 시기에는 한 템포 늦추고, 무리한 확장이나 큰 결정은 조금 더 살펴본 뒤에 해도 늦지 않아요.') +
+        more('보완 후보란', para('보완 후보는 억부와 조후로 원국의 균형을 살필 때 함께 검토하는 오행이에요. 하나로 확정한 판정이 아니라 실제 생활에서 확인해 볼 후보이고, 부담이 되는 오행은 따로 판정하지 않아요. 출생 시각을 모르면 후보도 판정을 보류해요.')));
       html += section('대운 방향 한눈에', para(strong ? (neo ? '식상·재성·관성 운, 그러니까 힘을 밖으로 쓰고 성과로 바꾸는 흐름이 너한테 유리해.' : '식상·재성·관성의 운, 즉 기운을 밖으로 쓰고 성취로 바꾸는 흐름에서 사회적인 결실이 맺히기 쉬워요.') : (neo ? '비겁·인성 운, 그러니까 너를 채우고 받쳐 주는 흐름이 유리해.' : '비겁·인성의 운, 즉 나를 채우고 지지해 주는 흐름에서 자신감과 도움이 함께 찾아오기 쉬워요.')));
     }
     html += more('억부(抑扶)란 무엇인가요?', para('억부는 일간이 너무 강하면 누르고(抑) 약하면 돕는(扶) 쪽으로 균형을 찾는 명리의 기준이에요. 이 원국은 월지를 가장 무겁게 봐요(같은 오행 +40, 인성 +27, 관살 −27, 식상 −10). 일지는 같은 오행이나 인성이면 +13, 관살이면 −9이고, 나머지 다섯 글자는 같은 오행이나 인성이면 +7, 관살이면 −7이에요. 합계 30점 이상을 신강, 그 아래를 신약으로 판정하고, 단계 이름은 점수 구간을 읽기 쉽게 붙인 것이에요. 점수는 사람의 능력이나 가치를 매기는 등급이 아니에요.'));
@@ -496,13 +501,13 @@
     var pw = facts.power || {};
     if (facts.jong && facts.jong.isJong) return '';
     var y = (pw.yongshin || []).indexOf(el), k = (pw.kijishin || []).indexOf(el);
-    return y === 0 ? '용신' : y > 0 ? '희신' : k === 0 ? '기신' : k > 0 ? '구신' : '';
+    return y >= 0 ? '보완 후보' : k >= 0 ? '주의 오행' : '';
   }
   function palaceOf(L, key) { return (L.CD_PALACE || []).filter(function (x) { return x.key === key; })[0]; }
   function tenOverview(facts, mode) {
     var p = facts && facts.p, L = lib(facts), m = p && godMap(p, L);
     if (!m) return '';
-    var neo = mode === 'neo', k = neo ? 1 : 0, dayEl = L.GAN[p.d.g].e, strong = !!(facts.power && facts.power.isStrong), html = '';
+    var neo = mode === 'neo', k = neo ? 1 : 0, dayEl = L.GAN[p.d.g].e, strong = !!(facts.power && (facts.power.strengthPending ? facts.power.referenceIsStrong : facts.power.isStrong)), html = '';
     var fams = FAMILY_ORDER.map(function (f) {
       var gs = GODS.filter(function (g) { return GOD_FAMILY[g] === f; }), el = familyEl(L, dayEl, f);
       return {f:f, gods:gs, el:el, role:roleOf(facts, el),
@@ -551,7 +556,7 @@
     var rows = where.map(function (w) { var pal = palaceOf(L, w.key); return [w.label + hourMark(facts, w.key), w.char, pal ? pal.label + ' · ' + pal.palace : '—', (w.side === 'g' ? '겉으로 드러나는 모습' : '생활의 바탕') + (pal ? ' · ' + pal.domain : '')]; });
     html += section(neo ? '계산 근거' : '당신 원국에서의 자리', (rows.length ? table(key + '의 자리', ['자리', '글자', '궁위', '드러나는 영역'], rows) : '') +
       para((neo ? '겉 글자 ' + where.length + '곳, 지장간 ' + (m.hidden[key] || 0) + '곳. ' : '겉으로 ' + where.length + '곳, 지장간까지 보면 ' + (m.hidden[key] || 0) + '곳에 이 기운이 있어요. ') +
-        (role ? (neo ? '억부로 보면 이 계열은 ' + role + '이야.' : '억부로 보면 이 계열은 당신에게 ' + role + '이에요. ' + (role === '용신' || role === '희신' ? '북돋울수록 균형이 잡히는 쪽이에요.' : '지나치지 않게 조절할 때 편안한 쪽이에요.')) : '')));
+        (role ? (neo ? '억부로 보면 이 계열은 ' + role + (role === '보완 후보' ? '야.' : '이야.') : '억부로 보면 이 계열은 당신에게 ' + role + (role === '보완 후보' ? '예요. ' : '이에요. ') + (role === '보완 후보' || role === '보조 후보' ? '북돋울수록 균형이 잡히는 쪽이에요.' : '지나치지 않게 조절할 때 편안한 쪽이에요.')) : '')));
     html += section('일과 적성', para(d.career[k]));
     html += section(neo ? '관계' : '관계의 모습', para(d.love[k]));
     html += section(neo ? '영냥이의 조언' : '연이의 조언', para(d.advice[k]));
@@ -694,7 +699,7 @@
       }
       if(root.SajuReadingDepth){
         var depth=root.SajuReadingDepth;
-        var balanceFor=function(el){var role=roleOf(facts,el);return /용신|희신/.test(role)?'good':/기신|구신/.test(role)?'bad':'neutral';};
+        var balanceFor=function(el){var role=roleOf(facts,el);return /보완 후보|보조 후보/.test(role)?'good':/주의 오행|주의 오행/.test(role)?'bad':'neutral';};
         var action=depth.cycleActions({stem:{char:r.g,god:sg,balance:balanceFor(gd.e)},branch:{char:r.j,god:bg,balance:balanceFor(jd.e)},power:facts.power,jong:facts.jong,month:p.m.j,depth:facts.depth||depth.buildDepthFacts(facts)},neo?'neo':undefined);
         if(action.length) body+=section(year?'올해 해볼 작은 실천':'지금 대운에서 먼저 해볼 일',action.map(function(item){return '<h4>'+esc(item.title.replace(/대운/g,year?'세운':'대운'))+'</h4>'+para(item.text.replace(/대운/g,year?'세운':'대운'));}).join(''));
       }
@@ -746,7 +751,7 @@
     var items = (row.adviceItems || []).slice(0, 3).map(function (a) { return {tag:plain(a.title), text:plain(a.body), tone:a.type === 'warn' ? 'care' : a.type === 'good' ? 'good' : ''}; }).filter(function (a) { return a.text; });
     html += section(neo ? '체크 포인트' : '이건 꼭 챙겨 주세요', items.length ? chips(items) : para(neo ? '특이한 관계는 없어. 중요한 메시지는 보내기 전에 한 번 더 확인해 봐.' : '원국과 크게 부딪히는 관계는 없어요. 중요한 메시지는 보내기 전에 한 번 더 읽어 보면 좋아요.'));
     var boost = [['행운 컬러', lb.color, '色'], ['장소 · 방향', lt.action, '方'], [when + '의 한 끗', lb.item, '物'], ['무드 세팅', lb.material, '感']].filter(function (x) { return x[1]; });
-    if (boost.length) html += section('행운의 부스터', tiles(boost) + '<p class="saju-rich__note">' + esc(neo ? '용신 오행을 채우는 생활 팁이야. 효과를 약속하진 않아.' : '부족한 기운을 생활에서 가볍게 더하는 팁이에요. 분위기를 바꾸는 정도로 즐겨 주세요.') + '</p>');
+    if (boost.length) html += section('행운의 부스터', tiles(boost) + '<p class="saju-rich__note">' + esc(neo ? '보완 후보 오행을 채우는 생활 팁이야. 효과를 약속하진 않아.' : '부족한 기운을 생활에서 가볍게 더하는 팁이에요. 분위기를 바꾸는 정도로 즐겨 주세요.') + '</p>');
     html += section(neo ? '영냥이의 정리' : '연이의 한마디', para(DAY_TONE[good ? 'open' : 'care'][k]));
     return wrap(mode, html, facts);
   }
