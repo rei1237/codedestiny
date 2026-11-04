@@ -1,5 +1,14 @@
+import {useEffect,useState} from 'react';
+import {STAGING_ORIGIN} from '../../lib/editions/staging.mjs';
 import styles from './workshop.module.css';
-export const enabled = process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_EDITION_WORKSHOP === '1';
+const local = process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_EDITION_WORKSHOP === '1';
+export function useWorkshopMode() {
+  const [mode,setMode] = useState(local?'local':'closed');
+  useEffect(()=>{
+    if(process.env.NEXT_PUBLIC_EDITION_WORKSHOP==='staging' && window.location.origin===STAGING_ORIGIN) setMode('staging');
+  },[]);
+  return mode;
+}
 export const characters = {yeoni:'꽃돼지 연이',cat:'영냥이'};
 export const images = {yeoni:'/assets/mascot/yeoni-reading-guide-v1.webp',cat:'/assets/yeongnyangi/original/hero-800.webp'};
 export function Ticket({item,serial,preview=false}){

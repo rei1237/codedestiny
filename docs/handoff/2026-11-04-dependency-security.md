@@ -14,7 +14,8 @@ GitHub Dependabot 경고가 127건 열려 있었다. 사용자가 2026-11-04에 
 
 2026-11-04 실측이다.
 
-- 업그레이드 전 127건: critical 8, high 57, medium 49, low 13. 범위는 runtime 49, development 78. 파일은 `package-lock.json` 125, `apps/mobile/package.json` 2. 업그레이드 뒤 Dependabot 수는 push 후 다시 잰다.
+- 업그레이드 전 127건: critical 8, high 57, medium 49, low 13. 범위는 runtime 49, development 78. 파일은 `package-lock.json` 125, `apps/mobile/package.json` 2.
+- 업그레이드 후 76건(2026-11-05 재측정): critical 1, high 36, medium 31, low 8. 범위는 runtime 2(`satori`, `mongoose`, 둘 다 medium), development 74. 파일은 전부 `package-lock.json`. critical은 development의 `proxy-addr` 1건이다. `sharp`는 `npm audit`에만 high로 잡히고 Dependabot runtime에는 없다.
 - 올린 버전: next 15.5.29, `@next/bundle-analyzer`·`eslint-config-next` 15.5.28 이상, Capacitor 8.4.3(루트 `~8.4.3`, 모바일 고정), dompurify 3.4.17, tiptap 3.32.2 단일화, nanoid 3.3.20, postcss 8.5.32(next 내부 포함, `overrides`), prosemirror-view 1.42.9, source-map-js 1.2.2, ip-address 10.7.6.
 - `npm audit` 재집계. `--omit=dev`는 high 1, moderate 3이다. 전체는 critical 1, high 23, moderate 63, low 2다.
 - runtime 잔여와 제외 사유:
