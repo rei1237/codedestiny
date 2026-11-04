@@ -6,12 +6,14 @@ const {JSDOM}=require('jsdom');
 const source=fs.readFileSync(require('node:path').join(__dirname,'../../js/core/home-funnel.js'),'utf8');
 function fixture(width=1280,reduced=false,translate){
  const dom=new JSDOM('<body><main id="cdHomeFunnel"><section><div id="cdSigViewport" tabindex="0"><div>'+Array.from({length:8},(_,i)=>'<a class="cd-sig-card" href="/consultation/'+i+'">'+i+'</a>').join('')+'</div></div><div class="cd-sig__controls" hidden><div data-sig-dots></div><button data-sig-prev></button><span data-sig-position></span><button data-sig-next></button><button data-sig-pause></button></div></section></main></body>',{url:'https://example.test/',runScripts:'outside-only',pretendToBeVisual:true});
- const w=dom.window,d=w.document,timers=new Map();let timer=0,observer,mediaChange,frame=0,resizeObserver,stride=300;const frames=[];
+ const w=dom.window,d=w.document,timers=new Map(),timeouts=new Map();let timer=0,observer,mediaChange,frame=0,resizeObserver,stride=300,now=100000;const frames=[];
  const flush=()=>{while(frames.length)frames.shift()();};
  Object.defineProperty(w,'innerWidth',{value:width,writable:true});
  const media={matches:reduced,addEventListener:(_type,fn)=>{mediaChange=fn;}};
  w.matchMedia=()=>media;
+ w.Date.now=()=>now;
  w.setInterval=(fn,ms)=>{timers.set(++timer,{fn,ms});return timer;};w.clearInterval=id=>timers.delete(id);
+ w.setTimeout=(fn,ms)=>{timeouts.set(++timer,{fn,ms});return timer;};w.clearTimeout=id=>timeouts.delete(id);
  w.requestAnimationFrame=fn=>{frames.push(fn);return ++frame;};
  w.ResizeObserver=class{constructor(fn){resizeObserver=fn;}observe(){}disconnect(){}};
  w.IntersectionObserver=class{constructor(fn){observer=fn;}observe(){}disconnect(){}};
@@ -23,11 +25,11 @@ function fixture(width=1280,reduced=false,translate){
  rail.scrollBy=({left})=>rail.scrollTo({left:rail.scrollLeft+left});
  if(translate)w.cdTranslate=translate;
  w.eval(source);
- return {w,d,timers,rail,cards,media,flush,resize:value=>{stride=value;resizeObserver();flush();},setVisible:ratio=>observer([{intersectionRatio:ratio}]),changeMotion:matches=>{media.matches=matches;mediaChange();},close:()=>dom.window.close()};
+ return {w,d,timers,timeouts,rail,cards,media,flush,runTimeout:()=>{const entry=[...timeouts.entries()][0];assert.ok(entry,'resume timeout exists');timeouts.delete(entry[0]);now+=entry[1].ms;entry[1].fn();},resize:value=>{stride=value;resizeObserver();flush();},setVisible:ratio=>observer([{intersectionRatio:ratio}]),changeMotion:matches=>{media.matches=matches;mediaChange();},close:()=>dom.window.close()};
 }
-test('8초 자동 이동은 보이는 상담 레일에만 적용된다',()=>{
+test('6초 자동 이동은 보이는 상담 레일에만 적용된다',()=>{
  const f=fixture();assert.equal(f.timers.size,0);f.setVisible(1);
- assert.equal(f.timers.size,1);const timer=[...f.timers.values()][0];assert.equal(timer.ms,8000);timer.fn();
+ assert.equal(f.timers.size,1);const timer=[...f.timers.values()][0];assert.equal(timer.ms,6000);timer.fn();
  assert.equal(f.rail.scrollLeft,300);assert.equal(f.d.querySelector('[data-sig-position]').textContent,'02–04 / 08');
  f.setVisible(0);assert.equal(f.timers.size,0);f.close();
 });
@@ -38,12 +40,14 @@ test('화면 폭마다 3·2·1장의 키보드 접근 범위를 유지한다',()
   assert.equal(f.cards[0].inert,true);f.close();
  }
 });
-test('사용자 이동 뒤에는 화면 복귀만으로 자동 이동을 다시 시작하지 않는다',()=>{
+test('사용자 이동 뒤 12초 동안 멈췄다가 자동 이동을 다시 시작한다',()=>{
  const f=fixture();f.setVisible(1);f.d.querySelector('[data-sig-next]').click();
- assert.equal(f.timers.size,0);f.setVisible(0);f.setVisible(1);assert.equal(f.timers.size,0);
+ assert.equal(f.timers.size,0);assert.equal(f.timeouts.size,1);f.setVisible(0);f.setVisible(1);assert.equal(f.timers.size,0);assert.equal(f.timeouts.size,1);
  const pause=f.d.querySelector('[data-sig-pause]');
- assert.equal(pause.getAttribute('aria-pressed'),'true');assert.equal(pause.getAttribute('aria-disabled'),'true');
- assert.equal(pause.getAttribute('aria-label'),'상담 카드 자동 넘김 멈춤');pause.click();assert.equal(f.timers.size,0);f.close();
+ assert.equal(pause.getAttribute('aria-pressed'),'false');assert.equal(pause.hasAttribute('aria-disabled'),false);
+ f.runTimeout();assert.equal(f.rail.scrollLeft,600);assert.equal(f.timers.size,1);assert.equal(f.timeouts.size,0);
+ pause.click();assert.equal(pause.getAttribute('aria-pressed'),'true');assert.equal(f.timers.size,0);
+ pause.click();assert.equal(pause.getAttribute('aria-pressed'),'false');assert.equal(f.timers.size,1);f.close();
 });
 test('마우스·키보드 포커스·문서 숨김·팝업은 이동을 멈춘다',async()=>{
  const f=fixture();f.setVisible(1);const section=f.rail.parentElement;
@@ -52,7 +56,7 @@ test('마우스·키보드 포커스·문서 숨김·팝업은 이동을 멈춘�
  f.rail.focus();assert.equal(f.timers.size,0);f.rail.blur();f.flush();assert.equal(f.timers.size,1);
  Object.defineProperty(f.d,'hidden',{value:true,configurable:true});f.d.dispatchEvent(new f.w.Event('visibilitychange'));assert.equal(f.timers.size,0);
  Object.defineProperty(f.d,'hidden',{value:false});f.d.dispatchEvent(new f.w.Event('visibilitychange'));
- const dialog=f.d.createElement('dialog');dialog.open=true;f.d.body.append(dialog);await Promise.resolve();assert.equal(f.timers.size,0);f.close();
+ const dialog=f.d.createElement('dialog');dialog.open=true;dialog.getClientRects=()=>[{width:320,height:240}];f.d.body.append(dialog);await Promise.resolve();assert.equal(f.timers.size,0);f.close();
 });
 test('연속 이동과 레일 폭 변화는 선택 카드 정렬을 유지한다',()=>{
  const f=fixture(390);const next=f.d.querySelector('[data-sig-next]');next.click();next.click();assert.equal(f.rail.scrollLeft,600);
@@ -67,9 +71,10 @@ test('동작 축소에서는 자동 이동과 재생 버튼을 사용하지 않�
 });
 
 test('동적 카드 위치와 멈춤 안내에도 현재 언어를 적용한다',()=>{
- const f=fixture(390,false,(key,vars)=>key==='home.choice.position'?'Card '+vars.number:key==='home.choice.paused'?'Stopped':'Stop');
+ const f=fixture(390,false,(key,vars)=>key==='home.choice.position'?'Card '+vars.number:key==='home.choice.resume'?'Resume':'Stop');
  assert.equal(f.d.querySelector('[data-sig-slide="0"]').getAttribute('aria-label'),'Card 1');
- f.d.querySelector('[data-sig-next]').click();assert.equal(f.d.querySelector('[data-sig-pause]').getAttribute('aria-label'),'Stopped');f.close();
+ f.d.querySelector('[data-sig-next]').click();assert.equal(f.d.querySelector('[data-sig-pause]').getAttribute('aria-label'),'Stop');
+ f.d.querySelector('[data-sig-pause]').click();assert.equal(f.d.querySelector('[data-sig-pause]').getAttribute('aria-label'),'Resume');f.close();
 });
 
 
