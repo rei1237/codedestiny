@@ -130,8 +130,13 @@ export async function unlinkCurrentSession(){
 export async function logout(){const logoutEpoch=sessionEpoch,logoutAttempt=++loginAttempt;try{await api('/logout',{});}finally{if(sessionEpoch!==logoutEpoch||loginAttempt!==logoutAttempt)throw new ApiError('SESSION_CHANGED','',409);const cleared=await clearSession(false);if(token!==null||sessionEpoch!==cleared||loginAttempt!==logoutAttempt)throw new ApiError('SESSION_CHANGED','',409);}}
 export type CatalogProduct={id:string;name:string;sku:string;approvedPriceKRW:number;chapters:number;available:boolean};
 export type SaleProduct=CatalogProduct&{displayAmount:string};
+function requireProductListSupport(){
+  let supported=false;try{supported=IAP.getProductItemList.isSupported();}catch{/* Unsupported bridge versions fail closed. */}
+  if(!supported)throw new ApiError('IAP_NOT_SUPPORTED');
+}
 export async function saleProducts():Promise<SaleProduct[]>{
   if(!SERVICE_AVAILABLE||!isToss())return [];
+  requireProductListSupport();
   const [catalog,items]=await Promise.all([api<{products:CatalogProduct[]}>('/catalog'),IAP.getProductItemList()]);
   return catalog.products.flatMap(p=>{
     const item=items?.products.find(i=>i.sku===p.sku&&i.type==='CONSUMABLE');
@@ -140,6 +145,7 @@ export async function saleProducts():Promise<SaleProduct[]>{
 }
 export async function nativeSaleProducts():Promise<SaleProduct[]>{
   if(!SERVICE_AVAILABLE||!isToss())return [];
+  requireProductListSupport();
   const [catalog,items]=await Promise.all([api<{products:CatalogProduct[]}>('/native/catalog'),IAP.getProductItemList()]);
   return catalog.products.flatMap(product=>{
     const item=items?.products.find(row=>row.sku===product.sku&&row.type==='CONSUMABLE');
@@ -149,6 +155,7 @@ export async function nativeSaleProducts():Promise<SaleProduct[]>{
 export type TarotLibraryProduct={id:string;name:string;sku:string;featureKey:string;approvedPriceKRW:number;displayAmount:string};
 export async function tarotLibraryProducts():Promise<TarotLibraryProduct[]>{
   if(!SERVICE_AVAILABLE||!isToss())return [];
+  requireProductListSupport();
   const [catalog,items]=await Promise.all([api<{flows:Omit<TarotLibraryProduct,'displayAmount'>[]}>('/tarot-library/catalog'),IAP.getProductItemList()]);
   return catalog.flows.flatMap(flow=>{const item=items?.products.find(entry=>entry.sku===flow.sku&&entry.type==='CONSUMABLE');return item?[{...flow,displayAmount:item.displayAmount}]:[];});
 }

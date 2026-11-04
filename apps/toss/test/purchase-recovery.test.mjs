@@ -13,13 +13,13 @@ async function adapter(available=true,authenticated=false){
   b.onResolve({filter:/^(@apps-in-toss\/web-framework|\.\/release)$/},args=>({path:args.path,namespace:'mock'}));
   b.onLoad({filter:/.*/,namespace:'mock'},args=>({contents:args.path==='./release'?'export const SERVICE_AVAILABLE='+available+';':`
    export const Environment={environment:'sandbox'},TossAuth={login:async()=>({authorizationCode:'mock',referrer:'SANDBOX'})},Storage={getItem:async()=>{const s=globalThis.tossRecoveryTest,value=s.stored||null;if(s.getStarted)s.getStarted();if(s.getWait)await s.getWait;return value;},removeItem:async()=>{const s=globalThis.tossRecoveryTest;if(s.removeFailure)throw s.removeFailure;if(s.removeError)throw Error('storage remove failed');if(s.removeStarted)s.removeStarted();if(s.removeWait)await s.removeWait;s.stored=null;},setItem:async(_key,value)=>{const s=globalThis.tossRecoveryTest;if(s.setStarted)s.setStarted();if(s.setWait)await s.setWait;if(s.storageFailure)throw s.storageFailure;if(s.setError||s.failSetFor===value)throw Error('storage unavailable');s.stored=value;}},Share={};
-   const buy=options=>{const s=globalThis.tossRecoveryTest;s.purchaseOptions=options;if(s.synchronousThrow)throw Object.assign(Error('NETWORK_ERROR'),{code:'NETWORK_ERROR'});if(s.synchronousCancel)options.onError({code:'USER_CANCELED'});return ()=>{s.cleanupCount=(s.cleanupCount||0)+1;};};buy.isSupported=()=>true;
-   const pending=async()=>{const s=globalThis.tossRecoveryTest;s.pendingCalls=(s.pendingCalls||0)+1;if(s.pendingStarted)s.pendingStarted();if(s.pendingWait)await s.pendingWait;return s.malformed?undefined:{orders:s.orders};};pending.isSupported=()=>globalThis.tossRecoveryTest.supportPending!==false;const complete=async({params})=>{const s=globalThis.tossRecoveryTest;s.ack.push(params.orderId);if(s.ackStarted)s.ackStarted();if(s.ackWait)await s.ackWait;return !s.failAck;};complete.isSupported=()=>globalThis.tossRecoveryTest.supportComplete!==false;export const IAP={createOneTimePurchaseOrder:buy,getPendingOrders:pending,completeProductGrant:complete};
+   const productList=async()=>{const s=globalThis.tossRecoveryTest;s.productListCalls=(s.productListCalls||0)+1;if(s.productListError)throw s.productListError;return {products:[]};};productList.isSupported=()=>{if(globalThis.tossRecoveryTest.productSupportThrows)throw Error('bridge unavailable');return globalThis.tossRecoveryTest.supportProductList!==false;};const buy=options=>{const s=globalThis.tossRecoveryTest;s.purchaseOptions=options;if(s.synchronousThrow)throw Object.assign(Error('NETWORK_ERROR'),{code:'NETWORK_ERROR'});if(s.synchronousCancel)options.onError({code:'USER_CANCELED'});return ()=>{s.cleanupCount=(s.cleanupCount||0)+1;};};buy.isSupported=()=>true;
+   const pending=async()=>{const s=globalThis.tossRecoveryTest;s.pendingCalls=(s.pendingCalls||0)+1;if(s.pendingStarted)s.pendingStarted();if(s.pendingWait)await s.pendingWait;return s.malformed?undefined:{orders:s.orders};};pending.isSupported=()=>globalThis.tossRecoveryTest.supportPending!==false;const complete=async({params})=>{const s=globalThis.tossRecoveryTest;s.ack.push(params.orderId);if(s.ackStarted)s.ackStarted();if(s.ackWait)await s.ackWait;return !s.failAck;};complete.isSupported=()=>globalThis.tossRecoveryTest.supportComplete!==false;export const IAP={createOneTimePurchaseOrder:buy,getPendingOrders:pending,completeProductGrant:complete,getProductItemList:productList};
   `}));
  }}]});
  const loaded=new Module('purchase-recovery-check.cjs');loaded._compile(bundle.outputFiles[0].text,loaded.id);
  if(authenticated){const previous=globalThis.fetch;globalThis.fetch=async()=>Response.json({token:'fixture-token'});try{await loaded.exports.login();}finally{globalThis.fetch=previous;}}
- return {state,restore:loaded.exports.restorePurchases,auto:loaded.exports.recoverAfterAuthentication,purchase:loaded.exports.purchase,purchaseTarot:loaded.exports.purchaseTarotLibrary,login:loaded.exports.login,logout:loaded.exports.logout,unlinkCurrentSession:loaded.exports.unlinkCurrentSession,clearSession:loaded.exports.clearSession,api:loaded.exports.api,canonical:loaded.exports.canonicalResponse,onInvalidated:loaded.exports.onSessionInvalidated,restoreSession:loaded.exports.restoreSession};
+ return {state,saleProducts:loaded.exports.saleProducts,nativeSaleProducts:loaded.exports.nativeSaleProducts,tarotLibraryProducts:loaded.exports.tarotLibraryProducts,restore:loaded.exports.restorePurchases,auto:loaded.exports.recoverAfterAuthentication,purchase:loaded.exports.purchase,purchaseTarot:loaded.exports.purchaseTarotLibrary,login:loaded.exports.login,logout:loaded.exports.logout,unlinkCurrentSession:loaded.exports.unlinkCurrentSession,clearSession:loaded.exports.clearSession,api:loaded.exports.api,canonical:loaded.exports.canonicalResponse,onInvalidated:loaded.exports.onSessionInvalidated,restoreSession:loaded.exports.restoreSession};
 }
 
 test('pending purchases use server-owned product routing and acknowledge durable grants only',async()=>{
@@ -423,5 +423,23 @@ test('a guest must never open the native purchase sheet',async()=>{
 test('a repeated token does not reuse an earlier session recovery',async()=>{
  const {state,login,restore}=await adapter(),previous=globalThis.fetch;let release,started;const wait=new Promise(r=>{release=r}),begun=new Promise(r=>{started=r});globalThis.fetch=async()=>Response.json({token:'same-token'});
  try{await login();state.pendingWait=wait;state.pendingStarted=started;const old=restore();await begun;await login();const newer=restore();assert.notEqual(old,newer);release();await assert.rejects(old,e=>e.code==='SESSION_CHANGED');assert.deepEqual(await newer,{recovered:0,failed:0,denied:0});assert.equal(state.pendingCalls,2);}
+ finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
+});
+
+test('unsupported product-list SDK is rejected before catalog or SDK calls',async()=>{
+ const {state,saleProducts,nativeSaleProducts,tarotLibraryProducts}=await adapter(),previous=globalThis.fetch;state.supportProductList=false;let calls=0;globalThis.fetch=async()=>{calls++;throw Error('unexpected catalog call');};
+ try{for(const read of [saleProducts,nativeSaleProducts,tarotLibraryProducts])await assert.rejects(read(),e=>e.code==='IAP_NOT_SUPPORTED');assert.equal(state.productListCalls,undefined);assert.equal(calls,0);}
+ finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
+});
+
+test('product-list SDK version error retains its original update guidance',async()=>{
+ const {state,saleProducts}=await adapter(),previous=globalThis.fetch;state.productListError={code:'UNSUPPORTED_APP_VERSION',message:'토스 앱을 최신 버전으로 업데이트해 주세요.'};globalThis.fetch=async()=>Response.json({products:[]});
+ try{await assert.rejects(saleProducts(),e=>e.code==='UNSUPPORTED_APP_VERSION'&&e.message==='토스 앱을 최신 버전으로 업데이트해 주세요.');}
+ finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
+});
+
+test('product-list support probe failures do not open the catalog',async()=>{
+ const {state,saleProducts}=await adapter(),previous=globalThis.fetch;state.productSupportThrows=true;let calls=0;globalThis.fetch=async()=>{calls++;throw Error('unexpected catalog call');};
+ try{await assert.rejects(saleProducts(),e=>e.code==='IAP_NOT_SUPPORTED');assert.equal(state.productListCalls,undefined);assert.equal(calls,0);}
  finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
 });
