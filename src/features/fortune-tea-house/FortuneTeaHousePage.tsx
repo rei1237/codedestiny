@@ -1686,6 +1686,7 @@ export default function FortuneTeaHousePage({paymentSurface = "web"}: {paymentSu
       {stage === "teaSelect" ? (
         <HoneyDropRewardOverlay
           inline
+          paymentSurface={paymentSurface}
           honeyDrops={honeyDrops}
           burstKey={honeyRewardBurstKey}
           message={honeyRewardMessage}
