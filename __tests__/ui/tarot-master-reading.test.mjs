@@ -47,6 +47,13 @@ test('전 카드 조합에 금칙 표현과 합쇼체가 없다', () => {
   }
 });
 
+test('결과 약속·상대 반응 단정·공포 문장을 데이터에서 거른다', () => {
+  const source = readFileSync(OUTPUT_PATH, 'utf8');
+  for (const line of ['자신감을 갖고 나아가면 성공이 따라요', '상대는 멀어져요', '상대의 마음을 움직여요', '사고로 이어져요', '갑작스러운 충격이 와요', '최악의 생각까지']) {
+    assert.equal(source.includes(line), false, line);
+  }
+});
+
 test('메이저 번호 숫자를 화면 문구에 쓰지 않는다', () => {
   const r = reading(['M18', 'M17', 'M19']);
   const row = r.energy.find((e) => e.label === '숫자 흐름');
