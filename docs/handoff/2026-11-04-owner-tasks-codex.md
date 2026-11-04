@@ -1,7 +1,7 @@
 ---
-status: active
+status: done
 updated: 2026-11-04
-next: "Threads·Instagram·X 프로필 미적용 항목과 Cloudflare 세부 기록을 확인한다"
+next: "2026-12-01 이후 Q17~Q24 재측정은 별도 인수인계 절차로 진행한다"
 ---
 
 # 영냥이 AEO 소유자 작업 (Codex 실행용)
@@ -190,3 +190,14 @@ git worktree remove --force '<워크트리>'
 - Instagram @codedestiny_official: 승인한 소개를 저장하고 새로고침 후 확인했다. 사이트 링크 편집은 모바일 앱에서만 가능하다는 안내가 보여 미적용이다.
 - Threads: 활성 계정은 @youngyangi91이며 공식 프로필에 편집 버튼이 없어 월정석 가입 문구 삭제는 미적용이다.
 - X: 활성 계정은 다른 계정이며 전환 목록에 대상 계정이 없어 소개 수정은 미적용이다.
+
+## 2026-11-04 재개 결과
+
+- Cloudflare AI Crawl Control을 최근 30일로 다시 확인했다. 전체 113.34k 요청, 허용 102k, 비성공 12k이며 상태 코드는 200 97.95k, 403 170, 404 11.31k로 표시됐다. 비성공은 차단과 같은 뜻이 아니며 대부분은 404다.
+- 주요 크롤러의 허용/비성공 표시는 Applebot 33.6k/560, OAI-SearchBot 26.37k/3.32k, Googlebot 13.93k/1.08k, BingBot 7.38k/660, GPTBot 3.95k/510, PerplexityBot 2.8k/400, ClaudeBot 2.18k/360, Claude-SearchBot 0/430이다.
+- 대표 URL 중 `/`는 740건에서 200 350, 301 230, 302 110, 403 10, 404 40이었다. `/ggulggul/`는 200 860·302 10, `/yeongnyangi/`는 200 220, `/kkul-kkul-unse/`는 200 30·301 10, `/about/`는 200 50, `/saju/`는 200 50, `/insights/`는 200 90이었다. 대표 URL의 403은 루트 10건 외에는 보이지 않았다.
+- Bot Preference Sync(Managed robots 대응)는 꺼짐이다. Bot Fight Mode와 Browser Integrity Check는 앞선 관측대로 꺼짐이며 관리 규칙셋은 항상 활성이다. 설정은 바꾸지 않았다.
+- 현재 Free 요금제 화면은 JavaScript Detections와 Bot score를 노출하지 않았고, 크롤러별 403·challenge 건수와 규칙 귀속도 제공하지 않았다. Yeti는 보이는 AI 크롤러 목록에 없었다. 이 값들은 추측하지 않고 미측정으로 남겼다.
+- Threads 공식 프로필의 잘못된 `가입 시 월정석 500개` 문구는 현재 사라졌고 서비스 소개와 홈 링크가 표시된다. 활성 세션은 `@youngyangi91`이고 공식 계정 편집 버튼은 없으므로 외부 수정은 하지 않았다.
+- X는 공식 `@sajuseongj97497` 계정으로 로그인돼 있고 편집 권한이 확인됐다. 승인된 소개와 홈 링크가 이미 적용돼 있어 다시 저장하지 않았다.
+- Bing Webmaster와 Copilot은 소유자의 건너뜀 지시를 유지했다. 이번 재개에서 외부 설정·프로필·게시물은 변경하지 않았다.

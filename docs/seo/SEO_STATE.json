@@ -4929,41 +4929,125 @@
         "indexRequest": "not submitted; already indexed"
       },
       "cloudflare": {
-        "period": "last 7 days",
+        "period": "last 30 days",
         "botFightMode": "off",
         "browserIntegrityCheck": "off",
+        "botPreferenceSync": "off",
         "managedRuleset": "always active",
         "customRules": "Allow Verified Bots active; AI user-agent block, exploit scanner block and overseas challenge disabled",
         "rateLimit": "Block-Infinite-Loop active: URI path starts with /",
         "crawlerCounts": {
+          "Applebot": {
+            "allowedDisplayed": "33.6k",
+            "unsuccessfulDisplayed": "560"
+          },
           "OAI-SearchBot": {
-            "allowedDisplayed": "8.4k",
-            "unsuccessful": 157
+            "allowedDisplayed": "26.37k",
+            "unsuccessfulDisplayed": "3.32k"
           },
           "Googlebot": {
-            "allowedDisplayed": "5.76k",
-            "unsuccessful": 429
+            "allowedDisplayed": "13.93k",
+            "unsuccessfulDisplayed": "1.08k"
           },
           "BingBot": {
-            "allowedDisplayed": "1.86k",
-            "unsuccessful": 182
+            "allowedDisplayed": "7.38k",
+            "unsuccessfulDisplayed": "660"
+          },
+          "GPTBot": {
+            "allowedDisplayed": "3.95k",
+            "unsuccessfulDisplayed": "510"
           },
           "PerplexityBot": {
-            "allowedDisplayed": "413",
-            "unsuccessful": 152
+            "allowedDisplayed": "2.8k",
+            "unsuccessfulDisplayed": "400"
+          },
+          "ClaudeBot": {
+            "allowedDisplayed": "2.18k",
+            "unsuccessfulDisplayed": "360"
           },
           "Claude-SearchBot": {
-            "allowedDisplayed": "15",
-            "unsuccessful": 87
+            "allowedDisplayed": "0",
+            "unsuccessfulDisplayed": "430"
           }
         },
-        "aggregateStatus": "AI metrics: 403 14; 404 approximately 2.35k; 2xx approximately 21.1k",
-        "limitations": "Unsuccessful is not synonymous with blocked or 403. Bot- and URL-specific 2xx/403/challenge, Yeti, rule attribution, JS Detections, Bot score and Managed robots status not measured."
+        "aggregateStatus": {
+          "totalRequestsDisplayed": "113.34k",
+          "allowedRequestsDisplayed": "102k",
+          "unsuccessfulRequestsDisplayed": "12k",
+          "status200": "97.95k",
+          "status403": "170",
+          "status404": "11.31k"
+        },
+        "representativePaths": {
+          "/": {
+            "total": 740,
+            "allowed": 690,
+            "unsuccessful": 50,
+            "status": {
+              "200": 350,
+              "301": 230,
+              "302": 110,
+              "403": 10,
+              "404": 40
+            }
+          },
+          "/ggulggul/": {
+            "total": 870,
+            "allowed": 870,
+            "unsuccessful": 0,
+            "status": {
+              "200": 860,
+              "302": 10
+            }
+          },
+          "/yeongnyangi/": {
+            "total": 220,
+            "allowed": 220,
+            "unsuccessful": 0,
+            "status": {
+              "200": 220
+            }
+          },
+          "/kkul-kkul-unse/": {
+            "total": 40,
+            "allowed": 40,
+            "unsuccessful": 0,
+            "status": {
+              "200": 30,
+              "301": 10
+            }
+          },
+          "/about/": {
+            "total": 50,
+            "allowed": 50,
+            "unsuccessful": 0,
+            "status": {
+              "200": 50
+            }
+          },
+          "/saju/": {
+            "total": 50,
+            "allowed": 50,
+            "unsuccessful": 0,
+            "status": {
+              "200": 50
+            }
+          },
+          "/insights/": {
+            "total": 90,
+            "allowed": 90,
+            "unsuccessful": 0,
+            "status": {
+              "200": 90
+            }
+          }
+        },
+        "limitations": "Unsuccessful is not synonymous with blocked or 403. The dashboard did not expose bot-specific 403/challenge or rule attribution. Yeti was absent from the visible AI crawler list. JavaScript Detections and Bot score were not exposed in the current Free-plan settings UI."
       },
       "profiles": {
-        "codeMismatchCount": 1,
-        "description": "Threads profile says 500 moonstones on signup; inspected code sets signup grant to 0 and describes tutorial completion. Production setting not independently verified. Full pinned-post audit incomplete.",
-        "approvalRequired": "Profile and published text edits require item-by-item owner approval."
+        "codeMismatchCount": 0,
+        "description": "The stale Threads signup reward claim is no longer present. The official Threads profile shows the service description and home link, but the active session remains @youngyangi91 and has no edit control on @codedestiny_official. X is logged into the official account and already shows the approved bio and home link. Full pinned-post audit remains incomplete.",
+        "approvalRequired": "No additional profile edit is required from this recheck. Future profile or published text edits still require item-by-item owner approval."
       },
       "skipped": [
         {
@@ -4983,18 +5067,19 @@
         "applied": [
           "YouTube channel description",
           "Naver blog introduction",
-          "WordPress consultation question guide"
+          "WordPress consultation question guide",
+          "Instagram profile bio",
+          "X profile bio"
         ],
         "notApplied": {
-          "Instagram": "target account not in saved accounts; login required",
-          "Threads": "active account differs; edit access not established",
-          "X": "active account differed on prior observation; browser connection interrupted before access check"
+          "InstagramWebsite": "Website link editing remains available only in the mobile app.",
+          "Threads": "Active account is @youngyangi91 and edit access to @codedestiny_official is not available; the stale signup reward claim is no longer present, so no deletion remains."
         },
         "goodbyejieun": "owner account; excluded from official channels",
         "recheck20261104": {
           "instagram": "Approved bio saved and confirmed after reload. Website links can only be edited in mobile app.",
-          "threads": "Active session remains @youngyangi91; official profile has no edit control; approved deletion not applied.",
-          "x": "Active session remains @bb067412797704; target account not in switch menu; approved bio not applied."
+          "threads": "Active session remains @youngyangi91; the official profile has no edit control. The stale signup reward claim is absent and the home link is present, so no policy correction remains.",
+          "x": "Official @sajuseongj97497 account is active with Edit profile access. The approved bio and home link are already present; no further edit was made."
         }
       }
     }
