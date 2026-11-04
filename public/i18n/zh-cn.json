@@ -2225,7 +2225,12 @@
       "signatureNavigation": "切换精选咨询",
       "signaturePrevious": "上一个咨询",
       "signatureNext": "下一个咨询",
-      "signatureYeoniDesc": "妍伊通过对话陪您梳理心事。"
+      "signatureYeoniDesc": "妍伊通过对话陪您梳理心事。",
+      "webtoonBadge": "精选咨询条漫 · 12格",
+      "webtoonTitle": "黑月的警告",
+      "webtoonDesc": "黑月预示的未来，是否还有另一条路？Yeoni与Neo会从你的天生倾向和未来十二个月的走势中，一起找出应当避开的选择。",
+      "webtoonStart": "阅读第一幕",
+      "webtoonMore": "查看其他导师的咨询条漫"
     },
     "playPrice": {
       "from": "{price}起",

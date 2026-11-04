@@ -2225,7 +2225,12 @@
       "signatureNavigation": "Điều hướng tư vấn nổi bật",
       "signaturePrevious": "Tư vấn trước",
       "signatureNext": "Tư vấn tiếp theo",
-      "signatureYeoniDesc": "Yeoni cùng bạn trò chuyện về điều còn vướng trong lòng."
+      "signatureYeoniDesc": "Yeoni cùng bạn trò chuyện về điều còn vướng trong lòng.",
+      "webtoonBadge": "Webtoon tư vấn nổi bật · 12 khung",
+      "webtoonTitle": "Lời cảnh báo của Trăng Đen",
+      "webtoonDesc": "Liệu có con đường nào khác ngoài tương lai Trăng Đen báo trước? Yeoni và Neo cùng xem bản tính và dòng chảy mười hai tháng để tìm những lựa chọn nên tránh.",
+      "webtoonStart": "Đọc cảnh đầu tiên",
+      "webtoonMore": "Xem webtoon tư vấn của các chuyên gia khác"
     },
     "playPrice": {
       "from": "Từ {price}",

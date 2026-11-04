@@ -2225,7 +2225,12 @@
       "signatureNavigation": "Navigation des consultations à la une",
       "signaturePrevious": "Consultation précédente",
       "signatureNext": "Consultation suivante",
-      "signatureYeoniDesc": "Yeoni vous aide à parler de ce qui vous préoccupe."
+      "signatureYeoniDesc": "Yeoni vous aide à parler de ce qui vous préoccupe.",
+      "webtoonBadge": "Webtoon de consultation à la une · 12 cases",
+      "webtoonTitle": "L’avertissement de la Lune noire",
+      "webtoonDesc": "Existe-t-il une autre voie que l’avenir annoncé par la Lune noire ? Yeoni et Neo examinent votre nature et les douze mois à venir pour repérer les choix qu’il vaut mieux éviter.",
+      "webtoonStart": "Lire la première scène",
+      "webtoonMore": "Voir les webtoons de consultation des autres maîtres"
     },
     "playPrice": {
       "from": "À partir de {price}",

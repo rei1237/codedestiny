@@ -2225,7 +2225,12 @@
       "signatureNavigation": "Featured consultation navigation",
       "signaturePrevious": "Previous consultation",
       "signatureNext": "Next consultation",
-      "signatureYeoniDesc": "Yeoni helps you talk through what is on your mind."
+      "signatureYeoniDesc": "Yeoni helps you talk through what is on your mind.",
+      "webtoonBadge": "Featured consultation webtoon · 12 panels",
+      "webtoonTitle": "The Black Moon’s Warning",
+      "webtoonDesc": "Is there another path beyond the future foretold by the Black Moon? Yeoni and Neo trace your nature and the year ahead to find the choices worth avoiding.",
+      "webtoonStart": "Read the first scene",
+      "webtoonMore": "Explore other masters’ consultation webtoons"
     },
     "playPrice": {
       "from": "From {price}",

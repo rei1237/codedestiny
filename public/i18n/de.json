@@ -2225,7 +2225,12 @@
       "signatureNavigation": "Navigation der Beratungen",
       "signaturePrevious": "Vorherige Beratung",
       "signatureNext": "Nächste Beratung",
-      "signatureYeoniDesc": "Yeoni spricht mit dir über das, was dich beschäftigt."
+      "signatureYeoniDesc": "Yeoni spricht mit dir über das, was dich beschäftigt.",
+      "webtoonBadge": "Ausgewählter Beratungs-Webtoon · 12 Panels",
+      "webtoonTitle": "Die Warnung des Schwarzen Mondes",
+      "webtoonDesc": "Gibt es einen anderen Weg als die vom Schwarzen Mond angekündigte Zukunft? Yeoni und Neo betrachten deine Anlagen und den Verlauf der nächsten zwölf Monate, um Entscheidungen zu erkennen, die du besser meidest.",
+      "webtoonStart": "Erste Szene lesen",
+      "webtoonMore": "Beratungs-Webtoons weiterer Meister ansehen"
     },
     "playPrice": {
       "from": "Ab {price}",

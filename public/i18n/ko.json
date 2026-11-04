@@ -2074,7 +2074,12 @@
       "signatureNavigation": "대표 상담 이동",
       "signaturePrevious": "이전 상담",
       "signatureNext": "다음 상담",
-      "signatureYeoniDesc": "연이가 마음에 걸린 이야기를 대화로 함께 풀어 드려요."
+      "signatureYeoniDesc": "연이가 마음에 걸린 이야기를 대화로 함께 풀어 드려요.",
+      "webtoonBadge": "대표 상담 웹툰 · 12컷",
+      "webtoonTitle": "흑월의 경고",
+      "webtoonDesc": "흑월이 예고한 미래, 다른 길은 없을까요? 연이와 네오가 타고난 성향과 열두 달의 흐름에서 피할 선택을 함께 찾습니다.",
+      "webtoonStart": "첫 장면 읽기",
+      "webtoonMore": "다른 마스터의 상담 웹툰 보기"
     },
     "playPrice": {
       "from": "{price}부터",

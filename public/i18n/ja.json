@@ -2225,7 +2225,12 @@
       "signatureNavigation": "おすすめ相談の移動",
       "signaturePrevious": "前の相談",
       "signatureNext": "次の相談",
-      "signatureYeoniDesc": "ヨニが心にかかることを対話で一緒に整理します。"
+      "signatureYeoniDesc": "ヨニが心にかかることを対話で一緒に整理します。",
+      "webtoonBadge": "代表相談ウェブトゥーン・全12コマ",
+      "webtoonTitle": "黒月の警告",
+      "webtoonDesc": "黒月が告げた未来に、別の道はないのでしょうか。ヨニとネオが生まれ持った性質と12か月の流れから、避けたい選択を一緒に探します。",
+      "webtoonStart": "最初の場面を読む",
+      "webtoonMore": "ほかのマスターの相談ウェブトゥーンを見る"
     },
     "playPrice": {
       "from": "{price}〜",
