@@ -409,3 +409,29 @@ test('판매 종료 키의 옛 개별 가격은 어느 화면 표기에도 남�
     }
   assert.ok(checked >= 3, `대시보드 판매 종료 타일 ${checked}개만 검사됨`);
 });
+
+test('열림 -> 닫힘 -> 같은 차트로 다시 열림이면 비워진 카드를 다시 그린다', () => {
+  const { w, calls } = engineWindow([BUNDLE]);
+  w._cdRenderBundleSurfaces();
+  const firstOpen = calls.length;
+  assert.ok(firstOpen > 0);
+  w.__unlocked = new Set(); // 닫힘: 작업이 없어도 렌더 키가 남아 있으면 안 된다
+  w._cdRenderBundleSurfaces();
+  assert.ok(!shown(w, 'dailyMonthlyCard'));
+  w.__unlocked = new Set([BUNDLE]); // 같은 차트, 같은 프로필로 다시 열림(cd:unlocks-changed)
+  w._cdRenderBundleSurfaces();
+  assert.equal(calls.length, firstOpen * 2, '다시 열릴 때 렌더러가 다시 불려야 한다');
+});
+
+test('일부만 닫힌 뒤 다시 열려도 비워진 카드를 다시 그린다', () => {
+  const { w, calls } = engineWindow([BUNDLE]);
+  w._cdRenderBundleSurfaces();
+  const firstOpen = calls.length;
+  w.__unlocked = new Set(['rpt_lottoCard']); // 로또만 남고 나머지는 닫힘
+  w._cdRenderBundleSurfaces();
+  assert.ok(!shown(w, 'dailyMonthlyCard') && !shown(w, 'hormone-vibe-section'));
+  assert.ok(shown(w, 'lottoCard'));
+  w.__unlocked = new Set([BUNDLE]);
+  w._cdRenderBundleSurfaces();
+  assert.equal(calls.length, firstOpen + 1 + firstOpen, '부분 닫힘 때 로또 1회, 다시 열릴 때 전체 재렌더');
+});

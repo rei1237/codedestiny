@@ -22113,7 +22113,8 @@ function _cdRenderBundleSurfaces(){
     tasks.push(function(){ invokeOptionalGlobalRenderer('renderDopamineReport',[p,natal,G_POWER,johu]); });
     tasks.push(function(){ invokeOptionalGlobalRenderer('renderSajuFourCutContent',[]); });
   }
-  if(!tasks.length)return;
+  /* 전부 닫혀 작업이 없으면 카드는 이미 비워졌다. 렌더 키를 남겨 두면 같은 차트로 다시 열릴 때 같은 키라고 보고 그리지 않는다. */
+  if(!tasks.length){ _cdBundleSurfaceRenderKey=''; return; }
   _cdBundleSurfaceRenderKey=key;
   runDeferredSajuTasks(tasks.map(function(fn){ return function(){ try{ fn(); }catch(e){ console.error('[saju] bundle surface error',e); } }; }));
 }
