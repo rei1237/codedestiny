@@ -133,6 +133,25 @@ test("종합·대운 유료 렌더러와 문장이 브라우저 경로에 없다
   assert.ok(read("lib/saju/reading-depth.mjs").includes("export const PILLAR_NOTES"), "일주 문장 원천 정본이 서버에 없다");
 });
 
+test("추천 태그는 서버가 채우는 일주 조언 목록을 읽지 않는다", () => {
+  // 묶음 구매자에게만 채워지는 #iljuAdviceList 를 입력으로 쓰면 구매 여부·로딩 순서에 따라 태그가 달라진다.
+  for (const rel of ["js/recommendations-legacy.mjs", "public/js/recommendations-legacy.mjs"]) {
+    assert.doesNotMatch(stripComments(read(rel)), /iljuAdviceList/, `${rel} 이 서버 일주 조언 목록을 읽는다`);
+  }
+  const callers = [];
+  for (const rel of browserServedFiles()) {
+    const source = stripComments(read(rel));
+    for (const m of source.matchAll(/\.mountSajuRecommendation\(([^;]*)/g)) callers.push({ rel, args: m[1] });
+  }
+  assert.ok(callers.length >= 4, `mountSajuRecommendation 호출처를 ${callers.length}곳만 찾았다`);
+  for (const { rel, args } of callers) {
+    assert.match(args, /m\.iljuAdviceLines\(/, `${rel} 이 공개 일주 조언 목록 없이 추천을 붙인다`);
+  }
+  // 목록의 출처는 공개 일주 표(ILJU_DB) 하나다.
+  const engine = stripComments(read("js/saju-engine.js"));
+  assert.match(engine, /window\.cdSajuRecommendationAdvice = function\(\)\{[^}]*ILJU_DB\[/, "추천 조언 입력이 ILJU_DB 에서 오지 않는다");
+});
+
 test("극T 해금 패널 문장의 번역은 공개 사전(public/i18n)에 없다", () => {
   // 정적 사전도 URL 로 그대로 열린다. 유료 문장 번역은 서버 전용 사본(paid-extreme-t.i18n.json)에만 둔다.
   const paidKeys = [...new Set(read("worker/lib/saju-section/paid-extreme-t.src.js").match(/_extremeTText\("([^"]+)"\)/g).map((m) => m.slice(15, -2)))];

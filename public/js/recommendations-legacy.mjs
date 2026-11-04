@@ -11,8 +11,8 @@ export function iljuAdviceLines(text, max = 3) {
   return clean.replace(/\.\s+/g, '.|').replace(/!\s+/g, '!|').replace(/\?\s+/g, '?|').split('|').map(s => s.trim()).filter(Boolean).slice(0, max);
 }
 export function mountSajuRecommendation(host, anchor, adviceLines) {
-  // Only practical-advice sentences: no chart, birth data or report text. 호출자가 목록을 주면 화면(서버 본문)을 읽지 않는다.
-  const advice = Array.isArray(adviceLines) ? adviceLines : Array.from(host?.querySelectorAll('#iljuAdviceList li') || []).map(el => el.textContent);
+  // Only practical-advice sentences from the caller (free ilju table): no chart, birth data or rendered report text. 화면 목록은 읽지 않는다.
+  const advice = Array.isArray(adviceLines) ? adviceLines : [];
   return mountRecommendation(host, { service: 'legacy-saju', practiceTags: adviceTopics(advice) }, anchor);
 }
 export async function mountRecommendation(host, input, anchor = null) {

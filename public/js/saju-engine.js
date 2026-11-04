@@ -5366,7 +5366,7 @@ async function calculate(run){
     ]);
     var ss=document.getElementById('shareSection');if(ss)ss.style.display='block';
     // 추천 태그는 서버가 채우는 #iljuAdviceList 가 아니라 공개 일주 표(ILJU_DB)의 조언에서 만든다(구매 여부와 무관, 로딩 순서와 무관).
-    import('/js/recommendations-legacy.mjs').then(function(m){var _iljuData=null;try{_iljuData=ILJU_DB[p.d.g+p.d.j];}catch(_e){}return m.mountSajuRecommendation(document.getElementById('resultPage'),ss,m.iljuAdviceLines(_iljuData&&_iljuData.advice));}).catch(function(){});
+    import('/js/recommendations-legacy.mjs').then(function(m){return m.mountSajuRecommendation(document.getElementById('resultPage'),ss,m.iljuAdviceLines(window.cdSajuRecommendationAdvice()));}).catch(function(){});
     document.getElementById('dwDetail').innerHTML='';
     document.getElementById('dwDetail').classList.remove('show');
 
@@ -9254,6 +9254,11 @@ function iljuSetBar(barId, valId, value) {
 // 여기서는 칸을 비우고 안내 한 덩어리만 둔다. 반드시 실질 내용을 담는다 — reportDashboard 의 _sajuFunHasRenderableContent 가
 // 빈 섹션을 "콘텐츠 준비 중" 으로 바꾸기 때문이다.
 var _CD_NATAL_BUNDLE_KEY = 'saju_lifetime_bundle';
+// 추천 태그의 입력: 공개 일주 표(ILJU_DB)의 조언 문장. 서버가 채우는 #iljuAdviceList 는 읽지 않는다(구매 여부·로딩 순서와 무관).
+// 결과 화면을 처음 그릴 때와 reading-personas.js 의 로케일 재마운트가 같은 입력을 쓴다.
+window.cdSajuRecommendationAdvice = function(){
+  try { var d = G_PILLARS && G_PILLARS.d && ILJU_DB[G_PILLARS.d.g + G_PILLARS.d.j]; return (d && d.advice) || ''; } catch (_e) { return ''; }
+};
 var _CD_NATAL_STUBS = {
   ilju: { slot: 'iljuSummaryList', item: true, clear: ['iljuDetailList', 'iljuAdviceList', 'iljuKeywords', 'iljuDetailsInfo', 'sajuElementReading', 'sajuIljuRich'],
     title: '일주 풀이', text: '일간과 일지가 만드는 타고난 성향, 일·재물·관계에서 드러나는 결, 오늘부터 쓸 수 있는 조언을 이어서 풀어 드려요.' },
