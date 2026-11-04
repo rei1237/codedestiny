@@ -8,6 +8,7 @@ import { FOOTER_BYLINE, FOOTER_LINKS, FOOTER_NOTICE, FOOTER_TRUST_LINKS } from "
 import { BUSINESS_IDENTITY } from "../lib/site-policy-config";
 import LegacyHomeEntry from "./components/LegacyHomeEntry";
 import HomeCardDeck from "./components/HomeCardDeck";
+import HomeDailyEntry from "./components/HomeDailyEntry";
 import { NativeHomeRoot, NativeHomeNav, NativeHomeText, NativeHomeCardLink, NativeHomeDictionaryText } from "./components/NativeHomeCopy";
 import "./yeongnyangi/night-tokens.css";
 import "./yeongnyangi/yehwa-night.generated.css";
@@ -126,17 +127,7 @@ export default function HomePage() {
           <Link prefetch={IS_APP_BUILD ? false : undefined} href="/yeongnyangi/library/"><NativeHomeText>영냥이 상담 기록</NativeHomeText></Link>
         </nav>
         <p className={styles.entryNote}><NativeHomeText>이용권과 상담 기록은 서비스별로 확인해 주세요.</NativeHomeText></p>
-        <section className={styles.diaryPortal} aria-labelledby="dailyPortalTitle">
-          <div className={styles.diaryPortalArt}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/images/home/yeoni-diary-garden-v1.webp" width="960" height="492" alt="" loading="lazy" decoding="async" />
-          </div>
-          <div className={styles.diaryPortalCopy}>
-            <h2 id="dailyPortalTitle"><NativeHomeText>연이와 함께하는 운명 다이어리</NativeHomeText></h2>
-            <p><NativeHomeText>출석하고 꿀방울을 모아요. 작은 실천과 오늘의 기록이 나의 성장으로 이어져요.</NativeHomeText></p>
-            <Link href="/diary/" className={styles.diaryPortalLink} data-cd-cross-sell="/" data-cd-target-service="diary" data-cd-cta-placement="daily_entry"><NativeHomeText>나의 다이어리 열기</NativeHomeText><span aria-hidden="true"> →</span></Link>
-          </div>
-        </section>
+        <HomeDailyEntry />
       </main>
 
       <footer className={styles.footer}>

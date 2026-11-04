@@ -13,6 +13,7 @@ import { authFetch } from "@/app/_lib/auth-client";
 import { trackEvent } from "@/lib/analytics";
 import { awardRpg } from "@/app/destiny-compass/_lib/rpg-bridge";
 import DiaryRecordCard from "@/app/diary/_components/DiaryRecordCard";
+import { nextCardPageIndex } from "./home-card-swipe.mjs";
 import styles from "./home-daily.module.css";
 
 type Honey = { balance: number; attended: boolean; streak: number; nextBonusIn: number; streakEvery: number; streakBonus: number; attendanceEvery: number; promptCost: number; awarded?: boolean; rewarded?: number };
@@ -27,7 +28,7 @@ const CARD_PAGES: { id: CardPage; label: string }[] = [
 ];
 const QUEST_PREFIX = "home-quest:";
 
-export default function HomeDaily() {
+export default function HomeDaily({ surface = "diary" }: { surface?: "home" | "diary" }) {
   const { hydrated, ymd, ext, chart } = useDiaryToday();
   const { updateExtDay, refresh } = useDiaryWriter();
   const [status, setStatus] = useState<Status>("loading");
@@ -66,14 +67,14 @@ export default function HomeDaily() {
       if (method === "GET") setMessage("");
       if (method === "POST") {
         setMessage(data.awarded ? `꿀방울 ${data.rewarded}개를 받았어요.` : "오늘은 이미 출석했어요.");
-        if (data.awarded) { trackEvent("daily_home_attendance", { surface: "home" }); void recordGrowth("checkin", ""); }
+        if (data.awarded) { trackEvent("daily_home_attendance", { surface }); void recordGrowth("checkin", ""); }
       } else {
         void fetchCurrentDestinyProfile().then(setProfile).catch(() => setProfile(null));
         void loadProgress();
       }
     } catch { setStatus("error"); setHoney(null); setProfile(null); setProgress(null); setMessage("출석 정보를 불러오지 못했어요. 다시 시도해 주세요."); }
     finally { setBusy(false); }
-  }, [loadProgress, recordGrowth]);
+  }, [loadProgress, recordGrowth, surface]);
 
   useEffect(() => {
     void loadHoney();
@@ -102,10 +103,10 @@ export default function HomeDaily() {
     try {
       const key = "cd.daily-home.last-visit";
       const last = window.localStorage.getItem(key);
-      if (last && last !== ymd) trackEvent("daily_home_return", { surface: "home" });
+      if (last && last !== ymd) trackEvent("daily_home_return", { surface });
       window.localStorage.setItem(key, ymd);
     } catch { /* 방문 측정은 선택 사항 */ }
-  }, [hydrated, ymd]);
+  }, [hydrated, ymd, surface]);
 
   function selectQuest() {
     if (!picked || !ymd) return;
@@ -115,12 +116,12 @@ export default function HomeDaily() {
       if (!todos.some(item => item.id?.startsWith(QUEST_PREFIX))) {
         day.todos = [...todos, { id: QUEST_PREFIX + createExtItemId(), text: `${action.emoji} ${action.name}`, done: false, createdAt: Date.now() }];
       }
-    })) trackEvent("daily_home_quest_selected", { surface: "home" });
+    })) trackEvent("daily_home_quest_selected", { surface });
   }
   function toggleQuest() {
     if (!quest?.id) return;
     if (updateExtDay(ymd, toggleTodo(quest.id)) && !quest.done) {
-      trackEvent("daily_home_quest_completed", { surface: "home" });
+      trackEvent("daily_home_quest_completed", { surface });
       if (status === "ready") void recordGrowth("quest", `daily-home:${ymd}`);
     }
   }
@@ -141,10 +142,9 @@ export default function HomeDaily() {
     if (!start || !touch) return;
     const dx = touch.clientX - start.x;
     const dy = touch.clientY - start.y;
-    if (Math.abs(dx) < 55 || Math.abs(dx) <= Math.abs(dy) * 1.3) return;
     setCardPage(current => {
       const index = CARD_PAGES.findIndex(page => page.id === current);
-      return CARD_PAGES[Math.max(0, Math.min(CARD_PAGES.length - 1, index + (dx < 0 ? 1 : -1)))].id;
+      return CARD_PAGES[nextCardPageIndex(index, CARD_PAGES.length, dx, dy)].id;
     });
   }
 
@@ -175,8 +175,12 @@ export default function HomeDaily() {
     <div className={styles.pageBody}>
     <div hidden={cardPage !== "attendance"}>
     <div className={styles.attendance}>
-      <div className={styles.wallet}><span className={styles.drop} aria-hidden="true">●</span><span>나의 꿀방울<strong>{status === "ready" && honey ? `${honey.balance}방울` : "확인해 주세요"}</strong></span></div>
-      {status === "ready" && honey ? <button type="button" disabled={busy || honey.attended} onClick={() => void loadHoney("POST")}>{busy ? "출석 확인 중" : honey.attended ? "오늘 출석 완료" : "오늘 출석하기"}</button> : status === "guest" ? <Link className={styles.button} href="/login/?next=%2Fdiary%2F%23daily-home-title">로그인하고 출석하기</Link> : status === "error" ? <button type="button" onClick={() => { setStatus("loading"); void loadHoney(); }}>다시 확인하기</button> : <span>출석 정보 확인 중</span>}
+      <div className={styles.wallet}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img className={styles.drop} src="/images/fortune-tea-house/honey-drop-jewel-96-v1.webp" width="96" height="96" alt="" decoding="async" />
+        <span>나의 꿀방울<strong>{status === "ready" && honey ? `${honey.balance}방울` : "확인해 주세요"}</strong></span>
+      </div>
+      {status === "ready" && honey ? <button type="button" disabled={busy || honey.attended} onClick={() => void loadHoney("POST")}>{busy ? "출석 확인 중" : honey.attended ? "오늘 출석 완료" : "오늘 출석하기"}</button> : status === "guest" ? <Link className={styles.button} href={surface === "home" ? "/login/?next=%2F%23daily-home-title" : "/login/?next=%2Fdiary%2F%23daily-home-title"}>로그인하고 출석하기</Link> : status === "error" ? <button type="button" onClick={() => { setStatus("loading"); void loadHoney(); }}>다시 확인하기</button> : <span>출석 정보 확인 중</span>}
     </div>
     {honey && <div className={styles.streak}><div className={styles.days} aria-label={`연속 출석 ${honey.streak}일, 다음 보너스까지 ${honey.nextBonusIn}일`}>{Array.from({ length: Math.min(honey.streakEvery, 14) }, (_, index) => <span key={index} className={index < (honey.streak % honey.streakEvery || (honey.attended && honey.streak > 0 ? honey.streakEvery : 0)) ? styles.dayDone : ""} aria-hidden="true">{index + 1}</span>)}</div><p>{honey.streakEvery}일 연속이면 추가 {honey.streakBonus}방울<br /><small>다음 보너스까지 {honey.nextBonusIn}일</small></p></div>}
     <p className={styles.rule}>{honey?.attendanceEvery === 1 ? "하루 한 번 출석하면 1방울을 받아요." : "출석으로 꿀방울을 모아보세요."}</p>
@@ -192,6 +196,7 @@ export default function HomeDaily() {
     <div hidden={cardPage !== "diary"}>
     <div className={styles.diary}><DiaryRecordCard embedded /></div>
     <p className={styles.footnote}>기록은 이 기기의 브라우저에 저장돼요.</p>
+    {surface === "home" && <Link href="/diary/" className={styles.diaryLink} onClick={() => trackEvent("daily_home_diary_opened", { surface })}>다이어리 더 보기 <span aria-hidden="true">→</span></Link>}
     </div>
     </div>
     <p className={styles.pageHint}>옆으로 넘기거나 메뉴를 눌러 보세요 · {CARD_PAGES.findIndex(page => page.id === cardPage) + 1} / {CARD_PAGES.length}</p>

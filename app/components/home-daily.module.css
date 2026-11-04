@@ -1,4 +1,4 @@
-.daily { --ink:#492440; --muted:#75536b; --rose:#9b3b70; --line:#e9bfd0; width:min(100%,720px); box-sizing:border-box; margin-inline:auto; padding:clamp(16px,4vw,28px); border:2px solid #efb4c9; border-radius:30px; background:#fff8f7; color:var(--ink); box-shadow:0 14px 35px #61304a1c; touch-action:pan-y; }
+.daily { --ink:#492440; --muted:#75536b; --rose:#9b3b70; --line:#e9bfd0; width:min(100%,720px); box-sizing:border-box; margin-inline:auto; padding:clamp(16px,4vw,28px); border:1px solid #e8b8ca; border-radius:30px; background:linear-gradient(160deg,#fffaf9,#fff5f6 68%,#faeef1); color:var(--ink); box-shadow:0 14px 35px #61304a1c,inset 0 1px 0 #fff; touch-action:pan-y; }
 .daily * { box-sizing:border-box; }
 .daily p { margin:0; }
 .cardHeader { display:flex; align-items:center; justify-content:space-between; gap:12px; }
@@ -30,7 +30,7 @@
 .attendance { display:grid; grid-template-columns:minmax(110px,1fr) auto; align-items:center; gap:12px; padding:16px 0 10px; }
 .wallet { display:flex; align-items:center; gap:8px; flex:1; min-width:0; font-size:.75rem; color:var(--muted); }
 .wallet strong { display:block; color:var(--ink); font-size:1.1rem; }
-.drop { display:grid; place-items:center; width:34px; height:38px; flex:none; border-radius:55% 55% 55% 8%; transform:rotate(-45deg); background:#f4bc55; color:transparent; box-shadow:inset 0 0 0 3px #fff6; }
+.drop { display:block; width:42px; height:42px; flex:none; object-fit:contain; filter:drop-shadow(0 3px 3px #87592233); }
 .daily button,.daily .button { display:inline-flex; align-items:center; justify-content:center; min-height:44px; padding:9px 16px; border:1px solid #873560; border-radius:999px; background:#873560; color:#fff; font:inherit; font-size:.875rem; font-weight:700; text-align:center; text-decoration:none; cursor:pointer; }
 .daily button:disabled { opacity:.62; cursor:default; }
 .daily :where(button,a,summary,input):focus-visible { outline:3px solid #762b65; outline-offset:3px; }
@@ -57,6 +57,7 @@
 .actions { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:6px; flex:none; }
 .daily .secondary { background:transparent; color:#762b56; }
 .diary { padding:16px 0 0; }
+.diaryLink { display:inline-flex; align-items:center; gap:6px; min-height:44px; margin-top:4px; font-size:.875rem; }
 .footnote { margin-top:12px!important; }
 @media(max-width:520px) { .daily { padding:14px; border-radius:24px; } .identity { padding:10px 0; } .room { height:160px; } .quest { align-items:flex-start; flex-direction:column; } .actions { justify-content:flex-start; } .streak { flex-wrap:wrap; } .streak p { text-align:left; } }
 @media(max-width:340px) { .attendance { grid-template-columns:1fr; } }
