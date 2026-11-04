@@ -1,52 +1,100 @@
 "use client";
 
-import {useEffect, useRef, useState, type ReactNode} from 'react';
 import Image from 'next/image';
-import {ArrowLeft, ArrowRight, PawPrint} from 'lucide-react';
-import {story} from './home-data';
-const assetPath = (name:string) => `/assets/yeongnyangi/original/${name}.webp`;
+import {Fragment,useEffect,useRef,useState,type ReactNode} from 'react';
+import scenes from './prologue-scenes.json';
+import {rememberPrologue} from './prologue-visit';
+import {RoomSoundControls,useRoomSoundtrack} from './RoomSoundtrack';
+import styles from './prologue.module.css';
 
-export default function StoryPanel({step,onPrevious,onNext,onClose,onReading,soundControls}:{
- step:number; onPrevious:()=>void; onNext:()=>void; onClose:()=>void; onReading:()=>void; soundControls?:ReactNode;
+const main=scenes.filter(scene=>/^\d/.test(scene.id));
+const mirror=main.findIndex(scene=>scene.id==='11');
+const chapterTitles:Record<string,string>={'07':'하늘이 거둔 것','12':'판결문의 마지막 줄','18':'네 내일을 맞히기 전에'};
+type Mood=Parameters<typeof useRoomSoundtrack>[0];
+
+function StoryMusic({mood}:{mood:Mood}){
+  const sound=useRoomSoundtrack(mood);
+  return <RoomSoundControls sound={sound}/>;
+}
+
+function Frame({scene,index}:{scene:typeof scenes[number];index:number}){
+  return <Fragment>
+    {chapterTitles[scene.id]&&<h2 className={styles.chapter}>{chapterTitles[scene.id]}</h2>}
+    <figure data-panel={scene.id} data-position={index+1} className={styles.frame}>
+      <Image unoptimized src={'/assets/yeongnyangi/prologue/'+scene.id+'.webp'} alt={scene.alt}
+        width={scene.width} height={scene.height} loading={index===0?'eager':'lazy'} sizes="(max-width:480px) 100vw, 480px"/>
+      {scene.id==='05'&&<figcaption className={styles.sources}>
+        <a href="https://blog.naver.com/neosaju/223444062729" target="_blank" rel="noopener noreferrer">2024년 5월 12일 분석 원문 ↗</a>
+        <a href="https://www.ccourt.go.kr/site/kor/ex/bbs/View.do?bcIdx=4253958&cbIdx=1106" target="_blank" rel="noopener noreferrer">2025년 4월 4일 헌법재판소 결정 ↗</a>
+        <p>네오와 연이의 대화는 공개 분석을 바탕으로 재구성했습니다.</p>
+      </figcaption>}
+    </figure>
+  </Fragment>;
+}
+
+export default function StoryPanel({onClose,onDaily,inRoom=false,soundControls,onMood}:{
+  onClose:()=>void;onDaily?:()=>void;inRoom?:boolean;soundControls?:ReactNode;onMood?:(mood:Mood)=>void;
 }){
- const readingRef = useRef<HTMLDivElement>(null);
- const [choices,setChoices] = useState<Record<number,number>>({});
- const scene = story[step];
- const last = step===story.length-1;
- useEffect(()=>{
-  if(readingRef.current) readingRef.current.scrollTop=0;
-  const next=story[step+1];
-  if(!next)return;
-  const links=[next.background,...(next.fullArt?[]:[next.character,next.after])].filter(Boolean).map(name=>{
-   const link=document.createElement('link');link.rel='prefetch';link.as='image';link.href=assetPath(name!);document.head.appendChild(link);return link;
-  });
-  return ()=>links.forEach(link=>link.remove());
- },[step]);
- return <div className="story-panel">
-  <div key={`visual-${step}`} className={`story-visual mood-${scene.mood}${scene.portrait?' is-portrait':''}${scene.fullArt?' is-full-art':''}`}>
-   <Image className="story-background" src={assetPath(scene.background)} alt={scene.fullArt?'고양이가 된 네오가 거울 속 인간 시절의 자신과 손을 맞대며 눈물을 흘린다.':''} width={1440} height={960}/>
-   {!scene.fullArt&&<div className={`story-cast${scene.after?' has-transition':''}`} aria-hidden="true">
-    <Image className="story-character first-frame" src={assetPath(scene.character)} alt="" width={520} height={520}/>
-    {scene.after&&<Image className="story-character final-frame" src={assetPath(scene.after)} alt="" width={520} height={520}/>}
-   </div>}
-   <span className="story-scene-caption">네오, 그리고 영냥이</span>
-  </div>
-  <div className="story-reading" ref={readingRef} tabIndex={0} aria-label="이야기 본문">
-   {soundControls}
-   <div className="story-progress" role="group" aria-label={`${step+1} / ${story.length} 장면`}>{story.map((item,index)=><span key={item.title} className={index<=step?'read':''}/>)}</div>
-   <div className="story-text" aria-live="polite" aria-atomic="true">
-    <h2>{scene.title}</h2><span className="story-page-number">{String(step+1).padStart(2,'0')} / {String(story.length).padStart(2,'0')}</span>
-    {scene.text.split('\n\n').map((text,index)=><p key={`${step}-${index}`}>{text}</p>)}
-    <blockquote>{scene.line}</blockquote>
-    {scene.recordUrl&&<p><a href={scene.recordUrl} target="_blank" rel="noopener noreferrer">게시일과 예측 원문 확인하기 ↗</a></p>}
-   </div>
-   {scene.choices&&<div className="story-choices"><p>이 순간, 네가 곁에 있다면.</p><div>{scene.choices.map((choice,index)=><button type="button" key={choice.label} aria-pressed={choices[step]===index} onClick={()=>setChoices(previous=>({...previous,[step]:index}))}>{choice.label}</button>)}</div><p className="story-choice-reply" role="status">{choices[step]!==undefined?scene.choices[choices[step]].reply:''}</p></div>}
-   {step===0&&<p className="story-fiction-note">실제 공개 분석 기록에서 시작한 영냥이의 세계관 이야기입니다. 과거 사례가 앞으로의 결과를 보장하지는 않습니다. 하늘의 저주와 고양이 변신은 창작 설정입니다.</p>}
-  </div>
-  <div className="story-controls">
-   <button className="icon-button" aria-label="이전 장면" disabled={step===0} onClick={onPrevious}><ArrowLeft size={19}/></button>
-   <button className="story-next" onClick={last?onReading:onNext}>{last&&<PawPrint size={17}/>} {last?'멸치로 오늘의 운세 보기':'다음 이야기'}<ArrowRight size={17}/></button>
-   <button className="story-exit" onClick={onClose}>{last?'영냥이 곁에 머물기':'이야기 나가기'}</button>
-  </div>
- </div>;
+  const dialog=useRef<HTMLDialogElement>(null),response=useRef<HTMLDivElement>(null);
+  const [choice,setChoice]=useState<'a'|'b'|null>(null),[position,setPosition]=useState(1);
+  const id=main[position-1].id;
+  const mood:Mood=Number(id)>=12?'warm':Number(id)>=7&&Number(id)<=10?'storm':'quiet';
+  useEffect(()=>{onMood?.(mood);},[mood,onMood]);
+  useEffect(()=>{
+    const el=dialog.current!;
+    el.showModal();
+    const overflow=document.body.style.overflow;
+    document.body.style.overflow='hidden';
+    return ()=>{el.close();document.body.style.overflow=overflow;};
+  },[]);
+  useEffect(()=>{
+    if(!choice)return;
+    response.current?.focus({preventScroll:true});
+    response.current?.scrollIntoView({block:'start'});
+  },[choice]);
+  function close(){
+    rememberPrologue();
+    dialog.current?.close();
+    onClose();
+  }
+  function trackPosition(){
+    const el=dialog.current;
+    if(!el)return;
+    const mid=el.getBoundingClientRect().top+el.clientHeight*.58;
+    let current=1;
+    for(const panel of el.querySelectorAll<HTMLElement>('[data-position]')){
+      if(panel.getBoundingClientRect().top>mid)break;
+      current=Number(panel.dataset.position);
+    }
+    setPosition(current);
+    if(current===main.length)rememberPrologue();
+  }
+  const reaction=scenes.find(scene=>scene.id===choice);
+  return <dialog ref={dialog} className={styles.reader} aria-label="영냥이의 프롤로그" onScroll={trackPosition}
+    onCancel={e=>{e.preventDefault();close();}}>
+    <div className={styles.rail}>
+      <header className={styles.toolbar}>
+        <button onClick={close}>닫기</button><span>{String(position).padStart(2,'0')} / {main.length}</span>
+        <a href="/yeongnyangi/library/" onClick={rememberPrologue}>보관함</a>
+        <button autoFocus onClick={close}>건너뛰기</button>
+        <details className={styles.music}><summary>음향</summary>{soundControls??<StoryMusic mood={mood}/>}</details>
+      </header>
+      <div className={styles.cover}><small>영냥이의 프롤로그</small><h1>내 이름이<br/>네오였던 밤</h1></div>
+      {main.slice(0,mirror+1).map((s,i)=><Frame key={s.id} scene={s} index={i}/>)}
+      <section className={styles.choice}><h2>거울 앞의 네오에게</h2>
+        <button aria-pressed={choice==='a'} onClick={()=>setChoice('a')}>말없이 곁에 앉는다</button>
+        <button aria-pressed={choice==='b'} onClick={()=>setChoice('b')}>네오라고 불러준다</button>
+      </section>
+      {reaction&&<>
+        <div ref={response} tabIndex={-1} className={styles.reaction}><Frame scene={reaction} index={mirror}/></div>
+        {main.slice(mirror+1).map((s,i)=><Frame key={s.id} scene={s} index={mirror+i+1}/>)}
+        <footer className={styles.ending}><h2>이번엔 네 이야기야.</h2>
+          <a href="/yeongnyangi/fortune/?flow=question" onClick={rememberPrologue}>내 고민 건네기</a>
+          <a href="/yeongnyangi/library/" onClick={rememberPrologue}>내 상담 이어보기</a>
+          {onDaily?<button onClick={()=>{close();onDaily();}}>멸치로 오늘의 운세 보기</button>:<a href="/yeongnyangi/room/#daily" onClick={rememberPrologue}>멸치로 오늘의 운세 보기</a>}
+          {inRoom?<button onClick={close}>영냥이 곁에 머물기</button>:<a href="/yeongnyangi/room/" onClick={rememberPrologue}>영냥이 곁에 머물기</a>}
+        </footer>
+      </>}
+    </div>
+  </dialog>;
 }

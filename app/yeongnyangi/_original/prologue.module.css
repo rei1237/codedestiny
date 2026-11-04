@@ -1,0 +1,59 @@
+@font-face {
+  font-family: NeoJua;
+  src: url('/assets/yeongnyangi/prologue/Jua-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-display: swap;
+}
+.reader {
+  --paper: #faf5ee;
+  --ink: #171525;
+  --gold: #e0c797;
+  --line: #65586e;
+  position: fixed;
+  inset: 0;
+  margin: 0;
+  border: 0;
+  padding: 0;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  overflow: auto;
+  overscroll-behavior: contain;
+  background: #111021;
+  color: var(--paper);
+  font: 400 16px/1.5 NeoJua, "Malgun Gothic", sans-serif;
+}
+.reader::backdrop { background: #111021; }
+.reader button,.reader a,.reader summary { font: inherit; color: inherit; cursor: pointer; }
+.reader button { border: 0; background: transparent; }
+.reader :focus-visible { outline: 3px solid var(--gold); outline-offset: -3px; }
+.rail { width: min(100%,480px); min-height: 100%; margin: auto; background: var(--ink); }
+.toolbar {
+  position: sticky; top: 0; z-index: 2; display: flex; align-items: center; justify-content: space-between;
+  min-height: 44px; padding-top: env(safe-area-inset-top); background: #151222; border-bottom: 1px solid var(--line);
+}
+.toolbar button,.toolbar a,.music summary { display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; font-size: 14px; text-decoration: none; }
+.toolbar span { font-size: 13px; color: var(--gold); }
+.music[open] { position: absolute; z-index: 3; right: 0; top: 0; max-width: 100%; padding: 0 12px 12px; background: var(--ink); border: 1px solid var(--line); }
+.music[open] summary { display: flex; justify-content: flex-end; }
+.music input { max-width: 100px; min-height: 44px; vertical-align: middle; }
+.cover { padding: 36px 24px 24px; }
+.cover small { color: var(--gold); }
+.reader h1,.reader h2 { font-family: inherit; font-weight: 400; line-height: 1.2; color: var(--paper); }
+.cover h1 { font-size: clamp(38px,11vw,57px); margin: 12px 0 0; }
+.frame { margin: 0; }
+.frame img { display: block; width: 100%; height: auto; }
+.frame[data-panel="02"],.frame[data-panel="06"],.frame[data-panel="11"] { margin-top: clamp(38px,12vw,68px); }
+.frame[data-panel="03"],.frame[data-panel="10"],.frame[data-panel="15"] { margin: 10px 0 20px; }
+.chapter { font-size: 24px; margin: 0; padding: 32px 20px 18px; }
+.sources { padding: 0 16px 16px; color: var(--gold); font-size: 14px; }
+.sources a { display: block; min-height: 44px; padding: 12px 0; text-align: right; }
+.sources p { margin: 4px 0 0; color: #d2c4d7; }
+.choice,.ending { padding: 28px 20px 40px; }
+.choice h2,.ending h2 { margin: 0 0 20px; }
+.choice button,.ending a,.ending button { display: block; box-sizing: border-box; width: 100%; min-height: 46px; padding: 12px; margin: 8px 0; border: 1px solid var(--line); text-align: center; text-decoration: none; }
+.choice button[aria-pressed=true] { border-color: var(--gold); background: #4a3c55; }
+.ending a:first-of-type { background: var(--gold); color: var(--ink); }
+.reaction { scroll-margin-top: calc(50px + env(safe-area-inset-top)); }
+.ending { padding-bottom: max(40px,env(safe-area-inset-bottom)); }
