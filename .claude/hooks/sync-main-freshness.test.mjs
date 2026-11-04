@@ -113,7 +113,7 @@ function runHook(root, { event = "SessionStart", cwd = root } = {}) {
   const result = spawnSync(process.execPath, [HOOK], {
     input: JSON.stringify({ hook_event_name: event, source: "startup", cwd }),
     encoding: "utf8",
-    env: { ...process.env, CLAUDE_PROJECT_DIR: root },
+    env: { ...process.env, CLAUDE_PROJECT_DIR: root, CD_SYNC_MAIN_GIT_TIMEOUT_MS: "120000" },
   });
   const stdout = String(result.stdout ?? "");
   return {
