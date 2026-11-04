@@ -1,5 +1,5 @@
 import { sha256Text } from '../../lib/sha256-text.mjs';
-import { buildApprovedNatalAnalysis, GYEOKGUK_AUTHORITY_VERSION } from '../../lib/saju/gyeokguk-authority.mjs';
+import { buildApprovedNatalAnalysis, projectApprovedGyeokguk, GYEOKGUK_AUTHORITY_VERSION } from '../../lib/saju/gyeokguk-authority.mjs';
 import { authorityText } from '../../lib/saju/gyeokguk-authority-copy.mjs';
 
 const positions = ['year', 'month', 'day', 'hour'];
@@ -56,6 +56,43 @@ export function selectSajuAuthority(pillars, { enabled = false, stored = null, h
   if (hasExistingRecord || enabled !== true) return null;
   const payload = { schema, calculationVersion: GYEOKGUK_AUTHORITY_VERSION, pillars: copy(pillars), analysis: buildApprovedNatalAnalysis(pillars) };
   return freeze({ ...payload, digest: hash(payload) });
+}
+
+export const sajuAuthorityOn = env => env?.SAJU_GYEOKGUK_AUTHORITY_V2 === 'true';
+
+const elementKo = { wood: '목', fire: '화', earth: '토', metal: '금', water: '수' };
+const pillarRow = value => typeof value === 'string' ? (value.length >= 2 ? { stem: value[0], branch: value[1] } : null) : value || null;
+
+/**
+ * 고객 라벨·프롬프트 사실에 쓰는 승인 판정 투영. 계산은 하지 않는다.
+ * pillars 는 {year:'庚午'} 또는 {year:{stem,branch}}. 시주가 없으면 보류(pending)로 나온다.
+ * 호출하는 쪽이 신규 계산에서만 부른다. 저장된 결과에는 쓰지 않는다.
+ */
+export function approvedSajuLabels(pillars = {}) {
+  const rows = Object.fromEntries(positions.flatMap(position => {
+    const row = pillarRow(pillars[position]);
+    return row ? [[position, row]] : [];
+  }));
+  const { authority, core, gyeokgukAnalysis: g, yongshinAnalysis: y, reading } = projectApprovedGyeokguk(rows);
+  const names = y.usefulCandidateNames;
+  const johu = [...new Set([...(core.yongshin.johu?.hanNan?.elements || []), ...(core.yongshin.johu?.joSeup?.elements || [])])];
+  return { ...authority, status: y.status, gyeokguk: g.finalGyeokguk, gyeokgukStatus: g.status, gyeokgukReason: g.judgmentReason,
+    strength: authorityText(!core.strength.complete ? 'unknown' : core.strength.isStrong ? 'strong' : 'weak'),
+    isStrong: core.strength.complete ? core.strength.isStrong : null,
+    candidates: [...y.usefulCandidates], candidateNames: [...names],
+    johuCandidates: johu, johuCandidateNames: johu.map(el => elementKo[el]),
+    yongshinLabel: y.status === 'pending' ? authorityText('unknown') : names.length ? `후보 ${names.join('·')}` : y.coreYongshinKo,
+    yongshinExplanation: y.requiredExplanation.whyThisElement, gisinLabel: authorityText('notEvaluated'), reading,
+    promptRules: [...SAJU_AUTHORITY_PROMPT_RULES] };
+}
+
+/** buildSajuNatalAnalysis 결과 위에 승인 판정을 덮는다. 원본의 강약·용신이 신규 결과로 새지 않게 한다. */
+export function overlayApprovedNatalAnalysis(analysis, labels) {
+  return { ...analysis,
+    power: analysis.power ? { ...analysis.power, isStrong: labels.isStrong, yongshin: labels.candidates, kijishin: [], johuYongshin: labels.johuCandidates } : analysis.power,
+    analysisBasis: labels.calculationVersion, strength: labels.strength,
+    usefulGod: `${labels.yongshinLabel}. ${labels.yongshinExplanation}`, unfavorableGod: labels.gisinLabel,
+    limitation: labels.yongshinExplanation };
 }
 
 export function lifeBookPillars(raw) {
