@@ -150,7 +150,7 @@ B 의 요구와 통과 조건(원래 목록). 이 중 브라우저 종료·DB �
 
 ### 3. 전체 구간 계측과 비용·품질
 
-- **크론 호출 수 — 측정 완료(2026-09-28, 실측 0).** 운영 읽기 전용 집계: 승격(05:06:19Z) 이후와 09-01 이후 모두 18키 실행 0·attempts 합 0·증명 실행 0·awaiting_payment 의도 0. 같은 컬렉션 전 기간 행 3, 09-01 이후 생성 0. 운영 28일 유료 주문은 영냥이 10건(saju_mackerel 7·saju_tuna 1·vedic 1·astrology 1, 결제 연결 5)뿐. 상세는 [측정 문서](2026-09-27-paid-cron-llm-measurement.md) 1절. 아래 원래 기술은 이력으로 둔다.
+- **크론 호출 수 — 측정 완료(2026-09-28, 실측 0).** 운영 읽기 전용 집계: 승격(05:06:19Z) 이후와 09-01 이후 모두 18키 실행 0·attempts 합 0·증명 실행 0·awaiting_payment 의도 0. 같은 컬렉션 전 기간 행 3, 09-01 이후 생성 0. 운영 28일 유료 주문은 영냥이 10건(saju_mackerel 7·saju_tuna 1·vedic 1·astrology 1, 결제 연결 5)뿐. 상세는 측정 문서 (삭제됨, git 이력 참조) 1절. 아래 원래 기술은 이력으로 둔다.
 - **크론 호출 수·비용 — 미측정, 사용자 허용 대기.** 토큰은 로그에만 있고 DB에 저장되지 않는다. 크론이 공급자를 부르려면 `metadata.paidNarrative`가 있는 실행이 있어야 하고 호출마다 `metadata.paidNarrative.attempts[항목]`이 1 오르므로, 운영 `code_destiny` 읽기 전용 집계(승격 `2026-09-27T05:06:19Z` 이후 해당 실행 수·attempts 합·`paidNarrativeProof` 유무·`awaiting_payment` 의도 수)가 호출 수의 확정 상한이다. 집계 스크립트는 `scripts/report-paid-delivery-health.mjs`와 같은 방식(HTTP 차단·쓰기 없음·본문 미출력)으로 만들었으나 실행이 거부됐다. 토큰·비용은 `f0182a579` 배포 뒤 Workers 로그의 `server_*` 행을 `scripts/report-llm-token-usage.mjs`로 집계한다(저장소에 Workers Logs 조회 도구는 없다 — wrangler tail 또는 대시보드 내보내기).
 - **코드 상한(실측 아님, 상수 계산):** 서버 경로도 항목당 3회(`attempts < 3`)를 브라우저와 공유하므로 주문당 크론 호출은 `3 × 항목 수 − 브라우저 사용분`을 넘지 않는다. 호출당 출력 상한 9,500토큰(`capTokens`). 틱당 실행 3건·작업 240초·파 65초·파당 4호출, 의도 승격 틱당 20건. 크론은 주문당 새 예산을 만들지 않는다.
 

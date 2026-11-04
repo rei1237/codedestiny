@@ -57,7 +57,7 @@ owner: 다음 세션
 
 ## 쓸 경로: 로컬 하네스
 
-이미 영냥이·네오·마스터 인연의 서·초융합 등을 이 방식으로 실호출 검수했다(`docs/handoff/2026-10-09-llm-consultation-sample-results.md`, `findings.md`).
+이미 영냥이·네오·마스터 인연의 서·초융합 등을 이 방식으로 실호출 검수했다(`docs/handoff/2026-10-09-llm-consultation-sample-results.md` (삭제됨, git 이력 참조), `findings.md`).
 
 - **위치:** `D:/Development/code-destiny/build-cache/llm-sample-review-20261009/` (gitignore 대상). 2026-10-10 세션이 워크트리에서 이곳으로 옮겼다. `harness/common.mjs` 의 `ROOT` 가 작업하는 체크아웃을 가리키는지 먼저 확인한다.
 - **반드시 저장소 루트에서 실행한다.** 예: `node build-cache/llm-sample-review-20261009/harness/yeong.mjs Y1`. 하위 폴더에서 실행하면 swisseph wasm 을 `process.cwd()/public/...` 에서 못 읽어 `Cannot read properties of undefined (reading 'n')` 로 죽는다(베다·점성 계산이 들어가는 번들).

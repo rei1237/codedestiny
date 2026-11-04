@@ -56,7 +56,7 @@ next: "승인된 월정석 500개/1000원 소스의 main 전달·CI를 확인하
 
 첫 시도 성공은 정상 평균 원가의 실측이 아니다. 책 전체 추가 생성 1회는 설계 비교일 뿐 **구현하지 않았다**. 현재의 장별 복구 기회를 줄여 수익성 숫자를 맞추지 않는다. 고등어 19,900원/25회 후보의 마진은 첫 성공 상한에서는 37.85%, 공유 추가 1회 가상에서는 26.82%, 현행 전체 시도 상한에서는 4.92%다. 어느 경우가 실제로 얼마나 자주 발생하는지 확인해야 한다.
 
-관련 저장 원가 문서 `2026-09-29-astra-llm-cost-and-v7-production.md`, `2026-09-29-llm-sequential-and-v7-golden.md`, `2026-09-26-yeongnyangi-floor-and-library-retry.md`, `pass-external-cost-evidence-20260922.json`을 좁게 확인했다. 연어·광어·참치 기록은 있으나 **고등어 token_usage 표본은 찾지 못했다**. 이 문서 범위의 검색 결과이며 모든 로그에 없다고 단정하지 않는다. 운영 DB를 조회하거나 새 유료 호출을 하지 않았다.
+관련 저장 원가 문서 `2026-09-29-astra-llm-cost-and-v7-production.md`, `2026-09-29-llm-sequential-and-v7-golden.md` (삭제됨, git 이력 참조), `2026-09-26-yeongnyangi-floor-and-library-retry.md`, `pass-external-cost-evidence-20260922.json`을 좁게 확인했다. 연어·광어·참치 기록은 있으나 **고등어 token_usage 표본은 찾지 못했다**. 이 문서 범위의 검색 결과이며 모든 로그에 없다고 단정하지 않는다. 운영 DB를 조회하거나 새 유료 호출을 하지 않았다.
 
 ## 계산 기준
 

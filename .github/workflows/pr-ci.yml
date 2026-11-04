@@ -66,8 +66,24 @@ jobs:
           # 같은 레포 build 잡의 얕은 체크아웃은 7s 다(pack 350.11 MiB, 오브젝트 114,654개,
           # 대부분 블롭 — index.html 단독 2.94MB). classify 는 나머지 3개 잡을 막는 직렬 선행이라
           # 여기서 줄인 시간이 그대로 PR 전체 wall-clock 에서 빠진다.
+          #
+          # 🔴 체크아웃 시간의 대부분은 이력이 아니라 HEAD 블롭이다(2026-11-04 실측: 런 41717397600
+          # 이력 fetch 18s, 작업 트리 457s). webp·png 등 미디어가 작업 트리 1,049MiB 중 약 767MiB 인데
+          # 이 잡은 열지 않으므로 받지 않는다. 런 41708464414 는 이 잡이 299s 에서 끊겨 취소됐다.
+          # 허용 목록이 아니라 제외 목록인 이유: 문서 신선도 검사가 활성 문서의 경로 참조 실존을 본다.
           fetch-depth: 0
           filter: blob:none
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /*
+            !*.webp
+            !*.png
+            !*.jpg
+            !*.jpeg
+            !*.avif
+            !*.gif
+            !*.mp3
+            !*.mp4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -1171,8 +1187,18 @@ jobs:
       # 네 lane 이 전부 skipped 가 되고 이 필수 체크가 검사 0건으로 초록불이 됐다.
       # scripts/verify-ci-required-lanes.mjs 는 --self-test 를 갖고 티어 정본(TIERS)을 직접
       # 읽어 대조하므로 체크아웃이 필요하다.
+      #
+      # 다만 받는 것은 package.json 과 scripts/ 뿐이다. 판정 모듈은 scripts/ 밖을 import 하지 않는다.
+      # 전체 얕은 체크아웃은 약 860MiB 를 받아, 2026-11-03 런 3건이 lane 을 전부 끝내 놓고
+      # 이 잡의 5분 제한에서 취소됐다(41717397600, 41714543536, 41712590728).
       - name: Checkout PR head
         uses: actions/checkout@v4
+        with:
+          filter: blob:none
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /package.json
+            /scripts/
 
       - name: Setup Node.js
         uses: actions/setup-node@v4

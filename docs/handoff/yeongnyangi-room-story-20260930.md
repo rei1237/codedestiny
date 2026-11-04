@@ -57,7 +57,7 @@ next: 소개 페이지 정적 HTML 검사를 별도 진단하고 코드 SHA 96fd
 
 ## 인수인계 문서 검증
 
-전체 `npm run verify:handoff-contract`는 다른 문서 두 건의 기존 status 값 때문에 실패했다: `2026-09-30-fortune-report-external-ai-astra-handoff.md`의 `implemented-awaiting-main-ci`, `2026-09-30-yeongnyangi-summary-report-preview.md`의 `review-preview`. 해당 문서들은 수정하지 않았다. 이번 문서는 status=blocked, updated=2026-09-30, next를 지정했으며 개별 형식 검사와 git diff --check를 통과했다.
+전체 `npm run verify:handoff-contract`는 다른 문서 두 건의 기존 status 값 때문에 실패했다: `2026-09-30-fortune-report-external-ai-astra-handoff.md`의 `implemented-awaiting-main-ci`, `2026-09-30-yeongnyangi-summary-report-preview.md` (삭제됨, git 이력 참조)의 `review-preview`. 해당 문서들은 수정하지 않았다. 이번 문서는 status=blocked, updated=2026-09-30, next를 지정했으며 개별 형식 검사와 git diff --check를 통과했다.
 
 ## 재개 명령
 
