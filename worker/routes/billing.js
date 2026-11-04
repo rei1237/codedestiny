@@ -79,6 +79,7 @@ import {
   resolvePremiumQuota,
   resolveProfileLimitForClient,
 } from "../lib/profile-limits.js";
+import { isLightFortuneFeatureKey } from "../lib/light-fortune-catalog.js";
 import { invalidateAccessStateCacheForUser } from "../lib/access-state-cache.js";
 import {
   getProfileCardMutationPolicy,
@@ -780,7 +781,9 @@ async function consumeTierPassIfAvailable(env, authUserId, pricing, requestId, b
 
   // 월 누적 한도: 이번 사이클 동안 이용권으로 커버된 거래의 합계가 등급별 한도를 넘으면
   // 통과시키지 않는다. 위 상담 쿼터와 마찬가지로 판정·소비 2단계가 같은 답을 내야 한다.
-  const monthlyQuota = resolveMonthlySpendQuota(user?.profileSubscription || {}, entitlement, coinCost);
+  const monthlyQuota = resolveMonthlySpendQuota(user?.profileSubscription || {}, entitlement, coinCost, {
+    lightFortune: isLightFortuneFeatureKey(featureKey),
+  });
   if (monthlyQuota.applies && monthlyQuota.exceeded) {
     return {
       ok: false,
@@ -1031,7 +1034,9 @@ function buildPassPaymentDecision(entitlement = {}, pricing = {}, profileSubscri
   const familyQuotaExhausted = familyPremiumQuota.applies && familyPremiumQuota.exhausted;
   // 월 누적 한도: 이번 사이클 동안 이용권으로 커버된 거래의 합계가 등급별 한도를 넘으면
   // 건당 상한을 통과하는 건이라도 커버하지 않는다. 소비 단계와 반드시 같은 답을 내야 한다.
-  const monthlySpendQuota = resolveMonthlySpendQuota(profileSubscription, activeEntitlement, coinCost);
+  const monthlySpendQuota = resolveMonthlySpendQuota(profileSubscription, activeEntitlement, coinCost, {
+    lightFortune: isLightFortuneFeatureKey(pricing?.featureKey),
+  });
   const monthlyQuotaExceeded = monthlySpendQuota.applies && monthlySpendQuota.exceeded;
   const featureAccess = resolveFeatureAccessPolicy({
     user: {
@@ -2022,7 +2027,9 @@ async function recordPassAccessIfNeeded(env, authUserId, pricing, requestId, bod
   if (!authUserId || !featureKey || !normalizedRequestId) return null;
   const normalizedAccessMethod = String(body?.accessMethod || "").trim().toUpperCase() === "FAMILY" ? "FAMILY" : "PASS";
   const normalizedAccessType = normalizedAccessMethod === "FAMILY" ? "family" : "membership_pass";
-  if (normalizedAccessMethod !== "FAMILY") return null;
+  // 라이트 운세는 카운터가 움직이지 않으므로, 이 행이 이용권 사용의 유일한 기록이다(셀프 환불 판단에 쓴다).
+  const lightFortune = isLightFortuneFeatureKey(featureKey);
+  if (normalizedAccessMethod !== "FAMILY" && !lightFortune) return null;
 
   await connectDb(env);
   const existing = await PointHistory.findOne({
@@ -2065,6 +2072,7 @@ async function recordPassAccessIfNeeded(env, authUserId, pricing, requestId, bod
       coinPrice: coinCost,
       passTier: entitlement?.passTier || null,
       passLimit: Number(entitlement?.maxCoveredCoin || 0),
+      ...(lightFortune ? { passBudgetExempt: true } : {}),
     },
   });
 }
@@ -3982,7 +3990,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
         // 🔴 재시도 추가(2026-08-08). recordPassAccessIfNeeded 는 connectDb + PointHistory.findOne
         // + User.findById + PointHistory.create 를 무방비로 연달아 돈다. 한 번의 Mongo 블립이 그대로
         // passEvidenceFailure → 503 PAID_ACCESS_VERIFY_RETRYABLE 이 됐고, 그 시점엔 이용권이 이미
-        // 소진된 뒤라 사용자는 "이용권을 썼는데 실패"를 본다. FAMILY 등급만 이 경로를 타므로
+        // 소진된 뒤라 사용자는 "이용권을 썼는데 실패"를 본다. FAMILY 등급과 라이트 운세만 기록하므로
         // (recordPassAccessIfNeeded 의 조기 반환) 500코인 초융합처럼 family 전용 커버 기능에 집중됐다.
         // 재시도가 중복 기록을 만들지 않는 근거: 같은 함수가 metadata.requestId 로 기존 기록을 먼저
         // 조회해 있으면 그대로 돌려준다(멱등).
@@ -6488,6 +6496,8 @@ export const __billingTestUtils = {
   shouldApplyMembershipPassBeforeCard,
   requiresMeteredPassWrite,
   buildMeteredPassBudgetFilter,
+  consumeTierPassIfAvailable,
+  recordPassAccessIfNeeded,
   requireBillingAuth,
   resolvePaidContentAccess,
 };

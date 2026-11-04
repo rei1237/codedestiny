@@ -338,7 +338,7 @@ export function buildPassRefundRevokeFields({ subscription, now = new Date() } =
  * 같기 때문에 별도 필드를 두지 않는다. cycleKey 를 못 구하면(만료일 없음)
  * 적용하지 않는다(셀 수 없는 상태는 막지 않는다).
  */
-export function resolveMonthlySpendQuota(profileSubscription, entitlement, coinCost) {
+export function resolveMonthlySpendQuota(profileSubscription, entitlement, coinCost, { lightFortune = false } = {}) {
   const price = Math.max(0, Math.floor(Number(coinCost || 0)));
   const tier = normalizePassTier(entitlement?.passTier || entitlement?.tier);
   const cycleKey = resolvePremiumQuotaCycleKey(entitlement);
@@ -352,6 +352,8 @@ export function resolveMonthlySpendQuota(profileSubscription, entitlement, coinC
     ? Math.max(0, Math.floor(Number(profileSubscription?.monthlySpendCoin || 0)))
     : 0;
   const remainingCoin = Math.max(0, limitCoin - usedCoin);
+  // 라이트 운세는 한도를 쓰지 않는다. 표시용 사용량과 잔여는 실제 값을 그대로 돌려준다.
+  if (lightFortune) return { applies: false, cycleKey, limitCoin, usedCoin, remainingCoin, exceeded: false };
   const exceeded = price > 0 && (usedCoin + price) > limitCoin;
   return { applies: true, cycleKey, limitCoin, usedCoin, remainingCoin, exceeded };
 }
