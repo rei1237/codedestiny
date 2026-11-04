@@ -1963,7 +1963,7 @@ function LifeBookResultContent({ paymentSurface }: { paymentSurface?: "toss" }) 
           </div>
         </article>
 
-        {attemptId && result?.status === "completed" && (
+        {paymentSurface !== "toss" && attemptId && result?.status === "completed" && (
           <PremiumResultShare
             kind="book"
             title={copy.shareKicker}
@@ -1985,6 +1985,7 @@ function LifeBookResultContent({ paymentSurface }: { paymentSurface?: "toss" }) 
             window.dispatchEvent(new Event("premium-share-open:book"));
             document.getElementById("book-share-editor")?.scrollIntoView({ behavior: "smooth", block: "start" });
           }}
+          showShareActions={paymentSurface !== "toss"}
           shareReady={Boolean(attemptId && result?.status === "completed" && (report.coreSummary?.oneLine || report.coreSummary?.lifeTheme || report.chapters.some(chapter => chapter.summary?.trim())))}
           bookmarked={bookmarks.has(chapterPage)}
           onToggleBookmark={toggleBookmark}

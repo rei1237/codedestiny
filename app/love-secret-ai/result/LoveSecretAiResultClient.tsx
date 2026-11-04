@@ -1037,25 +1037,27 @@ export default function LoveSecretAiResultClient({ paymentSurface }: { paymentSu
           </a>
           {consultation && (
             <div className="flex flex-wrap items-center gap-2">
+              {paymentSurface !== "toss" && (
               <button
-                type="button"
-                onClick={() => {
-                  window.dispatchEvent(new Event("premium-share-open:letter"));
-                  document.getElementById("letter-share-editor")?.scrollIntoView({ behavior: "smooth", block: "start" });
-                }}
-                disabled={!isShareReady}
-                aria-label={copy.shareCardAria}
-                className={`${theme.focusRing} inline-flex min-h-11 items-center gap-2 rounded-full border border-[var(--ls-line-control)] bg-[var(--ls-surface)] px-4 text-sm font-bold text-[var(--ls-text)] transition hover:bg-[var(--ls-surface-sunken)] disabled:opacity-60`}
-              >
-                <Share2 className="h-4 w-4" aria-hidden="true" />
-                {copy.shareCardCta}
-              </button>
+                  type="button"
+                  onClick={() => {
+                    window.dispatchEvent(new Event("premium-share-open:letter"));
+                    document.getElementById("letter-share-editor")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                  }}
+                  disabled={!isShareReady}
+                  aria-label={copy.shareCardAria}
+                  className={`${theme.focusRing} inline-flex min-h-11 items-center gap-2 rounded-full border border-[var(--ls-line-control)] bg-[var(--ls-surface)] px-4 text-sm font-bold text-[var(--ls-text)] transition hover:bg-[var(--ls-surface-sunken)] disabled:opacity-60`}
+                >
+                  <Share2 className="h-4 w-4" aria-hidden="true" />
+                  {copy.shareCardCta}
+                </button>
+              )}
               <LoveSecretPdfButton loading={pdfLoading} onClick={() => void handlePdfDownload()} />
             </div>
           )}
         </div>
 
-        {isShareReady && consultationKey && (
+        {paymentSurface !== "toss" && isShareReady && consultationKey && (
           <PremiumResultShare
             kind="letter"
             title={copy.deckLabel}

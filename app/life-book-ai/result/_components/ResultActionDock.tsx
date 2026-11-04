@@ -294,6 +294,7 @@ type ResultActionDockProps = {
   onDownloadPdf: () => void;
   onOpenShare: () => void;
   shareReady: boolean;
+  showShareActions?: boolean;
   bookmarked: boolean;
   onToggleBookmark: () => void;
   onRegenerate: () => void;
@@ -304,6 +305,7 @@ export default function ResultActionDock({
   onDownloadPdf,
   onOpenShare,
   shareReady,
+  showShareActions = true,
   bookmarked,
   onToggleBookmark,
   onRegenerate,
@@ -317,14 +319,16 @@ export default function ResultActionDock({
           {pdfLoading ? <Loader2 className="h-5 w-5 animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <Download className="h-5 w-5" aria-hidden="true" />}
           <span className={styles.label}>PDF</span>
         </button>
+        {showShareActions && <>
         <button type="button" onClick={onOpenShare} disabled={!shareReady} aria-label={copy.imageSaveAria} className={styles.action}>
-          <ImageDown className="h-5 w-5" aria-hidden="true" />
-          <span className={styles.label}>{copy.imageLabel}</span>
-        </button>
-        <button type="button" onClick={onOpenShare} disabled={!shareReady} aria-label={copy.shareAria} className={styles.action}>
-          <Share2 className="h-5 w-5" aria-hidden="true" />
-          <span className={styles.label}>{copy.shareLabel}</span>
-        </button>
+            <ImageDown className="h-5 w-5" aria-hidden="true" />
+            <span className={styles.label}>{copy.imageLabel}</span>
+          </button>
+          <button type="button" onClick={onOpenShare} disabled={!shareReady} aria-label={copy.shareAria} className={styles.action}>
+            <Share2 className="h-5 w-5" aria-hidden="true" />
+            <span className={styles.label}>{copy.shareLabel}</span>
+          </button>
+        </>}
         <button
           type="button"
           onClick={onToggleBookmark}
