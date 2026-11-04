@@ -279,9 +279,9 @@ test('CR-006 new default-OFF requests pin legacy and body flags cannot enable v2
   s.on = true; s.year++;
   assert.equal((await s.start(preparedBody)).status, 200);
   assert.equal(s.docs[0].llmMeta.chartSnapshot.lunar.source, 'legacy'); assert.equal(s.calculations, 1);
-  const bad = setup({ on: true });
-  assert.equal((await bad.prepare({ ...preparedBody, birthInfo: { ...birth, longitude: 140 } })).status, 422);
-  assert.equal(bad.preparations.size, 0); assert.equal(bad.calculations, 0);
+  const place = setup({ on: true });
+  assert.equal((await place.prepare({ ...preparedBody, birthInfo: { ...birth, longitude: 140 } })).status, 200);
+  assert.equal(place.preparations.size, 1); assert.equal(place.calculations, 1);
   const legacy = setup(); legacy.fault = 'calculate';
   assert.equal((await legacy.basis({ birthInfo: birth })).status, 422);
 });

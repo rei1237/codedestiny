@@ -40,7 +40,10 @@ export async function resolveZiweiPreparation({ model, userId, requestId, inputH
   if (existing?.llmMeta?.calculationPreparationId && !saved) throw failure("CALCULATION_PREPARATION_UNAVAILABLE");
   const protocol = rawBody.calculationProtocol;
   if (protocol != null && protocol !== ZIWEI_PREPARATION_PROTOCOL) throw failure("CALCULATION_PREPARATION_INVALID");
-  const required = protocol === ZIWEI_PREPARATION_PROTOCOL || Boolean(existing?.llmMeta?.calculationPreparationId) || calendarAuthorityV2;
+  // 프로토콜 없는 요청은 롤아웃 전 페이지다. 그 prepare 는 기록을 남기지 않았으니 기록을 요구하면
+  // 결제 후 복귀한 고객이 막힌다. 프로토콜 없이 새로 prepare 하면 아래에서 그대로 기록한다.
+  const required = protocol === ZIWEI_PREPARATION_PROTOCOL || Boolean(existing?.llmMeta?.calculationPreparationId);
+  const records = required || (calendarAuthorityV2 && action === "prepare" && !existing);
   if (!userId || !requestId || requestId.length < 12 || requestId.length > 180 || !inputHash) throw failure("CALCULATION_PREPARATION_INVALID");
   const id = hash([FEATURE, userId, requestId]);
   const bindingHash = hash([inputHash, geo(rawBody), geo(rawBody.birthInfo)]);
@@ -59,23 +62,18 @@ export async function resolveZiweiPreparation({ model, userId, requestId, inputH
   if (stored) return accept(stored);
   // No retry-time creation: lost preparation must not become a different calculation.
   if (required && (action !== "prepare" || existing)) throw failure("CALCULATION_PREPARATION_REQUIRED");
-  if (!required) {
+  if (!records) {
     try { return { chart: prepareZiweiExecutionChart(input, { existing, year }), preparationId: null }; }
     catch { throw failure("CALCULATION_PREPARATION_INVALID"); }
   }
   if (!Number.isInteger(year)) throw failure("CALCULATION_PREPARATION_INVALID");
   let chart;
   try {
-    // The billing/input hash stays unchanged. ON eligibility sees raw geography before normalization can discard it.
-    const calculationInput = calendarAuthorityV2 ? {
-      ...input, ...geo(rawBody),
-      birthInfo: { ...input.birthInfo, ...geo(rawBody.birthInfo) },
-    } : input;
-    chart = prepareZiweiExecutionChart(calculationInput, { year, calendarAuthorityV2 });
+    chart = prepareZiweiExecutionChart(input, { year, calendarAuthorityV2 });
   } catch { throw failure("CALCULATION_PREPARATION_INVALID"); }
   const record = {
     _id: id, userId, featureKey: FEATURE, requestId, inputHash, bindingHash,
-    targetYear: year, authorityVersion: calendarAuthorityV2 ? VERSION : "legacy",
+    targetYear: year, authorityVersion: chart.lunar?.source === VERSION ? VERSION : "legacy",
     chartSnapshot: chart, createdAt: new Date(),
   };
   record.selectionDigest = selectionDigest(record);

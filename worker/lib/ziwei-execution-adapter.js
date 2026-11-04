@@ -3,6 +3,7 @@ import { calculateZiweiAiChart } from "./ziwei-ai-chart.js";
 // CR-005: trusted per-execution option only; no env/body/storage toggle.
 export const DEFAULT_ZIWEI_EXECUTION_OPTIONS = Object.freeze({ calendarAuthorityV2: false });
 const EXPANDED_VERSION = "kasi-jpl-expanded-20261101";
+const CALENDAR_GAP = "CALENDAR_AUTHORITY_OUT_OF_RANGE";
 
 function snapshotError() {
   const error = new Error("CALCULATION_SNAPSHOT_REQUIRED");
@@ -34,26 +35,14 @@ export function prepareZiweiExecutionChart(input, { existing = null, year, calen
   const saved = readZiweiExecutionSnapshot(existing);
   if (saved) return saved;
   if (typeof calendarAuthorityV2 !== "boolean") throw new TypeError("INVALID_CALCULATION_SELECTION");
-  const enabled = !existing && calendarAuthorityV2;
-  if (enabled) {
-    const birth = input?.birthInfo || input;
-    const places = [birth?.birthPlace, input?.birthPlace].filter(value => value != null);
-    const birthYear = Number(String(birth?.birthDate || "").slice(0, 4));
-    if (birthYear < 2000 || birthYear > 2028 || !Number.isInteger(birthYear)
-      || !["solar", "lunar"].includes(birth?.calendarType)
-      || !["male", "female"].includes(birth?.gender)
-      || birth.birthTimeUnknown || !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(birth?.birthTime || "")
-      || places.some(place => typeof place !== "object" || place.timezone !== "Asia/Seoul" || place.longitude !== 126.978 || place.latitude !== 37.5665)
-      || [birth, input, ...places].some(value => value && (value.timezoneOffset != null || value.timezoneOffsetMinutes != null
-        || value.utcOffsetMinutes != null || value.standardMeridian != null
-        || (value.longitude != null && value.longitude !== 126.978) || (value.latitude != null && value.latitude !== 37.5665)
-        || (value.timezone != null && value.timezone !== "Asia/Seoul")))) {
-      throw new RangeError("ZIWEI_EXECUTION_OUTSIDE_PILOT");
+  if (!existing && calendarAuthorityV2) {
+    try {
+      return calculateZiweiAiChart(input, { year, authorityFlags: { koreanCalendarAuthorityV2: true, authorityVersion: EXPANDED_VERSION } });
+    } catch (error) {
+      // 승인 음력 표는 1899-12~1913-03, 1999-12~2029-03 만 담는다. 그 밖의 날짜는 현재 표로 계산하고
+      // chart.lunar.source 로 구분한다. 잘못된 입력 등 다른 오류는 그대로 올린다.
+      if (error?.code !== CALENDAR_GAP && error?.message !== CALENDAR_GAP) throw error;
     }
   }
-  // No catch/fallback: invalid dates and corrected-day coverage are checked by the public calculator.
-  return calculateZiweiAiChart(input, {
-    year,
-    ...(enabled ? { authorityFlags: { koreanCalendarAuthorityV2: true, authorityVersion: EXPANDED_VERSION } } : {}),
-  });
+  return calculateZiweiAiChart(input, { year });
 }
