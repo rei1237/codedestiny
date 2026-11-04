@@ -4,6 +4,7 @@ import {
   callLLM,
   createGeminiContextCache as createLLMContextCache,
   deleteGeminiContextCache as deleteLLMContextCache,
+  restoreGeminiContextCache as restoreLLMContextCache,
 } from "../../lib/llm-client.ts";
 import { safeGeminiFailure } from "../../lib/gemini-provider-errors.mjs";
 import { getAmbientAiLocale } from "./ai-locale-context.js";
@@ -99,11 +100,23 @@ export function createGeminiContextCache(env, options = {}) {
     prefix: String(options.prefix || ""),
     systemPrompt: clean(options.systemPrompt),
     locale: clean(options.locale) || getAmbientAiLocale() || undefined,
+    outputRegister: options.outputRegister === "persona" ? "persona" : undefined,
     model: clean(options.model),
     reasoningTask: options.reasoningTask,
     ttlSeconds: Number(options.ttlSeconds) || undefined,
     timeoutMs: Number(options.timeoutMs) || undefined,
   }, env);
+}
+
+/** 저장해 둔 이름으로 핸들을 다시 세운다. 정규화 규칙은 생성과 같다. */
+export function restoreGeminiContextCache(options = {}) {
+  return restoreLLMContextCache({
+    name: clean(options.name),
+    prefix: String(options.prefix || ""),
+    systemPrompt: clean(options.systemPrompt),
+    locale: clean(options.locale) || getAmbientAiLocale() || undefined,
+    outputRegister: options.outputRegister === "persona" ? "persona" : undefined,
+  });
 }
 
 /** 다 쓴 컨텍스트 캐시를 지운다. 실패는 삼킨다(TTL 이 안전망). */

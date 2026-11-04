@@ -101,6 +101,8 @@ export interface GeminiContextCacheInput {
   prefix: string;
   systemPrompt?: string;
   locale?: string;
+  /** 호출과 같은 값이어야 한다. 말투 지시문이 달라지면 캐시에 구운 systemInstruction 과 어긋난다. */
+  outputRegister?: LLMRequest["outputRegister"];
   model?: string;
   reasoningTask?: LLMRequest["reasoningTask"];
   ttlSeconds?: number;
@@ -707,6 +709,37 @@ function resolveGeminiEndpointModel(request: LLMRequest, env?: CloudflareEnv): s
 }
 
 /**
+ * 🔴 callLLM 이 applyOutputLocale 로 systemPrompt 를 바꾸므로, 캐시에 굽는 값도 같은 변환을
+ *    거쳐야 한다. 한 글자라도 다르면 callGeminiPrimary 가 캐시를 쓰지 않고 조용히 정가로 나간다.
+ *    (worker/lib/gemini.js 가 systemPrompt 를 trim 해서 넘기므로 여기서도 먼저 trim 한다.)
+ */
+function contextCacheSystemPrompt(
+  input: Pick<GeminiContextCacheInput, "systemPrompt" | "locale" | "outputRegister">,
+): string {
+  const localized = applyOutputLocale({
+    prompt: "",
+    systemPrompt: String(input?.systemPrompt || "").trim(),
+    locale: input?.locale,
+    outputRegister: input?.outputRegister,
+  });
+  return String(localized.systemPrompt || "");
+}
+
+/**
+ * 이미 만들어 둔 캐시의 핸들을 다시 세운다. 큐 메시지마다 실행이 끊기는 경로는 이름만 저장하고,
+ * 접두사와 systemPrompt 는 이번에 보낼 값에서 받는다. 어긋나면 참조하지 않고 정가로 나간다.
+ */
+export function restoreGeminiContextCache(
+  input: Pick<GeminiContextCacheInput, "prefix" | "systemPrompt" | "locale" | "outputRegister"> & { name: string },
+): GeminiContextCache {
+  return {
+    name: String(input?.name || ""),
+    prefix: String(input?.prefix || ""),
+    systemPrompt: contextCacheSystemPrompt(input),
+  };
+}
+
+/**
  * 병렬 팬아웃이 공유하는 불변 접두사를 Gemini 쪽에 한 벌만 올려 두고 핸들을 받는다.
  *
  * 왜 필요한가(2026-08-15 실측): 암묵 캐싱은 90초가 지나야 27%만 걸려서, 5그룹이 ~40초에
@@ -727,15 +760,7 @@ export async function createGeminiContextCache(
   const apiKey = getGeminiApiKey(env);
   if (!apiKey) return null;
 
-  // 🔴 callLLM 이 applyOutputLocale 로 systemPrompt 를 바꾸므로, 캐시에 굽는 값도 같은 변환을
-  //    거쳐야 한다. 한 글자라도 다르면 callGeminiPrimary 가 캐시를 쓰지 않고 조용히 정가로 나간다.
-  //    (worker/lib/gemini.js 가 systemPrompt 를 trim 해서 넘기므로 여기서도 먼저 trim 한다.)
-  const localized = applyOutputLocale({
-    prompt: "",
-    systemPrompt: String(input?.systemPrompt || "").trim(),
-    locale: input?.locale,
-  });
-  const systemPrompt = String(localized.systemPrompt || "");
+  const systemPrompt = contextCacheSystemPrompt(input);
 
   const model = resolveGeminiEndpointModel({ prompt: "", model: input?.model, reasoningTask: input?.reasoningTask }, env);
   const ttlSeconds = Number(input?.ttlSeconds) > 0
@@ -1133,6 +1158,12 @@ function isTransientGeminiError(error: unknown): boolean {
   return message.includes("overloaded") || message.includes("empty response") || message.includes("try again later");
 }
 
+// Gemini 는 없는 핸들을 "CachedContent not found (or permission denied)" 로 거절한다.
+function isContextCacheRejected(error: unknown): boolean {
+  const status = Number((error as { status?: number })?.status || 0);
+  return [400, 403, 404].includes(status) && /cached\s*content/i.test(getErrorMessage(error));
+}
+
 const GEMINI_RETRY_BACKOFF_MS = [400, 900] as const;
 
 // deadlineAt 이 없으면(직접 호출 등) request.timeoutMs 기준으로 새로 계산한다 — callLLMUncached
@@ -1218,6 +1249,11 @@ async function callLLMUncached(
   //    Workers AI 로 떨어진다. 폴백은 목표 분량의 60~77%만 쓰고 멈추므로 유료 라우트의
   //    fallbackMinChars 게이트에 걸려 상담 전체가 실패한다. 같은 deadlineAt 을 쓰므로
   //    예산이 남아 있지 않으면 이 시도는 즉시 실패하고 벽시계를 늘리지 않는다.
+  // 만료·삭제된 핸들의 거절은 생성 전에 끝나 출력이 없으므로 생성 시도로 세지 않는다.
+  // 🔴 결제 경로는 시도가 1회뿐이라, 이걸 세면 낡은 핸들 하나가 그 호출의 유일한 기회를 쓴다.
+  if (request.geminiCachedContent && geminiInputVerified && isContextCacheRejected(geminiError)) {
+    budget.remaining += 1;
+  }
   if (budget.remaining > 0 && request.geminiCachedContent && geminiInputVerified) {
     const withoutContextCache: LLMRequest = { ...request };
     delete withoutContextCache.geminiCachedContent;
