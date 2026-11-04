@@ -865,7 +865,7 @@
       "step3Label": "Alleen diepere readings betaal je per keer",
       "step3Text": "Readings buiten je bereik gaan alleen bij behoefte door met een eenmalige KRW-betaling.",
       "terminationNote": "Zodra de gebruikslimiet op is, stopt de pas. Koop je opnieuw, dan begin je met een nieuwe gebruikslimiet. Extra betaalde content is beschikbaar via eenmalige betaling of Maanlichtstenen.",
-      "noExpiryNote": "Geen tijdslimiet · Stopt zodra de gebruikslimiet op is"
+      "noExpiryNote": "Geen tijdslimiet · Geen automatische verlenging"
     },
     "promptHub": {
       "aria": "Ga naar uitgebreide fortuinprompts",
@@ -912,7 +912,7 @@
       "desc": "Readings binnen het bereik dat je kiest openen tot je gebruikslimiet op is; alleen duurdere readings betaal je los wanneer je ze nodig hebt. De vier bereiken zijn KRW 5.000 · 10.000 · 20.000 en alle content die de pass dekt, dus kies de prijs die je het vaakst bekijkt.",
       "pointsAria": "Kernpasgids",
       "point1": "Gaat direct open, zonder afrekenen",
-      "point2": "Geen tijdslimiet · Stopt zodra de gebruikslimiet op is",
+      "point2": "Geen tijdslimiet · Geen automatische verlenging",
       "point3": "Een pass zonder automatische verlenging",
       "mascotAria": "Voordelen van de Moonlight Pass bekijken · Moonlight Pass-winkel",
       "mascotAlt": "Afbeelding met voordelen van de Moonlight Pass",

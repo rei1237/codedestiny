@@ -865,7 +865,7 @@
       "step3Label": "Solo las lecturas más profundas se pagan por uso",
       "step3Text": "Las lecturas fuera de tu rango continúan con un pago único en KRW solo cuando lo necesitas.",
       "terminationNote": "Cuando se agota el límite de uso, el pase termina. Si lo vuelves a comprar, empiezas con un nuevo límite de uso. El contenido adicional de pago está disponible con un pago único o Piedras de Luz Lunar.",
-      "noExpiryNote": "Sin límite de tiempo · Termina al agotar el límite de uso"
+      "noExpiryNote": "Sin límite de tiempo · Sin renovación automática"
     },
     "promptHub": {
       "aria": "Ir a indicaciones completas sobre la fortuna",
@@ -912,7 +912,7 @@
       "desc": "Las lecturas dentro del rango que elijas se abren hasta que agotes tu límite de uso; solo las más caras se pagan una a una cuando las necesitas. Los cuatro rangos son 5.000 KRW · 10.000 KRW · 20.000 KRW y todo el contenido incluido en el pase, así que elige el precio que más consultas.",
       "pointsAria": "Guía de pase básico",
       "point1": "Se abre al instante, sin pago",
-      "point2": "Sin límite de tiempo · Termina al agotar el límite de uso",
+      "point2": "Sin límite de tiempo · Sin renovación automática",
       "point3": "Pase sin renovación automática",
       "mascotAria": "Ver las ventajas del Moonlight Pass · Tienda del Moonlight Pass",
       "mascotAlt": "Imagen de las ventajas del Moonlight Pass",

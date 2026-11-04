@@ -865,7 +865,7 @@
       "step3Label": "Hanya bacaan lebih mendalam dibayar setiap guna",
       "step3Text": "Bacaan di luar julat anda diteruskan dengan pembayaran KRW sekali sahaja apabila diperlukan.",
       "terminationNote": "Apabila had penggunaan habis digunakan, pas akan tamat. Membeli semula akan bermula dengan had penggunaan baharu. Kandungan berbayar tambahan boleh digunakan dengan bayaran sekali atau Batu Cahaya Bulan.",
-      "noExpiryNote": "Tiada had tempoh · Tamat apabila had penggunaan habis"
+      "noExpiryNote": "Tiada had tempoh · Tiada pembaharuan automatik"
     },
     "promptHub": {
       "aria": "Pergi ke gesaan nasib yang komprehensif",
@@ -912,7 +912,7 @@
       "desc": "Bacaan dalam julat yang anda pilih terbuka sehingga had penggunaan anda habis; hanya bacaan yang lebih mahal dibayar satu per satu apabila diperlukan. Empat julat itu ialah KRW 5,000 · 10,000 · 20,000 dan semua kandungan yang dilindungi pas, jadi pilih harga yang paling kerap anda lihat.",
       "pointsAria": "Panduan lulus teras",
       "point1": "Terbuka terus, tanpa pembayaran",
-      "point2": "Tiada had tempoh · Tamat apabila had penggunaan habis",
+      "point2": "Tiada had tempoh · Tiada pembaharuan automatik",
       "point3": "Pas tanpa pembaharuan automatik",
       "mascotAria": "Lihat manfaat Moonlight Pass · Kedai Moonlight Pass",
       "mascotAlt": "Imej manfaat Moonlight Pass",

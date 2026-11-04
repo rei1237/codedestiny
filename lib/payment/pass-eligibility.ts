@@ -83,6 +83,7 @@ export function describePassEligibility(
   canonicalPriceKRW: number,
   passUsage?: PassUsageSnapshot | null,
   locale?: string,
+  options?: { lightFortune?: boolean },
 ): PassEligibility {
   const minimumTier = resolveMinimumTier(canonicalPriceKRW);
   const currentTier = normalizeTier(passUsage?.tier);
@@ -94,7 +95,8 @@ export function describePassEligibility(
     ? Math.max(0, monthlyLimitKRW - usedKRW)
     : Math.max(0, Number(passUsage.remainingKRW));
   const minimumCoverableKRW = Number(MIN_PASS_COVERABLE_COIN || 0) * 100;
-  const monthlyExhausted = Boolean(
+  // 라이트 운세는 상담 한도와 무관하므로 소진 안내를 띄우지 않는다.
+  const monthlyExhausted = !options?.lightFortune && Boolean(
     currentTier
       && monthlyLimitKRW > 0
       && remainingKRW < minimumCoverableKRW,
@@ -118,6 +120,23 @@ export function describePassEligibility(
     monthlyExhausted: false,
     label: getEligibilityCopy(locale).included(getTierLabels(locale)[minimumTier]),
   };
+}
+
+/**
+ * 상담 한도를 다 썼는지 화면용으로 판정한다. 서버 isActivePassBudgetExhausted 와 같은 임계값이다.
+ * 소진해도 이용권은 유지되고 라이트 운세는 계속 이용할 수 있다. 최종 판정은 서버가 한다.
+ */
+export function isConsultationAllowanceExhausted(passUsage?: PassUsageSnapshot | null): boolean {
+  const tier = normalizeTier(passUsage?.tier);
+  if (!tier || !passUsage) return false;
+  const limitKRW = Number(passUsage.limitKRW) || Number(MONTHLY_PASS_LIMITS_KRW[tier] || 0);
+  if (limitKRW <= 0) return false;
+  const remainingKRW = passUsage.remainingKRW == null
+    ? Math.max(0, limitKRW - Math.max(0, Number(passUsage.usedKRW || 0)))
+    : Math.max(0, Number(passUsage.remainingKRW));
+  const minimumCoverableKRW = Number(MIN_PASS_COVERABLE_COIN || 0) * 100;
+  const thresholdKRW = Math.max(100, Math.min(minimumCoverableKRW, Number(passUsage.perItemLimitKRW) || minimumCoverableKRW));
+  return remainingKRW < thresholdKRW;
 }
 
 export function getPassTierLabel(tier: string | null | undefined, locale?: string): string {

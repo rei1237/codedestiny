@@ -2,7 +2,7 @@
  * 이용권 만료일 표시 규칙(2026-10-11 기간 없는 이용권).
  *
  * 서버는 기간 없는 이용권의 expiresAt 을 "활성화 + 100년" 센티널로 내려준다. 남은 기간이 10년을
- * 넘으면 날짜·D-day 대신 "기간 제한 없음 · 한도 소진 시 종료"를 보여 준다. 판정은 서버 정본
+ * 넘으면 날짜·D-day 대신 "기간 제한 없음 · 자동 갱신 없음"을 보여 준다. 판정은 서버 정본
  * worker/lib/profile-limits.js isOpenEndedPassExpiry 를 그대로 쓴다(임계값 사본을 만들지 않는다).
  * 옛 이용권(실제 날짜)은 마이그레이션 전까지 날짜가 그대로 보인다.
  */
@@ -13,18 +13,18 @@ export function isOpenEndedPassExpiry(value: string | number | Date | null | und
 }
 
 const OPEN_ENDED_PASS_LABELS: Record<string, string> = {
-  ko: "기간 제한 없음 · 한도 소진 시 종료",
-  en: "No expiry · ends when the usage limit is used up",
-  ja: "期間制限なし · 利用上限を使い切ると終了",
-  "zh-cn": "不限期限 · 使用额度用完即结束",
-  "zh-tw": "不限期限 · 使用額度用完即結束",
-  vi: "Không giới hạn thời gian · kết thúc khi dùng hết hạn mức",
-  hi: "कोई समय सीमा नहीं · उपयोग सीमा खत्म होने पर समाप्त",
-  es: "Sin caducidad · termina al agotar el límite de uso",
-  fr: "Sans date d'expiration · prend fin une fois la limite d'utilisation épuisée",
-  de: "Kein Ablaufdatum · endet, wenn das Nutzungslimit aufgebraucht ist",
-  nl: "Geen vervaldatum · eindigt zodra de gebruikslimiet op is",
-  ms: "Tiada tarikh luput · tamat apabila had penggunaan habis",
+  ko: "기간 제한 없음 · 자동 갱신 없음",
+  en: "No expiry · no auto-renewal",
+  ja: "期間制限なし · 自動更新なし",
+  "zh-cn": "不限期限 · 不自动续费",
+  "zh-tw": "不限期限 · 不自動續費",
+  vi: "Không giới hạn thời gian · không tự động gia hạn",
+  hi: "कोई समय सीमा नहीं · स्वतः नवीनीकरण नहीं",
+  es: "Sin caducidad · sin renovación automática",
+  fr: "Sans date d'expiration · sans renouvellement automatique",
+  de: "Kein Ablaufdatum · keine automatische Verlängerung",
+  nl: "Geen vervaldatum · geen automatische verlenging",
+  ms: "Tiada tarikh luput · tiada pembaharuan automatik",
 };
 
 function normalizeLocale(locale: string | undefined): string {

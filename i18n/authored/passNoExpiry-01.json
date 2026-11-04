@@ -1,18 +1,18 @@
 {
   "_comment": "이용권 기간 폐지(2026-10-11: 기간 없음 · 이용 한도를 모두 쓰면 종료 · 프로필 개수 상한 없음)로 바뀐 이용권 문구 중, 지금까지 authored 원본 없이 public/i18n 에만 있던 키를 여기로 올렸다. noExpiryNote 는 서버 expiresAt 이 '활성화 + 100년' 센티널일 때(남은 기간 > 10년, js/core/pass-verdict.js isOpenEndedPassExpiry) 만료일·D-day 대신 보여 주는 새 문구다.",
   "home.passMini.noExpiryNote": {
-    "ko": "기간 제한 없음 · 한도 소진 시 종료",
-    "en": "No time limit · Ends when the usage limit is used up",
-    "ja": "期間制限なし · 利用上限を使い切ると終了",
-    "zh-CN": "无期限限制 · 额度用完即结束",
-    "zh-TW": "無期限限制 · 額度用完即結束",
-    "vi": "Không giới hạn thời gian · Kết thúc khi dùng hết hạn mức",
-    "hi": "कोई समय-सीमा नहीं · उपयोग सीमा खत्म होने पर समाप्त",
-    "es": "Sin límite de tiempo · Termina al agotar el límite de uso",
-    "fr": "Sans limite de durée · Prend fin à l'épuisement de la limite d'utilisation",
-    "de": "Ohne Laufzeitbegrenzung · Endet, wenn das Nutzungslimit aufgebraucht ist",
-    "nl": "Geen tijdslimiet · Stopt zodra de gebruikslimiet op is",
-    "ms": "Tiada had tempoh · Tamat apabila had penggunaan habis"
+    "ko": "기간 제한 없음 · 자동 갱신 없음",
+    "en": "No time limit · No auto-renewal",
+    "ja": "期間制限なし · 自動更新なし",
+    "zh-CN": "无期限限制 · 不自动续费",
+    "zh-TW": "無期限限制 · 不自動續費",
+    "vi": "Không giới hạn thời gian · Không tự động gia hạn",
+    "hi": "कोई समय-सीमा नहीं · स्वतः नवीनीकरण नहीं",
+    "es": "Sin límite de tiempo · Sin renovación automática",
+    "fr": "Sans limite de durée · Sans renouvellement automatique",
+    "de": "Ohne Laufzeitbegrenzung · Keine automatische Verlängerung",
+    "nl": "Geen tijdslimiet · Geen automatische verlenging",
+    "ms": "Tiada had tempoh · Tiada pembaharuan automatik"
   },
   "home.passMini.guideTitle": {
     "ko": "이용 한도를 다 쓸 때까지, 자주 여는 운세를 먼저 부드럽게",

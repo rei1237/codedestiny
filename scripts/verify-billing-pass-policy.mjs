@@ -705,7 +705,7 @@ assertBefore(cardSubscriptionSource, "const rsp = directPayFields.orderMethod ==
 assertContains(pointsSource, "subscriptions?: Record<string, unknown>[]", "points page reads payments/me subscriptions");
 assertContains(pointsSource, "normalizeSubscriptionStatusFromPayload", "points page normalizes subscription payloads");
 assertContains(pointsSource, "mergeSubscriptionState", "points page merges server subscription state");
-assertContains(pointsSource, "<SubscriptionStatusCard subscription={subscription} />", "points page renders status card without monthly balance copy");
+assertContains(pointsSource, "<SubscriptionStatusCard subscription={subscription} passUsage={passUsage} />", "points page renders status card without monthly balance copy");
 const legacyPdfDiscountCopy = [
   "PDF 생성 시 3,000원 ",
   "자동 ",

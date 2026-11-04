@@ -865,7 +865,7 @@
       "step3Label": "Chỉ lượt đọc sâu ngoài phạm vi mới trả từng lần",
       "step3Text": "Lượt đọc sâu ngoài phạm vi chỉ tiếp tục bằng một lần thanh toán KRW khi bạn cần.",
       "terminationNote": "Khi dùng hết hạn mức sử dụng, vé sẽ kết thúc. Mua lại sẽ bắt đầu với hạn mức sử dụng mới. Nội dung trả phí bổ sung có thể dùng bằng thanh toán một lần hoặc Nguyệt Tinh Thạch.",
-      "noExpiryNote": "Không giới hạn thời gian · Kết thúc khi dùng hết hạn mức"
+      "noExpiryNote": "Không giới hạn thời gian · Không tự động gia hạn"
     },
     "promptHub": {
       "aria": "Đến phần gợi ý bói toàn diện",
@@ -912,7 +912,7 @@
       "desc": "Các bài đọc trong khoảng giá bạn chọn sẽ mở cho đến khi bạn dùng hết hạn mức sử dụng; chỉ những bài đắt hơn mới thanh toán từng lần khi cần. Bốn mức là 5.000 KRW · 10.000 KRW · 20.000 KRW và toàn bộ nội dung áp dụng gói, nên hãy chọn mức giá bạn hay xem nhất.",
       "pointsAria": "Hướng dẫn vượt qua lõi",
       "point1": "Mở ngay, không cần thanh toán",
-      "point2": "Không giới hạn thời gian · Kết thúc khi dùng hết hạn mức",
+      "point2": "Không giới hạn thời gian · Không tự động gia hạn",
       "point3": "Thẻ không tự động gia hạn",
       "mascotAria": "Xem quyền lợi Moonlight Pass · Cửa hàng Moonlight Pass",
       "mascotAlt": "Ảnh quyền lợi Moonlight Pass",

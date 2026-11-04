@@ -865,7 +865,7 @@
       "step3Label": "Nur tiefere Readings kosten pro Nutzung",
       "step3Text": "Readings außerhalb deines Bereichs führen nur bei Bedarf zu einer einmaligen KRW-Zahlung.",
       "terminationNote": "Wenn das Nutzungslimit aufgebraucht ist, endet der Pass. Bei einem erneuten Kauf beginnst du mit einem neuen Nutzungslimit. Zusätzliche kostenpflichtige Inhalte sind per Einzelzahlung oder mit Mondlichtsteinen verfügbar.",
-      "noExpiryNote": "Ohne Laufzeitbegrenzung · Endet, wenn das Nutzungslimit aufgebraucht ist"
+      "noExpiryNote": "Ohne Laufzeitbegrenzung · Keine automatische Verlängerung"
     },
     "promptHub": {
       "aria": "Gehen Sie zu umfassenden Glücksfragen",
@@ -912,7 +912,7 @@
       "desc": "Readings innerhalb der gewählten Preisspanne öffnen sich, bis Ihr Nutzungslimit aufgebraucht ist; nur teurere Readings zahlen Sie bei Bedarf einzeln. Die vier Stufen sind 5.000 KRW · 10.000 KRW · 20.000 KRW und alle im Pass enthaltenen Inhalte – wählen Sie die Preisklasse, die Sie am häufigsten nutzen.",
       "pointsAria": "Core-Pass-Anleitung",
       "point1": "Öffnet sofort, ohne Bezahlvorgang",
-      "point2": "Ohne Laufzeitbegrenzung · Endet, wenn das Nutzungslimit aufgebraucht ist",
+      "point2": "Ohne Laufzeitbegrenzung · Keine automatische Verlängerung",
       "point3": "Ein Pass ohne automatische Verlängerung",
       "mascotAria": "Vorteile des Moonlight Pass ansehen · Moonlight-Pass-Shop",
       "mascotAlt": "Bild der Moonlight-Pass-Vorteile",
