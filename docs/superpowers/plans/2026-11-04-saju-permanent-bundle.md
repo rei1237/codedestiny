@@ -177,7 +177,7 @@ test("별칭 포함 키는 전부 출생 기반 영구 해금이다", () => {
 ### Task 6: 상세·마케팅·SEO 문구
 
 **Files:**
-- Modify: `js/basic-fortune-detail.mjs`, `js/crafted-product-details.mjs`, `content/product-details/`, `lib/saju/saju-service-catalog.mjs`, `index.html:37153-37158`, `/saju` 메타데이터, `llms.txt`, `lib/seo/entity-registry.mjs`, `js/core/service-registry.js`, 사이트맵 입력, `app/yeongnyangi/1000-won-fortune/page.tsx`, `PAYMENT_POLICY.md`
+- Modify: `js/basic-fortune-detail.mjs`, `js/core/saju/crafted-product-details.mjs`, `content/product-details/`, `lib/saju/saju-service-catalog.mjs`, `index.html:37153-37158`, `/saju` 메타데이터, `llms.txt`, `lib/seo/entity-registry.mjs`, `js/core/service-registry.js`, 사이트맵 입력, `app/yeongnyangi/1000-won-fortune/page.tsx`, `PAYMENT_POLICY.md`
 - Test: `__tests__/ui/saju-bundle-copy.static.test.js`
 
 **Interfaces:**
