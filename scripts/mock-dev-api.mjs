@@ -1,7 +1,7 @@
 import http from 'node:http';
-import { createRecommendationMock } from './fixtures/mock-recommendations.mjs';
+import { createRecommendationMock, MOCK_RECOMMENDATION_TOKEN } from './fixtures/mock-recommendations.mjs';
 import { createTeaMock } from './fixtures/mock-tea-house.mjs';
-import { pathToFileURL } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { sajuResponse, ziweiResponse, tarotResponse, nakshatraAiResponse } from './fixtures/mock-dev-responses.mjs';
 
 function mockNakshatraResolve(body) {
@@ -39,6 +39,7 @@ export function createMockApiServer() {
   const profiles = new Map();
   const teaMock = createTeaMock();
   const recommendationMock = createRecommendationMock();
+  let workshop;
   let loggedIn = false;
   return http.createServer(async (req, res) => {
     const send = (status, body) => {
@@ -59,6 +60,22 @@ export function createMockApiServer() {
       }
       const body = raw ? JSON.parse(raw) : {};
       const route = `${req.method} ${path}`;
+      if (path === '/api/admin/editions' || path === '/api/editions/verify') {
+        if (process.env.CD_EDITION_WORKSHOP !== '1' || process.env.NODE_ENV === 'production') return send(404,{message:'공방이 열리지 않았어요.'});
+        const admin = path === '/api/admin/editions';
+        if (admin && req.headers['x-admin-token'] !== MOCK_RECOMMENDATION_TOKEN) return send(401,{message:'관리자 로그인이 필요해요.'});
+        if ((!admin && req.method !== 'GET') || (admin && !['GET','POST'].includes(req.method))) return send(405,{});
+        try {
+          workshop ??= import('../local/edition-workshop/workshop.mjs').then(({openWorkshop}) =>
+            openWorkshop(process.env.CD_EDITION_LOCAL_DIR || fileURLToPath(new URL('../local/edition-workshop/.state/v1/',import.meta.url))));
+          const w = await workshop;
+          if (!admin) return send(200,await w.verify(url.searchParams.get('code') || ''));
+          if (req.method === 'GET') return send(200,w.list());
+          return send(200,body.action==='qr' ? await w.qr(body.code,body.origin) : await w.mutate(body,'local-flower-admin'));
+        } catch (err) {
+          return send(err.status || 503,{message:err.status ? err.message : '로컬 체인에 연결하지 못했어요. 기록을 다시 확인해 주세요.'});
+        }
+      }
       if (recommendationMock(route, body, req.headers['x-admin-token'], send, url.searchParams)) return;
       if (await teaMock(route, body, loggedIn ? 'mock-user' : null, send)) return;
       if (route === 'GET /api/payments/pass-offers') {
