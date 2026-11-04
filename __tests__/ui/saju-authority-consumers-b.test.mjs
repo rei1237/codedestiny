@@ -320,3 +320,13 @@ test('유료 섹션: 승인값 켜면 후보만 보이고, 시각 미상은 판�
   assert.match(render('section_summary', unknown), /판정 보류/);
   assert.doesNotMatch(render('section_summary', known), /판정 보류/);
 });
+
+test('승인 판정을 싣는 사주 번들은 버전 값을 붙여 불러 CDN 옛 파일을 받지 않는다', () => {
+  const shell = readFileSync('index.html', 'utf8');
+  for (const asset of ['reading-depth.generated.js', 'reading-rich.js', 'reading-rich-intl.js']) {
+    const marker = `/js/core/saju/${asset}?v=build-`;
+    const at = shell.indexOf(marker);
+    assert.ok(at >= 0, asset);
+    assert.notEqual(shell.slice(at + marker.length, at + marker.length + 12), '000000000000', asset);
+  }
+});
