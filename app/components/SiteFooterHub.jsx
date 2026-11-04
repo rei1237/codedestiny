@@ -110,6 +110,7 @@ export const SEO_LINK_GROUPS = [
       { href: "/flower/jamidusu/", text: "자미두수 운명의 꽃" },
       { href: "/flower/sukuyo/", text: "숙요 운명의 꽃" },
       { href: "/fortune-tea-house/", text: "운명 찻집 상담" },
+      { href: "/heukwol/", text: "흑월의 경고 상담" },
       { href: "/karma-destiny-ai/", text: "운명의 업 전문가 상담" },
       { href: "/new-year-ai-consultation/", text: "신년운세 전문가 상담" },
       { href: "/yeon-star-hug/", text: "연이 별빛 포옹" },

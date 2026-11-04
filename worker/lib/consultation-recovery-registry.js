@@ -12,6 +12,7 @@ export const CONSULTATION_RECOVERY_ADAPTERS = Object.freeze([
   ['destiny-compass-ai', 'DestinyCompassReport', {}],
   ['relationship-boundary-test', 'RelationshipBoundaryTest', {}],
   ['naming-prompt', 'PaidExecutionRecord', { featureId: 'premium-naming-prompt', 'result.namingPrompt': { $exists: true } }],
+  ['heukwol', 'ServiceExecutionTransaction', { featureKey: 'heukwol-warning-consultation', 'metadata.analysis': { $exists: true } }],
   ['celestial-harmony', 'ServiceExecutionTransaction', { featureKey: 'tarot-celestial-harmony', 'metadata.celestialDelivery': { $exists: true } }],
   ['fortune', 'PaidExecutionRecord', { featureId: 'saju_ai_question_prompt', 'result.resumeBody': { $exists: true } }],
   ['karma-destiny-ai', 'KarmaDestinyAiConsultation', {}],

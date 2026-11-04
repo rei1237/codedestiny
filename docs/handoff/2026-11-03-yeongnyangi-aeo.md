@@ -1,6 +1,6 @@
 ---
 status: active
-updated: 2026-11-03
+updated: 2026-11-04
 next: "승격 28일 뒤 이후 같은 질문 세트로 재측정한다. 그 전에는 아래 소유자 수동 작업만 남는다"
 ---
 
@@ -12,13 +12,15 @@ AI 검색과 검색엔진이 꿀꿀 운세의 영냥이, 특히 5,000원 고등�
 
 ## 지금 상태
 
-`ai_source` 라벨 파일은 Next 페이지(`/yeongnyangi/` 포함)에도 나간다(2026-11-04 라이브 실측, 운영 `bf9c77a64`). GA4 맞춤 측정기준을 등록하기 전에는 보고서에 값이 나오지 않으므로 이 라벨로 AI 유입을 집계하지 않는다. 수정 경위는 `docs/handoff/2026-11-03-aeo-remaining-work.md`를 본다.
+`ai_source` 라벨 파일은 Next 페이지(`/yeongnyangi/` 포함)에도 나간다(2026-11-04 라이브 실측, 운영 `9ecd08743`). GA4 맞춤 측정기준을 등록하기 전에는 보고서에 값이 나오지 않으므로 이 라벨로 AI 유입을 집계하지 않는다. 수정 경위는 `docs/handoff/2026-11-03-aeo-remaining-work.md`를 본다.
 
 코드와 문서는 main에 올렸다. 운영 반영 여부와 SHA는 `docs/handoff/2026-11-01-seo-architecture-rebuild.md`의 "지금 상태"를 본다. 증거는 `D:\Development\seo-audit\code-destiny-20261103\`에 있다. AI 질문 세트 원문은 그 아래 `ai-baseline\`이다.
 
 대운·세운 가이드(`app/insights/adsense-ready-articles.js`)에는 영냥이 링크를 넣지 않았다. 원고가 `docs/adsense/review/ai-editorial-reviews.json`에 해시로 고정되어 있어, 넣으려면 편집 검수를 다시 받아야 한다.
 
 ## 소유자 수동 작업
+
+Codex 실행 지시는 `docs/handoff/2026-11-04-owner-tasks-codex.md`에 있다.
 
 - GA4 맞춤 측정기준 `ai_source` 등록. 등록 전에는 GA4 보고서에 값이 나오지 않는다.
 - Bing Webmaster, Copilot 로그인 뒤 기준선 조회. 이번에는 로그인 벽으로 빈칸이다.

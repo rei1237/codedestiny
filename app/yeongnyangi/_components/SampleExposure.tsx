@@ -7,7 +7,7 @@ import {trackEvent} from '@/lib/analytics';
  * page_view already measures the landing; do not create a second landing event.
  * Never read URL parameters, consultation input or account data here.
  */
-export default function SampleExposure({targetId,itemId}:{targetId:string;itemId:string}){
+export default function SampleExposure({targetId,itemId,contentId}:{targetId:string;itemId:string;contentId:string}){
  useEffect(()=>{
   const root=document.getElementById(targetId),target=root?.querySelector('[data-sample-exposure]')??root?.querySelector('h2');
   if(!target||!('IntersectionObserver' in window))return;
@@ -15,11 +15,11 @@ export default function SampleExposure({targetId,itemId}:{targetId:string;itemId
   const observer=new IntersectionObserver(entries=>{
    if(sent||!entries.some(entry=>entry.isIntersecting))return;
    sent=true;
-   trackEvent('sample_view',{service:'yeongnyangi',item_id:itemId,sample_type:'editorial',content_id:'mackerel-question-v1',locale:'ko'});
+   trackEvent('sample_view',{service:'yeongnyangi',item_id:itemId,sample_type:'editorial',content_id:contentId,locale:'ko'});
    observer.disconnect();
   });
   observer.observe(target);
   return ()=>observer.disconnect();
- },[targetId,itemId]);
+ },[targetId,itemId,contentId]);
  return null;
 }

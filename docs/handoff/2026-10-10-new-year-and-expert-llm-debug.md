@@ -152,7 +152,7 @@ owner: 다음 세션
 
 ## C. 결과 전달 (결과 페이지 + 홍보용 PDF)
 
-- **결과 페이지.** https://claude.ai/artifact/PtPUfhaiHM37ebpxtr4nQV (비공개).
+- **결과 페이지.** https://claude.ai/artifact/PtPUfhaiHM37ebpxtr4nQV (링크가 있으면 누구나 볼 수 있는 공유 상태. 2026-11-04 조회 기준. 공개 화면의 링크는 같은 날 제거).
   - 생성 스크립트는 `harness/kkul_page.py` 다.
   - 새 항목은 탭으로 더한다. 생년월일은 `P1`/`P2` 와 "1990년대 초 출생" 수준으로만 표기한다.
   - 같은 파일 경로로 다시 게시하면 같은 URL 이 갱신된다.

@@ -36,7 +36,7 @@ test('paid introductions keep an honest sample in the authored essay or before t
         if (resultPanels.length) {
           for (const panel of resultPanels) {
             assert.match(panel.text, /가상 프로필|가상 입력/, essay.id + ': generated input is disclosed');
-            assert.ok(panel.sourceUrl.startsWith('https://claude.ai/artifact/'), essay.id + ': reviewed source is retained');
+            assert.equal(panel.sourceUrl, undefined, essay.id + ': private review link stays out of public data');
             assert.ok(essays[index].querySelector('[data-example-kind="result"]'), essay.id + ': result kind is rendered');
           }
         } else {
@@ -315,7 +315,6 @@ test('popup journey preserves image previews and escapes FAQ without adding chec
     assert.doesNotMatch(html, /onclick=|href="(?:javascript:|\/checkout|\/payment)/);
     const founderLinks = new Set(detail.founder ? ['/about/#author', '/yeongnyangi/#founder-records'] : []);
     for (const link of html.matchAll(/href="([^"]+)"/g)) {
-      if (detail.consultationGuide && link[1] === 'https://claude.ai/artifact/PtPUfhaiHM37ebpxtr4nQV') continue;
       if (!founderLinks.has(link[1])) assert.match(link[1], /^\/features\/[a-z0-9-]+\/$/);
     }
     assert.doesNotMatch(renderFeatureDetailPanels(detail), /data-feature-conversion-request/);

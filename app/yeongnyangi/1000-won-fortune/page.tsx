@@ -44,7 +44,7 @@ const FUN=[
 ] as const;
 for(const item of FUN){const spec=(FEATURE_KEY_PRICE_TABLE as Record<string,{amountKRW?:number}>)[item.key];if(spec?.amountKRW!==1000)throw new Error(`천원 운세 허브: ${item.key} 가격이 ${spec?.amountKRW}원이다. 페이지 이름과 문안을 먼저 고칠 것.`);}
 const FUN_PRICE=won(1000);
-const QUESTION_HREF='/yeongnyangi/fortune/?domain=saju&fish=mackerel&consultationKind=ask';
+const QUESTION_HREF='/yeongnyangi/fortune/?flow=question&domain=saju&fish=mackerel';
 const fusions=products.filter(p=>p.readingKind!=='single');
 const chapterRange=(items:Product[])=>{const counts=items.flatMap(p=>p.readingKind==='single'?consultationChapterCounts(p):[fusionChapterCount(p)]);const min=Math.min(...counts),max=Math.max(...counts);return min===max?`${min}개`:`${min}~${max}개`;};
 const mackerelPolicy=policyForReading('mackerel',mackerels[0].manifestVersion);
@@ -106,7 +106,7 @@ export default function Page(){
     <p className={styles.kicker}>꿀꿀 운세 · 사주 리포트</p>
     <h1><span className={styles.h1Line}>천원 운세·천원사주,</span> <span className={styles.h1Line}>{FUN_PRICE} 사주 리포트</span></h1>
     <p>천원 운세는 무료 사주 결과에 이어 {FUN_PRICE}으로 여는 사주 리포트예요. 나의 매력 클래스, 인생 스킬 트리, 달빛 럭키 리추얼처럼 가볍게 보고 즐기는 콘텐츠를 계산 결과로 바로 만들어요.</p>
-    <p>한 가지 고민을 근거와 함께 길게 읽고 싶다면 영냥이 고등어 상담({PRICE})이 맞아요. 상담 종류를 골라 시작하는 사주 고등어 상담은 {mackerels[0].chapterCount}개 챕터에서 내 기질과 고민의 흐름을 읽고, 왜 그렇게 해석했는지와 생활 속에서 해볼 행동을 함께 살펴요.</p>
+    <p>한 가지 고민을 근거와 함께 길게 읽고 싶다면 영냥이 고등어 상담({PRICE})이 맞아요. 새 질문으로 시작하는 사주 고등어 상담은 {EXPANDED_CHAPTERS.mackerel}개 챕터에서 내 기질과 고민의 흐름을 읽고, 왜 그렇게 해석했는지와 생활 속에서 해볼 행동을 함께 살펴요.</p>
     <p className={styles.actions} data-cd-cross-sell="thousand_won_intro"><a className={styles.primary} href="#fun">{FUN_PRICE} 사주 콘텐츠 고르기</a><a href={QUESTION_HREF}>{PRICE} 사주에 내 질문 남기기</a></p>
     <p className={styles.policy}>로그인 후 결제창에서 총액과 적용 수단을 확인해요. 자동 결제는 없어요.</p>
    </div>
@@ -127,7 +127,7 @@ export default function Page(){
 
   <section id="example" className={styles.sample} aria-labelledby="example-title">
    <h2 id="example-title">내 질문에는 어떤 답이 올까요?</h2>
-   <p>가상 입력으로 만든 짧은 편집 예시예요. 실제 고객 데이터나 AI가 생성한 상담 원문이 아니며, 전체 {mackerels[0].chapterCount}개 챕터 중 답변의 형태를 보여드려요.</p>
+   <p>가상 입력으로 만든 짧은 편집 예시예요. 실제 고객 데이터나 AI가 생성한 상담 원문이 아니며, 전체 {EXPANDED_CHAPTERS.mackerel}개 챕터 중 답변의 형태를 보여드려요.</p>
    <dl className={styles.sampleReading}>
     <dt>질문 예시</dt><dd>헤어진 뒤 연락이 없어요. 제가 먼저 연락해도 될까요?</dd>
     <dt>답변 예시</dt><dd>연락하고 싶은 마음과 다시 거절당할까 두려운 마음이 함께 들 수 있어. 가령 명식에서 관계를 오래 붙드는 성향이 읽힌다면, 이번 연락으로 무엇을 확인하고 싶은지 먼저 적어보자. 상대가 거리를 요청했다면 그 뜻을 존중하고, 그렇지 않다면 답을 재촉하지 않는 짧은 안부부터 생각해볼 수 있어. 재회를 약속하는 해석은 아니야.</dd>
@@ -136,7 +136,7 @@ export default function Page(){
    </dl>
    <details><summary>가상 입력과 계산 기준 보기</summary><p>{SEO_READING_EXAMPLES['/saju'].input}</p><a href="/methodology/">계산과 해석 기준</a></details>
    <p className={styles.actions} data-cd-cross-sell="thousand_won_example"><a className={styles.primary} href={QUESTION_HREF}>내 질문으로 {PRICE} 상담 준비하기</a><a href="#systems">다른 운세와 필요한 정보 보기</a></p>
-   <SampleExposure targetId="example" itemId={mackerels[0].cdFeatureKey}/>
+   <SampleExposure targetId="example" itemId={mackerels[0].cdFeatureKey} contentId="mackerel-question-v1"/>
   </section>
 
   <FounderTrust/>
@@ -144,7 +144,7 @@ export default function Page(){
   <section aria-labelledby="what">
    <h2 id="what">천원사주·천원운세와 영냥이 상담</h2>
    <p>천원 운세, 천원운세, 1000원 운세로 찾는 상품은 위의 사주 리포트 {FUN.length}가지예요. 2026년 10월 12일부터 영냥이 상담은 고등어 {PRICE}부터 시작하며, 패밀리 꿀단지 이용권 한도 또는 단건 결제로 한 번의 상담 결과를 받아요. 자동 결제는 아니에요.</p>
-   <p>고등어 상담은 사주가 {mackerels[0].chapterCount}개, 다른 체계가 {chapterRange(mackerels.slice(1))} 챕터로 구성돼요. 상담 종류를 골라 시작할 때의 챕터 수예요. 영냥이 첫 화면의 질문 상담에서 새 한국어 질문으로 시작하면 같은 {PRICE}에 {EXPANDED_CHAPTERS.mackerel}개 챕터로 구성돼요. 상담 전체 분량은 {a4Label(consultationBudget('mackerel').initial)}({A4_PAGE_NOTE})이고, 챕터마다 {mackerelPolicy.depth.join(' → ')} 순서로 내용을 담아요. 짧은 운세 문장 한 줄이 아니라, 왜 그렇게 읽었는지와 오늘 해볼 수 있는 첫 행동까지 함께 받는 구성이에요.</p>
+   <p>고등어 상담은 사주가 {mackerels[0].chapterCount}개, 다른 체계가 {chapterRange(mackerels.slice(1))} 챕터로 구성돼요. 상담 종류를 골라 시작할 때의 챕터 수예요. 이 페이지의 질문 버튼이나 영냥이 첫 화면의 질문 상담에서 새 한국어 질문으로 시작하면 같은 {PRICE}에 {EXPANDED_CHAPTERS.mackerel}개 챕터로 구성돼요. 상담 전체 분량은 {a4Label(consultationBudget('mackerel').initial)}({A4_PAGE_NOTE})이고, 챕터마다 {mackerelPolicy.depth.join(' → ')} 순서로 내용을 담아요. 짧은 운세 문장 한 줄이 아니라, 왜 그렇게 읽었는지와 오늘 해볼 수 있는 첫 행동까지 함께 받는 구성이에요.</p>
    <p>운세마다 해석·궁합 등 제공하는 상담 종류를 먼저 골라요. 무엇이든 물어보기에서는 {TOPICS} 등의 주제를 고르고 궁금한 질문을 1,000자까지 남겨요. 타로는 카드에 물어볼 질문을 따로 적어요.</p>
   </section>
 

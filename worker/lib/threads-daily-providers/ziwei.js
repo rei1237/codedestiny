@@ -1,3 +1,4 @@
+import { lunarMonthStemIndex } from '../../../lib/ziwei-month-stem.js';
 // Threads 🔮 오늘의 자미두수 — 12:00 KST.
 //
 // 비개인 콘텐츠다. 궁 배치는 생시가 있어야 나오므로 쓰지 않고, 날짜만으로 정해지는 사화만 다룬다:
@@ -46,11 +47,7 @@ function keywordOf(star) {
  * 음력 달의 월간. 인월(1월) 천간 = (연간 index mod 5)·2 + 2 — 오호둔(갑기년 병인월…).
  * 윤달은 본달의 천간을 따른다.
  */
-export function lunarMonthStemIndex(lunarYear, lunarMonth) {
-  const yearStem = (((lunarYear - 4) % 10) + 10) % 10;
-  const firstMonthStem = ((yearStem % 5) * 2 + 2) % 10;
-  return (firstMonthStem + lunarMonth - 1) % 10;
-}
+export { lunarMonthStemIndex } from '../../../lib/ziwei-month-stem.js';
 
 function sihuaOf(stemIndex) {
   const stem = STEM_HANGUL[stemIndex];
