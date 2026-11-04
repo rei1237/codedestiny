@@ -1886,7 +1886,7 @@ async function runLoveSecretPaymentGate(paymentPayload: BillingPaymentPayload, i
   return extractPayment(gateResult, idempotencyKey);
 }
 
-export default function LoveSecretAiPage({ paymentNotice }: { paymentNotice?: string } = {}) {
+export default function LoveSecretAiPage({ paymentNotice, paymentSurface = "web" }: { paymentNotice?: string; paymentSurface?: "web" | "toss" } = {}) {
   useProductView('love-secret-ai-consultation', 'love');
   const copy = useLoveSecretClientCopy();
   const permissionFailure = "구매 내역에 접근할 권한을 확인할 수 없어요. 구매한 계정과 주문 내역을 확인해 주세요.";
@@ -1918,15 +1918,21 @@ export default function LoveSecretAiPage({ paymentNotice }: { paymentNotice?: st
   useEffect(() => {
     let alive = true;
     const isCurrent = captureDeliveryScope();
-    void getJson<ConsultationResult>("/api/love-secret-ai/result").then(({ payload }) => {
-      if (!alive || !isCurrent() || startLockRef.current || !payload.sessionId) return;
+    const requestedAttempt = paymentSurface === "toss" ? new URLSearchParams(window.location.search).get("attemptId") : null;
+    const endpoint = requestedAttempt ? `/api/love-secret-ai/result?attemptId=${encodeURIComponent(requestedAttempt)}` : "/api/love-secret-ai/result";
+    void getJson<ConsultationResult>(endpoint).then(({ response, payload }) => {
+      if (!alive || !isCurrent() || startLockRef.current) return;
+      if (!payload.sessionId || (paymentSurface === "toss" && (!response.ok || !payload.ok))) {
+        if (paymentSurface === "toss") { setResultUrl(""); setResultOpenMessage(""); }
+        return;
+      }
       setResultUrl(buildResultUrl({ sessionId: payload.sessionId }));
       if (["partial", "generating", "delivery_pending"].includes(payload.status || "")) {
         pendingGenerationRef.current = { payload: { resumeSessionId: payload.sessionId }, key: payload.requestId || payload.sessionId, access: {} };
       }
-    }).catch(() => {});
+    }).catch(() => { if (alive && isCurrent() && !startLockRef.current && paymentSurface === "toss") { setResultUrl(""); setResultOpenMessage(""); } });
     return () => { alive = false; };
-  }, [captureDeliveryScope, discoveryEpoch]);
+  }, [captureDeliveryScope, discoveryEpoch, paymentSurface]);
 
   useEffect(() => {
     const resume = () => { if (!document.hidden) setDiscoveryEpoch(value => value + 1); };
@@ -1967,7 +1973,7 @@ export default function LoveSecretAiPage({ paymentNotice }: { paymentNotice?: st
     try {
       const params = new URL(window.location.href).searchParams;
       const attemptId = params.get("attemptId") || "";
-      if (attemptId) {
+      if (attemptId && paymentSurface !== "toss") {
         const url = buildResultUrl({ attemptId });
         setResultUrl(url);
         setNotice(copy.resumeNotice);
@@ -2050,6 +2056,7 @@ export default function LoveSecretAiPage({ paymentNotice }: { paymentNotice?: st
   }
 
   function openPendingResultWindow(requestId: string) {
+    if (paymentSurface === "toss") { setResultUrl(""); setResultOpenMessage(""); return; }
     const url = buildResultUrl({ pending: true, requestId, attemptId: activeAttemptId() || undefined });
     setResultUrl(url);
     if (typeof window === "undefined") return;
@@ -2065,6 +2072,7 @@ export default function LoveSecretAiPage({ paymentNotice }: { paymentNotice?: st
 
   function moveResultWindow(url: string) {
     setResultUrl(url);
+    if (paymentSurface === "toss") { setResultOpenMessage(copy.resultReadyUseButton); return; }
     if (!resultWindowRef.current || resultWindowRef.current.closed) {
       setResultOpenMessage(copy.resultReadyUseButton);
       return;
@@ -2075,6 +2083,11 @@ export default function LoveSecretAiPage({ paymentNotice }: { paymentNotice?: st
     } catch {
       setResultOpenMessage(copy.resultReadyUseButton);
     }
+  }
+
+  function clearTossResultOnError() {
+    if (paymentSurface !== "toss") return;
+    setResultUrl(""); setResultOpenMessage("");
   }
 
   async function pollResult(requestId: string) {
@@ -2166,6 +2179,7 @@ export default function LoveSecretAiPage({ paymentNotice }: { paymentNotice?: st
     } catch (caught) {
       if (!isCurrent()) return false;
       const message = caught instanceof TypeError ? copy.errorMessages.networkError : caught instanceof Error ? caught.message : serverFailure;
+      clearTossResultOnError();
       markPaidAttemptFailed(message || "love_secret_ai_generate_failed");
       setError(message || serverFailure);
       setPhase("error");
@@ -2183,7 +2197,7 @@ export default function LoveSecretAiPage({ paymentNotice }: { paymentNotice?: st
     if (pendingGeneration) {
       startLockRef.current = true;
       try { await startConsultation(pendingGeneration.payload, pendingGeneration.key, pendingGeneration.access); }
-      catch (caught) { if (isCurrent()) { setError(friendlyErrorMessage(caught, serverFailure)); setPhase("error"); } }
+      catch (caught) { if (isCurrent()) { const message = friendlyErrorMessage(caught, serverFailure); clearTossResultOnError(); setError(message); setPhase("error"); } }
       finally { if (isCurrent()) startLockRef.current = false; }
       return;
     }
@@ -2271,6 +2285,7 @@ export default function LoveSecretAiPage({ paymentNotice }: { paymentNotice?: st
     } catch (caught) {
       if (!isCurrent()) return;
       const message = caught instanceof TypeError ? copy.errorMessages.networkError : caught instanceof Error ? caught.message : serverFailure;
+      clearTossResultOnError();
       const paymentCancelled = message === copy.errorMessages.paymentCancelled;
       markPaidAttemptFailed(message || "love_secret_ai_generate_failed");
       setError(message || serverFailure);
@@ -2284,7 +2299,7 @@ export default function LoveSecretAiPage({ paymentNotice }: { paymentNotice?: st
         message: message || serverFailure,
         cancelled: paymentCancelled,
       });
-      setResultOpenMessage(copy.resultFailedSubmit);
+      if (paymentSurface !== "toss") setResultOpenMessage(copy.resultFailedSubmit);
     } finally {
       if (isCurrent()) startLockRef.current = false;
     }
@@ -2485,11 +2500,11 @@ export default function LoveSecretAiPage({ paymentNotice }: { paymentNotice?: st
                 {resultUrl && (
                   <a
                     href={resultUrl}
-                    target="_blank"
+                    target={paymentSurface === "toss" ? undefined : "_blank"}
                     rel="noreferrer"
                     className={`${theme.focusRing} mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-2xl bg-[image:var(--ls-cta)] px-4 text-sm font-semibold text-[var(--ls-cta-ink)] transition hover:-translate-y-0.5`}
                   >
-                    {copy.openResultNewWindowCta}
+                    {paymentSurface === "toss" ? "결과 확인하기" : copy.openResultNewWindowCta}
                   </a>
                 )}
               </section>

@@ -1393,7 +1393,7 @@ function buildBillingGateInput(paymentPayload: Record<string, unknown>, idempote
   };
 }
 
-export default function LifeBookAiClient({ paymentNotice }: { paymentNotice?: string } = {}) {
+export default function LifeBookAiClient({ paymentNotice, paymentSurface = "web" }: { paymentNotice?: string; paymentSurface?: "web" | "toss" } = {}) {
   const copy = useLifeBookClientCopy();
   const [form, setForm] = useState<ConsultationForm>(() => buildInitialForm());
   useProductView(MODE_FEATURE_KEY[form.mode], 'consultation');
@@ -2030,10 +2030,10 @@ export default function LifeBookAiClient({ paymentNotice }: { paymentNotice?: st
                   <BookOpen className="h-4 w-4" aria-hidden="true" />
                   {copy.openResultCta}
                 </a>
-                <a href={resultUrl} target="_blank" rel="noreferrer" className="mt-3 inline-flex min-h-11 items-center gap-2 rounded-full border border-amber-200/30 px-5 text-sm font-semibold text-amber-100 transition hover:bg-amber-50/10">
+                {paymentSurface !== "toss" && <a href={resultUrl} target="_blank" rel="noreferrer" className="mt-3 inline-flex min-h-11 items-center gap-2 rounded-full border border-amber-200/30 px-5 text-sm font-semibold text-amber-100 transition hover:bg-amber-50/10">
                   <ExternalLink className="h-4 w-4" aria-hidden="true" />
                   {copy.openNewTabCta}
-                </a>
+                </a>}
               </section>
             )}
 
