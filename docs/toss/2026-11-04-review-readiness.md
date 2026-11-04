@@ -25,9 +25,15 @@
 
 공개 웹에서 확인된 주소는 [개인정보처리방침](https://code-destiny.com/privacy/), [이용약관](https://code-destiny.com/terms/), [문의](https://code-destiny.com/contact/)다. 2026-11-04에 세 주소와 [환불 안내](https://code-destiny.com/refund-policy/)의 HTTP HEAD 200 응답을 확인했다. 본문은 검색 도구의 캐시로 확인했으며 토스 앱 내 연결은 미검증이다. 공개 개인정보 문서는 웹 가입 및 포트원·이니시스 중심으로 설명하므로 토스 로그인·인앱결제의 실제 처리·국외 이전·삭제 절차를 충족한다고 판단할 수 없다.
 
+## 결제 시험과 과금
+
+2026-11-04 공식 [인앱 결제 안내](https://developers-apps-in-toss.toss.im/guide/monetization/in-app-payment)에 따르면 SDK 3.x는 로컬 개발 도구 mock을 사용하며 콘솔 QR로 토스 앱에서 하는 결제는 실제 과금이다. 이 저장소의 apps/toss/package.json은 SDK 3.7.0을 사용한다. 로컬 mock은 무과금으로 검증하고, QR 실결제가 필요한 시점에는 금액·절차를 제시해 사용자 확인을 받기 전 실행하지 않는다.
+
+상품 등록 안내는 상품 이미지 1024×1024px, 공급가 10원 단위와 부가세를 더한 판매가를 요구한다. 기존 레지스트리의 실제 판매가와 콘솔 산출 판매가가 일치하는지 상품별로 대조하기 전 가격을 임의로 확정하지 않는다. [공식 인앱 결제 안내](https://developers-apps-in-toss.toss.im/guide/monetization/in-app-payment)
+
 ## 공식 기준별 미완료 체크리스트
 
-- [ ] [비게임 출시 가이드](https://developers-apps-in-toss.toss.im/checklist/app-nongame): 등록할 기능의 직접 진입, 뒤로가기·닫기·홈, 기기 변경 후 기록과 접근성을 실제 기기에서 확인한다. `apps/toss/src/main.tsx`, `apps/toss/service/Screens.jsx`만으로 전체 경로 통과를 뜻하지 않는다.
+- [ ] [비게임 출시 가이드](https://developers-apps-in-toss.toss.im/checklist/app-nongame): 등록할 기능의 직접 진입, 뒤로가기·닫기·홈, 기기 변경 후 기록과 접근성을 실제 기기에서 확인한다. `apps/toss/src/main.tsx`, `apps/toss/service/Screens.jsx`만으로 전체 경로 통과를 뜻하지 않는다. 토스 설정의 `withBackButton: true`와 찻집 내부 자체 뒤로가기 버튼이 동시에 노출될 가능성이 있다. 자체 버튼은 상담 입력과 결과를 초기화하므로 실제 기기의 노출과 단계 이동·복구를 함께 수정하고 검증해야 한다.
 - [ ] 같은 가이드의 라이트 모드·핀치 줌·권한 거부·속도·브리지 중복 호출을 확인한다. `apps/toss/apps-in-toss.config.ts`는 내비게이션을 light로 설정하지만 원본 결과 화면 CSS와 viewport는 별도 검증이 필요하다.
 - [ ] [서비스 오픈 정책](https://developers-apps-in-toss.toss.im/intro/guide): 토스 로그인만 사용하고 디지털 상품은 인앱 결제로 처리하며, 주요 기능을 외부 사이트나 중첩 웹뷰로 넘기지 않는다. 각 콘텐츠의 사전 AI 고지·결과 표시 및 금지 표현도 검토한다.
 - [ ] [토스 로그인 안내](https://developers-apps-in-toss.toss.im/guide/authentication/intro): 실제 수집 항목·약관 URL·국외 이전·연결 해제 콜백 및 재연결 처리를 콘솔 설정과 대조한다. 앱 내 임시 고지는 최종 방침이 아니다.
