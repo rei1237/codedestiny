@@ -10,6 +10,8 @@ next: 전체 출시 범위의 원본 계약·권한·복구를 검증하고 미�
 
 기존 순서를 유지한다: 초융합 → 인생의 책 → 연애 비책 → 전문가 상담 → 기본 명식·운세 → 독립 타로 → 기타 독립 서비스. 같은 그룹은 `full-service-inventory.json`의 원장 순서로 진행한다. 이미 연결된 서비스는 재구현 대신 누락·회귀를 먼저 확인한다.
 
+점성술 전문가 상담은 원본 `worker/routes/astrology-ai.js`의 인증·`resolveEnsureAccess`·`resolveStartAccess`가 웹 권한을 사용한다. `handleStart`의 저장된 완료 결과 반환과 `handleResult`·`/pending`·`/basis`도 토스 소유권·주문·환불을 따로 검증해야 한다. `app/astrology-ai/AstrologyAiClient.tsx`는 웹 결제와 별도 결과 창을 전제로 한다. 토스 전용 어댑터, 결제 직전 권한 및 중단 복구, 결과 화면·직접 진입과 실기기 검증이 없어 미이식이다. 이는 출시 제외 판정이 아니다.
+
 `full-service-inventory.json`의 현재 canonical 후보는 89개이며, 이 중 24개는 부분 구현이고 나머지 65개는 추가 이식 또는 원본 계약 확인이 필요하다. 출시 대상·완료·제외는 아직 확정되지 않았다. 이전 조사에서 사용한 후보 91개는 이 문서 작성 당시의 이력이다.
 
 ## 사주 풀이 화면은 만세력과 별도 검증
