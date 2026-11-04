@@ -1483,7 +1483,7 @@
         },
         "selfGrain": {
           "t": "Wat voor persoon ben ik vanbinnen?",
-          "s": "Verken gratis je aanleg en je huidige levensfase via de acht tekens van BaZi.",
+          "s": "Verken je aanleg met het gratis Manseryeok.",
           "b": "Vier Pijlers (BaZi)"
         },
         "peopleTired": {
@@ -3203,10 +3203,10 @@
     }
   },
   "seo": {
-    "homeTitle": "Gratis Saju, Tarot en dagelijks fortuin | 꿀꿀 운세",
+    "homeTitle": "Saju, Tarot en dagelijks fortuin | 꿀꿀 운세",
     "rssTitle": "꿀꿀 운세 RSS",
-    "description": "꿀꿀 운세: Gratis Saju op geboortedatum, tarot, compatibiliteit, nieuwjaarsfortuin, Tojeong Bigyeol en MBTI-compatibiliteit.",
-    "keywords": "Saju, gratis Saju, Manse-kalender, tarot, dagelijks fortuin, compatibiliteit, nieuwjaarsfortuin, Tojeong Bigyeol, gezicht lezen, geldfortuin, reüniefortuin, MBTI-compatibiliteit, 꿀꿀운세"
+    "description": "꿀꿀 운세: Gratis Manseryeok op geboortedatum, tarot, compatibiliteit, nieuwjaarsfortuin, Tojeong Bigyeol en MBTI-compatibiliteit.",
+    "keywords": "Saju, gratis Manseryeok, Manse-kalender, tarot, dagelijks fortuin, compatibiliteit, nieuwjaarsfortuin, Tojeong Bigyeol, gezicht lezen, geldfortuin, reüniefortuin, MBTI-compatibiliteit, 꿀꿀운세"
   },
   "fortune": {
     "destinyFlower": {
@@ -16331,7 +16331,7 @@
         "How does the broad arc of my life run?",
         "What kind of period am I in now?"
       ],
-      "fallbackCta": "See your saju free",
+      "fallbackCta": "See your Manseryeok free",
       "headline": "Explore the broad patterns of your life through your birth date and time.",
       "badge": "Start for free"
     },

@@ -1483,7 +1483,7 @@
         },
         "selfGrain": {
           "t": "What kind of person am I, at heart?",
-          "s": "See your innate tendencies and current phase through your Saju, for free",
+          "s": "See your innate tendencies with the free Manseryeok",
           "b": "Saju (Four Pillars)"
         },
         "peopleTired": {
@@ -3203,10 +3203,10 @@
     }
   },
   "seo": {
-    "homeTitle": "Free Saju, Tarot, and Daily Fortune | 꿀꿀 운세",
+    "homeTitle": "Saju, Tarot, and Daily Fortune | 꿀꿀 운세",
     "rssTitle": "꿀꿀 운세 RSS",
-    "description": "꿀꿀 운세: Free Saju by birth date, tarot, compatibility, New Year fortune, Tojeong Bigyeol, and MBTI compatibility.",
-    "keywords": "Saju, free Saju, Manse calendar, tarot, daily fortune, compatibility, New Year fortune, Tojeong Bigyeol, face reading, money fortune, reunion fortune, MBTI compatibility, 꿀꿀운세"
+    "description": "꿀꿀 운세: Free Manseryeok by birth date, tarot, compatibility, New Year fortune, Tojeong Bigyeol, and MBTI compatibility.",
+    "keywords": "Saju, free Manseryeok, Manse calendar, tarot, daily fortune, compatibility, New Year fortune, Tojeong Bigyeol, face reading, money fortune, reunion fortune, MBTI compatibility, 꿀꿀운세"
   },
   "fortune": {
     "destinyFlower": {
@@ -16331,7 +16331,7 @@
         "How does the broad arc of my life run?",
         "What kind of period am I in now?"
       ],
-      "fallbackCta": "See your saju free",
+      "fallbackCta": "See your Manseryeok free",
       "headline": "Explore the broad patterns of your life through your birth date and time.",
       "badge": "Start for free"
     },

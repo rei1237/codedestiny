@@ -1483,7 +1483,7 @@
         },
         "selfGrain": {
           "t": "Mình là người như thế nào từ bên trong?",
-          "s": "Xem miễn phí tính cách bẩm sinh và giai đoạn hiện tại qua tám chữ Bát Tự.",
+          "s": "Xem tính cách bẩm sinh qua Lịch vạn niên miễn phí.",
           "b": "Tứ Trụ (Bát Tự)"
         },
         "peopleTired": {
@@ -3203,10 +3203,10 @@
     }
   },
   "seo": {
-    "homeTitle": "Saju, Tarot và Vận may hàng ngày miễn phí | 꿀꿀 운세",
+    "homeTitle": "Saju, Tarot và Vận may hàng ngày | 꿀꿀 운세",
     "rssTitle": "꿀꿀 운세 RSS",
-    "description": "꿀꿀 운세: Saju miễn phí theo ngày sinh, tarot, khả năng tương thích, vận may năm mới, khả năng tương thích Tojeong Bigyeol và MBTI.",
-    "keywords": "Saju, Saju miễn phí, lịch Manse, tarot, vận may hàng ngày, tương thích, vận may năm mới, Tojeong Bigyeol, xem tướng, vận may về tiền bạc, vận may đoàn tụ, tương thích MBTI, 꿀꿀운세"
+    "description": "꿀꿀 운세: Lịch vạn niên miễn phí theo ngày sinh, tarot, khả năng tương thích, vận may năm mới, khả năng tương thích Tojeong Bigyeol và MBTI.",
+    "keywords": "Saju, Lịch vạn niên miễn phí, lịch Manse, tarot, vận may hàng ngày, tương thích, vận may năm mới, Tojeong Bigyeol, xem tướng, vận may về tiền bạc, vận may đoàn tụ, tương thích MBTI, 꿀꿀운세"
   },
   "fortune": {
     "destinyFlower": {
@@ -16331,7 +16331,7 @@
         "How does the broad arc of my life run?",
         "What kind of period am I in now?"
       ],
-      "fallbackCta": "See your saju free",
+      "fallbackCta": "See your Manseryeok free",
       "headline": "Explore the broad patterns of your life through your birth date and time.",
       "badge": "Start for free"
     },

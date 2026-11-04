@@ -231,10 +231,21 @@ const FREE_SAJU_COMMENT_ONLY_PREFIXES = ['scripts/'];
 // 검색어 조사용 시드 목록이다. 고객에게 보이는 문구가 아니라 실제 검색어 "무료사주"를 그대로 적는다.
 const FREE_SAJU_ALLOWED_FILES = new Set(['scripts/seo/keyword-research.mjs']);
 
+// 주석 줄로 인정하는 경우: 줄이 주석 표지로 시작하거나, 문자열 밖(따옴표 짝수)에서 시작한 // 또는 /* 뒤에 적힌 경우.
+// 문자열 안의 // (URL 등)나 코드 뒤에 문구가 붙은 줄은 통과시키지 않는다.
 function isCommentHit(line) {
-  const trimmed = line.trim();
+  if (/^(\/\/|\/\*|\*|#)/.test(line.trim())) return true;
   const hit = line.search(/무료 ?사주/);
-  return /^(\/\/|\/\*|\*|#)/.test(trimmed) || /(\/\/|\/\*)/.test(line.slice(0, hit));
+  if (hit < 0) return false;
+  const head = line.slice(0, hit);
+  const re = /\/\/|\/\*/g;
+  let m;
+  while ((m = re.exec(head))) {
+    const before = head.slice(0, m.index);
+    if (before.endsWith(':')) continue;
+    if (["'", '"', '`'].every((q) => before.split(q).length % 2 === 1)) return true;
+  }
+  return false;
 }
 
 test('고객 노출 면에 "무료 사주"가 새로 생기지 않는다', () => {
@@ -253,4 +264,36 @@ test('고객 노출 면에 "무료 사주"가 새로 생기지 않는다', () =>
     offenders.push(`${file}:${lineNo}`);
   }
   assert.deepEqual(offenders, [], `"무료 사주"를 "무료 만세력"으로 바꿔야 한다: ${offenders.join(', ')}`);
+});
+
+// 영어·일본어·중국어 등 다른 언어 문구도 "무료 사주"를 약속하지 않는다. 무료 범위는 만세력(원국)이다.
+// 고친 파일에서 같은 표현이 돌아오면 실패한다. 번역 값은 i18n 사전과 화면 코드 양쪽을 본다.
+const NON_KO_FREE_SAJU_FILES = [
+  'js/first-visit-copy.mjs',
+  'i18n/authored/croHome-01.json',
+  'i18n/authored/brandSignals-01.json',
+  'i18n/authored/freeHubDetails-01.json',
+  'i18n/authored/shellRuntime-52.json',
+  'i18n/authored/homeQuestions-01.json',
+  'app/_content/about-copy.js',
+  'app/components/HomeServiceSections.tsx',
+  'app/app/_lib/copy.ts',
+  'app/components/auth/AuthShell.tsx',
+  'lib/seo/i18nKeywords.ts',
+];
+const NON_KO_FREE_SAJU_PATTERN = new RegExp([
+  '無料.{0,3}四柱', '免[费費].{0,3}四柱', '免[费費]看八字', '免[费費].{0,3}八字', '無料で四柱',
+  'free\s+(?:saju|bazi)', 'saju\s+free', '(?:saju|bazi)\s+(?:gratuit|gratis|gratuito|percuma)',
+  '(?:gratuit|gratis|gratuito|percuma)\s+(?:saju|bazi)', 'kostenlos\w*\s+(?:saju|bazi)',
+  'miễn phí.{0,12}(?:Tứ Trụ|Bát Tự)', 'मुफ़्त.{0,6}(?:साज|बाज़ी)',
+].join('|'), 'i');
+
+test('다른 언어 문구도 "무료 사주"를 약속하지 않는다', () => {
+  const offenders = [];
+  for (const rel of NON_KO_FREE_SAJU_FILES) {
+    read(rel).split(/\r?\n/).forEach((line, idx) => {
+      if (NON_KO_FREE_SAJU_PATTERN.test(line) && !isCommentHit(line)) offenders.push(`${rel}:${idx + 1}`);
+    });
+  }
+  assert.deepEqual(offenders, [], `다른 언어에서도 "무료 만세력"으로 써야 한다: ${offenders.join(', ')}`);
 });

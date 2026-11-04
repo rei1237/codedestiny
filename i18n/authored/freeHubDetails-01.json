@@ -380,17 +380,17 @@
   },
   "featureMarketing.saju.fallbackCta": {
     "ko": "무료로 사주 보기",
-    "en": "See your saju free",
-    "ja": "無料で四柱を見る",
-    "zh-CN": "免费看八字",
-    "zh-TW": "免費看八字",
-    "vi": "See your saju free",
-    "hi": "See your saju free",
-    "es": "See your saju free",
-    "fr": "See your saju free",
-    "de": "See your saju free",
-    "nl": "See your saju free",
-    "ms": "See your saju free"
+    "en": "See your Manseryeok free",
+    "ja": "無料で万年暦を見る",
+    "zh-CN": "免费看万年历",
+    "zh-TW": "免費看萬年曆",
+    "vi": "See your Manseryeok free",
+    "hi": "See your Manseryeok free",
+    "es": "See your Manseryeok free",
+    "fr": "See your Manseryeok free",
+    "de": "See your Manseryeok free",
+    "nl": "See your Manseryeok free",
+    "ms": "See your Manseryeok free"
   },
   "featureMarketing.tarot.tagline": {
     "ko": "질문을 정하고 카드를 뽑으면 그 상징이 지금의 감정과 선택을 어떻게 비추는지 풀어 주는 기본 타로입니다.",

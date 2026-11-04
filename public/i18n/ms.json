@@ -1483,7 +1483,7 @@
         },
         "selfGrain": {
           "t": "Siapakah saya sebenarnya?",
-          "s": "Terokai sifat semula jadi dan fasa semasa secara percuma melalui lapan aksara BaZi.",
+          "s": "Terokai sifat semula jadi anda dengan Manseryeok percuma.",
           "b": "Empat Tiang (BaZi)"
         },
         "peopleTired": {
@@ -3203,10 +3203,10 @@
     }
   },
   "seo": {
-    "homeTitle": "Saju Percuma, Tarot dan Rezeki Harian | 꿀꿀 운세",
+    "homeTitle": "Saju, Tarot dan Rezeki Harian | 꿀꿀 운세",
     "rssTitle": "꿀꿀 운세 RSS",
-    "description": "꿀꿀 운세: Percuma Saju mengikut tarikh lahir, tarot, keserasian, nasib Tahun Baru, Tojeong Bigyeol dan keserasian MBTI.",
-    "keywords": "Saju, Saju percuma, kalendar Manse, tarot, nasib harian, keserasian, nasib Tahun Baru, Tojeong Bigyeol, bacaan muka, nasib wang, nasib perjumpaan semula, keserasian MBTI, 꿀꿀운세"
+    "description": "꿀꿀 운세: Manseryeok percuma mengikut tarikh lahir, tarot, keserasian, nasib Tahun Baru, Tojeong Bigyeol dan keserasian MBTI.",
+    "keywords": "Saju, Manseryeok percuma, kalendar Manse, tarot, nasib harian, keserasian, nasib Tahun Baru, Tojeong Bigyeol, bacaan muka, nasib wang, nasib perjumpaan semula, keserasian MBTI, 꿀꿀운세"
   },
   "fortune": {
     "destinyFlower": {
@@ -16331,7 +16331,7 @@
         "How does the broad arc of my life run?",
         "What kind of period am I in now?"
       ],
-      "fallbackCta": "See your saju free",
+      "fallbackCta": "See your Manseryeok free",
       "headline": "Explore the broad patterns of your life through your birth date and time.",
       "badge": "Start for free"
     },
