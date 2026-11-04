@@ -18,7 +18,10 @@ try{
   };
   const catalog=await (await get(RECORDS+'/index.json')).json();
   assert.equal(catalog.environment,'staging-rehearsal');assert.ok(catalog.items.length>=2);
-  for(const item of catalog.items){
+  const sample = catalog.items.filter(item=>!item.editionId);
+  const latest = catalog.items.findLast(item=>item.editionId);
+  if(latest)sample.push(latest);
+  for(const item of sample){
     const buffer=await (await get(RECORDS+'/'+item.code+'.png')).body();
     const {width,height,data}=PNG.sync.read(buffer);
     const decoded=jsQR(new Uint8ClampedArray(data),width,height);

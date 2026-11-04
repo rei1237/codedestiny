@@ -3,7 +3,7 @@ import path from 'node:path';
 import { randomUUID, randomBytes, createHash } from 'node:crypto';
 import { DatabaseSync } from 'node:sqlite';
 import { id as hash, ZeroHash } from 'ethers';
-import QRCode from 'qrcode';
+import {characterQR} from './character-qr.mjs';
 import { openChain } from './chain.mjs';
 
 const art = {yeoni:'/assets/mascot/yeoni-reading-guide-v1.webp', cat:'/assets/yeongnyangi/original/hero-800.webp'};
@@ -126,6 +126,7 @@ export async function openWorkshop(dir, rehearsal) {
     const u = new URL(origin);
     if (!['localhost','127.0.0.1'].includes(u.hostname) || u.protocol!=='http:' || u.origin!==origin) reject(400,'로컬 화면 주소를 확인해 주세요.');
     const url = origin+'/editions/verify/?code='+code;
-    return {url,png:await QRCode.toDataURL(url,{width:512,margin:4,errorCorrectionLevel:'M'})};
+    const png = await characterQR(url,proof.character,proof.serial);
+    return {url,png:'data:image/png;base64,'+png.toString('base64')};
   },async close(){await tail; await chain.close(); db.close();}};
 }
