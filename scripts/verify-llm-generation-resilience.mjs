@@ -1131,7 +1131,7 @@ const PAID_PART_TARGETS = [
   ["worker/naming-engine/report.ts", "const CHAPTER_MIN_CORRECTED_CHARS = 200;", 200, "목표 3,200~3,700자", 3200, 3700, "CHAPTER_MAX_OUTPUT_TOKENS = 9500;", 9500],
   ["worker/naming-engine/report.ts", "const NARRATION_MIN_FIELD_CHARS = 20;", 20, "80~140자", 80, 3900, "NARRATION_MAX_OUTPUT_TOKENS = 9500;", 9500],
   // 천상의 조화 카드 한 호출은 긴 필드 여섯 개를 함께 쓴다.
-  ["worker/lib/celestial-report-delivery.js", "? 500 : 40", 500, "목표 650~750자", 650, 6 * 750, "CELESTIAL_HARMONY_MAX_OUTPUT_TOKENS,11000", 11000],
+  ["worker/lib/celestial-report-delivery.js", "? 100 : 40", 100, "목표 130~150자", 130, 6 * 150, "CELESTIAL_HARMONY_MAX_OUTPUT_TOKENS,7000", 7000],
   ["worker/lib/relationship-report-delivery.js", "const RELATIONSHIP_PART_MIN_CHARS = 2000;", 2000, "목표 2600~3000자", 2600, 3000, "capTokens: 9500", 9500],
 ];
 for (const [path, floorCode, floor, targetPhrase, targetLow, outputMaxChars, tokenCode, maxOutputTokens] of PAID_PART_TARGETS) {

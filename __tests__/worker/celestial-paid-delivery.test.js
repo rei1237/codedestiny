@@ -126,10 +126,34 @@ test('provider overrides retain the short-call token and time ceiling',async()=>
  const {generateCelestialWave}=await import('../../worker/lib/celestial-report-delivery.js');await start();
  const snapshot=docs[0].metadata.celestialDelivery;
  await generateCelestialWave({CELESTIAL_HARMONY_PROVIDER_TIMEOUT_MS:'90000',CELESTIAL_HARMONY_MAX_OUTPUT_TOKENS:'24000',CELESTIAL_HARMONY_TEMPERATURE:'0.4'},snapshot,async()=>{});
- expect(provider.mock.calls.at(-1)[2]).toMatchObject({timeoutMs:45000,maxOutputTokens:11000,temperature:0.4});
+ expect(provider.mock.calls.at(-1)[2]).toMatchObject({timeoutMs:45000,maxOutputTokens:7000,temperature:0.4});
 });
-// A card whose six long fields are present but under 500 characters is a draft, not a failure.
-const shorten=async(base,args,tag)=>{const ai=await base(...args),value=JSON.parse(ai.text);value.archetypeReading=drawn(args[1],args[2].logContext.sectionGroup)+prose(tag,'archetype',1);return {...ai,text:JSON.stringify(value)};};
+// A card whose six long fields are present but under 100 characters is a draft, not a failure.
+const shorten=async(base,args,tag)=>{const ai=await base(...args),value=JSON.parse(ai.text);value.archetypeReading=fit(drawn(args[1],args[2].logContext.sectionGroup)+prose(tag,'archetype',1),60);return {...ai,text:JSON.stringify(value)};};
+// 필드 길이를 공백 제외 정확히 n자로 맞춘다. 앞머리에 카드 인용이 들어가도 n은 유지된다.
+const fit=(value,n)=>{let out='',count=0;for(const ch of value){if(count===n)break;out+=ch;if(!/\s/.test(ch))count++;}if(count<n)throw Error('fixture too short');return out;};
+const BODY=['archetypeReading','consciousMessage','unconsciousPattern','shadowWarning','soulLesson','integrationPractice'];
+const sized=(base,chars)=>async(...args)=>{const ai=await base(...args),id=args[2].logContext.sectionGroup;if(id==='summary')return ai;const value=JSON.parse(ai.text);for(const field of BODY)value[field]=fit(value[field],field==='archetypeReading'&&id==='0'?chars:120);return {...ai,text:JSON.stringify(value)};};
+test('accepts a report with 11 cards at 120-char fields',async()=>{
+ provider.mockImplementation(sized(provider.getMockImplementation(),120));
+ await start();await resume();await resume();expect((await resume()).status).toBe(200);
+ const state=docs[0].metadata.celestialDelivery.delivery;
+ expect(docs[0].premiumStatus).toBe('completed');expect(Object.keys(state.parts)).toHaveLength(12);
+ expect(Array.from({length:11},(_,i)=>state.short[String(i)])).toEqual(Array(11).fill(false));
+});
+// 전달 우선: 하한 미달은 초안 보완이나 환불이 아니라 짧은 완결본으로 저장한다.
+test('delivers a field under the 100-char floor as a short part, without repair or refund',async()=>{
+ provider.mockImplementation(sized(provider.getMockImplementation(),99));
+ await start();await resume();await resume();expect((await resume()).status).toBe(200);
+ const state=docs[0].metadata.celestialDelivery.delivery;
+ expect(state.short['0']).toBe(true);expect(state.short['1']).toBe(false);expect(state.attempts['0:lengthRepair']).toBeUndefined();
+ expect(docs[0].premiumStatus).toBe('completed');expect(provider).toHaveBeenCalledTimes(12);
+});
+test('prompt asks for 130-150 chars per field',async()=>{
+ await start();const prompt=provider.mock.calls.find(call=>call[2].logContext.sectionGroup==='0')[1];
+ expect(prompt).toContain('목표 130~150자');expect(prompt).toContain('120자 이상');
+ expect(prompt).not.toContain('500자');expect(prompt).not.toContain('650~750');
+});
 test('a short valid card is final on its first generation',async()=>{
  const base=provider.getMockImplementation();let repairPrompt='';
  provider.mockImplementation(async(...args)=>{

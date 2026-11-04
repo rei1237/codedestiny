@@ -14,7 +14,7 @@ import { buildTarotPositionPin, findTarotProseViolation, TAROT_SHARED_RULE_BLOCK
 import { getTarotCardByAnyId } from '../../lib/tarot/tarot-cards.mjs';
 
 // 분량은 가격 대비 목표다(짧아도 완결된 부분은 전달한다). 공통 12부분 5,300자 + 카드 + 짝 400자씩:
-// 5,000원(1~7장) 약 8,300~9,700자, 10,000원(8~14장) 약 12,000~12,800자. 가격 인상분의 분량 상향은 premium-repricing ④에서 한다.
+// 전 구간 5,000원: 카드 전체 목표 3,000자, 카드당 최소 450자라 장수가 많으면 카드 분량만 늘어난다. 100코인 구간 값은 옛 가격 호환용이다.
 const GENERAL = [
   ['coreQuestion', '질문을 해석하는 기준', 500], ['bigPicture', '전체 배열의 흐름', 800],
   ['tension', '카드 사이의 긴장과 반대 조건', 600], ['categoryFocus', '질문 주제에 맞춘 심화 해석', 800],
