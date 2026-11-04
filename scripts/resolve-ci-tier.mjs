@@ -73,8 +73,13 @@ export function explainTier(files) {
   return risk.rows.filter((row) => row.level === risk.level).map((row) => ({ file: row.file, reason: row.reason }));
 }
 
-// 평문 문서는 fast lane의 문서 신선도 검사만으로 충분하다. 컨텍스트·handoff·개발
-// 계약 문서는 정적 가드가 읽으므로 예외로 남긴다. 파일을 못 찾으면 fail-closed 한다.
+// 평문 문서는 fast lane의 문서 신선도 검사만으로 충분하다. 컨텍스트·개발 계약 문서는
+// 정적 가드가 읽으므로 예외로 남긴다. 파일을 못 찾으면 fail-closed 한다.
+//
+// `docs/handoff/*.md` 도 건너뛴다(2026-11-04). 이 문서를 입력으로 읽는 가드는 verify:handoff-contract
+// 뿐이고, 그 검사는 guards 가 skip 될 때 classify 잡에서 돈다. 11일간 push 249회 중 27회가 인수인계
+// 문서만 바꿨고 회당 평균 1,094초를 썼는데, 가드가 잡은 것은 계약 위반 2건이고 그 밖의 실패 3건은
+// 직전 코드 push 에서 넘어온 빨간불이었다. 틀이 되는 _TEMPLATE.md 와 .md 가 아닌 파일은 계속 돌린다.
 //
 // 🔴 루트 `.md` 는 평문으로 세지 않는다(2026-09-13). shadow 41개를 guards lane 으로 승격하면서
 //    전수 확인한 것: `verify:payment-policy-md` 는 `PAYMENT_POLICY.md`(상담 가격 정본)를,
@@ -86,11 +91,11 @@ export function explainTier(files) {
 //    파일명 목록을 여기 적지 않는 이유: 가드가 읽는 루트 문서가 하나 늘 때 그 목록이 조용히
 //    낡는다(Phase 1 의 하드코딩 환산율과 같은 실패 모양 — 지키려던 드리프트를 게이트가 재현한다).
 //    루트 `.md` 전체를 가드 대상으로 두면 드리프트 면이 없고, 비용은 README 류 단독 push 한 번의
-//    guards lane 뿐이다. `docs/**` 평문은 그대로 예외다(가드가 읽는 것은 context·handoff·dev).
+//    guards lane 뿐이다. `docs/**` 평문은 그대로 예외다(가드가 읽는 것은 context·dev).
 export function shouldRunStaticGuards(files) {
   const list = (files || []).map((file) => String(file || "").replace(/\\/g, "/")).filter(Boolean);
   if (!list.length) return true;
-  return list.some((file) => /^docs\/(?:design\/mobile-feature-(?:registry|detail-contract)|verification\/mobile-final-completion-audit)\.md$/.test(file) || !/^docs\/(?!context\/|handoff\/|dev\/).+$/i.test(file));
+  return list.some((file) => /^docs\/(?:design\/mobile-feature-(?:registry|detail-contract)|verification\/mobile-final-completion-audit)\.md$/.test(file) || !(/^docs\/(?!context\/|handoff\/|dev\/).+$/i.test(file) || /^docs\/handoff\/(?!_TEMPLATE\.md$).+\.md$/i.test(file)));
 }
 
 // Markdown-only PR은 코드 타입체크·lint가 결과를 바꾸지 않는다. 계약 문서는 정적 가드,
@@ -174,6 +179,9 @@ function selfTest() {
   }
   if (shouldRunStaticGuards(["docs/guide.md"]) || !shouldRunStaticGuards(["docs/context/delivery-and-ci.md"])) {
     throw new Error("plain and contract documentation guard routing drifted");
+  }
+  if (shouldRunStaticGuards(["docs/handoff/x.md"]) || shouldRunStaticGuards(["docs/handoff/x.md", "docs/guide.md"]) || !shouldRunStaticGuards(["docs/handoff/x.md", "docs/context/delivery-and-ci.md"]) || !shouldRunStaticGuards(["docs/handoff/_TEMPLATE.md"]) || !shouldRunStaticGuards(["docs/handoff/x.png"]) || !shouldRunStaticGuards(["docs/handoff/x.md", "app/page.tsx"])) {
+    throw new Error("handoff documentation guard routing drifted");
   }
   // 루트 계약 문서는 정적 가드가 읽는다(PAYMENT_POLICY.md → verify:payment-policy-md,
   // docs/design/mobile-feature-registry.md → verify:mobile-entry-actions). 이 셋이 false 로 돌아가면
