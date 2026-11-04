@@ -317,3 +317,30 @@
 - 검수 캠페인은 정식 1,000계정 모집과 별도 ID·수량으로 최대 3계정, 계정당 1회, 발송일부터 최대 14일 등록한다. SNULIFE_REVIEW_CODE / SNULIFE_REVIEW_STARTS_AT / SNULIFE_REVIEW_ENDS_AT로 설정하며 정식 코드와 같은 값을 허용하지 않는다.
 - 정식 모집은 확정된 게시일부터 3개월이며 게시일 확정 전에는 활성화하지 않는다. 기존 가입·구매·환불 권리는 보존하고 이미 수령한 계정은 다른 캠페인 수량을 추가 소비하지 않는다.
 - 사용자 승인 범위: CI 성공 후 공식 운영 배포, 기존 전용 테스트 계정의 검수 등록·지정 콘텐츠 해금·재열람 검증, 통과 후 기존 스누라이프 스레드에 자료 1회 회신. 다른 사용자 계정·실결제·과금 LLM·유료 광고 계약은 포함하지 않는다.
+
+## 2026-11-04 사주 영구 묶음
+
+`saju_lifetime_bundle`(사주 전체 풀이 평생 소장)을 29,000원(cost 290)의 출생 기반 영구 해금 상품으로 등록한다. 앱 결제 SKU는 `cd_content_tier_19`이고, Play Console에 수동 등록하기 전까지 앱 결제는 503이다(`docs/pricing/PLAY_CONSOLE_TASKS.md`). 포함 키와 판매 종료 키의 정본은 `worker/lib/saju-bundle-policy.js` 한 곳이다. 이 단계(Task 1)는 상품과 정본만 만들고, 기존 키의 동작은 바꾸지 않는다. 읽기 별칭은 Task 2, 판매 종료와 이용권 제외는 Task 3, 화면은 Task 5에서 다룬다.
+
+### 미확인 카드 호출 경로 점검
+
+규칙: 생성 모델을 호출하는 카드는 회당으로 두고 포함 키에 넣지 않는다. 코드 확인일은 2026-11-04이다.
+
+| 카드 | 키 | 계산·전달 위치 | 생성 모델 | 서버 전달 | 묶음 포함 |
+| --- | --- | --- | --- | --- | --- |
+| 시빌(시빌라 연간 대비 리포트) | `premium-sibyl-dominator` (unlock, 20,000원) | `worker/routes/sibyl.js`가 `sibyl-annual.js`로 계산하고 `sibyl-report-store.js`가 저장·재열람. 모델 호출 코드 없음 | 아니오 | 예(서버가 해금 확인 후 배달) | 아니오. 이미 단독 영구 해금으로 팔리는 상품이고 Interfaces 목록에 없다. 묶음에 넣을지는 사용자 결정 |
+| 궁합 무료/유료 경계 | `compat-saju-compatibility` (회당 10,000원) | 2026-10-04 승인으로 LLM 서술 결과 | 예 | 예 | 아니오(회당) |
+| 이집트 | `egyptOracle` (회당 3,000원), `egyptian_oracle_ai_prompt` (회당 5,000원) | `js/oracle-kcg.js`의 `showKemetSpread`, 질문은 프롬프트 생성 | 해당 없음(출생 기반 아님) | 아니오(브라우저) | 아니오(회당, 출생 기반 영구 해금이 아님) |
+| 오늘의 운세 상세 | `daily-fortune-reading` (회당 3,000원) | `app/today/TodayHubClient.tsx`가 `/api/fortune/today-hub` 호출. 일자마다 바뀌는 결과 | 아니오(엔진 계산) | 예 | 아니오(날마다 바뀌는 회당 상품) |
+| 인연의 장소 | `destiny_meeting_place` (회당 7,000원) | `DestinyMeetingPlacePage.tsx`가 브라우저 엔진 `generateDestinyMeetingPlaceResult`로 계산 | 아니오 | 아니오(브라우저) | 아니오. 비모델이지만 회당 상품이다. 묶음 포함은 사용자 결정 |
+| 로또 카드 | `rpt_lottoCard`는 레지스트리 키 없음. 결제 키는 `fun.quantumLotto.ritualReport` (회당 1,000원) | `reportDashboard.js`의 `renderLottoNumbers`(브라우저) | 아니오 | 아니오(브라우저) | 포함 키는 아니다. 판매 종료 키 목록에는 들어가며, 화면 판정(Task 5)이 개별 권리 또는 묶음을 본다 |
+
+점검 결과 Interfaces 목록(포함 키 12개, 판매 종료 키 18개)은 바꾸지 않았다.
+
+주의: `DestinyMeetingPlacePage.tsx`의 정본 주석은 "50코인 / 5,000원"이지만 레지스트리는 70코인 / 7,000원이다. 주석이 낡았을 뿐이며 이번 단계에서 고치지 않았다.
+
+### 이 단계에서 건드리지 않은 것
+
+- 꿀 카탈로그(`honey-unlock-catalog.js`, `i18n/authored/honeyUI-02.json`): 꿀로 묶음을 살 수 있게 할지는 상품 결정이다.
+- `payment-p0-inventory.json`: 묶음은 PIG 테이블에 있어 `listProducts()`에 나오지 않고, 인벤토리 검증은 featureKey 집합만 비교하므로 변경 없이 통과한다.
+- `service-registry.js`, `serviceFeatureRegistry.ts`, `fortune.js`, `billing-feature-registry.js`: 화면과 읽기 경로 작업(Task 2, 5)에서 다룬다.

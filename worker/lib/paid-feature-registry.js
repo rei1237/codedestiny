@@ -486,6 +486,8 @@ export function getPaidFeaturePaymentPolicy(featureKey) {
 
 const RAW_PIG_COIN_UNLOCK_PRODUCTS = Object.freeze({
   "unlock.saju-career-style": { featureKey: "saju-career-style", cost: 50, amountKRW: 5000, reason: "나의 일 스타일 리포트 해금" },
+  // 2026-11-04 사주 영구 묶음. 포함 키 목록·판매 종료 정본은 saju-bundle-policy.js. 앱 SKU 는 cd_content_tier_19(Play Console 수동 등록 전까지 앱 결제 503).
+  "unlock.saju_lifetime_bundle": { featureKey: "saju_lifetime_bundle", cost: 290, amountKRW: 29000, reason: "사주 전체 풀이 평생 소장" },
   [LOVE_CODE_PRODUCT_ID]: {
     featureKey: LOVE_CODE_FEATURE_KEY,
     cost: 70,
@@ -747,6 +749,7 @@ export const UNLOCK_PAID_FEATURE_KEYS = Object.freeze(
    새 영구 해금 키를 추가할 때 어느 쪽인지 정하지 않으면 검증이 실패한다(fail-closed). */
 const BIRTH_SCOPED_UNLOCK_FEATURE_KEY_LIST = Object.freeze([
   "saju-career-style",
+  "saju_lifetime_bundle",
   "section_summary",
   "section_daewun",
   "section_compat",
