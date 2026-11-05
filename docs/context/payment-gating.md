@@ -368,3 +368,16 @@
 - 확정 경로: `findOwnedEntitlement`가 묶음 별칭을 읽도록 맞췄다. 지급(`grantEntitlement`)은 별칭을 보지 않아, 닫히기 전에 만든 포함 키 주문이 확정되면 개별 권리 행이 그대로 남는다.
 - 주의: `createOrder`가 닫힌 키를 막으므로, 같은 멱등키로 닫히기 전에 만든 **미결제** 주문을 다시 열려는 재시도도 409다. 결제된 주문의 확정·환불은 `createOrder`를 쓰지 않아 영향이 없다.
 - 화면 문구(홈의 "5,000원 또는 꿀방울 30개" 등)와 `sync:public`은 Task 5가 다룬다. `scripts/lib/sync-saju-reading-prices.mjs`는 꿀방울 가격을 읽지 않고 현금가만 쓰도록 바꿨다.
+
+### main 통합 뒤 달라진 점 (Task 7, 2026-11-04)
+
+- 꿀방울: main이 `tarot-myeongri-three-card`를 꿀 카탈로그에서 빼 사용처가 24상품이 되었고, 여기서 판매 종료 키 6개가 더 빠져 통합 뒤 카탈로그는 18개다. 꿀방울로 묶음을 사는 경로는 여전히 없다.
+- 승인 판정: 묶음 서버 원국 풀이(`worker/lib/saju-section/paid-natal-reading.src.js`)는 main의 승인 판정을 따른다. `report.js`가 화면과 같은 값(`shown?.power`, `shown?.gyeokguk`)을 넘기고, 용신은 "보완 후보", 기신은 "주의 오행"으로 표기한다. 판정 스위치(`sajuAuthorityOn(env)`)가 꺼지면 main 브라우저 출력과, 켜지면 main 승인 출력과 같아야 한다.
+- 결제 고정 기준(`config/payment-freeze.json`): main 통합으로 `index.html`의 `_cdChooseServicePaymentMode`, `_cdRunDirectKrwCheckout`, `_cdOpenPaidServiceGate` 구간과 `billing.js`(6513줄), `payments.js`(3817줄) 값을 `--update`로 갱신했다. 결제 흐름 코드를 새로 고친 것이 아니라 양쪽 변경을 합친 결과다.
+
+### 균일가 통합 때 지킬 것
+
+이 통합 시점의 main에는 균일가(`worker/lib/light-fortune-catalog.js`)가 없어 교집합을 확인하지 못했다. 균일가를 이 묶음과 합치는 사람은 다음을 먼저 확인한다.
+
+- `light-fortune-catalog`의 키와 `SAJU_BUNDLE_SALE_CLOSED_KEYS`의 교집합은 비어 있어야 한다.
+- 비어 있지 않으면 합치지 말고 멈춰서 사용자에게 보고한다. 같은 키를 균일가로 새로 팔면 판매 종료와 충돌한다.
