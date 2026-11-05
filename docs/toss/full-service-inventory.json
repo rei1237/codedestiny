@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "09c3af7b60c782e0b9cd2be2fc01414fab69b227",
+  "sourceCommit": "d8923d0809d16b84b7fadcf4547c3658000e42ae",
   "scope": "Source discovery plus explicitly verified aliases; not a count of implemented services. Unmapped contracts are blocking work, not exclusions.",
   "sourceCounts": {
     "home": 63,
@@ -5252,12 +5252,13 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/vedic-ai/",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "worker/toss/native-vedic.js + nativeVedicContract",
+      "resultRenderer": "app/vedic-ai/VedicAiClient.tsx",
+      "storageContract": "owned Toss purchase and Toss-origin VedicAiConsultation; approved SKU, durable checkout, policy and device verification pending",
+      "verification": "mock contracts, local mobile layout and build only; official Toss device and full flow not verified"
     },
     {
       "id": "yeongnyangi",
