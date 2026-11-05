@@ -27,6 +27,16 @@ test('native catalogue requires approved exact service, feature and price eviden
  assert.equal(nativeProduct(product,contract),product);
  for(const wrong of [{...product,approved:false},{...product,approvedPriceKRW:1},{...product,nativeService:'neo'},{...product,featureKey:'different'}])assert.throws(()=>nativeProduct(wrong,contract));
 });
+test('astrology orders require their own approved feature and immutable price',async()=>{
+ const astrology={...product,nativeService:'astrology',featureKey:'astrology-ai-consultation',productId:'native:astrology:astrology-ai-consultation'};
+ const astrologyContract={...contract,featureKey:astrology.featureKey};
+ assert.equal(nativeProduct(astrology,astrologyContract),astrology);
+ for(const wrong of [{...astrology,approved:false},{...astrology,featureKey:product.featureKey},{...astrology,approvedPriceKRW:1},{...astrology,priceEvidence:''}])assert.throws(()=>nativeProduct(wrong,astrologyContract));
+ const storage=store();storage.state.intent={...storage.state.intent,nativeService:'astrology',featureKey:astrology.featureKey};
+ const receipt=await grantNativeOrder({store:storage,auth,product:astrology,order,requestId:initial._id});
+ assert.equal(receipt.durable,true);assert.equal(storage.state.purchases.get(order.orderId).nativeService,'astrology');
+ await assert.rejects(grantNativeOrder({store:storage,auth,product,order,requestId:initial._id}),/ORDER_OWNERSHIP_MISMATCH/);
+});
 test('one original consultation input binds one order atomically and grant retries never generate',async()=>{
  const storage=store(),args={store:storage,auth,product,order,requestId:initial._id};
  const first=await grantNativeOrder(args),again=await grantNativeOrder(args);
