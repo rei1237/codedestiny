@@ -58,8 +58,16 @@ try {
     await page.goto(base + '/ggulggul/', { waitUntil: 'domcontentloaded', timeout: 120000 });
     // 대표 상담은 접힘 목록에서 가로 탐색으로 바뀌었다. 실제 카드와 탐색 영역을 검증한다.
     await expect(page.locator('.cd-sig__viewport')).toBeVisible();
-    await expect(page.locator('#cdSigGrid > .cd-story-entry > a[data-cd-service-id][data-pvw-paid]')).toHaveCount(6);
-    await expect(page.locator('#cdSigGrid > .cd-story-entry > a.cd-story-entry__link[href^="/consultations/"]')).toHaveCount(6);
+    const signatureCards = page.locator('#cdSigGrid > .cd-story-entry > a[data-cd-service-id][data-pvw-paid]');
+    await expect(signatureCards).toHaveCount(6);
+    const signatureDestinations = await signatureCards.evaluateAll(cards => cards.map(card => ({
+      id: card.getAttribute('data-cd-service-id'),
+      path: new URL(card.href).pathname,
+    })));
+    assert.equal(new Set(signatureDestinations.map(card => card.id)).size, 6, 'signature service ids must stay unique');
+    assert.equal(new Set(signatureDestinations.map(card => card.path)).size, 6, 'signature cards must keep distinct service destinations');
+    assert.ok(signatureDestinations.every(card => /^\/[a-z0-9-]+\/$/.test(card.path)),
+      `signature cards must link directly to service routes: ${JSON.stringify(signatureDestinations)}`);
     const cards = page.locator('a[data-cd-service-id][data-pvw-paid]');
     const count = await cards.count();
     assert.ok(count >= 4);
