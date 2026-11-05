@@ -320,6 +320,19 @@ describe("라우트 — 왕복 예산·소비·봉투", () => {
     expect(payload.accessGrant).toBeNull();
   });
 
+  test("월 예산을 다 쓴 이용권도 라이트 운세는 200으로 열리고 예산을 깎지 않는다", async () => {
+    const light = listProducts().find((p) => p.lightFortune === true && getPaidFeatureBillingType(p.featureKey) === "per_use");
+    const db = makeFakePaymentDb();
+    const pass = activePass("standard");
+    pass.premiumUseCycleKey = pass.expiresAt.toISOString();
+    pass.monthlySpendCoin = MONTHLY_PASS_LIMITS.standard;
+    const user = seedUser(db, pass);
+    const { response, payload } = await postPassCheck(db, { featureKey: light.featureKey, requestId: "light-after-budget" });
+    expect(response.status).toBe(200);
+    expect(payload.data.consume.ok).toBe(true);
+    expect(user.profileSubscription.monthlySpendCoin).toBe(MONTHLY_PASS_LIMITS.standard);
+  });
+
   test("월 예산 소진 계정: 402 + 잔여 한도 안내(쓰기 없음)", async () => {
     const db = makeFakePaymentDb();
     const expiresAt = new Date(Date.now() + 10 * DAY_MS);

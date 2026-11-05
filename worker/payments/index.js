@@ -1658,7 +1658,6 @@ const ROUTES = {
       let billingType = "per_use";
       let directOnly = false;
       let familyPassOnly = false;
-      let lightFortune = false;
       try {
         const catalogItem = resolveProduct({ featureKey: product.featureKey });
         billingType = String(catalogItem.billingType || "per_use");
@@ -1804,6 +1803,7 @@ const ROUTES = {
       let passExcluded = false;
       let directOnly = false;
       let familyPassOnly = false;
+      let lightFortune = false;
       try {
         const catalogItem = resolveProduct({ featureKey: product.featureKey });
         billingType = String(catalogItem.billingType || "per_use");
