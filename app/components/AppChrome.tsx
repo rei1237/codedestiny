@@ -104,6 +104,7 @@ const FEATURE_NAV_EXTRA_ROUTES = [
 // Premium fortune routes that own their complete in-experience navigation.
 // They must not inherit the site header, footer, floating feature nav, or mobile tab bar.
 const IMMERSIVE_FORTUNE_ROUTES = [
+  "/editions/verify", // 인쇄된 QR의 독립 발행증. 구매·공용 탐색을 붙이지 않는다.
   "/heukwol",
   "/consultations",
   "/psychotest",

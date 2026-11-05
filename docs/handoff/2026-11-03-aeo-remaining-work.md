@@ -19,6 +19,7 @@ next: "없음. 소유자 작업은 docs/handoff/2026-11-04-owner-tasks-codex.md�
 - **남긴 후속.** `content/product-details/*/editable-layout.html` 153개의 무버전 `/styles/service-intro-fonts.css`, `js/core/profile-character-card.mjs:38`의 동적 무버전 링크, 런 41661777631의 `--pages-only` 차단(다른 세션 런, 운영 영향 없음, 원인 미조사).
 - **작업 3 결정 완료(2026-11-04).** 사용자가 "결정이 필요한 것은 사업적으로 가장 괜찮은 선택으로 진행해 니가 판단해줘"라고 위임했다. 결정과 근거는 아래 작업 3에 있다.
 - **운영 재반영 완료(2026-11-04).** 릴리스 런 41729564058(`914fca524`)이 타로 난수로 흔들리는 토큰 테스트에 막혀 `46f083c19`로 고정했다. 사용자 승인으로 런 41739205895가 `9ecd08743`을 올렸고 `/version.json`·`/api/version`이 같은 SHA다. `/yeongnyangi/1000-won-fortune/`은 200이고 CTA 링크가 있으며 claude.ai 링크는 0건이다.
+- **후속 확인(2026-11-04).** 공개 JSON과 원본 데이터에서 `sourceUrl`을 제거했고, 다음 운영 배포 전까지 라이브 JSON 6개 경로에는 링크가 남는다. `worker/yeongnyangi/question-followup.ts:97`의 `feature` 값을 "영냥이 후속 상담"에서 "후속 상담"으로 바꿨다. 이 값이 연이·네오 등 모든 페르소나의 시스템 프롬프트에 들어가 있었다. 아티팩트 공유 해제는 여전히 소유자가 판단한다. 입력 토큰 최대는 약 40,056으로 소프트 목표 40,000을 조금 넘고 하드 한도 50,000 안이다. 축소하려면 worker 유료 프롬프트를 고치고 과금 호출로 검증해야 해서 바꾸지 않았다. 의존성 경고는 `2026-11-04-dependency-security.md`로 넘겼다.
 
 ## 왜
 
@@ -108,9 +109,9 @@ CI: main 맨 위 SHA의 PR CI가 끝날 때까지 `gh run watch --exit-status`�
 
 2026-11-04 결정이다. 전환·원가 효과는 측정하지 않았다.
 
-- **허브 CTA: 8챕터 질문 경로로 바꿈.** `/yeongnyangi/1000-won-fortune/`의 CTA를 `consultationKind=ask`에서 `/yeongnyangi/fortune/?flow=question&domain=saju&fish=mackerel`로 바꿨다. 같은 5,000원에 5챕터 경로로 보내면 구매자가 손해이고 랜딩 문구와도 어긋난다. `YeongnyangiGuide`의 `fishRows`가 이미 쓰는 경로이고 worker·결제·가격은 고치지 않았다. 운영에서 이 URL이 질문 입력 화면으로 열리는 것을 비로그인 390px로 확인했다(결제 안 함). 8챕터의 LLM 원가 증가는 측정하지 않았다. 메뉴에서 상담 종류를 고르는 경로의 5챕터는 그대로다.
+- **허브 CTA: 8챕터 질문 경로로 바꿈.** `/yeongnyangi/1000-won-fortune/`의 CTA를 `consultationKind=ask`에서 `/yeongnyangi/fortune/?flow=question&domain=saju&fish=mackerel`로 바꿨다. 같은 5,000원에 5챕터 경로로 보내면 구매자가 손해이고 랜딩 문구와도 어긋난다. `YeongnyangiGuide`의 `fishRows`가 이미 쓰는 경로이고 worker·결제·가격은 고치지 않았다. 운영에서 이 URL이 질문 입력 화면으로 열리는 것을 비로그인 390px로 확인했다(결제 안 함). 8챕터의 LLM 원가 증가는 측정하지 않았다. 추정만 있다: `scripts/report-yeongnyangi-pass-economics.mjs`에 고등어 8챕터 행이 없어 연어 8챕터 행을 대리값으로 보면 1회 성공 약 462~472원, 재시도를 다 쓰는 상한 약 3,343~3,424원이다. 5,000원의 순수입 약 4,345원(부가세 10%, PG 4%)에서 빼면 약 3,873원과 약 921원(18%)이 남고, 고정비는 포함하지 않았다. 고등어 5챕터는 약 323원과 약 2,233원이다. 상한 시나리오는 측정 원가가 아니다(`reviewedCostEvidencePresent:false`). 메뉴에서 상담 종류를 고르는 경로의 5챕터는 그대로다. 유료 상품과 원가에 영향을 주므로 실제 주문 데이터가 생긴 뒤 판단한다.
 - **`SampleExposure`: 샘플별 ID로 분리.** 정본을 하나로 합치지 않았다. `contentId`를 필수 prop으로 바꿔 타로·연어 샘플은 `tarot-salmon-question-v1`, 고등어 샘플은 `mackerel-question-v1`로 보낸다. 타로·연어 샘플이 고등어로 기록되던 측정 오류를 고쳤다. 과거 데이터는 `item_id`로 구분한다.
-- **claude.ai 링크: 공개 화면 3곳에서 제거.** `YeongnyangiGuide.tsx`, `js/consultation-sample-guide.mjs`, `js/feature-detail-panels.mjs`다. 대상 페이지는 링크 공유 상태이고 제목이 옛 서비스명이며, 시험 프로필, 모델명, 호출 수, 비용, 토큰, 품질 이슈가 보인다. 아티팩트 자체는 삭제하지 않았고 공유 해제는 소유자가 판단한다. `content/product-details/*/manifest.json`, `lib/marketing/result-samples.json`, `public/feature-details/*.json`의 `sourceUrl` 데이터는 남겼다. 화면에 링크로 나오지 않지만 공개 JSON에 URL 문자열은 남아 있다.
+- **claude.ai 링크: 공개 화면 3곳에서 제거.** `YeongnyangiGuide.tsx`, `js/consultation-sample-guide.mjs`, `js/feature-detail-panels.mjs`다. 대상 페이지는 링크 공유 상태이고 제목이 옛 서비스명이며, 시험 프로필, 모델명, 호출 수, 비용, 토큰, 품질 이슈가 보인다. 아티팩트 자체는 삭제하지 않았고 공유 해제는 소유자가 판단한다. 처음에는 `sourceUrl` 데이터를 남겼으나 후속 확인에서 JSON 전부에서 제거했다. 공개되지 않는 원고 `content/product-details/*/한글-원고.md`, `lib/marketing/result-samples-source.md`의 출처 링크는 남겼다.
 - **대운·세운 가이드: 링크를 넣지 않음.** 애드센스 검수 원고 해시가 깨져 재검수가 필요한데 이득이 불확실하다.
 - **`/premium-unlock/`: 고치지 않음.** 2026-11-04 3회 재측정이 2,083·2,185·2,336ms였다(이전 1회 8.6초). noindex이고 사이트맵 밖이다.
 - **결정이 아니라 조건 대기.** 구매 이벤트 중복과 실구매 대사는 자연 발생 주문으로만 검증된다. GA4 CSP 수정 `wt/ga4-csp-diagnosis-20261030-103058`은 다른 세션 워크트리이므로 건드리지 않았다.

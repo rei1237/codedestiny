@@ -79,6 +79,8 @@ export type NamingResultCopy = {
   waitingBody: string;
   brandLine: string;
   coverBody: string;
+  coverBodyApproved: string;
+  hourUnknownNoteApproved: string;
   hourUnknownNote: string;
   finalPickLabel: string;
   cardsHeading: string;
@@ -161,6 +163,8 @@ const RESULT_KO: NamingResultCopy = {
   waitingBody: "사주와 성명학 원리를 함께 살펴 이름을 짓는 동안 이 창을 열어 두세요. 완성되면 이 자리에서 바로 펼쳐집니다.",
   brandLine: "훈민정음 작명소 · 사주 맞춤 작명첩",
   coverBody: "사주에서 검증한 용신과 희신을 바탕으로 소리오행·수리오행·자원오행을 함께 짚어, 이 아이에게 가장 어울리는 이름을 지었습니다.",
+  coverBodyApproved: "사주에서 잡은 작명 계산 기준을 바탕으로 소리오행·수리오행·자원오행을 함께 짚어, 이 아이에게 가장 어울리는 이름을 지었습니다.",
+  hourUnknownNoteApproved: "출생시간 미상으로 시주(時柱)는 확정하지 않고, 년·월·일주로 작명 계산 기준을 잡아 이름에 반영했습니다. 용신은 판정 보류입니다.",
   hourUnknownNote: "출생시간 미상으로 시주(時柱)는 확정하지 않고, 년·월·일주를 중심으로 용신을 판단해 작명에 반영했습니다.",
   finalPickLabel: "작명가의 최종 추천",
   cardsHeading: "함께 살펴본 이름들",
@@ -248,6 +252,8 @@ const RESULT_EN: NamingResultCopy = {
   waitingBody: "Keep this window open while we read the chart and the naming principles together. It will open right here the moment it is done.",
   brandLine: "Hunminjeongeum Naming House · a booklet matched to the chart",
   coverBody: "Working from the favourable and supporting elements verified in the chart, we weighed sound, numerology and character meaning together to arrive at the name that suits this child best.",
+  coverBodyApproved: "Working from the naming baseline set from the chart, we weighed sound, numerology and character meaning together to arrive at the name that suits this child best.",
+  hourUnknownNoteApproved: "The birth time was unknown, so the hour pillar was left unfixed. The naming baseline comes from the year, month and day pillars, and the favourable element remains undecided.",
   hourUnknownNote: "The birth time was unknown, so the hour pillar was left unfixed; the favourable element was judged from the year, month and day pillars and applied to the naming.",
   finalPickLabel: "The namer's final recommendation",
   cardsHeading: "The other names we weighed",
@@ -330,6 +336,8 @@ const RESULT_JA: NamingResultCopy = {
   waitingBody: "四柱と姓名判断の原理をあわせて読みながら名前をお選びしています。この画面を開いたままお待ちください。仕上がり次第、ここにそのまま開きます。",
   brandLine: "訓民正音作名所 · 四柱に合わせた作名帖",
   coverBody: "四柱で検証した用神と喜神をもとに、響き・五格・字源五行をあわせて押さえ、このお子さまにいちばん似合う名前をお選びしました。",
+  coverBodyApproved: "四柱から立てた命名の計算基準をもとに、響き・五格・字源五行をあわせて押さえ、このお子さまにいちばん似合う名前をお選びしました。",
+  hourUnknownNoteApproved: "出生時刻が不明のため時柱は確定せず、年柱・月柱・日柱から命名の計算基準を立てて反映しました。用神の判定は保留です。",
   hourUnknownNote: "出生時刻が不明のため時柱は確定せず、年柱・月柱・日柱を中心に用神を判断して命名に反映しました。",
   finalPickLabel: "命名家の最終のおすすめ",
   cardsHeading: "あわせて検討した名前",
@@ -412,6 +420,8 @@ const RESULT_ZH_CN: NamingResultCopy = {
   waitingBody: "我们正一并对照八字与姓名学的原理为你选名，请让这个窗口开着。完成后会直接在这里展开。",
   brandLine: "训民正音起名所 · 依八字定制的取名册",
   coverBody: "以八字中验证过的用神与喜神为本，兼顾音律、五格与字义五行，为这个孩子挑出最相称的名字。",
+  coverBodyApproved: "以八字定出的取名计算基准为本，兼顾音律、五格与字义五行，为这个孩子挑出最相称的名字。",
+  hourUnknownNoteApproved: "因出生时辰不详，时柱未予确定；取名计算基准以年柱·月柱·日柱为主，用神暂不判定。",
   hourUnknownNote: "因出生时辰不详，时柱未予确定；用神以年柱·月柱·日柱为主判断，并据此反映到取名中。",
   finalPickLabel: "起名师的最终推荐",
   cardsHeading: "一并斟酌过的名字",
@@ -494,6 +504,8 @@ const RESULT_ZH_TW: NamingResultCopy = {
   waitingBody: "我們正一併對照八字與姓名學的原理為你選名，請讓這個視窗開著。完成後會直接在這裡展開。",
   brandLine: "訓民正音取名所 · 依八字訂製的取名冊",
   coverBody: "以八字中驗證過的用神與喜神為本，兼顧音律、五格與字義五行，為這個孩子挑出最相稱的名字。",
+  coverBodyApproved: "以八字定出的取名計算基準為本，兼顧音律、五格與字義五行，為這個孩子挑出最相稱的名字。",
+  hourUnknownNoteApproved: "因出生時辰不詳，時柱未予確定；取名計算基準以年柱·月柱·日柱為主，用神暫不判定。",
   hourUnknownNote: "因出生時辰不詳，時柱未予確定；用神以年柱·月柱·日柱為主判斷，並據此反映到取名中。",
   finalPickLabel: "取名師的最終推薦",
   cardsHeading: "一併斟酌過的名字",

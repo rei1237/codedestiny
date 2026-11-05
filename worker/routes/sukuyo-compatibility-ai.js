@@ -1,3 +1,4 @@
+import { resolveExpertCalculation } from '../lib/expert-consumer-facts.js';
 import { runWithAiLocale, storedAiLocale } from '../lib/ai-locale-context.js';
 import { jsonSchemaFromExample } from "../lib/json-text-repair.js";
 import { trimPaidReportText } from "../lib/paid-report-length.js";
@@ -1931,9 +1932,13 @@ async function handleStart(request, env, recoveryAuth = null) {
       accessType: access.accessType,
     });
     let calculation;
+    let calculationFacts;
     try {
-      calculation = existing?.llmMeta?.calculation || await calculateSukuyo(normalized, env, request.url);
+      const basis = await resolveExpertCalculation('sukuyo', existing?.llmMeta?.calculation, () => calculateSukuyo(normalized, env, request.url), { env, snapshot: existing?.llmMeta?.engineFacts, existing: Boolean(existing), input: normalized });
+      calculation = basis.value;
+      calculationFacts = basis.engineFacts;
     } catch (calcError) {
+      if (['EXPERT_CALCULATION_MISMATCH', 'ENGINE_FACT_SNAPSHOT_INVALID'].includes(calcError?.code)) return json({ ok: false, reason: calcError.code }, { status: 409 });
       // 아직 시드가 없다 — 뒤집을 문서가 없으므로 기존과 동일하게 환급 후 전파한다.
       const restored = await restorePrepaidAccessOnFailure(env, auth, access, calcError, idempotencyKey).catch(() => false);
       const prepaid = ["paid", "subscription"].includes(clean(access.accessType).toLowerCase()) && isObjectIdLike(clean(access.paymentId));
@@ -1991,7 +1996,7 @@ async function handleStart(request, env, recoveryAuth = null) {
       accessType: access.accessType,
       paymentId: access.paymentId || paymentIdFromBody(body),
       messages: existing?.messages || [],
-      llmMeta: { ...(existing?.llmMeta || {}), calculation, resumeBody: existing?.llmMeta?.resumeBody || { ...body, accessToken: undefined, access_token: undefined } },
+      llmMeta: { ...(existing?.llmMeta || {}), calculation, ...(calculationFacts ? { engineFacts: calculationFacts } : {}), resumeBody: existing?.llmMeta?.resumeBody || { ...body, accessToken: undefined, access_token: undefined } },
       provider: "",
       model: "",
       status: "generating",

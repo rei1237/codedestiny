@@ -402,3 +402,10 @@ eee12f66d2aec1a1668cb50c70f6336cabe83255:worker/lib/saju-section/runtime.generat
 0cf3fc7d40a3c9381112f6a54149e0e54dd5cf22:worker/lib/saju-section/runtime.generated.mjs:generic-api-key:8
 # 2026-10-17 오탐: 자미두수 서버 이전으로 runtime.generated.mjs 재생성 — 8행 i18n 값 "Api Karma"(비밀값 아님).
 c2d3fec8b507a9a8a554f112a3ffceeb2fc00554:worker/lib/saju-section/runtime.generated.mjs:generic-api-key:8
+# 2026-11-04 오탐: 소스 파일·함수 지문(SHA-256 64자리 16진수)을 담은 감사 결과와 고정 데이터 — 비밀값 아님
+0c639986b9bcdf32c912f2b46cf89b7a930f4a9a:docs/engine-audit/results/cr008-regression.json:generic-api-key:49
+d23588ed49f703557f85ca82da5dc1cf4d227dcb:docs/engine-audit/results/gyeokguk-profile-comparison.json:generic-api-key:2178
+62b460518cd2054e009a000bde65b6be2174b5cc:__tests__/fixtures/result-presentation-preservation.json:generic-api-key:85
+62b460518cd2054e009a000bde65b6be2174b5cc:__tests__/fixtures/result-presentation-preservation.json:generic-api-key:124
+# 2026-11-05 오탐: 생성 런타임의 번역 맵 값("Api Karma" 라벨 옆 문자열) — 비밀값 아님
+c223e5eab1333d20a86f5de54f726cdae252872a:worker/lib/saju-section/runtime.generated.mjs:generic-api-key:9

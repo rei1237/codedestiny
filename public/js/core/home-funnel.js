@@ -87,11 +87,23 @@
     var signaturePause = signatureControls.querySelector('[data-sig-pause]');
     var signatureDots = signatureControls.querySelector('[data-sig-dots]');
     var signatureMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-    var signaturePaused = signatureMotion.matches, signatureIndex = 0, signatureFrame = 0, signatureAnchor = null;
-    var signatureTimer = 0, signatureVisible = false, signatureHover = false;
+    var signaturePaused = false, signatureIndex = 0, signatureFrame = 0, signatureAnchor = null;
+    var signatureTimer = 0, signatureResumeTimer = 0, signatureManualUntil = 0;
+    var signatureVisible = false, signatureHover = false;
     var signatureInteraction = signatureViewport.parentElement;
     function signatureCount() { return window.innerWidth > 1000 ? 3 : window.innerWidth > 760 ? 2 : 1; }
     function signatureLast() { return Math.max(0, signatureCards.length - signatureCount()); }
+    function setSignatureInert(card, value) {
+      card.inert = value;
+      // A consultation and its webtoon link occupy the same carousel position.
+      var entry = card.closest('.cd-story-entry');
+      if (entry) entry.inert = value;
+    }
+    function signatureHasBlockingModal() {
+      return Array.prototype.some.call(document.querySelectorAll('dialog[open],[aria-modal="true"]:not([hidden])'), function (node) {
+        return node.getClientRects().length > 0 && getComputedStyle(node).visibility !== 'hidden';
+      });
+    }
     function syncSignature() {
       signatureFrame = 0;
       if (signatureResize && signatureWidth !== signatureViewport.clientWidth) return;
@@ -104,7 +116,7 @@
       signatureIndex = Math.min(signatureIndex, signatureLast());
       var end = Math.min(signatureCards.length, signatureIndex + signatureCount());
       signaturePosition.textContent = String(signatureIndex + 1).padStart(2, '0') + (end > signatureIndex + 1 ? '–' + String(end).padStart(2, '0') : '') + ' / ' + String(signatureCards.length).padStart(2, '0');
-      signatureCards.forEach(function (card, index) { card.inert = index < signatureIndex || index >= end; });
+      signatureCards.forEach(function (card, index) { setSignatureInert(card, index < signatureIndex || index >= end); });
       if (signatureDots && signatureDots.children.length !== signatureLast() + 1) {
         signatureDots.replaceChildren();
         for (var i = 0; i <= signatureLast(); i++) {
@@ -119,24 +131,33 @@
     }
     function scheduleSignature() {
       window.clearInterval(signatureTimer); signatureTimer = 0;
+      window.clearTimeout(signatureResumeTimer); signatureResumeTimer = 0;
       signaturePause.hidden = signatureMotion.matches;
       signaturePause.setAttribute('aria-pressed', String(signaturePaused));
-      var pauseKey = signaturePaused ? 'home.choice.paused' : 'home.choice.pause';
-      var pauseCopy = signaturePaused ? '상담 카드 자동 넘김 멈춤' : '상담 카드 넘김 멈추기';
+      var pauseKey = signaturePaused ? 'home.choice.resume' : 'home.choice.pause';
+      var pauseCopy = signaturePaused ? '상담 카드 자동 넘김 다시 시작하기' : '상담 카드 넘김 멈추기';
       signaturePause.setAttribute('data-cd-trans-attr', 'aria-label:' + pauseKey);
       signaturePause.setAttribute('aria-label', typeof window.cdTranslate === 'function' ? window.cdTranslate(pauseKey, {}, pauseCopy) : pauseCopy);
-      signaturePause.setAttribute('aria-disabled', String(signaturePaused));
-      if (signaturePaused || signatureMotion.matches || !signatureVisible || signatureHover || document.hidden || signatureInteraction.contains(document.activeElement) || document.querySelector('dialog[open],[aria-modal="true"]:not([hidden])')) return;
-      signatureTimer = window.setInterval(function () { moveSignature(signatureIndex + 1, false); }, 8000);
+      if (signaturePaused || signatureMotion.matches || !signatureVisible || signatureHover || document.hidden || signatureViewport.contains(document.activeElement) || signatureHasBlockingModal()) return;
+      var remaining = signatureManualUntil - Date.now();
+      if (remaining > 0) {
+        signatureResumeTimer = window.setTimeout(function () {
+          signatureManualUntil = 0;
+          if (signaturePaused || signatureMotion.matches || !signatureVisible || signatureHover || document.hidden || signatureViewport.contains(document.activeElement) || signatureHasBlockingModal()) { scheduleSignature(); return; }
+          moveSignature(signatureIndex + 1, false);
+        }, remaining + 40);
+        return;
+      }
+      signatureTimer = window.setInterval(function () { moveSignature(signatureIndex + 1, false); }, 6000);
     }
     function moveSignature(index, manual) {
-      if (manual) signaturePaused = true;
+      if (manual) signatureManualUntil = Date.now() + 12000;
       var nextIndex = (index + signatureLast() + 1) % (signatureLast() + 1);
       var card = signatureCards[nextIndex];
       if (!card) return;
       signatureAnchor = nextIndex;
       // Release inert before moving so pointer/keyboard use never targets a hidden card.
-      signatureCards.forEach(function (item) { item.inert = false; });
+      signatureCards.forEach(function (item) { setSignatureInert(item, false); });
       signatureViewport.scrollTo({left: signatureViewport.scrollLeft + card.getBoundingClientRect().left - signatureViewport.getBoundingClientRect().left - 4, behavior: signatureMotion.matches ? 'instant' : 'smooth'});
       if (Math.abs(card.getBoundingClientRect().left - signatureViewport.getBoundingClientRect().left - 4) < 1) syncSignature();
       scheduleSignature();
@@ -145,7 +166,11 @@
       signatureControls.hidden = false;
       signaturePrevious.addEventListener('click', function () { moveSignature(signatureIndex - 1, true); });
       signatureNext.addEventListener('click', function () { moveSignature(signatureIndex + 1, true); });
-      signaturePause.addEventListener('click', function () { signaturePaused = true; scheduleSignature(); });
+      signaturePause.addEventListener('click', function () {
+        signaturePaused = !signaturePaused;
+        if (!signaturePaused) signatureManualUntil = 0;
+        scheduleSignature();
+      });
       if (signatureDots) signatureDots.addEventListener('click', function (event) { var dot = event.target.closest('[data-sig-slide]'); if (dot) moveSignature(Number(dot.dataset.sigSlide), true); });
       signatureViewport.addEventListener('scroll', function () { if (!signatureFrame) signatureFrame = requestAnimationFrame(syncSignature); }, {passive:true});
       signatureViewport.addEventListener('scrollend', syncSignature);
@@ -153,12 +178,12 @@
         if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
         event.preventDefault(); moveSignature(signatureIndex + (event.key === 'ArrowRight' ? 1 : -1), true);
       });
-      ['pointerdown','touchstart','wheel'].forEach(function (name) { signatureViewport.addEventListener(name, function () { signatureAnchor = null; signaturePaused = true; scheduleSignature(); }, {passive:true}); });
+      ['pointerdown','touchstart','wheel'].forEach(function (name) { signatureViewport.addEventListener(name, function () { signatureAnchor = null; signatureManualUntil = Date.now() + 12000; scheduleSignature(); }, {passive:true}); });
       signatureInteraction.addEventListener('mouseenter', function () { signatureHover = true; scheduleSignature(); });
       signatureInteraction.addEventListener('mouseleave', function () { signatureHover = false; scheduleSignature(); });
       signatureInteraction.addEventListener('focusin', scheduleSignature);
       signatureInteraction.addEventListener('focusout', function () { requestAnimationFrame(scheduleSignature); });
-      signatureMotion.addEventListener('change', function () { if (signatureMotion.matches) signaturePaused = true; scheduleSignature(); });
+      signatureMotion.addEventListener('change', scheduleSignature);
       document.addEventListener('visibilitychange', scheduleSignature);
       var signatureWidth = signatureViewport.clientWidth;
       var signatureResize = window.ResizeObserver ? new ResizeObserver(function () {
@@ -177,9 +202,208 @@
         if (changes.some(function (change) { return (change.type === 'childList' && Array.prototype.some.call(change.addedNodes, function (node) { return node.nodeType === 1 && (node.matches('dialog,[aria-modal="true"]') || node.querySelector('dialog,[aria-modal="true"]')); })) || (change.target.matches && change.target.matches('dialog,[aria-modal="true"]')); })) scheduleSignature();
       });
       signatureOverlayObserver.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['open','hidden','aria-modal']});
-      window.addEventListener('pagehide', function () { window.clearInterval(signatureTimer); signatureObserver.disconnect(); signatureOverlayObserver.disconnect(); if (signatureResize) signatureResize.disconnect(); }, {once:true});
+      window.addEventListener('pagehide', function () { window.clearInterval(signatureTimer); window.clearTimeout(signatureResumeTimer); signatureObserver.disconnect(); signatureOverlayObserver.disconnect(); if (signatureResize) signatureResize.disconnect(); }, {once:true});
       syncSignature(); scheduleSignature();
     }
+  }
+
+  setupSignatureConsultPopup(Array.prototype.slice.call(home.querySelectorAll('#cdSigGrid [data-cd-service-id]')));
+
+  function setupSignatureConsultPopup(cards) {
+    var pathname = String(location.pathname || '');
+    var localFixture = /^(?:localhost|127\.0\.0\.1)$/i.test(location.hostname) && /\/(?:static\/)?index\.html$/.test(pathname);
+    if ((!/^ko(?:-|$)/i.test(document.documentElement.lang || 'ko')) || (pathname !== '/ggulggul/' && !localFixture) || cards.length !== 6 || location.hash) return;
+
+    var HIDE_UNTIL_KEY = 'cd_signature_consult_hide_until_v1';
+    var SESSION_CLOSED_KEY = 'cd_signature_consult_session_closed_v1';
+    var LOCK_KEY = 'signature-consult-popup';
+    var popup = null, sheet = null, previousFocus = null, popupIndex = 0;
+    var popupPaused = false, popupHover = false, popupFocus = false;
+    var popupTimer = 0, popupResumeTimer = 0, popupManualUntil = 0;
+    var eligibilityObserver = null, eligibilityFrame = 0, delayElapsed = false;
+    var popupMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+    function sessionClosed() {
+      try { return sessionStorage.getItem(SESSION_CLOSED_KEY) === '1'; } catch (_) { return false; }
+    }
+    function hiddenToday() {
+      try { return Number(localStorage.getItem(HIDE_UNTIL_KEY) || 0) > Date.now(); } catch (_) { return false; }
+    }
+    function markSessionClosed() {
+      try { sessionStorage.setItem(SESSION_CLOSED_KEY, '1'); } catch (_) {}
+    }
+    function hasBlockingSurface() {
+      return Array.prototype.some.call(document.querySelectorAll('dialog[open],[role="dialog"][aria-modal="true"]:not([hidden]),.payment-modal.active,#cdCookieConsent.is-visible'), function (node) {
+        return node !== popup && node.getClientRects().length > 0 && getComputedStyle(node).visibility !== 'hidden';
+      });
+    }
+    function popupItems() {
+      return cards.map(function (card) {
+        var image = card.querySelector('.cd-sig-card__img');
+        return {
+          id: card.getAttribute('data-cd-service-id') || '',
+          title: card.querySelector('.cd-sig-card__title')?.textContent.trim() || '',
+          copy: card.getAttribute('data-cd-popup-copy') || card.querySelector('.cd-sig-card__q')?.textContent.trim() || '',
+          price: card.querySelector('.cd-sig-card__price')?.textContent.trim() || '',
+          href: card.getAttribute('href') || '#cdSignatureConsult',
+          cta: card.querySelector('.cd-sig-card__cta span')?.textContent.trim() || '상담 시작하기',
+          image: image?.getAttribute('src') || '',
+          srcset: image?.getAttribute('srcset') || '',
+          alt: (card.querySelector('.cd-sig-card__title')?.textContent.trim() || '대표 상담') + ' 대표 이미지'
+        };
+      });
+    }
+    var items = popupItems();
+
+    function buildPopup() {
+      if (popup) return popup;
+      popup = document.createElement('div');
+      popup.id = 'cdSignatureConsultPopup';
+      popup.className = 'cd-signature-popup';
+      popup.hidden = true;
+      popup.lang = 'ko';
+      popup.innerHTML = '<section class="cd-signature-popup__sheet" role="dialog" aria-modal="true" aria-labelledby="cdSignaturePopupTitle" aria-describedby="cdSignaturePopupIntro" tabindex="-1">' +
+        '<button type="button" class="cd-signature-popup__close" data-signature-popup-close aria-label="대표 상담 안내 닫기"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>' +
+        '<div class="cd-signature-popup__visual"><img data-signature-popup-image src="/images/service-introductions/fortune-tea-house-640.webp" width="640" height="360" alt="대표 상담 이미지" decoding="async"></div>' +
+        '<div class="cd-signature-popup__content"><h2 id="cdSignaturePopupTitle">오늘, 어떤 상담이 필요하세요?</h2><p class="cd-signature-popup__intro" id="cdSignaturePopupIntro">지금 마음에 가장 가까운 고민부터 골라보세요. 상담 구성과 이용 조건은 시작 전에 확인할 수 있어요.</p>' +
+        '<div class="cd-signature-popup__service" aria-live="off"><p class="cd-signature-popup__name" data-signature-popup-name></p><p class="cd-signature-popup__copy" data-signature-popup-copy></p><p class="cd-signature-popup__price" data-signature-popup-price></p><a class="cd-signature-popup__cta" data-signature-popup-cta><span></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg></a></div>' +
+        '<div class="cd-signature-popup__controls"><button type="button" data-signature-popup-prev aria-label="이전 상담"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m6-6-6 6 6 6"/></svg></button><div class="cd-signature-popup__dots" data-signature-popup-dots aria-label="대표 상담 위치"></div><span data-signature-popup-position></span><button type="button" data-signature-popup-next aria-label="다음 상담"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button><button type="button" data-signature-popup-pause aria-pressed="false" aria-label="상담 팝업 자동 넘김 멈추기"><svg class="cd-signature-popup__pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6v12m6-12v12"/></svg><svg class="cd-signature-popup__play" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 6 10 6-10 6Z"/></svg></button></div>' +
+        '<button type="button" class="cd-signature-popup__today" data-signature-popup-today>오늘 하루 보지 않기</button></div></section>';
+      document.body.appendChild(popup);
+      sheet = popup.querySelector('.cd-signature-popup__sheet');
+      var dots = popup.querySelector('[data-signature-popup-dots]');
+      items.forEach(function (item, index) {
+        var dot = document.createElement('button');
+        dot.type = 'button';
+        dot.dataset.signaturePopupSlide = String(index);
+        dot.setAttribute('aria-label', item.title + ' 보기');
+        dots.appendChild(dot);
+      });
+      popup.querySelector('[data-signature-popup-close]').addEventListener('click', function () { closePopup(true); });
+      popup.querySelector('[data-signature-popup-today]').addEventListener('click', hidePopupToday);
+      popup.querySelector('[data-signature-popup-prev]').addEventListener('click', function () { movePopup(popupIndex - 1, true); });
+      popup.querySelector('[data-signature-popup-next]').addEventListener('click', function () { movePopup(popupIndex + 1, true); });
+      popup.querySelector('[data-signature-popup-pause]').addEventListener('click', function () {
+        popupPaused = !popupPaused;
+        if (!popupPaused) popupManualUntil = 0;
+        schedulePopup();
+      });
+      dots.addEventListener('click', function (event) {
+        var dot = event.target.closest('[data-signature-popup-slide]');
+        if (dot) movePopup(Number(dot.dataset.signaturePopupSlide), true);
+      });
+      popup.querySelector('[data-signature-popup-cta]').addEventListener('click', markSessionClosed);
+      popup.addEventListener('click', function (event) { if (event.target === popup) closePopup(true); });
+      popup.addEventListener('pointerdown', function () { popupFocus = false; }, { passive: true });
+      popup.addEventListener('keydown', trapPopupFocus);
+      sheet.addEventListener('mouseenter', function () { popupHover = true; schedulePopup(); });
+      sheet.addEventListener('mouseleave', function () { popupHover = false; schedulePopup(); });
+      sheet.addEventListener('focusout', function () { requestAnimationFrame(function () { if (!sheet.contains(document.activeElement)) popupFocus = false; schedulePopup(); }); });
+      popupMotion.addEventListener('change', schedulePopup);
+      document.addEventListener('visibilitychange', schedulePopup);
+      renderPopup();
+      return popup;
+    }
+    function renderPopup() {
+      if (!popup) return;
+      var item = items[popupIndex];
+      var image = popup.querySelector('[data-signature-popup-image]');
+      popup.dataset.serviceId = item.id;
+      image.src = item.image;
+      image.parentElement.style.backgroundImage = 'url(' + JSON.stringify(item.image) + ')';
+      if (item.srcset) image.srcset = item.srcset; else image.removeAttribute('srcset');
+      image.sizes = '(max-width: 760px) calc(100vw - 32px), 340px';
+      image.alt = item.alt;
+      popup.querySelector('[data-signature-popup-name]').textContent = item.title;
+      popup.querySelector('[data-signature-popup-copy]').textContent = item.copy;
+      popup.querySelector('[data-signature-popup-price]').textContent = item.price;
+      var cta = popup.querySelector('[data-signature-popup-cta]');
+      cta.href = item.href;
+      cta.querySelector('span').textContent = item.cta;
+      popup.querySelector('[data-signature-popup-position]').textContent = (popupIndex + 1) + ' / ' + items.length;
+      Array.prototype.forEach.call(popup.querySelector('[data-signature-popup-dots]').children, function (dot, index) { dot.setAttribute('aria-pressed', String(index === popupIndex)); });
+    }
+    function schedulePopup() {
+      window.clearInterval(popupTimer); popupTimer = 0;
+      window.clearTimeout(popupResumeTimer); popupResumeTimer = 0;
+      if (!popup || popup.hidden) return;
+      var pause = popup.querySelector('[data-signature-popup-pause]');
+      pause.hidden = popupMotion.matches;
+      pause.setAttribute('aria-pressed', String(popupPaused));
+      pause.setAttribute('aria-label', popupPaused ? '상담 팝업 자동 넘김 다시 시작하기' : '상담 팝업 자동 넘김 멈추기');
+      if (popupPaused || popupMotion.matches || popupHover || popupFocus || document.hidden) return;
+      var remaining = popupManualUntil - Date.now();
+      if (remaining > 0) {
+        popupResumeTimer = window.setTimeout(function () {
+          popupManualUntil = 0;
+          if (popupPaused || popupMotion.matches || popupHover || popupFocus || document.hidden) { schedulePopup(); return; }
+          movePopup(popupIndex + 1, false);
+        }, remaining + 40);
+        return;
+      }
+      popupTimer = window.setInterval(function () { movePopup(popupIndex + 1, false); }, 6000);
+    }
+    function movePopup(index, manual) {
+      if (manual) popupManualUntil = Date.now() + 12000;
+      popupIndex = (index + items.length) % items.length;
+      renderPopup();
+      schedulePopup();
+    }
+    function trapPopupFocus(event) {
+      if (event.key === 'Escape') { event.preventDefault(); closePopup(true); return; }
+      if (event.key === 'Tab' || event.key === 'ArrowLeft' || event.key === 'ArrowRight') { popupFocus = true; schedulePopup(); }
+      if (event.key !== 'Tab') return;
+      var focusable = popup.querySelectorAll('button:not([hidden]):not([disabled]),a[href]');
+      if (!focusable.length) return;
+      var first = focusable[0], last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    }
+    function openPopup() {
+      if (sessionClosed() || hiddenToday() || hasBlockingSurface() || document.hidden) return false;
+      buildPopup();
+      previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      popup.hidden = false;
+      document.documentElement.setAttribute('data-signature-popup-open', '');
+      if (typeof window.__cdLockBodyScroll === 'function') window.__cdLockBodyScroll(LOCK_KEY);
+      requestAnimationFrame(function () { sheet.focus({ preventScroll: true }); });
+      schedulePopup();
+      if (eligibilityObserver) eligibilityObserver.disconnect();
+      return true;
+    }
+    function closePopup(rememberSession) {
+      if (!popup || popup.hidden) return;
+      if (rememberSession !== false) markSessionClosed();
+      popup.hidden = true;
+      document.documentElement.removeAttribute('data-signature-popup-open');
+      window.clearInterval(popupTimer); window.clearTimeout(popupResumeTimer);
+      if (typeof window.__cdUnlockBodyScroll === 'function') window.__cdUnlockBodyScroll(LOCK_KEY);
+      if (previousFocus && document.contains(previousFocus)) previousFocus.focus({ preventScroll: true });
+      previousFocus = null;
+    }
+    function hidePopupToday() {
+      try {
+        var tomorrow = new Date();
+        tomorrow.setHours(24, 0, 0, 0);
+        localStorage.setItem(HIDE_UNTIL_KEY, String(tomorrow.getTime()));
+      } catch (_) {}
+      closePopup(true);
+    }
+    function tryOpenPopup() {
+      eligibilityFrame = 0;
+      if (sessionClosed() || hiddenToday()) { if (eligibilityObserver) eligibilityObserver.disconnect(); return; }
+      if (!delayElapsed) return;
+      openPopup();
+    }
+    eligibilityObserver = new MutationObserver(function () {
+      if (!eligibilityFrame) eligibilityFrame = requestAnimationFrame(tryOpenPopup);
+    });
+    eligibilityObserver.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['open','hidden','class','aria-hidden','aria-modal'] });
+    window.setTimeout(function () { delayElapsed = true; tryOpenPopup(); }, 1500);
+    window.addEventListener('pagehide', function () {
+      window.clearInterval(popupTimer); window.clearTimeout(popupResumeTimer);
+      if (eligibilityObserver) eligibilityObserver.disconnect();
+    }, { once: true });
   }
 
   var formPanel = document.getElementById('dpDestinyPanel');

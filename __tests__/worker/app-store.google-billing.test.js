@@ -862,25 +862,25 @@ describe("intent — 결제 의도 기록", () => {
     expect(payload.data.purchases[0].shouldConsume).toBe(true);
   });
 
-  test("신규 SKU가 생긴 영냥이 연어 복구는 현재 10,000원 티어로 지급한다", async () => {
+  test("신규 SKU가 생긴 영냥이 연어 복구는 현재 15,000원 티어로 지급한다", async () => {
     googlePurchasePayload.obfuscatedExternalProfileId = `cd-intent:${originalIntentId}`;
     mockIntentFindOne.mockReturnValue({ sort: () => ({ lean: async () => ({
       featureKey: "yeongnyangi-saju-salmon", requestId: "yn-" + "a".repeat(64), profileId: "saved-profile",
     }) }) });
     const { status, payload } = await callRoute(postJson("/google/restore", {
-      purchases: [{ productId: "cd_content_tier_06", purchaseToken: "orphan-yn", orderId: "GPA.test" }],
+      purchases: [{ productId: "cd_content_tier_16", purchaseToken: "orphan-yn", orderId: "GPA.test" }],
     }));
     expect(status).toBe(200);
     expect(payload.data.failedPurchases).toEqual([]);
-    expect(payload.data.purchases[0]).toMatchObject({ productId: "cd_content_tier_06", shouldConsume: true });
+    expect(payload.data.purchases[0]).toMatchObject({ productId: "cd_content_tier_16", shouldConsume: true });
     expect(mockPaymentCreate).toHaveBeenCalledTimes(1);
   });
 
   // 2026-10-11 앱의 모든 현행 가격대는 검증된 SKU를 쓰고, 1,000원 유료 기능만 무료 판정에서 제외한다.
   const APP_LOW_PRICE_KEYS = ["rpt_specialCharmCard", "rpt_skillTreeCard", "fun.quantumLotto.ritualReport", "profile-card-manage"];
-  const RETIRED_ISLAND_KEYS = ["ziwei-island-deep-report", "ziwei-island-palace-consult"];
-  const APP_REGISTERED_KEYS = [...STATIC_READING_PRICE_KEYS, ...APP_LOW_PRICE_KEYS].filter(key => !RETIRED_ISLAND_KEYS.includes(key));
-  test.each(RETIRED_ISLAND_KEYS)("판매 종료된 %s 는 앱 구매 의도와 무료 해금을 생성하지 않는다", async (featureKey) => {
+  const RETIRED_SALE_KEYS = ["ziwei-island-deep-report", "ziwei-island-palace-consult", "tarot-myeongri-three-card"];
+  const APP_REGISTERED_KEYS = [...STATIC_READING_PRICE_KEYS, ...APP_LOW_PRICE_KEYS].filter(key => !RETIRED_SALE_KEYS.includes(key));
+  test.each(RETIRED_SALE_KEYS)("판매 종료된 %s 는 앱 구매 의도와 무료 해금을 생성하지 않는다", async (featureKey) => {
     expect(registry.FEATURE_KEY_PRICE_TABLE[featureKey].saleEnabled).toBe(false);
     for (const path of ["/free-grant", "/google/intent"]) {
       const { status, payload } = await callRoute(postJson(path, { featureKey, profileId: "me", requestId: "retired-island" }));
@@ -902,6 +902,18 @@ describe("intent — 결제 의도 기록", () => {
     const expected = registry.FEATURE_KEY_PRICE_TABLE[featureKey] || registry.UNLOCK_PRODUCT_BY_FEATURE_KEY[featureKey];
     expect(expected).toBeTruthy();
     expect(appPricing.isAppFreeFeature(featureKey, expected.cost)).toBe(false);
+    // 2026-11-04: 묶음 포함·판매 종료 키는 앱에서도 신규 개별 구매 의도·무료 해금을 만들지 않는다(409, 묶음 안내 필드 포함).
+    const { isSajuBundleSaleClosed } = await import("../../worker/lib/saju-bundle-policy.js");
+    if (isSajuBundleSaleClosed(featureKey)) {
+      for (const path of ["/free-grant", "/google/intent"]) {
+        const { status, payload } = await callRoute(postJson(path, { featureKey, profileId: "me", requestId: "fun-" + "b".repeat(32) }));
+        expect(status).toBe(409);
+        expect(payload).toMatchObject({ code: "PRODUCT_SALE_ENDED", bundleFeatureKey: "saju_lifetime_bundle" });
+      }
+      expect(mockIntentCreate).not.toHaveBeenCalled();
+      expect(mockPaymentCreate).not.toHaveBeenCalled();
+      return;
+    }
     for (const path of ["/free-grant", "/google/intent"]) {
       // 출생 기반 키의 의도는 이 계정 저장 프로필이 있어야 열린다(MISSING_PROFILE_ID 가드) — 소유 프로필을 싣는다.
       const { status, payload } = await callRoute(postJson(path, { featureKey, profileId: "me", requestId: "fun-" + "b".repeat(32) }));

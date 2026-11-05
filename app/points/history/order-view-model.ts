@@ -40,6 +40,7 @@ export type OrderDetailViewModel = {
   quantity?: number;
   purchasedAt: string;
   completedAt?: string;
+  orderNumber: string;
   orderNumberMasked: string;
   approvalNumberMasked?: string;
   receiptAvailable: boolean;
@@ -158,6 +159,7 @@ export function adaptOrderToViewModel(order: PaymentOrderRecord, locale: Loading
     quantity: quantity > 0 ? quantity : undefined,
     purchasedAt,
     completedAt: order.paidAt || undefined,
+    orderNumber: String(order.id || "").trim(),
     orderNumberMasked: String(order.orderNumberMasked || "-") || "-",
     approvalNumberMasked: order.approvalNumberMasked || undefined,
     receiptAvailable,

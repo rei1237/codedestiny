@@ -1,11 +1,12 @@
 import { resolveProduct } from "../payments/catalog.js";
+import { SAJU_BUNDLE_FEATURE_KEY, SAJU_BUNDLE_LABEL } from "./saju-bundle-policy.js";
 import { HONEY_PASS_POLICY, normalizePassTier } from "./profile-limits.js";
 import {
   LEGACY_PASS_POLICY_VERSION, PRIOR_PASS_POLICY_VERSION, PREVIOUS_PASS_POLICY_VERSION,
   CURRENT_PASS_POLICY_VERSION, priorPassPlan, previousPassPlan, currentPassPlan,
 } from "../../lib/payment/pass-policy.js";
 
-const SECTION_NAMES = Object.freeze({ section_daewun: "사주 대운 분석", section_summary: "라이트 사주 풀이" });
+const SECTION_NAMES = Object.freeze({ section_daewun: "사주 대운 분석", section_summary: "라이트 사주 풀이", [SAJU_BUNDLE_FEATURE_KEY]: SAJU_BUNDLE_LABEL });
 const text = value => typeof value === "string" ? value.trim() : "";
 
 // Only server product data enters new snapshots; checkout body labels are never authoritative.

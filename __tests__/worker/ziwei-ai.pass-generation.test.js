@@ -241,6 +241,7 @@ beforeAll(async () => {
       findByIdAndUpdate: jest.fn(() => query(() => null)),
     },
     ZiweiAiConsultation: consultationModel,
+    ZiweiCalculationPreparation: { findById: () => query(() => null) },
   }));
   jest.unstable_mockModule("../../worker/lib/moonstone-spend-proof.js", () => ({
     findMoonstoneSpendEvidence: jest.fn(async () => null),

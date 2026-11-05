@@ -106,14 +106,14 @@ const __lazyActionLoaders = {
   generateLoveSecret: () => Promise.resolve(window.location.assign('/love-secret-ai/')),
   openOlympusOracleModal: () => __loadScriptOnce('/js/olympus-oracle.js'),
   openRuneOracle: () => Promise.resolve(window.location.assign('/oracle/rune/')),
-  openSibylModal: () => __loadScriptOnce('/js/sibyl-system.js?v=build-1969477b5929').then(() => {
+  openSibylModal: () => __loadScriptOnce('/js/sibyl-system.js?v=build-3fbcc77d4ee7').then(() => {
     if (typeof window.openSibylModal === 'function') window.openSibylModal();
   }),
 
 };
 
 function __ensureSajuCoreScripts() {
-  return __loadScriptOnce('/js/destiny-profile.js?v=build-eaeb4b351244')
+  return __loadScriptOnce('/js/destiny-profile.js?v=build-9fb9ddb703c4')
     .then(() => __loadScriptOnce('/js/services/sajuService.js'))
     .then(() => __loadScriptOnce('/js/core/saju/basicFortunePresentation.js?v=build-6891fb41d4aa'))
     .then(() => __loadScriptOnce('/js/core/saju/modalProfileState.js'))

@@ -223,8 +223,20 @@ export default function NamingV2Report({ engine, narration, tier, exportExpand =
         <h2 className={styles.blockTitle}>{copy.sajuTitle}</h2>
         <PillarRow copy={copy} saju={saju} />
         <dl className={styles.elementRows}>
+          {saju.approved ? (
+            <div>
+              <dt>{copy.verdictYongshinLabel}</dt>
+              <dd>{saju.approved.yongshinLabel}</dd>
+            </div>
+          ) : null}
+          {saju.approved ? (
+            <div>
+              <dt>{copy.verdictGisinLabel}</dt>
+              <dd>{saju.approved.gisinLabel}</dd>
+            </div>
+          ) : null}
           <div>
-            <dt>{copy.usefulLabel}</dt>
+            <dt>{saju.approved ? copy.basisLabel : copy.usefulLabel}</dt>
             <dd className={styles.chipRow}>{saju.useful.map((el) => <ElementChip key={el} copy={copy} element={el} />)}</dd>
           </div>
           {saju.derivedSupport?.length ? (
@@ -270,7 +282,7 @@ export default function NamingV2Report({ engine, narration, tier, exportExpand =
                 <span className={cx(styles.han, styles.cardHanja)} lang="ko">{surname.hanja}{c.hanja}</span>
                 <span className={styles.cardHangul}>{fullHangul(c)}</span>
                 <span className={styles.chipRow}>{c.chars.map((char, k) => <ElementChip key={`${char.ch}${k}`} copy={copy} element={char.jawon} />)}</span>
-                {fills.length ? <span className={styles.cardFill}>{copy.fillsUseful(fills.map((el) => copy.elements[el]).join(", "))}</span> : null}
+                {fills.length ? <span className={styles.cardFill}>{(saju.approved ? copy.fillsBasis : copy.fillsUseful)(fills.map((el) => copy.elements[el]).join(", "))}</span> : null}
                 <span className={styles.cardGrades}>
                   {V2_GRIDS.map((grid) => (
                     <span key={grid}><span className={styles.han}>{copy.grids[grid].han}</span> {copy.grades[c.grades[grid]]}</span>

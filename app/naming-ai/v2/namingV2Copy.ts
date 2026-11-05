@@ -56,6 +56,9 @@ export interface NamingV2Copy {
   // 사주 요약
   sajuTitle: string;
   usefulLabel: string;
+  basisLabel: string;
+  verdictYongshinLabel: string;
+  verdictGisinLabel: string;
   supportLabel: string;
   cautionLabel: string;
   nameAddsLabel: string;
@@ -112,6 +115,7 @@ export interface NamingV2Copy {
   pillarLabels: Record<"y" | "m" | "d" | "h", string>;
   pentagonCaptionNoCounts: string;
   fillsUseful: (element: string) => string;
+  fillsBasis: (element: string) => string;
   detailOpen: string;
   hunEumLabel: string;
   noCandidates: string;
@@ -138,6 +142,7 @@ const KO: NamingV2Copy = {
   },
   notices: {
     "saju.time-unknown": "출생 시간을 모르는 상태라 시주를 뺀 세 기둥으로 용신을 판단했습니다.",
+    "saju.time-unknown-approved": "출생 시간을 모르는 상태라 격국과 용신은 판정을 보류했습니다.",
     "saju.jong-conditional": "종격으로 볼 여지가 있는 명식이라 용신 판단에 조건이 붙습니다.",
     "surname.pool-strokes": "성씨 획수를 성씨 통계 대신 인명용 한자 자료에서 읽었습니다.",
     "sound.school-differs": "고른 학파에 따라 소리오행 배정이 달라질 수 있습니다.",
@@ -197,6 +202,9 @@ const KO: NamingV2Copy = {
   basisPaidHint: "유료 작명서에는 후보 12개, 2~3개 비교, 이름별 풀이와 8장 해설, 작명서 이미지·PDF 저장이 들어갑니다.",
   sajuTitle: "사주 오행 요약",
   usefulLabel: "채울 오행(용신)",
+  basisLabel: "작명에 쓴 오행",
+  verdictYongshinLabel: "용신",
+  verdictGisinLabel: "기신",
   supportLabel: "돕는 오행",
   cautionLabel: "주의 오행",
   nameAddsLabel: "이름이 보태는 기운",
@@ -250,6 +258,7 @@ const KO: NamingV2Copy = {
   pillarLabels: { y: "년주", m: "월주", d: "일주", h: "시주" },
   pentagonCaptionNoCounts: "이전 기록이라 원국 개수 없이 그렸습니다. 반짝이는 고리는 이름 글자가 보태는 오행입니다.",
   fillsUseful: (element) => `용신 ${element} 보완`,
+  fillsBasis: (element) => `${element} 기운 담음`,
   detailOpen: "자세히 보기",
   hunEumLabel: "훈음",
   noCandidates: "조건에 맞는 이름을 찾지 못했습니다. 돌림자나 피할 한자 조건을 줄여 다시 시도해 주세요.",
@@ -276,6 +285,7 @@ const EN: NamingV2Copy = {
   },
   notices: {
     "saju.time-unknown": "Birth time is unknown, so the useful element was judged from three pillars.",
+    "saju.time-unknown-approved": "Birth time is unknown, so the structure and useful element stay pending.",
     "saju.jong-conditional": "This chart may follow a dominant pattern, so the useful element is conditional.",
     "surname.pool-strokes": "Surname strokes were read from the name-hanja data instead of surname statistics.",
     "sound.school-differs": "Sound elements can differ by the school you chose.",
@@ -335,6 +345,9 @@ const EN: NamingV2Copy = {
   basisPaidHint: "The paid naming book adds 12 candidates, side-by-side comparison, per-name commentary, eight chapters and image/PDF saving.",
   sajuTitle: "Saju element summary",
   usefulLabel: "Element to add (useful)",
+  basisLabel: "Element used for naming",
+  verdictYongshinLabel: "Useful element",
+  verdictGisinLabel: "Unfavorable element",
   supportLabel: "Supporting element",
   cautionLabel: "Element to watch",
   nameAddsLabel: "What the name adds",
@@ -388,6 +401,7 @@ const EN: NamingV2Copy = {
   pillarLabels: { y: "Year", m: "Month", d: "Day", h: "Hour" },
   pentagonCaptionNoCounts: "This earlier record has no chart counts, so circles are equal; glowing rings mark elements the name adds.",
   fillsUseful: (element) => `Adds useful ${element}`,
+  fillsBasis: (element) => `Adds ${element}`,
   detailOpen: "View details",
   hunEumLabel: "Gloss & reading",
   noCandidates: "No names met these conditions. Loosen the required or avoided hanja and try again.",
@@ -407,6 +421,7 @@ const JA: NamingV2Copy = {
   flags: { "low-confidence": "字源五行は検証前", disputed: "出典間で異同", "court-code-variant": "法院の異体コード", "no-hun": "訓の収録なし", buryong: "不用の慣行に注意", "rare-in-names": "人名での使用が稀" },
   notices: {
     "saju.time-unknown": "出生時刻が不明のため、時柱を除く三柱で用神を判断しました。",
+    "saju.time-unknown-approved": "出生時刻が不明のため、格局と用神の判定は保留しています。",
     "saju.jong-conditional": "従格と見る余地がある命式のため、用神の判断には条件が付きます。",
     "surname.pool-strokes": "姓の画数を姓氏統計ではなく人名用漢字データから読みました。",
     "sound.school-differs": "選んだ流派によって音の五行の配当が変わることがあります。",
@@ -463,6 +478,9 @@ const JA: NamingV2Copy = {
   basisPaidHint: "有料の命名書には候補12件、2〜3件の比較、名前ごとの解説と全8章、画像・PDF保存が含まれます。",
   sajuTitle: "四柱の五行要約",
   usefulLabel: "補う五行(用神)",
+  basisLabel: "命名に用いた五行",
+  verdictYongshinLabel: "用神",
+  verdictGisinLabel: "忌神",
   supportLabel: "助ける五行",
   cautionLabel: "注意する五行",
   nameAddsLabel: "名前が加える気",
@@ -516,6 +534,7 @@ const JA: NamingV2Copy = {
   pillarLabels: { y: "年柱", m: "月柱", d: "日柱", h: "時柱" },
   pentagonCaptionNoCounts: "以前の記録のため原局の数なしで描きました。光る輪は名前の字が加える五行です。",
   fillsUseful: (element) => `用神${element}を補う`,
+  fillsBasis: (element) => `${element}を補う`,
   detailOpen: "詳しく見る",
   hunEumLabel: "訓と音",
   noCandidates: "条件に合う名前が見つかりませんでした。行列字や避ける漢字の条件を減らしてお試しください。",
@@ -535,6 +554,7 @@ const ZH_CN: NamingV2Copy = {
   flags: { "low-confidence": "字源五行待审", disputed: "出处有分歧", "court-code-variant": "法院异体编码", "no-hun": "未收录字义", buryong: "注意忌用惯例", "rare-in-names": "人名中少见" },
   notices: {
     "saju.time-unknown": "出生时辰不详，因此以去掉时柱的三柱判断用神。",
+    "saju.time-unknown-approved": "出生时间不明，格局与用神暂不判定。",
     "saju.jong-conditional": "此命式有从格的可能，用神判断附带条件。",
     "surname.pool-strokes": "姓氏笔画取自人名用汉字资料，而非姓氏统计。",
     "sound.school-differs": "所选流派不同，音五行的配属可能不同。",
@@ -591,6 +611,9 @@ const ZH_CN: NamingV2Copy = {
   basisPaidHint: "付费命名书包含12个候选、2~3个对比、逐名解说与8章内容，以及图片·PDF保存。",
   sajuTitle: "八字五行摘要",
   usefulLabel: "宜补五行(用神)",
+  basisLabel: "命名采用的五行",
+  verdictYongshinLabel: "用神",
+  verdictGisinLabel: "忌神",
   supportLabel: "相助五行",
   cautionLabel: "需注意五行",
   nameAddsLabel: "名字补入的气",
@@ -644,6 +667,7 @@ const ZH_CN: NamingV2Copy = {
   pillarLabels: { y: "年柱", m: "月柱", d: "日柱", h: "时柱" },
   pentagonCaptionNoCounts: "此为早期记录，未含原局数量，圆大小相同；发光的环表示名字所补的五行。",
   fillsUseful: (element) => `补用神${element}`,
+  fillsBasis: (element) => `补${element}`,
   detailOpen: "查看详情",
   hunEumLabel: "字义与读音",
   noCandidates: "没有找到符合条件的名字。请减少必用字或避用汉字的条件后重试。",
@@ -661,6 +685,7 @@ const ZH_TW: NamingV2Copy = {
   flags: { "low-confidence": "字源五行待審", disputed: "出處有分歧", "court-code-variant": "法院異體編碼", "no-hun": "未收錄字義", buryong: "注意忌用慣例", "rare-in-names": "人名中少見" },
   notices: {
     "saju.time-unknown": "出生時辰不詳，因此以去掉時柱的三柱判斷用神。",
+    "saju.time-unknown-approved": "出生時間不明，格局與用神暫不判定。",
     "saju.jong-conditional": "此命式有從格的可能，用神判斷附帶條件。",
     "surname.pool-strokes": "姓氏筆畫取自人名用漢字資料，而非姓氏統計。",
     "sound.school-differs": "所選流派不同，音五行的配屬可能不同。",
@@ -715,6 +740,9 @@ const ZH_TW: NamingV2Copy = {
   basisPaidHint: "付費命名書包含12個候選、2~3個比較、逐名解說與8章內容，以及圖片·PDF保存。",
   sajuTitle: "八字五行摘要",
   usefulLabel: "宜補五行(用神)",
+  basisLabel: "命名採用的五行",
+  verdictYongshinLabel: "用神",
+  verdictGisinLabel: "忌神",
   supportLabel: "相助五行",
   cautionLabel: "需注意五行",
   nameAddsLabel: "名字補入的氣",
@@ -772,6 +800,7 @@ const ZH_TW: NamingV2Copy = {
   pillarLabels: { y: "年柱", m: "月柱", d: "日柱", h: "時柱" },
   pentagonCaptionNoCounts: "此為早期紀錄，未含原局數量，圓大小相同；發光的環表示名字所補的五行。",
   fillsUseful: (element) => `補用神${element}`,
+  fillsBasis: (element) => `補${element}`,
   detailOpen: "查看詳情",
   hunEumLabel: "字義與讀音",
   noCandidates: "沒有找到符合條件的名字。請減少必用字或避用漢字的條件後重試。",

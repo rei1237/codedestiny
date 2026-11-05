@@ -30,6 +30,7 @@
 
   var CD_BIRTH_SCOPED_UNLOCK_KEYS = Object.freeze([
     "saju-career-style",
+    "saju_lifetime_bundle",
     "section_summary",
     "section_daewun",
     "section_compat",

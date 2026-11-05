@@ -36,7 +36,7 @@ test('paid introductions keep an honest sample in the authored essay or before t
         if (resultPanels.length) {
           for (const panel of resultPanels) {
             assert.match(panel.text, /가상 프로필|가상 입력/, essay.id + ': generated input is disclosed');
-            assert.ok(panel.sourceUrl.startsWith('https://claude.ai/artifact/'), essay.id + ': reviewed source is retained');
+            assert.equal(panel.sourceUrl, undefined, essay.id + ': private review link stays out of public data');
             assert.ok(essays[index].querySelector('[data-example-kind="result"]'), essay.id + ': result kind is rendered');
           }
         } else {

@@ -39,7 +39,7 @@ import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../li
 import { callGeminiText } from "../lib/gemini.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { resolveAiLocaleFromRequest } from "../lib/ai-locale-context.js";
-import { calculateZiweiAiChart } from "../lib/ziwei-ai-chart.js";
+import { calculateZiweiConsumerChart } from "../lib/ziwei-consumer-chart.js";
 import { startServiceExecution, completeServiceExecution, failServiceExecution } from "../lib/service-execution-task.js";
 import {
   ZIWEI_DEEP_PDF_META,
@@ -575,7 +575,7 @@ async function handlePrepare(request, env) {
 
   // 명반 계산 가능 여부 사전 검증
   try {
-    calculateZiweiAiChart(normalized.input, { year: new Date().getFullYear() });
+    calculateZiweiConsumerChart(normalized.input, { env, year: new Date().getFullYear() });
   } catch (_) {
     return json({ ok: false, reason: "CALCULATION_FAILED", message: MESSAGES.calculationFailed }, { status: 422 });
   }
@@ -727,7 +727,7 @@ export async function runZiweiDeepReportDeliveryBatch(request, env, body, auth, 
   if (stored?.status === 'delivery_pending') return json(publicStoredReport(await finishDeepDelivery(env, auth, stored)));
   if (stored?.llmMeta?.lockedAt && Date.now() - new Date(stored.llmMeta.lockedAt).getTime() < GENERATING_FRESHNESS_MS) return json({ ...publicStoredReport(stored), status: 'generating' }, { status: 202 });
   let chart;
-  try { chart = stored?.llmMeta?.chartSnapshot || stored?.ziweiChart || calculateZiweiAiChart(normalized.input, { year: new Date().getFullYear() }); }
+  try { chart = calculateZiweiConsumerChart(normalized.input, { env, existing: stored, year: new Date().getFullYear() }); }
   catch { return json({ ok: false, reason: 'CALCULATION_FAILED', message: MESSAGES.calculationFailed }, { status: 422 }); }
   if (!stored) {
     try {

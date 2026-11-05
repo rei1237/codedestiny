@@ -94,7 +94,7 @@ export const ABOUT_PAGE_TEXT_TRANSLATIONS = {
   },
   en: {
     "title": "About 꿀꿀운세",
-    "intro": "꿀꿀운세 is a Korean fortune platform where you can explore free Saju, Manseryeok, tarot, today's fortune, compatibility, Zi Wei Dou Shu, astrology, and Sukuyo in one place. Every reading is provided as a reference for self-reflection.",
+    "intro": "꿀꿀운세 is a Korean fortune platform where you can explore a free Manseryeok chart, Saju, tarot, today's fortune, compatibility, Zi Wei Dou Shu, astrology, and Sukuyo in one place. Every reading is provided as a reference for self-reflection.",
     "services.title": "Services",
     "services.saju": "Saju calendar, five elements, ten gods, and luck-cycle interpretation",
     "services.tarot": "Tarot readings for love, reunion, and emotional insight",
@@ -110,7 +110,7 @@ export const ABOUT_PAGE_TEXT_TRANSLATIONS = {
   },
   ja: {
     "title": "꿀꿀운세 について",
-    "intro": "꿀꿀운세は、無料の四柱推命、万年暦、タロット、今日の運勢、相性、紫微斗数、占星術、宿曜を一か所で見られる韓国語の占いプラットフォームです。すべての解釈は、娯楽と自己省察を助ける参考資料として提供されます。",
+    "intro": "꿀꿀운세は、無料の万年暦、四柱推命、タロット、今日の運勢、相性、紫微斗数、占星術、宿曜を一か所で見られる韓国語の占いプラットフォームです。すべての解釈は、娯楽と自己省察を助ける参考資料として提供されます。",
     "services.title": "提供サービス",
     "services.saju": "四柱推命の万年暦、五行、十神、大運の流れの解釈",
     "services.tarot": "タロットカードリーディング、恋愛、復縁、気持ちの解釈",
@@ -126,7 +126,7 @@ export const ABOUT_PAGE_TEXT_TRANSLATIONS = {
   },
   zh: {
     "title": "꿀꿀운세 介绍",
-    "intro": "꿀꿀운세 是一个韩语占卜平台，可在一处查看免费四柱八字、万年历、塔罗、今日运势、合盘、紫微斗数、占星术与宿曜。所有解读均作为娱乐与自我觉察的参考资料提供。",
+    "intro": "꿀꿀운세 是一个韩语占卜平台，可在一处查看免费万年历、四柱八字、塔罗、今日运势、合盘、紫微斗数、占星术与宿曜。所有解读均作为娱乐与自我觉察的参考资料提供。",
     "services.title": "提供服务",
     "services.saju": "四柱万年历、五行、十神、大运流向解读",
     "services.tarot": "塔罗牌解读以及恋爱、复合、内心解析",

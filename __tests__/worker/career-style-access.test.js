@@ -34,9 +34,11 @@ function fixture() {
 
 test('이전 무료 열람·클라이언트 해금·가격·출생정보 조작은 권한이 아니다', async () => {
   const f = fixture(); f.own(false);
-  await expect(f.run({ unlocked: true, priceKRW: 0, birth: card.birth, freeViewed: true })).rejects.toMatchObject({ status: 402, payload: { code: 'PAYMENT_REQUIRED', priceKRW: 5000, honeyCost: 30 } });
+  await expect(f.run({ unlocked: true, priceKRW: 0, birth: card.birth, freeViewed: true })).rejects.toMatchObject({ status: 402, payload: { code: 'PAYMENT_REQUIRED', priceKRW: 5000 } });
   expect(f.store.saveResult).not.toHaveBeenCalled();
-  expect(await f.run({ statusOnly: true })).toMatchObject({ unlocked: false, priceKRW: 5000, honeyCost: 30 });
+  expect(await f.run({ statusOnly: true })).toMatchObject({ unlocked: false, priceKRW: 5000 });
+  // 꿀방울 판매는 닫혔다(묶음 전용). 상태에 꿀방울 가격을 싣지 않는다.
+  expect((await f.run({ statusOnly: true })).honeyCost).toBeUndefined();
   expect((await f.run({ statusOnly: true })).report).toBeUndefined();
 });
 test.each([{ userId: 'other' }, { profileId: 'foreign' }, { profileId: 'birth:forged' }, { profileId: '' }])('소유하지 않은 프로필과 합성 신원을 거부한다: %j', async change => {

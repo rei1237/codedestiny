@@ -118,6 +118,8 @@ function sajuGroups(summary) {
       item("일주", pillars.day),
       item("일간", pillars.dayMaster),
       item("신강약", summary.strength),
+      item("격국", summary.gyeokguk),
+      item("격국 판단", summary.gyeokgukReason),
       item("용신", summary.usefulGod),
       item("기신", summary.unfavorableGod),
     ]),

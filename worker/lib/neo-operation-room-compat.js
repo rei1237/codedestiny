@@ -265,7 +265,7 @@ function highlightCollector() {
  * 🔴 지지 교차는 건수만 세지 않고 어느 기둥끼리 무엇으로 걸렸는지 남긴다.
  *    "충 3건" 만으로는 일주끼리 부딪힌 것인지 년주끼리인지 알 수 없어 근거가 못 된다.
  */
-function buildSajuHighlights(compat) {
+function buildSajuHighlights(compat, approved = false) {
   const { dayStemRelation, elementBalance, tenGodInteraction, yongshinSupport, branchRelations } = compat;
   const { items, push } = highlightCollector();
 
@@ -294,19 +294,19 @@ function buildSajuHighlights(compat) {
   push("둘 다 비어 있는 오행", asArray(elementBalance?.sharedGap).join(" · "));
 
   push(
-    "내 용신을 상대가 공급하는가",
+    approved ? "내 보완 지표 오행을 상대가 공급하는가" : "내 용신을 상대가 공급하는가",
     yongshinSupport?.self?.usefulElement
-      ? `용신 ${yongshinSupport.self.usefulElement} — 상대에게 ${yongshinSupport.self.suppliedCount}개${yongshinSupport.self.supplied ? " (공급)" : " (부족)"}`
+      ? `${approved ? "보완 지표" : "용신"} ${yongshinSupport.self.usefulElement} — 상대에게 ${yongshinSupport.self.suppliedCount}개${yongshinSupport.self.supplied ? " (공급)" : " (부족)"}`
       : "",
   );
   push(
-    "상대 용신을 내가 공급하는가",
+    approved ? "상대 보완 지표 오행을 내가 공급하는가" : "상대 용신을 내가 공급하는가",
     yongshinSupport?.partner?.usefulElement
-      ? `용신 ${yongshinSupport.partner.usefulElement} — 내게 ${yongshinSupport.partner.suppliedCount}개${yongshinSupport.partner.supplied ? " (공급)" : " (부족)"}`
+      ? `${approved ? "보완 지표" : "용신"} ${yongshinSupport.partner.usefulElement} — 내게 ${yongshinSupport.partner.suppliedCount}개${yongshinSupport.partner.supplied ? " (공급)" : " (부족)"}`
       : "",
   );
-  push("내 기신을 상대가 키우는가", yongshinSupport?.self?.amplified ? `기신 ${yongshinSupport.self.unfavorableElement} 가 상대의 최다 오행이다` : "");
-  push("서로 용신을 주고받는가", yongshinSupport?.mutual ? "양방향 공급" : "");
+  push(approved ? "내 과다 지표 오행을 상대가 키우는가" : "내 기신을 상대가 키우는가", yongshinSupport?.self?.amplified ? `${approved ? "과다 지표" : "기신"} ${yongshinSupport.self.unfavorableElement} 가 상대의 최다 오행이다` : "");
+  push(approved ? "서로 보완 지표 오행을 주고받는가" : "서로 용신을 주고받는가", yongshinSupport?.mutual ? "양방향 공급" : "");
   push("신강약", [yongshinSupport?.selfStrength ? `나 ${yongshinSupport.selfStrength}` : "", yongshinSupport?.partnerStrength ? `상대 ${yongshinSupport.partnerStrength}` : ""].filter(Boolean).join(" · "));
 
   const relationLine = (list) => asArray(list)
@@ -439,8 +439,17 @@ const COMPAT_BUILDERS = Object.freeze({
       partnerDigest: buildZiweiPartnerDigest(partnerChart),
     };
   },
-  saju({ selfChart, partnerChart }) {
+  saju({ selfChart, partnerChart, approvedSaju }) {
+    // 점수는 raw 차트의 오행 수량으로 계산한다. 승인 판정은 보여 주는 문구와 프롬프트 사실에만 쓴다.
     const compat = buildSajuLoveCompatibility({ selfSaju: selfChart, partnerSaju: partnerChart });
+    if (approvedSaju) {
+      const { self, partner } = approvedSaju;
+      return {
+        scores: buildNeoCompatScores("saju", compat.axisScores),
+        highlights: buildSajuHighlights({ ...compat, yongshinSupport: { ...compat.yongshinSupport, selfStrength: self.strength, partnerStrength: partner.strength } }, true),
+        partnerDigest: { ...buildSajuPartnerDigest({ ...partnerChart, strength: partner.strength, usefulGod: partner.yongshinLabel, unfavorableGod: partner.gisinLabel }), power: { isStrong: partner.isStrong } },
+      };
+    }
     return {
       scores: buildNeoCompatScores("saju", compat.axisScores),
       highlights: buildSajuHighlights(compat),
@@ -497,11 +506,11 @@ export const NEO_COMPAT_METHODS = Object.freeze(Object.keys(COMPAT_BUILDERS));
  */
 export function buildNeoCompat({
   method, selfChart, partnerChart, relationshipStatus = "", partnerGender = "",
-  vedicCompat = null, synastry = null,
+  vedicCompat = null, synastry = null, approvedSaju = null,
 } = {}) {
   const builder = COMPAT_BUILDERS[clean(method)];
   if (!builder || !selfChart || !partnerChart) return null;
-  const built = builder({ selfChart, partnerChart, partnerGender, vedicCompat, synastry });
+  const built = builder({ selfChart, partnerChart, partnerGender, vedicCompat, synastry, approvedSaju });
   return {
     method: clean(method, 30),
     ...built,

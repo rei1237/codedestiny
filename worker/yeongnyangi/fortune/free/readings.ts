@@ -1,3 +1,5 @@
+import {natalProfileOf,attachNatalProfile} from '../shared/natal-profile';
+import {pinDomainFacts} from '../shared/consumer-facts';
 import {withContinuation} from '../../../../lib/fortune/prompt-continuation';
 import {freeCategories,type FreeReading} from './categories';
 import {domains} from '../index';
@@ -69,6 +71,13 @@ export async function calculateFree(category:string,input:FortuneInput,draft:Rec
  let basis:FreeReading['basis']=[],limitations:string[]=[],paragraphs:string[]=[],kind:FreeReading['kind']='reflection';
  let charts:NonNullable<FreeReading['charts']>=[],prompt='';
  const at=day+'T12:00:00+09:00',p=input.personA;
+ if(env.YEONGNYANGI_NATAL_PROFILE_V1==='true'&&['saju','vedic','sukuyo','ziwei','astrology'].includes(category)){
+  const d=category as DomainId;
+  const c=await domains[d].calculate(domains[d].validateInput({...input,readingMode:'personal'}),{runtimeEnv:env,asOf:at});
+  const natalProfile=natalProfileOf(c);
+  if(!natalProfile)throw new FortuneError('NATAL_FACTS_UNAVAILABLE',503);
+  return {category,day,title:config.label,kind:'calculated',summary:natalProfile.summary,paragraphs:natalProfile.paragraphs,basis:natalProfile.basis,limitations:natalProfile.limitations,charts:[chartView(c)],prompt:withContinuation(buildDomainPrompt(d,input,c)),natalProfile,version:'anchovy-natal-v1'};
+ }
  if(['saju','basic','comprehensive','dangsaju'].includes(category)) {
   const c=await domains.saju.calculate(domains.saju.validateInput({...input,readingMode:'personal'}),{runtimeEnv:env,asOf:at});
   charts=[chartView(c)];prompt=buildDomainPrompt('saju',input,c);
@@ -78,7 +87,7 @@ export async function calculateFree(category:string,input:FortuneInput,draft:Rec
   const pillar=formatPillar(today.day.stemIndex,today.day.branchIndex,'hanja'),tg=tenGodFor(f.dayMaster,pillar[0]);
   const advice=tenGodAdvice[tg]||tenGodAdvice['정인'];
   basis=[{label:'나의 일간',value:String(f.dayMaster)},{label:'오늘의 일주 · KST 정오 기준',value:pillar},{label:'오늘 천간과의 십성',value:String(tg)}];
-  paragraphs=[`네 일간은 ${f.dayMaster}, 오늘 확인한 일주는 ${pillar}. 두 천간 사이에서 '${tg}' 관계를 읽을 수 있어.`,advice[0],`이건 오늘의 사건을 확정하는 말이 아니라, 서로 다른 기운의 관계를 선택의 관점으로 풀어본 거야. 타고난 장점도 과해지면 부담이 될 수 있다는 점은 기억해.`,advice[1]];
+  paragraphs=[advice[0],advice[1],`이렇게 읽은 근거는 네 일간 ${f.dayMaster}와 오늘 일주 ${pillar}의 천간이 이루는 '${tg}' 관계야.`,`이건 오늘의 사건을 확정하는 말이 아니라, 서로 다른 기운의 관계를 선택의 관점으로 풀어본 거야. 타고난 장점도 과해지면 부담이 될 수 있다는 점은 기억해.`];
   limitations=c.limitations;kind='calculated';
   if(category==='dangsaju') {
    const stars=Object.entries(f.pillars as Record<string,string>).filter(([,v])=>!!v).map(([key,v])=>({label:({year:'초년',month:'청년',day:'중년',hour:'말년'} as Record<string,string>)[key],star:dangsaju.branches['자축인묘진사오미신유술해'['子丑寅卯辰巳午未申酉戌亥'.indexOf(v[1])] as keyof typeof dangsaju.branches]})).filter(x=>x.star);
@@ -108,7 +117,7 @@ export async function calculateFree(category:string,input:FortuneInput,draft:Rec
   basis=cards.map((x,i)=>({label:['원인','과정','결과'][i],value:`${x.nameKo} · ${x.orientation==='reversed'?'역방향':'정방향'}`}));
   paragraphs=cards.map((x,i)=>`${basis[i].label} 자리에는 ${basis[i].value}가 나왔어. ${x.interpretation}`);
   paragraphs.push('세 카드를 네 질문과 함께 읽어봐. 상대의 속마음이나 미래를 확정하는 답은 아니야. 지금 직접 바꿀 수 있는 행동 하나를 고르는 데 써줘.');kind='symbolic';limitations=['당일 최초 카드 배열을 보관합니다. 다시 읽어도 같은 카드입니다.'];
-  const calculated=context('tarot',{spreadId:'three_card_cause_process_outcome',cards},limitations);
+  const calculated=pinDomainFacts(attachNatalProfile(context('tarot',{spreadId:'three_card_cause_process_outcome',cards},limitations),input,{runtimeEnv:env,asOf:at}),input,{runtimeEnv:env,asOf:at});
   charts=[chartView(calculated)];prompt=buildDomainPrompt('tarot',input,calculated);
  } else if(['ziwei','sukuyo','vedic','astrology'].includes(category)) {
   const d=category as DomainId,c=await domains[d].calculate(domains[d].validateInput({...input,readingMode:'personal'}),{runtimeEnv:env,asOf:at}),chart=chartView(c);

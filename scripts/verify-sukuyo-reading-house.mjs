@@ -9,6 +9,14 @@ import { HONEY_UNLOCK_PRODUCTS } from '../worker/lib/honey-unlock-catalog.js';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const expectedArticles = JSON.parse(await fs.readFile(path.join(root, 'public/data/sukuyo-reading/index.json'), 'utf8'));
 assert.ok(expectedArticles.length > 0, 'Public Sukuyo catalogue must not be empty');
+const expectedUseGroups = [];
+for (const product of HONEY_UNLOCK_PRODUCTS) {
+  // The guide combines the two Saju categories; every other catalogue group stays distinct.
+  const title = ['기본 사주', '재미 사주'].includes(product.group) ? '사주' : product.group;
+  let group = expectedUseGroups.find(item => item.title === title);
+  if (!group) expectedUseGroups.push(group = { title, products: [] });
+  group.products.push(product.title);
+}
 const baseline = process.argv.includes('--baseline-performance');
 const phase = baseline ? 'house-baseline' : 'house';
 const baselineFiles = new Set(['js/core/saju/basicFortunePresentation.js','js/saju-engine-tarot-sukuyo-quantum.js','styles/basic-fortune-library.css','styles/theme-tokens.css']);
@@ -91,7 +99,12 @@ try {
     for (const width of [360,390,430,1280]) {
       await page.setViewportSize({width,height:900});
       const sheet=page.locator('#cdHoneySheet');
-      assert.equal(await sheet.locator('.cd-honey-use-group').count(),6);
+      const actualGroups = await sheet.locator('.cd-honey-use-group').evaluateAll(groups => groups.map(group => ({
+        title: group.querySelector('summary strong').textContent,
+        products: Array.from(group.querySelectorAll('.cd-honey-use h4'), item => item.textContent),
+      })));
+      assert.deepEqual(actualGroups, expectedUseGroups,
+        'Honey guide groups, product membership and order must match the current catalogue');
       assert.equal(await sheet.locator('.cd-honey-use .cd-honey-eligible').count(),HONEY_UNLOCK_PRODUCTS.length);
       assert.ok(await sheet.evaluate(el=>el.scrollWidth<=el.clientWidth+1));
       await sheet.screenshot({path:path.join(output,`honey-guide-${width}.png`)});

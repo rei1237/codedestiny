@@ -34,20 +34,43 @@ afterEach(() => {
 });
 
 describe("paid resume language", () => {
-  it("restores the saved language before invoking the existing paid handler", async () => {
-    let language = "ko";
+  // 🔴 changeLanguage 는 홈에서 문서를 다시 연다. 재개 중에 부르면 재개가 끊겨 티켓이 남고,
+  // 다음 문서가 같은 일을 반복한다("10분째 새로고침", 2026-11-05).
+  function bindNativeLanguage(initial) {
+    let language = initial;
+    const events = [];
+    let changeLanguageCalls = 0;
     window.__cdNativeLangBound = true;
     window.cdGetCurrentLanguage = () => language;
-    window.changeLanguage = (next) => { language = next; };
+    window.changeLanguage = () => { changeLanguageCalls += 1; };
+    window.dispatchEvent = (event) => {
+      events.push(event);
+      if (event.type === "cd:locale-ready" && event.detail.source === "paid-resume") language = event.detail.lang;
+      return true;
+    };
+    return { events, language: () => language, changeLanguageCalls: () => changeLanguageCalls };
+  }
+
+  it("restores a different saved language without navigating, before invoking the paid handler", async () => {
+    const native = bindNativeLanguage("ko");
     const received = [];
     checkoutEntry.registerPaidResumeHandler("locale-test", (descriptor, grant) => {
-      received.push({ language, descriptor, grant });
+      received.push({ language: native.language(), descriptor, grant });
       return true;
     });
     await checkoutEntry.runPaidResume({ kind: "locale-test", action: "", args: { requestId: "existing-proof" }, locale: "ja" }, null);
     expect(received).toHaveLength(1);
     expect(received[0].language).toBe("ja");
     expect(received[0].descriptor.args.requestId).toBe("existing-proof");
+    expect(native.changeLanguageCalls()).toBe(0);
+  });
+
+  it("does nothing to the language when it already matches", async () => {
+    const native = bindNativeLanguage("ko");
+    checkoutEntry.registerPaidResumeHandler("locale-same", () => true);
+    await checkoutEntry.runPaidResume({ kind: "locale-same", action: "", args: { requestId: "same-proof" }, locale: "ko" }, null);
+    expect(native.changeLanguageCalls()).toBe(0);
+    expect(native.events).toHaveLength(0);
   });
 });
 

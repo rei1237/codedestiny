@@ -1,5 +1,6 @@
 import { HONEY_LETTER_COST, TAROT_ALBUM_UNLOCK_COST, isHoneySpendProduct, HONEY_SCOPE_MESSAGE } from '../lib/honey-unlock-catalog.js';
 import { canonicalTeaSaju, withTeaSajuLongitude } from "../lib/tea-saju-facts.js";
+import { sajuAuthorityOn } from "../lib/saju-authority-consumer.js";
 import { sajuTemperamentPromptLines } from '../lib/saju-temperament.js';
 import { specialistSections, specialistTarget, specialistRules, isTeaSajuSpecialist, specialistCheckpointGroups, hasSajuHealthPrediction } from "../lib/tea-saju-specialist.js";
 import { buildTeaSajuMonthlyRows } from "../lib/tea-saju-monthly.js";
@@ -250,7 +251,7 @@ const teaCategorySajuPromptMap = {
       ["관계 압박", "purple", 58, "관성 흐름이 강하면 관계에서 책임과 부담을 크게 느낄 수 있습니다."],
       ["표현 욕구", "gold", 54, "식상 흐름은 말을 꺼내고 싶은 마음과 표현의 온도를 보여줍니다."],
       ["기다림", "blue", 62, "수 기운과 인성의 결은 서두르기보다 더 확인하려는 흐름을 키웁니다."],
-      ["회복 가능성", "green", 50, "용신 방향과 현재 운이 맞을수록 관계를 덜 다치게 정리할 힘이 올라옵니다."],
+      ["회복 가능성", "green", 50, "보완 후보 방향과 현재 운이 맞을수록 관계를 덜 다치게 정리할 힘이 올라옵니다."],
     ],
     requiredTerms: ["재회", "미련", "가능성", "연락", "7일"],
   },
@@ -1930,6 +1931,7 @@ function fortuneTeaSajuPillarMap(saju, birthTimeUnknown = false) {
 // 독립 "AI 사주 생성" 기능의 순수 파생(지장간 투간/투출·도충·개고·십성 확정표)을
 // 찻집 명식(pillars 간지 + 대운 목록)에 그대로 적용한다 — 같은 워커 번들 재사용, 재계산 없음.
 function buildFortuneTeaSajuMyeongsikFacts(request, saju, includeGuests = false) {
+  const approved = saju?.approvedSaju || null;
   const pillarGanji = {
     year: fortuneTeaSajuPillarGanji(saju, "year"),
     month: fortuneTeaSajuPillarGanji(saju, "month"),
@@ -1993,7 +1995,7 @@ function buildFortuneTeaSajuMyeongsikFacts(request, saju, includeGuests = false)
       .join(" | ");
     return {
       fixedTenGodTable: factSnapshot.fixedTenGodTable,
-      temperament:sajuTemperamentPromptLines({...factSnapshot,power:saju?.usefulGodEvidence?.power || factSnapshot.power,
+      temperament:sajuTemperamentPromptLines({...factSnapshot,power:approved ? { isStrong: approved.isStrong } : saju?.usefulGodEvidence?.power || factSnapshot.power,
         timeUnknown:request?.birthTimeUnknown === true}),
       ...(includeGuests ? { guestManifest: buildSajuGuests({ facts: factSnapshot, decisions: saju?.usefulGodEvidence, timing: buildFortuneTeaTimingFacts(saju) }) } : {}),
       tenGodFixedTable: (factSnapshot.fixedTenGodTable || [])
@@ -2008,7 +2010,7 @@ function buildFortuneTeaSajuMyeongsikFacts(request, saju, includeGuests = false)
       earthStorageOpenings: openings.length ? openings : ["뚜렷한 개고 없음"],
       luckRows,
       // 이미 계산되고도 프롬프트에서 버려지던 값들(추가 계산 비용 0) — 근거의 두께를 올린다.
-      gyeokguk: cleanText(
+      gyeokguk: approved ? approved.gyeokguk : cleanText(
         [advanced?.gyeokguk?.finalGyeokguk, advanced?.gyeokguk?.finalType].filter(Boolean).join(" / "),
         80,
       ),
@@ -2018,10 +2020,11 @@ function buildFortuneTeaSajuMyeongsikFacts(request, saju, includeGuests = false)
         .filter(Boolean)
         .join(" · "),
       usefulGodEvidence: saju?.usefulGodEvidence,
-      yongshin: cleanText(saju?.usefulGodEvidence?.yong, 40),
+      yongshin: approved ? approved.yongshinLabel : cleanText(saju?.usefulGodEvidence?.yong, 40),
       heeshin: (saju?.usefulGodEvidence?.hee || []).slice(0, 5).join(", "),
-      kijishin: (saju?.usefulGodEvidence?.gi || []).slice(0, 5).join(", "),
-      johu: cleanText(factSnapshot.johu?.summary || factSnapshot.johu?.label, 160),
+      kijishin: approved ? approved.gisinLabel : (saju?.usefulGodEvidence?.gi || []).slice(0, 5).join(", "),
+      johu: approved ? approved.johuCandidateNames.join("·") : cleanText(factSnapshot.johu?.summary || factSnapshot.johu?.label, 160),
+      ...(approved ? { dayMasterStrength: approved.strength, yongshinStatus: approved.status, interpretationRules: approved.promptRules } : {}),
     };
   } catch {
     return undefined;
@@ -2073,7 +2076,8 @@ const FORTUNE_TEA_SEWOON_YEARS_AHEAD = 5;
 // r5: 숙요 점수·오행 조화 참조 제거, 타로·숙요 오늘 날짜, 카드 주제별 전통 해석, 사주 장 분량 규칙 정리.
 // r6: 해외 출생 경도 미입력 시 서울 경도 대신 그 시간대 표준 자오선.
 // r7: 분량 목표 +15%(하한 그대로).
-const FORTUNE_TEA_PROMPT_REV = 8;
+// r9: 승인 격국·용신 후보(신규 상담).
+const FORTUNE_TEA_PROMPT_REV = 9;
 
 function buildFortuneTeaTimingFacts(saju, todayKst = kstDate()) {
   const dayGanji = fortuneTeaSajuPillarGanji(saju, "day");
@@ -6245,7 +6249,7 @@ async function handleConsult(request, env, ctx = null, recoveryAuth = null) {
     // 요약 문구와 명식이 같은 경도로 계산되도록 경도를 채운 사본을 두 경로에 넘긴다. 해시·저장 요청은 원본 그대로다.
     const sajuRequest = withTeaSajuLongitude(consultRequest);
     const section = buildSajuResultSection(buildFortuneTeaSajuSnapshot(sajuRequest), sajuRequest);
-    serverDraft = { saju: canonicalTeaSaju(sajuRequest, section) };
+    serverDraft = { saju: canonicalTeaSaju(sajuRequest, section, undefined, { authorityEnabled: sajuAuthorityOn(env) }) };
   }
   if (consultRequest.consultationVersion === "tea-v2" && consultRequest.consultationMode === "sajuCompatibility") {
     const pair = {};
@@ -6254,7 +6258,7 @@ async function handleConsult(request, env, ctx = null, recoveryAuth = null) {
       // 최상위 longitude는 사용자 프로필 값이라 상대에게 물려주지 않는다. 사람마다 자기 경도(없으면 표준 자오선)를 쓴다.
       const personRequest = withTeaSajuLongitude({ ...consultRequest, longitude: undefined, ...person, nickname: person.name });
       const section = buildSajuResultSection(buildFortuneTeaSajuSnapshotFromParts(withTeaSajuLongitude(person)), personRequest);
-      pair[key] = { ...person, saju: canonicalTeaSaju(personRequest, section) };
+      pair[key] = { ...person, saju: canonicalTeaSaju(personRequest, section, undefined, { authorityEnabled: sajuAuthorityOn(env) }) };
     }
     serverDraft = { saju: pair.user.saju, sajuCompatibility: {
       ...pair,

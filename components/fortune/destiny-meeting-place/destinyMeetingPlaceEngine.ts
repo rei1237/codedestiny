@@ -23,7 +23,7 @@ const DESTINY_MEETING_PLACE_ENGINE_TEXT_TRANSLATIONS = {
     "destinyMeetingPlace.007": "고요한 전시/사찰/서점에서 깊은 대화형 인연이 열립니다.",
     "destinyMeetingPlace.008": "역마 이동 루트",
     "destinyMeetingPlace.009": "이동 동선과 여행지에서 우연한 인연 운이 강합니다.",
-    "destinyMeetingPlace.010": "용신/희신 축의 오행을 공간으로 옮겨 인연 에너지를 키우는 방식입니다.",
+    "destinyMeetingPlace.010": "보완 후보·보조 후보 오행을 공간으로 옮겨 인연 에너지를 키우는 방식입니다.",
     "destinyMeetingPlace.011": "인연 장소 리딩",
     "destinyMeetingPlace.012": "첫 대화 문장",
     "destinyMeetingPlace.013": "데이트 동선 설계",

@@ -52,7 +52,7 @@ function fixture(accessType = 'pass', currentSections = null) {
     updateOne: async (filter, update) => { if (doc && matches(doc, filter)) for (const [key, value] of Object.entries(update.$set || {})) set(doc, key, value); },
   };
   const plan = currentSections || ['overview', 'wealth', 'romance', 'monthly', 'health'].map(key => ({ key, label: key, minChars: 4000, maxChars: 5000 }));
-  const ctx = vm.createContext({ runWithAiLocale, getAmbientAiLocale, storedAiLocale, toAiLocale, URL, Request, Response, Headers, Date, JSON, Map, crypto: webcrypto, console: { error() {} },
+  const ctx = vm.createContext({ sajuAuthorityOn: () => false, runWithAiLocale, getAmbientAiLocale, storedAiLocale, toAiLocale, URL, Request, Response, Headers, Date, JSON, Map, crypto: webcrypto, console: { error() {} },
     // 증빙 claim 은 billing-evidence-claim.test.js 가 따로 검증한다 — 여기서는 통과로 둔다.
     claimRequestBillingEvidence: async () => ({ ok: true, skipped: true }), releaseRequestBillingEvidence: async () => ({ released: 0 }), evidenceClaimErrorBody: result => result, FEATURE_KEY: 'new-year-ai-consultation',
     reserveSupportRecoveryAttempt: async () => {},
@@ -93,15 +93,16 @@ function fixture(accessType = 'pass', currentSections = null) {
       return { key: section.key, section, text, ok: true, truncated: false, provider: 'mock', model: 'mock' };
     },
   });
+  load(ctx, 'worker/lib/representative-consumer-facts.js', ['connectNewYearTiming', 'readRepresentativeFacts']);
   load(ctx, 'worker/lib/result-storage.js', ['resultStorageUnavailable', 'resultStorageFailurePayload']);
   load(ctx, 'worker/lib/paid-report-quality.js', ['paidReportBody', 'countPaidReportBodyChars', 'reportSentenceKey', 'hasRepeatedReportPassage']);
   load(ctx, 'worker/lib/master-love-codex-quality.js', ['dedupeCodexBody']);
   load(ctx, 'worker/lib/paid-report-length.js', ['trimPaidReportText', 'lastSentenceBoundary']);
   load(ctx, 'worker/routes/new-year-ai.js', ['handleNewYearAiRoutes', 'handleStart', 'generateNewYearWave', 'assembleConsultationSections', 'trimToLastCompleteSentence', 'saveNewYearState', 'finishNewYearDelivery', 'startEvidenceIds']);
   ctx.generateConsultationText = ctx.generateNewYearWave;
-  const post = (body = {}) => ctx.handleNewYearAiRoutes(new Request('https://mock.test/api/new-year-ai/start', {
+  const post = (body = {}, env = {}) => ctx.handleNewYearAiRoutes(new Request('https://mock.test/api/new-year-ai/start', {
     method: 'POST', headers: { 'Content-Type': 'application/json', 'idempotency-key': 'original-paid-request' }, body: JSON.stringify(body),
-  }), {});
+  }), env);
   return { ctx, post, get doc() { return doc; }, get calls() { return calls; }, get charges() { return charges; }, get refunds() { return refunds; },
     fault: value => { fault = value; }, permitted: value => { permitted = value; }, owner: value => { owner = value; }, loseApply: () => { lostApply = true; } };
 }
@@ -425,4 +426,16 @@ for (const locale of AI_OUTPUT_LOCALES) test(`${locale}: resumes in the purchase
   const count = languages.length;
   await runWithAiLocale('ko', () => f.post());
   assert.equal(languages.length, count);
+});
+
+test('new-year actual major luck survives mock partial persistence and OFF resume', async () => {
+ const f=fixture('paid');const helper=await import('../../worker/lib/representative-consumer-facts.js');Object.assign(f.ctx,helper);
+ const {calculateLifeBookAiSaju}=await import('../../worker/lib/life-book-ai-saju.js');
+ const birth={birthDate:'2000-05-15',birthTime:'08:30',calendarType:'solar',gender:'male'};const actual=calculateLifeBookAiSaju(birth,{year:2026});
+ f.ctx.normalizeConsultationInput=()=>({ok:true,inputHash:'same-input',input:{birthInfo:birth,year:2026,topic:'신년'}});
+ f.ctx.calculateNewYearFortuneData=()=>({targetYear:{year:2026},saju:actual,calculationMeta:actual.calculationMeta,advancedSajuSummary:{daewoonSewoon:{}}});
+ await f.post({}, {SAJU_CONSUMER_FACTS_V1:'true'});assert.ok(f.doc.llmMeta.fortuneData.consumerFactIdentity);
+ const saved=clone(f.doc.llmMeta.fortuneData);assert.deepEqual(saved.majorLuck,clone(actual.majorLuck));f.ctx.calculateNewYearFortuneData=()=>{throw Error('RECALC_BLOCKED')};
+ for(let i=0;i<20&&f.doc.status!=='completed';i++)await f.post({resumeSessionId:f.doc.id});
+ assert.equal(f.doc.status,'completed');assert.deepEqual(f.doc.llmMeta.fortuneData,saved);assert.equal(f.charges,1);
 });

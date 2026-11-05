@@ -35,7 +35,7 @@ const FEATURE_COPY: Record<ShareFeature, { label: string; ctaTitle: string; href
     label: "사주 분석",
     ctaTitle: "내 생년월일로 보면 어떤 흐름일까요?",
     href: "/?action=cdOneStepFreeSajuEntry",
-    ctaLabel: "내 사주 무료로 보기",
+    ctaLabel: "내 만세력 무료로 보기",
   },
 };
 

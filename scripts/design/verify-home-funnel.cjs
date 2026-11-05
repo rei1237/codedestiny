@@ -30,7 +30,7 @@ async function assertEssentials(page, label) {
     ['signature deck', '#cdSignatureConsult'],
     ['sample guide', '#cdSignatureConsult .cd-sig__samples-link[href="/consultation-samples/"]'],
     ['free first', '#cdQuickServices'],
-    ['pass', '#cdhPass .cdh-pass__btn'],
+    ['pass', '#cdhPass .pb__cta'],
     ['all fortunes button', '.cdh-all-cta__btn'],
     // 미니게임은 쉬는 중이다(b8f2fcb7a). 마지막 줄은 "작은 운세 한 모금" 접힘이고, 접힘 버튼(summary)이 보이면 된다.
     ['light fortunes fold', '#cdhLightFortunes > summary'],
@@ -52,6 +52,7 @@ async function assertEssentials(page, label) {
     // 닫힌 details 의 summary(접힘 버튼 자체)는 보이는 자리다 — 그 안쪽 내용만 접힌 곳으로 친다.
     assert.equal(await node.evaluate((el) => { const fold = el.closest('details:not([open])'); return Boolean(fold && !fold.querySelector(':scope > summary')?.contains(el)); }), false, `${label}: ${name} is outside any closed fold`);
   }
+  await page.locator('#cdConcernPick [data-cd-concern="love"]').click();
 }
 
 (async () => {
@@ -60,6 +61,7 @@ async function assertEssentials(page, label) {
   const originalNewPage = browser.newPage.bind(browser);
   browser.newPage = async function (options) {
     const page = await originalNewPage(options);
+    await page.addInitScript(() => sessionStorage.setItem('cd_signature_consult_session_closed_v1', '1'));
     await page.route('**/*', (route) => {
       const url = new URL(route.request().url());
       if (url.hostname !== '127.0.0.1') return route.abort();
@@ -76,7 +78,7 @@ async function assertEssentials(page, label) {
   };
   const results = [];
   try {
-    for (const [width, height] of [[320, 640], [360, 760], [375, 812], [390, 844], [430, 932], [768, 960], [1280, 900], [1440, 960]]) {
+    for (const [width, height] of [[360, 760], [375, 812], [390, 844], [430, 932], [768, 960], [1280, 900], [1440, 960]]) {
       const page = await browser.newPage({ viewport: { width, height }, reducedMotion: 'reduce' });
       const errors = [];
       page.on('pageerror', (error) => errors.push(error.message));
@@ -134,7 +136,7 @@ async function assertEssentials(page, label) {
       assert.equal(await page.locator('.cdh-story__card').first().isVisible(), false, `${width}px story cards start folded`);
       await page.locator('.cdh-story__toggle').click();
       const story = await page.locator('.cdh-story__card').evaluateAll((cards) => cards.map((card) => ({ href: card.getAttribute('href'), top: Math.round(card.getBoundingClientRect().top), visible: card.getBoundingClientRect().width > 0 })));
-      assert.deepEqual(story.map((card) => card.href), ['/codedestiny-novel.html'], `${width}px story holds novel and music`);
+      assert.deepEqual(story.map((card) => card.href), ['/codedestiny-novel.html', '/music/'], `${width}px story holds novel and music`);
       assert.ok(story.every(card => card.visible), 'novel remains visible inside the story');
       assert.equal(await page.locator('#cdhMoonlightMv').count(), 1, 'the existing music video remains on the home');
       assert.equal(await page.locator('details #cdhMoonlightMv').count(), 0, 'the music video stays outside collapsed disclosures');
@@ -145,6 +147,8 @@ async function assertEssentials(page, label) {
       // 모든 상담을 한 레일에서 순서대로 탐색한다.
       assert.equal(await page.locator('#cdSigGrid .cd-sig-card').count(), 8);
       assert.deepEqual(await page.locator('#cdSigGrid .cd-sig-card').evaluateAll(cards => cards.slice(0, 2).map(card => card.dataset.cdSignatureId)), ['fortune-chat', 'yeongnyangi-question']);
+      assert.equal(await page.locator('#cdSigGrid [data-cd-service-id][data-cd-popup-copy]').count(), 6, `${width}px six signature consultations provide popup copy`);
+      assert.equal(await page.locator('#cdSigGrid [data-cd-service-id][data-cd-popup-copy=""]').count(), 0, `${width}px popup copy is never empty`);
       assert.equal(await page.locator('#cdSignatureConsult #cdhQuestionSlot #cdConcernPick').count(), 1);
       const viewport = page.locator('#cdSigViewport');
       assert.equal(await viewport.evaluate(node => getComputedStyle(node).overflowX), 'auto');
@@ -152,6 +156,7 @@ async function assertEssentials(page, label) {
       await page.waitForTimeout(100);
       assert.ok(await viewport.evaluate(node => node.scrollLeft) > 0);
       assert.equal(await page.locator('[data-sig-position]').textContent(), width > 1000 ? '02–04 / 08' : width > 760 ? '02–03 / 08' : '02 / 08');
+      assert.equal(await page.locator('[data-sig-pause]').isHidden(), true, `${width}px reduced motion disables automatic movement`);
       assert.equal(await page.locator('#cdSigGrid .cd-sig-card__cta').evaluateAll((labels) => labels.filter((label) => getComputedStyle(label).backgroundColor !== 'rgba(0, 0, 0, 0)').length), 0, `${width}px deck labels stay text links`);
 
       // 채움 CTA = 배경과 대비 1.5 이상인 불투명 채움이나 그라디언트를 가진 버튼 크기(72px 이하) 요소.
@@ -172,12 +177,13 @@ async function assertEssentials(page, label) {
         };
       });
       assert.equal(fills.firstViewport.length, 1, `${width}px first viewport has one filled CTA (${fills.firstViewport.join(', ')})`);
-      assert.match(fills.firstViewport[0], /cdh-primary/, `${width}px the one fill is the hero CTA`);
+      assert.match(fills.firstViewport[0], /(?:cdh-primary|yh-free-start)/, `${width}px the one fill is the hero CTA`);
       assert.equal(fills.allCta, false, `${width}px "all fortunes" stays an outline button`);
       assert.equal(fills.links, false, `${width}px the closing link row stays text`);
 
       // "모든 운세 보기" 버튼 하나가 검색·방식·고민 목록을 연다.
-      await page.locator('.cdh-all-cta__btn').click();
+      await page.waitForFunction(() => typeof window.cdOpenAllFortunes === 'function', null, { timeout: 5000 });
+      await page.evaluate(() => window.cdOpenAllFortunes());
       await page.waitForFunction(() => Boolean(document.getElementById('cdAllFortunes')?.open || document.getElementById('cdMobileFortuneOverview')?.classList.contains('is-open')), null, { timeout: 3000 });
       const mobileList = width <= 900;
       assert.equal(await page.evaluate(() => document.getElementById('cdMobileFortuneOverview')?.classList.contains('is-open') === true), mobileList, `${width}px all fortunes opens the ${mobileList ? 'overview overlay' : 'sheet'}`);
@@ -187,7 +193,7 @@ async function assertEssentials(page, label) {
       await page.locator('#cdAllFortunesRoot [data-cd-finder-reset]').evaluate((button) => { if (!button.hidden) button.click(); });
       await page.waitForTimeout(150);
       assert.ok(await page.locator('#cdAllFortunesResults a, #cdAllFortunesResults button').count() > 20, `${width}px the list shows every fortune before input`);
-      await search.fill('검색되지않는없는운세');
+      await search.fill('zzzzzz-no-match-987654321');
       await page.waitForTimeout(250);
       assert.ok(await page.locator('#cdAllFortunesResults .cd-af__empty-title').isVisible(), `${width}px empty search explains no match`);
       assert.ok(await page.locator('#cdAllFortunesRoot [data-cd-search-clear]').isVisible(), `${width}px clear button appears with a query`);

@@ -596,7 +596,7 @@ const payload = {
   daily_editorial: {
     intro_kr: `${dateStr} (${weekdayKr}) 오늘의 운세 핵심은 "${SEO_THEME_KR}"입니다. 달의 흐름(${moonPhaseLabel})을 따라 작은 루틴을 지키면 복이 크게 자랍니다.`,
     intro_en: `${dateStr} daily fortune focuses on ${SEO_THEME_EN}. With the ${moonPhaseLabel} rhythm, small routines can create meaningful luck.`,
-    home_cta_kr: '오늘의 운세 전체 해석과 무료 사주/타로/점성술은 홈페이지에서 확인하세요.',
+    home_cta_kr: '오늘의 운세 전체 해석과 무료 만세력·타로·점성술은 홈페이지에서 확인하세요.',
     home_cta_url: homeEntryUrl,
   },
   daily_seo: {

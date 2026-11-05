@@ -1,0 +1,37 @@
+name: Edition test issuer
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '7,27,47 * * * *'
+permissions:
+  contents: read
+concurrency:
+  group: edition-production-test-issuer
+  cancel-in-progress: false
+jobs:
+  issue:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Check pending test requests
+        id: queue
+        run: node local/edition-workshop/publish-production-test.mjs --check
+      - name: Install dependencies
+        if: steps.queue.outputs.pending == 'true'
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund
+          npm install --prefix local/edition-workshop --ignore-scripts --package-lock=false --no-audit --no-fund
+      - name: Verify isolated test issuance
+        if: steps.queue.outputs.pending == 'true'
+        run: node --test local/edition-workshop/production-test.test.mjs
+      - name: Publish verified test receipts
+        if: steps.queue.outputs.pending == 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: node local/edition-workshop/publish-production-test.mjs
+

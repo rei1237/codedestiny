@@ -42,8 +42,9 @@ test.each([
  Object.assign(row,changes);
  const request=new Request('https://example.test/api/payments/single/start',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({profileId:'p1',featureKey:'rpt_specialCharmCard'})});
  const response=await __paymentsTestUtils.handleSinglePaymentStart(request,{}, {userId:TEST_USER_ID});
- expect(response.status).toBe(503);
- expect(paymentRead).toHaveBeenCalled();
+ // 다른 행으로는 열리지 않는다. rpt_specialCharmCard 는 묶음 전용(신규 개별 판매 종료)이라 결제 설정(503)까지 가지 않고 409로 닫힌다.
+ expect(response.status).toBe(409);
+ expect(await response.json()).toMatchObject({code:'PRODUCT_SALE_ENDED',bundleFeatureKey:'saju_lifetime_bundle'});
  expect(Payment.create).not.toHaveBeenCalled();
 });
 

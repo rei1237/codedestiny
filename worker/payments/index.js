@@ -48,13 +48,14 @@ import { decryptPhoneNumber } from "../lib/pii-crypto.js";
 import { PaymentError, classify, contractFor, paymentError, responseHeadersFor } from "./errors.js";
 import { createPaymentContext, toObjectId, withPaymentDb } from "./db.js";
 import { logPayment } from "./log.js";
-import { listProducts, resolveProduct } from "./catalog.js";
+import { assertProductSaleOpen, listProducts, resolveProduct } from "./catalog.js";
+import { isSajuBundleSaleClosed } from "../lib/saju-bundle-policy.js";
 import { assertFeatureEnabled } from "../lib/billing-feature-registry.js";
 import { resolveNeoOrderProduct } from "../neo-consultation/payment.js";
 import { createServicePackRoutes } from "./service-pack-routes.js";
 import { verifyPgPayment } from "./pg.js";
 import { isLegacySingleOrderId } from "./order-id.js";
-import { dropEntitlementByIdentity, findLegacyBirthUnlock, findOwnedEntitlement, grantEntitlement, markUserFeatureUnlocked, revokeEntitlementForOrder } from "./entitlements.js";
+import { dropEntitlementByIdentity, findLegacyBirthUnlock, findOwnedEntitlement, findOwnedForSaleGate, grantEntitlement, markUserFeatureUnlocked, revokeEntitlementForOrder } from "./entitlements.js";
 import { birthIdentityFromSnapshot, birthSnapshotFields, isBirthScopedProduct, orderNeedsBirthProfileSelection, resolvePaymentBirthIdentity } from "./birth-identity.js";
 import {
   claimProductFromOrder,
@@ -372,6 +373,44 @@ async function buildLegacyPrepareCustomer(env, user, userId) {
    구 핸들러에도 없었음이 전수 조사로 확정됐다(passes.js 머리주석). */
 
 /** 구 billing.js handleCheckout/handleConfirm 의 isSubscription 판별과 같은 정본을 쓴다. */
+/**
+ * 묶음 포함·판매 종료 키의 신규 구매 입구(/orders·/prepare·/moonstone/spend) 공통 가드.
+ * 🔴 보유 확인이 먼저다 — 이미 가진 사람(개별 구매자·묶음 보유 프로필)에게 PRODUCT_SALE_ENDED(409)와
+ * bundleFeatureKey 를 주면 화면이 "묶음으로 열 수 있어요"를 띄워 가진 것을 또 사라고 권한다.
+ * 보유자는 true 로 돌려 호출부가 "이미 보유" 응답을 내게 하고, 미보유자는 여기서 409 로 던진다.
+ * 어느 쪽에서도 주문·차감·원장·권리 쓰기는 없다(읽기 한 번). 닫히지 않은 키는 false 이고 DB 를 열지 않는다.
+ */
+async function guardSaleClosedEntry({ env, ctx, userId, product, body, withDb }) {
+  if (!isSajuBundleSaleClosed(product.featureKey)) return false;
+  const owned = await withDb(env, ctx, (db) => findOwnedForSaleGate(db, {
+    userId, product,
+    profileId: String(body.profileId || body.selectedProfileId || "").trim(),
+    partnerProfileId: body.partnerProfileId, contentKey: body.contentKey, scope: body.scope,
+  }));
+  if (!owned) assertProductSaleOpen(product);
+  ctx.paymentStatus = "ALREADY_UNLOCKED";
+  return true;
+}
+
+/** 위 가드의 보유자 응답. 월정석 게이트·checkout 우회 판정기가 읽는 alreadyUnlocked 관례를 따르며 주문 키·결제 증빙은 싣지 않는다. */
+function alreadyOwnedSaleClosedBody(product) {
+  const featureKey = String(product.featureKey || "");
+  return {
+    ok: true,
+    alreadyUnlocked: true,
+    featureKey,
+    message: "이미 보유한 콘텐츠예요. 바로 열 수 있어요.",
+    data: {
+      alreadyUnlocked: true,
+      accessType: "already_unlocked",
+      featureKey,
+      charged: 0,
+      unlockedFeatures: [featureKey],
+      unlockMap: { [featureKey]: true },
+    },
+  };
+}
+
 function isPassLikeBody(body = {}) {
   return isPassLikeProductType(resolveServerProductType({
     body,
@@ -1309,6 +1348,11 @@ const ROUTES = {
         productId: body.productId, featureKey: body.featureKey, reason: body.reason,
       });
       if (unitProduct.featureKey === 'neo-email-consultation') throw paymentError('INVALID_REQUEST','상담 화면에서 결제를 준비해 주세요.');
+      // 묶음 포함·판매 종료 키: 보유자는 "이미 보유", 미보유자는 PayPal 환율 조회·주문 생성보다 먼저 409 로 닫는다(확정·환불 경로는 이 라우트가 아니다).
+      if (await guardSaleClosedEntry({ env, ctx, userId, product: unitProduct, body, withDb })) {
+        ctx.productId = unitProduct.productId;
+        return json(alreadyOwnedSaleClosedBody(unitProduct));
+      }
       const availability = assertFeatureEnabled(unitProduct);
       if (!availability.ok) throw paymentError(availability.code, availability.message);
       const product = withChargeAmount(env, unitProduct);
@@ -1360,6 +1404,11 @@ const ROUTES = {
       // 첫 배선은 catalog(resolveProduct)를 썼는데, mode/reportMode/categoryKey 변형 가격을 잃어
       // 해당 기능의 단건 결제가 400(금액 불일치)으로 막히는 라이브 결함이었다(2026-08-12 수정).
       let listedProduct = preparedProduct || resolveLegacyProduct(body);
+      // 묶음 포함·판매 종료 키: 보유자는 "이미 보유"(주문 키 없음 — 클라이언트는 결제창을 열지 않는다), 미보유자는 금액 대조·PayPal 환율 조회·주문 생성보다 먼저 409.
+      if (await guardSaleClosedEntry({ env, ctx, userId, product: listedProduct, body, withDb })) {
+        ctx.productId = listedProduct.productId;
+        return json(alreadyOwnedSaleClosedBody(listedProduct));
+      }
       const availability = assertFeatureEnabled(listedProduct);
       if (!availability.ok) throw paymentError(availability.code, availability.message);
       if (listedProduct.featureKey === 'neo-email-consultation') {
@@ -1620,6 +1669,14 @@ const ROUTES = {
              grantEntitlement 는 upsert 라 순서만 바뀔 뿐 왕복이 늘지 않고, 재열람은 차감·원장
              기록을 통째로 건너뛰므로 **더 빨라진다**(왕복 6회 → 2회). */
           let grantedIdentity = null;
+          /* 묶음 포함·판매 종료 키: 보유 확인(묶음 보유 포함)이 먼저, 새로 사는 시도는 차감·지급 전에 409 로 닫는다. */
+          if (isSajuBundleSaleClosed(product.featureKey)) {
+            if (unlock && await findOwnedForSaleGate(db, { userId, product, profileId, partnerProfileId: body.partnerProfileId, contentKey: body.contentKey, scope: body.scope })) {
+              alreadyUnlocked = true;
+              return { balance: null, replayed: true, ledgerId: "" };
+            }
+            assertProductSaleOpen(product);
+          }
           if (unlock && await findLegacyBirthUnlock(db, { userId, product, profileId, contentKey: body.contentKey })) {
             alreadyUnlocked = true;
             return { balance: null, replayed: true, ledgerId: "" };
@@ -1744,7 +1801,8 @@ const ROUTES = {
         directOnly = catalogItem.directOnly === true;
         familyPassOnly = catalogItem.familyPassOnly === true;
       } catch { /* 카탈로그 미등재는 아래 일반 경로로 */ }
-      if (passExcluded) {
+      // 묶음 포함·판매 종료 키는 보유 확인이 먼저라서 여기서 끊지 않는다(아래 outcome 에서 보유면 열고, 아니면 409).
+      if (passExcluded && !isSajuBundleSaleClosed(product.featureKey)) {
         const message = directOnly
           ? "이 상품은 이용권으로 결제할 수 없습니다. 단건 결제로만 이용해 주세요."
           : "이 기능은 이용권으로 결제할 수 없습니다. 단건 결제 또는 월정석으로 이용해 주세요.";
@@ -1759,6 +1817,14 @@ const ROUTES = {
         const user = await db.findOne(User, { _id: toObjectId(userId) });
         const entitlement = resolveCanonicalEntitlement(user || {});
         const coverage = evaluatePassCoverage({ user, entitlement, coinCost: product.priceCoins });
+
+        // 묶음 포함·판매 종료 키: 가진 것은 이용권 한도와 무관하게 열고, 새로 사는 시도는 커버·차감 전에 409 로 닫는다.
+        if (isSajuBundleSaleClosed(product.featureKey)) {
+          if (unlock && await findOwnedForSaleGate(db, { userId, product, profileId, partnerProfileId: body.partnerProfileId, contentKey: body.contentKey, scope: body.scope })) {
+            return { coverage: { ...coverage, covered: true, reason: "", coinCost: product.priceCoins }, entitlement, user, alreadyUnlocked: true };
+          }
+          assertProductSaleOpen(product);
+        }
 
         if (familyPassOnly && String(entitlement?.passTier || entitlement?.tier || "").toLowerCase() !== "family") {
           const replayed = await hasConsumedPassFeature(user, product.featureKey, requestId, db);
@@ -1918,6 +1984,11 @@ const ROUTES = {
     auth: "required",
     async handle({ request, env, ctx, userId, body, withDb }) {
       const product = resolveProduct({ productId: body.productId, featureKey: body.featureKey, reason: body.reason });
+      // 직접 차감 입구다. 판매 종료 키는 보유 확인이 먼저(보유자는 차감·지급 없이 "이미 보유"), 미보유자는 월정석 제외 402 보다 판매 종료 409 가 먼저 읽히게 한다.
+      if (await guardSaleClosedEntry({ env, ctx, userId, product, body, withDb })) {
+        ctx.productId = product.productId;
+        return json({ ...alreadyOwnedSaleClosedBody(product), replayed: true });
+      }
       if (product.monthlyExcluded) {
         throw paymentError("MONTHLY_NOT_ALLOWED", "이 상품의 다른 결제 방식을 선택해 주세요.");
       }
@@ -2121,12 +2192,17 @@ export async function handlePaymentsContext(request, env, options = {}) {
     errorReason = String(contract.meta?.reason || "").slice(0, 160);
     // meta(PG 응답 사유·기대/실제 금액·pgPaymentId)는 응답에 싣지 않는다 — 로그 한 줄에만 남긴다.
     errorMeta = Object.keys(contract.meta).length ? contract.meta : null;
+    // 사주 영구 묶음: 판매 종료 응답만 화면이 묶음 안내를 열 수 있게 두 키를 싣는다(둘 다 공개 상품 키라 시크릿이 아니다).
+    const saleEndedKeys = contract.code === "PRODUCT_SALE_ENDED" && contract.meta?.bundleFeatureKey
+      ? { featureKey: String(contract.meta.featureKey || ""), bundleFeatureKey: String(contract.meta.bundleFeatureKey) }
+      : {};
     return json({
       ok: false,
       code: contract.code,
       message: publicErrorMessage(error, contract),
       retryable: contract.retryable,
       requestId: meta.requestId,
+      ...saleEndedKeys,
     }, { status: contract.status, headers: responseHeadersFor(contract) });
   } finally {
     logPayment({

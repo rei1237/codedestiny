@@ -2063,6 +2063,23 @@ export const KarmaDestinyAiConsultation = scopedModel(mongoose.models.KarmaDesti
   || mongoose.model("KarmaDestinyAiConsultation", karmaDestinyAiConsultationSchema));
 export const ZiweiAiConsultation = scopedModel(mongoose.models.ZiweiAiConsultation
   || mongoose.model("ZiweiAiConsultation", ziweiAiConsultationSchema));
+// CR-006: insert-only preparation. The deterministic _id supplies uniqueness even with autoIndex:false.
+// No TTL: a paid return/retry must never lose its calculation basis through expiration.
+const ziweiCalculationPreparationSchema = new mongoose.Schema({
+  _id: { type: String, required: true },
+  userId: { type: String, required: true, immutable: true },
+  featureKey: { type: String, required: true, immutable: true },
+  requestId: { type: String, required: true, immutable: true },
+  inputHash: { type: String, required: true, immutable: true },
+  bindingHash: { type: String, required: true, immutable: true },
+  targetYear: { type: Number, required: true, immutable: true },
+  authorityVersion: { type: String, required: true, immutable: true },
+  chartSnapshot: { type: mongoose.Schema.Types.Mixed, required: true, immutable: true },
+  selectionDigest: { type: String, required: true, immutable: true },
+  createdAt: { type: Date, required: true, immutable: true },
+}, { versionKey: false, minimize: false, collection: "ziweiCalculationPreparations" });
+export const ZiweiCalculationPreparation = scopedModel(mongoose.models.ZiweiCalculationPreparation
+  || mongoose.model("ZiweiCalculationPreparation", ziweiCalculationPreparationSchema));
 export const LoveSecretAiConsultation = scopedModel(mongoose.models.LoveSecretAiConsultation
   || mongoose.model("LoveSecretAiConsultation", loveSecretAiConsultationSchema));
 

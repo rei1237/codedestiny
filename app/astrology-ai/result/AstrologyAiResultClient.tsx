@@ -1,6 +1,7 @@
 "use client";
 import { RecommendationResult } from "@/app/components/recommendations/RecommendationResult";
 import { reportAdviceTopics } from "@/js/recommendations-context.mjs";
+import ResultReference from '@/components/fortune/ResultReference';
 import PaidResultImageGuide from "@/components/fortune/PaidResultImageGuide";
 
 import Link from "next/link";
@@ -743,7 +744,7 @@ export default function AstrologyAiResultClient() {
               <ExpertCharacterStage character="yun" mood={yunClose.mood} line={yunClose.text} placement="result" locale={locale} />
             </article>
 
-            <aside className="space-y-4 lg:sticky lg:top-6 lg:self-start">
+            <aside className="space-y-4 lg:sticky lg:top-6 lg:self-start"><ResultReference>
               {rawChart && (
                 <section className={`${RESULT_PANEL_CLASS} p-5`}>
                   <div className="mb-3 flex items-center gap-3">
@@ -797,7 +798,7 @@ export default function AstrologyAiResultClient() {
                   <AnalysisBasisPanel basis={consultation.analysisBasis} multiColumn={false} title={copy.analysisBasisTitle} />
                 </section>
               ) : (
-                <details className={`${RESULT_PANEL_CLASS} p-5`} open>
+                <details className={`${RESULT_PANEL_CLASS} p-5`} data-result-reference>
                   <summary className="cursor-pointer list-none focus:outline-none focus:ring-2 focus:ring-[#f5d487]/30">
                     <span className="flex items-center gap-3">
                       <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-[#f5d487]/30 bg-[#f5d487]/10">
@@ -816,6 +817,7 @@ export default function AstrologyAiResultClient() {
                 </details>
               )}
 
+              </ResultReference>
               {pdfError && (
                 <section className="rounded-lg border border-rose-300/30 bg-rose-400/10 p-4 text-sm leading-7 text-rose-50">
                   {pdfError}

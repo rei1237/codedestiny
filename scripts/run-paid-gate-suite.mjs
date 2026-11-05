@@ -36,7 +36,7 @@
  *    48개 가드가 통째로 "미배선"으로 떨어진다.
  *
  * 사용:
- *   node scripts/run-paid-gate-suite.mjs [--base <sha>] [--jobs N] [--verbose] [--only <substr>] [--skip <substr>]
+ *   node scripts/run-paid-gate-suite.mjs [--base <sha>] [--jobs N] [--verbose] [--only <substr>] [--skip <substr>] [--skip-exact <run>]...
  */
 
 import { spawn, execFileSync } from "node:child_process";
@@ -276,7 +276,9 @@ const seconds = (ms) => `${(ms / 1000).toFixed(1)}s`;
 async function main() {
   const only = arg("--only");
   const skip = arg("--skip");
-  const entries = SUITE.filter((entry) => (!only || entry.run.includes(only)) && (!skip || !entry.run.includes(skip)));
+  // 같은 체크에서 호출자가 직접 돌리는 항목. 부분 문자열로 비교하면 이름이 겹치는 다른 가드까지 빠진다.
+  const skipExact = process.argv.flatMap((value, index) => (process.argv[index - 1] === "--skip-exact" ? [value] : []));
+  const entries = SUITE.filter((entry) => (!only || entry.run.includes(only)) && (!skip || !entry.run.includes(skip)) && !skipExact.includes(entry.run));
   if (!entries.length) {
     console.error(`[paid-gate-suite] 선택된 항목이 없다${only ? ` (--only ${only})` : ""}${skip ? ` (--skip ${skip})` : ""}`);
     process.exit(1);

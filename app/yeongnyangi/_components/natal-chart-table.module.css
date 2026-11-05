@@ -1,0 +1,8 @@
+.frame{width:100%;margin-block:var(--cd-space-lg,24px);overflow-x:auto;border:1px solid var(--yn-line);border-radius:var(--cd-r-card,20px);background:var(--yn-surface)}
+.table{width:100%;border-collapse:collapse;color:var(--yn-ivory);table-layout:fixed;font-size:clamp(12px,2.8vw,15px)}
+.table caption{padding:20px 14px;text-align:left;font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--yn-ivory)}
+.table caption span{display:block;margin-top:6px;font-family:var(--font-body);font-size:13px;font-weight:400;color:var(--yn-muted)}
+.table th,.table td{padding:14px 5px;border-top:1px solid var(--yn-line);text-align:center;overflow-wrap:anywhere;line-height:1.6}
+.table thead th{color:var(--yn-gold);font-weight:600}.table tbody th{color:var(--yn-muted);font-weight:400}
+.table .pillar{font-family:var(--font-display);font-size:clamp(17px,4vw,25px);color:var(--yn-gold)}
+.table td:nth-child(3){background:var(--yn-raised)}

@@ -56,7 +56,7 @@ const steps = [
 //    마커는 scripts/deploy-safe.mjs 가 --stage 에서 직접 넣으므로 워크플로 env 가 새거나 빠져도
 //    타깃과 어긋나지 않는다. 프로덕션 빌드에서는 이 줄이 아예 추가되지 않는다.
 if (String(process.env.CD_DEPLOY_TARGET || "").trim().toLowerCase() === "staging") {
-  steps.push("scripts/apply-staging-noindex.mjs");
+  steps.push("local/edition-workshop/publish-staging.mjs", "scripts/apply-staging-noindex.mjs");
 }
 
 // 🔴 앱 번들(build:mobile → NEXT_PUBLIC_RUNTIME_TARGET=mobile-app)은 AdSense·사이트맵 검증을 건너뛴다.

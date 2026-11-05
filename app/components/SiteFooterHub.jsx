@@ -38,7 +38,7 @@ export const SEO_LINK_GROUPS = [
     title: siteFooterHubText("siteFooter.001"),
     links: [
       { href: "/", text: "꿀꿀 운세 브랜드 안내" },
-      { href: "/saju/", text: "무료 사주풀이 보기" },
+      { href: "/saju/", text: "무료 만세력 보기" },
       { href: "/manse/", text: "꿀꿀 만세력 확인하기" },
       { href: "/today/", text: "오늘의 운세 확인하기" },
       // 🔴 /fortune/{today,tomorrow,weekly,monthly} 101개는 사이트맵에만 있고 **유입 내부 링크가
@@ -110,6 +110,7 @@ export const SEO_LINK_GROUPS = [
       { href: "/flower/jamidusu/", text: "자미두수 운명의 꽃" },
       { href: "/flower/sukuyo/", text: "숙요 운명의 꽃" },
       { href: "/fortune-tea-house/", text: "운명 찻집 상담" },
+      { href: "/heukwol/", text: "흑월의 경고 상담" },
       { href: "/karma-destiny-ai/", text: "운명의 업 전문가 상담" },
       { href: "/new-year-ai-consultation/", text: "신년운세 전문가 상담" },
       { href: "/yeon-star-hug/", text: "연이 별빛 포옹" },

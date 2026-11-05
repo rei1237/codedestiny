@@ -143,7 +143,10 @@ export function buildLoveSecretGroundingFacts(sajuResult = {}) {
     `오행 분포: ${distributionText(my.fiveElements)}`,
     `십성 분포: ${distributionText(my.tenGods)} (두드러진 십성 ${reference.dominantTenGod || "-"})`,
     my.gyeokguk?.finalGyeokguk ? `격국: ${my.gyeokguk.finalGyeokguk} — ${my.gyeokguk.judgmentReason || ""}` : "",
-    `용신: ${reference.yongshinElementLabel || ELEMENT_KO[reference.yongshinElement] || "-"} / 기신 방향: ${ELEMENT_KO[my.unfavorableElement] || "-"}`,
+    my.approvedSaju
+      ? `용신: ${my.approvedSaju.yongshinLabel} (${my.approvedSaju.status}) / 기신 방향: ${my.approvedSaju.gisinLabel}`
+      : `용신: ${reference.yongshinElementLabel || ELEMENT_KO[reference.yongshinElement] || "-"} / 기신 방향: ${ELEMENT_KO[my.unfavorableElement] || "-"}`,
+    ...(my.approvedSaju?.promptRules || []),
     my.shinsal?.summaryLines?.length ? `신살: ${my.shinsal.summaryLines.join(" / ")}` : "신살: 성립한 항목 없음",
     luckLine(my),
     ...yearlyLines(my, 2).map((line) => `세운 ${line}`),
@@ -224,7 +227,7 @@ const GROUP_FACT_BUILDERS = Object.freeze({
           일간관계: sajuResult.compatibility.dayStemRelation,
           오행보완: sajuResult.compatibility.elementBalance,
           십성상호: sajuResult.compatibility.tenGodInteraction,
-          용신지원: sajuResult.compatibility.yongshinSupport,
+          ...(my.approvedSaju ? { 오행수량보완지표: sajuResult.compatibility.yongshinSupport } : { 용신지원: sajuResult.compatibility.yongshinSupport }),
           축점수: sajuResult.compatibility.axisScores,
           신살교차: sajuResult.compatibility.shinsalCross,
         }
@@ -306,6 +309,7 @@ export function buildLoveSecretGroupFacts(sajuResult = {}, groupKey = "core") {
     ...builder(my, partner, sajuResult),
     나의성향근거:sajuTemperamentPromptLines(my),
     ...(partner ? {상대성향근거:sajuTemperamentPromptLines(partner)} : {}),
+    ...(my.approvedSaju ? {판정규칙:my.approvedSaju.promptRules} : {}),
   };
 }
 
@@ -326,6 +330,7 @@ export function compactSajuForFollowUp(sajuResult = {}) {
     십성: my.tenGods,
     격국: my.gyeokguk?.finalGyeokguk || "",
     용신: my.reference?.yongshinElementLabel || "",
+    ...(my.approvedSaju ? { 판정규칙: my.approvedSaju.promptRules } : {}),
     신살: my.shinsal?.summaryLines || [],
     현재대운: my.majorLuck?.currentCycle
       ? `${my.majorLuck.currentCycle.startAge}~${my.majorLuck.currentCycle.endAge}세 ${my.majorLuck.currentCycle.pillar}(${my.majorLuck.currentCycle.stemTenGod})`

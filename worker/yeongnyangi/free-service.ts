@@ -51,7 +51,7 @@ export async function prepareFreeReading(env:Record<string,unknown>,userId:strin
   if(profileId)profile=await withMongoRetry(env,()=>ProfileCard.findOne({userId:ownerId(userId),profileId}).lean());
   if(profileId&&!profile)throw new FortuneError('PROFILE_NOT_FOUND',404);
   if(birthCategories.has(config.id)&&!profile)throw new FortuneError('FREE_PROFILE_REQUIRED');
-  const raw={question:draft.question||'오늘 내가 살펴볼 선택은?',readingMode:'personal' as const,
+  const raw={question:draft.question||(env.YEONGNYANGI_NATAL_PROFILE_V1==='true'&&['saju','vedic','sukuyo','ziwei','astrology'].includes(category)?'타고난 성향과 반복되는 선택을 구체적으로 설명해 줘':'오늘 내가 살펴볼 선택은?'),readingMode:'personal' as const,
     ...(profile?{personA:birthFromProfile(profile)}:{})};
   const validationDomain=(['basic','comprehensive','dangsaju','kusei','numerology'].includes(category)?'saju':category) as DomainId;
   const input:FortuneInput=birthCategories.has(config.id)

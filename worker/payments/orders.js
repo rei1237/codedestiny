@@ -35,6 +35,7 @@ import { Payment } from "../lib/models.js";
 import { resolveConfirmedPaymentMethod } from "../lib/payment-method-label.js";
 import { paymentError } from "./errors.js";
 import { toObjectId } from "./db.js";
+import { assertProductSaleOpen } from "./catalog.js";
 import { toForeignCardSnapshot } from "./foreign-card-policy.js";
 import { ORDER_POLICY_VERSIONS, buildRefundConsentRecord } from "./policy-versions.js";
 import { birthSnapshotFields, isBirthScopedProduct, resolvePaymentBirthIdentity } from "./birth-identity.js";
@@ -134,6 +135,8 @@ export async function createOrder(db, {
 }) {
   const uid = toObjectId(userId);
   if (!uid) throw paymentError("UNAUTHORIZED", "로그인이 필요합니다.");
+  // 신규 주문의 최후 방어선(입구는 index.js 라우트). 확정·환불은 createOrder 를 타지 않으므로 이미 만든 주문은 그대로 열린다.
+  assertProductSaleOpen(product);
   const enabled = assertFeatureEnabled(product);
   if (!enabled.ok) throw paymentError(enabled.code, enabled.message);
   if (product.featureKey === 'neo-email-consultation') {

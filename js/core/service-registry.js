@@ -382,11 +382,11 @@ window.__cdServiceRegistry = [
     image: "/images/service-introductions/saju-320.webp",
     imageAlt: "꽃돼지 연이의 사주 정밀 분석 상담 장면",
     id: "saju",
-    resultFormat: "사주 명식 · 기본 해석",
+    resultFormat: "사주 원국 · 한 줄 성향",
     quickHref: "/?action=cdOneStepFreeSajuEntry",
     name: "사주",
     question: "나는 어떤 결의 사람일까?",
-    desc: "사주팔자로 보는 삶의 큰 흐름",
+    desc: "무료 만세력으로 보는 사주 원국",
     href: "/?action=cdOneStepFreeSajuEntry",
     action: "cdOneStepFreeSajuEntry",
     price: "무료 시작",
@@ -662,13 +662,14 @@ window.__cdServiceRegistry = [
     href: "/saju/animal-destiny/",
     action: "openAnimalDestinyRoute",
     featureKey: "animal-destiny-unlock",
-    price: "7,000원",
+    price: "묶음 포함",
+    badge: "사주 묶음 포함",
     purposes: ["self", "career", "love"],
     methods: ["saju"],
     keys: "십이운성 동물점 수호동물 성향 사주",
   },
 
-  { id: "career-style", name: "나의 일 스타일", question: "어떤 조건에서 내 강점이 살아날까?", desc: "성향과 월지로 살펴보는 업무 환경 · 개인 리포트 유료", href: "/saju/career-style/", image: "/fuctionassets/career-style-yeoni.webp", imageAlt: "노트와 나침반으로 진로 탐색을 돕는 연이", featureKey: "saju-career-style", price: "5,000원", badge: "개인 리포트 유료", purposes: ["self", "career"], methods: ["saju"], keys: "진로 적성 일 스타일 자기이해" },
+  { id: "career-style", name: "나의 일 스타일", question: "어떤 조건에서 내 강점이 살아날까?", desc: "성향과 월지로 살펴보는 업무 환경 · 사주 묶음에 포함", href: "/saju/career-style/", image: "/fuctionassets/career-style-yeoni.webp", imageAlt: "노트와 나침반으로 진로 탐색을 돕는 연이", featureKey: "saju-career-style", price: "묶음 포함", badge: "사주 묶음 포함", purposes: ["self", "career"], methods: ["saju"], keys: "진로 적성 일 스타일 자기이해" },
 
   /* ── 신탁·오라클·기타 유료 체험 ──────────────────────────────── */
   {

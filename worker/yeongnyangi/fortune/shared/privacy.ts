@@ -21,6 +21,11 @@ export function explanationFacts(value: unknown): unknown {
   if ('version' in value && value.version === SAJU_TEMPERAMENT_VERSION &&
       'tenGods' in value && Array.isArray(value.tenGods) && 'families' in value && Array.isArray(value.families))
     return { version: value.version, lines: sajuTemperamentPromptLines(value) };
+  if ('schema' in value && value.schema === 'engine-facts-v1') {
+    const pin = value as Record<string, unknown>;
+    return { schema: pin.schema, system: pin.system, engineVersion: pin.engineVersion,
+      interpretationVersion: pin.interpretationVersion, support: pin.support, digest: pin.digest };
+  }
   const rawMoment = "solarYear" in value || "birthTimeContext" in value;
   return Object.fromEntries(
     Object.entries(value)

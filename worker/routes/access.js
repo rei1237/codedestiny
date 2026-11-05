@@ -1,5 +1,6 @@
 import { connectDb, withMongoRetry, isTransientMongoError } from "../lib/db.js";
 import { requireUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
+import { SAJU_BUNDLE_ALIAS_MEMBER_KEYS, SAJU_BUNDLE_FEATURE_KEY } from "../lib/saju-bundle-policy.js";
 import {
   CONTENT_ENTITLEMENT_SCOPES,
   CONTENT_ENTITLEMENT_SERVICE_KEYS,
@@ -679,6 +680,23 @@ function buildUnlocksPayload({ profileId, serviceKey, serviceKeys, activeDocs })
       expiresAt: toIsoString(doc.expiresAt),
     };
     unlockedContentKeys.push(contentKey);
+  }
+
+  // 사주 영구 묶음 행은 포함 키로 펼친다. 개별 행이 있는 키는 그 행의 정보를 그대로 둔다.
+  const bundleDoc = activeDocs.find((doc) => sanitizeAccessKey(doc?.contentKey, 160) === SAJU_BUNDLE_FEATURE_KEY);
+  if (bundleDoc) {
+    for (const memberKey of SAJU_BUNDLE_ALIAS_MEMBER_KEYS) {
+      const contentKey = normalizeContentKey(memberKey);
+      if (!unlocks[contentKey]?.unlocked) {
+        unlocks[contentKey] = {
+          unlocked: true,
+          source: bundleDoc.source,
+          unlockedAt: toIsoString(bundleDoc.unlockedAt),
+          expiresAt: toIsoString(bundleDoc.expiresAt),
+        };
+      }
+      unlockedContentKeys.push(contentKey);
+    }
   }
 
   return {

@@ -318,13 +318,6 @@ export const PAID_NON_LLM_DELIVERY_FIXTURES = Object.freeze([
     consumer: { file: "worker/routes/tarot.js", marker: "const payload = buildReadingPayload({" },
   },
   sameSurface(
-    "tarot-myeongri-three-card",
-    "per_use",
-    "js/saju-engine-tarot-sukuyo-quantum.js",
-    "featureKey: MYEONGRI_TAROT_THREE_CARD_FEATURE_KEY",
-    "function _runShowTarotFinalInterpretation()",
-  ),
-  sameSurface(
     "neville-meditation",
     "per_use",
     "neville-meditation.html",
@@ -445,6 +438,10 @@ export const PAID_NON_LLM_DELIVERY_FIXTURES = Object.freeze([
 ]);
 
 export const HISTORICAL_PAID_FEATURE_FIXTURES = Object.freeze([
+  { // 2026-11-05: 세 장 풀이가 무료가 되어 신규 판매를 닫았다. 구매자의 결제 후 재개만 남는다.
+    featureKey: "tarot-myeongri-three-card", billingType: "per_use",
+    retained: { file: "js/saju-engine-tarot-sukuyo-quantum.js", marker: "function runMyeongriTarotResume(descriptor)" },
+    replacement: { file: "js/saju-engine-tarot-sukuyo-quantum.js", marker: "function tarotRitualFullDeck()" } },
   { featureKey: "psychotest-reading", billingType: "per_use", retained: { file: "worker/lib/paid-feature-registry.js", marker: '"psychotest-reading": { cost: 30' }, replacement: { file: "app/psychotest/_components/PaidPsychotestLink.tsx", marker: "PSYCHOTEST_FREE_ENTRY" } },
   { featureKey: "ziwei-island-palace-consult", billingType: "per_use",
     retained: { file: "worker/routes/ziwei-island-ai.js", marker: "async function handleResult(" },
