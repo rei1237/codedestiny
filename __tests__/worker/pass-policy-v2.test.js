@@ -56,8 +56,8 @@ describe("versioned flower passes", () => {
     expect(family).toMatchObject({ planId: "family_1m_v4", wonPrice: 149000, monthlyLimitCoin: 3500, profileLimit: 0 });
     expect(family.monthlyLimitCoin * 100).toBe(350000);
     expect(canUseByPass({ ...family, isActive: true }, 500)).toBe(true);
-    expect(isPassBudgetExhausted("family", 4990, 5000, family)).toBe(false);
-    expect(isPassBudgetExhausted("family", 4991, 5000, family)).toBe(true);
+    expect(isPassBudgetExhausted("family", 4970, 5000, family)).toBe(false);
+    expect(isPassBudgetExhausted("family", 4971, 5000, family)).toBe(true);
     expect(isPassBudgetExhausted("family", 5000, 5000, family)).toBe(true);
   });
   test("tea consultation prices match the approved separate products", () => {
