@@ -505,3 +505,16 @@ test('비교 페이지 안내는 "사주 기본 풀이"를 무료로 약속하�
   if (OLD_BASIC_RE.test(read('i18n/authored/shellRuntime-51.json'))) offenders.push('i18n/authored/shellRuntime-51.json');
   assert.deepEqual(offenders, [], `무료 만세력과 유료 풀이로 나눠 적어야 한다: ${offenders.join(', ')}`);
 });
+
+test('모든 로케일에서 묶음 안내와 저장 리포트에 실제 문구가 있다', () => {
+  const offer = read('js/core/saju/bundle-offer.js');
+  const lotto = read('js/saju-engine-tarot-sukuyo-quantum.js');
+  const keys = [...(offer + lotto).matchAll(/['"]saju\.bundle\.(\w+)['"]/g)].map(match => match[1]);
+  const itemCount = offer.match(/var INCLUDED = \[([\s\S]+?)\];/)[1].match(/'/g).length / 2;
+  for (const file of fs.readdirSync(path.join(root, 'public/i18n')).filter(file => file.endsWith('.json'))) {
+    const bundle = JSON.parse(read('public/i18n/' + file)).saju.bundle;
+    for (const key of new Set(keys)) assert.ok(typeof bundle[key] === 'string' && bundle[key].trim(), file + ': ' + key);
+    assert.equal(bundle.item.length, itemCount, file);
+    assert.ok(bundle.item.every(value => typeof value === 'string' && value.trim()), file);
+  }
+});

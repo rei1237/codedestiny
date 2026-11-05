@@ -4,7 +4,31 @@
       "inlineTitle": "深入了解你的四柱",
       "lottoSavedTitle": "已儲存的月光幸運儀式報告",
       "lottoSavedDesc": "可重讀已購買並儲存在此裝置上的報告。",
-      "lottoSavedOpen": "開啟報告"
+      "lottoSavedOpen": "開啟報告",
+      "title": "四柱命理解讀合輯",
+      "once": "一次購買，長期查看",
+      "inlineCta": "查看合輯內容",
+      "inlineDesc": "一起了解你的命盤、大運、每日運勢與趣味解讀。",
+      "close": "關閉",
+      "pay": "單次付費查看",
+      "saveProfile": "儲存出生檔案",
+      "saveProfileHint": "儲存出生資料後，合輯將與你的命盤連結。",
+      "saveProfileUnavailable": "請到個人檔案儲存出生資料。",
+      "already": "你已購買此合輯。",
+      "own": "相同出生資料的解讀可重複查看，無須再次付費。個別產生的諮詢與配對諮詢另行收費。",
+      "sample": "範例 · 你看起來沉著，做決定前卻可能花不少時間蒐集依據。各章節會探討這份謹慎何時幫助你，又何時讓你遲疑。",
+      "item": [
+        "原局解讀：日柱、十神、調候、強弱與節氣",
+        "基礎解讀與十年大運",
+        "命盤配對概覽",
+        "量子命理、個人魅力與人生技能樹",
+        "健康、能量與難相處的關係",
+        "日運、月運、來信、今日運勢與相似名人",
+        "幸運號碼與月光幸運儀式報告",
+        "思考類型、Teto/Egen 詳解、四格命理與多巴胺報告",
+        "思維圖譜與人類圖解讀",
+        "工作風格、動物原型與秘密小屋入口"
+      ]
     }
   },
   "_comment": "Code Destiny - Traditional Chinese premium localization (zh-tw.json)",

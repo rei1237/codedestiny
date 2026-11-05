@@ -4,7 +4,31 @@
       "inlineTitle": "Approfondir la lecture de vos Quatre Piliers",
       "lottoSavedTitle": "Rapports enregistrés du rituel de chance lunaire",
       "lottoSavedDesc": "Relisez les rapports achetés et enregistrés sur cet appareil.",
-      "lottoSavedOpen": "Ouvrir le rapport"
+      "lottoSavedOpen": "Ouvrir le rapport",
+      "title": "Lecture complète des Quatre Piliers",
+      "once": "Un achat unique pour un accès permanent",
+      "inlineCta": "Voir le contenu",
+      "inlineDesc": "Retrouvez votre thème natal, vos cycles de dix ans et vos lectures du jour au même endroit.",
+      "close": "Fermer",
+      "pay": "Ouvrir par achat unique",
+      "saveProfile": "Enregistrer ce profil de naissance",
+      "saveProfileHint": "Enregistrez vos données de naissance pour associer ces lectures à votre thème.",
+      "saveProfileUnavailable": "Enregistrez vos données de naissance dans votre profil.",
+      "already": "Vous possédez déjà cette collection.",
+      "own": "Vous pouvez relire les analyses associées aux mêmes données de naissance sans payer à nouveau. Les consultations personnalisées et de compatibilité sont vendues séparément.",
+      "sample": "Exemple · Vous semblez calme mais prenez peut-être le temps de rassembler des éléments avant de décider. Chaque chapitre explore quand cette prudence vous aide et quand elle vous freine.",
+      "item": [
+        "Thème natal, pilier du jour, dix dieux et équilibre saisonnier",
+        "Lecture de base et cycles de dix ans",
+        "Aperçu de la compatibilité selon le thème",
+        "Lecture quantique, charme personnel et arbre des talents",
+        "Bien-être, énergie et relations difficiles",
+        "Lectures du jour et du mois, lettres et célébrités au profil proche",
+        "Numéros porte-bonheur et rapport du rituel lunaire",
+        "Style de pensée, profil Teto/Egen détaillé, lecture en quatre cases et rapport dopamine",
+        "Carte mentale et interprétation Human Design",
+        "Style de travail, animal symbolique et accès à la Maison secrète"
+      ]
     }
   },
   "_comment": "Code Destiny — French premium localization (fr.json)",

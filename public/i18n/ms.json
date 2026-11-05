@@ -4,7 +4,31 @@
       "inlineTitle": "Terokai Empat Tiang anda dengan lebih mendalam",
       "lottoSavedTitle": "Laporan Ritual Tuah Cahaya Bulan yang disimpan",
       "lottoSavedDesc": "Baca semula laporan yang dibeli dan disimpan pada peranti ini.",
-      "lottoSavedOpen": "Buka laporan"
+      "lottoSavedOpen": "Buka laporan",
+      "title": "Bacaan lengkap Empat Tiang",
+      "once": "Bayar sekali untuk akses berterusan",
+      "inlineCta": "Lihat kandungan pakej",
+      "inlineDesc": "Terokai carta kelahiran, kitaran sepuluh tahun, bacaan harian dan bacaan santai dalam satu pakej.",
+      "close": "Tutup",
+      "pay": "Buka dengan bayaran sekali",
+      "saveProfile": "Simpan profil kelahiran ini",
+      "saveProfileHint": "Simpan butiran kelahiran untuk mengaitkan pakej dengan carta ini.",
+      "saveProfileUnavailable": "Simpan butiran kelahiran pada halaman profil.",
+      "already": "Anda sudah memiliki pakej ini.",
+      "own": "Anda boleh membaca semula bacaan bagi butiran kelahiran yang sama tanpa bayaran tambahan. Rundingan peribadi dan rundingan keserasian dijual secara berasingan.",
+      "sample": "Contoh · Anda mungkin kelihatan tenang tetapi mengambil masa untuk mengumpul maklumat sebelum membuat keputusan. Setiap bab meneroka bila sikap berhati-hati membantu dan bila ia melambatkan langkah anda.",
+      "item": [
+        "Carta kelahiran, tiang hari, sepuluh dewa dan keseimbangan musim",
+        "Bacaan asas dan kitaran sepuluh tahun",
+        "Gambaran keserasian berdasarkan carta",
+        "Bacaan kuantum, daya tarikan diri dan pohon kemahiran",
+        "Kesejahteraan, tenaga dan hubungan yang mencabar",
+        "Bacaan harian dan bulanan, surat dan selebriti yang seiras",
+        "Nombor bertuah dan laporan Ritual Tuah Cahaya Bulan",
+        "Gaya pemikiran, profil Teto/Egen, bacaan empat panel dan laporan dopamin",
+        "Peta minda dengan tafsiran Human Design",
+        "Gaya kerja, simbol haiwan dan akses ke Rumah Rahsia"
+      ]
     }
   },
   "_comment": "Code Destiny — Malay premium localization (ms.json)",
