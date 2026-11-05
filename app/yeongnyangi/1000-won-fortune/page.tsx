@@ -77,7 +77,7 @@ const FAQS=[
  {question:'입력한 생년월일과 질문은 어떻게 쓰이나요?',answer:'입력한 출생정보와 질문은 상담을 계산하고 결과를 기록해 다시 보여 주는 데 쓰여요. 보관과 처리 방식은 개인정보 처리방침에서 확인할 수 있어요.'},
 ];
 
-const TITLE=`옛 천원 운세 리포트 구매 안내 | ${SAJU_BUNDLE_LABEL} ${BUNDLE_PRICE}`;
+const TITLE=`옛 천원 운세 | ${SAJU_BUNDLE_LABEL} ${BUNDLE_PRICE}`;
 const DESCRIPTION=`매력 클래스·인생 스킬 트리 등 천원 운세 사주 리포트 ${FUN.length}종은 ${SAJU_BUNDLE_LABEL}(${BUNDLE_PRICE})에 들어 있어요. 영냥이 고등어 상담(${PRICE}) 가격도 확인하세요.`;
 const OG_TITLE=TITLE;
 
