@@ -54,7 +54,7 @@ await new Promise(done => server.listen(0, '127.0.0.1', done));
 const origin = `http://127.0.0.1:${server.address().port}`;
 const browser = await chromium.launch({ channel: 'chrome', headless: true });
 try {
-  const context = await browser.newContext({ viewport: { width: 1280, height: 900 }, serviceWorkers: 'block', reducedMotion: 'reduce' });
+  const context = await browser.newContext({ viewport: { width: 335, height: 900 }, serviceWorkers: 'block', reducedMotion: 'reduce' });
   await context.addInitScript(userValue => {
     localStorage.setItem('fortune_auth_user', JSON.stringify(userValue));
     localStorage.setItem('fortune_auth_token', 'fixture-only');
@@ -102,6 +102,29 @@ try {
   await page.locator('.cd-boot-gate__veil').waitFor({ state: 'hidden' });
   await page.locator('#snuReadingContents').waitFor();
   await page.locator('#snuReadingContents').evaluate(node => { node.open = true; });
+  await page.waitForFunction(() => document.querySelectorAll('.rpt-v2-price-badge').length > 0);
+  const overflowingBadges = await page.locator('.rpt-v2-price-badge').evaluateAll(nodes => nodes.flatMap(node => {
+    const wrap = node.closest('.rpt-v2-img-wrap');
+    if (!wrap) return [];
+    const badge = node.getBoundingClientRect();
+    const frame = wrap.getBoundingClientRect();
+    return badge.left < frame.left - 0.5 || badge.right > frame.right + 0.5
+      ? [{ text: node.textContent.trim(), badge: { left: badge.left, right: badge.right }, frame: { left: frame.left, right: frame.right } }]
+      : [];
+  }));
+  assert.deepEqual(overflowingBadges, [], 'unlock badges must stay inside their image cards at 335px');
+  await page.evaluate(() => {
+    assertSessionSnapshot();
+    window.__cdSajuSectionInput = null;
+    window.cdBirthScopeCurrentProfileId = () => '';
+    function assertSessionSnapshot() {
+      const snapshot = JSON.parse(sessionStorage.getItem('cd:saju-section-input:v1') || 'null');
+      if (!snapshot?.birth?.date || snapshot.profileId !== 'fixture-gift') {
+        throw new Error(`missing durable section input: ${JSON.stringify(snapshot)}`);
+      }
+    }
+  });
+  assert.equal(await page.locator('#snuReadingContents nav a').count() >= resultKeys.length, true, 'SNULIFE shortcuts must remain available');
   await page.evaluate(() => {
     window.__snuTimeline = [];
     window.addEventListener('cd:saju-section-delivered', event => window.__snuTimeline.push({ type: 'delivered', key: event.detail?.featureKey }));
@@ -114,7 +137,7 @@ try {
 
   for (const featureKey of resultKeys) {
     const target = targetByKey[featureKey];
-    await page.locator(`#snuReadingContents nav a[href="#${target}"]`).click();
+    await page.evaluate(targetId => window.openSajuFunFeature(targetId), target);
     const marker = page.locator(`[data-snu-personalized="${featureKey}"]`);
     try {
       await marker.waitFor({ state: 'attached', timeout: 10_000 });

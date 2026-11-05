@@ -31,10 +31,51 @@
   var NATAL_PARTS = ['terms', 'ilju', 'ten', 'climate', 'strength'];
   // 덩어리마다 안내·실패 문구를 둘 대표 칸. 서버가 덩어리를 비워 보내면 이 칸에 안내를 둔다.
   var NATAL_PRIMARY = { ilju: 'iljuSummaryList', ten: 'tsGrid', climate: 'johuContent', strength: 'ukbuSection', terms: 'terms24Grid' };
+  var INPUT_STORAGE_KEY = 'cd:saju-section-input:v1';
 
   function byId(id) { return document.getElementById(id); }
+  function validInput(value) {
+    var birth = value && value.birth;
+    return !!(birth && (birth.date || (
+      Number.isFinite(Number(birth.year)) &&
+      Number.isFinite(Number(birth.month)) &&
+      Number.isFinite(Number(birth.day))
+    )));
+  }
+  function rememberInput(value, scopedProfileId) {
+    if (!validInput(value)) return null;
+    var next = {
+      birth: value.birth,
+      gender: value.gender,
+      name: value.name,
+      place: value.place,
+      profileId: String(scopedProfileId || value.profileId || '').trim()
+    };
+    root.__cdSajuSectionInput = next;
+    try { root.sessionStorage.setItem(INPUT_STORAGE_KEY, JSON.stringify(next)); } catch (_) {}
+    return next;
+  }
+  function sectionInput() {
+    if (validInput(root.__cdSajuSectionInput)) return root.__cdSajuSectionInput;
+    try {
+      var stored = JSON.parse(root.sessionStorage.getItem(INPUT_STORAGE_KEY) || 'null');
+      if (validInput(stored)) return rememberInput(stored);
+    } catch (_) {}
+    return null;
+  }
   function profileId() {
-    try { return String((root.cdBirthScopeCurrentProfileId && root.cdBirthScopeCurrentProfileId()) || '').trim(); } catch (_) { return ''; }
+    try {
+      var scoped = String((root.cdBirthScopeCurrentProfileId && root.cdBirthScopeCurrentProfileId()) || '').trim();
+      if (scoped) return scoped;
+    } catch (_) {}
+    var input = sectionInput();
+    if (input && input.profileId) return String(input.profileId).trim();
+    try {
+      var current = typeof root.__cdGetCurrentDestinyProfile === 'function' ? root.__cdGetCurrentDestinyProfile() : null;
+      var currentId = String((current && (current.id || current.profileId || current._id)) || '').trim();
+      if (currentId && input) rememberInput(input, currentId);
+      return currentId;
+    } catch (_) { return ''; }
   }
   // 2026-10-13: 풀이 화자(연이/영냥이)는 라이트·다크 테마와 따로 cdSajuPersonaV1 에 둔다.
   // 'neo' 는 영냥이의 내부 값이다 — 서버 API·패리티 픽스처가 이 이름을 쓴다.
@@ -44,7 +85,7 @@
   }
   // 입력은 js/saju-engine.js 계산이 끝날 때 남기는 스냅샷이다. 프로필이 있으면 서버는 카드의 생년월일·성별만 쓴다.
   function requestBody(featureKey, row) {
-    var input = root.__cdSajuSectionInput;
+    var input = sectionInput();
     if (!input || !input.birth) return null;
     var body = {
       featureKey: featureKey, birth: input.birth, gender: input.gender, name: input.name,
@@ -1042,5 +1083,5 @@
     if (natal.key && (natal.state === 'done' || natal.state === 'failed')) loadNatalReading({ force: natal.state === 'failed' });
   });
 
-  root.CdSajuSectionClient = { loadNatalReading: loadNatalReading, godDetail: godDetail, loadSummary: loadSummary, showDaewun: showDaewun, refreshDaewun: refreshDaewun, loadQuantum: loadQuantum, loadExtremeT: loadExtremeT, loadEncyclopedia: loadEncyclopedia, loadNatureDeepDive: loadNatureDeepDive, loadSukuyoCompat: loadSukuyoCompat, loadZiweiCompat: loadZiweiCompat, loadCard: loadCard, loadZiwei: loadZiwei };
+  root.CdSajuSectionClient = { rememberInput: rememberInput, loadNatalReading: loadNatalReading, godDetail: godDetail, loadSummary: loadSummary, showDaewun: showDaewun, refreshDaewun: refreshDaewun, loadQuantum: loadQuantum, loadExtremeT: loadExtremeT, loadEncyclopedia: loadEncyclopedia, loadNatureDeepDive: loadNatureDeepDive, loadSukuyoCompat: loadSukuyoCompat, loadZiweiCompat: loadZiweiCompat, loadCard: loadCard, loadZiwei: loadZiwei };
 })(window);

@@ -5312,6 +5312,18 @@ async function calculate(run){
     // 서버 본문 요청 입력(js/core/saju/section-client.js). 출생 정보·출생지만 담는다.
     window.__cdSajuSectionInput={birth:{date:bd,calType:calType,hour:hour,minute:minute,timeKnown:!_birthTimeUnknown},gender:GENDER,name:USER_NAME,
       place:{name:opt?opt.text:'대한민국 (서울)',longitude:bLong,latitude:bLat,timezone:bTz,baseTzOffset:bBaseTzOff}};
+    try {
+      var sectionProfileId = typeof window.cdBirthScopeCurrentProfileId === 'function' ? String(window.cdBirthScopeCurrentProfileId() || '').trim() : '';
+      if (!sectionProfileId && typeof window.__cdGetCurrentDestinyProfile === 'function') {
+        var sectionProfile = window.__cdGetCurrentDestinyProfile();
+        sectionProfileId = String((sectionProfile && (sectionProfile.id || sectionProfile.profileId || sectionProfile._id)) || '').trim();
+      }
+      window.__cdSajuSectionInput.profileId = sectionProfileId;
+      window.sessionStorage.setItem('cd:saju-section-input:v1', JSON.stringify(window.__cdSajuSectionInput));
+      if (window.CdSajuSectionClient && typeof window.CdSajuSectionClient.rememberInput === 'function') {
+        window.CdSajuSectionClient.rememberInput(window.__cdSajuSectionInput, sectionProfileId);
+      }
+    } catch (_sectionInputPersistError) {}
     window.__cdLastSummaryArgs={p:p,johu:johu,natal:natal};
     try { if(_cdSajuGateUnlocked('section_summary')) renderSummary(p,johu,natal); } catch(e) { try { window.__cdLastSummaryRenderError=e; } catch(_errKeepErr){} console.error('Summary 에러:', e); }
     // 기존 해금은 계산보다 먼저 복원될 수 있다. 본문 준비가 끝난 시점에 같은 게이트
