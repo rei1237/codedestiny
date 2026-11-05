@@ -1868,7 +1868,15 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
       doc = typeof doc.toObject === "function" ? doc.toObject() : doc;
     }
   } catch (error) {
-    if (error?.code === 11000) return json({ ok: true, sessionId, status: "generating", retryable: true }, { status: 202 });
+    if (error?.code === 11000) {
+      const toss=nativeTossContext(request);
+      if(!toss)return json({ ok: true, sessionId, status: "generating", retryable: true }, { status: 202 });
+      const duplicate=await AstrologyAiConsultation.findOne({userId:auth.userId,idempotencyKey}).lean();
+      if(!duplicate?.id)return json(resultStorageFailurePayload(resultStorageUnavailable(sessionId)),{status:503});
+      await toss.assertStored(duplicate);
+      if(clean(duplicate.inputHash)!==normalized.inputHash)return invalidInput("같은 요청 키로 다른 상담 정보를 사용할 수 없습니다.",409);
+      return duplicate.status==='completed'?json(publicSession(duplicate)):json({...publicSession(duplicate),retryable:true},{status:202});
+    }
     return json(resultStorageFailurePayload(resultStorageUnavailable(sessionId)), { status: 503 });
   }
   const locked = { ...owner, generationLease: lease, status: { $ne: "completed" } };
