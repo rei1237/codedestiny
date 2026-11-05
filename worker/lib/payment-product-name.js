@@ -3,7 +3,7 @@ import { SAJU_BUNDLE_FEATURE_KEY, SAJU_BUNDLE_LABEL } from "./saju-bundle-policy
 import { HONEY_PASS_POLICY, normalizePassTier } from "./profile-limits.js";
 import {
   LEGACY_PASS_POLICY_VERSION, PRIOR_PASS_POLICY_VERSION, PREVIOUS_PASS_POLICY_VERSION,
-  CURRENT_PASS_POLICY_VERSION, priorPassPlan, previousPassPlan, currentPassPlan,
+  CURRENT_PASS_POLICY_VERSION, V4_PASS_POLICY_VERSION, priorPassPlan, previousPassPlan, currentPassPlan, v4PassPlan,
 } from "../../lib/payment/pass-policy.js";
 
 const SECTION_NAMES = Object.freeze({ section_daewun: "사주 대운 분석", section_summary: "라이트 사주 풀이", [SAJU_BUNDLE_FEATURE_KEY]: SAJU_BUNDLE_LABEL });
@@ -34,7 +34,7 @@ export function resolveOrderProductName(order = {}) {
     const tier = normalizePassTier(order.subscriptionTier);
     const version = order.metadata?.passPolicyVersion || LEGACY_PASS_POLICY_VERSION;
     const reader = { [PRIOR_PASS_POLICY_VERSION]: priorPassPlan, [PREVIOUS_PASS_POLICY_VERSION]: previousPassPlan,
-      [CURRENT_PASS_POLICY_VERSION]: currentPassPlan }[version];
+      [CURRENT_PASS_POLICY_VERSION]: currentPassPlan, [V4_PASS_POLICY_VERSION]: v4PassPlan }[version];
     if (Number(order.metadata?.durationMonths || 1) === 1) {
       const name = reader?.(tier)?.name || (version === LEGACY_PASS_POLICY_VERSION && HONEY_PASS_POLICY[tier]?.label
         ? `${HONEY_PASS_POLICY[tier].label} 30일` : "");

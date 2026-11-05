@@ -30,6 +30,7 @@ test("정책 버전 상수 = 가입 동의 버전(auth.js) = 게시 시행일(�
   });
   expect(ORDER_POLICY_VERSIONS.terms).toBe(constantIn("app/terms-of-service/TermsContent.jsx", "TERMS_EFFECTIVE_DATE"));
   expect(ORDER_POLICY_VERSIONS.privacy).toBe(constantIn("app/privacy-policy/PrivacyPolicyContent.jsx", "PRIVACY_POLICY_EFFECTIVE_DATE"));
+  expect(ORDER_POLICY_VERSIONS.terms).toBe("2026-11-05");
   expect(Object.isFrozen(ORDER_POLICY_VERSIONS)).toBe(true);
 });
 

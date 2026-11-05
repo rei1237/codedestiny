@@ -31,6 +31,8 @@ async function assertEssentials(page, label) {
     ['sample guide', '#cdSignatureConsult .cd-sig__samples-link[href="/consultation-samples/"]'],
     ['free first', '#cdQuickServices'],
     ['pass', '#cdhPass .pb__cta'],
+    ['light fortune banner', '#cdhPass .pb__banner'],
+    ['light fortune list', '#cdhPass .pb__light-list > summary'],
     ['all fortunes button', '.cdh-all-cta__btn'],
     // 미니게임은 쉬는 중이다(b8f2fcb7a). 마지막 줄은 "작은 운세 한 모금" 접힘이고, 접힘 버튼(summary)이 보이면 된다.
     ['light fortunes fold', '#cdhLightFortunes > summary'],
@@ -247,6 +249,8 @@ async function assertEssentials(page, label) {
         profileCardOnHome: Boolean(document.querySelector('#cdHomeFunnel #dpMasterCard')),
       }));
       assert.equal(layout.overflow, false, `${width}px overflow`);
+      const passOverflow = await page.evaluate(() => [...document.querySelectorAll('#cdhPass .pb__banner, #cdhPass .pb__banner *, #cdhPass .pb__detail--0 .pb__includes, #cdhPass .pb__detail--0 .pb__includes *')].filter((node) => { const box = node.getBoundingClientRect(); return box.width > 0 && (box.left < -0.5 || box.right > innerWidth + 0.5); }).map((node) => node.className || node.tagName));
+      assert.deepEqual(passOverflow, [], `${width}px light fortune copy stays inside the viewport`);
       assert.ok(layout.unique && layout.moved, `${width}px reuses unique legacy nodes`);
       assert.ok(layout.neoButton, `${width}px Neo control visible in common header`);
       assert.equal(layout.profileCardOnHome, false, `${width}px keeps the full profile card under My`);

@@ -1,5 +1,5 @@
 /**
- * 이용약관 정본 (시행일 2026-04-11)
+ * 이용약관 정본
  * — 이 파일이 약관 본문의 유일한 원본이다.
  *   독립 페이지(/terms, /terms-of-service)와 회원가입 동의 화면(app/signup/SignupClient.tsx)이
  *   모두 이 컴포넌트를 렌더하므로, 동의한 문서와 공개된 문서가 항상 일치한다.
@@ -9,7 +9,7 @@
  */
 import { OPERATOR_NAME, SUPPORT_EMAIL } from "../../lib/site-policy-config";
 
-export const TERMS_EFFECTIVE_DATE = "2026-04-11";
+export const TERMS_EFFECTIVE_DATE = "2026-11-05";
 
 export const TERMS_SECTIONS = [
   {
@@ -79,10 +79,13 @@ export const TERMS_SECTIONS = [
     body: (
       <>
         <p>
-          이용자는 유효한 이용권 계약기간 동안 아래에서 정하는 비정상 이용에 해당하지 않는 한 추가 요금 없이 <strong>해당 등급의 적용 가격 범위(1회 정상 판매가 기준) 이하의 기능</strong>을 <strong>등급별 이용 한도 이내에서</strong> 이용할 수 있습니다(이하 &quot;정액 이용&quot;). 상품별 적용 가격 범위와 이용 한도는 결제 화면에서 확인할 수 있으며, 구매한 이용권에는 구매 당시 고지된 조건이 적용됩니다. 이용 한도에서 차감되는 금액은 <strong>해당 서비스의 정상 판매가</strong>이며, 할인·프로모션가가 적용된 경우에도 정상 판매가를 기준으로 합니다. 이용 한도를 모두 사용하면 이용권이 종료되며(별도 이용 기간 없음), 종료 후에도 단건 결제 또는 월정석으로 계속 이용할 수 있어 서비스 이용이 차단되지 않습니다. Pass holders may use features whose standard list price is at or below their tier&apos;s coverage band without additional charge, subject to the usage limit disclosed on the payment screen. Purchased passes retain the conditions disclosed at the time of purchase. The amount deducted from the usage limit is the standard list price, even where a discounted or promotional price applies. When the usage limit is fully used, the pass ends (there is no separate time limit); after it ends you can continue via single payment or Moonlight Stones, and access is never blocked.
+          이용자는 유효한 이용권을 보유하는 동안 아래에서 정하는 비정상 이용에 해당하지 않는 한 추가 요금 없이 <strong>라이트 운세를 횟수 제한 없이</strong> 이용할 수 있고, 그 밖의 유료 기능은 <strong>해당 등급의 적용 가격 범위(1회 정상 판매가 기준) 이하의 기능</strong>을 <strong>등급별 상담 한도 이내에서</strong> 이용할 수 있습니다(이하 &quot;정액 이용&quot;). 라이트 운세는 이용권 안내 화면에 목록으로 표시된 운세 상품을 말하며 대표 상담은 포함되지 않습니다. 라이트 운세는 별도 이용 기간 없이 이용권을 보유하는 동안 이용할 수 있습니다. 등급별 판매가(작은 꿀단지 14,900원 · 중간 꿀단지 34,900원 · 큰 꿀단지 64,900원 · 패밀리 꿀단지 154,000원), 적용 가격 범위(작은 꿀단지 5,000원 · 중간 꿀단지 10,000원 · 큰 꿀단지 30,000원 이하, 패밀리 꿀단지는 금액 상한 없음)와 상담 한도(작은 꿀단지 20,000원 · 중간 꿀단지 60,000원 · 큰 꿀단지 120,000원 · 패밀리 꿀단지 350,000원)는 결제 화면에 표시됩니다. 상담 한도에서 차감되는 금액은 <strong>해당 서비스의 정상 판매가</strong>이며, 할인·프로모션가가 적용된 경우에도 정상 판매가를 기준으로 합니다. 상담 한도를 모두 사용해도 이용권은 유지되며, 라이트 운세를 계속 이용할 수 있고 그 밖의 유료 기능은 단건 결제, 월정석 또는 이용권 재구매로 이용할 수 있습니다. 이미 구매한 이용권의 결제 금액과 상담 한도는 바뀌지 않으며, 라이트 운세 혜택은 유효한 모든 이용권에 적용됩니다. Pass holders may use Light Readings without a usage-count limit and, for other paid features, those whose standard list price is at or below their tier&apos;s coverage band (Small Honey Jar KRW 5,000 · Medium Honey Jar KRW 10,000 · Large Honey Jar KRW 30,000; the Family Honey Jar has no per-item cap) without additional charge, subject to each tier&apos;s consultation allowance (Small Honey Jar KRW 20,000 · Medium Honey Jar KRW 60,000 · Large Honey Jar KRW 120,000 · Family Honey Jar KRW 350,000), shown on the payment screen. Light Readings are the products listed on the pass information screen, have no separate time limit, and do not include signature consultations. The amount deducted from the allowance is the standard list price, even where a discounted or promotional price applies. When the allowance is fully used the pass stays active: Light Readings remain available, and other paid features are available via single payment, Moonlight Stones, or buying a new pass. The amount paid and the allowance of a pass already purchased do not change, and the Light Reading benefit applies to every valid pass.
         </p>
         <p>
-          <strong>패밀리 꿀단지 이용권은 1회 정상 판매가에 상한이 없어</strong>, 전문가 상담과 같은 고가 상품도 구매 당시 고지된 이용 한도 안에서 이용할 수 있습니다. 그 외 등급은 정상 판매가가 해당 등급의 적용 가격 범위를 넘는 상품을 단건 결제 또는 월정석으로 이용합니다. <strong>이용 횟수 자체를 세는 별도의 포함 횟수 제도는 두지 않으며, 판정 기준은 적용 가격 범위와 이용 한도 둘뿐입니다.</strong> 이용 한도를 모두 사용하면 이용권이 종료되고, 이용권을 새로 구매하면 새 이용 한도로 다시 시작됩니다. 남은 한도는 결제 화면에서 확인할 수 있고, 한도를 모두 사용해도 서비스 이용이 차단되지 않으며 초과분에 대한 결제수단이 안내됩니다. <strong>이용 한도는 이 조에서 정하는 &quot;비정상 이용&quot;과 무관한 상품 구성이며, 모두 사용한 사실만으로는 어떠한 제재도 이루어지지 않습니다.</strong> The Family Honey Jar pass has no per-item price cap, so high-priced products such as expert consultations are included within the usage limit disclosed at purchase. For other tiers, products priced above the tier&apos;s coverage band are purchased via single payment or Moonlight Stones. There is no separate included-use count: eligibility is decided by the coverage band and the usage limit alone. When the usage limit is fully used the pass ends, and buying a new pass starts again with a new usage limit. The remaining amount is shown on the payment screen. This allowance is a product term, not a sanction, and exhausting it never blocks access.
+          <strong>패밀리 꿀단지 이용권은 1회 정상 판매가에 상한이 없어</strong>, 전문가 상담과 같은 고가 상품도 구매 당시 고지된 상담 한도 안에서 이용할 수 있습니다. 그 외 등급은 정상 판매가가 해당 등급의 적용 가격 범위를 넘는 상품을 단건 결제 또는 월정석으로 이용합니다. <strong>라이트 운세가 아닌 기능의 이용 가능 여부는 적용 가격 범위와 상담 한도로 판정하며, 이용 횟수를 세는 별도의 포함 횟수 제도는 두지 않습니다.</strong> 남은 상담 한도는 결제 화면에서 확인할 수 있습니다. 남은 상담 한도가 5,000원 미만이면 소진된 것으로 보아 이용권을 새로 구매할 수 있으며, 이때 새 상담 한도로 다시 시작하고 남은 금액은 새 이용권으로 넘어가지 않습니다. <strong>상담 한도는 이 조에서 정하는 &quot;비정상 이용&quot;과 무관한 상품 구성이며, 모두 사용한 사실만으로는 어떠한 제재도 이루어지지 않습니다.</strong> The Family Honey Jar pass has no per-item price cap, so high-priced products such as expert consultations are included within the allowance disclosed at purchase. For other tiers, products priced above the tier&apos;s coverage band are purchased via single payment or Moonlight Stones. There is no separate included-use count: features other than Light Readings are decided by the coverage band and the allowance. The remaining amount is shown on the payment screen. When less than KRW 5,000 remains, the allowance counts as used up and you may buy a new pass, which starts with a new allowance; the remainder does not carry over. This allowance is a product term, not a sanction, and exhausting it never blocks access.
+        </p>
+        <p>
+          라이트 운세의 횟수 제한 없는 이용은 이용자 본인의 정상적인 이용을 전제로 합니다. <strong>스크립트·봇 등을 이용한 대량 요청과 같은 비정상적인 자동화 이용</strong>은 제6조와 이 조의 절차에 따라 제한될 수 있습니다. Unlimited Light Readings assume ordinary personal use; abnormal automated use, such as bulk requests through scripts or bots, may be restricted under Section 6 and the procedure in this section.
         </p>
         <p>
           이용권은 <strong>계약자 1인이 사용하는 것을 전제로 제공되며, 제3자에게 양도·대여하거나 계정을 공유할 수 없습니다.</strong> 이는 정액 이용의 전제 조건이며, 이를 위반한 이용은 아래 비정상 이용 판단에서 함께 고려됩니다. A pass is provided for use by the contracting individual only and may not be transferred, lent, or shared.
@@ -156,7 +159,7 @@ export const TERMS_SECTIONS = [
           월정석은 <strong>각 지급분이 지급된 날로부터 30일간만 유효</strong>하며, 그 기간 내에 사용하지 않은 지급분은 자동으로 소멸합니다. 여러 번 나눠 지급받은 월정석은 각 지급분이 자기 지급일을 기준으로 개별 만료하고, 사용 시에는 먼저 만료되는(오래된) 지급분부터 차감됩니다. 소멸된 월정석은 복구되지 않으며 현금 환불 대상이 아닙니다.
         </p>
         <p>
-          이용권은 서버 결제 검증 성공 시각부터 이용 한도를 모두 사용할 때까지 유지되는(별도 이용 기간 없음) 일회성 디지털 이용권입니다. 자동결제 상품이 아니며 한도를 모두 사용한 뒤 사용자가 직접 다시 구매해야 합니다.
+          이용권은 서버 결제 검증 성공 시각부터 별도 이용 기간 없이 유지되는 일회성 디지털 이용권입니다. 자동결제 상품이 아니며, 상담 한도를 다 써도 라이트 운세는 계속 이용할 수 있고 대표 상담을 더 이용하려면 사용자가 직접 다시 구매해야 합니다. 라이트 운세를 이용한 이용권은 자동으로 환불되지 않으며, 고객센터에서 이용 내역을 확인한 뒤 처리합니다.
         </p>
         <p>
           이용권 또는 단건 결제 상품은 결제일 또는 계약내용을 받은 날부터 7일 이내 청약철회 요청이 가능합니다. 다만 콘텐츠 생성, PDF 렌더링, 유료 리딩 열람, 이용권 혜택 사용 등 디지털콘텐츠 또는 유료 서비스 제공이 개시된 경우에는 제공이 개시된 부분에 대한 청약철회가 제한될 수 있습니다.
@@ -168,7 +171,7 @@ export const TERMS_SECTIONS = [
           개인 맞춤형 디지털 콘텐츠가 생성되었거나 결과 열람, PDF 렌더링, 유료 리딩 제공, 이용권 혜택 사용이 시작된 경우에는 디지털 콘텐츠 특성상 단순 변심 환불이 제한될 수 있습니다.
         </p>
         <p>
-          이용권을 사용한 뒤 중도 해지를 요청하는 경우에는 이미 사용한 이용 한도, 이용한 유료 기능, 지급·사용된 혜택을 확인한 뒤 법령상 환급 대상이 되는 미제공 부분이 있을 때 결제수단으로 환급합니다.
+          이용권을 사용한 뒤 중도 해지를 요청하는 경우에는 이미 사용한 상담 한도, 이용한 유료 기능, 지급·사용된 혜택을 확인한 뒤 법령상 환급 대상이 되는 미제공 부분이 있을 때 결제수단으로 환급합니다.
         </p>
         <p>
           결제 후 결과가 제공되지 않았거나 시스템 오류로 정상 이용이 불가능한 경우에는 장애 내역 확인 후 재생성, 이용 기간 조정, 부분 환불 또는 전액 환불 중 적절한 방식으로 처리합니다.
@@ -197,7 +200,7 @@ export const TERMS_SECTIONS = [
           무료 체험 기간 중이라도 멤버십 전용 콘텐츠를 열람하여 서비스 이용이 개시된 경우, 이후 동일 콘텐츠 또는 유료 이용권에 대한 단순 변심 환불은 제한될 수 있습니다. If service use starts during the free trial, withdrawal for the same digital content or paid pass may be restricted.
         </p>
         <p>
-          이용권 종류, 결제 금액, 이용 한도, 자동결제 여부와 환불 조건은 결제 화면에 고지되며, 이용자는 결제 완료 전 이를 확인할 책임이 있습니다.
+          이용권 종류, 결제 금액, 상담 한도, 자동결제 여부와 환불 조건은 결제 화면에 고지되며, 이용자는 결제 완료 전 이를 확인할 책임이 있습니다.
         </p>
         <p>다만 강행규정에 따라 환불이 필요한 경우에는 관계 법령 및 결제대행사 정책에 따라 처리합니다.</p>
       </>
@@ -239,6 +242,21 @@ export const TERMS_SECTIONS = [
     ),
   },
 ];
+
+// 약관 페이지 상단의 개정 안내. 사이트 전체 공지 기능이 없어 이 블록과 홈 이용권 배너의 링크로 공지한다.
+export function TermsRevisionNotice() {
+  return (
+    <aside id="terms-revision" className="policy-doc__note policy-doc__note--lead" aria-label="약관 개정 안내">
+      <strong>약관 개정 안내 · 시행일 {TERMS_EFFECTIVE_DATE}</strong>
+      <br />
+      이용권이 있으면 대표 상담을 제외한 라이트 운세를 횟수 제한 없이 이용할 수 있습니다.
+      <br />
+      상담 한도를 다 써도 이용권은 유지됩니다. 대표 상담을 더 이용하려면 이용권을 다시 구매합니다.
+      <br />
+      이용권 판매가와 상담 한도가 바뀌었습니다. 이미 구매한 이용권의 결제 금액과 상담 한도는 바뀌지 않습니다.
+    </aside>
+  );
+}
 
 export default function TermsContent() {
   return (

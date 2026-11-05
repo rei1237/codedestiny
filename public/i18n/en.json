@@ -833,24 +833,24 @@
       "chipShareReward": "One-time payment outside the range",
       "plansAria": "Pass plan summary cards",
       "standardName": "Small Honey Jar",
-      "standardPrice": "KRW 9,900",
+      "standardPrice": "KRW 14,900",
       "standardLine": "Content up to KRW 5,000",
       "standardBenefit1": "Up to KRW 20,000 worth",
       "standardCta": "View Small Honey Jar",
       "recommendedAria": "Recommended plan",
       "recommendedBadge": "Recommended",
       "premiumName": "Medium Honey Jar",
-      "premiumPrice": "KRW 29,900",
+      "premiumPrice": "KRW 34,900",
       "premiumLine": "Content up to KRW 10,000",
       "premiumBenefit1": "Up to KRW 60,000 worth",
       "premiumCta": "View recommended plan",
       "vvipName": "Large Honey Jar",
-      "vvipPrice": "KRW 59,900",
+      "vvipPrice": "KRW 64,900",
       "vvipLine": "Content up to KRW 30,000",
       "vvipBenefit1": "Up to KRW 120,000 worth",
       "vvipCta": "View Large Honey Jar benefits",
       "familyName": "Family Honey Jar",
-      "familyPrice": "KRW 149,000",
+      "familyPrice": "KRW 154,000",
       "familyLine": "All pass-eligible content",
       "familyBenefit1": "Up to KRW 350,000 worth",
       "familyCta": "View Family Honey Jar",
@@ -864,8 +864,8 @@
       "step2Text": "Tarot, oracle, and saju readings inside your range open right away, with no payment window.",
       "step3Label": "Only deeper readings are paid per use",
       "step3Text": "Readings beyond your range continue to a one-time KRW payment only when you need them.",
-      "terminationNote": "When the usage limit is fully used, the pass ends. Buying again starts you with a new usage limit. Additional paid content is available by one-time payment or moonstones.",
-      "noExpiryNote": "No time limit · Ends when the usage limit is used up"
+      "terminationNote": "Your pass stays active after the consultation allowance is used up, and Light Readings remain available. For more signature consultations, buy a new pass or use a one-time payment or moonstones.",
+      "noExpiryNote": "No time limit · No auto-renewal"
     },
     "promptHub": {
       "aria": "Go to comprehensive fortune prompts",
@@ -908,11 +908,11 @@
       "aria": "Pass footer guide",
       "eyebrow": "Moonlight Pass",
       "savingsBadge": "Up to one-third the price with a pass",
-      "title": "Two KRW 5,000 readings already cost more than the KRW 9,900 pass",
+      "title": "Three KRW 5,000 readings already cost more than the KRW 14,900 pass",
       "desc": "Readings inside the range you pick open until you use up your usage limit; only pricier readings are paid one by one when you need them. The four ranges are KRW 5,000 · 10,000 · 20,000 · all pass-eligible content, so pick the price you look at most.",
       "pointsAria": "Core pass guide",
       "point1": "Opens right away, no checkout",
-      "point2": "No time limit · Ends when the usage limit is used up",
+      "point2": "No time limit · No auto-renewal",
       "point3": "A pass with no auto-renewal",
       "mascotAria": "See Moonlight Pass benefits · Moonlight pass store",
       "mascotAlt": "Moonlight Pass benefits image",
@@ -1669,7 +1669,7 @@
       "passDesc": "Pay per reading now and then, or use a pass if you read often. Check which consultations you can use and your usage limit.",
       "passPer": "· No time limit",
       "passBadge": "Incl. Yeongnyangi",
-      "passNote": "The Small, Medium and Large Honey Jars apply to Flower Pig readings; the Family Honey Jar applies to paid readings from both Flower Pig and Yeongnyangi. Passes you already bought keep the terms from the time of purchase.",
+      "passNote": "The Small, Medium and Large Honey Jars apply to Flower Pig readings; the Family Honey Jar applies to paid readings from both Flower Pig and Yeongnyangi. Passes you already bought keep their consultation allowance, and Light Readings also apply to passes in use.",
       "passCta": "See all 4 passes",
       "moreTitle": "Explore Yeoni’s atelier",
       "moreItems": "Daily readings · consultations · records · stories",
@@ -1736,7 +1736,8 @@
       "chemiCta": "See my bias chemistry",
       "brandOtherEntry": "꿀꿀 운세: Yeongnyangi Saju & Tarot →",
       "publicRecordsTitle": "Public analysis records by Park Byung-ha (Neo), a Saju practitioner with 10 years of experience",
-      "publicRecordsLink": "Compare dates, original posts and outcomes"
+      "publicRecordsLink": "Compare dates, original posts and outcomes",
+      "passLight": "Every Honey Jar includes {count} Light Readings with unlimited uses, worth KRW {amount} at one use each. Signature consultations are not included."
     },
     "chatEntry": {
       "title": "Ask Yeoni and Neo the one thing on your mind right now",
@@ -2260,22 +2261,22 @@
       "family": "Family works on Ggulggul Fortune and Yeongnyangi.",
       "scope": "Small, Medium and Large Honey Jars are for Ggulggul Fortune.",
       "pace": "No time limit. At your own pace.",
-      "end": "Ends when allowance is used · No auto-renewal",
+      "end": "Light Readings stay available even after the consultation allowance is used up.",
       "alt": "Yeoni holding a pass",
       "moon": "Moonlight Pass!",
       "choose": "Choose your Honey Jar.",
-      "value": "Maximum value at single-purchase prices",
+      "value": "Value at single-purchase prices",
       "price": "Pass price",
       "cap": "Eligible services up to KRW {amount} each",
       "unlimitedCap": "No per-service price cap",
       "percent": "Save up to {amount}%",
       "saving": "Save up to KRW {amount}",
-      "compare": "Comparison assumes the full allowance is used on eligible services.",
+      "compare": "Compared with single-purchase prices, using each Light Reading once and the full consultation allowance.",
       "terms": "Subject to product eligibility, exclusions and remaining allowance.",
       "site": "Use on Ggulggul Fortune",
       "both": "For Ggulggul Fortune and Yeongnyangi",
       "cta": "View {name} pass",
-      "validity": "No fixed validity period · Ends when allowance is used · No auto-renewal",
+      "validity": "No fixed validity period · No auto-renewal",
       "legend": "Which Honey Jar will you choose?",
       "hint": "Select an image to compare prices and benefits.",
       "select": "Select",
@@ -2285,7 +2286,18 @@
       "fishLink": "View Yeongnyangi passes →",
       "compactTitle": "Honey Jar passes",
       "conditions": "Coverage and terms",
-      "otherServices": "Explore passes for other services"
+      "otherServices": "Explore passes for other services",
+      "lightBanner": "One Small Honey Jar unlocks all {count} Light Readings.",
+      "lightBannerSub": "Enjoy Light Readings as often as you like; signature consultations are not included. Medium, Large and Family Honey Jars include them too.",
+      "lightLine": "{count} Light Readings, unlimited uses",
+      "lightWorth": "Worth KRW {amount}",
+      "consultLine": "Expert consultation allowance",
+      "consultAmount": "KRW {amount}",
+      "consultCap": "(up to KRW {amount} each)",
+      "consultNoCap": "(no per-service price cap)",
+      "signatureLimit": "Signature consultations over KRW {amount} each cannot be used with this Honey Jar.",
+      "lightListTitle": "See the {count} included Light Readings",
+      "termsRevision": "Pass rules have changed. See the notice of revised terms"
     },
     "consultChoice": {
       "title": "Choose the consultation that fits your concern",
@@ -3219,7 +3231,7 @@
       "monthlyButton": "Pay with {credits} monthly credits",
       "monthlyButtonBusy": "Activating your pass with monthly credits...",
       "monthlyButtonShort": "{credits} needed · balance short",
-      "terminationNotice": "When the usage limit is fully used, the pass ends. Buying again starts you with a new usage limit. Additional paid content is available by one-time payment or moonstones."
+      "terminationNotice": "Your pass stays active after the consultation allowance is used up, and Light Readings remain available. For more signature consultations, buy a new pass or use a one-time payment or moonstones."
     },
     "access": {
       "passAppliedContinue": "Opened with your pass."
@@ -15890,7 +15902,7 @@
       "faq": {
         "0": {
           "q": "How is the price determined?",
-          "a": "The price depends on the number of cards in your chosen spread. You can review it on the payment screen before paying."
+          "a": "Each reading costs KRW 5,000 regardless of the number of cards. You can review it on the payment screen before paying."
         },
         "1": {
           "q": "What happens if generation fails?",

@@ -65,15 +65,15 @@ const promptFeatures = [
 ];
 const freePromptFeatures = [];
 const promptFeatureCosts = {
-  saju_ai_prompt_generator: 100,
-  ziwei_ai_prompt_generator: 100,
-  astrology_ai_prompt_generator: 100,
-  vedic_ai_prompt_generator: 100,
-  sukuyo_ai_prompt_generator: 100,
+  saju_ai_prompt_generator: 50,
+  ziwei_ai_prompt_generator: 50,
+  astrology_ai_prompt_generator: 50,
+  vedic_ai_prompt_generator: 50,
+  sukuyo_ai_prompt_generator: 50,
 };
 
 for (const featureKey of promptFeatures) {
-  const expectedCost = promptFeatureCosts[featureKey] || 100;
+  const expectedCost = promptFeatureCosts[featureKey] || 50;
   // 별칭 정규화 후 canonical 가격행을 조회한다(saju_ai_prompt_generator → saju_ai_question_prompt).
   assert.equal(
     FEATURE_KEY_PRICE_TABLE[normalizePaidFeatureKey(featureKey)]?.cost,
@@ -151,8 +151,8 @@ assert.match(sajuAIGateSource, /allowedPaymentModes:\s*allowedPaymentModes/, "sa
 assert.match(sajuAIGateSource, /disablePassChoice:\s*opts\.disablePassChoice === true/, "saju prompt gate must support direct-only pass choice disabling");
 assert.match(sajuAIGateSource, /code:\s*'PAYMENT_GATE_UNAVAILABLE'/, "saju prompt gate fallback must fail safe (surface gate-unavailable, never silently charge) when the standard paid service gate module is missing");
 assert.match(sajuPromptRequestSource, /featureKey:\s*'saju_ai_prompt_generator'/, "saju question prompt must use the 1514371 feature key");
-assert.match(sajuPromptRequestSource, /cost:\s*100/, "saju prompt must charge 100 coins for the 10,000 KRW result");
-assert.match(sajuPromptRequestSource, /amountKrw:\s*10000/, "saju prompt must pass the 10,000 KRW amount");
+assert.match(sajuPromptRequestSource, /cost:\s*50/, "saju prompt must charge 50 coins for the 5,000 KRW result");
+assert.match(sajuPromptRequestSource, /amountKrw:\s*5000/, "saju prompt must pass the 5,000 KRW amount");
 // 🔴 셸의 결제 성공 검증(_cdHasVerifiedServerAccess / _cdHasVerifiedMonthlyConsumption)은 클라이언트가
 // 들고 있는 featureKey 와 서버가 정규화해 돌려준 featureKey 를 _cdServerAccessFeatureMatches 로 비교한다.
 // 서버 alias 표(PAID_FEATURE_KEY_ALIASES)에 있는 AI 프롬프트 쌍이 셸 alias 맵에 없으면, 차감이 끝난 뒤

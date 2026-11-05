@@ -7,6 +7,7 @@ import {
   resolveMonthlySpendQuota,
   resolvePremiumQuota,
 } from "./profile-limits.js";
+import { isLightFortuneFeatureKey } from "./light-fortune-catalog.js";
 
 export const PURCHASE_POLICY_VERSION = "pass-purchase-v2";
 
@@ -293,7 +294,9 @@ export function resolveFeatureAccessPolicy({
   if (!familyQuota.eligible && !canUseByPass(entitlement, price)) {
     return { ...base, reason: "PRICE_EXCEEDS_PASS_LIMIT", familyQuota };
   }
-  const monthlyQuota = resolveMonthlySpendQuota(user.profileSubscription || {}, entitlement, price);
+  const monthlyQuota = resolveMonthlySpendQuota(user.profileSubscription || {}, entitlement, price, {
+    lightFortune: isLightFortuneFeatureKey(pricing?.featureKey),
+  });
   if (monthlyQuota.applies && monthlyQuota.exceeded) {
     return { ...base, reason: "MONTHLY_PASS_LIMIT_EXCEEDED", familyQuota, monthlyQuota };
   }

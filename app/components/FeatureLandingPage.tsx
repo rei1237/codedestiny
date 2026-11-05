@@ -9,6 +9,7 @@ import { useMobileFortuneRenderTrace } from "@/app/_lib/mobile-fortune-trace";
 import { useUserAccess } from "@/app/_lib/user-session-cache";
 import { useTPick } from "@/lib/i18n/useT";
 import { describePassEligibility, type PassUsageSnapshot } from "@/lib/payment/pass-eligibility";
+import lightFortunes from "@/lib/payment/light-fortunes.generated.json";
 
 const ShareWidget = lazy(() => import("./ShareWidget"));
 
@@ -649,7 +650,7 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
   const pricePendingLabel = pick("preview.priceUnknown", "가격 확인 필요") || "";
   const passUsage = access.accessState?.entitlementSnapshot?.passUsage as PassUsageSnapshot | undefined;
   const passEligibility = isPaidFeature && paidPrice.amountKRW > 0
-    ? describePassEligibility(paidPrice.amountKRW, passUsage, locale)
+    ? describePassEligibility(paidPrice.amountKRW, passUsage, locale, { lightFortune: lightFortunes.keys.includes(paidMeta?.featureKey as string) })
     : null;
 
   const category = basePath.split("/")[1] ?? "tarot";

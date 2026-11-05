@@ -833,24 +833,24 @@
       "chipShareReward": "दायरे के बाहर एकल भुगतान",
       "plansAria": "योजना सारांश कार्ड पास करें",
       "standardName": "छोटा शहद जार",
-      "standardPrice": "KRW 9,900",
+      "standardPrice": "KRW 14,900",
       "standardLine": "KRW 5,000 तक की सामग्री",
       "standardBenefit1": "KRW 20,000 तक",
       "standardCta": "छोटा शहद जार देखें",
       "recommendedAria": "अनुशंसित योजना",
       "recommendedBadge": "अनुशंसित",
       "premiumName": "मध्यम शहद जार",
-      "premiumPrice": "KRW 29,900",
+      "premiumPrice": "KRW 34,900",
       "premiumLine": "KRW 10,000 तक की सामग्री",
       "premiumBenefit1": "KRW 60,000 तक",
       "premiumCta": "अनुशंसित योजना देखें",
       "vvipName": "बड़ा शहद जार",
-      "vvipPrice": "KRW 59,900",
+      "vvipPrice": "KRW 64,900",
       "vvipLine": "KRW 30,000 तक की सामग्री",
       "vvipBenefit1": "KRW 120,000 तक",
       "vvipCta": "बड़ा शहद जार के लाभ देखें",
       "familyName": "फ़ैमिली शहद जार",
-      "familyPrice": "KRW 149,000",
+      "familyPrice": "KRW 154,000",
       "familyLine": "पास में शामिल सभी सामग्री",
       "familyBenefit1": "KRW 350,000 तक",
       "familyCta": "फ़ैमिली शहद जार देखें",
@@ -864,8 +864,8 @@
       "step2Text": "आपकी सीमा के भीतर टैरो, ऑरेकल और साजु रीडिंग बिना भुगतान विंडो के तुरंत खुल जाती हैं।",
       "step3Label": "केवल गहरी रीडिंग का प्रति उपयोग भुगतान",
       "step3Text": "आपकी सीमा से बाहर की गहरी रीडिंग ज़रूरत पड़ने पर ही एक बार KRW भुगतान से जारी रहती हैं।",
-      "terminationNote": "उपयोग सीमा पूरी तरह इस्तेमाल हो जाने पर पास समाप्त हो जाता है। दोबारा खरीदने पर नई उपयोग सीमा से शुरुआत होती है। अतिरिक्त सशुल्क सामग्री एकमुश्त भुगतान या मूनलाइट स्टोन से उपलब्ध है।",
-      "noExpiryNote": "कोई समय-सीमा नहीं · उपयोग सीमा खत्म होने पर समाप्त"
+      "terminationNote": "परामर्श सीमा पूरी होने पर भी पास बना रहता है और लाइट रीडिंग उपलब्ध रहती है। और सिग्नेचर परामर्श के लिए नया पास खरीदें, या एकमुश्त भुगतान या मूनलाइट स्टोन का उपयोग करें।",
+      "noExpiryNote": "कोई समय-सीमा नहीं · स्वतः नवीनीकरण नहीं"
     },
     "promptHub": {
       "aria": "व्यापक भाग्य संकेत पर जाएँ",
@@ -908,11 +908,11 @@
       "aria": "फ़ुटर गाइड पास करें",
       "eyebrow": "मूनलाइट पास",
       "savingsBadge": "पास के साथ कीमत अधिकतम एक-तिहाई",
-      "title": "KRW 5,000 वाली दो रीडिंग पहले ही KRW 9,900 के पास से महंगी पड़ती हैं",
+      "title": "KRW 5,000 वाली तीन रीडिंग पहले ही KRW 14,900 के पास से महंगी पड़ती हैं",
       "desc": "आपके चुने हुए दायरे की रीडिंग आपकी उपयोग सीमा खत्म होने तक खुलती हैं; उससे महंगी रीडिंग ज़रूरत पड़ने पर अलग से भुगतान करके देखी जाती हैं। चार दायरे हैं — KRW 5,000 · 10,000 · 20,000 और पास में शामिल सभी सामग्री — इसलिए वही चुनें जिसे आप सबसे ज़्यादा देखते हैं।",
       "pointsAria": "कोर पास गाइड",
       "point1": "बिना चेकआउट के तुरंत खुलता है",
-      "point2": "कोई समय-सीमा नहीं · उपयोग सीमा खत्म होने पर समाप्त",
+      "point2": "कोई समय-सीमा नहीं · स्वतः नवीनीकरण नहीं",
       "point3": "बिना ऑटो-नवीनीकरण वाला पास",
       "mascotAria": "मूनलाइट पास के लाभ देखें · मूनलाइट पास स्टोर",
       "mascotAlt": "मूनलाइट पास लाभ की छवि",
@@ -1669,11 +1669,11 @@
       "passDesc": "कभी-कभार उपयोग के लिए एक बार का भुगतान करें, और नियमित उपयोग के लिए पास देखें। शामिल परामर्श और उपयोग की सीमा पहले जाँच लें।",
       "passPer": "· समय की कोई सीमा नहीं",
       "passBadge": "Yeongnyangi भी शामिल",
-      "passNote": "छोटे, मध्यम और बड़े हनी जार GGULGGUL Fortune पर लागू होते हैं। फैमिली हनी जार GGULGGUL Fortune और Yeongnyangi, दोनों की सशुल्क रीडिंग पर लागू होता है। पहले खरीदे गए पास पर खरीद के समय की शर्तें ही रहेंगी।",
+      "passNote": "छोटे, मध्यम और बड़े हनी जार GGULGGUL Fortune पर लागू होते हैं। फैमिली हनी जार GGULGGUL Fortune और Yeongnyangi, दोनों की सशुल्क रीडिंग पर लागू होता है। पहले खरीदे गए पास की परामर्श सीमा वही रहेगी, और लाइट रीडिंग का लाभ उपयोग में चल रहे पास पर भी लागू होगा।",
       "passCta": "अपने लिए सही पास देखें",
       "moreTitle": "Yeoni की रचनात्मक दुनिया में और देखें",
       "moreItems": "आज का भाग्य · परामर्श · रिकॉर्ड और कहानियाँ",
-      "moreClose": "कम दिखाएँ",
+      "moreClose": "समेटें",
       "searchLead": "अपनी चिंता, पद्धति या कीमत के अनुसार ज़रूरी रीडिंग खोजें।",
       "searchPlaceholder": "प्रेम, धन, नौकरी बदलना… अपनी रीडिंग खोजें",
       "filterToggle": "फ़िल्टर",
@@ -1736,7 +1736,8 @@
       "chemiCta": "See my bias chemistry",
       "brandOtherEntry": "꿀꿀 운세: Yeongnyangi साजू और टैरो →",
       "publicRecordsTitle": "10 वर्षों के अनुभव वाले साजू विशेषज्ञ Park Byung-ha (Neo) के सार्वजनिक विश्लेषण अभिलेख",
-      "publicRecordsLink": "तारीखें, मूल लेख और परिणाम की तुलना करें"
+      "publicRecordsLink": "तारीखें, मूल लेख और परिणाम की तुलना करें",
+      "passLight": "हर हनी जार में {count} लाइट रीडिंग असीमित उपयोग के साथ शामिल हैं, प्रत्येक एक बार के हिसाब से {amount} KRW मूल्य की। सिग्नेचर परामर्श शामिल नहीं हैं।"
     },
     "chatEntry": {
       "title": "अभी मन में जो सबसे बड़ा सवाल है, Yeoni और Neo से पूछें",
@@ -2260,22 +2261,22 @@
       "family": "फ़ैमिली Ggulggul Fortune और Yeongnyangi दोनों पर लागू है।",
       "scope": "छोटे, मध्यम और बड़े हनी जार Ggulggul Fortune के लिए हैं।",
       "pace": "बिना समय सीमा, अपनी गति से।",
-      "end": "सीमा पूरी होने पर समाप्त · स्वतः नवीनीकरण नहीं",
+      "end": "परामर्श सीमा पूरी होने पर भी लाइट रीडिंग उपलब्ध रहती हैं।",
       "alt": "पास पकड़े हुए Yeoni",
       "moon": "मूनलाइट पास!",
       "choose": "अपना हनी जार चुनें।",
-      "value": "एकल खरीद मूल्य पर अधिकतम उपयोग मूल्य",
+      "value": "एकल खरीद मूल्य पर उपयोग मूल्य",
       "price": "पास की कीमत",
       "cap": "प्रति सेवा {amount} KRW तक की पात्र सेवाएँ",
       "unlimitedCap": "प्रति सेवा मूल्य सीमा नहीं",
       "percent": "अधिकतम {amount}% बचत",
       "saving": "अधिकतम {amount} KRW बचत",
-      "compare": "तुलना पात्र सेवाओं पर पूरी सीमा उपयोग करने पर आधारित है।",
+      "compare": "प्रत्येक लाइट रीडिंग एक बार और पूरी परामर्श सीमा उपयोग करने पर एकल मूल्य से तुलना।",
       "terms": "पात्रता, अपवादों और शेष सीमा के अधीन।",
       "site": "Ggulggul Fortune पर उपयोग करें",
       "both": "Ggulggul Fortune और Yeongnyangi दोनों के लिए",
       "cta": "{name} पास देखें",
-      "validity": "निश्चित अवधि नहीं · सीमा पूरी होने पर समाप्त · स्वतः नवीनीकरण नहीं",
+      "validity": "निश्चित अवधि नहीं · स्वतः नवीनीकरण नहीं",
       "legend": "कौन सा हनी जार चुनेंगे?",
       "hint": "कीमत और लाभ देखने के लिए चित्र चुनें।",
       "select": "चुनें",
@@ -2285,7 +2286,18 @@
       "fishLink": "Yeongnyangi पास देखें →",
       "compactTitle": "हनी जार पास",
       "conditions": "दायरा और उपयोग की शर्तें",
-      "otherServices": "अन्य सेवाओं के पास देखें"
+      "otherServices": "अन्य सेवाओं के पास देखें",
+      "lightBanner": "एक छोटा हनी जार, और सभी {count} लाइट रीडिंग खुल जाती हैं।",
+      "lightBannerSub": "सिग्नेचर परामर्श को छोड़कर लाइट रीडिंग बिना सीमा के उपयोग करें। मध्यम, बड़े और फैमिली जार में भी यही शामिल है।",
+      "lightLine": "{count} लाइट रीडिंग, असीमित उपयोग",
+      "lightWorth": "{amount} KRW मूल्य",
+      "consultLine": "विशेषज्ञ परामर्श सीमा",
+      "consultAmount": "{amount} KRW",
+      "consultCap": "(प्रति सेवा {amount} KRW तक)",
+      "consultNoCap": "(प्रति सेवा मूल्य सीमा नहीं)",
+      "signatureLimit": "प्रति सेवा {amount} KRW से अधिक के सिग्नेचर परामर्श इस जार से उपलब्ध नहीं हैं।",
+      "lightListTitle": "शामिल {count} लाइट रीडिंग देखें",
+      "termsRevision": "पास के नियम बदल गए हैं। शर्तों में बदलाव की सूचना देखें"
     },
     "consultChoice": {
       "title": "अपनी चिंता के लिए उपयुक्त परामर्श चुनें",
@@ -3219,7 +3231,7 @@
       "monthlyButton": "{credits} मासिक क्रेडिट से भुगतान करें",
       "monthlyButtonBusy": "मासिक क्रेडिट से पास सक्रिय किया जा रहा है...",
       "monthlyButtonShort": "{credits} चाहिए · शेष कम है",
-      "terminationNotice": "उपयोग सीमा पूरी तरह इस्तेमाल हो जाने पर पास समाप्त हो जाता है। दोबारा खरीदने पर नई उपयोग सीमा से शुरुआत होती है। अतिरिक्त सशुल्क सामग्री एकमुश्त भुगतान या मूनलाइट स्टोन से उपलब्ध है।"
+      "terminationNotice": "परामर्श सीमा पूरी होने पर भी पास बना रहता है और लाइट रीडिंग उपलब्ध रहती है। और सिग्नेचर परामर्श के लिए नया पास खरीदें, या एकमुश्त भुगतान या मूनलाइट स्टोन का उपयोग करें।"
     },
     "access": {
       "passAppliedContinue": "आपके पास के साथ खोला गया।"
@@ -14110,10 +14122,10 @@
       }
     },
     "rpt_tTestCard": {
-      "fallbackTitle": "अपना लॉजिक तापमान देखें, जहाँ तर्क भावना से पहले प्रतिक्रिया देता है।",
-      "tagline": "The Frozen Logic: साजू पर आधारित एक मज़ेदार परीक्षण कि आपकी सोच और निर्णय का ढंग T के कितना क़रीब है, जो पूरी साजू रीडिंग, आजीवन एक्सेस में शामिल है।",
-      "premiumIntro": "एक्सट्रीम-T टेस्ट आपके व्यक्तित्व को तय नहीं करता, बल्कि दिखाता है कि आपका निर्णय तर्क की ओर कितना झुकता है।",
-      "fallbackCta": "जाँच शुरू करें",
+      "fallbackTitle": "Check your logic temperature, where reason responds before emotion.",
+      "tagline": "The Frozen Logic: a playful Saju-based test of how close your thinking and judgment pattern is to Thinking (T), included in the Saju full reading, lifetime access.",
+      "premiumIntro": "The Extreme-T Test doesn't define your personality. It reflects how much your judgment leans toward reason.",
+      "fallbackCta": "Run the Diagnosis",
       "feats": {
         "0": "Measures the metal element, authority, expression and climate in your chart to produce a T score of 0–100 and a tier",
         "1": "Shows four stats: metal hardware, forced-control instinct, blunt-fact debugging and the cold-dry formation",
@@ -14133,7 +14145,7 @@
         "3": "Six summary chips plus today’s mission"
       },
       "premiumOutcomes": {
-        "0": "यह रीडिंग पूरी साजू रीडिंग, आजीवन एक्सेस में शामिल है।",
+        "0": "This reading is included in the Saju full reading, lifetime access.",
         "1": "[Relationship Circuit], [Love Algorithm], [Reality Processing], [Saju-based Extreme-T Reading] and [Debugging Prescription] open after a separate unlock.",
         "2": "The test is for reference and fun."
       },
@@ -14166,8 +14178,8 @@
           "a": "No. You do not answer questionnaire items. It scores the metal element, authority, expression and climate in your natal chart, for fun."
         },
         "1": {
-          "q": "इसमें क्या-क्या दिखता है?",
-          "a": "T स्कोर, टियर, टाइप का नाम, चार स्टैट, [Strength Scan], [Fatal Bug], आज का मिशन और सारांश कार्ड, सब पूरी साजू रीडिंग, आजीवन एक्सेस में खुलते हैं।"
+          "q": "What does it cover?",
+          "a": "The T score, tier, type name, four stats, [Strength Scan], [Fatal Bug], today's mission and the summary card all open with the Saju full reading, lifetime access."
         },
         "2": {
           "q": "Why can’t I see the relationship sections?",
@@ -14176,10 +14188,10 @@
       }
     },
     "rpt_hormone_vibe_section": {
-      "fallbackTitle": "देखें कि आपका आकर्षण Teto टाइप की तरह ज़ोर से खींचता है या Egen टाइप की तरह धीरे से घुलता है।",
-      "tagline": "साजू पर आधारित विश्लेषण जो आपकी आकर्षण ऊर्जा को Teto और Egen शैलियों में बाँटता है, और पूरी साजू रीडिंग, आजीवन एक्सेस में शामिल है।",
-      "premiumIntro": "Teto/Egen विश्लेषण किसी को ऊँचा या नीचा नहीं बताता, बल्कि बताता है कि आपका आकर्षण लोगों को किस तरह खींचता है।",
-      "fallbackCta": "अभी देखें",
+      "fallbackTitle": "See whether your charm pulls strongly like a Teto type or seeps in gently like an Egen type.",
+      "tagline": "An analysis based on your Saju that splits your charm energy into Teto and Egen styles, included in the Saju full reading, lifetime access.",
+      "premiumIntro": "The Teto/Egen analysis doesn't rank one above the other. It lays out how your charm draws people in.",
+      "fallbackCta": "Check Now",
       "feats": {
         "0": "Tallies the Ten Gods across all seven positions except the day stem",
         "1": "Groups the Ten Gods into peers, output, resource, authority and wealth",
@@ -14195,10 +14207,10 @@
         "0": "Teto and Egen scores with a type reading",
         "1": "Ten Gods tallied across seven positions excluding the day stem",
         "2": "Weightings for the five groups: peers, output, resource, authority, wealth",
-        "3": "पूरी साजू रीडिंग, आजीवन एक्सेस में शामिल"
+        "3": "Included in the Saju full reading, lifetime access"
       },
       "premiumOutcomes": {
-        "0": "यह रीडिंग पूरी साजू रीडिंग, आजीवन एक्सेस में शामिल है।",
+        "0": "This reading is included in the Saju full reading, lifetime access.",
         "1": "The analysis is for reference and entertainment.",
         "2": "Your charm type can vary by situation."
       },
@@ -14235,16 +14247,16 @@
           "a": "It uses only the Ten Gods in your natal chart, so the same birth date and time always gives the same result."
         },
         "2": {
-          "q": "क्या इसके लिए अलग से भुगतान करना होगा?",
-          "a": "अलग से कोई भुगतान नहीं है। यह पूरी साजू रीडिंग, आजीवन एक्सेस के साथ ही खुलता है।"
+          "q": "Do I pay for it separately?",
+          "a": "There is no separate payment. It opens together with the Saju full reading, lifetime access."
         }
       }
     },
     "rpt_lottoCard": {
-      "fallbackTitle": "अपनी साजू के पंच तत्व और अंकों के प्रतीकों से निकले आज के भाग्यशाली अंक पाएँ।",
-      "tagline": "प्रतीकात्मक अंकों की सुविधा जो आपके जन्म चार्ट, आज के दिन और दशा चक्र से पाँच संयोजन निकालती है, और पूरी साजू रीडिंग, आजीवन एक्सेस में शामिल है।",
-      "premiumIntro": "साजू लोट्टो जीत की भविष्यवाणी नहीं करता, बल्कि आज के भाग्य से मेल खाते प्रतीकात्मक अंक निकालता है।",
-      "fallbackCta": "अंक निकालें",
+      "fallbackTitle": "Get today's lucky numbers drawn from your Saju's Five Elements and number symbolism.",
+      "tagline": "A symbolic number feature that seeds five combinations from your natal chart plus today's day pillar and luck cycle, included in the Saju full reading, lifetime access.",
+      "premiumIntro": "The Saju Lotto doesn't predict a win. It draws symbolic numbers that fit today's fortune.",
+      "fallbackCta": "Draw Numbers",
       "feats": {
         "0": "Seeds the numbers from your natal chart plus today’s day pillar, luck cycle and round counter",
         "1": "Builds five games at once and labels them flow, stable, reversal, instinct and balance",
@@ -14260,10 +14272,10 @@
         "0": "Numbers seeded from your chart, today’s day pillar and luck cycle",
         "1": "Five games at once, each with a concept name",
         "2": "Redraw to raise the round counter and get a new set",
-        "3": "पूरी साजू रीडिंग, आजीवन एक्सेस में शामिल"
+        "3": "Included in the Saju full reading, lifetime access"
       },
       "premiumOutcomes": {
-        "0": "यह रीडिंग पूरी साजू रीडिंग, आजीवन एक्सेस में शामिल है।",
+        "0": "This reading is included in the Saju full reading, lifetime access.",
         "1": "This is fun content that doesn't guarantee a win.",
         "2": "Please judge an actual purchase carefully."
       },
@@ -14301,15 +14313,15 @@
         },
         "2": {
           "q": "Can I save or share the number card?",
-          "a": "अंक निकालने में सेव या शेयर की सुविधा नहीं है। आप उन्हें सीधे स्क्रीन पर देखते हैं।"
+          "a": "The number draw has no save or share feature. You read it directly on screen."
         }
       }
     },
     "rpt_sajuFourCutCard": {
-      "fallbackTitle": "अपने साजू डेटा को फ़ोटो-बूथ अंदाज़ में दोबारा रचने वाली चार-फ़्रेम पट्टी बनाएँ।",
-      "tagline": "सीधी लेकिन अपनी-सी लगने वाली पंक्तियाँ चार फ़्रेम में, जिन्हें सेव और शेयर किया जा सकता है, और जो पूरी साजू रीडिंग, आजीवन एक्सेस में शामिल हैं।",
-      "premiumIntro": "साजू फोर-कट भाग्य को निश्चित नहीं बताता, बल्कि आपकी साजू को फ़ोटो-बूथ शैली के एक कार्ड के रूप में आनंद लेने देता है।",
-      "fallbackCta": "फोर-कट बनाएँ",
+      "fallbackTitle": "Make a four-cut strip that reinterprets your Saju data in a photo-booth mood.",
+      "tagline": "Blunt but relatable lines packed into four cuts, ready to save and share, included in the Saju full reading, lifetime access.",
+      "premiumIntro": "The Saju Four-Cut doesn't state your fortune definitively. It lets you enjoy your Saju as a single photo-booth-style card.",
+      "fallbackCta": "Make a Four-Cut",
       "feats": {
         "0": "Builds four-cut lines from today’s day pillar energy",
         "1": "Lets you switch between four versions: form check, reply warmth, routine save and impulse lock",
@@ -14329,7 +14341,7 @@
         "3": "Image save plus KakaoTalk, device share or link copy"
       },
       "premiumOutcomes": {
-        "0": "यह रीडिंग पूरी साजू रीडिंग, आजीवन एक्सेस में शामिल है।",
+        "0": "This reading is included in the Saju full reading, lifetime access.",
         "1": "The sentences are for reference and entertainment.",
         "2": "The existing service standard applies."
       },
@@ -14366,16 +14378,16 @@
           "a": "Yes. You can save the four cuts as an image with your stickers in place."
         },
         "2": {
-          "q": "क्या इसके लिए अलग से भुगतान करना होगा?",
-          "a": "अलग से कोई भुगतान नहीं है। यह पूरी साजू रीडिंग, आजीवन एक्सेस के साथ ही खुलता है।"
+          "q": "Do I pay for it separately?",
+          "a": "There is no separate payment. It opens together with the Saju full reading, lifetime access."
         }
       }
     },
     "rpt_dopamineCard": {
-      "fallbackTitle": "देखें कि आप नई उत्तेजना के पीछे भागते हैं या स्थिरता को ज़्यादा चाहते हैं।",
-      "tagline": "रिपोर्ट जो आपकी साजू के प्रवाह से उत्तेजना की प्रवृत्ति को स्कोर और ग्रेड में बदलती है और 8-अक्ष रडार, रुचि के क्षेत्र व आज का मिशन दिखाती है; यह पूरी साजू रीडिंग, आजीवन एक्सेस में शामिल है।",
+      "fallbackTitle": "See whether you chase new stimulation or love stability more.",
+      "tagline": "A report that converts your stimulation-seeking tendency into a score and grade from your Saju flow, with an 8-axis stimulation radar, absorption areas and today's mission, included in the Saju full reading, lifetime access.",
       "premiumIntro": "This doesn't diagnose addiction -- it's a fun read, through your Saju flow, of where you draw energy from and where you burn out quickly.",
-      "fallbackCta": "अपना उत्तेजना स्कोर देखें",
+      "fallbackCta": "See Your Stimulation Score",
       "feats": {
         "0": "Converts your stimulation-seeking tendency into a 0–100 score, an SSS–D grade and a type name",
         "1": "Draws an eight-axis stimulation radar: new experiences, social media, shopping, gaming, study, travel, romance and exercise",
@@ -14396,7 +14408,7 @@
         "4": "Save and share the result card"
       },
       "premiumOutcomes": {
-        "0": "यह रीडिंग पूरी साजू रीडिंग, आजीवन एक्सेस में शामिल है।",
+        "0": "This reading is included in the Saju full reading, lifetime access.",
         "1": "This is content for temperament reference and entertainment.",
         "2": "The existing service standard applies."
       },
@@ -15890,7 +15902,7 @@
       "faq": {
         "0": {
           "q": "How is the price determined?",
-          "a": "The price depends on the number of cards in your chosen spread. You can review it on the payment screen before paying."
+          "a": "Each reading costs KRW 5,000 regardless of the number of cards. You can review it on the payment screen before paying."
         },
         "1": {
           "q": "What happens if generation fails?",
@@ -16399,7 +16411,7 @@
       "badge": "Free compatibility reading"
     },
     "saju": {
-      "tagline": "आपके साजू के आठ अक्षर निकालकर जन्म चार्ट, पंच तत्व संतुलन और एक पंक्ति का स्वभाव मुफ़्त दिखाता है। दस देव और दशा चक्र की व्याख्या सशुल्क पूर्ण साजू रीडिंग में आगे देखी जा सकती है।",
+      "tagline": "Calculates the eight characters of your Saju and shows your natal chart, Five Elements balance and a one-line tendency for free. Ten Gods and luck-cycle readings continue in the full paid Saju reading.",
       "feats": [
         "When you can't put your own disposition into words",
         "When you want to see the broad arc of your life once",
@@ -16416,7 +16428,7 @@
         "How does the broad arc of my life run?",
         "What kind of period am I in now?"
       ],
-      "fallbackCta": "अपना मुफ़्त मान्सेर्योक चार्ट देखें",
+      "fallbackCta": "See your free Manseryeok chart",
       "headline": "Explore the broad patterns of your life through your birth date and time.",
       "badge": "Start for free"
     },

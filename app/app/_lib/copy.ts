@@ -85,7 +85,7 @@ export interface AppShellCopy {
   purchasingButton: string;
   buyButton: string;
   footerNote: string;
-  /** 이용 한도를 모두 쓰면 이용권이 종료된다는 고지(2026-10-11 기간 없는 이용권). */
+  /** 상담 한도를 다 써도 이용권은 유지된다는 고지. */
   passTerminationNote: string;
 }
 
@@ -157,8 +157,8 @@ const APP_SHELL_COPY_EN: AppShellCopy = {
   verifyingButton: "Verifying",
   purchasingButton: "Processing",
   buyButton: "Buy",
-  footerNote: "The pass has no time limit: use it within each tier's usage limit, and it ends when the limit is fully used. It does not auto-renew. Features beyond its coverage can be used via one-time payment or moonstones. Payments and refunds follow Google Play policy and e-commerce law.",
-  passTerminationNote: "When the usage limit is fully used, the pass ends. Buying again starts a new usage limit.",
+  footerNote: "The pass has no time limit: consultations use each tier's allowance, and Light Readings stay available after it is used up. It does not auto-renew. Features beyond its coverage can be used via one-time payment or moonstones. Payments and refunds follow Google Play policy and e-commerce law.",
+  passTerminationNote: "Even after the consultation allowance is used up, the pass stays active and Light Readings remain available. Buying again starts a new consultation allowance.",
 };
 
 const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
@@ -230,8 +230,8 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     verifyingButton: "확인 중",
     purchasingButton: "결제 중",
     buyButton: "구매",
-    footerNote: "이용권은 별도 이용 기간 없이 등급별 이용 한도 안에서 이용하며, 한도를 모두 사용하면 종료됩니다. 자동 갱신되지 않습니다. 커버 범위를 넘는 기능은 단건 결제 또는 월정석으로 이용할 수 있습니다. 결제·환불은 Google Play 정책과 전자상거래법에 따릅니다.",
-    passTerminationNote: "이용 한도를 모두 사용하면 이용권이 종료됩니다. 다시 구매하면 새 이용 한도로 시작합니다.",
+    footerNote: "이용권은 별도 이용 기간 없이 이용하며, 상담은 등급별 이용 한도 안에서 이용합니다. 한도를 다 써도 이용권은 유지되고 라이트 운세를 계속 이용할 수 있습니다. 자동 갱신되지 않습니다. 커버 범위를 넘는 기능은 단건 결제 또는 월정석으로 이용할 수 있습니다. 결제·환불은 Google Play 정책과 전자상거래법에 따릅니다.",
+    passTerminationNote: "상담 한도를 다 써도 이용권은 유지되고 라이트 운세를 계속 이용할 수 있습니다. 다시 구매하면 새 상담 한도로 시작합니다.",
   },
   ja: {
     appHomeAriaLabel: "꿀꿀운세 アプリホーム",
@@ -301,8 +301,8 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     verifyingButton: "確認中",
     purchasingButton: "決済中",
     buyButton: "購入",
-    footerNote: "利用券に利用期間の定めはなく、等級別の利用上限の範囲内でご利用いただけ、上限を使い切ると終了します。自動更新はされません。適用範囲を超える機能は都度決済または月精石で利用できます。決済・返金はGoogle Playポリシーおよび電子商取引法に従います。",
-    passTerminationNote: "利用上限を使い切るとパスは終了します。再度購入すると新しい利用上限で始まります。",
+    footerNote: "利用券に利用期間の定めはなく、相談は等級別の上限の範囲内でご利用いただけます。上限を使い切ってもパスは維持され、ライト占いは引き続き利用できます。自動更新はされません。適用範囲を超える機能は都度決済または月精石で利用できます。決済・返金はGoogle Playポリシーおよび電子商取引法に従います。",
+    passTerminationNote: "相談上限を使い切ってもパスは維持され、ライト占いは引き続き利用できます。再度購入すると新しい相談上限で始まります。",
   },
   "zh-CN": {
     appHomeAriaLabel: "꿀꿀운세 应用主页",
@@ -372,8 +372,8 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     verifyingButton: "确认中",
     purchasingButton: "支付中",
     buyButton: "购买",
-    footerNote: "使用权不设使用期限,在各等级的使用额度内使用,额度用完即结束。不会自动续订。超出覆盖范围的功能可通过单次支付或月精石使用。支付·退款遵循Google Play政策及电子商务法。",
-    passTerminationNote: "使用额度用完后，通行证即结束。重新购买将以新的使用额度开始。",
+    footerNote: "使用权不设使用期限,咨询在各等级的额度内使用。额度用完后,使用权仍然保留,轻量运势可继续使用。不会自动续订。超出覆盖范围的功能可通过单次支付或月精石使用。支付·退款遵循Google Play政策及电子商务法。",
+    passTerminationNote: "咨询额度用完后，通行证仍然保留，轻量运势可继续使用。重新购买将以新的咨询额度开始。",
   },
   "zh-TW": {
     appHomeAriaLabel: "꿀꿀운세 應用程式首頁",
@@ -443,8 +443,8 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     verifyingButton: "確認中",
     purchasingButton: "付款中",
     buyButton: "購買",
-    footerNote: "使用權不設使用期限,在各等級的使用額度內使用,額度用完即結束。不會自動續訂。超出涵蓋範圍的功能可透過單次付款或月精石使用。付款·退款遵循Google Play政策及電子商務法。",
-    passTerminationNote: "使用額度用完後，通行證即結束。重新購買將以新的使用額度開始。",
+    footerNote: "使用權不設使用期限,諮詢在各等級的額度內使用。額度用完後,使用權仍然保留,輕量運勢可繼續使用。不會自動續訂。超出涵蓋範圍的功能可透過單次付款或月精石使用。付款·退款遵循Google Play政策及電子商務法。",
+    passTerminationNote: "諮詢額度用完後，通行證仍然保留，輕量運勢可繼續使用。重新購買將以新的諮詢額度開始。",
   },
   vi: {
     appHomeAriaLabel: "Trang chủ ứng dụng 꿀꿀운세",
@@ -514,8 +514,8 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     verifyingButton: "Đang xác minh",
     purchasingButton: "Đang xử lý",
     buyButton: "Mua",
-    footerNote: "Vé sử dụng không giới hạn thời gian, được dùng trong hạn mức sử dụng của từng hạng và kết thúc khi dùng hết hạn mức. Không tự động gia hạn. Các tính năng vượt phạm vi bao phủ có thể dùng qua thanh toán một lần hoặc đá trăng. Thanh toán·hoàn tiền tuân theo chính sách Google Play và luật thương mại điện tử.",
-    passTerminationNote: "Khi dùng hết hạn mức sử dụng, vé sẽ kết thúc. Mua lại sẽ bắt đầu với hạn mức sử dụng mới.",
+    footerNote: "Vé sử dụng không giới hạn thời gian, tư vấn được dùng trong hạn mức của từng hạng. Khi dùng hết hạn mức, vé vẫn còn hiệu lực và bạn vẫn dùng được bài xem nhẹ. Không tự động gia hạn. Các tính năng vượt phạm vi bao phủ có thể dùng qua thanh toán một lần hoặc đá trăng. Thanh toán·hoàn tiền tuân theo chính sách Google Play và luật thương mại điện tử.",
+    passTerminationNote: "Khi dùng hết hạn mức tư vấn, vé vẫn còn hiệu lực và bạn vẫn dùng được bài xem nhẹ. Mua lại sẽ bắt đầu với hạn mức tư vấn mới.",
   },
   hi: {
     appHomeAriaLabel: "꿀꿀운세 ऐप होम",
@@ -585,8 +585,8 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     verifyingButton: "सत्यापित हो रहा है",
     purchasingButton: "भुगतान हो रहा है",
     buyButton: "खरीदें",
-    footerNote: "पास की कोई समय सीमा नहीं है; यह हर स्तर की उपयोग सीमा के भीतर काम करता है और सीमा पूरी इस्तेमाल होने पर समाप्त हो जाता है। यह स्वतः नवीनीकृत नहीं होता। कवरेज से परे सुविधाओं का उपयोग एकमुश्त भुगतान या मूनस्टोन से किया जा सकता है। भुगतान·धनवापसी Google Play नीति और ई-कॉमर्स कानून का पालन करते हैं।",
-    passTerminationNote: "उपयोग सीमा पूरी तरह इस्तेमाल होने पर पास समाप्त हो जाता है। दोबारा खरीदने पर नई उपयोग सीमा से शुरुआत होती है।",
+    footerNote: "पास की कोई समय सीमा नहीं है; परामर्श हर स्तर की सीमा के भीतर होते हैं। सीमा खत्म होने पर भी पास बना रहता है और लाइट रीडिंग का उपयोग जारी रहता है। यह स्वतः नवीनीकृत नहीं होता। कवरेज से परे सुविधाओं का उपयोग एकमुश्त भुगतान या मूनस्टोन से किया जा सकता है। भुगतान·धनवापसी Google Play नीति और ई-कॉमर्स कानून का पालन करते हैं।",
+    passTerminationNote: "परामर्श सीमा खत्म होने पर भी पास बना रहता है और लाइट रीडिंग का उपयोग जारी रहता है। दोबारा खरीदने पर नई परामर्श सीमा शुरू होती है।",
   },
   es: {
     appHomeAriaLabel: "Inicio de la app 꿀꿀운세",
@@ -656,8 +656,8 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     verifyingButton: "Verificando",
     purchasingButton: "Procesando",
     buyButton: "Comprar",
-    footerNote: "El pase no tiene límite de tiempo: se usa dentro del límite de uso de cada nivel y termina cuando ese límite se agota. No se renueva automáticamente. Las funciones fuera de su cobertura se pueden usar mediante pago único o piedras lunares. Los pagos y reembolsos siguen la política de Google Play y la ley de comercio electrónico.",
-    passTerminationNote: "Cuando se agota el límite de uso, el pase termina. Si vuelves a comprarlo, empiezas con un nuevo límite de uso.",
+    footerNote: "El pase no tiene límite de tiempo: las consultas se usan dentro del límite de cada nivel. Si ese límite se agota, el pase sigue activo y puedes seguir usando las Lecturas Ligeras. No se renueva automáticamente. Las funciones fuera de su cobertura se pueden usar mediante pago único o piedras lunares. Los pagos y reembolsos siguen la política de Google Play y la ley de comercio electrónico.",
+    passTerminationNote: "Aunque agotes el límite de consultas, el pase sigue activo y puedes seguir usando las Lecturas Ligeras. Si vuelves a comprarlo, empiezas con un nuevo límite de consultas.",
   },
   fr: {
     appHomeAriaLabel: "Accueil de l'app 꿀꿀운세",
@@ -727,8 +727,8 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     verifyingButton: "Vérification",
     purchasingButton: "Traitement",
     buyButton: "Acheter",
-    footerNote: "Le pass n'a pas de limite de durée : il s'utilise dans la limite d'utilisation de chaque niveau et prend fin une fois cette limite épuisée. Il ne se renouvelle pas automatiquement. Les fonctionnalités hors de sa couverture peuvent être utilisées via un paiement unique ou des pierres de lune. Les paiements et remboursements suivent la politique de Google Play et le droit du commerce électronique.",
-    passTerminationNote: "Lorsque la limite d'utilisation est entièrement utilisée, le pass prend fin. Un nouvel achat repart avec une nouvelle limite d'utilisation.",
+    footerNote: "Le pass n'a pas de limite de durée : les consultations s'utilisent dans la limite de chaque niveau. Une fois cette limite épuisée, le pass reste actif et les Lectures Légères restent disponibles. Il ne se renouvelle pas automatiquement. Les fonctionnalités hors de sa couverture peuvent être utilisées via un paiement unique ou des pierres de lune. Les paiements et remboursements suivent la politique de Google Play et le droit du commerce électronique.",
+    passTerminationNote: "Même une fois la limite de consultations épuisée, le pass reste actif et les Lectures Légères restent disponibles. Un nouvel achat repart avec une nouvelle limite de consultations.",
   },
   de: {
     appHomeAriaLabel: "꿀꿀운세 App-Startseite",
@@ -798,8 +798,8 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     verifyingButton: "Wird geprüft",
     purchasingButton: "Wird verarbeitet",
     buyButton: "Kaufen",
-    footerNote: "Der Pass hat keine Laufzeitbegrenzung: Er wird im Rahmen des Nutzungslimits der jeweiligen Stufe genutzt und endet, wenn das Limit aufgebraucht ist. Er verlängert sich nicht automatisch. Funktionen außerhalb seiner Abdeckung können über Einmalzahlung oder Mondsteine genutzt werden. Zahlungen und Rückerstattungen folgen der Google-Play-Richtlinie und dem E-Commerce-Recht.",
-    passTerminationNote: "Wenn das Nutzungslimit aufgebraucht ist, endet der Pass. Ein erneuter Kauf beginnt mit einem neuen Nutzungslimit.",
+    footerNote: "Der Pass hat keine Laufzeitbegrenzung: Beratungen werden im Rahmen des Limits der jeweiligen Stufe genutzt. Ist das Limit aufgebraucht, bleibt der Pass aktiv und die leichten Deutungen bleiben verfügbar. Er verlängert sich nicht automatisch. Funktionen außerhalb seiner Abdeckung können über Einmalzahlung oder Mondsteine genutzt werden. Zahlungen und Rückerstattungen folgen der Google-Play-Richtlinie und dem E-Commerce-Recht.",
+    passTerminationNote: "Auch wenn das Beratungslimit aufgebraucht ist, bleibt der Pass aktiv und die leichten Deutungen bleiben verfügbar. Ein erneuter Kauf beginnt mit einem neuen Beratungslimit.",
   },
   nl: {
     appHomeAriaLabel: "꿀꿀운세 app-startpagina",
@@ -869,8 +869,8 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     verifyingButton: "Verifiëren",
     purchasingButton: "Verwerken",
     buyButton: "Kopen",
-    footerNote: "De pas heeft geen tijdslimiet: je gebruikt hem binnen de gebruikslimiet van elk niveau en hij eindigt zodra die limiet op is. Wordt niet automatisch verlengd. Functies buiten de dekking kunnen worden gebruikt via eenmalige betaling of maanstenen. Betalingen en terugbetalingen volgen het Google Play-beleid en de e-commercewetgeving.",
-    passTerminationNote: "Zodra de gebruikslimiet volledig is gebruikt, eindigt de pas. Bij een nieuwe aankoop begin je met een nieuwe gebruikslimiet.",
+    footerNote: "De pas heeft geen tijdslimiet: consultaties gebruik je binnen de limiet van elk niveau. Is die limiet op, dan blijft de pas actief en kun je lichte duidingen blijven gebruiken. Wordt niet automatisch verlengd. Functies buiten de dekking kunnen worden gebruikt via eenmalige betaling of maanstenen. Betalingen en terugbetalingen volgen het Google Play-beleid en de e-commercewetgeving.",
+    passTerminationNote: "Ook als de consultatielimiet op is, blijft de pas actief en kun je lichte duidingen blijven gebruiken. Bij een nieuwe aankoop begin je met een nieuwe consultatielimiet.",
   },
   ms: {
     appHomeAriaLabel: "Laman utama aplikasi 꿀꿀운세",
@@ -940,8 +940,8 @@ const APP_SHELL_COPY: Partial<Record<LoadingLocale, AppShellCopy>> = {
     verifyingButton: "Mengesahkan",
     purchasingButton: "Memproses",
     buyButton: "Beli",
-    footerNote: "Pas tiada had masa: ia digunakan dalam had penggunaan setiap peringkat dan tamat apabila had itu habis digunakan. Ia tidak diperbaharui secara automatik. Ciri di luar liputannya boleh digunakan melalui pembayaran sekali atau batu bulan. Pembayaran·bayaran balik mematuhi dasar Google Play dan undang-undang e-dagang.",
-    passTerminationNote: "Apabila had penggunaan habis digunakan, pas akan tamat. Membeli semula akan bermula dengan had penggunaan baharu.",
+    footerNote: "Pas tiada had masa: perundingan digunakan dalam had setiap peringkat. Apabila had itu habis, pas kekal aktif dan Bacaan Ringan masih boleh digunakan. Ia tidak diperbaharui secara automatik. Ciri di luar liputannya boleh digunakan melalui pembayaran sekali atau batu bulan. Pembayaran·bayaran balik mematuhi dasar Google Play dan undang-undang e-dagang.",
+    passTerminationNote: "Walaupun had perundingan habis, pas kekal aktif dan Bacaan Ringan masih boleh digunakan. Membeli semula akan bermula dengan had perundingan baharu.",
   },
 };
 

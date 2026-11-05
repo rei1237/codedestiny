@@ -1527,18 +1527,18 @@
     "ms": "How is the price determined?"
   },
   "featureMarketing.tarot_prompt_maker.faq.0.a": {
-    "ko": "선택한 스프레드의 카드 수에 따라 결제 금액이 정해지고, 결제 화면에서 먼저 확인할 수 있습니다.",
-    "en": "The price depends on the number of cards in your chosen spread. You can review it on the payment screen before paying.",
-    "ja": "選んだスプレッドのカード枚数で決済額が決まり、支払い前に決済画面で確認できます。",
-    "zh-CN": "价格根据所选牌阵的卡牌数量确定，付款前可先在支付页面确认。",
-    "zh-TW": "價格根據所選牌陣的卡牌數量確定，付款前可先在付款頁面確認。",
-    "vi": "The price depends on the number of cards in your chosen spread. You can review it on the payment screen before paying.",
-    "hi": "The price depends on the number of cards in your chosen spread. You can review it on the payment screen before paying.",
-    "es": "The price depends on the number of cards in your chosen spread. You can review it on the payment screen before paying.",
-    "fr": "The price depends on the number of cards in your chosen spread. You can review it on the payment screen before paying.",
-    "de": "The price depends on the number of cards in your chosen spread. You can review it on the payment screen before paying.",
-    "nl": "The price depends on the number of cards in your chosen spread. You can review it on the payment screen before paying.",
-    "ms": "The price depends on the number of cards in your chosen spread. You can review it on the payment screen before paying."
+    "ko": "스프레드의 카드 수와 관계없이 1회 5,000원이며, 결제 화면에서 먼저 확인할 수 있습니다.",
+    "en": "Each reading costs KRW 5,000 regardless of the number of cards. You can review it on the payment screen before paying.",
+    "ja": "スプレッドの枚数に関わらず1回5,000ウォンで、支払い前に決済画面で確認できます。",
+    "zh-CN": "无论牌阵卡牌数量多少，每次均为 5,000 韩元，付款前可先在支付页面确认。",
+    "zh-TW": "無論牌陣卡牌數量多少，每次皆為 5,000 韓元，付款前可先在付款頁面確認。",
+    "vi": "Each reading costs KRW 5,000 regardless of the number of cards. You can review it on the payment screen before paying.",
+    "hi": "Each reading costs KRW 5,000 regardless of the number of cards. You can review it on the payment screen before paying.",
+    "es": "Each reading costs KRW 5,000 regardless of the number of cards. You can review it on the payment screen before paying.",
+    "fr": "Each reading costs KRW 5,000 regardless of the number of cards. You can review it on the payment screen before paying.",
+    "de": "Each reading costs KRW 5,000 regardless of the number of cards. You can review it on the payment screen before paying.",
+    "nl": "Each reading costs KRW 5,000 regardless of the number of cards. You can review it on the payment screen before paying.",
+    "ms": "Each reading costs KRW 5,000 regardless of the number of cards. You can review it on the payment screen before paying."
   },
   "featureMarketing.tarot_celestial_harmony.premiumIntro": {
     "ko": "천체의 선율은 한 장의 답을 주기보다, 마음의 여러 축이 지금 어떻게 놓여 있는지를 행성 자리를 따라 펼쳐 보입니다.",

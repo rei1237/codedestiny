@@ -148,7 +148,7 @@ test.each(services)("%s / %s: 소진 뒤 실제 서버 증빙 조회로 같은 �
   f.db.rows[0].profileSubscription.monthlySpendCoin = 3500 - f.cost;
   await consumePassForFeature({ db: f.db, user: f.user, entitlement: resolveCanonicalEntitlement(f.user),
     userId: USER, featureKey, requestId: f.saved.idempotencyKey, coinCost: f.cost });
-  expect(resolveCanonicalEntitlement(f.db.rows[0]).isActive).toBe(false);
+  expect(resolveCanonicalEntitlement(f.db.rows[0]).isActive).toBe(true);
   const query = filter => chain(f.db.rows.find(row => matches(row, filter)) || null);
   Object.assign(f.context, { mongoose, SERVICE_KEY: route, objectOf: value => value || {},
     isObjectIdLike: value => mongoose.Types.ObjectId.isValid(value), normalizeConsultationType: value => value,
