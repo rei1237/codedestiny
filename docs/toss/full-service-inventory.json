@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "d7024134f31750b9a820f41a19201d44504d6ab9",
+  "sourceCommit": "4b593efee9b653120c10403f87d304b4487e4e00",
   "scope": "Source discovery plus explicitly verified aliases; not a count of implemented services. Unmapped contracts are blocking work, not exclusions.",
   "sourceCounts": {
     "home": 63,
@@ -17,7 +17,7 @@
           "name": "십이운성 동물점",
           "entry": "/saju/animal-destiny/",
           "featureKey": "animal-destiny-unlock",
-          "accessEvidence": "7,000원"
+          "accessEvidence": "묶음 포함"
         },
         {
           "source": "shell-visual-details",
@@ -219,7 +219,7 @@
           "name": "나의 일 스타일",
           "entry": "/saju/career-style/",
           "featureKey": "saju-career-style",
-          "accessEvidence": "5,000원"
+          "accessEvidence": "묶음 포함"
         }
       ],
       "toss": {
@@ -2702,7 +2702,7 @@
           "name": "십이운성 동물점",
           "entry": "/saju/animal-destiny/",
           "featureKey": "animal-destiny-unlock",
-          "accessEvidence": "7,000원"
+          "accessEvidence": "묶음 포함"
         },
         {
           "source": "shell-visual-details",
@@ -2876,7 +2876,7 @@
           "name": "나의 일 스타일",
           "entry": "/saju/career-style/",
           "featureKey": "saju-career-style",
-          "accessEvidence": "5,000원"
+          "accessEvidence": "묶음 포함"
         }
       ],
       "aliasEvidence": [],
