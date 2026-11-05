@@ -58,7 +58,8 @@ try {
     await page.goto(base + '/ggulggul/', { waitUntil: 'domcontentloaded', timeout: 120000 });
     // 대표 상담은 접힘 목록에서 가로 탐색으로 바뀌었다. 실제 카드와 탐색 영역을 검증한다.
     await expect(page.locator('.cd-sig__viewport')).toBeVisible();
-    await expect(page.locator('#cdSigGrid .cd-sig-card[data-cd-service-id][data-pvw-paid]')).toHaveCount(6);
+    await expect(page.locator('#cdSigGrid > .cd-story-entry > a[data-cd-service-id][data-pvw-paid]')).toHaveCount(6);
+    await expect(page.locator('#cdSigGrid > .cd-story-entry > a.cd-story-entry__link[href^="/consultations/"]')).toHaveCount(6);
     const cards = page.locator('a[data-cd-service-id][data-pvw-paid]');
     const count = await cards.count();
     assert.ok(count >= 4);
@@ -81,7 +82,7 @@ try {
       // off-screen cards are inert by design and cannot receive restored focus.
       const signatureIndex = await card.evaluate(element => {
         const grid = element.closest('#cdSigGrid');
-        return grid ? Array.from(grid.children).findIndex(slide => slide.contains(element)) : -1;
+        return grid ? Array.from(grid.querySelectorAll('.cd-sig-card')).indexOf(element) : -1;
       });
       if (signatureIndex >= 0) {
         const dots = page.locator('[data-sig-dots] [data-sig-slide]');
