@@ -1,6 +1,6 @@
 # 균일가·이용권 v5 배포 인수인계
 
-브랜치 `wt/pass-flat-pricing-20261104`. origin/main(`dd5d63b95`까지)을 병합했다. 약관 시행일은 2026-11-05다.
+브랜치 `wt/pass-flat-pricing-20261104`. origin/main(`7b2175491`까지)을 병합했다. 약관 시행일은 2026-11-05다.
 
 정본: `docs/superpowers/specs/2026-11-04-pass-flat-pricing-design.md`, `docs/superpowers/plans/2026-11-04-pass-flat-pricing.md`.
 
@@ -47,10 +47,9 @@
 
 ## 검증 상태
 
-`npm run check:payment`(이 브랜치 최종 트리): 실패는 `npm test` 한 항목이고, 게이트 판정은 "실패 1개는 전부 merge-base에서도 실패"다.
+`npm run check:payment`(병합 트리 `d85bd52f5`): 끝까지 통과. Jest 7,629개, node 4,573개, 유료 게이트 77개 모두 통과했다.
 
-- Jest 7,407개 전부 통과, node 4,277개 통과·6개 실패. 6번째 `mock-test-runner`의 `serial Jest workers recycle`은 다른 세션과 CPU를 나눠 생긴 시간 초과(`ETIMEDOUT`)이며 단독 실행은 5/5 통과했다.
-- 나머지 5개는 `home-choice-carousel` 4건과 `sitemap-volatile-lastmod-kst` 1건이다. 테스트와 소스가 `6eec763f0`과 같은 기존 실패이므로 이 브랜치 문제가 아니지만, 게이트는 BLOCKED로 끝난다.
+- 병합 복구 뒤 `verify:worker-no-undef`가 `09d4e4238`의 선언 위치 오류를 잡았다. `/coin-gate/pass-check`가 운영(strict)에서 `ReferenceError`로 실패할 코드였고 `d85bd52f5`에서 고쳤다. jest는 느슨한 모드라 이 오류를 잡지 못한다.
 - `verify-home-funnel.cjs`는 끝까지 돌지 못한다. `location.hash='services'` 단계(224행)가 낡은 기대값이다. 해시 단계를 뺀 임시 사본으로 새 표시 항목만 확인했다.
 - 실행하지 못한 것: `npm run test:gifts:replica`(이 PC 실행 불가), 실결제, 운영 DB, 과금 LLM 실호출.
 
