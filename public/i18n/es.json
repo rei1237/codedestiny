@@ -4,7 +4,31 @@
       "inlineTitle": "Explora tus Cuatro Pilares",
       "lottoSavedTitle": "Informes guardados del Ritual de la Suerte Lunar",
       "lottoSavedDesc": "Vuelve a leer los informes que compraste y guardaste en este dispositivo.",
-      "lottoSavedOpen": "Abrir informe"
+      "lottoSavedOpen": "Abrir informe",
+      "title": "Lectura completa de los Cuatro Pilares",
+      "once": "Un pago para conservar el acceso",
+      "inlineCta": "Ver el contenido",
+      "inlineDesc": "Explora tu carta natal, tus ciclos de diez años, las lecturas diarias y otras interpretaciones.",
+      "close": "Cerrar",
+      "pay": "Abrir con un pago único",
+      "saveProfile": "Guardar este perfil natal",
+      "saveProfileHint": "Guarda tus datos de nacimiento para vincular el paquete a esta carta.",
+      "saveProfileUnavailable": "Guarda tus datos de nacimiento en tu perfil.",
+      "already": "Ya tienes este paquete.",
+      "own": "Puedes releer las lecturas de los mismos datos natales sin volver a pagar. Las consultas personalizadas y de compatibilidad se venden por separado.",
+      "sample": "Ejemplo · Puedes parecer una persona tranquila y aun así dedicar tiempo a reunir información antes de decidir. Los capítulos exploran cuándo te ayuda esa cautela y cuándo te frena.",
+      "item": [
+        "Carta natal, pilar del día, diez dioses y equilibrio estacional",
+        "Lectura básica y ciclos de diez años",
+        "Compatibilidad según la carta",
+        "Lectura cuántica, encanto personal y árbol de habilidades",
+        "Bienestar, energía y relaciones difíciles",
+        "Lecturas diarias y mensuales, cartas y celebridades afines",
+        "Números de la suerte e informe del ritual lunar",
+        "Estilo de pensamiento, perfil Teto/Egen, lectura en cuatro viñetas e informe de dopamina",
+        "Mapa mental con interpretación de Diseño Humano",
+        "Estilo de trabajo, arquetipo animal y acceso a la Casa Secreta"
+      ]
     }
   },
   "_comment": "Code Destiny — Spanish premium localization (es.json)",

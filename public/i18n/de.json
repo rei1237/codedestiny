@@ -4,7 +4,31 @@
       "inlineTitle": "Deine Vier Säulen genauer verstehen",
       "lottoSavedTitle": "Gespeicherte Mondlicht-Glücksrituale",
       "lottoSavedDesc": "Hier kannst du gekaufte und auf diesem Gerät gespeicherte Berichte erneut lesen.",
-      "lottoSavedOpen": "Bericht öffnen"
+      "lottoSavedOpen": "Bericht öffnen",
+      "title": "Vollständige Vier-Säulen-Deutung",
+      "once": "Einmal kaufen und dauerhaft lesen",
+      "inlineCta": "Inhalte ansehen",
+      "inlineDesc": "Entdecke dein Geburtsbild, deine Zehnjahreszyklen, Tagesdeutungen und weitere Inhalte.",
+      "close": "Schließen",
+      "pay": "Per Einmalkauf öffnen",
+      "saveProfile": "Geburtsprofil speichern",
+      "saveProfileHint": "Speichere deine Geburtsdaten, um das Paket mit diesem Geburtsbild zu verknüpfen.",
+      "saveProfileUnavailable": "Speichere deine Geburtsdaten im Profil.",
+      "already": "Du besitzt dieses Paket bereits.",
+      "own": "Die Deutungen zu denselben Geburtsdaten kannst du ohne weitere Zahlung erneut lesen. Individuell erstellte Beratungen und Partnerschaftsberatungen sind separat erhältlich.",
+      "sample": "Beispiel · Du wirkst ruhig, sammelst aber vielleicht lange Informationen, bevor du dich entscheidest. Die Kapitel zeigen, wann dir diese Sorgfalt hilft und wann sie dich bremst.",
+      "item": [
+        "Geburtsbild, Tagessäule, zehn Götter und jahreszeitliches Gleichgewicht",
+        "Basisdeutung und Zehnjahreszyklen",
+        "Überblick zur Partnerschaft aus dem Geburtsbild",
+        "Quantendeutung, persönliche Ausstrahlung und Talentbaum",
+        "Wohlbefinden, Energie und schwierige Beziehungen",
+        "Tages- und Monatsdeutung, Briefe und ähnliche Prominente",
+        "Glückszahlen und Bericht zum Mondlichtritual",
+        "Denkstil, Teto/Egen-Details, Deutung in vier Bildern und Dopaminbericht",
+        "Gedankenkarte mit Human-Design-Deutung",
+        "Arbeitsstil, Tiertyp und Zugang zum Secret House"
+      ]
     }
   },
   "_comment": "Code Destiny — German premium localization (de.json)",
