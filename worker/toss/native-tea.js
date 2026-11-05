@@ -25,7 +25,7 @@ export function nativeTeaCatalog(){
   assertUniqueApprovedSaleSkus();
   return APPROVED_TOSS_NATIVE_PRODUCTS.map(item=>{
     const product=approvedNativeTeaProduct(item.sku);
-    return {id:product.productId,name:product.nativeService==='ziwei'?'자미두수 전문가 상담':product.nativeService==='vedic'?'베다 전문가 상담':product.nativeService==='astrology'?'점성술 전문가 상담':product.nativeService==='love-secret'?'연애 비책':product.nativeService==='life-book'?(product.featureKey==='life-fortune-ai-consultation'?'인생 총운':'인생의 책'):product.nativeService==='fusion'?'초융합 운세':product.nativeService==='neo'?'네오의 팩폭 전략실':'운명의 찻집',sku:product.sku,featureKey:product.featureKey,
+    return {id:product.productId,name:product.nativeService==='new-year'?'신년운세 전문가 상담':product.nativeService==='ziwei'?'자미두수 전문가 상담':product.nativeService==='vedic'?'베다 전문가 상담':product.nativeService==='astrology'?'점성술 전문가 상담':product.nativeService==='love-secret'?'연애 비책':product.nativeService==='life-book'?(product.featureKey==='life-fortune-ai-consultation'?'인생 총운':'인생의 책'):product.nativeService==='fusion'?'초융합 운세':product.nativeService==='neo'?'네오의 팩폭 전략실':'운명의 찻집',sku:product.sku,featureKey:product.featureKey,
       approvedPriceKRW:product.approvedPriceKRW,available:true};
   });
 }

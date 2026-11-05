@@ -14,7 +14,9 @@ import { dedupeCodexBody } from "../lib/master-love-codex-quality.js";
 import { createHash } from "node:crypto";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { resolveForbiddenPatterns } from "../lib/llm-leak-guard.js";
-import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
+import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest as webOptionalUser, isAuthDbInfraError } from "../lib/auth.js";
+import {nativeTossContext,bindNativeTossRequest} from '../toss/native-context.js';
+const getOptionalUserFromRequest = (request, ...args) => nativeTossContext(request)?.auth || webOptionalUser(request, ...args);
 import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { EDGE_RESPONSE_DEADLINE_MS, clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
@@ -1305,6 +1307,7 @@ async function resolveServerAccess({ env, auth, user, pricing, idempotencyKey = 
       userId: clean(auth.userId),
       idempotencyKey,
       inputHash,
+      accessSource: { $ne: 'toss' },
       status: "completed",
     }).select("id accessType paymentId").lean();
     if (existing) {
@@ -2312,6 +2315,7 @@ async function callDeferredUsageRoute({ request, env, auth, path, idempotencyKey
 }
 
 async function handleEnsureAccess(request, env) {
+  if (nativeTossContext(request)) return notFound();
   const route = "/api/new-year-ai/ensure-access";
   logNewYearAi("Prepare Start", safeLogPayload({ route, env }));
   const body = await readJson(request);
@@ -2549,10 +2553,12 @@ async function saveNewYearState({ id, userId, lockToken, status = 'generating', 
 
 async function finishNewYearDelivery({ request, env, auth, access, pending }) {
   try {
-    if (access.deferredUsage) await callDeferredUsageRoute({ request, env, auth, path: 'apply', idempotencyKey: pending.idempotencyKey, sessionId: pending.id });
+    if (nativeTossContext(request)) await nativeTossContext(request).assertStored(pending);
+    else if (access.deferredUsage) await callDeferredUsageRoute({ request, env, auth, path: 'apply', idempotencyKey: pending.idempotencyKey, sessionId: pending.id });
     else if (!access.usageAlreadyApplied && access.accessType === 'subscription') throw new Error('MONTHLY_CREDIT_GATE_REQUIRED');
     else await applyUsageOnce({ userId: auth.userId, sessionId: pending.id, accessType: access.accessType });
   } catch (cause) {
+    if (nativeTossContext(request) && cause?.status) throw cause;
     throw Object.assign(new Error('이용 처리 확인 중입니다. 같은 상담에서 다시 시도해 주세요.'), { code: 'RESULT_DELIVERY_PENDING', resultId: pending.id, cause });
   }
   const completed = await saveNewYearState({ id: pending.id, userId: auth.userId, lockToken: pending.llmMeta.lockToken || '', status: 'delivery_pending', values: {
@@ -2561,6 +2567,11 @@ async function finishNewYearDelivery({ request, env, auth, access, pending }) {
   } });
   logNewYearAi("Generate Success", { requestId: pending.idempotencyKey, sessionId: pending.id, totalChars: pending.llmMeta?.quality?.totalChars, qualityStatus: 'passed', persisted: true });
   return completed;
+}
+
+async function resolveNewYearRequestAccess(args) {
+  const native = nativeTossContext(args.request);
+  return native ? native.access(args.body, args.normalized, args.idempotencyKey) : resolveStartAccess(args);
 }
 
 async function settleNewYearFailureRefund(env, id, userId) {
@@ -2583,6 +2594,8 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
   if (body.resumeSessionId) {
     const stored = await NewYearAiConsultation.findOne({ id: clean(body.resumeSessionId), userId: clean(auth.userId) }).lean();
     if (!stored) return notFound();
+    if (nativeTossContext(request)) await nativeTossContext(request).assertStored(stored);
+    else if (stored.accessSource === 'toss') return notFound();
     const refund = consultationRefundResponse(stored);
     if (refund) return json(refund.body, { status: refund.status });
     if (stored.status === 'completed') return json(publicSession(stored));
@@ -2590,23 +2603,29 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
     body = { ...stored.llmMeta.resumeBody, idempotencyKey: stored.idempotencyKey, requestId: stored.idempotencyKey };
     delete body.accessToken;
     const headers = new Headers(request.headers); headers.delete('x-new-year-ai-access-token');
+    const native = nativeTossContext(request);
     request = new Request(request.url, { method: 'POST', headers, body: JSON.stringify(body) });
+    if (native) bindNativeTossRequest(request, native);
   }
   const idempotencyKey = readIdempotencyKey(request, body);
   const normalized = normalizeConsultationInput(body);
   if (!normalized.ok || idempotencyKey.length < 12) return invalidInput(normalized.message || '요청 키를 확인하지 못했습니다.');
   const existing = await NewYearAiConsultation.findOne({ userId: clean(auth.userId), idempotencyKey }).lean();
+  if (existing && nativeTossContext(request)) await nativeTossContext(request).assertStored(existing);
+  else if (existing?.accessSource === 'toss') return notFound();
   const refund = consultationRefundResponse(existing);
   if (refund) return json(refund.body, { status: refund.status });
   if (existing && clean(existing.inputHash) !== normalized.inputHash) return invalidInput('같은 요청 키로 다른 상담 정보를 사용할 수 없습니다.', 409);
   if (existing?.status === 'completed') return json(publicSession(existing));
   if (existing?.status === 'generation_failed') return json({ ok: false, reason: 'GENERATION_FAILED', message: LLM_ERROR_MESSAGE }, { status: 409 });
   const pricing = getPricing();
-  const access = await resolveStartAccess({ request, env, auth, body, normalized, pricing, idempotencyKey });
+  const access = await resolveNewYearRequestAccess({ request, env, auth, body, normalized, pricing, idempotencyKey });
   if (!access.ok) return access.reason === 'LOGIN_REQUIRED' ? loginRequired() : paymentVerifyFailed();
   const evidenceIds = startEvidenceIds(access);
-  const evidenceClaim = await claimRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds, featureKey: FEATURE_KEY });
-  if (!evidenceClaim.ok) return json(evidenceClaimErrorBody(evidenceClaim), { status: evidenceClaim.status });
+  if (!nativeTossContext(request)) {
+    const evidenceClaim = await claimRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds, featureKey: FEATURE_KEY });
+    if (!evidenceClaim.ok) return json(evidenceClaimErrorBody(evidenceClaim), { status: evidenceClaim.status });
+  }
   const sessionId = existing?.id || `nyai_${clean(auth.userId).slice(-8)}_${Date.now().toString(36)}_${randomToken(8)}`;
   if (existing?.status === 'delivery_pending') return json(publicSession(await finishNewYearDelivery({ request, env, auth, access, pending: existing })));
   if (existing?.status === 'generating' && existing.llmMeta?.lockedAt && Date.now() - new Date(existing.llmMeta.lockedAt).getTime() < NEW_YEAR_AI_GENERATING_FRESH_MS) {
@@ -2619,7 +2638,7 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
       : connectNewYearTiming(calculateNewYearFortuneData(normalized.input, { authorityEnabled: !existing && sajuAuthorityOn(env) }), normalized.input.birthInfo, existing ? {} : env);
   }
   catch (error) {
-    if (!existing) await releaseRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds });
+    if (!existing && !nativeTossContext(request)) await releaseRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds });
     if (!existing && access.deferredUsage) await callDeferredUsageRoute({ request, env, auth, path: 'cancel', idempotencyKey, sessionId,
       code: clean(error?.code || 'FORTUNE_DATA_FAILED', 80), message: clean(error?.message, 500) }).catch(() => {});
     return serverError(SERVER_ERROR_MESSAGE, 500);
@@ -2627,13 +2646,16 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
   if (!existing) {
     try {
       await NewYearAiConsultation.create({ id: sessionId, userId: clean(auth.userId), year: normalized.input.year,
-        birthInfo: normalized.input.birthInfo, topic: normalized.input.topic, accessType: access.accessType, paymentId: clean(access.paymentId, 160),
+        birthInfo: normalized.input.birthInfo, topic: normalized.input.topic, accessType: access.accessType, paymentId: clean(access.paymentId, 160), ...(nativeTossContext(request) ? {accessSource:'toss'} : {}),
         messages: [], idempotencyKey, inputHash: normalized.inputHash, status: 'partial', generationError: null,
         llmMeta: { fortuneData, resumeBody: { ...body, paymentId: clean(access.paymentId, 160) || body.paymentId, accessToken: undefined },
           savedSections: [], attempts: {}, lockedAt: null, lockToken: '' } });
     } catch (error) {
       if (error?.code !== 11000) throw resultStorageUnavailable(sessionId);
       const duplicate = await NewYearAiConsultation.findOne({ userId: clean(auth.userId), idempotencyKey }).lean();
+      if (nativeTossContext(request)) await nativeTossContext(request).assertStored(duplicate);
+      else if (duplicate?.accessSource === 'toss') return notFound();
+      if (nativeTossContext(request) && duplicate && duplicate.inputHash !== normalized.inputHash) return invalidInput('같은 요청 키로 다른 상담 정보를 사용할 수 없습니다.', 409);
       const refund = consultationRefundResponse(duplicate);
       if (refund) return json(refund.body, { status: refund.status });
       if (duplicate?.status === 'completed') return json(publicSession(duplicate));
@@ -2683,10 +2705,11 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
       'llmMeta.provider': generated.provider, 'llmMeta.model': generated.model,
     } });
     if (!generated.complete) return json({ ...publicSession(stored), retryable: generated.retryable }, { status: 202 });
-    const freshAccess = await resolveStartAccess({ request, env, auth, body, normalized, pricing, idempotencyKey }).catch(() => { throw resultStorageUnavailable(sessionId); });
+    const freshAccess = await resolveNewYearRequestAccess({ request, env, auth, body, normalized, pricing, idempotencyKey }).catch(error => { if (nativeTossContext(request) && error?.status) throw error; throw resultStorageUnavailable(sessionId); });
     if (!freshAccess.ok) return paymentVerifyFailed();
     return json(publicSession(await finishNewYearDelivery({ request, env, auth, access: freshAccess, pending: stored })));
   } catch (error) {
+    if (nativeTossContext(request) && error?.status) throw error;
     if (['RESULT_STORAGE_UNAVAILABLE', 'RESULT_DELIVERY_PENDING'].includes(error?.code)) throw error;
     const failure = error?.code === 'LLM_PROVIDER_UNAVAILABLE' ? safeGeminiFailure(error) : {};
     if (error?.code === 'LLM_PROVIDER_UNAVAILABLE' && error.retryable) {
@@ -2702,7 +2725,7 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
       ...failure,
     } } });
     refundAfterUnlock = true;
-    await releaseRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds });
+    if (!nativeTossContext(request)) await releaseRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds });
     if (access.deferredUsage) {
       const cleanup = await callDeferredUsageRoute({ request, env, auth, path: 'cancel', idempotencyKey, sessionId,
         code: clean(error?.code || 'LLM_GENERATION_FAILED', 80), message: clean(error?.message, 500) }).then(() => true, () => false);
@@ -2712,7 +2735,7 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
   } finally {
     const released = await NewYearAiConsultation.findOneAndUpdate({ id: sessionId, userId: clean(auth.userId), 'llmMeta.lockToken': lockToken },
       { $set: { 'llmMeta.lockedAt': null, 'llmMeta.lockToken': '' } }, { new: true }).lean().catch(() => null);
-    if (refundAfterUnlock && released?.status === 'generation_failed') await settleNewYearFailureRefund(env, sessionId, auth.userId);
+    if (!nativeTossContext(request) && refundAfterUnlock && released?.status === 'generation_failed') await settleNewYearFailureRefund(env, sessionId, auth.userId);
   }
 }
 
@@ -2753,14 +2776,14 @@ async function handleResult(request, env) {
 
   await connectDb(env);
   if (!sessionId) {
-    const rows = await NewYearAiConsultation.find({ userId: clean(auth.userId), status: "completed" })
+    const rows = await NewYearAiConsultation.find({ userId: clean(auth.userId), accessSource: { $ne: 'toss' }, status: "completed" })
       // createdAt 정렬은 기존 {userId,createdAt:-1} 인덱스를 그대로 탄다. updatedAt 에는 인덱스가
       // 없어 해당 사용자의 문서를 전부 FETCH 한 뒤 메모리 정렬하므로 아래 select 가 무력화된다.
       .sort({ createdAt: -1 })
       .limit(10)
       .select("id year birthInfo llmMeta.fortuneData.targetYear createdAt updatedAt")
       .lean();
-    const pending = await NewYearAiConsultation.findOne({ userId: clean(auth.userId), status: { $in: ["generating", "partial", "delivery_pending"] } }).sort({ createdAt: -1 }).select("id").lean();
+    const pending = await NewYearAiConsultation.findOne({ userId: clean(auth.userId), accessSource: { $ne: 'toss' }, status: { $in: ["generating", "partial", "delivery_pending"] } }).sort({ createdAt: -1 }).select("id").lean();
     return json({
       ok: true,
       pendingSessionId: pending?.id || "",
@@ -2779,7 +2802,7 @@ async function handleResult(request, env) {
     userId: clean(auth.userId),
     id: sessionId,
   }).lean();
-  if (!doc) return notFound();
+  if (!doc || doc.accessSource === 'toss') return notFound();
   const refund = consultationRefundResponse(doc);
   if (refund) return json(refund.body, { status: refund.status });
   // 생성 중이면 202로 알려 클라이언트 폴링이 수렴하게 한다(start의 202 바디와 동일 형태).
@@ -2802,6 +2825,25 @@ async function handleResult(request, env) {
   return json(publicSession(doc));
 }
 
+async function handleTossNewYearResult(request, env) {
+  const context = nativeTossContext(request), auth = context?.auth;
+  if (!auth?.userId) return loginRequired();
+  const url = new URL(request.url), sessionId = clean(url.searchParams.get('sessionId') || url.searchParams.get('id'), 180);
+  if (!sessionId) return json({ok:true,pendingSessionId:'',sessions:[]});
+  await connectDb(env);
+  const doc = await NewYearAiConsultation.findOne({userId:clean(auth.userId),id:sessionId}).lean();
+  if (!doc) return notFound();
+  await context.assertStored(doc);
+  const refund = consultationRefundResponse(doc);
+  if (refund) return json(refund.body,{status:refund.status});
+  if (['generating','partial','delivery_pending'].includes(doc.status)) {
+    const busy = doc.status === 'generating' && doc.llmMeta?.lockedAt && Date.now() - new Date(doc.llmMeta.lockedAt).getTime() < NEW_YEAR_AI_GENERATING_FRESH_MS;
+    return json({...publicSession(doc),status:busy?'generating':doc.status==='delivery_pending'?'delivery_pending':'partial',retryable:true},{status:202});
+  }
+  if (doc.status !== 'completed') return json({ok:false,reason:'GENERATION_FAILED',message:LLM_ERROR_MESSAGE},{status:409});
+  return json(publicSession(doc));
+}
+
 export async function handleNewYearAiRoutes(request, env = {}, ctx) {
   const method = request.method.toUpperCase();
   const path = getRoutePath(request, "/api/new-year-ai");
@@ -2810,10 +2852,11 @@ export async function handleNewYearAiRoutes(request, env = {}, ctx) {
     if (method === "POST" && path === "/ensure-access") return await handleEnsureAccess(request, env);
     if (method === "POST" && path === "/start") return await handleStart(request, env, ctx);
     if (method === "POST" && path === "/message") return await handleMessage(request, env);
-    if (method === "GET" && path === "/result") return await handleResult(request, env);
+    if (method === "GET" && path === "/result") return await (nativeTossContext(request) ? handleTossNewYearResult(request, env) : handleResult(request, env));
     if (["GET", "POST"].includes(method)) return notFound();
     return methodNotAllowed();
   } catch (error) {
+    if (nativeTossContext(request) && error?.status) return json({ok:false,reason:error.code || 'ACCESS_DENIED'}, {status:error.status});
     if (["RESULT_STORAGE_UNAVAILABLE", "RESULT_DELIVERY_PENDING"].includes(error?.code)) return json({ ...resultStorageFailurePayload(error), reason: error.code,
       ...(error.code === "RESULT_DELIVERY_PENDING" ? { message: error.message } : {}) }, { status: 503 });
 
@@ -2838,6 +2881,22 @@ export function nativeNewYearContract(body) {
   const requestId = clean(body?.idempotencyKey || body?.requestId, 180);
   if (!normalized.ok || requestId.length < 12) throw Object.assign(new Error('상담 입력을 다시 확인해 주세요.'), { status: 400 });
   return { requestId, resultId: requestId, featureKey: FEATURE_KEY, inputHash: normalized.inputHash, pricing: getPricing().pricing };
+}
+
+export async function prepareNativeNewYearCalculation(env, auth, body) {
+  const contract = nativeNewYearContract(body), normalized = normalizeConsultationInput(body);
+  await connectDb(env);
+  const existing = await NewYearAiConsultation.findOne({userId:clean(auth.userId),idempotencyKey:contract.requestId}).lean();
+  if (existing && (existing.accessSource !== 'toss' || existing.inputHash !== contract.inputHash)) {
+    throw Object.assign(new Error('REQUEST_INPUT_MISMATCH'), {code:'REQUEST_INPUT_MISMATCH',status:409});
+  }
+  if (!existing) connectNewYearTiming(calculateNewYearFortuneData(normalized.input,{authorityEnabled:sajuAuthorityOn(env)}),normalized.input.birthInfo,env);
+}
+
+export async function nativeNewYearStoredState(env,userId,resultId,lookup='either') {
+  const owner={userId:String(userId)};
+  const filter=lookup==='request'?{...owner,idempotencyKey:resultId}:lookup==='id'?{...owner,id:resultId}:{...owner,$or:[{id:resultId},{idempotencyKey:resultId}]};
+  return withMongoRetry(env,()=>NewYearAiConsultation.findOne(filter).lean());
 }
 
 export const __newYearAiTestUtils = {
@@ -2867,9 +2926,19 @@ export const __newYearAiTestUtils = {
 
 // Internal cron continuation: only a stored owner/id is accepted, never client input.
 // The normal handler rereads that owner's record and rechecks existing payment proof.
-export function resumeConsultationOnServer(env, doc) {
+export async function resumeConsultationOnServer(env, doc) {
   if (!doc?.userId || !doc.id) throw new Error("RECOVERY_doc.id_REQUIRED");
   const request = new Request("https://internal.invalid/api/new-year-ai/resume", { method: "POST", headers: { "content-type": "application/json" },
     body: JSON.stringify({ resumeSessionId: String(doc.id) }) });
-  return handleStart(request, env, undefined, { userId: String(doc.userId) });
+  const stored = await nativeNewYearStoredState(env, String(doc.userId), String(doc.id), 'id');
+  if (stored?.accessSource === 'toss') {
+    const {bindNativeNewYearRecovery} = await import('../toss/native-new-year.js');
+    if (!await bindNativeNewYearRecovery(request,env,stored)) throw new Error('TOSS_RECOVERY_INTENT_MISSING');
+  }
+  return handleStart(request, env, undefined, nativeTossContext(request)?.auth || { userId: String(doc.userId) });
+}
+
+export async function recoverUnstartedNativeConsultations(env,options) {
+  const {bootstrapNativeNewYearOrders} = await import('../toss/native-new-year.js');
+  return bootstrapNativeNewYearOrders(env,options);
 }

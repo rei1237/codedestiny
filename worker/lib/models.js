@@ -928,6 +928,7 @@ const newYearAiMessageSchema = new mongoose.Schema({
 const newYearAiConsultationSchema = new mongoose.Schema({
   id: { type: String, required: true, unique: true, trim: true, maxlength: 120, index: true },
   userId: { type: String, required: true, trim: true, index: true },
+  accessSource: { type: String, enum: ["", "toss"], default: "" },
   year: { type: Number, required: true, min: 1900, max: 2100, index: true },
   birthInfo: {
     name: { type: String, default: "", trim: true, maxlength: 80 },
