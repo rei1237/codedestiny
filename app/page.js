@@ -101,14 +101,15 @@ export default function HomePage() {
         {IS_APP_BUILD ? <div className={styles.head}>
           <h1 id="homeCardTitle" className={styles.title}><NativeHomeText>꿀꿀 운세에서 어떤 운세를 만나볼까요?</NativeHomeText></h1>
           <p className={styles.lead}><NativeHomeText>마음이 향하는 상담 공간을 골라보세요.</NativeHomeText></p>
-        </div> : <h1 id="webServiceTitle" className={styles.title}>어떤 운세를 만나볼까요?</h1>}
+        </div> : <h1 id="webServiceTitle" className={styles.title}>마음이 가는 카드를 골라보세요</h1>}
 
         {/* 카드 제목(h2)의 링크를 카드 크기로 늘려 카드 전체가 한 링크다. 설명 두 줄은 aria-describedby 로 읽힌다. */}
-        <HomeCardDeck className={IS_APP_BUILD ? styles.deck : `${styles.deck} ${styles.webDeck}`} labelledBy={IS_APP_BUILD ? "homeCardTitle" : "webServiceTitle"}>
+        <HomeCardDeck className={styles.deck} interactive={!IS_APP_BUILD} labelledBy={IS_APP_BUILD ? "homeCardTitle" : "webServiceTitle"}>
           {CARDS.map((card, index) => {
             const linkProps = { href: card.href, className: styles.cardLink, "aria-describedby": `${card.key}CardTag`, ...discoveryTracking(card.key === "yeoni" ? "ggulggul" : "yeongnyangi", "primary") };
             return <li key={card.key} data-home-card={card.key} className={`${styles.card} ${styles[card.className]}`} data-yn-night={card.night ? "" : undefined}>
 
+              {!IS_APP_BUILD && <span className={styles.cardNumeral} aria-hidden="true">{index === 0 ? "I" : "II"}</span>}
               <picture className={styles.cardArt}>
                 <source type="image/avif" srcSet={`${ART}/root-card-${card.art}-360.avif${CARD_ART_REV} 360w, ${ART}/root-card-${card.art}-600.avif${CARD_ART_REV} 600w`} sizes={CARD_ART_SIZES} />
                 {/* eslint-disable-next-line @next/next/no-img-element */}
