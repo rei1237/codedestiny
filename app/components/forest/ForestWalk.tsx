@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState, type ReactNode, type TouchEve
 import Link from "next/link";
 import DiaryMoodPicker from "@/app/diary/_components/DiaryMoodPicker";
 import DiaryRecordCard from "@/app/diary/_components/DiaryRecordCard";
+import { DIARY_SAVE_FAILED_TEXT, useDiarySaveFailed } from "@/app/diary/_components/DiaryStoreProvider";
 import { trackEvent } from "@/lib/analytics";
 import { nextCardPageIndex } from "../home-card-swipe.mjs";
 import { dailyLine } from "./forest-progress.mjs";
@@ -43,6 +44,7 @@ function Panel({ index, step, line, children, panelRef }: { index: number; step:
 /** 세 걸음(등불·오솔길·샘터)과 숲 지도. 걸음은 잠그지 않고 패널은 초안 보존을 위해 항상 마운트해 둔다. */
 export default function ForestWalk({ mode, journey, initialStep = 0, onStepChange, onClose }: ForestWalkProps) {
   const { surface, hydrated, ymd, entry, status, honey, products, busy, message, quest, picked, savedAction, attended, questDone, hasRecord, stepsDone, weekMap } = journey;
+  const saveFailed = useDiarySaveFailed();
   const [step, setStep] = useState(initialStep);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
@@ -104,6 +106,7 @@ export default function ForestWalk({ mode, journey, initialStep = 0, onStepChang
       <nav className={styles.steps} aria-label="숲길 걸음">
         {STEPS.map((item, index) => <button key={item.id} type="button" aria-current={step === index ? "step" : undefined} data-done={stepDone[index] || undefined} onClick={() => setStep(index)}><span>{item.label}</span>{stepDone[index] && <small>완료</small>}</button>)}
       </nav>
+      {saveFailed && mode === "dialog" && <p className={styles.saveFailed} role="status">{DIARY_SAVE_FAILED_TEXT}</p>}
     </header>
     <div ref={bodyRef} className={styles.walkBody} onTouchStart={startSwipe} onTouchEnd={endSwipe} onTouchCancel={() => { swipeStart.current = null; }}>
       <Panel index={0} step={step} line={dailyLine(ymd, "lantern")} panelRef={setPanelRef(0)}>
@@ -123,7 +126,7 @@ export default function ForestWalk({ mode, journey, initialStep = 0, onStepChang
               : status === "error"
                 ? <button type="button" className={styles.primary} onClick={journey.retry}>다시 확인하기</button>
                 : <p className={styles.note}>출석 정보 확인 중</p>}
-          <p className={styles.note}>{honey?.attendanceEvery === 1 ? "하루 한 번 출석하면 1방울을 받아요." : "출석으로 꿀방울을 모아보세요."}</p>
+          <p className={styles.note}>{honey?.attendanceEvery === 1 ? "하루 한 번 출석하면 꿀방울을 받아요." : "출석으로 꿀방울을 모아보세요."}</p>
           {status === "guest" && <p className={styles.note}>로그인하지 않아도 오솔길과 샘터는 걸을 수 있어요.</p>}
           {message && <p className={styles.notice} role="status">{message}</p>}
           <details className={styles.rewards}>
@@ -132,7 +135,7 @@ export default function ForestWalk({ mode, journey, initialStep = 0, onStepChang
             {products.length > 0 && <><strong>이런 곳에서 사용할 수 있어요</strong><ul>{products.map(item => <li key={item.productId}>{item.title} <b>{item.honeyCost}방울</b></li>)}</ul></>}
             <p>{honey && <>운세 프롬프트 1회에는 {honey.promptCost}방울이 필요해요. </>}사용 가능한 상품과 필요 방울 수는 각 상품에서 확인해 주세요.</p>
             {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-            <a href="/ggulggul/?action=cdOpenAllFortunes">꿀꿀 운세 살펴보기</a>
+            <a href="/ggulggul/?action=cdOpenAllFortunes" onClick={onClose}>꿀꿀 운세 살펴보기</a>
           </details>
         </div>
         <GrowthCard journey={journey} />
@@ -142,7 +145,7 @@ export default function ForestWalk({ mode, journey, initialStep = 0, onStepChang
       <Panel index={1} step={step} line={dailyLine(ymd, "path")} panelRef={setPanelRef(1)}>
         <div className={styles.block}>
           <h3>둘째 걸음, 작은 실천</h3>
-          <p className={styles.questName}>{quest ? quest.text : picked?.action.name || "오늘의 행동을 고르고 있어요"}</p>
+          <p className={styles.questName}>{quest ? savedAction?.name || quest.text : picked?.action.name || "오늘의 행동을 고르고 있어요"}</p>
           <p className={styles.note}>{quest ? savedAction?.tip || "오늘 고른 작은 행동을 실천해 보세요." : picked?.action.tip || "잠시만 기다려 주세요."}</p>
           {quest
             ? <button type="button" className={styles.primary} aria-pressed={Boolean(quest.done)} onClick={journey.toggleQuest}>{quest.done ? "완료 · 되돌리기" : "실천 완료하기"}</button>

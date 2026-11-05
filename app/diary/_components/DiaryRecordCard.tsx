@@ -55,7 +55,7 @@ export default function DiaryRecordCard({ embedded = false }: { embedded?: boole
   return (
     <section id="diary-today-record" className={`${embedded ? styles.recordEmbedded : styles.card} ${styles.recordAnchor}`} aria-label={copy.title}>
       <header className={styles.cardHead}>
-        <h2 className={styles.cardTitle}>{copy.title}</h2>
+        {embedded ? <h4 className={styles.cardTitle}>{copy.title}</h4> : <h2 className={styles.cardTitle}>{copy.title}</h2>}
       </header>
 
       {!hydrated ? (

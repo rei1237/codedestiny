@@ -100,6 +100,15 @@ const DIARY_SAVE_NOTICE = {
 
 const copy = DIARY_SAVE_NOTICE.ko;
 
+export const DIARY_SAVE_FAILED_TEXT = copy.failed;
+
+const DiarySaveFailedContext = createContext(false);
+
+/** 전체 화면 dialog 는 아래의 고정 안내를 가리므로, 그 안에서 직접 그리도록 실패 여부를 내어 준다. */
+export function useDiarySaveFailed() {
+  return useContext(DiarySaveFailedContext);
+}
+
 export default function DiaryStoreProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<DiaryTodayState>(INITIAL_STATE);
   const [saveFailed, setSaveFailed] = useState(false);
@@ -168,7 +177,9 @@ export default function DiaryStoreProvider({ children }: { children: ReactNode }
   return (
     <DiaryTodayContext.Provider value={state}>
       <DiaryWriterContext.Provider value={writer}>
-        {children}
+        <DiarySaveFailedContext.Provider value={saveFailed}>
+          {children}
+        </DiarySaveFailedContext.Provider>
         {saveFailed ? (
           <p className={styles.saveNotice} role="status">
             {copy.failed}

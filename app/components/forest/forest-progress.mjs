@@ -98,6 +98,21 @@ function dayQuestDone(extDay) {
   return todos.some(item => Boolean(item?.done) && typeof item?.id === "string" && item.id.startsWith(QUEST_ID_PREFIX));
 }
 
+/** 오늘의 작은 실천 항목. 저장소는 손으로도 고쳐질 수 있으니 모양이 맞는 것만 인정한다. */
+export function findQuestTodo(extDay) {
+  const todos = extDay && typeof extDay === "object" ? extDay.todos : null;
+  if (!Array.isArray(todos)) return undefined;
+  return todos.find(item => typeof item?.id === "string" && item.id.startsWith(QUEST_ID_PREFIX) && typeof item.text === "string");
+}
+
+const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** 다음 KST 자정까지 남은 시간(ms). 항상 1 이상 하루 이하다. */
+export function msUntilKstMidnight(nowMs) {
+  return DAY_MS - ((nowMs + KST_OFFSET_MS) % DAY_MS);
+}
+
 function safeReadEntry(readEntry, ymd) {
   try {
     return readEntry(ymd);

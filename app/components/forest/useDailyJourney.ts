@@ -1,8 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDiaryToday, useDiaryWriter } from "@/app/diary/_components/DiaryStoreProvider";
 import { readStoredEntry } from "@/app/diary/_lib/today-snapshot";
+import type { DiaryTodoItem } from "@/app/diary/_lib/ext-snapshot";
+import { kstTodayYmd } from "@/app/diary/_lib/kst-date";
 import { smallActionsFor, pickSmallAction, type DiarySmallAction } from "@/app/diary/_lib/small-action-pool";
 import { toggleTodo } from "@/app/diary/_lib/ext-writes";
 import { dayGroupOf } from "@/lib/diary/fortune-adapter";
@@ -10,9 +12,10 @@ import { createExtItemId } from "@/lib/diary/diary-ext-store";
 import { fetchCurrentDestinyProfile, type DestinyProfileCard } from "@/app/_lib/profile-card-storage";
 import { getApiUrl } from "@/app/_lib/api-config";
 import { authFetch } from "@/app/_lib/auth-client";
+import { hasClientAuthHint } from "@/app/_lib/user-session-cache";
 import { trackEvent } from "@/lib/analytics";
 import { awardRpg } from "@/app/destiny-compass/_lib/rpg-bridge";
-import { QUEST_ID_PREFIX, entryHasRecord, journeyStepsDone, weekForestMap } from "./forest-progress.mjs";
+import { QUEST_ID_PREFIX, entryHasRecord, findQuestTodo, journeyStepsDone, msUntilKstMidnight, weekForestMap } from "./forest-progress.mjs";
 
 export type JourneyHoney = { balance: number; attended: boolean; streak: number; nextBonusIn: number; streakEvery: number; streakBonus: number; attendanceEvery: number; promptCost: number; awarded?: boolean; rewarded?: number };
 export type JourneyProgress = { currentLevel: number; currentLevelExp: number; nextLevelExp: number };
@@ -40,13 +43,18 @@ export function useDailyJourney({ surface, enabled }: { surface: JourneySurface;
   const [message, setMessage] = useState("");
   const [picked, setPicked] = useState<{ action: DiarySmallAction; index: number } | null>(null);
 
-  const quest = (ext[ymd]?.todos || []).find(item => item.id?.startsWith(QUEST_ID_PREFIX));
-  const pool = smallActionsFor(dayGroupOf(chart, ymd));
+  const requestSeq = useRef(0);
+  const posting = useRef(false);
+  const honeyDay = useRef("");
+
+  const quest = findQuestTodo(ext[ymd]) as DiaryTodoItem | undefined;
+  const dayGroup = dayGroupOf(chart, ymd);
+  const pool = smallActionsFor(dayGroup);
   const savedAction = quest ? pool.find(action => `${action.emoji} ${action.name}` === quest.text) || smallActionsFor(null).find(action => `${action.emoji} ${action.name}` === quest.text) : null;
 
   const loadProgress = useCallback(async () => {
     try {
-      const response = await authFetch(getApiUrl("/api/rpg/progress"), { credentials: "include", cache: "no-store" });
+      const response = await authFetch(getApiUrl("/api/rpg/progress"), { credentials: "include", cache: "no-store" }, { retryOn401: hasClientAuthHint() });
       const data = await response.json();
       setProgress(response.ok && data?.ok && data.progress ? data.progress : null);
     } catch { setProgress(null); }
@@ -56,11 +64,17 @@ export function useDailyJourney({ surface, enabled }: { surface: JourneySurface;
     await loadProgress();
   }, [loadProgress]);
   const loadHoney = useCallback(async (method: "GET" | "POST" = "GET") => {
-    if (method === "POST") setBusy(true);
+    // 출석 중에는 조회를 보내지 않고, 먼저 나간 조회의 답은 버린다. 늦은 답이 켠 등불을 되돌리면 안 된다.
+    if (posting.current) return;
+    if (method === "POST") { posting.current = true; setBusy(true); }
+    const seq = ++requestSeq.current;
     try {
-      const response = await authFetch(getApiUrl("/api/honey/attendance"), { method, credentials: "include", cache: "no-store", ...(method === "POST" ? { headers: { "Content-Type": "application/json" }, body: "{}" } : {}) });
-      if (response.status === 401) { setStatus("guest"); setHoney(null); setProfile(null); setProgress(null); return; }
+      // 🔴 로그인 흔적이 없는 조회에서 refresh 를 타면 실패 시 clearClientAuthState 가 돌아 탭의 세션 값이 지워진다.
+      const response = await authFetch(getApiUrl("/api/honey/attendance"), { method, credentials: "include", cache: "no-store", ...(method === "POST" ? { headers: { "Content-Type": "application/json" }, body: "{}" } : {}) }, method === "POST" ? {} : { retryOn401: hasClientAuthHint() });
+      if (seq !== requestSeq.current) return;
+      if (response.status === 401) { setStatus("guest"); setHoney(null); setProfile(null); setProgress(null); setMessage(""); return; }
       const data = await response.json();
+      if (seq !== requestSeq.current) return;
       if (!response.ok || !data?.ok) throw new Error("attendance unavailable");
       setHoney(data); setStatus("ready");
       if (method === "GET") setMessage("");
@@ -71,8 +85,12 @@ export function useDailyJourney({ surface, enabled }: { surface: JourneySurface;
         void fetchCurrentDestinyProfile().then(setProfile).catch(() => setProfile(null));
         void loadProgress();
       }
-    } catch { setStatus("error"); setHoney(null); setProfile(null); setProgress(null); setMessage("출석 정보를 불러오지 못했어요. 다시 시도해 주세요."); }
-    finally { setBusy(false); }
+    } catch {
+      if (seq !== requestSeq.current) return;
+      setStatus("error"); setHoney(null); setProfile(null); setProgress(null); setMessage("출석 정보를 불러오지 못했어요. 다시 시도해 주세요.");
+    } finally {
+      if (method === "POST") { posting.current = false; setBusy(false); }
+    }
   }, [loadProgress, recordGrowth, surface]);
 
   useEffect(() => {
@@ -83,22 +101,41 @@ export function useDailyJourney({ surface, enabled }: { surface: JourneySurface;
     }).catch(() => {});
   }, [enabled, loadHoney]);
   useEffect(() => {
-    if (hydrated && ymd) setPicked(pickSmallAction(smallActionsFor(dayGroupOf(chart, ymd)), -1));
-  }, [hydrated, ymd, chart]);
+    if (hydrated && ymd) setPicked(pickSmallAction(smallActionsFor(dayGroup), -1));
+  }, [hydrated, ymd, dayGroup]);
   useEffect(() => {
     if (!enabled) return;
     const onFocus = () => { refresh(); void loadHoney(); };
     window.addEventListener("focus", onFocus);
     return () => window.removeEventListener("focus", onFocus);
   }, [enabled, refresh, loadHoney]);
+  // 화면을 켜 둔 채 자정을 넘기거나 탭·앞뒤 캐시에서 돌아와도 어제 기록을 오늘 것으로 두지 않는다.
   useEffect(() => {
     if (!hydrated || !ymd) return;
+    const rollOver = () => { if (kstTodayYmd() !== ymd) refresh(); };
+    rollOver();
+    const timer = window.setTimeout(rollOver, msUntilKstMidnight(Date.now()) + 1000);
+    document.addEventListener("visibilitychange", rollOver);
+    window.addEventListener("pageshow", rollOver);
+    return () => {
+      window.clearTimeout(timer);
+      document.removeEventListener("visibilitychange", rollOver);
+      window.removeEventListener("pageshow", rollOver);
+    };
+  }, [hydrated, ymd, refresh]);
+  useEffect(() => {
+    if (!enabled || !hydrated || !ymd) return;
+    if (honeyDay.current && honeyDay.current !== ymd) void loadHoney();
+    honeyDay.current = ymd;
+  }, [enabled, hydrated, ymd, loadHoney]);
+  useEffect(() => {
+    if (!enabled || !hydrated || !ymd) return;
     try {
       const last = window.localStorage.getItem(LAST_VISIT_KEY);
       if (last && last !== ymd) trackEvent("daily_home_return", { surface });
       window.localStorage.setItem(LAST_VISIT_KEY, ymd);
     } catch { /* 방문 측정은 선택 사항 */ }
-  }, [hydrated, ymd, surface]);
+  }, [enabled, hydrated, ymd, surface]);
 
   const attended = Boolean(honey?.attended);
   const questDone = Boolean(quest?.done);
@@ -122,7 +159,7 @@ export function useDailyJourney({ surface, enabled }: { surface: JourneySurface;
     const action = picked.action;
     if (updateExtDay(ymd, day => {
       const todos = Array.isArray(day.todos) ? day.todos : [];
-      if (!todos.some(item => item.id?.startsWith(QUEST_ID_PREFIX))) {
+      if (!findQuestTodo(day)) {
         day.todos = [...todos, { id: QUEST_ID_PREFIX + createExtItemId(), text: `${action.emoji} ${action.name}`, done: false, createdAt: Date.now() }];
       }
     })) trackEvent("daily_home_quest_selected", { surface });

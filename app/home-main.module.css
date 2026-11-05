@@ -137,11 +137,3 @@
 .entryHelp { display:flex; flex-wrap:wrap; justify-content:center; gap:0 24px; }
 .entryHelp a { display:inline-flex; align-items:center; min-height:44px; font-size:.875rem; }
 .entryNote { color:var(--cd-text-muted); font-size:.875rem; text-align:center; }
-.diaryPortal { box-sizing: border-box; width: min(100%, 720px); display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: stretch; overflow: hidden; border: 1px solid var(--cd-border); border-radius: var(--cd-r-section); background: var(--cd-surface); box-shadow: 0 12px 32px color-mix(in srgb, var(--cd-text) 10%, transparent); }
-.diaryPortalArt { min-width: 0; min-height: 210px; }
-.diaryPortalArt img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 65% center; }
-.diaryPortalCopy { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 10px; padding: 24px; }
-.page .diaryPortalCopy h2 { font-size: var(--cd-t-card); line-height: 1.4; }
-.diaryPortalCopy p { color: var(--cd-text-muted); font-size: var(--cd-t-body); }
-.page .diaryPortalLink { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 8px 18px; box-sizing: border-box; border-radius: var(--cd-r-pill); background: var(--cd-accent); color: var(--cd-bg); font-weight: 700; text-decoration: none; }
-@media (max-width: 600px) { .diaryPortal { grid-template-columns: 1fr; } .diaryPortalArt { min-height: 0; height: 152px; } .diaryPortalCopy { padding: 18px; } }

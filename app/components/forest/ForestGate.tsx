@@ -98,7 +98,7 @@ export default function ForestGate() {
     showWalk(0);
   }
 
-  const { hydrated, honey, stepsDone, ymd } = journey;
+  const { hydrated, honey, status, stepsDone, ymd } = journey;
   const lit = honey ? litLanternCount(honey.streak, honey.streakEvery, honey.attended) : 0;
   return <section ref={sectionRef} className={styles.gate} aria-labelledby="daily-home-title">
     <div className={styles.gateScene}>
@@ -118,7 +118,7 @@ export default function ForestGate() {
       <ForestLines line={dailyLine(ymd, stepsDone >= 3 ? "done" : "gate")} />
       <ul className={styles.gateStats}>
         <li><span>오늘 걸음</span><strong>{hydrated ? `${stepsDone} / 3` : "세 걸음"}</strong></li>
-        <li><span>켜진 등불</span><strong>{honey ? `${lit} / ${honey.streakEvery}` : "로그인 후 확인"}</strong></li>
+        <li><span>켜진 등불</span><strong>{honey ? `${lit} / ${honey.streakEvery}` : status === "guest" ? "로그인 후 확인" : status === "error" ? "확인하지 못했어요" : "확인 중"}</strong></li>
       </ul>
       <GrowthCard journey={journey} />
       <button ref={ctaRef} type="button" className={styles.primary} aria-haspopup="dialog" onClick={enterForest}>{stepsDone >= 3 ? "오늘의 숲길 다시 보기" : stepsDone > 0 ? "숲길 이어 걷기" : "숲길 들어가기"}</button>

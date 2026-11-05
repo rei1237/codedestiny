@@ -2,12 +2,28 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   FOREST_PIECES,
+  QUEST_ID_PREFIX,
   dailyLine,
+  findQuestTodo,
   forestZoneForLevel,
   journeyStepsDone,
   litLanternCount,
+  msUntilKstMidnight,
   weekForestMap,
 } from "../../app/components/forest/forest-progress.mjs";
+
+test("깨진 실천 기록은 무시하고 모양이 맞는 항목만 찾는다", () => {
+  for (const day of [null, {}, { todos: "x" }, { todos: [null] }, { todos: [{ id: 123, text: "x" }] }, { todos: [{ id: `${QUEST_ID_PREFIX}a`, text: {} }] }]) {
+    assert.equal(findQuestTodo(day), undefined);
+  }
+  const quest = { id: `${QUEST_ID_PREFIX}a`, text: "산책", done: false };
+  assert.equal(findQuestTodo({ todos: [null, { id: "other", text: "y" }, quest] }), quest);
+});
+
+test("다음 KST 자정까지 남은 시간을 계산한다", () => {
+  assert.equal(msUntilKstMidnight(Date.parse("2026-11-05T23:59:00+09:00")), 60_000);
+  assert.equal(msUntilKstMidnight(Date.parse("2026-11-06T00:00:00+09:00")), 86_400_000);
+});
 
 test("등불은 연속 출석 주기 안에서 켜진다", () => {
   assert.equal(litLanternCount(0, 5, false), 0);

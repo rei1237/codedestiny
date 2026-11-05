@@ -92,7 +92,7 @@ export function readSchedules(day: DiaryExtDay | null): DiaryScheduleItem[] {
 
 /** 화면에 그릴 할 일 목록. 완료한 것을 아래로 내리지 않는다 — 줄이 움직이면 잘못 누른다. */
 export function readTodos(day: DiaryExtDay | null): DiaryTodoItem[] {
-  return (day?.todos || []).filter((item) => item?.text);
+  return Array.isArray(day?.todos) ? day.todos.filter((item) => item?.text) : [];
 }
 
 /**
