@@ -42,7 +42,7 @@ export async function handleNativeAstrology(request,env,auth,path){
   if(/^toss_[a-f0-9]{64}$/.test(directId||'')){
     const row=await TossNativeConsultation.findOne({_id:directId.slice(5),...ownerFilter(auth)}).lean();
     await verifiedIntent(env,auth,row);
-    const doc=await nativeAstrologyStoredState(env,auth.userId,row.requestId);
+    const doc=await nativeAstrologyStoredState(env,auth.userId,row.requestId,'request');
     if(!doc)return Response.json({ok:true,status:'partial',retryable:true,sessionId:directId},{status:202});
     await astrologyContext(env,auth).assertStored(doc);
     if(directMatch)url.pathname='/api/astrology-ai/result/'+encodeURIComponent(doc.id);else url.searchParams.set('id',doc.id);
@@ -53,7 +53,7 @@ export async function handleNativeAstrology(request,env,auth,path){
   if(['/start','/generate'].includes(path)&&/^toss_[a-f0-9]{64}$/.test(body?.resumeSessionId||'')){
     const row=await TossNativeConsultation.findOne({_id:body.resumeSessionId.slice(5),...ownerFilter(auth)}).lean();
     await verifiedIntent(env,auth,row);
-    const doc=await nativeAstrologyStoredState(env,auth.userId,row.requestId);
+    const doc=await nativeAstrologyStoredState(env,auth.userId,row.requestId,'request');
     body=doc?{resumeSessionId:doc.id}:row.input;
   }
   const forwarded=new Request(url,{method:request.method,headers:{'Content-Type':'application/json'},
@@ -63,7 +63,7 @@ export async function handleNativeAstrology(request,env,auth,path){
   const response=await handleAstrologyAiRoutes(forwarded,env);
   if(response.ok&&['/start','/generate'].includes(path)){
     const data=await response.clone().json();
-    if(data.sessionId)await context.assertStored(await nativeAstrologyStoredState(env,auth.userId,data.sessionId));
+    if(data.sessionId)await context.assertStored(await nativeAstrologyStoredState(env,auth.userId,data.sessionId,'id'));
   }
   return nativeFailureResponse(response);
 }
@@ -72,7 +72,7 @@ export async function nativeAstrologyLibraryItem(env,auth,purchase){
   if(!purchase.requestId)return {state:'UNASSIGNED',href:'/astrology-ai/?orderId='+encodeURIComponent(purchase._id)};
   const row=await TossNativeConsultation.findOne({_id:purchase.requestId,...ownerFilter(auth),orderId:purchase._id}).lean();
   await verifiedIntent(env,auth,row);
-  const doc=await nativeAstrologyStoredState(env,auth.userId,row.requestId);
+  const doc=await nativeAstrologyStoredState(env,auth.userId,row.requestId,'request');
   if(doc)await astrologyContext(env,auth).assertStored(doc);
   const resultId=doc?.id||'toss_'+row._id;
   return {state:doc?.status==='completed'?'COMPLETED':doc?.status==='generation_failed'?'GENERATION_FAILED':'PENDING',resultId,
@@ -99,7 +99,7 @@ export async function bootstrapNativeAstrologyOrders(env,{now,deadline}) {
   const rows=await withMongoRetry(env,()=>TossNativeConsultation.find({nativeService:'astrology',status:'paid',generationStartedAt:null,createdAt:{$lt:new Date(now-300000)},$or:[{recoveryNextAt:null},{recoveryNextAt:{$lte:new Date(now)}}]}).sort({createdAt:1}).limit(1).lean());
   const outcomes=[];
   for(const row of rows){
-    const stored=await nativeAstrologyStoredState(env,String(row.ownerId),row.requestId);
+    const stored=await nativeAstrologyStoredState(env,String(row.ownerId),row.requestId,'request');
     if(stored){await withMongoRetry(env,()=>TossNativeConsultation.updateOne({_id:row._id,status:'paid'},{$set:{generationStartedAt:new Date(now)}}),{retries:0});continue;}
     await withMongoRetry(env,()=>TossNativeConsultation.updateOne({_id:row._id,status:'paid'},{$set:{recoveryNextAt:new Date(now+600000)}}),{retries:0});
     const request=new Request('https://internal.invalid/api/astrology-ai/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(row.input)});

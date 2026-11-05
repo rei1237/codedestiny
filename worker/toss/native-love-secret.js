@@ -40,7 +40,7 @@ export async function handleNativeLoveSecret(request,env,auth,path){
   if(path==='/result'&&/^toss_[a-f0-9]{64}$/.test(virtualId||'')){
     const row=await TossNativeConsultation.findOne({_id:virtualId.slice(5),...ownerFilter(auth)}).lean();
     await verifiedIntent(env,auth,row);
-    const doc=await nativeLoveSecretStoredState(env,auth.userId,row.requestId);
+    const doc=await nativeLoveSecretStoredState(env,auth.userId,row.requestId,'request');
     if(doc)url.searchParams.set('attemptId',doc.id);
   }
   let body=request.method==='POST'?await request.json():null;
@@ -49,7 +49,7 @@ export async function handleNativeLoveSecret(request,env,auth,path){
   if(['/start','/generate'].includes(path)&&/^toss_[a-f0-9]{64}$/.test(body?.resumeSessionId||'')){
     const row=await TossNativeConsultation.findOne({_id:body.resumeSessionId.slice(5),...ownerFilter(auth)}).lean();
     await verifiedIntent(env,auth,row);
-    const doc=await nativeLoveSecretStoredState(env,auth.userId,row.requestId);
+    const doc=await nativeLoveSecretStoredState(env,auth.userId,row.requestId,'request');
     body=doc?{resumeSessionId:doc.id}:row.input;
   }
   const forwarded=new Request(url,{method:request.method,headers:{'Content-Type':'application/json'},
@@ -59,14 +59,14 @@ export async function handleNativeLoveSecret(request,env,auth,path){
   const response=await handleLoveSecretAiRoutes(forwarded,env);
   if(response.ok&&['/start','/generate'].includes(path)){
     const data=await response.clone().json();
-    if(data.sessionId)await context.assertStored(await nativeLoveSecretStoredState(env,auth.userId,data.sessionId));
+    if(data.sessionId)await context.assertStored(await nativeLoveSecretStoredState(env,auth.userId,data.sessionId,'id'));
   }
   if(path==='/result'&&request.method==='GET'&&response.status===404){
     const id=url.searchParams.get('attemptId')||url.searchParams.get('sessionId');
     const rows=await TossNativeConsultation.find({...ownerFilter(auth),status:'paid',
       ...(id?(/^toss_[a-f0-9]{64}$/.test(id)?{_id:id.slice(5)}:{requestId:id}):{})}).sort({createdAt:-1}).limit(50).lean();
     for(const row of rows){
-      if(await nativeLoveSecretStoredState(env,auth.userId,row.requestId))continue;
+      if(await nativeLoveSecretStoredState(env,auth.userId,row.requestId,'request'))continue;
       await verifiedIntent(env,auth,row);
       return Response.json({ok:true,status:'partial',retryable:true,sessionId:'toss_'+row._id},{status:202});
     }
@@ -78,7 +78,7 @@ export async function nativeLoveSecretLibraryItem(env,auth,purchase){
   if(!purchase.requestId)return {state:'UNASSIGNED',href:'/love-secret-ai/?orderId='+encodeURIComponent(purchase._id)};
   const row=await TossNativeConsultation.findOne({_id:purchase.requestId,...ownerFilter(auth),orderId:purchase._id}).lean();
   await verifiedIntent(env,auth,row);
-  const doc=await nativeLoveSecretStoredState(env,auth.userId,row.requestId);
+  const doc=await nativeLoveSecretStoredState(env,auth.userId,row.requestId,'request');
   if(doc)await loveSecretContext(env,auth).assertStored(doc);
   const resultId=doc?.id||'toss_'+row._id;
   return {state:doc?.status==='completed'?'COMPLETED':doc?.status==='generation_failed'?'GENERATION_FAILED':'PENDING',resultId,
@@ -110,7 +110,7 @@ export async function bootstrapNativeLoveSecretOrders(env,{now,deadline}) {
   const rows=await withMongoRetry(env,()=>TossNativeConsultation.find({nativeService:'love-secret',status:'paid',generationStartedAt:null,createdAt:{$lt:new Date(now-300000)},$or:[{recoveryNextAt:null},{recoveryNextAt:{$lte:new Date(now)}}]}).sort({createdAt:1}).limit(1).lean());
   const outcomes=[];
   for(const row of rows){
-    const stored=await nativeLoveSecretStoredState(env,String(row.ownerId),row.requestId);
+    const stored=await nativeLoveSecretStoredState(env,String(row.ownerId),row.requestId,'request');
     if(stored){await withMongoRetry(env,()=>TossNativeConsultation.updateOne({_id:row._id,status:'paid'},{$set:{generationStartedAt:new Date(now)}}),{retries:0});continue;}
     await withMongoRetry(env,()=>TossNativeConsultation.updateOne({_id:row._id,status:'paid'},{$set:{recoveryNextAt:new Date(now+600000)}}),{retries:0});
     const request=new Request('https://internal.invalid/api/love-secret-ai/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(row.input)});

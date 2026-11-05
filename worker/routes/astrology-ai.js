@@ -2079,8 +2079,10 @@ export function nativeAstrologyContract(body) {
   if (!normalized.ok || requestId.length < 12) throw Object.assign(new Error('상담 입력을 다시 확인해 주세요.'), {status:400});
   return {requestId,resultId:requestId,featureKey:FEATURE_KEY,inputHash:normalized.inputHash,pricing:getPricing().pricing};
 }
-export async function nativeAstrologyStoredState(env, userId, resultId) {
-  return withMongoRetry(env, () => AstrologyAiConsultation.findOne({userId:String(userId),$or:[{id:resultId},{idempotencyKey:resultId}]}).lean());
+export async function nativeAstrologyStoredState(env, userId, resultId, lookup = 'either') {
+  const owner = {userId:String(userId)};
+  const filter = lookup === 'request' ? {...owner,idempotencyKey:resultId} : lookup === 'id' ? {...owner,id:resultId} : {...owner,$or:[{id:resultId},{idempotencyKey:resultId}]};
+  return withMongoRetry(env, () => AstrologyAiConsultation.findOne(filter).lean());
 }
 
 // Internal cron continuation: only a stored owner/id is accepted, never client input.
@@ -2089,7 +2091,7 @@ export async function resumeConsultationOnServer(env, doc) {
   if (!doc?.userId || !doc.id) throw new Error("RECOVERY_doc.id_REQUIRED");
   const request = new Request("https://internal.invalid/api/astrology-ai/resume", { method: "POST", headers: { "content-type": "application/json" },
     body: JSON.stringify({ resumeSessionId: String(doc.id) }) });
-  const stored = await nativeAstrologyStoredState(env, String(doc.userId), String(doc.id));
+  const stored = await nativeAstrologyStoredState(env, String(doc.userId), String(doc.id), 'id');
   if (stored?.accessSource === "toss") {
     const { bindNativeAstrologyRecovery } = await import("../toss/native-astrology.js");
     if (!await bindNativeAstrologyRecovery(request, env, stored)) throw new Error("TOSS_RECOVERY_INTENT_MISSING");
