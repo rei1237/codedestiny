@@ -4476,8 +4476,13 @@
   }
 
   // 수단 이름이 있으면 '{method} …' 판, 없으면(티켓 없는 새 탭 복귀 등) 'Generic' 판을 고른다.
-  function _dpDirectResumeText(key, methodLabel) {
-    if (methodLabel) return _dpInterpolateText(_dpText(key), { method: methodLabel });
+  // 라벨은 문구를 만드는 시점에 구한다. 복귀 직후에는 언어 사전이 아직 없어 라벨이 한글 폴백으로 오기 때문이다.
+  // 그 폴백이 다른 언어 문구에 섞이지 않도록, 한글이 아닌 언어에서는 한글 라벨 대신 Generic 판을 쓴다.
+  function _dpDirectResumeText(key, method) {
+    var methodLabel = _dpDirectPayMethodLabelFor(method);
+    if (methodLabel && (_dpTextLang() === 'ko' || !/[가-힣]/.test(methodLabel))) {
+      return _dpInterpolateText(_dpText(key), { method: methodLabel });
+    }
     return _dpText(key + 'Generic');
   }
 
@@ -4826,7 +4831,6 @@
     var resumeMethod = String(
       (ticket && (ticket.paymentMethod || (ticket.confirmBody && ticket.confirmBody.paymentMethod))) || '',
     ).trim();
-    var resumeMethodLabel = _dpDirectPayMethodLabelFor(resumeMethod);
 
     if (!paymentId || failed) {
       // 승인이 나지 않은 복귀다 — 티켓을 회수한다.
@@ -4865,7 +4869,7 @@
       // 코드가 있으면 함께 보여 준다 — 고객 문의에서 이 한 줄이 원인 특정의 유일한 근거가 된다.
       // 🔴 오버레이 'payment-failed' 로 바꾸지 않는다 — 셸 meta 가 "청구됐다면 자동 환불"이라 PG 거절엔 맞지 않는다.
       window.alert(
-        (failMessage || _dpDirectResumeText('directResumeFailed', resumeMethodLabel))
+        (failMessage || _dpDirectResumeText('directResumeFailed', resumeMethod))
         + (failCode ? '\n(' + failCode + ')' : ''),
       );
       return;
@@ -4883,7 +4887,7 @@
       // 조용한 티켓 폴백은 대부분 결제 안 하고 이탈한 정상 케이스라, 무관한 화면에 확인 중
       // 오버레이를 띄우지 않는다 — 실제로 지급될 때만 아래 성공 경로가 스스로 안내한다.
       if (!isSilentTicketFallback && !isQuietRetry) {
-        _dpSetPaymentPending(true, _dpDirectResumeText('directResumeConfirming', resumeMethodLabel), 'unlock-saving');
+        _dpSetPaymentPending(true, _dpDirectResumeText('directResumeConfirming', resumeMethod), 'unlock-saving');
       }
       // 🔴 티켓은 confirm 성공 뒤에 지운다. 먼저 지우면 5xx 한 번에 승인된 결제의 복구 수단이 사라진다.
       // 티켓은 30분 TTL(_DP_DIRECT_RESUME_TTL_MS)로 스스로 만료되므로 남겨 둬도 되살아나지 않는다.
@@ -5047,7 +5051,7 @@
             _dpResumeDirectPaymentAfterRedirect({ pollingPaymentId: paymentId, userInitiated: true });
           } : (resumeAction ? function () { _dpOpenRouteAction(resumeAction); } : null),
           // 열기 버튼이 없으면 "다시 누르면 무료"가 사용자가 할 수 있는 유일한 행동이다.
-          resumeAction ? '' : _dpDirectResumeText('directResumeComplete', resumeMethodLabel),
+          resumeAction ? '' : _dpDirectResumeText('directResumeComplete', resumeMethod),
         );
       }
       // ⑧ 후속 훅이 붙을 자리(계측·외부 위젯). 재개 자체는 위에서 끝났다.

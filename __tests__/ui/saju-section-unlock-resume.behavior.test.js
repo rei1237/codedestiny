@@ -25,6 +25,9 @@ function handlerBlock() {
   return shell.slice(start, outerEnd);
 }
 
+const openWindows = [];
+test.afterEach(() => { while (openWindows.length) openWindows.pop().close(); });
+
 function boot(options) {
   const opts = options || {};
   const dom = new JSDOM(`<!doctype html><html><body>${opts.body || ""}</body></html>`, {
@@ -33,9 +36,10 @@ function boot(options) {
     runScripts: "outside-only",
   });
   const { window } = dom;
+  openWindows.push(window);
   const calls = { run: [], finalize: [], scroll: [], tile: [], gates: 0, registered: {} };
   const unlocked = new Set();
-  window.Element.prototype.scrollIntoView = function () {};
+  window.Element.prototype.scrollIntoView = function () { calls.scroll.push(this.id); };
   window.__currentProfile = opts.currentProfile || "";
   window._cdBirthScopeCurrentProfileId = () => window.__currentProfile;
   window._cdCheckoutEntry = () => ({ registerPaidResumeHandler: (kind, fn) => { calls.registered[kind] = fn; } });
@@ -44,7 +48,6 @@ function boot(options) {
     if (opts.finalizeUnlocks !== false) unlocked.add(featureKey);
   };
   window.isTileKeyUnlocked = (featureKey) => unlocked.has(featureKey);
-  window._cdScrollUnlockedSectionIntoView = (featureKey) => { calls.scroll.push(featureKey); };
   window._cdInvokeUnlockedTileAction = (action, node) => { calls.tile.push({ action, node }); };
   // 결제 게이트들 — 재개 중 하나라도 불리면 결제 선택이 다시 열린다.
   for (const gate of ["tryUnlockFeature", "_cdOpenPaidServiceGate", "_cdRunDirectKrwCheckout", "_cdCoinGatePerUse"]) {
@@ -91,7 +94,7 @@ test("빈 복귀 문서: 결제한 카드로 사주를 다시 계산하고, 새 
   assert.equal(opened, true);
   assert.deepEqual(calls.run, ["p1"]);
   assert.deepEqual(calls.finalize, [{ featureKey: "section_summary", payload: GRANT_PAYLOAD }]);
-  assert.deepEqual(calls.scroll, ["section_summary"]);
+  assert.deepEqual(calls.scroll, ["summaryGate"]);
   assert.equal(calls.gates, 0);
 });
 
@@ -131,3 +134,36 @@ test("해금이 확인되지 않으면 false 를 돌려 기존 '결제 완료' �
   assert.deepEqual(calls.scroll, []);
   assert.equal(calls.gates, 0);
 });
+
+// 복귀 문서는 스크롤 뒤에도 위쪽 카드가 지연 렌더로 자란다. 대상 위치가 밀리면 다시 맞춘다.
+async function openAlreadyRenderedSection() {
+  const { window, calls } = boot({ currentProfile: "p1", body: '<section id="daewunCard"><div id="daewunGate"></div></section>' });
+  window.__cdLastSummaryArgs = { p: "p1" };
+  const section = window.document.getElementById("daewunCard");
+  let top = 0;
+  section.getBoundingClientRect = () => ({ top });
+  const descriptor = window._cdBuildSajuSectionUnlockResume("section_daewun", "");
+  assert.equal(await calls.registered[descriptor.kind](descriptor, grantFor("section_daewun")), true);
+  assert.deepEqual(calls.scroll, ["daewunCard"]);
+  return { window, calls, shiftLayout: (px) => { top += px; } };
+}
+const nextTicks = () => new Promise((resolve) => setTimeout(resolve, 400));
+
+test("해금 뒤 위쪽이 자라 대상이 밀리면 다시 맞추고, 위치가 그대로면 다시 스크롤하지 않는다", async () => {
+  const { calls, shiftLayout } = await openAlreadyRenderedSection();
+  await nextTicks();
+  assert.equal(calls.scroll.length, 1);
+  shiftLayout(1171);
+  await nextTicks();
+  assert.equal(calls.scroll.length, 2);
+});
+
+for (const eventName of ["touchstart", "wheel", "pointerdown", "keydown"]) {
+  test(`사용자가 ${eventName} 로 움직이면 위치 맞추기를 즉시 멈춘다`, async () => {
+    const { window, calls, shiftLayout } = await openAlreadyRenderedSection();
+    window.dispatchEvent(new window.Event(eventName));
+    shiftLayout(1171);
+    await nextTicks();
+    assert.equal(calls.scroll.length, 1);
+  });
+}
