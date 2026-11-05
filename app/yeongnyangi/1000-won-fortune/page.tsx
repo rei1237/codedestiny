@@ -78,7 +78,7 @@ const FAQS=[
 ];
 
 const TITLE=`천원 운세·천원사주 안내 | ${SAJU_BUNDLE_LABEL} ${BUNDLE_PRICE}`;
-const DESCRIPTION=`매력 클래스·인생 스킬 트리 등 천원 운세 사주 리포트 ${FUN.length}종은 이제 ${SAJU_BUNDLE_LABEL}(${BUNDLE_PRICE})에 들어 있어요. 영냥이 고등어 상담(${PRICE}) 예시와 가격도 확인하세요.`;
+const DESCRIPTION=`매력 클래스·인생 스킬 트리 등 천원 운세 사주 리포트 ${FUN.length}종은 ${SAJU_BUNDLE_LABEL}(${BUNDLE_PRICE})에 들어 있어요. 영냥이 고등어 상담(${PRICE}) 가격도 확인하세요.`;
 const OG_TITLE=TITLE;
 
 export const metadata:Metadata={

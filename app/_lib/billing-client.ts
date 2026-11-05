@@ -830,7 +830,7 @@ function buildSnapshotPaymentEligibility(input: {
     : null;
   // 🔴 판정은 pass-verdict 하나가 한다 — 여기서 한도를 따로 계산하면 월 이용 한도를 모르는 네 번째 사본이
   // 되어, 소진된 사용자에게 phase:'pass' 경로가 계속 무료를 약속한다.
-  const canUseByPass = coinCost > 0 && passVerdict.resolveVerdict(snapshot, coinCost).coversNow;
+  const canUseByPass = coinCost > 0 && passVerdict.resolveVerdict(snapshot, coinCost, input.featureKey).coversNow;
   const paymentOptions = {
     hasActivePass: snapshot.state === "active",
     passTier,
@@ -2373,7 +2373,7 @@ export function resolveSnapshotPassVerdict(input: BillingCoinGateInput): Snapsho
   // (warmSubscriptionSnapshotOnEntry 는 in-flight dedup + 신선 스냅샷 조기반환을 이미 갖고 있다.)
   if (snapshot?.stale) void warmSubscriptionSnapshotOnEntry();
   const knownCoinCost = resolveKnownCoinCost(input, null);
-  const verdict = passVerdict.resolveVerdict(snapshot, knownCoinCost);
+  const verdict = passVerdict.resolveVerdict(snapshot, knownCoinCost, toText(input.featureKey || input.subFeatureKey));
   const usable = !explicitPaymentMode && !passDisabled && knownCoinCost > 0 && Boolean(snapshot);
   const nonFamilySnapshot = familyPassOnly && snapshot?.state === "active" && snapshot.tier !== "family";
   return {
