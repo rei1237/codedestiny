@@ -2396,6 +2396,90 @@
       "contact": "Contact opnemen",
       "contactNote": "Laat ons je vragen of problemen weten.",
       "example": "Voorbeeld van een openbare lezing"
+    },
+    "webtoonCopy": {
+      "love-secret": {
+        "lead": "Dezelfde woorden, maar onze gevoelens missen elkaar.",
+        "benefits": "Manieren om liefde te tonen · Waarom gekwetstheid zich opstapelt · Wanneer toenadering of ruimte helpt"
+      },
+      "new-year": {
+        "lead": "Bekijk het komende jaar voordat je dezelfde voornemens herhaalt.",
+        "benefits": "Wanneer voorbereiden en handelen · Prioriteiten in werk, geld en relaties · Keuzes per periode bekijken"
+      },
+      "life-book": {
+        "lead": "Wat als eerdere hoofdstukken nog iets te begrijpen geven?",
+        "benefits": "Redenen voor herhaalde keuzes · Blijvende talenten en sterke kanten · Grote levenscycli volgens Saju"
+      },
+      "neo": {
+        "lead": "Je hebt besloten. Waarom sta je nog op dezelfde plek?",
+        "benefits": "Voorwaarden voor verandering · Acties voor nu · Criteria om je plan te beoordelen"
+      },
+      "tea": {
+        "lead": "Een avond waarop je niet weet waar je moet beginnen.",
+        "benefits": "Zorgen ordenen · Passend advies kiezen · Acties die je zelf kunt veranderen"
+      },
+      "codex": {
+        "lead": "Andere mensen, maar dezelfde scènes blijven terugkomen.",
+        "benefits": "Terugkerende relatiepatronen · Redenen voor aantrekking en spanning · Persoonlijke of compatibiliteitsduiding"
+      },
+      "ziwei": {
+        "lead": "Je doet je best, maar loopt steeds op hetzelfde punt vast?",
+        "benefits": "Temperament in je Ziwei-kaart · Sterktes in werk, geld en relaties · Keuzes bekijken bij blokkades"
+      },
+      "astrology": {
+        "lead": "Wanneer gevoelens en daden andere kanten op gaan.",
+        "benefits": "Temperament in je geboortehemel · Verschillen tussen gevoelens en daden · Huidige transits en dagelijks leven"
+      },
+      "vedic": {
+        "lead": "Wanneer hetzelfde seizoen weer lijkt terug te komen.",
+        "benefits": "Temperament in je geboortehoroscoop · Tijdsverloop volgens Dasha-perioden · Je levensrichting nu bekijken"
+      },
+      "sukuyo-compat": {
+        "lead": "Waarom wordt het moeilijker naarmate je dichterbij komt?",
+        "benefits": "Aantrekking en spanning tussen twee mensen · Verschillende relatieritmes · Samen afspraken en grenzen bijstellen"
+      },
+      "legacy-naming": {
+        "lead": "Een naam die lang wordt genoemd draagt zorg en aandacht.",
+        "benefits": "Betekenis en klank van mogelijke namen · Saju en berekeningen als basis · Criteria om namen te vergelijken"
+      },
+      "karma": {
+        "lead": "Mensen en plekken veranderen, maar de knoop blijft.",
+        "benefits": "Terugkerende knopen in relaties · Keuzepatronen vanuit verschillende tradities · Acties om volgende keer te veranderen"
+      },
+      "fusion": {
+        "lead": "Kanten van het leven die één blik niet laat zien.",
+        "benefits": "Afzonderlijke duidingen uit zes tradities · Gedeelde thema’s en andere perspectieven · Praktische richting per levensgebied"
+      },
+      "read": "Ontdek via de webtoon",
+      "start": "Consult starten",
+      "installLabel": "Toevoegen aan startscherm",
+      "return": "Kom terug met één tik",
+      "installDescription": "Open 꿀꿀 운세 via je startscherm.",
+      "expertsTitle": "Jouw verhaal vanuit een andere blik",
+      "expertsIntro": "Bekijk expertconsulten eerst via webtoons.",
+      "ziweiName": "Ziwei-consult",
+      "astrologyName": "Consult westerse astrologie",
+      "vedicName": "Consult vedische astrologie",
+      "sukuyoName": "Sukuyo-compatibiliteitsconsult",
+      "namingName": "Naamadvies",
+      "karmaName": "Karma- en lotsrapport",
+      "fusionName": "Gecombineerde duiding",
+      "teaName": "Theehuis van het lot",
+      "namingStudio": "Expertstudio voor namen",
+      "installAction": "Toevoegen aan startscherm",
+      "neoShort": "Neo's strategie met duidelijke taal",
+      "yeoniTea": "Theehuis van het lot",
+      "link": {
+        "codexTitle": "Het bandenboek van de meester · Ontdek via de webtoon",
+        "teaName": "Theehuis van het lot · Ontdek via de webtoon",
+        "loveTitle": "Liefdesinzichten · Ontdek via de webtoon",
+        "neoShort": "Neo's strategie met duidelijke taal · Ontdek via de webtoon",
+        "namingStudio": "Expertstudio voor namen · Ontdek via de webtoon",
+        "yeoniTea": "Theehuis van het lot · Ontdek via de webtoon",
+        "lifeTitle": "Levensboek · Ontdek via de webtoon",
+        "yearTitle": "Jaarvooruitblik · Ontdek via de webtoon",
+        "neoRoomTitle": "Neo's strategie met duidelijke taal · Ontdek via de webtoon"
+      }
     }
   },
   "terms": {
