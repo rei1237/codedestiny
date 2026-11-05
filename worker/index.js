@@ -1263,6 +1263,10 @@ const app = {
         return withCorsHeaders(request, env, await handleKakaoCrmRoutes(request, env));
       }
 
+      if (url.pathname.startsWith("/api/edition-workshop/test/")) {
+        const { readTestProof } = await import("./routes/edition-test-records.js");
+        return withCorsHeaders(request, env, await readTestProof(request, env));
+      }
       if (url.pathname === "/api/edition-workshop/issue-queue") {
         const { readIssueQueue } = await import("./routes/edition-studio.js");
         return withCorsHeaders(request, env, await readIssueQueue(request, env));

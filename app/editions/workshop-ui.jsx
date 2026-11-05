@@ -1,11 +1,13 @@
 import {useEffect,useState} from 'react';
 import {STAGING_ORIGIN} from '../../lib/editions/staging.mjs';
+import {TEST_ORIGIN} from '../../lib/editions/production-test.mjs';
 import styles from './workshop.module.css';
 const local = process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_EDITION_WORKSHOP === '1';
 export function useWorkshopMode() {
   const [mode,setMode] = useState(local?'local':'closed');
   useEffect(()=>{
     if(process.env.NEXT_PUBLIC_EDITION_WORKSHOP==='staging' && window.location.origin===STAGING_ORIGIN) setMode('staging');
+    if(process.env.NEXT_PUBLIC_EDITION_WORKSHOP==='production-test' && window.location.origin===TEST_ORIGIN) setMode('production-test');
   },[]);
   return mode;
 }

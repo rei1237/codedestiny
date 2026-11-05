@@ -22,7 +22,7 @@ export default function Workshop(){
   }
   const mode=useWorkshopMode();
   useEffect(()=>{if(mode==='local')run();},[mode]);
-  if(mode==='staging')return <StagingPrints/>;
+  if(mode==='staging'||mode==='production-test')return <StagingPrints productionTest={mode==='production-test'}/>;
   if(mode==='closed')return <main className={s.sheet}>공방이 열리지 않았어요.</main>;
   return <main className={s.sheet}><header><small>성장 공방 · 로컬 개발 체인</small><h1>한정판 공방</h1>
     <p>작품과 한도를 확정한 뒤, 실물에 넣을 발행증을 준비해요.</p></header>
