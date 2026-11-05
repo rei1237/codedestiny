@@ -1,16 +1,17 @@
 # 균일가·이용권 v5 배포 인수인계
 
-브랜치 `wt/pass-flat-pricing-20261104`. 기준 커밋은 `6eec763f0`이고, 작성 시점 origin/main은 이보다 97커밋 앞서 있으며 겹치는 파일이 44개다(`index.html`, `public/i18n/*`, `js/core/*`, `package.json` 포함). 아직 푸시·병합·배포하지 않았다.
+브랜치 `wt/pass-flat-pricing-20261104`. origin/main(`dd5d63b95`까지)을 병합했다. 약관 시행일은 2026-11-05다.
 
 정본: `docs/superpowers/specs/2026-11-04-pass-flat-pricing-design.md`, `docs/superpowers/plans/2026-11-04-pass-flat-pricing.md`.
 
 ## 무엇이 바뀌나
 
 - 일반 상품 3,000~5,000원, 7천~1만 원 상담은 5,000원·약 12,000자(찻집 제외). 3만 원 이상 상담은 유지.
-- 라이트 운세 66종은 유효한 이용권이면 차감 없이 횟수 제한 없이 이용. 상담 한도를 다 써도 이용권은 유지.
+- 라이트 운세 65종(합계 299,000원)은 유효한 이용권이면 차감 없이 횟수 제한 없이 이용. 상담 한도를 다 써도 이용권은 유지.
 - 이용권 v5: 14,900 / 34,900 / 64,900 / 154,000원. 이미 산 이용권의 결제 금액과 한도는 그대로.
 - 영냥이: 고등어 10,000 / 연어 15,000 / 광어 20,000 / 참치 30,000 / 모둠 50,000 / 오마카세 70,000원. 전용 이용권 40,000 / 60,000 / 80,000 / 120,000원(8회·90일).
-- 사주 18키는 라이트가 아니며 이 브랜치에서 가격을 바꾸지 않았다. 판매 표면 정리는 묶음 작업 몫이다.
+- 연이·네오 채팅 질문 상담: 10,000 / 15,000 / 20,000 / 30,000원. `fortune-chat-consultation`은 5,000원 유지. main은 고정했던 값이라 병합에서 인상 쪽으로 되돌렸다.
+- 사주 18키는 라이트가 아니고 29,000원 묶음으로만 판다. 명리 타로는 main에서 판매 종료되어 라이트에서 뺐다.
 
 ## 배포 순서
 
@@ -27,14 +28,12 @@
 
 ## 배포 전에 할 일
 
-1. **origin/main 반영.** 겹치는 파일을 정리한 뒤 `npm run sync:public`, `npm run check:payment`를 다시 돌린다. 병합이 끝나면 `scripts/verify-payment-choice-parity.mjs` 캐시 핀과 `config/payment-freeze.json`도 확인한다.
-2. **묶음 작업과의 순서 결정.** 다른 세션의 사주 묶음(`saju-bundle-policy.js`)과 영냥이 가격 지시가 겹친다. 영냥이 담당·채팅 가격은 그쪽 세션의 확인 요청에 사용자가 답해야 한다.
-3. **시행일 맞추기.** 약관 시행일은 2026-11-04로 적혀 있다. 실제 배포일이 다르면 아래를 같은 값으로 고치고 `npm run sync:public`을 돌린다.
+1. **시행일 맞추기.** 약관 시행일은 2026-11-05로 적혀 있다. 실제 배포일이 다르면 아래를 같은 값으로 고치고 `npm run sync:public`을 돌린다.
    - `app/terms-of-service/TermsContent.jsx`의 `TERMS_EFFECTIVE_DATE`
    - `lib/legal/legalContent.ts`의 약관 4벌 `effectiveDate`
    - `worker/payments/policy-versions.js`의 `terms`, `worker/routes/auth.js`의 `AUTH_TERMS_VERSION`
    - `__tests__/worker/payments-v2.policy-versions.test.js`, `PAYMENT_POLICY.md` 맨 위 승인 줄
-4. **Play 등록(사용자 몫).** `node scripts/create-play-console-products.mjs --apply`로 v5 SKU 3종을 등록한다.
+2. **Play 등록(사용자 몫).** `node scripts/create-play-console-products.mjs --apply`로 v5 SKU 3종을 등록한다.
 
 ## Play 등록 전 위험
 
@@ -77,7 +76,7 @@
 - 남은 한도 49코인 이하(5,000원 미만)에서 재구매하면 잔여분은 소멸한다. 약관에는 적었지만 상점 화면에는 안내가 없다.
 - 소진 상태에서 산 이용권을 환불하면 앞선 이용권이 소진 상태 그대로 돌아와 라이트 권리가 유지된다. 활성 이용권에서 업그레이드한 주문을 환불하면 기존 규칙대로 종료되어 앞선 이용권의 라이트 권리도 함께 사라진다.
 - 라이트 운세를 쓴 이용권은 자동 환불되지 않고 고객센터 확인으로 넘어간다. 관리자 HQ 화면에는 라이트 사용 건수가 표시되지 않는다.
-- 사주 18키는 묶음 작업이 병합되기 전까지 기존 가격으로 계속 팔리며 이용권 한도를 차감한다.
+- 사주 18키의 단건 신규 판매는 닫혀 있고, 기존 구매자의 재열람만 유지한다.
 - 5,000원으로 내린 상품은 월정석 최소 금액(10,000원)에 못 미쳐 월정석으로 결제할 수 없다.
 - 앱에서 인상 전 만든 결제 의도를 복구하면 `APP_STORE_INTENT_PRICE_CHANGED`로 거부된다.
 
