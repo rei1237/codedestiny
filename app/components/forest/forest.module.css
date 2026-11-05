@@ -1,0 +1,122 @@
+/*
+ * 오늘의 숲길. 그림 위 장면이라 연이·네오 테마와 상관없이 같은 밤숲 색을 쓴다.
+ * 색은 `--cd-forest-*`(styles/theme-tokens.css 맨 위)만 읽는다.
+ * 샘터의 기록 카드는 기존 다이어리 부품이라 어두운 글자를 쓰므로, 밝은 종이 표면 위에 놓는다.
+ */
+.gate, .walk {
+  --forest-lantern-fill: transparent;
+  color: var(--cd-forest-ink);
+  font-family: var(--font-body);
+}
+.gate *, .walk * { box-sizing: border-box; }
+.gate p, .walk p { margin: 0; }
+.gate :where(button, a, summary):focus-visible, .walk :where(button, a, summary, input):focus-visible { outline: 3px solid var(--cd-forest-lantern); outline-offset: 3px; }
+.walk .paper :where(button, a, input):focus-visible { outline-color: var(--cd-forest-paper-ink); }
+
+/* 입구 */
+.gate { width: min(100%, 720px); margin-inline: auto; overflow: hidden; border: 1px solid var(--cd-forest-rule); border-radius: 28px; background: var(--cd-forest-night); box-shadow: 0 18px 40px -22px var(--cd-forest-night); }
+.gateScene { position: relative; aspect-ratio: 3 / 2; background: var(--cd-forest-deep); }
+.gateScene img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.gateScene::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, var(--cd-forest-veil) 0%, transparent 34%, transparent 72%, var(--cd-forest-night) 100%); }
+.gateHead { position: absolute; z-index: 1; top: clamp(16px, 4vw, 28px); left: 0; right: 0; display: grid; justify-items: center; gap: 4px; padding-inline: 16px; text-align: center; }
+.gateHead p { color: var(--cd-forest-mist); font-size: .8125rem; font-weight: 600; letter-spacing: .04em; }
+.gate .gateHead h2 { margin: 0; color: var(--cd-forest-ink); font-family: var(--font-serif); font-size: clamp(1.625rem, 6vw, 2.25rem); line-height: 1.25; letter-spacing: -.01em; }
+.gateBody { display: grid; gap: 14px; padding: 4px clamp(16px, 4vw, 28px) clamp(18px, 4vw, 28px); }
+.gateStats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 0; padding: 0; list-style: none; }
+.gateStats li { display: grid; gap: 2px; padding: 10px 12px; border: 1px solid var(--cd-forest-rule); border-radius: 14px; background: var(--cd-forest-deep); }
+.gateStats span { color: var(--cd-forest-mist); font-size: .75rem; }
+.gateStats strong { font-size: 1rem; font-variant-numeric: tabular-nums; }
+
+/* 공용 */
+.lines { display: grid; gap: 6px; }
+.lines p { font-size: .9375rem; line-height: 1.65; }
+.lines b { margin-right: 8px; color: var(--cd-forest-lantern); font-size: .8125rem; font-weight: 700; }
+.primary, .secondary { display: inline-flex; align-items: center; justify-content: center; width: 100%; min-height: 48px; padding: 10px 18px; border-radius: 999px; font: inherit; font-size: .9375rem; font-weight: 700; text-align: center; text-decoration: none; cursor: pointer; }
+.gate .primary, .walk .primary { border: 1px solid var(--cd-forest-lantern); background: var(--cd-forest-lantern); color: var(--cd-forest-on-lantern); }
+.walk .secondary { border: 1px solid var(--cd-forest-rule-strong); background: transparent; color: var(--cd-forest-ink); }
+.walk .primary:disabled, .walk .secondary:disabled { opacity: .7; cursor: default; }
+.muted { color: var(--cd-forest-mist); }
+.growth { display: grid; gap: 8px; padding: 12px 14px; border: 1px solid var(--cd-forest-rule); border-radius: 16px; background: var(--cd-forest-deep); }
+.growthHead { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.growthHead strong { min-width: 0; font-size: .9375rem; overflow-wrap: anywhere; }
+.growth a { display: inline-flex; flex: none; align-items: center; min-height: 44px; color: var(--cd-forest-lantern); font-size: .8125rem; font-weight: 700; text-underline-offset: 3px; }
+.growthBody { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 6px 10px; }
+.zone { grid-column: 1 / -1; color: var(--cd-forest-mist); font-size: .8125rem; font-weight: 600; }
+.xpTrack { height: 8px; overflow: hidden; border-radius: 999px; background: var(--cd-forest-moss); }
+.xpFill { display: block; height: 100%; border-radius: inherit; background: var(--cd-forest-lantern); transition: width var(--cd-dur-slow, .6s) ease; }
+.growthBody small { color: var(--cd-forest-mist); font-variant-numeric: tabular-nums; }
+
+/* 전체 화면 */
+.dialog { position: fixed; inset: 0; width: 100%; max-width: none; height: 100dvh; max-height: none; margin: 0; padding: 0; overflow: hidden; border: 0; background: var(--cd-forest-night); color: var(--cd-forest-ink); }
+.dialog::backdrop { background: var(--cd-forest-night); }
+.dialog .walk { display: flex; flex-direction: column; height: 100%; }
+.inlineRoot { width: min(100%, 720px); margin-inline: auto; overflow: hidden; border: 1px solid var(--cd-forest-rule); border-radius: 24px; background: var(--cd-forest-night); }
+.walkHead { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 6px 12px; width: min(100%, 720px); margin-inline: auto; padding: calc(10px + env(safe-area-inset-top)) 16px 10px; }
+.walk .walkHead h2 { margin: 0; color: var(--cd-forest-ink); font-family: var(--font-serif); font-size: 1.125rem; line-height: 1.3; }
+.walk .close { min-width: 44px; min-height: 44px; padding: 0 12px; border: 0; background: transparent; color: var(--cd-forest-mist); font: inherit; font-size: .875rem; font-weight: 600; cursor: pointer; }
+.steps { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 16px; background: var(--cd-forest-deep); }
+.walk .steps button { display: grid; align-content: center; justify-items: center; min-width: 0; min-height: 44px; padding: 4px 2px; border: 1px solid transparent; border-radius: 12px; background: transparent; color: var(--cd-forest-mist); font: inherit; font-size: .8125rem; font-weight: 600; line-height: 1.25; cursor: pointer; }
+.walk .steps button[aria-current="step"] { border-color: var(--cd-forest-lantern); color: var(--cd-forest-ink); }
+.walk .steps small { color: var(--cd-forest-lantern); font-size: .6875rem; }
+.walkHead .saveFailed { grid-column: 1 / -1; margin: 0; color: var(--cd-forest-lantern); font-size: .875rem; font-weight: 700; line-height: 1.5; }
+.walkBody { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; }
+.panel { display: grid; gap: 14px; width: min(100%, 720px); margin-inline: auto; padding: 0 16px calc(24px + env(safe-area-inset-bottom)); outline: none; }
+.panel[hidden] { display: none; }
+.scene { display: block; overflow: hidden; border-radius: 20px; background: var(--cd-forest-deep); }
+.scene img { display: block; width: 100%; height: auto; max-height: 40dvh; object-fit: cover; }
+.block { display: grid; gap: 12px; padding: 16px; border: 1px solid var(--cd-forest-rule); border-radius: 18px; background: var(--cd-forest-deep); }
+.walk .panel h3 { margin: 0; color: var(--cd-forest-ink); font-family: var(--font-serif); font-size: 1.125rem; line-height: 1.35; }
+.note { color: var(--cd-forest-mist); font-size: .8125rem; line-height: 1.65; }
+.notice { color: var(--cd-forest-lantern); font-size: .875rem; font-weight: 700; }
+.row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.questName { font-size: 1.0625rem; font-weight: 700; line-height: 1.5; }
+.wallet { display: flex; align-items: center; gap: 10px; color: var(--cd-forest-mist); font-size: .75rem; }
+.wallet img { flex: none; width: 40px; height: 40px; object-fit: contain; }
+.wallet strong { display: block; color: var(--cd-forest-ink); font-size: 1.0625rem; }
+
+/* 등불 */
+.lanterns { display: flex; flex-wrap: wrap; gap: 6px; }
+.lantern { display: grid; place-items: center; width: 40px; height: 48px; border-radius: 12px; background: var(--cd-forest-night); color: var(--cd-forest-rule-strong); }
+.lantern[data-lit] { --forest-lantern-fill: var(--cd-forest-lantern); background: radial-gradient(circle at 50% 55%, var(--cd-forest-glow), transparent 72%); color: var(--cd-forest-lantern); }
+.lantern img { width: 30px; height: 30px; object-fit: contain; opacity: .45; }
+.lantern[data-lit] img { opacity: 1; }
+.lantern[data-just-lit] { animation: forestLanternRise .9s ease-out both; }
+@keyframes forestLanternRise { 0% { transform: translateY(6px) scale(.86); opacity: .3; } 60% { transform: translateY(-3px) scale(1.08); opacity: 1; } 100% { transform: none; opacity: 1; } }
+
+/* 꿀방울 안내 */
+.rewards { padding: 0 12px; border-radius: 12px; background: var(--cd-forest-night); }
+.rewards summary { display: flex; align-items: center; min-height: 44px; cursor: pointer; font-size: .8125rem; font-weight: 700; }
+.rewards summary::after { content: "+"; margin-left: auto; font-size: 1.125rem; }
+.rewards[open] summary::after { content: "−"; }
+.rewards p, .rewards li { color: var(--cd-forest-mist); font-size: .8125rem; line-height: 1.6; }
+.rewards strong { font-size: .8125rem; }
+.rewards ul { margin: 6px 0 10px; padding: 0; list-style: none; }
+.rewards li { display: flex; justify-content: space-between; gap: 12px; }
+.rewards a { display: inline-flex; align-items: center; min-height: 44px; color: var(--cd-forest-lantern); font-size: .8125rem; font-weight: 700; text-underline-offset: 3px; }
+
+/* 샘터의 종이. 다이어리 부품이 읽는 토큰을 이 표면 값으로 준다. */
+.paper { --dy-text: var(--cd-forest-paper-ink); --dy-muted: var(--cd-forest-paper-muted); --dy-line: var(--cd-forest-paper-line); --dy-line-ui: var(--cd-forest-paper-muted); --dy-focus: var(--cd-forest-paper-ink); --dy-accent: var(--cd-forest-paper-ink); --dy-accent-soft: var(--cd-forest-paper-line); --dy-surface: var(--cd-forest-paper); display: grid; gap: 12px; padding: 16px; border-radius: 18px; background: var(--cd-forest-paper); color: var(--cd-forest-paper-ink); }
+.walk .panel .paper h3 { color: var(--cd-forest-paper-ink); }
+/* 기분 여섯 개를 한 줄에 두고, 고르기 전에도 또렷하게 보여 준다. */
+.paper [role="group"] { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px; }
+.paper [role="group"] > button { width: 100%; min-width: 0; opacity: 1; }
+/* iOS가 입력창을 확대하지 않도록 16px을 지킨다. */
+.walk .paper :is(input, textarea) { font-size: 16px; }
+.paperNote { color: var(--cd-forest-paper-muted); font-size: .8125rem; line-height: 1.6; }
+.walk .paperLink { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; color: var(--cd-forest-paper-ink); font-size: .875rem; font-weight: 700; text-underline-offset: 3px; }
+
+/* 숲 지도 */
+.map { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; margin: 0; padding: 0; list-style: none; }
+.map li { display: grid; justify-items: center; gap: 4px; padding: 6px 0; border: 1px solid transparent; border-radius: 12px; }
+.map li[data-today] { border-color: var(--cd-forest-rule-strong); }
+.map img { display: block; width: 100%; max-width: 64px; height: auto; filter: grayscale(1) brightness(.62); opacity: .6; }
+.map li[data-filled] img { filter: none; opacity: 1; }
+.map small { color: var(--cd-forest-mist); font-size: .75rem; }
+
+@media (max-width: 600px) {
+  .gateScene { aspect-ratio: 4 / 5; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lantern[data-just-lit] { animation: none; }
+  .xpFill { transition: none; }
+}

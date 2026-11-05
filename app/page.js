@@ -12,6 +12,7 @@ import { BUSINESS_IDENTITY } from "../lib/site-policy-config";
 import LegacyHomeEntry from "./components/LegacyHomeEntry";
 import { HOME_QUICK_LINKS } from "../lib/seo/home-discovery.mjs";
 import HomeCardDeck from "./components/HomeCardDeck";
+import HomeDailyEntry from "./components/HomeDailyEntry";
 import { NativeHomeRoot, NativeHomeNav, NativeHomeText, NativeHomeCardLink, NativeHomeDictionaryText } from "./components/NativeHomeCopy";
 import "./yeongnyangi/night-tokens.css";
 import "./yeongnyangi/yehwa-night.generated.css";
@@ -127,6 +128,7 @@ export default function HomePage() {
           })}
         </HomeCardDeck>
         {!IS_APP_BUILD && <HomeQuestionGuide />}
+        <HomeDailyEntry />
         {!IS_APP_BUILD && <StoryDiscovery />}
         {!IS_APP_BUILD && <HomeInstallEntry />}
         {!IS_APP_BUILD && <nav className={styles.entryHelp} aria-label="주요 운세 바로가기">
