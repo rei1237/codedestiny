@@ -278,9 +278,9 @@ test('a second purchase call while the native sheet is open is refused',async()=
  finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
 });
 
-test('cancellation unlocks a retry but an uncertain failure blocks the session',async()=>{
- const {state,restore,purchase,purchaseTarot}=await adapter(true,true),previous=globalThis.fetch;
- try{await restore();purchase({sku:'first'},'request',()=>{},()=>{});await tick();state.purchaseOptions.onError({code:'USER_CANCELED'});purchaseTarot({sku:'second'},'input',()=>{},()=>{});await tick();state.purchaseOptions.onError({code:'NETWORK_ERROR'});assert.throws(()=>purchase({sku:'third'},'request',()=>{},()=>{}),e=>e.code==='PAYMENT_STATUS_UNCERTAIN');await restore();assert.throws(()=>purchase({sku:'third'},'request',()=>{},()=>{}),e=>e.code==='PAYMENT_STATUS_UNCERTAIN');}
+for(const kind of ['consultation','tarot'])test(kind+' checkout exit blocks another purchase even after empty recovery',async()=>{
+ const {state,restore,purchase,purchaseTarot}=await adapter(true,true),previous=globalThis.fetch;let reported;
+ try{await restore();if(kind==='consultation')purchase({sku:'first'},'request',()=>{},e=>{reported=e;});else purchaseTarot({sku:'first'},'input',()=>{},e=>{reported=e;});await tick();state.purchaseOptions.onError({code:'USER_CANCELED'});assert.equal(reported.code,'PAYMENT_STATUS_UNCERTAIN');assert.throws(()=>purchase({sku:'second'},'request',()=>{},()=>{}),e=>e.code==='PAYMENT_STATUS_UNCERTAIN');await restore();assert.throws(()=>purchaseTarot({sku:'second'},'input',()=>{},()=>{}),e=>e.code==='PAYMENT_STATUS_UNCERTAIN');}
  finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
 });
 
@@ -304,9 +304,9 @@ test('a purchase completed after switching accounts cannot navigate to the old r
  finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
 });
 
-test('synchronous SDK cancellation cleans up once and permits retry',async()=>{
+test('synchronous SDK cancellation cleans up once and blocks retry',async()=>{
  const {state,restore,purchase}=await adapter(true,true),previous=globalThis.fetch;let errors=0;
- try{await restore();state.synchronousCancel=true;const oldCleanup=purchase({sku:'first'},'request',()=>{},()=>errors++);await tick();assert.equal(errors,1);assert.equal(state.cleanupCount,1);oldCleanup();assert.equal(state.cleanupCount,1);state.synchronousCancel=false;purchase({sku:'second'},'request',()=>{},()=>{});await tick();assert.equal(state.purchaseOptions.options.sku,'second');}
+ try{await restore();state.synchronousCancel=true;const oldCleanup=purchase({sku:'first'},'request',()=>{},()=>errors++);await tick();assert.equal(errors,1);assert.equal(state.cleanupCount,1);oldCleanup();assert.equal(state.cleanupCount,1);state.synchronousCancel=false;assert.throws(()=>purchase({sku:'second'},'request',()=>{},()=>{}),e=>e.code==='PAYMENT_STATUS_UNCERTAIN');}
  finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
 });
 
