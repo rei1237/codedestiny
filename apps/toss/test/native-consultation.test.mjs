@@ -37,6 +37,14 @@ test('astrology orders require their own approved feature and immutable price',a
  assert.equal(receipt.durable,true);assert.equal(storage.state.purchases.get(order.orderId).nativeService,'astrology');
  await assert.rejects(grantNativeOrder({store:storage,auth,product,order,requestId:initial._id}),/ORDER_OWNERSHIP_MISMATCH/);
 });
+test('Vedic orders cannot use another service, price or unapproved SKU',async()=>{
+ const vedic={...product,nativeService:'vedic',featureKey:'vedic-ai-consultation',productId:'native:vedic:vedic-ai-consultation'};
+ const vedicContract={...contract,featureKey:vedic.featureKey};assert.equal(nativeProduct(vedic,vedicContract),vedic);
+ for(const wrong of [{...vedic,approved:false},{...vedic,featureKey:'astrology-ai-consultation'},{...vedic,approvedPriceKRW:1},{...vedic,priceEvidence:''}])assert.throws(()=>nativeProduct(wrong,vedicContract));
+ const storage=store();storage.state.intent={...storage.state.intent,nativeService:'vedic',featureKey:vedic.featureKey};
+ const receipt=await grantNativeOrder({store:storage,auth,product:vedic,order,requestId:initial._id});assert.equal(receipt.durable,true);
+ await assert.rejects(grantNativeOrder({store:storage,auth,product,order,requestId:initial._id}),/ORDER_OWNERSHIP_MISMATCH/);
+});
 test('one original consultation input binds one order atomically and grant retries never generate',async()=>{
  const storage=store(),args={store:storage,auth,product,order,requestId:initial._id};
  const first=await grantNativeOrder(args),again=await grantNativeOrder(args);
