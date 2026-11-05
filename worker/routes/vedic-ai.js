@@ -1879,6 +1879,15 @@ export const __vedicAiTestUtils = {
   collectEvidenceIds,
 };
 
+// Freeze the original validated input and existing price before a Toss order.
+// This contract alone does not enable a product or grant access.
+export function nativeVedicContract(body) {
+  const normalized = normalizeConsultationInput(body || {});
+  const requestId = normalizeId(body?.requestId || body?.idempotencyKey);
+  if (!normalized.ok || requestId.length < 12) throw Object.assign(new Error('상담 입력을 다시 확인해 주세요.'), {status:400});
+  return {requestId,resultId:requestId,featureKey:FEATURE_KEY,inputHash:normalized.inputHash,pricing:getPricing().pricing};
+}
+
 // Internal cron continuation: only a stored owner/id is accepted, never client input.
 // The normal handler rereads that owner's record and rechecks existing payment proof.
 export function resumeConsultationOnServer(env, doc) {
