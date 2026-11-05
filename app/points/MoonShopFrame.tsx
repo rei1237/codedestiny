@@ -79,9 +79,6 @@ export function MoonlightShopHero() {
             <p className="mt-3 text-sm font-semibold leading-6 text-[color:var(--moon-silver)] sm:text-base">
               달빛 이용권 상품과 원화 결제 조건을 한 화면에서 확인하세요.
             </p>
-            <p className="mt-2 text-sm leading-6 text-[color:var(--moon-silver)]">
-              연이의 가게에 생선을 좋아하는 영냥이가 놀러 왔어요. “달빛도 좋지만, 생선은 더 좋다냥!”
-            </p>
             <p className="mt-2 text-sm font-black leading-6 text-[color:var(--moon-gold)]">
               이용권은 원화 단건 결제로만 구매할 수 있습니다. 월정석으로는 이용권을 구매할 수 없습니다.
             </p>
