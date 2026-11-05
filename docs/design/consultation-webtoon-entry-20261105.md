@@ -34,3 +34,7 @@ SEO: 공개 홈의 본문·내부 링크를 보완하며 canonical·hreflang·ro
 - `homeOverseas-103.json`에 고민·도움·버튼·접근성 이름 54개를 12개 언어로 저작하고 기존 사전 병합기를 사용했다. 중첩된 웹툰 링크 문구는 span으로 감싸 기존 생성기의 번역 마커가 붙도록 했다. 링크 주소와 컨트롤은 유지한다.
 - `node --test __tests__/ui/home-overseas-runtime.test.mjs __tests__/ui/consultation-webtoon-entry.test.mjs`: 17/17 통과. 한국어 복원·가격·링크 보존, 설치 취소·완료·미지원 안내까지 확인했다.
 - 이 수정은 번역과 마크업만 변경하며 결제·인증·API·DB·배포 설정은 변경하지 않는다. 최종 원격 CI 및 운영 확인은 별도 실행 결과로 보고한다.
+- `5f76ae94a` CI의 fast·build·critical은 통과했다. 정적 가드의 `verify:detail-first-entry`가 기존 직계 자식 선택자를 사용해 6개 카드를 0개로 판정했다. 새 article 묶음에서 상담 링크 6개와 웹툰 링크 6개를 함께 검사하도록 갱신하고, 카드 인덱스는 실제 carousel의 `.cd-sig-card` 목록을 사용한다.
+- 화면 밖 웹툰 링크도 상담 카드와 같은 inert 범위를 따르도록 묶음의 키보드 접근을 동기화했다. carousel 단위 테스트 10개 통과. 자동 이동 시간과 멈춤 정책은 유지한다.
+- 후속 check:fast는 77/77 가드·lint·typecheck 등을 통과했으며, 원격에서 이미 통과한 광범위 테스트의 로컬 중복 실행은 메모리 사용을 줄이기 위해 중단했다. 전체 check:fast 완료로 보고하지 않는다.
+- `npm run verify:detail-first-entry`: 360·390·430·1280px의 유료 카드 20개씩, 총 80개 흐름 통과. 상세 이미지 로드, 닫기/포커스, 기존 CTA 주소, 뒤로 가기, 과금 요청 없음 검증을 유지했다.
