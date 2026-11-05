@@ -19,7 +19,8 @@ import {
   mergeSajuCompatShaped, normalizeSajuCompatInput, parseSajuCompatResponse, sajuCompatSeenKeys, sajuCompatShapedChars,
   sajuCompatTasks, shapeSajuCompatGroup, sajuCompatResponseSchema,
 } from "../lib/saju-compat-schema.js";
-import { buildSajuCompatPrompt, buildSajuCompatSystemPrompt, withApprovedSajuCompat } from "../lib/saju-compat-prompts.js";
+import { buildSajuCompatPrompt, buildSajuCompatSystemPrompt, sajuCompatSharedPrefix, withApprovedSajuCompat } from "../lib/saju-compat-prompts.js";
+import { contextCacheOptions } from "../lib/resumable-context-cache.js";
 import { sajuAuthorityOn } from "../lib/saju-authority-consumer.js";
 import { toAiLocale } from "../../lib/i18n/ai-locale.js";
 
@@ -40,13 +41,16 @@ const clippedRetryTokens = (raw, tokens) => {
 };
 
 async function generateGroup(env, group, input, seen, promptOptions, previousRaw) {
-  const ai = await callGeminiText(env, buildSajuCompatPrompt(group, input, promptOptions), {
-    systemPrompt: buildSajuCompatSystemPrompt(input),
-    locale: toAiLocale(input.locale),
+  const prompt = buildSajuCompatPrompt(group, input, promptOptions);
+  const systemPrompt = buildSajuCompatSystemPrompt(input);
+  const locale = toAiLocale(input.locale);
+  const ai = await callGeminiText(env, prompt, {
+    systemPrompt,
+    locale,
     temperature: 0.6,
     maxOutputTokens: clippedRetryTokens(previousRaw, group === "core" && input.facts.relationship ? 16384 : 8192),
     thinkingBudget: 0,
-    timeoutMs: PROVIDER_TIMEOUT_MS,
+    ...await contextCacheOptions(env, { prompt, prefix: sajuCompatSharedPrefix(input), systemPrompt, locale, timeoutMs: PROVIDER_TIMEOUT_MS }),
     fallbackToWorkersAI: false,
     responseMimeType: "application/json",
     responseSchema: sajuCompatResponseSchema(group, input),

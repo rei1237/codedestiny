@@ -32,6 +32,7 @@ import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
 import { hasRenderableLlmText, isCompleteLlmResponse } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
+import { contextCacheOptions } from "../lib/resumable-context-cache.js";
 import { calculateZiweiAiChart, formatStarWithBrightness } from "../lib/ziwei-ai-chart.js";
 import { readZiweiExecutionSnapshot } from "../lib/ziwei-execution-adapter.js";
 import { resolveZiweiPreparation } from "../lib/ziwei-calculation-preparation.js";
@@ -1857,7 +1858,8 @@ function buildZiweiDuplicateInstruction(duplicates, group) {
  */
 const ZIWEI_GROUP_MAX_ATTEMPTS = 2;
 const ziweiSectionBody = sections => Object.values(sections).map(row => String(row?.body || "")).join("\n");
-async function generateCheckpointedZiwei(env, { input, chart, logContext, checkpoint, groups = {}, attempts = {}, meta = {}, rawResponses = {} }) {
+async function generateCheckpointedZiwei(env, { input, chart, logContext, checkpoint, groups = {}, attempts = {}, meta = {}, rawResponses = {}, cacheScope }) {
+  const sharedPrefix = `${buildConsultationHeaderLines(input, chart).join("\n")}\n`;
   groups = { ...groups }; attempts = { ...attempts }; rawResponses = { ...rawResponses };
   const merge = () => Object.assign({}, ...Object.values(groups));
   let sections = merge();
@@ -1886,15 +1888,18 @@ async function generateCheckpointedZiwei(env, { input, chart, logContext, checkp
     const groupTokens = attempts[`${group.id}:truncated`] ? Math.max(SECTION_GROUP_TARGET_TOKENS, Math.min(32768, SECTION_GROUP_TARGET_TOKENS * 2)) : SECTION_GROUP_TARGET_TOKENS;
     let generated;
     try {
-      generated = await callGeminiJsonWithRetry(env, [
+      const prompt = [
         buildSectionGroupPrompt(input, chart, group),
         `제목과 공백을 제외한 본문 목표 ${group.targetChars}자, 최소 ${group.minChars}자. 각 필수 섹션을 빠짐없이 작성하세요.`,
         ...(repairIds.includes(group.id) ? describeZiweiGroundingIssues(grounding.issues, chart) : []),
         ...(repairing ? [`직전 본문은 공백 제외 ${countPaidReportBodyChars(ziweiSectionBody(groups[group.id]))}자입니다. 같은 문장 반복 없이 계산 근거와 행동 조언을 보강해 완결된 JSON으로 다시 작성하세요.`] : []),
-      ].join("\n"), {
-        systemPrompt: await resolveSystemPrompt(env, input.locale), taskType: "fortune", responseMimeType: "application/json",
+      ].join("\n");
+      const systemPrompt = await resolveSystemPrompt(env, input.locale);
+      generated = await callGeminiJsonWithRetry(env, prompt, {
+        systemPrompt, taskType: "fortune", responseMimeType: "application/json",
         responseSchema: jsonSchemaFromExample({ sections: buildSectionSchemaFor(group.sections) }),
-        temperature: config.temperature ?? 0.72, attempts: 1, timeoutMs: 45000,
+        temperature: config.temperature ?? 0.72, attempts: 1,
+        ...await contextCacheOptions(env, { prompt, prefix: sharedPrefix, systemPrompt, scope: cacheScope, attempt: attempts[group.id], timeoutMs: 45000 }),
         baseTokens: Math.max(groupTokens, Math.floor(Number(config.maxOutputTokens || INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS) / SECTION_GROUP_SPECS.length)),
         capTokens: groupTokens, fallbackToWorkersAI: false,
         cache: { store: createLlmCacheStore(env), deterministic: true, keyExtra: `ziwei-delivery-v1-${group.id}`, skipRead: attempts[group.id] > 1 },
@@ -1937,8 +1942,11 @@ async function generateCheckpointedZiwei(env, { input, chart, logContext, checkp
   if (!group && !Object.keys(meta).length && !attempts.meta) {
     attempts.meta = 1;
     await checkpoint({ groups, attempts, meta, rawResponses });
-    const generated = await callGeminiJsonWithRetry(env, buildMetaPrompt(input, chart), {
-      systemPrompt: await resolveSystemPrompt(env, input.locale), attempts: 1, timeoutMs: 45000,
+    const prompt = buildMetaPrompt(input, chart);
+    const systemPrompt = await resolveSystemPrompt(env, input.locale);
+    const generated = await callGeminiJsonWithRetry(env, prompt, {
+      systemPrompt, attempts: 1,
+      ...await contextCacheOptions(env, { prompt, prefix: sharedPrefix, systemPrompt, scope: cacheScope, attempt: 1, timeoutMs: 45000 }),
       baseTokens: 2600, capTokens: 2600, fallbackToWorkersAI: false,
       responseMimeType: "application/json", responseSchema: jsonSchemaFromExample({ meta: buildMetaOutputExample(input).meta }), logContext: { ...logContext, sectionGroup: "meta" },
     }).catch(() => null); // Optional meta failure keeps the saved body deliverable.
@@ -1963,8 +1971,8 @@ async function saveZiweiDelivery(filter, fields, resultId) {
   } catch { throw resultStorageUnavailable(resultId); }
 }
 
-async function generateInitialConsultation(env, { input, chart, logContext = {}, checkpoint, groups, attempts, meta: checkpointMeta, rawResponses }) {
-  if (checkpoint) return generateCheckpointedZiwei(env, { input, chart, logContext, checkpoint, groups, attempts, meta: checkpointMeta, rawResponses });
+async function generateInitialConsultation(env, { input, chart, logContext = {}, checkpoint, groups, attempts, meta: checkpointMeta, rawResponses, cacheScope }) {
+  if (checkpoint) return generateCheckpointedZiwei(env, { input, chart, logContext, checkpoint, groups, attempts, meta: checkpointMeta, rawResponses, cacheScope });
   const startedAt = Date.now();
   const remainingMs = () => INITIAL_CONSULTATION_DEADLINE_MS - (Date.now() - startedAt);
   const retryTimeoutMs = () => Math.max(18000, Math.min(SECTION_GROUP_TIMEOUT_MS, remainingMs() - 6000));
@@ -2660,7 +2668,7 @@ async function handleStart(request, env, route = "/api/ziwei-ai/generate", recov
         : readZiweiExecutionSnapshot(doc) || initialChart;
       const resumeBody = { ...body, idempotencyKey, accessType: access.accessType }; delete resumeBody.accessToken;
       doc = await saveZiweiDelivery(locked, { llmMeta: { ...doc.llmMeta, chartSnapshot: chart, resumeBody: doc.llmMeta?.resumeBody || resumeBody } }, sessionId);
-      const generated = await runWithAiLocale(storedAiLocale(doc), async () => generateInitialConsultation(env, { input: normalized.input, chart, groups: doc.llmMeta.groups, attempts: doc.llmMeta.attempts, meta: doc.llmMeta.reportMeta, rawResponses: doc.llmMeta.rawResponses,
+      const generated = await runWithAiLocale(storedAiLocale(doc), async () => generateInitialConsultation(env, { input: normalized.input, chart, groups: doc.llmMeta.groups, attempts: doc.llmMeta.attempts, meta: doc.llmMeta.reportMeta, rawResponses: doc.llmMeta.rawResponses, cacheScope: [auth.userId, sessionId],
         checkpoint: async ({ groups, attempts, meta, rawResponses }) => {
           const sections = Object.assign({}, ...Object.values(groups));
           const content = enforceZiweiChartFacts(JSON.stringify({ meta, sections }), chart).text;
@@ -2830,6 +2838,7 @@ export const __ziweiAiTestUtils = {
   SERVICE_KEY,
   verifyPaymentForStart,
   normalizeConsultationInput,
+  generateInitialConsultation,
   buildFirstPrompt,
   buildSystemPrompt,
   buildCanonicalZiweiFacts,

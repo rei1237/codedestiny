@@ -1,7 +1,8 @@
 import { selectGeminiModel } from "../../lib/gemini-model-policy.js";
 import { getAmbientAiLocale } from "./ai-locale-context.js";
 import { getEnv } from "./env.js";
-import { createGeminiContextCache, pickGeminiKeys, restoreGeminiContextCache } from "./gemini.js";
+// Namespace import: a stub of gemini.js without these helpers still links and ends in a plain call.
+import * as gemini from "./gemini.js";
 import { createLlmCacheStore } from "./llm-cache-store.js";
 import { getPaidGenerationContext } from "./paid-generation-context.js";
 
@@ -38,9 +39,9 @@ async function prepare(env, input) {
     return undefined;
   }
   if (record.name && Number(record.expiresAt) - Date.now() > MIN_HANDLE_LIFE_MS) {
-    return restoreGeminiContextCache({ ...shared, name: record.name });
+    return gemini.restoreGeminiContextCache({ ...shared, name: record.name });
   }
-  const created = await createGeminiContextCache(env, {
+  const created = await gemini.createGeminiContextCache(env, {
     ...shared, model: input.model, reasoningTask: input.reasoningTask,
     ttlSeconds: CACHE_TTL_SECONDS, timeoutMs: CREATE_TIMEOUT_MS,
   });
@@ -62,11 +63,11 @@ export async function resumableContextCache(env, input) {
   if (!scope || typeof prefix !== "string" || prefix.length < MIN_PREFIX_CHARS) return NO_CACHE;
   if (typeof prompt !== "string" || !prompt.startsWith(prefix) || Number(attempt) > 1) return NO_CACHE;
   if (["0", "false", "off"].includes(String(getEnv(env, "GEMINI_CONTEXT_CACHE") || "").trim().toLowerCase())) return NO_CACHE;
-  // With no key the call never reaches Gemini, so there is nothing to discount.
-  if (!pickGeminiKeys().some((name) => String(getEnv(env, name) || "").trim())) return NO_CACHE;
   const startedAt = Date.now();
   let timer;
   try {
+    // With no key the call never reaches Gemini, so there is nothing to discount.
+    if (!gemini.pickGeminiKeys().some((name) => String(getEnv(env, name) || "").trim())) return NO_CACHE;
     const cache = await Promise.race([
       prepare(env, input),
       new Promise((resolve) => { timer = setTimeout(() => resolve(undefined), PREPARE_LIMIT_MS); }),

@@ -224,6 +224,11 @@ const reasonGuide = (input) => (spec) => {
   return `약 ${spec.target}자: ${reasonGloss(input, code)}${detail ? ` (${detail})` : ""}을 두 사람의 일상 장면과 연결해 풀이`;
 };
 
+const factsSection = (input) => `[확정값 — 엔진이 계산한 값이며 바꾸지 마세요]\n${buildSajuCompatFactsBlock(input)}`;
+
+/** 모든 그룹 프롬프트의 시작 부분. 컨텍스트 캐시에 그대로 들어간다. */
+export const sajuCompatSharedPrefix = (input) => `${factsSection(input)}\n\n`;
+
 /**
  * 그룹별 사용자 프롬프트. issues 가 있으면 이전 응답에서 비었거나 짧았던 항목을, shortfall 이면 전반적인 분량 부족을 보강하게 한다.
  * 분량은 목표일 뿐이며 정확한 JSON 구조가 우선이다.
@@ -233,7 +238,7 @@ export function buildSajuCompatPrompt(group, input, { issues = [], shortfall = f
   const guide = group === "reasons" ? reasonGuide(input) : (spec) => `약 ${spec.target}자${spec.kind === "list" ? "(질문 한 문장)" : ""}: ${(input.approvedSaju && APPROVED_FIELD_GUIDE[spec.path]) || FIELD_GUIDE[spec.path] || spec.path}`;
   const skeleton = skeletonOf(required, guide);
   const lines = [
-    `[확정값 — 엔진이 계산한 값이며 바꾸지 마세요]\n${buildSajuCompatFactsBlock(input)}`,
+    factsSection(input),
     `[작성 지침]\n아래 JSON 구조의 모든 키를 빠짐없이 채우세요. 값은 해당 항목의 설명대로 쓰고, 설명 문구를 그대로 베끼지 마세요. 이 구조에 없는 키는 만들지 마세요.\n${JSON.stringify(skeleton, null, 1)}`,
   ];
   if (input.facts.relationship) lines.push(`[서버 계산 기둥 관계]

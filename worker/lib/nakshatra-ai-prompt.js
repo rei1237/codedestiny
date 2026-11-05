@@ -177,9 +177,8 @@ export function buildWrittenMemory(done, limit = 8) {
     .join("\n");
 }
 
-export function buildSectionPrompt(section, ctx) {
-  const question = String(ctx?.question || "").trim();
-  const memory = String(ctx?.writtenMemory || "").trim();
+// 모든 장의 프롬프트가 같은 시작 부분. 컨텍스트 캐시에 그대로 들어간다.
+function sharedSectionLines(ctx) {
   return [
     NAKSHATRA_PERSONA.integrated,
     "",
@@ -189,6 +188,16 @@ export function buildSectionPrompt(section, ctx) {
     "",
     "[계산 근거]",
     ctx?.summaryText || "",
+  ];
+}
+
+export const buildSectionSharedPrefix = (ctx) => `${sharedSectionLines(ctx).join("\n")}\n`;
+
+export function buildSectionPrompt(section, ctx) {
+  const question = String(ctx?.question || "").trim();
+  const memory = String(ctx?.writtenMemory || "").trim();
+  return [
+    ...sharedSectionLines(ctx),
     ...(memory ? ["", "[앞 장에서 이미 말한 결론 — 바꿔 말해 반복하지 말 것]", memory] : []),
     "",
     question ? "[사용자 질문]\n" + question : "[사용자 질문]\n(자유 상담 — 이 사람의 전반적인 결을 읽는다)",

@@ -48,6 +48,7 @@ import { getAmbientAiLocale, runWithAiLocale, storedAiLocale } from "../lib/ai-l
 import { toAiLocale } from "../../lib/i18n/ai-locale.js";
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
+import { contextCacheOptions } from "../lib/resumable-context-cache.js";
 import {
   completeServiceExecution,
   failServiceExecution,
@@ -62,6 +63,7 @@ import {
   NAKSHATRA_PHASE_CONSULTATION,
   NAKSHATRA_TOTAL_MIN_CHARS,
   buildSectionPrompt,
+  buildSectionSharedPrefix,
   buildFactContext,
   buildWrittenMemory,
   parseSectionResponse,
@@ -665,7 +667,7 @@ function lunarFromInput(input) {
 }
 
 // 🔴 검증 전용 표면. verify:sukuyo-korean-calendar 가 음력 축을 **실제로 실행해** 본다.
-export const __nakshatraAiTestUtils = { normalizeBirthInput, isValidBirthInput, lunarFromInput };
+export const __nakshatraAiTestUtils = { normalizeBirthInput, isValidBirthInput, lunarFromInput, generateSectionOnce };
 
 async function computeNatalFacts(env, normalized, request) {
   const input = normalized.input.birthInfo;
@@ -699,12 +701,13 @@ async function computeNatalFacts(env, normalized, request) {
 // 잘림·빈 파싱·목표 미달은 다음 요청에서 해당 장만 제한적으로 다시 생성한다.
 // 🔴 fallbackMinChars: Workers AI 폴백(70B는 약 1,700자에서 스스로 멈춘다)이 짧은 응답을 완성본으로
 //    돌려주는 것을 막는다. 이게 없으면 2만자 상품이 8% 분량으로 '완료' 저장된다(CLAUDE.md 필수 규칙).
-async function generateSectionOnce(env, section, prompt, cacheConfig, truncationRetry = false) {
+async function generateSectionOnce(env, section, prompt, cacheConfig, truncationRetry = false, contextCache = {}) {
   const base = { id: section.id, deck: section.deck, title: section.title, keyInsight: "", vedicEvidence: "", sukuyoEvidence: "", body: "", chars: 0, ok: false };
   try {
     // 직전 시도가 MAX_TOKENS 로 잘렸으면 같은 예산 재시도는 또 잘려 환불된다 — 재시도만 2배(≤32768). 기본 예산은 그대로.
     const ai = await callGeminiText(env, prompt, { maxOutputTokens: truncationRetry ? Math.min(32768, 10000 * 2) : 10000, temperature: 0.65, thinkingBudget: 0,
-      responseMimeType: "application/json", responseSchema: jsonSchemaFromExample({ title: "", keyInsight: "", vedicEvidence: "", sukuyoEvidence: "", body: "" }), timeoutMs: clampSyncLlmTimeoutMs(SECTION_TIMEOUT_MS), fallbackToWorkersAI: false,
+      responseMimeType: "application/json", responseSchema: jsonSchemaFromExample({ title: "", keyInsight: "", vedicEvidence: "", sukuyoEvidence: "", body: "" }), fallbackToWorkersAI: false,
+      ...await contextCacheOptions(env, { prompt, prefix: buildSectionSharedPrefix(contextCache.context), scope: contextCache.scope, attempt: contextCache.attempt, timeoutMs: clampSyncLlmTimeoutMs(SECTION_TIMEOUT_MS) }),
       ...(cacheConfig ? { cache: cacheConfig } : {}) });
     const isMock = (/mock/i.test(ai?.provider || "") || /mock/i.test(ai?.model || "") || ai?.isMock === true) && !isStagingLlmMockEnabled(env);
     if (!ai?.ok || isMock) return base;
@@ -954,7 +957,7 @@ async function advanceGeneration({ request, env, auth, sessionId, idempotencyKey
         const prompt = buildSectionPrompt(section, context) + (attempts[`${section.id}:lengthRepair`]
           ? `\n[분량 보강] 기존 계산 근거를 유지하고 새로운 생활 장면과 행동 조언을 더해 공백 제외 본문 ${Math.ceil(section.minChars / 0.8)}자 이상의 완결된 JSON으로 작성하세요. 반복으로 채우지 마세요.` : "");
         const row = await runWithAiLocale(storedAiLocale(session), () => generateSectionOnce(env, section, prompt, { store: createLlmCacheStore(env), deterministic: true, ttlSeconds: 2592000,
-          minChars: section.minChars, keyExtra: `nakshatra-delivery-v4-${section.id}-r${attempts[section.id]}` }, Boolean(attempts[`${section.id}:truncated`])));
+          minChars: section.minChars, keyExtra: `nakshatra-delivery-v4-${section.id}-r${attempts[section.id]}` }, Boolean(attempts[`${section.id}:truncated`]), { scope: [auth.userId, sessionId], attempt: attempts[section.id], context }));
         const identity = session.factSummary?.identity;
         if (!isSectionSettled(row, {}, true) || (identity?.nakshatraKo && !row.vedicEvidence.includes(identity.nakshatraKo)) || (identity?.sukuyoKo && !row.sukuyoEvidence.includes(identity.sukuyoKo))) { await recordGenerationFailure(section.id, row.truncated === true); return; }
         const write = queue.catch(() => {}).then(async () => {
