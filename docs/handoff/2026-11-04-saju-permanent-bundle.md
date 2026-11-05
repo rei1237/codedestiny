@@ -57,15 +57,24 @@ next: "RED 위험과 검증 결과를 사용자에게 보고한 뒤 main push, �
 ## 검증에서 남은 것
 
 - `scripts/design/verify-compact-home.cjs`: main의 홈 개편(`f798dddab`, `7b245a9eb`, 2026-10-28~31)이 `.cdh-consult`·`.cdh-consult-browser` 요소를 없앤 뒤로 첫 측정에서 실패한다. 묶음 때문이 아니다. 이 파일의 묶음 단정은 그 뒤에 있어 실행되지 않고, 같은 내용은 임시 4상태 화면 검사로 확인했다.
-- `scripts/verify-saju-reading-personas.mjs`: 같은 커밋에서 없어진 `.cd-soulcat-entry`를 첫 단계에서 찾아 실패한다. 묶음이 바꾼 부분(잠금 전 카드 없음, 저장 프로필 뒤 해금)만 고쳤고, 입구 단계를 건너뛴 임시 사본으로 해금까지 통과했다. 그 뒤 `#tsGrid` 비교는 결과 화면 탭 때문에 숨은 요소를 읽어 실패하므로 페르소나 전환·시간 미상 구간은 브라우저로 확인하지 못했다. 전환 로직은 `node --test` 14개로만 확인했다.
+- `scripts/verify-saju-reading-personas.mjs`: 같은 커밋에서 없어진 `.cd-soulcat-entry`를 첫 단계에서 찾아 실패한다. 묶음이 바꾼 부분(잠금 전 카드 없음, 저장 프로필 뒤 해금)만 고쳤고, 입구 단계를 건너뛴 임시 사본으로 해금까지 통과했다. 그 뒤 `#tsGrid` 비교는 결과 화면 탭 때문에 숨은 요소를 읽어 실패하므로 이 가드는 여전히 빨간불이다. 시간 미상 + 묶음 보유 화면은 임시 하네스(저장소 밖, mock, 390·960)로 따로 확인했다. 승인 판정 켬에서 `#ukbuSection`은 판정 보류, `#currentAgeInfo`는 강약 판정 보류, `G_POWER`는 원값 유지, 페이지 오류·가로 넘침 없음. 이 하네스는 아래 "시간 미상 구매자" 항목 때문에 활성 프로필에 id를 임시로 붙였다. 페르소나 전환은 안정성 가드가 화자 전환 재배달로 확인한다.
 - `__tests__/ui/yeongnyangi-reading-invariance.test.mjs`: 로컬에서 판정하지 않았다. Swiss Ephemeris를 스텁 없이 불러올 수 있어 CI에 맡긴다.
 - `isTileKeyUnlocked` 덮어쓰기와 mock 402로 권리를 흉내 냈다. 서버 권리 판정은 워커 테스트가 맡는다. 실결제 흐름은 운영에서 확인한 적 없다.
 - 자미·서양 차트는 브라우저에서 모달을 열어 보지 않았다(Swiss WASM 실행 가능성). 판매 종료 키에 차트 키가 없다는 것과 Next 경로 응답까지 확인했다.
 
+## 승격 전 결정 필요
+
+- **시간 미상 구매자:** 저장 프로필은 `birth.hour: null`, 엔진 활성 프로필은 `hour: 12`이고 활성 프로필에 id가 없다(`js/saju-engine.js:5032`). `_cdResolveCurrentProfileIdForAccess`의 `profilesReferToSameBirth`가 false를 돌려 결과 화면 프로필 id가 비고, 묶음 보유 상태에서 안내도 본문도 나오지 않았다(`owned:true`, `offerInline:0`, `sectionCalls:[]`). mock에서만 재현했고 운영에서는 확인하지 못했다. 이 판정 코드는 main과 같아 이번 수정 범위 밖으로 두었다. 후보 수정은 양쪽 다 시간 미상이면 같은 시각으로 보는 것이다(미구현).
+
+## 결제 코드 변경 (main 대비)
+
+`_cdRunDirectKrwCheckout`, `billing.js`, `payments.js`는 묶음 브랜치에서 실제로 바뀌었다. 목록과 `alreadyUnlocked` 범위 근거는 `docs/context/payment-gating.md`의 "main 통합 뒤 달라진 점"에 있다. 주문 없는 `alreadyUnlocked` 응답을 해금으로 받는 처리는 묶음과 판매 종료 키로만 좁혔다.
+
 ## 관찰 (고치지 않음)
 
 - main의 `cdSignatureConsultPopup`(`js/core/home-funnel.js`, `f7ddbba01`)이 1.5초 뒤 `?action=cdOneStepFreeSajuEntry` 입력 폼 위에도 뜬다. 입력 중인 사람을 가리므로 확인이 필요하다.
-- 계산 시작 직후 오버레이가 `#run-btn`을 덮어 Playwright 클릭이 간헐적으로 시간 초과한다. 프로브 4회에서는 클릭 전에 계산이 시작되지 않았고 재현도 안 됐다. 가드는 결과 대기로 판정하게 바꿨다.
+- `#run-btn` Playwright 클릭이 간헐적으로 시간 초과한다. 계산 오버레이가 덮어서라는 것은 추정이고 원인은 확인하지 못했다(프로브 4회 재현 안 됨). 가드는 `TimeoutError`만 기록하고 넘긴 뒤 결과 대기로 판정한다.
+- 판정 보류 화면의 게이지는 굵은 "신약 · 억부 점수 -7점 (판정 기준 30점)"을 그대로 보여 판정처럼 읽힐 수 있다. main 원본도 판정 보류 아래 같은 게이지를 넣는다(`js/core/saju/reading-rich.js:354-356`). 묶음이 만든 차이는 아니고 main 화면을 띄워 비교하지는 않았다.
 - `shellRuntime.f2343`은 무료 힐링 타로(`app/tarot/healing/page.tsx:101`)에서만 쓴다. 사주 범위 문구가 아니어서 고치지 않았다.
 
 ## 뒤로 미룬 항목

@@ -373,7 +373,12 @@
 
 - 꿀방울: main이 `tarot-myeongri-three-card`를 꿀 카탈로그에서 빼 사용처가 24상품이 되었고, 여기서 판매 종료 키 6개가 더 빠져 통합 뒤 카탈로그는 18개다. 꿀방울로 묶음을 사는 경로는 여전히 없다.
 - 승인 판정: 묶음 서버 원국 풀이(`worker/lib/saju-section/paid-natal-reading.src.js`)는 main의 승인 판정을 따른다. `report.js`가 화면과 같은 값(`shown?.power`, `shown?.gyeokguk`)을 넘기고, 용신은 "보완 후보", 기신은 "주의 오행"으로 표기한다. 판정 스위치(`sajuAuthorityOn(env)`)가 꺼지면 main 브라우저 출력과, 켜지면 main 승인 출력과 같아야 한다.
-- 결제 고정 기준(`config/payment-freeze.json`): main 통합으로 `index.html`의 `_cdChooseServicePaymentMode`, `_cdRunDirectKrwCheckout`, `_cdOpenPaidServiceGate` 구간과 `billing.js`(6513줄), `payments.js`(3817줄) 값을 `--update`로 갱신했다. 결제 흐름 코드를 새로 고친 것이 아니라 양쪽 변경을 합친 결과다.
+- 결제 고정 기준(`config/payment-freeze.json`): main 통합으로 `index.html`의 `_cdChooseServicePaymentMode`, `_cdRunDirectKrwCheckout`, `_cdOpenPaidServiceGate` 구간과 `billing.js`(6513줄), `payments.js`(3817줄) 값을 `--update`로 갱신했다. 고정 구간의 변경은 main에서 온 것이 아니라 묶음 브랜치에서 온 결제 흐름 변경이다. main(`869bdba4e`) 대비 차이는 다음과 같다.
+  - `_cdRunDirectKrwCheckout`(496→500줄): 판매 종료 처리 한 줄(`_cdHandleSajuSaleEndedBilling`, 서버 409 `PRODUCT_SALE_ENDED`면 `checkoutError.saleEnded`로 묶음 안내)과, 주문 없는 `alreadyUnlocked` 응답을 해금으로 받는 한 줄(`_cdIsSajuBundleOwnedCheckout`). 후자는 `forceDirectPayment`보다 우선한다.
+  - `_cdChooseServicePaymentMode`, `_cdOpenPaidServiceGate`: `_cdAlertBirthScopeProfileRequired`에 상품 키를 넘긴다(각 1줄, 줄 수 변화 없음).
+  - `worker/routes/billing.js` +21/-2: 판매 종료 키의 409(`MISSING_PROFILE`과 청구보다 먼저), 이용권·월 구독 분기에서 판매 종료 키 제외. `worker/routes/payments.js` +13: `handleSinglePaymentStart`의 판매 종료 409(PortOne 설정 확인보다 먼저). `worker/payments/index.js` +82는 고정 대상 파일이 아니지만 같은 판매 종료 진입 차단(`guardSaleClosedEntry`)과 보유자 응답(`alreadyOwnedSaleClosedBody`)을 담는다.
+  - `alreadyUnlocked` 범위: `payments.js:2020`과 `billing.js:3866`은 어떤 상품이든 `alreadyUnlocked: true`를 돌려줄 수 있어, 조건 없는 처음 형태(`f7a7ae474`)는 사주 밖 상품의 `forceDirectPayment`까지 건너뛰었다. 묶음과 판매 종료 키로만 좁혔고 `__tests__/ui/tile-unlock-balance-separation.static.test.js`가 지킨다. 다른 상품은 main과 같이 주문 실패로 처리된다.
+  - 매니페스트는 묶음 커밋마다 갱신되지 않고 통합 커밋(`4656f22c1`)과 그 뒤 수정 커밋에서만 갱신됐다.
 
 ### 균일가 통합 때 지킬 것
 

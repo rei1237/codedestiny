@@ -3987,11 +3987,7 @@ function evalDaewun(ganChar,zhiChar){
     var s = 0;
     // 종格: 종格격에서 지지가 더 중요 — 가중치 상향 (지지 15점, 천간 10점)
     var w = jg && jg.isJong ? (isZhi ? 15 : 10) : (isZhi ? 12 : 8);
-    if (pw.strengthPending) {
-      html += section(neo ? '영냥이의 진단' : '연이가 읽은 힘의 모양', hero('판정 보류', ['억부 참고 ' + pw.score + '점']) + para(neo ? '판정 보류. 출생 시각이 없거나 근거가 모자라서 신강·신약을 확정하지 않아. 게이지 점수는 참고로만 봐.' : '출생 시각이 없거나 근거가 모자라 신강·신약을 확정하지 않았어요. 아래 점수와 게이지는 참고값으로만 살펴보세요.'), 'saju-rich__lead');
-      html += gaugeHtml;
-      if ((pw.yongshin || []).length) html += section(neo ? '보완 후보' : '살펴볼 보완 후보', chips(godChips(L, dayEl, pw.yongshin, ['보완 후보'], 'good')));
-    } else if (jg && jg.isJong) {
+    if (jg && jg.isJong) {
       if (el === jg.dominant || el === jg.parEl) s = w;
       else if (el === whoControls(jg.dominant)) s = -w;
       // 종재격/가종재격: 인성(일간을 生하는 오행)도 기신 — 일간 강화 → 재성 극 위험

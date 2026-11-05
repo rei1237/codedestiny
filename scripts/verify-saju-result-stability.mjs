@@ -34,6 +34,7 @@ try {
             if (!bundleOwned) { await route.fulfill({ status: 402, json: { ok: false } }); return; }
             await route.fulfill({ json: { ok: true, unlocked: true, featureKey: body.featureKey, ...buildSajuSectionHtml({ featureKey: body.featureKey, birth: { calendarDate: birth.date, calType: birth.calType, timeKnown: birth.timeKnown !== false, hour: birth.hour, minute: birth.minute }, gender: body.gender, name: body.name, mode: body.mode, lang: body.lang, place: body.place }) } }); return;
           }
+          if (url.pathname === '/api/honey/catalog') { await route.fulfill({ json: { ok: true, products: [], otherUses: [] } }); return; }
           await route.fulfill({ json: url.pathname === '/api/auth/me' ? { ok: true, authenticated: true, user: { id: 'mock-stability', name: '검증' } } : { ok: true, profiles: [], unlocks: [], data: {} } }); return;
         }
         if (url.origin !== origin) { await route.abort(); return; }
@@ -52,8 +53,12 @@ try {
       await page.locator('#cdQuickServices a[data-action="cdOneStepFreeSajuEntry"]').click();
       await page.locator('#birthDate').fill('19900515');
       await page.locator('#nameInput').fill('안정성검증');
-      // 눌린 직후 계산 오버레이가 덮으면 재시도가 시간 초과한다. 계산이 시작됐는지는 바로 아래 결과 대기가 확인한다.
-      await page.locator('#run-btn').click({ timeout: 5000 }).catch(() => {});
+      // 추정: 눌린 직후 계산 오버레이가 버튼을 덮어 클릭 재시도가 시간 초과하는 것으로 보인다(원인은 확인하지 못했다).
+      // 시간 초과만 넘기고 기록을 남긴다. 계산이 실제로 시작됐는지는 바로 아래 결과 대기가 확인한다.
+      await page.locator('#run-btn').click({ timeout: 5000 }).catch(error => {
+        if (error.name !== 'TimeoutError') throw error;
+        console.log('run-btn click timed out; the result wait below decides', JSON.stringify({ name, width }));
+      });
       await page.waitForFunction(() => window.G_PILLARS && document.getElementById('resultPage')?.style.visibility === 'visible', null, { timeout: 60000 });
       await page.waitForFunction(() => !window.sajuCalculationRun && document.getElementById('sajuCalcLoadingOverlay')?.getAttribute('aria-hidden') === 'true');
       // 잠금 전: 묶음 카드와 유료 문장이 DOM에 없고 한 줄 성향과 묶음 안내만 있다.
@@ -85,7 +90,15 @@ try {
       await page.evaluate(() => closeModal());
       await page.evaluate(() => new Promise(done=>requestAnimationFrame(()=>requestAnimationFrame(done))));
       assert.deepEqual(await page.evaluate(() => ({ scroll:scrollY, birth:document.getElementById('birthDate').value })),beforeModal,'detail modal preserves input and result scroll');
-      assert.equal(await page.locator('#sajuIljuRich details').first().evaluate(el=>el.open),true,'detail stays expanded');
+      // 모달만 닫아서는 본문이 다시 그려지지 않는다. 화자를 바꿔 서버 본문을 실제로 다시 받은 뒤 펼침이 남는지 본다.
+      await page.evaluate(() => {
+        window.__cdRedrawMark = document.querySelector('#sajuIljuRich details');
+        document.querySelector('#sajuReadingHeader [data-saju-mode][aria-pressed="false"]').click();
+      });
+      await page.waitForFunction(() => !window.__cdRedrawMark.isConnected, null, { timeout: 30000 });
+      const redrawn = await page.evaluate(() => document.querySelector('#sajuIljuRich details')?.open);
+      console.log('redelivered detail open', JSON.stringify({ name, width, redrawn }));
+      assert.equal(redrawn,true,'detail stays expanded after re-delivery');
       await page.evaluate(() => {
         window.dispatchEvent(new ErrorEvent('error', { message: 'mock optional renderer error' }));
         window.dispatchEvent(new Event('pageshow'));

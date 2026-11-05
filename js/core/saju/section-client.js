@@ -928,7 +928,16 @@
     Object.keys(out.slots).forEach(function (name) {
       var host = natalHost(name);
       if (!host) return;
-      if (name === 'iljuDetailsInfo') host.textContent = out.slots[name].text; else host.innerHTML = out.slots[name].html;
+      if (name === 'iljuDetailsInfo') { host.textContent = out.slots[name].text; return; }
+      // 화자 전환은 본문을 비동기로 다시 받아 preserve 밖에서 바꾼다. 읽던 사람이 펼쳐 둔 항목은 같은 순서로 다시 펼친다.
+      // 모바일 첫 접힘(collapseDetails)은 표식이 있으면 건너뛰므로 다시 펼친 항목에 표식을 붙인다.
+      var opened = Array.prototype.map.call(host.querySelectorAll('details'), function (detail) { return detail.open; });
+      host.innerHTML = out.slots[name].html;
+      Array.prototype.forEach.call(host.querySelectorAll('details'), function (detail, index) {
+        if (!opened[index]) return;
+        detail.setAttribute('data-mobile-detail-accordion', '1');
+        detail.open = true;
+      });
     });
     NATAL_PARTS.forEach(function (kind) {
       var has = typeof parts[kind] === 'string' && parts[kind];
