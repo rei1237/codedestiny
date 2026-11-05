@@ -5,7 +5,7 @@ import {transform} from 'esbuild';
 
 const read=path=>readFile(new URL('../../'+path,import.meta.url),'utf8');
 const {code}=await transform(await read('app/checkout/checkout-method-order.ts'),{loader:'ts',format:'esm'});
-const {defaultCheckoutMethod,readSavedCheckoutMethod,passMethodNote}=await import('data:text/javascript;base64,'+Buffer.from(code).toString('base64'));
+const {defaultCheckoutMethod,readSavedCheckoutMethod,passMethodNote,passRemainingCoin}=await import('data:text/javascript;base64,'+Buffer.from(code).toString('base64'));
 
 test('a pack with an expiry is spent before a honey pot, then direct payment',()=>{
  assert.equal(defaultCheckoutMethod({firstPackId:'p1',passUsable:true}),'pack:p1');
@@ -45,4 +45,13 @@ test('the Yeongnyangi checkout offers packs, then the pot, then stones, then dir
 test('the shared checkout no longer offers the retired 5-use pack or a Family-only button',async()=>{
  const source=await read('app/checkout/CheckoutClient.tsx');
  for(const dead of ['readPackCatalog','packOffer','consultation-purchase','5회 이용권','보유 패밀리 꿀단지','passStorePlan: "family"'])assert.ok(!source.includes(dead),dead);
+});
+
+test('an unknown remaining limit is never shown as zero',()=>{
+ assert.equal(passRemainingCoin({state:'active',monthlySpendRemainingCoin:null}),null);
+ assert.equal(passRemainingCoin({state:'active'}),null);
+ assert.equal(passRemainingCoin(null),null);
+ assert.equal(passRemainingCoin({state:'none',monthlySpendRemainingCoin:800}),null);
+ assert.equal(passRemainingCoin({state:'active',monthlySpendRemainingCoin:800}),800);
+ assert.equal(passRemainingCoin({state:'active',monthlySpendRemainingCoin:0}),0);
 });
