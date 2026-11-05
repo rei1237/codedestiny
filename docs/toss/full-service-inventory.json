@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "6447dfa2f69ce886c3f91917127c608dc4ae282b",
+  "sourceCommit": "d7024134f31750b9a820f41a19201d44504d6ab9",
   "scope": "Source discovery plus explicitly verified aliases; not a count of implemented services. Unmapped contracts are blocking work, not exclusions.",
   "sourceCounts": {
     "home": 63,
@@ -3204,11 +3204,12 @@
       ],
       "aliasEvidence": [],
       "status": "local-partial",
-      "tossRoute": "/catalog",
+      "tossRoute": "/fortune-tea-house/?counsel=letter",
       "sku": null,
-      "inputContract": "worker/toss/services.js",
-      "resultRenderer": "apps/toss/src/App.tsx",
-      "storageContract": "persona-bound-TossPurchase-to-YeongnyangiRequest"
+      "inputContract": "worker/toss/letter.js + worker/toss/services.js",
+      "resultRenderer": "apps/toss/service/TossLetterRoom.tsx + app/fortune-chat/ConsultationIntake.tsx",
+      "storageContract": "persona-bound-TossPurchase-to-YeongnyangiRequest; official device and approved SKU pending",
+      "verification": "original Yeoni letter intake and owner-bound recovery are mocked; full web parity and device tests pending"
     },
     {
       "id": "fortune-tea-house",
