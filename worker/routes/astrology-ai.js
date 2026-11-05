@@ -34,6 +34,7 @@ import { appendExpertPersona } from "../lib/expert-character-personas.js";
 import { tokensRequiredForChars } from "../lib/llm-budget.js";
 import { hasRenderableLlmText, isCompleteLlmResponse } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
+import { contextCacheOptions } from "../lib/resumable-context-cache.js";
 import { getSwissWesternChart } from "../lib/swiss-ephemeris.js";
 import { basisGroup, basisItem, basisStage, buildAnalysisBasisPayload } from "../lib/analysis-basis-contract.js";
 import { buildEvidenceRuleLines, getReasoningSectionSpec } from "../lib/fortune-reasoning-contract.js";
@@ -1159,6 +1160,20 @@ function dropClosingInvitation(text) {
   return body;
 }
 
+// Every section starts with these lines, so the second section onward can read them from a context cache.
+function sectionSharedLines(input, chart) {
+  return [
+    "아래 사용자의 입력과 서버에서 계산된 서양 점성술 차트 데이터만 근거로, 긴 상담문 중 **지정된 한 부분만** 작성하세요.",
+    "행성 이름을 나열하는 대신 차트의 긴장, 재능, 반복 패턴, 현실 조언을 상담형 문장으로 풀어 주세요.",
+    ...buildSharedContextLines(input, chart),
+    ...buildEvidenceRuleLines(buildAstrologyAnalysisBasis(chart)),
+  ].filter(Boolean);
+}
+
+function buildSectionSharedPrefix(input, chart) {
+  return `${sectionSharedLines(input, chart).join("\n")}\n`;
+}
+
 function buildSectionPrompt(input, chart, section, repairLines = []) {
   const reasoningLines = section.reasoningKeys
     .map((key) => getReasoningSectionSpec(key))
@@ -1166,26 +1181,19 @@ function buildSectionPrompt(input, chart, section, repairLines = []) {
     .map((spec) => `- 소제목 「${spec.title}」 — 담을 내용: ${spec.guide} (최소 ${spec.minChars.toLocaleString("ko-KR")}자)`);
 
   return [
-    "아래 사용자의 입력과 서버에서 계산된 서양 점성술 차트 데이터만 근거로, 긴 상담문 중 **지정된 한 부분만** 작성하세요.",
+    ...sectionSharedLines(input, chart),
     // 시스템 지시는 마무리·추가 질문 안내를 요구하므로, 마지막 부분에만 맺음말을 허용해 두 지시가 부딪히지 않게 한다.
     section.key === ASTROLOGY_SECTIONS.at(-1).key
       ? "이 글은 상담문의 마지막 부분입니다. 인사말·전체 요약을 새로 쓰지 말고, 본문을 마친 뒤 1~2문장으로 상담을 맺으며 추가 질문을 자연스럽게 청하세요."
       : "이 글은 다른 부분과 이어 붙여 하나의 상담문이 됩니다. 인사말·전체 요약·맺음말을 새로 쓰지 말고 지정된 부분의 본문만 쓰세요.",
-    "행성 이름을 나열하는 대신 차트의 긴장, 재능, 반복 패턴, 현실 조언을 상담형 문장으로 풀어 주세요.",
-    "",
-    ...buildSharedContextLines(input, chart),
-    "",
     `[이번에 쓸 부분] ${section.label}`,
     section.guide,
     `이 부분만으로 공백 제외 최소 ${section.minChars.toLocaleString("ko-KR")}자, 목표 ${section.targetMinChars.toLocaleString("ko-KR")}~${section.maxChars.toLocaleString("ko-KR")}자로 쓰세요.`,
     "분량을 채우려고 같은 문장을 반복하지 말고, 새로 짚을 장면과 판단 기준을 더하세요.",
     "도구명, 작성 지시, 내부 절차, 진행 상태처럼 상담의 바깥을 드러내는 표현은 쓰지 마세요.",
-    reasoningLines.length ? "" : "",
     reasoningLines.length ? "[이 부분에 반드시 담을 근거 흐름 — 「」 안의 제목만 소제목으로 쓰고, '담을 내용'의 설명 문구는 소제목이나 본문에 옮겨 적지 마세요]" : "",
     ...reasoningLines,
-    "",
-    ...buildEvidenceRuleLines(buildAstrologyAnalysisBasis(chart)),
-    ...(repairLines.length ? ["", "[보강 요청]", ...repairLines] : []),
+    ...(repairLines.length ? ["[보강 요청]", ...repairLines] : []),
   ].filter(Boolean).join("\n");
 }
 
@@ -1214,12 +1222,16 @@ async function generateSectionedConsultation(env, input, chart, options = {}) {
       minTokens: tokensRequiredForChars(section.minChars),
       maxTokens: sectionMaxOutputTokens,
     });
-    const ai = await callGeminiText(env, buildSectionPrompt(input, chart, section, repairLines), {
-      systemPrompt: await resolveSystemPrompt(env),
+    const prompt = buildSectionPrompt(input, chart, section, repairLines);
+    const systemPrompt = await resolveSystemPrompt(env);
+    const ai = await callGeminiText(env, prompt, {
+      systemPrompt,
       taskType: "fortune",
       temperature: modelConfig.temperature ?? options.temperature ?? 0.72,
       maxOutputTokens: modelConfig.maxOutputTokens ?? sectionMaxOutputTokens,
-      timeoutMs,
+      ...await contextCacheOptions(env, {
+        prompt, prefix: buildSectionSharedPrefix(input, chart), systemPrompt, scope: options.cacheScope, attempt, timeoutMs,
+      }),
       attempts: 1,
       fallbackToWorkersAI: options.fallbackToWorkersAI,
       // 섹션 단위 문턱 — 전체 목표가 아니라 이 섹션 목표의 30%.
@@ -1875,7 +1887,7 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
       const generated = await runWithAiLocale(storedAiLocale(doc), async () => generateSectionedConsultation(env, normalized.input, chart, {
         minLength: ASTROLOGY_AI_MIN_RESULT_CHARS, maxLength: ASTROLOGY_AI_MAX_RESULT_CHARS,
         sectionMaxOutputTokens: ASTROLOGY_AI_SECTION_MAX_OUTPUT_TOKENS, fallbackToWorkersAI: false,
-        sections: doc.llmMeta?.sections, attempts: doc.llmMeta?.attempts, rawResponses: doc.llmMeta?.rawResponses,
+        cacheScope: [auth.userId, sessionId], sections: doc.llmMeta?.sections, attempts: doc.llmMeta?.attempts, rawResponses: doc.llmMeta?.rawResponses,
         checkpoint: async ({ sections, attempts, rawResponses }) => {
           const content = ASTROLOGY_SECTIONS.map(section => sections[section.key]?.text || "").filter(Boolean).join("\n\n");
           doc = await saveAstrologyDelivery(locked, {

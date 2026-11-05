@@ -37,6 +37,7 @@ import {
 } from "../lib/fortune-reasoning-contract.js";
 import { buildVedicKnowledgeContext } from "../lib/vedic-ai-knowledge.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
+import { contextCacheOptions } from "../lib/resumable-context-cache.js";
 import { resolveAiLocaleFromRequest } from "../lib/ai-locale-context.js";
 import { claimRequestBillingEvidence, evidenceClaimErrorBody, releaseRequestBillingEvidence } from "../lib/billing-evidence-claim.js";
 
@@ -1050,31 +1051,20 @@ function buildGroupOutputExample(group, score = 0) {
   };
 }
 
-function buildGroupPrompt(input, chart, group, repairLines = []) {
+// Every group starts with these lines, so the second group onward can read them from a context cache.
+function groupSharedLines(input, chart) {
   const canonicalFacts = buildCanonicalFactsLine(chart);
-  const sectionKeys = group.sectionKeys || [];
-  const otherLabels = READING_SECTION_KEYS
-    .filter((key) => !sectionKeys.includes(key))
-    .map((key) => `"${REQUIRED_SECTION_LABELS[key]}"`)
-    .join(", ");
   return [
     "아래 VedicChartResult JSON과 사용자 질문을 바탕으로 조티시 상담문 중 **지정된 부분만** 쓰세요.",
     "이 글은 다른 부분과 합쳐져 하나의 상담문이 됩니다. 인사말·전체 요약·맺음말을 새로 쓰지 마세요.",
-    otherLabels ? `${otherLabels} 는 다른 호출이 맡습니다. 여기서는 쓰지도 말고 요약하지도 마세요.` : "",
     "LLM은 계산하지 않습니다. 라그나, 라시, 그라하, 바바, 나크샤트라, 다샤는 제공된 JSON 값만 해석하세요.",
     "JSON에 null 또는 빈 배열로 표시된 값은 출생 정보 한계로 확인이 제한된다고 안내하고 추측하지 마세요.",
     "불안을 자극하지 말고, 사용자가 오늘 실제로 선택할 수 있는 방향을 제시하세요.",
     "각 섹션 body는 (1) 계산값 근거 명시 → (2) 삶의 주제 해석 → (3) 실행 가능한 조언 순서로 쓰세요. 해당 섹션의 핵심 계산값(라시·나크샤트라·다샤 lord 등)을 본문에 그대로 언급한 뒤 해석하세요.",
     `모든 섹션의 마지막 문단은 상담 주제 "${input.topic}"${input.userQuestion ? "와 사용자의 자유 질문" : ""}에 연결해 마무리하세요.`,
-    `이번 부분의 body 합산은 공백 제외 최소 ${group.minChars.toLocaleString("ko-KR")}자, 목표 ${group.targetMinChars.toLocaleString("ko-KR")}~${group.maxChars.toLocaleString("ko-KR")}자로 쓰세요.`,
     "분량을 채우려고 같은 문장을 반복하지 말고, 새로 짚을 장면과 판단 기준을 더하세요. 요약으로 끝내지 말고 근거→해석→조언을 각각 여러 문단으로 전개하세요.",
     "반환은 JSON 객체 하나만 허용합니다.",
-    "",
-    "섹션별로 반드시 인용해야 할 계산값과 다룰 내용:",
-    // 이 그룹이 맡은 섹션의 근거 줄만 싣는다 — 남의 섹션 지시가 들어가면 모델이 그것까지 쓴다.
-    ...buildSectionEvidenceLines(chart).filter((line) => sectionKeys.some((key) => line.startsWith(`- ${key} `))),
-    ...(canonicalFacts ? ["", `계산 확정값 (본문에서 이 값과 다르게 서술하는 것을 금지): ${canonicalFacts}`] : []),
-    "",
+    ...(canonicalFacts ? [`계산 확정값 (본문에서 이 값과 다르게 서술하는 것을 금지): ${canonicalFacts}`] : []),
     `이름 또는 닉네임: ${input.birthInfo.name || "없음 — 본문에서는 이름 없이 '당신'으로만 부른다"}`,
     `성별: ${input.birthInfo.gender}`,
     `생년월일: ${input.birthInfo.birthDate}`,
@@ -1085,26 +1075,40 @@ function buildGroupPrompt(input, chart, group, repairLines = []) {
     `상담 주제: ${input.topic}`,
     `자유 질문: ${input.userQuestion || "전체 흐름을 먼저 알고 싶습니다."}`,
     `해석 기준: ${chart.calculationMeta?.lagnaBhavaAvailable === false ? "출생시간이 없으므로 라그나와 바바는 계산하지 않고 달, 라시, 나크샤트라, 다샤 중심" : "Lagna Chart와 Whole Sign Bhava 중심"}`,
-    "",
+    "계산된 VedicChartResult 데이터:",
+    JSON.stringify(compactChartForPrompt(chart)),
+    "전통 조티시 해석 어휘 (계산값에만 적용):",
+    JSON.stringify(knowledgeForPrompt(chart)),
+    // 아래 확정값은 그대로 사용자 화면의 근거 패널로도 나간다. 본문이 그 표를 벗어나지 않게 못 박는다.
+    ...buildEvidenceRuleLines(buildVedicAnalysisBasis(chart)),
+  ].filter(Boolean);
+}
+
+function buildGroupSharedPrefix(input, chart) {
+  return `${groupSharedLines(input, chart).join("\n")}\n`;
+}
+
+function buildGroupPrompt(input, chart, group, repairLines = []) {
+  const sectionKeys = group.sectionKeys || [];
+  const otherLabels = READING_SECTION_KEYS
+    .filter((key) => !sectionKeys.includes(key))
+    .map((key) => `"${REQUIRED_SECTION_LABELS[key]}"`)
+    .join(", ");
+  return [
+    ...groupSharedLines(input, chart),
+    otherLabels ? `${otherLabels} 는 다른 호출이 맡습니다. 여기서는 쓰지도 말고 요약하지도 마세요.` : "",
+    `이번 부분의 body 합산은 공백 제외 최소 ${group.minChars.toLocaleString("ko-KR")}자, 목표 ${group.targetMinChars.toLocaleString("ko-KR")}~${group.maxChars.toLocaleString("ko-KR")}자로 쓰세요.`,
+    "섹션별로 반드시 인용해야 할 계산값과 다룰 내용:",
+    // 이 그룹이 맡은 섹션의 근거 줄만 싣는다 — 남의 섹션 지시가 들어가면 모델이 그것까지 쓴다.
+    ...buildSectionEvidenceLines(chart).filter((line) => sectionKeys.some((key) => line.startsWith(`- ${key} `))),
     "이번 부분이 낼 sections 키와 title:",
     JSON.stringify(Object.fromEntries(sectionKeys.map((key) => [key, REQUIRED_SECTION_LABELS[key]]))),
-    "",
     // R8 2026-10-10: 예시가 0 이고 채점 기준이 없어 scores 가 모두 0 으로 나갔다.
     group.includeScores ? "scores 채점: 각 값은 1~100 정수입니다. dharma 는 라그나·9·10바바와 목성의 품위, artha 는 2·11바바와 그 로드의 품위, kama 는 7바바와 금성·달, moksha 는 12바바와 케투·토성을 근거로 매기고, overall 은 네 값의 평균을 반올림합니다. 근거가 엇갈리면 50 근처로 두고, 0 은 쓰지 마세요." : "",
     "반환 JSON 형식 (아래 키만 내고, 다른 키는 넣지 마세요):",
     JSON.stringify(buildGroupOutputExample(group, "1~100 정수")),
-    "",
-    "계산된 VedicChartResult 데이터:",
-    JSON.stringify(compactChartForPrompt(chart)),
-    "",
-    "전통 조티시 해석 어휘 (계산값에만 적용):",
-    JSON.stringify(knowledgeForPrompt(chart)),
-    "",
-    // 아래 확정값은 그대로 사용자 화면의 근거 패널로도 나간다. 본문이 그 표를 벗어나지 않게 못 박는다.
-    ...buildEvidenceRuleLines(buildVedicAnalysisBasis(chart)),
-    "",
     ...(group.includeReasoning ? buildReasoningSectionRuleLines() : []),
-    ...(repairLines.length ? ["", "[보강 요청]", ...repairLines] : []),
+    ...(repairLines.length ? ["[보강 요청]", ...repairLines] : []),
   ].filter(Boolean).join("\n");
 }
 
@@ -1438,8 +1442,10 @@ async function generateVedicGroup(env, input, chart, group, context, repairLines
   // 직전 시도가 MAX_TOKENS 로 잘렸으면 같은 예산 재시도가 또 잘려 환불된다 — 재시도만 2배(≤32768). 기본 예산(원가 예약)은 그대로.
   const tokens = options.truncationRetry ? Math.max(groupBaseTokens, Math.min(32768, groupBaseTokens * 2)) : groupBaseTokens;
   try {
-    const result = await callGeminiJsonWithRetry(env, buildGroupPrompt(input, chart, group, repairLines), {
-      systemPrompt: await appendExpertPersona(env, "yunVedic", await cmsPromptText(env, "vedic-ai", SYSTEM_PROMPT)),
+    const prompt = buildGroupPrompt(input, chart, group, repairLines);
+    const systemPrompt = await appendExpertPersona(env, "yunVedic", await cmsPromptText(env, "vedic-ai", SYSTEM_PROMPT));
+    const result = await callGeminiJsonWithRetry(env, prompt, {
+      systemPrompt,
       taskType: "fortune",
       // 재작성 웨이브는 온도를 낮춰 부른다 — 오버라이드가 있어도 그 관계는 유지한다.
       temperature: repairLines.length
@@ -1450,7 +1456,9 @@ async function generateVedicGroup(env, input, chart, group, context, repairLines
       capTokens: Math.max(tokens, Math.round(groupBaseTokens * 1.3)),
       responseMimeType: "application/json",
       responseSchema: jsonSchemaFromExample(buildGroupOutputExample(group)),
-      timeoutMs: vedicTimeoutMs,
+      ...await contextCacheOptions(env, {
+        prompt, prefix: buildGroupSharedPrefix(input, chart), systemPrompt, scope: options.cacheScope, attempt: options.attempt, locale: options.locale, timeoutMs: vedicTimeoutMs,
+      }),
       fallbackToWorkersAI: false,
       // 그룹 단위 문턱 — 전체 목표가 아니라 이 그룹 목표의 40%.
       fallbackMinChars: Math.round(group.minChars * 0.4),
@@ -1541,7 +1549,7 @@ async function generateInitialReading(env, input, chart, context, options = {}) 
         `직전 본문은 공백 제외 ${countPaidReportBodyChars(bodies(rows[group.key].text))}자입니다. 목표 ${group.targetMinChars}자까지 계산 근거와 생활 장면을 보강해 완결된 JSON으로 다시 작성하세요.`,
         "같은 문장을 반복하지 말고 아직 다루지 않은 해석과 행동 조언을 더하세요.",
       ] : [];
-      const row = await generateVedicGroup(env, input, chart, group, context, repairLines, { ...options, skipCacheRead: attempts[group.key] > 1, truncationRetry: Boolean(attempts[`${group.key}:truncated`]) });
+      const row = await generateVedicGroup(env, input, chart, group, context, repairLines, { ...options, attempt: attempts[group.key], skipCacheRead: attempts[group.key] > 1, truncationRetry: Boolean(attempts[`${group.key}:truncated`]) });
       if (row.truncated) attempts[`${group.key}:truncated`] = 1;
       rawResponses[group.key] = row.rawText || row.text;
       await options.checkpoint({ groups: rows, attempts, rawResponses });
@@ -1698,7 +1706,7 @@ async function generateConsultation({ request, env, auth, body, normalized, idem
       delete resumeBody.accessToken;
       doc = await saveVedicDelivery(locked, { llmMeta: { ...doc.llmMeta, resumeBody: doc.llmMeta?.resumeBody || resumeBody, chartSnapshot: chart, ...(basis.engineFacts ? { engineFacts: basis.engineFacts } : {}) } }, sessionId);
       const generated = await generateInitialReading(env, normalized.input, chart, context, {
-        locale: doc.locale, groups: doc.llmMeta.groups, attempts: doc.llmMeta.attempts, rawResponses: doc.llmMeta.rawResponses,
+        cacheScope: [auth.userId, sessionId], locale: doc.locale, groups: doc.llmMeta.groups, attempts: doc.llmMeta.attempts, rawResponses: doc.llmMeta.rawResponses,
         checkpoint: async ({ groups, attempts, rawResponses }) => {
           const content = mergeVedicGroupPayloads(VEDIC_SECTION_GROUPS.map(group => groups[group.key]).filter(Boolean));
           doc = await saveVedicDelivery(locked, { llmMeta: { ...doc.llmMeta, groups, attempts, rawResponses }, messages: [{ role: "assistant", content, createdAt: now }] }, sessionId);
@@ -1868,6 +1876,7 @@ export const __vedicAiTestUtils = {
   MIN_INITIAL_READING_CHARS,
   MAX_INITIAL_READING_CHARS,
   buildGroupPrompt,
+  generateVedicGroup,
   mergeVedicGroupPayloads,
   generateInitialReading,
   buildPaymentPayload,

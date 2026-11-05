@@ -5,7 +5,7 @@ import { requestBody, samplePairs } from '../fixtures/saju-compat-llm-fixture.mj
 // 라우트가 만든 실제 프롬프트로 컨텍스트 캐시 배선을 본다. 제공자·DB·결제는 쓰지 않는다.
 const env = { GEMINIF_API_KEY: 'fixture' };
 const HANDLE = 'cachedContents/fixture';
-let provider, create, restore, records;
+let provider, create, restore, records, newYearSection;
 const routes = [];
 const lastPrompt = () => provider.mock.calls.at(-1)[1];
 const lastOptions = () => provider.mock.calls.at(-1)[2];
@@ -24,7 +24,9 @@ beforeAll(async () => {
       set: async (key, value) => { records.set(key, value); },
     }),
   }));
+  const cms = await import('../../worker/lib/cms-prompts.js');
   jest.unstable_mockModule('../../worker/lib/cms-prompts.js', () => ({
+    ...cms,
     cmsPromptModelConfig: async () => ({ temperature: 0.5, maxOutputTokens: 48000 }),
     cmsPromptText: async (_env, _key, fallback) => fallback,
   }));
@@ -52,7 +54,37 @@ beforeAll(async () => {
   const sajuGroups = sajuCompatTasks(sajuInput).map((task) => task.id);
   const naksha = { summaryText: `【확인된 행성·하우스·D9】${'계산 근거 '.repeat(800)}`, question: '', writtenMemory: '' };
 
+  const { __newYearAiTestUtils: newYear } = await import('../../worker/routes/new-year-ai.js');
+  const { __astrologyAiTestUtils: astrology } = await import('../../worker/routes/astrology-ai.js');
+  const { __vedicAiTestUtils: vedic } = await import('../../worker/routes/vedic-ai.js');
+  const newYearInput = newYear.normalizeConsultationInput({ targetYear: 2026, focusArea: 'overall', question: '올해 이직을 해도 될까요?', birthInfo }).input;
+  const fortuneData = newYear.calculateNewYearFortuneData(newYearInput);
+  newYearSection = (attempt, index, extra = {}) => newYear.generateConsultationSection(env, {
+    input: newYearInput, fortuneData, section: newYear.NEW_YEAR_AI_SECTIONS[index], timeoutMs: 45000, attempt, cacheScope: ['user', 'session'], ...extra,
+  });
+  const western = { birthInfo: { ...birthInfo, birthPlace: { city: '서울', country: '대한민국' } }, topic: '전체', userQuestion: '' };
+  const westernChart = { planets: { Sun: { sign: 0, degree: 5, longitude: 5 } }, aspects: [], houseCusps: [], padding: '계산 '.repeat(2500) };
+  const westernSections = astrology.ASTROLOGY_SECTIONS;
+  const finished = (index) => ({
+    sections: Object.fromEntries(westernSections.slice(0, index).map((section, row) => [section.key, {
+      text: Array.from({ length: 10 }, (_, line) => `${row}장 ${line}째 문장은 서로 다른 장면과 판단 기준을 설명합니다.`).join(' '),
+    }])),
+    attempts: Object.fromEntries(westernSections.slice(0, index).map((section) => [`${section.key}:lengthRepair`, 1])),
+  });
+  const groups = vedic.VEDIC_SECTION_GROUPS;
+  const jyotish = { birthInfo: { ...birthInfo, birthPlace: { city: '서울', country: '대한민국', timezone: 'Asia/Seoul' } }, topic: '전체', userQuestion: '' };
+  const jyotishChart = { lagna: { rashiKo: '양자리', sign: 'Aries' }, moonNakshatra: { name: 'Ashwini' }, grahas: [], bhavas: [], calculationMeta: {}, rashis: '계산 '.repeat(2500) };
+
   routes.push(
+    ['new-year sections', (attempt, index) => newYearSection(attempt, index)],
+    ['astrology sections', (attempt, index) => {
+      const saved = finished(index);
+      return astrology.generateSectionedConsultation(env, western, westernChart, {
+        cacheScope: ['user', 'session'], checkpoint: async () => {}, sections: saved.sections,
+        attempts: { ...saved.attempts, ...(attempt > 1 ? { [westernSections[index].key]: attempt - 1 } : {}) },
+      }).catch(() => null);
+    }],
+    ['vedic groups', (attempt, index) => vedic.generateVedicGroup(env, jyotish, jyotishChart, groups[index], {}, [], { cacheScope: ['user', 'session'], attempt, locale: 'ko' })],
     ['ziwei group', (attempt) => ziwei.generateInitialConsultation(env, {
       input, chart, cacheScope: ['user', 'session'], checkpoint: async () => {},
       attempts: attempt > 1 ? { [specs[0].id]: attempt - 1 } : {},
@@ -80,7 +112,16 @@ beforeEach(() => {
 });
 
 const runs = (name) => routes.find((row) => row[0] === name)[1];
-const NAMES = ['ziwei group', 'ziwei meta after the groups', 'nakshatra sections', 'saju compat groups'];
+const NAMES = ['ziwei group', 'ziwei meta after the groups', 'nakshatra sections', 'saju compat groups', 'new-year sections', 'astrology sections', 'vedic groups'];
+
+test('new-year support recovery stays plain', async () => {
+  const supportRecovery = { active: true, approvedProvider: 'gemini', approvedModel: 'gemini-2.5-flash', maxOutputTokens: 12000 };
+  await newYearSection(1, 0, { supportRecovery });
+  await newYearSection(1, 1, { supportRecovery });
+  expect(create).not.toHaveBeenCalled();
+  expect(lastOptions().geminiCachedContent).toBeUndefined();
+  expect(lastOptions().model).toBe('gemini-2.5-flash');
+});
 
 describe.each(NAMES)('%s', (name) => {
   test('the first part goes plain, the second creates the cache, the third reuses it', async () => {

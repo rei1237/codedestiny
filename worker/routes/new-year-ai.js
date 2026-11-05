@@ -26,6 +26,7 @@ import { normalizeConsultAccessType, resolveCanonicalEntitlement, resolveFeature
 import { consumePassForFeature, passDenialCode } from "../lib/pass-consumption.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { safeGeminiFailure } from "../../lib/gemini-provider-errors.mjs";
+import { contextCacheOptions } from "../lib/resumable-context-cache.js";
 import { reserveSupportRecoveryAttempt, supportRecoveryGenerationOptions, assertSupportRecoveryPreserved } from "../lib/support-recovery-budget.js";
 import { consultationRefundResponse } from "../lib/consultation-refund-state.js";
 import { appendExpertPersona, expertPersonaText } from "../lib/expert-character-personas.js";
@@ -1352,7 +1353,7 @@ export function buildAdminLabPrompt(body = {}, options = {}) {
   const fortuneData = calculateNewYearFortuneData(normalized.input);
 
   return {
-    systemPrompt: [buildSystemPrompt(section), expertPersonaText("neoNewYear")].filter(Boolean).join("\n\n"),
+    systemPrompt: [buildSystemPrompt(), expertPersonaText("neoNewYear")].filter(Boolean).join("\n\n"),
     prompt: buildFirstPrompt(normalized.input, fortuneData, section),
   };
 }
@@ -1382,13 +1383,16 @@ function buildSystemPrompt(section = null) {
     "13. 완성 상담문 전체 본문은 공백을 제외하고 20,000자 이상 33,000자 이하로 씁니다. 권장 분량은 28,500~32,000자이며, 항목마다 20,000자를 쓰라는 뜻이 아닙니다.",
     "14. 분량이 부족할 때는 같은 말을 늘리지 말고, 명리 전문가로서 격국·월령, 용신·기신, 조후, 대운·세운, 천간·지지 합충, 월운, 현실 처방 파트를 새로 보강합니다.",
     "15. 문단 사이는 빈 줄로 구분하고, 핵심 문구는 **굵게** 표시합니다. 필요할 때만 '-' 목록을 쓰고, 그 외 마크다운(제목 #, 코드블록, 표)은 쓰지 않습니다.",
-    ...(section ? [
-      "",
-      `이번 요청은 완성 상담문 전체가 아니라 "${section.label}" 부분만 쓰는 작업입니다.`,
-      "위 13번의 전체 분량 기준은 여러 부분을 합친 최종 결과에 적용됩니다. 이번 응답에서는 사용자 프롬프트가 지정한 이 부분의 분량 범위만 지키세요.",
-      "인사말·자기소개·전체 총평·마무리 인사를 새로 만들지 말고, 지정된 항목의 내용만 이어서 씁니다.",
-    ] : []),
+    ...(section ? ["", ...sectionScopeLines(section)] : []),
   ].join("\n");
+}
+
+function sectionScopeLines(section) {
+  return [
+    `이번 요청은 완성 상담문 전체가 아니라 "${section.label}" 부분만 쓰는 작업입니다.`,
+    "지침 13번의 전체 분량 기준은 여러 부분을 합친 최종 결과에 적용됩니다. 이번 응답에서는 지정된 이 부분의 분량 범위만 지키세요.",
+    "인사말·자기소개·전체 총평·마무리 인사를 새로 만들지 말고, 지정된 항목의 내용만 이어서 씁니다.",
+  ];
 }
 
 // 세운·월운 계산 확정값을 프롬프트 앵커로 요약한다.
@@ -1537,9 +1541,8 @@ function buildSectionLengthLines(section) {
 
 // section을 넘기면 그 섹션이 맡은 아웃라인 항목만 남기고 분량 지시도 섹션 기준으로 바뀐다.
 // 2인자로 부르면 출력이 기존과 완전히 동일하다(verify-new-year-ai-flow가 이 프롬프트를 단언).
-function buildFirstPrompt(input, fortuneData, section = null) {
+function newYearHeadLines(input) {
   const birth = input.birthInfo || {};
-  const outline = buildConsultationOutline(input);
   return [
     "아래 사용자 입력과 서버에서 계산된 사주·세운 데이터를 바탕으로 신년운세 첫 상담문을 작성하세요.",
     "문장은 전문적이고 신비로우며 따뜻하게, 실제 선택에 도움이 되도록 현실적으로 말하세요.",
@@ -1556,6 +1559,31 @@ function buildFirstPrompt(input, fortuneData, section = null) {
     `- 집중 상담 분야: ${FOCUS_AREA_LABELS[input.focusArea] || FOCUS_AREA_LABELS.overall}`,
     `- 처음 입력한 더 깊게 보고 싶은 흐름: ${input.question || "전체 흐름 중심"}`,
     "",
+  ];
+}
+
+function newYearFactLines(fortuneData) {
+  return [
+    "[계산된 사주와 세운 데이터]",
+    JSON.stringify(fortuneData),
+    "",
+    "[계산 확정값 — 본문에서 이 값과 다르게 서술하는 것을 금지]",
+    ...buildCanonicalNewYearFacts(fortuneData),
+    "",
+    "[카테고리별 참고 신호 — 아래 6번 항목에서 각 소제목 문단의 출발점으로 삼되, 표현은 자연스럽게 재구성할 것]",
+    ...buildDomainSignalLines(fortuneData),
+    "",
+  ];
+}
+
+// The part every section shares, so the second section onward can read it from a context cache.
+function buildNewYearSharedPrefix(input, fortuneData) {
+  return `${[...newYearHeadLines(input), ...newYearFactLines(fortuneData)].join("\n")}\n`;
+}
+
+function buildFirstPrompt(input, fortuneData, section = null) {
+  const outline = buildConsultationOutline(input);
+  const questionLines = [
     // "질문에 대한 답변" 소제목은 총운 섹션 하나만 쓴다. 섹션 전부에 이 지시가 들어가면
     // 조립본에 같은 소제목이 다섯 번 반복되고, 분야 카드마다 같은 답이 머리에 붙는다.
     ...(clean(input.question).length >= 2 && (!section || section.key === "opening") ? [
@@ -1572,16 +1600,14 @@ function buildFirstPrompt(input, fortuneData, section = null) {
       "이 질문에 대한 직접적인 답변 소제목은 다른 부분에서 이미 씁니다. 여기서는 **질문에 대한 답변** 소제목을 만들지 말고, 이 부분이 맡은 분야가 그 질문과 맞닿는 지점만 자연스럽게 반영하세요.",
       "",
     ] : []),
-    "[계산된 사주와 세운 데이터]",
-    JSON.stringify(fortuneData),
-    "",
-    "[계산 확정값 — 본문에서 이 값과 다르게 서술하는 것을 금지]",
-    ...buildCanonicalNewYearFacts(fortuneData),
-    "",
-    "[카테고리별 참고 신호 — 아래 6번 항목에서 각 소제목 문단의 출발점으로 삼되, 표현은 자연스럽게 재구성할 것]",
-    ...buildDomainSignalLines(fortuneData),
-    "",
+  ];
+  return [
+    ...newYearHeadLines(input),
+    ...(section ? [] : questionLines),
+    ...newYearFactLines(fortuneData),
+    ...(section ? questionLines : []),
     ...(section ? [
+      ...sectionScopeLines(section),
       `이번에는 완성 상담문 중 "${section.label}" 부분만 씁니다. 아래 항목만 쓰고 다른 항목은 쓰지 마세요.`,
       "이 부분은 더 긴 상담문의 일부로 그대로 이어 붙습니다. 도입 인사나 전체 요약을 새로 만들지 말고 바로 내용부터 쓰세요.",
     ] : [
@@ -1918,12 +1944,18 @@ async function generateConsultationSection(env, options) {
   // 예산이 바닥났으면 호출 자체를 건너뛴다(직전 텍스트가 있으면 그대로 살린다).
   if (!(timeoutMs > 0)) return { ...base, text: previousText, ok: false, reason: "BUDGET_EXHAUSTED" };
   try {
-    const ai = await callGeminiText(env, buildSectionPrompt(input, fortuneData, section, repairLines, previousText, priorSections), {
-      systemPrompt: await appendExpertPersona(env, "neoNewYear", buildSystemPrompt(section)),
+    const prompt = buildSectionPrompt(input, fortuneData, section, repairLines, previousText, priorSections);
+    const systemPrompt = await appendExpertPersona(env, "neoNewYear", buildSystemPrompt());
+    const ai = await callGeminiText(env, prompt, {
+      systemPrompt,
       taskType: "fortune",
       temperature: repairLines.length ? 0.62 : 0.72,
       maxOutputTokens: NEW_YEAR_AI_SECTION_MAX_OUTPUT_TOKENS,
-      timeoutMs,
+      // Support recovery pins its own model and budget, so it stays a plain call.
+      ...await contextCacheOptions(env, {
+        prompt, prefix: buildNewYearSharedPrefix(input, fortuneData), systemPrompt,
+        scope: options.supportRecovery ? undefined : options.cacheScope, attempt: options.attempt, timeoutMs,
+      }),
       // 폴백 허용. 섹션 하한의 30% 미만이면 gemini.js가 실패로 돌려 재시도·환불 경로를 지킨다.
       // 섹션 하한 2,800~4,000자라 문턱이 840~1,200자이고, 실측 폴백 분량(~1,700자)이 이를 넘긴다 —
       // 40%(1,600자)는 실측 폴백과 100자 차이라 조금 짧은 폴백이 시도만 태웠다(분량은 목표, 배달이 먼저).
@@ -2462,7 +2494,7 @@ async function generateNewYearWave(env, input, fortuneData, options) {
       await options.onReserve(candidate.key, valid(candidate) && !mapIssuesToSections({ issues: contentIssues(results) }, results).has(candidate.key));
       const generated = await generateConsultationSection(env, {
         input, fortuneData, section: candidate.section, allowShortDraft: true,
-        supportRecovery: recovery,
+        supportRecovery: recovery, cacheScope: options.cacheScope, attempt: used(candidate.key),
         priorSections: results.filter(row => row.key !== candidate.key && row.ok && !row.truncated && !row.isMock),
         timeoutMs: Math.min(NEW_YEAR_AI_SECTION_TIMEOUT_MS, remaining),
         cache: null, logContext: options.logContext,
@@ -2641,7 +2673,7 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
     const generated = await runWithAiLocale(storedAiLocale(claimed), async () => generateConsultationText(env, normalized.input, fortuneData, {
       hasCustomQuestion: clean(normalized.input.question).length >= 2, deadlineAt: startedAt + NEW_YEAR_AI_LLM_BUDGET_MS,
       savedSections: claimed.llmMeta?.savedSections || [], attempts,
-      supportRecovery: claimed.llmMeta?.supportRecovery,
+      supportRecovery: claimed.llmMeta?.supportRecovery, cacheScope: [auth.userId, sessionId],
       onReserve: async (key, lengthRepair) => {
         await reserveSupportRecoveryAttempt({ Model: NewYearAiConsultation, id: sessionId, userId: auth.userId, lockToken });
         if (lengthRepair) attempts[`${key}:lengthRepair`] = 1;
@@ -2834,6 +2866,7 @@ export const __newYearAiTestUtils = {
   adoptRepairedSection,
   trimToLastCompleteSentence,
   generateConsultationText,
+  generateConsultationSection,
 };
 
 // Internal cron continuation: only a stored owner/id is accepted, never client input.
