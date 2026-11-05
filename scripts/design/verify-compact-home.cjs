@@ -6,6 +6,8 @@ const fs=require('node:fs/promises');
 const path=require('node:path');
 const assert=require('node:assert/strict');
 const root=process.cwd(), output=process.argv[2]||path.join(root,'build-cache/compact-home'), phase=process.argv[3]||'after';
+// --bundle-only: 홈 디자인 단정을 건너뛰고 결과 화면 묶음 단정만 본다. 인자 없이 돌리면 전체를 본다.
+const bundleOnly=process.argv.includes('--bundle-only');
 const baselineFiles=new Set(['/index.html','/styles/home-funnel.css','/styles/saju-reading.css','/js/core/home-funnel.js']);
 const mime={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.json':'application/json','.webp':'image/webp','.png':'image/png','.svg':'image/svg+xml','.woff2':'font/woff2'};
 const server=createServer(async(request,response)=>{
@@ -24,7 +26,7 @@ const server=createServer(async(request,response)=>{
  try{for(const width of [360,390,430,1440]){
  const context=await browser.newContext({viewport:{width,height:900},serviceWorkers:'block',reducedMotion:'reduce'});
  await context.addInitScript(()=>localStorage.setItem('cd:first-visit:v1:ggulggul:guest',JSON.stringify({status:'dismissed',step:0})));
- await context.route('**/*',route=>new URL(route.request().url()).origin===origin?route.continue():route.abort());
+ await context.route('**/*',route=>{const url=new URL(route.request().url());return url.origin===origin&&!/swisseph|sweph/i.test(url.pathname)?route.continue():route.abort();});
  const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto(origin+'/ggulggul/',{waitUntil:'domcontentloaded',timeout:60000});
  await page.waitForFunction(()=>typeof window.__cdOpenGarden==='function',{timeout:30000});
@@ -32,14 +34,15 @@ const server=createServer(async(request,response)=>{
  await page.waitForTimeout(600);
  const metrics=await page.evaluate(()=>{
  const box=s=>{const e=document.querySelector(s);const b=e.getBoundingClientRect();return {width:b.width,height:b.height,top:b.top+scrollY}};
- return {innerWidth,height:document.documentElement.scrollHeight,overflow:document.documentElement.scrollWidth-innerWidth,consult:box('.cdh-consult'),cat:box('#cdConcernPick .cd-concern__cards'),image:box('.cd-concern__card-media'),gateway:box('#cdhGatewaySlot'),ancestors:Array.from((function*(e){while(e){yield e;e=e.parentElement}})(document.querySelector('.cd-concern__cards'))).slice(0,8).map(e=>({id:e.id,c:e.className,w:e.getBoundingClientRect().width,cssWidth:getComputedStyle(e).width,zoom:getComputedStyle(e).zoom}))};
+ return {innerWidth,height:document.documentElement.scrollHeight,overflow:document.documentElement.scrollWidth-innerWidth,consult:box('#cdhYeongnyangiSlot'),cat:box('#cdConcernPick .cd-concern__cards'),image:box('.cd-concern__card-media'),ancestors:Array.from((function*(e){while(e){yield e;e=e.parentElement}})(document.querySelector('.cd-concern__cards'))).slice(0,8).map(e=>({id:e.id,c:e.className,w:e.getBoundingClientRect().width,cssWidth:getComputedStyle(e).width,zoom:getComputedStyle(e).zoom}))};
  });
  await page.locator('#cdConcernPick').scrollIntoViewIfNeeded();await page.waitForTimeout(100);
  await page.screenshot({path:path.join(output,`${phase}-questions-viewport-${width}.png`)});
  await page.locator('#cdConcernPick').screenshot({path:path.join(output,`${phase}-questions-${width}.png`)});
- await page.locator(phase==='before'?'.cdh-consult':'.cdh-consult-browser').screenshot({path:path.join(output,`${phase}-consult-${width}.png`)});
+ await page.locator(phase==='before'?'.cdh-consult':'#cdhYeongnyangiSlot').screenshot({path:path.join(output,`${phase}-consult-${width}.png`)});
  console.log(JSON.stringify({width,phase,...metrics}));
  if(phase==='after'){
+  if(!bundleOnly){
   assert(metrics.overflow<=1,`page overflow ${width}: ${metrics.overflow}`);
   const headingGap=await page.locator('#cdConcernPick').evaluate(el=>el.querySelector('h2').getBoundingClientRect().top-el.getBoundingClientRect().top);
   assert(headingGap<40,`unexpected empty space above concern heading: ${headingGap}`);
@@ -51,9 +54,7 @@ const server=createServer(async(request,response)=>{
     assert(!(await page.locator('[data-concern-prev]').isDisabled()));
     await rail.evaluate(el=>{el.scrollLeft=0;});
   }
-  const tabs=page.locator('[data-consult-tab]');assert.equal(await tabs.count(),3);
-  for(let i=0;i<3;i++){await tabs.nth(i).click();assert.equal(await tabs.nth(i).getAttribute('aria-selected'),'true');assert.equal(await page.locator('.cdh-consult > [role=tabpanel]:visible').count(),1);await page.locator('.cdh-consult-browser').screenshot({path:path.join(output,`after-consult-${i}-${width}.png`)});}
-  await tabs.nth(0).focus();await page.keyboard.press('ArrowRight');assert.equal(await tabs.nth(1).getAttribute('aria-selected'),'true');
+  const consultCards=page.locator('#cdhYeongnyangiSlot .cdh-choice-card');assert.equal(await consultCards.count(),2,'consult choice keeps both cards');
   for(const id of ['money','relationship','love']){const b=page.locator(`[data-cd-concern="${id}"]`);if(await b.count()){await b.click();assert.equal(await b.getAttribute('aria-expanded'),'true');assert(await page.locator(`[data-cd-concern-panel="${id}"]`).isVisible());}}
   await page.evaluate(()=>{document.documentElement.classList.add('neo-mode');document.body.classList.add('neo-mode');});
   await page.locator('#cdConcernPick').screenshot({path:path.join(output,`after-dark-questions-${width}.png`)});
@@ -83,6 +84,7 @@ const server=createServer(async(request,response)=>{
       assert(await liveGuide.locator('img').first().evaluate(el=>el.complete&&el.naturalWidth>0));
       await liveGuide.screenshot({path:path.join(output,`after-live-guide-${dark?'neo':'yeoni'}-${width}.png`)});
     }
+  }
   }
   // Display-only reading fixture: existing rendered anchor targets, no fortune/payment API call.
   await page.evaluate(()=>{window.__cdMobileHomeLazyMount?.mount('resultPage');document.getElementById('inputPage').style.display='none';const r=document.getElementById('resultPage');r.style.display='block';document.documentElement.classList.remove('neo-mode');document.body.classList.remove('neo-mode');for(const id of ['sajuCard','iljuCard','tenshinCard','johuCard','ukbuCard']){const el=document.getElementById(id);el.style.display='block';el.style.minHeight='600px';}window.scrollTo(0,0);});

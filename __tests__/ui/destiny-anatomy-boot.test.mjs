@@ -304,3 +304,47 @@ test('진입 카드와 연결 링크는 5개 언어에서 같은 기능 경로�
   assert.doesNotMatch(el.textContent,/undefined|NaN/);
  }
 });
+
+// 부트 전체를 실제로 돌린다. 자산 주입은 DOM에 남는 script·link 태그로 확인한다.
+async function bootInDom(isOpen) {
+  const dom = new JSDOM(`<!doctype html><head></head><body><section id="destinyAnatomyCard" hidden data-da-css="/da.css" data-da-engine="/da-engine.js" data-da-render="/da-render.js"></section></body>`, {runScripts: 'outside-only', url: 'https://code-destiny.com/'});
+  const win = dom.window;
+  win.G_PILLARS = P;
+  win.CdSajuBundleOffer = {isOpen};
+  win.eval(readFileSync('js/core/saju/destiny-anatomy/boot.js', 'utf8'));
+  // wire()는 DOMContentLoaded 뒤에 묶인다. 기다리지 않으면 잠금 단정이 부트 전에 헛돈다.
+  while (win.document.readyState === 'loading') await new Promise((done) => setImmediate(done));
+  const card = win.document.getElementById('destinyAnatomyCard');
+  const assets = () => win.document.querySelectorAll('script[src],link[data-da-style]').length;
+  return {win, card, assets};
+}
+function assertLocked({card, assets}) {
+  assert.equal(card.hidden, true);
+  assert.equal(card.innerHTML, '');
+  assert.equal(assets(), 0, '잠금 상태에서 엔진 자산을 불러왔다');
+}
+
+test('뇌구조 부트: 묶음이 닫혀 있으면 자산을 불러오지 않고 카드에 아무것도 없다', async () => {
+  const booted = await bootInDom(() => false);
+  assertLocked(booted);
+  booted.win.dispatchEvent(new booted.win.Event('cd:saju-summary-ready'));
+  assertLocked(booted);
+});
+
+test('뇌구조 부트: 권한 조회가 실패하면 닫힘으로 떨어진다', async () => {
+  assertLocked(await bootInDom(() => { throw new Error('access-store failed'); }));
+});
+
+test('뇌구조 부트: 구매로 열리면 그때 자산을 불러오고, 다시 닫히면 카드를 걷는다', async () => {
+  let open = false;
+  const booted = await bootInDom(() => open);
+  assertLocked(booted);
+  open = true;
+  booted.win.dispatchEvent(new booted.win.Event('cd:unlocks-changed'));
+  assert.equal(booted.card.hidden, false);
+  assert.ok(booted.assets() > 0, '해금 뒤 자산을 불러오지 않았다');
+  open = false;
+  booted.win.dispatchEvent(new booted.win.Event('cd:unlocks-changed'));
+  assert.equal(booted.card.hidden, true);
+  assert.equal(booted.card.innerHTML, '');
+});
