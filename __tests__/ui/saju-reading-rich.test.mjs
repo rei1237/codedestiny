@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import { readFileSync } from 'node:fs';
 import { calcPower, analyzeJohu } from '../../worker/yeongnyangi/fortune/saju-runtime.mjs';
-import { loadRichWithNatal, fullReadingDepthSource } from '../lib/saju-rich-with-natal.mjs';
+import { loadRichWithNatal, fullReadingDepthSource } from '../fixtures/saju-rich-with-natal.mjs';
 
 // The page globals the display layer reads: engine tables from the static shell, copied as-is.
 const engine=readFileSync('js/saju-engine.js','utf8');

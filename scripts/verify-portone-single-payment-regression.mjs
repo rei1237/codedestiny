@@ -21,6 +21,9 @@ const fakeDbHook = registerHooks({ load(url, context, nextLoad) {
 
 const { getBillingFeaturePricing } = await import("../worker/lib/billing-feature-registry.js");
 const { pricing: summaryPrice } = getBillingFeaturePricing({ featureKey: "section_summary" });
+// section_summary 신규 판매는 닫혔다(PRODUCT_SALE_ENDED). 신규 주문 경로는 판매 중인 묶음으로 검증한다.
+const SALE_OPEN_KEY = "saju_lifetime_bundle";
+const { pricing: saleOpenPrice } = getBillingFeaturePricing({ featureKey: SALE_OPEN_KEY });
 
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const paymentsRouteSource = readFileSync(resolve(root, "worker/routes/payments.js"), "utf8");
@@ -1305,12 +1308,25 @@ async function runServerTests() {
     contentType: "saju",
     productName: "Code Destiny 운세",
     coinPrice: summaryPrice.cost,
+  }), ENV, AUTH);
+  result = await jsonResponse(response);
+  assert.equal(result.status, 409, "sale-closed key should not start a new order");
+  assert.equal(result.payload.code, "PRODUCT_SALE_ENDED");
+  assert.equal(state.createdPayments.length, 0, "sale-closed key should not create order");
+
+  resetState();
+  response = await handleSinglePaymentStart(startRequest({
+    profileId: "profile-a",
+    contentId: SALE_OPEN_KEY,
+    contentType: "saju",
+    productName: "Code Destiny 운세",
+    coinPrice: saleOpenPrice.cost,
     amount: 1,
   }), ENV, AUTH);
   result = await jsonResponse(response);
   assert.equal(result.status, 201, "single start should create order");
-  assert.equal(result.payload.order.totalAmount, summaryPrice.amountKRW, "new orders use registry price");
-  assert.equal(state.createdPayments[0].paymentAmount, summaryPrice.amountKRW, "server amount should ignore client amount");
+  assert.equal(result.payload.order.totalAmount, saleOpenPrice.amountKRW, "new orders use registry price");
+  assert.equal(state.createdPayments[0].paymentAmount, saleOpenPrice.amountKRW, "server amount should ignore client amount");
   assert.equal(JSON.stringify(result.payload).includes(ENV.PORTONE_API_SECRET), false, "client response should not include API secret");
   assert.equal(JSON.stringify(result.payload).includes(ENV.INIsignkey), false, "client response should not include Inicis signkey");
 
@@ -1320,10 +1336,10 @@ async function runServerTests() {
      죽었다. 형제 handlePrepare 에는 복구가 있었고 여기만 없었다(비대칭이 결함). */
   const raceBody = {
     profileId: "profile-a",
-    contentId: "section_summary",
+    contentId: SALE_OPEN_KEY,
     contentType: "saju",
     productName: "Code Destiny 운세",
-    coinPrice: summaryPrice.cost,
+    coinPrice: saleOpenPrice.cost,
     idempotencyKey: "single-race-key",
   };
 
@@ -1346,7 +1362,7 @@ async function runServerTests() {
   //    돌려주면 사용자가 존재하지 않는 주문으로 PG 창을 연다.
   resetState();
   const winnerOrder = {
-    ...makePayment({ paymentAmount: summaryPrice.amountKRW, expectedChargedPoints: summaryPrice.cost, coinPrice: summaryPrice.cost, pricingSnapshot: { profileId: "profile-a", selectedProfileId: "profile-a", serviceId: "code-destiny", contentId: "section_summary", contentType: "saju", amountKRW: summaryPrice.amountKRW } }),
+    ...makePayment({ featureKey: SALE_OPEN_KEY, paymentAmount: saleOpenPrice.amountKRW, expectedChargedPoints: saleOpenPrice.cost, coinPrice: saleOpenPrice.cost, pricingSnapshot: { profileId: "profile-a", selectedProfileId: "profile-a", serviceId: "code-destiny", contentId: SALE_OPEN_KEY, contentType: "saju", amountKRW: saleOpenPrice.amountKRW } }),
     _id: "pay_created_winner",
     merchantUid: "cd-single-winner-1710000000000-abcd1234",
     idempotencyKey: "single-race-key",
@@ -1376,7 +1392,7 @@ async function runServerTests() {
   resetState();
   response = await handleSinglePaymentStart(startRequest({
     profileId: "profile-a",
-    contentId: "section_summary",
+    contentId: SALE_OPEN_KEY,
     contentType: "saju",
     coinPrice: 999,
   }), ENV, AUTH);
