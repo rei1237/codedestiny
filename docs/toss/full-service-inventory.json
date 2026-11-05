@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "75f32f6b1fd7f34bac626ad0b99e373534b5e07f",
+  "sourceCommit": "7f6eb56b23f405fa5ecf19478473ad7e302a9f7b",
   "scope": "Source discovery plus explicitly verified aliases; not a count of implemented services. Unmapped contracts are blocking work, not exclusions.",
   "sourceCounts": {
     "home": 63,
@@ -3445,12 +3445,13 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/karma-destiny-ai/",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "worker/toss/native-karma.js + nativeKarmaContract",
+      "resultRenderer": "apps/toss/service/TossKarma.tsx + app/karma-destiny-ai/result/KarmaDestinyAiResultClient.tsx",
+      "storageContract": "owner-scoped Toss intent and original KarmaDestinyAiConsultation; approved SKU, purchaser binding, durable checkout and device verification pending",
+      "verification": "mock purchase, recovery, lunar leap validation and local mobile layout only; follow-up, other locales, official device and complete flow not verified"
     },
     {
       "id": "kemet-oracle",
