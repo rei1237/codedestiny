@@ -14110,10 +14110,10 @@
       }
     },
     "rpt_tTestCard": {
-      "fallbackTitle": "अपना लॉजिक तापमान देखें, जहाँ तर्क भावना से पहले प्रतिक्रिया देता है।",
-      "tagline": "The Frozen Logic: साजू पर आधारित एक मज़ेदार परीक्षण कि आपकी सोच और निर्णय का ढंग T के कितना क़रीब है, जो पूरी साजू रीडिंग, आजीवन एक्सेस में शामिल है।",
-      "premiumIntro": "एक्सट्रीम-T टेस्ट आपके व्यक्तित्व को तय नहीं करता, बल्कि दिखाता है कि आपका निर्णय तर्क की ओर कितना झुकता है।",
-      "fallbackCta": "जाँच शुरू करें",
+      "fallbackTitle": "Check your logic temperature, where reason responds before emotion.",
+      "tagline": "The Frozen Logic: a playful Saju-based test of how close your thinking and judgment pattern is to Thinking (T), included in the Saju full reading, lifetime access.",
+      "premiumIntro": "The Extreme-T Test doesn't define your personality. It reflects how much your judgment leans toward reason.",
+      "fallbackCta": "Run the Diagnosis",
       "feats": {
         "0": "Measures the metal element, authority, expression and climate in your chart to produce a T score of 0–100 and a tier",
         "1": "Shows four stats: metal hardware, forced-control instinct, blunt-fact debugging and the cold-dry formation",
@@ -14133,7 +14133,7 @@
         "3": "Six summary chips plus today’s mission"
       },
       "premiumOutcomes": {
-        "0": "यह रीडिंग पूरी साजू रीडिंग, आजीवन एक्सेस में शामिल है।",
+        "0": "This reading is included in the Saju full reading, lifetime access.",
         "1": "[Relationship Circuit], [Love Algorithm], [Reality Processing], [Saju-based Extreme-T Reading] and [Debugging Prescription] open after a separate unlock.",
         "2": "The test is for reference and fun."
       },
@@ -14166,8 +14166,8 @@
           "a": "No. You do not answer questionnaire items. It scores the metal element, authority, expression and climate in your natal chart, for fun."
         },
         "1": {
-          "q": "इसमें क्या-क्या दिखता है?",
-          "a": "T स्कोर, टियर, टाइप का नाम, चार स्टैट, [Strength Scan], [Fatal Bug], आज का मिशन और सारांश कार्ड, सब पूरी साजू रीडिंग, आजीवन एक्सेस में खुलते हैं।"
+          "q": "What does it cover?",
+          "a": "The T score, tier, type name, four stats, [Strength Scan], [Fatal Bug], today's mission and the summary card all open with the Saju full reading, lifetime access."
         },
         "2": {
           "q": "Why can’t I see the relationship sections?",
@@ -14176,10 +14176,10 @@
       }
     },
     "rpt_hormone_vibe_section": {
-      "fallbackTitle": "देखें कि आपका आकर्षण Teto टाइप की तरह ज़ोर से खींचता है या Egen टाइप की तरह धीरे से घुलता है।",
-      "tagline": "साजू पर आधारित विश्लेषण जो आपकी आकर्षण ऊर्जा को Teto और Egen शैलियों में बाँटता है, और पूरी साजू रीडिंग, आजीवन एक्सेस में शामिल है।",
-      "premiumIntro": "Teto/Egen विश्लेषण किसी को ऊँचा या नीचा नहीं बताता, बल्कि बताता है कि आपका आकर्षण लोगों को किस तरह खींचता है।",
-      "fallbackCta": "अभी देखें",
+      "fallbackTitle": "See whether your charm pulls strongly like a Teto type or seeps in gently like an Egen type.",
+      "tagline": "An analysis based on your Saju that splits your charm energy into Teto and Egen styles, included in the Saju full reading, lifetime access.",
+      "premiumIntro": "The Teto/Egen analysis doesn't rank one above the other. It lays out how your charm draws people in.",
+      "fallbackCta": "Check Now",
       "feats": {
         "0": "Tallies the Ten Gods across all seven positions except the day stem",
         "1": "Groups the Ten Gods into peers, output, resource, authority and wealth",
@@ -14195,10 +14195,10 @@
         "0": "Teto and Egen scores with a type reading",
         "1": "Ten Gods tallied across seven positions excluding the day stem",
         "2": "Weightings for the five groups: peers, output, resource, authority, wealth",
-        "3": "पूरी साजू रीडिंग, आजीवन एक्सेस में शामिल"
+        "3": "Included in the Saju full reading, lifetime access"
       },
       "premiumOutcomes": {
-        "0": "यह रीडिंग पूरी साजू रीडिंग, आजीवन एक्सेस में शामिल है।",
+        "0": "This reading is included in the Saju full reading, lifetime access.",
         "1": "The analysis is for reference and entertainment.",
         "2": "Your charm type can vary by situation."
       },
@@ -14235,16 +14235,16 @@
           "a": "It uses only the Ten Gods in your natal chart, so the same birth date and time always gives the same result."
         },
         "2": {
-          "q": "क्या इसके लिए अलग से भुगतान करना होगा?",
-          "a": "अलग से कोई भुगतान नहीं है। यह पूरी साजू रीडिंग, आजीवन एक्सेस के साथ ही खुलता है।"
+          "q": "Do I pay for it separately?",
+          "a": "There is no separate payment. It opens together with the Saju full reading, lifetime access."
         }
       }
     },
     "rpt_lottoCard": {
-      "fallbackTitle": "अपनी साजू के पंच तत्व और अंकों के प्रतीकों से निकले आज के भाग्यशाली अंक पाएँ।",
-      "tagline": "प्रतीकात्मक अंकों की सुविधा जो आपके जन्म चार्ट, आज के दिन और दशा चक्र से पाँच संयोजन निकालती है, और पूरी साजू रीडिंग, आजीवन एक्सेस में शामिल है।",
-      "premiumIntro": "साजू लोट्टो जीत की भविष्यवाणी नहीं करता, बल्कि आज के भाग्य से मेल खाते प्रतीकात्मक अंक निकालता है।",
-      "fallbackCta": "अंक निकालें",
+      "fallbackTitle": "Get today's lucky numbers drawn from your Saju's Five Elements and number symbolism.",
+      "tagline": "A symbolic number feature that seeds five combinations from your natal chart plus today's day pillar and luck cycle, included in the Saju full reading, lifetime access.",
+      "premiumIntro": "The Saju Lotto doesn't predict a win. It draws symbolic numbers that fit today's fortune.",
+      "fallbackCta": "Draw Numbers",
       "feats": {
         "0": "Seeds the numbers from your natal chart plus today’s day pillar, luck cycle and round counter",
         "1": "Builds five games at once and labels them flow, stable, reversal, instinct and balance",
@@ -14260,10 +14260,10 @@
         "0": "Numbers seeded from your chart, today’s day pillar and luck cycle",
         "1": "Five games at once, each with a concept name",
         "2": "Redraw to raise the round counter and get a new set",
-        "3": "पूरी साजू रीडिंग, आजीवन एक्सेस में शामिल"
+        "3": "Included in the Saju full reading, lifetime access"
       },
       "premiumOutcomes": {
-        "0": "यह रीडिंग पूरी साजू रीडिंग, आजीवन एक्सेस में शामिल है।",
+        "0": "This reading is included in the Saju full reading, lifetime access.",
         "1": "This is fun content that doesn't guarantee a win.",
         "2": "Please judge an actual purchase carefully."
       },
@@ -14301,15 +14301,15 @@
         },
         "2": {
           "q": "Can I save or share the number card?",
-          "a": "अंक निकालने में सेव या शेयर की सुविधा नहीं है। आप उन्हें सीधे स्क्रीन पर देखते हैं।"
+          "a": "The number draw has no save or share feature. You read it directly on screen."
         }
       }
     },
     "rpt_sajuFourCutCard": {
-      "fallbackTitle": "अपने साजू डेटा को फ़ोटो-बूथ अंदाज़ में दोबारा रचने वाली चार-फ़्रेम पट्टी बनाएँ।",
-      "tagline": "सीधी लेकिन अपनी-सी लगने वाली पंक्तियाँ चार फ़्रेम में, जिन्हें सेव और शेयर किया जा सकता है, और जो पूरी साजू रीडिंग, आजीवन एक्सेस में शामिल हैं।",
-      "premiumIntro": "साजू फोर-कट भाग्य को निश्चित नहीं बताता, बल्कि आपकी साजू को फ़ोटो-बूथ शैली के एक कार्ड के रूप में आनंद लेने देता है।",
-      "fallbackCta": "फोर-कट बनाएँ",
+      "fallbackTitle": "Make a four-cut strip that reinterprets your Saju data in a photo-booth mood.",
+      "tagline": "Blunt but relatable lines packed into four cuts, ready to save and share, included in the Saju full reading, lifetime access.",
+      "premiumIntro": "The Saju Four-Cut doesn't state your fortune definitively. It lets you enjoy your Saju as a single photo-booth-style card.",
+      "fallbackCta": "Make a Four-Cut",
       "feats": {
         "0": "Builds four-cut lines from today’s day pillar energy",
         "1": "Lets you switch between four versions: form check, reply warmth, routine save and impulse lock",
@@ -14329,7 +14329,7 @@
         "3": "Image save plus KakaoTalk, device share or link copy"
       },
       "premiumOutcomes": {
-        "0": "यह रीडिंग पूरी साजू रीडिंग, आजीवन एक्सेस में शामिल है।",
+        "0": "This reading is included in the Saju full reading, lifetime access.",
         "1": "The sentences are for reference and entertainment.",
         "2": "The existing service standard applies."
       },
@@ -14366,16 +14366,16 @@
           "a": "Yes. You can save the four cuts as an image with your stickers in place."
         },
         "2": {
-          "q": "क्या इसके लिए अलग से भुगतान करना होगा?",
-          "a": "अलग से कोई भुगतान नहीं है। यह पूरी साजू रीडिंग, आजीवन एक्सेस के साथ ही खुलता है।"
+          "q": "Do I pay for it separately?",
+          "a": "There is no separate payment. It opens together with the Saju full reading, lifetime access."
         }
       }
     },
     "rpt_dopamineCard": {
-      "fallbackTitle": "देखें कि आप नई उत्तेजना के पीछे भागते हैं या स्थिरता को ज़्यादा चाहते हैं।",
-      "tagline": "रिपोर्ट जो आपकी साजू के प्रवाह से उत्तेजना की प्रवृत्ति को स्कोर और ग्रेड में बदलती है और 8-अक्ष रडार, रुचि के क्षेत्र व आज का मिशन दिखाती है; यह पूरी साजू रीडिंग, आजीवन एक्सेस में शामिल है।",
+      "fallbackTitle": "See whether you chase new stimulation or love stability more.",
+      "tagline": "A report that converts your stimulation-seeking tendency into a score and grade from your Saju flow, with an 8-axis stimulation radar, absorption areas and today's mission, included in the Saju full reading, lifetime access.",
       "premiumIntro": "This doesn't diagnose addiction -- it's a fun read, through your Saju flow, of where you draw energy from and where you burn out quickly.",
-      "fallbackCta": "अपना उत्तेजना स्कोर देखें",
+      "fallbackCta": "See Your Stimulation Score",
       "feats": {
         "0": "Converts your stimulation-seeking tendency into a 0–100 score, an SSS–D grade and a type name",
         "1": "Draws an eight-axis stimulation radar: new experiences, social media, shopping, gaming, study, travel, romance and exercise",
@@ -14396,7 +14396,7 @@
         "4": "Save and share the result card"
       },
       "premiumOutcomes": {
-        "0": "यह रीडिंग पूरी साजू रीडिंग, आजीवन एक्सेस में शामिल है।",
+        "0": "This reading is included in the Saju full reading, lifetime access.",
         "1": "This is content for temperament reference and entertainment.",
         "2": "The existing service standard applies."
       },
@@ -16399,7 +16399,7 @@
       "badge": "Free compatibility reading"
     },
     "saju": {
-      "tagline": "आपके साजू के आठ अक्षर निकालकर जन्म चार्ट, पंच तत्व संतुलन और एक पंक्ति का स्वभाव मुफ़्त दिखाता है। दस देव और दशा चक्र की व्याख्या सशुल्क पूर्ण साजू रीडिंग में आगे देखी जा सकती है।",
+      "tagline": "Calculates the eight characters of your Saju and shows your natal chart, Five Elements balance and a one-line tendency for free. Ten Gods and luck-cycle readings continue in the full paid Saju reading.",
       "feats": [
         "When you can't put your own disposition into words",
         "When you want to see the broad arc of your life once",
@@ -16416,7 +16416,7 @@
         "How does the broad arc of my life run?",
         "What kind of period am I in now?"
       ],
-      "fallbackCta": "अपना मुफ़्त मान्सेर्योक चार्ट देखें",
+      "fallbackCta": "See your free Manseryeok chart",
       "headline": "Explore the broad patterns of your life through your birth date and time.",
       "badge": "Start for free"
     },

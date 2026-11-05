@@ -14110,10 +14110,10 @@
       }
     },
     "rpt_tTestCard": {
-      "fallbackTitle": "Prüfen Sie Ihre Logik-Temperatur, bei der die Vernunft vor dem Gefühl reagiert.",
-      "tagline": "The Frozen Logic: ein spielerischer Test auf Saju-Basis, wie nah Ihr Denk- und Urteilsmuster am T-Typ liegt, enthalten in der vollständigen Saju-Deutung mit lebenslangem Zugang.",
-      "premiumIntro": "Der Extreme-T-Test legt Ihre Persönlichkeit nicht fest. Er zeigt, wie stark Ihr Urteil zur Vernunft neigt.",
-      "fallbackCta": "Diagnose starten",
+      "fallbackTitle": "Check your logic temperature, where reason responds before emotion.",
+      "tagline": "The Frozen Logic: a playful Saju-based test of how close your thinking and judgment pattern is to Thinking (T), included in the Saju full reading, lifetime access.",
+      "premiumIntro": "The Extreme-T Test doesn't define your personality. It reflects how much your judgment leans toward reason.",
+      "fallbackCta": "Run the Diagnosis",
       "feats": {
         "0": "Measures the metal element, authority, expression and climate in your chart to produce a T score of 0–100 and a tier",
         "1": "Shows four stats: metal hardware, forced-control instinct, blunt-fact debugging and the cold-dry formation",
@@ -14133,7 +14133,7 @@
         "3": "Six summary chips plus today’s mission"
       },
       "premiumOutcomes": {
-        "0": "Diese Deutung ist in der vollständigen Saju-Deutung mit lebenslangem Zugang enthalten.",
+        "0": "This reading is included in the Saju full reading, lifetime access.",
         "1": "[Relationship Circuit], [Love Algorithm], [Reality Processing], [Saju-based Extreme-T Reading] and [Debugging Prescription] open after a separate unlock.",
         "2": "The test is for reference and fun."
       },
@@ -14166,8 +14166,8 @@
           "a": "No. You do not answer questionnaire items. It scores the metal element, authority, expression and climate in your natal chart, for fun."
         },
         "1": {
-          "q": "Was ist enthalten?",
-          "a": "T-Wert, Stufe, Typname, vier Werte, [Strength Scan], [Fatal Bug], die heutige Mission und die Übersichtskarte öffnen sich mit der vollständigen Saju-Deutung mit lebenslangem Zugang."
+          "q": "What does it cover?",
+          "a": "The T score, tier, type name, four stats, [Strength Scan], [Fatal Bug], today's mission and the summary card all open with the Saju full reading, lifetime access."
         },
         "2": {
           "q": "Why can’t I see the relationship sections?",
@@ -14176,10 +14176,10 @@
       }
     },
     "rpt_hormone_vibe_section": {
-      "fallbackTitle": "Finden Sie heraus, ob Ihr Charme wie beim Teto-Typ kraftvoll anzieht oder wie beim Egen-Typ sanft wirkt.",
-      "tagline": "Eine Analyse auf Basis Ihres Saju, die Ihre Charme-Energie in die Stile Teto und Egen aufteilt, enthalten in der vollständigen Saju-Deutung mit lebenslangem Zugang.",
-      "premiumIntro": "Die Teto/Egen-Analyse stellt keinen Typ über den anderen. Sie zeigt, auf welche Weise Ihr Charme Menschen anzieht.",
-      "fallbackCta": "Jetzt ansehen",
+      "fallbackTitle": "See whether your charm pulls strongly like a Teto type or seeps in gently like an Egen type.",
+      "tagline": "An analysis based on your Saju that splits your charm energy into Teto and Egen styles, included in the Saju full reading, lifetime access.",
+      "premiumIntro": "The Teto/Egen analysis doesn't rank one above the other. It lays out how your charm draws people in.",
+      "fallbackCta": "Check Now",
       "feats": {
         "0": "Tallies the Ten Gods across all seven positions except the day stem",
         "1": "Groups the Ten Gods into peers, output, resource, authority and wealth",
@@ -14195,10 +14195,10 @@
         "0": "Teto and Egen scores with a type reading",
         "1": "Ten Gods tallied across seven positions excluding the day stem",
         "2": "Weightings for the five groups: peers, output, resource, authority, wealth",
-        "3": "In der vollständigen Saju-Deutung mit lebenslangem Zugang enthalten"
+        "3": "Included in the Saju full reading, lifetime access"
       },
       "premiumOutcomes": {
-        "0": "Diese Deutung ist in der vollständigen Saju-Deutung mit lebenslangem Zugang enthalten.",
+        "0": "This reading is included in the Saju full reading, lifetime access.",
         "1": "The analysis is for reference and entertainment.",
         "2": "Your charm type can vary by situation."
       },
@@ -14235,16 +14235,16 @@
           "a": "It uses only the Ten Gods in your natal chart, so the same birth date and time always gives the same result."
         },
         "2": {
-          "q": "Muss ich separat bezahlen?",
-          "a": "Eine Einzelzahlung gibt es nicht. Es öffnet sich zusammen mit der vollständigen Saju-Deutung mit lebenslangem Zugang."
+          "q": "Do I pay for it separately?",
+          "a": "There is no separate payment. It opens together with the Saju full reading, lifetime access."
         }
       }
     },
     "rpt_lottoCard": {
-      "fallbackTitle": "Erhalten Sie die Glückszahlen des Tages, gezogen aus den Fünf Elementen Ihres Saju und der Zahlensymbolik.",
-      "tagline": "Eine Funktion für symbolische Zahlen, die aus Ihrem Geburtschart, der heutigen Tagessäule und Ihrem Glückszyklus fünf Kombinationen zieht, enthalten in der vollständigen Saju-Deutung mit lebenslangem Zugang.",
-      "premiumIntro": "Das Saju-Lotto sagt keinen Gewinn voraus. Es zieht symbolische Zahlen, die zum heutigen Glück passen.",
-      "fallbackCta": "Zahlen ziehen",
+      "fallbackTitle": "Get today's lucky numbers drawn from your Saju's Five Elements and number symbolism.",
+      "tagline": "A symbolic number feature that seeds five combinations from your natal chart plus today's day pillar and luck cycle, included in the Saju full reading, lifetime access.",
+      "premiumIntro": "The Saju Lotto doesn't predict a win. It draws symbolic numbers that fit today's fortune.",
+      "fallbackCta": "Draw Numbers",
       "feats": {
         "0": "Seeds the numbers from your natal chart plus today’s day pillar, luck cycle and round counter",
         "1": "Builds five games at once and labels them flow, stable, reversal, instinct and balance",
@@ -14260,10 +14260,10 @@
         "0": "Numbers seeded from your chart, today’s day pillar and luck cycle",
         "1": "Five games at once, each with a concept name",
         "2": "Redraw to raise the round counter and get a new set",
-        "3": "In der vollständigen Saju-Deutung mit lebenslangem Zugang enthalten"
+        "3": "Included in the Saju full reading, lifetime access"
       },
       "premiumOutcomes": {
-        "0": "Diese Deutung ist in der vollständigen Saju-Deutung mit lebenslangem Zugang enthalten.",
+        "0": "This reading is included in the Saju full reading, lifetime access.",
         "1": "This is fun content that doesn't guarantee a win.",
         "2": "Please judge an actual purchase carefully."
       },
@@ -14301,15 +14301,15 @@
         },
         "2": {
           "q": "Can I save or share the number card?",
-          "a": "Die Zahlenziehung bietet keine Speicher- oder Teilen-Funktion. Sie sehen die Zahlen direkt auf dem Bildschirm."
+          "a": "The number draw has no save or share feature. You read it directly on screen."
         }
       }
     },
     "rpt_sajuFourCutCard": {
-      "fallbackTitle": "Erstellen Sie einen Vier-Bilder-Streifen, der Ihre Saju-Daten im Fotoautomaten-Stil neu deutet.",
-      "tagline": "Direkte, aber treffende Sätze in vier Bildern, zum Speichern und Teilen, enthalten in der vollständigen Saju-Deutung mit lebenslangem Zugang.",
-      "premiumIntro": "Der Saju-Vier-Bilder-Streifen legt Ihr Schicksal nicht fest. Er lässt Sie Ihr Saju als Blatt im Fotoautomaten-Stil genießen.",
-      "fallbackCta": "Vier-Bilder-Streifen erstellen",
+      "fallbackTitle": "Make a four-cut strip that reinterprets your Saju data in a photo-booth mood.",
+      "tagline": "Blunt but relatable lines packed into four cuts, ready to save and share, included in the Saju full reading, lifetime access.",
+      "premiumIntro": "The Saju Four-Cut doesn't state your fortune definitively. It lets you enjoy your Saju as a single photo-booth-style card.",
+      "fallbackCta": "Make a Four-Cut",
       "feats": {
         "0": "Builds four-cut lines from today’s day pillar energy",
         "1": "Lets you switch between four versions: form check, reply warmth, routine save and impulse lock",
@@ -14329,7 +14329,7 @@
         "3": "Image save plus KakaoTalk, device share or link copy"
       },
       "premiumOutcomes": {
-        "0": "Diese Deutung ist in der vollständigen Saju-Deutung mit lebenslangem Zugang enthalten.",
+        "0": "This reading is included in the Saju full reading, lifetime access.",
         "1": "The sentences are for reference and entertainment.",
         "2": "The existing service standard applies."
       },
@@ -14366,16 +14366,16 @@
           "a": "Yes. You can save the four cuts as an image with your stickers in place."
         },
         "2": {
-          "q": "Muss ich separat bezahlen?",
-          "a": "Eine Einzelzahlung gibt es nicht. Es öffnet sich zusammen mit der vollständigen Saju-Deutung mit lebenslangem Zugang."
+          "q": "Do I pay for it separately?",
+          "a": "There is no separate payment. It opens together with the Saju full reading, lifetime access."
         }
       }
     },
     "rpt_dopamineCard": {
-      "fallbackTitle": "Finden Sie heraus, ob Sie neuen Reizen nachjagen oder die Stabilität mehr lieben.",
-      "tagline": "Ein Bericht, der Ihre Reizsuche aus dem Fluss Ihres Saju in Punkte und eine Stufe umrechnet, mit 8-Achsen-Radar, Vertiefungsbereichen und der heutigen Mission, enthalten in der vollständigen Saju-Deutung mit lebenslangem Zugang.",
+      "fallbackTitle": "See whether you chase new stimulation or love stability more.",
+      "tagline": "A report that converts your stimulation-seeking tendency into a score and grade from your Saju flow, with an 8-axis stimulation radar, absorption areas and today's mission, included in the Saju full reading, lifetime access.",
       "premiumIntro": "This doesn't diagnose addiction -- it's a fun read, through your Saju flow, of where you draw energy from and where you burn out quickly.",
-      "fallbackCta": "Meinen Reizindex ansehen",
+      "fallbackCta": "See Your Stimulation Score",
       "feats": {
         "0": "Converts your stimulation-seeking tendency into a 0–100 score, an SSS–D grade and a type name",
         "1": "Draws an eight-axis stimulation radar: new experiences, social media, shopping, gaming, study, travel, romance and exercise",
@@ -14396,7 +14396,7 @@
         "4": "Save and share the result card"
       },
       "premiumOutcomes": {
-        "0": "Diese Deutung ist in der vollständigen Saju-Deutung mit lebenslangem Zugang enthalten.",
+        "0": "This reading is included in the Saju full reading, lifetime access.",
         "1": "This is content for temperament reference and entertainment.",
         "2": "The existing service standard applies."
       },
@@ -16399,7 +16399,7 @@
       "badge": "Free compatibility reading"
     },
     "saju": {
-      "tagline": "Berechnet die acht Zeichen deines Saju und zeigt dir kostenlos dein Chart, die Balance der Fünf Elemente und eine Ein-Satz-Tendenz. Die Deutung der Zehn Götter und Glückszyklen folgt in der kostenpflichtigen vollständigen Saju-Deutung.",
+      "tagline": "Calculates the eight characters of your Saju and shows your natal chart, Five Elements balance and a one-line tendency for free. Ten Gods and luck-cycle readings continue in the full paid Saju reading.",
       "feats": [
         "When you can't put your own disposition into words",
         "When you want to see the broad arc of your life once",
@@ -16416,7 +16416,7 @@
         "How does the broad arc of my life run?",
         "What kind of period am I in now?"
       ],
-      "fallbackCta": "Kostenloses Manseryeok ansehen",
+      "fallbackCta": "See your free Manseryeok chart",
       "headline": "Explore the broad patterns of your life through your birth date and time.",
       "badge": "Start for free"
     },
