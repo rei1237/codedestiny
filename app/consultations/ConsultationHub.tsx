@@ -1,6 +1,6 @@
 "use client";
 import Image from 'next/image';
-import { consultationStories, signatureStoryIds, storyBenefits, storyPreviewHeights } from './stories';
+import { consultationStories, expertStoryIds, signatureStoryIds, storyBenefits, storyPreviewHeights } from './stories';
 import { Archive, ArrowLeft, ArrowUpRight, MessageCircleHeart, Moon } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { RECORD_SERVICES } from '@/lib/records/service-registry';
@@ -15,7 +15,7 @@ import styles from './consultations.module.css';
 // 나머지 일곱 개는 압축 목록으로 아래.
 const groups = {
   signature: signatureStoryIds,
-  others: ['ziwei', 'astrology', 'vedic', 'sukuyo-compat', 'legacy-naming', 'karma', 'fusion'],
+  others: expertStoryIds,
 } as const;
 const numerals = ['Ⅰ', 'Ⅱ', 'Ⅲ', 'Ⅳ', 'Ⅴ', 'Ⅵ'];
 // 대표 카드는 홈 덱(templates/home-funnel.html)과 같은 그림을 쓴다.
