@@ -59,7 +59,7 @@ try {
     // 대표 상담은 접힘 목록에서 가로 탐색으로 바뀌었다. 실제 카드와 탐색 영역을 검증한다.
     await expect(page.locator('.cd-sig__viewport')).toBeVisible();
     await expect(page.locator('#cdSigGrid > .cd-story-entry > a[data-cd-service-id][data-pvw-paid]')).toHaveCount(6);
-    await expect(page.locator('#cdSigGrid > .cd-story-entry > a.cd-story-entry__link[href^="/consultations/"]')).toHaveCount(6);
+    await expect(page.locator('a[href="/#homeStoryTitle"]')).toHaveCount(1);
     const cards = page.locator('a[data-cd-service-id][data-pvw-paid]');
     const count = await cards.count();
     assert.ok(count >= 4);

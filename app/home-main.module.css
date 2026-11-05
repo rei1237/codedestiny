@@ -137,3 +137,14 @@
 .entryHelp { display:flex; flex-wrap:wrap; justify-content:center; gap:0 24px; }
 .entryHelp a { display:inline-flex; align-items:center; min-height:44px; font-size:.875rem; }
 .entryNote { color:var(--cd-text-muted); font-size:.875rem; text-align:center; }
+.page .webDeck { max-width: 64rem; gap: clamp(10px, 2vw, 20px); padding: 0; }
+.webDeck .card { --hm-card-angle: 0deg; padding: 0; border-radius: 4px 20px 4px 4px; overflow: hidden; }
+.webDeck .cardArt { border: 0; border-radius: 0; aspect-ratio: auto; height: clamp(125px, 36vw, 180px); }
+.webDeck .cardCopy { padding: 10px; }
+.webDeck .cardCopy::before { display: none; }
+.webDeck .cardAction { min-height: 44px; }
+@media (min-width: 760px) {
+  .webDeck .card { display: grid; grid-template-columns: 44% minmax(0,1fr); align-items: center; }
+  .webDeck .cardArt { height: 218px; }
+  .webDeck .cardCopy { padding: 16px; }
+}
