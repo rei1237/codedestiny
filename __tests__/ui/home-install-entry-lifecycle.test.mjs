@@ -17,7 +17,7 @@ test('Next home and static shell load the same content-versioned PWA runtime', (
 test('home survives an older runtime, refreshes on readiness and remount, and cleans up', () => {
   const dom = new JSDOM('');
   const effects = [];
-  const module = {exports: {}};
+  const componentModule = {exports: {}};
   const source = ts.transpileModule(readFileSync('app/components/HomeInstallEntry.tsx', 'utf8'), {
     compilerOptions: {module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX},
   }).outputText;
@@ -26,8 +26,8 @@ test('home survives an older runtime, refreshes on readiness and remount, and cl
     if (name === 'react/jsx-runtime') return {jsx: () => null, jsxs: () => null};
     return {default: {}};
   };
-  vm.runInNewContext(source, {module, exports: module.exports, require, window: dom.window});
-  module.exports.default();
+  vm.runInNewContext(source, {module: componentModule, exports: componentModule.exports, require, window: dom.window});
+  componentModule.exports.default();
   dom.window.__cdPwaLifecycle = {install() {}};
   const cleanup = effects[0]();
   let calls = 0;
