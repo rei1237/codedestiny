@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "d8923d0809d16b84b7fadcf4547c3658000e42ae",
+  "sourceCommit": "bf67c295640407dc1c5fa94c1b69c27a47b6838c",
   "scope": "Source discovery plus explicitly verified aliases; not a count of implemented services. Unmapped contracts are blocking work, not exclusions.",
   "sourceCounts": {
     "home": 63,
@@ -5373,12 +5373,13 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/ziwei-ai/",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "worker/toss/native-ziwei.js + nativeZiweiContract",
+      "resultRenderer": "app/ziwei-ai/ZiweiAiClient.tsx",
+      "storageContract": "owned Toss purchase and Toss-origin ZiweiAiConsultation; approved SKU, durable checkout, policy and device verification pending",
+      "verification": "mock contracts, local mobile layout and build only; Japanese input states results are Korean; other locale quality, official device and full flow not verified"
     },
     {
       "id": "ziwei-deep-report",
