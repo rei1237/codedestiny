@@ -2897,6 +2897,14 @@ export async function handleKarmaDestinyAiRoutes(request, env = {}) {
   }
 }
 
+// Exposes the original input and price contract to a future Toss adapter; it does not enable sales.
+export function nativeKarmaContract(body) {
+  const normalized = normalizeConsultationInput(body || {});
+  const requestId = clean(body?.idempotencyKey || body?.requestId, 180);
+  if (!normalized.ok || requestId.length < 12) throw Object.assign(new Error('상담 입력을 다시 확인해 주세요.'), {status: 400});
+  return {requestId, resultId: requestId, featureKey: FEATURE_KEY, inputHash: normalized.inputHash, pricing: getPricing().pricing};
+}
+
 export const __karmaDestinyAiTestUtils = {
   FEATURE_KEY,
   SERVICE_KEY,
