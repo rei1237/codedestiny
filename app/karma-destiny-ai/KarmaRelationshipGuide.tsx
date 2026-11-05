@@ -22,10 +22,17 @@ const copy = {
     guideTitle: "Find the knot. Follow the thread.", guideText: "Read your tendencies as clues to understand relationships, rather than a fixed destiny.",
     steps: [["Your tendencies", "Explore strengths and sensitive points through the available chart evidence."], ["The recurring cycle", "Trace how attraction, over-responsibility or withdrawal can become draining patterns."], ["A way forward", "Identify early signals, words for boundaries and criteria for closeness or distance."]],
   },
+  ja: {
+    title: "ひもときたいご縁", note: "任意入力 · 実名ではなく呼び名でも大丈夫です。お相手の生年月日を推測せず、あなたの傾向と実際に経験した場面を結びつけて考えます。",
+    person: "お相手の呼び名", relationship: "あなたとの関係", scene: "繰り返される場面", myResponse: "そのときのあなたの反応", theirResponse: "実際に見たお相手の行動", wish: "今回の相談で整理したいこと",
+    personHint: "例：A、昔からの友人", relationshipHint: "例：恋人、元恋人、家族、同僚", sceneHint: "どんなことが繰り返され、どのように感じますか？", myResponseHint: "そのとき何を言い、どう行動しますか？", theirResponseHint: "気持ちを推測するより、実際の言葉や行動を書いてください。", wishHint: "例：境界線の伝え方、距離を置く基準",
+    guideTitle: "結び目を知り、糸口を探す", guideText: "生まれ持った傾向を決まった運命ではなく、関係を理解する手がかりとして読みます。",
+    steps: [["あなたの傾向", "計算の根拠から、強みと揺れやすい点を見ます。"], ["繰り返される流れ", "惹かれ合い、責任の抱え込み、回避がどんな場面で負担になるかを整理します。"], ["ほどくための糸口", "初期のサインや境界線の伝え方、距離を考える基準を整理します。"]],
+  },
 };
 
 export function KarmaRelationshipFields({ value, onChange, locale, disabled }: { value: RelationshipContext; onChange: (value: RelationshipContext) => void; locale: string; disabled?: boolean }) {
-  const text = locale === "ko" ? copy.ko : copy.en;
+  const text = locale === "ko" ? copy.ko : locale === "ja" ? copy.ja : copy.en;
   const fields: { key: keyof RelationshipContext; limit: number; hint: string; multiline?: boolean }[] = [
     { key: "person", limit: 60, hint: text.personHint }, { key: "relationship", limit: 80, hint: text.relationshipHint },
     { key: "scene", limit: 500, hint: text.sceneHint, multiline: true }, { key: "myResponse", limit: 300, hint: text.myResponseHint, multiline: true },
@@ -42,7 +49,7 @@ export function KarmaRelationshipFields({ value, onChange, locale, disabled }: {
 }
 
 export function KarmaRelationshipGuide({ locale }: { locale: string }) {
-  const text = locale === "ko" ? copy.ko : copy.en;
+  const text = locale === "ko" ? copy.ko : locale === "ja" ? copy.ja : copy.en;
   return <div className={styles.guide}>
     <img src="/images/expert-consulting/karma-red-thread-karmic-768.webp" width={768} height={512} alt="" loading="lazy" />
     <h3>{text.guideTitle}</h3><p>{text.guideText}</p>

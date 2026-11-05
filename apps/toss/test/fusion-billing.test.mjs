@@ -60,6 +60,12 @@ test('new year billing retains the original input, year and request ID',async()=
  try{const result=await loaded.exports.runBillingCoinGate({featureKey:'new-year-ai-consultation',requestId:'original-year-request',resume:{args:{payload:JSON.stringify(input)}}});assert.equal(result.ok,true);assert.deepEqual(state.calls[0],{path:'/native/new-year/prepare',body:{input:{...input,idempotencyKey:'original-year-request'}}});assert.equal(state.calls[1].path,'/native/new-year/intents/intent');}
  finally{delete globalThis.location;}
 });
+test('Karma billing retains the original input and request ID',async()=>{
+ globalThis.location={search:''};state.unavailable=false;state.calls=[];
+ const input={birthDate:'1990-01-01',calendarType:'lunar',isLeapMonth:true,question:'관계의 흐름'};
+ try{const result=await loaded.exports.runBillingCoinGate({featureKey:'karma-destiny-ai-consultation',requestId:'original-karma-request',resume:{args:{payload:JSON.stringify(input)}}});assert.equal(result.ok,true);assert.deepEqual(state.calls[0],{path:'/native/karma/prepare',body:{input:{...input,idempotencyKey:'original-karma-request'}}});assert.equal(state.calls[1].path,'/native/karma/intents/intent');}
+ finally{delete globalThis.location;}
+});
 
 test('native billing presents recovery-in-progress guidance before purchase',async()=>{
  globalThis.location={search:''};globalThis.window={addEventListener:()=>{},removeEventListener:()=>{}};state.unavailable=false;state.paid=false;state.recoveryBusy=true;

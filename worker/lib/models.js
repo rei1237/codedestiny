@@ -991,6 +991,7 @@ const karmaDestinyAiConsultationSchema = new mongoose.Schema({
     birthTime: { type: String, default: "", trim: true, maxlength: 5 },
     birthTimeUnknown: { type: Boolean, default: false },
     calendarType: { type: String, enum: ["solar", "lunar"], required: true },
+    isLeapMonth: { type: Boolean, default: false },
     birthPlace: {
       city: { type: String, default: "", trim: true, maxlength: 100 },
       country: { type: String, default: "", trim: true, maxlength: 100 },

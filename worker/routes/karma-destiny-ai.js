@@ -2,6 +2,7 @@ import { runWithAiLocale, storedAiLocale } from '../lib/ai-locale-context.js';
 import { sajuTemperamentPromptLines } from '../lib/saju-temperament.js';
 import { sajuAuthorityOn } from '../lib/saju-authority-consumer.js';
 import { createHash } from "node:crypto";
+import {lunarToSolar} from "../../lib/korean-calendar/index.js";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { resolveForbiddenPatterns } from "../lib/llm-leak-guard.js";
 import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest as webOptionalUser, isAuthDbInfraError } from "../lib/auth.js";
@@ -2948,6 +2949,12 @@ export async function nativeKarmaStoredState(env, userId, resultId, lookup = 'ei
 // Run the same non-LLM calculation before offering a new purchase.
 export async function prepareNativeKarmaCalculation(env, auth, body) {
   const contract = nativeKarmaContract(body), normalized = normalizeConsultationInput(body);
+  if (normalized.input.birthInfo.calendarType === 'lunar') {
+    const [year, month, day] = normalized.input.birthInfo.birthDate.split('-').map(Number);
+    let converted = null;
+    try { converted = lunarToSolar(year, month, day, normalized.input.birthInfo.isLeapMonth === true); } catch { /* Invalid lunar input must fail before purchase. */ }
+    if (!converted) throw Object.assign(new Error('음력 생년월일과 윤달 여부를 다시 확인해 주세요.'), {code:'INVALID_LUNAR_DATE',status:422});
+  }
   await connectDb(env);
   const existing = await nativeKarmaStoredState(env, auth.userId, contract.requestId, 'request');
   if (existing && (existing.accessSource !== 'toss' || existing.inputHash !== contract.inputHash)) {
