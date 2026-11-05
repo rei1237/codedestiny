@@ -8,7 +8,7 @@ const require=createRequire(import.meta.url),Module=require('node:module');
 const calls={profiles:[],prepared:[],followups:0};
 const auth={_id:'identity',ownerId:'owner',userId:'owner',userKey:'123',environment:'SANDBOX'};
 const mocks={
- tarotProducts:[],grants:[],deliveries:0,dailyCalls:[],nativeLove:[],nativeAstrology:[],nativeVedic:[],libraryRows:[],
+ tarotProducts:[],grants:[],deliveries:0,dailyCalls:[],nativeLove:[],nativeAstrology:[],nativeVedic:[],nativeZiwei:[],libraryRows:[],
  auth:async()=>auth,profile:async(...args)=>calls.profiles.push(args),
  product:sku=>({productId:sku.includes(':')?sku.split(':')[1]:sku,serviceId:sku.includes(':')?sku.split(':')[0]:'yeongnyangi',sku,approvedPriceKRW:1,approved:true}),
  prepare:async(_env,user,body,options)=>{calls.prepared.push({user,body,options});return {_id:'a'.repeat(64),productId:body.productId,amountKRW:1,snapshot:{manifest:[{id:'part',title:'answer',ordinal:0}]}};},
@@ -21,6 +21,7 @@ const stubMap={
  'worker/toss/native-life-book.js':"export const prepareNativeLifeBook=()=>{};export const handleNativeLifeBook=()=>{};export const nativeLifeBookLibraryItem=()=>{};",
  'worker/toss/native-love-secret.js':"const calls=globalThis.__tossRouteMocks.nativeLove;export const prepareNativeLoveSecret=(...args)=>{calls.push(args);return {id:'offline-intent'};};export const handleNativeLoveSecret=(...args)=>{calls.push(args);return Response.json({ok:true,source:'original-love'});};export const nativeLoveSecretLibraryItem=()=>{};",
  'worker/toss/native-vedic.js':"import {TossError} from './policy.js';const state=globalThis.__tossRouteMocks;export const prepareNativeVedic=(...args)=>{state.nativeVedic.push(args);return {id:'offline-intent'};};export const handleNativeVedic=(...args)=>{state.nativeVedic.push(args);if(state.nativeFailure)throw new TossError(state.nativeFailure.code,state.nativeFailure.status);return Response.json({ok:true,source:'original-vedic'});};export const nativeVedicLibraryItem=()=>{};",
+ 'worker/toss/native-ziwei.js':"import {TossError} from './policy.js';const state=globalThis.__tossRouteMocks;export const prepareNativeZiwei=(...args)=>{state.nativeZiwei.push(args);return {id:'offline-intent'};};export const handleNativeZiwei=(...args)=>{state.nativeZiwei.push(args);if(state.nativeFailure)throw new TossError(state.nativeFailure.code,state.nativeFailure.status);return Response.json({ok:true,source:'original-ziwei'});};export const nativeZiweiLibraryItem=()=>{};",
  'worker/toss/native-astrology.js':"import {TossError} from './policy.js';const state=globalThis.__tossRouteMocks;export const prepareNativeAstrology=(...args)=>{state.nativeAstrology.push(args);return {id:'offline-intent'};};export const handleNativeAstrology=(...args)=>{state.nativeAstrology.push(args);if(state.nativeFailure)throw new TossError(state.nativeFailure.code,state.nativeFailure.status);return Response.json({ok:true,source:'original-astrology'});};export const nativeAstrologyLibraryItem=()=>{};",
  'worker/toss/native-fusion.js':"import {TossError} from './policy.js';export const prepareNativeFusion=()=>{};export const handleNativeFusion=()=>{const error=globalThis.__tossRouteMocks.nativeFailure;if(error)throw new TossError(error.code,error.status);};export const nativeFusionLibraryItem=()=>{};",
  'worker/toss/native-neo.js':"export const prepareNativeNeo=()=>{};export const handleNativeNeo=()=>{};export const nativeNeoLibraryItem=()=>{};",
@@ -63,6 +64,12 @@ test('astrology routes require release and account, and preserve denied result a
  mocks.denyAuth=true;try{assert.equal((await request({input:{}},'/native/astrology/prepare')).status,401);}finally{mocks.denyAuth=false;}
  const prepared=await request({input:{question:'x'}},'/native/astrology/prepare');assert.equal(prepared.status,200);assert.equal(mocks.nativeAstrology.at(-1)[1],auth);
  mocks.nativeFailure={code:'ACCESS_DENIED',status:403};try{const denied=await request({},'/canonical/astrology-ai/start');assert.equal(denied.status,403);assert.equal((await denied.json()).error,'ACCESS_DENIED');}finally{mocks.nativeFailure=null;}
+});
+test('Ziwei routes require release and account, and preserve denied result access',async()=>{
+ mocks.nativeZiwei.length=0;assert.equal((await request({input:{question:'x'}},'/native/ziwei/prepare',{})).status,503);assert.equal(mocks.nativeZiwei.length,0);
+ mocks.denyAuth=true;try{assert.equal((await request({input:{}},'/native/ziwei/prepare')).status,401);}finally{mocks.denyAuth=false;}
+ const prepared=await request({input:{question:'x'}},'/native/ziwei/prepare');assert.equal(prepared.status,200);assert.equal(mocks.nativeZiwei.at(-1)[1],auth);
+ mocks.nativeFailure={code:'ACCESS_DENIED',status:403};try{const denied=await request({},'/canonical/ziwei-ai/start');assert.equal(denied.status,403);assert.equal((await denied.json()).error,'ACCESS_DENIED');}finally{mocks.nativeFailure=null;}
 });
 
 test('conflicting sale SKUs block new orders but do not block an already stored tarot order',async()=>{

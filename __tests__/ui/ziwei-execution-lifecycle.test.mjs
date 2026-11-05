@@ -32,6 +32,7 @@ function setup({ old = false, on = false } = {}) {
     structuredClone, createHash, console: { log() {}, warn() {}, error() {} },
     Date: class extends Date { constructor(...args) { super(...(args.length ? args : [epoch])); } static now() { return epoch; } getFullYear() { return state.year; } },
     readJson: async request => clone(request.body), clean: x => String(x || ''),
+    nativeTossContext: () => null,
     getOptionalUserFromRequest: async () => ({ userId: state.userId }), connectDb: async () => {},
     peekAccessTokenUserId: async () => state.userId, safeLogPayload: x => x,
     isAdmin: () => state.admin, createAccessToken: async () => 'mock-access-token',
@@ -47,6 +48,7 @@ function setup({ old = false, on = false } = {}) {
     calculationFailed: () => ({ status: 422, body: { reason: 'CALCULATION_FAILED' } }), paymentVerifyFailed: () => ({ status: 402 }),
     MESSAGES: { llmFailed: 'mock' }, SERVICE_KEY: 'ziwei-ai', FEATURE_KEY: 'ziwei-ai-consultation', GENERATING_FRESHNESS_MS: 120000,
     resolveStartAccess: async () => { state.billing++; return { ok: true, accessType: 'pass', claimEvidenceIds: ['same-evidence'] }; },
+    resolveZiweiRequestAccess: args => context.resolveStartAccess(args),
     logZiweiAi() {}, randomUUID: () => `uuid-${++state.uuid}`,
     claimRequestBillingEvidence: async () => { state.claims++; return { ok: true }; }, evidenceClaimErrorBody: () => ({}),
     ZiweiCalculationPreparation: {

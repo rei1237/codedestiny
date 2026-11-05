@@ -1084,6 +1084,7 @@ const ziweiAiConsultationSchema = new mongoose.Schema({
   ziweiChart: { type: ziweiAiChartSchema, default: () => ({}) },
   // 운명의 섬 12궁 심층 상담(별도 상품)이 이 컬렉션을 공유한다. 기존 문서는 기본값으로 무영향.
   serviceType: { type: String, default: "ziwei-ai", trim: true, maxlength: 60 },
+  accessSource: { type: String, enum: ["", "toss"], default: "" },
   palaceKey: { type: String, default: "", trim: true, maxlength: 20 },
   sectionKeys: { type: [String], default: [] },
   accessType: { type: String, enum: ["pass", "paid", "subscription", "admin"], required: true, index: true },

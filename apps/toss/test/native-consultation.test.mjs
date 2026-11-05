@@ -45,6 +45,14 @@ test('Vedic orders cannot use another service, price or unapproved SKU',async()=
  const receipt=await grantNativeOrder({store:storage,auth,product:vedic,order,requestId:initial._id});assert.equal(receipt.durable,true);
  await assert.rejects(grantNativeOrder({store:storage,auth,product,order,requestId:initial._id}),/ORDER_OWNERSHIP_MISMATCH/);
 });
+test('Ziwei orders require their own approved feature and immutable price',async()=>{
+ const ziwei={...product,nativeService:'ziwei',featureKey:'ziwei-ai-consultation',productId:'native:ziwei:ziwei-ai-consultation'};
+ const ziweiContract={...contract,featureKey:ziwei.featureKey};assert.equal(nativeProduct(ziwei,ziweiContract),ziwei);
+ for(const wrong of [{...ziwei,approved:false},{...ziwei,featureKey:'vedic-ai-consultation'},{...ziwei,approvedPriceKRW:1},{...ziwei,priceEvidence:''}])assert.throws(()=>nativeProduct(wrong,ziweiContract));
+ const storage=store();storage.state.intent={...storage.state.intent,nativeService:'ziwei',featureKey:ziwei.featureKey};
+ const receipt=await grantNativeOrder({store:storage,auth,product:ziwei,order,requestId:initial._id});assert.equal(receipt.durable,true);
+ await assert.rejects(grantNativeOrder({store:storage,auth,product,order,requestId:initial._id}),/ORDER_OWNERSHIP_MISMATCH/);
+});
 test('one original consultation input binds one order atomically and grant retries never generate',async()=>{
  const storage=store(),args={store:storage,auth,product,order,requestId:initial._id};
  const first=await grantNativeOrder(args),again=await grantNativeOrder(args);
