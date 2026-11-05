@@ -2196,7 +2196,7 @@ function MoonlightActivePassCard({
                 <p className="mt-1 text-base font-black text-white">{isActivePass ? (isOpenEnded ? openEndedPassLabel("ko") : expiryLabel) : "이용권 구매 후 표시됩니다"}</p>
               </div>
             </div>
-            <p className="text-xl font-black text-[color:var(--moon-teal)]">{isActivePass ? (isOpenEnded ? null : daysLeftLabel) : "0일 남음"}</p>
+            <p className="text-xl font-black text-[color:var(--moon-teal)]">{isActivePass ? (isOpenEnded ? null : daysLeftLabel) : MOONLIGHT_TIER_LABELS.free}</p>
           </div>
         </div>
 
@@ -2436,7 +2436,7 @@ function MoonlightShopPlans({
       <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
 
-          <h2 className="mt-2 text-2xl font-black text-white">문라이트 패스(꿀꿀운세 이용권)</h2>
+          <h2 className="mt-2 text-2xl font-black text-white">문라이트 패스(꿀단지 이용권)</h2>
         </div>
         {subscription.isActive && subscription.tier !== "free" ? (
           <button
@@ -5043,11 +5043,7 @@ export default function PointsPage() {
               <div className="rounded-[14px] border border-slate-100 bg-slate-50/80 px-4 py-3">
                 <p className="text-[10.5px] font-bold uppercase tracking-wider text-slate-400 mb-1">현재 이용권</p>
                 <p className="text-sm font-semibold text-slate-700">
-                  {!subscription.isActive || subscription.tier === "free" ? "이용권 없음"
-                   : subscription.tier === "standard" ? "작은 꿀단지"
-                   : subscription.tier === "premium" ? "중간 꿀단지"
-                   : subscription.tier === "vvip" ? "큰 꿀단지"
-                   : "—"}
+                  {subscription.isActive ? MOONLIGHT_TIER_LABELS[subscription.tier] : MOONLIGHT_TIER_LABELS.free}
                 </p>
               </div>
             </div>

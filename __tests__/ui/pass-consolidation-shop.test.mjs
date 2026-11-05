@@ -30,3 +30,13 @@ test('the shop states one rule and no longer splits the sites',()=>{
  assert.equal(points.includes('passFishCoverage'),true);
  assert.match(points,/lg:grid-cols-4/);
 });
+test('the pass carries one name that fits both sites',async()=>{
+ const {MOONLIGHT_PASS_NAME}=await import('../../lib/brand/moonlight-guide.mjs');
+ assert.equal(MOONLIGHT_PASS_NAME,'문라이트 패스(꿀단지 이용권)');
+ assert.equal(points.includes('꿀꿀운세 이용권'),false);
+});
+test('every tier has an account label, and no pass reads as none rather than 0 days',()=>{
+ assert.equal(points.includes('"0일 남음"'),false);
+ assert.equal(points.includes(': "—"}'),false);
+ assert.match(points,/현재 이용권<\/p>\s*<p[^>]*>\s*\{subscription\.isActive \? MOONLIGHT_TIER_LABELS\[subscription\.tier\] : MOONLIGHT_TIER_LABELS\.free\}/);
+});
