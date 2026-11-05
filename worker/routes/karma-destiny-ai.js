@@ -5,7 +5,7 @@ import { createHash } from "node:crypto";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { resolveForbiddenPatterns } from "../lib/llm-leak-guard.js";
 import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest as webOptionalUser, isAuthDbInfraError } from "../lib/auth.js";
-import {nativeTossContext} from '../toss/native-context.js';
+import {nativeTossContext, bindNativeTossRequest} from '../toss/native-context.js';
 const getOptionalUserFromRequest = (request, ...args) => {
   const native = nativeTossContext(request);
   return native ? native.auth : webOptionalUser(request, ...args);
@@ -2521,7 +2521,7 @@ async function handleStart(request, env, recoveryAuth = null) {
 
   // billing 프로젝션으로 한 번에 읽어 두면, 실패 시 아래 cancelDeferredUsageIfNeeded 의 내부 coin-gate
   // 위임이 users 를 다시 읽지 않고 이 인증 결과를 그대로 재사용한다(preverifiedAuth).
-  const auth = recoveryAuth || await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true, userProjection: BILLING_SNAPSHOT_USER_PROJECTION });
+  const auth = nativeTossContext(request) ? nativeTossContext(request).auth : recoveryAuth || await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true, userProjection: BILLING_SNAPSHOT_USER_PROJECTION });
   if (!auth) return loginRequired();
 
   await connectDb(env);
@@ -2532,15 +2532,19 @@ async function handleStart(request, env, recoveryAuth = null) {
   if (existing?.status === "completed") return json(publicSession(existing));
   if (existing?.status === "generation_failed") return json({ ok: false, reason: "LLM_ERROR" }, { status: 409 });
   logKarmaAi("LLM Access Check Start", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: "checking", env }));
-  const access = await resolveStartAccess({ request, env, auth, body, normalized, pricing, idempotencyKey });
+  const access = nativeTossContext(request)
+    ? await nativeTossContext(request).access(body, normalized, idempotencyKey)
+    : await resolveStartAccess({ request, env, auth, body, normalized, pricing, idempotencyKey });
   if (!access.ok) {
     if (access.reason === "LOGIN_REQUIRED") return loginRequired();
     if (access.reason === "INVALID_INPUT") return invalidInput(access.message, 409);
     return paymentVerifyFailed();
   }
   const evidenceIds = startEvidenceIds(access);
-  const evidenceClaim = await claimRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds, featureKey: FEATURE_KEY });
-  if (!evidenceClaim.ok) return json(evidenceClaimErrorBody(evidenceClaim), { status: evidenceClaim.status });
+  if (!nativeTossContext(request)) {
+    const evidenceClaim = await claimRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds, featureKey: FEATURE_KEY });
+    if (!evidenceClaim.ok) return json(evidenceClaimErrorBody(evidenceClaim), { status: evidenceClaim.status });
+  }
   logKarmaAi("LLM Access Check Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
   logKarmaAi("LLM Payment Guard Passed", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
 
@@ -2565,6 +2569,7 @@ async function handleStart(request, env, recoveryAuth = null) {
     reportId: clean(existing?.reportId || sessionId, 120),
     attemptId: idempotencyKey,
     userId: clean(auth.userId),
+    ...(nativeTossContext(request) ? {accessSource: 'toss'} : {}),
     birthInfo: normalized.input.birthInfo,
     topic: normalized.input.topic,
     userQuestion: normalized.input.userQuestion,
@@ -2612,6 +2617,8 @@ async function handleStart(request, env, recoveryAuth = null) {
       } catch (error) {
         if (error?.code === 11000) {
           const duplicate = await KarmaDestinyAiConsultation.findOne({ userId: clean(auth.userId), idempotencyKey }).lean();
+          if (!duplicate || !(await authorizedKarmaRecord(request, duplicate))) return notFound();
+          if (clean(duplicate.inputHash) !== normalized.inputHash) return invalidInput("같은 요청 키로 다른 상담 정보를 사용할 수 없습니다.", 409);
           if (duplicate?.status === "completed") return json(publicSession(duplicate));
           return json(publicSession(duplicate || seed), { status: 202 });
         }
@@ -2658,7 +2665,7 @@ async function handleStart(request, env, recoveryAuth = null) {
         },
       },
     ).catch(() => {});
-    await releaseRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds });
+    if (!nativeTossContext(request)) await releaseRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds });
     logKarmaAi("LLM Error", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env, error }), "error");
     if (access.deferredUsage) {
       await cancelDeferredUsageIfNeeded({
@@ -2701,7 +2708,7 @@ function karmaChapterReady(chapter, definition, acceptShort = false) {
 async function handleGenerateBatch(request, env, recoveryAuth = null) {
   const body = await readJson(request);
   const sessionId = clean(body?.sessionId || body?.reportId || body?.attemptId || body?.idempotencyKey, 180);
-  const auth = recoveryAuth || await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true, userProjection: BILLING_SNAPSHOT_USER_PROJECTION });
+  const auth = nativeTossContext(request) ? nativeTossContext(request).auth : recoveryAuth || await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true, userProjection: BILLING_SNAPSHOT_USER_PROJECTION });
   if (!auth) return loginRequired();
   await connectDb(env);
   let consultation = await KarmaDestinyAiConsultation.findOne(buildResultLookup(sessionId, auth)).lean();
@@ -2713,7 +2720,9 @@ async function handleGenerateBatch(request, env, recoveryAuth = null) {
     if (consultation.llmMeta?.resumeBody && Date.now() - new Date(consultation.updatedAt || consultation.createdAt).getTime() >= PREMIUM_BATCH_LOCK_TTL_MS) {
       const url = new URL(request.url); url.pathname = "/api/karma-destiny-ai/start";
       const headers = cloneBillingHeaders(request); headers.set("Idempotency-Key", consultation.idempotencyKey);
-      return handleStart(new Request(url, { method: "POST", headers, body: JSON.stringify(consultation.llmMeta.resumeBody) }), env, recoveryAuth);
+      const resumed = new Request(url, { method: "POST", headers, body: JSON.stringify(consultation.llmMeta.resumeBody) });
+      if (nativeTossContext(request)) bindNativeTossRequest(resumed, nativeTossContext(request));
+      return handleStart(resumed, env, recoveryAuth);
     }
     return json(publicSession(consultation), { status: 202 });
   }
@@ -2721,7 +2730,9 @@ async function handleGenerateBatch(request, env, recoveryAuth = null) {
   const pricing = getPricing();
   const resumeBody = consultation.llmMeta?.resumeBody || { birthInfo: consultation.birthInfo, topic: consultation.topic, userQuestion: consultation.userQuestion, paymentId: consultation.paymentId, accessType: consultation.accessType };
   const normalized = { ok: true, inputHash: consultation.inputHash };
-  const checkAccess = () => resolveStartAccess({ request, env, auth, body: resumeBody, normalized, pricing, idempotencyKey: consultation.idempotencyKey });
+  const checkAccess = () => nativeTossContext(request)
+    ? nativeTossContext(request).access(resumeBody, normalized, consultation.idempotencyKey)
+    : resolveStartAccess({ request, env, auth, body: resumeBody, normalized, pricing, idempotencyKey: consultation.idempotencyKey });
   if (!(await checkAccess()).ok) return paymentVerifyFailed();
   const owner = { id: consultation.id, userId: clean(auth.userId) };
   const lockToken = randomToken(12);
@@ -2806,9 +2817,10 @@ async function handleGenerateBatch(request, env, recoveryAuth = null) {
     consultation = await saveKarmaDelivery(filter, { status: "completed", generatedAt: now, usageAppliedAt: consultation.usageAppliedAt || now, generationProgress: buildGenerationProgress(consultation, { status: "completed", lockToken: "", lockedAt: null, percent: 100 }), generationError: null }, consultation.id);
     return json(publicSession(consultation));
   } catch (error) {
+    if (nativeTossContext(request) && error?.status) throw error;
     if (error?.code === "RESULT_STORAGE_UNAVAILABLE" || consultation.status === "delivery_pending") return json(resultStorageFailurePayload(resultStorageUnavailable(consultation.id)), { status: 503 });
     consultation = await saveKarmaDelivery(filter, { status: "generation_failed", generationError: { code: clean(error?.code || "LLM_FAILED", 80), message: clean(error?.message, 500) } }, consultation.id);
-    await releaseRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: clean(consultation.idempotencyKey || consultation.attemptId, 180), evidenceIds: startEvidenceIds(consultation) });
+    if (!nativeTossContext(request)) await releaseRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: clean(consultation.idempotencyKey || consultation.attemptId, 180), evidenceIds: startEvidenceIds(consultation) });
     await cancelDeferredUsageIfNeeded({ request, env, auth, consultation, error });
     return json({ ok: false, reason: "LLM_ERROR", message: LLM_ERROR_MESSAGE }, { status: 503 });
   } finally {
@@ -2845,18 +2857,21 @@ async function handleResult(request, env, path) {
   if (!(await authorizedKarmaRecord(request, consultation))) return notFound();
   if (consultation.status !== "completed") {
     const resumeBody = consultation.llmMeta?.resumeBody || { paymentId: consultation.paymentId, accessType: consultation.accessType };
-    const access = await resolveStartAccess({ request, env, auth, body: resumeBody, normalized: { inputHash: consultation.inputHash }, pricing: getPricing(), idempotencyKey: consultation.idempotencyKey });
+    const access = nativeTossContext(request)
+      ? await nativeTossContext(request).access(resumeBody, {inputHash: consultation.inputHash}, consultation.idempotencyKey)
+      : await resolveStartAccess({ request, env, auth, body: resumeBody, normalized: { inputHash: consultation.inputHash }, pricing: getPricing(), idempotencyKey: consultation.idempotencyKey });
     if (!access.ok) return paymentVerifyFailed();
   }
-  if (consultation.status === "completed" && await isStoredPaidResultRevoked(auth.userId, FEATURE_KEY, consultation)) {
+  if (!nativeTossContext(request) && consultation.status === "completed" && await isStoredPaidResultRevoked(auth.userId, FEATURE_KEY, consultation)) {
     return json({ ok: false, reason: "PAYMENT_REVOKED", retryable: false }, { status: 403 });
   }
-  if (consultation.status === "completed") consultation = await recoverSavedExpertFollowUps({ auth, consultation, featureKey: FEATURE_KEY, model: KarmaDestinyAiConsultation });
+  if (!nativeTossContext(request) && consultation.status === "completed") consultation = await recoverSavedExpertFollowUps({ auth, consultation, featureKey: FEATURE_KEY, model: KarmaDestinyAiConsultation });
   const statusCode = ["generating", "partial", "delivery_pending"].includes(consultation.status) ? 202 : consultation.status === "generation_failed" ? 409 : 200;
   return json(publicSession(consultation), { status: statusCode });
 }
 
 async function handleMessage(request, env) {
+  if (nativeTossContext(request)) return notFound();
   const body = await readJson(request);
   const sessionId = clean(body?.sessionId || body?.consultationId, 120);
   const message = clean(body?.message || body?.question, 1200);

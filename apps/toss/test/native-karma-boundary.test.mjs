@@ -25,10 +25,22 @@ test('Toss cannot use the web access and billing preparation route',async()=>{
 });
 test('a denied completed karma result is not exposed by the start route',async()=>{
  let exposed=0;const doc={status:'completed',inputHash:'hash'};
- const ctx={clean,readJson:async()=>({}),readIdempotencyKey:()=> 'request-0000001',normalizeConsultationInput:()=>({ok:true,inputHash:'hash'}),logKarmaAi:()=>{},safeLogPayload:()=>({}),getOptionalUserFromRequest:async()=>({userId:'owner'}),BILLING_SNAPSHOT_USER_PROJECTION:{},connectDb:async()=>{},getPricing:()=>({}),withMongoRetry:async(_env,read)=>read(),KarmaDestinyAiConsultation:{findOne:()=>({lean:async()=>doc})},authorizedKarmaRecord:async()=>{throw Object.assign(Error('denied'),{status:403});},publicSession:()=>{exposed++;return {};}};
+ const ctx={clean,nativeTossContext:()=>null,readJson:async()=>({}),readIdempotencyKey:()=> 'request-0000001',normalizeConsultationInput:()=>({ok:true,inputHash:'hash'}),logKarmaAi:()=>{},safeLogPayload:()=>({}),getOptionalUserFromRequest:async()=>({userId:'owner'}),BILLING_SNAPSHOT_USER_PROJECTION:{},connectDb:async()=>{},getPricing:()=>({}),withMongoRetry:async(_env,read)=>read(),KarmaDestinyAiConsultation:{findOne:()=>({lean:async()=>doc})},authorizedKarmaRecord:async()=>{throw Object.assign(Error('denied'),{status:403});},publicSession:()=>{exposed++;return {};}};
  const start=vm.runInNewContext('('+fn('handleStart')+')',ctx);await assert.rejects(start({},{}),e=>e.status===403);assert.equal(exposed,0);
 });
 test('a denied completed karma result is not exposed by the batch route',async()=>{
- let exposed=0;const ctx={readJson:async()=>({sessionId:'saved'}),clean,getOptionalUserFromRequest:async()=>({userId:'owner'}),BILLING_SNAPSHOT_USER_PROJECTION:{},connectDb:async()=>{},buildResultLookup:()=>({}),KarmaDestinyAiConsultation:{findOne:()=>({lean:async()=>({status:'completed'})})},authorizedKarmaRecord:async()=>{throw Object.assign(Error('denied'),{status:403});},publicSession:()=>{exposed++;return {};}};
+ let exposed=0;const ctx={readJson:async()=>({sessionId:'saved'}),clean,nativeTossContext:()=>null,getOptionalUserFromRequest:async()=>({userId:'owner'}),BILLING_SNAPSHOT_USER_PROJECTION:{},connectDb:async()=>{},buildResultLookup:()=>({}),KarmaDestinyAiConsultation:{findOne:()=>({lean:async()=>({status:'completed'})})},authorizedKarmaRecord:async()=>{throw Object.assign(Error('denied'),{status:403});},publicSession:()=>{exposed++;return {};}};
  const batch=vm.runInNewContext('('+fn('handleGenerateBatch')+')',ctx);await assert.rejects(batch({},{}),e=>e.status===403);assert.equal(exposed,0);
+});
+test('Toss result preserves payment denial and never asks the web billing gate',async()=>{
+ let webCalls=0;const native={auth:{userId:'owner'},access:async()=>{throw Object.assign(Error('denied'),{status:403});}};
+ const ctx={URL,clean,json,nativeTossContext:()=>native,getOptionalUserFromRequest:async()=>native.auth,connectDb:async()=>{},buildResultLookup:()=>({}),KarmaDestinyAiConsultation:{findOne:()=>({lean:async()=>({id:'saved',status:'partial',inputHash:'hash',idempotencyKey:'request-0000001'})})},authorizedKarmaRecord:async()=>true,getPricing:()=>({}),resolveStartAccess:async()=>{webCalls++;return {ok:true};}};
+ const result=vm.runInNewContext('('+fn('handleResult')+')',ctx);await assert.rejects(result({url:'https://example.invalid/api/karma-destiny-ai/result?sessionId=saved'}, {}, '/result'),e=>e.status===403);assert.equal(webCalls,0);
+});
+test('Toss cannot call the original web follow-up route',async()=>{
+ const message=vm.runInNewContext('('+fn('handleMessage')+')',{nativeTossContext:()=>({}),notFound:()=>({status:404})});assert.equal((await message({},{})).status,404);
+});
+test('Toss permission errors retain their status at the route boundary',async()=>{
+ const ctx={getRoutePath:()=>'/result',handleResult:async()=>{throw Object.assign(Error('denied'),{status:403,code:'ACCESS_DENIED'});},nativeTossContext:()=>({}),json};
+ const route=vm.runInNewContext('('+fn('handleKarmaDestinyAiRoutes')+')',ctx);const response=await route({method:'GET'},{});assert.equal(response.status,403);assert.equal(response.body.reason,'ACCESS_DENIED');
 });
