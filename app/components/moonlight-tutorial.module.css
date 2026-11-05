@@ -1,0 +1,35 @@
+.trigger[aria-haspopup="dialog"] {
+  display:flex; align-items:center; gap:.55rem; width:100%; padding:.45rem .6rem;
+  background:var(--cd-bg); border:1px solid var(--hm-gold-line); border-radius:.7rem;
+  text-align:left; font-size:.875rem; line-height:1.45;
+}
+.trigger img {width:28px; height:28px}
+@media(max-width:400px){
+  .trigger[aria-haspopup="dialog"] {gap:.25rem;padding-inline:.2rem;letter-spacing:-.035em}
+  .trigger img {width:24px;height:24px}
+  .trigger span:last-child {display:none}
+}
+.trigger span:last-child {margin-inline-start:auto; font-size:1.1rem}
+.reader {
+  position:fixed; inset:0; margin:auto; width:min(100%,34rem); max-width:100%; height:min(90dvh,54rem);
+  max-height:100dvh; padding:0; box-sizing:border-box; overflow:auto; overscroll-behavior:contain;
+  border:1px solid var(--hm-gold-line); border-radius:1rem; color:var(--cd-text);
+  background:var(--cd-bg); font-family:var(--font-body); line-height:1.65; overflow-wrap:anywhere;
+}
+.reader::backdrop {background:rgb(22 14 23 / .68)}
+.bar {position:sticky; top:0; z-index:1; display:flex; align-items:center; justify-content:space-between; padding:.2rem 1rem; background:var(--cd-surface); border-bottom:1px solid var(--hm-gold-line)}
+.bar span,.story h2 {font-family:var(--font-serif); font-weight:700}
+.reader .bar button {min-height:48px; padding:0 .5rem}
+.story {padding:1rem clamp(.8rem,4vw,1.5rem) 2rem}
+.story h2 {margin:.4rem 0 1.2rem; font-size:clamp(1.4rem,5vw,2rem)}
+.panel {margin-bottom:1.8rem; display:grid; gap:.65rem}
+.panel img {width:100%; height:auto; display:block; border-radius:.45rem}
+.panel p {margin:0; max-width:94%; padding:.6rem .9rem; font-size:1rem}
+.panel b {display:block; font-size:.82rem; color:var(--hm-gold-ink)}
+.bubble,.guest,.tag {background:var(--cd-surface); border:1px solid var(--hm-gold-line)}
+.bubble {justify-self:start; border-radius:.15rem 1rem 1rem 1rem}
+.guest {justify-self:end; border-radius:1rem .15rem 1rem 1rem}
+.tag {justify-self:center; padding:.2rem .7rem; font-family:var(--font-serif)}
+.panel a {display:inline-flex; gap:.3em; align-items:center; min-height:48px; text-decoration:underline}
+.reader .write {width:100%; min-height:48px; padding:.8rem; background:var(--cd-text); color:var(--cd-bg); border-radius:.55rem; text-align:center; font-weight:700}
+@media(max-width:600px){.reader {width:100%; height:100dvh; border:0; border-radius:0}.bar {padding-top:env(safe-area-inset-top)}.story {padding-bottom:calc(1.5rem + env(safe-area-inset-bottom))}}

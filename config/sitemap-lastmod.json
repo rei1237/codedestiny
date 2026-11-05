@@ -3,7 +3,7 @@
   "note": "사이트맵 lastmod 원장. scripts/lib/sitemap-lastmod.mjs 가 라우트별 소스 서명을 계산해 다시 쓴다. 손으로 고치지 말고 npm run sitemap:generate 로 갱신할 것.",
   "routes": {
     "/": {
-      "signature": "4d87dea4f85892d1",
+      "signature": "7b8932c10b018c67",
       "lastmod": "2026-11-05"
     },
     "/about/": {
@@ -79,7 +79,7 @@
       "lastmod": "2026-11-01"
     },
     "/en/": {
-      "signature": "908dc56ebecb3422",
+      "signature": "4bccfbb91f7936b0",
       "lastmod": "2026-11-05"
     },
     "/en/about/": {
@@ -579,7 +579,7 @@
       "lastmod": "2026-11-01"
     },
     "/en/yeongnyangi/": {
-      "signature": "cb956a85b1550701",
+      "signature": "2b7fe5b840424fc6",
       "lastmod": "2026-11-05"
     },
     "/en/ziwei/": {
@@ -1055,7 +1055,7 @@
       "lastmod": "2026-11-05"
     },
     "/ggulggul/": {
-      "signature": "4495dbf4ce65e61a",
+      "signature": "c32d2beb2528aeff",
       "lastmod": "2026-11-05"
     },
     "/guides/": {
@@ -1131,7 +1131,7 @@
       "lastmod": "2026-11-05"
     },
     "/ja/": {
-      "signature": "908dc56ebecb3422",
+      "signature": "4bccfbb91f7936b0",
       "lastmod": "2026-11-05"
     },
     "/ja/about/": {
@@ -1635,7 +1635,7 @@
       "lastmod": "2026-11-01"
     },
     "/ja/yeongnyangi/": {
-      "signature": "cb956a85b1550701",
+      "signature": "2b7fe5b840424fc6",
       "lastmod": "2026-11-05"
     },
     "/ja/ziwei/": {
@@ -2399,7 +2399,7 @@
       "lastmod": "2026-11-05"
     },
     "/yeongnyangi/": {
-      "signature": "637a0a347c16f667",
+      "signature": "446c123749082d24",
       "lastmod": "2026-11-05"
     },
     "/yeongnyangi/1000-won-fortune/": {
@@ -2407,7 +2407,7 @@
       "lastmod": "2026-11-05"
     },
     "/zh-tw/": {
-      "signature": "908dc56ebecb3422",
+      "signature": "4bccfbb91f7936b0",
       "lastmod": "2026-11-05"
     },
     "/zh-tw/astrology/": {
@@ -2875,7 +2875,7 @@
       "lastmod": "2026-11-01"
     },
     "/zh-tw/yeongnyangi/": {
-      "signature": "cb956a85b1550701",
+      "signature": "2b7fe5b840424fc6",
       "lastmod": "2026-11-05"
     },
     "/zh-tw/ziwei/": {
@@ -2883,7 +2883,7 @@
       "lastmod": "2026-11-05"
     },
     "/zh/": {
-      "signature": "908dc56ebecb3422",
+      "signature": "4bccfbb91f7936b0",
       "lastmod": "2026-11-05"
     },
     "/zh/about/": {
@@ -3383,7 +3383,7 @@
       "lastmod": "2026-11-01"
     },
     "/zh/yeongnyangi/": {
-      "signature": "cb956a85b1550701",
+      "signature": "2b7fe5b840424fc6",
       "lastmod": "2026-11-05"
     },
     "/zh/ziwei/": {

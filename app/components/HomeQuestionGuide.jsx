@@ -1,6 +1,7 @@
 'use client';
 import {useEffect,useRef,useState} from 'react';
 import Image from 'next/image';
+import MoonlightTutorial from './MoonlightTutorial';
 import {guides,choices,directory,examples,matchQuestion,alternative} from '../../lib/fortune/consultation-match.mjs';
 import {saveGuideQuestion} from '../../lib/fortune/guide-handoff';
 import s from './home-question-guide.module.css';
@@ -69,6 +70,7 @@ export default function HomeQuestionGuide(){
     {step==='write'?<><form onSubmit={submit}><label htmlFor="home-question">나의 질문</label>
       <textarea ref={input} id="home-question" rows={3} value={question} onChange={e=>{setQuestion(e.target.value);setNotice('');}} placeholder="먼저 연락하고 싶은데, 답장이 없으면 더 힘들어질까 봐 망설여져요."/>
       <button disabled={!ready} className={s.primary}>내 질문에 맞는 상담 찾기</button></form>
+      <MoonlightTutorial questionInput={input} />
       <div className={s.examples}><p>이런 질문으로 시작해 보세요</p>{examples.map(v=><button key={v} onClick={()=>{setQuestion(v);setNotice('');input.current.focus();}}>{v}</button>)}</div>
       <details><summary>운세 종류로 찾기</summary><nav>{directory.map(v=><a key={v.key} href={v.href}>{v.title}</a>)}</nav></details></>:
     <><div className={s.quote}><span>내가 한 질문</span><p>{question}</p></div>
