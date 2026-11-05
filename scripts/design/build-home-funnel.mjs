@@ -348,7 +348,7 @@ function localizedPassBenefits() {
 }
 vars.pass = '<link rel="stylesheet" href="/styles/pass-benefits.css?v=build-000000000000">' + localizedPassBenefits() + `<section class="cdh-pass" data-cd-localized-pass aria-labelledby="cdhPassTitle" data-design-marker="moonlight-pass-banner-v20260626">
   <div class="cdh-pass__intro">
-    <img class="cdh-pass__mascot" src="/images/home/yeoni-pass-mascot-240.webp" srcset="/images/home/yeoni-pass-mascot-240.webp 240w, /images/home/yeoni-pass-mascot-480.webp 480w" sizes="(max-width: 640px) 104px, 168px" alt="이용권 카드를 들고 웃는 꽃돼지 연이" data-cd-trans-attr="alt:home.gardenCopy.passMascotAlt" width="240" height="240" loading="lazy" decoding="async">
+    <img class="cdh-pass__mascot" src="/images/home/honey-pot-duo-240.webp" srcset="/images/home/honey-pot-duo-240.webp 240w, /images/home/honey-pot-duo-480.webp 480w" sizes="(max-width: 640px) 104px, 168px" alt="꿀단지 하나를 함께 든 꽃돼지 연이와 영냥이" data-cd-trans-attr="alt:home.gardenCopy.passMascotAlt" width="240" height="240" loading="lazy" decoding="async">
     <div class="cdh-pass__copy">
       <span class="cdh-pass__eyebrow" data-cd-trans="home.gardenCopy.passEyebrow">기간·자동갱신 없는 이용권</span>
       <h2 class="cdh-pass__title" id="cdhPassTitle" data-cd-trans="home.gardenCopy.passTitle">연이가 알려드리는 이용권</h2>

@@ -66,10 +66,12 @@ export function MoonlightShopHero() {
       <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex min-w-0 flex-1 flex-col items-center gap-5 text-center sm:flex-row sm:text-left">
           <img
-            src="/assets/yeongnyangi/payment-alliance/moonlight-fish-ticket-shop-v1.webp"
-            alt="달빛 상점에서 고등어·연어·광어·참치 그림 꾸러미를 함께 소개하는 꽃돼지 연이와 영냥이"
-            width={1280}
-            height={853}
+            src="/images/home/honey-pot-duo-480.webp"
+            srcSet="/images/home/honey-pot-duo-480.webp 480w, /images/home/honey-pot-duo-960.webp 960w"
+            sizes="(min-width: 640px) 208px, 224px"
+            alt="꿀단지 하나를 함께 든 꽃돼지 연이와 영냥이"
+            width={960}
+            height={960}
             loading="eager"
             decoding="async"
             className="w-56 max-w-full flex-shrink-0 rounded-2xl sm:w-52"
