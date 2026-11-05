@@ -2825,6 +2825,15 @@ export async function handleZiweiAiRoutes(request, env = {}, ctx = null) {
   }
 }
 
+// Validate the original input and retain the existing price before any Toss purchase.
+// This contract alone does not approve or enable an in-app product.
+export function nativeZiweiContract(body) {
+  const normalized = normalizeConsultationInput(body || {});
+  const requestId = clean(body?.idempotencyKey || body?.requestId, 180);
+  if (!normalized.ok || requestId.length < 12) throw Object.assign(new Error('상담 입력을 다시 확인해 주세요.'), { status: 400 });
+  return { requestId, resultId: requestId, featureKey: FEATURE_KEY, inputHash: normalized.inputHash, pricing: getPricing().pricing };
+}
+
 export const __ziweiAiTestUtils = {
   FEATURE_KEY,
   SERVICE_KEY,
