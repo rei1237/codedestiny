@@ -115,13 +115,13 @@ try {
   for (const featureKey of resultKeys) {
     const target = targetByKey[featureKey];
     await page.locator(`#snuReadingContents nav a[href="#${target}"]`).click();
-    await page.waitForTimeout(1500);
     const marker = page.locator(`[data-snu-personalized="${featureKey}"]`);
-    if (!await marker.count()) {
+    try {
+      await marker.waitFor({ state: 'attached', timeout: 10_000 });
+    } catch {
       const targetNode = page.locator(`#${target}`).first();
       throw new Error(`${featureKey} did not hydrate: ${JSON.stringify({ requests, timeline: await page.evaluate(() => window.__snuTimeline), targetHtml: await targetNode.evaluate(node => node.outerHTML.slice(0, 4000)) })}`);
     }
-    await marker.waitFor();
     const call = requests.find(entry => entry.featureKey === featureKey);
     assert.deepEqual(call, { featureKey, profileId }, `${featureKey} must request the bound gift profile`);
     const host = page.locator(`[data-snu-personalized="${featureKey}"]`);
