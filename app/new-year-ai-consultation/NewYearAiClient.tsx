@@ -13,7 +13,7 @@ import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
 
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { CalendarDays, Download, Loader2, Moon, Share2, Sparkles, WalletCards } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type CSSProperties, type FormEvent, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type ComponentType, type CSSProperties, type FormEvent, type ReactNode } from "react";
 import {
   beginPaidFeatureGateCheck,
   completePaidFeatureGateCheck,
@@ -27,6 +27,7 @@ import { authFetch } from "@/app/_lib/auth-client";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 import { isRetriableResultPollFailure, runAccessCheckWithTransientRetry } from "@/app/_lib/consultationResultPolling";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
+import { useTossConsultationCopy } from "@/app/_lib/toss-consultation-copy";
 import { PriceBadge } from "@/app/components/PriceBadge";
 import ProductJourneyLinks, { useProductView } from "@/app/components/ProductJourneyLinks";
 import { ExpertStickyCta } from "@/app/components/expert-consulting/ExpertConsultationFrame";
@@ -322,6 +323,17 @@ type ConsultationResult = {
   message?: string;
 };
 
+async function readTossNewYearResponse(response:Response):Promise<ConsultationResult> {
+  const data=await response.json().catch(()=>({})) as ConsultationResult & {code?:string};
+  if(!response.ok||!data.ok){const code=response.status===401?'LOGIN_REQUIRED':response.status===403?'ACCESS_DENIED':data.reason||data.code||'REQUEST_FAILED';throw Object.assign(new Error(code),{code,status:response.status});}
+  if(!['completed','generating','partial','delivery_pending'].includes(data.status||'')||(data.status==='completed'&&data.saved!==true))throw Object.assign(new Error('RESULT_UNAVAILABLE'),{code:'RESULT_UNAVAILABLE'});
+  return data;
+}
+function tossNewYearFailure(error:unknown){
+  const failure=error&&typeof error==='object'?error as {code?:string;status?:number}:{};
+  return failure.status===401?'LOGIN_REQUIRED':failure.status===403?'ACCESS_DENIED':failure.code||'REQUEST_FAILED';
+}
+
 const LOGIN_REQUIRED_MESSAGE = "상담을 시작하려면 로그인이 필요합니다. 로그인 후 다시 시도해 주세요.";
 const PAYMENT_REQUIRED_MESSAGE = "신년운세 전문가 상담 이용권이 필요합니다. 결제창을 열어드릴게요.";
 const PAYMENT_VERIFY_FAILED_MESSAGE = "결제 확인이 완료되지 않았습니다. 결제가 완료되었다면 잠시 후 다시 시도해 주세요.";
@@ -336,6 +348,7 @@ const FEATURE_COST = 300;
 const FEATURE_AMOUNT_KRW = 30000;
 const FEATURE_MEMBERSHIP_CREDIT_COST = 3000;
 const FEATURE_REASON = "신년운세 전문가 상담";
+const TOSS_NEW_YEAR_JA={title:'新年運勢の専門相談',intro:'転職や人間関係を見直したいとき、新しい年の優先順位を考えたいときに。生まれ持った命式と一年の流れを読み、月ごとの着眼点と行動のヒントを整理します。',badges:['命式','年の流れ','月ごとの流れ','行動のヒント'],form:'相談に必要な情報を入力してください',name:'名前またはニックネーム',gender:'性別',select:'選択',female:'女性',male:'男性',unknown:'非公開',birth:'生年月日',time:'出生時刻',calendar:'暦',solar:'太陽暦',lunar:'太陰暦',year:'相談する年',thisYear:'今年',nextYear:'来年',otherYear:'別の年',enterYear:'直接入力',customYear:'入力した年の流れを確認します。',focus:'詳しく見たいテーマ',questionTitle:'この質問を優先してお答えします',questionHelp:'現在の状況と迷っている選択を入力してください。',question:'相談したいこと',placeholder:'今の流れについて知りたいこと',start:'新年運勢の相談を始める',reply:'新年の相談結果',empty:'相談結果はここに表示されます。',emptyHelp:'生年月日と質問を入力すると、命式と一年の流れを読み解きます。',resultLanguage:'相談結果は韓国語で生成されます。',records:'記録を確認する',newConsultation:'新しい相談を始める',invalid:'生年月日、性別、暦、相談年と質問の入力内容を確認してください。',statuses:{preparing:'相談を準備しています',payment:'決済画面をご確認ください',reading:'一年の流れを読み解いています',ready:'相談結果をお届けしました',idle:'新年の相談を始められます'},focusNames:{overall:'総合運',love:'恋愛・復縁',money:'金運・収入',career:'仕事・転職',health:'健康・心',relationship:'家族・人間関係',study:'学び・成長',custom:'自由な質問'}} as const;
 const FOCUS_AREA_OPTIONS: Array<{ value: FocusAreaType; label: string; prompt: string; glyph: string }> = [
   { value: "overall", label: "종합운", glyph: "年", prompt: "올해 제 명식에서 가장 먼저 붙잡아야 할 흐름과, 무리하지 않아야 할 시기를 함께 짚어주세요." },
   { value: "love", label: "연애/재회", glyph: "緣", prompt: "올해 인연이 열리는 결, 다시 다가오는 마음, 관계에서 서두르지 말아야 할 때를 깊게 봐주세요." },
@@ -1487,12 +1500,14 @@ const NYAI_READING_ROOM_CSS = `
 }
 `;
 
-export default function NewYearAiConsultationPage() {
-  useProductView(FEATURE_KEY, 'yearly');
+export default function NewYearAiConsultationPage({paymentSurface="web",ProfilePicker,TossPrice}:{paymentSurface?:"web"|"toss";ProfilePicker?:ComponentType<{onSelect:(seed:AiPrefillSeed)=>void}>;TossPrice?:ComponentType}) {
+  useProductView(paymentSurface === 'toss' ? '' : FEATURE_KEY, 'yearly');
   const [clientReady, setClientReady] = useState(false);
   useEffect(() => { setClientReady(true); }, []);
   const copy = useNewYearAiCopy();
-  const [form, setForm] = useState<ConsultationForm>(() => buildInitialForm());
+  const {locale:tossLocale,copy:tossCopy}=useTossConsultationCopy(paymentSurface === 'toss');
+  const tossJapanese=paymentSurface==='toss'&&tossLocale==='ja'?TOSS_NEW_YEAR_JA:null;
+  const [form, setForm] = useState<ConsultationForm>(() => paymentSurface === 'toss' ? defaultForm() : buildInitialForm());
   const [status, setStatus] = useState<FlowStatus>("idle");
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
@@ -1512,19 +1527,23 @@ export default function NewYearAiConsultationPage() {
   const idempotencyKeyRef = useRef(createIdempotencyKey());
   const pendingGenerationRef = useRef<{ payload: Record<string, unknown>; key: string; access: Record<string, unknown> } | null>(null);
   const [reloadEpoch, setReloadEpoch] = useState(0);
+  const [tossRecovery,setTossRecovery]=useState<'none'|'checking'|'allowed'|'denied'|'error'>(()=>paymentSurface==='toss'&&typeof window!=='undefined'&&Boolean(new URLSearchParams(window.location.search).get('sid'))?'checking':'none');
+  const [tossFailureCode,setTossFailureCode]=useState('');
+  const tossRevision=useRef(0),tossBusy=useRef(false),tossViewedId=useRef('');
   const captureDeliveryScope = usePaidDeliveryScope(() => {
     pendingGenerationRef.current = null; startLockRef.current = false; resultLoadScopeRef.current = null;
     idempotencyKeyRef.current = createIdempotencyKey();
+    if(paymentSurface==='toss'){tossRevision.current++;tossBusy.current=false;tossViewedId.current='';setForm(defaultForm());setTossFailureCode('');setTossRecovery(typeof window!=='undefined'&&new URLSearchParams(window.location.search).get('sid')?'checking':'none');}
     setMessages([]); setServerSections([]); setSajuProfile(null); setMonthlyFlow([]); setTargetYearInfo(null); setRecentSessions([]);
     setStatus("idle"); setError(""); setNotice(""); setReloadEpoch(value => value + 1);
   });
   const resultRef = useRef<HTMLDivElement | null>(null);
-  const { seed: profileSeed, seedVersion, reload: reloadProfileSeed } = useAiProfileSeed();
+  const { seed: profileSeed, seedVersion, reload: reloadProfileSeed } = useAiProfileSeed({enabled:paymentSurface !== 'toss'});
   const formTouchedRef = useRef(false);
 
   // 서버에서 프로필 카드가 뒤늦게 도착해도, 사용자가 입력을 시작하기 전이라면 폼에 반영
   useEffect(() => {
-    if (!profileSeed) return;
+    if (paymentSurface === 'toss' || !profileSeed) return;
     setForm((prev) => (formTouchedRef.current ? prev : applyProfileSeedToForm(prev, profileSeed)));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seedVersion]);
@@ -1537,7 +1556,7 @@ export default function NewYearAiConsultationPage() {
   }
 
   const applyResult = useCallback((result: ConsultationResult) => {
-    if (result.ok && result.status === 'completed' && (result.sessionId || result.resultId)) {
+    if (paymentSurface !== 'toss' && result.ok && result.status === 'completed' && (result.sessionId || result.resultId)) {
       trackConsultationCompleted({id:result.sessionId || result.resultId || '',status:'completed',featureKey:FEATURE_KEY});
     }
     setAccessType(result.accessType || "");
@@ -1559,7 +1578,7 @@ export default function NewYearAiConsultationPage() {
         // URL 갱신 실패는 무시
       }
     }
-  }, []);
+  }, [paymentSurface]);
 
   const startConsultation = useCallback(async (
     payload: Record<string, unknown>, idempotencyKey: string, access: Record<string, unknown>,
@@ -1630,6 +1649,7 @@ export default function NewYearAiConsultationPage() {
 
   // 재열람: ?sid= 복원 + 지난 상담 목록
   useEffect(() => {
+    if(paymentSurface === 'toss')return;
     let cancelled = false;
     const isCurrent = captureDeliveryScope();
     const sid = new URLSearchParams(window.location.search).get("sid");
@@ -1651,9 +1671,10 @@ export default function NewYearAiConsultationPage() {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reloadEpoch, captureDeliveryScope, loadSession]);
+  }, [reloadEpoch, captureDeliveryScope, loadSession, paymentSurface]);
 
   useEffect(() => {
+    if(paymentSurface === 'toss')return;
     const resume = () => { if (!document.hidden) setReloadEpoch(value => value + 1); };
     document.addEventListener("visibilitychange", resume); window.addEventListener("online", resume);
     window.addEventListener("pageshow", resume); window.addEventListener("focus", resume);
@@ -1661,15 +1682,33 @@ export default function NewYearAiConsultationPage() {
       document.removeEventListener("visibilitychange", resume); window.removeEventListener("online", resume);
       window.removeEventListener("pageshow", resume); window.removeEventListener("focus", resume);
     };
-  }, []);
+  }, [paymentSurface]);
+
+  useEffect(()=>{
+    if(paymentSurface!=='toss')return;
+    const resume=()=>{const changed=(new URLSearchParams(window.location.search).get('sid')||'')!==tossViewedId.current;if(document.visibilityState!=='hidden'&&(!tossBusy.current||changed))setReloadEpoch(value=>value+1);};
+    window.addEventListener('online',resume);window.addEventListener('pageshow',resume);window.addEventListener('focus',resume);window.addEventListener('popstate',resume);document.addEventListener('visibilitychange',resume);
+    return()=>{window.removeEventListener('online',resume);window.removeEventListener('pageshow',resume);window.removeEventListener('focus',resume);window.removeEventListener('popstate',resume);document.removeEventListener('visibilitychange',resume);};
+  },[paymentSurface]);
+  useEffect(()=>{
+    if(paymentSurface!=='toss')return;
+    const owner=captureDeliveryScope();let cancelled=false;
+    const sid=new URLSearchParams(window.location.search).get('sid')||'',changed=sid!==tossViewedId.current;
+    if(changed){tossViewedId.current=sid;tossRevision.current++;tossBusy.current=false;setMessages([]);setServerSections([]);setSajuProfile(null);setMonthlyFlow([]);setTargetYearInfo(null);setError('');}
+    else if(tossBusy.current)return()=>{cancelled=true;};
+    if(sid)void resumeTossNewYear(sid,()=>!cancelled&&owner());else if(changed){setTossRecovery('none');setStatus('idle');}
+    return()=>{cancelled=true;};
+    // The lifecycle epoch and owner scope control revalidation, including native back.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  },[reloadEpoch,captureDeliveryScope,paymentSurface]);
 
   const statusText = useMemo(() => {
-    if (status === "preparing") return "상담을 준비하고 있습니다";
-    if (status === "payment") return "결제창을 확인해 주세요";
-    if (status === "reading") return "새해의 기운을 읽는 중...";
-    if (status === "ready") return "새해의 답장이 도착했습니다";
-    return "새해 상담소가 조용히 열려 있습니다";
-  }, [status]);
+    if (status === "preparing") return tossJapanese?.statuses.preparing || "상담을 준비하고 있습니다";
+    if (status === "payment") return tossJapanese?.statuses.payment || "결제창을 확인해 주세요";
+    if (status === "reading") return tossJapanese?.statuses.reading || "새해의 기운을 읽는 중...";
+    if (status === "ready") return tossJapanese?.statuses.ready || "새해의 답장이 도착했습니다";
+    return tossJapanese?.statuses.idle || "새해 상담소가 조용히 열려 있습니다";
+  }, [status,tossJapanese]);
 
   const isBusy = status === "preparing" || status === "payment" || status === "reading";
   const selectedFocusOption = useMemo(
@@ -1732,7 +1771,7 @@ export default function NewYearAiConsultationPage() {
 
   // 모바일 PortOne 리다이렉트로 handleSubmit 의 await 가 죽은 뒤, 복귀한 새 문서에서 상담을 이어받는다.
   // 🔴 게이트를 다시 타지 않고 게이트 없는 코어(startConsultation)를 원래 idempotencyKey 로 부른다.
-  const buildResume = usePaidResume(FEATURE_KEY, async (args, grant) => {
+  const buildResume = usePaidResume(paymentSurface === 'toss' ? '' : FEATURE_KEY, async (args, grant) => {
     const isCurrent = captureDeliveryScope();
     const idempotencyKey = typeof args.idempotencyKey === "string" ? args.idempotencyKey : "";
     const payload = unpackPaidResumeArg<ReturnType<typeof buildConsultationPayload>>(args.payload);
@@ -1753,7 +1792,61 @@ export default function NewYearAiConsultationPage() {
     }
   });
 
+  function clearTossResult(){setMessages([]);setServerSections([]);setSajuProfile(null);setMonthlyFlow([]);setTargetYearInfo(null);setAccessType('');}
+  function showTossFailure(caught:unknown){
+    const code=tossNewYearFailure(caught);
+    const denied=['LOGIN_REQUIRED','SESSION_EXPIRED','ACCESS_DENIED','ORDER_OWNERSHIP_MISMATCH','ORDER_REFUNDED','PAYMENT_REVOKED','RESULT_NOT_FOUND'].includes(code);
+    clearTossResult();setTossFailureCode(code);setTossRecovery(denied?'denied':'error');setStatus('error');
+    setError(['LOGIN_REQUIRED','SESSION_EXPIRED'].includes(code)?tossCopy.login:code==='ACCESS_DENIED'||code==='ORDER_OWNERSHIP_MISMATCH'?tossCopy.denied:code==='ORDER_REFUNDED'||code==='PAYMENT_REVOKED'?tossCopy.refunded:tossCopy.uncertain);
+  }
+  function applyTossResult(result:ConsultationResult,id:string){
+    const nextId=result.sessionId||id;
+    if(nextId){tossViewedId.current=nextId;const url=new URL(window.location.href);url.searchParams.set('sid',nextId);window.history.replaceState(null,'',url.toString());}
+    applyResult(result);setTossFailureCode('');setTossRecovery('allowed');
+    if(result.status!=='completed')setStatus('idle');
+  }
+  async function resumeTossNewYear(id:string,ownerCurrent:()=>boolean=()=>true){
+    if(tossBusy.current)return false;
+    const revision=++tossRevision.current,owner=captureDeliveryScope(),isCurrent=()=>owner()&&ownerCurrent()&&revision===tossRevision.current;
+    tossBusy.current=true;clearTossResult();setTossRecovery('checking');setStatus('reading');setError('');
+    try{
+      const response=await authFetch(`/api/new-year-ai/result?sessionId=${encodeURIComponent(id)}`);
+      const data=await readTossNewYearResponse(response);if(!isCurrent())return false;
+      applyTossResult(data,id);return data.status==='completed'&&data.saved===true;
+    }catch(caught){if(isCurrent())showTossFailure(caught);return false;}
+    finally{if(isCurrent())tossBusy.current=false;}
+  }
+  async function startTossNewYear(payload:Record<string,unknown>,key:string,ownerCurrent:()=>boolean){
+    const response=await authFetch('/api/new-year-ai/start',{method:'POST',headers:{'Content-Type':'application/json','Idempotency-Key':key},body:JSON.stringify({...payload,idempotencyKey:key})});
+    const result=await readTossNewYearResponse(response);if(!ownerCurrent())return false;
+    const id=result.sessionId||result.resultId||'';if(!id)throw Object.assign(new Error('RESULT_NOT_FOUND'),{code:'RESULT_NOT_FOUND'});
+    applyTossResult(result,id);return result.status==='completed'&&result.saved===true;
+  }
+  async function retryTossNewYear(){
+    if(tossRecovery!=='allowed'||tossBusy.current)return;
+    const id=new URLSearchParams(window.location.search).get('sid')||'';if(!id)return;
+    const revision=++tossRevision.current,owner=captureDeliveryScope(),current=()=>owner()&&revision===tossRevision.current;
+    tossBusy.current=true;setError('');setStatus('reading');
+    try{await startTossNewYear({resumeSessionId:id},idempotencyKeyRef.current,current);}
+    catch(caught){if(current())showTossFailure(caught);}
+    finally{if(current())tossBusy.current=false;}
+  }
+  async function handleTossSubmit(event:FormEvent<HTMLFormElement>){
+    event.preventDefault();if(tossBusy.current||tossRecovery!=='none')return;
+    const validation=validateConsultationForm(form);if(validation){setError(tossJapanese?.invalid||validation);setStatus('error');return;}
+    const revision=++tossRevision.current,owner=captureDeliveryScope(),current=()=>owner()&&revision===tossRevision.current;
+    const key=idempotencyKeyRef.current,payload={...buildConsultationPayload(form),requestId:key};
+    tossBusy.current=true;setError('');setNotice('');setStatus('payment');
+    try{
+      const gate=await runBillingCoinGate({featureKey:FEATURE_KEY,requestId:key,resume:buildResume({idempotencyKey:key,payload:packPaidResumeArg(payload)})});
+      if(!current())return;if(!gate.ok||!gate.data)throw Object.assign(new Error(gate.error?.code||'PAYMENT_STATUS_UNCERTAIN'),{code:gate.error?.code,status:gate.status});
+      setStatus('reading');await startTossNewYear(payload,key,current);
+    }catch(caught){if(current())showTossFailure(caught);}
+    finally{if(current())tossBusy.current=false;}
+  }
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    if(paymentSurface==='toss')return handleTossSubmit(event);
     event.preventDefault();
     const isCurrent = captureDeliveryScope();
     if (startLockRef.current || isBusy) return;
@@ -1976,11 +2069,11 @@ export default function NewYearAiConsultationPage() {
   }, [assistantMessages.length, form.userName, ganzi, isSharing, monthlyFlow, seasonTheme, seasonYear]);
 
   return (
-    <main className="nyai-page" style={themeVars} data-season-element={seasonTheme.name}>
+    <main className="nyai-page" lang={paymentSurface==='toss'?tossLocale:undefined} style={paymentSurface==='toss'?{...themeVars,paddingBottom:'var(--toss-service-bottom, 0px)'}:themeVars} data-season-element={seasonTheme.name}>
       <section className="nyai-panel nyai-intro" aria-label={copy.introSectionAria}>
         <div className="nyai-intro-art" aria-hidden="true" />
         <div className="nyai-orbit" aria-hidden="true" />
-        {clientReady && (<div className="nyai-consult-card" aria-label={copy.consultCardAria}>
+        {clientReady && !tossJapanese && (<div className="nyai-consult-card" aria-label={copy.consultCardAria}>
           <span className="nyai-eyebrow">상담 대상자 요약</span>
           <div className="nyai-consult-year">
             <span>상담 연도</span>
@@ -1998,67 +2091,67 @@ export default function NewYearAiConsultationPage() {
           </div>
         </div>)}
         <div className="nyai-intro-copy">
-          <span className="nyai-eyebrow">서비스 소개</span>
-          <h2><Moon size={20} aria-hidden="true" /> 신년운세 전문가 상담</h2>
-          {copy === NEW_YEAR_AI_COPY.ko && <ProductMasterStrip label="신년운세 마스터" masters={productMasters.newYear} profileHref={!isBusy && messages.length === 0 ? "#new-year-master" : undefined} />}
-          <p>이직을 준비할 때, 관계를 돌아볼 때, 새해의 우선순위를 정하고 싶을 때. 내 사주와 한 해의 흐름을 함께 읽고, 월별로 살펴볼 점과 현실적인 행동 조언을 정리해 드립니다.</p>
+          {!tossJapanese&&<span className="nyai-eyebrow">서비스 소개</span>}
+          <h2><Moon size={20} aria-hidden="true" /> {tossJapanese?.title||'신년운세 전문가 상담'}</h2>
+          {paymentSurface!=='toss' && copy === NEW_YEAR_AI_COPY.ko && <ProductMasterStrip label="신년운세 마스터" masters={productMasters.newYear} profileHref={!isBusy && messages.length === 0 ? "#new-year-master" : undefined} />}
+          <p>{tossJapanese?.intro||'이직을 준비할 때, 관계를 돌아볼 때, 새해의 우선순위를 정하고 싶을 때. 내 사주와 한 해의 흐름을 함께 읽고, 월별로 살펴볼 점과 현실적인 행동 조언을 정리해 드립니다.'}</p>
           <div className="nyai-hero-badges" aria-label={copy.heroBadgesAria}>
-            <span>사주 원국</span>
-            <span>세운 분석</span>
-            <span>월별 흐름</span>
-            <span>행동 전략</span>
+            {(tossJapanese?.badges||['사주 원국','세운 분석','월별 흐름','행동 전략']).map(label=><span key={label}>{label}</span>)}
           </div>
           <div className="nyai-status" data-status={status}>
             {isBusy && <Loader2 size={16} className="nyai-spin" />}
             {!isBusy && <Sparkles size={16} />}
             <span>{statusText}</span>
           </div>
-          <p className="nyai-countdown">{seasonCountdown || "\u00a0"}</p>
-          {copy === NEW_YEAR_AI_COPY.ko && !isBusy && <ProductJourneyLinks sampleId="new-year" />}
-          {accessType && <p className="nyai-access">이용 방식: {accessType}</p>}
+          {!tossJapanese&&<p className="nyai-countdown">{seasonCountdown || "\u00a0"}</p>}
+          {paymentSurface!=='toss' && copy === NEW_YEAR_AI_COPY.ko && !isBusy && <ProductJourneyLinks sampleId="new-year" />}
+          {paymentSurface==='toss' && <p>{tossCopy.ai}{tossLocale!=='ko'?' '+(tossJapanese?.resultLanguage||'상담 결과는 한국어로 제공됩니다.'):''}</p>}
+          {paymentSurface!=='toss' && accessType && <p className="nyai-access">이용 방식: {accessType}</p>}
         </div>
       </section>
 
       {/* 위 소개 판·아래 작업 영역과 같은 폭(최대 1180). 540으로 묶여 768에서 본문 744보다 좁았다(2026-10-30 QA). */}
-      {copy === NEW_YEAR_AI_COPY.ko && <div style={{ width: "100%", maxWidth: 1180, margin: "24px auto" }}><CraftedProductDisclosure featureKey={FEATURE_KEY} /></div>}
+      {paymentSurface!=='toss' && copy === NEW_YEAR_AI_COPY.ko && <div style={{ width: "100%", maxWidth: 1180, margin: "24px auto" }}><CraftedProductDisclosure featureKey={FEATURE_KEY} /></div>}
       <section className="nyai-workspace">
         {clientReady && (<form data-moonlit-form="" id="new-year-form" className="nyai-form nyai-panel" onSubmit={handleSubmit}>
+          <fieldset disabled={paymentSurface==='toss'&&(isBusy||tossRecovery!=='none')} style={{border:0,margin:0,padding:0,minWidth:0}}>
           <div className="nyai-form-title">
             <CalendarDays size={18} />
-            <h2>새해 상담에 필요한 정보를 알려주세요</h2>
-            <SavedBirthProfilePicker calendarMode="lunar" onSelect={loadFormFromProfileCard} />
+            <h2>{tossJapanese?.form||'새해 상담에 필요한 정보를 알려주세요'}</h2>
+            {paymentSurface!=='toss'&&<SavedBirthProfilePicker calendarMode="lunar" onSelect={loadFormFromProfileCard} />}
           </div>
+          {paymentSurface==='toss'&&ProfilePicker&&<div style={{marginBottom:16}}><ProfilePicker onSelect={loadFormFromProfileCard}/></div>}
           <div className="nyai-grid">
             <label>
-              이름 또는 닉네임
-              <input value={form.userName} onChange={updateField("userName")} placeholder="예: 하린" maxLength={80} />
+              {tossJapanese?.name||'이름 또는 닉네임'}
+              <input value={form.userName} onChange={updateField("userName")} placeholder={tossJapanese?'例：はる':'예: 하린'} maxLength={80} />
             </label>
             <label>
-              성별
+              {tossJapanese?.gender||'성별'}
               <select value={form.gender} onChange={updateField("gender")} required>
-                <option value="">선택</option>
-                <option value="female">여성</option>
-                <option value="male">남성</option>
-                <option value="unknown">비공개</option>
+                <option value="">{tossJapanese?.select||'선택'}</option>
+                <option value="female">{tossJapanese?.female||'여성'}</option>
+                <option value="male">{tossJapanese?.male||'남성'}</option>
+                <option value="unknown">{tossJapanese?.unknown||'비공개'}</option>
               </select>
             </label>
             <label>
-              생년월일
+              {tossJapanese?.birth||'생년월일'}
               <input {...birthDateTextInputProps(form.birthDate, (nextBirthDate) => { formTouchedRef.current = true; setForm((prev) => ({ ...prev, birthDate: nextBirthDate })); resetAttempt(); })} required />
             </label>
             <label>
-              출생시간
+              {tossJapanese?.time||'출생시간'}
               <BirthTimeInput  value={form.birthTime} onChange={updateField("birthTime")} />
             </label>
             <label>
-              양력/음력
+              {tossJapanese?.calendar||'양력/음력'}
               <select value={form.calendarType} onChange={updateField("calendarType")} required>
-                <option value="solar">양력</option>
-                <option value="lunar">음력</option>
+                <option value="solar">{tossJapanese?.solar||'양력'}</option>
+                <option value="lunar">{tossJapanese?.lunar||'음력'}</option>
               </select>
             </label>
             <div className="nyai-year-field" data-year-mode={showCustomYear ? "custom" : "preset"}>
-              <span>상담 연도</span>
+              <span>{tossJapanese?.year||'상담 연도'}</span>
               <div className="nyai-year-chips" role="radiogroup" aria-label={copy.yearChipsAria}>
                 {[currentYear, currentYear + 1].map((year) => {
                   const chipGanzi = yearGanzi(year);
@@ -2076,8 +2169,8 @@ export default function NewYearAiConsultationPage() {
                         selectTargetYear(year);
                       }}
                     >
-                      <strong>{year === currentYear ? "올해" : "내년"} {year}</strong>
-                      {chipGanzi ? <small>{chipGanzi.ko}년 · {chipGanzi.animal}띠</small> : null}
+                      <strong>{year === currentYear ? (tossJapanese?.thisYear||"올해") : (tossJapanese?.nextYear||"내년")} {year}</strong>
+                      {chipGanzi&&!tossJapanese ? <small>{chipGanzi.ko}년 · {chipGanzi.animal}띠</small> : null}
                     </button>
                   );
                 })}
@@ -2089,8 +2182,8 @@ export default function NewYearAiConsultationPage() {
                   disabled={isBusy}
                   onClick={() => setShowCustomYear(true)}
                 >
-                  <strong>다른 연도</strong>
-                  <small>직접 입력</small>
+                  <strong>{tossJapanese?.otherYear||'다른 연도'}</strong>
+                  <small>{tossJapanese?.enterYear||'직접 입력'}</small>
                 </button>
               </div>
               {showCustomYear && (
@@ -2105,14 +2198,14 @@ export default function NewYearAiConsultationPage() {
                 />
               )}
               <small className="nyai-year-status" aria-live="polite">
-                {showCustomYear ? "직접 입력한 연도의 흐름을 준비합니다." : `${form.targetYear || currentYear}년 상담 흐름을 선택했습니다.`}
+                {tossJapanese?(showCustomYear?tossJapanese.customYear:`${form.targetYear || currentYear}年の流れを選択しました。`):(showCustomYear ? "직접 입력한 연도의 흐름을 준비합니다." : `${form.targetYear || currentYear}년 상담 흐름을 선택했습니다.`)}
               </small>
             </div>
           </div>
           <div className="nyai-focus-panel">
             <div className="nyai-focus-head">
-              <strong>더 깊게 보고 싶은 흐름</strong>
-              <span>{selectedFocusOption.label}</span>
+              <strong>{tossJapanese?.focus||'더 깊게 보고 싶은 흐름'}</strong>
+              <span>{tossJapanese?.focusNames[form.focusArea]||selectedFocusOption.label}</span>
             </div>
             <div className="nyai-category-grid" role="radiogroup" aria-label={copy.categoryGridAria}>
               {FOCUS_AREA_OPTIONS.map((option) => (
@@ -2126,48 +2219,55 @@ export default function NewYearAiConsultationPage() {
                   disabled={isBusy}
                 >
                   <span>{option.glyph}</span>
-                  {option.label}
+                  {tossJapanese?.focusNames[option.value]||option.label}
                 </button>
               ))}
             </div>
           </div>
           <div className="nyai-question-card">
             <div className="nyai-question-head">
-              <strong>이 질문에 최우선으로 답해드립니다</strong>
-              <span>현재 상황과 고민 중인 선택을 적어 주세요. 답과 그 이유를 먼저 설명해 드려요.</span>
+              <strong>{tossJapanese?.questionTitle||'이 질문에 최우선으로 답해드립니다'}</strong>
+              <span>{tossJapanese?.questionHelp||'현재 상황과 고민 중인 선택을 적어 주세요. 답과 그 이유를 먼저 설명해 드려요.'}</span>
             </div>
             <label className="nyai-topic">
-              명리학자에게 맡길 질문
+              {tossJapanese?.question||'명리학자에게 맡길 질문'}
               <textarea
                 value={form.question}
                 onChange={updateField("question")}
-                placeholder={QUESTION_PLACEHOLDER_EXAMPLES[placeholderTick % QUESTION_PLACEHOLDER_EXAMPLES.length]}
+                placeholder={tossJapanese?.placeholder||QUESTION_PLACEHOLDER_EXAMPLES[placeholderTick % QUESTION_PLACEHOLDER_EXAMPLES.length]}
                 minLength={form.focusArea === "custom" ? 2 : undefined}
                 maxLength={1000}
                 required={form.focusArea === "custom"}
               />
             </label>
           </div>
+          </fieldset>
           {notice && <p className="nyai-notice">{notice}</p>}
-          {error && <p className="nyai-error">{error}</p>}
+          {error && <p role="alert" className="nyai-error">{error}</p>}
+          {paymentSurface==='toss'&&tossRecovery==='checking'&&<p role="status">{tossCopy.checking}</p>}
+          {paymentSurface==='toss'&&tossRecovery==='allowed'&&status!=='ready'&&<button type="button" style={{minHeight:44}} disabled={isBusy} onClick={()=>void retryTossNewYear()}>{tossCopy.resume}</button>}
+          {paymentSurface==='toss'&&error&&new URLSearchParams(typeof window!=='undefined'?window.location.search:'').get('sid')&&<button type="button" style={{minHeight:44}} disabled={isBusy} onClick={()=>setReloadEpoch(value=>value+1)}>{tossCopy.retryAuthority}</button>}
+          {paymentSurface==='toss'&&['LOGIN_REQUIRED','SESSION_EXPIRED'].includes(tossFailureCode)&&<a href={'/login/?next='+encodeURIComponent('/new-year-ai-consultation/'+(typeof window!=='undefined'?window.location.search:''))}>{tossCopy.loginLink}</a>}
+          {paymentSurface==='toss'&&error&&<a href="/records/">{tossJapanese?.records||'기록 보관함 확인하기'}</a>}
+          {paymentSurface==='toss'&&tossRecovery==='allowed'&&status==='ready'&&<button type="button" style={{minHeight:44}} disabled={isBusy} onClick={()=>{const url=new URL(window.location.href);url.searchParams.delete('sid');url.searchParams.delete('orderId');window.history.replaceState(null,'',url.toString());tossViewedId.current='';tossRevision.current++;tossBusy.current=false;idempotencyKeyRef.current=createIdempotencyKey();clearTossResult();setError('');setNotice('');setStatus('idle');setTossRecovery('none');}}>{tossJapanese?.newConsultation||'새 상담 시작하기'}</button>}
           <div className="flex items-center justify-end">
-            <PriceBadge featureKey="new-year-ai-consultation" prefix="상담 이용 가격 " />
+            {paymentSurface==='toss'?(TossPrice&&<TossPrice/>):<PriceBadge featureKey="new-year-ai-consultation" prefix="상담 이용 가격 " />}
           </div>
-          <button className="nyai-primary" type="submit" disabled={isBusy}>
+          <button className="nyai-primary" type="submit" disabled={isBusy||(paymentSurface==='toss'&&tossRecovery!=='none')}>
             {isBusy ? <Loader2 size={18} className="nyai-spin" /> : <WalletCards size={18} />}
-            <span>{isBusy ? statusText : "신년운세 전문가 상담 받기"}</span>
+            <span>{isBusy ? statusText : (tossJapanese?.start||"신년운세 전문가 상담 받기")}</span>
           </button>
         </form>)}
         {/* 다른 대표 상담 두 곳과 같은 규칙 — 폼이 아직 아래에 있을 때만, 제출 버튼과 같은 라벨로 뜬다. 폼(.nyai-panel)은 backdrop-filter 라 fixed 기준 상자가 되므로 폼 밖에 둔다. */}
-        {!isBusy && (clientReady && (<ExpertStickyCta theme="newYear" targetId="new-year-form" label="신년운세 전문가 상담 받기" price={<PriceBadge featureKey="new-year-ai-consultation" prefix="상담 이용 가격 " />} />))}
+        {!isBusy && (paymentSurface!=='toss'||tossRecovery==='none') && (clientReady && (<ExpertStickyCta theme="newYear" targetId="new-year-form" label={tossJapanese?.start||"신년운세 전문가 상담 받기"} price={paymentSurface==='toss'?null:<PriceBadge featureKey="new-year-ai-consultation" prefix="상담 이용 가격 " />} />))}
 
         <section className="nyai-chat nyai-panel" aria-live="polite">
           <div className="nyai-chat-head">
             <div className="nyai-chat-title">
               <Sparkles size={18} />
-              <h2>새해의 첫 번째 답장</h2>
+              <h2>{tossJapanese?.reply||'새해의 첫 번째 답장'}</h2>
             </div>
-            {assistantMessages.length > 0 && (
+            {paymentSurface!=='toss' && assistantMessages.length > 0 && (
               <div className="nyai-result-actions">
                 <button className="nyai-pdf-button" type="button" onClick={() => void handleShareCard()} disabled={isSharing} aria-label={copy.shareCardAria}>
                   {isSharing ? <Loader2 size={16} className="nyai-spin" /> : <Share2 size={16} />}
@@ -2185,8 +2285,8 @@ export default function NewYearAiConsultationPage() {
             {assistantMessages.length === 0 ? (
               status === "reading" ? null : (
               <div className="nyai-empty">
-                <p>아직 새해의 첫 문장이 열리지 않았습니다.</p>
-                <span>생년월일과 궁금한 흐름을 남기면, 원국과 세운이 맞물리는 지점부터 차분히 짚어드립니다.</span>
+                <p>{tossJapanese?.empty||'아직 새해의 첫 문장이 열리지 않았습니다.'}</p>
+                <span>{tossJapanese?.emptyHelp||'생년월일과 궁금한 흐름을 남기면, 원국과 세운이 맞물리는 지점부터 차분히 짚어드립니다.'}</span>
                 {recentSessions.length > 0 && (
                   <div className="nyai-recent-list" aria-label={copy.recentListAria}>
                     <strong>지난 상담 다시 보기</strong>
@@ -2257,9 +2357,9 @@ export default function NewYearAiConsultationPage() {
         </section>
       </section>
 
-      {status === "ready" && assistantMessages.length > 0 && <ReviewRewardBanner afterResult/>}
+      {paymentSurface!=='toss' && status === "ready" && assistantMessages.length > 0 && <ReviewRewardBanner afterResult/>}
       {/* 소개용 마스터 프로필 — 상담 진행·결과 화면에서는 내리고, 사전이 없는 다른 로케일에는 띄우지 않는다. */}
-      {copy === NEW_YEAR_AI_COPY.ko && !isBusy && messages.length === 0 && <MasterProfile id="new-year-master" palette="page" profile={masterProfiles.neoNewYear} />}
+      {paymentSurface!=='toss' && copy === NEW_YEAR_AI_COPY.ko && !isBusy && messages.length === 0 && <MasterProfile id="new-year-master" palette="page" profile={masterProfiles.neoNewYear} />}
       <style>{NYAI_SEASON_CSS}</style>
       <style>{NYAI_READING_ROOM_CSS}</style>
       <style>{`
