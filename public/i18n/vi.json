@@ -5558,18 +5558,18 @@
     "premiumShowcase": {
       "aria": "Giới thiệu các bản luận giải saju trả phí",
       "title": "Đọc lá số của bạn sâu hơn",
-      "subtitle": "Hãy bắt đầu với bản Light để nắm rõ bản tính của bạn, rồi theo dõi dòng chảy mười năm cùng Daewun. Phần hợp tuổi được tính phí theo mỗi lần xem.",
+      "subtitle": "Chỉ một lần mở vĩnh viễn luận giải saju đầy đủ là mở được mọi phần sau lá số gốc. Phần hợp tuổi được tính phí theo mỗi lần xem.",
       "expand": "Mở thẻ luận giải",
       "permanent": "Mở khóa vĩnh viễn",
       "perUse": "Thanh toán theo lần",
       "compatCta": "Xem khả năng tương thích →",
       "daewun": {
         "title": "Phân tích Daewun",
-        "cta": "Mở phân tích Daewun →"
+        "cta": "Mở vĩnh viễn luận giải saju đầy đủ →"
       },
       "summary": {
-        "title": "Luận giải saju bản Light",
-        "cta": "Mở bản Light →"
+        "title": "Luận giải saju đầy đủ",
+        "cta": "Mở vĩnh viễn luận giải saju đầy đủ →"
       },
       "compat": {
         "title": "Phân tích khả năng tương thích",

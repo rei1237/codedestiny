@@ -83,6 +83,7 @@ const SHELL_FUNCTIONS = [
   "function _cdBirthScopeCurrentProfileId() {",
   "function _cdEnsureBirthUnlockScope() {",
   "function resolveTileLockAliasKeys(rawKey) {",
+  "function resolveTileLockReadKeys(rawKey) {",
   "function markUnlockKey(unlockMap, rawKey) {",
   "function isSajuAccessFeatureKey(rawKey) {",
   "function isSajuSectionUnlockedForRender(rawKey) {",
@@ -107,6 +108,7 @@ const SHELL_HARNESS = `
   // 출생 기반 해금의 카드 범위. '' 는 저장 안 된 출생 정보(직접 입력)를 보고 있는 상태다.
   function _cdResolveCurrentProfileIdForAccess() { return window.__testBirthScopeProfileId; }
   ${grabObjectVar("TILE_LOCK_ALIAS_MAP")}
+  ${grabObjectVar("TILE_LOCK_BUNDLE_READ_KEYS")}
   ${grabObjectVar("SAJU_ACCESS_CONTENT_KEY_BY_FEATURE_KEY")}
   function hasAuthToken() { return true; }
   function getTileLocksStorageKeys() { return ['${PROFILE_STORAGE_KEY}', '${ACCOUNT_STORAGE_KEY}']; }

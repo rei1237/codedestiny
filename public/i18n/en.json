@@ -5558,18 +5558,18 @@
     "premiumShowcase": {
       "aria": "Paid saju readings",
       "title": "Read your chart in more depth",
-      "subtitle": "Start with the Light reading to map your nature, then follow your ten-year cycles with Daewun. Compatibility is paid per reading.",
+      "subtitle": "One lifetime unlock of the full saju reading opens everything beyond your natal chart. Compatibility is paid per reading.",
       "expand": "Open the readings",
       "permanent": "Permanent unlock",
       "perUse": "Per-use payment",
       "compatCta": "See compatibility →",
       "daewun": {
         "title": "Daewun analysis",
-        "cta": "Open Daewun analysis →"
+        "cta": "Own the full saju reading for life →"
       },
       "summary": {
-        "title": "Light saju reading",
-        "cta": "Open the Light reading →"
+        "title": "Full saju reading",
+        "cta": "Own the full saju reading for life →"
       },
       "compat": {
         "title": "Compatibility analysis",

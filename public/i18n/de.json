@@ -5558,18 +5558,18 @@
     "premiumShowcase": {
       "aria": "Kostenpflichtige Saju-Lesungen",
       "title": "Ihr Horoskop tiefer lesen",
-      "subtitle": "Beginnen Sie mit der Light-Lesung, um Ihre Anlagen zu ordnen, und verfolgen Sie dann mit Daewun Ihre Zehn-Jahres-Zyklen. Kompatibilität wird pro Abfrage bezahlt.",
+      "subtitle": "Eine dauerhafte Freischaltung der vollständigen Saju-Lesung öffnet alles über Ihr Geburtsdiagramm hinaus. Kompatibilität wird pro Abfrage bezahlt.",
       "expand": "Deutungen öffnen",
       "permanent": "Dauerhafte Entsperrung",
       "perUse": "Zahlung pro Nutzung",
       "compatCta": "Kompatibilität ansehen →",
       "daewun": {
         "title": "Daewun-Analyse",
-        "cta": "Daewun-Analyse öffnen →"
+        "cta": "Vollständige Saju-Lesung dauerhaft freischalten →"
       },
       "summary": {
-        "title": "Saju-Lesung Light",
-        "cta": "Light-Lesung öffnen →"
+        "title": "Vollständige Saju-Lesung",
+        "cta": "Vollständige Saju-Lesung dauerhaft freischalten →"
       },
       "compat": {
         "title": "Kompatibilitätsanalyse",

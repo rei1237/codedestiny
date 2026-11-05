@@ -2853,6 +2853,16 @@
       + '</section>';
   }
 
+  // 다시 그릴 때마다 리스너가 쌓이지 않게 하나만 걸고, 가장 최근 셸만 연다.
+  var _tetogenPendingReveal = null;
+  var _tetogenUnlockListenerBound = false;
+  function onTetogenUnlocksChanged() {
+    var pending = _tetogenPendingReveal;
+    if (!pending || !pending.shell.isConnected || !isTetogenDeepReportUnlocked()) return;
+    _tetogenPendingReveal = null;
+    pending.reveal(null);
+  }
+
   function bindTetogenDeepReportGate(root, vibe, p, power, hapData) {
     if (!root) return;
     var shell = root.querySelector('[data-tetogen-deep-shell]');
@@ -2862,7 +2872,10 @@
     var status = shell.querySelector('[data-tetogen-status]');
 
     function reveal(payload) {
-      markTetogenDeepReportUnlocked(payload || null);
+      // 묶음으로 연 열람은 개별 권리가 아니다. 기록하면 기기 전체 플래그가 남아 다른 출생·계정과 환불 뒤에도 열린다.
+      var openedByBundle = false;
+      try { openedByBundle = !!(w.CdSajuBundleOffer && w.CdSajuBundleOffer.isOpen()); } catch (_) {}
+      if (payload || !openedByBundle) markTetogenDeepReportUnlocked(payload || null);
       shell.classList.add('is-unlocked');
       var existing = shell.querySelector('[data-tetogen-premium-report]');
       if (!existing) {
@@ -2883,6 +2896,7 @@
     // 결제 후 복귀는 이 클로저를 잃으므로, 바인딩할 때마다 최신 것을 전역에 걸어 둔다.
     // 🔴 아래 early return 앞에 둔다 — 뒤에 두면 이미 해금된 렌더에서 코어가 안 걸린다.
     w._cdRevealTetogenDeepReportCore = reveal;
+    _tetogenPendingReveal = null;
 
     if (isTetogenDeepReportUnlocked()) {
       reveal(null);
@@ -2891,11 +2905,11 @@
 
     if (!button) return;
     // 묶음을 산 직후(해금 이벤트)에는 새로고침 없이 상세 풀이를 펼친다.
-    if (!shell.__cdBundleUnlockBound) {
-      shell.__cdBundleUnlockBound = true;
-      w.addEventListener('cd:unlocks-changed', function () {
-        if (shell.isConnected && isTetogenDeepReportUnlocked()) reveal(null);
-      });
+    _tetogenPendingReveal = { shell: shell, reveal: reveal };
+    if (!_tetogenUnlockListenerBound) {
+      _tetogenUnlockListenerBound = true;
+      w.addEventListener('cd:unlocks-changed', onTetogenUnlocksChanged);
+      w.addEventListener('cd:tile-locks-updated', onTetogenUnlocksChanged);
     }
     button.addEventListener('click', function () {
       // 판매 종료: 결제창 대신 사주 묶음 안내를 연다.

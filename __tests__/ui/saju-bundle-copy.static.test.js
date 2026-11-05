@@ -160,6 +160,18 @@ test('결과 화면 묶음 버튼 이름이 묶음 상품과 맞다', () => {
   assert.doesNotMatch(index, /라이트 풀이로 타고난 결을 먼저/);
 });
 
+test('결과 화면 묶음 버튼은 모든 언어에서 옛 상품 이름을 말하지 않는다', () => {
+  const locales = ['ko', 'en', 'de', 'es', 'fr', 'hi', 'ja', 'ms', 'nl', 'vi', 'zh-cn', 'zh-tw'];
+  const stale = /Light|Daewun analysis|라이트|ライト|轻量|輕量|लाइट/i;
+  for (const lang of locales) {
+    const showcase = JSON.parse(read(`public/i18n/${lang}.json`)).result.premiumShowcase;
+    assert.equal(showcase.daewun.cta, showcase.summary.cta, `${lang}: 두 버튼은 같은 묶음을 판다`);
+    for (const value of [showcase.summary.title, showcase.summary.cta, showcase.subtitle]) {
+      assert.doesNotMatch(value, stale, `${lang}: 옛 상품 문구 "${value}"`);
+    }
+  }
+});
+
 test('고객 문구에 금지어가 없다', () => {
   const surfaces = [...NAME_SURFACES, 'js/core/saju/crafted-product-details.mjs'];
   for (const rel of surfaces) {

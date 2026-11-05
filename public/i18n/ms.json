@@ -5558,18 +5558,18 @@
     "premiumShowcase": {
       "aria": "Bacaan saju berbayar",
       "title": "Baca carta anda dengan lebih mendalam",
-      "subtitle": "Mulakan dengan bacaan Light untuk memahami sifat semula jadi anda, kemudian ikuti kitaran sepuluh tahun dengan Daewun. Keserasian dibayar setiap kali dilihat.",
+      "subtitle": "Satu pembukaan kekal bacaan saju penuh membuka semua bacaan selepas carta kelahiran anda. Keserasian dibayar setiap kali dilihat.",
       "expand": "Buka kad tafsiran",
       "permanent": "Buka kunci kekal",
       "perUse": "Bayaran setiap guna",
       "compatCta": "Lihat keserasian →",
       "daewun": {
         "title": "Analisis Daewun",
-        "cta": "Buka analisis Daewun →"
+        "cta": "Buka bacaan saju penuh selama-lamanya →"
       },
       "summary": {
-        "title": "Bacaan saju Light",
-        "cta": "Buka bacaan Light →"
+        "title": "Bacaan saju penuh",
+        "cta": "Buka bacaan saju penuh selama-lamanya →"
       },
       "compat": {
         "title": "Analisis keserasian",

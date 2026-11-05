@@ -22087,6 +22087,7 @@ function _cdRenderBundleSurfaces(){
   if(offerHost&&window.CdSajuBundleOffer){
     try{ if(open)window.CdSajuBundleOffer.removeInline(offerHost); else window.CdSajuBundleOffer.renderInline(offerHost); }catch(_){}
   }
+  try{ if(typeof window.cdRenderLottoSavedReports==='function')window.cdRenderLottoSavedReports(); }catch(_){}
   if(!args||!args.p)return;
   var p=args.p,natal=args.natal,bazi=args.bazi,johu=args.johu;
   var shared=_cdSajuSharedTileOpen();

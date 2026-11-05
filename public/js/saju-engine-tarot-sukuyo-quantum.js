@@ -5084,6 +5084,66 @@ window.shareLottoRitualText=function(){
   }
 };
 
+/* 예전 회당 구매자가 이 기기에 저장해 둔 리포트. 회당 권리는 영구 행이 없어 로또 카드가 닫혀 있으니,
+   카드 슬롯(잠긴 타일 안)이 아니라 결과 화면의 묶음 안내 자리에 따로 보여 준다. 계산·결제 호출은 없다. */
+function lottoViewableSavedReports(){
+  try{
+    if(typeof _cdResolveCurrentProfileIdForAccess==='function'&&!_cdResolveCurrentProfileIdForAccess()){
+      /* 저장 프로필이 있는데 지금 다른 출생(직접 입력)을 보고 있으면 그 프로필의 리포트를 보이지 않는다. */
+      var current=window.DestinyProfileManager&&window.DestinyProfileManager.storage&&typeof window.DestinyProfileManager.storage.current==='function'?window.DestinyProfileManager.storage.current():null;
+      if(current&&(current.profileId||current.id))return [];
+    }
+  }catch(_e){return [];}
+  return lottoLoadSavedReports().filter(function(item){
+    var r=item&&item.unlockState===true?item.report:null;
+    return !!(r&&r.moneyCondition&&r.ritualCard&&Array.isArray(r.numberInsights)&&Array.isArray(r.reflectionQuestions));
+  }).reverse();
+}
+
+window.cdRenderLottoSavedReports=function(){
+  var host=document.getElementById('sajuBundleOffer');
+  if(!host)return false;
+  var box=host.querySelector('[data-cd-lotto-saved]');
+  var lottoOpen=false;
+  try{lottoOpen=!!(window.CdSajuBundleOffer&&window.CdSajuBundleOffer.isLottoOpen());}catch(_e){}
+  var items=lottoOpen?[]:lottoViewableSavedReports();
+  if(!items.length){
+    if(box&&box.parentNode)box.parentNode.removeChild(box);
+    return false;
+  }
+  var key=lottoSavedReportsKey();
+  /* 해금 이벤트가 또 와도 읽고 있는 리포트를 접지 않는다. */
+  if(box&&box.getAttribute('data-cd-lotto-saved')===key)return true;
+  if(box&&box.parentNode)box.parentNode.removeChild(box);
+  box=document.createElement('section');
+  box.className='cd-lotto-saved';
+  box.setAttribute('data-cd-lotto-saved',key);
+  function text(key,fallback){
+    try{
+      if(typeof window.cdTranslate==='function'){
+        var value=window.cdTranslate(key,{},fallback);
+        if(value&&value!==key)return String(value);
+      }
+    }catch(_tErr){}
+    return fallback;
+  }
+  box.innerHTML='<h3 class="cd-bundle-inline__title">'+lottoEsc(text('saju.bundle.lottoSavedTitle','저장해 두신 달빛 럭키 리추얼 리포트'))+'</h3>'+
+    '<p class="cd-bundle-inline__desc">'+lottoEsc(text('saju.bundle.lottoSavedDesc','이미 구매해 이 기기에 저장해 두신 리포트는 언제든 다시 보실 수 있습니다.'))+'</p>'+
+    items.map(function(item,index){
+      return '<button type="button" class="cd-bundle-offer__more" data-cd-lotto-saved-open="'+index+'">'+lottoEsc(item.weekKey||'')+' '+lottoEsc(text('saju.bundle.lottoSavedOpen','리포트 열기'))+'</button>';
+    }).join('')+
+    '<div id="lottoRitualReportArea" class="lc-ritual-report-area" hidden></div>';
+  Array.prototype.forEach.call(box.querySelectorAll('[data-cd-lotto-saved-open]'),function(button){
+    button.addEventListener('click',function(){
+      var item=items[Number(button.getAttribute('data-cd-lotto-saved-open'))];
+      if(!item)return;
+      renderLottoRitualReport({report:item.report,games:item.freeGames||[],weekKey:item.weekKey,generatedAt:item.generatedAt});
+    });
+  });
+  host.insertBefore(box,host.firstChild);
+  return true;
+};
+
 function renderLottoNumbers(natal, bazi){
   /* 사주 묶음(saju_lifetime_bundle) 안의 카드다. 닫힘이면 만들지 않는다. */
   try{if(!(window.CdSajuBundleOffer&&window.CdSajuBundleOffer.isLottoOpen())){try{window.CdSajuBundleOffer&&window.CdSajuBundleOffer.clearCards('lotto');}catch(_clearErr){}return;}}catch(_bundleGuardErr){return;}

@@ -69,6 +69,8 @@ const SHELL_FUNCTIONS = [
   "function _cdBirthScopeCurrentProfileId() {",
   "function _cdEnsureBirthUnlockScope() {",
   "function resolveTileLockAliasKeys(rawKey) {",
+  "function resolveTileLockReadKeys(rawKey) {",
+  "function _cdServerAccessFeatureMatches(expectedFeature, actualFeature) {",
   "function markUnlockKey(unlockMap, rawKey) {",
   "function isSajuAccessFeatureKey(rawKey) {",
   "function isSajuSectionUnlockedForRender(rawKey) {",
@@ -81,7 +83,9 @@ const SHELL_HARNESS = `
   var _cdBirthUnlockScopeProfileId = '';
   ${grabObjectVar("_CD_BIRTH_SCOPED_TILE_ALIAS_KEYS")}
   ${grabObjectVar("TILE_LOCK_ALIAS_MAP")}
+  ${grabObjectVar("TILE_LOCK_BUNDLE_READ_KEYS")}
   ${grabObjectVar("SAJU_ACCESS_CONTENT_KEY_BY_FEATURE_KEY")}
+  function _cdNormalizeServerAccessFeatureKey(raw) { return String(raw || '').trim(); }
   function hasAuthToken() { return true; }
   function isAdminUser() { return false; }
   function _cdMergeVerifiedUnlockGrants(map) { return map || Object.create(null); }
@@ -94,6 +98,7 @@ const SHELL_HARNESS = `
     resolve: _cdResolveCurrentProfileIdForAccess,
     isTileKeyUnlocked: isTileKeyUnlocked,
     markUnlockKey: markUnlockKey,
+    serverMatches: _cdServerAccessFeatureMatches,
     map: function () { return unlockedFeatureMap; },
   };
 `;
@@ -262,4 +267,191 @@ test("C1: 다른 프로필의 묶음은 시간 미상 프로필에 붙지 않는
   const { sandbox, shell } = boot({ stored: storedProfile(UNKNOWN_STORED), active: activeProfile(UNKNOWN_ACTIVE) });
   applyServerUnlocks(sandbox, "profile-2", [BUNDLE]);
   assert.equal(shell.isTileKeyUnlocked(BUNDLE), false);
+});
+
+const CLOSED_KEYS = ["tetogen_deep_report", "rpt_lottoCard", "fun.quantumLotto.ritualReport"];
+
+test("I1: 개별 키를 실제 markUnlockKey 로 표시해도 묶음이 되지 않는다", () => {
+  for (const key of CLOSED_KEYS) {
+    // authoritative 스냅샷 전: 서버 답을 받기 전이라 메모리 표시만으로 판정하는 구간이다.
+    const { shell, offer } = boot({ stored: storedProfile({ hour: 9, minute: 0 }), active: activeProfile({ hour: 9, minute: 0 }) });
+    shell.markUnlockKey(shell.map(), key);
+    assert.equal(shell.map()[key], true, key);
+    assert.notEqual(shell.map()[BUNDLE], true, key + " 표시가 묶음까지 켰습니다");
+    assert.equal(shell.isTileKeyUnlocked(key), true, key + " 는 자기 권리로 열려야 합니다");
+    assert.equal(shell.isTileKeyUnlocked(BUNDLE), false, key + " 로 묶음이 열렸습니다");
+    assert.equal(offer.isOpen(), false, key + " 구매자에게 묶음 안내가 사라집니다");
+  }
+});
+
+test("I1: 묶음 보유자에게는 세 키가 읽기로 열리지만 기록은 묶음 키뿐이다", () => {
+  const { sandbox, shell } = boot({ stored: storedProfile({ hour: 9, minute: 0 }), active: activeProfile({ hour: 9, minute: 0 }) });
+  applyServerUnlocks(sandbox, "profile-1", [BUNDLE]);
+  for (const key of CLOSED_KEYS) {
+    assert.equal(shell.isTileKeyUnlocked(key), true, key);
+    assert.notEqual(shell.map()[key], true, key + " 가 맵에 기록됐습니다");
+  }
+});
+
+test("I1: 묶음 영수증은 판매 종료 키의 증거이지만 그 반대는 아니다", () => {
+  const { shell } = boot({ stored: storedProfile({ hour: 9, minute: 0 }), active: activeProfile({ hour: 9, minute: 0 }) });
+  for (const key of CLOSED_KEYS) {
+    assert.equal(shell.serverMatches(key, BUNDLE), true, key);
+    assert.equal(shell.serverMatches(BUNDLE, key), false, key);
+  }
+});
+
+// ── I2: 테토·에겐 상세 게이트. 렌더 함수 원문을 jsdom 에서 돌린다. ──
+const { JSDOM } = require("jsdom");
+
+function tetogenGate({ unlockedKeys = [] } = {}) {
+  const source = read("js/entertain-engine.js");
+  const dom = new JSDOM('<!doctype html><body><div id="root"><div data-tetogen-deep-shell><button data-tetogen-unlock="1"></button><small data-tetogen-status></small></div></div></body>', { runScripts: "outside-only", url: "https://code-destiny.com/" });
+  const w = dom.window;
+  const unlocked = new Set(unlockedKeys);
+  const finalized = [];
+  const opened = [];
+  w.isTileKeyUnlocked = (key) => unlocked.has(key);
+  w._cdFinalizeUnlockState = (key) => finalized.push(key);
+  w.CdSajuBundleOffer = { isOpen: () => unlocked.has(BUNDLE), open: (o) => opened.push(o.source) };
+  const slices = [
+    "function isTetogenDeepReportUnlocked() {",
+    "function markTetogenDeepReportUnlocked(payload) {",
+    "function onTetogenUnlocksChanged() {",
+    "function bindTetogenDeepReportGate(root, vibe, p, power, hapData) {",
+  ].map((header) => grabFunction(source, header)).join("\n");
+  w.eval(`
+    var w = window;
+    var TETOGEN_DEEP_REPORT_FEATURE_KEY = 'tetogen_deep_report';
+    var _tetogenPendingReveal = null;
+    var _tetogenUnlockListenerBound = false;
+    function buildTetogenDeepReportBody() { return '<div data-tetogen-premium-report></div>'; }
+    function _scheduleReveal() {}
+    function _entertainText(key) { return key; }
+    ${slices.replace("import('./core/oracle/crafted-details.mjs')", "Promise.resolve({ mountOracleCraftedDetails: function () {} })")}
+    window.__bind = function () { bindTetogenDeepReportGate(document.getElementById('root'), {}, {}, {}, {}); };
+  `);
+  return {
+    w,
+    unlocked,
+    finalized,
+    opened,
+    flag: () => w.localStorage.getItem("cd_tetogen_deep_report_unlocked"),
+    isOpenInShell: () => w.document.querySelector("[data-tetogen-deep-shell]").classList.contains("is-unlocked"),
+    bind: () => w.__bind(),
+    emit: (type) => w.dispatchEvent(new w.Event(type)),
+  };
+}
+
+test("I2: 묶음으로 연 열람은 기기 플래그와 계정 키 기록을 남기지 않는다", () => {
+  const gate = tetogenGate({ unlockedKeys: [BUNDLE] });
+  gate.bind();
+  assert.equal(gate.isOpenInShell(), true);
+  assert.equal(gate.flag(), null);
+  assert.deepEqual(gate.finalized, []);
+});
+
+test("I2: 자기 키로 연 사람은 전과 같이 기록된다", () => {
+  const gate = tetogenGate({ unlockedKeys: ["tetogen_deep_report"] });
+  gate.bind();
+  assert.equal(gate.isOpenInShell(), true);
+  assert.equal(gate.flag(), "1");
+  assert.deepEqual(gate.finalized, ["tetogen_deep_report"]);
+});
+
+test("I2: 해금 이벤트 두 종류 모두 새로고침 없이 열고 다시 그려도 리스너가 쌓이지 않는다", () => {
+  for (const type of ["cd:unlocks-changed", "cd:tile-locks-updated"]) {
+    const gate = tetogenGate();
+    const added = [];
+    const original = gate.w.addEventListener.bind(gate.w);
+    gate.w.addEventListener = (name, listener) => { added.push(name); original(name, listener); };
+    gate.bind();
+    gate.bind();
+    gate.bind();
+    assert.deepEqual(added.filter((name) => name.startsWith("cd:")).sort(), ["cd:tile-locks-updated", "cd:unlocks-changed"], "셸을 그릴 때마다 리스너가 늘어납니다");
+    assert.equal(gate.isOpenInShell(), false);
+    gate.unlocked.add(BUNDLE);
+    gate.emit(type);
+    assert.equal(gate.isOpenInShell(), true, type);
+    assert.equal(gate.flag(), null, "묶음으로 열렸으니 기록하지 않습니다");
+  }
+});
+
+// ── I3: 예전 회당 로또 구매자의 저장 리포트. 원문 함수를 jsdom 에서 돌린다. ──
+function lottoSurface({ lottoOpen = false, resolved = "profile-1", currentProfileId = "profile-1", reports = [] } = {}) {
+  const source = read("js/saju-engine-tarot-sukuyo-quantum.js");
+  const dom = new JSDOM('<!doctype html><body><div id="sajuBundleOffer"><section data-cd-bundle-inline="1"></section></div></body>', { runScripts: "outside-only", url: "https://code-destiny.com/" });
+  const w = dom.window;
+  const slices = [
+    "function lottoUserId(){",
+    "function lottoProfileId(){",
+    "function lottoSavedReportsKey(){",
+    "function lottoLoadSavedReports(){",
+    "function lottoFindSavedReport(weekKey){",
+    "function lottoViewableSavedReports(){",
+    "function renderLottoRitualReport(state){",
+  ].map((header) => grabFunction(source, header)).join("\n");
+  const start = source.indexOf("window.cdRenderLottoSavedReports=function(){");
+  assert.ok(start >= 0, "저장 리포트 렌더러를 못 찾았습니다");
+  const savedRenderer = source.slice(start, closingBrace(source, start) + 2);
+  w.__state = { lottoOpen };
+  w.CdSajuBundleOffer = { isLottoOpen: () => w.__state.lottoOpen };
+  w.DestinyProfileManager = { storage: { current: () => (currentProfileId ? { id: currentProfileId } : null) } };
+  w.__resolved = resolved;
+  w.eval(`
+    function lottoEsc(v) { return String(v == null ? '' : v); }
+    function lottoReadAuthUser() { return { id: 'user-1' }; }
+    function lottoWeekKey() { return '2026-W45'; }
+    function lottoElementText(v) { return String(v || ''); }
+    function buildLottoRitualReport() { throw new Error('저장 리포트를 다시 계산하면 안 됩니다'); }
+    function _sajuQuantumText(key) { return key; }
+    function _cdResolveCurrentProfileIdForAccess() { return window.__resolved; }
+    ${slices}
+    ${savedRenderer}
+    window.__lottoKey = lottoSavedReportsKey;
+  `);
+  w.localStorage.setItem(w.__lottoKey(), JSON.stringify(reports));
+  return { w, render: () => w.cdRenderLottoSavedReports(), box: () => w.document.querySelector("[data-cd-lotto-saved]") };
+}
+
+const SAVED_REPORT = {
+  id: "lotto-ritual-1",
+  weekKey: "2026-W40",
+  unlockState: true,
+  freeGames: [],
+  report: {
+    title: "저장해 둔 달빛 리포트",
+    moneyCondition: { title: "t", body: "b", points: ["p"] },
+    ritualCard: { luckyColor: "c", cleanup: "c", avoid: "a", limit: "l", action: "a" },
+    numberInsights: [{ number: 7, element: "수", meaning: "m", action: "a" }],
+    reflectionQuestions: ["q"],
+    shareCard: { title: "s", luckyElement: "수", luckyNumbers: [7] },
+  },
+};
+
+test("I3: 잠겨 있어도 그 사용자·프로필의 저장 리포트를 다시 열 수 있다", () => {
+  const surface = lottoSurface({ reports: [SAVED_REPORT] });
+  assert.equal(surface.render(), true);
+  surface.box().querySelector("[data-cd-lotto-saved-open]").click();
+  const area = surface.w.document.getElementById("lottoRitualReportArea");
+  assert.equal(area.hidden, false);
+  assert.match(area.innerHTML, /저장해 둔 달빛 리포트/);
+  // 해금 이벤트로 다시 그려도 읽던 리포트가 접히지 않는다.
+  surface.render();
+  assert.match(surface.w.document.getElementById("lottoRitualReportArea").innerHTML, /저장해 둔 달빛 리포트/);
+});
+
+test("I3: 저장 리포트가 없거나, 직접 입력 중이거나, 로또가 열려 있으면 나오지 않는다", () => {
+  assert.equal(lottoSurface({ reports: [] }).render(), false);
+  assert.equal(lottoSurface({ reports: [{ ...SAVED_REPORT, unlockState: false }] }).render(), false, "구매 표시 없는 기록");
+  assert.equal(lottoSurface({ reports: [SAVED_REPORT], resolved: "" }).render(), false, "직접 입력");
+  const opened = lottoSurface({ reports: [SAVED_REPORT], lottoOpen: true });
+  assert.equal(opened.render(), false, "열린 로또는 카드 본체가 보여 줍니다");
+  assert.equal(opened.box(), null);
+});
+
+test("I3: 다른 프로필의 저장 리포트는 보이지 않는다", () => {
+  const surface = lottoSurface({ reports: [SAVED_REPORT] });
+  surface.w.__resolved = "profile-2";
+  assert.equal(surface.render(), false);
 });

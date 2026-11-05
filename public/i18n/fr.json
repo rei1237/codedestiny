@@ -5558,18 +5558,18 @@
     "premiumShowcase": {
       "aria": "Lectures saju payantes",
       "title": "Lire votre thème plus en profondeur",
-      "subtitle": "Commencez par la lecture Light pour cerner votre nature, puis suivez vos cycles de dix ans avec Daewun. La compatibilité se paie à chaque lecture.",
+      "subtitle": "Un seul déblocage à vie de la lecture saju complète ouvre tout ce qui va au-delà de votre thème de naissance. La compatibilité se paie à chaque lecture.",
       "expand": "Ouvrir les lectures",
       "permanent": "Déverrouillage permanent",
       "perUse": "Paiement à l’usage",
       "compatCta": "Voir la compatibilité →",
       "daewun": {
         "title": "Analyse Daewun",
-        "cta": "Ouvrir l'analyse Daewun →"
+        "cta": "Débloquer à vie la lecture saju complète →"
       },
       "summary": {
-        "title": "Lecture saju Light",
-        "cta": "Ouvrir la lecture Light →"
+        "title": "Lecture saju complète",
+        "cta": "Débloquer à vie la lecture saju complète →"
       },
       "compat": {
         "title": "Analyse de compatibilité",

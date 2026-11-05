@@ -5558,18 +5558,18 @@
     "premiumShowcase": {
       "aria": "Betaalde saju-lezingen",
       "title": "Je kaart dieper lezen",
-      "subtitle": "Begin met de Light-lezing om je aanleg in kaart te brengen en volg daarna je tienjaarscycli met Daewun. Compatibiliteit betaal je per lezing.",
+      "subtitle": "Eén permanente ontgrendeling van de volledige saju-lezing opent alles voorbij je geboortekaart. Compatibiliteit betaal je per lezing.",
       "expand": "De duidingen openen",
       "permanent": "Permanente ontgrendeling",
       "perUse": "Betaling per gebruik",
       "compatCta": "Compatibiliteit bekijken →",
       "daewun": {
         "title": "Daewun-analyse",
-        "cta": "Daewun-analyse openen →"
+        "cta": "Volledige saju-lezing permanent openen →"
       },
       "summary": {
-        "title": "Saju-lezing Light",
-        "cta": "Light-lezing openen →"
+        "title": "Volledige saju-lezing",
+        "cta": "Volledige saju-lezing permanent openen →"
       },
       "compat": {
         "title": "Compatibiliteitsanalyse",

@@ -1536,11 +1536,7 @@ function __cdResolveTileLockAliasKeys(lockKey) {
     'health-report': ['healthReport', 'rpt_healthReportCard', 'allPaidSaju', 'all-paid-saju'],
     rpt_healthReportCard: ['healthReport', 'health-report', 'allPaidSaju', 'all-paid-saju'],
     secretHouseEpisodes: ['rpt_secretHouseEntryCard'],
-    rpt_secretHouseEntryCard: ['secretHouseEpisodes'],
-    // 개별 권리 또는 사주 묶음으로 열리는 키(index.html TILE_LOCK_ALIAS_MAP 과 같다).
-    tetogen_deep_report: ['saju_lifetime_bundle'],
-    'fun.quantumLotto.ritualReport': ['saju_lifetime_bundle'],
-    rpt_lottoCard: ['saju_lifetime_bundle']
+    rpt_secretHouseEntryCard: ['secretHouseEpisodes']
   }[base] || [];
   for (var i = 0; i < aliases.length; i += 1) map[aliases[i]] = true;
   return Object.keys(map);
@@ -1551,6 +1547,11 @@ function __cdMapHasTileLockUnlocked(mapObj, lockKey) {
   var aliases = __cdResolveTileLockAliasKeys(lockKey);
   for (var i = 0; i < aliases.length; i += 1) {
     if (mapObj[aliases[i]] === true) return true;
+  }
+  // 읽기 전용: 묶음이 이 키들을 열 뿐, 이 키들이 묶음을 열지는 않는다(index.html TILE_LOCK_BUNDLE_READ_KEYS 와 같다).
+  var key = String(lockKey || '').trim();
+  if (key === 'tetogen_deep_report' || key === 'fun.quantumLotto.ritualReport' || key === 'rpt_lottoCard') {
+    return mapObj.saju_lifetime_bundle === true;
   }
   return false;
 }
@@ -2289,16 +2290,16 @@ function __cdEnsureSajuCoreLoaded() {
     '/js/core/saju/natal-core.generated.js?v=build-38051d7297a0',
     '/js/core/kasi-calendar-service.js?v=build-99c5568a4710',
     '/js/compat-llm-prompts.js?v=build-f4b380e036d0',
-    '/js/saju-engine.js?v=build-d34c4abbf8a8',
+    '/js/saju-engine.js?v=build-46439f62370b',
       '/js/core/saju/extremeTResult.js?v=build-5f0576c62518',
       /* 숙요 정본(Swiss 항성 달 황경). quantum.js 의 calcSukuyoData 가 이것 없이는 수(宿)를 내지 않는다. */
       '/js/core/sukuyo-astronomy.js?v=build-5198c8e4c8b2',
-      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-58d6b2f6dfcf',
+      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-0d737f8d953b',
     '/js/core/saju/basicFortunePresentation.js?v=build-6891fb41d4aa',
     '/js/core/saju/modalProfileState.js?v=build-70bc2c91ff63',
     '/js/core/saju/reportDashboard.js?v=build-35d12652631c',
     '/js/saju-engine-continuation.js?v=build-f4d87e14c1c7',
-    '/js/entertain-engine.js?v=build-6f912a91e8e5',
+    '/js/entertain-engine.js?v=build-335c0488136a',
     /* 체인은 순차 reduce라 앞에 끼우면 이 파일의 실패가 뒤쪽 전체를 죽인다 — 신규 카드 스크립트는 맨 뒤에 둔다. */
     '/js/core/saju/dopamineResult.js?v=build-2e244f8ece95'
   ];
@@ -9048,9 +9049,9 @@ function __cdEnsureSukuyoZiweiCoreLoaded() {
     /* 원국 판정 정본(전역 SajuNatalCore). saju-engine 의 detectJong 이 이것 없이는 던진다. */
     '/js/core/saju/natal-core.generated.js?v=build-38051d7297a0',
     '/js/compat-llm-prompts.js?v=build-f4b380e036d0',
-      '/js/saju-engine.js?v=build-d34c4abbf8a8',
+      '/js/saju-engine.js?v=build-46439f62370b',
       '/js/core/sukuyo-astronomy.js?v=build-5198c8e4c8b2',
-      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-58d6b2f6dfcf'
+      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-0d737f8d953b'
   ];
 
   /* 🔴 예전에는 이 체인 앞에 lunar-javascript CDN 대기가 있었고, 그것이 reject 되면 생년월일

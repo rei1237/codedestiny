@@ -5558,18 +5558,18 @@
     "premiumShowcase": {
       "aria": "Lecturas saju de pago",
       "title": "Lee tu carta con más profundidad",
-      "subtitle": "Empieza con la lectura Light para ordenar tu naturaleza y sigue con Daewun para ver tus ciclos de diez años. La compatibilidad se paga en cada consulta.",
+      "subtitle": "Un único desbloqueo permanente de la lectura saju completa abre todo lo que va más allá de tu carta natal. La compatibilidad se paga en cada consulta.",
       "expand": "Abrir las lecturas",
       "permanent": "Desbloqueo permanente",
       "perUse": "Pago por uso",
       "compatCta": "Ver compatibilidad →",
       "daewun": {
         "title": "Análisis de Daeyun",
-        "cta": "Abrir el análisis de Daewun →"
+        "cta": "Desbloquear para siempre la lectura saju completa →"
       },
       "summary": {
-        "title": "Lectura saju Light",
-        "cta": "Abrir la lectura Light →"
+        "title": "Lectura saju completa",
+        "cta": "Desbloquear para siempre la lectura saju completa →"
       },
       "compat": {
         "title": "Análisis de compatibilidad",
