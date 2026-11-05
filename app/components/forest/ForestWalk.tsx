@@ -185,5 +185,5 @@ export default function ForestWalk({ mode, journey, initialStep = 0, onStepChang
   </div>;
 
   if (mode === "inline") return <section className={styles.inlineRoot} aria-labelledby="daily-home-title">{content}</section>;
-  return <dialog ref={dialogRef} className={styles.dialog} aria-labelledby="forest-walk-title" onCancel={event => { event.preventDefault(); onClose?.(); }} onClose={() => onClose?.()}>{content}</dialog>;
+  return <dialog ref={dialogRef} className={styles.dialog} aria-labelledby="forest-walk-title" onClose={onClose}>{content}</dialog>;
 }

@@ -64,7 +64,7 @@
 .scene { display: block; overflow: hidden; border-radius: 20px; background: var(--cd-forest-deep); }
 .scene img { display: block; width: 100%; height: auto; max-height: 40dvh; object-fit: cover; }
 .block { display: grid; gap: 12px; padding: 16px; border: 1px solid var(--cd-forest-rule); border-radius: 18px; background: var(--cd-forest-deep); }
-.walk h3 { margin: 0; color: var(--cd-forest-ink); font-family: var(--font-serif); font-size: 1.125rem; line-height: 1.35; }
+.walk .panel h3 { margin: 0; color: var(--cd-forest-ink); font-family: var(--font-serif); font-size: 1.125rem; line-height: 1.35; }
 .note { color: var(--cd-forest-mist); font-size: .8125rem; line-height: 1.65; }
 .notice { color: var(--cd-forest-lantern); font-size: .875rem; font-weight: 700; }
 .row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
@@ -95,7 +95,12 @@
 
 /* 샘터의 종이. 다이어리 부품이 읽는 토큰을 이 표면 값으로 준다. */
 .paper { --dy-text: var(--cd-forest-paper-ink); --dy-muted: var(--cd-forest-paper-muted); --dy-line: var(--cd-forest-paper-line); --dy-line-ui: var(--cd-forest-paper-muted); --dy-focus: var(--cd-forest-paper-ink); --dy-accent: var(--cd-forest-paper-ink); --dy-accent-soft: var(--cd-forest-paper-line); --dy-surface: var(--cd-forest-paper); display: grid; gap: 12px; padding: 16px; border-radius: 18px; background: var(--cd-forest-paper); color: var(--cd-forest-paper-ink); }
-.walk .paper h3 { color: var(--cd-forest-paper-ink); }
+.walk .panel .paper h3 { color: var(--cd-forest-paper-ink); }
+/* 기분 여섯 개를 한 줄에 두고, 고르기 전에도 또렷하게 보여 준다. */
+.paper [role="group"] { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px; }
+.paper [role="group"] > button { width: 100%; min-width: 0; opacity: 1; }
+/* iOS가 입력창을 확대하지 않도록 16px을 지킨다. */
+.walk .paper :is(input, textarea) { font-size: 16px; }
 .paperNote { color: var(--cd-forest-paper-muted); font-size: .8125rem; line-height: 1.6; }
 .walk .paperLink { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; color: var(--cd-forest-paper-ink); font-size: .875rem; font-weight: 700; text-underline-offset: 3px; }
 

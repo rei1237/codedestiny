@@ -10,13 +10,34 @@ import styles from "./forest.module.css";
 
 const ForestWalk = dynamic(() => import("./ForestWalk"), { ssr: false });
 
-const FOREST_HASH = "#forest-walk";
-const LINK_HASH_STEPS: Record<string, number> = { "#daily-home-title": 0, "#diary-today-record": 2 };
+// 로그인 복귀(`/login/?next=/#daily-home-title`)만 숲길을 바로 연다. 페이지에 없는 해시는 `LegacyHomeEntry`가 앱으로 보낸다.
+const LOGIN_RETURN_HASH = "#daily-home-title";
+const RESUME_STEP_KEY = "cd.forest-walk.step";
+
+function rememberResumeStep(step: number | null) {
+  try {
+    if (step === null) window.sessionStorage.removeItem(RESUME_STEP_KEY);
+    else window.sessionStorage.setItem(RESUME_STEP_KEY, String(step));
+  } catch { /* 저장소가 막혀도 숲길은 그대로 걷는다 */ }
+}
+
+/** 새로고침일 때만 걷던 걸음으로 돌아간다. 다른 경로로 다시 들어오면 입구부터 보여 준다. */
+function readResumeStep() {
+  try {
+    const navigation = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
+    if (navigation?.type !== "reload") return null;
+    const raw = window.sessionStorage.getItem(RESUME_STEP_KEY);
+    const step = raw === null ? Number.NaN : Number(raw);
+    return Number.isInteger(step) && step >= 0 && step <= 3 ? step : null;
+  } catch {
+    return null;
+  }
+}
 
 /**
  * 공개 홈의 숲 입구. 전체 화면 숲길은 눌렀을 때 불러온다.
- * 🔴 전체 화면은 `#forest-walk` 기록을 하나 쌓아 뒤로가기로 닫힌다. 외부 링크로 들어온 해시는
- * 먼저 지운 뒤 쌓는다. 안 그러면 닫을 때 그 해시로 돌아가 숲길이 다시 열린다.
+ * 🔴 뒤로가기는 `NavigationProvider`가 `dialog[open]`에 넣는 공용 가드가 처리한다. 여기서 기록을
+ * 따로 쌓으면 가드가 그 상태를 복사해 닫아도 다시 열리므로, 들어온 해시는 지우기만 한다.
  */
 export default function ForestGate() {
   const [enabled, setEnabled] = useState(false);
@@ -26,7 +47,6 @@ export default function ForestGate() {
   const sectionRef = useRef<HTMLElement>(null);
   const ctaRef = useRef<HTMLButtonElement>(null);
   const wasOpen = useRef(false);
-  const closing = useRef(false);
 
   useEffect(() => {
     const node = sectionRef.current;
@@ -39,36 +59,30 @@ export default function ForestGate() {
   }, []);
 
   const showWalk = useCallback((step: number) => {
-    closing.current = false;
     setEnabled(true);
     setInitialStep(step);
     setOpen(true);
+    rememberResumeStep(step);
   }, []);
-  const pushWalk = useCallback((step: number) => {
-    window.history.pushState({ forestWalk: { step } }, "", FOREST_HASH);
-    showWalk(step);
-  }, [showWalk]);
 
   useEffect(() => {
-    const syncFromLocation = () => {
+    const openFromLink = () => {
       const { hash, pathname, search } = window.location;
-      if (hash === FOREST_HASH && window.history.state?.forestWalk) { showWalk(Number(window.history.state.forestWalk.step) || 0); return; }
-      if (hash === FOREST_HASH || hash in LINK_HASH_STEPS) {
-        window.history.replaceState(window.history.state, "", `${pathname}${search}`);
-        pushWalk(LINK_HASH_STEPS[hash] ?? 0);
-        return;
-      }
-      closing.current = false;
-      setOpen(false);
+      if (hash !== LOGIN_RETURN_HASH) return false;
+      window.history.replaceState(window.history.state, "", `${pathname}${search}`);
+      showWalk(0);
+      return true;
     };
-    syncFromLocation();
-    window.addEventListener("popstate", syncFromLocation);
-    window.addEventListener("hashchange", syncFromLocation);
+    if (!openFromLink()) {
+      const resumeStep = readResumeStep();
+      if (resumeStep !== null) showWalk(resumeStep);
+    }
+    window.addEventListener("hashchange", openFromLink);
     return () => {
-      window.removeEventListener("popstate", syncFromLocation);
-      window.removeEventListener("hashchange", syncFromLocation);
+      window.removeEventListener("hashchange", openFromLink);
+      rememberResumeStep(null);
     };
-  }, [pushWalk, showWalk]);
+  }, [showWalk]);
 
   useEffect(() => {
     if (wasOpen.current && !open) ctaRef.current?.focus({ preventScroll: true });
@@ -76,18 +90,12 @@ export default function ForestGate() {
   }, [open]);
 
   const closeWalk = useCallback(() => {
-    if (closing.current) return;
-    closing.current = true;
     setOpen(false);
-    if (window.location.hash === FOREST_HASH) window.history.back();
-  }, []);
-  const rememberStep = useCallback((step: number) => {
-    if (window.location.hash !== FOREST_HASH) return;
-    window.history.replaceState({ ...window.history.state, forestWalk: { step } }, "", FOREST_HASH);
+    rememberResumeStep(null);
   }, []);
   function enterForest() {
     trackEvent("daily_home_forest_opened", { surface: "home" });
-    pushWalk(0);
+    showWalk(0);
   }
 
   const { hydrated, honey, stepsDone, ymd } = journey;
@@ -115,6 +123,6 @@ export default function ForestGate() {
       <GrowthCard journey={journey} />
       <button ref={ctaRef} type="button" className={styles.primary} aria-haspopup="dialog" onClick={enterForest}>{stepsDone >= 3 ? "오늘의 숲길 다시 보기" : stepsDone > 0 ? "숲길 이어 걷기" : "숲길 들어가기"}</button>
     </div>
-    {open && <ForestWalk mode="dialog" journey={journey} initialStep={initialStep} onStepChange={rememberStep} onClose={closeWalk} />}
+    {open && <ForestWalk mode="dialog" journey={journey} initialStep={initialStep} onStepChange={rememberResumeStep} onClose={closeWalk} />}
   </section>;
 }
