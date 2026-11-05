@@ -52,7 +52,7 @@
 .guide :is(button,a,summary,textarea):focus-visible { outline: 2px solid var(--cd-focus-ring); outline-offset: 3px; }
 .examples { gap: 0; }
 .examples button { border-bottom: 1px solid var(--rule); display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-.examples button::after { content: '↗'; color: var(--hm-gold-ink); }
+.examples button::after { content: ""; width: 6px; height: 6px; flex: none; border-top: 1px solid var(--hm-gold-ink); border-right: 1px solid var(--hm-gold-ink); }
 .examples p, .identity span, .quote span { color: var(--hm-gold-ink); font-size: .875rem; }
 .guide summary { display: list-item; padding: .5rem 0; }
 .guide nav { display: flex; flex-wrap: wrap; gap: .4rem 1rem; }
