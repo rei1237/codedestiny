@@ -5,7 +5,7 @@ import {JSDOM} from 'jsdom';
 import {consultationStories,storyBenefits,storyPreviewHeights} from '../../lib/brand/consultation-stories.mjs';
 import {RECORD_SERVICES} from '../../lib/records/service-registry.js';
 
-test('all 13 stories retain an existing service, art, three benefits and both shell actions',()=>{
+test('all 13 stories retain an existing service, art, three benefits and a dedicated entry cover',()=>{
   const dom=new JSDOM(readFileSync('index.html','utf8'));
   assert.equal(Object.keys(consultationStories).length,13);
   for(const id of Object.keys(consultationStories)){
@@ -14,9 +14,10 @@ test('all 13 stories retain an existing service, art, three benefits and both sh
     assert.equal(storyBenefits[id].length,3,id);
     assert.ok(storyPreviewHeights[id]>250 && storyPreviewHeights[id]<500,id);
     assert.ok(existsSync('public/images/consultation-webtoons/'+id+'.webp'),id);
-    assert.ok(dom.window.document.querySelector('a[href="/consultations/'+id+'/"]'),id+' story entry');
-    assert.ok(dom.window.document.querySelector('a[href="'+service.href+'"]'),id+' direct entry');
+    assert.ok(existsSync('public/images/consultation-webtoons/covers/'+id+'.webp'),id+' entry cover');
+    assert.equal(dom.window.document.querySelector('a[href="/consultations/'+id+'/"]'),null,id+' moved to entry');
   }
+  assert.ok(dom.window.document.querySelector('a[href="/#homeStoryTitle"]'));
   assert.equal(dom.window.document.querySelectorAll('#cdSigGrid .cd-sig-card[data-cd-service-id][data-cd-popup-copy]').length,6);
   assert.equal(dom.window.document.querySelectorAll('a a').length,0);
   dom.window.close();

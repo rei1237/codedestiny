@@ -1,4 +1,36 @@
 {
+  "saju": {
+    "bundle": {
+      "inlineTitle": "Verdiep je in je Vier Pilaren",
+      "lottoSavedTitle": "Opgeslagen rapporten van het maanlichtritueel",
+      "lottoSavedDesc": "Lees rapporten die je hebt gekocht en op dit apparaat hebt opgeslagen opnieuw.",
+      "lottoSavedOpen": "Rapport openen",
+      "title": "Volledige lezing van de Vier Pilaren",
+      "once": "Eenmalige aankoop voor blijvende toegang",
+      "inlineCta": "Bekijk de inhoud",
+      "inlineDesc": "Ontdek je geboortehoroscoop, tienjarige cycli, daglezingen en andere duidingen.",
+      "close": "Sluiten",
+      "pay": "Openen met een eenmalige betaling",
+      "saveProfile": "Dit geboorteprofiel opslaan",
+      "saveProfileHint": "Sla je geboortegegevens op om de bundel aan deze horoscoop te koppelen.",
+      "saveProfileUnavailable": "Sla je geboortegegevens op in je profiel.",
+      "already": "Je hebt deze bundel al.",
+      "own": "Je kunt lezingen voor dezelfde geboortegegevens opnieuw lezen zonder extra betaling. Persoonlijke consulten en relatieconsulten worden apart verkocht.",
+      "sample": "Voorbeeld · Je komt rustig over, maar verzamelt misschien eerst veel informatie voordat je beslist. Elk hoofdstuk verkent wanneer die zorgvuldigheid helpt en wanneer ze je afremt.",
+      "item": [
+        "Geboortehoroscoop, dagpilaar, tien goden en seizoensbalans",
+        "Basisduiding en tienjarige cycli",
+        "Compatibiliteit volgens de geboortehoroscoop",
+        "Kwantumduiding, persoonlijke uitstraling en talentenboom",
+        "Welzijn, energie en lastige relaties",
+        "Dag- en maandduidingen, brieven en bekende personen die op je lijken",
+        "Geluksgetallen en het rapport van het maanlichtritueel",
+        "Denkstijl, Teto/Egen-profiel, lezing in vier beelden en dopaminerapport",
+        "Denkkaart met Human Design-duiding",
+        "Werkstijl, diertype en toegang tot het Geheime Huis"
+      ]
+    }
+  },
   "_comment": "Code Destiny — Dutch premium localization (nl.json)",
   "_version": "1.0.0",
   "brand": {

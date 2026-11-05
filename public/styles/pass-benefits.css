@@ -31,3 +31,6 @@ html:not([lang^="ko"]) .cdh .pb{display:none}html[lang^="ko"] [data-cd-localized
 .pb__light-list ul{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,190px),1fr));gap:4px 16px;list-style:none;margin:4px 0 0;padding:0;font-size:13px;line-height:1.5;color:var(--pb-muted)}
 @media(max-width:800px){.pb--honey .pb__banner{margin:12px 0}}
 @media(min-width:801px){.pb--honey .pb__banner{grid-column:1;grid-row:2}.pb--honey .pb__selection{grid-row:3}.pb--honey .pb__detail{grid-row:1/4}.pb--honey .pb__light-list{grid-column:1/-1;margin:0}}
+
+.pb--honey .pb__intro{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-right:0}
+.pb--honey .pb__portrait{position:static;flex:none}

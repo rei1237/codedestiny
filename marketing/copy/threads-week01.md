@@ -98,7 +98,7 @@ https://code-destiny.com/ziwei/?utm_source=threads&utm_medium=social&utm_campaig
 
 양력·음력, 윤달 여부와 출생지를 먼저 확인하고 시간 미상으로 살펴보세요. 무료 원국으로 시작한 뒤, 더 궁금한 질문이 남을 때 상담 범위와 예시를 비교해도 됩니다.
 
-무료 사주 입력 조건 확인하기
+무료 만세력 입력 조건 확인하기
 https://code-destiny.com/saju/?utm_source=threads&utm_medium=social&utm_campaign=threads_queue_t08_v1
 
 #꿀꿀운세
