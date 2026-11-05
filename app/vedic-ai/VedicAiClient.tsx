@@ -14,8 +14,10 @@ const ConsultationReading = dynamic(() => import('@/components/fortune/Consultat
 
 import CurrentLocationButton from '@/app/components/CurrentLocationButton';
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ComponentType } from "react";
 import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
+import { tossConsultationCopy, useTossConsultationCopy } from "@/app/_lib/toss-consultation-copy";
+import { readingLocationCopy } from "@/app/yeongnyangi/_lib/current-location-copy";
 import Link from "next/link";
 import { CalendarDays, Clock3, Compass, Download, Loader2, MapPin, Moon, Sparkles, Star } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
@@ -2246,6 +2248,23 @@ async function postJson<T>(path: string, body: Record<string, unknown>, requestI
   }
 }
 
+async function tossPostJson<T>(path: string, body: Record<string, unknown>, requestId?: string, paymentSurface: "web" | "toss" = "web") {
+  try {
+    const response = await authFetch(path, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(requestId ? { "Idempotency-Key": requestId } : {}),
+      },
+      body: JSON.stringify(body),
+    }, { retryOn401: false });
+    const data = await response.json().catch(() => ({}));
+    return { status: response.status, data: data as T };
+  } catch (error) {
+    throw new Error(paymentSurface === "toss" ? tossVedicFailure(error) : "NETWORK_ERROR");
+  }
+}
+
 function sleep(ms: number) {
   return new Promise((resolve) => window.setTimeout(resolve, ms));
 }
@@ -2286,6 +2305,51 @@ export async function pollVedicResult(sessionId: string, isCurrent = () => true,
     if (response.status === 503 && data.retryable) continue;
     if (!response.ok) throw new Error(toText(data.reason) || "SERVER_ERROR");
     return data;
+  }
+  throw new Error("GENERATION_TIMEOUT");
+}
+
+function tossVedicMessage(code:string) {
+  const copy=tossConsultationCopy(getCurrentLoadingLocale());
+  if(code==="LOGIN_REQUIRED")return copy.login;
+  if(code==="ACCESS_DENIED")return copy.denied;
+  if(code==="ORDER_REFUNDED")return copy.refunded;
+  if(code==="PAYMENT_CANCELLED")return copy.cancelled;
+  return copy.uncertain;
+}
+
+function tossVedicFailure(error: unknown) {
+  const failure = error && typeof error === "object" ? error as {status?:number; code?:string} : {};
+  if(failure.status === 401 || ["LOGIN_REQUIRED","SESSION_EXPIRED"].includes(failure.code || "")) return "LOGIN_REQUIRED";
+  if(failure.status === 403 || failure.code === "ACCESS_DENIED") return "ACCESS_DENIED";
+  return failure.code || (error instanceof Error ? error.message : "NETWORK_ERROR");
+}
+
+async function pollVedicTossResult(sessionId:string,isCurrent:()=>boolean,onAuthorized:()=>void):Promise<StartResult> {
+  for(let attempt=0;attempt<RESULT_POLL_MAX_ATTEMPTS;attempt++){
+    await sleep(RESULT_POLL_BACKOFF_MS[Math.min(attempt,RESULT_POLL_BACKOFF_MS.length-1)]);
+    if(!isCurrent()) return {ok:false,reason:"GENERATION_PAUSED"};
+    let response:Response;
+    try{response=await authFetch(`/api/vedic-ai/result?id=${encodeURIComponent(sessionId)}`,{method:"GET"},{retryOn401:false});}
+    catch(error){throw new Error(tossVedicFailure(error));}
+    const data=await response.json().catch(()=>({})) as StartResult;
+    if(!isCurrent()) return {ok:false,reason:"GENERATION_PAUSED"};
+    if(response.status===401)throw new Error("LOGIN_REQUIRED");
+    if(response.status===403)throw new Error("ACCESS_DENIED");
+    if((!response.ok && response.status!==202) || data.ok===false)throw new Error(toText(data.reason)||toText(asRecord(data).code)||"SERVER_ERROR");
+    onAuthorized();
+    if(response.status!==202)return data;
+    if(typeof document!=="undefined" && document.visibilityState==="hidden")return {ok:false,reason:"GENERATION_PAUSED"};
+    let resumed:Response;
+    try{resumed=await authFetch("/api/vedic-ai/start",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({resumeSessionId:sessionId})},{retryOn401:false});}
+    catch(error){throw new Error(tossVedicFailure(error));}
+    const next=await resumed.json().catch(()=>({})) as StartResult;
+    if(!isCurrent())return {ok:false,reason:"GENERATION_PAUSED"};
+    if(resumed.status===401)throw new Error("LOGIN_REQUIRED");
+    if(resumed.status===403)throw new Error("ACCESS_DENIED");
+    if(resumed.status===202 || (resumed.status===503 && next.retryable))continue;
+    if(!resumed.ok || next.ok===false)throw new Error(toText(next.reason)||toText(asRecord(next).code)||"SERVER_ERROR");
+    return next;
   }
   throw new Error("GENERATION_TIMEOUT");
 }
@@ -2954,12 +3018,13 @@ export function StructuredReadingResult({
   );
 }
 
-export default function VedicAiClient() {
+export default function VedicAiClient({paymentSurface="web", ProfilePicker, TossPrice}:{paymentSurface?:"web"|"toss"; ProfilePicker?:ComponentType<{onSelect:(seed:AiPrefillSeed)=>void}>; TossPrice?:ComponentType}) {
   const copy = useVedicAiCopy();
+  const {locale:tossLocale,copy:tossCopy}=useTossConsultationCopy(paymentSurface === "toss");
   // Render the public introduction in HTML, then mount browser/profile controls.
   const [clientReady, setClientReady] = useState(false);
   useEffect(() => { setClientReady(true); }, []);
-  const [form, setForm] = useState<FormState>(() => buildInitialForm());
+  const [form, setForm] = useState<FormState>(() => paymentSurface === "toss" ? {...initialForm} : buildInitialForm());
   const [consultation, setConsultation] = useState<Consultation | null>(null);
   // 서버가 계산한 조티시 차트 근거 — 대기 화면이 실제 값을 단계별로 보여 준다.
   const [basis, setBasis] = useState<AnalysisBasis | null>(null);
@@ -2969,7 +3034,7 @@ export default function VedicAiClient() {
   const [geocoding, setGeocoding] = useState(false);
   const placeLookupRef = useRef(0);
   const [geocode, setGeocode] = useState<GeocodeState>(() => {
-    const initial = buildInitialForm();
+    const initial = paymentSurface === "toss" ? {...initialForm} : buildInitialForm();
     return {
       lat: initial.latitude || PLACE_PRESETS[0].latitude,
       lng: initial.longitude || PLACE_PRESETS[0].longitude,
@@ -2982,14 +3047,29 @@ export default function VedicAiClient() {
   const requestLocaleRef = useRef<RuntimeLocale | "">("");
   const pendingAccessRef = useRef<PendingAccess | null>(null);
   const [resumeEpoch, setResumeEpoch] = useState(0);
-  const captureOwner = usePaidDeliveryScope(() => { setConsultation(null); setBasis(null); setPhase("idle"); pendingAccessRef.current = null; requestIdRef.current = ""; setResumeEpoch(value => value + 1); });
+  const [tossRecovery, setTossRecovery] = useState<"none"|"checking"|"allowed"|"denied"|"error">(() => paymentSurface === "toss" && typeof window !== "undefined" && Boolean(new URLSearchParams(window.location.search).get("cid")) ? "checking" : "none");
+  const tossResumeBusy = useRef(false);
+  const tossLastError = useRef<{code:string;message:string}|null>(null);
+  const showTossError = (code:string) => {const message=tossVedicMessage(code);tossLastError.current={code,message};setError(message);};
+  const tossResumeRevision = useRef(0);
+  const tossCheckRevision = useRef(0);
+  const tossSubmitRevision = useRef(0);
+  const captureOwner = usePaidDeliveryScope(() => { setConsultation(null); setBasis(null); setPhase("idle"); pendingAccessRef.current = null; requestIdRef.current = ""; if(paymentSurface === "toss"){tossLastError.current=null;tossResumeRevision.current++;tossCheckRevision.current++;tossResumeBusy.current=false;tossSubmitRevision.current++;submitBusyRef.current=false;setForm({...initialForm});placeLookupRef.current++;setGeocoding(false);setGeocode({lat:initialForm.latitude,lng:initialForm.longitude,name:initialForm.birthPlace,fallback:false});requestLocaleRef.current="";setError("");setNotice("");formTouchedRef.current=false;setTossRecovery(typeof window !== "undefined" && new URLSearchParams(window.location.search).get("cid") ? "checking" : "none");} setResumeEpoch(value => value + 1); });
   const submitBusyRef = useRef(false);
-  const { seed: profileSeed, seedVersion, reload: reloadProfileSeed } = useAiProfileSeed();
+  const { seed: profileSeed, seedVersion, reload: reloadProfileSeed } = useAiProfileSeed({enabled:paymentSurface !== "toss"});
   const formTouchedRef = useRef(false);
+
+  useEffect(() => {
+    if(paymentSurface !== "toss" || !tossLastError.current)return;
+    const previous=tossLastError.current;
+    const message=tossVedicMessage(previous.code);
+    tossLastError.current={code:previous.code,message};
+    setError(current=>current===previous.message?message:current);
+  },[paymentSurface,tossLocale]);
 
   // 서버에서 프로필 카드가 뒤늦게 도착해도, 사용자가 입력을 시작하기 전이라면 폼에 반영
   useEffect(() => {
-    if (!profileSeed) return;
+    if (paymentSurface === "toss" || !profileSeed) return;
     setForm((prev) => (formTouchedRef.current ? prev : applyProfileSeedToForm(prev, profileSeed)));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seedVersion]);
@@ -3011,7 +3091,31 @@ export default function VedicAiClient() {
     } finally { if (isCurrent()) setPhase("idle"); }
   }
 
+  async function resumeTossConsultation(sessionId: string, stillCurrent:()=>boolean = () => true) {
+    const sameOwner = captureOwner();
+    const isCurrent = () => sameOwner() && stillCurrent();
+    if (paymentSurface === "toss" && tossResumeBusy.current) return false;
+    const revision=paymentSurface === "toss" ? ++tossResumeRevision.current : 0;
+    if (paymentSurface === "toss") { tossResumeBusy.current=true; setTossRecovery("checking"); setConsultation(null); setError(""); }
+    setPhase("start");
+    try {
+      const result = paymentSurface === "toss" ? await pollVedicTossResult(sessionId,isCurrent,()=>setTossRecovery("allowed")) : await pollVedicResult(sessionId, isCurrent, value => { setConsultation(value); rememberConsultationUrl(value.id); });
+      if (isCurrent() && result.consultation) { setConsultation(result.consultation); if(paymentSurface === "toss") rememberConsultationUrl(result.consultation.id); }
+      return isCurrent() && result.consultation?.status === "completed";
+    } catch(caught) {
+      if(paymentSurface !== "toss") throw caught;
+      if(isCurrent()){
+        const code=tossVedicFailure(caught); setConsultation(null);
+        const denied=["LOGIN_REQUIRED","ACCESS_DENIED","ORDER_REFUNDED","RESULT_NOT_FOUND","PAYMENT_VERIFY_FAILED"].includes(code);
+        setTossRecovery(denied?"denied":code==="GENERATION_FAILED"?"allowed":"error");
+        showTossError(code);
+      }
+      return false;
+    } finally { if(paymentSurface === "toss" && tossResumeRevision.current===revision)tossResumeBusy.current=false; if (isCurrent()) setPhase("idle"); }
+  }
+
   useEffect(() => {
+    if (typeof paymentSurface !== "undefined" && paymentSurface === "toss") return;
     let cancelled = false;
     const isCurrent = captureOwner();
     const resume = async () => {
@@ -3024,6 +3128,40 @@ export default function VedicAiClient() {
         if (!cid) return;
         await resumeSavedConsultation(cid);
       } catch { /* 원래 서버 기록은 다음 온라인·계정 복귀 때 재개한다. */ }
+    };
+    void resume();
+    window.addEventListener("online", resume);
+    document.addEventListener("visibilitychange", resume);
+    window.addEventListener("pageshow", resume);
+    window.addEventListener("focus", resume);
+    return () => {
+      cancelled = true;
+      window.removeEventListener("online", resume);
+      document.removeEventListener("visibilitychange", resume);
+      window.removeEventListener("pageshow", resume);
+      window.removeEventListener("focus", resume);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resumeEpoch, captureOwner]);
+
+  useEffect(() => {
+    if (paymentSurface !== "toss") return;
+    let cancelled = false;
+    const isCurrent = captureOwner();
+    const resume = async () => {
+      if (submitBusyRef.current || document.visibilityState === "hidden") return;
+      const check=++tossCheckRevision.current;
+      const same=()=>!cancelled && isCurrent() && check===tossCheckRevision.current;
+      if (new URLSearchParams(window.location.search).get("cid")) { tossResumeRevision.current++;tossResumeBusy.current=false;setConsultation(null);setTossRecovery("checking");setPhase("idle"); }
+      try {
+        const response = await authFetch("/api/vedic-ai/result");
+        const data = await response.json();
+        if (!same() || submitBusyRef.current) return;
+        if (!response.ok) { if(paymentSurface === "toss"){setConsultation(null);setTossRecovery(response.status===401||response.status===403?"denied":"error");showTossError(response.status===401?"LOGIN_REQUIRED":response.status===403?"ACCESS_DENIED":"SERVER_ERROR");} return; }
+        const cid = data.pendingSessionId || new URLSearchParams(window.location.search).get("cid");
+        if (!cid) return;
+        await resumeTossConsultation(cid, same);
+      } catch (caught) { if(paymentSurface === "toss" && same()){const code=tossVedicFailure(caught);setConsultation(null);setTossRecovery(code==="LOGIN_REQUIRED"||code==="ACCESS_DENIED"?"denied":"error");showTossError(code);} }
     };
     void resume();
     window.addEventListener("online", resume);
@@ -3055,11 +3193,11 @@ export default function VedicAiClient() {
   const validationMessage = validateForm(form, copy);
 
   const phaseText = useMemo(() => {
-    if (phase === "access") return copy.phaseAccess;
+    if (phase === "access") return paymentSurface === "toss" ? tossCopy.checking : copy.phaseAccess;
     if (phase === "payment") return copy.phasePayment;
     if (phase === "start") return copy.phaseStart;
     return "";
-  }, [phase, copy]);
+  }, [phase, copy, paymentSurface, tossCopy]);
 
   function updateForm(patch: Partial<FormState>) {
     formTouchedRef.current = true;
@@ -3170,6 +3308,62 @@ export default function VedicAiClient() {
     throw new Error(toText(data.reason) || (status === 401 ? "LOGIN_REQUIRED" : status >= 500 ? "SERVER_ERROR" : "PREPARE_FAILED"));
   }
 
+  async function startTossConsultation(
+    requestId: string,
+    access: Record<string, unknown>,
+    paymentWasRequired = false,
+    formOverride?: FormState,
+    localeOverride?: RuntimeLocale,
+  ) {
+    const isCurrent = captureOwner();
+    const source = formOverride || form;
+    const requestLocale = normalizeLocale(localeOverride || requestLocaleRef.current || detectLocale());
+    setPhase("start");
+    // 다음 화면(생성 로딩)이 마운트되는 시점 — 게이트 오버레이 hold를 해제한다.
+    releasePaidFeatureGate(requestId);
+    // 근거 계산은 이용권 확인·결제를 통과한 뒤에만 시작한다 — 확인 단계에서 라그나·나크샤트라가
+    // 먼저 노출되면 "확인도 전에 결과를 만든다"로 읽히고, 결제 전 계산값이 새어 나간다.
+    // 순수 계산이라 기다리지 않고 병렬로 받는다(실패하면 null이라 생성 흐름을 막지 않는다).
+    void fetchAnalysisBasis("/api/vedic-ai/basis", buildPayload(source, requestId, requestLocale)).then(value => { if (isCurrent()) setBasis(value); });
+    const { status, data } = await tossPostJson<StartResult>(
+      "/api/vedic-ai/start",
+      { ...buildPayload(source, requestId, requestLocale), ...access, idempotencyKey: requestId },
+      requestId, paymentSurface,
+    );
+    if (!isCurrent()) return false;
+    if (paymentSurface === "toss" && status === 401) throw new Error("LOGIN_REQUIRED");
+    if (paymentSurface === "toss" && status === 403) throw new Error("ACCESS_DENIED");
+    if (data.ok && data.consultation?.status === "completed") {
+      setConsultation(data.consultation);
+      rememberConsultationUrl(data.consultation.id);
+      setError("");
+      setNotice("");
+      requestIdRef.current = "";
+      pendingAccessRef.current = null;
+      return true;
+    }
+    if (status === 202 && data.sessionId) {
+      if(paymentSurface === "toss"){rememberConsultationUrl(data.sessionId);setTossRecovery("allowed");}
+      // 생성이 진행 중(중복 제출 등) — 결과 엔드포인트를 폴링해 완료까지 수렴시킨다.
+      setNotice(copy.sessionPendingNotice);
+      if (data.consultation && paymentSurface !== "toss") { setConsultation(data.consultation); rememberConsultationUrl(data.consultation.id); }
+      const resolved = paymentSurface === "toss" ? await pollVedicTossResult(data.sessionId,isCurrent,()=>{}) : await pollVedicResult(data.sessionId, isCurrent, setConsultation);
+      if (!isCurrent() || resolved.reason === "GENERATION_PAUSED") return false;
+      if (resolved.ok && resolved.consultation?.status === "completed") {
+        setConsultation(resolved.consultation);
+        rememberConsultationUrl(resolved.consultation.id);
+        setError("");
+        setNotice("");
+        requestIdRef.current = "";
+        pendingAccessRef.current = null;
+        return true;
+      }
+      throw new Error(toText(resolved.reason) || "SERVER_ERROR");
+    }
+    if (status === 402 && paymentWasRequired) throw new Error("PAYMENT_VERIFY_FAILED");
+    throw new Error(toText(data.reason) || (status === 401 ? "LOGIN_REQUIRED" : status >= 500 ? "SERVER_ERROR" : "PREPARE_FAILED"));
+  }
+
   // 모바일 PortOne 리다이렉트로 handleSubmit 의 await 가 죽은 뒤, 복귀한 새 문서에서 생성을 이어받는다.
   // 🔴 게이트를 다시 타지 않고 게이트 없는 코어(startConsultation)를 원래 requestId 로 부른다.
   const buildResume = usePaidResume(FEATURE_KEY, async (args, grant) => {
@@ -3187,10 +3381,10 @@ export default function VedicAiClient() {
     try {
       const access = extractPayment(grant?.payload, requestId);
       pendingAccessRef.current = { requestId, access, paymentWasRequired: true };
-      return await startConsultation(requestId, access, true, restoredForm, restoredLocale);
+      return paymentSurface === "toss" ? await startTossConsultation(requestId, access, true, restoredForm, restoredLocale) : await startConsultation(requestId, access, true, restoredForm, restoredLocale);
     } catch (caught) {
       const code = caught instanceof Error ? caught.message : "SERVER_ERROR";
-      setError(copy.errorText[code] || copy.errorText.SERVER_ERROR);
+      if(paymentSurface === "toss")showTossError(code);else setError(copy.errorText[code] || copy.errorText.SERVER_ERROR);
       setPhase("idle");
       return false;
     } finally {
@@ -3321,33 +3515,186 @@ export default function VedicAiClient() {
     }
   }
 
+  async function handleTossSubmit() {
+    if (busy || submitBusyRef.current || (paymentSurface === "toss" && tossRecovery !== "none")) return;
+    const sameSubmitOwner = captureOwner();
+    const submitRevision = paymentSurface === "toss" ? ++tossSubmitRevision.current : 0;
+    if (consultation && consultation.status !== "completed") { await resumeTossConsultation(consultation.id); return; }
+    if (validationMessage) {
+      setError(validationMessage);
+      setNotice("");
+      return;
+    }
+
+    const requestId = requestIdRef.current || makeRequestId();
+    requestIdRef.current = requestId;
+    if (!requestLocaleRef.current) requestLocaleRef.current = detectLocale();
+    submitBusyRef.current = true;
+    setError("");
+    setNotice("");
+    let gateStarted = false;
+
+    try {
+      const pending = pendingAccessRef.current;
+      if (pending && pending.requestId === requestId) {
+        await startTossConsultation(requestId, pending.access, pending.paymentWasRequired);
+        return;
+      }
+
+      setPhase("access");
+      beginPaidFeatureGateCheck({
+        featureKey: FEATURE_KEY,
+        requestId,
+        title: copy.accessCheckGateTitle,
+        reason: copy.gateReason,
+        paymentMode: "MEMBERSHIP_PASS",
+      });
+      // 이용권 판정(unlock-status)을 아래 접근 확인 왕복과 겹쳐 돌린다 — 결제 게이트가 같은 키로 재사용해 직렬 왕복이 1회 준다.
+      if(paymentSurface !== "toss") void primePaymentEligibility(buildBillingGateInput({}, requestId, copy));
+      gateStarted = true;
+      // 확인 완료 후 다음 화면(생성 로딩 또는 결과)이 실제로 뜰 때까지 게이트 오버레이를 유지해 "확인 중 → 공백"을 막는다.
+      // release는 startConsultation의 setPhase("start") 및 결과 직접 렌더 지점에서 호출한다(안전장치 상한 8초).
+      holdPaidFeatureGateOpen({ requestId, maxMs: 8000 });
+      // 이용권 확인 앞단의 일시적 DB 장애(503 DB_DEGRADED 등)는 재시도로 흡수한다 — 하드 실패·결제창 오노출로 굳지 않게.
+      const { status, data } = await runAccessCheckWithTransientRetry(
+        () => tossPostJson<EnsureAccessResult>(
+          "/api/vedic-ai/ensure-access",
+          { ...buildPayload(form, requestId, normalizeLocale(requestLocaleRef.current)), idempotencyKey: requestId },
+          requestId, paymentSurface,
+        ),
+        { onRetry: () => setNotice(copy.retryAccessNotice) },
+      );
+
+      if (paymentSurface === "toss" && !sameSubmitOwner()) return;
+      if (data.ok) {
+        completePaidFeatureGateCheck({
+          featureKey: FEATURE_KEY,
+          requestId,
+          title: copy.accessCheckCompleteTitle,
+          reason: copy.gateReason,
+          paymentMode: "MEMBERSHIP_PASS",
+          message: copy.accessCheckCompleteMessage,
+        });
+        if (data.consultation) {
+          setConsultation(data.consultation);
+          rememberConsultationUrl(data.consultation.id);
+          // 결과 화면이 곧바로 마운트되는 시점 — 게이트 오버레이 hold를 해제한다.
+          releasePaidFeatureGate(requestId);
+          requestIdRef.current = "";
+          pendingAccessRef.current = null;
+          return;
+        }
+        await startTossConsultation(requestId, { accessToken: data.accessToken, accessType: data.accessType });
+        return;
+      }
+
+      if (data.reason === "LOGIN_REQUIRED" || (paymentSurface === "toss" && status === 401)) throw new Error("LOGIN_REQUIRED");
+      if (paymentSurface === "toss" && status === 403) throw new Error("ACCESS_DENIED");
+      if (data.reason === "INVALID_INPUT") throw new Error("PREPARE_FAILED");
+      // 가드 신설: 일시적 503/DB_DEGRADED가 빈 paymentPayload로 결제창에 오낙하하지 않도록,
+      // PAYMENT_REQUIRED가 아닌 일시적 실패는 과금 없이 소프트 종료한다.
+      if (data.reason !== "PAYMENT_REQUIRED" && isRetriableResultPollFailure(status, data)) {
+        throw new Error("TEMPORARY_UNAVAILABLE");
+      }
+      if (data.reason !== "PAYMENT_REQUIRED") throw new Error("PREPARE_FAILED");
+
+      setNotice(paymentSurface === "toss" ? tossCopy.saleChecking : copy.errorText.PAYMENT_REQUIRED);
+      setPhase("payment");
+      const paymentPayload = asRecord(data.paymentPayload);
+      const gate = await runBillingCoinGate({
+        ...buildBillingGateInput(paymentPayload, requestId, copy),
+        resume: paymentSurface === "toss" ? buildResume({ requestId, payload: packPaidResumeArg(buildPayload(form, requestId, normalizeLocale(requestLocaleRef.current))) }) : buildResume({ requestId, form: packPaidResumeArg({ form, locale: requestLocaleRef.current }) }),
+      });
+      if (paymentSurface === "toss" && !sameSubmitOwner()) return;
+      if (!isPaymentGranted(gate)) {
+        const code = String(gate.error?.code || "").toUpperCase();
+        if (code === "PAYMENT_CANCELLED" || code === "USER_CANCELED") throw new Error("PAYMENT_CANCELLED");
+        if (paymentSurface === "toss" && (gate.status === 403 || code === "ACCESS_DENIED")) throw new Error("ACCESS_DENIED");
+        if (paymentSurface === "toss" && (gate.status === 401 || code === "LOGIN_REQUIRED")) throw new Error("LOGIN_REQUIRED");
+        throw new Error("PAYMENT_VERIFY_FAILED");
+      }
+
+      const access = extractPayment(gate, requestId);
+      pendingAccessRef.current = { requestId, access, paymentWasRequired: true };
+      await startTossConsultation(requestId, access, true);
+    } catch (caught) {
+      if (paymentSurface === "toss" && !sameSubmitOwner()) return;
+      const code = caught instanceof Error ? caught.message : "SERVER_ERROR";
+      const paymentCancelled = code === "PAYMENT_CANCELLED";
+      if(paymentSurface === "toss" && new URLSearchParams(window.location.search).get("cid")){
+        setConsultation(null);
+        setTossRecovery(["LOGIN_REQUIRED","ACCESS_DENIED","ORDER_REFUNDED","RESULT_NOT_FOUND","PAYMENT_VERIFY_FAILED"].includes(code)?"denied":code==="GENERATION_FAILED"?"allowed":"error");
+      }
+      const clearPrepaid = paymentSurface !== "toss" && ["LLM_FAILED", "CHART_CALCULATION_FAILED", "BIRTH_PLACE_INVALID", "PAYMENT_VERIFY_FAILED", "PAYMENT_CANCELLED", "LOGIN_REQUIRED", "PREPARE_FAILED"].includes(code);
+      if (clearPrepaid) {
+        pendingAccessRef.current = null;
+        requestIdRef.current = "";
+      }
+      // 일시적 접속 장애는 이용권 결함이 아니므로 "이용권 확인 실패"로 표기하지 않는다.
+      const isTransient = code === "TEMPORARY_UNAVAILABLE" || code === "NETWORK_ERROR";
+      if(paymentSurface === "toss")showTossError(code);else setError(copy.errorText[code] || copy.errorText.SERVER_ERROR);
+      if (gateStarted) {
+        failPaidFeatureGateCheck({
+          featureKey: FEATURE_KEY,
+          requestId,
+          title: isTransient ? copy.accessCheckFailTitleTransient : copy.accessCheckFailTitle,
+          reason: copy.gateReason,
+          paymentMode: "MEMBERSHIP_PASS",
+          message: copy.errorText[code] || copy.errorText.SERVER_ERROR,
+          cancelled: paymentCancelled,
+        });
+      }
+    } finally {
+      if(paymentSurface !== "toss" || tossSubmitRevision.current===submitRevision) submitBusyRef.current = false;
+      if(paymentSurface !== "toss" || sameSubmitOwner()) setPhase("idle");
+    }
+  }
+
+  async function retryTossVedic(){
+    if(paymentSurface !== "toss" || tossRecovery !== "allowed" || busy || tossResumeBusy.current)return;
+    const id=new URLSearchParams(window.location.search).get("cid"); if(!id)return;
+    const same=captureOwner(); setPhase("start"); setError("");
+    try{
+      const response=await authFetch("/api/vedic-ai/start",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({resumeSessionId:id})},{retryOn401:false});
+      const data=await response.json().catch(()=>({})) as StartResult;
+      if(!same())return;
+      if(response.status===401)throw new Error("LOGIN_REQUIRED");if(response.status===403)throw new Error("ACCESS_DENIED");
+      if(!response.ok && response.status!==202)throw new Error(toText(data.reason)||toText(asRecord(data).code)||"SERVER_ERROR");
+      if(data.consultation?.status==="completed"){setConsultation(data.consultation);rememberConsultationUrl(data.consultation.id);return;}
+      await resumeTossConsultation(id);
+    }catch(caught){if(!same())return;setConsultation(null);const code=tossVedicFailure(caught);const denied=["LOGIN_REQUIRED","ACCESS_DENIED","ORDER_REFUNDED","RESULT_NOT_FOUND","PAYMENT_VERIFY_FAILED"].includes(code);setTossRecovery(denied?"denied":"error");showTossError(code);}
+    finally{if(same())setPhase("idle");}
+  }
+
   const chart = consultation?.vedicChart || {};
   const summary = consultation?.summaryCards || {};
   const lagna = chartPoint(chart, "lagna");
   const moon = chartPoint(chart, "moon");
 
   return (
-    <main className={styles.shell} data-vedic-ai-page="direct-route-v20260627">
+    <main className={styles.shell} data-vedic-ai-page="direct-route-v20260627" lang={paymentSurface === "toss" ? tossLocale : undefined} style={paymentSurface === "toss" ? {paddingBottom:"var(--toss-service-bottom, 0px)"} : undefined}>
       <ConsultationMasterIntro kind="vedic" label={copy.heroTitle} lead={copy.heroLead} actionHref={clientReady ? "#vedic-consultation-form" : undefined} actionId="vedic-hero-start">
-        {clientReady && <PriceBadge featureKey="vedic-ai-consultation" prefix={copy.pricePrefix} />}
+        {clientReady && (paymentSurface === "toss" ? TossPrice && <TossPrice /> : <PriceBadge featureKey="vedic-ai-consultation" prefix={copy.pricePrefix} />)}
       </ConsultationMasterIntro>
 
       <ExpertValueCards
+        ariaLabel={paymentSurface === "toss" ? tossCopy.sectionLabel : undefined}
         theme="vedic"
         points={[
-          { title: "나크샤트라", description: "마음이 반응하는 별자리와 관계의 결을 읽습니다." },
-          { title: "다샤", description: "지금 지나가는 운의 계절과 전환점을 살핍니다." },
-          { title: "라그나", description: "삶을 바라보는 첫 시선과 행동의 리듬을 정리합니다." },
+          { title: paymentSurface === "toss" ? tossCopy.card1 : "나크샤트라", description: paymentSurface === "toss" ? tossCopy.card1desc : "마음이 반응하는 별자리와 관계의 결을 읽습니다." },
+          { title: paymentSurface === "toss" ? tossCopy.card2 : "다샤", description: paymentSurface === "toss" ? tossCopy.card2desc : "지금 지나가는 운의 계절과 전환점을 살핍니다." },
+          { title: paymentSurface === "toss" ? tossCopy.card3 : "라그나", description: paymentSurface === "toss" ? tossCopy.card3desc : "삶을 바라보는 첫 시선과 행동의 리듬을 정리합니다." },
         ]}
       />
 
       {clientReady && <section className={styles.workspace}>
-        <form data-moonlit-form="" id="vedic-consultation-form" className={styles.formPanel} onSubmit={(event) => { event.preventDefault(); void handleSubmit(); }}>
-          {!consultation && detectLocale() === "ko" && <CraftedProductDisclosure featureKey="vedic-ai-consultation" />}
+        <form data-moonlit-form="" id="vedic-consultation-form" className={styles.formPanel} onSubmit={(event) => { event.preventDefault(); void (paymentSurface === "toss" ? handleTossSubmit() : handleSubmit()); }}>
+          {paymentSurface !== "toss" && !consultation && detectLocale() === "ko" && <CraftedProductDisclosure featureKey="vedic-ai-consultation" />}
+          {paymentSurface === "toss" && <p>{tossCopy.ai}</p>}
           <div className={`${styles.panelHeader} flex-wrap`}>
             <span className="min-w-0 flex-1"><Star size={18} /> {copy.formPanelHeading}</span>
             <strong>{getCurrentLoadingLocale() === "ko" ? "마스터 윤달" : "Yun-dal"}</strong>
-            <SavedBirthProfilePicker calendarMode="lunar" onSelect={loadFormFromProfileCard} />
+            {paymentSurface === "toss" ? ProfilePicker && <ProfilePicker onSelect={loadFormFromProfileCard} /> : <SavedBirthProfilePicker calendarMode="lunar" onSelect={loadFormFromProfileCard} />}
           </div>
 
           <div className={styles.formGrid}>
@@ -3377,7 +3724,7 @@ export default function VedicAiClient() {
             </label>
             <label>
               <span><Clock3 size={15} /> {copy.birthTimeLabel}</span>
-              <BirthTimeInput  value={form.birthTime} onChange={(event) => updateForm({ birthTime: event.target.value })} disabled={busy || form.birthTimeUnknown} />
+              <BirthTimeInput aria-label={paymentSurface === "toss" ? copy.birthTimeLabel : undefined} value={form.birthTime} onChange={(event) => updateForm({ birthTime: event.target.value })} disabled={busy || form.birthTimeUnknown} />
             </label>
             <label>
               <span><Compass size={15} /> {copy.timezoneLabel}</span>
@@ -3413,9 +3760,9 @@ export default function VedicAiClient() {
                 {geocoding ? copy.geoCheckingLabel : geocode.name ? copy.geoConfirmedLabel(geocode.name.slice(0, 42)) : copy.geoHintLabel}
               </small>
             </label>
-            <CurrentLocationButton disabled={busy||geocoding} onLocation={place=>{
+            <CurrentLocationButton {...(paymentSurface === "toss" ? {locale:normalizeLocale(tossLocale),translation:readingLocationCopy(normalizeLocale(tossLocale))} : {})} disabled={busy||geocoding} onLocation={place=>{
               updateForm({birthPlace:place.name,latitude:String(place.latitude),longitude:String(place.longitude),timezone:place.timezone});
-              setGeocode({lat:String(place.latitude),lng:String(place.longitude),name:place.name,fallback:false});setNotice('확인한 현재 위치를 출생 장소로 적용했어요.');
+              setGeocode({lat:String(place.latitude),lng:String(place.longitude),name:place.name,fallback:false});setNotice(paymentSurface === "toss" ? tossCopy.geoApplied : '확인한 현재 위치를 출생 장소로 적용했어요.');
             }}/>
             <label>
               <span>{copy.focusAreaLabel}</span>
@@ -3434,13 +3781,16 @@ export default function VedicAiClient() {
             <div className={error ? styles.errorBox : styles.noticeBox}>
               {phaseText && <Loader2 className={styles.spin} size={16} />}
               <span>{error || phaseText || notice}</span>
+              {paymentSurface === "toss" && error === tossCopy.login && <a href={"/login/?next="+encodeURIComponent("/vedic-ai/"+(typeof window !== "undefined" ? window.location.search : ""))}>{tossCopy.loginLink}</a>}
             </div>
           )}
 
           <div className="flex items-center justify-end">
-            <PriceBadge featureKey="vedic-ai-consultation" prefix={copy.pricePrefix} />
+            {paymentSurface === "toss" ? TossPrice && <TossPrice /> : <PriceBadge featureKey="vedic-ai-consultation" prefix={copy.pricePrefix} />}
           </div>
-          <button type="submit" className={styles.primaryButton} disabled={busy} aria-busy={busy}>
+          {paymentSurface === "toss" && !consultation && tossRecovery === "allowed" && <button type="button" style={{minHeight:44}} disabled={busy} onClick={()=>void retryTossVedic()}>{tossCopy.resume}</button>}
+          {paymentSurface === "toss" && !consultation && (tossRecovery === "denied" || tossRecovery === "error") && <button type="button" style={{minHeight:44}} disabled={busy} onClick={()=>setResumeEpoch(value=>value+1)}>{tossCopy.retryAuthority}</button>}
+          <button type="submit" className={styles.primaryButton} disabled={busy || (paymentSurface === "toss" && tossRecovery !== "none")} aria-busy={busy}>
             {busy ? <Loader2 className={styles.spin} size={18} /> : <Moon size={18} />}
             {busy ? phaseText : copy.submitButtonIdle}
           </button>
@@ -3457,7 +3807,7 @@ export default function VedicAiClient() {
               <div className={styles.emptyMandala} aria-hidden="true" />
               <h2>{copy.emptyStateHeading}</h2>
               <p>{copy.emptyStateBody}</p>
-              <Link href="/vedic-ai/result/" className={styles.resultListItem}>
+              <Link href={paymentSurface === "toss" ? "/records/" : "/vedic-ai/result/"} className={styles.resultListItem}>
                 <strong>{copy.pastConsultationLink}</strong>
                 <small>{copy.pastConsultationHint}</small>
               </Link>
@@ -3533,7 +3883,7 @@ export default function VedicAiClient() {
         </section>
       </section>}
       {consultation?.status === "completed" && !busy && <RecommendationResult service="vedic-ai-consultation" practiceTags={cleanTopics(consultation.messages.filter(message => message.role === "assistant").flatMap(message => reportAdviceTopics(message.content)))}/>}
-      {clientReady && !consultation && (
+      {paymentSurface !== "toss" && clientReady && !consultation && (
         <ExpertStickyCta
           theme="vedic"
           targetId="vedic-consultation-form"

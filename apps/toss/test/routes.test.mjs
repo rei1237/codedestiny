@@ -8,7 +8,7 @@ const require=createRequire(import.meta.url),Module=require('node:module');
 const calls={profiles:[],prepared:[],followups:0};
 const auth={_id:'identity',ownerId:'owner',userId:'owner',userKey:'123',environment:'SANDBOX'};
 const mocks={
- tarotProducts:[],grants:[],deliveries:0,dailyCalls:[],nativeLove:[],nativeAstrology:[],libraryRows:[],
+ tarotProducts:[],grants:[],deliveries:0,dailyCalls:[],nativeLove:[],nativeAstrology:[],nativeVedic:[],libraryRows:[],
  auth:async()=>auth,profile:async(...args)=>calls.profiles.push(args),
  product:sku=>({productId:sku.includes(':')?sku.split(':')[1]:sku,serviceId:sku.includes(':')?sku.split(':')[0]:'yeongnyangi',sku,approvedPriceKRW:1,approved:true}),
  prepare:async(_env,user,body,options)=>{calls.prepared.push({user,body,options});return {_id:'a'.repeat(64),productId:body.productId,amountKRW:1,snapshot:{manifest:[{id:'part',title:'answer',ordinal:0}]}};},
@@ -20,6 +20,7 @@ const stubMap={
  'worker/toss/letter-library.js':"export const letterLibraryPage=(...args)=>globalThis.__tossRouteMocks.letterList(...args);",
  'worker/toss/native-life-book.js':"export const prepareNativeLifeBook=()=>{};export const handleNativeLifeBook=()=>{};export const nativeLifeBookLibraryItem=()=>{};",
  'worker/toss/native-love-secret.js':"const calls=globalThis.__tossRouteMocks.nativeLove;export const prepareNativeLoveSecret=(...args)=>{calls.push(args);return {id:'offline-intent'};};export const handleNativeLoveSecret=(...args)=>{calls.push(args);return Response.json({ok:true,source:'original-love'});};export const nativeLoveSecretLibraryItem=()=>{};",
+ 'worker/toss/native-vedic.js':"import {TossError} from './policy.js';const state=globalThis.__tossRouteMocks;export const prepareNativeVedic=(...args)=>{state.nativeVedic.push(args);return {id:'offline-intent'};};export const handleNativeVedic=(...args)=>{state.nativeVedic.push(args);if(state.nativeFailure)throw new TossError(state.nativeFailure.code,state.nativeFailure.status);return Response.json({ok:true,source:'original-vedic'});};export const nativeVedicLibraryItem=()=>{};",
  'worker/toss/native-astrology.js':"import {TossError} from './policy.js';const state=globalThis.__tossRouteMocks;export const prepareNativeAstrology=(...args)=>{state.nativeAstrology.push(args);return {id:'offline-intent'};};export const handleNativeAstrology=(...args)=>{state.nativeAstrology.push(args);if(state.nativeFailure)throw new TossError(state.nativeFailure.code,state.nativeFailure.status);return Response.json({ok:true,source:'original-astrology'});};export const nativeAstrologyLibraryItem=()=>{};",
  'worker/toss/native-fusion.js':"import {TossError} from './policy.js';export const prepareNativeFusion=()=>{};export const handleNativeFusion=()=>{const error=globalThis.__tossRouteMocks.nativeFailure;if(error)throw new TossError(error.code,error.status);};export const nativeFusionLibraryItem=()=>{};",
  'worker/toss/native-neo.js':"export const prepareNativeNeo=()=>{};export const handleNativeNeo=()=>{};export const nativeNeoLibraryItem=()=>{};",
@@ -316,3 +317,10 @@ test('letter status only enables when a product passes approval and exact-price 
 test('letter recovery prepares only the explicitly selected order and input',async()=>{let seen;mocks.letterRecover=async(_env,owner,orderId,input)=>{seen={owner,orderId,input};return {ok:true,consultation:{id:'a'.repeat(64)}};};try{const body={orderId:'01900000-1111-7111-8111-000000000001',consultation:{persona:'yeoni',domain:'saju',question:'명시적인 질문'}};const response=await request(body,'/canonical/fortune-chat/consultations/recover');assert.equal(response.status,201);assert.equal(seen.owner,auth);assert.equal(seen.orderId,body.orderId);assert.deepEqual(seen.input,body.consultation);}finally{delete mocks.letterRecover;}});
 
 test('letter recovery GET preserves the selected owner, order and draft',async()=>{const orderId='01900000-1111-7111-8111-000000000001',id='a'.repeat(64),seen=[];mocks.letterOrder=async(_env,owner,order)=>{seen.push({owner,order});return {order:{orderId:order,status:'UNASSIGNED'}};};mocks.letterDraft=async(_env,owner,order,draft)=>{seen.push({owner,order,draft});return {consultation:{id:draft}};};const get=path=>handleTossRoutes(new Request('https://code-destiny.com/api/toss'+path,{headers:{Origin:'https://ai-saju-studio.private-apps.tossmini.com'}}),{TOSS_RELEASE_READY:'true'});try{assert.equal((await get('/canonical/fortune-chat/recovery/'+orderId)).status,200);assert.equal((await get('/canonical/fortune-chat/recovery/'+orderId+'/draft/'+id)).status,200);assert.equal(seen[0].owner,auth);assert.equal(seen[0].order,orderId);assert.equal(seen[1].draft,id);}finally{delete mocks.letterOrder;delete mocks.letterDraft;}});
+
+test('Vedic routes require release and account and preserve denied result access',async()=>{
+ mocks.nativeVedic.length=0;assert.equal((await request({input:{question:'x'}},'/native/vedic/prepare',{})).status,503);assert.equal(mocks.nativeVedic.length,0);
+ mocks.denyAuth=true;try{assert.equal((await request({input:{}},'/native/vedic/prepare')).status,401);}finally{mocks.denyAuth=false;}
+ const prepared=await request({input:{question:'x'}},'/native/vedic/prepare');assert.equal(prepared.status,200);assert.equal(mocks.nativeVedic.at(-1)[1],auth);
+ mocks.nativeFailure={code:'ACCESS_DENIED',status:403};try{const denied=await request({},'/canonical/vedic-ai/start');assert.equal(denied.status,403);assert.equal((await denied.json()).error,'ACCESS_DENIED');}finally{mocks.nativeFailure=null;}
+});

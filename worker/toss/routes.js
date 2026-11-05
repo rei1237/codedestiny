@@ -30,7 +30,7 @@ async function verifyLibraryOrder(env,auth,purchase){
 }
 
 async function readNativeLibraryItem(env,auth,row){
-  return row.nativeService==='astrology'?(await import('./native-astrology.js')).nativeAstrologyLibraryItem(env,auth,row):row.nativeService==='love-secret'?(await import('./native-love-secret.js')).nativeLoveSecretLibraryItem(env,auth,row):row.nativeService==='life-book'?(await import('./native-life-book.js')).nativeLifeBookLibraryItem(env,auth,row):row.nativeService==='fusion'?(await import('./native-fusion.js')).nativeFusionLibraryItem(env,auth,row):row.nativeService==='neo'?(await import('./native-neo.js')).nativeNeoLibraryItem(env,auth,row):(await import('./native-tea.js')).nativeTeaLibraryItem(env,auth,row);
+  return row.nativeService==='vedic'?(await import('./native-vedic.js')).nativeVedicLibraryItem(env,auth,row):row.nativeService==='astrology'?(await import('./native-astrology.js')).nativeAstrologyLibraryItem(env,auth,row):row.nativeService==='love-secret'?(await import('./native-love-secret.js')).nativeLoveSecretLibraryItem(env,auth,row):row.nativeService==='life-book'?(await import('./native-life-book.js')).nativeLifeBookLibraryItem(env,auth,row):row.nativeService==='fusion'?(await import('./native-fusion.js')).nativeFusionLibraryItem(env,auth,row):row.nativeService==='neo'?(await import('./native-neo.js')).nativeNeoLibraryItem(env,auth,row):(await import('./native-tea.js')).nativeTeaLibraryItem(env,auth,row);
 }
 
 async function letterEnabled(){
@@ -191,7 +191,18 @@ export async function handleTossRoutes(request,env) {
       const {handleNativeAstrology}=await import('./native-astrology.js');
       return forwardServiceResponse(await handleNativeAstrology(request,env,auth,path.slice('/canonical/astrology-ai'.length)),headers);
     }
-    const nativeIntent=path.match(/^\/native\/(tea|neo|fusion|life-book|love-secret|astrology)\/intents\/([a-f0-9]{64})$/);
+    if(path==='/native/vedic/prepare'&&request.method==='POST'){
+      await limit(env,auth._id,'native-vedic-prepare',6);
+      const {prepareNativeVedic}=await import('./native-vedic.js');
+      const input=await bodyOf(request);
+      return reply(await prepareNativeVedic(env,auth,input.input,input.orderId));
+    }
+    if(path.startsWith('/canonical/vedic-ai/')&&['GET','POST'].includes(request.method)){
+      if(request.method==='POST')await limit(env,auth._id,'native-vedic',30);
+      const {handleNativeVedic}=await import('./native-vedic.js');
+      return forwardServiceResponse(await handleNativeVedic(request,env,auth,path.slice('/canonical/vedic-ai'.length)),headers);
+    }
+    const nativeIntent=path.match(/^\/native\/(tea|neo|fusion|life-book|love-secret|astrology|vedic)\/intents\/([a-f0-9]{64})$/);
     if(nativeIntent&&request.method==='GET'){
       const {readNativeTeaIntent}=await import('./native-tea.js');
       return reply(await readNativeTeaIntent(env,auth,nativeIntent[2],nativeIntent[1]));

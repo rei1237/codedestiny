@@ -26,6 +26,7 @@ type ExpertHeroProps = {
 type ExpertValueCardsProps = {
   points: ExpertConsultationPoint[];
   theme: ExpertConsultationTheme;
+  ariaLabel?: string;
 };
 
 type ExpertStickyCtaProps = {
@@ -51,9 +52,9 @@ export function ExpertHero({ label, title, description, ctaLabel, targetId, them
   );
 }
 
-export function ExpertValueCards({ points, theme }: ExpertValueCardsProps) {
+export function ExpertValueCards({ points, theme, ariaLabel = "상담에서 확인하는 흐름" }: ExpertValueCardsProps) {
   return (
-    <section className={`${styles.valueSection} ${styles[theme]}`} aria-label="상담에서 확인하는 흐름">
+    <section className={`${styles.valueSection} ${styles[theme]}`} aria-label={ariaLabel}>
       {points.map((point, index) => (
         <article className={styles.valueCard} key={point.title}>
           <span aria-hidden="true">0{index + 1}</span>
