@@ -1,4 +1,4 @@
-import HomeDaily from "@/app/components/HomeDaily";
+import ForestDiaryPanel from "@/app/components/forest/ForestDiaryPanel";
 import DiaryFlowCard from "./_components/DiaryFlowCard";
 import DiaryPlanCard from "./_components/DiaryPlanCard";
 import DiarySelfCard from "./_components/DiarySelfCard";
@@ -13,7 +13,7 @@ import styles from "./_styles/diary.module.css";
 export default function DiaryHomePage() {
   return (
     <>
-      <HomeDaily />
+      <ForestDiaryPanel />
       <details className={styles.moreToday}>
         <summary>오늘의 흐름과 계획 자세히 보기</summary>
         <DiaryFlowCard />

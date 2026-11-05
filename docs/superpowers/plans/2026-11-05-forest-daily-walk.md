@@ -44,7 +44,7 @@
 **Interfaces — Produces:**
 - `litLanternCount(streak, streakEvery, attended) -> number`: 기존 카드 수식과 동일
 - `journeyStepsDone({ attended, questDone, hasRecord }) -> 0..3`
-- `weekForestMap(todayYmd, store, ext) -> [{ ymd, weekday, filled, isToday }]` 길이 7, 월요일 시작
+- `weekForestMap(todayYmd, readEntry, ext) -> [{ ymd, piece, isToday, filled }]` 길이 7, 월요일 시작. `readEntry`는 호출부에서 `(ymd) => readStoredEntry(store, ymd)`로 넘긴다
 - `forestZoneForLevel(level) -> string`
 - `dailyLine(ymd, step) -> { yeoni, yeongnyangi }`
 

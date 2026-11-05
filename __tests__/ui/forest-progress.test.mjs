@@ -77,7 +77,7 @@ test("숲 구역 이름은 레벨이 오를수록 깊어지고 비정상 레벨�
 
 test("대사는 같은 날 같은 걸음이면 같고 말투 규칙을 지킨다", () => {
   assert.deepEqual(dailyLine("2026-11-05", "gate"), dailyLine("2026-11-05", "gate"));
-  for (const step of ["gate", "lantern", "path", "spring", "done"]) {
+  for (const step of ["gate", "lantern", "path", "spring", "map", "done"]) {
     for (let day = 1; day <= 7; day += 1) {
       const line = dailyLine(`2026-11-0${day}`, step);
       assert.ok(line.yeoni.length > 0 && line.yeongnyangi.length > 0);
