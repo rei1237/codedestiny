@@ -1358,7 +1358,8 @@
         "w1000": "₩1,000",
         "from5000": "Dari ₩5,000",
         "w7000": "₩7,000",
-        "from30000": "Dari ₩30,000"
+        "from30000": "Dari ₩30,000",
+        "from15000": "Dari ₩15,000"
       },
       "chip": {
         "love": "Perasaannya · Hubungan cinta saya yang seterusnya",
@@ -1631,7 +1632,7 @@
       "reviewsPosted": "disiarkan di blog",
       "reviewsFine": "Ulasan berdasarkan pengalaman peribadi dan tidak menjamin hasil. Bacaan Saju hanya sebagai rujukan.",
       "offerNote": "Sesi 1:1 dikendalikan sendiri oleh Neo; bacaan ₩5,000 disediakan oleh enjin pengiraan dengan ulasan AI.",
-      "offerCta": "Lihat bacaan Saju ₩5,000 →",
+      "offerCta": "Lihat bacaan Saju ₩10,000 →",
       "expertiseTitle": "Pengiraan ikut peraturan, ulasan oleh AI",
       "expertise": {
         "engine": "Carta kelahiran dibina dengan peraturan pengiraan tetap, dan AI menulis ulasan berdasarkan hasil itu. Jika ulasan menyebut tiang hari atau jam yang berbeza daripada pengiraan, pelayan akan menolaknya.",
@@ -2395,6 +2396,90 @@
       "contact": "Hubungi kami",
       "contactNote": "Maklumkan soalan atau masalah anda.",
       "example": "Contoh hasil bacaan awam"
+    },
+    "webtoonCopy": {
+      "love-secret": {
+        "lead": "Kata yang sama, mengapa hati masih tidak sehaluan?",
+        "benefits": "Cara menyatakan cinta · Mengapa rasa terluka terkumpul · Masa mendekati dan memberi ruang"
+      },
+      "new-year": {
+        "lead": "Sebelum mengulang azam yang sama, lihat arah tahun ini.",
+        "benefits": "Masa bersedia dan bertindak · Keutamaan kerja, wang dan hubungan · Pilihan untuk disemak pada setiap peringkat"
+      },
+      "life-book": {
+        "lead": "Bagaimana jika kisah lalu masih menyimpan sebab yang belum difahami?",
+        "benefits": "Sebab pilihan berulang · Bakat dan kekuatan berkekalan · Aliran hidup besar melalui kitaran Saju"
+      },
+      "neo": {
+        "lead": "Sudah berazam, mengapa masih di tempat yang sama?",
+        "benefits": "Syarat untuk mengubah keadaan · Tindakan yang boleh dibuat sekarang · Ukuran menilai semula rancangan"
+      },
+      "tea": {
+        "lead": "Malam ketika tidak tahu dari mana mahu meluahkan hati.",
+        "benefits": "Susun kebimbangan · Pilih konsultasi yang sesuai · Tindakan dalam kawalan sendiri"
+      },
+      "codex": {
+        "lead": "Orang berbeza, mengapa kisah yang sama berulang?",
+        "benefits": "Corak hubungan berulang · Sebab tarikan dan beban · Tafsiran peribadi atau keserasian"
+      },
+      "ziwei": {
+        "lead": "Sudah berusaha tetapi tersangkut di tempat yang sama?",
+        "benefits": "Perwatakan melalui carta Ziwei · Kekuatan kerja, wang dan hubungan · Pilihan untuk disemak ketika buntu"
+      },
+      "astrology": {
+        "lead": "Apabila perasaan dan tindakan menuju arah berbeza.",
+        "benefits": "Perwatakan dalam langit kelahiran · Perbezaan perasaan dan tindakan · Transit semasa dan kehidupan harian"
+      },
+      "vedic": {
+        "lead": "Apabila terasa seperti melalui musim yang sama lagi.",
+        "benefits": "Perwatakan dalam carta kelahiran · Aliran masa melalui tempoh Dasha · Arah hidup untuk disemak sekarang"
+      },
+      "sukuyo-compat": {
+        "lead": "Mengapa semakin dekat semakin sukar?",
+        "benefits": "Tarikan dan beban antara dua orang · Rentak hubungan berbeza · Persetujuan dan batas untuk diubah bersama"
+      },
+      "legacy-naming": {
+        "lead": "Nama yang lama disebut membawa kasih dan harapan.",
+        "benefits": "Makna dan bunyi nama cadangan · Asas Saju dan pengiraan · Kriteria membandingkan nama"
+      },
+      "karma": {
+        "lead": "Orang dan tempat berubah, tetapi simpulan masih ada.",
+        "benefits": "Simpulan hubungan berulang · Corak pilihan melalui setiap tradisi · Tindakan untuk diubah seterusnya"
+      },
+      "fusion": {
+        "lead": "Sisi kehidupan yang tidak terlihat dari satu pandangan.",
+        "benefits": "Tafsiran berasingan daripada enam tradisi · Aliran bersama dan pandangan berbeza · Arah praktikal mengikut bidang kehidupan"
+      },
+      "read": "Kenali melalui webtoon",
+      "start": "Mulakan konsultasi",
+      "installLabel": "Tambah ke skrin utama",
+      "return": "Kembali dengan satu ketikan",
+      "installDescription": "Buka 꿀꿀 운세 melalui ikon skrin utama.",
+      "expertsTitle": "Kisah anda dari sudut berbeza",
+      "expertsIntro": "Lihat dahulu konsultasi pakar melalui webtoon.",
+      "ziweiName": "Konsultasi Ziwei",
+      "astrologyName": "Konsultasi astrologi Barat",
+      "vedicName": "Konsultasi astrologi Veda",
+      "sukuyoName": "Konsultasi keserasian Sukuyo",
+      "namingName": "Konsultasi penamaan",
+      "karmaName": "Laporan karma dan takdir",
+      "fusionName": "Tafsiran gabungan",
+      "teaName": "Rumah teh takdir",
+      "namingStudio": "Studio penamaan pakar",
+      "installAction": "Tambah ke skrin utama",
+      "neoShort": "Bilik strategi terus terang Neo",
+      "yeoniTea": "Rumah teh takdir",
+      "link": {
+        "codexTitle": "Buku hubungan pembimbing · Kenali melalui webtoon",
+        "teaName": "Rumah teh takdir · Kenali melalui webtoon",
+        "loveTitle": "Wawasan cinta · Kenali melalui webtoon",
+        "neoShort": "Bilik strategi terus terang Neo · Kenali melalui webtoon",
+        "namingStudio": "Studio penamaan pakar · Kenali melalui webtoon",
+        "yeoniTea": "Rumah teh takdir · Kenali melalui webtoon",
+        "lifeTitle": "Buku kehidupan · Kenali melalui webtoon",
+        "yearTitle": "Tafsiran tahun baharu · Kenali melalui webtoon",
+        "neoRoomTitle": "Bilik strategi terus terang Neo · Kenali melalui webtoon"
+      }
     }
   },
   "terms": {

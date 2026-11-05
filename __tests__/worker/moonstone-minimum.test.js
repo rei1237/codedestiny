@@ -17,7 +17,7 @@ test('every subminimum catalog item excludes full moonstone payment', () => {
 });
 test('a forged price cannot reach debit or create proof for a cheap product', async () => {
   const db = makeFakePaymentDb();
-  const product = resolveProduct({featureKey:'yeongnyangi-saju-mackerel'});
+  const product = resolveProduct({featureKey:'fortune-chat-consultation'});
   let debits = 0;
   await expect(spendMoonstone(db, {userId:'507f1f77bcf86cd799439011', product:{...product,priceKRW:10000}, purchaseId:'blocked'},
     {consumeLots:async()=>{debits++;return {ok:true};}})).rejects.toMatchObject({code:'MONTHLY_NOT_ALLOWED'});
@@ -30,7 +30,7 @@ test.each(['/coin-gate/moonstone','/moonstone/spend','/prepare'])('direct API %s
   const {signAuthToken}=await import('../../worker/lib/auth.js');
   const env={JWT_ACCESS_SECRET:'fixture-secret-not-real-0123456789'};
   const token=await signAuthToken({_id:'507f1f77bcf86cd799439011',email:'test@example.invalid',role:'user'},env);
-  const product=resolveProduct({featureKey:'yeongnyangi-saju-mackerel'});
+  const product=resolveProduct({featureKey:'fortune-chat-consultation'});
   const db=makeFakePaymentDb();
   const originalFetch=globalThis.fetch;
   let providerCalls=0;
@@ -40,7 +40,7 @@ test.each(['/coin-gate/moonstone','/moonstone/spend','/prepare'])('direct API %s
     const response=await handlePaymentsContext(request,env,{prefix:'/api/payments',withDb:(_e,_c,fn)=>fn(db)});
     expect([400,402]).toContain(response.status);
     const payload=await response.json();
-    expect(payload.code || payload.error?.code).toBe(path==='/prepare'?'INVALID_REQUEST':path==='/moonstone/spend'?'MONTHLY_NOT_ALLOWED':'FAMILY_OR_DIRECT_PAYMENT_REQUIRED');
+    expect(payload.code || payload.error?.code).toBe(path==='/prepare'?'INVALID_REQUEST':'MONTHLY_NOT_ALLOWED');
     expect(db.rows).toHaveLength(0);
     expect(providerCalls).toBe(0);
   } finally {globalThis.fetch=originalFetch;}
@@ -48,7 +48,7 @@ test.each(['/coin-gate/moonstone','/moonstone/spend','/prepare'])('direct API %s
 
 
 test('a completed cheap purchase remains replayable without another debit', async () => {
-  const db=makeFakePaymentDb(),product=resolveProduct({featureKey:'yeongnyangi-saju-mackerel'});
+  const db=makeFakePaymentDb(),product=resolveProduct({featureKey:'fortune-chat-consultation'});
   db.rows.push({_id:'507f1f77bcf86cd799439022',userId:'507f1f77bcf86cd799439011',type:'MONTHLY_CREDIT_SPEND',sourceId:'legacy-paid',serviceKey:product.featureKey,amount:product.monthlyCost,profileId:'',settledAt:new Date(),afterBalance:700});
   let debits=0;
   const result=await spendMoonstone(db,{userId:'507f1f77bcf86cd799439011',product,purchaseId:'legacy-paid'},{consumeLots:async()=>{debits++;}});
@@ -56,7 +56,7 @@ test('a completed cheap purchase remains replayable without another debit', asyn
 });
 
 test('the 10000 KRW consultation supports both full and partial moonstone payment', () => {
-  const product=resolveProduct({featureKey:'yeongnyangi-saju-salmon'});
+  const product=resolveProduct({featureKey:'yeongnyangi-saju-mackerel'});
   expect(product.priceKRW).toBe(10000);expect(product.monthlyExcluded).toBe(false);
   expect(product.allowedPaymentMethods).toContain('MOONLIGHT_STONE');
   expect(quoteYeongnyangiMoonstoneDiscount(product.featureKey,100)).toMatchObject({discountKRW:1000,payableKRW:9000});

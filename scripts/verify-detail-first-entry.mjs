@@ -31,9 +31,12 @@ try {
   for (const width of [360, 390, 430, 1280]) {
     const context = await browser.newContext({ viewport: { width, height: 900 },
       isMobile: width < 500, hasTouch: width < 500, reducedMotion: 'reduce', serviceWorkers: 'block' });
-    // This verifier owns the paid-card detail flow. Keep the independent home
-    // consultation popup from intercepting the cards under test.
-    await context.addInitScript(() => sessionStorage.setItem('cd_signature_consult_session_closed_v1', '1'));
+    // Exercise paid-card details as a returning guest. Independent onboarding
+    // overlays must not race card clicks or reopen during Back navigation.
+    await context.addInitScript(() => {
+      sessionStorage.setItem('cd_signature_consult_session_closed_v1', '1');
+      localStorage.setItem('cd:first-visit:v1:ggulggul:guest', JSON.stringify({ status: 'dismissed', step: 0 }));
+    });
     const paid = [], errors = [];
     await context.route('**/*', async route => {
       const url = new URL(route.request().url());
@@ -55,7 +58,8 @@ try {
     await page.goto(base + '/ggulggul/', { waitUntil: 'domcontentloaded', timeout: 120000 });
     // 대표 상담은 접힘 목록에서 가로 탐색으로 바뀌었다. 실제 카드와 탐색 영역을 검증한다.
     await expect(page.locator('.cd-sig__viewport')).toBeVisible();
-    await expect(page.locator('#cdSigGrid > a[data-cd-service-id][data-pvw-paid]')).toHaveCount(6);
+    await expect(page.locator('#cdSigGrid > .cd-story-entry > a[data-cd-service-id][data-pvw-paid]')).toHaveCount(6);
+    await expect(page.locator('#cdSigGrid > .cd-story-entry > a.cd-story-entry__link[href^="/consultations/"]')).toHaveCount(6);
     const cards = page.locator('a[data-cd-service-id][data-pvw-paid]');
     const count = await cards.count();
     assert.ok(count >= 4);
@@ -78,13 +82,13 @@ try {
       // off-screen cards are inert by design and cannot receive restored focus.
       const signatureIndex = await card.evaluate(element => {
         const grid = element.closest('#cdSigGrid');
-        return grid ? Array.from(grid.children).indexOf(element) : -1;
+        return grid ? Array.from(grid.querySelectorAll('.cd-sig-card')).indexOf(element) : -1;
       });
       if (signatureIndex >= 0) {
         const dots = page.locator('[data-sig-dots] [data-sig-slide]');
         const lastDotIndex = Math.max(0, (await dots.count()) - 1);
         await dots.nth(Math.min(signatureIndex, lastDotIndex)).click();
-        await expect.poll(() => card.evaluate(element => !element.inert)).toBe(true);
+        await expect.poll(() => card.evaluate(element => !element.closest('[inert]'))).toBe(true);
       }
       await card.scrollIntoViewIfNeeded();
       await card.click();

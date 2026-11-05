@@ -7,7 +7,7 @@ import styles from '../yeongnyangi.module.css';
 
 export function OrderReference({id,locale}:{id:string;locale?:ReadingLocale}){
  const [notice,setNotice]=useState('');const copy=journeyCopy(locale);
- return <details className={styles.orderTools} lang={locale||'ko'}><summary>{copy.order}</summary>
+ return <details className={styles.orderTools} open lang={locale||'ko'}><summary>{copy.order}</summary>
   <p className={styles.orderId}>{copy.order}: <span>{id}</span></p>
   <button type="button" onClick={async()=>{try{await navigator.clipboard.writeText(id);setNotice(copy.copied);}catch{setNotice(copy.copyFailed);}}}>{copy.copy}</button>
   {notice&&<p role="status">{notice}</p>}
