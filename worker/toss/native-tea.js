@@ -1,6 +1,6 @@
 import {withMongoRetry} from "../lib/db.js";
 import {TossNativeConsultation,TossPurchase,TossIdentity} from './models.js';
-import {APPROVED_TOSS_NATIVE_PRODUCTS} from './catalog.js';
+import {APPROVED_TOSS_NATIVE_PRODUCTS,assertUniqueApprovedSaleSkus} from './catalog.js';
 import {hash,unseal} from './crypto.js';
 import {TossError} from './policy.js';
 import {lookupOrder} from './partner.js';
@@ -22,6 +22,7 @@ export function approvedNativeTeaProduct(sku){
   return nativeProduct(item,{featureKey:item?.featureKey,pricing:pricing.pricing||{}});
 }
 export function nativeTeaCatalog(){
+  assertUniqueApprovedSaleSkus();
   return APPROVED_TOSS_NATIVE_PRODUCTS.map(item=>{
     const product=approvedNativeTeaProduct(item.sku);
     return {id:product.productId,name:product.nativeService==='love-secret'?'연애 비책':product.nativeService==='life-book'?(product.featureKey==='life-fortune-ai-consultation'?'인생 총운':'인생의 책'):product.nativeService==='fusion'?'초융합 운세':product.nativeService==='neo'?'네오의 팩폭 전략실':'운명의 찻집',sku:product.sku,featureKey:product.featureKey,
@@ -42,8 +43,12 @@ export async function prepareNativeConsultation(env,auth,input,orderId,contract,
   if(recovered?.requestId&&recovered.requestId!==id)throw new TossError('ORDER_ALREADY_ASSIGNED',409);
   if(previous){
     assertNativeIntent(previous,auth,contract);
-    if(!orderId||previous.status==='paid')return view(previous);
+    if(!orderId||previous.status==='paid'){
+      if(previous.status!=='paid')assertUniqueApprovedSaleSkus();
+      return view(previous);
+    }
   }
+  if(!recovered)assertUniqueApprovedSaleSkus();
   const product=recovered?retainedNativeProduct(recovered,auth):nativeProduct(APPROVED_TOSS_NATIVE_PRODUCTS.find(item=>item.nativeService===service&&item.featureKey===contract.featureKey),contract);
   if(product.featureKey!==contract.featureKey)throw new TossError('ORDER_PRODUCT_MISMATCH',409);
   const saved=await TossNativeConsultation.findOneAndUpdate({_id:id},{$setOnInsert:{

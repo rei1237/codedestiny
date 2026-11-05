@@ -1,6 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {approvedProduct,APPROVED_TOSS_PRODUCTS} from '../../../worker/toss/catalog.js';
+import {approvedProduct,assertUniqueApprovedSaleSkus,APPROVED_TOSS_PRODUCTS} from '../../../worker/toss/catalog.js';
+test('approved sale SKUs are valid and unique across consultation, tarot and native registries',()=>{
+ const row=sku=>({sku,approved:true});
+ assert.doesNotThrow(()=>assertUniqueApprovedSaleSkus([[row('consult')],[row('tarot')],[row('native')]]));
+ for(const registries of [[[row('same')],[row('same')],[]],[[row('same')],[],[row('same')]], [[],[row('same')],[row('same')]],[[row(' ')]],[[row(' bad')]],[[row(undefined)]]]) {
+  assert.throws(()=>assertUniqueApprovedSaleSkus(registries),e=>e.code==='TOSS_PRODUCT_NOT_APPROVED'&&e.status===503);
+ }
+ assert.doesNotThrow(()=>assertUniqueApprovedSaleSkus([[row('same')],[{sku:'same',approved:false}],[]]));
+});
 test('no production SKU is invented while external approvals are pending',()=>assert.equal(APPROVED_TOSS_PRODUCTS.length,0));
 test('ambiguous or malformed approved SKU cannot grant either product',()=>{
  const item={productId:'saju_mackerel',sku:'same-sku',approved:true,approvedPriceKRW:3000,priceEvidence:'offline fixture'};

@@ -27,7 +27,7 @@ const stubs={
   'worker/lib/db.js':'export const withMongoRetry=async(e,f)=>f();',
   'worker/toss/native-fusion.js':'export const nativeFusionLibraryItem=()=>{throw Error("FUSION_OUTSIDE_TEST")};',
   'worker/toss/models.js':'export const {TossNativeConsultation,TossPurchase,TossIdentity}=globalThis.__nativeNeoBoundary.models;',
-  'worker/toss/catalog.js':'export const APPROVED_TOSS_NATIVE_PRODUCTS=globalThis.__nativeNeoBoundary.catalog;',
+  'worker/toss/catalog.js':'export const assertUniqueApprovedSaleSkus=()=>{};export const APPROVED_TOSS_NATIVE_PRODUCTS=globalThis.__nativeNeoBoundary.catalog;',
   'worker/toss/partner.js':'export const lookupOrder=async()=>{globalThis.__nativeNeoBoundary.lookups++;return globalThis.__nativeNeoBoundary.order;};',
   'worker/toss/purchases.js':'export const purchaseStore={};export const recordTossRefund=async()=>{globalThis.__nativeNeoBoundary.refunds++;};',
   'worker/lib/billing-feature-registry.js':'export const getBillingFeaturePricing=()=>({pricing:{amountKRW:6000}});',

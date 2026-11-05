@@ -2,7 +2,7 @@ import {questionConversation} from '../yeongnyangi/question-followup.ts';
 import {checkOrder,TossError,requireTossOrigin,verifiedUserKey,analyticsEvent} from './policy.js';
 import {callbackAuthorized,identityId,hash} from './crypto.js';
 import {createTossSession,requireTossSession,invalidateIdentity,disconnectIdentity} from './session.js';
-import {APPROVED_TOSS_PRODUCTS,APPROVED_TOSS_TAROT_LIBRARY_PRODUCTS,APPROVED_TOSS_NATIVE_PRODUCTS,approvedProduct} from './catalog.js';
+import {APPROVED_TOSS_PRODUCTS,APPROVED_TOSS_TAROT_LIBRARY_PRODUCTS,APPROVED_TOSS_NATIVE_PRODUCTS,approvedProduct,assertUniqueApprovedSaleSkus} from './catalog.js';
 import {TossPurchase,TossSession} from './models.js';
 import {lookupOrder} from './partner.js';
 import {grantVerifiedOrder} from './grant.js';
@@ -69,6 +69,7 @@ export async function handleTossRoutes(request,env) {
     headers['Access-Control-Allow-Origin']=requireTossOrigin(request.headers.get('Origin'));
     if(request.method==='OPTIONS')return new Response(null,{status:204,headers:{...headers,
       'Access-Control-Allow-Methods':'GET, POST, OPTIONS','Access-Control-Allow-Headers':'Authorization, Content-Type'}});
+    if((path==='/catalog'||path==='/tarot-library/catalog')&&request.method==='GET')assertUniqueApprovedSaleSkus();
     if(path==='/catalog'&&request.method==='GET')return reply({products:APPROVED_TOSS_PRODUCTS.map(item=>{
       const approved=approvedProduct(item.sku),product=resolveStoredProduct(approved.productId),service=consultationService(approved);
       return {id:consultationSelection(approved),productId:product.id,serviceId:service.id,name:`${service.name} ${product.name} ${product.fishName} 상담`,sku:item.sku,approvedPriceKRW:item.approvedPriceKRW,
@@ -95,6 +96,7 @@ export async function handleTossRoutes(request,env) {
       return reply({...await letterLibraryPage(rows,id=>readRequest(env,auth.userId,id),row=>verifyLibraryOrder(env,auth,row)),enabled:await letterEnabled()});
     }
     if(path==='/canonical/fortune-chat/consultations'&&request.method==='POST'){
+      assertUniqueApprovedSaleSkus();
       await limit(env,auth._id,'letter-prepare',6);
       return reply(await (await import('./letter.js')).prepareTossLetter(env,auth,await bodyOf(request)),201);
     }
@@ -254,6 +256,7 @@ export async function handleTossRoutes(request,env) {
       return reply(await matchTossFlowers(await bodyOf(request),env,domains));
     }
     if(path==='/prepare'&&request.method==='POST') {
+      assertUniqueApprovedSaleSkus();
       await limit(env,auth._id,'prepare',6);
       const input=await bodyOf(request),product=approvedProduct(input.sku);
       const {validatePreparation}=await import('./preparation.js');
@@ -293,6 +296,7 @@ export async function handleTossRoutes(request,env) {
     if((path==='/orders/grant'||path==='/orders/restore')&&request.method==='POST') {
       const input=await bodyOf(request);
       const stored=await TossPurchase.findOne({_id:input.orderId,identityId:auth._id,ownerId:auth.ownerId,environment:auth.environment}).lean();
+      if(!stored)assertUniqueApprovedSaleSkus();
       // A durable purchase keeps its original product and price after a sale ends.
       const tarotProduct=path==='/orders/restore'&&(stored?(stored.tarotFlowId?{...stored,kind:'tarot-library',approved:true}:null):APPROVED_TOSS_TAROT_LIBRARY_PRODUCTS.find(item=>item.sku===input.sku));
       const native=stored?!!stored.nativeService:APPROVED_TOSS_NATIVE_PRODUCTS.some(item=>item.sku===input.sku);
@@ -311,8 +315,12 @@ export async function handleTossRoutes(request,env) {
         enqueue:async id=>enqueueConsultation(env,await readRequest(env,auth.userId,id))}));
     }
     if(path==='/tarot-library/orders/grant'&&request.method==='POST') {
-      const input=await bodyOf(request),product=tarotLibraryProduct(APPROVED_TOSS_TAROT_LIBRARY_PRODUCTS.find(item=>item.sku===input.sku));
+      const input=await bodyOf(request);
+      const stored=await TossPurchase.findOne({_id:input.orderId,identityId:auth._id,ownerId:auth.ownerId,environment:auth.environment}).lean();
+      if(!stored)assertUniqueApprovedSaleSkus();
+      const product=tarotLibraryProduct(stored?.tarotFlowId?{...stored,kind:'tarot-library',approved:true}:APPROVED_TOSS_TAROT_LIBRARY_PRODUCTS.find(item=>item.sku===input.sku));
       const order=await lookupOrder(env,auth.userKey,input.orderId);
+      if(order.orderId!==input.orderId||order.sku!==input.sku)throw new TossError('ORDER_MISMATCH',403);
       if(order.status==='REFUNDED'){await recordTossRefund(auth,order);throw new TossError('ORDER_REFUNDED',409);}
       const receipt=await grantTarotLibraryOrder({store:purchaseStore,auth,order,product,input:input.input});
       return reply(receipt);

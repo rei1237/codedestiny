@@ -28,7 +28,7 @@ const stubMap={
  'worker/yeongnyangi/fortune/question-sky.ts':"export const resolveCurrentLocation=x=>({latitude:x.latitude,longitude:x.longitude,timezone:'Asia/Seoul'});",
  'worker/yeongnyangi/retry.js':"export const retryFortune=(...args)=>globalThis.__tossRouteMocks.retry(...args);",
  'worker/toss/session.js':"import {TossError} from './policy.js';export const requireTossSession=async()=>{if(globalThis.__tossRouteMocks.denyAuth)throw new TossError('LOGIN_REQUIRED',401);return globalThis.__tossRouteMocks.auth();};export const createTossSession=()=>{};export const invalidateIdentity=()=>{};export const disconnectIdentity=()=>{};",
- 'worker/toss/catalog.js':"export const APPROVED_TOSS_PRODUCTS=[];export const APPROVED_TOSS_NATIVE_PRODUCTS=[];export const APPROVED_TOSS_TAROT_LIBRARY_PRODUCTS=globalThis.__tossRouteMocks.tarotProducts;export const approvedProduct=(...args)=>globalThis.__tossRouteMocks.product(...args);",
+ 'worker/toss/catalog.js':"import {TossError} from './policy.js';export const APPROVED_TOSS_PRODUCTS=[];export const assertUniqueApprovedSaleSkus=()=>{if(globalThis.__tossRouteMocks.skuConflict)throw new TossError('TOSS_PRODUCT_NOT_APPROVED',503);};export const APPROVED_TOSS_NATIVE_PRODUCTS=[];export const APPROVED_TOSS_TAROT_LIBRARY_PRODUCTS=globalThis.__tossRouteMocks.tarotProducts;export const approvedProduct=(...args)=>globalThis.__tossRouteMocks.product(...args);",
  'worker/toss/models.js':"export const TossPurchase={findOne:(...args)=>globalThis.__tossRouteMocks.purchase(...args),find:()=>({sort:()=>({limit:()=>({lean:async()=>globalThis.__tossRouteMocks.libraryRows})})})};export const TossSession={};",
  'worker/toss/partner.js':"export const lookupOrder=(...args)=>globalThis.__tossRouteMocks.lookupOrder(...args);",
  'worker/toss/tarot-library.js':"export const tarotLibraryProduct=x=>x;export const tarotLibraryFlow=()=>{};export const tarotLibraryResult=()=>{};export const attachTarotLibraryInput=()=>{};export const grantTarotLibraryOrder=async args=>{globalThis.__tossRouteMocks.grants.push(args);return {orderId:args.order.orderId,durable:true,entitlement:'granted'};};export const deliverTarotLibraryOrder=()=>{globalThis.__tossRouteMocks.deliveries++;throw Error('grant must never generate')};",
@@ -56,6 +56,24 @@ async function request(body,path='/prepare',env={TOSS_RELEASE_READY:'true'}){
  return handleTossRoutes(new Request('https://code-destiny.com/api/toss'+path,{method:'POST',headers:{Origin:'https://ai-saju-studio.private-apps.tossmini.com','Content-Type':'application/json'},body:JSON.stringify(body)}),env);
 }
 test('release gate prevents any profile or prepared row write',async()=>{const r=await request(input(),'/prepare',{});assert.equal(r.status,503);assert.equal(calls.profiles.length,0);assert.equal(calls.prepared.length,0);});
+
+test('conflicting sale SKUs block new orders but do not block an already stored tarot order',async()=>{
+ const orderId='01900000-1111-7111-8111-000000000042',sku='old-sku';
+ mocks.skuConflict=true;mocks.grants.length=0;
+ mocks.purchase=()=>({lean:async()=>null});
+ try{
+  assert.equal((await request(input(),'/prepare')).status,503);
+  assert.equal(calls.profiles.length,0);assert.equal(calls.prepared.length,0);
+  assert.equal((await request({orderId,sku},'/orders/restore')).status,503);
+  assert.equal((await request({orderId,sku},'/tarot-library/orders/grant')).status,503);
+  mocks.purchase=()=>({lean:async()=>({sku,tarotFlowId:'tarot-mindscan',productId:'old-product'})});
+  mocks.lookupOrder=async()=>({orderId,sku,status:'PURCHASED'});
+  assert.equal((await request({orderId,sku},'/tarot-library/orders/grant')).status,200);
+  assert.equal(mocks.grants.at(-1).product.sku,sku);
+  mocks.lookupOrder=async()=>({orderId:'different-order',sku,status:'PURCHASED'});
+  assert.equal((await request({orderId,sku},'/tarot-library/orders/grant')).status,403);
+ }finally{mocks.skuConflict=false;mocks.purchase=()=>({lean:async()=>null});}
+});
 
 test('Fusion preflight authority errors retain retryability through the outer Toss router',async()=>{
  try{
