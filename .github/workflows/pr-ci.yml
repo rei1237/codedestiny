@@ -84,6 +84,7 @@ jobs:
             !*.gif
             !*.mp3
             !*.mp4
+            /docs/design/character-references/yeoni-profile-v1.png
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
