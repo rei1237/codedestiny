@@ -77,7 +77,7 @@ const FAQS=[
  {question:'입력한 생년월일과 질문은 어떻게 쓰이나요?',answer:'입력한 출생정보와 질문은 상담을 계산하고 결과를 기록해 다시 보여 주는 데 쓰여요. 보관과 처리 방식은 개인정보 처리방침에서 확인할 수 있어요.'},
 ];
 
-const TITLE=`천원 운세·천원사주 안내 | ${SAJU_BUNDLE_LABEL} ${BUNDLE_PRICE}`;
+const TITLE=`옛 천원 운세 | ${SAJU_BUNDLE_LABEL} ${BUNDLE_PRICE}`;
 const DESCRIPTION=`매력 클래스·인생 스킬 트리 등 천원 운세 사주 리포트 ${FUN.length}종은 ${SAJU_BUNDLE_LABEL}(${BUNDLE_PRICE})에 들어 있어요. 영냥이 고등어 상담(${PRICE}) 가격도 확인하세요.`;
 const OG_TITLE=TITLE;
 
@@ -107,7 +107,7 @@ export default function Page(){
   <section className={styles.intro}>
    <div>
     <p className={styles.kicker}>꿀꿀 운세 · 사주 리포트</p>
-    <h1><span className={styles.h1Line}>천원 운세·천원사주,</span> <span className={styles.h1Line}>{SAJU_BUNDLE_LABEL}</span></h1>
+    <h1><span className={styles.h1Line}>옛 천원 운세 리포트,</span> <span className={styles.h1Line}>{SAJU_BUNDLE_LABEL}</span></h1>
     <p>천원 운세로 알려졌던 나의 매력 클래스, 인생 스킬 트리, 달빛 럭키 리추얼은 이제 따로 팔지 않고 {SAJU_BUNDLE_LABEL}({BUNDLE_PRICE}) 한 번으로 열어요. 무료 만세력으로 원국을 먼저 보고, 마음에 들면 이어서 열어 보세요. 이미 구매하신 리포트는 그대로 계속 열려요.</p>
     <p>한 가지 고민을 근거와 함께 길게 읽고 싶다면 영냥이 고등어 상담({PRICE})이 맞아요. 새 질문으로 시작하는 사주 고등어 상담은 {EXPANDED_CHAPTERS.mackerel}개 챕터에서 내 기질과 고민의 흐름을 읽고, 왜 그렇게 해석했는지와 생활 속에서 해볼 행동을 함께 살펴요.</p>
     <p className={styles.actions} data-cd-cross-sell="thousand_won_intro"><a className={styles.primary} href="#fun">{SAJU_BUNDLE_LABEL} 보기</a><a href={QUESTION_HREF}>{PRICE} 사주에 내 질문 남기기</a></p>

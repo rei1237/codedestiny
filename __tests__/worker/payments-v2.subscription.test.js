@@ -141,7 +141,7 @@ describe("prepare — 구 계약 승계", () => {
       tier: "standard", planId: "standard_1m", durationMonths: 1, durationDays: 30,
       productType: "membership_pass", recurring: false,
     });
-    expect(order.profileLimit).toBeGreaterThan(0);
+    expect(order.profileLimit).toBe(0);
   });
 
   test("같은 멱등키 재호출은 같은 주문, 다른 키는 새 주문", async () => {

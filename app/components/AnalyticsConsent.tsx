@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
+import { savedAnalyticsConsent } from "../_lib/analytics-consent";
 import styles from "./AnalyticsConsent.module.css";
 
 type Choice = "accepted" | "essential";
@@ -10,14 +11,6 @@ type ConsentWindow = Window & {
   cdSyncConsent?: () => void;
   __cdAppContext?: { isApp?: () => boolean };
 };
-
-function savedChoice(): string {
-  try {
-    const match = document.cookie.match(/(?:^|;\s*)cd_cookie_consent=([^;]*)/);
-    const value = match ? decodeURIComponent(match[1]) : "";
-    return value === "accepted" || value === "essential" ? value : "";
-  } catch { return ""; }
-}
 
 /** Same host cookie and values as the static shell; never select on behalf of a visitor. */
 export default function AnalyticsConsent() {
@@ -39,7 +32,7 @@ export default function AnalyticsConsent() {
     // Preserve the native-app consent policy. This banner is for web visitors.
     if ((window as ConsentWindow).__cdAppContext?.isApp?.()) return;
     setReady(true);
-    setOpen(!excluded && !savedChoice());
+    setOpen(!excluded && !savedAnalyticsConsent());
   }, [pathname, excluded]);
 
   // Reopening lives in the footers ("쿠키 설정", data-cd-cookie-settings), not a floating pill that covered sticky CTAs.
@@ -63,7 +56,7 @@ export default function AnalyticsConsent() {
   function choose(value: Choice) {
     try {
       document.cookie = `cd_cookie_consent=${value}; path=/; max-age=15552000; SameSite=Lax${location.protocol === "https:" ? "; Secure" : ""}`;
-      if (savedChoice() !== value) { setError(true); return; }
+      if (savedAnalyticsConsent() !== value) { setError(true); return; }
       // Mirror the shell's existing preference key; analytics reads the cookie.
       try { window.localStorage.setItem("cd_cookie_consent", value); } catch { /* Cookie remains authoritative. */ }
       document.documentElement.setAttribute("data-cd-cookie-consent", value);

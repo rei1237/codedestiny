@@ -34,7 +34,18 @@ const popupOpen = (window) => {
 };
 const ticket = (ageMs) => JSON.stringify({ at: Date.now() - ageMs, merchantUid: ORDER, confirmBody: { merchantUid: ORDER } });
 
-test.afterEach(() => { while (open.length) open.pop().close(); });
+test.afterEach(() => { while (open.length) {
+  const window = open.pop();
+  window.dispatchEvent(new window.Event("pagehide"));
+  window.close();
+} });
+
+test("사주 입력 폼을 사용하는 동안에는 상담 팝업이 열리지 않는다", async () => {
+  const window = boot({ url: "https://code-destiny.com/ggulggul/?action=cdOneStepFreeSajuEntry" });
+  assert.equal(window.document.documentElement.classList.contains("cdh-input-open"), true);
+  await settled();
+  assert.equal(popupOpen(window), false);
+});
 
 test("일반 홈 방문은 팝업이 그대로 열린다", async () => {
   const window = boot({ url: "https://code-destiny.com/ggulggul/?utm_source=qa" });

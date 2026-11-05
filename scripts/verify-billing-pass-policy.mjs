@@ -170,9 +170,9 @@ const standard30 = decision({
 assert.equal(PASS_LIMITS_KRW[PASS_TIERS.STANDARD], 5000, "standard pass limit is 5,000 KRW");
 assert.equal(PASS_LIMITS_KRW[PASS_TIERS.PREMIUM], 10000, "premium pass limit is 10,000 KRW");
 assert.equal(PASS_LIMITS_KRW[PASS_TIERS.VVIP], 20000, "vvip pass limit is 20,000 KRW");
-assert.equal(HONEY_PASS_POLICY.standard.maxProfiles, 3, "standard profile limit comes from shared policy");
-assert.equal(HONEY_PASS_POLICY.premium.maxProfiles, 7, "premium profile limit comes from shared policy");
-assert.equal(HONEY_PASS_POLICY.vvip.maxProfiles, 15, "vvip profile limit comes from shared policy");
+assert.equal(HONEY_PASS_POLICY.standard.maxProfiles, 0, "standard leaves profiles uncapped");
+assert.equal(HONEY_PASS_POLICY.premium.maxProfiles, 0, "premium leaves profiles uncapped");
+assert.equal(HONEY_PASS_POLICY.vvip.maxProfiles, 0, "vvip leaves profiles uncapped");
 assert.equal(HONEY_PASS_POLICY.family.maxProfiles, 0, "family profile limit remains unlimited");
 assert.equal(canUseByPass(activePass(PASS_TIERS.STANDARD), 30), true, "standard covers 30 coins");
 assert.equal(standard30.amountKRW, 3000, "standard 30 amountKRW");

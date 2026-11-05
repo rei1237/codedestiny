@@ -1,4 +1,36 @@
 {
+  "saju": {
+    "bundle": {
+      "inlineTitle": "Explore your Four Pillars in more detail",
+      "lottoSavedTitle": "Saved Moonlight Lucky Ritual reports",
+      "lottoSavedDesc": "Reopen reports you purchased and saved on this device.",
+      "lottoSavedOpen": "Open report",
+      "title": "Full Four Pillars reading bundle",
+      "once": "One payment for permanent access",
+      "inlineCta": "View the bundle",
+      "inlineDesc": "Explore your birth chart, ten-year cycles, daily reading and more in one bundle.",
+      "close": "Close",
+      "pay": "Open with a one-time payment",
+      "saveProfile": "Save this birth profile",
+      "saveProfileHint": "Save your birth details to link the bundle to this chart.",
+      "saveProfileUnavailable": "Save your birth details on the profile screen.",
+      "already": "You already own this bundle.",
+      "own": "Reopen readings for the same birth details without paying again. Separately generated consultations and compatibility sessions are sold individually.",
+      "sample": "Example · You may seem calm, yet take time to gather evidence before a decision. The chapters explore when that care helps and when it holds you back.",
+      "item": [
+        "Birth chart: day pillar, Ten Gods, seasonal balance and strength",
+        "Basic reading and ten-year cycles",
+        "Chart-based compatibility overview",
+        "Quantum reading, personal charm and skill tree",
+        "Wellbeing, energy and difficult relationship patterns",
+        "Daily and monthly readings, letters and celebrity matches",
+        "Lucky numbers and the Moonlight Lucky Ritual report",
+        "Thinking style, Teto/Egen details, four-panel reading and dopamine report",
+        "Mind map with Human Design interpretation",
+        "Work style, animal archetype and Secret House entry"
+      ]
+    }
+  },
   "_comment": "Code Destiny — English premium localization (en.json)",
   "_version": "1.0.0",
   "brand": {
@@ -909,7 +941,7 @@
       "eyebrow": "Moonlight Pass",
       "savingsBadge": "Up to one-third the price with a pass",
       "title": "Three KRW 5,000 readings already cost more than the KRW 14,900 pass",
-      "desc": "Readings inside the range you pick open until you use up your usage limit; only pricier readings are paid one by one when you need them. The four ranges are KRW 5,000 · 10,000 · 20,000 · all pass-eligible content, so pick the price you look at most.",
+      "desc": "Readings inside the range you pick open until you use up your usage limit; only pricier readings are paid one by one when you need them. The four ranges are KRW 5,000 · 10,000 · 30,000 · all pass-eligible content, so pick the price you look at most.",
       "pointsAria": "Core pass guide",
       "point1": "Opens right away, no checkout",
       "point2": "No time limit · No auto-renewal",

@@ -1,4 +1,36 @@
 {
+  "saju": {
+    "bundle": {
+      "inlineTitle": "Deine Vier Säulen genauer verstehen",
+      "lottoSavedTitle": "Gespeicherte Mondlicht-Glücksrituale",
+      "lottoSavedDesc": "Hier kannst du gekaufte und auf diesem Gerät gespeicherte Berichte erneut lesen.",
+      "lottoSavedOpen": "Bericht öffnen",
+      "title": "Vollständige Vier-Säulen-Deutung",
+      "once": "Einmal kaufen und dauerhaft lesen",
+      "inlineCta": "Inhalte ansehen",
+      "inlineDesc": "Entdecke dein Geburtsbild, deine Zehnjahreszyklen, Tagesdeutungen und weitere Inhalte.",
+      "close": "Schließen",
+      "pay": "Per Einmalkauf öffnen",
+      "saveProfile": "Geburtsprofil speichern",
+      "saveProfileHint": "Speichere deine Geburtsdaten, um das Paket mit diesem Geburtsbild zu verknüpfen.",
+      "saveProfileUnavailable": "Speichere deine Geburtsdaten im Profil.",
+      "already": "Du besitzt dieses Paket bereits.",
+      "own": "Die Deutungen zu denselben Geburtsdaten kannst du ohne weitere Zahlung erneut lesen. Individuell erstellte Beratungen und Partnerschaftsberatungen sind separat erhältlich.",
+      "sample": "Beispiel · Du wirkst ruhig, sammelst aber vielleicht lange Informationen, bevor du dich entscheidest. Die Kapitel zeigen, wann dir diese Sorgfalt hilft und wann sie dich bremst.",
+      "item": [
+        "Geburtsbild, Tagessäule, zehn Götter und jahreszeitliches Gleichgewicht",
+        "Basisdeutung und Zehnjahreszyklen",
+        "Überblick zur Partnerschaft aus dem Geburtsbild",
+        "Quantendeutung, persönliche Ausstrahlung und Talentbaum",
+        "Wohlbefinden, Energie und schwierige Beziehungen",
+        "Tages- und Monatsdeutung, Briefe und ähnliche Prominente",
+        "Glückszahlen und Bericht zum Mondlichtritual",
+        "Denkstil, Teto/Egen-Details, Deutung in vier Bildern und Dopaminbericht",
+        "Gedankenkarte mit Human-Design-Deutung",
+        "Arbeitsstil, Tiertyp und Zugang zum Secret House"
+      ]
+    }
+  },
   "_comment": "Code Destiny — German premium localization (de.json)",
   "_version": "1.0.0",
   "brand": {
@@ -909,7 +941,7 @@
       "eyebrow": "Mondscheinpass",
       "savingsBadge": "Mit Pass bis zu einem Drittel des Preises",
       "title": "Drei Readings zu 5.000 KRW kosten bereits mehr als der Pass für 14.900 KRW",
-      "desc": "Readings innerhalb der gewählten Preisspanne öffnen sich, bis Ihr Nutzungslimit aufgebraucht ist; nur teurere Readings zahlen Sie bei Bedarf einzeln. Die vier Stufen sind 5.000 KRW · 10.000 KRW · 20.000 KRW und alle im Pass enthaltenen Inhalte – wählen Sie die Preisklasse, die Sie am häufigsten nutzen.",
+      "desc": "Readings innerhalb der gewählten Preisspanne öffnen sich, bis Ihr Nutzungslimit aufgebraucht ist; nur teurere Readings zahlen Sie bei Bedarf einzeln. Die vier Stufen sind 5.000 KRW · 10.000 KRW · 30.000 KRW und alle im Pass enthaltenen Inhalte – wählen Sie die Preisklasse, die Sie am häufigsten nutzen.",
       "pointsAria": "Core-Pass-Anleitung",
       "point1": "Öffnet sofort, ohne Bezahlvorgang",
       "point2": "Ohne Laufzeitbegrenzung · Keine automatische Verlängerung",

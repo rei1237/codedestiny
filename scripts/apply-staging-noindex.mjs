@@ -32,6 +32,7 @@ const ROBOTS_BODY = [
 
 const ROBOTS_META = '<meta name="robots" content="noindex,nofollow">';
 const ROBOTS_TAG_HEADER = "  X-Robots-Tag: noindex, nofollow";
+const PRODUCTION_WORKER_SOURCE = "https://code-destiny-web.bulegyung.workers.dev";
 
 /** 이미 있는 robots/googlebot 메타는 통째로 갈아끼운다. 남겨 두면 index 가 함께 선언된다. */
 const EXISTING_ROBOTS_META_RE = /<meta[^>]+name=["'](?:robots|googlebot)["'][^>]*>/gi;
@@ -105,7 +106,10 @@ export function rewriteHeaders(text) {
     if (!/^\s*Content-Security-Policy:/i.test(line)) return line;
     if (!/\bconnect-src\s+[^;]+/.test(line)) throw new Error("스테이징 CSP 에 connect-src 가 없습니다.");
     let updated = line.replace(/\bconnect-src\s+([^;]+)/, (_match, list) => {
-      const allowed = list.trim().split(/\s+/);
+      // Staging is configured to call the staging API origin below. Keeping the
+      // production Worker origin here weakens environment isolation and can also
+      // push Cloudflare Pages' generated header past its 2,000-character limit.
+      const allowed = list.trim().split(/\s+/).filter(source => source !== PRODUCTION_WORKER_SOURCE);
       // A bare HTTPS origin already allows its collect path; do not append a redundant path.
       for (const source of sources) {
         if (!allowed.includes(source) && !allowed.includes(new URL(source).origin)) allowed.push(source);
@@ -200,6 +204,9 @@ function runSelfTest() {
   expect(csp.text.includes("connect-src 'self' https://staging.code-destiny.com/api/ https://www.google.com/g/collect; object-src 'none'"), "다른 보안 지시문은 유지해야 한다.");
   expect(!rewriteHeaders(csp.text).changed, "CSP 허용 주소가 중복되면 안 된다.");
   const coveredCollect = rewriteHeaders("/*\n  Content-Security-Policy: default-src 'self'; connect-src 'self' https://www.google.com; object-src 'none'\n");
+  const isolatedWorker = rewriteHeaders(`/*\n  Content-Security-Policy: default-src 'self'; connect-src 'self' ${PRODUCTION_WORKER_SOURCE}; object-src 'none'\n`);
+  expect(!isolatedWorker.text.includes(PRODUCTION_WORKER_SOURCE), "Staging CSP must not retain the production Worker origin.");
+  expect(isolatedWorker.text.includes("https://staging.code-destiny.com/api/"), "Staging CSP must retain the staging API origin.");
   expect(coveredCollect.text.includes("https://www.google.com") && !coveredCollect.text.includes("https://www.google.com/g/collect"), "기존 동일 HTTPS origin이 허용한 수집 경로를 중복 추가하면 안 된다.");
   const wildcardSources = ["'self'", "https://*.example.com", "https://api.example.com", "https://deep.api.example.com",
     "https://example.com", "https://badexample.com", "https://api.example.com:443", "https://api.example.com/path",

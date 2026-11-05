@@ -1,4 +1,36 @@
 {
+  "saju": {
+    "bundle": {
+      "inlineTitle": "Khám phá sâu hơn về Tứ trụ",
+      "lottoSavedTitle": "Báo cáo Nghi thức may mắn ánh trăng đã lưu",
+      "lottoSavedDesc": "Đọc lại báo cáo bạn đã mua và lưu trên thiết bị này.",
+      "lottoSavedOpen": "Mở báo cáo",
+      "title": "Trọn bộ luận giải Tứ trụ",
+      "once": "Thanh toán một lần để đọc lâu dài",
+      "inlineCta": "Xem nội dung trọn bộ",
+      "inlineDesc": "Khám phá lá số, đại vận mười năm, vận trình hôm nay và các bài đọc thú vị.",
+      "close": "Đóng",
+      "pay": "Mở bằng thanh toán một lần",
+      "saveProfile": "Lưu hồ sơ ngày sinh",
+      "saveProfileHint": "Lưu thông tin sinh để liên kết bộ luận giải với lá số này.",
+      "saveProfileUnavailable": "Hãy lưu thông tin sinh trên trang hồ sơ.",
+      "already": "Bạn đã sở hữu bộ này.",
+      "own": "Bạn có thể đọc lại các luận giải cho cùng thông tin sinh mà không trả thêm phí. Các buổi tư vấn riêng và tư vấn hợp đôi được tính phí riêng.",
+      "sample": "Ví dụ · Bạn có vẻ điềm tĩnh nhưng có thể dành nhiều thời gian thu thập căn cứ trước khi quyết định. Mỗi chương gợi ý khi nào sự thận trọng giúp ích và khi nào nó khiến bạn chần chừ.",
+      "item": [
+        "Lá số gốc, trụ ngày, thập thần và cân bằng theo mùa",
+        "Luận giải cơ bản và đại vận mười năm",
+        "Tổng quan về độ hòa hợp theo lá số",
+        "Mệnh lý lượng tử, sức hút và cây kỹ năng",
+        "Sức khỏe, năng lượng và các mối quan hệ khó xử",
+        "Vận ngày, vận tháng, thư và người nổi tiếng có nét tương đồng",
+        "Con số may mắn và báo cáo Nghi thức may mắn ánh trăng",
+        "Phong cách tư duy, hồ sơ Teto/Egen, bốn khung hình và báo cáo dopamine",
+        "Sơ đồ tư duy với giải thích Human Design",
+        "Phong cách làm việc, hình tượng con vật và lối vào Nhà Bí Mật"
+      ]
+    }
+  },
   "_comment": "Code Destiny - Vietnamese premium localization (vi.json)",
   "_version": "1.0.0",
   "brand": {
@@ -909,7 +941,7 @@
       "eyebrow": "Thẻ ánh trăng",
       "savingsBadge": "Dùng gói, giá chỉ còn tối đa một phần ba",
       "title": "Chỉ ba lần đọc 5.000 KRW đã đắt hơn gói 14.900 KRW",
-      "desc": "Các bài đọc trong khoảng giá bạn chọn sẽ mở cho đến khi bạn dùng hết hạn mức sử dụng; chỉ những bài đắt hơn mới thanh toán từng lần khi cần. Bốn mức là 5.000 KRW · 10.000 KRW · 20.000 KRW và toàn bộ nội dung áp dụng gói, nên hãy chọn mức giá bạn hay xem nhất.",
+      "desc": "Các bài đọc trong khoảng giá bạn chọn sẽ mở cho đến khi bạn dùng hết hạn mức sử dụng; chỉ những bài đắt hơn mới thanh toán từng lần khi cần. Bốn mức là 5.000 KRW · 10.000 KRW · 30.000 KRW và toàn bộ nội dung áp dụng gói, nên hãy chọn mức giá bạn hay xem nhất.",
       "pointsAria": "Hướng dẫn vượt qua lõi",
       "point1": "Mở ngay, không cần thanh toán",
       "point2": "Không giới hạn thời gian · Không tự động gia hạn",

@@ -1,4 +1,5 @@
 "use client";
+import {LETTER_DRAFT_KEY,readGuideQuestion} from "@/lib/fortune/guide-handoff";
 import Link from "next/link";
 import { TEA_SAJU_URL } from "@/js/core/saju/tea-entry.mjs";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
@@ -38,7 +39,7 @@ const HELD_POLL_MS = 30000;
 const ACTIVATION_TRIES = Math.ceil(180000 / POLL_MS);
 const HELD = ["GENERATION_REVIEW_REQUIRED", "AUTOMATIC_RECOVERY_STOPPED", "ASK_LIMITED_REVIEW_REQUIRED"];
 // 게스트가 적은 질문은 로그인 왕복(같은 탭) 뒤에 되살린다. 상담을 만들면 지운다.
-const DRAFT_KEY = "fortune-chat:consultation-draft";
+const DRAFT_KEY = LETTER_DRAFT_KEY;
 const DRAFT_TTL_MS = 30 * 60 * 1000;
 
 // 상담자마다 세계가 다르다 — 연이는 마음부터, 네오(별빛 전략실)는 판단부터. 결과 순서는 consultation-world.ts.
@@ -150,6 +151,7 @@ export default function ConsultationRoom({ initialId = "", initialPersona = "yeo
     let saved: { persona?: unknown; domain?: unknown; tarotKind?: unknown; question?: unknown; at?: unknown } | null = null;
     try { saved = JSON.parse(sessionStorage.getItem(DRAFT_KEY) || "null"); } catch { /* 초안은 보조 수단이다. */ }
     if (!saved || typeof saved.question !== "string" || !saved.question.trim() || !(Date.now() - Number(saved.at) < DRAFT_TTL_MS)) return;
+    if ('source' in saved && saved.source === 'guide' && !readGuideQuestion(LETTER_DRAFT_KEY)) return;
     const savedDomain = DOMAINS.find((d) => d.id === saved?.domain);
     if (savedDomain) setDomain(savedDomain.id);
     const savedKind = TAROT_KINDS.find((k) => k.id === saved?.tarotKind);

@@ -1,3 +1,4 @@
+import HomeQuestionGuide from './components/HomeQuestionGuide';
 import HomeInstallEntry from './components/HomeInstallEntry';
 import StoryDiscovery from './consultations/StoryDiscovery';
 import Link from 'next/link';
@@ -97,10 +98,10 @@ export default function HomePage() {
       </header>
 
       <main className={styles.stage}>
-        <div className={styles.head}>
+        {IS_APP_BUILD ? <div className={styles.head}>
           <h1 id="homeCardTitle" className={styles.title}><NativeHomeText>꿀꿀 운세에서 어떤 운세를 만나볼까요?</NativeHomeText></h1>
           <p className={styles.lead}><NativeHomeText>마음이 향하는 상담 공간을 골라보세요.</NativeHomeText></p>
-        </div>
+        </div> : <HomeQuestionGuide />}
 
         {/* 카드 제목(h2)의 링크를 카드 크기로 늘려 카드 전체가 한 링크다. 설명 두 줄은 aria-describedby 로 읽힌다. */}
         <HomeCardDeck className={styles.deck}>
@@ -125,6 +126,7 @@ export default function HomePage() {
           })}
         </HomeCardDeck>
         <HomeDailyEntry />
+        {!IS_APP_BUILD && <StoryDiscovery />}
         {!IS_APP_BUILD && <HomeInstallEntry />}
         {!IS_APP_BUILD && <nav className={styles.entryHelp} aria-label="주요 운세 바로가기">
           {HOME_QUICK_LINKS.map(({ key, href, title }) => (
@@ -136,8 +138,8 @@ export default function HomePage() {
           <Link prefetch={IS_APP_BUILD ? false : undefined} href="/records/"><NativeHomeText>꿀꿀 운세 기록</NativeHomeText></Link>
           <Link prefetch={IS_APP_BUILD ? false : undefined} href="/yeongnyangi/library/"><NativeHomeText>영냥이 상담 기록</NativeHomeText></Link>
         </nav>
-        <p className={styles.entryNote}><NativeHomeText>이용권과 상담 기록은 서비스별로 확인해 주세요.</NativeHomeText></p>
-        {!IS_APP_BUILD && <StoryDiscovery />}
+        <p className={styles.entryNote}>{IS_APP_BUILD ? <NativeHomeText>이용권과 상담 기록은 서비스별로 확인해 주세요.</NativeHomeText>
+          : <a href="/points/#moonlight-plans">문라이트 패스(꿀꿀운세 이용권) 살펴보기</a>}</p>
       </main>
 
       <footer className={styles.footer}>
