@@ -1848,8 +1848,10 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
   if (!access.ok) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED", message: PAYMENT_VERIFY_FAILED_MESSAGE }, { status: 402 });
   // 결제 증빙 1건 = 상담 1건(2026-10-16). 서버가 찾은 결제 문서·월정석 원장 ID 만 묶는다(이용권·관리자는 건너뜀).
   const evidenceIds = [access.paymentDocId, access.claimEvidenceId];
-  const evidenceClaim = nativeTossContext(request) ? {ok:true} : await claimRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds, featureKey: FEATURE_KEY });
-  if (!evidenceClaim.ok) return json(evidenceClaimErrorBody(evidenceClaim), { status: evidenceClaim.status });
+  if (!nativeTossContext(request)) {
+    const evidenceClaim = await claimRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds, featureKey: FEATURE_KEY });
+    if (!evidenceClaim.ok) return json(evidenceClaimErrorBody(evidenceClaim), { status: evidenceClaim.status });
+  }
   const sessionId = existing?.id || `astroai_${randomUUID()}`;
   const lease = randomUUID();
   const now = new Date();
