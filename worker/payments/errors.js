@@ -79,7 +79,7 @@ export const PAYMENT_ERROR_TABLE = Object.freeze({
   MONTHLY_NOT_ALLOWED: { status: 402 },
   // direct_only 상품에 월정석·이용권 결제를 시도했다 — 셸이 단건 결제창으로 인계한다.
   DIRECT_ONLY_PAYMENT_REQUIRED: { status: 402 },
-  // direct_or_family 상품은 Family 이용권 또는 원화 단건 결제만 허용한다.
+  // 상담에 이용권을 쓸 수 없을 때(모둠·오마카세의 일반 등급 등) 원화 단건 결제로 넘긴다.
   FAMILY_OR_DIRECT_PAYMENT_REQUIRED: { status: 402 },
 
   // 403 — 신원은 맞는데 이 자원에 대한 권한이 없다.

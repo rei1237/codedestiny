@@ -15,6 +15,7 @@ import {
 import {
   calculatePaidFeatureMembershipCreditCost,
   getPaidFeaturePaymentPolicy,
+  isConsultationFundedPaidFeatureKey,
   isDirectOrFamilyPaidFeatureKey,
   isBirthScopedUnlockFeatureKey,
   isDirectOnlyPaidFeatureKey,
@@ -1043,7 +1044,7 @@ function buildPassPaymentDecision(entitlement = {}, pricing = {}, profileSubscri
     recommendedMethods: passCovered ? ["PASS"] : equalPriorityPaidMethods,
     equalPriorityMethods: passCovered ? [] : equalPriorityPaidMethods,
     paymentPriority: passCovered ? "PASS_FIRST" : "USER_CHOICE_EQUAL",
-    hiddenMethods: passCovered ? ["DIRECT_KRW", "MOONLIGHT_STONE", "COIN"] : (directOnly ? ["PASS", "COIN", "MOONLIGHT_STONE"] : (familyPassOnly ? ["COIN", ...(monthlyExcluded ? ["MOONLIGHT_STONE"] : [])] : (monthlyExcluded ? ["MOONLIGHT_STONE"] : []))),
+    hiddenMethods: passCovered ? ["DIRECT_KRW", "MOONLIGHT_STONE", "COIN"] : (directOnly ? ["PASS", "COIN", "MOONLIGHT_STONE"] : (isConsultationFundedPaidFeatureKey(pricing?.featureKey) ? ["COIN", ...(monthlyExcluded ? ["MOONLIGHT_STONE"] : [])] : (monthlyExcluded ? ["MOONLIGHT_STONE"] : []))),
     // 포함 횟수를 다 쓴 경우에도 결제수단은 그대로 동등 노출된다(위 equalPriorityPaidMethods).
     // 클라이언트가 "이용권이 없어서"가 아니라 "포함 횟수를 다 써서"라고 안내할 수 있도록
     // 사유와 잔여 횟수를 함께 내린다.

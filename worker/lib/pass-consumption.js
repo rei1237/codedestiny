@@ -17,6 +17,7 @@ import { User, PointHistory } from "./models.js";
 import { invalidateAccessStateCacheForUser } from "./access-state-cache.js";
 import { mongoose, mongoTransactionOptions } from "./db.js";
 import { isLightFortuneFeatureKey } from "./light-fortune-catalog.js";
+import { isDirectOrFamilyPaidFeatureKey } from "./paid-feature-registry.js";
 import { scopeConnection } from "./db-scope-connection.js";
 
 function invalidatePassUsageReadCaches(userId) {
@@ -163,7 +164,7 @@ export async function hasConsumedPassFeature(user, featureKey, requestId, db = n
 }
 
 export async function consumePassForFeature({ user, entitlement, userId, featureKey, requestId = "", coinCost = 0, profileId = "", db = nativeDb }) {
-  if(String(featureKey || '').startsWith('yeongnyangi-'))return consumeYeongnyangiFamily({user,entitlement,userId,featureKey,requestId,coinCost,db});
+  if(String(featureKey || '').startsWith('yeongnyangi-'))return consumeYeongnyangiPass({user,entitlement,userId,featureKey,requestId,coinCost,db});
   const { buildPassConsumeMarker, consumePassCoverage, evaluatePassCoverage, recordPassUsageEvidence } = await loadPassPolicy();
   const cost = Math.max(0, Math.floor(Number(coinCost) || 0));
   const coverage = evaluatePassCoverage({ user, entitlement, coinCost: cost, lightFortune: isLightFortuneFeatureKey(featureKey) });
@@ -211,7 +212,7 @@ export async function consumePassForFeature({ user, entitlement, userId, feature
 
 // Family retains the existing face-value allowance. Its receipt and consultation
 // claim commit with that one debit, serializing moonstone and PG choices.
-async function consumeYeongnyangiFamily({user,entitlement,userId,featureKey,requestId,coinCost,db}) {
+async function consumeYeongnyangiPass({user,entitlement,userId,featureKey,requestId,coinCost,db}) {
   const {buildPassConsumeMarker,consumePassCoverage,evaluatePassCoverage,recordPassUsageEvidence,findPassUsageEvidence}=await loadPassPolicy();
   const funding=await import('../yeongnyangi/payment-funding.js');
   const id=String(requestId || '').replace(/^yn-/,'');
@@ -224,8 +225,10 @@ async function consumeYeongnyangiFamily({user,entitlement,userId,featureKey,requ
   if(existing && !['FAMILY','PASS'].includes(existing.metadata?.accessMethod))throw Object.assign(new Error('이용권 증빙을 확인해 주세요.'),{code:'PAYMENT_NOT_ACTIVE',status:409});
   if(!existing && (markers.includes(marker)||markers.includes(buildPassConsumeMarker(featureKey,id))))
     throw Object.assign(new Error('이용권 차감 증빙을 확인 중입니다.'),{code:'PAYMENT_NOT_ACTIVE',status:409});
-  if(!existing && (String(coverage.tier)!=='family'||!coverage.covered))
-    return {covered:false,reason:coverage.tier!=='family'?'family_pass_required':coverage.reason,replayed:false,coverage};
+  // Fish consultations follow the pass's own per-item cap. Assorted and omakase stay Family-only.
+  const familyRequired=isDirectOrFamilyPaidFeatureKey(featureKey)&&String(coverage.tier)!=='family';
+  if(!existing && (familyRequired||!coverage.covered))
+    return {covered:false,reason:familyRequired?'family_pass_required':coverage.reason,replayed:false,coverage};
   const result=await db.transaction(async tx=>{
     const claim=await funding.reserveFortuneFunding(tx,{userId,requestId:canonical,featureKey,coinCost:cost,method:'PASS'});
     let receipt=existing,updated=user;

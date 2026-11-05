@@ -446,7 +446,7 @@ export async function attachPayment(env, userId, requestId, expectedCharge, opti
   const {User,resolveCanonicalEntitlement}=await loadFamilyIdentity();
   const user=await withMongoRetry(env,()=>User.findById(ownerId(userId)).lean(),readOptions);
   const entitlement=resolveCanonicalEntitlement(user || {});
-  // Access recovery only attaches durable proof. A new Family use requires the
+  // Access recovery only attaches durable proof. A new pass use requires the
   // explicit MEMBERSHIP_PASS selection through the shared billing gate.
   if(!evidence)throw failure(402,'FAMILY_OR_DIRECT_PAYMENT_REQUIRED');
   const meta=evidence.metadata || {},coverage={};
