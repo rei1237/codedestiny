@@ -20,7 +20,10 @@ const fakeDbHook = registerHooks({ load(url, context, nextLoad) {
 } });
 
 const { getBillingFeaturePricing } = await import("../worker/lib/billing-feature-registry.js");
-const { pricing: summaryPrice } = getBillingFeaturePricing({ featureKey: "saju_lifetime_bundle" });
+const { pricing: summaryPrice } = getBillingFeaturePricing({ featureKey: "section_summary" });
+// section_summary 신규 판매는 닫혔다(PRODUCT_SALE_ENDED). 신규 주문 경로는 판매 중인 묶음으로 검증한다.
+const SALE_OPEN_KEY = "saju_lifetime_bundle";
+const { pricing: saleOpenPrice } = getBillingFeaturePricing({ featureKey: SALE_OPEN_KEY });
 
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const paymentsRouteSource = readFileSync(resolve(root, "worker/routes/payments.js"), "utf8");
@@ -980,7 +983,7 @@ function makePayment(overrides = {}) {
     paymentAmount: 30000,
     expectedChargedPoints: 300,
     chargedPoints: 0,
-    featureKey: "saju_lifetime_bundle",
+    featureKey: "section_summary",
     productId: "code-destiny",
     coinPrice: 300,
     membershipCreditCost: 3000,
@@ -989,7 +992,7 @@ function makePayment(overrides = {}) {
       profileId: "profile-a",
       selectedProfileId: "profile-a",
       serviceId: "code-destiny",
-      contentId: "saju_lifetime_bundle",
+      contentId: "section_summary",
       contentType: "saju",
       amountKRW: 30000,
     },
@@ -1287,7 +1290,7 @@ async function runServerTests() {
   state.preUnlocked = true;
   let response = await handleSinglePaymentStart(startRequest({
     profileId: "profile-a",
-    contentId: "saju_lifetime_bundle",
+    contentId: "section_summary",
     contentType: "saju",
     productName: "Code Destiny 운세",
     coinPrice: summaryPrice.cost,
@@ -1301,27 +1304,29 @@ async function runServerTests() {
   resetState();
   response = await handleSinglePaymentStart(startRequest({
     profileId: "profile-a",
-    contentId: "saju_lifetime_bundle",
-    contentType: "saju",
-    productName: "Code Destiny 운세",
-    coinPrice: summaryPrice.cost,
-    amount: 1,
-  }), ENV, AUTH);
-  result = await jsonResponse(response);
-  // 묶음에 흡수돼 판매가 끝난 개별 키는 새 주문을 만들지 않는다(2026-11-04 사주 영구 묶음).
-  const closedSaleOrders = state.createdPayments.length;
-  const closedSale = await jsonResponse(await handleSinglePaymentStart(startRequest({
-    profileId: "profile-a",
     contentId: "section_summary",
     contentType: "saju",
     productName: "Code Destiny 운세",
-    coinPrice: 100,
-  }), ENV, AUTH));
-  assert.equal(closedSale.status, 409, "sale-closed saju key should refuse a new order");
-  assert.equal(state.createdPayments.length, closedSaleOrders, "sale-closed saju key should not create an order");
+    coinPrice: summaryPrice.cost,
+  }), ENV, AUTH);
+  result = await jsonResponse(response);
+  assert.equal(result.status, 409, "sale-closed key should not start a new order");
+  assert.equal(result.payload.code, "PRODUCT_SALE_ENDED");
+  assert.equal(state.createdPayments.length, 0, "sale-closed key should not create order");
+
+  resetState();
+  response = await handleSinglePaymentStart(startRequest({
+    profileId: "profile-a",
+    contentId: SALE_OPEN_KEY,
+    contentType: "saju",
+    productName: "Code Destiny 운세",
+    coinPrice: saleOpenPrice.cost,
+    amount: 1,
+  }), ENV, AUTH);
+  result = await jsonResponse(response);
   assert.equal(result.status, 201, "single start should create order");
-  assert.equal(result.payload.order.totalAmount, summaryPrice.amountKRW, "new orders use registry price");
-  assert.equal(state.createdPayments[0].paymentAmount, summaryPrice.amountKRW, "server amount should ignore client amount");
+  assert.equal(result.payload.order.totalAmount, saleOpenPrice.amountKRW, "new orders use registry price");
+  assert.equal(state.createdPayments[0].paymentAmount, saleOpenPrice.amountKRW, "server amount should ignore client amount");
   assert.equal(JSON.stringify(result.payload).includes(ENV.PORTONE_API_SECRET), false, "client response should not include API secret");
   assert.equal(JSON.stringify(result.payload).includes(ENV.INIsignkey), false, "client response should not include Inicis signkey");
 
@@ -1331,10 +1336,10 @@ async function runServerTests() {
      죽었다. 형제 handlePrepare 에는 복구가 있었고 여기만 없었다(비대칭이 결함). */
   const raceBody = {
     profileId: "profile-a",
-    contentId: "saju_lifetime_bundle",
+    contentId: SALE_OPEN_KEY,
     contentType: "saju",
     productName: "Code Destiny 운세",
-    coinPrice: summaryPrice.cost,
+    coinPrice: saleOpenPrice.cost,
     idempotencyKey: "single-race-key",
   };
 
@@ -1357,7 +1362,7 @@ async function runServerTests() {
   //    돌려주면 사용자가 존재하지 않는 주문으로 PG 창을 연다.
   resetState();
   const winnerOrder = {
-    ...makePayment({ paymentAmount: summaryPrice.amountKRW, expectedChargedPoints: summaryPrice.cost, coinPrice: summaryPrice.cost, pricingSnapshot: { profileId: "profile-a", selectedProfileId: "profile-a", serviceId: "code-destiny", contentId: "saju_lifetime_bundle", contentType: "saju", amountKRW: summaryPrice.amountKRW } }),
+    ...makePayment({ featureKey: SALE_OPEN_KEY, paymentAmount: saleOpenPrice.amountKRW, expectedChargedPoints: saleOpenPrice.cost, coinPrice: saleOpenPrice.cost, pricingSnapshot: { profileId: "profile-a", selectedProfileId: "profile-a", serviceId: "code-destiny", contentId: SALE_OPEN_KEY, contentType: "saju", amountKRW: saleOpenPrice.amountKRW } }),
     _id: "pay_created_winner",
     merchantUid: "cd-single-winner-1710000000000-abcd1234",
     idempotencyKey: "single-race-key",
@@ -1387,7 +1392,7 @@ async function runServerTests() {
   resetState();
   response = await handleSinglePaymentStart(startRequest({
     profileId: "profile-a",
-    contentId: "saju_lifetime_bundle",
+    contentId: SALE_OPEN_KEY,
     contentType: "saju",
     coinPrice: 999,
   }), ENV, AUTH);
@@ -1436,7 +1441,7 @@ async function runServerTests() {
   assert.equal(result.payload.unlockRevoked, true, "full cancellation webhook should revoke unlock");
   const revokedEntitlement = Array.from(state.entitlementByKey.values())[0];
   assert.equal(revokedEntitlement.status, "CANCELLED", "full cancellation should close entitlement");
-  assert.ok(state.userFeaturePulls.some((entry) => entry?.paidFeatures?.$in?.includes("saju_lifetime_bundle")), "full cancellation should pull paid feature");
+  assert.ok(state.userFeaturePulls.some((entry) => entry?.paidFeatures?.$in?.includes("section_summary")), "full cancellation should pull paid feature");
 
   resetState();
   webhook = await signedWebhookRequest({ type: "Transaction.Paid", data: { paymentId: state.payment.merchantUid } });
