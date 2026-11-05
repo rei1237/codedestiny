@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-11-05
-next: 배포 순서와 검증 결과를 대조한다.
+updated: 2026-11-06
+next: 법무 결정·앱 등록 후 표시와 권리를 다시 대조하고 후보 SHA 전체 게이트를 확인한다.
 ---
 
 # 균일가·이용권 v5 배포 인수인계
@@ -115,3 +115,7 @@ next: 배포 순서와 검증 결과를 대조한다.
 
 - `home-choice-carousel` 4건, `sitemap-volatile-lastmod-kst` 1건
 - `verify-home-funnel.cjs` 낡은 단계
+
+## 2026-11-06 운영 대조
+
+fcb82a1e6에서 균일가와 v5가 운영에 먼저 반영됐다. 약관·Play·동일 SHA 검증을 갖춘 다음 재승격을 판단한다. 실제 이용권 생성 비용은 아직 측정 전이다.
