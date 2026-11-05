@@ -30,7 +30,7 @@ async function verifyLibraryOrder(env,auth,purchase){
 }
 
 async function readNativeLibraryItem(env,auth,row){
-  return row.nativeService==='new-year'?(await import('./native-new-year.js')).nativeNewYearLibraryItem(env,auth,row):row.nativeService==='ziwei'?(await import('./native-ziwei.js')).nativeZiweiLibraryItem(env,auth,row):row.nativeService==='vedic'?(await import('./native-vedic.js')).nativeVedicLibraryItem(env,auth,row):row.nativeService==='astrology'?(await import('./native-astrology.js')).nativeAstrologyLibraryItem(env,auth,row):row.nativeService==='love-secret'?(await import('./native-love-secret.js')).nativeLoveSecretLibraryItem(env,auth,row):row.nativeService==='life-book'?(await import('./native-life-book.js')).nativeLifeBookLibraryItem(env,auth,row):row.nativeService==='fusion'?(await import('./native-fusion.js')).nativeFusionLibraryItem(env,auth,row):row.nativeService==='neo'?(await import('./native-neo.js')).nativeNeoLibraryItem(env,auth,row):(await import('./native-tea.js')).nativeTeaLibraryItem(env,auth,row);
+  return row.nativeService==='karma'?(await import('./native-karma.js')).nativeKarmaLibraryItem(env,auth,row):row.nativeService==='new-year'?(await import('./native-new-year.js')).nativeNewYearLibraryItem(env,auth,row):row.nativeService==='ziwei'?(await import('./native-ziwei.js')).nativeZiweiLibraryItem(env,auth,row):row.nativeService==='vedic'?(await import('./native-vedic.js')).nativeVedicLibraryItem(env,auth,row):row.nativeService==='astrology'?(await import('./native-astrology.js')).nativeAstrologyLibraryItem(env,auth,row):row.nativeService==='love-secret'?(await import('./native-love-secret.js')).nativeLoveSecretLibraryItem(env,auth,row):row.nativeService==='life-book'?(await import('./native-life-book.js')).nativeLifeBookLibraryItem(env,auth,row):row.nativeService==='fusion'?(await import('./native-fusion.js')).nativeFusionLibraryItem(env,auth,row):row.nativeService==='neo'?(await import('./native-neo.js')).nativeNeoLibraryItem(env,auth,row):(await import('./native-tea.js')).nativeTeaLibraryItem(env,auth,row);
 }
 
 async function letterEnabled(){
@@ -224,7 +224,18 @@ export async function handleTossRoutes(request,env) {
       const {handleNativeNewYear}=await import('./native-new-year.js');
       return forwardServiceResponse(await handleNativeNewYear(request,env,auth,path.slice('/canonical/new-year-ai'.length)),headers);
     }
-    const nativeIntent=path.match(/^\/native\/(tea|neo|fusion|life-book|love-secret|astrology|vedic|ziwei|new-year)\/intents\/([a-f0-9]{64})$/);
+    if(path==='/native/karma/prepare'&&request.method==='POST'){
+      await limit(env,auth._id,'native-karma-prepare',6);
+      const {prepareNativeKarma}=await import('./native-karma.js');
+      const input=await bodyOf(request);
+      return reply(await prepareNativeKarma(env,auth,input.input,input.orderId));
+    }
+    if(path.startsWith('/canonical/karma-destiny-ai/')&&['GET','POST'].includes(request.method)){
+      if(request.method==='POST')await limit(env,auth._id,'native-karma',30);
+      const {handleNativeKarma}=await import('./native-karma.js');
+      return forwardServiceResponse(await handleNativeKarma(request,env,auth,path.slice('/canonical/karma-destiny-ai'.length)),headers);
+    }
+    const nativeIntent=path.match(/^\/native\/(tea|neo|fusion|life-book|love-secret|astrology|vedic|ziwei|new-year|karma)\/intents\/([a-f0-9]{64})$/);
     if(nativeIntent&&request.method==='GET'){
       const {readNativeTeaIntent}=await import('./native-tea.js');
       return reply(await readNativeTeaIntent(env,auth,nativeIntent[2],nativeIntent[1]));

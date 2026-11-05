@@ -44,3 +44,10 @@ test('Toss permission errors retain their status at the route boundary',async()=
  const ctx={getRoutePath:()=>'/result',handleResult:async()=>{throw Object.assign(Error('denied'),{status:403,code:'ACCESS_DENIED'});},nativeTossContext:()=>({}),json};
  const route=vm.runInNewContext('('+fn('handleKarmaDestinyAiRoutes')+')',ctx);const response=await route({method:'GET'},{});assert.equal(response.status,403);assert.equal(response.body.reason,'ACCESS_DENIED');
 });
+test('purchase preparation rejects a conflicting record or missing calculation',async()=>{
+ let existing=null,calculated=0,result={lenses:{saju:{confidence:'full'}}};
+ const ctx={nativeKarmaContract:()=>({requestId:'request-0000001',inputHash:'hash'}),normalizeConsultationInput:()=>({input:{birthInfo:{}}}),connectDb:async()=>{},nativeKarmaStoredState:async()=>existing,buildKarmaDestinyIntegratedResult:async()=>{calculated++;return result;},LENS_USAGE_WEIGHTS:{},LENS_IDS:['saju','vedic'],sajuAuthorityOn:()=>false,clean,CALCULATION_ERROR_MESSAGE:'계산 오류'};
+ const prepare=vm.runInNewContext('('+fn('prepareNativeKarmaCalculation')+')',ctx);await prepare({}, {userId:'owner'}, {});assert.equal(calculated,1);
+ existing={accessSource:'web',inputHash:'hash'};await assert.rejects(prepare({}, {userId:'owner'}, {}),e=>e.status===409);
+ existing=null;result={lenses:{}};await assert.rejects(prepare({}, {userId:'owner'}, {}),e=>e.status===422);
+});

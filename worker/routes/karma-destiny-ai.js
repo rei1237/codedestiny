@@ -2939,6 +2939,28 @@ export function nativeKarmaContract(body) {
   return {requestId, resultId: requestId, featureKey: FEATURE_KEY, inputHash: normalized.inputHash, pricing: getPricing().pricing};
 }
 
+export async function nativeKarmaStoredState(env, userId, resultId, lookup = 'either') {
+  const owner = {userId: String(userId)};
+  const filter = lookup === 'request' ? {...owner, idempotencyKey: resultId} : lookup === 'id' ? {...owner, id: resultId} : {...owner, $or: [{id: resultId}, {idempotencyKey: resultId}]};
+  return withMongoRetry(env, () => KarmaDestinyAiConsultation.findOne(filter).lean());
+}
+
+// Run the same non-LLM calculation before offering a new purchase.
+export async function prepareNativeKarmaCalculation(env, auth, body) {
+  const contract = nativeKarmaContract(body), normalized = normalizeConsultationInput(body);
+  await connectDb(env);
+  const existing = await nativeKarmaStoredState(env, auth.userId, contract.requestId, 'request');
+  if (existing && (existing.accessSource !== 'toss' || existing.inputHash !== contract.inputHash)) {
+    throw Object.assign(new Error('REQUEST_INPUT_MISMATCH'), {code: 'REQUEST_INPUT_MISMATCH', status: 409});
+  }
+  if (!existing) {
+    const result = await buildKarmaDestinyIntegratedResult(env, normalized.input.birthInfo, {lensUsageWeights: LENS_USAGE_WEIGHTS, authorityEnabled: sajuAuthorityOn(env)});
+    if (!LENS_IDS.some(id => ['full', 'provisional'].includes(clean(result?.lenses?.[id]?.confidence)))) {
+      throw Object.assign(new Error(CALCULATION_ERROR_MESSAGE), {code: 'CALCULATION_ERROR', status: 422});
+    }
+  }
+}
+
 export const __karmaDestinyAiTestUtils = {
   FEATURE_KEY,
   SERVICE_KEY,
@@ -2966,10 +2988,20 @@ export const __karmaDestinyAiTestUtils = {
   buildKarmaDestinyAiMockConsultation,
 };
 
-export function resumeConsultationOnServer(env, doc) {
+export async function resumeConsultationOnServer(env, doc) {
   if (!doc?.userId || !doc.id) throw new Error("RECOVERY_IDENTITY_REQUIRED");
   const request = new Request("https://internal.invalid/api/karma-destiny-ai/generate-batch", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ sessionId: String(doc.id) }) });
-  return handleGenerateBatch(request, env, { userId: String(doc.userId) });
+  const stored = await nativeKarmaStoredState(env, String(doc.userId), String(doc.id), 'id');
+  if (stored?.accessSource === 'toss') {
+    const {bindNativeKarmaRecovery} = await import('../toss/native-karma.js');
+    if (!await bindNativeKarmaRecovery(request, env, stored)) throw new Error('TOSS_RECOVERY_INTENT_MISSING');
+  }
+  return handleGenerateBatch(request, env, nativeTossContext(request)?.auth || { userId: String(doc.userId) });
+}
+
+export async function recoverUnstartedNativeConsultations(env,options) {
+  const {bootstrapNativeKarmaOrders} = await import('../toss/native-karma.js');
+  return bootstrapNativeKarmaOrders(env,options);
 }
 
 export function serverExpertFollowUpAdapter(env) {

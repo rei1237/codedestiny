@@ -53,6 +53,14 @@ test('Ziwei orders require their own approved feature and immutable price',async
  const receipt=await grantNativeOrder({store:storage,auth,product:ziwei,order,requestId:initial._id});assert.equal(receipt.durable,true);
  await assert.rejects(grantNativeOrder({store:storage,auth,product,order,requestId:initial._id}),/ORDER_OWNERSHIP_MISMATCH/);
 });
+test('Karma orders require their own approved product, price and owner',async()=>{
+ const karma={...product,nativeService:'karma',featureKey:'karma-destiny-ai-consultation',productId:'native:karma:karma-destiny-ai-consultation'};
+ const karmaContract={...contract,featureKey:karma.featureKey};assert.equal(nativeProduct(karma,karmaContract),karma);
+ for(const wrong of [{...karma,approved:false},{...karma,featureKey:'new-year-ai-consultation'},{...karma,approvedPriceKRW:1},{...karma,priceEvidence:''}])assert.throws(()=>nativeProduct(wrong,karmaContract));
+ const storage=store();storage.state.intent={...storage.state.intent,nativeService:'karma',featureKey:karma.featureKey};
+ const receipt=await grantNativeOrder({store:storage,auth,product:karma,order,requestId:initial._id});assert.equal(receipt.durable,true);
+ await assert.rejects(grantNativeOrder({store:storage,auth,product,order,requestId:initial._id}),/ORDER_OWNERSHIP_MISMATCH/);
+});
 test('one original consultation input binds one order atomically and grant retries never generate',async()=>{
  const storage=store(),args={store:storage,auth,product,order,requestId:initial._id};
  const first=await grantNativeOrder(args),again=await grantNativeOrder(args);
