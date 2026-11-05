@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import { readFileSync } from 'node:fs';
 import { calcPower, analyzeJohu } from '../../worker/yeongnyangi/fortune/saju-runtime.mjs';
-import { loadRichWithNatal } from '../lib/saju-rich-with-natal.mjs';
+import { loadRichWithNatal } from '../fixtures/saju-rich-with-natal.mjs';
 
 // Same page globals as saju-reading-rich.test.mjs; the intl layer is loaded after the Korean one it builds on.
 const engine=readFileSync('js/saju-engine.js','utf8');
