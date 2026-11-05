@@ -1358,7 +1358,8 @@
         "w1000": "₩1,000",
         "from5000": "Từ ₩5,000",
         "w7000": "₩7,000",
-        "from30000": "Từ ₩30,000"
+        "from30000": "Từ ₩30,000",
+        "from15000": "Từ ₩15,000"
       },
       "chip": {
         "love": "Tâm tư của người ấy · Tình yêu tiếp theo",
@@ -1631,7 +1632,7 @@
       "reviewsPosted": "đăng trên blog",
       "reviewsFine": "Đánh giá dựa trên trải nghiệm cá nhân và không đảm bảo kết quả. Luận giải Tứ trụ chỉ mang tính tham khảo.",
       "offerNote": "Buổi tư vấn 1:1 do Neo trực tiếp thực hiện; gói 5.000 won được cung cấp bằng công cụ tính toán và lời giải của AI.",
-      "offerCta": "Xem gói Tứ trụ 5.000 won →",
+      "offerCta": "Xem gói Tứ trụ 10.000 won →",
       "expertiseTitle": "Tính toán theo quy tắc, AI viết lời giải",
       "expertise": {
         "engine": "Lá số được lập theo quy tắc tính cố định, AI viết lời giải dựa trên kết quả đó. Nếu lời giải ghi trụ ngày hoặc trụ giờ khác với kết quả tính, máy chủ sẽ loại bỏ.",

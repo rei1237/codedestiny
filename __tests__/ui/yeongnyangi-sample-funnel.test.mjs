@@ -58,7 +58,7 @@ test('question CTA enters the expanded mackerel question flow and sample precede
  vm.runInNewContext(result.outputFiles[0].text,sandbox);
  const {products}=sandbox.module.exports;
  const product=products.find(p=>p.domain===params.get('domain')&&p.fishId===params.get('fish')&&p.readingKind==='single');
- assert.equal(product.priceKRW,5000);assert.equal(params.get('flow'),'question');assert.equal(params.has('consultationKind'),false);
+ assert.equal(product.priceKRW,10000);assert.equal(params.get('flow'),'question');assert.equal(params.has('consultationKind'),false);
  assert.match(page,/contentId="mackerel-question-v1"/);
  assert.match(readFileSync('app/yeongnyangi/_components/YeongnyangiGuide.tsx','utf8'),/contentId="tarot-salmon-question-v1"/);
  assert.ok(page.indexOf('id="example"')<page.indexOf('id="systems"'));

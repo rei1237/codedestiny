@@ -75,10 +75,10 @@ describe("versioned flower passes", () => {
       expect(value).toMatchObject({amountKRW: amounts[key], cost: amounts[key] / 100});
     }
     expect(FEATURE_KEY_PRICE_TABLE["fusion-fortune-consultation"]).toMatchObject({ cost: 500, amountKRW: 50000 });
-    expect(FEATURE_KEY_PRICE_TABLE["yeongnyangi-saju-mackerel"].amountKRW).toBe(5000);
-    expect(FEATURE_KEY_PRICE_TABLE["yeongnyangi-fusion-all"]).toMatchObject({ cost: 600, amountKRW: 60000, paymentScope: "direct_or_family" });
+    expect(FEATURE_KEY_PRICE_TABLE["yeongnyangi-saju-mackerel"].amountKRW).toBe(10000);
+    expect(FEATURE_KEY_PRICE_TABLE["yeongnyangi-fusion-all"]).toMatchObject({ cost: 700, amountKRW: 70000, paymentScope: "direct_or_family" });
     for (const key of ["yeongnyangi-fusion-saju-ziwei", "yeongnyangi-fusion-sukuyo-vedic", "yeongnyangi-fusion-astrology-tarot"]) {
-      expect(FEATURE_KEY_PRICE_TABLE[key]).toMatchObject({ cost: 400, amountKRW: 40000, paymentScope: "direct_or_family" });
+      expect(FEATURE_KEY_PRICE_TABLE[key]).toMatchObject({ cost: 500, amountKRW: 50000, paymentScope: "direct_or_family" });
     }
   });
 });
@@ -158,7 +158,7 @@ test("VVIP consumes one 30,000 reading exactly, preserves gift version, and Yeon
   expect(evaluatePassCoverage({ user, entitlement: user.profileSubscription, coinCost: 30 }).covered).toBe(true);
   const other = { profileSubscription: { ...plan, isActive: true, expiresAt } };
   const yn = resolveProduct({ featureKey: "yeongnyangi-saju-mackerel" });
-  expect(yn).toMatchObject({ familyPassOnly: true, monthlyExcluded: true, passExcluded: false, allowedPaymentMethods: ["FAMILY", "DIRECT_KRW"] });
+  expect(yn).toMatchObject({ familyPassOnly: true, monthlyExcluded: false, passExcluded: false, allowedPaymentMethods: ["FAMILY", "DIRECT_KRW", "MOONLIGHT_STONE"] });
   expect(describePassEligibility({ user: other, entitlement: other.profileSubscription, product: { ...yn, passExcluded: true } }).eligible).toBe(false);
 });
 
