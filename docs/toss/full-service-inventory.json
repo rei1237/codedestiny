@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "bf67c295640407dc1c5fa94c1b69c27a47b6838c",
+  "sourceCommit": "75f32f6b1fd7f34bac626ad0b99e373534b5e07f",
   "scope": "Source discovery plus explicitly verified aliases; not a count of implemented services. Unmapped contracts are blocking work, not exclusions.",
   "sourceCounts": {
     "home": 63,
@@ -4142,12 +4142,13 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/new-year-ai-consultation/",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "worker/toss/native-new-year.js + nativeNewYearContract",
+      "resultRenderer": "app/new-year-ai-consultation/NewYearAiClient.tsx",
+      "storageContract": "owned Toss purchase and Toss-origin NewYearAiConsultation; approved SKU, durable checkout, policy and device verification pending",
+      "verification": "mock contracts, local mobile layout and build only; Japanese input states results are Korean; other locale quality, official device and full flow not verified"
     },
     {
       "id": "novel",
