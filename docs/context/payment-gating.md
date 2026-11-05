@@ -380,6 +380,9 @@
   - `alreadyUnlocked` 범위: `payments.js:2020`과 `billing.js:3866`은 어떤 상품이든 `alreadyUnlocked: true`를 돌려줄 수 있어, 조건 없는 처음 형태(`f7a7ae474`)는 사주 밖 상품의 `forceDirectPayment`까지 건너뛰었다. 묶음과 판매 종료 키로만 좁혔고 `__tests__/ui/tile-unlock-balance-separation.static.test.js`가 지킨다. 다른 상품은 main과 같이 주문 실패로 처리된다.
   - 매니페스트는 묶음 커밋마다 갱신되지 않고 통합 커밋(`4656f22c1`)과 그 뒤 수정 커밋에서만 갱신됐다.
 
+- 이용권 소진 임계(최종 수정 단계, 사용자 확인 필요): `MIN_PASS_COVERABLE_COIN`·`FAMILY_MIN_PASS_COVERABLE_COIN` 10→30(`worker/lib/profile-limits.js`). 묶음이 1,000원 항목을 이용권 대상에서 빼면서 대상 최저가가 30코인이 되어 `verify:pass-tier-policy`가 실패했다. 잔여 10~29코인 이용권은 열 수 있는 항목이 없으므로 이제 소진으로 끝난다.
+- 브라우저 묶음 별칭(최종 리뷰 I1, `fcb4f4d01`): `TILE_LOCK_ALIAS_MAP`은 묶음 키를 쓰지 않는다. 포함 키만 산 사람이 메모리에서 묶음 보유자가 되던 쓰기 확장을 막고, 묶음으로 포함 키를 여는 읽기는 `TILE_LOCK_BUNDLE_READ_KEYS`와 `resolveTileLockReadKeys`로만 한다. 이 수정은 고정 구간과 줄 수 상한을 바꾸지 않았다.
+
 ### 균일가 통합 때 지킬 것
 
 이 통합 시점의 main에는 균일가(`worker/lib/light-fortune-catalog.js`)가 없어 교집합을 확인하지 못했다. 균일가를 이 묶음과 합치는 사람은 다음을 먼저 확인한다.
