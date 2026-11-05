@@ -32351,6 +32351,35 @@ function updateBadge() {
     });
   }
 
+  // 복귀 문서는 스크롤 뒤에도 위쪽 카드가 지연 렌더로 자라 목적지가 밀린다(412×900 실측 약 1,170px).
+  // 부드러운 스크롤은 그 성장과 겹치므로 즉시 옮기고, 위치가 안정될 시간(상한 8초) 동안 어긋나면 다시 맞춘다.
+  // 사용자가 직접 움직이면 바로 멈춘다. 호출처가 많은 _cdScrollUnlockedSectionIntoView 는 그대로 둔다.
+  var SAJU_SECTION_UNLOCK_KEEP_VIEW_MS = 8000;
+  function _cdKeepResumedSectionInView(gateId) {
+    var gate = document.getElementById(gateId);
+    var section = gate ? (gate.closest('section') || gate) : null;
+    if (!section) return;
+    var alignedTop = 0;
+    var timer = 0;
+    var userEvents = ['touchstart', 'wheel', 'pointerdown', 'keydown'];
+    function stop() {
+      window.clearInterval(timer);
+      userEvents.forEach(function(name) { window.removeEventListener(name, stop, true); });
+    }
+    function align() {
+      // html 의 scroll-behavior: smooth 를 상속하지 않도록 instant 를 명시한다. 미지원 브라우저는 예외로 넘어온다.
+      try { section.scrollIntoView({ behavior: 'instant', block: 'start' }); } catch (_alignErr) { section.scrollIntoView(true); }
+      alignedTop = section.getBoundingClientRect().top;
+    }
+    var deadline = Date.now() + SAJU_SECTION_UNLOCK_KEEP_VIEW_MS;
+    userEvents.forEach(function(name) { window.addEventListener(name, stop, { capture: true, passive: true }); });
+    align();
+    timer = window.setInterval(function() {
+      if (Date.now() >= deadline) { stop(); return; }
+      if (Math.abs(section.getBoundingClientRect().top - alignedTop) > 4) align();
+    }, 200);
+  }
+
   function _cdRunSajuSectionUnlockResume(descriptor, grant) {
     var args = (descriptor && descriptor.args && typeof descriptor.args === 'object') ? descriptor.args : {};
     var featureKey = String(args.featureKey || '').trim();
@@ -32379,7 +32408,7 @@ function updateBadge() {
       _cdFinalizeUnlockState(featureKey, grant && grant.payload);
       if (!isTileKeyUnlocked(featureKey)) return false;
       if (!sectionId || !tileAction) {
-        _cdScrollUnlockedSectionIntoView(featureKey);
+        _cdKeepResumedSectionInView(gateId);
         return true;
       }
       // 보고서 카드는 요약 준비 뒤 지연 작업으로 그려진다. 본문은 이미 열렸으니 카드가 늦으면 섹션으로만 옮긴다.
@@ -32389,7 +32418,7 @@ function updateBadge() {
       }, 8000).then(function(tileReady) {
         var tileNode = tileReady ? document.querySelector(tileSelector) : null;
         if (!tileNode) {
-          _cdScrollUnlockedSectionIntoView(featureKey);
+          _cdKeepResumedSectionInView(gateId);
           return true;
         }
         try { sessionStorage.setItem('cd_pa_' + tileAction, '1'); } catch (_paErr) {}
