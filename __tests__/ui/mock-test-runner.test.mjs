@@ -13,6 +13,10 @@ import { NODE_TEST_PATTERNS, JEST_BASE_ARGS } from '../../scripts/lib/mock-test-
 test('both runners use canonical targets and preserve test selection arguments', () => {
   assert.deepEqual(mockTestInvocation('node', ['--test-name-pattern=fixture'], {}).args,
     ['--test', ...NODE_TEST_PATTERNS, '--test-name-pattern=fixture']);
+  assert.deepEqual(mockTestInvocation('node', [], { CD_NODE_TEST_CONCURRENCY: '3' }).args,
+    ['--test', '--test-concurrency=3', ...NODE_TEST_PATTERNS]);
+  assert.throws(() => mockTestInvocation('node', [], { CD_NODE_TEST_CONCURRENCY: '0' }), /positive integer/);
+  assert.throws(() => mockTestInvocation('node', [], { CD_NODE_TEST_CONCURRENCY: '3 --live' }), /positive integer/);
   assert.deepEqual(mockTestInvocation('jest', ['--listTests'], {}).args.slice(1), [...JEST_BASE_ARGS, '--listTests']);
   assert.throws(() => mockTestInvocation('live'), /Usage/);
   assert.match(mockTestInvocation('node', [], { NODE_OPTIONS: '--no-warnings' }).env.NODE_OPTIONS, /^--no-warnings /);
