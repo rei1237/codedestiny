@@ -19,6 +19,13 @@ for (const locale of ['en', 'ja', 'zh-CN', 'zh-TW', 'vi', 'hi', 'es', 'fr', 'de'
   const before = controls();
   const benefits = () => win.document.querySelector('[data-pass-benefits="honey"]').textContent.replace(/\s+/g, ' ').trim();
   const originalBenefits = benefits();
+  const storyCopy = () => Array.from(win.document.querySelectorAll(
+    '.cd-home-install-entry, .cd-expert-stories, .cd-story-entry__link, .yh-story-link, .yh-story-option .yh-card-copy > span:not(.yh-card-foot), .cd-sig-card__q, .cd-sig-card__desc'
+  )).map(el => ({
+    text: el.textContent.replace(/\s+/g, ' ').trim(),
+    names: [el, ...el.querySelectorAll('[aria-label]')].map(node => node.getAttribute('aria-label')),
+  }));
+  const originalStoryCopy = storyCopy();
   win.fetch = async input => {
     const path = new URL(input, 'https://example.invalid').pathname;
     assert.match(path, /^\/i18n\/[a-z-]+(?:\/[A-Za-z0-9_-]+)?\.json$/);
@@ -43,6 +50,7 @@ for (const locale of ['en', 'ja', 'zh-CN', 'zh-TW', 'vi', 'hi', 'es', 'fr', 'de'
     assert.ok(win.document.querySelector('.cdh-neo-letter__price').textContent.includes(JSON.parse(amount).amount));
     await win.cdApplyNativeTranslations('ko');
     assert.equal(benefits(), originalBenefits, 'language switching preserves the original pass copy and registry amounts');
+    assert.deepEqual(storyCopy(), originalStoryCopy, 'language switching restores story, install and accessible copy to Korean');
     assert.match(win.document.querySelector('#cdHoneySheetTitle').textContent, /꿀방울/);
     assert.deepEqual(controls(), before);
     assert.deepEqual(errors, []);
