@@ -27,7 +27,7 @@ export default function StagingPrints({productionTest=false}) {
     <StagingProducts records={items} refreshRecords={refreshRecords}/>
     <h2>인쇄용 캐릭터 QR</h2>
     <output aria-live="polite">{message}</output>
-    {items.map(item=><section key={item.code}><Ticket item={item} serial={item.serial}/>
+    {items.map(item=><section key={item.code} id={'qr-'+item.code}><Ticket item={item} serial={item.serial}/>
       <img width="220" height="220" src={recordPath+'/'+item.code+'.png'} alt={item.title+' 발행기록 확인 QR'}/>
       <p>확인 코드: {item.code}</p>
       <a href={recordPath+'/'+item.code+'.png'} download={item.code+'.png'}>QR 이미지 저장하기</a>
