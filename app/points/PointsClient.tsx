@@ -650,7 +650,7 @@ const SUBSCRIPTION_BASE_PLANS = [
     tier:         "standard",
     title:        "standard",
     baseWonPrice: PASS_MONTHLY_WON.standard,
-    profileLimit: 3,
+    profileLimit: null,
     freeUpTo:     50,
     theme:        "amber",
     badge:        "",
@@ -667,7 +667,7 @@ const SUBSCRIPTION_BASE_PLANS = [
     tier:         "premium",
     title:        "premium",
     baseWonPrice: PASS_MONTHLY_WON.premium,
-    profileLimit: 7,
+    profileLimit: null,
     freeUpTo:     100,
     theme:        "rose",
     features:     [
@@ -684,7 +684,7 @@ const SUBSCRIPTION_BASE_PLANS = [
     tier:         "vvip",
     title:        "vvip",
     baseWonPrice: PASS_MONTHLY_WON.vvip,
-    profileLimit: 15,
+    profileLimit: null,
     freeUpTo:     200,
     theme:        "purple",
     features:     [
@@ -764,13 +764,8 @@ function getSubscriptionPolicyFreeLimit(
   return 0;
 }
 
-function getSubscriptionPolicyProfileLimit(tier: SubscriptionTier | string | null | undefined) {
-  const normalized = normalizeSubscriptionTier(tier);
-  if (normalized === "family") return 0;
-  if (normalized === "vvip") return 15;
-  if (normalized === "premium") return 7;
-  if (normalized === "standard") return 3;
-  return 1;
+function getSubscriptionPolicyProfileLimit(_tier: SubscriptionTier | string | null | undefined) {
+  return 0;
 }
 
 const FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
@@ -884,9 +879,9 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
     periodLabel: "기간 제한 없음",
     passTerminationNote: "상담 한도를 다 써도 이용권은 유지되고 라이트 운세를 계속 이용할 수 있습니다. 다시 구매하면 새 상담 한도로 시작합니다.", passLightLine: (count, amount) => `라이트 운세 ${count}종 횟수 제한 없이 · ${amount} 상당`,
     heldPass: "보유 이용권",
-    allPaidPdfPolicy: "건당 금액 상한 없음 · 최대 50만원 상당",
+    allPaidPdfPolicy: "건당 금액 상한 없음 · 최대 35만원 상당",
     generalLimitPolicy: (value) => `일반 ${value} 이하 이용 가능`,
-    familyValueLine: (duration) => `패밀리 꿀단지 혜택 · 최대 50만원 상당 · ${duration}`,
+    familyValueLine: (duration) => `패밀리 꿀단지 혜택 · 최대 35만원 상당 · ${duration}`,
     planValueLine: (value, duration) => `${value} 이하 기능 · ${duration}`,
     monthlyCreditValue: (amount, locale) => `${Math.max(0, Math.floor(Number(amount || 0))).toLocaleString(locale)} 월정석`,
     won: (amount, locale) => `${Number(amount || 0).toLocaleString(locale)}원`,
@@ -906,7 +901,7 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
       free: {},
       standard: {
         under3000: "5천원급 콘텐츠까지 이용",
-        monthlyCap: "최대 3만원 상당",
+        monthlyCap: "최대 2만원 상당",
         over3000Single: "이용 한도를 다 쓸 때까지 작은 꿀단지 혜택 유지",
         pdfSingle: "PDF 상품 조건은 결제 전 안내",
         activeImmediately: "결제 즉시 이용권 활성화",
@@ -914,7 +909,7 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
       },
       premium: {
         under5000: "1만원급 콘텐츠까지 이용",
-        monthlyCap: "최대 10만원 상당",
+        monthlyCap: "최대 6만원 상당",
         over5000Single: "이용 한도를 다 쓸 때까지 중간 꿀단지 혜택 유지",
         pdfSingle: "PDF 상품 조건은 결제 전 안내",
         activeImmediately: "결제 즉시 이용권 활성화",
@@ -922,7 +917,7 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
       },
       vvip: {
         under10000: "3만원급 콘텐츠까지 이용",
-        monthlyCap: "최대 20만원 상당",
+        monthlyCap: "최대 12만원 상당",
         over10000Single: "이용 한도를 다 쓸 때까지 큰 꿀단지 혜택 유지",
         pdfSingle: "PDF 상품 조건은 결제 전 안내",
         activeImmediately: "결제 즉시 이용권 활성화",
@@ -930,7 +925,7 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
       },
       family: {
         allPaidPdf: "꿀꿀·영냥이의 이용권 대상 유료 리딩",
-        monthlyCap: "최대 50만원 상당",
+        monthlyCap: "최대 35만원 상당",
         activeImmediately: "결제 즉시 이용권 활성화",
         notAutoBilling: "자동갱신 없음",
       },
@@ -1010,9 +1005,9 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
     periodLabel: "No time limit",
     passTerminationNote: "Even after the consultation allowance is used up, the pass stays active and Light Readings remain available. Buying again starts a new consultation allowance.", passLightLine: (count, amount) => `${count} Light Readings with no use limit · worth ${amount}`,
     heldPass: "Active pass",
-    allPaidPdfPolicy: "No per-item price cap · Up to KRW 500,000 worth",
+    allPaidPdfPolicy: "No per-item price cap · Up to KRW 350,000 worth",
     generalLimitPolicy: (value) => `General services up to ${value}`,
-    familyValueLine: (duration) => `Family Honey Jar benefits · Up to KRW 500,000 worth · ${duration}`,
+    familyValueLine: (duration) => `Family Honey Jar benefits · Up to KRW 350,000 worth · ${duration}`,
     planValueLine: (value, duration) => `Services up to ${value} · ${duration}`,
     monthlyCreditValue: (amount, locale) => `${Math.max(0, Math.floor(Number(amount || 0))).toLocaleString(locale)} moon credits`,
     won: (amount, locale) => `KRW ${Number(amount || 0).toLocaleString(locale)}`,
@@ -1032,7 +1027,7 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
       free: {},
       standard: {
         under3000: "Content priced around KRW 5,000 and below",
-        monthlyCap: "Up to KRW 30,000 worth",
+        monthlyCap: "Up to KRW 20,000 worth",
         over3000Single: "Small Honey Jar benefits stay active until the usage limit is used up",
         pdfSingle: "PDF terms are shown before purchase",
         activeImmediately: "Pass activates right after payment",
@@ -1040,7 +1035,7 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
       },
       premium: {
         under5000: "Content priced around KRW 10,000 and below",
-        monthlyCap: "Up to KRW 100,000 worth",
+        monthlyCap: "Up to KRW 60,000 worth",
         over5000Single: "Medium Honey Jar benefits stay active until the usage limit is used up",
         pdfSingle: "PDF terms are shown before purchase",
         activeImmediately: "Pass activates right after payment",
@@ -1048,7 +1043,7 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
       },
       vvip: {
         under10000: "Content priced around KRW 30,000 and below",
-        monthlyCap: "Up to KRW 200,000 worth",
+        monthlyCap: "Up to KRW 120,000 worth",
         over10000Single: "Large Honey Jar benefits stay active until the usage limit is used up",
         pdfSingle: "PDF terms are shown before purchase",
         activeImmediately: "Pass activates right after payment",
@@ -1056,7 +1051,7 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
       },
       family: {
         allPaidPdf: "Eligible paid Ggulggul and Yeongnyangi readings",
-        monthlyCap: "Up to KRW 500,000 worth",
+        monthlyCap: "Up to KRW 350,000 worth",
         activeImmediately: "Pass activates right after payment",
         notAutoBilling: "No automatic renewal",
       },
@@ -1836,12 +1831,8 @@ type PendingSubscriptionPass = {
   startedAt: number;
 };
 
-function getPendingSubscriptionProfileLimit(tier: PendingSubscriptionPass["tier"]) {
-  if (tier === "standard") return 3;
-  if (tier === "premium") return 7;
-  if (tier === "vvip") return 15;
-  if (tier === "family") return 0;
-  return 1;
+function getPendingSubscriptionProfileLimit(_tier: PendingSubscriptionPass["tier"]) {
+  return 0;
 }
 
 function savePendingSubscriptionPass(tier: PendingSubscriptionPass["tier"], merchantUid: string) {
@@ -2793,7 +2784,7 @@ export default function PointsPage() {
     tier:         "free",
     isActive:     false,
     expiresAt:    null,
-    profileLimit: 1,
+    profileLimit: 0,
     cancelAtPeriodEnd: false,
     cancelRequestedAt: null,
     freeLimit: 0,
@@ -3079,7 +3070,7 @@ export default function PointsPage() {
         profileSubscription: {
           tier: sub.tier || "free",
           isActive: !!sub.isActive,
-          profileLimit: sub.profileLimit ?? 1,
+          profileLimit: sub.profileLimit ?? 0,
           freeLimit: sub.isActive ? (sub.freeLimit ?? getSubscriptionPolicyFreeLimit(sub.tier, sub.passPolicyVersion)) : 0,
           startedAt: sub.startedAt || null,
           durationMonths: sub.durationMonths,
@@ -3089,7 +3080,7 @@ export default function PointsPage() {
       const payload = JSON.stringify({
         tier: sub.tier || "free",
         isActive: !!sub.isActive,
-        profileLimit: sub.profileLimit ?? 1,
+        profileLimit: sub.profileLimit ?? 0,
         freeLimit: sub.isActive ? (sub.freeLimit ?? getSubscriptionPolicyFreeLimit(sub.tier, sub.passPolicyVersion)) : 0,
         startedAt: sub.startedAt || null,
         durationMonths: sub.durationMonths,

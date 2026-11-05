@@ -199,7 +199,7 @@ test("family shop copy states the real fusion coverage", () => {
   assert.doesNotMatch(points, /별도 상담권/);
   assert.doesNotMatch(points, /모든 유료 서비스(?:를)? 이용/);
   // 2026-10-11 기간 없는 이용권: "월 최대" → "최대". index.html(별도 작업) 갱신 전후 모두 허용.
-  assert.match(html, /이용권 대상 전체\(초융합 심층 리딩 포함\) · (?:월 )?최대 50만원 상당/);
+  assert.match(html, /이용권 대상 전체\(초융합 심층 리딩 포함\) · (?:월 )?최대 35만원 상당/);
   assert.doesNotMatch(html, /모든 유료 서비스(?:를)? 이용/);
   // 🔴 월 이용 한도가 있는 등급에 '무제한'·'월 누적'을 쓰지 않는다(2026-08-24 문구 정책).
   assert.doesNotMatch(points, /상담 10회|무제한\(월/);

@@ -10,6 +10,7 @@ next: 균일가 변경을 검토할 때 아래 판단 근거를 확인한다.
 
 ## 판단
 
+- 2026-11-05: Ruling: 프로필은 가입하면 모두 쓸 수 있으므로 모든 등급·정책 버전의 프로필 상한을 0(무제한)으로 통일하고, 등급 차이는 설정된 월 금액 한도와 건당 상한으로만 둔다 — 사용자 결정 — 틀리면 커밋 revert로 되돌린다. DB에 저장된 옛 값은 응답에서 무시한다.
 - | T8 ↔ spec 6.2 | spec text keeps compat passEnded criterion line AND says don't send passEnded | Ruling: don't send wins (later, more specific bullet) — cost if wrong: old clients keep stale active snapshot until refresh |
 - Task 1: Ruling: saju-guardian-unlock은 언어 모델은 아니지만 해금 뒤 호출마다 NVIDIA flux 이미지 모델을 부르므로 라이트에서 제외 — 사용자의 "비용 안 나가는 상품만 무제한" 근거에 맞춤 — 틀리면 이 상품만 이용권 상담 한도를 쓴다.
 - Task 1: Ruling: premiumDivinationPack은 모델 상품 권한(celestialHarmony 등)을 함께 열어 라이트에서 제외, sajuDiary는 소비처가 없어 제외. premium-sibyl-dominator는 Gemini 호출 확인, 2만 원 이상이라 가격 유지·사용자 결정 필요 — 틀리면 해당 상품이 무제한에서 빠질 뿐 비용 위험은 없다.

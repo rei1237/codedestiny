@@ -67,10 +67,10 @@ const TIERS = ["standard", "premium", "vvip", "family"];
    여기 숫자는 사용자와 합의된 정책 그 자체다. 코드를 바꿔 이 가드를 통과시키는 게
    아니라, 정책을 바꿀 때만 이 숫자를 바꾼다. */
 const POLICY = {
-  standard: { won: 9900, bandKRW: 5000, monthlyKRW: 30000, profiles: 3 },
-  premium: { won: 29900, bandKRW: 10000, monthlyKRW: 100000, profiles: 7 },
-  vvip: { won: 59000, bandKRW: 20000, monthlyKRW: 200000, profiles: 15 },
-  // family: 건당 상한 없음(bandKRW: null), 프로필 무제한(profiles: 0)
+  standard: { won: 9900, bandKRW: 5000, monthlyKRW: 30000, profiles: 0 },
+  premium: { won: 29900, bandKRW: 10000, monthlyKRW: 100000, profiles: 0 },
+  vvip: { won: 59000, bandKRW: 20000, monthlyKRW: 200000, profiles: 0 },
+  // family: 건당 상한 없음(bandKRW: null). 프로필은 2026-11-05 결정으로 전 등급 무제한(profiles: 0)
   family: { won: 149000, bandKRW: null, monthlyKRW: 500000, profiles: 0 },
 };
 
@@ -198,7 +198,7 @@ check(
   "이용권 미보유는 미커버",
   evaluatePassCoverage({ user: {}, entitlement: null, coinCost: 10 }).covered === false,
 );
-check("이용권 미보유 프로필 한도는 1개", HONEY_PASS_POLICY.none.maxProfiles === 1);
+check("이용권 미보유도 프로필 무제한", HONEY_PASS_POLICY.none.maxProfiles === 0);
 
 /* ── ③ 하드코딩 사본 대조 ────────────────────────────────────────────────
    fail-closed: 각 사본에서 4등급을 전부 뽑지 못하면 실패한다. */
@@ -276,9 +276,12 @@ const goldenMonthly = extractAll("index.html goldenPackages monthlyLimit", shell
 const goldenProfile = extractAll("index.html goldenPackages profileLimit", shell, (tier) => goldenFor(tier, "profileLimit"));
 const goldenPrice = extractAll("index.html goldenPackages price", shell, (tier) => goldenFor(tier, "price"));
 for (const tier of TIERS) {
-  if (goldenFree[tier] !== undefined) check(`셸 goldenPackages[${tier}].freeLimit`, goldenFree[tier] === PASS_LIMITS[tier], `실제=${goldenFree[tier]} 정본=${PASS_LIMITS[tier]}`);
-  if (goldenMonthly[tier] !== undefined) check(`셸 goldenPackages[${tier}].monthlyLimit`, goldenMonthly[tier] === MONTHLY_PASS_LIMITS[tier], `실제=${goldenMonthly[tier]}`);
+  if (goldenFree[tier] !== undefined) check(`셸 goldenPackages[${tier}].freeLimit`, goldenFree[tier] === CURRENT_PASS_PLANS[tier]?.maxCoveredCoin, `실제=${goldenFree[tier]} 정본=${CURRENT_PASS_PLANS[tier]?.maxCoveredCoin}`);
+  if (goldenMonthly[tier] !== undefined) check(`셸 goldenPackages[${tier}].monthlyLimit`, goldenMonthly[tier] === CURRENT_PASS_PLANS[tier]?.monthlyLimitCoin, `실제=${goldenMonthly[tier]} 정본=${CURRENT_PASS_PLANS[tier]?.monthlyLimitCoin}`);
   if (goldenPrice[tier] !== undefined) check(`셸 goldenPackages[${tier}].price`, goldenPrice[tier] === CURRENT_PASS_PLANS[tier]?.wonPrice, `실제=${goldenPrice[tier]} 정본=${CURRENT_PASS_PLANS[tier]?.wonPrice}`);
+  const goldenDesc = shell.match(new RegExp(`id:\\s*'${tier}'[^}]*?desc:\\s*'([^']+)'`))?.[1];
+  const koDesc = JSON.parse(read("public/i18n/ko.json")).payment.passShop.packages[tier].desc;
+  check(`셸 goldenPackages[${tier}].desc 는 ko.json 과 같다`, goldenDesc?.replace("(초융합 심층 리딩 포함)", "") === koDesc, `실제=${goldenDesc} 정본=${koDesc}`);
   if (goldenProfile[tier] !== undefined) {
     const want = HONEY_PASS_POLICY[tier].maxProfiles === 0 ? null : HONEY_PASS_POLICY[tier].maxProfiles;
     check(`셸 goldenPackages[${tier}].profileLimit`, goldenProfile[tier] === want, `실제=${goldenProfile[tier]} 정본=${want}`);

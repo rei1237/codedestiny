@@ -34,6 +34,7 @@ import {
   normalizePassTier,
   resolveMonthlyPassLimitCoin,
   resolvePremiumQuotaCycleKey,
+  resolveProfileLimitForClient,
 } from "../lib/profile-limits.js";
 import { PASS_MONTHLY_WON } from "../../lib/payment/pass-pricing.js";
 import { paymentError } from "./errors.js";
@@ -353,7 +354,7 @@ export function presentPassSubscription(profileSubscription, plan, { customerUid
     isActive: Boolean(expiresAt && new Date(expiresAt).getTime() > Date.now()),
     startedAt: sub.startedAt ? new Date(sub.startedAt).toISOString() : null,
     expiresAt,
-    profileLimit: Number(sub.profileLimit ?? plan?.profileLimit ?? 1),
+    profileLimit: resolveProfileLimitForClient(),
     planId: sub.planId || plan?.planId || "",
     durationMonths: Number(sub.durationMonths ?? plan?.durationMonths ?? 1),
     productType: PASS_PRODUCT_TYPE,

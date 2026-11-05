@@ -1,10 +1,10 @@
 /** @jest-environment node */
-import { currentPassPlan, previousPassPlan, priorPassPlan, isPassPolicyMix, CURRENT_PASS_POLICY_VERSION, PRIOR_PASS_POLICY_VERSION } from "../../lib/payment/pass-policy.js";
+import { currentPassPlan, v4PassPlan, previousPassPlan, priorPassPlan, isPassPolicyMix, CURRENT_PASS_POLICY_VERSION, PRIOR_PASS_POLICY_VERSION } from "../../lib/payment/pass-policy.js";
 import { auditPassProfitability } from "../../lib/payment/pass-profitability.js";
 import { auditPassSale, auditPassSaleEvidence, assertPassSaleAllowed } from "../../worker/lib/pass-sale-policy.js";
-import { resolvePassPolicy, resolveMonthlyPassLimitCoin, buildPassCycleFields, canUseByPass, isPassBudgetExhausted } from "../../worker/lib/profile-limits.js";
+import { HONEY_PASS_POLICY, resolvePassPolicy, resolveMonthlyPassLimitCoin, buildPassCycleFields, canUseByPass, isPassBudgetExhausted } from "../../worker/lib/profile-limits.js";
 import { FEATURE_KEY_PRICE_TABLE } from "../../worker/lib/paid-feature-registry.js";
-import { createPassOrder, resolvePassPlan, activatePassSubscription, evaluatePassCoverage, consumePassCoverage, describePassEligibility } from "../../worker/payments/passes.js";
+import { presentPassSubscription, createPassOrder, resolvePassPlan, activatePassSubscription, evaluatePassCoverage, consumePassCoverage, describePassEligibility } from "../../worker/payments/passes.js";
 import { giftDraftFor } from "../../worker/payments/gifts.js";
 import { resolveProduct } from "../../worker/payments/catalog.js";
 import { makeFakePaymentDb } from "../fixtures/fake-payment-db.mjs";
@@ -54,6 +54,30 @@ describe("versioned flower passes", () => {
     expect(isPassBudgetExhausted("family", 4950, 5000, family)).toBe(false);
     expect(isPassBudgetExhausted("family", 4951, 5000, family)).toBe(true);
     expect(isPassBudgetExhausted("family", 5000, 5000, family)).toBe(true);
+  });
+  test("every pass version and tier leaves profiles uncapped", () => {
+    for (const tier of ["standard", "premium", "vvip", "family"]) {
+      for (const plan of [currentPassPlan(tier), v4PassPlan(tier), previousPassPlan(tier), priorPassPlan(tier)]) {
+        if (plan) expect([plan.planId, plan.profileLimit]).toEqual([plan.planId, 0]);
+      }
+      expect(HONEY_PASS_POLICY[tier].maxProfiles).toBe(0);
+    }
+    expect(HONEY_PASS_POLICY.none.maxProfiles).toBe(0);
+  });
+  test("tiers keep their configured amount limits", () => {
+    const amounts = (plan) => [plan.wonPrice, plan.maxCoveredCoin, plan.monthlyLimitCoin];
+    expect(amounts(currentPassPlan("standard"))).toEqual([14900, 50, 200]);
+    expect(amounts(currentPassPlan("premium"))).toEqual([34900, 100, 600]);
+    expect(amounts(currentPassPlan("vvip"))).toEqual([64900, 300, 1200]);
+    expect(amounts(currentPassPlan("family"))).toEqual([154000, 999999999, 3500]);
+    expect(amounts(v4PassPlan("standard"))).toEqual([9900, 50, 200]);
+    expect(amounts(v4PassPlan("premium"))).toEqual([29900, 100, 600]);
+    expect(amounts(v4PassPlan("vvip"))).toEqual([59900, 300, 1200]);
+    expect(amounts(v4PassPlan("family"))).toEqual([149000, 999999999, 3500]);
+  });
+  test("a buyer stored with an old profile limit is presented as uncapped", () => {
+    const presented = presentPassSubscription({ tier: "premium", profileLimit: 7 }, currentPassPlan("premium"));
+    expect(presented.profileLimit).toBe(0);
   });
   test("tea consultation prices match the approved separate products", () => {
     const tea = Object.entries(FEATURE_KEY_PRICE_TABLE).filter(([key]) => key.startsWith("fortune-tea-house-"));

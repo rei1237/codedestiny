@@ -121,7 +121,7 @@ import { callGeminiText, createGeminiContextCache, deleteGeminiContextCache } fr
 import { cmsPromptText, primePromptTemplateOverrides } from "../lib/cms-prompts.js";
 import { hasRenderableLlmText, isCompleteLlmResponse } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
-import { canUseByPass, isActiveStatus, isInactiveStatus, normalizeHoneyPassEntitlement, resolveMonthlySpendQuota, resolvePremiumQuota } from "../lib/profile-limits.js";
+import { canUseByPass, isActiveStatus, isInactiveStatus, normalizeHoneyPassEntitlement, resolveMonthlySpendQuota, resolvePremiumQuota, resolveProfileLimitForClient } from "../lib/profile-limits.js";
 import { resolveCanonicalEntitlement } from "../lib/entitlement-policy.js";
 // 🔴 이용권 무료 통과는 **차감을 동반해야** 한도가 존재한다. 이 파일의 두 통과 지점
 // (AI 프롬프트 이용권 증빙 · SUBSCRIPTION_INCLUDED)은 coin-gate 를 거치지 않아 지금까지
@@ -2529,9 +2529,9 @@ function resolveUnlockProductSpec(productId) {
 }
 
 const PROFILE_SUB_PLANS = {
-  standard: { name: "스탠다드", coins: 115, profileLimit: 3, durationDays: 30, lowWarnAt: 30 },
-  premium: { name: "프리미엄", coins: 360, profileLimit: 7, durationDays: 30, lowWarnAt: 50 },
-  vvip: { name: "VVIP", coins: 700, profileLimit: 15, durationDays: 30, lowWarnAt: 100 },
+  standard: { name: "스탠다드", coins: 115, profileLimit: 0, durationDays: 30, lowWarnAt: 30 },
+  premium: { name: "프리미엄", coins: 360, profileLimit: 0, durationDays: 30, lowWarnAt: 50 },
+  vvip: { name: "VVIP", coins: 700, profileLimit: 0, durationDays: 30, lowWarnAt: 100 },
   family: { name: "Code Destiny Family", coins: 3000, profileLimit: 0, durationDays: 30, lowWarnAt: 300, freeLimit: 999999999 },
 };
 
@@ -6176,7 +6176,7 @@ async function handleSubscriptionStatus(request, env, auth) {
   }
 
   const isActive = effectiveTier !== "free";
-  const profileLimit = isActive ? (PROFILE_SUB_PLANS[effectiveTier]?.profileLimit ?? 1) : 1;
+  const profileLimit = resolveProfileLimitForClient();
   const lowBalanceWarning = false;
   const policy = getPlanPolicy(isActive ? effectiveTier : null);
   const passLimit = isActive
