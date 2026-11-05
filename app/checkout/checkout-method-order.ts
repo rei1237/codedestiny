@@ -14,6 +14,12 @@ export function readSavedCheckoutMethod(saved:unknown):CheckoutMethod|null{
  return typeof saved==='string'&&/^pack:.+/.test(saved)?saved as CheckoutMethod:null;
 }
 
+// A snapshot holds null until the server reports usage, and Number(null) would read as an empty pot.
+export function passRemainingCoin(snapshot:{state?:string;monthlySpendRemainingCoin?:number|null}|null|undefined):number|null{
+ const remaining=snapshot?.state==='active'?snapshot.monthlySpendRemainingCoin:null;
+ return typeof remaining==='number'&&Number.isFinite(remaining)?remaining:null;
+}
+
 export function passMethodNote({pass,coinCost,remainingWon,upgradeName}:{pass:{canUse:boolean;label:string|null;limit:number|null};coinCost:number;remainingWon:string;upgradeName:string}){
  if(pass.canUse)return remainingWon?`사용 가능 · 남은 한도 ${remainingWon}`:'사용 가능 · 추가 결제 없음';
  const overCap=Number(pass.limit)>0&&coinCost>Number(pass.limit);

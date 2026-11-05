@@ -9032,13 +9032,16 @@ function _bindSajuQuestionPromptCard(rootEl) {
 
       try {
         var existing = document.getElementById('specialCharmCard');
-        if(existing) existing.remove();
+        var preserveDeliveredCharm = !!(existing
+          && !existing.querySelector('[data-cd-summary-fallback="1"]')
+          && String(existing.textContent || '').trim());
+        if(existing && !preserveDeliveredCharm) existing.remove();
         var existingAi = document.getElementById('aiPromptCard');
         if(existingAi) existingAi.remove();
         var existingQuestion = document.getElementById('sajuQuestionPromptGeneratorCard');
         if (existingQuestion) existingQuestion.remove();
 
-        if (targetCard) {
+        if (targetCard && !preserveDeliveredCharm) {
           targetCard.insertAdjacentHTML('afterend', html);
         }
 
@@ -25287,6 +25290,11 @@ function renderVillainStub(p) {
   if(!card || !resultArea) return;
   if(!p || !p.d || !p.d.g) {
     card.style.display = 'none';
+    return;
+  }
+  // Deferred shell rendering must not erase an already delivered paid/gift body.
+  if(!resultArea.querySelector('[data-cd-summary-fallback="1"]')&&String(resultArea.textContent||'').trim()){
+    card.style.display='block';
     return;
   }
   var chips = ['빌런 위험도 랭킹', '사주 근거(십성·합충·신살)', '빌런 시그널 체크', '긴급 차단 멘트', '관계 방어 자가진단'];

@@ -8,7 +8,7 @@ import {usePaidResume} from '@/app/hooks/usePaidResume';
 import {resolveServerFeaturePricing} from '@/lib/payment/server-feature-pricing';
 import {consultationShopPath,readConsultationContext} from '@/app/components/service-packs/consultation-context';
 import {passUpgradeNameForAmount} from '@/lib/payment/pass-fish-coverage.js';
-import {defaultCheckoutMethod,passMethodNote,readSavedCheckoutMethod,type CheckoutMethod} from './checkout-method-order';
+import {defaultCheckoutMethod,passMethodNote,passRemainingCoin,readSavedCheckoutMethod,type CheckoutMethod} from './checkout-method-order';
 import {consumeServicePack,quoteServicePack,readPackWallet,ServicePackError,type OwnedServicePack} from '@/app/components/service-packs/service-pack-client';
 import {loginForCurrentPage,resultPath,checkoutPath,type FortuneRecord} from '../yeongnyangi/_lib/api';
 import MoonstoneDiscountBalance from './MoonstoneDiscountBalance';
@@ -73,7 +73,7 @@ export default function YeongnyangiCheckout({draft}:{draft:ConsultationCheckoutD
  const packs=current?.packs.filter(pack=>pack.eligibleFeatureKeys.includes(draft.product.cdFeatureKey))||[];
  const passUsable=Boolean(eligible?.pass.canUse);
  const passSnapshot=eligible?.pass.hasActivePass?readSubscriptionSnapshotForUser():null;
- const remainingCoin=passSnapshot?.state==='active'?Number(passSnapshot.monthlySpendRemainingCoin):Number.NaN;
+ const remainingCoin=passRemainingCoin(passSnapshot);
  const shopContext=readConsultationContext(new URLSearchParams({context:'yeongnyangi',featureKey:draft.product.cdFeatureKey,lang:'ko'}));
  const stones=Boolean(eligible?.monthly.canUse&&!pricing?.monthlyExcluded);
  const selectedPack=method.startsWith('pack:')?packs.find(pack=>pack.entitlementId===method.slice(5)):undefined;
@@ -131,7 +131,7 @@ export default function YeongnyangiCheckout({draft}:{draft:ConsultationCheckoutD
       {current?.error&&<p role="alert">보유 혜택을 모두 확인하지 못했어요. <button type="button" onClick={()=>setRevision(value=>value+1)}>다시 확인하기</button></p>}
       {(passUsable||packs.some(pack=>pack.available&&pack.remainingUses>0))&&<p className={styles.passHint}>사용 가능한 이용권을 먼저 선택해 드려요. 원하면 아래에서 바꿀 수 있어요.</p>}
       {packs.map(pack=><label key={pack.entitlementId} className={styles.choice}><input type="radio" name="yn-method" checked={method===`pack:${pack.entitlementId}`} disabled={!pack.available||pack.remainingUses<=0} onChange={()=>choose(`pack:${pack.entitlementId}`)}/><span><strong>{pack.label}</strong><small>{pack.available?`${pack.remainingUses}회 남음 · 이번 상담에 1회 사용`:'만료·소진 또는 회수되어 사용할 수 없어요.'}</small></span></label>)}
-      {eligible?.pass.hasActivePass&&<label className={styles.choice} data-yn-method="pass"><input type="radio" name="yn-method" checked={method==='pass'} disabled={!passUsable} onChange={()=>choose('pass')}/><span><strong>{eligible.pass.label||'내 꿀단지'}</strong><small>{passMethodNote({pass:eligible.pass,coinCost:pricing?.cost||0,remainingWon:Number.isFinite(remainingCoin)?won(Math.max(0,Math.floor(remainingCoin))*100):'',upgradeName:passUpgradeNameForAmount(pricing?.amountKRW||0)})}</small></span></label>}
+      {eligible?.pass.hasActivePass&&<label className={styles.choice} data-yn-method="pass"><input type="radio" name="yn-method" checked={method==='pass'} disabled={!passUsable} onChange={()=>choose('pass')}/><span><strong>{eligible.pass.label||'내 꿀단지'}</strong><small>{passMethodNote({pass:eligible.pass,coinCost:pricing?.cost||0,remainingWon:remainingCoin===null?'':won(Math.max(0,Math.floor(remainingCoin))*100),upgradeName:passUpgradeNameForAmount(pricing?.amountKRW||0)})}</small></span></label>}
       {!pricing?.monthlyExcluded&&eligible&&<label className={styles.choice} data-yn-method="stones"><input type="radio" name="yn-method" checked={method==='stones'} disabled={!stones} onChange={()=>choose('stones')}/><span><strong>월정석</strong><small>{pricing?.membershipCreditCost.toLocaleString('ko-KR')}개 사용 · 보유 {eligible.monthly.balance.toLocaleString('ko-KR')}개{!stones?' · 사용 가능 잔액 부족':''}</small></span></label>}
      </>}
      <label className={styles.choice} data-yn-method="direct"><input type="radio" name="yn-method" checked={method==='direct'} onChange={()=>choose('direct')}/><span><strong>단건 결제</strong><small>이번 상담 한 번 · {native?'Google Play에서 금액 확인':won(pricing?.amountKRW||draft.product.priceKRW)}</small></span></label>
