@@ -41,7 +41,8 @@ export function useProfiles({forceFreshOnMount=false,skipBillingSync=false,requi
   if(requireVerified){list.current=[];selection.current='';setProfiles([]);setProfileId('');}
   setLoading(true);setError('');
   try{
-   const response=await authFetch('/api/yeongnyangi/profiles',force?{headers:{'x-code-destiny-cache-refresh':'1'}}:{}, {forceFresh:force});
+   const fresh=force||requireVerified;
+   const response=await authFetch('/api/yeongnyangi/profiles',fresh?{headers:{'x-code-destiny-cache-refresh':'1'}}:{}, {forceFresh:fresh});
    if(version!==revision.current||requestScope!==readDestinyProfileAccountId())return;
    if(response.status===401){list.current=[];selection.current='';setProfiles([]);setProfileId('');setGuest(true);if(requestScope)sessionStorage.removeItem(storageKey(requestScope));return;}
    if(requireVerified&&response.status===403)throw new Error('프로필에 접근할 권한을 확인할 수 없어요.');
