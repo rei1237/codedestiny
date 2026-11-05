@@ -1,6 +1,6 @@
 "use client";
 import Image from 'next/image';
-import { consultationStories, storyBenefits, storyPreviewHeights } from './stories';
+import { consultationStories, signatureStoryIds, storyBenefits, storyPreviewHeights } from './stories';
 import { Archive, ArrowLeft, ArrowUpRight, MessageCircleHeart, Moon } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { RECORD_SERVICES } from '@/lib/records/service-registry';
@@ -14,7 +14,7 @@ import styles from './consultations.module.css';
 // 강약: 홈 덱과 같은 순서 — 대표 상담 3종(연애 비책·신년운세·인생의 책)이 첫 줄, 캐릭터 상담 셋이 뒤,
 // 나머지 일곱 개는 압축 목록으로 아래.
 const groups = {
-  signature: ['love-secret', 'new-year', 'life-book', 'neo', 'tea', 'codex'],
+  signature: signatureStoryIds,
   others: ['ziwei', 'astrology', 'vedic', 'sukuyo-compat', 'legacy-naming', 'karma', 'fusion'],
 } as const;
 const numerals = ['Ⅰ', 'Ⅱ', 'Ⅲ', 'Ⅳ', 'Ⅴ', 'Ⅵ'];
