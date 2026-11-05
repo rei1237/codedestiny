@@ -1,0 +1,11 @@
+.bar { display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; }
+.product { display:grid; gap:.65rem; padding:1rem 0; border-bottom:1px solid var(--cd-border,currentColor); }
+.product img { object-fit:contain; border-radius:.5rem; }
+.product h3 { font-size:1.15rem; font-weight:700; }
+button.primary { background:#753b57; color:white; border-color:#753b57; font-weight:650; }
+button.primary:not(:disabled):hover { background:#602c45; }
+@media (min-width:640px) {
+  .product { grid-template-columns:1fr auto; }
+  .product img,.product p { grid-column:1; }
+  .product button { grid-column:2; grid-row:1 / span 2; align-self:center; }
+}
