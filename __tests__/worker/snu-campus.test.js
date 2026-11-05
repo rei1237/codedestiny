@@ -31,7 +31,7 @@ beforeAll(async()=>{
 });
 beforeEach(()=>{jest.clearAllMocks();email='student@snu.ac.kr';member=null;reserve.mockResolvedValue({accountKey:'hashed'});profileBirth='birth-one';grant.mockResolvedValue({status:'ACTIVE'});snapshot.mockResolvedValue({featureKeys:SNU_SAJU_FEATURES.map(item=>item.featureKey)});});
 test.each(['student@snu.ac.kr.evil.com','snu.ac.kr@evil.com','student@other.ac.kr','student@snu.ac.kr\n@evil.com'])('domain spoof %s is denied',value=>expect(isSnuEmail(value)).toBe(false));
-test('only reviewed non-LLM keys can be granted',()=>{expect(SNU_SAJU_FEATURES).toHaveLength(10);for(const key of ['saju-ai','fortune-chat-consultation','yeongnyangi-saju-mackerel','future-service'])expect(isSnuSajuFeature(key)).toBe(false);});
+test('only reviewed non-LLM keys can be granted',()=>{expect(SNU_SAJU_FEATURES).toHaveLength(11);expect(isSnuSajuFeature('saju-career-style')).toBe(true);for(const key of ['saju-ai','fortune-chat-consultation','yeongnyangi-saju-mackerel','future-service'])expect(isSnuSajuFeature(key)).toBe(false);});
 test('typing a school email without verification cannot unlock',async()=>{await expect(api.unlockSnuSaju(UID,'own')).rejects.toMatchObject({payload:{code:'SNU_VERIFICATION_REQUIRED'}});expect(grant).not.toHaveBeenCalled();});
 test('challenge is hashed, account-bound, and cannot be requested repeatedly',async()=>{
  await api.requestSnuVerification(UID,{SITE_URL:'https://example.com'});const mail=send.mock.calls[0][1],token=mail.text.match(/token=([a-f0-9]+)/)[1];
@@ -45,22 +45,29 @@ test('expired or wrong token cannot verify',async()=>{
  member.challengeExpiresAt=new Date(0);await expect(api.verifySnuEmail(UID,'a'.repeat(64))).rejects.toMatchObject({payload:{code:'SNU_LINK_EXPIRED'}});
 });
 test('one verified birth profile is pinned; grants preserve existing rights',async()=>{
- member={_id:KEY,userId:UID,email,verifiedAt:new Date(),revision:1};await api.unlockSnuSaju(UID,'own');expect(grant).toHaveBeenCalledTimes(10);
+ member={_id:KEY,userId:UID,email,verifiedAt:new Date(),revision:1};await api.unlockSnuSaju(UID,'own');expect(grant).toHaveBeenCalledTimes(11);
  for(const [args]of grant.mock.calls){expect(args.insertOnly).toBe(true);expect(args.source).toBe('ADMIN');expect(args.evidenceId).toMatch(/^snu:/);expect(isSnuSajuFeature(args.featureKey)).toBe(true);}
- expect(member.grantedFeatureKeys).toHaveLength(10);profileBirth='different';await expect(api.unlockSnuSaju(UID,'own')).rejects.toMatchObject({payload:{code:'SNU_PROFILE_ALREADY_SELECTED'}});
+ expect(member.grantedFeatureKeys).toHaveLength(11);profileBirth='different';await expect(api.unlockSnuSaju(UID,'own')).rejects.toMatchObject({payload:{code:'SNU_PROFILE_ALREADY_SELECTED'}});
 });
 test('revoked existing entitlement is not falsely reported as unlocked',async()=>{
- member={_id:KEY,userId:UID,email,verifiedAt:new Date(),revision:1};grant.mockResolvedValueOnce({status:'REFUNDED'});const r=await api.unlockSnuSaju(UID,'own');expect(r.complete).toBe(false);expect(r.unlockedFeatureKeys).toHaveLength(9);
+ member={_id:KEY,userId:UID,email,verifiedAt:new Date(),revision:1};grant.mockResolvedValueOnce({status:'REFUNDED'});const r=await api.unlockSnuSaju(UID,'own');expect(r.complete).toBe(false);expect(r.unlockedFeatureKeys).toHaveLength(10);
 });
 
 test('recreated account cannot claim an email already pinned to another account',async()=>{member={_id:KEY,userId:'previous-account',email,verifiedAt:new Date(),revision:1};expect((await api.readSnuCampus(UID)).verified).toBe(false);await expect(api.requestSnuVerification(UID,{})).rejects.toMatchObject({payload:{code:'SNU_ACCOUNT_CHANGED'}});expect(grant).not.toHaveBeenCalled();});
 
-test('ordinary email account with code receipt can unlock without school verification',async()=>{email='member@example.com';member={_id:'snulife:'+createHash('sha256').update(UID).digest('hex'),userId:UID,verifiedAt:new Date(),revision:0};expect((await api.readSnuCampus(UID)).verified).toBe(true);await api.unlockSnuSaju(UID,'own');expect(grant).toHaveBeenCalledTimes(10);expect(send).not.toHaveBeenCalled();});
+test('ordinary email account with code receipt can unlock without school verification',async()=>{email='member@example.com';member={_id:'snulife:'+createHash('sha256').update(UID).digest('hex'),userId:UID,verifiedAt:new Date(),revision:0};expect((await api.readSnuCampus(UID)).verified).toBe(true);await api.unlockSnuSaju(UID,'own');expect(grant).toHaveBeenCalledTimes(11);expect(send).not.toHaveBeenCalled();});
 
 test('ordinary email can redeem code and retain receipt without sending mail',async()=>{email='member@example.com';await api.claimSnulifeCode(UID,'TEST-ONLY',{});expect(reserve).toHaveBeenCalledWith(UID,'TEST-ONLY',{});expect((await api.readSnuCampus(UID)).verified).toBe(true);expect(send).not.toHaveBeenCalled();});
 test('failed code reservation never creates membership',async()=>{reserve.mockRejectedValueOnce(new Error('sold out'));await expect(api.claimSnulifeCode(UID,'TEST-ONLY',{})).rejects.toThrow('sold out');expect(member).toBeNull();});
 
 test('an existing member rereads without consuming review or public capacity',async()=>{member={_id:'snulife:'+createHash('sha256').update(UID).digest('hex'),userId:UID,verifiedAt:new Date(),campaignId:'review',campaignMode:'review',campaignLimit:3,campaignEndsAt:new Date(0)};const r=await api.claimSnulifeCode(UID,'another-code',{});expect(r.verified).toBe(true);expect(r.campaign.mode).toBe('review');expect(reserve).not.toHaveBeenCalled();});
+test('an existing ten-item member can receive the new deterministic item without consuming another seat',async()=>{
+ const originalKeys=SNU_SAJU_FEATURES.filter(item=>item.featureKey!=='saju-career-style').map(item=>item.featureKey);
+ member={_id:'snulife:'+createHash('sha256').update(UID).digest('hex'),userId:UID,verifiedAt:new Date(),profileId:'own',birthKey:profileBirth,grantedFeatureKeys:originalKeys,revision:1};
+ await api.unlockSnuSaju(UID,'own');
+ expect(grant).toHaveBeenCalledTimes(11);expect(grant.mock.calls.some(([args])=>args.featureKey==='saju-career-style')).toBe(true);
+ expect(reserve).not.toHaveBeenCalled();
+});
 test('a partial grant retries safely on the same profile',async()=>{member={_id:KEY,userId:UID,email,verifiedAt:new Date(),revision:1};grant.mockRejectedValueOnce(new Error('temporary db failure'));await expect(api.unlockSnuSaju(UID,'own')).rejects.toThrow('temporary db failure');expect(member.birthKey).toBe(profileBirth);const r=await api.unlockSnuSaju(UID,'own');expect(r.complete).toBe(true);for(const [args]of grant.mock.calls)expect(args.insertOnly).toBe(true);});
 
 test('status rereads active birth-scoped rights, instead of trusting the old grant receipt',async()=>{
@@ -76,6 +83,6 @@ test('unlock completion requires the active snapshot even when every grant retur
  member={_id:KEY,userId:UID,email,verifiedAt:new Date(),revision:1};
  snapshot.mockResolvedValue({featureKeys:SNU_SAJU_FEATURES.slice(1).map(item=>item.featureKey)});
  const result=await api.unlockSnuSaju(UID,'own');
- expect(grant).toHaveBeenCalledTimes(10);expect(result.complete).toBe(false);
- expect(result.unlockedFeatureKeys).toHaveLength(9);
+ expect(grant).toHaveBeenCalledTimes(11);expect(result.complete).toBe(false);
+ expect(result.unlockedFeatureKeys).toHaveLength(10);
 });
