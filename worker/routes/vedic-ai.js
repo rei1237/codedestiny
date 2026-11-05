@@ -11,7 +11,7 @@ import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
 import { isStoredPaidResultRevoked } from "../lib/paid-result-revocation.js";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
-import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest, isAuthDbInfraError, peekAccessTokenUserId } from "../lib/auth.js";
+import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest as webOptionalUser, isAuthDbInfraError, peekAccessTokenUserId } from "../lib/auth.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
 import { clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
@@ -39,6 +39,8 @@ import { buildVedicKnowledgeContext } from "../lib/vedic-ai-knowledge.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { resolveAiLocaleFromRequest } from "../lib/ai-locale-context.js";
 import { claimRequestBillingEvidence, evidenceClaimErrorBody, releaseRequestBillingEvidence } from "../lib/billing-evidence-claim.js";
+import { nativeTossContext } from "../toss/native-context.js";
+const getOptionalUserFromRequest=(request,...args)=>nativeTossContext(request)?.auth||webOptionalUser(request,...args);
 
 const SERVICE_KEY = "vedic-ai";
 const FEATURE_KEY = "vedic-ai-consultation";
@@ -1328,6 +1330,12 @@ async function handleEnsureAccess(request, env) {
   const pricing = getPricing();
   logVedicAi("LLM Access Check Start", { ...context, requestId });
 
+  const toss=nativeTossContext(request);
+  if(toss){
+    const access=await toss.access(body,normalized,requestId);
+    return access?.ok ? json({ok:true,accessType:'paid'}) : json({ok:false,reason:'PAYMENT_REQUIRED',paymentPayload:{featureKey:FEATURE_KEY}},{status:402});
+  }
+
   await connectDb(env);
   const existing = await withMongoRetry(env, () => VedicAiConsultation.findOne({
     userId: String(auth.userId),
@@ -1404,7 +1412,8 @@ async function applyUsageOnce({ userId, sessionId, accessType, pricing }) {
   return true;
 }
 
-async function resolveStartAccess({ env, auth, body, normalized, idempotencyKey, pricing }) {
+async function resolveStartAccess({ request, env, auth, body, normalized, idempotencyKey, pricing }) {
+  if(nativeTossContext(request)){const access=await nativeTossContext(request).access(body,normalized,idempotencyKey);return access?.ok?access:null;}
   const token = clean(body.accessToken);
   if (token) {
     const payload = await verifyAccessToken(env, token);
@@ -1655,15 +1664,19 @@ async function generateConsultation({ request, env, auth, body, normalized, idem
   const context = routeLogContext(request, body, normalized, idempotencyKey);
   await connectDb(env);
   const existing = await VedicAiConsultation.findOne({ userId: String(auth.userId), idempotencyKey }).lean();
+  if(existing&&nativeTossContext(request))await nativeTossContext(request).assertStored(existing);
+  if(existing?.accessSource==='toss'&&!nativeTossContext(request))return notFound();
   if (existing && existing.inputHash !== normalized.inputHash) return invalidInput("같은 요청 키로 다른 상담 정보를 사용할 수 없습니다.");
   if (existing?.status === "completed") return json({ ok: true, consultation: consultationPayload(existing) });
-  if (existing?.status === "generation_failed") return json({ ok: false, reason: "GENERATION_FAILED" }, { status: 409 });
-  const access = await resolveStartAccess({ env, auth, body, normalized, idempotencyKey, pricing });
+  if (existing?.status === "generation_failed" && !nativeTossContext(request)) return json({ ok: false, reason: "GENERATION_FAILED" }, { status: 409 });
+  const access = await resolveStartAccess({ request, env, auth, body, normalized, idempotencyKey, pricing });
   if (!access) return paymentVerifyFailed();
   // 결제 증빙 1건 = 상담 1건(2026-10-16). 이용권·관리자는 paymentId 가 없어 건너뛴다.
   const evidenceIds = [access.paymentId];
-  const evidenceClaim = await claimRequestBillingEvidence(env, { userId: String(auth.userId), requestId: idempotencyKey, evidenceIds, featureKey: FEATURE_KEY });
-  if (!evidenceClaim.ok) return json(evidenceClaimErrorBody(evidenceClaim), { status: evidenceClaim.status });
+  if(!nativeTossContext(request)){
+    const evidenceClaim = await claimRequestBillingEvidence(env, { userId: String(auth.userId), requestId: idempotencyKey, evidenceIds, featureKey: FEATURE_KEY });
+    if (!evidenceClaim.ok) return json(evidenceClaimErrorBody(evidenceClaim), { status: evidenceClaim.status });
+  }
   logVedicAi("LLM Payment Guard Passed", { ...context, accessCheckResult: access.source || access.accessType });
   const sessionId = existing?.id || `vedic-ai-${randomUUID()}`;
   const owner = { id: sessionId, userId: String(auth.userId) };
@@ -1674,18 +1687,23 @@ async function generateConsultation({ request, env, auth, body, normalized, idem
   let doc;
   try {
     if (existing) {
-      doc = await VedicAiConsultation.findOneAndUpdate({ ...owner, status: { $nin: ["completed", "generation_failed"] }, $or: [{ generationLease: "" }, { generationLease: { $exists: false } }, { updatedAt: { $lt: new Date(Date.now() - 120000) } }] }, { $set: { generationLease: lease } }, { new: true }).lean();
+      doc = await VedicAiConsultation.findOneAndUpdate({ ...owner, status: nativeTossContext(request)?{$ne:'completed'}:{ $nin: ["completed", "generation_failed"] }, $or: [{ generationLease: "" }, { generationLease: { $exists: false } }, { updatedAt: { $lt: new Date(Date.now() - 120000) } }] }, { $set: { generationLease: lease,...(nativeTossContext(request)&&existing.status==='generation_failed'?{status:'generating',generationError:null}:{}) } }, { new: true }).lean();
       if (!doc) return pendingResponse(existing);
     } else {
       const resumeBody = { ...body, idempotencyKey, locale: normalized.locale };
       delete resumeBody.accessToken;
-      doc = await VedicAiConsultation.create({ ...owner, idempotencyKey, inputHash: normalized.inputHash, birthInfo: normalized.input.birthInfo, topic: normalized.input.topic, userQuestion: normalized.input.userQuestion, locale: normalized.locale, accessType: ["pass", "subscription"].includes(access.accessType) ? access.accessType : "paid", paymentId: access.paymentId || "", messages: [], status: "generating", generationLease: lease, llmMeta: { resumeBody, groups: {}, attempts: {} } });
+      doc = await VedicAiConsultation.create({ ...owner, idempotencyKey, inputHash: normalized.inputHash, birthInfo: normalized.input.birthInfo, topic: normalized.input.topic, userQuestion: normalized.input.userQuestion, locale: normalized.locale, accessType: ["pass", "subscription"].includes(access.accessType) ? access.accessType : "paid", accessSource:nativeTossContext(request)?'toss':'', paymentId: access.paymentId || "", messages: [], status: "generating", generationLease: lease, llmMeta: { resumeBody, groups: {}, attempts: {} } });
       doc = typeof doc.toObject === "function" ? doc.toObject() : doc;
     }
   } catch (error) {
     if (error?.code === 11000) {
       const duplicate = await VedicAiConsultation.findOne({ userId: String(auth.userId), idempotencyKey }).lean();
-      if (duplicate) return json({ ok: true, sessionId: duplicate.id, status: duplicate.status, consultation: consultationPayload(duplicate) }, { status: duplicate.status === "completed" ? 200 : 202 });
+      if (duplicate) {
+        if(nativeTossContext(request))await nativeTossContext(request).assertStored(duplicate);
+        else if(duplicate.accessSource==='toss')return notFound();
+        if(nativeTossContext(request)&&duplicate.inputHash!==normalized.inputHash)return invalidInput("같은 요청 키로 다른 상담 정보를 사용할 수 없습니다.");
+        return json({ ok: true, sessionId: duplicate.id, status: duplicate.status, consultation: consultationPayload(duplicate) }, { status: duplicate.status === "completed" ? 200 : 202 });
+      }
     }
     return json(resultStorageFailurePayload(resultStorageUnavailable(sessionId)), { status: 503 });
   }
@@ -1707,21 +1725,22 @@ async function generateConsultation({ request, env, auth, body, normalized, idem
       doc = await saveVedicDelivery(locked, { status: generated.complete ? "delivery_pending" : "partial", llmMeta: { ...doc.llmMeta, ...generated.meta } }, sessionId);
       if (!generated.complete) return pendingResponse(doc);
     }
-    const fresh = await resolveStartAccess({ env, auth, body, normalized, idempotencyKey, pricing });
+    const fresh = await resolveStartAccess({ request, env, auth, body, normalized, idempotencyKey, pricing });
     if (!fresh) return paymentVerifyFailed();
-    await applyUsageOnce({ userId: auth.userId, sessionId, accessType: fresh.accessType, pricing });
+    if(!nativeTossContext(request))await applyUsageOnce({ userId: auth.userId, sessionId, accessType: fresh.accessType, pricing });
     doc = await saveVedicDelivery(locked, { status: "completed", generationLease: "", usageAppliedAt: doc.usageAppliedAt || now }, sessionId);
-    if (fresh.source === "direct-payment" && fresh.paymentDocId) {
+    if (!nativeTossContext(request) && fresh.source === "direct-payment" && fresh.paymentDocId) {
       await Payment.updateOne({ _id: new mongoose.Types.ObjectId(fresh.paymentDocId), userId: objectId(auth.userId), featureKey: FEATURE_KEY, status: { $in: ["paid", "success", "fulfilled"] } }, { $set: { status: "fulfilled", sessionId, orderState: "UNLOCKED" } }).catch(error => logVedicAi("Usage bookkeeping failed", { code: error?.code }, "warn"));
     }
     return json({ ok: true, consultation: consultationPayload(doc) });
   } catch (error) {
     if (['EXPERT_CALCULATION_MISMATCH', 'ENGINE_FACT_SNAPSHOT_INVALID'].includes(error?.code)) return json({ ok: false, reason: error.code }, { status: 409 });
     if (error?.code === "RESULT_STORAGE_UNAVAILABLE") return json(resultStorageFailurePayload(error), { status: 503 });
+    if(nativeTossContext(request)&&error?.status)return json({ok:false,reason:error.code||'ACCESS_DENIED'},{status:error.status});
     await saveVedicDelivery(locked, { status: "generation_failed", generationError: { code: error?.code || "LLM_FAILED", message: clean(error?.message, 500) } }, sessionId);
-    await releaseRequestBillingEvidence(env, { userId: String(auth.userId), requestId: idempotencyKey, evidenceIds });
-    await restorePrepaidAccessOnFailure({ userId: auth.userId, access, idempotencyKey, pricing, error, env });
-    await refundCardPaymentOnFailure(env, auth, access, error);
+    if(!nativeTossContext(request))await releaseRequestBillingEvidence(env, { userId: String(auth.userId), requestId: idempotencyKey, evidenceIds });
+    if(!nativeTossContext(request))await restorePrepaidAccessOnFailure({ userId: auth.userId, access, idempotencyKey, pricing, error, env });
+    if(!nativeTossContext(request))await refundCardPaymentOnFailure(env, auth, access, error);
     return serverError(MESSAGES.llmFailed, 503, "LLM_FAILED");
   } finally {
     await VedicAiConsultation.updateOne({ ...owner, generationLease: lease }, { $set: { generationLease: "" } }).catch(() => {});
@@ -1738,6 +1757,8 @@ async function handleStart(request, env, recoveryAuth = null) {
     await connectDb(env);
     const saved = await VedicAiConsultation.findOne({ id: clean(body.resumeSessionId, 120), userId: String(auth.userId) }).lean();
     if (!saved) return notFound();
+    if(nativeTossContext(request))await nativeTossContext(request).assertStored(saved);
+    else if(saved.accessSource==='toss')return notFound();
     if (saved.status === "completed") return json({ ok: true, consultation: consultationPayload(saved) });
     if (!saved.llmMeta?.resumeBody) return invalidInput(MESSAGES.invalidInput);
     body = { ...saved.llmMeta.resumeBody };
@@ -1748,7 +1769,8 @@ async function handleStart(request, env, recoveryAuth = null) {
   const idempotencyKey = resumeKey || readIdempotencyKey(request, body);
   if (!normalized.ok) return invalidInput(normalized.message, normalized.errors);
   if (!idempotencyKey) return invalidInput(MESSAGES.invalidInput);
-  const lockKey = `${auth.userId}:${idempotencyKey}`;
+  if(nativeTossContext(request)&&!(await nativeTossContext(request).access(body,normalized,idempotencyKey))?.ok)return paymentVerifyFailed();
+  const lockKey = `${nativeTossContext(request)?'toss:':''}${auth.userId}:${idempotencyKey}`;
   if (startLocks.has(lockKey)) return (await startLocks.get(lockKey)).clone();
   const promise = generateConsultation({ request, env, auth, body, normalized, idempotencyKey }).finally(() => startLocks.delete(lockKey));
   startLocks.set(lockKey, promise);
@@ -1762,12 +1784,14 @@ async function handleResult(request, env) {
 
   const path = getRoutePath(request, "/api/vedic-ai");
   const url = new URL(request.url);
-  const pathId = path.startsWith("/result/") ? decodeURIComponent(path.slice("/result/".length)) : "";
+  let pathId='';
+  try{pathId=path.startsWith("/result/") ? decodeURIComponent(path.slice("/result/".length)) : "";}catch{return invalidInput(MESSAGES.invalidInput);}
   const id = clean(pathId || url.searchParams.get("id") || url.searchParams.get("consultationId"), 120);
 
   await connectDb(env);
   if (!id) {
-    const rows = await VedicAiConsultation.find({ userId: String(auth.userId), status: "completed" })
+    if(nativeTossContext(request))return json({ok:true,pendingSessionId:'',consultations:[]});
+    const rows = await VedicAiConsultation.find({ userId: String(auth.userId), accessSource:{$ne:'toss'}, status: "completed" })
       // createdAt 정렬은 기존 {userId,createdAt:-1} 인덱스를 그대로 탄다. updatedAt 에는 인덱스가
       // 없어 해당 사용자의 문서를 전부 FETCH 한 뒤 메모리 정렬하므로 아래 select 가 무력화된다.
       .sort({ createdAt: -1 })
@@ -1776,7 +1800,7 @@ async function handleResult(request, env) {
       .lean();
     return json({
       ok: true,
-      pendingSessionId: (await VedicAiConsultation.findOne({ userId: String(auth.userId), status: { $in: ["generating", "partial", "delivery_pending"] } }).sort({ createdAt: -1 }).select("id").lean())?.id || "",
+      pendingSessionId: (await VedicAiConsultation.findOne({ userId: String(auth.userId), accessSource:{$ne:'toss'}, status: { $in: ["generating", "partial", "delivery_pending"] } }).sort({ createdAt: -1 }).select("id").lean())?.id || "",
       consultations: rows.map((row) => ({
         id: row.id,
         topic: row.topic || "",
@@ -1794,11 +1818,13 @@ async function handleResult(request, env) {
     id,
   }).lean();
   if (!consultation) return notFound();
+  if(nativeTossContext(request))await nativeTossContext(request).assertStored(consultation);
+  else if(consultation.accessSource==='toss')return notFound();
   // 생성 중이면 202로 알려 클라이언트 폴링이 수렴하게 한다(start의 202 바디와 동일 형태).
   if (["generating", "partial", "delivery_pending"].includes(consultation.status)) {
     if (consultation.llmMeta?.resumeBody) {
       const body = consultation.llmMeta.resumeBody;
-      const access = await resolveStartAccess({ env, auth, body, normalized: normalizeConsultationInput(body), idempotencyKey: consultation.idempotencyKey, pricing: getPricing() });
+      const access = await resolveStartAccess({ request, env, auth, body, normalized: normalizeConsultationInput(body), idempotencyKey: consultation.idempotencyKey, pricing: getPricing() });
       if (!access) return paymentVerifyFailed();
     }
     return json(
@@ -1809,7 +1835,7 @@ async function handleResult(request, env) {
   if (consultation.status !== "completed") {
     return json({ ok: false, reason: "GENERATION_FAILED", message: MESSAGES.llmFailed }, { status: 409 });
   }
-  if (await isStoredPaidResultRevoked(auth.userId, FEATURE_KEY, consultation)) {
+  if (!nativeTossContext(request) && await isStoredPaidResultRevoked(auth.userId, FEATURE_KEY, consultation)) {
     return json({ ok: false, reason: "PAYMENT_REVOKED", retryable: false }, { status: 403 });
   }
   return json({ ok: true, consultation: consultationPayload(consultation) });
@@ -1819,7 +1845,7 @@ async function handleResult(request, env) {
 // 신원 확인은 로컬 JWT 검증만 써서 Mongo를 한 번도 건드리지 않는다.
 async function handleBasis(request, env) {
   if (request.method !== "POST") return methodNotAllowed();
-  const userId = await peekAccessTokenUserId(request, env);
+  const userId = nativeTossContext(request)?.auth?.userId || await peekAccessTokenUserId(request, env);
   if (!userId) return loginRequired();
 
   const normalized = normalizeConsultationInput(await readJson(request));
@@ -1846,6 +1872,7 @@ export async function handleVedicAiRoutes(request, env) {
     // 풀 초기화 버스트/인증 조회 중 일시 DB 장애는 재시도 신호와 함께 503으로 — 하드 500 방지.
     if (['EXPERT_CALCULATION_MISMATCH', 'ENGINE_FACT_SNAPSHOT_INVALID'].includes(error?.code)) return json({ ok: false, reason: error.code }, { status: 409 });
     if (error?.code === "RESULT_STORAGE_UNAVAILABLE") return json(resultStorageFailurePayload(error), { status: 503 });
+    if(nativeTossContext(request)&&error?.status)return json({ok:false,reason:error.code||'ACCESS_DENIED'},{status:error.status});
     if (isTransientMongoError(error) || isAuthDbInfraError(error)) {
       return json({
         ok: false,
@@ -1887,12 +1914,23 @@ export function nativeVedicContract(body) {
   if (!normalized.ok || requestId.length < 12) throw Object.assign(new Error('상담 입력을 다시 확인해 주세요.'), {status:400});
   return {requestId,resultId:requestId,featureKey:FEATURE_KEY,inputHash:normalized.inputHash,pricing:getPricing().pricing};
 }
+export async function nativeVedicStoredState(env,userId,resultId){
+  return withMongoRetry(env,()=>VedicAiConsultation.findOne({userId:String(userId),$or:[{id:resultId},{idempotencyKey:resultId}]}).lean());
+}
 
 // Internal cron continuation: only a stored owner/id is accepted, never client input.
 // The normal handler rereads that owner's record and rechecks existing payment proof.
-export function resumeConsultationOnServer(env, doc) {
+export async function resumeConsultationOnServer(env, doc) {
   if (!doc?.userId || !doc.id) throw new Error("RECOVERY_doc.id_REQUIRED");
   const request = new Request("https://internal.invalid/api/vedic-ai/resume", { method: "POST", headers: { "content-type": "application/json" },
     body: JSON.stringify({ resumeSessionId: String(doc.id) }) });
-  return handleStart(request, env, { userId: String(doc.userId) });
+  const stored=await nativeVedicStoredState(env,String(doc.userId),String(doc.id));
+  if(stored?.accessSource==='toss'){
+    const {bindNativeVedicRecovery}=await import('../toss/native-vedic.js');
+    if(!await bindNativeVedicRecovery(request,env,stored))throw new Error('TOSS_RECOVERY_INTENT_MISSING');
+  }
+  return handleStart(request, env, nativeTossContext(request)?.auth||{ userId: String(doc.userId) });
+}
+export async function recoverUnstartedNativeConsultations(env,options){
+  const {bootstrapNativeVedicOrders}=await import('../toss/native-vedic.js');return bootstrapNativeVedicOrders(env,options);
 }

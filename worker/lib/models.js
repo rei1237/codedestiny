@@ -1469,6 +1469,7 @@ const vedicAiConsultationSchema = new mongoose.Schema({
     calculationMeta: { type: mongoose.Schema.Types.Mixed, default: null },
   },
   accessType: { type: String, enum: ["pass", "paid", "subscription"], required: true, index: true },
+  accessSource: { type: String, enum: ["", "toss"], default: "" },
   paymentId: { type: String, default: "", trim: true, maxlength: 160, index: true },
   messages: { type: [vedicAiMessageSchema], default: [] },
   // 결제 멱등 키와 분리된 결과 메타데이터. 같은 결제 요청의 다른 UI 언어는 기존 결과를 재열람한다.
