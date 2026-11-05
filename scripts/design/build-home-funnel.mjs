@@ -7,7 +7,6 @@ import { JSDOM } from 'jsdom';
 import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
 import { CURRENT_PASS_PLANS, CURRENT_PASS_POLICY_VERSION } from '../../lib/payment/pass-policy.js';
-import { listServicePackPlans } from '../../worker/payments/service-pack-policy.js';
 import { FEATURE_KEY_PRICE_TABLE, UNLOCK_PRODUCT_BY_FEATURE_KEY } from '../../worker/lib/paid-feature-registry.js';
 import { renderNeoEmailHomeEntry } from '../../lib/brand/neo-email-home-entry.mjs';
 import { CONSULTATION_MASTERS } from '../../lib/marketing/consultation-discovery.mjs';
@@ -366,24 +365,6 @@ vars.pass = '<link rel="stylesheet" href="/styles/pass-benefits.css?v=build-0000
   </ul>
   <p class="cdh-pass__light" data-cd-trans="home.gardenCopy.passLight" data-cd-vars='{"count":"${lightFortunes.count}","amount":"${lightFortunes.valueKRW.toLocaleString('en-US')}"}'>모든 꿀단지에 라이트 운세 ${lightFortunes.count}종이 횟수 제한 없이 포함돼요. 각 1회 기준 ${won(lightFortunes.valueKRW)} 상당이며, 대표 상담은 제외예요.</p>
   <p class="cdh-pass__note" data-cd-trans="home.gardenCopy.passNote">작은·중간·큰 꿀단지는 꿀꿀 운세에, 패밀리 꿀단지는 꿀꿀 운세와 영냥이 유료 리딩에 적용됩니다. 이미 구매한 이용권의 상담 한도는 그대로이고, 라이트 운세 혜택은 사용 중인 이용권에도 적용됩니다.</p>
-  <details class="cdh-pass__packs"><summary class="cdh-pass__group">
-    <img class="cdh-pass__pack-guide" src="/assets/yeongnyangi/original/hero-800.webp" alt="" width="800" height="800" loading="lazy" decoding="async">
-    <span class="cdh-pass__pack-heading"><span data-cd-trans="home.passCopy.packTitle">영냥이 전용 이용권</span><small data-cd-trans="home.passCopy.packNote">영냥이 세트는 같은 생선 상담에만 1회씩 사용돼요. 꽃돼지 이용권과 따로 적용돼요.</small></span>
-  </summary>
-  <ul class="cdh-pass__tiers cdh-pass__tiers--packs" role="list">${listServicePackPlans().map(plan => {
-    const fishKey = '@home.passCopy.fish' + plan.fishId[0].toUpperCase() + plan.fishId.slice(1);
-    const fishKo = plan.label.split(' ')[0];
-    return `
-    <li class="cdh-pass__tier cdh-pass__tier--pack" data-pack-plan="${plan.planId}"><a class="cdh-pass__tier-link" href="/points/#fish-packs">
-      <img class="cdh-pass__pack-art" src="/assets/yeongnyangi/service-packs/${plan.fishId}-gift-set-v2.webp" alt="" width="240" height="240" loading="lazy" decoding="async">
-      <span class="cdh-pass__tier-name" data-cd-trans="home.passCopy.packName" data-cd-vars='{"fish":"${fishKey}","total":"${plan.totalUses}","days":"${plan.validityDays}"}'>${plan.label}</span>
-      <strong class="cdh-pass__tier-price"><span data-cd-play-price data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars='{"amount":"${Number(plan.priceKRW).toLocaleString('en-US')}"}'>${won(plan.priceKRW)}</span></strong>
-      <span class="cdh-pass__tier-line" data-cd-trans="home.passCopy.packPerUse" data-cd-vars='{"amount":"${Number(plan.unitPriceKRW).toLocaleString('en-US')}"}'>회당 ${won(plan.unitPriceKRW)} 상담</span>
-      <span class="cdh-pass__tier-line" data-cd-trans="home.passCopy.packScope" data-cd-vars='{"fish":"${fishKey}","total":"${plan.totalUses}","days":"${plan.validityDays}"}'>${fishKo} 상담 전용 · ${plan.validityDays}일 · 총 ${plan.totalUses}회</span>
-    </a></li>`;
-  }).join('')}
-  </ul>
-  </details>
   <a class="cdh-pass__btn" href="/points/?source=flower-membership" data-cd-trans="home.gardenCopy.passCta">나에게 맞는 이용권 확인하기</a>
 </section>`;
 const template = readFileSync('templates/home-funnel.html', 'utf8');

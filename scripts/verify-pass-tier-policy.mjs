@@ -44,7 +44,6 @@ import { evaluatePassCoverage, describePassEligibility } from "../worker/payment
 import { listAppPassProducts } from "../worker/lib/app-store-pricing.js";
 import { listProducts } from "../worker/payments/catalog.js";
 import { PASS_MONTHLY_WON } from "../lib/payment/pass-pricing.js";
-import { listServicePackPlans } from "../worker/payments/service-pack-policy.js";
 import {
   PREVIOUS_PASS_PLANS, PREVIOUS_PASS_POLICY_VERSION, V4_PASS_PLANS, V4_PASS_POLICY_VERSION, CURRENT_PASS_PLANS,
   CURRENT_PASS_POLICY_VERSION,
@@ -568,9 +567,7 @@ for (const plan of Object.values(CURRENT_PASS_PLANS)) {
   const amount = Number(plan.maxCoveredCoin * KRW_PER_COIN).toLocaleString("en-US");
   check(`홈 배너 ${plan.tier} 건당 ${amount}원`, homeBanner.includes(`data-cd-trans="home.overseasCopy.passPerLimit" data-cd-vars='{"amount":"${amount}"}'`));
 }
-for (const plan of listServicePackPlans()) {
-  check(`홈 배너 영냥이 세트 카드 ${plan.planId}`, homeBanner.includes(`data-pack-plan="${plan.planId}"`));
-}
+check("홈 배너에 전용 이용권 판매 카드가 없다", !homeBanner.includes("data-pack-plan"));
 check("홈 '내 이용권' 줄(#cdhMyPass)이 있다", shell.includes('id="cdhMyPass"'));
 
 if (failures.length) {

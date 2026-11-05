@@ -61,14 +61,6 @@ test('offer math', () => {
   }
 });
 
-test('fish offers keep their own value', () => {
-  for (const offer of passBenefitOffers('fish')) {
-    assert.equal(offer.value, offer.unit * offer.uses);
-    assert.equal(offer.lightValue, undefined);
-  }
-  assert.doesNotMatch(renderPassBenefits('fish', 'f'), /라이트 운세/);
-});
-
 test('banner and panel copy', () => {
   const data = generated();
   const doc = body(renderPassBenefits('honey', 't'));

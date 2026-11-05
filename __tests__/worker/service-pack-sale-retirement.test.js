@@ -12,10 +12,11 @@ const input=(planId,key='original')=>({userId:USER,product:resolveServicePackPro
 // Seed the old order through the underlying repository, as if it predated retirement.
 const seed=(db,values)=>createOrder(db,{...values,idempotencyKey:'service-pack:'+values.idempotencyKey,requestId:'service-pack:'+values.idempotencyKey});
 
-test('only four eight-use offers are sold, while all historical definitions remain readable',()=>{
- expect(listServicePackPlans()).toHaveLength(4);
- expect(listServicePackPlans().map(plan=>plan.totalUses)).toEqual([8,8,8,8]);
- expect(retired).toHaveLength(24);
+test('no pack is sold any more, while all historical definitions remain readable',()=>{
+ expect(listServicePackPlans()).toEqual([]);
+ expect(SERVICE_PACK_SALE_IDS).toEqual([]);
+ expect(retired).toHaveLength(Object.keys(SERVICE_PACK_PLANS).length);
+ expect(retired).toHaveLength(28);
  for(const id of retired)expect(resolveServicePackProduct(id).packSnapshot.totalUses).toBe(SERVICE_PACK_PLANS[id].totalUses);
  expect(classify(paymentError('PRODUCT_SALE_ENDED')).status).toBe(409);
 });
