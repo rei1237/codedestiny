@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "4b593efee9b653120c10403f87d304b4487e4e00",
+  "sourceCommit": "09c3af7b60c782e0b9cd2be2fc01414fab69b227",
   "scope": "Source discovery plus explicitly verified aliases; not a count of implemented services. Unmapped contracts are blocking work, not exclusions.",
   "sourceCounts": {
     "home": 63,
@@ -2826,12 +2826,13 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/astrology-ai/",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "worker/toss/native-astrology.js + nativeAstrologyContract",
+      "resultRenderer": "app/astrology-ai/AstrologyAiClient.tsx + app/astrology-ai/result/AstrologyAiResultClient.tsx",
+      "storageContract": "owned-TossPurchase and Toss-origin AstrologyAiConsultation; approved SKU, durable checkout, policy and device verification pending",
+      "verification": "mock-contracts-only; complete flow and official sandbox not verified"
     },
     {
       "id": "bias-destiny",
