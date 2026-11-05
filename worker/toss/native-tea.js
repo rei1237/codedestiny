@@ -126,8 +126,12 @@ export async function handleNativeTea(request,env,auth,path){
     const rows=await TossNativeConsultation.find({...ownerFilter(auth),status:'paid',...(resultId?{resultId}:{})}).sort({createdAt:-1}).limit(50).lean();
     for(const row of rows){
       const doc=await nativeTeaStoredState(env,auth.userId,row.resultId);
+      if(doc){
+        if(doc.featureKey!==row.featureKey||doc.generationRequestHash!==row.inputHash||doc.deliveryAccessKey!==row.orderId)throw new TossError('RESULT_NOT_FOUND',404);
+        await teaContext(env,auth).assertStored(doc);
+      }
+      else await verifiedIntent(env,auth,row);
       if(doc?.status==='completed')continue;
-      await verifiedIntent(env,auth,row);
       return Response.json({ok:true,status:'partial',retryable:true,resultId:row.resultId,completedSections:[],requestPayload:row.input},{status:202});
     }
   }
@@ -140,9 +144,11 @@ export async function nativeTeaLibraryItem(env,auth,purchase){
   const href='/fortune-tea-house/';
   if(!purchase.requestId)return {state:'UNASSIGNED',href:href+'?orderId='+encodeURIComponent(purchase._id)};
   const row=await TossNativeConsultation.findOne({_id:purchase.requestId,...ownerFilter(auth),orderId:purchase._id}).lean();
-  await verifiedIntent(env,auth,row);
+  assertNativeIntent(row,auth);
   const doc=await nativeTeaStoredState(env,auth.userId,row.resultId);
-  if(doc&&(doc.generationRequestHash!==row.inputHash||doc.deliveryAccessKey!==purchase._id))throw new TossError('RESULT_NOT_FOUND',404);
+  if(doc)await teaContext(env,auth).assertStored(doc);
+  else await verifiedIntent(env,auth,row);
+  if(doc&&(doc.featureKey!==row.featureKey||doc.generationRequestHash!==row.inputHash||doc.deliveryAccessKey!==purchase._id))throw new TossError('RESULT_NOT_FOUND',404);
   const completed=doc?.status==='completed';
   return {state:completed?'COMPLETED':doc?.status==='generation_failed'?'GENERATION_FAILED':'PENDING',
     resultId:row.resultId,href:href+(completed?'?resultId=':'?recoverResultId=')+encodeURIComponent(row.resultId),

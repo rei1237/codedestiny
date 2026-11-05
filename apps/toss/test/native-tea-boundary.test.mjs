@@ -72,6 +72,13 @@ test('native adapter preserves immutable input, proves live orders and rereads t
   assert.deepEqual((await (await call('/results/original')).json()).result,state.doc.result);
   assert.equal((await api.nativeTeaLibraryItem({},auth,state.purchases[0])).state,'COMPLETED');
   assert.equal((await call('/pending')).status,404);
+  // A live order alone does not authorize a revoked or mismatched checkpoint.
+  for(const invalid of [{revokedAt:new Date()},{refundedAt:new Date()},{generationRequestHash:'other'},{featureKey:'other'},{deliveryAccessKey:'other'}]){
+    const valid=state.doc;state.doc={...valid,status:'generation_failed',...invalid};
+    await assert.rejects(api.nativeTeaLibraryItem({},auth,state.purchases[0]),/RESULT_NOT_FOUND/);
+    await assert.rejects(call('/pending'),/RESULT_NOT_FOUND/);
+    state.doc=valid;
+  }
   await assert.rejects(api.readNativeTeaIntent({}, {...auth,ownerId:'other'},prepared.id),/RESULT_NOT_FOUND/);
   await assert.rejects(api.readNativeTeaIntent({}, {...auth,environment:'DEFAULT'},prepared.id),/RESULT_NOT_FOUND/);
   state.order={...order,status:'REFUNDED'};
