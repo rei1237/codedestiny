@@ -15,4 +15,12 @@
 .identity {display:flex;align-items:center;gap:.9rem}
 .identity img {border-radius:50%;object-fit:cover}
 .identity h2 {font-size:1.35rem}
-.quote {border-inline-start:2px solid var(--hm-gold-line);padding-left:.8rem;white-space:pre-wrap}
+.quote {border-inline-start:2px solid var(--hm-gold-line);padding:.6rem .85rem;background:var(--cd-bg);white-space:pre-wrap}
+.guide {background:linear-gradient(155deg,color-mix(in srgb,var(--cd-yehwa-line) 9%,var(--cd-surface)),var(--cd-surface) 45%);box-shadow:inset 0 0 0 4px var(--cd-surface),inset 0 0 0 5px var(--hm-gold-line);font-family:var(--font-body);line-height:1.65}
+.guide h1 {font-family:var(--font-serif);text-align:center;padding-top:.2rem}
+.guide h1::before {content:"";display:block;margin:0 auto .3rem;width:42px;height:28px;background:url('/images/home/mv/ornament-lotus-crest-160.webp') center/contain no-repeat}
+.guide .primary {min-height:48px;display:grid;place-items:center;border:1px solid var(--hm-gold-line)}
+.guide textarea {font-size:max(16px,1rem)}
+.options button {padding:.65rem .9rem;border:1px solid var(--hm-gold-line);border-radius:.6rem;background:var(--cd-surface)}
+.identity {padding:.75rem 0;border-block:1px solid var(--hm-gold-line)}
+.identity img {border:2px solid var(--hm-gold-line)}

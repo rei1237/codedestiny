@@ -19,6 +19,45 @@ try {
  await btn('먼저 연락해도 될까요?').click();assert.equal(await page.locator('#home-question').inputValue(),'먼저 연락해도 될까요?');
  await fill(' ');await page.getByText('궁금한 내용을 한 줄 적어 주세요.').waitFor();await btn('먼저 연락해도 될까요?').click();
  await page.locator('#home-question').fill('');await page.locator('#home-question').blur();await shot('01-start');
+ const questionField=page.locator('#home-question');
+ const trigger=page.getByRole('button',{name:/처음 오셨나요/});
+ const reader=page.getByRole('dialog');
+ const draft='답장을 기다릴 때 지킬 기준이 궁금해요.';
+ assert.equal(await page.locator('img[src*="/moonlight-guide/"]').count(),0);
+ for(const width of [360,1120]){
+   await page.setViewportSize({width,height:800});
+   await questionField.fill(draft);
+   await trigger.click();
+   await reader.waitFor();
+   assert.equal(await reader.locator('section').count(),6);
+   assert.equal(await reader.locator('p b').first().innerText(),'손님');
+   assert.equal(await reader.getByRole('link',{name:/문라이트 패스 이용 범위/}).getAttribute('href'),'/points/#moonlight-plans');
+   if(width===360){
+     for(const [index,name] of [[2,'04-comic-choice'],[4,'05-comic-pass']]){
+       const panel=reader.locator('section').nth(index);
+       await panel.locator('img').scrollIntoViewIfNeeded();
+       await panel.locator('img').evaluate(img=>img.decode());
+       await reader.evaluate((el,i)=>{el.scrollTop+=el.querySelectorAll('section')[i].getBoundingClientRect().top-el.querySelector('header').getBoundingClientRect().bottom-8;},index);
+       await page.screenshot({path:output+'/'+name+'.png',style:'nextjs-portal{display:none}'});
+     }
+     await page.addStyleTag({content:'html {font-size:200% !important}'});
+     assert(await reader.evaluate(el=>el.scrollWidth<=el.clientWidth+1));
+     await reader.getByRole('button',{name:'내 질문 써보기'}).click();
+     await page.waitForFunction(()=>document.activeElement?.id==='home-question');
+     await page.reload();await page.waitForSelector('form button:not(:disabled)');await questionField.fill(draft);await trigger.click();
+   }
+   await page.keyboard.press('Escape');await reader.waitFor({state:'hidden'});
+   assert(await trigger.evaluate(el=>el===document.activeElement));
+   await trigger.click();await page.goBack();await reader.waitFor({state:'hidden'});
+   assert.equal(await questionField.inputValue(),draft);
+   await trigger.click();await reader.getByRole('button',{name:'내 질문 써보기'}).click();
+   await page.waitForFunction(()=>document.activeElement?.id==='home-question');
+   assert.equal(await questionField.inputValue(),draft);
+   await btn('내 질문에 맞는 상담 찾기').click();
+   await page.getByRole('heading',{name:'네오의 팩폭 전략실',exact:true}).waitFor();await btn('질문 수정하기').click();
+ }
+ await page.setViewportSize({width:360,height:800});
+ console.log('PASS comic desktop/mobile, focus, back, zoom, draft submission');
  const cases=[
  ['헤어진 뒤 자꾸 제 탓 같아요. 마음을 좀 정리하고 싶어요.','연이의 운명의 찻집','/fortune-tea-house/','textarea,input'],
  ['연락을 한 번 더 할지, 여기서 멈출지 기준을 정하고 싶어요.','네오의 팩폭 전략실','/neo-operation-room/','#neo-operation-question'],

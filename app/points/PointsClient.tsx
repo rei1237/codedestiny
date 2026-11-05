@@ -2405,7 +2405,7 @@ function MoonlightShopPlans({
       <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
 
-          <h2 className="mt-2 text-2xl font-black text-white">문라이트 패스! 나에게 맞는 꿀단지</h2>
+          <h2 className="mt-2 text-2xl font-black text-white">문라이트 패스(꿀꿀운세 이용권)</h2>
         </div>
         {subscription.isActive && subscription.tier !== "free" ? (
           <button
