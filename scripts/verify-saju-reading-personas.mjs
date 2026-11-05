@@ -3,6 +3,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import assert from 'node:assert/strict';
+import { buildSajuSectionHtml } from '../worker/lib/saju-section/report.js';
 
 const base=process.env.SAJU_READING_URL||'http://127.0.0.1:34350';
 if(!/^http:\/\/(127\.0\.0\.1|localhost):\d+$/.test(base))throw new Error('Use the local mock server only');
@@ -17,11 +18,13 @@ try {
     const context=await browser.newContext({viewport:{width,height:width===1440?1000:844},reducedMotion:'reduce'});
     // 무료 사주 결과는 검증된 로그인 세션이 필요하다(932a22824). 결과 게이트의 세션 확인만 mock 으로 통과시킨다.
     await context.addInitScript(()=>Object.defineProperty(window,'__dpVerifyResultSession',{configurable:true,get:()=>async()=>'authenticated',set(){}}));
-    const page=await context.newPage();const requests=[];const errors=[];
+    let bundleOwned=false;const page=await context.newPage();const requests=[];const errors=[];
     page.on('pageerror',error=>errors.push(error.message));
     await context.route('**/*',route=>{
       const url=new URL(route.request().url());
       if(!['127.0.0.1','localhost'].includes(url.hostname))return route.abort();
+      // 묶음 본문은 구매 뒤에만 서버가 준다. 해금 판정은 워커 테스트가 맡는다.
+      if(url.pathname==='/api/saju/section'){const body=route.request().postDataJSON()||{};const birth=body.birth||{};if(!bundleOwned)return route.fulfill({status:402,json:{ok:false}});return route.fulfill({json:{ok:true,unlocked:true,featureKey:body.featureKey,...buildSajuSectionHtml({featureKey:body.featureKey,birth:{calendarDate:birth.date,calType:birth.calType,timeKnown:birth.timeKnown!==false,hour:birth.hour,minute:birth.minute},gender:body.gender,name:body.name,mode:body.mode,lang:body.lang,place:body.place})}});}
       if(url.pathname==='/api/yeongnyangi/products')return route.fulfill({json:{products:[{id:'saju_mackerel',priceKRW:1000}]}});
       return route.continue();
     });
@@ -56,14 +59,17 @@ try {
     await page.locator('#destinyCardForm').screenshot({path:resolve(out,`input-${width}.png`)});
     await page.evaluate(()=>document.querySelector('[data-action="checkPrivacyAndCalculate"]').click());
     await page.evaluate(()=>{const b=document.querySelector('[data-action="agreeAndCalculate"]');if(b)b.click();});
-    await page.waitForFunction(baseline=>window.G_PILLARS&&(baseline||document.querySelector('#tsGrid [data-saju-god]')),baseline,{timeout:60000});
+    await page.waitForFunction(()=>window.G_PILLARS,null,{timeout:60000});
     if(baseline){await page.locator('#iljuCard').scrollIntoViewIfNeeded();await page.screenshot({path:resolve(out,`result-before-${width}.png`)});await page.locator('[data-unlock-key="section_summary"]').first().scrollIntoViewIfNeeded();await page.screenshot({path:resolve(out,`paid-before-${width}.png`)});results.push({width,catHeight});await context.close();continue;}
     // 잠금 전(사주 영구 묶음 미보유): 원국과 한 줄 성향만 있고 묶음 안의 카드는 아직 그려지지 않는다. 해금 이벤트 뒤에 나타난다.
     await page.waitForFunction(()=>(document.getElementById('sajuNatalOneLiner')?.textContent||'').trim().length>0);
     assert.equal(await page.locator('#dailyPanel .saju-reading').count(),0,'Bundle cards stay hidden before unlock');
     assert.equal(await page.evaluate(()=>window.CdSajuBundleOffer.isOpen()),false);
-    await page.evaluate(()=>{window.isTileKeyUnlocked=key=>key==='saju_lifetime_bundle';window.dispatchEvent(new Event('cd:unlocks-changed'));});
-    await page.waitForFunction(()=>document.querySelector('#dailyPanel .saju-reading'),null,{timeout:60000});
+    assert.equal(await page.locator('#tsGrid [data-saju-god]').count(),0,'Ten-god cards stay hidden before unlock');
+    bundleOwned=true;
+    // 묶음은 저장 프로필 단위 권리다. 입력과 같은 출생 정보의 프로필을 고른 상태로 해금한다.
+    await page.evaluate(async()=>{const PID='mock-personas-profile';await window.__cdEnsureDestinyProfileLoaded();const profile={id:PID,name:'검증',gender:window.__cdActiveBirthProfile.gender,birth:{...window.__cdActiveBirthProfile.birth},location:{lat:37.5665,lng:126.978,tzOffset:9,name:'서울'}};window.DestinyProfileManager.storage.save([profile]);window.DestinyProfileManager.storage.setCurrent(PID);window.isTileKeyUnlocked=key=>key==='saju_lifetime_bundle';window.dispatchEvent(new Event('cd:unlocks-changed'));});
+    await page.waitForFunction(()=>document.querySelector('#dailyPanel .saju-reading')&&document.querySelector('#tsGrid [data-saju-god]'),null,{timeout:60000});
     const facts=()=>page.evaluate(()=>JSON.stringify({p:G_PILLARS,n:G_NATAL,power:G_POWER,johu:G_JOHU,dw:G_DAEWUN,price:[...document.querySelectorAll('[data-saju-price-key]')].map(e=>e.textContent)}));
     const before=await facts();
     await page.locator('#sajuReadingHeader').scrollIntoViewIfNeeded();await page.screenshot({path:resolve(out,`result-yeon-${width}.png`)});

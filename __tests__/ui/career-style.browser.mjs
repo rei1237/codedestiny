@@ -51,7 +51,9 @@ try{
   await page.screenshot({path:'.tmp/career-style/locked-actions-'+width+'.png'});
   // 개별 판매는 끝났다: 꿀방울·개별 결제 버튼이 없고 묶음 버튼만 보인다.
   assert.equal(await page.getByRole('button',{name:/꿀방울|단건/}).count(),0);
+  await bundleOpen().waitFor(); // 화면이 프로필을 읽어 온 뒤에 판정한다.
   assert.ok(await bundleOpen().isVisible());
+  assert.equal(await report.count(),0);
  }
  const lockedText=await page.locator('body').innerText();
  assert.doesNotMatch(lockedText,/5,000원|꿀방울|단건 결제/);

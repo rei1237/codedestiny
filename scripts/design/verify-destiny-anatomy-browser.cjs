@@ -16,6 +16,7 @@ const server=http.createServer((req,res)=>{
  const browser=await chromium.launch({headless:true});
  try{
  const page=await browser.newPage({viewport:{width:390,height:844},reducedMotion:'reduce'});
+  await page.addInitScript(()=>sessionStorage.setItem('cd_signature_consult_session_closed_v1','1')); // 홈 상담 팝업이 클릭을 가리지 않게 한다
  const errors=[],apis=[];
  const HD={type:'TYPE_PROJECTOR',strategy:'STRATEGY_WAIT_FOR_INVITATION',authority:'AUTHORITY_EMOTIONAL',profile:'2/4',definition:'DEFINITION_SINGLE',definedCenters:['SOLAR_PLEXUS','THROAT','G'],channels:[{channelId:'12-22'}],activeGates:[12,22]};
  const VEDIC={ok:true,groups:[{key:'core',title:'',items:[{label:'라그나',value:'사자자리 (Leo)'},{label:'달의 라시',value:'게자리'},{label:'나크샤트라',value:'Pushya · 2파다'}]}]};
