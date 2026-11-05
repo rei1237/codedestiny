@@ -14,7 +14,7 @@ html:not([lang^="ko"]) .cdh .pb{display:none}html[lang^="ko"] [data-cd-localized
 .pb--honey .pb__choice{padding:12px 8px;border-radius:var(--cd-r-card);background:var(--pb-paper)}
 .pb--honey .pb__choice:has(input:checked){background:color-mix(in srgb,var(--pb-selected) 40%,var(--cd-surface))}
 .pb--honey .pb__choice>span,.pb--honey .pb__choice small{font-size:14px}
-.pb--honey .pb__cta{border-radius:var(--cd-r-pill);box-shadow:0 4px 9px -7px var(--pb-ink)}
+.pb--honey .pb__cta{box-sizing:border-box;min-height:var(--cd-btn-h);border-radius:var(--cd-r-control);box-shadow:none}
 .pb--honey .pb__prices span,.pb--honey .pb__terms{font-size:14px}
 @media(max-width:600px){.pb--honey .pb__choices{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.pb--honey .pb__choice{display:grid;grid-template-columns:48px minmax(0,1fr);gap:0 8px;text-align:left}.pb--honey .pb__choice img{grid-row:1/4;width:48px;height:48px}.pb--honey .pb__choice strong{text-align:left;font-size:14px}.pb--honey .pb__choice>span,.pb--honey .pb__choice small{grid-column:2}}
 

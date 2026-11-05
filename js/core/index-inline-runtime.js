@@ -10409,7 +10409,7 @@ function __cdScheduleLangWrapHide() {
   if (trigger) trigger.setAttribute('aria-expanded', 'false');
   __cdLangWrapHideTimer = setTimeout(function() {
     var currentWrap = document.getElementById('langWrap');
-    if (!currentWrap) return;
+    if (!currentWrap || currentWrap.closest('#cdhLanguageSlot')) return;
     currentWrap.classList.remove('open');
     currentWrap.classList.add('lang-wrap--hidden');
     var currentTrigger = document.getElementById('langTrigger');

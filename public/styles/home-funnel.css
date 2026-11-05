@@ -4,6 +4,9 @@ html.neo-mode .cdh,body.neo-mode .cdh{--cdh-card:#211931}
 /* 연이 정원 헤더 언어 선택(2026-10-06 달빛 예화): 로즈골드 테두리 알약 + 불투명 달 원판 속 지구본 + "LANGUAGE / 원어명" + 셰브런.
    흰 카드+연분홍 1px 테두리는 배경 대비 1.07~1.23:1 이라 "언어 토글이 사라졌다"로 읽혔다(운영 실측). 테두리는 line-deep(크림 위 약 3.6:1).
    원어명은 html[data-cd-lang](cd-lang-native.js updateLanguageUi)로 그린다 — 속성이 없으면 JS 라벨(KR 등)을 그대로 보인다(fail-safe). */
+/* Keep the header control reachable while reading the consultation cards. */
+#cdhLanguageSlot{min-height:var(--cd-btn-h)}
+#cdhLanguageSlot[data-header-above] #langWrap{position:fixed!important;inset:max(8px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) auto auto!important}
 #cdhLanguageSlot .lang-icon-svg{display:none!important}
 #cdhLanguageSlot #langWrap{display:block!important;position:relative!important;inset:auto!important;width:auto!important;max-width:none!important;filter:none!important}
 #cdhLanguageSlot #langWrap .lang-trigger{display:inline-flex!important;align-items:center!important;gap:9px!important;min-width:0!important;width:auto!important;min-height:46px!important;padding:5px 14px 5px 5px!important;overflow:visible!important;border:1.5px solid color-mix(in srgb,var(--cd-yehwa-line-deep,#a97b3e) 78%,#4a2f12)!important;border-radius:999px!important;background:linear-gradient(135deg,var(--cdh-card) 0%,var(--cdh-surface) 100%)!important;color:var(--cdh-ink)!important;box-shadow:0 6px 16px -10px rgba(126,96,40,.55),inset 0 1px 0 rgba(255,255,255,.7)!important;cursor:pointer;transition:border-color .18s ease,box-shadow .18s ease,transform .18s ease}
