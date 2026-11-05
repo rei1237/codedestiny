@@ -3,7 +3,7 @@ import { jest } from '@jest/globals';
 import { jsonSchemaFromExample } from '../../worker/lib/json-text-repair.js';
 const provider = jest.fn();
 jest.unstable_mockModule('../../lib/llm-client.ts', () => ({
-  callLLM: provider, createGeminiContextCache: jest.fn(), deleteGeminiContextCache: jest.fn(),
+  callLLM: provider, createGeminiContextCache: jest.fn(), deleteGeminiContextCache: jest.fn(), restoreGeminiContextCache: jest.fn(),
 }));
 let callGeminiText, runWithPaidGenerationContext, getPaidGenerationRaw;
 beforeAll(async () => {

@@ -13,6 +13,7 @@ export async function createGeminiContextCache(env, options) {
   return { name: 'cachedContents/' + state.creates.length, prefix: options.prefix, systemPrompt: options.systemPrompt };
 }
 export function restoreGeminiContextCache(options) { return { name: options.name, prefix: options.prefix, systemPrompt: options.systemPrompt, restored: true }; }
+export const pickGeminiKeys = () => ['GEMINIF_API_KEY'];
 export const createLlmCacheStore = () => ({
   async get(key) { state.reads++; if (state.storeThrows) throw new Error('store down'); return state.records.get(key) || null; },
   async set(key, value) { if (state.storeThrows) throw new Error('store down'); state.records.set(key, value); },

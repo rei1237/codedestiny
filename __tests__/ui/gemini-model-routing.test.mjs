@@ -57,7 +57,8 @@ test('every Pro task names a Flash fallback and every Pro caller handles a refus
  for(const [model,response] of [['gemini-2.5-flash',{ok:false,providerCode:'GEMINI_MODEL_UNAVAILABLE'}],['gemini-2.5-pro',{ok:false,providerCode:'GEMINI_ACCESS_DENIED'}],['gemini-2.5-pro',{ok:true}]])
   assert.equal(proFallbackCause(model,response),'');
  // A source that hands a reasoning task to the transport must route a Pro refusal through proFallbackCause.
- const transports=new Set(['lib/llm-client.ts','worker/lib/gemini.js','lib/gemini-model-policy.js']);
+ // The context cache helper only creates a cache: a refusal there means a plain call by its caller, who generates and handles Pro.
+ const transports=new Set(['lib/llm-client.ts','worker/lib/gemini.js','lib/gemini-model-policy.js','worker/lib/resumable-context-cache.js']);
  const walk=dir=>readdirSync(dir,{withFileTypes:true}).flatMap(entry=>entry.isDirectory()?(entry.name==='node_modules'?[]:walk(path.join(dir,entry.name))):/\.(?:[cm]?js|ts)$/.test(entry.name)?[path.join(dir,entry.name).replace(/\\/g,'/')]:[]);
  const callers=[...walk('worker'),...walk('lib')].filter(file=>!transports.has(file)&&/\breasoningTask\s*[:,}]/.test(readFileSync(file,'utf8')));
  assert.ok(callers.length>=2,callers.join());
