@@ -2396,6 +2396,90 @@
       "contact": "Nous contacter",
       "contactNote": "Signalez vos questions ou problèmes.",
       "example": "Exemple de résultat public"
+    },
+    "webtoonCopy": {
+      "love-secret": {
+        "lead": "Les mêmes mots, mais nos sentiments se croisent sans se rejoindre.",
+        "benefits": "Façons de dire son amour · Pourquoi les blessures s’accumulent · Quand se rapprocher ou laisser de l’espace"
+      },
+      "new-year": {
+        "lead": "Avant de reprendre les mêmes résolutions, regardez l’année à venir.",
+        "benefits": "Quand préparer et agir · Priorités au travail, en argent et en relations · Choix à revoir à chaque étape"
+      },
+      "life-book": {
+        "lead": "Et si le passé gardait encore quelque chose à comprendre ?",
+        "benefits": "Raisons des choix répétés · Talents et forces durables · Grands cycles de vie selon le Saju"
+      },
+      "neo": {
+        "lead": "La décision est prise. Pourquoi rester au même point ?",
+        "benefits": "Conditions du changement · Actions à entreprendre maintenant · Critères pour revoir son plan"
+      },
+      "tea": {
+        "lead": "Un soir où l’on ne sait pas par où commencer à se confier.",
+        "benefits": "Clarifier ses soucis · Choisir une consultation adaptée · Actions à sa portée"
+      },
+      "codex": {
+        "lead": "D’autres personnes, mais les mêmes scènes reviennent.",
+        "benefits": "Schémas relationnels récurrents · Raisons de l’attirance et des tensions · Lecture personnelle ou de compatibilité"
+      },
+      "ziwei": {
+        "lead": "Vous faites des efforts mais butez au même endroit ?",
+        "benefits": "Tempérament dans le thème Ziwei · Forces au travail, en argent et en relations · Choix à revoir face au blocage"
+      },
+      "astrology": {
+        "lead": "Quand les émotions et les actes prennent des directions différentes.",
+        "benefits": "Tempérament dans le ciel natal · Écarts entre émotions et actes · Transits actuels et vie quotidienne"
+      },
+      "vedic": {
+        "lead": "Quand on a l’impression de revivre la même saison.",
+        "benefits": "Tempérament dans le thème natal · Rythmes des périodes Dasha · Direction de vie à examiner maintenant"
+      },
+      "sukuyo-compat": {
+        "lead": "Pourquoi se rapprocher rend-il les choses plus difficiles ?",
+        "benefits": "Attirance et tensions à deux · Rythmes relationnels différents · Accords et limites à revoir ensemble"
+      },
+      "legacy-naming": {
+        "lead": "Un prénom porté longtemps contient une intention affectueuse.",
+        "benefits": "Sens et sonorité des prénoms proposés · Bases Saju et calculs · Critères de comparaison"
+      },
+      "karma": {
+        "lead": "Les gens et les lieux changent, mais le nœud demeure.",
+        "benefits": "Nœuds relationnels récurrents · Schémas de choix selon chaque tradition · Actions à changer ensuite"
+      },
+      "fusion": {
+        "lead": "Des nuances de vie qu’un seul regard ne révèle pas.",
+        "benefits": "Lectures distinctes de six traditions · Tendances communes et regards différents · Pistes concrètes par domaine de vie"
+      },
+      "read": "Découvrir en webtoon",
+      "start": "Commencer la consultation",
+      "installLabel": "Ajouter à l’écran d’accueil",
+      "return": "Revenez en un geste",
+      "installDescription": "Ouvrez 꿀꿀 운세 depuis l’écran d’accueil.",
+      "expertsTitle": "Votre histoire sous un autre angle",
+      "expertsIntro": "Découvrez les consultations des experts en webtoons.",
+      "ziweiName": "Consultation Ziwei",
+      "astrologyName": "Consultation d’astrologie occidentale",
+      "vedicName": "Consultation d’astrologie védique",
+      "sukuyoName": "Consultation de compatibilité Sukuyo",
+      "namingName": "Consultation de prénoms",
+      "karmaName": "Rapport karma et destinée",
+      "fusionName": "Lecture intégrée",
+      "teaName": "Maison de thé du destin",
+      "namingStudio": "Atelier expert de prénoms",
+      "installAction": "Ajouter à l’écran d’accueil",
+      "neoShort": "Salle de stratégie sans détour de Neo",
+      "yeoniTea": "Maison de thé du destin",
+      "link": {
+        "codexTitle": "Livre des liens du maître · Découvrir en webtoon",
+        "teaName": "Maison de thé du destin · Découvrir en webtoon",
+        "loveTitle": "Clés de l’amour · Découvrir en webtoon",
+        "neoShort": "Salle de stratégie sans détour de Neo · Découvrir en webtoon",
+        "namingStudio": "Atelier expert de prénoms · Découvrir en webtoon",
+        "yeoniTea": "Maison de thé du destin · Découvrir en webtoon",
+        "lifeTitle": "Livre de la vie · Découvrir en webtoon",
+        "yearTitle": "Lecture de la nouvelle année · Découvrir en webtoon",
+        "neoRoomTitle": "Salle de stratégie sans détour de Neo · Découvrir en webtoon"
+      }
     }
   },
   "terms": {

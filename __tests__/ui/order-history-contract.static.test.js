@@ -41,3 +41,18 @@ test("order detail route is user-scoped and the common GET client deduplicates i
   assert.match(authClient, /parsed\.pathname === "\/api\/payments\/orders"/);
   assert.match(authClient, /withCallerAbort\(pending, init\.signal \?\? undefined\)/);
 });
+
+test("order detail shows the full order number with a copy action, while the approval number stays masked", () => {
+  const viewModel = fs.readFileSync(path.join(root, "app/points/history/order-view-model.ts"), "utf8");
+  const modal = fs.readFileSync(path.join(root, "app/points/history/OrderDetailModal.tsx"), "utf8");
+  // 전체 번호의 출처는 소유권 검사를 통과한 주문 상세의 id(= merchantUid)다.
+  assert.match(viewModel, /orderNumber: String\(order\.id \|\| ""\)\.trim\(\)/);
+  assert.match(modal, /\{order\.orderNumber\}/);
+  assert.match(modal, /navigator\.clipboard\.writeText\(order\.orderNumber\)/);
+  assert.match(modal, /\{order\.approvalNumberMasked\}/);
+});
+
+test("yeongnyangi order reference is open by default so the number is visible without a tap", () => {
+  const recovery = fs.readFileSync(path.join(root, "app/yeongnyangi/_components/OrderRecovery.tsx"), "utf8");
+  assert.match(recovery, /<details className=\{styles\.orderTools\} open /);
+});

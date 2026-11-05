@@ -172,8 +172,10 @@ function verifyCardFaceImages() {
 
   engine.applyTarotImageToFace(frontEl, imgEl, "thedevil", "악마 (The Devil)");
   check("새 카드 적용 즉시 직전 카드가 감춰짐", imgEl.style.visibility === "hidden", `visibility=${imgEl.style.visibility}`);
-  check("새 카드 src 로 교체됨", imgEl.getAttribute("src").includes("thedevil"), imgEl.getAttribute("src"));
-  check("앞면 배경도 새 카드로 교체됨", String(frontEl.style.backgroundImage).includes("thedevil"), frontEl.style.backgroundImage);
+  // 찻집 덱은 영문 shortName 대신 한글 카드명으로 자산을 제공한다.
+  const expectedCardPath = `/DestinyCafe/caretaro/${encodeURIComponent("악마")}.webp`;
+  check("새 카드 src 로 교체됨", imgEl.getAttribute("src").endsWith(expectedCardPath), imgEl.getAttribute("src"));
+  check("앞면 배경도 새 카드로 교체됨", String(frontEl.style.backgroundImage).includes(expectedCardPath), frontEl.style.backgroundImage);
 }
 
 // ── 2. 78장 결정론 경로 ────────────────────────────────────────────────────

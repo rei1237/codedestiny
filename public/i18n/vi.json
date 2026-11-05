@@ -2396,6 +2396,90 @@
       "contact": "Liên hệ",
       "contactNote": "Cho chúng tôi biết câu hỏi hoặc lỗi gặp phải.",
       "example": "Ví dụ kết quả công khai"
+    },
+    "webtoonCopy": {
+      "love-secret": {
+        "lead": "Cùng một lời nói, sao lòng vẫn lệch nhịp?",
+        "benefits": "Thói quen bày tỏ tình yêu · Vì sao tủi thân tích tụ · Khi nên đến gần và giữ khoảng cách"
+      },
+      "new-year": {
+        "lead": "Trước khi lặp lại quyết tâm cũ, hãy nhìn nhịp điệu năm nay.",
+        "benefits": "Lúc chuẩn bị và hành động · Ưu tiên công việc, tiền bạc, quan hệ · Lựa chọn cần xem lại từng giai đoạn"
+      },
+      "life-book": {
+        "lead": "Liệu những chuyện đã qua còn điều chưa hiểu?",
+        "benefits": "Lý do lặp lại lựa chọn · Tài năng và thế mạnh lâu dài · Nhịp sống dài hạn qua đại vận Saju"
+      },
+      "neo": {
+        "lead": "Đã quyết tâm, sao vẫn ở chỗ cũ?",
+        "benefits": "Điều kiện thay đổi tình thế · Việc có thể làm ngay · Tiêu chí đánh giá sau kế hoạch"
+      },
+      "tea": {
+        "lead": "Một đêm không biết bắt đầu giãi bày từ đâu.",
+        "benefits": "Sắp xếp nỗi băn khoăn · Chọn tư vấn phù hợp · Hành động mình có thể thay đổi"
+      },
+      "codex": {
+        "lead": "Người đã khác, sao câu chuyện vẫn lặp lại?",
+        "benefits": "Mô thức quan hệ lặp lại · Lý do thu hút và áp lực · Giải nghĩa quan hệ bản cá nhân và tương hợp"
+      },
+      "ziwei": {
+        "lead": "Đã cố gắng mà vẫn mắc ở cùng một chỗ?",
+        "benefits": "Khí chất qua lá số Tử Vi · Thế mạnh về việc, tiền, quan hệ · Lựa chọn cần xem lại khi bế tắc"
+      },
+      "astrology": {
+        "lead": "Khi cảm xúc và hành động đi hai hướng.",
+        "benefits": "Khí chất qua bầu trời lúc sinh · Khác biệt giữa cảm xúc và hành động · Liên hệ giữa chuyển động sao hiện tại và đời sống"
+      },
+      "vedic": {
+        "lead": "Khi cảm thấy mình lại đi qua cùng một mùa.",
+        "benefits": "Khí chất qua bản đồ sao sinh · Nhịp thời gian qua Dasha · Hướng đời cần xem lại lúc này"
+      },
+      "sukuyo-compat": {
+        "lead": "Càng gần nhau, sao càng khó?",
+        "benefits": "Sức hút và áp lực giữa hai người · Nhịp quan hệ khác nhau · Cam kết và ranh giới cùng điều chỉnh"
+      },
+      "legacy-naming": {
+        "lead": "Một cái tên gọi lâu dài luôn mang tâm ý.",
+        "benefits": "Ý nghĩa và âm của tên gợi ý · Cơ sở Saju và tính toán · Tiêu chí so sánh tên"
+      },
+      "karma": {
+        "lead": "Người và nơi đã đổi, nút thắt vẫn còn.",
+        "benefits": "Nút thắt quan hệ lặp lại · Mô thức lựa chọn qua từng hệ thống · Hành động thay đổi lần tới"
+      },
+      "fusion": {
+        "lead": "Những nét đời một góc nhìn chưa thể thấy.",
+        "benefits": "Giải nghĩa riêng từ sáu hệ thống · Dòng chảy chung và góc nhìn khác · Hướng thực hành theo lĩnh vực đời sống"
+      },
+      "read": "Tìm hiểu qua webtoon",
+      "start": "Bắt đầu tư vấn",
+      "installLabel": "Thêm vào màn hình chính",
+      "return": "Lần sau quay lại chỉ bằng một chạm",
+      "installDescription": "Mở 꿀꿀 운세 từ biểu tượng trên màn hình chính.",
+      "expertsTitle": "Câu chuyện của bạn từ góc nhìn khác",
+      "expertsIntro": "Khám phá tư vấn chuyên gia qua webtoon trước.",
+      "ziweiName": "Tư vấn Tử Vi",
+      "astrologyName": "Tư vấn chiêm tinh phương Tây",
+      "vedicName": "Tư vấn chiêm tinh Vệ Đà",
+      "sukuyoName": "Tư vấn tương hợp Sukuyo",
+      "namingName": "Tư vấn đặt tên",
+      "karmaName": "Báo cáo nghiệp và vận mệnh",
+      "fusionName": "Luận giải tổng hợp",
+      "teaName": "Quán trà vận mệnh",
+      "namingStudio": "Phòng đặt tên chuyên gia",
+      "installAction": "Thêm vào màn hình chính",
+      "neoShort": "Phòng chiến lược thẳng thắn của Neo",
+      "yeoniTea": "Quán trà vận mệnh",
+      "link": {
+        "codexTitle": "Sách duyên của bậc thầy · Tìm hiểu qua webtoon",
+        "teaName": "Quán trà vận mệnh · Tìm hiểu qua webtoon",
+        "loveTitle": "Bí quyết tình yêu · Tìm hiểu qua webtoon",
+        "neoShort": "Phòng chiến lược thẳng thắn của Neo · Tìm hiểu qua webtoon",
+        "namingStudio": "Phòng đặt tên chuyên gia · Tìm hiểu qua webtoon",
+        "yeoniTea": "Quán trà vận mệnh · Tìm hiểu qua webtoon",
+        "lifeTitle": "Cuốn sách cuộc đời · Tìm hiểu qua webtoon",
+        "yearTitle": "Vận trình năm mới · Tìm hiểu qua webtoon",
+        "neoRoomTitle": "Phòng chiến lược thẳng thắn của Neo · Tìm hiểu qua webtoon"
+      }
     }
   },
   "terms": {

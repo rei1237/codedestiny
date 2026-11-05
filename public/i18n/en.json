@@ -2396,6 +2396,90 @@
       "contact": "Contact us",
       "contactNote": "Tell us about questions or problems.",
       "example": "Public reading example"
+    },
+    "webtoonCopy": {
+      "love-secret": {
+        "lead": "The same words, yet our hearts keep missing each other.",
+        "benefits": "Ways of expressing love · Why hurt builds up · When to approach and when to give space"
+      },
+      "new-year": {
+        "lead": "Before repeating the same resolutions, read the year ahead.",
+        "benefits": "When to prepare and act · Priorities in work, money and relationships · Choices to review at each stage"
+      },
+      "life-book": {
+        "lead": "What if past chapters still hold something to understand?",
+        "benefits": "Reasons behind repeated choices · Lasting talents and strengths · Life’s broader rhythm through major Saju cycles"
+      },
+      "neo": {
+        "lead": "You made up your mind. Why are you still in the same place?",
+        "benefits": "Conditions for change · Actions to take now · What to review after your plan"
+      },
+      "tea": {
+        "lead": "A night when you don’t know where to begin.",
+        "benefits": "Untangle your concerns · Choose a fitting consultation · Actions within your control"
+      },
+      "codex": {
+        "lead": "Different people, yet the same scenes repeat.",
+        "benefits": "Recurring relationship patterns · Reasons for attraction and strain · Personal and compatibility readings"
+      },
+      "ziwei": {
+        "lead": "Working hard, but getting stuck in the same place?",
+        "benefits": "Temperament in your Ziwei chart · Strengths in work, money and relationships · Choices to review when stuck"
+      },
+      "astrology": {
+        "lead": "When feelings and actions point in different directions.",
+        "benefits": "Temperament in your natal sky · Differences between feelings and actions · Current transits and daily life"
+      },
+      "vedic": {
+        "lead": "When it feels like the same season has returned.",
+        "benefits": "Temperament in your birth chart · Timing through Dasha periods · Life direction to review now"
+      },
+      "sukuyo-compat": {
+        "lead": "Why does getting closer feel harder?",
+        "benefits": "Attraction and strain between two people · Different relationship rhythms · Shared agreements and boundaries"
+      },
+      "legacy-naming": {
+        "lead": "A name carries the care of those who choose it.",
+        "benefits": "Meaning and sound of name candidates · Saju and calculation basis · Criteria for comparing names"
+      },
+      "karma": {
+        "lead": "People and places change, but the knot remains.",
+        "benefits": "Recurring relationship knots · Choice patterns across traditions · Actions to change next"
+      },
+      "fusion": {
+        "lead": "Aspects of life that one perspective cannot reveal.",
+        "benefits": "Separate readings from six traditions · Shared themes and differing views · Practical direction for daily life"
+      },
+      "read": "Explore the webtoon",
+      "start": "Start consultation",
+      "installLabel": "Add to home screen",
+      "return": "Come back with a tap",
+      "installDescription": "Open 꿀꿀 운세 from your home screen.",
+      "expertsTitle": "Your story from another perspective",
+      "expertsIntro": "Preview expert consultations through webtoons.",
+      "ziweiName": "Ziwei consultation",
+      "astrologyName": "Western astrology consultation",
+      "vedicName": "Vedic astrology consultation",
+      "sukuyoName": "Sukuyo compatibility consultation",
+      "namingName": "Naming consultation",
+      "karmaName": "Karma and destiny report",
+      "fusionName": "Fusion reading",
+      "teaName": "Fortune Tea House",
+      "namingStudio": "Expert naming studio",
+      "installAction": "Add to home screen",
+      "neoShort": "Neo's Straight-Talk Strategy Room",
+      "yeoniTea": "Fortune Tea House",
+      "link": {
+        "codexTitle": "Master's Book of Bonds · Explore the webtoon",
+        "teaName": "Fortune Tea House · Explore the webtoon",
+        "loveTitle": "Love Insights · Explore the webtoon",
+        "neoShort": "Neo's Straight-Talk Strategy Room · Explore the webtoon",
+        "namingStudio": "Expert naming studio · Explore the webtoon",
+        "yeoniTea": "Fortune Tea House · Explore the webtoon",
+        "lifeTitle": "Book of Life · Explore the webtoon",
+        "yearTitle": "Year-ahead reading · Explore the webtoon",
+        "neoRoomTitle": "Neo's Straight-Talk Strategy Room · Explore the webtoon"
+      }
     }
   },
   "terms": {

@@ -2396,6 +2396,90 @@
       "contact": "Contactar",
       "contactNote": "Cuéntanos tus dudas o problemas.",
       "example": "Ejemplo de lectura pública"
+    },
+    "webtoonCopy": {
+      "love-secret": {
+        "lead": "Las mismas palabras, pero nuestros sentimientos no se encuentran.",
+        "benefits": "Cómo expresas el amor · Por qué se acumula el dolor · Cuándo acercarte y dar espacio"
+      },
+      "new-year": {
+        "lead": "Antes de repetir propósitos, mira el rumbo del año.",
+        "benefits": "Cuándo prepararte y actuar · Prioridades en trabajo, dinero y relaciones · Decisiones que revisar en cada etapa"
+      },
+      "life-book": {
+        "lead": "¿Y si el pasado aún guardara algo por comprender?",
+        "benefits": "Por qué repites decisiones · Talentos y fortalezas duraderos · Grandes ciclos de vida según el Saju"
+      },
+      "neo": {
+        "lead": "Ya te decidiste. ¿Por qué sigues en el mismo lugar?",
+        "benefits": "Condiciones para cambiar · Acciones para ahora · Criterios para revisar tu plan"
+      },
+      "tea": {
+        "lead": "Una noche en la que no sabes por dónde empezar.",
+        "benefits": "Ordenar tus inquietudes · Elegir una consulta adecuada · Acciones que puedes cambiar"
+      },
+      "codex": {
+        "lead": "Personas distintas, pero las mismas escenas se repiten.",
+        "benefits": "Patrones en tus relaciones · Razones de atracción y tensión · Lectura personal o de compatibilidad"
+      },
+      "ziwei": {
+        "lead": "¿Te esfuerzas y tropiezas en el mismo punto?",
+        "benefits": "Temperamento en tu carta Ziwei · Fortalezas en trabajo, dinero y relaciones · Decisiones que revisar ante un bloqueo"
+      },
+      "astrology": {
+        "lead": "Cuando lo que sientes y haces va en distintas direcciones.",
+        "benefits": "Temperamento en el cielo natal · Diferencias entre emociones y acciones · Tránsitos actuales y vida diaria"
+      },
+      "vedic": {
+        "lead": "Cuando sientes que vuelve la misma estación.",
+        "benefits": "Temperamento en la carta natal · Ritmos según los períodos Dasha · Rumbo vital que revisar ahora"
+      },
+      "sukuyo-compat": {
+        "lead": "¿Por qué acercarse parece más difícil?",
+        "benefits": "Atracción y tensión entre dos personas · Ritmos distintos en la relación · Acuerdos y límites que revisar juntos"
+      },
+      "legacy-naming": {
+        "lead": "Un nombre que se dirá durante años lleva cariño.",
+        "benefits": "Significado y sonido de los nombres · Fundamentos de Saju y cálculo · Criterios para comparar opciones"
+      },
+      "karma": {
+        "lead": "Cambian las personas y los lugares, pero queda el nudo.",
+        "benefits": "Nudos recurrentes en las relaciones · Patrones de elección según cada tradición · Acciones que cambiar la próxima vez"
+      },
+      "fusion": {
+        "lead": "Matices de la vida que una sola mirada no revela.",
+        "benefits": "Lecturas separadas de seis tradiciones · Temas compartidos y distintas perspectivas · Orientación práctica por áreas de vida"
+      },
+      "read": "Descubrir en webtoon",
+      "start": "Iniciar consulta",
+      "installLabel": "Añadir a la pantalla de inicio",
+      "return": "Vuelve con un toque",
+      "installDescription": "Abre 꿀꿀 운세 desde la pantalla de inicio.",
+      "expertsTitle": "Tu historia desde otra perspectiva",
+      "expertsIntro": "Conoce las consultas de expertos en webtoons.",
+      "ziweiName": "Consulta Ziwei",
+      "astrologyName": "Consulta de astrología occidental",
+      "vedicName": "Consulta de astrología védica",
+      "sukuyoName": "Consulta de compatibilidad Sukuyo",
+      "namingName": "Consulta de nombres",
+      "karmaName": "Informe de karma y destino",
+      "fusionName": "Lectura integrada",
+      "teaName": "Casa de té del destino",
+      "namingStudio": "Estudio experto de nombres",
+      "installAction": "Añadir a la pantalla de inicio",
+      "neoShort": "Sala de estrategia directa de Neo",
+      "yeoniTea": "Casa de té del destino",
+      "link": {
+        "codexTitle": "Libro de vínculos del maestro · Descubrir en webtoon",
+        "teaName": "Casa de té del destino · Descubrir en webtoon",
+        "loveTitle": "Claves del amor · Descubrir en webtoon",
+        "neoShort": "Sala de estrategia directa de Neo · Descubrir en webtoon",
+        "namingStudio": "Estudio experto de nombres · Descubrir en webtoon",
+        "yeoniTea": "Casa de té del destino · Descubrir en webtoon",
+        "lifeTitle": "Libro de la vida · Descubrir en webtoon",
+        "yearTitle": "Lectura del nuevo año · Descubrir en webtoon",
+        "neoRoomTitle": "Sala de estrategia directa de Neo · Descubrir en webtoon"
+      }
     }
   },
   "terms": {

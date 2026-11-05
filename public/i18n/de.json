@@ -2396,6 +2396,90 @@
       "contact": "Kontakt",
       "contactNote": "Teile uns Fragen oder Probleme mit.",
       "example": "Öffentliches Ergebnisbeispiel"
+    },
+    "webtoonCopy": {
+      "love-secret": {
+        "lead": "Dieselben Worte, doch unsere Gefühle finden nicht zueinander.",
+        "benefits": "Gewohnheiten, Liebe zu zeigen · Warum sich Verletzungen ansammeln · Wann Nähe oder Abstand hilft"
+      },
+      "new-year": {
+        "lead": "Bevor du dieselben Vorsätze wiederholst: ein Blick aufs Jahr.",
+        "benefits": "Zeit zum Vorbereiten und Handeln · Prioritäten bei Arbeit, Geld und Beziehungen · Entscheidungen je Lebensphase prüfen"
+      },
+      "life-book": {
+        "lead": "Was, wenn vergangene Kapitel noch etwas zu verstehen geben?",
+        "benefits": "Gründe für wiederholte Entscheidungen · Beständige Talente und Stärken · Große Lebenszyklen im Saju"
+      },
+      "neo": {
+        "lead": "Du hast dich entschieden. Warum stehst du noch am selben Punkt?",
+        "benefits": "Bedingungen für Veränderung · Handlungen für jetzt · Maßstäbe zur Prüfung deines Plans"
+      },
+      "tea": {
+        "lead": "Ein Abend, an dem du nicht weißt, wo du anfangen sollst.",
+        "benefits": "Sorgen ordnen · Passende Beratung wählen · Handlungen im eigenen Einflussbereich"
+      },
+      "codex": {
+        "lead": "Andere Menschen, doch dieselben Szenen wiederholen sich.",
+        "benefits": "Wiederkehrende Beziehungsmuster · Gründe für Anziehung und Belastung · Persönliche oder Partnerschaftsdeutung"
+      },
+      "ziwei": {
+        "lead": "Du gibst dir Mühe und steckst am selben Punkt fest?",
+        "benefits": "Temperament im Ziwei-Horoskop · Stärken bei Arbeit, Geld und Beziehungen · Entscheidungen bei Blockaden prüfen"
+      },
+      "astrology": {
+        "lead": "Wenn Gefühl und Handeln in verschiedene Richtungen weisen.",
+        "benefits": "Temperament im Geburtshimmel · Unterschiede zwischen Gefühl und Handeln · Aktuelle Transite und Alltag"
+      },
+      "vedic": {
+        "lead": "Wenn es sich anfühlt, als käme dieselbe Jahreszeit wieder.",
+        "benefits": "Temperament im Geburtshoroskop · Zeitverläufe nach Dasha-Perioden · Lebensrichtung jetzt überdenken"
+      },
+      "sukuyo-compat": {
+        "lead": "Warum wird es schwieriger, je näher ihr euch kommt?",
+        "benefits": "Anziehung und Belastung zu zweit · Unterschiedliche Beziehungstempi · Gemeinsame Absprachen und Grenzen überdenken"
+      },
+      "legacy-naming": {
+        "lead": "In einem Namen, der lange gerufen wird, steckt Zuneigung.",
+        "benefits": "Bedeutung und Klang möglicher Namen · Saju- und Berechnungsgrundlagen · Kriterien zum Vergleich"
+      },
+      "karma": {
+        "lead": "Menschen und Orte wechseln, doch der Knoten bleibt.",
+        "benefits": "Wiederkehrende Beziehungsknoten · Entscheidungsmuster aus verschiedenen Traditionen · Handlungen fürs nächste Mal ändern"
+      },
+      "fusion": {
+        "lead": "Lebensfacetten, die eine einzige Sicht nicht zeigt.",
+        "benefits": "Einzeldeutungen aus sechs Traditionen · Gemeinsame Muster und andere Sichtweisen · Praktische Richtung je Lebensbereich"
+      },
+      "read": "Im Webtoon entdecken",
+      "start": "Beratung beginnen",
+      "installLabel": "Zum Startbildschirm hinzufügen",
+      "return": "Mit einem Tippen wieder da",
+      "installDescription": "Öffne 꿀꿀 운세 über den Startbildschirm.",
+      "expertsTitle": "Deine Geschichte aus einer anderen Sicht",
+      "expertsIntro": "Lerne Expertenberatungen im Webtoon kennen.",
+      "ziweiName": "Ziwei-Beratung",
+      "astrologyName": "Westliche Astrologie-Beratung",
+      "vedicName": "Vedische Astrologie-Beratung",
+      "sukuyoName": "Sukuyo-Partnerschaftsberatung",
+      "namingName": "Namensberatung",
+      "karmaName": "Karma- und Schicksalsbericht",
+      "fusionName": "Gesamtdeutung",
+      "teaName": "Teehaus des Schicksals",
+      "namingStudio": "Expertenstudio für Namen",
+      "installAction": "Zum Startbildschirm hinzufügen",
+      "neoShort": "Neos Klartext-Strategieraum",
+      "yeoniTea": "Teehaus des Schicksals",
+      "link": {
+        "codexTitle": "Buch der Verbindungen des Meisters · Im Webtoon entdecken",
+        "teaName": "Teehaus des Schicksals · Im Webtoon entdecken",
+        "loveTitle": "Liebeseinblicke · Im Webtoon entdecken",
+        "neoShort": "Neos Klartext-Strategieraum · Im Webtoon entdecken",
+        "namingStudio": "Expertenstudio für Namen · Im Webtoon entdecken",
+        "yeoniTea": "Teehaus des Schicksals · Im Webtoon entdecken",
+        "lifeTitle": "Buch des Lebens · Im Webtoon entdecken",
+        "yearTitle": "Jahresausblick · Im Webtoon entdecken",
+        "neoRoomTitle": "Neos Klartext-Strategieraum · Im Webtoon entdecken"
+      }
     }
   },
   "terms": {

@@ -66,6 +66,15 @@ test('연속 이동과 레일 폭 변화는 선택 카드 정렬을 유지한다
 test('현재 위치 점을 눌러도 화면 밖 카드는 키보드 접근에서 제외한다',()=>{
  const f=fixture(390);f.rail.scrollTo=()=>{};f.d.querySelector('[data-sig-slide="0"]').click();assert.equal(f.cards.filter(c=>!c.inert).length,1);f.close();
 });
+test('웹툰 링크도 같은 상담 카드의 키보드 접근 범위를 따른다',()=>{
+ const f=fixture(390);
+ const entries=f.cards.map(card=>{const entry=f.d.createElement('article');entry.className='cd-story-entry';card.replaceWith(entry);entry.append(card);const link=f.d.createElement('a');link.href='/consultations/life-book/';link.textContent='웹툰으로 알아보기';entry.append(link);return entry;});
+ f.d.querySelector('[data-sig-next]').click();
+ assert.equal(entries.filter(entry=>!entry.inert).length,1);
+ assert.equal(entries[0].inert,true);assert.equal(entries[1].inert,false);
+ f.d.querySelector('[data-sig-prev]').click();
+ assert.equal(entries[0].inert,false);assert.equal(entries[1].inert,true);f.close();
+});
 test('동작 축소에서는 자동 이동과 재생 버튼을 사용하지 않는다',()=>{
  const f=fixture(390,true);f.setVisible(1);assert.equal(f.timers.size,0);assert.equal(f.d.querySelector('[data-sig-pause]').hidden,true);f.close();
 });
