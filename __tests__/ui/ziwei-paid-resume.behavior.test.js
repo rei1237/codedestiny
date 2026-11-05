@@ -53,7 +53,7 @@ test('자미두수 화면은 pageshow와 focus만 발생해도 저장된 상담�
   assert.ok(resumeEffect);
   const handlers = new Map(), surface = name => ({ addEventListener: (key, fn) => handlers.set(name + key, fn), removeEventListener: key => handlers.delete(name + key) });
   let epoch = 0;
-  const ctx = { window: surface('window:'), document: { ...surface('document:'), visibilityState: 'visible' }, setResumeEpoch: fn => { epoch = fn(epoch); } };
+  const ctx = { paymentSurface: 'web', window: surface('window:'), document: { ...surface('document:'), visibilityState: 'visible' }, setResumeEpoch: fn => { epoch = fn(epoch); } };
   const cleanup = vm.runInNewContext('(' + resumeEffect.getText(ast) + ')()', ctx);
   for (const key of ['window:pageshow', 'window:focus']) { assert.equal(typeof handlers.get(key), 'function', key); handlers.get(key)(); }
   assert.equal(epoch, 2); cleanup(); assert.equal(handlers.size, 0);

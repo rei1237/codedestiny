@@ -48,6 +48,12 @@ test('Love Secret keeps original payload and idempotency key in its own intent',
  assert.equal(result.ok,true);assert.deepEqual(state.calls[0],{path:'/native/love-secret/prepare',body:{input}});
  delete globalThis.location;
 });
+test('Ziwei billing retains the original prepared input and request ID',async()=>{
+ globalThis.location={search:''};state.unavailable=false;state.calls=[];
+ const input={birthDate:'1990-01-01',calendarType:'lunar',isLeapMonth:true,calculationProtocol:'ziwei-prepared-v1'};
+ try{const result=await loaded.exports.runBillingCoinGate({featureKey:'ziwei-ai-consultation',requestId:'original-ziwei-request',resume:{args:{payload:JSON.stringify(input)}}});assert.equal(result.ok,true);assert.deepEqual(state.calls[0],{path:'/native/ziwei/prepare',body:{input:{...input,idempotencyKey:'original-ziwei-request'}}});assert.equal(state.calls[1].path,'/native/ziwei/intents/intent');}
+ finally{delete globalThis.location;}
+});
 
 test('native billing presents recovery-in-progress guidance before purchase',async()=>{
  globalThis.location={search:''};globalThis.window={addEventListener:()=>{},removeEventListener:()=>{}};state.unavailable=false;state.paid=false;state.recoveryBusy=true;

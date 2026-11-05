@@ -6,7 +6,7 @@ import {usePaidDeliveryScope} from '@/app/hooks/usePaidDeliveryScope';
 import {useTossConsultationCopy} from '@/app/_lib/toss-consultation-copy';
 
 // Profile choices are always read from the current Toss identity, never web cache.
-export default function TossAstrologyProfilePicker({onSelect,calendarMode='solar'}:{onSelect:(seed:AiPrefillSeed)=>void;calendarMode?:'solar'|'lunar'}){
+export default function TossAstrologyProfilePicker({onSelect,calendarMode='solar'}:{onSelect:(seed:AiPrefillSeed)=>void;calendarMode?:'solar'|'lunar'|'native-lunar'}){
  const {copy}=useTossConsultationCopy();
  const [profiles,setProfiles]=useState<DestinyProfileCard[]>([]),[loading,setLoading]=useState(true),[message,setMessage]=useState(''),[epoch,setEpoch]=useState(0);
  const revision=useRef(0);
@@ -18,7 +18,7 @@ export default function TossAstrologyProfilePicker({onSelect,calendarMode='solar
   setProfiles(payload.profiles.map(normalizeDestinyProfileCard).filter((p:DestinyProfileCard|null):p is DestinyProfileCard=>Boolean(p&&(p.id||p.profileId))));
  }catch(error){if(!same())return;setProfiles([]);const failure=error&&typeof error==='object'?error as {status?:number;code?:string}:{};setMessage(failure.status===401||['LOGIN_REQUIRED','SESSION_EXPIRED'].includes(failure.code||'')?'profileLogin':failure.status===403||failure.code==='ACCESS_DENIED'?'profileDenied':'profileFailed');}finally{if(same())setLoading(false);}},[captureOwner]);
  useEffect(()=>{void reload();},[reload,epoch]);
- const choose=async(id:string)=>{const owner=captureOwner(),request=++revision.current,same=()=>owner()&&request===revision.current;const profile=profiles.find(p=>String(p.id||p.profileId)===id);if(!profile)return;let seed=selectedBirthProfileSeed(profile);try{if(seed.calendarType==='lunar'&&(calendarMode==='solar'||seed.isLeapMonth)){
+ const choose=async(id:string)=>{const owner=captureOwner(),request=++revision.current,same=()=>owner()&&request===revision.current;const profile=profiles.find(p=>String(p.id||p.profileId)===id);if(!profile)return;let seed=selectedBirthProfileSeed(profile);try{if(seed.calendarType==='lunar'&&(calendarMode==='solar'||(calendarMode==='lunar'&&seed.isLeapMonth))){
   const {lunarToSolar}=await import('@/lib/korean-calendar');const [year,month,day]=(seed.birthDate||'').split('-').map(Number);const date=lunarToSolar(year,month,day,Boolean(seed.isLeapMonth));if(!date)throw new Error('INVALID_LUNAR_DATE');
   seed={...seed,birthDate:[date.year,String(date.month).padStart(2,'0'),String(date.day).padStart(2,'0')].join('-'),calendarType:'solar',isLeapMonth:false};
  }if(same())onSelect(seed);}catch{if(same())setMessage('profileInvalid');}};
