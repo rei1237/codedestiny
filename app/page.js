@@ -25,7 +25,7 @@ import { IS_APP_BUILD } from "../lib/app-build-target";
 const { service, characters } = BRAND_FACTS;
 const YEONGNYANGI = characters.find((character) => character.key === "yeongnyangi");
 const HOME_TITLE = "꿀꿀 운세 · 운세보는 영냥이 | 서비스 선택";
-const HOME_DESCRIPTION = "꽃돼지 꿀꿀운세에서 사주·타로와 주제별 운세를 고르거나, 운세보는 영냥이에게 궁금한 질문과 상황을 들려주세요. 나에게 맞는 상담을 선택하세요.";
+const HOME_DESCRIPTION = "꽃돼지 연이와 영냥이를 만나는 꿀꿀 운세. 사주·타로와 주제별 운세를 웹에서 살펴보고, Android 앱은 Google Play에서 설치하세요.";
 // summary_large_image 카드라 1200×630 공유 이미지를 쓴다. 정적 홈 셸(index.html)과 같은 그림이다.
 const HOME_IMAGE = siteSeo.defaultOgImage;
 const ART = "/images/home/illustrated";
@@ -132,6 +132,7 @@ export default function HomePage() {
         {!IS_APP_BUILD && <StoryDiscovery />}
         {!IS_APP_BUILD && <HomeInstallEntry />}
         {!IS_APP_BUILD && <nav className={styles.entryHelp} aria-label="주요 운세 바로가기">
+          <a href="https://play.google.com/store/apps/details?id=com.codedestiny.app">Google Play에서 꿀꿀운세 앱 다운로드</a>
           {HOME_QUICK_LINKS.map(({ key, href, title }) => (
             <Link key={key} href={href} prefetch={false} {...discoveryTracking(key)}>{title}</Link>
           ))}
