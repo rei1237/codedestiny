@@ -15,7 +15,7 @@ next: 최신 main의 CI required가 초록인지 확인하고, 초록이면 main
 ## 지금 상태
 
 - 작업 트리 `D:\Development\code-destiny\.codex-worktrees\daily-home-20261104-040025`, 브랜치 `wt/daily-home-20261104-040025`. 구현과 리뷰 수정을 끝내 커밋했고 main에는 미반영이다. 설계는 `docs/superpowers/specs/2026-11-05-forest-daily-walk-design.md`.
-- 2026-11-05 20:41 기준 main `214200dbc`의 CI required 실패(run 42018267392). 원인은 다른 세션 문서 `docs/handoff/2026-11-04-pass-flat-pricing-{release,rulings}.md`의 프론트매터 누락이다. 이 작업이 고칠 일이 아니고, 빨간불 위에는 push하지 않는다.
+- 2026-11-05 20:50 기준 main `f4591634f`까지 병합했다. 직전 두 실패(`214200dbc` 프론트매터 누락, `58d4e8bfa` 문서 전용 push에서 png를 받지 않아 난 `verify:doc-freshness` 거짓 실패)는 다른 세션이 고쳐 push했다. `f4591634f`의 CI required가 초록인지 확인한 뒤 push한다. 빨간불 위에는 push하지 않는다.
 - automation-4는 사용자가 껐다. 옆 세션 미커밋 8개는 사용자 결정으로 대기 조건에서 뺐고, 건드리지 않는다.
 
 ## 남은 작업
