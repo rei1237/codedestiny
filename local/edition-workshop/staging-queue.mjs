@@ -24,13 +24,14 @@ export async function readReleaseQueue(request=fetch,productionTest=false) {
         !['cat','yeoni'].includes(character) || !Number.isInteger(cap) || cap<1 || cap>100 ||
         !Number.isInteger(issueCount) || issueCount<1 || issueCount>cap) throw Error('발행 요청 값 오류');
     const pins=[];
-    return {id,title,character,cap,issueCount,pins,studio:true,portraitVersion:product.portraitVersion};
+    return {id,title,character,cap,issueCount,pins,publishedDays:[],studio:true,portraitVersion:product.portraitVersion};
   });
   for (const item of previous) {
     const entry=entries.find(e=>e.id===item.editionId);
     if (!entry || item.serial>entry.issueCount || !Number.isInteger(item.serial) || item.serial<1 ||
         !/^[0-9a-f]{64}$/.test(item.pin) || entry.pins[item.serial-1]) throw Error('기존 발행 기록을 보존할 수 없습니다.');
     entry.pins[item.serial-1]=item.pin;
+    entry.publishedDays[item.serial-1]=item.publishedOn;
   }
   return entries;
 }

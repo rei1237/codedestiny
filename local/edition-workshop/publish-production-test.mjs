@@ -1,9 +1,10 @@
 import fs from 'node:fs/promises';
+import {publicationDate,koreanPublicationDay} from '../../lib/editions/ledger-date.mjs';
 import os from 'node:os';
 import path from 'node:path';
 import {spawnSync} from 'node:child_process';
 import {readReleaseQueue} from './staging-queue.mjs';
-import {TEST_ORIGIN,TEST_RECORDS,TEST_PREFIX} from '../../lib/editions/production-test.mjs';
+import {TEST_ORIGIN,TEST_RECORDS,TEST_PREFIX,TEST_ENVIRONMENT} from '../../lib/editions/production-test.mjs';
 
 // This job publishes test data only. Never deploy Pages/Worker or use an external EVM.
 if(process.env.GITHUB_ACTIONS!=='true'||process.env.GITHUB_WORKFLOW!=='Edition test issuer') throw Error('승인된 테스트 발행 작업에서만 실행하세요.');
@@ -24,11 +25,17 @@ if(process.argv.includes('--check')) {
         '--content-type',file.endsWith('.png')?'image/png':'application/json'],{stdio:'inherit'});
       if(result.status!==0) throw Error('테스트 발행증 업로드 실패');
     };
+    const publishedToday=koreanPublicationDay(new Date());
     for(const item of catalog) {
       const entry=entries.find(e=>e.id===item.editionId);
-      if(entry.pins[item.serial-1]) continue;
+      if(entry.pins[item.serial-1]) {
+        item.publishedOn=publicationDate({...item,publishedOn:entry.publishedDays[item.serial-1]});
+        continue;
+      }
+      item.publishedOn=publishedToday;
       upload(item.code+'.json'); upload(item.code+'.png');
     }
+    await fs.writeFile(path.join(dest,'index.json'),JSON.stringify({environment:TEST_ENVIRONMENT,items:catalog})+'\n');
     upload('index.json');
     console.log('Published test-only receipts:',catalog.length);
   } finally {await fs.rm(folder,{recursive:true,force:true});}
