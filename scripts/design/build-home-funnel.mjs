@@ -357,14 +357,14 @@ vars.pass = '<link rel="stylesheet" href="/styles/pass-benefits.css?v=build-0000
   </div>
   <ul class="cdh-pass__tiers" role="list">${Object.values(CURRENT_PASS_PLANS).map(plan => `
     <li class="cdh-pass__tier${plan.tier === 'family' ? ' cdh-pass__tier--family' : ''}"><a class="cdh-pass__tier-link" href="/points/?source=flower-membership&amp;plan=${plan.tier}">
-      ${plan.tier === 'family' ? '<span class="cdh-pass__badge" data-cd-trans="home.gardenCopy.passBadge">영냥이까지</span>' : ''}<span class="cdh-pass__tier-name">${plan.name}</span>
+      <span class="cdh-pass__tier-name">${plan.name}</span>
       <strong class="cdh-pass__tier-price"><span data-cd-play-price data-cd-play-pass="${plan.tier}" data-cd-play-policy="${CURRENT_PASS_POLICY_VERSION}" data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars='{"amount":"${Number(plan.wonPrice).toLocaleString('en-US')}"}'>${won(plan.wonPrice)}</span> <small data-cd-trans="home.gardenCopy.passPer">· 기간 제한 없음</small></strong>
       <span class="cdh-pass__tier-line" data-cd-trans="home.overseasCopy.${plan.tier === 'family' ? 'passNoLimit' : 'passPerLimit'}" data-cd-vars='{"amount":"${Number(plan.maxCoveredCoin * 100).toLocaleString('en-US')}"}'>${plan.tier === 'family' ? '유료 리딩 건당 한도 없음' : `건당 ${won(plan.maxCoveredCoin * 100)} 이하`}</span>
       <span class="cdh-pass__tier-line" data-cd-trans="home.overseasCopy.passTotal" data-cd-vars='{"amount":"${Number(plan.monthlyLimitCoin * 100).toLocaleString('en-US')}"}'>누적 ${won(plan.monthlyLimitCoin * 100)}까지</span>
     </a></li>`).join('')}
   </ul>
   <p class="cdh-pass__light" data-cd-trans="home.gardenCopy.passLight" data-cd-vars='{"count":"${lightFortunes.count}","amount":"${lightFortunes.valueKRW.toLocaleString('en-US')}"}'>모든 꿀단지에 라이트 운세 ${lightFortunes.count}종이 횟수 제한 없이 포함돼요. 각 1회 기준 ${won(lightFortunes.valueKRW)} 상당이며, 대표 상담은 제외예요.</p>
-  <p class="cdh-pass__note" data-cd-trans="home.gardenCopy.passNote">작은·중간·큰 꿀단지는 꿀꿀 운세에, 패밀리 꿀단지는 꿀꿀 운세와 영냥이 유료 리딩에 적용됩니다. 이미 구매한 이용권의 상담 한도는 그대로이고, 라이트 운세 혜택은 사용 중인 이용권에도 적용됩니다.</p>
+  <p class="cdh-pass__note" data-cd-trans="home.gardenCopy.passNote">모든 꿀단지는 꿀꿀 운세와 영냥이에서 함께 쓸 수 있어요. 건당 상한 이하 상담에 적용됩니다. 이미 구매한 이용권의 상담 한도는 그대로이고, 라이트 운세 혜택은 사용 중인 이용권에도 적용됩니다.</p>
   <a class="cdh-pass__btn" href="/points/?source=flower-membership" data-cd-trans="home.gardenCopy.passCta">나에게 맞는 이용권 확인하기</a>
 </section>`;
 const template = readFileSync('templates/home-funnel.html', 'utf8');

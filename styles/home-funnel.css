@@ -239,7 +239,6 @@ html.neo-mode .cdh-kakao__quote:before,body.neo-mode .cdh-kakao__quote:before{ba
 .cdh-pass__tier-link{position:relative;display:grid;align-content:start;gap:3px;height:100%;padding:16px 14px;border:1px solid var(--cdh-line);border-radius:18px;background:var(--cdh-card);color:var(--cdh-ink)!important;text-decoration:none;transition:transform .2s,border-color .2s}
 .cdh-pass__tier-link:hover{transform:translateY(-2px);border-color:var(--cdh-accent)}
 .cdh-pass__tier--family .cdh-pass__tier-link{border-color:var(--cdh-accent);box-shadow:inset 0 0 0 1px var(--cdh-accent)}
-.cdh-pass__badge{position:absolute;top:-10px;right:12px;padding:3px 9px;border-radius:999px;background:var(--cdh-accent);color:#fff;font-size:.68rem;font-weight:800}
 .cdh-pass__tier-name{color:var(--cdh-accent);font-size:.84rem;font-weight:800;word-break:keep-all}
 .cdh-pass__tier-price{margin:2px 0 6px;color:var(--cdh-ink);font-size:clamp(1.15rem,2vw,1.4rem);font-weight:850;letter-spacing:-.02em}
 .cdh-pass__tier-price small{color:var(--cdh-muted);font-size:.72rem;font-weight:700;white-space:nowrap}
@@ -248,7 +247,6 @@ html.neo-mode .cdh-kakao__quote:before,body.neo-mode .cdh-kakao__quote:before{ba
 .cdh-pass__note{margin:0;color:var(--cdh-muted);font-size:.76rem;line-height:1.6}
 .cdh-pass__btn{position:relative;padding-inline-end:44px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;min-height:var(--cd-btn-h);border-radius:var(--cd-r-control);background:var(--cd-cta-primary-bg);color:var(--cd-cta-primary-ink)!important;font-weight:800;text-decoration:none}
 :is(html,body).neo-mode .cdh-pass__mascot{background:#2a2242}
-:is(html,body).neo-mode .cdh-pass__badge{color:#1b1233!important}
 .cdh-more{min-width:0;border:1px solid var(--cdh-line);border-radius:24px;background:color-mix(in srgb,var(--cdh-surface) 80%,transparent)}
 .cdh-more__summary{position:relative;isolation:isolate;display:flex;align-items:center;gap:16px;min-height:210px;padding:32px clamp(24px,4vw,48px);overflow:hidden;border-radius:23px;list-style:none;cursor:pointer;background:var(--cdh-card);box-shadow:inset 0 0 0 5px var(--cdh-bg),inset 0 0 0 6px color-mix(in srgb,var(--cdh-gold) 26%,transparent)}
 .cdh-more__summary::before{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,var(--cdh-card) 28%,color-mix(in srgb,var(--cdh-card) 65%,transparent) 65%,transparent),var(--cdh-page-art) right 35% / min(60vw,640px) auto no-repeat;opacity:.85;pointer-events:none}
@@ -1172,29 +1170,7 @@ html.neo-mode .cdh,body.neo-mode .cdh{--cdh-glass-line:color-mix(in srgb,var(--c
 @media(max-width:640px){#cdHomeFunnel .cdh-consult-choice{gap:18px;margin:24px 16px 0;padding:18px 14px;border-radius:18px}#cdHomeFunnel .cdh-consult-choice__head{gap:10px;min-height:180px;padding:12px 0}#cdHomeFunnel .cdh-consult-choice__head h2{font-size:26px}#cdHomeFunnel .cdh-consult-choice__head p{font-size:14px}#cdHomeFunnel .cdh-choice-card__copy,#cdHomeFunnel .cdh-consult-choice__neo .cdh-choice-card__copy{gap:8px;padding:20px 18px}#cdHomeFunnel .cdh-choice-card h3{font-size:22px}#cdHomeFunnel .cdh-consult-choice__compare{display:block;padding:6px 12px;font-size:13px}#cdHomeFunnel .cdh-consult-choice__compare thead{position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;clip-path:inset(50%)}#cdHomeFunnel .cdh-consult-choice__compare tbody{display:grid}#cdHomeFunnel .cdh-consult-choice__compare tr{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 12px;padding:12px 0;border-bottom:1px solid #c4a97555}#cdHomeFunnel .cdh-consult-choice__compare tbody th{grid-column:1/-1;width:auto;padding:0 0 8px;border:0;white-space:normal}#cdHomeFunnel .cdh-consult-choice__compare td{width:auto;padding:0;border:0}#cdHomeFunnel .cdh-consult-choice__compare td::before{display:block;margin-bottom:5px;color:var(--cd-neo-letter-gold);font-size:12px;font-weight:750;content:attr(data-service)}#cdHomeFunnel .cdh-consult-choice__compare tr:last-child{border-bottom:0}#cdHomeFunnel .cdh-consult{margin:28px 16px 0}}
 @media(prefers-reduced-motion:reduce){#cdHomeFunnel .cdh-consult-choice .cdh-choice-card__cta{transition:none}}
 /* 영냥이 전용 이용권: local night-blue palette; flower passes retain their theme. */
-#cdHomeFunnel .cdh-pass__packs{--pack-night:#0c1930;--pack-surface:#142c4b;--pack-ink:#f0f6ff;--pack-muted:#becfe6;--pack-rim:#507299;--pack-light:#9dcaff;--pack-button:#275fba;margin-top:8px;padding:20px;border:1px solid var(--pack-rim);border-radius:24px;background:var(--pack-night);color:var(--pack-ink);color-scheme:dark;box-shadow:0 16px 32px -22px var(--pack-night)}
-#cdHomeFunnel .cdh-pass__packs>summary{display:flex;align-items:center;gap:20px;min-height:44px;margin:0;cursor:pointer;list-style:none;color:var(--pack-ink)}
-#cdHomeFunnel .cdh-pass__packs>summary::-webkit-details-marker{display:none}
-#cdHomeFunnel .cdh-pass__pack-guide{flex:none;width:104px;height:104px;object-fit:contain;background:transparent}
-#cdHomeFunnel .cdh-pass__pack-heading{display:grid;gap:8px;min-width:0;font:700 clamp(19px,2.3vw,26px)/1.45 var(--cdh-serif)}
-#cdHomeFunnel .cdh-pass__pack-heading small{max-width:48ch;color:var(--pack-muted);font:400 14px/1.7 var(--font-premium,sans-serif);word-break:keep-all;overflow-wrap:anywhere}
-#cdHomeFunnel .cdh-pass__packs>summary::after{content:"";flex:none;width:10px;height:10px;margin-left:auto;border-right:2px solid var(--pack-light);border-bottom:2px solid var(--pack-light);transform:rotate(45deg)}
-#cdHomeFunnel .cdh-pass__packs[open]>summary::after{transform:rotate(225deg)}
-#cdHomeFunnel .cdh-pass__packs :focus-visible{outline:3px solid var(--pack-light);outline-offset:4px;border-radius:12px}
-#cdHomeFunnel .cdh-pass__packs ::selection{background:var(--pack-light);color:var(--pack-night)}
-#cdHomeFunnel .cdh-pass__packs .cdh-pass__tiers{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:24px}
-#cdHomeFunnel .cdh-pass__packs .cdh-pass__tier-link{grid-template-columns:minmax(0,1fr) 72px;gap:6px 12px;padding:20px;border-color:var(--pack-rim);background:var(--pack-surface);color:var(--pack-ink)!important}
-#cdHomeFunnel .cdh-pass__packs .cdh-pass__tier-link:hover{border-color:var(--pack-light);transform:none}
-#cdHomeFunnel .cdh-pass__pack-art{grid-column:2;grid-row:1/4;width:72px;height:72px;object-fit:contain;align-self:center;background:transparent}
-#cdHomeFunnel .cdh-pass__packs .cdh-pass__tier-name{grid-column:1;color:var(--pack-light);font-size:15px}
-#cdHomeFunnel .cdh-pass__packs .cdh-pass__tier-price{grid-column:1;color:var(--pack-ink);font-size:24px;font-variant-numeric:tabular-nums}
-#cdHomeFunnel .cdh-pass__packs .cdh-pass__tier-line{grid-column:1/-1;color:var(--pack-muted);font-size:14px}
-@media(max-width:640px){#cdHomeFunnel .cdh-pass__packs{padding:16px}#cdHomeFunnel .cdh-pass__packs>summary{gap:12px}#cdHomeFunnel .cdh-pass__pack-guide{width:68px;height:80px}#cdHomeFunnel .cdh-pass__pack-heading{font-size:18px}#cdHomeFunnel .cdh-pass__packs .cdh-pass__tiers{grid-template-columns:minmax(0,1fr);margin-top:20px}#cdHomeFunnel .cdh-pass__packs .cdh-pass__tier-link{padding:16px}}
 /* Transparent fish artwork and an understated silver fish engraving. */
-#cdHomeFunnel .cdh-pass__packs{position:relative;isolation:isolate;--pack-fish-mark:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 60'%3E%3Cpath d='M10 30C32 5 70 7 91 25L112 12V48L91 35C70 53 32 55 10 30ZM74 16C68 25 68 35 74 44M33 26L33 27' fill='none' stroke='white' stroke-width='1.3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
-#cdHomeFunnel .cdh-pass__packs::before{content:"";position:absolute;z-index:-1;pointer-events:none;right:32px;top:18px;width:180px;height:90px;background:var(--pack-light);mask:var(--pack-fish-mark) center/contain no-repeat;opacity:.12}
-#cdHomeFunnel :is(.cdh-pass__pack-guide,.cdh-pass__pack-art){background:transparent;filter:drop-shadow(0 8px 12px rgba(0,8,24,.32))}
-@media(max-width:640px){#cdHomeFunnel .cdh-pass__packs::before{right:12px;top:8px;width:120px;height:60px;opacity:.08}}
 /* 둘러보기 — 넉넉한 터치 영역과 금박 테두리, 같은 폭의 세 진입점. */
 #cdHomeFunnel .cdh-all-cta{margin:40px 24px 0;text-align:center}
 /* 세 버튼은 기존 크림·밤색 팔레트와 달빛 예화 꽃가지를 공유한다. */
