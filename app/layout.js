@@ -166,7 +166,7 @@ export default function RootLayout({ children }) {
     // 프리페인트 스크립트가 하이드레이션 전에 data-cd-theme 를 찍는다. 이 요소의 속성 불일치만 허용한다(자식에는 번지지 않음).
     <html lang="ko" dir="ltr" className={notoSansKRVariable} suppressHydrationWarning>
       <head>
-        <script src="/js/pwa-lifecycle.js?v=moon-library-1" defer />
+        <script src="/js/pwa-lifecycle.js?v=build-c1ef7dbb8c51" defer />
         <Script src="/js/core/pass-verdict.js?v=build-59972d7778e0" strategy="beforeInteractive" />
         <Script src="/js/core/auth-hint.js?v=build-ce0e961efebc" strategy="beforeInteractive" />
         {/* 앱 판별 정본. checkout-entry 가 진입 분기에서 읽으므로 그보다 먼저 둔다. */}

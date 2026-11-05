@@ -489,6 +489,12 @@ const ROOT_LOADER_RESTAMP_FILES = [
  */
 function restampRootLoaderFiles(fallbackKey) {
   syncRootAssetCacheKeys();
+  // Next 홈도 정적 셸과 같은 PWA 런타임을 사용한다. 고정 키는 이전 API를 캐시한다.
+  const layoutPath = resolve(rootDir, "app/layout.js");
+  const layoutSource = readFileSync(layoutPath, "utf8");
+  const lifecycleKey = createAssetCacheKeys(rootDir).resolve("/js/pwa-lifecycle.js", "app/layout.js").key;
+  const layoutStamped = layoutSource.replace(/\/js\/pwa-lifecycle\.js\?v=[a-zA-Z0-9_-]+/g, `/js/pwa-lifecycle.js?v=${lifecycleKey}`);
+  if (layoutStamped !== layoutSource) writeFileSync(layoutPath, layoutStamped);
   for (let pass = 1; pass <= 8; pass += 1) {
     const keys = createAssetCacheKeys(rootDir);
     const changed = [];

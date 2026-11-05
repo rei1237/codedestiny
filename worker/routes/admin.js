@@ -4907,7 +4907,7 @@ async function dispatchSiteRelease(env, mode) {
   }
 
   const repo = String(getEnv(env, "GITHUB_DEPLOY_REPO") || "").trim() || "rei1237/codedestiny";
-  const workflow = "cloudflare-pages-deploy.yml";
+  const workflow = mode === "edition-test" ? "edition-test-issuer.yml" : "cloudflare-pages-deploy.yml";
 
   let response;
   try {
@@ -4920,7 +4920,7 @@ async function dispatchSiteRelease(env, mode) {
         "user-agent": "code-destiny-worker",
         "x-github-api-version": "2022-11-28",
       },
-      body: JSON.stringify({ ref: "main", inputs: { mode, allow_redeploy: true } }),
+      body: JSON.stringify({ ref: "main", inputs: mode === "edition-test" ? {} : { mode, allow_redeploy: true } }),
     });
   } catch (e) {
     throw createHttpError(502, "GitHub 배포 트리거 요청에 실패했습니다.", { code: "DEPLOY_DISPATCH_FAILED" });
@@ -4941,7 +4941,8 @@ export async function handleAdminRoutes(request, env) {
     if (path === "/editions") {
       await authorizeAdminRequest(request, env);
       const { manageEditions } = await import("./edition-studio.js");
-      return await manageEditions(request, env, () => dispatchSiteRelease(env, "staging"));
+      const { productionTest } = await import("./edition-studio.js");
+      return await manageEditions(request, env, () => dispatchSiteRelease(env, productionTest(request,env) ? "edition-test" : "staging"));
     }
 
     if (path === "/neo-consultations" || path.startsWith("/neo-consultations/")) {

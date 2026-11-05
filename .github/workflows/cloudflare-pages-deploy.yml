@@ -286,6 +286,7 @@ jobs:
       # 🔴 이 잡에는 workflow_dispatch 만 도달한다(gate 가 push·schedule 을 스테이징으로 보낸다).
       # 그래서 모드는 사람이 고른 값 하나뿐이고, 다른 이벤트에서 값이 새어 들어올 자리가 없다.
       RELEASE_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || '' }}
+      NEXT_PUBLIC_EDITION_WORKSHOP: production-test
       CD_CMS_REFRESH: ${{ inputs.bootstrap_cms != true && 'true' || 'false' }}
       # 🔴 deploy-safe 는 "HEAD 가 이미 라이브면 아무것도 하지 않는다"로 자기중단한다. 청크 이름만
       # 바뀌는 무의미한 재배포가 전환 틈새 404 를 만들기 때문이고, 그 판단은 **커밋이 같으면
@@ -620,7 +621,7 @@ jobs:
         run: npm install --prefix local/edition-workshop --ignore-scripts --package-lock=false --no-audit --no-fund
 
       - name: Verify named edition issuance and character QR
-        run: node --test local/edition-workshop/studio.test.mjs
+        run: node --test local/edition-workshop/studio.test.mjs local/edition-workshop/production-test.test.mjs
 
       - name: Fail fast when the staging project is unconfigured
         run: |

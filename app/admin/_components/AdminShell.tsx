@@ -70,7 +70,7 @@ export const ADMIN_NAV_GROUPS: { id: AdminNavGroup; game: string; label: string;
 
 /** 좌측 네비의 단일 정본. 기존 11개 항목은 예전 순서 그대로 두어 롤백 시 그 순서가 돌아온다. */
 export const ADMIN_NAV: AdminNavItem[] = [
-  ...(process.env.NEXT_PUBLIC_EDITION_WORKSHOP === 'staging' || (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_EDITION_WORKSHOP === '1')
+  ...(['staging','production-test'].includes(process.env.NEXT_PUBLIC_EDITION_WORKSHOP || '') || (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_EDITION_WORKSHOP === '1')
     ? [{href:'/admin/editions',label:'한정판 공방',Icon:Gem,hint:'굿즈 한도 확정과 발행 기록',group:'workshop' as const}] : []),
   { href: "/admin/threads", label: "Threads 작업실", game: "연이의 대화 원정", Icon: FileText, hint: "짧은 원고·검토·발행 기록", group: "hq", hqOnly: true },
   { href: "/admin/wordpress", label: "WordPress 작업실", game: "연이의 편집 원정", Icon: FileText, hint: "원고 검토·검색 점검·초안 편집", group: "hq", hqOnly: true },

@@ -1,11 +1,15 @@
 import { STAGING_ORIGIN } from "../../lib/editions/staging.mjs";
 import { createHttpError, json, readJson } from "../lib/http.js";
 
-const key = "edition-workshop/v1/products.json";
+import {TEST_ORIGIN,TEST_PREFIX} from "../../lib/editions/production-test.mjs";
+export function productionTest(request,env) {
+  return env.NODE_ENV==="production" && env.APP_ENV!=="staging" && new URL(request.url).origin===TEST_ORIGIN;
+}
+const storageKey=(request,env)=>productionTest(request,env)?TEST_PREFIX+"products.json":"edition-workshop/v1/products.json";
 const uuid = /^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/;
 
 function storage(request, env) {
-  if (env.APP_ENV !== "staging" || new URL(request.url).origin !== STAGING_ORIGIN) {
+  if (!productionTest(request,env) && (env.APP_ENV !== "staging" || new URL(request.url).origin !== STAGING_ORIGIN)) {
     throw createHttpError(404, "공방을 찾을 수 없어요.");
   }
   if (!env.INSIGHT_IMAGES_BUCKET) throw createHttpError(503, "상품 보관함에 연결하지 못했어요.");
@@ -14,13 +18,14 @@ function storage(request, env) {
 
 export async function readIssueQueue(request, env) {
   if (request.method !== "GET") return json({}, {status:405});
-  const object = await storage(request, env).get(key);
+  const object = await storage(request, env).get(storageKey(request,env));
   const products = object ? await object.json() : [];
   return json({version:1, products:products.filter(product => product.issueCount > 0)});
 }
 
 export async function manageEditions(request, env, dispatch) {
   const bucket = storage(request, env);
+  const key = storageKey(request,env);
   const previous = await bucket.get(key);
   const products = previous ? await previous.json() : [];
   if (request.method === "GET") return json({products});
@@ -59,7 +64,7 @@ export async function manageEditions(request, env, dispatch) {
       await dispatch();
       return json({products, notice:"발행을 접수했어요. 테스트 체인 검증이 끝나면 QR이 열려요."});
     } catch {
-      return json({products, notice:"발행을 접수했어요. 다음 스테이징 예약 실행에서 처리해요."});
+      return json({products, notice:"발행을 접수했어요. 다음 테스트 발행 예약 실행에서 처리해요."});
     }
   }
   return json({products});

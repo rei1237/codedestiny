@@ -1,16 +1,20 @@
 import {pathToFileURL} from 'node:url';
 import {STAGING_ORIGIN, RECORDS} from '../../lib/editions/staging.mjs';
 
-export async function readReleaseQueue(request=fetch) {
-  const get = path => request(STAGING_ORIGIN+path,{cache:'no-store',redirect:'error',signal:AbortSignal.timeout(30000)});
-  const catalogResponse=await get(RECORDS+'/index.json');
+import {TEST_ORIGIN,TEST_RECORDS,TEST_ENVIRONMENT} from '../../lib/editions/production-test.mjs';
+export async function readReleaseQueue(request=fetch,productionTest=false) {
+  const origin=productionTest?TEST_ORIGIN:STAGING_ORIGIN;
+  const records=productionTest?TEST_RECORDS:RECORDS;
+  const environment=productionTest?TEST_ENVIRONMENT:'staging-rehearsal';
+  const get = path => request(origin+path,{cache:'no-store',redirect:'error',signal:AbortSignal.timeout(30000)});
+  const catalogResponse=await get(records+'/index.json');
   if (!catalogResponse.ok) throw Error('이전 발행 목록을 확인할 수 없습니다.');
   const catalog=await catalogResponse.json();
-  if (catalog.environment!=='staging-rehearsal' || !Array.isArray(catalog.items)) throw Error('발행 목록 형식 오류');
+  if (catalog.environment!==environment || !Array.isArray(catalog.items)) throw Error('발행 목록 형식 오류');
   const previous=catalog.items.filter(item=>item.editionId);
   const response=await get('/api/edition-workshop/issue-queue');
   // The first rollout builds Pages before the new Worker is routed.
-  if (response.status===404 && previous.length===0) return [];
+  if (!productionTest && response.status===404 && previous.length===0) return [];
   if (!response.ok) throw Error('발행 대기 목록을 확인할 수 없습니다.');
   const queue=await response.json();
   if (queue.version!==1 || !Array.isArray(queue.products)) throw Error('발행 대기 목록 형식 오류');
