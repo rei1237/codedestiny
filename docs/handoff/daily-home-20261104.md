@@ -1,5 +1,7 @@
 ---
 status: blocked
+updated: 2026-11-05
+next: 이 문서는 과거 경과 기록이다. 이어받을 일은 daily-home-claude-20261105.md를 따른다
 ---
 # 통합 운기 다이어리 인수인계
 
