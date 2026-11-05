@@ -92,6 +92,29 @@ test('a revoked result reload does not attach the saved follow-up answer', async
   expect(provider).toHaveBeenCalledTimes(1);
 });
 test('revoked purchase cannot generate or reopen a follow-up', async () => { await start(); revoked = true; expect((await start()).status).toBe(403); expect(provider).toHaveBeenCalledTimes(1); });
+test.each([[401, 'SESSION_EXPIRED'], [403, 'PURCHASE_REVOKED']])('native access denial %s is preserved before generation', async (status, code) => {
+  const verifyAccess = async () => { throw Object.assign(new Error(code), { status, code }); };
+  const response = await start({ verifyAccess });
+  expect(response.status).toBe(status);
+  expect(await response.json()).toMatchObject({ reason: code, retryable: false });
+  expect(provider).not.toHaveBeenCalled();
+  expect(docs).toHaveLength(0);
+});
+test('a temporary native access failure remains retryable', async () => {
+  const verifyAccess = async () => { throw Object.assign(new Error('TEMPORARY_FAILURE'), { status: 503, code: 'TEMPORARY_FAILURE' }); };
+  const response = await start({ verifyAccess });
+  expect(response.status).toBe(503);
+  expect(await response.json()).toMatchObject({ reason: 'TEMPORARY_FAILURE', retryable: true });
+  expect(provider).not.toHaveBeenCalled();
+});
+test('native access denial prevents recovery from attaching a saved answer', async () => {
+  fault = 'throw';
+  expect((await start()).status).toBe(503);
+  const denied = Object.assign(new Error('PURCHASE_REVOKED'), { status: 403, code: 'PURCHASE_REVOKED' });
+  await expect(recover({ auth: { userId: owner }, consultation: structuredClone(report), featureKey: 'karma-destiny-ai-consultation', model: reportModel, verifyAccess: async () => { throw denied; } })).rejects.toBe(denied);
+  expect(report.messages).toHaveLength(1);
+  expect(provider).toHaveBeenCalledTimes(1);
+});
 test('quality failure keeps original report and bounded attempts', async () => {
   provider.mockResolvedValue({ text: '짧고 잘림', provider: 'gemini' });
   for (let i = 0; i < 4; i++) expect((await start()).status).toBe(202);
