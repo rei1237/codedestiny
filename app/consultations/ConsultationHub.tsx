@@ -1,6 +1,4 @@
 "use client";
-import Image from 'next/image';
-import { consultationStories, storyBenefits, storyPreviewHeights } from './stories';
 import { Archive, ArrowLeft, ArrowUpRight, MessageCircleHeart, Moon } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { RECORD_SERVICES } from '@/lib/records/service-registry';
@@ -46,24 +44,11 @@ export default function ConsultationHub({ children }: { children?: ReactNode }) 
     <span>{id === 'codex' && `${copy.personal} `}<PriceBadge featureKey={featureKey} className={styles.price} /></span>
     {id === 'codex' && <span>{copy.compatibility} <PriceBadge featureKey="master-love-codex-compat" className={styles.price} /></span>}
   </>;
-  const renderStoryCard = (id: string) => {
-    const {service,name}=describe(id);
-    return <article className={styles.storyCard} key={id} data-service={id}>
-      <a className={styles.storyPreview} href={'/consultations/'+id+'/'} aria-label={name+' 웹툰으로 알아보기'} style={{aspectRatio:'724 / '+storyPreviewHeights[id]}}>
-        <Image src={'/images/consultation-webtoons/'+id+'.webp'} width={724} height={2172} alt="" loading="lazy"/>
-      </a>
-      <h3>{name}</h3><p className={styles.storyConcern}>{consultationStories[id].lead}</p>
-      <ul className={styles.storyBenefits} aria-label="상담에서 얻는 것">{storyBenefits[id].map(benefit=><li key={benefit}>{benefit}</li>)}</ul>
-      <div className={styles.prices}>{prices(id,service.featureKey)}</div>
-      <div className={styles.storyActions}><a href={'/consultations/'+id+'/'}>웹툰으로 알아보기</a><a href={service.href}>상담 시작하기</a></div>
-    </article>;
-  };
   const renderCard = (id: string, index: number) => {
-    if(locale==='ko') return renderStoryCard(id);
     const { service, name, description } = describe(id);
     const [src, large] = deckArt[id];
     return <article key={id} className={styles.tarot} data-service={id}>
-      <a href={service.href}>
+      <a href={locale==='ko'?`/consultations/${id}/`:service.href}>
         <span className={styles.tarotTop} aria-hidden="true"><b>{numerals[index]}</b></span>
         <span className={styles.tarotArt}>
           <img src={src} srcSet={large ? `${src} 600w, ${large} 1200w` : undefined} sizes="(min-width: 1024px) 180px, 46vw"
@@ -82,7 +67,6 @@ export default function ConsultationHub({ children }: { children?: ReactNode }) 
     </article>;
   };
   const renderRow = (id: string) => {
-    if(locale==='ko') return renderStoryCard(id);
     const { service, name, description } = describe(id);
     const image = artwork[id] ? `/images/service-introductions/${artwork[id]}-320.webp` : service.image;
     return <article key={id} className={styles.row} data-service={id}>
@@ -92,7 +76,7 @@ export default function ConsultationHub({ children }: { children?: ReactNode }) 
         <p className={styles.description}>{description}</p>
         <p className={styles.prices}>{prices(id, service.featureKey)}</p>
       </div>
-      <a className={styles.rowLink} href={service.href} aria-label={`${name} · ${id === 'legacy-naming' ? copy.namingAction : copy.open}`}>
+      <a className={styles.rowLink} href={locale==='ko'?`/consultations/${id}/`:service.href} aria-label={`${name} · ${id === 'legacy-naming' ? copy.namingAction : copy.open}`}>
         {id === 'legacy-naming' ? copy.namingAction : copy.open}<ArrowUpRight size={15} aria-hidden="true" />
       </a>
     </article>;

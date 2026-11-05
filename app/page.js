@@ -1,5 +1,3 @@
-import HomeInstallEntry from './components/HomeInstallEntry';
-import StoryDiscovery from './consultations/StoryDiscovery';
 import Link from 'next/link';
 import { publicSeoPages, siteSeo } from "../lib/seo/siteSeo";
 import { buildServiceJsonLd, buildWebPageJsonLd, buildAuthorPersonJsonLd } from "../lib/structured-data";
@@ -123,7 +121,6 @@ export default function HomePage() {
             </li>;
           })}
         </HomeCardDeck>
-        {!IS_APP_BUILD && <HomeInstallEntry />}
         {!IS_APP_BUILD && <nav className={styles.entryHelp} aria-label="주요 운세 바로가기">
           {HOME_QUICK_LINKS.map(({ key, href, title }) => (
             <Link key={key} href={href} prefetch={false} {...discoveryTracking(key)}>{title}</Link>
@@ -135,7 +132,6 @@ export default function HomePage() {
           <Link prefetch={IS_APP_BUILD ? false : undefined} href="/yeongnyangi/library/"><NativeHomeText>영냥이 상담 기록</NativeHomeText></Link>
         </nav>
         <p className={styles.entryNote}><NativeHomeText>이용권과 상담 기록은 서비스별로 확인해 주세요.</NativeHomeText></p>
-        {!IS_APP_BUILD && <StoryDiscovery />}
       </main>
 
       <footer className={styles.footer}>

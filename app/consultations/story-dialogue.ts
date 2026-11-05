@@ -1,4 +1,4 @@
-/** Readable alternative to embedded image dialogue, also available in an optional transcript. */
+/** Image dialogue alternatives for assistive readers, never a second visible transcript UI. */
 export const storyDialogue:Record<string,string>={
  'love-secret':'같은 말인데, 왜 마음은 자꾸 엇갈릴까. 연이: 어떤 마음이었는지 먼저 들려주세요. 서한비: 두 사람의 속도와 거리는 제가 재겠습니다. 연이: 사랑하는 습관과 서운해지는 이유를 살펴봐요. 서한비: 다가갈 조건과 지켜야 할 선을 나눕니다. 이제 당신의 이야기를 함께 펼쳐봐요.',
  'new-year':'새해에도 같은 다짐만 반복하고 싶지 않다면. 네오: 올해 판세부터 읽자. 네 명식 위에 올해와 매달의 흐름을 놓는다. 밀어붙일 때와 힘을 아낄 때는 다르다. 일, 돈, 관계. 지금 움직일 순서부터 정하자. 프로필을 골라. 올해 작전은 거기서 시작한다.',

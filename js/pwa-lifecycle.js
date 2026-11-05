@@ -59,12 +59,7 @@
     d.appendChild(button('이미 추가했어요',function(){deferInstall(policy.declineDays);closeDialog();}));
     d.appendChild(button('나중에',function(){deferInstall(policy.closeDays);closeDialog();}));
   }
-  function syncInstallControls() {
-    const hidden = native() || standalone();
-    document.querySelectorAll('[data-pwa-install], [data-pwa-install-entry], #cdAppInstall').forEach(function(el){el.hidden=hidden;});
-  }
   function install() {
-    if (native() || standalone()) { syncInstallControls(); return; }
     track('pwa_install_click');
     if (!promptEvent) { guidance(); return; }
     const event=promptEvent; promptEvent=null; hideBanner();
@@ -136,11 +131,11 @@
     } catch { /* Failed version reads never become update signals. */ }
     finally {checking=false;}
   }
-  window.__cdPwaLifecycle={refreshInstallControls:syncInstallControls,install:install,check:check,isSafe:safe,setSafetyProvider:function(fn){safetyProvider=fn;},policy:policy};
+  window.__cdPwaLifecycle={install:install,check:check,isSafe:safe,setSafetyProvider:function(fn){safetyProvider=fn;},policy:policy};
   window.dispatchEvent(new Event('cd:pwa-ready'));
   ['click','submit','pointerdown','keydown'].forEach(function(type){document.addEventListener(type,function(e){if(Date.now()<lockUntil && !e.target.closest('.cd-moon-letter')){e.preventDefault();e.stopImmediatePropagation();}},true);});
   window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();if(native()||standalone())return;promptEvent=e;maybeInstall();});
-  window.addEventListener('appinstalled',function(){installed=true;promptEvent=null;hideBanner();closeDialog();syncInstallControls();track('pwa_install_completed');});
+  window.addEventListener('appinstalled',function(){installed=true;promptEvent=null;hideBanner();track('pwa_install_completed');});
   document.addEventListener('input',function(e){if(e.target.closest('[data-archive-search], [data-famous-saju-list], .moon-library, .ins-wrap'))return;dirty=true;hideBanner();},true);
   document.addEventListener('pointerdown',function(e){if(Date.now()<lockUntil && !e.target.closest('.cd-moon-letter')){e.preventDefault();return;}interacted=true;presentUpdate();setTimeout(maybeInstall,Math.max(0,policy.delay-(Date.now()-started)));},true);
   document.addEventListener('keydown',function(e){if(Date.now()<lockUntil && !e.target.closest('.cd-moon-letter'))e.preventDefault();interacted=true;setTimeout(maybeInstall,Math.max(0,policy.delay-(Date.now()-started)));},true);
@@ -154,9 +149,9 @@
     const ready=safe();if(ready)lockUntil=Date.now()+7000;e.ports[0].postMessage({safe:ready});
   });
   function boot(){
-    syncInstallControls();
-    if(native())return;
+    if(native() || standalone()){document.querySelectorAll('[data-pwa-install]').forEach(function(el){el.hidden=true;});if(native())return;}
     const link=document.createElement('link');link.rel='stylesheet';link.href='/styles/pwa-lifecycle.css?v=moon-library-1';document.head.appendChild(link);
+    const manual=document.getElementById('cdAppInstall');if(manual && !standalone())manual.hidden=false;
     check();
     if('serviceWorker' in navigator && window.isSecureContext){navigator.serviceWorker.register('/service-worker.js',{scope:'/',updateViaCache:'none'}).then(function(reg){registration=reg;function waiting(){if(reg.waiting && navigator.serviceWorker.controller){const request=++versionRequest, channel=new MessageChannel();channel.port1.onmessage=function(e){channel.port1.close();if(request!==versionRequest || !reg.waiting || typeof e.data?.version!=='string')return;if(!pending || pending.version!==e.data.version)pending={version:e.data.version,notes:['새 웹앱 파일을 사용할 준비가 되었어요.']};presentUpdate();};reg.waiting.postMessage({type:'CD_VERSION'},[channel.port2]);}}waiting();reg.addEventListener('updatefound',function(){reg.installing?.addEventListener('statechange',waiting);});}).catch(function(){});}
     try{const saved=JSON.parse(read(sessionStorage,'cd.pwa.reading') || 'null');if(saved?.path===location.pathname){requestAnimationFrame(function(){scrollTo(0,saved.y);});sessionStorage.removeItem('cd.pwa.reading');}}catch{}
