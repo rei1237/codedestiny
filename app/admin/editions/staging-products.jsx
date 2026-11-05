@@ -84,6 +84,7 @@ export default function StagingProducts({records, refreshRecords}) {
           <h3>{product.title}</h3>
           {confirmed > 0 && <a href={'#qr-'+records.find(row=>row.editionId===product.id).code}>발행된 QR 보기</a>}
           <p>{characters[product.character]} · {product.cap}개 한정 · {confirmed}개 발행 완료</p>
+          <progress className={s.meter} value={confirmed} max={product.cap} aria-label={product.title+' 발행 완료 수'} />
           {pending ? <p>{product.issueCount}번 발행 대기 중 · 검증이 끝나면 아래에 QR이 표시돼요.</p>
           : product.issueCount===product.cap ? <p>모든 번호를 발행했어요.</p>
           : <button className={s.primary} disabled={busy} onClick={()=>save({action:'mint',id:product.id,serial:product.issueCount+1})}>{String(product.issueCount+1).padStart(3,'0')}번 테스트 NFT 발행</button>}
