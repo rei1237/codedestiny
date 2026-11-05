@@ -6,6 +6,10 @@
 
 2026-11-06 주문 소유권 추가 차단: `worker/toss/partner.js`는 주문 조회 때 `x-toss-user-key`를 보내고, `worker/toss/policy.js:checkOrder`는 주문 ID·SKU·상태를 검사한다. 저장된 주문은 `worker/toss/grant.js`에서 소유 계정을 비교하지만 첫 지급 시에는 응답이 구매자와 일치하는지 별도 근거가 필요하다. 공식 [주문 조회 API](https://developers-apps-in-toss.toss.im/api/iap)의 공개 요청·응답에는 해당 헤더의 구매자 검증 보장이나 구매자 식별자가 명시되어 있지 않다. 이것만으로 토스 서버가 해당 헤더를 무시한다고 단정하지 않으며, 첫 주문의 구매자 결합을 증명할 공식 근거와 테스트가 없으므로 출시 차단으로 둔다. [완료·환불 주문 목록 SDK](https://developers-apps-in-toss.toss.im/documentation/sdk/domains-api/iap/iap.getcompletedorrefundedorders)는 완료·환불 거래를 페이지별 조회하지만 진행 중 거래의 부재를 증명한다고 명시하지 않는다.
 
+2026-11-06 개인정보 근거 추가: 운영 Worker `code-destiny-web`의 비밀 변수 **이름만** 읽은 결과 `GEMINIF_API_KEY`가 등록되어 있으며 `worker/lib/gemini.js:pickGeminiKeys`도 이 이름을 사용한다. 비밀값이나 운영 상담은 읽지 않았다. 등록 사실만으로 실제 Google 프로젝트, 과금 상태, 데이터 처리 국가를 확정할 수 없다. [Gemini API 약관](https://ai.google.dev/gemini-api/terms)은 유료 서비스 여부에 따라 처리 조건을 구분하고 유료 서비스 데이터의 일시 저장·캐시가 Google 또는 대리인의 시설이 있는 국가에서 이뤄질 수 있다고 설명한다. 실제 프로젝트와 계약, 수탁·국외 이전 고지를 확인하기 전 개인정보 심사 항목은 미통과다.
+
+2026-11-06 관측성 차단: `worker/toss/routes.js:/events`는 허용된 클라이언트 이벤트만 선택적 `TOSS_ANALYTICS` 바인딩에 기록하고, `worker/toss/policy.js`는 결제 확인·생성 완료 등 서버 전용 이벤트를 클라이언트에서 거부한다. 현재 추적한 `worker/toss` 경로만으로 서버 전용 이벤트의 실제 기록과 중복 방지, 바인딩 활성화 또는 오류 추적을 입증하지 못했다. 부재를 단정하지 않고 전체 출시 흐름에서 실제 이벤트와 오류 추적의 누락·중복을 검증하기 전까지 차단으로 둔다.
+
 | 항목 | 확인 근거 | 현재 판정 |
 |---|---|---|
 | 서비스 범위 | `docs/toss/build-service-inventory.mjs`, `full-service-inventory.json`, `apps/toss/scripts/launch-status.mjs` | 현재 홈·React·시각 레지스트리 재생성 결과 후보 89, 수동 근거에 따른 부분 구현 28, 추가 추적 61. 전체 라우트와 구현 계약, 완전 검증·출시 제외 미확정. |
