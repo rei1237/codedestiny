@@ -1,4 +1,12 @@
 {
+  "saju": {
+    "bundle": {
+      "inlineTitle": "Explora tus Cuatro Pilares",
+      "lottoSavedTitle": "Informes guardados del Ritual de la Suerte Lunar",
+      "lottoSavedDesc": "Vuelve a leer los informes que compraste y guardaste en este dispositivo.",
+      "lottoSavedOpen": "Abrir informe"
+    }
+  },
   "_comment": "Code Destiny — Spanish premium localization (es.json)",
   "_version": "1.0.0",
   "brand": {

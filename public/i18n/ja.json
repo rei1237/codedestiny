@@ -1,4 +1,12 @@
 {
+  "saju": {
+    "bundle": {
+      "inlineTitle": "四柱推命の読み解きをさらに深く",
+      "lottoSavedTitle": "保存した月明かりのラッキーリチュアル",
+      "lottoSavedDesc": "購入してこの端末に保存したレポートを読み返せます。",
+      "lottoSavedOpen": "レポートを開く"
+    }
+  },
   "_comment": "Code Destiny — Japanese premium localization (ja.json)",
   "_version": "1.0.0",
   "brand": {

@@ -1,4 +1,12 @@
 {
+  "saju": {
+    "bundle": {
+      "inlineTitle": "Khám phá sâu hơn về Tứ trụ",
+      "lottoSavedTitle": "Báo cáo Nghi thức may mắn ánh trăng đã lưu",
+      "lottoSavedDesc": "Đọc lại báo cáo bạn đã mua và lưu trên thiết bị này.",
+      "lottoSavedOpen": "Mở báo cáo"
+    }
+  },
   "_comment": "Code Destiny - Vietnamese premium localization (vi.json)",
   "_version": "1.0.0",
   "brand": {

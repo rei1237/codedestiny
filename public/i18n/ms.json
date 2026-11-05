@@ -1,4 +1,12 @@
 {
+  "saju": {
+    "bundle": {
+      "inlineTitle": "Terokai Empat Tiang anda dengan lebih mendalam",
+      "lottoSavedTitle": "Laporan Ritual Tuah Cahaya Bulan yang disimpan",
+      "lottoSavedDesc": "Baca semula laporan yang dibeli dan disimpan pada peranti ini.",
+      "lottoSavedOpen": "Buka laporan"
+    }
+  },
   "_comment": "Code Destiny — Malay premium localization (ms.json)",
   "_version": "1.0.0",
   "brand": {

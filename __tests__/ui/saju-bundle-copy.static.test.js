@@ -113,9 +113,10 @@ test('묶음 가격 표기는 29,000원 하나다', async () => {
   assert.match(hub, /BUNDLE_PRICE/);
   // 결과 화면의 묶음 카드 가격 표기는 하나다.
   const index = read('index.html');
-  const cardPrices = [...index.matchAll(/<span class="pf-coin-amount">([^<]*)<\/span>/g)].map((m) => m[1].trim());
-  assert.ok(cardPrices.length >= 2);
-  assert.deepEqual([...new Set(cardPrices)], ['묶음 29,000원']);
+  const cardPrices = [...index.matchAll(/<span class="pf-coin-amount" data-cd-play-price data-cd-play-feature="([^"]+)"><\/span>/g)];
+  assert.deepEqual(cardPrices.map(match => match[1]), [BUNDLE, BUNDLE]);
+  assert.match(index, /_ensureFeaturePricing\(key\)\.then\(render/);
+  assert.doesNotMatch(index, /<span class="pf-coin-amount">묶음 [\d,]+원/);
   assert.match(read('js/core/saju/bundle-offer.js'), /PRICE_LABEL = '29,000원'/);
 });
 

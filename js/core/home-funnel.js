@@ -254,6 +254,7 @@
       try { sessionStorage.setItem(SESSION_CLOSED_KEY, '1'); } catch (_) {}
     }
     function hasBlockingSurface() {
+      if (document.documentElement.classList.contains('cdh-input-open')) return true;
       return Array.prototype.some.call(document.querySelectorAll('dialog[open],[role="dialog"][aria-modal="true"]:not([hidden]),.payment-modal.active,#cdCookieConsent.is-visible'), function (node) {
         return node !== popup && node.getClientRects().length > 0 && getComputedStyle(node).visibility !== 'hidden';
       });

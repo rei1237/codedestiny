@@ -1,4 +1,12 @@
 {
+  "saju": {
+    "bundle": {
+      "inlineTitle": "Explore your Four Pillars in more detail",
+      "lottoSavedTitle": "Saved Moonlight Lucky Ritual reports",
+      "lottoSavedDesc": "Reopen reports you purchased and saved on this device.",
+      "lottoSavedOpen": "Open report"
+    }
+  },
   "_comment": "Code Destiny — English premium localization (en.json)",
   "_version": "1.0.0",
   "brand": {

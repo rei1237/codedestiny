@@ -1,4 +1,12 @@
 {
+  "saju": {
+    "bundle": {
+      "inlineTitle": "Deine Vier Säulen genauer verstehen",
+      "lottoSavedTitle": "Gespeicherte Mondlicht-Glücksrituale",
+      "lottoSavedDesc": "Hier kannst du gekaufte und auf diesem Gerät gespeicherte Berichte erneut lesen.",
+      "lottoSavedOpen": "Bericht öffnen"
+    }
+  },
   "_comment": "Code Destiny — German premium localization (de.json)",
   "_version": "1.0.0",
   "brand": {

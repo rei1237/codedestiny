@@ -1,4 +1,12 @@
 {
+  "saju": {
+    "bundle": {
+      "inlineTitle": "深入了解你的四柱",
+      "lottoSavedTitle": "已保存的月光幸运仪式报告",
+      "lottoSavedDesc": "可以重读已购买并保存在此设备上的报告。",
+      "lottoSavedOpen": "打开报告"
+    }
+  },
   "_comment": "Code Destiny - Chinese Simplified premium localization (zh-cn.json)",
   "_version": "1.0.0",
   "brand": {

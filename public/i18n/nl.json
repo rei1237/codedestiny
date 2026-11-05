@@ -1,4 +1,12 @@
 {
+  "saju": {
+    "bundle": {
+      "inlineTitle": "Verdiep je in je Vier Pilaren",
+      "lottoSavedTitle": "Opgeslagen rapporten van het maanlichtritueel",
+      "lottoSavedDesc": "Lees rapporten die je hebt gekocht en op dit apparaat hebt opgeslagen opnieuw.",
+      "lottoSavedOpen": "Rapport openen"
+    }
+  },
   "_comment": "Code Destiny — Dutch premium localization (nl.json)",
   "_version": "1.0.0",
   "brand": {

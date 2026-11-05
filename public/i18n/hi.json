@@ -1,4 +1,12 @@
 {
+  "saju": {
+    "bundle": {
+      "inlineTitle": "अपने चार स्तंभों को और गहराई से समझें",
+      "lottoSavedTitle": "सहेजी गई चाँदनी शुभ अनुष्ठान रिपोर्ट",
+      "lottoSavedDesc": "इस डिवाइस पर सहेजी गई अपनी खरीदी हुई रिपोर्ट फिर पढ़ें।",
+      "lottoSavedOpen": "रिपोर्ट खोलें"
+    }
+  },
   "_comment": "Code Destiny — Hindi premium localization (hi.json)",
   "_version": "1.0.0",
   "brand": {

@@ -1,4 +1,12 @@
 {
+  "saju": {
+    "bundle": {
+      "inlineTitle": "Approfondir la lecture de vos Quatre Piliers",
+      "lottoSavedTitle": "Rapports enregistrés du rituel de chance lunaire",
+      "lottoSavedDesc": "Relisez les rapports achetés et enregistrés sur cet appareil.",
+      "lottoSavedOpen": "Ouvrir le rapport"
+    }
+  },
   "_comment": "Code Destiny — French premium localization (fr.json)",
   "_version": "1.0.0",
   "brand": {
