@@ -2,6 +2,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {approvedProduct,APPROVED_TOSS_PRODUCTS} from '../../../worker/toss/catalog.js';
 test('no production SKU is invented while external approvals are pending',()=>assert.equal(APPROVED_TOSS_PRODUCTS.length,0));
+test('ambiguous or malformed approved SKU cannot grant either product',()=>{
+ const item={productId:'saju_mackerel',sku:'same-sku',approved:true,approvedPriceKRW:3000,priceEvidence:'offline fixture'};
+ assert.throws(()=>approvedProduct(item.sku,[item,{...item,productId:'saju_salmon'}]));
+ for(const sku of ['', ' same-sku ', undefined])assert.throws(()=>approvedProduct(sku,[{...item,sku}]));
+});
 test('approved birth-system products retain exact identity and price evidence',()=>{
  for(const domain of ['saju','astrology','ziwei','vedic','sukuyo','tarot']){
   const item={productId:domain+'_mackerel',sku:'test-'+domain,approved:true,approvedPriceKRW:100,priceEvidence:'offline fixture'};

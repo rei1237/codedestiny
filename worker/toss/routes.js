@@ -33,6 +33,11 @@ async function readNativeLibraryItem(env,auth,row){
   return row.nativeService==='love-secret'?(await import('./native-love-secret.js')).nativeLoveSecretLibraryItem(env,auth,row):row.nativeService==='life-book'?(await import('./native-life-book.js')).nativeLifeBookLibraryItem(env,auth,row):row.nativeService==='fusion'?(await import('./native-fusion.js')).nativeFusionLibraryItem(env,auth,row):row.nativeService==='neo'?(await import('./native-neo.js')).nativeNeoLibraryItem(env,auth,row):(await import('./native-tea.js')).nativeTeaLibraryItem(env,auth,row);
 }
 
+async function letterEnabled(){
+  const {approvedLetterSale}=await import('./letter.js');
+  return ['saju','ziwei','sukuyo','vedic','astrology','tarot'].some(domain=>{try{approvedLetterSale(domain);return true;}catch{return false;}});
+}
+
 async function bodyOf(request) {
   if(!request.headers.get('Content-Type')?.startsWith('application/json'))throw new TossError('JSON_REQUIRED',415);
   const text=await request.text();
@@ -81,6 +86,43 @@ export async function handleTossRoutes(request,env) {
     }
     const auth=await requireTossSession(request,env);
     await limit(env,auth._id,'authenticated',120);
+    if(path==='/canonical/fortune-chat/consultations/status'&&request.method==='GET')return reply({ok:true,enabled:await letterEnabled()});
+    if(path==='/canonical/fortune-chat/consultations'&&request.method==='GET'){
+      if(url.searchParams.get('persona')!=='yeoni')throw new TossError('INVALID_PERSONA',400);
+      const productIds=['chat_saju','chat_ziwei','chat_sukuyo','chat_vedic','chat_astrology','chat_tarot'];
+      const rows=await TossPurchase.find({...libraryFilter(auth,url.searchParams.get('cursor')),serviceId:'yeoni',nativeService:{$in:['',null]},productId:{$in:productIds}}).sort({grantedAt:-1,_id:-1}).limit(LIBRARY_PAGE_SIZE+1).lean();
+      const {letterLibraryPage}=await import('./letter-library.js');
+      return reply({...await letterLibraryPage(rows,id=>readRequest(env,auth.userId,id),row=>verifyLibraryOrder(env,auth,row)),enabled:await letterEnabled()});
+    }
+    if(path==='/canonical/fortune-chat/consultations'&&request.method==='POST'){
+      await limit(env,auth._id,'letter-prepare',6);
+      return reply(await (await import('./letter.js')).prepareTossLetter(env,auth,await bodyOf(request)),201);
+    }
+    if(path==='/canonical/fortune-chat/consultations/recover'&&request.method==='POST'){
+      await limit(env,auth._id,'letter-recovery-prepare',6);
+      const input=await bodyOf(request);
+      return reply(await (await import('./letter.js')).prepareRecoveredTossLetter(env,auth,input.orderId,input.consultation),201);
+    }
+    const letterRecovery=path.match(/^\/canonical\/fortune-chat\/recovery\/([a-f0-9-]{36})(?:\/draft\/([a-f0-9]{64}))?$/);
+    if(letterRecovery&&request.method==='GET'){
+      const letter=await import('./letter.js');
+      return reply(letterRecovery[2]?await letter.readRecoveringTossLetter(env,auth,letterRecovery[1],letterRecovery[2]):await letter.recoverableLetterOrder(env,auth,letterRecovery[1]));
+    }
+    const letterMatch=path.match(/^\/canonical\/fortune-chat\/consultations\/([a-f0-9]{64})(\/(?:generate|draw))?$/);
+    if(letterMatch&&request.method===(letterMatch[2]?'POST':'GET')){
+      const {readTossLetter}=await import('./letter.js');
+      if(!letterMatch[2])return reply(await readTossLetter(env,auth,letterMatch[1]));
+      await limit(env,auth._id,'letter-'+letterMatch[2].slice(1),6);
+      if(letterMatch[2]==='/draw'){
+        const before=await readTossLetter(env,auth,letterMatch[1]);
+        if(before.consultation.productId!=='chat_tarot'||before.consultation.paid)throw new TossError('REQUEST_NOT_FOUND',404);
+        const input=await bodyOf(request);await drawTarotSpread(env,auth.userId,letterMatch[1],{method:input.method,picks:input.picks});
+        return reply(await readTossLetter(env,auth,letterMatch[1]));
+      }
+      await bodyOf(request);await readTossLetter(env,auth,letterMatch[1],{requirePaid:true});
+      const {retryFortune}=await import('../yeongnyangi/retry.js');await retryFortune(env,auth.userId,letterMatch[1]);
+      return reply(await readTossLetter(env,auth,letterMatch[1],{requirePaid:true}));
+    }
     if(path==='/canonical/records'&&request.method==='GET'){
       const rows=await TossPurchase.find(libraryFilter(auth,url.searchParams.get('cursor'))).sort({grantedAt:-1,_id:-1}).limit(LIBRARY_PAGE_SIZE+1).lean();
       const {unifiedRecordsPage}=await import('./unified-records.js');

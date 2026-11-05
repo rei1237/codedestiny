@@ -27,6 +27,7 @@ type Props = {
   tarotKind: ChatTarotKind; onTarotKind: (value: ChatTarotKind) => void;
   profile: ReactNode; profileName: string; ready: boolean;
   busy: boolean; guest: boolean; enabled: boolean | null; onCreate: () => void;
+  paymentSurface?: "toss"; tossPrice?: string; recoveredOrder?: boolean; lockedDomain?: ChatDomain; tossUnavailable?: boolean;
 };
 
 export default function ConsultationIntake(props: Props) {
@@ -38,6 +39,17 @@ export default function ConsultationIntake(props: Props) {
   useEffect(() => {
     if (changedStep.current) heading.current?.focus({ preventScroll: true });
   }, [step]);
+
+  useEffect(() => {
+    if (props.paymentSurface !== "toss") return;
+    const onBack = (event: Event) => {
+      if (event.defaultPrevented) return;
+      if (props.busy) { event.preventDefault(); return; }
+      if (step > 0) { event.preventDefault(); changedStep.current = true; setStep(step - 1); }
+    };
+    window.addEventListener("code-destiny:toss-overlay-back", onBack);
+    return () => window.removeEventListener("code-destiny:toss-overlay-back", onBack);
+  }, [props.paymentSurface, props.busy, step]);
 
   return <section className={styles.intake} aria-label="연이와 상담 준비">
     <nav className={styles.steps} aria-label="상담 준비 단계">
@@ -66,7 +78,7 @@ export default function ConsultationIntake(props: Props) {
     {step === 1 && <div className={styles.answer}>
       <details className={styles.examples}><summary>처음 상담한다면, 진행 방법 살펴보기</summary><YeoniIllustratedGuide kind="steps"/></details>
       <fieldset className={styles.methods}><legend>해석 방식</legend>
-        {METHODS.map((item) => <button key={item.id} type="button" aria-pressed={item.id === props.domain} onClick={() => props.onDomain(item.id)}>
+        {METHODS.map((item) => <button key={item.id} type="button" disabled={!!props.lockedDomain && props.lockedDomain !== item.id} aria-pressed={item.id === props.domain} onClick={() => props.onDomain(item.id)}>
           <span><strong>{item.label}</strong><small>{item.description}</small></span><span className={styles.selectionDot} aria-hidden="true">{item.id === props.domain && <Check size={13} />}</span>
         </button>)}
       </fieldset>
@@ -79,7 +91,9 @@ export default function ConsultationIntake(props: Props) {
       <button type="button" className={styles.edit} onClick={() => move(0)}><PencilLine size={14} aria-hidden="true" />질문 수정</button>
       <dl className={styles.review}><div><dt>해석 방식</dt><dd>{method.label}{props.domain === "tarot" ? ` · ${TAROT_KINDS.find((kind) => kind.id === props.tarotKind)?.label}` : ""}</dd></div>
         <div><dt>상담 대상</dt><dd>{props.domain === "tarot" ? "출생정보 없이 진행" : props.profileName || "로그인 후 프로필 선택"}</dd></div></dl>
+      {props.paymentSurface === "toss" ? <div className={styles.priceNote}><p>{props.recoveredOrder ? "결제한 상담을 이어서 준비해요." : props.tossPrice ? `단건 결제 · ${props.tossPrice}` : props.tossUnavailable ? "이용할 수 있는 상품을 확인하지 못했어요." : "상품 정보를 확인하고 있어요."}</p></div> : (
       <div className={styles.priceNote}><PriceBadge featureKey="fortune-chat-consultation" prefix="단건 결제 · " className={styles.price} /><p>이용권 또는 꿀방울 {HONEY_COST}개로도 열 수 있어요.<br />사용 가능한 이용 방법은 다음 화면에서 확인해요.</p></div>
+      )}
     </div>}
     <div className={styles.intakeFooter}>
       {step > 0 && <button type="button" className={styles.previous} onClick={() => move(step - 1)} disabled={props.busy}><ArrowLeft size={16} aria-hidden="true" />이전</button>}

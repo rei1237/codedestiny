@@ -7,8 +7,9 @@ export const APPROVED_TOSS_PRODUCTS = Object.freeze([]);
 export const APPROVED_TOSS_TAROT_LIBRARY_PRODUCTS = Object.freeze([]);
 export const APPROVED_TOSS_NATIVE_PRODUCTS = Object.freeze([]);
 export function approvedProduct(sku, products=APPROVED_TOSS_PRODUCTS) {
-  const item=products.find(p=>p.sku===sku&&p.approved===true);
-  if(!item || !/^(chat_)?(saju|astrology|ziwei|vedic|sukuyo|tarot)_(mackerel|salmon|flounder|tuna)$/.test(item.productId)
+  const matches=products.filter(p=>p.sku===sku&&p.approved===true);
+  const item=matches.length===1&&typeof sku==='string'&&sku.length>0&&sku.trim()===sku?matches[0]:null;
+  if(!item || !(/^(chat_)?(saju|astrology|ziwei|vedic|sukuyo|tarot)_(mackerel|salmon|flounder|tuna)$/.test(item.productId)||(/^chat_(saju|astrology|ziwei|vedic|sukuyo|tarot)$/.test(item.productId)&&item.serviceId==='yeoni'))
     || /^(chat_)?(astrology|sukuyo|tarot)_tuna$/.test(item.productId)
     || !Number.isSafeInteger(item.approvedPriceKRW) || item.approvedPriceKRW<=0 || !item.priceEvidence) {
     throw new TossError('TOSS_PRODUCT_NOT_APPROVED',503);
