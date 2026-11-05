@@ -2042,7 +2042,7 @@ function useFusionFortuneCopy(): FusionFortuneCopy {
   return getFusionFortuneCopy(locale);
 }
 
-export function FusionFortuneClient({ seoContent, valuePreview, paymentNotice }: { seoContent?: ReactNode; valuePreview?: ReactNode; paymentNotice?: string }) {
+export function FusionFortuneClient({ seoContent, valuePreview, paymentNotice, paymentSurface }: { seoContent?: ReactNode; valuePreview?: ReactNode; paymentNotice?: string; paymentSurface?: 'toss' }) {
   const { user: deliveryUser } = useAuthStore();
   const deliveryOwnerId = String(deliveryUser?.id || deliveryUser?.userId || deliveryUser?._id || deliveryUser?.uid || "");
   useEffect(() => { void refreshAuth({ silent: true }).catch(() => {}); }, []);
@@ -3064,6 +3064,7 @@ export function FusionFortuneClient({ seoContent, valuePreview, paymentNotice }:
           </div>
         </li>}
 
+        {result && paymentSurface === 'toss' && <li><p role="note">AI가 작성한 상담 결과예요.</p></li>}
         {result && <FusionResultThread result={result} openSections={openSections} onToggleSection={toggleSection} exporting={exporting} stageTwoGenerating={loading} />}
         {result && !loading && !stageTwoFailed && <SavedRecordLink source="fusion" id={openedConsultationId} />}
 

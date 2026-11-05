@@ -415,7 +415,7 @@ function buildNeoSincereLetter(session: NeoResultSession, methodName: string, lo
   ).join("\n\n");
 }
 
-export default function NeoOperationRoomResultPage({ availability }: { availability?: { title: string; message: string; action?: { href: string; label: string } } } = {}) {
+export default function NeoOperationRoomResultPage({ availability, paymentSurface }: { availability?: { title: string; message: string; action?: { href: string; label: string } }; paymentSurface?: 'toss' } = {}) {
   const searchParams = useSearchParams();
   const attemptId = searchParams?.get("attemptId") || searchParams?.get("id") || "";
   const localPreviewEnabled = process.env.NODE_ENV !== "production";
@@ -780,6 +780,7 @@ export default function NeoOperationRoomResultPage({ availability }: { availabil
 
       {session && briefing ? (
         <div className={styles.layout}>
+          {paymentSurface === 'toss' && <p role="note">AI가 작성한 상담 결과예요.</p>}
           <aside className={styles.sidePanel}>
             <NeoWarRoomAssetImage
               asset={selectedMethodDefinition.coverAsset}

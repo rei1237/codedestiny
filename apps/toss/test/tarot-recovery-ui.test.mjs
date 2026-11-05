@@ -37,8 +37,16 @@ async function click(text){
 
 test('completed library reread displays stored text without a generation or payment request',async()=>{
  const view=await mount(()=>({flowId:result.flowId,state:'completed',result,canRetryNow:false}));
- try{assert.match(document.body.textContent,/완료된 원문/);assert.deepEqual(view.calls,[[`/tarot-library/results/${orderId}`]]);}
+ try{assert.match(document.body.textContent,/완료된 원문/);assert.doesNotMatch(document.body.textContent,/AI가 작성한 상담 결과/);assert.deepEqual(view.calls,[[`/tarot-library/results/${orderId}`]]);}
  finally{view.close();}
+});
+
+test('AI oracle discloses its use before input and labels restored generated results',async()=>{
+ const oracle={...result,flowId:'tarot-prompt-maker'};
+ let view=await mount(()=>({flowId:oracle.flowId,state:'input_required',result:null,canRetryNow:false}));
+ try{assert.match(document.body.textContent,/AI를 활용해 작성/);}finally{view.close();}
+ view=await mount(()=>({flowId:oracle.flowId,state:'completed',result:oracle,canRetryNow:false}));
+ try{assert.match(document.body.textContent,/AI가 작성한 상담 결과/);}finally{view.close();}
 });
 
 test('a failed paid reading can resume from the library on the original order',async()=>{

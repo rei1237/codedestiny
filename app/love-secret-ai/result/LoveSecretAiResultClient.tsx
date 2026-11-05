@@ -1111,7 +1111,8 @@ export default function LoveSecretAiResultClient({ paymentSurface }: { paymentSu
             </button>
           </div>
         )}
-        {!loading && consultation && (
+        {!loading && consultation && <>
+          {paymentSurface === 'toss' && <p role="note">AI가 작성한 상담 결과예요.</p>}
           <LoveSecretResultPageContent
             consultation={consultation}
             sections={sections}
@@ -1126,7 +1127,7 @@ export default function LoveSecretAiResultClient({ paymentSurface }: { paymentSu
             onViewAllChange={setViewAll}
             expandForExport={exporting}
           />
-        )}
+        </>}
         {isShareReady && <RecommendationResult service="love-secret-ai" practiceTags={adviceTopics([...(consultation?.reading?.actionSecrets || []).slice(0,8).map(item => parseActionSecret(item).action), ...(consultation?.reading?.sevenDayGuide || []).slice(0,7)])}/>}
       </section>
     </main>

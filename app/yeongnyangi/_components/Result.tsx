@@ -224,6 +224,7 @@ export default function Result({paymentSurface}:{paymentSurface?:"toss"}={}){
  const interpreting=!!row?.paid&&['PAID','GENERATING'].includes(row.state)&&!row.errorCode&&!row.recovery?.canRetryNow&&!error;
  const loading=interpreting?<ReadingLoading stage={row!.chapters.length===row!.manifest.length?'verifying':'generating'} saved={row!.chapters.length} total={row!.manifest.length} product={row!.product} locale={row!.locale} compact={row!.chapters.length>0}/>:null;
  if(row?.consultation?.spirit||row?.consultation?.questionSky)return <section className={styles.reader}>
+  {paymentSurface==='toss'&&row.paid&&row.chapters.length>0&&<p role="note">AI가 작성한 상담 결과예요.</p>}
   {row.paid&&row.state!=='REFUNDED'&&<FishReceipt product={row.product} locale={row.locale}/>}
   {loading}
   <SpiritResult row={row} onRow={setRow} paymentSurface={paymentSurface} {...(paymentSurface === "toss" ? {onFollowupStart:startTossFollowup,onFollowupResult:finishTossFollowup,onFollowupError:failTossFollowup} : {})}/>
@@ -235,6 +236,7 @@ export default function Result({paymentSurface}:{paymentSurface?:"toss"}={}){
   {error&&<><p role="alert">{row.locale&&row.locale!=='ko'?stateCopy.loadFailed:error} {stateCopy.paidWarning}</p><button className={styles.retryButton} disabled={busy} onClick={()=>void generate(row.id)}><PawPrint size={18} aria-hidden="true"/>{stateCopy.retry}</button></>}<OrderReference id={row.id} locale={row.locale}/>
  </section>;
  return <section className={styles.reader} lang={locale}>
+  {paymentSurface==='toss'&&row?.paid&&row.chapters.length>0&&<p role="note">AI가 작성한 상담 결과예요.</p>}
   <h1>{row?(locale==='ko'?`${row.product.name} · ${row.product.fishName}`:`${localizedSystem(row.product.readingKind==='single'?row.product.domain:'fusion',locale)} · ${localizedTier(row.product.fishId,locale)}`):stateCopy.result}</h1>
   {row&&row.state!=='COMPLETED'&&<OrderReference id={row.id} locale={row.locale}/>}
 

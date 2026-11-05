@@ -1638,6 +1638,7 @@ export default function FortuneTeaHousePage({paymentSurface = "web"}: {paymentSu
 
     if (stage === "result" && consultResult) {
       return (<>
+        {paymentSurface === 'toss' && <p role="note">AI가 작성한 상담 결과예요.</p>}
         {generationProgress.status === "complete" && !teaGreetingDismissed && <TeaCompletionGreeting onDismiss={() => setTeaGreetingDismissed(true)} />}
         <TeaHouseResultSheet
           result={consultResult}

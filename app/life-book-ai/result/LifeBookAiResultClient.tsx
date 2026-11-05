@@ -1706,6 +1706,7 @@ function LifeBookResultContent({ paymentSurface }: { paymentSurface?: "toss" }) 
         {pdfError && <div className="mb-4 rounded-2xl border border-rose-200/25 bg-rose-950/30 px-4 py-3 text-sm font-bold text-rose-100">{pdfError}</div>}
 
         <article id="life-book-result-document" className={styles.document}>
+          {paymentSurface === 'toss' && <p role="note">AI가 작성한 상담 결과예요.</p>}
           <header data-life-book-pdf-page className={styles.reportCover}>
             <div className={styles.coverIntroduction}>
               <h1 ref={documentHeadingRef} tabIndex={-1} className={styles.coverTitle}>{report.title}</h1>
