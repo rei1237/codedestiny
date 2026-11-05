@@ -221,7 +221,7 @@ async function consumeYeongnyangiFamily({user,entitlement,userId,featureKey,requ
   const existing=await findPassUsageEvidence(db,userId,featureKey,canonical)||await findPassUsageEvidence(db,userId,featureKey,id);
   const markers=Array.isArray(user?.recentConsumeRequestIds)?user.recentConsumeRequestIds:[];
   const marker=buildPassConsumeMarker(featureKey,canonical);
-  if(existing && existing.metadata?.accessMethod!=='FAMILY')throw Object.assign(new Error('Family 이용권 증빙을 확인해 주세요.'),{code:'PAYMENT_NOT_ACTIVE',status:409});
+  if(existing && !['FAMILY','PASS'].includes(existing.metadata?.accessMethod))throw Object.assign(new Error('이용권 증빙을 확인해 주세요.'),{code:'PAYMENT_NOT_ACTIVE',status:409});
   if(!existing && (markers.includes(marker)||markers.includes(buildPassConsumeMarker(featureKey,id))))
     throw Object.assign(new Error('이용권 차감 증빙을 확인 중입니다.'),{code:'PAYMENT_NOT_ACTIVE',status:409});
   if(!existing && (String(coverage.tier)!=='family'||!coverage.covered))
@@ -241,12 +241,14 @@ async function consumeYeongnyangiFamily({user,entitlement,userId,featureKey,requ
       if(!receipt)throw Object.assign(new Error('이용권 증빙 저장을 확인 중입니다.'),{code:'PAYMENT_EVIDENCE_PENDING',status:503});
     }
     const meta=receipt.metadata || {};
-    await funding.completeFortuneFunding(tx,claim,{evidenceId:receipt._id,tier:'family',debit:Number(meta.coinCost ?? cost),
+    // The receipt's tier wins: the buyer's pass may have changed since this consultation was debited.
+    const tier=String(meta.passTier || (meta.accessMethod==='FAMILY'?'family':coverage.tier));
+    await funding.completeFortuneFunding(tx,claim,{evidenceId:receipt._id,tier,debit:Number(meta.coinCost ?? cost),
       cycleKey:meta.passCycleKey || coverage.cycleKey,budgetCoin:meta.passBudgetCoin ?? coverage.budgetCoin,
       profileLimit:meta.passProfileLimit ?? user?.profileSubscription?.profileLimit,
       maxCoveredCoin:meta.passLimit ?? coverage.perItemLimit,
       policyVersion:meta.passPolicyVersion || user?.profileSubscription?.passPolicyVersion});
-    return {user:updated,coverage:{...coverage,covered:true,reason:'',tier:'family',
+    return {user:updated,coverage:{...coverage,covered:true,reason:'',tier,
       coinCost:Number(meta.coinCost ?? cost),cycleKey:meta.passCycleKey || coverage.cycleKey,
       budgetCoin:meta.passBudgetCoin ?? coverage.budgetCoin}};
   });

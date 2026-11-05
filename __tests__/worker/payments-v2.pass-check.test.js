@@ -779,6 +779,21 @@ describe('영냥이 패밀리 실제 결제 라우트',()=>{
 });
 
 
+test('영냥이 PASS 증빙 재시도는 재차감 없이 실제 등급으로 상담에 붙는다',async()=>{
+ const {passUsageEvidenceId}=await import('../../worker/payments/passes.js');
+ const db=makeFakePaymentDb(),product=listProducts().find(p=>p.featureKey==='yeongnyangi-saju-mackerel'),id='f'.repeat(64),requestId='yn-'+id;
+ const pass=activePass('premium',{maxCoveredCoin:100,monthlyLimitCoin:600,passPolicyVersion:'v5',monthlySpendCoin:100});
+ pass.premiumUseCycleKey=pass.expiresAt.toISOString();
+ const user=seedUser(db,pass);
+ db.rows.push({_id:id,userId:USER,featureKey:product.featureKey,amountKRW:product.priceKRW,state:'CREATED',paymentId:null,accessMethod:null,paymentClaimOrderId:''});
+ db.rows.push({_id:passUsageEvidenceId(USER,product.featureKey,requestId),userId:USER,featureKey:product.featureKey,kind:'deduct',
+  metadata:{requestId,accessMethod:'PASS',passTier:'premium',coinCost:product.priceCoins,passCycleKey:pass.premiumUseCycleKey,passBudgetCoin:600,passLimit:100,passPolicyVersion:'v5'}});
+ const result=await postPassCheck(db,{featureKey:product.featureKey,requestId,paymentMode:'MEMBERSHIP_PASS'});
+ expect(result.response.status).toBe(200);
+ expect(user.profileSubscription.monthlySpendCoin).toBe(100);
+ expect(db.rows.find(r=>r._id===id)).toMatchObject({state:'PAID',accessMethod:'FAMILY',passTier:'premium',passMonthlyLimitCoin:600,passMaxCoveredCoin:100});
+});
+
 test('영냥이 Family CAS conflict cannot report a paid consultation without a receipt',async()=>{
  const db=makeFakePaymentDb(),product=listProducts().find(p=>p.featureKey==='yeongnyangi-saju-mackerel'),id='e'.repeat(64);
  seedUser(db,activePass('family'));db.rows.push({_id:id,userId:USER,featureKey:product.featureKey,amountKRW:product.priceKRW,state:'CREATED',paymentId:null,accessMethod:null,paymentClaimOrderId:''});

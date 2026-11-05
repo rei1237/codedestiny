@@ -137,7 +137,8 @@ export async function findNonCashEvidence(row, userId, session = null, commitMar
   const [{PointHistory},{passUsageEvidenceId}]=await Promise.all([loadFamilyIdentity(),loadFamilyLedger()]);
   const ids=row.passEvidenceId?[row.passEvidenceId]:[passUsageEvidenceId(userId,row.featureKey,'yn-'+id),passUsageEvidenceId(userId,row.featureKey,id)];
   const filter={_id:{$in:ids},userId:ownerId(userId),featureKey:row.featureKey,
-    'metadata.requestId':{$in:[id,'yn-'+id]},'metadata.accessMethod':{$in:['FAMILY']},
+    // recordPassUsageEvidence stores FAMILY or PASS by tier; both prove a pass-funded consultation.
+    'metadata.requestId':{$in:[id,'yn-'+id]},'metadata.accessMethod':{$in:['FAMILY','PASS']},
     'metadata.refundedForServiceExecution':{$ne:true}};
   const query=commitMarker?PointHistory.findOneAndUpdate(filter,{$set:{'metadata.yeongnyangiCommit':commitMarker}},{new:true,session})
     :PointHistory.findOne(filter);
@@ -758,7 +759,7 @@ export async function refundReservedDelivery(env,userId,requestId) {
   if(method==='FAMILY')return restorePassQuota(env,userId,requestId,{accessMethod:'FAMILY'},
     {cycleKey:row.passCycleKey,cost:row.passCoinCost,evidenceId:row.passEvidenceId,terminal:true,
       restorePass:{tier:row.passTier || 'family',expiresAt:row.passCycleKey,monthlyLimitCoin:row.passMonthlyLimitCoin,
-        profileLimit:row.passProfileLimit || 0,maxCoveredCoin:row.passMaxCoveredCoin || 999999999,passPolicyVersion:row.passPolicyVersion}});
+        profileLimit:row.passProfileLimit || 0,maxCoveredCoin:row.passMaxCoveredCoin || (row.passTier==='family'||!row.passTier?999999999:0),passPolicyVersion:row.passPolicyVersion}});
   if(method==='ACCOUNT_FREE_TRIAL')return restoreFreeTrial(env,userId,requestId,true);
   return false;
 }
