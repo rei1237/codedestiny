@@ -1901,6 +1901,10 @@ window.openSajuFunFeature = function(targetId, afterAction) {
     }
 
     if (target.style && target.style.display === 'none') target.style.display = '';
+    // Deep links can arrive after an unlocked dashboard block is already open.
+    // In that state the toggle handler does not run, so request the owned,
+    // deterministic result again instead of leaving the preview fallback.
+    _sajuFunTryRecoverTargetCard(targetId);
     if (targetId === 'healthReportCard') _sajuFunEnsureHealthReportRendered(target);
     var scrollTarget = _sajuFunEnsureDashboardBlockOpen(target) || target;
     try {

@@ -39,7 +39,14 @@ export default function SnuWelcome() {
   }, [data, showForm]);
   const load = useCallback(async () => {
     const turn = ++revision.current;
-    try { const result = await activationApi<CampusState>('snu/status'); if(turn !== revision.current)return; setData(result); setGuest(false); setMessage(''); setFailureCode(''); }
+    try {
+      let result = await activationApi<CampusState>('snu/status');
+      if (result.verified && result.profileId && !hasCompleteSnuGift(result)) {
+        try { result = await activationApi<CampusState>('snu/unlock', { profileId: result.profileId }); }
+        catch { /* Keep the existing gift visible; the recheck action remains available. */ }
+      }
+      if(turn !== revision.current)return; setData(result); setGuest(false); setMessage(''); setFailureCode('');
+    }
     catch (error) { if(turn !== revision.current)return; if (error instanceof ActivationApiError && error.status === 401) setGuest(true); else setMessage(error instanceof Error ? error.message : '제휴 선물을 다시 확인해 주세요.'); }
   }, []);
   useEffect(() => { setData(null); setGuest(false); setBusy(false); setMessage(''); setCode(''); void load(); return invalidate; }, [load, userKey, invalidate]);
@@ -126,6 +133,7 @@ export default function SnuWelcome() {
         <h2 id="snu-included-title">선물로 열리는 이야기</h2>
         <p>라이트 사주와 대운부터, 나를 알아가는 콘텐츠까지.</p>
         <ul>{features.map(item => <li key={item.featureKey}><Check size={16} aria-hidden="true"/><span>{item.title}</span></li>)}</ul>
+        <p className={styles.hint}>기본 10종에 AI 생성 없이 계산되는 사주로 찾는 나의 일 스타일을 더해 11종을 열어 드려요. 라이트 사주에는 극T 테스트, 테토 vs 에겐, 사주네컷, 도파민·집중력 리포트도 함께 포함돼요.</p>
         <p className={styles.hint}>AI가 답변을 만드는 유료 상담과 목록에 없는 기능은 포함되지 않아요.</p>
       </section>
 
