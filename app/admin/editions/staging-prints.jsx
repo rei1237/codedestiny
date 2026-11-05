@@ -1,6 +1,7 @@
 'use client';
 import {useState} from 'react';
 import StagingProducts from './staging-products';
+import SpringSeries from './spring-series';
 import {RECORDS,issueUrl} from '../../../lib/editions/staging.mjs';
 import {Ticket} from '../../editions/workshop-ui';
 import s from '../../editions/workshop.module.css';
@@ -28,6 +29,7 @@ export default function StagingPrints({productionTest=false}) {
     <img src={editionPortraits.yeoni} width="84" height="112" alt="" />
   </header>
     <StagingProducts records={items} refreshRecords={refreshRecords}/>
+    {productionTest && <SpringSeries/>}
     <h2>캐릭터 QR 보관함</h2>
     <output aria-live="polite">{message}</output>
     {items.map(item=><section key={item.code} id={'qr-'+item.code}><Ticket item={item} serial={item.serial}/>
