@@ -4,6 +4,8 @@
 
 2026-11-06 결제 회귀: 주문서 이탈을 확정 취소로 가정하지 않고 상담과 타로 구매에서 같은 실행 세션의 추가 결제를 차단한다. 앱인토스 모의 테스트 586개와 공식 devtools 목, `check:fast`(Node 4,529개·Jest 7,525개)를 통과했다. 앱 재시작·다른 기기에서의 차단과, 주문 ID를 받기 전에 중단된 주문의 상태 확인 및 안전한 해제는 여전히 미구현이다. [주문 상태 조회](https://developers-apps-in-toss.toss.im/api/iap)는 주문 ID를 요구하고 [미지급 주문 조회](https://developers-apps-in-toss.toss.im/documentation/sdk/domains-api/iap/iap.getpendingorders)는 결제 완료 주문만 반환하므로 빈 목록을 미결제 증거로 취급하지 않는다. 공식 테스트 환경에서 전체 흐름을 확인하기 전까지 출시 차단이다.
 
+2026-11-06 주문 소유권 추가 차단: `worker/toss/partner.js`는 주문 조회 때 `x-toss-user-key`를 보내고, `worker/toss/policy.js:checkOrder`는 주문 ID·SKU·상태를 검사한다. 저장된 주문은 `worker/toss/grant.js`에서 소유 계정을 비교하지만 첫 지급 시에는 응답이 구매자와 일치하는지 별도 근거가 필요하다. 공식 [주문 조회 API](https://developers-apps-in-toss.toss.im/api/iap)의 공개 요청·응답에는 해당 헤더의 구매자 검증 보장이나 구매자 식별자가 명시되어 있지 않다. 이것만으로 토스 서버가 해당 헤더를 무시한다고 단정하지 않으며, 첫 주문의 구매자 결합을 증명할 공식 근거와 테스트가 없으므로 출시 차단으로 둔다. [완료·환불 주문 목록 SDK](https://developers-apps-in-toss.toss.im/documentation/sdk/domains-api/iap/iap.getcompletedorrefundedorders)는 완료·환불 거래를 페이지별 조회하지만 진행 중 거래의 부재를 증명한다고 명시하지 않는다.
+
 | 항목 | 확인 근거 | 현재 판정 |
 |---|---|---|
 | 서비스 범위 | `docs/toss/build-service-inventory.mjs`, `full-service-inventory.json`, `apps/toss/scripts/launch-status.mjs` | 현재 홈·React·시각 레지스트리 재생성 결과 후보 89, 수동 근거에 따른 부분 구현 28, 추가 추적 61. 전체 라우트와 구현 계약, 완전 검증·출시 제외 미확정. |
