@@ -23,6 +23,7 @@ test('saved tea preserves permission errors and never renders a previous owner o
   await render('example');assert.match(document.body.textContent,/접근할 권한/);assert.doesNotMatch(document.body.textContent,/일반 오류|결과 원문|AI가 작성한 상담 결과/);
   globalThis.savedTeaMock=async()=>new Response('{}',{status:503});await React.act(async()=>document.querySelector('button').click());assert.match(document.body.textContent,/일반 오류/);
   globalThis.savedTeaMock=async()=>new Response('{"code":"ACCESS_DENIED"}',{status:503});await React.act(async()=>document.querySelector('button').click());assert.match(document.body.textContent,/접근할 권한/);
+  globalThis.savedTeaMock=async()=>new Response('{}',{status:401});await React.act(async()=>document.querySelector('button').click());assert.match(document.body.textContent,/로그인이 만료/);assert.doesNotMatch(document.body.textContent,/일반 오류|결과 원문/);assert.match(document.querySelector('a').getAttribute('href'),/^\/login\/\?next=/);
   globalThis.savedTeaMock=async()=>new Response('{}',{status:403});await render('example','web');assert.match(document.body.textContent,/일반 오류/);
   globalThis.savedTeaMock=async()=>Response.json({ok:true,result:{}});await render('owned');assert.match(document.body.textContent,/결과 원문/);assert.match(document.body.textContent,/AI가 작성한 상담 결과/);
   globalThis.savedTeaAuth={authReady:true,isAuthenticated:true,user:{id:'b'}};globalThis.savedTeaMock=()=>new Promise(()=>{});await render('owned');assert.deepEqual(globalThis.savedTeaRenders,['a']);
