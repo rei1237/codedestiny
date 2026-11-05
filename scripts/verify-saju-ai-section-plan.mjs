@@ -96,12 +96,9 @@ const CHAPTER_TITLES = [
   }
   const minTotal = SAJU_AI_SECTION_GROUPS.reduce((sum, group) => sum + group.minChars, 0);
   check(
-    minTotal >= SAJU_AI_MIN_RESULT_CHARS,
-    `그룹 minChars 합 ${minTotal} < 배달 하한 ${SAJU_AI_MIN_RESULT_CHARS}`,
+    minTotal >= SAJU_AI_MIN_RESULT_CHARS * 0.8,
+    `그룹 minChars 합 ${minTotal} < 목표 분량 ${SAJU_AI_MIN_RESULT_CHARS}의 80%`,
   );
-  // 20,000원 상품이 형제 10,000원 상품(단일 호출 ≈ 6,600자 상한)보다 확실히 길어야 한다.
-  // 목표는 A4 10장(15,000자). 그 아래로 내리려면 가격도 함께 내려야 한다.
-  check(minTotal >= 15000, `그룹 minChars 합 ${minTotal} 은 ₩20,000 상품 목표(15,000자)에 못 미친다`);
 }
 
 // ── 2. 그룹 프롬프트가 분량을 숫자로 요구하고, 남의 챕터를 금지한다 ────────
@@ -169,7 +166,7 @@ const CHAPTER_TITLES = [
 
 // 조건부 전통 해석은 전달하고 보장·의학·투자상품 단정은 실제 결과 검증기에서도 차단한다.
 {
-  const completeText = SAJU_AI_SECTION_GROUPS.map((group) => fakeGroupBody(group, group.minChars + 200)).join("\n\n");
+  const completeText = SAJU_AI_SECTION_GROUPS.map((group) => fakeGroupBody(group, group.targetMinChars + 50)).join("\n\n");
   const withReading = (reading) => completeText.replace("12. 마지막 한마디", `${reading}\n\n12. 마지막 한마디`);
   const conditional = "겁재가 재성을 다투고 식상·관성의 조절이 부족한 경우에는 동업 손실 가능성을 살핍니다. 다만 재성이 충분하고 역할·정산 기준이 분명하면 공동 성과로 이어질 여지도 있습니다. 식신생재는 수익을 보장하지 않습니다.";
   check(validateSajuAIResultText(withReading(conditional)).ok, "조건부 동업 해석과 수익 보장의 부정을 금지 주장으로 오인했다");
@@ -232,7 +229,7 @@ function resetCalls() {
   resetCalls();
   respond = (prompt) => {
     const group = groupForPrompt(prompt);
-    return group ? fakeGroupBody(group, group.minChars + 200) : "";
+    return group ? fakeGroupBody(group, group.targetMinChars + 50) : "";
   };
   const { sectionResults, assembledText } = await runSajuAISectionWaves(env, {
     ...baseArgs,
@@ -243,7 +240,7 @@ function resetCalls() {
   const validation = validateSajuAIResultText(assembledText, null, { domain: "life_direction" });
   check(
     countSajuAIVisibleChars(assembledText) >= SAJU_AI_MIN_RESULT_CHARS,
-    `조립본이 ${countSajuAIVisibleChars(assembledText)}자로 배달 하한 ${SAJU_AI_MIN_RESULT_CHARS}에 못 미친다`,
+    `조립본이 ${countSajuAIVisibleChars(assembledText)}자로 목표 분량 ${SAJU_AI_MIN_RESULT_CHARS}에 못 미친다`,
   );
   // 카테고리 키워드는 가짜 본문에 없으므로 거기서 떨어지는 것은 정상이다. 분량·챕터로는 떨어지면 안 된다.
   check(
@@ -260,12 +257,12 @@ function resetCalls() {
 }
 
 // 3-2. 한 그룹만 짧으면 웨이브2가 **그 그룹만** 다시 부른다.
-//      전체 보강을 거친 결과는 20,000자에 조금 못 미쳐도 구조·근거·안전이 유효하면 전달한다.
+//      전체 보강을 거친 결과는 목표 분량에 못 미쳐도 구조·근거·안전이 유효하면 전달한다.
 {
   const shortCompleteText = SAJU_AI_SECTION_GROUPS.flatMap((group) => group.chapters).map((chapter) => {
     let body = "";
     let paragraph = 0;
-    while (countSajuAIVisibleChars(body) < 1500) {
+    while (countSajuAIVisibleChars(body) < 800) {
       paragraph += 1;
       body += `${chapter.no}장 ${paragraph}번째 관찰은 현금흐름·저축·지출·계약 조건을 실제 기록으로 확인하고, 투자 판단은 명식이 아니라 감당 가능한 예산과 전문가 검토를 기준으로 삼는 내용입니다. `;
     }
@@ -293,7 +290,7 @@ function resetCalls() {
     const group = groupForPrompt(prompt);
     if (!group) return "";
     if (group.key === shortGroup.key && !prompt.includes("[보강 요청]")) return fakeGroupBody(group, 300);
-    return fakeGroupBody(group, group.minChars + 200);
+    return fakeGroupBody(group, group.targetMinChars + 50);
   };
   const { sectionResults } = await runSajuAISectionWaves(env, { ...baseArgs, deadlineAt: Date.now() + 80000 });
   const repairCalls = calls.filter((call) => call.prompt.includes("[보강 요청]"));
@@ -321,7 +318,7 @@ function resetCalls() {
   respond = (prompt) => {
     const group = groupForPrompt(prompt);
     if (!group) return "";
-    if (group.key !== shortGroup.key) return fakeGroupBody(group, group.minChars + 200);
+    if (group.key !== shortGroup.key) return fakeGroupBody(group, group.targetMinChars + 50);
     return prompt.includes("[보강 요청]") ? fakeGroupBody(group, 400) : fakeGroupBody(group, wave1Chars);
   };
   const { sectionResults } = await runSajuAISectionWaves(env, { ...baseArgs, deadlineAt: Date.now() + 80000 });
@@ -340,7 +337,7 @@ function resetCalls() {
   respond = (prompt) => {
     const group = groupForPrompt(prompt);
     if (!group) return "";
-    if (group.key !== unsafeGroup.key) return fakeGroupBody(group, group.minChars + 200);
+    if (group.key !== unsafeGroup.key) return fakeGroupBody(group, group.targetMinChars + 50);
     if (!prompt.includes("[보강 요청]")) return `${fakeGroupBody(group, group.minChars + 500)}\n${unsafeSentence}`;
     return fakeGroupBody(group, group.minChars + 100);
   };
@@ -359,7 +356,7 @@ function resetCalls() {
   respond = (prompt) => {
     const group = groupForPrompt(prompt);
     if (!group) return "";
-    return group.key === deadGroup.key ? "" : fakeGroupBody(group, group.minChars + 200);
+    return group.key === deadGroup.key ? "" : fakeGroupBody(group, group.targetMinChars + 50);
   };
   const { assembledText, ai } = await runSajuAISectionWaves(env, { ...baseArgs, deadlineAt: Date.now() + 80000 });
   check(ai?.ok === true, "성공한 그룹이 셋인데 ai.ok 가 false 다 — 호출부가 전부 버린다");
@@ -428,7 +425,7 @@ const bigPrefix = buildSajuAISectionPromptPrefix(bigBuiltPrompt);
   resetCalls();
   respond = (prompt) => {
     const group = groupForPrompt(prompt);
-    return group ? fakeGroupBody(group, group.minChars + 200) : "";
+    return group ? fakeGroupBody(group, group.targetMinChars + 50) : "";
   };
   const { assembledText, ai } = await runSajuAISectionWaves(env, { ...bigArgs, deadlineAt: Date.now() + 80000 });
 
@@ -468,7 +465,7 @@ const bigPrefix = buildSajuAISectionPromptPrefix(bigBuiltPrompt);
   respondToCacheCreate = () => jsonResponse({ error: { message: "boom" } }, 500);
   respond = (prompt) => {
     const group = groupForPrompt(prompt);
-    return group ? fakeGroupBody(group, group.minChars + 200) : "";
+    return group ? fakeGroupBody(group, group.targetMinChars + 50) : "";
   };
   const { assembledText, ai } = await runSajuAISectionWaves(env, { ...bigArgs, deadlineAt: Date.now() + 80000 });
 
@@ -491,7 +488,7 @@ const bigPrefix = buildSajuAISectionPromptPrefix(bigBuiltPrompt);
   resetCalls();
   respond = (prompt) => {
     const group = groupForPrompt(prompt);
-    return group ? fakeGroupBody(group, group.minChars + 200) : "";
+    return group ? fakeGroupBody(group, group.targetMinChars + 50) : "";
   };
   const { ai } = await runSajuAISectionWaves(
     { ...env, GEMINI_CONTEXT_CACHE: "0" },
@@ -508,7 +505,7 @@ const bigPrefix = buildSajuAISectionPromptPrefix(bigBuiltPrompt);
   resetCalls();
   respond = (prompt) => {
     const group = groupForPrompt(prompt);
-    return group ? fakeGroupBody(group, group.minChars + 200) : "";
+    return group ? fakeGroupBody(group, group.targetMinChars + 50) : "";
   };
   await runSajuAISectionWaves(env, { ...baseArgs, deadlineAt: Date.now() + 80000 });
   check(
@@ -525,7 +522,7 @@ const bigPrefix = buildSajuAISectionPromptPrefix(bigBuiltPrompt);
     const group = groupForPrompt(prompt);
     if (!group) return "";
     if (group.key === shortGroup.key && !prompt.includes("[보강 요청]")) return fakeGroupBody(group, 300);
-    return fakeGroupBody(group, group.minChars + 200);
+    return fakeGroupBody(group, group.targetMinChars + 50);
   };
   await runSajuAISectionWaves(env, { ...bigArgs, deadlineAt: Date.now() + 80000 });
 

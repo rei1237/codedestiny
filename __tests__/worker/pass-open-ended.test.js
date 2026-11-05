@@ -59,11 +59,11 @@ test("업그레이드는 새 이용권으로 시작하고 사용액을 잇는다
   expect(next).toMatchObject({ monthlySpendCoin: 150, monthlyLimitCoin: currentPassPlan("premium").monthlyLimitCoin });
 });
 
-test("환불 회수는 그 주문의 한도만 빼고, 남은 한도로 열 수 있는 게 없으면 종료한다", () => {
+test("환불 회수는 그 주문의 한도만 빼고, 앞선 구매분 한도가 없으면 종료한다", () => {
   const { expiresAt, premiumUseCycleKey } = activate({});
   const stacked = (spend) => pass({ expiresAt, premiumUseCycleKey, monthlySpendCoin: spend, monthlyLimitCoin: base * 2 });
   expect(buildPassRefundRevokeFields({ subscription: stacked(50), now })).toEqual({ downgraded: false, fields: { monthlyLimitCoin: base, updatedAt: now } });
-  expect(buildPassRefundRevokeFields({ subscription: stacked(base), now })).toMatchObject({ downgraded: true, fields: { tier: "free", expiresAt: now } });
+  expect(buildPassRefundRevokeFields({ subscription: stacked(base), now })).toEqual({ downgraded: false, fields: { monthlyLimitCoin: base, updatedAt: now } });
   const single = pass({ expiresAt, premiumUseCycleKey, monthlySpendCoin: 0, monthlyLimitCoin: base });
   expect(buildPassRefundRevokeFields({ subscription: single, now })).toMatchObject({ downgraded: true, fields: { tier: "free", monthlyLimitCoin: 0 } });
 });

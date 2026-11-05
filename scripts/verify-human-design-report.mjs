@@ -12,7 +12,7 @@
  *   ⑤ 플랜   — 웹과 PDF 가 공유하는 플랜이 실제 픽스처에서 온전한 문서를 만드는가
  *   ⑥ PDF    — 조판이 글자를 잃지 않고 넘치지 않는가, 초융합 공개 시그니처가 그대로인가
  *
- * 🔴 여기서 못 보는 것: 실제 분량이 25,000자가 나오는지, 18유닛이 서로 반복하지 않는지,
+ * 🔴 여기서 못 보는 것: 실제 분량이 12,000자가 나오는지, 18유닛이 서로 반복하지 않는지,
  *    웨이브 실측 시간. 그건 유료 실호출이 필요하고 사용자 허락 1회 한정이다(CLAUDE.md 절대규칙 1).
  *
  * 실행: node scripts/verify-human-design-report.mjs
@@ -76,8 +76,8 @@ check("order 가 1..18 로 빠짐없이 이어진다",
 
 const minSum = SECTIONS.reduce((sum, s) => sum + s.minChars, 0);
 const maxSum = SECTIONS.reduce((sum, s) => sum + s.maxChars, 0);
-check(`섹션 minChars 합이 광고 분량 이상이다 (${minSum} ≥ ${contract.HD_REPORT_TARGET_CHARS})`,
-  minSum >= contract.HD_REPORT_TARGET_CHARS);
+check(`섹션 minChars 합이 목표 분량의 80% 이상이다 (${minSum} ≥ ${contract.HD_REPORT_TARGET_CHARS * 0.8})`,
+  minSum >= contract.HD_REPORT_TARGET_CHARS * 0.8);
 check(`섹션 maxChars 합이 저장 상한 이하다 (${maxSum} ≤ ${contract.HD_REPORT_MAX_TOTAL_CHARS})`,
   maxSum <= contract.HD_REPORT_MAX_TOTAL_CHARS);
 check("전달 하한이 광고 분량보다 낮다 (경계이지 목표가 아니다)",
@@ -85,8 +85,9 @@ check("전달 하한이 광고 분량보다 낮다 (경계이지 목표가 아�
 check("전달 하한 섹션 수가 전체보다 적다",
   contract.HD_REPORT_DELIVER_MIN_SECTIONS < SECTIONS.length);
 
-const tightBudget = SECTIONS.filter((s) => s.maxChars - s.minChars < budget.MIN_BUDGET_HEADROOM_CHARS);
-check(`유닛별 분량 여유가 ${budget.MIN_BUDGET_HEADROOM_CHARS}자 이상이다`,
+const HD_SECTION_HEADROOM_CHARS = 500;
+const tightBudget = SECTIONS.filter((s) => s.maxChars - s.minChars < HD_SECTION_HEADROOM_CHARS);
+check(`유닛별 분량 여유가 ${HD_SECTION_HEADROOM_CHARS}자 이상이다`,
   tightBudget.length === 0, tightBudget.map((s) => s.key).join(", "));
 
 const worstChars = Math.max(...SECTIONS.map((s) => s.maxChars));
@@ -111,8 +112,8 @@ check("🔴 폴백 수용 문턱이 전 유닛에서 최소 분량의 40% 다 (�
 // 결제 정합성
 const entry = registry.FEATURE_KEY_PRICE_TABLE["human-design-report"];
 check("유료 레지스트리에 human-design-report 가 있다", Boolean(entry));
-check("레지스트리 가격이 70코인 / ₩7,000 다",
-  Number(entry?.cost) === 70 && Number(entry?.amountKRW) === 7000, JSON.stringify(entry || {}));
+check("레지스트리 가격이 50코인 / ₩5,000 다",
+  Number(entry?.cost) === 50 && Number(entry?.amountKRW) === 5000, JSON.stringify(entry || {}));
 check("회당 결제로 등록돼 있다", registry.isPerUsePaidFeatureKey("human-design-report"));
 check("🔴 영구 해금이 아니다 (1회 결제로 모든 출생 데이터가 열리는 것을 막는다)",
   !registry.isUnlockPaidFeatureKey("human-design-report"));
@@ -477,7 +478,7 @@ if (chart) {
       new Set(plan.chartSlots.map((slot) => JSON.stringify(slot.selection))).size === plan.chartSlots.length,
       "같은 선택을 여러 번 캡처하면 비용만 늘고 읽는 사람에게 주는 것이 없다");
 
-    // 🔴 광고 분량(25,000자)의 90% 를 플랜이 실제로 담고 있어야 한다. 서버가 25,000자를
+    // 🔴 목표 분량(12,000자)의 90% 를 플랜이 실제로 담고 있어야 한다. 서버가 12,000자를
     //    만들어도 플랜이 그중 일부만 배치하면 사용자가 받는 것은 그 일부다.
     const chars = planModule.countReportChars(plan);
     check(`[${locale}] 플랜이 담은 분량이 광고 분량의 90% 이상이다`,

@@ -30,6 +30,7 @@ import {
 import {
   normalizePaidFeaturePricingShape,
 } from "../lib/billing-policy.js";
+import { isLightFortuneFeatureKey } from "../lib/light-fortune-catalog.js";
 import { paymentError } from "./errors.js";
 
 /* 🔴 이용권으로 **결제할 수 없는** 기능. 등급과 무관하다(family 포함).
@@ -121,6 +122,7 @@ export function resolveProduct(input = {}) {
     familyPassOnly,
     monthlyExcluded: getPaidFeaturePaymentPolicy(canonicalFeatureKey).monthlyExcluded,
     allowedPaymentMethods: Object.freeze(getPaidFeaturePaymentPolicy(canonicalFeatureKey).allowedPaymentMethods),
+    lightFortune: isLightFortuneFeatureKey(canonicalFeatureKey),
   });
 }
 

@@ -374,3 +374,23 @@ describe("🔴 레거시 단건(cd-single-…) Paid 는 V2 가 확정·지급하
     expect(db.rows).toHaveLength(2);
   });
 });
+
+test("PG console cancel still revokes and leaves a review marker when use exists", async () => {
+  const db = makeDb();
+  const order = seedOrder(db, {
+    userId: PASS_USER, paymentType: "membership_pass", subscriptionTier: "standard",
+    status: PAID_STATUS, paidAt: new Date(Date.now() - DAY_MS), entitlementGrantedAt: new Date(),
+    metadata: { durationMonths: 1 },
+  });
+  const user = seedPassUser(db, {
+    tier: "standard", passTier: "standard", passLimit: 50, maxCoveredCoin: 50, freeLimit: 50,
+    expiresAt: new Date(Date.now() + 20 * DAY_MS), lastPassOrderId: order.merchantUid,
+  });
+  db.rows.push({
+    userId: PASS_USER, createdAt: new Date(),
+    metadata: { accessMethod: "PASS", passBudgetExempt: true },
+  });
+  const { payload } = await postWebhook(db, { type: "Transaction.Cancelled", data: { paymentId: order.merchantUid } });
+  expect(payload).toMatchObject({ ok: true, event: "cancelled", revoked: true, reviewRequired: true });
+  expect(user.profileSubscription.tier).toBe("free");
+});

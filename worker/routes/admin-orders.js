@@ -16,7 +16,7 @@ import {
   User,
 } from "../lib/models.js";
 import { fetchPortOnePayment } from "../lib/portone.js";
-import { refundPaymentAsOperator } from "../lib/payment-refund.js";
+import { readPassUseForOrder, refundPaymentAsOperator } from "../lib/payment-refund.js";
 import { runPaymentReconcileTask } from "../lib/payment-reconcile-task.js";
 
 const DEFAULT_PAGE_SIZE = 20;
@@ -175,6 +175,11 @@ async function handleDetail(orderId, request, env) {
     }
   }
 
+  // 환불 판단 자료다. 조회가 실패해도 화면은 떠야 하므로 degrade 한다.
+  const passUse = String(payment.paymentType || "") === "membership_pass"
+    ? await adminMongoRead(env, () => readPassUseForOrder(payment)).catch(() => null)
+    : null;
+
   const [webhookEvents, failureLogs, entitlements, buyer] = await Promise.all([
     adminMongoRead(env, () => PaymentWebhookEvent.find({ paymentId: payment.merchantUid })
       .select("eventId eventType status attempts receivedAt processedAt lastAttemptAt lastError")
@@ -217,6 +222,7 @@ async function handleDetail(orderId, request, env) {
     webhookEvents,
     failureLogs,
     entitlements,
+    passUse,
   });
 }
 
@@ -270,6 +276,7 @@ async function handleRefund(orderId, request, env, adminContext) {
     unlockRevoked: result.unlockRevoked === true,
     adminReviewRequired: result.adminReviewRequired === true,
     revocation: result.revocation || null,
+    passUse: result.passUse || null,
     order: toAdminOrder(result.payment || payment),
   });
 }

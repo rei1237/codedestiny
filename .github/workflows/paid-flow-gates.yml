@@ -113,6 +113,8 @@ on:
       #    대조하고, "구독 해지권 없음" 전제가 뒤집히지 않았는지 확인한다. 여기가 빠져 있으면
       #    정본만 바꾼 PR 에서 게이트가 깨어나지 않아 화면과 계약이 조용히 갈라진다.
       - "lib/legal/**"
+      - "app/terms-of-service/**"
+      - "lib/marketing/pass-benefits.mjs"
       - "lib/market-policy/**"
       - "js/core/access-store.js"
       - "js/core/pass-verdict.js"

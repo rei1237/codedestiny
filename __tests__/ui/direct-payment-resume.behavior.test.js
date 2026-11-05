@@ -590,3 +590,60 @@ test("재개 핸들러는 서술자와 함께 결제 증빙(requestId·merchantU
     window.close();
   }
 });
+
+/* 복귀 직후에는 언어 사전이 아직 없어 수단 라벨이 한글 폴백으로 온다. 영어 문구에 그대로 끼면
+   "Confirming your 신용카드 · 간편결제 payment" 가 된다. */
+const HANGUL = /[가-힣]/;
+const englishReturn = (extra) => ({
+  url: "https://code-destiny.com/en/?portone_redirect=1&paymentId=ord_1",
+  ticket: { paymentMethod: "card_general" },
+  confirmResponse: () => jsonResponse({ ok: true, unlocked: true, featureKey: "neville-meditation" }),
+  beforeProfile: (win) => {
+    win.localStorage.setItem("cd_lang", "en");
+    if (extra) extra(win);
+  },
+});
+
+test("영어 복귀: 사전이 없으면 확인 중·완료 문구 모두 한글 라벨 없이 Generic 판을 쓴다", async () => {
+  const { window, calls } = boot(englishReturn());
+  try {
+    await waitFor(() => calls.events.length === 1 && resumeCard(window), "복귀 카드");
+    const confirming = calls.overlay.filter((entry) => entry.open).map((entry) => entry.message);
+    assert.ok(confirming.length > 0, "확인 중 문구가 표시돼야 한다");
+    assert.doesNotMatch(confirming.join(" "), HANGUL);
+    assert.doesNotMatch(resumeCard(window).textContent, HANGUL);
+  } finally { window.close(); }
+});
+
+test("영어 복귀: 문구를 만들 때 사전이 있으면 영어 수단 이름을 쓴다", async () => {
+  const { window, calls } = boot(englishReturn((win) => {
+    win.cdTranslate = (key, fallback) => (key === "payment.directModal.method.card" ? "Credit card · Easy pay" : fallback);
+  }));
+  try {
+    await waitFor(() => calls.events.length === 1 && resumeCard(window), "복귀 카드");
+    assert.match(resumeCard(window).textContent, /Credit card · Easy pay/);
+    assert.doesNotMatch(resumeCard(window).textContent, HANGUL);
+  } finally { window.close(); }
+});
+
+test("영어 실패 복귀: 알림 문구에도 한글 라벨이 없다", async () => {
+  const { window, calls } = boot(Object.assign(englishReturn(), {
+    url: "https://code-destiny.com/en/?portone_redirect=1&paymentId=ord_1&code=FAILURE_TYPE_PG",
+  }));
+  try {
+    await waitFor(() => calls.alert.length === 1, "실패 알림");
+    assert.doesNotMatch(calls.alert[0], HANGUL);
+  } finally { window.close(); }
+});
+
+test("한국어 복귀: 수단 이름을 그대로 보여 준다", async () => {
+  const { window, calls } = boot({
+    url: HOME_RETURN_URL,
+    ticket: { paymentMethod: "card_general" },
+    confirmResponse: () => jsonResponse({ ok: true, unlocked: true, featureKey: "neville-meditation" }),
+  });
+  try {
+    await waitFor(() => calls.events.length === 1 && resumeCard(window), "복귀 카드");
+    assert.match(resumeCard(window).textContent, /신용카드 · 간편결제 결제가 확인/);
+  } finally { window.close(); }
+});

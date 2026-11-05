@@ -251,14 +251,15 @@ beforeEach(() => {
   mockIntentFindOne.mockReturnValue({ sort: () => ({ lean: async () => null }) });
 });
 
-test("Family v4 Play SKU는 검증 전 판매 준비 중으로 실패 폐쇄한다", async () => {
+test("Family 현재 Play SKU는 검증 전 판매 준비 중으로 실패 폐쇄한다", async () => {
   const version=(await import("../../lib/payment/pass-policy.js")).CURRENT_PASS_POLICY_VERSION;
   const {status,payload}=await callRoute(new Request(`https://code-destiny.com/api/app-store/products?passTier=family&passPolicyVersion=${version}`));
   expect(status).toBe(503);
   expect(payload.code).toBe("APP_SKU_NOT_VERIFIED");
 });
 
-test.each(["standard", "premium", "vvip"])("승인된 %s v4 이용권은 결제 의도만 만들고 검증 전 지급하지 않는다", async (tier) => {
+// v5 SKU는 Play Console 등록 뒤 승인 목록에 오른다. 그때까지 결제 의도를 만들지 않는다.
+test.each(["standard", "premium", "vvip"])("미승인 %s v5 이용권은 결제 의도를 만들지 않고 지급하지 않는다", async (tier) => {
   const { currentPassPlan } = await import("../../lib/payment/pass-policy.js");
   const plan = currentPassPlan(tier);
   const { status, payload } = await callRoute(postJson("/google/intent", {
@@ -267,16 +268,16 @@ test.each(["standard", "premium", "vvip"])("승인된 %s v4 이용권은 결제 
     passPolicyVersion: plan.passPolicyVersion,
     requestId: `approved-pass-${tier}`,
   }));
-  expect(status).toBe(200);
-  expect(payload.data.product).toMatchObject({ productId: plan.appProductId, amountKRW: plan.wonPrice });
-  expect(mockIntentCreate).toHaveBeenCalledTimes(1);
+  expect(status).toBe(409);
+  expect(payload.code).toBe("PASS_SALE_NOT_READY");
+  expect(mockIntentCreate).not.toHaveBeenCalled();
   expect(mockPaymentCreate).not.toHaveBeenCalled();
   expect(mockUserFindByIdAndUpdate).not.toHaveBeenCalled();
   expect(acknowledgeCalls).toHaveLength(0);
   expect(global.fetch).not.toHaveBeenCalled();
 });
 
-test.each(["standard", "premium", "vvip"])("%s v4 이용권의 대기 결제는 지급·승인하지 않는다", async (tier) => {
+test.each(["standard", "premium", "vvip"])("%s 현재 이용권의 대기 결제는 지급·승인하지 않는다", async (tier) => {
   const { currentPassPlan } = await import("../../lib/payment/pass-policy.js");
   const plan = currentPassPlan(tier);
   googlePurchasePayload.purchaseState = 2;
@@ -290,7 +291,7 @@ test.each(["standard", "premium", "vvip"])("%s v4 이용권의 대기 결제는 
   expect(acknowledgeCalls).toHaveLength(0);
 });
 
-test.each(["standard", "premium", "vvip"])("%s v4 검증 완료 구매는 현재 가격·이용 한도·기간 없음 정책을 보존한다", async (tier) => {
+test.each(["standard", "premium", "vvip"])("%s 현재 이용권 검증 완료 구매는 현재 가격·이용 한도·기간 없음 정책을 보존한다", async (tier) => {
   const { currentPassPlan } = await import("../../lib/payment/pass-policy.js");
   const plan = currentPassPlan(tier);
   const before = Date.now();
@@ -453,6 +454,38 @@ describe("verify — 영구 해금(UNLOCK)과 이용권", () => {
     expect(set["profileSubscription.monthlyLimitCoin"]).toBe(MONTHLY_PASS_LIMITS.standard * 2);
     // 이미 쓴 금액은 연장으로 지워지지 않는다(지우면 사용자가 한 달치를 공짜로 더 얻는다).
     expect(set["profileSubscription.monthlySpendCoin"]).toBe(100);
+  });
+
+  test("🔴 소진 중 구매는 환불 때 되돌릴 이전 이용권을 함께 적는다", async () => {
+    const { MONTHLY_PASS_LIMITS } = await import("../../worker/lib/profile-limits.js");
+    const priorExpiresAt = new Date(Date.now() + 3650 * 24 * 60 * 60 * 1000);
+    mockUserFindById.mockReturnValue({
+      lean: async () => ({
+        points: 0,
+        unlockedFeatures: [],
+        profileSubscription: {
+          tier: "standard",
+          passTier: "standard",
+          expiresAt: priorExpiresAt,
+          premiumUseCycleKey: priorExpiresAt.toISOString(),
+          monthlySpendCoin: MONTHLY_PASS_LIMITS.standard,
+          lastPassOrderId: "google:other-token-hash",
+        },
+      }),
+    });
+
+    const { status } = await callRoute(postJson("/google/verify", {
+      passTier: "standard",
+      productId: "cd_pass_standard_30d",
+      purchaseToken: "tok-pass-after-exhaust",
+    }));
+    expect(status).toBe(200);
+
+    const set = mockUserFindByIdAndUpdate.mock.calls[0][1].$set;
+    expect(set["profileSubscription.monthlySpendCoin"]).toBe(0);
+    expect(set["profileSubscription.exhaustedPassRestore"]).toMatchObject({
+      tier: "standard", expiresAt: priorExpiresAt, lastPassOrderId: "google:other-token-hash",
+    });
   });
 
   test("🔴 같은 purchaseToken 재검증은 기간·한도를 다시 쌓지 않는다", async () => {

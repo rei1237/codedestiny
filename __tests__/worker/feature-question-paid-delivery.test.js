@@ -202,3 +202,10 @@ test.each([['Ziwei','무성'],['Sukuyo','서한비'],['Astrology','윤달'],['Ve
  }
  expect(refund).not.toHaveBeenCalled();
 });
+test.each(['Astrology','Vedic','Ziwei','Sukuyo'])('%s delivers a result at the new target',async type=>{
+ kind=type;mode='single';const good=provider.getMockImplementation();
+ provider.mockImplementation(async(...args)=>{const response=await good(...args),value=JSON.parse(response.text);const kept=[];for(const paragraph of value.body.split('\n\n')){kept.push(paragraph);if(kept.join('').replace(/\s/g,'').length>=1200)break;}value.body=kept.join('\n\n');return {...response,text:JSON.stringify(value)};});
+ expect((await start()).status).toBe(202);const full=await finish();expect(full.status).toBe(200);
+ expect(provider).toHaveBeenCalledTimes(10);expect(provider.mock.calls.filter(([,prompt])=>prompt.includes('[저장된 초안 보완]'))).toHaveLength(0);expect(refund).not.toHaveBeenCalled();
+ expect(provider.mock.calls[0][1]).toContain('목표 1200~1400자');
+});

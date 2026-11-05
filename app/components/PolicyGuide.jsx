@@ -18,7 +18,7 @@ const GUIDES = {
   ],
   refund: [
     ["단건 결제", "제공·사용 상태별 기준", "#refund-policy"],
-    ["이용권", "기간과 사용 내역 확인", "#refund-policy"],
+    ["이용권", "한도와 사용 내역 확인", "#refund-policy"],
     ["결제 오류", "반영 지연과 복귀 안내", "#payment-help"],
   ],
   contact: [

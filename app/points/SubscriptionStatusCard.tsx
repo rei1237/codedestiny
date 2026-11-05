@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { isOpenEndedPassExpiry, openEndedPassLabel } from "@/lib/payment/pass-expiry";
+import { isConsultationAllowanceExhausted, type PassUsageSnapshot } from "@/lib/payment/pass-eligibility";
+import { currentPassPlan } from "@/lib/payment/pass-policy.js";
 
 /**
  * SubscriptionStatusCard.tsx
@@ -25,11 +27,11 @@ type SubscriptionStatus = {
 
 type Props = {
   subscription: SubscriptionStatus;
+  passUsage?: PassUsageSnapshot | null;
 };
 
 const TIER_META: Record<SubscriptionTier, {
   icon: string;
-  coinValue: number;
   bg: string;
   border: string;
   badge: string;
@@ -38,7 +40,6 @@ const TIER_META: Record<SubscriptionTier, {
 }> = {
   free: {
     icon: "🌙",
-    coinValue: 0,
     bg: "from-slate-950/95 via-[#151a3d]/92 to-[#281a4d]/90",
     border: "border-white/15",
     badge: "bg-white/10 text-slate-100 ring-1 ring-white/15",
@@ -47,7 +48,6 @@ const TIER_META: Record<SubscriptionTier, {
   },
   standard: {
     icon: "🌔",
-    coinValue: 115,
     bg: "from-[#111936]/95 via-[#27305d]/92 to-[#4a3a72]/90",
     border: "border-[#e9d18a]/45",
     badge: "bg-gradient-to-r from-[#d8bd72] to-[#f5df9d] text-[#1d1834]",
@@ -56,7 +56,6 @@ const TIER_META: Record<SubscriptionTier, {
   },
   premium: {
     icon: "🌕",
-    coinValue: 360,
     bg: "from-[#101832]/95 via-[#352553]/92 to-[#604f88]/90",
     border: "border-[#cab8ff]/45",
     badge: "bg-gradient-to-r from-[#cab8ff] to-[#f2d48f] text-[#17142b]",
@@ -65,7 +64,6 @@ const TIER_META: Record<SubscriptionTier, {
   },
   vvip: {
     icon: "🌌",
-    coinValue: 700,
     bg: "from-[#091126]/95 via-[#24164d]/92 to-[#42306f]/90",
     border: "border-[#f3dd9a]/55",
     badge: "bg-gradient-to-r from-[#f3dd9a] via-[#cab8ff] to-[#8cb8ff] text-[#11142a]",
@@ -74,7 +72,6 @@ const TIER_META: Record<SubscriptionTier, {
   },
   family: {
     icon: "∞",
-    coinValue: 3000,
     bg: "from-[#07150f]/95 via-[#123a2c]/92 to-[#374b2b]/90",
     border: "border-emerald-200/55",
     badge: "bg-gradient-to-r from-emerald-200 via-[#f3dd9a] to-[#8cb8ff] text-[#07150f]",
@@ -113,8 +110,11 @@ type SubscriptionStatusCopy = {
   cancelAtPeriodEnd: string;
   expired: string;
   inactiveNote: string;
-  /** 이용 한도를 모두 쓰면 이용권이 종료된다는 고지(2026-10-11 기간 없는 이용권). */
+  /** 상담 한도를 다 써도 이용권은 유지된다는 고지. */
   terminationNote: string;
+  /** 상담 한도를 다 쓴 상태. 미보유로 보이면 안 된다. */
+  consultationExhausted: string;
+  repurchase: string;
   tiers: Record<SubscriptionTier, TierCopy>;
 };
 
@@ -133,16 +133,18 @@ const SUBSCRIPTION_STATUS_COPY: Record<LoadingLocale, SubscriptionStatusCopy> = 
     daysLeft: (days) => `${days}일 남음`,
     singlePayment: "단건 결제",
     autoPayment: "자동결제 여부",
-    autoPaymentValue: "자동결제 아님 · 한도를 모두 사용한 뒤 직접 재구매",
+    autoPaymentValue: "자동결제 아님 · 상담 한도를 다 쓰면 직접 재구매",
     refundLink: "환불 요청 안내 보기",
     familySinglePayment: "패밀리 꿀단지 이용권으로 모든 서비스가 무료 처리됩니다.",
     standardSinglePayment: "한도 초과 서비스와 PDF는 상품별 원화 단건 결제로 이용할 수 있습니다.",
-    lowBalance: "이용 한도가 얼마 남지 않았습니다. 한도를 모두 사용하면 이용권이 종료되고, 추가 유료 콘텐츠는 상품별 원화 단건 결제로 이용할 수 있습니다.",
+    lowBalance: "상담 한도가 얼마 남지 않았습니다. 한도를 다 써도 라이트 운세는 계속 이용할 수 있고, 대표 상담은 이용권을 다시 구매하거나 상품별 원화 단건 결제로 이용할 수 있습니다.",
     expiringSoon: (days) => ({ prefix: `이용권이 ${days}일 후`, suffix: "만료됩니다. 계속 이용하려면 이용권을 다시 결제해 주세요." }),
     cancelAtPeriodEnd: "현재 혜택은 이용권이 종료될 때까지 유지됩니다. 이 이용권은 반복 결제되지 않습니다.",
     expired: "이용권이 종료되었습니다. 이용권을 다시 결제해 주세요.",
     inactiveNote: "단건 결제 가능 · 콘텐츠 가치는 원화 기준으로 표시됩니다",
-    terminationNote: "이용 한도를 모두 사용하면 이용권이 종료됩니다. 다시 구매하면 새 이용 한도로 시작합니다.",
+    terminationNote: "상담 한도를 다 써도 이용권은 유지되고 라이트 운세를 계속 이용할 수 있습니다. 다시 구매하면 새 상담 한도로 시작합니다.",
+    consultationExhausted: "상담 한도 소진 · 라이트 운세 이용 중",
+    repurchase: "이용권 다시 구매하기",
     tiers: {
       free: {
         label: "무료 플랜",
@@ -185,16 +187,18 @@ const SUBSCRIPTION_STATUS_COPY: Record<LoadingLocale, SubscriptionStatusCopy> = 
     daysLeft: (days) => `${days} days left`,
     singlePayment: "Single payment",
     autoPayment: "Auto-payment",
-    autoPaymentValue: "No auto-payment · Buy again after the usage limit is used up",
+    autoPaymentValue: "No auto-payment · Buy again when the consultation allowance is used up",
     refundLink: "View refund request guide",
     familySinglePayment: "The Family Honey Jar pass covers every service at no additional charge.",
     standardSinglePayment: "Services above your limit and PDFs can be purchased separately in KRW.",
-    lowBalance: "Your usage limit is nearly used up. Once it is fully used the pass ends, and additional paid content can be purchased separately in KRW.",
+    lowBalance: "Your consultation allowance is nearly used up. Light Readings stay available after it runs out, and signature consultations can be used by buying a pass again or paying separately in KRW.",
     expiringSoon: (days) => ({ prefix: `Your pass expires in ${days} days`, suffix: "Please purchase a new pass to keep using benefits." }),
     cancelAtPeriodEnd: "Current benefits remain until the pass ends. This pass does not renew automatically.",
     expired: "Your pass has ended. Please purchase a new pass.",
     inactiveNote: "Single payments available · Content value is shown in KRW",
-    terminationNote: "When the usage limit is fully used, the pass ends. Buying again starts a new usage limit.",
+    terminationNote: "Even after the consultation allowance is used up, the pass stays active and Light Readings remain available. Buying again starts a new consultation allowance.",
+    consultationExhausted: "Consultation allowance used up · Light Readings active",
+    repurchase: "Buy a pass again",
     tiers: {
       free: {
         label: "Free plan",
@@ -237,16 +241,18 @@ const SUBSCRIPTION_STATUS_COPY: Record<LoadingLocale, SubscriptionStatusCopy> = 
     daysLeft: (days) => `残り${days}日`,
     singlePayment: "単品決済",
     autoPayment: "自動決済",
-    autoPaymentValue: "自動決済なし · 上限を使い切った後に再購入",
+    autoPaymentValue: "自動決済なし · 相談上限を使い切ったら再購入",
     refundLink: "返金リクエスト案内を見る",
     familySinglePayment: "ファミリーはちみつ壺の利用券では、すべてのサービスが追加料金なしで処理されます。",
     standardSinglePayment: "上限を超えるサービスとPDFは、商品ごとにウォン単品決済で利用できます。",
-    lowBalance: "利用上限が残りわずかです。使い切るとパスは終了し、追加の有料コンテンツは商品ごとのウォン単品決済で利用できます。",
+    lowBalance: "相談上限が残りわずかです。使い切ってもライト占いは引き続き利用でき、代表相談はパスの再購入または商品ごとのウォン単品決済で利用できます。",
     expiringSoon: (days) => ({ prefix: `利用券は${days}日後に`, suffix: "満了します。続けて利用するには利用券を再購入してください。" }),
     cancelAtPeriodEnd: "現在の特典は利用券が終了するまで維持されます。この利用券は自動更新されません。",
     expired: "利用券は終了しました。利用券を再購入してください。",
     inactiveNote: "単品決済可 · コンテンツ価値はウォン基準で表示されます",
-    terminationNote: "利用上限を使い切るとパスは終了します。再度購入すると新しい利用上限で始まります。",
+    terminationNote: "相談上限を使い切ってもパスは維持され、ライト占いは引き続き利用できます。再度購入すると新しい相談上限で始まります。",
+    consultationExhausted: "相談上限に到達 · ライト占い利用中",
+    repurchase: "パスを再購入",
     tiers: {
       free: {
         label: "無料プラン",
@@ -289,16 +295,18 @@ const SUBSCRIPTION_STATUS_COPY: Record<LoadingLocale, SubscriptionStatusCopy> = 
     daysLeft: (days) => `剩余 ${days} 天`,
     singlePayment: "单次付款",
     autoPayment: "自动续费",
-    autoPaymentValue: "非自动续费 · 额度用完后需重新购买",
+    autoPaymentValue: "非自动续费 · 咨询额度用完后可重新购买",
     refundLink: "查看退款申请说明",
     familySinglePayment: "家庭蜜罐通行证可免费使用所有服务。",
     standardSinglePayment: "超过额度的服务与PDF可按商品以韩元单独付款。",
-    lowBalance: "使用额度所剩不多。用完后通行证即结束，额外付费内容可按商品以韩元单独付款。",
+    lowBalance: "咨询额度所剩不多。用完后轻量运势仍可继续使用，代表咨询可重新购买通行证或按商品以韩元单独付款。",
     expiringSoon: (days) => ({ prefix: `通行证将在 ${days} 天后`, suffix: "到期。如需继续使用，请重新购买通行证。" }),
     cancelAtPeriodEnd: "当前权益会保留到通行证结束。此通行证不会自动续费。",
     expired: "通行证已结束。请重新购买通行证。",
     inactiveNote: "可单次付款 · 内容价值以韩元显示",
-    terminationNote: "使用额度用完后，通行证即结束。重新购买将以新的使用额度开始。",
+    terminationNote: "咨询额度用完后，通行证仍然保留，轻量运势可继续使用。重新购买将以新的咨询额度开始。",
+    consultationExhausted: "咨询额度已用完 · 轻量运势使用中",
+    repurchase: "重新购买通行证",
     tiers: {
       free: {
         label: "免费方案",
@@ -341,16 +349,18 @@ const SUBSCRIPTION_STATUS_COPY: Record<LoadingLocale, SubscriptionStatusCopy> = 
     daysLeft: (days) => `剩餘 ${days} 天`,
     singlePayment: "單次付款",
     autoPayment: "自動續費",
-    autoPaymentValue: "非自動續費 · 額度用完後需重新購買",
+    autoPaymentValue: "非自動續費 · 諮詢額度用完後可重新購買",
     refundLink: "查看退款申請說明",
     familySinglePayment: "家庭蜜罐通行證可免費使用所有服務。",
     standardSinglePayment: "超過額度的服務與PDF可依商品以韓元單獨付款。",
-    lowBalance: "使用額度所剩不多。用完後通行證即結束，額外付費內容可依商品以韓元單獨付款。",
+    lowBalance: "諮詢額度所剩不多。用完後輕量運勢仍可繼續使用，代表諮詢可重新購買通行證或依商品以韓元單獨付款。",
     expiringSoon: (days) => ({ prefix: `通行證將在 ${days} 天後`, suffix: "到期。如需繼續使用，請重新購買通行證。" }),
     cancelAtPeriodEnd: "目前權益會保留到通行證結束。此通行證不會自動續費。",
     expired: "通行證已結束。請重新購買通行證。",
     inactiveNote: "可單次付款 · 內容價值以韓元顯示",
-    terminationNote: "使用額度用完後，通行證即結束。重新購買將以新的使用額度開始。",
+    terminationNote: "諮詢額度用完後，通行證仍然保留，輕量運勢可繼續使用。重新購買將以新的諮詢額度開始。",
+    consultationExhausted: "諮詢額度已用完 · 輕量運勢使用中",
+    repurchase: "重新購買通行證",
     tiers: {
       free: {
         label: "免費方案",
@@ -407,7 +417,7 @@ const FORMAT_LOCALE_BY_LANG: Record<LoadingLocale, string> = {
   ms: "ms-MY",
 };
 
-export default function SubscriptionStatusCard({ subscription }: Props) {
+export default function SubscriptionStatusCard({ subscription, passUsage }: Props) {
   const [lang, setLang] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
   const copy = SUBSCRIPTION_STATUS_COPY[lang] || SUBSCRIPTION_STATUS_COPY.ko;
   const formatLocale = FORMAT_LOCALE_BY_LANG[lang] || FORMAT_LOCALE_BY_LANG.ko;
@@ -426,7 +436,7 @@ export default function SubscriptionStatusCard({ subscription }: Props) {
   };
 
   const validExpiresDate = toValidDate(subscription.expiresAt);
-  // 기간 없는 이용권(서버 센티널 만료일)은 날짜·D-day 대신 "기간 제한 없음 · 한도 소진 시 종료".
+  // 기간 없는 이용권(서버 센티널 만료일)은 날짜·D-day 대신 "기간 제한 없음 · 자동 갱신 없음".
   const isOpenEnded = isOpenEndedPassExpiry(validExpiresDate);
   const validStartedDate = toValidDate(subscription.startedAt);
   const startedDate = validStartedDate
@@ -451,7 +461,9 @@ export default function SubscriptionStatusCard({ subscription }: Props) {
   const isExpiringSoon = daysLeft !== null && daysLeft <= 7 && daysLeft > 0;
   const isExpired = daysLeft === 0 && subscription.isActive === false;
   const isActivePass = subscription.isActive && effectiveTier !== "free";
-  const wonValue = meta.coinValue * 100;
+  // 보유자가 실제로 가진 한도를 쓴다. 스냅샷이 오기 전에는 현재 플랜 값을 보여 준다.
+  const wonValue = Number(passUsage?.limitKRW) || Number(currentPassPlan(effectiveTier)?.monthlyLimitCoin || 0) * 100;
+  const consultationExhausted = isActivePass && isConsultationAllowanceExhausted(passUsage);
   const valueLabel = copy.wonEquivalent(wonValue, formatLocale);
   const benefitLabel = meta.freeUpTo || copy.fallbackBenefit;
   const singlePaymentCopy = effectiveTier === "family"
@@ -504,8 +516,14 @@ export default function SubscriptionStatusCard({ subscription }: Props) {
             {/* 활성 상태 표시 */}
             <div className="flex items-center gap-2">
               <span className={`h-2 w-2 rounded-full ${meta.dot} animate-pulse`} />
-              <span className="text-[12.5px] font-bold text-[#f3dd9a]">{copy.currentUsing(meta.label)}</span>
+              <span className="text-[12.5px] font-bold text-[#f3dd9a]">{consultationExhausted ? copy.consultationExhausted : copy.currentUsing(meta.label)}</span>
             </div>
+
+            {consultationExhausted && (
+              <a href="/points/#moonlight-plans" className="inline-flex min-h-11 items-center rounded-[12px] border border-[#f3dd9a]/55 bg-[#f3dd9a]/12 px-3.5 text-[12.5px] font-black text-[#f3dd9a]">
+                {copy.repurchase}
+              </a>
+            )}
 
             <div className="rounded-[14px] border border-white/12 bg-white/8 px-3.5 py-3">
               <p className="text-[13px] font-black text-white">
@@ -581,7 +599,7 @@ export default function SubscriptionStatusCard({ subscription }: Props) {
             </div>
 
             {/* 이용권 혜택 범위 안내 */}
-            {subscription.lowBalanceWarning && (
+            {subscription.lowBalanceWarning && !consultationExhausted && (
               <div className="rounded-[12px] border border-orange-300/50 bg-orange-400/12 px-3.5 py-2.5 flex items-start gap-2">
                 <span className="text-orange-500 flex-shrink-0 mt-0.5">🔔</span>
                 <p className="text-[11.5px] text-orange-100">

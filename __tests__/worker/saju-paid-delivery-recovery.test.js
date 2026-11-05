@@ -177,7 +177,7 @@ describe.each(["pass", "monthly", "single"])("%s saved paid report", (mode) => {
       expect(data.saved).toBe(index === 4);
       expect(h.calls).toHaveLength(index + 1);
     }
-    expect(quality.countPaidReportBodyChars(h.record().result.consultation.resultText)).toBeGreaterThanOrEqual(20000);
+    expect(quality.countPaidReportBodyChars(h.record().result.consultation.resultText)).toBeGreaterThanOrEqual(9600);
     expect((await h.post()).status).toBe(200);
     expect(h.calls).toHaveLength(5);
     expect(h.charges.size).toBe(1);

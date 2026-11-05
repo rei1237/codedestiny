@@ -8,7 +8,7 @@ const mock = {
   'db.js': 'export async function connectDb(){}; export const withMongoRetry = async (env,fn)=>fn();',
   'models.js': 'const s=globalThis.__nakshatraTest;const key=f=>JSON.stringify(f); export const ServiceExecutionTransaction={findOne:f=>({lean:async()=>s.documents.get(key(f))}),findOneAndUpdate:(f,u)=>({lean:async()=>{if(!s.documents.has(key(f)))s.documents.set(key(f),u.$setOnInsert);return s.documents.get(key(f));}})};',
   'paid-result-revocation.js': 'export async function isPaidResultRevoked(){return globalThis.__nakshatraTest.revoked;}',
-  'nakshatra-paid-access.js': 'export async function verifyPerUsePayment(env,args){globalThis.__nakshatraTest.checks++; if(args.coinPrice!==200 || !args.requireExisting) throw Error("price/proof contract"); return {proven:globalThis.__nakshatraTest.proven};}',
+  'nakshatra-paid-access.js': 'export async function verifyPerUsePayment(env,args){globalThis.__nakshatraTest.checks++; if(args.coinPrice!==50 || !args.requireExisting) throw Error("price/proof contract"); return {proven:globalThis.__nakshatraTest.proven};}',
   'swiss-ephemeris.js': 'export async function getSwissVedicPlanets(env,input){return {planets:{Moon:globalThis.__nakshatraTest.moons[input.hour===0?0:1]}};}',
 };
 const names = ['nakshatra-japanese-calendar','nakshatra-ashtakuta-v2','nakshatra-codex','nakshatra-compat','nakshatra-birth-evidence','nakshatra-compat-delivery','sukuyo-relation-core','vedic-derived-calculations'];

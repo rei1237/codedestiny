@@ -1,18 +1,18 @@
 {
   "_comment": "홈 하단 문라이트 패스 블록의 비-ko 문구 교정 10키. 🔴 이 블록은 앞선 교정(PR #1070·#1071)에 안 잡혔다 — 그쪽 계측은 '마크업 ↔ ko.json' 대조라 ko 가 맞으면 통과하는데, 여기서는 ko 가 맞고 나머지 11개 로케일이 옛 영어에서 기계번역된 채 남아 있었다. 뜻이 어긋난 정도가 크다 — ja point3 '合格範囲を一緒に確認してください'(합격 점수 범위), zh point2 '快速访问常用阅读内容', en title 은 가격 비교 문장이 통째로 일반론으로 바뀌어 있었다. 🔴 point3 은 '자동결제 없는 30일권' 이라는 고지 문구인데 비-ko 가 그 사실을 통째로 잃고 있었다(auto_renewal 축). ko 값은 셸 마크업과 같아야 하므로 손대지 않고 현재 ko.json 값을 그대로 옮겨 담는다.",
   "home.passFooter.title": {
-    "ko": "5,000원 리딩 두 번이면, 9,900원 이용권이 더 쌉니다",
-    "en": "Two KRW 5,000 readings already cost more than the KRW 9,900 pass",
-    "ja": "5,000ウォンのリーディング2回で、9,900ウォンの利用券のほうがお得です",
-    "zh-CN": "两次5,000韩元的解读,已经比9,900韩元的使用权更贵",
-    "zh-TW": "兩次5,000韓元的解讀,已經比9,900韓元的使用權更貴",
-    "vi": "Chỉ hai lần đọc 5.000 KRW đã đắt hơn gói 9.900 KRW",
-    "hi": "KRW 5,000 वाली दो रीडिंग पहले ही KRW 9,900 के पास से महंगी पड़ती हैं",
-    "es": "Dos lecturas de 5.000 KRW ya cuestan más que el pase de 9.900 KRW",
-    "fr": "Deux lectures à 5 000 KRW coûtent déjà plus que le pass à 9 900 KRW",
-    "de": "Zwei Readings zu 5.000 KRW kosten bereits mehr als der Pass für 9.900 KRW",
-    "nl": "Twee readings van KRW 5.000 kosten al meer dan de pass van KRW 9.900",
-    "ms": "Dua bacaan KRW 5,000 sudah lebih mahal daripada pas KRW 9,900"
+    "ko": "5,000원 리딩 세 번이면, 14,900원 이용권이 더 쌉니다",
+    "en": "Three KRW 5,000 readings already cost more than the KRW 14,900 pass",
+    "ja": "5,000ウォンのリーディング3回で、14,900ウォンの利用券のほうがお得です",
+    "zh-CN": "三次5,000韩元的解读,已经比14,900韩元的使用权更贵",
+    "zh-TW": "三次5,000韓元的解讀,已經比14,900韓元的使用權更貴",
+    "vi": "Chỉ ba lần đọc 5.000 KRW đã đắt hơn gói 14.900 KRW",
+    "hi": "KRW 5,000 वाली तीन रीडिंग पहले ही KRW 14,900 के पास से महंगी पड़ती हैं",
+    "es": "Tres lecturas de 5.000 KRW ya cuestan más que el pase de 14.900 KRW",
+    "fr": "Trois lectures à 5 000 KRW coûtent déjà plus que le pass à 14 900 KRW",
+    "de": "Drei Readings zu 5.000 KRW kosten bereits mehr als der Pass für 14.900 KRW",
+    "nl": "Drie readings van KRW 5.000 kosten al meer dan de pass van KRW 14.900",
+    "ms": "Tiga bacaan KRW 5,000 sudah lebih mahal daripada pas KRW 14,900"
   },
   "home.passFooter.desc": {
     "ko": "고른 가격대 안의 리딩은 이용 한도를 다 쓸 때까지 열리고, 그보다 비싼 리딩만 필요할 때 단건으로 결제해요. 범위는 5천원급·1만원급·2만원급·이용권 대상 전체 네 단계라 자주 보는 가격대로 고르면 됩니다.",
@@ -43,18 +43,18 @@
     "ms": "Terbuka terus, tanpa pembayaran"
   },
   "home.passFooter.point2": {
-    "ko": "기간 제한 없음 · 한도 소진 시 종료",
-    "en": "No time limit · Ends when the usage limit is used up",
-    "ja": "期間制限なし · 利用上限を使い切ると終了",
-    "zh-CN": "无期限限制 · 额度用完即结束",
-    "zh-TW": "無期限限制 · 額度用完即結束",
-    "vi": "Không giới hạn thời gian · Kết thúc khi dùng hết hạn mức",
-    "hi": "कोई समय-सीमा नहीं · उपयोग सीमा खत्म होने पर समाप्त",
-    "es": "Sin límite de tiempo · Termina al agotar el límite de uso",
-    "fr": "Sans limite de durée · Prend fin à l'épuisement de la limite d'utilisation",
-    "de": "Ohne Laufzeitbegrenzung · Endet, wenn das Nutzungslimit aufgebraucht ist",
-    "nl": "Geen tijdslimiet · Stopt zodra de gebruikslimiet op is",
-    "ms": "Tiada had tempoh · Tamat apabila had penggunaan habis"
+    "ko": "기간 제한 없음 · 자동 갱신 없음",
+    "en": "No time limit · No auto-renewal",
+    "ja": "期間制限なし · 自動更新なし",
+    "zh-CN": "无期限限制 · 不自动续费",
+    "zh-TW": "無期限限制 · 不自動續費",
+    "vi": "Không giới hạn thời gian · Không tự động gia hạn",
+    "hi": "कोई समय-सीमा नहीं · स्वतः नवीनीकरण नहीं",
+    "es": "Sin límite de tiempo · Sin renovación automática",
+    "fr": "Sans limite de durée · Sans renouvellement automatique",
+    "de": "Ohne Laufzeitbegrenzung · Keine automatische Verlängerung",
+    "nl": "Geen tijdslimiet · Geen automatische verlenging",
+    "ms": "Tiada had tempoh · Tiada pembaharuan automatik"
   },
   "home.passFooter.point3": {
     "ko": "자동결제 없는 이용권",

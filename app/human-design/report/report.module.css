@@ -4,7 +4,7 @@
  *    스킴 토큰에 기대면 라이트 모드에서 잉크만 뒤집혀 대비가 무너진다. 팔레트는 차트 화면
  *    (human-design.module.css)과 같은 값을 쓴다 — 결제 전후로 다른 서비스처럼 보이지 않게.
  * 🔴 서체를 새로 들이지 않는다. --font-display / --font-body 는 styles/globals.css 가 선언한다.
- * 🔴 25,000자 문서라 장 단위로 content-visibility 를 건다. opacity: 0 으로 숨기지 않는다 —
+ * 🔴 12,000자 문서라 장 단위로 content-visibility 를 건다. opacity: 0 으로 숨기지 않는다 —
  *    CodexReader 가 그 방식으로 "스크롤 안 한 장이 백지로 찍히는" 사고를 냈다.
  */
 
@@ -519,7 +519,7 @@
 
 .chapter {
   margin: 0 0 4rem;
-  /* 25,000자를 한 번에 레이아웃하지 않는다. 높이를 미리 예약해 스크롤바가 튀지 않게 한다. */
+  /* 12,000자를 한 번에 레이아웃하지 않는다. 높이를 미리 예약해 스크롤바가 튀지 않게 한다. */
   content-visibility: auto;
   contain-intrinsic-size: 0 1400px;
 }

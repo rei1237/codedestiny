@@ -199,6 +199,15 @@ async function revokePointChargeGrant(payment) {
   return { reverted: true, pointsRolledBack: chargedPoints, adminReviewRequired: false };
 }
 
+/** 이용권 주문 뒤의 사용 이력. 라우트는 mongoose 연결을 쓰므로 어댑터로 passes.js 조회에 연결한다. */
+export async function readPassUseForOrder(payment) {
+  const { findPassUseSinceOrder } = await import("../payments/passes.js");
+  return findPassUseSinceOrder(
+    { countDocuments: (Model, filter) => Model.countDocuments(filter) },
+    { userId: payment.userId, paidAt: payment.paidAt || payment.createdAt },
+  );
+}
+
 /**
  * 운영자 환불 코어. PG 취소 → 유형별 권한 회수 → 주문 갱신을 한 번에 수행한다.
  * 호출부는 인증·입력검증만 하고 이 함수의 결과를 그대로 응답하면 된다.
@@ -357,6 +366,11 @@ export async function refundPaymentAsOperator({
     $inc: { confirmAttempts: 1 },
   }, { returnDocument: "after" }).lean();
 
+  // 운영자 판단 자료일 뿐이라 조회 실패로 이미 끝난 환불을 실패로 돌리지 않는다.
+  const passUse = String(payment.paymentType || "") === "membership_pass"
+    ? await readPassUseForOrder(payment).catch(() => null)
+    : null;
+
   return {
     ok: true,
     status: 200,
@@ -366,6 +380,7 @@ export async function refundPaymentAsOperator({
     adminReviewRequired,
     revocation: grantRevocation || revocation,
     payment: updatedPayment,
+    passUse,
   };
 }
 

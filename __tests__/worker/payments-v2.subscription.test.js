@@ -114,9 +114,10 @@ async function prepareOrder(db, tier, idempotencyKey) {
 }
 
 describe("가격 정본 — 3중 미러", () => {
-  test("이용권 4등급 가격이 홈 셸 goldenPackages 값과 일치해야 한다", () => {
+  test("이용권 4등급 가격이 홈 셸 goldenPackages 값과 일치해야 한다", async () => {
+    const { CURRENT_PASS_PLANS } = await import("../../lib/payment/pass-policy.js");
     const shell = readFileSync("index.html", "utf8");
-    for (const [tier, price] of Object.entries(__passesTestUtils.PASS_MONTHLY_WON)) {
+    for (const [tier, { wonPrice: price }] of Object.entries(CURRENT_PASS_PLANS)) {
       const pattern = new RegExp(`id:\\s*'${tier}'[^}]*?price:\\s*(\\d+)`);
       const match = shell.match(pattern);
       expect(match).not.toBeNull();

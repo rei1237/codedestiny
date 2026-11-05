@@ -3318,7 +3318,7 @@
 
   // 서버 왕복 없이 '이용권 미커버'가 확정되는 신호만 판정한다.
   // 🔴 지연·타임아웃은 절대 근거로 쓰지 않는다 — 느린 것과 없는 것을 혼동하면 이용권 보유자가 결제창으로 샌다.
-  function _dpResolveCertainPassMiss(coinPrice) {
+  function _dpResolveCertainPassMiss(coinPrice, featureKey) {
     var cost = Math.max(0, Math.floor(Number(coinPrice || 0)));
     if (!(cost > 0)) return '';
     // (1) 미로그인 — 자격증명이 없으면 서버는 반드시 401이고, 이 집합에 이용권 보유자는 0명이다.
@@ -3332,11 +3332,13 @@
     // monthly_pass_limit_exceeded). 모듈이 없으면 확정하지 않는다(서버 검사로 폴백).
     var api = _dpPassVerdict();
     if (!api) return '';
-    var verdict = api.resolveVerdict(snapshot, cost);
+    var verdict = api.resolveVerdict(snapshot, cost, featureKey);
+    // 키를 모르면 라이트 운세인지 알 수 없다. 소진만으로 미커버를 확정하지 않고 서버에 묻는다.
+    if (!featureKey && verdict && verdict.reason === api.REASON_MONTHLY_LIMIT) return '';
     return verdict && verdict.cannotCover ? String(verdict.reason || 'subscription_snapshot_none') : '';
   }
 
-  function _dpReadActiveMembershipCoverage(cost) {
+  function _dpReadActiveMembershipCoverage(cost, featureKey) {
     try {
       var api = _dpPassVerdict();
       if (!api) return null;
@@ -3350,7 +3352,7 @@
       }
       if (!snapshot) return null;
       if (snapshot.stale === true) _dpRevalidateSubscriptionSnapshot();
-      var verdict = api.resolveVerdict(snapshot, cost);
+      var verdict = api.resolveVerdict(snapshot, cost, featureKey);
       if (verdict.coversNow) return { tier: verdict.tier, freeLimit: verdict.passLimit };
       return null;
     } catch (_) {
@@ -4474,8 +4476,13 @@
   }
 
   // 수단 이름이 있으면 '{method} …' 판, 없으면(티켓 없는 새 탭 복귀 등) 'Generic' 판을 고른다.
-  function _dpDirectResumeText(key, methodLabel) {
-    if (methodLabel) return _dpInterpolateText(_dpText(key), { method: methodLabel });
+  // 라벨은 문구를 만드는 시점에 구한다. 복귀 직후에는 언어 사전이 아직 없어 라벨이 한글 폴백으로 오기 때문이다.
+  // 그 폴백이 다른 언어 문구에 섞이지 않도록, 한글이 아닌 언어에서는 한글 라벨 대신 Generic 판을 쓴다.
+  function _dpDirectResumeText(key, method) {
+    var methodLabel = _dpDirectPayMethodLabelFor(method);
+    if (methodLabel && (_dpTextLang() === 'ko' || !/[가-힣]/.test(methodLabel))) {
+      return _dpInterpolateText(_dpText(key), { method: methodLabel });
+    }
     return _dpText(key + 'Generic');
   }
 
@@ -4824,7 +4831,6 @@
     var resumeMethod = String(
       (ticket && (ticket.paymentMethod || (ticket.confirmBody && ticket.confirmBody.paymentMethod))) || '',
     ).trim();
-    var resumeMethodLabel = _dpDirectPayMethodLabelFor(resumeMethod);
 
     if (!paymentId || failed) {
       // 승인이 나지 않은 복귀다 — 티켓을 회수한다.
@@ -4863,7 +4869,7 @@
       // 코드가 있으면 함께 보여 준다 — 고객 문의에서 이 한 줄이 원인 특정의 유일한 근거가 된다.
       // 🔴 오버레이 'payment-failed' 로 바꾸지 않는다 — 셸 meta 가 "청구됐다면 자동 환불"이라 PG 거절엔 맞지 않는다.
       window.alert(
-        (failMessage || _dpDirectResumeText('directResumeFailed', resumeMethodLabel))
+        (failMessage || _dpDirectResumeText('directResumeFailed', resumeMethod))
         + (failCode ? '\n(' + failCode + ')' : ''),
       );
       return;
@@ -4881,7 +4887,7 @@
       // 조용한 티켓 폴백은 대부분 결제 안 하고 이탈한 정상 케이스라, 무관한 화면에 확인 중
       // 오버레이를 띄우지 않는다 — 실제로 지급될 때만 아래 성공 경로가 스스로 안내한다.
       if (!isSilentTicketFallback && !isQuietRetry) {
-        _dpSetPaymentPending(true, _dpDirectResumeText('directResumeConfirming', resumeMethodLabel), 'unlock-saving');
+        _dpSetPaymentPending(true, _dpDirectResumeText('directResumeConfirming', resumeMethod), 'unlock-saving');
       }
       // 🔴 티켓은 confirm 성공 뒤에 지운다. 먼저 지우면 5xx 한 번에 승인된 결제의 복구 수단이 사라진다.
       // 티켓은 30분 TTL(_DP_DIRECT_RESUME_TTL_MS)로 스스로 만료되므로 남겨 둬도 되살아나지 않는다.
@@ -5045,7 +5051,7 @@
             _dpResumeDirectPaymentAfterRedirect({ pollingPaymentId: paymentId, userInitiated: true });
           } : (resumeAction ? function () { _dpOpenRouteAction(resumeAction); } : null),
           // 열기 버튼이 없으면 "다시 누르면 무료"가 사용자가 할 수 있는 유일한 행동이다.
-          resumeAction ? '' : _dpDirectResumeText('directResumeComplete', resumeMethodLabel),
+          resumeAction ? '' : _dpDirectResumeText('directResumeComplete', resumeMethod),
         );
       }
       // ⑧ 후속 훅이 붙을 자리(계측·외부 위젯). 재개 자체는 위에서 끝났다.
@@ -5519,12 +5525,12 @@
       // requireServerPassCheck 로 서버 재검증을 명시 요청한 호출부는 이 지름길을 타지 않는다.
       var _dpCertainPassMiss = (opts.disablePassFirst === true || opts.requireServerPassCheck === true)
         ? ''
-        : _dpResolveCertainPassMiss(coinPrice);
+        : _dpResolveCertainPassMiss(coinPrice, _dpReceiptFeatureKey);
       if (typeof window.__cdApplyMembershipPassBeforePayment === 'function' && opts.disablePassFirst !== true && !_dpCertainPassMiss) {
         // 낙관적 즉시 허용: 로컬 구독 스냅샷이 pass 커버를 확인하면 서버 왕복을 백그라운드로 돌려 속도를 유지한다
         // (정확성은 백그라운드 미커버 응답 시 세션 갱신으로 자기수정). 단 "확인 중 → 적용 완료" 2단계 UX는
         // 그대로 유지하고, 완료 오버레이 표시 중 onGranted(콘텐츠 생성)를 병렬 진행한다.
-        var _dpOptimisticCoverage = _dpOptimisticPassDisabled() ? null : _dpReadActiveMembershipCoverage(coinPrice);
+        var _dpOptimisticCoverage = _dpOptimisticPassDisabled() ? null : _dpReadActiveMembershipCoverage(coinPrice, _dpReceiptFeatureKey);
         if (_dpOptimisticCoverage) {
           _dpRecordMembershipPassInBackground(opts, title, coinPrice, requestId);
           _dpSetPaymentPending(true, '이용권을 확인하고 있어요…', 'pass');
