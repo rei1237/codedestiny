@@ -297,10 +297,13 @@ var REPORT_CARD_CATEGORY_BY_ID = {
   meryok:'self', quantum:'self', sajuhealth:'life', sajuprompt:'self', sajurpg:'self',
   tbal:'fun', tetoegen:'relation', trip:'life', vilun:'relation', lotto:'fun',
   fortunePlanner:'life', legacyLuckSyncDiary:'life', '4CUT':'fun', dopamine:'fun',
-  secretHouse:'relation', 'saju-animal-test':'fun', 'destiny-meeting-place':'relation', 'love-code':'relation'
+  secretHouse:'relation', relationshipTemptation:'relation', 'saju-animal-test':'fun', 'destiny-meeting-place':'relation', 'love-code':'relation'
 };
 function _rptCategoryOf(card) {
-  return (card && card.category) || REPORT_CARD_CATEGORY_BY_ID[card && card.id] || 'fun';
+  var idCategory = REPORT_CARD_CATEGORY_BY_ID[card && card.id];
+  if (idCategory) return idCategory;
+  var declaredCategory = card && card.category;
+  return Object.prototype.hasOwnProperty.call(REPORT_CARD_CATEGORIES, declaredCategory) ? declaredCategory : 'fun';
 }
 REPORT_CARDS.forEach(function(card) { if (card && !card.category) card.category = _rptCategoryOf(card); });
 
