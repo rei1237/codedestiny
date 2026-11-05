@@ -42,6 +42,17 @@
 - 환불: 전달 전 최종 실패만 30방울 1회 복원(`refundTerminalFamilyQuota` → `refundChatHoney`).
 - 범위: 연이 기본 상담 전용. 질문 티어·네오·공동 상담 제외. 실결제·운영 DB 검증은 이번 변경에 포함하지 않으며 개발 검증은 mock 으로 한다.
 
+## 2026-11-05 승인: 명리 타로 세 장 무료 전환
+
+사용자 요청에 따라 명리 타로 세 장 풀이를 무료로 제공한다. 심층 풀이는 이미 LLM으로 판매 중인 찻집 상담(`fortune-tea-house-tarot-consultation`, 5,000원)으로 연결한다.
+
+- 신규 판매: `tarot-myeongri-three-card`의 saleEnabled: false. 과거 주문·환불·재개를 위한 키와 가격(5,000원)은 유지한다.
+- 꿀방울: 사용처 목록에서 제거해 새 차감을 막는다. `honey-per-use.js`의 입력 해시 분기는 과거 원장 재현을 위해 둔다.
+- 무료 전달: 브라우저의 `js/core/tarot/master-reading.mjs`가 계산한다. 인증·서버 호출·LLM이 없다.
+- 기존 구매자: 결제 후 자동 재개(`runMyeongriTarotResume`)와 예전 결과 화면을 유지한다. 결제 버튼은 다시 보이지 않는다.
+- 찻집 상담의 가격과 결제 구조, 다른 타로 상품은 변경하지 않는다. `/today/`의 3,000원 게이트도 변경하지 않는다.
+- 운영 승격과 실결제 검증은 별도이며, 개발 검증은 mock으로 한다.
+
 ## 2026-10-17 승인: 운명의 섬 무료 탐험 전환
 
 사용자 요청에 따라 운명의 섬 12궁 정적 해석과 시기 탐색을 무료 제공한다. 새 AI 상담 생성은 종료한다.
@@ -317,3 +328,64 @@
 - 검수 캠페인은 정식 1,000계정 모집과 별도 ID·수량으로 최대 3계정, 계정당 1회, 발송일부터 최대 14일 등록한다. SNULIFE_REVIEW_CODE / SNULIFE_REVIEW_STARTS_AT / SNULIFE_REVIEW_ENDS_AT로 설정하며 정식 코드와 같은 값을 허용하지 않는다.
 - 정식 모집은 확정된 게시일부터 3개월이며 게시일 확정 전에는 활성화하지 않는다. 기존 가입·구매·환불 권리는 보존하고 이미 수령한 계정은 다른 캠페인 수량을 추가 소비하지 않는다.
 - 사용자 승인 범위: CI 성공 후 공식 운영 배포, 기존 전용 테스트 계정의 검수 등록·지정 콘텐츠 해금·재열람 검증, 통과 후 기존 스누라이프 스레드에 자료 1회 회신. 다른 사용자 계정·실결제·과금 LLM·유료 광고 계약은 포함하지 않는다.
+
+## 2026-11-04 사주 영구 묶음
+
+`saju_lifetime_bundle`(사주 전체 풀이 평생 소장)을 29,000원(cost 290)의 출생 기반 영구 해금 상품으로 등록한다. 앱 결제 SKU는 `cd_content_tier_19`이고, Play Console에 수동 등록하기 전까지 앱 결제는 503이다(`docs/pricing/PLAY_CONSOLE_TASKS.md`). 포함 키와 판매 종료 키의 정본은 `worker/lib/saju-bundle-policy.js` 한 곳이다. 이 단계(Task 1)는 상품과 정본만 만들고, 기존 키의 동작은 바꾸지 않는다. 읽기 별칭은 Task 2, 판매 종료와 이용권 제외는 Task 3, 화면은 Task 5에서 다룬다.
+
+### 미확인 카드 호출 경로 점검
+
+규칙: 생성 모델을 호출하는 카드는 회당으로 두고 포함 키에 넣지 않는다. 코드 확인일은 2026-11-04이다.
+
+| 카드 | 키 | 계산·전달 위치 | 생성 모델 | 서버 전달 | 묶음 포함 |
+| --- | --- | --- | --- | --- | --- |
+| 시빌(시빌라 연간 대비 리포트) | `premium-sibyl-dominator` (unlock, 20,000원) | `worker/routes/sibyl.js`가 `sibyl-annual.js`로 계산하고 `sibyl-report-store.js`가 저장·재열람. 모델 호출 코드 없음 | 아니오 | 예(서버가 해금 확인 후 배달) | 아니오. 이미 단독 영구 해금으로 팔리는 상품이고 Interfaces 목록에 없다. 묶음에 넣을지는 사용자 결정 |
+| 궁합 무료/유료 경계 | `compat-saju-compatibility` (회당 10,000원) | 2026-10-04 승인으로 LLM 서술 결과 | 예 | 예 | 아니오(회당) |
+| 이집트 | `egyptOracle` (회당 3,000원), `egyptian_oracle_ai_prompt` (회당 5,000원) | `js/oracle-kcg.js`의 `showKemetSpread`, 질문은 프롬프트 생성 | 해당 없음(출생 기반 아님) | 아니오(브라우저) | 아니오(회당, 출생 기반 영구 해금이 아님) |
+| 오늘의 운세 상세 | `daily-fortune-reading` (회당 3,000원) | `app/today/TodayHubClient.tsx`가 `/api/fortune/today-hub` 호출. 일자마다 바뀌는 결과 | 아니오(엔진 계산) | 예 | 아니오(날마다 바뀌는 회당 상품) |
+| 인연의 장소 | `destiny_meeting_place` (회당 7,000원) | `DestinyMeetingPlacePage.tsx`가 브라우저 엔진 `generateDestinyMeetingPlaceResult`로 계산 | 아니오 | 아니오(브라우저) | 아니오. 비모델이지만 회당 상품이다. 묶음 포함은 사용자 결정 |
+| 로또 카드 | `rpt_lottoCard`는 레지스트리 키 없음. 결제 키는 `fun.quantumLotto.ritualReport` (회당 1,000원) | `reportDashboard.js`의 `renderLottoNumbers`(브라우저) | 아니오 | 아니오(브라우저) | 포함 키는 아니다. 판매 종료 키 목록에는 들어가며, 화면 판정(Task 5)이 개별 권리 또는 묶음을 본다 |
+
+점검 결과 Interfaces 목록(포함 키 12개, 판매 종료 키 18개)은 바꾸지 않았다.
+
+주의: `DestinyMeetingPlacePage.tsx`의 정본 주석은 "50코인 / 5,000원"이지만 레지스트리는 70코인 / 7,000원이다. 주석이 낡았을 뿐이며 이번 단계에서 고치지 않았다.
+
+### 이 단계에서 건드리지 않은 것
+
+- 꿀 카탈로그(`honey-unlock-catalog.js`, `i18n/authored/honeyUI-02.json`): 꿀로 묶음을 살 수 있게 할지는 상품 결정이다.
+- `payment-p0-inventory.json`: 묶음은 PIG 테이블에 있어 `listProducts()`에 나오지 않고, 인벤토리 검증은 featureKey 집합만 비교하므로 변경 없이 통과한다.
+- `service-registry.js`, `serviceFeatureRegistry.ts`, `fortune.js`, `billing-feature-registry.js`: 화면과 읽기 경로 작업(Task 2, 5)에서 다룬다.
+
+### 개별 신규 판매 종료 (Task 3, 2026-11-04)
+
+묶음 포함 키 12개와 판매 종료 키 18개(`isSajuBundleSaleClosed`)는 **신규 개별 구매**만 닫는다. 묶음(`saju_lifetime_bundle`)과 가격행(`LEGACY_UNLOCK_PRODUCTS_65DE451` 포함)은 그대로이고, 기존 구매·확정·환불·정산·과거 구매 증빙 비교는 이 판정을 타지 않는다.
+
+- 응답 계약: HTTP 409, 코드 `PRODUCT_SALE_ENDED`, 본문에 `featureKey`와 `bundleFeatureKey: "saju_lifetime_bundle"`. 화면(Task 5)이 이 필드로 묶음 안내를 연다. V2 결제 컨텍스트는 meta를 응답에 싣지 않으므로 이 코드에 한해 두 키만 `worker/payments/index.js`의 오류 응답에 허용한다.
+- 순서: **보유(묶음 별칭 포함) 확인 → 판매 종료 409 → 차감·주문 생성**. 산 것은 `already_unlocked`로 계속 열린다. `LEGACY_COIN_BLOCKED`보다도 앞이다.
+- 이용권·월정석 제외: `isDirectOnlyPaidFeatureKey`(`paid-feature-registry.js`)가 묶음과 판매 종료 키에 true를 주어 `directOnly`·`monthlyExcluded`·`allowedPaymentMethods ["DIRECT_KRW"]`, 카탈로그 `passExcluded`, 이용권 커버 목록(`pass-cost-catalog`)에서 한 번에 빠진다. `SAJU_BUNDLE_ONLY` 분기는 건드리지 않았다.
+- 꿀방울: 판매 종료 키 6개(`saju-career-style`, `section_summary`, `section_daewun`, `rpt_specialCharmCard`, `rpt_skillTreeCard`, `rpt_villainCard`)가 `HONEY_UNLOCK_PRODUCTS`에서 빠진다. 이미 꿀방울로 산 계정의 재요청은 `unlockHoneyContent`가 보유 확인으로 열고, 비보유는 차감 전에 409다. 꿀방울로 묶음을 사는 경로는 만들지 않았다.
+- 앱: Play 결제 의도(`/google/intent`)·`/products`·`/free-grant`가 판매 종료 키에 409를 준다. 묶음 SKU `cd_content_tier_19`는 막지 않는다. 이미 만든 의도의 `/google/verify`·`/restore`·RTDN은 닫지 않는다.
+- 확정 경로: `findOwnedEntitlement`가 묶음 별칭을 읽도록 맞췄다. 지급(`grantEntitlement`)은 별칭을 보지 않아, 닫히기 전에 만든 포함 키 주문이 확정되면 개별 권리 행이 그대로 남는다.
+- 주의: `createOrder`가 닫힌 키를 막으므로, 같은 멱등키로 닫히기 전에 만든 **미결제** 주문을 다시 열려는 재시도도 409다. 결제된 주문의 확정·환불은 `createOrder`를 쓰지 않아 영향이 없다.
+- 화면 문구(홈의 "5,000원 또는 꿀방울 30개" 등)와 `sync:public`은 Task 5가 다룬다. `scripts/lib/sync-saju-reading-prices.mjs`는 꿀방울 가격을 읽지 않고 현금가만 쓰도록 바꿨다.
+
+### main 통합 뒤 달라진 점 (Task 7, 2026-11-04)
+
+- 꿀방울: main이 `tarot-myeongri-three-card`를 꿀 카탈로그에서 빼 사용처가 24상품이 되었고, 여기서 판매 종료 키 6개가 더 빠져 통합 뒤 카탈로그는 18개다. 꿀방울로 묶음을 사는 경로는 여전히 없다.
+- 승인 판정: 묶음 서버 원국 풀이(`worker/lib/saju-section/paid-natal-reading.src.js`)는 main의 승인 판정을 따른다. `report.js`가 화면과 같은 값(`shown?.power`, `shown?.gyeokguk`)을 넘기고, 용신은 "보완 후보", 기신은 "주의 오행"으로 표기한다. 판정 스위치(`sajuAuthorityOn(env)`)가 꺼지면 main 브라우저 출력과, 켜지면 main 승인 출력과 같아야 한다.
+- 결제 고정 기준(`config/payment-freeze.json`): main 통합으로 `index.html`의 `_cdChooseServicePaymentMode`, `_cdRunDirectKrwCheckout`, `_cdOpenPaidServiceGate` 구간과 `billing.js`(6513줄), `payments.js`(3817줄) 값을 `--update`로 갱신했다. 고정 구간의 변경은 main에서 온 것이 아니라 묶음 브랜치에서 온 결제 흐름 변경이다. main(`869bdba4e`) 대비 차이는 다음과 같다.
+  - `_cdRunDirectKrwCheckout`(496→500줄): 판매 종료 처리 한 줄(`_cdHandleSajuSaleEndedBilling`, 서버 409 `PRODUCT_SALE_ENDED`면 `checkoutError.saleEnded`로 묶음 안내)과, 주문 없는 `alreadyUnlocked` 응답을 해금으로 받는 한 줄(`_cdIsSajuBundleOwnedCheckout`). 후자는 `forceDirectPayment`보다 우선한다.
+  - `_cdChooseServicePaymentMode`, `_cdOpenPaidServiceGate`: `_cdAlertBirthScopeProfileRequired`에 상품 키를 넘긴다(각 1줄, 줄 수 변화 없음).
+  - `worker/routes/billing.js` +21/-2: 판매 종료 키의 409(`MISSING_PROFILE`과 청구보다 먼저), 이용권·월 구독 분기에서 판매 종료 키 제외. `worker/routes/payments.js` +13: `handleSinglePaymentStart`의 판매 종료 409(PortOne 설정 확인보다 먼저). `worker/payments/index.js` +82는 고정 대상 파일이 아니지만 같은 판매 종료 진입 차단(`guardSaleClosedEntry`)과 보유자 응답(`alreadyOwnedSaleClosedBody`)을 담는다.
+  - `alreadyUnlocked` 범위: `payments.js:2020`과 `billing.js:3866`은 어떤 상품이든 `alreadyUnlocked: true`를 돌려줄 수 있어, 조건 없는 처음 형태(`f7a7ae474`)는 사주 밖 상품의 `forceDirectPayment`까지 건너뛰었다. 묶음과 판매 종료 키로만 좁혔고 `__tests__/ui/tile-unlock-balance-separation.static.test.js`가 지킨다. 다른 상품은 main과 같이 주문 실패로 처리된다.
+  - 매니페스트는 묶음 커밋마다 갱신되지 않고 통합 커밋(`4656f22c1`)과 그 뒤 수정 커밋에서만 갱신됐다.
+
+- 이용권 소진 임계(최종 수정 단계, 사용자 확인 필요): `MIN_PASS_COVERABLE_COIN`·`FAMILY_MIN_PASS_COVERABLE_COIN` 10→30(`worker/lib/profile-limits.js`). 묶음이 1,000원 항목을 이용권 대상에서 빼면서 대상 최저가가 30코인이 되어 `verify:pass-tier-policy`가 실패했다. 잔여 10~29코인 이용권은 열 수 있는 항목이 없으므로 이제 소진으로 끝난다.
+- 브라우저 묶음 별칭(최종 리뷰 I1, `fcb4f4d01`): `TILE_LOCK_ALIAS_MAP`은 묶음 키를 쓰지 않는다. 포함 키만 산 사람이 메모리에서 묶음 보유자가 되던 쓰기 확장을 막고, 묶음으로 포함 키를 여는 읽기는 `TILE_LOCK_BUNDLE_READ_KEYS`와 `resolveTileLockReadKeys`로만 한다. 이 수정은 고정 구간과 줄 수 상한을 바꾸지 않았다.
+
+### 균일가 통합 때 지킬 것
+
+이 통합 시점의 main에는 균일가(`worker/lib/light-fortune-catalog.js`)가 없어 교집합을 확인하지 못했다. 균일가를 이 묶음과 합치는 사람은 다음을 먼저 확인한다.
+
+- `light-fortune-catalog`의 키와 `SAJU_BUNDLE_SALE_CLOSED_KEYS`의 교집합은 비어 있어야 한다.
+- 비어 있지 않으면 합치지 말고 멈춰서 사용자에게 보고한다. 같은 키를 균일가로 새로 팔면 판매 종료와 충돌한다.

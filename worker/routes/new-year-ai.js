@@ -1,6 +1,8 @@
+import { connectNewYearTiming, readRepresentativeFacts } from '../lib/representative-consumer-facts.js';
 import { runWithAiLocale, storedAiLocale } from '../lib/ai-locale-context.js';
 import {calculateNatalSaju} from "../../lib/korean-calendar/index.js";
 import { buildSajuNatalAnalysis, SAJU_ELEMENT_KO } from "../lib/saju-natal-analysis.js";
+import { approvedSajuLabels, overlayApprovedNatalAnalysis, sajuAuthorityOn } from "../lib/saju-authority-consumer.js";
 import { sajuTemperamentPromptLines } from '../lib/saju-temperament.js';
 import { buildLuckNatalInteractions } from '../lib/life-book-ai-saju.js';
 import { PREVENTION_VERSION, PREVENTION_RULES, buildSajuPrevention, preventionPillarDetails, canonicalPreventionPillar, preventionTiming, hasUnsupportedPreventionClaim } from '../lib/fortune-prevention.js';
@@ -536,16 +538,23 @@ function buildDaewoonSewoonSummary({ birthYear, gender, yearStem, targetYear, ta
 }
 
 function buildDomainSignals({ annualTenGod, yongshin, johu, monthlyFlow }) {
+  const approved = Boolean(yongshin.calculationVersion);
   const opportunityMonths = monthlyFlow.filter((row) => row.timing.includes("기회")).map((row) => `${row.month}월 ${row.pillar}`).slice(0, 4);
   const cautionMonths = monthlyFlow.filter((row) => row.timing.includes("주의")).map((row) => `${row.month}월 ${row.pillar}`).slice(0, 4);
   const domain = TEN_GOD_DOMAIN[annualTenGod] || "새해의 역할 변화";
   return {
     career: `${annualTenGod || "세운"}은 ${domain}을 통해 일의 방향을 드러냅니다.`,
-    money: `${yongshin.coreYongshinKo}이 살아나는 달에는 수입의 숨통이 열리고, ${yongshin.gisinKo}이 과한 달에는 지출을 줄이는 쪽이 안정적입니다.`,
+    money: approved
+      ? "도움이 되는 기운은 후보로만 봅니다. 재성이 움직이는 달의 수입과 지출을 나란히 적어 보며 판단하는 쪽이 안정적입니다."
+      : `${yongshin.coreYongshinKo}이 살아나는 달에는 수입의 숨통이 열리고, ${yongshin.gisinKo}이 과한 달에는 지출을 줄이는 쪽이 안정적입니다.`,
     love: "합이 드는 달에는 관계가 가까워지고, 충이 드는 달에는 오래 미룬 대화가 표면으로 올라옵니다.",
-    health: `${johu.urgentElementKo} 조절이 컨디션의 핵심이며, 수면과 호흡의 리듬을 먼저 다듬는 편이 좋습니다.`,
+    health: approved
+      ? "한난과 조습을 함께 살피며 수면과 호흡의 리듬을 먼저 다듬는 편이 좋습니다."
+      : `${johu.urgentElementKo} 조절이 컨디션의 핵심이며, 수면과 호흡의 리듬을 먼저 다듬는 편이 좋습니다.`,
     relationship: `${domain}과 맞닿은 인간관계 신호가 강해, 오래된 인연은 ${annualTenGod || "세운"}의 흐름 속에서 다시 정비되고 새 인연은 조직·모임을 통해 이어지기 쉽습니다.`,
-    study: `${yongshin.coreYongshinKo}을 채우는 시기에 집중력과 몰입도가 오르고, ${johu.urgentElementKo}이 흐트러지는 시기엔 무리한 목표보다 리듬 회복을 먼저 다루는 편이 낫습니다.`,
+    study: approved
+      ? "후보 기운이 드는 시기를 확정된 길운으로 보지 말고, 집중이 잘 된 시기를 기록하며 리듬을 찾는 편이 낫습니다."
+      : `${yongshin.coreYongshinKo}을 채우는 시기에 집중력과 몰입도가 오르고, ${johu.urgentElementKo}이 흐트러지는 시기엔 무리한 목표보다 리듬 회복을 먼저 다루는 편이 낫습니다.`,
     opportunityMonths,
     cautionMonths,
   };
@@ -578,8 +587,12 @@ function buildMonthlyDomainSignals({ element, branch, tenGod, relationToDayBranc
   const hasChung = /충/.test(relationToDayBranch);
   const wealthElement = CONTROLS[dayElement] || "";
   const officerElement = officerElementOf(dayElement);
-  const supportsYongshin = element === core || element === heesin || branchElement === core;
-  const feedsGisin = element === gisin || branchElement === gisin;
+  const approved = Boolean(yongshin.calculationVersion);
+  // 승인 판정에는 단일 용신이 없다. 후보 오행과 맞닿는지만 보고, 기신 감점은 하지 않는다.
+  const supportsYongshin = approved
+    ? yongshin.yongshinElementsKo.includes(element) || yongshin.yongshinElementsKo.includes(branchElement)
+    : element === core || element === heesin || branchElement === core;
+  const feedsGisin = Boolean(gisin) && (element === gisin || branchElement === gisin);
 
   let overall = 0;
   if (supportsYongshin) overall += 1;
@@ -587,7 +600,7 @@ function buildMonthlyDomainSignals({ element, branch, tenGod, relationToDayBranc
   if (hasHap) overall += 1;
   if (hasChung) overall -= 1;
   const overallBasis = supportsYongshin
-    ? `월지 기운이 용신 ${core}을 살려 흐름이 트이는 달`
+    ? (approved ? "월의 기운이 도움 후보 오행과 맞닿아 흐름을 살펴볼 달" : `월지 기운이 용신 ${core}을 살려 흐름이 트이는 달`)
     : feedsGisin
       ? `기신 ${gisin}이 강해져 속도를 조절할 달`
       : hasChung
@@ -640,13 +653,15 @@ function buildMonthlyDomainSignals({ element, branch, tenGod, relationToDayBranc
         ? "세운과 같은 결이 겹쳐 일의 방향이 또렷해지는 달"
         : "직업 운은 흐름을 유지하며 내실을 다지는 달";
 
-  const healthElementLive = element === urgent || branchElement === urgent;
+  const healthElementLive = approved
+    ? johu.usefulElementsKo.includes(element) || johu.usefulElementsKo.includes(branchElement)
+    : element === urgent || branchElement === urgent;
   let health = 0;
   if (healthElementLive) health += 1;
   if (feedsGisin) health -= 1;
   if (hasChung) health -= 1;
   const healthBasis = healthElementLive
-    ? `조후 급용신 ${urgent}이 채워져 컨디션이 안정되는 달`
+    ? (approved ? "조후 보완 후보 기운이 들어 컨디션을 살피기 좋은 달" : `조후 급용신 ${urgent}이 채워져 컨디션이 안정되는 달`)
     : hasChung
       ? "변동의 여파로 피로·리듬 관리가 필요한 달"
       : feedsGisin
@@ -715,14 +730,16 @@ function coreMonthPillar(year, month) {
 }
 
 // 사주·세운 계산은 LLM에 넘길 구조 데이터만 만들고, 해석 문장은 LLM 상담 단계에서 생성한다.
-function calculateNewYearFortuneData(input) {
+function calculateNewYearFortuneData(input, { authorityEnabled = false } = {}) {
   const birth = input.birthInfo || {};
   // 날짜 유효성·음력 환산·시각 미상은 공통 원국 계산 계약으로 판정한다.
   const natal = calculateNatalSaju(birth);
   const timeUnknown = natal.calculationMeta.timeUnknown;
   const solarBirth = natal.calculationMeta.civil;
   const corePillars = natal.pillars;
-  const natalAnalysis = buildSajuNatalAnalysis(corePillars, { timeUnknown });
+  const labels = authorityEnabled ? approvedSajuLabels(timeUnknown ? { ...corePillars, hour: null } : corePillars) : null;
+  const screenAnalysis = buildSajuNatalAnalysis(corePillars, { timeUnknown });
+  const natalAnalysis = labels ? overlayApprovedNatalAnalysis(screenAnalysis, labels) : screenAnalysis;
   const yearPillar = toKoreanGanzi(corePillars.year);
   const monthPillar = toKoreanGanzi(corePillars.month);
   const dayPillar = toKoreanGanzi(corePillars.day);
@@ -743,9 +760,15 @@ function calculateNewYearFortuneData(input) {
   const targetBranch = pillarBranch(targetPillar);
   const targetTenGod = tenGodFor(dayMaster, targetStem);
   const annualInteractions = buildAnnualInteractions(pillarMap, targetStem, targetBranch);
-  const gyeokguk = buildGyeokgukSummary(dayMaster, monthPillar);
-  const yongshin = buildYongshinSummary(dayMaster, fiveElements, natalAnalysis);
-  const johu = buildJohuSummary(natalAnalysis);
+  const baseGyeokguk = buildGyeokgukSummary(dayMaster, monthPillar);
+  const baseYongshin = buildYongshinSummary(dayMaster, fiveElements, natalAnalysis);
+  const baseJohu = buildJohuSummary(natalAnalysis);
+  const gyeokguk = labels ? { ...baseGyeokguk, finalGyeokguk: labels.gyeokguk, reading: labels.gyeokgukReason,
+    status: labels.gyeokgukStatus, calculationVersion: labels.calculationVersion, natalAnalysisId: labels.natalAnalysisId } : baseGyeokguk;
+  const yongshin = labels ? { ...baseYongshin, coreYongshinKo: labels.yongshinLabel, heesinKo: "", gisinKo: "",
+    yongshinElementsKo: labels.candidateNames, status: labels.status, reading: labels.yongshinExplanation,
+    calculationVersion: labels.calculationVersion, natalAnalysisId: labels.natalAnalysisId, interpretationRules: labels.promptRules } : baseYongshin;
+  const johu = labels ? { ...baseJohu, urgentElementKo: "", usefulElementsKo: labels.johuCandidateNames } : baseJohu;
   const domainContext = {
     dayElement: STEM_ELEMENT[dayMaster] || "",
     yongshin,
@@ -1329,7 +1352,7 @@ export function buildAdminLabPrompt(body = {}, options = {}) {
   const fortuneData = calculateNewYearFortuneData(normalized.input);
 
   return {
-    systemPrompt: [buildSystemPrompt(section), expertPersonaText("neoNewYear")].filter(Boolean).join("\n\n"),
+    systemPrompt: [buildSystemPrompt(), expertPersonaText("neoNewYear")].filter(Boolean).join("\n\n"),
     prompt: buildFirstPrompt(normalized.input, fortuneData, section),
   };
 }
@@ -1359,13 +1382,16 @@ function buildSystemPrompt(section = null) {
     "13. 완성 상담문 전체 본문은 공백을 제외하고 20,000자 이상 33,000자 이하로 씁니다. 권장 분량은 28,500~32,000자이며, 항목마다 20,000자를 쓰라는 뜻이 아닙니다.",
     "14. 분량이 부족할 때는 같은 말을 늘리지 말고, 명리 전문가로서 격국·월령, 용신·기신, 조후, 대운·세운, 천간·지지 합충, 월운, 현실 처방 파트를 새로 보강합니다.",
     "15. 문단 사이는 빈 줄로 구분하고, 핵심 문구는 **굵게** 표시합니다. 필요할 때만 '-' 목록을 쓰고, 그 외 마크다운(제목 #, 코드블록, 표)은 쓰지 않습니다.",
-    ...(section ? [
-      "",
-      `이번 요청은 완성 상담문 전체가 아니라 "${section.label}" 부분만 쓰는 작업입니다.`,
-      "위 13번의 전체 분량 기준은 여러 부분을 합친 최종 결과에 적용됩니다. 이번 응답에서는 사용자 프롬프트가 지정한 이 부분의 분량 범위만 지키세요.",
-      "인사말·자기소개·전체 총평·마무리 인사를 새로 만들지 말고, 지정된 항목의 내용만 이어서 씁니다.",
-    ] : []),
+    ...(section ? ["", ...sectionScopeLines(section)] : []),
   ].join("\n");
+}
+
+function sectionScopeLines(section) {
+  return [
+    `이번 요청은 완성 상담문 전체가 아니라 "${section.label}" 부분만 쓰는 작업입니다.`,
+    "지침 13번의 전체 분량 기준은 여러 부분을 합친 최종 결과에 적용됩니다. 이번 응답에서는 지정된 이 부분의 분량 범위만 지키세요.",
+    "인사말·자기소개·전체 총평·마무리 인사를 새로 만들지 말고, 지정된 항목의 내용만 이어서 씁니다.",
+  ];
 }
 
 // 세운·월운 계산 확정값을 프롬프트 앵커로 요약한다.
@@ -1375,6 +1401,15 @@ function buildCanonicalNewYearFacts(fortuneData = {}) {
   const trigger = fortuneData.advancedSajuSummary?.daewoonSewoon?.annualEventTrigger || null;
   const monthly = Array.isArray(fortuneData.monthlyFlow) ? fortuneData.monthlyFlow : [];
   const lines = sajuTemperamentPromptLines({...fortuneData.saju,natalAnalysis:fortuneData.natalAnalysis,calculationMeta:fortuneData.calculationMeta});
+  const approvedYongshin = fortuneData.advancedSajuSummary?.yongshin;
+  if (approvedYongshin?.calculationVersion) {
+    lines.push(`격국: ${fortuneData.advancedSajuSummary.gyeokguk?.finalGyeokguk} / 용신: ${approvedYongshin.coreYongshinKo} (${approvedYongshin.status})`, ...approvedYongshin.interpretationRules);
+  }
+  if (fortuneData.majorLuck) {
+    const luck = fortuneData.majorLuck;
+    lines.push('대운 근거: ' + JSON.stringify(luck));
+    lines.push('원국·대운·세운을 구분합니다. available=false 또는 currentCycle이 없으면 대운 시작일·현재 구간을 추정하지 않습니다.');
+  }
   if (target.pillar) {
     lines.push(`세운: ${target.year}년 ${target.pillar} (천간 ${target.stem}=${target.stemElement}, 지지 ${target.branch}=${target.branchElement}, 일간 기준 십신 ${target.tenGodToDayMaster || "미산출"})`);
   }
@@ -1503,11 +1538,8 @@ function buildSectionLengthLines(section) {
   ];
 }
 
-// section을 넘기면 그 섹션이 맡은 아웃라인 항목만 남기고 분량 지시도 섹션 기준으로 바뀐다.
-// 2인자로 부르면 출력이 기존과 완전히 동일하다(verify-new-year-ai-flow가 이 프롬프트를 단언).
-function buildFirstPrompt(input, fortuneData, section = null) {
+function newYearHeadLines(input) {
   const birth = input.birthInfo || {};
-  const outline = buildConsultationOutline(input);
   return [
     "아래 사용자 입력과 서버에서 계산된 사주·세운 데이터를 바탕으로 신년운세 첫 상담문을 작성하세요.",
     "문장은 전문적이고 신비로우며 따뜻하게, 실제 선택에 도움이 되도록 현실적으로 말하세요.",
@@ -1524,6 +1556,29 @@ function buildFirstPrompt(input, fortuneData, section = null) {
     `- 집중 상담 분야: ${FOCUS_AREA_LABELS[input.focusArea] || FOCUS_AREA_LABELS.overall}`,
     `- 처음 입력한 더 깊게 보고 싶은 흐름: ${input.question || "전체 흐름 중심"}`,
     "",
+  ];
+}
+
+function newYearFactLines(fortuneData) {
+  return [
+    "[계산된 사주와 세운 데이터]",
+    JSON.stringify(fortuneData),
+    "",
+    "[계산 확정값 — 본문에서 이 값과 다르게 서술하는 것을 금지]",
+    ...buildCanonicalNewYearFacts(fortuneData),
+    "",
+    "[카테고리별 참고 신호 — 아래 6번 항목에서 각 소제목 문단의 출발점으로 삼되, 표현은 자연스럽게 재구성할 것]",
+    ...buildDomainSignalLines(fortuneData),
+    "",
+  ];
+}
+
+// section을 넘기면 그 섹션이 맡은 아웃라인 항목만 남기고 분량 지시도 섹션 기준으로 바뀐다.
+// 섹션별 문장을 계산 데이터 뒤에 두어 Gemini 자동 캐시가 공통 앞부분을 재사용하게 한다.
+// 2인자로 부르면 출력이 기존과 완전히 동일하다(verify-new-year-ai-flow가 이 프롬프트를 단언).
+function buildFirstPrompt(input, fortuneData, section = null) {
+  const outline = buildConsultationOutline(input);
+  const questionLines = [
     // "질문에 대한 답변" 소제목은 총운 섹션 하나만 쓴다. 섹션 전부에 이 지시가 들어가면
     // 조립본에 같은 소제목이 다섯 번 반복되고, 분야 카드마다 같은 답이 머리에 붙는다.
     ...(clean(input.question).length >= 2 && (!section || section.key === "opening") ? [
@@ -1540,16 +1595,14 @@ function buildFirstPrompt(input, fortuneData, section = null) {
       "이 질문에 대한 직접적인 답변 소제목은 다른 부분에서 이미 씁니다. 여기서는 **질문에 대한 답변** 소제목을 만들지 말고, 이 부분이 맡은 분야가 그 질문과 맞닿는 지점만 자연스럽게 반영하세요.",
       "",
     ] : []),
-    "[계산된 사주와 세운 데이터]",
-    JSON.stringify(fortuneData),
-    "",
-    "[계산 확정값 — 본문에서 이 값과 다르게 서술하는 것을 금지]",
-    ...buildCanonicalNewYearFacts(fortuneData),
-    "",
-    "[카테고리별 참고 신호 — 아래 6번 항목에서 각 소제목 문단의 출발점으로 삼되, 표현은 자연스럽게 재구성할 것]",
-    ...buildDomainSignalLines(fortuneData),
-    "",
+  ];
+  return [
+    ...newYearHeadLines(input),
+    ...(section ? [] : questionLines),
+    ...newYearFactLines(fortuneData),
+    ...(section ? questionLines : []),
     ...(section ? [
+      ...sectionScopeLines(section),
       `이번에는 완성 상담문 중 "${section.label}" 부분만 씁니다. 아래 항목만 쓰고 다른 항목은 쓰지 마세요.`,
       "이 부분은 더 긴 상담문의 일부로 그대로 이어 붙습니다. 도입 인사나 전체 요약을 새로 만들지 말고 바로 내용부터 쓰세요.",
     ] : [
@@ -1887,7 +1940,7 @@ async function generateConsultationSection(env, options) {
   if (!(timeoutMs > 0)) return { ...base, text: previousText, ok: false, reason: "BUDGET_EXHAUSTED" };
   try {
     const ai = await callGeminiText(env, buildSectionPrompt(input, fortuneData, section, repairLines, previousText, priorSections), {
-      systemPrompt: await appendExpertPersona(env, "neoNewYear", buildSystemPrompt(section)),
+      systemPrompt: await appendExpertPersona(env, "neoNewYear", buildSystemPrompt()),
       taskType: "fortune",
       temperature: repairLines.length ? 0.62 : 0.72,
       maxOutputTokens: NEW_YEAR_AI_SECTION_MAX_OUTPUT_TOKENS,
@@ -2560,7 +2613,11 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
     return json({ ...publicSession(existing), status: 'generating' }, { status: 202 });
   }
   let fortuneData;
-  try { fortuneData = existing?.llmMeta?.fortuneData || calculateNewYearFortuneData(normalized.input); }
+  try {
+    fortuneData = existing?.llmMeta?.fortuneData
+      ? readRepresentativeFacts(existing.llmMeta.fortuneData, 'new-year')
+      : connectNewYearTiming(calculateNewYearFortuneData(normalized.input, { authorityEnabled: !existing && sajuAuthorityOn(env) }), normalized.input.birthInfo, existing ? {} : env);
+  }
   catch (error) {
     if (!existing) await releaseRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds });
     if (!existing && access.deferredUsage) await callDeferredUsageRoute({ request, env, auth, path: 'cancel', idempotencyKey, sessionId,

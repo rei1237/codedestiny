@@ -2,7 +2,7 @@ const fs=require('node:fs'),path=require('node:path'),http=require('node:http'),
 const root=path.resolve(__dirname,'../..');
 const {chromium}=require(path.join(root,'node_modules/playwright'));
 const out=path.join(root,'build-cache/destiny-anatomy');fs.mkdirSync(out,{recursive:true});
-const mime={'.html':'text/html','.js':'application/javascript','.css':'text/css','.json':'application/json','.webp':'image/webp','.png':'image/png','.woff2':'font/woff2','.svg':'image/svg+xml','.mp3':'audio/mpeg'};
+const mime={'.html':'text/html','.js':'application/javascript','.mjs':'application/javascript','.css':'text/css','.json':'application/json','.webp':'image/webp','.png':'image/png','.woff2':'font/woff2','.svg':'image/svg+xml','.mp3':'audio/mpeg'};
 const server=http.createServer((req,res)=>{
  let pathname=decodeURIComponent(new URL(req.url,'http://localhost').pathname);
  if(pathname.endsWith('/'))pathname+='index.html';
@@ -16,12 +16,15 @@ const server=http.createServer((req,res)=>{
  const browser=await chromium.launch({headless:true});
  try{
  const page=await browser.newPage({viewport:{width:390,height:844},reducedMotion:'reduce'});
+  await page.addInitScript(()=>sessionStorage.setItem('cd_signature_consult_session_closed_v1','1')); // 홈 상담 팝업이 클릭을 가리지 않게 한다
  const errors=[],apis=[];
  const HD={type:'TYPE_PROJECTOR',strategy:'STRATEGY_WAIT_FOR_INVITATION',authority:'AUTHORITY_EMOTIONAL',profile:'2/4',definition:'DEFINITION_SINGLE',definedCenters:['SOLAR_PLEXUS','THROAT','G'],channels:[{channelId:'12-22'}],activeGates:[12,22]};
  const VEDIC={ok:true,groups:[{key:'core',title:'',items:[{label:'라그나',value:'사자자리 (Leo)'},{label:'달의 라시',value:'게자리'},{label:'나크샤트라',value:'Pushya · 2파다'}]}]};
  page.on('pageerror',e=>errors.push(e.message));
  await page.route('**/*',async route=>{
    const url=new URL(route.request().url());
+   // Swiss Ephemeris 는 돌리지 않는다. 차트 응답은 위 mock 이다.
+   if(/swisseph|sweph/i.test(url.pathname))return route.abort();
    if(url.pathname.startsWith('/api/')){
      apis.push({path:url.pathname,method:route.request().method()});
      if(url.pathname==='/api/human-design/chart' || url.pathname==='/api/vedic-ai/basis'){
@@ -67,6 +70,15 @@ const server=http.createServer((req,res)=>{
  await page.setViewportSize({width:390,height:844});
 
  const card=page.locator('#destinyAnatomyCard');
+ // 잠금 전(사주 영구 묶음 미보유): 카드는 비어 있고 자산·차트 요청도 없다. 해금 이벤트 뒤에만 계산 결과가 나타난다.
+ assert.equal(await page.evaluate(()=>window.CdSajuBundleOffer.isOpen()),false);
+ assert.equal(await card.evaluate(el=>el.hidden||el.innerHTML.trim()===''),true);
+ assert.equal(await page.locator('[data-da-trigger]').count(),0);
+ assert.equal(apis.filter(r=>r.path.includes('/human-design/chart')||r.path.includes('/vedic-ai/basis')).length,0);
+ // isTileKeyUnlocked 를 덮어쓰지 않는다. 입력과 같은 출생의 저장 프로필을 고르고 실제 해금 함수를 지나 연다.
+ await page.evaluate(async()=>{const PID='mock-anatomy-profile';await window.__cdEnsureDestinyProfileLoaded();const profile={id:PID,name:'검증',gender:window.__cdActiveBirthProfile.gender,birth:{...window.__cdActiveBirthProfile.birth},location:{lat:37.5665,lng:126.978,tzOffset:9,name:'서울'}};window.DestinyProfileManager.storage.save([profile]);window.DestinyProfileManager.storage.setCurrent(PID);if(window._cdFinalizeUnlockState('saju_lifetime_bundle',{ok:true})!==true)throw new Error('Real unlock path did not open the bundle');window.dispatchEvent(new Event('cd:unlocks-changed'));});
+ await page.waitForSelector('[data-da-trigger]',{state:'attached'});
+ assert.equal(await page.evaluate(()=>window.CdSajuBundleOffer.isOpen()),true);
  await card.evaluate(el=>el.scrollIntoView({block:'start'}));await page.waitForTimeout(400);
  await page.screenshot({path:path.join(out,'initial.png')});
  // content-visibility:auto can omit offscreen pixels from full-element captures.

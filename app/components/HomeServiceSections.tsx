@@ -122,7 +122,7 @@ const HOME_SERVICE_COPY: Record<LoadingLocale, {
   },
   en: {
     title: "Kkulkkul Manse Calendar",
-    defaultIntro: "Use free Saju, Zi Wei Dou Shu, Myeongri Tarot, astrology, I Ching, Sukuyo, Hwatu, animal face reading, MBTI compatibility, Destiny Flower, Dream Tarot, and more in one place. Choose a category below to open the native page.",
+    defaultIntro: "Use the free Manseryeok, Saju, Zi Wei Dou Shu, Myeongri Tarot, astrology, I Ching, Sukuyo, Hwatu, animal face reading, MBTI compatibility, Destiny Flower, Dream Tarot, and more in one place. Choose a category below to open the native page.",
     belowLegacyIntro: "The screen above still opens the same cards and modals as the legacy main. This list provides direct native pages for search and internal links.",
     legacyCta: "Open all features screen (legacy main)",
     legacyNote: "The legacy main gathers cards and modals on one screen.",
@@ -137,7 +137,7 @@ const HOME_SERVICE_COPY: Record<LoadingLocale, {
   },
   ja: {
     title: "クルクル万歳暦",
-    defaultIntro: "無料の四柱推命万歳暦、紫微斗数、命理タロット、占星術、易経、宿曜、花札占い、どうぶつ人相、MBTI相性、運命の花、ドリームプロンプトなどを一か所で利用できます。下のカテゴリから見たい項目を開いてください。",
+    defaultIntro: "無料の万年暦、四柱推命、紫微斗数、命理タロット、占星術、易経、宿曜、花札占い、どうぶつ人相、MBTI相性、運命の花、ドリームプロンプトなどを一か所で利用できます。下のカテゴリから見たい項目を開いてください。",
     belowLegacyIntro: "上の画面では、従来メインと同じカード・モーダル機能を使えます。検索と内部リンク用に、サービス別のネイティブページへ直接移動できる一覧です。",
     legacyCta: "全機能画面を開く（レガシーメイン）",
     legacyNote: "カードとモーダルが一画面にまとまった従来メインです。",
@@ -152,7 +152,7 @@ const HOME_SERVICE_COPY: Record<LoadingLocale, {
   },
   "zh-CN": {
     title: "Kkulkkul 万年历",
-    defaultIntro: "可在一处使用免费八字万年历、紫微斗数、命理塔罗、占星术、周易、宿曜、花札占、动物面相、MBTI合盘、命运之花、梦境提示词等运势服务。请选择下方分类进入对应页面。",
+    defaultIntro: "可在一处使用免费万年历、四柱八字、紫微斗数、命理塔罗、占星术、周易、宿曜、花札占、动物面相、MBTI合盘、命运之花、梦境提示词等运势服务。请选择下方分类进入对应页面。",
     belowLegacyIntro: "上方画面仍可像旧版主页一样使用卡片与弹窗。这里提供按服务区分的原生页面链接，便于搜索和内部跳转。",
     legacyCta: "打开全部功能画面（旧版主页）",
     legacyNote: "旧版主页会把卡片与弹窗集中在同一个画面。",
@@ -167,7 +167,7 @@ const HOME_SERVICE_COPY: Record<LoadingLocale, {
   },
   "zh-TW": {
     title: "Kkulkkul 萬年曆",
-    defaultIntro: "可在一處使用免費八字萬年曆、紫微斗數、命理塔羅、占星術、周易、宿曜、花札占、動物面相、MBTI合盤、命運之花、夢境提示詞等運勢服務。請選擇下方分類進入對應頁面。",
+    defaultIntro: "可在一處使用免費萬年曆、四柱八字、紫微斗數、命理塔羅、占星術、周易、宿曜、花札占、動物面相、MBTI合盤、命運之花、夢境提示詞等運勢服務。請選擇下方分類進入對應頁面。",
     belowLegacyIntro: "上方畫面仍可像舊版首頁一樣使用卡片與彈窗。這裡提供按服務區分的原生頁面連結，便於搜尋和內部跳轉。",
     legacyCta: "開啟全部功能畫面（舊版首頁）",
     legacyNote: "舊版首頁會把卡片與彈窗集中在同一個畫面。",
@@ -182,7 +182,7 @@ const HOME_SERVICE_COPY: Record<LoadingLocale, {
   },
   vi: {
     title: "Kkulkkul Manse Calendar",
-    defaultIntro: "Dùng Saju miễn phí, Tử Vi, Myeongri Tarot, chiêm tinh, Kinh Dịch, Sukuyo, Hwatu, xem tướng động vật, tương hợp MBTI, Destiny Flower, Dream Tarot và nhiều dịch vụ vận may khác tại một nơi.",
+    defaultIntro: "Dùng Lịch vạn niên miễn phí, Saju, Tử Vi, Myeongri Tarot, chiêm tinh, Kinh Dịch, Sukuyo, Hwatu, xem tướng động vật, tương hợp MBTI, Destiny Flower, Dream Tarot và nhiều dịch vụ vận may khác tại một nơi.",
     belowLegacyIntro: "Màn hình phía trên vẫn mở thẻ và modal giống trang chính cũ. Danh sách này dẫn thẳng đến từng trang native cho tìm kiếm và liên kết nội bộ.",
     legacyCta: "Mở toàn bộ tính năng (main cũ)",
     legacyNote: "Main cũ gom thẻ và modal trên cùng một màn hình.",
@@ -197,7 +197,7 @@ const HOME_SERVICE_COPY: Record<LoadingLocale, {
   },
   hi: {
     title: "Kkulkkul Manse Calendar",
-    defaultIntro: "मुफ्त Saju, Zi Wei, Myeongri Tarot, ज्योतिष, I Ching, Sukuyo, Hwatu, पशु-चेहरा रीडिंग, MBTI संगति, Destiny Flower, Dream Tarot और अन्य भाग्य सेवाएँ एक ही जगह उपलब्ध हैं.",
+    defaultIntro: "मुफ्त मान्सेर्योक, Saju, Zi Wei, Myeongri Tarot, ज्योतिष, I Ching, Sukuyo, Hwatu, पशु-चेहरा रीडिंग, MBTI संगति, Destiny Flower, Dream Tarot और अन्य भाग्य सेवाएँ एक ही जगह उपलब्ध हैं.",
     belowLegacyIntro: "ऊपर की स्क्रीन पुराने मुख्य पेज की तरह कार्ड और मोडल खोलती है. यह सूची खोज और आंतरिक लिंक के लिए सीधे native पेजों तक ले जाती है.",
     legacyCta: "सभी सुविधाएँ खोलें (पुराना मुख्य पेज)",
     legacyNote: "पुराना मुख्य पेज कार्ड और मोडल को एक ही स्क्रीन पर रखता है.",
@@ -212,7 +212,7 @@ const HOME_SERVICE_COPY: Record<LoadingLocale, {
   },
   es: {
     title: "Kkulkkul Manse Calendar",
-    defaultIntro: "Usa Saju gratis, Zi Wei, Myeongri Tarot, astrología, I Ching, Sukuyo, Hwatu, lectura animal, compatibilidad MBTI, Destiny Flower, Dream Tarot y más en un solo lugar.",
+    defaultIntro: "Usa Manseryeok gratis, Saju, Zi Wei, Myeongri Tarot, astrología, I Ching, Sukuyo, Hwatu, lectura animal, compatibilidad MBTI, Destiny Flower, Dream Tarot y más en un solo lugar.",
     belowLegacyIntro: "La pantalla superior abre las mismas tarjetas y modales que el main heredado. Esta lista lleva directo a páginas nativas para búsqueda y enlaces internos.",
     legacyCta: "Abrir pantalla de funciones (main heredado)",
     legacyNote: "El main heredado reúne tarjetas y modales en una pantalla.",
@@ -227,7 +227,7 @@ const HOME_SERVICE_COPY: Record<LoadingLocale, {
   },
   fr: {
     title: "Kkulkkul Manse Calendar",
-    defaultIntro: "Utilisez Saju gratuit, Zi Wei, Myeongri Tarot, astrologie, Yi Jing, Sukuyo, Hwatu, lecture animale, compatibilité MBTI, Destiny Flower, Dream Tarot et plus au même endroit.",
+    defaultIntro: "Utilisez Manseryeok gratuit, Saju, Zi Wei, Myeongri Tarot, astrologie, Yi Jing, Sukuyo, Hwatu, lecture animale, compatibilité MBTI, Destiny Flower, Dream Tarot et plus au même endroit.",
     belowLegacyIntro: "L'écran ci-dessus ouvre les mêmes cartes et modales que l'ancien main. Cette liste mène aux pages natives pour la recherche et les liens internes.",
     legacyCta: "Ouvrir toutes les fonctions (ancien main)",
     legacyNote: "L'ancien main rassemble cartes et modales sur un seul écran.",
@@ -242,7 +242,7 @@ const HOME_SERVICE_COPY: Record<LoadingLocale, {
   },
   de: {
     title: "Kkulkkul Manse Calendar",
-    defaultIntro: "Nutze kostenloses Saju, Zi Wei, Myeongri Tarot, Astrologie, I Ging, Sukuyo, Hwatu, Tiergesichtlesen, MBTI-Kompatibilität, Destiny Flower, Dream Tarot und mehr an einem Ort.",
+    defaultIntro: "Nutze kostenloses Manseryeok, Saju, Zi Wei, Myeongri Tarot, Astrologie, I Ging, Sukuyo, Hwatu, Tiergesichtlesen, MBTI-Kompatibilität, Destiny Flower, Dream Tarot und mehr an einem Ort.",
     belowLegacyIntro: "Der obere Bereich öffnet Karten und Modals wie der alte Main. Diese Liste führt für Suche und interne Links direkt zu nativen Seiten.",
     legacyCta: "Alle Funktionen öffnen (alter Main)",
     legacyNote: "Der alte Main sammelt Karten und Modals auf einem Bildschirm.",
@@ -257,7 +257,7 @@ const HOME_SERVICE_COPY: Record<LoadingLocale, {
   },
   nl: {
     title: "Kkulkkul Manse Calendar",
-    defaultIntro: "Gebruik gratis Saju, Zi Wei, Myeongri Tarot, astrologie, I Tjing, Sukuyo, Hwatu, dierlijke gezichtslezing, MBTI-compatibiliteit, Destiny Flower, Dream Tarot en meer op één plek.",
+    defaultIntro: "Gebruik gratis Manseryeok, Saju, Zi Wei, Myeongri Tarot, astrologie, I Tjing, Sukuyo, Hwatu, dierlijke gezichtslezing, MBTI-compatibiliteit, Destiny Flower, Dream Tarot en meer op één plek.",
     belowLegacyIntro: "Het scherm hierboven opent dezelfde kaarten en modals als de legacy main. Deze lijst leidt direct naar native pagina's voor zoeken en interne links.",
     legacyCta: "Alle functies openen (legacy main)",
     legacyNote: "De legacy main verzamelt kaarten en modals op één scherm.",
@@ -272,7 +272,7 @@ const HOME_SERVICE_COPY: Record<LoadingLocale, {
   },
   ms: {
     title: "Kkulkkul Manse Calendar",
-    defaultIntro: "Gunakan Saju percuma, Zi Wei, Myeongri Tarot, astrologi, I Ching, Sukuyo, Hwatu, bacaan wajah haiwan, keserasian MBTI, Destiny Flower, Dream Tarot dan banyak lagi di satu tempat.",
+    defaultIntro: "Gunakan Manseryeok percuma, Saju, Zi Wei, Myeongri Tarot, astrologi, I Ching, Sukuyo, Hwatu, bacaan wajah haiwan, keserasian MBTI, Destiny Flower, Dream Tarot dan banyak lagi di satu tempat.",
     belowLegacyIntro: "Skrin di atas membuka kad dan modal seperti main lama. Senarai ini membawa terus ke halaman native untuk carian dan pautan dalaman.",
     legacyCta: "Buka semua fungsi (main lama)",
     legacyNote: "Main lama mengumpulkan kad dan modal pada satu skrin.",

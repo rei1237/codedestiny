@@ -20,7 +20,7 @@ test('free saju before status finishes records the tutorial without repeating th
 
 test('eligible newcomers can hide the invitation for today across refresh events',async()=>{
  const {dom,win,release}=setup();release();await flush();
- const guide=win.document.getElementById('cdActivationGuide');assert.match(guide.textContent,/무료 사주/);
+ const guide=win.document.getElementById('cdActivationGuide');assert.match(guide.textContent,/무료 만세력/);
  const button=guide.querySelector('button');assert.equal(button.textContent,'오늘 하루 보지 않기');button.click();
  win.dispatchEvent(new win.Event('cd:destiny-profile-server-ready'));await flush();assert.equal(win.document.getElementById('cdActivationGuide'),null);
  assert.ok(Number(win.localStorage.getItem('cd:activation-guide:hidden-until:own-account'))>Date.now());dom.window.close();

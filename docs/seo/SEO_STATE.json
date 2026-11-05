@@ -426,7 +426,7 @@
   "lastMonthlyAudit": "2026-09-08",
   "lastWeeklyCycle": "2026-10-12",
   "outreachRegistry": "docs/seo/outreach/candidates.json",
-  "productionObservedSha": "a221a78eb1c667a4e00976f562e62f5298f48503",
+  "productionObservedSha": "9ecd0874389dc55695866561b21d65150c3171a6",
   "automation": {
     "heartbeatId": "code-destiny-seo-growth",
     "nextWeeklyKst": "2026-09-28 09:20",
@@ -4910,6 +4910,178 @@
       "Bing Webmaster, Copilot and Naver were not measured: the first two showed sign-in walls, Naver was out of this run.",
       "This is a before-change baseline. No effect of the change is measured or implied."
     ],
-    "nextCheck": "Repeat the same question set no earlier than 28 days after production promotion, and read GA4 ai_source only after the custom dimension is registered."
+    "nextCheck": "Repeat the same question set no earlier than 28 days after production promotion, and read GA4 ai_source only after the custom dimension is registered.",
+    "ownerTasks20261104": {
+      "observedAt": "2026-11-04",
+      "ga4": {
+        "propertyId": "526361229",
+        "dimension": "AI Source",
+        "scope": "event",
+        "parameter": "ai_source",
+        "status": "created and verified in list"
+      },
+      "gsc": {
+        "url": "https://code-destiny.com/yeongnyangi/",
+        "status": "indexed",
+        "userCanonical": "https://code-destiny.com/yeongnyangi/",
+        "googleCanonical": "https://code-destiny.com/yeongnyangi/",
+        "lastCrawlDisplayed": "2026-11-03 17:36:54",
+        "indexRequest": "not submitted; already indexed"
+      },
+      "cloudflare": {
+        "period": "last 30 days",
+        "botFightMode": "off",
+        "browserIntegrityCheck": "off",
+        "botPreferenceSync": "off",
+        "managedRuleset": "always active",
+        "customRules": "Allow Verified Bots active; AI user-agent block, exploit scanner block and overseas challenge disabled",
+        "rateLimit": "Block-Infinite-Loop active: URI path starts with /",
+        "crawlerCounts": {
+          "Applebot": {
+            "allowedDisplayed": "33.6k",
+            "unsuccessfulDisplayed": "560"
+          },
+          "OAI-SearchBot": {
+            "allowedDisplayed": "26.37k",
+            "unsuccessfulDisplayed": "3.32k"
+          },
+          "Googlebot": {
+            "allowedDisplayed": "13.93k",
+            "unsuccessfulDisplayed": "1.08k"
+          },
+          "BingBot": {
+            "allowedDisplayed": "7.38k",
+            "unsuccessfulDisplayed": "660"
+          },
+          "GPTBot": {
+            "allowedDisplayed": "3.95k",
+            "unsuccessfulDisplayed": "510"
+          },
+          "PerplexityBot": {
+            "allowedDisplayed": "2.8k",
+            "unsuccessfulDisplayed": "400"
+          },
+          "ClaudeBot": {
+            "allowedDisplayed": "2.18k",
+            "unsuccessfulDisplayed": "360"
+          },
+          "Claude-SearchBot": {
+            "allowedDisplayed": "0",
+            "unsuccessfulDisplayed": "430"
+          }
+        },
+        "aggregateStatus": {
+          "totalRequestsDisplayed": "113.34k",
+          "allowedRequestsDisplayed": "102k",
+          "unsuccessfulRequestsDisplayed": "12k",
+          "status200": "97.95k",
+          "status403": "170",
+          "status404": "11.31k"
+        },
+        "representativePaths": {
+          "/": {
+            "total": 740,
+            "allowed": 690,
+            "unsuccessful": 50,
+            "status": {
+              "200": 350,
+              "301": 230,
+              "302": 110,
+              "403": 10,
+              "404": 40
+            }
+          },
+          "/ggulggul/": {
+            "total": 870,
+            "allowed": 870,
+            "unsuccessful": 0,
+            "status": {
+              "200": 860,
+              "302": 10
+            }
+          },
+          "/yeongnyangi/": {
+            "total": 220,
+            "allowed": 220,
+            "unsuccessful": 0,
+            "status": {
+              "200": 220
+            }
+          },
+          "/kkul-kkul-unse/": {
+            "total": 40,
+            "allowed": 40,
+            "unsuccessful": 0,
+            "status": {
+              "200": 30,
+              "301": 10
+            }
+          },
+          "/about/": {
+            "total": 50,
+            "allowed": 50,
+            "unsuccessful": 0,
+            "status": {
+              "200": 50
+            }
+          },
+          "/saju/": {
+            "total": 50,
+            "allowed": 50,
+            "unsuccessful": 0,
+            "status": {
+              "200": 50
+            }
+          },
+          "/insights/": {
+            "total": 90,
+            "allowed": 90,
+            "unsuccessful": 0,
+            "status": {
+              "200": 90
+            }
+          }
+        },
+        "limitations": "Unsuccessful is not synonymous with blocked or 403. The dashboard did not expose bot-specific 403/challenge or rule attribution. Yeti was absent from the visible AI crawler list. JavaScript Detections and Bot score were not exposed in the current Free-plan settings UI."
+      },
+      "profiles": {
+        "codeMismatchCount": 0,
+        "description": "The stale Threads signup reward claim is no longer present. The official Threads profile shows the service description and home link, but the active session remains @youngyangi91 and has no edit control on @codedestiny_official. X is logged into the official account and already shows the approved bio and home link. Full pinned-post audit remains incomplete.",
+        "approvalRequired": "No additional profile edit is required from this recheck. Future profile or published text edits still require item-by-item owner approval."
+      },
+      "skipped": [
+        {
+          "task": "Bing Webmaster",
+          "reason": "sign-in screen; owner login required",
+          "observedAt": "2026-11-04"
+        },
+        {
+          "task": "Copilot Q17-Q24",
+          "reason": "sign-in screen; owner login required",
+          "observedAt": "2026-11-04"
+        }
+      ],
+      "profileUpdates": {
+        "observedAt": "2026-11-04",
+        "approvedAll": true,
+        "applied": [
+          "YouTube channel description",
+          "Naver blog introduction",
+          "WordPress consultation question guide",
+          "Instagram profile bio",
+          "X profile bio"
+        ],
+        "notApplied": {
+          "InstagramWebsite": "Website link editing remains available only in the mobile app.",
+          "Threads": "Active account is @youngyangi91 and edit access to @codedestiny_official is not available; the stale signup reward claim is no longer present, so no deletion remains."
+        },
+        "goodbyejieun": "owner account; excluded from official channels",
+        "recheck20261104": {
+          "instagram": "Approved bio saved and confirmed after reload. Website links can only be edited in mobile app.",
+          "threads": "Active session remains @youngyangi91; the official profile has no edit control. The stale signup reward claim is absent and the home link is present, so no policy correction remains.",
+          "x": "Official @sajuseongj97497 account is active with Edit profile access. The approved bio and home link are already present; no further edit was made."
+        }
+      }
+    }
   }
 }

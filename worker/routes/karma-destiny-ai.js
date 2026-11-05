@@ -1,5 +1,6 @@
 import { runWithAiLocale, storedAiLocale } from '../lib/ai-locale-context.js';
 import { sajuTemperamentPromptLines } from '../lib/saju-temperament.js';
+import { sajuAuthorityOn } from '../lib/saju-authority-consumer.js';
 import { createHash } from "node:crypto";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { resolveForbiddenPatterns } from "../lib/llm-leak-guard.js";
@@ -14,6 +15,8 @@ import { normalizeConsultAccessType, resolveCanonicalEntitlement, resolveFeature
 import { consumePassForFeature, passDenialCode } from "../lib/pass-consumption.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { deliverExpertFollowUp, recoverSavedExpertFollowUps, expertFollowUpNarrativeAdapter } from '../lib/expert-follow-up-delivery.js';
+import { compactFollowupMessages } from '../lib/followup-context.js';
+import { followupSolutionPromptLines } from '../lib/followup-solution-prompt.js';
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { hasRenderableLlmText, isCompleteLlmResponse } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
@@ -1153,8 +1156,7 @@ function buildFirstPrompt(input, integratedResult) {
 
 function buildFollowUpPrompt(consultation, question) {
   const birth = consultation.birthInfo || {};
-  const history = safeArray(consultation.messages)
-    .slice(-8)
+  const history = compactFollowupMessages(safeArray(consultation.messages), { maxChars: 16000, recent: 2 })
     .map((message) => `${message.role === "assistant" ? "상담가" : "사용자"}: ${clean(message.content, 1400)}`)
     .join("\n\n");
   return [
@@ -1177,7 +1179,9 @@ function buildFollowUpPrompt(consultation, question) {
     "[새 질문]",
     question,
     "",
-    `${PREMIUM_CHAPTERS.length}개 장을 반복하지 말고, 첫 문장부터 새 질문에 직접 답하세요.`,
+    ...followupSolutionPromptLines({ feature: "인생의 책 후속 상담" }),
+    "",
+    `${PREMIUM_CHAPTERS.length}개 장을 반복하지 말고, 짧은 근거 공감 직후 새 질문에 직접 답하세요.`,
     "이전 상담 흐름을 이어받되 필요한 부분만 짚고, 업을 죄나 벌이 아닌 반복 패턴과 성장 과제로 풀어주세요.",
   ].join("\n");
 }
@@ -1832,6 +1836,8 @@ function packLens(block, budgetChars) {
     data[key] = value;
     used += size;
   }
+  // 예산에 밀려 빠지면 용신 후보를 단일 용신으로 읽을 수 있어 판정 사실은 항상 싣는다.
+  if (block.id === "saju" && block.data?.approvedSaju) data.approvedSaju = block.data.approvedSaju;
   return {
     confidence: block.confidence,
     provisionalFields: safeArray(block.provisionalFields),
@@ -2609,7 +2615,7 @@ async function handleStart(request, env, recoveryAuth = null) {
     savingSeed = false;
     logKarmaAi("LLM Fortune Data Start", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
     const integratedResult = (resumable && existing?.integratedResult)
-      || await buildKarmaDestinyIntegratedResult(env, normalized.input.birthInfo, { lensUsageWeights: LENS_USAGE_WEIGHTS, requestUrl: request.url });
+      || await buildKarmaDestinyIntegratedResult(env, normalized.input.birthInfo, { lensUsageWeights: LENS_USAGE_WEIGHTS, requestUrl: request.url, authorityEnabled: !existing && sajuAuthorityOn(env) });
     if (!resumable || !existing?.integratedResult) {
       integratedResult.relationshipAnalysis = buildRelationshipAnalysis(normalized.input.relationshipContext, integratedResult.lenses);
     }

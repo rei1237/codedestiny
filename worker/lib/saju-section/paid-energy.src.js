@@ -11,7 +11,7 @@ function renderEnergyCoord(natal){
   if(!area||!card)return;
   natal=natal||{counts:{wood:0,fire:0,earth:0,metal:0,water:0}};
 
-  var pw=G_POWER,jg=G_JONG;
+  var pw=window.__cdShownPower||G_POWER,jg=G_JONG;
   var counts=natal.counts||{wood:0,fire:0,earth:0,metal:0,water:0};
   var els=['wood','fire','earth','metal','water'];
 
@@ -49,7 +49,7 @@ function renderEnergyCoord(natal){
     ? '현재 원국에서는 특정 방위보다 일정 강도와 회복 시간을 조절하는 쪽이 더 중요합니다.'
     : avoidDirs+' 방향성은 장거리 이동에서 에너지상 피로도가 커질 수 있으니, 절대 금지가 아니라 일정·동선·회복 시간을 넉넉히 두는 조절 포인트로 보세요.';
   var analysisBasis = yongshinList.length
-    ? '용신과 희신이 먼저 길을 열고, 부족한 오행의 빈자리를 함께 살폈습니다.'
+    ? '보완 후보가 먼저 길을 열고, 부족한 오행의 빈자리를 함께 살폈습니다.'
     : '타고난 오행의 빈자리와 오늘의 계절 흐름을 중심으로 읽었습니다.';
 
   var today = _energyToday();
@@ -71,10 +71,10 @@ function renderEnergyCoord(natal){
     ? '화(火)의 과열을 조절하고 필요한 만큼만 튜닝'
     : seasonNeedText+'의 과밀을 낮추고 필요한 만큼만 튜닝';
   var seasonNeedGuide = seasonConflictsKijishin
-    ? seasonNeedText+'가 기신/구신 축과 겹칩니다. 이번 달은 '+seasonConflictAction+'하는 방식이 더 안전합니다.'
+    ? seasonNeedText+'가 주의 오행 축과 겹칩니다. 이번 달은 '+seasonConflictAction+'하는 방식이 더 안전합니다.'
     : seasonNeed.note;
   var timingNarrative = seasonConflictsKijishin
-    ? '사주 원국의 기본 보완축은 '+primaryNeedText+'입니다. 현재 시기에는 '+seasonNeedText+'가 강하게 올라오지만 기신/구신과 충돌하므로, '+primaryNeedText+'로 중심을 세우고 '+seasonConflictAction+'하세요.'
+    ? '사주 원국의 기본 보완축은 '+primaryNeedText+'입니다. 현재 시기에는 '+seasonNeedText+'가 강하게 올라오지만 주의 오행과 충돌하므로, '+primaryNeedText+'로 중심을 세우고 '+seasonConflictAction+'하세요.'
     : seasonNeed.el===target
     ? '사주 원국의 필요 오행과 현재 시기 오행이 일치합니다. 같은 기운을 집중 보완하면 운의 체감 상승 속도가 빠릅니다.'
     : '사주 원국의 기본 보완축은 '+primaryNeedText+', 현재 시기 미세조정축은 '+seasonNeedText+'입니다. 기본 체력은 '+primaryNeedText+'로 채우고, 월간 컨디션은 '+seasonNeedText+'로 튜닝하는 이중 전략이 유리합니다.';
@@ -246,8 +246,8 @@ function renderEnergyCoord(natal){
     var reason=[];
     if(el===target)reason.push('가장 먼저 채울 회복축');
     else if(supportElements.indexOf(el)>=0)reason.push('중심을 부드럽게 받치는 보조축');
-    if(el===yongshinList[0])reason.push('용신의 숨을 살리는 자리');
-    if(el===yongshinList[1])reason.push('희신이 뒤에서 받쳐주는 자리');
+    if(el===yongshinList[0])reason.push('보완 후보의 숨을 살리는 자리');
+    if(el===yongshinList[1])reason.push('보조 후보가 뒤에서 받쳐주는 자리');
     if(el===weakestEl)reason.push('비어 있는 기운을 채우는 자리');
     if(el===seasonNeed.el)reason.push(seasonConflictsKijishin?'계절 기운을 과하게 밀지 않고 조율할 자리':'지금 계절과 호흡이 맞는 자리');
     if(gishinPenalty||gushinPenalty)reason.push('강하게 오래 머물기보다 짧고 가볍게 다룰 자리');
@@ -611,8 +611,8 @@ function renderEnergyCoord(natal){
       deficient:'컨디션으로는 아침 무기력, 결정 지연, 감정의 답답함, 아이디어 고갈, 관계 회피처럼 나타나기 쉽습니다.',
       travel:'나무가 많은 곳을 걷는 여행은 몸의 호흡을 위로 열고, 닫혀 있던 의지와 상상력을 자연스럽게 다시 자라게 합니다.',
       fill:'초록 밀도가 높은 숲길이나 수목원에서 천천히 걷고, 새로 키울 계획을 한 문장으로 정리하세요.',
-      yong:'용신이 목(木)일 때는 새 프로젝트, 공부, 관계 확장과 연결되는 장소를 고르면 운의 체감이 빠릅니다.',
-      hee:'희신이 목(木)일 때는 메인 일정 사이에 정원 산책을 넣어 마음의 방향을 부드럽게 보조하세요.',
+      yong:'보완 후보가 목(木)일 때는 새 프로젝트, 공부, 관계 확장과 연결되는 장소를 고르면 운의 체감이 빠릅니다.',
+      hee:'보조 후보가 목(木)일 때는 메인 일정 사이에 정원 산책을 넣어 마음의 방향을 부드럽게 보조하세요.',
       mission:['숲길이나 정원에서 30분 이상 걷기','새로 시작할 일 한 가지를 여행 노트에 적기','초록 풍경을 보며 들숨 5초, 날숨 7초 호흡하기']
     },
     fire:{
@@ -621,8 +621,8 @@ function renderEnergyCoord(natal){
       deficient:'컨디션으로는 냉한 무기력, 의욕 저하, 발표 부담, 낮은 존재감, 기분의 침체처럼 나타나기 쉽습니다.',
       travel:'빛이 좋은 장소와 활기 있는 야간 풍경은 꺼진 불씨를 다시 데우고, 표현의 용기를 안전하게 끌어올립니다.',
       fill:'일출이나 전망대처럼 빛이 열리는 장소를 고르되, 과열되지 않도록 물 휴식과 조용한 회복 시간을 함께 두세요.',
-      yong:'용신이 화(火)일 때는 무대, 전망, 축제성 있는 풍경이 자신감과 실행력을 살립니다.',
-      hee:'희신이 화(火)일 때는 짧은 야경 산책이나 따뜻한 카페 시간을 보조 처방으로 쓰면 좋습니다.',
+      yong:'보완 후보가 화(火)일 때는 무대, 전망, 축제성 있는 풍경이 자신감과 실행력을 살립니다.',
+      hee:'보조 후보가 화(火)일 때는 짧은 야경 산책이나 따뜻한 카페 시간을 보조 처방으로 쓰면 좋습니다.',
       mission:['아침 햇빛을 15분 이상 받기','일몰 전 휴대폰을 잠시 끄고 하늘 보기','오늘 표현하고 싶은 마음 한 문장을 소리 내지 않고 정리하기']
     },
     earth:{
@@ -631,8 +631,8 @@ function renderEnergyCoord(natal){
       deficient:'컨디션으로는 소화 부담, 수면 불규칙, 걱정 반복, 일정 지연, 현실감 저하처럼 나타나기 쉽습니다.',
       travel:'오래된 장소와 흙의 지형을 밟는 여행은 흩어진 생각을 몸으로 끌어내리고, 현재의 생활 감각을 회복시킵니다.',
       fill:'이동지를 줄이고 한 지역에 오래 머무르며 식사, 산책, 휴식 시간을 일정하게 고정하세요.',
-      yong:'용신이 토(土)일 때는 역사 지구나 고원처럼 안정된 장소가 재정비와 현실 판단을 돕습니다.',
-      hee:'희신이 토(土)일 때는 여행 중 식사와 수면 시간을 고정해 전체 운의 중심을 잡으세요.',
+      yong:'보완 후보가 토(土)일 때는 역사 지구나 고원처럼 안정된 장소가 재정비와 현실 판단을 돕습니다.',
+      hee:'보조 후보가 토(土)일 때는 여행 중 식사와 수면 시간을 고정해 전체 운의 중심을 잡으세요.',
       mission:['흙길이나 오래된 골목을 20분 이상 걷기','오늘의 식사 시간을 흔들지 않기','불안한 생각을 현실 행동 1개로 바꿔 적기']
     },
     metal:{
@@ -641,8 +641,8 @@ function renderEnergyCoord(natal){
       deficient:'컨디션으로는 산만함, 물건과 생각의 과적, 관계 정리 지연, 기준 혼란, 호흡의 답답함처럼 나타나기 쉽습니다.',
       travel:'정돈된 도시와 예술 공간은 감각을 날카롭게 닦아주고, 불필요한 것을 덜어내는 결단을 부드럽게 돕습니다.',
       fill:'일정과 짐을 가볍게 하고, 미술관이나 건축 공간에서 내가 지킬 기준 한 가지를 선명하게 정하세요.',
-      yong:'용신이 금(金)일 때는 미술관, 전망대, 현대 건축처럼 구조가 분명한 장소가 판단력을 살립니다.',
-      hee:'희신이 금(金)일 때는 여행 중 사진과 메모를 정리하며 생각의 잡음을 줄이는 방식이 좋습니다.',
+      yong:'보완 후보가 금(金)일 때는 미술관, 전망대, 현대 건축처럼 구조가 분명한 장소가 판단력을 살립니다.',
+      hee:'보조 후보가 금(金)일 때는 여행 중 사진과 메모를 정리하며 생각의 잡음을 줄이는 방식이 좋습니다.',
       mission:['가방에서 필요 없는 물건 하나 덜어내기','미술관이나 건축물 앞에서 내 기준 한 문장 쓰기','사진은 9장만 남기고 바로 정리하기']
     },
     water:{
@@ -651,8 +651,8 @@ function renderEnergyCoord(natal){
       deficient:'컨디션으로는 불면, 불안, 과열된 사고, 감정 기복, 몰입력 저하, 깊은 휴식의 어려움처럼 나타나기 쉽습니다.',
       travel:'물가 여행은 과열된 머리를 낮추고 감정의 파동을 안정시켜, 오래 보고 깊게 결정하는 힘을 회복시킵니다.',
       fill:'물가에 오래 머무르고 일정을 비워두세요. 답을 빨리 내리기보다 마음의 온도가 내려가는 시간을 확보하는 것이 핵심입니다.',
-      yong:'용신이 수(水)일 때는 바다와 호수처럼 깊고 낮은 장소가 직관과 회복력을 가장 잘 살립니다.',
-      hee:'희신이 수(水)일 때는 저녁 물가 산책이나 디지털 디톡스를 보조축으로 쓰면 좋습니다.',
+      yong:'보완 후보가 수(水)일 때는 바다와 호수처럼 깊고 낮은 장소가 직관과 회복력을 가장 잘 살립니다.',
+      hee:'보조 후보가 수(水)일 때는 저녁 물가 산책이나 디지털 디톡스를 보조축으로 쓰면 좋습니다.',
       mission:['물가 산책 30분 하기','잠들기 전 화면을 30분 먼저 끄기','여행 노트에 오늘의 감정과 사실을 한 줄씩 나누어 쓰기']
     }
   };
@@ -682,8 +682,8 @@ function renderEnergyCoord(natal){
       '<div class="energy-dashboard-grid grid grid-cols-2 gap-2 md:grid-cols-3" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:8px;">'+
         summaryChip('보충 필요 오행',primaryNeedText)+
         summaryChip('결핍도',lacking+'%')+
-        summaryChip('용신 / 희신',yongText+' · '+heeText)+
-        summaryChip('기신 / 구신',giText+' · '+gooText)+
+        summaryChip('보완 후보 / 보조 후보',yongText+' · '+heeText)+
+        summaryChip('주의 오행 / 주의 오행',giText+' · '+gooText)+
         summaryChip('현재 계절 보완축',seasonModeLabel+' · '+seasonNeedText)+
         summaryChip('추천 방위',db.dirEmoji+' '+db.direction)+
       '</div>'+
@@ -754,9 +754,9 @@ function renderEnergyCoord(natal){
     return softCard('오행별 여행 처방',
       '<div style="display:grid;gap:9px;">'+
         '<div><b style="color:#fef3c7;">부족 오행을 채우는 여행법</b><br>'+weakestText+' 축은 '+weakStory.fill+'</div>'+
-        '<div><b style="color:#fef3c7;">용신을 살리는 여행법</b><br>'+yongStory.yong+'</div>'+
-        '<div><b style="color:#fef3c7;">희신을 보조로 쓰는 여행법</b><br>'+heeStory.hee+'</div>'+
-        '<div><b style="color:#fef3c7;">기신/구신을 피하는 여행법</b><br>'+avoidDirNarrative+'</div>'+
+        '<div><b style="color:#fef3c7;">보완 후보를 살리는 여행법</b><br>'+yongStory.yong+'</div>'+
+        '<div><b style="color:#fef3c7;">보조 후보를 보조로 쓰는 여행법</b><br>'+heeStory.hee+'</div>'+
+        '<div><b style="color:#fef3c7;">주의 오행을 피하는 여행법</b><br>'+avoidDirNarrative+'</div>'+
       '</div>',
       'dark');
   }
@@ -797,7 +797,7 @@ function renderEnergyCoord(natal){
       'light');
   }
   var gijishinAvoidPattern={
-    wood:'목(木)이 기신/구신으로 강하게 작동할 때는 계속 더 걷고, 더 만나고, 더 시작하려는 흐름이 몸을 먼저 지치게 합니다. 숲과 정원은 짧게 숨을 고르는 정도로 쓰고, 새 약속을 늘리기보다 이미 품은 계획 하나만 정리하세요.',
+    wood:'목(木)이 주의 오행으로 강하게 작동할 때는 계속 더 걷고, 더 만나고, 더 시작하려는 흐름이 몸을 먼저 지치게 합니다. 숲과 정원은 짧게 숨을 고르는 정도로 쓰고, 새 약속을 늘리기보다 이미 품은 계획 하나만 정리하세요.',
     fire:'화(火)가 부담이 되는 사람에게 과한 야간 일정, 빽빽한 인증샷 코스, 소음 많은 축제형 여행은 기운을 밝히기보다 태워버릴 수 있습니다. 대신 해가 낮게 기우는 시간대의 산책, 조용한 전망대, 짧고 선명한 일정이 더 잘 맞습니다.',
     earth:'토(土)가 무겁게 작동하면 오래 앉아 먹고 머무르는 일정이 안정이 아니라 정체감으로 느껴질 수 있습니다. 유적과 고궁은 한두 곳만 깊게 보고, 식사 뒤에는 짧은 흙길 산책으로 몸의 흐름을 다시 열어주세요.',
     metal:'금(金)이 날카롭게 피로를 만들 때는 완벽한 동선, 비교가 많은 쇼핑, 사진 결과물에 집착하는 도시 여행이 마음을 더 조일 수 있습니다. 미술관이나 건축 공간은 오래 평가하기보다 한 장면만 고르고, 나머지는 가볍게 지나가도 충분합니다.',
@@ -875,8 +875,8 @@ function renderEnergyCoord(natal){
       '</div>'+
       energySummaryHtml()+
       '<div style="background:rgba(248,250,252,0.94);border:1px solid rgba(148,163,184,0.36);border-radius:10px;padding:13px;margin-bottom:16px;font-size:0.9rem;color:#1f2937;line-height:1.68;">'+
-        '<div>🌟 <b>나를 돕는 기운:</b> 용신('+yongText+') · 희신('+heeText+')</div>'+
-        '<div>🚧 <b>나를 힘들게 하는 기운:</b> 기신('+giText+') · 구신('+gooText+')</div>'+
+        '<div>🌟 <b>나를 돕는 기운:</b> 보완 후보('+yongText+') · 보조 후보('+heeText+')</div>'+
+        '<div>🚧 <b>나를 힘들게 하는 기운:</b> 주의 오행('+giText+') · 주의 오행('+gooText+')</div>'+
         '<div style="margin-top:6px;color:#b91c1c;">⚠️ <b>피로도가 커질 수 있는 방향성:</b> '+avoidDirNarrative+'</div>'+
       '</div>'+
       '<div style="background:linear-gradient(135deg,rgba(14,26,48,0.88),rgba(15,23,42,0.8));border:1px solid rgba(125,211,252,0.42);border-radius:10px;padding:14px;margin-bottom:14px;font-size:0.9rem;color:#e2e8f0;line-height:1.72;text-shadow:0 1px 0 rgba(0,0,0,0.35);">'+

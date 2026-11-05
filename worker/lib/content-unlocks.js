@@ -20,6 +20,11 @@ import {
   toBirthEntitlementProfileId,
 } from "./birth-key.js";
 import { resolveBirthUnlockIdentity, tryResolveBirthUnlockIdentity } from "./birth-scoped-unlock-identity.js";
+import {
+  SAJU_BUNDLE_ALIAS_MEMBER_KEYS,
+  SAJU_BUNDLE_FEATURE_KEY,
+  isSajuBundleAliasMember,
+} from "./saju-bundle-policy.js";
 
 // 계정 스코프(프로필 무관) 엔타이틀먼트의 profileId 자리표시자. 읽기 절(buildProfileScopeClause)과
 // 쓰기 경로가 같은 값을 써야 하므로 정산 코드(payments.js)에서도 이 상수를 가져다 쓴다.
@@ -474,7 +479,19 @@ export async function findActivePaidContentUnlock(input = {}) {
     });
     if (input.session) query.session(input.session);
     const doc = await query.lean();
-    return presentBirthScopedDoc(doc, target.profileId);
+    if (doc) return presentBirthScopedDoc(doc, target.profileId);
+    /* 사주 영구 묶음: 포함 키는 개별 행이 없으면 같은 출생 정보의 묶음 행으로 열린다. 호출부마다 감싸지 않고
+       공유 리더 여기 한 곳에서 처리한다. 묶음 키는 포함 키가 아니라서 재귀는 한 번으로 끝난다.
+       상대 birthKey 가 섞인 궁합 신원과 포함 키 전용 serviceKey·contentKey 는 묶음 조회에 넘기지 않는다. */
+    if (!isSajuBundleAliasMember(resolveUnlockedFeatureKeyFromContentKey(target.contentKey))) return null;
+    return findActivePaidContentUnlock({
+      userId: target.userId,
+      profileId: target.profileId,
+      featureKey: SAJU_BUNDLE_FEATURE_KEY,
+      ...(input.session ? { session: input.session } : {}),
+      ...(input.findProfileCard ? { findProfileCard: input.findProfileCard } : {}),
+      ...(input.birthIdentity && !input.birthIdentity.partnerBirthKey ? { birthIdentity: input.birthIdentity } : {}),
+    });
   }
 
   const profileScopeClause = target.profileId
@@ -983,10 +1000,19 @@ export async function getUnlockedContentSnapshot({
       ? [activeExpiryClause()]
       : [activeExpiryClause(), accountScopeClause],
   };
-  if (normalizedServiceKeys.length === 1) {
-    query.serviceKey = normalizedServiceKeys[0];
-  } else if (normalizedServiceKeys.length > 1) {
-    query.serviceKey = { $in: normalizedServiceKeys };
+  // 서비스 필터가 있어도 사주 영구 묶음 행은 항상 함께 읽는다. 묶음 행의 serviceKey 는 saju 라서,
+  // 다른 서비스만 묻는 조회가 그 행과 포함 키 펼침을 놓치지 않게 한다(펼침은 아래에서 한 번 더 일어난다).
+  if (normalizedServiceKeys.length > 0) {
+    const serviceKeyClause = normalizedServiceKeys.length === 1
+      ? { serviceKey: normalizedServiceKeys[0] }
+      : { serviceKey: { $in: normalizedServiceKeys } };
+    query.$and.push({
+      $or: [
+        serviceKeyClause,
+        { featureKey: SAJU_BUNDLE_FEATURE_KEY },
+        { contentKey: SAJU_BUNDLE_FEATURE_KEY },
+      ],
+    });
   }
 
   const birthPidSet = new Set(birthPids);
@@ -1022,6 +1048,15 @@ export async function getUnlockedContentSnapshot({
       if (isBirthScopedLegacyDoc(doc, normalizedProfileId)) {
         (isLegacyAccountUnlockRow(doc) ? legacyAccountFeatureKeys : legacyProfileFeatureKeys).push(featureKey);
       }
+    }
+  }
+
+  // 사주 영구 묶음 행은 포함 키로 펼친다. 실제 행 목록(docs)은 그대로 둔다.
+  if (unlockMap[SAJU_BUNDLE_FEATURE_KEY]) {
+    for (const memberKey of SAJU_BUNDLE_ALIAS_MEMBER_KEYS) {
+      contentKeys.push(PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY[memberKey] || memberKey);
+      featureKeys.push(memberKey);
+      unlockMap[memberKey] = true;
     }
   }
 

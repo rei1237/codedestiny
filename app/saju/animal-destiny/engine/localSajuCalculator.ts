@@ -1,8 +1,15 @@
 import { lookupServerCoinPrice } from "@/app/_lib/serviceCoinPrice";
-import { calculateNatalSaju, daeun, DAEUN_POLICY_VERSION, lunarToSolar, nodeTerms } from "@/lib/korean-calendar";
+import { calculateNatalSaju, daeun, daeunFromFrame, DAEUN_POLICY_VERSION, lunarToSolar, nodeTerms, resolveAuthorityFlags, verifiedNodeTermWindow, authorityMetadata } from "@/lib/korean-calendar";
 import { cmsRecord } from "@/lib/cms/build-text";
 import { standardMeridianForTimezone } from "@/worker/lib/birth-time-context.js";
 import { wallClockToUtcMillis } from "@/worker/lib/iana-offset.js";
+
+import { buildApprovedNatalAnalysis, buildApprovedFinalReport, buildApprovedStructuredReport } from "@/lib/saju/gyeokguk-authority.mjs";
+
+/** CR-008: execution policy is separate from birth data and defaults OFF. */
+export interface SajuAnalysisExecutionOptions {
+  gyeokgukAuthorityV2?: boolean;
+}
 
 const LOCAL_SAJU_CALCULATOR_TEXT_TRANSLATIONS = {
   ko: {
@@ -23,10 +30,10 @@ const LOCAL_SAJU_CALCULATOR_TEXT_TRANSLATIONS = {
     "lsc_4848_prop_label": "신강/신약",
     "lsc_4849_prop_label": "조후",
     "lsc_4850_prop_label": "격국",
-    "lsc_4851_prop_label": "용신",
-    "lsc_4852_prop_label": "희신",
-    "lsc_4853_prop_label": "기신",
-    "lsc_4854_prop_label": "구신",
+    "lsc_4851_prop_label": "보완 후보",
+    "lsc_4852_prop_label": "보조 후보",
+    "lsc_4853_prop_label": "주의 오행",
+    "lsc_4854_prop_label": "주의 오행",
     "lsc_4855_prop_label": "사주의 병",
     "lsc_4856_prop_label": "사주의 약",
     "lsc_4857_prop_label": "가장 중요한 구조",
@@ -42,7 +49,7 @@ const LOCAL_SAJU_CALCULATOR_TEXT_TRANSLATIONS = {
     "lsc_4871_prop_label": "불리하게 터지는 시기",
     "lsc_4874_prop_label": "중첩 지지",
     "lsc_4875_prop_label": "불러오는 반대 지지",
-    "lsc_4876_prop_label": "용신/기신 변화",
+    "lsc_4876_prop_label": "보완 후보·주의 오행 변화",
     "lsc_4877_prop_label": "흉에서 길 전환",
     "lsc_4878_prop_label": "길에서 흉 전환",
     "lsc_4879_prop_label": "실제 사건 가능성",
@@ -51,7 +58,7 @@ const LOCAL_SAJU_CALCULATOR_TEXT_TRANSLATIONS = {
     "lsc_4884_prop_label": "삼합",
     "lsc_4885_prop_label": "방합",
     "lsc_4886_prop_label": "충·형·파·해",
-    "lsc_4887_prop_label": "합화/합거/용신파손/기신용신화",
+    "lsc_4887_prop_label": "합화/합거/보완 후보파손/주의 오행보완 후보화",
     "lsc_4890_prop_label": "대운 간지",
     "lsc_4891_prop_label": "대운의 기반",
     "lsc_4892_prop_label": "대운 천간 합화·합거",
@@ -62,7 +69,7 @@ const LOCAL_SAJU_CALCULATOR_TEXT_TRANSLATIONS = {
     "lsc_4897_prop_label": "대운의 십성",
     "lsc_4898_prop_label": "원국과의 작용",
     "lsc_4899_prop_label": "격국 영향",
-    "lsc_4900_prop_label": "용신/기신 변화",
+    "lsc_4900_prop_label": "보완 후보·주의 오행 변화",
     "lsc_4901_prop_label": "전반 5년",
     "lsc_4902_prop_label": "후반 5년",
     "lsc_4903_prop_label": "대운 총평",
@@ -211,7 +218,8 @@ export interface SolarTermBoundaryLocal {
   minute: number;
   second: number;
   isoLocal: string;
-  source: "kasi" | "korean-calendar-core" | "validated-table" | "fixed-fallback";
+  source: "kasi" | "korean-calendar-core" | "validated-table" | "fixed-fallback" | "jpl-de441";
+  utcMs?: number;
 }
 
 export interface DaewoonStartLocal {
@@ -293,6 +301,9 @@ export interface LocalSajuResult {
 export type HourPillarTimePolicy = "KST_CLOCK_TIME" | "LOCAL_MEAN_TIME" | "TRUE_SOLAR_TIME" | "CIVIL_TIME";
 
 export interface LocalSajuInput {
+  authorityFlags?: { sajuTermAuthorityV2?: boolean; koreanCalendarAuthorityV2?: boolean; authorityVersion?: string };
+  /** Explicit public-wrapper opt-in; never used for spouse/personality interpretation. */
+  daeunContext?: { enabled: true; gender: "male" | "female" | "unknown" };
   year: number;
   month: number;
   day: number;
@@ -380,6 +391,14 @@ function canonicalNatalPillar(value: string | null): SajuPillarLocal | null {
 }
 
 function resolveSolarDate(input: LocalSajuInput) {
+  if (input.authorityFlags?.koreanCalendarAuthorityV2 === true) {
+    const official = input.calendarType === "lunar"
+      ? lunarToSolar(input.year, Math.abs(input.month), input.day, Boolean(input.lunarLeap), input.authorityFlags)
+      : { year: input.year, month: input.month, day: input.day };
+    if (!official) throw new RangeError("INVALID_LUNAR_DATE");
+    if (input.kasiSolarDate && ["year", "month", "day"].some(key => input.kasiSolarDate![key as "year" | "month" | "day"] !== official[key as "year" | "month" | "day"])) throw new RangeError("CALENDAR_AUTHORITY_CONFLICT");
+    return official;
+  }
   // KASI 음양력 변환 결과가 있으면 권위 값으로 우선한다(로컬 코어 변환보다 우선).
   const kasiSolar = input.kasiSolarDate;
   if (
@@ -875,10 +894,30 @@ function getDaewoonDirection(input: LocalSajuInput, yearStem: StemKr): "forward"
 function calculateDaewoonStartFromCore(
   canonicalNatal: ReturnType<typeof calculateNatalSaju>,
   input: LocalSajuInput,
+  verified?: { window: ReturnType<typeof verifiedNodeTermWindow>; previous: SolarTermBoundaryLocal; next: SolarTermBoundaryLocal },
 ): { direction: "forward" | "reverse" | "unknown"; start: DaewoonStartLocal } {
-  const gender = normalizeGender(input);
+  const gender = input.daeunContext?.enabled ? input.daeunContext.gender : normalizeGender(input);
   const unknown = { direction: "unknown" as const, start: { age: null, years: 0, months: 0, days: 0, baseTerm: null, policyVersion: DAEUN_POLICY_VERSION, ageBasis: "korean-counting-age" as const } };
   if (!input.hasTime || gender === "unknown") return unknown;
+  if (input.daeunContext?.enabled) {
+    if (!verified || !["male", "female"].includes(gender)) throw new RangeError("DAEUN_REQUIRES_VERIFIED_TERMS");
+    // Pilot eligibility stays at the original 14 years, even with a wider data version.
+    const instant = canonicalNatal.calculationMeta.instant;
+    if (!instant) throw new RangeError("DAEUN_REQUIRES_BIRTH_INSTANT");
+    verifiedNodeTermWindow(instant.timestamp);
+    const frameKey = (ms: number) => {
+      const d = new Date(ms + 9 * 3600000), hour = d.getUTCHours();
+      return `${d.toISOString().slice(0, 10)}:${hour === 23 ? 11 : Math.floor((hour + 1) / 2) % 12}`;
+    };
+    for (const node of [verified.window.previous, verified.window.next]) {
+      if (frameKey(node.lowerUtcMs) !== frameKey(node.upperUtcMs)) throw new RangeError("DAEUN_TERM_FRAME_UNCERTAIN");
+    }
+    const year = canonicalNatalPillar(canonicalNatal.pillars.year)!;
+    const month = canonicalNatalPillar(canonicalNatal.pillars.month)!;
+    const result = daeunFromFrame({ birth: canonicalNatal.calculationMeta.termClock, yearStemIndex: STEMS.indexOf(year.stem), monthPillar: { stemIndex: STEMS.indexOf(month.stem), branchIndex: BRANCHES.indexOf(month.branch) }, prevNode: verified.previous, nextNode: verified.next, gender: gender === "male" ? "M" : "F", birthCivilYear: canonicalNatal.calculationMeta.civil.year });
+    if (!result) throw new RangeError("DAEUN_FRAME_INVALID");
+    return { direction: result.forward ? "forward" : "reverse", start: { age: result.cycles[1]?.startAge ?? null, ...result.start, baseTerm: result.forward ? verified.next : verified.previous, startSolar: result.startSolar, policyVersion: `${DAEUN_POLICY_VERSION}:${authorityMetadata(input.authorityFlags).version}`, ageBasis: "korean-counting-age" } };
+  }
   const result = daeun(canonicalNatal.calculationMeta.termClock, { gender: gender === "male" ? "M" : "F", birthCivilYear: canonicalNatal.calculationMeta.civil.year });
   if (!result) return unknown;
   const node = result.meta.referenceNode;
@@ -1413,9 +1452,9 @@ function buildEarthStorageAnalysis(
   const storageEntries = entries.filter((row) => EARTH_STORAGE_BRANCHES.has(row.pillar.branch));
   const visibleEarthMarkers = earthStemCount + earthBranchCount;
   const earthDisposition = usefulElements.includes("earth")
-    ? "용신"
+    ? "보완 후보"
     : effectivePower.earth >= Math.max(...ELEMENTS.map((element) => effectivePower[element])) * 0.9
-      ? "기신"
+      ? "주의 오행"
       : "중립";
 
   const rows = storageEntries.map(({ key, pillar }) => {
@@ -1423,9 +1462,9 @@ function buildEarthStorageAnalysis(
       const element = STEM_ELEMENT[hidden.stem];
       const tenGod = tenGodForStem(dayStem, hidden.stem);
       const usefulState = usefulElements.includes(element)
-        ? "용신성"
-        : element === "earth" && earthDisposition === "기신"
-          ? "기신성"
+        ? "보완 후보성"
+        : element === "earth" && earthDisposition === "주의 오행"
+          ? "주의 오행성"
           : "잠재성";
       const sameStemLuck = luckRows.filter((row) => row.stem === hidden.stem || (Array.isArray(row.hidden) && row.hidden.some((item) => item.stem === hidden.stem)));
       return {
@@ -1454,8 +1493,8 @@ function buildEarthStorageAnalysis(
       const relationKey = pairKey(pillar.branch, row.branch as BranchKr, BRANCHES);
       return relationKey === pairKey(BRANCHES[4], BRANCHES[10], BRANCHES) || relationKey === pairKey(BRANCHES[1], BRANCHES[7], BRANCHES);
     });
-    const usefulHidden = hiddenRows.filter((row) => row.usefulState === "용신성");
-    const unfavorableHidden = hiddenRows.filter((row) => row.usefulState === "기신성");
+    const usefulHidden = hiddenRows.filter((row) => row.usefulState === "보완 후보성");
+    const unfavorableHidden = hiddenRows.filter((row) => row.usefulState === "주의 오행성");
 
     return {
       pillar: key,
@@ -1464,7 +1503,7 @@ function buildEarthStorageAnalysis(
       profile: EARTH_STORAGE_PROFILE[pillar.branch],
       hiddenStems: hiddenRows,
       storageOpening: {
-        principle: "진술충·축미충은 창고를 여는 충으로 보며, 속의 지장간이 용신이면 길하게 현실화되고 기신이면 문제가 터질 수 있다.",
+        principle: "진술충·축미충은 창고를 여는 충으로 보며, 속의 지장간이 보완 후보이면 길하게 현실화되고 주의 오행이면 문제가 터질 수 있다.",
         triggerBranches: getRelationTriggerBranches(pillar.branch),
         suppliedLuckMatches: openingLuck.map((row) => ({
           scope: row.scope,
@@ -1474,9 +1513,9 @@ function buildEarthStorageAnalysis(
           storageClash: storageClashLuck.includes(row),
         })),
         result: usefulHidden.length
-          ? "창고가 열릴 때 용신성 지장간이 먼저 살아나면 숨은 재능, 재물, 관계, 직업 변화가 길하게 현실화된다."
+          ? "창고가 열릴 때 보완 후보성 지장간이 먼저 살아나면 숨은 재능, 재물, 관계, 직업 변화가 길하게 현실화된다."
           : unfavorableHidden.length
-            ? "창고가 열릴 때 기신성 지장간이 자극되면 책임, 불안, 정체, 몸의 무거움이 사건으로 터질 수 있다."
+            ? "창고가 열릴 때 주의 오행성 지장간이 자극되면 책임, 불안, 정체, 몸의 무거움이 사건으로 터질 수 있다."
             : "창고가 열리면 저장된 성분이 현실 과제로 드러나며, 어떤 오행을 쓰느냐에 따라 길흉이 갈린다.",
       },
     };
@@ -1497,13 +1536,13 @@ function buildEarthStorageAnalysis(
     commonReading: overburdened
       ? "토가 강해 현실 압박, 책임감, 내면 경직, 걱정, 소화되지 않은 감정이 강하게 누적된다. 동시에 창고 속 지장간을 꺼내 쓰는 숨은 자원이 크다."
       : "토창고는 겉으로는 조용하지만 충·형·합과 운에서 열릴 때 저장된 재능과 관계 사건을 현실화한다.",
-    usefulReading: earthDisposition === "용신"
-      ? "토가 용신으로 작동하면 안정, 저장, 관리, 축적, 부동산, 조직화 능력으로 나타난다."
-      : earthDisposition === "기신"
-        ? "토가 기신으로 작동하면 정체, 우울, 불안, 고립, 과도한 책임, 몸의 무거움으로 나타난다."
+    usefulReading: earthDisposition === "보완 후보"
+      ? "토가 보완 후보로 작동하면 안정, 저장, 관리, 축적, 부동산, 조직화 능력으로 나타난다."
+      : earthDisposition === "주의 오행"
+        ? "토가 주의 오행으로 작동하면 정체, 우울, 불안, 고립, 과도한 책임, 몸의 무거움으로 나타난다."
         : "토는 중립 자원이며, 창고 속 어떤 지장간을 열어 쓰는지가 핵심이다.",
     developmentPrescription: rows.flatMap((row) => (row.hiddenStems as Array<Record<string, unknown>>)
-      .filter((hidden) => hidden.usefulState !== "기신성")
+      .filter((hidden) => hidden.usefulState !== "주의 오행성")
       .map((hidden) => ({
         branch: row.branch,
         stem: hidden.stem,
@@ -1546,10 +1585,10 @@ function getGongMangBranches(dayPillar: SajuPillarLocal): BranchKr[] {
 }
 
 function classifyDoChung(repeatedUseful: boolean, inducedUseful: boolean): string {
-  if (!repeatedUseful && inducedUseful) return "기신 과포화 → 용신 도출: 흉에서 길로 급변";
-  if (repeatedUseful && !inducedUseful) return "용신 과포화 → 기신 도출: 길에서 흉으로 급변";
-  if (!repeatedUseful && !inducedUseful) return "기신 과포화 → 또 다른 기신 도출: 압박 심화";
-  return "용신 과포화 → 용신 도출: 큰 전환과 성취";
+  if (!repeatedUseful && inducedUseful) return "주의 오행 과포화 → 보완 후보 도출: 흉에서 길로 급변";
+  if (repeatedUseful && !inducedUseful) return "보완 후보 과포화 → 주의 오행 도출: 길에서 흉으로 급변";
+  if (!repeatedUseful && !inducedUseful) return "주의 오행 과포화 → 또 다른 주의 오행 도출: 압박 심화";
+  return "보완 후보 과포화 → 보완 후보 도출: 큰 전환과 성취";
 }
 
 function getLuckScopeWeight(scope: unknown): number {
@@ -1630,8 +1669,8 @@ function buildDoChungAnalysis(
       sources: [...natalMatches, ...luckMatches],
       inducedOppositeBranch: opposite,
       inducedTenGod,
-      repeatedState: repeatedUseful ? "용신" : "기신",
-      inducedState: inducedUseful ? "용신" : "기신",
+      repeatedState: repeatedUseful ? "보완 후보" : "주의 오행",
+      inducedState: inducedUseful ? "보완 후보" : "주의 오행",
       classification: classifyDoChung(repeatedUseful, inducedUseful),
       hiddenStemsOfRepeated: HIDDEN_STEMS_BY_BRANCH[branch].map((hidden) => ({ ...hidden, tenGod: tenGodForStem(dayStem, hidden.stem), element: STEM_ELEMENT[hidden.stem] })),
       hiddenStemsOfInduced: HIDDEN_STEMS_BY_BRANCH[opposite].map((hidden) => ({ ...hidden, tenGod: tenGodForStem(dayStem, hidden.stem), element: STEM_ELEMENT[hidden.stem] })),
@@ -1650,7 +1689,7 @@ function buildDoChungAnalysis(
         `같은 지지가 ${totalCount}개 중첩되었는가: ${branchLabel} ${totalCount}개 중첩.`,
         `어떤 반대 글자를 불러오는가: ${branchLabel}는 반대편 ${oppositeLabel}를 불러온다.`,
         `그 반대 글자가 일간에게 어떤 십성인가: ${oppositeLabel}의 본기 ${inducedMainStem}는 일간에게 ${inducedTenGod}이다.`,
-        `그 글자가 용신인지 기신인지: ${oppositeLabel}는 ${inducedUseful ? "용신" : "기신"}으로 판정된다.`,
+        `그 글자가 보완 후보인지 주의 오행인지: ${oppositeLabel}는 ${inducedUseful ? "보완 후보" : "주의 오행"}으로 판정된다.`,
         `이 도충이 실제 삶에서 어떤 사건으로 나타날 수 있는가: ${operation.career} ${operation.wealth} ${operation.love}`,
         `대운·세운·월운 중 언제 가장 강하게 발동하는가: ${strongestTiming}.`,
       ],
@@ -1663,7 +1702,7 @@ function buildDoChungAnalysis(
     gongMang,
     candidates,
     strongest: candidates.sort((a, b) => Number(b.repeatedCount || 0) - Number(a.repeatedCount || 0))[0] || null,
-    evaluatedWith: ["월령", "합", "충", "형", "공망", "투간", "용신/기신", "대운·세운·월운·일운"],
+    evaluatedWith: ["월령", "합", "충", "형", "공망", "투간", "보완 후보·주의 오행", "대운·세운·월운·일운"],
   };
 }
 
@@ -1685,14 +1724,14 @@ function representativeStemForElement(element: ElementKey): StemKr {
   return STEMS[index] || STEMS[0];
 }
 
-function getElementUseState(element: ElementKey, usefulElements: ElementKey[]): "용신" | "기신" {
-  return usefulElements.includes(element) ? "용신" : "기신";
+function getElementUseState(element: ElementKey, usefulElements: ElementKey[]): "보완 후보" | "주의 오행" {
+  return usefulElements.includes(element) ? "보완 후보" : "주의 오행";
 }
 
-function classifyElementShift(fromState: "용신" | "기신", toState: "용신" | "기신"): string {
-  if (fromState === "기신" && toState === "용신") return "흉에서 길로 급변";
-  if (fromState === "용신" && toState === "기신") return "길에서 흉으로 급변";
-  if (fromState === "기신" && toState === "기신") return "압박 심화";
+function classifyElementShift(fromState: "보완 후보" | "주의 오행", toState: "보완 후보" | "주의 오행"): string {
+  if (fromState === "주의 오행" && toState === "보완 후보") return "흉에서 길로 급변";
+  if (fromState === "보완 후보" && toState === "주의 오행") return "길에서 흉으로 급변";
+  if (fromState === "주의 오행" && toState === "주의 오행") return "압박 심화";
   return "큰 전환과 성취";
 }
 
@@ -1747,10 +1786,10 @@ function getClashOutcome(
 ) {
   const leftState = getElementUseState(leftElement, usefulElements);
   const rightState = getElementUseState(rightElement, usefulElements);
-  if (leftState === "기신" && rightState === "용신") return { shift: "기신 충거 → 문제 해결과 돌파", changedState: "흉에서 길로 급변" };
-  if (leftState === "용신" && rightState === "기신") return { shift: "용신 피충 → 기반 손상", changedState: "길에서 흉으로 급변" };
-  if (leftState === "기신" && rightState === "기신") return { shift: "기신끼리 충돌 → 압박 심화", changedState: "압박 심화" };
-  return { shift: "용신끼리 충동 → 큰 전환과 성취", changedState: "큰 전환과 성취" };
+  if (leftState === "주의 오행" && rightState === "보완 후보") return { shift: "주의 오행 충거 → 문제 해결과 돌파", changedState: "흉에서 길로 급변" };
+  if (leftState === "보완 후보" && rightState === "주의 오행") return { shift: "보완 후보 피충 → 기반 손상", changedState: "길에서 흉으로 급변" };
+  if (leftState === "주의 오행" && rightState === "주의 오행") return { shift: "주의 오행끼리 충돌 → 압박 심화", changedState: "압박 심화" };
+  return { shift: "보완 후보끼리 충동 → 큰 전환과 성취", changedState: "큰 전환과 성취" };
 }
 
 function hasBranchRootForElement(branches: BranchKr[], element: ElementKey): boolean {
@@ -1790,9 +1829,9 @@ function buildCombinationClashAnalysis(
           const fromElements = [STEM_ELEMENT[left.stem], STEM_ELEMENT[right.stem]];
           const fromStates = fromElements.map((element) => getElementUseState(element, usefulElements));
           const toState = getElementUseState(transformedElement, usefulElements);
-          const changedState = fromStates.includes("용신") && toState === "기신"
+          const changedState = fromStates.includes("보완 후보") && toState === "주의 오행"
             ? "길에서 흉으로 급변"
-            : fromStates.includes("기신") && toState === "용신"
+            : fromStates.includes("주의 오행") && toState === "보완 후보"
               ? "흉에서 길로 급변"
               : classifyElementShift(fromStates[0], toState);
           const boundTenGods = [tenGodForStem(dayStem, left.stem), tenGodForStem(dayStem, right.stem)];
@@ -1806,7 +1845,7 @@ function buildCombinationClashAnalysis(
             transformedElementKo: ELEMENT_KO[transformedElement],
             transformedTenGod,
             success,
-            resultType: success ? "합화" : fromStates.includes("용신") ? "합거" : "합반",
+            resultType: success ? "합화" : fromStates.includes("보완 후보") ? "합거" : "합반",
             supportEvidence: { seasonSupport, rootSupport, powerSupport, clashInterference, score },
             boundTenGods,
             usefulUnfavorableShift: { fromStates, toState, changedState },
@@ -1841,9 +1880,9 @@ function buildCombinationClashAnalysis(
           const success = [seasonSupport, rootSupport, protruded].filter(Boolean).length >= 2 && !clashPressure;
           const sourceStates = [getElementUseState(BRANCH_MAIN_ELEMENT[left.branch], usefulElements), getElementUseState(BRANCH_MAIN_ELEMENT[right.branch], usefulElements)];
           const toState = getElementUseState(liuheElement, usefulElements);
-          const changedState = sourceStates.includes("용신") && toState === "기신"
+          const changedState = sourceStates.includes("보완 후보") && toState === "주의 오행"
             ? "길에서 흉으로 급변"
-            : sourceStates.includes("기신") && toState === "용신"
+            : sourceStates.includes("주의 오행") && toState === "보완 후보"
               ? "흉에서 길로 급변"
               : classifyElementShift(sourceStates[0], toState);
           const transformedTenGod = tenGodForStem(dayStem, representativeStemForElement(liuheElement));
@@ -1934,7 +1973,7 @@ function buildCombinationClashAnalysis(
       supportEvidence: { complete, seasonSupport, protruded, clashPressure },
       usefulUnfavorableShift: {
         toState: getElementUseState(group.element, usefulElements),
-        changedState: getElementUseState(group.element, usefulElements) === "용신" ? "흉에서 길로 급변 가능" : "길에서 흉으로 급변 가능",
+        changedState: getElementUseState(group.element, usefulElements) === "보완 후보" ? "흉에서 길로 급변 가능" : "길에서 흉으로 급변 가능",
       },
       actualEvents: getEventPrediction(transformedTenGod, complete ? group.type : "반합", getElementUseState(group.element, usefulElements)),
       timing,
@@ -1952,7 +1991,7 @@ function buildCombinationClashAnalysis(
   });
 
   return {
-    principle: "합은 무조건 길하지 않으며 합화·합거·합반·합중유충으로 나누고, 충도 기신을 치는지 용신을 치는지로 변이를 판정한다.",
+    principle: "합은 무조건 길하지 않으며 합화·합거·합반·합중유충으로 나누고, 충도 주의 오행을 치는지 보완 후보를 치는지로 변이를 판정한다.",
     stemCombinations,
     branchCombinations,
     clashes,
@@ -2042,7 +2081,7 @@ function buildLuckTimingForGyeok(
     activated: asElementRows.filter((row) => [row.stemElement, row.branchElement].some((element) => element && helpfulElements.includes(element as ElementKey)))
       .map((row) => ({
         ...row,
-        reason: "격의 상신·희신·용신을 도와 격이 살아나는 시기",
+        reason: "격의 상신·보조 후보·보완 후보를 도와 격이 살아나는 시기",
       })),
     broken: asElementRows.filter((row) => [row.stemElement, row.branchElement].some((element) => element && (breakingElements.includes(element as ElementKey) || (isSpecialFollowing && element === dayElement))))
       .map((row) => ({
@@ -2218,7 +2257,7 @@ function buildGyeokgukAnalysis(
   if (protrusions.some((row) => row.pillar === "month")) {
     supportFactors.push({ type: "월지 투간", reason: "월지 지장간이 천간에 드러나 격의 현실 작용력이 강함", rows: protrusions.filter((row) => row.pillar === "month") });
   }
-  usefulElements.forEach((element) => supportFactors.push({ type: "용신", element, elementKo: ELEMENT_KO[element], reason: "격을 조율하는 최종 우선 오행" }));
+  usefulElements.forEach((element) => supportFactors.push({ type: "보완 후보", element, elementKo: ELEMENT_KO[element], reason: "격을 조율하는 최종 우선 오행" }));
 
   const sortedCandidates = candidates.sort((a, b) => Number(b.score || 0) - Number(a.score || 0));
   const final = sortedCandidates[0];
@@ -2394,14 +2433,14 @@ function buildYongshinAnalysis(
   const brokenByClash = ((combinationClashAnalysis.clashes as Array<Record<string, unknown>> | undefined) || [])
     .filter((row) => String(row.usefulUnfavorableShift || "").includes("길에서 흉") || JSON.stringify(row).includes(coreYongshin));
   const inducedByDoChung = ((doChungAnalysis.candidates as Array<Record<string, unknown>> | undefined) || [])
-    .filter((row) => row.inducedState === "용신" && BRANCH_MAIN_ELEMENT[row.inducedOppositeBranch as BranchKr] === coreYongshin);
+    .filter((row) => row.inducedState === "보완 후보" && BRANCH_MAIN_ELEMENT[row.inducedOppositeBranch as BranchKr] === coreYongshin);
   const reasonParts = [
     climateUrgent && `조후가 급해 ${subjectParticle(ELEMENT_KO[urgentElement])} 먼저 필요하다`,
     disease.name !== "특정 병약 과중 없음" && `${disease.name}의 병을 치료하는 약이 ${diseaseMedicine.map((element) => ELEMENT_KO[element]).join(", ")}이다`,
     tonggwan && `${tonggwan.conflict}에는 ${tonggwan.bridgeKo} 통관이 필요하다`,
     isFollowingGyeok && `${finalGyeok}은 종하는 기운 ${objectParticle(ELEMENT_KO[topElement])} 따라야 한다`,
     `억부상 ${dayMasterStrength} 구조라 ${subjectParticle(eokbuUseful.map((element) => ELEMENT_KO[element]).join(", "))} 균형을 잡는다`,
-    `${gyeokgukAnalysis.finalGyeokguk || "격국"}을 살리는 상신·희신을 함께 보았다`,
+    `${gyeokgukAnalysis.finalGyeokguk || "격국"}을 살리는 상신·보조 후보를 함께 보았다`,
   ].filter(Boolean);
 
   const fieldUseful = {
@@ -2506,8 +2545,8 @@ function buildLuckInteractionDetailAnalysis(
   ]);
   const describeState = (element: ElementKey | null | undefined) => {
     if (!element) return "중립";
-    if (usefulElements.includes(element)) return "용신";
-    if (gisin.includes(element)) return "기신";
+    if (usefulElements.includes(element)) return "보완 후보";
+    if (gisin.includes(element)) return "주의 오행";
     return "한신";
   };
   const labelOfLuck = (row: Record<string, unknown> | undefined, fallback: string) => String(row?.label || row?.ganji || fallback);
@@ -2532,7 +2571,7 @@ function buildLuckInteractionDetailAnalysis(
         ? natalEntries.some((row) => BRANCH_CLASHES.has(pairKey(row.pillar.branch, getOppositeBranch(row.pillar.branch), BRANCHES)) && BRANCH_MAIN_ELEMENT[row.pillar.branch] === transformedElement)
         : false;
       const success = Boolean(transformedElement && [seasonSupport, rootSupport, powerSupport].filter(Boolean).length >= 2 && !clashInterference);
-      const resultType = transformedElement ? success ? "합화" : describeState(STEM_ELEMENT[luckStem]) === "용신" || describeState(STEM_ELEMENT[pillar.stem]) === "용신" ? "합거" : "합반" : "합 없음";
+      const resultType = transformedElement ? success ? "합화" : describeState(STEM_ELEMENT[luckStem]) === "보완 후보" || describeState(STEM_ELEMENT[pillar.stem]) === "보완 후보" ? "합거" : "합반" : "합 없음";
       const transformedTenGod = transformedElement ? tenGodForStem(dayStem, representativeStemForElement(transformedElement)) : null;
       const event = transformedTenGod ? getEventPrediction(transformedTenGod, success ? "천간합화" : "천간합거", describeState(transformedElement)) : null;
       return {
@@ -2593,7 +2632,7 @@ function buildLuckInteractionDetailAnalysis(
         damagesJohuYongshin,
         meaning: isClash
           ? damagesJohuYongshin
-            ? "천간충이 조후 용신을 건드리므로 표면 사건보다 컨디션·판단력·관계 온도 저하를 먼저 본다."
+            ? "천간충이 조후 보완을 건드리므로 표면 사건보다 컨디션·판단력·관계 온도 저하를 먼저 본다."
             : "천간충은 드러난 사건, 말, 계약, 권한 충돌로 빠르게 사건화된다."
           : "천간충은 아니며 생극과 합 여부를 우선한다.",
       };
@@ -2668,15 +2707,15 @@ function buildLuckInteractionDetailAnalysis(
   const finalClassification = annualSaturation?.doChungCandidate
     ? annualSaturation.classification
     : annualStemClashes.some((row) => row.damagesJohuYongshin)
-      ? "표면적으로는 움직임이 강하지만 조후 용신을 건드려 주의가 필요한 세운"
+      ? "표면적으로는 움직임이 강하지만 조후 보완을 건드려 주의가 필요한 세운"
       : annualUseful.length && !annualRisk.length
-        ? "대운 위에서 세운이 용신을 발동하는 유리한 사건 운"
+        ? "대운 위에서 세운이 보완 후보를 발동하는 유리한 사건 운"
         : annualRisk.length && !annualUseful.length
-          ? "기신 사건성이 강해 확장보다 정비가 필요한 세운"
+          ? "주의 오행 사건성이 강해 확장보다 정비가 필요한 세운"
           : "길흉이 혼재되어 합화·충·도충 결과를 분리해야 하는 세운";
 
   return {
-    principle: "대운과 세운은 간지 한 줄로 단정하지 않고, 천간합·천간충·지지합충형파해·지장간·용신/기신·도충을 분해해 실제 사건으로 번역한다.",
+    principle: "대운과 세운은 간지 한 줄로 단정하지 않고, 천간합·천간충·지지합충형파해·지장간·보완 후보·주의 오행·도충을 분해해 실제 사건으로 번역한다.",
     daewoonFoundation: currentDaewoon ? {
       ganji: currentDaewoon.ganji || "",
       label: labelOfLuck(currentDaewoon, "현재 대운"),
@@ -2693,10 +2732,10 @@ function buildLuckInteractionDetailAnalysis(
       groupCompletions: daewoonBranch ? findGroupCompletions(daewoonBranch, natalEntries.map((row) => row.pillar.branch)) : [],
       doChungTriggered: ((doChungAnalysis.candidates as Array<Record<string, unknown>> | undefined) || []).filter((row) => JSON.stringify(row.sources || []).includes("daewoon")),
       interpretation: daewoonBranchElement && usefulElements.includes(daewoonBranchElement)
-        ? "대운 지지가 용신이면 생활권, 직업 기반, 관계 환경에서 장기 회복력이 생긴다."
+        ? "대운 지지가 보완 후보이면 생활권, 직업 기반, 관계 환경에서 장기 회복력이 생긴다."
         : daewoonBranchElement && gisin.includes(daewoonBranchElement)
-          ? "대운 지지가 기신이면 10년 배경에서 압박, 정체, 반복 문제가 커질 수 있다."
-          : "대운 지지는 용신과 기신을 함께 건드리므로 합충 결과를 분리해 보아야 한다.",
+          ? "대운 지지가 주의 오행이면 10년 배경에서 압박, 정체, 반복 문제가 커질 수 있다."
+          : "대운 지지는 보완 후보와 주의 오행을 함께 건드리므로 합충 결과를 분리해 보아야 한다.",
     } : { status: "not_supplied", interpretation: "현재 대운 입력이 없어 대운 기반 상세 판별을 보류한다." },
     annualEventTrigger: currentAnnual ? {
       ganji: currentAnnual.ganji || "",
@@ -2723,10 +2762,10 @@ function buildLuckInteractionDetailAnalysis(
         ? `세운의 사건성은 ${labelOfLuck(currentAnnual, "현재 세운")}에서 발생하며, 천간충·지지 중첩·도충 여부를 먼저 확인한다.`
         : "세운 사건성은 입력되지 않았다.",
       natalWeakPoint: annualStemClashes.some((row) => row.damagesJohuYongshin)
-        ? "원국의 취약 지점은 조후 용신이 천간충으로 흔들리는 부분이다."
+        ? "원국의 취약 지점은 조후 보완이 천간충으로 흔들리는 부분이다."
         : ((combinationClashAnalysis.clashes as Array<Record<string, unknown>> | undefined) || []).length
           ? "원국의 취약 지점은 지지 충이 궁을 건드릴 때 생활권과 관계가 흔들리는 부분이다."
-          : "원국 취약점은 구조 이슈보다 운에서 어떤 글자가 용신·기신을 건드리는지에 달려 있다.",
+          : "원국 취약점은 구조 이슈보다 운에서 어떤 글자가 보완 후보·주의 오행을 건드리는지에 달려 있다.",
       combinationTurningPoint: [
         ...buildStemCombinationChecks(currentDaewoon, "대운"),
         ...buildStemCombinationChecks(currentAnnual, "세운"),
@@ -2738,9 +2777,9 @@ function buildLuckInteractionDetailAnalysis(
       })),
       doChungPossibility: annualSaturation,
       practicalPrescription: finalClassification.includes("흉에서 길")
-        ? "불리해 보이는 압박을 피하지 말고, 반대 글자가 열어 주는 용신성 출구를 직업·계약·관계 재배치로 사용한다."
+        ? "불리해 보이는 압박을 피하지 말고, 반대 글자가 열어 주는 보완 후보성 출구를 직업·계약·관계 재배치로 사용한다."
         : finalClassification.includes("길에서 흉") || finalClassification.includes("주의")
-          ? "겉으로 좋아 보이는 제안도 용신 파손 여부를 먼저 확인하고, 확장보다 계약 조건·건강 리듬·관계 경계를 정비한다."
+          ? "겉으로 좋아 보이는 제안도 보완 후보 파손 여부를 먼저 확인하고, 확장보다 계약 조건·건강 리듬·관계 경계를 정비한다."
           : "대운의 기반은 유지하되 세운 사건은 분야별로 쪼개어 직업, 돈, 관계의 실행 순서를 분리한다.",
     },
   };
@@ -2827,24 +2866,24 @@ function buildDaewoonAnalysis(
     const stemElement = row.stem ? STEM_ELEMENT[row.stem as StemKr] : null;
     const branchElement = row.branch ? BRANCH_MAIN_ELEMENT[row.branch as BranchKr] : null;
     return [stemElement, branchElement].some((element) => element && usefulElements.includes(element as ElementKey));
-  }).map((row) => ({ label: row.label || row.ganji || "", reason: "세운이 대운 속 용신 흐름을 보탠다." }));
+  }).map((row) => ({ label: row.label || row.ganji || "", reason: "세운이 대운 속 보완 후보 흐름을 보탠다." }));
   const cautionYears = annualRows.filter((row) => {
     const stemElement = row.stem ? STEM_ELEMENT[row.stem as StemKr] : null;
     const branchElement = row.branch ? BRANCH_MAIN_ELEMENT[row.branch as BranchKr] : null;
     return [stemElement, branchElement].some((element) => element && gisin.includes(element as ElementKey));
-  }).map((row) => ({ label: row.label || row.ganji || "", reason: "세운이 대운 속 기신 압박을 키운다." }));
+  }).map((row) => ({ label: row.label || row.ganji || "", reason: "세운이 대운 속 주의 오행 압박을 키운다." }));
 
   const stemOperation = stemTenGod ? getTenGodOperation(stemTenGod) : null;
   const branchOperation = branchTenGod ? getTenGodOperation(branchTenGod) : null;
   const yongshinChange = supportsYongshin.length && !strengthensGisin.length
-    ? "용신을 돕는 대운"
+    ? "보완 후보를 돕는 대운"
     : strengthensGisin.length && !supportsYongshin.length
-      ? "기신을 강화하는 대운"
+      ? "주의 오행을 강화하는 대운"
       : daewoonCombinationRows.some((row) => String(row.usefulUnfavorableShift || "").includes("흉에서 길"))
-        ? "기신을 합화해 용신화하는 대운"
+        ? "주의 오행을 합화해 보완 후보화하는 대운"
         : daewoonCombinationRows.some((row) => String(row.usefulUnfavorableShift || "").includes("길에서 흉"))
-          ? "용신을 충하거나 묶어 깨는 대운"
-          : "용신과 기신이 혼재된 대운";
+          ? "보완 후보를 충하거나 묶어 깨는 대운"
+          : "보완 후보와 주의 오행이 혼재된 대운";
   const summary = `${current.label || current.ganji || ""} 대운은 천간 ${daewoonStem || "미상"}의 외부 사건성과 지지 ${daewoonBranch || "미상"}의 생활권 변화를 함께 보며, ${yongshinChange}으로 판정한다.`;
 
   return {
@@ -2907,8 +2946,8 @@ function buildDaewoonAnalysis(
     bestYears,
     cautionYears,
     howToUse: supportsYongshin.length
-      ? "용신이 살아나는 영역에 장기 투자를 배치하고, 관계·직업·재물 결정을 10년 구조 안에서 단계화한다."
-      : "기신 압박을 키우는 선택을 줄이고, 합충이 여는 이동·정리·분리 타이밍을 전략적으로 사용한다.",
+      ? "보완 후보가 살아나는 영역에 장기 투자를 배치하고, 관계·직업·재물 결정을 10년 구조 안에서 단계화한다."
+      : "주의 오행 압박을 키우는 선택을 줄이고, 합충이 여는 이동·정리·분리 타이밍을 전략적으로 사용한다.",
     requiredOutput: {
       summary,
       heavenlyStemAnalysis: stemRelations,
@@ -2923,7 +2962,7 @@ function buildDaewoonAnalysis(
       firstSecondHalf: "전반은 천간 사건성, 후반은 지지 환경성을 중심으로 보되 상호작용으로 해석",
       bestYears,
       cautionYears,
-      howToUse: supportsYongshin.length ? "용신 영역을 장기화" : "기신 압박을 정리하고 합충 전환을 활용",
+      howToUse: supportsYongshin.length ? "보완 후보 영역을 장기화" : "주의 오행 압박을 정리하고 합충 전환을 활용",
     },
   };
 }
@@ -3015,13 +3054,13 @@ function buildTransformationTimingAnalysis(
 
     if (changed.includes("흉에서 길")) {
       events.push(makeTransformationEvent({
-        category: "기신 → 용신 변환",
-        phrase: "겉으로는 불리한 운처럼 보이지만, 실제로는 구조 변화로 인해 기신이 용신화됩니다.",
+        category: "주의 오행 → 보완 후보 변환",
+        phrase: "겉으로는 불리한 운처럼 보이지만, 실제로는 구조 변화로 인해 주의 오행이 보완 후보화됩니다.",
         beforeElement,
         afterElement,
         beforeTenGod,
         afterTenGod,
-        stateShift: "기신 → 용신",
+        stateShift: "주의 오행 → 보완 후보",
         trigger: String(row.resultType || row.kind || "합충 변이"),
         timing,
         intensity: scoreTransformation(62, timing, false),
@@ -3032,13 +3071,13 @@ function buildTransformationTimingAnalysis(
     }
     if (changed.includes("길에서 흉")) {
       events.push(makeTransformationEvent({
-        category: "용신 → 기신 변환",
-        phrase: "표면적으로는 좋은 운처럼 보이지만, 실제 구조에서는 용신이 파손되어 주의가 필요합니다.",
+        category: "보완 후보 → 주의 오행 변환",
+        phrase: "표면적으로는 좋은 운처럼 보이지만, 실제 구조에서는 보완 후보가 파손되어 주의가 필요합니다.",
         beforeElement: coreYongshin || beforeElement,
         afterElement,
         beforeTenGod: tenGodForStem(dayStem, representativeStemForElement(coreYongshin || beforeElement)),
         afterTenGod,
-        stateShift: "용신 → 기신",
+        stateShift: "보완 후보 → 주의 오행",
         trigger: String(row.resultType || row.kind || "합충 변이"),
         timing,
         intensity: scoreTransformation(66, timing, false),
@@ -3055,16 +3094,16 @@ function buildTransformationTimingAnalysis(
     const timing = String(row.strongestActivationTiming || "도충 조건이 중첩되는 운");
     const classification = String(row.classification || "");
     const category = classification.includes("흉에서 길")
-      ? "기신 → 용신 변환"
+      ? "주의 오행 → 보완 후보 변환"
       : classification.includes("길에서 흉")
-        ? "용신 → 기신 변환"
+        ? "보완 후보 → 주의 오행 변환"
         : classification.includes("성취")
           ? "잠재력 개방"
           : "구조 붕괴";
-    const phrase = category === "기신 → 용신 변환"
-      ? "겉으로는 불리한 운처럼 보이지만, 실제로는 구조 변화로 인해 기신이 용신화됩니다."
-      : category === "용신 → 기신 변환"
-        ? "표면적으로는 좋은 운처럼 보이지만, 실제 구조에서는 용신이 파손되어 주의가 필요합니다."
+    const phrase = category === "주의 오행 → 보완 후보 변환"
+      ? "겉으로는 불리한 운처럼 보이지만, 실제로는 구조 변화로 인해 주의 오행이 보완 후보화됩니다."
+      : category === "보완 후보 → 주의 오행 변환"
+        ? "표면적으로는 좋은 운처럼 보이지만, 실제 구조에서는 보완 후보가 파손되어 주의가 필요합니다."
         : category === "잠재력 개방"
           ? "오래 숨어 있던 능력과 자원이 현실로 드러나는 시기입니다."
           : "기존 질서가 흔들리므로 확장보다 정비가 우선입니다.";
@@ -3080,17 +3119,17 @@ function buildTransformationTimingAnalysis(
       timing,
       intensity: scoreTransformation(70, timing, true),
       eventPossibility: (row.lifeEvents as string[] | undefined) || [],
-      strategy: category.includes("붕괴") || category.includes("기신")
+      strategy: category.includes("붕괴") || category.includes("주의 오행")
         ? "과포화된 선택을 줄이고 반대 글자가 여는 환경 변화에 맞춰 손실을 차단한다."
-        : "반대 글자가 열어 주는 용신성 기회를 직업·관계·재물의 전환점으로 사용한다.",
+        : "반대 글자가 열어 주는 보완 후보성 기회를 직업·관계·재물의 전환점으로 사용한다.",
       evidence: row,
     }));
   });
 
   ((earthStorageAnalysis.rows as Array<Record<string, unknown>> | undefined) || []).forEach((row) => {
     const hiddenRows = (row.hiddenStems as Array<Record<string, unknown>> | undefined) || [];
-    const usefulHidden = hiddenRows.filter((hidden) => hidden.usefulState === "용신성");
-    const unfavorableHidden = hiddenRows.filter((hidden) => hidden.usefulState === "기신성");
+    const usefulHidden = hiddenRows.filter((hidden) => hidden.usefulState === "보완 후보성");
+    const unfavorableHidden = hiddenRows.filter((hidden) => hidden.usefulState === "주의 오행성");
     const opening = row.storageOpening as Record<string, unknown> | undefined;
     const timing = ((opening?.suppliedLuckMatches as Array<Record<string, unknown>> | undefined) || [])
       .map((item) => `${item.scope || "운"} ${item.label || item.branch || ""}`)
@@ -3105,7 +3144,7 @@ function buildTransformationTimingAnalysis(
         afterElement: element,
         beforeTenGod: tenGodForStem(dayStem, representativeStemForElement("earth")),
         afterTenGod: hidden.tenGod as TenGodName,
-        stateShift: "창고 속 용신 지장간 개방",
+        stateShift: "창고 속 보완 후보 지장간 개방",
         trigger: "창고 충·합",
         timing,
         intensity: scoreTransformation(64, timing, true),
@@ -3124,7 +3163,7 @@ function buildTransformationTimingAnalysis(
         afterElement: element,
         beforeTenGod: tenGodForStem(dayStem, representativeStemForElement(coreYongshin || element)),
         afterTenGod: hidden.tenGod as TenGodName,
-        stateShift: "창고 속 기신 지장간 자극",
+        stateShift: "창고 속 주의 오행 지장간 자극",
         trigger: "불리한 창고 개방",
         timing,
         intensity: scoreTransformation(68, timing, true),
@@ -3148,7 +3187,7 @@ function buildTransformationTimingAnalysis(
       afterElement: row.element as ElementKey,
       beforeTenGod: tenGodForStem(dayStem, getMainHiddenStem(row.branch as BranchKr)),
       afterTenGod: row.tenGod as TenGodName,
-      stateShift: "지장간 용신 투출",
+      stateShift: "지장간 보완 후보 투출",
       trigger: "지장간 재등장",
       timing,
       intensity: scoreTransformation(58, timing, false),
@@ -3182,15 +3221,15 @@ function buildTransformationTimingAnalysis(
   return {
     principle: "합·충·도충·지장간 개방으로 기운이 바뀌는 환골탈태 시기를 별도 탐지한다.",
     categories: {
-      gisinToYongshin: sorted.filter((row) => row.category === "기신 → 용신 변환"),
-      yongshinToGisin: sorted.filter((row) => row.category === "용신 → 기신 변환"),
+      gisinToYongshin: sorted.filter((row) => row.category === "주의 오행 → 보완 후보 변환"),
+      yongshinToGisin: sorted.filter((row) => row.category === "보완 후보 → 주의 오행 변환"),
       potentialOpening: sorted.filter((row) => row.category === "잠재력 개방"),
       structuralCollapse: sorted.filter((row) => row.category === "구조 붕괴"),
     },
     strongestTransformations: sorted.slice(0, 5),
     requiredPhrases: [
-      "겉으로는 불리한 운처럼 보이지만, 실제로는 구조 변화로 인해 기신이 용신화됩니다.",
-      "표면적으로는 좋은 운처럼 보이지만, 실제 구조에서는 용신이 파손되어 주의가 필요합니다.",
+      "겉으로는 불리한 운처럼 보이지만, 실제로는 구조 변화로 인해 주의 오행이 보완 후보화됩니다.",
+      "표면적으로는 좋은 운처럼 보이지만, 실제 구조에서는 보완 후보가 파손되어 주의가 필요합니다.",
       "오래 숨어 있던 능력과 자원이 현실로 드러나는 시기입니다.",
       "기존 질서가 흔들리므로 확장보다 정비가 우선입니다.",
     ],
@@ -3290,7 +3329,7 @@ function buildPersonalityAnalysis(
   const improvementPoint = climateTension
     ? "조후를 보완하는 생활 리듬을 만들면 성격의 날카로움과 불안정성이 크게 줄어든다."
     : earthOverburden
-      ? "토창고 속 지장간 중 용신성 성분을 실제 기술과 관계 방식으로 꺼내 쓰면 답답함이 자원으로 바뀐다."
+      ? "토창고 속 지장간 중 보완 후보성 성분을 실제 기술과 관계 방식으로 꺼내 쓰면 답답함이 자원으로 바뀐다."
       : `${dominantTenGod}의 장점을 살리되 과해질 때의 그림자를 의식적으로 조절하면 삶의 반복 패턴이 좋아진다.`;
 
   return {
@@ -3442,8 +3481,8 @@ function buildCareerAnalysis(
       matchedYongshin,
       strength: matchedYongshin.length ? "상승기" : "준비기",
       reason: matchedYongshin.length
-        ? "대운의 천간·지지가 직업 용신을 건드려 커리어 판이 열린다."
-        : "직업 용신과 직접 맞물리지는 않으므로 기술 정비와 포지션 재배치가 먼저다.",
+        ? "대운의 천간·지지가 직업 보완 후보를 건드려 커리어 판이 열린다."
+        : "직업 보완 후보와 직접 맞물리지는 않으므로 기술 정비와 포지션 재배치가 먼저다.",
     };
   });
   const annualCareerTiming = annualRows.map((row) => {
@@ -3465,8 +3504,8 @@ function buildCareerAnalysis(
       tenGods,
       matchedYongshin,
       reason: matchedYongshin.length
-        ? "세운이 직업 용신을 깨워 이직, 승진, 확장 판단의 문이 열린다."
-        : "세운이 직접 직업 용신을 밀어주지는 않아 무리한 확장보다 조건 확인이 우선이다.",
+        ? "세운이 직업 보완 후보를 깨워 이직, 승진, 확장 판단의 문이 열린다."
+        : "세운이 직접 직업 보완 후보를 밀어주지는 않아 무리한 확장보다 조건 확인이 우선이다.",
     };
   });
   const monetizableAbility = careerStructures.siksangSaengjae
@@ -3477,7 +3516,7 @@ function buildCareerAnalysis(
         ? "압박과 책임을 지식, 자격, 시스템으로 정리해 권한을 얻는 능력이 돈이 된다."
         : dominantOperation.wealth || dominantOperation.career;
   const immediateCareerStrategy = [
-    `${ELEMENT_KO[strongestCareerElement]} 용신성 환경인 ${String(getCareerFieldByElement(strongestCareerElement).environment)}으로 업무 중심을 옮긴다.`,
+    `${ELEMENT_KO[strongestCareerElement]} 보완 후보성 환경인 ${String(getCareerFieldByElement(strongestCareerElement).environment)}으로 업무 중심을 옮긴다.`,
     careerStructures.wealthManyBodyWeak ? "돈 되는 제안이 많아도 체력, 권한, 계약 조건을 먼저 고정한다." : "가장 강한 십성을 수익 모델의 전면에 세운다.",
     daewoonAnalysis.requiredOutput ? String((daewoonAnalysis.requiredOutput as Record<string, unknown>).careerChange || daewoonAnalysis.careerChange || "") : "현재 대운 정보가 부족하면 10년 환경보다 원국의 강점 정리에 집중한다.",
   ].filter(Boolean);
@@ -3508,7 +3547,7 @@ function buildCareerAnalysis(
     },
     businessFit: {
       fit: primaryMode === "business" && !businessCaution ? "맞음" : primaryMode === "business" ? "조건부로 맞음" : "부업·프로젝트형부터 적합",
-      caution: businessCaution ? "비겁 과다 또는 재다신약 성향이 있어 동업, 분배, 현금흐름 통제가 먼저다." : "사업운은 직업 용신이 들어오는 대운·세운에서 키우는 것이 좋다.",
+      caution: businessCaution ? "비겁 과다 또는 재다신약 성향이 있어 동업, 분배, 현금흐름 통제가 먼저다." : "사업운은 직업 보완 후보가 들어오는 대운·세운에서 키우는 것이 좋다.",
     },
     investmentWealthManagementStyle: careerStructures.wealthManyBodyWeak
       ? "투자와 재물 운용은 공격보다 보전, 현금흐름, 손절 기준이 먼저다."
@@ -3732,13 +3771,13 @@ function buildShinsalAnalysis(
   ];
   const locationOf = (row: Record<string, unknown>) => `${row.source || "원국"} ${row.scope || ""} ${row.label || ""}`.trim();
   const resolveStateForElements = (elements: ElementKey[]) => elements.some((element) => usefulElements.includes(element))
-    ? "용신 연결"
+    ? "보완 후보 연결"
     : elements.some((element) => gisin.includes(element))
-      ? "기신 연결"
+      ? "주의 오행 연결"
       : "중립 보조";
   const actualManifestation = (base: string, useState: string) => {
-    if (useState === "용신 연결") return `${base} 원국의 용신과 닿으면 재능, 귀인, 회복력으로 길하게 작동한다.`;
-    if (useState === "기신 연결") return `${base} 기신과 닿으면 과장, 지연, 갈등, 사고성 긴장으로 부작용이 난다.`;
+    if (useState === "보완 후보 연결") return `${base} 원국의 보완 후보와 닿으면 재능, 귀인, 회복력으로 길하게 작동한다.`;
+    if (useState === "주의 오행 연결") return `${base} 주의 오행과 닿으면 과장, 지연, 갈등, 사고성 긴장으로 부작용이 난다.`;
     return `${base} 단독 길흉이 아니라 원국 구조와 운의 합충을 보조해 해석한다.`;
   };
   const rows: Array<Record<string, unknown>> = [];
@@ -3850,13 +3889,13 @@ function buildShinsalAnalysis(
   });
 
   return {
-    principle: "신살은 원국 구조보다 앞세우지 않고, 용신·기신·격국·합충 뒤에서 성격·연애·직업·이동·귀인운을 보조 해석한다.",
+    principle: "신살은 원국 구조보다 앞세우지 않고, 보완 후보·주의 오행·격국·합충 뒤에서 성격·연애·직업·이동·귀인운을 보조 해석한다.",
     requestedShinsal: ["도화살", "홍염살", "화개살", "역마살", "천을귀인", "문창귀인", "태극귀인", "월덕귀인", "천덕귀인", "괴강살", "백호살", "양인살", "공망", "귀문관살", "원진살"],
     rows,
     activeRows: rows.filter((row) => row.position !== "원국·입력 운에서 직접 확인되지 않음"),
     luckTriggeredRows: rows.filter((row) => (row.luckActivation as Record<string, unknown> | undefined)?.activated),
-    usefulLinkedRows: rows.filter((row) => row.yongshinGisinConnection === "용신 연결"),
-    unfavorableLinkedRows: rows.filter((row) => row.yongshinGisinConnection === "기신 연결"),
+    usefulLinkedRows: rows.filter((row) => row.yongshinGisinConnection === "보완 후보 연결"),
+    unfavorableLinkedRows: rows.filter((row) => row.yongshinGisinConnection === "주의 오행 연결"),
     auxiliaryDomains: {
       personality: rows.filter((row) => String(row.category).includes("성격") || String(row.category).includes("심리")),
       love: rows.filter((row) => String(row.category).includes("연애") || String(row.category).includes("관계")),
@@ -4010,7 +4049,7 @@ function buildLoveMarriageAnalysis(
   }).map((row) => ({
     label: row.label || row.ganji || "",
     ganji: row.ganji || "",
-    reason: "배우자궁 충·해·파, 기신성 관계 자극, 도충이 겹쳐 이별·갈등이 쉬운 세운이다.",
+    reason: "배우자궁 충·해·파, 주의 오행성 관계 자극, 도충이 겹쳐 이별·갈등이 쉬운 세운이다.",
   }));
   const marriageDecisionTiming = annualRows.filter((row) => {
     const label = row.label || row.ganji || "";
@@ -4021,7 +4060,7 @@ function buildLoveMarriageAnalysis(
   }).map((row) => ({
     label: row.label || row.ganji || "",
     ganji: row.ganji || "",
-    reason: "배우자성 또는 배우자궁 합이 용신성 흐름과 맞물려 결혼 결정을 현실화하기 좋다.",
+    reason: "배우자성 또는 배우자궁 합이 보완 후보성 흐름과 맞물려 결혼 결정을 현실화하기 좋다.",
   }));
   const marriageFavorable = spouseStarScores.some((row) => row.score >= 0.55) && !dayBranchRelations.some((row) => row.type === "충") && !mixedOfficer && !mixedWealth;
   const lateOrEarlyMarriage = dayBranchRelations.some((row) => row.type === "충" || row.type === "해" || row.type === "파") || mixedOfficer || mixedWealth || outputOfficerConflict || peerContestingWealth
@@ -4186,15 +4225,15 @@ function buildScoringAnalysis(
   const hapgeoRows = requiredRelationRows.filter((row) => String(row.resultType || "").includes("합거") || JSON.stringify(row).includes("합거"));
   const usefulHapgeoRows = hapgeoRows.filter((row) => JSON.stringify(row).includes("길에서 흉") || usefulElements.some((element) => JSON.stringify(row).includes(element)));
   const unfavorableHapgeoRows = hapgeoRows.filter((row) => JSON.stringify(row).includes("흉에서 길") || gisin.some((element) => JSON.stringify(row).includes(element)));
-  const positiveClashRows = clashRows.filter((row) => JSON.stringify(row).includes("기신 충거") || JSON.stringify(row).includes("흉에서 길"));
-  const negativeClashRows = clashRows.filter((row) => JSON.stringify(row).includes("용신 피충") || JSON.stringify(row).includes("길에서 흉"));
+  const positiveClashRows = clashRows.filter((row) => JSON.stringify(row).includes("주의 오행 충거") || JSON.stringify(row).includes("흉에서 길"));
+  const negativeClashRows = clashRows.filter((row) => JSON.stringify(row).includes("보완 후보 피충") || JSON.stringify(row).includes("길에서 흉"));
   const doChungRows = ((doChungAnalysis.candidates as Array<Record<string, unknown>> | undefined) || []);
   const positiveDoChungRows = doChungRows.filter((row) => String(row.classification || "").includes("흉에서 길") || String(row.resultCategory || "").includes("흉에서 길"));
   const negativeDoChungRows = doChungRows.filter((row) => String(row.classification || "").includes("길에서 흉") || String(row.resultCategory || "").includes("길에서 흉"));
   const earthStorageRows = ((earthStorageAnalysis.rows as Array<Record<string, unknown>> | undefined) || []);
   const hiddenProtrudedRows = ((hiddenStemActivation.protruded as Array<Record<string, unknown>> | undefined) || []);
   const usefulHiddenRows = hiddenProtrudedRows.filter((row) => usefulElements.includes(row.element as ElementKey));
-  const hiddenStorageUsefulRows = earthStorageRows.filter((row) => JSON.stringify(row).includes("용신"));
+  const hiddenStorageUsefulRows = earthStorageRows.filter((row) => JSON.stringify(row).includes("보완 후보"));
   const gyeokCandidates = ((gyeokgukAnalysis.candidates as Array<Record<string, unknown>> | undefined) || []);
   const bestGyeokCandidate = [...gyeokCandidates].sort((a, b) => Number(b.score || 0) - Number(a.score || 0))[0];
   const breakFactors = ((gyeokgukAnalysis.breakFactors as Array<Record<string, unknown>> | undefined) || []);
@@ -4247,23 +4286,23 @@ function buildScoringAnalysis(
     ),
     makeScoreItem(
       "yongshinActivation",
-      "용신 활성 점수",
+      "보완 후보 활성 점수",
       usefulPower / totalPower * 185 - 35 + daewoonSupports * 18 + annualUsefulCount * 9 - structuralIssues.filter((row) => row.code === "useful_damaged").length * 28,
-      `용신 후보 ${usefulElements.map((element) => ELEMENT_KO[element]).join(", ")}가 원국 세력과 대운·세운에서 얼마나 살아나는지를 함께 보았다.`,
+      `보완 후보 후보 ${usefulElements.map((element) => ELEMENT_KO[element]).join(", ")}가 원국 세력과 대운·세운에서 얼마나 살아나는지를 함께 보았다.`,
       { usefulElements, usefulPower: round2(usefulPower), usefulRatio: round2(usefulPower / totalPower), daewoonSupports, annualUsefulCount },
     ),
     makeScoreItem(
       "gisinRisk",
-      "기신 위험 점수",
+      "주의 오행 위험 점수",
       62 - gisinPower / totalPower * 210 - structuralIssues.filter((row) => row.code === "unfavorable_activated").length * 28 - unfavorableShinsalRows.length * 4,
-      `기신 ${gisin.map((element) => ELEMENT_KO[element]).join(", ") || "미약"}의 원국 세력, 구조적 병, 신살 부작용 연결을 함께 반영했다.`,
+      `주의 오행 ${gisin.map((element) => ELEMENT_KO[element]).join(", ") || "미약"}의 원국 세력, 구조적 병, 신살 부작용 연결을 함께 반영했다.`,
       { gisin, gisinPower: round2(gisinPower), gisinRatio: round2(gisinPower / totalPower), unfavorableShinsalCount: unfavorableShinsalRows.length },
     ),
     makeScoreItem(
       "gyeokEstablished",
       "격국 성립 점수",
       Number(bestGyeokCandidate?.score || 0) * 17 + activatedLuckRows.length * 7 - breakFactors.length * 12,
-      `${gyeokgukAnalysis.finalGyeokguk || "격국"} 후보의 성립 점수, 월지 투간, 상신·희신, 파격 요소를 함께 계산했다.`,
+      `${gyeokgukAnalysis.finalGyeokguk || "격국"} 후보의 성립 점수, 월지 투간, 상신·보조 후보, 파격 요소를 함께 계산했다.`,
       { finalGyeokguk: gyeokgukAnalysis.finalGyeokguk, bestCandidate: bestGyeokCandidate, activatedLuckCount: activatedLuckRows.length, breakFactorCount: breakFactors.length },
     ),
     makeScoreItem(
@@ -4277,63 +4316,63 @@ function buildScoringAnalysis(
       "combinationTransform",
       "합화 성공 가능성 점수",
       successfulUsefulCombination.length * 32 - successfulUnfavorableCombination.length * 28 + combinationRows.length * 4,
-      `천간합·지지합은 계절 지원, 뿌리, 합화 오행의 세력, 용신/기신 전환을 함께 보아 합화 가능성을 점수화했다.`,
+      `천간합·지지합은 계절 지원, 뿌리, 합화 오행의 세력, 보완 후보·주의 오행 전환을 함께 보아 합화 가능성을 점수화했다.`,
       { combinationCount: combinationRows.length, successfulUsefulCombination, successfulUnfavorableCombination },
     ),
     makeScoreItem(
       "hapgeoPossibility",
       "합거 가능성 점수",
       unfavorableHapgeoRows.length * 22 - usefulHapgeoRows.length * 28 - hapgeoRows.length * 5,
-      `합거는 묶이는 글자가 용신이면 불리하게, 기신이면 정리와 완충으로 작동할 수 있어 방향을 나누어 계산했다.`,
+      `합거는 묶이는 글자가 보완 후보이면 불리하게, 주의 오행이면 정리와 완충으로 작동할 수 있어 방향을 나누어 계산했다.`,
       { hapgeoRows, usefulHapgeoRows, unfavorableHapgeoRows },
     ),
     makeScoreItem(
       "clashTriggerIntensity",
       "충발 강도 점수",
       positiveClashRows.length * 28 - negativeClashRows.length * 34 - Math.max(0, clashRows.length - positiveClashRows.length - negativeClashRows.length) * 8,
-      `충은 무조건 흉이 아니라 기신을 치면 돌파로, 용신을 치면 기반 손상으로 보아 강도를 나누었다.`,
+      `충은 무조건 흉이 아니라 주의 오행을 치면 돌파로, 보완 후보를 치면 기반 손상으로 보아 강도를 나누었다.`,
       { clashRows, positiveClashRows, negativeClashRows },
     ),
     makeScoreItem(
       "doChungActivation",
       "도충 발동 점수",
       positiveDoChungRows.length * 42 - negativeDoChungRows.length * 44 - Math.max(0, doChungRows.length - positiveDoChungRows.length - negativeDoChungRows.length) * 8,
-      `같은 지지가 과포화될 때 반대 글자를 불러오는 도충은 용신 유도인지 기신 유도인지에 따라 급변 점수를 갈랐다.`,
+      `같은 지지가 과포화될 때 반대 글자를 불러오는 도충은 보완 후보 유도인지 주의 오행 유도인지에 따라 급변 점수를 갈랐다.`,
       { doChungRows, positiveDoChungRows, negativeDoChungRows },
     ),
     makeScoreItem(
       "hiddenStemOpening",
       "지장간 개방 점수",
       usefulHiddenRows.length * 22 + hiddenStorageUsefulRows.length * 18 - (earthStorageAnalysis.overburdened ? 18 : 0),
-      `월지·일지·시지 지장간 투간과 진술축미 창고 개방에서 용신성 성분이 현실화되는지를 보았다.`,
+      `월지·일지·시지 지장간 투간과 진술축미 창고 개방에서 보완 후보성 성분이 현실화되는지를 보았다.`,
       { usefulHiddenRows, hiddenStorageUsefulRows, earthOverburdened: earthStorageAnalysis.overburdened },
     ),
     makeScoreItem(
       "daewoonFortune",
       "대운 길흉 점수",
       daewoonSupports * 34 - daewoonGisin * 34 + bestYears * 6 - cautionYears * 6 + activatedLuckRows.filter((row) => row.scope === "daewoon").length * 8 - brokenLuckRows.filter((row) => row.scope === "daewoon").length * 12,
-      `대운 천간·지지가 원국 용신을 돕는지, 기신을 강화하는지, 격국과 도충을 어떻게 건드리는지를 종합했다.`,
+      `대운 천간·지지가 원국 보완 후보를 돕는지, 주의 오행을 강화하는지, 격국과 도충을 어떻게 건드리는지를 종합했다.`,
       { daewoonSupports, daewoonGisin, bestYears, cautionYears, daewoonStatus: daewoonAnalysis.status },
     ),
     makeScoreItem(
       "annualFortune",
       "세운 길흉 점수",
       annualRows.length ? ((annualUsefulCount - annualGisinCount) / annualRows.length) * 70 + annualUsefulCount * 6 - annualGisinCount * 6 : 0,
-      `입력된 세운이 대운 위에서 용신을 발동하는지, 기신을 자극하는지를 연간 단위로 합산했다.`,
+      `입력된 세운이 대운 위에서 보완 후보를 발동하는지, 주의 오행을 자극하는지를 연간 단위로 합산했다.`,
       { annualRows, annualUsefulCount, annualGisinCount },
     ),
     makeScoreItem(
       "careerFortune",
       "직업운 점수",
       careerRiseRows.filter((row) => String(row.strength || "").includes("상승")).length * 24 + annualCareerRows.filter((row) => String(row.timingType || "").includes("승진") || String(row.timingType || "").includes("확장")).length * 10 + usefulPower / totalPower * 45 - gisinPower / totalPower * 18,
-      `격국이 요구하는 일, 직업 용신, 강한 십성, 대운·세운의 상승 타이밍을 직업운으로 묶었다.`,
+      `격국이 요구하는 일, 직업 보완 후보, 강한 십성, 대운·세운의 상승 타이밍을 직업운으로 묶었다.`,
       { careerRiseRows, annualCareerRows, jobYongshin: yongshinAnalysis.jobYongshin },
     ),
     makeScoreItem(
       "wealthFortune",
       "재물운 점수",
       wealthScore * 22 + outputScore * 8 + (usefulElements.includes(wealthElement) ? 24 : 0) - (dayMasterStrength.includes("약") && wealthScore / Math.max(1, peerScore + resourceScore) > 0.65 ? 38 : 0) - (gisin.includes(wealthElement) ? 24 : 0),
-      `재성 자체보다 식상생재, 일간 감당력, 재성의 용신/기신 여부를 함께 보아 재물운을 산정했다.`,
+      `재성 자체보다 식상생재, 일간 감당력, 재성의 보완 후보·주의 오행 여부를 함께 보아 재물운을 산정했다.`,
       { wealthScore: round2(wealthScore), outputScore: round2(outputScore), wealthElement, wealthElementKo: ELEMENT_KO[wealthElement], dayMasterStrength },
     ),
     makeScoreItem(
@@ -4390,7 +4429,10 @@ function buildScoringAnalysis(
   };
 }
 
-function calculateNatalAnalysis(pillars: LocalSajuResult["pillars"], input: LocalSajuInput): NatalAnalysisLocal {
+function calculateNatalAnalysis(pillars: LocalSajuResult["pillars"], input: LocalSajuInput, options: SajuAnalysisExecutionOptions = {}): NatalAnalysisLocal {
+  if (options.gyeokgukAuthorityV2 === true) {
+    return buildApprovedNatalAnalysis(pillars) as NatalAnalysisLocal;
+  }
   const dayStem = pillars.day.stem;
   const dayElement = STEM_ELEMENT[dayStem];
   const resourceElement = getProducerOf(dayElement);
@@ -4655,8 +4697,8 @@ function calculateNatalAnalysis(pillars: LocalSajuResult["pillars"], input: Loca
   pushIssue(resourcePower / totalPower >= 0.32, "resource_excess", "인성과다", 2, { resourcePower: round2(resourcePower) });
   pushIssue(peerPower / totalPower >= 0.32, "peer_excess", "비겁과다", 2, { peerPower: round2(peerPower) });
   pushIssue(Math.abs(climate.temperature) >= 1.2 || climate.humidity >= 1.25 || climate.dryness >= 1.25, "johu_imbalance", "조후 불균형", 3, { climate: normalizedClimate, urgentElement });
-  pushIssue(usefulElements.some((element) => effectivePower[element] < 0.35), "useful_damaged", "용신 파손", 3, { usefulElements, effectivePower: roundScores(effectivePower), interactionDelta: roundScores(interactions.delta) });
-  pushIssue(!usefulElements.includes(strongestElement) && effectivePower[strongestElement] / totalPower >= 0.34, "unfavorable_activated", "기신 발동", 2, { element: strongestElement, ratio: round2(effectivePower[strongestElement] / totalPower) });
+  pushIssue(usefulElements.some((element) => effectivePower[element] < 0.35), "useful_damaged", "보완 후보 파손", 3, { usefulElements, effectivePower: roundScores(effectivePower), interactionDelta: roundScores(interactions.delta) });
+  pushIssue(!usefulElements.includes(strongestElement) && effectivePower[strongestElement] / totalPower >= 0.34, "unfavorable_activated", "주의 오행 발동", 2, { element: strongestElement, ratio: round2(effectivePower[strongestElement] / totalPower) });
   pushIssue(interactions.stemRelations.some((row) => {
     const stems = row.stems as StemKr[];
     const target = row.element as ElementKey;
@@ -4712,7 +4754,7 @@ function calculateNatalAnalysis(pillars: LocalSajuResult["pillars"], input: Loca
       season: season.season,
       commandingElement: season.dominantElement,
       commandingElementKo: ELEMENT_KO[season.dominantElement],
-      priority: "월령은 신강/신약, 격국, 조후, 용신 판단의 최우선 근거",
+      priority: "월령은 신강/신약, 격국, 조후, 보완 후보 판단의 최우선 근거",
       hiddenStems: HIDDEN_STEMS_BY_BRANCH[pillars.month.branch].map((row) => ({ ...row, tenGod: tenGodForStem(dayStem, row.stem) })),
       monthSupport,
     },
@@ -5021,7 +5063,7 @@ function buildStructuredAdvancedReport(args: {
       hasChenXuChouWei: earthRows.length > 0,
       storageBranches: earthRows,
       mentalPressureLevel: Number(earthStorage.overburdened ? 85 : Math.min(70, earthRows.length * 25)),
-      hiddenPotential: earthRows.flatMap((row) => asReportRows(row.hiddenStems)).filter((row) => displayValue(row.usefulState, "").includes("용신") || displayValue(row.usefulState, "").includes("잠재")),
+      hiddenPotential: earthRows.flatMap((row) => asReportRows(row.hiddenStems)).filter((row) => displayValue(row.usefulState, "").includes("보완 후보") || displayValue(row.usefulState, "").includes("잠재")),
       storageOpeningPeriods: earthRows.flatMap((row) => asReportRows(asReportRecord(row.storageOpening).suppliedLuckMatches)),
     },
     dochungAnalysis: {
@@ -5051,10 +5093,10 @@ function buildStructuredAdvancedReport(args: {
     },
     clashAnalysis: {
       clashes: clashRows,
-      usefulClashes: clashRows.filter((row) => displayValue(row.usefulUnfavorableShift, "").includes("기신") || displayValue(row.changedState, "").includes("길")),
-      harmfulClashes: clashRows.filter((row) => displayValue(row.usefulUnfavorableShift, "").includes("용신") || displayValue(row.changedState, "").includes("흉")),
-      yongshinDamages: clashRows.filter((row) => displayValue(row.usefulUnfavorableShift, "").includes("용신")),
-      gishinRemovals: clashRows.filter((row) => displayValue(row.usefulUnfavorableShift, "").includes("기신")),
+      usefulClashes: clashRows.filter((row) => displayValue(row.usefulUnfavorableShift, "").includes("주의 오행") || displayValue(row.changedState, "").includes("길")),
+      harmfulClashes: clashRows.filter((row) => displayValue(row.usefulUnfavorableShift, "").includes("보완 후보") || displayValue(row.changedState, "").includes("흉")),
+      yongshinDamages: clashRows.filter((row) => displayValue(row.usefulUnfavorableShift, "").includes("보완 후보")),
+      gishinRemovals: clashRows.filter((row) => displayValue(row.usefulUnfavorableShift, "").includes("주의 오행")),
     },
     daewoon: {
       current: asReportRecord(daewoon.currentDaewoon),
@@ -5170,9 +5212,9 @@ function buildFinalAdvancedReport(args: {
       { label: localSajuCalculatorText("lsc_4849_prop_label"), value: displayValue(johu.urgentElementKo), why: displayValue(scoreOf("johuBalance")?.naturalReason) },
       { label: localSajuCalculatorText("lsc_4850_prop_label"), value: displayValue(gyeokguk.finalGyeokguk), why: displayValue(asReportRecord(gyeokguk.requiredOutput).reason) },
       { label: localSajuCalculatorText("lsc_4851_prop_label"), value: displayValue(yongshin.coreYongshinKo), why: displayValue(asReportRecord(yongshin.requiredExplanation).whyThisElement) },
-      { label: localSajuCalculatorText("lsc_4852_prop_label"), value: displayValue(yongshin.heesinKo), why: "핵심 용신을 돕거나 흐름을 부드럽게 이어 주는 보조 기운이다." },
+      { label: localSajuCalculatorText("lsc_4852_prop_label"), value: displayValue(yongshin.heesinKo), why: "핵심 보완 후보를 돕거나 흐름을 부드럽게 이어 주는 보조 기운이다." },
       { label: localSajuCalculatorText("lsc_4853_prop_label"), value: displayValue(yongshin.gisinKo), why: displayValue(scoreOf("gisinRisk")?.naturalReason) },
-      { label: localSajuCalculatorText("lsc_4854_prop_label"), value: displayValue(yongshin.gusinKo), why: "기신을 돕는 배후 기운으로 과해지면 구조적 부담을 키운다." },
+      { label: localSajuCalculatorText("lsc_4854_prop_label"), value: displayValue(yongshin.gusinKo), why: "주의 오행을 돕는 배후 기운으로 과해지면 구조적 부담을 키운다." },
       { label: localSajuCalculatorText("lsc_4855_prop_label"), value: displayValue(asReportRecord(yongshin.disease).name), why: displayValue(asReportRecord(yongshin.disease).reason) },
       { label: localSajuCalculatorText("lsc_4856_prop_label"), value: displayValue((asReportRecord(yongshin.disease).medicineElements as unknown[] | undefined)?.map((element) => ELEMENT_KO[element as ElementKey])), why: "병을 치료하는 오행이 실제 처방의 핵심이다." },
       { label: localSajuCalculatorText("lsc_4857_prop_label"), value: displayValue(scoring.naturalSummary), why: "18개 판별 점수를 숫자보다 자연어 근거 중심으로 요약했다." },
@@ -5187,16 +5229,16 @@ function buildFinalAdvancedReport(args: {
     reportSection(5, "진술축미·창고 분석", [
       { label: localSajuCalculatorText("lsc_4867_prop_label"), value: earthStorage.overburdened ? "과중" : "과중 아님", why: displayValue(earthStorage.earthDisposition) },
       { label: localSajuCalculatorText("lsc_4868_prop_label"), value: displayValue(earthStorage.pressureReading), why: "辰戌丑未는 단순 토가 아니라 책임과 감정의 저장고로 본다." },
-      { label: localSajuCalculatorText("lsc_4869_prop_label"), value: displayValue(earthStorage.usefulReading), why: "창고 속 지장간이 용신이면 충이 오히려 자원 개방이 된다." },
+      { label: localSajuCalculatorText("lsc_4869_prop_label"), value: displayValue(earthStorage.usefulReading), why: "창고 속 지장간이 보완 후보이면 충이 오히려 자원 개방이 된다." },
       { label: localSajuCalculatorText("lsc_4870_prop_label"), value: rowSummary(asReportRows(earthStorage.openingTiming), ["scope", "label", "relation"], "직접 매칭 없음"), why: "진술충·축미충과 운의 합충을 창고 개방 신호로 본다." },
-      { label: localSajuCalculatorText("lsc_4871_prop_label"), value: rowSummary(asReportRows(earthStorage.riskTiming), ["scope", "label", "risk"], "직접 위험 매칭 없음"), why: "창고 속 기신이 열리면 압박과 문제 노출로 나타난다." },
+      { label: localSajuCalculatorText("lsc_4871_prop_label"), value: rowSummary(asReportRows(earthStorage.riskTiming), ["scope", "label", "risk"], "직접 위험 매칭 없음"), why: "창고 속 주의 오행이 열리면 압박과 문제 노출로 나타난다." },
     ]),
     reportSection(6, "도충 분석", [
       { label: localSajuCalculatorText("lsc_4874_prop_label"), value: rowSummary(asReportRows(doChung.candidates), ["repeatedBranch", "totalCount"], "도충 후보 없음"), why: "같은 지지가 3개 수준으로 중첩될 때 과포화가 발생한다." },
       { label: localSajuCalculatorText("lsc_4875_prop_label"), value: rowSummary(asReportRows(doChung.candidates), ["inducedOppositeBranch", "inducedTenGod"], "반대 지지 유도 없음"), why: "도충은 단순 강화가 아니라 반대편 충 글자를 불러오는 구조다." },
       { label: localSajuCalculatorText("lsc_4876_prop_label"), value: rowSummary(asReportRows(doChung.candidates), ["classification"], "변화 없음"), why: displayValue(scoreOf("doChungActivation")?.naturalReason) },
-      { label: localSajuCalculatorText("lsc_4877_prop_label"), value: rowSummary(asReportRows(transformation.gisinToYongshin), ["requiredPhrase", "activationTiming"], "확인된 전환 없음"), why: "기신 과포화가 용신을 유도하면 판이 바뀐다." },
-      { label: localSajuCalculatorText("lsc_4878_prop_label"), value: rowSummary(asReportRows(transformation.yongshinToGisin), ["requiredPhrase", "activationTiming"], "확인된 전환 없음"), why: "용신 과포화가 반대 기신을 불러오면 기반이 흔들린다." },
+      { label: localSajuCalculatorText("lsc_4877_prop_label"), value: rowSummary(asReportRows(transformation.gisinToYongshin), ["requiredPhrase", "activationTiming"], "확인된 전환 없음"), why: "주의 오행 과포화가 보완 후보를 유도하면 판이 바뀐다." },
+      { label: localSajuCalculatorText("lsc_4878_prop_label"), value: rowSummary(asReportRows(transformation.yongshinToGisin), ["requiredPhrase", "activationTiming"], "확인된 전환 없음"), why: "보완 후보 과포화가 반대 주의 오행을 불러오면 기반이 흔들린다." },
       { label: localSajuCalculatorText("lsc_4879_prop_label"), value: rowSummary(asReportRows(doChung.candidates), ["lifeEvent"], "직접 사건 후보 없음"), why: "직업·재물·연애·이동 사건으로 현실화될 수 있다." },
     ]),
     reportSection(7, "합화·충 변이 분석", [
@@ -5205,7 +5247,7 @@ function buildFinalAdvancedReport(args: {
       { label: localSajuCalculatorText("lsc_4884_prop_label"), value: rowSummary(asReportRows(combinationClash.groupCombinations), ["type", "branches", "changedState"], "삼합 없음"), why: "흩어진 지지가 한 방향으로 모이면 운의 성격이 바뀐다." },
       { label: localSajuCalculatorText("lsc_4885_prop_label"), value: rowSummary(asReportRows(combinationClash.directionalCombinations), ["type", "branches", "changedState"], "방합 없음"), why: "계절 방향성이 모이면 생활권의 기운이 강하게 기울어진다." },
       { label: localSajuCalculatorText("lsc_4886_prop_label"), value: rowSummary(asReportRows(combinationClash.requiredOutputRows), ["relationType", "resultType", "usefulUnfavorableShift"], "직접 변이 없음"), why: displayValue(scoreOf("clashTriggerIntensity")?.naturalReason) },
-      { label: localSajuCalculatorText("lsc_4887_prop_label"), value: rowSummary(asReportRows(combinationClash.requiredOutputRows), ["transformationSuccess", "resultType", "usefulUnfavorableShift"], "직접 전환 없음"), why: "합과 충은 용신·기신 변화까지 재계산해야 한다." },
+      { label: localSajuCalculatorText("lsc_4887_prop_label"), value: rowSummary(asReportRows(combinationClash.requiredOutputRows), ["transformationSuccess", "resultType", "usefulUnfavorableShift"], "직접 전환 없음"), why: "합과 충은 보완 후보·주의 오행 변화까지 재계산해야 한다." },
     ]),
     reportSection(8, "현재 대운 분석", [
       { label: localSajuCalculatorText("lsc_4890_prop_label"), value: displayValue(asReportRecord(daewoon.currentDaewoon).label || asReportRecord(daewoon.currentDaewoon).ganji || rowSummary(daewoonRows, ["label", "ganji"], "대운 입력 없음")), why: "대운은 10년짜리 배경 운이다." },
@@ -5214,7 +5256,7 @@ function buildFinalAdvancedReport(args: {
       { label: localSajuCalculatorText("lsc_4893_prop_label"), value: rowSummary(asReportRows(luckDaewoonDetail.branchHiddenStems), ["stem", "tenGod", "elementKo"], "대운 지장간 없음"), why: "대운 지지의 본기와 지장간이 어떤 십성으로 들어오는지 확인한다." },
       { label: localSajuCalculatorText("lsc_4894_prop_label"), value: rowSummary(asReportRows(luckDaewoonDetail.earthlyBranchRelations), ["luckBranch", "relation", "targetScope", "targetLifeArea"], "대운 지지의 직접 합충형파해 없음"), why: "대운 지지가 원국 어느 궁을 건드리는지에 따라 사건 영역이 달라진다." },
       { label: localSajuCalculatorText("lsc_4895_prop_label"), value: `${rowSummary(asReportRows(luckDaewoonDetail.groupCompletions), ["type", "branches", "targetElement"], "삼합/방합 직접 완성 없음")} / ${rowSummary(asReportRows(luckDaewoonDetail.doChungTriggered), ["repeatedBranch", "classification"], "대운 도충 직접 발동 없음")}`, why: "대운 지지는 10년 환경에서 삼합·도충 조건을 길게 깔아 둔다." },
-      { label: localSajuCalculatorText("lsc_4896_prop_label"), value: displayValue(asReportRecord(daewoon.yongshinGisinChange).supportsYongshin), why: "용신을 돕는지 기신을 강화하는지부터 본다." },
+      { label: localSajuCalculatorText("lsc_4896_prop_label"), value: displayValue(asReportRecord(daewoon.yongshinGisinChange).supportsYongshin), why: "보완 후보를 돕는지 주의 오행을 강화하는지부터 본다." },
       { label: localSajuCalculatorText("lsc_4897_prop_label"), value: `${displayValue(asReportRecord(daewoon.heavenlyStemAnalysis).tenGod)} / ${displayValue(asReportRecord(daewoon.earthlyBranchAnalysis).tenGod)}`, why: "천간은 드러난 사건, 지지는 생활 환경으로 본다." },
       { label: localSajuCalculatorText("lsc_4898_prop_label"), value: displayValue(daewoon.relationSummary), why: "원국 천간·지지와 합충형파해를 비교했다." },
       { label: localSajuCalculatorText("lsc_4899_prop_label"), value: displayValue(daewoon.gyeokgukChange), why: "대운이 격을 살리는지 깨는지 본다." },
@@ -5228,9 +5270,9 @@ function buildFinalAdvancedReport(args: {
       { label: localSajuCalculatorText("lsc_4907_prop_label"), value: displayValue(currentAnnual?.label || currentAnnual?.ganji, "세운 입력 없음"), why: "세운은 대운 위에 얹히는 해당 연도의 사건 트리거다." },
       { label: localSajuCalculatorText("lsc_4908_prop_label"), value: displayValue(luckIntegratedReading.annualEvent), why: "세운은 대운의 배경 위에서 실제 사건을 촉발한다." },
       { label: localSajuCalculatorText("lsc_4909_prop_label"), value: rowSummary(asReportRows(luckAnnualDetail.heavenlyStemCombinationChecks), ["combinationRule", "resultType", "transformedUseState"], "세운 천간의 직접 합화·합거 없음"), why: "세운 천간이 원국 천간과 합하는지, 합화가 되는지, 합거로 묶이는지 확인한다." },
-      { label: localSajuCalculatorText("lsc_4910_prop_label"), value: rowSummary(asReportRows(luckAnnualDetail.heavenlyStemClashChecks).filter((row) => row.isClash), ["clashRule", "targetScope", "damagesJohuYongshin", "meaning"], "세운 천간충 없음"), why: "천간충이 조후 용신을 건드리면 표면 길운도 몸과 판단에서 흔들릴 수 있다." },
+      { label: localSajuCalculatorText("lsc_4910_prop_label"), value: rowSummary(asReportRows(luckAnnualDetail.heavenlyStemClashChecks).filter((row) => row.isClash), ["clashRule", "targetScope", "damagesJohuYongshin", "meaning"], "세운 천간충 없음"), why: "천간충이 조후 보완을 건드리면 표면 길운도 몸과 판단에서 흔들릴 수 있다." },
       { label: localSajuCalculatorText("lsc_4911_prop_label"), value: displayValue(luckAnnualDetail.branchSaturation), why: "같은 지지가 원국·대운·세운에서 3개 수준으로 중첩되는지 확인한다." },
-      { label: localSajuCalculatorText("lsc_4912_prop_label"), value: displayValue(luckAnnualDetail.finalClassification), why: "용신/기신, 천간충, 도충, 합화 결과를 종합한 사건성 판정이다." },
+      { label: localSajuCalculatorText("lsc_4912_prop_label"), value: displayValue(luckAnnualDetail.finalClassification), why: "보완 후보·주의 오행, 천간충, 도충, 합화 결과를 종합한 사건성 판정이다." },
       { label: localSajuCalculatorText("lsc_4913_prop_label"), value: displayValue(asReportRecord(daewoon.requiredOutput).bestYears || asReportRecord(daewoon.requiredOutput).cautionYears), why: "세운이 대운의 좋은 구조를 완성하는지 깨는지 본다." },
       { label: localSajuCalculatorText("lsc_4914_prop_label"), value: rowSummary(asReportRows(combinationClash.requiredOutputRows).filter((row) => JSON.stringify(row).includes("annual")), ["relationType", "resultType"], "직접 세운 합충 입력 없음"), why: "세운 지지가 원국 궁을 건드리는지를 본다." },
       { label: localSajuCalculatorText("lsc_4915_prop_label"), value: rowSummary(asReportRows(transformation.strongestTransformations), ["category", "activationTiming"], "강한 전환 이벤트 없음"), why: "합충·도충·지장간 개방 중 올해와 겹치는 항목을 우선한다." },
@@ -5238,8 +5280,8 @@ function buildFinalAdvancedReport(args: {
       { label: localSajuCalculatorText("lsc_4917_prop_label"), value: displayValue(scoreOf("wealthFortune")?.naturalReason), why: "재성 자체보다 감당력과 식상생재 흐름을 본다." },
       { label: localSajuCalculatorText("lsc_4918_prop_label"), value: rowSummary(asReportRows(loveMarriage.likelyLoveEventAnnual), ["label", "reason"], "세운 연애 사건 입력 없음"), why: displayValue(scoreOf("loveFortune")?.naturalReason) },
       { label: localSajuCalculatorText("lsc_4919_prop_label"), value: displayValue(scoreOf("healthPsychPressure")?.naturalReason), why: "조후·충·도충·토창고 압박을 함께 본다." },
-      { label: localSajuCalculatorText("lsc_4920_prop_label"), value: rowSummary(monthlyRows.filter((row) => displayValue(row.label).includes("주의") || displayValue(row.ganji).includes("충")), ["label", "ganji"], "월운 입력 없음: 원국 용신을 충하는 달을 조심"), why: "월운은 세운의 사건을 단기화한다." },
-      { label: localSajuCalculatorText("lsc_4921_prop_label"), value: rowSummary(monthlyRows.filter((row) => displayValue(row.label).includes("기회") || displayValue(row.ganji).includes("합")), ["label", "ganji"], "월운 입력 없음: 용신·희신이 들어오는 달을 기회로 사용"), why: "월운에서 용신이 투출하거나 합으로 살아나면 실행 창이 열린다." },
+      { label: localSajuCalculatorText("lsc_4920_prop_label"), value: rowSummary(monthlyRows.filter((row) => displayValue(row.label).includes("주의") || displayValue(row.ganji).includes("충")), ["label", "ganji"], "월운 입력 없음: 원국 보완 후보를 충하는 달을 조심"), why: "월운은 세운의 사건을 단기화한다." },
+      { label: localSajuCalculatorText("lsc_4921_prop_label"), value: rowSummary(monthlyRows.filter((row) => displayValue(row.label).includes("기회") || displayValue(row.ganji).includes("합")), ["label", "ganji"], "월운 입력 없음: 보완 후보이 들어오는 달을 기회로 사용"), why: "월운에서 보완 후보가 투출하거나 합으로 살아나면 실행 창이 열린다." },
     ]),
     reportSection(10, "성격 분석", [
       { label: localSajuCalculatorText("lsc_4924_prop_label"), value: displayValue(personality.outwardDisposition), why: "천간에 드러난 십성과 월령의 사회성이 먼저 보인다." },
@@ -5251,12 +5293,12 @@ function buildFinalAdvancedReport(args: {
       { label: localSajuCalculatorText("lsc_4930_prop_label"), value: displayValue(personality.improvementPoint), action: "강한 십성을 억누르지 말고 건강한 출구로 반복 사용한다." },
     ]),
     reportSection(11, "진로·재물 분석", [
-      { label: localSajuCalculatorText("lsc_4933_prop_label"), value: rowSummary(asReportRows(career.bestFitJobGroups), ["elementKo", "jobGroups"], "직업군 미산출"), why: "격국·용신·강한 십성·월지/시지 직업성을 종합했다." },
+      { label: localSajuCalculatorText("lsc_4933_prop_label"), value: rowSummary(asReportRows(career.bestFitJobGroups), ["elementKo", "jobGroups"], "직업군 미산출"), why: "격국·보완 후보·강한 십성·월지/시지 직업성을 종합했다." },
       { label: localSajuCalculatorText("lsc_4934_prop_label"), value: displayValue(career.monetizableAbility), why: displayValue(scoreOf("wealthFortune")?.naturalReason) },
       { label: localSajuCalculatorText("lsc_4935_prop_label"), value: displayValue(asReportRecord(career.workModeType).primary), why: displayValue(asReportRecord(career.workModeType).reading) },
-      { label: localSajuCalculatorText("lsc_4936_prop_label"), value: rowSummary(asReportRows(career.daewoonCareerRiseTiming), ["label", "strength", "reason"], "대운 상승기 입력 없음"), why: "대운이 직업 용신을 건드리는 시기를 본다." },
-      { label: localSajuCalculatorText("lsc_4937_prop_label"), value: rowSummary(asReportRows(career.avoidedWorkEnvironment), ["elementKo", "warning"], "명확한 회피 환경 없음"), why: "기신 환경은 재능을 소모시키거나 결과를 흐린다." },
-      { label: localSajuCalculatorText("lsc_4938_prop_label"), value: displayValue(career.immediateCareerStrategy), action: "직업 용신이 살아나는 업무·시장·역할로 현재 선택을 재배치한다." },
+      { label: localSajuCalculatorText("lsc_4936_prop_label"), value: rowSummary(asReportRows(career.daewoonCareerRiseTiming), ["label", "strength", "reason"], "대운 상승기 입력 없음"), why: "대운이 직업 보완 후보를 건드리는 시기를 본다." },
+      { label: localSajuCalculatorText("lsc_4937_prop_label"), value: rowSummary(asReportRows(career.avoidedWorkEnvironment), ["elementKo", "warning"], "명확한 회피 환경 없음"), why: "주의 오행 환경은 재능을 소모시키거나 결과를 흐린다." },
+      { label: localSajuCalculatorText("lsc_4938_prop_label"), value: displayValue(career.immediateCareerStrategy), action: "직업 보완 후보가 살아나는 업무·시장·역할로 현재 선택을 재배치한다." },
     ]),
     reportSection(12, "연애·결혼 분석", [
       { label: localSajuCalculatorText("lsc_4941_prop_label"), value: displayValue(loveMarriage.loveStyle), why: "배우자궁과 배우자성, 도화·홍염·합충을 함께 본다." },
@@ -5264,7 +5306,7 @@ function buildFinalAdvancedReport(args: {
       { label: localSajuCalculatorText("lsc_4943_prop_label"), value: displayValue(loveMarriage.recurringRelationshipProblem), why: "관살혼잡, 재성혼잡, 식상관성 충돌, 비겁쟁재를 함께 본다." },
       { label: localSajuCalculatorText("lsc_4944_prop_label"), value: displayValue(loveMarriage.marriageFavorability), why: displayValue(loveMarriage.lateOrEarlyMarriage) },
       { label: localSajuCalculatorText("lsc_4945_prop_label"), value: rowSummary(asReportRows(loveMarriage.strongRelationshipDaewoon), ["label", "strength"], "강한 인연 대운 입력 없음"), why: "대운에서 배우자성 또는 배우자궁 합이 살아나는지 본다." },
-      { label: localSajuCalculatorText("lsc_4946_prop_label"), value: rowSummary(asReportRows(loveMarriage.breakupConflictAnnual), ["label", "reason"], "직접 주의 세운 없음"), why: "배우자궁 충·해·파와 기신성 관계 자극을 본다." },
+      { label: localSajuCalculatorText("lsc_4946_prop_label"), value: rowSummary(asReportRows(loveMarriage.breakupConflictAnnual), ["label", "reason"], "직접 주의 세운 없음"), why: "배우자궁 충·해·파와 주의 오행성 관계 자극을 본다." },
       { label: localSajuCalculatorText("lsc_4947_prop_label"), value: displayValue(loveMarriage.relationshipPrescription), action: "합에는 속도 조절, 충에는 거리·돈·일정 분리를 먼저 적용한다." },
     ]),
     reportSection(13, "신살 분석", [
@@ -5274,24 +5316,24 @@ function buildFinalAdvancedReport(args: {
       { label: localSajuCalculatorText("lsc_4953_prop_label"), value: rowSummary(asReportRows(shinsal.luckTriggeredRows), ["shinsalName", "position"], "운 발동 없음"), why: "대운·세운에 같은 글자나 쌍지지 조건이 들어오면 발동한다." },
     ]),
     reportSection(14, "운의 환골탈태 요약", [
-      { label: localSajuCalculatorText("lsc_4956_prop_label"), value: rowSummary(helpfulTransforms, ["requiredPhrase", "activationTiming"], "뚜렷한 기신 용신화 없음"), why: "기신이 합화·충거·도충·창고 개방으로 용신화되는지 본다." },
-      { label: localSajuCalculatorText("lsc_4957_prop_label"), value: rowSummary(riskyTransforms, ["requiredPhrase", "activationTiming"], "뚜렷한 용신 파손 없음"), why: "용신이 합거·충·도충·불리한 창고 개방으로 손상되는지 본다." },
+      { label: localSajuCalculatorText("lsc_4956_prop_label"), value: rowSummary(helpfulTransforms, ["requiredPhrase", "activationTiming"], "뚜렷한 주의 오행 보완 후보화 없음"), why: "주의 오행이 합화·충거·도충·창고 개방으로 보완 후보화되는지 본다." },
+      { label: localSajuCalculatorText("lsc_4957_prop_label"), value: rowSummary(riskyTransforms, ["requiredPhrase", "activationTiming"], "뚜렷한 보완 후보 파손 없음"), why: "보완 후보가 합거·충·도충·불리한 창고 개방으로 손상되는지 본다." },
       { label: localSajuCalculatorText("lsc_4958_prop_label"), value: rowSummary(asReportRows(luckIntegratedReading.combinationTurningPoint), ["rule", "resultType", "transformedUseState"], "현재 대운·세운에서 직접 합화 전환점 없음"), why: "합화가 성립하면 오행과 십성이 바뀌고, 성립하지 않으면 합거·합반으로 작용한다." },
       { label: localSajuCalculatorText("lsc_4959_prop_label"), value: displayValue(luckIntegratedReading.doChungPossibility), why: "같은 지지 과포화가 반대 글자를 유도하는지 확인한다." },
       { label: localSajuCalculatorText("lsc_4960_prop_label"), value: displayValue(scoring.strongestRisk), action: "가장 낮은 점수 항목을 먼저 정비하고, 가장 높은 점수 항목에 자원을 집중한다." },
       { label: localSajuCalculatorText("lsc_4961_prop_label"), value: rowSummary(opportunityTransforms, ["requiredPhrase", "activationTiming"], "잠재력 개방 이벤트 없음"), why: "오래 숨어 있던 지장간·창고·삼합 구조가 현실화되는 시점이다." },
-      { label: localSajuCalculatorText("lsc_4962_prop_label"), value: rowSummary(collapseTransforms, ["requiredPhrase", "activationTiming"], "구조 붕괴 이벤트 없음"), why: "격국 상신, 조후 용신, 원국 균형을 잡던 글자가 손상되는지 본다." },
+      { label: localSajuCalculatorText("lsc_4962_prop_label"), value: rowSummary(collapseTransforms, ["requiredPhrase", "activationTiming"], "구조 붕괴 이벤트 없음"), why: "격국 상신, 조후 보완, 원국 균형을 잡던 글자가 손상되는지 본다." },
       { label: localSajuCalculatorText("lsc_4963_prop_label"), value: displayValue(luckIntegratedReading.practicalPrescription), why: "대운 기반과 세운 사건성을 분리해 실제 선택 순서를 정한다." },
     ]),
     reportSection(15, "천기적 액션 처방", [
-      { label: localSajuCalculatorText("lsc_4966_prop_label"), value: displayValue(career.immediateCareerStrategy), action: "직업 용신 분야를 주력 업무로 올리고 기신 환경은 계약·역할·시간으로 제한한다." },
+      { label: localSajuCalculatorText("lsc_4966_prop_label"), value: displayValue(career.immediateCareerStrategy), action: "직업 보완 후보 분야를 주력 업무로 올리고 주의 오행 환경은 계약·역할·시간으로 제한한다." },
       { label: "돈", value: displayValue(career.investmentWealthManagementStyle), action: "재성이 과하면 보전과 현금흐름, 식상이 강하면 산출물 현금화를 우선한다." },
       { label: localSajuCalculatorText("lsc_4968_prop_label"), value: displayValue(loveMarriage.relationshipPrescription), action: "관계의 속도, 약속 범위, 돈과 시간의 경계를 먼저 정한다." },
       { label: localSajuCalculatorText("lsc_4969_prop_label"), value: displayValue(scoreOf("healthPsychPressure")?.naturalReason), action: `조후상 ${displayValue(johu.urgentElementKo)} 기운을 생활 리듬으로 보완한다.` },
       { label: localSajuCalculatorText("lsc_4970_prop_label"), value: displayValue(personality.relationshipWeakness), action: "반복되는 약점은 설명보다 구조 조정으로 줄인다." },
-      { label: localSajuCalculatorText("lsc_4971_prop_label"), value: `${displayValue(yongshin.coreYongshinKo)} 용신을 상징하는 색상·동선·습관을 작게 반복`, action: "부족한 오행을 장식보다 수면, 식사, 업무 리듬, 공간 정리로 먼저 채운다." },
+      { label: localSajuCalculatorText("lsc_4971_prop_label"), value: `${displayValue(yongshin.coreYongshinKo)} 보완 후보를 상징하는 색상·동선·습관을 작게 반복`, action: "부족한 오행을 장식보다 수면, 식사, 업무 리듬, 공간 정리로 먼저 채운다." },
       { label: localSajuCalculatorText("lsc_4972_prop_label"), value: displayValue(daewoon.howToUse), action: "대운 전반은 드러난 사건을 정리하고 후반은 생활권에 정착시킨다." },
-      { label: localSajuCalculatorText("lsc_4973_prop_label"), value: rowSummary(asReportRows(loveMarriage.breakupConflictAnnual), ["label", "reason"], displayValue(scoreOf("gisinRisk")?.naturalReason)), action: "기신이 발동하는 선택은 확장보다 정비·분리·보류로 대응한다." },
+      { label: localSajuCalculatorText("lsc_4973_prop_label"), value: rowSummary(asReportRows(loveMarriage.breakupConflictAnnual), ["label", "reason"], displayValue(scoreOf("gisinRisk")?.naturalReason)), action: "주의 오행이 발동하는 선택은 확장보다 정비·분리·보류로 대응한다." },
     ]),
   ];
 
@@ -5315,22 +5357,29 @@ function buildFinalAdvancedReport(args: {
  * - KASI 절기 기준과 동일한 간지 수식으로 연/월/일/시주 계산
  * - 공통 명식 정책: 지역 평균시(경도·과거 DST) 보정 후 일주·시주를 함께 확정
  */
-export function calculateLocalSaju(input: LocalSajuInput): LocalSajuResult {
+export function calculateLocalSaju(input: LocalSajuInput, options: SajuAnalysisExecutionOptions = {}): LocalSajuResult {
   if (input.locationType === "current" || input.usingCurrentLocation === true) {
     throw new Error("Birthplace coordinates are required; current-location coordinates cannot be used for natal saju.");
   }
 
   const timezoneInfo = normalizeTimezone(input);
+  const authorityFlags = resolveAuthorityFlags(input.authorityFlags);
+  if (input.daeunContext && (!input.daeunContext.enabled || !authorityFlags.sajuTermAuthorityV2 || input.calendarType === "lunar" || input.lunarLeap || timezoneInfo.timezone !== "Asia/Seoul")) throw new RangeError("INVALID_DAEUN_CONTEXT");
+  // The approved wrapper has no gender-dependent major-luck path. Do not mix v2 natal terms with v1 daeun.
+  if (authorityFlags.sajuTermAuthorityV2 && input.hasTime && normalizeGender(input) !== "unknown") throw new RangeError("TERM_AUTHORITY_DAEUN_NOT_APPROVED");
   const solarDate = resolveSolarDate(input);
   const birthPlace = canonicalNatalPlace(input, timezoneInfo.timezone);
   const allowMissingLongitude = birthPlace != null && birthPlace.longitude == null;
   const canonicalNatal = calculateNatalSaju({
-    birthDate: `${String(input.year).padStart(4, "0")}-${String(input.month).padStart(2, "0")}-${String(input.day).padStart(2, "0")}`,
+    birthDate: authorityFlags.koreanCalendarAuthorityV2
+      ? `${solarDate.year}-${String(solarDate.month).padStart(2, "0")}-${String(solarDate.day).padStart(2, "0")}`
+      : `${String(input.year).padStart(4, "0")}-${String(input.month).padStart(2, "0")}-${String(input.day).padStart(2, "0")}`,
     birthTime: input.hasTime ? `${String(input.hour ?? 0).padStart(2, "0")}:${String(input.minute ?? 0).padStart(2, "0")}` : undefined,
-    calendarType: input.calendarType === "lunar" && input.lunarLeap ? "lunar_leap" : (input.calendarType || "solar"),
-    isLeapMonth: Boolean(input.lunarLeap),
+    calendarType: authorityFlags.koreanCalendarAuthorityV2 ? "solar" : input.calendarType === "lunar" && input.lunarLeap ? "lunar_leap" : (input.calendarType || "solar"),
+    isLeapMonth: authorityFlags.koreanCalendarAuthorityV2 ? false : Boolean(input.lunarLeap),
+    ...(authorityFlags.koreanCalendarAuthorityV2 ? { originalCalendar: { year: input.year, month: input.month, day: input.day, calendarType: input.calendarType || "solar", leapMonth: Boolean(input.lunarLeap) } } : {}),
     birthPlace,
-  }, { allowMissingLongitude });
+  }, { allowMissingLongitude, authorityFlags });
 
   // The applied policy is the canonical natal contract; legacy input options remain input evidence only.
   const standardClock = { ...canonicalNatal.calculationMeta.civil, hour: canonicalNatal.calculationMeta.civil.hour ?? 12, minute: canonicalNatal.calculationMeta.civil.minute ?? 0 };
@@ -5340,8 +5389,13 @@ export function calculateLocalSaju(input: LocalSajuInput): LocalSajuResult {
   const zashiMode = "early";
   // Solar terms use the actual instant in KST, including lunar conversion and historical DST.
   const termClock = canonicalNatal.calculationMeta.termClock;
-  const yearPillarResult = getYearPillar(termClock, CORE_SOLAR_TERM_TIMEZONE_OFFSET_MINUTES, new Map());
-  const solarTermWindow = getSolarTermWindow(termClock, CORE_SOLAR_TERM_TIMEZONE_OFFSET_MINUTES, new Map());
+  const authoritativeWindow = authorityFlags.sajuTermAuthorityV2 ? verifiedNodeTermWindow(canonicalNatal.calculationMeta.instant?.timestamp ?? wallTimeToInstantMs(termClock, CORE_SOLAR_TERM_TIMEZONE_OFFSET_MINUTES), authorityFlags) : null;
+  const verifiedBoundary = (term: { utcMs: number; index: number }): SolarTermBoundaryLocal => {
+    const local = new Date(term.utcMs + 9 * 3600000);
+    return { year: local.getUTCFullYear(), month: local.getUTCMonth() + 1, day: local.getUTCDate(), hour: local.getUTCHours(), minute: local.getUTCMinutes(), second: local.getUTCSeconds(), index: term.index / 2, name: JIE_BOUNDARY_NAMES[term.index / 2], solarLongitude: JIE_SOLAR_LONGITUDES[term.index / 2], isoLocal: local.toISOString().slice(0, -1) + "+09:00", source: "jpl-de441", utcMs: term.utcMs };
+  };
+  const yearPillarResult = authoritativeWindow ? { ipchun: verifiedBoundary(authoritativeWindow.ipchun) } : getYearPillar(termClock, CORE_SOLAR_TERM_TIMEZONE_OFFSET_MINUTES, new Map());
+  const solarTermWindow = authoritativeWindow ? { active: verifiedBoundary(authoritativeWindow.previous), previous: verifiedBoundary(authoritativeWindow.previous), next: verifiedBoundary(authoritativeWindow.next) } : getSolarTermWindow(termClock, CORE_SOLAR_TERM_TIMEZONE_OFFSET_MINUTES, new Map());
   const dayPillarDate = canonicalNatal.calculationMeta.dayPillarCivilDate;
   const pillars = {
     year: canonicalNatalPillar(canonicalNatal.pillars.year)!,
@@ -5350,7 +5404,7 @@ export function calculateLocalSaju(input: LocalSajuInput): LocalSajuResult {
     hour: canonicalNatalPillar(canonicalNatal.pillars.hour),
   };
   // 원국과 같은 출생 순간에서 코어 대운을 산출한다. 나이는 세는 나이, 입운 경과는 years/months/days다.
-  const { direction: daewoonDirection, start: daewoonStart } = calculateDaewoonStartFromCore(canonicalNatal, input);
+  const { direction: daewoonDirection, start: daewoonStart } = calculateDaewoonStartFromCore(canonicalNatal, input, authoritativeWindow ? { window: authoritativeWindow, previous: verifiedBoundary(authoritativeWindow.previous), next: verifiedBoundary(authoritativeWindow.next) } : undefined);
   const longitude = getInputLongitude(input);
   const latitude = getInputLatitude(input);
   const solarTermBoundary = {
@@ -5359,8 +5413,8 @@ export function calculateLocalSaju(input: LocalSajuInput): LocalSajuResult {
     next: solarTermWindow.next,
     ipchun: yearPillarResult.ipchun,
   };
-  const natalAnalysis = calculateNatalAnalysis(pillars, input);
-  const finalAdvancedReport = buildFinalAdvancedReport({
+  const natalAnalysis = calculateNatalAnalysis(pillars, input, options);
+  const finalAdvancedReport = options.gyeokgukAuthorityV2 === true ? buildApprovedFinalReport(natalAnalysis) : buildFinalAdvancedReport({
     input,
     pillars,
     solarTermBoundary,
@@ -5370,7 +5424,8 @@ export function calculateLocalSaju(input: LocalSajuInput): LocalSajuResult {
     trueSolarTimeUsed,
     natalAnalysis,
   });
-  const structuredAdvancedReport = buildStructuredAdvancedReport({
+  const structuredReportBuilder = options.gyeokgukAuthorityV2 === true ? buildApprovedStructuredReport : buildStructuredAdvancedReport;
+  const structuredAdvancedReport = structuredReportBuilder({
     input,
     pillars,
     solarTermBoundary,
@@ -5439,7 +5494,7 @@ export function calculateLocalSaju(input: LocalSajuInput): LocalSajuResult {
       },
       daewoon: {
         direction: daewoonDirection,
-        rule: "yang male/yin female forward; yin male/yang female reverse",
+        rule: "yang male/yin female forward; yin male/yang female reverse" + (input.daeunContext?.enabled ? `; daeunGender=${input.daeunContext.gender}` : ""),
         policyVersion: daewoonStart.policyVersion,
         ageBasis: daewoonStart.ageBasis,
         calendarFrame: "KST",

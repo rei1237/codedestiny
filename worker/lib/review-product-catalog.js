@@ -14,6 +14,13 @@ import { CHAT_FEATURE_KEYS } from '../../lib/fortune/chat-products.js';
 // 별칭(gotoZiweiPremium 등)은 조회 시점에 정규화되므로 여기 나열하지 않는다.
 export const REVIEW_PRODUCTS = Object.freeze([
   {
+    productId: "heukwol",
+    name: "흑월의 경고",
+    summary: "사주와 자미두수의 월별 주의 흐름과 연이·네오의 대응 상담",
+    href: "/heukwol/",
+    featureKeys: Object.freeze(["heukwol-warning-consultation"]),
+  },
+  {
     productId: "saju-ai",
     name: "AI 사주 분석",
     summary: "사주팔자 여덟 글자로 타고난 기질과 지금의 흐름을 읽는 전문가 상담",
@@ -22,6 +29,7 @@ export const REVIEW_PRODUCTS = Object.freeze([
       "saju_ai_question_prompt",
       "saju-guardian-unlock",
       "saju-career-style",
+      "saju_lifetime_bundle",
       "animal-destiny-unlock",
       "destiny_meeting_place",
       "love-code",

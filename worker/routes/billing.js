@@ -22,6 +22,7 @@ import {
   isUnlockPaidFeatureKey,
   normalizePaidFeatureKey,
 } from "../lib/paid-feature-registry.js";
+import { SAJU_BUNDLE_FEATURE_KEY, isSajuBundleSaleClosed } from "../lib/saju-bundle-policy.js";
 import {
   completeServiceExecution,
   failServiceExecution,
@@ -3417,7 +3418,19 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
   // 음악 트랙이 같은 판정(isPassExcludedPricing)을 공유하므로 문구도 기능 중립이어야 한다.
   const directOnlyForPricing = isDirectOnlyPricing(pricing);
   const familyPassOnlyForPricing = isFamilyPassOnlyPricing(pricing);
-  if (membershipPassRequested && passExcludedForPricing) {
+  /* 사주 영구 묶음(2026-11-04): 포함·판매 종료 키는 새로 사는 일이 닫혀 있다. 이용권·월정석 모드의 입구 가드(402)는
+     보유 확인보다 먼저 끊어 버리므로 이 키들에는 적용하지 않는다 — 가진 것은 결제수단 필드와 무관하게 already_unlocked 로
+     열려야 한다. 새로 사는 시도는 보유 확인 뒤 차감·주문 전에 아래 saleEndedForPricing 에서 409 로 닫힌다. */
+  const saleEndedForPricing = isSajuBundleSaleClosed(pricing?.featureKey);
+  const saleEndedFailure = () => failure(409, "PRODUCT_SALE_ENDED", "이 항목은 개별 판매가 끝났어요. 사주 전체 풀이 평생 소장으로 열 수 있어요.", undefined, {
+    pricing,
+    featureKey: String(pricing?.featureKey || ""),
+    bundleFeatureKey: SAJU_BUNDLE_FEATURE_KEY,
+    reason: "product_sale_ended",
+    accessGrant: null,
+    balance: null,
+  });
+  if (membershipPassRequested && passExcludedForPricing && !saleEndedForPricing) {
     return failure(402, "MEMBERSHIP_PASS_NOT_ALLOWED", directOnlyForPricing ? "이 상품은 단건 결제로만 이용할 수 있습니다." : "이 기능은 이용권으로 결제할 수 없습니다. 단건 결제 또는 월정석으로 이용해 주세요.", undefined, {
       pricing,
       paymentOptions: buildPassPaymentDecision(null, pricing, null),
@@ -3426,7 +3439,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     });
   }
   // direct_only/direct_or_family: 월정석 차감 경로를 진입에서 닫는다(fail-closed).
-  if (monthlyBalanceRequested && getPaidFeaturePaymentPolicy(pricing?.featureKey).monthlyExcluded) {
+  if (monthlyBalanceRequested && !saleEndedForPricing && getPaidFeaturePaymentPolicy(pricing?.featureKey).monthlyExcluded) {
     return failure(402, "MONTHLY_NOT_ALLOWED", familyPassOnlyForPricing ? "이 상품은 Family 이용권 또는 단건 결제로 이용해 주세요." : "이 상품은 월정석으로 결제할 수 없습니다. 단건 결제로 이용해 주세요.", undefined, {
       pricing,
       paymentOptions: buildPassPaymentDecision(null, pricing, null),
@@ -3588,6 +3601,8 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     }
   };
   if (persistProfileUnlockEntitlement && !profileId && !(await hasLegacyBirthScopedUnlock())) {
+    // 가진 것이 없고 프로필도 없다: 새로 사는 시도다. 닫힌 키는 프로필 안내 대신 묶음 안내가 먼저다.
+    if (saleEndedForPricing) return saleEndedFailure();
     return failure(
       birthScopedGate ? 400 : 403,
       "MISSING_PROFILE_ID",
@@ -3637,6 +3652,8 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
         });
       }
       if (!(await hasLegacyBirthScopedUnlock())) {
+        // 신원을 못 만든 요청(궁합 상대 없음 등)도 가진 것이 없는 신규 시도다. 닫힌 키는 묶음 안내가 먼저다.
+        if (saleEndedForPricing) return saleEndedFailure();
         const missing = error.code === "MISSING_PROFILE_ID";
         return failure(missing ? 400 : 403, error.code, error.message, undefined, {
           pricing,
@@ -3906,6 +3923,8 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
   }
   const passBlockedByAccessDecision = accessDecision.reason === "profile_limit_exceeded"
     || accessDecision.reason === "price_exceeds_pass_limit";
+  // 보유(already_unlocked)·프로필 오류 판정을 지났다: 여기부터는 차감·주문 생성이다. 닫힌 키의 새 구매는 여기서 끝낸다.
+  if (saleEndedForPricing) return saleEndedFailure();
 
   if (authCheck?.auth?.userId) {
     const subscriptionPass = subscriptionPassForDecision || {

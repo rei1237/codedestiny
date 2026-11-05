@@ -1,6 +1,7 @@
 import { ganji, formatPillar, nodeTerms } from "../../lib/korean-calendar/index.js";
 import { calculateLifeBookAiSaju, buildLuckNatalInteractions, tenGodFor, buildHiddenStemDetails } from "./life-book-ai-saju.js";
-import { calculateZiweiAiChart, FOUR_TRANSFORMATIONS, TRANSFORMATION_LABELS } from "./ziwei-ai-chart.js";
+import { calculateZiweiConsumerChart } from "./ziwei-consumer-chart.js";
+import { FOUR_TRANSFORMATIONS, TRANSFORMATION_LABELS } from "./ziwei-ai-chart.js";
 
 export const CODEX_CONSULTATION_VERSION = "codex-consultation-v1";
 const STATES = ["new", "crush", "dating", "reunion", "marriage"];
@@ -81,7 +82,7 @@ export function buildCodexConsultation(input, mode, charts, birthInfo, partnerIn
     add("saju", "majorLuck", s.majorLuck, "major-luck-cycles", "life-book-ai-saju.majorLuck");
     add("ziwei", "majorLuck", z.majorLuck, "major-luck-cycles", "ziwei-ai-chart.majorLuck");
     for (const y of years) {
-      const chart = calculateZiweiAiChart({ birthInfo: birth }, { year: y });
+      const chart = calculateZiweiConsumerChart({ birthInfo: birth }, { year: y, env: { ZIWEI_CALENDAR_AUTHORITY_V2: z.lunar?.source === 'kasi-jpl-expanded-20261101' ? 'true' : 'false' } });
       const { transformations: _natal, ...annual } = chart.yearlyLuck;
       const stem = "갑을병정무기경신임계"[((y - 4) % 10 + 10) % 10];
       const annualTransformations = Object.entries(FOUR_TRANSFORMATIONS[stem] || {}).map(([key, star]) => ({

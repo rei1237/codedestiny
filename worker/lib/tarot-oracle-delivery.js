@@ -1,3 +1,4 @@
+import { pinTarotNarrativeSeed, assertTarotNarrativeSnapshot } from './tarot-fact-consumer.js';
 import { narrativePriorDigest, normalizeNarrativeBody, parseNarrativeResponse, NARRATIVE_RESPONSE_SCHEMA } from './paid-narrative-candidate.js';
 import { normalizeNarrativeParagraphs } from './narrative-format.js';
 import { dropRepeatedReportSentences } from './paid-report-quality.js';
@@ -50,10 +51,10 @@ function seedOracle(body, env) {
   const pairs = input.cards.length < 3 ? [] : Array.from({ length: Math.min(3, input.cards.length - 1) }, (_, i) => [0, i + 1]);
   pairs.forEach(([a, b], index) => tasks.push({ id: `synergy.${index}`, title: `${a + 1}번 × ${b + 1}번`,
     prompt: `${a + 1}번과 ${b + 1}번 카드의 관계를 함께 해석한다. 각 카드의 단독 설명을 반복하지 말고 두 카드가 만날 때 달라지는 조건을 설명한다.`, minChars: 400 }));
-  return { input, pairs, segments, tasks, systemPrompt: built.systemPrompt,
+  return pinTarotNarrativeSeed({ input, pairs, segments, tasks, systemPrompt: built.systemPrompt,
     // Keep canonical card/topic facts; the old whole-report JSON/short field limits
     // are replaced by the bounded part contract below.
-    prompt: `${built.userPrompt.split('[출력 형식]')[0]}\n${TAROT_SHARED_RULE_BLOCK}` };
+    prompt: `${built.userPrompt.split('[출력 형식]')[0]}\n${TAROT_SHARED_RULE_BLOCK}` }, env, { ...body, locale: getAmbientAiLocale() || body.locale || 'ko' });
 }
 
 function renderOracle(state) {
@@ -70,6 +71,7 @@ function renderOracle(state) {
   consultation.cardSynergies = state.pairs.map(([a, b], index) => ({ pairLabel: `${a + 1} × ${b + 1}`, insight: text(`synergy.${index}`) }));
   return { consultation, source: 'llm', accessVerified: true, requestId: state.body.requestId,
     locale: state.locale, resumeInputs: state.body,
+    ...(state.engineFacts ? { engineFacts: state.engineFacts } : {}),
     sections: state.tasks.filter(task => state.parts[task.id]).map(task => ({ key: task.id, title: task.title, body: state.parts[task.id] })) };
 }
 
@@ -97,6 +99,7 @@ export function tarotOracleNarrativeAdapter(env) {
   return {
     reportType: 'tarotOracleConsultation', render: renderOracle,
     produce: async (task, state) => {
+      assertTarotNarrativeSnapshot(state);
       const ai = await callGeminiText(env, `${state.prompt}\n[이번 부분 ${task.id}] ${task.prompt}${narrativePriorDigest(state, task)}\nJSON {"body":"본문"}만 출력한다. 제목·목차·기호·공백 제외 최소 ${task.minChars}자, 목표 ${Math.ceil(task.minChars * 1.3)}~${Math.ceil(task.minChars * 1.5)}자. 각 문단에 서로 다른 근거, 생활 사례, 반대 조건과 행동 조언을 배분한다. 다른 부분을 반복하지 않는다.`, {
         systemPrompt: state.systemPrompt, timeoutMs: 45000, maxOutputTokens: 9500, thinkingBudget: 0,
         temperature: 0.55, fallbackToWorkersAI: false, responseMimeType: 'application/json', responseSchema: NARRATIVE_RESPONSE_SCHEMA,

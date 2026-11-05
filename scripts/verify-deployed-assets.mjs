@@ -294,18 +294,25 @@ async function collectAssetUrls() {
 async function checkAssets(assets) {
   const dead = [];
   for (const item of assets) {
-    const status = await statusOf(`${ORIGIN}${item}`);
+    let status = await statusOf(`${ORIGIN}${item}`);
+    // 응답을 못 받은 것은 판정 근거가 없다. artifact 모드는 1라운드라 여기서 한 번 더 묻는다.
+    if (typeof status !== "number") status = await statusOf(`${ORIGIN}${item}`);
     if (status !== 200) dead.push({ path: item, status });
   }
   return dead;
 }
 
-/** 엣지 캐시 오염인지(오리진은 정상) 구분한다. */
+/**
+ * 엣지 캐시 오염인지(오리진은 정상) 구분한다.
+ *
+ * 🔴 오염은 첫 요청이 **실제 404** 일 때만이다. 우회 200 만 보면 타임아웃도 오염이 된다
+ * (2026-11-04 런 41736216123: `bare=ERR:timeout bypass=200` 2건으로 스테이징 실패, 같은 SHA 운영은 성공).
+ */
 async function classify(dead) {
   const out = [];
   for (const item of dead) {
     const bypass = await statusOf(`${ORIGIN}${item.path}?cdcb=${Date.now()}`);
-    out.push({ ...item, bypassStatus: bypass, edgePoisoned: bypass === 200 });
+    out.push({ ...item, bypassStatus: bypass, edgePoisoned: item.status === 404 && bypass === 200 });
   }
   return out;
 }
@@ -510,7 +517,7 @@ async function main() {
 
   // 남은 건 "빌드에는 있는데 별칭이 아직 옛 배포본으로 응답하는" 것뿐이다. 롤백은 전환 구간을
   // 하나 더 만들 뿐 이 상태를 고치지 못하므로 실패시키지 않는다(artifact 모드가 실재를 증명했다).
-  console.log(`::warning::전파 대기 ${MAX_ROUNDS}라운드 뒤에도 ${lagging.length}건이 별칭에서 404 입니다. 빌드에는 존재하므로 전환 지연으로 판단합니다.`);
+  console.log(`::warning::전파 대기 ${MAX_ROUNDS}라운드 뒤에도 ${lagging.length}건이 200 을 주지 않습니다. 빌드에는 존재하므로 전환 지연으로 판단합니다.`);
 }
 
 main().catch((error) => {

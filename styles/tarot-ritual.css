@@ -1,0 +1,144 @@
+/* 명리 타로 모달의 무료 세 장 리딩 무대와 풀이.
+   값은 승인 목업을 따른다(docs/superpowers/specs/2026-11-05-free-tarot-premium-design.md).
+   🔴 opacity 애니메이션을 preserve-3d 요소(.inner)에 걸지 말 것. 평면화되어 앞면이 안 나온다. 등장은 부모(.flip)에 건다.
+   🔴 display:grid 는 [hidden] 을 덮으므로 숨길 요소는 [hidden]{display:none} 을 따로 둔다. */
+@property --tr-angle { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+
+#tarotModalOverlay {
+  --tr-panel: #16141f;
+  --tr-text: #f0e8da;
+  --tr-muted: #bdb1a6;
+  --tr-line: #3a3442;
+  --tr-accent: #e6c97f;
+  --tr-accent2: #e3b4c6;
+  --tr-glow: 230, 201, 127;
+  --tr-glow2: 255, 244, 214;
+  --tr-on-accent: #1a1508;
+  --tr-back: url('/images/fortune-tea-house/moonlight-tarot-card-back.webp');
+  --tr-display: 'Gowun Batang', serif;
+  --tr-body: Pretendard, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+}
+
+/* 분야와 안내 문구 */
+#tarotModalOverlay #tarotCats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-bottom: 18px; }
+#tarotModalOverlay #tarotCats .oracle-cat-btn-m { min-height: 44px; padding: 4px 2px; border-radius: 8px; justify-content: center; text-align: center; font-size: 12px; line-height: 1.3; letter-spacing: 0; word-break: keep-all; background: none; border-color: var(--tr-line); color: var(--tr-muted); box-shadow: none; transform: none; }
+#tarotModalOverlay #tarotCats .oracle-cat-btn-m::after { content: none; }
+#tarotModalOverlay #tarotCats .oracle-cat-btn-m.active { border-color: var(--tr-accent); color: var(--tr-accent); font-weight: 700; }
+#tarotModalOverlay #tarotCats.is-locked .oracle-cat-btn-m { cursor: default; }
+#tarotModalOverlay #tarotCats.is-locked .oracle-cat-btn-m:not(.active) { opacity: 0.55; }
+#tarotModalOverlay .is-ritual .ritual-text-m { min-height: 48px; margin: 0 0 12px; font-family: var(--tr-display); font-size: 15.5px; line-height: 1.6; color: var(--tr-accent2); }
+#tarotModalOverlay .is-ritual #tarotResultContainer.is-empty { display: none; }
+
+/* 무대 */
+.tarot-ritual-scenes { position: relative; z-index: 2; }
+.tarot-ritual-scenes > canvas { position: absolute; inset: -30px -16px; width: calc(100% + 32px); height: calc(100% + 60px); pointer-events: none; z-index: 4; }
+#tarotRitualStage { display: grid; gap: 12px; }
+#tarotRitualStage[hidden] { display: none; }
+#tarotRitualStage .slots { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; width: 100%; max-width: 270px; margin-inline: auto; transition: max-width 1s cubic-bezier(.2, .8, .2, 1); }
+#tarotRitualStage.ready .slots { max-width: 100%; }
+#tarotRitualStage:not(.ready) .slot > strong { display: none; }
+#tarotModalOverlay .is-ritual #tarotRitualMsg, #tarotRitualStage, #tarotFreeCta { word-break: keep-all; overflow-wrap: break-word; }
+#tarotModalOverlay .is-ritual #tarotRitualMsg { text-wrap: balance; }
+#tarotRitualStage .slot { display: grid; gap: 8px; min-width: 0; justify-items: center; text-align: center; }
+#tarotRitualStage .slot > span { display: flex; align-items: center; min-height: 32px; font-size: 12px; line-height: 1.35; color: var(--tr-muted); }
+#tarotRitualStage .slot > strong { min-height: 40px; font-family: var(--tr-display); font-weight: 400; font-size: 14px; line-height: 1.4; color: var(--tr-text); opacity: 0; transition: opacity .8s ease .5s; }
+#tarotRitualStage .slot.revealed > strong { opacity: 1; }
+#tarotRitualStage .slot > strong i { display: block; font-style: normal; font-family: var(--tr-body); font-size: 11.5px; color: var(--tr-muted); }
+
+/* 카드 */
+#tarotRitualStage .flip { position: relative; display: block; width: 100%; aspect-ratio: 2 / 3; padding: 0; background: none; border: 0; border-radius: 9px; perspective: 900px; }
+#tarotRitualStage .flip[disabled] { cursor: default; }
+#tarotRitualStage .flip:not([disabled]) { cursor: pointer; }
+#tarotRitualStage .inner { position: absolute; inset: 0; z-index: 1; transform-style: preserve-3d; transition: transform 1.5s cubic-bezier(.3, .05, .15, 1); }
+#tarotRitualStage .flip.turn .inner { transform: rotateY(180deg); }
+#tarotRitualStage .side { position: absolute; inset: 0; border-radius: 9px; overflow: hidden; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+#tarotRitualStage .side.b { background: var(--tr-back) center / cover; }
+#tarotRitualStage .side.f { transform: rotateY(180deg); background: var(--tr-panel); }
+#tarotRitualStage .side.f img { display: block; width: 100%; height: 100%; object-fit: cover; }
+#tarotRitualStage .side.f img.rev { transform: rotate(180deg); }
+#tarotRitualStage .empty { position: absolute; inset: 0; border: 1px dashed var(--tr-line); border-radius: 9px; transition: opacity .6s; }
+#tarotRitualStage .slot:not(.filled) .inner { visibility: hidden; }
+#tarotRitualStage .slot.filled .empty { opacity: 0; }
+#tarotRitualStage .slot.filled .flip { animation: tarotRitualArrive .9s cubic-bezier(.2, .8, .2, 1) both; }
+@keyframes tarotRitualArrive { from { opacity: 0; translate: 0 26px; scale: .9; } to { opacity: 1; translate: 0 0; scale: 1; } }
+
+/* 빛: 테두리에 모이는 빛 → 뒤에서 번지는 광륜 → 공개 후 잔광 */
+#tarotRitualStage .ring { position: absolute; inset: -2px; z-index: 2; padding: 2px; border-radius: 11px; opacity: 0; pointer-events: none;
+  background: conic-gradient(from var(--tr-angle), rgba(var(--tr-glow), 0) 0 55%, rgba(var(--tr-glow), .9) 75%, rgb(var(--tr-glow2)) 88%, rgba(var(--tr-glow), 0));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); transition: opacity .5s; }
+#tarotRitualStage .flip.next .ring { opacity: .75; animation: tarotRitualSpin 3.2s linear infinite; }
+#tarotRitualStage .flip.gather .ring { opacity: 1; animation: tarotRitualSpin 1s linear infinite; }
+@keyframes tarotRitualSpin { to { --tr-angle: 360deg; } }
+#tarotRitualStage .bloom { position: absolute; inset: -55%; z-index: 0; border-radius: 50%; opacity: 0; pointer-events: none;
+  background: radial-gradient(closest-side, rgba(var(--tr-glow2), .95), rgba(var(--tr-glow), .5) 42%, rgba(var(--tr-glow), 0) 100%); }
+#tarotRitualStage .flip.gather .bloom { animation: tarotRitualBloomIn 1s ease-in forwards; }
+#tarotRitualStage .flip.turn .bloom { animation: tarotRitualBloomOut 2s ease-out forwards; }
+@keyframes tarotRitualBloomIn { from { opacity: 0; scale: .55; } to { opacity: .55; scale: .85; } }
+@keyframes tarotRitualBloomOut { 0% { opacity: .55; scale: .85; } 30% { opacity: 1; scale: 1.08; } 100% { opacity: 0; scale: 1.3; } }
+#tarotRitualStage .after { position: absolute; inset: -5px; z-index: 0; border-radius: 13px; opacity: 0; pointer-events: none; box-shadow: 0 0 22px 3px rgba(var(--tr-glow), .5); }
+#tarotRitualStage .slot.revealed .after { animation: tarotRitualBreathe 4.5s ease-in-out 1.5s infinite; }
+@keyframes tarotRitualBreathe { 0%, 100% { opacity: .35; } 50% { opacity: .9; } }
+
+/* 부채 덱 */
+#tarotRitualStage .fan-box { display: grid; gap: 4px; }
+#tarotRitualStage .fan-box.done { display: none; }
+#tarotRitualStage .fan { position: relative; display: flex; overflow-x: auto; overflow-y: hidden; padding: 12px calc(50% - 44px) 40px; scrollbar-width: none; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
+#tarotRitualStage .fan::-webkit-scrollbar { display: none; }
+#tarotRitualStage .fan button { flex: 0 0 88px; height: 132px; margin-right: -44px; padding: 0; border: 0; border-radius: 7px; background: var(--tr-back) center / cover; box-shadow: 0 4px 12px rgba(0, 0, 0, .35); cursor: pointer; transform-origin: 50% 120%; transition: opacity .5s, filter .3s; }
+#tarotRitualStage .fan button:last-child { margin-right: 0; }
+#tarotRitualStage .fan button:hover, #tarotRitualStage .fan button:focus-visible { filter: brightness(1.18) drop-shadow(0 0 10px rgba(var(--tr-glow), .8)); }
+#tarotRitualStage .fan button.taken { opacity: 0; pointer-events: none; }
+#tarotRitualStage .fan-hint { margin: 0; text-align: center; font-size: 12.5px; color: var(--tr-muted); }
+
+/* 풀이: 기존 결과 상자를 쓰되 패널 장식을 걷어 낸다 */
+#tarotModalOverlay #tarotFreeBody:empty { display: none; }
+#tarotModalOverlay #tarotFreeCta[hidden] { display: none; }
+#tarotResultContainer.tarot-master-result { display: block; min-height: 0; margin-top: 12px; padding: 12px 0 0; background: none; border: 0; border-top: 1px solid var(--tr-line); border-radius: 0; box-shadow: none; }
+.tarot-master-result .oracle-result-skeleton { display: none; }
+.tarot-master-result .oracle-result-inner { display: grid; gap: 30px; color: var(--tr-text); font-family: var(--tr-body); }
+#tarotModalOverlay .tarot-master-result #tarotCardName { display: none; }
+#tarotModalOverlay .tarot-master-result #destinyFortune { font-family: var(--tr-body); font-size: 15px; color: var(--tr-text); text-shadow: none; }
+#tarotModalOverlay .tarot-master-result #tarotFreeBody { display: grid; gap: 30px; }
+.tarot-master-result .verdict, .tarot-master-result #tarotFreeBody > *, #tarotModalOverlay .tarot-master-result #tarotOracleText, .tarot-master-result #tarotFreeCta, .tarot-master-result .tarot-action-btns { animation: tarotRitualRise 1.2s cubic-bezier(.2, .7, .2, 1) both; animation-delay: calc(var(--i, 0) * .55s); }
+@keyframes tarotRitualRise { from { opacity: 0; translate: 0 14px; } to { opacity: 1; translate: 0 0; } }
+.tarot-master-result h2 { margin: 0 0 12px; font-family: var(--tr-display); font-weight: 400; font-size: 18px; color: var(--tr-accent); }
+.tarot-master-result p { margin: 0; font-size: 15px; line-height: 1.9; max-width: 65ch; word-break: keep-all; overflow-wrap: break-word; }
+.tarot-master-result .verdict { padding-top: 14px; text-align: center; }
+.tarot-master-result .verdict small { display: block; margin-bottom: 10px; font-size: 12.5px; color: var(--tr-muted); letter-spacing: .04em; }
+.tarot-master-result .verdict p { font-family: var(--tr-display); font-size: 22px; line-height: 1.6; text-wrap: balance; }
+.tarot-master-result .pos { display: grid; gap: 18px; }
+.tarot-master-result .pos > div { display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 14px; align-items: start; }
+.tarot-master-result .pos img { display: block; width: 56px; aspect-ratio: 2 / 3; object-fit: cover; border-radius: 5px; background: var(--tr-panel); }
+.tarot-master-result .pos img.rev { transform: rotate(180deg); }
+.tarot-master-result .pos b { display: block; margin-bottom: 2px; font-size: 12.5px; font-weight: 500; color: var(--tr-muted); }
+.tarot-master-result .pos em { display: block; margin-bottom: 6px; font-family: var(--tr-display); font-style: normal; font-size: 16px; }
+.tarot-master-result .energy { display: grid; margin: 0; }
+.tarot-master-result .energy > div { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 12px; padding: 12px 0; border-top: 1px solid var(--tr-line); }
+.tarot-master-result .energy > div:last-child { border-bottom: 1px solid var(--tr-line); }
+.tarot-master-result .energy dt { font-size: 13px; line-height: 1.7; color: var(--tr-muted); }
+.tarot-master-result .energy dd { margin: 0; font-size: 14px; line-height: 1.75; word-break: keep-all; overflow-wrap: break-word; }
+.tarot-master-result .energy dd b { display: block; font-weight: 700; }
+.tarot-master-result .synth { display: grid; gap: 16px; }
+.tarot-master-result .synth h3 { margin: 0 0 3px; font-size: 13px; font-weight: 700; color: var(--tr-accent2); }
+.tarot-master-result .act { padding: 16px; border: 1px solid var(--tr-accent); border-radius: 10px; }
+.tarot-master-result .synth .act h3 { color: var(--tr-accent); }
+#tarotModalOverlay .tarot-master-result #tarotOracleText { margin: 0 !important; padding: 0 !important; border: 0 !important; font-style: normal !important; text-align: center; color: var(--tr-text) !important; font-family: var(--tr-body); font-size: 15px !important; }
+#tarotModalOverlay .tarot-master-result #tarotOracleText:empty { display: none; }
+.tarot-master-result #tarotOracleText p { font-family: var(--tr-display); font-size: 17px; line-height: 1.85; text-wrap: balance; margin-inline: auto; }
+.tarot-master-result #tarotOracleText small { display: block; margin-top: 8px; font-size: 12.5px; color: var(--tr-muted); }
+#tarotFreeCta { display: grid; gap: 12px; padding: 18px; background: var(--tr-panel); border-radius: 12px; }
+#tarotFreeCta b { font-family: var(--tr-display); font-weight: 400; font-size: 17px; color: var(--tr-text); }
+#tarotFreeCta p { font-size: 13.5px; line-height: 1.75; color: var(--tr-muted); }
+#tarotFreeCta a { display: flex; align-items: center; justify-content: center; min-height: 48px; border-radius: 9px; background: var(--tr-accent); color: var(--tr-on-accent); font-weight: 700; font-size: 14px; text-decoration: none; }
+.tarot-master-result .tarot-action-btns { margin-top: 0 !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  #tarotRitualStage .inner { transition: none; }
+  #tarotRitualStage .fan { scroll-behavior: auto; }
+  #tarotRitualStage .ring, #tarotRitualStage .bloom, #tarotRitualStage .after { display: none; }
+  #tarotRitualStage .slot.filled .flip,
+  .tarot-master-result .verdict, .tarot-master-result #tarotFreeBody > *, #tarotModalOverlay .tarot-master-result #tarotOracleText, .tarot-master-result #tarotFreeCta, .tarot-master-result .tarot-action-btns { animation: none; }
+  #tarotRitualStage .slot > strong { transition: none; }
+  .tarot-ritual-scenes > canvas { display: none; }
+}

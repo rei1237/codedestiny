@@ -57,7 +57,7 @@ function fixture(accessType = 'pass') {
     updateOne: async (filter, update) => { if (doc && matches(doc, filter)) for (const [key, value] of Object.entries(update.$set)) set(doc, key, value); },
   };
   const definitions = Array.from({ length: 15 }, (_, i) => ({ id: `chapter${i}`, title: `${i + 1}장`, minChars: 2200 }));
-  const ctx = vm.createContext({ Request, Response, Headers, URL, Date, JSON, Map, Math, crypto: webcrypto, console,
+  const ctx = vm.createContext({ Request, Response, Headers, URL, Date, JSON, Map, Math, structuredClone, crypto: webcrypto, console,
     fetch: async () => { throw new Error('EXTERNAL_FETCH_BLOCKED'); },
     clean: (v, max = 100000) => String(v || '').trim().slice(0, max),
     readJson: request => request.json(), json: (body, init) => new Response(JSON.stringify(body), init),
@@ -67,7 +67,7 @@ function fixture(accessType = 'pass') {
     isStoredPaidResultRevoked: async () => revoked,
     resolveAiLocaleFromRequest: () => 'ko', sha256: () => `hash${++tick}`, getPricing: () => ({}),
     normalizeInput: body => ({ ok: true, inputHash: body.inputHash || 'original', birthInfo: {}, consultation: {}, input: {} }),
-    resolveGenerateAccess: async () => ({ ok: permitted, accessType }), calculateZiweiAiChart: () => ({ lifePalace: 'fixed' }),
+    resolveGenerateAccess: async () => ({ ok: permitted, accessType }), prepareZiweiExecutionChart: () => ({ lifePalace: 'fixed', palaces: [] }),
     loginRequired: () => new Response('', { status: 401 }), notFound: () => new Response('', { status: 404 }),
     invalidInput: (_message, status = 422) => new Response('', { status }), paymentVerifyFailed: () => new Response('', { status: 402 }), serverError: () => new Response('', { status: 500 }),
     GENERATING_FRESHNESS_MS: 150000, CHAPTER_MAX_ATTEMPTS: 3, CHAPTER_BATCH_SIZE: 4, CHAPTER_CONCURRENCY: 4, MIN_DELIVERABLE_CHARS: 20000, MIN_DELIVERABLE_CHAPTERS: 15,
@@ -83,6 +83,7 @@ function fixture(accessType = 'pass') {
   });
   load(ctx, 'worker/lib/result-storage.js', ['resultStorageUnavailable', 'resultStorageFailurePayload']);
   load(ctx, 'worker/lib/paid-report-quality.js', ['paidReportBody', 'countPaidReportBodyChars', 'reportSentenceKey', 'hasRepeatedReportPassage']);
+  load(ctx, 'worker/lib/ziwei-consumer-chart.js', ['calculateZiweiConsumerChart']);
   load(ctx, 'worker/routes/ziwei-deep-report.js', ['handleZiweiDeepReportRoutes', 'handleGenerate', 'runZiweiDeepReportDeliveryBatch', 'handleResult', 'loadStoredReport', 'buildReportId', 'chaptersForDb', 'mergeChapters', 'publicStoredReport', 'accumulatedFromStored', 'reusableDeepChapters', 'isDeepChapterComplete', 'saveDeepCheckpoint', 'finishDeepDelivery', 'syncDeepExecution', 'replayCompletedDeepReport', 'runWithConcurrency', 'judgeDeliverable']);
   const post = body => ctx.handleZiweiDeepReportRoutes(new Request('https://mock.test/api/ziwei-deep-report/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ idempotencyKey: 'original-paid-key', ...body }) }), {});
   return { ctx, post, get doc() { return doc; }, get calls() { return calls; }, get starts() { return starts; }, get refunds() { return refunds; }, fault: value => { fault = value; }, owner: value => { owner = value; }, permitted: value => { permitted = value; }, revoked: value => { revoked = value; } };

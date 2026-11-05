@@ -4398,16 +4398,44 @@
       || state === 'PAID_VERIFIED' || state === 'PAID';
   }
 
+  /* 🔴 결제 복귀 반복 방지("10분째 새로고침", 2026-11-05).
+     - 정리된 주문: 확정은 끝났고 더 물어봐도 달라질 것이 없는 주문. 이 문서에서는 폴링하지 않는다.
+       카드나 프로필 선택이 이미 떠 있고, 다음 행동은 사용자 몫이다.
+     - 확정 시도한 주문: 재시도는 조용히 한다. 3초마다 전체 화면 안내·경고창을 띄우지 않는다.
+     - 자동 재개 횟수: 재개가 문서를 끊어도 남도록 탭 저장소에, 실행 전에 기록한다. 재개를 끊는 버그가
+       또 생겨도 상한에서 멈추고 "지금 열기" 카드로 떨어져 루프가 되지 않는다. */
+  var _DP_DIRECT_RESUME_MAX_AUTO_ATTEMPTS = 2;
+  var _DP_DIRECT_RESUME_ATTEMPTS_PREFIX = 'cd_direct_resume_attempts:';
+  var _dpDirectResumeSettled = Object.create(null);
+  var _dpDirectConfirmAttempted = Object.create(null);
+
+  /** 자동 재개를 한 번 더 해도 되면 횟수를 올리고 true. 저장소를 못 쓰면 막지 않는다. */
+  function _dpBeginDirectResumeAttempt(paymentId) {
+    try {
+      var key = _DP_DIRECT_RESUME_ATTEMPTS_PREFIX + paymentId;
+      var attempts = Number(window.sessionStorage.getItem(key)) || 0;
+      if (attempts >= _DP_DIRECT_RESUME_MAX_AUTO_ATTEMPTS) return false;
+      window.sessionStorage.setItem(key, String(attempts + 1));
+    } catch (_) {}
+    return true;
+  }
+
+  function _dpClearDirectResumeAttempts(paymentId) {
+    try { window.sessionStorage.removeItem(_DP_DIRECT_RESUME_ATTEMPTS_PREFIX + paymentId); } catch (_) {}
+  }
+
   function _dpStartDirectOrderPoll(paymentId) {
     var orderId = String(paymentId || '').trim();
     if (!orderId || typeof window === 'undefined') return;
     // 앱(Capacitor)은 PortOne 을 쓰지 않는다 — 이 경로 자체가 성립하지 않는다.
     if (_dpShouldUseAppStoreEntry()) return;
+    if (_dpDirectResumeSettled[orderId]) return;
     _dpStopDirectOrderPoll();
     var startedAt = Date.now();
 
     function tick() {
       _dpOrderPollTimer = 0;
+      if (_dpDirectResumeSettled[orderId]) return;
       if (Date.now() - startedAt > _DP_ORDER_POLL_MAX_MS) return;
       // 티켓이 사라졌다는 것은 다른 경로가 이미 이 주문을 확정했다는 뜻이다.
       var ticket = _dpReadDirectResumeTicket(orderId);
@@ -4426,7 +4454,7 @@
     }
 
     function schedule() {
-      if (_dpOrderPollTimer) return;
+      if (_dpOrderPollTimer || _dpDirectResumeSettled[orderId]) return;
       _dpOrderPollTimer = window.setTimeout(tick, _DP_ORDER_POLL_INTERVAL_MS);
     }
 
@@ -4720,10 +4748,11 @@
   }
 
   /**
-   * @param {{pollingPaymentId?: string}} [options]
+   * @param {{pollingPaymentId?: string, userInitiated?: boolean}} [options]
    *   pollingPaymentId 가 있으면 **폴링 안전망**(_dpStartDirectOrderPoll)이 서버로부터 승인을
    *   확인하고 부른 것이다. 쿼리 신호를 기다리지 않고 그 주문을 그대로 확정한다 — 조용한 폴백과
    *   달리 추측이 아니라 서버가 paid 라고 답한 상태라, 확인 오버레이·안내를 그대로 쓴다.
+   *   userInitiated 는 사용자가 "지금 열기"를 누른 것이다. 자동 재개 상한과 재시도 침묵을 적용하지 않는다.
    */
   function _dpResumeDirectPaymentAfterRedirect(options) {
     var query = new URLSearchParams(window.location.search || '');
@@ -4840,6 +4869,10 @@
       return;
     }
 
+    var isUserInitiated = !!(options && options.userInitiated);
+    // 이 문서에서 이미 확정을 시도한 주문의 자동 재시도는 화면을 가리거나 경고창을 띄우지 않는다.
+    var isQuietRetry = !isUserInitiated && !!_dpDirectConfirmAttempted[paymentId];
+    _dpDirectConfirmAttempted[paymentId] = true;
     try {
       /* 🔴 mode 는 'unlock-saving' 이어야 한다. 예전 'confirm' 은 3렌더러 허용목록(dp
          DP_WAIT_UI_ALLOWED_MODE_RE · 셸 CD_WAIT_UI_ALLOWED_MODE_RE · React REACT_WAIT_UI_ALLOWED_MODE_RE)
@@ -4847,7 +4880,7 @@
          문구는 이미 돌아온 사용자에게 하는 말이라 수단별 대기 문구("…자동으로 돌아옵니다")를 쓰지 않는다. */
       // 조용한 티켓 폴백은 대부분 결제 안 하고 이탈한 정상 케이스라, 무관한 화면에 확인 중
       // 오버레이를 띄우지 않는다 — 실제로 지급될 때만 아래 성공 경로가 스스로 안내한다.
-      if (!isSilentTicketFallback) {
+      if (!isSilentTicketFallback && !isQuietRetry) {
         _dpSetPaymentPending(true, _dpDirectResumeText('directResumeConfirming', resumeMethodLabel), 'unlock-saving');
       }
       // 🔴 티켓은 confirm 성공 뒤에 지운다. 먼저 지우면 5xx 한 번에 승인된 결제의 복구 수단이 사라진다.
@@ -4873,19 +4906,22 @@
       if (resumePending) {
         // 생년월일을 몰라 지급이 보류된 주문 — 새로고침으로는 풀리지 않는다. 프로필 선택 카드를 바로 연다.
         if (resumePayload.profileSelectionRequired === true) {
+          _dpDirectResumeSettled[paymentId] = true;
           _dpSetPaymentPending(false);
           void _dpProbeBirthProfilePending(true);
           return;
         }
-        var resumePendingMessage = resumePayload.message ? String(resumePayload.message) : _dpText('directResumePending');
-        _dpShowDirectResumeNotice(resumePendingMessage, 'unlock-saving', 4000);
+        if (!isQuietRetry) {
+          var resumePendingMessage = resumePayload.message ? String(resumePayload.message) : _dpText('directResumePending');
+          _dpShowDirectResumeNotice(resumePendingMessage, 'unlock-saving', 4000);
+        }
         return;
       }
       _dpSetPaymentPending(false);
       if (!confirmRes.ok) {
         // 조용한 폴백에서의 실패는 대부분 "결제 안 하고 이탈"이다 — 알림 없이 티켓만 남겨
         // TTL 안에서 다음 진입 때 다시 시도하게 둔다(진짜 실패라도 재조정 크론이 정산한다).
-        if (!isSilentTicketFallback) {
+        if (!isSilentTicketFallback && !isQuietRetry) {
           window.alert(_dpReadBillingMessage(resumePayload, '결제 검증에 실패했습니다. 고객센터로 문의해 주세요.'));
         }
         return;
@@ -4971,7 +5007,7 @@
       /* 🔴 확정 응답을 증빙 재료로 함께 넘긴다. 핸들러 중에는 열기만 하는 것이 아니라 **그 증빙을 다시
          서버에 실어 보내는** 것이 있다(AI 상담 프롬프트·인연 레이더 아카이브 쓰기). 안 넘기면 그쪽은
          화면만 열리고 서버 기록이 없어, 다음에 같은 것을 또 결제하게 된다. */
-      var resumeOpened = resumeDescriptor
+      var resumeOpened = resumeDescriptor && (isUserInitiated || _dpBeginDirectResumeAttempt(paymentId))
         ? await _dpRunPaidResume(resumeDescriptor, {
           featureKey: resumeFeatureKey,
           contentKey: resumeConfirmBody.contentKey || resumeConfirmBody.contentId || '',
@@ -4982,6 +5018,8 @@
         })
         : false;
       if (resumeOpened) {
+        delete _dpDirectResumeSettled[paymentId];
+        _dpClearDirectResumeAttempts(paymentId);
         _dpClearDirectResumeTicket(paymentId);
         _dpStripDirectResumeQuery();
         /* 🔴 자동 재개가 성공했으면 영수증을 여기서 쓴다. 안 그러면 회당 결제 한 번에 "자동 개방 +
@@ -4996,13 +5034,15 @@
         // 실제로 콘텐츠가 열리는 중이므로 여기서만 '여는 중' 문구를 쓴다.
         _dpShowPaymentCompleteOverlay(_dpText('paymentCompleteOverlay'));
       } else {
+        _dpDirectResumeSettled[paymentId] = true;
         var resumeFeatureLabel = String(resumeConfirmBody.reason || resumeConfirmBody.title || '').trim();
         var resumeAction = String((resumeDescriptor && resumeDescriptor.action) || '').trim();
         _dpShowDirectResumeCard(
           resumeFeatureLabel,
           resumeDescriptor ? function () {
             // 게이트를 다시 열면 회당 결제가 반복될 수 있다. 원래 입력/증빙으로 재개한다.
-            _dpResumeDirectPaymentAfterRedirect();
+            // 주문을 직접 지정한다 — 쿼리 없고 60초 미만인 티켓에서 버튼이 무동작이 되지 않게.
+            _dpResumeDirectPaymentAfterRedirect({ pollingPaymentId: paymentId, userInitiated: true });
           } : (resumeAction ? function () { _dpOpenRouteAction(resumeAction); } : null),
           // 열기 버튼이 없으면 "다시 누르면 무료"가 사용자가 할 수 있는 유일한 행동이다.
           resumeAction ? '' : _dpDirectResumeText('directResumeComplete', resumeMethodLabel),
@@ -5025,7 +5065,7 @@
       // 5xx·네트워크 — 티켓·URL 을 그대로 둔다. 새로고침이 곧 재시도다.
       _dpSetPaymentPending(false);
       console.error('[direct-payment-resume]', error);
-      window.alert(_dpText('directResumeError'));
+      if (!isQuietRetry) window.alert(_dpText('directResumeError'));
     }
   }
 
@@ -5662,6 +5702,13 @@
         var dpCheckoutError = new Error(_dpReadBillingMessage(checkoutRes.payload, '결제 준비에 실패했습니다.'));
         dpCheckoutError.code = checkoutErrCode;
         dpCheckoutError.status = Number(checkoutRes.status || 0);
+        // 판매 종료된 사주 상품(409 PRODUCT_SALE_ENDED + bundleFeatureKey)은 결제창 대신 묶음 안내를 연다.
+        // 프로필이 없는 400 MISSING_PROFILE_ID 는 막다른 길이 아니라 프로필 저장 안내로 보낸다(requiresProfile).
+        try {
+          if (window.CdSajuBundleOffer && typeof window.CdSajuBundleOffer.handleBillingError === 'function'
+            && window.CdSajuBundleOffer.handleBillingError(dpCheckoutError.status, checkoutRes.payload, { featureKey: String((checkoutPayload && checkoutPayload.featureKey) || (opts && opts.featureKey) || '') })) dpCheckoutError.saleEnded = true;
+        } catch (_dpSaleEndedErr) {}
+        if (checkoutErrCode === 'MISSING_PROFILE_ID' || (checkoutRes.payload && checkoutRes.payload.requiresProfile === true)) dpCheckoutError.requiresProfile = true;
         throw dpCheckoutError;
       }
 
@@ -5676,7 +5723,9 @@
           checkoutPayload.requestId ||
           '',
         ).trim();
+        // 서버가 alreadyUnlocked(묶음·개별 보유)로 답하면 주문이 없으니 결제창 없이 해금된 것으로 돌려준다.
         var allowDirectCheckoutAccessBypass = opts.allowServerAccessBypass === true && opts.forceDirectPayment !== true;
+        if (checkoutData && checkoutData.alreadyUnlocked === true) allowDirectCheckoutAccessBypass = true;
         if (allowDirectCheckoutAccessBypass && (accessGrant || consume || _dpIsCheckoutAccessBypass(checkoutData, checkoutPayload.featureKey || opts.featureKey || ''))) {
           var freePaymentPayload = Object.assign({}, checkoutData, {
             transactionId: freeTxHint,

@@ -394,7 +394,7 @@ function _sajuVillainElementSignal(ctx, rule) {
   var harmful = _sajuVillainToArray(ctx.harmfulGods);
   var elements = _sajuVillainToArray(rule.elements);
   var matchedHarmful = elements.filter(function(element) { return harmful.indexOf(element) >= 0; });
-  if (matchedHarmful.length) return matchedHarmful.map(_sajuVillainElementFull).join('·') + ' 기신 오행';
+  if (matchedHarmful.length) return matchedHarmful.map(_sajuVillainElementFull).join('·') + ' 주의 오행';
 
   var overheated = elements.filter(function(element) { return Number(ratios[element] || 0) >= 30; });
   if (overheated.length) return overheated.map(_sajuVillainElementFull).join('·') + ' 과다';
@@ -440,10 +440,10 @@ function _sajuVillainScoreProfile(ctx, blueprint, activatedBy) {
   add(hasTenGodData && dominantTenGodMatch.length > 0, '강한 십성 직접 일치 ' + dominantTenGodMatch.join('·'), 24);
 
   var harmfulMatch = _sajuVillainMatchedItems(rule.tenGodGroups, ctx && ctx.harmfulTenGodGroups);
-  add(harmfulMatch.length > 0, '기신/구신 십성 ' + harmfulMatch.join('·'), 26);
+  add(harmfulMatch.length > 0, '주의 오행 십성 ' + harmfulMatch.join('·'), 26);
 
   var harmfulElementMatch = _sajuVillainMatchedItems(rule.elements, ctx && ctx.harmfulGods);
-  add(hasElementData && harmfulElementMatch.length > 0, '기신/구신 오행 직접 일치 ' + harmfulElementMatch.map(_sajuVillainElementFull).join('·'), 24);
+  add(hasElementData && harmfulElementMatch.length > 0, '주의 오행 직접 일치 ' + harmfulElementMatch.map(_sajuVillainElementFull).join('·'), 24);
 
   var dominantElementMatch = hasElementData && rule.elements && rule.elements.indexOf(ctx.dominantElement) >= 0 ? [ctx.dominantElement] : [];
   add(dominantElementMatch.length > 0, '강한 오행 직접 일치 ' + dominantElementMatch.map(_sajuVillainElementFull).join('·'), 14);
@@ -494,9 +494,9 @@ function _sajuVillainScoreProfile(ctx, blueprint, activatedBy) {
 
 function _sajuVillainReason(profileName, blueprint, ctx, activatedBy) {
   var signals = activatedBy.length ? activatedBy.slice(0, 4).join(' · ') : '강한 위험 신호보다 기본 관계 점검 신호';
-  var harmful = ctx.harmfulGods.length ? ctx.harmfulGods.map(_sajuVillainElementFull).join('·') : '뚜렷하게 확인된 기신 오행 없음';
+  var harmful = ctx.harmfulGods.length ? ctx.harmfulGods.map(_sajuVillainElementFull).join('·') : '뚜렷하게 확인된 주의 오행 없음';
   var useful = ctx.usefulGods.length ? ctx.usefulGods.map(_sajuVillainElementFull).join('·') : '현재 화면 데이터 기준 미확인';
-  return profileName + '님의 사주 데이터에서 ' + signals + '가 감지됩니다. 용신 흐름은 ' + useful + ', 기신 흐름은 ' + harmful + '로 잡혀 있으므로 ' + blueprint.koreanName + ' 패턴을 만날 때는 초반부터 기준을 부드럽지만 분명하게 세우는 편이 좋습니다.';
+  return profileName + '님의 사주 데이터에서 ' + signals + '가 감지됩니다. 보완 후보 흐름은 ' + useful + ', 주의 오행 흐름은 ' + harmful + '로 잡혀 있으므로 ' + blueprint.koreanName + ' 패턴을 만날 때는 초반부터 기준을 부드럽지만 분명하게 세우는 편이 좋습니다.';
 }
 
 var SAJU_VILLAIN_EXACT_TYPE_POOL = {
@@ -549,10 +549,10 @@ var SAJU_VILLAIN_BLUEPRINTS = [
     neoAdvice:'돈 얘기 흐리면 멈춰. 숫자, 기한, 증빙 없으면 관계가 아니라 리스크다.',
     score:function(ctx, add) {
       add(ctx.tenGodsDistribution.재성 >= 2, '재성 축이 강하게 드러남', 22);
-      add(ctx.harmfulTenGodGroups.indexOf('재성') >= 0, '기신 오행이 재성으로 작동', 24);
+      add(ctx.harmfulTenGodGroups.indexOf('재성') >= 0, '주의 오행이 재성으로 작동', 24);
       add(ctx.currentLuckFlow.tenGodGroups.indexOf('재성') >= 0, '현재 대운 흐름에서 재성 자극', 12);
-      add(ctx.fiveElementsDistribution[ctx.dominantElement] >= 32 && ctx.harmfulGods.indexOf(ctx.dominantElement) >= 0, '강한 오행이 기신과 겹침', 10);
-      add(!ctx.isStrong, '신약 흐름이라 손익 압박에 피로가 누적되기 쉬움', 8);
+      add(ctx.fiveElementsDistribution[ctx.dominantElement] >= 32 && ctx.harmfulGods.indexOf(ctx.dominantElement) >= 0, '강한 오행이 주의 오행과 겹침', 10);
+      add(ctx.isStrong === false, '신약 흐름이라 손익 압박에 피로가 누적되기 쉬움', 8);
       return 24;
     }
   },
@@ -573,11 +573,11 @@ var SAJU_VILLAIN_BLUEPRINTS = [
     neoAdvice:'죄책감으로 밀고 들어오면 답하지 마. 감정은 듣고, 결정은 나중에 해.',
     score:function(ctx, add) {
       add(ctx.tenGodsDistribution.관성 >= 2, '관성 압박 축이 강함', 20);
-      add(ctx.harmfulTenGodGroups.indexOf('관성') >= 0, '기신 오행이 관성으로 작동', 24);
+      add(ctx.harmfulTenGodGroups.indexOf('관성') >= 0, '주의 오행이 관성으로 작동', 24);
       add(ctx.fiveElementsDistribution.fire >= 30, '화 기운 과열 신호', 12);
       add(ctx.conflictRelations.some(function(row){return row.type === '충';}), '원국 충 관계 감지', 12);
       add(ctx.wonjinRelations.length > 0, '원진 관계 감지', 10);
-      add(!ctx.isStrong, '신약 흐름이라 감정 압박에 소모되기 쉬움', 10);
+      add(ctx.isStrong === false, '신약 흐름이라 감정 압박에 소모되기 쉬움', 10);
       return 22;
     }
   },
@@ -598,7 +598,7 @@ var SAJU_VILLAIN_BLUEPRINTS = [
     neoAdvice:'말 잘하는 사람보다 기록 남기는 사람이 이긴다. 결론 없으면 대화 종료.',
     score:function(ctx, add) {
       add(ctx.tenGodsDistribution.식상 >= 2, '식상 표현 축이 강함', 22);
-      add(ctx.harmfulTenGodGroups.indexOf('식상') >= 0, '기신 오행이 식상으로 작동', 24);
+      add(ctx.harmfulTenGodGroups.indexOf('식상') >= 0, '주의 오행이 식상으로 작동', 24);
       add(ctx.fiveElementsDistribution.water >= 26 && ctx.fiveElementsDistribution.fire >= 26, '수·화 기운 동시 과열', 12);
       add(ctx.exactTenGodsDistribution.상관 >= 1 && ctx.tenGodsDistribution.관성 >= 1, '상관견관성 대화 충돌 신호', 12);
       add(_sajuVillainHasSinsal(ctx, 'dohwa') || _sajuVillainHasSinsal(ctx, 'hongyeom'), '표현성 신살 자극', 8);
@@ -622,9 +622,9 @@ var SAJU_VILLAIN_BLUEPRINTS = [
     neoAdvice:'계속 기대는 사람은 네 체력을 계산하지 않는다. 시간 제한부터 걸어.',
     score:function(ctx, add) {
       add(ctx.tenGodsDistribution.인성 >= 2, '인성 수용 축이 강함', 22);
-      add(ctx.harmfulTenGodGroups.indexOf('인성') >= 0, '기신 오행이 인성으로 작동', 22);
+      add(ctx.harmfulTenGodGroups.indexOf('인성') >= 0, '주의 오행이 인성으로 작동', 22);
       add(ctx.tenGodsDistribution.비겁 <= 1, '비겁 방어 축이 약함', 10);
-      add(!ctx.isStrong, '신약 흐름이라 정서적 부탁에 쉽게 피로해짐', 14);
+      add(ctx.isStrong === false, '신약 흐름이라 정서적 부탁에 쉽게 피로해짐', 14);
       add(ctx.currentLuckFlow.tenGodGroups.indexOf('인성') >= 0, '현재 대운 흐름에서 인성 자극', 10);
       return 24;
     }
@@ -646,7 +646,7 @@ var SAJU_VILLAIN_BLUEPRINTS = [
     neoAdvice:'성과는 기록해. 친하다는 말로 네 몫이 사라지면 그건 협업이 아니다.',
     score:function(ctx, add) {
       add(ctx.tenGodsDistribution.비겁 >= 2, '비겁 경쟁 축이 강함', 24);
-      add(ctx.harmfulTenGodGroups.indexOf('비겁') >= 0, '기신 오행이 비겁으로 작동', 24);
+      add(ctx.harmfulTenGodGroups.indexOf('비겁') >= 0, '주의 오행이 비겁으로 작동', 24);
       add(ctx.tenGodsDistribution.재성 >= 1 && ctx.harmfulTenGodGroups.indexOf('재성') >= 0, '재성 손상과 경쟁 구도 동시 감지', 12);
       add(ctx.currentLuckFlow.tenGodGroups.indexOf('비겁') >= 0, '현재 대운 흐름에서 비겁 자극', 10);
       add(ctx.conflictRelations.length > 0, '원국 관계 충돌 축 감지', 8);
@@ -674,7 +674,7 @@ var SAJU_VILLAIN_BLUEPRINTS = [
       add(ctx.wonjinRelations.length > 0, '원진 관계 감지', 12);
       add(ctx.conflictRelations.some(function(row){return row.type === '충';}), '충 관계 감지', 10);
       add(ctx.tenGodsDistribution.재성 >= 1 && ctx.tenGodsDistribution.관성 >= 1, '재관 혼재 흐름', 12);
-      add(ctx.harmfulTenGodGroups.indexOf('재성') >= 0 || ctx.harmfulTenGodGroups.indexOf('관성') >= 0, '재성·관성 중 하나가 기신으로 작동', 10);
+      add(ctx.harmfulTenGodGroups.indexOf('재성') >= 0 || ctx.harmfulTenGodGroups.indexOf('관성') >= 0, '재성·관성 중 하나가 주의 오행으로 작동', 10);
       return 20;
     }
   },
@@ -695,7 +695,7 @@ var SAJU_VILLAIN_BLUEPRINTS = [
     neoAdvice:'권위 있어 보인다고 권한 있는 건 아니다. 문서로 받아.',
     score:function(ctx, add) {
       add(ctx.tenGodsDistribution.관성 >= 2, '관성 권위 축이 강함', 22);
-      add(ctx.harmfulTenGodGroups.indexOf('관성') >= 0, '기신 오행이 관성으로 작동', 24);
+      add(ctx.harmfulTenGodGroups.indexOf('관성') >= 0, '주의 오행이 관성으로 작동', 24);
       add(ctx.fiveElementsDistribution.metal >= 30, '금 기운 과다 신호', 10);
       add(ctx.exactTenGodsDistribution.상관 >= 1 && ctx.tenGodsDistribution.관성 >= 1, '상관견관성 충돌 흐름', 14);
       add(ctx.currentLuckFlow.tenGodGroups.indexOf('관성') >= 0, '현재 대운 흐름에서 관성 자극', 10);
@@ -708,7 +708,7 @@ var SAJU_VILLAIN_BLUEPRINTS = [
     koreanName:'책임 전가형',
     subtitle:_sajuEngineText("se_26649_prop_subtitle"),
     montage:'처음에는 유연한 협업처럼 보이지만, 중요한 순간마다 책임의 화살표가 조용히 당신 쪽으로 돌아옵니다. 말은 가볍고 결과는 무거워지는 흐름입니다.',
-    approachPattern:'이 유형은 “일단 같이 해보자”는 말로 시작해 역할과 마감을 흐립니다. 사주에서 식상·재성의 흐름이 기신으로 눌릴 때 특히 말과 실무의 무게가 어긋나기 쉽습니다.',
+    approachPattern:'이 유형은 “일단 같이 해보자”는 말로 시작해 역할과 마감을 흐립니다. 사주에서 식상·재성의 흐름이 주의 오행으로 눌릴 때 특히 말과 실무의 무게가 어긋나기 쉽습니다.',
     redFlags:['결정은 같이 했다고 말하면서 실패 책임은 내 쪽으로 둡니다.','마감 직전에 역할 설명이 바뀝니다.','승인받지 않은 일을 이미 합의된 것처럼 말합니다.','성과가 보이면 앞에 서고 문제가 생기면 사라집니다.','자료 출처와 결정권자를 흐리게 말합니다.'],
     conflictTrigger:['마감 전날','공동 의사결정 후 결과가 나오는 순간','지출 승인과 업무 승인 기준이 섞이는 회의','수·토 기운이 무겁게 정체되는 시기'],
     relationshipZones:{ money:'공동 비용은 승인자와 사용 목적을 먼저 남기세요. “나중에 맞추자”는 말이 손실의 입구가 될 수 있습니다.', romance:'관계 문제를 늘 당신의 예민함으로 돌리면 멈추세요. 둘의 일은 둘의 책임이어야 합니다.', work:'담당자, 승인자, 마감일을 한 줄로 고정하세요. 책임이 문장 밖에 있으면 나중에 당신에게 붙습니다.', family:'가족 부탁도 “누가, 언제, 어디까지”를 말해야 합니다. 정이 책임 전가의 통로가 되면 오래 지칩니다.', friendship:'친구 사이 공동 계획은 가볍게 보여도 역할을 나누세요. 즐거운 약속일수록 기준이 흐려지기 쉽습니다.' },
@@ -719,7 +719,7 @@ var SAJU_VILLAIN_BLUEPRINTS = [
     neoAdvice:'같이 한 일인데 혼자 책임지면 구조가 틀린 거다. 역할표부터 꺼내.',
     score:function(ctx, add) {
       add(ctx.tenGodsDistribution.식상 >= 2, '식상 표현 축이 과열됨', 20);
-      add(ctx.harmfulTenGodGroups.indexOf('식상') >= 0 || ctx.harmfulTenGodGroups.indexOf('재성') >= 0, '식상·재성 중 하나가 기신으로 작동', 24);
+      add(ctx.harmfulTenGodGroups.indexOf('식상') >= 0 || ctx.harmfulTenGodGroups.indexOf('재성') >= 0, '식상·재성 중 하나가 주의 오행으로 작동', 24);
       add(ctx.fiveElementsDistribution.earth >= 30 || ctx.fiveElementsDistribution.water >= 30, '수·토 기운 정체 신호', 12);
       add(ctx.tenGodsDistribution.관성 <= 0, '책임 기준을 잡는 관성 방어축이 약함', 10);
       add(ctx.currentLuckFlow.tenGodGroups.indexOf('식상') >= 0 || ctx.currentLuckFlow.tenGodGroups.indexOf('재성') >= 0, '현재 대운 흐름에서 말과 손익 이슈 자극', 10);
@@ -732,7 +732,7 @@ var SAJU_VILLAIN_BLUEPRINTS = [
     koreanName:'경계 침범형',
     subtitle:_sajuEngineText("se_26673_prop_subtitle"),
     montage:'처음에는 걱정과 친밀감처럼 다가오지만, 어느새 당신의 시간표와 사생활이 상대의 확인 대상이 됩니다. 친절의 얼굴을 한 침범입니다.',
-    approachPattern:'비겁·인성의 기운이 과하거나 기신으로 흐를 때, 가까운 사람이라는 명분이 경계선을 약하게 만듭니다. 묻지 않은 조언과 확인 요구를 초반부터 구분해야 합니다.',
+    approachPattern:'비겁·인성의 기운이 과하거나 주의 오행으로 흐를 때, 가까운 사람이라는 명분이 경계선을 약하게 만듭니다. 묻지 않은 조언과 확인 요구를 초반부터 구분해야 합니다.',
     redFlags:['일정, 연락, 만남을 지나치게 확인하려 합니다.','거절하면 서운함보다 배신감을 크게 말합니다.','내 선택을 걱정이라는 이름으로 계속 수정하려 합니다.','개인 공간과 물건을 가볍게 넘나듭니다.','친밀함을 이유로 비밀 공유를 강요합니다.'],
     conflictTrigger:['가족·친구 모임 직후','연락 빈도가 갑자기 늘어나는 시기','인성 기운이 무겁게 쌓이는 날','원진 관계가 사소한 간섭으로 터지는 순간'],
     relationshipZones:{ money:'돈을 빌려주는 것보다 생활 전체를 설명해야 하는 상황을 조심하세요. 사생활 보고는 지원의 조건이 아닙니다.', romance:'사랑이라는 이름의 위치 확인과 일정 검열은 애정이 아니라 통제 신호입니다.', work:'상사가 아닌 사람의 과잉 확인은 업무 협조와 다릅니다. 채널과 범위를 정하세요.', family:'가족의 걱정도 내 삶의 문을 무제한으로 여는 열쇠는 아닙니다. 알려줄 범위를 먼저 정하세요.', friendship:'친한 친구라도 모든 감정과 일정을 공유할 필요는 없습니다. 비밀이 아니라 경계입니다.' },
@@ -743,7 +743,7 @@ var SAJU_VILLAIN_BLUEPRINTS = [
     neoAdvice:'걱정이란 말로 침범하면 선 긋자. 네 시간표는 공개 게시판이 아니다.',
     score:function(ctx, add) {
       add(ctx.tenGodsDistribution.인성 >= 2 || ctx.tenGodsDistribution.비겁 >= 2, '인성·비겁 밀착 축이 강함', 22);
-      add(ctx.harmfulTenGodGroups.indexOf('인성') >= 0 || ctx.harmfulTenGodGroups.indexOf('비겁') >= 0, '인성·비겁 중 하나가 기신으로 작동', 24);
+      add(ctx.harmfulTenGodGroups.indexOf('인성') >= 0 || ctx.harmfulTenGodGroups.indexOf('비겁') >= 0, '인성·비겁 중 하나가 주의 오행으로 작동', 24);
       add(ctx.tenGodsDistribution.관성 <= 0, '경계 규칙을 세우는 관성 방어축이 약함', 10);
       add(ctx.wonjinRelations.length > 0, '원진 관계 간섭 피로 감지', 10);
       add(ctx.currentLuckFlow.tenGodGroups.indexOf('인성') >= 0 || ctx.currentLuckFlow.tenGodGroups.indexOf('비겁') >= 0, '현재 대운 흐름에서 밀착 관계 자극', 10);
@@ -756,7 +756,7 @@ var SAJU_VILLAIN_BLUEPRINTS = [
     koreanName:'침묵 처벌형',
     subtitle:_sajuEngineText("se_26697_prop_subtitle"),
     montage:'대화가 필요할수록 공기가 차가워지고, 답 없는 침묵이 벌처럼 내려앉습니다. 문제를 푸는 대신 당신이 먼저 불안해지도록 만드는 방식입니다.',
-    approachPattern:'금·수 기운이 기신으로 차갑게 흐르거나 관성·인성이 과하면 감정 표현보다 차단이 먼저 나옵니다. 침묵을 해석하려 애쓰기보다 확인 기한을 정해야 합니다.',
+    approachPattern:'금·수 기운이 주의 오행으로 차갑게 흐르거나 관성·인성이 과하면 감정 표현보다 차단이 먼저 나옵니다. 침묵을 해석하려 애쓰기보다 확인 기한을 정해야 합니다.',
     redFlags:['중요한 대화 직후 갑자기 연락을 끊습니다.','무슨 일인지 묻는 순간 더 차가워집니다.','침묵 뒤에 먼저 사과하길 기다립니다.','답을 주지 않으면서 관계 주도권은 놓지 않습니다.','대화를 피한 뒤 아무 일 없었다는 듯 돌아옵니다.'],
     conflictTrigger:['갈등 직후 첫 24시간','금·수 기운이 강하게 식는 시기','원진·해 관계가 누적된 만남','사과와 책임을 확인해야 하는 대화'],
     relationshipZones:{ money:'돈 문제에서 답을 미루는 침묵은 위험합니다. 확인 기한을 넘기면 다음 절차로 넘어가세요.', romance:'잠수와 냉담을 사랑의 시험으로 받아들이지 마세요. 관계는 불안을 키워 증명하는 곳이 아닙니다.', work:'업무 확인을 침묵으로 미루면 기한을 명시하고 공식 채널에 남기세요.', family:'가족의 침묵이 오래 이어지면 내 일상을 멈추지 마세요. 감정의 날씨를 전부 책임질 수는 없습니다.', friendship:'친구의 냉담을 계속 해석하다 보면 내 에너지가 먼저 얼어붙습니다. 확인 후 거리를 두세요.' },
@@ -767,7 +767,7 @@ var SAJU_VILLAIN_BLUEPRINTS = [
     neoAdvice:'답 없는 침묵은 답이다. 기한 주고, 넘기면 네 기준대로 움직여.',
     score:function(ctx, add) {
       add(ctx.tenGodsDistribution.관성 >= 2 || ctx.tenGodsDistribution.인성 >= 2, '관성·인성 냉각 축이 강함', 22);
-      add(ctx.harmfulTenGodGroups.indexOf('관성') >= 0 || ctx.harmfulTenGodGroups.indexOf('인성') >= 0, '관성·인성 중 하나가 기신으로 작동', 24);
+      add(ctx.harmfulTenGodGroups.indexOf('관성') >= 0 || ctx.harmfulTenGodGroups.indexOf('인성') >= 0, '관성·인성 중 하나가 주의 오행으로 작동', 24);
       add(ctx.fiveElementsDistribution.metal >= 26 && ctx.fiveElementsDistribution.water >= 26, '금·수 기운 동시 냉각', 12);
       add(ctx.tenGodsDistribution.식상 <= 0, '표현 방어축 식상이 약함', 10);
       add(ctx.wonjinRelations.length > 0 || ctx.conflictRelations.some(function(row){return row.type === '해';}), '원진·해 관계 침묵 피로 감지', 10);
@@ -1036,7 +1036,7 @@ function _sajuVillainBuildSummary(profiles, ctx) {
   var top = profiles && profiles.length ? profiles[0] : null;
   var weakAxis = '관계 경계선 점검';
   if (ctx && ctx.hasStrengthData && ctx.isStrong === false) weakAxis = '신약 경계선 피로';
-  else if (ctx && ctx.harmfulTenGodGroups && ctx.harmfulTenGodGroups.length) weakAxis = ctx.harmfulTenGodGroups.join(' · ') + ' 기신 자극';
+  else if (ctx && ctx.harmfulTenGodGroups && ctx.harmfulTenGodGroups.length) weakAxis = ctx.harmfulTenGodGroups.join(' · ') + ' 주의 오행 자극';
   else if (ctx && ctx.dominantElement) weakAxis = _sajuVillainElementFull(ctx.dominantElement) + ' 오행 과점검';
 
   var activeTenGods = (ctx && ctx.harmfulTenGodGroups && ctx.harmfulTenGodGroups.length)
@@ -1221,7 +1221,7 @@ function renderVillain(p, power) {
   var villainInput = {
     pillars: p,
     natal: (typeof G_NATAL !== 'undefined' ? G_NATAL : null),
-    power: power || (typeof G_POWER !== 'undefined' ? G_POWER : null),
+    power: window.__cdShownPower || power || (typeof G_POWER !== 'undefined' ? G_POWER : null),
     johu: (typeof G_JOHU !== 'undefined' ? G_JOHU : null),
     jong: (typeof G_JONG !== 'undefined' ? G_JONG : null),
     daewun: (typeof window !== 'undefined' ? window.G_DAEWUN : null),

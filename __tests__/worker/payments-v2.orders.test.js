@@ -406,10 +406,11 @@ describe("읽기 매핑과 소유권", () => {
 });
 
 
-test('진로 리포트 5,000원 단건 주문·확정 재시도는 기존 멱등 상태기계를 재사용한다', async () => {
+test('출생 기반 5,000원 단건(판매 중인 자미 키) 주문·확정 재시도는 기존 멱등 상태기계를 재사용한다', async () => {
  const {resolveProduct}=await import('../../worker/payments/catalog.js');
  const {verifyPgPayment}=await import('../../worker/payments/pg.js');
- const product=resolveProduct({featureKey:'saju-career-style'});
+ // 묶음 포함 키(진로 리포트)는 신규 판매가 닫혀 판매 중인 출생 기반 키로 같은 상태기계를 확인한다.
+ const product=resolveProduct({featureKey:'ziwei_decade_luck'});
  expect(product).toMatchObject({priceKRW:5000,priceCoins:50,billingType:'unlock'});
  const db=makeFakeDb({profileCards:[{userId:USER,profileId:'career-card',gender:'F',birth:{year:2000,month:3,day:15,hour:12,minute:30}}]});
  const first=await createOrder(db,{userId:USER,profileId:'career-card',product,idempotencyKey:'career-cash-001'});

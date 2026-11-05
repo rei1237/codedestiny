@@ -33,6 +33,7 @@
       strong: '일간을 지지하는 힘이 비교적 큰 구조입니다. 혼자 끌고 가는 힘과 나누어 맡기는 여유를 함께 살펴보세요.',
       weak: '일간의 힘에 비해 주변 역할의 요구가 큰 구조입니다. 도움과 준비 시간을 확보하는 방식이 단서가 됩니다.',
       jong: '한 방향의 기세를 따르는 종격 가능성이 검토된 구조입니다. 일반 신강·신약 조언을 그대로 적용하지 않습니다.',
+      strengthPending: '출생 시각이 없으면 강약을 확정하지 않습니다. 아래 점수는 참고값으로만 살펴보세요.',
       strengthBasis: '기존 억부 점수 {score} · 보완 후보 {support}. 점수는 사람의 능력이나 가치를 매기는 등급이 아닙니다.',
       strengthAction: '역할을 늘리기 전에 시간과 지원을 확인하세요. 선택 후의 집중력·소모·회복을 기록해 기준을 조정하세요.',
       flowBasis: '{label} {stem}{branch} · 기존 평가 점수 {score}. 길흉의 확정 예측이 아닌 흐름을 비교하는 참고값입니다.',
@@ -42,9 +43,10 @@
       flowRuleCare: '일정을 조정하고 선택지를 남기세요. 점수만으로 관계·직업·투자의 결론을 내리지 마세요.',
       period: '현재 대운', year: '올해 세운', more: '자세히 읽기', sample: '샘플 · 가상 명식의 설명 예시',
       sampleNote: '설명 형식을 보여주는 예시이며 회원님의 결과가 아닙니다.',
-      paidDifference: '입력한 생년 정보로 계산한 명식에 맞춰 준비된 해설을 엮습니다. 무료 풀이에서 살펴본 기질을 바탕으로, 시기별 흐름과 주제별 해설을 이어 읽어보세요.',
+      paidDifference: '입력한 생년 정보로 계산한 명식에 맞춰 준비된 해설을 엮습니다. 무료 만세력에서 확인한 원국을 바탕으로, 시기별 흐름과 주제별 해설을 이어 읽어보세요.',
       paidDaeun: '10년마다 달라지는 삶의 흐름과 해마다의 변화를 함께 읽어요. 일·관계·재물 해설에서 지금 준비할 선택을 살펴보세요.',
       paidSummary: '타고난 기질과 오행·십성, 성격과 관계, 삶의 전략, 올해와 내년의 처방까지 내 명식으로 한 번에 정리해 드려요.',
+      paidBundle: '사주 전체 풀이 평생 소장 · 한 번 결제하면 이 풀이를 포함한 모든 사주 풀이가 영구히 열려요. 풀이마다 따로 결제하지 않아요.',
       recovery: '기존 계정과 프로필로 사주 결과를 다시 열고 해당 풀이의 해금 상태를 확인하세요. 결제 후 열리지 않으면 새로 결제하지 말고 결제 내역과 함께 고객센터에 문의하세요.',
       inputs: '현재 사주에 입력한 생년 정보와 계산값을 사용합니다. 출생시간을 모르면 시간에 의존하는 해석은 참고 범위가 제한됩니다.',
       pricePending: '가격 확인 중', priceUnavailable: '가격은 결제 안내에서 확인해 주세요', summaryTitle: '라이트 사주 풀이', daeunTitle: '대운 분석 · 지금부터 다음 시기까지', graphTitle: '대운 흐름 비교', yeonIntro: '달빛 아래 한 장씩, 타고난 마음과 지금의 계절을 함께 읽어볼게요.', neoIntro: '흐름의 근거부터 짚어 줄게. 그다음 지금 해 볼 작은 걸음 하나를 같이 고르자.', paidRead: '풀이 확인하기',
@@ -93,6 +95,7 @@
       strongNeo: '일간을 받쳐 주는 힘이 비교적 큰 구조야. 혼자 끌고 가는 힘이랑 나눠 맡기는 여유를 같이 살펴 봐.',
       weakNeo: '일간의 힘에 비해 주변 역할이 바라는 게 큰 구조야. 도움과 준비 시간을 확보하는 방식이 단서가 될 수 있어.',
       jongNeo: '한 방향의 기세를 따르는 종격 가능성이 검토된 구조야. 보통의 신강·신약 조언을 그대로 대지는 않아.',
+      strengthPendingNeo: '출생 시각이 없으면 강약을 확정하지 않아. 아래 점수는 참고로만 봐.',
       strengthBasisNeo: '기존 억부 점수 {score} · 보완 후보 {support}. 점수는 네 능력이나 가치를 매기는 등급이 아니야.',
       strengthActionNeo: '역할을 늘리기 전에 시간과 지원부터 확인해 봐. 고른 뒤의 집중력·소모·회복을 적어 두고 기준을 조정하면 돼.',
       flowBasisNeo: '{label} {stem}{branch} · 기존 평가 점수 {score}. 길흉을 확정하는 예측이 아니라 흐름을 비교하는 참고값이야.',
@@ -208,6 +211,7 @@
       "strong": "The day stem receives relatively strong support. Consider both independent effort and sharing responsibilities.",
       "weak": "Surrounding demands are relatively large compared with support for the day stem. Preparation and help are useful questions to explore.",
       "jong": "The engine considers a following structure. Ordinary strong/weak advice does not apply unchanged.",
+      "strengthPending": "Without a birth time the strength reading stays open. Treat the score below as a reference only.",
       "strengthBasis": "Existing support score {score} · balancing candidates {support}. This does not rank your ability or worth.",
       "strengthAction": "Check time and support before adding a responsibility. Review focus, effort and recovery after the choice.",
       "flowBasis": "{label} {stem}{branch} · existing score {score}. A comparison aid, not a certain prediction.",
@@ -220,9 +224,10 @@
       "more": "Read more",
       "sample": "Sample · a fictional chart",
       "sampleNote": "An example of the format, not your personal result.",
-      "paidDifference": "Prepared explanations are matched to the chart calculated from your birth details. Build on the temperament covered in the free reading with longer-term cycles and themed interpretations.",
+      "paidDifference": "Prepared explanations are matched to the chart calculated from your birth details. Build on the natal chart shown in the free Manseryeok with longer-term cycles and themed interpretations.",
       "paidDaeun": "Read how life shifts every ten years and from year to year, and see which choices to prepare for now in work, relationships and money.",
       "paidSummary": "Your temperament, elements and Ten Gods, personality and relationships, life strategy, and guidance for this year and next, gathered into one reading of your chart.",
+      "paidBundle": "Saju full reading, lifetime access · One payment opens every Saju reading, including this one, permanently. You are not charged per reading.",
       "recovery": "Reopen the chart with the same account and profile and check access. If payment succeeded but access is missing, do not pay again; contact support with the payment record.",
       "inputs": "Uses the birth information and calculations already entered for this chart. Unknown birth time limits time-dependent interpretation.",
       "pricePending": "Checking price",
@@ -362,7 +367,7 @@
     var j=input.johu||{}, pw=input.power||{}, jong=input.jong||{};
     var cool=j.type==='cool'||j.type==='cold', warm=j.type==='warm'||j.type==='hot';
     model.climate=section(c.climate,pick(c,cool?'cold':warm?'hot':'neutral',neo),fmt(pick(c,'climateBasis',neo),{score:j.score,wet:j.moistCnt,dry:j.dryCnt}),cool?c.scenes[4]:warm?c.scenes[1]:c.scenes[2],pick(c,'climateAction',neo));
-    model.strength=section(c.strength,pick(c,jong.isJong?'jong':pw.isStrong?'strong':'weak',neo),fmt(pick(c,'strengthBasis',neo),{score:pw.score,support:(pw.yongshin||[]).map(function(e){return c.names[elements.indexOf(e)]||e;}).join(' · ')}),pw.isStrong?c.scenes[0]:c.scenes[2],pick(c,'strengthAction',neo));
+    model.strength=section(c.strength,pick(c,pw.strengthPending?'strengthPending':jong.isJong?'jong':pw.isStrong?'strong':'weak',neo),fmt(pick(c,'strengthBasis',neo),{score:pw.score,support:(pw.yongshin||[]).map(function(e){return c.names[elements.indexOf(e)]||e;}).join(' · ')}),pw.isStrong?c.scenes[0]:c.scenes[2],pick(c,'strengthAction',neo));
     model.flow=(input.flow||[]).map(function(row) { var good=row.score>=60, tone=pick(c,good?'flowOpen':'flowCare',neo); return section(row.kind==='year'?c.year:c.period,tone,fmt(pick(c,'flowBasis',neo),{label:row.kind==='year'?c.year:c.period,stem:row.g,branch:row.j,score:row.score}),tone,pick(c,good?'flowRuleOpen':'flowRuleCare',neo)); });
     var name=String(input.name||'').trim();
     if(c.letterOpening && c.neoOpening) {
@@ -382,7 +387,9 @@
     var p=root.G_PILLARS, ten={};
     [p.y.g,p.y.j,p.m.g,p.m.j,p.d.j,p.h.g,p.h.j].forEach(function(ch){var g=root.getTenGod(p.d.g,ch);if(g&&g!=='?')ten[g]=(ten[g]||0)+1;});
     var birth=root.G_KASI_CONTEXT||{};
-    var facts={name:root.USER_NAME,p:p,natal:root.G_NATAL,ten:ten,johu:root.G_JOHU,power:root.G_POWER,jong:root.G_JONG,unknown:birth.unknownHour===true||birth.timeDefault===true||root.__cdSajuTimeUnknown===true,flow:flow};
+    var approved=root.cdApprovedSajuFacts?root.cdApprovedSajuFacts():null;
+    var facts={name:root.USER_NAME,p:p,natal:root.G_NATAL,ten:ten,johu:root.G_JOHU,power:(approved&&approved.power)||root.G_POWER,jong:root.G_JONG,unknown:birth.unknownHour===true||birth.timeDefault===true||root.__cdSajuTimeUnknown===true,flow:flow};
+    if(approved&&approved.gyeokguk) facts.gyeokguk=approved.gyeokguk;
     if(root.SajuReadingDepth) facts.depth=root.SajuReadingDepth.buildDepthFacts(facts);
     return facts;
   }
@@ -431,34 +438,7 @@
     var c=langCopy(locale());
     // 한국어는 그래프·표가 있는 풍부한 판(reading-rich.js). 그 밖의 로케일과 자료 부족 시에는 기존 짧은 블록.
     var rich=richFor(locale()), facts=Object.assign({},state,{warning:pick(c,'unknown',model.mode==='neo')});
-    if(section==='ilju'||section==='all') {
-      var host=document.getElementById('iljuCard');
-      if(host&&!document.getElementById('sajuElementReading')){var el=document.createElement('section');el.id='sajuElementReading';host.insertBefore(el,host.querySelector('.ilju-v2-grid')||host.firstChild);}
-      write('sajuElementReading',markup(model.elements,model,true));
-      if(host&&!document.getElementById('sajuIljuRich')){var box0=document.createElement('section');box0.id='sajuIljuRich';host.appendChild(box0);}
-      var iljuRich=rich?rich.ilju(facts,model.mode):'';
-      write('sajuIljuRich',iljuRich);
-      // The detailed reader owns all eight topics. Keep the original fallback
-      // available when the bundle is absent, without displaying duplicate excerpts.
-      var hasDepth=!!(iljuRich&&root.SajuReadingDepth&&locale()==='ko');
-      if(hasDepth){var reading=root.SajuReadingDepth.dayReading(state.p.d.g+state.p.d.j);if(reading)write('iljuSummaryList','<li>'+esc(reading.summary)+'</li>');}
-      // 풍부한 판은 renderIlju 가 채운 ILJU_DB 목록(요약·상세·조언)을 그대로 두고 그 아래에 원국 표·연이의 한마디를 덧붙인다.
-      // 비한국어는 ILJU_DB 목록이 한국어라 풍부한 판이어도 이 세 목록은 짧은 블록으로 덮는다.
-      if(!iljuRich||locale()!=='ko'){
-        write('iljuSummaryList','<li>'+esc(model.day.blocks[0].text)+'</li>');
-        write('iljuDetailList',(model.mode==='neo'?'':'<li>'+esc(model.day.evidence)+'</li>')+'<li>'+esc(model.day.blocks[1].text)+'</li>');
-        write('iljuAdviceList','<li>'+esc(model.day.blocks[2].text)+'</li>'+(model.unknown?'<li>'+esc(c.unknown)+'</li>':''));
-      }
-    }
-    if(section==='ten'||section==='all') {
-      var grid=document.getElementById('tsGrid');
-      if(grid&&!document.getElementById('sajuTenOverview')){var box=document.createElement('section');box.id='sajuTenOverview';grid.parentNode.insertBefore(box,grid);}
-      write('sajuTenOverview',rich?rich.tenOverview(facts,model.mode):'');
-      write('tsGrid',(rich&&rich.tenCards(facts,model.mode))||model.ten.map(function(g){return '<button class="saju-ten-button" type="button" data-saju-god="'+esc(g.key)+'"><strong>'+esc(g.reading.title)+'</strong><span>'+esc(g.reading.blocks[0].text)+'</span><small>'+esc(c.more)+' · '+g.count+'</small></button>';}).join(''));
-      if(openGod&&document.getElementById('tsModal')?.classList.contains('show')) showGod(openGod,false);
-    }
-    if(section==='climate'||section==='all') write('johuContent',(rich&&rich.climate(facts,model.mode))||markup(model.climate,model,false));
-    if(section==='strength'||section==='all') write('ukbuSection',(rich&&rich.strength(facts,model.mode))||markup(model.strength,model,false));
+    // 일주·십성·조후·억부 본문은 사주 전체 풀이 평생 소장 서버 전달이다(CdSajuSectionClient.loadNatalReading). 여기서는 그리지 않는다.
     if(section==='flow'||section==='all') write('currentSeasonSummary',(rich&&rich.flow(facts,model.mode))||model.flow.map(function(r){return markup(r,model,true);}).join(''));
     if(section==='daily'||section==='all') daily.forEach(function(row,i){
       var gi=gods.indexOf(row.gGod), good=row.batteryPercent>=60;
@@ -480,16 +460,19 @@
       if(el.dataset.readingLocale===locale()+':'+mode())return;
       el.dataset.readingLocale=locale()+':'+mode();
       var sample=build({p:{d:{g:'辛',j:'酉',gE:'metal'}},natal:{dominant:'metal',ratios:{wood:100/3,fire:100/9,earth:100/9,metal:400/9,water:0}},ten:{'비견':2},flow:[{kind:'period',g:'甲',j:'午',score:60}]},mode(),locale());
+      // 개별 가격 표기는 판매 종료로 없어졌다. 가격이 있으면 그 값을, 없으면 사주 전체 풀이 평생 소장 가격을 보여 준다.
       var price=document.querySelector('[data-saju-price-key="'+key+'"]');
-      el.innerHTML='<img class="saju-static-offer__guide" src="/images/saju/'+(mode()==='neo'?'yeongnyangi-320.webp':'yeoni-moonlight-reading.webp')+'" width="384" height="256" alt="" loading="lazy" decoding="async"><strong class="saju-static-offer__price">'+esc(price?price.textContent:c.pricePending)+'</strong><p>'+esc(key==='section_daewun'?c.paidDaeun:c.paidSummary)+'</p><details data-saju-sample="'+key+'"><summary>'+esc(c.sample)+'</summary>'+markup(key==='section_daewun'?sample.flow[0]:sample.elements,sample,false)+'<p>'+esc(c.sampleNote)+'</p></details><p>'+esc(c.inputs)+'</p>';
+      var bundlePrice=root.CdSajuBundleOffer&&root.CdSajuBundleOffer.PRICE_LABEL;
+      el.innerHTML='<img class="saju-static-offer__guide" src="/images/saju/'+(mode()==='neo'?'yeongnyangi-320.webp':'yeoni-moonlight-reading.webp')+'" width="384" height="256" alt="" loading="lazy" decoding="async"><strong class="saju-static-offer__price">'+esc(price?price.textContent:(bundlePrice||c.pricePending))+'</strong><p class="saju-static-offer__bundle">'+esc(c.paidBundle)+'</p><p>'+esc(key==='section_daewun'?c.paidDaeun:c.paidSummary)+'</p><details data-saju-sample="'+key+'"><summary>'+esc(c.sample)+'</summary>'+markup(key==='section_daewun'?sample.flow[0]:sample.elements,sample,false)+'<p>'+esc(c.sampleNote)+'</p></details><p>'+esc(c.inputs)+'</p>';
     });
   }
+  // 십성 상세 본문은 사주 전체 풀이 평생 소장 서버가 카드와 함께 보낸 것을 CdSajuSectionClient 가 들고 있다. 없으면 열지 않는다.
   function showGod(key, open) {
-    var data=snapshot(), model=build(data,mode(),locale());if(!model)return false;
-    var item=model.ten.find(function(g){return g.key===key;});if(!item)return false;
-    var richApi=richFor(locale()),rich=richApi?richApi.godDetail(key,Object.assign({},data,{warning:pick(langCopy(locale()),'unknown',model.mode==='neo')}),model.mode):'';
-    root.ensureSajuDetailModal();openGod=key;write('modalBody',rich||markup(item.reading,model,true));if(open!==false)root.openSajuDetailModal();return true;
+    var html=root.CdSajuSectionClient&&typeof root.CdSajuSectionClient.godDetail==='function'?root.CdSajuSectionClient.godDetail(key):'';
+    if(!html)return false;
+    root.ensureSajuDetailModal();openGod=key;write('modalBody',html);if(open!==false)root.openSajuDetailModal();return true;
   }
+  function refreshGod() {if(openGod&&document.getElementById('tsModal')?.classList.contains('show'))showGod(openGod,false);}
   var preserving = false;
   function preserve(callback) {
     if(preserving){callback();return;}
@@ -501,10 +484,10 @@
     expanded.forEach(function(s){var parent=s.parent&&document.getElementById(s.parent);var e=s.el.isConnected?s.el:parent&&parent.querySelectorAll('details')[s.index];if(e)e.open=s.open;});
     requestAnimationFrame(function(){requestAnimationFrame(function(){if(visible&&visible.isConnected)window.scrollBy({top:visible.getBoundingClientRect().top-offset,behavior:'instant'});var f=focusId?document.getElementById(focusId):focusMode?document.querySelector(focusHost+' [data-saju-mode="'+focusMode+'"]'):null;if(f)f.focus({preventScroll:true});preserving=false;});});
   }
-  function changed() {preserve(function(){render('all');refreshCopy();if(typeof root.refreshDaewunReadingGuide==='function')root.refreshDaewunReadingGuide();if(!root.G_PILLARS)renderHeader();});if(root.G_PILLARS)import('/js/recommendations-legacy.mjs').then(function(m){return m.mountSajuRecommendation(document.getElementById('resultPage'),document.getElementById('shareSection'));}).catch(function(){});}
+  function changed() {preserve(function(){render('all');refreshCopy();if(typeof root.refreshDaewunReadingGuide==='function')root.refreshDaewunReadingGuide();if(!root.G_PILLARS)renderHeader();});if(root.G_PILLARS)import('/js/recommendations-legacy.mjs').then(function(m){return m.mountSajuRecommendation(document.getElementById('resultPage'),document.getElementById('shareSection'),m.iljuAdviceLines(typeof root.cdSajuRecommendationAdvice==='function'?root.cdSajuRecommendationAdvice():''));}).catch(function(){});}
   // 화자 전환: 머리글(그림·버튼)을 다시 그리고, 해금된 종합 풀이는 새 화자로 서버에서 다시 받는다(펼친 대운은 changed 가 맡는다).
   function personaChanged() {preserve(function(){renderHeader();try{if(root.G_PILLARS&&typeof root.renderSummary==='function'&&(typeof root._cdSajuGateUnlocked!=='function'||root._cdSajuGateUnlocked('section_summary')))root.renderSummary();}catch(_){}changed();});root.dispatchEvent(new root.CustomEvent('cd:saju-persona-changed'));}
-  root.SajuReadingPresentation={build:build,render:render,changed:changed,showGod:showGod,setFlow:function(rows){flow=rows.map(function(r){return Object.assign({},r);});render('flow');},setDaily:function(day,month){daily=[day,month];render('daily');},copy:langCopy,sourceCopy:copy,escape:esc,locale:locale,refreshCopy:refreshCopy};
+  root.SajuReadingPresentation={build:build,render:render,changed:changed,preserve:preserve,showGod:showGod,refreshGod:refreshGod,setFlow:function(rows){flow=rows.map(function(r){return Object.assign({},r);});render('flow');},setDaily:function(day,month){daily=[day,month];render('daily');},copy:langCopy,sourceCopy:copy,escape:esc,locale:locale,refreshCopy:refreshCopy};
   if(typeof document==='undefined')return;
   document.addEventListener('click',function(event){
     var button=event.target.closest('#sajuReadingHeader [data-saju-mode]');

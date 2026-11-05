@@ -213,7 +213,10 @@ export function createVerificationPlan(changes, { profile = "fast", skipBuild = 
   add({ kind: "whitespace" });
   npm("verify:doc-freshness");
   // 비교 기준을 넘겨야 스위트가 실패를 merge-base 에서 다시 돌려 귀책을 가린다. 없으면 전부 이 변경 책임으로 본다.
-  if (paidGates) add({ kind: "node", file: "scripts/run-paid-gate-suite.mjs", args: changes.baseSha ? ["--base", changes.baseSha] : [] });
+  // critical 은 아래에서 test:jest·test:node 와 계약 항목을 돌리므로 스위트에서 같은 항목을 뺀다(paid-flow-gates.yml 의 --skip 과 같은 판단).
+  const smokeCovered = critical && fullSuitesCoverSmoke(scripts, jestConfig);
+  const plannedLater = critical ? ["npm test", ...criticalSteps(scripts).filter((step) => !step.args.length && !(step.name === "smoke:core" && smokeCovered)).map((step) => `npm run ${step.name}`)] : [];
+  if (paidGates) add({ kind: "node", file: "scripts/run-paid-gate-suite.mjs", args: [...(changes.baseSha ? ["--base", changes.baseSha] : []), ...plannedLater.flatMap((run) => ["--skip-exact", run])] });
   if (profile === "all") add({ kind: "ci-static-guards" });
   if (!docsOnly) {
     add({ kind: "lint-changed" });

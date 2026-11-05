@@ -1,0 +1,5 @@
+export type HeukwolChapter={key:string;title:string;warning:string;interpretation:string;strategy:string;checkpoints?:string[];content:string;totalChars:number;evidenceIds:string[]};
+type Mark={type:string;star:string;palaces:string[];start?:string;end?:string};
+export type HeukwolMonth={month:number;start:string;end:string;saju:{id:string;start:string;end:string;pillar:string;tenGod:string;tensions:{label:string}[];supports:{label:string}[]}[];ziwei:{id:string;start:string;end:string;lunarMonth:number;leap:boolean;marks:Mark[]}[];domains:{id:string;title:string;sajuPriority:number;ziweiCautions:Mark[];ziweiSupports:Mark[];action:string;sign:string;change:string}[]};
+export type HeukwolReport={title:string;year:number;reportId:string;generatedAt:string;question:string;totalChars:number;chapters:HeukwolChapter[];analysis:{months:HeukwolMonth[];limitation:string;method:string;uncertainty:string[]}};
+export type HeukwolState={ok:boolean;id:string;status:'generating'|'completed'|'failed';completedChapters:number;totalChapters:number;year:number;report?:HeukwolReport;message?:string;code?:string};

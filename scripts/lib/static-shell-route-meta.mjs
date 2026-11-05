@@ -76,7 +76,7 @@ export function injectStaticShellRouteMeta(html, route) {
   /* 소셜 카드도 라우트 것으로 바꾼다. 예전에는 title/description/canonical 만 갈아 끼워서
      11개 사본 전부가 홈의 og:title·og:description 을 그대로 달고 있었고, og:url 은 아예
      홈 주소("https://code-destiny.com/")를 가리켰다 — 카카오톡·X 에 /oracle/juyuk 을
-     공유하면 "무료 사주·운세·타로·궁합…" 홈 카드가 뜨고 링크도 홈으로 보였다.
+     공유하면 "무료 만세력·운세·타로·궁합…" 홈 카드가 뜨고 링크도 홈으로 보였다.
      색인은 막더라도 공유 유입은 이 사본들이 실제로 받는 트래픽이라 맞춰 준다. */
   nextHtml = replaceMetaContent(
     nextHtml,

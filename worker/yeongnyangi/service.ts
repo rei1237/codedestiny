@@ -1,3 +1,5 @@
+import {attachNatalProfile} from './fortune/shared/natal-profile';
+import {pinDomainFacts,sealDomainFacts,validateDomainFacts} from './fortune/shared/consumer-facts';
 import {CONSULTATION_EXPANSION_VERSION} from './fortune/consultation-expansion';
 import {FUSION_BOOK_VERSION,DIRECT_FUSION_ANSWER} from './fortune/fusion-book';
 import {questionEvidence,questionPeriodTiming} from './fortune/ask/question-evidence';
@@ -77,6 +79,17 @@ export function snapshotAnalysis(snapshot:any) {
   if(!matrix)return snapshot.analysis;
   const contexts=snapshot.analysis.contexts;
   return {...snapshot.analysis,contexts:{...contexts,[matrix.domain]:withV7Timing(contexts[matrix.domain],matrix)}};
+}
+
+/**
+ * Seals the finished facts as the last step before a purchase exists, then checks them the way generation will
+ * read them. A failure here stops the order before payment instead of failing it afterwards.
+ */
+function sealPreparedAnalysis(analysis:any,v7Timing:any) {
+  if(v7Timing)analysis.contexts[v7Timing.domain]=withV7Timing(analysis.contexts[v7Timing.domain],v7Timing);
+  for(const system of Object.keys(analysis.contexts))analysis.contexts[system]=sealDomainFacts(analysis.contexts[system]);
+  const stored=snapshotAnalysis(JSON.parse(JSON.stringify({analysis,...(v7Timing?{v7Timing}:{})})));
+  for(const context of Object.values(stored.contexts))validateDomainFacts(context as DomainContext);
 }
 
 export function providerReady(env: Record<string, unknown>) {
@@ -322,6 +335,7 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
     ...(partner?{partnerTimeKnown:product.systems.every(system=>Boolean(normalized[system].personB?.birthTime))}:{}),
   }) : undefined;
   manifest=withRepeatPolicy(conciseReadingManifest(manifest));
+  sealPreparedAnalysis(analysis,v7Timing);
   return createRequest(env,userId,id,{profileId:body.profileId,productId:product.id,featureKey:product.cdFeatureKey,
     amountKRW:product.priceKRW,fingerprint,...(persona?{persona}:{}),
     ...(askEvidence?{generationCheckpoint:{version:'ask-generation-v1',evidence:askEvidence}}:{}),
@@ -366,7 +380,7 @@ export async function drawTarotSpread(env: Record<string, unknown>, userId: stri
   if(row.state!=='AWAITING_DRAW')throw new FortuneError('TAROT_DRAW_NOT_AVAILABLE',409);
   const spread=row.snapshot.tarotSpread;
   const {method,picks}=tarotPicks(body,spread.cardCount);
-  const tarot=domains.tarot.buildContext(tarotSpreadContext(spread,row.snapshot.tarotDeck,picks,row.snapshot.tarotInputs||{}));
+  const tarot=domains.tarot.buildContext(pinDomainFacts(attachNatalProfile(tarotSpreadContext(spread,row.snapshot.tarotDeck,picks,row.snapshot.tarotInputs||{}), row.snapshot.tarotInputs || {}, {runtimeEnv:env}), row.snapshot.tarotInputs || {}, {runtimeEnv:env}));
   return commitTarotDraw(env,userId,requestId,{context:tarot,draw:{version:TAROT_DECK_VERSION,method,picks,drawnAt:new Date().toISOString()}});
 }
 

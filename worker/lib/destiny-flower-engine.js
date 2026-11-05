@@ -247,13 +247,13 @@ const DESTINY_FLOWER_KO_TEXT = Object.freeze({
   'saju.rationale.dayMasterSame': '{dayMasterBadge} 일간과 같은 {element} 기운을 품은 꽃이에요.',
   'saju.rationale.strengthRelease': '사주가 신강해 차오른 기운을 밖으로 풀어 주는 {elements} 기운의 꽃에 무게를 두었어요.',
   'saju.rationale.strengthSupport': '사주가 신약해 일간을 북돋아 주는 {elements} 기운의 꽃에 무게를 두었어요.',
-  'saju.rationale.yongshin': '이 꽃에는 사주에 필요한 용신 기운이 담겨 있어요 — {elements}.',
+  'saju.rationale.yongshin': '이 꽃에는 사주를 보완할 후보 기운이 담겨 있어요 — {elements}.',
   'saju.rationale.johuWarm': '사주가 차고 습한 편이라 햇볕처럼 데워 줄 따뜻한 꽃에 무게를 두었어요.',
   'saju.rationale.johuCool': '사주가 덥고 메마른 편이라 열기를 식혀 줄 물기 많은 꽃에 무게를 두었어요.',
   'saju.rationaleLabel.dayMaster': '일간 기질',
   'saju.rationaleLabel.strengthRelease': '신강',
   'saju.rationaleLabel.strengthSupport': '신약',
-  'saju.rationaleLabel.yongshin': '용신',
+  'saju.rationaleLabel.yongshin': '보완 후보',
   'saju.rationaleLabel.johuWarm': '조후 · 한습',
   'saju.rationaleLabel.johuCool': '조후 · 온조',
   'common.rationaleLabel.verdict': '그래서 이 꽃',
@@ -273,7 +273,7 @@ const DESTINY_FLOWER_KO_TEXT = Object.freeze({
   'common.bloomLabel.bloom': '그래서 피어난 꽃',
   'common.bloom.verdict': '그래서 피어난 꽃 — {title}.',
   'saju.bloom.season': '{season}에 태어난 당신처럼, 이 꽃도 {season}에 가장 환하게 피어나요.',
-  'saju.flowerLanguage.yongshin': "'{language}' — 용신 {elements} 기운을 머금은 이 꽃이 당신에게 건네는 말이에요.",
+  'saju.flowerLanguage.yongshin': "'{language}' — 보완 후보 {elements} 기운을 머금은 이 꽃이 당신에게 건네는 말이에요.",
   'saju.flowerLanguage.dayMaster': "'{language}' — {dayMasterBadge} 일간인 당신에게 이 꽃이 건네는 말이에요.",
   'common.flowerLanguage.anchor': "'{language}' — {anchor}의 당신에게 이 꽃이 건네는 말이에요.",
   'common.flowerLanguage.plain': "'{language}' — 지금의 당신에게 이 꽃이 건네는 말이에요.",
@@ -4358,7 +4358,8 @@ function buildSajuSignalPoints(profile, flower, matchedSignals, dayMasterScenari
       })
     ));
   }
-  if (signals.includes('yongshin_element')) {
+  // 승인 판정에는 단일 용신이 없다. 점수 입력은 두고 이 근거 문장만 내보내지 않는다.
+  if (signals.includes('yongshin_element') && !profile.approvedSajuWording) {
     points.push(point('yongshin', 'saju.rationaleLabel.yongshin', destinyFlowerText('saju.rationale.yongshin', {
       elements: elementText(saju.yongshin_elements || [])
     })));
@@ -4427,7 +4428,7 @@ function buildSajuFlowerLanguage(profile, flower, matchedSignals, dayMasterScena
   if (!language) return '';
   const signals = Array.isArray(matchedSignals) ? matchedSignals : [];
   const saju = (profile.domains && profile.domains.saju) || {};
-  const yongshin = signals.includes('yongshin_element') ? sharedElementText(flower, saju.yongshin_elements || []) : '';
+  const yongshin = signals.includes('yongshin_element') && !profile.approvedSajuWording ? sharedElementText(flower, saju.yongshin_elements || []) : '';
   if (yongshin) return destinyFlowerText('saju.flowerLanguage.yongshin', { language, elements: yongshin });
   const dayMasterBadge = (dayMasterScenario && dayMasterScenario.dayMasterBadge) || dayMasterLabel(saju.day_master) || '';
   if (dayMasterBadge) return destinyFlowerText('saju.flowerLanguage.dayMaster', { language, dayMasterBadge });
@@ -4710,9 +4711,9 @@ export function matchDestinyFlower(userData = {}, options = {}) {
     flower_data: flowerData,
     saju_verdict: sajuVerdict,
     narrative: buildRationale(profile, displayFlower, picked.matchedSignals, dayMasterScenario),
-    rationale_points: buildRationalePoints(profile, displayFlower, picked.matchedSignals, dayMasterScenario),
+    rationale_points: buildRationalePoints(options.approvedSajuWording ? { ...profile, approvedSajuWording: true } : profile, displayFlower, picked.matchedSignals, dayMasterScenario),
     bloom_story: buildSajuBloomStory(profile, displayFlower, picked.matchedSignals, dayMasterScenario),
-    destiny_flower_language: buildSajuFlowerLanguage(profile, displayFlower, picked.matchedSignals, dayMasterScenario),
+    destiny_flower_language: buildSajuFlowerLanguage(options.approvedSajuWording ? { ...profile, approvedSajuWording: true } : profile, displayFlower, picked.matchedSignals, dayMasterScenario),
     share_hook: buildSajuShareHook(profile, displayFlower, dayMasterScenario),
     fallback_logic: {
       used: Boolean(profile.domains && profile.domains.saju && profile.domains.saju.day_master_fallback_used),

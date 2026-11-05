@@ -3,14 +3,17 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import { readFileSync } from 'node:fs';
 import { calcPower, analyzeJohu } from '../../worker/yeongnyangi/fortune/saju-runtime.mjs';
+import { loadRichWithNatal } from '../fixtures/saju-rich-with-natal.mjs';
 
 // Same page globals as saju-reading-rich.test.mjs; the intl layer is loaded after the Korean one it builds on.
 const engine=readFileSync('js/saju-engine.js','utf8');
 const tables=engine.slice(engine.indexOf('var GAN={'),engine.indexOf('/* ─── 십성 DB ─── */'));
 const tenGod=engine.slice(engine.indexOf('function getTenGod(dayGan,target){'),engine.indexOf('function parseTimeZoneOffsetName'));
-const context=vm.createContext({});
-vm.runInContext(tables+tenGod+readFileSync('js/core/saju/reading-rich.js','utf8')+readFileSync('js/core/saju/reading-rich-intl.js','utf8'),context);
-const rich=context.SajuReadingRich, intl=context.SajuReadingRichIntl;
+const {context,rich}=loadRichWithNatal(readFileSync('js/core/saju/reading-rich-intl.js','utf8'));
+// 공개판(js/core/saju/reading-rich-intl.js)은 무료 화면의 flow·daily 뿐이고, 원국 해석(조후·억부·십성·일주)은 서버 전용 원본(paid-natal-intl.src.js)이다.
+// 아래 테스트는 두 벌을 합쳐 예전 한 모듈처럼 쓴다.
+const pub=context.SajuReadingRichIntl, srv=rich.natalIntl;
+const intl={forLang:lang=>Object.assign({},srv.forLang(lang),pub.forLang(lang)),copy:Object.fromEntries(Object.keys(srv.copy).map(l=>[l,Object.assign({},srv.copy[l],pub.copy[l])]))};
 
 const LOCALES=['en','ja','zh-CN','zh-TW','vi','hi','es','fr','de','nl','ms'];
 const stems=['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'], branches=['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
@@ -101,10 +104,30 @@ test('the static shell loads rich → intl → personas in that order, and perso
 });
 
 test('the intl layer cannot call an LLM, payment, or recalculate a chart',()=>{
-  const source=readFileSync('js/core/saju/reading-rich-intl.js','utf8');
-  assert.doesNotMatch(source,/\b(fetch|XMLHttpRequest|calculate|calcPower|analyzeJohu|evalDaewun|renderDailyMonthlyFortune)\s*\(/);
-  assert.doesNotMatch(source,/localStorage|sessionStorage|indexedDB/);
-  assert.doesNotMatch(source,/#[0-9a-f]{3,8}\b/i,'colours come from tokens in CSS');
+  for(const file of ['js/core/saju/reading-rich-intl.js','worker/lib/saju-section/paid-natal-intl.src.js']){
+    const source=readFileSync(file,'utf8');
+    assert.doesNotMatch(source,/\b(fetch|XMLHttpRequest|calculate|calcPower|analyzeJohu|evalDaewun|renderDailyMonthlyFortune)\s*\(/,file);
+    assert.doesNotMatch(source,/localStorage|sessionStorage|indexedDB/,file);
+    assert.doesNotMatch(source,/#[0-9a-f]{3,8}\b/i,file+': colours come from tokens in CSS');
+  }
+});
+
+// 묶음(29,000원) 전용 원국 해석 문장은 공개 브라우저 파일에 실리지 않는다. 공개판은 무료 화면이 쓰는 표(flow·daily·원소·간지 이름)만 갖는다.
+test('the public intl file carries only the free-screen copy; every paid sentence lives in the server source',()=>{
+  const publicSource=readFileSync('js/core/saju/reading-rich-intl.js','utf8');
+  const FREE=['el','stem','animal','godName','role','roleShort','hidden','stage12','fl','da'];
+  for(const lang of Object.keys(srv.copy)){
+    assert.ok(Object.keys(pub.copy[lang]).every(k=>FREE.includes(k)),lang+' public keys '+Object.keys(pub.copy[lang]));
+    assert.ok(!('fl' in srv.copy[lang])&&!('da' in srv.copy[lang]),lang+' server keeps no free-screen flow/daily copy');
+    for(const k of Object.keys(pub.copy[lang]).filter(k=>k in srv.copy[lang]))assert.deepEqual(pub.copy[lang][k],srv.copy[lang][k],lang+'.'+k+' must match the server table');
+    const sentences=[];
+    (function walk(v){if(typeof v==='string')sentences.push(v);else if(v&&typeof v==='object')Object.values(v).forEach(walk);})(Object.fromEntries(Object.entries(srv.copy[lang]).filter(([k])=>!FREE.includes(k))));
+    const samples=sentences.map(t=>t.split(/['\\]/).sort((a,b)=>b.length-a.length)[0]).filter(t=>t.length>=20);
+    assert.ok(samples.length>100,lang+' paid sentences found '+samples.length);
+    for(const sample of samples)assert.ok(!publicSource.includes(sample),lang+' paid sentence leaked into the public file: '+sample.slice(0,40));
+  }
+  assert.deepEqual(Object.keys(pub.forLang('en')).sort(),['daily','flow']);
+  assert.deepEqual(Object.keys(srv.forLang('en')).sort(),['climate','godDetail','ilju','strength','tenCards','tenOverview']);
 });
 
 test('ja / zh-CN / zh-TW carry their own full tables (same shape and placeholders as en, no leaked English prose, zh-TW differs from zh-CN)',()=>{

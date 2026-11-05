@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-05
-next: "후속 과제 5번은 설계를 마치고 docs/handoff/ziwei-business-basis-shared-20261005.md 로 넘겼다(구현은 그 문서의 1단계부터). 그다음은 6번(사주 엔진 의심 실측)."
+next: "후속 과제 5번은 설계를 마치고 docs/handoff/ziwei-business-basis-shared-20261005.md (삭제됨, git 이력 참조) 로 넘겼다(구현은 그 문서의 1단계부터). 그다음은 6번(사주 엔진 의심 실측)."
 ---
 
 # 영냥이 챕터 확장 후속 과제 인수인계
@@ -49,7 +49,7 @@ next: "후속 과제 5번은 설계를 마치고 docs/handoff/ziwei-business-bas
 ### 5. 다른 자미 상품에 사업운 로직 미적용
 - 재백·자녀·전택·관록 + 궁간 비화 사업운은 영냥이 전용 `worker/yeongnyangi/fortune/ziwei/derived.ts` 에만 있다. ziwei-ai 템플릿·심층 리포트는 미적용. 공용 엔진 반환값을 바꾸면 다른 상품 프롬프트·비용이 흔들리므로 상품별 파생으로 붙인다.
 - 레거시 자미 money 선택자: `worker/yeongnyangi/fortune/consultation-kinds.ts:73` (`palaces[관록궁,재백궁,전택궁]` — 사업운 메뉴와 겹침 정리 필요 여부 판단).
-- **설계(2026-10-05)**: 공용 순수 모듈 `worker/lib/ziwei-derived-signals.js` + `derived.ts` 재수출, 차트 JSON 은 그대로 두고 프롬프트 조립 때 텍스트 줄로 자미 AI `achievement` 묶음·심화 PDF 4장에만 싣는다. 단계·위험·검증은 [ziwei-business-basis-shared-20261005](ziwei-business-basis-shared-20261005.md). 구현은 새 세션.
+- **설계(2026-10-05)**: 공용 순수 모듈 `worker/lib/ziwei-derived-signals.js` + `derived.ts` 재수출, 차트 JSON 은 그대로 두고 프롬프트 조립 때 텍스트 줄로 자미 AI `achievement` 묶음·심화 PDF 4장에만 싣는다. 단계·위험·검증은 ziwei-business-basis-shared-20261005 (삭제됨, git 이력 참조). 구현은 새 세션.
 - **완료(2026-10-05)**: `a570e6955`(공용 모듈) · `2b8ea3d2e`(줄 포맷) · `cc4dbe966`(자미 AI achievement) · `c3a1f662c`(심화 PDF 4장). legacy money 선택자는 정상 신규 주문의 도달 경로가 없어 변경하지 않음, 섬 궁 상담은 초점 이탈로 미적용(보고만). 상세는 위 문서 결과 절.
 
 ### 6. 사주 엔진 의심 (실측 필요, 엔진 축)

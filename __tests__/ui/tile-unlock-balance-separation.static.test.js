@@ -6,6 +6,7 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
+const vm = require("node:vm");
 
 const shellSource = fs.readFileSync(path.resolve(__dirname, "../..", "index.html"), "utf8");
 const accessStoreSource = fs.readFileSync(path.resolve(__dirname, "../..", "js/core/access-store.js"), "utf8");
@@ -112,4 +113,25 @@ test("paid pass snapshot remains optimistic while direct checkout still requires
   assert.match(precheckCacheBlock, /status === 'pass_applied'/);
   assert.match(directCheckoutBlock, /var allowDirectCheckoutAccessBypass = opts\.allowServerAccessBypass === true && opts\.forceDirectPayment !== true/);
   assert.match(directCheckoutBlock, /!order\.merchantUid && allowDirectCheckoutAccessBypass && _cdIsCheckoutAccessBypass/);
+});
+
+test("direct checkout treats alreadyUnlocked without an order as unlocked only for saju bundle keys", () => {
+  const directCheckoutBlock = between(shellSource, "async function _cdRunDirectKrwCheckout", "var _cdRunDirectKrwCheckoutCore");
+  assert.match(directCheckoutBlock, /!order\.merchantUid && _cdIsSajuBundleOwnedCheckout\(checkoutData, checkoutPayload\.featureKey \|\| directFeatureKey \|\| ''\)\) allowDirectCheckoutAccessBypass = true/);
+  assert.doesNotMatch(directCheckoutBlock, /!order\.merchantUid && checkoutData\.alreadyUnlocked === true\) allowDirectCheckoutAccessBypass/);
+
+  const helper = between(shellSource, "function _cdIsSajuBundleOwnedCheckout", "function _cdReadCheckoutOrderFailure");
+  assert.ok(helper);
+  const closedKeys = new Set(["section_daewun", "rpt_quantumCard"]);
+  const sandbox = { window: { CdSajuBundleOffer: { isSaleClosedKey: (key) => closedKeys.has(key) } } };
+  vm.runInNewContext(helper, sandbox);
+  const owned = { alreadyUnlocked: true };
+  assert.equal(sandbox._cdIsSajuBundleOwnedCheckout(owned, "saju_lifetime_bundle"), true);
+  assert.equal(sandbox._cdIsSajuBundleOwnedCheckout(owned, "section_daewun"), true);
+  assert.equal(sandbox._cdIsSajuBundleOwnedCheckout(owned, "lifeBook"), false);
+  assert.equal(sandbox._cdIsSajuBundleOwnedCheckout(owned, ""), false);
+  assert.equal(sandbox._cdIsSajuBundleOwnedCheckout({ alreadyUnlocked: false }, "saju_lifetime_bundle"), false);
+  assert.equal(sandbox._cdIsSajuBundleOwnedCheckout({}, "section_daewun"), false);
+  sandbox.window.CdSajuBundleOffer = undefined;
+  assert.equal(sandbox._cdIsSajuBundleOwnedCheckout(owned, "section_daewun"), false);
 });

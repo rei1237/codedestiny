@@ -1,7 +1,8 @@
 "use client";
-import { useMemo, useState } from "react";
-import { buildGuide, type GuideInput, type GuideSection } from "../_copy/living-guide";
-import type { Locale } from "../_copy";
+import { useState } from "react";
+// 🔴 풀이 문장 모듈은 타입으로만 가져온다. 값 import 를 두면 잠금 전에 문장이 번들에 실린다.
+import type { GuideSection } from "../_copy/living-guide";
+import type { HdGuide } from "../_lib/guide-access";
 import styles from "../human-design.module.css";
 
 export function GuideParagraphs({ section, ui }: {section: GuideSection; ui: Record<string,string>}) {
@@ -11,12 +12,12 @@ export function GuideParagraphs({ section, ui }: {section: GuideSection; ui: Rec
 }
 
 /** Explicit whitelist: birthInput, gates, centers and chart activations never enter a share. */
-export function manualShareContent(guide: NonNullable<ReturnType<typeof buildGuide>>) {
+export function manualShareContent(guide: HdGuide) {
   return {title:guide.ui.title, nickname:guide.nickname, type:guide.typeName, profile:guide.profile, decision:guide.decision, question:guide.ui.shareQuestion};
 }
 
-export default function LivingGuide({chart, locale}: {chart: GuideInput; locale: Locale}) {
-  const guide = useMemo(() => buildGuide(chart, locale), [chart, locale]);
+/** 풀이가 열린 뒤에만 그려진다. 공유 이미지 기능도 이 안에만 있다. */
+export default function LivingGuide({guide}: {guide: HdGuide | null}) {
   const [format, setFormat] = useState<"feed" | "story">("feed");
   const [status, setStatus] = useState("");
   const [busy, setBusy] = useState(false);

@@ -313,6 +313,19 @@ if (!neoRegistry || neoUnitPrice() !== neoRegistry.amountKRW || neoZiweiAddonPri
 } else {
   dedicatedCopy.set(NEO_EMAIL_FEATURE, { source: 'neo-email-dedicated-page' });
 }
+// 흑월의 경고도 공용 타일 팝업이 아닌 전용 페이지에서 구성과 가격을 안내한다.
+// 화면 가격이 서버 가격 API에서 오는지, 리포트 구성 안내가 남아 있는지 확인한다.
+const HEUKWOL_FEATURE = 'heukwol-warning-consultation';
+const heukwolPage = readFileSync(resolve(ROOT, 'app/heukwol/page.tsx'), 'utf8');
+const heukwolClient = readFileSync(resolve(ROOT, 'app/heukwol/HeukwolClient.tsx'), 'utf8');
+const heukwolRoute = readFileSync(resolve(ROOT, 'worker/routes/heukwol.js'), 'utf8');
+if (!FEATURE_KEY_PRICE_TABLE[HEUKWOL_FEATURE] || !heukwolPage.includes('월별 주의 흐름') || !heukwolPage.includes('리포트와 PDF') ||
+    !heukwolClient.includes('pricing?.displayPrice') || !heukwolClient.includes('약 5만 자') ||
+    !heukwolRoute.includes("path==='/api/heukwol/pricing'") || !heukwolRoute.includes('getBillingFeaturePricing({featureKey:HEUKWOL_FEATURE_KEY})')) {
+  fail(HEUKWOL_FEATURE + ': 전용 페이지의 구성·서버 가격 안내를 확인하세요.');
+} else {
+  dedicatedCopy.set(HEUKWOL_FEATURE, { source: 'heukwol-dedicated-page' });
+}
 const highPrice = Object.entries(FEATURE_KEY_PRICE_TABLE)
   .map(([key, value]) => [key, Number(value?.amountKRW) || Number(value?.cost) * 100])
   .filter(([, won]) => won >= HIGH_PRICE_KRW)

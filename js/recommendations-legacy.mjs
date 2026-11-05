@@ -3,9 +3,16 @@ import { adviceTopics } from './recommendations-context.mjs';
 import { RECOMMENDATIONS_RELEASED, RESULT_PRODUCT_LIMIT, normalizeContext, validateAffiliateUrl, validImageUrl, serviceRule, INTERESTS } from './recommendations-core.mjs';
 import { affiliateCopy } from './affiliate-presentation.mjs';
 const mounted = new WeakMap();
-export function mountSajuRecommendation(host, anchor) {
-  // Only the rendered practical-advice list: no chart, birth data or report text.
-  const advice = Array.from(host?.querySelectorAll('#iljuAdviceList li') || []).map(el => el.textContent);
+// 일주 조언 목록은 이제 묶음 구매 계정에게만 서버가 채운다. 추천 태그가 구매 여부·로딩 순서에 흔들리지 않도록
+// 공개 일주 표(ILJU_DB)의 조언 문장에서 같은 규칙(태그 제거 후 앞 3문장)으로 목록을 만들어 넘긴다.
+export function iljuAdviceLines(text, max = 3) {
+  const clean = String(text || '').replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+  if (!clean) return [];
+  return clean.replace(/\.\s+/g, '.|').replace(/!\s+/g, '!|').replace(/\?\s+/g, '?|').split('|').map(s => s.trim()).filter(Boolean).slice(0, max);
+}
+export function mountSajuRecommendation(host, anchor, adviceLines) {
+  // Only practical-advice sentences from the caller (free ilju table): no chart, birth data or rendered report text. 화면 목록은 읽지 않는다.
+  const advice = Array.isArray(adviceLines) ? adviceLines : [];
   return mountRecommendation(host, { service: 'legacy-saju', practiceTags: adviceTopics(advice) }, anchor);
 }
 export async function mountRecommendation(host, input, anchor = null) {

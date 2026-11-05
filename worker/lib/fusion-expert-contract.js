@@ -100,7 +100,8 @@ export async function fusionInputIdentity(input, requestId) {
 export function fusionExpertEvidenceReady(system, data) {
   const evidence = data?.expertEvidence;
   switch (system) {
-    case "saju": return Boolean(evidence?.gyeokguk?.finalGyeokguk && evidence.usefulGod && evidence.majorLuck?.cycles?.length && evidence.yearlyLuck?.length);
+    // 승인 판정은 단일 usefulGod 대신 후보·보류 상태(yongshin)를 싣는다.
+    case "saju": return Boolean(evidence?.gyeokguk?.finalGyeokguk && (evidence.usefulGod || evidence.yongshin?.status) && evidence.majorLuck?.cycles?.length && evidence.yearlyLuck?.length);
     case "ziwei": return Boolean(evidence?.palaces?.length === 12 && evidence.lifePalace && evidence.bodyPalace && evidence.fourTransformations && evidence.majorLuck?.length);
     case "vedic": return Boolean(evidence?.lagna && evidence.moon && evidence.dasha?.currentMahadasha?.lord && evidence.dasha.currentMahadasha.startDate && evidence.dasha.currentMahadasha.endDate);
     case "sukuyo": return Boolean(evidence?.birth && evidence.target && evidence.dayFortune?.relationType);

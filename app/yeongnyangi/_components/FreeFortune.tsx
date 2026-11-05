@@ -13,17 +13,19 @@ import {readDestinyProfileAccountId} from '@/app/_lib/profile-card-storage';
 import ProfilePicker from './ProfilePicker';
 import {useProfiles} from '../_lib/use-profiles';
 import '../_original/free-fortune.css';
+import NatalChartTable from './NatalChartTable';
 import ResultSharing from './ResultSharing';
 
-function Reading({reading}:{reading:FreeReading}){
+export function Reading({reading}:{reading:FreeReading}){
  useEffect(()=>{trackEvent("free_result_view",{feature_id:reading.category,surface:"yeongnyangi_free",content_type:reading.kind,content_version:reading.version});},[reading]);
  return <article className="free-reading">
-  <div className="free-reading-heading"><div><p>{reading.day} · {reading.kind==='reflection'?'질문과 상징 해설':reading.kind==='symbolic'?'상징 리딩':'계산 근거가 있는 해설'}</p><h3>{reading.title}</h3></div></div>
-  {reading.charts?.map((chart,index)=><details className="free-chart" key={chart.domain} open={index===0}><summary>{chart.title}</summary><p>{chart.source}</p>{chart.groups.map((group,index)=><section key={`${group.label}-${index}`}><h4>{group.label}</h4><dl>{group.items.map(item=><div key={`${item.label}-${item.value}`}><dt>{item.label}</dt><dd>{item.value}</dd></div>)}</dl></section>)}</details>)}
+  <div className="free-reading-heading"><div><p>{reading.natalProfile?'타고난 성향 · 출생 명반 기준':reading.day} · {reading.kind==='reflection'?'질문과 상징 해설':reading.kind==='symbolic'?'상징 리딩':'계산 근거가 있는 해설'}</p><h3>{reading.title}</h3></div></div>
   <div className="free-summary"><strong>짧게 말하면</strong><p>{reading.summary}</p></div>
-  <ResultSharing key={`${reading.category}-${reading.day}`} reading={reading}/>
-  <h4>영냥이가 조금 더 풀어줄게.</h4><div className="room-daily-message">{reading.paragraphs.map((text,index)=><p key={index}>{text}</p>)}</div>
+  {reading.charts?.filter(chart=>chart.domain==='saju').map(chart=><NatalChartTable key={chart.domain} chart={chart}/>)}
+  {reading.charts?.map((chart,index)=><details className="free-chart" key={chart.domain} open={!reading.natalProfile&&index===0}><summary>{chart.title}</summary><p>{chart.source}</p>{chart.groups.map((group,index)=><section key={`${group.label}-${index}`}><h4>{group.label}</h4><dl>{group.items.map(item=><div key={`${item.label}-${item.value}`}><dt>{item.label}</dt><dd>{item.value}</dd></div>)}</dl></section>)}</details>)}
+  <h4>{reading.natalProfile?'타고난 성향을 조금 더 풀어볼게.':'영냥이가 조금 더 풀어줄게.'}</h4>{reading.natalProfile&&<p className="free-natal-note">같은 출생 정보와 계산 기준에서는 유지되는 성향이야. 시기에 따른 운세와는 나누어 읽어줘.</p>}<div className="room-daily-message">{reading.paragraphs.map((text,index)=><p key={index}>{text}</p>)}</div>
   <details className="free-evidence"><summary>어떤 근거로 읽었을까?</summary><dl>{reading.basis.map((basis,index)=><div key={index}><dt>{basis.label}</dt><dd>{basis.value}</dd></div>)}</dl>{reading.limitations.map((item,index)=><p key={index}>{item}</p>)}</details>
+  <ResultSharing key={`${reading.category}-${reading.day}`} reading={reading}/>
   <FreeQuestionNext category={reading.category} source="yeongnyangi_free"/>
   <FreePromptContinuation prompt={reading.prompt}/>
  </article>;
@@ -32,7 +34,7 @@ function Reading({reading}:{reading:FreeReading}){
 export default function FreeFortune(){
  const [state,setState]=useState<AttendanceState|null>(null);
  const profileState=useProfiles(),profileId=profileState.profileId;
- const [category,setCategory]=useState('basic'),[reading,setReading]=useState<FreeReading|null>(null),[draft,setDraft]=useState<Record<string,string>>({question:''});
+ const [category,setCategory]=useState('saju'),[reading,setReading]=useState<FreeReading|null>(null),[draft,setDraft]=useState<Record<string,string>>({question:''});
  const [guest,setGuest]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const [reaction,setReaction]=useState<'idle'|'award'|'receive'|'unimpressed'|'ready'>('idle');
  const lock=useRef(false),version=useRef(0),timers=useRef<ReturnType<typeof setTimeout>[]>([]),currentDay=useRef('');
@@ -84,7 +86,7 @@ export default function FreeFortune(){
   <div className="attendance-bar"><div className="anchovy-balance"><Image src="/assets/yeongnyangi/fish/anchovy.webp" width={72} height={36} alt="멸치"/><span>내 멸치<strong>{state?`${state.balance}마리`:'로그인 후 확인'}</strong></span>{reaction==='award'&&<span className="anchovy-award" aria-hidden="true"><Image src="/assets/yeongnyangi/fish/anchovy.webp" width={48} height={24} alt=""/>멸치 +1</span>}</div><div className="attendance-actions">{guest?<button className="free-primary" type="button" onClick={loginForCurrentPage}>로그인하고 출석하기<ArrowRight size={17}/></button>:state?<><button type="button" onClick={()=>void action('attendance')} disabled={busy||state.attended}>{state.attended?<Check size={17}/>:<Gift size={17}/>} {state.attended?'오늘 출석 완료':'출석하고 멸치 받기'}</button><button type="button" className="free-primary" onClick={()=>void action('free/unlock')} disabled={busy||state.unlocked||state.balance<(state.unlockCost??3)}>{state.unlocked?<BookOpen size={17}/>:<ArrowRight size={17}/>} {state.unlocked?'오늘의 16종 열림':`멸치 ${state.unlockCost??3}마리 건네기`}</button></>:<p>출석 수첩을 확인하고 있어.</p>}</div></div>
   <p className="free-policy">한국 시간 기준 하루 한 번 출석하면 멸치 1마리. 3마리로 오늘의 16종 전체를 열 수 있어. 남은 멸치는 계속 쌓아둘게.</p><p className="free-status" role="status">{notice}</p>
   {error&&<div className="free-error" role="alert"><p>{error}</p>{!guest&&<button type="button" disabled={busy} onClick={()=>refresh().then(()=>setError('')).catch(fail)}>상태 다시 확인</button>}</div>}
-  {guest&&<p className="free-policy"><a href="/saju/" data-cd-cross-sell="guest_free_saju">무료 사주 시작하기</a> · 출생 정보를 입력하고 회원가입 또는 로그인 후 원국과 성향을 확인해요.</p>}
+  {guest&&<p className="free-policy"><a href="/saju/" data-cd-cross-sell="guest_free_saju">무료 만세력 시작하기</a> · 출생 정보를 입력하고 회원가입 또는 로그인 후 원국과 성향을 확인해요.</p>}
   <ProfilePicker state={profileState}/>
   <div className="free-categories" role="group" aria-label="무료 운세 16종">{freeCategories.map(item=><button type="button" key={item.id} aria-pressed={category===item.id} onClick={()=>setCategory(item.id)}>{item.label.replace(' 프롬프트','')}</button>)}</div>
   {category==='horary'?<QuestionSkyConsultation mode="horary-v1"/>:!state?.unlocked?<div className="free-locked"><h3>{config.label}</h3><p>{description}</p><p>출석 멸치로 오늘의 이야기를 열어줘. 금액을 결제하거나 AI를 호출하는 과정은 없어.</p></div>:<>

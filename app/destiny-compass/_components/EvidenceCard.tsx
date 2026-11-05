@@ -14,6 +14,7 @@
 import GlossaryTerm from "@/components/fortune/GlossaryTerm";
 import { useDestinyCompassCopy } from "../_lib/copy";
 import styles from "./map.module.css";
+import ResultReference from '@/components/fortune/ResultReference';
 
 export interface EvidenceGround {
   evidenceId: string;
@@ -63,27 +64,14 @@ export function EvidenceCard({ ground }: { ground: EvidenceGround }) {
   );
 }
 
-/** 결론당 2장까지 펼쳐 두고, 나머지는 네이티브 details 로 접는다(키보드·스크린리더 무료). */
+/** Keep every saved basis available without interrupting the customer's answer. */
 export function EvidenceList({ grounds }: { grounds: EvidenceGround[] }) {
-  const copy = useDestinyCompassCopy();
   if (!grounds?.length) return null;
-  const head = grounds.slice(0, 2);
-  const rest = grounds.slice(2);
   return (
-    <div className={styles.evidenceRow}>
-      {head.map((g) => (
+    <ResultReference><div className={styles.evidenceRow}>
+      {grounds.map((g) => (
         <EvidenceCard key={g.evidenceId} ground={g} />
       ))}
-      {rest.length > 0 && (
-        <details className={styles.evidenceMore}>
-          <summary>{copy.moreGroundsSummary(rest.length)}</summary>
-          <div className={styles.evidenceRow}>
-            {rest.map((g) => (
-              <EvidenceCard key={g.evidenceId} ground={g} />
-            ))}
-          </div>
-        </details>
-      )}
-    </div>
+    </div></ResultReference>
   );
 }

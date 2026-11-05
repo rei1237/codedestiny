@@ -10,7 +10,7 @@ const loaded=new Module(path.resolve('question-policy-test.cjs'));loaded.paths=M
 const p=loaded.exports;
 const d=(patch={})=>({version:p.QUESTION_POLICY_VERSION,category:'self',target:'self',horizon:'current',situation:'현재 상황',options:'현 직장 유지 또는 이동',period:'2026년',constraints:'없음',confirmed:true,...patch});
 test('approved scope, prices and followups share one registry contract',()=>{
- const cases=[['self','self','current','mackerel',5000,0],['job_change','self','current','salmon',10000,1],['compatibility','pair','current','flounder',15000,2],['timing','self','transition','tuna',30000,6]];
+ const cases=[['self','self','current','mackerel',10000,0],['job_change','self','current','salmon',15000,1],['compatibility','pair','current','flounder',20000,2],['timing','self','transition','tuna',30000,6]];
  for(const [category,target,horizon,fish,price,limit] of cases){
   const decision=d({category,target,horizon,relationshipType:'romantic_adults'}),plan=p.recommendQuestion('saju',decision);
   assert.equal(plan.fish,fish);assert.equal(p.FOLLOWUP_LIMITS[fish],limit);
@@ -47,6 +47,18 @@ test('one intent survives clarification, failures and duplicates; limit is used 
  assert.throws(()=>p.reserveConversation(next,1,'three','다른 질문',2,'c'),/QUESTION_CONVERSATION_CLOSED/);
  assert.throws(()=>p.reserveConversation(undefined,0,'one','질문',0,'a'),/QUESTION_CONVERSATION_CLOSED/);
 });
+test('context rollover keeps the same entitlement, archives the old thread and preserves the unsent draft',()=>{
+ let c=p.reserveConversation(undefined,2,'one','첫 질문',0,'a');
+ c=p.finishConversation(c,'a',{kind:'answer',text:'저장된 답변',sources:['saju.pillars']},2);
+ const reserved=p.reserveConversation(c,2,'two','이어갈 질문',1,'b');
+ const offered=p.offerConversationContinuation(reserved,c.calls,2);
+ assert.equal(offered.used,1);assert.equal(offered.calls,c.calls);assert.equal(offered.pending,undefined);
+ assert.equal(offered.continuation.question,'이어갈 질문');
+ const continued=p.continueConversation(offered,'two','opaque-thread-id',3);
+ assert.equal(continued.used,1);assert.equal(continued.exchanges.length,0);assert.equal(continued.archivedThreads.length,1);
+ assert.deepEqual(continued.draft,{id:'two',question:'이어갈 질문'});
+ assert.equal(p.continueConversation(continued,'two','ignored',4),continued,'double click is idempotent');
+});
 test('provider retries cannot become unlimited free regeneration',()=>{
  let c=p.reserveConversation(undefined,4,'one','같은 질문',0,'a');
  c=p.reserveConversation(c,4,'one','같은 질문',90001,'b');
@@ -82,6 +94,9 @@ test('followup answers require explanation and action and reject guaranteed clai
  // A long reply is cut at its last sentence end instead of being refused for length.
  const long=p.validateFollowup({...valid,text:'오늘 할 일을 한 가지만 정해요. '.repeat(1500)},new Set(valid.sources)).text;
  assert.ok(long.length<=20000&&long.length>10000&&long.endsWith('.'));
+ const empathic=p.validateFollowup({...valid,empathy:'지금 망설이는 마음은 저장된 일간의 신중한 표현 방식과 맞닿아 있어요.'},new Set(valid.sources)).text;
+ assert.match(empathic.split('\n\n')[0],/망설이는 마음/);
+ assert.match(p.validateFollowup(valid,new Set(valid.sources)).text,/내가 가능한 범위/,'missing empathy never blocks a paid answer');
 });
 
 test('every system explains its own foundation and routes question chapters by intent',()=>{

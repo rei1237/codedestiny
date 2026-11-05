@@ -349,6 +349,11 @@ const MIDNIGHT_RISKS = [
 const TABLE_FINGERPRINT = "kc1:fa21fe1cc7dc";
 
 
+const VERIFIED_AUTHORITY_VERSION = "kasi-jpl-authority-20261101";
+const VERIFIED_AUTHORITY_FINGERPRINT = "00b51dc4c065453c5018d87a66946f5140d89015a6665ed1f0b14f610b311176";
+function authorityUnavailable() { const error = new RangeError("AUTHORITY_UNAVAILABLE_IN_CLASSIC"); error.code = "AUTHORITY_UNAVAILABLE_IN_CLASSIC"; throw error; }
+const authorityMetadata = authorityUnavailable, verifiedLunarMonthForSolar = authorityUnavailable, verifiedLunarMonth = authorityUnavailable, verifiedNodeTermWindow = authorityUnavailable;
+
 // ── lib/korean-calendar/policy.js ─────────────────────────────────
 /**
  * 한국 음양력 코어 — 정책 상수.
@@ -381,6 +386,20 @@ const NIGHT_ZI_POLICY = Object.freeze({
 });
 
 const DEFAULT_NIGHT_ZI_POLICY = NIGHT_ZI_POLICY.SHIFT_DAY;
+
+// CR-001/002: explicit per-calculation opt-in. No environment, storage or UI toggle.
+const DEFAULT_AUTHORITY_FLAGS = Object.freeze({ sajuTermAuthorityV2: false, koreanCalendarAuthorityV2: false });
+/** @returns {{sajuTermAuthorityV2:boolean,koreanCalendarAuthorityV2:boolean,authorityVersion?:string}} */
+function resolveAuthorityFlags(flags = {}) {
+  if (!flags || typeof flags !== 'object' || Array.isArray(flags)) throw new TypeError('INVALID_AUTHORITY_FLAGS');
+  for (const key of Object.keys(flags)) {
+    if (key === 'authorityVersion') {
+      if (!['kasi-jpl-authority-20261101', 'kasi-jpl-expanded-20261101'].includes(flags[key])) throw new TypeError('INVALID_AUTHORITY_VERSION');
+    } else if (!Object.hasOwn(DEFAULT_AUTHORITY_FLAGS, key) || typeof flags[key] !== 'boolean') throw new TypeError('INVALID_AUTHORITY_FLAGS');
+  }
+  if (flags.authorityVersion && !flags.sajuTermAuthorityV2 && !flags.koreanCalendarAuthorityV2) throw new TypeError('AUTHORITY_VERSION_REQUIRES_OPT_IN');
+  return { ...DEFAULT_AUTHORITY_FLAGS, ...flags };
+}
 
 // ── lib/korean-calendar/labels.js ─────────────────────────────────
 /**
@@ -511,10 +530,14 @@ function supportedDayBounds() {
 }
 
 /** 양력 → 음력. 지원 범위 밖이면 null. */
-function solarToLunar(year, month, day) {
+function solarToLunar(year, month, day, authorityFlags = {}) {
   const target = solarDayIndex(year, month, day);
   const bounds = supportedDayBounds();
   if (target < bounds.min || target > bounds.max) return null;
+  if (authorityFlags.koreanCalendarAuthorityV2 === true) {
+    const entry = verifiedLunarMonthForSolar(year, month, day, authorityFlags);
+    return { lunarYear: entry.lunarYear, lunarMonth: entry.monthNumber, lunarDay: target - entry.startDay + 1, isLeapMonth: entry.isLeap, monthLengthDays: entry.length };
+  }
   const months = expandMonths();
   if (target < months[0].startDay) return null;
   const last = months[months.length - 1];
@@ -538,8 +561,8 @@ function solarToLunar(year, month, day) {
 }
 
 /** 음력 → 양력. 그 해에 그 윤달이 없거나 그 달에 그 일이 없으면 null. */
-function lunarToSolar(lunarYear, lunarMonth, lunarDay, isLeapMonth = false) {
-  const entry = expandMonths().find(
+function lunarToSolar(lunarYear, lunarMonth, lunarDay, isLeapMonth = false, authorityFlags = {}) {
+  const entry = authorityFlags.koreanCalendarAuthorityV2 === true ? verifiedLunarMonth(lunarYear, lunarMonth, isLeapMonth, authorityFlags) : expandMonths().find(
     (m) => m.lunarYear === lunarYear && m.monthNumber === lunarMonth && m.isLeap === Boolean(isLeapMonth),
   );
   if (!entry) return null;
@@ -609,6 +632,10 @@ function enclosingNodeTerm(year, month, day, hour, minute) {
   return null;
 }
 
+function enclosingNodeTermAtInstant(instantUtcMs, authorityFlags = {}) {
+  return verifiedNodeTermWindow(instantUtcMs, authorityFlags).previous;
+}
+
 
 /** 지원 양력 범위. 이 밖의 날짜는 전부 null 이다. */
 function supportedRange() {
@@ -649,7 +676,7 @@ function sexagenaryYearIndexes(sexagenaryYear) {
  * 간지 네 기둥.
  *
  * @param {{year:number,month:number,day:number,hour:number,minute:number}} at  KST 벽시계
- * @param {{nightZiPolicy?:string}} [options]
+ * @param {{nightZiPolicy?:string,sajuTermAuthorityV2?:boolean,termInstantUtcMs?:number,authorityVersion?:string}} [options]
  * @returns {null|{year:{stemIndex,branchIndex}, month:{stemIndex,branchIndex},
  *                 day:{stemIndex,branchIndex}, hour:{stemIndex,branchIndex}, meta:object}}
  */
@@ -659,7 +686,9 @@ function ganji(at, options = {}) {
   const minute = Number(at.minute) || 0;
   const nightZiPolicy = options.nightZiPolicy || DEFAULT_NIGHT_ZI_POLICY;
 
-  const node = enclosingNodeTerm(year, month, day, hour, minute);
+  const node = options.sajuTermAuthorityV2 === true
+    ? enclosingNodeTermAtInstant(options.termInstantUtcMs, options)
+    : enclosingNodeTerm(year, month, day, hour, minute);
   if (!node) return null;
 
   // ── 세차 — 입춘(절 인덱스 2)이 경계다.
@@ -969,8 +998,9 @@ function resolveNatalInstant(civil,timezone) {
   const standardOffsetMinutes=dstApplied&&standardSamples.length?offsetAt(standardSamples.reduce((a,b)=>Math.abs(a-timestamp)<Math.abs(b-timestamp)?a:b)):offsetMinutes;
   return {timestamp,iso:new Date(timestamp).toISOString(),offsetMinutes,standardOffsetMinutes,dstApplied,dstMinutes:offsetMinutes-standardOffsetMinutes};
 }
-/** @param {{allowMissingLongitude?:boolean}} [options] Internal opt-in for timezone-only legacy inputs. */
+/** @param {{allowMissingLongitude?:boolean,authorityFlags?:{sajuTermAuthorityV2?:boolean,koreanCalendarAuthorityV2?:boolean,authorityVersion?:string}}} [options] Internal opt-ins; defaults preserve the legacy result. */
 function calculateNatalSaju(input={},options={}) {
+  const authorityFlags=resolveAuthorityFlags(options.authorityFlags);
   const rawDate=String(input.birthDate||'');
   const date=/^(\d{4})-(\d{2})-(\d{2})$/.exec(rawDate);
   if(!date)natalFail('INVALID_BIRTH_DATE');
@@ -979,7 +1009,7 @@ function calculateNatalSaju(input={},options={}) {
   if(!['solar','lunar','lunar_leap'].includes(calendarType))natalFail('INVALID_CALENDAR_TYPE');
   const leapMonth=input.isLeapMonth===true||input.leapMonth===true||calendarType==='lunar_leap';
   if(calendarType!=='solar') {
-    const solar=lunarToSolar(year,month,day,leapMonth);
+    const solar=lunarToSolar(year,month,day,leapMonth,authorityFlags);
     if(!solar)natalFail('INVALID_LUNAR_DATE');
     ({year,month,day}=solar);
   }
@@ -989,6 +1019,7 @@ function calculateNatalSaju(input={},options={}) {
   const civil={year,month,day,hour:+time[1],minute:+time[2]};
   const check=natalParts(natalWall(civil));
   if(year<1900||year>2100||JSON.stringify(civil)!==JSON.stringify(check))natalFail('INVALID_BIRTH_DATE');
+  if(authorityFlags.koreanCalendarAuthorityV2)verifiedLunarMonthForSolar(year,month,day,authorityFlags);
   const rawPlace=input.birthPlace;
   // Legacy adapters serialize missing location as an object of null/empty fields.
   const emptyPlace=rawPlace && typeof rawPlace==='object' && Object.values(rawPlace).every(v=>v===null||v===undefined||v==='');
@@ -1006,7 +1037,7 @@ function calculateNatalSaju(input={},options={}) {
   const totalCorrectionMinutes=civilClockFallback?0:longitudeCorrectionMinutes-instant.dstMinutes;
   const corrected=natalParts(natalWall(civil)+Math.round(totalCorrectionMinutes)*60000);
   const termClock=natalParts(instant.timestamp+9*3600000);
-  const terms=ganji(termClock,{nightZiPolicy:'keep-day'});
+  const terms=ganji(termClock,{nightZiPolicy:'keep-day',sajuTermAuthorityV2:authorityFlags.sajuTermAuthorityV2,termInstantUtcMs:instant.timestamp,authorityVersion:authorityFlags.authorityVersion});
   const daily=ganji(timeUnknown?{...civil,hour:12,minute:0}:corrected,{nightZiPolicy:'shift-day'});
   if(!terms||!daily)natalFail('CALENDAR_OUT_OF_RANGE');
   const text=p=>formatPillar(p.stemIndex,p.branchIndex,'hanja');
@@ -1021,6 +1052,11 @@ function calculateNatalSaju(input={},options={}) {
     dayBoundaryRule:'corrected 23:00-23:59 uses next civil day; 00:00-00:59 uses current civil day; hour stem uses that same day stem',
     timeUnknown,dayPillarCivilDate:daily.meta.dayPillarCivilDate,
   };
+  if(authorityFlags.sajuTermAuthorityV2||authorityFlags.koreanCalendarAuthorityV2) {
+    const authority=authorityMetadata(authorityFlags);
+    calculationMeta.policyVersion += `:${authority.version}:${authorityFlags.sajuTermAuthorityV2?'terms':'legacy-terms'}:${authorityFlags.koreanCalendarAuthorityV2?'calendar':'legacy-calendar'}`;
+    calculationMeta.tableFingerprint += `:${authority.fingerprint}`;
+  }
   return {pillars,calculationMeta};
 }
 
@@ -1029,6 +1065,7 @@ root.KoreanCalendar = Object.freeze({
   BRANCH_HANGUL: BRANCH_HANGUL,
   BRANCH_HANJA: BRANCH_HANJA,
   DAEUN_POLICY_VERSION: DAEUN_POLICY_VERSION,
+  DEFAULT_AUTHORITY_FLAGS: DEFAULT_AUTHORITY_FLAGS,
   DEFAULT_NIGHT_ZI_POLICY: DEFAULT_NIGHT_ZI_POLICY,
   MIDNIGHT_RISKS: MIDNIGHT_RISKS,
   NIGHT_ZI_POLICY: NIGHT_ZI_POLICY,
@@ -1041,15 +1078,20 @@ root.KoreanCalendar = Object.freeze({
   TABLE_META: TABLE_META,
   TERM_NAME_HANJA: TERM_NAME_HANJA,
   TERM_NAME_KO: TERM_NAME_KO,
+  VERIFIED_AUTHORITY_FINGERPRINT: VERIFIED_AUTHORITY_FINGERPRINT,
+  VERIFIED_AUTHORITY_VERSION: VERIFIED_AUTHORITY_VERSION,
+  authorityMetadata: authorityMetadata,
   branchIndexOf: branchIndexOf,
   calculateNatalSaju: calculateNatalSaju,
   daeun: daeun,
   daeunFromFrame: daeunFromFrame,
   enclosingNodeTerm: enclosingNodeTerm,
+  enclosingNodeTermAtInstant: enclosingNodeTermAtInstant,
   formatPillar: formatPillar,
   ganji: ganji,
   lunarToSolar: lunarToSolar,
   nodeTerms: nodeTerms,
+  resolveAuthorityFlags: resolveAuthorityFlags,
   resolveNatalInstant: resolveNatalInstant,
   sexagenaryYearIndexes: sexagenaryYearIndexes,
   solarDayIndex: solarDayIndex,
@@ -1058,5 +1100,6 @@ root.KoreanCalendar = Object.freeze({
   solarToLunar: solarToLunar,
   stemIndexOf: stemIndexOf,
   supportedRange: supportedRange,
+  verifiedNodeTermWindow: verifiedNodeTermWindow,
 });
 })(typeof globalThis !== "undefined" ? globalThis : window);

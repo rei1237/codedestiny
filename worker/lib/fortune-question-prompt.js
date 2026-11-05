@@ -1,4 +1,5 @@
 import { buildReasoningFormatLines } from "./fortune-reasoning-contract.js";
+import { appendInnateTemperamentPrompt } from "./innate-temperament-prompt.js";
 
 const DEFAULT_MIN_PROMPT_LENGTH = 1500;
 
@@ -294,6 +295,23 @@ function buildAnswerFormatLines(fortuneType, fortuneLabel) {
   ];
 }
 
+function buildBasicConsultationDensityLines() {
+  return [
+    "[기본 운세 부가 상담 분량 규칙]",
+    "- [답변 형식]의 번호·제목·순서·챕터 수는 합치거나 빼거나 새로 만들지 말고 그대로 유지한다.",
+    "- 이 상담은 기본 운세 화면에 딸린 부가 해설이다. 타고난 성향 총론은 700~1,000자, 질문에 직접 답하는 핵심 챕터는 500~800자, 나머지 각 챕터는 250~450자를 목표로 간결하게 쓴다.",
+    "- 짧게 쓰라는 뜻은 계산 근거를 생략하라는 뜻이 아니다. 각 챕터는 서로 다른 근거 1~2개와 그 근거가 드러나는 생활 장면 또는 판단 기준 하나만 남긴다.",
+    "- 앞 챕터가 이미 설명한 성향·용어·근거를 다시 풀지 않는다. 뒤 챕터에서는 '앞서 본 핵심이 이 주제에서는 이렇게 작동한다'는 연결 한 줄 뒤에 새 내용만 쓴다.",
+    "- 긴 서론, 별·십성·궁·숙·행성의 사전식 정의, 같은 조언의 표현 바꾸기, 모든 생활 분야의 백과사전식 나열로 분량을 채우지 않는다.",
+  ];
+}
+
+function appendBasicConsultationDensity(promptText) {
+  const prompt = String(promptText || "");
+  if (prompt.includes("[기본 운세 부가 상담 분량 규칙]")) return prompt;
+  return `${prompt}\n\n${buildBasicConsultationDensityLines().join("\n")}`;
+}
+
 function buildExtraDepthLines(analysisAngles, followUps, caution) {
   const lines = [
     "[정밀 보강 요청]",
@@ -498,6 +516,8 @@ export function buildFortuneQuestionPromptPackage({
   }
 
   generatedPrompt = appendExpertVoiceGuard(generatedPrompt, fortuneType, safeFortuneLabel);
+  generatedPrompt = appendBasicConsultationDensity(generatedPrompt);
+  generatedPrompt = appendInnateTemperamentPrompt(generatedPrompt, fortuneType, safeFortuneLabel);
 
   const packageTitle = isSajuPrompt(fortuneType, safeFortuneLabel)
     ? `${safeFortuneLabel} 질문문 생성 프롬프트`

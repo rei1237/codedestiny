@@ -1,5 +1,6 @@
 import { buildSajuProfile } from './destiny-bias-engine.js';
 import { standardMeridianForTimezone } from './birth-time-context.js';
+import { approvedSajuLabels } from './saju-authority-consumer.js';
 const labels = { year: '년주', month: '월주', day: '일주', hour: '시주' };
 const elements = { wood: '목', fire: '화', earth: '토', metal: '금', water: '수' };
 // 엔진은 경도가 없으면 서울 경도로 지방시를 보정해 뉴욕 출생이 열세 시간 넘게 밀린다.
@@ -42,8 +43,11 @@ function teaDaewoonRows(rows, now) {
     return { ...row, pillar: row.ganji, label: `${row.index}대운 ${row.startAge}~${row.endAge}세${isCurrent ? ' (현재 대운)' : ''}`, ...(isCurrent ? { isCurrent } : {}) };
   });
 }
-export function canonicalTeaSaju(input, previous = {}, now = new Date()) {
+export function canonicalTeaSaju(input, previous = {}, now = new Date(), { authorityEnabled = false } = {}) {
   const profile = teaSajuProfile(input);
+  // 일주 원소·손님 선정 같은 계산 입력은 그대로 두고, 고객 라벨과 프롬프트 사실만 승인 판정으로 바꾼다.
+  const approved = authorityEnabled ? approvedSajuLabels({ year: profile.pillars.year?.ganji, month: profile.pillars.month?.ganji,
+    day: profile.pillars.day?.ganji, hour: profile.calendar.includeHour ? profile.pillars.hour?.ganji : null }) : null;
   const scores = profile.fiveElements.scores;
   return {
     ...previous,
@@ -63,7 +67,11 @@ export function canonicalTeaSaju(input, previous = {}, now = new Date()) {
       reading:'명식의 천간·지지·지장간 가중치 비중입니다. 운의 좋고 나쁨이나 성공 확률이 아닙니다.',
     })),
     elementMethod: { source:'destiny-bias-engine',scores,total:Object.values(scores).reduce((a,b)=>a+b,0) },
-    usefulGodEvidence: profile.usefulGods,
+    usefulGodEvidence: approved ? undefined : profile.usefulGods,
     daewoon: teaDaewoonRows(profile.daewoon, now),
+    ...(approved ? { approvedSaju: approved, keyPoints: [
+      ...(previous.keyPoints || []).filter(point => !String(point).startsWith('균형을 돕는 기운:')),
+      `격국: ${approved.gyeokguk}`, `도움이 되는 기운: ${approved.yongshinLabel}`,
+    ] } : {}),
   };
 }

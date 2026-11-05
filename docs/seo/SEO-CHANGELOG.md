@@ -2,7 +2,7 @@
 
 SEO 관련 변경(구조화 데이터·sitemap·메타·콘텐츠·인프라 등)을 역연대순으로
 한 줄씩 남기는 로그. 원 요청("SEO 개편 22개 항목") 중 하나로 신설됐다
-(`docs/handoff/2026-09-17-seo-p1-followup.md`).
+(`docs/handoff/2026-09-17-seo-p1-followup.md` (삭제됨, git 이력 참조)).
 
 **이 문서와 다른 두 문서의 역할 차이**
 - `docs/seo/SEO_STATE.json`의 `history[]` — GSC/네이버 **지표 스냅샷**(클릭·노출·CTR 등)을
@@ -54,7 +54,7 @@ SEO 관련 변경(구조화 데이터·sitemap·메타·콘텐츠·인프라 등
   ([2026-09-17-seo-p2-sitemap-dedup.md](../handoff/2026-09-17-seo-p2-sitemap-dedup.md))
 - 2026-09-17: P1 완료 — zh-TW 4허브 신설, compatibility 다국어화, 소개 페이지 FAQ 확장,
   sitemap lastmod 드리프트 정리 (`91326b771` 기준).
-  ([2026-09-17-seo-p1-followup.md](../handoff/2026-09-17-seo-p1-followup.md))
+  (2026-09-17-seo-p1-followup.md (삭제됨, git 이력 참조))
 - 2026-09-16: 영냥이 검색 유입 P0 — 천원사주 허브(`/yeongnyangi/1000-won-fortune/`) 신설,
   무료 랜딩 7곳에 허브 링크 추가. 운영 승격 `a3d1b471f`.
   ([yeongnyangi-seo-1000won-2026-09-16.md](../handoff/yeongnyangi-seo-1000won-2026-09-16.md),

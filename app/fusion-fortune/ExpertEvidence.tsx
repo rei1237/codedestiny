@@ -5,6 +5,7 @@ import { getTarotCardByAnyId, buildImageCandidates } from "@/lib/tarot/tarot-car
 import { getFusionExpertCopy } from "./_lib/expert-labels";
 import { useFusionSharedCopy, type FusionSystemKeyLabel } from "./_lib/copy";
 import styles from "./fusion-fortune.module.css";
+import ResultReference from '@/components/fortune/ResultReference';
 
 export function useFusionExpertCopy() {
   const [locale, setLocale] = useState(() => getCurrentLoadingLocale());
@@ -39,13 +40,13 @@ export function ExpertEvidence({ cards, crossCheck, exporting }: { cards?: Fusio
         </button><p>{position}</p>{open && <p>{card.name} · {card.orientation === "reversed" ? copy.reversed : copy.upright}</p>}</div>;
       })}</div>
     </li>}
-    {crossCheck && <li data-fusion-pdf-section="true" className={styles.expertEvidence}><h3>{copy.cross}</h3>
+    {crossCheck && <li data-fusion-pdf-section="true" className={styles.expertEvidence}><ResultReference label={copy.cross} exportOpen={exporting}>
       {(["aligned", "divergent"] as const).map((kind) => crossCheck[kind].length > 0 && <section key={kind}><h4>{copy[kind]}</h4>{crossCheck[kind].map((entry) => <div key={`${entry.domain}:${entry.period}`} className={styles.evidenceComparison}>
         <p><strong>{copy.domains[entry.domain]}</strong> · {entry.period === "current" ? copy.current : entry.period}</p>
         {entry.positions.map((position) => <p key={position.system}><a href={`#fusion-toc-${position.system}`}>{shared.systemLabels[position.system]}</a> — {position.summary}</p>)}
         <p>{copy.preferred}: {entry.preferredSystems.map((system) => shared.systemLabels[system]).join(" · ")}</p>
       </div>)}</section>)}
       {!crossCheck.aligned.length && !crossCheck.divergent.length && <p>{copy.noCross}</p>}
-    </li>}
+    </ResultReference></li>}
   </>;
 }

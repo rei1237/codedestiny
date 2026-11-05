@@ -2,6 +2,9 @@ import { salvageTruncatedJsonObject } from "../../lib/llm-text.js";
 import { jsonSchemaFromExample } from "./json-text-repair.js";
 import { countPaidReportBodyChars, hasRepeatedReportPassage } from "./paid-report-quality.js";
 import { buildLoveSecretGroupFacts, compactSajuForFollowUp } from "./love-secret-ai-facts.js";
+import { expertSubchapterPromptLines } from "./expert-subchapter-prompt.js";
+import { followupSolutionPromptLines } from "./followup-solution-prompt.js";
+import { compactFollowupMessages } from "./followup-context.js";
 
 const FORBIDDEN_RESULT_PATTERNS = Object.freeze([
   /\bAI\b/i,
@@ -314,6 +317,8 @@ export function buildLoveSecretGroupPrompt(input = {}, sajuResult = {}, group, o
     "상대 정보가 부족하면 단정하지 말고, 현재 드러난 흐름과 사용자가 확인할 수 있는 신호를 중심으로 말합니다.",
     "body 안에서는 문단 사이를 빈 줄로 구분하고, 핵심 문구만 **굵게** 표시합니다. 필요할 때만 '-' 목록을 쓰고, 그 외 마크다운(제목 #, 코드블록, 표)은 쓰지 않습니다.",
     "분량을 채우기 위해 같은 조언을 늘이지 않습니다.",
+    "",
+    ...expertSubchapterPromptLines({ feature: "연애 비책 전문가 상담" }),
   ];
 
   if (group.emits.includes("header")) {
@@ -349,9 +354,10 @@ export function buildLoveSecretGroupPrompt(input = {}, sajuResult = {}, group, o
 
 export function buildFollowUpConsultationPrompt(consultation = {}, userMessage = "") {
   const messages = Array.isArray(consultation.messages)
-    ? consultation.messages.slice(-8).map((message) => ({
+    ? compactFollowupMessages(consultation.messages, { maxChars: 16000, recent: 2 }).map((message) => ({
       role: message.role,
       content: clean(message.content, 2400),
+      ...(message.compacted ? { compacted: true } : {}),
     }))
     : [];
   return [
@@ -371,7 +377,9 @@ export function buildFollowUpConsultationPrompt(consultation = {}, userMessage =
     "[사용자의 추가 질문]",
     clean(userMessage, 1200),
     "",
-    "첫 문장부터 사용자의 추가 질문에 답합니다.",
+    ...followupSolutionPromptLines({ feature: "연애 비책 후속 상담" }),
+    "",
+    "첫 근거 공감 문단을 짧게 마친 뒤 사용자의 추가 질문에 바로 답합니다.",
     "이전 상담은 필요한 만큼만 이어받고, 새 질문과 무관한 전체 요약으로 흐르지 않습니다.",
     "명식과 궁합 근거는 관계 언어로 짧게 풀어 사용자가 지금의 마음과 선택을 이해하도록 돕습니다.",
     "상대방의 마음을 단정하지 말고, 사용자가 건강한 선택을 할 수 있도록 현실적인 다음 행동을 제안합니다.",
@@ -495,7 +503,7 @@ export function buildLoveSecretGroundingTerms(sajuResult = {}) {
     [dayBranch, dayBranch ? clean(my.pillarDetails?.day?.branchElement, 4) : ""],
     [clean(reference.dominantTenGod, 12)],
     [clean(my.gyeokguk?.finalGyeokguk, 12)],
-    [clean(reference.yongshinElementLabel, 4), clean(reference.yongshinElement, 12)],
+    my.approvedSaju ? [] : [clean(reference.yongshinElementLabel, 4), clean(reference.yongshinElement, 12)],
     [currentCycle],
     partner ? [clean(partner.dayMaster, 4), clean(partner.reference?.dayMasterLabel, 12).replace(/\(.*\)/, "")] : [],
     ["일간"],

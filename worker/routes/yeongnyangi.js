@@ -184,9 +184,10 @@ export async function handleYeongnyangiRoutes(request, env) {
       return json({ok:true,nextCursor:rows.length>30?`${new Date(last.createdAt).toISOString()}_${last._id}`:null,
         fortunes:page.map(row=>({id:row._id,locale:row.snapshot?.locale || 'ko',product:row.snapshot?.product || null,state:row.state,paid:hasRequestAccess(row),accessMethod:row.accessMethod || (row.paymentId?'DIRECT_KRW':undefined),completedChapters:row.completedChapters,totalChapters:row.snapshot?.manifest?.length,recovering:libraryRecovering(row),canRetry:userCanRetry(row),createdAt:row.createdAt,consultationKind:row.snapshot?.analysis?.consultation?.consultationKind,kindLabel:row.snapshot?.analysis?.consultation?.kindLabel,participants:row.snapshot?.analysis?.consultation?.relationship?.participants}))},{headers:{'Cache-Control':'private, no-store','Server-Timing':`auth;dur=${authMs.toFixed(1)}, db;dur=${dbMs.toFixed(1)}, query;dur=${(performance.now()-queryStart).toFixed(1)}`}});
     }
-    const match=path.match(/^requests\/([a-f0-9]{64})(?:\/(activate|generate|follow-up|conversation|correction|tarot-draw))?$/);
+    const match=path.match(/^requests\/([a-f0-9]{64})(?:\/(activate|generate|follow-up|conversation|correction|tarot-draw)(?:\/(continue))?)?$/);
     if(!match) return notFound();
-    const [,id,action]=match;
+    const [,id,action,conversationAction]=match;
+    if(conversationAction&&action!=='conversation')return notFound();
     if(action==='correction' && (method==='GET'||method==='POST')) {
       const {reviewSajuCorrection}=await import('../yeongnyangi/saju-correction.js');
       return json({ok:true,correction:await reviewSajuCorrection(env,auth.userId,id,{enqueue:method==='POST'})});
@@ -206,7 +207,7 @@ export async function handleYeongnyangiRoutes(request, env) {
       const body=await readJson(request);
       if(!body||typeof body!=='object'||Array.isArray(body))throw createHttpError(400,'질문 내용을 확인해 주세요.',{code:'FOLLOWUP_INPUT_INVALID'});
       const {questionConversation}=await import('../yeongnyangi/question-followup.ts');
-      return json({ok:true,fortune:presentFortune(await questionConversation(env,auth.userId,id,body))},{headers:{'Cache-Control':'private, no-store'}});
+      return json({ok:true,fortune:presentFortune(await questionConversation(env,auth.userId,id,conversationAction==='continue'?{...body,action:'continue'}:body))},{headers:{'Cache-Control':'private, no-store'}});
     }
     if(action==='follow-up' && method==='POST') {
       const body=await readJson(request);

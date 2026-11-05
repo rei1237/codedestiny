@@ -17,6 +17,9 @@ export async function inspectCheckpointBeforeTimeoutRefund(execution, { includeR
   // An already-started refund must finish its existing idempotent settlement.
   if (execution.refundStatus && execution.refundStatus !== "none"
     && (includeResumable || execution.refundRequestedAt)) return "unmanaged";
+  if (includeResumable && execution.featureKey === "heukwol-warning-consultation"
+    && execution.metadata?.analysis && Array.isArray(execution.metadata.chapters)
+    && (execution.metadata.attempts || 0) < 3) return "recoverable";
   // Resume adapters define the exact paid product/report pairs that can have
   // persisted narrative checkpoints. Never infer a match from reportType alone.
   if ((includeResumable || Object.keys(execution.metadata?.paidNarrative?.parts || {}).length > 0) && execution.metadata?.paidNarrative?.tasks

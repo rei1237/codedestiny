@@ -1,3 +1,4 @@
+import { pinTarotNarrativeSeed, assertTarotNarrativeSnapshot } from './tarot-fact-consumer.js';
 import { narrativePriorDigest, normalizeNarrativeBody, parseNarrativeResponse, NARRATIVE_RESPONSE_SCHEMA } from './paid-narrative-candidate.js';
 import { buildLoveReadingPrompt } from '../../lib/tarot/love-reading-llm.mjs';
 import { buildLoveConsultingHighlights } from '../../lib/tarot/love-reading-normalizer.mjs';
@@ -20,7 +21,7 @@ const FINAL = ['instantMission', 'conversationTip', 'relationshipBoundary', 'nex
 // 분량은 목표이고 짧아도 완결된 부분은 전달한다.
 // The cards must be the server draw the body names (paid-tarot-draw.js), checked before any build.
 async function seed(env, userId, body, buildBase) {
-  await bindPaidTarotDraw(env, { featureKey: 'tarot-love-relationship', owner: userId, body });
+  const draw = await bindPaidTarotDraw(env, { featureKey: 'tarot-love-relationship', owner: userId, body });
   const locale = getAmbientAiLocale() || body.locale || 'ko';
   const base = buildBase(body, locale);
   const tasks = base.reading.positionBreakdown.map((card, index) => ({ id: `card-${index}`, title: card.positionTitle, cardIndex: index, paragraphs: 4, minChars: 1250,
@@ -32,8 +33,8 @@ async function seed(env, userId, body, buildBase) {
     prompt: '정확히 네 문단으로 오늘의 실천, 대화의 방법, 관계의 경계, 일주일의 계획을 순서대로 현실적인 조언과 반대 조건, 사례와 함께 설명한다.' });
   tasks.push({ id: 'matrix', title: '여섯 카드의 연결과 구성', paragraphs: 8, minChars: 2200,
     prompt: `정확히 여덟 문단으로 ${MATRIX_SCOPE.join(', ')}을 순서대로 해설한다. 고정 입력의 카드와 방향을 바꾸지 않는다.` });
-  return { base, tasks,
-    prompt: `${buildOutputLanguageDirective(locale)}\n${buildLoveReadingPrompt(base.reading, locale, { userQuestion: body.userQuestion }).split('[리딩 작성 형식]')[0]}\n${TAROT_SHARED_RULE_BLOCK}` };
+  return pinTarotNarrativeSeed({ base, tasks,
+    prompt: `${buildOutputLanguageDirective(locale)}\n${buildLoveReadingPrompt(base.reading, locale, { userQuestion: body.userQuestion }).split('[리딩 작성 형식]')[0]}\n${TAROT_SHARED_RULE_BLOCK}` }, env, { ...body, locale }, draw);
 }
 // The stored cards a part may name. Naming another card, flipping an orientation or moving a card
 // to another position title makes the answer a failed attempt within the two-attempt cap. A state
@@ -63,6 +64,7 @@ function render(state) {
     finalAdvice: Object.fromEntries(FINAL.map((id, i) => [id, field(final, i, id)])) };
   return { ...state.base, reading, consultingHighlights: buildLoveConsultingHighlights(reading), readingSource: 'llm', isRelationshipReading: true, api: 'love-reading',
     requestId: state.body.requestId, resumeInputs: state.body, locale: state.locale,
+    ...(state.engineFacts ? { engineFacts: state.engineFacts } : {}),
     deliverySections: state.tasks.filter(task => state.parts[task.id]).map(task => ({ key: task.id, title: task.title, body: text(task.id) })) };
 }
 // The paid-intent task seeds a proven intent with the same function.
@@ -74,6 +76,7 @@ export function deliverLoveTarot(request, env, auth, body, verify, buildBase) {
 export function loveTarotNarrativeAdapter(env) {
   return { featureKey: 'tarot-love-relationship', reportType: 'loveTarot', render,
     produce: async (task, state) => {
+      assertTarotNarrativeSnapshot(state);
       const ai = await callGeminiText(env, `${state.prompt}\n[이번 부분 ${task.id}] ${task.prompt}${narrativePriorDigest(state, task)}\nJSON {"body":"본문"}만 출력한다. 문단은 빈 줄로 나누고 번호·항목명을 붙이지 않는다. 제목·기호·공백 제외 최소 ${task.minChars}자, 목표 ${Math.ceil(task.minChars * 1.3)}~${Math.ceil(task.minChars * 1.5)}자. 같은 문장을 반복하지 않는다.`, {
         timeoutMs: 45000, maxOutputTokens: 9500, thinkingBudget: 0, temperature: 0.55, responseMimeType: 'application/json', responseSchema: NARRATIVE_RESPONSE_SCHEMA, fallbackToWorkersAI: false,
       });

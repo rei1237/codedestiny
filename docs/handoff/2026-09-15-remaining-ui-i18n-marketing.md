@@ -9,7 +9,7 @@ next: "리마스터 원문 안정 뒤 원문 해시·누락 수 재계산 → tr
 ## 기준과 완료한 일
 
 - 작업 디렉터리: `D:\Development\code-destiny`. 작성 기준 main: `530c79813017d660b8c5d6fcf0b96109682358f4`. 시작할 때 최신 HEAD/원격과 CI를 다시 확인한다.
-- 이용권 환급 재작업과 과거 워크트리 5개 정리는 완료했다. [정리 기록](2026-09-15-worktree-reconciliation.md). 같은 작업을 재구현하지 않는다.
+- 이용권 환급 재작업과 과거 워크트리 5개 정리는 완료했다. 정리 기록 (삭제됨, git 이력 참조). 같은 작업을 재구현하지 않는다.
 - **구 소설과 라이트 노벨은 별개다.** 구 소설 산문 코드 35개(`lib/stories/chapters/*` 32개, `data.ts`, `types.ts`, `metrics.ts`)는 폐기했다. 라이트 노벨 원본 `content/novel`, `lib/stories/vn`, `/stories/` 텍스트 리더, `public/codedestiny-novel.html` 플레이어와 번역 도구는 유지한다. 파일명의 novel만 보고 삭제하지 않는다.
 
 ## 1. 실제 UI 검수

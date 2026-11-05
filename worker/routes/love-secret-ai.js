@@ -1,3 +1,4 @@
+import { pinRepresentativeFacts, readRepresentativeFacts } from '../lib/representative-consumer-facts.js';
 import { createHash } from "node:crypto";
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
 import { isStoredPaidResultRevoked } from "../lib/paid-result-revocation.js";
@@ -25,6 +26,7 @@ import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { cmsPromptText } from "../lib/cms-prompts.js";
 import { appendExpertPersona, resolveExpertPersona } from "../lib/expert-character-personas.js";
 import { calculateLoveSecretAiSaju, normalizeLoveSecretAiInput } from "../lib/love-secret-ai-calculation.js";
+import { sajuAuthorityOn } from "../lib/saju-authority-consumer.js";
 import {
   LOVE_SECRET_AI_GROUPS,
   LOVE_SECRET_AI_GROUP_MIN_CHARS,
@@ -1281,7 +1283,7 @@ function publicChartSummary(chart = {}) {
       dayElementLabel: clean(chart?.reference?.dayElementLabel, 12),
       dominantElementLabel: clean(chart?.reference?.dominantElementLabel, 12),
       deficientElementLabel: clean(chart?.reference?.deficientElementLabel, 12),
-      yongshinElementLabel: clean(chart?.reference?.yongshinElementLabel, 12),
+      yongshinElementLabel: clean(chart?.reference?.yongshinElementLabel, 24),
       dayMasterLabel: clean(chart?.reference?.dayMasterLabel, 20),
     },
     strength: clean(chart?.strength, 60),
@@ -1544,11 +1546,13 @@ async function handleStart(request, env, route = "/api/love-secret-ai/generate",
   let sajuResult;
   try {
     logLoveSecretAi("Fortune Data Start", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
-    sajuResult = existing?.sajuResult || calculateLoveSecretAiSaju(normalized);
-    // 6개 그룹 프롬프트 전부에 같은 문자열로 들어가는 계산 확정값(병렬 생성물의 일관성 앵커).
-    sajuResult.facts = buildLoveSecretGroundingFacts(sajuResult);
+    sajuResult = existing?.sajuResult ? readRepresentativeFacts(existing.sajuResult, 'love-secret') : calculateLoveSecretAiSaju(normalized, { authorityEnabled: !existing && sajuAuthorityOn(env) });
+    // A new seed pins the shared facts once; already pinned retries keep their original grounding text.
+    if (!sajuResult.consumerFactIdentity) sajuResult.facts = buildLoveSecretGroundingFacts(sajuResult);
+    if (!existing) sajuResult = pinRepresentativeFacts(sajuResult, env, 'love-secret');
     logLoveSecretAi("Fortune Data Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
   } catch (error) {
+    if (error?.message === 'REPRESENTATIVE_FACTS_MISMATCH') return json({ ok: false, reason: error.message }, { status: 409 });
     logLoveSecretAi("LLM Error", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "fortune_data_failed", access: access.accessType, env, error }), "error");
     const restored = await restoreBillingGateAccessOnFailure({ env, userId: auth.userId, access, idempotencyKey, pricing, error }).catch((restoreError) => ({ restored: false, error: clean(restoreError?.message || restoreError, 300) }));
     logLoveSecretAi("LLM Refund Or Restore", {

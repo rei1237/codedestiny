@@ -1,3 +1,4 @@
+import { pinTarotNarrativeSeed, assertTarotNarrativeSnapshot } from './tarot-fact-consumer.js';
 import { narrativePriorDigest, normalizeNarrativeBody, parseNarrativeResponse, NARRATIVE_RESPONSE_SCHEMA } from './paid-narrative-candidate.js';
 import { buildMindscanDeliveryFacts } from '../../lib/tarot/mindscan-reading.mjs';
 import { runPaidNarrativeDelivery } from './paid-narrative-delivery.js';
@@ -19,7 +20,7 @@ const FIELDS = [
 ];
 // The pairs must be the server draw the body names (paid-tarot-draw.js), checked before any build.
 async function seed(env, userId, body) {
-  await bindPaidTarotDraw(env, { featureKey: 'tarot-mindscan', owner: userId, body });
+  const draw = await bindPaidTarotDraw(env, { featureKey: 'tarot-mindscan', owner: userId, body });
   const facts = buildMindscanDeliveryFacts(body.pairs, body.question, getAmbientAiLocale() || body.locale || 'ko');
   if (!facts.ok) throw createHttpError(400, '질문과 카드 5쌍을 확인해 주세요.', { reason: facts.reason });
   // One call per position; render splits its paragraphs into the three FIELDS in order.
@@ -33,7 +34,7 @@ async function seed(env, userId, body) {
     { id: 'summary', title: '관계 흐름 종합', prompt: `정확히 열 문단으로 ${SUMMARY.join(', ')}를 순서대로 해설한다. 한 문단은 한 항목이며 항목명/번호 없이 본문만 쓴다. 감정과 연락 가능성을 확정하거나 확률로 만들지 않는다.`, minChars: 1600 },
     { id: 'masterAdvice', title: '현실적인 실천 계획', prompt: '지금의 관계에서 실행할 계획과 중단/재검토 기준을 설명한다.', minChars: 1000 },
     { id: 'closing', title: '마지막 상담 편지', prompt: '전체 조건을 종합해 질문에 답하고 선택의 여지를 남기는 상담 편지를 쓴다.', minChars: 700 });
-  return { ...facts, prompt: `${facts.prompt}\n${TAROT_SHARED_RULE_BLOCK}`, tasks };
+  return pinTarotNarrativeSeed({ ...facts, prompt: `${facts.prompt}\n${TAROT_SHARED_RULE_BLOCK}`, tasks }, env, { ...body, locale: getAmbientAiLocale() || body.locale || 'ko' }, draw);
 }
 // The stored cards a part may name. Each position reads its own pair; a state seeded under the former
 // seven positions reused cards, so a card stored both ways is checked for presence only. Positions hold a main and a sub card and are not checked.
@@ -76,6 +77,7 @@ function render(state) {
     masterAdvice: text('masterAdvice'), closing: text('closing'), oneLineConclusion: '',
   };
   return { ...reading, reading, requestId: state.body.requestId, resumeInputs: state.body, locale: state.locale,
+    ...(state.engineFacts ? { engineFacts: state.engineFacts } : {}),
     deliverySections: state.tasks.filter(task => state.parts[task.id]).map(task => ({ key: task.id, title: task.title, body: text(task.id) })) };
 }
 // The paid-intent task seeds a proven intent with the same function.
@@ -87,6 +89,7 @@ export function deliverMindscan(request, env, auth, body, verify) {
 export function mindscanNarrativeAdapter(env) {
   return { featureKey: 'tarot-mindscan', reportType: 'mindscan', render,
     produce: async (task, state) => {
+      assertTarotNarrativeSnapshot(state);
       const ai = await callGeminiText(env, `${state.prompt}\n[이번 부분 ${task.id}] ${task.prompt}${narrativePriorDigest(state, task)}\nJSON {"body":"본문"}만 출력한다. 제목·기호·공백 제외 최소 ${task.minChars}자, 목표 ${Math.ceil(task.minChars * 1.3)}~${Math.ceil(task.minChars * 1.5)}자. 짧은 문단으로 나누고 같은 문장을 반복하지 않는다.`, {
         timeoutMs: 45000, maxOutputTokens: 9500, thinkingBudget: 0, temperature: 0.55,
         fallbackToWorkersAI: false, responseMimeType: 'application/json', responseSchema: NARRATIVE_RESPONSE_SCHEMA,

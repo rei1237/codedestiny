@@ -1,3 +1,4 @@
+import { resolveExpertCalculation } from '../lib/expert-consumer-facts.js';
 import { runWithAiLocale, storedAiLocale } from '../lib/ai-locale-context.js';
 import { normalizeNarrativeBody } from '../lib/paid-narrative-candidate.js';
 import { trimPaidReportText } from "../lib/paid-report-length.js";
@@ -1868,8 +1869,9 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
         delete resumeBody.accessToken;
         doc = await saveAstrologyDelivery(locked, { llmMeta: { ...doc.llmMeta, resumeBody } }, sessionId);
       }
-      const chart = doc.astrologyChart || await calculateAstrologyChart(env, normalized, request.url);
-      doc = await saveAstrologyDelivery(locked, { astrologyChart: chart }, sessionId);
+      const basis = await resolveExpertCalculation('astrology', doc.astrologyChart, () => calculateAstrologyChart(env, normalized, request.url), { env, snapshot: doc.llmMeta?.engineFacts, existing: Boolean(existing), input: normalized.input });
+      const chart = basis.value;
+      doc = await saveAstrologyDelivery(locked, { astrologyChart: chart, ...(basis.engineFacts ? { llmMeta: { ...doc.llmMeta, engineFacts: basis.engineFacts } } : {}) }, sessionId);
       const generated = await runWithAiLocale(storedAiLocale(doc), async () => generateSectionedConsultation(env, normalized.input, chart, {
         minLength: ASTROLOGY_AI_MIN_RESULT_CHARS, maxLength: ASTROLOGY_AI_MAX_RESULT_CHARS,
         sectionMaxOutputTokens: ASTROLOGY_AI_SECTION_MAX_OUTPUT_TOKENS, fallbackToWorkersAI: false,
@@ -1898,6 +1900,7 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
     await completeRefundableExecution(env, auth, idempotencyKey, sessionId);
     return json(publicSession(doc));
   } catch (error) {
+    if (['EXPERT_CALCULATION_MISMATCH', 'ENGINE_FACT_SNAPSHOT_INVALID'].includes(error?.code)) return json({ ok: false, reason: error.code }, { status: 409 });
     if (error?.code === "RESULT_STORAGE_UNAVAILABLE") return json(resultStorageFailurePayload(error), { status: 503 });
     await saveAstrologyDelivery(locked, { status: "generation_failed", generationError: { code: clean(error?.code || "GENERATION_FAILED", 80) } }, sessionId);
     await releaseRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds });
@@ -2009,6 +2012,7 @@ export async function handleAstrologyAiRoutes(request, env = {}, ctx) {
     if (["GET", "POST"].includes(method)) return notFound();
     return methodNotAllowed();
   } catch (error) {
+    if (['EXPERT_CALCULATION_MISMATCH', 'ENGINE_FACT_SNAPSHOT_INVALID'].includes(error?.code)) return json({ ok: false, reason: error.code }, { status: 409 });
     if (error?.code === "RESULT_STORAGE_UNAVAILABLE") return json(resultStorageFailurePayload(error), { status: 503 });
     console.error("[astrology-ai]", clean(error?.stack || error?.message || error, 1200));
     // 풀 초기화 버스트/인증 조회 중 일시 DB 장애는 재시도 신호와 함께 503으로 — 하드 500 방지.

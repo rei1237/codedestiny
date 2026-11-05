@@ -137,14 +137,12 @@
           "title": "개인판 · 화해와 회복의 언어",
           "text": "갈등이 발생했을 때, 너무 오랫동안 혼자 감정을 정리하려 하기보다는, 적절한 시점에 대화를 시도하는 용기가 필요합니다. 예를 들어, '지금은 마음이 좀 복잡해서 잠시 생각할 시간이 필요해. 조금 후에 다시 이야기할 수 있을까?'라고 솔직하게 자신의 상태를 전달하는 것이 좋습니다.",
           "kind": "result",
-          "sourceUrl": "https://claude.ai/artifact/PtPUfhaiHM37ebpxtr4nQV",
           "sourceLabel": "인연의 서 · 개인 / 화해와 회복의 언어"
         },
         {
           "title": "궁합판 · 같은 다툼이 반복되는 이유",
           "text": "예를 들어, 어떤 문제에 대해 상담자님은 신중하게 여러 가능성을 고려하며 시간을 들이고 싶어 할 수 있습니다. 반면 상대방은 빠르고 명확한 결정을 선호하며 즉각적인 행동을 요구할 수 있습니다. 이러한 속도와 방식의 차이가 다툼으로 이어질 수 있습니다.",
           "kind": "result",
-          "sourceUrl": "https://claude.ai/artifact/PtPUfhaiHM37ebpxtr4nQV",
           "sourceLabel": "인연의 서 · 궁합 / 갈등의 뿌리"
         },
         {
@@ -203,21 +201,18 @@
           "title": "질문 · 두 달째 이어지는 썸",
           "text": "소개팅으로 만난 사람과 두 달째 연락하고 주말마다 만나는데, 사귀자는 말이 없어 관계가 제자리예요. 제가 먼저 고백해도 될까요, 아니면 조금 더 기다리는 게 나을까요?",
           "kind": "result",
-          "sourceUrl": "https://claude.ai/artifact/PtPUfhaiHM37ebpxtr4nQV",
           "sourceLabel": "연애 비책 / 가상 프로필의 입력 질문"
         },
         {
           "title": "상대에게 다가가는 대화 문장",
           "text": "상대에게 다가가는 대화 문장:\n\"너랑 같이 있으면 시간이 정말 빨리 가는 것 같아. 다음 주말에도 같이 맛있는 거 먹으러 갈까?\"\n\n…\n\n피해야 할 대화 문장:\n\"우리 관계는 대체 뭐야? 언제쯤 사귈 수 있는 거야?\"",
           "kind": "result",
-          "sourceUrl": "https://claude.ai/artifact/PtPUfhaiHM37ebpxtr4nQV",
           "sourceLabel": "연애 비책 / 상대에게 다가가는 대화 문장"
         },
         {
           "title": "7일 실천 가이드에서 한 걸음",
           "text": "7일차: 다음 만남에서 상대의 눈을 마주 보며 진심을 담아 미소 지어보세요. (근거: 홍염살(일지 酉)의 매력을 긍정적으로 활용하여 상대에게 호감과 따뜻함을 전달하는 비언어적 표현입니다)",
           "kind": "result",
-          "sourceUrl": "https://claude.ai/artifact/PtPUfhaiHM37ebpxtr4nQV",
           "sourceLabel": "연애 비책 / 7일 실천 가이드"
         }
       ]
@@ -270,21 +265,18 @@
           "title": "질문 · 이직과 부업 사이",
           "text": "2027년에 지금 회사를 계속 다니면서 부업으로 수입을 늘려도 될지, 아니면 이직으로 연봉을 올리는 쪽이 나을지 일과 돈의 흐름을 알고 싶어요.",
           "kind": "result",
-          "sourceUrl": "https://claude.ai/artifact/PtPUfhaiHM37ebpxtr4nQV",
           "sourceLabel": "2027 신년운세 / 가상 프로필의 입력 질문"
         },
         {
           "title": "재물과 직업 · 제안을 살펴볼 기준",
           "text": "특히 6월과 7월은 정관(正官)과 편관(偏官)이 연이어 들어오면서, 조직 내에서의 당신의 역할이 명확해지고 중요한 제안을 받을 가능성이 높습니다. 이때는 단순히 연봉만을 기준으로 삼기보다는, 당신의 역량을 최대한 발휘할 수 있는 직무와 성장 가능성을 함께 고려하는 것이 중요합니다.",
           "kind": "result",
-          "sourceUrl": "https://claude.ai/artifact/PtPUfhaiHM37ebpxtr4nQV",
           "sourceLabel": "2027 신년운세 / 재물과 직업 · 선택의 기준"
         },
         {
           "title": "준비할 때 확인할 것",
           "text": "따라서 이직을 고려한다면, 새로운 직장의 업무 환경과 당신의 역량을 객관적으로 평가하고, 충분한 준비 기간을 갖는 것이 중요합니다.",
           "kind": "result",
-          "sourceUrl": "https://claude.ai/artifact/PtPUfhaiHM37ebpxtr4nQV",
           "sourceLabel": "2027 신년운세 / 질문과 타고난 성향"
         }
       ]
@@ -439,14 +431,12 @@
           "title": "성격과 내면의 작동 방식",
           "text": "이는 타인에게 의존하기보다는 스스로의 판단과 능력을 믿고 나아가려는 경향이 강하다는 것을 의미합니다. 하지만 때로는 이러한 강한 자아가 고집으로 비춰질 수도 있습니다. 자신을 지키는 힘이 강한 만큼, 타인의 의견을 수용하는 데 시간이 걸릴 수 있습니다.",
           "kind": "result",
-          "sourceUrl": "https://claude.ai/artifact/PtPUfhaiHM37ebpxtr4nQV",
           "sourceLabel": "인생의 책 / 성격과 내면의 작동 방식"
         },
         {
           "title": "재능을 일의 방향으로 옮기기",
           "text": "당신의 뛰어난 기획력과 창의성은 새로운 아이디어를 현실로 만드는 데 큰 강점입니다. 따라서, 단순히 주어진 일을 처리하기보다는, 주도적으로 프로젝트를 이끌거나 새로운 분야를 개척하는 역할에 도전해 보세요. 당신의 통찰력이 빛을 발할 수 있는 전문 분야를 깊이 파고드는 것이 좋습니다.",
           "kind": "result",
-          "sourceUrl": "https://claude.ai/artifact/PtPUfhaiHM37ebpxtr4nQV",
           "sourceLabel": "인생의 책 / 명식의 깊은 판독 · 행동 조언"
         },
         {

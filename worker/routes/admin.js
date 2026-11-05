@@ -4897,13 +4897,17 @@ async function handleSiteDeploy(request, env) {
     throw createHttpError(400, "지원하지 않는 사이트 반영 방식입니다.", { code: "VALIDATION_ERROR" });
   }
 
+  return dispatchSiteRelease(env, mode);
+}
+
+async function dispatchSiteRelease(env, mode) {
   const token = String(getEnv(env, "GITHUB_DEPLOY_TOKEN") || "").trim();
   if (!token) {
     throw createHttpError(503, "GITHUB_DEPLOY_TOKEN이 설정되지 않아 사이트 반영을 트리거할 수 없습니다.", { code: "DEPLOY_TOKEN_MISSING" });
   }
 
   const repo = String(getEnv(env, "GITHUB_DEPLOY_REPO") || "").trim() || "rei1237/codedestiny";
-  const workflow = "cloudflare-pages-deploy.yml";
+  const workflow = mode === "edition-test" ? "edition-test-issuer.yml" : "cloudflare-pages-deploy.yml";
 
   let response;
   try {
@@ -4916,7 +4920,7 @@ async function handleSiteDeploy(request, env) {
         "user-agent": "code-destiny-worker",
         "x-github-api-version": "2022-11-28",
       },
-      body: JSON.stringify({ ref: "main", inputs: { mode, allow_redeploy: true } }),
+      body: JSON.stringify({ ref: "main", inputs: mode === "edition-test" ? {} : { mode, allow_redeploy: true } }),
     });
   } catch (e) {
     throw createHttpError(502, "GitHub 배포 트리거 요청에 실패했습니다.", { code: "DEPLOY_DISPATCH_FAILED" });
@@ -4933,6 +4937,13 @@ export async function handleAdminRoutes(request, env) {
   try {
     const method = request.method.toUpperCase();
     const path = getRoutePath(request, "/api/admin");
+
+    if (path === "/editions") {
+      await authorizeAdminRequest(request, env);
+      const { manageEditions } = await import("./edition-studio.js");
+      const { productionTest } = await import("./edition-studio.js");
+      return await manageEditions(request, env, () => dispatchSiteRelease(env, productionTest(request,env) ? "edition-test" : "staging"));
+    }
 
     if (path === "/neo-consultations" || path.startsWith("/neo-consultations/")) {
       const actor = await authorizeAdminRequest(request, env);

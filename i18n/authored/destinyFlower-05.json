@@ -715,11 +715,11 @@
     "ms": "Teratai"
   },
   "indexRuntime.label.010": {
-    "ko": "용신",
+    "ko": "보완 후보",
     "en": "Useful Element",
-    "ja": "用神",
-    "zh-CN": "用神",
-    "zh-TW": "用神",
+    "ja": "補完候補",
+    "zh-CN": "補完候補",
+    "zh-TW": "補完候補",
     "vi": "Dụng Thần",
     "hi": "उपयोगी तत्व",
     "es": "Elemento Útil",

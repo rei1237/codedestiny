@@ -625,7 +625,7 @@ function buildQuestReason({ slotKey, element, dayMasterElement, yongElements, we
     return `과하거나 막힌 흐름을 정돈하는 미션`;
   }
   if (yongElements.includes(element) || weakElements.includes(element)) {
-    return `용신과 희신을 살리는 핵심 미션`;
+    return `보완 후보와 보조 후보를 살리는 핵심 미션`;
   }
   return `${label} 기운의 균형을 바로 세우는 핵심 미션`;
 }
@@ -658,7 +658,7 @@ function buildAfterCompleteMessage({
   }[slotKey] || "오늘의 기운을 조화롭게 움직이는 행동입니다.";
 
   const supportInsight = yongElements.includes(element)
-    ? "용신과 맞닿아 있어, 운의 문이 조금 더 쉽게 열립니다."
+    ? "보완 후보와 맞닿아 있어, 운의 문이 조금 더 쉽게 열립니다."
     : (weakElements.includes(element)
       ? `지금 가장 필요한 ${label} 기운을 채워 균형을 회복합니다.`
       : `${dayMasterLabel}의 본래 힘과 ${todayLabel}의 결을 함께 다듬습니다.`);

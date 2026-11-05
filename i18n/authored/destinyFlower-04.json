@@ -2605,11 +2605,11 @@
     "ms": "Carta anda lemah, jadi kami mengutamakan bunga bertenaga {elements} yang menyokong Tuan Hari anda."
   },
   "fortune.destinyFlower.saju.rationale.yongshin": {
-    "ko": "이 꽃에는 사주에 필요한 용신 기운이 담겨 있어요 — {elements}.",
+    "ko": "이 꽃에는 사주를 보완할 후보 기운이 담겨 있어요 — {elements}.",
     "en": "This flower carries the useful element (yongshin) your chart needs — {elements}.",
-    "ja": "この花には、命式に必要な用神の気が込められています — {elements}。",
-    "zh-CN": "这朵花蕴含你的八字所需的用神之气 — {elements}。",
-    "zh-TW": "這朵花蘊含你的八字所需的用神之氣 — {elements}。",
+    "ja": "この花には、命式に必要な補完候補の気が込められています — {elements}。",
+    "zh-CN": "这朵花蕴含你的八字所需的补益候选之气 — {elements}。",
+    "zh-TW": "這朵花蘊含你的八字所需的補益候選之氣 — {elements}。",
     "vi": "Đóa hoa này chứa khí Dụng Thần mà lá số của bạn cần — {elements}.",
     "hi": "इस फूल में वह उपयोगी तत्व है जिसकी आपकी कुंडली को ज़रूरत है — {elements}।",
     "es": "Esta flor lleva el elemento útil (yongshin) que necesita tu carta — {elements}.",
@@ -2689,11 +2689,11 @@
     "ms": "Carta lemah"
   },
   "fortune.destinyFlower.saju.rationaleLabel.yongshin": {
-    "ko": "용신",
+    "ko": "보완 후보",
     "en": "Useful element",
-    "ja": "用神",
-    "zh-CN": "用神",
-    "zh-TW": "用神",
+    "ja": "補完候補",
+    "zh-CN": "補完候補",
+    "zh-TW": "補完候補",
     "vi": "Dụng Thần",
     "hi": "उपयोगी तत्व",
     "es": "Elemento útil",

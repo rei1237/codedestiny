@@ -72,10 +72,10 @@ export default function YeongnyangiGuide(){
      <h3>카드가 보여주는 마음의 흐름</h3>
      <p>{tarotExcerpts[0]}</p>
      <h3>현실의 조건과 다음 행동</h3><p>{tarotExcerpts[2]}</p>
-     <details><summary>영냥이의 해석 더 읽기</summary><p>{tarotExcerpts[1]}</p><p>{tarotExcerpts[3]}</p><a href="https://claude.ai/artifact/PtPUfhaiHM37ebpxtr4nQV" target="_blank" rel="noopener noreferrer">가상 프로필 상담 원문 모음 읽기 (새 창)</a></details>
+     <details><summary>영냥이의 해석 더 읽기</summary><p>{tarotExcerpts[1]}</p><p>{tarotExcerpts[3]}</p></details>
     </blockquote>
     <p><a href="/yeongnyangi/fortune/?domain=tarot">타로 상담 구성 보기</a> · <a href="/consultation-samples/">다른 상담 결과 예시 보기</a></p>
-    <SampleExposure targetId="yn-example" itemId={single('tarot','salmon').cdFeatureKey}/>
+    <SampleExposure targetId="yn-example" itemId={single('tarot','salmon').cdFeatureKey} contentId="tarot-salmon-question-v1"/>
    </details>
    <details id="yn-receive" className={styles.panel}><summary>한 가지 질문에서, 차분히 읽는 한 권까지</summary>
     <p>궁금한 점의 답부터 읽고, 그 판단의 근거와 반복되는 패턴, 지금 해볼 행동을 챕터별로 살펴보세요. 사주·자미두수·숙요점·베다점·점성술·타로 가운데 원하는 방식으로 시작할 수 있어요.</p>

@@ -153,12 +153,17 @@ test("레거시 serviceKey(ziwei/saju)로 남은 행도 계속 매칭된다", as
 });
 
 
-test("꿀방울 23종은 실제 영구 권리 쓰기와 기존 읽기가 같은 출생 행을 찾는다", async () => {
+test("꿀방울 판매 중 17종과 판매가 끝난 6종은 실제 영구 권리 쓰기와 기존 읽기가 같은 출생 행을 찾는다", async () => {
   const { HONEY_UNLOCK_PRODUCTS } = await import('../../worker/lib/honey-unlock-catalog.js');
   const { grantPermanentUnlock, findActivePaidContentUnlock } = await import('../../worker/lib/content-unlocks.js');
   const session = {};
-  expect(HONEY_UNLOCK_PRODUCTS.filter(p => p.billingType === 'birth_unlock')).toHaveLength(23);
-  for (const product of HONEY_UNLOCK_PRODUCTS.filter(p => p.billingType === 'birth_unlock')) {
+  // 2026-11-04: 묶음 포함 6종(진로·요약·대운·특별부적·스킬트리·빌런)은 꿀방울 신규 판매에서 빠져 카탈로그는 17종이다.
+  // 이미 꿀방울로 산 계정의 읽기는 그대로여야 하므로 빠진 6종도 같은 왕복을 확인한다.
+  const SOLD_OUT_HONEY_KEYS = ['saju-career-style', 'section_summary', 'section_daewun', 'rpt_specialCharmCard', 'rpt_skillTreeCard', 'rpt_villainCard'];
+  const onSale = HONEY_UNLOCK_PRODUCTS.filter(p => p.billingType === 'birth_unlock');
+  expect(onSale).toHaveLength(17);
+  expect(onSale.some(p => SOLD_OUT_HONEY_KEYS.includes(p.featureKey))).toBe(false);
+  for (const product of [...onSale, ...SOLD_OUT_HONEY_KEYS.map(featureKey => ({ featureKey }))]) {
     findOneAndUpdate.mockClear(); findOne.mockClear();
     const readQuery = { session: jest.fn(), lean: async () => null };
     findOne.mockReturnValue(readQuery);
@@ -182,7 +187,8 @@ test("등록된 영구 해금 상품은 기존 지급 서비스 키로 동일한
     const target = resolvePaidContentUnlockTarget(input);
     const birthScoped = BIRTH_SCOPED_UNLOCK_FEATURE_KEYS.includes(featureKey);
     await findActivePaidContentUnlock(input);
-    const filter = findOne.mock.calls.at(-1)[0];
+    // 포함 키는 개별 행이 없으면 묶음 행을 한 번 더 조회한다. 여기서는 개별 조회 필터를 본다.
+    const filter = findOne.mock.calls[0][0];
     const base = { userId: TEST_USER_ID, contentKey: target.contentKey, status: 'ACTIVE', expiresAt: null,
       scope: birthScoped ? 'BIRTH' : 'USER', profileId: birthScoped ? (featureKey === 'section_compat' ? toBirthEntitlementProfileId(computeCompatBirthKey(testCard('profile-1'), testCard('profile-1'))) : BIRTH_PROFILE_ID) : '__user__' };
     for (const serviceKey of [resolvePaidContentServiceKey(featureKey, featureKey), resolvePaidContentServiceKey(featureKey), 'paid_content']) {

@@ -978,8 +978,8 @@
     }
     var tag = '균형 유지';
     if (lacking.indexOf(element) >= 0) tag = '보완 미션 연결';
-    else if (yong.indexOf(element) >= 0) tag = '용신 강화';
-    else if (hee.indexOf(element) >= 0) tag = '희신 보조';
+    else if (yong.indexOf(element) >= 0) tag = '보완 후보 강화';
+    else if (hee.indexOf(element) >= 0) tag = '보조 후보 강화';
     else if (dominant.indexOf(element) >= 0) tag = '과다 진정';
     return { tag: tag, detail: matching ? matching.text : (meta.short + ' 기운을 살리는 오늘의 성장 포인트') };
   }
@@ -1539,7 +1539,7 @@
       +   '</section>'
       +   '<section class="ent-rpg-card ent-rpg-card--abilities">'
       +     '<div class="ent-rpg-card__title">' + escapeRpgHtml(abilityTitle) + '</div>'
-      +     '<div class="ent-rpg-card__sub">용신 ' + escapeRpgHtml(yongDisplay) + ' · 희신 ' + escapeRpgHtml(heeDisplay) + ' · 기신 ' + escapeRpgHtml(giDisplay) + '<br>오늘의 운명은 ' + escapeRpgHtml((dayMaster.stemKo || '일간') + ' ' + (dayMaster.elementKo || '오행')) + '에서 가장 선명하게 드러납니다.</div>'
+      +     '<div class="ent-rpg-card__sub">보완 후보 ' + escapeRpgHtml(yongDisplay) + ' · 보조 후보 ' + escapeRpgHtml(heeDisplay) + ' · 주의 오행 ' + escapeRpgHtml(giDisplay) + '<br>오늘의 운명은 ' + escapeRpgHtml((dayMaster.stemKo || '일간') + ' ' + (dayMaster.elementKo || '오행')) + '에서 가장 선명하게 드러납니다.</div>'
       +     '<div class="ent-rpg-card__label">해금한 스킬</div>'
       +     '<div class="ent-rpg-chip-wrap">' + ownSkillHtml.join('') + '</div>'
       +     '<div class="ent-rpg-card__label">잠긴 스킬</div>'
@@ -2746,6 +2746,10 @@
   var TETOGEN_DEEP_REPORT_KRW = 5000;
 
   function isTetogenDeepReportUnlocked() {
+    // 개별 권리 또는 사주 묶음(saju_lifetime_bundle)으로 열린다. 상세 풀이는 이 기기에서 계산하며 생성 모델을 부르지 않는다.
+    try {
+      if (w.CdSajuBundleOffer && typeof w.CdSajuBundleOffer.isOpen === 'function' && w.CdSajuBundleOffer.isOpen()) return true;
+    } catch (_) {}
     try {
       if (typeof w.isTileKeyUnlocked === 'function' && w.isTileKeyUnlocked(TETOGEN_DEEP_REPORT_FEATURE_KEY)) return true;
     } catch (_) {}
@@ -2839,13 +2843,24 @@
       + '</div>'
       + '<ul class="tetogen-premium-gate__list">' + teaserItems + '</ul>'
       + '<div class="tetogen-premium-gate__action">'
-      + '<strong>' + TETOGEN_DEEP_REPORT_KRW.toLocaleString('ko-KR') + '원</strong>'
-      + '<button type="button" class="tetogen-premium-gate__cta" data-tetogen-unlock="1">' + (unlocked ? '상세 리포트 열림' : '상세 리포트 열기') + '</button>'
-      + '<small data-tetogen-status>' + (unlocked ? '이미 열린 흐름입니다.' : '결제 후 남은 해석이 펼쳐집니다.') + '</small>'
+      // 개별 판매는 끝났다. 잠겨 있으면 가격 대신 사주 묶음 안내로 이어진다(이미 산 사람은 위 unlocked 로 열린다).
+      + (unlocked ? '' : '<strong>사주 묶음 포함</strong>')
+      + '<button type="button" class="tetogen-premium-gate__cta" data-tetogen-unlock="1">' + (unlocked ? '상세 리포트 열림' : '묶음 안내 보기') + '</button>'
+      + '<small data-tetogen-status>' + (unlocked ? '이미 열린 흐름입니다.' : '사주 묶음으로 남은 해석이 펼쳐집니다.') + '</small>'
       + '</div>'
       + '</div>'
       + (unlocked ? buildTetogenDeepReportBody(vibe, p, power, hapData) : '')
       + '</section>';
+  }
+
+  // 다시 그릴 때마다 리스너가 쌓이지 않게 하나만 걸고, 가장 최근 셸만 연다.
+  var _tetogenPendingReveal = null;
+  var _tetogenUnlockListenerBound = false;
+  function onTetogenUnlocksChanged() {
+    var pending = _tetogenPendingReveal;
+    if (!pending || !pending.shell.isConnected || !isTetogenDeepReportUnlocked()) return;
+    _tetogenPendingReveal = null;
+    pending.reveal(null);
   }
 
   function bindTetogenDeepReportGate(root, vibe, p, power, hapData) {
@@ -2857,7 +2872,10 @@
     var status = shell.querySelector('[data-tetogen-status]');
 
     function reveal(payload) {
-      markTetogenDeepReportUnlocked(payload || null);
+      // 묶음으로 연 열람은 개별 권리가 아니다. 기록하면 기기 전체 플래그가 남아 다른 출생·계정과 환불 뒤에도 열린다.
+      var openedByBundle = false;
+      try { openedByBundle = !!(w.CdSajuBundleOffer && w.CdSajuBundleOffer.isOpen()); } catch (_) {}
+      if (payload || !openedByBundle) markTetogenDeepReportUnlocked(payload || null);
       shell.classList.add('is-unlocked');
       var existing = shell.querySelector('[data-tetogen-premium-report]');
       if (!existing) {
@@ -2878,6 +2896,7 @@
     // 결제 후 복귀는 이 클로저를 잃으므로, 바인딩할 때마다 최신 것을 전역에 걸어 둔다.
     // 🔴 아래 early return 앞에 둔다 — 뒤에 두면 이미 해금된 렌더에서 코어가 안 걸린다.
     w._cdRevealTetogenDeepReportCore = reveal;
+    _tetogenPendingReveal = null;
 
     if (isTetogenDeepReportUnlocked()) {
       reveal(null);
@@ -2885,7 +2904,19 @@
     }
 
     if (!button) return;
+    // 묶음을 산 직후(해금 이벤트)에는 새로고침 없이 상세 풀이를 펼친다.
+    _tetogenPendingReveal = { shell: shell, reveal: reveal };
+    if (!_tetogenUnlockListenerBound) {
+      _tetogenUnlockListenerBound = true;
+      w.addEventListener('cd:unlocks-changed', onTetogenUnlocksChanged);
+      w.addEventListener('cd:tile-locks-updated', onTetogenUnlocksChanged);
+    }
     button.addEventListener('click', function () {
+      // 판매 종료: 결제창 대신 사주 묶음 안내를 연다.
+      if (w.CdSajuBundleOffer && typeof w.CdSajuBundleOffer.open === 'function') {
+        w.CdSajuBundleOffer.open({ source: 'tetogen-deep-report' });
+        return;
+      }
       var settled = false;
       function settle(payload) {
         if (settled) return;

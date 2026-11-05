@@ -231,9 +231,30 @@
     root.setTimeout(function () { waitForLuck(my, tries + 1); }, 400);
   }
 
+  /* 내 뇌구조는 사주 영구 묶음(saju_lifetime_bundle) 안의 카드다. 묶음이 닫혀 있거나 권한 조회가 실패하면 자산도 계산도 만들지 않는다. */
+  var started = false;
+  function unlocked() {
+    try { return !!(root.CdSajuBundleOffer && root.CdSajuBundleOffer.isOpen()); } catch (e) { return false; }
+  }
+  function lockCard() {
+    gen += 1;
+    started = false;
+    model = null;
+    if (card) { card.hidden = true; card.innerHTML = ''; }
+  }
+  /* 해금 이벤트: 열렸고 아직 시작 전이면 시작하고, 닫혔는데 그려져 있으면 걷는다. */
+  function syncUnlock() {
+    card = card || doc.getElementById('destinyAnatomyCard');
+    if (!card || !root.G_PILLARS) return;
+    if (unlocked()) { if (!started) start(); }
+    else if (started || !card.hidden) lockCard();
+  }
+
   function start() {
     card = card || doc.getElementById('destinyAnatomyCard');
     if (!card || !root.G_PILLARS) return;
+    if (!unlocked()) { lockCard(); return; }
+    started = true;
     var my = ++gen;
     model = null;
     layers = {status: 'idle', hd: null, vedic: null, key: ''};
@@ -553,6 +574,8 @@
     card.addEventListener('toggle', onToggle, true);
     root.addEventListener('scroll', onScroll, {passive: true});
     root.addEventListener('cd:saju-summary-ready', function () { start(); });
+    root.addEventListener('cd:unlocks-changed', syncUnlock);
+    root.addEventListener('cd:tile-locks-updated', syncUnlock);
     root.addEventListener('cd:locale-ready', function () { if (model) refresh(); });
     if (root.G_PILLARS && root.G_PILLARS.d) start();
   }

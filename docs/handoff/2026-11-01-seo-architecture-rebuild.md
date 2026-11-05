@@ -1,6 +1,6 @@
 ---
 status: active
-updated: 2026-11-03
+updated: 2026-11-04
 next: "superpowers:writing-plans로 묶음 ③ B+A3 원장·hreflang 계획을 쓴다(묶음 ② 운영 반영은 2026-11-03 실측 끝, 작은 후속은 docs/handoff/2026-11-02-seo-post-promotion-followups.md)"
 ---
 
@@ -20,9 +20,11 @@ next: "superpowers:writing-plans로 묶음 ③ B+A3 원장·hreflang 계획을 �
 
 ## 지금 상태
 
-- 운영 SHA `a221a78eb`(2026-11-03, 사용자 승인 1회 배포 런 https://github.com/rei1237/codedestiny/actions/runs/41601761405). 영냥이 AEO 작업(`docs/handoff/2026-11-03-yeongnyangi-aeo.md`)과 다른 세션의 CRO·영상·글꼴 커밋이 들어 있다. 묶음 ③은 시작하지 않았다.
-  - 실측(한국 IP, Chrome UA, `Accept: text/html`): `/version.json`·`/api/version`이 `a221a78eb`. `/`·`/saju/`·`/en/saju/` 200 `private, no-cache`. `/checkout/`·`/account/password/`·`/admin/`·`/login/`·`/diary/` 200 `private, no-store`. `/saju`·`/index.html` 절대 URL 301 `no-store`. `/?lang=en` 302 `private, no-store`. 해외 IP는 측정하지 않았다.
-  - 후속: `app/layout.js`의 `analytics.js?v=20261103-discovery-v1` 고정 키가 엣지 캐시의 옛 파일을 돌려줘 Next 페이지에는 `ai_source`가 없다. 정적 미러 페이지(`/ggulggul/`, `/en/` 등)에만 있다. 키를 올려 재배포해야 한다.
+- 운영 SHA `9ecd08743`(2026-11-04, 릴리스 런 https://github.com/rei1237/codedestiny/actions/runs/41739205895). 앞선 운영 `bf9c77a64` 위에 영냥이 AEO 결정 반영과 다른 세션 커밋이 더해졌다. 묶음 ③은 시작하지 않았다.
+  - 2026-11-04 릴리스 런 41729564058(`914fca524`)은 배포 전 테스트에서 막혔고, 원인과 수정은 `docs/handoff/2026-11-03-aeo-remaining-work.md`의 "운영 재반영 완료"를 본다.
+  - 아래 두 줄의 상세 실측은 이전 운영 `bf9c77a64` 기준이다. `9ecd08743`에서는 SHA, 주요 경로 상태 코드, `ai_source`만 다시 쟀다.
+  - 실측(2026-11-04, 한국 IP, Chrome UA, `Accept: text/html`): `/version.json`·`/api/version`이 `bf9c77a64`. `/`·`/saju/`·`/en/saju/` 200 `private, no-cache`. `/checkout/`·`/account/password/`·`/admin/`·`/login/`·`/diary/` 200 `private, no-store`. `/saju`·`/index.html` 절대 URL 301 `no-store`. `/?lang=en` 302 `private, no-store`. 해외 IP는 측정하지 않았다.
+  - `/`, `/yeongnyangi/`, `/saju/`, `/insights/`가 `analytics.js?v=20261103-ai-source-v1`을 읽고 파일에 `ai_source`가 있다. GA4 수신은 측정하지 않았다.
 - 묶음 ① main push 완료(2026-11-02, origin/main `32397321e` 위로 rebase). 운영 배포는 2026-11-02 사용자 승인으로 1회 실행했다(https://github.com/rei1237/codedestiny/actions/runs/41335766465, `98643c274..6d514ecaf` 66커밋). 계획은 `docs/superpowers/plans/2026-11-01-seo-bundle-1-v0-a2-d1.md`(`e00cf2f88`).
   - 커밋(rebase 후): T1 `cc57c748f`·`78e5cd1f9`, T2 `f4e76db9a`·`ad9e418d1`, T3 `6492b2ca7`·`f4f268314`, T4 `9807f5e50`·`ebecc316a`, T5 `f71eafb85`, T6 `023be9a18`, T7 `cdd15f625`, T8 `d7ba36b65`, T9 `53c4959ca`, 최종 검토 수정 `29ec78b93`.
   - 태스크마다 새 검토자, 끝에 Opus 전체 검토. Important 1건(jsonld-dates 시각 비교 → 새벽 빌드 거짓 실패)은 KST 날짜 비교로 고쳤다.

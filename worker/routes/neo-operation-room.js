@@ -34,7 +34,9 @@ import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import {SYNC_LLM_TIMEOUT_CEILING_MS, PAID_LLM_PARTS_PER_REQUEST } from "../lib/sync-llm-timeout.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { calculateLifeBookAiSaju } from "../lib/life-book-ai-saju.js";
-import { calculateZiweiAiChart, describeBrightness, formatStarWithBrightness } from "../lib/ziwei-ai-chart.js";
+import { approvedSajuLabels, lifeBookPillars, overlayApprovedLifeBookChart, sajuAuthorityOn } from "../lib/saju-authority-consumer.js";
+import { calculateZiweiConsumerChart } from "../lib/ziwei-consumer-chart.js";
+import { describeBrightness, formatStarWithBrightness } from "../lib/ziwei-ai-chart.js";
 import { calculateVedicAiChart } from "../lib/vedic-ai-chart.js";
 import { prepareAstroPremiumCalculation } from "../lib/astro-premium-generator.js";
 import {
@@ -658,20 +660,22 @@ function summarizeSajuMajorLuck(majorLuck) {
 }
 
 function summarizeSaju(chart) {
+  const approved = chart.approvedSaju || null;
   const majorLuck = summarizeSajuMajorLuck(chart.majorLuck);
   const currentCycle = majorLuck?.currentCycle || null;
   const yearlyLuck = safeArray(chart.yearlyLuck).slice(0, 4);
   const thisYear = yearlyLuck[0] || null;
   return {
     method: "saju",
-    summary: "사주 엔진이 산출한 사주팔자, 일간, 오행 분포, 십성 분포, 용신, 합충, 대운과 세운 흐름을 근거로 삼는다.",
+    summary: `사주 엔진이 산출한 사주팔자, 일간, 오행 분포, 십성 분포, ${approved ? "격국, 용신 후보" : "용신"}, 합충, 대운과 세운 흐름을 근거로 삼는다.`,
     evidenceSummary: [
       chart.dayPillar ? `일주: ${chart.dayPillar}` : "",
       chart.dayMaster ? `일간: ${chart.dayMaster}` : "",
       chart.strength ? `신강약 판단: ${chart.strength}` : "",
       currentCycle?.pillar ? `현재 대운: ${currentCycle.pillar} (${currentCycle.startAge}-${currentCycle.endAge}세, ${majorLuck.direction || ""})`.trim() : "",
       thisYear?.pillar ? `올해 세운: ${thisYear.year}년 ${thisYear.pillar}${thisYear.stemTenGod ? ` (${thisYear.stemTenGod})` : ""}` : "",
-      chart.usefulGod ? `용신 방향: ${chart.usefulGod}` : "",
+      approved ? `격국: ${approved.gyeokguk}` : "",
+      approved ? `용신: ${approved.yongshinLabel}` : chart.usefulGod ? `용신 방향: ${chart.usefulGod}` : "",
     ].filter(Boolean).join("\n"),
     pillars: compactObject({
       year: chart.yearPillar,
@@ -685,6 +689,8 @@ function summarizeSaju(chart) {
     strength: clean(chart.strength, 200) || null,
     usefulGod: clean(chart.usefulGod, 200) || null,
     unfavorableGod: clean(chart.unfavorableGod, 200) || null,
+    // 승인 강약은 짧은 라벨이라 성향 해석이 문장 접두어로 읽지 못한다. isStrong 을 함께 넘긴다.
+    ...(approved ? { gyeokguk: approved.gyeokguk, gyeokgukReason: clean(approved.gyeokgukReason, 300), power: { isStrong: approved.isStrong }, approvedRules: approved.promptRules } : {}),
     seasonalBalance: compactObject(chart.seasonalBalance, 6),
     natalInteractions: compactObject(chart.natalInteractions, 6),
     strongestTenGods: safeArray(chart.fortuneFacts?.strongestTenGods).slice(0, 5),
@@ -913,12 +919,17 @@ async function calculateMethodSummary(env, normalized, request) {
   if (input.selectedMethod === "saju") {
     const selfChart = calculateLifeBookAiSaju(input.birthInfo);
     const partnerChart = partner ? calculateLifeBookAiSaju(partner) : null;
+    if (sajuAuthorityOn(env)) {
+      const self = approvedSajuLabels(lifeBookPillars(selfChart));
+      const approvedSaju = partnerChart ? { self, partner: approvedSajuLabels(lifeBookPillars(partnerChart)) } : null;
+      return withCompat(summarizeSaju(overlayApprovedLifeBookChart(selfChart, self)), input, "saju", selfChart, partnerChart, { approvedSaju });
+    }
     return withCompat(summarizeSaju(selfChart), input, "saju", selfChart, partnerChart);
   }
   if (input.selectedMethod === "ziwei") {
     const year = new Date().getFullYear();
-    const selfChart = calculateZiweiAiChart({ birthInfo: input.birthInfo }, { year });
-    const partnerChart = partner ? calculateZiweiAiChart({ birthInfo: partner }, { year }) : null;
+    const selfChart = calculateZiweiConsumerChart({ birthInfo: input.birthInfo }, { env, year });
+    const partnerChart = partner ? calculateZiweiConsumerChart({ birthInfo: partner }, { env, year }) : null;
     return withCompat(summarizeZiwei(selfChart), input, "ziwei", selfChart, partnerChart);
   }
   if (input.selectedMethod === "vedic") {
@@ -1698,7 +1709,12 @@ async function handleStart(request, env, ctx = null, recoveryAuth = null) {
   delete resumeBody.accessToken;
   if (!existing) {
     try {
+      // 판정이 재시도마다 달라지지 않게 새 기록을 만들 때 고정한다. 기존 기록은 아래 false 경로로 예전 값을 유지한다.
+      const initialZiweiSummary = (normalized.input.selectedMethod === 'ziwei' && env?.ZIWEI_CALENDAR_AUTHORITY_V2 === 'true')
+        || (normalized.input.selectedMethod === 'saju' && sajuAuthorityOn(env))
+        ? await calculateMethodSummary(env, normalized, request) : null;
       await NeoOperationRoomConsultation.create({ id: sessionId, userId: auth.userId, idempotencyKey, inputHash: normalized.inputHash,
+        ...(initialZiweiSummary ? { methodSummary: initialZiweiSummary } : {}),
         ...normalized.input, accessType: access.accessType, paymentId: access.paymentId || "", status: "generating",
         llmMeta: { locale, resumeBody, sections: {}, attempts: {}, ...(auth.tossNative?{tossNative:true}:{}) } });
       existing = await NeoOperationRoomConsultation.findOne({ id: sessionId, userId: auth.userId }).lean();
@@ -1722,7 +1738,7 @@ async function handleStart(request, env, ctx = null, recoveryAuth = null) {
   const filter = { id: sessionId, userId: auth.userId, "llmMeta.lockToken": lockToken, status: { $ne: "completed" } };
   try {
     if (!doc.methodSummary) {
-      const methodSummary = await calculateMethodSummary(env, normalized, request);
+      const methodSummary = await calculateMethodSummary({ ...env, ZIWEI_CALENDAR_AUTHORITY_V2: 'false', SAJU_GYEOKGUK_AUTHORITY_V2: 'false' }, normalized, request);
       doc = await saveNeoDelivery(filter, { methodSummary, llmMeta: { ...doc.llmMeta, resumeBody } }, sessionId);
     }
     const sections = doc.methodSummary?.compat ? neoCompatInitialSections(normalized.input.selectedMethod) : NEO_INITIAL_SECTIONS;

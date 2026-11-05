@@ -1697,7 +1697,12 @@
       // Locale is display context only; the grant and operation key stay intact.
       if (win && resume.locale) {
         if (win.__cdNativeLangBound && typeof win.changeLanguage === "function") {
-          win.changeLanguage(resume.locale);
+          // 🔴 changeLanguage 를 부르지 않는다. 사용자 언어 전환용이라 홈에서는 문서를 다시 연다 —
+          // 재개가 끊겨 티켓이 남고 다음 문서가 같은 일을 반복한다("10분째 새로고침", 2026-11-05).
+          var currentLocale = typeof win.cdGetCurrentLanguage === "function" ? win.cdGetCurrentLanguage() : "";
+          if (currentLocale !== resume.locale) {
+            win.dispatchEvent(new CustomEvent("cd:locale-ready", { detail: { lang: resume.locale, source: "paid-resume" } }));
+          }
         } else if (win.history && win.location) {
           var url = new URL(win.location.href);
           url.searchParams.set("lang", resume.locale);

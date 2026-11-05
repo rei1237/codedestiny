@@ -137,7 +137,7 @@ test('legacy results cap cards, retain result actions and hide failed requests',
   globalThis.setInterval=()=>0;globalThis.clearInterval=()=>{};
   const products=Array.from({length:6},(_,i)=>({id:String(i),category:'books',title:'검증 도서 '+i,imageUrl:'/images/fixture.png',reason:'기록 실천',affiliateUrl:'https://link.coupang.com/a/FixtureOnly',price:null}));
   globalThis.fetch=async()=>({ok:true,json:async()=>({enabled:true,products})});
-  const { mountRecommendation, mountSajuRecommendation }=await import('../../js/recommendations-legacy.mjs');
+  const { mountRecommendation, mountSajuRecommendation, iljuAdviceLines }=await import('../../js/recommendations-legacy.mjs');
   const host=document.querySelector('main'),save=document.querySelector('#save');
   await mountRecommendation(host,{service:'legacy-tarot',source:'result'},save);
   assert.equal(host.querySelectorAll('article').length,4);
@@ -145,10 +145,10 @@ test('legacy results cap cards, retain result actions and hide failed requests',
   assert.ok(host.firstElementChild.classList.contains('cd-recommendations-disclosure'));
   assert.equal(host.querySelector('.cd-recommendations h2')?.textContent,'풀이를 일상에 담는 작은 선택');
   assert.equal(host.querySelector('.cd-recommendations-lead')?.textContent,'기록하고, 집중하고, 잠시 쉬어가는 시간을 위해.');
-  const advice=document.createElement('ul');advice.id='iljuAdviceList';advice.innerHTML='<li>집중 시간을 확보하세요.</li>';host.prepend(advice);
+  const advice=['집중 시간을 확보하세요.'];
   let requested;
   globalThis.fetch=async url=>{requested=new URL(url,'http://localhost');return {ok:true,json:async()=>({enabled:true,products:requested.searchParams.has('topic')?products:[]})};};
-  await mountSajuRecommendation(host,save);
+  await mountSajuRecommendation(host,save,advice);
   assert.equal(requested.searchParams.get('topic'),'focus');
   assert.equal(requested.searchParams.get('service'),'legacy-saju');
   assert.equal(requested.searchParams.has('advice'),false);
@@ -166,14 +166,78 @@ test('legacy results cap cards, retain result actions and hide failed requests',
   assert.notEqual(requested.searchParams.get('seed'),previousSeed);
   for(const img of host.querySelectorAll('article img'))img.dispatchEvent(new dom.window.Event('error'));
   assert.equal(host.querySelectorAll('[data-recommendation-block]').length,0);
-  advice.innerHTML='<li>상대방은 일기를 기록하세요.</li>';
-  await mountSajuRecommendation(host,save);
+  await mountSajuRecommendation(host,save,['상대방은 일기를 기록하세요.']);
   assert.equal(host.querySelectorAll('[data-recommendation-block]').length,0);
   globalThis.fetch=async()=>({ok:false,json:async()=>({enabled:true,products})});
   await mountRecommendation(host,{source:'result'},save);
   assert.equal(host.querySelectorAll('[data-recommendation-block]').length,0);
   assert.equal(save.textContent,'결과 저장');
  } finally {for(const k of names){if(saved[k]===undefined)delete globalThis[k];else globalThis[k]=saved[k];}dom.window.close();}
+});
+
+test('legacy saju tags come from the free ilju advice, not from the server-filled list', async () => {
+ const { JSDOM } = await import('jsdom');
+ const dom = new JSDOM('<html lang="ko"><body><main><ul id="iljuAdviceList"><li>안내 한 덩어리</li></ul><button id="save">결과 저장</button></main></body></html>', {url:'http://localhost/'});
+ const names=['window','document','sessionStorage','location','fetch','setInterval','clearInterval'];
+ const saved=Object.fromEntries(names.map(k=>[k,globalThis[k]]));
+ try {
+  for(const k of ['window','document','sessionStorage','location'])globalThis[k]=k==='window'?dom.window:dom.window[k];
+  globalThis.setInterval=()=>0;globalThis.clearInterval=()=>{};
+  const { mountSajuRecommendation, iljuAdviceLines }=await import('../../js/recommendations-legacy.mjs');
+  // 앞 3문장만, 태그는 걷어낸다(서버 목록 규칙과 같다).
+  assert.deepEqual(iljuAdviceLines('<b>하나.</b> 둘! 셋? 넷. 다섯.'),['하나.','둘!','셋?']);
+  assert.deepEqual(iljuAdviceLines(''),[]);
+  assert.deepEqual(iljuAdviceLines(undefined),[]);
+  const host=document.querySelector('main'),save=document.querySelector('#save');
+  let requested;
+  globalThis.fetch=async url=>{requested=new URL(url,'http://localhost');return {ok:true,json:async()=>({enabled:true,products:[]})};};
+  // 잠금 상태의 서버 칸(안내 한 덩어리)이나 아직 비어 있는 칸과 상관없이 같은 태그가 나온다.
+  await mountSajuRecommendation(host,save,iljuAdviceLines('집중 시간을 확보하세요. 둘째 문장.'));
+  assert.equal(requested.searchParams.get('topic'),'focus');
+  host.querySelector('#iljuAdviceList').innerHTML='';
+  requested=null;
+  await mountSajuRecommendation(host,save,iljuAdviceLines('집중 시간을 확보하세요. 둘째 문장.'));
+  assert.equal(requested.searchParams.get('topic'),'focus');
+  // 화면의 #iljuAdviceList 는 어떤 경우에도 읽지 않는다: 목록을 안 주거나 비면 태그가 없다.
+  host.querySelector('#iljuAdviceList').innerHTML='<li>집중 시간을 확보하세요.</li>';
+  for(const args of [[],[[]]]){
+    requested=null;
+    await mountSajuRecommendation(host,save,...args);
+    assert.equal(requested?.searchParams.has('topic')??false,false);
+  }
+ } finally {for(const k of names){if(saved[k]===undefined)delete globalThis[k];else globalThis[k]=saved[k];}dom.window.close();}
+});
+
+test('locale re-mount in reading-personas passes the same free advice regardless of the server-filled list', async () => {
+ const { JSDOM } = await import('jsdom');
+ const { iljuAdviceLines, adviceTopics } = await import('../../js/recommendations-legacy.mjs');
+ const ADVICE = '집중 시간을 확보하세요. 둘째 문장.';
+ const run = async (listHtml) => {
+  const dom = new JSDOM('<html lang="ko"><body><div id="resultPage"><ul id="iljuAdviceList">' + listHtml + '</ul></div><div id="shareSection"></div></body></html>', {url:'http://localhost/',pretendToBeVisual:true,runScripts:'outside-only'});
+  const calls = [];
+  const w = dom.window;
+  w.__legacy = { mountSajuRecommendation:(...args)=>{calls.push(args);}, iljuAdviceLines };
+  w.G_PILLARS = {d:{g:'辛',j:'酉'}};
+  w.cdSajuRecommendationAdvice = () => ADVICE;
+  // 동적 import 만 실제 모듈 대신 고정 약속으로 바꿔 changed() 의 호출 인자를 본다.
+  w.eval(readFileSync('js/core/saju/reading-personas.js','utf8').replace("import('/js/recommendations-legacy.mjs')", 'Promise.resolve(window.__legacy)'));
+  w.dispatchEvent(new w.Event('cd:locale-ready'));
+  await new Promise(r=>setTimeout(r,30));
+  dom.window.close();
+  return calls;
+ };
+ const locked = await run('<li>잠금 안내 한 덩어리</li>');
+ const filled = await run('<li>구매자에게만 보이는 유료 조언 문장입니다. 일기를 기록하세요.</li>');
+ const empty = await run('');
+ for (const calls of [locked, filled, empty]) {
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0][0].id, 'resultPage');
+  assert.equal(calls[0][1].id, 'shareSection');
+  assert.deepEqual(calls[0][2], iljuAdviceLines(ADVICE));
+ }
+ assert.deepEqual(adviceTopics(locked[0][2]), adviceTopics(filled[0][2]));
+ assert.deepEqual(adviceTopics(filled[0][2]), adviceTopics(empty[0][2]));
+ assert.deepEqual(adviceTopics(locked[0][2]), ['focus']);
 });
 
 test('legacy refresh keeps the cards a reader is looking at when nothing changed', async () => {

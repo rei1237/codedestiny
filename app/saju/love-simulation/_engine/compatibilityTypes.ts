@@ -33,6 +33,8 @@ export interface NormalizedSaju {
   /** natalAnalysis.yongshinAnalysis.gisin */
   gisin: ElementKey[];
   dayMasterStrength: string | null;
+  /** 승인 판정 라벨. 있으면 고객 문구만 바꾸고 점수 입력(coreYongshin·gisin)은 그대로 쓴다. */
+  approvedYongshinLabel?: string;
   timeUnknown: boolean;
 }
 

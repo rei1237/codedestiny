@@ -12,6 +12,7 @@
  * DB 를 읽지 않으므로 admission 슬롯을 **0개** 쓴다. GET /api/billing/features 가 Mongo 왕복 0으로
  * 내려갈 수 있는 이유가 이것이다.
  */
+import { SAJU_BUNDLE_FEATURE_KEY, isSajuBundleSaleClosed } from "../lib/saju-bundle-policy.js";
 import {
   calculatePaidFeatureMembershipCreditCost,
   getPaidFeaturePaymentPolicy,
@@ -120,6 +121,24 @@ export function resolveProduct(input = {}) {
     familyPassOnly,
     monthlyExcluded: getPaidFeaturePaymentPolicy(canonicalFeatureKey).monthlyExcluded,
     allowedPaymentMethods: Object.freeze(getPaidFeaturePaymentPolicy(canonicalFeatureKey).allowedPaymentMethods),
+  });
+}
+
+/**
+ * 사주 영구 묶음 도입(2026-11-04) 이후 묶음 포함·판매 종료 키는 **새로 사는 일**이 닫혀 있다.
+ * 새 주문·결제 시도 입구가 보유 확인 뒤에 부른다. 확정·환불·정산·과거 구매 증빙은 이 함수를 타지 않는다 —
+ * 이미 만든 주문과 산 권리는 그대로이기 때문이다. 가격행은 그대로 두므로 resolveProduct 는 계속 값을 돌려준다.
+ * 화면은 응답의 bundleFeatureKey 로 묶음 안내를 연다.
+ * @throws {PaymentError} PRODUCT_SALE_ENDED (409)
+ */
+export function assertProductSaleOpen(productOrKey) {
+  const featureKey = normalizePaidFeatureKey(
+    typeof productOrKey === "string" ? productOrKey : (productOrKey?.featureKey || productOrKey?.productId || ""),
+  );
+  if (!isSajuBundleSaleClosed(featureKey)) return;
+  throw paymentError("PRODUCT_SALE_ENDED", "이 항목은 개별 판매가 끝났어요. 사주 전체 풀이 평생 소장으로 열 수 있어요.", {
+    featureKey,
+    bundleFeatureKey: SAJU_BUNDLE_FEATURE_KEY,
   });
 }
 

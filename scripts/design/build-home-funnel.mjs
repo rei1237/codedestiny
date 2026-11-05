@@ -1,3 +1,5 @@
+import { consultationStories, storyBenefits } from '../../lib/brand/consultation-stories.mjs';
+import { RECORD_SERVICES } from '../../lib/records/service-registry.js';
 import { moonlightVideo } from '../../lib/marketing/moonlight-video.mjs';
 import { renderPassBenefits, passBenefitOffers } from '../../lib/marketing/pass-benefits.mjs';
 import { JSDOM } from 'jsdom';
@@ -15,6 +17,7 @@ import { renderYehwaHome } from '../../lib/marketing/yehwa-home.mjs';
 
 const original = readFileSync('index.html', 'utf8');
 const vars = {mvSrc720:moonlightVideo.src720,mvSrc1080:moonlightVideo.src1080,mvCaptions:moonlightVideo.captions};
+vars.expertStories = '<section class="cd-expert-stories" aria-labelledby="cdExpertStoriesTitle" lang="ko" data-cd-no-trans><h2 id="cdExpertStoriesTitle">다른 시선으로 읽는 내 이야기</h2><p>전문가 상담도 웹툰으로 먼저 살펴보세요.</p><div>'+['ziwei','astrology','vedic','sukuyo-compat','legacy-naming','karma','fusion'].map(id=>{const service=RECORD_SERVICES.find(s=>s.id===id);return '<article><h3>'+service.name+'</h3><p>'+consultationStories[id].lead+'</p><p>'+storyBenefits[id].join(' · ')+'</p><nav aria-label="'+service.name+'"><a href="/consultations/'+id+'/">웹툰으로 알아보기</a><a href="'+service.href+'">상담 시작하기</a></nav></article>';}).join('')+'</div></section>';
 vars.consultationMethods = renderConsultationMethodGuide('ggul-consultation-methods');
 
 // 가벼운 체험만 선별한다. 유료 표시는 서버 상품 정본에서 생성한다.
@@ -42,7 +45,7 @@ const registryWindow = {};
 runInNewContext(readFileSync('js/core/service-registry.js', 'utf8'), { window: registryWindow });
 writeFileSync('lib/marketing/yehwa-home.generated.json', JSON.stringify(registryWindow.__cdServiceRegistry, null, 2) + '\n');
 const FREE_CARDS = [
-  { id: 'saju', key: 'freeSaju', title: '무료 사주', noteKo: '생년월일로 바로 보기', attrs: 'data-cdh-free ' },
+  { id: 'saju', key: 'freeSaju', title: '무료 만세력', noteKo: '생년월일로 바로 보기', attrs: 'data-cdh-free ' },
   { id: 'tarot', key: 'freeTarot', title: '타로', noteKo: '카드 한 장으로 가볍게' },
   { id: 'ziwei', key: 'freeZiwei', title: '자미두수', noteKo: '12궁 명반 보기' },
   { id: 'sukuyo', key: 'freeSukuyo', title: '숙요점', noteKo: '나의 본명숙 찾기' },
@@ -108,21 +111,21 @@ const QUESTION_CATEGORIES = [
   ] },
   { id: 'reunion', label: '재회', chip: '다시 만날 가능성', img: '/images/home-questions/reunion', questions: [
     { id: 'reunionAgain', href: '/tarot/reunion/', key: 'tarot-reunion-reading', master: 'yeoni', t: '우리, 다시 만날 수 있을까?', b: '재회운 타로', price: 'w5000' },
-    { id: 'reunionContact', href: '/yeongnyangi/?question=reconnect#questions', key: 'yeongnyangi-tarot-mackerel', master: 'yeongnyangi', t: '다시 연락해도 될까, 기다려야 할까?', b: '영냥이 · 타로', price: 'from5000' },
+    { id: 'reunionContact', href: '/yeongnyangi/?question=reconnect#questions', key: 'yeongnyangi-tarot-mackerel', master: 'yeongnyangi', t: '다시 연락해도 될까, 기다려야 할까?', b: '영냥이 · 타로', price: 'from10000' },
     { id: 'reunionClosure', href: '/fortune-tea-house/', key: 'fortune-tea-house-tarot-consultation', master: 'yeoni', t: '이 마음, 어떻게 정리하면 좋을까?', b: '타로·사주 · 운명의 찻집', price: 'from5000' },
   ] },
   { id: 'marriage', label: '결혼', chip: '결혼할 사람', img: '/images/home-questions/marriage', questions: [
-    { id: 'marriagePartner', href: '/yeongnyangi/?question=partner#questions', key: 'yeongnyangi-saju-mackerel', master: 'yeongnyangi', t: '나는 어떤 사람과 결혼하게 될까?', b: '영냥이 · 사주', price: 'from5000' },
+    { id: 'marriagePartner', href: '/yeongnyangi/?question=partner#questions', key: 'yeongnyangi-saju-mackerel', master: 'yeongnyangi', t: '나는 어떤 사람과 결혼하게 될까?', b: '영냥이 · 사주', price: 'from10000' },
     { id: 'marriageDate', href: '/nakshatra/muhurta/', key: 'nakshatra-muhurta', master: 'yun', t: '이 일, 언제 하면 좋을까?', b: '인도 점성술 · 택일 무후르타', price: 'w7000' },
   ] },
   { id: 'money', label: '돈', chip: '돈이 풀리는 때', img: '/assets/yeongnyangi/scenes/wealth', questions: [
-    { id: 'moneyWhen', href: '/yeongnyangi/?question=money#questions', key: 'yeongnyangi-saju-salmon', master: 'yeongnyangi', t: '내 돈은 언제부터 풀릴까?', b: '영냥이 · 사주', price: 'from10000' },
+    { id: 'moneyWhen', href: '/yeongnyangi/?question=money#questions', key: 'yeongnyangi-saju-salmon', master: 'yeongnyangi', t: '내 돈은 언제부터 풀릴까?', b: '영냥이 · 사주', price: 'from15000' },
     { id: 'moneyWay', href: '/ziwei/chart/', master: 'musung', t: '나에게 맞는 돈 버는 방식은 뭘까?', b: '자미두수 명반', price: 'free' },
     { id: 'moneyMonth', href: '/tarot/year/', key: 'tarot-year-fortune', master: 'yeoni', t: '돈이 모이는 달을 미리 알 수 있을까?', b: '타로 · 십이지신 천운 타로', price: 'w10000' },
   ] },
   { id: 'career', label: '일', chip: '이직해도 될까', img: '/assets/yeongnyangi/scenes/work', questions: [
     { id: 'careerMove', href: '/tarot-ijik.html', key: 'tarot-ijik', master: 'yeoni', t: '지금 이직해도 괜찮을까?', b: '타로 · 이직 운명의 카드', price: 'w5000' },
-    { id: 'careerFit', href: '/yeongnyangi/?question=career-astrology#questions', key: 'yeongnyangi-astrology-salmon', master: 'yeongnyangi', t: '나에게 맞는 일은 따로 있을까?', b: '영냥이 · 점성술', price: 'from10000' },
+    { id: 'careerFit', href: '/yeongnyangi/?question=career-astrology#questions', key: 'yeongnyangi-astrology-salmon', master: 'yeongnyangi', t: '나에게 맞는 일은 따로 있을까?', b: '영냥이 · 점성술', price: 'from15000' },
     { id: 'careerTurn', href: '/destiny-compass/', key: 'destiny-compass-life-voyage', master: 'neo', t: '지금 방향을 바꿔도 될까?', b: '4체계 · 운명의 나침반', price: 'w7000' },
   ] },
   { id: 'future', label: '미래', chip: '내 인생의 황금기 · 올해 가장 중요한 일', img: '/assets/yeongnyangi/scenes/journey', questions: [
@@ -131,12 +134,12 @@ const QUESTION_CATEGORIES = [
     { id: 'futureCross', href: '/fusion-fortune/?from=home_question', key: 'fusion-fortune-consultation', master: 'musung', fusion: true, t: '운세마다 말이 다를 때, 무엇을 따를까?', b: '6체계 교차 · 초융합 심층 리딩', price: 'w50000' },
   ] },
   { id: 'self', label: '나 자신', chip: '나는 왜 같은 선택을 반복할까?', img: '/assets/yeongnyangi/scenes/self', questions: [
-    { id: 'selfRepeat', href: '/yeongnyangi/readings/saju/', key: 'yeongnyangi-saju-mackerel', master: 'yeongnyangi', t: '나는 왜 같은 선택을 반복할까?', b: '영냥이 · 사주', price: 'from5000' },
+    { id: 'selfRepeat', href: '/yeongnyangi/readings/saju/', key: 'yeongnyangi-saju-mackerel', master: 'yeongnyangi', t: '나는 왜 같은 선택을 반복할까?', b: '영냥이 · 사주', price: 'from10000' },
     { id: 'selfStrength', href: '/saju/animal-destiny/', key: 'animal-destiny-unlock', master: 'neo', t: '남들이 모르는 내 강점은 뭘까?', b: '사주 · 십이운성 동물점', price: 'w7000', alt: { href: '/human-design/', name: '휴먼 디자인' } },
     { id: 'selfGrain', href: '/?action=cdOneStepFreeSajuEntry', master: 'neo', t: '나는 어떤 결의 사람일까?', b: '사주팔자', price: 'free' },
   ] },
   { id: 'people', label: '인간관계', chip: '가까워질수록 왜 지칠까?', img: '/images/home-questions/people', questions: [
-    { id: 'peopleTired', href: '/yeongnyangi/readings/sukuyo/', key: 'yeongnyangi-sukuyo-mackerel', master: 'yeongnyangi', t: '가까워질수록 왜 지칠까?', b: '영냥이 · 숙요', price: 'from5000', alt: { href: '/index.html?action=openSukuyoModal', name: '숙요점' } },
+    { id: 'peopleTired', href: '/yeongnyangi/readings/sukuyo/', key: 'yeongnyangi-sukuyo-mackerel', master: 'yeongnyangi', t: '가까워질수록 왜 지칠까?', b: '영냥이 · 숙요', price: 'from10000', alt: { href: '/index.html?action=openSukuyoModal', name: '숙요점' } },
     { id: 'peopleMatch', href: '/nakshatra/compat/', key: 'nakshatra-compat', master: 'hanbi', t: '그 사람과 나, 어떤 궁합일까?', b: '인도 점성술·숙요 · 동서 통합 궁합', price: 'w20000' },
     { id: 'peopleDistance', href: '/fortune-chat/', key: 'fortune-chat-consultation', master: 'yeoni', t: '이 관계, 거리를 둬야 할까?', b: '대화형 운명 상담', price: 'w5000' },
   ] },
@@ -167,6 +170,7 @@ ${QUESTION_CATEGORIES.map((category, index) => `    <div class="cd-concern__pane
 </section>`;
 
 // 덱 순서가 곧 강약이다. 대표 상담 3종(연애 비책·신년운세·인생의 책)을 Ⅰ–Ⅲ 첫 줄에 두고, 네오·연이·마스터 상담이 뒤를 잇는다.
+const storySlugByProduct = {'love-secret-ai':'love-secret','new-year-ai':'new-year','life-book-ai':'life-book','neo-operation-room':'neo','fortune-tea-house':'tea','master-love-codex':'codex'};
 const signatureProducts = [
   {
     id: 'love-secret-ai',
@@ -174,6 +178,7 @@ const signatureProducts = [
     href: '/love-secret-ai/',
     title: '연애 비책',
     question: '마음부터 들려주세요. 두 분 사이의 거리는 서한비가 재어 드릴게요.',
+    popupCopy: '두 사람 사이의 거리와 반복되는 관계 패턴을 함께 살펴보세요.',
     image: '/images/home/love-secret-masters-v1-1200.webp',
     imageSrcset: '/images/home/love-secret-masters-v1-600.webp 600w, /images/home/love-secret-masters-v1-1200.webp 1200w',
     imageAlt: '달빛 찻집에서 찻잔을 든 연이와 관계 장부를 곁에 둔 서한비',
@@ -187,6 +192,7 @@ const signatureProducts = [
     href: '/new-year-ai-consultation/',
     title: '신년운세',
     question: '올해 판세는 내가 먼저 읽는다. 어디서 밀고, 언제 멈출까?',
+    popupCopy: '올해 어디서 밀고 언제 멈출지, 시기별 판세와 행동 기준을 정리해요.',
     image: '/images/home/new-year-neo-v1-1200.webp',
     imageSrcset: '/images/home/new-year-neo-v1-600.webp 600w, /images/home/new-year-neo-v1-1200.webp 1200w',
     imageAlt: '새해 첫 해가 드는 작전실에서 열두 달 작전판을 짚는 네오와 백사자',
@@ -200,6 +206,7 @@ const signatureProducts = [
     href: '/life-book-ai/',
     title: '인생의 책',
     question: '당신의 인생, 첫 장부터 읽어 드릴게요.',
+    popupCopy: '타고난 기질과 인생의 큰 흐름을 한 권의 이야기처럼 읽어 드려요.',
     image: '/images/home/life-book-yun-v2-1200.webp',
     imageSrcset: '/images/home/life-book-yun-v2-600.webp 600w, /images/home/life-book-yun-v2-1200.webp 1200w',
     imageAlt: '달빛 서고에서 빛이 오르는 녹색 인생의 책을 펼친 윤달과 흰 고양이',
@@ -213,6 +220,7 @@ const signatureProducts = [
     href: '/neo-operation-room/',
     title: '네오의 팩폭 전략실',
     question: '고민은 충분히 했다. 이제 무엇부터 바꿀까?',
+    popupCopy: '고민을 정리하고 지금 실행할 작전을 현실적으로 세워보세요.',
     image: '/images/feature-details/neo-operation-room-hero-v2-textless.webp',
     imageAlt: '달빛 전략실에서 선택의 판세를 정리하는 네오',
     featureKey: 'neo-operation-room-consultation',
@@ -225,6 +233,7 @@ const signatureProducts = [
     href: '/fortune-tea-house/',
     title: '연이의 운명 찻집',
     question: '재회부터 사업까지, 어떤 선택이 고민인가요?',
+    popupCopy: '재회부터 사업까지, 마음에 걸린 선택을 연이와 차분히 풀어보세요.',
     image: '/images/home/yeoni-tea-together-v1-1200.webp',
     imageAlt: '한복 입은 연이와 꽃돼지가 함께 차를 건네는 운명의 찻집',
     featureKey: 'fortune-tea-house-tarot-consultation',
@@ -237,6 +246,7 @@ const signatureProducts = [
     href: '/master-love-codex/',
     title: '마스터 인연의 서',
     question: '사람은 바뀌는데, 연애의 고민은 왜 비슷할까?',
+    popupCopy: '비슷한 연애 고민이 반복되는 이유를 나의 인연 패턴부터 읽어보세요.',
     image: '/images/feature-details/master-love-codex-hero-v3.webp',
     imageAlt: '달빛 아래 인연의 지도를 펼쳐 보는 마스터 인연의 서',
     featureKey: 'master-love-codex',
@@ -246,6 +256,7 @@ const signatureProducts = [
   },
 ];
 for (const product of signatureProducts) {
+  product.question = consultationStories[storySlugByProduct[product.id]].lead;
   const art = introductionArt[product.id];
   if (!art) throw new Error(`Missing introduction artwork: ${product.id}`);
   product.image = art.image.replace('.webp', '-640.webp');
@@ -258,6 +269,11 @@ const signaturePrice = (featureKey, suffix = '') => {
   if (!Number.isSafeInteger(amount) || amount <= 0) throw new Error(`Missing signature consultation price: ${featureKey}`);
   return `${amount.toLocaleString('ko-KR')}원${suffix}`;
 };
+const escapeAttribute = (value) => String(value)
+  .replace(/&/g, '&amp;')
+  .replace(/"/g, '&quot;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;');
 // 마스터 칩 — 아바타는 build-master-avatars.mjs 가 만든 128px 한 장. 이름이 옆에 있으니 이미지는 장식(alt="").
 const signatureMaster = ({ caption, names, avatars }) => `<span class="cd-sig-card__masters"><span class="cd-sig-card__avatars" aria-hidden="true">${avatars.map((key) => `<img src="/images/master-profiles/avatars/${key}.webp" width="48" height="48" alt="" loading="lazy" decoding="async">`).join('')}</span><span class="cd-sig-card__master"><span>${caption}</span> <b>${names}</b></span></span>`;
 // 타로 덱 — 카드 한 장이 상담 하나. 숫자는 장식(aria-hidden)이고, 카드 이름은 제목이 말한다.
@@ -270,8 +286,15 @@ const introCards = [
 const introCardMarkup = introCards.map((card) => `<a class="cd-sig-card cd-sig-card--intro" data-cd-signature-id="${card.id}"${card.id === 'yeongnyangi-question' ? ' data-cd-portal-placement="home_hero"' : ''} href="${card.href}"><span class="cd-yehwa-seal" aria-hidden="true"></span><span class="cd-sig-card__top"></span><span class="cd-sig-card__media"><img class="cd-sig-card__img" src="${card.image}"${card.id === 'fortune-chat' ? ' srcset="/images/service-introductions/fortune-chat-yeoni-640.webp 640w, /images/service-introductions/fortune-chat-yeoni-960.webp 960w, /images/service-introductions/fortune-chat-yeoni.webp 1536w" sizes="(max-width: 760px) calc(100vw - 64px), (max-width: 1000px) 44vw, 360px"' : ' srcset="/images/service-introductions/yeongnyangi-question-v2-640.webp 640w, /images/service-introductions/yeongnyangi-question-v2-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), (max-width: 1000px) 44vw, 360px"'} width="640" height="360" alt="" loading="lazy" decoding="async"></span><span class="cd-sig-card__body"><span class="cd-sig-card__title">${card.title}</span><span class="cd-sig-card__q">${card.desc}</span><span class="cd-sig-card__cta"><span${card.id === 'yeongnyangi-question' ? ' data-cd-trans="home.yeongnyangiEntry.start"' : ''}>${card.action}</span> <i aria-hidden="true">→</i></span></span></a>`).join('');
 vars.signature = `<section data-cd-funnel-section="signature_consult" class="cd-sig cd-sig--curated cd-sig--deck cd-choice" id="cdSignatureConsult" data-marker="cd-signature-consult-v20261016" aria-labelledby="cdSignatureTitle" lang="ko">
   <img class="cd-choice__branch cd-choice__branch--left" src="/images/home/mv/ornament-lotus-branch-640.webp" width="320" height="280" alt="" loading="lazy"><img class="cd-choice__branch cd-choice__branch--right" src="/images/home/mv/ornament-lotus-branch-640.webp" width="320" height="280" alt="" loading="lazy"><div class="cd-sig__head"><img class="cd-choice__crest" src="/images/home/mv/ornament-lotus-crest-320.webp" width="160" height="58" alt="" loading="lazy"><h2 class="cd-sig__title" id="cdSignatureTitle">지금 필요한 상담을 골라보세요</h2><p class="cd-sig__sub">상담 방식을 먼저 살펴보고, 마음에 남은 고민을 골라보세요.</p></div>
-  <div class="cd-sig__viewport" id="cdSigViewport" tabindex="0" aria-label="대표 상담 카드"><div class="cd-sig__grid" id="cdSigGrid">${introCardMarkup}${[...signatureProducts].sort((a,b)=>['fortune-tea-house','life-book-ai','new-year-ai','love-secret-ai','neo-operation-room','master-love-codex'].indexOf(a.id)-['fortune-tea-house','life-book-ai','new-year-ai','love-secret-ai','neo-operation-room','master-love-codex'].indexOf(b.id)).map((product, index) => `<a class="cd-sig-card cd-sig-card--${product.className}" data-cd-service-id="${product.id}" href="${product.href}" aria-label="${product.title} — ${product.cta}" data-pvw-paid="true"${product.priceSuffix === '부터' ? ' data-price-from="true"' : ''}><span class="cd-yehwa-seal" aria-hidden="true"></span><span class="cd-sig-card__top"><span class="cd-sig-card__numeral" aria-hidden="true">${TAROT_NUMERALS[index]}</span></span><span class="cd-sig-card__media"><img class="cd-sig-card__img" width="1200" height="675" loading="lazy" decoding="async" src="${product.image}"${product.imageSrcset ? ` srcset="${product.imageSrcset}"` : ''} sizes="(max-width: 699px) 82vw, (max-width: 1023px) 45vw, 360px" alt="${product.imageAlt}"></span><span class="cd-sig-card__body">${signatureMaster(product.master)}<span class="cd-sig-card__title">${product.title}</span><span class="cd-sig-card__q">${product.question}</span><span class="cd-sig-card__price" data-cd-play-price data-cd-play-feature="${product.featureKey}"${product.priceSuffix ? ' data-cd-play-kind="from"' : ''}>${signaturePrice(product.featureKey, product.priceSuffix)}</span><span class="cd-sig-card__cta"><span>${product.cta}</span> <i aria-hidden="true">→</i></span></span></a>`).join('')}</div></div>
-  <div class="cd-sig__controls" hidden aria-label="상담 카드 이동"><div class="cd-choice__dots" data-sig-dots aria-label="상담 카드 위치"></div><div class="cd-choice__arrows"><button type="button" data-sig-prev aria-controls="cdSigViewport" aria-label="이전 상담"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m6-6-6 6 6 6"/></svg></button><span data-sig-position aria-live="off"></span><button type="button" data-sig-next aria-controls="cdSigViewport" aria-label="다음 상담"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button><button type="button" class="cd-sig__pause" data-sig-pause aria-pressed="false" aria-label="상담 카드 넘김 멈추기"><svg class="cd-choice__pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6v12m6-12v12"/></svg><svg class="cd-choice__play" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h10v10H7Z"/></svg></button></div></div>
+  <div class="cd-story-spotlight" lang="ko">
+    <a class="cd-story-spotlight__feature" href="/heukwol/">
+      <img src="/images/consultation-webtoons/heukwol/hw12-02.webp" width="1122" height="1402" alt="" loading="lazy" decoding="async">
+      <div><small>대표 상담 웹툰 · 12컷</small><h3>흑월의 경고</h3><p>흑월이 예고한 미래, 다른 길은 없을까요? 연이와 네오가 타고난 성향과 열두 달의 흐름에서 피할 선택을 함께 찾습니다.</p><strong><span data-cd-trans="home.guideCopy.webtoonStart">첫 장면 읽기</span> <span aria-hidden="true">→</span></strong></div>
+    </a>
+    <a class="cd-story-spotlight__more" href="/consultations/"><span data-cd-trans="home.guideCopy.webtoonMore">다른 마스터의 상담 웹툰 보기</span> <span aria-hidden="true">→</span></a>
+  </div>
+  <div class="cd-sig__viewport" id="cdSigViewport" tabindex="0" aria-label="대표 상담 카드"><div class="cd-sig__grid" id="cdSigGrid">${introCardMarkup}${[...signatureProducts].sort((a,b)=>['fortune-tea-house','life-book-ai','new-year-ai','love-secret-ai','neo-operation-room','master-love-codex'].indexOf(a.id)-['fortune-tea-house','life-book-ai','new-year-ai','love-secret-ai','neo-operation-room','master-love-codex'].indexOf(b.id)).map((product, index) => `<article class="cd-story-entry"><a class="cd-sig-card cd-sig-card--${product.className}" data-cd-service-id="${product.id}" data-cd-popup-copy="${escapeAttribute(product.popupCopy)}" href="${product.href}" aria-label="${product.title} — ${product.cta}" data-pvw-paid="true"${product.priceSuffix === '부터' ? ' data-price-from="true"' : ''}><span class="cd-yehwa-seal" aria-hidden="true"></span><span class="cd-sig-card__top"><span class="cd-sig-card__numeral" aria-hidden="true">${TAROT_NUMERALS[index]}</span></span><span class="cd-sig-card__media"><img class="cd-sig-card__img" width="1200" height="675" loading="lazy" decoding="async" src="${product.image}"${product.imageSrcset ? ` srcset="${product.imageSrcset}"` : ''} sizes="(max-width: 699px) 82vw, (max-width: 1023px) 45vw, 360px" alt="${product.imageAlt}"></span><span class="cd-sig-card__body">${signatureMaster(product.master)}<span class="cd-sig-card__title">${product.title}</span><span class="cd-sig-card__q">${product.question}</span><span class="cd-sig-card__desc">${storyBenefits[storySlugByProduct[product.id]].join(' · ')}</span><span class="cd-sig-card__price" data-cd-play-price data-cd-play-feature="${product.featureKey}"${product.priceSuffix ? ' data-cd-play-kind="from"' : ''}>${signaturePrice(product.featureKey, product.priceSuffix)}</span><span class="cd-sig-card__cta"><span>${product.cta}</span> <i aria-hidden="true">→</i></span></span></a><a class="cd-story-entry__link" href="/consultations/${storySlugByProduct[product.id]}/" aria-label="${product.title} 웹툰으로 알아보기"><span>웹툰으로 알아보기</span> <span aria-hidden="true">→</span></a></article>`).join('')}</div></div>
+  <div class="cd-sig__controls" hidden aria-label="상담 카드 이동"><div class="cd-choice__dots" data-sig-dots aria-label="상담 카드 위치"></div><div class="cd-choice__arrows"><button type="button" data-sig-prev aria-controls="cdSigViewport" aria-label="이전 상담"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m6-6-6 6 6 6"/></svg></button><span data-sig-position aria-live="off"></span><button type="button" data-sig-next aria-controls="cdSigViewport" aria-label="다음 상담"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button><button type="button" class="cd-sig__pause" data-sig-pause aria-pressed="false" aria-label="상담 카드 넘김 멈추기"><svg class="cd-choice__pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6v12m6-12v12"/></svg><svg class="cd-choice__play" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 6 10 6-10 6Z"/></svg></button></div></div>
   <div class="cd-choice__concerns" id="cdhQuestionSlot">${vars.questionCategories}</div>
   <a class="cd-sig__samples-link" href="/consultation-samples/"><svg class="cd-choice__moon" viewBox="0 0 64 64" aria-hidden="true"><circle class="cd-choice__moon-orbit" cx="31" cy="32" r="29"/><path class="cd-choice__moon-crescent" d="M36 9a24 24 0 1 0 20 35A27 27 0 0 1 36 9Z"/><path class="cd-choice__moon-star" d="m48 10 1.7 5.3L55 17l-5.3 1.7L48 24l-1.7-5.3L41 17l5.3-1.7Z"/><path class="cd-choice__moon-star cd-choice__moon-star--small" d="m54 29 1 3 3 1-3 1-1 3-1-3-3-1 3-1Z"/><path class="cd-choice__moon-orbit" d="M17 50c8 6 19 7 28 2"/><circle cx="37" cy="29" r=".8" fill="currentColor" stroke="none"/></svg><span class="cd-choice__samples-label"><span>상담별 구성과</span> <strong>예시 보기</strong></span><svg class="cd-choice__cta-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg></a>
 </section>`;
@@ -356,6 +379,8 @@ vars.pass = '<link rel="stylesheet" href="/styles/pass-benefits.css?v=build-0000
 const template = readFileSync('templates/home-funnel.html', 'utf8');
 // Keep the existing pass renderer between concern results and records/navigation.
 vars.yehwaHome = renderYehwaHome(registryWindow.__cdServiceRegistry, {
+  storyHtml: vars.expertStories,
+  installHtml: "<aside class=\"cd-home-install-entry\" data-pwa-install-entry hidden aria-label=\"홈 화면에 추가\" lang=\"ko\" data-cd-no-trans><img src=\"/icons/moonlight-garden-v1-192.png\" width=\"48\" height=\"48\" alt=\"\" loading=\"lazy\"><div><strong>다음에도 바로 찾아오세요</strong><p>홈 화면의 아이콘으로 꿀꿀 운세를 열어요.</p></div><button type=\"button\" data-pwa-install>홈 화면에 추가하기</button></aside>",
   passHtml: '<div class="cdh-slot cdh-slot--pass" id="cdhPass"><div id="cdhPassSlot">' + vars.pass + '</div></div>',
 });
 let homeHtml = template.replace(/\{\{(\w+)\}\}/g, (_token, key) => {

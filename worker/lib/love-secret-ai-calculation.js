@@ -16,6 +16,7 @@ import {
 import { buildSajuAdvancedFactors } from "./saju-ai-prompt.js";
 import { buildLoveSecretReference } from "./love-secret-reference.js";
 import { calculateLifeBookAiSaju } from "./life-book-ai-saju.js";
+import { approvedCompatSupportFacts, approvedSajuLabels, lifeBookPillars, overlayApprovedLifeBookChart, withoutSingleYongshinText } from "./saju-authority-consumer.js";
 import { buildSajuLoveCompatibility } from "./master-love-codex-compat.js";
 import { buildLoveDayCalendar, todayKstYmd } from "./love-secret-ai-calendar.js";
 import {
@@ -493,8 +494,36 @@ function buildLoveChart(saju, { partnerBase = null, hourCorrection = null } = {}
   };
 }
 
+// 일진 점수·궁합·이상형 선택은 raw 차트로 끝낸 뒤 고객·프롬프트에 닿는 라벨만 승인 판정으로 바꾼다.
+function applyApprovedToLoveChart(chart, saju, labels) {
+  const overlay = overlayApprovedLifeBookChart(saju, labels);
+  const strengthTip = labels.isStrong === true
+    ? "신강 구조라 연애에서 내 의견과 에너지가 강하게 작동할 수 있으니, 상대가 주도할 공간을 남겨두는 운영이 중요합니다."
+    : labels.isStrong === false
+      ? "신약 구조라 상대에게 과도하게 맞추거나 의존하지 않도록 자기 기준을 먼저 세우는 것이 중요합니다."
+      : "신강약은 판정을 보류했으니, 감정 속도와 현실 판단의 간격을 실제 상황에 맞춰 조절하는 쪽이 안전합니다.";
+  const { element: _singleElement, ...idealPartner } = chart.loveReference?.idealPartner || {};
+  const loveReference = { ...chart.loveReference, yongshinElement: "", yongshinElementLabel: labels.yongshinLabel, idealPartner, strengthTip,
+    marriageAgeLabel: clean(chart.loveReference?.marriageWindow?.label, 20) };
+  return {
+    ...chart,
+    lovePattern: lovePatternFromReference(loveReference),
+    reference: { ...chart.reference, yongshinElement: "", yongshinElementLabel: labels.yongshinLabel },
+    seasonalBalance: overlay.seasonalBalance || null,
+    strength: labels.strength,
+    usefulGod: labels.yongshinLabel,
+    unfavorableGod: labels.gisinLabel,
+    usefulElement: "",
+    unfavorableElement: "",
+    gyeokguk: { finalGyeokguk: overlay.approvedSaju.gyeokguk, judgmentReason: clean(labels.gyeokgukReason, 300), breakFactors: [] },
+    shinsal: withoutSingleYongshinText(chart.shinsal),
+    loveReference,
+    approvedSaju: overlay.approvedSaju,
+  };
+}
+
 /** 내 명식 기준 90일 일진 캘린더. "좋은 날짜" 는 전적으로 이 목록에서만 나온다. */
-function buildLoveCalendarFor(chart, nowMs) {
+function buildLoveCalendarFor(chart, nowMs, approvedTags = false) {
   const dayStem = normalizeStemChar(chart.dayMaster);
   const dayBranch = normalizeBranchChar(chart.pillarDetails?.day?.earthlyBranch || chart.dayPillar);
   const natalBranches = ["year", "month", "day", "hour"]
@@ -518,6 +547,7 @@ function buildLoveCalendarFor(chart, nowMs) {
     gongmangBranches: branchesOf(gongmang),
     startDateKst: todayKstYmd(nowMs),
     days: 90,
+    approvedTags,
   });
 }
 
@@ -683,6 +713,7 @@ export function normalizeLoveSecretAiInput(body = {}) {
  * @param {"full"|"validate"} [options.mode="full"]
  *   "validate" — 사전검사(prepare)용. 생년 정보가 계산 가능한지만 확인하고
  *   고급 요소·일진 캘린더·궁합 축은 건너뛴다(같은 요청에서 두 번 계산되는 비용 제거).
+ * @param {boolean} [options.authorityEnabled]  새 계산에서만 승인 격국·용신 후보를 라벨에 싣는다.
  * @param {number} [options.nowMs]  일진 캘린더 시작일 기준 시각. 테스트에서 고정할 수 있게 주입받는다.
  */
 export function calculateLoveSecretAiSaju(normalized, options = {}) {
@@ -736,10 +767,18 @@ export function calculateLoveSecretAiSaju(normalized, options = {}) {
   }
 
   const partnerBase = partnerSaju ? partnerReferenceBase(partnerSaju) : null;
-  const myChart = buildLoveChart(mySaju, { partnerBase, hourCorrection: myHourCorrection });
-  const partnerChart = partnerSaju ? buildLoveChart(partnerSaju, { hourCorrection: partnerHourCorrection }) : undefined;
-  const compatibility = partnerSaju ? buildLoveCompatibility(mySaju, partnerSaju, myChart, partnerChart) : undefined;
-  const calendar = buildLoveCalendarFor(myChart, options.nowMs);
+  const authorityEnabled = options.authorityEnabled === true;
+  const rawMyChart = buildLoveChart(mySaju, { partnerBase, hourCorrection: myHourCorrection });
+  const rawPartnerChart = partnerSaju ? buildLoveChart(partnerSaju, { hourCorrection: partnerHourCorrection }) : undefined;
+  const rawCompatibility = partnerSaju ? buildLoveCompatibility(mySaju, partnerSaju, rawMyChart, rawPartnerChart) : undefined;
+  const calendar = buildLoveCalendarFor(rawMyChart, options.nowMs, authorityEnabled);
+  const myLabels = authorityEnabled ? approvedSajuLabels(lifeBookPillars(mySaju)) : null;
+  const partnerLabels = authorityEnabled && partnerSaju ? approvedSajuLabels(lifeBookPillars(partnerSaju)) : null;
+  const myChart = myLabels ? applyApprovedToLoveChart(rawMyChart, mySaju, myLabels) : rawMyChart;
+  const partnerChart = partnerLabels ? applyApprovedToLoveChart(rawPartnerChart, partnerSaju, partnerLabels) : rawPartnerChart;
+  const compatibility = partnerLabels
+    ? { ...rawCompatibility, yongshinSupport: approvedCompatSupportFacts(rawCompatibility.yongshinSupport, myLabels, partnerLabels) }
+    : rawCompatibility;
 
   const uncertainty = [];
   if (normalized.input.myInfo.birthTimeUnknown) uncertainty.push("my_birth_time_unknown");

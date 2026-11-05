@@ -6,6 +6,7 @@ import { enforceAiRouteSecurity } from "./lib/security/index.js";
 import { readBoundedText } from "./lib/request-body.js";
 import { resolveAiLocaleForRequest, runWithAiLocale } from "./lib/ai-locale-context.js";
 import { withDbScopes } from "./lib/db-scope.js";
+import { withEngineRollout } from "./lib/engine-rollout.js";
 // 지오코딩 좌표의 시간대 판정. 경도만 보면 서울이 "UTC+8" 로 나와 차트가 1시간 어긋난다.
 import { geocodePlace } from "./lib/geocode.js";
 
@@ -477,6 +478,7 @@ const handleDebugRoutes = createLazyRouteHandler("./routes/debug.js", () => impo
 const handleYogaGuruRoutes = createLazyRouteHandler("./routes/yoga-guru.js", () => import("./routes/yoga-guru.js"), "handleYogaGuruRoutes");
 const handleSajuCompatBasicRoutes = createLazyRouteHandler("./routes/saju-compat-basic.js", () => import("./routes/saju-compat-basic.js"), "handleSajuCompatBasicRoutes");
 const handleDestinyFlowerRoutes = createLazyRouteHandler("./routes/destiny-flower.js", () => import("./routes/destiny-flower.js"), "handleDestinyFlowerRoutes");
+const handleHeukwolRoutes = createLazyRouteHandler("./routes/heukwol.js", () => import("./routes/heukwol.js"), "handleHeukwolRoutes");
 const handleSibylRoutes = createLazyRouteHandler("./routes/sibyl.js", () => import("./routes/sibyl.js"), "handleSibylRoutes");
 const handleOracleRoutes = createLazyRouteHandler("./routes/oracle.js", () => import("./routes/oracle.js"), "handleOracleRoutes");
 const handlePaidNarrativeIntentRoutes = createLazyRouteHandler("./routes/paid-narrative-intent.js", () => import("./routes/paid-narrative-intent.js"), "handlePaidNarrativeIntentRoutes");
@@ -1261,6 +1263,15 @@ const app = {
         return withCorsHeaders(request, env, await handleKakaoCrmRoutes(request, env));
       }
 
+      if (url.pathname.startsWith("/api/edition-workshop/test/")) {
+        const { readTestProof } = await import("./routes/edition-test-records.js");
+        return withCorsHeaders(request, env, await readTestProof(request, env));
+      }
+      if (url.pathname === "/api/edition-workshop/issue-queue") {
+        const { readIssueQueue } = await import("./routes/edition-studio.js");
+        return withCorsHeaders(request, env, await readIssueQueue(request, env));
+      }
+
       if (url.pathname === "/api/admin" || url.pathname.startsWith("/api/admin/")) {
         return withCorsHeaders(request, env, await handleAdminRoutes(request, env));
       }
@@ -1753,6 +1764,7 @@ const app = {
         return withCorsHeaders(request, env, await handleDestinyFlowerRoutes(request, env));
       }
 
+      if (url.pathname.startsWith("/api/heukwol/")) return runAiRouteWithSecurity(request, env, "heukwol", handleHeukwolRoutes, ctx);
       if (url.pathname === "/api/sibyl" || url.pathname.startsWith("/api/sibyl/")) {
         return withCorsHeaders(request, env, await handleSibylRoutes(request, env));
       }
@@ -2148,4 +2160,4 @@ const app = {
 // 요청 범위 DB 스코프(설계안 C1·C4). fetch 1건·queue 배치 1건·scheduled 1회가 각각 스코프 하나이고,
 // 그 id 가 db.js 계측([db-conn-open]·[db-cmd])에 찍힌다. 결제 레인 연결은 스코프마다 따로 열고, 핸들러와
 // 그 요청의 ctx.waitUntil 작업이 끝나면 닫는다(C4) — worker/lib/db-scope.js.
-export default withDbScopes(app);
+export default withEngineRollout(withDbScopes(app));

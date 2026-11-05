@@ -29,6 +29,7 @@ import { authFetch } from "@/app/_lib/auth-client";
 import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from "@/lib/llm-text";
 import PagedResultViewer, { usePagedViewerMode } from "@/components/fortune/PagedResultViewer";
 import ConsultationReading from "@/components/fortune/ConsultationReading";
+import ResultReference from "@/components/fortune/ResultReference";
 import { withCharacterBreaks, yeoniBreaks } from "@/components/fortune/result-character-breaks";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 import { isRetriableResultPollFailure } from "@/app/_lib/consultationResultPolling";
@@ -1057,20 +1058,6 @@ export default function LoveSecretAiResultClient({ paymentSurface }: { paymentSu
           )}
         </div>
 
-        {paymentSurface !== "toss" && isShareReady && consultationKey && (
-          <PremiumResultShare
-            kind="letter"
-            title={copy.deckLabel}
-            ownerName={myName}
-            publicPath="/love-secret-ai/"
-            choices={[
-              { id: "diagnosis", label: "관계의 한 문장", text: consultation?.reading?.oneLineDiagnosis || "" },
-              { id: "strategy", label: "오늘의 연애 전략", text: consultation?.strategy || "" },
-              { id: "temperature", label: "관계의 온도", text: consultation?.reading?.relationshipTemperature || "" },
-            ].filter(choice => choice.text.trim())}
-          />
-        )}
-
         {loading && (
           <div className="grid min-h-[62vh] place-items-center rounded-3xl border border-[var(--ls-line)] bg-[var(--ls-surface)] p-8 text-center">
             <div>
@@ -1128,6 +1115,20 @@ export default function LoveSecretAiResultClient({ paymentSurface }: { paymentSu
             expandForExport={exporting}
           />
         </>}
+        {paymentSurface !== "toss" && isShareReady && consultationKey && (
+          <PremiumResultShare
+            kind="letter"
+            title={copy.deckLabel}
+            ownerName={myName}
+            publicPath="/love-secret-ai/"
+            choices={[
+              { id: "diagnosis", label: "관계의 한 문장", text: consultation?.reading?.oneLineDiagnosis || "" },
+              { id: "strategy", label: "오늘의 연애 전략", text: consultation?.strategy || "" },
+              { id: "temperature", label: "관계의 온도", text: consultation?.reading?.relationshipTemperature || "" },
+            ].filter(choice => choice.text.trim())}
+          />
+        )}
+
         {isShareReady && <RecommendationResult service="love-secret-ai" practiceTags={adviceTopics([...(consultation?.reading?.actionSecrets || []).slice(0,8).map(item => parseActionSecret(item).action), ...(consultation?.reading?.sevenDayGuide || []).slice(0,7)])}/>}
       </section>
     </main>
@@ -1477,14 +1478,12 @@ function LoveSecretSajuSummary({ summary, myName, partnerName }: { summary: Saju
   const copy = useLoveSecretResultCopy();
   return (
     <section className="mt-5 rounded-3xl border border-[var(--ls-line)] bg-[var(--ls-surface)] p-5">
-      <div className="mb-4 flex items-center gap-2 text-[var(--ls-accent)]">
-        <Moon className="h-5 w-5" aria-hidden="true" />
-        <h2 className="text-lg font-black text-[var(--ls-text)]">{copy.sajuBasicsHeading}</h2>
-      </div>
+      <ResultReference label={copy.sajuBasicsHeading}>
       <div className="grid gap-4 lg:grid-cols-2">
         <SajuChartCard label={myName} chart={summary.myChart} />
         {summary.partnerChart ? <SajuChartCard label={partnerName} chart={summary.partnerChart} /> : null}
       </div>
+      </ResultReference>
       {summary.compatibility && (
         <div className="mt-4 rounded-2xl border border-[var(--ls-line)] bg-[var(--ls-surface-2)] p-4 text-sm leading-7 text-[var(--ls-text-muted)]">
           <p className="font-black text-[var(--ls-accent)]">{copy.compatibilityFlowLabel}</p>

@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 const ts = require('typescript');
+const { connectLifeBookSajuAuthority, readSajuAuthority, lifeBookPillars } = require('../../worker/lib/saju-authority-consumer.js');
 const { webcrypto } = require('node:crypto');
 const { supportRecoveryGenerationOptions, assertSupportRecoveryPreserved, supportRecoveryPartHash } = require('../../worker/lib/support-recovery-budget.js');
 const { consultationRefundResponse } = require('../../worker/lib/consultation-refund-state.js');
@@ -35,7 +36,7 @@ function load(ctx, file, names) {
   }
 }
 
-function fixture(accessType = 'pass') {
+function fixture(accessType = 'pass', env = {}) {
   let doc = null, calls = [], fault = null, owner = 'owner', permitted = true, applyLost = false, charges = 0, refunds = 0;
   let tick = 0;
   const chain = value => ({ lean: async () => clone(value), select: () => chain(value), sort: () => chain(value) });
@@ -73,6 +74,7 @@ function fixture(accessType = 'pass') {
     normalizeConsultationInput: body => ({ ok: true, inputHash: body.inputHash || 'same-input', input: { birthInfo: { name: 'mock' }, consultationType: 'lifeBook', topic: '일생' } }),
     resolveStartAccess: async () => ({ ok: permitted, accessType, paymentId: 'original-receipt' }),
     calculateLifeBookAiSaju: () => ({ dayMaster: '壬' }), isLifeFortuneInput: () => false,
+    connectLifeBookSajuAuthority, readSajuAuthority, lifeBookPillars,
     loginRequired: () => new Response('', { status: 401 }), invalidInput: (_message, status = 422) => new Response('', { status }),
     paymentVerifyFailed: () => new Response('', { status: 402 }), serverError: () => new Response('server', { status: 500 }),
     MESSAGES: { llmFailed: 'failed' }, startLocks: new Map(), SECTION_LOCK_TTL_MS: 90000,
@@ -104,10 +106,48 @@ function fixture(accessType = 'pass') {
   load(ctx, 'worker/routes/life-book-ai.js', ['handleStart', 'runWithConcurrency', 'reserveProviderCallOnce', 'releaseSectionLock', 'saveLifeBookState', 'finishLifeBookDelivery', 'lifeBookLengthOptions']);
   const post = (body = {}) => ctx.handleStart(new Request('https://mock.test/api/life-book-ai/generate', {
     method: 'POST', headers: { 'Content-Type': 'application/json', 'idempotency-key': 'original-paid-request' }, body: JSON.stringify(body),
-  }), {});
+  }), env);
   return { ctx, post, get doc() { return doc; }, get calls() { return calls; }, get charges() { return charges; }, get refunds() { return refunds; },
     fault: value => { fault = value; }, permitted: value => { permitted = value; }, owner: value => { owner = value; }, loseApply: () => { applyLost = true; } };
 }
+
+for (const accessType of ['pass', 'subscription', 'paid']) test(`${accessType}: approved authority survives concurrent start, payment return, OFF resume and completed reread`, async () => {
+  const { calculateLifeBookAiSaju } = require('../../worker/lib/life-book-ai-saju.js');
+  const env = { SAJU_GYEOKGUK_AUTHORITY_V2: 'true' }, f = fixture(accessType, env);
+  const raw = calculateLifeBookAiSaju({ birthDate: '1988-05-15', birthTime: '08:30', gender: 'male', calendarType: 'solar' });
+  f.ctx.calculateLifeBookAiSaju = () => clone(raw);
+  const seen = [];
+  f.ctx.buildSectionPrompt = (_input, facts) => { seen.push(clone(facts.sajuAuthority)); return 'mock authority prompt'; };
+  await Promise.all(Array.from({ length: 8 }, () => f.post()));
+  const pinned = clone(f.doc.llmMeta.factSnapshot.sajuAuthority);
+  assert.ok(pinned.digest);
+  env.SAJU_GYEOKGUK_AUTHORITY_V2 = 'false';
+  f.ctx.calculateLifeBookAiSaju = () => { throw Error('MUST_NOT_RECALCULATE'); };
+  for (let i = 0; i < 10 && f.doc.status !== 'completed'; i++) await f.post({ sessionId: f.doc.id });
+  assert.equal(f.doc.status, 'completed');
+  assert.equal(f.charges, 1);
+  assert.equal(f.calls.length, 15);
+  assert.equal(new Set(f.calls).size, 15);
+  assert.ok(seen.length >= 15);
+  for (const facts of seen) assert.deepEqual(facts, pinned);
+  assert.deepEqual(f.doc.sajuResult.sajuAuthority, pinned);
+  const saved = JSON.stringify(f.doc), calls = f.calls.length;
+  await f.post({ sessionId: f.doc.id });
+  assert.equal(JSON.stringify(f.doc), saved);
+  assert.equal(f.calls.length, calls);
+  assert.equal(f.refunds, 0);
+});
+
+test('existing life-book without authority remains legacy when flag becomes ON', async () => {
+  const env = {}, f = fixture('paid', env);
+  await f.post();
+  const snapshot = clone(f.doc.llmMeta.factSnapshot);
+  env.SAJU_GYEOKGUK_AUTHORITY_V2 = 'true';
+  for (let i = 0; i < 10 && f.doc.status !== 'completed'; i++) await f.post({ sessionId: f.doc.id });
+  assert.equal(f.doc.status, 'completed');
+  assert.deepEqual(f.doc.llmMeta.factSnapshot, snapshot);
+  assert.equal(f.doc.llmMeta.factSnapshot.sajuAuthority, undefined);
+});
 for (const accessType of ['pass', 'subscription', 'paid']) test(`${accessType}: 브라우저 종료 뒤 서버가 저장된 상담만 이어 완성하고 재열람은 재생성·중복 차감하지 않는다`, async () => {
   const f = fixture(accessType);
   await f.post();

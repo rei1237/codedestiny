@@ -1,4 +1,6 @@
 "use client";
+import Image from 'next/image';
+import { consultationStories, storyBenefits, storyPreviewHeights } from './stories';
 import { Archive, ArrowLeft, ArrowUpRight, MessageCircleHeart, Moon } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { RECORD_SERVICES } from '@/lib/records/service-registry';
@@ -44,7 +46,20 @@ export default function ConsultationHub({ children }: { children?: ReactNode }) 
     <span>{id === 'codex' && `${copy.personal} `}<PriceBadge featureKey={featureKey} className={styles.price} /></span>
     {id === 'codex' && <span>{copy.compatibility} <PriceBadge featureKey="master-love-codex-compat" className={styles.price} /></span>}
   </>;
+  const renderStoryCard = (id: string) => {
+    const {service,name}=describe(id);
+    return <article className={styles.storyCard} key={id} data-service={id}>
+      <a className={styles.storyPreview} href={'/consultations/'+id+'/'} aria-label={name+' 웹툰으로 알아보기'} style={{aspectRatio:'724 / '+storyPreviewHeights[id]}}>
+        <Image src={'/images/consultation-webtoons/'+id+'.webp'} width={724} height={2172} alt="" loading="lazy"/>
+      </a>
+      <h3>{name}</h3><p className={styles.storyConcern}>{consultationStories[id].lead}</p>
+      <ul className={styles.storyBenefits} aria-label="상담에서 얻는 것">{storyBenefits[id].map(benefit=><li key={benefit}>{benefit}</li>)}</ul>
+      <div className={styles.prices}>{prices(id,service.featureKey)}</div>
+      <div className={styles.storyActions}><a href={'/consultations/'+id+'/'}>웹툰으로 알아보기</a><a href={service.href}>상담 시작하기</a></div>
+    </article>;
+  };
   const renderCard = (id: string, index: number) => {
+    if(locale==='ko') return renderStoryCard(id);
     const { service, name, description } = describe(id);
     const [src, large] = deckArt[id];
     return <article key={id} className={styles.tarot} data-service={id}>
@@ -67,6 +82,7 @@ export default function ConsultationHub({ children }: { children?: ReactNode }) 
     </article>;
   };
   const renderRow = (id: string) => {
+    if(locale==='ko') return renderStoryCard(id);
     const { service, name, description } = describe(id);
     const image = artwork[id] ? `/images/service-introductions/${artwork[id]}-320.webp` : service.image;
     return <article key={id} className={styles.row} data-service={id}>
@@ -96,7 +112,7 @@ export default function ConsultationHub({ children }: { children?: ReactNode }) 
       </nav>
       <section id="signature" className={styles.section} aria-labelledby="signature-title">
         <div className={styles.sectionHeading}><h2 id="signature-title">{copy.signatureTitle}</h2><p>{copy.signatureLead}</p></div>
-        <div className={styles.deck}>{groups.signature.map(renderCard)}</div>
+        <div className={styles.deck}>{groups.signature.map(renderCard)}<article className={styles.tarot} data-service="heukwol"><a href="/heukwol/"><span className={styles.tarotTop} aria-hidden="true"><b>Ⅶ</b></span><span className={styles.tarotArt}><img src="/images/consultation-webtoons/heukwol/hw12-12.webp" alt="흑월과 마주한 연이와 네오" width="1122" height="1402" loading="lazy"/></span><div className={styles.tarotBody}><h3>흑월의 경고</h3><span className={styles.tarotLine}>선택한 해의 열두 달, 주의할 조건과 대응할 방법</span><span className={styles.prices}><PriceBadge featureKey="heukwol-warning-consultation" className={styles.price}/></span><span className={styles.tertiary}>이야기 펼치기<ArrowUpRight size={15} aria-hidden="true"/></span></div></a></article></div>
       </section>
       <section id="others" className={styles.section} aria-labelledby="others-title">
         <div className={styles.sectionHeading}><h2 id="others-title">{copy.othersTitle}</h2><p>{copy.othersLead}</p></div>

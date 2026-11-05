@@ -22,6 +22,7 @@ import { isRetriableResultPollFailure } from "@/app/_lib/consultationResultPolli
 import { readDevPreviewState, buildDevPreviewResponse } from "@/lib/dev-preview/core";
 import { buildLifeBookPreviewPayload } from "@/lib/dev-preview/fixtures/life-book";
 import SajuPillarTable from "@/components/fortune/SajuPillarTable";
+import ResultReference from "@/components/fortune/ResultReference";
 import { splitGanji, tenGodOfStem, FIVE_ELEMENT_TOKENS, type FiveElement } from "@/lib/five-element-colors";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import styles from "./LifeBookAiResultClient.module.css";
@@ -1778,7 +1779,7 @@ function LifeBookResultContent({ paymentSurface }: { paymentSurface?: "toss" }) 
             </aside>
 
             <section className="grid gap-4">
-              <section data-life-book-pdf-page className={`rounded-3xl border border-amber-200/20 bg-[#1c3028] p-5 ${styles.leatherTexture}`}>
+              <ResultReference label={copy.basicChartHeading}><section data-life-book-pdf-page className={`rounded-3xl border border-amber-200/20 bg-[#1c3028] p-5 ${styles.leatherTexture}`}>
                 <div className="flex items-center gap-2 text-amber-200">
                   <ScrollText className="h-5 w-5" aria-hidden="true" />
                   <h2 className="text-xl font-semibold">{copy.basicChartHeading}</h2>
@@ -1847,8 +1848,7 @@ function LifeBookResultContent({ paymentSurface }: { paymentSurface?: "toss" }) 
                     ) : <p className="mt-3 text-sm text-[#eadbb9]">{copy.tenGodLimited}</p>}
                   </div>
                 </div>
-              </section>
-
+              </section></ResultReference>
               {report.coreSummary && (
                 <section data-life-book-pdf-page className={`rounded-3xl p-5 ${styles.paperPage} ${styles.paperTexture}`}>
                   <p className={`text-xs font-bold uppercase tracking-[0.18em] ${styles.paperAccent}`}>Core Summary</p>

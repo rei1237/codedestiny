@@ -104,6 +104,9 @@ const FEATURE_NAV_EXTRA_ROUTES = [
 // Premium fortune routes that own their complete in-experience navigation.
 // They must not inherit the site header, footer, floating feature nav, or mobile tab bar.
 const IMMERSIVE_FORTUNE_ROUTES = [
+  "/editions/verify", // 인쇄된 QR의 독립 발행증. 구매·공용 탐색을 붙이지 않는다.
+  "/heukwol",
+  "/consultations",
   "/psychotest",
   "/recipes",
   "/checkout",
@@ -236,7 +239,7 @@ export default function AppChrome({ children }: { children: ReactNode }) {
   const isImmersiveFortuneRoute = IMMERSIVE_FORTUNE_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"));
   const isAuthRoute = AUTH_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"));
   const isRecordsSurface = pathname === '/consultations' || pathname.startsWith('/consultations/') || pathname === '/records' || pathname.startsWith('/records/');
-  const showRecordsTabs = isRecordsSurface && !pathname.startsWith('/records/view');
+  const showRecordsTabs = isRecordsSurface && !pathname.startsWith('/records/view') && !pathname.startsWith('/consultations/');
   const hideChrome = pathname === "/" || isRecordsSurface || isAuthRoute || isImmersiveFortuneRoute || CHROMELESS_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"));
   const selfManagedNav = isRecordsSurface || FEATURE_NAV_SELF_MANAGED_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"));
   const showFeatureNav = !isAuthRoute && !isImmersiveFortuneRoute && pathname !== ROOT_LANDING_PATH && !selfManagedNav && (

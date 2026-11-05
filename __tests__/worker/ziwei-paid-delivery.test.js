@@ -57,7 +57,7 @@ beforeAll(async () => {
   const structured = await import("../../worker/lib/structured-consultation.js");
   jest.unstable_mockModule("../../worker/lib/db.js", () => ({ ...db, connectDb: async () => {}, withMongoRetry: async (_env, work) => work() }));
   jest.unstable_mockModule("../../worker/lib/auth.js", () => ({ ...auth, getOptionalUserFromRequest: async () => ({ userId }) }));
-  jest.unstable_mockModule("../../worker/lib/models.js", () => ({ ...models, ZiweiAiConsultation: model,
+  jest.unstable_mockModule("../../worker/lib/models.js", () => ({ ...models, ZiweiAiConsultation: model, ZiweiCalculationPreparation: { findById: () => query(null) },
     User: { findById: () => query({ _id: uid, role: "user" }), updateOne: (...args) => refund(...args) },
     PaidExecutionRecord: { findOne: () => query(blocked === 0 ? {} : null) },
     Payment: { findOne: filter => query(blocked === 1 ? {} : mode === "paid" && filter.status.$in.includes("paid") ? { _id: uid, merchantUid: "payment" } : null), updateOne: async (...args) => usage(...args) },

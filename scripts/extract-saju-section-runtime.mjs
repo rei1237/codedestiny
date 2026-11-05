@@ -64,6 +64,12 @@ const natureSrc = read(naturePath); const natureAst = parse(naturePath, natureSr
 // 숙요 기본 궁합·정밀 궁합 확장: 궁합 엔진(SukuyoCompatEngine)·27숙 표·관계 방향 판정은 타로 파일의 숙요 헬퍼를 아래 tarot 클로저로 함께 가져온다.
 const compatPath = 'worker/lib/saju-section/paid-sukuyo-compat.src.js';
 const compatSrc = read(compatPath); const compatAst = parse(compatPath, compatSrc);
+// 원국 해석(일주·십성·조후·억부·절기): reading-rich.js 와 saju-engine.js 에서 옮긴 생성 코드 + 서버 조립(buildNatalReadingParts).
+// reading-rich.js 에 남은 공용 조각과 personas 의 build·markup 은 아래 SajuReadingPresentation 안쪽 범위에 함께 묶는다.
+const natalPath = 'worker/lib/saju-section/paid-natal-reading.src.js';
+// 비한국어 풀이(조후·억부·십성·일주)는 paid-natal-intl.src.js 가 서버에서 만든다. 같은 범위(natalApi)에서 돌도록 이어 붙인다.
+const natalIntlPath = 'worker/lib/saju-section/paid-natal-intl.src.js';
+const natalSrc = `${read(natalPath)}\n${read(natalIntlPath)}`; const natalAst = parse(natalPath, natalSrc);
 const energyPath = 'worker/lib/saju-section/paid-energy.src.js';
 const energySrc = read(energyPath); const energyAst = parse(energyPath, energySrc);
 const villainPath = 'worker/lib/saju-section/paid-villain.src.js';
@@ -102,7 +108,7 @@ const animalFreeText = animalFree.map(([f, body]) => `  // ── ${f} ──\n$
     seen.set(k, f);
   }
 }
-const paidNames = declared(paidAst); const cycleNames = declared(cycleAst); const quantumNames = declared(quantumAst); const encyclopediaNames = declared(encyclopediaAst); const natureNames = declared(natureAst); const compatNames = declared(compatAst); const energyNames = declared(energyAst); const villainNames = declared(villainAst); const healthNames = declared(healthAst); const charmNames = declared(charmAst); const skillNames = declared(skillAst); const ziweiNames = declared(ziweiAst);
+const paidNames = declared(paidAst); const cycleNames = declared(cycleAst); const quantumNames = declared(quantumAst); const encyclopediaNames = declared(encyclopediaAst); const natureNames = declared(natureAst); const compatNames = declared(compatAst); const energyNames = declared(energyAst); const villainNames = declared(villainAst); const healthNames = declared(healthAst); const charmNames = declared(charmAst); const skillNames = declared(skillAst); const ziweiNames = declared(ziweiAst); const natalNames = declared(natalAst);
 
 // The quantum/energy cards' ganji/fortune/text helpers live in the tarot chunk. Its copy table is trimmed to
 // the keys the cards use (the rest is other cards' copy); every other statement is verbatim.
@@ -120,13 +126,19 @@ const qText = `var ${Q_TEXT} = ${JSON.stringify({ ko: Object.fromEntries(Q_KEYS.
 const engineAst = parse('saju-engine.js', read('js/saju-engine.js'));
 const SEEDS = ['GENDER', 'USER_NAME', 'BIRTH_YEAR', 'DAY_GAN', 'JOHU_TYPE', 'JOHU_SCORE', 'CURRENT_AGE', 'G_POWER', 'G_JONG', 'G_JOHU', 'G_PILLARS', 'G_NATAL', 'G_BAZI'];
 const SERVER_ROOTS = ['attachKasiDaewunBridge', '_sajuDaewunRowsFromList', 'resetEvalDaewunMemo', 'parseKasiGanjiPair', 'GAN', 'JI', 'getTenGod', 'SHENG', ...SEEDS];
-const shellRoots = [...refs(paidAst), ...refs(quantumAst), ...refs(natureAst), ...refs(compatAst), ...refs(energyAst), ...refs(villainAst), ...refs(charmAst), ...refs(skillAst), ...refs(ziweiAst), ...tarotPicked.flatMap(t => [...refs(parse('t.js', t))]), ...SERVER_ROOTS];
-const shared = closure(engineAst, engineAst.statements, shellRoots, new Set([...paidNames, ...quantumNames, ...encyclopediaNames, ...natureNames, ...compatNames, ...energyNames, ...villainNames, ...charmNames, ...skillNames, ...ziweiNames, ...tarotNames]));
+const shellRoots = [...refs(paidAst), ...refs(quantumAst), ...refs(natureAst), ...refs(compatAst), ...refs(energyAst), ...refs(villainAst), ...refs(charmAst), ...refs(skillAst), ...refs(ziweiAst), ...[...refs(natalAst)].filter(k => !natalNames.has(k)), ...tarotPicked.flatMap(t => [...refs(parse('t.js', t))]), ...SERVER_ROOTS];
+const shared = closure(engineAst, engineAst.statements, shellRoots, new Set([...paidNames, ...quantumNames, ...encyclopediaNames, ...natureNames, ...compatNames, ...energyNames, ...villainNames, ...charmNames, ...skillNames, ...ziweiNames, ...natalNames, ...tarotNames]));
 const sharedNames = new Set(shared.flatMap(t => [...declared(parse('s.js', t))]));
 for (const k of SERVER_ROOTS) if (!sharedNames.has(k)) throw new Error(`Missing shell declaration: ${k}`);
 
 const personasAst = parse('reading-personas.js', read('js/core/saju/reading-personas.js'));
-const personas = closure(personasAst, iifeBody(personasAst), refs(cycleAst), cycleNames);
+// 원국 해석 코드가 personas 에서 받아 쓰는 도구(P.build·markup·pick·langCopy·esc)도 함께 가져온다.
+const NATAL_PERSONA_API = ['build', 'markup', 'pick', 'langCopy', 'esc'];
+const personas = closure(personasAst, iifeBody(personasAst), [...refs(cycleAst), ...NATAL_PERSONA_API], cycleNames);
+// 원국 해석 코드가 쓰는 reading-rich.js 의 공용 조각(esc·section·gauge 등). 옮긴 해석 생성 코드는 natalSrc 에 있다.
+const richAst = parse('reading-rich.js', read('js/core/saju/reading-rich.js'));
+const richKept = closure(richAst, iifeBody(richAst), refs(natalAst), natalNames);
+const richKeptNames = new Set(richKept.flatMap(t => [...declared(parse('r.js', t))]));
 const kasiAst = parse('kasi-calendar-service.js', read('js/core/kasi-calendar-service.js'));
 const kasi = closure(kasiAst, iifeBody(kasiAst), ['_computeGanjiFromParts', '_clone'], new Set());
 // The health card lives inside the js/entertain-engine.js IIFE. Its text helpers and element labels come along; the copy
@@ -141,12 +153,21 @@ for (const k of EE_KEYS) if (!eeTextKo[k]) throw new Error(`Missing entertain te
 const eeText = `var ${EE_TEXT} = ${JSON.stringify({ ko: Object.fromEntries(EE_KEYS.map(k => [k, eeTextKo[k]])) })};`;
 
 // Every bundled body may call _sajuEngineText (the quantum card's daewun notes come from shell helpers).
-const I18N_KEYS = [...new Set([paidSrc, quantumSrc, energySrc, villainSrc, charmSrc, skillSrc, ziweiSrc, ...shared, ...tarotPicked].join('\n').match(/_sajuEngineText\("([^"]+)"\)/g).map(m => m.slice(17, -2)))].sort();
+const I18N_KEYS = [...new Set([paidSrc, quantumSrc, energySrc, villainSrc, charmSrc, skillSrc, ziweiSrc, natalSrc, ...shared, ...tarotPicked].join('\n').match(/_sajuEngineText\("([^"]+)"\)/g).map(m => m.slice(17, -2)))].sort();
 const i18n = {};
 for (const file of fs.readdirSync('public/i18n').filter(f => f.endsWith('.json')).sort()) {
   const json = JSON.parse(fs.readFileSync(`public/i18n/${file}`, 'utf8'));
   const table = json.sajuEngine || {}; const qTable = json.sajuQuantum || {}; const etTable = extremeTI18n[file.slice(0, -5)] || {}; const eeTable = json.entertainEngine || {};
   i18n[file.slice(0, -5)] = Object.fromEntries([...I18N_KEYS.map(k => [k, table[k] || '']), ...Q_KEYS.map(k => [`sajuQuantum.${k}`, qTable[k] || '']), ...ET_KEYS.map(k => [`extremeT.${k}`, etTable[k] || '']), ...EE_KEYS.map(k => [`entertainEngine.${k}`, eeTable[k] || ''])]);
+}
+// 원국 해석 문장 틀(sajuReading)은 브라우저 cdTranslate 가 언어별 사전에서 읽던 값이다. 한국어는 페르소나 파일의 원문을 쓰므로 싣지 않고,
+// 내용이 같은 언어(vi·hi·es·fr·de·nl·ms 는 en 과 같다)는 한 벌만 싣고 별칭으로 잇는다.
+const readingTables = {}; const readingAlias = {};
+for (const file of fs.readdirSync('public/i18n').filter(f => f.endsWith('.json')).sort()) {
+  const code = file.slice(0, -5); if (code === 'ko') continue;
+  const table = JSON.stringify(JSON.parse(fs.readFileSync(`public/i18n/${file}`, 'utf8')).sajuReading || {});
+  const same = Object.keys(readingTables).find(k => JSON.stringify(readingTables[k]) === table);
+  if (same) readingAlias[code] = same; else { readingTables[code] = JSON.parse(table); readingAlias[code] = code; }
 }
 // Bodies are pasted unindented: re-indenting would change multi-line string literals.
 const text = `// Generated by scripts/extract-saju-section-runtime.mjs — do not edit. Paid renderers live in
@@ -158,6 +179,8 @@ import * as SajuReadingDepth from '../../../lib/saju/reading-depth.mjs';
 import * as SajuNatalCore from '../../../lib/saju/natal-core/index.mjs';
 
 const I18N = ${JSON.stringify(i18n)};
+const READING_TABLES = ${JSON.stringify(readingTables)};
+const READING_ALIAS = ${JSON.stringify(readingAlias)};
 
 // Every call builds fresh shell globals, so no request sees another request's chart.
 export function createSajuSectionRuntime(ctx) {
@@ -167,7 +190,20 @@ export function createSajuSectionRuntime(ctx) {
   window.KoreanCalendar = KoreanCalendar;
   window.SajuReadingDepth = SajuReadingDepth;
   window.SajuNatalCore = SajuNatalCore;
-  window.cdTranslate = function (key) {
+  // sajuReading.* 는 브라우저 cdTranslate(key, vars, fallback)와 같게 푼다: 한국어는 fallback, 그 밖의 언어는 사전 값(없으면 안내문).
+  function _readingAt(source, path) { return String(path || '').replace(/\\[(\\d+)\\]/g, '.$1').split('.').reduce(function (acc, k) { return !acc || !k ? acc : acc[k]; }, source); }
+  function _readingFill(value, vars) {
+    if (!vars || typeof vars !== 'object') return value;
+    return String(value || '').replace(/\\{\\{\\s*([a-zA-Z0-9_.-]+)\\s*\\}\\}|\\{\\s*([a-zA-Z0-9_.-]+)\\s*\\}/g, function (_, d, s) { var k = d || s; return Object.prototype.hasOwnProperty.call(vars, k) ? String(vars[k]) : ''; });
+  }
+  window.cdTranslate = function (key, vars, fallback) {
+    if (/^sajuReading\\./.test(String(key))) {
+      var cur = typeof window._sajuEngineCurrentLang === 'function' ? window._sajuEngineCurrentLang() : String(ctx.lang || 'ko');
+      if (cur === 'ko') return typeof fallback === 'string' ? _readingFill(fallback, vars || {}) : key;
+      var rtab = READING_TABLES[READING_ALIAS[String(cur).toLowerCase()]];
+      var found = rtab ? _readingAt({ sajuReading: rtab }, key) : undefined;
+      return typeof found === 'string' ? _readingFill(found, vars || {}) : 'Translation pending';
+    }
     var table = I18N[String(ctx.lang || 'ko').toLowerCase()] || {};
     return table[String(key).replace(/^sajuEngine\\./, '')] || 'Translation pending';
   };
@@ -180,7 +216,17 @@ ${kasi.join('\n')}
     'use strict';
 ${personas.join('\n')}
 ${cycleSrc.trim()}
-    return { buildCycle: buildCycle, cycleMarkup: cycleMarkup };
+    // 원국 해석(묶음): 셸 전역(ILJU_DB·GAN 등)은 아래에서 초기화되므로 처음 부를 때 한 번 묶는다.
+    var natalApi = null;
+    function buildNatalReadingParts(ctx) {
+      if (!natalApi) natalApi = (function (root, P) {
+${richKept.join('\n')}
+${natalSrc.trim()}
+        return { buildNatalReadingParts: buildNatalReadingParts };
+      })(root, { build: build, markup: markup, pick: pick, langCopy: langCopy, esc: esc });
+      return natalApi.buildNatalReadingParts(ctx);
+    }
+    return { buildCycle: buildCycle, cycleMarkup: cycleMarkup, buildNatalReadingParts: buildNatalReadingParts };
   })(window);
 
   // ── js/saju-engine.js shell helpers ──
@@ -234,6 +280,7 @@ ${healthSrc.trim()}
 
   return {
     renderSummary: renderSummary,
+    buildNatalReadingParts: window.SajuReadingPresentation.buildNatalReadingParts,
     buildDaewunDetailHtml: buildDaewunDetailHtml,
     renderQuantumStrategy: renderQuantumStrategy,
     renderExtremeTPaidPanels: window.renderExtremeTPaidPanels,
@@ -300,7 +347,7 @@ ${animalSrc.trim()}
 `;
 if (process.argv.includes('--write')) {
   fs.writeFileSync(OUT, text);
-  console.log(`Wrote ${OUT}: ${shared.length} shell + ${tarotPicked.length} tarot + ${entPicked.length} entertain + ${kasi.length} KASI + ${personas.length} personas statements, ${paidNames.size + quantumNames.size + encyclopediaNames.size + natureNames.size + compatNames.size + energyNames.size + villainNames.size + healthNames.size + charmNames.size + skillNames.size + ziweiNames.size} paid declarations.`);
+  console.log(`Wrote ${OUT}: ${shared.length} shell + ${tarotPicked.length} tarot + ${entPicked.length} entertain + ${kasi.length} KASI + ${personas.length} personas + ${richKept.length} rich statements, ${paidNames.size + quantumNames.size + encyclopediaNames.size + natureNames.size + compatNames.size + energyNames.size + villainNames.size + healthNames.size + charmNames.size + skillNames.size + ziweiNames.size + natalNames.size} paid declarations.`);
 } else {
   if (read(OUT) !== text) throw new Error('Saju section runtime drift: run node scripts/extract-saju-section-runtime.mjs --write');
   console.log(`PASS saju section runtime matches its sources (${shared.length} shell statements).`);

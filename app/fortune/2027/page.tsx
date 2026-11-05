@@ -245,7 +245,7 @@ export default function NewYearHubPage() {
           </p>
           <div className="mt-5 flex flex-wrap gap-2">
             <Link href="/manse" className="cd-chip">무료 만세력</Link>
-            <Link href="/saju" className="cd-chip">무료 사주 분석</Link>
+            <Link href="/saju" className="cd-chip">무료 만세력 보기</Link>
             <Link href="/new-year-ai-consultation" className="cd-chip">2027 신년운세 개인 상담</Link>
           </div>
         </section>

@@ -47,7 +47,7 @@ export function generateMetadata() {
 ### **2. seo-metadata.ts**
 ```typescript
 export const SEO_CORE_KEYWORDS = [
-  "사주", "무료사주", "타로", "점성술",
+  "사주", "무료만세력", "타로", "점성술",
   // ... (기본 키워드)
 ];
 
