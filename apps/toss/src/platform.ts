@@ -130,6 +130,7 @@ export async function unlinkCurrentSession(){
 export async function logout(){const logoutEpoch=sessionEpoch,logoutAttempt=++loginAttempt;try{await api('/logout',{});}finally{if(sessionEpoch!==logoutEpoch||loginAttempt!==logoutAttempt)throw new ApiError('SESSION_CHANGED','',409);const cleared=await clearSession(false);if(token!==null||sessionEpoch!==cleared||loginAttempt!==logoutAttempt)throw new ApiError('SESSION_CHANGED','',409);}}
 export type CatalogProduct={id:string;name:string;sku:string;approvedPriceKRW:number;chapters:number;available:boolean};
 export type SaleProduct=CatalogProduct&{displayAmount:string};
+export type NativeSaleProduct=Omit<CatalogProduct,'chapters'>&{featureKey:string;displayAmount:string};
 function requireProductListSupport(){
   let supported=false;try{supported=IAP.getProductItemList.isSupported();}catch{/* Unsupported bridge versions fail closed. */}
   if(!supported)throw new ApiError('IAP_NOT_SUPPORTED');
@@ -143,10 +144,10 @@ export async function saleProducts():Promise<SaleProduct[]>{
     return item&&p.available?[{...p,displayAmount:item.displayAmount}]:[];
   });
 }
-export async function nativeSaleProducts():Promise<SaleProduct[]>{
+export async function nativeSaleProducts():Promise<NativeSaleProduct[]>{
   if(!SERVICE_AVAILABLE||!isToss())return [];
   requireProductListSupport();
-  const [catalog,items]=await Promise.all([api<{products:CatalogProduct[]}>('/native/catalog'),IAP.getProductItemList()]);
+  const [catalog,items]=await Promise.all([api<{products:Omit<NativeSaleProduct,'displayAmount'>[]}>('/native/catalog'),IAP.getProductItemList()]);
   return catalog.products.flatMap(product=>{
     const item=items?.products.find(row=>row.sku===product.sku&&row.type==='CONSUMABLE');
     return item&&product.available?[{...product,displayAmount:item.displayAmount}]:[];

@@ -12,7 +12,7 @@ function nativeName(purchase){return purchase.nativeService==='life-book'&&purch
 
 export async function unifiedRecordsPage(rows,read,readTarot,readNative,verify,{group='all',query='',source=''}={}){
  if(!['all','report','chat','chart'].includes(group))throw new TossError('RECORD_GROUP_INVALID',400);
- if(source&&!['tea','neo','fusion','life-book','love-secret'].includes(source))return {ok:true,items:[],failures:[],nextCursor:null};
+ if(source&&!['tea','neo','fusion','life-book','love-secret','astrology'].includes(source))return {ok:true,items:[],failures:[],nextCursor:null};
  const snapshots=new Map();
  const page=await libraryPage(rows,async id=>{const row=await read(id);snapshots.set(id,row);return row;},readTarot,readNative,verify);
  if(page.purchases.some(row=>row.state==='READ_FAILED'))throw new TossError('RECORDS_UNAVAILABLE',503);

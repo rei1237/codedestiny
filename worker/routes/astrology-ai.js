@@ -9,7 +9,7 @@ import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
 import { isStoredPaidResultRevoked } from "../lib/paid-result-revocation.js";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
-import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest, isAuthDbInfraError, peekAccessTokenUserId } from "../lib/auth.js";
+import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest as webOptionalUser, isAuthDbInfraError, peekAccessTokenUserId } from "../lib/auth.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
 import {clampSyncLlmTimeoutMs, PAID_LLM_PARTS_PER_REQUEST } from "../lib/sync-llm-timeout.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
@@ -44,6 +44,9 @@ import {
 } from "../lib/service-execution-task.js";
 import { autoRefundSinglePaymentDeliveryFailure } from "../lib/payment-refund.js";
 import { claimRequestBillingEvidence, evidenceClaimErrorBody, releaseRequestBillingEvidence } from "../lib/billing-evidence-claim.js";
+
+import {nativeTossContext} from '../toss/native-context.js';
+const getOptionalUserFromRequest=(request,...args)=>nativeTossContext(request)?.auth||webOptionalUser(request,...args);
 
 const SERVICE_KEY = "astrology-ai";
 const FEATURE_KEY = "astrology-ai-consultation";
@@ -573,6 +576,7 @@ async function hasMonthlyConsume(env, auth, ctx, idempotencyKey) {
 }
 
 async function resolveStartAccess({ request, env, auth, body, normalized, pricing, idempotencyKey }) {
+  if(nativeTossContext(request))return nativeTossContext(request).access(body,normalized,idempotencyKey);
   await connectDb(env);
   const token = clean(body?.accessToken || request.headers.get("x-astrology-ai-access-token"));
   if (token) {
@@ -1779,12 +1783,12 @@ async function handleEnsureAccess(request, env) {
     return loginRequired();
   }
   const pricing = getPricing();
-  const access = await resolveEnsureAccess(env, auth, pricing, idempotencyKey, normalized.inputHash);
+  const access = nativeTossContext(request) ? await nativeTossContext(request).access(body,normalized,idempotencyKey) : await resolveEnsureAccess(env, auth, pricing, idempotencyKey, normalized.inputHash);
   if (access.ok) {
     console.info("[AstrologyAI] access check success", { route: "/api/astrology-ai/ensure-access", requestId: idempotencyKey, accessType: access.accessType });
     return json({
       ok: true,
-      accessToken: await createAccessToken(env, {
+      accessToken: nativeTossContext(request) ? "" : await createAccessToken(env, {
         userId: auth.userId,
         accessType: access.accessType,
         idempotencyKey,
@@ -1799,6 +1803,7 @@ async function handleEnsureAccess(request, env) {
     return loginRequired();
   }
   console.warn("[AstrologyAI] access check failed", { route: "/api/astrology-ai/ensure-access", requestId: idempotencyKey, reason: "PAYMENT_REQUIRED" });
+  if(nativeTossContext(request))return json({ok:false,reason:'PAYMENT_REQUIRED',paymentPayload:{featureKey:FEATURE_KEY}},{status:402});
   return paymentRequired(pricing, idempotencyKey);
 }
 
@@ -1821,6 +1826,8 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
   if (body.resumeSessionId) {
     existing = await AstrologyAiConsultation.findOne({ id: clean(body.resumeSessionId, 120), userId: auth.userId }).lean();
     if (!existing) return invalidInput(RESULT_NOT_FOUND_MESSAGE, 404);
+    if (!nativeTossContext(request) && existing.accessSource === 'toss') return invalidInput(RESULT_NOT_FOUND_MESSAGE, 404);
+    if (nativeTossContext(request)) await nativeTossContext(request).assertStored(existing);
     if (existing.status === "completed") return json(publicSession(existing));
     if (!existing.llmMeta?.resumeBody) return invalidInput(INVALID_INPUT_MESSAGE, 409);
     body = { ...existing.llmMeta.resumeBody, idempotencyKey: existing.idempotencyKey };
@@ -1830,16 +1837,18 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
   const idempotencyKey = existing?.idempotencyKey || readIdempotencyKey(request, body);
   if (idempotencyKey.length < 12) return invalidInput(INVALID_INPUT_MESSAGE);
   existing ||= await AstrologyAiConsultation.findOne({ userId: auth.userId, idempotencyKey }).lean();
+  if(existing?.accessSource === 'toss' && !nativeTossContext(request)) return invalidInput(RESULT_NOT_FOUND_MESSAGE, 404);
+  if(existing && nativeTossContext(request)) await nativeTossContext(request).assertStored(existing);
   if (existing && clean(existing.inputHash) !== normalized.inputHash) return invalidInput("같은 요청 키로 다른 상담 정보를 사용할 수 없습니다.", 409);
   if (existing?.status === "completed") return json(publicSession(existing));
-  if (existing?.status === "generation_failed") return json({ ok: false, reason: "GENERATION_FAILED", message: LLM_ERROR_MESSAGE }, { status: 409 });
+  if (existing?.status === "generation_failed" && !nativeTossContext(request)) return json({ ok: false, reason: "GENERATION_FAILED", message: LLM_ERROR_MESSAGE }, { status: 409 });
   if (existing?.status === "generating" && !existing.llmMeta?.resumeBody && Date.now() - new Date(existing.updatedAt || existing.createdAt).getTime() < 120000) return json({ ...publicSession(existing), retryable: true }, { status: 202 });
   const pricing = getPricing();
   const access = await resolveStartAccess({ request, env, auth, body, normalized, pricing, idempotencyKey });
   if (!access.ok) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED", message: PAYMENT_VERIFY_FAILED_MESSAGE }, { status: 402 });
   // 결제 증빙 1건 = 상담 1건(2026-10-16). 서버가 찾은 결제 문서·월정석 원장 ID 만 묶는다(이용권·관리자는 건너뜀).
   const evidenceIds = [access.paymentDocId, access.claimEvidenceId];
-  const evidenceClaim = await claimRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds, featureKey: FEATURE_KEY });
+  const evidenceClaim = nativeTossContext(request) ? {ok:true} : await claimRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds, featureKey: FEATURE_KEY });
   if (!evidenceClaim.ok) return json(evidenceClaimErrorBody(evidenceClaim), { status: evidenceClaim.status });
   const sessionId = existing?.id || `astroai_${randomUUID()}`;
   const lease = randomUUID();
@@ -1848,12 +1857,12 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
   let doc;
   try {
     if (existing) {
-      doc = await AstrologyAiConsultation.findOneAndUpdate({ ...owner, status: { $nin: ["completed", "generation_failed"] }, $or: [{ generationLease: "" }, { generationLease: { $exists: false } }, { updatedAt: { $lt: new Date(Date.now() - 120000) } }] }, { $set: { generationLease: lease } }, { new: true }).lean();
+      doc = await AstrologyAiConsultation.findOneAndUpdate({ ...owner, status: nativeTossContext(request) ? { $ne: "completed" } : { $nin: ["completed", "generation_failed"] }, $or: [{ generationLease: "" }, { generationLease: { $exists: false } }, { updatedAt: { $lt: new Date(Date.now() - 120000) } }] }, { $set: { generationLease: lease, ...(nativeTossContext(request) && existing.status === "generation_failed" ? {status:"generating",generationError:null} : {}) } }, { new: true }).lean();
       if (!doc) return json({ ...publicSession(existing), status: "generating", retryable: true }, { status: 202 });
     } else {
       const resumeBody = { ...body, idempotencyKey };
       delete resumeBody.accessToken;
-      doc = await AstrologyAiConsultation.create({ ...owner, idempotencyKey, inputHash: normalized.inputHash, birthInfo: normalized.input.birthInfo, topic: normalized.input.topic, userQuestion: normalized.input.userQuestion, accessType: access.accessType, paymentId: clean(access.paymentId, 160), messages: [], status: "generating", generationLease: lease, llmMeta: { resumeBody, sections: {}, attempts: {} } });
+      doc = await AstrologyAiConsultation.create({ ...owner, idempotencyKey, inputHash: normalized.inputHash, birthInfo: normalized.input.birthInfo, topic: normalized.input.topic, userQuestion: normalized.input.userQuestion, accessType: access.accessType, accessSource: nativeTossContext(request) ? "toss" : "", paymentId: clean(access.paymentId, 160), messages: [], status: "generating", generationLease: lease, llmMeta: { resumeBody, sections: {}, attempts: {} } });
       doc = typeof doc.toObject === "function" ? doc.toObject() : doc;
     }
   } catch (error) {
@@ -1862,7 +1871,7 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
   }
   const locked = { ...owner, generationLease: lease, status: { $ne: "completed" } };
   try {
-    await startRefundableExecution(env, auth, access, idempotencyKey, sessionId, pricing);
+    if(!nativeTossContext(request))await startRefundableExecution(env, auth, access, idempotencyKey, sessionId, pricing);
     if (doc.status !== "delivery_pending") {
       if (!doc.llmMeta?.resumeBody) {
         const resumeBody = { ...body, idempotencyKey };
@@ -1893,19 +1902,20 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
     // 결과 저장 장애는 생성 실패 환불 대상이 아니다. 원래 결제 증빙은 완료 직전 다시 확인한다.
     const fresh = await resolveStartAccess({ request, env, auth, body, normalized, pricing, idempotencyKey });
     if (!fresh.ok) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
-    try { await applyUsageOnce({ userId: auth.userId, sessionId, accessType: fresh.accessType, pricing, source: fresh.source }); }
+    try { if(!nativeTossContext(request)) await applyUsageOnce({ userId: auth.userId, sessionId, accessType: fresh.accessType, pricing, source: fresh.source }); }
     catch { throw resultStorageUnavailable(sessionId); }
     doc = await saveAstrologyDelivery(locked, { status: "completed", generationLease: "" }, sessionId);
-    await recordSuccessfulUsage(auth, idempotencyKey, fresh, sessionId, pricing).catch(error => console.warn("[astrology-ai] usage bookkeeping failed", { code: error?.code }));
-    await completeRefundableExecution(env, auth, idempotencyKey, sessionId);
+    if(!nativeTossContext(request)) await recordSuccessfulUsage(auth, idempotencyKey, fresh, sessionId, pricing).catch(error => console.warn("[astrology-ai] usage bookkeeping failed", { code: error?.code }));
+    if(!nativeTossContext(request)) await completeRefundableExecution(env, auth, idempotencyKey, sessionId);
     return json(publicSession(doc));
   } catch (error) {
     if (['EXPERT_CALCULATION_MISMATCH', 'ENGINE_FACT_SNAPSHOT_INVALID'].includes(error?.code)) return json({ ok: false, reason: error.code }, { status: 409 });
     if (error?.code === "RESULT_STORAGE_UNAVAILABLE") return json(resultStorageFailurePayload(error), { status: 503 });
+    if(nativeTossContext(request) && (error?.status === 401 || error?.status === 403)) return json({ok:false,reason:error.code||"ACCESS_DENIED"},{status:error.status});
     await saveAstrologyDelivery(locked, { status: "generation_failed", generationError: { code: clean(error?.code || "GENERATION_FAILED", 80) } }, sessionId);
-    await releaseRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds });
-    await failRefundableExecution(env, auth, idempotencyKey, sessionId, error);
-    const refund = await refundCardPaymentOnFailure(env, auth, access, error);
+    if(!nativeTossContext(request)) await releaseRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds });
+    if(!nativeTossContext(request)) await failRefundableExecution(env, auth, idempotencyKey, sessionId, error);
+    const refund = nativeTossContext(request) ? {refunded:false} : await refundCardPaymentOnFailure(env, auth, access, error);
     const calculationError = clean(error?.code).startsWith("ASTRO_") || Number(error?.status) === 400;
     return json({ ok: false, reason: calculationError ? "CALCULATION_ERROR" : "LLM_ERROR", message: refund.refunded ? CARD_REFUNDED_MESSAGE : calculationError ? CALCULATION_ERROR_MESSAGE : LLM_ERROR_MESSAGE }, { status: calculationError ? 422 : 503 });
   } finally {
@@ -1947,6 +1957,8 @@ async function handleResult(request, env, pathId = "") {
   if (!consultation) {
     return json({ ok: false, reason: "RESULT_NOT_FOUND", message: RESULT_NOT_FOUND_MESSAGE }, { status: 404 });
   }
+  if(!nativeTossContext(request) && consultation.accessSource === 'toss')return json({ok:false,reason:'RESULT_NOT_FOUND',message:RESULT_NOT_FOUND_MESSAGE},{status:404});
+  if(nativeTossContext(request)) await nativeTossContext(request).assertStored(consultation);
   // 생성 중이면 202로 알려 클라이언트 폴링이 수렴하게 한다(start의 202 바디와 동일 형태).
   if (["generating", "partial", "delivery_pending"].includes(consultation.status)) {
     if (consultation.llmMeta?.resumeBody) {
@@ -1962,7 +1974,7 @@ async function handleResult(request, env, pathId = "") {
   if (consultation.status !== "completed") {
     return json({ ok: false, reason: "GENERATION_FAILED", message: LLM_ERROR_MESSAGE }, { status: 409 });
   }
-  if (await isStoredPaidResultRevoked(auth.userId, FEATURE_KEY, consultation)) {
+  if (!nativeTossContext(request) && await isStoredPaidResultRevoked(auth.userId, FEATURE_KEY, consultation)) {
     return json({ ok: false, reason: "PAYMENT_REVOKED", retryable: false }, { status: 403 });
   }
 
@@ -1978,7 +1990,7 @@ async function handleResult(request, env, pathId = "") {
 // 계산 근거만 즉시 돌려준다 — LLM 미호출, DB 접근 없음, 과금 없음.
 // 신원 확인은 로컬 JWT 검증만 써서 Mongo를 건드리지 않고, 트랜싯은 건너뛰어 대기 화면을 빨리 채운다.
 async function handleBasis(request, env) {
-  const userId = await peekAccessTokenUserId(request, env);
+  const userId = nativeTossContext(request)?.auth?.userId || await peekAccessTokenUserId(request, env);
   if (!userId) return loginRequired();
 
   const normalized = normalizeInput(await readJson(request));
@@ -2001,7 +2013,8 @@ export async function handleAstrologyAiRoutes(request, env = {}, ctx) {
       const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
       if (!auth) return loginRequired();
       await connectDb(env);
-      const pending = await AstrologyAiConsultation.findOne({ userId: auth.userId, status: { $in: ["generating", "partial", "delivery_pending"] } }).sort({ createdAt: -1 }).select("id").lean();
+      const pending = await AstrologyAiConsultation.findOne({ userId: auth.userId, accessSource:nativeTossContext(request)?'toss':{$ne:'toss'}, status: { $in: ["generating", "partial", "delivery_pending"] } }).sort({ createdAt: -1 }).lean();
+      if(pending && nativeTossContext(request)) await nativeTossContext(request).assertStored(pending);
       return json({ ok: true, sessionId: pending?.id || "" });
     }
     if (method === "GET" && path === "/result") return await handleResult(request, env);
@@ -2014,6 +2027,7 @@ export async function handleAstrologyAiRoutes(request, env = {}, ctx) {
   } catch (error) {
     if (['EXPERT_CALCULATION_MISMATCH', 'ENGINE_FACT_SNAPSHOT_INVALID'].includes(error?.code)) return json({ ok: false, reason: error.code }, { status: 409 });
     if (error?.code === "RESULT_STORAGE_UNAVAILABLE") return json(resultStorageFailurePayload(error), { status: 503 });
+    if (nativeTossContext(request) && error?.status) return json({ok:false,reason:error.code||"RESULT_NOT_AVAILABLE"},{status:error.status});
     console.error("[astrology-ai]", clean(error?.stack || error?.message || error, 1200));
     // 풀 초기화 버스트/인증 조회 중 일시 DB 장애는 재시도 신호와 함께 503으로 — 하드 500 방지.
     if (isTransientMongoError(error) || isAuthDbInfraError(error)) {
@@ -2061,9 +2075,19 @@ export async function nativeAstrologyStoredState(env, userId, resultId) {
 
 // Internal cron continuation: only a stored owner/id is accepted, never client input.
 // The normal handler rereads that owner's record and rechecks existing payment proof.
-export function resumeConsultationOnServer(env, doc) {
+export async function resumeConsultationOnServer(env, doc) {
   if (!doc?.userId || !doc.id) throw new Error("RECOVERY_doc.id_REQUIRED");
   const request = new Request("https://internal.invalid/api/astrology-ai/resume", { method: "POST", headers: { "content-type": "application/json" },
     body: JSON.stringify({ resumeSessionId: String(doc.id) }) });
-  return handleStart(request, env, undefined, { userId: String(doc.userId) });
+  const stored = await nativeAstrologyStoredState(env, String(doc.userId), String(doc.id));
+  if (stored?.accessSource === "toss") {
+    const { bindNativeAstrologyRecovery } = await import("../toss/native-astrology.js");
+    if (!await bindNativeAstrologyRecovery(request, env, stored)) throw new Error("TOSS_RECOVERY_INTENT_MISSING");
+  }
+  return handleStart(request, env, undefined, nativeTossContext(request)?.auth || { userId: String(doc.userId) });
+}
+
+export async function recoverUnstartedNativeConsultations(env, options) {
+  const { bootstrapNativeAstrologyOrders } = await import("../toss/native-astrology.js");
+  return bootstrapNativeAstrologyOrders(env, options);
 }

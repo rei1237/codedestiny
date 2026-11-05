@@ -5,7 +5,7 @@ import ResultReference from '@/components/fortune/ResultReference';
 import PaidResultImageGuide from "@/components/fortune/PaidResultImageGuide";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AlertCircle, ArrowLeft, Download, Loader2, Moon, Sparkles, Stars } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
 import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
@@ -469,7 +469,7 @@ function safeFilePart(value: string) {
   return (value || "guest").replace(/[\\/:*?"<>|]/g, "_").replace(/\s+/g, "-").slice(0, 48);
 }
 
-export default function AstrologyAiResultClient() {
+export default function AstrologyAiResultClient({paymentSurface = "web"}: {paymentSurface?: "web" | "toss"}) {
   const locale = useAstrologyResultLocale();
   const copy = getAstrologyResultCopy(locale);
   const yunOpen = getExpertLine("yun", "result.open", locale);
@@ -479,12 +479,15 @@ export default function AstrologyAiResultClient() {
   const [consultation, setConsultation] = useState<Consultation | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [denied, setDenied] = useState(false);
+  const [retryableFailure, setRetryableFailure] = useState(false);
+  const retryFailed = useRef(false);
   const [pdfLoading, setPdfLoading] = useState(false);
   const [pdfError, setPdfError] = useState("");
   const [viewAll, setViewAll] = usePagedViewerMode("astrologyAiViewerModeV1");
   const [exportExpand, setExportExpand] = useState(false);
   const [resumeEpoch, setResumeEpoch] = useState(0);
-  const captureOwner = usePaidDeliveryScope(() => { setConsultation(null); setResumeEpoch(value => value + 1); });
+  const captureOwner = usePaidDeliveryScope(() => { setConsultation(null); setRetryableFailure(false); retryFailed.current=false; setResumeEpoch(value => value + 1); });
   useEffect(() => {
     const resume = () => { if (document.visibilityState !== "hidden") setResumeEpoch(value => value + 1); };
     window.addEventListener("online", resume);
@@ -507,6 +510,88 @@ export default function AstrologyAiResultClient() {
   useEffect(() => {
     let alive = true;
     const sameOwner = captureOwner();
+    async function loadTossResult() {
+      if (!queryReady) return;
+      if (!resultId) {
+        setError("결과 링크를 확인하지 못했습니다.");
+        setLoading(false);
+        return;
+      }
+      setLoading(true);
+      setError("");
+      setDenied(false);
+      setRetryableFailure(false);
+      let allowRetry=retryFailed.current;
+      retryFailed.current=false;
+      function checkTossAuthority(response:Response,payload:unknown){
+        const data=payload&&typeof payload==='object'?payload as Record<string,unknown>:{};
+        const nested=data.error&&typeof data.error==='object'?data.error as {code?:string}:{};
+        const code=String(data.code||data.reason||nested.code||(typeof data.error==='string'?data.error:'')||'');
+        if(response.status===401||response.status===403){setDenied(true);setConsultation(null);throw new Error(response.status===401?'TOSS_LOGIN_REQUIRED':'TOSS_ACCESS_DENIED');}
+        if(code==='ORDER_REFUNDED'){setDenied(true);setConsultation(null);throw new Error('TOSS_ORDER_REFUNDED');}
+        if(response.status===402||code==='ORDER_NOT_PAID'){setDenied(true);setConsultation(null);throw new Error('TOSS_PAYMENT_UNVERIFIED');}
+      }
+      if (paymentSurface === "toss") setConsultation(null);
+      try {
+        const previewState = paymentSurface === "toss" ? null : readDevPreviewState();
+        if (previewState) {
+          const payload = buildAstrologyPreviewPayload(previewState);
+          if (!payload.ok) throw new Error(payload.message || "저장된 상담 결과를 불러오지 못했습니다.");
+          if (alive) setConsultation(payload as Consultation);
+          return;
+        }
+        // 생성 중(202)이면 완료까지 몇 차례 재확인한다(서버 생성 최악 ~8분, 여기선 40회 ≈ 5분).
+        for (let attempt = 0; attempt < 40; attempt += 1) {
+          let response = await authFetch(`/api/astrology-ai/result/${encodeURIComponent(resultId)}`);
+          let payload = await response.json().catch(() => ({}));
+          if (!alive || !sameOwner()) return;
+          checkTossAuthority(response,payload);
+          let retriedFailure=false;
+          if(response.status===409 && payload.reason==='GENERATION_FAILED'){
+            if(!allowRetry){setRetryableFailure(true);throw new Error('TOSS_GENERATION_FAILED');}
+            allowRetry=false;retriedFailure=true;
+            response=await authFetch('/api/astrology-ai/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({resumeSessionId:resultId})});
+            payload=await response.json().catch(()=>({}));
+            if(!alive||!sameOwner())return;
+            checkTossAuthority(response,payload);
+          }
+          if (response.status === 202 && !retriedFailure) {
+            setConsultation(payload as Consultation);
+            setLoading(false);
+            if (document.visibilityState === "hidden") return;
+            response = await authFetch("/api/astrology-ai/start", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ resumeSessionId: resultId }) });
+            payload = await response.json().catch(() => ({}));
+            if (!alive || !sameOwner()) return;
+            checkTossAuthority(response,payload);
+            if (Array.isArray(payload.messages)) setConsultation(payload as Consultation);
+          }
+          // 일시적 DB/인증 장애(503·retryable)는 202와 동일하게 재폴링해 자가 복구한다(하드 종료 금지).
+          if (response.status === 202 || isRetriableResultPollFailure(response.status, payload)) {
+            if (!alive) return;
+            await new Promise((resolve) => window.setTimeout(resolve, attempt < 2 ? 3000 : 8000));
+            continue;
+          }
+          if (!response.ok || payload?.ok === false) {
+            throw new Error(toText(payload?.message) || "저장된 상담 결과를 불러오지 못했습니다.");
+          }
+          if (alive) setConsultation(payload as Consultation);
+          return;
+        }
+        throw new Error("상담 생성이 평소보다 오래 걸리고 있습니다. 잠시 후 새로고침해 주세요.");
+      } catch (caught) {
+        if (alive && sameOwner()) {
+          if (paymentSurface === "toss") setConsultation(null);
+          const failure = caught && typeof caught === "object" ? caught as {status?:number;code?:string;message?:string} : {};
+          const code = failure.code || failure.message || "";
+          const expired = paymentSurface === "toss" && (failure.status === 401 || ["TOSS_LOGIN_REQUIRED", "LOGIN_REQUIRED", "SESSION_EXPIRED"].includes(code));
+          const forbidden = paymentSurface === "toss" && (failure.status === 403 || ["TOSS_ACCESS_DENIED", "ACCESS_DENIED"].includes(code));
+          if (expired || forbidden) setDenied(true);
+          setError(expired ? "로그인이 만료됐어요. 구매한 토스 계정으로 다시 로그인해 주세요." : forbidden ? "구매 내역에 접근할 권한을 확인할 수 없어요. 구매한 계정과 주문 내역을 확인해 주세요." : code === 'TOSS_ORDER_REFUNDED' ? '환불된 주문이에요. 문의가 있다면 주문번호와 함께 고객지원으로 알려 주세요.' : code === 'TOSS_PAYMENT_UNVERIFIED' ? '구매 권한을 확인하지 못했어요. 구매 내역 복구에서 확인해 주세요.' : code === 'TOSS_GENERATION_FAILED' ? '결제한 상담이 잠시 멈췄어요. 같은 상담을 다시 이어갈 수 있어요.' : friendlyErrorMessage(caught, "저장된 상담 결과를 불러오지 못했습니다."));
+        }
+      } finally {
+        if (alive && sameOwner()) setLoading(false);
+      }
+    }
     async function loadResult() {
       if (!queryReady) return;
       if (!resultId) {
@@ -557,11 +642,11 @@ export default function AstrologyAiResultClient() {
         if (alive && sameOwner()) setLoading(false);
       }
     }
-    void loadResult();
+    void (paymentSurface === "toss" ? loadTossResult() : loadResult());
     return () => {
       alive = false;
     };
-  }, [queryReady, resultId, resumeEpoch, captureOwner]);
+  }, [queryReady, resultId, resumeEpoch, captureOwner, paymentSurface]);
 
   const birth = consultation?.birthInfo || {};
   const place = birth.birthPlace || {};
@@ -638,7 +723,7 @@ export default function AstrologyAiResultClient() {
   }
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#050816] text-slate-100 [font-family:var(--font-body)]">
+    <main className="relative min-h-screen overflow-hidden bg-[#050816] text-slate-100 [font-family:var(--font-body)]" style={paymentSurface === "toss" ? {paddingBottom:"var(--toss-service-bottom, 0px)"} : undefined}>
       <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(180deg,#050816_0%,#0b1028_46%,#050816_100%)]" aria-hidden="true" />
       <div className="pointer-events-none fixed inset-0 opacity-40 [background-image:radial-gradient(#f8e7b0_1px,transparent_1px),radial-gradient(#c4b5fd_1px,transparent_1px)] [background-position:0_0,34px_42px] [background-size:88px_88px,128px_128px]" aria-hidden="true" />
       <div className="pointer-events-none fixed inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#f5d487]/60 to-transparent" aria-hidden="true" />
@@ -672,11 +757,13 @@ export default function AstrologyAiResultClient() {
               {error ? <AlertCircle className="mx-auto h-7 w-7 text-rose-200" aria-hidden="true" /> : <Loader2 className="mx-auto h-7 w-7 animate-spin text-[#f5d487] motion-reduce:animate-none" aria-hidden="true" />}
               <h2 className="mt-4 break-keep text-xl font-black text-white">{error ? "상담을 이어서 확인해 주세요" : "저장된 분석부터 읽어 보세요"}</h2>
               <p className="mt-3 text-sm leading-7 text-rose-50">{error || "남은 분석을 같은 요청으로 이어서 생성하고 있습니다."}</p>
-              <button type="button" className="mt-4 min-h-11 rounded-lg border border-white/30 px-4" onClick={() => setResumeEpoch(value => value + 1)}>이어서 생성하기</button>
+              {paymentSurface === "toss" && error === "로그인이 만료됐어요. 구매한 토스 계정으로 다시 로그인해 주세요." && <Link href={'/login/?next='+encodeURIComponent('/astrology-ai/result/?id='+encodeURIComponent(resultId))} className="mt-4 inline-block min-h-11 rounded-lg border border-white/30 px-4 py-3">토스로 로그인하기</Link>}
+              {!(paymentSurface === "toss" && denied) && <button type="button" className="mt-4 min-h-11 rounded-lg border border-white/30 px-4" onClick={() => {if(paymentSurface === "toss" && retryableFailure)retryFailed.current=true;setResumeEpoch(value => value + 1);}}>{paymentSurface === "toss" && error && !retryableFailure ? "다시 확인하기" : "이어서 생성하기"}</button>}
             </div>
           </div>
         )}
 
+        {paymentSurface === "toss" && !loading && consultation?.messages?.length ? <p role="note">AI가 작성한 상담 결과예요.</p> : null}
         {!loading && consultation && (
           <div id="astrology-ai-result-document" className="relative grid gap-6 rounded-lg border border-white/10 bg-[#060817] p-4 shadow-2xl shadow-black/40 ring-1 ring-white/[0.03] sm:p-6 lg:grid-cols-[minmax(0,1fr)_340px]">
             <article className="space-y-6">
@@ -826,7 +913,7 @@ export default function AstrologyAiResultClient() {
             </aside>
           </div>
         )}
-        {!loading && shareChoices.length > 0 && (
+        {paymentSurface !== "toss" && !loading && shareChoices.length > 0 && (
           <div className="mt-6 max-w-3xl">
             <ConsultationShare brand="astrology" choices={shareChoices} />
           </div>

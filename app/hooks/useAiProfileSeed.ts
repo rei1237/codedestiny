@@ -16,7 +16,7 @@ function hasSeedContent(seed: AiPrefillSeed | null | undefined): seed is AiPrefi
  * - destinyProfileChanged / storage 이벤트 구독으로 카드 변경 실시간 반영
  * - reload(): "프로필 카드에서 불러오기" 버튼용 명시적 재조회
  */
-export function useAiProfileSeed(): {
+export function useAiProfileSeed({enabled=true}:{enabled?:boolean}={}): {
   seed: AiPrefillSeed | null;
   seedVersion: number;
   reload: () => Promise<AiPrefillSeed | null>;
@@ -35,6 +35,7 @@ export function useAiProfileSeed(): {
   }, []);
 
   const reload = useCallback(async () => {
+    if(!enabled)return null;
     const requestRevision = ++revision.current;
     try {
       const profile = await fetchCurrentDestinyProfile();
@@ -43,9 +44,10 @@ export function useAiProfileSeed(): {
     } catch {
       return null;
     }
-  }, [publishSeed]);
+  }, [publishSeed,enabled]);
 
   useEffect(() => {
+    if (!enabled) { revision.current++; landingSeed.current=undefined; setSeed(null); return; }
     if (typeof window === "undefined") return;
     let cancelled = false;
 
@@ -88,7 +90,7 @@ export function useAiProfileSeed(): {
     };
     // 마운트 1회 구독 — publishSeed는 안정 참조
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [enabled]);
 
   const choose = useCallback((next: AiPrefillSeed) => { revision.current++; publishSeed(next); }, [publishSeed]);
   return { seed, seedVersion, reload, choose };

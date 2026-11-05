@@ -1522,6 +1522,7 @@ const astrologyAiConsultationSchema = new mongoose.Schema({
   userQuestion: { type: String, default: "", trim: true, maxlength: 1400 },
   astrologyChart: { type: mongoose.Schema.Types.Mixed, default: null },
   accessType: { type: String, enum: ["pass", "paid", "subscription", "admin"], required: true },
+  accessSource: { type: String, enum: ["", "toss"], default: "" },
   paymentId: { type: String, default: "", trim: true, maxlength: 160, index: true },
   messages: { type: [astrologyAiMessageSchema], default: [] },
   status: { type: String, enum: ["generating", "partial", "delivery_pending", "completed", "generation_failed"], default: "generating", index: true },
