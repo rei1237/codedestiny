@@ -10,6 +10,7 @@ const SAJU_FIELDS = [
   [/용신|기신|오행|전체/, "elementBalance"], [/조후|월지|신강약|전체/, "seasonalBalance"],
   [/신강약|전체/, "strength"], [/합|충|형|파|해|전체/, "natalInteractions"],
   [/대운|전체/, "majorLuck"], [/세운|전체/, "yearlyLuck"],
+  [/(?:)/, "approvedSaju"], // 새 계산에만 있고, 어느 장이든 단일 용신으로 쓰지 않게 한다.
 ];
 const present = value => value != null && value !== "" && (!(typeof value === "object") || Object.keys(value).length > 0);
 
@@ -81,6 +82,7 @@ export function formatCodexEvidence(contract) {
     // R3/R4 (2026-10-09): both distinctions are in the records, but the keys were never explained.
     "기록 키의 뜻: 궁 기록의 transformations는 생년사화, selfTransformations는 그 궁 천간이 일으키는 자화(自化)다. 자화는 '자화록·자화과'처럼 적어 생년사화와 섞지 않는다. stemTenGod는 천간 십성, branchTenGods·hiddenStemTenGods는 지지(지장간) 십성이므로 한 기둥의 십성을 말할 때 천간인지 지지인지 밝힌다.",
     "목록에 없는 시기 자료, 없는 별·사화·합충을 만들지 않는다. element-count-balance는 수량 보완 지표이며 확정 용신이 아니다.",
+    ...(contract.records.find(record => record.path === "approvedSaju")?.value?.promptRules || []),
     "궁합 pair 근거와 개인 self/partner 원국 근거를 구분한다. 점수는 성공 확률이나 적중률이 아니다.",
     `이 장에서 인용할 인물 범위: ${[...new Set(contract.records.map(record => record.subject))].join(", ")}. 각 인물의 근거를 최소 하나 인용하고, 범위 밖 인물의 해석을 요구하지 않는다.`,
   ].join("\n");
@@ -95,14 +97,15 @@ const PATH_LABELS = {
   natalInteractions: "원국 합충", majorLuck: "대운", yearlyLuck: "세운",
   dayStemRelation: "일간 관계", palaceOverlay: "명반 궁 겹침", branchRelations: "지지 관계", maleficImpact: "흉성 영향",
   sihuaExchange: "사화 교류", spouseCross: "배우자궁 교차", tenGodInteraction: "십성 상호작용",
-  yongshinSupport: "용신 보완", axisScores: "궁합 축",
+  yongshinSupport: "용신 보완", axisScores: "궁합 축", approvedSaju: "사주 판정",
 };
 
 function codexRecordLabel(record) {
   const [head, tail] = String(record.path || "").split(".");
   const term = head === "palaces" && tail ? tail
     : head === "yearlyLuck" && tail ? `${tail} 세운`
-      : PATH_LABELS[head] || "계산 근거";
+      : head === "yongshinSupport" && record.value?.approved ? "오행 보완 지표"
+        : PATH_LABELS[head] || "계산 근거";
   return `${SUBJECT_LABELS[record.subject] || "계산"} ${term}`;
 }
 

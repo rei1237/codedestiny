@@ -16,11 +16,12 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
-const { JSDOM } = require("jsdom");
+const { JSDOM, VirtualConsole } = require("jsdom");
 
 const root = path.resolve(__dirname, "../..");
 const profileJs = fs.readFileSync(path.join(root, "js/destiny-profile.js"), "utf8");
 const checkoutEntryJs = fs.readFileSync(path.join(root, "js/core/checkout-entry.js"), "utf8");
+const nativeLangJs = fs.readFileSync(path.join(root, "js/cd-lang-native.js"), "utf8");
 
 const RESUME_KEY = "cd_direct_payment_resume";
 
@@ -44,9 +45,15 @@ function jsonResponse(body, status) {
  */
 function boot(options) {
   const opts = options || {};
+  // jsdom 은 실제 이동 대신 "navigation" 미구현 오류를 낸다. 그것이 문서 재이동의 관측점이다.
+  const navigations = [];
+  const virtualConsole = new VirtualConsole();
+  virtualConsole.on("jsdomError", (error) => {
+    if (/navigation/i.test(String(error && error.message))) navigations.push(String(error.message));
+  });
   const dom = new JSDOM(
     '<!doctype html><html><body><main><a href="#" data-feature-key="neville-meditation">네빌 명상</a></main></body></html>',
-    { url: opts.url, pretendToBeVisual: true, runScripts: "outside-only" },
+    { url: opts.url, pretendToBeVisual: true, runScripts: "outside-only", virtualConsole },
   );
   const { window } = dom;
   // jsdom 이 비워 두는 브라우저 API 를 Node 전역으로 채운다(dp 의 fetch 폴백이 Headers 를 만든다).
@@ -54,7 +61,7 @@ function boot(options) {
   if (typeof window.AbortController === "undefined") window.AbortController = AbortController;
   if (typeof window.CSS === "undefined") window.CSS = { escape: (s) => String(s) };
 
-  const calls = { confirm: [], pass: [], report: [], alert: [], overlay: [], refresh: 0, scroll: 0, events: [] };
+  const calls = { confirm: [], pass: [], report: [], alert: [], overlay: [], refresh: 0, scroll: 0, events: [], navigations };
   window.Element.prototype.scrollIntoView = function () { calls.scroll += 1; };
   window.alert = (msg) => { calls.alert.push(String(msg)); };
   window._cdSetCoinGateOverlay = (open, message, mode) => { calls.overlay.push({ open: !!open, message: String(message || ""), mode: String(mode || "") }); };
@@ -113,6 +120,76 @@ async function waitFor(predicate, label) {
 function resumeCard(window) {
   return window.document.getElementById("cdDirectResumeCard");
 }
+
+/* 🔴 "10분째 새로고침"(2026-11-05): 홈 셸에서 재개가 changeLanguage 를 부르면 문서가 다시 열려 재개가
+   끊기고, 티켓이 남아 다음 문서가 같은 일을 반복했다. 실제 cd-lang-native 를 올려 재이동을 잰다. */
+const HOME_RETURN_URL = "https://code-destiny.com/ggulggul/?portone_redirect=1&paymentId=ord_1";
+const ATTEMPTS_KEY = "cd_direct_resume_attempts:ord_1";
+
+function bootHomeReturn(locale, handler, extra) {
+  return boot({
+    url: HOME_RETURN_URL,
+    ticket: { resume: { kind: "home-fixture", action: "", args: {}, locale } },
+    beforeProfile(win, calls) {
+      win.eval(nativeLangJs);
+      win.__cdCheckoutEntry.registerPaidResumeHandler("home-fixture", () => handler(win, calls));
+      if (extra) extra(win);
+    },
+  });
+}
+
+// cd-lang-native 의 재이동은 번역 적용(.finally) 뒤에 온다. 그 비동기까지 기다린 뒤 재이동 수를 잰다.
+const settle = () => new Promise((r) => setTimeout(r, 150));
+
+test("언어가 같은 홈 복귀는 문서를 다시 열지 않고 기능을 연 뒤 티켓을 지운다", async () => {
+  let opened = 0;
+  const { window, calls } = bootHomeReturn("ko", () => { opened += 1; return true; });
+  try {
+    await waitFor(() => opened === 1, "handler");
+    await waitFor(() => !window.localStorage.getItem(RESUME_KEY), "ticket cleared");
+    await settle();
+    assert.deepEqual(calls.navigations, []);
+    assert.equal(calls.confirm.length, 1);
+    assert.equal(window.sessionStorage.getItem(ATTEMPTS_KEY), null, "성공하면 시도 기록을 지운다");
+  } finally { window.close(); }
+});
+
+test("언어가 다른 홈 복귀는 이동 없이 언어를 복원하고 그 언어로 기능을 연다", async () => {
+  const seen = [];
+  const { window, calls } = bootHomeReturn("en", (win) => { seen.push(win.cdGetCurrentLanguage()); return true; });
+  try {
+    await waitFor(() => seen.length === 1, "handler");
+    await settle();
+    assert.deepEqual(seen, ["en"]);
+    assert.deepEqual(calls.navigations, []);
+    assert.equal(window.document.documentElement.getAttribute("data-cd-lang"), "en");
+  } finally { window.close(); }
+});
+
+test("자동 재개 시도는 핸들러 실행 전에 기록된다 — 핸들러가 문서를 끊어도 횟수가 남는다", async () => {
+  const recorded = [];
+  const { window } = bootHomeReturn("ko", (win) => { recorded.push(win.sessionStorage.getItem(ATTEMPTS_KEY)); return false; });
+  try {
+    await waitFor(() => recorded.length === 1, "handler");
+    assert.deepEqual(recorded, ["1"]);
+  } finally { window.close(); }
+});
+
+test("같은 주문을 이미 두 번 자동 재개했으면 멈추고 카드만 띄우며, 지금 열기로 직접 열 수 있다", async () => {
+  let opened = 0;
+  const { window, calls } = bootHomeReturn("ko", () => { opened += 1; return true; }, (win) => {
+    win.sessionStorage.setItem(ATTEMPTS_KEY, "2");
+  });
+  try {
+    await waitFor(() => resumeCard(window), "card");
+    assert.equal(opened, 0, "상한을 넘었는데 자동 재개했다");
+    assert.ok(window.localStorage.getItem(RESUME_KEY), "지금 열기를 위해 티켓을 보존한다");
+    assert.equal(calls.confirm.length, 1);
+    resumeCard(window).querySelector(".cd-direct-resume-open").click();
+    await waitFor(() => opened === 1, "user open");
+    await waitFor(() => !window.localStorage.getItem(RESUME_KEY), "ticket cleared after open");
+  } finally { window.close(); }
+});
 
 test('이용권 상점 복귀는 원래 상담의 서버 소비 증빙으로 같은 workflow를 실행한다', async () => {
   let executed = 0;

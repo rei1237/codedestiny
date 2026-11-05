@@ -1,3 +1,4 @@
+import { resolveExpertCalculation } from '../lib/expert-consumer-facts.js';
 import { appendExpertPersona } from '../lib/expert-character-personas.js';
 import { jsonSchemaFromExample } from "../lib/json-text-repair.js";
 import { normalizeNarrativeBody } from '../lib/paid-narrative-candidate.js';
@@ -1691,10 +1692,11 @@ async function generateConsultation({ request, env, auth, body, normalized, idem
   const locked = { ...owner, generationLease: lease, status: { $ne: "completed" } };
   try {
     if (doc.status !== "delivery_pending") {
-      const chart = doc.llmMeta?.chartSnapshot || await calculateVedicAiChart(env, normalized.input, { requestUrl: request.url });
+      const basis = await resolveExpertCalculation('vedic', doc.llmMeta?.chartSnapshot, () => calculateVedicAiChart(env, normalized.input, { requestUrl: request.url }), { env, snapshot: doc.llmMeta?.engineFacts, existing: Boolean(existing), input: normalized.input });
+      const chart = basis.value;
       const resumeBody = { ...body, idempotencyKey, locale: doc.locale };
       delete resumeBody.accessToken;
-      doc = await saveVedicDelivery(locked, { llmMeta: { ...doc.llmMeta, resumeBody: doc.llmMeta?.resumeBody || resumeBody, chartSnapshot: chart } }, sessionId);
+      doc = await saveVedicDelivery(locked, { llmMeta: { ...doc.llmMeta, resumeBody: doc.llmMeta?.resumeBody || resumeBody, chartSnapshot: chart, ...(basis.engineFacts ? { engineFacts: basis.engineFacts } : {}) } }, sessionId);
       const generated = await generateInitialReading(env, normalized.input, chart, context, {
         locale: doc.locale, groups: doc.llmMeta.groups, attempts: doc.llmMeta.attempts, rawResponses: doc.llmMeta.rawResponses,
         checkpoint: async ({ groups, attempts, rawResponses }) => {
@@ -1714,6 +1716,7 @@ async function generateConsultation({ request, env, auth, body, normalized, idem
     }
     return json({ ok: true, consultation: consultationPayload(doc) });
   } catch (error) {
+    if (['EXPERT_CALCULATION_MISMATCH', 'ENGINE_FACT_SNAPSHOT_INVALID'].includes(error?.code)) return json({ ok: false, reason: error.code }, { status: 409 });
     if (error?.code === "RESULT_STORAGE_UNAVAILABLE") return json(resultStorageFailurePayload(error), { status: 503 });
     await saveVedicDelivery(locked, { status: "generation_failed", generationError: { code: error?.code || "LLM_FAILED", message: clean(error?.message, 500) } }, sessionId);
     await releaseRequestBillingEvidence(env, { userId: String(auth.userId), requestId: idempotencyKey, evidenceIds });
@@ -1841,6 +1844,7 @@ export async function handleVedicAiRoutes(request, env) {
     return notFound();
   } catch (error) {
     // 풀 초기화 버스트/인증 조회 중 일시 DB 장애는 재시도 신호와 함께 503으로 — 하드 500 방지.
+    if (['EXPERT_CALCULATION_MISMATCH', 'ENGINE_FACT_SNAPSHOT_INVALID'].includes(error?.code)) return json({ ok: false, reason: error.code }, { status: 409 });
     if (error?.code === "RESULT_STORAGE_UNAVAILABLE") return json(resultStorageFailurePayload(error), { status: 503 });
     if (isTransientMongoError(error) || isAuthDbInfraError(error)) {
       return json({

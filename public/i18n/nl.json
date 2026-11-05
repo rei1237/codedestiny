@@ -52,11 +52,11 @@
     "hero": {
       "eyebrow": "CODE DESTINY",
       "brandLine": "Hemelse collectie voor je lot",
-      "titleLine1": "Gratis Vier Pijlers & Tarot",
+      "titleLine1": "Gratis Manseryeok & Tarot",
       "titleAccent": "Je dagorakel",
       "titleLine3": "in één rustig maanlicht",
       "lead": "Ontdek de Vier Pijlers, tarot, Zi Wei Dou Shu, astrologie, Sukuyo-astrologie, compatibiliteit en je dagorakel in één rustige omgeving. Vul je geboortegegevens of huidige vraag in en krijg een lezing die het moment voor je volgende keuze helder maakt.",
-      "primaryCta": "Start gratis Vier-Pijlers-lezing",
+      "primaryCta": "Bekijk mijn gratis Manseryeok",
       "tarotCta": "Trek tarotkaarten",
       "logoAlt": "Honey Pig Yeoni-logo"
     },
@@ -178,7 +178,7 @@
       "genderLabel": "Geslacht",
       "female": "Vrouw",
       "male": "Man",
-      "submit": "Gratis Vier-Pijlers-lezing",
+      "submit": "Bekijk gratis Manseryeok",
       "saveProfile": "Profielkaart opslaan",
       "saveOptional": "Optioneel",
       "kakaoEvent": "Kakao-deelevent",
@@ -1007,7 +1007,7 @@
       "title": "DE MYSTIEKE TAROT",
       "subtitle": "Kaarten en tien goden openen samen de keuze van vandaag.",
       "oneCardMode": "Eén kaart lezen",
-      "threeCardMode": "Driekaartenstroom · 5.000 KRW",
+      "threeCardMode": "Driekaartenlezing · Gratis",
       "categories": {
         "daily": "Het fortuin van vandaag",
         "love": "Liefdesfortuin",
@@ -1029,7 +1029,7 @@
         "present": "De kernenergie nu",
         "next": "De volgende standaard voor keuze"
       },
-      "openFlowReading": "Open-stroomwaarde · 5.000 KRW",
+      "openFlowReading": "Lezing bekijken",
       "retryOtherConcern": "Verspreid nog een zorg",
       "aiPromptTitle": "Myeongri-tarotprompt om AI vervolgens te vragen",
       "afterPaymentBadge": "Na het lezen van de betaling",
@@ -1252,7 +1252,7 @@
       "neoLogoAlt": "Honey Yeoni-logo"
     },
     "hero2": {
-      "title": "Van gratis Vier Pijlers tot Zi Wei Dou Shu en astrologie – wie jij nu bent",
+      "title": "Van gratis Manseryeok tot Zi Wei Dou Shu en astrologie – wie jij nu bent",
       "lead": "Oosterse en westerse wijsheid ontmoet expertinzicht om jouw verhaal te duiden.",
       "primaryCta": "✦ Maak je lotskaart",
       "journeyCta": "✦ Begin je lotsreis"
@@ -1260,7 +1260,7 @@
     "oneStep": {
       "heading": "Today's One Step",
       "s1": {
-        "title": "Free Saju Chart",
+        "title": "Gratis Manseryeok",
         "desc": "Start by knowing yourself"
       },
       "s2": {
@@ -1484,7 +1484,7 @@
         },
         "selfGrain": {
           "t": "Wat voor persoon ben ik vanbinnen?",
-          "s": "Verken gratis je aanleg en je huidige levensfase via de acht tekens van BaZi.",
+          "s": "Verken je aanleg met het gratis Manseryeok.",
           "b": "Vier Pijlers (BaZi)"
         },
         "peopleTired": {
@@ -1941,7 +1941,7 @@
       "all": "Bekijk alle lezingen",
       "light": "Probeer een korte lezing",
       "free": "Gratis starten · Verdieping kost extra",
-      "benefit": "Voltooi de gratis saju-uitleg voor 500 maanstenen",
+      "benefit": "Voltooi de gratis Manseryeok-uitleg voor 500 maanstenen",
       "benefitNote": "30 dagen geldig. Bij de standaardkoers gelijk aan 5.000 KRW; verbruik verschilt per product. Geen contant geld en niet voor passen. Alleen voor korting op geschikte diensten vanaf 10.000 KRW.",
       "join": "Registreer met Kakao of e-mail",
       "signatureDescription": "Bekijk consulten en voorbeeldresultaten voor jouw vraag.",
@@ -2001,7 +2001,7 @@
       "title": "Uitgelichte consulten, ontworpen door een Myeongri-specialist met 10 jaar ervaring",
       "freeTitle": "Eerst gratis",
       "miniGames": "Mini-waarzegspellen",
-      "freeSaju": "Gratis Saju",
+      "freeSaju": "Gratis Manseryeok",
       "freeSajuNote": "Direct met je geboortedatum",
       "freeToday": "Daghoroscoop",
       "freeTodayNote": "Elke dag een nieuwe lezing",
@@ -2251,7 +2251,8 @@
       "expand": "Uitklappen",
       "collapse": "Inklappen",
       "samplesContext": "Inhoud van consulten",
-      "samplesAction": "Voorbeelden bekijken"
+      "samplesAction": "Voorbeelden bekijken",
+      "resume": "Automatisch wisselen hervatten"
     },
     "benefitsCopy": {
       "title": "Benieuwd naar je toekomst?",
@@ -2372,8 +2373,8 @@
       "relationship": "Compatibiliteit & relaties",
       "yearly": "Dit & volgend jaar",
       "introduction": "Saju, tarot en advies bij je vragen.",
-      "freeIntroduction": "Begin met een gratis Saju-lezing.",
-      "freeStart": "Gratis Saju starten",
+      "freeIntroduction": "Begin met een gratis Manseryeok-overzicht.",
+      "freeStart": "Gratis Manseryeok starten",
       "paidLabel": "Betaald ·",
       "result": {
         "relationship": "Relatierapport met Saju en Zi Wei Dou Shu",
@@ -2407,6 +2408,90 @@
       "contact": "Contact opnemen",
       "contactNote": "Laat ons je vragen of problemen weten.",
       "example": "Voorbeeld van een openbare lezing"
+    },
+    "webtoonCopy": {
+      "love-secret": {
+        "lead": "Dezelfde woorden, maar onze gevoelens missen elkaar.",
+        "benefits": "Manieren om liefde te tonen · Waarom gekwetstheid zich opstapelt · Wanneer toenadering of ruimte helpt"
+      },
+      "new-year": {
+        "lead": "Bekijk het komende jaar voordat je dezelfde voornemens herhaalt.",
+        "benefits": "Wanneer voorbereiden en handelen · Prioriteiten in werk, geld en relaties · Keuzes per periode bekijken"
+      },
+      "life-book": {
+        "lead": "Wat als eerdere hoofdstukken nog iets te begrijpen geven?",
+        "benefits": "Redenen voor herhaalde keuzes · Blijvende talenten en sterke kanten · Grote levenscycli volgens Saju"
+      },
+      "neo": {
+        "lead": "Je hebt besloten. Waarom sta je nog op dezelfde plek?",
+        "benefits": "Voorwaarden voor verandering · Acties voor nu · Criteria om je plan te beoordelen"
+      },
+      "tea": {
+        "lead": "Een avond waarop je niet weet waar je moet beginnen.",
+        "benefits": "Zorgen ordenen · Passend advies kiezen · Acties die je zelf kunt veranderen"
+      },
+      "codex": {
+        "lead": "Andere mensen, maar dezelfde scènes blijven terugkomen.",
+        "benefits": "Terugkerende relatiepatronen · Redenen voor aantrekking en spanning · Persoonlijke of compatibiliteitsduiding"
+      },
+      "ziwei": {
+        "lead": "Je doet je best, maar loopt steeds op hetzelfde punt vast?",
+        "benefits": "Temperament in je Ziwei-kaart · Sterktes in werk, geld en relaties · Keuzes bekijken bij blokkades"
+      },
+      "astrology": {
+        "lead": "Wanneer gevoelens en daden andere kanten op gaan.",
+        "benefits": "Temperament in je geboortehemel · Verschillen tussen gevoelens en daden · Huidige transits en dagelijks leven"
+      },
+      "vedic": {
+        "lead": "Wanneer hetzelfde seizoen weer lijkt terug te komen.",
+        "benefits": "Temperament in je geboortehoroscoop · Tijdsverloop volgens Dasha-perioden · Je levensrichting nu bekijken"
+      },
+      "sukuyo-compat": {
+        "lead": "Waarom wordt het moeilijker naarmate je dichterbij komt?",
+        "benefits": "Aantrekking en spanning tussen twee mensen · Verschillende relatieritmes · Samen afspraken en grenzen bijstellen"
+      },
+      "legacy-naming": {
+        "lead": "Een naam die lang wordt genoemd draagt zorg en aandacht.",
+        "benefits": "Betekenis en klank van mogelijke namen · Saju en berekeningen als basis · Criteria om namen te vergelijken"
+      },
+      "karma": {
+        "lead": "Mensen en plekken veranderen, maar de knoop blijft.",
+        "benefits": "Terugkerende knopen in relaties · Keuzepatronen vanuit verschillende tradities · Acties om volgende keer te veranderen"
+      },
+      "fusion": {
+        "lead": "Kanten van het leven die één blik niet laat zien.",
+        "benefits": "Afzonderlijke duidingen uit zes tradities · Gedeelde thema’s en andere perspectieven · Praktische richting per levensgebied"
+      },
+      "read": "Ontdek via de webtoon",
+      "start": "Consult starten",
+      "installLabel": "Toevoegen aan startscherm",
+      "return": "Kom terug met één tik",
+      "installDescription": "Open 꿀꿀 운세 via je startscherm.",
+      "expertsTitle": "Jouw verhaal vanuit een andere blik",
+      "expertsIntro": "Bekijk expertconsulten eerst via webtoons.",
+      "ziweiName": "Ziwei-consult",
+      "astrologyName": "Consult westerse astrologie",
+      "vedicName": "Consult vedische astrologie",
+      "sukuyoName": "Sukuyo-compatibiliteitsconsult",
+      "namingName": "Naamadvies",
+      "karmaName": "Karma- en lotsrapport",
+      "fusionName": "Gecombineerde duiding",
+      "teaName": "Theehuis van het lot",
+      "namingStudio": "Expertstudio voor namen",
+      "installAction": "Toevoegen aan startscherm",
+      "neoShort": "Neo's strategie met duidelijke taal",
+      "yeoniTea": "Theehuis van het lot",
+      "link": {
+        "codexTitle": "Het bandenboek van de meester · Ontdek via de webtoon",
+        "teaName": "Theehuis van het lot · Ontdek via de webtoon",
+        "loveTitle": "Liefdesinzichten · Ontdek via de webtoon",
+        "neoShort": "Neo's strategie met duidelijke taal · Ontdek via de webtoon",
+        "namingStudio": "Expertstudio voor namen · Ontdek via de webtoon",
+        "yeoniTea": "Theehuis van het lot · Ontdek via de webtoon",
+        "lifeTitle": "Levensboek · Ontdek via de webtoon",
+        "yearTitle": "Jaarvooruitblik · Ontdek via de webtoon",
+        "neoRoomTitle": "Neo's strategie met duidelijke taal · Ontdek via de webtoon"
+      }
     }
   },
   "terms": {
@@ -3167,7 +3252,7 @@
     "neoSubline": "Geen extra sentiment. Alleen de feiten blijven over.",
     "signup": "Schrijf je in",
     "login": "Log in",
-    "guestMoonstoneTeaser": "Voltooi de gratis saju-uitleg voor 500 maanstenen · korting op geschikte diensten vanaf 10.000 KRW",
+    "guestMoonstoneTeaser": "Voltooi de gratis Manseryeok-uitleg voor 500 maanstenen · korting op geschikte diensten vanaf 10.000 KRW",
     "loadingGreeting": "Uw account op één lijn brengen",
     "loadingChip": "SESSIESYNC",
     "loadingTitle": "Uw inloggegevens worden geladen",
@@ -3207,18 +3292,18 @@
     "passCheckingGreeting": "Pas wordt gecontroleerd",
     "passCheckingNote": "We synchroniseren veilig uw Maanlichtsteen Pas en lidmaatschapsniveau.",
     "exitBenefit": {
-      "title": "Voltooi de gratis saju-uitleg voor {amount} maanstenen",
-      "copy": "Eenmalig ophalen na inloggen en gratis saju met je opgeslagen profiel. Eerdere ontvangers van het registratiecadeau ontvangen geen tweede gift. Ter waarde van 5.000 KRW. Vanaf uitgifte {days} dagen geldig voor korting op geschikte diensten vanaf 10.000 KRW.",
+      "title": "Voltooi de gratis Manseryeok-uitleg voor {amount} maanstenen",
+      "copy": "Eenmalig ophalen na inloggen en gratis Manseryeok met je opgeslagen profiel. Eerdere ontvangers van het registratiecadeau ontvangen geen tweede gift. Ter waarde van 5.000 KRW. Vanaf uitgifte {days} dagen geldig voor korting op geschikte diensten vanaf 10.000 KRW.",
       "note": "De kosten verschillen per product. Geen geld en niet bruikbaar om passen te kopen.",
       "join": "Registreren met Kakao",
       "email": "Registreren met e-mail"
     }
   },
   "seo": {
-    "homeTitle": "Gratis Saju, Tarot en dagelijks fortuin | 꿀꿀 운세",
+    "homeTitle": "Saju, Tarot en dagelijks fortuin | 꿀꿀 운세",
     "rssTitle": "꿀꿀 운세 RSS",
-    "description": "꿀꿀 운세: Gratis Saju op geboortedatum, tarot, compatibiliteit, nieuwjaarsfortuin, Tojeong Bigyeol en MBTI-compatibiliteit.",
-    "keywords": "Saju, gratis Saju, Manse-kalender, tarot, dagelijks fortuin, compatibiliteit, nieuwjaarsfortuin, Tojeong Bigyeol, gezicht lezen, geldfortuin, reüniefortuin, MBTI-compatibiliteit, 꿀꿀운세"
+    "description": "꿀꿀 운세: Gratis Manseryeok op geboortedatum, tarot, compatibiliteit, nieuwjaarsfortuin, Tojeong Bigyeol en MBTI-compatibiliteit.",
+    "keywords": "Saju, gratis Manseryeok, Manse-kalender, tarot, dagelijks fortuin, compatibiliteit, nieuwjaarsfortuin, Tojeong Bigyeol, gezicht lezen, geldfortuin, reüniefortuin, MBTI-compatibiliteit, 꿀꿀운세"
   },
   "fortune": {
     "destinyFlower": {
@@ -5403,7 +5488,7 @@
         "faq": "Veelgestelde vragen"
       },
       "home": "Terug naar huis",
-      "freeSaju": "Bekijk gratis Saju-lezing"
+      "freeSaju": "Bekijk het gratis Manseryeok"
     },
     "tryAgainLater": "Probeer het binnenkort opnieuw."
   },
@@ -5412,7 +5497,7 @@
       "kicker": "De eerste energie van taegeuk",
       "title": "De witte en donkere lichten van taegeuk verlichten het midden van uw kaart.",
       "desc": "In het diagram beweegt de energie zich door de dagpijler, tien goden, seizoensbalans en ondersteunende kracht. Diepere deuren van fortuin gaan stilletjes open waar ze nodig zijn.",
-      "navAria": "Ga naar gratis saju-interpretatie",
+      "navAria": "Ga naar de Saju-interpretatie",
       "nav": {
         "manse": "Grafiek",
         "ilju": "Dagpijler",
@@ -5460,7 +5545,7 @@
       "johuTitle": "Analyse van seizoenswarmte en droogte",
       "ukbuTitle": "Ondersteuningssterkte en volgende patroonanalyse",
       "currentSeasonTitle": "🍃 Waar ik nu sta · Ik dit jaar",
-      "currentSeasonIntro": "De meestgestelde vraag in Saju is: “En nu, hoe zit dit jaar?” We beginnen gratis met het levensseizoen dat je doormaakt (je grote geluksscyclus) en de stroom van dit jaar."
+      "currentSeasonIntro": "De meestgestelde vraag in Saju is: “En nu, hoe zit dit jaar?” We beginnen met het levensseizoen dat je doormaakt (je grote geluksscyclus) en de stroom van dit jaar."
     },
     "ilju": {
       "dashboard": "DAGPIJLERDASHBOARD",
@@ -5485,18 +5570,18 @@
     "premiumShowcase": {
       "aria": "Betaalde saju-lezingen",
       "title": "Je kaart dieper lezen",
-      "subtitle": "Begin met de Light-lezing om je aanleg in kaart te brengen en volg daarna je tienjaarscycli met Daewun. Compatibiliteit betaal je per lezing.",
+      "subtitle": "Eén permanente ontgrendeling van de volledige saju-lezing opent alles voorbij je geboortekaart. Compatibiliteit betaal je per lezing.",
       "expand": "De duidingen openen",
       "permanent": "Permanente ontgrendeling",
       "perUse": "Betaling per gebruik",
       "compatCta": "Compatibiliteit bekijken →",
       "daewun": {
         "title": "Daewun-analyse",
-        "cta": "Daewun-analyse openen →"
+        "cta": "Volledige saju-lezing permanent openen →"
       },
       "summary": {
-        "title": "Saju-lezing Light",
-        "cta": "Light-lezing openen →"
+        "title": "Volledige saju-lezing",
+        "cta": "Volledige saju-lezing permanent openen →"
       },
       "compat": {
         "title": "Compatibiliteitsanalyse",
@@ -7327,7 +7412,7 @@
     "sq_9794_attr_aria_label": "Sukuyo compatibiliteitsradarchart"
   },
   "shell": {
-    "CODEDESTINY": "꿀꿀 운세 | Gratis Vier Pijlers (BaZi)·Tarot·Zi Wei Dou Shu·Compatibiliteit — Geluksreading",
+    "CODEDESTINY": "꿀꿀 운세 | Gratis Manseryeok·Vier Pijlers (BaZi)·Tarot·Zi Wei Dou Shu·Compatibiliteit — Geluksreading",
     "cdCookieConsentCopy": {
       "cdCookieConsentActions": {
         "kniuoqf": "Akkoord",
@@ -8536,7 +8621,7 @@
     "005": "Geboortekaart, 12 huizen en sterrenbeeldsymbolen eenvoudig uitgelegd voor beginners.",
     "006": "Richtlijnen en disclaimer voor het veilig en evenwichtig lezen van reading-content.",
     "007": "Vier Pijlers (BaZi) beginnersgids",
-    "008": "Gratis Vier Pijlers (BaZi) analyse",
+    "008": "Het gratis Manseryeok leren lezen",
     "009": "Basisinterpretatie Vier Pijlers (BaZi)",
     "010": "Hoe tarotreadings werken",
     "011": "Gratis tarotkaartreading",
@@ -8548,7 +8633,7 @@
     "017": "Gratis astrologische geboortekaart",
     "018": "Zi Wei Dou Shu 12 huizen",
     "019": "Belangrijke signalen voor goede compatibiliteit",
-    "020": "Gratis Vier Pijlers (BaZi) compatibiliteitsanalyse",
+    "020": "Vier Pijlers (BaZi) compatibiliteit",
     "021": "Gratis liefdes reading bekijken",
     "022": "FAQ voor veilig gebruik van reading-services",
     "023": "Gratis dagelijkse reading bekijken",
@@ -8896,8 +8981,8 @@
   },
   "seoLanding": {
     "description": {
-      "001": "Dit is een gratis introductiepagina voor Vier Pijlers (BaZi) die de basisstructuur, Vijf Elementen balans, Tien Goden en geluk-cyclus analyseert om je neigingen en keuzestromen te bekijken.",
-      "002": "We leggen uit hoe je de Vier Pijlers (BaZi) geboortekaart, Vijf Elementen, Tien Goden en geluk-cyclus stromen kunt controleren op basis van je geboortedatum en -tijd.",
+      "001": "Voer je geboortedatum en -tijd in het gratis Manseryeok in om je Vier Pijlers-kaart en een tendens in één zin te zien. Tien Goden, geluks-cycli en de stroom van geld, liefde en werk vervolg je in de volledige, betaalde Saju-lezing.",
+      "002": "Voer je geboortedatum in en bekijk in het gratis Manseryeok de kaart van je Vier Pijlers en de balans van de Vijf Elementen. We leggen uit waarom het resultaat verandert met je geboortetijd en de grenzen van de zonneperioden; de duiding van de Tien Goden en de geluks-cyclustabel loopt door in de volledige Saju-lezing met levenslange toegang.",
       "003": "De dagelijkse reading helpt je om de conditie van de dag, relaties en werkprioriteiten licht te controleren en keuzes te organiseren om in de praktijk te brengen.",
       "004": "De dagelijkse reading pagina helpt je om snel je conditie, relatiestromen en agendaprioriteiten te controleren wanneer je de dag begint of afsluit.",
       "005": "We onderzoeken het relatie-ritme, de communicatiestijl en herstelpunten bij conflicten van twee personen vanuit het perspectief van Vier Pijlers (BaZi) en readings, en organiseren dit als realistische gespreksstandaarden.",
@@ -8919,12 +9004,12 @@
       "021": "De Nieuwjaarsreading PDF is een premium reading-document dat de carrière, financiën, relaties en gezondheidsstromen van het nieuwe jaar per maand bekijkt."
     },
     "title": {
-      "001": "Gratis Vier Pijlers (BaZi) Analyse | Vijf Elementen·Tien Goden·geluk-cyclus Stromen",
-      "002": "Gratis Vier Pijlers (BaZi) Analyse | Vijf Elementen·Tien Goden·geluk-cyclus Interpretatie",
+      "001": "Gratis Manseryeok: geboortekaart | Vier Pijlers en balans van de Vijf Elementen",
+      "002": "Het gratis Manseryeok lezen | Vier Pijlers-kaart en balans van de Vijf Elementen",
       "003": "Gratis Dagelijkse Reading | Dagelijkse Stroom en Keuzegids",
       "004": "Direct Dagelijkse Reading | Conditie·Relatie·Agenda Check",
-      "005": "Gratis Compatibiliteit | Vier Pijlers (BaZi)·Liefdesrelatie Analyse",
-      "006": "Gratis Vier Pijlers (BaZi) Compatibiliteit | Relatiestroom en Communicatiestijl",
+      "005": "Gratis compatibiliteitsgids | Saju, Sukuyo en tarot vergeleken",
+      "006": "Saju-compatibiliteit — Neigingen van twee mensen en relatielezing | 꿀꿀 운세",
       "007": "Gratis Tarotkaart Reading | Liefde·Hereniging·Hart Interpretatie",
       "008": "Hereniging Tarot Reading | Kans op Hereniging en Afstand",
       "009": "Tarot voor de gedachten van de ander | Hartstroom en Relatiesignalen",
@@ -14037,10 +14122,10 @@
       }
     },
     "rpt_tTestCard": {
-      "fallbackTitle": "Check your logic temperature -- where reason responds before emotion -- for free.",
-      "tagline": "The Frozen Logic -- a free Saju-based test that playfully diagnoses how close your thinking and judgment pattern is to Thinking (T).",
-      "premiumIntro": "The Extreme-T Test doesn't define your personality -- it's a free, playful reflection of how much your judgment leans toward reason.",
-      "fallbackCta": "Diagnose for Free",
+      "fallbackTitle": "Bekijk je logische temperatuur, waarbij de rede eerder reageert dan het gevoel.",
+      "tagline": "The Frozen Logic: een speelse test op basis van Saju die laat zien hoe dicht je denk- en oordeelspatroon bij T ligt, inbegrepen in de volledige Saju-lezing met levenslange toegang.",
+      "premiumIntro": "De Extreme-T-test legt je persoonlijkheid niet vast. Hij laat zien hoe sterk je oordeel naar de rede neigt.",
+      "fallbackCta": "Diagnose starten",
       "feats": {
         "0": "Measures the metal element, authority, expression and climate in your chart to produce a T score of 0–100 and a tier",
         "1": "Shows four stats: metal hardware, forced-control instinct, blunt-fact debugging and the cold-dry formation",
@@ -14060,7 +14145,7 @@
         "3": "Six summary chips plus today’s mission"
       },
       "premiumOutcomes": {
-        "0": "You can use it free right now.",
+        "0": "Deze lezing is inbegrepen in de volledige Saju-lezing met levenslange toegang.",
         "1": "[Relationship Circuit], [Love Algorithm], [Reality Processing], [Saju-based Extreme-T Reading] and [Debugging Prescription] open after a separate unlock.",
         "2": "The test is for reference and fun."
       },
@@ -14093,8 +14178,8 @@
           "a": "No. You do not answer questionnaire items. It scores the metal element, authority, expression and climate in your natal chart, for fun."
         },
         "1": {
-          "q": "How much is free?",
-          "a": "The T score, tier, type name, four stats, [Strength Scan], [Fatal Bug], today’s mission and the summary card are all free."
+          "q": "Wat kan ik zien?",
+          "a": "De T-score, het niveau, de typenaam, vier statistieken, [Strength Scan], [Fatal Bug], de missie van vandaag en de samenvattingskaart openen met de volledige Saju-lezing met levenslange toegang."
         },
         "2": {
           "q": "Why can’t I see the relationship sections?",
@@ -14103,10 +14188,10 @@
       }
     },
     "rpt_hormone_vibe_section": {
-      "fallbackTitle": "Check for free whether your charm pulls strongly like a Teto type, or seeps in gently like an Egen type.",
-      "tagline": "A free analysis, based on your Saju, that splits the grain of your charm energy into Teto and Egen styles.",
-      "premiumIntro": "The Teto/Egen analysis doesn't rank one above the other -- it's a free organization of how your charm pulls people in.",
-      "fallbackCta": "Check for Free",
+      "fallbackTitle": "Ontdek of je charme krachtig aantrekt zoals het Teto-type of zacht doordringt zoals het Egen-type.",
+      "tagline": "Een analyse op basis van je Saju die je charme-energie verdeelt in de stijlen Teto en Egen, inbegrepen in de volledige Saju-lezing met levenslange toegang.",
+      "premiumIntro": "De Teto/Egen-analyse zet het ene type niet boven het andere. Ze laat zien op welke manier je charme mensen aantrekt.",
+      "fallbackCta": "Nu bekijken",
       "feats": {
         "0": "Tallies the Ten Gods across all seven positions except the day stem",
         "1": "Groups the Ten Gods into peers, output, resource, authority and wealth",
@@ -14122,10 +14207,10 @@
         "0": "Teto and Egen scores with a type reading",
         "1": "Ten Gods tallied across seven positions excluding the day stem",
         "2": "Weightings for the five groups: peers, output, resource, authority, wealth",
-        "3": "Free, with no extra payment"
+        "3": "Inbegrepen in de volledige Saju-lezing met levenslange toegang"
       },
       "premiumOutcomes": {
-        "0": "You can use it right now, for free.",
+        "0": "Deze lezing is inbegrepen in de volledige Saju-lezing met levenslange toegang.",
         "1": "The analysis is for reference and entertainment.",
         "2": "Your charm type can vary by situation."
       },
@@ -14162,16 +14247,16 @@
           "a": "It uses only the Ten Gods in your natal chart, so the same birth date and time always gives the same result."
         },
         "2": {
-          "q": "Do I need to pay?",
-          "a": "No. It opens inside your Saju result with no extra payment."
+          "q": "Moet ik hier apart voor betalen?",
+          "a": "Er is geen losse betaling. Dit opent samen met de volledige Saju-lezing met levenslange toegang."
         }
       }
     },
     "rpt_lottoCard": {
-      "fallbackTitle": "Get today's lucky numbers drawn from your Saju's Five Elements and number symbolism, for free.",
-      "tagline": "A free, for-fun feature that seeds five games from your natal chart plus today’s day pillar and luck cycle.",
-      "premiumIntro": "The Saju Lotto is a fun feature that doesn't predict a win -- it freely draws a symbolic number that fits today's fortune.",
-      "fallbackCta": "Draw Numbers for Free",
+      "fallbackTitle": "Ontvang de geluksgetallen van vandaag, getrokken uit de Vijf Elementen van je Saju en de symboliek van getallen.",
+      "tagline": "Een functie voor symbolische getallen die vijf combinaties trekt uit je geboortekaart, de dagpijler van vandaag en je geluks-cyclus, inbegrepen in de volledige Saju-lezing met levenslange toegang.",
+      "premiumIntro": "De Saju Lotto voorspelt geen winst. Hij trekt symbolische getallen die passen bij het geluk van vandaag.",
+      "fallbackCta": "Getallen trekken",
       "feats": {
         "0": "Seeds the numbers from your natal chart plus today’s day pillar, luck cycle and round counter",
         "1": "Builds five games at once and labels them flow, stable, reversal, instinct and balance",
@@ -14187,10 +14272,10 @@
         "0": "Numbers seeded from your chart, today’s day pillar and luck cycle",
         "1": "Five games at once, each with a concept name",
         "2": "Redraw to raise the round counter and get a new set",
-        "3": "Free, with no extra payment"
+        "3": "Inbegrepen in de volledige Saju-lezing met levenslange toegang"
       },
       "premiumOutcomes": {
-        "0": "You can use it right now, for free.",
+        "0": "Deze lezing is inbegrepen in de volledige Saju-lezing met levenslange toegang.",
         "1": "This is fun content that doesn't guarantee a win.",
         "2": "Please judge an actual purchase carefully."
       },
@@ -14228,15 +14313,15 @@
         },
         "2": {
           "q": "Can I save or share the number card?",
-          "a": "The free number draw has no save or share feature. You read it directly on screen."
+          "a": "De getallentrekking heeft geen functie om op te slaan of te delen. Je bekijkt de getallen direct op het scherm."
         }
       }
     },
     "rpt_sajuFourCutCard": {
-      "fallbackTitle": "Make a four-cut photo-strip reinterpreting your Saju data in a fun, snapshot-style sentiment, for free.",
-      "tagline": "A free, fun feature packing blunt-but-relatable roast lines into a four-cut strip, ready to save and share.",
-      "premiumIntro": "The Saju Four-Cut doesn't state your fortune definitively -- it's free content that lets you enjoy your Saju as a fun, snapshot-style card.",
-      "fallbackCta": "Make a Four-Cut for Free",
+      "fallbackTitle": "Maak een vierluik dat je Saju-gegevens opnieuw verbeeldt in fotohokjesstijl.",
+      "tagline": "Directe maar herkenbare zinnen in vier beelden, klaar om op te slaan en te delen, inbegrepen in de volledige Saju-lezing met levenslange toegang.",
+      "premiumIntro": "Het Saju-vierluik velt geen oordeel over je lot. Je geniet van je Saju als één vel in fotohokjesstijl.",
+      "fallbackCta": "Vierluik maken",
       "feats": {
         "0": "Builds four-cut lines from today’s day pillar energy",
         "1": "Lets you switch between four versions: form check, reply warmth, routine save and impulse lock",
@@ -14256,7 +14341,7 @@
         "3": "Image save plus KakaoTalk, device share or link copy"
       },
       "premiumOutcomes": {
-        "0": "You can use it right now, for free.",
+        "0": "Deze lezing is inbegrepen in de volledige Saju-lezing met levenslange toegang.",
         "1": "The sentences are for reference and entertainment.",
         "2": "The existing service standard applies."
       },
@@ -14293,16 +14378,16 @@
           "a": "Yes. You can save the four cuts as an image with your stickers in place."
         },
         "2": {
-          "q": "Do I need to pay?",
-          "a": "No. It opens inside your Saju result with no extra payment."
+          "q": "Moet ik hier apart voor betalen?",
+          "a": "Er is geen losse betaling. Dit opent samen met de volledige Saju-lezing met levenslange toegang."
         }
       }
     },
     "rpt_dopamineCard": {
-      "fallbackTitle": "Check for free whether you're someone who chases new stimulation, or someone who loves stability more.",
-      "tagline": "A free report that converts your stimulation-seeking tendency into a score and grade based on your Saju flow, showing an 8-axis stimulation radar, your absorption areas, and today's mission.",
+      "fallbackTitle": "Ontdek of je nieuwe prikkels najaagt of meer van stabiliteit houdt.",
+      "tagline": "Een rapport dat je prikkelzucht op basis van de stroom van je Saju omzet in een score en een graad, met een radar met 8 assen, je verdiepingsgebieden en de missie van vandaag, inbegrepen in de volledige Saju-lezing met levenslange toegang.",
       "premiumIntro": "This doesn't diagnose addiction -- it's a fun read, through your Saju flow, of where you draw energy from and where you burn out quickly.",
-      "fallbackCta": "See Your Stimulation Score for Free",
+      "fallbackCta": "Mijn prikkelindex bekijken",
       "feats": {
         "0": "Converts your stimulation-seeking tendency into a 0–100 score, an SSS–D grade and a type name",
         "1": "Draws an eight-axis stimulation radar: new experiences, social media, shopping, gaming, study, travel, romance and exercise",
@@ -14323,7 +14408,7 @@
         "4": "Save and share the result card"
       },
       "premiumOutcomes": {
-        "0": "You can use it right now, for free.",
+        "0": "Deze lezing is inbegrepen in de volledige Saju-lezing met levenslange toegang.",
         "1": "This is content for temperament reference and entertainment.",
         "2": "The existing service standard applies."
       },
@@ -16326,7 +16411,7 @@
       "badge": "Free compatibility reading"
     },
     "saju": {
-      "tagline": "A basic reading that calculates the eight characters of your saju and lays out your innate temperament and the large turns of your life. You can start for free.",
+      "tagline": "Berekent de acht tekens van je Saju en toont gratis je kaart, de balans van de Vijf Elementen en een tendens in één zin. De uitleg van de Tien Goden en geluks-cycli vervolg je in de volledige, betaalde Saju-lezing.",
       "feats": [
         "When you can't put your own disposition into words",
         "When you want to see the broad arc of your life once",
@@ -16343,7 +16428,7 @@
         "How does the broad arc of my life run?",
         "What kind of period am I in now?"
       ],
-      "fallbackCta": "See your saju free",
+      "fallbackCta": "Bekijk je gratis Manseryeok",
       "headline": "Explore the broad patterns of your life through your birth date and time.",
       "badge": "Start for free"
     },
@@ -21844,7 +21929,7 @@
     "more": "Read more",
     "sample": "Sample · a fictional chart",
     "sampleNote": "An example of the format, not your personal result.",
-    "paidDifference": "Prepared explanations are matched to the chart calculated from your birth details. Build on the temperament covered in the free reading with longer-term cycles and themed interpretations.",
+    "paidDifference": "Prepared explanations are matched to the chart calculated from your birth details. Build on the natal chart shown in the free Manseryeok with longer-term cycles and themed interpretations.",
     "paidDaeun": "Read how life shifts every ten years and from year to year, and see which choices to prepare for now in work, relationships and money.",
     "paidSummary": "Your temperament, elements and Ten Gods, personality and relationships, life strategy, and guidance for this year and next, gathered into one reading of your chart.",
     "recovery": "Reopen the chart with the same account and profile and check access. If payment succeeded but access is missing, do not pay again; contact support with the payment record.",
@@ -21933,7 +22018,8 @@
     "neoClosing": "Whether it is a relationship or work, do not make a major decision from the chart alone. Look at what people actually do, the terms you agreed to and the costs you can bear. I am not trying to corner you. I only want your choices to become a little clearer. Start with whatever you can genuinely do today, meow.",
     "letterVerdictJong": "a structure that follows momentum gathering in one direction",
     "letterVerdictStrong": "a structure with relatively ample strength to make your own path",
-    "letterVerdictWeak": "a structure that shines more comfortably with support nearby and time to prepare"
+    "letterVerdictWeak": "a structure that shines more comfortably with support nearby and time to prepare",
+    "paidBundle": "Saju full reading, lifetime access · One payment opens every Saju reading, including this one, permanently. You are not charged per reading."
   },
   "sajuCompat": {
     "selfFallback": "Ik",

@@ -10,8 +10,8 @@ const browser=await chromium.launch({headless:true});
 const context=await browser.newContext();
 await context.addCookies([{name:'cd_cookie_consent',value:'essential',url:origin}]);
 const page=await context.newPage();page.setDefaultTimeout(20000);page.setDefaultNavigationTimeout(120000);
-const errors=[],calls=[],unlocks=[],saved=new Map(),owned=new Set();
-let guest=false,broken=false,balance=29,failRead=false;
+const errors=[],calls=[],saved=new Map(),owned=new Set();
+let guest=false,broken=false;
 const profiles=[{profileId:'card-a',name:'테스트 하나',birthDate:'2000-03-15',birthTime:'12:30',calendarType:'solar'},{profileId:'card-b',name:'테스트 둘',birthDate:'2001-08-21',birthTimeUnknown:true,calendarType:'solar'}];
 page.on('pageerror',e=>errors.push(e.message));
 await context.route('**/*',async route=>{
@@ -27,20 +27,11 @@ await context.route('**/*',async route=>{
  if(url.pathname==='/api/saju/career-style'){
   if(guest)return reply(401,{ok:false,message:'로그인이 필요해요.'});
   const pid=route.request().method()==='POST'?route.request().postDataJSON().profileId:url.searchParams.get('profileId');
-  const result={ok:true,profileId:pid,featureKey:'saju-career-style',unlocked:owned.has(pid),priceKRW:5000,honeyCost:30};
+  const result={ok:true,profileId:pid,featureKey:'saju-career-style',unlocked:owned.has(pid),priceKRW:5000};
   if(route.request().method()==='GET')return reply(200,result);
   if(!owned.has(pid))return reply(402,{ok:false,message:'리포트를 해금한 뒤 확인해 주세요.'});
-  if(failRead){failRead=false;return reply(503,{ok:false,message:'결과를 저장하지 못했어요. 다시 시도해 주세요.'});}
   if(!saved.has(pid))saved.set(pid,buildCareerReport(careerNatalInput(profiles.find(p=>p.profileId===pid))));
   return reply(200,{...result,report:saved.get(pid)});
- }
- if(url.pathname==='/api/honey/unlocks'){
-  const body=route.request().postDataJSON();unlocks.push(body);
-  if(!owned.has(body.profileId)){
-   if(balance<30)return reply(402,{ok:false,message:'꿀방울 30개가 필요해요. 출석하고 모아보세요.'});
-   balance-=30;owned.add(body.profileId);await page.evaluate(()=>window.dispatchEvent(new CustomEvent('cd:auth-changed',{detail:{source:'subscription-sync',event:'subscription'}})));
-  }
-  return reply(200,{ok:true,unlocked:true,featureKey:'saju-career-style'});
  }
  return reply(404,{ok:false,message:'UNEXPECTED_MOCK_REQUEST'});
 });
@@ -52,29 +43,29 @@ try{
  const cookie=page.getByRole('button',{name:'필수만 사용',exact:true});if(await cookie.isVisible())await cookie.click();
  assert.equal(await page.locator('h1').count(),1);assert.match(await page.locator('title').innerText(),/진로·적성/);
  assert.equal(await report.count(),0); // A forged local unlock never reveals the paid text.
- const honey=()=>page.getByRole('button',{name:'꿀방울 30개로 열기',exact:true});
  fs.mkdirSync('.tmp/career-style',{recursive:true});
+ const bundleOpen=()=>page.getByRole('button',{name:'사주 전체 풀이 평생 소장으로 열기',exact:true});
  for(const width of [360,1280]){
   await page.setViewportSize({width,height:1100});
   await page.locator('#start-title').evaluate(node=>node.scrollIntoView({block:'start',behavior:'instant'}));
   await page.screenshot({path:'.tmp/career-style/locked-actions-'+width+'.png'});
-  assert.ok(await honey().isVisible());
+  // 개별 판매는 끝났다: 꿀방울·개별 결제 버튼이 없고 묶음 버튼만 보인다.
+  assert.equal(await page.getByRole('button',{name:/꿀방울|단건/}).count(),0);
+  await bundleOpen().waitFor(); // 화면이 프로필을 읽어 온 뒤에 판정한다.
+  assert.ok(await bundleOpen().isVisible());
+  assert.equal(await report.count(),0);
  }
- await page.getByRole('button',{name:'이용권·단건 결제로 열기',exact:true}).click();
- await page.getByText('이번 콘텐츠만 · 5,000원',{exact:true}).waitFor();
- assert.equal(await report.count(),0);
- await page.getByRole('button',{name:'취소',exact:true}).click();
- await page.locator('[data-paid-feature-gate-status=cancelled]').getByRole('button',{name:/닫기/}).click();
- await page.getByRole('button',{name:'이용권·단건 결제로 열기',exact:true}).waitFor();
- await honey().click();await page.getByRole('alert').filter({hasText:'꿀방울 30개가 필요'}).waitFor();assert.equal(balance,29);assert.equal(await report.count(),0);
- balance=60;failRead=true;await honey().click();await page.getByRole('alert').filter({hasText:'결과를 저장하지'}).waitFor();assert.equal(balance,30);
- const requestId=unlocks[0].requestId;assert.equal(unlocks[1].requestId,requestId);
- await honey().click();await report.waitFor();assert.equal(balance,30);assert.equal(unlocks.length,2);
+ const lockedText=await page.locator('body').innerText();
+ assert.doesNotMatch(lockedText,/5,000원|꿀방울|단건 결제/);
+ assert.match(lockedText,/사주 전체 풀이 평생 소장/);
+ // 묶음(또는 과거 구매) 보유자는 서버가 열어 준다. 결제 없이 같은 버튼으로 읽는다.
+ owned.add('card-a');
+ await bundleOpen().click();await report.waitFor();
  assert.equal(await report.locator('section[id^="career-chapter-"]').count(),8);
  const first=await report.locator('header h2').innerText();
  // Relogin/reload reads the same original without a second unlock.
- await page.reload({waitUntil:'domcontentloaded'});await open();await report.waitFor();assert.equal(unlocks.length,2);assert.equal(balance,30);assert.equal(await report.locator('header h2').innerText(),first);
- await page.getByRole('button',{name:/테스트 둘/}).click();await report.waitFor({state:'detached'});await honey().click();await report.waitFor();assert.equal(balance,0);
+ await page.reload({waitUntil:'domcontentloaded'});await open();await report.waitFor();assert.equal(await report.locator('header h2').innerText(),first);
+ await page.getByRole('button',{name:/테스트 둘/}).click();await report.waitFor({state:'detached'});owned.add('card-b');await bundleOpen().click();await report.waitFor();
  await report.getByText('계산 근거와 해석 범위 확인').click();assert.match(await report.innerText(),/시간 미상/);
  await page.evaluate(()=>Object.defineProperty(navigator,'share',{configurable:true,value:async data=>{window.__careerShare=data;}}));
  await page.getByRole('button',{name:'일 스타일 소개 공유하기'}).click();
@@ -93,5 +84,5 @@ try{
  assert.deepEqual(errors,[]);
  const scripts=await page.locator('script[src]').evaluateAll(nodes=>nodes.map(node=>node.src));
  for(const src of scripts){const source=await (await context.request.get(src)).text();assert.ok(!source.includes('function buildCareerReport('),'Paid engine found in client JS');assert.ok(!source.includes('일주일 뒤 남길 나만의 판단 기준'),'Paid manuscript found in client JS');}
- console.log(JSON.stringify({status:'PASS',widths:[360,390,430,1280],honeyDebits:2,balance,requestReuse:true,relogin:true,serverFailureRetry:true,calls:[...new Set(calls)],clientBundlePaidEngine:false}));
+ console.log(JSON.stringify({status:'PASS',widths:[360,390,430,1280],bundleOnlyCopy:true,relogin:true,calls:[...new Set(calls)],clientBundlePaidEngine:false}));
 }catch(error){console.error(error);console.error({url:page.url(),calls:[...new Set(calls)]});throw error;}finally{await browser.close();}

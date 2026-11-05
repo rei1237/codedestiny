@@ -29,6 +29,7 @@ export const REVIEW_PRODUCTS = Object.freeze([
       "saju_ai_question_prompt",
       "saju-guardian-unlock",
       "saju-career-style",
+      "saju_lifetime_bundle",
       "animal-destiny-unlock",
       "destiny_meeting_place",
       "love-code",

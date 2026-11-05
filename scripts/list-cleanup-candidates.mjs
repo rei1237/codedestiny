@@ -180,10 +180,9 @@ function main() {
   console.log("   트랜스크립트는 컨텍스트가 아니다. 디스크만 준다.");
   console.log("🔴 트랜스크립트를 지우면 그 세션의 /resume 이력이 사라진다.");
   if (removable.length) {
-    console.log(`\n삭제가능 ${removable.length}개 — 지운다면 Windows 에서는 링크부터 끊는다:`);
+    console.log(`\n삭제가능 ${removable.length}개 — 지운다면(정션 해제부터 폴더 확인까지 한 번에 한다):`);
     for (const w of removable) {
-      console.log(`  cmd /c rmdir "${w.path}\\node_modules"   # 정션이면. 안 끊으면 공유 설치본이 위험하다`);
-      console.log(`  git worktree remove "${w.path}"`);
+      console.log(`  npm run worktree:remove -- "${w.path}"`);
     }
   } else {
     console.log("\n삭제가능 0개 — 머지됐으면서 미커밋도 없는 워크트리가 없다.");

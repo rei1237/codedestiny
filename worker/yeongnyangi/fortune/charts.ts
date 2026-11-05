@@ -1,4 +1,5 @@
 import { getTarotCardImageUrl } from '../../../src/features/fortune-tea-house/lib/tarotCardImageMap';
+import {validateDomainFacts} from './shared/consumer-facts';
 import type {DomainContext,DomainId} from './shared/contracts';
 
 export interface ChartView {
@@ -36,6 +37,7 @@ function display(v: unknown): string {
   return String(v);
 }
 export function chartView(c: DomainContext, source = "local"): ChartView {
+  validateDomainFacts(c);
   const f = Object.fromEntries(
     c.facts.map((x) => [x.label, x.value]),
   ) as Record<string, any>;

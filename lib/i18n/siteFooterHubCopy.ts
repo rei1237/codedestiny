@@ -191,7 +191,7 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
     },
     linkLabels: {
       "/": "꿀꿀 운세 브랜드 안내",
-      "/saju/": "무료 사주풀이 보기",
+      "/saju/": "무료 만세력 보기",
       "/manse/": "꿀꿀 만세력 확인하기",
       "/today/": "오늘의 운세 확인하기",
       "/fortune/today/": "오늘의 별자리·띠 운세 24종",
@@ -303,7 +303,7 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
     },
     linkLabels: {
       "/": "ククル運勢 — 꿀꿀 운세 ブランド案内",
-      "/saju/": "無料の四柱推命を見る",
+      "/saju/": "無料の万年暦を見る",
       "/manse/": "万年暦を調べる",
       "/today/": "今日の運勢を見る",
       "/fortune/today/": "星座・干支24種の今日の運勢",
@@ -416,7 +416,7 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
     },
     linkLabels: {
       "/": "咕咕运势 — 꿀꿀 운세 品牌介绍",
-      "/saju/": "查看免费四柱八字解读",
+      "/saju/": "查看免费万年历",
       "/manse/": "查询万年历",
       "/today/": "查看今日运势",
       "/fortune/today/": "星座生肖24种今日运势",
@@ -528,7 +528,7 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
     },
     linkLabels: {
       "/": "咕咕運勢 — 꿀꿀 운세 品牌介紹",
-      "/saju/": "查看免費四柱八字解讀",
+      "/saju/": "查看免費萬年曆",
       "/manse/": "查詢萬年曆",
       "/today/": "查看今日運勢",
       "/fortune/today/": "星座生肖24種今日運勢",
@@ -640,7 +640,7 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
     },
     linkLabels: {
       "/": "Kkul-Kkul Fortune — about the 꿀꿀 운세 brand",
-      "/saju/": "See a free Saju reading",
+      "/saju/": "See your free Manseryeok chart",
       "/manse/": "Look up the Manse calendar",
       "/today/": "See today's fortune",
       "/fortune/today/": "Today by zodiac and Chinese sign",

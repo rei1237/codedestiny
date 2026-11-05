@@ -145,6 +145,7 @@ async function prepared(productId,kindId,extra={}){
 const row=(r,manifests)=>[sha(r.id),sha(r.prepare),sha(r.requests),sha(r.validated),manifests].join(' ');
 const topicManifests=(p,k)=>sha(Object.fromEntries(m.topicIds.map(t=>[t,m.consultationManifest(p,k,t)])));
 
+// 2026-11-05 fact seal: v7 orders store their timing facts before sealing, so only the six v7 saju prepare hashes change.
 // 2026-10-27 오마카세 신규 가격: 세 fusion_all 행은 주문 ID와 준비 스냅샷만 바뀌며 본문·목차 해시는 유지한다.
 // New concise preparation changes only snapshot, request and validated prose hashes (2026-09-30).
 // Combined with main: saju conditional-basis v1.1 and corrected strength/useful-god
@@ -202,7 +203,7 @@ const EXPECTED = {
  "saju_mackerel:movement": "284b12f18706 5ad7c333fe50 56b3c698ccec 80d30827a033 2629d158d3bf",
  "saju_mackerel:ask": "1284fddae164 47c7c0aee20a 7441a1db0681 2d6a7faae292 b9cb87c20d32",
  "saju_salmon:legacy": "fd5928a61d80 0a6c43d24e35 7749922658e8 b65bb3226098 5a931b290957",
- "saju_salmon:personal": "2347af783703 de9e12741549 b820dc577217 bef8e5fd5411 459c1c844aea",
+ "saju_salmon:personal": "2347af783703 a0d55aecfe1f b820dc577217 bef8e5fd5411 459c1c844aea",
  "saju_salmon:compatibility": "e909a7446fd5 212367fd10ee 1340953e230e cfecae67051c 5ee9aa8dd2ae",
  "saju_salmon:love": "e3424258023b a6e39e2a0041 a78629496d27 478c31dcfa30 8fe7b01b938d",
  "saju_salmon:work": "8e52b9053f30 b95cc41084fe fa436393ba8c fee54eeddbe0 fa41008e9044",
@@ -210,9 +211,9 @@ const EXPECTED = {
  "saju_salmon:health": "bc05b7ec9e83 d1438bb1bebf 58e1b42aa99c 34a732fe9eb4 c2825221fee0",
  "saju_salmon:marriage": "f1d233245f5d e29ded682a23 67271a21a26b 16b2ab41b30a f9ab1067c762",
  "saju_salmon:movement": "6b1a6e08b5d6 cf12089368d1 a89995844fa4 c45512ab2658 7dfcbf891f12",
- "saju_salmon:ask": "db54101c4140 0c93759be711 42a638617f8d 24a6fff0ee15 459c1c844aea",
+ "saju_salmon:ask": "db54101c4140 1257ab17ab59 42a638617f8d 24a6fff0ee15 459c1c844aea",
  "saju_flounder:legacy": "cd594316b680 e5d9e9bb7670 63d61484b0eb 0e581c4b7ebb d0a1fba4b309",
- "saju_flounder:personal": "9f0e382671a5 338b168940d1 ebd8e3f25dcf 7202471c0fa2 9092b43d5b23",
+ "saju_flounder:personal": "9f0e382671a5 c5d632a0ce24 ebd8e3f25dcf 7202471c0fa2 9092b43d5b23",
  "saju_flounder:compatibility": "5c560c0623a5 89fe2f7b4b81 34f3262d5f78 eb044b2a5703 3e8926b65705",
  "saju_flounder:love": "29d04360d300 45e8b5f0dbc2 441b1454fac5 f829576a3b46 703f985f1df5",
  "saju_flounder:work": "f6f915afdd31 dd74ed7d88c3 1a5ed0254d9a ba3aecfe9321 686fbc52450a",
@@ -220,9 +221,9 @@ const EXPECTED = {
  "saju_flounder:health": "d3bc2885c8e9 3459f714e506 b3a47dccb908 8abba083cbe9 1944e876aec8",
  "saju_flounder:marriage": "f79ac33fc0f7 353b35bbc83c 57068de4f8e3 0fe21aaae3ab c9a479d092d3",
  "saju_flounder:movement": "c76187faf3b5 3e89966e90cf 8c97114031d9 a94f7fe5e878 caadd5f9127a",
- "saju_flounder:ask": "979fe6673869 dc68861cba43 c32ec6b64c0c c8b9db36e8b0 9092b43d5b23",
+ "saju_flounder:ask": "979fe6673869 6e8fe76fc9fd c32ec6b64c0c c8b9db36e8b0 9092b43d5b23",
  "saju_tuna:legacy": "356b024ce814 b6b78b974e5e fb119439118e 8c4ab04cadea a19a748c8350",
- "saju_tuna:personal": "7d578af159f3 b631949b121a b7edc743f5a6 605d84b614cc 004fdfa8ed6a",
+ "saju_tuna:personal": "7d578af159f3 0fe3702faa00 b7edc743f5a6 605d84b614cc 004fdfa8ed6a",
  "saju_tuna:compatibility": "f8642c297702 e0d1fa265caf 455733805e96 550fd61ed012 6e327a0ca069",
  "saju_tuna:timing": "18921fa9dc3a 0758cc8dd74e 6f45f0642cb3 bfb0793d5f7f 410bef112275",
  "saju_tuna:love": "f0eaae6bc658 0d3ca1dd4a45 609d0de96bfa 5d5648c69990 135beac68a67",
@@ -231,7 +232,7 @@ const EXPECTED = {
  "saju_tuna:health": "9acfae2ce6a0 34b39f59d806 00d29be8a16e 58addf6000cb 0ff921b2a8bb",
  "saju_tuna:marriage": "17fde381a0ce be857323ec1c 78b88da185d7 a9fcd9a9f51a 0ec0359f02ad",
  "saju_tuna:movement": "dc1bca68fda8 cfd73df4e5c3 d11a4f69668b c2c416baef62 128d0b22895e",
- "saju_tuna:ask": "470fd152414b 349480262b38 0ce74729f634 f0eb36bd2df8 004fdfa8ed6a",
+ "saju_tuna:ask": "470fd152414b d1dad0f89245 0ce74729f634 f0eb36bd2df8 004fdfa8ed6a",
  "ziwei_mackerel:legacy": "1459055e9f64 b1c31767a5a7 ada78fa11211 d8a434aa452d 2371774a80c3",
  "ziwei_mackerel:personal": "d2095f4cb8b4 7cd4a9c71c52 adb7153608df 53ee302f4422 4d36af752c53",
  "ziwei_mackerel:money": "f3b4a92fe48d 6ea097558582 148932b68631 d44271a0176c 49682968473e",

@@ -43,6 +43,8 @@ export interface V2Candidate {
 export interface V2Pillar { g?: string; j?: string; gE?: string }
 
 export interface V2Saju {
+  /** 승인 사주 판정(새 계산만). 있으면 useful 은 작명 계산 기준으로 부른다. */
+  approved?: { status: string; gyeokguk: string; strength: string; yongshinLabel: string; gisinLabel: string };
   useful: V2Element[];
   caution: V2Element[];
   derivedSupport: V2Element[];

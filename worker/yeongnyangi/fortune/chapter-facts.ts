@@ -1,3 +1,4 @@
+import {validateDomainFacts} from './shared/consumer-facts';
 import {DomainContext} from './shared/contracts';
 import {ChapterSpec} from './book-contracts';
 import {isStructuredReading,READING_V6_VERSION,READING_V7_VERSION} from './reading-policy';
@@ -137,7 +138,8 @@ function withLuckOverlap(context:DomainContext):DomainContext{
  const value=buildLuckOverlap(context.facts);
  return value?{...context,facts:[...context.facts,{id:'saju.luckOverlap',label:'luckOverlap',value} as DomainContext['facts'][number]]}:context;
 }
-export function selectChapterFacts(context:DomainContext,chapter:ChapterSpec,topic='general'){
+function selectBaseChapterFacts(context:DomainContext,chapter:ChapterSpec,topic='general'){
+ validateDomainFacts(context);
  // 자미 궁 강약·관계·판단 문장은 저장 context 가 아니라 여기서 붙인다 — v6·v7·주의점·옛 주제 경로가 모두 이 입구를 지난다.
  context=enrichTarotTimeFrames(enrichZiweiContext(context));
  const prevention=preventionFacts(context,chapter);
@@ -151,4 +153,10 @@ export function selectChapterFacts(context:DomainContext,chapter:ChapterSpec,top
  if(!facts.length)facts=context.facts;
  if(chapter.factIds)facts=facts.filter(f=>chapter.factIds!.includes(f.id));
  return facts;
+}
+
+export function selectChapterFacts(context:DomainContext,chapter:ChapterSpec,topic='general'){
+ const selected=selectBaseChapterFacts(context,chapter,topic);
+ const natal=context.facts.find(f=>f.label==='natalProfile');
+ return natal&&!selected.some(f=>f.id===natal.id)?[...selected,natal]:selected;
 }

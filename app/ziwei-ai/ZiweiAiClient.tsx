@@ -43,6 +43,9 @@ import {
 } from "@/app/_lib/billing-client";
 import { packPaidResumeArg, unpackPaidResumeArg, usePaidResume } from "@/app/hooks/usePaidResume";
 import { getCurrentLoadingLocale, INTL_LOCALE_BY_LOADING_LOCALE, type LoadingLocale } from "@/constants/loadingMessages";
+import { getResultReferenceCopy } from "@/lib/i18n/result-reference-copy";
+import { withOpenResultReferences } from "@/lib/pdf/with-open-result-references";
+import { normalizeCaptureColors } from "@/lib/pdf/normalize-capture-colors";
 
 type ZiweiAiCopy = {
   timelineAria: string;
@@ -277,6 +280,7 @@ type StructuredZiweiResult = {
 };
 
 type ApiResult = {
+  calculationReady?: boolean;
   retryable?: boolean;
   resultId?: string;
   ok?: boolean;
@@ -459,7 +463,7 @@ const FOCUS_TOPIC: Record<FocusArea, string> = FOCUS_OPTIONS.reduce((acc, item) 
 // 이 목록에 없으면 렌더되지 않는다. 이 목록 이전에 생성된 상담에는 해당 키가 없으므로,
 // 아래 필터(body 있는 키만 통과)가 그대로 폴백 역할을 한다.
 const SECTION_ORDER = [
-  "reading_guide",
+  "core_answer",
   "personality_profile",
   "structure_core",
   "influence_factors",
@@ -475,9 +479,9 @@ const SECTION_ORDER = [
   "timing_strategy",
   "caution",
   "domain_matrix",
-  "core_answer",
   "action_plan",
   "prescription",
+  "reading_guide",
 ];
 const SECTION_GLYPHS: Record<string, string> = {
   reading_guide: "序",
@@ -634,6 +638,7 @@ function buildConsultationPayload(form: FormState, requestId: string) {
   return {
     serviceType: FEATURE_KEY,
     consultationType: "ziwei",
+    calculationProtocol: "ziwei-prepared-v1",
     userName: form.name.trim() || undefined,
     gender: form.gender,
     birthDate: form.birthDate,
@@ -795,6 +800,7 @@ function splitAssistantSections(content: string) {
           title: toText(section.title) || key,
           body: toText(section.body),
           glyph: SECTION_GLYPHS[key] || "星",
+          isGuide: key === "reading_guide",
         };
       });
   }
@@ -820,6 +826,7 @@ function splitAssistantSections(content: string) {
       title: hasHeading ? headingMatch?.[1]?.replace(/\*\*/g, "").trim() || fallbackTitles[index % fallbackTitles.length] : fallbackTitles[index % fallbackTitles.length],
       body: hasHeading ? lines.slice(1).join("\n") : chunk,
       glyph: "星",
+      isGuide: false,
     };
   });
 }
@@ -836,12 +843,13 @@ export default function ZiweiAiPage() {
   const [clientReady, setClientReady] = useState(false);
   useEffect(() => { setClientReady(true); }, []);
   const copy = useZiweiAiCopy();
+  const resultCopy = getResultReferenceCopy(getCurrentLoadingLocale());
   const [form, setForm] = useState<FormState>(buildInitialZiweiForm);
   const [phase, setPhase] = useState<Phase>("idle");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [consultation, setConsultation] = useState<Consultation | null>(null);
-  // 서버가 계산한 명반 근거 — 대기 화면이 실제 값을 보여 주고, 결과 화면 맨 위에 다시 놓인다.
+  // 서버가 계산한 명반 근거 — 대기 화면과 결과의 접힌 근거 영역에서 그대로 제공한다.
   const [basis, setBasis] = useState<AnalysisBasis | null>(null);
   const [recentList, setRecentList] = useState<RecentZiweiConsultation[]>([]);
   const [pdfLoading, setPdfLoading] = useState(false);
@@ -1070,9 +1078,7 @@ export default function ZiweiAiPage() {
         throw new Error(validationMessage);
       }
       const payload = buildConsultationPayload(form, idempotencyKey);
-      // 근거는 결제/생성과 무관한 순수 계산이라 기다리지 않고 병렬로 받는다.
-      // 실패해도 fetchAnalysisBasis가 null을 돌려주므로 대기 화면이 기존 문구로 되돌아갈 뿐 흐름을 막지 않는다.
-      void fetchAnalysisBasis("/api/ziwei-ai/basis", payload).then(setBasis);
+      // The basis must read the durable preparation used by generation.
       beginPaidFeatureGateCheck({
         featureKey: FEATURE_KEY,
         requestId: idempotencyKey,
@@ -1091,6 +1097,8 @@ export default function ZiweiAiPage() {
         () => postJson<ApiResult>("/api/ziwei-ai/prepare", payload, idempotencyKey),
         { onRetry: () => setNotice("연결이 잠시 불안정해요. 이용권을 다시 확인하는 중입니다.") },
       );
+      if (data.calculationReady !== true) throw new Error(mapError(data, status));
+      if (data.ok || data.reason === "PAYMENT_REQUIRED") void fetchAnalysisBasis("/api/ziwei-ai/basis", payload).then(setBasis);
       if (data.ok) {
         completePaidFeatureGateCheck({
           featureKey: FEATURE_KEY,
@@ -1161,8 +1169,9 @@ export default function ZiweiAiPage() {
       const { exportResultPdf } = await import("@/lib/pdf/export-result-pdf");
       const userName = safePdfName(consultation?.birthInfo?.name || form.name || "자미두수");
       const date = new Date().toLocaleDateString(INTL_LOCALE_BY_LOADING_LOCALE[getCurrentLoadingLocale()]).replace(/\./g, "").replace(/\s/g, "");
-      await exportResultPdf({
+      await withOpenResultReferences(element, () => exportResultPdf({
         captureTargets: [".resultDocument [data-ziwei-pdf-section]"],
+        prepareCapture: normalizeCaptureColors,
         fileName: `자미두수_AI_상담_${userName}_${date}.pdf`,
         backgroundColor: "#060712",
         cover: {
@@ -1172,7 +1181,7 @@ export default function ZiweiAiPage() {
           name: userName,
           date: new Date().toISOString().slice(0, 10),
         },
-      });
+      }));
     } catch {
       setError("PDF 저장 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.");
     } finally {
@@ -1384,6 +1393,29 @@ export default function ZiweiAiPage() {
                   />
                 </section>
 
+                <div className="chatList" data-ziwei-customer-reading>
+                  {assistantSections.filter(section => !section.isGuide).map((section, sectionIndex) => (
+                    <article className="chatCard" key={section.key} data-ziwei-pdf-section>
+                      <div className="chatCardTitle">
+                        <b>{section.glyph || "星"}</b>
+                        <h3>{section.title}</h3>
+                      </div>
+                      <ConsultationReading kind="ziwei" value={section.body} index={sectionIndex} />
+                    </article>
+                  ))}
+                </div>
+                {/* PDF 섹션이 아니다 — PDF 서명은 표지 부제가 맡는다. */}
+                {musungCompleted && <ExpertCharacterStage character="musung" mood={musungClose.mood} line={musungClose.text} placement="result" className="musungClose" />}
+
+                <details className="resultDetails" data-ziwei-chart-details>
+                  <summary>{resultCopy.chartDetails}</summary>
+                  <div className="resultDetailsBody">
+                    {assistantSections.filter(section => section.isGuide).map((section, sectionIndex) => (
+                      <article className="chatCard" key={section.key} data-ziwei-pdf-section>
+                        <h3>{section.title}</h3>
+                        <ConsultationReading kind="ziwei" value={section.body} index={sectionIndex} />
+                      </article>
+                    ))}
                 <div className="summaryGrid" data-ziwei-pdf-section>
                   <div><span>명궁</span><strong>{summary.lifePalace || consultation.ziweiChart?.lifePalace || "-"}</strong></div>
                   <div><span>신궁</span><strong>{summary.bodyPalace || consultation.ziweiChart?.bodyPalace || "-"}</strong></div>
@@ -1478,20 +1510,9 @@ export default function ZiweiAiPage() {
                   </div>
                 </section>
 
-                <PaidResultImageGuide domain="ziwei" status={consultation.status} content={assistantMessages.map(message=>message.content)} basis={consultation.analysisBasis} />
-                <div className="chatList">
-                  {assistantSections.map((section, sectionIndex) => (
-                    <article className="chatCard" key={section.key} data-ziwei-pdf-section>
-                      <div className="chatCardTitle">
-                        <b>{section.glyph || "星"}</b>
-                        <h3>{section.title}</h3>
-                      </div>
-                      <ConsultationReading kind="ziwei" value={section.body} index={sectionIndex} />
-                    </article>
-                  ))}
-                </div>
-                {/* PDF 섹션이 아니다 — 캡처는 섹션마다 새 페이지라 한 줄짜리 쪽이 생긴다. PDF 서명은 표지 부제가 맡는다. */}
-                {musungCompleted && <ExpertCharacterStage character="musung" mood={musungClose.mood} line={musungClose.text} placement="result" className="musungClose" />}
+                  </div>
+                </details>
+                <PaidResultImageGuide domain="ziwei" status={consultation.status} content={assistantMessages.map(message=>message.content)} basis={consultation.analysisBasis} toolsLabel={resultCopy.imageTools} />
               </div>
               {consultation.status === "completed" && !busy && <RecommendationResult service="ziwei-ai-consultation" practiceTags={adviceTopics([structuredResult?.sections?.action_plan?.body])}/>}
             </>
@@ -1567,6 +1588,10 @@ export default function ZiweiAiPage() {
         .resultToolbar button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:44px;border:1px solid rgba(245,217,145,.42);border-radius:8px;background:rgba(245,217,145,.14);color:#fff0b8;padding:0 13px;font-family:var(--font-display);font-size:13px;font-weight:900;cursor:pointer;white-space:nowrap;box-shadow:0 12px 24px rgba(0,0,0,.18)}
         .resultToolbar button:disabled{cursor:not-allowed;opacity:.62}
         .resultDocument{display:grid;gap:14px;background:#060712;color:#f8fafc}
+        .resultDetails{border-top:1px solid var(--cd-border)}
+        .resultDetails>summary{min-height:44px;padding:12px 0;cursor:pointer;font-family:var(--font-display);font-weight:700}
+        .resultDetails>summary:focus-visible{outline:2px solid currentColor;outline-offset:4px}
+        .resultDetailsBody{display:grid;gap:14px;padding-bottom:14px}
         .resultCover{display:grid;gap:8px;border:1px solid rgba(245,217,145,.24);border-radius:8px;background:radial-gradient(ellipse at 74% 18%,rgba(245,217,145,.16),transparent 38%),linear-gradient(145deg,rgba(14,16,43,.96),rgba(7,9,25,.98));padding:24px}
         .resultCover>span{color:#fff0b8;font-family:var(--zwv-serif);font-size:19px;font-weight:700;letter-spacing:.22em}
         .resultCover h2{margin:0;color:#fffaf0;font-family:var(--zwv-serif);font-size:31px;font-weight:700;line-height:1.28;letter-spacing:.01em}

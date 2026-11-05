@@ -77,6 +77,7 @@ function createSajuAIPromptModuleMock(promptBuildResult) {
     validateSajuMyeongsikTenGodText: () => ({ ok: true, issues: [] }),
     buildSajuAIPrompt: () => promptBuildResult,
     buildSajuAIPromptWithDomain: () => promptBuildResult,
+    selectSajuPromptAuthority: () => null,
   };
 }
 

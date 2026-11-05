@@ -1,6 +1,7 @@
 import { pickExpertFields } from "../expert-evidence.js";
 import { calculateLifeBookAiSaju } from "../../life-book-ai-saju.js";
 import { arrayText, nonEmptyText, objectText, text } from "../../guardian-fortune-adapter-utils.js";
+import { connectLifeBookSajuAuthority, authorityGuardianResult, readSajuAuthority } from '../../saju-authority-consumer.js';
 
 const TOPIC_FOCUS = {
   daily: "오늘의 속도와 에너지 배분",
@@ -97,6 +98,14 @@ function buildCautions(raw) {
 }
 
 export async function buildSajuAdapter(input, options = {}) {
+  if (options.sajuAuthoritySnapshot) {
+    const pinned = readSajuAuthority(options.sajuAuthoritySnapshot);
+    return authorityGuardianResult({ sajuAuthority: pinned,
+      ...Object.fromEntries(Object.entries(pinned.pillars).map(([key, value]) => [`${key}Pillar`, value?.ganji || ''])),
+      dayMaster: pinned.pillars.day.stem,
+      calculationMeta: { analysisVersion: pinned.calculationVersion, timeUnknown: !pinned.pillars.hour,
+        natalAnalysisId: pinned.analysis.evidence.natalAnalysisId } });
+  }
   const calculate = options.calculator || calculateLifeBookAiSaju;
   const raw = await calculate({
     birthDate: input.birthDate,
@@ -107,6 +116,15 @@ export async function buildSajuAdapter(input, options = {}) {
     birthPlace: input.birthPlace,
     isLeapMonth: input.isLeapMonth || input.leapMonth,
   }, options.fusionExpert ? { now: options.now } : {});
+
+  const connected = connectLifeBookSajuAuthority(raw, { enabled: options.gyeokgukAuthorityV2 === true,
+    stored: options.sajuAuthoritySnapshot });
+  if (connected !== raw) {
+    const result = authorityGuardianResult(connected);
+    // 통합운세 전문가 근거에는 시기표가 필수다. 옛 용신·조후 필드는 넣지 않는다.
+    return options.fusionExpert ? { ...result, expertEvidence: { ...result.expertEvidence,
+      ...pickExpertFields(raw, ["majorLuck", "yearlyLuck", "natalInteractions"]) } } : result;
+  }
 
   const dayMaster = nonEmptyText(raw?.dayMaster, 80);
   const fiveElementsSummary = summarizeDistribution(raw?.fiveElements, "오행");

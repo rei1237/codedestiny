@@ -593,11 +593,11 @@ export const SERVICE_MAP = {
     title: "명리학 타로 - 카드와 십성이 비추는 선택 리딩",
     h1: "명리학 타로 - 카드와 십성이 비추는 선택 리딩",
     description:
-      "연애, 재회, 사업, 건강 등 고민 카테고리에 맞춰 한 장 리딩 또는 세 장 흐름으로 오늘의 선택 방향을 읽습니다.",
+      "연애, 재회, 사업, 건강 등 고민 카테고리에 맞춰 운명 찻집 카드 세 장을 무료로 뽑고, 오늘의 선택 방향을 종합해 읽습니다.",
     seoText:
       "명리학 타로는 카드 상징과 십성의 기운을 연결해 질문의 결, 선택의 속도, 조율할 방향을 정리합니다.",
     ogImage: "https://code-destiny.com/fuctionassets/ai%20tarrot.webp",
-    landingPoints: ["카테고리별 고민 리딩", "한 장 리딩과 세 장 흐름", "십성 조율 문장"],
+    landingPoints: ["카테고리별 고민 리딩", "무료 세 장 종합 풀이", "십성 조율 문장"],
     localized: {
       en: {
         title: "Myeongri Tarot - choice reading illuminated by cards and Ten Gods",

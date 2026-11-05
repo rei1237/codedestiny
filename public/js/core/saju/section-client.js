@@ -1,7 +1,8 @@
 /* 사주 종합(section_summary)·대운 풀이(section_daewun)·퀀텀 명리 엔진(rpt_quantumCard)·
    극T 관계 회로(sukuyo-extreme-t-relationship)·숙요 인연 도감(sukuyo-relationship-encyclopedia)·
    숙요 본성 심화 해석(sukuyo-nature-deep-dive)·숙요 기본/정밀 궁합(compat-sukuyo-compatibility·premium-sukuyo-compat-extra, 회당 결제)·
-   리포트 대시보드 유료 카드(CARDS)·자미두수 명반 상세 유료 장(loadZiwei) 본문 배달.
+   리포트 대시보드 유료 카드(CARDS)·자미두수 명반 상세 유료 장(loadZiwei)·
+   사주 영구 묶음의 원국 해석(일주·십성·조후·억부·절기, loadNatalReading) 본문 배달.
    본문은 서버(/api/saju/section)가 계정·프로필 해금을 확인한 뒤에만 만든다.
    이 파일은 요청과 표시만 한다 — 유료 문장·생성기·본문 캐시가 없다. */
 (function (root) {
@@ -23,6 +24,13 @@
   // 이용권 결제 직후에는 화면이 먼저 열리고 서버 기록은 뒤에서 쓴다(index.html _cdMembershipPassRecordDelays 와 같은 간격).
   // 그 사이 402 가 오면 바로 '구매 기록 없음'을 띄우지 않고 이 간격으로 다시 묻는다(극T·인연 도감).
   var PASS_RECORD_RETRY_MS = [4000, 12000, 30000];
+  // 원국 해석(일주·십성·조후·억부·절기)은 사주 영구 묶음 한 가지로 해금한다. 서버가 칸 이름이 붙은 <template> 덩어리를 준다.
+  var NATAL_KEY = 'saju_lifetime_bundle';
+  // gods 는 십성 카드를 눌렀을 때 모달에 쓸 본문이다(서버가 카드와 함께 보낸 것을 들고 있을 뿐 만들지 않는다).
+  var natal = { key: '', state: '', seq: 0, failedAt: 0, gods: {} };
+  var NATAL_PARTS = ['terms', 'ilju', 'ten', 'climate', 'strength'];
+  // 덩어리마다 안내·실패 문구를 둘 대표 칸. 서버가 덩어리를 비워 보내면 이 칸에 안내를 둔다.
+  var NATAL_PRIMARY = { ilju: 'iljuSummaryList', ten: 'tsGrid', climate: 'johuContent', strength: 'ukbuSection', terms: 'terms24Grid' };
 
   function byId(id) { return document.getElementById(id); }
   function profileId() {
@@ -869,6 +877,131 @@
     return false;
   }
 
+  // ── 원국 해석(묶음) ──
+  function natalDelivered(data) {
+    return data && data.ok === true && data.unlocked === true && data.featureKey === NATAL_KEY && data.parts && typeof data.parts === 'object';
+  }
+  // <template data-natal-slot="칸 id">…</template> 와 <template data-natal-god="십성">…</template> 로 푼다(템플릿은 비활성 DOM 이라 안전하다).
+  function parseNatalPart(html, out) {
+    var box = document.createElement('div');
+    box.innerHTML = html;
+    box.querySelectorAll('template[data-natal-slot]').forEach(function (t) {
+      out.slots[t.getAttribute('data-natal-slot')] = { html: t.innerHTML, text: t.content.textContent };
+    });
+    box.querySelectorAll('template[data-natal-god]').forEach(function (t) {
+      out.gods[t.getAttribute('data-natal-god')] = t.innerHTML;
+    });
+  }
+  // index.html 에 없는 본문 칸은 페르소나 풀이가 쓰던 자리에 만든다.
+  function natalHost(name) {
+    var el = byId(name);
+    if (el) return el;
+    var card = byId('iljuCard');
+    if (name === 'sajuElementReading' && card) {
+      el = document.createElement('section'); el.id = name;
+      card.insertBefore(el, card.querySelector('.ilju-v2-grid') || card.firstChild);
+      return el;
+    }
+    if (name === 'sajuIljuRich' && card) {
+      el = document.createElement('section'); el.id = name;
+      card.appendChild(el);
+      return el;
+    }
+    var grid = byId('tsGrid');
+    if (name === 'sajuTenOverview' && grid && grid.parentNode) {
+      el = document.createElement('section'); el.id = name;
+      grid.parentNode.insertBefore(el, grid);
+      return el;
+    }
+    return null;
+  }
+  function natalNote(kind, text, retry) {
+    var host = byId(NATAL_PRIMARY[kind]);
+    if (!host) return;
+    var node = statusNode(text, retry);
+    if (kind === 'ilju') { var li = document.createElement('li'); li.appendChild(node); host.replaceChildren(li); } else host.replaceChildren(node);
+  }
+  function applyNatal(parts) {
+    var out = { slots: {}, gods: {} };
+    NATAL_PARTS.forEach(function (kind) { if (typeof parts[kind] === 'string' && parts[kind]) parseNatalPart(parts[kind], out); });
+    natal.gods = out.gods;
+    // 화자 전환은 본문을 비동기로 다시 받는다. 위쪽 카드 높이가 바뀌어도 읽던 자리를 지키도록 preserve 안에서 바꾼다.
+    var presentation = root.SajuReadingPresentation;
+    var swap = presentation && typeof presentation.preserve === 'function' ? presentation.preserve : function (run) { run(); };
+    swap(function () { Object.keys(out.slots).forEach(function (name) {
+      var host = natalHost(name);
+      if (!host) return;
+      if (name === 'iljuDetailsInfo') { host.textContent = out.slots[name].text; return; }
+      // 읽던 사람이 펼쳐 둔 항목은 같은 순서로 다시 펼친다.
+      // 모바일 첫 접힘(collapseDetails)은 표식이 있으면 건너뛰므로 다시 펼친 항목에 표식을 붙인다.
+      var opened = Array.prototype.map.call(host.querySelectorAll('details'), function (detail) { return detail.open; });
+      host.innerHTML = out.slots[name].html;
+      Array.prototype.forEach.call(host.querySelectorAll('details'), function (detail, index) {
+        if (!opened[index]) return;
+        detail.setAttribute('data-mobile-detail-accordion', '1');
+        detail.open = true;
+      });
+    }); });
+    NATAL_PARTS.forEach(function (kind) {
+      var has = typeof parts[kind] === 'string' && parts[kind];
+      if (kind === 'terms') {
+        var card = byId('terms24Card');
+        if (card) card.style.display = has ? '' : 'none';
+      } else if (!has) {
+        natalNote(kind, '출생 정보가 부족해 이 풀이를 만들지 못했어요.');
+      }
+    });
+    // 펼쳐 둔 일주 상세는 새 본문 높이에 맞춘다.
+    try {
+      var iljuCard = byId('iljuCard');
+      if (iljuCard && iljuCard.classList.contains('open-detail') && typeof root.setIljuDetailExpanded === 'function') root.setIljuDetailExpanded(true);
+    } catch (_) {}
+    // 십성 상세 모달이 열려 있으면 새 화자의 본문으로 다시 채운다.
+    try { if (root.SajuReadingPresentation && typeof root.SajuReadingPresentation.refreshGod === 'function') root.SajuReadingPresentation.refreshGod(); } catch (_) {}
+  }
+  function natalStub(kind, locked) {
+    try { if (typeof root._cdNatalReadingStub === 'function') root._cdNatalReadingStub(kind, locked); } catch (_) {}
+  }
+  function loadNatalReading(options) {
+    var opts = options || {};
+    var body = requestBody(NATAL_KEY);
+    if (!body) return false;
+    var key = keyOf(body);
+    if (!opts.force && natal.key === key) {
+      if (natal.state === 'loading' || natal.state === 'done') return natal.state === 'done';
+      if (natal.state === 'failed' && Date.now() - natal.failedAt < FAILED_QUIET_MS) return false;
+    }
+    var mine = ++seq;
+    var seen = natal.state === 'done';
+    natal = { key: key, state: 'loading', seq: mine, failedAt: 0, gods: seen ? natal.gods : {} };
+    // 처음 받는 것이면 잠금 안내를 "불러오는 중"으로 바꾼다. 화자만 바뀐 것이면 기존 본문을 새 본문이 올 때까지 둔다.
+    if (!seen) NATAL_PARTS.forEach(function (kind) { natalStub(kind, false); });
+    function current() { return natal.seq === mine && keyOf(requestBody(NATAL_KEY)) === key; }
+    function fail(result) {
+      if (!current()) return;
+      natal.state = 'failed';
+      natal.failedAt = Date.now();
+      // 구매 기록이 없으면(402) 무료 안내 스텁을 그대로 둔다.
+      if (result && result.status === 402) { NATAL_PARTS.forEach(function (kind) { natalStub(kind, true); }); return; }
+      var text = failureText(result);
+      NATAL_PARTS.forEach(function (kind) { natalNote(kind, text, function () { loadNatalReading({ force: true }); }); });
+    }
+    request(body).then(function (result) {
+      if (!current()) return;
+      var data = result.payload || {};
+      if (result.ok && natalDelivered(data)) {
+        natal.state = 'done';
+        applyNatal(data.parts);
+        notify(NATAL_KEY);
+        return;
+      }
+      fail(result);
+    }, function () { fail(null); });
+    return false;
+  }
+  // 십성 카드 모달 본문. 서버가 보낸 것이 없으면 ''.
+  function godDetail(name) { return typeof natal.gods[name] === 'string' ? natal.gods[name] : ''; }
+
   // 화면 모드(연냥이·네오) 전환: 펼친 대운을 새 모드로 다시 받는다.
   function refreshDaewun() {
     var detail = byId('dwDetail');
@@ -883,6 +1016,10 @@
       try { if (typeof root._cdSajuGateUnlocked !== 'function' || root._cdSajuGateUnlocked('section_summary')) loadSummary(); } catch (_) {}
     }
     if (daewun.state === 'failed') refreshDaewun();
+    // 묶음을 방금 해금했거나 실패했던 원국 해석은 다시 받는다(받는 중·받은 것은 건드리지 않는다).
+    if (natal.state !== 'loading' && natal.state !== 'done' && root.__cdSajuSectionInput) {
+      try { if (typeof root._cdSajuGateUnlocked === 'function' && root._cdSajuGateUnlocked(NATAL_KEY)) loadNatalReading({ force: true }); } catch (_) {}
+    }
     if (quantum.state === 'failed') loadQuantum({ quiet: quantum.quiet, force: true });
     // 결제 기록이 늦게 들어온 경우: 기다리던 극T 요청은 바로 다시 묻는다.
     if ((extremeT.state === 'failed' || extremeT.state === 'waiting') && extremeT.area) loadExtremeT(extremeT.area, extremeT.options);
@@ -900,5 +1037,10 @@
     } catch (_) {}
   });
 
-  root.CdSajuSectionClient = { loadSummary: loadSummary, showDaewun: showDaewun, refreshDaewun: refreshDaewun, loadQuantum: loadQuantum, loadExtremeT: loadExtremeT, loadEncyclopedia: loadEncyclopedia, loadNatureDeepDive: loadNatureDeepDive, loadSukuyoCompat: loadSukuyoCompat, loadZiweiCompat: loadZiweiCompat, loadCard: loadCard, loadZiwei: loadZiwei };
+  // 풀이 화자 전환: 받은 원국 해석은 새 화자로 다시 받는다.
+  root.addEventListener('cd:saju-persona-changed', function () {
+    if (natal.key && (natal.state === 'done' || natal.state === 'failed')) loadNatalReading({ force: natal.state === 'failed' });
+  });
+
+  root.CdSajuSectionClient = { loadNatalReading: loadNatalReading, godDetail: godDetail, loadSummary: loadSummary, showDaewun: showDaewun, refreshDaewun: refreshDaewun, loadQuantum: loadQuantum, loadExtremeT: loadExtremeT, loadEncyclopedia: loadEncyclopedia, loadNatureDeepDive: loadNatureDeepDive, loadSukuyoCompat: loadSukuyoCompat, loadZiweiCompat: loadZiweiCompat, loadCard: loadCard, loadZiwei: loadZiwei };
 })(window);

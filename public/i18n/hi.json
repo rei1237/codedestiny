@@ -52,11 +52,11 @@
     "hero": {
       "eyebrow": "CODE DESTINY",
       "brandLine": "आकाशीय भाग्य संग्रह",
-      "titleLine1": "मुफ़्त चार स्तंभ और टैरो",
+      "titleLine1": "मुफ़्त मान्सेर्योक और टैरो",
       "titleAccent": "आज का भाग्य",
       "titleLine3": "एक शांत चाँदनी में",
       "lead": "चार स्तंभ, टैरो, ज़ी वेई डोउ शू, ज्योतिष, सुकुयो ज्योतिष, अनुकूलता और आज का भाग्य एक शांत स्थान पर खुलते हैं। जन्म विवरण या अपना वर्तमान प्रश्न दर्ज करें, और अगला कदम चुनने से पहले प्रवाह को साफ़ करने वाली रीडिंग पाएँ।",
-      "primaryCta": "मुफ़्त चार स्तंभ पाठ शुरू करें",
+      "primaryCta": "मुफ़्त मान्सेर्योक देखें",
       "tarotCta": "टैरो कार्ड चुनें",
       "logoAlt": "हनी पिग येओनी लोगो"
     },
@@ -178,7 +178,7 @@
       "genderLabel": "लिंग",
       "female": "महिला",
       "male": "पुरुष",
-      "submit": "मुफ़्त चार स्तंभ पाठ",
+      "submit": "मुफ़्त मान्सेर्योक देखें",
       "saveProfile": "प्रोफ़ाइल कार्ड सहेजें",
       "saveOptional": "वैकल्पिक",
       "kakaoEvent": "Kakao शेयर इवेंट",
@@ -1007,7 +1007,7 @@
       "title": "रहस्यवादी टैरो",
       "subtitle": "कार्ड और दस देवता एक साथ आज की पसंद खोलते हैं।",
       "oneCardMode": "एक-कार्ड पढ़ना",
-      "threeCardMode": "तीन-कार्ड प्रवाह · 5,000 KRW",
+      "threeCardMode": "तीन-कार्ड रीडिंग · मुफ़्त",
       "categories": {
         "daily": "आज का भाग्य",
         "love": "भाग्य से प्रेम करो",
@@ -1029,7 +1029,7 @@
         "present": "अब मूल ऊर्जा",
         "next": "चयन के लिए अगला मानक"
       },
-      "openFlowReading": "ओपन फ्लो रीडिंग · 5,000 KRW",
+      "openFlowReading": "रीडिंग देखें",
       "retryOtherConcern": "एक और चिंता फैलाएं",
       "aiPromptTitle": "Myeongri टैरो अगला AI पूछने का संकेत देता है",
       "afterPaymentBadge": "भुगतान पढ़ने के बाद",
@@ -1252,7 +1252,7 @@
       "neoLogoAlt": "हनी येओनी लोगो"
     },
     "hero2": {
-      "title": "मुफ़्त चार स्तंभ से ज़ी वेई दोउ शू और ज्योतिष तक — अभी इस पल के आप",
+      "title": "मुफ़्त मान्सेर्योक से ज़ी वेई दोउ शू और ज्योतिष तक — अभी इस पल के आप",
       "lead": "पूर्व-पश्चिम का ज्ञान और विशेषज्ञ की अंतर्दृष्टि मिलकर आपकी कहानी की व्याख्या करते हैं।",
       "primaryCta": "✦ अपना भाग्य कार्ड बनाएं",
       "journeyCta": "✦ अपनी नियति यात्रा शुरू करें"
@@ -1260,7 +1260,7 @@
     "oneStep": {
       "heading": "Today's One Step",
       "s1": {
-        "title": "Free Saju Chart",
+        "title": "मुफ़्त मान्सेर्योक",
         "desc": "Start by knowing yourself"
       },
       "s2": {
@@ -1484,7 +1484,7 @@
         },
         "selfGrain": {
           "t": "मैं भीतर से कैसा व्यक्ति हूँ?",
-          "s": "बाज़ी के आठ अक्षरों से अपने जन्मजात रुझान और वर्तमान दौर को मुफ़्त में समझें।",
+          "s": "मुफ़्त मान्सेर्योक से अपने जन्मजात रुझान देखें।",
           "b": "फोर पिलर्स (बाज़ी)"
         },
         "peopleTired": {
@@ -1941,7 +1941,7 @@
       "all": "सभी पाठ देखें",
       "light": "हल्का पाठ आज़माएँ",
       "free": "शुरुआत मुफ़्त · विस्तृत पाठ का अलग शुल्क",
-      "benefit": "मुफ्त साजू ट्यूटोरियल पूरा करने पर 500 मूनस्टोन",
+      "benefit": "मुफ्त मान्सेर्योक ट्यूटोरियल पूरा करने पर 500 मूनस्टोन",
       "benefitNote": "30 दिन मान्य। सामान्य दर पर 5,000 KRW के बराबर; कटौती उत्पाद पर निर्भर है। नकद या पास खरीदने के लिए नहीं। केवल 10,000 KRW या अधिक की पात्र सेवाओं पर छूट के लिए।",
       "join": "Kakao या ईमेल से पंजीकरण करें",
       "signatureDescription": "अपनी चिंता के अनुसार परामर्श और नमूना परिणाम देखें।",
@@ -2001,7 +2001,7 @@
       "title": "10 वर्षों के अनुभव वाले Myeongri विशेषज्ञ द्वारा तैयार प्रमुख परामर्श",
       "freeTitle": "पहले मुफ़्त में",
       "miniGames": "मिनी भाग्य खेल",
-      "freeSaju": "मुफ़्त साजू",
+      "freeSaju": "मुफ़्त मान्सेर्योक",
       "freeSajuNote": "जन्मतिथि से तुरंत देखें",
       "freeToday": "आज का राशिफल",
       "freeTodayNote": "हर दिन नया फलादेश",
@@ -2251,7 +2251,8 @@
       "expand": "खोलें",
       "collapse": "समेटें",
       "samplesContext": "परामर्श का विवरण",
-      "samplesAction": "उदाहरण देखें"
+      "samplesAction": "उदाहरण देखें",
+      "resume": "कार्ड का अपने आप बदलना फिर शुरू करें"
     },
     "benefitsCopy": {
       "title": "अपने भविष्य के बारे में उत्सुक हैं?",
@@ -2372,8 +2373,8 @@
       "relationship": "अनुकूलता · रिश्ते",
       "yearly": "इस वर्ष · अगले वर्ष",
       "introduction": "साजू, टैरो और आपकी चिंताओं के अनुसार परामर्श।",
-      "freeIntroduction": "मुफ़्त साजू व्याख्या से शुरुआत करें।",
-      "freeStart": "मुफ़्त साजू शुरू करें",
+      "freeIntroduction": "मुफ़्त मान्सेर्योक चार्ट से शुरुआत करें।",
+      "freeStart": "मुफ़्त मान्सेर्योक शुरू करें",
       "paidLabel": "सशुल्क ·",
       "result": {
         "relationship": "साजू और ज़ी वेई डौ शू संबंध रिपोर्ट",
@@ -2407,6 +2408,90 @@
       "contact": "संपर्क करें",
       "contactNote": "सवाल या समस्या के बारे में हमें बताएँ।",
       "example": "सार्वजनिक रीडिंग का उदाहरण"
+    },
+    "webtoonCopy": {
+      "love-secret": {
+        "lead": "बात वही है, फिर दिलों में दूरी क्यों?",
+        "benefits": "प्यार जताने की आदतें · नाराज़गी बढ़ने की वजह · पास आने और दूरी रखने का समय"
+      },
+      "new-year": {
+        "lead": "वही संकल्प दोहराने से पहले, इस साल की दिशा देखें।",
+        "benefits": "तैयारी और कदम उठाने का समय · काम, धन और रिश्तों की प्राथमिकताएँ · हर दौर में परखने योग्य विकल्प"
+      },
+      "life-book": {
+        "lead": "बीते पन्नों में कोई वजह अब भी अनपढ़ी है?",
+        "benefits": "बार-बार किए गए चुनावों की वजह · पुरानी प्रतिभाएँ और खूबियाँ · साजू के बड़े चक्रों से जीवन की लंबी दिशा"
+      },
+      "neo": {
+        "lead": "इरादा कर लिया, फिर भी उसी जगह क्यों?",
+        "benefits": "हालात बदलने की शर्तें · अभी उठाए जा सकने वाले कदम · योजना के बाद समीक्षा के मानदंड"
+      },
+      "tea": {
+        "lead": "वह रात जब समझ न आए दिल की बात कहाँ से शुरू करें।",
+        "benefits": "चिंताओं को सुलझाएँ · उपयुक्त परामर्श चुनें · अपने नियंत्रण में आने वाले कदम"
+      },
+      "codex": {
+        "lead": "लोग बदल गए, पर वही दृश्य क्यों दोहराते हैं?",
+        "benefits": "रिश्तों के दोहराते ढर्रे · आकर्षण और तनाव की वजह · व्यक्तिगत और अनुकूलता संस्करण की व्याख्या"
+      },
+      "ziwei": {
+        "lead": "मेहनत के बाद भी उसी जगह अटक जाते हैं?",
+        "benefits": "ज़िवेई कुंडली से स्वभाव · काम, धन और रिश्तों की खूबियाँ · रुकावट पर परखने योग्य चुनाव"
+      },
+      "astrology": {
+        "lead": "जब मन और व्यवहार अलग दिशाओं में जाएँ।",
+        "benefits": "जन्म के आकाश से स्वभाव · भावनाओं और व्यवहार का अंतर · वर्तमान ग्रह-गोचर और रोज़मर्रा का संबंध"
+      },
+      "vedic": {
+        "lead": "जब लगे कि वही मौसम फिर लौट आया है।",
+        "benefits": "जन्म कुंडली से स्वभाव · दशा से समय का प्रवाह · अभी परखने योग्य जीवन की दिशा"
+      },
+      "sukuyo-compat": {
+        "lead": "करीब आने पर रिश्ता कठिन क्यों लगता है?",
+        "benefits": "दो लोगों का आकर्षण और तनाव · रिश्ते की अलग-अलग रफ़्तार · मिलकर बदलने वाले समझौते और सीमाएँ"
+      },
+      "legacy-naming": {
+        "lead": "लंबे समय तक पुकारे जाने वाले नाम में अपनापन होता है।",
+        "benefits": "संभावित नामों का अर्थ और ध्वनि · साजू और गणना का आधार · नामों की तुलना के मानदंड"
+      },
+      "karma": {
+        "lead": "लोग और जगह बदल गए, पर गाँठ बनी रही।",
+        "benefits": "रिश्तों की दोहराती गाँठें · अलग प्रणालियों से चुनाव के ढर्रे · अगली बार बदलने योग्य कदम"
+      },
+      "fusion": {
+        "lead": "जीवन के वे पहलू जो एक नज़र से नहीं दिखते।",
+        "benefits": "छह प्रणालियों की अलग व्याख्याएँ · साझा प्रवाह और अलग दृष्टियाँ · जीवन के क्षेत्रों के अनुसार व्यावहारिक दिशा"
+      },
+      "read": "वेबटून से जानें",
+      "start": "परामर्श शुरू करें",
+      "installLabel": "होम स्क्रीन पर जोड़ें",
+      "return": "अगली बार एक टैप में लौटें",
+      "installDescription": "होम स्क्रीन के आइकन से 꿀꿀 운세 खोलें।",
+      "expertsTitle": "अपनी कहानी, एक अलग नज़र से",
+      "expertsIntro": "विशेषज्ञ परामर्श की झलक वेबटून में देखें।",
+      "ziweiName": "ज़िवेई परामर्श",
+      "astrologyName": "पश्चिमी ज्योतिष परामर्श",
+      "vedicName": "वैदिक ज्योतिष परामर्श",
+      "sukuyoName": "सुकुयो अनुकूलता परामर्श",
+      "namingName": "नामकरण परामर्श",
+      "karmaName": "कर्म और भाग्य रिपोर्ट",
+      "fusionName": "संयुक्त व्याख्या",
+      "teaName": "भाग्य का चायघर",
+      "namingStudio": "विशेषज्ञ नामकरण केंद्र",
+      "installAction": "होम स्क्रीन पर जोड़ें",
+      "neoShort": "नियो का स्पष्ट रणनीति कक्ष",
+      "yeoniTea": "भाग्य का चायघर",
+      "link": {
+        "codexTitle": "मार्गदर्शक की संबंध पुस्तक · वेबटून से जानें",
+        "teaName": "भाग्य का चायघर · वेबटून से जानें",
+        "loveTitle": "प्रेम की अंतर्दृष्टि · वेबटून से जानें",
+        "neoShort": "नियो का स्पष्ट रणनीति कक्ष · वेबटून से जानें",
+        "namingStudio": "विशेषज्ञ नामकरण केंद्र · वेबटून से जानें",
+        "yeoniTea": "भाग्य का चायघर · वेबटून से जानें",
+        "lifeTitle": "जीवन की पुस्तक · वेबटून से जानें",
+        "yearTitle": "आने वाले वर्ष की व्याख्या · वेबटून से जानें",
+        "neoRoomTitle": "नियो का स्पष्ट रणनीति कक्ष · वेबटून से जानें"
+      }
     }
   },
   "terms": {
@@ -3167,7 +3252,7 @@
     "neoSubline": "कोई अतिरिक्त भावना नहीं। केवल तथ्य बचे हैं।",
     "signup": "साइन अप करें",
     "login": "लॉग इन करें",
-    "guestMoonstoneTeaser": "मुफ्त साजू ट्यूटोरियल पूरा करने पर 500 मूनस्टोन · 10,000 KRW से अधिक की पात्र सेवाओं पर छूट",
+    "guestMoonstoneTeaser": "मुफ्त मान्सेर्योक ट्यूटोरियल पूरा करने पर 500 मूनस्टोन · 10,000 KRW से अधिक की पात्र सेवाओं पर छूट",
     "loadingGreeting": "आपके खाते की स्टारलाइट को संरेखित करना",
     "loadingChip": "सत्र सिंक",
     "loadingTitle": "आपकी लॉगिन जानकारी लोड हो रही है",
@@ -3207,18 +3292,18 @@
     "passCheckingGreeting": "पास की जाँच की जा रही है",
     "passCheckingNote": "हम आपके मूनलाइट पास और सदस्यता स्तर को सुरक्षित रूप से सिंक कर रहे हैं।",
     "exitBenefit": {
-      "title": "मुफ्त साजू ट्यूटोरियल पूरा करने पर {amount} मूनस्टोन",
-      "copy": "लॉग इन करके सहेजी गई अपनी प्रोफ़ाइल से मुफ्त साजू देखने के बाद एक बार लें। पहले पंजीकरण उपहार पाने वालों को दोबारा नहीं मिलेगा। 5,000 KRW मूल्य। जारी होने से {days} दिनों तक 10,000 KRW या अधिक की पात्र सेवाओं पर छूट के लिए।",
+      "title": "मुफ्त मान्सेर्योक ट्यूटोरियल पूरा करने पर {amount} मूनस्टोन",
+      "copy": "लॉग इन करके सहेजी गई अपनी प्रोफ़ाइल से मुफ्त मान्सेर्योक देखने के बाद एक बार लें। पहले पंजीकरण उपहार पाने वालों को दोबारा नहीं मिलेगा। 5,000 KRW मूल्य। जारी होने से {days} दिनों तक 10,000 KRW या अधिक की पात्र सेवाओं पर छूट के लिए।",
       "note": "प्रत्येक उत्पाद की मूनस्टोन लागत अलग है। नकद नहीं है और पास खरीदने के लिए नहीं है।",
       "join": "Kakao से पंजीकरण",
       "email": "ईमेल से पंजीकरण"
     }
   },
   "seo": {
-    "homeTitle": "निःशुल्क साजू, टैरो, और दैनिक फॉर्च्यून | 꿀꿀 운세",
+    "homeTitle": "साजू, टैरो, और दैनिक फॉर्च्यून | 꿀꿀 운세",
     "rssTitle": "꿀꿀 운세 RSS",
-    "description": "꿀꿀 운세: जन्मतिथि, टैरो, अनुकूलता, नए साल का भाग्य, तोजेओंग बिगयोल और एमबीटीआई अनुकूलता के आधार पर निःशुल्क साजू।",
-    "keywords": "साजू, मुफ्त साजू, मानसे कैलेंडर, टैरो, दैनिक भाग्य, अनुकूलता, नए साल का भाग्य, तोजेओंग बिगयोल, चेहरा पढ़ना, धन भाग्य, पुनर्मिलन भाग्य, एमबीटीआई अनुकूलता, 꿀꿀운세"
+    "description": "꿀꿀 운세: जन्मतिथि, टैरो, अनुकूलता, नए साल का भाग्य, तोजेओंग बिगयोल और एमबीटीआई अनुकूलता के आधार पर निःशुल्क मान्सेर्योक।",
+    "keywords": "साजू, मुफ्त मान्सेर्योक, मानसे कैलेंडर, टैरो, दैनिक भाग्य, अनुकूलता, नए साल का भाग्य, तोजेओंग बिगयोल, चेहरा पढ़ना, धन भाग्य, पुनर्मिलन भाग्य, एमबीटीआई अनुकूलता, 꿀꿀운세"
   },
   "fortune": {
     "destinyFlower": {
@@ -5403,7 +5488,7 @@
         "faq": "अक्सर पूछे जाने वाले प्रश्न"
       },
       "home": "घर लौटें",
-      "freeSaju": "मुफ़्त साजू रीडिंग देखें"
+      "freeSaju": "मुफ़्त मान्सेर्योक देखें"
     },
     "tryAgainLater": "कृपया शीघ्र ही पुनः प्रयास करें।"
   },
@@ -5412,7 +5497,7 @@
       "kicker": "ताएगुक की पहली ऊर्जा",
       "title": "ताएगुक की सफेद और गहरी रोशनी आपके चार्ट के केंद्र को रोशन करती है।",
       "desc": "चार्ट में, ऊर्जा दिन के स्तंभ, दस देवताओं, मौसमी संतुलन और समर्थन शक्ति के माध्यम से चलती है। भाग्य के गहरे दरवाजे चुपचाप वहीं खुल जाते हैं, जहां उनकी जरूरत होती है।",
-      "navAria": "निःशुल्क साजू व्याख्या पर जाएं",
+      "navAria": "साजू व्याख्या पर जाएं",
       "nav": {
         "manse": "चार्ट",
         "ilju": "दिवस स्तंभ",
@@ -5460,7 +5545,7 @@
       "johuTitle": "मौसमी गर्मी और शुष्कता विश्लेषण",
       "ukbuTitle": "समर्थन शक्ति और निम्नलिखित पैटर्न विश्लेषण",
       "currentSeasonTitle": "🍃 अभी मेरा दौर · इस साल का मैं",
-      "currentSeasonIntro": "साजु में सबसे ज़्यादा पूछा जाने वाला सवाल है — “तो अभी, इस साल कैसा रहेगा?” हम मुफ़्त में आपके अभी चल रहे जीवन-मौसम (महादशा) और इस साल के प्रवाह से शुरुआत करते हैं।"
+      "currentSeasonIntro": "साजु में सबसे ज़्यादा पूछा जाने वाला सवाल है — “तो अभी, इस साल कैसा रहेगा?” हम आपके अभी चल रहे जीवन-मौसम (महादशा) और इस साल के प्रवाह से शुरुआत करते हैं।"
     },
     "ilju": {
       "dashboard": "दिवस स्तंभ डैशबोर्ड",
@@ -5485,18 +5570,18 @@
     "premiumShowcase": {
       "aria": "सशुल्क साजू रीडिंग की जानकारी",
       "title": "अपना साजू चार्ट और गहराई से पढ़ें",
-      "subtitle": "पहले लाइट रीडिंग से अपना स्वभाव समझें, फिर डेवुन से दस साल का प्रवाह देखें। अनुकूलता हर बार देखने पर अलग से भुगतान होती है।",
+      "subtitle": "पूर्ण साजू रीडिंग को एक बार स्थायी रूप से खोलने पर जन्म कुंडली के आगे की सभी रीडिंग खुल जाती हैं। अनुकूलता हर बार देखने पर अलग से भुगतान होती है।",
       "expand": "व्याख्या कार्ड खोलें",
       "permanent": "स्थायी अनलॉक",
       "perUse": "प्रति उपयोग भुगतान",
       "compatCta": "अनुकूलता देखें →",
       "daewun": {
         "title": "डेवुन विश्लेषण",
-        "cta": "डेवुन विश्लेषण खोलें →"
+        "cta": "पूर्ण साजू रीडिंग स्थायी रूप से खोलें →"
       },
       "summary": {
-        "title": "लाइट साजू रीडिंग",
-        "cta": "लाइट रीडिंग खोलें →"
+        "title": "पूर्ण साजू रीडिंग",
+        "cta": "पूर्ण साजू रीडिंग स्थायी रूप से खोलें →"
       },
       "compat": {
         "title": "अनुकूलता विश्लेषण",
@@ -7327,7 +7412,7 @@
     "sq_9794_attr_aria_label": "नक्षत्र ज्योतिष अनुकूलता रडार चार्ट"
   },
   "shell": {
-    "CODEDESTINY": "꿀꿀 운세 | मुफ्त फोर पिलर्स (बाज़ी)·टैरो·ज़ी वेई दोउ शू·अनुकूलता — भविष्यफल",
+    "CODEDESTINY": "꿀꿀 운세 | मुफ़्त मान्सेर्योक·फोर पिलर्स (बाज़ी)·टैरो·ज़ी वेई दोउ शू·अनुकूलता — भविष्यफल",
     "cdCookieConsentCopy": {
       "cdCookieConsentActions": {
         "kniuoqf": "सहमत",
@@ -8536,7 +8621,7 @@
     "005": "जन्म चार्ट, 12 घर और राशि चक्र प्रतीकों को शुरुआती लोगों के लिए समझने में आसान तरीके से व्यवस्थित किया गया है।",
     "006": "भविष्यफल सामग्री को सुरक्षित और संतुलित तरीके से पढ़ने के लिए मानदंड और अस्वीकरण।",
     "007": "फोर पिलर्स (बाज़ी) शुरुआती मार्गदर्शिका",
-    "008": "मुफ्त मानसेर्योक फोर पिलर्स (बाज़ी) विश्लेषण",
+    "008": "मुफ़्त मान्सेर्योक कैसे पढ़ें",
     "009": "फोर पिलर्स (बाज़ी) मानसेर्योक मूल व्याख्या",
     "010": "टैरो रीडिंग कैसे काम करती है",
     "011": "मुफ्त टैरो कार्ड रीडिंग",
@@ -8548,7 +8633,7 @@
     "017": "मुफ्त ज्योतिष जन्म चार्ट",
     "018": "ज़ी वेई दोउ शू 12 घर जन्म चार्ट",
     "019": "अच्छी अनुकूलता को पहचानने के मुख्य संकेत",
-    "020": "फोर पिलर्स (बाज़ी) अनुकूलता मुफ्त व्याख्या",
+    "020": "फोर पिलर्स (बाज़ी) अनुकूलता देखें",
     "021": "मुफ्त प्रेम का भविष्यफल देखें",
     "022": "भविष्यफल सेवाओं का सुरक्षित रूप से उपयोग करने के लिए FAQ",
     "023": "आज का भविष्यफल मुफ्त देखें",
@@ -8896,8 +8981,8 @@
   },
   "seoLanding": {
     "description": {
-      "001": "यह फोर पिलर्स (बाज़ी) के मूल संरचना, पंच तत्व संतुलन, दस देव और दशा चक्र के माध्यम से स्वभाव और विकल्पों के प्रवाह को देखने के लिए एक निःशुल्क फोर पिलर्स गाइड पेज है।",
-      "002": "यह जन्मतिथि और समय के आधार पर फोर पिलर्स (बाज़ी) जन्म चार्ट, पंच तत्व, दस देव और दशा चक्र प्रवाह की जांच करने का तरीका बताता है।",
+      "001": "मुफ़्त मान्सेर्योक में जन्म तिथि और समय डालकर अपना फोर पिलर्स जन्म चार्ट और एक पंक्ति का स्वभाव देखें। दस देव, दशा चक्र और धन, प्रेम व करियर का प्रवाह सशुल्क पूर्ण साजू रीडिंग में आगे देखा जा सकता है।",
+      "002": "अपनी जन्मतिथि से मुफ़्त मान्सेर्योक खोलकर उसमें जन्म चार्ट और पंच तत्व संतुलन देखें। जन्म समय और सौर ऋतु की सीमा से परिणाम क्यों बदलते हैं, यह भी समझाया गया है। दस देव और दशा चक्र तालिका की व्याख्या पूरी साजू रीडिंग, आजीवन एक्सेस में जारी रहती है।",
       "003": "आज का भविष्यफल आपको दिन की स्थिति, रिश्तों और काम की प्राथमिकताओं की हल्की समीक्षा करने और अभ्यास के लिए विकल्पों को व्यवस्थित करने में मदद करता है।",
       "004": "आज का भविष्यफल पेज आपको दिन की शुरुआत या अंत करते समय अपनी स्थिति, रिश्ते के प्रवाह और कार्यक्रम की प्राथमिकताओं की संक्षिप्त समीक्षा करने में मदद करता है।",
       "005": "यह दो लोगों के रिश्ते की लय, संचार शैली और संघर्ष समाधान बिंदुओं को फोर पिलर्स और भविष्यफल के दृष्टिकोण से देखता है और उन्हें यथार्थवादी बातचीत के मानदंडों के रूप में व्यवस्थित करता है।",
@@ -8919,12 +9004,12 @@
       "021": "नए साल का भविष्यफल PDF एक प्रीमियम भविष्यफल दस्तावेज़ है जो नए साल के करियर, धन, रिश्ते और स्वास्थ्य प्रवाह को मासिक रूप से देखता है।"
     },
     "title": {
-      "001": "निःशुल्क फोर पिलर्स (बाज़ी) विश्लेषण | पंच तत्व · दस देव · दशा चक्र प्रवाह",
-      "002": "निःशुल्क जन्म चार्ट फोर पिलर्स (बाज़ी) विश्लेषण | पंच तत्व · दस देव · दशा चक्र व्याख्या",
+      "001": "मुफ़्त मान्सेर्योक जन्म चार्ट | फोर पिलर्स और पंच तत्व संतुलन देखें",
+      "002": "मुफ़्त मान्सेर्योक कैसे पढ़ें | फोर पिलर्स जन्म चार्ट और पंच तत्व संतुलन",
       "003": "आज का भविष्यफल निःशुल्क देखें | दिन का प्रवाह और विकल्प गाइड",
       "004": "आज का भविष्यफल तुरंत जांचें | स्थिति · रिश्ते · कार्यक्रम की समीक्षा",
-      "005": "निःशुल्क अनुकूलता देखें | फोर पिलर्स · प्रेम संबंध विश्लेषण",
-      "006": "फोर पिलर्स अनुकूलता निःशुल्क व्याख्या | रिश्ते का प्रवाह और संचार शैली",
+      "005": "अनुकूलता गाइड | साजू, सुक्योउ और टैरो की निःशुल्क तुलना",
+      "006": "साजू अनुकूलता — दो लोगों का स्वभाव और रिश्ते की व्याख्या | 꿀꿀 운세",
       "007": "निःशुल्क टैरो कार्ड रीडिंग | प्रेम · पुनर्मिलन · मन की व्याख्या",
       "008": "पुनर्मिलन टैरो रीडिंग | फिर से जुड़ने की संभावना और दूरी",
       "009": "साथी के मन का टैरो | मन का प्रवाह और रिश्ते के संकेत",
@@ -14037,10 +14122,10 @@
       }
     },
     "rpt_tTestCard": {
-      "fallbackTitle": "Check your logic temperature -- where reason responds before emotion -- for free.",
-      "tagline": "The Frozen Logic -- a free Saju-based test that playfully diagnoses how close your thinking and judgment pattern is to Thinking (T).",
-      "premiumIntro": "The Extreme-T Test doesn't define your personality -- it's a free, playful reflection of how much your judgment leans toward reason.",
-      "fallbackCta": "Diagnose for Free",
+      "fallbackTitle": "अपना लॉजिक तापमान देखें, जहाँ तर्क भावना से पहले प्रतिक्रिया देता है।",
+      "tagline": "The Frozen Logic: साजू पर आधारित एक मज़ेदार परीक्षण कि आपकी सोच और निर्णय का ढंग T के कितना क़रीब है, जो पूरी साजू रीडिंग, आजीवन एक्सेस में शामिल है।",
+      "premiumIntro": "एक्सट्रीम-T टेस्ट आपके व्यक्तित्व को तय नहीं करता, बल्कि दिखाता है कि आपका निर्णय तर्क की ओर कितना झुकता है।",
+      "fallbackCta": "जाँच शुरू करें",
       "feats": {
         "0": "Measures the metal element, authority, expression and climate in your chart to produce a T score of 0–100 and a tier",
         "1": "Shows four stats: metal hardware, forced-control instinct, blunt-fact debugging and the cold-dry formation",
@@ -14060,7 +14145,7 @@
         "3": "Six summary chips plus today’s mission"
       },
       "premiumOutcomes": {
-        "0": "You can use it free right now.",
+        "0": "यह रीडिंग पूरी साजू रीडिंग, आजीवन एक्सेस में शामिल है।",
         "1": "[Relationship Circuit], [Love Algorithm], [Reality Processing], [Saju-based Extreme-T Reading] and [Debugging Prescription] open after a separate unlock.",
         "2": "The test is for reference and fun."
       },
@@ -14093,8 +14178,8 @@
           "a": "No. You do not answer questionnaire items. It scores the metal element, authority, expression and climate in your natal chart, for fun."
         },
         "1": {
-          "q": "How much is free?",
-          "a": "The T score, tier, type name, four stats, [Strength Scan], [Fatal Bug], today’s mission and the summary card are all free."
+          "q": "इसमें क्या-क्या दिखता है?",
+          "a": "T स्कोर, टियर, टाइप का नाम, चार स्टैट, [Strength Scan], [Fatal Bug], आज का मिशन और सारांश कार्ड, सब पूरी साजू रीडिंग, आजीवन एक्सेस में खुलते हैं।"
         },
         "2": {
           "q": "Why can’t I see the relationship sections?",
@@ -14103,10 +14188,10 @@
       }
     },
     "rpt_hormone_vibe_section": {
-      "fallbackTitle": "Check for free whether your charm pulls strongly like a Teto type, or seeps in gently like an Egen type.",
-      "tagline": "A free analysis, based on your Saju, that splits the grain of your charm energy into Teto and Egen styles.",
-      "premiumIntro": "The Teto/Egen analysis doesn't rank one above the other -- it's a free organization of how your charm pulls people in.",
-      "fallbackCta": "Check for Free",
+      "fallbackTitle": "देखें कि आपका आकर्षण Teto टाइप की तरह ज़ोर से खींचता है या Egen टाइप की तरह धीरे से घुलता है।",
+      "tagline": "साजू पर आधारित विश्लेषण जो आपकी आकर्षण ऊर्जा को Teto और Egen शैलियों में बाँटता है, और पूरी साजू रीडिंग, आजीवन एक्सेस में शामिल है।",
+      "premiumIntro": "Teto/Egen विश्लेषण किसी को ऊँचा या नीचा नहीं बताता, बल्कि बताता है कि आपका आकर्षण लोगों को किस तरह खींचता है।",
+      "fallbackCta": "अभी देखें",
       "feats": {
         "0": "Tallies the Ten Gods across all seven positions except the day stem",
         "1": "Groups the Ten Gods into peers, output, resource, authority and wealth",
@@ -14122,10 +14207,10 @@
         "0": "Teto and Egen scores with a type reading",
         "1": "Ten Gods tallied across seven positions excluding the day stem",
         "2": "Weightings for the five groups: peers, output, resource, authority, wealth",
-        "3": "Free, with no extra payment"
+        "3": "पूरी साजू रीडिंग, आजीवन एक्सेस में शामिल"
       },
       "premiumOutcomes": {
-        "0": "You can use it right now, for free.",
+        "0": "यह रीडिंग पूरी साजू रीडिंग, आजीवन एक्सेस में शामिल है।",
         "1": "The analysis is for reference and entertainment.",
         "2": "Your charm type can vary by situation."
       },
@@ -14162,16 +14247,16 @@
           "a": "It uses only the Ten Gods in your natal chart, so the same birth date and time always gives the same result."
         },
         "2": {
-          "q": "Do I need to pay?",
-          "a": "No. It opens inside your Saju result with no extra payment."
+          "q": "क्या इसके लिए अलग से भुगतान करना होगा?",
+          "a": "अलग से कोई भुगतान नहीं है। यह पूरी साजू रीडिंग, आजीवन एक्सेस के साथ ही खुलता है।"
         }
       }
     },
     "rpt_lottoCard": {
-      "fallbackTitle": "Get today's lucky numbers drawn from your Saju's Five Elements and number symbolism, for free.",
-      "tagline": "A free, for-fun feature that seeds five games from your natal chart plus today’s day pillar and luck cycle.",
-      "premiumIntro": "The Saju Lotto is a fun feature that doesn't predict a win -- it freely draws a symbolic number that fits today's fortune.",
-      "fallbackCta": "Draw Numbers for Free",
+      "fallbackTitle": "अपनी साजू के पंच तत्व और अंकों के प्रतीकों से निकले आज के भाग्यशाली अंक पाएँ।",
+      "tagline": "प्रतीकात्मक अंकों की सुविधा जो आपके जन्म चार्ट, आज के दिन और दशा चक्र से पाँच संयोजन निकालती है, और पूरी साजू रीडिंग, आजीवन एक्सेस में शामिल है।",
+      "premiumIntro": "साजू लोट्टो जीत की भविष्यवाणी नहीं करता, बल्कि आज के भाग्य से मेल खाते प्रतीकात्मक अंक निकालता है।",
+      "fallbackCta": "अंक निकालें",
       "feats": {
         "0": "Seeds the numbers from your natal chart plus today’s day pillar, luck cycle and round counter",
         "1": "Builds five games at once and labels them flow, stable, reversal, instinct and balance",
@@ -14187,10 +14272,10 @@
         "0": "Numbers seeded from your chart, today’s day pillar and luck cycle",
         "1": "Five games at once, each with a concept name",
         "2": "Redraw to raise the round counter and get a new set",
-        "3": "Free, with no extra payment"
+        "3": "पूरी साजू रीडिंग, आजीवन एक्सेस में शामिल"
       },
       "premiumOutcomes": {
-        "0": "You can use it right now, for free.",
+        "0": "यह रीडिंग पूरी साजू रीडिंग, आजीवन एक्सेस में शामिल है।",
         "1": "This is fun content that doesn't guarantee a win.",
         "2": "Please judge an actual purchase carefully."
       },
@@ -14228,15 +14313,15 @@
         },
         "2": {
           "q": "Can I save or share the number card?",
-          "a": "The free number draw has no save or share feature. You read it directly on screen."
+          "a": "अंक निकालने में सेव या शेयर की सुविधा नहीं है। आप उन्हें सीधे स्क्रीन पर देखते हैं।"
         }
       }
     },
     "rpt_sajuFourCutCard": {
-      "fallbackTitle": "Make a four-cut photo-strip reinterpreting your Saju data in a fun, snapshot-style sentiment, for free.",
-      "tagline": "A free, fun feature packing blunt-but-relatable roast lines into a four-cut strip, ready to save and share.",
-      "premiumIntro": "The Saju Four-Cut doesn't state your fortune definitively -- it's free content that lets you enjoy your Saju as a fun, snapshot-style card.",
-      "fallbackCta": "Make a Four-Cut for Free",
+      "fallbackTitle": "अपने साजू डेटा को फ़ोटो-बूथ अंदाज़ में दोबारा रचने वाली चार-फ़्रेम पट्टी बनाएँ।",
+      "tagline": "सीधी लेकिन अपनी-सी लगने वाली पंक्तियाँ चार फ़्रेम में, जिन्हें सेव और शेयर किया जा सकता है, और जो पूरी साजू रीडिंग, आजीवन एक्सेस में शामिल हैं।",
+      "premiumIntro": "साजू फोर-कट भाग्य को निश्चित नहीं बताता, बल्कि आपकी साजू को फ़ोटो-बूथ शैली के एक कार्ड के रूप में आनंद लेने देता है।",
+      "fallbackCta": "फोर-कट बनाएँ",
       "feats": {
         "0": "Builds four-cut lines from today’s day pillar energy",
         "1": "Lets you switch between four versions: form check, reply warmth, routine save and impulse lock",
@@ -14256,7 +14341,7 @@
         "3": "Image save plus KakaoTalk, device share or link copy"
       },
       "premiumOutcomes": {
-        "0": "You can use it right now, for free.",
+        "0": "यह रीडिंग पूरी साजू रीडिंग, आजीवन एक्सेस में शामिल है।",
         "1": "The sentences are for reference and entertainment.",
         "2": "The existing service standard applies."
       },
@@ -14293,16 +14378,16 @@
           "a": "Yes. You can save the four cuts as an image with your stickers in place."
         },
         "2": {
-          "q": "Do I need to pay?",
-          "a": "No. It opens inside your Saju result with no extra payment."
+          "q": "क्या इसके लिए अलग से भुगतान करना होगा?",
+          "a": "अलग से कोई भुगतान नहीं है। यह पूरी साजू रीडिंग, आजीवन एक्सेस के साथ ही खुलता है।"
         }
       }
     },
     "rpt_dopamineCard": {
-      "fallbackTitle": "Check for free whether you're someone who chases new stimulation, or someone who loves stability more.",
-      "tagline": "A free report that converts your stimulation-seeking tendency into a score and grade based on your Saju flow, showing an 8-axis stimulation radar, your absorption areas, and today's mission.",
+      "fallbackTitle": "देखें कि आप नई उत्तेजना के पीछे भागते हैं या स्थिरता को ज़्यादा चाहते हैं।",
+      "tagline": "रिपोर्ट जो आपकी साजू के प्रवाह से उत्तेजना की प्रवृत्ति को स्कोर और ग्रेड में बदलती है और 8-अक्ष रडार, रुचि के क्षेत्र व आज का मिशन दिखाती है; यह पूरी साजू रीडिंग, आजीवन एक्सेस में शामिल है।",
       "premiumIntro": "This doesn't diagnose addiction -- it's a fun read, through your Saju flow, of where you draw energy from and where you burn out quickly.",
-      "fallbackCta": "See Your Stimulation Score for Free",
+      "fallbackCta": "अपना उत्तेजना स्कोर देखें",
       "feats": {
         "0": "Converts your stimulation-seeking tendency into a 0–100 score, an SSS–D grade and a type name",
         "1": "Draws an eight-axis stimulation radar: new experiences, social media, shopping, gaming, study, travel, romance and exercise",
@@ -14323,7 +14408,7 @@
         "4": "Save and share the result card"
       },
       "premiumOutcomes": {
-        "0": "You can use it right now, for free.",
+        "0": "यह रीडिंग पूरी साजू रीडिंग, आजीवन एक्सेस में शामिल है।",
         "1": "This is content for temperament reference and entertainment.",
         "2": "The existing service standard applies."
       },
@@ -16326,7 +16411,7 @@
       "badge": "Free compatibility reading"
     },
     "saju": {
-      "tagline": "A basic reading that calculates the eight characters of your saju and lays out your innate temperament and the large turns of your life. You can start for free.",
+      "tagline": "आपके साजू के आठ अक्षर निकालकर जन्म चार्ट, पंच तत्व संतुलन और एक पंक्ति का स्वभाव मुफ़्त दिखाता है। दस देव और दशा चक्र की व्याख्या सशुल्क पूर्ण साजू रीडिंग में आगे देखी जा सकती है।",
       "feats": [
         "When you can't put your own disposition into words",
         "When you want to see the broad arc of your life once",
@@ -16343,7 +16428,7 @@
         "How does the broad arc of my life run?",
         "What kind of period am I in now?"
       ],
-      "fallbackCta": "See your saju free",
+      "fallbackCta": "अपना मुफ़्त मान्सेर्योक चार्ट देखें",
       "headline": "Explore the broad patterns of your life through your birth date and time.",
       "badge": "Start for free"
     },
@@ -21844,7 +21929,7 @@
     "more": "Read more",
     "sample": "Sample · a fictional chart",
     "sampleNote": "An example of the format, not your personal result.",
-    "paidDifference": "Prepared explanations are matched to the chart calculated from your birth details. Build on the temperament covered in the free reading with longer-term cycles and themed interpretations.",
+    "paidDifference": "Prepared explanations are matched to the chart calculated from your birth details. Build on the natal chart shown in the free Manseryeok with longer-term cycles and themed interpretations.",
     "paidDaeun": "Read how life shifts every ten years and from year to year, and see which choices to prepare for now in work, relationships and money.",
     "paidSummary": "Your temperament, elements and Ten Gods, personality and relationships, life strategy, and guidance for this year and next, gathered into one reading of your chart.",
     "recovery": "Reopen the chart with the same account and profile and check access. If payment succeeded but access is missing, do not pay again; contact support with the payment record.",
@@ -21933,7 +22018,8 @@
     "neoClosing": "Whether it is a relationship or work, do not make a major decision from the chart alone. Look at what people actually do, the terms you agreed to and the costs you can bear. I am not trying to corner you. I only want your choices to become a little clearer. Start with whatever you can genuinely do today, meow.",
     "letterVerdictJong": "a structure that follows momentum gathering in one direction",
     "letterVerdictStrong": "a structure with relatively ample strength to make your own path",
-    "letterVerdictWeak": "a structure that shines more comfortably with support nearby and time to prepare"
+    "letterVerdictWeak": "a structure that shines more comfortably with support nearby and time to prepare",
+    "paidBundle": "Saju full reading, lifetime access · One payment opens every Saju reading, including this one, permanently. You are not charged per reading."
   },
   "sajuCompat": {
     "selfFallback": "मैं",

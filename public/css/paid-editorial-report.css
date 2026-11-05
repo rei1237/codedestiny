@@ -18,6 +18,9 @@
   overflow-wrap: anywhere;
   box-shadow: 0 16px 48px rgb(34 21 17 / 7%);
 }
+.cd-editorial-report:not([open]) { padding: 12px 20px; border-radius: 8px; box-shadow: none; }
+.cd-editorial-report > .cd-editorial-tools-summary { min-height: 44px; padding-block: 8px; cursor: pointer; font-weight: 600; }
+.cd-editorial-tools-summary:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; }
 .cd-editorial-report[data-brand=ggulggul] {
   --report-bg: #fffaf3;
   --report-text: #382c2c;

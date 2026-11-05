@@ -2,14 +2,14 @@ import { BRAND_FACTS } from "../brand/brand-facts.mjs";
 
 const SITE_SEO_TEXT_TRANSLATIONS = {
   ko: {
-    "siteSeo.001": "무료 사주팔자 · 타로 · 오늘의 운세 | 꿀꿀 운세",
+    "siteSeo.001": "무료 만세력 · 타로 · 오늘의 운세 | 꿀꿀 운세",
     "siteSeo.002": "꿀꿀 운세 소개 | 운영자·해석 기준·서비스 안내",
     "siteSeo.003": "꿀꿀 운세 자주 묻는 질문",
     "siteSeo.004": "운세 콘텐츠 방법론과 면책 고지",
-    "siteSeo.005": "무료 만세력 사주 분석 | 오행·십성·대운 해석",
-    "siteSeo.006": "무료 사주팔자 분석 | 오행·십성·대운 흐름",
+    "siteSeo.005": "무료 만세력 보는 법 | 사주팔자 원국·오행 균형 확인",
+    "siteSeo.006": "무료 만세력 사주 원국 | 사주팔자 기본 구조 안내",
     "siteSeo.007": "사주 만세력 기본 해석 | 오행·십성·명식 분석",
-    "siteSeo.008": "사주 궁합 무료 해석 | 관계 흐름과 소통 방식",
+    "siteSeo.008": "사주 궁합 해석 | 관계 흐름과 소통 방식",
     "siteSeo.009": "무료 타로 카드 리딩 | 연애·재회·마음 해석",
     "siteSeo.010": "재회 타로 리딩 | 다시 이어질 가능성과 거리",
     "siteSeo.011": "상대 마음 타로 | 마음 흐름과 관계 신호",
@@ -120,8 +120,8 @@ export const publicSeoPages: Record<string, PublicSeoPage> = {
     title: siteSeoText("siteSeo.001"),
     description:
       "사주, 타로, 자미두수, 점성술, 숙요점, 궁합, 오늘의 운세를 한곳에서 확인하세요. 꿀꿀운세는 자기성찰을 돕는 한국어 운세 플랫폼입니다.",
-    h1: "무료 사주팔자 · 타로 · 오늘의 운세 통합 플랫폼",
-    keywords: ["무료 사주", "무료 타로", "오늘의 운세", "만세력", "궁합"],
+    h1: "무료 만세력 · 타로 · 오늘의 운세 통합 플랫폼",
+    keywords: ["무료 만세력", "무료 타로", "오늘의 운세", "만세력", "궁합"],
     changeFrequency: "daily",
     priority: 1,
     structuredData: ["Organization", "WebSite", "WebPage"],
@@ -130,7 +130,7 @@ export const publicSeoPages: Record<string, PublicSeoPage> = {
     path: "/about",
     title: siteSeoText("siteSeo.002"),
     description:
-      "꿀꿀 운세에서 제공하는 무료 사주, 타로, 자미두수, 점성술, 숙요점 서비스와 운영자 CODE DESTINY, 콘텐츠 운영 원칙을 소개합니다.",
+      "꿀꿀 운세에서 제공하는 무료 만세력, 타로, 자미두수, 점성술, 숙요점 서비스와 운영자 CODE DESTINY, 콘텐츠 운영 원칙을 소개합니다.",
     h1: "꿀꿀 운세 소개",
     changeFrequency: "monthly",
     priority: 0.8,
@@ -160,8 +160,8 @@ export const publicSeoPages: Record<string, PublicSeoPage> = {
     path: "/manse",
     title: siteSeoText("siteSeo.005"),
     description:
-      "생년월일과 시간을 바탕으로 만세력의 사주팔자, 오행, 십성, 대운 흐름을 확인하는 방법을 안내합니다.",
-    h1: "무료 만세력 사주 분석",
+      "생년월일과 시간을 바탕으로 만세력의 사주팔자와 오행 균형을 확인하는 방법을 안내합니다. 십성·대운 풀이는 사주 전체 풀이 평생 소장에서 이어집니다.",
+    h1: "무료 만세력 보는 법",
     keywords: ["무료 만세력", "사주 만세력", "오행", "십성", "대운", "일간별 운세"],
     changeFrequency: "daily",
     priority: 0.98,
@@ -171,9 +171,9 @@ export const publicSeoPages: Record<string, PublicSeoPage> = {
     path: "/saju",
     title: siteSeoText("siteSeo.006"),
     description:
-      "사주팔자의 기본 구조와 오행 균형, 십성, 대운을 통해 성향과 선택의 흐름을 살펴보는 무료 사주 안내 페이지입니다.",
-    h1: "무료 사주팔자 분석",
-    keywords: ["무료 사주", "사주팔자", "오행", "십성", "사주 분석", "일간별 운세"],
+      "사주팔자의 기본 구조와 오행 균형, 십성, 대운의 개념을 안내하고, 무료 만세력으로 원국과 한 줄 성향을 확인하는 페이지입니다.",
+    h1: "무료 만세력 사주 원국",
+    keywords: ["무료 만세력", "사주팔자", "오행", "십성", "사주 분석", "일간별 운세"],
     changeFrequency: "daily",
     priority: 0.98,
     structuredData: ["WebPage", "BreadcrumbList", "FAQPage"],
@@ -205,8 +205,8 @@ export const publicSeoPages: Record<string, PublicSeoPage> = {
     title: siteSeoText("siteSeo.008"),
     description:
       "두 사람의 사주 구조를 관계 리듬, 갈등 패턴, 소통 방식 관점에서 읽는 사주 궁합 안내 페이지입니다.",
-    h1: "사주 궁합 무료 해석",
-    keywords: ["사주 궁합", "무료 궁합", "연애운", "관계 분석"],
+    h1: "사주 궁합 해석",
+    keywords: ["사주 궁합", "궁합 보기", "연애운", "관계 분석"],
     changeFrequency: "weekly",
     priority: 0.94,
     structuredData: ["WebPage", "BreadcrumbList", "FAQPage"],

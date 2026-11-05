@@ -112,6 +112,16 @@ jobs:
         if: steps.tier.outputs.markdown_only == 'true'
         run: npm run verify:doc-freshness
 
+      # 인수인계 문서만 바뀐 push 는 guards 잡이 돌지 않으므로(resolve-ci-tier 의 shouldRunStaticGuards)
+      # 이 문서를 입력으로 읽는 유일한 가드를 여기서 돌린다. guards 잡의 같은 스텝은 그대로 둔다.
+      # markdown_only 가 아니라 runs_guards 로 건다 — 인수인계 문서와 docs/ 이미지가 함께 바뀐 push 도
+      # guards 가 돌지 않으므로, markdown_only 로 걸면 그때 이 검사가 빠진다.
+      - name: Verify handoff frontmatter contract (when guards skip)
+        if: steps.tier.outputs.runs_guards != 'true'
+        run: |
+          npm run verify:handoff-contract -- --self-test
+          npm run verify:handoff-contract
+
       - name: Compare proposed verification plan (shadow only)
         env:
           PR_BASE_SHA: ${{ github.event.before }}
@@ -147,11 +157,26 @@ jobs:
       # 🔴 히스토리 블롭을 실제로 읽는 스크립트는 measure-shell-css-externalization.mjs 와
       #    query-retired-pass-tier-aliases.mjs 뿐이고 (`git show <sha>:<file>`), 둘 다 어떤
       #    워크플로에도 배선돼 있지 않다(2026-09-06 `.github/workflows/*.yml` + package.json 전수 확인).
+      #
+      # 미디어는 받지 않는다(classify 와 같은 이유). ci:fast 는 lint·lint:changed·typecheck 뿐이고,
+      # 2026-11-04 미디어 없는 복제본에서 lint·typecheck 오류 0건을 확인했다.
+      # 🔴 guards·critical·build 는 이미지를 읽는 검사가 있어 전체 체크아웃을 유지한다.
       - name: Checkout PR head
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           filter: blob:none
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /*
+            !*.webp
+            !*.png
+            !*.jpg
+            !*.jpeg
+            !*.avif
+            !*.gif
+            !*.mp3
+            !*.mp4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -802,8 +827,8 @@ jobs:
       # 인수인계 문서는 다음 세션이 "그것만 읽고 시작하는" 물건이라, 상태가 본문에만 있으면
       # 그 상태를 알기 위해 문서를 통째로 읽어야 한다 — 규약이 줄이려던 비용을 규약이 만든다.
       # status·updated·next 세 줄만 강제한다. 규약 정본은 docs/handoff/_TEMPLATE.md.
-      # 🔴 여기(fast 잡)여야 한다 — docs/** 단독 변경은 티어가 fast 라 build/critical 잡이
-      # 통째로 스킵되는데, 그게 정확히 이 검사가 지켜야 할 경로다.
+      # 🔴 build/critical 잡에 두면 안 된다 — docs/** 단독 변경은 티어가 fast 라 그 잡들이 통째로
+      # 스킵되는데, 그게 정확히 이 검사가 지켜야 할 경로다. guards 가 skip 되는 push 는 classify 가 맡는다.
       - name: Verify handoff frontmatter contract
         run: |
           npm run verify:handoff-contract -- --self-test
@@ -830,7 +855,7 @@ jobs:
       # 🔴 왜 build/critical 잡이 아니라 여기인가: 이 41개의 입력은 정적 소스·셸·CSS·정책 문서다.
       # build 잡에 두면 티어가 fast 로 잡히는 변경(문구·CSS·사전 한 줄)에서 통째로 skip 되는데,
       # 그게 정확히 지키려는 경로다. 이 lane 은 `runs_guards == 'true'` 로 돌고, 그 판정은
-      # `scripts/resolve-ci-tier.mjs` 의 `shouldRunStaticGuards` 다 — 평문 문서만 바뀐 push 에서만
+      # `scripts/resolve-ci-tier.mjs` 의 `shouldRunStaticGuards` 다 — 평문·인수인계 문서만 바뀐 push 에서만
       # skip 된다. 그 함수는 이 승격과 같은 커밋에서 루트 계약 문서를 skip 대상에서 뺐다
       # (verify:payment-policy-md 는 PAYMENT_POLICY.md 를, verify:mobile-entry-actions 는
       # MOBILE_FEATURE_REGISTRY.md 를 읽는다 — 둘 다 레포 루트다).

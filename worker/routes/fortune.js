@@ -2,6 +2,7 @@ import { appendBasicFortunePersona } from '../lib/expert-character-personas.js';
 import { getAmbientAiLocale } from '../lib/ai-locale-context.js';
 import { toAiLocale } from '../../lib/i18n/ai-locale.js';
 import {validateSajuNatalPayload} from "../lib/saju-correction.js";
+import { SAJU_BUNDLE_ALIAS_MEMBER_KEYS, SAJU_BUNDLE_FEATURE_KEY } from "../lib/saju-bundle-policy.js";
 import { deliverFeatureQuestion, readFeatureQuestionRequest } from '../lib/feature-question-delivery.js';
 import { deliverGuardianPaid } from '../lib/guardian-paid-delivery.js';
 import { connectDb, mongoose, withMongoRetry, mongoTransactionOptions } from "../lib/db.js";
@@ -79,6 +80,7 @@ import {
 import {
   buildSajuAIPrompt,
   buildSajuAIPromptWithDomain,
+  selectSajuPromptAuthority,
   SAJU_AI_PROMPT_FEATURE_KEY,
   SAJU_AI_PROMPT_PRICE,
   SAJU_AI_PROMPT_VERSION,
@@ -1195,7 +1197,7 @@ async function findSajuAIExecutionForRead({ auth, jobId = "", resultId = "", req
 // 대신 202(진행 중)로 수렴하고, 백그라운드(waitUntil) 생성의 완료/실패도 레코드로 전달된다.
 // 식별자(executionId·requestId·profileId)와 과금 필드는 완료 저장(saveSajuAIConsultationResultRecord)의
 // $setOnInsert와 동일 정본을 쓴다 — 불일치 시 폴링이 레코드를 못 찾아 404가 재발한다.
-async function beginSajuAIConsultationGeneratingRecord({ auth, body, profileId, requestId, resultId, consumePayload, paymentIdentity, chargedCoins, membershipCreditCost, env, existingExecution = null, leaseToken, payloadHash }) {
+async function beginSajuAIConsultationGeneratingRecord({ auth, body, profileId, requestId, resultId, consumePayload, paymentIdentity, chargedCoins, membershipCreditCost, env, existingExecution = null, leaseToken, payloadHash, sajuAuthority = null }) {
   const userId = String(auth?.userId || "").trim();
   const normalizedProfileId = String(profileId || "default").trim() || "default";
   const normalizedRequestId = String(requestId || "").trim();
@@ -1237,6 +1239,7 @@ async function beginSajuAIConsultationGeneratingRecord({ auth, body, profileId, 
         resultId: String(resultId || "").trim(),
         result: {
           ...(existingExecution?.result || {}),
+          ...(sajuAuthority ? { sajuAuthority } : {}),
           leaseToken,
           payloadHash,
           resumeBody: Object.fromEntries(["locale", "question", "sajuResult", "domain", "calibration", "profileId", "selectedProfileId", "requestId", "idempotencyKey", "transactionId", "ledgerId", "purchaseId", "paymentId", "accessType", "accessMethod", "paymentMode", "accessGrant", "accessDecision", "freeBySubscription", "consume", "payment", "_paymentContext"].filter((key) => body[key] !== undefined).map((key) => [key, body[key]])),
@@ -1313,6 +1316,7 @@ async function saveSajuAIConsultationResultRecord({ auth, body, profileId, reque
           promptVersion: builtPrompt?.promptVersion || SAJU_AI_PROMPT_VERSION,
           consultationType: "saju_myeongsik_ai",
           factSnapshot: builtPrompt?.factSnapshot || null,
+          ...(builtPrompt?.sajuAuthority ? { sajuAuthority: builtPrompt.sajuAuthority } : {}),
           tenGodSnapshot: builtPrompt?.tenGodSnapshot || null,
           promptDigest: String(promptDigest || "").trim(),
           progress,
@@ -2546,6 +2550,7 @@ function getSubscriptionTierRank(tierRaw) {
 }
 
 const PERSISTENT_UNLOCK_ALIAS_MAP = Object.freeze({
+  [SAJU_BUNDLE_FEATURE_KEY]: [...SAJU_BUNDLE_ALIAS_MEMBER_KEYS],
   "olympus-profile-fc": ["olympus-fc"],
   "olympus-fc": ["olympus-profile-fc"],
   "flower-fc": ["flower-destiny", "flower-astro", "flower-ziwei", "flower-sukuyo"],
@@ -4816,7 +4821,7 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
   const payloadHash = ((await sha256Hex(builtPrompt.digestSource)) || digestHex).slice(0, 120);
   const fallbackRequestId = `${String(auth?.userId || "").trim()}:${SAJU_AI_PROMPT_FEATURE_KEY}:${digestHex}`.slice(0, 120);
   const requestId = readAIPromptRequestId(body, fallbackRequestId);
-  const promptDigest = ((await sha256Hex(builtPrompt.prompt || builtPrompt.generatedPrompt || builtPrompt.digestSource)) || payloadHash).slice(0, 64);
+  let promptDigest = ((await sha256Hex(builtPrompt.prompt || builtPrompt.generatedPrompt || builtPrompt.digestSource)) || payloadHash).slice(0, 64);
   let resultId = buildSajuAIResultId(requestId, promptDigest);
 
   const sajuExecutionId = buildSajuAIPromptExecutionId({ userId: String(auth?.userId || "").trim(), profileId, requestId });
@@ -4934,6 +4939,21 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
     return buildSajuAIPromptError("RESULT_STORAGE_UNAVAILABLE", "상담 저장 상태를 확인하지 못했어요. 잠시 후 다시 시도해 주세요.", 503, { retryable: true, reason: "RESULT_STORAGE_UNAVAILABLE", resultId });
   }
   // 생성 시작 표시 — 이 레코드가 있어야 클라이언트 /status 폴링이 404 대신 202로 수렴한다.
+  // Only a new server-side execution can opt in. Reconnects use the stored
+  // authority even after OFF; an old execution without a pin stays legacy.
+  let sajuAuthority = null;
+  if (existingExecution?.result?.sajuAuthority || (!existingExecution && env?.SAJU_GYEOKGUK_AUTHORITY_V2 === "true")) {
+    try {
+      sajuAuthority = selectSajuPromptAuthority(sajuResult, {
+        enabled: env?.SAJU_GYEOKGUK_AUTHORITY_V2 === "true", hasExistingRecord: Boolean(existingExecution),
+        stored: existingExecution?.result?.sajuAuthority,
+      });
+      builtPrompt = buildSajuAIPromptWithDomain({ question, sajuResult, domain, sajuAuthority });
+      promptDigest = (await sha256Hex(builtPrompt.prompt)).slice(0, 64);
+    } catch {
+      return buildSajuAIPromptError("RESULT_STORAGE_UNAVAILABLE", "상담 저장 상태를 확인하지 못했어요. 잠시 후 다시 시도해 주세요.", 503, { retryable: true, resultId });
+    }
+  }
   const leaseToken = crypto.randomUUID();
   const claimedExecutionId = await beginSajuAIConsultationGeneratingRecord({
     auth,
@@ -4949,6 +4969,7 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
     existingExecution,
     leaseToken,
     payloadHash,
+    sajuAuthority,
   }).catch(() => null);
   if (!claimedExecutionId) {
     const current = await findSajuAIExecutionForRead({ auth, jobId: sajuExecutionId, resultId, requestId, profileId }).catch(() => null);
@@ -5282,7 +5303,7 @@ async function handleSajuAIConsultationStatus(request, auth, path = "", env = nu
 }
 
 // 명식 근거만 계산해 돌려준다. 프롬프트 빌더를 그대로 태워, 상담문이 인용할 확정값과 같은 원본을 쓴다.
-async function handleSajuAIConsultationBasis(request) {
+async function handleSajuAIConsultationBasis(request, env) {
   const body = await readJson(request);
   const sajuResult = body?.sajuResult;
   if (!sajuResult || typeof sajuResult !== "object") {
@@ -5293,7 +5314,13 @@ async function handleSajuAIConsultationBasis(request) {
     // buildSajuAIPrompt 는 프롬프트용 질문 분류 때문에 5자 이상을 요구하므로, 여기서 반환하는
     // analysisBasis(질문과 무관하게 factSnapshot에서만 파생)에는 영향 없는 자리표시 질문으로 채운다.
     const question = String(body?.question || "").trim() || "명식 근거 확인";
-    const built = buildSajuAIPrompt({ question, sajuResult });
+    // 상담 본문이 승인 판정을 쓰는데 대기 화면만 단일 용신을 보여 주지 않도록 미리보기도 같은 판정으로 만든다.
+    const sajuAuthority = env?.SAJU_GYEOKGUK_AUTHORITY_V2 === "true"
+      ? selectSajuPromptAuthority(sajuResult, { enabled: true, hasExistingRecord: false })
+      : null;
+    const built = sajuAuthority
+      ? buildSajuAIPromptWithDomain({ question, sajuResult, sajuAuthority })
+      : buildSajuAIPrompt({ question, sajuResult });
     if (!built?.analysisBasis) return buildSajuAIPromptError("CALCULATION_FAILED", "명식 근거를 계산하지 못했습니다.", 503);
     return json(built.analysisBasis);
   } catch (error) {
@@ -7048,7 +7075,7 @@ export async function handleFortuneRoutes(request, env, ctx = null) {
       const userId = await peekAccessTokenUserId(request, env);
       if (!userId) return buildSajuAIPromptError("AUTH_REQUIRED", "로그인이 필요합니다.", 401);
       trace.authVerified = true;
-      return await handleSajuAIConsultationBasis(request);
+      return await handleSajuAIConsultationBasis(request, env);
     }
 
     if (method === "POST" && (path === "/saju/ai-prompt" || path === "/saju/question-prompt" || path === "/saju-ai-consultation/create")) {

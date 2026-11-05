@@ -34,6 +34,7 @@ import { deductLotsFIFO, ensureLotsForBalance, resolveNextExpiry } from "../lib/
 import { HONEY_PASS_POLICY, normalizeHoneyPassEntitlement, normalizePassTier, PASS_TIERS, resolveMonthlySpendQuota } from "../lib/profile-limits.js";
 import { resolveCanonicalEntitlement } from "../lib/entitlement-policy.js";
 import { applyPdfPassDiscountToPricing } from "../lib/pdf-pass-discount.js";
+import { SAJU_BUNDLE_FEATURE_KEY, isSajuBundleSaleClosed } from "../lib/saju-bundle-policy.js";
 import { isBirthScopedUnlockFeatureKey, isLegacyLoveCodeUnlockAlias, isPerUsePaidFeatureKey, isUnlockPaidFeatureKey, normalizePaidFeatureKey } from "../lib/paid-feature-registry.js";
 import { isBirthUnlockIdentityError, resolveBirthUnlockIdentity } from "../lib/birth-scoped-unlock-identity.js";
 import { toBirthEntitlementProfileId } from "../lib/birth-key.js";
@@ -2025,6 +2026,18 @@ async function handleSinglePaymentStart(request, env, auth) {
       featureKey: resolved.featureKey,
       unlockSource: unlockEvidence.source,
     });
+  }
+
+  // 사주 영구 묶음: 묶음 포함·판매 종료 키의 신규 단건 결제는 닫혀 있다. 보유(묶음 보유 포함)는 위에서 이미 열었다.
+  // 결제 설정·주문(Payment) 생성보다 먼저 막는다. 확정·환불 경로는 이 함수를 타지 않는다.
+  if (isSajuBundleSaleClosed(resolved.featureKey)) {
+    return json({
+      ok: false,
+      code: "PRODUCT_SALE_ENDED",
+      message: "이 항목은 개별 판매가 끝났어요. 사주 전체 풀이 평생 소장으로 열 수 있어요.",
+      featureKey: resolved.featureKey,
+      bundleFeatureKey: SAJU_BUNDLE_FEATURE_KEY,
+    }, { status: 409 });
   }
 
   const config = getPortOnePublicConfig(env);

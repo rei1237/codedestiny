@@ -8,6 +8,8 @@
 // "무료 초안에선 金이라더니 결과는 水" 같은 어긋남이 생기지 않는다.
 
 import { analyzeSoundFlow, soundElementOf } from "@/worker/lib/naming-sound-elements.js";
+import { ENGINE_ROLLOUT_FLAGS } from "@/worker/lib/engine-rollout.js";
+import { sajuAuthorityOn } from "@/worker/lib/saju-authority-consumer.js";
 import { getNamingDraftCopy, type NamingDraftCopy } from "./namingDraftCopy";
 import {
   getNamePool,
@@ -666,7 +668,8 @@ export function buildRecommendationBundle(
   const moods = generateMoodDrafts(input, presets, elementKeys);
   const statusParts: string[] = [];
   if (elementKeys.length) {
-    statusParts.push(`사주 용신을 계산해 보완 축 ${elementKeys.map((key) => ELEMENT_FULL_LABELS[key] || key).join(" · ")}을 잡고, 성씨부터 이어지는 소리오행 흐름까지 함께 보고 골랐습니다.`);
+    // 초안의 줄세움 입력은 그대로 두고 승인 판정이 켜지면 단일 용신이라 부르지 않는다.
+    statusParts.push(`${sajuAuthorityOn(ENGINE_ROLLOUT_FLAGS) ? "사주 기운을 살펴 작명 계산" : "사주 용신을 계산해 보완"} 축 ${elementKeys.map((key) => ELEMENT_FULL_LABELS[key] || key).join(" · ")}을 잡고, 성씨부터 이어지는 소리오행 흐름까지 함께 보고 골랐습니다.`);
     const avoid = uniqueList(sajuHints?.avoidElements || []);
     if (avoid.length) {
       statusParts.push(`${avoid.map((key) => ELEMENT_FULL_LABELS[key] || key).join(" · ")} 기운은 이름에서 피했습니다.`);
@@ -681,9 +684,9 @@ export function buildRecommendationBundle(
     statusParts.push("성별을 선택하면 남아·여아에 맞는 음절로 후보를 다시 고릅니다.");
   }
   if (!elementKeys.length && input.birthDate) {
-    statusParts.push("사주 용신을 계산하는 중입니다. 잠시 뒤 오행 축이 반영된 후보로 바뀝니다.");
+    statusParts.push(sajuAuthorityOn(ENGINE_ROLLOUT_FLAGS) ? "사주 기운을 살피는 중입니다. 잠시 뒤 오행 축이 반영된 후보로 바뀝니다." : "사주 용신을 계산하는 중입니다. 잠시 뒤 오행 축이 반영된 후보로 바뀝니다.");
   } else if (!input.birthDate) {
-    statusParts.push("생년월일이 들어오면 사주 용신을 계산해 오행 축을 맞춥니다.");
+    statusParts.push(sajuAuthorityOn(ENGINE_ROLLOUT_FLAGS) ? "생년월일이 들어오면 사주 기운을 살펴 오행 축을 맞춥니다." : "생년월일이 들어오면 사주 용신을 계산해 오행 축을 맞춥니다.");
   }
   statusParts.push("초안 추천은 참고용이며 최종 판단은 프리미엄 프롬프트가 다시 정리합니다.");
   return { candidates: draft.candidates, moods, status: statusParts.join(" ") };

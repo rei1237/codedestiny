@@ -1,6 +1,6 @@
 {
-  "count": 66,
-  "valueKRW": 304000,
+  "count": 65,
+  "valueKRW": 299000,
   "keys": [
     "physiognomy-compatibility",
     "sukuyo-extreme-t-relationship",
@@ -14,7 +14,6 @@
     "neville-meditation",
     "love-code",
     "maya-prompt-generator",
-    "tarot-myeongri-three-card",
     "destiny-compass-future-sim",
     "vedic_basic_reading",
     "vedic-compatibility-per-use",
@@ -82,7 +81,6 @@
     "neville-meditation": "네빌 명상 실습",
     "love-code": "러브 코드",
     "maya-prompt-generator": "마야점 상담 프롬프트",
-    "tarot-myeongri-three-card": "명리학 타로 3장 스프레드",
     "destiny-compass-future-sim": "미래 시뮬레이션 안내",
     "vedic_basic_reading": "베다 점성술 기본 해석",
     "vedic-compatibility-per-use": "베다점 궁합 분석",

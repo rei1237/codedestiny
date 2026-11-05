@@ -3025,8 +3025,9 @@ return true;
       return;
     }
 
-    var yons = (power && power.yongshin) || [];
-    var kis = (power && power.kijishin) || [];
+    var shownPower = (window.cdApprovedSajuFacts && window.cdApprovedSajuFacts().power) || power;
+    var yons = (shownPower && shownPower.yongshin) || [];
+    var kis = (shownPower && shownPower.kijishin) || [];
     var dEl = GAN_ELEM[pillars.d.g] || 'earth';
     var todayEl = GAN_ELEM[todayGZ.g] || 'earth';
     var todayInfo = ELEM[todayEl] || ELEM.earth;
@@ -3062,8 +3063,8 @@ return true;
     }
 
     var yongLine = yons.length
-      ? '용신 포인트: <b>' + yons.join(', ') + '</b> 오행과 맞는 색상, 장소, 소품 중 하나를 가볍게 골라보세요.'
-      : '용신 정보가 없어도 오늘의 행운 오행과 맞는 작은 행동 하나면 충분합니다.';
+      ? '보완 후보 포인트: <b>' + yons.join(', ') + '</b> 오행과 맞는 색상, 장소, 소품 중 하나를 가볍게 골라보세요.'
+      : '보완 후보 정보가 없어도 오늘의 행운 오행과 맞는 작은 행동 하나면 충분합니다.';
     var kiLine = kis.length
       ? '균형 메모: <b>' + kis.join(', ') + '</b> 흐름이 과해지지 않도록 과소비와 과로만 조금 낮춰보세요.'
       : '오늘은 부담을 키우기보다 작은 시도 한 가지를 편하게 넣기 좋은 흐름입니다.';
@@ -3825,17 +3826,18 @@ return true;
         var el = GAN_ELEM[c] || JI_ELEM[c];
         if (el && el in cnt) cnt[el]++;
       });
-      var yons = (power && power.yongshin) || [];
+      var shownPower = (window.cdApprovedSajuFacts && window.cdApprovedSajuFacts().power) || power;
+      var yons = (shownPower && shownPower.yongshin) || [];
       badgesEl.innerHTML = Object.keys(cnt).map(function (el) {
         if (cnt[el] === 0) return '';
         var ei = ELEM[el];
         var isYong = yons.indexOf(el) >= 0;
-        var isKi   = power && power.kijishin && power.kijishin.indexOf(el) >= 0;
+        var isKi   = shownPower && shownPower.kijishin && shownPower.kijishin.indexOf(el) >= 0;
         return '<span class="lsd-elem-badge' + (isYong ? ' is-yong' : '') + (isKi ? ' is-ki' : '') + '" ' +
           'style="background:var(--lsd-surface);border-color:var(--lsd-border);color:var(--lsd-ink-muted)">' +
           ei.badge + ei.short + ' <b>' + cnt[el] + '</b>' +
-          (isYong ? '<span class="lsd-badge-tag">용신</span>' : '') +
-          (isKi   ? '<span class="lsd-badge-tag lsd-badge-tag--ki">기신</span>' : '') +
+          (isYong ? '<span class="lsd-badge-tag">보완 후보</span>' : '') +
+          (isKi   ? '<span class="lsd-badge-tag lsd-badge-tag--ki">주의 오행</span>' : '') +
           '</span>';
       }).join('');
     }

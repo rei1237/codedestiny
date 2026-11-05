@@ -267,14 +267,17 @@ describe("레거시 해금 행(출생 기반 전환 이전 구매)", () => {
     expect(Number(user.profileSubscription.monthlySpendCoin || 0)).toBe(0);
   });
 
-  test("월정석: 다른 카드의 레거시 PROFILE 행으로는 열리지 않고 새로 차감한다", async () => {
+  test("월정석: 다른 카드의 레거시 PROFILE 행으로는 열리지 않고, 판매가 끝난 키라 새로 차감하지 않고 409다", async () => {
     const db = makeDb();
     const user = seedFundedUser(db);
     db.rows.push(legacyRow({ scope: "PROFILE", profileId: "p1" }));
     const { response, payload } = await post(db, "moonstone", { paymentMode: "MOONLIGHT_STONE", requestId: "legacy-other-card", profileId: "p3" });
-    expect(response.status).toBe(200);
-    expect(payload.data.consume.alreadyUnlocked).toBe(false);
-    expect(Number(user.profileSubscription.membershipCreditBalance)).toBeLessThan(100000);
+    // 2026-11-04: 대운은 묶음 전용으로 신규 개별 판매가 닫혔다. 남의 카드 행은 보유가 아니므로 차감 대신 409.
+    expect(response.status).toBe(409);
+    expect(payload.code).toBe("PRODUCT_SALE_ENDED");
+    expect(payload.bundleFeatureKey).toBe("saju_lifetime_bundle");
+    expect(Number(user.profileSubscription.membershipCreditBalance)).toBe(100000);
+    expect(ledgerCount(db)).toBe(0);
   });
 
   test("이용권: 레거시 USER 행이면 저장 프로필 없이도 예산을 깎지 않는다", async () => {

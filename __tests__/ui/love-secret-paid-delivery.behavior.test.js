@@ -33,7 +33,7 @@ function load(ctx, file, names) {
 function fixture(accessType = 'pass') {
   let doc = null, providerCalls = 0, refunds = 0, usage = 0, fault = null, permitted = true, owner = 'owner';
   const chain = value => ({ lean: async () => clone(value), select: () => chain(value), sort:()=>chain(value) });
-  const ctx = vm.createContext({ nativeTossContext:()=>null, runWithAiLocale, getAmbientAiLocale, storedAiLocale, toAiLocale, Request, Response, Headers, URL, Date, JSON, Map, crypto: webcrypto,
+  const ctx = vm.createContext({ sajuAuthorityOn: () => false, nativeTossContext:()=>null, runWithAiLocale, getAmbientAiLocale, storedAiLocale, toAiLocale, Request, Response, Headers, URL, Date, JSON, Map, crypto: webcrypto,
     // 증빙 claim 은 billing-evidence-claim.test.js 가 따로 검증한다 — 여기서는 통과로 둔다.
     claimRequestBillingEvidence: async () => ({ ok: true, skipped: true }), releaseRequestBillingEvidence: async () => ({ released: 0 }), evidenceClaimErrorBody: result => result, FEATURE_KEY: 'love-secret-ai-consultation',
     console: { warn() {}, error() {} }, nativeTossContext:()=>null, nativeLoveSecretStoredState:async()=>null,
@@ -78,11 +78,12 @@ function fixture(accessType = 'pass') {
       return { complete: groups.length === 6, answer: groups.map(row => row.sections[0].body).join('\n'), sections: groups.flatMap(row => row.sections), provider: 'mock', model: 'mock', keywords: [], strategy: '', savedGroups: groups };
     },
   });
+  load(ctx, 'worker/lib/representative-consumer-facts.js', ['pinRepresentativeFacts', 'readRepresentativeFacts']);
   load(ctx, 'worker/lib/result-storage.js', ['resultStorageUnavailable', 'resultStorageFailurePayload']);
   load(ctx, 'worker/routes/love-secret-ai.js', ['handleStart', 'saveLoveSecretCheckpoint', 'confirmLoveSecretDelivery']);
-  const post = (body = {}) => ctx.handleStart(new Request('https://mock.test/api/love-secret-ai/generate', {
+  const post = (body = {}, env = {}) => ctx.handleStart(new Request('https://mock.test/api/love-secret-ai/generate', {
     method: 'POST', headers: { 'Content-Type': 'application/json', 'idempotency-key': 'original-paid-request' }, body: JSON.stringify(body),
-  }), {});
+  }), env);
   return { ctx, post, get doc() { return doc; }, get calls() { return providerCalls; }, get refunds() { return refunds; }, get usage() { return usage; },
     fault: value => { fault = value; }, permitted: value => { permitted = value; }, owner: value => { owner = value; } };
 }
@@ -368,4 +369,18 @@ test('Toss generation failure never releases or refunds web payment evidence',as
  f.ctx.releaseRequestBillingEvidence=()=>{throw Error('WEB_REFUND_FORBIDDEN');};
  load(f.ctx,'worker/routes/love-secret-ai.js',['restoreBillingGateAccessOnFailure']);
  assert.equal((await f.post()).status,422);assert.equal(f.calls,0);assert.equal(f.refunds,0);
+});
+
+test('new love-secret facts stay pinned across OFF resume without regenerating grounding facts', async () => {
+ const f=fixture('paid');const helper=await import('../../worker/lib/representative-consumer-facts.js');Object.assign(f.ctx,helper);
+ await f.post({}, {SAJU_CONSUMER_FACTS_V1:'true'});assert.ok(f.doc.sajuResult.consumerFactIdentity);
+ const saved=clone(f.doc.sajuResult);f.ctx.calculateLoveSecretAiSaju=()=>{throw Error('RECALC_BLOCKED')};f.ctx.buildLoveSecretGroundingFacts=()=>{throw Error('REBUILD_BLOCKED')};
+ for(let i=0;i<20&&f.doc.status!=='completed';i++)await f.post({resumeSessionId:f.doc.id});
+ assert.equal(f.doc.status,'completed');assert.deepEqual(f.doc.sajuResult,saved);assert.equal(f.usage,1);
+});
+
+test('corrupt pinned love-secret facts stop before provider and refund', async () => {
+ const f=fixture('paid');Object.assign(f.ctx,await import('../../worker/lib/representative-consumer-facts.js'));
+ await f.post({}, {SAJU_CONSUMER_FACTS_V1:'true'});const calls=f.calls,refunds=f.refunds;f.doc.sajuResult.dayMaster='tampered';
+ const result=await f.post({resumeSessionId:f.doc.id});assert.equal(result.status,409);assert.equal(f.calls,calls);assert.equal(f.refunds,refunds);
 });

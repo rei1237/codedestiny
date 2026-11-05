@@ -19,7 +19,8 @@ import {
   mergeSajuCompatShaped, normalizeSajuCompatInput, parseSajuCompatResponse, sajuCompatSeenKeys, sajuCompatShapedChars,
   sajuCompatTasks, shapeSajuCompatGroup, sajuCompatResponseSchema,
 } from "../lib/saju-compat-schema.js";
-import { buildSajuCompatPrompt, buildSajuCompatSystemPrompt } from "../lib/saju-compat-prompts.js";
+import { buildSajuCompatPrompt, buildSajuCompatSystemPrompt, withApprovedSajuCompat } from "../lib/saju-compat-prompts.js";
+import { sajuAuthorityOn } from "../lib/saju-authority-consumer.js";
 import { toAiLocale } from "../../lib/i18n/ai-locale.js";
 
 const ROUTE_PREFIX = "/api/saju-compat-basic";
@@ -136,7 +137,9 @@ async function handleGenerate(request, env) {
       if (!access?.ok) throw new HttpError(Number(access?.status || 402), "결제 확인이 필요합니다.", { code: access?.code || "PAYMENT_REQUIRED" });
     },
     seed: (original) => {
-      const input = normalizeSajuCompatInput(original);
+      const normalized = normalizeSajuCompatInput(original);
+      // seed는 납품 기록이 없을 때만 호출된다.
+      const input = sajuAuthorityOn(env) ? withApprovedSajuCompat(normalized) : normalized;
       const tasks = sajuCompatTasks(input);
       return { input, tasks, minBodyChars: tasks.reduce((sum, task) => sum + task.minChars, 0) };
     },

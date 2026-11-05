@@ -5845,7 +5845,7 @@
     {
       "productId": "tarot-myeongri-three-card",
       "displayName": "명리학 타로 · 세 장의 흐름",
-      "saleStatus": "명리타로3모드 최종리딩3000원·정본게이트확인",
+      "saleStatus": "2026-11-05 신규판매종료·세장무료전환·구매자재개유지",
       "entry": [
         "index.html tarotModalOverlay/setTarotMode three/tarotFinalBtn"
       ],

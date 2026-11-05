@@ -39,7 +39,7 @@ export const domainRegistry = {
       "사주 잘보는 사이트를 찾는 방문자가 과장된 단정 대신 이해 가능한 해석과 현실적인 조언을 확인하도록 돕습니다.",
     requiredInput: "생년월일, 태어난 시간, 성별, 태어난 지역",
     availableProducts: singleProducts("saju"),
-    freeEntry: { href: "/yeongnyangi/free-fortune/?category=saju", label: "무료 사주 흐름 보기" },
+    freeEntry: { href: "/yeongnyangi/free-fortune/?category=saju", label: "무료 만세력 보기" },
     paidEntry: {
       href: "/yeongnyangi/fortune/?domain=saju&fish=mackerel",
       label: "단건 사주 상담 시작하기",

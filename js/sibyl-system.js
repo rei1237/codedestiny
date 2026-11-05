@@ -140,7 +140,7 @@ function _sibylText(key) {
     riskAnalysis: ['리스크', '오행 불균형', '십성', '충·형·파·해', '대운·세운', '월별 변동성'],
     aptitudeAnalysis: ['Career', 'Wealth', 'Execution', 'Social', 'Recovery', '적성'],
     tenGodPattern: ['주도 십성', '비견', '재성', '관성', '인성', '행동 패턴'],
-    elementBalance: ['오행 분포', '지배 오행', '유리 오행', '주의 오행', '용신', '기신'],
+    elementBalance: ['오행 분포', '지배 오행', '유리 오행', '주의 오행', '보완 후보', '주의 오행'],
     yearlyFlow: ['10년', '연도', '위험', '기회', '세운', '대운'],
     monthlyPlanner: ['월별', 'M01', '리스크 밴드', '포커스', '주의', '대응'],
     relationship: ['관계', '애정', '연애', '협업', '갈등', '회복'],
@@ -1197,7 +1197,7 @@ function _sibylText(key) {
       dominantEl: domEl,
       currentYear: currentYear,
       currentAge: currentAge,
-      power: window.G_POWER || null,
+      power: (window.cdApprovedSajuFacts && window.cdApprovedSajuFacts().power) || window.G_POWER || null,
       jong: window.G_JONG || null,
       johu: johu,
       daewunList: daewunList,
@@ -2200,7 +2200,7 @@ function _sibylText(key) {
     var norm = normalized || {
       tenStarCounts: counts || {},
       dist: _ohaengDist((normalized && normalized.pillars) || window.G_PILLARS || null),
-      power: window.G_POWER || null,
+      power: (window.cdApprovedSajuFacts && window.cdApprovedSajuFacts().power) || window.G_POWER || null,
       jong: window.G_JONG || null,
       johu: window.G_JOHU || null
     };
@@ -2588,8 +2588,8 @@ function _sibylText(key) {
       '## 퀀텀 오행 유불리',
       '- 유리 오행: ' + ((quantumDiagnostics.favorableElements || []).join(', ') || '중립(추정)'),
       '- 주의 오행: ' + ((quantumDiagnostics.cautionElements || []).join(', ') || '중립(추정)'),
-      '- 용신 배열: ' + ((quantumDiagnostics.yongshin || []).join(', ') || '중립(추정)'),
-      '- 기신 배열: ' + ((quantumDiagnostics.kishin || []).join(', ') || '중립(추정)'),
+      '- 보완 후보 배열: ' + ((quantumDiagnostics.yongshin || []).join(', ') || '중립(추정)'),
+      '- 주의 오행 배열: ' + ((quantumDiagnostics.kishin || []).join(', ') || '중립(추정)'),
       '',
       '## 환경/루틴 설계',
       '- 유리 오행에 맞춘 작업 환경을 주간 루틴에 고정해 에너지 누수를 줄입니다.',

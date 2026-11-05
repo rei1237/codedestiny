@@ -1414,18 +1414,18 @@
     "ms": "An example of the format, not your personal result."
   },
   "sajuReading.paidDifference": {
-    "ko": "무료에서는 현재 흐름과 기질을, 아래 정적 풀이에서는 더 넓은 기간과 주제별 해설을 읽습니다. 입력한 명식의 계산값에 연결된 정적 해설입니다.",
-    "en": "The free reading covers temperament and current cycles. These static readings add longer periods and thematic detail, using explanations linked to the calculated chart.",
-    "ja": "The free reading covers temperament and current cycles. These static readings add longer periods and thematic detail, using explanations linked to the calculated chart.",
-    "zh-CN": "The free reading covers temperament and current cycles. These static readings add longer periods and thematic detail, using explanations linked to the calculated chart.",
-    "zh-TW": "The free reading covers temperament and current cycles. These static readings add longer periods and thematic detail, using explanations linked to the calculated chart.",
-    "vi": "The free reading covers temperament and current cycles. These static readings add longer periods and thematic detail, using explanations linked to the calculated chart.",
-    "hi": "The free reading covers temperament and current cycles. These static readings add longer periods and thematic detail, using explanations linked to the calculated chart.",
-    "es": "The free reading covers temperament and current cycles. These static readings add longer periods and thematic detail, using explanations linked to the calculated chart.",
-    "fr": "The free reading covers temperament and current cycles. These static readings add longer periods and thematic detail, using explanations linked to the calculated chart.",
-    "de": "The free reading covers temperament and current cycles. These static readings add longer periods and thematic detail, using explanations linked to the calculated chart.",
-    "nl": "The free reading covers temperament and current cycles. These static readings add longer periods and thematic detail, using explanations linked to the calculated chart.",
-    "ms": "The free reading covers temperament and current cycles. These static readings add longer periods and thematic detail, using explanations linked to the calculated chart."
+    "ko": "무료 만세력에서는 원국과 한 줄 성향을, 아래 정적 풀이에서는 더 넓은 기간과 주제별 해설을 읽습니다. 입력한 명식의 계산값에 연결된 정적 해설입니다.",
+    "en": "The free Manseryeok shows your natal chart and a one-line trait. These static readings add longer periods and thematic detail, using explanations linked to the calculated chart.",
+    "ja": "The free Manseryeok shows your natal chart and a one-line trait. These static readings add longer periods and thematic detail, using explanations linked to the calculated chart.",
+    "zh-CN": "The free Manseryeok shows your natal chart and a one-line trait. These static readings add longer periods and thematic detail, using explanations linked to the calculated chart.",
+    "zh-TW": "The free Manseryeok shows your natal chart and a one-line trait. These static readings add longer periods and thematic detail, using explanations linked to the calculated chart.",
+    "vi": "The free Manseryeok shows your natal chart and a one-line trait. These static readings add longer periods and thematic detail, using explanations linked to the calculated chart.",
+    "hi": "The free Manseryeok shows your natal chart and a one-line trait. These static readings add longer periods and thematic detail, using explanations linked to the calculated chart.",
+    "es": "The free Manseryeok shows your natal chart and a one-line trait. These static readings add longer periods and thematic detail, using explanations linked to the calculated chart.",
+    "fr": "The free Manseryeok shows your natal chart and a one-line trait. These static readings add longer periods and thematic detail, using explanations linked to the calculated chart.",
+    "de": "The free Manseryeok shows your natal chart and a one-line trait. These static readings add longer periods and thematic detail, using explanations linked to the calculated chart.",
+    "nl": "The free Manseryeok shows your natal chart and a one-line trait. These static readings add longer periods and thematic detail, using explanations linked to the calculated chart.",
+    "ms": "The free Manseryeok shows your natal chart and a one-line trait. These static readings add longer periods and thematic detail, using explanations linked to the calculated chart."
   },
   "sajuReading.paidDaeun": {
     "ko": "10년마다 달라지는 삶의 흐름과 해마다의 변화를 함께 읽어요. 일·관계·재물 해설에서 지금 준비할 선택을 살펴보세요.",
@@ -1454,6 +1454,20 @@
     "de": "Ihr Temperament, die fünf Elemente und die Zehn Götter, Persönlichkeit und Beziehungen, Lebensstrategie sowie Hinweise für dieses und nächstes Jahr, gebündelt in einer Lesung Ihres Horoskops.",
     "nl": "Je aanleg, de vijf elementen en de Tien Goden, persoonlijkheid en relaties, levensstrategie en advies voor dit en volgend jaar, samengebracht in één lezing van je kaart.",
     "ms": "Perangai semula jadi, lima unsur dan Sepuluh Dewa, personaliti dan hubungan, strategi hidup serta panduan untuk tahun ini dan tahun depan, semuanya dalam satu bacaan carta anda."
+  },
+  "sajuReading.paidBundle": {
+    "ko": "사주 전체 풀이 평생 소장 · 한 번 결제하면 이 풀이를 포함한 모든 사주 풀이가 영구히 열려요. 풀이마다 따로 결제하지 않아요.",
+    "en": "Saju full reading, lifetime access · One payment opens every Saju reading, including this one, permanently. You are not charged per reading.",
+    "ja": "四柱推命の全リーディング・生涯保存 · 一度のお支払いで、このリーディングを含むすべての四柱推命リーディングが永久に開きます。リーディングごとの個別のお支払いはありません。",
+    "zh-CN": "八字全部解读·终身收藏 · 一次付费即可永久解锁包括本解读在内的全部八字解读，无需逐项另行付费。",
+    "zh-TW": "八字全部解讀·終身收藏 · 一次付費即可永久解鎖包括本解讀在內的全部八字解讀，無需逐項另行付費。",
+    "vi": "Saju full reading, lifetime access · One payment opens every Saju reading, including this one, permanently. You are not charged per reading.",
+    "hi": "Saju full reading, lifetime access · One payment opens every Saju reading, including this one, permanently. You are not charged per reading.",
+    "es": "Saju full reading, lifetime access · One payment opens every Saju reading, including this one, permanently. You are not charged per reading.",
+    "fr": "Saju full reading, lifetime access · One payment opens every Saju reading, including this one, permanently. You are not charged per reading.",
+    "de": "Saju full reading, lifetime access · One payment opens every Saju reading, including this one, permanently. You are not charged per reading.",
+    "nl": "Saju full reading, lifetime access · One payment opens every Saju reading, including this one, permanently. You are not charged per reading.",
+    "ms": "Saju full reading, lifetime access · One payment opens every Saju reading, including this one, permanently. You are not charged per reading."
   },
   "sajuReading.recovery": {
     "ko": "기존 계정과 프로필로 사주 결과를 다시 열고 해당 풀이의 해금 상태를 확인하세요. 결제 후 열리지 않으면 새로 결제하지 말고 결제 내역과 함께 고객센터에 문의하세요.",

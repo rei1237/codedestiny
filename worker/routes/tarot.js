@@ -1,3 +1,4 @@
+import { pinTarotBasicResult } from '../lib/tarot-fact-consumer.js';
 import { createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { isAuthDbInfraError, requireAuth } from "../lib/auth.js";
 import { connectDb, withMongoRetry } from "../lib/db.js";
@@ -1950,7 +1951,7 @@ export async function handleTarotRoutes(request, env = {}) {
         }
       }
 
-      const payload = buildReadingPayload({
+      const payload = pinTarotBasicResult(buildReadingPayload({
         spreadType,
         category,
         cards,
@@ -1958,7 +1959,7 @@ export async function handleTarotRoutes(request, env = {}) {
         userQuestion: asText(body?.userQuestion),
         userContext: body?.userContext,
         year: isYearReading ? year : body?.year,
-      });
+      }), env, { spreadType, category, cards, year: isYearReading ? year : body?.year || null });
 
       if (isYearReading) {
         // saveYearTarotResult 는 저장이 실패해도 던지지 않는다(degrade-not-throw) — 결제한 사용자는

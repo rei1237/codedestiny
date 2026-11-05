@@ -68,7 +68,7 @@ beforeAll(async () => {
   const none = { findOne: () => query(null), updateOne: (...args) => refund(...args) };
   jest.unstable_mockModule("../../worker/lib/db.js", () => ({ ...db, connectDb: async () => {}, withMongoRetry: async (_env, work) => work() }));
   jest.unstable_mockModule("../../worker/lib/auth.js", () => ({ ...auth, getOptionalUserFromRequest: async () => ({ userId: uid }) }));
-  jest.unstable_mockModule("../../worker/lib/models.js", () => ({ ...models, ZiweiAiConsultation: consultations, Payment: collection(() => payments),
+  jest.unstable_mockModule("../../worker/lib/models.js", () => ({ ...models, ZiweiAiConsultation: consultations, ZiweiCalculationPreparation: { findById: () => query(null) }, Payment: collection(() => payments),
     User: { findById: () => query({ _id: uid, role: "user" }), updateOne: (...args) => refund(...args) }, PaidExecutionRecord: none, PointHistory: none, MonthlyCreditLedger: none }));
   jest.unstable_mockModule("../../worker/lib/entitlement-policy.js", () => ({ ...entitlement, resolveFeatureAccessPolicy: () => ({ allowed: false }) }));
   jest.unstable_mockModule("../../worker/lib/pass-consumption.js", () => ({ consumePassForFeature: async () => ({ covered: false }), passDenialCode: () => "PASS_NOT_EXPECTED" }));

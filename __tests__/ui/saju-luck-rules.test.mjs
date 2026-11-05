@@ -227,6 +227,13 @@ test('시주 미상은 시주의 합충·가중치를 제외하고 알려진 3�
   assert.deepEqual(plain(shell._getDwHapResults('丁','午')),unknownRows);
 });
 
+test('G_POWER가 아직 없어도 대운 평가는 억부 가중치 없이 끝난다',()=>{
+  const pillars={y:{g:'甲',j:'寅'},m:{g:'己',j:'卯'},d:{g:'乙',j:'辰'},h:{g:'癸',j:'子'}};
+  setContext({pillars,power:null,jong:{isJong:false},johu:{type:'neutral'}});
+  assert.equal(shell.G_POWER,null);
+  for(const [g,j] of cycles)assert.equal(typeof shell.evalDaewun(g,j).score,'number');
+});
+
 test('辛 일간의 丁 대운은 이전 판정대로 감점하고 庚 일간은 감점하지 않는다',()=>{
   for(const isStrong of [false,true])for(const type of ['cold','hot','neutral']){
     const outputs=[];

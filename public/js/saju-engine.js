@@ -2105,7 +2105,7 @@ var ENERGY_COORD_DB={
     theme:'화산 지형·예술 도시·야경 에너지',
     domestic:[
       {icon:'🌋',name:'제주 성산일출봉 화산 지대',coord:'33.4581°N 126.9424°E',desc:'10만년 전 화산 폭발로 생성된 응회암 지형. 해가 처음 뜨는 방위와 화산 지열이 결합된 화(火) 에너지의 성지. 일출 시 기운 최고점.'},
-      {icon:'🎆',name:'여수 밤바다 돌산공원',coord:'34.7461°N 127.7389°E',desc:'남해 위 찬란한 야경. 물 위 반사된 불(火) 에너지가 증폭되는 지형학적 조건. 여수 남향 기운이 화 용신을 극대화.'},
+      {icon:'🎆',name:'여수 밤바다 돌산공원',coord:'34.7461°N 127.7389°E',desc:'남해 위 찬란한 야경. 물 위 반사된 불(火) 에너지가 증폭되는 지형학적 조건. 여수 남향 기운이 화 보완 후보를 극대화.'},
       {icon:'🎨',name:'부산 감천문화마을 야경',coord:'35.0975°N 129.0106°E',desc:'산 경사면 위 색채 예술 마을. 남쪽 바다를 향해 열린 지형이 화(火) 기운을 안정 흡수. 예술적 열정·시각 에너지 충전지.'},
       {icon:'🗼',name:'서울 남산타워 야경',coord:'37.5511°N 126.9882°E',desc:'도심 한가운데 우뚝 솟은 불의 상징. 수많은 불빛이 모여 강력한 화(火) 에너지를 발산하는 수도의 심장부.'},
       {icon:'🌅',name:'포항 호미곶 해맞이 광장',coord:'36.0772°N 129.5683°E',desc:'한반도에서 가장 먼저 해가 뜨는 곳. 떠오르는 태양의 폭발적인 양(陽) 기운과 화(火) 에너지를 직접 수신합니다.'}
@@ -2131,7 +2131,7 @@ var ENERGY_COORD_DB={
     global:[
       {icon:'🏔️',name:'페루 마추픽추 황토 고원',coord:'13.1631°S 72.5450°W',desc:'해발 2,430m 황토 암반 위 잉카 성채. 지구 중심의 대지 에너지가 수직 상승하는 지점. 토(土) 기운을 지구 규모로 체험할 수 있는 최강 좌표.'},
       {icon:'🐉',name:'중국 시안 황토고원·병마용',coord:'34.3853°N 109.2732°E',desc:'중원(中原) 황토의 심장. 수천 년 토(土) 에너지가 대지에 농축된 문명의 발원지. 황토고원 특유의 중후한 땅 기운이 안정과 실력을 키웁니다.'},
-      {icon:'🗿',name:'이집트 룩소르 사막 고대 신전',coord:'25.6872°N 32.6396°E',desc:'나일강 유역 건조 황토 대지의 에너지 집중처. 3,000년 역사 에너지가 사막 무풍지대에 보존. 안정·뿌리 기운이 필요한 토(土) 용신 최적 해외지.'},
+      {icon:'🗿',name:'이집트 룩소르 사막 고대 신전',coord:'25.6872°N 32.6396°E',desc:'나일강 유역 건조 황토 대지의 에너지 집중처. 3,000년 역사 에너지가 사막 무풍지대에 보존. 안정·뿌리 기운이 필요한 토(土) 보완 후보에 맞는 해외지.'},
       {icon:'🏜️',name:'미국 그랜드 캐니언',coord:'36.1069°N 112.1129°W',desc:'수억 년의 지층이 그대로 드러난 대자연의 경이. 지구의 뼈대와 살을 직접 마주하며 거대한 토(土) 에너지를 흡수합니다.'},
       {icon:'🎈',name:'튀르키예 카파도키아 기암괴석',coord:'38.6431°N 34.8289°E',desc:'화산재가 굳어 만들어진 응회암 지대. 대지의 기운이 독특한 형태로 솟아오른 토(土) 에너지의 신비로운 결절지.'}
     ]
@@ -2709,6 +2709,8 @@ function _syncDestinyFlowerSajuSnapshot(reason) {
     var environment = _dfInferEnvironment(weights, season);
     var yongshin = _dfArrayCopy(G_POWER && G_POWER.yongshin);
     var kishin = _dfArrayCopy(G_POWER && G_POWER.kijishin);
+    var _dfShown = (window.cdApprovedSajuFacts && window.cdApprovedSajuFacts().power) || null;
+    var yongshinCandidates = _dfShown ? _dfArrayCopy(_dfShown.yongshin) : null;
     var dayStem = (G_PILLARS.d && G_PILLARS.d.g) || DAY_GAN || '';
     var dayStemElement = (G_PILLARS.d && G_PILLARS.d.gE) || '';
     // snapshot birth must align with profile.birth (civil/original time),
@@ -2742,6 +2744,7 @@ function _syncDestinyFlowerSajuSnapshot(reason) {
         dayStem: dayStem,
         dayStemElement: dayStemElement,
         yongshin_elements: yongshin,
+        yongshin_candidates: yongshinCandidates,
         kishin_elements: kishin,
         isStrong: !!(G_POWER && G_POWER.isStrong),
         power_label: (G_POWER && typeof G_POWER.isStrong === 'boolean') ? (G_POWER.isStrong ? '신강' : '신약') : '',
@@ -2757,6 +2760,7 @@ function _syncDestinyFlowerSajuSnapshot(reason) {
         dayStem: dayStem,
         dayStemElement: dayStemElement,
         yongshin_elements: yongshin,
+        yongshin_candidates: yongshinCandidates,
         kishin_elements: kishin,
         is_strong: !!(G_POWER && G_POWER.isStrong),
         power_label: (G_POWER && typeof G_POWER.isStrong === 'boolean') ? (G_POWER.isStrong ? '신강' : '신약') : '',
@@ -4054,11 +4058,11 @@ function evalDaewun(ganChar,zhiChar){
     } else if (ganScore > 0 && isUnfavorable(tEl, false, tChar)) {
       chungBonus += 15;
       hasChungBonus = true;
-      chungBonusText = "<b>천간충과 기신의 작용</b> 운의 천간과 원국의 " + tChar + "이 충합니다. 기신으로 읽힌 요소를 제어하는 방향이지만, 실제 변화는 통근과 주변 생조에 따라 달라집니다.";
+      chungBonusText = "<b>천간충과 주의 오행의 작용</b> 운의 천간과 원국의 " + tChar + "이 충합니다. 주의 오행으로 읽힌 요소를 제어하는 방향이지만, 실제 변화는 통근과 주변 생조에 따라 달라집니다.";
     } else if (ganScore < 0 && isFavorable(tEl, false, tChar)) {
       chungPenalty -= 15;
       hasChungPenalty = true;
-      chungPenaltyText = "<b>천간충과 용신의 작용</b> 원국에서 도움이 되는 " + tChar + "과 충이 생깁니다. 기존 역할이나 선택 기준의 조정이 필요할 수 있으며, 다른 생조 관계가 이를 완화하는지 함께 봅니다.";
+      chungPenaltyText = "<b>천간충과 보완 후보의 작용</b> 원국에서 도움이 되는 " + tChar + "과 충이 생깁니다. 기존 역할이나 선택 기준의 조정이 필요할 수 있으며, 다른 생조 관계가 이를 완화하는지 함께 봅니다.";
     } else if (ganScore > 0 && ganEl !== finalGanEl) {
       chungBonus += 10;
       hasChungBonus = true;
@@ -4079,18 +4083,18 @@ function evalDaewun(ganChar,zhiChar){
       hasChungBonus = true;
       var tJohu = getJohuScore(tEl, true, tChar);
       if(tJohu < -5) {
-      chungBonusText += (chungBonusText?"<br><br>":"") + "<b>지지충의 작용</b> " + zhiChar + "과 원국의 " + tChar + "이 충합니다. 기신으로 읽힌 작용을 제어할 여지가 있으나, 생활 기반의 조정 부담과 완화 조건도 함께 살펴야 합니다.";
+      chungBonusText += (chungBonusText?"<br><br>":"") + "<b>지지충의 작용</b> " + zhiChar + "과 원국의 " + tChar + "이 충합니다. 주의 오행으로 읽힌 작용을 제어할 여지가 있으나, 생활 기반의 조정 부담과 완화 조건도 함께 살펴야 합니다.";
       } else {
-      chungBonusText += (chungBonusText?"<br><br>":"") + "<b>지지충의 작용</b> " + zhiChar + "과 원국의 " + tChar + "이 충합니다. 기신으로 읽힌 작용을 제어할 여지가 있으나, 생활 기반의 조정 부담과 완화 조건도 함께 살펴야 합니다.";
+      chungBonusText += (chungBonusText?"<br><br>":"") + "<b>지지충의 작용</b> " + zhiChar + "과 원국의 " + tChar + "이 충합니다. 주의 오행으로 읽힌 작용을 제어할 여지가 있으나, 생활 기반의 조정 부담과 완화 조건도 함께 살펴야 합니다.";
       }
     } else if (zhiScore < 0 && isFavorable(tEl, true, tChar)) {
       chungPenalty -= 20;
       hasChungPenalty = true;
-      chungPenaltyText += (chungPenaltyText?"<br><br>":"") + "<b>지지충과 용신의 작용</b> 도움이 되는 " + tChar + "과 충이 생겨 기반을 다시 조율하는 과제가 생길 수 있습니다. 합·생조가 완충하는지 살피며 사건을 확정하지 않습니다.";
+      chungPenaltyText += (chungPenaltyText?"<br><br>":"") + "<b>지지충과 보완 후보의 작용</b> 도움이 되는 " + tChar + "과 충이 생겨 기반을 다시 조율하는 과제가 생길 수 있습니다. 합·생조가 완충하는지 살피며 사건을 확정하지 않습니다.";
     } else if (zhiScore > 0 && zhiEl !== finalZhiEl) {
       chungBonus += 15;
       hasChungBonus = true;
-      chungBonusText += (chungBonusText?"<br><br>":"") + "<b>지지충의 작용</b> " + zhiChar + "과 원국의 " + tChar + "이 충합니다. 기신으로 읽힌 작용을 제어할 여지가 있으나, 생활 기반의 조정 부담과 완화 조건도 함께 살펴야 합니다.";
+      chungBonusText += (chungBonusText?"<br><br>":"") + "<b>지지충의 작용</b> " + zhiChar + "과 원국의 " + tChar + "이 충합니다. 주의 오행으로 읽힌 작용을 제어할 여지가 있으나, 생활 기반의 조정 부담과 완화 조건도 함께 살펴야 합니다.";
     }
   }
 
@@ -4116,7 +4120,7 @@ function evalDaewun(ganChar,zhiChar){
         jiheBonusTxt += '🔗 <b>지지 육합('+zhiChar+oz+') 강화!</b> '+(EL_K[heEl]||heEl)+' 오행이 합으로 강화됩니다.';
       } else if(bs < 0){
         jiheBonus += bs;
-        jiheBonusTxt += '⚠️ 지지 육합으로 기신 오행 강화.';
+        jiheBonusTxt += '⚠️ 지지 육합으로 주의 오행 강화.';
       }
     });
   }
@@ -4137,7 +4141,7 @@ function evalDaewun(ganChar,zhiChar){
         samhapBonusTxt = '<b>삼합(三合) 구성</b> '+sh.m.join('·')+'이 함께 있어 '+(EL_K[sh.el]||sh.el)+'의 연결을 읽습니다. 합화 여부와 유불리는 월령·통근·충의 조건을 함께 확인합니다.';
       } else if(bs < 0){
         samhapBonus += bs;
-        samhapBonusTxt = '⚠️ <b>삼합 기신 강화!</b> 삼합으로 흉신 오행이 집중됩니다.';
+        samhapBonusTxt = '⚠️ <b>삼합 주의 오행 강화!</b> 삼합으로 흉신 오행이 집중됩니다.';
       }
     } else if(matchCnt >= 1) { // 반합
       var bs2 = isFavorable(sh.el, true, zhiChar) ? 10 : (isUnfavorable(sh.el, true, zhiChar) ? -10 : 0);
@@ -4171,8 +4175,8 @@ function evalDaewun(ganChar,zhiChar){
     else evalSummary = '🙂 '+jongLabel+' 중립운';
   } else {
     var pos = []; var neg = [];
-    if(ganJohu > 0 || zhiJohu > 5) pos.push("조후용신");
-    if(ganJohu < 0 || zhiJohu < -5) neg.push("조후기신");
+    if(ganJohu > 0 || zhiJohu > 5) pos.push("조후 보완");
+    if(ganJohu < 0 || zhiJohu < -5) neg.push("조후 부담");
     if(ganEokbu > 0 || zhiEokbu > 5) pos.push("억부희용");
     if(ganEokbu < 0 || zhiEokbu < -5) neg.push("억부기구");
 
@@ -4479,7 +4483,7 @@ async function restoreSajuLoginDraft() {
     if (draft.gender === 'M' || draft.gender === 'F') setGender(draft.gender);
     window.__cdBirthTimeUnknown = draft.timeUnknown === true;
     document.querySelectorAll('input[name="calType"]').forEach(function(el) { el.checked = el.value === draft.calendar; });
-    setSajuFormStatus('입력 정보를 불러왔어요. 로그인 후 무료 사주를 이어서 볼 수 있어요.', 'info');
+    setSajuFormStatus('입력 정보를 불러왔어요. 로그인 후 무료 만세력을 이어서 볼 수 있어요.', 'info');
     // Do not redirect again when the user cancels login or uses browser Back.
     var status = typeof window.__dpVerifyResultSession === 'function' ? await window.__dpVerifyResultSession() : 'unavailable';
     if (status !== 'authenticated') return;
@@ -5282,6 +5286,8 @@ async function calculate(run){
       + timeCorrectionStr;
 
     try { renderManse(p); } catch(e) { console.error('Manse 에러:', e); }
+    // 무료 한 줄 성향. 권한 조회와 무관하게 원국 바로 아래에 동기로 그린다(js/core/saju/natal-one-liner.generated.js).
+    try { _cdRenderNatalOneLiner(p); } catch(e) { console.error('NatalOneLiner 에러:', e); }
     try { render24Terms(pillarDateCtx || primaryDateCtx || window.G_KASI_CONTEXT, p); } catch(e) { console.error('Terms24 에러:', e); }
     try { renderIlju(p); } catch(e) { console.error('Ilju 에러:', e); }
     try { renderTenshin(p); } catch(e) { console.error('Tenshin 에러:', e); }
@@ -5311,6 +5317,12 @@ async function calculate(run){
     // 기존 해금은 계산보다 먼저 복원될 수 있다. 본문 준비가 끝난 시점에 같은 게이트
     // 판정으로 숨김 상태도 동기화한다(해금 버튼을 다시 누를 필요가 없어야 한다).
     window.dispatchEvent(new CustomEvent('cd:saju-summary-ready',{detail:{p:p,johu:johu,natal:natal}}));
+    // 원국 해석(일주·십성·조후·억부·절기)은 사주 영구 묶음 해금 계정에게만 서버가 준다. 위 render* 가 깔아 둔 안내 칸을 채운다.
+    try { if (_cdSajuGateUnlocked(_CD_NATAL_BUNDLE_KEY) && window.CdSajuSectionClient) window.CdSajuSectionClient.loadNatalReading({force:true}); } catch(e) { console.error('NatalReading 에러:', e); }
+    // 묶음 안내 카드와 묶음 전용 렌더러. 묶음이 닫혀 있으면 안내만 깔고 아무 카드도 만들지 않는다(해제되면 같은 함수가 다시 그린다).
+    window.__cdLastBundleArgs={p:p,natal:natal,bazi:bazi,johu:johu};
+    _cdBundleSurfaceRenderKey='';
+    try { _cdRenderBundleSurfaces(); } catch(e) { console.error('BundleSurfaces 에러:', e); }
     // 에너지 원정 리포트 본문은 서버(/api/saju/section, rpt_energyCoordCard)가 해금을 확인한 뒤 카드를 열 때 배달한다.
     // 여기서는 무료 스텁만 깐다(js/saju-engine-tarot-sukuyo-quantum.js renderEnergyCoordStub).
     try {
@@ -5327,13 +5339,7 @@ async function calculate(run){
         maxAttempts: 24
       });
     } catch(e) { console.error('HealthReport 에러:', e); }
-    try {
-      if (!invokeOptionalGlobalRenderer('renderTTest', [p, natal, johu, G_POWER])) {
-        runDeferredSajuTasks([function(){ try { invokeOptionalGlobalRenderer('renderTTest', [p, natal, johu, G_POWER]); } catch(_){ } }]);
-      }
-    } catch(e) { console.error('TTest 에러:', e, e.stack); }
     runDeferredSajuTasks([
-      function() { try { invokeOptionalGlobalRenderer('renderLottoNumbers', [natal, bazi]); } catch(e) { console.error('LottoNumbers 에러:', e); } },
       function() { try { renderSukuyo(p, natal, bazi, typeof lunarDateObj !== 'undefined' ? lunarDateObj : null); } catch(e) { console.error('Sukuyo 에러:', e); } },
       /* 퀀텀 명리 엔진은 스텁만 먼저 깔고, 전체 판별은 카드가 열릴 때 계산한다.
          (계산량이 크고, 열기 전에는 유료 내용이 DOM·전역에 남지 않아야 한다.
@@ -5343,27 +5349,15 @@ async function calculate(run){
       function() { try { renderSajuQuestionPromptGenerator(); } catch(e) { console.error('SajuQuestionPrompt 에러:', e); } },
       function() { try { renderDaewun(bazi); } catch(e) { console.error('Daewun 에러:', e, e.stack); } },
       function() { try { renderCurrentSeasonSummary(bazi); } catch(e) { console.error('CurrentSeasonSummary 에러:', e); } },
-      function() {
-        try {
-          var _dailyMonthlyPromise = renderDailyMonthlyFortune(p);
-          if (_dailyMonthlyPromise && typeof _dailyMonthlyPromise.catch === 'function') {
-            _dailyMonthlyPromise.catch(function(e){ console.error('DailyMonthlyFortune 에러:', e, e && e.stack); });
-          }
-        } catch(e) { console.error('DailyMonthlyFortune 에러:', e, e && e.stack); }
-      },
-      function() { try { renderLetter(p); } catch(e) { console.error('Letter 에러:', e); } },
-      function() { try { renderTodayDestinyCard(p); } catch(e) { console.error('TodayDestinyCard 에러:', e); } },
-      function() { try { findSimilarCelebs(p); } catch(e) { console.error('SimilarCelebs 에러:', e); } },
       function() { try { renderVillainStub(p); } catch(e) { console.error('Villain 에러:', e); } },
-      function() { try { renderHormoneVibe(p, G_POWER); } catch(e) { console.error('HormoneVibe 에러:', e, e.stack); } },
-      function() { try { invokeOptionalGlobalRenderer('renderDopamineReport', [p, natal, G_POWER, johu]); } catch(e) { console.error('Dopamine 에러:', e); } },
       // 관계 분석은 대상자를 입력하는 전용 화면으로 연결한다. 구형 본인 명식 결과를
       // 함께 생성하면 같은 제목의 카드가 중복되고 새 입력 흐름을 건너뛴다.
       function() { try { renderReportDashboard(); } catch(e) { console.error('ReportDashboard 에러:', e); }
       }
     ]);
     var ss=document.getElementById('shareSection');if(ss)ss.style.display='block';
-    import('/js/recommendations-legacy.mjs').then(function(m){return m.mountSajuRecommendation(document.getElementById('resultPage'),ss);}).catch(function(){});
+    // 추천 태그는 서버가 채우는 #iljuAdviceList 가 아니라 공개 일주 표(ILJU_DB)의 조언에서 만든다(구매 여부와 무관, 로딩 순서와 무관).
+    import('/js/recommendations-legacy.mjs').then(function(m){return m.mountSajuRecommendation(document.getElementById('resultPage'),ss,m.iljuAdviceLines(window.cdSajuRecommendationAdvice()));}).catch(function(){});
     document.getElementById('dwDetail').innerHTML='';
     document.getElementById('dwDetail').classList.remove('show');
 
@@ -5371,6 +5365,7 @@ async function calculate(run){
       '<b>현재 나이:</b> 만 '+(CURRENT_AGE-1)+'세 — '+
       (G_JONG&&G_JONG.isJong&&G_JONG.isGaJong?'<b style="color:#7B1FA2">가종격(假從格) 사주</b> <span style="font-size:.75rem;color:#9C27B0">('+G_JONG.name+')</span> — 지배 오행 중심 판단':
        G_JONG&&G_JONG.isJong?'<b style="color:#9C27B0">종격(眞從格) 사주</b> — 지배 오행 중심 판단':
+        (window.cdApprovedSajuFacts&&(window.cdApprovedSajuFacts().power||{}).strengthPending)?'<b style="color:#6B7280">강약 판정 보류</b> — 출생 시각이 없거나 근거가 부족해요':
         G_POWER&&G_POWER.isStrong?'<b style="color:#FF8BA7">신강 사주</b> — 억부+조후 통합 판단':
         '<b style="color:#2196F3">신약 사주</b> — 억부+조후 통합 판단');
 
@@ -7879,7 +7874,7 @@ function _buildSajuQuestionPromptHtml() {
     + '<fieldset class="consultation-domains"><legend>질문의 주제</legend>' + domainHtml + '</fieldset>'
     + '<fieldset class="consultation-privacy"><legend>상담에 전달할 원문 정보</legend><label><input type="checkbox" data-saju-ai-hide-name checked>이름 원문 제외</label><label><input type="checkbox" data-saju-ai-hide-birth checked>원본 생년월일 제외</label><label><input type="checkbox" data-saju-ai-hide-time checked>원본 출생시간 제외</label></fieldset>'
     + '<p>원문 정보는 기본으로 가리고, 계산된 명식은 해석 근거로 사용합니다.</p>'
-    + '<details data-saju-ai-calib class="consultation-calibration"><summary>과거 경험을 바탕으로 운의 해석을 개인화합니다 · 선택</summary><div><p>기억나는 해의 경험을 적으면 대운·세운 해석의 강조와 예시에 반영합니다. 격국·용신 같은 원국 판정은 바뀌지 않고, 사연은 쓰지 않아도 됩니다.</p><div data-saju-ai-calib-rows>' + _sajuPromptBuildCalibRowHtml() + _sajuPromptBuildCalibRowHtml() + '</div><button data-saju-ai-calib-add type="button" aria-label="경험 추가">경험 추가</button><span data-saju-ai-calib-nudge></span></div></details>'
+    + '<details data-saju-ai-calib class="consultation-calibration"><summary>과거 경험을 바탕으로 운의 해석을 개인화합니다 · 선택</summary><div><p>기억나는 해의 경험을 적으면 대운·세운 해석의 강조와 예시에 반영합니다. 격국·보완 후보 같은 원국 판정은 바뀌지 않고, 사연은 쓰지 않아도 됩니다.</p><div data-saju-ai-calib-rows>' + _sajuPromptBuildCalibRowHtml() + _sajuPromptBuildCalibRowHtml() + '</div><button data-saju-ai-calib-add type="button" aria-label="경험 추가">경험 추가</button><span data-saju-ai-calib-nudge></span></div></details>'
     + '<button data-saju-ai-generate type="button" class="consultation-primary">상담 시작하기</button><p>단건 결제 <strong data-consultation-price>가격 확인 중</strong> · 결제 전 사용할 방식을 확인합니다.</p></div></details>'
     + '<div class="consultation-recovery"><button data-saju-ai-regenerate type="button" style="display:none">같은 상담 이어 받기</button><button data-saju-ai-archive type="button" style="display:none">상담 보관함 · 저장된 상담 보기</button><button data-saju-ai-resume type="button" style="display:none">이전 상담문 이어보기</button></div>'
     + '<div data-saju-ai-status role="status" aria-live="polite"></div>'
@@ -9229,33 +9224,6 @@ function toggleIljuDetail(){
   setIljuDetailExpanded(isCollapsed);
 }
 
-function iljuSanitizeText(html) {
-  return String(html || '')
-    .replace(/<br\s*\/?>/gi, ' ')
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-function iljuSentenceList(text) {
-  var clean = iljuSanitizeText(text);
-  if (!clean) return [];
-  clean = clean
-    .replace(/\.\s+/g, '.|')
-    .replace(/!\s+/g, '!|')
-    .replace(/\?\s+/g, '?|')
-    .replace(/다\.\s+/g, '다.|');
-  return clean.split('|').map(function(s) {
-    return s.trim();
-  }).filter(Boolean);
-}
-
-function iljuBullets(text, maxCount) {
-  var lines = iljuSentenceList(text);
-  if (!lines.length) return [];
-  return lines.slice(0, maxCount || 3);
-}
-
 function iljuEscapeHtml(str) {
   return String(str || '')
     .replace(/&/g, '&amp;')
@@ -9263,15 +9231,6 @@ function iljuEscapeHtml(str) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
-}
-
-function iljuSetList(id, items, fallback) {
-  var el = document.getElementById(id);
-  if (!el) return;
-  var safeItems = (items && items.length) ? items : [fallback || '분석 정보가 준비되는 중입니다.'];
-  el.innerHTML = safeItems.map(function(item) {
-    return '<li>' + iljuEscapeHtml(item) + '</li>';
-  }).join('');
 }
 
 function iljuSetBar(barId, valId, value) {
@@ -9282,33 +9241,50 @@ function iljuSetBar(barId, valId, value) {
   if (label) label.innerText = v + '%';
 }
 
-function buildIljuKeywords(key, data, stem, branch, elementLabel) {
-  var animalMap = { '子':'쥐', '丑':'소', '寅':'호랑이', '卯':'토끼', '辰':'용', '巳':'뱀', '午':'말', '未':'양', '申':'원숭이', '酉':'닭', '戌':'개', '亥':'돼지' };
-  var stemTraits = {
-    '甲':['리더십','직진성'], '乙':['유연성','섬세함'], '丙':['열정','표현력'], '丁':['공감력','집중력'],
-    '戊':['안정감','책임감'], '己':['실용성','배려력'], '庚':['결단력','추진력'], '辛':['정교함','완성도'],
-    '壬':['포용력','통찰력'], '癸':['적응력','직관력']
-  };
-
-  var tags = [];
-  tags.push((key || '') + ' 일주');
-  if (elementLabel) tags.push(elementLabel + ' 중심');
-  if (animalMap[branch]) tags.push(animalMap[branch] + ' 기운');
-  (stemTraits[stem] || []).forEach(function(t) { tags.push(t); });
-
-  if (data && data.details) {
-    var tg = data.details.match(/핵심 십성:\s*([^\/\n]+)/);
-    var e12 = data.details.match(/십이운성\):\s*([^\n]+)/);
-    if (tg && tg[1]) tags.push(tg[1].trim());
-    if (e12 && e12[1]) tags.push('십이운성 ' + e12[1].trim());
-  }
-
-  var uniq = [];
-  tags.forEach(function(t) {
-    if (!t) return;
-    if (uniq.indexOf(t) === -1) uniq.push(t);
+// 원국 해석(일주·십성·조후·억부·절기) 본문은 사주 영구 묶음(saju_lifetime_bundle) 서버 전달이다.
+// 서버 본문: worker/lib/saju-section/paid-natal-reading.src.js, 받아 채우는 쪽: CdSajuSectionClient.loadNatalReading().
+// 여기서는 칸을 비우고 안내 한 덩어리만 둔다. 반드시 실질 내용을 담는다 — reportDashboard 의 _sajuFunHasRenderableContent 가
+// 빈 섹션을 "콘텐츠 준비 중" 으로 바꾸기 때문이다.
+var _CD_NATAL_BUNDLE_KEY = 'saju_lifetime_bundle';
+// 추천 태그의 입력: 공개 일주 표(ILJU_DB)의 조언 문장. 서버가 채우는 #iljuAdviceList 는 읽지 않는다(구매 여부·로딩 순서와 무관).
+// 결과 화면을 처음 그릴 때와 reading-personas.js 의 로케일 재마운트가 같은 입력을 쓴다.
+window.cdSajuRecommendationAdvice = function(){
+  try { var d = G_PILLARS && G_PILLARS.d && ILJU_DB[G_PILLARS.d.g + G_PILLARS.d.j]; return (d && d.advice) || ''; } catch (_e) { return ''; }
+};
+var _CD_NATAL_STUBS = {
+  ilju: { slot: 'iljuSummaryList', item: true, clear: ['iljuDetailList', 'iljuAdviceList', 'iljuKeywords', 'iljuDetailsInfo', 'sajuElementReading', 'sajuIljuRich'],
+    title: '일주 풀이', text: '일간과 일지가 만드는 타고난 성향, 일·재물·관계에서 드러나는 결, 오늘부터 쓸 수 있는 조언을 이어서 풀어 드려요.' },
+  ten: { slot: 'tsGrid', clear: ['sajuTenOverview'],
+    title: '십성 풀이', text: '내 사주에 많은 기운과 모자란 기운, 십성 하나하나가 삶에 드러나는 장면을 카드마다 풀어 드려요.' },
+  climate: { slot: 'johuContent', clear: ['johuMeter'],
+    title: '조후(한난조습) 풀이', text: '내 사주의 온도와 습도, 잘 맞는 계절과 환경, 몸과 마음의 컨디션 결을 풀어 드려요.' },
+  strength: { slot: 'ukbuSection', clear: [],
+    title: '억부 풀이', text: '내 기운이 센 편인지 약한 편인지, 나를 살리는 기운과 조심할 기운을 풀어 드려요.' },
+  terms: { slot: 'terms24Grid', card: 'terms24Card', clear: [],
+    title: '절기 풀이', text: '태어난 절기가 만든 월령의 결과 계절의 생활 리듬, 24절기 표를 풀어 드려요.' }
+};
+// locked 가 true 면 해금 여부와 상관없이 잠금 안내를 둔다(서버가 구매 기록 없음 402 를 돌려준 경우).
+function _cdNatalReadingStub(kind, locked){
+  var def = _CD_NATAL_STUBS[kind];
+  if (!def) return;
+  var host = document.getElementById(def.slot);
+  if (!host) return;
+  var open = false;
+  try { open = locked !== true && _cdSajuGateUnlocked(_CD_NATAL_BUNDLE_KEY); } catch (_e) { open = false; }
+  (def.clear || []).forEach(function(id){
+    var n = document.getElementById(id);
+    if (n) n.innerHTML = '';
   });
-  return uniq.slice(0, 7);
+  var text = open
+    ? def.title + '을 불러오는 중이에요.'
+    : def.title + '는 사주 전체 풀이 평생 소장에서 읽을 수 있어요. ' + def.text;
+  host.innerHTML = def.item
+    ? '<li data-natal-lock="' + kind + '">' + text + '</li>'
+    : '<div class="cd-natal-lock" data-natal-lock="' + kind + '" style="padding:14px 16px;line-height:1.7;border-radius:14px;background:rgba(179,25,85,.06);color:inherit"><strong>' + def.title + '</strong><p style="margin:6px 0 0">' + text + '</p></div>';
+  if (def.card) {
+    var card = document.getElementById(def.card);
+    if (card) card.style.display = '';
+  }
 }
 
 function renderIlju(p){
@@ -9348,24 +9324,6 @@ function renderIlju(p){
   if (animalEl) animalEl.innerText = animal[0];
   if (animalLabelEl) animalLabelEl.innerText = animal[1] + ' 상징';
 
-  var summaryLines = data ? iljuBullets(data.summary, 3) : ['일주는 나의 본질을 보여주는 핵심 축입니다.', '일간과 일지의 조합으로 성향이 형성됩니다.', '요약/상세/조언 순서로 읽어보세요.'];
-  // Preserve each topic in the fallback too: concatenating and taking four
-  // sentences discarded work and relationship paragraphs behind personality.
-  var detailLines = data ? [data.personality, data.professional, data.relationship].filter(Boolean).map(iljuSanitizeText) : ['상세 분석 데이터를 준비하고 있어요.'];
-  var adviceLines = data ? iljuBullets(data.advice, 3) : ['하루 루틴을 짧게 기록하며 감정과 판단 흐름을 점검해 보세요.', '강점은 더 선명하게, 취약점은 부드럽게 보완하는 천기가 좋습니다.'];
-
-  iljuSetList('iljuSummaryList', summaryLines, '핵심 요약 데이터가 준비 중입니다.');
-  iljuSetList('iljuDetailList', detailLines, '상세 분석 데이터가 준비 중입니다.');
-  iljuSetList('iljuAdviceList', adviceLines, '맞춤 조언 데이터가 준비 중입니다.');
-
-  var keywords = buildIljuKeywords(key, data, p.d.g, p.d.j, elementInfo[1]);
-  var keywordWrap = document.getElementById('iljuKeywords');
-  if (keywordWrap) {
-    keywordWrap.innerHTML = keywords.map(function(k) {
-      return '<span class="ilju-v2-chip">#' + iljuEscapeHtml(k) + '</span>';
-    }).join('');
-  }
-
   // 막대는 본문(원국 오행 비율)과 같은 정본 calcNatalElement 비율을 쓴다 — 월지 가중 포함.
   var scores = calcNatalElement(p).ratios;
   iljuSetBar('iljuWoodBar', 'iljuWoodVal', scores.wood);
@@ -9374,13 +9332,7 @@ function renderIlju(p){
   iljuSetBar('iljuMetalBar', 'iljuMetalVal', scores.metal);
   iljuSetBar('iljuWaterBar', 'iljuWaterVal', scores.water);
 
-  var detailsInfo = document.getElementById('iljuDetailsInfo');
-  if (detailsInfo) {
-    detailsInfo.innerText = data && data.details
-      ? 'ⓘ 전문 용어 참고: ' + iljuSanitizeText(data.details)
-      : 'ⓘ 일간(' + p.d.g + ') · 일지(' + p.d.j + ') 기반 기본 분석';
-  }
-  if (window.SajuReadingPresentation) window.SajuReadingPresentation.render('ilju');
+  _cdNatalReadingStub('ilju');
 }
 
 /* 사주 결과의 상세 모달(#tsModal)은 모바일에서 DOM 밖에 있을 수 있다 — index.html 의
@@ -9814,199 +9766,10 @@ function _t24FormatDate(date){
     + String(date.getHours()).padStart(2, '0') + ':' + String(date.getMinutes()).padStart(2, '0');
 }
 
-function _t24SeasonProfile(monthBranch){
-  var map = {
-    '寅':{key:'wood',label:'봄 목왕절',tone:'시작하고 뻗어 나가는 힘'},
-    '卯':{key:'wood',label:'봄 목왕절',tone:'관계와 가능성을 넓히는 힘'},
-    '巳':{key:'fire',label:'여름 화왕절',tone:'표현하고 드러내는 힘'},
-    '午':{key:'fire',label:'여름 화왕절',tone:'속도와 추진력을 올리는 힘'},
-    '申':{key:'metal',label:'가을 금왕절',tone:'기준을 세우고 정리하는 힘'},
-    '酉':{key:'metal',label:'가을 금왕절',tone:'완성도와 선택 기준을 다듬는 힘'},
-    '亥':{key:'water',label:'겨울 수왕절',tone:'깊이 생각하고 축적하는 힘'},
-    '子':{key:'water',label:'겨울 수왕절',tone:'집중과 회복으로 다음 흐름을 준비하는 힘'},
-    '辰':{key:'earth',label:'봄의 토왕 환절기',tone:'벌린 일을 현실 구조로 묶는 힘'},
-    '未':{key:'earth',label:'여름의 토왕 환절기',tone:'뜨거운 흐름을 책임과 지속성으로 낮추는 힘'},
-    '戌':{key:'earth',label:'가을의 토왕 환절기',tone:'정리한 결과를 다음 단계로 넘기는 힘'},
-    '丑':{key:'earth',label:'겨울의 토왕 환절기',tone:'느린 준비를 오래가는 기반으로 만드는 힘'}
-  };
-  return map[monthBranch] || {key:'earth',label:'계절 전환기',tone:'흐름을 조율하고 기반을 다지는 힘'};
-}
-
-function _t24DomainCards(seasonKey, johu){
-  var base = {
-    wood: {
-      self:['성향의 출발점','가능성을 먼저 보고 움직이는 편이라, 방향이 선명할수록 시작과 확장이 빨라지는 편입니다.','벌인 일을 세 가지 안으로 줄여 끝맺음 기준을 정해보세요.'],
-      work:['일·돈의 작동 방식','아이디어, 학습, 기획처럼 새 가지를 뻗는 일에서 재물 흐름을 만들기 쉽습니다.','반복 가능한 작은 수익 루트 하나를 먼저 고정하세요.'],
-      relation:['관계 온도','마음을 먼저 열지만 상대의 속도까지 끌고 가려 하면 피로가 쌓일 수 있습니다.','대화를 넓히되 답을 재촉하지 않는 간격을 남겨두세요.'],
-      condition:['컨디션 조율','머리와 몸이 동시에 바빠지기 쉬워 휴식이 늦게 옵니다.','아침 산책이나 스트레칭처럼 기운을 위로 빼는 루틴이 좋습니다.']
-    },
-    fire: {
-      self:['성향의 출발점','표현력과 반응 속도가 강해 사람들 앞에서 존재감이 빨리 드러납니다.','즉흥적인 말보다 한 번 정리한 메시지로 승부하세요.'],
-      work:['일·돈의 작동 방식','홍보, 발표, 설득, 브랜딩처럼 보이는 힘을 쓰는 일에서 흐름이 붙기 쉽습니다.','속도를 올리기 전 마감 기준과 비용 한도를 먼저 잡아두세요.'],
-      relation:['관계 온도','감정 표현은 선명하지만 과열되면 상대가 숨 쉴 틈을 잃을 수 있습니다.','중요한 말은 바로 보내기보다 한 호흡 뒤에 전하세요.'],
-      condition:['컨디션 조율','열이 위로 몰리면 수면, 집중력, 예민함이 흔들리기 쉽습니다.','밤에는 화면과 자극을 줄이고 몸을 식히는 루틴을 두세요.']
-    },
-    earth: {
-      self:['성향의 출발점','흐름을 붙잡아 현실로 만들려는 힘이 강해 책임과 조율에 민감합니다.','모든 일을 혼자 떠안기보다 맡을 것과 넘길 것을 나누세요.'],
-      work:['일·돈의 작동 방식','관리, 운영, 정산, 기록처럼 흩어진 것을 안정화할 때 돈의 흐름을 만들기 쉽습니다.','지금 가진 자원을 표로 정리하고 새 지출은 하루 늦춰보세요.'],
-      relation:['관계 온도','상대에게 든든함을 주지만, 걱정이 많아지면 통제처럼 보일 수 있습니다.','도와주기 전에 상대가 원하는 방식을 먼저 물어보세요.'],
-      condition:['컨디션 조율','생각이 몸에 쌓이면 소화와 무거움으로 신호가 올 수 있습니다.','식사 시간과 수면 시간을 일정하게 두는 것이 가장 현실적인 조율입니다.']
-    },
-    metal: {
-      self:['성향의 출발점','기준과 완성도를 중시해 무엇을 남기고 버릴지 빠르게 판단합니다.','맞고 틀림보다 우선순위를 먼저 말하면 날카로움이 장점으로 바뀝니다.'],
-      work:['일·돈의 작동 방식','품질 관리, 계약, 분석, 정리처럼 기준이 필요한 일에서 성과가 납니다.','결과물을 작게라도 완성해 공개 가능한 형태로 묶어보세요.'],
-      relation:['관계 온도','선을 지키는 힘이 강하지만, 차갑게 보이면 마음이 늦게 전달됩니다.','평가보다 인정 한 문장을 먼저 건네보세요.'],
-      condition:['컨디션 조율','긴장과 건조함이 쌓이면 호흡이 얕아질 수 있습니다.','짧은 호흡 운동과 물 섭취를 루틴처럼 붙여두세요.']
-    },
-    water: {
-      self:['성향의 출발점','깊이 관찰하고 오래 생각하는 힘이 있어 복잡한 흐름을 잘 읽습니다.','생각이 길어질수록 첫 행동을 작게 쪼개 시작점을 만드세요.'],
-      work:['일·돈의 작동 방식','연구, 데이터, 상담, 저장형 지식처럼 깊이를 쌓는 일에서 가치가 커집니다.','오늘 배운 것을 기록해 나중에 팔 수 있는 자산으로 남기세요.'],
-      relation:['관계 온도','감정을 쉽게 드러내지 않아도 속으로는 많은 것을 계산하고 배려합니다.','침묵이 오해가 되지 않게 현재 감정 한 줄은 직접 말해보세요.'],
-      condition:['컨디션 조율','에너지가 안으로 모이면 움직임이 늦어지고 잠이 늘 수 있습니다.','따뜻한 빛과 가벼운 운동으로 몸의 온도를 먼저 올리세요.']
-    }
-  };
-  var cards = base[seasonKey] || base.earth;
-  var condition = cards.condition.slice();
-  if(johu && (johu.type === 'hot' || johu.type === 'warm')){
-    condition[1] += ' 현재 조후는 열감을 낮추는 쪽이 더 편안합니다.';
-  } else if(johu && (johu.type === 'cold' || johu.type === 'cool')){
-    condition[1] += ' 현재 조후는 온기와 실행감을 올릴 때 균형이 좋습니다.';
-  }
-  return [cards.self, cards.work, cards.relation, condition].map(function(item){
-    return { title:item[0], body:item[1], action:item[2] };
-  });
-}
-
-function buildSeasonalFortuneContext(ctx, p){
-  if(!p || !p.m) return null;
-  var monthBranch = p.m.j ? String(p.m.j).trim() : '';
-  var currentTerm = ST24_BRANCH_TO_JIEIP[monthBranch] || '';
-  var birthDate = _t24BirthDate(ctx);
-  if(!currentTerm || !birthDate) return null;
-
-  var start = _t24FindTermForBirth(currentTerm, birthDate);
-  var next = start ? _t24FindNextJieip(currentTerm, start.date) : null;
-  var total = next ? (next.date.getTime() - start.date.getTime()) : 0;
-  var elapsed = start ? (birthDate.getTime() - start.date.getTime()) : 0;
-  var ratio = total > 0 ? Math.max(0, Math.min(1, elapsed / total)) : null;
-  var phase = ratio == null ? '절기 흐름' : (ratio < 0.28 ? '초입' : (ratio < 0.72 ? '중반' : '마무리'));
-  var nearBoundary = ratio != null && (elapsed <= 1000 * 60 * 60 * 24 || (total - elapsed) <= 1000 * 60 * 60 * 24);
-  var season = _t24SeasonProfile(monthBranch);
-  var johu = (typeof G_JOHU !== 'undefined' && G_JOHU) ? G_JOHU : null;
-  var power = (typeof G_POWER !== 'undefined' && G_POWER) ? G_POWER : null;
-  var monthPillar = (p.m.g || '') + (p.m.j || '');
-  var monthPillarKo = ((GAN[p.m.g] && GAN[p.m.g].n) || p.m.g || '') + '·' + ((JI[p.m.j] && JI[p.m.j].a) || p.m.j || '');
-  var yong = _dfUniqueElements(power && power.yongshin).slice(0, 2).map(function(e){ return EL_K[e] || e; });
-  var caution = _dfUniqueElements(power && power.kijishin).slice(0, 2).map(function(e){ return EL_K[e] || e; });
-  var basis = [
-    '월주 ' + monthPillar + (monthPillarKo ? ' (' + monthPillarKo + ')' : ''),
-    '월령 ' + season.label,
-    currentTerm + ' 절입'
-  ];
-  if(johu && johu.badgeTxt) basis.push(String(johu.badgeTxt).replace(/[🔥🌞🌤️🍃❄️]/g,'').trim());
-  if(yong.length) basis.push('보완 기운 ' + yong.join('·'));
-  if(caution.length) basis.push('주의 리듬 ' + caution.join('·'));
-  return {
-    termName: currentTerm,
-    phase: phase,
-    phasePct: ratio == null ? 50 : Math.round(ratio * 100),
-    phaseMeta: start && next ? (_t24FormatDate(start.date) + '부터 ' + _t24FormatDate(next.date) + ' 전까지') : '',
-    nearBoundary: nearBoundary,
-    headline: '당신의 월주는 ' + currentTerm + '에서 열리는 ' + season.label + '의 리듬을 탑니다.',
-    summary: season.tone + '이 사주의 기본 계절감입니다. 이 흐름은 성격을 단정하는 표식이 아니라, 선택과 관계에서 반복되기 쉬운 반응 속도를 이해하는 기준으로 보면 좋습니다.',
-    basis: basis,
-    domains: _t24DomainCards(season.key, johu)
-  };
-}
-
-function _t24RenderDomainCards(cards){
-  return cards.map(function(card){
-    return '<article class="t24-domain">'
-      + '<h4>' + _t24Escape(card.title) + '</h4>'
-      + '<p>' + _t24Escape(card.body) + '<span class="t24-action">' + _t24Escape(card.action) + '</span></p>'
-      + '</article>';
-  }).join('');
-}
-
-function _t24RenderTermsTable(terms, currentTerm){
-  var byName = {};
-  terms.forEach(function(t){ byName[t.name] = t; });
-  var SEASONS = [
-    { key:'spring', label:'봄', el:'木', names:['입춘','우수','경칩','춘분','청명','곡우'] },
-    { key:'summer', label:'여름', el:'火', names:['입하','소만','망종','하지','소서','대서'] },
-    { key:'autumn', label:'가을', el:'金', names:['입추','처서','백로','추분','한로','상강'] },
-    { key:'winter', label:'겨울', el:'水', names:['입동','소설','대설','동지','소한','대한'] }
-  ];
-  var html = '<details class="t24-table"><summary><span>24절기표</span><span class="t24-summary-note">출생 절입 위치를 강조해 표시</span></summary><div class="t24-seasons">';
-  SEASONS.forEach(function(s){
-    html += '<div class="t24-season t24-season--' + s.key + '">';
-    html += '<div class="t24-season-head">' + _t24Escape(s.label) + '<span class="t24-el">' + _t24Escape(s.el) + '</span></div>';
-    html += '<div class="t24-grid">';
-    s.names.forEach(function(n){
-      var t = byName[n];
-      var hanja = ST24_HANJA[n] || '';
-      var dateStr = t ? (t.month + '.' + t.day) : '-';
-      var isCur = (n === currentTerm);
-      html += '<div class="t24-item' + (isCur ? ' is-current' : '') + '">'
-        + '<span class="t24-name">' + _t24Escape(n) + (hanja ? '<i>' + _t24Escape(hanja) + '</i>' : '') + '</span>'
-        + '<span class="t24-date">' + _t24Escape(dateStr) + '</span>'
-        + (isCur ? '<span class="t24-tag">내 생월 절입</span>' : '')
-        + '</div>';
-    });
-    html += '</div></div>';
-  });
-  return html + '</div></details>';
-}
-
-// 사주 기본 결과에 태어난 해의 24절기 기반 개인 절기 리듬을 렌더
+// 24절기 월령 해석 본문은 묶음 서버 전달이다. 표·카드의 모양(CSS)만 먼저 깔아 두고 자리를 채운다.
 function render24Terms(ctx, p){
-  var card = document.getElementById('terms24Card');
-  var grid = document.getElementById('terms24Grid');
-  if(!card || !grid) return;
-
-  var year = null;
-  try { if(ctx && ctx.solar && ctx.solar.year) year = parseInt(ctx.solar.year, 10); } catch(e){}
-  if(!year && window.G_KASI_CONTEXT && window.G_KASI_CONTEXT.solar) year = parseInt(window.G_KASI_CONTEXT.solar.year, 10);
-
-  var terms = computeSolarTermsForYear(year);
-  if(!terms || !terms.length){ card.style.display = 'none'; return; }
-
   _ensureTerms24Style();
-
-  var seasonalFortuneContext = buildSeasonalFortuneContext(ctx || (window.G_KASI_CONTEXT || null), p);
-  if(!seasonalFortuneContext){ card.style.display = 'none'; return; }
-
-  var cautionLine = seasonalFortuneContext.nearBoundary
-    ? '<div class="t24-caution" role="note"><strong>절입 경계 출생</strong>출생 시각이 조금 달라지면 월주 판정이 민감해질 수 있어, 기록된 시간을 기준으로 해석합니다.</div>'
-    : '';
-  var chips = seasonalFortuneContext.basis.map(function(v){ return '<span>' + _t24Escape(v) + '</span>'; }).join('');
-  var meterStyle = ' style="--t24-phase:' + _t24Escape(seasonalFortuneContext.phasePct) + '%"';
-  var phaseLabels = ['초입','중반','마무리'].map(function(label){
-    return '<span class="' + (seasonalFortuneContext.phase === label ? 'is-active' : '') + '">' + label + '</span>';
-  }).join('');
-  grid.innerHTML =
-    '<section class="t24-rhythm" aria-label="내 절기 리듬">'
-      + '<div class="t24-rhythm-head">'
-        + '<div>'
-          + '<p class="t24-kicker">24절기 기반 월령 해석</p>'
-          + '<h3 class="t24-headline">' + _t24Escape(seasonalFortuneContext.headline) + '</h3>'
-          + '<p class="t24-summary">' + _t24Escape(seasonalFortuneContext.summary) + '</p>'
-        + '</div>'
-        + '<span class="t24-pill">' + _t24Escape(seasonalFortuneContext.phase) + ' 리듬</span>'
-      + '</div>'
-      + '<div class="t24-meter" role="progressbar" aria-label="출생 절입 구간 진행률" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + _t24Escape(seasonalFortuneContext.phasePct) + '" aria-valuetext="' + _t24Escape(seasonalFortuneContext.phase + ' 구간, ' + seasonalFortuneContext.phasePct + '퍼센트') + '"' + meterStyle + '>'
-        + '<div class="t24-meter-line" aria-hidden="true"><span class="t24-meter-fill"></span></div>'
-        + '<div class="t24-meter-phases" aria-hidden="true">' + phaseLabels + '</div>'
-        + '<div class="t24-meter-meta"><span><strong>' + _t24Escape(seasonalFortuneContext.termName) + ' 절입</strong>에서 시작</span><span>' + _t24Escape(seasonalFortuneContext.phaseMeta || '월령 구간 안의 흐름') + '</span></div>'
-      + '</div>'
-      + '<div class="t24-basis-label">이 해석을 만든 근거</div>'
-      + '<div class="t24-basis">' + chips + '</div>'
-      + cautionLine
-    + '</section>'
-    + '<div class="t24-section-label"><span>계절의 생활 리듬</span><span>성향 · 일·돈 · 관계 · 컨디션</span></div>'
-    + '<div class="t24-domain-grid">' + _t24RenderDomainCards(seasonalFortuneContext.domains) + '</div>'
-    + _t24RenderTermsTable(terms, seasonalFortuneContext.termName);
-  card.style.display = '';
+  _cdNatalReadingStub('terms');
 }
 
 function renderManse(p){
@@ -10044,374 +9807,16 @@ function renderManse(p){
 }
 
 function renderTenshin(p){
-  if (window.SajuReadingPresentation) return window.SajuReadingPresentation.render('ten');
-  var tsSet=new Set();
-  var dg=p.d.g;
-  [p.y.g,p.y.j,p.m.g,p.m.j,p.d.j,p.h.g,p.h.j].forEach(function(c){
-    var t=getTenGod(dg,c);if(t&&t!=='?')tsSet.add(t);
-  });
-  var h='';
-  tsSet.forEach(function(t){
-    var info=TS_DB[t];if(!info)return;
-    h+='<div class="ts-card" onclick="showTsDetail(\''+t+'\')">'+
-      '<div class="ts-emoji">'+info.emoji+'</div>'+
-      '<div class="ts-name">'+t+'</div>'+
-      '<div class="ts-desc">'+info.desc+'</div>'+
-      '<div class="ts-hint">자세히 보기 →</div>'+
-      '</div>';
-  });
-  document.getElementById('tsGrid').innerHTML=h;
+  _cdNatalReadingStub('ten');
 }
 
 function renderJohu(johu) {
-  if (window.SajuReadingPresentation) return window.SajuReadingPresentation.render('climate');
-    let tempRaw = Math.max(-6, Math.min(6, johu.score));
-    let tempPct = ((tempRaw + 6) / 12) * 100;
-
-    let diffRaw = 0;
-    if (johu.moistCnt !== undefined && johu.dryCnt !== undefined) {
-        diffRaw = johu.moistCnt - johu.dryCnt;
-    }
-    let humidRaw = Math.max(-4, Math.min(4, diffRaw));
-    let humidPct = ((humidRaw + 4) / 8) * 100;
-
-    let isCold = tempRaw < 0;
-    let isDry = humidRaw < 0;
-    let isWet = humidRaw >= 0;
-
-    let envTitle = "";
-    let envDesc = "";
-    let envEmoji = "";
-
-    if (isCold && isDry) {
-        envEmoji = "";
-        envTitle = "정갈하고 고요한 겨울 산장";
-        envDesc = "냉철한 이성과 맺고 끊음이 확실한 미니멀리스트. 불필요한 감정이나 인간관계를 철저히 배제하고, 나만의 독립적이고 평온한 세계에서 최고의 효율을 발휘합니다.<br><br><b> 비즈니스/실무:</b> 데이터 분석, 기획, 혼자 깊게 파고드는 연구 직무에 정렬.<br><b> 연애:</b> 선을 넘지 않는 깔끔한 매너와 신뢰감이 생명.";
-    } else if (isCold && isWet) {
-        envEmoji = "";
-        envTitle = "은은한 물안개가 피어오르는 새벽 호수";
-        envDesc = "차분하면서도 포용력이 깊은 내면의 소유자. 겉으로는 조용해 보이지만 수많은 생각과 감정이 유기적으로 연결되어 있습니다. 은밀한 정보나 마음을 나누는 관계에서 깊은 능력을 발휘합니다.<br><br><b> 비즈니스/실무:</b> 상담, 심리, 예술, 사람의 이면을 통찰하는 기획 직무.<br><b> 연애:</b> 천천히 스며드는 이심전심의 사랑.";
-    } else if (!isCold && isDry) {
-        envEmoji = "";
-        envTitle = "태양이 작열하는 뜨거운 대자연의 사막";
-        envDesc = "강렬한 목표 의식과 담백한 성격의 소유자. 한 번 목표를 정하면 앞만 보고 직진하며, 뒤끝이 없습니다. 강한 열정과 빠른 결단력이 필요한 곳에서 탁월한 성과를 냅니다.<br><br><b> 비즈니스/실무:</b> 스타트업 창업, 세일즈, 단기 프로젝트 리더, 감사/평가 직무.<br><b> 연애:</b> 화끈하게 타오르고 깔끔하게 인정하는 쿨한 타이프.";
-    } else {
-        envEmoji = "";
-        envTitle = "생명력이 넘치는 다이내믹한 열대 우림";
-        envDesc = "사람들과의 소통과 성장을 갈망하는 '풀 가동 모드'. 호기심이 많고 친화력이 뛰어나며, 복잡한 인적 네트워크 속에서 무한한 에너지를 교류하며 뻗어 나갑니다.<br><br><b> 비즈니스/실무:</b> HR, 교육, 마케팅, 변호사, 작가, 다수의 사람과 협업하는 커뮤니케이터.<br><b> 연애:</b> 감정 표현이 풍부하고 함께 경험하며 커가는 연애.";
-    }
-
-    const contentHTML = `
-    <div style="font-family: 'Pretendard', sans-serif; font-size: 0.95rem; color: #333;">
-
-        <!-- 한난조습 설명 아코디언 영역 -->
-        <div style="margin-bottom: 20px;">
-          <button type="button" class="johu-info-btn" onclick="const content = document.getElementById('johuExplanation'); const icon = document.getElementById('johuAccordionIcon'); if(content.style.display === 'none'){ content.style.display = 'block'; content.style.opacity = 1; content.style.transform = 'translateY(0)'; icon.style.transform = 'rotate(180deg)'; } else { content.style.display = 'none'; content.style.opacity = 0; content.style.transform = 'translateY(-10px)'; icon.style.transform = 'rotate(0deg)'; }">
-            <span class="johu-info-btn__label">한난조습이란 무엇인가요?</span>
-            <span id="johuAccordionIcon" class="johu-info-btn__icon">▼</span>
-          </button>
-
-            <div id="johuExplanation" style="display: none; opacity: 0; transform: translateY(-10px); transition: opacity 0.3s ease, transform 0.3s ease; background: #F8FDFF; border: 1px solid #CFD8DC; border-radius: 12px; padding: 20px; margin-top: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
-                <p style="margin: 0 0 16px 0; line-height: 1.6; color: #455A64; font-size: 0.9rem;">
-                    <b>한난조습(기후)</b>은 사주의 <b>온도(차고 뜨거움)</b>와 <b>습도(건조하고 촉촉함)</b>를 의미합니다.<br>
-                    자연의 계절과 날씨처럼, 우리 내면에도 기후가 존재합니다. 자신의 기후를 알면 내가 어떤 환경에서 가장 빛나고 편안한지 알 수 있습니다.
-                </p>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                    <div style="background: rgba(227, 242, 253, 0.6); padding: 14px; border-radius: 10px; border-left: 3px solid #1976D2;">
-                        <div style="font-weight: 700; color: #1565C0; margin-bottom: 6px; display: flex; align-items: center; gap: 4px;"><span style="font-size: 1.1rem;"></span> 한 (차가움)</div>
-                        <div style="font-size: 0.8rem; color: #546E7A; line-height: 1.5;">겨울의 응축된 기운. 차분하고 신중하며, 내면을 다지는 이성적 모드.</div>
-                    </div>
-                    <div style="background: rgba(255, 235, 238, 0.6); padding: 14px; border-radius: 10px; border-left: 3px solid #D32F2F;">
-                        <div style="font-weight: 700; color: #C62828; margin-bottom: 6px; display: flex; align-items: center; gap: 4px;">뜨거움 (난) <span style="font-size: 1.1rem;"></span></div>
-                        <div style="font-size: 0.8rem; color: #546E7A; line-height: 1.5;">여름의 발산하는 기운. 열정적이고 외향적이며, 밖으로 뻗어나가는 풀가동 모드.</div>
-                    </div>
-                    <div style="background: rgba(255, 243, 224, 0.6); padding: 14px; border-radius: 10px; border-left: 3px solid #F57C00;">
-                        <div style="font-weight: 700; color: #E65100; margin-bottom: 6px; display: flex; align-items: center; gap: 4px;"><span style="font-size: 1.1rem;"></span> 조 (건조함)</div>
-                        <div style="font-size: 0.8rem; color: #546E7A; line-height: 1.5;">가을의 단단한 기운. 맺고 끊음이 확실하며, 독립적이고 군더더기 없는 미니멀리스트.</div>
-                    </div>
-                    <div style="background: rgba(232, 245, 233, 0.6); padding: 14px; border-radius: 10px; border-left: 3px solid #388E3C;">
-                        <div style="font-weight: 700; color: #2E7D32; margin-bottom: 6px; display: flex; align-items: center; gap: 4px;">촉촉함 (습) <span style="font-size: 1.1rem;"></span></div>
-                        <div style="font-size: 0.8rem; color: #546E7A; line-height: 1.5;">봄의 얽히는 기운. 친화력과 공감 능력이 뛰어나며, 주변과 함께 성장하는 커뮤니케이터.</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div style="background: linear-gradient(120deg, #F0F4FF, #F9F1FD); border-radius: 16px; padding: 20px; text-align: center; margin-bottom: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.04); cursor: pointer; transition: transform 0.2s;" onclick="this.style.transform='scale(1.02)'; setTimeout(()=>this.style.transform='scale(1)', 200)">
-            <div style="font-size: 3rem; margin-bottom: 8px; filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.1));">${envEmoji}</div>
-            <div style="font-size: 0.85rem; font-weight: 700; color: #8A63A5; margin-bottom: 6px; letter-spacing: 0.05em;">조후, 인생 환경 진단</div>
-            <div style="font-size: 1.3rem; font-weight: 800; color: #2C3E50; margin-bottom: 12px;">${envTitle}</div>
-            <div style="font-size: 0.9rem; line-height: 1.6; color: #505F6E; text-align: left; background: rgba(255,255,255,0.6); padding: 12px 16px; border-radius: 12px;">${envDesc}</div>
-            <div style="display:flex; justify-content: center; gap: 8px; margin-top: 15px;">
-                <span class="johu-badge ${johu.badgeCls}">${johu.badgeTxt}</span>
-                <span class="johu-badge" style="background: ${isWet ? '#E3F2FD' : '#FFF3E0'}; color: ${isWet ? '#1565C0' : '#E65100'}">${isWet ? ' 촉촉한 편' : ' 건조한 편'}</span>
-            </div>
-        </div>
-
-        <div style="display: flex; flex-direction: column; gap: 24px; background: #FAFAFA; padding: 20px; border-radius: 16px; border: 1px solid #EEE;">
-            <div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-weight: 800; font-size: 0.9rem;">
-                    <span style="color: #1976D2; display: flex; align-items: center; gap: 4px;" title="' + _sajuEngineText("se_7940_attr_title") + '"><span style="font-size: 1.1rem;"></span> 차가움 (寒)</span>
-                    <span style="color: #E53935; display: flex; align-items: center; gap: 4px;" title="' + _sajuEngineText("se_7941_attr_title") + '">뜨거움 (暖) <span style="font-size: 1.1rem;"></span></span>
-                </div>
-                <div style="position: relative; height: 16px; background: linear-gradient(to right, #64B5F6 0%, #E0E0E0 50%, #EF5350 100%); border-radius: 10px; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);">
-                    <div style="position: absolute; left: calc(${tempPct}% - 4px); top: 0; bottom: 0; width: 8px; background: #FFF; border-radius: 4px; box-shadow: 0 0 4px rgba(0,0,0,0.5); border: 2px solid #333; z-index: 2; transition: left 1s ease-out;"></div>
-                </div>
-                <div style="text-align: center; font-size: 0.8rem; margin-top: 8px; color: #777;">
-                    현재 온도: <strong style="color: #333; font-size: 0.95rem;">${johu.score > 0 ? '+' : ''}${johu.score.toFixed(1)}</strong>
-                </div>
-            </div>
-            <div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-weight: 800; font-size: 0.9rem;">
-                    <span style="color: #F57F17; display: flex; align-items: center; gap: 4px;" title="' + _sajuEngineText("se_7952_attr_title") + '"><span style="font-size: 1.1rem;"></span> 건조함 (燥)</span>
-                    <span style="color: #388E3C; display: flex; align-items: center; gap: 4px;" title="' + _sajuEngineText("se_7953_attr_title") + '">촉촉함 (濕) <span style="font-size: 1.1rem;"></span></span>
-                </div>
-                <div style="position: relative; height: 16px; background: linear-gradient(to right, #FFB74D 0%, #E0E0E0 50%, #81C784 100%); border-radius: 10px; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);">
-                    <div style="position: absolute; left: calc(${humidPct}% - 4px); top: 0; bottom: 0; width: 8px; background: #FFF; border-radius: 4px; box-shadow: 0 0 4px rgba(0,0,0,0.5); border: 2px solid #333; z-index: 2; transition: left 1s ease-out;"></div>
-                </div>
-                <div style="text-align: center; font-size: 0.8rem; margin-top: 8px; color: #777;">
-                    현재 속성: 건조 ${johu.dryCnt || 0} / 습 ${johu.moistCnt || 0} <span style="font-size: 0.8rem; color:#888;">(편차: ${diffRaw > 0 ? '+' : ''}${diffRaw})</span>
-                </div>
-            </div>
-            <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 8px;">
-                <div style="text-align:center; background:rgba(255,235,238,.8); border-radius:10px; padding:10px 4px; border:1px solid rgba(239,154,154,.4);">
-                    <div style="font-size:1.2rem"></div>
-                    <div style="font-size:.7rem; font-weight:700; color:#C62828;">화(火)</div>
-                    <div style="font-size:.85rem; font-weight:900; color:#444;">${johu.fc}</div>
-                </div>
-                <div style="text-align:center; background:rgba(227,242,253,.8); border-radius:10px; padding:10px 4px; border:1px solid rgba(144,202,249,.4);">
-                    <div style="font-size:1.2rem"></div>
-                    <div style="font-size:.7rem; font-weight:700; color:#1565C0;">수(水)</div>
-                    <div style="font-size:.85rem; font-weight:900; color:#444;">${johu.wc}</div>
-                </div>
-                <div style="text-align:center; background:rgba(232,245,233,.8); border-radius:10px; padding:10px 4px; border:1px solid rgba(165,214,167,.4);">
-                    <div style="font-size:1.2rem"></div>
-                    <div style="font-size:.7rem; font-weight:700; color:#2E7D32;">목(木)</div>
-                    <div style="font-size:.85rem; font-weight:900; color:#444;">${johu.wdc}</div>
-                </div>
-                <div style="text-align:center; background:rgba(245,245,245,.8); border-radius:10px; padding:10px 4px; border:1px solid rgba(207,216,220,.6);">
-                    <div style="font-size:1.2rem"></div>
-                    <div style="font-size:.7rem; font-weight:700; color:#546E7A;">금(金)</div>
-                    <div style="font-size:.85rem; font-weight:900; color:#444;">${johu.mc}</div>
-                </div>
-            </div>
-        </div>
-        <div style="background: rgba(255,255,255,0.8); border-left: 3px solid #8A63A5; padding: 14px 16px; border-radius: 0 8px 8px 0; margin-top: 16px; font-size: 0.85rem; line-height: 1.7; color: #444;">
-            <b>🌿 조후 밸런스 처방</b>
-            ${(function(){
-              var t = johu.type;
-              var m = johu.moistType;
-              var rows = [];
-
-              // ── 온도 처방 (6종 명확 구분) ──
-              if(t === 'hot'){
-                rows.push('<div style="margin-top:10px; background:#FFF3E0; border-radius:8px; padding:10px 12px; border-left:3px solid #EF6C00;"><b style="color:#BF360C;">🔥 뜨거운 사주 처방</b><br>火 기운이 과잉입니다. <b>水·金</b> 기운을 적극 보충해야 합니다.<br>· 추천 색상: 파란색·검은색·흰색<br>· 추천 방향: 북쪽·서쪽<br>· 추천 활동: 수영, 물가 산책, 냉탕·족욕, 명상<br>· 주의: 과격한 운동·뜨거운 환경·붉은 컬러 과용 자제</div>');
-              } else if(t === 'warm'){
-                rows.push('<div style="margin-top:10px; background:#FFF8E1; border-radius:8px; padding:10px 12px; border-left:3px solid #F9A825;"><b style="color:#F57F17;">🌞 따뜻한 사주 처방</b><br>열기가 다소 강합니다. <b>水</b> 기운으로 균형을 잡으면 좋습니다.<br>· 추천 색상: 파란색·하늘색·민트<br>· 추천 방향: 북쪽<br>· 추천 활동: 물 자주 마시기, 계곡·바다 나들이, 쿨다운 스트레칭<br>· 주의: 과음·과식·야식 자제</div>');
-              } else if(t === 'neutral'){
-                rows.push('<div style="margin-top:10px; background:#E8F5E9; border-radius:8px; padding:10px 12px; border-left:3px solid #43A047;"><b style="color:#2E7D32;">🌤️ 시원한(균형) 사주 처방</b><br>온도 균형이 양호합니다. 계절 변화와 습도에 맞춰 세밀하게 조절하세요.<br>· 오행을 고루 활용하는 멀티플레이어 천기 유효<br>· 봄·가을: 木·金 기운 활용, 여름: 水 보충, 겨울: 火·木 보충<br>· 다양한 환경 변화에 유연하게 적응하는 것이 개운의 핵심</div>');
-              } else if(t === 'cool'){
-                rows.push('<div style="margin-top:10px; background:#E3F2FD; border-radius:8px; padding:10px 12px; border-left:3px solid #1976D2;"><b style="color:#0D47A1;">🍃 서늘한 사주 처방</b><br>온기가 다소 부족합니다. <b>火·木</b> 기운으로 보충하면 좋습니다.<br>· 추천 색상: 주황색·녹색·붉은 계열<br>· 추천 방향: 남쪽·동쪽<br>· 추천 활동: 햇빛 쬐기, 온탕·반신욕, 스트레칭·요가<br>· 주의: 찬 음식·냉방 과다 노출 자제</div>');
-              } else if(t === 'insufficient'){
-                rows.push('<div style="margin-top:10px; background:#F5F5F5; border-radius:8px; padding:10px 12px; border-left:3px solid #9E9E9E;"><b style="color:#555;">🌫️ 한난 판단 보류</b><br>' + (johu.hanNan && johu.hanNan.reason ? johu.hanNan.reason.replace(/[<>&]/g, '') + ' — ' : '') + '온도 처방을 단정하지 않습니다.</div>');
-              } else if(t === 'cold'){
-                rows.push('<div style="margin-top:10px; background:#E8EAF6; border-radius:8px; padding:10px 12px; border-left:3px solid #3949AB;"><b style="color:#1A237E;">❄️ 차가운 사주 처방</b><br>水·金 기운이 과잉입니다. <b>火·木</b> 기운이 절실히 필요합니다.<br>· 추천 색상: 빨간색·주황색·연두색<br>· 추천 방향: 남쪽·동쪽<br>· 추천 활동: 따뜻한 음식·온탕, 유산소 운동으로 체온 올리기, 햇빛 충분히 쬐기<br>· 주의: 냉수욕·과한 냉방·어두운 색상 과다 사용 자제</div>');
-              }
-
-              // ── 습조 처방 (건조함 별도 강조) ──
-              if(m === 'dry'){
-                rows.push('<div style="margin-top:8px; background:#FFF3E0; border-radius:8px; padding:10px 12px; border-left:3px solid #F57C00;"><b style="color:#E65100;">🏜️ 건조한 사주 추가 처방</b><br>습기가 부족합니다. <b>水·木</b> 기운과 실제 수분 보충이 필요합니다.<br>· 물 충분히 마시기(하루 1.5L 이상), 가습기 사용<br>· 목욕·족욕·수영·자연(숲·물가) 자주 접하기<br>· 촉촉한 생활 환경(식물 키우기, 수족관 등) 조성</div>');
-              } else if(m === 'wet'){
-                rows.push('<div style="margin-top:8px; background:#E8F5E9; border-radius:8px; padding:10px 12px; border-left:3px solid #388E3C;"><b style="color:#2E7D32;">💧 촉촉한 사주 보완 처방</b><br>습기가 많습니다. <b>金·火</b> 기운으로 건조함을 추가해 균형을 맞추세요.<br>· 환기 자주 하기, 건조한 환경 조성<br>· 흰색·금색 소품 활용, 서쪽 방향 에너지 활용<br>· 규칙적인 생활로 끈적한 감정·관계의 경계선 명확히 하기</div>');
-              } else if(m === 'balanced'){
-                rows.push('<div style="margin-top:8px; background:#F3E5F5; border-radius:8px; padding:10px 12px; border-left:3px solid #8E24AA;"><b style="color:#6A1B9A;">⚖️ 습조(濕燥) 균형 유지</b><br>습도 균형이 양호합니다. 현재 생활 패턴을 유지하면서 온도 처방에 집중하세요.</div>');
-              } else {
-                rows.push('<div style="margin-top:8px; background:#F5F5F5; border-radius:8px; padding:10px 12px; border-left:3px solid #9E9E9E;"><b style="color:#555;">🌫️ 습조(濕燥) 판단 보류</b><br>' + (johu.joSeup && johu.joSeup.reason ? johu.joSeup.reason.replace(/[<>&]/g, '') + ' — ' : '') + '습도 처방을 단정하지 않습니다.</div>');
-              }
-
-              return rows.join('');
-            })()}
-        </div>
-    </div>
-    `;
-
-    document.getElementById('johuMeter').innerHTML = '';
-    document.getElementById('johuContent').innerHTML = contentHTML;
+  _cdNatalReadingStub('climate');
 }
 
-// 억부/종격 카드 전용 스타일 주입 (번들 CSS 로드 여부와 무관하게 적용 보장)
-function _ensureUkbuStyle(){
-  if(document.getElementById('cd-ukbu-style-v20260711'))return;
-  var style=document.createElement('style');
-  style.id='cd-ukbu-style-v20260711';
-  style.textContent=[
-    '#ukbuCard .uk-wrap{display:flex;flex-direction:column;gap:12px}',
-    '#ukbuCard .uk-card{position:relative;border-radius:16px;padding:15px 15px 16px;overflow:hidden;background:linear-gradient(160deg,#fffdfb,#fff5f0);border:1px solid rgba(179,25,85,.12);box-shadow:0 6px 18px rgba(179,25,85,.06),inset 0 1px 0 rgba(255,255,255,.72)}',
-    '#ukbuCard .uk-card.is-strong{background:linear-gradient(160deg,#fff8f3,#fff0ea);border-color:rgba(224,86,78,.24)}',
-    '#ukbuCard .uk-card.is-weak{background:linear-gradient(160deg,#f6faff,#eef4ff);border-color:rgba(79,120,201,.24)}',
-    '#ukbuCard .uk-card.is-jong{background:linear-gradient(160deg,#faf5ff,#f3ebff);border-color:rgba(124,58,237,.24)}',
-    '#ukbuCard .uk-top{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:13px}',
-    '#ukbuCard .uk-badge{display:inline-flex;align-items:center;gap:5px;padding:5px 13px;border-radius:999px;font-weight:800;font-size:.9rem;color:#fff;white-space:nowrap}',
-    '#ukbuCard .uk-badge.b-strong{background:linear-gradient(135deg,#f0724a,#e0564e)}',
-    '#ukbuCard .uk-badge.b-weak{background:linear-gradient(135deg,#5b8de0,#4f78c9)}',
-    '#ukbuCard .uk-badge.b-jong{background:linear-gradient(135deg,#9b5de5,#7c3aed)}',
-    '#ukbuCard .uk-tagline{font-size:.82rem;font-weight:700;color:#70445c}',
-    '#ukbuCard .uk-block{margin-top:13px;padding-top:13px;border-top:1px dashed rgba(179,25,85,.16)}',
-    '#ukbuCard .uk-block:first-child{margin-top:0;padding-top:0;border-top:0}',
-    '#ukbuCard .uk-head{display:flex;align-items:center;gap:6px;font-size:.82rem;font-weight:800;color:#b31955;margin-bottom:7px;letter-spacing:-.01em}',
-    '#ukbuCard .uk-body{font-size:.86rem;line-height:1.82;color:#4a2a3e}',
-    '#ukbuCard .uk-body b{color:#b31955;font-weight:800}',
-    '#ukbuCard .uk-yongshin{display:flex;flex-wrap:wrap;gap:7px;margin-top:2px}',
-    '#ukbuCard .uk-el{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:11px;font-size:.8rem;font-weight:800;border:1px solid}',
-    '#ukbuCard .uk-el.good{background:rgba(46,158,107,.1);border-color:rgba(46,158,107,.32);color:#1f7a4d}',
-    '#ukbuCard .uk-el.bad{background:rgba(224,86,78,.08);border-color:rgba(224,86,78,.28);color:#c0392b}',
-    '#ukbuCard .uk-el small{font-weight:700;opacity:.72;font-size:.72rem}',
-    '#ukbuCard .uk-note{margin-top:12px;padding:11px 13px;border-radius:12px;background:linear-gradient(135deg,rgba(234,208,137,.22),rgba(234,208,137,.08));border:1px solid rgba(200,160,60,.32);font-size:.82rem;line-height:1.72;color:#7a5a1e}',
-    '#ukbuCard .uk-note b{color:#8a6a1e}',
-    /* ── 네오(달빛 다크) 대비 오버라이드 ── */
-    'body.neo-mode #ukbuCard .uk-card{background:linear-gradient(160deg,rgba(26,22,52,.72),rgba(18,15,40,.66));border-color:rgba(148,163,184,.2);box-shadow:0 6px 18px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.05)}',
-    'body.neo-mode #ukbuCard .uk-card.is-strong{border-color:rgba(240,114,74,.34)}',
-    'body.neo-mode #ukbuCard .uk-card.is-weak{border-color:rgba(122,158,240,.34)}',
-    'body.neo-mode #ukbuCard .uk-card.is-jong{border-color:rgba(167,139,250,.4)}',
-    'body.neo-mode #ukbuCard .uk-tagline{color:#c9bce0}',
-    'body.neo-mode #ukbuCard .uk-block{border-top-color:rgba(148,163,184,.2)}',
-    'body.neo-mode #ukbuCard .uk-head{color:#e9c46a}',
-    'body.neo-mode #ukbuCard .uk-body{color:#e2dcf2}',
-    'body.neo-mode #ukbuCard .uk-body b{color:#f5dea0}',
-    'body.neo-mode #ukbuCard .uk-el.good{background:rgba(46,158,107,.16);border-color:rgba(74,214,164,.4);color:#7ee6b4}',
-    'body.neo-mode #ukbuCard .uk-el.bad{background:rgba(224,86,78,.16);border-color:rgba(240,140,130,.4);color:#f2a79e}',
-    'body.neo-mode #ukbuCard .uk-note{background:linear-gradient(135deg,rgba(233,196,106,.16),rgba(233,196,106,.05));border-color:rgba(233,196,106,.3);color:#ecd9a3}',
-    'body.neo-mode #ukbuCard .uk-note b{color:#f5dea0}'
-  ].join('');
-  document.head.appendChild(style);
-}
-
-// 일간(천간) 10종의 타고난 결 — 한 줄 요약
-var _UKBU_DAY_STEM_NOTE={
-  '甲':'하늘로 곧게 뻗는 큰 나무처럼 추진력과 리더십이 강하고 자존심이 높습니다',
-  '乙':'바람에 유연하게 휘는 화초·넝쿨처럼 부드럽지만 끈질기고 생활력이 강합니다',
-  '丙':'만물을 비추는 태양처럼 밝고 열정적이며 표현력과 존재감이 큽니다',
-  '丁':'어둠을 밝히는 촛불·달빛처럼 섬세하고 따뜻하며 속이 깊습니다',
-  '戊':'모든 것을 품는 큰 산·대지처럼 듬직하고 신용이 두터우며 중심이 단단합니다',
-  '己':'씨앗을 키우는 기름진 밭처럼 실속 있고 포용력이 크며 현실 감각이 뛰어납니다',
-  '庚':'제련을 기다리는 원석·강철처럼 결단력과 의리가 강하고 승부욕이 큽니다',
-  '辛':'세공된 보석·예리한 칼처럼 예민하고 자존심이 높으며 미적 감각이 뛰어납니다',
-  '壬':'큰 강·바다처럼 지혜롭고 사고가 넓으며 융통성과 포용력이 큽니다',
-  '癸':'이슬·옹달샘처럼 총명하고 감수성이 예민하며 은근한 생명력이 있습니다'
-};
-
-// 월지(月支) 오행과 일간 오행의 관계로 득령/실령 판정 서술
-function _ukbuMonthRelation(dayEl,mjEl){
-  if(!dayEl||!mjEl)return null;
-  if(mjEl===dayEl)return{tag:'득령(得令)',txt:'태어난 달의 기운이 일간과 같은 오행이라 뿌리가 단단합니다'};
-  if(mjEl===parentOf(dayEl))return{tag:'득령(得令)',txt:'태어난 달이 일간을 낳아 길러 주는 인성(印星)의 달이라 힘을 크게 받습니다'};
-  if(KE[mjEl]===dayEl)return{tag:'실령(失令)',txt:'태어난 달이 일간을 극하는 관살(官殺)의 달이라 기운이 눌립니다'};
-  if(SHENG[dayEl]===mjEl)return{tag:'실령(失令)',txt:'일간이 달의 기운으로 힘을 내보내는 식상(食傷)의 달이라 에너지가 새어 나갑니다'};
-  if(KE[dayEl]===mjEl)return{tag:'실령(失令)',txt:'일간이 달의 기운을 극해 다스리는 재성(財星)의 달이라 힘을 쓰는 자리입니다'};
-  return{tag:'평(平)',txt:'태어난 달과 일간의 관계가 중립적입니다'};
-}
-
-// 오행을 일간 기준 십성 계열로 환산
-function _ukbuTenGod(dayEl,el){
-  if(el===dayEl)return'비겁(比劫)';
-  if(el===parentOf(dayEl))return'인성(印星)';
-  if(el===SHENG[dayEl])return'식상(食傷)';
-  if(el===KE[dayEl])return'재성(財星)';
-  if(KE[el]===dayEl)return'관성(官星)';
-  return'';
-}
-
-// 종격 이름 → 한 줄 성격 설명
-function _ukbuJongKind(name){
-  var n=String(name||'');
-  if(/곡직/.test(n))return'목(木)이 가득한 종왕격(從旺格) — 곧게 뻗는 성장·기획의 기운을 그대로 밀고 나갈 때 빛납니다';
-  if(/염상/.test(n))return'화(火)가 가득한 종왕격(從旺格) — 밝게 타오르는 열정과 표현력을 극대화할 때 빛납니다';
-  if(/가색/.test(n))return'토(土)가 가득한 종왕격(從旺格) — 두텁게 쌓고 지키는 안정·포용의 기운을 따를 때 빛납니다';
-  if(/종혁/.test(n))return'금(金)이 가득한 종왕격(從旺格) — 결단하고 다듬는 강인함을 그대로 쓸 때 빛납니다';
-  if(/윤하/.test(n))return'수(水)가 가득한 종왕격(從旺格) — 흐르고 지혜로운 유연함을 극대화할 때 빛납니다';
-  if(/종강/.test(n))return'나를 낳아 주는 인성(印星)이 압도적인 종강격(從强格) — 배움·후원의 큰 기운에 올라타는 격입니다';
-  if(/종아/.test(n))return'내가 낳는 식상(食傷)이 압도적인 종아격(從兒格) — 재능·표현으로 세상에 내보내는 기운을 따르는 격입니다';
-  if(/종재/.test(n))return'내가 다스리는 재성(財星)이 압도적인 종재격(從財格) — 재물·현실 성취의 흐름에 순응하는 격입니다';
-  if(/종살|종관/.test(n))return'나를 다스리는 관살(官殺)이 압도적인 종살격(從殺格) — 권력·조직의 큰 힘에 올라타는 격입니다';
-  if(/화격|화기/.test(n))return'천간이 합하여 하나의 기운으로 변한 화격(化格) — 변화된 그 기운을 중심으로 사는 격입니다';
-  return'한 가지 기운이 사주를 지배하는 특수격으로, 그 기세에 순응할 때 가장 빛납니다';
-}
-
+// 억부 풀이 본문은 묶음 서버 전달이다(worker/lib/saju-section/paid-natal-reading.src.js). 여기는 자리만 둔다.
 function renderUkbu(p){
-  if (window.SajuReadingPresentation) return window.SajuReadingPresentation.render('strength');
-  var pw=G_POWER,jg=G_JONG,dg=p.d.g;
-  var host=document.getElementById('ukbuSection');
-  if(!host)return;
-  _ensureUkbuStyle();
-
-  var dayEl=(GAN[dg]&&GAN[dg].e)||'earth';
-  var dayName=(GAN[dg]&&GAN[dg].n)||dg;
-  var mjEl=(p.m&&p.m.j&&JI[p.m.j])?JI[p.m.j].e:null;
-  var html='<div class="uk-wrap">';
-
-  if(jg&&jg.isJong){
-    html+='<div class="uk-card is-jong">'+
-      '<div class="uk-top"><span class="uk-badge b-jong">🌀 '+jg.name+'</span>'+
-      '<span class="uk-tagline">'+EL_E[jg.dominant]+' '+EL_K[jg.dominant]+' 기운 '+jg.pct+'% 지배</span></div>'+
-      '<div class="uk-block"><div class="uk-head">🌀 종격(從格)이란</div>'+
-      '<div class="uk-body">한 가지 오행이 사주 전체를 압도할 만큼 강하면, 그 기세를 억지로 누르지 않고 <b>순응</b>하는 것이 오히려 답이 됩니다. 그래서 종격에는 일반적인 신강·신약(억부) 잣대를 적용하지 않습니다.</div></div>'+
-      '<div class="uk-block"><div class="uk-head">📌 당신의 격</div>'+
-      '<div class="uk-body"><b>'+jg.name+'</b> — '+_ukbuJongKind(jg.name)+'.</div></div>'+
-      '<div class="uk-block"><div class="uk-head">🧭 대운·세운 방향</div>'+
-      '<div class="uk-body"><b>'+EL_K[jg.dominant]+'</b> 기운을 더 <b>북돋는 운</b>이 오면 크게 길(吉)하고, 그 기세를 <b>거스르는 운</b>이 오면 흉(凶)합니다. 이것저것 분산하지 말고, 타고난 강점 한 가지를 극한까지 밀어붙이세요. 그게 당신 인생의 열쇠입니다.</div></div>'+
-      (jg.isGaJong
-        ?'<div class="uk-note">⚠️ <b>가종격(假從格)</b>입니다 — 일간을 돕는 글자가 있지만 실제 뿌리로 작용하지 못해, 지배 오행을 따르는 가종(假從)의 조건을 갖췄습니다.</div>'
-        :'<div class="uk-note">✓ <b>진종격(眞從格)</b>에 가깝습니다 — 지배 오행에 온전히 순응하는 흐름이 뚜렷합니다.</div>')+
-      '</div>';
-  }else if(pw){
-    var strong=!!pw.isStrong;
-    var rel=_ukbuMonthRelation(dayEl,mjEl);
-    var yong=(pw.yongshin||[]).filter(Boolean);
-    var ki=(pw.kijishin||[]).filter(Boolean);
-    var yongChips=yong.map(function(e,i){
-      return '<span class="uk-el good">'+EL_E[e]+' '+EL_K[e]+' <small>'+(_ukbuTenGod(dayEl,e)||(i===0?'용신':'희신'))+'</small></span>';
-    }).join('');
-    var kiChips=ki.map(function(e){
-      return '<span class="uk-el bad">'+EL_E[e]+' '+EL_K[e]+' <small>'+(_ukbuTenGod(dayEl,e)||'기신')+'</small></span>';
-    }).join('');
-
-    html+='<div class="uk-card '+(strong?'is-strong':'is-weak')+'">'+
-      '<div class="uk-top"><span class="uk-badge '+(strong?'b-strong':'b-weak')+'">'+(strong?'🔥 신강(身强)':'💧 신약(身弱)')+' '+pw.score+'점</span>'+
-      '<span class="uk-tagline">'+(strong?'에너지가 넘치는 주체형':'섬세하고 공감력이 뛰어난 감성형')+'</span></div>'+
-
-      '<div class="uk-block"><div class="uk-head">⚖️ 왜 '+(strong?'신강':'신약')+'인가</div>'+
-      '<div class="uk-body">'+
-      (rel?'태어난 달의 기운(월령)을 보면 <b>'+rel.tag+'</b> — '+rel.txt+'. ':'')+
-      '여기에 나머지 일곱 글자가 일간을 돕는 힘과 극하는 힘을 저울질한 <b>억부 점수 '+pw.score+'점</b>을 합쳐 보면, '+dayName+' 일간이 '+
-      (strong
-        ?'스스로 버틸 힘이 넉넉한 <b>신강</b>으로 판정됩니다. 뿌리가 튼튼해 밀어붙이는 힘이 강한 사주예요.'
-        :'외부의 압박에 비해 자체 힘이 다소 부족한 <b>신약</b>으로 판정됩니다. 약점이 아니라 섬세함과 유연함의 바탕이니 오해하지 마세요.')+
-      '</div></div>'+
-
-      '<div class="uk-block"><div class="uk-head">🌱 일간(日干) '+dayName+'의 결</div>'+
-      '<div class="uk-body">'+(_UKBU_DAY_STEM_NOTE[dg]||'타고난 기질이 뚜렷한 일간입니다')+'. '+
-      (strong
-        ?'기운이 왕성한 만큼 힘을 <b>밖으로 써서 덜어낼 때</b> 오히려 빛납니다. 성취를 나누고, 사람을 돕고, 책임을 맡으세요. 혼자 다 쥐려 하면 탈이 납니다.'
-        :'자존감이 채워지는 자리에서 힘이 납니다. <b>무리해서 앞장서기보다</b> 나를 알아주는 사람·환경 곁에서 실력을 키우세요. 때가 오면 반드시 쓰입니다.')+
-      '</div></div>'+
-
-      '<div class="uk-block"><div class="uk-head">🌟 나를 살리는 기운 · 조심할 기운</div>'+
-      '<div class="uk-yongshin">'+yongChips+kiChips+'</div>'+
-      '<div class="uk-body" style="margin-top:9px">초록으로 표시한 <b>용신·희신</b>의 오행이 대운·세운으로 들어올 때 일이 풀리고 귀인이 옵니다. 붉게 표시한 <b>기신·구신</b>이 강해지는 시기엔 한 템포 늦추고, 무리한 확장이나 큰 결정은 미루세요.</div></div>'+
-
-      '<div class="uk-block"><div class="uk-head">🧭 대운 방향 한눈에</div>'+
-      '<div class="uk-body">'+
-      (strong
-        ?'<b>식상(食傷)·재(財)·관(官)</b> 운 — 즉 기운을 밖으로 쓰고 성취로 바꾸는 흐름에서 사회적 성공이 터집니다.'
-        :'<b>비겁(比劫)·인성(印星)</b> 운 — 즉 나를 채우고 지지해 주는 흐름에서 자존감과 귀인이 함께 옵니다.')+
-      '</div></div>'+
-      '</div>';
-  }else{
-    html+='<div class="uk-card"><div class="uk-body">억부 계산 중이거나 사주 데이터가 부족합니다. 잠시 후 다시 확인해 주세요.</div></div>';
-  }
-
-  html+='</div>';
-  host.innerHTML=html;
+  _cdNatalReadingStub('strength');
 }
 
 /* ─── 인생 스킬 트리 RPG ─── */
@@ -22637,6 +22042,91 @@ function _calculateMonthBranchBySolarTermFromParts(parts) {
   }
 }
 
+// ── 사주 영구 묶음(saju_lifetime_bundle) 표면 ──
+// 묶음 판정의 단일 입구. 권한 조회가 실패하거나 모듈이 없으면 닫힘으로 떨어진다(원국·한 줄 성향은 영향 없음).
+function _cdSajuBundleOpen(){
+  try{ return !!(window.CdSajuBundleOffer&&window.CdSajuBundleOffer.isOpen()); }catch(_){ return false; }
+}
+// 극T 기본·테토/에겐·사주 네컷·도파민은 기존 section_summary 구매자도 계속 본다(자동 승급 없음). 묶음 해금은 section_summary 로도 펼쳐진다.
+function _cdSajuSharedTileOpen(){
+  return _cdSajuBundleOpen()||_cdSajuGateUnlocked('section_summary');
+}
+// 테토/에겐 카드는 심화 리포트(tetogen_deep_report)만 산 사람에게도 열린다. 묶음·section_summary 와 별개로 개별 키를 본다.
+function _cdSajuHormoneOpen(){
+  return _cdSajuSharedTileOpen()||_cdSajuGateUnlocked('tetogen_deep_report');
+}
+// 로또 카드는 묶음, 타일 키(rpt_lottoCard), 리추얼 리포트 키 중 하나로 열린다.
+function _cdSajuLottoOpen(){
+  try{ return !!(window.CdSajuBundleOffer&&window.CdSajuBundleOffer.isLottoOpen()); }catch(_){ return false; }
+}
+// 닫힌 쪽 카드 정리. 다른 프로필·직접 입력으로 바뀌었을 때 앞 프로필의 카드 내용이 남지 않는다.
+function _cdClearClosedBundleCards(open,lotto,shared,hormone){
+  var offer=window.CdSajuBundleOffer;
+  if(!offer||typeof offer.clearCards!=='function')return;
+  try{
+    if(!open)offer.clearCards('bundle');
+    if(!lotto)offer.clearCards('lotto');
+    if(!shared)offer.clearCards('shared');
+    if(!hormone)offer.clearCards('hormone');
+  }catch(_){}
+}
+// 원국 바로 아래 한 줄 성향. 일주 키(예: 甲子)만 쓰며 서버 호출·권한 판정이 없다.
+function _cdRenderNatalOneLiner(p){
+  var host=document.getElementById('sajuNatalOneLiner');
+  if(!host||!p||!p.d)return;
+  var line=window.CdSajuNatalOneLiner?window.CdSajuNatalOneLiner.get(String(p.d.g||'')+String(p.d.j||'')):'';
+  host.textContent=line||'';
+  host.hidden=!line;
+}
+var _cdBundleSurfaceRenderKey='';
+// 묶음 안내 카드는 닫혀 있을 때만, 묶음 전용 카드는 열려 있을 때만 그린다. 해금 이벤트에서도 같은 함수가 다시 돈다.
+function _cdRenderBundleSurfaces(){
+  var args=window.__cdLastBundleArgs;
+  var offerHost=document.getElementById('sajuBundleOffer');
+  var open=_cdSajuBundleOpen();
+  if(offerHost&&window.CdSajuBundleOffer){
+    try{ if(open)window.CdSajuBundleOffer.removeInline(offerHost); else window.CdSajuBundleOffer.renderInline(offerHost); }catch(_){}
+  }
+  try{ if(typeof window.cdRenderLottoSavedReports==='function')window.cdRenderLottoSavedReports(); }catch(_){}
+  if(!args||!args.p)return;
+  var p=args.p,natal=args.natal,bazi=args.bazi,johu=args.johu;
+  var shared=_cdSajuSharedTileOpen();
+  var lotto=open||_cdSajuLottoOpen();
+  var hormone=shared||_cdSajuHormoneOpen();
+  _cdClearClosedBundleCards(open,lotto,shared,hormone);
+  var key=(open?'b':'-')+(shared?'s':'-')+(lotto?'l':'-')+(hormone?'h':'-')+'|'+String(p.d&&p.d.g)+String(p.d&&p.d.j)+'|'+String(p.y&&p.y.g)+String(p.m&&p.m.j);
+  if(key===_cdBundleSurfaceRenderKey)return;
+  var tasks=[];
+  if(lotto){
+    tasks.push(function(){ invokeOptionalGlobalRenderer('renderLottoNumbers',[natal,bazi]); });
+  }
+  if(open){
+    tasks.push(function(){
+      var pr=renderDailyMonthlyFortune(p);
+      if(pr&&typeof pr.catch==='function')pr.catch(function(e){ console.error('DailyMonthlyFortune 에러:',e); });
+    });
+    tasks.push(function(){ var lb=document.getElementById('letterBox'); if(lb)lb.style.display='block'; renderLetter(p); });
+    tasks.push(function(){ renderTodayDestinyCard(p); });
+    tasks.push(function(){ findSimilarCelebs(p); });
+  }
+  if(shared){
+    tasks.push(function(){ invokeOptionalGlobalRenderer('renderTTest',[p,natal,johu,G_POWER]); });
+  }
+  if(hormone){
+    tasks.push(function(){ renderHormoneVibe(p,G_POWER); });
+  }
+  if(shared){
+    tasks.push(function(){ invokeOptionalGlobalRenderer('renderDopamineReport',[p,natal,G_POWER,johu]); });
+    tasks.push(function(){ invokeOptionalGlobalRenderer('renderSajuFourCutContent',[]); });
+  }
+  /* 전부 닫혀 작업이 없으면 카드는 이미 비워졌다. 렌더 키를 남겨 두면 같은 차트로 다시 열릴 때 같은 키라고 보고 그리지 않는다. */
+  if(!tasks.length){ _cdBundleSurfaceRenderKey=''; return; }
+  _cdBundleSurfaceRenderKey=key;
+  runDeferredSajuTasks(tasks.map(function(fn){ return function(){ try{ fn(); }catch(e){ console.error('[saju] bundle surface error',e); } }; }));
+}
+window.addEventListener('cd:unlocks-changed',function(){ try{ _cdRenderBundleSurfaces(); }catch(_){} });
+window.addEventListener('cd:tile-locks-updated',function(){ try{ _cdRenderBundleSurfaces(); }catch(_){} });
+
 // 🔴 사주 섹션 게이트 판정. 잠금 상태의 단일 소유자는 index.html 의 unlockedFeatureMap 이고
 // 노출 지점은 window.isTileKeyUnlocked 다(zwBasicPaidFeatureUnlocked 와 같은 계약).
 function _cdSajuGateUnlocked(featureKey){
@@ -24049,7 +23539,7 @@ function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name){
     var commonY=yong1.filter(function(e){return yong2.indexOf(e)>=0;});
     if(commonY.length){
       score+=4;
-      reasons.push('두 사람 모두 '+commonY.map(function(e){return EL_E[e]+EL_K[e];}).join(', ')+' 기운을 용신으로 삼아, 인생을 바라보는 핵심 방향이 매우 비슷합니다.');
+      reasons.push('두 사람 모두 '+commonY.map(function(e){return EL_E[e]+EL_K[e];}).join(', ')+' 기운을 보완 후보로 삼아, 인생을 바라보는 핵심 방향이 매우 비슷합니다.');
       addReasonFact('YONGSHIN_COMMON',4,{elements:commonY.slice()});
     }
     var commonSet={};
@@ -24063,7 +23553,7 @@ function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name){
     });
     if(clashEls.length){
       score-=4;
-      reasons.push('특히 '+clashEls.map(function(e){return EL_E[e]+EL_K[e];}).join(', ')+' 기운은 한쪽에게는 용신, 다른 한쪽에게는 기신으로 작용해, 그 주제에서는 민감하게 부딪힐 수 있는 구조입니다.');
+      reasons.push('특히 '+clashEls.map(function(e){return EL_E[e]+EL_K[e];}).join(', ')+' 기운은 한쪽에게는 보완 후보, 다른 한쪽에게는 주의 오행으로 작용해, 그 주제에서는 민감하게 부딪힐 수 있는 구조입니다.');
       addReasonFact('YONGSHIN_CLASH',-4,{elements:clashEls.slice()});
     }
   }
@@ -24101,7 +23591,7 @@ function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name){
     });
     if(kijiControlEvents.length){
       score+=5;
-      reasons.push('⭐ 흉신 제어: 상대의 글자('+kijiControlEvents.map(function(e){return e.by;}).join(', ')+')가 당신의 기신('+kijiControlEvents.map(function(e){return e.char;}).join(', ')+')을 충(沖)으로 제거해줍니다. 상대방이 당신의 나쁜 기운을 몰아내주는 최고 궁합의 핵심 요인입니다.');
+      reasons.push('⭐ 흉신 제어: 상대의 글자('+kijiControlEvents.map(function(e){return e.by;}).join(', ')+')가 당신의 주의 오행('+kijiControlEvents.map(function(e){return e.char;}).join(', ')+')을 충(沖)으로 제거해줍니다. 상대방이 당신의 나쁜 기운을 몰아내주는 최고 궁합의 핵심 요인입니다.');
       addReasonFact('KIJI_CONTROL_FORWARD',5,{events:kijiControlEvents.map(function(e){return{char:e.char,by:e.by};})});
     }
   }
@@ -24118,7 +23608,7 @@ function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name){
     });
     if(p2KijiEvents.length){
       score+=4;
-      reasons.push('⭐ 역방향 흉신 제어: 당신의 글자('+p2KijiEvents.map(function(e){return e.by;}).join(', ')+')가 상대의 기신을 충으로 제거해줍니다. 당신도 상대에게 해방감을 주는 존재입니다.');
+      reasons.push('⭐ 역방향 흉신 제어: 당신의 글자('+p2KijiEvents.map(function(e){return e.by;}).join(', ')+')가 상대의 주의 오행을 충으로 제거해줍니다. 당신도 상대에게 해방감을 주는 존재입니다.');
       addReasonFact('KIJI_CONTROL_REVERSE',4,{events:p2KijiEvents.map(function(e){return{char:e.char,by:e.by};})});
     }
   }
@@ -24136,7 +23626,7 @@ function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name){
       if(rEl&&kiji1_ext.indexOf(rEl)>=0){
         heTrapFound=true;
         score-=4;
-        reasons.push('🚨 합의 함정: '+c1+'와 '+c2+'가 합(合)을 이루면서 결과 오행('+EL_K[rEl]+')이 당신의 기신을 강화합니다. 겉은 잘 맞아 보이나 속으로 해로운 에너지가 쌓이는 구조입니다. 편안함과 중독을 구분하세요.');
+        reasons.push('🚨 합의 함정: '+c1+'와 '+c2+'가 합(合)을 이루면서 결과 오행('+EL_K[rEl]+')이 당신의 주의 오행을 강화합니다. 겉은 잘 맞아 보이나 속으로 해로운 에너지가 쌓이는 구조입니다. 편안함과 중독을 구분하세요.');
         addReasonFact('HE_TRAP',-4,{self:c1,partner:c2,resultElement:rEl});
       }
     });
@@ -24155,7 +23645,7 @@ function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name){
   var integratedScore = scoreMyeongri;
 
   var grade,gradeCls,gradeLabel,gradeComment;
-  if(score>=13){grade='S급';gradeCls='grade-s';gradeLabel='🌟 전생의 은인';gradeComment='서로의 부족한 에너지를 보완하는 흐름이 강하게 읽히는 관계입니다. 기신으로 읽힌 부담도 함께 조절할 여지가 있어, 배려와 공동 목표가 더해지면 안정적으로 성장할 수 있습니다.';}
+  if(score>=13){grade='S급';gradeCls='grade-s';gradeLabel='🌟 전생의 은인';gradeComment='서로의 부족한 에너지를 보완하는 흐름이 강하게 읽히는 관계입니다. 주의 오행으로 읽힌 부담도 함께 조절할 여지가 있어, 배려와 공동 목표가 더해지면 안정적으로 성장할 수 있습니다.';}
   else if(score>=8){grade='A급';gradeCls='grade-a';gradeLabel='✨ 운명 궁합';gradeComment='기본 코드와 에너지 방향이 잘 맞는 강한 인연입니다. 노력과 배려가 더해지면 오래 함께 성장할 수 있는 무게 있는 궁합입니다.';}
   else if(score>=3){grade='B급';gradeCls='grade-b';gradeLabel='😊 인연 궁합';gradeComment='맞는 부분과 조율이 필요한 부분이 섞여 있지만 충분히 잘 자라날 수 있는 궁합입니다. 서로의 차이를 자원으로 바라보는 시각이 필요합니다.';}
   else if(score>=-2){grade='C급';gradeCls='grade-c';gradeLabel='🙂 평범한 인연';gradeComment='특별히 좋지도 나쁘지도 않은 인연입니다. 운명보다는 선택과 노력이 이 관계의 방향을 결정합니다.';}
@@ -24186,9 +23676,9 @@ function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name){
 
   var emotionalSummary = sok.text.split('<br><br>')[0] || '두 사람의 감정 리듬을 명리 중심으로 해석한 요약입니다.';
   var conflictSummary = heTrapFound
-    ? '끌림은 강하지만 합의 결과가 기신을 건드려 오래 갈수록 답답함이 쌓일 수 있습니다. 편안함과 정체를 구분하는 합의가 핵심입니다.'
+    ? '끌림은 강하지만 합의 결과가 주의 오행을 건드려 오래 갈수록 답답함이 쌓일 수 있습니다. 편안함과 정체를 구분하는 합의가 핵심입니다.'
     : clashEls.length
-      ? '한쪽의 용신이 다른 한쪽의 기신이 되는 구간이 있어, 생활 방식과 우선순위를 정할 때 쉽게 예민해질 수 있습니다.'
+      ? '한쪽의 보완 후보가 다른 한쪽의 주의 오행이 되는 구간이 있어, 생활 방식과 우선순위를 정할 때 쉽게 예민해질 수 있습니다.'
       : '큰 충돌축은 약한 편이지만, 강한 끌림이 있는 만큼 말하지 않은 기대치가 갈등으로 바뀌지 않도록 기준을 미리 맞추는 편이 좋습니다.';
   var practicalSummary = type==='business'
     ? '일정, 권한, 돈의 흐름을 문서로 고정할수록 궁합 장점이 실적으로 이어집니다. 감정 조율보다 역할 설계가 먼저입니다.'
@@ -24209,7 +23699,7 @@ function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name){
     if(reason.indexOf('합')>=0) return '끌림과 편안함이 생기는 지점입니다. 다만 익숙함이 기대치로 굳지 않도록 각자의 속도와 경계를 확인해 주세요.';
     if(reason.indexOf('충')>=0||reason.indexOf('상극')>=0) return '차이가 행동과 말투의 마찰로 드러날 수 있는 지점입니다. 문제를 사람의 성격으로 단정하지 말고 상황별 규칙으로 조정해 보세요.';
     if(reason.indexOf('생')>=0||reason.indexOf('도와')>=0) return '서로의 성장을 돕는 자원입니다. 도움을 주는 쪽과 받는 쪽이 고정되지 않도록 역할을 번갈아 나누는 것이 좋습니다.';
-    if(reason.indexOf('기신')>=0||reason.indexOf('용신')>=0) return '한쪽의 생활 리듬을 다른 쪽이 보완하는 구조입니다. 고마움을 당연하게 여기지 않고 구체적인 배려로 돌려주세요.';
+    if(reason.indexOf('주의 오행')>=0||reason.indexOf('보완 후보')>=0) return '한쪽의 생활 리듬을 다른 쪽이 보완하는 구조입니다. 고마움을 당연하게 여기지 않고 구체적인 배려로 돌려주세요.';
     return '관계에서 실제로 반복되는지 관찰해 볼 수 있는 포인트입니다. 맞지 않는 부분은 억지로 끼워 맞추지 말고 두 사람의 경험을 기준으로 조정하세요.';
   };
   var factHtml=factLines.map(function(f){return '<div class="compat-check-item compat-fact-item"><span class="compat-check-icon" style="color:#d81b60; font-size:1.1rem">🔥</span><span>'+f+'</span></div>';}).join('');
@@ -24237,7 +23727,7 @@ function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name){
   }
 
   if(type==='love'){
-    advLines.push('<b>[연애 시크릿]:</b> 상대방이 지쳐 있을 때 다정한 위로 한마디에 더해, 그 사람의 용신(보완이 필요한 오행)과 연결되는 색이나 데이트 코스(예: 수(水)기운이 필요하면 조용한 물가, 화(火)기운이 필요하면 밝고 따뜻한 야외)를 선택해 보세요. 상징을 현실의 휴식과 대화로 번역하면 서로의 회복을 더 직접적으로 도울 수 있습니다.');
+    advLines.push('<b>[연애 시크릿]:</b> 상대방이 지쳐 있을 때 다정한 위로 한마디에 더해, 그 사람의 보완 후보(보완이 필요한 오행)과 연결되는 색이나 데이트 코스(예: 수(水)기운이 필요하면 조용한 물가, 화(火)기운이 필요하면 밝고 따뜻한 야외)를 선택해 보세요. 상징을 현실의 휴식과 대화로 번역하면 서로의 회복을 더 직접적으로 도울 수 있습니다.');
   }else if(type==='business'){
     advLines.push('<b>[동업 시크릿]:</b> 천생연분의 파트너십일지라도 돈의 흐름 앞에서는 반드시 시험대에 오르게 됩니다. 궁합이 좋다고 대충 넘기려 하지 마세요. 역할, 권한, 손절 매뉴얼, 이익 분배율을 가장 안 친한 남처럼 문서로 남겨두는 것만이 이 환상적인 동업을 영원히 비즈니스로 지켜주는 무적의 방패입니다.');
   }else{
@@ -24269,7 +23759,7 @@ function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name){
     '<div class="compat-section">'+
     '<div class="compat-section-title">🧭 사주 궁합 총평</div>'+
     '<div style="font-size:.8rem;color:#4e5358;line-height:1.7">'
-      +'이번 결과는 <b>사주 명리만</b>으로 계산했습니다. 일간·일지 합충, 조후, 용신/기신, 십성 구조를 합산해 <b>'+integratedScore+'</b>/100으로 정리했습니다.'+
+      +'이번 결과는 <b>사주 명리만</b>으로 계산했습니다. 일간·일지 합충, 조후, 보완 후보·주의 오행, 십성 구조를 합산해 <b>'+integratedScore+'</b>/100으로 정리했습니다.'+
     '</div>'+
     '</div>'+
     '<div class="compat-section">'+
@@ -24734,7 +24224,7 @@ function buildDwQmSection(g,j){
   if(!results.length)return '';
   var rows=results.map(function(row){
     var label=row.type.indexOf('간')===0?(row.isChung?'천간충':'천간합'):(row.isChung?'지지충':'육합');
-    var detail=row.isChung?'서로 다른 방향의 힘이 만나는 관계입니다. 원국에서 맡는 십성과 용신·기신의 작용을 함께 보며 변화의 부담과 기회를 구분합니다.':
+    var detail=row.isChung?'서로 다른 방향의 힘이 만나는 관계입니다. 원국에서 맡는 십성과 보완 후보·주의 오행의 작용을 함께 보며 변화의 부담과 기회를 구분합니다.':
       row.transformed?'이 엔진의 월령·투간·통근 및 쟁합·충 확인 조건을 충족해 '+EL_K[row.hapEl]+' 기운으로 평가합니다. 합화의 해석 기준은 학파에 따라 달라질 수 있습니다.':
       '합 관계는 있으나 합화 조건이 충분하지 않아 각 글자의 원래 오행을 유지해 해석합니다.';
     return '<div style="padding:10px 12px;background:#fff;border:1px solid #F0EEF0;border-radius:10px;font-size:.8rem;line-height:1.7"><b>'+row.src+'·'+row.partner+' '+label+'</b><p>'+detail+'</p>'+
@@ -24773,8 +24263,8 @@ function renderDaewun(bazi){
   if(card) card.style.display = 'block';
   var jg=G_JONG,pw=G_POWER;
   var jongTag = jg&&jg.isJong ? (jg.isGaJong ? '가종격(假從格)' : '진종격(眞從格)') : '';
-  var legendItems=['<span style="background:#E8F5E9;color:#2E7D32;padding:3px 9px;border-radius:99px;font-weight:700;font-size:.77rem">🌟 조후/<span class="notranslate">용신운</span> · 도움 되는 흐름</span>',
-    '<span style="background:#FFEBEE;color:#C62828;padding:3px 9px;border-radius:99px;font-weight:700;font-size:.77rem">🌧️ <span class="notranslate">기신운</span> · 조절이 필요한 흐름</span>',
+  var legendItems=['<span style="background:#E8F5E9;color:#2E7D32;padding:3px 9px;border-radius:99px;font-weight:700;font-size:.77rem">🌟 조후/<span class="notranslate">보완 오행 운</span> · 도움 되는 흐름</span>',
+    '<span style="background:#FFEBEE;color:#C62828;padding:3px 9px;border-radius:99px;font-weight:700;font-size:.77rem">🌧️ <span class="notranslate">부담 오행 운</span> · 조절이 필요한 흐름</span>',
     '<span style="background:#E3F2FD;color:#1565C0;padding:3px 9px;border-radius:99px;font-weight:700;font-size:.77rem">✨ 합화(合化) 반영</span>'
     +(jg&&jg.isJong?'<span style="background:#EDE7F6;color:#6A1B9A;padding:3px 9px;border-radius:99px;font-weight:600;font-size:.72rem">🌀 '+jongTag+'</span>':'')];
   document.getElementById('dwLegend').innerHTML=legendItems.join('');

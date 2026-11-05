@@ -9,6 +9,7 @@ import { Fragment, Suspense, useCallback, useEffect, useMemo, useRef, useState }
 import { ArrowLeft, ChevronDown, ChevronUp, Copy, Download, Loader2, Menu, RefreshCw, X } from "lucide-react";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 import ConsultationReading from "@/components/fortune/ConsultationReading";
+import ResultReference from "@/components/fortune/ResultReference";
 import ConsultationShare from "@/components/fortune/ConsultationShare";
 import { karmaShareChoices } from "@/lib/consultation-sharing";
 import { readDevPreviewState } from "@/lib/dev-preview/core";
@@ -1295,7 +1296,9 @@ function KarmaDestinyResultInner() {
                   </div>
                   {report.radar.kind !== "none" && (
                     <div className="kdo-synthesis__radar">
+                      <ResultReference exportOpen={exporting}>
                       <LensRadar model={report.radar} forceTable={exporting} />
+                      </ResultReference>
                     </div>
                   )}
                 </div>
@@ -1310,6 +1313,7 @@ function KarmaDestinyResultInner() {
             {/* ④ 운명 지도 */}
             {report.timeline.length > 0 && (
               <section id="kdo-map" data-kdai-spy="section" data-kdo-reveal className="kdo-map kdo-pane" data-kdai-pdf-page>
+                <ResultReference label={copy.mapHeading} exportOpen={exporting}>
                 <span className="kdo-kicker">{copy.mapKicker}</span>
                 <h2>{copy.mapHeading}</h2>
                 <ol className="kdo-map__list">
@@ -1324,6 +1328,7 @@ function KarmaDestinyResultInner() {
                     </li>
                   ))}
                 </ol>
+                </ResultReference>
               </section>
             )}
 

@@ -57,8 +57,8 @@ const highKeywordPattern = new RegExp(`(^|/)(${HIGH_KEYWORDS.flatMap(caseForms).
  * 문서는 런타임이 아니다 — 키워드 축에서만 제외한다(구조 패턴은 그대로 적용된다).
  * `docs/handoff/mongo-m10-phase2-*.md` 나 `docs/context/payment-gating.md` 를 고쳤다는 이유로
  * 전체 회귀를 돌릴 근거가 없다(최근 머지 30건 중 5건이 이 오탐으로 critical 이었다).
- * 문서를 입력으로 읽는 가드는 티어와 무관하게 돈다 — verify:handoff-contract 는 pr-ci fast 잡
- * (if 조건이 없다), verify-nakshatra-premium 의 CLAUDE.md·docs/context 단언은 paid-flow-gates
+ * 문서를 입력으로 읽는 가드는 티어와 무관하게 돈다 — verify:handoff-contract 는 pr-ci 의
+ * guards 잡과 (guards 가 skip 될 때) classify, verify-nakshatra-premium 의 CLAUDE.md·docs/context 단언은 paid-flow-gates
  * 의 paths 트리거다.
  */
 const inertDocPattern = /(^|\/)(docs?|reports?)\/|\.mdx?$/i;

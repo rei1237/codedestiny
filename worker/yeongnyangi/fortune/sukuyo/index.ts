@@ -23,7 +23,7 @@ export const sukuyo = domain(
     const calculate = async (p: NonNullable<typeof input.personA>) => {
       const t = chartInput(p);
       return calculateSukuyoForMoment(
-        engineEnv,
+        engineEnv.runtimeEnv || {},
         {
           ...t,
           calendarType: "solar",

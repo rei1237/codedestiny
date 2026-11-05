@@ -1,3 +1,5 @@
+import HomeInstallEntry from './components/HomeInstallEntry';
+import StoryDiscovery from './consultations/StoryDiscovery';
 import Link from 'next/link';
 import { publicSeoPages, siteSeo } from "../lib/seo/siteSeo";
 import { buildServiceJsonLd, buildWebPageJsonLd, buildAuthorPersonJsonLd } from "../lib/structured-data";
@@ -7,6 +9,7 @@ import { BRAND_FACTS } from "../lib/brand/brand-facts.mjs";
 import { FOOTER_BYLINE, FOOTER_LINKS, FOOTER_NOTICE, FOOTER_TRUST_LINKS } from "../lib/brand/site-footer";
 import { BUSINESS_IDENTITY } from "../lib/site-policy-config";
 import LegacyHomeEntry from "./components/LegacyHomeEntry";
+import { HOME_QUICK_LINKS } from "../lib/seo/home-discovery.mjs";
 import HomeCardDeck from "./components/HomeCardDeck";
 import { NativeHomeRoot, NativeHomeNav, NativeHomeText, NativeHomeCardLink, NativeHomeDictionaryText } from "./components/NativeHomeCopy";
 import "./yeongnyangi/night-tokens.css";
@@ -32,7 +35,7 @@ export const metadata = {
   metadataBase: new URL(service.siteUrl),
   title: { absolute: HOME_TITLE },
   description: HOME_DESCRIPTION,
-  keywords: [service.name, ...service.alternateNames, `${service.name} 공식`, YEONGNYANGI.serviceName, "무료 사주", "무료 타로", "영냥이", "자미두수", "베다점", "숙요점", "휴먼 디자인", "MBTI", ...publicSeoPages.home.keywords],
+  keywords: [service.name, ...service.alternateNames, `${service.name} 공식`, YEONGNYANGI.serviceName, "무료 만세력", "무료 타로", "영냥이", "자미두수", "베다점", "숙요점", "휴먼 디자인", "MBTI", ...publicSeoPages.home.keywords],
   // 대표 홈은 자기 자신만 정본으로 둔다. /ggulggul/ 로케일 클러스터(hreflang)와 섞지 않는다.
   alternates: { canonical: service.homeUrl },
   robots: {
@@ -120,12 +123,19 @@ export default function HomePage() {
             </li>;
           })}
         </HomeCardDeck>
+        {!IS_APP_BUILD && <HomeInstallEntry />}
+        {!IS_APP_BUILD && <nav className={styles.entryHelp} aria-label="주요 운세 바로가기">
+          {HOME_QUICK_LINKS.map(({ key, href, title }) => (
+            <Link key={key} href={href} prefetch={false} {...discoveryTracking(key)}>{title}</Link>
+          ))}
+        </nav>}
         <nav className={styles.entryHelp} aria-label="서비스 이용 도움말">
           <Link prefetch={IS_APP_BUILD ? false : undefined} href="/faq/"><NativeHomeText>이용 안내</NativeHomeText></Link>
           <Link prefetch={IS_APP_BUILD ? false : undefined} href="/records/"><NativeHomeText>꿀꿀 운세 기록</NativeHomeText></Link>
           <Link prefetch={IS_APP_BUILD ? false : undefined} href="/yeongnyangi/library/"><NativeHomeText>영냥이 상담 기록</NativeHomeText></Link>
         </nav>
         <p className={styles.entryNote}><NativeHomeText>이용권과 상담 기록은 서비스별로 확인해 주세요.</NativeHomeText></p>
+        {!IS_APP_BUILD && <StoryDiscovery />}
       </main>
 
       <footer className={styles.footer}>

@@ -4,7 +4,7 @@ import { getBillingFeaturePricing } from "../../worker/lib/billing-feature-regis
 import { resolveAppContentTier } from "../../worker/lib/app-store-pricing.js";
 import { grantEntitlement } from "../../worker/payments/entitlements.js";
 import { CONTENT_ENTITLEMENT_STATUSES } from "../../worker/lib/models.js";
-import { createOrder, createPayableOrder, markOrderPaid } from "../../worker/payments/orders.js";
+import { createPayableOrder } from "../../worker/payments/orders.js";
 import { evaluatePassCoverage } from "../../worker/payments/passes.js";
 import { CURRENT_PASS_POLICY_VERSION } from "../../lib/payment/pass-policy.js";
 import { makeFakePaymentDb } from "../fixtures/fake-payment-db.mjs";
@@ -22,11 +22,12 @@ const birthPid = (profileId) => toBirthEntitlementProfileId(computeBirthKey(CARD
 const makeDb = () => makeFakePaymentDb({ profileCards: CARDS });
 
 // The new sale price must agree at every resolver; no separate web/app/moonstone price table.
-test("대운 신규 해금은 20,000원·월정석 2,000이며 앱도 같은 가격이다", () => {
+// 2026-11-04: 대운은 사주 영구 묶음 전용이라 신규 개별 판매·이용권·월정석에서 빠졌다. 가격행(20,000원/200코인)은 과거 구매 증빙 비교용으로 그대로 둔다.
+test("대운 가격행은 20,000원·월정석 2,000 그대로이고 앱도 같은 가격이다(판매 경로는 직접 결제 전용으로 닫힘)", () => {
   expect(PRODUCT).toMatchObject({
     productId: "unlock.section_daewun", featureKey: "section_daewun", billingType: "unlock",
     priceKRW: 20000, priceCoins: 200, monthlyCost: 2000,
-    allowedPaymentMethods: ["PASS", "DIRECT_KRW", "MOONLIGHT_STONE"],
+    allowedPaymentMethods: ["DIRECT_KRW"],
   });
   expect(resolveProduct({ productId: "unlock.section_daewun" })).toEqual(PRODUCT);
   expect(getBillingFeaturePricing({ featureKey: PRODUCT.featureKey }).pricing).toMatchObject({ amountKRW: 20000, cost: 200 });
@@ -71,29 +72,23 @@ test("기존 5,000원 대운 구매권은 새 가격에도 같은 프로필에�
   expect(db.rows.find((row) => row.profileId === birthPid("another-profile")).amountKRW).toBe(20000);
 });
 
-test("미결제 대운 주문은 재진입 시 새 가격으로 갱신된다", async () => {
+test("판매가 끝난 대운은 미결제 주문 재진입도 새 가격으로 갱신하지 않고 409로 막는다", async () => {
   const db = makeDb();
   const input = { userId: USER, profileId: PROFILE, contentKey: CONTENT, idempotencyKey: "daewun-pending" };
-  const old = await createOrder(db, { ...input, product: OLD_PRODUCT });
-  const repriced = await createPayableOrder(db, { ...input, product: PRODUCT });
-  expect(repriced.merchantUid).toBe(old.merchantUid);
-  expect(repriced.paymentAmount).toBe(20000);
-  expect(repriced.pricingSnapshot).toMatchObject({ priceKRW: 20000, priceCoins: 200, monthlyCost: 2000 });
-  expect(db.rows).toHaveLength(1);
+  await expect(createPayableOrder(db, { ...input, product: PRODUCT })).rejects.toMatchObject({ code: "PRODUCT_SALE_ENDED" });
+  expect(db.rows).toHaveLength(0);
 });
 
-test("이미 결제된 대운 주문의 5,000원 구매금액은 새 주문에 덮이지 않는다", async () => {
+test("이미 결제된 대운 주문의 5,000원 구매금액은 닫힌 뒤에도 확정이 그대로 열리고 새 주문에 덮이지 않는다", async () => {
   const db = makeDb();
   const input = { userId: USER, profileId: PROFILE, contentKey: CONTENT, idempotencyKey: "daewun-paid" };
-  const old = await createOrder(db, { ...input, product: OLD_PRODUCT });
-  await markOrderPaid(db, { orderId: old.merchantUid, order: old, pg: {
-    pgTransactionId: "old-daewun-tx", paidAt: new Date("2026-09-29T00:00:00Z"), method: "card",
-    summary: { paymentId: "old-daewun-tx", amount: 5000, currency: "KRW" },
-  } });
-  const next = await createPayableOrder(db, { ...input, product: PRODUCT });
-  expect(next.merchantUid).not.toBe(old.merchantUid);
-  expect(next.paymentAmount).toBe(20000);
-  expect(db.rows.find((row) => row.merchantUid === old.merchantUid)).toMatchObject({
+  // 닫히기 전에 만든 결제 완료 주문(생성 경로는 이제 막혀 있어 행을 직접 둔다).
+  db.rows.push({
+    merchantUid: "old-daewun-paid", userId: USER, idempotencyKey: input.idempotencyKey, paymentType: "digital_content",
+    featureKey: "section_daewun", status: "paid", paymentAmount: 5000, pricingSnapshot: { priceKRW: 5000, priceCoins: 50 },
+  });
+  await expect(createPayableOrder(db, { ...input, product: PRODUCT })).rejects.toMatchObject({ code: "PRODUCT_SALE_ENDED" });
+  expect(db.rows.find((row) => row.merchantUid === "old-daewun-paid")).toMatchObject({
     status: "paid", paymentAmount: 5000, pricingSnapshot: { priceKRW: 5000, priceCoins: 50 },
   });
 });

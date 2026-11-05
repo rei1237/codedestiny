@@ -51,7 +51,8 @@ import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { resolveAiLocaleFromRequest, runWithAiLocale } from "../lib/ai-locale-context.js";
 import { calculateLifeBookAiSaju } from "../lib/life-book-ai-saju.js";
-import { calculateZiweiAiChart } from "../lib/ziwei-ai-chart.js";
+import { approvedSajuLabels, lifeBookPillars, overlayApprovedLifeBookChart, sajuAuthorityOn } from "../lib/saju-authority-consumer.js";
+import { calculateZiweiConsumerChart } from "../lib/ziwei-consumer-chart.js";
 import {
   LOVE_DNA_METRICS,
   MASTER_LOVE_CODEX_CHAPTERS,
@@ -269,19 +270,28 @@ function normalizeInput(body = {}) {
  * 명식·명반을 세운다. 궁합이면 상대 것까지 4개를 세우고 궁합 판정을 함께 만든다.
  * 실패 시 code=CALCULATION_FAILED
  */
-function buildCharts(normalized, now = new Date()) {
+function buildCharts(normalized, now = new Date(), env = {}) {
   const { birthInfo, partnerInfo } = asObject(normalized);
   try {
     const year = new Date(now.getTime() + 9 * 3600000).getUTCFullYear();
     const saju = calculateLifeBookAiSaju(birthInfo, { year });
-    const ziweiChart = calculateZiweiAiChart({ birthInfo }, { year });
-    if (!partnerInfo) return { saju, ziweiChart, partnerSaju: null, partnerZiweiChart: null, compatibility: null };
+    const ziweiChart = calculateZiweiConsumerChart({ birthInfo }, { env, year });
+    const authority = sajuAuthorityOn(env);
+    const selfLabels = authority ? approvedSajuLabels(lifeBookPillars(saju)) : null;
+    if (!partnerInfo) return { saju: authority ? overlayApprovedLifeBookChart(saju, selfLabels) : saju, ziweiChart, partnerSaju: null, partnerZiweiChart: null, compatibility: null };
 
     const partnerSaju = calculateLifeBookAiSaju(partnerInfo, { year });
-    const partnerZiweiChart = calculateZiweiAiChart({ birthInfo: partnerInfo }, { year });
+    const partnerZiweiChart = calculateZiweiConsumerChart({ birthInfo: partnerInfo }, { env, year });
     const compatibility = buildMasterLoveCodexCompatibility({
       selfSaju: saju, selfZiwei: ziweiChart, partnerSaju, partnerZiwei: partnerZiweiChart,
     });
+    if (authority) {
+      // 궁합 점수와 signature 는 raw 로 끝낸 값을 유지한다. 서명은 다시 계산하지 않고 보여 줄 강약 라벨만 바꾼다.
+      const partnerLabels = approvedSajuLabels(lifeBookPillars(partnerSaju));
+      return { saju: overlayApprovedLifeBookChart(saju, selfLabels), ziweiChart, partnerSaju: overlayApprovedLifeBookChart(partnerSaju, partnerLabels), partnerZiweiChart,
+        compatibility: { ...compatibility, saju: { ...compatibility.saju, yongshinSupport: { ...compatibility.saju.yongshinSupport,
+          selfStrength: selfLabels.strength, partnerStrength: partnerLabels.strength, approved: true } } } };
+    }
     return { saju, ziweiChart, partnerSaju, partnerZiweiChart, compatibility };
   } catch (error) {
     const failure = new Error(clean(error?.message, 200) || "chart calculation failed");
@@ -964,7 +974,7 @@ async function handleEnsureAccess(request, env) {
   if (!normalized.ok) return invalidInput(normalized.message);
 
   try {
-    buildCharts(normalized);
+    buildCharts(normalized, new Date(), env);
   } catch (_) {
     return json({ ok: false, reason: "CALCULATION_FAILED", message: MESSAGES.calculationFailed }, { status: 422 });
   }
@@ -1114,7 +1124,7 @@ export async function startCodexSession(request, env, auth, body) {
   let charts, consultation;
   try {
     const now = new Date();
-    charts = buildCharts(normalized, now);
+    charts = buildCharts(normalized, now, env);
     consultation = buildCodexConsultation(normalized.consultation, normalized.mode, charts, normalized.birthInfo, normalized.partnerInfo, now);
   } catch (_) {
     return json({ ok: false, reason: "CALCULATION_FAILED", message: MESSAGES.calculationFailed }, { status: 422 });

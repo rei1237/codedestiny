@@ -93,6 +93,12 @@
     var signatureInteraction = signatureViewport.parentElement;
     function signatureCount() { return window.innerWidth > 1000 ? 3 : window.innerWidth > 760 ? 2 : 1; }
     function signatureLast() { return Math.max(0, signatureCards.length - signatureCount()); }
+    function setSignatureInert(card, value) {
+      card.inert = value;
+      // A consultation and its webtoon link occupy the same carousel position.
+      var entry = card.closest('.cd-story-entry');
+      if (entry) entry.inert = value;
+    }
     function signatureHasBlockingModal() {
       return Array.prototype.some.call(document.querySelectorAll('dialog[open],[aria-modal="true"]:not([hidden])'), function (node) {
         return node.getClientRects().length > 0 && getComputedStyle(node).visibility !== 'hidden';
@@ -110,7 +116,7 @@
       signatureIndex = Math.min(signatureIndex, signatureLast());
       var end = Math.min(signatureCards.length, signatureIndex + signatureCount());
       signaturePosition.textContent = String(signatureIndex + 1).padStart(2, '0') + (end > signatureIndex + 1 ? '–' + String(end).padStart(2, '0') : '') + ' / ' + String(signatureCards.length).padStart(2, '0');
-      signatureCards.forEach(function (card, index) { card.inert = index < signatureIndex || index >= end; });
+      signatureCards.forEach(function (card, index) { setSignatureInert(card, index < signatureIndex || index >= end); });
       if (signatureDots && signatureDots.children.length !== signatureLast() + 1) {
         signatureDots.replaceChildren();
         for (var i = 0; i <= signatureLast(); i++) {
@@ -151,7 +157,7 @@
       if (!card) return;
       signatureAnchor = nextIndex;
       // Release inert before moving so pointer/keyboard use never targets a hidden card.
-      signatureCards.forEach(function (item) { item.inert = false; });
+      signatureCards.forEach(function (item) { setSignatureInert(item, false); });
       signatureViewport.scrollTo({left: signatureViewport.scrollLeft + card.getBoundingClientRect().left - signatureViewport.getBoundingClientRect().left - 4, behavior: signatureMotion.matches ? 'instant' : 'smooth'});
       if (Math.abs(card.getBoundingClientRect().left - signatureViewport.getBoundingClientRect().left - 4) < 1) syncSignature();
       scheduleSignature();

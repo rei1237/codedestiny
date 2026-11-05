@@ -31,6 +31,7 @@ const origin='http://127.0.0.1:'+server.address().port;
 const browser=await chromium.launch({headless:true});
 try{
  const page=await browser.newPage({viewport:{width:390,height:900},reducedMotion:'reduce'});
+ await page.addInitScript(()=>sessionStorage.setItem('cd_signature_consult_session_closed_v1','1')); // 홈 상담 팝업이 입력 폼을 가리지 않게 한다
  await page.routeWebSocket('**',socket=>socket.close());
  await page.route('**/*',route=>new URL(route.request().url()).origin===origin?route.continue():route.abort());
  await page.goto(origin+'/ggulggul/?action=cdOneStepFreeSajuEntry');

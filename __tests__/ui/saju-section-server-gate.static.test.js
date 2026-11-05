@@ -84,6 +84,22 @@ test("종합·대운 유료 렌더러와 문장이 브라우저 경로에 없다
     // 인생 스킬 트리(rpt_skillTreeCard) 클래스 시트. renderSkillTree 이름은 무료 스텁을 까는 함수로, 시트 스타일과 퀘스트 칸은 브라우저에 남는다.
     "ILJU_INNATE_DB", "_buildHeroSVG", "addTenGodWeight", "lockedDB", "levelUpText",
     "홀로서기의 전투 기술", "마르지 않는 영원한 영감의 원천",
+    // 원국 해석(saju_lifetime_bundle): 일주·십성·조후·억부·절기. 생성기 이름과 해석 전용 문장만 본다 — 일주 표(ILJU_DB)·십성 표(TS_DB/TS_DEEP)는 계산·무료 상세 모달·section_summary 가 함께 쓰는 공용 표라 넣지 않는다.
+    // 비한국어 원국 해석(reading-rich-intl.js 의 조후·억부·십성·일주 문장과 climateVersus)은 서버 전용 paid-natal-intl.src.js 로 옮겼다. 공개 reading-rich-intl.js 에는 무료 화면의 flow·daily 만 남는다.
+    // 일주·월령 문장 원천(reading-depth)은 서버 전용 lib/saju/reading-depth.mjs 에만 두고, 공개 reading-depth.generated.js 는 reading-depth-public.mjs 만 싣는다.
+    "climateVersus", "natalIntl", "PILLAR_NOTES", "dayReadingNeo", "monthReadingNeo", "contextualReadingNeo",
+    "기준을 세우고 앞장서는 힘이 있어요. 그 기준이 굳어지면 도움을 받아도 간섭처럼 느낄 수 있어요", "일주의 성향만으로 수입이나 투자 성과를 알 수는 없어요",
+    "겉으로 결단한 뒤에도 속으로는 충분한 근거를 찾고 있을 수 있어요", "완수한 일과 아직 자라는 일을 나눠 적고",
+    "like a tall tree growing straight up: it sets a direction, takes the lead and holds its pride",
+    "天へまっすぐ伸びる大樹のように、方向を定めて先頭に立ち、誇りを守る気質", "像笔直向上生长的大树，认准方向、愿意带头，也守着自己的骄傲", "像筆直向上生長的大樹，認準方向、願意帶頭，也守著自己的驕傲",
+    "ILJU_WORD", "STAGE12", "buildIljuKeywords", "곧게 자라는 나무는 한 번에 크지 않아요", "일지에 비겁이 있어 배우자 자리에 나와 닮은 기운이 앉아 있어요",
+    "FAMILY_OVER", "COMBOS", "스스로 정하고 스스로 책임질 때 편안해지는 자기 기준의 기운이에요", "식상과 재성이 함께 있어 재능이 수입으로 이어지는 흐름이 보여요",
+    "비견(比肩)은 일간과 오행도 음양도 같은 글자",
+    "CLIMATE_COPY", "climatePendingVerdict", "명리에서 부족한 기운을 채우는 상징을 생활 언어로 옮겼어요",
+    "_UKBU_DAY_STEM_NOTE", "_ukbuMonthRelation", "_ukbuJongKind", "태어난 달이 일간을 낳아 기르는 인성(印星)의 달이라 힘을 크게 받아요",
+    "하늘로 곧게 뻗는 큰 나무처럼 방향을 세우고 앞장서는 힘이 크고 자존심이 단단한 편",
+    "buildSeasonalFortuneContext", "_t24SeasonProfile", "_t24DomainCards", "_t24RenderDomainCards",
+    "가능성을 먼저 보고 움직이는 편이라, 방향이 선명할수록 시작과 확장이 빨라지는 편입니다", "벌인 일을 세 가지 안으로 줄여 끝맺음 기준을 정해보세요",
   ];
   const offenders = [];
   for (const rel of browserServedFiles()) {
@@ -106,6 +122,34 @@ test("종합·대운 유료 렌더러와 문장이 브라우저 경로에 없다
   assert.ok(read("worker/lib/saju-section/paid-health.src.js").includes("function buildWellnessHealthReport(p, natal, johu, pw, jg) {"), "명리 헬스 리포트 정본이 서버에 없다");
   assert.ok(read("worker/lib/saju-section/paid-charm.src.js").includes("function renderSpecialCharm(p, natal) {"), "나의 매력 클래스 정본이 서버에 없다");
   assert.ok(read("worker/lib/saju-section/paid-skill.src.js").includes("function renderSkillTree(p, natal){"), "인생 스킬 트리 정본이 서버에 없다");
+  const natal = read("worker/lib/saju-section/paid-natal-reading.src.js");
+  for (const name of ["buildNatalReadingParts", "buildSeasonalFortuneContext", "_t24DomainCards", "buildIljuKeywords"]) {
+    assert.ok(natal.includes("function " + name + "("), `${name} 정본이 서버에 없다`);
+  }
+  for (const name of ["ILJU_WORD", "CLIMATE_COPY", "COMBOS", "STEM_NOTE"]) assert.ok(natal.includes("var " + name + " ="), `${name} 정본이 서버에 없다`);
+  // 비한국어 원국 해석 문장과 일주·월령 문장 원천도 서버에 있어야 한다(공개 파일에서 지우고 서버에 안 두는 실수 방지).
+  const intl = read("worker/lib/saju-section/paid-natal-intl.src.js");
+  assert.ok(intl.includes("function climateVersus(") && intl.includes("var natalIntl ="), "비한국어 원국 해석 정본이 서버에 없다");
+  assert.ok(read("lib/saju/reading-depth.mjs").includes("export const PILLAR_NOTES"), "일주 문장 원천 정본이 서버에 없다");
+});
+
+test("추천 태그는 서버가 채우는 일주 조언 목록을 읽지 않는다", () => {
+  // 묶음 구매자에게만 채워지는 #iljuAdviceList 를 입력으로 쓰면 구매 여부·로딩 순서에 따라 태그가 달라진다.
+  for (const rel of ["js/recommendations-legacy.mjs", "public/js/recommendations-legacy.mjs"]) {
+    assert.doesNotMatch(stripComments(read(rel)), /iljuAdviceList/, `${rel} 이 서버 일주 조언 목록을 읽는다`);
+  }
+  const callers = [];
+  for (const rel of browserServedFiles()) {
+    const source = stripComments(read(rel));
+    for (const m of source.matchAll(/\.mountSajuRecommendation\(([^;]*)/g)) callers.push({ rel, args: m[1] });
+  }
+  assert.ok(callers.length >= 4, `mountSajuRecommendation 호출처를 ${callers.length}곳만 찾았다`);
+  for (const { rel, args } of callers) {
+    assert.match(args, /m\.iljuAdviceLines\(/, `${rel} 이 공개 일주 조언 목록 없이 추천을 붙인다`);
+  }
+  // 목록의 출처는 공개 일주 표(ILJU_DB) 하나다.
+  const engine = stripComments(read("js/saju-engine.js"));
+  assert.match(engine, /window\.cdSajuRecommendationAdvice = function\(\)\{[^}]*ILJU_DB\[/, "추천 조언 입력이 ILJU_DB 에서 오지 않는다");
 });
 
 test("극T 해금 패널 문장의 번역은 공개 사전(public/i18n)에 없다", () => {
@@ -125,9 +169,15 @@ test("극T 해금 패널 문장의 번역은 공개 사전(public/i18n)에 없�
 test("브라우저는 본문을 서버에만 묻는다", () => {
   const client = stripComments(read("js/core/saju/section-client.js"));
   assert.match(client, /'\/api\/saju\/section'/, "서버 본문 요청 경로가 없다");
+  assert.match(client, /var NATAL_KEY = 'saju_lifetime_bundle';[\s\S]*requestBody\(NATAL_KEY\)/, "원국 해석이 서버 본문을 요청하지 않는다");
+  assert.match(client, /function loadNatalReading\(/, "원국 해석 서버 로더가 없다");
   const engine = stripComments(read("js/saju-engine.js"));
   assert.match(engine, /function renderSummary\(\)\{[^}]*CdSajuSectionClient\.loadSummary\(\)/, "renderSummary 가 서버 로더를 거치지 않는다");
   assert.match(engine, /function showDwDetail\([^)]*\)\{[^}]*CdSajuSectionClient\.showDaewun\(/, "showDwDetail 이 서버 로더를 거치지 않는다");
+  for (const fn of ["renderIlju", "render24Terms", "renderTenshin", "renderJohu", "renderUkbu"]) {
+    assert.match(engine, new RegExp("function " + fn + "\\([^)]*\\)\\s*\\{[^]*?_cdNatalReadingStub\\("), `${fn} 이 잠금 스텁 길을 거치지 않는다`);
+  }
+  assert.match(engine, /CdSajuSectionClient\.loadNatalReading\(/, "원국 해석 해금 화면이 서버 로더를 거치지 않는다");
   assert.match(client, /requestBody\('rpt_quantumCard'\)/, "퀀텀 카드가 서버 본문을 요청하지 않는다");
   assert.match(client, /var EXTREME_T_KEY = 'sukuyo-extreme-t-relationship';[\s\S]*requestBody\(EXTREME_T_KEY\)/, "극T 패널이 서버 본문을 요청하지 않는다");
   assert.match(stripComments(read("js/saju-engine-tarot-sukuyo-quantum.js")), /sectionClient\.loadExtremeT\(area,/, "극T 해금 화면이 서버 로더를 거치지 않는다");

@@ -1,0 +1,16 @@
+{
+  "home.choice.resume": {
+    "ko": "상담 카드 자동 넘김 다시 시작하기",
+    "en": "Resume automatic card changes",
+    "ja": "カードの自動切り替えを再開",
+    "zh-CN": "恢复自动切换卡片",
+    "zh-TW": "恢復自動切換卡片",
+    "vi": "Tiếp tục tự động chuyển thẻ",
+    "hi": "कार्ड का अपने आप बदलना फिर शुरू करें",
+    "es": "Reanudar el cambio automático",
+    "fr": "Reprendre le défilement automatique",
+    "de": "Automatischen Kartenwechsel fortsetzen",
+    "nl": "Automatisch wisselen hervatten",
+    "ms": "Sambung semula pertukaran kad automatik"
+  }
+}

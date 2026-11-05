@@ -267,18 +267,18 @@
     "ms": "See today's fortune"
   },
   "shellRuntime.f3693": {
-    "ko": "무료 사주팔자 분석",
-    "en": "Free Four Pillars analysis",
-    "ja": "無料の四柱推命分析",
-    "zh-CN": "免费八字分析",
-    "zh-TW": "免費八字分析",
-    "vi": "Free Four Pillars analysis",
-    "hi": "Free Four Pillars analysis",
-    "es": "Free Four Pillars analysis",
-    "fr": "Free Four Pillars analysis",
-    "de": "Free Four Pillars analysis",
-    "nl": "Free Four Pillars analysis",
-    "ms": "Free Four Pillars analysis"
+    "ko": "무료 만세력 사주 원국",
+    "en": "Free Manseryeok natal chart",
+    "ja": "無料の万年暦(命式)",
+    "zh-CN": "免费万年历(八字原局)",
+    "zh-TW": "免費萬年曆(八字原局)",
+    "vi": "Free Manseryeok natal chart",
+    "hi": "Free Manseryeok natal chart",
+    "es": "Free Manseryeok natal chart",
+    "fr": "Free Manseryeok natal chart",
+    "de": "Free Manseryeok natal chart",
+    "nl": "Free Manseryeok natal chart",
+    "ms": "Free Manseryeok natal chart"
   },
   "shellRuntime.f3694": {
     "ko": "관상은 얼굴로 성격을 판단하는 것인가요?",

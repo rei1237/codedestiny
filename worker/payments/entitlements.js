@@ -38,6 +38,7 @@ import { toObjectId, toUserIdString } from "./db.js";
 import { revokePurchaseEntitlement } from "./executions.js";
 import { isBirthScopedUnlockFeatureKey, isUnlockPaidFeatureKey } from "../lib/paid-feature-registry.js";
 import { resolvePaymentBirthIdentity } from "./birth-identity.js";
+import { SAJU_BUNDLE_FEATURE_KEY, isSajuBundleAliasMember } from "../lib/saju-bundle-policy.js";
 import { BIRTH_ENTITLEMENT_SCOPE } from "../lib/birth-key.js";
 
 function clean(value, max) {
@@ -118,6 +119,7 @@ function identityFilter(uid, identity) {
  */
 export async function findOwnedEntitlement(db, {
   userId, product, profileId = "", partnerProfileId = "", serviceKey = "", contentKey = "", scope = "", birthIdentity = null,
+  includeBundle = true,
 }) {
   const uid = toUserIdString(userId);
   if (!uid) throw paymentError("UNAUTHORIZED", "로그인이 필요합니다.");
@@ -138,7 +140,39 @@ export async function findOwnedEntitlement(db, {
     status: CONTENT_ENTITLEMENT_STATUSES.ACTIVE,
     $or: [{ expiresAt: null }, { expiresAt: { $exists: false } }, { expiresAt: { $gt: new Date() } }],
   });
+  if (!owned && includeBundle && birth && !birth.partnerBirthKey && isSajuBundleAliasMember(product.featureKey)) {
+    /* 사주 영구 묶음: 포함 키는 개별 행이 없으면 같은 출생 정보의 묶음 행으로도 소유다(읽기 별칭, content-unlocks.js
+       findActivePaidContentUnlock 과 같은 규칙). 묶음 키는 포함 키가 아니라 재귀는 한 번으로 끝난다.
+       상대 출생 정보가 섞인 궁합 신원과 포함 키 전용 serviceKey·contentKey·scope 는 묶음 조회에 넘기지 않는다.
+       반환 identity 는 요청한 포함 키의 것이다(호출부가 "무엇을 열었나"를 그대로 읽는다). */
+    const viaBundle = await findOwnedEntitlement(db, {
+      userId: uid, product: { ...product, featureKey: SAJU_BUNDLE_FEATURE_KEY }, profileId, birthIdentity: birth, includeBundle: false,
+    });
+    if (viaBundle.owned) return { owned: true, identity, entitlement: viaBundle.entitlement };
+  }
   return { owned: Boolean(owned), identity, entitlement: owned || null };
+}
+
+/**
+ * 신규 개별 판매가 닫힌 키(isSajuBundleSaleClosed)를 **이미 가졌는가**. 닫힘 판정(assertProductSaleOpen)보다
+ * 반드시 먼저 부른다 — 산 것은 계속 열리고, 묶음 보유 프로필의 포함 키는 묶음으로 열린다.
+ * 레거시 USER·PROFILE 행도 소유로 본다. 출생 기반 키에 저장 프로필이 없으면 가진 것이 없다(false).
+ * 남의 프로필(INVALID_PROFILE)은 그대로 던진다.
+ */
+export async function findOwnedForSaleGate(db, { userId, product, profileId = "", partnerProfileId = "", contentKey = "", scope = "" }) {
+  if (await findLegacyBirthUnlock(db, { userId, product, profileId, contentKey })) return true;
+  if (!isUnlockPaidFeatureKey(product?.featureKey)) return false;
+  let birthIdentity = null;
+  if (isBirthScopedUnlockFeatureKey(product.featureKey)) {
+    try {
+      birthIdentity = await resolvePaymentBirthIdentity(db, { userId, profileId, partnerProfileId, featureKey: product.featureKey });
+    } catch (error) {
+      if (error?.code === "MISSING_PROFILE_ID") return false;
+      throw error;
+    }
+  }
+  const found = await findOwnedEntitlement(db, { userId, product, profileId, partnerProfileId, contentKey, scope, birthIdentity });
+  return found.owned;
 }
 
 /**
@@ -183,8 +217,9 @@ export async function grantEntitlement(db, {
 
   // 과거 영구 해금의 서비스·콘텐츠 별칭도 차감 전에 같은 소유로 확인한다.
   if (birth || isUnlockPaidFeatureKey(product.featureKey)) {
+    // 지급 판정은 묶음 별칭을 보지 않는다: 포함 키 주문이 확정되면 개별 행도 남아야 묶음 환불 뒤에도 산 권리가 그대로다.
     const existing = await findOwnedEntitlement(db, { userId: uid, product, profileId, partnerProfileId,
-      serviceKey, contentKey, scope, birthIdentity: birth });
+      serviceKey, contentKey, scope, birthIdentity: birth, includeBundle: false });
     if (existing.owned) return { alreadyOwned: true,
       identity: { ...identity, serviceKey: existing.entitlement.serviceKey, contentKey: existing.entitlement.contentKey },
       entitlement: existing.entitlement };

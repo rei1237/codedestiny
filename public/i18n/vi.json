@@ -52,11 +52,11 @@
     "hero": {
       "eyebrow": "CODE DESTINY",
       "brandLine": "Bộ sưu tập thiên tài",
-      "titleLine1": "Tứ trụ & Tarot miễn phí",
+      "titleLine1": "Lịch vạn niên & Tarot miễn phí",
       "titleAccent": "Vận may hôm nay",
       "titleLine3": "Tất cả ở một nơi",
       "lead": "Khám phá Tứ trụ, tarot, Tử Vi Đẩu Số, chiêm tinh, khả năng tương thích Tú Diệu và vận may ngày nay trong một không gian yên tĩnh. Nhập chi tiết ngày sinh của bạn hoặc một câu hỏi và nhận bài đọc làm rõ thời điểm trước lựa chọn tiếp theo của bạn.",
-      "primaryCta": "Bắt đầu đọc Tứ trụ miễn phí",
+      "primaryCta": "Xem Lịch vạn niên miễn phí",
       "tarotCta": "Rút bài Tarot",
       "logoAlt": "Logo Honey Pig Yeoni"
     },
@@ -178,7 +178,7 @@
       "genderLabel": "Giới tính",
       "female": "Nữ giới",
       "male": "Nam giới",
-      "submit": "Bắt đầu phân tích Tứ trụ miễn phí",
+      "submit": "Xem Lịch vạn niên miễn phí",
       "saveProfile": "Lưu thẻ hồ sơ",
       "saveOptional": "Không bắt buộc",
       "kakaoEvent": "Sự kiện chia sẻ Kakao",
@@ -1007,7 +1007,7 @@
       "title": "BÀI TAROT BÍ ẨN",
       "subtitle": "Thẻ bài và mười vị thần cùng nhau mở ra sự lựa chọn ngày hôm nay.",
       "oneCardMode": "Đọc một thẻ",
-      "threeCardMode": "Luồng ba thẻ · 5.000 KRW",
+      "threeCardMode": "Trải bài ba lá · Miễn phí",
       "categories": {
         "daily": "Vận may hôm nay",
         "love": "Tình yêu may mắn",
@@ -1029,7 +1029,7 @@
         "present": "Năng lượng cốt lõi bây giờ",
         "next": "Tiêu chuẩn lựa chọn tiếp theo"
       },
-      "openFlowReading": "Đọc luồng mở · 5.000 KRW",
+      "openFlowReading": "Xem luận giải",
       "retryOtherConcern": "Lây lan một mối lo ngại khác",
       "aiPromptTitle": "Lời nhắc tarot Myeongri hỏi AI tiếp theo",
       "afterPaymentBadge": "Sau khi đọc thanh toán",
@@ -1252,7 +1252,7 @@
       "neoLogoAlt": "Logo Honey Yeoni"
     },
     "hero2": {
-      "title": "Từ Tứ Trụ miễn phí đến Tử Vi Đẩu Số và chiêm tinh — con người bạn ngay lúc này",
+      "title": "Từ Lịch vạn niên miễn phí đến Tử Vi Đẩu Số và chiêm tinh — con người bạn ngay lúc này",
       "lead": "Trí tuệ Đông-Tây kết hợp cùng chuyên gia để giải mã câu chuyện của riêng bạn.",
       "primaryCta": "✦ Tạo thẻ vận mệnh của bạn",
       "journeyCta": "✦ Bắt đầu hành trình định mệnh"
@@ -1260,7 +1260,7 @@
     "oneStep": {
       "heading": "Today's One Step",
       "s1": {
-        "title": "Free Saju Chart",
+        "title": "Lịch vạn niên miễn phí",
         "desc": "Start by knowing yourself"
       },
       "s2": {
@@ -1484,7 +1484,7 @@
         },
         "selfGrain": {
           "t": "Mình là người như thế nào từ bên trong?",
-          "s": "Xem miễn phí tính cách bẩm sinh và giai đoạn hiện tại qua tám chữ Bát Tự.",
+          "s": "Xem tính cách bẩm sinh qua Lịch vạn niên miễn phí.",
           "b": "Tứ Trụ (Bát Tự)"
         },
         "peopleTired": {
@@ -1941,7 +1941,7 @@
       "all": "Xem tất cả nội dung",
       "light": "Thử xem nhẹ nhàng",
       "free": "Bắt đầu miễn phí · Chuyên sâu tính phí riêng",
-      "benefit": "Hoàn thành hướng dẫn saju miễn phí để nhận 500 đá mặt trăng",
+      "benefit": "Hoàn thành hướng dẫn lịch vạn niên miễn phí để nhận 500 đá mặt trăng",
       "benefitNote": "Có hiệu lực 30 ngày. Tương đương 5.000 KRW theo tỷ lệ thông thường; mức trừ tùy sản phẩm. Không phải tiền mặt và không dùng mua thẻ. Chỉ giảm giá dịch vụ áp dụng từ 10.000 KRW.",
       "join": "Đăng ký bằng Kakao hoặc email",
       "signatureDescription": "Xem tư vấn và kết quả mẫu phù hợp với điều bạn quan tâm.",
@@ -2001,7 +2001,7 @@
       "title": "Tư vấn tiêu biểu do chuyên gia Myeongri 10 năm kinh nghiệm thiết kế",
       "freeTitle": "Bắt đầu miễn phí",
       "miniGames": "Trò chơi vận mệnh mini",
-      "freeSaju": "Saju miễn phí",
+      "freeSaju": "Lịch vạn niên miễn phí",
       "freeSajuNote": "Xem ngay theo ngày sinh",
       "freeToday": "Vận hôm nay",
       "freeTodayNote": "Luận giải mới mỗi ngày",
@@ -2251,7 +2251,8 @@
       "expand": "Mở rộng",
       "collapse": "Thu gọn",
       "samplesContext": "Nội dung tư vấn",
-      "samplesAction": "Xem ví dụ"
+      "samplesAction": "Xem ví dụ",
+      "resume": "Tiếp tục tự động chuyển thẻ"
     },
     "benefitsCopy": {
       "title": "Tò mò về vận mệnh?",
@@ -2372,8 +2373,8 @@
       "relationship": "Độ hợp · Các mối quan hệ",
       "yearly": "Vận trình năm nay · Năm tới",
       "introduction": "Tứ trụ, tarot và tư vấn theo mối quan tâm.",
-      "freeIntroduction": "Bắt đầu với phần luận Tứ trụ miễn phí.",
-      "freeStart": "Bắt đầu Tứ trụ miễn phí",
+      "freeIntroduction": "Bắt đầu với lịch vạn niên miễn phí.",
+      "freeStart": "Bắt đầu Lịch vạn niên miễn phí",
       "paidLabel": "Trả phí ·",
       "result": {
         "relationship": "Báo cáo mối quan hệ theo Tứ trụ và Tử vi Đẩu số",
@@ -2407,6 +2408,90 @@
       "contact": "Liên hệ",
       "contactNote": "Cho chúng tôi biết câu hỏi hoặc lỗi gặp phải.",
       "example": "Ví dụ kết quả công khai"
+    },
+    "webtoonCopy": {
+      "love-secret": {
+        "lead": "Cùng một lời nói, sao lòng vẫn lệch nhịp?",
+        "benefits": "Thói quen bày tỏ tình yêu · Vì sao tủi thân tích tụ · Khi nên đến gần và giữ khoảng cách"
+      },
+      "new-year": {
+        "lead": "Trước khi lặp lại quyết tâm cũ, hãy nhìn nhịp điệu năm nay.",
+        "benefits": "Lúc chuẩn bị và hành động · Ưu tiên công việc, tiền bạc, quan hệ · Lựa chọn cần xem lại từng giai đoạn"
+      },
+      "life-book": {
+        "lead": "Liệu những chuyện đã qua còn điều chưa hiểu?",
+        "benefits": "Lý do lặp lại lựa chọn · Tài năng và thế mạnh lâu dài · Nhịp sống dài hạn qua đại vận Saju"
+      },
+      "neo": {
+        "lead": "Đã quyết tâm, sao vẫn ở chỗ cũ?",
+        "benefits": "Điều kiện thay đổi tình thế · Việc có thể làm ngay · Tiêu chí đánh giá sau kế hoạch"
+      },
+      "tea": {
+        "lead": "Một đêm không biết bắt đầu giãi bày từ đâu.",
+        "benefits": "Sắp xếp nỗi băn khoăn · Chọn tư vấn phù hợp · Hành động mình có thể thay đổi"
+      },
+      "codex": {
+        "lead": "Người đã khác, sao câu chuyện vẫn lặp lại?",
+        "benefits": "Mô thức quan hệ lặp lại · Lý do thu hút và áp lực · Giải nghĩa quan hệ bản cá nhân và tương hợp"
+      },
+      "ziwei": {
+        "lead": "Đã cố gắng mà vẫn mắc ở cùng một chỗ?",
+        "benefits": "Khí chất qua lá số Tử Vi · Thế mạnh về việc, tiền, quan hệ · Lựa chọn cần xem lại khi bế tắc"
+      },
+      "astrology": {
+        "lead": "Khi cảm xúc và hành động đi hai hướng.",
+        "benefits": "Khí chất qua bầu trời lúc sinh · Khác biệt giữa cảm xúc và hành động · Liên hệ giữa chuyển động sao hiện tại và đời sống"
+      },
+      "vedic": {
+        "lead": "Khi cảm thấy mình lại đi qua cùng một mùa.",
+        "benefits": "Khí chất qua bản đồ sao sinh · Nhịp thời gian qua Dasha · Hướng đời cần xem lại lúc này"
+      },
+      "sukuyo-compat": {
+        "lead": "Càng gần nhau, sao càng khó?",
+        "benefits": "Sức hút và áp lực giữa hai người · Nhịp quan hệ khác nhau · Cam kết và ranh giới cùng điều chỉnh"
+      },
+      "legacy-naming": {
+        "lead": "Một cái tên gọi lâu dài luôn mang tâm ý.",
+        "benefits": "Ý nghĩa và âm của tên gợi ý · Cơ sở Saju và tính toán · Tiêu chí so sánh tên"
+      },
+      "karma": {
+        "lead": "Người và nơi đã đổi, nút thắt vẫn còn.",
+        "benefits": "Nút thắt quan hệ lặp lại · Mô thức lựa chọn qua từng hệ thống · Hành động thay đổi lần tới"
+      },
+      "fusion": {
+        "lead": "Những nét đời một góc nhìn chưa thể thấy.",
+        "benefits": "Giải nghĩa riêng từ sáu hệ thống · Dòng chảy chung và góc nhìn khác · Hướng thực hành theo lĩnh vực đời sống"
+      },
+      "read": "Tìm hiểu qua webtoon",
+      "start": "Bắt đầu tư vấn",
+      "installLabel": "Thêm vào màn hình chính",
+      "return": "Lần sau quay lại chỉ bằng một chạm",
+      "installDescription": "Mở 꿀꿀 운세 từ biểu tượng trên màn hình chính.",
+      "expertsTitle": "Câu chuyện của bạn từ góc nhìn khác",
+      "expertsIntro": "Khám phá tư vấn chuyên gia qua webtoon trước.",
+      "ziweiName": "Tư vấn Tử Vi",
+      "astrologyName": "Tư vấn chiêm tinh phương Tây",
+      "vedicName": "Tư vấn chiêm tinh Vệ Đà",
+      "sukuyoName": "Tư vấn tương hợp Sukuyo",
+      "namingName": "Tư vấn đặt tên",
+      "karmaName": "Báo cáo nghiệp và vận mệnh",
+      "fusionName": "Luận giải tổng hợp",
+      "teaName": "Quán trà vận mệnh",
+      "namingStudio": "Phòng đặt tên chuyên gia",
+      "installAction": "Thêm vào màn hình chính",
+      "neoShort": "Phòng chiến lược thẳng thắn của Neo",
+      "yeoniTea": "Quán trà vận mệnh",
+      "link": {
+        "codexTitle": "Sách duyên của bậc thầy · Tìm hiểu qua webtoon",
+        "teaName": "Quán trà vận mệnh · Tìm hiểu qua webtoon",
+        "loveTitle": "Bí quyết tình yêu · Tìm hiểu qua webtoon",
+        "neoShort": "Phòng chiến lược thẳng thắn của Neo · Tìm hiểu qua webtoon",
+        "namingStudio": "Phòng đặt tên chuyên gia · Tìm hiểu qua webtoon",
+        "yeoniTea": "Quán trà vận mệnh · Tìm hiểu qua webtoon",
+        "lifeTitle": "Cuốn sách cuộc đời · Tìm hiểu qua webtoon",
+        "yearTitle": "Vận trình năm mới · Tìm hiểu qua webtoon",
+        "neoRoomTitle": "Phòng chiến lược thẳng thắn của Neo · Tìm hiểu qua webtoon"
+      }
     }
   },
   "terms": {
@@ -3167,7 +3252,7 @@
     "neoSubline": "Không có thêm ý kiến gì. Chỉ có sự thật vẫn còn.",
     "signup": "Đăng ký",
     "login": "Đăng nhập",
-    "guestMoonstoneTeaser": "Hoàn thành hướng dẫn saju miễn phí để nhận 500 đá mặt trăng · giảm giá dịch vụ đủ điều kiện từ 10.000 KRW",
+    "guestMoonstoneTeaser": "Hoàn thành hướng dẫn lịch vạn niên miễn phí để nhận 500 đá mặt trăng · giảm giá dịch vụ đủ điều kiện từ 10.000 KRW",
     "loadingGreeting": "Căn chỉnh ánh sao cho tài khoản của bạn",
     "loadingChip": "ĐỒNG BỘ PHIÊN",
     "loadingTitle": "Đang tải thông tin đăng nhập của bạn",
@@ -3207,18 +3292,18 @@
     "passCheckingGreeting": "Đang kiểm tra Thẻ Pass",
     "passCheckingNote": "Đang điều chỉnh Thẻ Pass Ánh Trăng và cấp độ thành viên một cách an toàn.",
     "exitBenefit": {
-      "title": "Hoàn thành hướng dẫn saju miễn phí để nhận {amount} đá mặt trăng",
-      "copy": "Nhận một lần sau khi đăng nhập và xem saju miễn phí với hồ sơ đã lưu. Không cấp lại nếu đã nhận quà đăng ký. Trị giá 5.000 KRW. Dùng trong {days} ngày cho dịch vụ áp dụng từ 10.000 KRW.",
+      "title": "Hoàn thành hướng dẫn lịch vạn niên miễn phí để nhận {amount} đá mặt trăng",
+      "copy": "Nhận một lần sau khi đăng nhập và xem lịch vạn niên miễn phí với hồ sơ đã lưu. Không cấp lại nếu đã nhận quà đăng ký. Trị giá 5.000 KRW. Dùng trong {days} ngày cho dịch vụ áp dụng từ 10.000 KRW.",
       "note": "Số đá cần dùng tùy sản phẩm. Không phải tiền mặt và không dùng để mua gói.",
       "join": "Đăng ký với Kakao",
       "email": "Đăng ký bằng email"
     }
   },
   "seo": {
-    "homeTitle": "Saju, Tarot và Vận may hàng ngày miễn phí | 꿀꿀 운세",
+    "homeTitle": "Saju, Tarot và Vận may hàng ngày | 꿀꿀 운세",
     "rssTitle": "꿀꿀 운세 RSS",
-    "description": "꿀꿀 운세: Saju miễn phí theo ngày sinh, tarot, khả năng tương thích, vận may năm mới, khả năng tương thích Tojeong Bigyeol và MBTI.",
-    "keywords": "Saju, Saju miễn phí, lịch Manse, tarot, vận may hàng ngày, tương thích, vận may năm mới, Tojeong Bigyeol, xem tướng, vận may về tiền bạc, vận may đoàn tụ, tương thích MBTI, 꿀꿀운세"
+    "description": "꿀꿀 운세: Lịch vạn niên miễn phí theo ngày sinh, tarot, khả năng tương thích, vận may năm mới, khả năng tương thích Tojeong Bigyeol và MBTI.",
+    "keywords": "Saju, Lịch vạn niên miễn phí, lịch Manse, tarot, vận may hàng ngày, tương thích, vận may năm mới, Tojeong Bigyeol, xem tướng, vận may về tiền bạc, vận may đoàn tụ, tương thích MBTI, 꿀꿀운세"
   },
   "fortune": {
     "destinyFlower": {
@@ -3757,7 +3842,7 @@
           "season": "Như bạn sinh vào {season}, loài hoa này cũng nở rực rỡ nhất vào {season}."
         },
         "flowerLanguage": {
-          "yongshin": "'{language}' — lời nhắn bông hoa mang khí {elements} của dụng thần gửi đến bạn.",
+          "yongshin": "'{language}' — lời nhắn bông hoa mang khí {elements} của ứng viên bổ trợ gửi đến bạn.",
           "dayMaster": "'{language}' — lời bông hoa này gửi đến bạn, người có nhật chủ {dayMasterBadge}."
         },
         "shareHook": {
@@ -5403,7 +5488,7 @@
         "faq": "Câu hỏi thường gặp"
       },
       "home": "Trở về nhà",
-      "freeSaju": "Xem sách Saju miễn phí"
+      "freeSaju": "Xem Lịch vạn niên miễn phí"
     },
     "tryAgainLater": "Vui lòng thử lại sau."
   },
@@ -5412,7 +5497,7 @@
       "kicker": "Năng lượng đầu tiên của taegeuk",
       "title": "Ánh sáng trắng và tối của taegeuk chiếu sáng trung tâm biểu đồ của bạn.",
       "desc": "Trong biểu đồ, năng lượng di chuyển qua trụ ngày, mười vị thần, cân bằng các mùa và sức mạnh hỗ trợ. Những cánh cửa may mắn sâu sắc hơn sẽ lặng lẽ mở ra ở những nơi cần thiết.",
-      "navAria": "Truy cập phiên dịch saju miễn phí",
+      "navAria": "Đi tới phần giải thích Saju",
       "nav": {
         "manse": "Biểu đồ",
         "ilju": "Trụ cột ngày",
@@ -5460,7 +5545,7 @@
       "johuTitle": "Phân tích độ ấm và độ khô theo mùa",
       "ukbuTitle": "Sức mạnh hỗ trợ và phân tích mẫu sau",
       "currentSeasonTitle": "🍃 Thời vận hiện tại · Tôi trong năm nay",
-      "currentSeasonIntro": "Trong Tứ Trụ, câu hỏi thường gặp nhất là “Vậy bây giờ, năm nay thì sao?”. Chúng tôi bắt đầu miễn phí với mùa đời bạn đang đi qua (đại vận) và dòng chảy của năm nay (tuế vận)."
+      "currentSeasonIntro": "Trong Tứ Trụ, câu hỏi thường gặp nhất là “Vậy bây giờ, năm nay thì sao?”. Chúng tôi bắt đầu với mùa đời bạn đang đi qua (đại vận) và dòng chảy của năm nay (tuế vận)."
     },
     "ilju": {
       "dashboard": "BẢNG ĐIỀU KHIỂN TRỤC NGÀY",
@@ -5485,18 +5570,18 @@
     "premiumShowcase": {
       "aria": "Giới thiệu các bản luận giải saju trả phí",
       "title": "Đọc lá số của bạn sâu hơn",
-      "subtitle": "Hãy bắt đầu với bản Light để nắm rõ bản tính của bạn, rồi theo dõi dòng chảy mười năm cùng Daewun. Phần hợp tuổi được tính phí theo mỗi lần xem.",
+      "subtitle": "Chỉ một lần mở vĩnh viễn luận giải saju đầy đủ là mở được mọi phần sau lá số gốc. Phần hợp tuổi được tính phí theo mỗi lần xem.",
       "expand": "Mở thẻ luận giải",
       "permanent": "Mở khóa vĩnh viễn",
       "perUse": "Thanh toán theo lần",
       "compatCta": "Xem khả năng tương thích →",
       "daewun": {
         "title": "Phân tích Daewun",
-        "cta": "Mở phân tích Daewun →"
+        "cta": "Mở vĩnh viễn luận giải saju đầy đủ →"
       },
       "summary": {
-        "title": "Luận giải saju bản Light",
-        "cta": "Mở bản Light →"
+        "title": "Luận giải saju đầy đủ",
+        "cta": "Mở vĩnh viễn luận giải saju đầy đủ →"
       },
       "compat": {
         "title": "Phân tích khả năng tương thích",
@@ -7327,7 +7412,7 @@
     "sq_9794_attr_aria_label": "Biểu đồ radar Túc Diệu nhân duyên"
   },
   "shell": {
-    "CODEDESTINY": "꿀꿀 운세 | Tứ Trụ (Bát Tự)·Tarot·Tử Vi Đẩu Số·Hợp Duyên Miễn Phí — Vận Mệnh May Mắn",
+    "CODEDESTINY": "꿀꿀 운세 | Lịch vạn niên miễn phí·Tứ Trụ (Bát Tự)·Tarot·Tử Vi Đẩu Số·Hợp Duyên — Vận Mệnh May Mắn",
     "cdCookieConsentCopy": {
       "cdCookieConsentActions": {
         "kniuoqf": "Đồng ý",
@@ -8536,7 +8621,7 @@
     "005": "Tổng hợp biểu đồ sinh, 12 cung, biểu tượng cung hoàng đạo dễ hiểu cho người mới bắt đầu.",
     "006": "Tiêu chuẩn và tuyên bố miễn trừ trách nhiệm để đọc nội dung vận mệnh một cách an toàn và cân bằng.",
     "007": "Hướng dẫn nhập môn Tứ Trụ (Bát Tự)",
-    "008": "Phân tích Tứ Trụ (Bát Tự) Vạn Niên Lịch miễn phí",
+    "008": "Cách xem Lịch vạn niên miễn phí",
     "009": "Giải thích cơ bản Tứ Trụ (Bát Tự) Vạn Niên Lịch",
     "010": "Đọc Tarot hoạt động như thế nào",
     "011": "Đọc bài Tarot miễn phí",
@@ -8548,7 +8633,7 @@
     "017": "Biểu đồ sinh chiêm tinh miễn phí",
     "018": "Lá số Tử Vi Đẩu Số 12 cung",
     "019": "Dấu hiệu cốt lõi để nhận biết hợp duyên tốt",
-    "020": "Giải thích hợp duyên Tứ Trụ (Bát Tự) miễn phí",
+    "020": "Xem hợp duyên Tứ Trụ (Bát Tự)",
     "021": "Xem vận tình duyên miễn phí",
     "022": "FAQ về việc sử dụng dịch vụ vận mệnh an toàn",
     "023": "Xem vận mệnh hôm nay miễn phí",
@@ -8896,8 +8981,8 @@
   },
   "seoLanding": {
     "description": {
-      "001": "Đây là trang hướng dẫn Tứ Trụ miễn phí, xem xét xu hướng và dòng chảy lựa chọn thông qua cấu trúc cơ bản của Tứ Trụ Bát Tự, cân bằng Ngũ Hành, Thập Thần và đại vận.",
-      "002": "Hướng dẫn cách kiểm tra Tứ Trụ Bát Tự, Ngũ Hành, Thập Thần và dòng chảy đại vận dựa trên ngày, tháng, năm, giờ sinh.",
+      "001": "Nhập ngày giờ sinh vào Lịch vạn niên miễn phí để xem mệnh bàn Tứ Trụ và một dòng xu hướng tính cách. Thập Thần, đại vận và dòng chảy tài vận, tình duyên, sự nghiệp được xem tiếp trong bản giải đầy đủ Saju có phí.",
+      "002": "Nhập ngày sinh để xem mệnh bàn Tứ Trụ và cân bằng Ngũ Hành trên Lịch vạn niên miễn phí. Bài viết giải thích vì sao kết quả thay đổi theo giờ sinh và ranh giới tiết khí; phần luận giải Thập Thần và bảng Đại vận tiếp tục trong bản giải Saju đầy đủ, sở hữu trọn đời.",
       "003": "Vận mệnh hôm nay giúp bạn nhẹ nhàng kiểm tra tình trạng, các mối quan hệ, ưu tiên công việc trong ngày và sắp xếp các lựa chọn để thực hiện.",
       "004": "Trang Vận mệnh hôm nay giúp bạn nhanh chóng kiểm tra tình trạng, dòng chảy mối quan hệ, ưu tiên lịch trình khi bắt đầu hoặc kết thúc một ngày.",
       "005": "Xem xét nhịp điệu mối quan hệ, cách giao tiếp, điểm phục hồi xung đột của hai người từ góc độ Tứ Trụ và vận mệnh, sau đó sắp xếp thành tiêu chuẩn đối thoại thực tế.",
@@ -8919,12 +9004,12 @@
       "021": "PDF Vận mệnh năm mới là tài liệu vận mệnh Premium xem xét dòng chảy sự nghiệp, tài lộc, mối quan hệ, sức khỏe hàng tháng trong năm mới."
     },
     "title": {
-      "001": "Phân tích Tứ Trụ Bát Tự miễn phí | Dòng chảy Ngũ Hành·Thập Thần·Đại vận",
-      "002": "Phân tích Tứ Trụ Vạn Niên Lịch miễn phí | Giải thích Ngũ Hành·Thập Thần·Đại vận",
+      "001": "Lịch vạn niên miễn phí – Mệnh bàn Tứ Trụ | Xem Tứ Trụ và cân bằng Ngũ Hành",
+      "002": "Cách xem Lịch vạn niên miễn phí | Mệnh bàn Tứ Trụ và cân bằng Ngũ Hành",
       "003": "Xem Vận mệnh hôm nay miễn phí | Hướng dẫn dòng chảy và lựa chọn trong ngày",
       "004": "Kiểm tra Vận mệnh hôm nay ngay | Kiểm tra tình trạng·mối quan hệ·lịch trình",
-      "005": "Xem hợp duyên miễn phí | Phân tích Tứ Trụ·mối quan hệ tình yêu",
-      "006": "Giải thích hợp duyên Tứ Trụ miễn phí | Dòng chảy mối quan hệ và cách giao tiếp",
+      "005": "Hướng dẫn hợp duyên | Giới thiệu miễn phí, so sánh Tứ Trụ·Tú Diệu·Tarot",
+      "006": "Hợp duyên Tứ Trụ — Khuynh hướng của hai người và cách đọc mối quan hệ | 꿀꿀 운세",
       "007": "Đọc bài Tarot miễn phí | Giải thích tình yêu·tái hợp·tâm ý",
       "008": "Đọc Tarot tái hợp | Khả năng tái hợp và khoảng cách",
       "009": "Tarot tâm ý đối phương | Dòng chảy tâm ý và tín hiệu mối quan hệ",
@@ -14037,10 +14122,10 @@
       }
     },
     "rpt_tTestCard": {
-      "fallbackTitle": "Check your logic temperature -- where reason responds before emotion -- for free.",
-      "tagline": "The Frozen Logic -- a free Saju-based test that playfully diagnoses how close your thinking and judgment pattern is to Thinking (T).",
-      "premiumIntro": "The Extreme-T Test doesn't define your personality -- it's a free, playful reflection of how much your judgment leans toward reason.",
-      "fallbackCta": "Diagnose for Free",
+      "fallbackTitle": "Hãy xem nhiệt độ logic của bạn, nơi lý trí phản ứng trước cảm xúc.",
+      "tagline": "The Frozen Logic: bài kiểm tra vui dựa trên Saju cho biết lối suy nghĩ và phán đoán của bạn gần với T đến mức nào, nằm trong bản giải Saju đầy đủ, sở hữu trọn đời.",
+      "premiumIntro": "Bài kiểm tra Cực T không định nghĩa tính cách của bạn mà phản chiếu phán đoán của bạn nghiêng về lý trí đến đâu.",
+      "fallbackCta": "Chẩn đoán",
       "feats": {
         "0": "Measures the metal element, authority, expression and climate in your chart to produce a T score of 0–100 and a tier",
         "1": "Shows four stats: metal hardware, forced-control instinct, blunt-fact debugging and the cold-dry formation",
@@ -14060,7 +14145,7 @@
         "3": "Six summary chips plus today’s mission"
       },
       "premiumOutcomes": {
-        "0": "You can use it free right now.",
+        "0": "Phần luận giải này nằm trong bản giải Saju đầy đủ, sở hữu trọn đời.",
         "1": "[Relationship Circuit], [Love Algorithm], [Reality Processing], [Saju-based Extreme-T Reading] and [Debugging Prescription] open after a separate unlock.",
         "2": "The test is for reference and fun."
       },
@@ -14093,8 +14178,8 @@
           "a": "No. You do not answer questionnaire items. It scores the metal element, authority, expression and climate in your natal chart, for fun."
         },
         "1": {
-          "q": "How much is free?",
-          "a": "The T score, tier, type name, four stats, [Strength Scan], [Fatal Bug], today’s mission and the summary card are all free."
+          "q": "Tôi xem được những gì?",
+          "a": "Điểm T, hạng, tên kiểu, bốn chỉ số, [Strength Scan], [Fatal Bug], nhiệm vụ hôm nay và thẻ tóm tắt đều mở trong bản giải Saju đầy đủ, sở hữu trọn đời."
         },
         "2": {
           "q": "Why can’t I see the relationship sections?",
@@ -14103,10 +14188,10 @@
       }
     },
     "rpt_hormone_vibe_section": {
-      "fallbackTitle": "Check for free whether your charm pulls strongly like a Teto type, or seeps in gently like an Egen type.",
-      "tagline": "A free analysis, based on your Saju, that splits the grain of your charm energy into Teto and Egen styles.",
-      "premiumIntro": "The Teto/Egen analysis doesn't rank one above the other -- it's a free organization of how your charm pulls people in.",
-      "fallbackCta": "Check for Free",
+      "fallbackTitle": "Hãy xem sức hút của bạn thuộc kiểu Teto kéo mạnh hay kiểu Egen thấm dần.",
+      "tagline": "Phân tích dựa trên Saju chia năng lượng sức hút của bạn thành hai phong cách Teto và Egen, nằm trong bản giải Saju đầy đủ, sở hữu trọn đời.",
+      "premiumIntro": "Phân tích Teto/Egen không phân hơn kém mà cho thấy sức hút của bạn thu hút người khác theo cách nào.",
+      "fallbackCta": "Xem ngay",
       "feats": {
         "0": "Tallies the Ten Gods across all seven positions except the day stem",
         "1": "Groups the Ten Gods into peers, output, resource, authority and wealth",
@@ -14122,10 +14207,10 @@
         "0": "Teto and Egen scores with a type reading",
         "1": "Ten Gods tallied across seven positions excluding the day stem",
         "2": "Weightings for the five groups: peers, output, resource, authority, wealth",
-        "3": "Free, with no extra payment"
+        "3": "Nằm trong bản giải Saju đầy đủ, sở hữu trọn đời"
       },
       "premiumOutcomes": {
-        "0": "You can use it right now, for free.",
+        "0": "Phần luận giải này nằm trong bản giải Saju đầy đủ, sở hữu trọn đời.",
         "1": "The analysis is for reference and entertainment.",
         "2": "Your charm type can vary by situation."
       },
@@ -14162,16 +14247,16 @@
           "a": "It uses only the Ten Gods in your natal chart, so the same birth date and time always gives the same result."
         },
         "2": {
-          "q": "Do I need to pay?",
-          "a": "No. It opens inside your Saju result with no extra payment."
+          "q": "Tôi có phải thanh toán riêng không?",
+          "a": "Không có khoản thanh toán riêng. Phần này mở cùng với bản giải Saju đầy đủ, sở hữu trọn đời."
         }
       }
     },
     "rpt_lottoCard": {
-      "fallbackTitle": "Get today's lucky numbers drawn from your Saju's Five Elements and number symbolism, for free.",
-      "tagline": "A free, for-fun feature that seeds five games from your natal chart plus today’s day pillar and luck cycle.",
-      "premiumIntro": "The Saju Lotto is a fun feature that doesn't predict a win -- it freely draws a symbolic number that fits today's fortune.",
-      "fallbackCta": "Draw Numbers for Free",
+      "fallbackTitle": "Nhận con số may mắn hôm nay, được rút từ Ngũ Hành trong Saju và ý nghĩa biểu tượng của các con số.",
+      "tagline": "Tính năng số biểu tượng rút năm tổ hợp từ mệnh bàn, ngày hôm nay và Đại vận của bạn, nằm trong bản giải Saju đầy đủ, sở hữu trọn đời.",
+      "premiumIntro": "Saju Lotto không dự đoán trúng thưởng mà rút những con số biểu tượng hợp với vận hôm nay.",
+      "fallbackCta": "Rút số",
       "feats": {
         "0": "Seeds the numbers from your natal chart plus today’s day pillar, luck cycle and round counter",
         "1": "Builds five games at once and labels them flow, stable, reversal, instinct and balance",
@@ -14187,10 +14272,10 @@
         "0": "Numbers seeded from your chart, today’s day pillar and luck cycle",
         "1": "Five games at once, each with a concept name",
         "2": "Redraw to raise the round counter and get a new set",
-        "3": "Free, with no extra payment"
+        "3": "Nằm trong bản giải Saju đầy đủ, sở hữu trọn đời"
       },
       "premiumOutcomes": {
-        "0": "You can use it right now, for free.",
+        "0": "Phần luận giải này nằm trong bản giải Saju đầy đủ, sở hữu trọn đời.",
         "1": "This is fun content that doesn't guarantee a win.",
         "2": "Please judge an actual purchase carefully."
       },
@@ -14228,15 +14313,15 @@
         },
         "2": {
           "q": "Can I save or share the number card?",
-          "a": "The free number draw has no save or share feature. You read it directly on screen."
+          "a": "Phần rút số không có chức năng lưu hay chia sẻ. Bạn xem trực tiếp trên màn hình."
         }
       }
     },
     "rpt_sajuFourCutCard": {
-      "fallbackTitle": "Make a four-cut photo-strip reinterpreting your Saju data in a fun, snapshot-style sentiment, for free.",
-      "tagline": "A free, fun feature packing blunt-but-relatable roast lines into a four-cut strip, ready to save and share.",
-      "premiumIntro": "The Saju Four-Cut doesn't state your fortune definitively -- it's free content that lets you enjoy your Saju as a fun, snapshot-style card.",
-      "fallbackCta": "Make a Four-Cut for Free",
+      "fallbackTitle": "Tạo dải bốn khung diễn giải lại dữ liệu Saju của bạn theo phong cách photo booth.",
+      "tagline": "Những câu nói thẳng mà vẫn đồng cảm được gói trong bốn khung, có thể lưu và chia sẻ, nằm trong bản giải Saju đầy đủ, sở hữu trọn đời.",
+      "premiumIntro": "Bốn khung Saju không khẳng định vận mệnh mà giúp bạn thưởng thức Saju của mình như một tấm ảnh kiểu photo booth.",
+      "fallbackCta": "Tạo bốn khung",
       "feats": {
         "0": "Builds four-cut lines from today’s day pillar energy",
         "1": "Lets you switch between four versions: form check, reply warmth, routine save and impulse lock",
@@ -14256,7 +14341,7 @@
         "3": "Image save plus KakaoTalk, device share or link copy"
       },
       "premiumOutcomes": {
-        "0": "You can use it right now, for free.",
+        "0": "Phần luận giải này nằm trong bản giải Saju đầy đủ, sở hữu trọn đời.",
         "1": "The sentences are for reference and entertainment.",
         "2": "The existing service standard applies."
       },
@@ -14293,16 +14378,16 @@
           "a": "Yes. You can save the four cuts as an image with your stickers in place."
         },
         "2": {
-          "q": "Do I need to pay?",
-          "a": "No. It opens inside your Saju result with no extra payment."
+          "q": "Tôi có phải thanh toán riêng không?",
+          "a": "Không có khoản thanh toán riêng. Phần này mở cùng với bản giải Saju đầy đủ, sở hữu trọn đời."
         }
       }
     },
     "rpt_dopamineCard": {
-      "fallbackTitle": "Check for free whether you're someone who chases new stimulation, or someone who loves stability more.",
-      "tagline": "A free report that converts your stimulation-seeking tendency into a score and grade based on your Saju flow, showing an 8-axis stimulation radar, your absorption areas, and today's mission.",
+      "fallbackTitle": "Hãy xem bạn là người theo đuổi kích thích mới hay yêu sự ổn định hơn.",
+      "tagline": "Báo cáo quy đổi xu hướng tìm kiếm kích thích thành điểm và hạng theo dòng chảy Saju, kèm radar kích thích 8 trục, lĩnh vực đắm chìm và nhiệm vụ hôm nay, nằm trong bản giải Saju đầy đủ, sở hữu trọn đời.",
       "premiumIntro": "This doesn't diagnose addiction -- it's a fun read, through your Saju flow, of where you draw energy from and where you burn out quickly.",
-      "fallbackCta": "See Your Stimulation Score for Free",
+      "fallbackCta": "Xem chỉ số kích thích",
       "feats": {
         "0": "Converts your stimulation-seeking tendency into a 0–100 score, an SSS–D grade and a type name",
         "1": "Draws an eight-axis stimulation radar: new experiences, social media, shopping, gaming, study, travel, romance and exercise",
@@ -14323,7 +14408,7 @@
         "4": "Save and share the result card"
       },
       "premiumOutcomes": {
-        "0": "You can use it right now, for free.",
+        "0": "Phần luận giải này nằm trong bản giải Saju đầy đủ, sở hữu trọn đời.",
         "1": "This is content for temperament reference and entertainment.",
         "2": "The existing service standard applies."
       },
@@ -16326,7 +16411,7 @@
       "badge": "Free compatibility reading"
     },
     "saju": {
-      "tagline": "A basic reading that calculates the eight characters of your saju and lays out your innate temperament and the large turns of your life. You can start for free.",
+      "tagline": "Tính toán tám chữ Tứ Trụ và cho bạn xem miễn phí mệnh bàn, cân bằng Ngũ Hành cùng một dòng xu hướng tính cách. Phần giải Thập Thần và đại vận được xem tiếp trong bản giải đầy đủ Saju có phí.",
       "feats": [
         "When you can't put your own disposition into words",
         "When you want to see the broad arc of your life once",
@@ -16343,7 +16428,7 @@
         "How does the broad arc of my life run?",
         "What kind of period am I in now?"
       ],
-      "fallbackCta": "See your saju free",
+      "fallbackCta": "Xem lịch vạn niên miễn phí",
       "headline": "Explore the broad patterns of your life through your birth date and time.",
       "badge": "Start for free"
     },
@@ -21844,7 +21929,7 @@
     "more": "Read more",
     "sample": "Sample · a fictional chart",
     "sampleNote": "An example of the format, not your personal result.",
-    "paidDifference": "Prepared explanations are matched to the chart calculated from your birth details. Build on the temperament covered in the free reading with longer-term cycles and themed interpretations.",
+    "paidDifference": "Prepared explanations are matched to the chart calculated from your birth details. Build on the natal chart shown in the free Manseryeok with longer-term cycles and themed interpretations.",
     "paidDaeun": "Read how life shifts every ten years and from year to year, and see which choices to prepare for now in work, relationships and money.",
     "paidSummary": "Your temperament, elements and Ten Gods, personality and relationships, life strategy, and guidance for this year and next, gathered into one reading of your chart.",
     "recovery": "Reopen the chart with the same account and profile and check access. If payment succeeded but access is missing, do not pay again; contact support with the payment record.",
@@ -21933,7 +22018,8 @@
     "neoClosing": "Whether it is a relationship or work, do not make a major decision from the chart alone. Look at what people actually do, the terms you agreed to and the costs you can bear. I am not trying to corner you. I only want your choices to become a little clearer. Start with whatever you can genuinely do today, meow.",
     "letterVerdictJong": "a structure that follows momentum gathering in one direction",
     "letterVerdictStrong": "a structure with relatively ample strength to make your own path",
-    "letterVerdictWeak": "a structure that shines more comfortably with support nearby and time to prepare"
+    "letterVerdictWeak": "a structure that shines more comfortably with support nearby and time to prepare",
+    "paidBundle": "Saju full reading, lifetime access · One payment opens every Saju reading, including this one, permanently. You are not charged per reading."
   },
   "sajuCompat": {
     "selfFallback": "Tôi",
@@ -21955,7 +22041,7 @@
     "scoreLine": "Điểm tương hợp chỉ theo Tứ trụ: {score}/100",
     "overview": {
       "title": "🧭 Tổng quan tương hợp",
-      "note": "Kết quả chỉ tính theo Tứ trụ. Hợp–xung can chi ngày, cân bằng mùa, dụng thần–kỵ thần và cấu trúc thập thần được tổng hợp thành {score}/100."
+      "note": "Kết quả chỉ tính theo Tứ trụ. Hợp–xung can chi ngày, cân bằng mùa, ứng viên bổ trợ–hành cần lưu ý và cấu trúc thập thần được tổng hợp thành {score}/100."
     },
     "energy": {
       "title": "🌡️ Hài hòa năng lượng",
@@ -21992,11 +22078,11 @@
       "DAY_BRANCH_HE": "Chi ngày ở cung phối ngẫu tạo lục hợp, có thể mang cảm giác gần gũi và thu hút khi ở bên nhau.",
       "DAY_STEM_CHONG": "Can ngày xung (沖), nên điểm mạnh và va chạm đều dễ trở nên rõ nét.",
       "DAY_BRANCH_CHONG": "Chi ngày xung (沖), khiến nếp sống và nhịp cảm xúc khác nhau. Điều chỉnh cho nhau rất quan trọng.",
-      "YONGSHIN_COMMON": "Cả hai lấy {elements} làm dụng thần, nên hướng sống cốt lõi khá tương đồng.",
-      "YONGSHIN_CLASH": "{elements} là dụng thần của một người nhưng là kỵ thần của người kia, nên chủ đề này dễ nhạy cảm.",
-      "KIJI_CONTROL_FORWARD": "Chế ngự kỵ thần: các chữ của đối phương ({by}) xung với kỵ thần của bạn ({chars}). Theo mô hình này, sự đối chiếu ấy có thể giảm một điểm bất lợi.",
-      "KIJI_CONTROL_REVERSE": "Chiều ngược lại: các chữ của bạn ({by}) xung với kỵ thần của đối phương, có thể mang cảm giác được giải tỏa.",
-      "HE_TRAP": "Bẫy của hợp: {self} và {partner} tạo hợp (合), nhưng hành sinh ra ({element}) tăng kỵ thần. Cảm giác hợp nhau có thể đi cùng lệ thuộc; hãy phân biệt thoải mái với bám víu."
+      "YONGSHIN_COMMON": "Cả hai lấy {elements} làm ứng viên bổ trợ, nên hướng sống cốt lõi khá tương đồng.",
+      "YONGSHIN_CLASH": "{elements} là ứng viên bổ trợ của một người nhưng là hành cần lưu ý của người kia, nên chủ đề này dễ nhạy cảm.",
+      "KIJI_CONTROL_FORWARD": "Chế ngự hành cần lưu ý: các chữ của đối phương ({by}) xung với hành cần lưu ý của bạn ({chars}). Theo mô hình này, sự đối chiếu ấy có thể giảm một điểm bất lợi.",
+      "KIJI_CONTROL_REVERSE": "Chiều ngược lại: các chữ của bạn ({by}) xung với hành cần lưu ý của đối phương, có thể mang cảm giác được giải tỏa.",
+      "HE_TRAP": "Bẫy của hợp: {self} và {partner} tạo hợp (合), nhưng hành sinh ra ({element}) tăng hành cần lưu ý. Cảm giác hợp nhau có thể đi cùng lệ thuộc; hãy phân biệt thoải mái với bám víu."
     },
     "element": {
       "wood": "Mộc (木)",

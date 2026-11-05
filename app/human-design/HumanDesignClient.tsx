@@ -37,7 +37,9 @@ import { postPaidBody } from "@/app/nakshatra/nakshatra-fetch";
 import { CENTER_GATES } from "@/lib/human-design/centers";
 
 import LivingGuide, { GuideParagraphs } from "./_components/LivingGuide";
-import { buildGuide } from "./_copy/living-guide";
+import GuideLockedNotice from "./_components/GuideLockedNotice";
+// 🔴 풀이 문장(_copy/living-guide)은 여기서 정적으로 가져오지 않는다. 묶음이 확인된 뒤 guide-access 가 동적으로 읽는다.
+import { useHumanDesignGuide, type GuideBirth } from "./_lib/guide-access";
 import BodyGraph from "./_components/BodyGraph";
 import DetailSheet from "./_components/DetailSheet";
 import PipelineScene from "./_components/PipelineScene";
@@ -119,7 +121,10 @@ export default function HumanDesignClient({ locale: localeOverride }: { locale?:
   const [chart, setChart] = useState<HdChart | null>(null);
   const [pipeline, setPipeline] = useState<HdPipelineStage[]>([]);
   const [reused, setReused] = useState(false);
-  const guide = useMemo(() => chart ? buildGuide(chart, locale) : null, [chart, locale]);
+  // 차트를 만든 출생 정보. 저장 프로필의 것과 같을 때만 풀이가 열린다(직접 입력은 잠김).
+  const [chartBirth, setChartBirth] = useState<GuideBirth | null>(null);
+  const { state: guideState, guideApi } = useHumanDesignGuide(seed, chart ? chartBirth : null);
+  const guide = useMemo(() => (chart && guideApi ? guideApi.buildGuide(chart, locale) : null), [chart, guideApi, locale]);
   const [selection, setSelection] = useState<HdSelection>(null);
   const [elapsedMs, setElapsedMs] = useState(0);
 
@@ -168,6 +173,7 @@ export default function HumanDesignClient({ locale: localeOverride }: { locale?:
         setError(data?.message || pick(UI_TEXT.chartFailed, locale));
         return;
       }
+      setChartBirth({ birthDate, birthTime, timezone: timezone.trim(), calendar });
       setChart(data.chart);
       setPipeline(Array.isArray(data.pipeline) ? data.pipeline : []);
       setReused(Boolean(data.reused));
@@ -225,6 +231,7 @@ export default function HumanDesignClient({ locale: localeOverride }: { locale?:
   /** 다른 출생 정보로 다시 — 무료라 되돌릴 결제 상태가 없다. 화면 상태만 초기화한다. */
   const restart = useCallback(() => {
     setChart(null);
+    setChartBirth(null);
     setInterpretation(null);
     setSelection(null);
     setPipeline([]);
@@ -393,7 +400,7 @@ export default function HumanDesignClient({ locale: localeOverride }: { locale?:
           <>
             {reused && <p className={styles.reused}>{pick(UI_TEXT.reusedNotice, locale)}</p>}
 
-            <LivingGuide chart={chart} locale={locale} />
+            {guide ? <LivingGuide guide={guide} /> : guideState === "locked" ? <GuideLockedNotice locale={locale} /> : null}
             <div className={styles.result}>
               <div className={styles.chartBoard}>
                 {/* 참조 차트의 좌측 속성 패널. 결과값과 입력값만 재배치하며 계산 계약은 건드리지 않는다. */}
@@ -687,7 +694,7 @@ export default function HumanDesignClient({ locale: localeOverride }: { locale?:
 
       {chart && !loading && !error && <RecommendationResult service="human-design-chart" locale={locale} practiceTags={humanDesignChartAdviceTopics(guide)}/>}
       {chart && selection && (
-        <DetailSheet chart={chart} locale={locale} selection={selection} onClose={() => setSelection(null)} />
+        <DetailSheet chart={chart} locale={locale} selection={selection} onClose={() => setSelection(null)} guideApi={guideApi} guideLocked={guideState === "locked"} />
       )}
     </main>
   );

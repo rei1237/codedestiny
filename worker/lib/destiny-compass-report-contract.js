@@ -17,6 +17,7 @@ import {
 } from "./analysis-basis-contract.js";
 import { buildEvidenceRuleLines } from "./fortune-reasoning-contract.js";
 import { getAmbientAiLocale } from "./ai-locale-context.js";
+import { SAJU_AUTHORITY_PROMPT_RULES } from "./saju-authority-consumer.js";
 
 export const COMPASS_REPORT_VERSION = "compass-report-v1";
 
@@ -291,6 +292,16 @@ function factLinesForSystem(evidencePack, system) {
   return [`[${label} 확정값]`, ...(bucket.items || []).map((i) => `- ${i.term}: ${i.detail || label}`)];
 }
 
+// 근거 묶음은 클라이언트가 계산해 저장한다. 용신 값이 승인 라벨인 묶음에만 규칙을 싣는다.
+function approvedSajuRuleLines(evidencePack, system) {
+  if (system && system !== "saju") return [];
+  const bucket = (evidencePack?.systems || []).find((b) => b.system === "saju");
+  const yongshin = (bucket?.items || []).find((i) => i.term === "용신");
+  return /^(후보 |판정 보류)/.test(String(yongshin?.detail || ""))
+    ? ["", "[사주 판정 규칙]", ...SAJU_AUTHORITY_PROMPT_RULES.map((rule) => `- ${rule}`)]
+    : [];
+}
+
 function fieldLines(field) {
   const tops = (field?.directions || []).slice(0, 8).map((d) => `${directionLabel(d.key)} ${d.score}`).join(" · ");
   const timeline = Object.entries(field?.timeline || {})
@@ -342,6 +353,7 @@ export function buildCompassSectionPrompt(input) {
 
   return [
     ...facts,
+    ...approvedSajuRuleLines(evidencePack, spec.system),
     // 확정값 블록을 이미 위에 실었으므로 표를 두 번 넣지 않는다.
     "",
     ...buildEvidenceRuleLines(basisPayload, { includeFactTable: false }),

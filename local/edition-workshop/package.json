@@ -1,0 +1,8 @@
+{
+  "name": "code-destiny-local-edition-workshop",
+  "private": true,
+  "type": "module",
+  "description": "Loopback-only EVM and certificate tooling; never bundled in the site or Worker",
+  "dependencies": {"ethers":"6.15.0","ganache":"7.9.2","qrcode":"1.5.4","solc":"0.8.30"},
+  "devDependencies": {"jsqr":"1.4.0","pngjs":"5.0.0"}
+}

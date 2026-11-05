@@ -1,6 +1,9 @@
 import { CHAT_QUESTION_FISH, chatQuestionFeatureKey } from '../../lib/fortune/chat-products.js';
 import { calculateMembershipCreditCost, normalizePaidFeaturePricingShape } from "./billing-policy.js";
 import { isMusicTrackFeatureKey } from "../../lib/music-access-policy.js";
+// saju-bundle-policy.js 도 이 파일에서 normalizePaidFeatureKey 를 가져온다(순환). 아래 두 값은 함수 안에서만 쓰므로
+// 어느 쪽이 먼저 로드돼도 안전하다. 모듈 최상위에서 부르는 코드를 여기 두지 말 것.
+import { SAJU_BUNDLE_FEATURE_KEY, isSajuBundleSaleClosed } from "./saju-bundle-policy.js";
 
 // 러브 코드는 새 이용마다 결제한다. 과거 계정 해금은 저장된 기존 권한으로 계속 읽는다.
 // 과거 결제/셸 키는 읽기 호환용 별칭으로만 유지한다.
@@ -226,7 +229,7 @@ export const YEONGNYANGI_PAID_FEATURE_KEYS = Object.freeze(Object.keys(YEONGNYAN
 
 const CHAT_QUESTION_PRICES = Object.fromEntries(CHAT_QUESTION_FISH.map(fish => {
   const [name, amountKRW] = YEONGNYANGI_FISH[fish];
-  // Same tier prices; retain fortune-chat PASS/MONTHLY policy rather than copying Yeongnyangi rights.
+  // Retain fortune-chat PASS/MONTHLY policy rather than copying Yeongnyangi rights.
   return [chatQuestionFeatureKey(fish), {cost:amountKRW/100, amountKRW, reason:'연이·네오 질문 상담 · '+name}];
 }));
 // 2026-10-07 사용자 승인: 확인된 정적 저가 상품의 신규 결제는 1,000원. 과거 주문 스냅샷은 유지.
@@ -238,7 +241,8 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "tarot-year-fortune": { cost: 50, amountKRW: 5000, reason: "십이지신 천운 타로" },
   "tarot-love-relationship": { cost: 50, reason: "우리는 무슨 사이? 타로 리딩" },
   "tarot-reunion-reading": { cost: 50, reason: "재회운 타로 리딩" },
-  "tarot-myeongri-three-card": { cost: 50, reason: "명리학 타로 3장 스프레드" },
+  // 2026-11-05 승인: 세 장 풀이가 무료가 되어 신규 판매를 닫는다. 구매자 재개와 과거 주문 대조를 위해 키와 가격은 남긴다.
+  "tarot-myeongri-three-card": { saleEnabled: false, cost: 50, reason: "명리학 타로 3장 스프레드" },
   "tarot-mindscan": { cost: 50, reason: "마인드 스캔 타로 리딩" },
   "tarot-celestial-harmony": { cost: 50, reason: "셀레스티얼 하모니 타로 리딩" },
   "tarot-crystal-soul-reading": { cost: 50, reason: "크리스탈 소울 타로 리딩" },
@@ -424,9 +428,17 @@ export function meetsMoonstoneMinimum(amountKRW) {
   return Number.isSafeInteger(amountKRW) && amountKRW >= MOONSTONE_MIN_PRODUCT_KRW;
 }
 
+/**
+ * 사주 영구 묶음(2026-11-04): 묶음과 묶음 포함·판매 종료 키(isSajuBundleSaleClosed)는 이용권·월정석 대상이 아니다.
+ * 묶음은 단건 결제로만 사고(29,000원), 포함 키는 신규 개별 판매가 닫혔다. 가격행은 그대로 두고 판정만 모은다 —
+ * 과거 구매 증빙 비교·환불·확정이 같은 행을 쓰기 때문이다. 이 판정 하나가 getPaidFeaturePaymentPolicy, 카탈로그의
+ * passExcluded·monthlyExcluded, 이용권 커버리지 목록(pass-cost-catalog)을 함께 끈다.
+ */
 export function isDirectOnlyPaidFeatureKey(featureKey) {
   const key = normalizePaidFeatureKey(featureKey);
-  return Boolean(key) && FEATURE_KEY_PRICE_TABLE[key]?.paymentScope === PAYMENT_SCOPE_DIRECT_ONLY;
+  if (!key) return false;
+  if (key === SAJU_BUNDLE_FEATURE_KEY || isSajuBundleSaleClosed(key)) return true;
+  return FEATURE_KEY_PRICE_TABLE[key]?.paymentScope === PAYMENT_SCOPE_DIRECT_ONLY;
 }
 
 /** 이용권 중 Family만 허용한다. 월정석 예외는 getPaidFeaturePaymentPolicy가 판정한다. */
@@ -486,6 +498,8 @@ export function getPaidFeaturePaymentPolicy(featureKey) {
 
 const RAW_PIG_COIN_UNLOCK_PRODUCTS = Object.freeze({
   "unlock.saju-career-style": { featureKey: "saju-career-style", cost: 50, amountKRW: 5000, reason: "나의 일 스타일 리포트 해금" },
+  // 2026-11-04 사주 영구 묶음. 포함 키 목록·판매 종료 정본은 saju-bundle-policy.js. 앱 SKU 는 cd_content_tier_19(Play Console 수동 등록 전까지 앱 결제 503).
+  "unlock.saju_lifetime_bundle": { featureKey: "saju_lifetime_bundle", cost: 290, amountKRW: 29000, reason: "사주 전체 풀이 평생 소장" },
   [LOVE_CODE_PRODUCT_ID]: {
     featureKey: LOVE_CODE_FEATURE_KEY,
     cost: 50,
@@ -747,6 +761,7 @@ export const UNLOCK_PAID_FEATURE_KEYS = Object.freeze(
    새 영구 해금 키를 추가할 때 어느 쪽인지 정하지 않으면 검증이 실패한다(fail-closed). */
 const BIRTH_SCOPED_UNLOCK_FEATURE_KEY_LIST = Object.freeze([
   "saju-career-style",
+  "saju_lifetime_bundle",
   "section_summary",
   "section_daewun",
   "section_compat",

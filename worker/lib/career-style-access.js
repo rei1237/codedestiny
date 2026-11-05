@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { resolveBirthUnlockIdentity } from './birth-scoped-unlock-identity.js';
 import { createHttpError } from './http.js';
-import { getHoneyUnlockProduct } from './honey-unlock-catalog.js';
+import { getBillingFeaturePricing } from './billing-feature-registry.js';
 import { buildCareerReport, careerNatalInput } from '../../lib/saju/career-style/report.mjs';
 
 export const CAREER_FEATURE_KEY = 'saju-career-style';
@@ -26,8 +26,9 @@ export async function readCareerStyle({ userId, profileId, statusOnly = false },
   const card = await store.findProfile({ userId, profileId });
   const birthIdentity = await resolveBirthUnlockIdentity({ userId, profileId, featureKey }, { findProfileCard: async () => card });
   const entitlement = await store.findUnlock({ userId, profileId, featureKey, birthIdentity });
-  const product = getHoneyUnlockProduct(featureKey);
-  const status = { featureKey, profileId, unlocked: Boolean(entitlement), priceKRW: product.cashPriceKRW, honeyCost: product.honeyCost };
+  // 꿀방울 판매는 닫혔다. 현금가는 레지스트리 가격행이 그대로 권위다(과거 구매 증빙 비교용).
+  const { pricing } = getBillingFeaturePricing({ featureKey });
+  const status = { featureKey, profileId, unlocked: Boolean(entitlement), priceKRW: pricing.amountKRW };
   if (statusOnly) return status;
   if (!entitlement) throw createHttpError(402, '리포트를 해금한 뒤 확인해 주세요.', { code: 'PAYMENT_REQUIRED', ...status });
   const executionKey = `career-style:${createHash('sha256').update(`${userId}:${birthIdentity.birthKey}`).digest('hex')}`;

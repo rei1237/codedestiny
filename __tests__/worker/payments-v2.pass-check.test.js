@@ -27,7 +27,8 @@ const DAY_MS = 86_400_000;
 // 건당 상한 안쪽의 저가 상품 하나를 레지스트리에서 고른다(가격 개정에 흔들리지 않게).
 // 이용권 제외(passExcluded·direct_only) 상품은 이 경로의 대상이 아니므로 뺀다.
 // 2026-10-05: 최저가(10코인)가 천원 사주 콘텐츠(unlock, 소유 조회 1회 추가)로 바뀌어 회당(per_use) 경로로 고정한다.
-const CHEAP = listProducts().filter((p) => !p.passExcluded && !p.familyPassOnly && Number(p.priceCoins) > 0 && Number(p.priceCoins) <= PASS_LIMITS.standard
+// 2026-11-05: 사주 단건이 닫혀 최저가가 라이트 운세가 됐다. 라이트는 차감이 없으므로 이 경로의 대상에서 뺀다.
+const CHEAP = listProducts().filter((p) => !p.passExcluded && !p.lightFortune && !p.familyPassOnly && Number(p.priceCoins) > 0 && Number(p.priceCoins) <= PASS_LIMITS.standard
   && getPaidFeatureBillingType(p.featureKey) === "per_use")
   .sort((a, b) => Number(a.priceCoins) - Number(b.priceCoins))[0];
 

@@ -74,7 +74,7 @@ export function initialDeliveryV2(view: EngineView): NamingDeliveryV2 {
 
 /** 모든 호출이 공유하는 프롬프트 앞부분. 결과 레코드의 generatedPrompt 로 저장된다. */
 export function buildNamingV2Prompt(view: EngineView, saju: SajuLines & Record<string, any>, prefs: NamingV2Prefs): string {
-  const { useful, caution, derivedSupport, timeUnknown, jongConditional } = view.saju;
+  const { useful, caution, derivedSupport, timeUnknown, jongConditional, approved } = view.saju;
   const syllables = Array.from(view.surname.hangul);
   const candidates = view.candidates.map((candidate) => {
     const chars = candidate.chars.map((char) => {
@@ -112,9 +112,11 @@ export function buildNamingV2Prompt(view: EngineView, saju: SajuLines & Record<s
     `명식: 년주 ${saju.yearPillar || "미상"} · 월주 ${saju.monthPillar || "미상"} · 일주 ${saju.dayPillar || "미상"} · 시주 ${saju.hourPillar || "미상"}`,
     `일간: ${saju.dayMaster || "미상"} / 월령: ${saju.monthCommand || "미상"} / 오행 분포: ${saju.fiveElementBalance || "미상"}`,
     saju.strengthAnalysis ? `일간의 힘: ${saju.strengthAnalysis}` : "",
-    `용신(이름으로 채울 오행): ${labels(useful)} / 주의 오행: ${caution.length ? labels(caution) : "없음"}${derivedSupport.length ? ` / 용신을 돕는 오행: ${labels(derivedSupport)}` : ""}`,
-    timeUnknown ? "출생 시간 미상: 시주 없이 세 기둥으로 판단했다는 점을 밝히세요." : "",
-    jongConditional ? "종격 가능성이 있어 용신 판단에 조건이 붙는다는 점을 밝히세요." : "",
+    approved ? `격국: ${approved.gyeokguk} / 일간 강약: ${approved.strength} / 용신: ${approved.yongshinLabel} / 기신: ${approved.gisinLabel}` : "",
+    ...(approved ? approved.promptRules.map((rule) => `해석 규칙: ${rule}`) : []),
+    approved ? `작명 계산 기준 오행(이름 글자 선택용, 확정 용신 아님): ${labels(useful)} / 작명 계산 주의 오행: ${caution.length ? labels(caution) : "없음"}${derivedSupport.length ? ` / 기준 오행을 돕는 오행: ${labels(derivedSupport)}` : ""}` : `용신(이름으로 채울 오행): ${labels(useful)} / 주의 오행: ${caution.length ? labels(caution) : "없음"}${derivedSupport.length ? ` / 용신을 돕는 오행: ${labels(derivedSupport)}` : ""}`,
+    timeUnknown ? (approved ? "출생 시간 미상: 격국과 용신은 판정 보류이며, 이름 글자는 세 기둥의 작명 계산 기준으로 골랐다는 점을 밝히세요." : "출생 시간 미상: 시주 없이 세 기둥으로 판단했다는 점을 밝히세요.") : "",
+    !approved && jongConditional ? "종격 가능성이 있어 용신 판단에 조건이 붙는다는 점을 밝히세요." : "",
     "",
     "[작명 엔진 확정 후보 — 순위·한자·획수·수리·오행은 이 표가 정답]",
     ...candidates,
@@ -170,7 +172,7 @@ function chapterPrompt(snapshot: any, id: number, title: string, draft: { body: 
 
 [이번 호출 범위]
 ${id}장 '${title}' 하나만 작성하세요. 다른 장은 쓰지 마세요.
-${CHAPTER_GUIDES[id] || ""}${id === 4 ? `
+${id === 2 && snapshot.engine?.saju?.approved ? "명식·오행 분포·일간의 힘을 풀고, 격국과 용신 후보 상태를 그대로 전한 뒤, 작명 계산 기준 오행과 주의 오행이 이름 글자 선택에 어떻게 쓰였는지 설명하세요. 단일 용신이나 단일 기신으로 확정해 쓰지 마세요." : CHAPTER_GUIDES[id] || ""}${id === 4 ? `
 [이번 장 후보] 순위 ${toldRanks(snapshot.engine)}` : ""}
 계산 근거 → 생활에서의 사용 패턴과 구체적 사례 → 반대 조건/주의점 → 현실적인 선택과 행동을 배분하세요. 앞선 다른 장의 설명을 반복하지 마세요.
 본문만 공백·마크다운·제목 제외 최소 2,500자, 목표 3,200~3,700자. 소제목과 짧은 문단으로 작성하세요.

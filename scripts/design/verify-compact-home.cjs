@@ -6,6 +6,8 @@ const fs=require('node:fs/promises');
 const path=require('node:path');
 const assert=require('node:assert/strict');
 const root=process.cwd(), output=process.argv[2]||path.join(root,'build-cache/compact-home'), phase=process.argv[3]||'after';
+// --bundle-only: 홈 디자인 단정을 건너뛰고 결과 화면 묶음 단정만 본다. 인자 없이 돌리면 전체를 본다.
+const bundleOnly=process.argv.includes('--bundle-only');
 const baselineFiles=new Set(['/index.html','/styles/home-funnel.css','/styles/saju-reading.css','/js/core/home-funnel.js']);
 const mime={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.json':'application/json','.webp':'image/webp','.png':'image/png','.svg':'image/svg+xml','.woff2':'font/woff2'};
 const server=createServer(async(request,response)=>{
@@ -24,7 +26,7 @@ const server=createServer(async(request,response)=>{
  try{for(const width of [360,390,430,1440]){
  const context=await browser.newContext({viewport:{width,height:900},serviceWorkers:'block',reducedMotion:'reduce'});
  await context.addInitScript(()=>localStorage.setItem('cd:first-visit:v1:ggulggul:guest',JSON.stringify({status:'dismissed',step:0})));
- await context.route('**/*',route=>new URL(route.request().url()).origin===origin?route.continue():route.abort());
+ await context.route('**/*',route=>{const url=new URL(route.request().url());return url.origin===origin&&!/swisseph|sweph/i.test(url.pathname)?route.continue():route.abort();});
  const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto(origin+'/ggulggul/',{waitUntil:'domcontentloaded',timeout:60000});
  await page.waitForFunction(()=>typeof window.__cdOpenGarden==='function',{timeout:30000});
@@ -32,14 +34,15 @@ const server=createServer(async(request,response)=>{
  await page.waitForTimeout(600);
  const metrics=await page.evaluate(()=>{
  const box=s=>{const e=document.querySelector(s);const b=e.getBoundingClientRect();return {width:b.width,height:b.height,top:b.top+scrollY}};
- return {innerWidth,height:document.documentElement.scrollHeight,overflow:document.documentElement.scrollWidth-innerWidth,consult:box('.cdh-consult'),cat:box('#cdConcernPick .cd-concern__cards'),image:box('.cd-concern__card-media'),gateway:box('#cdhGatewaySlot'),ancestors:Array.from((function*(e){while(e){yield e;e=e.parentElement}})(document.querySelector('.cd-concern__cards'))).slice(0,8).map(e=>({id:e.id,c:e.className,w:e.getBoundingClientRect().width,cssWidth:getComputedStyle(e).width,zoom:getComputedStyle(e).zoom}))};
+ return {innerWidth,height:document.documentElement.scrollHeight,overflow:document.documentElement.scrollWidth-innerWidth,consult:box('#cdhYeongnyangiSlot'),cat:box('#cdConcernPick .cd-concern__cards'),image:box('.cd-concern__card-media'),ancestors:Array.from((function*(e){while(e){yield e;e=e.parentElement}})(document.querySelector('.cd-concern__cards'))).slice(0,8).map(e=>({id:e.id,c:e.className,w:e.getBoundingClientRect().width,cssWidth:getComputedStyle(e).width,zoom:getComputedStyle(e).zoom}))};
  });
  await page.locator('#cdConcernPick').scrollIntoViewIfNeeded();await page.waitForTimeout(100);
  await page.screenshot({path:path.join(output,`${phase}-questions-viewport-${width}.png`)});
  await page.locator('#cdConcernPick').screenshot({path:path.join(output,`${phase}-questions-${width}.png`)});
- await page.locator(phase==='before'?'.cdh-consult':'.cdh-consult-browser').screenshot({path:path.join(output,`${phase}-consult-${width}.png`)});
+ await page.locator(phase==='before'?'.cdh-consult':'#cdhYeongnyangiSlot').screenshot({path:path.join(output,`${phase}-consult-${width}.png`)});
  console.log(JSON.stringify({width,phase,...metrics}));
  if(phase==='after'){
+  if(!bundleOnly){
   assert(metrics.overflow<=1,`page overflow ${width}: ${metrics.overflow}`);
   const headingGap=await page.locator('#cdConcernPick').evaluate(el=>el.querySelector('h2').getBoundingClientRect().top-el.getBoundingClientRect().top);
   assert(headingGap<40,`unexpected empty space above concern heading: ${headingGap}`);
@@ -51,16 +54,14 @@ const server=createServer(async(request,response)=>{
     assert(!(await page.locator('[data-concern-prev]').isDisabled()));
     await rail.evaluate(el=>{el.scrollLeft=0;});
   }
-  const tabs=page.locator('[data-consult-tab]');assert.equal(await tabs.count(),3);
-  for(let i=0;i<3;i++){await tabs.nth(i).click();assert.equal(await tabs.nth(i).getAttribute('aria-selected'),'true');assert.equal(await page.locator('.cdh-consult > [role=tabpanel]:visible').count(),1);await page.locator('.cdh-consult-browser').screenshot({path:path.join(output,`after-consult-${i}-${width}.png`)});}
-  await tabs.nth(0).focus();await page.keyboard.press('ArrowRight');assert.equal(await tabs.nth(1).getAttribute('aria-selected'),'true');
+  const consultCards=page.locator('#cdhYeongnyangiSlot .cdh-choice-card');assert.equal(await consultCards.count(),2,'consult choice keeps both cards');
   for(const id of ['money','relationship','love']){const b=page.locator(`[data-cd-concern="${id}"]`);if(await b.count()){await b.click();assert.equal(await b.getAttribute('aria-expanded'),'true');assert(await page.locator(`[data-cd-concern-panel="${id}"]`).isVisible());}}
   await page.evaluate(()=>{document.documentElement.classList.add('neo-mode');document.body.classList.add('neo-mode');});
   await page.locator('#cdConcernPick').screenshot({path:path.join(output,`after-dark-questions-${width}.png`)});
   // Stable visual fixture for shared guide primitives; no first-visit state or real account calls.
   await page.evaluate(()=>{
     const guide=document.createElement('section');guide.id='guidanceDesignFixture';guide.className='cd-first';guide.style.cssText='max-width:900px;margin:24px auto;padding:16px';
-    guide.innerHTML='<nav class="cd-first__scene-nav" aria-label="이용 순서"><button aria-pressed="true"><span>1</span>프로필</button><button aria-pressed="false"><span>2</span>무료 사주</button><button aria-pressed="false"><span>3</span>더 깊게</button></nav><div class="cd-first__scene"><img class="cd-guide__art" src="/images/yeoni/welcome/yeoni-welcome-v1-320.webp" width="160" height="160" alt="연이"><div class="cd-first__speech"><span class="cd-first__speaker">연이가 안내해 드릴게요</span><h2>당신의 이야기를 들려주세요.</h2><p>반가워요, 연이예요. 생년월일과 양력·음력부터 차근차근 확인해요. 이미 만든 프로필이 있다면 골라주세요. 태어난 시간을 몰라도 화면의 안내에 따라 시작할 수 있어요.</p><button type="button">다음 이야기 →</button></div></div>';
+    guide.innerHTML='<nav class="cd-first__scene-nav" aria-label="이용 순서"><button aria-pressed="true"><span>1</span>프로필</button><button aria-pressed="false"><span>2</span>무료 만세력</button><button aria-pressed="false"><span>3</span>더 깊게</button></nav><div class="cd-first__scene"><img class="cd-guide__art" src="/images/yeoni/welcome/yeoni-welcome-v1-320.webp" width="160" height="160" alt="연이"><div class="cd-first__speech"><span class="cd-first__speaker">연이가 안내해 드릴게요</span><h2>당신의 이야기를 들려주세요.</h2><p>반가워요, 연이예요. 생년월일과 양력·음력부터 차근차근 확인해요. 이미 만든 프로필이 있다면 골라주세요. 태어난 시간을 몰라도 화면의 안내에 따라 시작할 수 있어요.</p><button type="button">다음 이야기 →</button></div></div>';
     document.getElementById('cdHomeFunnel').prepend(guide);
     for(const b of guide.querySelectorAll('nav button'))b.addEventListener('click',()=>{for(const other of guide.querySelectorAll('nav button'))other.setAttribute('aria-pressed',String(other===b));});
   });
@@ -84,6 +85,7 @@ const server=createServer(async(request,response)=>{
       await liveGuide.screenshot({path:path.join(output,`after-live-guide-${dark?'neo':'yeoni'}-${width}.png`)});
     }
   }
+  }
   // Display-only reading fixture: existing rendered anchor targets, no fortune/payment API call.
   await page.evaluate(()=>{window.__cdMobileHomeLazyMount?.mount('resultPage');document.getElementById('inputPage').style.display='none';const r=document.getElementById('resultPage');r.style.display='block';document.documentElement.classList.remove('neo-mode');document.body.classList.remove('neo-mode');for(const id of ['sajuCard','iljuCard','tenshinCard','johuCard','ukbuCard']){const el=document.getElementById(id);el.style.display='block';el.style.minHeight='600px';}window.scrollTo(0,0);});
   await page.locator('.saju-reading-nav').scrollIntoViewIfNeeded();await page.waitForTimeout(200);
@@ -98,6 +100,11 @@ const server=createServer(async(request,response)=>{
     assert.equal(await link.getAttribute('aria-current'),'location');
     assert.equal(await page.evaluate(()=>document.activeElement.id),id);
   }
+  // 잠금 전: 묶음 안의 카드 자리(오늘의 일진·월운)는 비어 있고 묶음 안내 자리만 있다. 해제 뒤에는 묶음 안내 카드가 남지 않는다.
+  assert.equal(await page.locator('#dailyPanel .saju-reading').count(),0,'bundle card hidden before unlock');
+  assert(await page.locator('#sajuBundleOffer').count()>=1,'bundle offer host is mounted');
+  await page.evaluate(()=>{window.isTileKeyUnlocked=key=>key==='saju_lifetime_bundle';window.dispatchEvent(new Event('cd:unlocks-changed'));});
+  assert.equal(await page.locator('#sajuBundleOffer [data-cd-bundle-inline]').count(),0,'bundle offer card is removed after unlock');
   await page.screenshot({path:path.join(output,`after-saju-${width}.png`)});
  }
  if(phase==='after')assert.deepEqual(errors,[], 'no browser errors');

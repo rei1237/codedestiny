@@ -40,16 +40,13 @@ test('the display layer cannot call an LLM, payment, or recalculate a chart',()=
   assert.deepEqual(source.match(/(local|session)Storage\.setItem\([^,]*/g),['localStorage.setItem(PERSONA_KEY']);
   assert.match(source,/PERSONA_KEY = 'cdSajuPersonaV1'/);
 });
-test('static prices are generated from billing, and samples remain outside locked bodies',()=>{
+test('sale-ended gate buttons lead to the bundle price and no per-item price badge remains',()=>{
   const html=readFileSync('index.html','utf8');
-  for(const key of ['section_daewun','section_summary']){
-    const price=getBillingFeaturePricing({featureKey:key}).pricing;
-    const prices=[...html.matchAll(new RegExp(`data-saju-price-key="${key}"[^>]*>([^<]+)`,'g'))];
-    assert.ok(prices.length>=2);
-    prices.forEach(m=>assert.equal(m[1],price.amountKRW.toLocaleString('ko-KR')+'원'));
-    const buttons=[...html.matchAll(new RegExp(`<button[^>]*data-unlock-key="${key}"[^>]*>`,'g'))];
-    buttons.forEach(m=>assert.match(m[0],new RegExp(`data-unlock-cost="${price.cost}"`)));
-  }
+  const bundle=getBillingFeaturePricing({featureKey:'saju_lifetime_bundle'}).pricing;
+  assert.doesNotMatch(html,/data-saju-price-key="section_(daewun|summary)"/);
+  const buttons=[...html.matchAll(/<button[^>]*data-unlock-key="saju_lifetime_bundle"[^>]*>/g)];
+  assert.ok(buttons.length>=4);
+  buttons.forEach(m=>assert.match(m[0],new RegExp(`data-unlock-cost="${bundle.cost}"`)));
 });
 test('new non-Korean copy does not fall back to Korean',()=>{
   for(const lang of ['en','ja','zh-CN','zh-TW','vi','hi','es','fr','de','nl','ms']){

@@ -18,7 +18,8 @@ function mount(options) {
   const text = reportGuideCopy(locale, domain), art = reportGuideAssets.ggulggul;
   const groups = (options.analysisBasis?.groups || []).map(group => ({label:group.title,items:group.items.map(item => ({label:item.label,value:item.value}))}));
   const passages = String(options.resultText).split(/\n\s*\n/).filter(part => part.trim());
-  const root = node('section','cd-editorial-report');
+  const root = node('details','cd-editorial-report');
+  root.appendChild(node('summary','cd-editorial-tools-summary',text.prompt));
   root.dataset.paidEditorialReport = ''; root.dataset.brand = 'ggulggul'; root.lang = text.locale;
   const heading = node('header','cd-editorial-heading'), copy = node('div','cd-editorial-headingCopy');
   copy.append(node('h3','',text.title), node('p','cd-editorial-intro',text.guide));

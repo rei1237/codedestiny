@@ -546,7 +546,8 @@ export function buildMasterLoveCodexCompatChapterPrompt({
     ...memoryLines.map((line) => `- ${line}`),
     "",
     `[이번 장] ${chapter.title}`,
-    `[해석 범위] ${chapter.scope}`,
+    // 승인 판정에서는 수량 지표를 용신 방향으로 부르지 않는다.
+    `[해석 범위] ${selfSaju?.approvedSaju ? chapter.scope.replace("각자의 보완 축(용신 방향)과 과다 축(기신 방향)", "각자의 오행 수량 보완 지표와 과다 지표(확정 용신·기신 아님)") : chapter.scope}`,
     sajuFocus ? `[사주에서 특히 볼 것] ${sajuFocus}` : "",
     palaces ? `[명반에서 특히 볼 궁] ${palaces}` : "",
     compatFocus ? `[궁합 판정에서 특히 볼 축] ${compatFocus}` : "",

@@ -63,8 +63,10 @@ const COOLDOWN_MS = {
 const LARGE_CHANGE_FILES = 200;
 
 /** 네트워크가 죽어 있을 때 세션 시작을 붙잡지 않도록. 훅 자체 timeout(10초)보다 짧아야 한다. */
-const FETCH_TIMEOUT_MS = 8_000;
-const GIT_TIMEOUT_MS = 5_000;
+// 시험만 늘린다. 병렬 시험 부하에서 git 이 제한을 넘기면 훅이 조용히 물러나 시험이 무작위로 깨진다.
+const TEST_TIMEOUT_MS = Number(process.env.CD_SYNC_MAIN_GIT_TIMEOUT_MS) || 0;
+const FETCH_TIMEOUT_MS = TEST_TIMEOUT_MS || 8_000;
+const GIT_TIMEOUT_MS = TEST_TIMEOUT_MS || 5_000;
 
 /** 이 중 하나라도 있으면 루트 체크아웃이 작업 중이므로 절대 건드리지 않는다. */
 const IN_PROGRESS_MARKERS = [

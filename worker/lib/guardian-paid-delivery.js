@@ -1,3 +1,4 @@
+import { readEngineFactSnapshot } from './engine-fact-snapshot.js';
 import { createHash } from 'node:crypto';
 import { ServiceExecutionTransaction } from './models.js';
 import { connectDb } from './db.js';
@@ -34,7 +35,11 @@ export async function deliverGuardianPaid({ env, input, userId, requestId, resol
         if (!proof?.ok) throw Object.assign(Error('결제 내역을 확인하지 못했어요.'), { accessStatus: proof?.degraded ? 503 : 403 });
       },
       seed: async original => {
-        const calculated = await contextBuilder(original, contextOptions);
+        const calculated = await contextBuilder(original, { ...contextOptions,
+          // seed runs only for a new paid narrative; resume reads its stored context.
+          gyeokgukAuthorityV2: original.category === 'saju' && env?.SAJU_GYEOKGUK_AUTHORITY_V2 === 'true',
+          calendarAuthorityV2: original.category === 'ziwei' && env?.ZIWEI_CALENDAR_AUTHORITY_V2 === 'true',
+          captureEngineFacts: ['ziwei', 'tarot', 'saju'].includes(original.category) && env?.[original.category.toUpperCase() + '_CONSUMER_FACTS_V1'] === 'true' });
         if (!calculated?.ok || calculated.context?.availableSystems?.length !== 1 || calculated.context.availableSystems[0] !== original.category) throw Object.assign(Error('계산 근거를 확인하지 못했어요.'), { accessStatus: 422 });
         // The answer's visible text is both the part target and the total floor, so a
         // short final answer is preserved for review rather than completed.
@@ -75,12 +80,17 @@ export function guardianNarrativeAdapter(env, userId, generator = generateGuardi
       if (String(env.NODE_ENV).toLowerCase() !== 'test' && !shouldUseRealGuardianFortuneLLM({ env, userId })) return null;
       // Records seeded before the draft contract (minChars 1) keep the producer's
       // short-answer rejection: their total floor cannot hold a short draft back.
+      for (const system of state.context?.availableSystems || []) {
+        if (state.context.factSnapshotProtocol === 'engine-facts-v1' && !state.context[system]?.engineFacts) throw new Error('ENGINE_FACT_SNAPSHOT_REQUIRED');
+        if (state.context[system]?.engineFacts) readEngineFactSnapshot(state.context[system].engineFacts, { system });
+      }
       const drafts = task.minChars >= GUARDIAN_FORTUNE_RESULT_LENGTH.min;
       const generated = await generator({ input: state.input, context: state.context, env, requestId: state.body.requestId, userId, generationSource: 'paid', singleAttempt: true,
         ...(drafts ? { acceptShortDraft: true, repairDraft: state.drafts?.[task.id] || '' } : {}) });
       if (!generated?.result || generated.usedFallback || generated.isMock || generated.deliverable === false) return null;
       return { evidenceHash: state.evidenceHash, body: JSON.stringify(generated.lengthDraft ? { ...generated.result, lengthDraft: true } : generated.result) };
     },
-    render: state => ({ result: state.parts.answer ? (({ lengthDraft, ...answer }) => answer)(JSON.parse(state.parts.answer)) : null, generationSource: 'paid', requestId: state.body.requestId, resumeInputs: state.input }),
+    render: state => ({ result: state.parts.answer ? (({ lengthDraft, ...answer }) => answer)(JSON.parse(state.parts.answer)) : null, generationSource: 'paid', requestId: state.body.requestId, resumeInputs: state.input,
+      ...(state.context?.availableSystems?.some(system => state.context[system]?.engineFacts) ? { engineFacts: Object.fromEntries(state.context.availableSystems.filter(system => state.context[system]?.engineFacts).map(system => [system, state.context[system].engineFacts])) } : {}) }),
   };
 }

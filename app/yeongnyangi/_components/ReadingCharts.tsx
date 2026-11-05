@@ -5,6 +5,7 @@ import type {ReadingLocale} from '@/worker/yeongnyangi/fortune/reading-locale';
 import {chartCopy,chartTerm,chartLimitation} from '../_lib/reading-chart-copy';
 import styles from './reading-v5.module.css';
 import {ElementDistribution} from './ReadingVisuals';
+import NatalChartTable from './NatalChartTable';
 import TarotCardArt from './TarotCardArt';
 import ZiweiReadingChart,{ziweiGroups} from './ZiweiReadingChart';
 import { yeongnyangiCardArt } from '@/lib/tarot/yeongnyangi-deck';
@@ -35,6 +36,7 @@ function Chart({chart,available,titles,locale}:{chart:ReadingChart;available:Set
  const layout=chart.domain==='ziwei'||chart.domain==='vedic'?styles.palaces:chart.domain==='tarot'?styles.cards:chart.domain==='sukuyo'?styles.relationship:styles.chartChoices;
  return <section className={styles.chart} aria-label={chartTerm(chart.title,locale)}>
   <header><h3>{chartTerm(chart.title,locale)}</h3><p>{chart.source==='서버에 저장된 카드 배열'?copy.sourceCards:chart.source==='구매 당시 저장된 계산 근거'?copy.sourceStored:chart.source}</p></header>
+  {chart.domain==='saju'&&(!locale||locale==='ko')&&<NatalChartTable chart={chart}/>}
   {chart.domain==='astrology'&&<Wheel chart={chart} locale={locale}/>}
   {ziwei?<ZiweiReadingChart groups={ziwei} selected={group.id} onSelect={setSelected} available={available} titles={titles} locale={locale}/>:<div className={layout} role="group" aria-label={`${chartTerm(chart.title,locale)} · ${copy.select}`}>{chart.groups.filter(g=>g.kind!=='timing').map(g=><button type="button" key={g.id} aria-pressed={g.id===group.id} onClick={()=>setSelected(g.id)}>
    {chart.domain==='tarot'?<TarotCardArt key={g.cardCode || g.id} cardCode={g.cardCode} locale={locale} className={g.reversed?styles.reversed:undefined}/>:g.image&&<img src={g.image} alt="" width={140} height={240} loading="lazy" className={g.reversed?styles.reversed:undefined}/>}

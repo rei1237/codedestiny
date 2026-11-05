@@ -87,7 +87,7 @@ function businessBlock(locale: NonKoLocale): string {
 
 export const TERMS_CONTENT: Record<NonKoLocale, LegalDocument> = {
   en: {
-    effectiveDate: "2026-11-04",
+    effectiveDate: "2026-11-05",
     revisionNotice: {"title":"Notice of revised terms","lines":["With a pass you can use Light Readings, which exclude signature consultations, without a usage-count limit.","Your pass stays active after the consultation allowance is used up. Buy a new pass to use more signature consultations.","Pass prices and consultation allowances have changed. The amount paid and the allowance of a pass already purchased do not change."]},
     sections: [
       { id: "purpose", heading: "1. Purpose", paragraphs: [
@@ -163,7 +163,7 @@ export const TERMS_CONTENT: Record<NonKoLocale, LegalDocument> = {
     ],
   },
   ja: {
-    effectiveDate: "2026-11-04",
+    effectiveDate: "2026-11-05",
     revisionNotice: {"title":"規約改定のお知らせ","lines":["パスがあれば、代表相談を除くライト占いを回数制限なく利用できます。","相談上限を使い切ってもパスは維持されます。代表相談をさらに利用するにはパスを再購入します。","パスの販売価格と相談上限が変わりました。すでに購入したパスの決済金額と相談上限は変わりません。"]},
     sections: [
       { id: "purpose", heading: "1. 目的", paragraphs: [
@@ -239,7 +239,7 @@ export const TERMS_CONTENT: Record<NonKoLocale, LegalDocument> = {
     ],
   },
   zh: {
-    effectiveDate: "2026-11-04",
+    effectiveDate: "2026-11-05",
     revisionNotice: {"title":"条款修订通知","lines":["持有通行证即可不限次数使用轻量运势（不含招牌咨询）。","咨询额度用完后通行证仍然保留。如需继续使用招牌咨询，请重新购买通行证。","通行证售价和咨询额度已调整。已购买通行证的付款金额和咨询额度不会改变。"]},
     sections: [
       { id: "purpose", heading: "1. 条款目的", paragraphs: [
@@ -315,7 +315,7 @@ export const TERMS_CONTENT: Record<NonKoLocale, LegalDocument> = {
     ],
   },
   "zh-TW": {
-    effectiveDate: "2026-11-04",
+    effectiveDate: "2026-11-05",
     revisionNotice: {"title":"條款修訂通知","lines":["持有通行證即可不限次數使用輕量運勢（不含招牌諮詢）。","諮詢額度用完後通行證仍然保留。如需繼續使用招牌諮詢，請重新購買通行證。","通行證售價及諮詢額度已調整。已購買通行證之付款金額及諮詢額度不會改變。"]},
     sections: [
       { id: "purpose", heading: "1. 條款目的", paragraphs: [

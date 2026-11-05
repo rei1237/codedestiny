@@ -3,14 +3,14 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import { readFileSync } from 'node:fs';
 import { calcPower, analyzeJohu } from '../../worker/yeongnyangi/fortune/saju-runtime.mjs';
+import { loadRichWithNatal, fullReadingDepthSource } from '../lib/saju-rich-with-natal.mjs';
 
 // The page globals the display layer reads: engine tables from the static shell, copied as-is.
 const engine=readFileSync('js/saju-engine.js','utf8');
 const tables=engine.slice(engine.indexOf('var GAN={'),engine.indexOf('/* ─── 십성 DB ─── */'));
 const tenGod=engine.slice(engine.indexOf('function getTenGod(dayGan,target){'),engine.indexOf('function parseTimeZoneOffsetName'));
-const context=vm.createContext({});
-vm.runInContext(tables+tenGod+readFileSync('js/core/saju/reading-rich.js','utf8'),context);
-const rich=context.SajuReadingRich;
+// 원국 해석 생성기는 서버 원본(paid-natal-reading.src.js)으로 옮겼다 — 도우미가 reading-rich.js 와 같은 범위로 합쳐 준다.
+const {context,rich}=loadRichWithNatal();
 
 test('delivered summary art preserves chapters and stays unique on repeat decoration', async()=>{
   const {JSDOM}=await import('jsdom');
@@ -83,9 +83,9 @@ test('both personas draw the same numbers in different words, with the old key i
     assert.doesNotMatch(yeon,/냥|돼지/);assert.doesNotMatch(neo,/돼지|사자|갈기/);
   }
   const climate=rich.climate(facts,'pig');
-  for(const item of ['한난조습이란 무엇인가요?','조후 밸런스 처방','개선법','조후 용신과 억부 용신'])assert.ok(climate.includes(item),item);
+  for(const item of ['한난조습이란 무엇인가요?','조후 밸런스 처방','개선법','조후 보완과 억부 보완 후보'])assert.ok(climate.includes(item),item);
   const strength=rich.strength(facts,'pig');
-  for(const item of ['용신','희신','기신','왜 신','대운 방향 한눈에','득령','억부(抑扶)란 무엇인가요?'])assert.ok(strength.includes(item),item);
+  for(const item of ['보완 후보','주의 오행','왜 신','대운 방향 한눈에','득령','억부(抑扶)란 무엇인가요?'])assert.ok(strength.includes(item),item);
 });
 
 test('a jong chart is read by its dominant force, and a leftover survey note is not shown',()=>{
@@ -254,9 +254,8 @@ test('climate base follows the month branch (12 steps) and the worker policy cop
 
 test('nature imagery follows calculated stem and solar month, independent of narrator',()=>{
   // ilju 의 여덟 관점은 reading-depth 가 있어야 나온다. 다른 테스트에 영향이 없도록 별도 컨텍스트에서 읽는다.
-  const withDepth=vm.createContext({});
-  vm.runInContext(tables+tenGod+readFileSync('js/core/saju/reading-depth.generated.js','utf8')+readFileSync('js/core/saju/reading-rich.js','utf8'),withDepth);
-  const rich=withDepth.SajuReadingRich,facts=factsOf(charts[3]);
+  const {rich}=loadRichWithNatal('',fullReadingDepthSource());
+  const facts=factsOf(charts[3]);
   const count=(html,re)=>(html.match(re)||[]).length;
   const art=/<figure class="saju-nature"/g;
   const ilju={pig:rich.ilju(facts,'pig'),neo:rich.ilju(facts,'neo')},climate={pig:rich.climate(facts,'pig'),neo:rich.climate(facts,'neo')};

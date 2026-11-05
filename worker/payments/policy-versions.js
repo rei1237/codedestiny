@@ -13,7 +13,7 @@
  * (__tests__/worker/payments-v2.policy-versions.test.js 가 텍스트로 대조한다).
  */
 export const ORDER_POLICY_VERSIONS = Object.freeze({
-  terms: "2026-11-04",
+  terms: "2026-11-05",
   privacy: "2026-10-10",
 });
 

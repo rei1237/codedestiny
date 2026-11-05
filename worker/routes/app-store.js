@@ -36,6 +36,7 @@ import {
   normalizePassTier,
 } from "../lib/profile-limits.js";
 import { AppPurchaseIntent, APP_PURCHASE_INTENT_TTL_MS } from "../lib/app-store-models.js";
+import { SAJU_BUNDLE_FEATURE_KEY, isSajuBundleSaleClosed } from "../lib/saju-bundle-policy.js";
 
 const GOOGLE_ANDROID_PUBLISHER_SCOPE = "https://www.googleapis.com/auth/androidpublisher";
 let cachedGoogleAccessToken = null;
@@ -139,6 +140,21 @@ async function getGoogleAccessToken(env) {
   };
   return cachedGoogleAccessToken.token;
 }
+
+// 사주 영구 묶음 포함·판매 종료 키는 앱에서도 신규로 팔지 않는다(Play 결제창·앱 무료 통과 모두).
+// 이미 만든 결제 의도의 검증·복구(google/verify, restore)는 이 함수를 타지 않는다. 묶음 SKU(cd_content_tier_19)는 막지 않는다.
+function appStoreSaleClosedFailure(featureKey) {
+  const key = cleanText(featureKey);
+  if (!isSajuBundleSaleClosed(key)) return null;
+  return json({
+    ok: false,
+    code: "PRODUCT_SALE_ENDED",
+    message: "이 항목은 개별 판매가 끝났어요. 사주 전체 풀이 평생 소장으로 열 수 있어요.",
+    featureKey: key,
+    bundleFeatureKey: SAJU_BUNDLE_FEATURE_KEY,
+  }, { status: 409 });
+}
+export const __appStoreTestUtils = { appStoreSaleClosedFailure };
 
 function productKey(value) {
   return cleanText(value).toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 80);
@@ -704,6 +720,8 @@ async function handleProducts(request, env) {
     featureKey: url.searchParams.get("featureKey"),
     reason: url.searchParams.get("reason"),
   });
+  const saleEnded = appStoreSaleClosedFailure(pricing?.featureKey);
+  if (saleEnded) return saleEnded;
   const product = resolveProduct(pricing, env, {
     productType: url.searchParams.get("productType"),
   });
@@ -728,6 +746,8 @@ async function handleFreeGrant(request, env) {
   const auth = await requireAuth(request, env);
   const body = await readJson(request);
   const pricing = resolvePricing(body);
+  const saleEnded = appStoreSaleClosedFailure(pricing?.featureKey);
+  if (saleEnded) return saleEnded;
   const product = resolveProduct(pricing, env, body);
 
   if (!product.freeInApp) {
@@ -830,6 +850,11 @@ async function handleGoogleIntent(request, env) {
         data: { alreadyUnlocked: true, featureKey: product.featureKey, unlockMap: { [product.featureKey]: true } },
       });
     }
+  }
+  // 보유(묶음 보유 포함)는 위에서 이미 열었다. 보유가 아니면 신규 결제 의도를 만들지 않는다.
+  if (!isPassPurchase) {
+    const saleEnded = appStoreSaleClosedFailure(product.featureKey);
+    if (saleEnded) return saleEnded;
   }
   const now = Date.now();
   const intent = await AppPurchaseIntent.create({

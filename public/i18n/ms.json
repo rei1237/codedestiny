@@ -52,11 +52,11 @@
     "hero": {
       "eyebrow": "CODE DESTINY",
       "brandLine": "Koleksi Takdir Cakerawala",
-      "titleLine1": "Empat Tiang & Tarot Percuma",
+      "titleLine1": "Manseryeok & Tarot Percuma",
       "titleAccent": "Ramalan Hari Ini",
       "titleLine3": "dalam satu cahaya bulan",
       "lead": "Terokai Empat Tiang, tarot, Zi Wei Dou Shu, astrologi, astrologi Sukuyo, keserasian dan ramalan hari ini dalam ruang yang tenang. Masukkan maklumat kelahiran atau soalan semasa anda, lalu terima bacaan yang menjernihkan saat sebelum pilihan seterusnya.",
-      "primaryCta": "Mulakan bacaan Empat Tiang percuma",
+      "primaryCta": "Lihat Manseryeok percuma saya",
       "tarotCta": "Cabut kad tarot",
       "logoAlt": "Logo Babi Madu Yeoni"
     },
@@ -178,7 +178,7 @@
       "genderLabel": "Jantina",
       "female": "Perempuan",
       "male": "Lelaki",
-      "submit": "Bacaan Empat Tiang percuma",
+      "submit": "Lihat Manseryeok percuma",
       "saveProfile": "Simpan kad profil",
       "saveOptional": "Pilihan",
       "kakaoEvent": "Acara kongsi Kakao",
@@ -1007,7 +1007,7 @@
       "title": "TAROT MISTIK",
       "subtitle": "Kad dan sepuluh tuhan membuka pilihan hari ini bersama-sama.",
       "oneCardMode": "Bacaan satu kad",
-      "threeCardMode": "Aliran tiga kad · 5,000 KRW",
+      "threeCardMode": "Bacaan tiga kad · Percuma",
       "categories": {
         "daily": "Rezeki hari ini",
         "love": "Cintakan nasib",
@@ -1029,7 +1029,7 @@
         "present": "Tenaga teras sekarang",
         "next": "Piawaian seterusnya untuk pilihan"
       },
-      "openFlowReading": "Bacaan aliran terbuka · 5,000 KRW",
+      "openFlowReading": "Lihat bacaan",
       "retryOtherConcern": "Sebarkan satu lagi kebimbangan",
       "aiPromptTitle": "Gesaan tarot Myeongri untuk bertanya kepada AI seterusnya",
       "afterPaymentBadge": "Selepas pembayaran dibaca",
@@ -1252,7 +1252,7 @@
       "neoLogoAlt": "Logo Honey Yeoni"
     },
     "hero2": {
-      "title": "Daripada Empat Tiang percuma hingga Zi Wei Dou Shu dan astrologi — diri anda pada saat ini",
+      "title": "Daripada Manseryeok percuma hingga Zi Wei Dou Shu dan astrologi — diri anda pada saat ini",
       "lead": "Kebijaksanaan Timur-Barat bertemu wawasan pakar untuk mentafsir kisah anda.",
       "primaryCta": "✦ Cipta kad takdir anda",
       "journeyCta": "✦ Mulakan Perjalanan Takdir Anda"
@@ -1260,7 +1260,7 @@
     "oneStep": {
       "heading": "Today's One Step",
       "s1": {
-        "title": "Free Saju Chart",
+        "title": "Manseryeok percuma",
         "desc": "Start by knowing yourself"
       },
       "s2": {
@@ -1484,7 +1484,7 @@
         },
         "selfGrain": {
           "t": "Siapakah saya sebenarnya?",
-          "s": "Terokai sifat semula jadi dan fasa semasa secara percuma melalui lapan aksara BaZi.",
+          "s": "Terokai sifat semula jadi anda dengan Manseryeok percuma.",
           "b": "Empat Tiang (BaZi)"
         },
         "peopleTired": {
@@ -1941,7 +1941,7 @@
       "all": "Lihat semua bacaan",
       "light": "Cuba bacaan ringkas",
       "free": "Mula percuma · Bacaan mendalam berbayar",
-      "benefit": "Lengkapkan panduan saju percuma untuk 500 batu bulan",
+      "benefit": "Lengkapkan panduan Manseryeok percuma untuk 500 batu bulan",
       "benefitNote": "Sah selama 30 hari. Bersamaan KRW 5,000 pada kadar biasa; penggunaan berbeza mengikut produk. Bukan wang tunai atau untuk membeli pas. Hanya untuk diskaun perkhidmatan layak berharga KRW 10,000 atau lebih.",
       "join": "Daftar dengan Kakao atau e-mel",
       "signatureDescription": "Lihat konsultasi dan contoh hasil yang sesuai dengan persoalan anda.",
@@ -2001,7 +2001,7 @@
       "title": "Perundingan utama yang direka oleh pakar Myeongri dengan 10 tahun pengalaman",
       "freeTitle": "Mula secara percuma",
       "miniGames": "Permainan tilikan mini",
-      "freeSaju": "Saju percuma",
+      "freeSaju": "Manseryeok percuma",
       "freeSajuNote": "Terus dengan tarikh lahir anda",
       "freeToday": "Tilikan harian",
       "freeTodayNote": "Bacaan baharu setiap hari",
@@ -2251,7 +2251,8 @@
       "expand": "Buka",
       "collapse": "Tutup",
       "samplesContext": "Kandungan konsultasi",
-      "samplesAction": "Lihat contoh"
+      "samplesAction": "Lihat contoh",
+      "resume": "Sambung semula pertukaran kad automatik"
     },
     "benefitsCopy": {
       "title": "Ingin tahu tentang nasib anda?",
@@ -2372,8 +2373,8 @@
       "relationship": "Keserasian · Hubungan",
       "yearly": "Tahun ini · Tahun depan",
       "introduction": "Saju, tarot dan panduan mengikut persoalan anda.",
-      "freeIntroduction": "Mulakan dengan bacaan Saju percuma.",
-      "freeStart": "Mulakan Saju percuma",
+      "freeIntroduction": "Mulakan dengan carta Manseryeok percuma.",
+      "freeStart": "Mulakan Manseryeok percuma",
       "paidLabel": "Berbayar ·",
       "result": {
         "relationship": "Laporan hubungan Saju dan Zi Wei Dou Shu",
@@ -2407,6 +2408,90 @@
       "contact": "Hubungi kami",
       "contactNote": "Maklumkan soalan atau masalah anda.",
       "example": "Contoh hasil bacaan awam"
+    },
+    "webtoonCopy": {
+      "love-secret": {
+        "lead": "Kata yang sama, mengapa hati masih tidak sehaluan?",
+        "benefits": "Cara menyatakan cinta · Mengapa rasa terluka terkumpul · Masa mendekati dan memberi ruang"
+      },
+      "new-year": {
+        "lead": "Sebelum mengulang azam yang sama, lihat arah tahun ini.",
+        "benefits": "Masa bersedia dan bertindak · Keutamaan kerja, wang dan hubungan · Pilihan untuk disemak pada setiap peringkat"
+      },
+      "life-book": {
+        "lead": "Bagaimana jika kisah lalu masih menyimpan sebab yang belum difahami?",
+        "benefits": "Sebab pilihan berulang · Bakat dan kekuatan berkekalan · Aliran hidup besar melalui kitaran Saju"
+      },
+      "neo": {
+        "lead": "Sudah berazam, mengapa masih di tempat yang sama?",
+        "benefits": "Syarat untuk mengubah keadaan · Tindakan yang boleh dibuat sekarang · Ukuran menilai semula rancangan"
+      },
+      "tea": {
+        "lead": "Malam ketika tidak tahu dari mana mahu meluahkan hati.",
+        "benefits": "Susun kebimbangan · Pilih konsultasi yang sesuai · Tindakan dalam kawalan sendiri"
+      },
+      "codex": {
+        "lead": "Orang berbeza, mengapa kisah yang sama berulang?",
+        "benefits": "Corak hubungan berulang · Sebab tarikan dan beban · Tafsiran peribadi atau keserasian"
+      },
+      "ziwei": {
+        "lead": "Sudah berusaha tetapi tersangkut di tempat yang sama?",
+        "benefits": "Perwatakan melalui carta Ziwei · Kekuatan kerja, wang dan hubungan · Pilihan untuk disemak ketika buntu"
+      },
+      "astrology": {
+        "lead": "Apabila perasaan dan tindakan menuju arah berbeza.",
+        "benefits": "Perwatakan dalam langit kelahiran · Perbezaan perasaan dan tindakan · Transit semasa dan kehidupan harian"
+      },
+      "vedic": {
+        "lead": "Apabila terasa seperti melalui musim yang sama lagi.",
+        "benefits": "Perwatakan dalam carta kelahiran · Aliran masa melalui tempoh Dasha · Arah hidup untuk disemak sekarang"
+      },
+      "sukuyo-compat": {
+        "lead": "Mengapa semakin dekat semakin sukar?",
+        "benefits": "Tarikan dan beban antara dua orang · Rentak hubungan berbeza · Persetujuan dan batas untuk diubah bersama"
+      },
+      "legacy-naming": {
+        "lead": "Nama yang lama disebut membawa kasih dan harapan.",
+        "benefits": "Makna dan bunyi nama cadangan · Asas Saju dan pengiraan · Kriteria membandingkan nama"
+      },
+      "karma": {
+        "lead": "Orang dan tempat berubah, tetapi simpulan masih ada.",
+        "benefits": "Simpulan hubungan berulang · Corak pilihan melalui setiap tradisi · Tindakan untuk diubah seterusnya"
+      },
+      "fusion": {
+        "lead": "Sisi kehidupan yang tidak terlihat dari satu pandangan.",
+        "benefits": "Tafsiran berasingan daripada enam tradisi · Aliran bersama dan pandangan berbeza · Arah praktikal mengikut bidang kehidupan"
+      },
+      "read": "Kenali melalui webtoon",
+      "start": "Mulakan konsultasi",
+      "installLabel": "Tambah ke skrin utama",
+      "return": "Kembali dengan satu ketikan",
+      "installDescription": "Buka 꿀꿀 운세 melalui ikon skrin utama.",
+      "expertsTitle": "Kisah anda dari sudut berbeza",
+      "expertsIntro": "Lihat dahulu konsultasi pakar melalui webtoon.",
+      "ziweiName": "Konsultasi Ziwei",
+      "astrologyName": "Konsultasi astrologi Barat",
+      "vedicName": "Konsultasi astrologi Veda",
+      "sukuyoName": "Konsultasi keserasian Sukuyo",
+      "namingName": "Konsultasi penamaan",
+      "karmaName": "Laporan karma dan takdir",
+      "fusionName": "Tafsiran gabungan",
+      "teaName": "Rumah teh takdir",
+      "namingStudio": "Studio penamaan pakar",
+      "installAction": "Tambah ke skrin utama",
+      "neoShort": "Bilik strategi terus terang Neo",
+      "yeoniTea": "Rumah teh takdir",
+      "link": {
+        "codexTitle": "Buku hubungan pembimbing · Kenali melalui webtoon",
+        "teaName": "Rumah teh takdir · Kenali melalui webtoon",
+        "loveTitle": "Wawasan cinta · Kenali melalui webtoon",
+        "neoShort": "Bilik strategi terus terang Neo · Kenali melalui webtoon",
+        "namingStudio": "Studio penamaan pakar · Kenali melalui webtoon",
+        "yeoniTea": "Rumah teh takdir · Kenali melalui webtoon",
+        "lifeTitle": "Buku kehidupan · Kenali melalui webtoon",
+        "yearTitle": "Tafsiran tahun baharu · Kenali melalui webtoon",
+        "neoRoomTitle": "Bilik strategi terus terang Neo · Kenali melalui webtoon"
+      }
     }
   },
   "terms": {
@@ -3167,7 +3252,7 @@
     "neoSubline": "Tiada sentimen tambahan. Hanya fakta yang tinggal.",
     "signup": "Daftar",
     "login": "Log masuk",
-    "guestMoonstoneTeaser": "Lengkapkan panduan saju percuma untuk 500 batu bulan · diskaun perkhidmatan layak dari KRW 10,000",
+    "guestMoonstoneTeaser": "Lengkapkan panduan Manseryeok percuma untuk 500 batu bulan · diskaun perkhidmatan layak dari KRW 10,000",
     "loadingGreeting": "Menjajarkan cahaya bintang akaun anda",
     "loadingChip": "SESI SYNC",
     "loadingTitle": "Memuatkan maklumat log masuk anda",
@@ -3207,18 +3292,18 @@
     "passCheckingGreeting": "Menyemak Pas anda",
     "passCheckingNote": "Menyelaraskan Pas Batu Cahaya Bulan dan tahap keahlian anda dengan selamat.",
     "exitBenefit": {
-      "title": "Lengkapkan panduan saju percuma untuk {amount} batu bulan",
-      "copy": "Tuntut sekali selepas log masuk dan melihat saju percuma dengan profil tersimpan. Penerima hadiah pendaftaran terdahulu tidak menerima pemberian kedua. Bernilai KRW 5,000. Sah {days} hari untuk diskaun perkhidmatan layak dari KRW 10,000.",
+      "title": "Lengkapkan panduan Manseryeok percuma untuk {amount} batu bulan",
+      "copy": "Tuntut sekali selepas log masuk dan melihat Manseryeok percuma dengan profil tersimpan. Penerima hadiah pendaftaran terdahulu tidak menerima pemberian kedua. Bernilai KRW 5,000. Sah {days} hari untuk diskaun perkhidmatan layak dari KRW 10,000.",
       "note": "Kos berbeza mengikut produk. Bukan wang tunai dan tidak boleh digunakan untuk membeli pas.",
       "join": "Daftar dengan Kakao",
       "email": "Daftar dengan e-mel"
     }
   },
   "seo": {
-    "homeTitle": "Saju Percuma, Tarot dan Rezeki Harian | 꿀꿀 운세",
+    "homeTitle": "Saju, Tarot dan Rezeki Harian | 꿀꿀 운세",
     "rssTitle": "꿀꿀 운세 RSS",
-    "description": "꿀꿀 운세: Percuma Saju mengikut tarikh lahir, tarot, keserasian, nasib Tahun Baru, Tojeong Bigyeol dan keserasian MBTI.",
-    "keywords": "Saju, Saju percuma, kalendar Manse, tarot, nasib harian, keserasian, nasib Tahun Baru, Tojeong Bigyeol, bacaan muka, nasib wang, nasib perjumpaan semula, keserasian MBTI, 꿀꿀운세"
+    "description": "꿀꿀 운세: Manseryeok percuma mengikut tarikh lahir, tarot, keserasian, nasib Tahun Baru, Tojeong Bigyeol dan keserasian MBTI.",
+    "keywords": "Saju, Manseryeok percuma, kalendar Manse, tarot, nasib harian, keserasian, nasib Tahun Baru, Tojeong Bigyeol, bacaan muka, nasib wang, nasib perjumpaan semula, keserasian MBTI, 꿀꿀운세"
   },
   "fortune": {
     "destinyFlower": {
@@ -5403,7 +5488,7 @@
         "faq": "Soalan lazim"
       },
       "home": "Pulang ke rumah",
-      "freeSaju": "Lihat bacaan Saju percuma"
+      "freeSaju": "Lihat Manseryeok percuma"
     },
     "tryAgainLater": "Sila cuba sebentar lagi."
   },
@@ -5412,7 +5497,7 @@
       "kicker": "Tenaga pertama taegeuk",
       "title": "Lampu putih dan gelap taegeuk menerangi bahagian tengah carta anda.",
       "desc": "Dalam carta, tenaga bergerak melalui tiang hari, sepuluh tuhan, keseimbangan bermusim dan kekuatan sokongan. Pintu rezeki yang lebih dalam terbuka dengan senyap di mana mereka diperlukan.",
-      "navAria": "Pergi ke tafsiran saju percuma",
+      "navAria": "Pergi ke tafsiran Saju",
       "nav": {
         "manse": "Carta",
         "ilju": "Tiang hari",
@@ -5460,7 +5545,7 @@
       "johuTitle": "Analisis kehangatan dan kekeringan bermusim",
       "ukbuTitle": "Kekuatan sokongan dan analisis corak berikut",
       "currentSeasonTitle": "🍃 Fasa saya kini · Saya tahun ini",
-      "currentSeasonIntro": "Soalan paling kerap dalam Saju ialah “Jadi sekarang, bagaimana tahun ini?” Kami mula, secara percuma, dengan musim hidup yang sedang anda lalui (kitaran nasib besar) dan aliran tahun ini."
+      "currentSeasonIntro": "Soalan paling kerap dalam Saju ialah “Jadi sekarang, bagaimana tahun ini?” Kami mula dengan musim hidup yang sedang anda lalui (kitaran nasib besar) dan aliran tahun ini."
     },
     "ilju": {
       "dashboard": "PAPAN PEmuka TIANG HARI",
@@ -5485,18 +5570,18 @@
     "premiumShowcase": {
       "aria": "Bacaan saju berbayar",
       "title": "Baca carta anda dengan lebih mendalam",
-      "subtitle": "Mulakan dengan bacaan Light untuk memahami sifat semula jadi anda, kemudian ikuti kitaran sepuluh tahun dengan Daewun. Keserasian dibayar setiap kali dilihat.",
+      "subtitle": "Satu pembukaan kekal bacaan saju penuh membuka semua bacaan selepas carta kelahiran anda. Keserasian dibayar setiap kali dilihat.",
       "expand": "Buka kad tafsiran",
       "permanent": "Buka kunci kekal",
       "perUse": "Bayaran setiap guna",
       "compatCta": "Lihat keserasian →",
       "daewun": {
         "title": "Analisis Daewun",
-        "cta": "Buka analisis Daewun →"
+        "cta": "Buka bacaan saju penuh selama-lamanya →"
       },
       "summary": {
-        "title": "Bacaan saju Light",
-        "cta": "Buka bacaan Light →"
+        "title": "Bacaan saju penuh",
+        "cta": "Buka bacaan saju penuh selama-lamanya →"
       },
       "compat": {
         "title": "Analisis keserasian",
@@ -7327,7 +7412,7 @@
     "sq_9794_attr_aria_label": "Carta Radar Keserasian Sukuyo"
   },
   "shell": {
-    "CODEDESTINY": "꿀꿀 운세 | Empat Tiang (BaZi) Percuma·Tarot·Zi Wei Dou Shu·Keserasian — Bacaan Bertuah",
+    "CODEDESTINY": "꿀꿀 운세 | Manseryeok Percuma·Empat Tiang (BaZi)·Tarot·Zi Wei Dou Shu·Keserasian — Bacaan Bertuah",
     "cdCookieConsentCopy": {
       "cdCookieConsentActions": {
         "kniuoqf": "Setuju",
@@ -8536,7 +8621,7 @@
     "005": "Menerangkan carta kelahiran, 12 rumah, dan simbol zodiak dengan cara yang mudah difahami oleh pemula.",
     "006": "Piawaian dan penafian untuk membaca kandungan bacaan dengan selamat dan seimbang.",
     "007": "Panduan Pengenalan Empat Tiang (BaZi)",
-    "008": "Analisis Empat Tiang (BaZi) Manse Calendar Percuma",
+    "008": "Cara membaca Manseryeok percuma",
     "009": "Tafsiran Asas Empat Tiang (BaZi) Manse Calendar",
     "010": "Bagaimana Pembacaan Tarot Berfungsi",
     "011": "Pembacaan Kad Tarot Percuma",
@@ -8548,7 +8633,7 @@
     "017": "Carta Kelahiran Astrologi Percuma",
     "018": "Papan 12 Rumah Zi Wei Dou Shu",
     "019": "Isyarat Utama untuk Mengenali Keserasian Baik",
-    "020": "Tafsiran Keserasian Empat Tiang (BaZi) Percuma",
+    "020": "Keserasian Empat Tiang (BaZi)",
     "021": "Lihat Nasib Cinta Percuma",
     "022": "Soalan Lazim Penggunaan Perkhidmatan Bacaan dengan Selamat",
     "023": "Lihat Bacaan Hari Ini Percuma",
@@ -8896,8 +8981,8 @@
   },
   "seoLanding": {
     "description": {
-      "001": "Ini adalah halaman panduan Empat Tiang (BaZi) percuma yang mengkaji kecenderungan dan aliran pilihan melalui struktur asas Empat Tiang (BaZi), keseimbangan Lima Unsur, Sepuluh Dewa, dan kitaran nasib.",
-      "002": "Kami membimbing anda tentang cara menyemak carta kelahiran Empat Tiang (BaZi), Lima Unsur, Sepuluh Dewa, dan aliran kitaran nasib berdasarkan tarikh dan masa lahir anda.",
+      "001": "Masukkan tarikh dan masa lahir dalam Manseryeok percuma untuk melihat carta Empat Tiang dan satu baris kecenderungan. Sepuluh Dewa, kitaran nasib serta aliran wang, cinta dan kerjaya disambung dalam bacaan penuh Saju berbayar.",
+      "002": "Masukkan tarikh lahir anda untuk melihat carta Empat Tiang dan keseimbangan Lima Unsur dalam Manseryeok percuma. Kami terangkan sebab keputusan berubah mengikut masa lahir dan sempadan penggal suria; bacaan Sepuluh Dewa dan jadual kitaran nasib diteruskan dalam bacaan penuh Saju dengan akses seumur hidup.",
       "003": "Bacaan harian membantu anda menyemak keadaan, hubungan, dan keutamaan kerja anda secara ringkas dan menyusun pilihan untuk tindakan.",
       "004": "Halaman bacaan harian membantu anda menyemak keadaan, aliran hubungan, dan keutamaan jadual anda secara ringkas apabila anda memulakan atau menyusun hari anda.",
       "005": "Kami mengkaji ritma hubungan, cara komunikasi, dan titik pemulihan konflik dua orang dari perspektif Empat Tiang (BaZi) dan bacaan, dan menyusunnya sebagai piawaian perbualan yang realistik.",
@@ -8919,12 +9004,12 @@
       "021": "PDF Bacaan Tahun Baru adalah dokumen bacaan premium yang mengkaji aliran kerjaya, kekayaan, hubungan, dan kesihatan Tahun Baru secara bulanan."
     },
     "title": {
-      "001": "Analisis Empat Tiang (BaZi) Percuma | Aliran Lima Unsur·Sepuluh Dewa·Kitaran Nasib",
-      "002": "Analisis Empat Tiang (BaZi) Kalendar Abadi Percuma | Tafsiran Lima Unsur·Sepuluh Dewa·Kitaran Nasib",
+      "001": "Carta kelahiran Manseryeok percuma | Empat Tiang dan keseimbangan Lima Unsur",
+      "002": "Cara membaca Manseryeok percuma | Carta Empat Tiang dan keseimbangan Lima Unsur",
       "003": "Lihat Bacaan Harian Percuma | Panduan Aliran dan Pilihan Harian",
       "004": "Semak Bacaan Harian Segera | Semakan Keadaan·Hubungan·Jadual",
-      "005": "Lihat Keserasian Percuma | Analisis Hubungan Empat Tiang (BaZi)·Percintaan",
-      "006": "Tafsiran Keserasian Empat Tiang (BaZi) Percuma | Aliran Hubungan dan Cara Komunikasi",
+      "005": "Panduan keserasian percuma | Saju, Sukuyo dan tarot dibandingkan",
+      "006": "Keserasian Saju — Kecenderungan dua orang dan bacaan hubungan | 꿀꿀 운세",
       "007": "Bacaan Kad Tarot Percuma | Tafsiran Percintaan·Penyatuan Semula·Hati",
       "008": "Bacaan Tarot Penyatuan Semula | Kemungkinan dan Jarak untuk Bersatu Semula",
       "009": "Tarot Hati Pasangan | Aliran Hati dan Isyarat Hubungan",
@@ -14037,10 +14122,10 @@
       }
     },
     "rpt_tTestCard": {
-      "fallbackTitle": "Check your logic temperature -- where reason responds before emotion -- for free.",
-      "tagline": "The Frozen Logic -- a free Saju-based test that playfully diagnoses how close your thinking and judgment pattern is to Thinking (T).",
-      "premiumIntro": "The Extreme-T Test doesn't define your personality -- it's a free, playful reflection of how much your judgment leans toward reason.",
-      "fallbackCta": "Diagnose for Free",
+      "fallbackTitle": "Semak suhu logik anda, apabila akal bertindak balas sebelum emosi.",
+      "tagline": "The Frozen Logic: ujian santai berasaskan Saju tentang sejauh mana corak pemikiran dan pertimbangan anda menghampiri T, termasuk dalam bacaan penuh Saju dengan akses seumur hidup.",
+      "premiumIntro": "Ujian Extreme-T tidak menentukan personaliti anda. Ia menunjukkan sejauh mana pertimbangan anda condong kepada akal.",
+      "fallbackCta": "Mulakan diagnosis",
       "feats": {
         "0": "Measures the metal element, authority, expression and climate in your chart to produce a T score of 0–100 and a tier",
         "1": "Shows four stats: metal hardware, forced-control instinct, blunt-fact debugging and the cold-dry formation",
@@ -14060,7 +14145,7 @@
         "3": "Six summary chips plus today’s mission"
       },
       "premiumOutcomes": {
-        "0": "You can use it free right now.",
+        "0": "Bacaan ini termasuk dalam bacaan penuh Saju dengan akses seumur hidup.",
         "1": "[Relationship Circuit], [Love Algorithm], [Reality Processing], [Saju-based Extreme-T Reading] and [Debugging Prescription] open after a separate unlock.",
         "2": "The test is for reference and fun."
       },
@@ -14093,8 +14178,8 @@
           "a": "No. You do not answer questionnaire items. It scores the metal element, authority, expression and climate in your natal chart, for fun."
         },
         "1": {
-          "q": "How much is free?",
-          "a": "The T score, tier, type name, four stats, [Strength Scan], [Fatal Bug], today’s mission and the summary card are all free."
+          "q": "Apa yang boleh saya lihat?",
+          "a": "Skor T, peringkat, nama jenis, empat statistik, [Strength Scan], [Fatal Bug], misi hari ini dan kad ringkasan dibuka dengan bacaan penuh Saju dengan akses seumur hidup."
         },
         "2": {
           "q": "Why can’t I see the relationship sections?",
@@ -14103,10 +14188,10 @@
       }
     },
     "rpt_hormone_vibe_section": {
-      "fallbackTitle": "Check for free whether your charm pulls strongly like a Teto type, or seeps in gently like an Egen type.",
-      "tagline": "A free analysis, based on your Saju, that splits the grain of your charm energy into Teto and Egen styles.",
-      "premiumIntro": "The Teto/Egen analysis doesn't rank one above the other -- it's a free organization of how your charm pulls people in.",
-      "fallbackCta": "Check for Free",
+      "fallbackTitle": "Lihat sama ada daya tarikan anda menarik dengan kuat seperti jenis Teto atau meresap lembut seperti jenis Egen.",
+      "tagline": "Analisis berasaskan Saju anda yang membahagikan tenaga daya tarikan kepada gaya Teto dan Egen, termasuk dalam bacaan penuh Saju dengan akses seumur hidup.",
+      "premiumIntro": "Analisis Teto/Egen tidak meletakkan satu jenis lebih tinggi daripada yang lain. Ia menunjukkan cara daya tarikan anda memikat orang.",
+      "fallbackCta": "Lihat sekarang",
       "feats": {
         "0": "Tallies the Ten Gods across all seven positions except the day stem",
         "1": "Groups the Ten Gods into peers, output, resource, authority and wealth",
@@ -14122,10 +14207,10 @@
         "0": "Teto and Egen scores with a type reading",
         "1": "Ten Gods tallied across seven positions excluding the day stem",
         "2": "Weightings for the five groups: peers, output, resource, authority, wealth",
-        "3": "Free, with no extra payment"
+        "3": "Termasuk dalam bacaan penuh Saju dengan akses seumur hidup"
       },
       "premiumOutcomes": {
-        "0": "You can use it right now, for free.",
+        "0": "Bacaan ini termasuk dalam bacaan penuh Saju dengan akses seumur hidup.",
         "1": "The analysis is for reference and entertainment.",
         "2": "Your charm type can vary by situation."
       },
@@ -14162,16 +14247,16 @@
           "a": "It uses only the Ten Gods in your natal chart, so the same birth date and time always gives the same result."
         },
         "2": {
-          "q": "Do I need to pay?",
-          "a": "No. It opens inside your Saju result with no extra payment."
+          "q": "Adakah saya perlu membayar secara berasingan?",
+          "a": "Tiada bayaran berasingan. Ia dibuka bersama bacaan penuh Saju dengan akses seumur hidup."
         }
       }
     },
     "rpt_lottoCard": {
-      "fallbackTitle": "Get today's lucky numbers drawn from your Saju's Five Elements and number symbolism, for free.",
-      "tagline": "A free, for-fun feature that seeds five games from your natal chart plus today’s day pillar and luck cycle.",
-      "premiumIntro": "The Saju Lotto is a fun feature that doesn't predict a win -- it freely draws a symbolic number that fits today's fortune.",
-      "fallbackCta": "Draw Numbers for Free",
+      "fallbackTitle": "Dapatkan nombor bertuah hari ini, dicabut daripada Lima Unsur dalam Saju anda dan simbolisme nombor.",
+      "tagline": "Ciri nombor simbolik yang mencabut lima kombinasi daripada carta kelahiran, tiang hari ini dan kitaran nasib anda, termasuk dalam bacaan penuh Saju dengan akses seumur hidup.",
+      "premiumIntro": "Saju Lotto tidak meramal kemenangan. Ia mencabut nombor simbolik yang sepadan dengan nasib hari ini.",
+      "fallbackCta": "Cabut nombor",
       "feats": {
         "0": "Seeds the numbers from your natal chart plus today’s day pillar, luck cycle and round counter",
         "1": "Builds five games at once and labels them flow, stable, reversal, instinct and balance",
@@ -14187,10 +14272,10 @@
         "0": "Numbers seeded from your chart, today’s day pillar and luck cycle",
         "1": "Five games at once, each with a concept name",
         "2": "Redraw to raise the round counter and get a new set",
-        "3": "Free, with no extra payment"
+        "3": "Termasuk dalam bacaan penuh Saju dengan akses seumur hidup"
       },
       "premiumOutcomes": {
-        "0": "You can use it right now, for free.",
+        "0": "Bacaan ini termasuk dalam bacaan penuh Saju dengan akses seumur hidup.",
         "1": "This is fun content that doesn't guarantee a win.",
         "2": "Please judge an actual purchase carefully."
       },
@@ -14228,15 +14313,15 @@
         },
         "2": {
           "q": "Can I save or share the number card?",
-          "a": "The free number draw has no save or share feature. You read it directly on screen."
+          "a": "Cabutan nombor tiada fungsi simpan atau kongsi. Anda melihatnya terus pada skrin."
         }
       }
     },
     "rpt_sajuFourCutCard": {
-      "fallbackTitle": "Make a four-cut photo-strip reinterpreting your Saju data in a fun, snapshot-style sentiment, for free.",
-      "tagline": "A free, fun feature packing blunt-but-relatable roast lines into a four-cut strip, ready to save and share.",
-      "premiumIntro": "The Saju Four-Cut doesn't state your fortune definitively -- it's free content that lets you enjoy your Saju as a fun, snapshot-style card.",
-      "fallbackCta": "Make a Four-Cut for Free",
+      "fallbackTitle": "Cipta jalur empat panel yang mentafsir semula data Saju anda dalam gaya gerai foto.",
+      "tagline": "Ayat terus terang yang mudah dirasai dalam empat panel, sedia untuk disimpan dan dikongsi, termasuk dalam bacaan penuh Saju dengan akses seumur hidup.",
+      "premiumIntro": "Empat Panel Saju tidak memutuskan nasib anda. Ia membolehkan anda menikmati Saju anda sebagai satu kad bergaya gerai foto.",
+      "fallbackCta": "Cipta empat panel",
       "feats": {
         "0": "Builds four-cut lines from today’s day pillar energy",
         "1": "Lets you switch between four versions: form check, reply warmth, routine save and impulse lock",
@@ -14256,7 +14341,7 @@
         "3": "Image save plus KakaoTalk, device share or link copy"
       },
       "premiumOutcomes": {
-        "0": "You can use it right now, for free.",
+        "0": "Bacaan ini termasuk dalam bacaan penuh Saju dengan akses seumur hidup.",
         "1": "The sentences are for reference and entertainment.",
         "2": "The existing service standard applies."
       },
@@ -14293,16 +14378,16 @@
           "a": "Yes. You can save the four cuts as an image with your stickers in place."
         },
         "2": {
-          "q": "Do I need to pay?",
-          "a": "No. It opens inside your Saju result with no extra payment."
+          "q": "Adakah saya perlu membayar secara berasingan?",
+          "a": "Tiada bayaran berasingan. Ia dibuka bersama bacaan penuh Saju dengan akses seumur hidup."
         }
       }
     },
     "rpt_dopamineCard": {
-      "fallbackTitle": "Check for free whether you're someone who chases new stimulation, or someone who loves stability more.",
-      "tagline": "A free report that converts your stimulation-seeking tendency into a score and grade based on your Saju flow, showing an 8-axis stimulation radar, your absorption areas, and today's mission.",
+      "fallbackTitle": "Lihat sama ada anda mengejar rangsangan baharu atau lebih menyayangi kestabilan.",
+      "tagline": "Laporan yang menukar kecenderungan mencari rangsangan kepada skor dan gred mengikut aliran Saju anda, dengan radar 8 paksi, bidang tumpuan dan misi hari ini, termasuk dalam bacaan penuh Saju dengan akses seumur hidup.",
       "premiumIntro": "This doesn't diagnose addiction -- it's a fun read, through your Saju flow, of where you draw energy from and where you burn out quickly.",
-      "fallbackCta": "See Your Stimulation Score for Free",
+      "fallbackCta": "Lihat indeks rangsangan saya",
       "feats": {
         "0": "Converts your stimulation-seeking tendency into a 0–100 score, an SSS–D grade and a type name",
         "1": "Draws an eight-axis stimulation radar: new experiences, social media, shopping, gaming, study, travel, romance and exercise",
@@ -14323,7 +14408,7 @@
         "4": "Save and share the result card"
       },
       "premiumOutcomes": {
-        "0": "You can use it right now, for free.",
+        "0": "Bacaan ini termasuk dalam bacaan penuh Saju dengan akses seumur hidup.",
         "1": "This is content for temperament reference and entertainment.",
         "2": "The existing service standard applies."
       },
@@ -16326,7 +16411,7 @@
       "badge": "Free compatibility reading"
     },
     "saju": {
-      "tagline": "A basic reading that calculates the eight characters of your saju and lays out your innate temperament and the large turns of your life. You can start for free.",
+      "tagline": "Mengira lapan aksara Saju anda dan memaparkan secara percuma carta, keseimbangan Lima Unsur serta satu baris kecenderungan. Tafsiran Sepuluh Dewa dan kitaran nasib disambung dalam bacaan penuh Saju berbayar.",
       "feats": [
         "When you can't put your own disposition into words",
         "When you want to see the broad arc of your life once",
@@ -16343,7 +16428,7 @@
         "How does the broad arc of my life run?",
         "What kind of period am I in now?"
       ],
-      "fallbackCta": "See your saju free",
+      "fallbackCta": "Lihat carta Manseryeok percuma",
       "headline": "Explore the broad patterns of your life through your birth date and time.",
       "badge": "Start for free"
     },
@@ -21844,7 +21929,7 @@
     "more": "Read more",
     "sample": "Sample · a fictional chart",
     "sampleNote": "An example of the format, not your personal result.",
-    "paidDifference": "Prepared explanations are matched to the chart calculated from your birth details. Build on the temperament covered in the free reading with longer-term cycles and themed interpretations.",
+    "paidDifference": "Prepared explanations are matched to the chart calculated from your birth details. Build on the natal chart shown in the free Manseryeok with longer-term cycles and themed interpretations.",
     "paidDaeun": "Read how life shifts every ten years and from year to year, and see which choices to prepare for now in work, relationships and money.",
     "paidSummary": "Your temperament, elements and Ten Gods, personality and relationships, life strategy, and guidance for this year and next, gathered into one reading of your chart.",
     "recovery": "Reopen the chart with the same account and profile and check access. If payment succeeded but access is missing, do not pay again; contact support with the payment record.",
@@ -21933,7 +22018,8 @@
     "neoClosing": "Whether it is a relationship or work, do not make a major decision from the chart alone. Look at what people actually do, the terms you agreed to and the costs you can bear. I am not trying to corner you. I only want your choices to become a little clearer. Start with whatever you can genuinely do today, meow.",
     "letterVerdictJong": "a structure that follows momentum gathering in one direction",
     "letterVerdictStrong": "a structure with relatively ample strength to make your own path",
-    "letterVerdictWeak": "a structure that shines more comfortably with support nearby and time to prepare"
+    "letterVerdictWeak": "a structure that shines more comfortably with support nearby and time to prepare",
+    "paidBundle": "Saju full reading, lifetime access · One payment opens every Saju reading, including this one, permanently. You are not charged per reading."
   },
   "sajuCompat": {
     "selfFallback": "Saya",

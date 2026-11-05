@@ -3,7 +3,7 @@
 // runAiRouteWithSecurity(몽고 레이트리밋)를 쓰지 않고 인메모리 버킷으로만 제한한다.
 
 import { getRoutePath, json, methodNotAllowed, notFound, readJson, HttpError } from "../lib/http.js";
-import { calculateZiweiAiChart } from "../lib/ziwei-ai-chart.js";
+import { calculateZiweiConsumerChart } from "../lib/ziwei-consumer-chart.js";
 import { buildIslandBlueprint } from "../lib/island/island-blueprint.js";
 import { buildIslandDeepReport } from "../lib/island/island-report.js";
 import { invalidIslandInput, normalizeIslandBirthInput } from "../lib/island/island-input.js";
@@ -38,14 +38,14 @@ function checkRateLimit(request) {
   return true;
 }
 
-async function handleBlueprint(request) {
+async function handleBlueprint(request, env) {
   const body = await readJson(request);
   const { chartInput, date, birthYear } = normalizeIslandBirthInput(body);
   const currentYear = Number(date.slice(0, 4));
 
   let chart;
   try {
-    chart = calculateZiweiAiChart(chartInput, { year: currentYear });
+    chart = calculateZiweiConsumerChart(chartInput, { env, year: currentYear });
   } catch (error) {
     if (error?.code === "INVALID_INPUT") throw invalidIslandInput("생년월일 정보로 명반을 계산할 수 없습니다.");
     throw error;
@@ -88,7 +88,7 @@ export async function handleZiweiIslandRoutes(request, env) {
           { status: 429, headers: { "Retry-After": "60" } },
         );
       }
-      return await handleBlueprint(request);
+      return await handleBlueprint(request, env);
     }
     return notFound();
   } catch (error) {

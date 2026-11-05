@@ -46,3 +46,28 @@ test('unknown-hour prompt and display both exclude the placeholder hour from roo
  assert.equal(server.majorStructures.gyeokguk.finalGyeokguk,buildDepthFacts(input).gyeokguk.finalGyeokguk);
  assert.ok(!advancedFactors.hiddenStems.some(row=>row.position==='hour'));
 });
+
+// 공개 브라우저 번들(reading-depth-public.mjs)은 월령 제목·격국·뿌리·대운 행동만 싣고, 일주·월령 문장은 서버 전용 모듈에만 둔다.
+test('public depth module matches the full module on month titles and gyeokguk without carrying paid sentences',async()=>{
+ const pub=await import('../../lib/saju/reading-depth-public.mjs');
+ const fs=await import('node:fs');
+ assert.deepEqual(Object.keys(pub).sort(),['MONTH_ORDER','STEM_ORDER','buildDepthFacts','cycleActions','depthFactsWith','monthTitle']);
+ for(const stem of STEM_ORDER) for(const month of MONTH_ORDER){
+  const full=monthReading(stem,month),neo=monthReading(stem,month,'neo');
+  assert.equal(pub.monthTitle(stem,month),full.title);assert.equal(pub.monthTitle(stem,month),neo.title);
+ }
+ assert.equal(pub.monthTitle('辛','12'),null);
+ for(const month of MONTH_ORDER) for(const unknown of [false,true]){
+  const input=facts(month,unknown),a=pub.buildDepthFacts(input),b=buildDepthFacts(input);
+  assert.deepEqual({...a,month:undefined},{...b,month:undefined});
+  assert.deepEqual(a.month,{title:b.month.title});
+  assert.equal(Object.keys(a.month).join(),'title');
+ }
+ assert.equal(pub.buildDepthFacts({p:{}}),null);
+ const cycle={stem:{char:'甲',god:'정재',balance:'good'},branch:{char:'子',god:'식신',balance:'neutral'},power:{isStrong:false},depth:pub.buildDepthFacts(facts())};
+ assert.deepEqual(pub.cycleActions(cycle),cycleActions(cycle));assert.deepEqual(pub.cycleActions(cycle,'neo'),cycleActions(cycle,'neo'));
+ // 생성된 공개 파일: 일주·월령 본문이 없다(월령 첫 문장·일주 요약 문장 표본).
+ const generated=fs.readFileSync(new URL('../../js/core/saju/reading-depth.generated.js',import.meta.url),'utf8');
+ for(const sample of [dayReading('辛丑').summary,monthReading('辛','酉').sections[0].text.slice(0,24),MONTH_ORDER.map(m=>monthReading('辛',m).sections[1].text.slice(0,20))[0]])assert.ok(!generated.includes(sample),sample);
+ for(const key of ['PILLAR_NOTES','MONTH_NOTES','dayReading','monthReading','contextualReading','promptDepthLines'])assert.ok(!generated.includes(key),key);
+});

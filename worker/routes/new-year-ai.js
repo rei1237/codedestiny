@@ -1,6 +1,8 @@
+import { connectNewYearTiming, readRepresentativeFacts } from '../lib/representative-consumer-facts.js';
 import { runWithAiLocale, storedAiLocale } from '../lib/ai-locale-context.js';
 import {calculateNatalSaju} from "../../lib/korean-calendar/index.js";
 import { buildSajuNatalAnalysis, SAJU_ELEMENT_KO } from "../lib/saju-natal-analysis.js";
+import { approvedSajuLabels, overlayApprovedNatalAnalysis, sajuAuthorityOn } from "../lib/saju-authority-consumer.js";
 import { sajuTemperamentPromptLines } from '../lib/saju-temperament.js';
 import { buildLuckNatalInteractions } from '../lib/life-book-ai-saju.js';
 import { PREVENTION_VERSION, PREVENTION_RULES, buildSajuPrevention, preventionPillarDetails, canonicalPreventionPillar, preventionTiming, hasUnsupportedPreventionClaim } from '../lib/fortune-prevention.js';
@@ -536,16 +538,23 @@ function buildDaewoonSewoonSummary({ birthYear, gender, yearStem, targetYear, ta
 }
 
 function buildDomainSignals({ annualTenGod, yongshin, johu, monthlyFlow }) {
+  const approved = Boolean(yongshin.calculationVersion);
   const opportunityMonths = monthlyFlow.filter((row) => row.timing.includes("기회")).map((row) => `${row.month}월 ${row.pillar}`).slice(0, 4);
   const cautionMonths = monthlyFlow.filter((row) => row.timing.includes("주의")).map((row) => `${row.month}월 ${row.pillar}`).slice(0, 4);
   const domain = TEN_GOD_DOMAIN[annualTenGod] || "새해의 역할 변화";
   return {
     career: `${annualTenGod || "세운"}은 ${domain}을 통해 일의 방향을 드러냅니다.`,
-    money: `${yongshin.coreYongshinKo}이 살아나는 달에는 수입의 숨통이 열리고, ${yongshin.gisinKo}이 과한 달에는 지출을 줄이는 쪽이 안정적입니다.`,
+    money: approved
+      ? "도움이 되는 기운은 후보로만 봅니다. 재성이 움직이는 달의 수입과 지출을 나란히 적어 보며 판단하는 쪽이 안정적입니다."
+      : `${yongshin.coreYongshinKo}이 살아나는 달에는 수입의 숨통이 열리고, ${yongshin.gisinKo}이 과한 달에는 지출을 줄이는 쪽이 안정적입니다.`,
     love: "합이 드는 달에는 관계가 가까워지고, 충이 드는 달에는 오래 미룬 대화가 표면으로 올라옵니다.",
-    health: `${johu.urgentElementKo} 조절이 컨디션의 핵심이며, 수면과 호흡의 리듬을 먼저 다듬는 편이 좋습니다.`,
+    health: approved
+      ? "한난과 조습을 함께 살피며 수면과 호흡의 리듬을 먼저 다듬는 편이 좋습니다."
+      : `${johu.urgentElementKo} 조절이 컨디션의 핵심이며, 수면과 호흡의 리듬을 먼저 다듬는 편이 좋습니다.`,
     relationship: `${domain}과 맞닿은 인간관계 신호가 강해, 오래된 인연은 ${annualTenGod || "세운"}의 흐름 속에서 다시 정비되고 새 인연은 조직·모임을 통해 이어지기 쉽습니다.`,
-    study: `${yongshin.coreYongshinKo}을 채우는 시기에 집중력과 몰입도가 오르고, ${johu.urgentElementKo}이 흐트러지는 시기엔 무리한 목표보다 리듬 회복을 먼저 다루는 편이 낫습니다.`,
+    study: approved
+      ? "후보 기운이 드는 시기를 확정된 길운으로 보지 말고, 집중이 잘 된 시기를 기록하며 리듬을 찾는 편이 낫습니다."
+      : `${yongshin.coreYongshinKo}을 채우는 시기에 집중력과 몰입도가 오르고, ${johu.urgentElementKo}이 흐트러지는 시기엔 무리한 목표보다 리듬 회복을 먼저 다루는 편이 낫습니다.`,
     opportunityMonths,
     cautionMonths,
   };
@@ -578,8 +587,12 @@ function buildMonthlyDomainSignals({ element, branch, tenGod, relationToDayBranc
   const hasChung = /충/.test(relationToDayBranch);
   const wealthElement = CONTROLS[dayElement] || "";
   const officerElement = officerElementOf(dayElement);
-  const supportsYongshin = element === core || element === heesin || branchElement === core;
-  const feedsGisin = element === gisin || branchElement === gisin;
+  const approved = Boolean(yongshin.calculationVersion);
+  // 승인 판정에는 단일 용신이 없다. 후보 오행과 맞닿는지만 보고, 기신 감점은 하지 않는다.
+  const supportsYongshin = approved
+    ? yongshin.yongshinElementsKo.includes(element) || yongshin.yongshinElementsKo.includes(branchElement)
+    : element === core || element === heesin || branchElement === core;
+  const feedsGisin = Boolean(gisin) && (element === gisin || branchElement === gisin);
 
   let overall = 0;
   if (supportsYongshin) overall += 1;
@@ -587,7 +600,7 @@ function buildMonthlyDomainSignals({ element, branch, tenGod, relationToDayBranc
   if (hasHap) overall += 1;
   if (hasChung) overall -= 1;
   const overallBasis = supportsYongshin
-    ? `월지 기운이 용신 ${core}을 살려 흐름이 트이는 달`
+    ? (approved ? "월의 기운이 도움 후보 오행과 맞닿아 흐름을 살펴볼 달" : `월지 기운이 용신 ${core}을 살려 흐름이 트이는 달`)
     : feedsGisin
       ? `기신 ${gisin}이 강해져 속도를 조절할 달`
       : hasChung
@@ -640,13 +653,15 @@ function buildMonthlyDomainSignals({ element, branch, tenGod, relationToDayBranc
         ? "세운과 같은 결이 겹쳐 일의 방향이 또렷해지는 달"
         : "직업 운은 흐름을 유지하며 내실을 다지는 달";
 
-  const healthElementLive = element === urgent || branchElement === urgent;
+  const healthElementLive = approved
+    ? johu.usefulElementsKo.includes(element) || johu.usefulElementsKo.includes(branchElement)
+    : element === urgent || branchElement === urgent;
   let health = 0;
   if (healthElementLive) health += 1;
   if (feedsGisin) health -= 1;
   if (hasChung) health -= 1;
   const healthBasis = healthElementLive
-    ? `조후 급용신 ${urgent}이 채워져 컨디션이 안정되는 달`
+    ? (approved ? "조후 보완 후보 기운이 들어 컨디션을 살피기 좋은 달" : `조후 급용신 ${urgent}이 채워져 컨디션이 안정되는 달`)
     : hasChung
       ? "변동의 여파로 피로·리듬 관리가 필요한 달"
       : feedsGisin
@@ -715,14 +730,16 @@ function coreMonthPillar(year, month) {
 }
 
 // 사주·세운 계산은 LLM에 넘길 구조 데이터만 만들고, 해석 문장은 LLM 상담 단계에서 생성한다.
-function calculateNewYearFortuneData(input) {
+function calculateNewYearFortuneData(input, { authorityEnabled = false } = {}) {
   const birth = input.birthInfo || {};
   // 날짜 유효성·음력 환산·시각 미상은 공통 원국 계산 계약으로 판정한다.
   const natal = calculateNatalSaju(birth);
   const timeUnknown = natal.calculationMeta.timeUnknown;
   const solarBirth = natal.calculationMeta.civil;
   const corePillars = natal.pillars;
-  const natalAnalysis = buildSajuNatalAnalysis(corePillars, { timeUnknown });
+  const labels = authorityEnabled ? approvedSajuLabels(timeUnknown ? { ...corePillars, hour: null } : corePillars) : null;
+  const screenAnalysis = buildSajuNatalAnalysis(corePillars, { timeUnknown });
+  const natalAnalysis = labels ? overlayApprovedNatalAnalysis(screenAnalysis, labels) : screenAnalysis;
   const yearPillar = toKoreanGanzi(corePillars.year);
   const monthPillar = toKoreanGanzi(corePillars.month);
   const dayPillar = toKoreanGanzi(corePillars.day);
@@ -743,9 +760,15 @@ function calculateNewYearFortuneData(input) {
   const targetBranch = pillarBranch(targetPillar);
   const targetTenGod = tenGodFor(dayMaster, targetStem);
   const annualInteractions = buildAnnualInteractions(pillarMap, targetStem, targetBranch);
-  const gyeokguk = buildGyeokgukSummary(dayMaster, monthPillar);
-  const yongshin = buildYongshinSummary(dayMaster, fiveElements, natalAnalysis);
-  const johu = buildJohuSummary(natalAnalysis);
+  const baseGyeokguk = buildGyeokgukSummary(dayMaster, monthPillar);
+  const baseYongshin = buildYongshinSummary(dayMaster, fiveElements, natalAnalysis);
+  const baseJohu = buildJohuSummary(natalAnalysis);
+  const gyeokguk = labels ? { ...baseGyeokguk, finalGyeokguk: labels.gyeokguk, reading: labels.gyeokgukReason,
+    status: labels.gyeokgukStatus, calculationVersion: labels.calculationVersion, natalAnalysisId: labels.natalAnalysisId } : baseGyeokguk;
+  const yongshin = labels ? { ...baseYongshin, coreYongshinKo: labels.yongshinLabel, heesinKo: "", gisinKo: "",
+    yongshinElementsKo: labels.candidateNames, status: labels.status, reading: labels.yongshinExplanation,
+    calculationVersion: labels.calculationVersion, natalAnalysisId: labels.natalAnalysisId, interpretationRules: labels.promptRules } : baseYongshin;
+  const johu = labels ? { ...baseJohu, urgentElementKo: "", usefulElementsKo: labels.johuCandidateNames } : baseJohu;
   const domainContext = {
     dayElement: STEM_ELEMENT[dayMaster] || "",
     yongshin,
@@ -1375,6 +1398,15 @@ function buildCanonicalNewYearFacts(fortuneData = {}) {
   const trigger = fortuneData.advancedSajuSummary?.daewoonSewoon?.annualEventTrigger || null;
   const monthly = Array.isArray(fortuneData.monthlyFlow) ? fortuneData.monthlyFlow : [];
   const lines = sajuTemperamentPromptLines({...fortuneData.saju,natalAnalysis:fortuneData.natalAnalysis,calculationMeta:fortuneData.calculationMeta});
+  const approvedYongshin = fortuneData.advancedSajuSummary?.yongshin;
+  if (approvedYongshin?.calculationVersion) {
+    lines.push(`격국: ${fortuneData.advancedSajuSummary.gyeokguk?.finalGyeokguk} / 용신: ${approvedYongshin.coreYongshinKo} (${approvedYongshin.status})`, ...approvedYongshin.interpretationRules);
+  }
+  if (fortuneData.majorLuck) {
+    const luck = fortuneData.majorLuck;
+    lines.push('대운 근거: ' + JSON.stringify(luck));
+    lines.push('원국·대운·세운을 구분합니다. available=false 또는 currentCycle이 없으면 대운 시작일·현재 구간을 추정하지 않습니다.');
+  }
   if (target.pillar) {
     lines.push(`세운: ${target.year}년 ${target.pillar} (천간 ${target.stem}=${target.stemElement}, 지지 ${target.branch}=${target.branchElement}, 일간 기준 십신 ${target.tenGodToDayMaster || "미산출"})`);
   }
@@ -2560,7 +2592,11 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
     return json({ ...publicSession(existing), status: 'generating' }, { status: 202 });
   }
   let fortuneData;
-  try { fortuneData = existing?.llmMeta?.fortuneData || calculateNewYearFortuneData(normalized.input); }
+  try {
+    fortuneData = existing?.llmMeta?.fortuneData
+      ? readRepresentativeFacts(existing.llmMeta.fortuneData, 'new-year')
+      : connectNewYearTiming(calculateNewYearFortuneData(normalized.input, { authorityEnabled: !existing && sajuAuthorityOn(env) }), normalized.input.birthInfo, existing ? {} : env);
+  }
   catch (error) {
     if (!existing) await releaseRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds });
     if (!existing && access.deferredUsage) await callDeferredUsageRoute({ request, env, auth, path: 'cancel', idempotencyKey, sessionId,

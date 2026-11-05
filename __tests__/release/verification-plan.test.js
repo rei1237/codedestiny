@@ -13,9 +13,30 @@ test('payment, access, resume and paid service changes select the CI suite exact
   for (const file of ['js/core/access-store.js', 'public/js/core/access-store.js', 'worker/payments/confirm.js', 'app/hooks/usePaidResume.ts', 'src/features/master-love-codex/MasterLoveCodexPage.tsx', 'scripts/run-paid-gate-suite.mjs']) {
     const plan = createVerificationPlan(input([file]), { scripts });
     assert.equal(plan.steps.filter(step => step.file === 'scripts/run-paid-gate-suite.mjs').length, 1, file);
-    assert.deepEqual(plan.steps.find(step => step.file === 'scripts/run-paid-gate-suite.mjs').args, ['--base', 'a'.repeat(40)], file);
+    assert.deepEqual(plan.steps.find(step => step.file === 'scripts/run-paid-gate-suite.mjs').args.slice(0, 2), ['--base', 'a'.repeat(40)], file);
   }
   assert.equal(createVerificationPlan(input(['styles/site.css']), { scripts }).steps.some(step => step.file === 'scripts/run-paid-gate-suite.mjs'), false);
+});
+
+test('a critical plan drops from the paid suite only what it runs itself', async () => {
+  const { createVerificationPlan } = await load();
+  const plan = createVerificationPlan(input(['worker/payments/confirm.js']), { scripts });
+  assert.equal(plan.tier, 'critical');
+  const { args } = plan.steps.find(step => step.file === 'scripts/run-paid-gate-suite.mjs');
+  const skipped = args.filter((_, index) => args[index - 1] === '--skip-exact');
+  assert.ok(skipped.includes('npm test'));
+  for (const run of skipped.filter(item => item !== 'npm test')) assert.ok(plan.steps.some(step => step.kind === 'npm' && `npm run ${step.name}` === run), run);
+  for (const name of ['test:jest', 'test:node']) assert.equal(plan.steps.filter(step => step.name === name).length, 1, name);
+});
+
+test('the paid suite skips exact entries only', () => {
+  const run = (...args) => spawnSync(process.execPath, ['scripts/run-paid-gate-suite.mjs', ...args], { encoding: 'utf8' });
+  const exact = run('--only', 'npm run verify:paid-gate-scope', '--skip-exact', 'npm run verify:paid-gate-scope');
+  assert.equal(exact.status, 1);
+  assert.match(exact.stderr, /선택된 항목이 없다/);
+  const prefix = run('--only', 'npm run verify:paid-gate-scope', '--skip-exact', 'npm run verify:paid-gate');
+  assert.equal(prefix.status, 0, prefix.stdout + prefix.stderr);
+  assert.match(prefix.stdout, /1개 항목/);
 });
 
 test('local paid selection reads the CI paths and rejects a malformed contract', async () => {

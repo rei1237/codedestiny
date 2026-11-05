@@ -55,6 +55,8 @@ const CONTENT_TIER_TABLE = Object.freeze([
   { productId: "cd_content_tier_16", amountKRW: 15000, webAmountKRW: 15000, coinPrices: Object.freeze([150]) },
   { productId: "cd_content_tier_17", amountKRW: 50000, webAmountKRW: 50000, coinPrices: Object.freeze([500]) },
   { productId: "cd_content_tier_18", amountKRW: 70000, webAmountKRW: 70000, coinPrices: Object.freeze([700]) },
+  // 2026-11-04 사주 영구 묶음(saju_lifetime_bundle, 290코인). Play Console 등록은 사람 손이다 — 등록 전까지 앱에서 이 상품만 티어 미등록 503 이다.
+  { productId: "cd_content_tier_19", amountKRW: 29000, webAmountKRW: 29000, coinPrices: Object.freeze([290]) },
   // 2026-09-01 폐기: cd_content_tier_11(390코인/₩39,000)·cd_content_tier_13(700코인/₩70,000).
   // 이 둘은 "전체 해금형 번들" 5종(unlock.all_paid_saju·premium_astrology·premium_sukuyo·
   // premium_veda·premium_naming) 전용이었는데, 그 5종을 결제로 여는 화면이 하나도 없어
