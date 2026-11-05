@@ -22,4 +22,3 @@ test('permission code without an HTTP status remains explicit',async()=>{const e
 
 
 test('invalid session verification asks for retry without implying a purchase',async()=>{const error=Object.assign(new Error('SESSION_CHECK_FAILED'),{code:'SESSION_CHECK_FAILED'});const close=await mount(available,(_p,_id,_ok,onError)=>{onError(error);return ()=>{};});try{const button=[...document.querySelectorAll('button')].find(x=>x.textContent.includes('단건 결제로 상담'));await React.act(async()=>button.click());const message=document.querySelector('[role="alert"]').textContent;assert.match(message,/로그인 상태/);assert.doesNotMatch(message,/결제한 상담/);}finally{close();}});
-
