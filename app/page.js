@@ -125,8 +125,8 @@ export default function HomePage() {
             </li>;
           })}
         </HomeCardDeck>
-        {!IS_APP_BUILD && <StoryDiscovery />}
         {!IS_APP_BUILD && <HomeQuestionGuide />}
+        {!IS_APP_BUILD && <StoryDiscovery />}
         {!IS_APP_BUILD && <HomeInstallEntry />}
         {!IS_APP_BUILD && <nav className={styles.entryHelp} aria-label="주요 운세 바로가기">
           {HOME_QUICK_LINKS.map(({ key, href, title }) => (
