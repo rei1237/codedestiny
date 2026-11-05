@@ -160,21 +160,21 @@ export function OwnedServicePacks({locale,onWalletChange,context=null}:{context?
 }
 
 // 상담 결제 화면의 '내 이용권' 두 칸. 표시 전용 — 달빛 이용권은 결제 진입 로컬 스냅샷, 세트는 이 상담 quote 후보로만 그린다.
-// 어느 수단이 실제로 차감되는지는 서버가 판정하므로 Family 가 아니면 '적용 중'을 단정하지 않는다.
+// 어느 수단이 실제로 차감되는지는 서버가 판정하므로 '적용 중'을 단정하지 않는다.
 function CheckoutPassSummary({locale,flower,pack,applied}:{locale:LoadingLocale;flower:SubscriptionSnapshot|null;pack?:OwnedServicePack;applied:number|null}){
- const copy=servicePackCopy(locale),owned=!!flower&&flower.state==='active'&&flower.tier!=='free',family=owned&&flower.tier==='family';
+ const copy=servicePackCopy(locale),owned=!!flower&&flower.state==='active'&&flower.tier!=='free';
  if(!owned&&!pack)return null;
  return <section className={styles.passes} aria-labelledby="checkout-passes-title" data-checkout-passes>
   <h2 id="checkout-passes-title">{copy.passesTitle}</h2>
   <div className={styles.passGrid}>
    <div className={styles.passTile} data-checkout-pass="flower" data-applied="false">
     <div className={styles.passArt}>{owned?<><HoneyPassArtwork tier={flower.tier} className="h-14 w-14" sizes="56px"/></>:<HoneyPassArtwork tier="standard" className={`h-14 w-14 ${styles.passMuted}`} sizes="56px"/>}</div>
-    <div><p className={styles.passKind}>{copy.flowerPass}</p>{owned?<><strong>{getPassTierLabel(flower.tier,locale)||flower.tier}</strong>{family&&<p className={styles.passOn}>{locale==='ko'?'사용 가능 여부 확인':copy.flowerFamilyApply}</p>}<p>{family?copy.flowerFamilyApply:copy.flowerFamilyOnly}</p></>:<p>{flower?.state==='none'&&!flower.stale?copy.flowerNone:locale==='ko'?'Family 보유 여부는 사용 시 확인해요.':'Family eligibility will be checked when selected.'}</p>}</div>
+    <div><p className={styles.passKind}>{copy.flowerPass}</p>{owned?<><strong>{getPassTierLabel(flower.tier,locale)||flower.tier}</strong><p className={styles.passOn}>{copy.flowerFamilyApply}</p></>:<p>{flower?.state==='none'&&!flower.stale?copy.flowerNone:locale==='ko'?'보유 여부는 사용 시 확인해요.':'Your pass will be checked when selected.'}</p>}</div>
    </div>
-   <div className={styles.passTile} data-checkout-pass="yeongnyangi" data-applied={applied!==null?'true':'false'}>
-    <div className={styles.passArt}>{pack?<><Image src={SERVICE_PACK_IMAGES[pack.fishId]} alt="" width={240} height={240} sizes="56px"/>{applied!==null&&<Image src={APPLIED_STAMP_IMAGES.yeongnyangi} alt="" width={120} height={120} sizes="36px" data-applied-stamp className={styles.passStamp}/>}</>:<Image src={SERVICE_PACK_IMAGES.mackerel} alt="" width={240} height={240} sizes="56px" className={styles.passMuted}/>}</div>
-    <div><p className={styles.passKind}>{copy.packPass}</p>{pack?<><strong>{packName(pack,locale)}</strong><p className={styles.passOn}>{applied===null?copy.packUsable:packText(copy.packApplied,{remaining:applied})}</p>{applied===null&&<><p>{packText(copy.remaining,{total:pack.totalUses,remaining:pack.remainingUses})}</p></>}</>:<p>{copy.packNone}</p>}</div>
-   </div>
+   {pack&&<div className={styles.passTile} data-checkout-pass="yeongnyangi" data-applied={applied!==null?'true':'false'}>
+    <div className={styles.passArt}><Image src={SERVICE_PACK_IMAGES[pack.fishId]} alt="" width={240} height={240} sizes="56px"/>{applied!==null&&<Image src={APPLIED_STAMP_IMAGES.yeongnyangi} alt="" width={120} height={120} sizes="36px" data-applied-stamp className={styles.passStamp}/>}</div>
+    <div><p className={styles.passKind}>{copy.packPass}</p><strong>{packName(pack,locale)}</strong><p className={styles.passOn}>{applied===null?copy.packUsable:packText(copy.packApplied,{remaining:applied})}</p>{applied===null&&<><p>{packText(copy.remaining,{total:pack.totalUses,remaining:pack.remainingUses})}</p></>}</div>
+   </div>}
   </div>
  </section>;
 }

@@ -78,3 +78,4 @@
   .checkout button.pay {font-size:.95rem;padding:12px}
 }
 @media(prefers-reduced-motion:reduce) {.checkout button.pay {transition:none}.checkout button.pay:not([aria-pressed]):hover:not(:disabled) {transform:none}}
+.passShop{display:inline-flex;min-height:44px;align-items:center;font-size:.875rem;font-weight:700;color:inherit;text-decoration:underline;text-underline-offset:3px}
