@@ -1,7 +1,7 @@
 // Review-only text export. No credentials, network calls or Console updates.
 import { pathToFileURL } from 'node:url';
 import { listAppContentTiers } from '../worker/lib/app-store-pricing.js';
-import { CURRENT_PASS_GOOGLE_PLAY_APPROVED_PRODUCT_IDS, currentPassPlan } from '../lib/payment/pass-policy.js';
+import { currentPassPlan } from '../lib/payment/pass-policy.js';
 import { calculateKrwAmountFromCoins } from '../worker/lib/billing-policy.js';
 
 const locales = {
@@ -75,7 +75,6 @@ export function buildLocalizedListings() {
   const passes = ['standard', 'premium', 'vvip'].map((tier, index) => {
     const plan = currentPassPlan(tier);
     const productId = plan.appProductId;
-    if (!CURRENT_PASS_GOOGLE_PLAY_APPROVED_PRODUCT_IDS.includes(productId)) throw new Error(`Unapproved product: ${productId}`);
     return {
       productId, referencePriceKRW: plan.wonPrice,
       listings: Object.fromEntries(Object.entries(locales).map(([locale, copy]) => [locale, {

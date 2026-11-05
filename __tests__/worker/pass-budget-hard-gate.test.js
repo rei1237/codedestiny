@@ -109,7 +109,7 @@ describe("레거시 이용권 카운터 복구 — 실제 문제 기능", () => 
   });
 
   test.each([
-    ["standard", "saju_ai_prompt_generator"],
+    ["standard", "fortune-tea-house-saju-consultation"],
     ["premium", "master-love-codex-compat"],
     ["vvip", "master-love-codex"],
     ["premium", "ziwei-ai-consultation"],
@@ -328,7 +328,7 @@ describe("한도 경계 — 도달 직전 · 도달 · 초과 이후", () => {
     expect(db.rows[0].profileSubscription.monthlySpendCoin).toBe(BUDGET - cost + 1);
   });
 
-  test("🔴 예산을 다 쓰면 그 자리에서 이용권이 종료된다 — 만료일이 남아 있어도 잠긴다", async () => {
+  test("예산을 다 써도 이용권은 끝나지 않는다", async () => {
     const db = makeFakePaymentDb();
     const at = expiresAt();
     const cost = PASS_LIMITS[TIER];
@@ -339,10 +339,9 @@ describe("한도 경계 — 도달 직전 · 도달 · 초과 이후", () => {
 
     expect(result.covered).toBe(true);
     const sub = db.rows[0].profileSubscription;
-    // 소진 종료는 만료일을 now 로 당기는 것이 전부다 — 새 '소진 플래그'를 만들지 않는다.
-    expect(new Date(sub.expiresAt).getTime()).toBeLessThanOrEqual(Date.now());
-    expect(sub.tier).toBe("free");
-    expect(sub.passExhaustedAt).toBeTruthy();
+    expect(new Date(sub.expiresAt).getTime()).toBe(new Date(at).getTime());
+    expect(sub.tier).toBe(TIER);
+    expect(sub.passExhaustedAt).toBeUndefined();
   });
 });
 

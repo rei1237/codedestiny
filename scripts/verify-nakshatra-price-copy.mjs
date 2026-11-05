@@ -93,8 +93,8 @@ const pricingBundle = buildSync({ entryPoints: [resolve(root, 'app/nakshatra/_li
 const pricingModule = { exports: {} };
 new Function('module', 'exports', 'require', pricingBundle.outputFiles[0].text)(pricingModule, pricingModule.exports, require);
 const canonicalPricing = pricingModule.exports;
-assert.equal(canonicalPricing.NAKSHATRA_COMPAT_PRICING.amountKRW, 20000);
-assert.equal(canonicalPricing.NAKSHATRA_COMPAT_PRICE_LABEL, '20,000원');
+assert.equal(canonicalPricing.NAKSHATRA_COMPAT_PRICING.amountKRW, 5000);
+assert.equal(canonicalPricing.NAKSHATRA_COMPAT_PRICE_LABEL, '5,000원');
 const amountBySlug = new Map();
 for (const { slug, rel } of clientFiles) {
   const source = read(rel);

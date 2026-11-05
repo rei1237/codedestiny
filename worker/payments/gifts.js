@@ -1,10 +1,9 @@
-import { isPassPolicyMix } from "../../lib/payment/pass-policy.js";
 import { Gift, GiftGrant, GiftClaimContext } from "../lib/gift-models.js";
 import { Payment, User } from "../lib/models.js";
 import { toObjectId } from "./db.js";
 import { paymentError } from "./errors.js";
 import { activatePassSubscription, resolvePassPlan } from "./passes.js";
-import { computePassExpiry, evaluatePassTierTransition } from "../lib/profile-limits.js";
+import { computePassExpiry, evaluatePassTierTransition, isPassPolicyConflict } from "../lib/profile-limits.js";
 import { GIFT_POLICY_VERSION, GIFTABLE_TIERS } from "../../lib/payment/gift-policy.js";
 
 export function purchaseTypeOf(value) {
@@ -129,7 +128,7 @@ export async function claimGift(db, { tokenHash, userId, now = new Date() }) {
     let transition=null;
     if(!servicePack) {
       if (!resolvePassPlan(plan?.tier, 1, plan?.passPolicyVersion || "legacy")) throw paymentError("PRODUCT_NOT_FOUND", "이용권 정보를 확인할 수 없습니다.");
-      if (isPassPolicyMix(user.profileSubscription || {}, plan, now)) throw paymentError("GIFT_TIER_CONFLICT", "현재 이용권이 종료된 후 이 선물을 수령할 수 있습니다.");
+      if (isPassPolicyConflict(user.profileSubscription || {}, plan, now)) throw paymentError("GIFT_TIER_CONFLICT", "현재 이용권이 종료된 후 이 선물을 수령할 수 있습니다.");
       transition = evaluatePassTierTransition(user.profileSubscription, plan.tier, now);
       if (!["NEW", "EXTENSION_ALLOWED"].includes(transition.code)) throw paymentError("GIFT_TIER_CONFLICT", "현재 이용권이 종료된 후 이 선물을 수령할 수 있습니다.");
     }

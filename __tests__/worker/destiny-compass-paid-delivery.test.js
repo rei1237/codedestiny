@@ -142,3 +142,9 @@ it('a section cut at the token limit retries once with a doubled budget',async()
  expect(provider.mock.calls.filter(call=>call[1]===key).map(call=>call[2].maxOutputTokens)).toEqual([tokens,tokens*2]);
  expect(provider.mock.calls.filter(call=>call[1]!==key).every(call=>call[2].maxOutputTokens===tokens)).toBe(true);
 });
+it('destiny compass delivers a result at the new target',async()=>{
+ expect(specs).toHaveLength(10);for(const spec of specs){expect(spec.targetMinChars).toBe(1200);expect(spec.minChars).toBeLessThanOrEqual(960);}
+ provider.mockImplementation(async(_env,key)=>{let text='';for(let i=0;text.replace(/\s/g,'').length<1200;i++)text+=`${key}의 ${i}번째 계산 근거와 생활 선택을 살펴보며 반대 조건과 구체적인 행동을 함께 설명합니다.\n`;return{ok:true,text}});
+ for(let i=0;i<3;i++)await generate();
+ expect(docs[0].status).toBe('completed');expect(provider).toHaveBeenCalledTimes(10);expect(refund).not.toHaveBeenCalled();
+});

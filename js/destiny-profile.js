@@ -3318,7 +3318,7 @@
 
   // 서버 왕복 없이 '이용권 미커버'가 확정되는 신호만 판정한다.
   // 🔴 지연·타임아웃은 절대 근거로 쓰지 않는다 — 느린 것과 없는 것을 혼동하면 이용권 보유자가 결제창으로 샌다.
-  function _dpResolveCertainPassMiss(coinPrice) {
+  function _dpResolveCertainPassMiss(coinPrice, featureKey) {
     var cost = Math.max(0, Math.floor(Number(coinPrice || 0)));
     if (!(cost > 0)) return '';
     // (1) 미로그인 — 자격증명이 없으면 서버는 반드시 401이고, 이 집합에 이용권 보유자는 0명이다.
@@ -3332,11 +3332,13 @@
     // monthly_pass_limit_exceeded). 모듈이 없으면 확정하지 않는다(서버 검사로 폴백).
     var api = _dpPassVerdict();
     if (!api) return '';
-    var verdict = api.resolveVerdict(snapshot, cost);
+    var verdict = api.resolveVerdict(snapshot, cost, featureKey);
+    // 키를 모르면 라이트 운세인지 알 수 없다. 소진만으로 미커버를 확정하지 않고 서버에 묻는다.
+    if (!featureKey && verdict && verdict.reason === api.REASON_MONTHLY_LIMIT) return '';
     return verdict && verdict.cannotCover ? String(verdict.reason || 'subscription_snapshot_none') : '';
   }
 
-  function _dpReadActiveMembershipCoverage(cost) {
+  function _dpReadActiveMembershipCoverage(cost, featureKey) {
     try {
       var api = _dpPassVerdict();
       if (!api) return null;
@@ -3350,7 +3352,7 @@
       }
       if (!snapshot) return null;
       if (snapshot.stale === true) _dpRevalidateSubscriptionSnapshot();
-      var verdict = api.resolveVerdict(snapshot, cost);
+      var verdict = api.resolveVerdict(snapshot, cost, featureKey);
       if (verdict.coversNow) return { tier: verdict.tier, freeLimit: verdict.passLimit };
       return null;
     } catch (_) {
@@ -5523,12 +5525,12 @@
       // requireServerPassCheck 로 서버 재검증을 명시 요청한 호출부는 이 지름길을 타지 않는다.
       var _dpCertainPassMiss = (opts.disablePassFirst === true || opts.requireServerPassCheck === true)
         ? ''
-        : _dpResolveCertainPassMiss(coinPrice);
+        : _dpResolveCertainPassMiss(coinPrice, _dpReceiptFeatureKey);
       if (typeof window.__cdApplyMembershipPassBeforePayment === 'function' && opts.disablePassFirst !== true && !_dpCertainPassMiss) {
         // 낙관적 즉시 허용: 로컬 구독 스냅샷이 pass 커버를 확인하면 서버 왕복을 백그라운드로 돌려 속도를 유지한다
         // (정확성은 백그라운드 미커버 응답 시 세션 갱신으로 자기수정). 단 "확인 중 → 적용 완료" 2단계 UX는
         // 그대로 유지하고, 완료 오버레이 표시 중 onGranted(콘텐츠 생성)를 병렬 진행한다.
-        var _dpOptimisticCoverage = _dpOptimisticPassDisabled() ? null : _dpReadActiveMembershipCoverage(coinPrice);
+        var _dpOptimisticCoverage = _dpOptimisticPassDisabled() ? null : _dpReadActiveMembershipCoverage(coinPrice, _dpReceiptFeatureKey);
         if (_dpOptimisticCoverage) {
           _dpRecordMembershipPassInBackground(opts, title, coinPrice, requestId);
           _dpSetPaymentPending(true, '이용권을 확인하고 있어요…', 'pass');

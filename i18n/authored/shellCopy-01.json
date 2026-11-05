@@ -1,18 +1,18 @@
 {
   "_comment": "정적 셸 마크업과 뜻이 어긋난 사전 값 교정 — 11키. 셸 마크업이 정본이고 ko 는 런타임에서 사전을 건너뛰므로(js/cd-lang-native.js), 아래 키들은 한국어 화면만 멀쩡하고 나머지 11개 로케일이 옛 뜻을 서빙하고 있었다. 특히 tarotPromptMaker* 3키는 '타로 프롬프트 라이브러리'(10,000원 해금)를 'AI 상담'으로 잘못 설명했고, passMini.chipShareReward 는 '범위 밖 단건결제' 자리에 '카카오톡 공유 보상'을 내고 있었다. 🔴 이 네임스페이스(shellCopy)를 따로 둔 이유: --namespace shell 로 병합하면 shell-01.json 의 낡은 kerryje 항목까지 함께 나가 마크업에 없는 키의 값이 뒤집힌다. ko 는 셸 마크업과 글자까지 일치시킨다.",
   "home.passMini.terminationNote": {
-    "ko": "이용 한도를 모두 사용하면 이용권이 종료됩니다. 다시 구매하면 새 이용 한도로 시작합니다. 추가 유료 콘텐츠는 단건 결제 또는 월정석으로 이용할 수 있습니다.",
-    "en": "When the usage limit is fully used, the pass ends. Buying again starts you with a new usage limit. Additional paid content is available by one-time payment or moonstones.",
-    "ja": "利用上限をすべて使い切ると利用券は終了します。再度購入すると新しい利用上限で始まります。追加の有料コンテンツは都度払いまたは月精石で利用できます。",
-    "zh-CN": "用完使用额度后，通行证即结束。再次购买将以新的使用额度开始。额外付费内容可通过单次付费或月精石使用。",
-    "zh-TW": "用完使用額度後，通行證即結束。再次購買將以新的使用額度開始。額外付費內容可透過單次付費或月精石使用。",
-    "vi": "Khi dùng hết hạn mức sử dụng, vé sẽ kết thúc. Mua lại sẽ bắt đầu với hạn mức sử dụng mới. Nội dung trả phí bổ sung có thể dùng bằng thanh toán một lần hoặc Nguyệt Tinh Thạch.",
-    "hi": "उपयोग सीमा पूरी तरह इस्तेमाल हो जाने पर पास समाप्त हो जाता है। दोबारा खरीदने पर नई उपयोग सीमा से शुरुआत होती है। अतिरिक्त सशुल्क सामग्री एकमुश्त भुगतान या मूनलाइट स्टोन से उपलब्ध है।",
-    "es": "Cuando se agota el límite de uso, el pase termina. Si lo vuelves a comprar, empiezas con un nuevo límite de uso. El contenido adicional de pago está disponible con un pago único o Piedras de Luz Lunar.",
-    "fr": "Lorsque la limite d'utilisation est épuisée, le pass prend fin. Un nouvel achat repart avec une nouvelle limite d'utilisation. Les contenus payants supplémentaires sont accessibles par paiement à l'unité ou avec des Pierres de Clair de Lune.",
-    "de": "Wenn das Nutzungslimit aufgebraucht ist, endet der Pass. Bei einem erneuten Kauf beginnst du mit einem neuen Nutzungslimit. Zusätzliche kostenpflichtige Inhalte sind per Einzelzahlung oder mit Mondlichtsteinen verfügbar.",
-    "nl": "Zodra de gebruikslimiet op is, stopt de pas. Koop je opnieuw, dan begin je met een nieuwe gebruikslimiet. Extra betaalde content is beschikbaar via eenmalige betaling of Maanlichtstenen.",
-    "ms": "Apabila had penggunaan habis digunakan, pas akan tamat. Membeli semula akan bermula dengan had penggunaan baharu. Kandungan berbayar tambahan boleh digunakan dengan bayaran sekali atau Batu Cahaya Bulan."
+    "ko": "상담 한도를 다 써도 이용권은 유지되고 라이트 운세를 계속 이용할 수 있습니다. 대표 상담을 더 이용하려면 이용권을 다시 구매하거나 단건 결제 또는 월정석을 이용하세요.",
+    "en": "Your pass stays active after the consultation allowance is used up, and Light Readings remain available. For more signature consultations, buy a new pass or use a one-time payment or moonstones.",
+    "ja": "相談上限を使い切っても利用券は維持され、ライト占いは引き続き利用できます。代表相談をさらに利用するには、利用券を再購入するか、都度払いまたは月精石をご利用ください。",
+    "zh-CN": "咨询额度用完后，通行证仍然保留，轻量运势可继续使用。如需继续使用招牌咨询，请重新购买通行证，或使用单次付费或月精石。",
+    "zh-TW": "諮詢額度用完後，通行證仍然保留，輕量運勢可繼續使用。如需繼續使用招牌諮詢，請重新購買通行證，或使用單次付費或月精石。",
+    "vi": "Vé vẫn được giữ khi đã dùng hết hạn mức tư vấn và bạn vẫn dùng được các bài xem nhẹ. Để dùng thêm tư vấn tiêu biểu, hãy mua vé mới, thanh toán một lần hoặc dùng Nguyệt Tinh Thạch.",
+    "hi": "परामर्श सीमा पूरी होने पर भी पास बना रहता है और लाइट रीडिंग उपलब्ध रहती है। और सिग्नेचर परामर्श के लिए नया पास खरीदें, या एकमुश्त भुगतान या मूनलाइट स्टोन का उपयोग करें।",
+    "es": "El pase sigue activo aunque agotes el límite de consultas, y puedes seguir usando las Lecturas Ligeras. Para más consultas destacadas, compra un pase nuevo o usa un pago único o Piedras de Luz Lunar.",
+    "fr": "Le pass reste actif une fois la limite de consultations épuisée, et les Lectures Légères restent accessibles. Pour d'autres consultations phares, achetez un nouveau pass ou utilisez le paiement à l'unité ou des Pierres de Clair de Lune.",
+    "de": "Der Pass bleibt aktiv, auch wenn das Beratungslimit aufgebraucht ist, und leichte Deutungen bleiben verfügbar. Für weitere Signature-Beratungen kaufe einen neuen Pass oder nutze eine Einzelzahlung oder Mondlichtsteine.",
+    "nl": "Je pas blijft actief als de consultlimiet op is, en lichte duidingen blijven beschikbaar. Voor meer signature-consulten koop je een nieuwe pas of gebruik je een eenmalige betaling of Maanlichtstenen.",
+    "ms": "Pas kekal aktif walaupun had konsultasi habis digunakan, dan Bacaan Ringan masih boleh digunakan. Untuk lebih banyak konsultasi utama, beli pas baharu atau guna bayaran sekali atau Batu Cahaya Bulan."
   },
   "home.passMini.chipShareReward": {
     "ko": "범위 밖 단건결제",

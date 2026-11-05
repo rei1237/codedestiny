@@ -23,6 +23,8 @@ export type LegalSection = {
 
 export type LegalDocument = {
   effectiveDate: string;
+  // 약관 개정 공지. 한국어 페이지의 TermsRevisionNotice와 같은 내용이다.
+  revisionNotice?: { title: string; lines: string[] };
   sections: LegalSection[];
 };
 
@@ -85,7 +87,8 @@ function businessBlock(locale: NonKoLocale): string {
 
 export const TERMS_CONTENT: Record<NonKoLocale, LegalDocument> = {
   en: {
-    effectiveDate: "2026-04-11",
+    effectiveDate: "2026-11-05",
+    revisionNotice: {"title":"Notice of revised terms","lines":["With a pass you can use Light Readings, which exclude signature consultations, without a usage-count limit.","Your pass stays active after the consultation allowance is used up. Buy a new pass to use more signature consultations.","Pass prices and consultation allowances have changed. The amount paid and the allowance of a pass already purchased do not change."]},
     sections: [
       { id: "purpose", heading: "1. Purpose", paragraphs: [
         "These Terms govern the conditions and procedures for using the online services provided by Code Destiny, and set out the rights, obligations, and responsibilities between the parties.",
@@ -107,8 +110,8 @@ export const TERMS_CONTENT: Record<NonKoLocale, LegalDocument> = {
         "The following are prohibited: (1) reverse engineering, crawling, or unauthorized automated access to the Service; (2) distributing malware or exploiting security vulnerabilities; (3) unauthorized collection or misuse of others' personal information; (4) posting unlawful content; (5) any act that interferes with operations. We may block or suspend access for violations.",
       ]},
       { id: "fair-use", heading: "7. Fair Use and Restriction of Abnormal Use", paragraphs: [
-        "While their pass remains valid, pass holders may use features priced at or below their tier's coverage amount without additional charge and without a usage-count limit (\"flat-rate use\"), unless their use qualifies as abnormal use under this section. Each tier's coverage amount is shown on the payment screen.",
-        "For the Family Honey Jar pass specifically, **expert consultation products priced at KRW 30,000 or more per use are included up to 10 uses per pass**; usage beyond that remains available via single payment or Moonlight Stones. Features priced under KRW 30,000 are included without a count limit. The included-use count resets to 10 whenever a new pass is purchased, and the remaining count can be checked on the payment screen. Exhausting the included count does not block further use of the Service; a payment method for the excess will be presented. **This allowance is a product term unrelated to \"abnormal use\" as defined in this section, and exhausting it alone never triggers any sanction.**",
+        "While they hold a valid pass, pass holders may, unless their use qualifies as abnormal use under this section and without additional charge, use **Light Readings without a usage-count limit**, and use other paid features priced at or below their tier's coverage amount within their tier's consultation allowance (\"flat-rate use\"). Light Readings are the products listed on the pass information screen, have no separate time limit, and do not include signature consultations. Each tier's price (Small Honey Jar KRW 14,900 · Medium Honey Jar KRW 34,900 · Large Honey Jar KRW 64,900 · Family Honey Jar KRW 154,000), coverage amount (Small KRW 5,000 · Medium KRW 10,000 · Large KRW 30,000; the Family Honey Jar has no per-item cap) and consultation allowance (Small KRW 20,000 · Medium KRW 60,000 · Large KRW 120,000 · Family KRW 350,000) are shown on the payment screen.",
+        "**When the consultation allowance is fully used, the pass stays active**: Light Readings remain available, and other paid features are available via single payment, Moonlight Stones, or buying a new pass. When less than KRW 5,000 remains, the allowance counts as used up and you may buy a new pass, which starts with a new allowance; the remainder does not carry over. The amount paid and the allowance of a pass already purchased do not change. Abnormal automated use, such as bulk requests through scripts or bots, may be restricted under this section. **The allowance is a product term unrelated to \"abnormal use\" as defined in this section, and exhausting it alone never triggers any sanction.**",
         "A pass is **provided on the assumption that it is used by a single contracting individual, and may not be transferred, lent to a third party, or shared via a shared account.** This is a precondition of flat-rate use, and use in violation of it is considered together with the abnormal-use determination below.",
         "The Company operates **always-on technical safeguards applied equally to all users** to protect service stability and prevent automated abuse, including per-interval request limits, duplicate-execution prevention, and concurrency limits on generation jobs. These are operating parameters, not sanctions targeting a specific user, and are therefore not subject to the notice-and-cure process below; thresholds are set well above the pace of normal human use. Temporarily reaching a threshold does not block use — you will simply be asked to try again shortly.",
         "\"Abnormal use\" means a case where a single user's usage count over the trailing 30 days is at least 10 times the average usage count of all users over the same period, AND at least one of the following circumstances is confirmed by objective evidence. High usage volume alone is not sufficient to be judged abnormal use: (1) logs confirm that requests were made using automated means such as macros, scripts, or bots; (2) requests continue at uniform, repetitive intervals that are difficult to achieve through direct human operation; (3) repeated access occurs from numerous IP addresses or devices within a short period under the same account; (4) a single-user account is shared with or lent to third parties, causing abnormal traffic equivalent to items (1) through (3) due to use by multiple people.",
@@ -132,7 +135,7 @@ export const TERMS_CONTENT: Record<NonKoLocale, LegalDocument> = {
         "Code Destiny's paid products are the Pass and per-item KRW payments for individual products. Moonlight Stones are a bonus benefit granted with a pass or through events; they are not a separately purchased or top-up product and are therefore not treated as a paid product subject to cash refund.",
         "**Supply timing: all paid services are provided immediately once payment is confirmed and approved.** There is no separate delivery step; the pass likewise takes effect immediately once payment verification is complete.",
         "Each grant of Moonlight Stones is **valid only for 30 days from the date it was granted**, and any unused portion automatically expires at the end of that period. Where Moonlight Stones have been granted in multiple installments, each installment expires individually based on its own grant date, and usage is deducted from the installment expiring soonest (oldest) first. Expired Moonlight Stones are not restored and are not eligible for a cash refund.",
-        "The Pass is a one-time digital pass that remains valid from the moment server-side payment verification succeeds until its usage limit is fully used (there is no separate time limit). It is not an auto-renewing subscription product, and users must manually purchase it again after the usage limit is fully used.",
+        "The Pass is a one-time digital pass that remains valid from the moment server-side payment verification succeeds, with no separate time limit. It is not an auto-renewing subscription product. Light Readings remain available after the consultation allowance is fully used, and users must manually buy a new pass to use more consultations. A pass that has been used for Light Readings is not refunded automatically; customer support reviews its usage history first.",
         "For a Pass or a single-item payment, you may request withdrawal within 7 days of the payment date or the date you received the contract details. However, once provision of the digital content or paid service has begun — including content generation, PDF rendering, viewing a paid reading, or use of a pass benefit — withdrawal may be restricted for the portion already provided.",
         "You may cancel at any time before payment is completed. Even after payment is completed, if result generation, PDF rendering, viewing of a paid reading, or use of a pass benefit has not yet begun, you may request a refund through customer support.",
         "Once personalized digital content has been generated, or viewing of results, PDF rendering, provision of a paid reading, or use of a pass benefit has begun, refunds for simple change of mind may be restricted due to the nature of digital content.",
@@ -160,7 +163,8 @@ export const TERMS_CONTENT: Record<NonKoLocale, LegalDocument> = {
     ],
   },
   ja: {
-    effectiveDate: "2026-04-11",
+    effectiveDate: "2026-11-05",
+    revisionNotice: {"title":"規約改定のお知らせ","lines":["パスがあれば、代表相談を除くライト占いを回数制限なく利用できます。","相談上限を使い切ってもパスは維持されます。代表相談をさらに利用するにはパスを再購入します。","パスの販売価格と相談上限が変わりました。すでに購入したパスの決済金額と相談上限は変わりません。"]},
     sections: [
       { id: "purpose", heading: "1. 目的", paragraphs: [
         "本規約は、Code Destinyが提供するオンラインサービスの利用条件および手続き、当事者間の権利・義務・責任事項を定めるものです。",
@@ -182,8 +186,8 @@ export const TERMS_CONTENT: Record<NonKoLocale, LegalDocument> = {
         "以下の行為を禁止します。（1）サービスのリバースエンジニアリング、クローリング、無断の自動アクセス（2）マルウェアの配布およびセキュリティ脆弱性の悪用（3）他人の個人情報の無断収集・盗用（4）違法コンテンツの投稿（5）運営を妨害する一切の行為。違反があった場合、当社はアクセスを制限または停止することがあります。",
       ]},
       { id: "fair-use", heading: "7. 公正利用および異常利用の制限", paragraphs: [
-        "パス保有者は、有効なパス契約期間中、本条で定める異常利用に該当しない限り、追加料金なしに、自身の等級がカバーする金額以下の機能を回数制限なく利用できます（以下「定額利用」）。等級ごとのカバー金額は決済画面に表示されます。",
-        "ただし、**ファミリーはちみつ壺の場合、1回30,000ウォン以上の専門家相談商品は、パス1件あたり10回まで含まれ**、これを超える利用分は都度決済またはムーンストーンで利用できます。30,000ウォン未満の機能は回数制限なく含まれます。含まれる回数はパスを新たに購入すると再度10回にリセットされ、残り回数は決済画面で確認できます。含まれる回数をすべて使用してもサービス利用がブロックされることはなく、超過分の決済手段が案内されます。**この含まれる回数は、本条が定める「異常利用」とは無関係な商品構成であり、回数をすべて使用したという事実のみでは、いかなる制裁も行われません。**",
+        "パス保有者は、有効なパスを保有している間、本条で定める異常利用に該当しない限り、追加料金なしに**ライト占いを回数制限なく**利用でき、その他の有料機能は、自身の等級がカバーする金額以下の機能を等級別の相談上限の範囲内で利用できます（以下「定額利用」）。ライト占いはパス案内画面に一覧で表示される占い商品をいい、代表相談は含まれず、別途の利用期間はありません。等級別の販売価格（小さなはちみつ壺14,900ウォン・中くらいのはちみつ壺34,900ウォン・大きなはちみつ壺64,900ウォン・ファミリーはちみつ壺154,000ウォン）、カバー金額（小5,000ウォン・中10,000ウォン・大30,000ウォン、ファミリーは金額上限なし）、相談上限（小20,000ウォン・中60,000ウォン・大120,000ウォン・ファミリー350,000ウォン）は決済画面に表示されます。",
+        "**相談上限をすべて使用してもパスは維持され**、ライト占いを引き続き利用でき、その他の有料機能は都度決済、ムーンストーンまたはパスの再購入で利用できます。残りの相談上限が5,000ウォン未満の場合は使い切ったものとみなし、パスを新たに購入できます。この場合は新しい相談上限で始まり、残額は新しいパスに引き継がれません。すでに購入したパスの決済金額と相談上限は変わりません。スクリプトやボットによる大量リクエストなどの異常な自動化利用は、本条に基づき制限されることがあります。**相談上限は、本条が定める「異常利用」とは無関係な商品構成であり、すべて使用したという事実のみでは、いかなる制裁も行われません。**",
         "パスは、**契約者本人1名が使用することを前提に提供され、第三者への譲渡・貸与、またはアカウントの共有はできません。**これは定額利用の前提条件であり、これに違反する利用は、以下の異常利用の判断において併せて考慮されます。",
         "当社は、サービスの安定性確保および自動化された不正利用の防止のため、**すべての利用者に同一に適用される常時稼働の技術的措置**を運用します。これには、単位時間あたりのリクエスト数制限、同一リクエストの重複実行防止、生成処理の同時実行数制限が含まれます。これらは特定の利用者を対象とした制裁ではなく、サービス運営上のパラメータであるため、以下の事前通知・弁明手続きの対象とはなりません。正常な利用速度では到達しない水準に設定されており、一時的にこれに到達した場合でも利用がブロックされるのではなく、しばらくしてから再度お試しいただけるとの案内が表示されます。",
         "「異常利用」とは、直近30日間における利用者1名のサービス利用回数が、同期間における全利用者の平均利用回数の10倍以上に該当し、かつ次の各号のいずれか一つ以上の事情が客観的な資料により確認される場合をいいます。単に利用回数が多いという事情のみでは異常利用とは判断しません。（1）マクロ、スクリプト、ボット等の自動化手段によるサービス呼び出しがログにより確認される場合（2）人による直接操作では到達し難い、均一かつ反復的な時間間隔でリクエストが継続する場合（3）同一アカウントで短時間に多数のIPアドレスまたは端末から反復アクセスが発生する場合（4）1名利用者用のアカウントを第三者と共有・貸与し、複数人が利用することにより第1号から第3号に準ずる異常なトラフィックが発生する場合。",
@@ -207,7 +211,7 @@ export const TERMS_CONTENT: Record<NonKoLocale, LegalDocument> = {
         "Code Destinyの有料決済商品は、パスおよび商品ごとのウォン建て都度決済です。ムーンストーンはパスまたはイベントにより付与されるボーナス特典であり、別途購入・チャージする商品ではないため、現金返金の対象となる決済商品とはみなしません。",
         "**商品等の供給時期：すべての有料サービスは、決済（代金支払い）が完了し承認が確認された時点で直ちに提供されます。**別途の配送手続きはなく、決済承認の時点からサービス利用が開始され、パスも決済検証が完了した時刻から直ちに適用されます。",
         "ムーンストーンは、**各付与分が付与された日から30日間のみ有効**であり、その期間内に使用しなかった付与分は自動的に消滅します。複数回に分けて付与されたムーンストーンは、各付与分がそれぞれの付与日を基準に個別に失効し、使用時には先に失効する（古い）付与分から順に差し引かれます。消滅したムーンストーンは復元されず、現金返金の対象にもなりません。",
-        "パスは、サーバー側の決済検証が成功した時点から利用上限を使い切るまで維持される（別途の利用期間なし）、一回限りのデジタルパスです。自動決済商品ではなく、利用上限を使い切った後は利用者自身が改めて購入する必要があります。",
+        "パスは、サーバー側の決済検証が成功した時点から維持される（別途の利用期間なし）、一回限りのデジタルパスです。自動決済商品ではありません。相談上限を使い切った後もライト占いは引き続き利用でき、相談をさらに利用するには利用者自身が改めて購入する必要があります。ライト占いを利用したパスは自動返金されず、カスタマーサポートが利用履歴を確認したうえで対応します。",
         "パスまたは都度決済商品は、決済日または契約内容を受け取った日から7日以内であれば契約解除の申出が可能です。ただし、コンテンツの生成、PDFのレンダリング、有料リーディングの閲覧、パス特典の使用等、デジタルコンテンツまたは有料サービスの提供が既に開始されている場合、提供が開始された部分については契約解除が制限される場合があります。",
         "決済完了前であれば、いつでもキャンセルできます。決済完了後であっても、結果の生成、PDFレンダリング、有料リーディングの閲覧、パス特典の使用が開始されていない場合は、カスタマーサポートを通じて返金を請求できます。",
         "個人向けにカスタマイズされたデジタルコンテンツが生成された場合、または結果の閲覧、PDFレンダリング、有料リーディングの提供、パス特典の使用が開始された場合は、デジタルコンテンツの性質上、単純な気変わりによる返金が制限される場合があります。",
@@ -235,7 +239,8 @@ export const TERMS_CONTENT: Record<NonKoLocale, LegalDocument> = {
     ],
   },
   zh: {
-    effectiveDate: "2026-04-11",
+    effectiveDate: "2026-11-05",
+    revisionNotice: {"title":"条款修订通知","lines":["持有通行证即可不限次数使用轻量运势（不含招牌咨询）。","咨询额度用完后通行证仍然保留。如需继续使用招牌咨询，请重新购买通行证。","通行证售价和咨询额度已调整。已购买通行证的付款金额和咨询额度不会改变。"]},
     sections: [
       { id: "purpose", heading: "1. 条款目的", paragraphs: [
         "本条款规定了 Code Destiny 提供的在线服务的使用条件与程序，以及双方之间的权利、义务与责任事项。",
@@ -257,8 +262,8 @@ export const TERMS_CONTENT: Record<NonKoLocale, LegalDocument> = {
         "禁止以下行为：（1）对服务进行逆向工程、爬取或未经授权的自动化访问；（2）传播恶意软件或利用安全漏洞；（3）未经授权收集或盗用他人个人信息；（4）发布违法内容；（5）任何妨碍运营的行为。如有违反，公司可限制或暂停相关账号的访问。",
       ]},
       { id: "fair-use", heading: "7. 公平使用与异常使用限制", paragraphs: [
-        "在有效的通行证合约期内，只要不构成本条所定义的异常使用，通行证持有者可在**无需额外付费、无使用次数限制**的情况下，使用价格在其等级覆盖金额以下的功能（以下称\"定额使用\"）。各等级的覆盖金额将显示在结账页面。",
-        "但**就家庭蜜罐通行证而言，单次30,000韩元以上的专家咨询商品，每张通行证最多包含10次**，超出部分可通过单次付费或月光石使用。价格低于30,000韩元的功能不受次数限制地包含在内。包含次数会在重新购买通行证时重置为10次，剩余次数可在结账页面查看。用完包含次数并不会导致服务被封锁，系统会提示超出部分的付款方式。**该包含次数与本条所定义的\"异常使用\"无关，仅仅用完次数这一事实本身不会导致任何制裁。**",
+        "持有有效通行证期间，只要不构成本条所定义的异常使用，通行证持有者无需额外付费即可**不限次数使用轻量运势**；其他付费功能中，价格在其等级覆盖金额以下的功能可在其等级的咨询额度内使用（以下称\"定额使用\"）。轻量运势是指通行证说明页面所列的运势商品，不含招牌咨询，且不另设使用期限。各等级的售价（小蜜罐14,900韩元・中蜜罐34,900韩元・大蜜罐64,900韩元・家庭蜜罐154,000韩元）、覆盖金额（小5,000韩元・中10,000韩元・大30,000韩元，家庭蜜罐无金额上限）和咨询额度（小20,000韩元・中60,000韩元・大120,000韩元・家庭350,000韩元）将显示在结账页面。",
+        "**咨询额度全部用完后，通行证仍然保留**，可继续使用轻量运势，其他付费功能可通过单次付费、月光石或重新购买通行证使用。剩余咨询额度不足5,000韩元时视为已用完，可购买新的通行证；新通行证以新的咨询额度开始，剩余金额不会转入。已购买通行证的付款金额和咨询额度不会改变。使用脚本或机器人大量请求等异常自动化使用，可能依本条受到限制。**咨询额度与本条所定义的\"异常使用\"无关，仅仅用完额度这一事实本身不会导致任何制裁。**",
         "通行证的提供**以由签约本人一人使用为前提，不得转让、出借予第三方或与他人共享账号。**这是定额使用的前提条件，违反该前提的使用行为将一并纳入下述异常使用的判断考量。",
         "为保障服务稳定性并防止自动化滥用，公司运行**适用于所有用户的统一常态化技术措施**，包括单位时间请求次数限制、防止同一请求重复执行、生成任务并发数限制。这些属于服务运营参数，而非针对特定用户的制裁措施，因此不适用下述事先通知与陈述程序；其阈值设定远高于正常人工操作速度，即使暂时达到该阈值，也不会导致服务被封锁，而是提示稍后重试。",
         "\"异常使用\"是指：过去30天内，单一用户的服务使用次数达到同期全体用户平均使用次数的10倍以上，且同时以客观资料确认存在以下任一情形。仅使用次数较多这一事实本身不构成异常使用的判断依据：（1）日志确认存在通过宏、脚本、机器人等自动化手段调用服务的记录；（2）请求以人工直接操作难以达到的、均匀且重复的时间间隔持续发生；（3）同一账号在短时间内从多个IP地址或设备反复访问；（4）将单一用户账号与第三方共享或出借，因多人使用而产生与第（1）至（3）项相当的异常流量。",
@@ -282,7 +287,7 @@ export const TERMS_CONTENT: Record<NonKoLocale, LegalDocument> = {
         "Code Destiny 的付费商品为通行证及各商品按韩元计价的单次付费。月光石是随通行证或活动赠送的奖励权益，并非单独购买或充值的商品，因此不视为可现金退款的付费商品。",
         "**商品等的供应时间：所有付费服务均在支付（付款）完成并确认核准后立即提供。**无需另行配送程序，自支付核准之时起即可开始使用服务，通行证同样在支付验证完成的时刻起立即生效。",
         "月光石**自各笔发放之日起仅30天内有效**，期限内未使用的部分将自动失效。分多次发放的月光石，各笔按各自发放日期单独到期，使用时优先扣减最早到期（较旧）的部分。已失效的月光石不予恢复，也不属于现金退款对象。",
-        "通行证是自服务器端支付验证成功之时起维持至使用额度用完为止（不另设使用期限）的一次性数字通行证。并非自动扣款商品，使用额度用完后须由用户自行重新购买。",
+        "通行证是自服务器端支付验证成功之时起维持（不另设使用期限）的一次性数字通行证。并非自动扣款商品。咨询额度用完后仍可继续使用轻量运势，如需继续使用咨询须由用户自行重新购买。已使用轻量运势的通行证不会自动退款，由客服确认使用记录后处理。",
         "通行证或单次付费商品，可在支付日或收到合约内容之日起7天内申请撤回。但若内容生成、PDF渲染、付费解读浏览、通行证权益使用等数字内容或付费服务已开始提供，则已提供部分可能限制撤回。",
         "支付完成前可随时取消。支付完成后，若结果生成、PDF渲染、付费解读浏览、通行证权益使用尚未开始，仍可通过客服申请退款。",
         "一旦已生成个人化数字内容，或已开始提供结果浏览、PDF渲染、付费解读、通行证权益使用，基于数字内容的性质，单纯因改变主意而要求退款可能受到限制。",
@@ -310,7 +315,8 @@ export const TERMS_CONTENT: Record<NonKoLocale, LegalDocument> = {
     ],
   },
   "zh-TW": {
-    effectiveDate: "2026-04-11",
+    effectiveDate: "2026-11-05",
+    revisionNotice: {"title":"條款修訂通知","lines":["持有通行證即可不限次數使用輕量運勢（不含招牌諮詢）。","諮詢額度用完後通行證仍然保留。如需繼續使用招牌諮詢，請重新購買通行證。","通行證售價及諮詢額度已調整。已購買通行證之付款金額及諮詢額度不會改變。"]},
     sections: [
       { id: "purpose", heading: "1. 條款目的", paragraphs: [
         "本條款規定了 Code Destiny 提供的線上服務之使用條件與程序，以及雙方之間的權利、義務與責任事項。",
@@ -332,8 +338,8 @@ export const TERMS_CONTENT: Record<NonKoLocale, LegalDocument> = {
         "禁止下列行為：（1）對服務進行逆向工程、爬取或未經授權之自動化存取；（2）散布惡意軟體或利用資安漏洞；（3）未經授權蒐集或盜用他人個人資料；（4）發布違法內容；（5）任何妨礙營運之行為。如有違反，公司得限制或暫停相關帳號之存取。",
       ]},
       { id: "fair-use", heading: "7. 公平使用與異常使用限制", paragraphs: [
-        "在有效的通行證合約期間內，只要不構成本條所定義之異常使用，通行證持有人得在**無須額外付費、無使用次數限制**之情形下，使用價格在其等級涵蓋金額以下之功能（以下稱「定額使用」）。各等級之涵蓋金額將顯示於結帳頁面。",
-        "但**就家庭蜜罐通行證而言，單次30,000韓元以上之專家諮詢商品，每張通行證最多包含10次**，超出部分可透過單次付款或月光石使用。價格低於30,000韓元之功能不受次數限制地包含在內。包含次數會於重新購買通行證時重設為10次，剩餘次數可於結帳頁面查看。用完包含次數並不會導致服務遭封鎖，系統會提示超出部分之付款方式。**此包含次數與本條所定義之「異常使用」無關，僅僅用完次數此一事實本身不會導致任何制裁。**",
+        "持有有效通行證期間，只要不構成本條所定義之異常使用，通行證持有人無須額外付費即可**不限次數使用輕量運勢**；其他付費功能中，價格在其等級涵蓋金額以下之功能得在其等級之諮詢額度內使用（以下稱「定額使用」）。輕量運勢係指通行證說明頁面所列之運勢商品，不含招牌諮詢，且不另設使用期限。各等級之售價（小蜜罐14,900韓元・中蜜罐34,900韓元・大蜜罐64,900韓元・家庭蜜罐154,000韓元）、涵蓋金額（小5,000韓元・中10,000韓元・大30,000韓元，家庭蜜罐無金額上限）及諮詢額度（小20,000韓元・中60,000韓元・大120,000韓元・家庭350,000韓元）將顯示於結帳頁面。",
+        "**諮詢額度全部用完後，通行證仍然保留**，可繼續使用輕量運勢，其他付費功能可透過單次付款、月光石或重新購買通行證使用。剩餘諮詢額度不足5,000韓元時視為已用完，得購買新的通行證；新通行證以新的諮詢額度開始，剩餘金額不會轉入。已購買通行證之付款金額及諮詢額度不會改變。使用腳本或機器人大量請求等異常自動化使用，可能依本條受到限制。**諮詢額度與本條所定義之「異常使用」無關，僅僅用完額度此一事實本身不會導致任何制裁。**",
         "通行證之提供**以由簽約本人一人使用為前提，不得轉讓、出借予第三方或與他人共用帳號。**這是定額使用之前提條件，違反該前提之使用行為將一併納入下述異常使用之判斷考量。",
         "為保障服務穩定性並防止自動化濫用，公司運行**適用於所有使用者之統一常態化技術措施**，包括單位時間請求次數限制、防止同一請求重複執行、生成作業並行數限制。這些屬於服務營運參數，而非針對特定使用者之制裁措施，因此不適用下述事先通知與陳述程序；其門檻設定遠高於正常人工操作速度，即使暫時達到該門檻，也不會導致服務遭封鎖，而是提示稍後再試。",
         "「異常使用」係指：過去30天內，單一使用者之服務使用次數達到同期全體使用者平均使用次數之10倍以上，且同時以客觀資料確認存在下列任一情形。僅使用次數較多此一事實本身不構成異常使用之判斷依據：（1）日誌確認存在透過巨集、腳本、機器人等自動化手段呼叫服務之紀錄；（2）請求以人工直接操作難以達到之、均勻且重複之時間間隔持續發生；（3）同一帳號於短時間內自多個IP位址或裝置反覆存取；（4）將單一使用者帳號與第三方共用或出借，因多人使用而產生與第（1）至（3）項相當之異常流量。",
@@ -357,7 +363,7 @@ export const TERMS_CONTENT: Record<NonKoLocale, LegalDocument> = {
         "Code Destiny 之付費商品為通行證及各商品按韓元計價之單次付款。月光石係隨通行證或活動贈送之獎勵權益，並非單獨購買或儲值之商品，因此不視為可現金退款之付費商品。",
         "**商品等之供應時間：所有付費服務均於付款完成並確認核准後立即提供。**無須另行配送程序，自付款核准之時起即可開始使用服務，通行證同樣於付款驗證完成之時刻起立即生效。",
         "月光石**自各筆發放之日起僅30天內有效**，期限內未使用之部分將自動失效。分多次發放之月光石，各筆按各自發放日期單獨到期，使用時優先扣減最早到期（較舊）之部分。已失效之月光石不予恢復，亦不屬於現金退款對象。",
-        "通行證係自伺服器端付款驗證成功之時起維持至使用額度用完為止（不另設使用期限）之一次性數位通行證。並非自動扣款商品，使用額度用完後須由使用者自行重新購買。",
+        "通行證係自伺服器端付款驗證成功之時起維持（不另設使用期限）之一次性數位通行證。並非自動扣款商品。諮詢額度用完後仍可繼續使用輕量運勢，如需繼續使用諮詢須由使用者自行重新購買。已使用輕量運勢之通行證不會自動退款，由客服確認使用紀錄後處理。",
         "通行證或單次付款商品，得於付款日或收到合約內容之日起7天內申請撤回。但若內容生成、PDF渲染、付費解讀瀏覽、通行證權益使用等數位內容或付費服務已開始提供，則已提供部分可能限制撤回。",
         "付款完成前得隨時取消。付款完成後，若結果生成、PDF渲染、付費解讀瀏覽、通行證權益使用尚未開始，仍得透過客服申請退款。",
         "一旦已生成個人化數位內容，或已開始提供結果瀏覽、PDF渲染、付費解讀、通行證權益使用，基於數位內容之性質，單純因改變心意而要求退款可能受到限制。",

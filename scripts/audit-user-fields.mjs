@@ -79,6 +79,7 @@ const PII_PATHS = new Set([
   "destinyProfilesLockedCurrentId",
   "profileSubscription.customerUid",
   "profileSubscription.lastPassOrderId",
+  "profileSubscription.exhaustedPassRestore",
   "recentConsumeRequestIds",
 ]);
 

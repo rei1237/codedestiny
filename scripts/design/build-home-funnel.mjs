@@ -2,6 +2,7 @@ import { consultationStories, storyBenefits } from '../../lib/brand/consultation
 import { RECORD_SERVICES } from '../../lib/records/service-registry.js';
 import { moonlightVideo } from '../../lib/marketing/moonlight-video.mjs';
 import { renderPassBenefits, passBenefitOffers } from '../../lib/marketing/pass-benefits.mjs';
+import lightFortunes from '../../lib/payment/light-fortunes.generated.json' with { type: 'json' };
 import { JSDOM } from 'jsdom';
 import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
@@ -116,17 +117,17 @@ const QUESTION_CATEGORIES = [
   ] },
   { id: 'marriage', label: '결혼', chip: '결혼할 사람', img: '/images/home-questions/marriage', questions: [
     { id: 'marriagePartner', href: '/yeongnyangi/?question=partner#questions', key: 'yeongnyangi-saju-mackerel', master: 'yeongnyangi', t: '나는 어떤 사람과 결혼하게 될까?', b: '영냥이 · 사주', price: 'from10000' },
-    { id: 'marriageDate', href: '/nakshatra/muhurta/', key: 'nakshatra-muhurta', master: 'yun', t: '이 일, 언제 하면 좋을까?', b: '인도 점성술 · 택일 무후르타', price: 'w7000' },
+    { id: 'marriageDate', href: '/nakshatra/muhurta/', key: 'nakshatra-muhurta', master: 'yun', t: '이 일, 언제 하면 좋을까?', b: '인도 점성술 · 택일 무후르타', price: 'w5000' },
   ] },
   { id: 'money', label: '돈', chip: '돈이 풀리는 때', img: '/assets/yeongnyangi/scenes/wealth', questions: [
     { id: 'moneyWhen', href: '/yeongnyangi/?question=money#questions', key: 'yeongnyangi-saju-salmon', master: 'yeongnyangi', t: '내 돈은 언제부터 풀릴까?', b: '영냥이 · 사주', price: 'from15000' },
     { id: 'moneyWay', href: '/ziwei/chart/', master: 'musung', t: '나에게 맞는 돈 버는 방식은 뭘까?', b: '자미두수 명반', price: 'free' },
-    { id: 'moneyMonth', href: '/tarot/year/', key: 'tarot-year-fortune', master: 'yeoni', t: '돈이 모이는 달을 미리 알 수 있을까?', b: '타로 · 십이지신 천운 타로', price: 'w10000' },
+    { id: 'moneyMonth', href: '/tarot/year/', key: 'tarot-year-fortune', master: 'yeoni', t: '돈이 모이는 달을 미리 알 수 있을까?', b: '타로 · 십이지신 천운 타로', price: 'w5000' },
   ] },
   { id: 'career', label: '일', chip: '이직해도 될까', img: '/assets/yeongnyangi/scenes/work', questions: [
     { id: 'careerMove', href: '/tarot-ijik.html', key: 'tarot-ijik', master: 'yeoni', t: '지금 이직해도 괜찮을까?', b: '타로 · 이직 운명의 카드', price: 'w5000' },
     { id: 'careerFit', href: '/yeongnyangi/?question=career-astrology#questions', key: 'yeongnyangi-astrology-salmon', master: 'yeongnyangi', t: '나에게 맞는 일은 따로 있을까?', b: '영냥이 · 점성술', price: 'from15000' },
-    { id: 'careerTurn', href: '/destiny-compass/', key: 'destiny-compass-life-voyage', master: 'neo', t: '지금 방향을 바꿔도 될까?', b: '4체계 · 운명의 나침반', price: 'w7000' },
+    { id: 'careerTurn', href: '/destiny-compass/', key: 'destiny-compass-life-voyage', master: 'neo', t: '지금 방향을 바꿔도 될까?', b: '4체계 · 운명의 나침반', price: 'w5000' },
   ] },
   { id: 'future', label: '미래', chip: '내 인생의 황금기 · 올해 가장 중요한 일', img: '/assets/yeongnyangi/scenes/journey', questions: [
     { id: 'futurePrime', href: '/life-book-ai/', key: 'life-book-ai-consultation', master: 'yun', t: '내 인생의 황금기는 언제일까?', b: '사주 대운 · 인생의 책', price: 'w30000' },
@@ -140,7 +141,7 @@ const QUESTION_CATEGORIES = [
   ] },
   { id: 'people', label: '인간관계', chip: '가까워질수록 왜 지칠까?', img: '/images/home-questions/people', questions: [
     { id: 'peopleTired', href: '/yeongnyangi/readings/sukuyo/', key: 'yeongnyangi-sukuyo-mackerel', master: 'yeongnyangi', t: '가까워질수록 왜 지칠까?', b: '영냥이 · 숙요', price: 'from10000', alt: { href: '/index.html?action=openSukuyoModal', name: '숙요점' } },
-    { id: 'peopleMatch', href: '/nakshatra/compat/', key: 'nakshatra-compat', master: 'hanbi', t: '그 사람과 나, 어떤 궁합일까?', b: '인도 점성술·숙요 · 동서 통합 궁합', price: 'w20000' },
+    { id: 'peopleMatch', href: '/nakshatra/compat/', key: 'nakshatra-compat', master: 'hanbi', t: '그 사람과 나, 어떤 궁합일까?', b: '인도 점성술·숙요 · 동서 통합 궁합', price: 'w5000' },
     { id: 'peopleDistance', href: '/fortune-chat/', key: 'fortune-chat-consultation', master: 'yeoni', t: '이 관계, 거리를 둬야 할까?', b: '대화형 운명 상담', price: 'w5000' },
   ] },
 ];
@@ -305,7 +306,15 @@ function localizedPassBenefits() {
   const copy = JSON.parse(readFileSync('i18n/authored/homeOverseas-09.json', 'utf8'));
   const labels = new Map(Object.entries(copy).filter(([, value]) => !value.ko.includes('{')).map(([key, value]) => [value.ko, { key }]));
   const add = (key, values) => labels.set(copy[key].ko.replace(/\{(\w+)\}/g, (_, name) => values[name]), { key, values });
+  const lightCount = String(lightFortunes.count);
+  add('home.benefitsCopy.lightBanner', { count: lightCount });
+  add('home.benefitsCopy.lightLine', { count: lightCount });
+  add('home.benefitsCopy.lightListTitle', { count: lightCount });
+  add('home.benefitsCopy.lightWorth', { amount: lightFortunes.valueKRW.toLocaleString('ko-KR') });
   for (const offer of passBenefitOffers('honey')) {
+    add('home.benefitsCopy.consultAmount', { amount: offer.consultLimit.toLocaleString('ko-KR') });
+    if (!offer.family) add('home.benefitsCopy.consultCap', { amount: offer.cap.toLocaleString('ko-KR') });
+    if (!offer.family) add('home.benefitsCopy.signatureLimit', { amount: offer.cap.toLocaleString('ko-KR') });
     add('home.benefitsCopy.percent', { amount: String(Math.floor((1 - offer.price / offer.value) * 100)) });
     add('home.benefitsCopy.saving', { amount: (offer.value - offer.price).toLocaleString('ko-KR') });
     if (!offer.family) add('home.benefitsCopy.cap', { amount: offer.cap.toLocaleString('ko-KR') });
@@ -355,7 +364,8 @@ vars.pass = '<link rel="stylesheet" href="/styles/pass-benefits.css?v=build-0000
       <span class="cdh-pass__tier-line" data-cd-trans="home.overseasCopy.passTotal" data-cd-vars='{"amount":"${Number(plan.monthlyLimitCoin * 100).toLocaleString('en-US')}"}'>누적 ${won(plan.monthlyLimitCoin * 100)}까지</span>
     </a></li>`).join('')}
   </ul>
-  <p class="cdh-pass__note" data-cd-trans="home.gardenCopy.passNote">작은·중간·큰 꿀단지는 꿀꿀 운세에, 패밀리 꿀단지는 꿀꿀 운세와 영냥이 유료 리딩에 적용됩니다. 기존에 구매한 이용권은 구매 당시 조건을 유지합니다.</p>
+  <p class="cdh-pass__light" data-cd-trans="home.gardenCopy.passLight" data-cd-vars='{"count":"${lightFortunes.count}","amount":"${lightFortunes.valueKRW.toLocaleString('en-US')}"}'>모든 꿀단지에 라이트 운세 ${lightFortunes.count}종이 횟수 제한 없이 포함돼요. 각 1회 기준 ${won(lightFortunes.valueKRW)} 상당이며, 대표 상담은 제외예요.</p>
+  <p class="cdh-pass__note" data-cd-trans="home.gardenCopy.passNote">작은·중간·큰 꿀단지는 꿀꿀 운세에, 패밀리 꿀단지는 꿀꿀 운세와 영냥이 유료 리딩에 적용됩니다. 이미 구매한 이용권의 상담 한도는 그대로이고, 라이트 운세 혜택은 사용 중인 이용권에도 적용됩니다.</p>
   <details class="cdh-pass__packs"><summary class="cdh-pass__group">
     <img class="cdh-pass__pack-guide" src="/assets/yeongnyangi/original/hero-800.webp" alt="" width="800" height="800" loading="lazy" decoding="async">
     <span class="cdh-pass__pack-heading"><span data-cd-trans="home.passCopy.packTitle">영냥이 전용 이용권</span><small data-cd-trans="home.passCopy.packNote">영냥이 세트는 같은 생선 상담에만 1회씩 사용돼요. 꽃돼지 이용권과 따로 적용돼요.</small></span>

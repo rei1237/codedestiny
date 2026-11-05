@@ -833,24 +833,24 @@
       "chipShareReward": "Ngoài phạm vi: thanh toán từng lần",
       "plansAria": "Vượt qua thẻ tóm tắt kế hoạch",
       "standardName": "Hũ mật ong nhỏ",
-      "standardPrice": "9.900 KRW",
+      "standardPrice": "14.900 KRW",
       "standardLine": "Nội dung đến khoảng 5.000 KRW",
       "standardBenefit1": "Tối đa 20.000 KRW",
       "standardCta": "Xem Hũ mật ong nhỏ",
       "recommendedAria": "Gói đề xuất",
       "recommendedBadge": "Được đề xuất",
       "premiumName": "Hũ mật ong vừa",
-      "premiumPrice": "29.900 KRW",
+      "premiumPrice": "34.900 KRW",
       "premiumLine": "Nội dung đến khoảng 10.000 KRW",
       "premiumBenefit1": "Tối đa 60.000 KRW",
       "premiumCta": "Xem gói đề xuất",
       "vvipName": "Hũ mật ong lớn",
-      "vvipPrice": "59.900 KRW",
+      "vvipPrice": "64.900 KRW",
       "vvipLine": "Nội dung đến khoảng 30.000 KRW",
       "vvipBenefit1": "Tối đa 120.000 KRW",
       "vvipCta": "Xem lợi ích Hũ mật ong lớn",
       "familyName": "Hũ mật ong gia đình",
-      "familyPrice": "149.000 KRW",
+      "familyPrice": "154.000 KRW",
       "familyLine": "Toàn bộ nội dung áp dụng gói",
       "familyBenefit1": "Tối đa 350.000 KRW",
       "familyCta": "Xem Hũ mật ong gia đình",
@@ -864,8 +864,8 @@
       "step2Text": "Các lượt đọc tarot, thần dụ và tứ trụ trong phạm vi của bạn mở ra ngay, không cần cửa sổ thanh toán.",
       "step3Label": "Chỉ lượt đọc sâu ngoài phạm vi mới trả từng lần",
       "step3Text": "Lượt đọc sâu ngoài phạm vi chỉ tiếp tục bằng một lần thanh toán KRW khi bạn cần.",
-      "terminationNote": "Khi dùng hết hạn mức sử dụng, vé sẽ kết thúc. Mua lại sẽ bắt đầu với hạn mức sử dụng mới. Nội dung trả phí bổ sung có thể dùng bằng thanh toán một lần hoặc Nguyệt Tinh Thạch.",
-      "noExpiryNote": "Không giới hạn thời gian · Kết thúc khi dùng hết hạn mức"
+      "terminationNote": "Vé vẫn được giữ khi đã dùng hết hạn mức tư vấn và bạn vẫn dùng được các bài xem nhẹ. Để dùng thêm tư vấn tiêu biểu, hãy mua vé mới, thanh toán một lần hoặc dùng Nguyệt Tinh Thạch.",
+      "noExpiryNote": "Không giới hạn thời gian · Không tự động gia hạn"
     },
     "promptHub": {
       "aria": "Đến phần gợi ý bói toàn diện",
@@ -908,11 +908,11 @@
       "aria": "Hướng dẫn chuyển chân trang",
       "eyebrow": "Thẻ ánh trăng",
       "savingsBadge": "Dùng gói, giá chỉ còn tối đa một phần ba",
-      "title": "Chỉ hai lần đọc 5.000 KRW đã đắt hơn gói 9.900 KRW",
+      "title": "Chỉ ba lần đọc 5.000 KRW đã đắt hơn gói 14.900 KRW",
       "desc": "Các bài đọc trong khoảng giá bạn chọn sẽ mở cho đến khi bạn dùng hết hạn mức sử dụng; chỉ những bài đắt hơn mới thanh toán từng lần khi cần. Bốn mức là 5.000 KRW · 10.000 KRW · 20.000 KRW và toàn bộ nội dung áp dụng gói, nên hãy chọn mức giá bạn hay xem nhất.",
       "pointsAria": "Hướng dẫn vượt qua lõi",
       "point1": "Mở ngay, không cần thanh toán",
-      "point2": "Không giới hạn thời gian · Kết thúc khi dùng hết hạn mức",
+      "point2": "Không giới hạn thời gian · Không tự động gia hạn",
       "point3": "Thẻ không tự động gia hạn",
       "mascotAria": "Xem quyền lợi Moonlight Pass · Cửa hàng Moonlight Pass",
       "mascotAlt": "Ảnh quyền lợi Moonlight Pass",
@@ -1669,7 +1669,7 @@
       "passDesc": "Thỉnh thoảng dùng thì thanh toán từng lượt, dùng thường xuyên thì chọn gói. Hãy kiểm tra các buổi tư vấn được áp dụng và giới hạn sử dụng.",
       "passPer": "· Không giới hạn thời gian",
       "passBadge": "Bao gồm cả Yeongnyangi",
-      "passNote": "Hũ Mật Ong Nhỏ, Vừa và Lớn áp dụng cho GGULGGUL Fortune; Hũ Mật Ong Gia Đình áp dụng cho các bài luận giải trả phí của cả GGULGGUL Fortune và Yeongnyangi. Gói đã mua vẫn giữ nguyên điều kiện tại thời điểm mua.",
+      "passNote": "Hũ Mật Ong Nhỏ, Vừa và Lớn áp dụng cho GGULGGUL Fortune; Hũ Mật Ong Gia Đình áp dụng cho các bài luận giải trả phí của cả GGULGGUL Fortune và Yeongnyangi. Gói đã mua vẫn giữ nguyên hạn mức tư vấn, và quyền lợi bài xem nhẹ cũng áp dụng cho gói đang dùng.",
       "passCta": "Xem gói phù hợp với bạn",
       "moreTitle": "Khám phá thêm xưởng sáng tạo của Yeoni",
       "moreItems": "Vận may hôm nay · tư vấn · lưu trữ và câu chuyện",
@@ -1736,7 +1736,8 @@
       "chemiCta": "See my bias chemistry",
       "brandOtherEntry": "꿀꿀 운세: Saju và Tarot với Yeongnyangi →",
       "publicRecordsTitle": "Hồ sơ phân tích công khai của Park Byung-ha (Neo), chuyên gia Saju với 10 năm kinh nghiệm",
-      "publicRecordsLink": "Đối chiếu ngày, bài gốc và kết quả"
+      "publicRecordsLink": "Đối chiếu ngày, bài gốc và kết quả",
+      "passLight": "Mọi Hũ Mật Ong đều có {count} bài xem nhẹ không giới hạn lượt, trị giá {amount} KRW nếu tính mỗi bài một lần. Không gồm tư vấn tiêu biểu."
     },
     "chatEntry": {
       "title": "Hỏi Yeoni và Neo điều bạn đang băn khoăn nhất",
@@ -2260,22 +2261,22 @@
       "family": "Family dùng cho Ggulggul Fortune và Yeongnyangi.",
       "scope": "Hũ Mật nhỏ, vừa và lớn dùng trên Ggulggul Fortune.",
       "pace": "Không giới hạn thời gian, theo nhịp của bạn.",
-      "end": "Hết khi dùng hết hạn mức · Không tự gia hạn",
+      "end": "Hết hạn mức tư vấn vẫn dùng tiếp được các bài xem nhẹ.",
       "alt": "Yeoni cầm vé",
       "moon": "Vé Ánh Trăng!",
       "choose": "Chọn Hũ Mật phù hợp.",
-      "value": "Giá trị tối đa theo giá mua lẻ",
+      "value": "Giá trị theo giá mua lẻ",
       "price": "Giá vé",
       "cap": "Dịch vụ áp dụng tối đa {amount} KRW mỗi lần",
       "unlimitedCap": "Không giới hạn giá mỗi dịch vụ",
       "percent": "Tiết kiệm tới {amount}%",
       "saving": "Tiết kiệm tới {amount} KRW",
-      "compare": "So sánh khi dùng hết hạn mức cho dịch vụ áp dụng.",
+      "compare": "So với giá mua lẻ khi dùng mỗi bài xem nhẹ một lần và dùng hết hạn mức tư vấn.",
       "terms": "Theo điều kiện áp dụng, loại trừ và hạn mức còn lại.",
       "site": "Dùng trên Ggulggul Fortune",
       "both": "Cho Ggulggul Fortune và Yeongnyangi",
       "cta": "Xem vé {name}",
-      "validity": "Không có hạn dùng cố định · Hết khi dùng hết hạn mức · Không tự gia hạn",
+      "validity": "Không có hạn dùng cố định · Không tự gia hạn",
       "legend": "Bạn chọn Hũ Mật nào?",
       "hint": "Chọn hình để so sánh giá và quyền lợi.",
       "select": "Chọn",
@@ -2285,7 +2286,18 @@
       "fishLink": "Xem vé Yeongnyangi →",
       "compactTitle": "Vé Hũ Mật",
       "conditions": "Phạm vi và điều kiện sử dụng",
-      "otherServices": "Xem vé cho dịch vụ khác"
+      "otherServices": "Xem vé cho dịch vụ khác",
+      "lightBanner": "Chỉ một Hũ Mật Ong Nhỏ là mở được toàn bộ {count} bài xem nhẹ.",
+      "lightBannerSub": "Dùng các bài xem nhẹ không giới hạn số lần, trừ tư vấn tiêu biểu. Hũ Vừa, Lớn và Gia Đình cũng đều có.",
+      "lightLine": "{count} bài xem nhẹ, không giới hạn lượt",
+      "lightWorth": "Trị giá {amount} KRW",
+      "consultLine": "Hạn mức tư vấn chuyên gia",
+      "consultAmount": "{amount} KRW",
+      "consultCap": "(tối đa {amount} KRW mỗi lần)",
+      "consultNoCap": "(không giới hạn giá mỗi dịch vụ)",
+      "signatureLimit": "Không thể dùng hũ này cho tư vấn tiêu biểu trên {amount} KRW mỗi lần.",
+      "lightListTitle": "Xem {count} bài xem nhẹ đi kèm",
+      "termsRevision": "Quy định về vé đã thay đổi. Xem thông báo sửa đổi điều khoản"
     },
     "consultChoice": {
       "title": "Chọn hình thức tư vấn phù hợp với điều bạn đang băn khoăn",
@@ -3219,7 +3231,7 @@
       "monthlyButton": "Thanh toán bằng {credits} nguyệt thạch",
       "monthlyButtonBusy": "Đang kích hoạt vé bằng nguyệt thạch...",
       "monthlyButtonShort": "Cần {credits} · số dư không đủ",
-      "terminationNotice": "Khi dùng hết hạn mức sử dụng, vé sẽ kết thúc. Mua lại sẽ bắt đầu với hạn mức sử dụng mới. Nội dung trả phí bổ sung có thể dùng bằng thanh toán một lần hoặc Nguyệt Tinh Thạch."
+      "terminationNotice": "Vé vẫn được giữ khi đã dùng hết hạn mức tư vấn và bạn vẫn dùng được các bài xem nhẹ. Để dùng thêm tư vấn tiêu biểu, hãy mua vé mới, thanh toán một lần hoặc dùng Nguyệt Tinh Thạch."
     },
     "access": {
       "passAppliedContinue": "Đã mở bằng thẻ của bạn."
@@ -15890,7 +15902,7 @@
       "faq": {
         "0": {
           "q": "How is the price determined?",
-          "a": "The price depends on the number of cards in your chosen spread. You can review it on the payment screen before paying."
+          "a": "Each reading costs KRW 5,000 regardless of the number of cards. You can review it on the payment screen before paying."
         },
         "1": {
           "q": "What happens if generation fails?",

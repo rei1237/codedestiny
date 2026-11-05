@@ -833,24 +833,24 @@
       "chipShareReward": "Einzelzahlung außerhalb des Bereichs",
       "plansAria": "Passplan-Zusammenfassungskarten",
       "standardName": "Kleines Honigglas",
-      "standardPrice": "9.900 KRW",
+      "standardPrice": "14.900 KRW",
       "standardLine": "Inhalte bis 5.000 KRW",
       "standardBenefit1": "Bis zu 20.000 KRW",
       "standardCta": "Kleines Honigglas ansehen",
       "recommendedAria": "Empfohlener Plan",
       "recommendedBadge": "Empfohlen",
       "premiumName": "Mittleres Honigglas",
-      "premiumPrice": "29.900 KRW",
+      "premiumPrice": "34.900 KRW",
       "premiumLine": "Inhalte bis 10.000 KRW",
       "premiumBenefit1": "Bis zu 60.000 KRW",
       "premiumCta": "Empfohlenen Plan anzeigen",
       "vvipName": "Großes Honigglas",
-      "vvipPrice": "59.900 KRW",
+      "vvipPrice": "64.900 KRW",
       "vvipLine": "Inhalte bis 30.000 KRW",
       "vvipBenefit1": "Bis zu 120.000 KRW",
       "vvipCta": "Vorteile des Großen Honigglases ansehen",
       "familyName": "Familien-Honigglas",
-      "familyPrice": "149.000 KRW",
+      "familyPrice": "154.000 KRW",
       "familyLine": "Alle im Pass enthaltenen Inhalte",
       "familyBenefit1": "Bis zu 350.000 KRW",
       "familyCta": "Familien-Honigglas ansehen",
@@ -864,8 +864,8 @@
       "step2Text": "Tarot-, Orakel- und Saju-Readings innerhalb deines Bereichs öffnen sich sofort, ganz ohne Bezahlfenster.",
       "step3Label": "Nur tiefere Readings kosten pro Nutzung",
       "step3Text": "Readings außerhalb deines Bereichs führen nur bei Bedarf zu einer einmaligen KRW-Zahlung.",
-      "terminationNote": "Wenn das Nutzungslimit aufgebraucht ist, endet der Pass. Bei einem erneuten Kauf beginnst du mit einem neuen Nutzungslimit. Zusätzliche kostenpflichtige Inhalte sind per Einzelzahlung oder mit Mondlichtsteinen verfügbar.",
-      "noExpiryNote": "Ohne Laufzeitbegrenzung · Endet, wenn das Nutzungslimit aufgebraucht ist"
+      "terminationNote": "Der Pass bleibt aktiv, auch wenn das Beratungslimit aufgebraucht ist, und leichte Deutungen bleiben verfügbar. Für weitere Signature-Beratungen kaufe einen neuen Pass oder nutze eine Einzelzahlung oder Mondlichtsteine.",
+      "noExpiryNote": "Ohne Laufzeitbegrenzung · Keine automatische Verlängerung"
     },
     "promptHub": {
       "aria": "Gehen Sie zu umfassenden Glücksfragen",
@@ -908,11 +908,11 @@
       "aria": "Übergeben Sie die Fußzeilenanleitung",
       "eyebrow": "Mondscheinpass",
       "savingsBadge": "Mit Pass bis zu einem Drittel des Preises",
-      "title": "Zwei Readings zu 5.000 KRW kosten bereits mehr als der Pass für 9.900 KRW",
+      "title": "Drei Readings zu 5.000 KRW kosten bereits mehr als der Pass für 14.900 KRW",
       "desc": "Readings innerhalb der gewählten Preisspanne öffnen sich, bis Ihr Nutzungslimit aufgebraucht ist; nur teurere Readings zahlen Sie bei Bedarf einzeln. Die vier Stufen sind 5.000 KRW · 10.000 KRW · 20.000 KRW und alle im Pass enthaltenen Inhalte – wählen Sie die Preisklasse, die Sie am häufigsten nutzen.",
       "pointsAria": "Core-Pass-Anleitung",
       "point1": "Öffnet sofort, ohne Bezahlvorgang",
-      "point2": "Ohne Laufzeitbegrenzung · Endet, wenn das Nutzungslimit aufgebraucht ist",
+      "point2": "Ohne Laufzeitbegrenzung · Keine automatische Verlängerung",
       "point3": "Ein Pass ohne automatische Verlängerung",
       "mascotAria": "Vorteile des Moonlight Pass ansehen · Moonlight-Pass-Shop",
       "mascotAlt": "Bild der Moonlight-Pass-Vorteile",
@@ -1669,7 +1669,7 @@
       "passDesc": "Für gelegentliche Deutungen kannst du einzeln bezahlen, für häufige Nutzung einen Pass wählen. Prüfe, welche Beratungen enthalten sind und welche Nutzungsgrenzen gelten.",
       "passPer": "· Ohne Zeitlimit",
       "passBadge": "Auch für Yeongnyangi",
-      "passNote": "Die kleinen, mittleren und großen Honigtöpfe gelten für GGULGGUL Fortune. Der Familien-Honigtopf gilt für kostenpflichtige Deutungen von GGULGGUL Fortune und Yeongnyangi. Bereits gekaufte Pässe behalten ihre ursprünglichen Kaufbedingungen.",
+      "passNote": "Die kleinen, mittleren und großen Honigtöpfe gelten für GGULGGUL Fortune. Der Familien-Honigtopf gilt für kostenpflichtige Deutungen von GGULGGUL Fortune und Yeongnyangi. Bereits gekaufte Pässe behalten ihr Beratungsbudget, und leichte Deutungen gelten auch für aktive Pässe.",
       "passCta": "Passenden Pass ansehen",
       "moreTitle": "Mehr in Yeonis Atelier entdecken",
       "moreItems": "Tagesdeutung · Beratung · Aufzeichnungen und Geschichten",
@@ -1736,7 +1736,8 @@
       "chemiCta": "See my bias chemistry",
       "brandOtherEntry": "꿀꿀 운세: Saju und Tarot mit Yeongnyangi →",
       "publicRecordsTitle": "Öffentliche Analysen von Park Byung-ha (Neo), Saju-Berater mit 10 Jahren Erfahrung",
-      "publicRecordsLink": "Daten, Originaltexte und Ergebnisse vergleichen"
+      "publicRecordsLink": "Daten, Originaltexte und Ergebnisse vergleichen",
+      "passLight": "Jeder Honigtopf enthält {count} leichte Deutungen ohne Nutzungslimit, im Wert von {amount} KRW bei je einer Nutzung. Signature-Beratungen sind nicht enthalten."
     },
     "chatEntry": {
       "title": "Frag Yeoni und Neo, was dich gerade am meisten beschäftigt",
@@ -2260,22 +2261,22 @@
       "family": "Family gilt für Ggulggul Fortune und Yeongnyangi.",
       "scope": "Kleine, mittlere und große Honigtöpfe gelten für Ggulggul Fortune.",
       "pace": "Ohne Zeitlimit, in deinem Tempo.",
-      "end": "Endet bei ausgeschöpftem Budget · Keine automatische Verlängerung",
+      "end": "Leichte Deutungen bleiben nutzbar, auch wenn das Beratungsbudget aufgebraucht ist.",
       "alt": "Yeoni mit einem Pass",
       "moon": "Mondschein-Pass!",
       "choose": "Wähle deinen Honigtopf.",
-      "value": "Maximaler Wert zum Einzelpreis",
+      "value": "Wert zum Einzelpreis",
       "price": "Passpreis",
       "cap": "Berechtigte Dienste bis {amount} KRW je Nutzung",
       "unlimitedCap": "Keine Preisobergrenze je Dienst",
       "percent": "Bis zu {amount}% sparen",
       "saving": "Bis zu {amount} KRW sparen",
-      "compare": "Vergleich bei vollständiger Nutzung für berechtigte Dienste.",
+      "compare": "Vergleich zum Einzelpreis bei einmaliger Nutzung jeder leichten Deutung und vollem Beratungsbudget.",
       "terms": "Es gelten Produktbedingungen, Ausschlüsse und Restbudget.",
       "site": "Für Ggulggul Fortune",
       "both": "Für Ggulggul Fortune und Yeongnyangi",
       "cta": "Pass {name} ansehen",
-      "validity": "Keine feste Laufzeit · Endet bei ausgeschöpftem Budget · Keine automatische Verlängerung",
+      "validity": "Keine feste Laufzeit · Keine automatische Verlängerung",
       "legend": "Welchen Honigtopf wählst du?",
       "hint": "Bild wählen, um Preise und Vorteile zu vergleichen.",
       "select": "Wählen",
@@ -2285,7 +2286,18 @@
       "fishLink": "Yeongnyangi-Pässe ansehen →",
       "compactTitle": "Honigtopf-Pässe",
       "conditions": "Leistungsumfang und Bedingungen",
-      "otherServices": "Pässe für andere Dienste ansehen"
+      "otherServices": "Pässe für andere Dienste ansehen",
+      "lightBanner": "Ein kleiner Honigtopf öffnet alle {count} leichten Deutungen.",
+      "lightBannerSub": "Nutze leichte Deutungen ohne Nutzungslimit, ausgenommen Signature-Beratungen. Auch mittlere, große und Familien-Töpfe enthalten sie.",
+      "lightLine": "{count} leichte Deutungen, unbegrenzt nutzbar",
+      "lightWorth": "Im Wert von {amount} KRW",
+      "consultLine": "Budget für Expertenberatung",
+      "consultAmount": "{amount} KRW",
+      "consultCap": "(bis {amount} KRW je Nutzung)",
+      "consultNoCap": "(keine Preisobergrenze je Dienst)",
+      "signatureLimit": "Signature-Beratungen über {amount} KRW sind mit diesem Topf nicht nutzbar.",
+      "lightListTitle": "Die {count} enthaltenen leichten Deutungen ansehen",
+      "termsRevision": "Die Pass-Regeln haben sich geändert. Hinweis zur Änderung der Bedingungen ansehen"
     },
     "consultChoice": {
       "title": "Wähle die Beratung, die zu deinem Anliegen passt",
@@ -3219,7 +3231,7 @@
       "monthlyButton": "Mit {credits} Monatsguthaben bezahlen",
       "monthlyButtonBusy": "Pass wird mit Monatsguthaben aktiviert...",
       "monthlyButtonShort": "{credits} nötig · Guthaben zu gering",
-      "terminationNotice": "Wenn das Nutzungslimit aufgebraucht ist, endet der Pass. Bei einem erneuten Kauf beginnst du mit einem neuen Nutzungslimit. Zusätzliche kostenpflichtige Inhalte sind per Einzelzahlung oder mit Mondlichtsteinen verfügbar."
+      "terminationNotice": "Der Pass bleibt aktiv, auch wenn das Beratungslimit aufgebraucht ist, und leichte Deutungen bleiben verfügbar. Für weitere Signature-Beratungen kaufe einen neuen Pass oder nutze eine Einzelzahlung oder Mondlichtsteine."
     },
     "access": {
       "passAppliedContinue": "Mit Ihrem Pass geöffnet."
@@ -15890,7 +15902,7 @@
       "faq": {
         "0": {
           "q": "How is the price determined?",
-          "a": "The price depends on the number of cards in your chosen spread. You can review it on the payment screen before paying."
+          "a": "Each reading costs KRW 5,000 regardless of the number of cards. You can review it on the payment screen before paying."
         },
         "1": {
           "q": "What happens if generation fails?",

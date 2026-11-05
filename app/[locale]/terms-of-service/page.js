@@ -91,6 +91,14 @@ export default async function LocaleTermsOfServicePage({ params }) {
         <p className="policy-doc__meta">{document.effectiveDate}</p>
         <p className="policy-doc__lede">{copy.lede}</p>
         <p className="policy-doc__note policy-doc__note--lead">{copy.translationNotice}</p>
+        {document.revisionNotice ? (
+          <aside id="terms-revision" className="policy-doc__note policy-doc__note--lead" aria-label={document.revisionNotice.title}>
+            <strong>{document.revisionNotice.title} · {document.effectiveDate}</strong>
+            {document.revisionNotice.lines.map((line) => (
+              <span key={line} style={{ display: "block" }}>{line}</span>
+            ))}
+          </aside>
+        ) : null}
       </header>
 
       <div className="policy-doc__layout">

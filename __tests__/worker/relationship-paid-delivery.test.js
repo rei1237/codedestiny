@@ -195,3 +195,11 @@ test.each(['pass','monthly','single'])('%s couple input survives interruption an
 test('invalid optional self information is rejected before generation',async()=>{
  const result=await post({...body,selfInfo:{birthDate:'invalid'}});expect(result.status).toBe(422);expect(provider).not.toHaveBeenCalled();expect(docs).toHaveLength(0);
 });
+test('relationship boundary test delivers a result at the new target',async()=>{
+ const base=provider.getMockImplementation();
+ provider.mockImplementation(async(...args)=>{const response=await base(...args),value=JSON.parse(response.text);if(typeof value.body==='string'){const kept=[];for(const line of value.body.split('\n')){kept.push(line);if(kept.join('').replace(/\s/g,'').length>=1100)break;}value.body=kept.join('\n');}return {...response,text:JSON.stringify(value)};});
+ await start();for(let i=0;i<5&&docs[0].status!=='completed';i++)await resume();
+ expect(docs[0].status).toBe('completed');expect(Object.values(docs[0].llmMeta.delivery.short||{}).filter(Boolean)).toHaveLength(0);expect(refunds).toBe(0);
+ const bodyPrompt=provider.mock.calls.map(call=>call[1]).find(prompt=>prompt.includes('이 장면의 본문만'));
+ expect(bodyPrompt).toContain('이 장면의 본문만 2200~2500자로');expect(bodyPrompt).toContain('목표 1100~1250자');
+});

@@ -120,9 +120,9 @@ describe("Premium access-control rules", () => {
 
 // New lower-price receipts must not be rejected by a stale report-specific floor.
 test.each([
-  ["celestialHarmony", 100], ["sibylDominator", 200], ["geomancyOracle", 50],
-  ["destinyCompassDeepReport", 70], ["petSajuReport", 50], ["petCompatReport", 50],
-  ["sukuyoPastLifeReading", 100], ["fptiPremium", 100], ["sajuCompatBasic", 100],
+  ["celestialHarmony", 50], ["sibylDominator", 200], ["geomancyOracle", 50],
+  ["destinyCompassDeepReport", 50], ["petSajuReport", 50], ["petCompatReport", 50],
+  ["sukuyoPastLifeReading", 50], ["fptiPremium", 50], ["sajuCompatBasic", 50],
 ])("%s uses the approved receipt floor %i for canonical and historical aliases", (reportType, expected) => {
   const rules = utils.buildAlternativePaymentRules(reportType);
   expect(rules.length).toBeGreaterThan(0);
