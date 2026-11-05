@@ -327,6 +327,21 @@ for (const featureKey of listServerPricedFeatureKeys()) {
     continue;
   }
 
+  // direct_or_pass(영냥이 생선 상담): 모든 이용권이 자기 건당 상한 안에서 연다. 코인 결제는 없다.
+  if (paymentPolicy.paymentScope === "direct_or_pass") {
+    for (const [label, decisionForTier, cap] of [
+      ["standard", standardDecision, PASS_LIMITS[PASS_TIERS.STANDARD]],
+      ["premium", premiumDecision, PASS_LIMITS[PASS_TIERS.PREMIUM]],
+      ["vvip", vvipDecision, PASS_LIMITS[PASS_TIERS.VVIP]],
+    ]) {
+      assert.equal(decisionForTier.canUseByPass, coinCost <= cap, `${featureKey}: ${label} 건당 상한 판정`);
+      assert.deepEqual(decisionForTier.allowedPaymentMethods, ["PASS", "DIRECT_KRW", "MOONLIGHT_STONE"], `${featureKey}: 허용 수단(${label})`);
+      assert.deepEqual(decisionForTier.hiddenMethods, coinCost <= cap ? ["DIRECT_KRW", "MOONLIGHT_STONE", "COIN"] : ["COIN"], `${featureKey}: 상한 초과면 코인만 숨기고 월정석·단건을 남긴다(${label})`);
+    }
+    assert.equal(familyDecision.canUseByPass, true, `${featureKey}: Family 이용권 유지`);
+    continue;
+  }
+
   // direct_only(등록소 paymentScope): 이용권도 월정석도 불가 — 단건만 노출된다.
   // 문서화된 예외(docs/context/payment-gating.md "direct_only 예외"). 정본은 isDirectOnlyPricing 하나.
   if (__billingTestUtils.isDirectOnlyPricing(pricingInput)) {

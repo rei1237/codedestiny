@@ -15,7 +15,7 @@ import { connectDb, mongoose, withMongoRetry } from "../lib/db.js";
 import { Payment } from "../lib/models.js";
 import {
   isDirectOnlyPaidFeatureKey,
-  isDirectOrFamilyPaidFeatureKey,
+  isConsultationFundedPaidFeatureKey,
   normalizePaidFeatureKey,
 } from "../lib/paid-feature-registry.js";
 
@@ -36,7 +36,7 @@ function objectId(userId) {
 function resolveFeatureKey(raw) {
   const key = normalizePaidFeatureKey(raw) || cleanText(raw);
   if (!FEATURE_KEY_PATTERN.test(key)
-    || (!isDirectOnlyPaidFeatureKey(key) && !isDirectOrFamilyPaidFeatureKey(key))) {
+    || (!isDirectOnlyPaidFeatureKey(key) && !isConsultationFundedPaidFeatureKey(key))) {
     throw createHttpError(400, "영냥이 상품 키가 아닙니다.", { code: "INVALID_FEATURE_KEY", featureKey: key });
   }
   return key;

@@ -65,8 +65,8 @@ export default function HomeQuestionGuide(){
     try {await navigator.clipboard.writeText(question);setNotice('질문을 복사했어요.');}
     catch {setNotice('위의 질문을 길게 눌러 복사해 주세요.');}
   }
-  return <section className={s.guide} aria-labelledby="homeCardTitle">
-    <h1 ref={heading} tabIndex={-1} id="homeCardTitle">{step==='write'?'지금 가장 궁금한 걸 물어보세요.':step==='ask'?(answers.length?'가장 먼저 해 보고 싶은 건 무엇인가요?':'지금은 어떤 도움이 더 필요하세요?'):'내 질문에 어울리는 상담'}</h1>
+  return <section className={s.guide} data-step={step} aria-labelledby="homeCardTitle">
+    <h2 ref={heading} tabIndex={-1} id="homeCardTitle">{step==='write'?'지금 가장 궁금한 걸 물어보세요.':step==='ask'?(answers.length?'가장 먼저 해 보고 싶은 건 무엇인가요?':'지금은 어떤 도움이 더 필요하세요?'):'내 질문에 어울리는 상담'}</h2>
     {step==='write'?<><form onSubmit={submit}><label htmlFor="home-question">나의 질문</label>
       <textarea ref={input} id="home-question" rows={3} value={question} onChange={e=>{setQuestion(e.target.value);setNotice('');}} placeholder="먼저 연락하고 싶은데, 답장이 없으면 더 힘들어질까 봐 망설여져요."/>
       <button disabled={!ready} className={s.primary}>내 질문에 맞는 상담 찾기</button></form>

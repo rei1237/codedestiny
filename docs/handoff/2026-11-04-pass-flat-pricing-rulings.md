@@ -10,6 +10,9 @@ next: 판정 기록 보존. 약관·앱 등록 및 실제 생성 비용은 출�
 
 ## 판단
 
+- 2026-11-06: Ruling: 영냥이 홈 하단 꿀꿀운세 안내(`app/yeongnyangi/_original/FortuneHome.tsx`)의 연이 그림은 유지 — 이용권 영역이 아니라 사이트 연결 안내라 통합과 무관 — 틀리면 그림만 교체
+- 2026-11-06: Ruling: 전용 이용권 보유자용 문구(`service-pack-copy.ts`, `home-funnel.js`, `homeOverseas-02.json`)는 유지 — 보유자가 남아 있어 잔여·기한 안내가 필요 — 틀리면 판매 종료 후 쓰지 않는 문구가 남을 뿐 고객 영향 없음
+- 2026-11-06: Ruling: 초융합·모둠·오마카세의 "패밀리 꿀단지 이용권 또는 단건 결제" 문구는 유지 — 이 상품들은 Family 전용이 그대로라 정확함 — 틀리면 고객이 다른 등급으로 쓸 수 있다고 오해
 - 2026-11-05: Ruling: 프로필은 가입하면 모두 쓸 수 있으므로 모든 등급·정책 버전의 프로필 상한을 0(무제한)으로 통일하고, 등급 차이는 설정된 월 금액 한도와 건당 상한으로만 둔다 — 사용자 결정 — 틀리면 커밋 revert로 되돌린다. DB에 저장된 옛 값은 응답에서 무시한다.
 - | T8 ↔ spec 6.2 | spec text keeps compat passEnded criterion line AND says don't send passEnded | Ruling: don't send wins (later, more specific bullet) — cost if wrong: old clients keep stale active snapshot until refresh |
 - Task 1: Ruling: saju-guardian-unlock은 언어 모델은 아니지만 해금 뒤 호출마다 NVIDIA flux 이미지 모델을 부르므로 라이트에서 제외 — 사용자의 "비용 안 나가는 상품만 무제한" 근거에 맞춤 — 틀리면 이 상품만 이용권 상담 한도를 쓴다.

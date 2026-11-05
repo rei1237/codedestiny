@@ -44,7 +44,7 @@ export async function releaseFortuneFunding(db,claim) {
 
 export async function completeFortuneFunding(db,claim,proof) {
   if(!claim||claim.settled)return;
-  if(claim.method==='PASS'&&proof.tier!=='family')throw paymentError('FAMILY_OR_DIRECT_PAYMENT_REQUIRED','Family 이용권을 확인해 주세요.');
+  if(claim.method==='PASS'&&!String(proof.tier||''))throw paymentError('FAMILY_OR_DIRECT_PAYMENT_REQUIRED','이용권을 확인해 주세요.');
   const accessMethod=claim.method==='SERVICE_PACK'?'SERVICE_PACK':claim.method==='PASS'?'FAMILY':'MOONLIGHT_STONE';
   const fields=claim.method==='SERVICE_PACK'?{passEvidenceId:proof.evidenceId,packEntitlementId:toObjectId(proof.entitlementId)}:claim.method==='PASS'?{
     passEvidenceId:proof.evidenceId,passCycleKey:String(proof.cycleKey||''),passCoinCost:Number(proof.debit||0),

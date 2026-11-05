@@ -137,7 +137,10 @@ test("public offers expose four approved web offers and cost coverage includes r
   ]);
   const catalog = listPassCostProducts(currentPassPlan("vvip"));
   expect(catalog.some(p => p.featureKey.includes("::"))).toBe(true);
-  expect(catalog.some(p => p.featureKey.startsWith("yeongnyangi-"))).toBe(false);
+  expect(catalog.filter(p => p.featureKey.startsWith("yeongnyangi-"))).toHaveLength(24);
+  expect(catalog.some(p => p.featureKey.startsWith("yeongnyangi-") && p.familyPassOnly)).toBe(false);
+  expect(listPassCostProducts(currentPassPlan("premium")).filter(p => p.featureKey.startsWith("yeongnyangi-"))).toHaveLength(6);
+  expect(listPassCostProducts(currentPassPlan("standard")).filter(p => p.featureKey.startsWith("yeongnyangi-"))).toHaveLength(0);
   expect(catalog.some(p => p.featureKey === "fusion-fortune-consultation")).toBe(false);
   const familyCatalog = listPassCostProducts(currentPassPlan("family"));
   expect(familyCatalog.some(p => p.featureKey === "fusion-fortune-consultation" && p.priceKRW === 50000)).toBe(true);
@@ -162,7 +165,7 @@ test("Family repurchase stacks both 30-day duration and 350,000 won coverage", a
   expect(new Date(user.profileSubscription.expiresAt).toISOString()).toBe(secondExpiry.toISOString());
 });
 
-test("VVIP consumes one 30,000 reading exactly, preserves gift version, and Yeongnyangi keeps Family pass coverage", async () => {
+test("VVIP consumes one 30,000 reading exactly, preserves gift version, and Yeongnyangi fish is open to every pass", async () => {
   const plan = currentPassPlan("vvip");
   expect(giftDraftFor({}, plan).productSnapshot.passPolicyVersion).toBe(CURRENT_PASS_POLICY_VERSION);
   const user = { _id: "64b000000000000000000001", profileSubscription: {
@@ -177,7 +180,7 @@ test("VVIP consumes one 30,000 reading exactly, preserves gift version, and Yeon
   expect(evaluatePassCoverage({ user, entitlement: user.profileSubscription, coinCost: 30 }).covered).toBe(true);
   const other = { profileSubscription: { ...plan, isActive: true, expiresAt } };
   const yn = resolveProduct({ featureKey: "yeongnyangi-saju-mackerel" });
-  expect(yn).toMatchObject({ familyPassOnly: true, monthlyExcluded: false, passExcluded: false, allowedPaymentMethods: ["FAMILY", "DIRECT_KRW", "MOONLIGHT_STONE"] });
+  expect(yn).toMatchObject({ familyPassOnly: false, consultationFunded: true, monthlyExcluded: false, passExcluded: false, allowedPaymentMethods: ["PASS", "DIRECT_KRW", "MOONLIGHT_STONE"] });
   expect(describePassEligibility({ user: other, entitlement: other.profileSubscription, product: { ...yn, passExcluded: true } }).eligible).toBe(false);
 });
 

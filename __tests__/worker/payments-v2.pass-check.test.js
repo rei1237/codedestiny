@@ -558,7 +558,7 @@ describe("동시 확정 CAS — 다른 주문이 먼저 반영되면 덮어쓰�
 
 /* 영냥이 제휴 상품 — Family·월정석·단건을 허용한다. 구 coin-gate 의 MEMBERSHIP_PASS ·
    MONTHLY 요청은 worker/index.js 가 이 두 라우트로 재작성하므로 여기가 실제 관문이다. */
-describe("영냥이 제휴 상품 — Family·월정석·단건 허용", () => {
+describe("영냥이 모둠·오마카세 — Family·월정석·단건 허용", () => {
   const FAMILY_PRODUCTS = listProducts().filter((p) => p.familyPassOnly === true);
   const FAMILY_ONLY = FAMILY_PRODUCTS.find(p=>!p.monthlyExcluded);
   const fortuneId='a'.repeat(64),requestId='yn-'+fortuneId;
@@ -579,8 +579,18 @@ describe("영냥이 제휴 상품 — Family·월정석·단건 허용", () => {
     return { response, payload: await response.json() };
   }
 
-  test("영냥이 유료 상품 28개 모두 Family 전용 범위와 허용 수단을 공유한다", () => {
-    expect(FAMILY_PRODUCTS).toHaveLength(28);
+  test("생선 24개는 일반 이용권에 열리고 모둠·오마카세 4개만 Family 전용으로 남는다", () => {
+    const yeongnyangi = listProducts().filter((p) => p.featureKey.startsWith("yeongnyangi-"));
+    const fish = yeongnyangi.filter((p) => !p.featureKey.includes("-fusion-"));
+    expect(fish).toHaveLength(24);
+    for (const product of fish) {
+      expect(product).toMatchObject({
+        familyPassOnly: false, consultationFunded: true, monthlyExcluded: false, passExcluded: false,
+        allowedPaymentMethods: ["PASS", "DIRECT_KRW", "MOONLIGHT_STONE"],
+      });
+    }
+    expect(FAMILY_PRODUCTS.map((p) => p.featureKey).sort()).toEqual(yeongnyangi.filter((p) => p.featureKey.includes("-fusion-")).map((p) => p.featureKey).sort());
+    expect(FAMILY_PRODUCTS).toHaveLength(4);
     for (const product of FAMILY_PRODUCTS) {
       expect(product).toMatchObject({
         familyPassOnly: true,
@@ -729,12 +739,11 @@ describe("revokePassGrantForOrder — users 조회는 profileSubscription 프로
 });
 
 describe('영냥이 Family 이용권 상담 회귀',()=>{
- const products=listProducts().filter(p=>p.featureKey?.startsWith('yeongnyangi-')&&p.familyPassOnly&&p.priceCoins>0);
+ const products=listProducts().filter(p=>p.featureKey?.startsWith('yeongnyangi-')&&p.priceCoins>0);
  test('영냥이 등록 상품은 Family의 기존 한도로 적용되고 다른 일반 등급은 제외한다',()=>{
   expect(products.length).toBeGreaterThan(20);
   for(const product of products){
    expect(evaluatePassCoverage({user:{profileSubscription:activePass('family')},entitlement:activePass('family'),coinCost:product.priceCoins}).covered).toBe(true);
-   expect(product.familyPassOnly).toBe(true);
   }
  });
  test('명시적 Family 선택은 같은 상담에서 한 번 차감하고 재시도는 재사용한다',async()=>{
@@ -760,7 +769,8 @@ describe('영냥이 Family 이용권 상담 회귀',()=>{
 
 
 describe('영냥이 패밀리 실제 결제 라우트',()=>{
- const products=listProducts().filter(p=>p.featureKey.startsWith('yeongnyangi-')&&p.familyPassOnly);
+ const products=listProducts().filter(p=>p.featureKey.startsWith('yeongnyangi-'));
+ const fusions=products.filter(p=>p.familyPassOnly);
  test.each(products.map(p=>[p.featureKey,p]))('%s: prepares, funds, and replays exactly once',async(key,product)=>{
   const db=makeFakePaymentDb();const pass=activePass('family');const id='c'.repeat(64);
   seedUser(db,pass);db.rows.push({_id:id,userId:USER,featureKey:key,amountKRW:product.priceKRW,state:'CREATED',paymentId:null,accessMethod:null,paymentClaimOrderId:''});
@@ -771,13 +781,79 @@ describe('영냥이 패밀리 실제 결제 라우트',()=>{
   expect(db.rows.find(r=>String(r._id)===USER).profileSubscription.monthlySpendCoin).toBe(product.priceCoins);
  });
  test.each(['standard','premium','vvip'])('%s cannot fund a Family-only consultation',async tier=>{
-  const db=makeFakePaymentDb(),product=products[0],id='d'.repeat(64);seedUser(db,activePass(tier));
+  const db=makeFakePaymentDb(),product=fusions[0],id='d'.repeat(64);seedUser(db,activePass(tier));
   db.rows.push({_id:id,userId:USER,featureKey:product.featureKey,amountKRW:product.priceKRW,state:'CREATED',paymentId:null});
   expect((await postPassCheck(db,{featureKey:product.featureKey,requestId:'yn-'+id})).response.status).toBe(402);
   expect(db.rows.find(r=>r._id===id).state).toBe('CREATED');
  });
 });
 
+
+describe('영냥이 상담은 이용권 등급의 건당 상한을 따른다',()=>{
+ const key=fish=>'yeongnyangi-saju-'+fish;
+ const fund=async(tier,featureKey,extra={})=>{
+  const db=makeFakePaymentDb(),product=listProducts().find(p=>p.featureKey===featureKey),id='1'.repeat(64),pass=activePass(tier,{passPolicyVersion:'flower-20261104',...extra});
+  pass.premiumUseCycleKey=pass.expiresAt.toISOString();
+  const user=seedUser(db,pass);
+  db.rows.push({_id:id,userId:USER,featureKey,amountKRW:product.priceKRW,state:'CREATED',paymentId:null,accessMethod:null,paymentClaimOrderId:''});
+  const body={featureKey,requestId:'yn-'+id,paymentMode:'MEMBERSHIP_PASS'};
+  return {db,user,id,body,product,row:()=>db.rows.find(r=>r._id===id),result:await postPassCheck(db,body)};
+ };
+ test.each([
+  ['premium',key('mackerel'),100,600],
+  ['vvip',key('mackerel'),300,1200],
+  ['vvip',key('tuna'),300,1200],
+ ])('%s는 %s 상담을 차감하고 실제 등급으로 저장하며 재시도는 재차감하지 않는다',async(tier,featureKey,maxCoveredCoin,monthlyLimitCoin)=>{
+  const f=await fund(tier,featureKey,{monthlyLimitCoin});
+  expect(f.result.response.status).toBe(200);
+  expect(f.row()).toMatchObject({state:'PAID',accessMethod:'FAMILY',passTier:tier,passMaxCoveredCoin:maxCoveredCoin,passMonthlyLimitCoin:monthlyLimitCoin});
+  expect(f.user.profileSubscription.monthlySpendCoin).toBe(f.product.priceCoins);
+  expect((await postPassCheck(f.db,f.body)).response.status).toBe(200);
+  expect(f.user.profileSubscription.monthlySpendCoin).toBe(f.product.priceCoins);
+ });
+ test.each([
+  ['standard',key('mackerel'),'PRICE_EXCEEDS_PASS_LIMIT'],
+  ['premium',key('salmon'),'PRICE_EXCEEDS_PASS_LIMIT'],
+  ['vvip','yeongnyangi-fusion-all','FAMILY_PASS_REQUIRED'],
+  ['vvip','yeongnyangi-fusion-saju-ziwei','FAMILY_PASS_REQUIRED'],
+ ])('%s는 %s를 거절하고 상담을 그대로 둔다',async(tier,featureKey,decisionReason)=>{
+  const f=await fund(tier,featureKey,{monthlySpendCoin:0});
+  expect(f.result.response.status).toBe(402);
+  expect(f.result.payload.decisionReason).toBe(decisionReason);
+  expect(f.row()).toMatchObject({state:'CREATED',accessMethod:null,paymentClaimOrderId:''});
+  expect(f.user.profileSubscription.monthlySpendCoin).toBe(0);
+ });
+ test('구버전 구매자는 구매 때 정책의 건당 상한을 그대로 쓴다',async()=>{
+  const fits=await fund('vvip',key('flounder'),{passPolicyVersion:'legacy'});
+  expect(fits.result.response.status).toBe(200);
+  expect(fits.row()).toMatchObject({passTier:'vvip',passMaxCoveredCoin:200});
+  const over=await fund('vvip',key('tuna'),{passPolicyVersion:'legacy',monthlySpendCoin:0});
+  expect(over.result.response.status).toBe(402);
+  expect(over.row().state).toBe('CREATED');
+ });
+ test('한도를 다 쓴 일반 이용권은 차감 없이 402로 넘긴다',async()=>{
+  const f=await fund('premium',key('mackerel'),{monthlyLimitCoin:600,monthlySpendCoin:600});
+  expect(f.result.response.status).toBe(402);
+  expect(f.result.payload.decisionReason).toBe('MONTHLY_PASS_LIMIT_EXCEEDED');
+  expect(f.row().state).toBe('CREATED');
+  expect(f.user.profileSubscription.monthlySpendCoin).toBe(600);
+ });
+});
+
+test('영냥이 PASS 증빙 재시도는 재차감 없이 실제 등급으로 상담에 붙는다',async()=>{
+ const {passUsageEvidenceId}=await import('../../worker/payments/passes.js');
+ const db=makeFakePaymentDb(),product=listProducts().find(p=>p.featureKey==='yeongnyangi-saju-mackerel'),id='f'.repeat(64),requestId='yn-'+id;
+ const pass=activePass('premium',{maxCoveredCoin:100,monthlyLimitCoin:600,passPolicyVersion:'v5',monthlySpendCoin:100});
+ pass.premiumUseCycleKey=pass.expiresAt.toISOString();
+ const user=seedUser(db,pass);
+ db.rows.push({_id:id,userId:USER,featureKey:product.featureKey,amountKRW:product.priceKRW,state:'CREATED',paymentId:null,accessMethod:null,paymentClaimOrderId:''});
+ db.rows.push({_id:passUsageEvidenceId(USER,product.featureKey,requestId),userId:USER,featureKey:product.featureKey,kind:'deduct',
+  metadata:{requestId,accessMethod:'PASS',passTier:'premium',coinCost:product.priceCoins,passCycleKey:pass.premiumUseCycleKey,passBudgetCoin:600,passLimit:100,passPolicyVersion:'v5'}});
+ const result=await postPassCheck(db,{featureKey:product.featureKey,requestId,paymentMode:'MEMBERSHIP_PASS'});
+ expect(result.response.status).toBe(200);
+ expect(user.profileSubscription.monthlySpendCoin).toBe(100);
+ expect(db.rows.find(r=>r._id===id)).toMatchObject({state:'PAID',accessMethod:'FAMILY',passTier:'premium',passMonthlyLimitCoin:600,passMaxCoveredCoin:100});
+});
 
 test('영냥이 Family CAS conflict cannot report a paid consultation without a receipt',async()=>{
  const db=makeFakePaymentDb(),product=listProducts().find(p=>p.featureKey==='yeongnyangi-saju-mackerel'),id='e'.repeat(64);

@@ -6,6 +6,12 @@ test('persisted payment and completion are deduplicated independently; missing c
  assert.equal(r.totals.payment_verified,1);assert.equal(r.totals.report_ready,2);assert.equal(r.totals.family_report_ready,1);assert.equal(r.deliveredPerPayment,1);
  assert.equal(r.latencyMs.firstContent.p50,20000);assert.equal(r.contribution.contributionKRW,null);assert.equal(JSON.stringify(r).includes('"p"'),false);
 });
+test('pass-funded rows split by real tier: only Family counts as Family delivery',()=>{
+ const completedAt='2026-09-29T00:01:00Z';
+ const r=summarizeGrowth([{_id:'f',accessMethod:'FAMILY',passTier:'family',completedAt},{_id:'old',accessMethod:'FAMILY',completedAt},{_id:'v',accessMethod:'FAMILY',passTier:'vvip',completedAt}]);
+ assert.deepEqual(r.groups.map(g=>g.access).sort(),['FAMILY','PASS']);
+ assert.equal(r.totals.report_ready,3);assert.equal(r.totals.family_report_ready,2);assert.equal(r.totals.payment_verified,0);
+});
 test('refunds remain separate; client success alone does not verify payment',()=>{
  const r=summarizeGrowth([{_id:'x',state:'COMPLETED'},{_id:'r',state:'REFUNDED',payment:{_id:'p',status:'refunded',paidAt:'2026-09-29T00:00:00Z',paymentAmount:1000}}]);
  assert.equal(r.totals.payment_verified,1);assert.equal(r.totals.report_ready,0);assert.equal(r.totals.refund,1);

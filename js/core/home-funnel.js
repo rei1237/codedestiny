@@ -524,7 +524,13 @@
   if (accountSheet) accountSheet.addEventListener('cd:sheet-open', syncGardenProfile);
   document.addEventListener('cd:profile-card-published', syncGardenProfile);
   syncGardenProfile();
-  move('#langWrap', 'cdhLanguageSlot');
+  var languageWidget = move('#langWrap', 'cdhLanguageSlot');
+  if (languageWidget && typeof IntersectionObserver === 'function') {
+    var header = home.querySelector('.cdh-top');
+    new IntersectionObserver(function (entries) {
+      languageWidget.parentElement.toggleAttribute('data-header-above', entries[0].boundingClientRect.bottom <= 0);
+    }).observe(header);
+  }
   move('#cdMobileHeader .theme-switch-wrapper--appbar', 'cdhThemeSlot');
 
   function revealInput() {

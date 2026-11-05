@@ -29,8 +29,10 @@ import {
 import { usePassSaleAvailabilityDetails } from "@/app/hooks/usePassSaleAvailability";
 import { PASS_MONTHLY_WON } from "@/lib/payment/pass-pricing";
 import { MoonShopMain, MoonShopSkeleton, MoonlightShopHero, ShopPigImage } from "./MoonShopFrame";
-import {readConsultationContext} from '../components/service-packs/consultation-context';
-import {ServicePackShop} from "../components/service-packs/ServicePacks";
+import { consultationResumePath, isLegacyPackShopEntry, readConsultationContext } from '../components/service-packs/consultation-context';
+import { OwnedServicePacks } from "../components/service-packs/ServicePacks";
+import { passFishCoverage } from "@/lib/payment/pass-fish-coverage.js";
+import { localizedTier } from "@/app/yeongnyangi/_lib/consultation-locale-copy";
 import {OwnedPassesSummary, type PackWalletView} from "../components/service-packs/OwnedPassesSummary";
 import SubscriptionStatusCard from "./SubscriptionStatusCard";
 import { authFetch, clearClientAuthState } from "../_lib/auth-client";
@@ -816,6 +818,15 @@ type PointsPageCopy = {
   passTerminationNote: string;
   /** 이용권 카드의 라이트 운세 줄. */
   passLightLine: (count: number, amount: string) => string;
+  passCommonLine: (count: number) => string;
+  passConsultLimit: (amount: string) => string;
+  passReachNone: string;
+  passReachFish: (fish: string) => string;
+  passReachFusion: (assorted: string, omakase: string) => string;
+  passCount: (fish: string, count: number) => string;
+  passCountsLine: (counts: string) => string;
+  passDetails: string;
+  passBackToConsultation: string;
   heldPass: string;
   allPaidPdfPolicy: string;
   generalLimitPolicy: (value: string) => string;
@@ -877,7 +888,16 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
     defaultUserName: "사용자",
     defaultMemberName: "회원",
     periodLabel: "기간 제한 없음",
-    passTerminationNote: "상담 한도를 다 써도 이용권은 유지되고 라이트 운세를 계속 이용할 수 있습니다. 다시 구매하면 새 상담 한도로 시작합니다. 이용 가능한 가장 낮은 상담 금액보다 남은 한도가 적으면 상담 한도가 소진됩니다. 이때 다시 구매하면 남은 한도는 이월되지 않습니다.", passLightLine: (count, amount) => `라이트 운세 ${count}종 횟수 제한 없이 · ${amount} 상당`,
+    passTerminationNote: "상담 한도를 다 써도 이용권은 유지되고 라이트 운세를 계속 이용할 수 있습니다. 다시 구매하면 새 상담 한도로 시작합니다. 이용 가능한 가장 낮은 상담 금액보다 남은 한도가 적으면 상담 한도가 소진됩니다. 이때 다시 구매하면 남은 한도는 이월되지 않습니다.",
+    passCommonLine: (count) => `모든 꿀단지 공통: 라이트 운세 ${count}종 무제한 · 꿀꿀운세와 영냥이 어디서나 · 기간 제한 없음`,
+    passConsultLimit: (amount) => `상담 한도 ${amount}`,
+    passReachNone: "영냥이 상담은 대상이 아니에요",
+    passReachFish: (fish) => `영냥이 ${fish}까지`,
+    passReachFusion: () => "영냥이 모둠·오마카세까지",
+    passCount: (fish, count) => `${fish} ${count}회`,
+    passCountsLine: (counts) => `한 생선만 쓰면 ${counts}`,
+    passDetails: "자세한 조건",
+    passBackToConsultation: "이번 상담으로 돌아가기", passLightLine: (count, amount) => `라이트 운세 ${count}종 횟수 제한 없이 · ${amount} 상당`,
     heldPass: "보유 이용권",
     allPaidPdfPolicy: "건당 금액 상한 없음 · 최대 35만원 상당",
     generalLimitPolicy: (value) => `일반 ${value} 이하 이용 가능`,
@@ -1003,7 +1023,16 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
     defaultUserName: "User",
     defaultMemberName: "Member",
     periodLabel: "No time limit",
-    passTerminationNote: "Even after the consultation allowance is used up, the pass stays active and Light Readings remain available. Buying again starts a new consultation allowance. When the remaining allowance is below the lowest eligible consultation price, it is considered used up. That remainder does not carry over if you buy again.", passLightLine: (count, amount) => `${count} Light Readings with no use limit · worth ${amount}`,
+    passTerminationNote: "Even after the consultation allowance is used up, the pass stays active and Light Readings remain available. Buying again starts a new consultation allowance. When the remaining allowance is below the lowest eligible consultation price, it is considered used up. That remainder does not carry over if you buy again.",
+    passCommonLine: (count) => `Every Honey Jar includes ${count} Light Readings with no use limit · Works on both Ggulggul and Yeongnyangi · No expiry`,
+    passConsultLimit: (amount) => `Consultation allowance ${amount}`,
+    passReachNone: "Yeongnyangi consultations are not included",
+    passReachFish: (fish) => `Yeongnyangi up to ${fish}`,
+    passReachFusion: (assorted, omakase) => `Yeongnyangi up to ${assorted} and ${omakase}`,
+    passCount: (fish, count) => `${fish} ${count} times`,
+    passCountsLine: (counts) => `Using one fish only: ${counts}`,
+    passDetails: "Details",
+    passBackToConsultation: "Back to this consultation", passLightLine: (count, amount) => `${count} Light Readings with no use limit · worth ${amount}`,
     heldPass: "Active pass",
     allPaidPdfPolicy: "No per-item price cap · Up to KRW 350,000 worth",
     generalLimitPolicy: (value) => `General services up to ${value}`,
@@ -1137,9 +1166,9 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
   ms: null as unknown as PointsPageCopy,
 };
 
-POINTS_PAGE_COPY.ja = { ...POINTS_PAGE_COPY.en, defaultUserName: "ユーザー", defaultMemberName: "会員", periodLabel: "期間制限なし", passTerminationNote: "相談上限を使い切ってもパスは維持され、ライト占いは引き続き利用できます。再度購入すると新しい相談上限で始まります。 残額が対象の相談の最低料金を下回ると、相談枠は消化済みとなります。この状態で再購入しても残額は繰り越されません。", passLightLine: (count, amount) => `ライト占い${count}種を回数制限なし · ${amount}相当`, passAlt: "月明かり利用券", closeLabel: "閉じる", passCycleAria: "今回の利用券の利用上限", passCycleTitle: "今回の利用券の利用上限", passCycleSummary: (spent, cap) => `${spent} / ${cap} 利用`, passCycleRemaining: (remaining) => `残り ${remaining}`, subscriptionPaymentChoiceTitle: "月明かり利用券の決済方法を選択", passWonOnlyNotice: "利用券はウォン単発決済でのみ購入できます。", passConditionsTitle: "利用券の条件", giftActivationNotice: "サーバー決済確認後にギフトリンクを作成でき、受取人がログインして受け取った日から利用券が有効になります。", selfActivationNotice: "決済完了と同時にアカウントで有効化され、利用期間の定めなく維持されます。相談上限を使い切ってもライト占いは引き続き利用できます。", passWonOnlyActivationNotice: "利用券はウォン単発決済でのみ有効化でき、月光石では購入できません。", monthlyStoneNotUsableForPass: "保有している月光石は利用券の購入に使用できません。月光石自体は購入・チャージや現金払い戻しができず、各付与分は付与日から30日間のみ有効で未使用分は消滅します。", giftPendingRefundNotice: "未受領のギフトは既存の払い戻し規定に従って払い戻し審査を依頼できます。受領済みのギフトは運営確認が必要です。", passRefundWindowNotice: "ウォンで決済された利用券は、有料機能利用前であれば決済日から7日以内に払い戻しを申請でき、利用権の特典利用が開始された部分は払い戻しが制限される場合があります。", refundPolicyLinkLabel: "払い戻し規定の詳細を見る", giftPrepareLegend: "運命のギフトを準備する", giftNoAccountNotice: "受取人のアカウント情報なしでギフトリンクを送ることができます。", giftSenderNameLabel: "送り主の名前(任意)", giftRecipientNameLabel: "受取人の名前(任意)", giftMessageLabel: "ギフトメッセージ(任意)", giftGuidanceSummaryLabel: "ギフトの受け取り・利用・払い戻し案内", contentValueWonNotice: "コンテンツの価値はウォンで表示され、安全な決済ウィンドウで決済します。" };
-POINTS_PAGE_COPY["zh-CN"] = { ...POINTS_PAGE_COPY.en, defaultUserName: "用户", defaultMemberName: "会员", periodLabel: "不限期限", passTerminationNote: "咨询额度用完后，通行证仍然保留，轻量运势可继续使用。重新购买将以新的咨询额度开始。 剩余额度低于适用咨询的最低价格时，视为额度用尽。此时重新购买，剩余额度不会结转。", passLightLine: (count, amount) => `${count}种轻量运势不限次数 · 价值${amount}`, passAlt: "月光通行证", closeLabel: "关闭", passCycleAria: "本次通行证的使用额度", passCycleTitle: "本次通行证使用额度", passCycleSummary: (spent, cap) => `已使用 ${spent} / ${cap}`, passCycleRemaining: (remaining) => `剩余 ${remaining}`, subscriptionPaymentChoiceTitle: "选择月光通行证的支付方式", passWonOnlyNotice: "通行证仅支持韩元单笔支付购买。", passConditionsTitle: "通行证条件", giftActivationNotice: "服务器确认支付后即可生成礼物链接,通行证从接收人登录领取当天起生效。", selfActivationNotice: "支付完成后立即在账户中激活,不设使用期限。咨询额度用完后,轻量运势仍可继续使用。", passWonOnlyActivationNotice: "通行证仅可通过韩元单笔支付激活,无法使用月光石购买。", monthlyStoneNotUsableForPass: "您持有的月光石无法用于购买通行证。月光石本身无法购买、充值或兑换现金,每笔发放自发放之日起仅30天内有效,未使用部分将失效。", giftPendingRefundNotice: "未领取的礼物可依据现行退款政策申请退款审核。已领取的礼物需要运营方确认。", passRefundWindowNotice: "以韩元支付的通行证可在付费功能使用前、自付款日起7天内申请退款,通行证权益已开始使用的部分退款可能受限。", refundPolicyLinkLabel: "查看退款政策详情", giftPrepareLegend: "准备命运之礼", giftNoAccountNotice: "无需接收人的账户信息即可发送礼物链接。", giftSenderNameLabel: "赠送人姓名(选填)", giftRecipientNameLabel: "接收人姓名(选填)", giftMessageLabel: "礼物留言(选填)", giftGuidanceSummaryLabel: "礼物领取、使用与退款说明", contentValueWonNotice: "内容价值以韩元显示,通过安全支付窗口完成支付。" };
-POINTS_PAGE_COPY["zh-TW"] = { ...POINTS_PAGE_COPY["zh-CN"], defaultUserName: "使用者", defaultMemberName: "會員", passTerminationNote: "諮詢額度用完後，通行證仍然保留，輕量運勢可繼續使用。重新購買將以新的諮詢額度開始。 剩餘額度低於適用諮詢的最低價格時，視為額度用盡。此時重新購買，剩餘額度不會結轉。", passLightLine: (count, amount) => `${count}種輕量運勢不限次數 · 價值${amount}`, passAlt: "月光通行證", closeLabel: "關閉", passCycleAria: "本次通行證的使用額度", passCycleTitle: "本次通行證使用額度", passCycleSummary: (spent, cap) => `已使用 ${spent} / ${cap}`, passCycleRemaining: (remaining) => `剩餘 ${remaining}`, subscriptionPaymentChoiceTitle: "選擇月光通行證的支付方式", passWonOnlyNotice: "通行證僅支援韓元單筆支付購買。", passConditionsTitle: "通行證條件", giftActivationNotice: "伺服器確認支付後即可產生禮物連結,通行證從接收人登入領取當天起生效。", selfActivationNotice: "支付完成後立即在帳戶中啟用,不設使用期限。諮詢額度用完後,輕量運勢仍可繼續使用。", passWonOnlyActivationNotice: "通行證僅可透過韓元單筆支付啟用,無法使用月光石購買。", monthlyStoneNotUsableForPass: "您持有的月光石無法用於購買通行證。月光石本身無法購買、儲值或兌換現金,每筆發放自發放之日起僅30天內有效,未使用部分將失效。", giftPendingRefundNotice: "未領取的禮物可依現行退款政策申請退款審核。已領取的禮物需要營運方確認。", passRefundWindowNotice: "以韓元支付的通行證可在付費功能使用前、自付款日起7天內申請退款,通行證權益已開始使用的部分退款可能受限。", refundPolicyLinkLabel: "查看退款政策詳情", giftPrepareLegend: "準備命運之禮", giftNoAccountNotice: "無需接收人的帳戶資訊即可傳送禮物連結。", giftSenderNameLabel: "贈送人姓名(選填)", giftRecipientNameLabel: "接收人姓名(選填)", giftMessageLabel: "禮物留言(選填)", giftGuidanceSummaryLabel: "禮物領取、使用與退款說明", contentValueWonNotice: "內容價值以韓元顯示,並透過安全支付頁面完成付款。" };
+POINTS_PAGE_COPY.ja = { ...POINTS_PAGE_COPY.en, passCommonLine: (count) => `すべてのパス共通: ライト占い${count}種を回数制限なし · 꿀꿀 운세とヨンニャンイのどちらでも · 期間制限なし`, passConsultLimit: (amount) => `相談上限 ${amount}`, passReachNone: "ヨンニャンイの相談は対象外です", passReachFish: (fish) => `ヨンニャンイ ${fish}まで`, passReachFusion: (assorted, omakase) => `ヨンニャンイ ${assorted}・${omakase}まで`, passCount: (fish, count) => `${fish} ${count}回`, passCountsLine: (counts) => `1種類だけ使う場合 ${counts}`, passDetails: "詳しい条件", passBackToConsultation: "この相談に戻る", defaultUserName: "ユーザー", defaultMemberName: "会員", periodLabel: "期間制限なし", passTerminationNote: "相談上限を使い切ってもパスは維持され、ライト占いは引き続き利用できます。再度購入すると新しい相談上限で始まります。 残額が対象の相談の最低料金を下回ると、相談枠は消化済みとなります。この状態で再購入しても残額は繰り越されません。", passLightLine: (count, amount) => `ライト占い${count}種を回数制限なし · ${amount}相当`, passAlt: "月明かり利用券", closeLabel: "閉じる", passCycleAria: "今回の利用券の利用上限", passCycleTitle: "今回の利用券の利用上限", passCycleSummary: (spent, cap) => `${spent} / ${cap} 利用`, passCycleRemaining: (remaining) => `残り ${remaining}`, subscriptionPaymentChoiceTitle: "月明かり利用券の決済方法を選択", passWonOnlyNotice: "利用券はウォン単発決済でのみ購入できます。", passConditionsTitle: "利用券の条件", giftActivationNotice: "サーバー決済確認後にギフトリンクを作成でき、受取人がログインして受け取った日から利用券が有効になります。", selfActivationNotice: "決済完了と同時にアカウントで有効化され、利用期間の定めなく維持されます。相談上限を使い切ってもライト占いは引き続き利用できます。", passWonOnlyActivationNotice: "利用券はウォン単発決済でのみ有効化でき、月光石では購入できません。", monthlyStoneNotUsableForPass: "保有している月光石は利用券の購入に使用できません。月光石自体は購入・チャージや現金払い戻しができず、各付与分は付与日から30日間のみ有効で未使用分は消滅します。", giftPendingRefundNotice: "未受領のギフトは既存の払い戻し規定に従って払い戻し審査を依頼できます。受領済みのギフトは運営確認が必要です。", passRefundWindowNotice: "ウォンで決済された利用券は、有料機能利用前であれば決済日から7日以内に払い戻しを申請でき、利用権の特典利用が開始された部分は払い戻しが制限される場合があります。", refundPolicyLinkLabel: "払い戻し規定の詳細を見る", giftPrepareLegend: "運命のギフトを準備する", giftNoAccountNotice: "受取人のアカウント情報なしでギフトリンクを送ることができます。", giftSenderNameLabel: "送り主の名前(任意)", giftRecipientNameLabel: "受取人の名前(任意)", giftMessageLabel: "ギフトメッセージ(任意)", giftGuidanceSummaryLabel: "ギフトの受け取り・利用・払い戻し案内", contentValueWonNotice: "コンテンツの価値はウォンで表示され、安全な決済ウィンドウで決済します。" };
+POINTS_PAGE_COPY["zh-CN"] = { ...POINTS_PAGE_COPY.en, passCommonLine: (count) => `所有蜜罐通用：${count}种轻量运势不限次数 · 꿀꿀 운세与灵喵均可使用 · 不限期限`, passConsultLimit: (amount) => `咨询额度 ${amount}`, passReachNone: "不适用于灵喵咨询", passReachFish: (fish) => `灵喵可用至${fish}`, passReachFusion: (assorted, omakase) => `灵喵可用至${assorted}、${omakase}`, passCount: (fish, count) => `${fish} ${count}次`, passCountsLine: (counts) => `只用一种鱼时：${counts}`, passDetails: "详细条件", passBackToConsultation: "返回本次咨询", defaultUserName: "用户", defaultMemberName: "会员", periodLabel: "不限期限", passTerminationNote: "咨询额度用完后，通行证仍然保留，轻量运势可继续使用。重新购买将以新的咨询额度开始。 剩余额度低于适用咨询的最低价格时，视为额度用尽。此时重新购买，剩余额度不会结转。", passLightLine: (count, amount) => `${count}种轻量运势不限次数 · 价值${amount}`, passAlt: "月光通行证", closeLabel: "关闭", passCycleAria: "本次通行证的使用额度", passCycleTitle: "本次通行证使用额度", passCycleSummary: (spent, cap) => `已使用 ${spent} / ${cap}`, passCycleRemaining: (remaining) => `剩余 ${remaining}`, subscriptionPaymentChoiceTitle: "选择月光通行证的支付方式", passWonOnlyNotice: "通行证仅支持韩元单笔支付购买。", passConditionsTitle: "通行证条件", giftActivationNotice: "服务器确认支付后即可生成礼物链接,通行证从接收人登录领取当天起生效。", selfActivationNotice: "支付完成后立即在账户中激活,不设使用期限。咨询额度用完后,轻量运势仍可继续使用。", passWonOnlyActivationNotice: "通行证仅可通过韩元单笔支付激活,无法使用月光石购买。", monthlyStoneNotUsableForPass: "您持有的月光石无法用于购买通行证。月光石本身无法购买、充值或兑换现金,每笔发放自发放之日起仅30天内有效,未使用部分将失效。", giftPendingRefundNotice: "未领取的礼物可依据现行退款政策申请退款审核。已领取的礼物需要运营方确认。", passRefundWindowNotice: "以韩元支付的通行证可在付费功能使用前、自付款日起7天内申请退款,通行证权益已开始使用的部分退款可能受限。", refundPolicyLinkLabel: "查看退款政策详情", giftPrepareLegend: "准备命运之礼", giftNoAccountNotice: "无需接收人的账户信息即可发送礼物链接。", giftSenderNameLabel: "赠送人姓名(选填)", giftRecipientNameLabel: "接收人姓名(选填)", giftMessageLabel: "礼物留言(选填)", giftGuidanceSummaryLabel: "礼物领取、使用与退款说明", contentValueWonNotice: "内容价值以韩元显示,通过安全支付窗口完成支付。" };
+POINTS_PAGE_COPY["zh-TW"] = { ...POINTS_PAGE_COPY["zh-CN"], passCommonLine: (count) => `所有蜜罐通用：${count}種輕量運勢不限次數 · 꿀꿀 운세與靈喵皆可使用 · 不限期限`, passConsultLimit: (amount) => `諮詢額度 ${amount}`, passReachNone: "不適用於靈喵諮詢", passReachFish: (fish) => `靈喵可用至${fish}`, passReachFusion: (assorted, omakase) => `靈喵可用至${assorted}、${omakase}`, passCount: (fish, count) => `${fish} ${count}次`, passCountsLine: (counts) => `只用一種魚時：${counts}`, passDetails: "詳細條件", passBackToConsultation: "返回本次諮詢", defaultUserName: "使用者", defaultMemberName: "會員", passTerminationNote: "諮詢額度用完後，通行證仍然保留，輕量運勢可繼續使用。重新購買將以新的諮詢額度開始。 剩餘額度低於適用諮詢的最低價格時，視為額度用盡。此時重新購買，剩餘額度不會結轉。", passLightLine: (count, amount) => `${count}種輕量運勢不限次數 · 價值${amount}`, passAlt: "月光通行證", closeLabel: "關閉", passCycleAria: "本次通行證的使用額度", passCycleTitle: "本次通行證使用額度", passCycleSummary: (spent, cap) => `已使用 ${spent} / ${cap}`, passCycleRemaining: (remaining) => `剩餘 ${remaining}`, subscriptionPaymentChoiceTitle: "選擇月光通行證的支付方式", passWonOnlyNotice: "通行證僅支援韓元單筆支付購買。", passConditionsTitle: "通行證條件", giftActivationNotice: "伺服器確認支付後即可產生禮物連結,通行證從接收人登入領取當天起生效。", selfActivationNotice: "支付完成後立即在帳戶中啟用,不設使用期限。諮詢額度用完後,輕量運勢仍可繼續使用。", passWonOnlyActivationNotice: "通行證僅可透過韓元單筆支付啟用,無法使用月光石購買。", monthlyStoneNotUsableForPass: "您持有的月光石無法用於購買通行證。月光石本身無法購買、儲值或兌換現金,每筆發放自發放之日起僅30天內有效,未使用部分將失效。", giftPendingRefundNotice: "未領取的禮物可依現行退款政策申請退款審核。已領取的禮物需要營運方確認。", passRefundWindowNotice: "以韓元支付的通行證可在付費功能使用前、自付款日起7天內申請退款,通行證權益已開始使用的部分退款可能受限。", refundPolicyLinkLabel: "查看退款政策詳情", giftPrepareLegend: "準備命運之禮", giftNoAccountNotice: "無需接收人的帳戶資訊即可傳送禮物連結。", giftSenderNameLabel: "贈送人姓名(選填)", giftRecipientNameLabel: "接收人姓名(選填)", giftMessageLabel: "禮物留言(選填)", giftGuidanceSummaryLabel: "禮物領取、使用與退款說明", contentValueWonNotice: "內容價值以韓元顯示,並透過安全支付頁面完成付款。" };
 
 for (const locale of ["vi", "hi", "es", "fr", "de", "nl", "ms"] as LoadingLocale[]) {
   POINTS_PAGE_COPY[locale] = POINTS_PAGE_COPY.en;
@@ -2167,7 +2196,7 @@ function MoonlightActivePassCard({
                 <p className="mt-1 text-base font-black text-white">{isActivePass ? (isOpenEnded ? openEndedPassLabel("ko") : expiryLabel) : "이용권 구매 후 표시됩니다"}</p>
               </div>
             </div>
-            <p className="text-xl font-black text-[color:var(--moon-teal)]">{isActivePass ? (isOpenEnded ? null : daysLeftLabel) : "0일 남음"}</p>
+            <p className="text-xl font-black text-[color:var(--moon-teal)]">{isActivePass ? (isOpenEnded ? null : daysLeftLabel) : MOONLIGHT_TIER_LABELS.free}</p>
           </div>
         </div>
 
@@ -2380,7 +2409,9 @@ function MoonlightShopPlans({
   copy,
   formatLocale,
   consultationExhausted,
+  lang,
 }: {
+  lang: LoadingLocale;
   subscription: SubscriptionStatus;
   onSubscribe: (plan: SubscriptionPlan) => void;
   onGift: (plan: SubscriptionPlan) => void;
@@ -2405,7 +2436,7 @@ function MoonlightShopPlans({
       <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
 
-          <h2 className="mt-2 text-2xl font-black text-white">문라이트 패스(꿀꿀운세 이용권)</h2>
+          <h2 className="mt-2 text-2xl font-black text-white">문라이트 패스(꿀단지 이용권)</h2>
         </div>
         {subscription.isActive && subscription.tier !== "free" ? (
           <button
@@ -2419,7 +2450,7 @@ function MoonlightShopPlans({
         ) : null}
       </div>
 
-      <p className="mb-3 text-[12px] leading-relaxed text-[color:var(--moon-mist)]">{copy.passTerminationNote}</p><p className="mb-4 text-sm text-[color:var(--moon-gold)]">패밀리는 꿀꿀운세 + 영냥이 두 사이트 공통 · 그 외 꿀단지는 꿀꿀운세 전용</p>
+      <p className="mb-4 text-sm font-black leading-relaxed text-[color:var(--moon-gold)] [word-break:keep-all]" data-pass-common>{copy.passCommonLine(lightFortunes.count)}</p>
       {saleStatus === "error" ? (
         <div role="status" className="mb-4 rounded-xl border border-[color:var(--moon-rim)] p-4 text-sm text-[color:var(--moon-mist)]">
           <p>이용권 판매 정보를 불러오지 못했어요. 다시 확인해 주세요.</p>
@@ -2427,7 +2458,7 @@ function MoonlightShopPlans({
         </div>
       ) : null}
 
-      <div className="grid gap-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {SUBSCRIPTION_PLANS.map((plan) => {
           const isCurrentActive = subscription.isActive && subscription.tier === plan.tier;
           const isHighlighted = highlightedPlan === plan.tier;
@@ -2439,71 +2470,92 @@ function MoonlightShopPlans({
           const features = plan.features.slice(0, 4)
             .filter((feature) => !feature.startsWith("under"))
             .map((feature) => formatSalePlanFeature(plan.tier, feature, copy, formatLocale));
+          const coverage = passFishCoverage(plan.tier);
+          const reachable = coverage.fish.filter((fish) => fish.usable);
+          const reach = coverage.fusion
+            ? copy.passReachFusion(localizedTier("assorted", lang), localizedTier("omakase", lang))
+            : reachable.length ? copy.passReachFish(localizedTier(reachable[reachable.length - 1].id, lang)) : copy.passReachNone;
 
           return (
-            <article key={plan.id} className={`moon-plan-card rounded-[22px] p-4 ${isHighlighted ? "ring-2 ring-[color:var(--moon-glow)]" : ""} ${lowerTierBlocked ? "opacity-60" : ""}`}>
-              <div className="grid gap-4 sm:grid-cols-[128px_1fr_auto] sm:items-center">
-                <div className="relative h-28 w-28 sm:h-32 sm:w-32">
-                  <HoneyPassArtwork tier={plan.tier} className="h-28 w-28 sm:h-32 sm:w-32" sizes="(min-width: 640px) 128px, 112px" />
+            <article key={plan.id} data-pass-plan={plan.tier} className={`moon-plan-card flex flex-col rounded-[22px] p-4 ${isHighlighted ? "ring-2 ring-[color:var(--moon-glow)]" : ""} ${lowerTierBlocked ? "opacity-60" : ""}`}>
+              <div className="flex items-center gap-3">
+                <div className="relative h-[72px] w-[72px] flex-shrink-0">
+                  <HoneyPassArtwork tier={plan.tier} className="h-[72px] w-[72px]" sizes="72px" />
                   {/* 추천 등급 강조용 장식 이미지 — 텍스트 배지가 의미를 전달하므로 alt 는 비운다. */}
                   {plan.badge === "recommended" && !isCurrentActive ? (
-                    <Image src="/assets/yeoni/honey-passes/recommend-badge-v1.webp" alt="" width={120} height={120} sizes="64px" loading="lazy" className="absolute -bottom-2 -right-4 h-16 w-16 object-contain drop-shadow-[0_4px_8px_rgba(3,4,18,0.42)]" />
+                    <Image src="/assets/yeoni/honey-passes/recommend-badge-v1.webp" alt="" width={120} height={120} sizes="40px" loading="lazy" className="absolute -bottom-1 -right-2 h-10 w-10 object-contain drop-shadow-[0_4px_8px_rgba(3,4,18,0.42)]" />
                   ) : null}
                 </div>
                 <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="text-lg font-black text-white">{currentPassPlan(plan.tier)?.name || copy.planTitles[plan.tier]}</h3>
+                  <h3 className="text-lg font-black leading-snug text-white [word-break:keep-all]">{currentPassPlan(plan.tier)?.name || copy.planTitles[plan.tier]}</h3>
+                  <div className="mt-1 flex flex-wrap gap-1">
                     {plan.badge && !isCurrentActive ? (
-                      <span className="rounded-full bg-[rgba(129,140,248,0.16)] px-2.5 py-1 text-xs font-black text-[color:var(--moon-family)]">
+                      <span className="rounded-full bg-[rgba(129,140,248,0.16)] px-2 py-0.5 text-[11px] font-black text-[color:var(--moon-family)]">
                         {copy.planBadges[plan.badge] || plan.badge}
                       </span>
                     ) : null}
                     {isCurrentActive ? (
-                      <span className="rounded-full bg-[rgba(94,234,212,0.16)] px-2.5 py-1 text-xs font-black text-[color:var(--moon-teal)]">현재 이용 중</span>
+                      <span className="rounded-full bg-[rgba(94,234,212,0.16)] px-2 py-0.5 text-[11px] font-black text-[color:var(--moon-teal)]">현재 이용 중</span>
                     ) : null}
                   </div>
-                  <p className="mt-1 text-sm font-bold text-[color:var(--moon-mist)]">원화 단건 결제로 구매하는 이용권 · 기간 제한 없음</p>
-                  <p className="mt-1 text-sm font-black text-[color:var(--moon-gold)]">{copy.passLightLine(lightFortunes.count, formatWon(lightFortunes.valueKRW, copy, formatLocale))}</p>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <span className="rounded-full border border-[color:var(--moon-rim)] px-2.5 py-1 text-xs font-bold text-[color:var(--moon-silver)]">
-                      {formatSubscriptionPlanPolicy(plan, copy, formatLocale)}
-                    </span>
-                    {features.map((feature) => (
-                      <span key={feature} className="rounded-full border border-[color:var(--moon-rim)] px-2.5 py-1 text-xs font-bold text-[color:var(--moon-mist)]">
-                        {feature}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-                <div className="flex flex-col gap-3 sm:min-w-[176px] sm:items-end">
-                  <p className="text-xs text-[color:var(--moon-mist)]">단건 결제 기준 이용 가치 <s>{formatWon(lightFortunes.valueKRW + (currentPassPlan(plan.tier)?.monthlyLimitCoin || 0)*100, copy, formatLocale)}</s></p><p className="text-2xl font-bold text-[color:var(--moon-gold)]">{formatWon(plan.wonPrice, copy, formatLocale)}</p><p className="text-xs text-[color:var(--moon-mist)]">라이트 운세 각 1회와 상담 한도를 모두 이용했을 때 기준</p>
-                  {overseasCharge?.approx(plan.wonPrice) ? (
-                    <p className="text-xs font-bold text-[color:var(--moon-mist)]">{overseasCharge.approx(plan.wonPrice)}</p>
-                  ) : null}
-                  <button
-                    type="button"
-                    onClick={() => onSubscribe(plan)}
-                    disabled={ctaDisabled}
-                    className={`${plan.badge === "recommended" ? "btn-moonlight" : "btn-moonlight-ghost"} inline-flex min-h-11 w-full items-center justify-center rounded-xl px-4 text-sm font-black disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto`}
-                  >
-                    {saleStatus === "loading" ? "판매 정보 확인 중" : saleStatus === "error" ? "판매 정보 확인 필요" : saleReady[plan.tier] === undefined ? "판매 정보 확인 필요" : !saleReady[plan.tier] ? "판매 준비 중" : isCurrentActive ? (consultationExhausted ? "다시 구매하기 →" : "연장하기 →") : lowerTierBlocked ? copy.lowerTierBlocked : "구매하기 →"}
-                  </button>
-              <p className="mt-2 flex items-center justify-center gap-1 text-center text-[11px] font-bold text-[color:var(--moon-mist)]">
-                <ShopPigImage className="h-4 w-4 object-contain" />
-                {GIFT_PROMO_LINE}
-              </p>
-              <button type="button" onClick={() => onGift(plan)} disabled={isProcessing || !saleReady[plan.tier]} className="mt-1 min-h-11 w-full rounded-xl border border-current px-3 py-2 text-sm font-bold disabled:opacity-50">🎁 선물하기</button>
-                  {lowerTierBlocked ? (
-                    <p className="text-right text-xs font-bold text-[color:var(--moon-mist)]">{copy.lowerTierBlockedHelp}</p>
-                  ) : null}
                 </div>
               </div>
+              <p className="mt-3 text-2xl font-bold text-[color:var(--moon-gold)]">{formatWon(plan.wonPrice, copy, formatLocale)}</p>
+              {overseasCharge?.approx(plan.wonPrice) ? (
+                <p className="text-xs font-bold text-[color:var(--moon-mist)]">{overseasCharge.approx(plan.wonPrice)}</p>
+              ) : null}
+              <p className="mt-2 text-sm font-black text-white">{copy.passConsultLimit(formatWon((currentPassPlan(plan.tier)?.monthlyLimitCoin || 0) * 100, copy, formatLocale))}</p>
+              <p className="text-xs font-bold leading-relaxed text-[color:var(--moon-silver)] [word-break:keep-all]">{formatSubscriptionPlanPolicy(plan, copy, formatLocale)}</p>
+              {/* 생선 사다리: 쓸 수 있는 생선은 밝게. 뜻은 아래 글자가 전달하므로 그림은 장식이다. */}
+              <ul className="mt-3 grid grid-cols-4 gap-1" aria-hidden="true" data-pass-fish-ladder>
+                {coverage.fish.map((fish) => (
+                  <li key={fish.id} data-usable={fish.usable} className={`min-w-0 text-center ${fish.usable ? "" : "opacity-35 grayscale"}`}>
+                    <Image src={`/assets/yeongnyangi/fish/${fish.id}.webp`} alt="" width={240} height={160} sizes="56px" loading="lazy" className="mx-auto h-auto w-full max-w-14 object-contain" />
+                    <span className="block text-[10px] font-bold leading-tight text-[color:var(--moon-silver)] [word-break:keep-all]">{localizedTier(fish.id, lang)}</span>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-2 text-sm font-black text-[color:var(--moon-teal)] [word-break:keep-all]" data-pass-reach>{reach}</p>
+              <div className="mt-auto pt-3">
+                <button
+                  type="button"
+                  onClick={() => onSubscribe(plan)}
+                  disabled={ctaDisabled}
+                  className={`${plan.badge === "recommended" ? "btn-moonlight" : "btn-moonlight-ghost"} inline-flex min-h-11 w-full items-center justify-center rounded-xl px-4 text-sm font-black disabled:cursor-not-allowed disabled:opacity-50`}
+                >
+                  {saleStatus === "loading" ? "판매 정보 확인 중" : saleStatus === "error" ? "판매 정보 확인 필요" : saleReady[plan.tier] === undefined ? "판매 정보 확인 필요" : !saleReady[plan.tier] ? "판매 준비 중" : isCurrentActive ? (consultationExhausted ? "다시 구매하기 →" : "연장하기 →") : lowerTierBlocked ? copy.lowerTierBlocked : "구매하기 →"}
+                </button>
+                <button type="button" onClick={() => onGift(plan)} disabled={isProcessing || !saleReady[plan.tier]} className="mt-2 min-h-11 w-full rounded-xl border border-current px-3 py-2 text-sm font-bold disabled:opacity-50">🎁 선물하기</button>
+                <p className="mt-1 flex items-center justify-center gap-1 text-center text-[11px] font-bold text-[color:var(--moon-mist)]">
+                  <ShopPigImage className="h-4 w-4 object-contain" />
+                  {GIFT_PROMO_LINE}
+                </p>
+                {lowerTierBlocked ? (
+                  <p className="mt-1 text-xs font-bold text-[color:var(--moon-mist)]">{copy.lowerTierBlockedHelp}</p>
+                ) : null}
+              </div>
+              <details className="mt-3 border-t border-[color:var(--moon-rim)] pt-1 text-xs leading-relaxed text-[color:var(--moon-mist)]">
+                <summary className="flex min-h-11 cursor-pointer items-center font-bold text-[color:var(--moon-silver)]">{copy.passDetails}</summary>
+                {reachable.length ? <p className="mb-2 font-bold text-[color:var(--moon-silver)] [word-break:keep-all]">{copy.passCountsLine(reachable.map((fish) => copy.passCount(localizedTier(fish.id, lang), fish.count)).join(" · "))}</p> : null}
+                <p className="font-bold">원화 단건 결제로 구매하는 이용권 · 기간 제한 없음</p>
+                <p className="mt-1 font-black text-[color:var(--moon-gold)]">{copy.passLightLine(lightFortunes.count, formatWon(lightFortunes.valueKRW, copy, formatLocale))}</p>
+                <div className="mt-2 flex flex-wrap gap-1">
+                  {features.map((feature) => (
+                    <span key={feature} className="rounded-full border border-[color:var(--moon-rim)] px-2 py-0.5 font-bold">
+                      {feature}
+                    </span>
+                  ))}
+                </div>
+                <p className="mt-2">단건 결제 기준 이용 가치 <s>{formatWon(lightFortunes.valueKRW + (currentPassPlan(plan.tier)?.monthlyLimitCoin || 0)*100, copy, formatLocale)}</s></p>
+                <p>라이트 운세 각 1회와 상담 한도를 모두 이용했을 때 기준</p>
+              </details>
             </article>
           );
         })}
       </div>
+      <p className="mt-4 text-[12px] leading-relaxed text-[color:var(--moon-mist)]">{copy.passTerminationNote}</p>
       {overseasCharge ? (
-        <p className="mt-4 text-xs font-bold leading-relaxed text-[color:var(--moon-mist)]">{overseasCharge.notice}</p>
+        <p className="mt-2 text-xs font-bold leading-relaxed text-[color:var(--moon-mist)]">{overseasCharge.notice}</p>
       ) : null}
     </section>
   );
@@ -2653,7 +2705,7 @@ function MoonlightOrderHistory({
 function MoonlightPaymentNotice() {
   return (
     <section className="moon-card rounded-[20px] px-5 py-4 text-sm font-semibold leading-7 text-[color:var(--moon-silver)]">
-      작은·중간·큰 꿀단지는 꽃돼지 서비스에 적용되며, 패밀리 꿀단지는 꽃돼지와 영냥이 유료 리딩을 함께 커버합니다. 자동갱신은 없고, 기존 구매와 선물은 원래 조건을 유지합니다.
+      꿀단지는 상담 한도 안에서 건당 상한 이하 상담이면 꽃돼지와 영냥이 어디서나 적용됩니다. 영냥이 모둠·오마카세는 패밀리 꿀단지에 적용되며, 상품별 적용·제외 조건은 결제 화면에서 확인할 수 있습니다. 자동갱신은 없고, 기존 구매와 선물은 원래 조건을 유지합니다.
     </section>
   );
 }
@@ -2671,7 +2723,6 @@ export default function PointsPage() {
   const userAccess = useUserAccess();
   const authStoreUserId = authState.user?.id || "";
   // 영냥이 세트 카드도 달빛 이용권 카드와 같은 원화 청구 고지를 쓴다(문구 정본은 이 파일의 useOverseasCharge 하나).
-  const overseasCharge = useOverseasCharge();
 
   /** 모바일 리디렉션 복귀를 한 번만 처리하기 위한 플래그 */
   const redirectHandledRef = useRef(false);
@@ -2789,8 +2840,16 @@ export default function PointsPage() {
     cancelRequestedAt: null,
     freeLimit: 0,
   });
-  // ServicePackShop 이 이미 읽은 영냥이 보유 목록을 상단 '내 이용권' 요약에 그대로 쓴다.
+  // OwnedServicePacks 가 이미 읽은 영냥이 보유 목록을 상단 '내 이용권' 요약에 그대로 쓴다.
   const [ownedPacks, setOwnedPacks] = useState<PackWalletView>("loading");
+  // 옛 판매 링크(#fish-packs, ?pack=)는 보유분이 있으면 보유 영역으로, 없으면 꿀단지로 데려간다.
+  const legacyEntryHandled = useRef(false);
+  useEffect(() => {
+    if (legacyEntryHandled.current || !authState.authReady || ownedPacks === "loading") return;
+    if (!isLegacyPackShopEntry(window.location.search, window.location.hash)) return;
+    legacyEntryHandled.current = true;
+    (document.getElementById("fish-packs") || document.getElementById("moonlight-plans"))?.scrollIntoView({ block: "start" });
+  }, [authState.authReady, ownedPacks]);
 
   // 낙관 이용권을 덮어쓰기 직전의 상태를 보관해 두고, 결제가 취소·실패하면 그대로 되돌린다.
   // 예전에는 취소 시 localStorage 만 지워서 화면은 계속 "이용권 적용됨"으로 남았다.
@@ -4735,9 +4794,12 @@ export default function PointsPage() {
           onRetry={retryPointState}
         />
         </details>
-        <ServicePackShop locale={lang} overseasCharge={overseasCharge} onWalletChange={setOwnedPacks} context={consultationContext} contextual={consultationShop}/>
-        {!consultationShop&&<section aria-label={lang==='ko'?'꿀꿀운세 이용권':'Ggulggul passes'}>
+        <OwnedServicePacks locale={lang} onWalletChange={setOwnedPacks} context={consultationContext}/>
+        {consultationContext ? (
+          <Link href={consultationResumePath(consultationContext)} prefetch={false} className="btn-moonlight-ghost inline-flex min-h-11 items-center justify-center rounded-xl px-4 text-sm font-black" data-consultation-back>{copy.passBackToConsultation}</Link>
+        ) : null}
         <MoonlightShopPlans
+          lang={lang}
           subscription={subscription}
           onSubscribe={openSelfPurchase}
           onGift={openGiftPurchase}
@@ -4748,7 +4810,6 @@ export default function PointsPage() {
           formatLocale={formatLocale}
           consultationExhausted={consultationExhausted}
         />
-        </section>}
         <MoonlightPaymentNotice />
         <MoonlightOrderHistory
           payments={paymentHistory}
@@ -4982,11 +5043,7 @@ export default function PointsPage() {
               <div className="rounded-[14px] border border-slate-100 bg-slate-50/80 px-4 py-3">
                 <p className="text-[10.5px] font-bold uppercase tracking-wider text-slate-400 mb-1">현재 이용권</p>
                 <p className="text-sm font-semibold text-slate-700">
-                  {!subscription.isActive || subscription.tier === "free" ? "이용권 없음"
-                   : subscription.tier === "standard" ? "작은 꿀단지"
-                   : subscription.tier === "premium" ? "중간 꿀단지"
-                   : subscription.tier === "vvip" ? "큰 꿀단지"
-                   : "—"}
+                  {subscription.isActive ? MOONLIGHT_TIER_LABELS[subscription.tier] : MOONLIGHT_TIER_LABELS.free}
                 </p>
               </div>
             </div>

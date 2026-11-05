@@ -15,8 +15,12 @@ test('all 13 stories retain an existing service, art, three benefits and a dedic
     assert.ok(storyPreviewHeights[id]>250 && storyPreviewHeights[id]<500,id);
     assert.ok(existsSync('public/images/consultation-webtoons/'+id+'.webp'),id);
     assert.ok(existsSync('public/images/consultation-webtoons/covers/'+id+'.webp'),id+' entry cover');
-    assert.equal(dom.window.document.querySelector('a[href="/consultations/'+id+'/"]'),null,id+' moved to entry');
+    for (const link of dom.window.document.querySelectorAll('a[href="/consultations/'+id+'/"]')) {
+      assert.ok(link.matches('.yh-story-option > .yh-story-link'), id);
+      assert.equal(link.previousElementSibling.getAttribute('href'), service.href, id);
+    }
   }
+  assert.equal(dom.window.document.querySelectorAll('[data-yh-group="love"] .yh-story-link').length, 3);
   assert.ok(dom.window.document.querySelector('a[href="/#homeStoryTitle"]'));
   assert.equal(dom.window.document.querySelectorAll('#cdSigGrid .cd-sig-card[data-cd-service-id][data-cd-popup-copy]').length,6);
   assert.equal(dom.window.document.querySelectorAll('a a').length,0);

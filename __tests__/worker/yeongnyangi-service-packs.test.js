@@ -1,6 +1,6 @@
 /** @jest-environment node */
 import {makeFakePaymentDb} from '../fixtures/fake-payment-db.mjs';
-import {resolveServicePackProduct,SERVICE_PACK_PLANS,servicePackCoverage,hasServicePackExpiry,listServicePackPlans} from '../../worker/payments/service-pack-policy.js';
+import {resolveServicePackProduct,SERVICE_PACK_PLANS,servicePackCoverage,hasServicePackExpiry} from '../../worker/payments/service-pack-policy.js';
 import {grantServicePack,consumeServicePack,restoreFailedServicePackUse,findServicePackUseEvidence,
  listOwnedServicePacks,quoteServicePack,createServicePackOrder} from '../../worker/payments/service-packs.js';
 import {createServicePackRoutes} from '../../worker/payments/service-pack-routes.js';
@@ -10,6 +10,7 @@ import {resolveProduct} from '../../worker/payments/catalog.js';
 import {reserveFortuneFunding} from '../../worker/yeongnyangi/payment-funding.js';
 import {Payment,PointHistory} from '../../worker/lib/models.js';
 import {PurchaseEntitlement} from '../../worker/payments/purchase-entitlement-model.js';
+import {createOrder} from '../../worker/payments/orders.js';
 const USER='507f1f77bcf86cd799439011',OTHER='507f1f77bcf86cd799439022',ID='e'.repeat(64),RID='yn-'+ID;
 const PLAN='yeongnyangi-service-pack-mackerel-fixture';
 // Fixture values are not a public offer. They remain independent of the approved public offer.
@@ -40,8 +41,7 @@ test('production catalog exposes approved offers and refuses unknown sales befor
  expect(()=>resolveServicePackProduct(PLAN)).toThrow();
  const routes=createServicePackRoutes({prepareOrder:()=>{throw Error('must not reach purchase')}});
  const catalog=await (await routes['GET /service-packs/catalog'].handle()).json();
- expect(catalog).toMatchObject({ok:true,giftEnabled:false});expect(catalog.plans).toHaveLength(4);
- expect(catalog.plans.every(plan=>plan.totalUses===8)).toBe(true);
+ expect(catalog).toMatchObject({ok:true,giftEnabled:false});expect(catalog.plans).toEqual([]);
  await expect(routes['POST /service-packs/prepare'].handle({body:{planId:PLAN,idempotencyKey:'x'}})).rejects.toMatchObject({code:'PRODUCT_NOT_FOUND'});
 });
 test('same-fish entitlement has exactly six server-registry systems and immutable price/count',()=>{
@@ -294,7 +294,7 @@ test.each(approvedFish)('%s catalog fixes approved 2026-11-04 eight-use price an
 });
 test.each(approvedFish.flatMap(([fish])=>approvedFish.map(([target,price])=>[fish,target,price])))('%s pack quote/consume only serves %s when identical',async(fish,target,amount)=>{
  const f=fixture(),offer=resolveServicePackProduct('yeongnyangi-pack-'+fish+'-small-v7');
- const order=await createServicePackOrder(f.db,{userId:USER,product:offer,idempotencyKey:'approved',env:{}});
+ const order=await createOrder(f.db,{userId:USER,product:offer,idempotencyKey:'service-pack:approved',requestId:'service-pack:approved',env:{}});
  await __paymentsContextTestUtils.settleVerifiedOrder(f.db,{},{order,pg:{pgTransactionId:'mock-approved',paidAt:new Date(),summary:{mock:true}}});
  const right=f.db.rows.find(r=>r.type==='service_pack');
  expect(new Date(right.expiresAt)-new Date(right.grantedAt)).toBe(90*86400000);
@@ -346,7 +346,7 @@ test.each([undefined,0,-1,'30',NaN])('invalid duration %s cannot become a non-ex
 test('v7 grants eight uses for exactly 90 days; expiry blocks new uses but preserves completed proof',async()=>{
  const f=fixture(),offer=resolveServicePackProduct('yeongnyangi-pack-mackerel-small-v7');
  const paidAt=new Date('2026-10-29T12:00:00Z'),expiresAt=new Date(paidAt.getTime()+90*86400000);
- const order=await createServicePackOrder(f.db,{userId:USER,product:offer,idempotencyKey:'v7-boundary',env:{}});
+ const order=await createOrder(f.db,{userId:USER,product:offer,idempotencyKey:'service-pack:v7-boundary',requestId:'service-pack:v7-boundary',env:{}});
  await __paymentsContextTestUtils.settleVerifiedOrder(f.db,{},{order,pg:{pgTransactionId:'mock-v7',paidAt,summary:{mock:true}}});
  const right=f.db.rows.find(r=>r.type==='service_pack');
  expect(right).toMatchObject({totalUses:8,remainingUses:8,expiresAt});
@@ -363,11 +363,6 @@ test('v7 grants eight uses for exactly 90 days; expiry blocks new uses but prese
  expect(f.db.rows.find(r=>r.type==='service_pack')).toMatchObject({expiresAt,remainingUses:7});
 });
 
-test('sale list holds only the four v7 packs', () => {
- expect(listServicePackPlans().map(plan=>[plan.planId,plan.priceKRW,plan.totalUses,plan.validityDays])).toEqual([
-  ['yeongnyangi-pack-mackerel-small-v7',40000,8,90],['yeongnyangi-pack-salmon-small-v7',60000,8,90],
-  ['yeongnyangi-pack-flounder-small-v7',80000,8,90],['yeongnyangi-pack-tuna-small-v7',120000,8,90]]);
-});
 test.each([['mackerel',20000],['salmon',40000],['flounder',60000],['tuna',120000]])('owned v6 %s pack keeps price, 90-day expiry and covers the raised price',(fish,priceKRW)=>{
  const packSnapshot={...resolveServicePackProduct('yeongnyangi-pack-'+fish+'-small-v6').packSnapshot,unitPriceKRW:priceKRW/4};
  expect(packSnapshot).toMatchObject({priceKRW,validityDays:90,policyVersion:'yeongnyangi-pack-20261029-eight-90'});

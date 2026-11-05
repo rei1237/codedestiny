@@ -53,9 +53,9 @@ export const SERVICE_PACK_PLANS = Object.freeze({ ...LEGACY_SERVICE_PACK_PLANS, 
 const FISH = Object.freeze(['mackerel','salmon','flounder','tuna']);
 
 // Historical definitions remain readable for fulfillment, gifts and order recovery.
-// Only the 2026-11-04 packs are on sale; 2026-10-29 packs keep their price and 90-day expiry.
-export const SERVICE_PACK_SALE_IDS = Object.freeze(Object.keys(SERVICE_PACK_PLANS)
-  .filter(id => id.endsWith('-small-v7')));
+// No pack is on sale since the honey-pot consolidation (2026-11-05): every pass now covers fish
+// consultations within its cap. Owned packs keep their uses, expiry, refund and restore.
+export const SERVICE_PACK_SALE_IDS = Object.freeze([]);
 export function isRetiredServicePack(planId) {
   return Boolean(SERVICE_PACK_PLANS[planId]) && !SERVICE_PACK_SALE_IDS.includes(planId);
 }

@@ -7,7 +7,12 @@ export function readConsultationContext(query:URLSearchParams):ConsultationConte
  return {context:'yeongnyangi',featureKey:query.get('featureKey')!,requestId:/^[a-f0-9]{64}$/.test(id)?id:'',lang:/^(ko|en|ja|zh-CN|zh-TW|es|fr|de|vi|hi|nl|ms)$/.test(lang)?lang:'ko'};
 }
 export function consultationShopPath(value:ConsultationContext){
- return '/points/?'+new URLSearchParams(value)+'#fish-packs';
+ return '/points/?'+new URLSearchParams(value)+'#moonlight-plans';
+}
+// Old sale links still circulate. A payment return is not one of them: it has its own handling.
+export function isLegacyPackShopEntry(search:string,hash:string){
+ const query=new URLSearchParams(search);
+ return !query.has('service_pack_return')&&(hash==='#fish-packs'||query.has('pack'));
 }
 export function consultationResumePath(value:ConsultationContext|null){
  if(!value?.requestId)return '/yeongnyangi/fortune/';

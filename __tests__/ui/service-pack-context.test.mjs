@@ -9,6 +9,7 @@ test('supported scope and original consultation survive shop navigation',()=>{
  const context=readConsultationContext(new URLSearchParams({context:'yeongnyangi',featureKey:'yeongnyangi-saju-salmon',requestId:'a'.repeat(64),lang:'ja'}));
  const shop=new URL(consultationShopPath(context),'https://example.test');
  assert.deepEqual(readConsultationContext(shop.searchParams),context);
+ assert.equal(shop.hash,'#moonlight-plans');
  const resumed=new URL(consultationResumePath(context),'https://example.test');
  assert.equal(resumed.pathname,'/checkout/');assert.equal(resumed.searchParams.get('requestId'),'a'.repeat(64));assert.equal(resumed.searchParams.get('featureKey'),context.featureKey);assert.equal(resumed.searchParams.get('lang'),'ja');
 });

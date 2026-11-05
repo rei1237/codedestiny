@@ -251,7 +251,7 @@ export async function createServicePackOrder(db,input) {
   const order=retired
     ?await db.findOne(Payment,{userId:toObjectId(input.userId),idempotencyKey:'service-pack:'+key,paymentType:input.paymentType||'digital_content'})
     :await createOrder(db,{...input,purchaseType,idempotencyKey:'service-pack:'+key,requestId:'service-pack:'+key});
-  if(!order)throw paymentError('PRODUCT_SALE_ENDED','이 이용권은 신규 판매가 종료되었어요. 현재 판매 중인 5회 이용권을 확인해 주세요.',
+  if(!order)throw paymentError('PRODUCT_SALE_ENDED','이 이용권은 신규 판매가 끝났어요. 꿀단지 이용권을 확인해 주세요.',
     {shopPath:'/points?context=yeongnyangi'});
   if(order.productId!==input.product.productId||order.pricingSnapshot?.fulfillmentType!=='service_pack'
     ||JSON.stringify(order.pricingSnapshot.packSnapshot)!==JSON.stringify(input.product.packSnapshot)

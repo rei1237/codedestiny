@@ -309,6 +309,29 @@ test('a tarot order awaiting its draw cannot be funded, and the draw commits onc
   await expect(repo.commitTarotDraw({},other,'id',{context,draw})).rejects.toMatchObject({status:404});
 });
 
+test('a non-Family pass receipt (PASS) attaches with its real tier and survives pass expiry',async()=>{
+  payments=[];familyUser={_id:owner,profileSubscription:{tier:'premium',passTier:'premium',isActive:true,expiresAt:'2026-10-23T00:00:00.000Z'}};
+  evidences.push({_id:'507f1f77bcf86cd799439099',userId:owner,featureKey:values.featureKey,metadata:{requestId:'id',accessMethod:'PASS',
+    passTier:'premium',passCycleKey:'2026-10-23T00:00:00.000Z',coinCost:10,passBudgetCoin:600,passLimit:100}});
+  await repo.createRequest({},owner,'id',values);
+  await repo.attachPayment({},owner,'id',1000);
+  expect(requests[0]).toMatchObject({accessMethod:'FAMILY',passTier:'premium',passMonthlyLimitCoin:600,passMaxCoveredCoin:100,state:'PAID'});
+  familyUser.profileSubscription={tier:'free',isActive:false,expiresAt:'2026-09-23T00:00:00.000Z'};
+  expect((await repo.claimChapter({},owner,'id')).token).toBeTruthy();
+  expect(consumePass).not.toHaveBeenCalled();
+});
+
+test('a non-Family pass consultation restores its own tier on terminal failure',async()=>{
+  requests.push({_id:'empty',userId:owner,...values,state:'GENERATING',accessMethod:'FAMILY',passTier:'premium',passMonthlyLimitCoin:600,passMaxCoveredCoin:100,
+    passEvidenceId:'507f1f77bcf86cd799439099',passCycleKey:'cycle',passCoinCost:100,completedChapters:0,chapters:[],leaseToken:'lease'});
+  evidences.push({_id:'507f1f77bcf86cd799439099',userId:owner,featureKey:values.featureKey,metadata:{requestId:'empty',accessMethod:'PASS',passTier:'premium'}});
+  refundPass.mockResolvedValue({refunded:true});
+  await repo.failChapter({},owner,'empty','lease','GENERATION_REVIEW_REQUIRED',1,'provider');
+  expect(refundPass).toHaveBeenCalledWith(expect.objectContaining({cycleKey:'cycle',cost:100,
+    restorePass:expect.objectContaining({tier:'premium',monthlyLimitCoin:600,maxCoveredCoin:100})}));
+  expect(requests[0]).toMatchObject({state:'REFUNDED',errorCode:'PASS_QUOTA_RESTORED'});
+});
+
 test('Family confirmed terminal failure with no chapter restores quota, but a partial result does not',async()=>{
   requests.push({_id:'empty',userId:owner,...values,state:'GENERATING',accessMethod:'FAMILY',passEvidenceId:'507f1f77bcf86cd799439099',passCycleKey:'cycle',passCoinCost:10,completedChapters:0,chapters:[],leaseToken:'lease'});
   evidences.push({_id:'507f1f77bcf86cd799439099',userId:owner,featureKey:values.featureKey,metadata:{requestId:'empty',accessMethod:'FAMILY'}});

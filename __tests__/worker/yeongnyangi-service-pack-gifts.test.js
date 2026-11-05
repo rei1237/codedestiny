@@ -116,7 +116,7 @@ test('historical no-expiry gift retains its claim deadline and can be used far a
  expect(result.remainingUses).toBe(4);
 });
 
-test.each([['v7',false],['v6',true]])('%s gift usage starts at acceptance and replay cannot extend its 90-day period',async(version,historical)=>{
+test.each([['v7',true],['v6',true]])('%s gift usage starts at acceptance and replay cannot extend its 90-day period',async(version,historical)=>{
  const f=fixture(),offer=resolveServicePackProduct('yeongnyangi-pack-mackerel-small-'+version);
  const g=await purchase(f,{offer,historical}),expiry=new Date(NOW.getTime()+90*86400000);
  await receive(f,g);

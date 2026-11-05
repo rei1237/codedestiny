@@ -156,5 +156,6 @@ test('말투 변환은 불규칙 활용을 지킨다', () => {
 });
 
 test('생성물이 정본 데이터와 일치한다', async () => {
-  assert.equal(readFileSync(OUTPUT_PATH, 'utf8'), await buildSource());
+  const normalizeEol = (source) => source.replaceAll('\r\n', '\n');
+  assert.equal(normalizeEol(readFileSync(OUTPUT_PATH, 'utf8')), normalizeEol(await buildSource()));
 });

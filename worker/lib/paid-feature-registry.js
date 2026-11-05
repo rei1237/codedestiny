@@ -215,15 +215,15 @@ const YEONGNYANGI_FUSIONS = Object.freeze([
   ["fusion-astrology-tarot", "서양 점성술 + 타로", "생선 모둠 세트", 50000],
   ["fusion-all", "사주 + 자미두수 + 숙요 + 베다점 + 서양 점성술 + 타로", "생선 오마카세", 70000],
 ]);
-function buildYeongnyangiEntry(name, fishName, amountKRW) {
-  return { cost: amountKRW / 100, amountKRW, reason: `영냥이 ${name} ${fishName}`, paymentScope: "direct_or_family", membershipCreditAllowed: true, membershipCreditMultiplier: 1 };
+function buildYeongnyangiEntry(name, fishName, amountKRW, paymentScope) {
+  return { cost: amountKRW / 100, amountKRW, reason: `영냥이 ${name} ${fishName}`, paymentScope, membershipCreditAllowed: true, membershipCreditMultiplier: 1 };
 }
 const YEONGNYANGI_RAW_PRICE_ENTRIES = Object.freeze(Object.fromEntries([
   ...Object.entries(YEONGNYANGI_SYSTEMS).flatMap(([system, name]) =>
     Object.entries(YEONGNYANGI_FISH).map(([fish, [fishName, amountKRW]]) =>
-      [`yeongnyangi-${system}-${fish}`, buildYeongnyangiEntry(name, fishName, amountKRW)])),
+      [`yeongnyangi-${system}-${fish}`, buildYeongnyangiEntry(name, fishName, amountKRW, "direct_or_pass")])),
   ...YEONGNYANGI_FUSIONS.map(([slug, name, fishName, amountKRW]) =>
-    [`yeongnyangi-${slug}`, buildYeongnyangiEntry(name, fishName, amountKRW)]),
+    [`yeongnyangi-${slug}`, buildYeongnyangiEntry(name, fishName, amountKRW, "direct_or_family")]),
 ]));
 export const YEONGNYANGI_PAID_FEATURE_KEYS = Object.freeze(Object.keys(YEONGNYANGI_RAW_PRICE_ENTRIES));
 
@@ -422,6 +422,8 @@ export const FEATURE_KEY_PRICE_TABLE = normalizeRegistryPricingTable(RAW_FEATURE
 /** 결제 범위 `direct_only`: 이용권·월정석 모두 불가, 단건 결제(카드·카카오페이)만. 정본 판정은 이 함수 하나. */
 export const PAYMENT_SCOPE_DIRECT_ONLY = "direct_only";
 export const PAYMENT_SCOPE_DIRECT_OR_FAMILY = "direct_or_family";
+/** 모든 이용권이 건당 상한·남은 한도 안에서 열 수 있는 상담(2026-11-05 꿀단지 통합). 판정은 evaluatePassCoverage 하나다. */
+export const PAYMENT_SCOPE_DIRECT_OR_PASS = "direct_or_pass";
 export const MOONSTONE_MIN_PRODUCT_KRW = 10000;
 
 export function meetsMoonstoneMinimum(amountKRW) {
@@ -445,6 +447,20 @@ export function isDirectOnlyPaidFeatureKey(featureKey) {
 export function isDirectOrFamilyPaidFeatureKey(featureKey) {
   const key = normalizePaidFeatureKey(featureKey);
   return Boolean(key) && FEATURE_KEY_PRICE_TABLE[key]?.paymentScope === PAYMENT_SCOPE_DIRECT_OR_FAMILY;
+}
+
+/** 생선 상담: 일반 이용권도 건당 상한 안이면 허용한다. */
+export function isDirectOrPassPaidFeatureKey(featureKey) {
+  const key = normalizePaidFeatureKey(featureKey);
+  return Boolean(key) && FEATURE_KEY_PRICE_TABLE[key]?.paymentScope === PAYMENT_SCOPE_DIRECT_OR_PASS;
+}
+
+/**
+ * 상담 요청 하나가 자기 결제 증빙을 갖는 상품: 영구 해금·월 구독·코인 결제가 없다.
+ * direct_or_family 와 direct_or_pass 는 이용권 등급 판정만 다르고 이 성질은 같다.
+ */
+export function isConsultationFundedPaidFeatureKey(featureKey) {
+  return isDirectOrFamilyPaidFeatureKey(featureKey) || isDirectOrPassPaidFeatureKey(featureKey);
 }
 
 /** 표시·견적·실차감·증빙이 공유하는 기능별 월정석 정본. */
@@ -485,7 +501,7 @@ export function getPaidFeaturePaymentPolicy(featureKey) {
   const directOnly = isDirectOnlyPaidFeatureKey(featureKey);
   const familyPassOnly = isDirectOrFamilyPaidFeatureKey(featureKey);
   const monthlyExcluded = !meetsMoonstoneMinimum(spec?.amountKRW)
-    || directOnly || (familyPassOnly && spec?.membershipCreditAllowed !== true);
+    || directOnly || (isConsultationFundedPaidFeatureKey(featureKey) && spec?.membershipCreditAllowed !== true);
   return {
     paymentScope: String(spec?.paymentScope || ""),
     directOnly, familyPassOnly, monthlyExcluded,

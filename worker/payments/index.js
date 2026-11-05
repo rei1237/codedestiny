@@ -2004,8 +2004,8 @@ const ROUTES = {
           ? await resolvePaymentBirthIdentity(db, { userId, profileId: body.profileId, partnerProfileId: body.partnerProfileId, featureKey: product.featureKey })
           : null;
         const spend = await spendMoonstone(db, { userId, product, purchaseId, profileId: body.profileId });
-        // This family-only monthly consultation owns its request proof, not a permanent unlock.
-        if (!(product.familyPassOnly && !product.monthlyExcluded)) {
+        // This monthly consultation owns its request proof, not a permanent unlock.
+        if (!(product.consultationFunded && !product.monthlyExcluded)) {
           await grantEntitlement(db, {
             userId, product, orderId: purchaseId, profileId: body.profileId, birthIdentity,
             contentKey: body.contentKey, scope: body.scope, source: "MONTHLY",
