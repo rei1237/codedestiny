@@ -4438,6 +4438,12 @@ function renderEnergyCoordStub(){
   var area=document.getElementById('energyCoordSection');
   var card=document.getElementById('energyCoordCard');
   if(!area||!card)return;
+  // A server-owned body may arrive while the deferred result-page tasks are
+  // still draining. Never replace that entitled body with the public preview.
+  if(!area.querySelector('[data-cd-summary-fallback="1"]')&&String(area.textContent||'').trim()){
+    card.style.display='block';
+    return;
+  }
   var chips=['부족 오행 진단','보완 후보 여행 처방','국내 추천 좌표','해외 추천 좌표','월별 여행 좌표','오늘의 에너지 룰렛','여행 미션 체크리스트'];
   area.innerHTML=
     '<div data-cd-summary-fallback="1" style="border:1px solid rgba(148,163,184,.28);border-radius:18px;background:linear-gradient(145deg,rgba(8,13,31,.94),rgba(18,27,54,.9));color:#e2e8f0;padding:18px;">'+
@@ -4701,6 +4707,11 @@ function renderHealthReportStub(){
   var area=document.getElementById('healthReportSection');
   var card=document.getElementById('healthReportCard');
   if(!area||!card)return;
+  // Preserve an entitled server response that won the race with this stub.
+  if(!area.querySelector('[data-cd-summary-fallback="1"]')&&String(area.textContent||'').trim()){
+    card.style.display='block';
+    return;
+  }
   var chips=['오늘의 건강운','일간 체질','오행 균형','조후·계절 흐름','장부 다이얼','회복 루틴','실천 체크'];
   area.innerHTML=
     '<div data-cd-summary-fallback="1" style="border:1px solid var(--cd-border,rgba(148,163,184,.28));border-radius:18px;background:var(--cd-surface-2,#f8fafc);color:var(--cd-text,#1e293b);padding:18px;">'+
