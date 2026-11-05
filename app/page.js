@@ -1,3 +1,4 @@
+import HomeQuestionGuide from './components/HomeQuestionGuide';
 import HomeInstallEntry from './components/HomeInstallEntry';
 import StoryDiscovery from './consultations/StoryDiscovery';
 import Link from 'next/link';
@@ -96,10 +97,10 @@ export default function HomePage() {
       </header>
 
       <main className={styles.stage}>
-        <div className={styles.head}>
+        {IS_APP_BUILD ? <div className={styles.head}>
           <h1 id="homeCardTitle" className={styles.title}><NativeHomeText>꿀꿀 운세에서 어떤 운세를 만나볼까요?</NativeHomeText></h1>
           <p className={styles.lead}><NativeHomeText>마음이 향하는 상담 공간을 골라보세요.</NativeHomeText></p>
-        </div>
+        </div> : <HomeQuestionGuide />}
 
         {/* 카드 제목(h2)의 링크를 카드 크기로 늘려 카드 전체가 한 링크다. 설명 두 줄은 aria-describedby 로 읽힌다. */}
         <HomeCardDeck className={styles.deck}>

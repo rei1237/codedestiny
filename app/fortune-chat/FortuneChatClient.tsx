@@ -1,4 +1,5 @@
 "use client";
+import {LETTER_DRAFT_KEY,readGuideQuestion} from "@/lib/fortune/guide-handoff";
 import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
 import BirthTimeInput from "@/app/components/BirthTimeInput";
 
@@ -301,6 +302,7 @@ export default function FortuneChatClient() {
   const [topic, setTopic] = useState(params?.get("topic") || "");
   const [category, setCategory] = useState<Category | "">("");
   const [question, setQuestion] = useState("");
+  useEffect(() => { if(new URLSearchParams(location.search).get("counsel")==="letter"){const seed=readGuideQuestion(LETTER_DRAFT_KEY);if(seed)setQuestion(seed);} }, []);
   const [character] = useState<Character>("yeoni");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
