@@ -67,13 +67,14 @@ test('the actual Karma result GET recovers an answer saved before the parent tra
   const source = fs.readFileSync('worker/routes/karma-destiny-ai.js', 'utf8'), tree = ts.createSourceFile('route.js', source, 99, true, 1);
   const handler = tree.statements.find(node => node.name?.text === 'handleResult').getText(tree);
   const context = vm.createContext({
-    URL, clean: value => String(value || ''), getOptionalUserFromRequest: async () => ({ userId: owner }), connectDb: async () => {},
+    URL, clean: value => String(value || ''), getOptionalUserFromRequest: async () => ({ userId: owner }), connectDb: async () => {}, nativeTossContext: () => null,
     KarmaDestinyAiConsultation: reportModel, buildResultLookup: () => ({ id: report.id, userId: owner }), resolveStartAccess: async () => ({ ok: true }),
     paymentVerifyFailed: () => new Response('{}', { status: 403 }), loginRequired: () => new Response('{}', { status: 401 }),
     invalidInput: () => new Response('{}', { status: 404 }), FEATURE_KEY: 'karma-destiny-ai-consultation', recoverSavedExpertFollowUps: recover,
     isStoredPaidResultRevoked: async () => revoked,
     publicSession: value => ({ ok: true, messages: value.messages, status: value.status }), json: (value, init) => Response.json(value, init),
   });
+  vm.runInContext(tree.statements.find(node => node.name?.text === 'authorizedKarmaRecord').getText(tree), context);
   vm.runInContext(handler, context);
   const response = await context.handleResult(new Request(`https://mock.test/api/karma-destiny-ai/result?sessionId=${report.id}`), {}, '/result');
   const restored = await response.json();
@@ -106,7 +107,8 @@ test.each(['karma-destiny-ai', 'love-secret-ai'])('actual %s message handler rej
   const source = fs.readFileSync(`worker/routes/${kind}.js`, 'utf8'), tree = ts.createSourceFile('route.js', source, 99, true, 1);
   const handler = tree.statements.find(node => node.name?.text === 'handleMessage').getText(tree);
   let userId = owner;
-  const context = vm.createContext({ readJson: req => req.json(), clean: value => String(value || ''), invalidInput: () => new Response('{}', { status: 404 }), loginRequired: () => new Response('{}', { status: 401 }), getOptionalUserFromRequest: async () => ({ userId }), connectDb: async () => {}, KarmaDestinyAiConsultation: reportModel, LoveSecretAiConsultation: reportModel, FEATURE_KEY: `${kind}-consultation`, deliverExpertFollowUp: deliver, generateFollowUp: async (_env, original) => provider(original), generateConsultationText: async () => provider(report), buildFollowUpPrompt: () => '', publicSession: value => ({ ok: true, messages: value.messages }) });
+  const context = vm.createContext({ readJson: req => req.json(), clean: value => String(value || ''), invalidInput: () => new Response('{}', { status: 404 }), loginRequired: () => new Response('{}', { status: 401 }), getOptionalUserFromRequest: async () => ({ userId }), connectDb: async () => {}, nativeTossContext: () => null, KarmaDestinyAiConsultation: reportModel, LoveSecretAiConsultation: reportModel, FEATURE_KEY: `${kind}-consultation`, deliverExpertFollowUp: deliver, generateFollowUp: async (_env, original) => provider(original), generateConsultationText: async () => provider(report), buildFollowUpPrompt: () => '', publicSession: value => ({ ok: true, messages: value.messages }) });
+  if (kind === 'karma-destiny-ai') vm.runInContext(tree.statements.find(node => node.name?.text === 'authorizedKarmaRecord').getText(tree), context);
   vm.runInContext(handler, context);
   const request = () => new Request('https://mock.test/api/message', { method: 'POST', body: JSON.stringify({ sessionId: report.id, message: '다음 선택은 어떻게 할까요?' }) });
   expect((await context.handleMessage(request(), {})).status).toBe(200);

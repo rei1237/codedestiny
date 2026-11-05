@@ -979,6 +979,7 @@ const karmaDestinyAiChapterSchema = new mongoose.Schema({
 }, { _id: false });
 
 const karmaDestinyAiConsultationSchema = new mongoose.Schema({
+  accessSource: { type: String, default: 'web', enum: ['web', 'toss'], index: true },
   id: { type: String, required: true, unique: true, trim: true, maxlength: 120, index: true },
   reportId: { type: String, default: "", trim: true, maxlength: 120, index: true },
   attemptId: { type: String, default: "", trim: true, maxlength: 180, index: true },
