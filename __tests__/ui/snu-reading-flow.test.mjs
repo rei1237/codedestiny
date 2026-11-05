@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { hasCompleteSnuGift, resolveSnuReadingProfile, mountSnuReadingContents, SNU_READING_URL } from '../../js/core/snu-reading-flow.mjs';
 import { JSDOM } from 'jsdom';
 import { SNU_SAJU_FEATURES } from '../../js/core/snu-campus-policy.mjs';
+import fs from 'node:fs';
 
 const keys = SNU_SAJU_FEATURES.map(item => item.featureKey);
 const state = { verified: true, profileId: 'gift', unlockedFeatureKeys: keys };
@@ -46,4 +47,9 @@ test('gift entry selects its server profile instead of the active or first profi
   const url = new URL(SNU_READING_URL, 'https://example.test');
   assert.equal(url.searchParams.get('entry'), 'snulife');
   assert.equal(url.searchParams.has('profileId'), false);
+});
+test('Secret House route preserves the SNULIFE entry context for the worker exception', () => {
+  const source = fs.readFileSync('js/core/saju/reportDashboard.js', 'utf8');
+  assert.match(source, /searchParams\.get\('entry'\) === 'snulife'/);
+  assert.match(source, /\+ 'entry=snulife'/);
 });

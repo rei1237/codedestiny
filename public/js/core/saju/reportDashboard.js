@@ -355,6 +355,14 @@ window.openSecretHouseRoute = function() {
   if (houseProfileId) {
     target += (target.indexOf('?') >= 0 ? '&' : '?') + 'profileId=' + encodeURIComponent(houseProfileId);
   }
+  // The standalone play route is intentionally hidden from ordinary public entry.
+  // Preserve the verified SNULIFE reading context so the worker can serve this
+  // deterministic benefit without reopening the route for general discovery.
+  try {
+    if (new URL(window.location.href).searchParams.get('entry') === 'snulife') {
+      target += (target.indexOf('?') >= 0 ? '&' : '?') + 'entry=snulife';
+    }
+  } catch (_eEntry) {}
   try {
     window.location.assign(target);
   } catch (e) {
