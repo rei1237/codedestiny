@@ -57,4 +57,3 @@ assert.throws(() => assertTarotNarrativeSnapshot(changed), /TAROT_FACTS_CONFLICT
 console.log(JSON.stringify({ verified: ['greenwich-clock', 'ziwei-OFF-resume', 'tarot-prepared-draw'],
   maxClockErrorMinutes: Math.max(...errors), localModules: loaded.size,
   ...(process.argv.includes('--list-inputs') ? { inputs: [...loaded].sort() } : {}) }));
-

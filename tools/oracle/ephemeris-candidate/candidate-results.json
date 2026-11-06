@@ -1,0 +1,220 @@
+{
+  "library": "astronomy-engine@2.1.19",
+  "fixtureSha256": "03c1e8f030963baf98684f5ff2ef115bd16a4fce459cefbc2742c3058cd5998d",
+  "bodies": {
+    "Sun": {
+      "regular": {
+        "n": 124,
+        "lonErrorArcmin": {
+          "max": 0.026493,
+          "p95": 0.017035
+        },
+        "latErrorArcmin": {
+          "max": 0.026663,
+          "p95": 0.019368
+        },
+        "signDifferences": []
+      },
+      "cusp": {
+        "n": 60,
+        "lonErrorArcmin": {
+          "max": 0.017499,
+          "p95": 0.017498
+        },
+        "latErrorArcmin": {
+          "max": 0.013583,
+          "p95": 0.013583
+        },
+        "signDifferences": [
+          {
+            "date": "2024-04-19T13:59:53.025Z",
+            "expected": 30.0000725,
+            "actual": 29.999952,
+            "distanceToCuspArcmin": 0.00435
+          },
+          {
+            "date": "2024-05-20T12:59:36.078Z",
+            "expected": 60.0000507,
+            "actual": 59.99991,
+            "distanceToCuspArcmin": 0.003042
+          },
+          {
+            "date": "2024-06-20T20:51:01.699Z",
+            "expected": 90.000008,
+            "actual": 89.999948,
+            "distanceToCuspArcmin": 0.00048
+          },
+          {
+            "date": "2024-11-21T19:56:28.051Z",
+            "expected": 239.9999672,
+            "actual": 240.000233,
+            "distanceToCuspArcmin": 0.001968
+          },
+          {
+            "date": "2024-12-21T09:20:33.240Z",
+            "expected": 269.9999759,
+            "actual": 270.000268,
+            "distanceToCuspArcmin": 0.001446
+          }
+        ]
+      }
+    },
+    "Moon": {
+      "regular": {
+        "n": 124,
+        "lonErrorArcmin": {
+          "max": 0.222206,
+          "p95": 0.166695
+        },
+        "latErrorArcmin": {
+          "max": 0.032439,
+          "p95": 0.019374
+        },
+        "signDifferences": []
+      },
+      "cusp": {
+        "n": 60,
+        "lonErrorArcmin": {
+          "max": 0.059609,
+          "p95": 0.059604
+        },
+        "latErrorArcmin": {
+          "max": 0.010164,
+          "p95": 0.010155
+        },
+        "signDifferences": [
+          {
+            "date": "2024-01-03T00:46:45.954Z",
+            "expected": 179.999706,
+            "actual": 180.000234,
+            "distanceToCuspArcmin": 0.01764
+          }
+        ]
+      }
+    },
+    "Mercury": {
+      "regular": {
+        "n": 124,
+        "lonErrorArcmin": {
+          "max": 0.14311,
+          "p95": 0.074875
+        },
+        "latErrorArcmin": {
+          "max": 0.096168,
+          "p95": 0.052496
+        },
+        "signDifferences": []
+      }
+    },
+    "Venus": {
+      "regular": {
+        "n": 124,
+        "lonErrorArcmin": {
+          "max": 0.241849,
+          "p95": 0.110745
+        },
+        "latErrorArcmin": {
+          "max": 0.114381,
+          "p95": 0.081933
+        },
+        "signDifferences": []
+      }
+    },
+    "Mars": {
+      "regular": {
+        "n": 124,
+        "lonErrorArcmin": {
+          "max": 0.182672,
+          "p95": 0.074802
+        },
+        "latErrorArcmin": {
+          "max": 0.117986,
+          "p95": 0.059149
+        },
+        "signDifferences": []
+      }
+    },
+    "Jupiter": {
+      "regular": {
+        "n": 124,
+        "lonErrorArcmin": {
+          "max": 0.138044,
+          "p95": 0.09341
+        },
+        "latErrorArcmin": {
+          "max": 0.148102,
+          "p95": 0.103929
+        },
+        "signDifferences": []
+      }
+    },
+    "Saturn": {
+      "regular": {
+        "n": 124,
+        "lonErrorArcmin": {
+          "max": 0.192666,
+          "p95": 0.14985
+        },
+        "latErrorArcmin": {
+          "max": 0.353776,
+          "p95": 0.305919
+        },
+        "signDifferences": []
+      }
+    },
+    "Uranus": {
+      "regular": {
+        "n": 124,
+        "lonErrorArcmin": {
+          "max": 0.188864,
+          "p95": 0.128872
+        },
+        "latErrorArcmin": {
+          "max": 0.315549,
+          "p95": 0.274093
+        },
+        "signDifferences": []
+      }
+    },
+    "Neptune": {
+      "regular": {
+        "n": 124,
+        "lonErrorArcmin": {
+          "max": 0.294258,
+          "p95": 0.284023
+        },
+        "latErrorArcmin": {
+          "max": 0.163674,
+          "p95": 0.153289
+        },
+        "signDifferences": []
+      }
+    },
+    "Pluto": {
+      "regular": {
+        "n": 124,
+        "lonErrorArcmin": {
+          "max": 0.085869,
+          "p95": 0.068286
+        },
+        "latErrorArcmin": {
+          "max": 0.024183,
+          "p95": 0.021561
+        },
+        "signDifferences": []
+      }
+    }
+  },
+  "totals": {
+    "regular": {
+      "rows": 1240,
+      "maxLongitudeArcmin": 0.294258,
+      "mismatchedSigns": 0
+    },
+    "cusp": {
+      "rows": 120,
+      "maxLongitudeArcmin": 0.059609,
+      "mismatchedSigns": 6
+    }
+  }
+}

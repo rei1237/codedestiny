@@ -4,6 +4,14 @@ on:
   pull_request:
     paths:
       - 'tools/oracle/release-check/**'
+      - 'tools/oracle/ephemeris-candidate/**'
+      - 'scripts/lib/moon-sky.mjs'
+      - 'worker/lib/sukuyo-coordinate.js'
+      - 'worker/lib/sukuyo-premium.js'
+      - 'worker/lib/sukuyo-relation-core.js'
+      - 'worker/lib/cms-record-store.js'
+      - 'worker/lib/vedic-derived-calculations.js'
+      - 'lib/vedicCalculator.js'
       - '__tests__/fixtures/jpl-greenwich-solar-clock.mjs'
       - 'worker/yeongnyangi/fortune/ziwei/relationship-clock.ts'
       - 'worker/lib/paid-tarot-*.js'
@@ -25,3 +33,10 @@ jobs:
           node --test tools/oracle/release-check/preflight.test.mjs
           node tools/oracle/release-check/preflight.mjs tools/oracle/release-check
           node --experimental-transform-types tools/oracle/release-check/verify.mjs
+      - name: Compare the reviewed candidate with committed JPL and IMD observations
+        run: |
+          node tools/oracle/release-check/preflight.mjs tools/oracle/ephemeris-candidate
+          npm ci --prefix tools/oracle/ephemeris-candidate --ignore-scripts --no-audit --no-fund
+          node tools/oracle/ephemeris-candidate/verify.mjs
+          node tools/oracle/ephemeris-candidate/verify-sky.mjs
+          node tools/oracle/ephemeris-candidate/verify-panchang.mjs
