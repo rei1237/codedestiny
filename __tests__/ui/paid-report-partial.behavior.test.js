@@ -84,13 +84,14 @@ for (const mode of ["solo", "compat"]) {
     // 미완 장을 "시도 가능 / 소진"으로 가르는 규칙은 테스트에 복제하지 않고 실제 함수를 꺼내 쓴다
     // — 웨이브·조회·크론이 같은 판정을 본다는 것이 이 수정의 핵심이다.
     const quality = await import("../../worker/lib/paid-report-quality.js");
-    const { pinAnswerVoice } = await import("../../worker/lib/consultation-answer-contract.js");
     const { codexChapterFloor, codexChapterRepairFloor, codexDedupedChapterFloor } = await import("../../worker/lib/master-love-codex-quality.js");
     const codexTotalReady = runFunction("worker/routes/master-love-codex.js", "codexTotalReady", { ...quality, codexDedupedChapterFloor });
     const savedChapterRows = runFunction("worker/routes/master-love-codex.js", "savedChapterRows", { ...quality, codexDedupedChapterFloor });
     const splitPendingChapters = runFunction("worker/routes/master-love-codex.js", "splitPendingChapters", { CHAPTER_ATTEMPT_LIMIT: 3, codexTotalReady });
+    const answerContract = await import("../../worker/lib/consultation-answer-contract.js");
     const wave = runFunction("worker/routes/master-love-codex.js", "runCodexWaveInternal", {
-      pinAnswerVoice, sha256: value => value, syncCodexExecution: async () => true, splitPendingChapters, savedChapterRows, codexTotalReady,
+      ...answerContract,
+      sha256: value => value, syncCodexExecution: async () => true, splitPendingChapters, savedChapterRows, codexTotalReady,
       CODEX_EVIDENCE_VERSION: "test-evidence",
       clean: value => String(value || ""), resolveMode: () => ({ mode, chapters }),
       // 기대 목록의 정본은 세션에 고정된 manifest 이고, 없으면 모드 구성으로 폴백한다.
