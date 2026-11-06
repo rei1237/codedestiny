@@ -42,7 +42,8 @@ try {
    await free.focus();assert.equal(await free.evaluate(node=>node===document.activeElement),true);
   }
   if (!baseline && width < 700) {
-   assert.equal(await page.locator('.yh-entry:visible').count(),3);
+   assert.equal(await page.locator('.yh-entry:visible').count(),7);
+   if (process.env.YEHWA_FULL_SHELL) assert.equal(await page.locator('#cdQuickServices').isVisible(),false,'free grid does not repeat the entry row');
    assert.equal(await page.locator('#yhResults').isVisible(),false);
    await page.locator('.yh-find > summary').click();
    await page.locator('[data-yh-concern=love]').click();

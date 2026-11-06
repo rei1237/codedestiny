@@ -67,11 +67,12 @@ html.neo-mode .yh-hero{--yh-garden:url("/images/home/illustrated/yeoni-moon-gard
 .yh-entry-scene{grid-template-columns:1fr;min-height:0;padding:8px;background:var(--yh-garden) center 45%/cover no-repeat}
 .yh-entry-scene .yh-art{width:clamp(144px,20vw,200px)}
 .yh-entry-title{margin-block:20px 10px!important;font-size:clamp(1.5rem,4vw,2rem)}
-.yh-entries{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-.yh-home .yh-entry{display:grid;place-items:center;align-content:center;gap:3px;min-height:96px;padding:8px 4px;border-radius:var(--cd-r-section);color:var(--cd-text);background:color-mix(in srgb,var(--cd-accent) 10%,var(--cd-surface));font-weight:700;text-align:center;text-decoration:none}
-.yh-entry:nth-child(2){background:color-mix(in srgb,var(--cdh-lilac-soft) 72%,var(--cd-surface))}
-.yh-entry:nth-child(3){background:color-mix(in srgb,var(--cdh-gold-soft) 75%,var(--cd-surface))}
-.yh-entry img{width:clamp(52px,17vw,72px);height:auto;aspect-ratio:1;object-fit:contain}
+.yh-entries{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.yh-home .yh-entry{display:grid;place-items:center;align-content:center;gap:3px;min-height:88px;padding:8px 2px;border-radius:var(--cd-r-section);color:var(--cd-text);background:color-mix(in srgb,var(--cd-accent) 10%,var(--cd-surface));font-weight:700;text-align:center;text-decoration:none}
+.yh-entry:nth-child(3n+2){background:color-mix(in srgb,var(--cdh-lilac-soft) 72%,var(--cd-surface))}
+.yh-entry:nth-child(3n){background:color-mix(in srgb,var(--cdh-gold-soft) 75%,var(--cd-surface))}
+.yh-entry span{font-size:clamp(.8rem,3.4vw,.95rem);line-height:1.25;word-break:keep-all}
+.yh-entry img{width:clamp(44px,13vw,64px);height:auto;aspect-ratio:1;object-fit:contain}
 .yh-find{margin-top:12px;border-block:1px solid var(--cd-line)}
 .yh-find>summary,.yh-home .yh-all{display:flex;align-items:center;justify-content:space-between;min-height:48px;padding:8px 4px;font-weight:700;list-style:none;text-decoration:none}
 .yh-find>summary::-webkit-details-marker,.yh-menu>summary::-webkit-details-marker{display:none}
@@ -89,6 +90,7 @@ html.neo-mode .yh-hero{--yh-garden:url("/images/home/illustrated/yeoni-moon-gard
 
 @media(max-width:699px){
  .yh-entry-scene .yh-greeting{display:none}
+ #cdHomeFunnel .cdh-free{display:none}
 }
 @media(min-width:700px){
  .yh-entry-scene{grid-template-columns:1.2fr 1fr;min-height:280px;padding:32px 40px;background:linear-gradient(90deg,var(--cd-surface) 0%,color-mix(in srgb,var(--cd-surface) 94%,transparent) 35%,transparent 75%),var(--yh-garden) center 24%/cover no-repeat}
