@@ -40,7 +40,9 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm ci
+        run: |
+          node tools/oracle/release-check/preflight.mjs .
+          npm ci
 
       # 생성기를 실제로 돌려 커밋된 public/ 미러와 대조한다. 손으로 관리하는 목록이 아니라
       # 정본 생성기의 출력이므로 미러가 늘어도 자동으로 덮인다.

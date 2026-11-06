@@ -73,7 +73,9 @@ jobs:
         run: npm run verify:ai-locale-pipeline
 
       - name: Install AST and browser test dependencies
-        run: npm ci --ignore-scripts
+        run: |
+          node tools/oracle/release-check/preflight.mjs .
+          npm ci --ignore-scripts
 
       - name: Verify complete call inventory and mock locale boundaries
         run: |

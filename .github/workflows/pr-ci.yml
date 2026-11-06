@@ -186,7 +186,9 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm ci
+        run: |
+          node tools/oracle/release-check/preflight.mjs .
+          npm ci
 
       - name: Restore TypeScript incremental metadata
         uses: actions/cache@v4
@@ -230,7 +232,9 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm ci
+        run: |
+          node tools/oracle/release-check/preflight.mjs .
+          npm ci
 
       # `verify:quantum-card-cascade`는 실제 브라우저에서 초기 렌더·새로고침·SPA 이동과
       # 모바일 레이아웃을 확인한다. ubuntu-latest 러너에는 Playwright 패키지만 있고
@@ -974,7 +978,9 @@ jobs:
 
       - name: Install dependencies
         if: needs.classify.outputs.runs_build == 'true'
-        run: npm ci
+        run: |
+          node tools/oracle/release-check/preflight.mjs .
+          npm ci
 
       # next 컴파일이 build:cf 166s 중 90.9s 였다(2026-09-06 실측, job 101448056153). 그 대부분이
       # webpack 영속 캐시가 꺼져 있어 매번 전량 재컴파일하는 몫이라 보고, **PR CI 에서만** 켜서 잰다
@@ -1099,7 +1105,9 @@ jobs:
 
       - name: Install dependencies
         if: needs.classify.outputs.runs_critical == 'true'
-        run: npm ci
+        run: |
+          node tools/oracle/release-check/preflight.mjs .
+          npm ci
 
       # 전체 스위트는 60초 안팎이다. 파일 목록을 손으로 관리하면 새 테스트가 조용히
       # 실행되지 않는 상태로 남는다(2026-08 에 48개 파일이 그랬다).
@@ -1111,6 +1119,7 @@ jobs:
       - name: Verify Toss miniapp and offline platform contracts
         if: needs.classify.outputs.runs_critical == 'true'
         run: |
+          node tools/oracle/release-check/preflight.mjs apps/toss
           npm ci --prefix apps/toss
           npm test --prefix apps/toss
           npm run build --prefix apps/toss

@@ -43,7 +43,9 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm ci
+        run: |
+          node tools/oracle/release-check/preflight.mjs .
+          npm ci
 
       # 직전 main 캐시를 복원해 증분으로 갱신한다(정확히 일치하는 키는 sha 때문에 늘 빗나가고,
       # restore-keys 로 직전 것을 집은 뒤 post 스텝이 새 sha 키로 저장한다).
