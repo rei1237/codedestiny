@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "759b49df9cdf896e2c11179d89519146cbd565b3",
+  "sourceCommit": "1cb3a097a41c0c17452f830114989a36b2ad40e7",
   "scope": "Source discovery plus explicitly verified aliases; not a count of implemented services. Unmapped contracts are blocking work, not exclusions.",
   "sourceCounts": {
     "home": 63,
@@ -1867,8 +1867,8 @@
         "library": "not-verified",
         "device": "not-tested",
         "canonicalId": "psychotest",
-        "candidateStatus": "requires-full-flow-port-and-verification",
-        "canonicalRoute": null
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/psychotest/"
       }
     },
     {
@@ -4692,12 +4692,13 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/psychotest/",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "22 original tests in src/features/psychotest/data/testData.ts",
+      "resultRenderer": "apps/toss/service/TossPsychotest.tsx + src/features/psychotest/TestPlayer.tsx",
+      "storageContract": "owner-scoped in-memory results for the current screen session only; app restart and cross-device recovery absent",
+      "verification": "local React mock exercises 22 result paths, back, account switch and clipboard permissions; clinical wording and fabricated fixed trait scores narrowed for Toss; complete editorial audit, official policy, screen-reader and device verification pending"
     },
     {
       "id": "quantum-saju",

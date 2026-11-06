@@ -1,7 +1,8 @@
 "use client";
 import Image from "next/image";
 import TestArtwork from "./TestArtwork";
-import { useState, useRef, useEffect } from "react";
+import {tossPsychotestMeta,tossPsychotestResult,tossChihuahuaResult,tossPastLifeResult} from "./toss-psychotest-copy.mjs";
+import { useState, useRef, useEffect, isValidElement, cloneElement } from "react";
 import {
   ALL_TESTS,
   PSYCHO_QUESTIONS, PSYCHO_OPTS, PSYCHO_RESULTS,
@@ -53,7 +54,7 @@ villain: VILLAIN_QUESTIONS.length,
 idealsignal: IDEALSIGNAL_QUESTIONS.length
 };
 
-interface Props { testId: string; onBack: () => void; }
+interface Props { testId: string; onBack: () => void; toss?: {savedResult?:React.ReactNode; onComplete:(result:React.ReactNode)=>void; onPhase:(phase:Phase)=>void; onCopy:(text:string)=>Promise<void>; requestCopyPermission:()=>Promise<boolean>}; }
 
 type Phase = "intro" | "quiz" | "result";
 
@@ -125,35 +126,68 @@ function ShareButton({ meta, result }: { meta: any; result: React.ReactNode }) {
   );
 }
 
-export default function TestPage({ testId, onBack }: Props) {
-  const meta = ALL_TESTS.find(t => t.id === testId)!;
-  const [phase, setPhase] = useState<Phase>("intro");
-  const [result, setResult] = useState<React.ReactNode>(null);
+function TossReflectionResult({score,maxScore,onBack,onRetry}:{score:number;maxScore:number;onBack:()=>void;onRetry:()=>void}){return <section className="psy-toss-reflection"><h2>선택한 답변 돌아보기</h2><p>답변 점수 {score} / {maxScore}</p><p>이 점수는 선택한 답변을 합한 값이며 성격이나 심리 상태를 진단하지 않아요. 나와 타인을 대할 때 중요하게 여기는 선택을 천천히 돌아보세요.</p><button onClick={onRetry}>다시 하기</button><button onClick={onBack}>다른 테스트 보기</button></section>;}
 
-  if (phase === "intro") return <Intro meta={meta} onBack={onBack} onStart={() => setPhase("quiz")} />;
+function TossCopyButton({copy,requestPermission}:{copy:()=>Promise<void>;requestPermission:()=>Promise<boolean>}) {
+  const [message,setMessage]=useState(''),[permissionNeeded,setPermissionNeeded]=useState(false),[working,setWorking]=useState(false);
+  const busy=useRef(false),alive=useRef(true);
+  useEffect(()=>{alive.current=true;return()=>{alive.current=false;};},[]);
+  const run=async(permission=false)=>{
+    if(busy.current)return;
+    busy.current=true;setWorking(true);setMessage('');
+    try{
+      if(permission){
+        const allowed=await requestPermission();
+        if(alive.current){setPermissionNeeded(!allowed);setMessage(allowed?'권한을 확인했어요. 복사를 다시 눌러 주세요.':'클립보드 권한이 없어 복사할 수 없어요.');}
+      }else{
+        await copy();
+        if(alive.current){setPermissionNeeded(false);setMessage('결과를 복사했어요.');}
+      }
+    }catch(error){
+      if(!alive.current)return;
+      const e=error as {status?:number;code?:string};
+      const denied=e?.status===403||e?.code==='ACCESS_DENIED';
+      if(denied)setPermissionNeeded(true);
+      setMessage(denied?'복사 권한을 확인해 주세요.':e?.status===401||e?.code==='LOGIN_REQUIRED'||e?.code==='SESSION_EXPIRED'?'로그인 상태를 확인해 주세요.':e?.code==='UNSUPPORTED_APP_VERSION'?'토스 앱을 업데이트해 주세요.':e?.code==='BRIDGE_BUSY'?'복사를 확인하고 있어요.':'복사하지 못했어요. 다시 시도해 주세요.');
+    }finally{busy.current=false;if(alive.current)setWorking(false);}
+  };
+  return <div><button className="result-share" disabled={working} onClick={()=>void run()}>결과 복사하기</button>{message&&<p role="status">{message}</p>}{permissionNeeded&&<button disabled={working} onClick={()=>void run(true)}>클립보드 권한 확인하기</button>}</div>;
+}
+
+export default function TestPage({ testId, onBack, toss }: Props) {
+  const originalMeta = ALL_TESTS.find(t => t.id === testId)!;
+  const meta = toss?tossPsychotestMeta(originalMeta):originalMeta;
+  const [phase, setPhase] = useState<Phase>(toss?.savedResult?"result":"intro");
+  const [result, setResult] = useState<React.ReactNode>(toss?.savedResult||null);
+  useEffect(()=>{toss?.onPhase(phase);},[phase,toss?.onPhase]);
+  const [confirmExit,setConfirmExit]=useState(false),stayFocus=useRef<HTMLButtonElement>(null),leaveFocus=useRef<HTMLButtonElement>(null),previousFocus=useRef<HTMLElement|null>(null);
+  useEffect(()=>{if(confirmExit)stayFocus.current?.focus();else previousFocus.current?.focus();},[confirmExit]);
+  useEffect(()=>{if(!toss)return;const back=(event:Event)=>{if(event.defaultPrevented)return;if(confirmExit){event.preventDefault();setConfirmExit(false);return;}if(phase==="result"){event.preventDefault();setPhase("intro");return;}if(phase==="quiz"){event.preventDefault();previousFocus.current=document.activeElement as HTMLElement|null;setConfirmExit(true);}};window.addEventListener("code-destiny:toss-back",back);return()=>window.removeEventListener("code-destiny:toss-back",back);},[toss,phase,confirmExit]);
+
+  if (phase === "intro") return <><Intro meta={meta} onBack={onBack} onStart={() => setPhase("quiz")} />{toss&&<p className="psy-memory-note">결과는 이 화면을 닫으면 저장되지 않아요.</p>}{toss&&result&&<button className="psy-restore" onClick={()=>setPhase("result")}>이전 결과 다시 보기</button>}</>;
   if (phase === "result") {
     return (
       <>
-        {result}
+        {toss&&isValidElement(result)?cloneElement(result as React.ReactElement<any>,{onBack,onRetry:()=>setPhase("intro")}):result}
         <div className="psy-result-host"><Image src="/images/psychotest/yeoni-youngyangi-gallery-v1.webp" width={360} height={240} alt="카드를 함께 읽는 연이와 영냥이"/><p>오늘의 선택에서 발견한 한 조각이에요.<br/>나와 닮은 부분을 일상에서 천천히 살펴보세요.</p></div>
-        <ShareButton meta={meta} result={result} />
+        {toss?<TossCopyButton copy={()=>toss.onCopy(getResultSummary(meta,result))} requestPermission={toss.requestCopyPermission}/>:<ShareButton meta={meta} result={result} />}
       </>
     );
   }
 
-  const onDone = (r: React.ReactNode) => { setResult(r); setPhase("result"); };
+  const onDone = (r: React.ReactNode) => { let next=r;if(toss&&isValidElement(r)){const props=getResultProps(r);if(testId==="psycho"||testId==="narcissist")next=<TossReflectionResult score={props.score} maxScore={testId==="psycho"?40:80} onBack={onBack} onRetry={()=>setPhase("intro")}/>;else if(testId==="chihuahua")next=cloneElement(r as React.ReactElement<any>,{...tossChihuahuaResult(props.score),toss:true});else if(testId==="pastlife")next=cloneElement(r as React.ReactElement<any>,{toss:true});else if(props.result)next=cloneElement(r as React.ReactElement<any>,{result:tossPsychotestResult(testId,props.result),toss:true});}setResult(next);setPhase("result");toss?.onComplete(next); };
 
   const QuizComponent: Record<string, React.ReactElement> = {
-    psycho: <ScoreQuiz testId={testId} meta={meta} questions={PSYCHO_QUESTIONS} opts={PSYCHO_OPTS.map((o,i)=>({t:o,v:i}))} results={PSYCHO_RESULTS.map(r=>({...r,scoreMap:(s:number)=>s===2?2:s===1?1:0}))} scoreCalc={(answers)=>answers.reduce((a,b)=>a+b,0)} findResult={(s)=>PSYCHO_RESULTS.find(r=>s>=r.min&&s<=r.max)||PSYCHO_RESULTS[0]} onBack={onBack} onDone={onDone} renderResult={(r,s)=><ScoreResult meta={meta} result={r} score={s} maxScore={40} onBack={onBack} onRetry={()=>setPhase("intro")} />} bg="#0D0008" cardStyle={{background:"rgba(255,107,157,0.04)",border:"1px solid rgba(255,107,157,0.13)",borderRadius:28}} optStyle={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",color:"rgba(255,255,255,0.7)"}} optLblStyle={{color:"rgba(255,107,157,0.7)",borderColor:"rgba(255,107,157,0.2)"}} />,
-    narcissist: <ScaleQuiz testId="narcissist" meta={meta} questions={NARCISSIST_QUESTIONS.map(q=>q.q)} cats={NARCISSIST_QUESTIONS.map(q=>q.cat)} opts={NARCISSIST_OPTS} findResult={(s)=>NARCISSIST_RESULTS.find(r=>s>=r.min&&s<=r.max)||NARCISSIST_RESULTS[0]} onBack={onBack} onDone={onDone} renderResult={(r,s)=><SimpleResult meta={meta} title={r.name} badge={r.badge} desc={r.desc} score={s} maxScore={100} color={r.color} onBack={onBack} onRetry={()=>setPhase("intro")} />} bg="linear-gradient(135deg,#0D0D1A,#1A1A2E,#16213E)" cardStyle={{background:"rgba(212,175,55,0.06)",border:"1px solid rgba(212,175,55,0.18)",borderRadius:20}} optStyle={{background:"rgba(212,175,55,0.06)",border:"1px solid rgba(212,175,55,0.15)",color:"rgba(255,230,160,0.85)"}} optLblStyle={{color:"#D4AF37",borderColor:"rgba(212,175,55,0.3)"}} catStyle={{color:"#D4AF37"}} qTextStyle={{color:"#F0DFA0"}} />,
-    chihuahua: <ScaleQuiz testId="chihuahua" meta={meta} questions={CHIHUAHUA_QUESTIONS.map(q=>q.q)} cats={CHIHUAHUA_QUESTIONS.map(q=>q.cat)} opts={CHIHUAHUA_OPTS} findResult={(s)=>{const pct=Math.round(s/(CHIHUAHUA_QUESTIONS.length*5)*100);return CHIHUAHUA_RESULTS.find(r=>pct>=r.min&&pct<=r.max)||CHIHUAHUA_RESULTS[CHIHUAHUA_RESULTS.length-1];}} onBack={onBack} onDone={onDone} renderResult={(r,s)=><SimpleResult meta={meta} title={r.name} badge={r.icon+" "+r.badge} desc={r.desc} score={Math.round(s/(CHIHUAHUA_QUESTIONS.length*5)*100)} maxScore={100} color={r.color} onBack={onBack} onRetry={()=>setPhase("intro")} />} bg="linear-gradient(135deg,#FFF8F0,#FFE4D1)" cardStyle={{background:"rgba(255,255,255,0.85)",border:"2px dashed rgba(255,107,53,0.25)",borderRadius:24}} optStyle={{background:"#fff",border:"2px solid rgba(255,107,53,0.18)",color:"#7A4030"}} optLblStyle={{color:"#FF6B35",borderColor:"rgba(255,107,53,0.3)"}} catStyle={{color:"#FF6B35"}} qTextStyle={{color:"#5A3020",fontWeight:600}} />,
-    aura: <AuraQuiz meta={meta} onBack={onBack} onDone={onDone} onRetry={()=>setPhase("intro")} />,
+    psycho: <ScoreQuiz testId={testId} meta={meta} questions={PSYCHO_QUESTIONS} opts={PSYCHO_OPTS.map((o,i)=>({t:o,v:i}))} results={PSYCHO_RESULTS.map(r=>({...r,scoreMap:(s:number)=>s===2?2:s===1?1:0}))} scoreCalc={(answers:number[])=>answers.reduce((a,b)=>a+b,0)} findResult={(s:number)=>PSYCHO_RESULTS.find(r=>s>=r.min&&s<=r.max)||PSYCHO_RESULTS[0]} onBack={onBack} onDone={onDone} renderResult={(r:(typeof PSYCHO_RESULTS)[number],s:number)=><ScoreResult meta={meta} result={r} score={s} maxScore={40} onBack={onBack} onRetry={()=>setPhase("intro")} />} bg="#0D0008" cardStyle={{background:"rgba(255,107,157,0.04)",border:"1px solid rgba(255,107,157,0.13)",borderRadius:28}} optStyle={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",color:"rgba(255,255,255,0.7)"}} optLblStyle={{color:"rgba(255,107,157,0.7)",borderColor:"rgba(255,107,157,0.2)"}} />,
+    narcissist: <ScaleQuiz testId="narcissist" meta={meta} questions={NARCISSIST_QUESTIONS.map(q=>q.q)} cats={NARCISSIST_QUESTIONS.map(q=>q.cat)} opts={NARCISSIST_OPTS} findResult={(s:number)=>NARCISSIST_RESULTS.find(r=>s>=r.min&&s<=r.max)||NARCISSIST_RESULTS[0]} onBack={onBack} onDone={onDone} renderResult={(r:(typeof NARCISSIST_RESULTS)[number],s:number)=><SimpleResult meta={meta} title={r.name} badge={r.badge} desc={r.desc} score={s} maxScore={100} color={r.color} onBack={onBack} onRetry={()=>setPhase("intro")} />} bg="linear-gradient(135deg,#0D0D1A,#1A1A2E,#16213E)" cardStyle={{background:"rgba(212,175,55,0.06)",border:"1px solid rgba(212,175,55,0.18)",borderRadius:20}} optStyle={{background:"rgba(212,175,55,0.06)",border:"1px solid rgba(212,175,55,0.15)",color:"rgba(255,230,160,0.85)"}} optLblStyle={{color:"#D4AF37",borderColor:"rgba(212,175,55,0.3)"}} catStyle={{color:"#D4AF37"}} qTextStyle={{color:"#F0DFA0"}} />,
+    chihuahua: <ScaleQuiz testId="chihuahua" meta={meta} questions={CHIHUAHUA_QUESTIONS.map(q=>q.q)} cats={CHIHUAHUA_QUESTIONS.map(q=>q.cat)} opts={CHIHUAHUA_OPTS} findResult={(s:number)=>{const pct=Math.round(s/(CHIHUAHUA_QUESTIONS.length*(toss?4:5))*100);return CHIHUAHUA_RESULTS.find(r=>pct>=r.min&&pct<=r.max)||CHIHUAHUA_RESULTS[CHIHUAHUA_RESULTS.length-1];}} onBack={onBack} onDone={onDone} renderResult={(r:(typeof CHIHUAHUA_RESULTS)[number],s:number)=><SimpleResult meta={meta} title={r.name} badge={r.icon+" "+r.badge} desc={r.desc} score={Math.round(s/(CHIHUAHUA_QUESTIONS.length*(toss?4:5))*100)} maxScore={100} color={r.color} onBack={onBack} onRetry={()=>setPhase("intro")} />} bg="linear-gradient(135deg,#FFF8F0,#FFE4D1)" cardStyle={{background:"rgba(255,255,255,0.85)",border:"2px dashed rgba(255,107,53,0.25)",borderRadius:24}} optStyle={{background:"#fff",border:"2px solid rgba(255,107,53,0.18)",color:"#7A4030"}} optLblStyle={{color:"#FF6B35",borderColor:"rgba(255,107,53,0.3)"}} catStyle={{color:"#FF6B35"}} qTextStyle={{color:"#5A3020",fontWeight:600}} />,
+    aura: <AuraQuiz meta={meta} onBack={onBack} onDone={onDone} onRetry={()=>setPhase("intro")} toss={Boolean(toss)} />,
     ttest: <TTestQuiz meta={meta} onBack={onBack} onDone={onDone} onRetry={()=>setPhase("intro")} />,
     persona: <PersonaQuiz meta={meta} onBack={onBack} onDone={onDone} onRetry={()=>setPhase("intro")} />,
     thriller: <ThrillerQuiz meta={meta} onBack={onBack} onDone={onDone} onRetry={()=>setPhase("intro")} />,
     office: <OfficeQuiz meta={meta} onBack={onBack} onDone={onDone} onRetry={()=>setPhase("intro")} />,
     seven: <SevenQuiz meta={meta} onBack={onBack} onDone={onDone} onRetry={()=>setPhase("intro")} />,
-    hsp: <ScaleQuiz testId="hsp" meta={meta} questions={HSP_QUESTIONS.map(q=>q.q)} cats={HSP_QUESTIONS.map(q=>q.cat)} opts={HSP_OPTS_LABELS} findResult={(s)=>{const pct=Math.round(s/(HSP_QUESTIONS.length*4)*100);return [...HSP_RESULTS].reverse().find(r=>pct>=r.min)||HSP_RESULTS[0];}} onBack={onBack} onDone={onDone} renderResult={(r,s)=><HspResult meta={meta} result={r} score={Math.round(s/(HSP_QUESTIONS.length*4)*100)} onBack={onBack} onRetry={()=>setPhase("intro")} />} bg="linear-gradient(180deg,#E8F3D6 0%,#FAF3E0 50%,#FFF9F0 100%)" cardStyle={{background:"rgba(255,255,255,0.9)",border:"1px solid rgba(124,154,124,0.2)",borderRadius:32,boxShadow:"0 20px 60px rgba(124,154,124,0.1)"}} optStyle={{background:"#fff",border:"2px solid rgba(124,154,124,0.2)",color:"#4A5A4A",borderRadius:20}} optLblStyle={{color:"#7C9A7C",borderColor:"rgba(124,154,124,0.3)"}} catStyle={{color:"#AA96DA",letterSpacing:2}} qTextStyle={{color:"#3A4A3A",fontWeight:500}} />,
+    hsp: <ScaleQuiz testId="hsp" meta={meta} questions={HSP_QUESTIONS.map(q=>q.q)} cats={HSP_QUESTIONS.map(q=>q.cat)} opts={HSP_OPTS_LABELS} findResult={(s:number)=>{const pct=Math.round(s/(HSP_QUESTIONS.length*4)*100);return [...HSP_RESULTS].reverse().find(r=>pct>=r.min)||HSP_RESULTS[0];}} onBack={onBack} onDone={onDone} renderResult={(r:(typeof HSP_RESULTS)[number],s:number)=><HspResult meta={meta} result={r} score={Math.round(s/(HSP_QUESTIONS.length*4)*100)} onBack={onBack} onRetry={()=>setPhase("intro")} />} bg="linear-gradient(180deg,#E8F3D6 0%,#FAF3E0 50%,#FFF9F0 100%)" cardStyle={{background:"rgba(255,255,255,0.9)",border:"1px solid rgba(124,154,124,0.2)",borderRadius:32,boxShadow:"0 20px 60px rgba(124,154,124,0.1)"}} optStyle={{background:"#fff",border:"2px solid rgba(124,154,124,0.2)",color:"#4A5A4A",borderRadius:20}} optLblStyle={{color:"#7C9A7C",borderColor:"rgba(124,154,124,0.3)"}} catStyle={{color:"#AA96DA",letterSpacing:2}} qTextStyle={{color:"#3A4A3A",fontWeight:500}} />,
     tci: <TciQuiz meta={meta} onBack={onBack} onDone={onDone} onRetry={()=>setPhase("intro")} />,
     empathy: <EmpathyQuiz meta={meta} onBack={onBack} onDone={onDone} onRetry={()=>setPhase("intro")} />,
     mental: <MentalQuiz meta={meta} onBack={onBack} onDone={onDone} onRetry={()=>setPhase("intro")} />,
@@ -165,7 +199,7 @@ export default function TestPage({ testId, onBack }: Props) {
       questions={LOVELANG_QUESTIONS}
       categoryLabel="연애 언어"
       onBack={onBack}
-      onDone={(winner,scores) => onDone(<LoveLangResult meta={meta} winner={winner} scores={scores} onBack={onBack} onRetry={()=>setPhase("intro")} />)}
+      onDone={(winner:string,scores:Record<string,number>) => onDone(<LoveLangResult meta={meta} winner={winner} scores={scores} onBack={onBack} onRetry={()=>setPhase("intro")} />)}
     />,
     pastlife: <DimTypeQuiz
       bg="linear-gradient(135deg,#0A0010 0%,#2C1654 50%,#1A0A2E 100%)"
@@ -173,7 +207,7 @@ export default function TestPage({ testId, onBack }: Props) {
       questions={PASTLIFE_QUESTIONS}
       categoryLabel="전생 유형"
       onBack={onBack}
-      onDone={(winner,scores) => onDone(<PastLifeResult meta={meta} winner={winner} scores={scores} onBack={onBack} onRetry={()=>setPhase("intro")} />)}
+      onDone={(winner:string,scores:Record<string,number>) => onDone(<PastLifeResult meta={meta} winner={winner} scores={scores} onBack={onBack} onRetry={()=>setPhase("intro")} />)}
     />,
     dopamine: <DimTypeQuiz
       bg="linear-gradient(135deg,#1A0A00 0%,#3D1C00 50%,#1A0A00 100%)"
@@ -181,7 +215,7 @@ export default function TestPage({ testId, onBack }: Props) {
       questions={DOPAMINE_QUESTIONS}
       categoryLabel="도파민 유형"
       onBack={onBack}
-      onDone={(winner,scores) => onDone(<DopamineResult meta={meta} winner={winner} scores={scores} onBack={onBack} onRetry={()=>setPhase("intro")} />)}
+      onDone={(winner:string,scores:Record<string,number>) => onDone(<DopamineResult meta={meta} winner={winner} scores={scores} onBack={onBack} onRetry={()=>setPhase("intro")} />)}
     />,
     nunchi: <NunchiQuiz meta={meta} onBack={onBack} onDone={onDone} onRetry={()=>setPhase("intro")} />,
     mentalfit: <MentalFitQuiz meta={meta} onBack={onBack} onDone={onDone} onRetry={()=>setPhase("intro")} />,
@@ -189,7 +223,7 @@ export default function TestPage({ testId, onBack }: Props) {
     idealsignal: <IdealSignalQuiz meta={meta} onBack={onBack} onDone={onDone} onRetry={()=>setPhase("intro")} />,
   };
 
-  return QuizComponent[testId] || <div style={{padding:40,color:"#fff"}}>Unknown test</div>;
+  return <>{QuizComponent[testId] || <div style={{padding:40,color:"#fff"}}>Unknown test</div>}{confirmExit&&<div className="psy-exit-overlay" role="dialog" aria-modal="true" aria-labelledby="psy-exit-title" onKeyDown={event=>{if(event.key==="Escape"){event.preventDefault();setConfirmExit(false);}else if(event.key==="Tab"){event.preventDefault();(document.activeElement===stayFocus.current?leaveFocus.current:stayFocus.current)?.focus();}}}><section><h2 id="psy-exit-title">테스트를 그만둘까요?</h2><p>지금 그만두면 작성한 답변은 저장되지 않아요.</p><button ref={stayFocus} onClick={()=>setConfirmExit(false)}>계속하기</button><button ref={leaveFocus} onClick={()=>{setConfirmExit(false);setPhase("intro");}}>그만두기</button></section></div>}</>;
 }
 
 /* ═══════════════════════════════════════ INTRO ═══════════════════════════════════════ */
@@ -283,14 +317,14 @@ function ScaleQuiz({ meta, questions, cats, opts, findResult, onBack, onDone, re
 }
 
 /* ═══════════════════════════════════════ AURA QUIZ ═══════════════════════════════════════ */
-function AuraQuiz({ meta, onBack, onDone, onRetry }: any) {
+function AuraQuiz({ meta, onBack, onDone, onRetry, toss }: any) {
   const [cur, setCur] = useState(0);
   const [scores, setScores] = useState({e:0,i:0,s:0,n:0,f:0,t:0,p:0,j:0});
   const pct = Math.round(cur / AURA_QUESTIONS.length * 100);
 
   const pick = (opt: any) => {
     const ns = { ...scores };
-    (Object.keys(opt) as (keyof typeof ns)[]).forEach(k => { if (k !== 'label' as any) ns[k] = (ns[k]||0) + (opt[k]||0); });
+    (Object.keys(opt) as string[]).forEach(k => {if(k==='label')return;const target=toss&&k==='th'?'t':k;if(target in ns)(ns as Record<string,number>)[target]=((ns as Record<string,number>)[target]||0)+(opt[k]||0);});
     const next = cur + 1;
     if (next >= AURA_QUESTIONS.length) {
       const { e, i, s, n, f, t, p, j } = ns;
@@ -401,7 +435,7 @@ function TTestQuiz({ meta, onBack, onDone, onRetry }: any) {
   );
 }
 
-function TTestResult({ meta, result, score, maxScore, onBack, onRetry }: any) {
+function TTestResult({ meta, result, score, maxScore, onBack, onRetry, toss }: any) {
   const pct = Math.round(score / maxScore * 100);
   return (
     <div style={{ minHeight: "100vh", background: "#000", padding: "24px 16px 60px" }}>
@@ -410,7 +444,7 @@ function TTestResult({ meta, result, score, maxScore, onBack, onRetry }: any) {
         <div style={{ border: `2px solid ${result.color}`, borderRadius: 20, padding: 32, textAlign: "center", animation: "cardIn .6s ease both", boxShadow: `0 0 40px ${result.color}33` }}>
           <p style={{ color: result.color, fontFamily: "monospace", fontSize: 12, marginBottom: 8 }}>{result.tier}</p>
           <div style={{ fontSize: 64, fontFamily: "monospace", fontWeight: 900, color: result.color, textShadow: `0 0 30px ${result.color}`, marginBottom: 8 }}>{pct}<span style={{ fontSize: 32 }}>%</span></div>
-          <h2 style={{ color: "#fff", fontSize: 24, fontFamily: "inherit", marginBottom: 4 }}>{result.title}</h2>
+          {toss&&<p>답변 점수 비율</p>}<h2 style={{ color: "#fff", fontSize: 24, fontFamily: "inherit", marginBottom: 4 }}>{result.title}</h2>
           <p style={{ color: "rgba(255,255,255,0.6)", fontSize: 14, marginBottom: 20 }}>{result.subtitle}</p>
           <p style={{ color: "rgba(255,255,255,0.8)", fontSize: 14, lineHeight: 1.7, marginBottom: 28 }}>{result.desc}</p>
           <div style={{ display: "flex", gap: 10 }}>
@@ -630,7 +664,7 @@ function OfficeQuiz({ meta, onBack, onDone, onRetry }: any) {
     <div style={{ minHeight:"100vh", background:"#F0F2F5", display:"flex", flexDirection:"column" }}>
       {/* Office header */}
       <div style={{ background:"#1877F2", padding:"12px 20px", display:"flex", alignItems:"center", gap:12, color:"#fff" }}>
-        <button onClick={onBack} style={{background:"none",border:"none",color:"#fff",cursor:"pointer",fontSize:18}}>←</button>
+        <button className="psy-office-back" onClick={onBack} style={{background:"none",border:"none",color:"#fff",cursor:"pointer",fontSize:18}}>←</button>
         <div style={{fontWeight:700,fontSize:16}}>팀 단톡방 💼</div>
         <div style={{marginLeft:"auto",fontSize:12,opacity:0.8}}>
           {String(new Date().getHours()).padStart(2,"0")}:{String(new Date().getMinutes()).padStart(2,"0")}
@@ -816,25 +850,25 @@ function SevenResult({ meta, result, yesCount, total, onBack, onRetry }: any) {
 }
 
 /* ═══════════════════════════════════════ HSP RESULT ═══════════════════════════════════════ */
-function HspResult({ meta, result, score, onBack, onRetry }: any) {
+function HspResult({ meta, result, score, onBack, onRetry, toss }: any) {
   return (
-    <div style={{minHeight:"100vh",background:"linear-gradient(180deg,#E8F3D6 0%,#FAF3E0 50%,#FFF9F0 100%)",padding:"24px 16px 60px"}}>
+    <div style={{minHeight:"100vh",background:"linear-gradient(180deg,#E8F3D6 0%,#FAF3E0 50%,#FFF9F0 100%)",padding:"24px 16px 60px",...(toss?{'--text-secondary':'#344638','--text-muted':'#4b6050','--rose-400':'#963859'} as React.CSSProperties:{})}}>
       <div style={{maxWidth:560,margin:"0 auto"}}>
         <button className="back-btn" onClick={onBack} style={{marginBottom:24}}>← 테스트 목록</button>
         <div className="glass-card" style={{overflow:"hidden",animation:"cardIn .6s ease both"}}>
           <div style={{background:"linear-gradient(135deg,#A8D8EA,#AA96DA)",padding:"40px 32px",textAlign:"center"}}>
             <div style={{fontSize:56,marginBottom:12}}>{result.drop}</div>
-            <p style={{color:"rgba(255,255,255,0.8)",fontSize:12,marginBottom:6}}>{result.tier}</p>
-            <h2 style={{fontFamily:"inherit",fontSize:22,color:"#fff",marginBottom:4}}>{result.name}</h2>
+            <p style={{color:toss?"#354758":"rgba(255,255,255,0.8)",fontSize:12,marginBottom:6}}>{result.tier}</p>
+            <h2 style={{fontFamily:"inherit",fontSize:22,color:toss?"#1b3448":"#fff",marginBottom:4}}>{result.name}</h2>
           </div>
           <div style={{padding:"28px 32px"}}>
             <div style={{textAlign:"center",marginBottom:20}}>
               <div style={{fontSize:40,fontWeight:900,color:"var(--rose-400)"}}>{score}<span style={{fontSize:18,color:"var(--text-muted)"}}>%</span></div>
-              <div style={{color:"var(--text-muted)",fontSize:13}}>예민 지수</div>
+              <div style={{color:"var(--text-muted)",fontSize:13}}>{toss?"답변 점수 비율":"예민 지수"}</div>
             </div>
             <p style={{color:"var(--text-secondary)",fontSize:14,lineHeight:1.7,marginBottom:16}}>{result.desc}</p>
             <div style={{background:"rgba(168,216,234,0.1)",border:"1px solid rgba(168,216,234,0.2)",borderRadius:12,padding:16,marginBottom:24}}>
-              <p style={{color:"#A8D8EA",fontSize:12,marginBottom:6}}>💊 HSP 처방전</p>
+              <p style={{color:toss?"#355e70":"#A8D8EA",fontSize:12,marginBottom:6}}>{toss?"편안한 휴식 제안":"💊 HSP 처방전"}</p>
               <p style={{color:"var(--text-secondary)",fontSize:13,lineHeight:1.6}}>{result.prescription}</p>
             </div>
             <div style={{display:"flex",gap:10}}>
@@ -1205,7 +1239,7 @@ function QuizCard({ qnum, question, category, children, cardStyle, qTextStyle, c
   );
 }
 
-function SimpleResult({ meta, title, badge, desc, score, maxScore, color, onBack, onRetry }: any) {
+function SimpleResult({ meta, title, badge, desc, score, maxScore, color, onBack, onRetry, toss }: any) {
   const pct = Math.round(score / maxScore * 100);
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg-main)", padding: "24px 16px 60px" }}>
@@ -1215,7 +1249,7 @@ function SimpleResult({ meta, title, badge, desc, score, maxScore, color, onBack
           <div style={{ padding: "40px 32px", textAlign: "center", background: `linear-gradient(135deg,${color}33,${color}11)`, borderBottom: `1px solid ${color}33` }}>
             <p style={{ color, fontSize: 13, marginBottom: 8 }}>{badge}</p>
             <div style={{ fontSize: 56, fontWeight: 900, color, marginBottom: 8 }}>{pct}<span style={{ fontSize: 24 }}>%</span></div>
-            <h2 style={{ fontFamily: "inherit", fontSize: 22, color: "#fff" }}>{title}</h2>
+            {toss&&<p>답변 점수 비율</p>}<h2 style={{ fontFamily: "inherit", fontSize: 22, color: "#fff" }}>{title}</h2>
           </div>
           <div style={{ padding: "28px 32px" }}>
             <p style={{ color: "var(--text-secondary)", fontSize: 15, lineHeight: 1.7, marginBottom: 28 }}>{desc}</p>
@@ -1494,8 +1528,9 @@ function LoveLangResult({ meta, winner, scores, onBack, onRetry }: any) {
 }
 
 /* ══════════════════ PAST LIFE RESULT ══════════════════ */
-function PastLifeResult({ meta, winner, scores, onBack, onRetry }: any) {
-  const r = PASTLIFE_RESULTS[winner];
+function PastLifeResult({ meta, winner, scores, onBack, onRetry, toss }: any) {
+  const original = PASTLIFE_RESULTS[winner];
+  const r = toss?tossPastLifeResult(original,winner):original;
   const jobLabels: Record<string,string> = { F:"⚔️ 전사", S:"📜 학자", A:"🎨 예술가", M:"🏺 상인", H:"🌿 치유사", N:"👑 귀족" };
   const total = Object.values(scores).reduce((a:any,b:any)=>a+b, 0) as number || 1;
   return (
@@ -1505,18 +1540,18 @@ function PastLifeResult({ meta, winner, scores, onBack, onRetry }: any) {
         <div style={{ background:"rgba(255,255,255,0.04)", backdropFilter:"blur(20px)", borderRadius:28, overflow:"hidden", border:"1px solid rgba(201,162,39,0.25)", boxShadow:"0 24px 80px rgba(0,0,0,0.6)", animation:"cardIn .6s ease both" }}>
           <div style={{ padding:"44px 28px", textAlign:"center", background:`linear-gradient(135deg,${r.color}08,${r.color}18)`, borderBottom:`2px solid ${r.color}40` }}>
             <div style={{ fontSize:60, marginBottom:8 }}>{r.icon}</div>
-            <div style={{ fontSize:11, color:"rgba(201,162,39,0.7)", fontWeight:800, letterSpacing:3, marginBottom:8 }}>전생 직업 판명 결과</div>
+            <div style={{ fontSize:11, color:"rgba(201,162,39,0.7)", fontWeight:800, letterSpacing:3, marginBottom:8 }}>{toss?"상상 속 전생 이야기":"전생 직업 판명 결과"}</div>
             <h2 style={{ fontFamily:"inherit", fontSize:"clamp(16px,4vw,22px)", color:r.color, marginBottom:6, lineHeight:1.3 }}>{r.title}</h2>
             <div style={{ display:"flex", gap:6, justifyContent:"center", flexWrap:"wrap", marginBottom:4 }}>
               {r.keywords.map((k: string) => <span key={k} style={{ background:`${r.color}18`, color:r.color, borderRadius:99, padding:"4px 10px", fontSize:11, fontWeight:700 }}>{k}</span>)}
             </div>
-            <p style={{ color:"rgba(201,162,39,0.5)", fontSize:11, marginTop:10 }}>시대: {r.era}</p>
+            <p style={{ color:"rgba(201,162,39,0.5)", fontSize:11, marginTop:10 }}>{toss?"상상 배경":"시대"}: {r.era}</p>
           </div>
           <div style={{ padding:"24px 28px 32px" }}>
             <p style={{ color:"rgba(240,223,160,0.85)", fontSize:14, lineHeight:1.8, marginBottom:20, fontFamily:"inherit" }}>{r.desc}</p>
 
             <div style={{ background:"rgba(201,162,39,0.05)", borderRadius:14, padding:"14px 16px", marginBottom:20, border:"1px solid rgba(201,162,39,0.15)" }}>
-              <p style={{ color:"rgba(201,162,39,0.7)", fontSize:11, fontWeight:800, marginBottom:12, letterSpacing:1 }}>⚖️ 전생 성향 분포</p>
+              <p style={{ color:"rgba(201,162,39,0.7)", fontSize:11, fontWeight:800, marginBottom:12, letterSpacing:1 }}>⚖️ {toss?"응답 선택 분포":"전생 성향 분포"}</p>
               {Object.entries(jobLabels).map(([dim, label]) => {
                 const val = (scores[dim]||0) as number;
                 const pct = Math.round(val/total*100);
@@ -1535,7 +1570,7 @@ function PastLifeResult({ meta, winner, scores, onBack, onRetry }: any) {
             </div>
 
             <div style={{ background:"rgba(201,162,39,0.06)", borderRadius:14, padding:"14px 16px", marginBottom:22, border:"1px solid rgba(201,162,39,0.12)" }}>
-              <p style={{ color:"#C9A227", fontSize:11, fontWeight:800, marginBottom:6, letterSpacing:0.5 }}>✨ 현생에 남은 재능</p>
+              <p style={{ color:"#C9A227", fontSize:11, fontWeight:800, marginBottom:6, letterSpacing:0.5 }}>✨ {toss?"이야기에서 떠올리는 강점":"현생에 남은 재능"}</p>
               <p style={{ color:"rgba(240,223,160,0.8)", fontSize:13, lineHeight:1.6 }}>{r.talent}</p>
             </div>
 

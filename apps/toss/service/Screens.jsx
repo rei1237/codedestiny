@@ -49,6 +49,7 @@ const Records=lazy(()=>import('@/app/records/RecordsClient'));
 const Maya=lazy(()=>import('@/src/components/maya/MayaCalendarView'));
 const MayaPrompt=lazy(()=>import('./TossMayaPrompt'));
 const Omikuji=lazy(()=>import('./TossOmikujiGate'));
+const Psychotest=lazy(()=>import('./TossPsychotest'));
 function VedicProfile(props){return <AstrologyProfile {...props} calendarMode="lunar"/>;}
 function VedicPrice(){return <AstrologyPrice featureKey="vedic-ai-consultation"/>;}
 function ZiweiProfile(props){return <AstrologyProfile {...props} calendarMode="native-lunar"/>;}
@@ -114,6 +115,7 @@ export default function ServiceScreens(){
   return()=>{live=false;offSession();};
  },[]);
  const recoveryBanner=recoveryMessage?<div role="status"><p>{recoveryMessage}</p><a href="/recovery">구매 내역 복구하기</a></div>:null;
+ if(/^\/psychotest(?:\/[a-z0-9-]+)?\/?$/.test(location.pathname))return <LazyMotion features={domAnimation}><ToastProvider/>{recoveryBanner}{ready?<Suspense fallback={<p role="status">심리테스트를 열고 있어요.</p>}><Psychotest/></Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</LazyMotion>;
  if(location.pathname==='/omikuji'||location.pathname==='/omikuji/')return <LazyMotion features={domAnimation}><ToastProvider/>{recoveryBanner}{ready?<Suspense fallback={<p role="status">오미쿠지를 열고 있어요.</p>}><Omikuji/></Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</LazyMotion>;
  if(location.pathname==='/maya'||location.pathname==='/maya/')return <LazyMotion features={domAnimation}><ToastProvider/>{recoveryBanner}{ready?<Suspense fallback={<p role="status">마야 달력을 열고 있어요.</p>}><Maya paymentSurface="toss" TossPrompt={MayaPrompt}/></Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</LazyMotion>;
  if(location.pathname.startsWith('/karma-destiny-ai'))return <LazyMotion features={domAnimation}><ToastProvider/>{recoveryBanner}{ready?<Suspense fallback={<p role="status">운명의 업 상담을 열고 있어요.</p>}><Karma result={location.pathname.includes('/result')}/></Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</LazyMotion>;
