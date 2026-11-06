@@ -12,14 +12,15 @@ const compiled = ts.transpileModule(fs.readFileSync(path.resolve(__dirname, '../
   compilerOptions: {jsx: ts.JsxEmit.ReactJSX, module: ts.ModuleKind.CommonJS, esModuleInterop: true},
 }).outputText;
 
-function render(native, locale) {
+function render(native, locale, seen = {links: [], prefetched: []}) {
   const testModule = {exports: {}};
   vm.runInNewContext(compiled, {module: testModule, exports: testModule.exports, process: {env: {NEXT_PUBLIC_RUNTIME_TARGET: native ? 'mobile-app' : 'web'}}, require: name => {
     if (name.endsWith('/app-build-target')) return {IS_APP_BUILD: native};
     if (name.endsWith('/useT')) return {useLocale: () => locale};
     if (name.endsWith('/native-home-copy.json')) return copy;
     if (name.endsWith('/native-home-html.mjs')) return require('../../lib/i18n/native-home-html.mjs');
-    if (name === 'next/link') return function MockLink({prefetch, ...props}) { return React.createElement('a', {...props, 'data-prefetch': prefetch === undefined ? 'auto' : String(prefetch)}); };
+    if (name === 'next/navigation') return {useRouter: () => ({prefetch: href => seen.prefetched.push(href)})};
+    if (name === 'next/link') return function MockLink({prefetch, ...props}) { seen.links.push(props); return React.createElement('a', {...props, 'data-prefetch': prefetch === undefined ? 'auto' : String(prefetch)}); };
     return require(name);
   }});
   const {NativeHomeRoot: Root, NativeHomeText: Text, NativeHomeCardLink: Card} = testModule.exports;
@@ -53,6 +54,17 @@ test('public home and Korean app keep Korean copy with unchanged markup', () => 
 test('both service selectors wait for navigation before loading another route', () => {
   assert.equal(render(true, 'ko').querySelectorAll('a')[1].getAttribute('data-prefetch'), 'false');
   assert.equal(render(false, 'ko').querySelectorAll('a')[1].getAttribute('data-prefetch'), 'false');
+});
+
+test('app starts loading the chosen route when the finger lands, the web home stays untouched', () => {
+  const app = {links: [], prefetched: []};
+  render(true, 'ko', app);
+  assert.deepEqual(app.prefetched, []);
+  app.links[0].onPointerDown();
+  assert.deepEqual(app.prefetched, ['/yeongnyangi/']);
+  const web = {links: [], prefetched: []};
+  render(false, 'ko', web);
+  assert.equal(web.links[0].onPointerDown, undefined);
 });
 
 test('home sets prefetch on the existing Link boundary without a client wrapper', () => {

@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import {useRouter} from 'next/navigation';
 import {createContext, useContext, type ReactNode} from 'react';
 import {IS_APP_BUILD} from '@/lib/app-build-target';
 import {useLocale, useTPick} from '@/lib/i18n/useT';
@@ -51,7 +52,10 @@ export function NativeHomeCardLink({name, action, external, ...props}: {
   const locale = useContext(HomeLocale);
   const label = translate(name, locale);
   const accessibleLabel = `${label} ${translate(action, locale)}`;
+  const router = useRouter();
+  // App: nothing loads at render; the route starts loading when a finger lands, not after it lifts.
+  const onPointerDown = IS_APP_BUILD && !external ? () => router.prefetch(props.href) : undefined;
   return external
     ? <a {...props} aria-label={accessibleLabel}>{label}</a>
-    : <Link {...props} prefetch={false} aria-label={accessibleLabel}>{label}</Link>;
+    : <Link {...props} prefetch={false} onPointerDown={onPointerDown} aria-label={accessibleLabel}>{label}</Link>;
 }
