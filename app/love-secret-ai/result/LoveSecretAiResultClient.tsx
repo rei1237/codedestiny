@@ -852,8 +852,10 @@ export default function LoveSecretAiResultClient({ paymentSurface }: { paymentSu
   // export 여부의 단일 진리 소스. data-ls-export 와 expandForExport 가 같은 값을 본다.
   const [exportMode, setExportMode] = useState<"idle" | "pdf">("idle");
   const progressRef = useRef<HTMLDivElement | null>(null);
+  const authorityRevisionRef = useRef(0);
   const [reloadEpoch, setReloadEpoch] = useState(0);
   const captureDeliveryScope = usePaidDeliveryScope(() => {
+    authorityRevisionRef.current++;
     setConsultation(null); setPending(false); setReloadEpoch(value => value + 1);
   });
 
@@ -862,20 +864,22 @@ export default function LoveSecretAiResultClient({ paymentSurface }: { paymentSu
     let timer = 0;
     let attempts = 0;
     let resumes = 0;
-    const isCurrent = captureDeliveryScope();
+    const owner = captureDeliveryScope(), revision = ++authorityRevisionRef.current;
+    const isCurrent = () => owner() && (paymentSurface !== 'toss' || revision === authorityRevisionRef.current);
+    if (paymentSurface === 'toss') { setConsultation(null); setLoading(true); setPending(false); }
     // 생성은 요청 안에서 끝나지만(최대 ~90초) 네트워크·재시도 여지를 두고 상한을 넉넉히 잡는다.
     // 2.5s 간격이라 CF rate-limit(10초당 100회)에는 여유가 크다.
     const maxAttempts = 140;
     async function loadResult() {
       setError("");
       try {
-        const previewState = readDevPreviewState();
+        const previewState = paymentSurface === 'toss' ? null : readDevPreviewState();
         const response = previewState
           ? buildDevPreviewResponse(buildLoveSecretPreviewPayload(previewState), previewState === "failed" ? 503 : 200)
           : await authFetch(buildResultEndpoint());
         const payload = await response.json().catch(() => ({})) as Consultation;
         if (!alive || !isCurrent()) return;
-        if (paymentSurface === "toss" && response.status === 403) { setConsultation(null); setPending(false); setError("구매 내역에 접근할 권한을 확인할 수 없어요. 구매한 계정과 주문 내역을 확인해 주세요."); return; }
+        if (paymentSurface === "toss" && [401,402,403,409].includes(response.status)) { setConsultation(null); setPending(false); setError(response.status === 401 ? "상담을 확인하려면 토스 로그인이 필요해요." : "구매 내역에 접근할 권한을 확인할 수 없어요. 구매한 계정과 주문 내역을 확인해 주세요."); return; }
         const resumeId = payload.sessionId || payload.resultId;
         if ((payload.status === "partial" || payload.reason === "RESULT_STORAGE_UNAVAILABLE") && resumeId) {
           if (payload.status === "partial") setConsultation(payload);
@@ -889,7 +893,7 @@ export default function LoveSecretAiResultClient({ paymentSurface }: { paymentSu
             if (!alive || !isCurrent()) return;
             const next = await resumed.json().catch(() => ({})) as Consultation;
             if (!alive || !isCurrent()) return;
-            if (paymentSurface === "toss" && resumed.status === 403) { setConsultation(null); setPending(false); setError("구매 내역에 접근할 권한을 확인할 수 없어요. 구매한 계정과 주문 내역을 확인해 주세요."); return; }
+            if (paymentSurface === "toss" && [401,402,403,409].includes(resumed.status)) { setConsultation(null); setPending(false); setError(resumed.status === 401 ? "상담을 확인하려면 토스 로그인이 필요해요." : "구매 내역에 접근할 권한을 확인할 수 없어요. 구매한 계정과 주문 내역을 확인해 주세요."); return; }
             if (!resumed.ok) throw new Error(next.message || copy.loadResultFailedError);
             if (next.status === "completed" && next.saved === true) {
               setConsultation(next); setPending(false); return;
@@ -913,6 +917,9 @@ export default function LoveSecretAiResultClient({ paymentSurface }: { paymentSu
           timer = window.setTimeout(loadResult, attempts <= 1 ? 700 : 2500);
           return;
         }
+        if (paymentSurface === 'toss' && response.ok && (payload.status !== 'completed' || payload.saved !== true)) {
+          setConsultation(null); setPending(false); setError(copy.loadResultFailedError); return;
+        }
         if (!response.ok || payload?.ok === false) throw new Error(toText(payload?.message) || copy.loadResultFailedError);
         if (alive && isCurrent()) {
           setConsultation(payload);
@@ -925,7 +932,7 @@ export default function LoveSecretAiResultClient({ paymentSurface }: { paymentSu
       }
     }
     void loadResult();
-    const onVisible = () => { if (!document.hidden && alive && isCurrent()) setReloadEpoch(value => value + 1); };
+    const onVisible = () => { if (!document.hidden && alive && isCurrent()) { if (paymentSurface === 'toss') { authorityRevisionRef.current++; setConsultation(null); setLoading(true); } setReloadEpoch(value => value + 1); } };
     document.addEventListener("visibilitychange", onVisible);
     window.addEventListener("pageshow", onVisible); window.addEventListener("focus", onVisible);
     return () => {
