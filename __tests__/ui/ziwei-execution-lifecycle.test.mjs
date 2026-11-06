@@ -6,6 +6,7 @@ import vm from 'node:vm';
 import ts from 'typescript';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
+import * as answerContract from '../../worker/lib/consultation-answer-contract.js';
 
 // Execute actual orchestration functions, never import the payment/Swiss route graph.
 const routeFile = 'worker/routes/ziwei-ai.js';
@@ -29,6 +30,7 @@ function setup({ old = false, on = false } = {}) {
   const storageError = () => Object.assign(new Error('storage unavailable'), { code: 'RESULT_STORAGE_UNAVAILABLE' });
   const update = (q, fields) => { const d = state.docs.find(d => matching(d, q)); if (!d) throw storageError(); Object.assign(d, clone(fields)); return clone(d); };
   const context = {
+    ...answerContract,
     structuredClone, createHash, console: { log() {}, warn() {}, error() {} },
     Date: class extends Date { constructor(...args) { super(...(args.length ? args : [epoch])); } static now() { return epoch; } getFullYear() { return state.year; } },
     readJson: async request => clone(request.body), clean: x => String(x || ''),

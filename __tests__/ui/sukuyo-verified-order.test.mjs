@@ -95,8 +95,8 @@ m._compile(built.outputFiles[0].text,m.id);
 const {prepareFortune,activateFortune,generateNextChapter,presentFortune,calculateFree,snapshotAnalysis}=m.exports;
 
 test('신규 숙요 기본 운세·상담·결제 복귀·OFF 재열람은 준비한 명반을 사용한다',async()=>{
-  const env={GEMINIF_API_KEY:'mock',SUKUYO_IMD_NEW_ORDERS_V1:'true'};
-  const off={GEMINIF_API_KEY:'mock'};
+  const env={GEMINIF_API_KEY:'mock',LLM_DRY_RUN:'false',SUKUYO_IMD_NEW_ORDERS_V1:'true'};
+  const off={GEMINIF_API_KEY:'mock',LLM_DRY_RUN:'false'};
   const body={productId:'sukuyo_mackerel',profileId:'self',timezone:'Asia/Seoul',question:'내 관계의 속도는 어떨까?',
     consultationAttemptId:'12345678-1234-4234-8234-123456789abc',
     questionDecision:{version:'question-consultation-20261007',category:'self',target:'self',horizon:'current',situation:'관계',options:'',period:'',constraints:'',confirmed:true}};

@@ -88,7 +88,9 @@ for (const mode of ["solo", "compat"]) {
     const codexTotalReady = runFunction("worker/routes/master-love-codex.js", "codexTotalReady", { ...quality, codexDedupedChapterFloor });
     const savedChapterRows = runFunction("worker/routes/master-love-codex.js", "savedChapterRows", { ...quality, codexDedupedChapterFloor });
     const splitPendingChapters = runFunction("worker/routes/master-love-codex.js", "splitPendingChapters", { CHAPTER_ATTEMPT_LIMIT: 3, codexTotalReady });
+    const answerContract = await import("../../worker/lib/consultation-answer-contract.js");
     const wave = runFunction("worker/routes/master-love-codex.js", "runCodexWaveInternal", {
+      ...answerContract,
       sha256: value => value, syncCodexExecution: async () => true, splitPendingChapters, savedChapterRows, codexTotalReady,
       CODEX_EVIDENCE_VERSION: "test-evidence",
       clean: value => String(value || ""), resolveMode: () => ({ mode, chapters }),
