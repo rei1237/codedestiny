@@ -1,0 +1,6 @@
+{
+  "name": "code-destiny-release-check",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Node-only Ziwei and tarot verification; no install step or production bindings."
+}

@@ -25,6 +25,7 @@ import SajuPillarTable from "@/components/fortune/SajuPillarTable";
 import ResultReference from "@/components/fortune/ResultReference";
 import { splitGanji, tenGodOfStem, FIVE_ELEMENT_TOKENS, type FiveElement } from "@/lib/five-element-colors";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
+import { ANSWER_FIRST_LAYOUT_V1 } from "@/lib/result-layout";
 import styles from "./LifeBookAiResultClient.module.css";
 
 type LifeBookMessage = {
@@ -1671,6 +1672,80 @@ function LifeBookResultContent({ paymentSurface }: { paymentSurface?: "toss" }) 
     );
   }
 
+  // Answer-first: the basic chart is reference material, so it follows the chapters when the flag is on.
+  const basicChart = (
+              <ResultReference label={copy.basicChartHeading}><section data-life-book-pdf-page className={`rounded-3xl border border-amber-200/20 bg-[#1c3028] p-5 ${styles.leatherTexture}`}>
+                <div className="flex items-center gap-2 text-amber-200">
+                  <ScrollText className="h-5 w-5" aria-hidden="true" />
+                  <h2 className="text-xl font-semibold">{copy.basicChartHeading}</h2>
+                </div>
+                <SajuPillarTable className="mt-4 sm:grid-cols-4" pillars={pillarRows} />
+                <p className="mt-3 text-xs font-bold text-amber-200">{copy.dayMasterPrefix}{dayMasterValue}</p>
+                <div className="mt-4 grid gap-4 lg:grid-cols-2">
+                  <div className="rounded-2xl border border-amber-200/15 bg-black/20 p-4">
+                    <h3 className="text-sm font-semibold text-amber-200">{copy.fiveElementHeading}</h3>
+                    {hasFiveElements ? (
+                      <div className="mt-3 grid gap-2">
+                        {elementDistribution.map((entry) => {
+                          const token = FIVE_ELEMENT_TOKENS[entry.element];
+                          return (
+                            <div key={entry.element} className={styles.elementBarRow}>
+                              <span className="text-sm font-semibold" style={{ color: token.color }}>{token.hanja}</span>
+                              <div className={styles.elementBarTrack}>
+                                <div
+                                  className={styles.elementBarFill}
+                                  style={{ "--fill-ratio": entry.ratio, background: token.color } as CSSProperties}
+                                />
+                              </div>
+                              <span className="text-right text-xs font-bold text-[#f4e6cb]">{entry.value}</span>
+                            </div>
+                          );
+                        })}
+                        <p className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-amber-200/60">
+                          {FIVE_ELEMENT_ORDER.map((element) => (
+                            <span key={element} className="inline-flex items-center gap-1">
+                              <span className="h-2 w-2 rounded-full" style={{ background: FIVE_ELEMENT_TOKENS[element].color }} aria-hidden="true" />
+                              {copy.fiveElementLegend[element]}
+                            </span>
+                          ))}
+                        </p>
+                      </div>
+                    ) : <p className="mt-3 text-sm text-[#eadbb9]">{copy.fiveElementLimited}</p>}
+                  </div>
+                  <div className="rounded-2xl border border-amber-200/15 bg-black/20 p-4">
+                    <h3 className="text-sm font-semibold text-amber-200">{copy.tenGodHeading}</h3>
+                    {hasTenGods ? (
+                      <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                        {TEN_GOD_GROUPS.map((group) => {
+                          const present = group.members.filter((name) => Number(saju?.tenGods?.[name]) > 0);
+                          return (
+                            <div key={group.label} className={styles.tenGodGroup}>
+                              <p className={styles.tenGodGroupLabel}>{copy.tenGodGroupLabel[group.label] || group.label}</p>
+                              <div className="mt-1.5 flex flex-wrap gap-1">
+                                {group.members.map((name) => {
+                                  const count = Number(saju?.tenGods?.[name]) || 0;
+                                  const active = count > 0;
+                                  return (
+                                    <span
+                                      key={name}
+                                      className={`rounded-full border px-2 py-0.5 text-[11px] font-bold ${active ? "border-amber-200/35 bg-amber-100/15 text-amber-50" : "border-amber-100/10 bg-transparent text-[rgba(232,218,190,0.4)]"}`}
+                                    >
+                                      {copy.tenGodLabel[name] || name}{active ? ` ${count}` : ""}
+                                    </span>
+                                  );
+                                })}
+                              </div>
+                              {!present.length && <span className="sr-only">{copy.tenGodNoneSr}</span>}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : <p className="mt-3 text-sm text-[#eadbb9]">{copy.tenGodLimited}</p>}
+                  </div>
+                </div>
+              </section></ResultReference>
+  );
+
   return (
     <main className={styles.readingRoom}>
       <BookOpenCover
@@ -1779,76 +1854,7 @@ function LifeBookResultContent({ paymentSurface }: { paymentSurface?: "toss" }) 
             </aside>
 
             <section className="grid gap-4">
-              <ResultReference label={copy.basicChartHeading}><section data-life-book-pdf-page className={`rounded-3xl border border-amber-200/20 bg-[#1c3028] p-5 ${styles.leatherTexture}`}>
-                <div className="flex items-center gap-2 text-amber-200">
-                  <ScrollText className="h-5 w-5" aria-hidden="true" />
-                  <h2 className="text-xl font-semibold">{copy.basicChartHeading}</h2>
-                </div>
-                <SajuPillarTable className="mt-4 sm:grid-cols-4" pillars={pillarRows} />
-                <p className="mt-3 text-xs font-bold text-amber-200">{copy.dayMasterPrefix}{dayMasterValue}</p>
-                <div className="mt-4 grid gap-4 lg:grid-cols-2">
-                  <div className="rounded-2xl border border-amber-200/15 bg-black/20 p-4">
-                    <h3 className="text-sm font-semibold text-amber-200">{copy.fiveElementHeading}</h3>
-                    {hasFiveElements ? (
-                      <div className="mt-3 grid gap-2">
-                        {elementDistribution.map((entry) => {
-                          const token = FIVE_ELEMENT_TOKENS[entry.element];
-                          return (
-                            <div key={entry.element} className={styles.elementBarRow}>
-                              <span className="text-sm font-semibold" style={{ color: token.color }}>{token.hanja}</span>
-                              <div className={styles.elementBarTrack}>
-                                <div
-                                  className={styles.elementBarFill}
-                                  style={{ "--fill-ratio": entry.ratio, background: token.color } as CSSProperties}
-                                />
-                              </div>
-                              <span className="text-right text-xs font-bold text-[#f4e6cb]">{entry.value}</span>
-                            </div>
-                          );
-                        })}
-                        <p className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-amber-200/60">
-                          {FIVE_ELEMENT_ORDER.map((element) => (
-                            <span key={element} className="inline-flex items-center gap-1">
-                              <span className="h-2 w-2 rounded-full" style={{ background: FIVE_ELEMENT_TOKENS[element].color }} aria-hidden="true" />
-                              {copy.fiveElementLegend[element]}
-                            </span>
-                          ))}
-                        </p>
-                      </div>
-                    ) : <p className="mt-3 text-sm text-[#eadbb9]">{copy.fiveElementLimited}</p>}
-                  </div>
-                  <div className="rounded-2xl border border-amber-200/15 bg-black/20 p-4">
-                    <h3 className="text-sm font-semibold text-amber-200">{copy.tenGodHeading}</h3>
-                    {hasTenGods ? (
-                      <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
-                        {TEN_GOD_GROUPS.map((group) => {
-                          const present = group.members.filter((name) => Number(saju?.tenGods?.[name]) > 0);
-                          return (
-                            <div key={group.label} className={styles.tenGodGroup}>
-                              <p className={styles.tenGodGroupLabel}>{copy.tenGodGroupLabel[group.label] || group.label}</p>
-                              <div className="mt-1.5 flex flex-wrap gap-1">
-                                {group.members.map((name) => {
-                                  const count = Number(saju?.tenGods?.[name]) || 0;
-                                  const active = count > 0;
-                                  return (
-                                    <span
-                                      key={name}
-                                      className={`rounded-full border px-2 py-0.5 text-[11px] font-bold ${active ? "border-amber-200/35 bg-amber-100/15 text-amber-50" : "border-amber-100/10 bg-transparent text-[rgba(232,218,190,0.4)]"}`}
-                                    >
-                                      {copy.tenGodLabel[name] || name}{active ? ` ${count}` : ""}
-                                    </span>
-                                  );
-                                })}
-                              </div>
-                              {!present.length && <span className="sr-only">{copy.tenGodNoneSr}</span>}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    ) : <p className="mt-3 text-sm text-[#eadbb9]">{copy.tenGodLimited}</p>}
-                  </div>
-                </div>
-              </section></ResultReference>
+              {!ANSWER_FIRST_LAYOUT_V1 && basicChart}
               {report.coreSummary && (
                 <section data-life-book-pdf-page className={`rounded-3xl p-5 ${styles.paperPage} ${styles.paperTexture}`}>
                   <p className={`text-xs font-bold uppercase tracking-[0.18em] ${styles.paperAccent}`}>Core Summary</p>
@@ -1945,6 +1951,7 @@ function LifeBookResultContent({ paymentSurface }: { paymentSurface?: "toss" }) 
                 </section>
               )}
 
+              {ANSWER_FIRST_LAYOUT_V1 && basicChart}
               <section className={`rounded-3xl border border-amber-200/20 bg-[#1c3028] p-6 text-center ${styles.leatherTexture}`}>
                 <p className="text-sm font-semibold uppercase tracking-[0.2em] text-amber-200">{copy.finalChapterEyebrow}</p>
                 <p className="mx-auto mt-3 max-w-xl text-[15px] leading-8 text-[#eadbb9]">

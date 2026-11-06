@@ -3,10 +3,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { trackEvent } from "@/lib/analytics";
-import { dailyLine, litLanternCount } from "./forest-progress.mjs";
+import { FOREST_ACTIVITY_TITLE, litLanternCount } from "./forest-progress.mjs";
 import { useDailyJourney } from "./useDailyJourney";
 import HomeDisclosure from "../HomeDisclosure";
-import { ForestLines, GrowthCard } from "./ForestParts";
+import { GrowthCard } from "./ForestParts";
 import styles from "./forest.module.css";
 
 const ForestWalk = dynamic(() => import("./ForestWalk"), { ssr: false });
@@ -71,6 +71,7 @@ export default function ForestGate() {
       const { hash, pathname, search } = window.location;
       if (hash !== LOGIN_RETURN_HASH) return false;
       window.history.replaceState(window.history.state, "", `${pathname}${search}`);
+      trackEvent("daily_home_login_return", { surface: "home" });
       showWalk(0);
       return true;
     };
@@ -99,7 +100,7 @@ export default function ForestGate() {
     showWalk(0);
   }
 
-  const { hydrated, honey, status, stepsDone, ymd } = journey;
+  const { hydrated, honey, status, stepsDone } = journey;
   const lit = honey ? litLanternCount(honey.streak, honey.streakEvery, honey.attended) : 0;
   return <section id="homeForest" ref={sectionRef} className={styles.gate} aria-labelledby="daily-home-title">
     <div className={styles.gateScene}>
@@ -110,21 +111,22 @@ export default function ForestGate() {
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/images/home/forest/gate-wide.webp" width="1536" height="1024" alt="거대한 고목 뿌리 아래로 이끼 길이 이어지고, 연이가 등불을 들고 돌아보며 영냥이가 길을 가리키는 숲 입구" loading="lazy" decoding="async" />
       </picture>
-      <div className={styles.gateHead}>
-        <p>연이와 영냥이가 기다리는 곳</p>
-        <h2 id="daily-home-title">오늘의 숲길</h2>
-      </div>
     </div>
     <div className={styles.gateBody}>
-      <ForestLines line={dailyLine(ymd, stepsDone >= 3 ? "done" : "gate")} />
+      <div className={styles.gateHead}>
+        <h2 id="daily-home-title">{FOREST_ACTIVITY_TITLE}</h2>
+        <p>{status === "guest"
+          ? "가입 후 내 프로필 카드를 만들고, 출석으로 꿀방울을 모아보세요."
+          : "출석으로 꿀방울을 모으고, 오늘 실천한 일과 마음을 기록해 보세요."}</p>
+      </div>
+      <GrowthCard journey={journey} />
+      <button ref={ctaRef} type="button" className={styles.primary} aria-haspopup="dialog" onClick={enterForest}>{status === "guest" ? "출석 혜택 둘러보기" : stepsDone >= 3 ? "오늘의 활동 다시 보기" : stepsDone > 0 ? "오늘의 활동 이어보기" : "출석 혜택 확인하기"}</button>
       <HomeDisclosure className={styles.progress} label="오늘의 걸음과 성장 기록">
       <ul className={styles.gateStats}>
         <li><span>오늘 걸음</span><strong>{hydrated ? `${stepsDone} / 3` : "세 걸음"}</strong></li>
         <li><span>켜진 등불</span><strong>{honey ? `${lit} / ${honey.streakEvery}` : status === "guest" ? "로그인 후 확인" : status === "error" ? "확인하지 못했어요" : "확인 중"}</strong></li>
       </ul>
-      <GrowthCard journey={journey} />
       </HomeDisclosure>
-      <button ref={ctaRef} type="button" className={styles.primary} aria-haspopup="dialog" onClick={enterForest}>{stepsDone >= 3 ? "오늘의 숲길 다시 보기" : stepsDone > 0 ? "숲길 이어 걷기" : "숲길 들어가기"}</button>
     </div>
     {open && <ForestWalk mode="dialog" journey={journey} initialStep={initialStep} onStepChange={rememberResumeStep} onClose={closeWalk} />}
   </section>;

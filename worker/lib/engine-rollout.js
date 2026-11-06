@@ -10,6 +10,10 @@ export const ENGINE_ROLLOUT_FLAGS = Object.freeze({
   SAJU_CONSUMER_FACTS_V1: 'true',
   ZIWEI_CONSUMER_FACTS_V1: 'true',
   TAROT_CONSUMER_FACTS_V1: 'true',
+  // 숙요 영냥이 개인 질문의 신규 주문만 IMD 검증 구간 계산을 쓴다(사용자 결정 2026-11-07). 기존 주문은 저장 핀을 따른다.
+  SUKUYO_IMD_NEW_ORDERS_V1: 'true',
+  // 질문 직답·마스터 조언 렌즈(worker/lib/consultation-answer-contract.js). 생성 시작 때 고정되어 재개 중에는 바뀌지 않는다.
+  CONSULTATION_ANSWER_VOICE_V1: 'true',
 });
 
 const rolledOut = new WeakMap();

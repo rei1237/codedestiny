@@ -1,4 +1,7 @@
+import { selectAnswerVoice } from '../lib/consultation-answer-contract.js';
 import {attachNatalProfile} from './fortune/shared/natal-profile';
+import { SUKUYO_IMD_VERSION } from '../lib/imd-sidereal-profile.js';
+import { engineFactDigest } from '../lib/engine-fact-snapshot.js';
 import {pinDomainFacts,sealDomainFacts,validateDomainFacts} from './fortune/shared/consumer-facts';
 import {CONSULTATION_EXPANSION_VERSION} from './fortune/consultation-expansion';
 import {FUSION_BOOK_VERSION,DIRECT_FUSION_ANSWER} from './fortune/fusion-book';
@@ -76,6 +79,13 @@ import { hasRequestAccess } from './access-methods.js';
  */
 export function snapshotAnalysis(snapshot:any) {
   const matrix=snapshot?.v7Timing;
+  const sukuyo=snapshot?.analysis?.contexts?.sukuyo;
+  if(sukuyo?.engineFacts?.options?.providerVersion || sukuyo?.engineVersion===SUKUYO_IMD_VERSION){
+    validateDomainFacts(sukuyo);
+    const payload = {facts:sukuyo.facts, limitations:sukuyo.limitations, engineVersion:sukuyo.engineVersion};
+    if(!sukuyo.engineFacts || sukuyo.engineVersion!==sukuyo.engineFacts.options.providerVersion ||
+       engineFactDigest(payload)!==engineFactDigest(sukuyo.engineFacts.facts)) throw new FortuneError('ENGINE_FACT_CONTEXT_MISMATCH',500);
+  }
   if(!matrix)return snapshot.analysis;
   const contexts=snapshot.analysis.contexts;
   return {...snapshot.analysis,contexts:{...contexts,[matrix.domain]:withV7Timing(contexts[matrix.domain],matrix)}};
@@ -235,7 +245,7 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
     tarotV3&&system==='tarot'?domainContext('tarot',{spreadId:tarotOrder!.spread.id,drawPending:true}):
     tarotV2&&system==='tarot'?calculateTarotConsultation(kind!.id as TarotConsultationId):
     (askEvidenceEnabled||relationship)&&system==='tarot' ? calculateAskTarot(normalized[system],product.readingKind!=='single')
-      : await domains[system].calculate(normalized[system],{runtimeEnv:env,asOf:date,asOfInstant:now.toISOString(),relationshipReading:relationship,tarotFusion:product.readingKind!=='single',...(system==='saju'&&experience?{experience}:{})}));
+      : await domains[system].calculate(normalized[system],{verifiedSukuyo:Boolean(questionIntentId && product.readingKind==='single' && system==='sukuyo' && !partner && !spiritInput),runtimeEnv:env,asOf:date,asOfInstant:now.toISOString(),relationshipReading:relationship,tarotFusion:product.readingKind!=='single',...(system==='saju'&&experience?{experience}:{})}));
   if(contexts.saju&&!spiritInput)contexts.saju=withSajuCycleEvidence(contexts.saju,date);
   if(relationship&&product.domain!=='tarot'){
     const system=product.domain,input=normalized[system];
@@ -339,7 +349,7 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   return createRequest(env,userId,id,{profileId:body.profileId,productId:product.id,featureKey:product.cdFeatureKey,
     amountKRW:product.priceKRW,fingerprint,...(persona?{persona}:{}),
     ...(askEvidence?{generationCheckpoint:{version:'ask-generation-v1',evidence:askEvidence}}:{}),
-    growthAttribution:normalizeGrowthAttribution(body.growthAttribution),snapshot:{...((decision||locale==='ko'&&!persona&&!body.mode&&product.readingKind!=='single')?{questionContract:{version:QUESTION_POLICY_VERSION,followups:consultationBudget(product.fishId).followups,...(!persona&&!body.mode?{readingBudget:consultationBudget(product.fishId,manifest[0]?.consultationLayout===FUSION_BOOK_VERSION?undefined:CONSULTATION_BUDGET_VERSION)}:{})}}:{}),deliveryContract:CHAPTER_DELIVERY_VERSION,chapterTimeoutPolicy:CHAPTER_TIMEOUT_POLICY,...(product.fishId==='tuna'?{tunaQualityPolicy:TUNA_QUALITY_POLICY}:{}),...(product.systems.includes("saju")?{natalInput:normalized.saju}:{}),locale,...(persona?{persona}:{}),...(voiceStyle?{voiceStyle}:{}),...(!body.mode?{outputContext:readingOutputContext(locale,body)}:{}),product,analysis,manifest,profileUpdatedAt:profile.updatedAt,...(tarotV2?{tarotConsultation:{version:TAROT_CONSULTATION_VERSION,kind:kind!.id}}:{}),...(tarotV3?{tarotConsultation:{version:TAROT_SPREAD_VERSION,kind:kind!.id},tarotSpread:spreadSnapshot(tarotOrder!.spread),tarotInputs:tarotOrder!.inputs,tarotDeck:commitTarotDeck()}:{}),...(spiritInput?{normalized}: {}),...(v7Timing?{v7Timing}:{})}},tarotV3?{initialState:'AWAITING_DRAW'}:{});
+    growthAttribution:normalizeGrowthAttribution(body.growthAttribution),snapshot:{...((decision||locale==='ko'&&!persona&&!body.mode&&product.readingKind!=='single')?{questionContract:{version:QUESTION_POLICY_VERSION,followups:consultationBudget(product.fishId).followups,...(!persona&&!body.mode?{readingBudget:consultationBudget(product.fishId,manifest[0]?.consultationLayout===FUSION_BOOK_VERSION?undefined:CONSULTATION_BUDGET_VERSION)}:{})}}:{}),deliveryContract:CHAPTER_DELIVERY_VERSION,chapterTimeoutPolicy:CHAPTER_TIMEOUT_POLICY,...(product.fishId==='tuna'?{tunaQualityPolicy:TUNA_QUALITY_POLICY}:{}),...(product.systems.includes("saju")?{natalInput:normalized.saju}:{}),locale,...(persona?{persona}:{}),...(voiceStyle?{voiceStyle}:{}),...(selectAnswerVoice(env)?{answerVoice:selectAnswerVoice(env)}:{}),...(!body.mode?{outputContext:readingOutputContext(locale,body)}:{}),product,analysis,manifest,profileUpdatedAt:profile.updatedAt,...(tarotV2?{tarotConsultation:{version:TAROT_CONSULTATION_VERSION,kind:kind!.id}}:{}),...(tarotV3?{tarotConsultation:{version:TAROT_SPREAD_VERSION,kind:kind!.id},tarotSpread:spreadSnapshot(tarotOrder!.spread),tarotInputs:tarotOrder!.inputs,tarotDeck:commitTarotDeck()}:{}),...(spiritInput?{normalized}: {}),...(v7Timing?{v7Timing}:{})}},tarotV3?{initialState:'AWAITING_DRAW'}:{});
 }
 
 /** Tuna self-review: one rewrite of a chapter whose local audit finds a problem, inside the remaining lease.
@@ -434,7 +444,7 @@ async function prepareQuestionSky(env:Record<string,unknown>,userId:string,body:
   product.name=skyModes[input.mode];product.image=SKY_IMAGE;
   // New purchases use the registry flounder contract; old snapshots are never rewritten.
   return createRequest(env,userId,id,{profileId:'question-sky',productId:product.id,featureKey:product.cdFeatureKey,amountKRW:product.priceKRW,fingerprint,
-    growthAttribution:normalizeGrowthAttribution(body.growthAttribution),snapshot:{deliveryContract:CHAPTER_DELIVERY_VERSION,chapterTimeoutPolicy:CHAPTER_TIMEOUT_POLICY,...(locale!=='ko'?{locale}:{}),product,analysis,manifest,input,questionSkyStage:{version:QUESTION_SKY_TWO_STAGE_VERSION,firstChars:manifest[0].targetChars?.[0],followupChars:manifest[1].targetChars?.[0]},questionMoment:{...moment,date:moment.date.toISOString()},calculation:{raw:calculated.raw,audit:calculated.audit,moonMotion:calculated.moonMotion}}});
+    growthAttribution:normalizeGrowthAttribution(body.growthAttribution),snapshot:{deliveryContract:CHAPTER_DELIVERY_VERSION,chapterTimeoutPolicy:CHAPTER_TIMEOUT_POLICY,...(locale!=='ko'?{locale}:{}),...(selectAnswerVoice(env)?{answerVoice:selectAnswerVoice(env)}:{}),product,analysis,manifest,input,questionSkyStage:{version:QUESTION_SKY_TWO_STAGE_VERSION,firstChars:manifest[0].targetChars?.[0],followupChars:manifest[1].targetChars?.[0]},questionMoment:{...moment,date:moment.date.toISOString()},calculation:{raw:calculated.raw,audit:calculated.audit,moonMotion:calculated.moonMotion}}});
 }
 
 export async function submitQuestionSkyFollowup(env:Record<string,unknown>,userId:string,requestId:string,question:unknown){
@@ -514,7 +524,7 @@ export async function generateNextChapter(env: Record<string, unknown>, userId: 
         ? row.generationCheckpoint?.followup?.question : undefined;
       if(ordinal===1&&row.snapshot?.questionSkyStage?.version===QUESTION_SKY_TWO_STAGE_VERSION&&!followupQuestion)
         throw new FortuneError('FOLLOWUP_NOT_SUBMITTED',409);
-      const input={deliveryContract:CHAPTER_DELIVERY_VERSION,locale:readingLocale(row.snapshot.locale),outputContext:row.snapshot.outputContext,chapter:row.snapshot.manifest[ordinal],analysis:snapshotAnalysis(row.snapshot),previous:row.chapters,repair,ask,followupQuestion,persona:row.snapshot.persona,voiceStyle:row.snapshot.voiceStyle,tunaQuality:tunaQualityApplies(row.snapshot)};
+      const input={deliveryContract:CHAPTER_DELIVERY_VERSION,locale:readingLocale(row.snapshot.locale),outputContext:row.snapshot.outputContext,chapter:row.snapshot.manifest[ordinal],analysis:snapshotAnalysis(row.snapshot),previous:row.chapters,repair,ask,followupQuestion,persona:row.snapshot.persona,voiceStyle:row.snapshot.voiceStyle,answerVoice:row.snapshot.answerVoice??null,tunaQuality:tunaQualityApplies(row.snapshot)};
       if(!input.chapter) throw new FortuneError('INVALID_MANIFEST',500);
       const provider=new StructuredChapterProvider(sharedProvider);
       const natalFacts=input.analysis.contexts?.saju?.facts.find(f=>f.label==='pillars')?.value;

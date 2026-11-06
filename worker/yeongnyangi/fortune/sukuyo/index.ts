@@ -1,4 +1,4 @@
-import { calculateSukuyoForMoment } from "../../../lib/sukuyo-astronomy.js";
+import { sukuyoForReading } from './provider';
 import { relationFromForwardDistance } from "../../../lib/sukuyo-relation-core.js";
 import { distanceLabelByRule } from '../../../lib/sukuyo-premium.js';
 import { context, domain } from "../shared/domain";
@@ -22,7 +22,7 @@ export const sukuyo = domain(
     if (!input.personB && input.readingMode !== 'personal') throw new FortuneError("PARTNER_REQUIRED");
     const calculate = async (p: NonNullable<typeof input.personA>) => {
       const t = chartInput(p);
-      return calculateSukuyoForMoment(
+      return sukuyoForReading(
         engineEnv.runtimeEnv || {},
         {
           ...t,
@@ -31,11 +31,15 @@ export const sukuyo = domain(
           latitude: t.lat,
           longitude: t.lon,
         },
-        { strictSwiss: true },
+        engineEnv.verifiedSukuyo === true,
       );
     };
     const a = await calculate(input.personA!);
-    if (input.readingMode === 'personal') return context('sukuyo',{personA:a},['천문식 27숙 개인 분석입니다. 상대 정보 없이 궁합을 추정하지 않습니다.']);
+    if (input.readingMode === 'personal') {
+      const natal = context('sukuyo',{personA:a},['천문식 27숙 개인 분석입니다. 상대 정보 없이 궁합을 추정하지 않습니다.']);
+      if (engineEnv.verifiedSukuyo && engineEnv.runtimeEnv?.SUKUYO_IMD_NEW_ORDERS_V1 === 'true') natal.engineVersion = a.astronomyVersion;
+      return natal;
+    }
     const
       b = await calculate(input.personB!);
     const forward = (b.index - a.index + 27) % 27;

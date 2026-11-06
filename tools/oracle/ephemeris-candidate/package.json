@@ -1,0 +1,8 @@
+{
+  "name": "code-destiny-ephemeris-candidate",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": { "astronomy-engine": "2.1.19" },
+  "upstreamCommit": "61dc07020aaa6885d2c7f688a4d82beaf6edb9ef"
+}

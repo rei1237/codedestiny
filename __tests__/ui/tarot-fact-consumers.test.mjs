@@ -2,6 +2,7 @@ import '../../tools/oracle/next-delivery/guard.cjs';
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import vm from 'node:vm';import ts from 'typescript';import {execFileSync} from 'node:child_process';
 import {pinTarotNarrativeSeed,assertTarotNarrativeSnapshot} from '../../worker/lib/tarot-fact-consumer.js';
 import {readEngineFactSnapshot} from '../../worker/lib/engine-fact-snapshot.js';
+import {appendAnswerVoice,selectAnswerVoice} from '../../worker/lib/consultation-answer-contract.js';
 const clone=v=>JSON.parse(JSON.stringify(v));
 const body={requestId:'same-request',locale:'ko',userQuestion:'question',question:'question',cards:[{cardId:'m00',orientation:'upright'}],pairs:[]};
 const row={cardId:'m00',cardName:'fixture',positionTitle:'current',orientation:'upright'};
@@ -12,7 +13,7 @@ const draw={featureKey:'tarot-love-relationship',version:'paid-tarot-draw-v1',de
 function load(file,old=false){
  const source=old?execFileSync('git',['show','c7f46acf:worker/lib/'+file],{encoding:'utf8'}):fs.readFileSync('worker/lib/'+file,'utf8');
  let calls=0;const prompts=[];
- const ctx=vm.createContext({pinTarotNarrativeSeed,assertTarotNarrativeSnapshot,getAmbientAiLocale:()=> 'ko',bindPaidTarotDraw:async()=>clone(draw),getTarotCardByAnyId:()=>({nameKo:'fixture'}),buildTarotPositionPin:()=> 'position pin',buildOutputLanguageDirective:()=> 'ko',buildLoveReadingPrompt:()=> 'fixed love facts',TAROT_SHARED_RULE_BLOCK:'rules',buildMindscanDeliveryFacts:()=>clone(facts),validateOracleConsultationInput:()=>({ok:true,data:clone(input)}),buildOracleConsultationPrompt:()=>({userPrompt:'fixed oracle',systemPrompt:'system'}),FEATURE_KEY_PRICE_TABLE:{oracle:{cost:50}},resolveOracleConsultationTier:()=>({featureKey:'oracle'}),buildLoveConsultingHighlights:()=>[],narrativePriorDigest:()=>'',NARRATIVE_RESPONSE_SCHEMA:{},callGeminiText:async(_env,prompt)=>{calls++;prompts.push(prompt);return {ok:false}}});
+ const ctx=vm.createContext({pinTarotNarrativeSeed,assertTarotNarrativeSnapshot,appendAnswerVoice,selectAnswerVoice,getAmbientAiLocale:()=> 'ko',bindPaidTarotDraw:async()=>clone(draw),getTarotCardByAnyId:()=>({nameKo:'fixture'}),buildTarotPositionPin:()=> 'position pin',buildOutputLanguageDirective:()=> 'ko',buildLoveReadingPrompt:()=> 'fixed love facts',TAROT_SHARED_RULE_BLOCK:'rules',buildMindscanDeliveryFacts:()=>clone(facts),validateOracleConsultationInput:()=>({ok:true,data:clone(input)}),buildOracleConsultationPrompt:()=>({userPrompt:'fixed oracle',systemPrompt:'system'}),FEATURE_KEY_PRICE_TABLE:{oracle:{cost:50}},resolveOracleConsultationTier:()=>({featureKey:'oracle'}),buildLoveConsultingHighlights:()=>[],narrativePriorDigest:()=>'',NARRATIVE_RESPONSE_SCHEMA:{},callGeminiText:async(_env,prompt)=>{calls++;prompts.push(prompt);return {ok:false}}});
  const ast=ts.createSourceFile(file,source,ts.ScriptTarget.Latest,true);
  for(const node of ast.statements){if(ts.isVariableStatement(node)||ts.isFunctionDeclaration(node))vm.runInContext(node.getText(ast).replace(/^export /,''),ctx)}
  return {ctx,calls:()=>calls,prompts};

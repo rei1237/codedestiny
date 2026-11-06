@@ -23,6 +23,7 @@ import { consumePassForFeature, passDenialCode } from "../lib/pass-consumption.j
 import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { appendExpertPersona, expertPersonaText } from "../lib/expert-character-personas.js";
+import { pinAnswerVoice, selectAnswerVoice } from "../lib/consultation-answer-contract.js";
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { calculateLifeBookAiSaju } from "../lib/life-book-ai-saju.js";
@@ -1501,7 +1502,7 @@ async function generateSectionOnce(env, section, prompt, options = {}) {
   try {
     const tokens = Math.max(section.maxOutputTokens, tokensRequiredForChars(section.targetChars));
     const ai = await callGeminiText(env, prompt, {
-      systemPrompt: await appendExpertPersona(env, "yunLifeBook", buildSystemPrompt(options.consultationType || "lifeBook")),
+      systemPrompt: await appendExpertPersona(env, "yunLifeBook", buildSystemPrompt(options.consultationType || "lifeBook"), { answerVoice: options.answerVoice ?? null }),
       responseMimeType: "application/json",
       responseSchema: jsonSchemaFromExample(buildSectionSchema(section, isLifeFortuneInput(options))),
       taskType: "fortune",
@@ -2655,6 +2656,8 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
         lockToken: "",
         plan: sectionPlan,
         sections: {},
+        // 장마다 문체가 섞이지 않게 생성 시작 시점 값을 고정한다(consultation-answer-contract.js).
+        answerVoice: selectAnswerVoice(env),
         // 결제창이 사용자에게 보여준 금액. applyUsageOnce 가 현재가 대신 이 값을 쓰므로
         // SKU 가격이 바뀌어도 진행 중 세션이 안내와 다른 금액으로 차감되지 않는다.
         pricingSnapshot: {
@@ -2784,6 +2787,7 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
             const prompt = buildSectionPrompt(normalized.input, pickSajuSlice(sajuResult, section.evidenceRefs), boosted, digest);
             const result = await runWithAiLocale(storedAiLocale(lock.doc), async () => generateSectionOnce(env, boosted, prompt, {
               consultationType,
+              answerVoice: pinAnswerVoice(lock.doc?.llmMeta, env),
               birthInfo: normalized.input.birthInfo,
               supportRecovery: recovery,
               truncatedRetry: stored?.error === "SECTION_TRUNCATED",

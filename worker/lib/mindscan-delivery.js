@@ -1,3 +1,4 @@
+import { appendAnswerVoice, selectAnswerVoice } from './consultation-answer-contract.js';
 import { pinTarotNarrativeSeed, assertTarotNarrativeSnapshot } from './tarot-fact-consumer.js';
 import { narrativePriorDigest, normalizeNarrativeBody, parseNarrativeResponse, NARRATIVE_RESPONSE_SCHEMA } from './paid-narrative-candidate.js';
 import { buildMindscanDeliveryFacts } from '../../lib/tarot/mindscan-reading.mjs';
@@ -34,7 +35,9 @@ async function seed(env, userId, body) {
     { id: 'summary', title: '관계 흐름 종합', prompt: `정확히 열 문단으로 ${SUMMARY.join(', ')}를 순서대로 해설한다. 한 문단은 한 항목이며 항목명/번호 없이 본문만 쓴다. 감정과 연락 가능성을 확정하거나 확률로 만들지 않는다.`, minChars: 1600 },
     { id: 'masterAdvice', title: '현실적인 실천 계획', prompt: '지금의 관계에서 실행할 계획과 중단/재검토 기준을 설명한다.', minChars: 1000 },
     { id: 'closing', title: '마지막 상담 편지', prompt: '전체 조건을 종합해 질문에 답하고 선택의 여지를 남기는 상담 편지를 쓴다.', minChars: 700 });
-  return pinTarotNarrativeSeed({ ...facts, prompt: `${facts.prompt}\n${TAROT_SHARED_RULE_BLOCK}`, tasks }, env, { ...body, locale: getAmbientAiLocale() || body.locale || 'ko' }, draw);
+  const answerVoice = selectAnswerVoice(env);
+  return pinTarotNarrativeSeed({ ...facts, ...(answerVoice ? { answerVoice } : {}), tasks,
+    prompt: appendAnswerVoice(`${facts.prompt}\n${TAROT_SHARED_RULE_BLOCK}`, answerVoice, { master: 'neutral', locale: getAmbientAiLocale() || body.locale || 'ko' }) }, env, { ...body, locale: getAmbientAiLocale() || body.locale || 'ko' }, draw);
 }
 // The stored cards a part may name. Each position reads its own pair; a state seeded under the former
 // seven positions reused cards, so a card stored both ways is checked for presence only. Positions hold a main and a sub card and are not checked.

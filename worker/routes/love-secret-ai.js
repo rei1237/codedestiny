@@ -25,6 +25,7 @@ import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { cmsPromptText } from "../lib/cms-prompts.js";
 import { appendExpertPersona, resolveExpertPersona } from "../lib/expert-character-personas.js";
+import { appendAnswerVoice, pinAnswerVoice } from "../lib/consultation-answer-contract.js";
 import { calculateLoveSecretAiSaju, normalizeLoveSecretAiInput } from "../lib/love-secret-ai-calculation.js";
 import { sajuAuthorityOn } from "../lib/saju-authority-consumer.js";
 import {
@@ -769,6 +770,7 @@ async function generateLoveSecretGroup(env, {
   sajuResult,
   group,
   systemPromptBase,
+  answerVoice = null,
   cache,
   timeoutMs,
   logContext = {},
@@ -803,9 +805,10 @@ async function generateLoveSecretGroup(env, {
       previousText: previousResult?.sections?.map((section) => `${section.title}\n${section.body}`).join("\n\n") || "",
     });
     // 공동 마스터 — 이 그룹의 화자 페르소나만 붙인다. CMS 오버라이드는 메모 캐시에서 읽으므로 그룹마다 읽어도 싸다.
-    const persona = await resolveExpertPersona(env, LOVE_SPEAKER_BY_GROUP[group.key] === "hanbi" ? "hanbiLove" : "yeoniLove");
+    const speakerKey = LOVE_SPEAKER_BY_GROUP[group.key] === "hanbi" ? "hanbiLove" : "yeoniLove";
+    const persona = await resolveExpertPersona(env, speakerKey);
     const call = callGeminiJsonWithRetry(env, prompt, {
-      systemPrompt: buildLoveSecretGroupSystemPrompt(systemPromptBase, group, persona),
+      systemPrompt: appendAnswerVoice(buildLoveSecretGroupSystemPrompt(systemPromptBase, group, persona), answerVoice, { master: speakerKey }),
       responseSchema: buildLoveSecretGroupResponseSchema(group),
       temperature: 0.72,
       // 내부 잘림 재시도는 데드라인을 모른 채 벽시계를 2배로 만든다 — 수리는 wave 2가 예산을 알고 한다.
@@ -904,6 +907,7 @@ async function generateFirstConsultation(env, input, sajuResult, logContext = {}
     sajuResult,
     group,
     systemPromptBase,
+    answerVoice: options.answerVoice ?? null,
     cache: { ...cache, skipRead: checkpointed && (attempts[group.key] || 0) > 1 },
     timeoutMs: budgetedTimeout(groupTimeoutCap),
     logContext,
@@ -941,6 +945,7 @@ async function generateFirstConsultation(env, input, sajuResult, logContext = {}
         sajuResult,
         group,
         systemPromptBase,
+        answerVoice: options.answerVoice ?? null,
         cache: { ...cache, skipRead: checkpointed && (attempts[key] || 0) > 2 },
         timeoutMs: budgetedTimeout(LOVE_SECRET_AI_REPAIR_TIMEOUT_MS),
         logContext,
@@ -1012,7 +1017,7 @@ async function generateFirstConsultation(env, input, sajuResult, logContext = {}
 async function generateFollowUp(env, consultation, message) {
   const ai = await callGeminiText(env, buildFollowUpConsultationPrompt(consultation, message), {
     locale: storedAiLocale(consultation),
-    systemPrompt: await appendExpertPersona(env, "yeoniLove", await cmsPromptText(env, "love-secret-ai", LOVE_SECRET_AI_SYSTEM_PROMPT)),
+    systemPrompt: await appendExpertPersona(env, "yeoniLove", await cmsPromptText(env, "love-secret-ai", LOVE_SECRET_AI_SYSTEM_PROMPT), { answerVoice: consultation?.llmMeta?.delivery?.answerVoice ?? null }),
     temperature: 0.7,
     maxOutputTokens: 5000,
     taskType: "fortune",
@@ -1602,6 +1607,8 @@ async function handleStart(request, env, route = "/api/love-secret-ai/generate",
         resumeBody: existing?.llmMeta?.delivery?.resumeBody || { ...body, accessToken: undefined, paymentId: body.paymentId || access.paymentId },
         groups: existing?.llmMeta?.delivery?.groups || [],
         attempts: existing?.llmMeta?.delivery?.attempts || {},
+        // 생성 도중 플래그가 바뀌어도 부마다 문체가 섞이지 않게 시작 시점 값을 고정한다.
+        answerVoice: pinAnswerVoice(existing?.llmMeta?.delivery, env),
       },
     },
   };
@@ -1637,6 +1644,7 @@ async function handleStart(request, env, route = "/api/love-secret-ai/generate",
       deadlineAt: requestStartedAt + LOVE_SECRET_AI_LLM_DEADLINE_MS,
       savedGroups: seed.llmMeta.delivery.groups,
       attempts: seed.llmMeta.delivery.attempts,
+      answerVoice: seed.llmMeta.delivery.answerVoice,
       onReserve: async (key) => {
         const attempts = seed.llmMeta.delivery.attempts;
         if ((attempts[key] || 0) >= 2) throw Object.assign(new Error("보완 호출 한도에 도달했습니다."), { code: "LLM_GENERATION_FAILED" });

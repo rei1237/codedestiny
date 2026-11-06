@@ -1,6 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { ArrowRight } from 'lucide-react';
+import { mobileSpriteUrl } from "@/js/core/profile-characters.mjs";
+import { trackEvent } from "@/lib/analytics";
 import { invalidateProfileCache } from "@/app/_lib/user-session-cache";
 import type { DailyJourney, JourneyHoney } from "./useDailyJourney";
 import { forestZoneForLevel, litLanternCount } from "./forest-progress.mjs";
@@ -39,16 +42,19 @@ export function GrowthCard({ journey }: { journey: DailyJourney }) {
   const [attempt, setAttempt] = useState(0);
   const frame = useRef<HTMLIFrameElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
+  const restoreTrigger = useRef(false);
   const closeButton = useRef<HTMLButtonElement>(null);
   const retry = useRef(journey.retry);
   useEffect(() => { retry.current = journey.retry; }, [journey.retry]);
   useEffect(() => {
     if (!editing) return;
+    restoreTrigger.current = true;
     closeButton.current?.focus();
     const timer = window.setTimeout(() => setFrameStatus("error"), 25000);
     function receive(event: MessageEvent) {
       if (event.origin !== window.location.origin || event.source !== frame.current?.contentWindow || event.data?.type !== "cd:forest-card") return;
       window.clearTimeout(timer);
+      if (event.data.state === "saved") trackEvent("daily_home_card_saved", { surface: journey.surface });
       switch (event.data.state) {
         case "ready": setSaving(false); setFrameStatus("ready"); break;
         case "busy": setSaving(true); break;
@@ -56,7 +62,6 @@ export function GrowthCard({ journey }: { journey: DailyJourney }) {
         case "saved":
         case "closed":
           setSaving(false); setEditing(false);
-          trigger.current?.focus();
           invalidateProfileCache("forest-card-saved");
           retry.current();
           break;
@@ -64,27 +69,46 @@ export function GrowthCard({ journey }: { journey: DailyJourney }) {
     }
     window.addEventListener("message", receive);
     return () => { window.clearTimeout(timer); window.removeEventListener("message", receive); };
-  }, [editing, attempt]);
-  const name = profile ? `${profile.name || "나의"} 카드` : "숲길 프로필 카드";
+  }, [editing, attempt, journey.surface]);
+  const { portrait, portraitFailed } = journey;
   const unavailable = status === "error" || (status === "ready" && journey.profileStatus === "error");
   const loading = status === "loading" || (status === "ready" && journey.profileStatus === "loading");
-  const fallback = status === "guest" ? "카드 없이도 오늘의 숲길을 걸을 수 있어요." : unavailable ? "카드 정보를 불러오지 못했어요." : loading ? "카드를 확인하고 있어요." : "숲길에서 사용할 프로필 카드를 골라 보세요.";
+  useEffect(() => {
+    if (!editing && !loading && !saving && restoreTrigger.current) {
+      restoreTrigger.current = false;
+      trigger.current?.focus({ preventScroll: true });
+    }
+  }, [editing, loading, saving]);
+  const example = status === "guest" || (status === "ready" && !profile && !loading && !unavailable);
+  const avatar = example ? "animal-rabbit" : loading || unavailable ? null : portrait?.id;
+  const name = example ? "프로필 카드 예시" : profile ? `${profile.name || "나의"} 카드` : "내 프로필 카드";
+  const loginHref = journey.surface === "home" ? "/login/?next=%2F%23daily-home-title" : "/login/?next=%2Fdiary%2F%23daily-home-title";
   const ratio = progress ? Math.min(100, Math.round((progress.currentLevelExp / Math.max(1, progress.nextLevelExp)) * 100)) : 0;
-  return <div className={styles.growth}>
+  return <div className={styles.growth} data-forest-profile={example ? "example" : profile?.id || profile?.profileId}>
     <div className={styles.growthHead}>
-      <strong>{name}</strong>
-      <button type="button" ref={trigger} className={styles.cardAction} aria-expanded={editing} disabled={loading || saving}
-        onClick={() => {
-          if (unavailable) { journey.retry(); return; }
-          setFrameStatus("loading"); setEditing(!editing);
-        }}>{unavailable ? "다시 확인하기" : profile ? "카드 바꾸기" : status === "guest" ? "프로필 카드 열기" : "첫 프로필 카드 만들기"}</button>
+      <span className={styles.portrait}>{avatar && <span role="img" aria-label={example ? "예시 토끼" : portrait?.name}
+        data-character-id={avatar} style={{ backgroundImage: `url("${mobileSpriteUrl(avatar)}")` }} />}</span>
+      <div className={styles.identity}>
+        <strong>{name}</strong>
+        {example ? <small>일주 동물 · 토끼<br/>을묘 · 목</small> : avatar && portrait ?
+          <small>일주 동물 · {portrait.animal}{portrait.equipped && <> · 장착 정령 · {portrait.name}</>}<br/>{portrait.ganji} · {portrait.element}</small> :
+          <small role="status">{loading ? "카드를 확인하고 있어요." : "카드를 불러오지 못했어요."}</small>}
+        {status !== "guest" && <button type="button" ref={trigger} className={styles.cardAction} aria-expanded={editing} aria-disabled={loading || saving}
+            onClick={() => {
+              if (loading || saving) return;
+              if (unavailable) { journey.retry(); return; }
+              setFrameStatus("loading"); setEditing(!editing);
+            }}>{unavailable ? "카드 다시 불러오기" : profile ? "카드 바꾸기" : "첫 카드 만들기"}</button>}
+        {portraitFailed && !loading && !unavailable && <button type="button" className={styles.cardAction} onClick={journey.retry}>캐릭터 다시 불러오기</button>}
+      </div>
     </div>
+    {status === "guest" && <a className={styles.joinAction} href={loginHref} onClick={() => trackEvent("daily_home_card_login", { surface: journey.surface })}>가입하고 카드 만들기 <ArrowRight size={15} aria-hidden="true" /></a>}
     {editing && <section className={styles.cardEditor} aria-label="숲길 프로필 카드">
-      <button ref={closeButton} type="button" disabled={saving} onClick={() => { setEditing(false); trigger.current?.focus(); }}>{saving ? "카드 저장 중" : "숲길로 돌아가기"}</button>
+      <button ref={closeButton} type="button" disabled={saving} onClick={() => setEditing(false)}>{saving ? "카드 저장 중" : "숲길로 돌아가기"}</button>
       {frameStatus === "loading" && <p role="status">프로필 카드를 펼치고 있어요.</p>}
       {frameStatus === "error" && <button type="button" onClick={() => { setFrameStatus("loading"); setAttempt(i => i + 1); }}>카드 다시 불러오기</button>}
       <iframe key={attempt} ref={frame} title="숲길 프로필 카드 작성과 선택" hidden={frameStatus !== "ready"}
-        src={CARD_MANAGE_HREF + "&forestCard=" + (profile || status === "guest" ? "select" : "create")} />
+        src={CARD_MANAGE_HREF + "&forestCard=" + (profile ? "select" : "create")} />
     </section>}
     {progress
       ? <div className={styles.growthBody}>
@@ -92,7 +116,7 @@ export function GrowthCard({ journey }: { journey: DailyJourney }) {
           <div className={styles.xpTrack} role="progressbar" aria-label="다음 레벨까지의 경험치" aria-valuemin={0} aria-valuemax={Math.max(1, progress.nextLevelExp)} aria-valuenow={progress.currentLevelExp}><span className={styles.xpFill} style={{ width: `${ratio}%` }} /></div>
           <small>{progress.currentLevelExp} / {progress.nextLevelExp} XP</small>
         </div>
-      : <small className={styles.muted}>{fallback}</small>}
+      : null}
   </div>;
 }
 

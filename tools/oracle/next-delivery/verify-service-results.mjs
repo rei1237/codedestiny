@@ -40,7 +40,7 @@ try {
     child.once('exit', code => { clearTimeout(timer); reject(new Error(`Next exited ${code}`)); });
   });
   browser = await chromium.launch({ headless: true, executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe' });
-  for (const service of services.filter(item => !process.env.AUDIT_SERVICES || process.env.AUDIT_SERVICES.split(',').includes(item.key))) {
+  for (const service of services.filter(item => process.env.AUDIT_SERVICES ? process.env.AUDIT_SERVICES.split(',').includes(item.key) : !item.blockedByGuard)) {
     console.log(`Checking actual Next route: ${service.key}`);
     const context = await browser.newContext({ viewport: { width: 960, height: 1000 }, serviceWorkers: 'block', reducedMotion: 'reduce' });
     await context.addInitScript(() => {
@@ -78,6 +78,9 @@ try {
         const share = page.locator('[data-premium-share="letter"]');
         assert.ok(await conclusion.evaluate((el, panel) => Boolean(el.compareDocumentPosition(panel) & Node.DOCUMENT_POSITION_FOLLOWING), await share.elementHandle()), 'Share and review tools follow the purchased reading');
       }
+      // Answer-first: references must also follow the interpretation body, not just the cover summary.
+      const body = service.bodyMarker ? page.locator(service.bodyMarker).first() : null;
+      if (body) await expect(body).toBeAttached({ timeout: 30000 });
       const referenceSelector = 'details[data-result-reference], details[data-reading-evidence], details[data-ziwei-chart-details], details.kdo-evidence';
       const references = page.locator(referenceSelector);
       const count = await references.count();
@@ -90,6 +93,7 @@ try {
         const summary = reference.locator(':scope > summary');
         if (!await summary.isVisible()) continue;
         assert.ok(await conclusion.evaluate((el, ref) => Boolean(el.compareDocumentPosition(ref) & Node.DOCUMENT_POSITION_FOLLOWING), await reference.elementHandle()), 'Interpretation must precede references');
+        if (body) assert.ok(await body.evaluate((el, ref) => Boolean(el.compareDocumentPosition(ref) & Node.DOCUMENT_POSITION_FOLLOWING), await reference.elementHandle()), `Body (${service.bodyMarker}) must precede references`);
         const savedText = await reference.textContent();
         const content = reference.locator(':scope > :not(summary)').first();
         await expect(content).toBeHidden();
@@ -131,7 +135,8 @@ try {
   const modules = [...new Set(Object.values(inventories).flat())];
   for (const result of results) assert.ok(modules.includes(services.find(service => service.key === result.service).module), `Actual client not compiled: ${result.service}`);
   assert.ok(modules.every(file => !/swiss(?!-franc)|sweph|swisseph|jyotish/i.test(file)));
-  assert.ok(blocked.every(item => item.url.startsWith('https://assets.code-destiny.com/') && /\.(woff2?|ttf)$/.test(item.url)), 'Unexpected remote or blocked engine request');
+  const allowedAsset = item => item.url.startsWith('https://assets.code-destiny.com/') && /\.(woff2?|ttf|webp|png|jpe?g|avif)$/i.test(item.url);
+  assert.ok(blocked.every(allowedAsset), `Unexpected remote or blocked engine request: ${JSON.stringify(blocked.filter(item => !allowedAsset(item)))}`);
   fs.writeFileSync(`${output}/${runName}-report.json`, JSON.stringify({ browser: await browser.version(), productionFlags: 'OFF', results, errors, unknown, requests, blocked, consoleErrors, httpFailures, storedPayloadsUnchanged: true, compiledModules: modules.length }, null, 2));
   assert.equal(results.filter(result => !result.passed).length, 0, 'Service page failures');
   assert.deepEqual(errors, []);

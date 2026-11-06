@@ -1,3 +1,4 @@
+import { selectAnswerVoice } from "./consultation-answer-contract.js";
 import { GEMINI_PROSE_MODEL, isGeminiProModel, proFallbackCause, selectGeminiModel } from "../../lib/gemini-model-policy.js";
 import { isUnbilledGeminiFailure } from "../../lib/gemini-provider-errors.mjs";
 import { FUSION_PREMIUM_VERSION, fusionGroupModel, fusionReasoningTask, FUSION_PREMIUM_THINKING, premiumLengthFor, premiumTargetsFor, isDomainFusion, FUSION_DOMAIN_CHAPTERS, FUSION_DOMAIN_KEYS, premiumFusionBody, normalizeFusionSubchapters, isPremiumFusion, premiumGroupTarget, validFusionConsultationPlan, fusionSubchapters } from "../../lib/fusion-premium-report.js";
@@ -1591,6 +1592,8 @@ export async function generateFusionFortuneRequest({ input = {}, userId = "", re
     const calculationDate = priorSnapshot?.calculatedAt ? new Date(priorSnapshot.calculatedAt) : priorResult?.expertMeta?.calculatedAt ? new Date(priorResult.expertMeta.calculatedAt) : now;
     const contextResult = priorSnapshot?.context ? { ok: true, context: priorSnapshot.context } : await contextBuilder(normalized, { now: calculationDate, env, onStage, gyeokgukAuthorityV2: !priorResult && sajuAuthorityOn(env), ...(normalized.contextVersion === 2 ? { tarotSeed: `${userId}:${safeId}` } : {}) });
     if (!contextResult?.ok) throw Object.assign(new Error("context"), { code: FUSION_FORTUNE_ERROR_CODES.CONTEXT_FAILED });
+    // 질문 직답 계약 버전은 새 계산 컨텍스트에만 고정한다. 재개는 저장된 컨텍스트의 값(없으면 OFF)을 쓴다.
+    if (!priorSnapshot?.context && !priorResult && selectAnswerVoice(env)) contextResult.context = { ...contextResult.context, answerVoice: selectAnswerVoice(env) };
     if (!priorSnapshot?.context && typeof onSnapshot === "function") await onSnapshot({ requestId: safeId, input: normalized, context: contextResult.context, calculatedAt: calculationDate.toISOString(), lease: deliveryLease });
     throwIfFusionFortuneAborted(abortSignal);
     // 🔴 데드라인 시계를 요청 시작 시점(결제 증빙 직후)으로 고정해 넘긴다. 컨텍스트 빌드(6개

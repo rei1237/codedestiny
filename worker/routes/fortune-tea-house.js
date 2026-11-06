@@ -1,3 +1,4 @@
+import { appendAnswerVoice, pinAnswerVoice, selectAnswerVoice } from "../lib/consultation-answer-contract.js";
 import { HONEY_LETTER_COST, TAROT_ALBUM_UNLOCK_COST, isHoneySpendProduct, HONEY_SCOPE_MESSAGE } from '../lib/honey-unlock-catalog.js';
 import { canonicalTeaSaju, withTeaSajuLongitude } from "../lib/tea-saju-facts.js";
 import { sajuAuthorityOn } from "../lib/saju-authority-consumer.js";
@@ -4411,14 +4412,14 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "", 
  * 그룹 하나를 생성한다. **절대 throw 하지 않는다** — 한 그룹의 실패가 나머지를 죽이면
  * 결제한 상담이 통째로 사라진다(love-secret-ai.js 와 같은 계약).
  */
-async function generateFortuneTeaGroup(env, { request, fallback, group, consultationMode, timeoutMs, qualityHint = "", attempt = 0 }) {
+async function generateFortuneTeaGroup(env, { request, fallback, group, consultationMode, timeoutMs, qualityHint = "", attempt = 0, answerVoice = null }) {
   const fail = (reason, provider = "", model = "") => ({ key: group.key, ok: false, parsed: null, chars: 0, reason, provider, model });
   // 🔴 clampSyncLlmTimeoutMs 는 0/음수를 받으면 상한 85s 로 되돌아간다 — 그 앞에서 막아야 한다.
   if (!(timeoutMs > 0)) return fail("BUDGET_EXHAUSTED");
 
   try {
     const call = callGeminiText(env, buildUserPrompt(request, fallback, attempt, qualityHint, group), {
-      systemPrompt: buildSystemPrompt(consultationMode),
+      systemPrompt: appendAnswerVoice(buildSystemPrompt(consultationMode), answerVoice, { master: "yeoni" }),
       taskType: "fortune",
       temperature: attempt > 0 ? 0.54 : 0.62,
       // 재시도는 출력 상한을 두 배로 — 잘린(MAX_TOKENS) 그룹을 같은 상한으로 다시 부르면 또 잘려 환불로 끝난다.
@@ -4442,7 +4443,7 @@ async function generateFortuneTeaGroup(env, { request, fallback, group, consulta
         // 버전을 그대로 두면 캐시된 구버전 응답이 재생되어 테스트는 통과하는데 프로덕션 효과가 0이 된다.
         // v2: timingFacts(대운·다년 세운) 도입 + 시기 규칙 + 합충형해파 요구 제거.
         // r: FORTUNE_TEA_PROMPT_REV — 사실값·프롬프트를 바꾸는 커밋마다 올린다(되돌릴 때도 올린다).
-        keyExtra: `tea-house-${consultationMode}-${group.key}-${request.consultationVersion === "tea-v2" ? "yeoni-evidence-v2" : isSajuFamilyMode(consultationMode) ? "v5" : "v4"}-r${FORTUNE_TEA_PROMPT_REV}`,
+        keyExtra: `tea-house-${consultationMode}-${group.key}-${request.consultationVersion === "tea-v2" ? "yeoni-evidence-v2" : isSajuFamilyMode(consultationMode) ? "v5" : "v4"}-r${FORTUNE_TEA_PROMPT_REV}${answerVoice ? `-${answerVoice}` : ""}`,
         minChars: group.minChars,
       },
     });
@@ -4576,7 +4577,7 @@ function teaCheckpointProgress(state, resultId) {
         message: '정상 생성한 부분을 저장했어요. 같은 요청으로 나머지를 이어서 작성합니다.' };
 }
 async function generateTeaCheckpoint(request, fallback, env, { auth, resultId, lockToken, checkpoint, body }) {
-    const state = checkpoint || { version: 1, request, fallback, groups: buildTeaCheckpointGroups(request, fallback), locale: getAmbientAiLocale() || 'ko',
+    const state = checkpoint || { version: 1, request, fallback, groups: buildTeaCheckpointGroups(request, fallback), locale: getAmbientAiLocale() || 'ko', answerVoice: selectAnswerVoice(env),
         requestBody: JSON.parse(JSON.stringify(body, (key, value) => /^(?:premiumAccessToken|_premiumAccessToken|accessToken|token|authorization)$/i.test(key) ? undefined : value)), parts: {}, attempts: {}, repairs: [] };
     if (state.qualityError === 'report body length' || /quality failed: (?:saju|tarot|sukuyo) length /.test(state.qualityError || '')) state.repairs = [];
     const eligible = state.groups.filter(group => (!state.parts[group.key] || state.repairs.includes(group.key)) && (state.attempts[group.key] || 0) < 2).slice(0, PAID_LLM_PARTS_PER_REQUEST);
@@ -4601,7 +4602,7 @@ async function generateTeaCheckpoint(request, fallback, env, { auth, resultId, l
         return [...new Set(errors)];
     };
     const outcomes = await Promise.allSettled(eligible.map(async (group) => {
-        const output = await runWithAiLocale(state.locale, () => generateFortuneTeaGroup(env, { request: state.request, fallback: state.fallback, group, consultationMode: state.request.consultationMode, timeoutMs: 45000, attempt: state.attempts[group.key] - 1, qualityHint: state.qualityError || '' }));
+        const output = await runWithAiLocale(state.locale, () => generateFortuneTeaGroup(env, { request: state.request, fallback: state.fallback, group, consultationMode: state.request.consultationMode, timeoutMs: 45000, attempt: state.attempts[group.key] - 1, qualityHint: state.qualityError || '', answerVoice: pinAnswerVoice(state, env) }));
         if (!output.ok)
             return;
         // Required provider fields must exist before the deterministic fallback is merged.
@@ -4676,6 +4677,7 @@ async function generateConsultResult(request, fallback, env) {
 
   const consultationMode = normalizeConsultationMode(request.consultationMode);
   const groups = resolveFortuneTeaGroups(request, fallback, consultationMode);
+  const answerVoice = selectAnswerVoice(env);
   // 전 그룹이 한 요청 안에서 동시에 도므로 예산은 그룹별이 아니라 요청 전체에 걸린다.
   const deadlineAt = Date.now() + FORTUNE_TEA_LLM_DEADLINE_MS;
   const budgetedTimeout = (cap) => {
@@ -4691,6 +4693,7 @@ async function generateConsultResult(request, fallback, env) {
     group,
     consultationMode,
     timeoutMs: budgetedTimeout(FORTUNE_TEA_GROUP_TIMEOUT_MS),
+    answerVoice,
   })));
 
   // 웨이브 2 — 실패했거나 제 몫을 못 채운 그룹만 다시 쓴다(전체 재생성 금지).
@@ -4707,6 +4710,7 @@ async function generateConsultResult(request, fallback, env) {
       qualityHint: results[index].ok
         ? `이전 응답이 담당 분량 ${groups[index].minChars}자에 못 미쳤다`
         : results[index].reason,
+      answerVoice,
     })));
     repaired.forEach((result, order) => {
       const index = retryIndexes[order];
@@ -4767,6 +4771,7 @@ async function generateConsultResult(request, fallback, env) {
           timeoutMs: budgetedTimeout(FORTUNE_TEA_REPAIR_TIMEOUT_MS),
           attempt: 1,
           qualityHint: message,
+          answerVoice,
         }).then((result) => (result.ok ? result : previous[index]))
       : Promise.resolve(previous[index]))));
   }
@@ -5925,7 +5930,7 @@ async function generateTeaFollowUpAnswer(doc, question, env) {
     const timeoutMs = Math.min(TEA_FOLLOW_UP_CALL_TIMEOUT_MS, deadlineAt - Date.now());
     if (timeoutMs < TEA_FOLLOW_UP_MIN_CALL_MS) break;
     const ai = await callGeminiText(env, buildTeaFollowUpPrompt(doc, question, retryHint), {
-      systemPrompt: buildTeaFollowUpSystemPrompt(mode),
+      systemPrompt: appendAnswerVoice(buildTeaFollowUpSystemPrompt(mode), selectAnswerVoice(env), { master: "yeoni" }),
       taskType: "fortune",
       temperature: attempt > 0 ? 0.5 : 0.6,
       maxOutputTokens: 8000,

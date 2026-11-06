@@ -19,6 +19,8 @@ type TeaHouseSajuResultPanelProps = {
   onShowTarot: () => void;
   onEditBirthInfo: () => void;
   showTarotAction?: boolean;
+  /** Answer-first layout: the sheet renders the pillar board and element balance after the reading. */
+  chartsAfterReading?: boolean;
 };
 
 /** 화면에 보이는 한국어 원문. 사전에 같은 경로의 값이 있으면 그것이 이긴다.
@@ -81,7 +83,7 @@ function timeLabel(hasBirthTime: boolean | undefined, birthTime: string | undefi
   return hasBirthTime && birthTime ? birthTime : copy.timeUnknown;
 }
 
-export default function TeaHouseSajuResultPanel({ result, onShowTarot, onEditBirthInfo, showTarotAction = true }: TeaHouseSajuResultPanelProps) {
+export default function TeaHouseSajuResultPanel({ result, onShowTarot, onEditBirthInfo, showTarotAction = true, chartsAfterReading = false }: TeaHouseSajuResultPanelProps) {
   const copy = useTeaHouseCopy("sajuResult", KO);
   const saju = result.saju;
   const birth = saju.birthSummary;
@@ -182,8 +184,10 @@ export default function TeaHouseSajuResultPanel({ result, onShowTarot, onEditBir
         </dl>
       </section>
 
-      <SajuPillarBoard pillars={saju.pillars} />
-      <FiveElementBalance elements={saju.fiveElements} method={saju.elementMethod} />
+      {chartsAfterReading ? null : <>
+        <SajuPillarBoard pillars={saju.pillars} />
+        <FiveElementBalance elements={saju.fiveElements} method={saju.elementMethod} />
+      </>}
 
       {result.consultationVersion !== "tea-v2" && categoryGauges.length ? (
         <section className={styles.sajuPanelSection} aria-labelledby="sajuCategoryGaugeTitle" data-tea-pdf-section>

@@ -7,7 +7,7 @@ import DiaryRecordCard from "@/app/diary/_components/DiaryRecordCard";
 import { DIARY_SAVE_FAILED_TEXT, useDiarySaveFailed } from "@/app/diary/_components/DiaryStoreProvider";
 import { trackEvent } from "@/lib/analytics";
 import { nextCardPageIndex } from "../home-card-swipe.mjs";
-import { dailyLine } from "./forest-progress.mjs";
+import { FOREST_ACTIVITY_TITLE, dailyLine } from "./forest-progress.mjs";
 import type { DailyJourney } from "./useDailyJourney";
 import { ForestLines, GrowthCard, LanternRow } from "./ForestParts";
 import styles from "./forest.module.css";
@@ -101,7 +101,7 @@ export default function ForestWalk({ mode, journey, initialStep = 0, onStepChang
 
   const content = <div className={styles.walk} data-mode={mode}>
     <header className={styles.walkHead}>
-      {mode === "inline" ? <h2 id="daily-home-title">오늘의 숲길</h2> : <h2 id="forest-walk-title">오늘의 숲길</h2>}
+      <h2 id={mode === "inline" ? "daily-home-title" : "forest-walk-title"}>{FOREST_ACTIVITY_TITLE}</h2>
       {mode === "dialog" && <button type="button" className={styles.close} onClick={onClose}>닫기</button>}
       <nav className={styles.steps} aria-label="숲길 걸음">
         {STEPS.map((item, index) => <button key={item.id} type="button" aria-current={step === index ? "step" : undefined} data-done={stepDone[index] || undefined} onClick={() => setStep(index)}><span>{item.label}</span>{stepDone[index] && <small>완료</small>}</button>)}
@@ -109,9 +109,10 @@ export default function ForestWalk({ mode, journey, initialStep = 0, onStepChang
       {saveFailed && mode === "dialog" && <p className={styles.saveFailed} role="status">{DIARY_SAVE_FAILED_TEXT}</p>}
     </header>
     <div ref={bodyRef} className={styles.walkBody} onTouchStart={startSwipe} onTouchEnd={endSwipe} onTouchCancel={() => { swipeStart.current = null; }}>
+      <div className={styles.walkProfile}><GrowthCard journey={journey} /></div>
       <Panel index={0} step={step} line={dailyLine(ymd, "lantern")} panelRef={setPanelRef(0)}>
         <div className={styles.block}>
-          <h3>첫 걸음, 등불 켜기</h3>
+          <h3>첫 걸음, 출석 등불 켜기</h3>
           {honey && <LanternRow honey={honey} />}
           {honey && <p className={styles.note}>{honey.streakEvery}일 연속이면 꿀단지에서 추가 {honey.streakBonus}방울을 받아요. 다음 보너스까지 {honey.nextBonusIn}일 남았어요.</p>}
           <div className={styles.wallet}>
@@ -138,7 +139,6 @@ export default function ForestWalk({ mode, journey, initialStep = 0, onStepChang
             <a href="/ggulggul/?action=cdOpenAllFortunes" onClick={onClose}>꿀꿀 운세 살펴보기</a>
           </details>
         </div>
-        <GrowthCard journey={journey} />
         {nextButton("오솔길로 가기", 1)}
       </Panel>
 
@@ -155,7 +155,6 @@ export default function ForestWalk({ mode, journey, initialStep = 0, onStepChang
               </div>}
           <p className={styles.note}>일상을 돌보는 작은 제안이에요. 꿀방울은 지급되지 않으며, 로그인 시 기존 성장 규칙에 따라 경험치를 쌓을 수 있어요.</p>
         </div>
-        <GrowthCard journey={journey} />
         {nextButton("샘터로 가기", 2)}
       </Panel>
 
@@ -172,7 +171,7 @@ export default function ForestWalk({ mode, journey, initialStep = 0, onStepChang
 
       <Panel index={3} step={step} line={dailyLine(ymd, stepsDone >= 3 ? "done" : "map")} panelRef={setPanelRef(3)}>
         <div className={styles.block}>
-          <h3>{stepsDone >= 3 ? "오늘의 숲길을 다 걸었어요" : `오늘 ${hydrated ? stepsDone : 0}걸음 걸었어요`}</h3>
+          <h3>{stepsDone >= 3 ? "오늘의 활동을 마쳤어요" : `오늘 ${hydrated ? stepsDone : 0}걸음 걸었어요`}</h3>
           <ol className={styles.map} aria-label="이번 주 숲 지도">
             {weekMap.map((day: { ymd: string; piece: { id: string; name: string }; isToday: boolean; filled: boolean }, index: number) => <li key={day.ymd} data-filled={day.filled || undefined} data-today={day.isToday || undefined}>
               {/* eslint-disable-next-line @next/next/no-img-element */}

@@ -67,3 +67,7 @@
 ## 롤백
 
 `worker/lib/engine-rollout.js` 의 줄을 지우는 revert 후 재배포한다. 이미 핀이 고정된 기록은 자기 핀을 따른다.
+
+## 2026-11-07 추가 반영
+
+표에 `SUKUYO_IMD_NEW_ORDERS_V1`(숙요 영냥이 개인 질문의 IMD 신규 주문, 검증 구간 한정)과 `CONSULTATION_ANSWER_VOICE_V1`(질문 직답 계약·마스터 조언 렌즈)을 켰다. 결론 먼저 화면은 클라이언트 상수 `ANSWER_FIRST_LAYOUT_V1`로 켠다. 범위, 검증 결과, 롤백 방법은 [34번 문서](34-answer-voice-and-release.md)에 있다. `ASTROLOGY_CONSUMER_FACTS_V1`, `VEDIC_CONSUMER_FACTS_V1`, `SUKUYO_CONSUMER_FACTS_V1`은 계속 끈 채로 둔다.

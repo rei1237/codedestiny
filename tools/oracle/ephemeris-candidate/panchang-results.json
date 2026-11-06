@@ -1,0 +1,28 @@
+{
+  "schema": "imd-nakshatra-comparison-v2",
+  "fixtureHash": "b9c763843587e8d01af4354b02a8364907b8937dc93beff60b052d7e82264215",
+  "legacyApproximation": {
+    "days": 365,
+    "publishedTimedEnds": 361,
+    "daysWithAllDayLabel": 15,
+    "locatedEnds": 361,
+    "monthlyAyanamsaMaxArcmin": 1.48152,
+    "endTimeMaxMinutes": 1.46659,
+    "endTimeP95Minutes": 1.29304,
+    "oneMinuteSidesWrong": 106,
+    "sukuyoOffsetMappingMismatch": 106,
+    "exceptions": []
+  },
+  "imd1956TrueEcliptic": {
+    "days": 365,
+    "publishedTimedEnds": 361,
+    "daysWithAllDayLabel": 15,
+    "locatedEnds": 361,
+    "monthlyAyanamsaMaxArcmin": 1.05005,
+    "endTimeMaxMinutes": 0.7075,
+    "endTimeP95Minutes": 0.58167,
+    "oneMinuteSidesWrong": 0,
+    "sukuyoOffsetMappingMismatch": 0,
+    "exceptions": []
+  }
+}

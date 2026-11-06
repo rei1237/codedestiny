@@ -17,7 +17,12 @@ export default function HomeQuestionGuide(){
   const options=answers.length ? [['yeoni','마음을 편지로 읽기'],['neo','다음 행동 하나 정하기'],['cat','내 선택 습관 돌아보기']] : choices;
   const [fallback,setFallback]=useState(false);
   const guide=guides[id],canPass=guide?.person && question.length<=guide.limit && !failed;
-  useEffect(()=>{if(started.current)heading.current?.focus();},[step,answers.length]);
+  const focusQuestion=useRef(false);
+  useEffect(()=>{
+    if(focusQuestion.current && step==='write'){
+      focusQuestion.current=false;input.current?.focus();
+    } else if(started.current) heading.current?.focus();
+  },[step,answers.length]);
   // Only the step number enters browser history. Answers live in this component.
   const trail=useRef([]),position=useRef(0),journey=useRef('');
   useEffect(()=>{
@@ -66,14 +71,23 @@ export default function HomeQuestionGuide(){
     try {await navigator.clipboard.writeText(question);setNotice('질문을 복사했어요.');}
     catch {setNotice('위의 질문을 길게 눌러 복사해 주세요.');}
   }
-  return <section className={s.guide} data-step={step} aria-labelledby="homeCardTitle">
-    <h2 ref={heading} tabIndex={-1} id="homeCardTitle">{step==='write'?'지금 가장 궁금한 걸 물어보세요.':step==='ask'?(answers.length?'가장 먼저 해 보고 싶은 건 무엇인가요?':'지금은 어떤 도움이 더 필요하세요?'):'내 질문에 어울리는 상담'}</h2>
+  const disclosure=useRef(null);
+  function writeQuestion(){
+    disclosure.current.open=true;
+    if(step==='write') input.current?.focus();
+    else { focusQuestion.current=true; history.go(-position.current); }
+  }
+  return <div className={s.entry}>
+    <MoonlightTutorial onWrite={writeQuestion} />
+    <details ref={disclosure} className={s.find}><summary id="homeCardTitle">내 질문에 맞는 상담 찾기</summary>
+    <section className={s.guide} data-step={step} aria-labelledby="homeQuestionTitle">
+    <h2 ref={heading} tabIndex={-1} id="homeQuestionTitle">{step==='write'?'지금 가장 궁금한 걸 물어보세요.':step==='ask'?(answers.length?'가장 먼저 해 보고 싶은 건 무엇인가요?':'지금은 어떤 도움이 더 필요하세요?'):'내 질문에 어울리는 상담'}</h2>
     {step==='write'?<><form onSubmit={submit}><label htmlFor="home-question">나의 질문</label>
       <textarea ref={input} id="home-question" rows={3} value={question} onChange={e=>{setQuestion(e.target.value);setNotice('');}} placeholder="먼저 연락하고 싶은데, 답장이 없으면 더 힘들어질까 봐 망설여져요."/>
       <button disabled={!ready} className={s.primary}>내 질문에 맞는 상담 찾기</button></form>
       <HomeDisclosure className={s.examples} label="예시 질문 보기"><p>이런 질문으로 시작해 보세요</p>{examples.map(v=><button key={v} onClick={()=>{setQuestion(v);setNotice('');input.current.focus();}}>{v}</button>)}</HomeDisclosure>
       <details><summary>운세 종류로 찾기</summary><nav>{directory.map(v=><a key={v.key} href={v.href}>{v.title}</a>)}</nav></details>
-      <MoonlightTutorial questionInput={input} /></>:
+      </>:
     <><div className={s.quote}><span>내가 한 질문</span><p>{question}</p></div>
     {step==='ask'?<><div className={s.options}>{options.map(([key,label])=><button key={key} onClick={()=>answer(label,key)}>{label}</button>)}
       <button aria-expanded={direct} onClick={()=>setDirect(!direct)}>직접 답하기</button></div>{direct&&<form onSubmit={e=>{e.preventDefault();answer(draft);}}><label htmlFor="home-answer">원하는 도움</label><textarea id="home-answer" autoFocus rows={2} value={draft} onChange={e=>setDraft(e.target.value)}/><button className={s.primary}>답변 반영하기</button></form>}</>:
@@ -86,5 +100,5 @@ export default function HomeQuestionGuide(){
       <button onClick={back}>{answers.length?'이전 답변 수정하기':'질문 수정하기'}</button>
       {answers.length>0&&<button onClick={()=>history.go(-position.current)}>처음 질문 수정하기</button>}</>}
     {notice&&<p role="status">{notice}</p>}
-  </section>;
+  </section></details></div>;
 }

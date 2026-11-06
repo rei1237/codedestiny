@@ -1,3 +1,4 @@
+import { pinAnswerVoice, selectAnswerVoice } from "../lib/consultation-answer-contract.js";
 import { buildNakshatraBirthEvidence, validNakshatraBirth } from '../lib/nakshatra-birth-evidence.js';
 import { jsonSchemaFromExample } from "../lib/json-text-repair.js";
 // 나크샤트라 결정판 통합 상담 — 결제·생성 라우트 (두 전통 교차 해석, 9개 장)
@@ -876,7 +877,7 @@ async function handleStart(request, env) {
     messages: [],
     status: "generating",
     generationError: null,
-    llmMeta: { resumeBody: { ...body, accessToken: undefined, idempotencyKey }, attempts: {}, evidenceIds: evidenceIds.filter(Boolean) },
+    llmMeta: { resumeBody: { ...body, accessToken: undefined, idempotencyKey }, attempts: {}, evidenceIds: evidenceIds.filter(Boolean), ...(selectAnswerVoice(env) ? { answerVoice: selectAnswerVoice(env) } : {}) },
   };
   if (existing) {
     await saveNakshatraDelivery({ id: existing.id, userId: auth.userId, status: { $ne: "completed" } }, { ...seed, updatedAt: now }, sessionId);
@@ -940,7 +941,7 @@ async function advanceGeneration({ request, env, auth, sessionId, idempotencyKey
         attempts[section.id] = Number(attempts[section.id] || 0) + 1;
       });
       session = await saveNakshatraDelivery(filter, { llmMeta: { ...session.llmMeta, attempts } }, sessionId);
-      const context = { summaryText: session.factSummary?.summaryText, question: session.question, writtenMemory: buildWrittenMemory(readSections(session)) };
+      const context = { summaryText: session.factSummary?.summaryText, question: session.question, writtenMemory: buildWrittenMemory(readSections(session)), answerVoice: pinAnswerVoice(session.llmMeta || {}, env) };
       let queue = Promise.resolve();
       const recordGenerationFailure = (sectionId, truncated = false) => {
         const write = queue.catch(() => {}).then(async () => {

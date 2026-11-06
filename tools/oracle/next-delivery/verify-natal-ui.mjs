@@ -58,7 +58,15 @@ try {
   const cookie=page.getByRole('button',{name:'필수만 사용',exact:true});if(await cookie.isVisible())await cookie.click();
   const reading=page.locator('.free-reading');await expect(reading).toContainText('타고난 성향 · 출생 명반 기준',{timeout:60000});
   for(const width of [960,390]){await page.setViewportSize({width,height:1000});await reading.evaluate(el=>el.scrollIntoView({block:'start',behavior:'instant'}));assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));await page.screenshot({path:`${output}/free-${d}-${width}.png`});}
-  if(d==='saju'){await expect(reading.getByRole('table')).toContainText('사주 만세력');await reading.getByRole('table').screenshot({path:output+'/manse-390.png'});}
+  // Answer-first: summary, then the reading, then every chart box closed.
+  const order=await reading.evaluate(el=>{const pos=s=>{const n=el.querySelector(s);return n?[...el.querySelectorAll('*')].indexOf(n):-1;};return {summary:pos('.free-summary'),body:pos('.room-daily-message'),chart:pos('.free-chart'),open:el.querySelectorAll('.free-chart[open]').length};});
+  assert.ok(order.summary>=0&&order.summary<order.body&&order.body<order.chart,`${d}: reading must precede chart boxes ${JSON.stringify(order)}`);assert.equal(order.open,0,`${d}: chart boxes start closed`);
+  if(d==='saju'){
+   const table=reading.locator('table');await expect(table).toHaveCount(1);await expect(table).toBeHidden();
+   const box=reading.locator('details.free-chart:has(table)');assert.equal(await box.evaluate(el=>el.open),false);
+   await box.locator(':scope > summary').click();await expect(table).toBeVisible();await expect(table).toContainText('사주 만세력');await table.screenshot({path:output+'/manse-390.png'});
+   await box.locator(':scope > summary').click();await expect(table).toBeHidden();
+  }
  }
  await page.goto(origin+loadingService.route,{waitUntil:'domcontentloaded',timeout:120000});const stage=page.locator('[data-reading-stage]');await expect(stage).toBeVisible({timeout:60000});
  for(const width of [960,390]){await page.setViewportSize({width,height:1000});await stage.screenshot({path:`${output}/loading-${width}.png`});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));}

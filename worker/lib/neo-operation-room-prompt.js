@@ -1,3 +1,4 @@
+import { answerVoiceBlock } from "./consultation-answer-contract.js";
 import {CONSULTATION_COUNSEL_GUIDE} from '../../lib/fortune/consultation-counsel.mjs';
 import { dedupeTextList, salvageTruncatedJsonObject, trimToSentenceBoundary } from "../../lib/llm-text.js";
 import { buildBasisFactLines, collectBasisLabels } from "./analysis-basis-contract.js";
@@ -764,7 +765,14 @@ function neoSectionCommonLines(section, ctx) {
     ...neoBasisLines(section, ctx),
     ...otherChapterScopeLines(section),
     ...ziweiPersonalityContextLinesFor(method, ctx.methodSummary),
+    ...answerVoiceLines(ctx.answerVoice),
   ];
+}
+
+// CONSULTATION_ANSWER_VOICE_V1: ctx.answerVoice 가 없으면 빈 배열 — 기존 프롬프트와 같다. 말씨(해라체)는 페르소나가 정한다.
+function answerVoiceLines(answerVoice) {
+  const block = answerVoiceBlock(answerVoice, { master: "neo" });
+  return block ? ["", block] : [];
 }
 
 // 지침 객체를 한글 라벨 줄로 편다. JSON 으로 실으면 starStrengthRule 같은 키가 프롬프트에

@@ -21,6 +21,8 @@ import BiasDestinyElementChart from '@/app/saju/destiny-bias/components/BiasDest
 import type { DestinyBiasResultViewModel } from '@/app/saju/destiny-bias/lib/types';
 import type { ChemiReport } from '@/app/saju/destiny-bias/engine/chemiReportBridge';
 import biasStyles from '@/app/saju/destiny-bias/destiny-bias.module.css';
+import ResultReference from '@/components/fortune/ResultReference';
+import { ANSWER_FIRST_LAYOUT_V1 } from '@/lib/result-layout';
 
 const AiConsultDecks = dynamic(() => import('@/app/nakshatra/ai/AiConsultDecks'));
 const CodexReader = dynamic(() => import('@/src/features/master-love-codex/components/CodexReader'));
@@ -52,7 +54,7 @@ export default function StoredReading({ source, serviceId, value, status }: { so
   }
   if (source === 'destiny-bias' && canonical.version === 'destiny-bias-record-v1' && isStoredBiasViewModel(vm)) {
     const snapshot = vm as DestinyBiasResultViewModel;
-    return <><div className={`${biasStyles.page} space-y-6 rounded-[var(--cd-r-card)] p-4`} style={{background:'var(--dbk-cream)'}}><BiasDestinyMainCard vm={snapshot} /><BiasDestinyElementChart vm={snapshot} /><BiasDestinyFiveSections vm={snapshot} /></div></>;
+    return <><div className={`${biasStyles.page} space-y-6 rounded-[var(--cd-r-card)] p-4`} style={{background:'var(--dbk-cream)'}}><BiasDestinyMainCard vm={snapshot} />{ANSWER_FIRST_LAYOUT_V1 ? <><BiasDestinyFiveSections vm={snapshot} /><ResultReference label={reader.evidence}><BiasDestinyElementChart vm={snapshot} /></ResultReference></> : <><BiasDestinyElementChart vm={snapshot} /><BiasDestinyFiveSections vm={snapshot} /></>}</div></>;
   }
   if (source === 'destiny-bias') return <IncompleteBiasReading row={row} notice={c.formatUnavailable} noBody={c.noBody} />;
   if (source === 'chat-consultation' && Array.isArray(row.chapters) && Array.isArray(row.manifest)) return <div data-saved-consultation className={`${chatTheme.room} ${row.persona === 'neo' ? consultationTheme.starlight : ''}`} style={{height:'auto',display:'block',overflow:'visible',padding:20,borderRadius:20}}><ConsultationResult row={row as ChatConsultation} readOnly onNew={() => window.location.assign('/fortune-chat/')} /></div>;

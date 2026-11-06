@@ -22291,6 +22291,17 @@
       "hour": "Kesan tiang jam dikecualikan jika waktu kelahiran tidak diketahui.",
       "story": "Empat bab menghubungkan bidang kehidupan, bukan meramal urutan atau masa kejadian.",
       "relations": "Keharmonian tidak bermakna perubahan unsur secara automatik. Wonjin dan Gwimun tidak menentukan kecurangan, penyakit mental atau kesudahan hubungan."
+    },
+    "approved": {
+      "strengthPending": "Penilaian kekuatan ditangguhkan",
+      "title": "⚖️ Penilaian kekuatan dan unsur berguna kamu berdua",
+      "row": "{name} — Kekuatan Tuan Hari: {strength} · Unsur berguna: {yongshin}",
+      "strong": "Kuat",
+      "weak": "Lemah",
+      "pending": "Ditangguhkan",
+      "candidates": "Calon pelengkap {elements}",
+      "unresolved": "Tiada satu unsur berguna yang disahkan",
+      "note": "Unsur berguna ditunjukkan sebagai calon, bukan jawapan muktamad, dan perkara yang tidak dapat dinilai ditangguhkan. Skor keserasian dikira secara berasingan berdasarkan bilangan setiap unsur."
     }
   },
   "honeyUI": {

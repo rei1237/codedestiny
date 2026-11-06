@@ -35,7 +35,7 @@ test('first-screen translations render before JS; missing translations fail the 
   const fixture = mkdtempSync(join(tmpdir(), 'cd-seo-locale-'));
   try {
     const html = read('index.html');
-    const hero = ['yhDesktopTitle','cdhTitle'].map(id => html.match(new RegExp('<h1[^>]*id="' + id + '"[^>]*>[\\s\\S]*?<\\/h1>'))[0]).join('');
+    const hero = ['yhDesktopTitle','cdhTitle'].map(id => html.match(new RegExp('<h([12])[^>]*id="' + id + '"[^>]*>[\\s\\S]*?<\\/h\\1>'))[0]).join('');
     for (const [locale, dictionary] of [['en','en'],['ja','ja'],['zh','zh-cn'],['zh-tw','zh-tw']]) {
       mkdirSync(join(fixture, 'dist', locale), { recursive: true });
       mkdirSync(join(fixture, 'public', 'i18n'), { recursive: true });

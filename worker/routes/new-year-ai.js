@@ -31,6 +31,7 @@ import { safeGeminiFailure } from "../../lib/gemini-provider-errors.mjs";
 import { reserveSupportRecoveryAttempt, supportRecoveryGenerationOptions, assertSupportRecoveryPreserved } from "../lib/support-recovery-budget.js";
 import { consultationRefundResponse } from "../lib/consultation-refund-state.js";
 import { appendExpertPersona, expertPersonaText } from "../lib/expert-character-personas.js";
+import { pinAnswerVoice, selectAnswerVoice } from "../lib/consultation-answer-contract.js";
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
@@ -1943,7 +1944,7 @@ async function generateConsultationSection(env, options) {
   if (!(timeoutMs > 0)) return { ...base, text: previousText, ok: false, reason: "BUDGET_EXHAUSTED" };
   try {
     const ai = await callGeminiText(env, buildSectionPrompt(input, fortuneData, section, repairLines, previousText, priorSections), {
-      systemPrompt: await appendExpertPersona(env, "neoNewYear", buildSystemPrompt()),
+      systemPrompt: await appendExpertPersona(env, "neoNewYear", buildSystemPrompt(), { answerVoice: options.answerVoice ?? null }),
       taskType: "fortune",
       temperature: repairLines.length ? 0.62 : 0.72,
       maxOutputTokens: NEW_YEAR_AI_SECTION_MAX_OUTPUT_TOKENS,
@@ -2037,6 +2038,7 @@ async function generateConsultationText(env, input, fortuneData, options = {}) {
   let results = await Promise.all(NEW_YEAR_AI_SECTIONS.map((section) => generateConsultationSection(env, {
     input,
     fortuneData,
+    answerVoice: options.answerVoice ?? null,
     section,
     cache: newYearLlmCache,
     timeoutMs: wave1TimeoutMs,
@@ -2053,6 +2055,7 @@ async function generateConsultationText(env, input, fortuneData, options = {}) {
       return generateConsultationSection(env, {
         input,
         fortuneData,
+        answerVoice: options.answerVoice ?? null,
         section: row.section,
         cache: newYearLlmCache,
         timeoutMs: wave2TimeoutMs,
@@ -2085,7 +2088,7 @@ async function generateConsultationText(env, input, fortuneData, options = {}) {
     const overflow = quality.totalChars - maxTotalChars;
     const targetMaxChars = Math.max(longest.section.minChars, countConsultationChars(longest.text) - overflow - 200);
     const compressed = await callGeminiText(env, buildConsultationCompressionPrompt(longest.text, longest.section.minChars, targetMaxChars), {
-      systemPrompt: await appendExpertPersona(env, "neoNewYear", buildSystemPrompt(longest.section)),
+      systemPrompt: await appendExpertPersona(env, "neoNewYear", buildSystemPrompt(longest.section), { answerVoice: options.answerVoice ?? null }),
       taskType: "fortune",
       temperature: 0.52,
       maxOutputTokens: NEW_YEAR_AI_SECTION_MAX_OUTPUT_TOKENS,
@@ -2487,6 +2490,7 @@ async function generateNewYearWave(env, input, fortuneData, options) {
       await options.onReserve(candidate.key, valid(candidate) && !mapIssuesToSections({ issues: contentIssues(results) }, results).has(candidate.key));
       const generated = await generateConsultationSection(env, {
         input, fortuneData, section: candidate.section, allowShortDraft: true,
+        answerVoice: options.answerVoice ?? null,
         supportRecovery: recovery,
         priorSections: results.filter(row => row.key !== candidate.key && row.ok && !row.truncated && !row.isMock),
         timeoutMs: Math.min(NEW_YEAR_AI_SECTION_TIMEOUT_MS, remaining),
@@ -2649,7 +2653,7 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
         birthInfo: normalized.input.birthInfo, topic: normalized.input.topic, accessType: access.accessType, paymentId: clean(access.paymentId, 160), ...(nativeTossContext(request) ? {accessSource:'toss'} : {}),
         messages: [], idempotencyKey, inputHash: normalized.inputHash, status: 'partial', generationError: null,
         llmMeta: { fortuneData, resumeBody: { ...body, paymentId: clean(access.paymentId, 160) || body.paymentId, accessToken: undefined },
-          savedSections: [], attempts: {}, lockedAt: null, lockToken: '' } });
+          savedSections: [], attempts: {}, lockedAt: null, lockToken: '', answerVoice: selectAnswerVoice(env) } });
     } catch (error) {
       if (error?.code !== 11000) throw resultStorageUnavailable(sessionId);
       const duplicate = await NewYearAiConsultation.findOne({ userId: clean(auth.userId), idempotencyKey }).lean();
@@ -2684,6 +2688,8 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
     const generated = await runWithAiLocale(storedAiLocale(claimed), async () => generateConsultationText(env, normalized.input, fortuneData, {
       hasCustomQuestion: clean(normalized.input.question).length >= 2, deadlineAt: startedAt + NEW_YEAR_AI_LLM_BUDGET_MS,
       savedSections: claimed.llmMeta?.savedSections || [], attempts,
+      // 섹션마다 문체가 섞이지 않게 생성 시작 시점 값을 쓴다(consultation-answer-contract.js).
+      answerVoice: pinAnswerVoice(claimed.llmMeta, env),
       supportRecovery: claimed.llmMeta?.supportRecovery,
       onReserve: async (key, lengthRepair) => {
         await reserveSupportRecoveryAttempt({ Model: NewYearAiConsultation, id: sessionId, userId: auth.userId, lockToken });

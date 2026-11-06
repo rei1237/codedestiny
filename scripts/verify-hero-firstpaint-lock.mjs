@@ -94,7 +94,7 @@ if (raw.includes('id="cdHomeFunnel"')) {
   assert.doesNotMatch(css, /html\.neo-mode #cdHomeFunnel \.cdh-persona--yeoni\s*\{\s*display:\s*none/, 'dark mode keeps Yeoni visible');
   const yehwaCss = readFileSync(resolve(root, 'styles/yehwa-home.css'), 'utf8');
   const yehwaLink = raw.indexOf('href="/styles/yehwa-home.css');
-  assert(yehwaLink > 0 && yehwaLink < raw.indexOf('class="yh-hero"'), 'Yehwa styles must precede hero markup');
+  assert(yehwaLink > 0 && yehwaLink < raw.indexOf('class="yh-hero'), 'Yehwa styles must precede hero markup');
   assert.match(yehwaCss, /\.yh-art img\s*\{[^}]*width:\s*100%[^}]*aspect-ratio:\s*1[^}]*object-fit:\s*contain/, 'hero image reserves square geometry');
   assert.match(yehwaCss, /\.yh-hero\s*\{[^}]*grid-template-columns:1\.2fr 1fr[^}]*min-height:280px/, 'desktop hero reserves approved geometry');
   assert.match(yehwaCss, /@media\(max-width:600px\)\{\.yh-hero\{[^}]*grid-template-columns:minmax\(0,1\.45fr\) minmax\(0,1fr\)/, 'mobile hero preserves adjacent copy and art');

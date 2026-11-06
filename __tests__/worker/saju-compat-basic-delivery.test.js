@@ -262,6 +262,27 @@ test.each(['pass', 'monthly', 'single'])('%s 결제 확인 뒤 네 그룹을 한
   expect((await resume()).status).toBe(200);
   expect((await start()).status).toBe(200);
   expect(provider).toHaveBeenCalledTimes(4);
+  expect(docs[0].metadata.result).not.toHaveProperty('approvedSaju');
+});
+
+test('승인 판정 플래그로 시작한 납품은 프롬프트가 읽은 approvedSaju 를 저장하고 보관함도 같은 값을 돌려준다', async () => {
+  const { buildSajuCompatFactsBlock, withApprovedSajuCompat } = await import('../../worker/lib/saju-compat-prompts.js');
+  const flagged = (payload) => route(new Request('https://mock.test/api/saju-compat-basic/generate', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload) }), { SAJU_GYEOKGUK_AUTHORITY_V2: 'true' });
+  const expected = withApprovedSajuCompat(input()).approvedSaju;
+  const factsBlock = buildSajuCompatFactsBlock({ ...input(), approvedSaju: expected });
+  const prompts = [];
+  provider.mockImplementation(async (_env, prompt) => { prompts.push(prompt); return reply(groupOf(prompt)); });
+  let response = await flagged(original());
+  for (let i = 0; i < 12 && response.status === 202; i += 1) response = await flagged({ resumeResultId: docs[0].executionKey });
+  expect(response.status).toBe(200);
+  expect(prompts).toHaveLength(4);
+  for (const prompt of prompts) expect(prompt).toContain(factsBlock);
+  expect((await response.json()).approvedSaju).toEqual(expected);
+  expect(docs[0].metadata.result.approvedSaju).toEqual(expected);
+  provider.mockClear();
+  const detail = await call(`/archive/${encodeURIComponent(docs[0].executionKey)}`, { method: 'GET' });
+  expect((await detail.json()).result.approvedSaju).toEqual(expected);
+  expect(provider).not.toHaveBeenCalled();
 });
 
 test('결제 확인이 안 되면 402 이고 LLM 도 DB 행도 없다', async () => {

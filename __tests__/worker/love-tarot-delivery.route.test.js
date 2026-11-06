@@ -35,6 +35,30 @@ beforeAll(async()=>{
  ({paidTarotDrawKey}=await import('../../worker/lib/paid-tarot-draw.js'));
 });
 let proofs=[];
+test('new deal survives payment return, OFF generation and archive reread with its original interpretation', async () => {
+  mode = 'single';
+  const drawId = 'checkout-pinned-draw';
+  const response = await route(new Request('https://mock.test/api/tarot/paid-draw', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ drawId, featureKey: 'tarot-love-relationship', auto: true }),
+  }), { TAROT_CONSUMER_FACTS_V1: 'true' });
+  expect(response.status).toBe(200);
+  const deal = await response.json();
+  expect(deal.presentationDigest).toMatch(/^[a-f0-9]{64}$/);
+  expect((await post({ ...original(), drawId, cards: deal.cards })).status).toBe(202);
+  const completed = await finish();
+  expect(completed.status).toBe(200);
+  const result = await completed.json();
+  expect(result.engineFacts.options.preparedPresentation.digest).toBe(deal.presentationDigest);
+  expect(result.engineFacts.options.preparedPresentation.cards.map(c => [c.cardId, c.orientation, c.interpretation]))
+    .toEqual(deal.cards.map(c => [c.cardId, c.orientation, c.interpretation]));
+  const calls = provider.mock.calls.length;
+  const opened = await (await resume()).json();
+  expect(opened.reading).toEqual(result.reading);
+  expect(opened.engineFacts.digest).toBe(result.engineFacts.digest);
+  expect(provider).toHaveBeenCalledTimes(calls);
+});
+
 test.each(['single', 'excess'])('matrix %s paragraphs are saved and reopened without an extra call',async format=>{
  const base=provider.getMockImplementation(),originals={};
  provider.mockImplementation(async(...args)=>{

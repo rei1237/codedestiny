@@ -22291,6 +22291,17 @@
       "hour": "Bei unbekannter Geburtszeit werden Wirkungen des Stundenpfeilers ausgelassen.",
       "story": "Die vier Kapitel verbinden Lebensbereiche; sie sagen weder Reihenfolge noch Zeitpunkt von Ereignissen voraus.",
       "relations": "Eine Verbindung bedeutet keine automatische Elementumwandlung. Wonjin und Gwimun belegen weder Untreue noch psychische Erkrankungen oder den Ausgang einer Beziehung."
+    },
+    "approved": {
+      "strengthPending": "Stärkebewertung zurückgestellt",
+      "title": "⚖️ Stärke und nützliches Element von euch beiden",
+      "row": "{name} — Stärke des Tagesmeisters: {strength} · Nützliches Element: {yongshin}",
+      "strong": "Stark",
+      "weak": "Schwach",
+      "pending": "Zurückgestellt",
+      "candidates": "Kandidaten: {elements}",
+      "unresolved": "Kein einzelnes nützliches Element bestätigt",
+      "note": "Nützliche Elemente werden als Kandidaten und nicht als feste Antworten gezeigt; was sich nicht beurteilen lässt, bleibt zurückgestellt. Der Kompatibilitätswert wird separat aus der Anzahl der Elemente berechnet."
     }
   },
   "honeyUI": {

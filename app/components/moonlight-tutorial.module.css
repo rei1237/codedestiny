@@ -1,7 +1,19 @@
-button.trigger[aria-haspopup="dialog"]{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,42%) 1fr;align-items:center;gap:clamp(.75rem,3vw,2rem);width:100%;overflow:hidden;padding:0;color:#422639;background:#fbf3e8;border:1px solid var(--hm-gold-line);border-radius:8px 22px 8px 8px;text-align:left}
-.trigger img{display:block;width:100%;height:clamp(8rem,18vw,12rem);object-fit:cover;object-position:50% 54%}
-.trigger small,.trigger strong{display:block;padding-right:1rem}
-.trigger strong{margin-top:.35rem;font:700 clamp(1rem,2vw,1.45rem)/1.45 var(--font-serif)}
+button.trigger[aria-haspopup="dialog"] {
+  display:grid; grid-template-columns:clamp(128px,44vw,195px) minmax(0,1fr); align-items:center;
+  gap:clamp(12px,3vw,24px); width:100%; padding:0; overflow:hidden; text-align:left;
+  background:var(--cd-surface); color:var(--cd-text);
+  border:1px solid var(--hm-gold-line); border-radius:var(--cd-r-card);
+  box-shadow:0 8px 22px -18px var(--hm-gold-ink);
+}
+.trigger picture { display:block; width:100%; }
+.trigger img { display:block; width:100%; height:auto; aspect-ratio:1.15; object-fit:cover; }
+.trigger > span { padding:8px 10px 8px 0; }
+.trigger small,.trigger strong { display:block; }
+.trigger small { color:var(--cd-text-muted); font-size:.875rem; }
+.trigger strong { margin:.25rem 0; font:700 clamp(1rem,3.9vw,1.4rem)/1.45 var(--font-serif); }
+.guideArrow { display:inline-flex; margin-inline-start:.35em; color:var(--hm-gold-ink); }
+@media(max-width:480px){.guideArrow{display:none;}}
+@media(min-width:700px){button.trigger[aria-haspopup="dialog"]{grid-template-columns:165px 1fr;}}
 .panel h3{margin:0;font:700 1.2rem/1.5 var(--font-serif)}
 .reader {
   position:fixed; inset:0; margin:auto; width:min(100%,34rem); max-width:100%; height:min(90dvh,54rem);
@@ -26,9 +38,3 @@ button.trigger[aria-haspopup="dialog"]{grid-column:1/-1;display:grid;grid-templa
 .panel a {display:inline-flex; gap:.3em; align-items:center; min-height:48px; text-decoration:underline}
 .reader .write {width:100%; min-height:48px; padding:.8rem; background:var(--cd-text); color:var(--cd-bg); border-radius:.55rem; text-align:center; font-weight:700}
 @media(max-width:600px){.reader {width:100%; height:100dvh; border:0; border-radius:0}.bar {padding-top:env(safe-area-inset-top)}.story {padding-bottom:calc(1.5rem + env(safe-area-inset-bottom))}}
-
-@media(max-width:699px){
- button.trigger[aria-haspopup="dialog"]{grid-template-columns:50px 1fr;gap:10px;min-height:52px;padding:6px 12px;border-radius:var(--cd-r-card)}
- .trigger img{width:50px;height:40px;object-fit:contain}
- .trigger small{display:none}.trigger strong{margin:0;font-size:1rem}
-}

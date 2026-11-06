@@ -110,20 +110,12 @@ try {
     await page.getByLabel('생년월일', { exact: true }).fill(mode === 'unsupported' ? '1999-02-04' : '2023-02-04');
     await page.getByRole('textbox', { name: '태어난 시간', exact: true }).fill('11:42');
     await page.getByRole('button', { name: '별궁 전문가 상담 받기', exact: true }).click();
-    if (mode === 'unsupported') {
-      await expect.poll(() => httpFailures.some(row => row.status === 422)).toBe(true);
-      await expect(page.getByRole('button', { name: '별궁 전문가 상담 받기', exact: true })).toBeEnabled();
-      assert.equal(await page.evaluate(() => window.__audit.gateCalls), 0);
-      assert.equal(runtime.backend.preparations.length + runtime.backend.payments.length + runtime.backend.consultations.length, 0);
-      assert.equal(runtime.backend.llmInputs.length + runtime.backend.pgCalls.length + runtime.backend.writes.length, 0);
-      assert.ok(selection.calls.some(call => call.error === 'CALCULATION_PREPARATION_INVALID'));
-      cases.push('unsupported-on-denied-before-payment-without-legacy-fallback');
-    } else {
+    // An out-of-table 1999 birth now pins the supported legacy calendar before checkout.
     await expect(page.getByRole('dialog', { name: '합성 PG 결제' })).toBeVisible();
     const initialDocument = await page.evaluate(() => window.__audit.documentId);
     const chartHash = digest(runtime.backend.preparations[0].chartSnapshot);
     const prepared = wire(runtime.backend.preparations[0]);
-    const expectedVersion = engine === 'off' || mode === 'legacy' ? 'legacy' : IMPROVED_VERSION;
+    const expectedVersion = engine === 'off' || mode === 'legacy' || mode === 'unsupported' ? 'legacy' : IMPROVED_VERSION;
     assert.equal(prepared.authorityVersion, expectedVersion);
     if (mode === 'prepare-race') {
       assert.equal(prepareRace.length, 2);
@@ -311,7 +303,6 @@ try {
       cases.push('next-api-rewrite-fails-closed');
       await page.screenshot({ path: `${output}/${caseId}-full.png`, fullPage: true });
     }
-    }
   }
   const modules = [...new Set(Object.values(moduleInputs).flat())];
   for (const file of ['app/layout.js', 'app/ziwei-ai/page.tsx', 'app/ziwei-ai/ZiweiAiClient.tsx', 'app/providers/UserSessionProvider.tsx']) assert.ok(modules.includes(file), `Missing compiled ${file}`);
@@ -320,8 +311,7 @@ try {
   assert.ok(httpFailures.every(row => {
     const endpoint = row.path.replace(/\/$/, '');
     return row.status === 402 && endpoint === '/api/ziwei-ai/prepare'
-      || row.status === 503 && endpoint === '/api/ziwei-ai/generate'
-      || mode === 'unsupported' && row.status === 422 && endpoint === '/api/ziwei-ai/prepare';
+      || row.status === 503 && endpoint === '/api/ziwei-ai/generate';
   }));
   assert.equal(runtime.backend.externalCalls + runtime.backend.refunds, 0);
   fs.writeFileSync(`${output}/${caseId}.json`, JSON.stringify({ mode, engine, cases, browser: await browser.version(), productionFlags: 'OFF',

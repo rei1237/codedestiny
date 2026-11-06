@@ -24,6 +24,8 @@ import {
 } from "./life-book-ai-saju.js";
 import { toKrBranch, toKrStem } from "./saju-snapshot-from-birth.js";
 import { DAY_TIER_LABEL } from "./sukuyo-relation-core.js";
+import { approvedSajuLabels, lifeBookPillars } from "./saju-authority-consumer.js";
+import { authorityText } from "../../lib/saju/gyeokguk-authority-copy.mjs";
 
 // 십성 10종 → 5계열. 신강약 판정은 계열 단위로 움직인다.
 const TEN_GOD_GROUP = {
@@ -130,9 +132,11 @@ function tierFromScore(score) {
  *
  * @param {object} natal calculateLifeBookAiSaju() 결과
  * @param {{stem:string, branch:string}} today 오늘 일주(한자 천간/지지)
+ * @param {{approvedStrength?: boolean}} [options] approvedStrength: SAJU_GYEOKGUK_AUTHORITY_V2 일 때 화면 강약 표기를
+ *   승인 판정으로 싣는다(strengthLabel). 점수 입력(strengthMode)은 그대로다.
  * @returns {object|null} 판정 불가(일간·일진 결손)면 null
  */
-export function judgeSajuDayFortune(natal, today) {
+export function judgeSajuDayFortune(natal, today, { approvedStrength = false } = {}) {
   const dayMaster = String(natal?.dayMaster || "").trim();
   const todayStem = String(today?.stem || "").trim();
   const todayBranch = String(today?.branch || "").trim();
@@ -199,5 +203,15 @@ export function judgeSajuDayFortune(natal, today) {
     // 숙요 judgeDayFortune 의 headline 과 같은 꼴로 맞춘다("…의 결 — 등급 (오늘은 …)").
     headline: `${stemTenGod}의 결 — ${DAY_TIER_LABEL[tier]} (오늘은 ${GROUP_MEANING[stemGroup]} 자리)`,
     advice,
+    ...(approvedStrength ? { strengthLabel: approvedStrengthLabel(natal) } : {}),
   };
+}
+
+// 표시 전용 승인 강약(신강·신약·판정 보류). 판정할 수 없으면 보류로 두고, 점수용 강약으로 대신하지 않는다.
+function approvedStrengthLabel(natal) {
+  try {
+    return approvedSajuLabels(lifeBookPillars(natal)).strength;
+  } catch {
+    return authorityText("unknown");
+  }
 }

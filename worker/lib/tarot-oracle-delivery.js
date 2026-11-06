@@ -1,3 +1,4 @@
+import { appendAnswerVoice, selectAnswerVoice } from './consultation-answer-contract.js';
 import { pinTarotNarrativeSeed, assertTarotNarrativeSnapshot } from './tarot-fact-consumer.js';
 import { narrativePriorDigest, normalizeNarrativeBody, parseNarrativeResponse, NARRATIVE_RESPONSE_SCHEMA } from './paid-narrative-candidate.js';
 import { normalizeNarrativeParagraphs } from './narrative-format.js';
@@ -51,7 +52,9 @@ function seedOracle(body, env) {
   const pairs = input.cards.length < 3 ? [] : Array.from({ length: Math.min(3, input.cards.length - 1) }, (_, i) => [0, i + 1]);
   pairs.forEach(([a, b], index) => tasks.push({ id: `synergy.${index}`, title: `${a + 1}번 × ${b + 1}번`,
     prompt: `${a + 1}번과 ${b + 1}번 카드의 관계를 함께 해석한다. 각 카드의 단독 설명을 반복하지 말고 두 카드가 만날 때 달라지는 조건을 설명한다.`, minChars: 400 }));
-  return pinTarotNarrativeSeed({ input, pairs, segments, tasks, systemPrompt: built.systemPrompt,
+  const answerVoice = selectAnswerVoice(env);
+  return pinTarotNarrativeSeed({ input, pairs, segments, tasks, ...(answerVoice ? { answerVoice } : {}),
+    systemPrompt: appendAnswerVoice(built.systemPrompt, answerVoice, { master: 'neutral', locale: getAmbientAiLocale() || body.locale || 'ko' }),
     // Keep canonical card/topic facts; the old whole-report JSON/short field limits
     // are replaced by the bounded part contract below.
     prompt: `${built.userPrompt.split('[출력 형식]')[0]}\n${TAROT_SHARED_RULE_BLOCK}` }, env, { ...body, locale: getAmbientAiLocale() || body.locale || 'ko' });

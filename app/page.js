@@ -129,34 +129,40 @@ export default function HomePage() {
           })}
         </HomeCardDeck>
         {!IS_APP_BUILD && <HomeQuestionGuide />}
-        <HomeDailyEntry />
         {!IS_APP_BUILD && <StoryDiscovery />}
+        <HomeDailyEntry />
         {!IS_APP_BUILD && <HomeInstallEntry />}
-        {!IS_APP_BUILD && <nav className={styles.entryHelp} aria-label="주요 운세 바로가기">
-          <a href="https://play.google.com/store/apps/details?id=com.codedestiny.app">Google Play에서 꿀꿀운세 앱 다운로드</a>
-          {HOME_QUICK_LINKS.map(({ key, href, title }) => (
-            <Link key={key} href={href} prefetch={false} {...discoveryTracking(key)}>{title}</Link>
-          ))}
-        </nav>}
-        <nav className={styles.entryHelp} aria-label="서비스 이용 도움말">
-          <Link prefetch={IS_APP_BUILD ? false : undefined} href="/faq/"><NativeHomeText>이용 안내</NativeHomeText></Link>
-          <Link prefetch={IS_APP_BUILD ? false : undefined} href="/records/"><NativeHomeText>꿀꿀 운세 기록</NativeHomeText></Link>
-          <Link prefetch={IS_APP_BUILD ? false : undefined} href="/yeongnyangi/library/"><NativeHomeText>영냥이 상담 기록</NativeHomeText></Link>
-        </nav>
-        <p className={styles.entryNote}>{IS_APP_BUILD ? <NativeHomeText>이용권과 상담 기록은 서비스별로 확인해 주세요.</NativeHomeText>
-          : <a href="/points/#moonlight-plans">문라이트 패스(꿀단지 이용권) 살펴보기</a>}</p>
       </main>
 
       {!IS_APP_BUILD && <MobileHomeNav/>}
       <footer className={styles.footer}>
-        <NativeHomeNav className={styles.footerNav} aria-label="정책과 문의">
-          {FOOTER_LINKS.map(link => <Link prefetch={IS_APP_BUILD ? false : undefined} key={link.href} href={link.href} className={link.strong ? styles.footerStrong : undefined}><NativeHomeDictionaryText translationKey={link.trans}>{link.text}</NativeHomeDictionaryText></Link>)}
-        </NativeHomeNav>
-        {/* 둘째 줄(작게): dist/index.html 도 scripts/verify-adsense-readiness.mjs 의 신뢰 링크 8종 검사 대상이다. */}
-        <NativeHomeNav className={`${styles.footerNav} ${styles.footerQuiet}`} aria-label="안내 페이지">
-          {FOOTER_TRUST_LINKS.map(link => <Link prefetch={IS_APP_BUILD ? false : undefined} key={link.href} href={link.href}><NativeHomeDictionaryText translationKey={link.trans}>{link.text}</NativeHomeDictionaryText></Link>)}
-          {!IS_APP_BUILD && <button type="button" data-cd-cookie-settings className={styles.footerButton}>쿠키 설정</button>}
-        </NativeHomeNav>
+        <div className={styles.footerGroups}>
+          {!IS_APP_BUILD && <nav className={styles.entryHelp} aria-label="주요 운세 바로가기">
+            <h2>운세 바로가기</h2>
+            {HOME_QUICK_LINKS.map(({ key, href, title }) => (
+              <Link key={key} href={href} prefetch={false} {...discoveryTracking(key)}>{title}</Link>
+            ))}
+          </nav>}
+          <nav className={styles.entryHelp} aria-label="서비스 이용 도움말">
+            {!IS_APP_BUILD && <h2>내 기록과 이용 안내</h2>}
+            <Link prefetch={IS_APP_BUILD ? false : undefined} href="/faq/"><NativeHomeText>이용 안내</NativeHomeText></Link>
+            <Link prefetch={IS_APP_BUILD ? false : undefined} href="/records/"><NativeHomeText>꿀꿀 운세 기록</NativeHomeText></Link>
+            <Link prefetch={IS_APP_BUILD ? false : undefined} href="/yeongnyangi/library/"><NativeHomeText>영냥이 상담 기록</NativeHomeText></Link>
+            <p className={styles.entryNote}>{IS_APP_BUILD ? <NativeHomeText>이용권과 상담 기록은 서비스별로 확인해 주세요.</NativeHomeText>
+              : <a href="/points/#moonlight-plans">문라이트 패스(꿀단지 이용권) 살펴보기</a>}</p>
+          </nav>
+          <div className={styles.policyGroup}>
+            {!IS_APP_BUILD && <h2>정책과 문의</h2>}
+            <NativeHomeNav className={styles.footerNav} aria-label="정책과 문의">
+              {FOOTER_LINKS.map(link => <Link prefetch={IS_APP_BUILD ? false : undefined} key={link.href} href={link.href} className={link.strong ? styles.footerStrong : undefined}><NativeHomeDictionaryText translationKey={link.trans}>{link.text}</NativeHomeDictionaryText></Link>)}
+            </NativeHomeNav>
+            {/* 둘째 줄(작게): dist/index.html 도 scripts/verify-adsense-readiness.mjs 의 신뢰 링크 8종 검사 대상이다. */}
+            <NativeHomeNav className={`${styles.footerNav} ${styles.footerQuiet}`} aria-label="안내 페이지">
+              {FOOTER_TRUST_LINKS.map(link => <Link prefetch={IS_APP_BUILD ? false : undefined} key={link.href} href={link.href}><NativeHomeDictionaryText translationKey={link.trans}>{link.text}</NativeHomeDictionaryText></Link>)}
+              {!IS_APP_BUILD && <button type="button" data-cd-cookie-settings className={styles.footerButton}>쿠키 설정</button>}
+            </NativeHomeNav>
+          </div>
+        </div>
         <p className={styles.byline}><Link prefetch={IS_APP_BUILD ? false : undefined} href="/about/#author"><NativeHomeDictionaryText translationKey="footer.byline">{FOOTER_BYLINE}</NativeHomeDictionaryText></Link></p>
         <p className={styles.business}>
           <span><NativeHomeText>상호</NativeHomeText> {BUSINESS_IDENTITY.companyName}</span><span><NativeHomeText>대표</NativeHomeText> {BUSINESS_IDENTITY.representative}</span><span><NativeHomeText>사업자등록번호</NativeHomeText> {BUSINESS_IDENTITY.registrationNumber}</span>

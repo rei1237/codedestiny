@@ -11,6 +11,8 @@ test('approved flags reach every entry point, an explicit var wins and env ident
   await handlers.fetch({}, env, {}); await handlers.queue({}, env, {}); await handlers.scheduled({}, env, {});
   for (const e of seen) {
     assert.equal(e.SAJU_GYEOKGUK_AUTHORITY_V2, 'true');
+    assert.equal(e.SUKUYO_IMD_NEW_ORDERS_V1, 'true');
+    assert.equal(e.CONSULTATION_ANSWER_VOICE_V1, 'true');
     assert.equal(e.ZIWEI_CONSUMER_FACTS_V1, 'false');
     assert.equal(e.APP_ENV, 'staging');
   }

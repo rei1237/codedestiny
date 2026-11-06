@@ -4,6 +4,8 @@
  * 숲 조각은 기록에서 계산한 기념품이라 따로 저장하지 않으며 교환 가치가 없다.
  */
 
+export const FOREST_ACTIVITY_TITLE = "프로필 카드와 출석 혜택";
+
 export const QUEST_ID_PREFIX = "home-quest:";
 
 /** 숲 지도의 요일별 조각. 월요일부터 일요일까지. 그림 시트의 칸 순서와 같다. */
@@ -52,7 +54,7 @@ const DAILY_LINES = {
     { yeoni: "못 걸은 날이 있어도 숲은 그대로 여기 있어요.", yeongnyangi: "내일 또 오면 된다냥." },
   ],
   done: [
-    { yeoni: "오늘의 숲길을 함께 걸어 주셔서 고마워요. 내일도 여기서 기다릴게요.", yeongnyangi: "내일도 와라냥." },
+    { yeoni: "오늘도 함께 걸어 주셔서 고마워요. 내일도 여기서 기다릴게요.", yeongnyangi: "내일도 와라냥." },
     { yeoni: "당신이 남긴 불빛 덕분에 숲이 조금 더 따뜻해졌어요.", yeongnyangi: "나쁘지 않았다냥." },
     { yeoni: "오늘도 잘 걸어오셨어요. 이제 편히 쉬어 가세요.", yeongnyangi: "푹 자라냥." },
   ],

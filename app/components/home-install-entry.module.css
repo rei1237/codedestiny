@@ -1,3 +1,27 @@
-.entry{display:flex;align-items:center;gap:14px;padding:18px 0;margin:24px auto;max-width:900px;border-block:1px solid var(--cd-border,#dcc5cd);color:var(--cd-text,#402a38);text-align:left}
-.entry[hidden]{display:none}.entry img{flex:none;border-radius:12px}.entry strong{font-size:15px}.entry p{font-size:13px;line-height:1.6;margin:4px 0 0}.entry button{margin-left:auto;flex:none;min-height:48px;padding:10px 16px;border:1px solid currentColor;border-radius:12px;background:transparent;color:inherit;font:700 14px/1.5 var(--font-body);cursor:pointer}.entry button:hover{background:var(--cd-samples-blush,#f8e4ea)}.entry button:focus-visible{outline:3px solid var(--cd-accent,#b53660);outline-offset:4px}
-@media(max-width:520px){.entry{flex-wrap:wrap}.entry>div{flex:1}.entry button{width:100%;margin:0}}
+.entry {
+  display:grid; grid-template-columns:auto minmax(0,1fr); align-items:center;
+  gap:18px; width:min(100%,720px); padding:clamp(18px,4vw,28px);
+  background:linear-gradient(140deg,var(--cd-surface),var(--cd-bg));
+  border:1px solid var(--hm-gold-line); border-radius:var(--cd-r-section);
+  color:var(--cd-text); text-align:left;
+  box-shadow:0 10px 25px -21px var(--hm-gold-ink);
+}
+.entry img { border-radius:16px; box-shadow:0 0 0 1px var(--hm-gold-line),0 4px 10px -7px var(--hm-gold-ink); }
+.entry strong { font:700 1.1875rem/1.4 var(--font-serif); }
+.entry p { margin:4px 0 0; color:var(--cd-text-muted); font-size:.9375rem; line-height:1.55; }
+.actions { grid-column:1/-1; display:flex; flex-wrap:wrap; gap:10px; }
+.actions [hidden] { display:none; }
+.actions :is(button,a) {
+  display:inline-flex; align-items:center; justify-content:center; gap:9px; min-height:48px;
+  padding:12px 17px; border:1px solid var(--hm-gold-line); border-radius:var(--cd-r-control);
+  font:700 .9375rem/1.45 var(--font-body); cursor:pointer; text-decoration:none;
+}
+.actions svg { flex:none; }
+.actions button { color:var(--cd-text); background:var(--cd-surface); }
+.entry .actions a { background:var(--cd-text); color:var(--cd-bg); }
+.actions :is(a,button):focus-visible { outline:3px solid var(--cd-focus-ring); outline-offset:3px; }
+@media(hover:hover){.actions :is(a,button):hover { box-shadow:0 4px 12px -7px var(--hm-gold-ink); }}
+@media(max-width:480px){
+  .actions { display:grid; grid-template-columns:minmax(0,1fr); gap:8px; }
+  .actions :is(button,a) { width:100%; }
+}

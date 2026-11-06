@@ -137,3 +137,14 @@ test('basic feature mapping is server-owned and preserves route instructions', a
   expect(personas.YUN_VEDIC_PERSONA_KO).toContain('라그나·라시·바바·나크샤트라·다샤');
   expect(personas.YUN_VEDIC_PERSONA_KO).toContain('섞지 않습니다');
 });
+
+test("질문 직답 계약: OFF 는 기존 그대로, ON 은 페르소나 뒤에 렌즈를 붙이고 저장된 고정값이 요청 시점 플래그보다 우선한다", async () => {
+  const ON = { CONSULTATION_ANSWER_VOICE_V1: "true" };
+  const off = await personas.appendExpertPersona({}, "yeoniLove", "BASE");
+  const on = await personas.appendExpertPersona(ON, "yeoniLove", "BASE");
+  expect(on.startsWith(`${off}\n\n[질문 직답 상담 계약 answer-voice-v1]`)).toBe(true);
+  expect(on).toContain("[조언 렌즈 — 연이]");
+  expect(await personas.appendExpertPersona(ON, "yeoniLove", "BASE", { answerVoice: null })).toBe(off);
+  expect(await personas.appendExpertPersona({}, "neoNewYear", "BASE", { answerVoice: "answer-voice-v1" })).toContain("[조언 렌즈 — 네오]");
+  expect(await personas.appendExpertPersona(ON, "musung", "BASE", { locale: "en" })).toContain("[Answer-first consultation contract");
+});

@@ -33,7 +33,7 @@ function load(ctx, file, names) {
 function fixture(accessType = 'pass') {
   let doc = null, providerCalls = 0, refunds = 0, usage = 0, fault = null, permitted = true, owner = 'owner';
   const chain = value => ({ lean: async () => clone(value), select: () => chain(value), sort:()=>chain(value) });
-  const ctx = vm.createContext({ sajuAuthorityOn: () => false, nativeTossContext:()=>null, runWithAiLocale, getAmbientAiLocale, storedAiLocale, toAiLocale, Request, Response, Headers, URL, Date, JSON, Map, crypto: webcrypto,
+  const ctx = vm.createContext({ ...require('../../worker/lib/consultation-answer-contract.js'), sajuAuthorityOn: () => false, nativeTossContext:()=>null, runWithAiLocale, getAmbientAiLocale, storedAiLocale, toAiLocale, Request, Response, Headers, URL, Date, JSON, Map, crypto: webcrypto,
     // 증빙 claim 은 billing-evidence-claim.test.js 가 따로 검증한다 — 여기서는 통과로 둔다.
     claimRequestBillingEvidence: async () => ({ ok: true, skipped: true }), releaseRequestBillingEvidence: async () => ({ released: 0 }), evidenceClaimErrorBody: result => result, FEATURE_KEY: 'love-secret-ai-consultation',
     console: { warn() {}, error() {} }, nativeTossContext:()=>null, nativeLoveSecretStoredState:async()=>null,

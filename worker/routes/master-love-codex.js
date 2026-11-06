@@ -1,3 +1,4 @@
+import { appendAnswerVoice, pinAnswerVoice, selectAnswerVoice } from "../lib/consultation-answer-contract.js";
 import { normalizeCodexConsultation, buildCodexConsultation, codexConsultationPrompt, buildCodexConsultationFixture, assertCodexConsultation } from "../lib/master-love-codex-consultation.js";
 /**
  * ═══════════════════════════════════════════════════════════════════════════
@@ -674,7 +675,7 @@ function buildChapterLogContext(modeDef, chapter) {
 
 async function generateChapter(env, {
   mode = "solo", saju, ziweiChart, partnerSaju, partnerZiweiChart, compatibility,
-  birthInfo, partnerInfo, chapter, prologueChoice, consultation, memory, previousError = "", snapshotKey, deadlineAt = Infinity,
+  birthInfo, partnerInfo, chapter, prologueChoice, consultation, memory, previousError = "", snapshotKey, deadlineAt = Infinity, answerVoice = null, locale = "ko",
 }) {
   // 남은 예산이 한 장을 쓰기에도 모자라면 아예 시작하지 않는다(시작해도 못 끝낸다).
   const remainingMs = deadlineAt - Date.now();
@@ -701,7 +702,7 @@ async function generateChapter(env, {
       compatibility, birthInfo, partnerInfo, chapter, memory, evidenceProvided: true,
     })
     : buildMasterLoveCodexChapterPrompt({ saju, ziweiChart, birthInfo, chapter, prologueChoice, memory, evidenceProvided: true });
-  const prompt = `${basePrompt}\n${formatCodexEvidence(evidenceContract)}\n${codexConsultationPrompt(evidenceContract)}`;
+  const prompt = appendAnswerVoice(`${basePrompt}\n${formatCodexEvidence(evidenceContract)}\n${codexConsultationPrompt(evidenceContract)}`, answerVoice, { master: "master", locale });
   const cache = chapterCache(env, modeDef.mode, chapter, evidenceContract);
   // A reserved repair must reach the provider instead of replaying the short draft.
   if (previousError) cache.store.get = async () => null;
@@ -1170,7 +1171,7 @@ export async function startCodexSession(request, env, auth, body) {
     status: "generating",
     // 🔴 구매 시점의 장 구성을 세션에 **1회** 고정한다($setOnInsert 이므로 재요청이 덮지 않는다).
     //    이후 상품 구성이 바뀌어도 진행 중인 이 책의 기대 장 수·순서는 변하지 않는다.
-    deliveryMeta: { locale: resolveAiLocaleFromRequest(request, body),
+    deliveryMeta: { locale: resolveAiLocaleFromRequest(request, body), ...(selectAnswerVoice(env) ? { answerVoice: selectAnswerVoice(env) } : {}),
       manifest: { mode: normalized.mode, chapterIds: resolveMode(normalized.mode).chapters.map(spec => spec.id),
         version: resolveMode(normalized.mode).cacheKeyExtra } },
     passRefund: access.passRefund || null,
@@ -1538,6 +1539,7 @@ async function runCodexWaveInternal(env, { sessionId, userId, doc, lockToken, de
           partnerSaju: doc.partnerSajuResult, partnerZiweiChart: doc.partnerZiweiChart, compatibility: doc.compatibility,
           birthInfo: doc.birthInfo, partnerInfo: doc.partnerInfo, chapter, prologueChoice: clean(doc.prologueChoice), consultation: doc.consultation, memory, deadlineAt,
           previousError: byId.has(chapter.id) ? "LLM_OUTPUT_TOO_SHORT" : errors[chapter.id]?.kind === "quality" ? errors[chapter.id].code : "", snapshotKey: snapshotKey(chapter),
+          answerVoice: pinAnswerVoice(doc.deliveryMeta || {}, env), locale: doc.deliveryMeta?.locale || "ko",
         }); } catch { result = { status: "retryable", failure: { code: "LLM_TIMEOUT_UNCERTAIN", kind: "uncertain" } }; }
         const write = queue.catch(() => {}).then(async () => {
           const failures = { ...current.deliveryMeta?.failures };

@@ -22291,6 +22291,17 @@
       "hour": "Bij een onbekende geboortetijd tellen effecten van de uurpijler niet mee.",
       "story": "De vier hoofdstukken verbinden levensgebieden; ze voorspellen geen volgorde of tijdstip van gebeurtenissen.",
       "relations": "Harmonie betekent geen automatische elementverandering. Wonjin en Gwimun bepalen geen ontrouw, psychische aandoening of relatie-uitkomst."
+    },
+    "approved": {
+      "strengthPending": "Krachtoordeel aangehouden",
+      "title": "⚖️ Kracht en nuttig element van jullie beiden",
+      "row": "{name} — Kracht van de dagmeester: {strength} · Nuttig element: {yongshin}",
+      "strong": "Sterk",
+      "weak": "Zwak",
+      "pending": "Aangehouden",
+      "candidates": "Kandidaten: {elements}",
+      "unresolved": "Geen enkel nuttig element bevestigd",
+      "note": "Nuttige elementen worden als kandidaten getoond en niet als vaste antwoorden; wat niet te beoordelen is, blijft aangehouden. De compatibiliteitsscore wordt apart berekend uit het aantal elementen."
     }
   },
   "honeyUI": {

@@ -1,3 +1,4 @@
+import { appendAnswerVoice, pinAnswerVoice, selectAnswerVoice } from "../lib/consultation-answer-contract.js";
 import { runWithAiLocale, storedAiLocale } from '../lib/ai-locale-context.js';
 import { sajuTemperamentPromptLines } from '../lib/saju-temperament.js';
 import { sajuAuthorityOn } from '../lib/saju-authority-consumer.js';
@@ -1032,7 +1033,11 @@ export async function buildAdminLabPrompt(body = {}, options = {}) {
   };
 }
 
-function buildSystemPrompt(mode = "initial") {
+function buildSystemPrompt(mode = "initial", answerVoice = null) {
+  return appendAnswerVoice(buildBaseSystemPrompt(mode), answerVoice, { master: "neutral" });
+}
+
+function buildBaseSystemPrompt(mode = "initial") {
   const shared = [
     "당신은 오래 상담해 온 운명의 업 상담가입니다.",
     LENS_CONSTITUTION,
@@ -1635,7 +1640,7 @@ function buildKarmaDestinyAiMockConsultation() {
 async function generateConsultationText(env, prompt, options = {}) {
   const providerDiagnostics = getProviderDiagnostics(env);
   const mode = options.mode === "follow_up" ? "follow_up" : "initial";
-  const systemPrompt = buildSystemPrompt(mode);
+  const systemPrompt = buildSystemPrompt(mode, options.answerVoice !== undefined ? options.answerVoice : selectAnswerVoice(env));
   logKarmaAi("LLM Provider Selected", {
     ...(options.logContext || {}),
     ...providerDiagnostics,
@@ -2046,7 +2051,7 @@ async function generateOneChapter(env, consultation, definition, context = {}) {
       temperature: context.retry ? 0.66 : 0.72,
       // 잘린 뒤의 재시도만 두 배 예산 — 기본 상한은 비용 예약에 쓰이므로 그대로 둔다.
       maxOutputTokens: context.truncatedRetry ? Math.min(32768, CHAPTER_MAX_OUTPUT_TOKENS * 2) : CHAPTER_MAX_OUTPUT_TOKENS,
-      systemPrompt: buildSystemPrompt("initial"),
+      systemPrompt: buildSystemPrompt("initial", pinAnswerVoice(consultation?.llmMeta || {}, env)),
       // 장별 캐시 키 — 재시도 시 이미 성공한 장은 캐시에서 즉시 돌아온다.
       cacheStage: `${context.singleAttempt ? "delivery-v2-" : ""}chapter-${definition.id}`,
       singleAttempt: context.singleAttempt === true, skipCache: context.retry === true,
@@ -2204,7 +2209,7 @@ async function reinforcePremiumReport(env, consultation, chapters, quality, atte
   const generated = await callRealGeminiText(env, prompt, {
     temperature: 0.66,
     maxOutputTokens: INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS,
-    systemPrompt: buildSystemPrompt("initial"),
+    systemPrompt: buildSystemPrompt("initial", pinAnswerVoice(consultation?.llmMeta || {}, env)),
   });
   const payload = extractJsonPayload(generated.text);
   const supplements = safeArray(payload?.supplements);
@@ -2565,7 +2570,7 @@ async function handleStart(request, env, recoveryAuth = null) {
   }
   const resumeBody = { ...body, idempotencyKey, accessType: access.accessType }; delete resumeBody.accessToken;
   const seed = {
-    llmMeta: { ...existing?.llmMeta, resumeBody: existing?.llmMeta?.resumeBody || resumeBody },
+    llmMeta: { ...existing?.llmMeta, resumeBody: existing?.llmMeta?.resumeBody || resumeBody, ...(!existing?.llmMeta && selectAnswerVoice(env) ? { answerVoice: selectAnswerVoice(env) } : {}) },
     id: sessionId,
     reportId: clean(existing?.reportId || sessionId, 120),
     attemptId: idempotencyKey,

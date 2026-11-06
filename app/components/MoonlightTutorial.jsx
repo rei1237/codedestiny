@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { moonlightPanels } from '../../lib/brand/moonlight-guide.mjs';
 import styles from './moonlight-tutorial.module.css';
 
-export default function MoonlightTutorial({ questionInput }) {
+export default function MoonlightTutorial({ onWrite }) {
   const [open, setOpen] = useState(false);
   const dialog = useRef(null);
   const trigger = useRef(null);
@@ -34,18 +34,18 @@ export default function MoonlightTutorial({ questionInput }) {
   function finish() {
     if (dialog.current?.open) return;
     setOpen(false);
-    const target = returnToQuestion.current ? questionInput.current : trigger.current;
+    const write = returnToQuestion.current;
     returnToQuestion.current = false;
-    target?.focus();
+    if (write) onWrite();
+    else trigger.current?.focus();
   }
 
   return <>
     <button type="button" ref={trigger} className={styles.trigger} onClick={() => setOpen(true)} aria-haspopup="dialog">
       <picture>
-        <source media="(max-width:699px)" srcSet="/images/home/mv/ornament-lotus-crest-160.webp"/>
-        <img src="/images/moonlight-guide/question.webp" width="627" height="627" loading="lazy" decoding="async" alt=""/>
+        <img src="/images/moonlight-guide/question.webp" srcSet="/images/moonlight-guide/question-320.webp 320w, /images/moonlight-guide/question.webp 627w" sizes="(max-width:699px) min(44vw, 195px), 165px" width="627" height="627" decoding="async" alt=""/>
       </picture>
-      <span><small>연이와 영냥이의 달빛 길잡이</small><strong>이용 안내 웹툰 읽기 <span aria-hidden="true">→</span></strong></span>
+      <span><small>처음 오셨나요?</small><strong>이용 안내 웹툰 보기<span className={styles.guideArrow} aria-hidden="true">→</span></strong></span>
     </button>
     <dialog ref={dialog} className={styles.reader} aria-labelledby="moonlight-reader-title"
       onClose={finish}>

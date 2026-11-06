@@ -1,6 +1,7 @@
 import { callGeminiText } from "./gemini.js";
 import { toAiLocale } from "../../lib/i18n/ai-locale.js";
 import { buildGuardianFortunePrompt } from "./guardian-fortune-prompt.js";
+import { selectAnswerVoice } from "./consultation-answer-contract.js";
 import {
   buildFallbackGuardianFortuneResult,
   parseGuardianFortuneLLMResponse,
@@ -102,7 +103,7 @@ export async function generateGuardianFortuneWithRealLLM({
 } = {}) {
   assertGuardianFortuneRealLLMAllowed({ env, userId });
   const config = getGuardianFortuneLLMConfig(env);
-  const built = buildGuardianFortunePrompt({ input, context });
+  const built = buildGuardianFortunePrompt({ input, context, answerVoice: selectAnswerVoice(env) });
   const prompt = singleAttempt && acceptShortDraft && typeof repairDraft === "string" && repairDraft ? {
     ...built,
     userPrompt: `${built.userPrompt}\n\n[저장된 초안 보완]\n${repairDraft}\n위 초안의 계산 근거와 답변 방향을 보존하고, 부족한 해석·반대 조건·행동 조언만 보완한 같은 JSON 필드 전체를 다시 반환해. 결과 본문 합계 ${GUARDIAN_FORTUNE_RESULT_LENGTH.min}자 이상 ${GUARDIAN_FORTUNE_RESULT_LENGTH.max}자 이하를 목표로 하고, 같은 문장 반복이나 context 에 없는 새 계산값으로 분량을 채우지 마.`,

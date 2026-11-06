@@ -672,6 +672,9 @@ export function assembleSajuCompatSnapshot(state) {
     locale: state.locale || "ko",
     input: { compatType: input.compatType, partnerName: input.partnerName, self: input.self, partner: input.partner },
     facts: input.facts,
+    // 승인 판정으로 시작한 납품만 프롬프트가 읽은 그 판정을 함께 남긴다(화면·재열람이 같은 값을 보인다).
+    // seed 가 SAJU_GYEOKGUK_AUTHORITY_V2 일 때만 붙이므로, 이전 기록과 플래그 OFF 결과의 모양은 그대로다.
+    ...(isObject(input.approvedSaju) ? { approvedSaju: input.approvedSaju } : {}),
     narrative,
     meta: {
       groups: metas.length,
