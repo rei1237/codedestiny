@@ -497,6 +497,68 @@ export async function offloadTalismanOriginals({ dist = DIST, root = ROOT, remot
   return { offloaded, kept, network };
 }
 
+// 기능 소개 그림은 기능마다 한 장(<기능>-960.webp)만 앱에 싣는다. 다른 크기 변형(원본 1536·320·480·640),
+// 메타 태그 전용 OG, 그림이 같은 feature-details 사본은 빼고 "뺀 경로 → 남긴 한 장" 표를 남긴다.
+// MainActivity.resolveRoute(AppImageAliases)가 이 표로 요청을 돌려주므로 srcset이나 `${base}-320.webp`처럼
+// 조립되는 경로도 그대로 그려진다. 웹 원본(public)은 건드리지 않는다.
+export const APP_IMAGE_ALIAS_FILE = "app-image-aliases.tsv";
+async function sharpSameArt(a, b) {
+  const { default: sharp } = await import("sharp");
+  // 버퍼로 읽는다 — 경로를 주면 sharp가 핸들을 쥔 채라 윈도우에서 뒤이은 삭제가 막힌다.
+  const [ba, bb] = await Promise.all([fs.readFile(a), fs.readFile(b)]);
+  const [ma, mb] = await Promise.all([sharp(ba).metadata(), sharp(bb).metadata()]);
+  if (ma.width !== mb.width || ma.height !== mb.height) return false;
+  const raw = (buffer) => sharp(buffer).resize(48, 32, { fit: "fill" }).removeAlpha().raw().toBuffer();
+  const [ra, rb] = await Promise.all([raw(ba), raw(bb)]);
+  let diff = 0;
+  for (let i = 0; i < ra.length; i += 1) diff += Math.abs(ra[i] - rb[i]);
+  return diff / ra.length < 2;
+}
+export async function consolidateIntroductionImages({ dist = DIST, sameArt = sharpSameArt } = {}) {
+  const introDir = path.join(dist, "images", "service-introductions");
+  const detailDir = path.join(dist, "feature-details", "assets");
+  const aliases = new Map();
+  const removed = [];
+  const drop = async (dir, name, target) => {
+    const file = path.join(dir, name);
+    const bytes = (await fs.stat(file)).size;
+    await fs.rm(file);
+    const from = "/" + path.relative(dist, file).replace(/\\/g, "/");
+    aliases.set(from, target);
+    removed.push({ path: from.slice(1), bytes });
+  };
+  const introNames = (await exists(introDir)) ? (await fs.readdir(introDir)).filter((name) => name.endsWith(".webp")) : [];
+  const intro = new Set(introNames);
+  for (const name of introNames) {
+    const match = name.match(/^(.+?)(?:-(320|480|640))?\.webp$/);
+    if (!match || name.endsWith("-960.webp") || !intro.has(`${match[1]}-960.webp`)) continue;
+    await drop(introDir, name, `/images/service-introductions/${match[1]}-960.webp`);
+  }
+  if (await exists(detailDir)) {
+    const slugs = new Map();
+    for (const name of await fs.readdir(detailDir)) {
+      const match = name.match(/^(.+?)-(320|480|960|catalog-320|og)\.webp$/);
+      if (!match) continue;
+      if (!slugs.has(match[1])) slugs.set(match[1], []);
+      slugs.get(match[1]).push(name);
+    }
+    for (const [slug, names] of slugs) {
+      const own = `${slug}-960.webp`;
+      const shared = intro.has(own) ? `/images/service-introductions/${own}` : null;
+      let keep = names.includes(own) ? `/feature-details/assets/${own}` : shared;
+      if (!keep) continue;
+      if (shared && keep !== shared && await sameArt(path.join(detailDir, own), path.join(introDir, own))) {
+        await drop(detailDir, own, shared);
+        keep = shared;
+      }
+      for (const name of names) if (name !== own) await drop(detailDir, name, keep);
+    }
+  }
+  const table = [...aliases].sort(([a], [b]) => a.localeCompare(b)).map(([from, to]) => `${from}\t${to}`).join("\n");
+  await fs.writeFile(path.join(dist, APP_IMAGE_ALIAS_FILE), table ? table + "\n" : "");
+  return { removed, aliases };
+}
+
 /**
  * 바이트가 같은 이미지 사본 중 참조 0건인 것 제거.
  *
@@ -934,6 +996,10 @@ async function main() {
   const talismans = await offloadTalismanOriginals();
   console.log(`  ✅ 부적 원본 웹 참조 전환: ${talismans.offloaded.length}개 (${(talismans.offloaded.reduce((bytes, item) => bytes + item.bytes, 0) / 1048576).toFixed(1)} MB), 번들 유지 ${talismans.kept.length}개, 원격 확인 ${talismans.network}건`);
   for (const item of talismans.kept) console.log(`       - 유지 ${item.src} (${item.reason})`);
+  const introductions = await consolidateIntroductionImages();
+  // 남긴 한 장은 이름이 코드에 조립돼 있어도 지워지지 않게 참조 색인에 넣는다(중복 사본 정리 단계).
+  for (const target of introductions.aliases.values()) referenced.add(path.posix.basename(target));
+  console.log(`  ✅ 기능 소개 그림 한 장으로: ${introductions.removed.length}개 제외 (${(introductions.removed.reduce((bytes, item) => bytes + item.bytes, 0) / 1048576).toFixed(1)} MB), 남긴 그림 ${new Set(introductions.aliases.values()).size}장`);
   const removedSources = await removeUnusedBrandSources(referenced);
   console.log(`  ✅ 미사용 브랜드 원본 사본 제외: ${removedSources.length}개 (${(removedSources.reduce((bytes, item) => bytes + item.bytes, 0) / 1048576).toFixed(1)} MB)`);
   const removedPngs = await removeDeadPngOriginals(referenced);

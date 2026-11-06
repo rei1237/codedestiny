@@ -302,6 +302,9 @@ public class MainActivity extends BridgeActivity {
             // "/index.html" 을 붙여 보내므로 여기서도 같은 안전망을 둬야 404 가 새지 않는다.
             // 다른 자산(JS·CSS·이미지)까지 홈 셸로 바꾸면 안 되므로 index.html 에만 적용한다.
             if (path.endsWith("/index.html") && !assetExists(path)) return "/index.html";
+            // 기능 소개 그림은 기능마다 한 장만 싣는다 — 뺀 크기 변형은 남긴 한 장으로 돌려준다.
+            String alias = AppImageAliases.lookup(getAssets(), path);
+            if (alias != null) return alias;
             return path;
         }
 
