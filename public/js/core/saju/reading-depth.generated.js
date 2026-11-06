@@ -37,8 +37,8 @@ var SajuReadingDepth = (() => {
     SAJU_CONSUMER_FACTS_V1: "true",
     ZIWEI_CONSUMER_FACTS_V1: "true",
     TAROT_CONSUMER_FACTS_V1: "true",
-    // 숙요 영냥이 개인 질문의 신규 주문만 IMD 검증 구간 계산을 쓴다(사용자 결정 2026-11-07). 기존 주문은 저장 핀을 따른다.
-    SUKUYO_IMD_NEW_ORDERS_V1: "true",
+    // SUKUYO_IMD_NEW_ORDERS_V1 은 다시 껐다(2026-11-07). 켜면 검증 구간 밖 출생의 영냥이 숙요 무료 운세·개인 질문이
+    // PRECISION_UNAVAILABLE 503 으로 막힌다. 범위 밖을 기존 계산으로 넘기도록 provider 를 고친 뒤에만 다시 켠다.
     // 질문 직답·마스터 조언 렌즈(worker/lib/consultation-answer-contract.js). 생성 시작 때 고정되어 재개 중에는 바뀌지 않는다.
     CONSULTATION_ANSWER_VOICE_V1: "true"
   });
