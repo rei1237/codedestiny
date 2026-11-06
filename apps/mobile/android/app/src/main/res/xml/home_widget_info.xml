@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 주기 갱신 없음(updatePeriodMillis=0): 기기에 저장한 선택만으로 그린다. -->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:description="@string/home_widget_description"
+    android:initialLayout="@layout/widget_affirmation"
+    android:minWidth="110dp"
+    android:minHeight="170dp"
+    android:minResizeWidth="80dp"
+    android:minResizeHeight="80dp"
+    android:previewImage="@drawable/widget_talisman_wealth"
+    android:previewLayout="@layout/widget_affirmation"
+    android:resizeMode="horizontal|vertical"
+    android:targetCellWidth="2"
+    android:targetCellHeight="3"
+    android:updatePeriodMillis="0"
+    android:widgetCategory="home_screen" />

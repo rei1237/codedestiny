@@ -117,6 +117,11 @@
   window.__CODE_DESTINY_RUNTIME_TARGET = "mobile-app";
   try {
     document.documentElement.dataset.runtimeTarget = "mobile-app";
+    // Android-only entries (home screen widget) are revealed by CSS from this flag, so the home
+    // renders the same markup everywhere and runs no extra script for them.
+    if (window.androidBridge || (window.Capacitor && window.Capacitor.getPlatform && window.Capacitor.getPlatform() === "android")) {
+      document.documentElement.dataset.nativePlatform = "android";
+    }
   } catch (e) { /* noop */ }
 
   // ── 앱 /api/* 리타게팅 (2026-08-29) ─────────────────────────────────────────────

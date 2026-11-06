@@ -1,5 +1,7 @@
 package com.codedestiny.app;
 
+import android.appwidget.AppWidgetManager;
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
@@ -90,6 +92,8 @@ public class MainActivity extends BridgeActivity {
         // Zero-Tap Sign-In(Restore Credentials) 브리지 — 뼈대만. 서버 검증·호출부는 후속 PR.
         registerPlugin(CodeDestinyCredentialsPlugin.class);
         registerPlugin(CodeDestinyWallpaperPlugin.class);
+        // 홈 화면 부적·확언 위젯. 호출될 때만 SharedPreferences 를 읽는다(시작 시 작업 없음).
+        registerPlugin(CodeDestinyHomeWidgetPlugin.class);
         // 라우트 해석기도 super.onCreate 이전에 등록해야 한다 —
         // BridgeActivity.onCreate 가 bridgeBuilder.create() 로 브리지를 만들어 버린다.
         installRouteProcessor();
@@ -150,6 +154,29 @@ public class MainActivity extends BridgeActivity {
         } catch (Exception ignored) {}
 
         scheduleSplashHandoff();
+        // 위젯을 눌러 콜드 스타트한 경우: 시작 페이지 대신 그 위젯의 바꾸기 화면을 연다.
+        openHomeWidgetEditor(getIntent());
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        // singleTask 라 이미 떠 있는 앱에서 위젯을 누르면 여기로 온다.
+        openHomeWidgetEditor(intent);
+    }
+
+    private void openHomeWidgetEditor(Intent intent) {
+        if (intent == null || !HomeWidgetProvider.ACTION_EDIT.equals(intent.getAction())) return;
+        int widgetId = intent.getIntExtra(HomeWidgetProvider.EXTRA_WIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID);
+        String url = "https://localhost/app/home-widget/index.html"
+                + (widgetId == AppWidgetManager.INVALID_APPWIDGET_ID ? "" : "?widget=" + widgetId);
+        // 회전·재생성 때 같은 intent 로 다시 이동하지 않게 소비한다.
+        intent.setAction(Intent.ACTION_MAIN);
+        try {
+            getBridge().getWebView().loadUrl(url);
+        } catch (Exception ignored) {
+            // 브리지가 아직 없으면 평소 시작 화면이 그대로 뜬다.
+        }
     }
 
     /**

@@ -128,6 +128,7 @@ export default function HomePage() {
             </li>;
           })}
         </HomeCardDeck>
+        {IS_APP_BUILD && <a className={styles.widgetEntry} href="/app/home-widget/index.html" data-cd-home-widget-entry><NativeHomeText>홈 화면에 부적·확언 놓기</NativeHomeText></a>}
         {!IS_APP_BUILD && <HomeQuestionGuide />}
         {!IS_APP_BUILD && <StoryDiscovery />}
         <HomeDailyEntry />

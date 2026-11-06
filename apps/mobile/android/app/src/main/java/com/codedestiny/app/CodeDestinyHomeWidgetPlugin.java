@@ -1,0 +1,102 @@
+package com.codedestiny.app;
+
+import android.app.PendingIntent;
+import android.appwidget.AppWidgetManager;
+import android.content.Context;
+import android.content.Intent;
+import android.os.Build;
+import com.getcapacitor.JSArray;
+import com.getcapacitor.JSObject;
+import com.getcapacitor.Plugin;
+import com.getcapacitor.PluginCall;
+import com.getcapacitor.PluginMethod;
+import com.getcapacitor.annotation.CapacitorPlugin;
+import java.util.UUID;
+
+/**
+ * /app/home-widget/ 설정 화면 전용 브리지. 사용자가 그 화면에서 버튼을 누를 때만 호출된다 —
+ * load() 는 참조만 잡고 저장소를 읽지 않으므로 앱 시작 비용이 없다.
+ */
+@CapacitorPlugin(name = "CodeDestinyHomeWidget")
+public class CodeDestinyHomeWidgetPlugin extends Plugin {
+    private static volatile CodeDestinyHomeWidgetPlugin active;
+
+    @Override
+    public void load() { active = this; }
+
+    static void notifyAdded(int widgetId, String token) {
+        CodeDestinyHomeWidgetPlugin plugin = active;
+        if (plugin == null) return;
+        JSObject data = new JSObject();
+        data.put("widgetId", widgetId);
+        data.put("token", token == null ? "" : token);
+        plugin.notifyListeners("widgetAdded", data, true);
+    }
+
+    private static boolean pinSupported(Context context) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return false;
+        try { return AppWidgetManager.getInstance(context).isRequestPinAppWidgetSupported(); }
+        catch (Exception ignored) { return false; }
+    }
+
+    private static int[] installedIds(Context context) {
+        try { return AppWidgetManager.getInstance(context).getAppWidgetIds(HomeWidgetProvider.component(context)); }
+        catch (Exception ignored) { return new int[0]; }
+    }
+
+    @PluginMethod
+    public void getState(PluginCall call) {
+        Context context = getContext();
+        JSArray widgets = new JSArray();
+        for (int id : installedIds(context)) {
+            HomeWidgetPolicy.Choice choice = HomeWidgetStore.get(context, id);
+            JSObject row = new JSObject();
+            row.put("widgetId", id);
+            if (choice != null) { row.put("kind", choice.kind); row.put("itemId", choice.itemId); }
+            widgets.put(row);
+        }
+        JSObject response = new JSObject();
+        response.put("pinSupported", pinSupported(context));
+        response.put("widgets", widgets);
+        response.put("addedToken", HomeWidgetStore.addedToken(context));
+        response.put("addedWidgetId", HomeWidgetStore.addedId(context));
+        call.resolve(response);
+    }
+
+    @PluginMethod
+    public void requestPin(PluginCall call) {
+        Context context = getContext();
+        HomeWidgetPolicy.Choice choice = HomeWidgetPolicy.parse(call.getString("kind"), call.getString("itemId"), call.getString("text", ""));
+        if (choice == null) { call.reject("invalid widget choice"); return; }
+        JSObject response = new JSObject();
+        if (!pinSupported(context)) { response.put("status", "unsupported"); call.resolve(response); return; }
+        String token = UUID.randomUUID().toString();
+        HomeWidgetStore.setPending(context, choice, token, System.currentTimeMillis());
+        Intent callback = new Intent(context, HomeWidgetPinnedReceiver.class).putExtra(HomeWidgetPinnedReceiver.EXTRA_TOKEN, token);
+        // 시스템이 새 위젯 id 를 extra 로 채워 넣어야 하므로 mutable 이어야 한다(명시적 인텐트).
+        int flags = PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ? PendingIntent.FLAG_MUTABLE : 0);
+        PendingIntent success = PendingIntent.getBroadcast(context, 0, callback, flags);
+        boolean shown;
+        try { shown = AppWidgetManager.getInstance(context).requestPinAppWidget(HomeWidgetProvider.component(context), null, success); }
+        catch (Exception ignored) { shown = false; }
+        response.put("status", shown ? "requested" : "unsupported");
+        response.put("token", token);
+        call.resolve(response);
+    }
+
+    @PluginMethod
+    public void update(PluginCall call) {
+        Context context = getContext();
+        Integer widgetId = call.getInt("widgetId");
+        HomeWidgetPolicy.Choice choice = HomeWidgetPolicy.parse(call.getString("kind"), call.getString("itemId"), call.getString("text", ""));
+        if (widgetId == null || choice == null) { call.reject("invalid widget choice"); return; }
+        boolean installed = false;
+        for (int id : installedIds(context)) installed |= id == widgetId;
+        JSObject response = new JSObject();
+        if (!installed) { response.put("status", "missing"); call.resolve(response); return; }
+        HomeWidgetStore.put(context, widgetId, choice);
+        HomeWidgetProvider.render(context, AppWidgetManager.getInstance(context), widgetId);
+        response.put("status", "updated");
+        call.resolve(response);
+    }
+}

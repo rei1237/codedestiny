@@ -11,7 +11,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const copy = useAppShellCopy();
   const pathname = normalizeAppPathname(usePathname() || "");
   const isRoot = pathname === "/app" || pathname === "/app/";
-  const isTalisman = pathname.replace(/\/$/, "") === "/app/talismans";
+  const isTalisman = ["/app/talismans", "/app/home-widget"].includes(pathname.replace(/\/$/, ""));
   const isPassStore = pathname.replace(/\/$/, "") === "/app/store";
   const [exitHint, setExitHint] = useState(false);
 
