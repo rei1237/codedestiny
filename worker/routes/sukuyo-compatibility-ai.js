@@ -2441,6 +2441,25 @@ export async function nativeSukuyoContract(body = {}) {
   return { requestId, resultId: requestId, featureKey: FEATURE_KEY, inputHash: await inputHash(normalized), pricing: { ...pricing, productId: FEATURE_KEY } };
 }
 
+// Only the account verified for the recovered purchase can see this decision
+// summary. Keep it aligned with the exact normalized input used by inputHash.
+export function nativeSukuyoRecoverySummary(body) {
+  const normalized = normalizeInput(body);
+  if (!normalized.ok) throw Object.assign(new Error("INVALID_INPUT"), { status: 400, code: "INVALID_INPUT" });
+  const person = value => {
+    const offset = value.timezoneOffset;
+    if (offset !== null && typeof offset !== "string" && !(typeof offset === "number" && Number.isFinite(offset))) {
+      throw Object.assign(new Error("INVALID_INPUT"), { status: 400, code: "INVALID_INPUT" });
+    }
+    return { name:value.name, gender:value.gender, birthDate:value.birthDate, birthTime:value.birthTime,
+      calendarType:value.calendarType, isLeapMonth:value.isLeapMonth, timezone:value.timezone,
+      timezoneOffset:offset, latitude:value.latitude, longitude:value.longitude };
+  };
+  return { consultationType:normalized.consultationType, personA:person(normalized.personA),
+    personB:normalized.consultationType === "compatibility" ? person(normalized.personB) : null,
+    relationshipType:normalized.relationshipType, topic:normalized.topic, question:normalized.question };
+}
+
 export async function nativeSukuyoStoredState(env, userId, value, lookup = "request") {
   if (lookup === "id" && !isObjectIdLike(value)) return null;
   const filter = lookup === "id"

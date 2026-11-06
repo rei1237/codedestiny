@@ -197,6 +197,18 @@ export async function handleTossRoutes(request,env) {
       const input=await bodyOf(request);
       return reply(await prepareNativeVedic(env,auth,input.input,input.orderId));
     }
+    if(path==='/native/sukuyo/recovery/drafts'&&request.method==='POST'){
+      await limit(env,auth._id,'native-sukuyo-recovery',20);
+      const {listNativeSukuyoRecovery}=await import('./native-sukuyo-recovery.js');
+      const input=await bodyOf(request);
+      return reply(await listNativeSukuyoRecovery(env,auth,input.orderId,input.cursor,verifyLibraryOrder));
+    }
+    if(path==='/native/sukuyo/recovery/attach'&&request.method==='POST'){
+      await limit(env,auth._id,'native-sukuyo-recovery',20);
+      const {attachNativeSukuyoRecovery}=await import('./native-sukuyo-recovery.js');
+      const input=await bodyOf(request);
+      return reply(await attachNativeSukuyoRecovery(env,auth,input.orderId,input.intentId,verifyLibraryOrder));
+    }
     if(path==='/native/sukuyo/prepare'&&request.method==='POST'){
       await limit(env,auth._id,'native-sukuyo-prepare',6);
       const {prepareNativeSukuyo}=await import('./native-sukuyo.js');

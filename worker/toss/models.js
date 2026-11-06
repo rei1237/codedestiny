@@ -50,3 +50,7 @@ TossNativeConsultation.schema.index(
   {identityId:1,ownerId:1,environment:1,sku:1,approvedPriceKRW:1,createdAt:-1,_id:-1},
   {name:'toss_maya_prepared_recovery_v1',partialFilterExpression:{nativeService:'maya',status:'prepared'}},
 );
+TossNativeConsultation.schema.index(
+  {identityId:1,ownerId:1,environment:1,sku:1,approvedPriceKRW:1,createdAt:-1,_id:-1},
+  {name:'toss_sukuyo_prepared_recovery_v1',partialFilterExpression:{nativeService:'sukuyo',status:'prepared'}},
+);

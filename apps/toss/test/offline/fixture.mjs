@@ -1,8 +1,8 @@
 // Explicitly synthetic, local-only fixture for the official SDK devtools.
 export function createOfflineFixtureApi(storage){
  let saved;try{saved=JSON.parse(storage?.getItem('toss-offline-fixture')||'null');}catch{saved=null;}
- const state={loggedIn:saved?.loggedIn===true,intents:new Map(saved?.intents||[]),letters:new Map(saved?.letters||[]),orders:new Map(saved?.orders||[]),sequence:Number.isSafeInteger(saved?.sequence)?saved.sequence:0};
- const save=()=>{try{storage?.setItem('toss-offline-fixture',JSON.stringify({loggedIn:state.loggedIn,intents:[...state.intents],letters:[...state.letters],orders:[...state.orders],sequence:state.sequence}));}catch{/* The test remains in memory when storage is unavailable. */}};
+ const state={loggedIn:saved?.loggedIn===true,intents:new Map(saved?.intents||[]),letters:new Map(saved?.letters||[]),orders:new Map(saved?.orders||[]),testOrderSkus:new Map(saved?.testOrderSkus||[]),sequence:Number.isSafeInteger(saved?.sequence)?saved.sequence:0};
+ const save=()=>{try{storage?.setItem('toss-offline-fixture',JSON.stringify({loggedIn:state.loggedIn,intents:[...state.intents],letters:[...state.letters],orders:[...state.orders],testOrderSkus:[...state.testOrderSkus],sequence:state.sequence}));}catch{/* The test remains in memory when storage is unavailable. */}};
  const letterProduct={id:'yeoni:chat_saju',name:'테스트 연이 상담',sku:'mock-yeoni',approvedPriceKRW:1,available:true,chapters:1};
  const product={id:'native:maya:maya-prompt-generator',name:'테스트 상품',sku:'mock-maya',featureKey:'maya-prompt-generator',approvedPriceKRW:1,available:true};
  const sukuyoProduct={id:'native:sukuyo:sukuyo-compatibility-ai',name:'테스트 숙요 상담',sku:'mock-sukuyo',featureKey:'sukuyo-compatibility-ai',approvedPriceKRW:1,available:true};
@@ -20,10 +20,25 @@ export function createOfflineFixtureApi(storage){
   if(path==='/canonical/profile'&&method==='GET')return respond({ok:true,profiles:[]});
   if(path==='/canonical/sukuyo-compatibility-ai/result'&&method==='GET'){
    const id=url.searchParams.get('id');if(!id)return respond({ok:true,consultations:[],pendingSessionId:''});
+   if(/^toss_[a-f0-9]{64}$/.test(id)){const intent=state.intents.get(id.slice(5));if(!intent?.paid||intent.service!=='sukuyo')return respond({error:'RESULT_NOT_FOUND'},404);return intent.result?respond({ok:true,consultation:intent.result}):respond({ok:true,status:'partial',sessionId:id,idempotencyKey:intent.input.idempotencyKey},202);}
    const intent=[...state.intents.values()].find(row=>row.service==='sukuyo'&&row.result?.id===id);
    return intent?.paid?respond({ok:true,consultation:intent.result}):respond({error:'RESULT_NOT_FOUND'},404);
   }
   if(path==='/canonical/sukuyo-compatibility-ai/prepare'&&method==='POST')return respond({ok:false,reason:'PAYMENT_REQUIRED'},402);
+  // Test-only unassigned order; this route cannot call an SDK or real payment.
+  if(path==='/test/sukuyo/unassigned'&&method==='POST'){const {orderId}=await request.json();if(!/^[a-f0-9-]{36}$/i.test(orderId||'')||state.orders.has(orderId))return respond({error:'MOCK_ORDER_INVALID'},400);state.orders.set(orderId,null);state.testOrderSkus.set(orderId,sukuyoProduct.sku);save();return respond({ok:true});}
+  if(path==='/native/sukuyo/recovery/drafts'&&method==='POST'){
+   const {orderId}=await request.json();if(!state.orders.has(orderId))return respond({error:'RESULT_NOT_FOUND'},404);if((state.testOrderSkus.get(orderId)||state.intents.get(state.orders.get(orderId))?.sku)!==sukuyoProduct.sku)return respond({error:'ORDER_PRODUCT_MISMATCH'},409);
+   const assigned=state.orders.get(orderId);if(assigned)return respond({state:'ASSIGNED',intentId:assigned});
+   const summary=input=>{const a=input.personA||input,b=input.personB||{};const person=(value,name,date,time,calendar,gender)=>({name:value.name||name||'',birthDate:value.birthDate||date||'',birthTime:value.birthTime||time||'',calendarType:value.calendarType||calendar||'solar',gender:value.gender||gender||'unknown',isLeapMonth:false,timezone:'Asia/Seoul',timezoneOffset:null,latitude:null,longitude:null});return {consultationType:'compatibility',personA:person(a,input.userName,input.birthDate,input.birthTime,input.calendarType,input.gender),personB:person(b,input.partnerName,input.partnerBirthDate,input.partnerBirthTime,input.partnerCalendarType,input.partnerGender),question:input.question||'',topic:input.topic||'',relationshipType:input.relationshipType||''};};
+   return respond({state:'UNASSIGNED',drafts:[...state.intents.values()].filter(row=>row.service==='sukuyo'&&!row.paid).map(row=>({id:row.id,input:summary(row.input),createdAt:row.createdAt||'2026-11-06T00:00:00.000Z'})),nextCursor:null});
+  }
+  if(path==='/native/sukuyo/recovery/attach'&&method==='POST'){
+   const {orderId,intentId}=await request.json(),intent=state.intents.get(intentId),assigned=state.orders.get(orderId);
+   if(!state.orders.has(orderId)||!intent||intent.service!=='sukuyo')return respond({error:'RESULT_NOT_FOUND'},404);if((state.testOrderSkus.get(orderId)||state.intents.get(assigned)?.sku)!==sukuyoProduct.sku)return respond({error:'ORDER_PRODUCT_MISMATCH'},409);
+   if(assigned&&assigned!==intentId||intent.orderId&&intent.orderId!==orderId)return respond({error:'ORDER_ALREADY_ASSIGNED'},409);
+   state.orders.set(orderId,intentId);intent.orderId=orderId;intent.paid=true;save();return respond({state:'ASSIGNED',intentId});
+  }
   if(path==='/native/sukuyo/prepare'&&method==='POST'){
    const body=await request.json();if(!body.input||body.orderId||!body.input.idempotencyKey)return respond({error:'MOCK_UNSUPPORTED'},400);
    const previous=[...state.intents.values()].find(row=>row.service==='sukuyo'&&row.input.idempotencyKey===body.input.idempotencyKey);
@@ -31,7 +46,7 @@ export function createOfflineFixtureApi(storage){
    const id=(++state.sequence).toString(16).padStart(64,'0'),intent={id,service:'sukuyo',sku:sukuyoProduct.sku,amountKRW:sukuyoProduct.approvedPriceKRW,paid:false,orderId:null,input:body.input};state.intents.set(id,intent);save();return respond(intent);
   }
   if(path==='/canonical/sukuyo-compatibility-ai/generate'&&method==='POST'){
-   const body=await request.json(),intent=[...state.intents.values()].find(row=>row.service==='sukuyo'&&(row.input.idempotencyKey===body.idempotencyKey||row.result?.id===body.resumeSessionId));
+   const body=await request.json(),intent=[...state.intents.values()].find(row=>row.service==='sukuyo'&&(body.idempotencyKey&&row.input.idempotencyKey===body.idempotencyKey||body.resumeSessionId&&(row.result?.id===body.resumeSessionId||'toss_'+row.id===body.resumeSessionId)));
    if(!intent?.paid)return respond({error:'PAYMENT_REQUIRED'},402);
    intent.result={id:intent.id.slice(-24),idempotencyKey:intent.input.idempotencyKey,status:'completed',consultationType:'compatibility',personA:{name:'테스트 A'},personB:{name:'테스트 B'},sukuyoResult:{},relationshipType:'연인',topic:'전체 궁합',messages:[{role:'assistant',content:'[테스트 전용 예시] 실제 상담 결과가 아닙니다.'}]};save();return respond({ok:true,consultation:intent.result});
   }
