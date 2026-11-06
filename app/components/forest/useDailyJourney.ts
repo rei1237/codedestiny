@@ -10,12 +10,33 @@ import { toggleTodo } from "@/app/diary/_lib/ext-writes";
 import { dayGroupOf } from "@/lib/diary/fortune-adapter";
 import { createExtItemId } from "@/lib/diary/diary-ext-store";
 import { fetchCurrentDestinyProfile, type DestinyProfileCard } from "@/app/_lib/profile-card-storage";
+import { findSpirit, spriteUrl } from "@/js/core/profile-characters.mjs";
+import { loadProfileCharacterPreview } from "@/js/core/profile-character-card.mjs";
 import { getApiUrl } from "@/app/_lib/api-config";
 import { authFetch } from "@/app/_lib/auth-client";
 import { hasClientAuthHint } from "@/app/_lib/user-session-cache";
 import { trackEvent } from "@/lib/analytics";
 import { awardRpg } from "@/app/destiny-compass/_lib/rpg-bridge";
 import { QUEST_ID_PREFIX, entryHasRecord, findQuestTodo, journeyStepsDone, msUntilKstMidnight, weekForestMap } from "./forest-progress.mjs";
+
+type ForestPortrait = { id: string; name: string; animal: string; ganji: string; element: string; equipped: boolean };
+
+async function readPortrait(profile: DestinyProfileCard): Promise<ForestPortrait> {
+  const request = async (path: string, init: RequestInit = {}) => {
+    const response = await authFetch(getApiUrl(path), { ...init, credentials: "include", cache: "no-store" }, { retryOn401: hasClientAuthHint() });
+    return { ok: response.ok, data: await response.json() };
+  };
+  const [preview, equipment] = await Promise.all([
+    loadProfileCharacterPreview(profile, { request }),
+    request("/api/rpg/characters"),
+  ]);
+  if (!equipment.ok || !equipment.data?.ok || equipment.data.degraded) throw new Error("equipment-unavailable");
+  const animal = preview.character;
+  const spirit = findSpirit(equipment.data.equippedId);
+  if (!animal || !spriteUrl(animal.id) || (equipment.data.equippedId && !spirit)) throw new Error("character-unavailable");
+  return { id: spirit?.id || animal.id, name: spirit?.name || animal.name, animal: animal.name,
+    ganji: animal.ganji, element: animal.element, equipped: Boolean(spirit) };
+}
 
 export type JourneyHoney = { balance: number; attended: boolean; streak: number; nextBonusIn: number; streakEvery: number; streakBonus: number; attendanceEvery: number; promptCost: number; awarded?: boolean; rewarded?: number };
 export type JourneyProgress = { currentLevel: number; currentLevelExp: number; nextLevelExp: number };
@@ -40,6 +61,9 @@ export function useDailyJourney({ surface, enabled }: { surface: JourneySurface;
   const [products, setProducts] = useState<JourneyProduct[]>([]);
   const [profile, setProfile] = useState<DestinyProfileCard | null>(null);
   const [profileStatus, setProfileStatus] = useState<"loading" | "ready" | "error">("loading");
+  const [profileRevision, setProfileRevision] = useState(0);
+  const [portrait, setPortrait] = useState<ForestPortrait | null>(null);
+  const [portraitFailed, setPortraitFailed] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [picked, setPicked] = useState<{ action: DiarySmallAction; index: number } | null>(null);
@@ -83,12 +107,7 @@ export function useDailyJourney({ surface, enabled }: { surface: JourneySurface;
         setMessage(data.awarded ? `꿀방울 ${data.rewarded}개를 받았어요.` : "오늘은 이미 출석했어요.");
         if (data.awarded) { trackEvent("daily_home_attendance", { surface }); void recordGrowth("checkin", ""); }
       } else {
-        setProfileStatus("loading");
-        void fetchCurrentDestinyProfile(undefined, { reportFailure: true }).then(card => {
-          if (seq === requestSeq.current) { setProfile(card); setProfileStatus("ready"); }
-        }).catch(() => {
-          if (seq === requestSeq.current) { setProfile(null); setProfileStatus("error"); }
-        });
+        setProfileRevision(value => value + 1);
         void loadProgress();
       }
     } catch {
@@ -98,6 +117,29 @@ export function useDailyJourney({ surface, enabled }: { surface: JourneySurface;
       if (method === "POST") { posting.current = false; setBusy(false); }
     }
   }, [loadProgress, recordGrowth, surface]);
+
+  // 입구와 모든 걸음은 동일한 선택 카드와 장착 상태를 공유한다.
+  useEffect(() => {
+    let active = true;
+    setProfile(null); setPortrait(null); setPortraitFailed(false); setProfileStatus("loading");
+    if (status !== "ready") return;
+    async function loadSelected() {
+      try {
+        const selected = await fetchCurrentDestinyProfile(card => Boolean(card.id || card.profileId), { reportFailure: true });
+        if (!active) return;
+        setProfile(selected);
+        if (selected) {
+          try {
+            const next = await readPortrait(selected);
+            if (active) setPortrait(next);
+          } catch { if (active) setPortraitFailed(true); }
+        }
+        if (active) setProfileStatus("ready");
+      } catch { if (active) setProfileStatus("error"); }
+    }
+    void loadSelected();
+    return () => { active = false; };
+  }, [status, profileRevision]);
 
   useEffect(() => {
     if (!enabled) return;
@@ -113,7 +155,12 @@ export function useDailyJourney({ surface, enabled }: { surface: JourneySurface;
     if (!enabled) return;
     const onFocus = () => { refresh(); void loadHoney(); };
     window.addEventListener("focus", onFocus);
-    return () => window.removeEventListener("focus", onFocus);
+    function accountChanged() { setStatus("loading"); onFocus(); }
+    window.addEventListener("cd:auth-changed", accountChanged);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      window.removeEventListener("cd:auth-changed", accountChanged);
+    };
   }, [enabled, refresh, loadHoney]);
   // 화면을 켜 둔 채 자정을 넘기거나 탭·앞뒤 캐시에서 돌아와도 어제 기록을 오늘 것으로 두지 않는다.
   useEffect(() => {
@@ -179,7 +226,7 @@ export function useDailyJourney({ surface, enabled }: { surface: JourneySurface;
     }
   }
 
-  return { surface, hydrated, ymd, entry, status, honey, progress, products, profile, profileStatus, busy, message, quest, picked, savedAction, attended, questDone, hasRecord, stepsDone, weekMap, attend, retry, selectQuest, rerollQuest, toggleQuest };
+  return { surface, hydrated, ymd, entry, status, honey, progress, products, profile, profileStatus, portrait, portraitFailed, busy, message, quest, picked, savedAction, attended, questDone, hasRecord, stepsDone, weekMap, attend, retry, selectQuest, rerollQuest, toggleQuest };
 }
 
 export type DailyJourney = ReturnType<typeof useDailyJourney>;

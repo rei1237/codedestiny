@@ -17,11 +17,10 @@
 .gate { width: min(100%, 720px); margin-inline: auto; overflow: hidden; border: 1px solid var(--cd-forest-rule); border-radius: 28px; background: var(--cd-forest-night); box-shadow: 0 18px 40px -22px var(--cd-forest-night); }
 .gateScene { position: relative; aspect-ratio: 3 / 2; background: var(--cd-forest-deep); }
 .gateScene img { display: block; width: 100%; height: 100%; object-fit: cover; }
-.gateScene::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, var(--cd-forest-veil) 0%, transparent 34%, transparent 72%, var(--cd-forest-night) 100%); }
-.gateHead { position: absolute; z-index: 1; top: clamp(16px, 4vw, 28px); left: 0; right: 0; display: grid; justify-items: center; gap: 4px; padding-inline: 16px; text-align: center; }
-.gateHead p { color: var(--cd-forest-mist); font-size: .8125rem; font-weight: 600; letter-spacing: .04em; }
-.gate .gateHead h2 { margin: 0; color: var(--cd-forest-ink); font-family: var(--font-serif); font-size: clamp(1.625rem, 6vw, 2.25rem); line-height: 1.25; letter-spacing: -.01em; }
-.gateBody { display: grid; gap: 14px; padding: 4px clamp(16px, 4vw, 28px) clamp(18px, 4vw, 28px); }
+.gateHead { display:grid; gap:4px; text-align:left; }
+.gateHead p { color:var(--cd-forest-paper-muted); font-size:.9375rem; }
+.gate .gateHead h2 { margin: 0; color: var(--cd-forest-moss); font-family: var(--font-serif); font-size: clamp(1.625rem, 6vw, 2.25rem); line-height: 1.25; letter-spacing: -.01em; }
+.gateBody { background:var(--cd-forest-paper); display: grid; gap: 14px; padding: 18px clamp(16px, 4vw, 28px) clamp(18px, 4vw, 28px); }
 .gateStats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 0; padding: 0; list-style: none; }
 .gateStats li { display: grid; gap: 2px; padding: 10px 12px; border: 1px solid var(--cd-forest-rule); border-radius: 14px; background: var(--cd-forest-deep); }
 .gateStats span { color: var(--cd-forest-mist); font-size: .75rem; }
@@ -36,9 +35,9 @@
 .walk .secondary { border: 1px solid var(--cd-forest-rule-strong); background: transparent; color: var(--cd-forest-ink); }
 .walk .primary:disabled, .walk .secondary:disabled { opacity: .7; cursor: default; }
 .muted { color: var(--cd-forest-mist); }
-.growth { display: grid; gap: 8px; padding: 12px 14px; border: 1px solid var(--cd-forest-rule); border-radius: 16px; background: var(--cd-forest-deep); }
-.growthHead { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.growthHead strong { min-width: 0; font-size: .9375rem; overflow-wrap: anywhere; }
+.growth { --portrait-card:#352235; --portrait-ink:#fff5e6; --portrait-gold:#ebcd91; display:grid; gap:8px; padding:16px; border-radius:var(--cd-r-card); background:var(--portrait-card); color:var(--portrait-ink); }
+.growthHead { display:flex; align-items:center; gap:14px; }
+.growthHead strong { font:700 1.1875rem/1.4 var(--font-serif); overflow-wrap:anywhere; }
 .growth a { display: inline-flex; flex: none; align-items: center; min-height: 44px; color: var(--cd-forest-lantern); font-size: .8125rem; font-weight: 700; text-underline-offset: 3px; }
 .growthBody { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 6px 10px; }
 .zone { grid-column: 1 / -1; color: var(--cd-forest-mist); font-size: .8125rem; font-weight: 600; }
@@ -122,11 +121,29 @@
 }
 
 .cardAction,.cardEditor button{min-height:48px;padding:10px 16px;border:0;border-radius:12px;font:inherit;font-weight:700;cursor:pointer}
-.cardAction{color:var(--cd-forest-on-lantern);background:var(--cd-forest-lantern)}
+.growth .cardAction,.growth a { padding:0; min-height:44px; color:var(--portrait-gold); background:transparent; text-decoration:underline; text-underline-offset:4px; }
 .cardEditor{display:grid;gap:10px}
 .cardEditor iframe{width:100%;height:min(68dvh,560px);border:0;border-radius:12px;background:var(--cd-surface)}
 .cardEditor button{justify-self:start;color:var(--cd-forest-lantern);background:var(--cd-forest-deep)}
 
-.progress>summary{min-height:46px;padding:10px 2px;cursor:pointer;color:var(--cd-forest-mist)}
+.progress>summary{min-height:46px;padding:10px 2px;cursor:pointer;color:var(--cd-forest-paper-muted)}
 @media(min-width:700px){.progress>summary{display:none}}
-@media(max-width:699px){.gateScene{aspect-ratio:2/1}.gateBody{gap:8px}.gateBody>.primary{grid-row:1}.progress{border-top:1px solid var(--cd-forest-rule)}}
+@media(max-width:699px){.gateScene{aspect-ratio:2/1}.gateBody{gap:8px}.progress{border-top:1px solid var(--cd-forest-rule)}}
+
+.identity { min-width:0; display:grid; justify-items:start; text-align:left; }
+.identity small { color:var(--portrait-ink); line-height:1.55; font-size:.875rem; }
+.portrait { display:grid; place-items:center; flex:0 0 80px; width:80px; height:80px; border-radius:16px; background:var(--portrait-ink); }
+.portrait span { width:74px; height:74px; background-size:400% 100%; background-repeat:no-repeat; background-position:0 0; }
+.walkProfile { width:min(100%,720px); margin:0 auto; padding:6px 16px 14px; }
+.gate .primary { background:var(--cd-forest-moss); color:var(--cd-forest-ink); border-color:var(--cd-forest-moss); border-radius:var(--cd-r-control); }
+
+/* 숲 입구와 걸음 화면은 같은 종이색을 쓰고, 계정 카드는 고유한 자두색을 유지한다. */
+.dialog .walk { background:var(--cd-forest-paper); color:var(--cd-forest-paper-ink); }
+.dialog .walkHead h2,.dialog .walk .panel h3,.dialog .walk .close,.dialog .lines b { color:var(--cd-forest-moss); }
+.dialog .block,.dialog .steps { background:var(--cd-forest-paper); border-color:var(--cd-forest-paper-line); }
+.dialog .walk .steps button,.dialog .secondary { border-color:var(--cd-forest-paper-line); color:var(--cd-forest-moss); }
+.dialog .walk .steps button[aria-current="step"],.dialog .primary { background:var(--cd-forest-moss); color:var(--cd-forest-ink); border-color:var(--cd-forest-moss); }
+.dialog .primary,.dialog .secondary { border-radius:var(--cd-r-control); }
+.dialog :is(.note,.wallet,.notice,.map small,.walkHead .saveFailed) { color:var(--cd-forest-paper-muted); }
+.dialog .wallet strong,.dialog .steps small { color:inherit; }
+.dialog .walk :where(button,a,input):focus-visible { outline-color:var(--cd-forest-rule-strong); }

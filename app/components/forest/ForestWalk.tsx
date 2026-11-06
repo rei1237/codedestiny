@@ -109,6 +109,7 @@ export default function ForestWalk({ mode, journey, initialStep = 0, onStepChang
       {saveFailed && mode === "dialog" && <p className={styles.saveFailed} role="status">{DIARY_SAVE_FAILED_TEXT}</p>}
     </header>
     <div ref={bodyRef} className={styles.walkBody} onTouchStart={startSwipe} onTouchEnd={endSwipe} onTouchCancel={() => { swipeStart.current = null; }}>
+      <div className={styles.walkProfile}><GrowthCard journey={journey} /></div>
       <Panel index={0} step={step} line={dailyLine(ymd, "lantern")} panelRef={setPanelRef(0)}>
         <div className={styles.block}>
           <h3>첫 걸음, 등불 켜기</h3>
@@ -138,7 +139,6 @@ export default function ForestWalk({ mode, journey, initialStep = 0, onStepChang
             <a href="/ggulggul/?action=cdOpenAllFortunes" onClick={onClose}>꿀꿀 운세 살펴보기</a>
           </details>
         </div>
-        <GrowthCard journey={journey} />
         {nextButton("오솔길로 가기", 1)}
       </Panel>
 
@@ -155,7 +155,6 @@ export default function ForestWalk({ mode, journey, initialStep = 0, onStepChang
               </div>}
           <p className={styles.note}>일상을 돌보는 작은 제안이에요. 꿀방울은 지급되지 않으며, 로그인 시 기존 성장 규칙에 따라 경험치를 쌓을 수 있어요.</p>
         </div>
-        <GrowthCard journey={journey} />
         {nextButton("샘터로 가기", 2)}
       </Panel>
 

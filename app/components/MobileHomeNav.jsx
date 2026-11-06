@@ -6,8 +6,8 @@ import styles from '../home-main.module.css';
 const destinations = [
   { id: 'webServiceTitle', label: '홈', icon: Layers },
   { id: 'homeCardTitle', label: '상담 추천', icon: MessageCircle },
-  { id: 'homeForest', label: '숲길', icon: Trees },
   { id: 'homeStoryTitle', label: '웹툰 서가', icon: BookOpen },
+  { id: 'homeForest', label: '숲길', icon: Trees },
 ];
 
 export default function MobileHomeNav() {

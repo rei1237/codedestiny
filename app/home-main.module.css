@@ -166,3 +166,22 @@
  .mobileNav a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:48px;border-radius:var(--cd-r-control);font-size:.75rem;font-weight:600;text-decoration:none}
  .mobileNav a[aria-current]{color:var(--cd-accent);background:color-mix(in srgb,var(--cd-accent) 8%,var(--cd-surface))}
 }
+
+.footerGroups { width:100%; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:24px; text-align:left; }
+.footerGroups h2 { width:100%; margin:0 0 6px; font:700 1rem/1.5 var(--font-serif); color:var(--cd-text); }
+.footerGroups .entryHelp,.policyGroup .footerNav { justify-content:flex-start; align-content:start; gap:0 14px; }
+.footerGroups :is(a,button),.footer .business,.footer .notice { font-size:.875rem; }
+.footerGroups .entryNote { margin:0; text-align:left; }
+@media(max-width:699px){.footerGroups{grid-template-columns:1fr;gap:16px}.footer{justify-items:start;text-align:left}.page:has(.mobileNav) .deck{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+@media(max-width:699px){
+  .page:has(.mobileNav) .cardTag { position:absolute; width:1px; height:1px; min-height:0; overflow:hidden; clip-path:inset(50%); }
+  .page:has(.mobileNav) .cardCopy { padding:6px 0 0; gap:4px; }
+  .page:has(.mobileNav) .cardCopy::before { display:none; }
+  .page:has(.mobileNav) .cardAction { min-height:44px; border:0; background:transparent; gap:3px; font-size:.875rem; white-space:nowrap; }
+}
+
+@media(min-width:700px){
+  .page:has(.mobileNav) .deck { max-width:540px; gap:26px; padding-block:8px; }
+  .page:has(.mobileNav) .stage { padding-top:18px; gap:20px; }
+}

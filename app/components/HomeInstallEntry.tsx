@@ -16,10 +16,11 @@ export default function HomeInstallEntry() {
     return () => window.removeEventListener('cd:pwa-ready', refresh);
   }, []);
   return <>
-    <aside className={styles.entry} data-pwa-install-entry hidden aria-label="홈 화면에 추가">
+    <aside className={styles.entry} aria-label="홈 화면에 추가">
       <Image src="/icons/moonlight-garden-v1-192.png" alt="" width={48} height={48}/>
       <div><strong>다음에도 바로 찾아오세요</strong><p>홈 화면의 아이콘으로 꿀꿀 운세를 열어요.</p></div>
-      <button type="button" data-pwa-install>홈 화면에 추가하기</button>
+      <div className={styles.actions}><span data-pwa-install-entry hidden><button type="button" data-pwa-install>홈 화면에 추가</button></span>
+        <a href="https://play.google.com/store/apps/details?id=com.codedestiny.app">Google Play에서 받기</a></div>
     </aside>
   </>;
 }
