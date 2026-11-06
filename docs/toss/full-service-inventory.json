@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "239282874a24eb7e365d350abb20f1d8126cd57a",
+  "sourceCommit": "328f8dc14b75a43f8de855970ce30b0460ea0d54",
   "scope": "Source discovery plus explicitly verified aliases; not a count of implemented services. Unmapped contracts are blocking work, not exclusions.",
   "sourceCounts": {
     "home": 63,
@@ -2066,8 +2066,8 @@
         "library": "not-verified",
         "device": "not-tested",
         "canonicalId": "saju-fpti",
-        "candidateStatus": "requires-full-flow-port-and-verification",
-        "canonicalRoute": null
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/saju-fpti/"
       }
     },
     {
@@ -4855,12 +4855,13 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/saju-fpti/",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "lib/fpti/fpti-adapter.ts",
+      "resultRenderer": "apps/toss/service/TossFpti.tsx",
+      "storageContract": "local screen only; saved profile entitlement and permanent premium report not ported",
+      "verification": "mock UI and original calculation only; free-screen parity, approved permanent rights and official device pending"
     },
     {
       "id": "saju-guardian",

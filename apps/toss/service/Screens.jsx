@@ -29,6 +29,7 @@ const TeaPrice=lazy(()=>import('./TossTeaPrice'));
 const LetterRoom=lazy(()=>import('./TossLetterRoom'));
 const SavedTea=lazy(()=>import('@/app/fortune-tea-house/SavedTeaReading'));
 const Neo=lazy(()=>import('./TossNeoGate'));
+const Fpti=lazy(()=>import('./TossFpti'));
 const NeoResult=lazy(()=>import('@/src/features/neo-war-room/NeoOperationRoomResultPage'));
 const NeoBooks=lazy(()=>import('@/src/features/neo-war-room/NeoStrategyBooksPage'));
 const LoveSecret=lazy(()=>import('./LoveSecret'));
@@ -105,6 +106,7 @@ export default function ServiceScreens(){
   return()=>{live=false;offSession();window.removeEventListener('code-destiny:toss-auth-denied',invalidate);};
  },[]);
  const recoveryBanner=recoveryMessage?<div role="status"><p>{recoveryMessage}</p><a href="/recovery">구매 내역 복구하기</a></div>:null;
+ if(/^\/(?:saju-fpti|fpti)\/?$/.test(location.pathname))return <LazyMotion features={domAnimation}><ToastProvider/>{recoveryBanner}{ready?<Suspense fallback={<p role="status">사주 FPTI를 준비하고 있어요.</p>}><Fpti/></Suspense>:<p role="status">상담실을 준비하고 있어요.</p>}</LazyMotion>;
  if(/^\/psychotest(?:\/[a-z0-9-]+)?\/?$/.test(location.pathname))return <LazyMotion features={domAnimation}><ToastProvider/>{recoveryBanner}{ready?<Suspense fallback={<p role="status">심리테스트를 열고 있어요.</p>}><Psychotest/></Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</LazyMotion>;
  if(location.pathname==='/omikuji'||location.pathname==='/omikuji/')return <LazyMotion features={domAnimation}><ToastProvider/>{recoveryBanner}{ready?<Suspense fallback={<p role="status">오미쿠지를 열고 있어요.</p>}><Omikuji/></Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</LazyMotion>;
  if(location.pathname==='/maya'||location.pathname==='/maya/')return <LazyMotion features={domAnimation}><ToastProvider/>{recoveryBanner}{ready?<Suspense fallback={<p role="status">마야 달력을 열고 있어요.</p>}><Maya paymentSurface="toss" TossPrompt={MayaPrompt}/></Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</LazyMotion>;
