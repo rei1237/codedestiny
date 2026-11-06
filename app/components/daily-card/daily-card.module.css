@@ -84,7 +84,7 @@
 .calendarHead { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
 .card .calendarHead h3 { margin: 0; color: var(--dc-paper-ink); font-family: var(--font-serif); font-size: 1.0625rem; }
 .calendarHead small { color: var(--dc-paper-muted); font-size: .8125rem; font-variant-numeric: tabular-nums; }
-.weekdays, .days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; margin: 0; padding: 0; list-style: none; max-width: 420px; margin-inline: auto; }
+.weekdays, .days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; margin: 0; padding: 0; list-style: none; width: 100%; max-width: 420px; margin-inline: auto; }
 .weekdays li { color: var(--dc-paper-muted); font-size: .75rem; font-weight: 700; text-align: center; }
 .weekdays li:first-child { color: #b23a3a; }
 .days li { position: relative; display: grid; place-items: center; aspect-ratio: 1; max-height: 52px; border-radius: 12px; background: color-mix(in srgb, var(--dc-paper-line) 45%, transparent); font-size: .8125rem; font-weight: 600; font-variant-numeric: tabular-nums; }
