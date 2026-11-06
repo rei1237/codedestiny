@@ -1,6 +1,6 @@
 /* 부적 화면(talismans.css)의 머리말·선택지·버튼을 그대로 쓰고, 홈 화면 미리보기만 더한다. */
 .cd-home-widget-kinds { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.cd-home-widget-screen { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px 12px; align-content: start; width: min(100%, 256px); aspect-ratio: 9 / 16; margin: 0 auto; padding: 34px 18px; border: 1px solid var(--yn-line); border-radius: 30px; background: radial-gradient(120% 70% at 70% 0%, var(--yn-raised) 0%, var(--yn-deep) 65%); }
+.cd-home-widget-screen { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px 12px; align-content: start; width: min(100%, 256px); margin: 0 auto; padding: 24px 18px; border: 1px solid var(--yn-line); border-radius: 30px; background: radial-gradient(120% 70% at 70% 0%, var(--yn-raised) 0%, var(--yn-deep) 65%); }
 .cd-home-widget-screen > i { aspect-ratio: 1; border: 1px dashed color-mix(in srgb, var(--yn-ivory) 40%, transparent); border-radius: 12px; }
 .cd-home-widget-tile { grid-column: span 2; grid-row: span 3; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; min-width: 0; padding: 4px; border: 1px solid #e5c58e; border-radius: 16px; background: #101b2c; color: #f3eee5; overflow: hidden; }
 .cd-home-widget-tile > img { display: block; width: 100%; height: 100%; object-fit: contain; }

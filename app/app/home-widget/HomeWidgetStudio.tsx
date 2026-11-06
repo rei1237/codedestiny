@@ -121,7 +121,7 @@ export default function HomeWidgetStudio() {
                 ? <img src={`/assets/talismans/widget/${talisman}.webp`} width={304} height={540} alt="" decoding="async" />
                 : <><small>{WIDGET_CAPTION}</small><strong>{line}</strong></>}
             </div>
-            {Array.from({ length: 10 }, (_, i) => <i key={i} />)}
+            {Array.from({ length: 6 }, (_, i) => <i key={i} />)}
           </div>
           <p className="cd-talisman-caption">{copy.offline}</p>
         </section>
