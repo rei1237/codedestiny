@@ -51,12 +51,14 @@ try {
   await page.locator('#daily-home-title').scrollIntoViewIfNeeded();
   const gate=page.locator('#homeForest');
   const walk=page.locator('dialog[open]');
-  const guestCreate=gate.getByRole('link',{name:'내 카드 만들기',exact:true});
+  const guestCreate=gate.getByRole('link',{name:'가입하고 카드 만들기',exact:true});
   const goToLogin=new URL(await guestCreate.getAttribute('href'),base);
   assert.equal(goToLogin.pathname,'/login/');
   assert.equal(goToLogin.searchParams.get('next'),'/#daily-home-title');
+  await gate.getByRole('heading',{name:'프로필 카드와 출석 혜택',exact:true}).waitFor();
   await gate.getByText('프로필 카드 예시',{exact:true}).waitFor();
-  await gate.getByRole('button',{name:'숲길 둘러보기',exact:true}).click();
+  await gate.getByRole('button',{name:'출석 혜택 둘러보기',exact:true}).click();
+  await walk.getByRole('heading',{name:'프로필 카드와 출석 혜택',exact:true}).waitFor();
   await walk.getByRole('button',{name:'오솔길',exact:true}).click();
   await walk.getByRole('heading',{name:'둘째 걸음, 작은 실천'}).waitFor();
   await walk.getByRole('button',{name:'닫기',exact:true}).click();
@@ -146,13 +148,15 @@ try {
   assert.match(await identity.innerText(),/갑술 · 목/);
   await page.screenshot({path:'build-cache/forest-profile/member-equipped-path.png',style:'nextjs-portal{display:none}'});
   await walk.getByRole('button',{name:'닫기',exact:true}).click();
+  await walk.waitFor({state:'hidden'});
   await confirmPortrait(gate,'spirit-03','두 번째');
   await gate.scrollIntoViewIfNeeded();await page.screenshot({path:'build-cache/forest-profile/member-equipped.png',style:'nextjs-portal{display:none}'});
   equippedId=null;
-  await page.reload({waitUntil:'domcontentloaded'});
+  // Re-enter from the public home, independent of the previous login return fragment.
+  await page.goto(base+'/',{waitUntil:'domcontentloaded'});
   await gate.scrollIntoViewIfNeeded();
   await confirmPortrait(gate,'animal-dog','두 번째');
-  await gate.getByRole('button',{name:'숲길 들어가기',exact:true}).click();
+  await gate.getByRole('button',{name:'출석 혜택 확인하기',exact:true}).click();
   await confirmSteps('animal-dog','두 번째');
   console.log('PASS selected second profile, equipped spirit and unequipped day animal at gate, lantern, path, spring and map');
   for (const width of [360,390,430,1280]) {

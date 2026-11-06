@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { ArrowRight } from 'lucide-react';
 import { mobileSpriteUrl } from "@/js/core/profile-characters.mjs";
 import { trackEvent } from "@/lib/analytics";
 import { invalidateProfileCache } from "@/app/_lib/user-session-cache";
@@ -80,7 +81,7 @@ export function GrowthCard({ journey }: { journey: DailyJourney }) {
   }, [editing, loading, saving]);
   const example = status === "guest" || (status === "ready" && !profile && !loading && !unavailable);
   const avatar = example ? "animal-rabbit" : loading || unavailable ? null : portrait?.id;
-  const name = example ? "프로필 카드 예시" : profile ? `${profile.name || "나의"} 카드` : "숲길 프로필 카드";
+  const name = example ? "프로필 카드 예시" : profile ? `${profile.name || "나의"} 카드` : "내 프로필 카드";
   const loginHref = journey.surface === "home" ? "/login/?next=%2F%23daily-home-title" : "/login/?next=%2Fdiary%2F%23daily-home-title";
   const ratio = progress ? Math.min(100, Math.round((progress.currentLevelExp / Math.max(1, progress.nextLevelExp)) * 100)) : 0;
   return <div className={styles.growth} data-forest-profile={example ? "example" : profile?.id || profile?.profileId}>
@@ -92,8 +93,7 @@ export function GrowthCard({ journey }: { journey: DailyJourney }) {
         {example ? <small>일주 동물 · 토끼<br/>을묘 · 목</small> : avatar && portrait ?
           <small>일주 동물 · {portrait.animal}{portrait.equipped && <> · 장착 정령 · {portrait.name}</>}<br/>{portrait.ganji} · {portrait.element}</small> :
           <small role="status">{loading ? "카드를 확인하고 있어요." : "카드를 불러오지 못했어요."}</small>}
-        {status === "guest" ? <a href={loginHref} onClick={() => trackEvent("daily_home_card_login", { surface: journey.surface })}>내 카드 만들기</a> :
-          <button type="button" ref={trigger} className={styles.cardAction} aria-expanded={editing} aria-disabled={loading || saving}
+        {status !== "guest" && <button type="button" ref={trigger} className={styles.cardAction} aria-expanded={editing} aria-disabled={loading || saving}
             onClick={() => {
               if (loading || saving) return;
               if (unavailable) { journey.retry(); return; }
@@ -102,6 +102,7 @@ export function GrowthCard({ journey }: { journey: DailyJourney }) {
         {portraitFailed && !loading && !unavailable && <button type="button" className={styles.cardAction} onClick={journey.retry}>캐릭터 다시 불러오기</button>}
       </div>
     </div>
+    {status === "guest" && <a className={styles.joinAction} href={loginHref} onClick={() => trackEvent("daily_home_card_login", { surface: journey.surface })}>가입하고 카드 만들기 <ArrowRight size={15} aria-hidden="true" /></a>}
     {editing && <section className={styles.cardEditor} aria-label="숲길 프로필 카드">
       <button ref={closeButton} type="button" disabled={saving} onClick={() => setEditing(false)}>{saving ? "카드 저장 중" : "숲길로 돌아가기"}</button>
       {frameStatus === "loading" && <p role="status">프로필 카드를 펼치고 있어요.</p>}

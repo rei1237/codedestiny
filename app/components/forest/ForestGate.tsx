@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { trackEvent } from "@/lib/analytics";
-import { litLanternCount } from "./forest-progress.mjs";
+import { FOREST_ACTIVITY_TITLE, litLanternCount } from "./forest-progress.mjs";
 import { useDailyJourney } from "./useDailyJourney";
 import HomeDisclosure from "../HomeDisclosure";
 import { GrowthCard } from "./ForestParts";
@@ -114,11 +114,13 @@ export default function ForestGate() {
     </div>
     <div className={styles.gateBody}>
       <div className={styles.gateHead}>
-        <h2 id="daily-home-title">오늘의 숲길</h2>
-        <p>연이가 든 등불을 따라, 오늘의 숲을 걸어보세요.</p>
+        <h2 id="daily-home-title">{FOREST_ACTIVITY_TITLE}</h2>
+        <p>{status === "guest"
+          ? "가입 후 내 프로필 카드를 만들고, 출석으로 꿀방울을 모아보세요."
+          : "출석으로 꿀방울을 모으고, 오늘 실천한 일과 마음을 기록해 보세요."}</p>
       </div>
       <GrowthCard journey={journey} />
-      <button ref={ctaRef} type="button" className={styles.primary} aria-haspopup="dialog" onClick={enterForest}>{stepsDone >= 3 ? "오늘의 숲길 다시 보기" : stepsDone > 0 ? "숲길 이어 걷기" : status === "guest" ? "숲길 둘러보기" : "숲길 들어가기"}</button>
+      <button ref={ctaRef} type="button" className={styles.primary} aria-haspopup="dialog" onClick={enterForest}>{status === "guest" ? "출석 혜택 둘러보기" : stepsDone >= 3 ? "오늘의 활동 다시 보기" : stepsDone > 0 ? "오늘의 활동 이어보기" : "출석 혜택 확인하기"}</button>
       <HomeDisclosure className={styles.progress} label="오늘의 걸음과 성장 기록">
       <ul className={styles.gateStats}>
         <li><span>오늘 걸음</span><strong>{hydrated ? `${stepsDone} / 3` : "세 걸음"}</strong></li>
