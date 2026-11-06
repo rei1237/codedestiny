@@ -21,7 +21,7 @@ export default function GiftSharing({ gift, onChange }: { gift: GiftView; onChan
     catch { setNotice("아래 링크를 길게 눌러 복사해 주세요."); }
   };
   const share = async () => {
-    try { if (navigator.share) await navigator.share({ title: "운명의 선물", text: "꿀꿀운세 이용권 선물이 도착했어요.", url }); else await copy(); }
+    try { if (navigator.share) await navigator.share({ title: "운명의 선물", text: "꿀단지 이용권 선물이 도착했어요.", url }); else await copy(); }
     catch (e) { if (!(e instanceof Error && e.name === "AbortError")) await copy(); }
   };
   const kakao = () => {

@@ -57,6 +57,17 @@ test('paused content cannot be opened through a direct public URL', async () => 
     assert.equal(response.headers.get('x-robots-tag'), 'noindex');
   }
 });
+test('verified SNULIFE reading context can enter Secret House without reopening other paused routes', async () => {
+  const requested = [];
+  const env = { ASSETS: { fetch: async request => { requested.push(new URL(request.url)); return new Response('secret-house'); } } };
+  const response = await worker.fetch(new Request('https://code-destiny.com/secret-house_real.html?entry=snulife&profileId=gift'), env, {});
+  assert.equal(response.status, 200);
+  assert.equal(await response.text(), 'secret-house');
+  assert.equal(requested.length, 1);
+  assert.equal(requested[0].pathname, '/secret-house_real.html');
+  const other = await worker.fetch(new Request('https://code-destiny.com/destiny-poker.html?entry=snulife'), env, {});
+  assert.equal(other.status, 302);
+});
 test('normal fortune routes and archives remain accessible', async () => {
   const env = { ASSETS: { fetch: async () => new Response('fixture') } };
   for (const path of ['/records/', '/saju/', '/tarot/', '/master-love-codex/result/']) {

@@ -1,9 +1,9 @@
 "use client";
 import Image from "next/image";
+import HomeDisclosure from "@/app/components/HomeDisclosure";
 import QuestionJourney from "@/app/components/QuestionJourney";
-import NightHero from "../_components/NightHero";
-import FirstVisitGuide from "../_components/FirstVisitGuide";
-import HeavenLightCinema from "../_components/HeavenLightCinema";
+import NightHero, {NightPriceDetails} from "../_components/NightHero";
+import homeStyle from "../_components/night-hero.module.css";
 import SessionControls from "./SessionControls";
 import type {ProductOffers} from '../_components/ProductGuide';
 import {useReadingLanguage} from '../_lib/use-reading-language';
@@ -14,6 +14,8 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ArrowRight, Bookmark, ChevronRight, House, KeyRound, PawPrint, X } from "lucide-react";
 import { ggulggulFortuneHref, loginHref, socialLoginHref, type SocialProvider } from "./service-links";
 
+const FirstVisitGuide = dynamic(() => import('../_components/FirstVisitGuide'));
+const HeavenLightCinema = dynamic(() => import('../_components/HeavenLightCinema'));
 const LocalizedFortuneHome = dynamic(() => import('../_components/LocalizedFortuneHome'));
 
 // 2026-10-28 단순화: 한국어 홈은 히어로 → 뮤직비디오 → 고민으로 시작하기 → 가격·결제 전 안내 → 꿀꿀운세 한 줄 순서다.
@@ -55,6 +57,15 @@ export default function FortuneHome({offers,guide,passBenefits}:{offers:ProductO
   const {siteLocale}=useReadingLanguage();
   const [panel, setPanel] = useState<Panel>(null);
   const [authMode, setAuthMode] = useState<"login" | "signup">("login");
+  const [desktopHome, setDesktopHome] = useState(false);
+  useEffect(() => {
+    const wide = matchMedia('(min-width:700px)');
+    const update = () => setDesktopHome(wide.matches);
+    update();
+    wide.addEventListener('change', update);
+    return () => wide.removeEventListener('change', update);
+  }, []);
+  const [firstVisitOpen, setFirstVisitOpen] = useState(false);
   const [activeNav, setActiveNav] = useState("home");
   const dialogRef = useRef<HTMLDialogElement>(null);
   const openerRef = useRef<HTMLElement | null>(null);
@@ -112,7 +123,7 @@ export default function FortuneHome({offers,guide,passBenefits}:{offers:ProductO
       </a>
       <div className="site-shell" id="home">
         <header className="header">
-          <a href="#home" className="brand">
+          <a href="#home" className={`brand ${homeStyle.homeBrand}`}>
             <img src={imagePath("avatar")} width="42" height="34" alt="" />
             <span>
               사주보는 <strong>영냥이</strong>
@@ -132,11 +143,18 @@ export default function FortuneHome({offers,guide,passBenefits}:{offers:ProductO
 
         <main>
           <NightHero/>
-          <HeavenLightCinema/>
-          <FirstVisitGuide/>
+          {desktopHome ? <><HeavenLightCinema/><FirstVisitGuide/></> : <div className={homeStyle.shortcuts}>
+            <details onToggle={event => setFirstVisitOpen(event.currentTarget.open)}>
+              <summary>처음 방문했어요</summary>
+              {firstVisitOpen && <><FirstVisitGuide manualOnly/><HeavenLightCinema/></>}
+            </details>
+            <NightPriceDetails/>
+          </div>}
           <QuestionJourney source="home"/>
-          {passBenefits}
-          {guide}
+          <div className={homeStyle.reference}>
+            <HomeDisclosure className={homeStyle.homeFold} label="이용권 살펴보기">{passBenefits}</HomeDisclosure>
+            <HomeDisclosure className={homeStyle.homeFold} label="상담 가격과 이용 안내">{guide}</HomeDisclosure>
+          </div>
           <div className="main-content">
             <section className="ggulggul-bridge" aria-labelledby="ggulggul-title">
               <div className="ggulggul-bridge__art">

@@ -1,3 +1,4 @@
+import HomeQuestionGuide from './components/HomeQuestionGuide';
 import HomeInstallEntry from './components/HomeInstallEntry';
 import StoryDiscovery from './consultations/StoryDiscovery';
 import Link from 'next/link';
@@ -10,7 +11,9 @@ import { FOOTER_BYLINE, FOOTER_LINKS, FOOTER_NOTICE, FOOTER_TRUST_LINKS } from "
 import { BUSINESS_IDENTITY } from "../lib/site-policy-config";
 import LegacyHomeEntry from "./components/LegacyHomeEntry";
 import { HOME_QUICK_LINKS } from "../lib/seo/home-discovery.mjs";
+import MobileHomeNav from './components/MobileHomeNav';
 import HomeCardDeck from "./components/HomeCardDeck";
+import HomeDailyEntry from "./components/HomeDailyEntry";
 import { NativeHomeRoot, NativeHomeNav, NativeHomeText, NativeHomeCardLink, NativeHomeDictionaryText } from "./components/NativeHomeCopy";
 import "./yeongnyangi/night-tokens.css";
 import "./yeongnyangi/yehwa-night.generated.css";
@@ -23,7 +26,7 @@ import { IS_APP_BUILD } from "../lib/app-build-target";
 const { service, characters } = BRAND_FACTS;
 const YEONGNYANGI = characters.find((character) => character.key === "yeongnyangi");
 const HOME_TITLE = "꿀꿀 운세 · 운세보는 영냥이 | 서비스 선택";
-const HOME_DESCRIPTION = "꽃돼지 꿀꿀운세에서 사주·타로와 주제별 운세를 고르거나, 운세보는 영냥이에게 궁금한 질문과 상황을 들려주세요. 나에게 맞는 상담을 선택하세요.";
+const HOME_DESCRIPTION = "꽃돼지 연이와 영냥이를 만나는 꿀꿀 운세. 사주·타로와 주제별 운세를 웹에서 살펴보고, Android 앱은 Google Play에서 설치하세요.";
 // summary_large_image 카드라 1200×630 공유 이미지를 쓴다. 정적 홈 셸(index.html)과 같은 그림이다.
 const HOME_IMAGE = siteSeo.defaultOgImage;
 const ART = "/images/home/illustrated";
@@ -92,21 +95,23 @@ export default function HomePage() {
       <header className={styles.brandRow}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img className={styles.brandMark} src="/fuctionassets/%EC%97%B0%EC%9D%B4.webp" width={96} height={96} alt="" decoding="async" />
-        <span className={styles.wordmark}>{service.name}</span>
+        <span className={styles.wordmark}>{IS_APP_BUILD ? service.name : "코드 데스티니"}</span>
+        {!IS_APP_BUILD && <a href="#homeCardTitle">상담 추천</a>}
       </header>
 
       <main className={styles.stage}>
-        <div className={styles.head}>
+        {IS_APP_BUILD ? <div className={styles.head}>
           <h1 id="homeCardTitle" className={styles.title}><NativeHomeText>꿀꿀 운세에서 어떤 운세를 만나볼까요?</NativeHomeText></h1>
           <p className={styles.lead}><NativeHomeText>마음이 향하는 상담 공간을 골라보세요.</NativeHomeText></p>
-        </div>
+        </div> : <h1 id="webServiceTitle" className={styles.title}>마음이 가는 카드를 골라보세요</h1>}
 
         {/* 카드 제목(h2)의 링크를 카드 크기로 늘려 카드 전체가 한 링크다. 설명 두 줄은 aria-describedby 로 읽힌다. */}
-        <HomeCardDeck className={styles.deck}>
+        <HomeCardDeck className={styles.deck} interactive={!IS_APP_BUILD} labelledBy={IS_APP_BUILD ? "homeCardTitle" : "webServiceTitle"}>
           {CARDS.map((card, index) => {
             const linkProps = { href: card.href, className: styles.cardLink, "aria-describedby": `${card.key}CardTag`, ...discoveryTracking(card.key === "yeoni" ? "ggulggul" : "yeongnyangi", "primary") };
             return <li key={card.key} data-home-card={card.key} className={`${styles.card} ${styles[card.className]}`} data-yn-night={card.night ? "" : undefined}>
 
+              {!IS_APP_BUILD && <span className={styles.cardNumeral} aria-hidden="true">{index === 0 ? "I" : "II"}</span>}
               <picture className={styles.cardArt}>
                 <source type="image/avif" srcSet={`${ART}/root-card-${card.art}-360.avif${CARD_ART_REV} 360w, ${ART}/root-card-${card.art}-600.avif${CARD_ART_REV} 600w`} sizes={CARD_ART_SIZES} />
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -123,8 +128,12 @@ export default function HomePage() {
             </li>;
           })}
         </HomeCardDeck>
+        {!IS_APP_BUILD && <HomeQuestionGuide />}
+        <HomeDailyEntry />
+        {!IS_APP_BUILD && <StoryDiscovery />}
         {!IS_APP_BUILD && <HomeInstallEntry />}
         {!IS_APP_BUILD && <nav className={styles.entryHelp} aria-label="주요 운세 바로가기">
+          <a href="https://play.google.com/store/apps/details?id=com.codedestiny.app">Google Play에서 꿀꿀운세 앱 다운로드</a>
           {HOME_QUICK_LINKS.map(({ key, href, title }) => (
             <Link key={key} href={href} prefetch={false} {...discoveryTracking(key)}>{title}</Link>
           ))}
@@ -134,10 +143,11 @@ export default function HomePage() {
           <Link prefetch={IS_APP_BUILD ? false : undefined} href="/records/"><NativeHomeText>꿀꿀 운세 기록</NativeHomeText></Link>
           <Link prefetch={IS_APP_BUILD ? false : undefined} href="/yeongnyangi/library/"><NativeHomeText>영냥이 상담 기록</NativeHomeText></Link>
         </nav>
-        <p className={styles.entryNote}><NativeHomeText>이용권과 상담 기록은 서비스별로 확인해 주세요.</NativeHomeText></p>
-        {!IS_APP_BUILD && <StoryDiscovery />}
+        <p className={styles.entryNote}>{IS_APP_BUILD ? <NativeHomeText>이용권과 상담 기록은 서비스별로 확인해 주세요.</NativeHomeText>
+          : <a href="/points/#moonlight-plans">문라이트 패스(꿀단지 이용권) 살펴보기</a>}</p>
       </main>
 
+      {!IS_APP_BUILD && <MobileHomeNav/>}
       <footer className={styles.footer}>
         <NativeHomeNav className={styles.footerNav} aria-label="정책과 문의">
           {FOOTER_LINKS.map(link => <Link prefetch={IS_APP_BUILD ? false : undefined} key={link.href} href={link.href} className={link.strong ? styles.footerStrong : undefined}><NativeHomeDictionaryText translationKey={link.trans}>{link.text}</NativeHomeDictionaryText></Link>)}

@@ -34,7 +34,7 @@ function validateCard(value, card) {
   const body = CELESTIAL_CARD_BODY_FIELDS.map(field=>String(value[field])).join("\n");
   if (value.evidence?.cardNameKo && value.evidence.cardNameKo !== card.cardNameKo && !body.includes(card.cardNameKo)) return null;
   return {part:Object.fromEntries(CARD_FIELDS.map(field=>[field,typeof value[field] === "string" ? value[field] : ""])),
-    short:!CARD_FIELDS.every(field=>enough(value[field], CELESTIAL_CARD_BODY_FIELDS.includes(field) ? 500 : 40))};
+    short:!CARD_FIELDS.every(field=>enough(value[field], CELESTIAL_CARD_BODY_FIELDS.includes(field) ? 100 : 40))};
 }
 function validateSummary(value) {
   const lists = ["planetHighlights","practices","ritualPlan"];
@@ -49,7 +49,8 @@ function validateSummary(value) {
 }
 
 // Each completed card is saved immediately; a request contains at most four 45s calls.
-// The six existing long card sections retain their 500-character minimum.
+// 11 cards x 6 fields x 130~150 chars plus the summary is about 12,000 chars.
+// The floor below only marks a part short; a usable part is still delivered.
 export async function generateCelestialWave(env, snapshot, checkpoint) {
   let delivery = structuredClone(snapshot.delivery || {version:1,parts:{},attempts:{},invalidAttempts:{}});
   delivery.short ||= {};
@@ -66,7 +67,7 @@ export async function generateCelestialWave(env, snapshot, checkpoint) {
   const calls=await Promise.allSettled(missing.map(async id=>{
     const card = id === "summary" ? null : snapshot.reading.cards[Number(id)];
     const instruction = card
-      ? `이번 호출은 ${Number(id)+1}번 카드 하나만 해설합니다. 11장 전체 JSON 대신 다음 단일 객체만 출력하세요. ${JSON.stringify({evidence:{planetId:card.planetId,cardNameKo:card.cardNameKo,orientation:card.orientation},...Object.fromEntries(CARD_FIELDS.map(field=>[field,"해설 본문"]))})}. cardMeaning/planetMeaning은 본문 40자 이상, 나머지 여섯 필드는 각각 공백·제목·마크다운 제외 500자 이상, 목표 650~750자입니다. 기존 카드와 행성 배치를 바꾸지 마세요. 근거, 생활 패턴, 반대 조건과 주의점, 구체적인 행동을 서로 다른 관점으로 배분하고 짧은 문단으로 쓰세요.`
+      ? `이번 호출은 ${Number(id)+1}번 카드 하나만 해설합니다. 11장 전체 JSON 대신 다음 단일 객체만 출력하세요. ${JSON.stringify({evidence:{planetId:card.planetId,cardNameKo:card.cardNameKo,orientation:card.orientation},...Object.fromEntries(CARD_FIELDS.map(field=>[field,"해설 본문"]))})}. cardMeaning/planetMeaning은 본문 40자 이상, 나머지 여섯 필드는 각각 공백·제목·마크다운 제외 120자 이상, 목표 130~150자입니다. 기존 카드와 행성 배치를 바꾸지 마세요. 근거, 생활 패턴, 반대 조건과 주의점, 구체적인 행동을 서로 다른 관점으로 배분하되 필드마다 핵심 하나만 두세 문장으로 쓰세요.`
       : `이번 호출은 전체 11장 흐름을 종합하는 summary 객체만 출력하세요. cards나 바깥 summary 키는 쓰지 마세요. overallTheme은 본문 공백 제외 1000자 이상, finalOracle 250자 이상, strongestPlanetSignal/deepestShadow/soulLesson/integrationPath 각 60자 이상입니다. insightMatrix의 love/work/money/health와 closingFortune의 love/work/money/health는 각 60자 이상, closingFortune.overall은 250자 이상입니다. planetHighlights/practices/ritualPlan은 각각 3개 이상이며 각 항목 20자 이상입니다. 계산된 행성 배치와 카드 정역방향을 바꾸거나 상대방의 마음을 단정하지 마세요.`;
     let ai;
     const repair=drafts[id] ? `\n[저장된 초안 보완]\n${drafts[id]}\n위 초안의 해석 방향을 보존하고 기준에 못 미친 필드의 근거·반대 조건·행동 조언만 보완한 같은 객체 전체를 다시 출력하세요. 같은 문장 반복이나 새 계산값으로 분량을 채우지 마세요.` : "";
@@ -76,7 +77,7 @@ export async function generateCelestialWave(env, snapshot, checkpoint) {
         model:["CELESTIAL_HARMONY_GEMINI_MODEL", "GEMINI_MODEL", "PREMIUM_GEMINI_MODEL"].map(key=>String(env?.[key]||"").trim()).find(Boolean),
         maxProviderAttempts:1,taskType:"fortune",temperature:boundedSetting(env?.CELESTIAL_HARMONY_TEMPERATURE,0.68,0,1),
         timeoutMs:boundedSetting(env?.CELESTIAL_HARMONY_PROVIDER_TIMEOUT_MS,45000,15000,45000),
-        maxOutputTokens:boundedSetting(env?.CELESTIAL_HARMONY_MAX_OUTPUT_TOKENS,11000,8000,11000),fallbackToWorkersAI:false,logContext:{sectionGroup:id},
+        maxOutputTokens:boundedSetting(env?.CELESTIAL_HARMONY_MAX_OUTPUT_TOKENS,7000,4000,7000),fallbackToWorkersAI:false,logContext:{sectionGroup:id},
       }));
     } catch { return; }
     const value=ai?.ok && !/mock/i.test(ai.provider||"") ? parse(ai.text) : null;

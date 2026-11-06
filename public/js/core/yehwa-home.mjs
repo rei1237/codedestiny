@@ -5,6 +5,26 @@ export function mountYehwaHome(root) {
   const controller = new root.ownerDocument.defaultView.AbortController();
   const guide = root.querySelector('[data-yh-guide]');
   const start = root.querySelector('[data-yh-start]');
+  const desktop = root.ownerDocument.defaultView.matchMedia('(min-width:700px)');
+  const concerns = root.querySelector('.yh-find');
+  const menu = root.closest('#cdHomeFunnel')?.querySelector('.yh-menu');
+  const shell = root.closest('#cdHomeFunnel');
+  const secondary = shell?.querySelectorAll('.yh-secondary') || [];
+  function revealFragment() {
+    const target = root.ownerDocument.getElementById(location.hash.slice(1));
+    const fold = target?.closest('.yh-secondary,.yh-find');
+    if (fold && !fold.open) {
+      fold.open = true;
+      target.scrollIntoView({block:'start'});
+    }
+  }
+  function adaptLayout() {
+    concerns.open = desktop.matches || location.hash === '#homeConcerns';
+    secondary.forEach(fold => { fold.open = desktop.matches; });
+    revealFragment();
+    if (menu) menu.open = desktop.matches;
+    if (desktop.matches && root.querySelector('#yhResults').hidden) root.querySelector('[data-yh-concern]').click();
+  }
   let step = 0;
   const lines = [
     '오늘 마음에 남은 이야기부터 골라볼까요?',
@@ -29,12 +49,13 @@ export function mountYehwaHome(root) {
     const last = step === lines.length - 1;
     guide.querySelector('[data-yh-next]').textContent = window.cdTranslate?.('home.yehwa.' + (last ? 'done' : 'next'), null, last ? '안내 마치기' : '다음') || (last ? '안내 마치기' : '다음');
     const portrait = guide.querySelector('.yh-portrait');
+    const sprite = portrait.querySelector('img');
+    if (!sprite.hasAttribute('src')) sprite.src = sprite.dataset.yhPortraitSrc;
     portrait.getAnimations?.().forEach(animation => animation.cancel());
     // Four original atelier cells: speaking 2, 3, 2, idle 0. Finite motion only.
     if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      const image = portrait.querySelector('img');
-      image.getAnimations?.().forEach(animation => animation.cancel());
-      image.animate?.([{transform:'translateX(-50%)'},{transform:'translateX(-75%)'},{transform:'translateX(-50%)'},{transform:'translateX(0)'}], {duration:440,easing:'steps(1,end)'});
+      sprite.getAnimations?.().forEach(animation => animation.cancel());
+      sprite.animate?.([{transform:'translateX(-50%)'},{transform:'translateX(-75%)'},{transform:'translateX(-50%)'},{transform:'translateX(0)'}], {duration:440,easing:'steps(1,end)'});
     }
     guide.focus({preventScroll:true});
     const rect = guide.getBoundingClientRect();
@@ -53,16 +74,35 @@ export function mountYehwaHome(root) {
     if (!button || !root.contains(button)) return;
     if (button.hasAttribute('data-yh-concern')) {
       const value = button.dataset.yhConcern;
+      root.querySelector('#yhResults').hidden = false;
       root.querySelectorAll('[data-yh-concern]').forEach(node=>node.setAttribute('aria-pressed', String(node === button)));
       root.querySelectorAll('[data-yh-group]').forEach(node=>{node.hidden=node.dataset.yhGroup !== value;});
       root.querySelector('[data-yh-selection]').textContent = button.textContent.replace('✓','').trim();
       if (!guide.hidden) show();
-    } else if (button.hasAttribute('data-yh-start')) { step = 0; show(); }
+    } else if (button.hasAttribute('data-yh-start')) {
+      if (root.querySelector('#yhResults').hidden) root.querySelector('[data-yh-concern]').click();
+      step = 0;
+      show();
+    }
     else if (button.hasAttribute('data-yh-prev')) { step = Math.max(0,step - 1); show(); }
     else if (button.hasAttribute('data-yh-next')) { if (++step === lines.length) close(); else show(); }
     else if (button.matches('[data-yh-close],[data-yh-skip]')) close();
   }, {signal:controller.signal});
   root.addEventListener('keydown', event=>{if(event.key==='Escape'&&!guide.hidden){event.preventDefault();close();}}, {signal:controller.signal});
+  if (menu) {
+    menu.addEventListener('click', event => {
+      if (!desktop.matches && event.target.closest('a[href^="#"]')) menu.open = false;
+    }, {signal:controller.signal});
+    menu.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && !desktop.matches && menu.open) {
+        menu.open = false;
+        menu.querySelector('summary').focus();
+      }
+    }, {signal:controller.signal});
+  }
+  adaptLayout();
+  desktop.addEventListener('change', adaptLayout, {signal:controller.signal});
+  root.ownerDocument.defaultView.addEventListener('hashchange', revealFragment, {signal:controller.signal});
   return () => { controller.abort(); delete root.dataset.yhMounted; };
 }
 if (typeof document !== 'undefined') {

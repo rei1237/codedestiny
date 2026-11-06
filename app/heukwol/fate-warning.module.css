@@ -1,0 +1,79 @@
+.story {
+  --story-ink: #eee3d0;
+  --story-gold: #d7b984;
+  max-width: 600px;
+  margin-inline: auto;
+  overflow: hidden;
+  color: var(--story-ink);
+  background: #171322;
+  font-family: "Yeongnyangi Myeongjo", serif;
+  word-break: keep-all;
+  scroll-margin-top: 24px;
+}
+.story p { margin: 0; }
+.title {
+  padding: 78px 30px 110px;
+  text-align: center;
+  background: linear-gradient(#17132230, #171322), url("/images/consultation-webtoons/heukwol/portraits/moon-library.webp") center 15% / cover;
+}
+.title > p:first-child { color: var(--story-gold); font-size: 14px; letter-spacing: .2em; }
+.title h2 { margin: 24px 0; color: #fff1d5; font-size: clamp(30px, 6vw, 45px); font-weight: 500; }
+.title > p:last-child { font-size: 16px; line-height: 1.9; }
+.warningScene { margin: 0; padding: 0 34px 90px; text-align: center; }
+.omen {
+  padding: 44px 18px;
+  background: #e9dbc0;
+  color: #462c35;
+  box-shadow: 0 14px 40px #0005;
+  transform: rotate(-3deg);
+  border: 1px solid #a4875f;
+}
+.omen span { font-size: 13px; }
+.omen p { margin-top: 20px; font-size: clamp(23px, 5vw, 32px); }
+.warningScene figcaption { margin: 42px auto 0; max-width: 23em; line-height: 2; font-size: 16px; }
+.scene { margin: 0; padding: 24px 24px 74px; }
+.portrait {
+  width: min(78%, 380px);
+  aspect-ratio: 646 / 725;
+  margin: 0 auto;
+  overflow: hidden;
+  background-repeat: no-repeat;
+  border: 1px solid #d6b98466;
+  box-shadow: 0 8px 35px #0005;
+}
+.neo { background-image: url("/images/consultation-webtoons/heukwol/portraits/neo.webp"); background-size: 326% auto; background-position: 12% 3%; aspect-ratio: 375 / 490; }
+.yeoni { background-image: url("/images/consultation-webtoons/heukwol/portraits/yeoni.webp"); background-size: 324% auto; background-position: left top; aspect-ratio: 447 / 540; }
+.heukwol { background-image: url("/images/consultation-webtoons/heukwol/portraits/heukwol.webp"); background-size: 440% auto; background-position: 1.5% 15%; aspect-ratio: 350 / 520; }
+.scene figcaption { position: relative; max-width: 94%; margin: -8px auto 0; padding: 24px 22px; border: 1px solid #d7b98470; background: #efe1ce; color: #402b35; }
+.scene figcaption > span { display: block; margin-bottom: 12px; color: #804856; font: 600 13px sans-serif; }
+.scene figcaption > p { font-size: clamp(18px, 4.4vw, 24px); line-height: 1.8; }
+.shadow { background: radial-gradient(ellipse at 50% 30%, #522735, transparent 72%); }
+.shadow figcaption { background: #36202d; color: #f8e7d5; }
+.shadow figcaption > span { color: #e0a4aa; }
+.flower { background: radial-gradient(ellipse at 50% 50%, #6b3e5544, transparent 70%); }
+.strategy { background: radial-gradient(ellipse at 50% 45%, #34425788, transparent 70%); }
+.pause, .plan { padding: 30px 30px 80px; text-align: center; line-height: 2; }
+.pause > p, .plan > p { font-size: 16px; }
+.pause blockquote { margin: 26px 0 40px; color: #ead1bd; font-size: 20px; line-height: 1.9; }
+.pause dl { margin: 34px 0 0; display: grid; gap: 1px; background: #c8b58d55; border: 1px solid #c8b58d55; text-align: left; }
+.pause dl > div { padding: 22px; background: #241f2b; }
+.pause dt { color: var(--story-gold); font-size: 13px; margin-bottom: 8px; }
+.pause dd { margin: 0; font-size: 17px; }
+.plan ol { padding: 24px 0; list-style-position: inside; border-block: 1px solid #c8b58d55; margin: 30px 0; text-align: left; font-size: 19px; }
+.plan li { padding: 9px 0; }
+.answer { padding: 0 24px 55px; }
+.answer > div { display: grid; grid-template-columns: minmax(0, 105px) minmax(0, 1fr); align-items: center; gap: 18px; padding: 26px 0; border-top: 1px solid #c8b58d40; }
+.answer .portrait { width: 100%; }
+.answer p { font-size: 16px; line-height: 1.9; }
+.answer strong { display: block; font: 600 13px sans-serif; margin-bottom: 12px; color: var(--story-gold); }
+.ending { text-align: center; padding: 38px 28px 90px; background: linear-gradient(#171322, #17132288), url("/images/consultation-webtoons/heukwol/portraits/moon-library.webp") center bottom / cover; }
+.ending p { line-height: 2; font-size: 20px; margin-bottom: 30px; }
+.ending a { display: inline-flex; align-items: center; gap: 26px; min-height: 52px; padding: 12px 25px; margin-top: 30px; border: 1px solid var(--story-gold); color: #f7e6c8; font-size: 17px; text-decoration: none; }
+.ending a:focus-visible { outline: 2px solid #fff1d5; outline-offset: 5px; }
+@media (max-width: 380px) {
+  .scene { padding-inline: 16px; }
+  .scene figcaption { padding-inline: 16px; }
+  .pause, .plan { padding-inline: 24px; }
+  .answer { padding-inline: 18px; }
+  .answer > div { grid-template-columns: 80px minmax(0, 1fr); gap: 14px; }
+}

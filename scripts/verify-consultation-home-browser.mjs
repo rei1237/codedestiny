@@ -25,7 +25,7 @@ for (const channel of ['chrome', 'msedge']) {
       // 홈: 히어로 버튼 하나 → 대표 상담 덱 → 초융합 시그니처 → 무료로 먼저 → 꿀방울 → 1:1 상담 → 영냥이 배너 → 질문 카테고리 → 이용권 → 뮤직비디오 → 모든 운세 보기 → 링크 → 달빛 이야기.
       assert.equal(await main.locator('.yh-hero .yh-free-start').getAttribute('href'), '/?action=cdOneStepFreeSajuEntry');
       assert.equal(await page.locator('#cdhMore').count(), 0, 'no folded catalog on home');
-      const order = await page.evaluate(() => ['.yh-hero','.yh-concerns','.yh-results','#cdhPass','.yh-links','.cd-help-entry','#cdhMoonlightMv','#cdhFusionSignature','#cdhYeongnyangiSlot','#cdSignatureConsult','#cdQuickServices','.cdh-story'].map(sel => document.querySelector(sel).getBoundingClientRect().top + scrollY));
+      const order = await page.evaluate(() => ['.yh-hero','.yh-find','.yh-links','#cdhPass','.cd-help-entry','#cdhMoonlightMv','#cdhFusionSignature','#cdhYeongnyangiSlot','#cdSignatureConsult','#cdQuickServices','.cdh-story'].map(sel => { const item = document.querySelector(sel); return (item.closest('.yh-secondary:not([open])') || item).getBoundingClientRect().top + scrollY; }));
       assert(order.every((top,i) => i===0 || top>order[i-1]), JSON.stringify(order));
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
       assert(overflow <= 0, 'home overflow: '+width+' / '+overflow);
@@ -52,7 +52,7 @@ for (const channel of ['chrome', 'msedge']) {
         await page.evaluate(() => { document.documentElement.classList.add('neo-mode'); document.body.classList.add('neo-mode'); window.scrollTo(0,0); });
         await page.screenshot({ path: output + '/' + channel + '-dark-' + width + '.png' });
       }
-      const primary = main.locator('.yh-hero .yh-free-start');
+      const primary = main.locator(width < 700 ? '.yh-entry[data-cd-service-id="saju"]' : '.yh-free-start');
       await primary.focus();
       assert(await primary.evaluate(el => el === document.activeElement && el.getBoundingClientRect().height >= 44));
       rows.push({ channel, width, dpr, overflow, order });
@@ -75,6 +75,10 @@ for (const channel of ['chrome', 'msedge']) {
       await page.waitForTimeout(1000);
       assert.equal(await page.locator('#cdSignatureConsultPopup').count(), 0, 'popup waits while another modal is open');
       await page.locator('#signaturePopupBlocker').evaluate(node => node.remove());
+      await page.waitForTimeout(1200);
+      assert.equal(await page.locator('#cdSignatureConsultPopup').count(), 0, 'mobile keeps the three service choices unobstructed');
+      await page.setViewportSize({ width: 1024, height: 900 });
+      await page.reload({ waitUntil: 'domcontentloaded' });
       const popup = page.locator('#cdSignatureConsultPopup');
       await popup.waitFor({ state: 'visible', timeout: 10000 });
       assert.equal(await popup.locator('[data-signature-popup-dots] button').count(), 6, 'popup has six signature consultations');
@@ -84,7 +88,7 @@ for (const channel of ['chrome', 'msedge']) {
       await page.waitForFunction(() => document.querySelector('[data-signature-popup-image]')?.naturalWidth > 0);
       assert.ok(await popup.locator('[data-signature-popup-image]').evaluate(image => image.naturalWidth > 0), 'popup image loads');
       await page.addStyleTag({ content: '#cdGlobalErrorToast{display:none!important}' });
-      await page.screenshot({ path: output + '/chrome-signature-popup-390.png' });
+      await page.screenshot({ path: output + '/chrome-signature-popup-1024.png' });
       await page.mouse.move(1, 1);
       const firstPopupService = await popup.getAttribute('data-service-id');
       await page.waitForTimeout(6300);
@@ -139,8 +143,8 @@ for (const channel of ['chrome', 'msedge']) {
       await page.locator('[data-sig-next]').click();
       await page.waitForTimeout(800);
       assert(Math.abs(await viewport.evaluate(node => node.scrollLeft)) < 4, 'home rail wraps from the last card to the first');
-      await page.screenshot({ path: output + '/chrome-signature-rail-autoplay-390.png' });
-      rows.push({ channel: 'chrome', width: 390, popup: true, autoplay: true });
+      await page.screenshot({ path: output + '/chrome-signature-rail-autoplay-1024.png' });
+      rows.push({ channel: 'chrome', width: 1024, popup: true, autoplay: true });
       await context.close();
 
       const desktopContext = await browser.newContext({ viewport: { width: 1440, height: 960 }, serviceWorkers: 'block' });

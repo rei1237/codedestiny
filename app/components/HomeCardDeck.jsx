@@ -1,4 +1,12 @@
-// Native links are usable on first paint. Navigation never waits for motion.
-export default function HomeCardDeck({ children, className }) {
-  return <ul className={className} aria-labelledby="homeCardTitle">{children}</ul>;
+"use client";
+
+import { useEffect, useRef } from "react";
+import { attachHomeCardMotion } from "../../lib/navigation/home-card-motion.mjs";
+
+export default function HomeCardDeck({ children, className, labelledBy, interactive = false }) {
+  const deck = useRef(null);
+  useEffect(() => {
+    if (interactive) return attachHomeCardMotion(deck.current);
+  }, [interactive]);
+  return <ul ref={deck} className={className} aria-labelledby={labelledBy}>{children}</ul>;
 }

@@ -465,7 +465,7 @@ const BILLING_FETCH_DEFAULT_TIMEOUT_MS = 20000;
 const BILLING_FETCH_CHECKOUT_TIMEOUT_MS = 40000;
 const BILLING_FETCH_CONFIRM_TIMEOUT_MS = 60000;
 const PAYMENT_CHOICE_IN_FLIGHT_TTL_MS = 45000;
-export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-00765c034c20";
+export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-c296ec5c0ded";
 // 🔴 이용권 스냅샷의 상수·읽기·쓰기·판정은 전부 js/core/pass-verdict.js 가 소유한다.
 // 셸(index.html)·독립 정적(js/destiny-profile.js)과 **같은 localStorage 키**를 공유하므로 값이 갈리면
 // 같은 사용자가 어느 런타임에서 클릭했느냐에 따라 판정이 달라지고, 한쪽이 만료로 보고 지운 캐시가
@@ -819,6 +819,7 @@ function buildSnapshotPaymentEligibility(input: {
   coinPrice?: number;
   priceKRW?: number;
   amountKRW?: number;
+  featureKey?: string;
 }, snapshot: SubscriptionSnapshot, phase: PaymentEligibilityPhase = "full"): BillingResult<PaymentEligibility> {
   const inputPriceKRW = Math.max(0, Math.floor(toNumber(input.priceKRW ?? input.amountKRW, 0)));
   const coinCost = Math.max(0, Math.floor(toNumber(input.coinCost ?? input.coinPrice, inputPriceKRW > 0 ? Math.ceil(inputPriceKRW / 100) : 0)));
@@ -830,7 +831,7 @@ function buildSnapshotPaymentEligibility(input: {
     : null;
   // 🔴 판정은 pass-verdict 하나가 한다 — 여기서 한도를 따로 계산하면 월 이용 한도를 모르는 네 번째 사본이
   // 되어, 소진된 사용자에게 phase:'pass' 경로가 계속 무료를 약속한다.
-  const canUseByPass = coinCost > 0 && passVerdict.resolveVerdict(snapshot, coinCost).coversNow;
+  const canUseByPass = coinCost > 0 && passVerdict.resolveVerdict(snapshot, coinCost, input.featureKey).coversNow;
   const paymentOptions = {
     hasActivePass: snapshot.state === "active",
     passTier,
@@ -1164,20 +1165,13 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
   // 🔴 결제창 문구는 셸·독립 정적과 **같은 i18n 키**를 쓴다(js/core/checkout-entry.js 의 text()).
   // 한국어 인자는 ko 정본 폴백이며 public/i18n/*.json 12개와 함께 유지된다.
   const passBadgeLabel = checkoutEntry.text("payment.directModal.passBadge", "달빛 이용권");
-  const familyPassStore = toText(opts.passStorePlan).toLowerCase() === "family";
-  const passLabel = familyPassStore ? "패밀리 꿀단지 이용권" : (hasActivePassTier ? (formatPassTierLabel(passTier, getCurrentLoadingLocale()) || passBadgeLabel) : passBadgeLabel);
-  const passStoreTitle = familyPassStore
-    ? "패밀리 꿀단지 이용권으로 열기"
-    : hasActivePassTier
-      ? checkoutEntry.text("payment.directModal.passUpgradeTitle", "이용권 등급 올리기")
-      : checkoutEntry.text("payment.directModal.passBuyTitle", "이용권으로 열기");
-  const passStoreHint = familyPassStore
-    ? paymentPricing?.monthlyExcluded === false
-      ? "패밀리 꿀단지 이용권·월정석·단건 결제로 이용할 수 있어요. 이미 패밀리 꿀단지가 있다면 눌러서 확인해 주세요."
-      : "영냥이 유료 리딩은 패밀리 꿀단지 이용권 또는 단건 결제로 이용할 수 있어요. 이미 패밀리 꿀단지가 있다면 눌러서 확인해 주세요."
-    : hasActivePassTier
-      ? checkoutEntry.text("payment.directModal.passHint.upgrade", "지금 등급으로는 이 콘텐츠가 열리지 않아요. 더 넓은 등급을 확인해 보세요.")
-      : checkoutEntry.text("payment.directModal.passHint.store", "한 번 결제하고 이용 한도를 다 쓸 때까지 여러 콘텐츠를 열 수 있어요. 이미 있다면 눌러서 바로 확인돼요.");
+  const passLabel = hasActivePassTier ? (formatPassTierLabel(passTier, getCurrentLoadingLocale()) || passBadgeLabel) : passBadgeLabel;
+  const passStoreTitle = hasActivePassTier
+    ? checkoutEntry.text("payment.directModal.passUpgradeTitle", "이용권 등급 올리기")
+    : checkoutEntry.text("payment.directModal.passBuyTitle", "이용권으로 열기");
+  const passStoreHint = hasActivePassTier
+    ? checkoutEntry.text("payment.directModal.passHint.upgrade", "지금 등급으로는 이 콘텐츠가 열리지 않아요. 더 넓은 등급을 확인해 보세요.")
+    : checkoutEntry.text("payment.directModal.passHint.store", "한 번 결제하고 이용 한도를 다 쓸 때까지 여러 콘텐츠를 열 수 있어요. 이미 있다면 눌러서 바로 확인돼요.");
   // 한도 라벨은 등급을 실제로 아는 경우에만 덧붙인다. 미보유(=한도 미상)일 때 붙이면
   // "…바로 확인됩니다. 플랜별 기준 확인" 처럼 의미 없는 꼬리가 남는다.
   const passLimitHint = hasActivePassTier ? formatMembershipPassLimitLabel(passTier, passLimit) : "";
@@ -1602,7 +1596,7 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
             setStatus(checkoutEntry.text("payment.directModal.passMonthlyExhausted", "이용 한도를 모두 사용해 이용권이 종료되었어요. 다시 구매하면 새 이용 한도로 시작하며, 지금은 단건 결제나 월정석으로 열 수 있어요."), true);
             return;
           }
-          setStatus(familyPassStore ? "패밀리 꿀단지 이용권이 필요해 이용권 상점으로 이동합니다." : "보유하신 이용권으로는 열리지 않아 이용권 상점으로 이동합니다.");
+          setStatus("보유하신 이용권으로는 열리지 않아 이용권 상점으로 이동합니다.");
           leavingForPassStore = true;
           close("cancel");
           openMembershipPassStore(coinPrice, passTier, passCheckFeatureKey, opts);
@@ -2373,7 +2367,7 @@ export function resolveSnapshotPassVerdict(input: BillingCoinGateInput): Snapsho
   // (warmSubscriptionSnapshotOnEntry 는 in-flight dedup + 신선 스냅샷 조기반환을 이미 갖고 있다.)
   if (snapshot?.stale) void warmSubscriptionSnapshotOnEntry();
   const knownCoinCost = resolveKnownCoinCost(input, null);
-  const verdict = passVerdict.resolveVerdict(snapshot, knownCoinCost);
+  const verdict = passVerdict.resolveVerdict(snapshot, knownCoinCost, toText(input.featureKey || input.subFeatureKey));
   const usable = !explicitPaymentMode && !passDisabled && knownCoinCost > 0 && Boolean(snapshot);
   const nonFamilySnapshot = familyPassOnly && snapshot?.state === "active" && snapshot.tier !== "family";
   return {
@@ -2520,7 +2514,7 @@ async function runPaidServiceRuntimePayment(input: BillingCoinGateInput, context
       return nativeAppStoreFailure(
         "APP_SKU_NOT_VERIFIED",
         resolveServerFeaturePricing({ ...input, featureKey })?.monthlyExcluded === false
-          ? "Google Play 판매를 준비하고 있습니다. 웹에서 패밀리 꿀단지 이용권·월정석·단건 결제를 이용해 주세요."
+          ? "Google Play 판매를 준비하고 있습니다. 웹에서 꿀단지 이용권·월정석·단건 결제를 이용해 주세요."
           : "Google Play 판매를 준비하고 있습니다. 웹에서 패밀리 꿀단지 이용권 또는 단건 결제를 이용해 주세요.",
       );
     }

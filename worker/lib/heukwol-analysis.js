@@ -4,11 +4,20 @@ import { calculateZiweiConsumerChart } from './ziwei-consumer-chart.js';
 import { solarToLunar, STEM_HANGUL } from '../../lib/korean-calendar/index.js';
 import { lunarMonthStemIndex } from '../../lib/ziwei-month-stem.js';
 import { buildNeoBasisPayload } from './neo-operation-room-basis.js';
+import { profileCardSolarBirth } from './paid-content-read-access.js';
 
-export const HEUKWOL_VERSION = 'heukwol-monthly-v1';
+export const HEUKWOL_VERSION = 'heukwol-monthly-v2';
 const pad = n => String(n).padStart(2, '0');
 const boundary = (year, month) => `${year}-${pad(month)}-01 00:00`;
 const palacesByDomain = { money:['재백궁','전택궁'], love:['부부궁'], relationships:['형제궁','노복궁'], work:['관록궁','천이궁'] };
+
+/** Only the account-owned card supplies civil birth time and location. */
+export function heukwolProfileBirth(card) {
+  const birth = profileCardSolarBirth(card);
+  if (!birth || !card.location) return birth;
+  const { label, tz, lng, lat } = card.location;
+  return { ...birth, birthPlace: { name: label, timezone: tz, longitude: lng, latitude: lat } };
+}
 
 function marks(chart, stem) {
   const table = FOUR_TRANSFORMATIONS[stem];

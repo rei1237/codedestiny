@@ -79,6 +79,18 @@ test("마지막 사용으로 조기 종료된 Family도 무결과 환급과 같�
   expect(new Date(user.profileSubscription.expiresAt).toISOString()).toBe(CYCLE_KEY);
 });
 
+test("an exhausted non-Family pass comes back as its own tier and caps, not as Family", async () => {
+  const db = makeFakePaymentDb();
+  const user=seed(db, { monthlySpendCoin: 600 });
+  Object.assign(user.profileSubscription, {tier:"free",passTier:"",expiresAt:new Date("2099-09-23T00:00:00.000Z"),
+    passExhaustedAt:new Date("2099-09-23T00:00:00.000Z"),passExhaustedFromExpiresAt:new Date(CYCLE_KEY),monthlyLimitCoin:0,maxCoveredCoin:0});
+  const result=await refundPassCoverage({userId:USER,refundId:"terminal-premium",cycleKey:CYCLE_KEY,cost:100,db,
+    restorePass:{tier:"premium",expiresAt:CYCLE_KEY,monthlyLimitCoin:600,profileLimit:0,maxCoveredCoin:100,passPolicyVersion:"flower-20261104"}});
+  expect(result).toMatchObject({refunded:true,amount:100});
+  expect(user.profileSubscription).toMatchObject({tier:"premium",passTier:"premium",monthlySpendCoin:500,monthlyLimitCoin:600,
+    maxCoveredCoin:100,passLimit:100,passPolicyVersion:"flower-20261104",passExhaustedAt:null,passExhaustedFromExpiresAt:null});
+});
+
 test("other usage remains intact after a repeated refund with sufficient balance", async () => {
   const db = makeFakePaymentDb();
   seed(db, { monthlySpendCoin: 1200 });

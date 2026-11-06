@@ -29,13 +29,35 @@ export function QuestionOffer({q,source}:{q:QuestionGuide;source:string}){
 export default function QuestionJourney({source='home'}:{source?:string}){
  const [selected,setSelected]=useState<QuestionGuide>();
  const [selectedInRecommendations,setSelectedInRecommendations]=useState(true);
- const [moreQuestions,setMoreQuestions]=useState(false);// set only by ?question= beyond the first four
+ const [linkedQuestion,setLinkedQuestion]=useState<QuestionGuide>();
+ const focusLinkedQuestion=useRef(false);
  const [question,setQuestion]=useState(''),[entryError,setEntryError]=useState('');
  const [search,setSearch]=useState(''),[group,setGroup]=useState('전체'),[limit,setLimit]=useState(12);
  const matches=filterConcerns(search,group);
- useEffect(()=>{const q=getQuestionGuide(new URLSearchParams(window.location.search).get('question'));if(q){setSelected(q);if(questionGuides.slice(4).some(item=>item.id===q.id))setMoreQuestions(true);record('question_select',source,q);}},[source]);
+ useEffect(()=>{
+  const q=getQuestionGuide(new URLSearchParams(window.location.search).get('question'));
+  if (!q) return;
+  setSelected(q);
+  setLinkedQuestion(q);
+  focusLinkedQuestion.current=true;
+  record('question_select',source,q);
+ },[source]);
+ useEffect(()=>{
+  if (!focusLinkedQuestion.current || !selected) return;
+  const frame=requestAnimationFrame(()=>{
+   const reading=document.getElementById('question-reading');
+   if (reading) {
+    reading.focus({preventScroll:true});
+    reading.scrollIntoView({block:'start'});
+   }
+   focusLinkedQuestion.current=false;
+  });
+  return ()=>cancelAnimationFrame(frame);
+ },[selected]);
+ const recommended=questionGuides.slice(0,4);
+ if(linkedQuestion && !recommended.some(row=>row.id===linkedQuestion.id)) recommended.unshift(linkedQuestion);
  function choose(q:QuestionGuide,recommended:boolean){setSelected(q);setSelectedInRecommendations(recommended);record('question_select',source,q);}
- const buttons=(rows:QuestionGuide[],illustrated=false)=>rows.map((q,index)=><Fragment key={q.id}><button type="button" aria-pressed={selected?.id===q.id} aria-controls="question-reading" onClick={()=>choose(q,illustrated)}>{illustrated&&(index%2===0?<PawPrint className={styles.concernIcon} size={24} strokeWidth={1.5} aria-hidden="true"/>:<Fish className={styles.concernIcon} size={24} strokeWidth={1.5} aria-hidden="true"/>)}<span className={styles.questionText}><small>{q.group}</small><span>{q.question}</span></span>{selected?.id===q.id?<Check size={18} aria-hidden="true"/>:<ArrowRight size={18} aria-hidden="true"/>}</button>{selected?.id===q.id&&selectedInRecommendations===illustrated&&<div id="question-reading" className={styles.inlineReading} aria-live="polite"><QuestionOffer q={q} source={source}/></div>}</Fragment>);
+ const buttons=(rows:QuestionGuide[],illustrated=false)=>rows.map((q,index)=><Fragment key={q.id}><button type="button" aria-pressed={selected?.id===q.id} aria-controls="question-reading" onClick={()=>choose(q,illustrated)}>{illustrated&&(index%2===0?<PawPrint className={styles.concernIcon} size={24} strokeWidth={1.5} aria-hidden="true"/>:<Fish className={styles.concernIcon} size={24} strokeWidth={1.5} aria-hidden="true"/>)}<span className={styles.questionText}><small>{q.group}</small><span>{q.question}</span></span>{selected?.id===q.id?<Check size={18} aria-hidden="true"/>:<ArrowRight size={18} aria-hidden="true"/>}</button>{selected?.id===q.id&&selectedInRecommendations===illustrated&&<div id="question-reading" tabIndex={-1} className={styles.inlineReading} aria-live="polite"><QuestionOffer q={q} source={source}/></div>}</Fragment>);
  return <section id="questions" className={`${styles.journey} ${styles.entry}`} aria-label="고민으로 시작하기">
   <div className={styles.intro}><div><h2>지금 마음에 걸리는 질문은?</h2><p>직접 적거나 아래 질문을 골라보세요.</p></div><div className={styles.mascotScene}><img className={styles.mascot} src="/assets/yeongnyangi/original/hero-480.webp" srcSet="/assets/yeongnyangi/original/hero-480.webp 480w, /assets/yeongnyangi/original/hero-800.webp 800w" sizes="(max-width: 560px) 80px, 144px" width="800" height="800" alt="달빛 모자를 쓰고 상담을 기다리는 흰 고양이 영냥이" loading="lazy" decoding="async"/><span className={styles.pawTrail} aria-hidden="true"><PawPrint size={19} strokeWidth={1.5}/><PawPrint size={23} strokeWidth={1.5}/></span></div></div>
   <Exposure event="question_topics_view" source={source}/>
@@ -47,7 +69,7 @@ export default function QuestionJourney({source='home'}:{source?:string}){
    {entryError&&<p className={styles.entryError} role="alert">{entryError}</p>}
   </form>
   <div className={styles.choiceHeading}><h3>이런 고민이 있나요?</h3><span>질문을 고르면 상담 내용을 볼 수 있어요</span></div>
-  <div className={styles.choices}>{buttons(questionGuides.slice(0,moreQuestions?questionGuides.length:4),true)}</div>
+  <div className={styles.choices}>{buttons(recommended,true)}</div>
   <details className={styles.discovery}><summary><span>다른 고민 찾기 <small>{concernGuides.length}가지 질문</small></span><ChevronDown size={18} aria-hidden="true"/></summary>
    <div className={styles.finder}>
     <label htmlFor="concern-search">어떤 고민이 마음에 남아 있나요?</label>

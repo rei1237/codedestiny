@@ -76,6 +76,9 @@ const PASS_LISTINGS = {
   cd_pass_standard_30d_v4: { title: "작은 꿀단지", coverage: "5,000원 이하" },
   cd_pass_premium_30d_v4: { title: "중간 꿀단지", coverage: "10,000원 이하" },
   cd_pass_vvip_30d_v4: { title: "큰 꿀단지", coverage: "30,000원 이하" },
+  cd_pass_standard_30d_v5: { title: "작은 꿀단지", coverage: "5,000원 이하" },
+  cd_pass_premium_30d_v5: { title: "중간 꿀단지", coverage: "10,000원 이하" },
+  cd_pass_vvip_30d_v5: { title: "큰 꿀단지", coverage: "30,000원 이하" },
 };
 
 const PASS_BY_SKU = Object.fromEntries(listAppPassProducts().map((pass) => [pass.productId, pass]));
@@ -89,7 +92,10 @@ function passDescription(sku) {
   const policy = resolvePassPolicy(pass, pass.passTier);
   const monthlyKRW = calculateKrwAmountFromCoins(policy.monthlyCoveredCoin);
   const monthly = `최대 ${monthlyKRW.toLocaleString("ko-KR")}원 상당`;
-  // 최대 금액을 다 쓰면 이용권이 끝난다 — 스토어 설명에 없으면 환불 분쟁의 근거가 된다.
+  if (sku.endsWith("_v5")) {
+    return `이용권 적용 대상 중 ${row.coverage} 상담에 ${monthly}의 상담 한도를 사용합니다. 상담 한도가 소진된 뒤에도 라이트 운세는 계속 이용할 수 있습니다. 자동 갱신되지 않습니다.`;
+  }
+  // 이전 세대의 등록 설명. 최대 금액을 다 쓰면 이용권이 끝난다 — 스토어 설명에 없으면 환불 분쟁의 근거가 된다.
   return `${scope} ${monthly}까지 이용합니다. 기간 제한이 없으며, 최대 금액을 모두 사용하면 이용권이 종료됩니다. 자동 갱신되지 않습니다.`;
 }
 

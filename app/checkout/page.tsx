@@ -10,7 +10,7 @@ import CheckoutRouteClient from "./CheckoutRouteClient";
  */
 export const metadata: Metadata = {
   title: "영냥이 복채 결제 | 꿀꿀 운세",
-  description: "영냥이 유료 리딩은 패밀리 꿀단지 이용권·월정석 또는 단건 결제(카드·카카오페이 등)로 이용해요.",
+  description: "영냥이 유료 리딩은 꿀단지 이용권·월정석 또는 단건 결제(카드·카카오페이 등)로 이용해요.",
   robots: {
     index: false,
     follow: false,

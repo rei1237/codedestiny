@@ -2,6 +2,7 @@ import { connectDb, withMongoRetry } from "./db.js";
 import { getBillingFeaturePricing } from "./billing-feature-registry.js";
 import {
   isBirthScopedUnlockFeatureKey,
+  isConsultationFundedPaidFeatureKey,
   isDirectOrFamilyPaidFeatureKey,
   isDirectOnlyPaidFeatureKey,
   isPerUsePaidFeatureKey,
@@ -124,10 +125,10 @@ function resolveMonthlySubscription(user = {}) {
   };
 }
 
-// direct_only 및 direct_or_family 상품은 월정석·월 구독으로 열 수 없다.
+// direct_only 와 상담 단위 상품(direct_or_family·direct_or_pass)은 월 구독으로 열 수 없다.
 function canUseMonthlyForFeature(featureKey) {
   const key = cleanText(featureKey);
-  return Boolean(key) && !isDirectOnlyPaidFeatureKey(key) && !isDirectOrFamilyPaidFeatureKey(key);
+  return Boolean(key) && !isDirectOnlyPaidFeatureKey(key) && !isConsultationFundedPaidFeatureKey(key);
 }
 
 // direct_only 는 이용권 제외를 포함한다. direct_or_family는 별도 Family 판정에서 다룬다.

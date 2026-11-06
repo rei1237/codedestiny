@@ -176,10 +176,10 @@ const RAW_FEATURE_KEY_REASON_COSTS = Object.freeze({
   // 2026-05-30 09:11 `75b6820f3` 가 코스 가격을 2배로 올렸는데(30분 50→100, 60분 100→200)
   // 같은 날 06:49 `b79bfc405` 가 추가한 이 표는 함께 갱신되지 않았다. resolveByFeatureReason 이
   // resolveByFeatureKey 보다 먼저 타므로 이 표가 실제 차감액이고, 그동안 표시가(10,000·20,000원)의
-  // 절반만 빠져나갔다. 표시가 정본은 12개 로케일 `home.tiles.cosmicSoulPrice` 와 페이지 카드다.
+  // 절반만 빠져나갔다. 2026-11-04 균일가로 두 코스 모두 50코인이다. 표시는 `home.tiles.price5000` 과 페이지 카드다.
   "cosmic-soul-meditation": Object.freeze({
     "openCosmicSoulMeditation 30분 코스": 50,
-    "openCosmicSoulMeditation 60분 코스": 100,
+    "openCosmicSoulMeditation 60분 코스": 50,
   }),
   "yoga-guru-per-use": Object.freeze({
     "openYogaGuru 30분 코스": 50,
@@ -215,23 +215,20 @@ const YEONGNYANGI_FUSIONS = Object.freeze([
   ["fusion-astrology-tarot", "서양 점성술 + 타로", "생선 모둠 세트", 50000],
   ["fusion-all", "사주 + 자미두수 + 숙요 + 베다점 + 서양 점성술 + 타로", "생선 오마카세", 70000],
 ]);
-function buildYeongnyangiEntry(name, fishName, amountKRW) {
-  return { cost: amountKRW / 100, amountKRW, reason: `영냥이 ${name} ${fishName}`, paymentScope: "direct_or_family", membershipCreditAllowed: true, membershipCreditMultiplier: 1 };
+function buildYeongnyangiEntry(name, fishName, amountKRW, paymentScope) {
+  return { cost: amountKRW / 100, amountKRW, reason: `영냥이 ${name} ${fishName}`, paymentScope, membershipCreditAllowed: true, membershipCreditMultiplier: 1 };
 }
 const YEONGNYANGI_RAW_PRICE_ENTRIES = Object.freeze(Object.fromEntries([
   ...Object.entries(YEONGNYANGI_SYSTEMS).flatMap(([system, name]) =>
     Object.entries(YEONGNYANGI_FISH).map(([fish, [fishName, amountKRW]]) =>
-      [`yeongnyangi-${system}-${fish}`, buildYeongnyangiEntry(name, fishName, amountKRW)])),
+      [`yeongnyangi-${system}-${fish}`, buildYeongnyangiEntry(name, fishName, amountKRW, "direct_or_pass")])),
   ...YEONGNYANGI_FUSIONS.map(([slug, name, fishName, amountKRW]) =>
-    [`yeongnyangi-${slug}`, buildYeongnyangiEntry(name, fishName, amountKRW)]),
+    [`yeongnyangi-${slug}`, buildYeongnyangiEntry(name, fishName, amountKRW, "direct_or_family")]),
 ]));
 export const YEONGNYANGI_PAID_FEATURE_KEYS = Object.freeze(Object.keys(YEONGNYANGI_RAW_PRICE_ENTRIES));
 
-// 2026-11-04 영냥이 인상과 분리: 연이·네오 질문 상담은 인상 전 가격을 유지한다.
-const CHAT_QUESTION_AMOUNT_KRW = Object.freeze({ mackerel: 5000, salmon: 10000, flounder: 15000, tuna: 30000 });
 const CHAT_QUESTION_PRICES = Object.fromEntries(CHAT_QUESTION_FISH.map(fish => {
-  const [name] = YEONGNYANGI_FISH[fish];
-  const amountKRW = CHAT_QUESTION_AMOUNT_KRW[fish];
+  const [name, amountKRW] = YEONGNYANGI_FISH[fish];
   // Retain fortune-chat PASS/MONTHLY policy rather than copying Yeongnyangi rights.
   return [chatQuestionFeatureKey(fish), {cost:amountKRW/100, amountKRW, reason:'연이·네오 질문 상담 · '+name}];
 }));
@@ -241,13 +238,13 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "physiognomy-compatibility": { cost: 50, reason: "관상 궁합 분석" },
   "physiognomy-pastlife-compatibility": { cost: 50, reason: "전생 관상 궁합 분석" },
   "physiognomy-ogwan-mole-deep": { cost: 50, reason: "오관·점 정밀 분석" },
-  "tarot-year-fortune": { cost: 100, amountKRW: 10000, reason: "십이지신 천운 타로" },
+  "tarot-year-fortune": { cost: 50, amountKRW: 5000, reason: "십이지신 천운 타로" },
   "tarot-love-relationship": { cost: 50, reason: "우리는 무슨 사이? 타로 리딩" },
   "tarot-reunion-reading": { cost: 50, reason: "재회운 타로 리딩" },
   // 2026-11-05 승인: 세 장 풀이가 무료가 되어 신규 판매를 닫는다. 구매자 재개와 과거 주문 대조를 위해 키와 가격은 남긴다.
   "tarot-myeongri-three-card": { saleEnabled: false, cost: 50, reason: "명리학 타로 3장 스프레드" },
   "tarot-mindscan": { cost: 50, reason: "마인드 스캔 타로 리딩" },
-  "tarot-celestial-harmony": { cost: 100, reason: "셀레스티얼 하모니 타로 리딩" },
+  "tarot-celestial-harmony": { cost: 50, reason: "셀레스티얼 하모니 타로 리딩" },
   "tarot-crystal-soul-reading": { cost: 50, reason: "크리스탈 소울 타로 리딩" },
   "tarot-numerology-reading": { cost: 50, reason: "수비학 타로 리딩" },
   // 타로 오라클 상담은 카드 수 구간마다 별도 서비스키를 둔다(찻집 타로 3카드/5카드와 같은 패턴).
@@ -256,14 +253,14 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   // 🔴 1~4장은 기존 키를 재사용한다(결제 이력·감사 스크립트가 붙어 있다). ₩5,000 → ₩3,000 인하.
   "tarot-prompt-maker": { cost: 50, amountKRW: 5000, reason: "타로 오라클 상담 (1~4카드)" },
   "tarot-prompt-maker-standard": { cost: 50, amountKRW: 5000, reason: "타로 오라클 상담 (5~7카드)" },
-  "tarot-prompt-maker-deep": { cost: 100, amountKRW: 10000, reason: "타로 오라클 상담 (8~10카드)" },
-  "tarot-prompt-maker-master": { cost: 100, amountKRW: 10000, reason: "타로 오라클 상담 (11~14카드)" },
+  "tarot-prompt-maker-deep": { cost: 50, amountKRW: 5000, reason: "타로 오라클 상담 (8~10카드)" },
+  "tarot-prompt-maker-master": { cost: 50, amountKRW: 5000, reason: "타로 오라클 상담 (11~14카드)" },
   "maya-prompt-generator": { cost: 50, reason: "마야점 상담 프롬프트 생성" },
   "tarot-ijik": { cost: 50, reason: "이직 타로 리딩" },
   "royal-tea-oracle": { cost: 30, reason: "영국 홍차점 리딩" },
   "ifa-oracle": { cost: 30, reason: "IFÀ 오라클 리딩" },
   "neville-meditation": { cost: 50, reason: "네빌 명상 실습" },
-  "cosmic-soul-meditation": { cost: 100, reason: "코스믹 소울 명상" },
+  "cosmic-soul-meditation": { cost: 50, reason: "코스믹 소울 명상" },
   "dream-psycho-analysis": { cost: 50, amountKRW: 5000, reason: "정신분석 해몽" },
   "yoga-guru-per-use": { cost: 50, reason: "요가 구루 30분 코스" },
   "fortune-tea-house-tarot-consultation": { cost: 50, amountKRW: 5000, reason: "운명 찻집 타로 상담 (3카드)" },
@@ -276,36 +273,36 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "sukuyo-extreme-t-relationship": { cost: 50, reason: "극T 관계 회로 확장" },
   "sukuyo-relationship-encyclopedia": { cost: 50, reason: "숙요 인연 도감" },
   "sukuyo-nature-deep-dive": { cost: 50, reason: "본성 심화 해석" },
-  "sukuyo-past-life-reading": { cost: 100, reason: "숙요 전생 인연 리딩" },
+  "sukuyo-past-life-reading": { cost: 50, reason: "숙요 전생 인연 리딩" },
   "sukuyo-monthly-fortune": { cost: 50, reason: "월별 숙요 운세 확장" },
   "sukuyo-compatibility-ai": { cost: 300, amountKRW: 30000, reason: "숙요점 궁합 전문가 상담" },
-  "sukyo_yearly_fortune_unlock": { cost: 70, reason: "숙요점 1년운 전체 해석 잠금 해제" },
+  "sukyo_yearly_fortune_unlock": { cost: 50, reason: "숙요점 1년운 전체 해석 잠금 해제" },
   "compat-astro-synastry": { cost: 50, reason: "점성술 셜럭 시나스트리 궁합" },
   "compat-astro-direct-synastry": { cost: 50, reason: "점성술 직접 입력 시나스트리 궁합" },
   "compat-ziwei-compatibility": { cost: 50, reason: "자미두수 궁합 분석" },
-  "compat-saju-compatibility": { cost: 100, reason: "사주 궁합 분석" },
+  "compat-saju-compatibility": { cost: 50, reason: "사주 궁합 분석" },
   "compat-sukuyo-compatibility": { cost: 50, reason: "숙요점 궁합 분석" },
   "vedic-compatibility-per-use": { cost: 50, reason: "베다점 궁합 분석" },
-  "nakshatra-compat": { cost: 200, amountKRW: 20000, reason: "나크샤트라 동서 통합 궁합" },
+  "nakshatra-compat": { cost: 50, amountKRW: 5000, reason: "나크샤트라 동서 통합 궁합" },
   "nakshatra-ai-consultation": { cost: 300, amountKRW: 30000, reason: "나크샤트라 결정판 전문가 심화 상담" },
-  "nakshatra-muhurta": { cost: 70, amountKRW: 7000, reason: "나크샤트라 택일(무후르타)" },
-  "nakshatra-vvip-codex": { cost: 300, amountKRW: 30000, reason: "나크샤트라 결정판 VVIP 통합서" },
+  "nakshatra-muhurta": { cost: 50, amountKRW: 5000, reason: "나크샤트라 택일(무후르타)" },
+  "nakshatra-vvip-codex": { cost: 50, amountKRW: 5000, reason: "나크샤트라 결정판 VVIP 통합서" },
   // 🔴 2026-09 무료화로 **판매 중단**. 키와 가격은 과거 주문·환불·리뷰 자격 조회가 참조하므로
   //    그대로 남긴다(같은 계약의 선례: palm-reading-ai-consult). 새 결제는 아래 리포트 키가 받는다.
   "human-design-chart": { cost: 100, amountKRW: 10000, reason: "휴먼 디자인 바디그래프" },
   // 휴먼 디자인 프리미엄 리포트 — 무료 차트 위에서 여는 25,000자 개인 분석 + PDF.
   // 🔴 100코인을 넘기지 말 것. PASS_LIMITS.vvip = 100 이라 넘는 순간 VVIP 이용권 커버를 잃는다.
-  "human-design-report": { cost: 70, amountKRW: 7000, reason: "휴먼 디자인 프리미엄 리포트" },
-  "destiny-compass-crossroads": { cost: 70, amountKRW: 7000, reason: "운명의 갈림길 기운 비교" },
-  "destiny-compass-life-voyage": { cost: 70, amountKRW: 7000, reason: "삶의 항로 안내" },
-  "destiny-compass-future-sim": { cost: 70, amountKRW: 7000, reason: "미래 시뮬레이션 안내" },
-  "destiny-compass-deep-report": { cost: 70, amountKRW: 7000, reason: "운명의 지도 심층 리포트" },
+  "human-design-report": { cost: 50, amountKRW: 5000, reason: "휴먼 디자인 프리미엄 리포트" },
+  "destiny-compass-crossroads": { cost: 50, amountKRW: 5000, reason: "운명의 갈림길 기운 비교" },
+  "destiny-compass-life-voyage": { cost: 50, amountKRW: 5000, reason: "삶의 항로 안내" },
+  "destiny-compass-future-sim": { cost: 50, amountKRW: 5000, reason: "미래 시뮬레이션 안내" },
+  "destiny-compass-deep-report": { cost: 50, amountKRW: 5000, reason: "운명의 지도 심층 리포트" },
   "pet-saju-ai-consultation": { cost: 50, amountKRW: 5000, reason: "반려동물 사주 AI 심층 리포트" },
   "pet-compatibility-ai": { cost: 50, amountKRW: 5000, reason: "반려동물 궁합 분석" },
   openJuyukModal: { cost: 30, reason: "주역 거북점 리딩" },
   openKemetModal: { cost: 30, reason: "이집트 신탁 리딩" },
   openGeomancyOracle: { cost: 50, reason: "지오맨시 오라클 리딩" },
-  [LOVE_CODE_FEATURE_KEY]: { cost: 70, amountKRW: 7000, reason: "러브 코드 1회 이용" },
+  [LOVE_CODE_FEATURE_KEY]: { cost: 50, amountKRW: 5000, reason: "러브 코드 1회 이용" },
   turtleIChing: { cost: 30, reason: "주역 거북점 리딩" },
   egyptOracle: { cost: 30, reason: "이집트 신탁 리딩" },
   "egyptian_oracle_ai_prompt": { cost: 50, reason: "이집트 신탁 AI 질문 프롬프트 생성" },
@@ -319,7 +316,7 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "animal-totem-basic": { cost: 50, reason: "애니멀 토템 리딩" },
   "animal-totem-deep": { cost: 50, reason: "애니멀 토템 심화 리딩" },
   "animal-destiny-unlock": { cost: 70, amountKRW: 7000, reason: "십이운성 동물점 해금" },
-  "saju-guardian-unlock": { cost: 70, reason: "사주 가디언 소환진 해금" },
+  "saju-guardian-unlock": { cost: 50, reason: "사주 가디언 소환진 해금" },
   "daily-fortune-reading": { cost: 30, amountKRW: 3000, reason: "오늘의 운세 티저 해석" },
   // 꿀방울(매일 출석 1개, 5일 연속 보너스 +4)이 없을 때의 대체 결제. 1회 생성 = 1건.
   "fortune-prompt-hub-generate": { cost: 30, amountKRW: 3000, reason: "운세 프롬프트 1회 생성" },
@@ -328,12 +325,12 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "mbti-animal-compat": { cost: 30, amountKRW: 3000, reason: "MBTI 동물 궁합 티저 해석" },
   "nakshatra-basic-reading": { cost: 30, amountKRW: 3000, reason: "나크샤트라 티저 해석" },
   "destiny-bias-analyze": { cost: 50, amountKRW: 5000, reason: "최애운명 케미 분석" },
-  destiny_meeting_place: { cost: 70, amountKRW: 7000, reason: "사주로 보는 인연의 장소 1회 분석" },
+  destiny_meeting_place: { cost: 50, amountKRW: 5000, reason: "사주로 보는 인연의 장소 1회 분석" },
   premiumTarot: { cost: 100, reason: "프리미엄 타로 리딩" },
   // 손금은 Gemini Vision 판독(손당 1회) + 심층 해석까지 한 번에 제공하는 단일 상품이다.
   // 구 palm-reading-ai-consult(별도 5,000원)는 기본 분석에 통합돼 더 이상 호출되지 않지만,
   // 과거 주문·환불 이력이 참조하므로 키와 가격은 그대로 남긴다.
-  "palm-reading-general": { cost: 100, reason: "손금 정밀 판독 + 심층 해석" },
+  "palm-reading-general": { cost: 50, reason: "손금 정밀 판독 + 심층 해석" },
   "palm-reading-ai-consult": { cost: 100, reason: "손금 전문가 상담 생성" },
   "life-book-ai-consultation": { cost: 300, amountKRW: 30000, reason: "인생의 책 전문가 상담" },
   // 인생 총운은 분량이 3배(30,000자 vs 10,000자)라 2026-08-01 부터 별도 SKU 로 분리했다.
@@ -342,11 +339,11 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "neo-operation-room-consultation": { cost: 300, amountKRW: 30000, reason: "네오의 팩폭 작전실" },
   "heukwol-warning-consultation": { cost: 500, amountKRW: 50000, reason: "흑월의 경고" },
   "neo-email-consultation": { cost: 300, amountKRW: 30000, sajuAddonKRW: 10000, ziweiAddonKRW: 20000, chartAddonKRW: 20000, reason: "네오에게 물어봐 · 질문 1개", paymentScope: "direct_only", saleEnabled: true },
-  "saju_ai_question_prompt": { cost: 100, reason: "사주 전문가 상담 결과 생성" },
-  "ziwei_ai_prompt_generator": { cost: 100, reason: "자미두수 AI 질문 프롬프트 생성" },
-  "astrology_ai_prompt_generator": { cost: 100, reason: "점성술 AI 질문 프롬프트 생성" },
-  "vedic_ai_prompt_generator": { cost: 100, reason: "베다 점성술 AI 질문 프롬프트 생성" },
-  "sukuyo_ai_prompt_generator": { cost: 100, reason: "숙요점 전문가 상담" },
+  "saju_ai_question_prompt": { cost: 50, reason: "사주 전문가 상담 결과 생성" },
+  "ziwei_ai_prompt_generator": { cost: 50, reason: "자미두수 AI 질문 프롬프트 생성" },
+  "astrology_ai_prompt_generator": { cost: 50, reason: "점성술 AI 질문 프롬프트 생성" },
+  "vedic_ai_prompt_generator": { cost: 50, reason: "베다 점성술 AI 질문 프롬프트 생성" },
+  "sukuyo_ai_prompt_generator": { cost: 50, reason: "숙요점 전문가 상담" },
   "vedic_prashna_prompt": { cost: 50, reason: "프라슈나 프롬프트" },
   // 베다 기본 해석 — 차트·라그나·나크샤트라·현재 마하다샤까지는 무료 미리보기이고,
   // 성향·관계·재물·다샤·에너지·심화 6탭 본문과 상세 8종이 이 키로 잠긴다.
@@ -365,10 +362,10 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "astro_yearly_transit": { cost: 50, reason: "점성술 앞으로 12개월 흐름" },
   "new-year-ai-consultation": { cost: 300, amountKRW: 30000, reason: "신년운세 전문가 상담" },
   "love-secret-ai-consultation": { cost: 300, amountKRW: 30000, reason: "연애 비책 전문가 상담" },
-  "love-code": { cost: 70, amountKRW: 7000, accessModel: "per_use", reason: "러브 코드 1회 이용" },
+  "love-code": { cost: 50, amountKRW: 5000, accessModel: "per_use", reason: "러브 코드 1회 이용" },
   // 대상자 1인의 관계 경계 성향을 매 회차 분석하는 상담이다. 영구 해금으로 등록하면
   // 다른 출생 정보까지 재열람되는 정책 오류가 생기므로 회당 결제 목록에만 둔다.
-  "relationship-boundary-test": { cost: 100, amountKRW: 10000, reason: "그 사람의 바람끼 테스트 1회" },
+  "relationship-boundary-test": { cost: 50, amountKRW: 5000, reason: "그 사람의 바람끼 테스트 1회" },
   // 마스터 인연의 서 (MASTER_LOVE_CODEX) — 사주×자미두수 융합 20챕터 5만자 전자책. 연애 비책과 달리
   // 사주 단독이 아니라 명식+명반을 함께 근거로 삼는다. 개인/궁합 두 SKU 로 나뉘며 궁합은 상대 명식·명반까지
   // 4개 차트를 프롬프트에 담아 입력 비용이 대략 2배다.
@@ -400,7 +397,7 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "ziwei_twelve_palaces": { cost: 50, reason: "자미두수 12궁 정밀 해설 해금" },
   "ziwei_symbolic_layer": { cost: 50, reason: "자미두수 상징 보조층 해금" },
   "ziwei_life_yearly_flow": { cost: 50, reason: "자미두수 생애 총론과 연간 흐름 해금" },
-  "premium-fpti-report": { cost: 100, reason: "FPTI 프리미엄 리포트 생성" },
+  "premium-fpti-report": { cost: 50, reason: "FPTI 프리미엄 리포트 생성" },
   tetogen_deep_report: { cost: 50, reason: "테토 에겐 상세 리포트 해금" },
   "premium-naming-prompt": { cost: 300, amountKRW: 30000, reason: "사주 맞춤 작명 프롬프트 생성" },
   "premium-sukuyo-compat-extra": { cost: 50, reason: "숙요점 정밀 궁합 확장 분석" },
@@ -425,6 +422,8 @@ export const FEATURE_KEY_PRICE_TABLE = normalizeRegistryPricingTable(RAW_FEATURE
 /** 결제 범위 `direct_only`: 이용권·월정석 모두 불가, 단건 결제(카드·카카오페이)만. 정본 판정은 이 함수 하나. */
 export const PAYMENT_SCOPE_DIRECT_ONLY = "direct_only";
 export const PAYMENT_SCOPE_DIRECT_OR_FAMILY = "direct_or_family";
+/** 모든 이용권이 건당 상한·남은 한도 안에서 열 수 있는 상담(2026-11-05 꿀단지 통합). 판정은 evaluatePassCoverage 하나다. */
+export const PAYMENT_SCOPE_DIRECT_OR_PASS = "direct_or_pass";
 export const MOONSTONE_MIN_PRODUCT_KRW = 10000;
 
 export function meetsMoonstoneMinimum(amountKRW) {
@@ -448,6 +447,20 @@ export function isDirectOnlyPaidFeatureKey(featureKey) {
 export function isDirectOrFamilyPaidFeatureKey(featureKey) {
   const key = normalizePaidFeatureKey(featureKey);
   return Boolean(key) && FEATURE_KEY_PRICE_TABLE[key]?.paymentScope === PAYMENT_SCOPE_DIRECT_OR_FAMILY;
+}
+
+/** 생선 상담: 일반 이용권도 건당 상한 안이면 허용한다. */
+export function isDirectOrPassPaidFeatureKey(featureKey) {
+  const key = normalizePaidFeatureKey(featureKey);
+  return Boolean(key) && FEATURE_KEY_PRICE_TABLE[key]?.paymentScope === PAYMENT_SCOPE_DIRECT_OR_PASS;
+}
+
+/**
+ * 상담 요청 하나가 자기 결제 증빙을 갖는 상품: 영구 해금·월 구독·코인 결제가 없다.
+ * direct_or_family 와 direct_or_pass 는 이용권 등급 판정만 다르고 이 성질은 같다.
+ */
+export function isConsultationFundedPaidFeatureKey(featureKey) {
+  return isDirectOrFamilyPaidFeatureKey(featureKey) || isDirectOrPassPaidFeatureKey(featureKey);
 }
 
 /** 표시·견적·실차감·증빙이 공유하는 기능별 월정석 정본. */
@@ -488,7 +501,7 @@ export function getPaidFeaturePaymentPolicy(featureKey) {
   const directOnly = isDirectOnlyPaidFeatureKey(featureKey);
   const familyPassOnly = isDirectOrFamilyPaidFeatureKey(featureKey);
   const monthlyExcluded = !meetsMoonstoneMinimum(spec?.amountKRW)
-    || directOnly || (familyPassOnly && spec?.membershipCreditAllowed !== true);
+    || directOnly || (isConsultationFundedPaidFeatureKey(featureKey) && spec?.membershipCreditAllowed !== true);
   return {
     paymentScope: String(spec?.paymentScope || ""),
     directOnly, familyPassOnly, monthlyExcluded,
@@ -505,8 +518,8 @@ const RAW_PIG_COIN_UNLOCK_PRODUCTS = Object.freeze({
   "unlock.saju_lifetime_bundle": { featureKey: "saju_lifetime_bundle", cost: 290, amountKRW: 29000, reason: "사주 전체 풀이 평생 소장" },
   [LOVE_CODE_PRODUCT_ID]: {
     featureKey: LOVE_CODE_FEATURE_KEY,
-    cost: 70,
-    amountKRW: 7000,
+    cost: 50,
+    amountKRW: 5000,
     accessModel: "per_use",
     reason: "러브 코드 1회 이용",
   },
@@ -520,7 +533,7 @@ const RAW_PIG_COIN_UNLOCK_PRODUCTS = Object.freeze({
   "unlock.health_report": { featureKey: "healthReport", cost: 50, reason: "Health report unlock" },
   // Legacy compatibility only. The standalone Fortune Planner never reads or charges this entry.
   "unlock.saju_diary": { featureKey: "sajuDiary", cost: 100, reason: "Saju diary unlock" },
-  "unlock.saju_guardian": { featureKey: "saju-guardian-unlock", cost: 70, reason: "사주 가디언 소환진 해금" },
+  "unlock.saju_guardian": { featureKey: "saju-guardian-unlock", cost: 50, reason: "사주 가디언 소환진 해금" },
   "unlock.tetogen_deep_report": { featureKey: "tetogen_deep_report", cost: 50, reason: "테토 에겐 상세 리포트 해금" },
   "unlock.secret_house_episodes": { featureKey: "secretHouseEpisodes", cost: 50, reason: "Secret house episodes unlock" },
   "unlock.premium_divination_pack": { featureKey: "premiumDivinationPack", cost: 300, reason: "Premium divination pack unlock" },

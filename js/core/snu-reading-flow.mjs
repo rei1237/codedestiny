@@ -32,8 +32,17 @@ export function mountSnuReadingContents(document, state, profile) {
   available.forEach(item => {
     const link = document.createElement('a'); link.textContent = item.title;
     const target = item.featureKey === 'section_summary' ? 'summaryCard' : item.featureKey === 'section_daewun' ? 'daewunCard' : item.featureKey.replace(/^rpt_/, '');
-    link.href = item.featureKey === 'animal-destiny-unlock' ? '/saju/animal-destiny/' : '#' + target;
+    link.href = item.featureKey === 'animal-destiny-unlock' ? '/saju/animal-destiny/'
+      : item.featureKey === 'saju-career-style' ? '/saju/career-style/'
+      : item.featureKey === 'rpt_secretHouseEntryCard' ? '/secret-house_real.html'
+      : '#' + target;
+    if (item.featureKey === 'rpt_secretHouseEntryCard') link.addEventListener('click', event => {
+      if (event.button || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const win = document.defaultView;
+      if (typeof win.openSecretHouseRoute === 'function') { event.preventDefault(); win.openSecretHouseRoute(); }
+    });
     if (item.featureKey.startsWith('rpt_')) link.addEventListener('click', event => {
+      if (item.featureKey === 'rpt_secretHouseEntryCard') return;
       if (event.button || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       const win = document.defaultView;
       if (typeof win.openSajuFunFeature === 'function') { event.preventDefault(); win.openSajuFunFeature(target); }

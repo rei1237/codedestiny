@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "editionId": "06142eb1-97cd-4e4e-b0d1-7fd88868809d",
+  "title": "연이 봄 부적",
+  "character": "yeoni",
+  "cap": 30,
+  "publishedCount": 1,
+  "records": [
+    {
+      "serial": 1,
+      "code": "c508c7e94ed35c24b5977105",
+      "publishedOn": "2026-11-06",
+      "pin": "f0f8c2e048a624b8b08a5e198271881f0ce0f503ca84dca0c100b0faf33246cb",
+      "tx": "0x6feaffe16abdfe2554820864bc69505fb59a05691a3e4029b17f228fee8feaea",
+      "blockHash": "0x4e3ce82ed37e2060afcb849939fd9b9158200fed4fdd4b1d23985f0a15292fa6",
+      "digest": "746a65c18ce3e61f8296277258d04a3099e15b12a5372b67ccaf094774e1f315"
+    }
+  ]
+}

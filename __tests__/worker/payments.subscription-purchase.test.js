@@ -14,12 +14,12 @@
  * 이 파일에 위임한다고 주석으로 적어 두었다).
  */
 
-// index.html 의 달빛 이용권 상점 패키지(goldenPackages)와 동일해야 하는 값.
+// index.html 의 달빛 이용권 상점 패키지(goldenPackages)와 동일해야 하는 값(이용권 v5 판매가).
 const WEB_PASS_PRICES = {
-  standard: 9900,
-  premium: 29900,
-  vvip: 59000,
-  family: 149000,
+  standard: 14900,
+  premium: 34900,
+  vvip: 64900,
+  family: 154000,
 };
 
 describe("달빛 이용권 상점 — 가격 정본", () => {

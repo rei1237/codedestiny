@@ -22,8 +22,8 @@ import type { NakshatraBirthInput } from "../nakshatra-birth";
 import { useNakshatraCopy } from "../_lib/copy";
 
 const FEATURE_KEY = "nakshatra-vvip-codex";
-const COIN_PRICE = 300;
-const AMOUNT_KRW = 30000;
+const COIN_PRICE = 50;
+const AMOUNT_KRW = 5000;
 const ENDPOINT = "/api/nakshatra-premium/vvip-codex";
 
 interface TerrainRow {

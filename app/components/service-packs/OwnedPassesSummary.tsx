@@ -9,7 +9,8 @@ import type {OwnedServicePack} from './service-pack-client';
 import {packName,packText,servicePackCopy,packExpiry} from './service-pack-copy';
 import {APPLIED_STAMP_IMAGES,SERVICE_PACK_IMAGES} from './service-pack-images';
 
-// 🔴 표시 전용. 꽃돼지 달빛 이용권과 영냥이 전용 이용권은 따로 보유·적용되며, 상담 한 건의 차감 수단 판정은 서버(funding claim)가 한다.
+// 🔴 표시 전용. 꿀단지와 이미 산 전용 이용권은 따로 차감되며, 상담 한 건의 차감 수단 판정은 서버(funding claim)가 한다.
+// 전용 이용권은 새로 팔지 않으므로 보유자에게만 칸을 보이고 구매 링크를 두지 않는다.
 const tile='moon-plan-card relative flex min-w-0 items-center gap-3 rounded-[20px] p-4';
 const appliedLine='mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-bold text-[color:var(--moon-teal)]';
 const dot=<span className="h-2 w-2 rounded-full bg-[color:var(--moon-teal)] shadow-[0_0_12px_rgba(94,234,212,0.76)]" aria-hidden="true"/>;
@@ -30,7 +31,7 @@ export function OwnedPassesSummary({locale,flower,packs}:{locale:LoadingLocale;f
  const first=usable[0];
  return <section className="moon-card rounded-[24px] p-5 sm:p-6" aria-labelledby="owned-passes-title" data-owned-passes>
   <h2 id="owned-passes-title" className="text-lg font-black text-white">{copy.passesTitle}</h2>
-  <div className="mt-3 grid gap-3 sm:grid-cols-2">
+  <div className={`mt-3 grid gap-3 ${first||packs==='error'?'sm:grid-cols-2':''}`}>
    <div className={tile} data-owned-pass="flower" data-applied={flower.active?'true':'false'}>
     {flower.active?<Stamped stamp={APPLIED_STAMP_IMAGES.flower}><HoneyPassArtwork tier={flower.tier} className="h-16 w-16" sizes="64px"/></Stamped>:<HoneyPassArtwork tier="standard" className="h-16 w-16 opacity-45 grayscale" sizes="64px"/>}
     <div className="min-w-0">
@@ -44,7 +45,7 @@ export function OwnedPassesSummary({locale,flower,packs}:{locale:LoadingLocale;f
      </>}
     </div>
    </div>
-   <div className={tile} data-owned-pass="yeongnyangi" data-applied={first?'true':'false'}>
+   {(first||packs==='error')&&<div className={tile} data-owned-pass="yeongnyangi" data-applied={first?'true':'false'}>
     {first?<Stamped src={SERVICE_PACK_IMAGES[first.fishId]} stamp={APPLIED_STAMP_IMAGES.yeongnyangi}/>:<Image src={SERVICE_PACK_IMAGES.mackerel} alt="" width={240} height={240} sizes="64px" className="h-16 w-16 flex-shrink-0 object-contain opacity-45 grayscale"/>}
     <div className="min-w-0">
      <p className="text-xs font-black text-[color:var(--moon-silver)]">{copy.packPass}</p>
@@ -52,15 +53,9 @@ export function OwnedPassesSummary({locale,flower,packs}:{locale:LoadingLocale;f
       <h3 className="mt-0.5 text-base font-black leading-snug text-white">{packName(first,locale)}</h3>
       <p className={appliedLine}>{dot}<span>{copy.applied}</span></p>
       <p className="mt-0.5 text-xs font-bold text-[color:var(--moon-silver)] [word-break:keep-all]"><span className="whitespace-nowrap text-[color:var(--moon-teal)]">{packText(copy.remaining,{total:first.totalUses,remaining:first.remainingUses})}</span> · <span className="whitespace-nowrap">{packExpiry(first,locale)}</span>{usable.length>1&&<> · <span className="whitespace-nowrap">{packText(copy.packOthers,{count:usable.length-1})}</span></>}</p>
-     </>:packs==='loading'?<p role="status" className="mt-0.5 text-sm text-[color:var(--moon-silver)]">{copy.loading}</p>:packs==='error'?<>
-      <p className="mt-0.5 text-sm font-bold text-[color:var(--moon-silver)]">{copy.unavailable}</p>
-      <a href="#fish-packs" className="mt-1 inline-flex min-h-11 items-center text-sm font-black text-[color:var(--moon-glow)]">{copy.packBrowse} →</a>
-     </>:<>
-      <p className="mt-0.5 text-sm font-bold text-[color:var(--moon-silver)]">{copy.packNone}</p>
-      <a href="#fish-packs" className="mt-1 inline-flex min-h-11 items-center text-sm font-black text-[color:var(--moon-glow)]">{copy.packBrowse} →</a>
-     </>}
+     </>:<p className="mt-0.5 text-sm font-bold text-[color:var(--moon-silver)]">{copy.unavailable}</p>}
     </div>
-   </div>
+   </div>}
   </div>
   {flower.active&&first&&<p className="mt-3 text-[13px] font-bold leading-relaxed text-[color:var(--moon-silver)] [word-break:keep-all]" data-owned-passes-both>{copy.bothApplied}</p>}
  </section>;

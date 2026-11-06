@@ -1,0 +1,40 @@
+.bar { display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; }
+.workshop {
+  color:#482f40; color-scheme:light; background-color:#fff8ed;
+  background-image:radial-gradient(#eddccc 1px,transparent 1px);
+  background-size:12px 12px; border-radius:24px;
+}
+.shopfront {
+  position:relative; display:flex; justify-content:space-between; align-items:end;
+  gap:1rem; padding:2.3rem 1.25rem .75rem; overflow:hidden;
+  background:#ffeded; border:2px solid #754956; border-radius:18px 18px 8px 8px;
+  box-shadow:0 5px 0 #e8c5b4;
+}
+.shopfront::before {
+  content:""; position:absolute; inset:0 0 auto; height:20px;
+  background:repeating-linear-gradient(90deg,#db7992 0 24px,#fff1d7 24px 48px);
+  border-bottom:2px solid #754956;
+}
+.shopfront img { width:clamp(52px,13vw,84px); height:auto; flex:none; }
+.shopfront p { margin:.25rem 0 .6rem; color:#6a4557; }
+.workshop > section {
+  min-width:0; padding:clamp(.8rem,3vw,1.4rem); border:1px solid #cdafa4;
+  border-radius:14px; background:#fffcf6; box-shadow:0 3px 0 #eddbcb;
+}
+.workshop input,.workshop select { min-width:0; max-width:100%; background:#fff; }
+.workshop summary { color:#753b57; font-weight:700; }
+.workshop .primary { box-shadow:0 3px 0 #452637; }
+.workshop .primary:active:not(:disabled) { transform:translateY(2px); box-shadow:0 1px 0 #452637; }
+.meter { width:min(100%,16rem); height:.65rem; border:0; border-radius:1rem; overflow:hidden; accent-color:#915674; grid-column:1; }
+.meter::-webkit-progress-bar { background:#eddfd5; }
+.meter::-webkit-progress-value { background:#915674; }
+.product { display:grid; gap:.65rem; padding:1rem 0; border-bottom:1px solid var(--cd-border,currentColor); }
+.product img { object-fit:contain; border-radius:.5rem; }
+.product h3 { font-size:1.15rem; font-weight:700; }
+button.primary { background:#753b57; color:white; border-color:#753b57; font-weight:650; }
+button.primary:not(:disabled):hover { background:#602c45; }
+@media (min-width:640px) {
+  .product { grid-template-columns:1fr auto; }
+  .product img,.product p { grid-column:1; }
+  .product button { grid-column:2; grid-row:1 / span 2; align-self:center; }
+}

@@ -122,7 +122,7 @@ type PointHistoryCopy = {
   daysLeft: (days: number) => string;
   /** 기간 없는 이용권이면 expires 자리에 openEndedLabel 이 오고 "만료" 접두어를 붙이지 않는다. */
   subscriptionSummary: (input: { tier: string; active: string; started: string; expires: string; daysLeft?: string; openEnded?: boolean }) => string;
-  /** "기간 제한 없음 · 한도 소진 시 종료"(2026-10-11 기간 없는 이용권). */
+  /** "기간 제한 없음 · 자동 갱신 없음"(2026-10-11 기간 없는 이용권). */
   openEndedLabel: string;
   monthlyCreditValue: (value: number, locale: string) => string;
   won: (value: number, locale: string) => string;
@@ -252,7 +252,7 @@ const POINT_HISTORY_COPY: Record<LoadingLocale, PointHistoryCopy> = {
       "환불 처리는 결제 수단(카드)으로만 가능합니다.",
       "콘텐츠 생성이 시작되기 전에는 취소/환불 요청이 가능합니다.",
       "콘텐츠 생성이 시작되었거나 결과가 정상 제공된 경우 디지털 콘텐츠 특성상 환불이 제한될 수 있습니다.",
-      "달빛 이용권은 기간 제한이 없는 상품이며 자동결제 상품이 아니고, 이용 한도를 모두 사용한 뒤 다시 구매해야 합니다.",
+      "달빛 이용권은 기간 제한이 없는 상품이며 자동결제 상품이 아닙니다. 상담 한도를 다 써도 라이트 운세는 계속 이용할 수 있고, 대표 상담을 더 이용하려면 다시 구매해 주세요.",
       "이용권 결제 후 유료 기능을 이용하지 않은 경우 결제일로부터 7일 이내 환불 요청이 가능하며, 이용이 시작된 뒤에는 환불이 제한될 수 있습니다.",
       "이용권 혜택 흐름과 결제 내역은 최근 20건까지 표시됩니다. 더 오래된 내역이 필요하면 고객센터로 문의해 주세요.",
       "민원담당자: 박병하 (050-6664-7398) · admin@code-destiny.com",
@@ -525,7 +525,7 @@ function buildSubscriptionSummaryText(data: SubscriptionStatusResponse | null | 
   const tier = String(data?.tier || "free").toLowerCase();
   const isActive = !!data?.isActive;
   const startedAt = data?.startedAt ? formatDateTime(data.startedAt, locale) : "-";
-  // 기간 없는 이용권(서버 센티널 만료일)은 날짜·D-day 대신 "기간 제한 없음 · 한도 소진 시 종료".
+  // 기간 없는 이용권(서버 센티널 만료일)은 날짜·D-day 대신 "기간 제한 없음 · 자동 갱신 없음".
   const openEnded = isOpenEndedPassExpiry(data?.expiresAt);
   const expiresAt = openEnded ? copy.openEndedLabel : (data?.expiresAt ? formatDateTime(data.expiresAt, locale) : "-");
   const expiresDate = data?.expiresAt && !openEnded ? new Date(data.expiresAt) : null;

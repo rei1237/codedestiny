@@ -13,7 +13,9 @@ import {STAGING_ORIGIN,RECORDS,issueUrl} from '../../lib/editions/staging.mjs';
 test('named staging products survive reload, retries and releases; customer QR decodes at print size',async t=>{
   // Isolate the same conditional-write semantics used by the staging R2 binding.
   let version=0, stored, dispatches=0;
+  const imageKey='insights/featured/2026/11/123456789-1234abcd-photo.webp';
   const bucket={
+    async head(key){return key===imageKey ? {key} : null;},
     async get(){const value=stored;return value ? {etag:String(version),json:async()=>JSON.parse(value)} : null;},
     async put(key,body,{onlyIf}){
       const createsNew = onlyIf instanceof Headers && onlyIf.get('If-None-Match')==='*';
@@ -30,9 +32,14 @@ test('named staging products survive reload, retries and releases; customer QR d
   const product={action:'add',title:'달빛을 품은 영냥이',id,character:'cat',cap:2};
   await assert.rejects(manageEditions(request(product),{...env,APP_ENV:'production'},dispatch),/찾을 수/);
   await assert.rejects(post({...product,cap:0}),/한도/);
+  await assert.rejects(post({...product,imageKey:'https://outside.example/photo.jpg'}),/이미지/);
+  await assert.rejects(post({...product,imageKey:imageKey.replace('photo','missing')}),/다시 업로드/);
+  product.imageKey=imageKey;
   const additions=await Promise.allSettled([post(product),post(product)]);
   assert.equal(additions.filter(r=>r.status==='fulfilled').length,1);
-  assert.equal((await (await post(product)).json()).products.length,1);
+  const retained=(await (await post(product)).json()).products;
+  assert.equal(retained.length,1);
+  assert.equal(retained[0].imageUrl,STAGING_ORIGIN+'/api/insights/images/'+imageKey);
   assert.deepEqual((await (await readIssueQueue(request(),env)).json()).products,[]);
   const mint={action:'mint',id,serial:1};
   const race=await Promise.allSettled([post(mint),post(mint)]);

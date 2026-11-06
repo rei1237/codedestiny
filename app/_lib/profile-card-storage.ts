@@ -443,6 +443,7 @@ export function clearActiveDestinyProfileCache(deletedProfileId = "") {
 
 export async function fetchCurrentDestinyProfile(
   predicate: ProfilePredicate = hasAnyBirthDate,
+  options: { reportFailure?: boolean } = {},
 ): Promise<DestinyProfileCard | null> {
   if (typeof window === "undefined") return null;
   const localFallback = () => (isLoggedInProfileScope() ? null : readCurrentDestinyProfile(undefined, predicate));
@@ -464,9 +465,13 @@ export async function fetchCurrentDestinyProfile(
       cache: "no-store",
       headers,
     });
-    if (!response.ok) return localFallback();
+    if (!response.ok) {
+      if (options.reportFailure) throw new Error("profile-unavailable");
+      return localFallback();
+    }
 
     const payload = await response.json();
+    if (options.reportFailure && !Array.isArray(payload?.profiles)) throw new Error("profile-unavailable");
     const currentId = String(payload?.currentId || "").trim();
     const localProfileId = String(window.localStorage.getItem(scopedActiveProfileIdKey()) || "").trim();
     if (localProfileId && currentId && localProfileId !== currentId) {
@@ -480,7 +485,8 @@ export async function fetchCurrentDestinyProfile(
     const profile = pickDestinyProfileFromPayload(payload, currentId, predicate);
     if (profile) publishDestinyProfileBridge(profile);
     return profile || localFallback();
-  } catch {
+  } catch (error) {
+    if (options.reportFailure) throw error;
     return localFallback();
   }
 }

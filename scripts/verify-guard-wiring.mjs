@@ -51,6 +51,7 @@ const SELF = "scripts/verify-guard-wiring.mjs";
  * 게이트 추가는 사용자 승인 사항이므로(CLAUDE.md CI gate scope) 임의로 넣지 말 것.
  */
 const UNWIRED_BY_DESIGN = [
+  ["verify:light-fortunes", "수동 재확인용 — 같은 신선도 검사를 __tests__/ui/pass-benefits-light.test.mjs의 generated file is fresh가 test:node에서 수행한다"],
   // ── 스테이징·릴리스 확인은 선택 절차다(CLAUDE.md 2026-09-12). 사용자 요청·릴리스 때만 수동 실행한다.
   ["verify:staging", "스테이징 실요청 — 사용자 요청·배포 인프라 변경·릴리스 때만 수동(--sha 필요)"],
   ["verify:release", "deploy:critical 수동 별칭 — 운영 릴리스 전 수동"],

@@ -209,10 +209,31 @@
 
   setupSignatureConsultPopup(Array.prototype.slice.call(home.querySelectorAll('#cdSigGrid [data-cd-service-id]')));
 
+  // 결제 복귀 문서에서는 대표 상담 팝업이 결제한 콘텐츠를 덮으면 안 된다. 재개(js/destiny-profile.js)가
+  // 먼저 돌아 복귀 쿼리와 티켓을 지울 수 있으므로, 쿼리는 문서가 처음 받은 주소에서도 읽는다.
+  // 티켓 판정은 쿼리 없는 복귀를 재개하는 조건(_dpResumeDirectPaymentAfterRedirect)과 맞춘다.
+  function isPaymentReturnDocument() {
+    var RETURN_QUERY = /[?&](?:portone_redirect|paid_pass_resume|paymentId|payment_id|imp_uid)=/;
+    var navigation = null;
+    try { navigation = performance.getEntriesByType('navigation')[0]; } catch (_) {}
+    if (RETURN_QUERY.test(location.search) || (navigation && RETURN_QUERY.test(navigation.name))) return true;
+    var stores = [];
+    try { stores = [localStorage, sessionStorage]; } catch (_) {}
+    return stores.some(function (store) {
+      try {
+        var ticket = JSON.parse(store.getItem('cd_direct_payment_resume') || 'null');
+        var age = Date.now() - (Number(ticket && ticket.at) || 0);
+        return !!ticket && !!ticket.merchantUid && !!ticket.confirmBody && age >= 60000 && age <= 1800000;
+      } catch (_) { return false; }
+    });
+  }
+
   function setupSignatureConsultPopup(cards) {
     var pathname = String(location.pathname || '');
     var localFixture = /^(?:localhost|127\.0\.0\.1)$/i.test(location.hostname) && /\/(?:static\/)?index\.html$/.test(pathname);
     if ((!/^ko(?:-|$)/i.test(document.documentElement.lang || 'ko')) || (pathname !== '/ggulggul/' && !localFixture) || cards.length !== 6 || location.hash) return;
+    // 고객이 닫은 것이 아니므로 닫음 기록은 남기지 않는다. 다음 일반 방문에서는 그대로 열린다.
+    if (isPaymentReturnDocument()) return;
 
     var HIDE_UNTIL_KEY = 'cd_signature_consult_hide_until_v1';
     var SESSION_CLOSED_KEY = 'cd_signature_consult_session_closed_v1';
@@ -233,6 +254,7 @@
       try { sessionStorage.setItem(SESSION_CLOSED_KEY, '1'); } catch (_) {}
     }
     function hasBlockingSurface() {
+      if (document.documentElement.classList.contains('cdh-input-open')) return true;
       return Array.prototype.some.call(document.querySelectorAll('dialog[open],[role="dialog"][aria-modal="true"]:not([hidden]),.payment-modal.active,#cdCookieConsent.is-visible'), function (node) {
         return node !== popup && node.getClientRects().length > 0 && getComputedStyle(node).visibility !== 'hidden';
       });
@@ -395,6 +417,8 @@
       if (!delayElapsed) return;
       openPopup();
     }
+    // On phones the same featured consultations are opened from the home menu.
+    if (window.matchMedia('(max-width:699px)').matches) return;
     eligibilityObserver = new MutationObserver(function () {
       if (!eligibilityFrame) eligibilityFrame = requestAnimationFrame(tryOpenPopup);
     });
@@ -502,7 +526,13 @@
   if (accountSheet) accountSheet.addEventListener('cd:sheet-open', syncGardenProfile);
   document.addEventListener('cd:profile-card-published', syncGardenProfile);
   syncGardenProfile();
-  move('#langWrap', 'cdhLanguageSlot');
+  var languageWidget = move('#langWrap', 'cdhLanguageSlot');
+  if (languageWidget && typeof IntersectionObserver === 'function') {
+    var header = home.querySelector('.cdh-top');
+    new IntersectionObserver(function (entries) {
+      languageWidget.parentElement.toggleAttribute('data-header-above', entries[0].boundingClientRect.bottom <= 0);
+    }).observe(header);
+  }
   move('#cdMobileHeader .theme-switch-wrapper--appbar', 'cdhThemeSlot');
 
   function revealInput() {

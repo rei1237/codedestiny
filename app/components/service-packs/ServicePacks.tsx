@@ -11,22 +11,17 @@ import {getPassTierLabel} from '@/lib/payment/pass-eligibility';
 import {isMobileAppRuntime} from '@/app/_lib/auth-client';
 import type {LoadingLocale} from '@/constants/loadingMessages';
 import {getCheckoutCopy,resolveCheckoutPolicyHrefs} from '@/app/checkout/checkout-copy';
-import {localizedSystem,localizedTier} from '@/app/yeongnyangi/_lib/consultation-locale-copy';
+import {localizedSystem} from '@/app/yeongnyangi/_lib/consultation-locale-copy';
 import {loginForCurrentPage} from '@/app/yeongnyangi/_lib/api';
 import {products} from '@/worker/yeongnyangi/payments/catalog';
-import checkoutEntry from '@/js/core/checkout-entry.js';
-import {confirmPackOrderWithRecheck,consumeServicePack,loadPackPayMethodAvailability,PACK_PAY_METHODS,payPackOrder,preparePackPurchase,quoteServicePack,readPackCatalog,readPackWallet,readPendingPack,savePendingPack,resumePendingPackPurchase,samePackSnapshot,ServicePackError,type OwnedServicePack,type PackQuote,type ServicePackPlan} from './service-pack-client';
-import {packName,packText,servicePackCopy,packDuration,packScope,packExpiry} from './service-pack-copy';
+import {confirmPackOrderWithRecheck,consumeServicePack,quoteServicePack,readPackCatalog,readPackWallet,readPendingPack,savePendingPack,resumePendingPackPurchase,samePackSnapshot,ServicePackError,type OwnedServicePack,type PackQuote} from './service-pack-client';
+import {packName,packText,servicePackCopy,packScope,packExpiry} from './service-pack-copy';
 import styles from './service-packs.module.css';
 import {APPLIED_STAMP_IMAGES,SERVICE_PACK_IMAGES} from './service-pack-images';
-import {usablePacks,type PackWalletView} from './OwnedPassesSummary';
-import ServicePackShowcase from './ServicePackShowcase';
-import type {PackGiftDraft,PackPayMethod,PackPurchaseType} from './service-pack-client';
-import {ShopPigImage} from '@/app/points/MoonShopFrame';
+import type {PackWalletView} from './OwnedPassesSummary';
 
-// 화면 구조·클래스는 /points 달빛 이용권 카드·결제 모달(PointsClient MoonlightShopPlans)과 맞춘다.
-// 🔴 결제 실행(buy/resume/checkOrder)은 영냥이 전용 경로 그대로다 — 꽃돼지 결제 핸들러와 합치지 않는다.
-const chip='rounded-full border border-[color:var(--moon-rim)] px-2.5 py-1 text-xs font-bold';
+// 전용 이용권은 새로 팔지 않는다. 이 영역은 이미 산 보유분과 판매 종료 전에 시작한 주문의 확인·이어가기만 맡는다.
+// 🔴 resume/checkOrder 는 영냥이 전용 결제 경로 그대로다 — 꽃돼지 결제 핸들러와 합치지 않는다.
 const ghost='btn-moonlight-ghost inline-flex min-h-11 items-center justify-center rounded-xl px-4 text-sm font-black disabled:cursor-not-allowed disabled:opacity-50';
 
 const won=(amount:number,locale:LoadingLocale)=>new Intl.NumberFormat(locale,{style:'currency',currency:'KRW',maximumFractionDigits:0}).format(amount);
@@ -45,36 +40,34 @@ export function PackRows({packs,locale}:{packs:OwnedServicePack[];locale:Loading
  </li>)}</ul>;
 }
 
-// 해외 원화 청구 고지는 PointsClient useOverseasCharge 가 만든 값을 받는다. 한국어 화면에서는 null 이다.
 // onWalletChange 는 이 컴포넌트가 이미 읽은 보유 목록을 상단 '내 이용권' 요약에 넘긴다(추가 요청 없음).
-export function ServicePackShop({locale,overseasCharge=null,onWalletChange,context=null,contextual=false}:{context?:ConsultationContext|null;contextual?:boolean;locale:LoadingLocale;overseasCharge?:{notice:string;approx:(krw:number)=>string}|null;onWalletChange?:(packs:PackWalletView)=>void}){
+export function OwnedServicePacks({locale,onWalletChange,context=null}:{context?:ConsultationContext|null;locale:LoadingLocale;onWalletChange?:(packs:PackWalletView)=>void}){
  const auth=useAuthStore(),ownerId=String(auth.user?.id||auth.user?._id||''); const copy=servicePackCopy(locale),policy=getCheckoutCopy(locale),links=resolveCheckoutPolicyHrefs(locale);
  const shopPath=context?consultationShopPath(context):'/points/#fish-packs';
- const [catalog,setCatalog]=useState<{plans:ServicePackPlan[];error:boolean;loading:boolean;giftEnabled:boolean}>({plans:[],error:false,loading:true,giftEnabled:false});
+ const [catalog,setCatalog]=useState<{loading:boolean;giftEnabled:boolean}>({loading:true,giftEnabled:false});
  const [wallet,setWallet]=useState<{ownerId:string;packs:OwnedServicePack[];nextCursor:string|null;error:boolean;loading:boolean}>({ownerId:'',packs:[],nextCursor:null,error:false,loading:true});
- const [selected,setSelected]=useState<string>(''),[consent,setConsent]=useState(false),[busy,setBusy]=useState(false),[message,setMessage]=useState(''),[pendingOrder,setPendingOrder]=useState('');
- const [referredPack]=useState(()=>typeof window==='undefined'?'':new URLSearchParams(window.location.search).get('pack')||'');
- const [resumeConsent,setResumeConsent]=useState(false),[,setPayMethodRevision]=useState(0);
- const [purchaseType,setPurchaseType]=useState<PackPurchaseType>('SELF'),[gift,setGift]=useState<PackGiftDraft>({senderName:'',recipientName:'',giftMessage:''});
+ const [busy,setBusy]=useState(false),[message,setMessage]=useState(''),[pendingOrder,setPendingOrder]=useState('');
+ const [returning]=useState(()=>typeof window!=='undefined'&&new URLSearchParams(window.location.search).get('service_pack_return')==='1');
+ const [resumeConsent,setResumeConsent]=useState(false);
  // 결제가 확정된 주문. 섹션 상단 완료 패널이 갱신된 보유 목록에서 남은 횟수·만료일을 찾는다.
  const [completed,setCompleted]=useState<{orderId:string;planId:string;context?:ConsultationContext|null}|null>(null);
- const lock=useRef(false),scope=useRef(ownerId),purchaseRef=useRef<HTMLHeadingElement>(null),triggerRef=useRef<HTMLElement|null>(null),catalogRef=useRef(catalog);scope.current=ownerId;catalogRef.current=catalog;
+ const lock=useRef(false),scope=useRef(ownerId),catalogRef=useRef(catalog);scope.current=ownerId;catalogRef.current=catalog;
  const completedRef=useRef<HTMLDivElement>(null),ownedRef=useRef<HTMLDivElement>(null),walletCallback=useRef(onWalletChange);walletCallback.current=onWalletChange;
  // 웹훅 지급이 늦을 때의 자동 재확인(2·4·8초). 계정 전환·언마운트·새 확인이 시작되면 끊는다.
  const recheck=useRef<AbortController|null>(null);
  useEffect(()=>()=>recheck.current?.abort(),[]);
- const refreshCatalog=useCallback(async()=>{setCatalog(value=>({...value,loading:true,error:false}));try{const data=await readPackCatalog();setCatalog({...data,error:false,loading:false});}catch{setCatalog({plans:[],giftEnabled:false,error:true,loading:false});}},[]);
+ // 판매 목록이 아니라 진행 중인 선물 주문을 이어갈 수 있는지만 본다. 진행 중인 주문이 없으면 읽지 않는다.
+ const refreshCatalog=useCallback(async()=>{setCatalog({loading:true,giftEnabled:false});try{const data=await readPackCatalog();setCatalog({giftEnabled:data.giftEnabled,loading:false});}catch{setCatalog({giftEnabled:false,loading:false});}},[]);
  const refreshWallet=useCallback(async(cursor?:string)=>{
   if(!ownerId)return;
   setWallet(value=>({...value,ownerId,loading:true,error:false,packs:value.ownerId===ownerId?value.packs:[]}));
   try{const page=await readPackWallet(cursor);if(scope.current!==ownerId)return;setWallet(value=>({ownerId,packs:cursor?[...value.packs,...page.packs.filter(pack=>!value.packs.some(old=>old.entitlementId===pack.entitlementId))]:page.packs,nextCursor:page.nextCursor,error:false,loading:false}));}
   catch{if(scope.current===ownerId)setWallet(value=>({...value,ownerId,error:true,loading:false}));}
  },[ownerId]);
- useEffect(()=>{void refreshCatalog();},[refreshCatalog]);
- useEffect(()=>{if(catalog.plans.some(item=>item.planId===referredPack))document.getElementById(referredPack)?.scrollIntoView({block:'center'});},[catalog.plans,referredPack]);
+ useEffect(()=>{if(pendingOrder)void refreshCatalog();},[pendingOrder,refreshCatalog]);
  useEffect(()=>{walletCallback.current?.(!ownerId?[]:wallet.ownerId!==ownerId?'loading':wallet.packs.length?wallet.packs:wallet.loading?'loading':wallet.error?'error':[]);},[ownerId,wallet]);
  useEffect(()=>{if(completed)completedRef.current?.scrollIntoView({behavior:'smooth',block:'center'});},[completed]);
- useEffect(()=>{recheck.current?.abort();setSelected('');setConsent(false);setResumeConsent(false);setMessage('');setPendingOrder('');setCompleted(null);if(ownerId){void refreshWallet();setPendingOrder(readPendingPack(ownerId)?.orderId||'');}},[ownerId,refreshWallet]);
+ useEffect(()=>{recheck.current?.abort();setResumeConsent(false);setMessage('');setPendingOrder('');setCompleted(null);if(ownerId){void refreshWallet();setPendingOrder(readPendingPack(ownerId)?.orderId||'');}},[ownerId,refreshWallet]);
  // 🔴 PG 가 방금 미결제라고 답했는데 이 화면에서 같은 주문을 이어갈 수 없으면(다른 탭 복귀·카탈로그에서 빠진 구성) 구매 잠금을 푼다.
  //    FAILED·CANCELLED 는 서버가 주문을 실패로 닫아 이어가기도 막히므로 항상 푼다. 다음 구매는 새 키·새 주문이다.
  const releaseUnpaid=useCallback((orderId:string,error:unknown)=>{
@@ -103,27 +96,6 @@ export function ServicePackShop({locale,overseasCharge=null,onWalletChange,conte
   if(providerId&&providerId!==orderId){setMessage(copy.unavailable);return;}
   void checkOrder(orderId);
  },[ownerId,checkOrder,copy]);
- const buy=async(payMethod:PackPayMethod)=>{
-  if(!checkoutEntry.isDirectPayMethodEnabled(payMethod))return;
-  if(!ownerId){loginForCurrentPage();return;}if(lock.current||!consent)return;
-  const plan=catalog.plans.find(item=>item.planId===selected);if(!plan)return;
-  lock.current=true;setBusy(true);setMessage(copy.confirm);
-  try{
-   const previous=readPendingPack(ownerId);if(previous?.orderId){setPendingOrder(previous.orderId);return;}
-   if(previous&&(previous.planId!==plan.planId||(previous.purchaseType||'SELF')!==purchaseType||(purchaseType==='GIFT'&&JSON.stringify(previous.gift)!==JSON.stringify(gift))))throw new ServicePackError('PENDING_OTHER_PLAN');
-   if(purchaseType==='GIFT'&&!catalog.giftEnabled)throw new ServicePackError('GIFT_NOT_AVAILABLE');
-   const pending={context,...(previous||{planId:plan.planId,idempotencyKey:`service-pack-${crypto.randomUUID()}`,purchaseType,...(purchaseType==='GIFT'?{gift}:{})}),payMethod};
-   savePendingPack(ownerId,pending);
-   const order=await preparePackPurchase(plan.planId,pending.idempotencyKey,consent,purchaseType,purchaseType==='GIFT'?gift:undefined,undefined,payMethod);
-   if(scope.current!==ownerId)throw new ServicePackError('AUTH_SCOPE_CHANGED');
-   savePendingPack(ownerId,{...pending,orderId:order.merchantUid,packSnapshot:order.packSnapshot});setPendingOrder(order.merchantUid);
-   let granted=await payPackOrder(order,payMethod,context);if(scope.current!==ownerId)return;
-   if(!granted&&purchaseType==='SELF'){recheck.current?.abort();const controller=recheck.current=new AbortController();granted=await confirmPackOrderWithRecheck(order.merchantUid,controller.signal,{immediate:false});if(scope.current!==ownerId)return;}
-   if(granted){savePendingPack(ownerId,null);setPendingOrder('');setSelected('');setConsent(false);setMessage('');setCompleted({orderId:order.merchantUid,planId:plan.planId,context});await refreshWallet();}
-  }catch(error){loginIfNeeded(error);if(error instanceof ServicePackError&&error.code==='PAY_METHOD_UNAVAILABLE')setPayMethodRevision(value=>value+1);setMessage(error instanceof ServicePackError&&error.code==='APP_PACK_NOT_AVAILABLE'?copy.webOnly:copy.confirm);}
-  finally{lock.current=false;setBusy(false);}
- };
-
  const resume=async()=>{
   if(!ownerId||lock.current||!resumeConsent)return;
   lock.current=true;setBusy(true);setMessage(copy.confirm);
@@ -140,24 +112,10 @@ export function ServicePackShop({locale,overseasCharge=null,onWalletChange,conte
   &&(pending.purchaseType!=='GIFT'||catalog.giftEnabled)
   &&samePackSnapshot(pending.packSnapshot,pending.packSnapshot)
   ?{...pending.packSnapshot,autoRenew:false as const}:undefined;
- const currentWallet=wallet.ownerId===ownerId?wallet:null,plan=catalog.plans.find(item=>item.planId===selected);
- // 결제 진행 중에는 모달을 유지하고, 결제가 끝나지 않은 주문이 남으면 닫아 아래 재확인·이어가기로 넘긴다(기존 패널과 같은 조건).
- const modalOpen=Boolean(plan&&(busy||!pendingOrder));
- const openPurchase=(planId:string,type:PackPurchaseType)=>{triggerRef.current=document.activeElement as HTMLElement|null;setSelected(planId);setPurchaseType(type);setConsent(false);setCompleted(null);};
- const usable=usablePacks(currentWallet?.packs||[]);
+ const currentWallet=wallet.ownerId===ownerId?wallet:null;
  const completedPack=completed?currentWallet?.packs.find(pack=>pack.orderId===completed.orderId):undefined;
- const completedPlan=completed?catalog.plans.find(item=>item.planId===(completedPack?.planId||completed.planId)):undefined;
- const completedFish=completedPack?.fishId||completedPlan?.fishId;
- const completedSource=completedPack||completedPlan,completedName=completedSource?packName(completedSource,locale):'';
- const closePurchase=()=>{if(lock.current)return;setSelected('');setConsent(false);};
- useEffect(()=>{
-  if(!modalOpen)return;purchaseRef.current?.focus();
-  // 전용 채널키가 없는 수단(스테이징 카카오페이 등)을 주문 전에 '준비 중'으로 내린다. config 왕복은 페이지당 1회를 꽃돼지 결제창과 나눠 쓴다.
-  void loadPackPayMethodAvailability().then(()=>setPayMethodRevision(value=>value+1));
-  const onKey=(event:KeyboardEvent)=>{if(event.key==='Escape'&&!lock.current){setSelected('');setConsent(false);}};
-  document.addEventListener('keydown',onKey);
-  return()=>{document.removeEventListener('keydown',onKey);triggerRef.current?.focus?.();};
- },[modalOpen]);
+ const completedFish=completedPack?.fishId;
+ const completedName=completedPack?packName(completedPack,locale):'';
  const footer=<>
   {pendingOrder&&<button type="button" className={`mt-4 ${ghost}`} disabled={busy} onClick={()=>void checkOrder(pendingOrder)}>{copy.recheck}</button>}
   {resumePlan&&pending&&<div className="moon-plan-card mt-4 rounded-[22px] p-4" data-pack-resume>
@@ -167,30 +125,19 @@ export function ServicePackShop({locale,overseasCharge=null,onWalletChange,conte
    <p className="mt-2 text-sm"><a href={links.terms}>{policy.legalTerms}</a> · <a href={links.refund}>{policy.legalRefund}</a></p>
    <button type="button" className="btn-moonlight mt-2 inline-flex min-h-11 w-full items-center justify-center rounded-xl px-4 text-sm font-black disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto" disabled={busy||!resumeConsent||isMobileAppRuntime()} onClick={()=>void resume()}>{copy.resumePayment}</button>
   </div>}
-  {message&&!modalOpen&&<p role="status" className="mt-3 text-sm font-bold text-[color:var(--moon-silver)]">{message}</p>}
+  {message&&<p role="status" className="mt-3 text-sm font-bold text-[color:var(--moon-silver)]">{message}</p>}
   <div ref={ownedRef} className="mt-6 scroll-mt-24 border-t border-[color:var(--moon-rim)] pt-5">
-   <div className="flex flex-wrap items-center justify-between gap-2"><h3 className="text-lg font-black text-white">{copy.owned}</h3><Link className="text-sm font-bold" href="/gift/box/" prefetch={false}>{copy.giftBox}</Link></div>
+   <div className="flex flex-wrap items-center justify-between gap-2"><h2 id="fish-packs-title" className="text-lg font-black text-white">{copy.owned}</h2><Link className="text-sm font-bold" href="/gift/box/" prefetch={false}>{copy.giftBox}</Link></div>
    {!ownerId?<button type="button" className={`mt-3 ${ghost}`} onClick={loginForCurrentPage}>{copy.login}</button>:!currentWallet||currentWallet.loading&&!currentWallet.packs.length?<p role="status" className="mt-3 text-sm text-[color:var(--moon-mist)]">{copy.loading}</p>:<>
     {currentWallet.error&&<p role="alert" className="mt-3 text-sm text-[color:var(--moon-mist)]">{copy.unavailable} <button type="button" className={ghost} onClick={()=>void refreshWallet()}>{copy.retry}</button></p>}
-    {currentWallet.packs.length?<PackRows packs={currentWallet.packs} locale={locale}/>:!currentWallet.error&&<p className="mt-3 text-sm text-[color:var(--moon-mist)]">{copy.empty}</p>}
+    {currentWallet.packs.length?<PackRows packs={currentWallet.packs} locale={locale}/>:null}
     {currentWallet.nextCursor&&<button type="button" className={ghost} disabled={currentWallet.loading} onClick={()=>void refreshWallet(currentWallet.nextCursor!)}>{copy.more}</button>}
    </>}
   </div>
  </>;
- const salePlans=catalog.plans.filter(item=>(!contextual||Boolean(context&&item.eligibleFeatureKeys.includes(context.featureKey))));
- const shopClass=styles.shop;
- const shopIntro=<div className={styles.shopIntro}>
-   <Image src="/assets/yeongnyangi/original/hero-800.webp" alt="" width={800} height={800} sizes="(max-width: 640px) 88px, 160px" className={styles.shopGuide}/>
-   <div>
-    <h2 id="fish-packs-title" className={styles.shopTitle}>{copy.title}</h2>
-    <p className={styles.shopDescription}>{locale==='ko'?'같은 등급의 지원 상담에 사용할 수 있어요. 남은 횟수와 적용 범위를 확인해 주세요.':copy.intro}</p>
-    {context&&<Link href={consultationResumePath(context)} prefetch={false} className={ghost}>{locale==='ko'?'이번 상담으로 돌아가기':copy.goConsult}</Link>}
-    {contextual&&!context&&<p role="alert">{copy.unavailable}</p>}
-   </div>
-  </div>;
- if(!contextual&&!catalog.loading&&!catalog.error&&!catalog.plans.length)return <section id="fish-packs" className={shopClass} aria-labelledby="fish-packs-title">{shopIntro}<ServicePackShowcase locale={locale}/>{footer}</section>;
- return <section id="fish-packs" className={shopClass} aria-labelledby="fish-packs-title">
-  {shopIntro}
+ // 보유분도 진행 중인 주문도 없으면 아무것도 그리지 않는다. 고객은 바로 꿀단지 4종을 본다.
+ if(!completed&&!pendingOrder&&!message&&!currentWallet?.packs.length&&!currentWallet?.error&&!(returning&&!ownerId))return null;
+ return <section id="fish-packs" className={styles.shop} aria-labelledby="fish-packs-title">
   {completed&&<div ref={completedRef} role="status" data-pack-completed className="mt-5 rounded-[22px] border border-[rgba(94,234,212,0.45)] bg-[rgba(94,234,212,0.08)] p-4 shadow-[0_0_28px_rgba(94,234,212,0.16)]">
    <div className="flex items-center gap-4">
     <div className="relative h-20 w-20 flex-shrink-0">
@@ -208,117 +155,26 @@ export function ServicePackShop({locale,overseasCharge=null,onWalletChange,conte
     <button type="button" className={ghost} onClick={()=>ownedRef.current?.scrollIntoView({behavior:'smooth',block:'start'})}>{copy.viewOwned}</button>
    </div>
   </div>}
-  {catalog.loading?<p role="status" className="mt-5 text-sm text-[color:var(--moon-mist)]">{copy.loading}</p>:catalog.error?<p role="alert" className="mt-5 text-sm text-[color:var(--moon-mist)]">{copy.unavailable} <button type="button" className={ghost} onClick={()=>void refreshCatalog()}>{copy.retry}</button></p>:[...new Set(salePlans.map(item=>item.fishId))].map(fishId=>{
-   const plans=salePlans.filter(item=>item.fishId===fishId).sort((a,b)=>a.totalUses-b.totalUses);
-   return <section key={fishId} className="mt-6" aria-labelledby={`fish-pack-${fishId}`}>
-    <h3 id={`fish-pack-${fishId}`} className="mb-3 text-lg font-black text-white">{localizedTier(fishId,locale)}</h3>
-    <div className="grid gap-4">{plans.map(item=>{
-     const savings=item.unitPriceKRW*item.totalUses-item.priceKRW;
-     const owned=usable.filter(pack=>pack.planId===item.planId),ownedLeft=owned.reduce((sum,pack)=>sum+pack.remainingUses,0);
-     return <article key={item.planId} id={item.planId} data-pack-plan={item.planId} data-referred={item.planId===referredPack} className={styles.shopPlan}>
-      <div className={styles.planLayout}>
-       <button type="button" className={styles.planArt} aria-label={`${packName(item,locale)} ${copy.select}`} disabled={busy||Boolean(pendingOrder)||isMobileAppRuntime()} onClick={()=>openPurchase(item.planId,'SELF')}>
-        <Image src={SERVICE_PACK_IMAGES[item.fishId]} alt="" width={240} height={240} sizes="(min-width: 640px) 128px, 112px" loading="lazy" className="h-full w-full object-contain"/>
-        {owned.length?<Image src={APPLIED_STAMP_IMAGES.yeongnyangi} alt="" width={120} height={120} sizes="64px" loading="lazy" data-applied-stamp className="absolute -bottom-2 -right-4 h-16 w-16 object-contain drop-shadow-[0_4px_8px_rgba(3,4,18,0.42)]"/>:null}
-       </button>
-       <div className="min-w-0">
-        <div className="flex flex-wrap items-center gap-2">
-         <h4 className="text-lg font-black text-white">{packName(item,locale)}</h4>
-         {owned.length>0&&<span data-pack-owned className="rounded-full bg-[rgba(94,234,212,0.14)] px-2.5 py-1 text-xs font-black text-[color:var(--moon-teal)]">{packText(copy.ownedBadge,{remaining:ownedLeft})}</span>}
-        </div>
-        <p className="mt-2 text-xs leading-relaxed text-[color:var(--moon-mist)]">{copy.eligible}: {eligibleNames(item.eligibleFeatureKeys,locale)}</p>
-        <p className={styles.planComparison}><s>{won(item.unitPriceKRW*item.totalUses,locale)}</s><span> → </span><strong>{won(item.priceKRW,locale)}</strong></p>
-        <div className="mt-3 flex flex-wrap gap-2">
-         <span className={`${chip} text-[color:var(--moon-silver)]`}>{packScope(item,locale)}</span>
-         <span className={`${chip} text-[color:var(--moon-mist)]`}>{packText(copy.perUse,{amount:won(Math.round(item.priceKRW/item.totalUses),locale)})}</span>
-        </div>
-        {savings>0&&<p className="mt-2 text-xs font-bold text-[color:var(--moon-gold)]">{packText(copy.savings,{total:item.totalUses,amount:won(savings,locale)})}</p>}
-
-       </div>
-       <div className={styles.planActions}>
-
-        {overseasCharge?.approx(item.priceKRW)?<p className="text-xs font-bold text-[color:var(--moon-mist)]">{overseasCharge.approx(item.priceKRW)}</p>:null}
-        <button type="button" disabled={busy||Boolean(pendingOrder)||isMobileAppRuntime()} onClick={()=>openPurchase(item.planId,'SELF')} className="btn-moonlight inline-flex min-h-11 w-full items-center justify-center rounded-xl px-4 text-sm font-black disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto">{copy.buyCta}</button>
-        {!contextual&&catalog.giftEnabled&&<>
-         <p className="mt-2 flex items-center justify-center gap-1 text-center text-[11px] font-bold text-[color:var(--moon-mist)]"><ShopPigImage className="h-4 w-4 object-contain"/>{copy.giftPromo}</p>
-         <button type="button" disabled={busy||Boolean(pendingOrder)||isMobileAppRuntime()} onClick={()=>openPurchase(item.planId,'GIFT')} className="mt-1 min-h-11 w-full rounded-xl border border-current px-3 py-2 text-sm font-bold disabled:opacity-50">{copy.giftCta}</button>
-        </>}
-       </div>
-      </div>
-     </article>;
-    })}</div>
-   </section>;
-  })}
-  {overseasCharge&&!catalog.loading&&!catalog.error?<p className="mt-4 text-xs font-bold leading-relaxed text-[color:var(--moon-mist)]">{overseasCharge.notice}</p>:null}
-  {/* 하단 탭바(.cd-mnav z-index 960) 위에 떠야 닫기·결제 버튼이 가려지지 않는다. */}
-  {modalOpen&&plan&&<div className="fixed inset-0 z-[1000] flex items-center justify-center bg-slate-950/72 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="service-pack-purchase-title" data-pack-purchase onClick={event=>{if(event.target===event.currentTarget)closePurchase();}}>
-   <div className={styles.purchasePanel}>
-    <Image src={SERVICE_PACK_IMAGES[plan.fishId]} alt="" width={240} height={240} sizes="96px" loading="eager" className="mx-auto mb-3 h-24 w-24 object-contain"/>
-    <h2 id="service-pack-purchase-title" ref={purchaseRef} tabIndex={-1} className="text-base font-black text-white">{copy.payTitle}</h2>
-    <p className="mt-2 text-sm leading-relaxed text-slate-200">{packName(plan,locale)} · {won(plan.priceKRW,locale)} · {purchaseType==='GIFT'?copy.giftPurchase:copy.selfPurchase}</p>
-    <p className="mt-1 text-[12px] font-bold text-[color:var(--sp-light)]">{copy.wonOnly}</p>
-    <div className="mt-4 rounded-[14px] border border-white/12 bg-white/[0.07] px-3.5 py-3 text-[12px] leading-relaxed text-slate-200">
-     <p className="font-black text-white">{copy.conditionsTitle}</p>
-     <p className="mt-1">{packScope(plan,locale)}</p>
-     <p className="mt-1">{locale==='ko' ? (purchaseType==='GIFT'?'선물 수령 후 ':'결제 확인 후 ')+packDuration(plan,locale) : packDuration(plan,locale)}</p>
-     <p className="mt-1 font-bold text-[color:var(--sp-light)]">{copy.eligible}: {eligibleNames(plan.eligibleFeatureKeys,locale)}</p>
-     <p className="mt-1 flex flex-wrap gap-x-4">
-      <a href={links.terms} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center font-black text-[color:var(--sp-light)] underline">{policy.legalTerms}</a>
-      <a href={links.refund} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center font-black text-[color:var(--sp-light)] underline">{copy.refundLink}</a>
-     </p>
-    </div>
-    {purchaseType==='GIFT'&&<fieldset className="mt-4 space-y-3 text-white">
-     <legend className="text-lg font-bold">{copy.giftPrepare}</legend>
-     <p className="text-sm">{copy.giftNotice}</p>
-     {(['senderName','recipientName'] as const).map(key=><label key={key} className="block text-sm">{copy[key]}<input type="text" maxLength={40} autoComplete="off" value={gift[key]} disabled={busy} onChange={event=>setGift(value=>({...value,[key]:event.target.value}))} className="mt-1 block min-h-11 w-full rounded-lg border border-white/30 bg-slate-900 p-3 text-base text-white"/></label>)}
-     <label className="block text-sm">{copy.giftMessage}<textarea maxLength={500} rows={3} value={gift.giftMessage} disabled={busy} onChange={event=>setGift(value=>({...value,giftMessage:event.target.value}))} className="mt-1 block w-full rounded-lg border border-white/30 bg-slate-900 p-3 text-base text-white"/></label>
-     <details className="text-sm leading-relaxed"><summary className="min-h-11 cursor-pointer py-3">{copy.giftGuidanceSummary}</summary><p>{copy.giftGuidance}</p></details>
-    </fieldset>}
-    <label className="mt-3 flex items-start gap-2 rounded-[14px] border border-[color:var(--sp-line)] bg-[color:var(--sp-raised)] px-3.5 py-3 text-[12px] font-bold text-[color:var(--sp-ink)]">
-     <input type="checkbox" checked={consent} onChange={event=>setConsent(event.currentTarget.checked)} disabled={busy} className="mt-0.5 h-4 w-4 flex-shrink-0 accent-[color:var(--sp-light)]"/>
-     <span>{copy.consent}</span>
-    </label>
-    {/* 🔴 결제수단은 카드(card_general·이니시스)와 카카오페이(전용 채널)다. 이름·아이콘·활성 여부는 checkout-entry 표가 정본이다.
-        환불 동의 전에는 잠근다(꽃돼지 모달과 같은 순서). */}
-    <div className="mt-4">
-     <p className="text-[12px] font-black text-slate-200">{copy.payPrompt}</p>
-     <div className="mt-2 grid grid-cols-2 gap-2">
-      {PACK_PAY_METHODS.map(method=>{
-       const card=method==='CARD',open=checkoutEntry.isDirectPayMethodEnabled(method);
-       return <button key={method} type="button" data-pack-pay-method={method.toLowerCase()} disabled={busy||!consent||!open||isMobileAppRuntime()} onClick={()=>void buy(method)} className="flex min-h-[76px] flex-col items-start justify-center gap-1 rounded-[14px] border border-[color:var(--sp-line)] bg-[color:var(--sp-raised)] px-3.5 py-3 text-left text-[color:var(--sp-ink)] transition hover:bg-[color:var(--sp-button)] disabled:cursor-not-allowed disabled:opacity-50">
-        <span aria-hidden="true" className="text-lg leading-none">{card?'💳':checkoutEntry.directPayMethodMeta(method)?.glyph}</span>
-        <span className="text-[13px] font-black leading-snug">{card?copy.cardPay:checkoutEntry.directPayMethodLabel(method)}</span>
-        {!open&&<span className="text-[11px] font-bold text-[color:var(--sp-ink)]">{checkoutEntry.directPayMethodComingSoonText()}</span>}
-       </button>;
-      })}
-     </div>
-     {isMobileAppRuntime()&&<p className="mt-2 text-[12px] font-bold text-[color:var(--sp-ink)]">{copy.webOnly}</p>}
-     {message&&<p role="status" className="mt-2 text-[12px] font-bold text-slate-200">{message}</p>}
-     <p className="mt-2 text-[11px] font-semibold leading-relaxed text-slate-400">{copy.contentValue}</p>
-    </div>
-    <button type="button" disabled={busy} onClick={closePurchase} className="mt-4 w-full rounded-[12px] border border-white/15 bg-white/10 px-3 py-2.5 text-sm font-bold text-slate-200 transition hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-50">{copy.close}</button>
-   </div>
-  </div>}
   {footer}
  </section>;
 }
 
 // 상담 결제 화면의 '내 이용권' 두 칸. 표시 전용 — 달빛 이용권은 결제 진입 로컬 스냅샷, 세트는 이 상담 quote 후보로만 그린다.
-// 어느 수단이 실제로 차감되는지는 서버가 판정하므로 Family 가 아니면 '적용 중'을 단정하지 않는다.
+// 어느 수단이 실제로 차감되는지는 서버가 판정하므로 '적용 중'을 단정하지 않는다.
 function CheckoutPassSummary({locale,flower,pack,applied}:{locale:LoadingLocale;flower:SubscriptionSnapshot|null;pack?:OwnedServicePack;applied:number|null}){
- const copy=servicePackCopy(locale),owned=!!flower&&flower.state==='active'&&flower.tier!=='free',family=owned&&flower.tier==='family';
+ const copy=servicePackCopy(locale),owned=!!flower&&flower.state==='active'&&flower.tier!=='free';
  if(!owned&&!pack)return null;
  return <section className={styles.passes} aria-labelledby="checkout-passes-title" data-checkout-passes>
   <h2 id="checkout-passes-title">{copy.passesTitle}</h2>
   <div className={styles.passGrid}>
    <div className={styles.passTile} data-checkout-pass="flower" data-applied="false">
     <div className={styles.passArt}>{owned?<><HoneyPassArtwork tier={flower.tier} className="h-14 w-14" sizes="56px"/></>:<HoneyPassArtwork tier="standard" className={`h-14 w-14 ${styles.passMuted}`} sizes="56px"/>}</div>
-    <div><p className={styles.passKind}>{copy.flowerPass}</p>{owned?<><strong>{getPassTierLabel(flower.tier,locale)||flower.tier}</strong>{family&&<p className={styles.passOn}>{locale==='ko'?'사용 가능 여부 확인':copy.flowerFamilyApply}</p>}<p>{family?copy.flowerFamilyApply:copy.flowerFamilyOnly}</p></>:<p>{flower?.state==='none'&&!flower.stale?copy.flowerNone:locale==='ko'?'Family 보유 여부는 사용 시 확인해요.':'Family eligibility will be checked when selected.'}</p>}</div>
+    <div><p className={styles.passKind}>{copy.flowerPass}</p>{owned?<><strong>{getPassTierLabel(flower.tier,locale)||flower.tier}</strong><p className={styles.passOn}>{copy.flowerFamilyApply}</p></>:<p>{flower?.state==='none'&&!flower.stale?copy.flowerNone:locale==='ko'?'보유 여부는 사용 시 확인해요.':'Your pass will be checked when selected.'}</p>}</div>
    </div>
-   <div className={styles.passTile} data-checkout-pass="yeongnyangi" data-applied={applied!==null?'true':'false'}>
-    <div className={styles.passArt}>{pack?<><Image src={SERVICE_PACK_IMAGES[pack.fishId]} alt="" width={240} height={240} sizes="56px"/>{applied!==null&&<Image src={APPLIED_STAMP_IMAGES.yeongnyangi} alt="" width={120} height={120} sizes="36px" data-applied-stamp className={styles.passStamp}/>}</>:<Image src={SERVICE_PACK_IMAGES.mackerel} alt="" width={240} height={240} sizes="56px" className={styles.passMuted}/>}</div>
-    <div><p className={styles.passKind}>{copy.packPass}</p>{pack?<><strong>{packName(pack,locale)}</strong><p className={styles.passOn}>{applied===null?copy.packUsable:packText(copy.packApplied,{remaining:applied})}</p>{applied===null&&<><p>{packText(copy.remaining,{total:pack.totalUses,remaining:pack.remainingUses})}</p></>}</>:<p>{copy.packNone}</p>}</div>
-   </div>
+   {pack&&<div className={styles.passTile} data-checkout-pass="yeongnyangi" data-applied={applied!==null?'true':'false'}>
+    <div className={styles.passArt}><Image src={SERVICE_PACK_IMAGES[pack.fishId]} alt="" width={240} height={240} sizes="56px"/>{applied!==null&&<Image src={APPLIED_STAMP_IMAGES.yeongnyangi} alt="" width={120} height={120} sizes="36px" data-applied-stamp className={styles.passStamp}/>}</div>
+    <div><p className={styles.passKind}>{copy.packPass}</p><strong>{packName(pack,locale)}</strong><p className={styles.passOn}>{applied===null?copy.packUsable:packText(copy.packApplied,{remaining:applied})}</p>{applied===null&&<><p>{packText(copy.remaining,{total:pack.totalUses,remaining:pack.remainingUses})}</p></>}</div>
+   </div>}
   </div>
  </section>;
 }

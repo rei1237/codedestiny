@@ -36,6 +36,22 @@ function mountShellGuard(t, f) {
   return navigations;
 }
 
+test('public home section links keep native navigation while legacy fragments open the shell', t => {
+  const f = fixture(t), navigations = mountShellGuard(t, f);
+  const doc = f.win.document;
+  const heading = doc.createElement('h2');
+  heading.id = 'homeStoryTitle';
+  doc.body.append(heading);
+  const link = doc.createElement('a');
+  doc.body.append(link);
+  link.href = '#homeStoryTitle';
+  assert.equal(link.dispatchEvent(new f.win.MouseEvent('click', {bubbles:true,cancelable:true})), true);
+  assert.deepEqual(navigations, []);
+  link.href = '#featureBegin';
+  assert.equal(link.dispatchEvent(new f.win.MouseEvent('click', {bubbles:true,cancelable:true})), false);
+  assert.equal(navigations.length, 1);
+});
+
 test('document shell guard yields to both cards until draw completes and after cancelled touch', t => {
   const f = fixture(t), immediate = mountShellGuard(t, f);
   for (const card of f.cards) {

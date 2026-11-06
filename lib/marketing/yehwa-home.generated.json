@@ -173,7 +173,7 @@
     "desc": "인도 아쉬타쿠타 36점과 동양 숙요를 겹쳐 보는 궁합",
     "href": "/nakshatra/compat/",
     "featureKey": "nakshatra-compat",
-    "price": "20,000원",
+    "price": "5,000원",
     "purposes": [
       "love",
       "compatibility"
@@ -221,7 +221,7 @@
     "desc": "삶의 방향과 선택을 가늠하는 리딩",
     "href": "/destiny-compass/",
     "featureKey": "destiny-compass-life-voyage",
-    "price": "7,000원",
+    "price": "5,000원",
     "purposes": [
       "money",
       "career",
@@ -353,7 +353,7 @@
     "desc": "일주·월지·시지로 여는 60갑자 수호 인장",
     "action": "openSajuGuardianPage",
     "featureKey": "saju-guardian-unlock",
-    "price": "7,000원",
+    "price": "5,000원",
     "purposes": [
       "self",
       "life"
@@ -420,7 +420,7 @@
     "desc": "열두 달의 흐름과 전환점을 한 장씩 짚는 리딩",
     "action": "openTarotYearFortuneModal",
     "featureKey": "tarot-year-fortune",
-    "price": "10,000원",
+    "price": "5,000원",
     "purposes": [
       "life",
       "etc"
@@ -439,7 +439,7 @@
     "desc": "열한 행성 자리에 카드를 놓는 확장형 코즈믹 타로",
     "href": "/celestial-harmony.html",
     "featureKey": "tarot-celestial-harmony",
-    "price": "10,000원",
+    "price": "5,000원",
     "purposes": [
       "life",
       "self"
@@ -459,7 +459,7 @@
     "desc": "결혼·개업·계약에 좋은 날을 60일 치에서 고르기",
     "href": "/nakshatra/muhurta/",
     "featureKey": "nakshatra-muhurta",
-    "price": "7,000원",
+    "price": "5,000원",
     "purposes": [
       "life",
       "etc"
@@ -1182,7 +1182,7 @@
       "ai"
     ],
     "keys": "숙요점 베다점 나크샤트라 통합서 PDF",
-    "price": "30,000원",
+    "price": "5,000원",
     "image": "/images/service-introductions/nakshatra-vvip-codex-320.webp",
     "imageAlt": "나크샤트라 VVIP 코덱스의 핵심 도구와 이용 장면을 담은 일러스트"
   },
@@ -1236,7 +1236,7 @@
       "runCompat"
     ],
     "featureKey": "compat-saju-compatibility",
-    "price": "10,000원",
+    "price": "5,000원",
     "purposes": [
       "love",
       "compatibility"

@@ -1,0 +1,79 @@
+.guide {
+  --rule: var(--hm-gold-line);
+  display: grid;
+  gap: 1rem;
+  width: min(100%, 40rem);
+  min-width: 0;
+  box-sizing: border-box;
+  padding: clamp(20px, 4vw, 42px);
+  border: 1px solid var(--rule);
+  border-radius: 5px 24px 5px 5px;
+  background: linear-gradient(135deg, var(--cd-bg), var(--cd-surface) 62%);
+  color: var(--cd-text);
+  box-shadow: 0 14px 32px -26px var(--hm-gold-ink);
+  font: 1rem/1.65 var(--font-body);
+  overflow-wrap: anywhere;
+}
+.guide[data-step="write"] { width: min(100%, 64rem); }
+.guide > h2 {
+  font: 700 clamp(1.4rem, 3vw, 2.1rem)/1.4 var(--font-serif);
+  text-align: left;
+  padding-bottom: .85rem;
+  border-bottom: 1px solid var(--rule);
+}
+.guide > h2::before {
+  content: "";
+  display: inline-block;
+  width: 34px;
+  height: 26px;
+  margin-right: .55rem;
+  vertical-align: middle;
+  background: url('/images/home/mv/ornament-lotus-crest-160.webp') center/contain no-repeat;
+}
+.guide form, .options, .examples { display: grid; gap: .6rem; align-content: start; }
+.guide label, .guide strong { font-weight: 700; }
+.guide textarea {
+  resize: vertical;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  font: inherit;
+  min-height: 7rem;
+  background: var(--cd-bg);
+  color: inherit;
+  padding: .9rem 1rem;
+  border: 1px solid var(--rule);
+  border-radius: 5px;
+}
+.guide textarea::placeholder { color: var(--cd-text-muted); }
+.guide :is(button,summary,nav a) { cursor: pointer; font: inherit; color: inherit; min-height: 44px; }
+.guide button { background: none; border: 0; text-align: left; padding: .4rem 0; }
+.guide .primary { display: grid; place-items: center; min-height: 48px; padding: .7rem 1rem; border-radius: 5px; background: var(--cd-text); color: var(--cd-bg); text-decoration: none; font-weight: 700; }
+.guide :is(button,a,summary,textarea):focus-visible { outline: 2px solid var(--cd-focus-ring); outline-offset: 3px; }
+.examples { gap: 0; }
+.examples button { border-bottom: 1px solid var(--rule); display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.examples button::after { content: ""; width: 6px; height: 6px; flex: none; border-top: 1px solid var(--hm-gold-ink); border-right: 1px solid var(--hm-gold-ink); }
+.examples p, .identity span, .quote span { color: var(--hm-gold-ink); font-size: .875rem; }
+.guide summary { display: list-item; padding: .5rem 0; }
+.guide nav { display: flex; flex-wrap: wrap; gap: .4rem 1rem; }
+.guide nav a { display: inline-flex; align-items: center; text-decoration: underline; }
+.options button { padding: .65rem .9rem; border: 1px solid var(--rule); border-radius: 6px; }
+.identity { display: flex; align-items: center; gap: .9rem; padding: .75rem 0; border-block: 1px solid var(--rule); }
+.identity img { border-radius: 50%; object-fit: cover; }
+.identity h2 { font-size: 1.35rem; }
+.quote { padding: .65rem .9rem; border: 1px solid var(--rule); background: var(--cd-bg); white-space: pre-wrap; }
+@media (min-width: 760px) {
+  .guide[data-step="write"] { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); column-gap: 2.75rem; }
+  .guide[data-step="write"] > :is(h2,[role="status"]) { grid-column: 1 / -1; }
+  .guide[data-step="write"] form { grid-column: 1; grid-row: 2; }
+  .guide[data-step="write"] .examples { grid-column: 2; grid-row: 2; }
+  .guide[data-step="write"] > details { grid-column: 2; grid-row: 3; }
+}
+
+@media(min-width:700px){.examples>summary{display:none}}
+@media(min-width:760px){.guide[data-step="write"]>details.examples{grid-column:2;grid-row:2}}
+@media(max-width:699px){
+ .guide .examples p{display:none}.guide .examples{display:block}
+ .guide .examples button{width:100%}
+ .guide .primary,.guide textarea{border-radius:var(--cd-r-card)}
+}

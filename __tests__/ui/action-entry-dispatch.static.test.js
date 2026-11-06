@@ -24,6 +24,7 @@ const read = (rel) => fs.readFileSync(path.join(root, rel), "utf8");
 
 const LAUNCHER_REL = "js/inline/legacy-action-launcher.js";
 const RUNTIME_REL = "js/core/index-inline-runtime.js";
+const UI_BINDINGS_REL = "js/core/uiBindings.js";
 const HUB_REL = "app/components/HomeServiceSections.tsx";
 const LANDING_REL = "app/components/FeatureLandingPage.tsx";
 
@@ -31,6 +32,7 @@ const SHELL_REL = "index.html";
 
 const launcher = read(LAUNCHER_REL);
 const runtime = read(RUNTIME_REL);
+const uiBindings = read(UI_BINDINGS_REL);
 const shell = read(SHELL_REL);
 const hub = read(HUB_REL);
 const landing = read(LANDING_REL);
@@ -71,6 +73,11 @@ const allowList = new Set(
   [...allowBody.matchAll(/^\s*([A-Za-z0-9_]+)\s*:\s*true/gm)].map((m) => m[1]),
 );
 
+const uiAllowBody = objectBody(uiBindings, "const __cdRouteActionAllowList", UI_BINDINGS_REL);
+const uiAllowList = new Set(
+  [...uiAllowBody.matchAll(/^\s*([A-Za-z0-9_]+)\s*:\s*true/gm)].map((m) => m[1]),
+);
+
 /** 런처가 실제로 쓰는 정규식(② 가 잡는 액션). 하드코딩하지 않고 소스에서 읽는다. */
 const launcherOpenRe = (() => {
   const m = /var isOpenAction = \/(.+?)\/\.test\(action\)/.exec(launcher);
@@ -83,6 +90,15 @@ test("진입 액션 표가 실제로 추출된다 (fail-closed)", () => {
   assert.ok(landingPairs.length > 20, `랜딩 ACTION_MAP 추출 ${landingPairs.length}건 — 파서가 빗나갔다`);
   assert.ok(allowList.size > 20, `허용목록 추출 ${allowList.size}건 — 파서가 빗나갔다`);
   assert.ok(emitters.size > 20, `진입 액션 추출 ${emitters.size}건 — 파서가 빗나갔다`);
+});
+
+test("fallback 런타임과 uiBindings 의 인페이지 액션 허용목록이 같다", () => {
+  assert.deepEqual(
+    [...uiAllowList].sort(),
+    [...allowList].sort(),
+    `${UI_BINDINGS_REL} 와 ${RUNTIME_REL} 의 허용목록이 다르면 같은 링크가 로드 순서에 따라 이동하거나 시트를 연다`,
+  );
+  assert.ok(uiAllowList.has("dpOpenList"), "마이 → 프로필은 문서 이동 없이 현재 시트에서 열려야 한다");
 });
 
 test("허브·랜딩이 내보내는 모든 action 은 디스패처가 잡는다", () => {

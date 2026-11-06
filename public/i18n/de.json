@@ -1,4 +1,36 @@
 {
+  "saju": {
+    "bundle": {
+      "inlineTitle": "Deine Vier Säulen genauer verstehen",
+      "lottoSavedTitle": "Gespeicherte Mondlicht-Glücksrituale",
+      "lottoSavedDesc": "Hier kannst du gekaufte und auf diesem Gerät gespeicherte Berichte erneut lesen.",
+      "lottoSavedOpen": "Bericht öffnen",
+      "title": "Vollständige Vier-Säulen-Deutung",
+      "once": "Einmal kaufen und dauerhaft lesen",
+      "inlineCta": "Inhalte ansehen",
+      "inlineDesc": "Entdecke dein Geburtsbild, deine Zehnjahreszyklen, Tagesdeutungen und weitere Inhalte.",
+      "close": "Schließen",
+      "pay": "Per Einmalkauf öffnen",
+      "saveProfile": "Geburtsprofil speichern",
+      "saveProfileHint": "Speichere deine Geburtsdaten, um das Paket mit diesem Geburtsbild zu verknüpfen.",
+      "saveProfileUnavailable": "Speichere deine Geburtsdaten im Profil.",
+      "already": "Du besitzt dieses Paket bereits.",
+      "own": "Die Deutungen zu denselben Geburtsdaten kannst du ohne weitere Zahlung erneut lesen. Individuell erstellte Beratungen und Partnerschaftsberatungen sind separat erhältlich.",
+      "sample": "Beispiel · Du wirkst ruhig, sammelst aber vielleicht lange Informationen, bevor du dich entscheidest. Die Kapitel zeigen, wann dir diese Sorgfalt hilft und wann sie dich bremst.",
+      "item": [
+        "Geburtsbild, Tagessäule, zehn Götter und jahreszeitliches Gleichgewicht",
+        "Basisdeutung und Zehnjahreszyklen",
+        "Überblick zur Partnerschaft aus dem Geburtsbild",
+        "Quantendeutung, persönliche Ausstrahlung und Talentbaum",
+        "Wohlbefinden, Energie und schwierige Beziehungen",
+        "Tages- und Monatsdeutung, Briefe und ähnliche Prominente",
+        "Glückszahlen und Bericht zum Mondlichtritual",
+        "Denkstil, Teto/Egen-Details, Deutung in vier Bildern und Dopaminbericht",
+        "Gedankenkarte mit Human-Design-Deutung",
+        "Arbeitsstil, Tiertyp und Zugang zum Secret House"
+      ]
+    }
+  },
   "_comment": "Code Destiny — German premium localization (de.json)",
   "_version": "1.0.0",
   "brand": {
@@ -833,24 +865,24 @@
       "chipShareReward": "Einzelzahlung außerhalb des Bereichs",
       "plansAria": "Passplan-Zusammenfassungskarten",
       "standardName": "Kleines Honigglas",
-      "standardPrice": "9.900 KRW",
+      "standardPrice": "14.900 KRW",
       "standardLine": "Inhalte bis 5.000 KRW",
       "standardBenefit1": "Bis zu 20.000 KRW",
       "standardCta": "Kleines Honigglas ansehen",
       "recommendedAria": "Empfohlener Plan",
       "recommendedBadge": "Empfohlen",
       "premiumName": "Mittleres Honigglas",
-      "premiumPrice": "29.900 KRW",
+      "premiumPrice": "34.900 KRW",
       "premiumLine": "Inhalte bis 10.000 KRW",
       "premiumBenefit1": "Bis zu 60.000 KRW",
       "premiumCta": "Empfohlenen Plan anzeigen",
       "vvipName": "Großes Honigglas",
-      "vvipPrice": "59.900 KRW",
+      "vvipPrice": "64.900 KRW",
       "vvipLine": "Inhalte bis 30.000 KRW",
       "vvipBenefit1": "Bis zu 120.000 KRW",
       "vvipCta": "Vorteile des Großen Honigglases ansehen",
       "familyName": "Familien-Honigglas",
-      "familyPrice": "149.000 KRW",
+      "familyPrice": "154.000 KRW",
       "familyLine": "Alle im Pass enthaltenen Inhalte",
       "familyBenefit1": "Bis zu 350.000 KRW",
       "familyCta": "Familien-Honigglas ansehen",
@@ -864,8 +896,8 @@
       "step2Text": "Tarot-, Orakel- und Saju-Readings innerhalb deines Bereichs öffnen sich sofort, ganz ohne Bezahlfenster.",
       "step3Label": "Nur tiefere Readings kosten pro Nutzung",
       "step3Text": "Readings außerhalb deines Bereichs führen nur bei Bedarf zu einer einmaligen KRW-Zahlung.",
-      "terminationNote": "Wenn das Nutzungslimit aufgebraucht ist, endet der Pass. Bei einem erneuten Kauf beginnst du mit einem neuen Nutzungslimit. Zusätzliche kostenpflichtige Inhalte sind per Einzelzahlung oder mit Mondlichtsteinen verfügbar.",
-      "noExpiryNote": "Ohne Laufzeitbegrenzung · Endet, wenn das Nutzungslimit aufgebraucht ist"
+      "terminationNote": "Der Pass bleibt aktiv, auch wenn das Beratungslimit aufgebraucht ist, und leichte Deutungen bleiben verfügbar. Für weitere Signature-Beratungen kaufe einen neuen Pass oder nutze eine Einzelzahlung oder Mondlichtsteine.",
+      "noExpiryNote": "Ohne Laufzeitbegrenzung · Keine automatische Verlängerung"
     },
     "promptHub": {
       "aria": "Gehen Sie zu umfassenden Glücksfragen",
@@ -908,11 +940,11 @@
       "aria": "Übergeben Sie die Fußzeilenanleitung",
       "eyebrow": "Mondscheinpass",
       "savingsBadge": "Mit Pass bis zu einem Drittel des Preises",
-      "title": "Zwei Readings zu 5.000 KRW kosten bereits mehr als der Pass für 9.900 KRW",
-      "desc": "Readings innerhalb der gewählten Preisspanne öffnen sich, bis Ihr Nutzungslimit aufgebraucht ist; nur teurere Readings zahlen Sie bei Bedarf einzeln. Die vier Stufen sind 5.000 KRW · 10.000 KRW · 20.000 KRW und alle im Pass enthaltenen Inhalte – wählen Sie die Preisklasse, die Sie am häufigsten nutzen.",
+      "title": "Drei Readings zu 5.000 KRW kosten bereits mehr als der Pass für 14.900 KRW",
+      "desc": "Readings innerhalb der gewählten Preisspanne öffnen sich, bis Ihr Nutzungslimit aufgebraucht ist; nur teurere Readings zahlen Sie bei Bedarf einzeln. Die vier Stufen sind 5.000 KRW · 10.000 KRW · 30.000 KRW und alle im Pass enthaltenen Inhalte – wählen Sie die Preisklasse, die Sie am häufigsten nutzen.",
       "pointsAria": "Core-Pass-Anleitung",
       "point1": "Öffnet sofort, ohne Bezahlvorgang",
-      "point2": "Ohne Laufzeitbegrenzung · Endet, wenn das Nutzungslimit aufgebraucht ist",
+      "point2": "Ohne Laufzeitbegrenzung · Keine automatische Verlängerung",
       "point3": "Ein Pass ohne automatische Verlängerung",
       "mascotAria": "Vorteile des Moonlight Pass ansehen · Moonlight-Pass-Shop",
       "mascotAlt": "Bild der Moonlight-Pass-Vorteile",
@@ -1663,13 +1695,12 @@
       "bubbleAria": "Noch einen Satz von Yeoni hören",
       "saysName": "Yeoni",
       "saysLine": "Mit welcher Deutung fangen wir an? Eine reicht völlig.",
-      "passMascotAlt": "Blumenferkel Yeoni lächelt mit einer Passkarte in der Hand",
+      "passMascotAlt": "Blumenferkel Yeoni und Yeongnyangi halten gemeinsam einen Honigtopf",
       "passEyebrow": "Pass ohne Zeitlimit oder automatische Verlängerung",
       "passTitle": "Yeoni erklärt die Pässe",
       "passDesc": "Für gelegentliche Deutungen kannst du einzeln bezahlen, für häufige Nutzung einen Pass wählen. Prüfe, welche Beratungen enthalten sind und welche Nutzungsgrenzen gelten.",
       "passPer": "· Ohne Zeitlimit",
-      "passBadge": "Auch für Yeongnyangi",
-      "passNote": "Die kleinen, mittleren und großen Honigtöpfe gelten für GGULGGUL Fortune. Der Familien-Honigtopf gilt für kostenpflichtige Deutungen von GGULGGUL Fortune und Yeongnyangi. Bereits gekaufte Pässe behalten ihre ursprünglichen Kaufbedingungen.",
+      "passNote": "Alle Honigtöpfe gelten für GGULGGUL Fortune und Yeongnyangi, für Deutungen bis zur Obergrenze pro Beratung. Bereits gekaufte Pässe behalten ihr Beratungsbudget, und leichte Deutungen gelten auch für aktive Pässe.",
       "passCta": "Passenden Pass ansehen",
       "moreTitle": "Mehr in Yeonis Atelier entdecken",
       "moreItems": "Tagesdeutung · Beratung · Aufzeichnungen und Geschichten",
@@ -1736,7 +1767,8 @@
       "chemiCta": "See my bias chemistry",
       "brandOtherEntry": "꿀꿀 운세: Saju und Tarot mit Yeongnyangi →",
       "publicRecordsTitle": "Öffentliche Analysen von Park Byung-ha (Neo), Saju-Berater mit 10 Jahren Erfahrung",
-      "publicRecordsLink": "Daten, Originaltexte und Ergebnisse vergleichen"
+      "publicRecordsLink": "Daten, Originaltexte und Ergebnisse vergleichen",
+      "passLight": "Jeder Honigtopf enthält {count} leichte Deutungen ohne Nutzungslimit, im Wert von {amount} KRW bei je einer Nutzung. Signature-Beratungen sind nicht enthalten."
     },
     "chatEntry": {
       "title": "Frag Yeoni und Neo, was dich gerade am meisten beschäftigt",
@@ -2257,35 +2289,45 @@
       "title": "Neugierig auf dein Schicksal?",
       "subtitle": "Entdecke mehr mit dem Honigtopf-Pass.",
       "intro": "Saju-, Tarot-, Liebes- und Lebensberichte nach Bedarf.",
-      "family": "Family gilt für Ggulggul Fortune und Yeongnyangi.",
-      "scope": "Kleine, mittlere und große Honigtöpfe gelten für Ggulggul Fortune.",
+      "family": "Gilt für Ggulggul Fortune und Yeongnyangi.",
+      "scope": "Innerhalb des Budgets gilt er auf beiden Seiten für jede Deutung bis zur Obergrenze pro Beratung.",
       "pace": "Ohne Zeitlimit, in deinem Tempo.",
-      "end": "Endet bei ausgeschöpftem Budget · Keine automatische Verlängerung",
-      "alt": "Yeoni mit einem Pass",
+      "end": "Leichte Deutungen bleiben nutzbar, auch wenn das Beratungsbudget aufgebraucht ist.",
+      "alt": "Blumenferkel Yeoni und Yeongnyangi halten gemeinsam einen Honigtopf",
       "moon": "Mondschein-Pass!",
       "choose": "Wähle deinen Honigtopf.",
-      "value": "Maximaler Wert zum Einzelpreis",
+      "value": "Wert zum Einzelpreis",
       "price": "Passpreis",
       "cap": "Berechtigte Dienste bis {amount} KRW je Nutzung",
       "unlimitedCap": "Keine Preisobergrenze je Dienst",
       "percent": "Bis zu {amount}% sparen",
       "saving": "Bis zu {amount} KRW sparen",
-      "compare": "Vergleich bei vollständiger Nutzung für berechtigte Dienste.",
+      "compare": "Vergleich zum Einzelpreis bei einmaliger Nutzung jeder leichten Deutung und vollem Beratungsbudget.",
       "terms": "Es gelten Produktbedingungen, Ausschlüsse und Restbudget.",
-      "site": "Für Ggulggul Fortune",
-      "both": "Für Ggulggul Fortune und Yeongnyangi",
       "cta": "Pass {name} ansehen",
-      "validity": "Keine feste Laufzeit · Endet bei ausgeschöpftem Budget · Keine automatische Verlängerung",
+      "validity": "Keine feste Laufzeit · Keine automatische Verlängerung",
       "legend": "Welchen Honigtopf wählst du?",
       "hint": "Bild wählen, um Preise und Vorteile zu vergleichen.",
       "select": "Wählen",
       "selected": "Ausgewählt",
-      "fishTitle": "Wenn du meist Yeongnyangi nutzt",
-      "fishTerms": "Yeongnyangi-Pässe sind separat und gelten nicht für Ggulggul Fortune.",
-      "fishLink": "Yeongnyangi-Pässe ansehen →",
       "compactTitle": "Honigtopf-Pässe",
       "conditions": "Leistungsumfang und Bedingungen",
-      "otherServices": "Pässe für andere Dienste ansehen"
+      "otherServices": "Pässe für andere Dienste ansehen",
+      "lightBanner": "Ein kleiner Honigtopf öffnet alle {count} leichten Deutungen.",
+      "lightBannerSub": "Nutze leichte Deutungen ohne Nutzungslimit, ausgenommen Signature-Beratungen. Auch mittlere, große und Familien-Töpfe enthalten sie.",
+      "lightLine": "{count} leichte Deutungen, unbegrenzt nutzbar",
+      "lightWorth": "Im Wert von {amount} KRW",
+      "consultLine": "Budget für Expertenberatung",
+      "consultAmount": "{amount} KRW",
+      "consultCap": "(bis {amount} KRW je Nutzung)",
+      "consultNoCap": "(keine Preisobergrenze je Dienst)",
+      "signatureLimit": "Signature-Beratungen über {amount} KRW sind mit diesem Topf nicht nutzbar.",
+      "lightListTitle": "Die {count} enthaltenen leichten Deutungen ansehen",
+      "termsRevision": "Die Pass-Regeln haben sich geändert. Hinweis zur Änderung der Bedingungen ansehen",
+      "reachNone": "Nicht für Yeongnyangi-Deutungen",
+      "reachMackerel": "Yeongnyangi bis Makrele",
+      "reachTuna": "Yeongnyangi bis Thunfisch",
+      "reachAll": "Yeongnyangi bis Gemischt und Omakase"
     },
     "consultChoice": {
       "title": "Wähle die Beratung, die zu deinem Anliegen passt",
@@ -2480,6 +2522,10 @@
         "yearTitle": "Jahresausblick · Im Webtoon entdecken",
         "neoRoomTitle": "Neos Klartext-Strategieraum · Im Webtoon entdecken"
       }
+    },
+    "mobileEntry": {
+      "menu": "Menü",
+      "find": "Nach Anliegen suchen"
     }
   },
   "terms": {
@@ -3219,7 +3265,7 @@
       "monthlyButton": "Mit {credits} Monatsguthaben bezahlen",
       "monthlyButtonBusy": "Pass wird mit Monatsguthaben aktiviert...",
       "monthlyButtonShort": "{credits} nötig · Guthaben zu gering",
-      "terminationNotice": "Wenn das Nutzungslimit aufgebraucht ist, endet der Pass. Bei einem erneuten Kauf beginnst du mit einem neuen Nutzungslimit. Zusätzliche kostenpflichtige Inhalte sind per Einzelzahlung oder mit Mondlichtsteinen verfügbar."
+      "terminationNotice": "Der Pass bleibt aktiv, auch wenn das Beratungslimit aufgebraucht ist, und leichte Deutungen bleiben verfügbar. Für weitere Signature-Beratungen kaufe einen neuen Pass oder nutze eine Einzelzahlung oder Mondlichtsteine."
     },
     "access": {
       "passAppliedContinue": "Mit Ihrem Pass geöffnet."
@@ -14110,10 +14156,10 @@
       }
     },
     "rpt_tTestCard": {
-      "fallbackTitle": "Prüfen Sie Ihre Logik-Temperatur, bei der die Vernunft vor dem Gefühl reagiert.",
-      "tagline": "The Frozen Logic: ein spielerischer Test auf Saju-Basis, wie nah Ihr Denk- und Urteilsmuster am T-Typ liegt, enthalten in der vollständigen Saju-Deutung mit lebenslangem Zugang.",
-      "premiumIntro": "Der Extreme-T-Test legt Ihre Persönlichkeit nicht fest. Er zeigt, wie stark Ihr Urteil zur Vernunft neigt.",
-      "fallbackCta": "Diagnose starten",
+      "fallbackTitle": "Check your logic temperature, where reason responds before emotion.",
+      "tagline": "The Frozen Logic: a playful Saju-based test of how close your thinking and judgment pattern is to Thinking (T), included in the Saju full reading, lifetime access.",
+      "premiumIntro": "The Extreme-T Test doesn't define your personality. It reflects how much your judgment leans toward reason.",
+      "fallbackCta": "Run the Diagnosis",
       "feats": {
         "0": "Measures the metal element, authority, expression and climate in your chart to produce a T score of 0–100 and a tier",
         "1": "Shows four stats: metal hardware, forced-control instinct, blunt-fact debugging and the cold-dry formation",
@@ -14133,7 +14179,7 @@
         "3": "Six summary chips plus today’s mission"
       },
       "premiumOutcomes": {
-        "0": "Diese Deutung ist in der vollständigen Saju-Deutung mit lebenslangem Zugang enthalten.",
+        "0": "This reading is included in the Saju full reading, lifetime access.",
         "1": "[Relationship Circuit], [Love Algorithm], [Reality Processing], [Saju-based Extreme-T Reading] and [Debugging Prescription] open after a separate unlock.",
         "2": "The test is for reference and fun."
       },
@@ -14166,8 +14212,8 @@
           "a": "No. You do not answer questionnaire items. It scores the metal element, authority, expression and climate in your natal chart, for fun."
         },
         "1": {
-          "q": "Was ist enthalten?",
-          "a": "T-Wert, Stufe, Typname, vier Werte, [Strength Scan], [Fatal Bug], die heutige Mission und die Übersichtskarte öffnen sich mit der vollständigen Saju-Deutung mit lebenslangem Zugang."
+          "q": "What does it cover?",
+          "a": "The T score, tier, type name, four stats, [Strength Scan], [Fatal Bug], today's mission and the summary card all open with the Saju full reading, lifetime access."
         },
         "2": {
           "q": "Why can’t I see the relationship sections?",
@@ -14176,10 +14222,10 @@
       }
     },
     "rpt_hormone_vibe_section": {
-      "fallbackTitle": "Finden Sie heraus, ob Ihr Charme wie beim Teto-Typ kraftvoll anzieht oder wie beim Egen-Typ sanft wirkt.",
-      "tagline": "Eine Analyse auf Basis Ihres Saju, die Ihre Charme-Energie in die Stile Teto und Egen aufteilt, enthalten in der vollständigen Saju-Deutung mit lebenslangem Zugang.",
-      "premiumIntro": "Die Teto/Egen-Analyse stellt keinen Typ über den anderen. Sie zeigt, auf welche Weise Ihr Charme Menschen anzieht.",
-      "fallbackCta": "Jetzt ansehen",
+      "fallbackTitle": "See whether your charm pulls strongly like a Teto type or seeps in gently like an Egen type.",
+      "tagline": "An analysis based on your Saju that splits your charm energy into Teto and Egen styles, included in the Saju full reading, lifetime access.",
+      "premiumIntro": "The Teto/Egen analysis doesn't rank one above the other. It lays out how your charm draws people in.",
+      "fallbackCta": "Check Now",
       "feats": {
         "0": "Tallies the Ten Gods across all seven positions except the day stem",
         "1": "Groups the Ten Gods into peers, output, resource, authority and wealth",
@@ -14195,10 +14241,10 @@
         "0": "Teto and Egen scores with a type reading",
         "1": "Ten Gods tallied across seven positions excluding the day stem",
         "2": "Weightings for the five groups: peers, output, resource, authority, wealth",
-        "3": "In der vollständigen Saju-Deutung mit lebenslangem Zugang enthalten"
+        "3": "Included in the Saju full reading, lifetime access"
       },
       "premiumOutcomes": {
-        "0": "Diese Deutung ist in der vollständigen Saju-Deutung mit lebenslangem Zugang enthalten.",
+        "0": "This reading is included in the Saju full reading, lifetime access.",
         "1": "The analysis is for reference and entertainment.",
         "2": "Your charm type can vary by situation."
       },
@@ -14235,16 +14281,16 @@
           "a": "It uses only the Ten Gods in your natal chart, so the same birth date and time always gives the same result."
         },
         "2": {
-          "q": "Muss ich separat bezahlen?",
-          "a": "Eine Einzelzahlung gibt es nicht. Es öffnet sich zusammen mit der vollständigen Saju-Deutung mit lebenslangem Zugang."
+          "q": "Do I pay for it separately?",
+          "a": "There is no separate payment. It opens together with the Saju full reading, lifetime access."
         }
       }
     },
     "rpt_lottoCard": {
-      "fallbackTitle": "Erhalten Sie die Glückszahlen des Tages, gezogen aus den Fünf Elementen Ihres Saju und der Zahlensymbolik.",
-      "tagline": "Eine Funktion für symbolische Zahlen, die aus Ihrem Geburtschart, der heutigen Tagessäule und Ihrem Glückszyklus fünf Kombinationen zieht, enthalten in der vollständigen Saju-Deutung mit lebenslangem Zugang.",
-      "premiumIntro": "Das Saju-Lotto sagt keinen Gewinn voraus. Es zieht symbolische Zahlen, die zum heutigen Glück passen.",
-      "fallbackCta": "Zahlen ziehen",
+      "fallbackTitle": "Get today's lucky numbers drawn from your Saju's Five Elements and number symbolism.",
+      "tagline": "A symbolic number feature that seeds five combinations from your natal chart plus today's day pillar and luck cycle, included in the Saju full reading, lifetime access.",
+      "premiumIntro": "The Saju Lotto doesn't predict a win. It draws symbolic numbers that fit today's fortune.",
+      "fallbackCta": "Draw Numbers",
       "feats": {
         "0": "Seeds the numbers from your natal chart plus today’s day pillar, luck cycle and round counter",
         "1": "Builds five games at once and labels them flow, stable, reversal, instinct and balance",
@@ -14260,10 +14306,10 @@
         "0": "Numbers seeded from your chart, today’s day pillar and luck cycle",
         "1": "Five games at once, each with a concept name",
         "2": "Redraw to raise the round counter and get a new set",
-        "3": "In der vollständigen Saju-Deutung mit lebenslangem Zugang enthalten"
+        "3": "Included in the Saju full reading, lifetime access"
       },
       "premiumOutcomes": {
-        "0": "Diese Deutung ist in der vollständigen Saju-Deutung mit lebenslangem Zugang enthalten.",
+        "0": "This reading is included in the Saju full reading, lifetime access.",
         "1": "This is fun content that doesn't guarantee a win.",
         "2": "Please judge an actual purchase carefully."
       },
@@ -14301,15 +14347,15 @@
         },
         "2": {
           "q": "Can I save or share the number card?",
-          "a": "Die Zahlenziehung bietet keine Speicher- oder Teilen-Funktion. Sie sehen die Zahlen direkt auf dem Bildschirm."
+          "a": "The number draw has no save or share feature. You read it directly on screen."
         }
       }
     },
     "rpt_sajuFourCutCard": {
-      "fallbackTitle": "Erstellen Sie einen Vier-Bilder-Streifen, der Ihre Saju-Daten im Fotoautomaten-Stil neu deutet.",
-      "tagline": "Direkte, aber treffende Sätze in vier Bildern, zum Speichern und Teilen, enthalten in der vollständigen Saju-Deutung mit lebenslangem Zugang.",
-      "premiumIntro": "Der Saju-Vier-Bilder-Streifen legt Ihr Schicksal nicht fest. Er lässt Sie Ihr Saju als Blatt im Fotoautomaten-Stil genießen.",
-      "fallbackCta": "Vier-Bilder-Streifen erstellen",
+      "fallbackTitle": "Make a four-cut strip that reinterprets your Saju data in a photo-booth mood.",
+      "tagline": "Blunt but relatable lines packed into four cuts, ready to save and share, included in the Saju full reading, lifetime access.",
+      "premiumIntro": "The Saju Four-Cut doesn't state your fortune definitively. It lets you enjoy your Saju as a single photo-booth-style card.",
+      "fallbackCta": "Make a Four-Cut",
       "feats": {
         "0": "Builds four-cut lines from today’s day pillar energy",
         "1": "Lets you switch between four versions: form check, reply warmth, routine save and impulse lock",
@@ -14329,7 +14375,7 @@
         "3": "Image save plus KakaoTalk, device share or link copy"
       },
       "premiumOutcomes": {
-        "0": "Diese Deutung ist in der vollständigen Saju-Deutung mit lebenslangem Zugang enthalten.",
+        "0": "This reading is included in the Saju full reading, lifetime access.",
         "1": "The sentences are for reference and entertainment.",
         "2": "The existing service standard applies."
       },
@@ -14366,16 +14412,16 @@
           "a": "Yes. You can save the four cuts as an image with your stickers in place."
         },
         "2": {
-          "q": "Muss ich separat bezahlen?",
-          "a": "Eine Einzelzahlung gibt es nicht. Es öffnet sich zusammen mit der vollständigen Saju-Deutung mit lebenslangem Zugang."
+          "q": "Do I pay for it separately?",
+          "a": "There is no separate payment. It opens together with the Saju full reading, lifetime access."
         }
       }
     },
     "rpt_dopamineCard": {
-      "fallbackTitle": "Finden Sie heraus, ob Sie neuen Reizen nachjagen oder die Stabilität mehr lieben.",
-      "tagline": "Ein Bericht, der Ihre Reizsuche aus dem Fluss Ihres Saju in Punkte und eine Stufe umrechnet, mit 8-Achsen-Radar, Vertiefungsbereichen und der heutigen Mission, enthalten in der vollständigen Saju-Deutung mit lebenslangem Zugang.",
+      "fallbackTitle": "See whether you chase new stimulation or love stability more.",
+      "tagline": "A report that converts your stimulation-seeking tendency into a score and grade from your Saju flow, with an 8-axis stimulation radar, absorption areas and today's mission, included in the Saju full reading, lifetime access.",
       "premiumIntro": "This doesn't diagnose addiction -- it's a fun read, through your Saju flow, of where you draw energy from and where you burn out quickly.",
-      "fallbackCta": "Meinen Reizindex ansehen",
+      "fallbackCta": "See Your Stimulation Score",
       "feats": {
         "0": "Converts your stimulation-seeking tendency into a 0–100 score, an SSS–D grade and a type name",
         "1": "Draws an eight-axis stimulation radar: new experiences, social media, shopping, gaming, study, travel, romance and exercise",
@@ -14396,7 +14442,7 @@
         "4": "Save and share the result card"
       },
       "premiumOutcomes": {
-        "0": "Diese Deutung ist in der vollständigen Saju-Deutung mit lebenslangem Zugang enthalten.",
+        "0": "This reading is included in the Saju full reading, lifetime access.",
         "1": "This is content for temperament reference and entertainment.",
         "2": "The existing service standard applies."
       },
@@ -15890,7 +15936,7 @@
       "faq": {
         "0": {
           "q": "How is the price determined?",
-          "a": "The price depends on the number of cards in your chosen spread. You can review it on the payment screen before paying."
+          "a": "Each reading costs KRW 5,000 regardless of the number of cards. You can review it on the payment screen before paying."
         },
         "1": {
           "q": "What happens if generation fails?",
@@ -16399,7 +16445,7 @@
       "badge": "Free compatibility reading"
     },
     "saju": {
-      "tagline": "Berechnet die acht Zeichen deines Saju und zeigt dir kostenlos dein Chart, die Balance der Fünf Elemente und eine Ein-Satz-Tendenz. Die Deutung der Zehn Götter und Glückszyklen folgt in der kostenpflichtigen vollständigen Saju-Deutung.",
+      "tagline": "Calculates the eight characters of your Saju and shows your natal chart, Five Elements balance and a one-line tendency for free. Ten Gods and luck-cycle readings continue in the full paid Saju reading.",
       "feats": [
         "When you can't put your own disposition into words",
         "When you want to see the broad arc of your life once",
@@ -16416,7 +16462,7 @@
         "How does the broad arc of my life run?",
         "What kind of period am I in now?"
       ],
-      "fallbackCta": "Kostenloses Manseryeok ansehen",
+      "fallbackCta": "See your free Manseryeok chart",
       "headline": "Explore the broad patterns of your life through your birth date and time.",
       "badge": "Start for free"
     },

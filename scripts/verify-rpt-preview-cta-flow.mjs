@@ -73,7 +73,9 @@ try {
 
   const lockedCta = await clickCtaAndRead();
   assert(!lockedCta.previewOpen, "잠금 CTA → 팝업이 닫힌다", lockedCta);
-  assert(lockedCta.paymentEntered, "잠금 CTA → 결제/권한 확인 경로로 진입한다", lockedCta);
+  // rpt_quantumCard 는 묶음 전용으로 판매가 닫혔다. 개별 결제가 아니라 묶음 안내로 가야 한다.
+  assert(lockedCta.bundleOfferOpen, "잠금 CTA → 묶음 안내가 열린다", lockedCta);
+  assert(!lockedCta.paidGateOpen, "잠금 CTA → 판매 종료 상품의 개별 결제 게이트를 열지 않는다", lockedCta);
 
   // ── 2) 해금 타일 ────────────────────────────────────────────────────────────
   await resetPage();
@@ -271,6 +273,7 @@ function readState() {
       previewCtaLabel: (label && label.textContent || '').trim(),
       editorialImage: overlay?.querySelector('#tilePvwHeroImg[src], #tilePvwOutlineImg[src]')?.getAttribute('src') || '',
       paidGateOpen: !!(gate && gate.classList.contains('is-open')),
+      bundleOfferOpen: !!(document.getElementById('cdBundleOffer') && !document.getElementById('cdBundleOffer').hidden),
       blockOpen: !!(block && block.classList.contains('open')),
       toggleCalls: Number(window.__cdRptToggleCalls || 0),
       pathname: location.pathname,

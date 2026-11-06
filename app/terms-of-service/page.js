@@ -1,7 +1,7 @@
 import PolicyGuide, { policyPageClass } from "../components/PolicyGuide";
 import Link from "next/link";
 import { generatePageMetadata } from "../../lib/generate-page-metadata";
-import TermsContent, { TERMS_EFFECTIVE_DATE, TERMS_SECTIONS } from "./TermsContent";
+import TermsContent, { TERMS_EFFECTIVE_DATE, TERMS_SECTIONS, TermsRevisionNotice } from "./TermsContent";
 
 const TERMS_OF_SERVICE_METADATA_COPY = {
   ko: {
@@ -73,6 +73,7 @@ export default function TermsOfServicePage() {
         </nav>
 
         <div className="policy-doc__body">
+          <TermsRevisionNotice />
           <TermsContent />
 
           <nav className="policy-doc__related" aria-label="관련 문서">

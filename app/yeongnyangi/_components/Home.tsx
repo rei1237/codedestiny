@@ -4,4 +4,4 @@ import ServiceNavigation from '../_original/ServiceNavigation';
 import '../_original/original.css';
 import {productOffers} from '../_lib/product-offers';
 import PassBenefits from '@/app/components/PassBenefits';
-export default function Home({guide}:{guide?:ReactNode}){return <div className="ynOriginal"><FortuneHome offers={productOffers} guide={guide} passBenefits={<PassBenefits kind="fish" id="home-fish-pass"/>}/><ServiceNavigation/></div>;}
+export default function Home({guide}:{guide?:ReactNode}){return <div className="ynOriginal"><FortuneHome offers={productOffers} guide={guide} passBenefits={<PassBenefits kind="honey" id="home-fish-pass"/>}/><ServiceNavigation/></div>;}

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<link rel="stylesheet" href="/styles/theme-tokens.css?v=build-dcbbfaffa6ab">
+<link rel="stylesheet" href="/styles/theme-tokens.css?v=build-532c1d0e37f3">
 <link rel="stylesheet" href="/styles/moonlit-birth-form.css?v=build-61b1c578c999">
 <script defer src="/js/core/korean-calendar.js"></script>
 <script defer src="/js/vedic-birth-inputs.js"></script>
@@ -15,10 +15,10 @@
 <script defer src="/js/prompt-hub-honey.js?v=build-86de7521ecfd"></script>
 <title>윤달의 베다 점성술 — 별들의 지도</title>
 <script src="/js/core/standalone-ai-locale.js?v=build-f8479810eaec"></script>
-<script src="/js/core/pass-verdict.js?v=build-6300332e3d54"></script>
+<script src="/js/core/pass-verdict.js?v=build-820339ff38a2"></script>
 <script src="/js/core/checkout-entry.js?v=build-988868d8aee1"></script>
 <script src="/js/core/payment-service.js?v=build-86f76b083b39"></script>
-<script src="/js/destiny-profile.js?v=build-9fb9ddb703c4"></script>
+<script src="/js/destiny-profile.js?v=build-8f25219abdba"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css" onerror="this.remove()">
 <style>
 /* ── 오프라인 폴백 폰트 스택 ─────────────────────────────
@@ -3376,7 +3376,7 @@ async function copyCurrentVedicDataSnapshot(){
   }
 }
 
-const VEDIC_AI_PROMPT_COST=100;
+const VEDIC_AI_PROMPT_COST=50;
 const VEDIC_AI_QUESTION_TYPE_LABELS={
   compatibility:'궁합/관계',
   love:'연애/결혼',
@@ -3416,7 +3416,7 @@ function vedicAiCreateState(chartKey){
     question:'',
     prompt:'',
     questionType:'general',
-    statusMessage:'궁금한 흐름을 입력하면 현재 차트 기반 상담 질문을 정리합니다. 생성 성공 시 10,000원 결제가 확인됩니다.',
+    statusMessage:'궁금한 흐름을 입력하면 현재 차트 기반 상담 질문을 정리합니다. 생성 성공 시 5,000원 결제가 확인됩니다.',
     statusError:false,
     inFlight:false,
     lastChargedCoins:0,
@@ -3436,7 +3436,7 @@ function vedicAiEnsureState(){
 }
 
 const VEDIC_AI_PROMPT_FEATURE_KEY='vedic_ai_prompt_generator';
-const VEDIC_AI_PROMPT_AMOUNT_KRW=10000;
+const VEDIC_AI_PROMPT_AMOUNT_KRW=5000;
 
 /* 이 페이지는 js/saju-engine.js 를 로드하지 않아 공용 _cdAIPromptBuildRequestId 를 쓸 수 없다.
    같은 알고리즘을 페이지 로컬로 둔다 — 대안(공용 파일 신설 + 전 페이지 script 태그)은 파급이 훨씬 크다. */
@@ -3594,7 +3594,7 @@ function vedicAiResetForChart(chart){
 function vedicAiStatusText(code, fallbackMessage){
   const msg=String(fallbackMessage||'').trim();
   if(code==='AUTH_REQUIRED') return '로그인이 필요합니다. 로그인 후 다시 시도해 주세요.';
-  if(code==='INSUFFICIENT_COINS') return '원화 결제 확인이 필요합니다. 10,000원 결제 후 다시 시도해 주세요.';
+  if(code==='INSUFFICIENT_COINS') return '원화 결제 확인이 필요합니다. 5,000원 결제 후 다시 시도해 주세요.';
   if(code==='INVALID_QUESTION') return '질문은 5자 이상 1000자 이하로 입력해 주세요.';
   if(code==='MISSING_VEDIC_RESULT') return '기본 베다 분석 결과가 없어 상담 질문을 정리할 수 없습니다.';
   if(code==='MISSING_COMPATIBILITY_RESULT') return '궁합 질문은 먼저 베다 궁합 계산을 완료해야 합니다.';
@@ -3827,7 +3827,7 @@ async function vedicAiGeneratePromptCore(resumeGate, resumeRequestId){
 
   state.inFlight=true;
   state.statusError=false;
-  state.statusMessage='상담 답변을 작성 중입니다. 최대 1~2분 정도 걸릴 수 있고, 생성 성공 시에만 10,000원 결제가 확인됩니다.';
+  state.statusMessage='상담 답변을 작성 중입니다. 최대 1~2분 정도 걸릴 수 있고, 생성 성공 시에만 5,000원 결제가 확인됩니다.';
   vedicAiRefreshUi();
   _vedicSetPaymentPending(true,'베다 AI 상담 결제/생성 확인 중입니다...');
 

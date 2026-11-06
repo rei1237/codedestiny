@@ -9,9 +9,20 @@
  *  2) 미커버 시에만 결제창, 단건결제(KRW)와 월정석을 항상 동등 노출
  */
 
+import { jest } from "@jest/globals";
+
 let buildPassPaymentDecision;
 let buildMeteredPassBudgetFilter;
+let consumeTierPassIfAvailable;
+let recordPassAccessIfNeeded;
+let resolveFeatureAccessPolicy;
 let PASS_LIMITS;
+let MONTHLY_PASS_LIMITS;
+let LIGHT_KEY;
+
+const USER_ID = "64b000000000000000000001";
+const LLM_KEY = "tarot-love-relationship";
+const store = { user: null, evidence: [], writes: [] };
 
 const EQUAL_METHODS = ["DIRECT_KRW", "MOONLIGHT_STONE"];
 
@@ -30,10 +41,40 @@ function pricing(coinPrice, featureKey = "master-love-codex") {
   return { featureKey, coinPrice };
 }
 
+function chain(result) {
+  const query = { select: () => query, lean: async () => result() };
+  return query;
+}
+
 beforeAll(async () => {
+  // 소비 경로(consumeTierPassIfAvailable)는 Mongo를 직접 쓰므로 User·PointHistory만 메모리로 바꾼다.
+  const actualModels = await import("../../worker/lib/models.js");
+  const actualDb = await import("../../worker/lib/db.js");
+  jest.unstable_mockModule("../../worker/lib/db.js", () => ({ ...actualDb, connectDb: async () => undefined }));
+  jest.unstable_mockModule("../../worker/lib/models.js", () => ({
+    ...actualModels,
+    User: {
+      findById: () => chain(() => store.user),
+      findOneAndUpdate: (filter, update) => chain(() => {
+        store.writes.push({ filter, update });
+        return { points: 0, profileSubscription: store.user.profileSubscription };
+      }),
+    },
+    PointHistory: {
+      findOne: (filter) => chain(() => store.evidence.find((row) => row.metadata.requestId === filter["metadata.requestId"]) || null),
+      create: async (row) => { store.evidence.push(row); return row; },
+    },
+  }));
   const billingMod = await import("../../worker/routes/billing.js");
   buildPassPaymentDecision = billingMod.__billingTestUtils.buildPassPaymentDecision;
   buildMeteredPassBudgetFilter = billingMod.__billingTestUtils.buildMeteredPassBudgetFilter;
+  consumeTierPassIfAvailable = billingMod.__billingTestUtils.consumeTierPassIfAvailable;
+  recordPassAccessIfNeeded = billingMod.__billingTestUtils.recordPassAccessIfNeeded;
+  ({ resolveFeatureAccessPolicy } = await import("../../worker/lib/entitlement-policy.js"));
+  ({ MONTHLY_PASS_LIMITS } = await import("../../worker/lib/profile-limits.js"));
+  const { LIGHT_FORTUNE_FEATURE_KEYS } = await import("../../worker/lib/light-fortune-catalog.js");
+  const { resolveProduct } = await import("../../worker/payments/catalog.js");
+  LIGHT_KEY = LIGHT_FORTUNE_FEATURE_KEYS.find((featureKey) => resolveProduct({ featureKey })?.billingType === "per_use");
   // 🔴 상한 숫자를 여기 박지 않는다 — 적용 가격 범위가 바뀌면 이 테스트가 정책이 아니라
   //    옛 숫자를 지킨다(2026-08-24 상향에서 실제로 걸렸다).
   ({ PASS_LIMITS } = await import("../../worker/lib/profile-limits.js"));
@@ -165,5 +206,79 @@ describe("레거시 이용권 소비 CAS", () => {
 
   test("월 한도 비적용 이용권에는 추가 CAS 필터를 만들지 않는다", () => {
     expect(buildMeteredPassBudgetFilter({ applies: false }, 200)).toBeNull();
+  });
+});
+
+describe("옛 결제 경로의 라이트 운세", () => {
+  function exhaustedSub() {
+    const sub = activePass("standard").profileSubscription;
+    return {
+      ...sub,
+      isActive: true,
+      premiumUseCycleKey: sub.expiresAt.toISOString(),
+      monthlySpendCoin: MONTHLY_PASS_LIMITS.standard,
+    };
+  }
+
+  beforeEach(() => {
+    store.user = { _id: USER_ID, points: 0, recentConsumeRequestIds: [], profileSubscription: exhaustedSub() };
+    store.evidence.length = 0;
+    store.writes.length = 0;
+  });
+
+  test("legacy gate opens light with exhausted budget and no spend increment", async () => {
+    const result = await consumeTierPassIfAvailable({}, USER_ID, pricing(50, LIGHT_KEY), "light-1", {});
+    expect(result).toMatchObject({ ok: true, accessType: "membership_pass" });
+    expect(result).not.toHaveProperty("passEnded");
+    expect(store.writes).toHaveLength(1);
+    const { filter, update } = store.writes[0];
+    expect(Object.keys(update[0].$set)).not.toEqual(expect.arrayContaining(["profileSubscription.monthlySpendCoin"]));
+    expect(update[0].$set.recentConsumeRequestIds).toBeDefined();
+    expect(JSON.stringify(filter)).not.toContain("monthlySpendCoin");
+  });
+
+  test("legacy gate does not close the pass when LLM empties the budget", async () => {
+    const before = store.user.profileSubscription;
+    store.user = { ...store.user, profileSubscription: { ...before, monthlySpendCoin: MONTHLY_PASS_LIMITS.standard - 50 } };
+    const result = await consumeTierPassIfAvailable({}, USER_ID, pricing(50, LLM_KEY), "llm-last", {});
+    expect(result.ok).toBe(true);
+    expect(result).not.toHaveProperty("passEnded");
+    expect(store.writes).toHaveLength(1);
+    expect(JSON.stringify(store.writes[0].update)).not.toContain("passExhaustedAt");
+  });
+
+  test("legacy gate still blocks LLM with exhausted budget", async () => {
+    const result = await consumeTierPassIfAvailable({}, USER_ID, pricing(50, LLM_KEY), "llm-1", {});
+    expect(result).toMatchObject({ ok: false, reason: "monthly_pass_limit_exceeded" });
+    expect(store.writes).toHaveLength(0);
+  });
+
+  test("pre-check and consume agree for light", async () => {
+    const light = pricing(50, LIGHT_KEY);
+    const decision = buildPassPaymentDecision({}, light, store.user.profileSubscription);
+    const consumed = await consumeTierPassIfAvailable({}, USER_ID, light, "light-2", {});
+    expect(decision.canUseByPass).toBe(true);
+    expect(consumed.ok).toBe(true);
+
+    const llm = pricing(50, LLM_KEY);
+    expect(buildPassPaymentDecision({}, llm, store.user.profileSubscription).canUseByPass).toBe(false);
+    expect((await consumeTierPassIfAvailable({}, USER_ID, llm, "llm-2", {})).ok).toBe(false);
+  });
+
+  test("entitlement policy does not raise MONTHLY_PASS_LIMIT_EXCEEDED for light", () => {
+    const user = { profileSubscription: store.user.profileSubscription };
+    expect(resolveFeatureAccessPolicy({ user, pricing: pricing(50, LIGHT_KEY), coinCost: 50 }).allowed).toBe(true);
+    expect(resolveFeatureAccessPolicy({ user, pricing: pricing(50, LLM_KEY), coinCost: 50 }))
+      .toMatchObject({ allowed: false, reason: "MONTHLY_PASS_LIMIT_EXCEEDED" });
+  });
+
+  test("legacy gate leaves a non-family light evidence row with passBudgetExempt", async () => {
+    const record = (key, requestId) => recordPassAccessIfNeeded({}, USER_ID, pricing(50, key), requestId, { accessMethod: "PASS" }, { passTier: "standard" }, 0);
+    const row = await record(LIGHT_KEY, "evidence-1");
+    expect(row.metadata).toMatchObject({ accessMethod: "PASS", accessType: "membership_pass", requestId: "evidence-1", passBudgetExempt: true });
+    await record(LIGHT_KEY, "evidence-1");
+    expect(store.evidence).toHaveLength(1);
+    expect(await record(LLM_KEY, "evidence-2")).toBeNull();
+    expect(store.evidence).toHaveLength(1);
   });
 });

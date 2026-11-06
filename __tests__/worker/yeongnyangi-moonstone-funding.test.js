@@ -144,7 +144,7 @@ test('local PG failure flag alone cannot authorize another funding method',async
  expect(f.user.profileSubscription.membershipCreditBalance).toBe(STONES);
 });
 
-test.each(['standard','premium','vvip'])('%s remains excluded from Yeongnyangi',async tier=>{
+test.each(['standard','premium'])('%s cannot fund a consultation above its per-item cap',async tier=>{
  const f=fixture();f.user.profileSubscription.tier=tier;f.user.profileSubscription.passTier=tier;
  expect((await pass(f)).covered).toBe(false);
  expect(f.user.profileSubscription.monthlySpendCoin).toBe(0);
@@ -153,7 +153,7 @@ test.each(['standard','premium','vvip'])('%s remains excluded from Yeongnyangi',
 test('registry authorizes exactly 1500 stones for one 15,000 KRW consultation',()=>{
  expect(product.monthlyCost).toBe(1500);
  expect(calculatePaidFeatureMembershipCreditCost(product.featureKey)).toBe(1500);
- expect(getPaidFeaturePaymentPolicy(product.featureKey)).toMatchObject({familyPassOnly:true,monthlyExcluded:false,membershipCreditMultiplier:1});
+ expect(getPaidFeaturePaymentPolicy(product.featureKey)).toMatchObject({familyPassOnly:false,monthlyExcluded:false,membershipCreditMultiplier:1});
  expect(getPaidFeaturePaymentPolicy('fusion-fortune-consultation').monthlyExcluded).toBe(false);
 });
 test('a changed client amount cannot lower the server price',async()=>{

@@ -1,9 +1,13 @@
 'use client';
 import {useState} from 'react';
+import SaleStatus from '../../editions/verify/sale-status';
 import StagingProducts from './staging-products';
+
 import {RECORDS,issueUrl} from '../../../lib/editions/staging.mjs';
 import {Ticket} from '../../editions/workshop-ui';
 import s from '../../editions/workshop.module.css';
+import studio from './studio.module.css';
+import {editionPortraits} from '../../../lib/editions/artwork.mjs';
 
 import {TEST_RECORDS,TEST_ENVIRONMENT,testIssueUrl} from '../../../lib/editions/production-test.mjs';
 export default function StagingPrints({productionTest=false}) {
@@ -21,15 +25,18 @@ export default function StagingPrints({productionTest=false}) {
         setItems(data.items);setMessage(data.items.length?'':'발행된 테스트 번호가 없어요.');
       } catch {setMessage('발행 목록을 불러오지 못했어요. 발행 상태를 새로고침해 주세요.');}
   }
-  return <main className={s.sheet}><header><small>성장 공방 · {productionTest?'운영 테스트':'스테이징'}</small><h1>한정판 공방</h1>
-    <p>테스트 NFT 발행 전용이에요. 메인넷 자산이나 판매용 인증서가 아닙니다.</p>
-    <p>상품에 이름을 붙이고 한정판 번호를 발행해요. 테스트 체인이 확인한 번호마다 캐릭터 QR이 생겨요.</p></header>
-    <StagingProducts records={items} refreshRecords={refreshRecords}/>
-    <h2>인쇄용 캐릭터 QR</h2>
+  return <main className={`${s.sheet} ${studio.workshop}`}><header className={studio.shopfront}>
+    <div><h1>한정판 공방</h1><p>{productionTest?'운영 테스트':'스테이징'} · 한정판 테스트 발행</p></div>
+    <img src={editionPortraits.yeoni} width="84" height="112" alt="" />
+  </header>
+    <StagingProducts productionTest={productionTest} records={items} refreshRecords={refreshRecords}/>
+
+    <h2>캐릭터 QR 보관함</h2>
     <output aria-live="polite">{message}</output>
-    {items.map(item=><section key={item.code}><Ticket item={item} serial={item.serial}/>
+    {items.map(item=><section key={item.code} id={'qr-'+item.code}><Ticket item={item} serial={item.serial}/>
       <img width="220" height="220" src={recordPath+'/'+item.code+'.png'} alt={item.title+' 발행기록 확인 QR'}/>
       <p>확인 코드: {item.code}</p>
+      {productionTest && <SaleStatus code={item.code} manual/>}
       <a href={recordPath+'/'+item.code+'.png'} download={item.code+'.png'}>QR 이미지 저장하기</a>
       <a href={urlFor(item.code)}>고객 화면 열기</a></section>)}</main>;
 }

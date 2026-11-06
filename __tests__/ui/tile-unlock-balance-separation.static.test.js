@@ -106,7 +106,7 @@ test("paid pass snapshot remains optimistic while direct checkout still requires
   const directCheckoutBlock = between(shellSource, "async function _cdRunDirectKrwCheckout", "var _cdRunDirectKrwCheckoutCore");
   const precheckCacheBlock = between(shellSource, "function _cdIsCacheablePaidPrecheckResult", "var _cdResolvePaidContentAccessCore");
 
-  assert.match(paidAccessBlock, /_cdCoverageFromSubscriptionSnapshot\(coinCost,\s*\{\s*allowStaleNone:\s*true\s*\}\)/);
+  assert.match(paidAccessBlock, /_cdCoverageFromSubscriptionSnapshot\(coinCost,\s*\{\s*allowStaleNone:\s*true,\s*featureKey:/);
   assert.match(paidAccessBlock, /return _cdBuildOptimisticPassAccess/);
   assert.match(passModalBlock, /allowSnapshotFastPath:\s*false/);
   assert.doesNotMatch(passModalBlock, /allowSnapshotFastPath:\s*true/);

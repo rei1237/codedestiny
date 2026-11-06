@@ -23,7 +23,9 @@ for (const entryClass of ['cdh-all-cta__btn']) {
   assert.match(entry, /href="\/\?action=cdOpenAllFortunes" data-action="cdOpenAllFortunes"/, `${entryClass}는 기존 전체 운세 검색을 열어야 합니다`);
 }
 assert.ok(template.indexOf('{{yehwaHome}}') < template.indexOf('id="cdhFeatured"'), '고민과 전체 검색 진입은 대표 상담 앞에 둡니다');
-assert.match(home, /class="yh-links"[\s\S]*?data-action="cdOpenAllFortunes"/);
+const recordsNav = home.match(/<nav class="yh-links"[\s\S]*?<\/nav>/)?.[0] || '';
+assert.ok(recordsNav.includes('/records/') && recordsNav.includes('/yeongnyangi/library/'));
+assert.ok(!recordsNav.includes('cdOpenAllFortunes'));
 // 나머지 입구는 홈에 펼치지 않고 모든 운세 시트 하나로 연다.
 for (const gone of ['id="cdhMore"', 'id="cdhServices"', 'id="cdhConcern"', 'id="cdhTodaySlot"', 'id="cdhFlowerTitle"', 'data-cdh-chemi', '{{fusionRecommendation}}', '{{lightRecommendations}}', '{{consultationDiscovery}}']) {
   assert.ok(!template.includes(gone), `${gone} 는 홈 흐름에서 빠졌습니다`);

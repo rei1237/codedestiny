@@ -1,12 +1,11 @@
 import { consultationStories, storyBenefits } from '../../lib/brand/consultation-stories.mjs';
-import { RECORD_SERVICES } from '../../lib/records/service-registry.js';
 import { moonlightVideo } from '../../lib/marketing/moonlight-video.mjs';
 import { renderPassBenefits, passBenefitOffers } from '../../lib/marketing/pass-benefits.mjs';
+import lightFortunes from '../../lib/payment/light-fortunes.generated.json' with { type: 'json' };
 import { JSDOM } from 'jsdom';
 import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
 import { CURRENT_PASS_PLANS, CURRENT_PASS_POLICY_VERSION } from '../../lib/payment/pass-policy.js';
-import { listServicePackPlans } from '../../worker/payments/service-pack-policy.js';
 import { FEATURE_KEY_PRICE_TABLE, UNLOCK_PRODUCT_BY_FEATURE_KEY } from '../../worker/lib/paid-feature-registry.js';
 import { renderNeoEmailHomeEntry } from '../../lib/brand/neo-email-home-entry.mjs';
 import { CONSULTATION_MASTERS } from '../../lib/marketing/consultation-discovery.mjs';
@@ -17,7 +16,6 @@ import { renderYehwaHome } from '../../lib/marketing/yehwa-home.mjs';
 
 const original = readFileSync('index.html', 'utf8');
 const vars = {mvSrc720:moonlightVideo.src720,mvSrc1080:moonlightVideo.src1080,mvCaptions:moonlightVideo.captions};
-vars.expertStories = '<section class="cd-expert-stories" aria-labelledby="cdExpertStoriesTitle" lang="ko" data-cd-no-trans><h2 id="cdExpertStoriesTitle">다른 시선으로 읽는 내 이야기</h2><p>전문가 상담도 웹툰으로 먼저 살펴보세요.</p><div>'+['ziwei','astrology','vedic','sukuyo-compat','legacy-naming','karma','fusion'].map(id=>{const service=RECORD_SERVICES.find(s=>s.id===id);return '<article><h3>'+service.name+'</h3><p>'+consultationStories[id].lead+'</p><p>'+storyBenefits[id].join(' · ')+'</p><nav aria-label="'+service.name+'"><a href="/consultations/'+id+'/">웹툰으로 알아보기</a><a href="'+service.href+'">상담 시작하기</a></nav></article>';}).join('')+'</div></section>';
 vars.consultationMethods = renderConsultationMethodGuide('ggul-consultation-methods');
 
 // 가벼운 체험만 선별한다. 유료 표시는 서버 상품 정본에서 생성한다.
@@ -116,17 +114,17 @@ const QUESTION_CATEGORIES = [
   ] },
   { id: 'marriage', label: '결혼', chip: '결혼할 사람', img: '/images/home-questions/marriage', questions: [
     { id: 'marriagePartner', href: '/yeongnyangi/?question=partner#questions', key: 'yeongnyangi-saju-mackerel', master: 'yeongnyangi', t: '나는 어떤 사람과 결혼하게 될까?', b: '영냥이 · 사주', price: 'from10000' },
-    { id: 'marriageDate', href: '/nakshatra/muhurta/', key: 'nakshatra-muhurta', master: 'yun', t: '이 일, 언제 하면 좋을까?', b: '인도 점성술 · 택일 무후르타', price: 'w7000' },
+    { id: 'marriageDate', href: '/nakshatra/muhurta/', key: 'nakshatra-muhurta', master: 'yun', t: '이 일, 언제 하면 좋을까?', b: '인도 점성술 · 택일 무후르타', price: 'w5000' },
   ] },
   { id: 'money', label: '돈', chip: '돈이 풀리는 때', img: '/assets/yeongnyangi/scenes/wealth', questions: [
     { id: 'moneyWhen', href: '/yeongnyangi/?question=money#questions', key: 'yeongnyangi-saju-salmon', master: 'yeongnyangi', t: '내 돈은 언제부터 풀릴까?', b: '영냥이 · 사주', price: 'from15000' },
     { id: 'moneyWay', href: '/ziwei/chart/', master: 'musung', t: '나에게 맞는 돈 버는 방식은 뭘까?', b: '자미두수 명반', price: 'free' },
-    { id: 'moneyMonth', href: '/tarot/year/', key: 'tarot-year-fortune', master: 'yeoni', t: '돈이 모이는 달을 미리 알 수 있을까?', b: '타로 · 십이지신 천운 타로', price: 'w10000' },
+    { id: 'moneyMonth', href: '/tarot/year/', key: 'tarot-year-fortune', master: 'yeoni', t: '돈이 모이는 달을 미리 알 수 있을까?', b: '타로 · 십이지신 천운 타로', price: 'w5000' },
   ] },
   { id: 'career', label: '일', chip: '이직해도 될까', img: '/assets/yeongnyangi/scenes/work', questions: [
     { id: 'careerMove', href: '/tarot-ijik.html', key: 'tarot-ijik', master: 'yeoni', t: '지금 이직해도 괜찮을까?', b: '타로 · 이직 운명의 카드', price: 'w5000' },
     { id: 'careerFit', href: '/yeongnyangi/?question=career-astrology#questions', key: 'yeongnyangi-astrology-salmon', master: 'yeongnyangi', t: '나에게 맞는 일은 따로 있을까?', b: '영냥이 · 점성술', price: 'from15000' },
-    { id: 'careerTurn', href: '/destiny-compass/', key: 'destiny-compass-life-voyage', master: 'neo', t: '지금 방향을 바꿔도 될까?', b: '4체계 · 운명의 나침반', price: 'w7000' },
+    { id: 'careerTurn', href: '/destiny-compass/', key: 'destiny-compass-life-voyage', master: 'neo', t: '지금 방향을 바꿔도 될까?', b: '4체계 · 운명의 나침반', price: 'w5000' },
   ] },
   { id: 'future', label: '미래', chip: '내 인생의 황금기 · 올해 가장 중요한 일', img: '/assets/yeongnyangi/scenes/journey', questions: [
     { id: 'futurePrime', href: '/life-book-ai/', key: 'life-book-ai-consultation', master: 'yun', t: '내 인생의 황금기는 언제일까?', b: '사주 대운 · 인생의 책', price: 'w30000' },
@@ -140,7 +138,7 @@ const QUESTION_CATEGORIES = [
   ] },
   { id: 'people', label: '인간관계', chip: '가까워질수록 왜 지칠까?', img: '/images/home-questions/people', questions: [
     { id: 'peopleTired', href: '/yeongnyangi/readings/sukuyo/', key: 'yeongnyangi-sukuyo-mackerel', master: 'yeongnyangi', t: '가까워질수록 왜 지칠까?', b: '영냥이 · 숙요', price: 'from10000', alt: { href: '/index.html?action=openSukuyoModal', name: '숙요점' } },
-    { id: 'peopleMatch', href: '/nakshatra/compat/', key: 'nakshatra-compat', master: 'hanbi', t: '그 사람과 나, 어떤 궁합일까?', b: '인도 점성술·숙요 · 동서 통합 궁합', price: 'w20000' },
+    { id: 'peopleMatch', href: '/nakshatra/compat/', key: 'nakshatra-compat', master: 'hanbi', t: '그 사람과 나, 어떤 궁합일까?', b: '인도 점성술·숙요 · 동서 통합 궁합', price: 'w5000' },
     { id: 'peopleDistance', href: '/fortune-chat/', key: 'fortune-chat-consultation', master: 'yeoni', t: '이 관계, 거리를 둬야 할까?', b: '대화형 운명 상담', price: 'w5000' },
   ] },
 ];
@@ -286,16 +284,9 @@ const introCards = [
 const introCardMarkup = introCards.map((card) => `<a class="cd-sig-card cd-sig-card--intro" data-cd-signature-id="${card.id}"${card.id === 'yeongnyangi-question' ? ' data-cd-portal-placement="home_hero"' : ''} href="${card.href}"><span class="cd-yehwa-seal" aria-hidden="true"></span><span class="cd-sig-card__top"></span><span class="cd-sig-card__media"><img class="cd-sig-card__img" src="${card.image}"${card.id === 'fortune-chat' ? ' srcset="/images/service-introductions/fortune-chat-yeoni-640.webp 640w, /images/service-introductions/fortune-chat-yeoni-960.webp 960w, /images/service-introductions/fortune-chat-yeoni.webp 1536w" sizes="(max-width: 760px) calc(100vw - 64px), (max-width: 1000px) 44vw, 360px"' : ' srcset="/images/service-introductions/yeongnyangi-question-v2-640.webp 640w, /images/service-introductions/yeongnyangi-question-v2-960.webp 960w" sizes="(max-width: 760px) calc(100vw - 64px), (max-width: 1000px) 44vw, 360px"'} width="640" height="360" alt="" loading="lazy" decoding="async"></span><span class="cd-sig-card__body"><span class="cd-sig-card__title">${card.title}</span><span class="cd-sig-card__q">${card.desc}</span><span class="cd-sig-card__cta"><span${card.id === 'yeongnyangi-question' ? ' data-cd-trans="home.yeongnyangiEntry.start"' : ''}>${card.action}</span> <i aria-hidden="true">→</i></span></span></a>`).join('');
 vars.signature = `<section data-cd-funnel-section="signature_consult" class="cd-sig cd-sig--curated cd-sig--deck cd-choice" id="cdSignatureConsult" data-marker="cd-signature-consult-v20261016" aria-labelledby="cdSignatureTitle" lang="ko">
   <img class="cd-choice__branch cd-choice__branch--left" src="/images/home/mv/ornament-lotus-branch-640.webp" width="320" height="280" alt="" loading="lazy"><img class="cd-choice__branch cd-choice__branch--right" src="/images/home/mv/ornament-lotus-branch-640.webp" width="320" height="280" alt="" loading="lazy"><div class="cd-sig__head"><img class="cd-choice__crest" src="/images/home/mv/ornament-lotus-crest-320.webp" width="160" height="58" alt="" loading="lazy"><h2 class="cd-sig__title" id="cdSignatureTitle">지금 필요한 상담을 골라보세요</h2><p class="cd-sig__sub">상담 방식을 먼저 살펴보고, 마음에 남은 고민을 골라보세요.</p></div>
-  <div class="cd-story-spotlight" lang="ko">
-    <a class="cd-story-spotlight__feature" href="/heukwol/">
-      <img src="/images/consultation-webtoons/heukwol/hw12-02.webp" width="1122" height="1402" alt="" loading="lazy" decoding="async">
-      <div><small>대표 상담 웹툰 · 12컷</small><h3>흑월의 경고</h3><p>흑월이 예고한 미래, 다른 길은 없을까요? 연이와 네오가 타고난 성향과 열두 달의 흐름에서 피할 선택을 함께 찾습니다.</p><strong><span data-cd-trans="home.guideCopy.webtoonStart">첫 장면 읽기</span> <span aria-hidden="true">→</span></strong></div>
-    </a>
-    <a class="cd-story-spotlight__more" href="/consultations/"><span data-cd-trans="home.guideCopy.webtoonMore">다른 마스터의 상담 웹툰 보기</span> <span aria-hidden="true">→</span></a>
-  </div>
-  <div class="cd-sig__viewport" id="cdSigViewport" tabindex="0" aria-label="대표 상담 카드"><div class="cd-sig__grid" id="cdSigGrid">${introCardMarkup}${[...signatureProducts].sort((a,b)=>['fortune-tea-house','life-book-ai','new-year-ai','love-secret-ai','neo-operation-room','master-love-codex'].indexOf(a.id)-['fortune-tea-house','life-book-ai','new-year-ai','love-secret-ai','neo-operation-room','master-love-codex'].indexOf(b.id)).map((product, index) => `<article class="cd-story-entry"><a class="cd-sig-card cd-sig-card--${product.className}" data-cd-service-id="${product.id}" data-cd-popup-copy="${escapeAttribute(product.popupCopy)}" href="${product.href}" aria-label="${product.title} — ${product.cta}" data-pvw-paid="true"${product.priceSuffix === '부터' ? ' data-price-from="true"' : ''}><span class="cd-yehwa-seal" aria-hidden="true"></span><span class="cd-sig-card__top"><span class="cd-sig-card__numeral" aria-hidden="true">${TAROT_NUMERALS[index]}</span></span><span class="cd-sig-card__media"><img class="cd-sig-card__img" width="1200" height="675" loading="lazy" decoding="async" src="${product.image}"${product.imageSrcset ? ` srcset="${product.imageSrcset}"` : ''} sizes="(max-width: 699px) 82vw, (max-width: 1023px) 45vw, 360px" alt="${product.imageAlt}"></span><span class="cd-sig-card__body">${signatureMaster(product.master)}<span class="cd-sig-card__title">${product.title}</span><span class="cd-sig-card__q">${product.question}</span><span class="cd-sig-card__desc">${storyBenefits[storySlugByProduct[product.id]].join(' · ')}</span><span class="cd-sig-card__price" data-cd-play-price data-cd-play-feature="${product.featureKey}"${product.priceSuffix ? ' data-cd-play-kind="from"' : ''}>${signaturePrice(product.featureKey, product.priceSuffix)}</span><span class="cd-sig-card__cta"><span>${product.cta}</span> <i aria-hidden="true">→</i></span></span></a><a class="cd-story-entry__link" href="/consultations/${storySlugByProduct[product.id]}/" aria-label="${product.title} 웹툰으로 알아보기"><span>웹툰으로 알아보기</span> <span aria-hidden="true">→</span></a></article>`).join('')}</div></div>
+  <div class="cd-sig__viewport" id="cdSigViewport" tabindex="0" aria-label="대표 상담 카드"><div class="cd-sig__grid" id="cdSigGrid">${introCardMarkup}${[...signatureProducts].sort((a,b)=>['fortune-tea-house','life-book-ai','new-year-ai','love-secret-ai','neo-operation-room','master-love-codex'].indexOf(a.id)-['fortune-tea-house','life-book-ai','new-year-ai','love-secret-ai','neo-operation-room','master-love-codex'].indexOf(b.id)).map((product, index) => `<article class="cd-story-entry"><a class="cd-sig-card cd-sig-card--${product.className}" data-cd-service-id="${product.id}" data-cd-popup-copy="${escapeAttribute(product.popupCopy)}" href="${product.href}" aria-label="${product.title} — ${product.cta}" data-pvw-paid="true"${product.priceSuffix === '부터' ? ' data-price-from="true"' : ''}><span class="cd-yehwa-seal" aria-hidden="true"></span><span class="cd-sig-card__top"><span class="cd-sig-card__numeral" aria-hidden="true">${TAROT_NUMERALS[index]}</span></span><span class="cd-sig-card__media"><img class="cd-sig-card__img" width="1200" height="675" loading="lazy" decoding="async" src="${product.image}"${product.imageSrcset ? ` srcset="${product.imageSrcset}"` : ''} sizes="(max-width: 699px) 82vw, (max-width: 1023px) 45vw, 360px" alt="${product.imageAlt}"></span><span class="cd-sig-card__body">${signatureMaster(product.master)}<span class="cd-sig-card__title">${product.title}</span><span class="cd-sig-card__q">${product.question}</span><span class="cd-sig-card__desc">${storyBenefits[storySlugByProduct[product.id]].join(' · ')}</span><span class="cd-sig-card__price" data-cd-play-price data-cd-play-feature="${product.featureKey}"${product.priceSuffix ? ' data-cd-play-kind="from"' : ''}>${signaturePrice(product.featureKey, product.priceSuffix)}</span><span class="cd-sig-card__cta"><span>${product.cta}</span> <i aria-hidden="true">→</i></span></span></a></article>`).join('')}</div></div>
   <div class="cd-sig__controls" hidden aria-label="상담 카드 이동"><div class="cd-choice__dots" data-sig-dots aria-label="상담 카드 위치"></div><div class="cd-choice__arrows"><button type="button" data-sig-prev aria-controls="cdSigViewport" aria-label="이전 상담"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m6-6-6 6 6 6"/></svg></button><span data-sig-position aria-live="off"></span><button type="button" data-sig-next aria-controls="cdSigViewport" aria-label="다음 상담"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button><button type="button" class="cd-sig__pause" data-sig-pause aria-pressed="false" aria-label="상담 카드 넘김 멈추기"><svg class="cd-choice__pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6v12m6-12v12"/></svg><svg class="cd-choice__play" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 6 10 6-10 6Z"/></svg></button></div></div>
-  <div class="cd-choice__concerns" id="cdhQuestionSlot">${vars.questionCategories}</div>
+  <details class="cd-choice__concerns yh-secondary" id="cdhQuestionSlot"><summary data-cd-trans="home.concernPick.title">지금 가장 궁금한 건 무엇인가요?</summary>${vars.questionCategories}</details>
   <a class="cd-sig__samples-link" href="/consultation-samples/"><svg class="cd-choice__moon" viewBox="0 0 64 64" aria-hidden="true"><circle class="cd-choice__moon-orbit" cx="31" cy="32" r="29"/><path class="cd-choice__moon-crescent" d="M36 9a24 24 0 1 0 20 35A27 27 0 0 1 36 9Z"/><path class="cd-choice__moon-star" d="m48 10 1.7 5.3L55 17l-5.3 1.7L48 24l-1.7-5.3L41 17l5.3-1.7Z"/><path class="cd-choice__moon-star cd-choice__moon-star--small" d="m54 29 1 3 3 1-3 1-1 3-1-3-3-1 3-1Z"/><path class="cd-choice__moon-orbit" d="M17 50c8 6 19 7 28 2"/><circle cx="37" cy="29" r=".8" fill="currentColor" stroke="none"/></svg><span class="cd-choice__samples-label"><span>상담별 구성과</span> <strong>예시 보기</strong></span><svg class="cd-choice__cta-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg></a>
 </section>`;
 
@@ -305,7 +296,15 @@ function localizedPassBenefits() {
   const copy = JSON.parse(readFileSync('i18n/authored/homeOverseas-09.json', 'utf8'));
   const labels = new Map(Object.entries(copy).filter(([, value]) => !value.ko.includes('{')).map(([key, value]) => [value.ko, { key }]));
   const add = (key, values) => labels.set(copy[key].ko.replace(/\{(\w+)\}/g, (_, name) => values[name]), { key, values });
+  const lightCount = String(lightFortunes.count);
+  add('home.benefitsCopy.lightBanner', { count: lightCount });
+  add('home.benefitsCopy.lightLine', { count: lightCount });
+  add('home.benefitsCopy.lightListTitle', { count: lightCount });
+  add('home.benefitsCopy.lightWorth', { amount: lightFortunes.valueKRW.toLocaleString('ko-KR') });
   for (const offer of passBenefitOffers('honey')) {
+    add('home.benefitsCopy.consultAmount', { amount: offer.consultLimit.toLocaleString('ko-KR') });
+    if (!offer.family) add('home.benefitsCopy.consultCap', { amount: offer.cap.toLocaleString('ko-KR') });
+    if (!offer.family) add('home.benefitsCopy.signatureLimit', { amount: offer.cap.toLocaleString('ko-KR') });
     add('home.benefitsCopy.percent', { amount: String(Math.floor((1 - offer.price / offer.value) * 100)) });
     add('home.benefitsCopy.saving', { amount: (offer.value - offer.price).toLocaleString('ko-KR') });
     if (!offer.family) add('home.benefitsCopy.cap', { amount: offer.cap.toLocaleString('ko-KR') });
@@ -340,7 +339,7 @@ function localizedPassBenefits() {
 }
 vars.pass = '<link rel="stylesheet" href="/styles/pass-benefits.css?v=build-000000000000">' + localizedPassBenefits() + `<section class="cdh-pass" data-cd-localized-pass aria-labelledby="cdhPassTitle" data-design-marker="moonlight-pass-banner-v20260626">
   <div class="cdh-pass__intro">
-    <img class="cdh-pass__mascot" src="/images/home/yeoni-pass-mascot-240.webp" srcset="/images/home/yeoni-pass-mascot-240.webp 240w, /images/home/yeoni-pass-mascot-480.webp 480w" sizes="(max-width: 640px) 104px, 168px" alt="이용권 카드를 들고 웃는 꽃돼지 연이" data-cd-trans-attr="alt:home.gardenCopy.passMascotAlt" width="240" height="240" loading="lazy" decoding="async">
+    <img class="cdh-pass__mascot" src="/images/home/honey-pot-duo-240.webp" srcset="/images/home/honey-pot-duo-240.webp 240w, /images/home/honey-pot-duo-480.webp 480w" sizes="(max-width: 640px) 104px, 168px" alt="꿀단지 하나를 함께 든 꽃돼지 연이와 영냥이" data-cd-trans-attr="alt:home.gardenCopy.passMascotAlt" width="240" height="240" loading="lazy" decoding="async">
     <div class="cdh-pass__copy">
       <span class="cdh-pass__eyebrow" data-cd-trans="home.gardenCopy.passEyebrow">기간·자동갱신 없는 이용권</span>
       <h2 class="cdh-pass__title" id="cdhPassTitle" data-cd-trans="home.gardenCopy.passTitle">연이가 알려드리는 이용권</h2>
@@ -349,37 +348,19 @@ vars.pass = '<link rel="stylesheet" href="/styles/pass-benefits.css?v=build-0000
   </div>
   <ul class="cdh-pass__tiers" role="list">${Object.values(CURRENT_PASS_PLANS).map(plan => `
     <li class="cdh-pass__tier${plan.tier === 'family' ? ' cdh-pass__tier--family' : ''}"><a class="cdh-pass__tier-link" href="/points/?source=flower-membership&amp;plan=${plan.tier}">
-      ${plan.tier === 'family' ? '<span class="cdh-pass__badge" data-cd-trans="home.gardenCopy.passBadge">영냥이까지</span>' : ''}<span class="cdh-pass__tier-name">${plan.name}</span>
+      <span class="cdh-pass__tier-name">${plan.name}</span>
       <strong class="cdh-pass__tier-price"><span data-cd-play-price data-cd-play-pass="${plan.tier}" data-cd-play-policy="${CURRENT_PASS_POLICY_VERSION}" data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars='{"amount":"${Number(plan.wonPrice).toLocaleString('en-US')}"}'>${won(plan.wonPrice)}</span> <small data-cd-trans="home.gardenCopy.passPer">· 기간 제한 없음</small></strong>
       <span class="cdh-pass__tier-line" data-cd-trans="home.overseasCopy.${plan.tier === 'family' ? 'passNoLimit' : 'passPerLimit'}" data-cd-vars='{"amount":"${Number(plan.maxCoveredCoin * 100).toLocaleString('en-US')}"}'>${plan.tier === 'family' ? '유료 리딩 건당 한도 없음' : `건당 ${won(plan.maxCoveredCoin * 100)} 이하`}</span>
       <span class="cdh-pass__tier-line" data-cd-trans="home.overseasCopy.passTotal" data-cd-vars='{"amount":"${Number(plan.monthlyLimitCoin * 100).toLocaleString('en-US')}"}'>누적 ${won(plan.monthlyLimitCoin * 100)}까지</span>
     </a></li>`).join('')}
   </ul>
-  <p class="cdh-pass__note" data-cd-trans="home.gardenCopy.passNote">작은·중간·큰 꿀단지는 꿀꿀 운세에, 패밀리 꿀단지는 꿀꿀 운세와 영냥이 유료 리딩에 적용됩니다. 기존에 구매한 이용권은 구매 당시 조건을 유지합니다.</p>
-  <details class="cdh-pass__packs"><summary class="cdh-pass__group">
-    <img class="cdh-pass__pack-guide" src="/assets/yeongnyangi/original/hero-800.webp" alt="" width="800" height="800" loading="lazy" decoding="async">
-    <span class="cdh-pass__pack-heading"><span data-cd-trans="home.passCopy.packTitle">영냥이 전용 이용권</span><small data-cd-trans="home.passCopy.packNote">영냥이 세트는 같은 생선 상담에만 1회씩 사용돼요. 꽃돼지 이용권과 따로 적용돼요.</small></span>
-  </summary>
-  <ul class="cdh-pass__tiers cdh-pass__tiers--packs" role="list">${listServicePackPlans().map(plan => {
-    const fishKey = '@home.passCopy.fish' + plan.fishId[0].toUpperCase() + plan.fishId.slice(1);
-    const fishKo = plan.label.split(' ')[0];
-    return `
-    <li class="cdh-pass__tier cdh-pass__tier--pack" data-pack-plan="${plan.planId}"><a class="cdh-pass__tier-link" href="/points/#fish-packs">
-      <img class="cdh-pass__pack-art" src="/assets/yeongnyangi/service-packs/${plan.fishId}-gift-set-v2.webp" alt="" width="240" height="240" loading="lazy" decoding="async">
-      <span class="cdh-pass__tier-name" data-cd-trans="home.passCopy.packName" data-cd-vars='{"fish":"${fishKey}","total":"${plan.totalUses}","days":"${plan.validityDays}"}'>${plan.label}</span>
-      <strong class="cdh-pass__tier-price"><span data-cd-play-price data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars='{"amount":"${Number(plan.priceKRW).toLocaleString('en-US')}"}'>${won(plan.priceKRW)}</span></strong>
-      <span class="cdh-pass__tier-line" data-cd-trans="home.passCopy.packPerUse" data-cd-vars='{"amount":"${Number(plan.unitPriceKRW).toLocaleString('en-US')}"}'>회당 ${won(plan.unitPriceKRW)} 상담</span>
-      <span class="cdh-pass__tier-line" data-cd-trans="home.passCopy.packScope" data-cd-vars='{"fish":"${fishKey}","total":"${plan.totalUses}","days":"${plan.validityDays}"}'>${fishKo} 상담 전용 · ${plan.validityDays}일 · 총 ${plan.totalUses}회</span>
-    </a></li>`;
-  }).join('')}
-  </ul>
-  </details>
+  <p class="cdh-pass__light" data-cd-trans="home.gardenCopy.passLight" data-cd-vars='{"count":"${lightFortunes.count}","amount":"${lightFortunes.valueKRW.toLocaleString('en-US')}"}'>모든 꿀단지에 라이트 운세 ${lightFortunes.count}종이 횟수 제한 없이 포함돼요. 각 1회 기준 ${won(lightFortunes.valueKRW)} 상당이며, 대표 상담은 제외예요.</p>
+  <p class="cdh-pass__note" data-cd-trans="home.gardenCopy.passNote">모든 꿀단지는 꿀꿀 운세와 영냥이에서 함께 쓸 수 있어요. 건당 상한 이하 상담에 적용됩니다. 이미 구매한 이용권의 상담 한도는 그대로이고, 라이트 운세 혜택은 사용 중인 이용권에도 적용됩니다.</p>
   <a class="cdh-pass__btn" href="/points/?source=flower-membership" data-cd-trans="home.gardenCopy.passCta">나에게 맞는 이용권 확인하기</a>
 </section>`;
 const template = readFileSync('templates/home-funnel.html', 'utf8');
 // Keep the existing pass renderer between concern results and records/navigation.
 vars.yehwaHome = renderYehwaHome(registryWindow.__cdServiceRegistry, {
-  storyHtml: vars.expertStories,
   installHtml: "<aside class=\"cd-home-install-entry\" data-pwa-install-entry hidden aria-label=\"홈 화면에 추가\" lang=\"ko\" data-cd-no-trans><img src=\"/icons/moonlight-garden-v1-192.png\" width=\"48\" height=\"48\" alt=\"\" loading=\"lazy\"><div><strong>다음에도 바로 찾아오세요</strong><p>홈 화면의 아이콘으로 꿀꿀 운세를 열어요.</p></div><button type=\"button\" data-pwa-install>홈 화면에 추가하기</button></aside>",
   passHtml: '<div class="cdh-slot cdh-slot--pass" id="cdhPass"><div id="cdhPassSlot">' + vars.pass + '</div></div>',
 });

@@ -1,4 +1,36 @@
 {
+  "saju": {
+    "bundle": {
+      "inlineTitle": "Terokai Empat Tiang anda dengan lebih mendalam",
+      "lottoSavedTitle": "Laporan Ritual Tuah Cahaya Bulan yang disimpan",
+      "lottoSavedDesc": "Baca semula laporan yang dibeli dan disimpan pada peranti ini.",
+      "lottoSavedOpen": "Buka laporan",
+      "title": "Bacaan lengkap Empat Tiang",
+      "once": "Bayar sekali untuk akses berterusan",
+      "inlineCta": "Lihat kandungan pakej",
+      "inlineDesc": "Terokai carta kelahiran, kitaran sepuluh tahun, bacaan harian dan bacaan santai dalam satu pakej.",
+      "close": "Tutup",
+      "pay": "Buka dengan bayaran sekali",
+      "saveProfile": "Simpan profil kelahiran ini",
+      "saveProfileHint": "Simpan butiran kelahiran untuk mengaitkan pakej dengan carta ini.",
+      "saveProfileUnavailable": "Simpan butiran kelahiran pada halaman profil.",
+      "already": "Anda sudah memiliki pakej ini.",
+      "own": "Anda boleh membaca semula bacaan bagi butiran kelahiran yang sama tanpa bayaran tambahan. Rundingan peribadi dan rundingan keserasian dijual secara berasingan.",
+      "sample": "Contoh · Anda mungkin kelihatan tenang tetapi mengambil masa untuk mengumpul maklumat sebelum membuat keputusan. Setiap bab meneroka bila sikap berhati-hati membantu dan bila ia melambatkan langkah anda.",
+      "item": [
+        "Carta kelahiran, tiang hari, sepuluh dewa dan keseimbangan musim",
+        "Bacaan asas dan kitaran sepuluh tahun",
+        "Gambaran keserasian berdasarkan carta",
+        "Bacaan kuantum, daya tarikan diri dan pohon kemahiran",
+        "Kesejahteraan, tenaga dan hubungan yang mencabar",
+        "Bacaan harian dan bulanan, surat dan selebriti yang seiras",
+        "Nombor bertuah dan laporan Ritual Tuah Cahaya Bulan",
+        "Gaya pemikiran, profil Teto/Egen, bacaan empat panel dan laporan dopamin",
+        "Peta minda dengan tafsiran Human Design",
+        "Gaya kerja, simbol haiwan dan akses ke Rumah Rahsia"
+      ]
+    }
+  },
   "_comment": "Code Destiny — Malay premium localization (ms.json)",
   "_version": "1.0.0",
   "brand": {
@@ -833,24 +865,24 @@
       "chipShareReward": "Bayaran sekali di luar julat",
       "plansAria": "Lulus kad ringkasan pelan",
       "standardName": "Balang Madu Kecil",
-      "standardPrice": "KRW 9,900",
+      "standardPrice": "KRW 14,900",
       "standardLine": "Kandungan sehingga KRW 5,000",
       "standardBenefit1": "Sehingga KRW 20,000",
       "standardCta": "Lihat Balang Madu Kecil",
       "recommendedAria": "Pelan yang disyorkan",
       "recommendedBadge": "Disyorkan",
       "premiumName": "Balang Madu Sederhana",
-      "premiumPrice": "KRW 29,900",
+      "premiumPrice": "KRW 34,900",
       "premiumLine": "Kandungan sehingga KRW 10,000",
       "premiumBenefit1": "Sehingga KRW 60,000",
       "premiumCta": "Lihat pelan yang disyorkan",
       "vvipName": "Balang Madu Besar",
-      "vvipPrice": "KRW 59,900",
+      "vvipPrice": "KRW 64,900",
       "vvipLine": "Kandungan sehingga KRW 30,000",
       "vvipBenefit1": "Sehingga KRW 120,000",
       "vvipCta": "Lihat faedah Balang Madu Besar",
       "familyName": "Balang Madu Keluarga",
-      "familyPrice": "KRW 149,000",
+      "familyPrice": "KRW 154,000",
       "familyLine": "Semua kandungan yang dilindungi pas",
       "familyBenefit1": "Sehingga KRW 350,000",
       "familyCta": "Lihat Balang Madu Keluarga",
@@ -864,8 +896,8 @@
       "step2Text": "Bacaan tarot, orakel dan saju dalam julat anda terbuka terus, tanpa tetingkap pembayaran.",
       "step3Label": "Hanya bacaan lebih mendalam dibayar setiap guna",
       "step3Text": "Bacaan di luar julat anda diteruskan dengan pembayaran KRW sekali sahaja apabila diperlukan.",
-      "terminationNote": "Apabila had penggunaan habis digunakan, pas akan tamat. Membeli semula akan bermula dengan had penggunaan baharu. Kandungan berbayar tambahan boleh digunakan dengan bayaran sekali atau Batu Cahaya Bulan.",
-      "noExpiryNote": "Tiada had tempoh · Tamat apabila had penggunaan habis"
+      "terminationNote": "Pas kekal aktif walaupun had konsultasi habis digunakan, dan Bacaan Ringan masih boleh digunakan. Untuk lebih banyak konsultasi utama, beli pas baharu atau guna bayaran sekali atau Batu Cahaya Bulan.",
+      "noExpiryNote": "Tiada had tempoh · Tiada pembaharuan automatik"
     },
     "promptHub": {
       "aria": "Pergi ke gesaan nasib yang komprehensif",
@@ -908,11 +940,11 @@
       "aria": "Lulus panduan pengaki",
       "eyebrow": "Pas Cahaya Bulan",
       "savingsBadge": "Dengan pas, sehingga satu pertiga harga",
-      "title": "Dua bacaan KRW 5,000 sudah lebih mahal daripada pas KRW 9,900",
-      "desc": "Bacaan dalam julat yang anda pilih terbuka sehingga had penggunaan anda habis; hanya bacaan yang lebih mahal dibayar satu per satu apabila diperlukan. Empat julat itu ialah KRW 5,000 · 10,000 · 20,000 dan semua kandungan yang dilindungi pas, jadi pilih harga yang paling kerap anda lihat.",
+      "title": "Tiga bacaan KRW 5,000 sudah lebih mahal daripada pas KRW 14,900",
+      "desc": "Bacaan dalam julat yang anda pilih terbuka sehingga had penggunaan anda habis; hanya bacaan yang lebih mahal dibayar satu per satu apabila diperlukan. Empat julat itu ialah KRW 5,000 · 10,000 · 30,000 dan semua kandungan yang dilindungi pas, jadi pilih harga yang paling kerap anda lihat.",
       "pointsAria": "Panduan lulus teras",
       "point1": "Terbuka terus, tanpa pembayaran",
-      "point2": "Tiada had tempoh · Tamat apabila had penggunaan habis",
+      "point2": "Tiada had tempoh · Tiada pembaharuan automatik",
       "point3": "Pas tanpa pembaharuan automatik",
       "mascotAria": "Lihat manfaat Moonlight Pass · Kedai Moonlight Pass",
       "mascotAlt": "Imej manfaat Moonlight Pass",
@@ -1663,17 +1695,16 @@
       "bubbleAria": "Dengar satu lagi pesanan daripada Yeoni",
       "saysName": "Yeoni",
       "saysLine": "Bacaan manakah yang mahu kita mulakan? Satu pun sudah memadai.",
-      "passMascotAlt": "Yeoni si anak khinzir bunga tersenyum sambil memegang kad pas",
+      "passMascotAlt": "Yeoni si anak khinzir bunga dan Yeongnyangi memegang satu Balang Madu bersama-sama",
       "passEyebrow": "Pas tanpa had masa atau pembaharuan automatik",
       "passTitle": "Panduan pas daripada Yeoni",
       "passDesc": "Bayar sekali untuk penggunaan sekali-sekala, atau gunakan pas jika kerap berkunjung. Semak konsultasi yang termasuk dan had penggunaannya.",
       "passPer": "· Tiada had masa",
-      "passBadge": "Termasuk Yeongnyangi",
-      "passNote": "Balang Madu Kecil, Sederhana dan Besar digunakan untuk GGULGGUL Fortune. Balang Madu Keluarga merangkumi bacaan berbayar GGULGGUL Fortune dan Yeongnyangi. Pas yang telah dibeli mengekalkan syarat pada waktu pembelian.",
+      "passNote": "Semua Balang Madu boleh digunakan di GGULGGUL Fortune dan Yeongnyangi, untuk bacaan sehingga had setiap bacaan. Pas yang telah dibeli mengekalkan had konsultasinya, dan Bacaan Ringan juga terpakai pada pas yang sedang digunakan.",
       "passCta": "Lihat pas yang sesuai untuk anda",
       "moreTitle": "Terokai lagi atelier Yeoni",
       "moreItems": "Tuah hari ini · konsultasi · rekod dan cerita",
-      "moreClose": "Tunjukkan kurang",
+      "moreClose": "Ringkaskan",
       "searchLead": "Cari bacaan yang anda perlukan mengikut persoalan, kaedah atau harga.",
       "searchPlaceholder": "Cinta, kewangan, pertukaran kerja… cari bacaan",
       "filterToggle": "Penapis",
@@ -1736,7 +1767,8 @@
       "chemiCta": "See my bias chemistry",
       "brandOtherEntry": "꿀꿀 운세: Saju dan Tarot bersama Yeongnyangi →",
       "publicRecordsTitle": "Rekod analisis awam Park Byung-ha (Neo), pengamal Saju berpengalaman 10 tahun",
-      "publicRecordsLink": "Bandingkan tarikh, catatan asal dan hasil"
+      "publicRecordsLink": "Bandingkan tarikh, catatan asal dan hasil",
+      "passLight": "Setiap Balang Madu menyertakan {count} Bacaan Ringan tanpa had kekerapan, bernilai {amount} KRW jika setiap satu digunakan sekali. Konsultasi utama tidak disertakan."
     },
     "chatEntry": {
       "title": "Tanya Yeoni dan Neo perkara yang paling ingin anda tahu sekarang",
@@ -2257,35 +2289,45 @@
       "title": "Ingin tahu tentang nasib anda?",
       "subtitle": "Terokai dengan pas Balang Madu.",
       "intro": "Laporan saju, tarot, cinta dan kehidupan apabila diperlukan.",
-      "family": "Family untuk Ggulggul Fortune dan Yeongnyangi.",
-      "scope": "Balang kecil, sederhana dan besar untuk Ggulggul Fortune.",
+      "family": "Boleh digunakan di Ggulggul Fortune dan Yeongnyangi.",
+      "scope": "Dalam had, ia boleh digunakan di kedua-dua laman untuk bacaan sehingga had setiap bacaan.",
       "pace": "Tanpa had masa, mengikut rentak anda.",
-      "end": "Tamat apabila had habis · Tiada pembaharuan automatik",
-      "alt": "Yeoni memegang pas",
+      "end": "Bacaan Ringan kekal tersedia walaupun had konsultasi telah habis.",
+      "alt": "Yeoni si anak khinzir bunga dan Yeongnyangi memegang satu Balang Madu bersama-sama",
       "moon": "Pas Cahaya Bulan!",
       "choose": "Pilih Balang Madu anda.",
-      "value": "Nilai maksimum pada harga pembelian tunggal",
+      "value": "Nilai pada harga pembelian tunggal",
       "price": "Harga pas",
       "cap": "Perkhidmatan layak hingga {amount} KRW setiap satu",
       "unlimitedCap": "Tiada had harga setiap perkhidmatan",
       "percent": "Jimat sehingga {amount}%",
       "saving": "Jimat sehingga {amount} KRW",
-      "compare": "Perbandingan apabila semua had digunakan pada perkhidmatan layak.",
+      "compare": "Berbanding harga tunggal, jika setiap Bacaan Ringan digunakan sekali dan semua had konsultasi digunakan.",
       "terms": "Tertakluk pada syarat, pengecualian dan baki had.",
-      "site": "Guna di Ggulggul Fortune",
-      "both": "Untuk Ggulggul Fortune dan Yeongnyangi",
       "cta": "Lihat pas {name}",
-      "validity": "Tiada tempoh tetap · Tamat apabila had habis · Tiada pembaharuan automatik",
+      "validity": "Tiada tempoh tetap · Tiada pembaharuan automatik",
       "legend": "Balang Madu mana pilihan anda?",
       "hint": "Pilih imej untuk membandingkan harga dan manfaat.",
       "select": "Pilih",
       "selected": "Dipilih",
-      "fishTitle": "Jika anda sering menggunakan Yeongnyangi",
-      "fishTerms": "Pas Yeongnyangi ialah produk berasingan, tidak sah di Ggulggul Fortune.",
-      "fishLink": "Lihat pas Yeongnyangi →",
       "compactTitle": "Pas Balang Madu",
       "conditions": "Liputan dan syarat penggunaan",
-      "otherServices": "Lihat pas untuk perkhidmatan lain"
+      "otherServices": "Lihat pas untuk perkhidmatan lain",
+      "lightBanner": "Satu Balang Madu Kecil membuka kesemua {count} Bacaan Ringan.",
+      "lightBannerSub": "Guna Bacaan Ringan tanpa had kekerapan, kecuali konsultasi utama. Balang Sederhana, Besar dan Keluarga turut menyertakannya.",
+      "lightLine": "{count} Bacaan Ringan, tanpa had kekerapan",
+      "lightWorth": "Bernilai {amount} KRW",
+      "consultLine": "Had konsultasi pakar",
+      "consultAmount": "{amount} KRW",
+      "consultCap": "(hingga {amount} KRW setiap satu)",
+      "consultNoCap": "(tiada had harga setiap perkhidmatan)",
+      "signatureLimit": "Konsultasi utama melebihi {amount} KRW tidak boleh digunakan dengan balang ini.",
+      "lightListTitle": "Lihat {count} Bacaan Ringan yang disertakan",
+      "termsRevision": "Peraturan pas telah berubah. Lihat notis perubahan terma",
+      "reachNone": "Tidak untuk bacaan Yeongnyangi",
+      "reachMackerel": "Yeongnyangi hingga Ikan kembung",
+      "reachTuna": "Yeongnyangi hingga Tuna",
+      "reachAll": "Yeongnyangi hingga Campuran dan Omakase"
     },
     "consultChoice": {
       "title": "Pilih konsultasi yang sesuai dengan kebimbangan anda",
@@ -2480,6 +2522,10 @@
         "yearTitle": "Tafsiran tahun baharu · Kenali melalui webtoon",
         "neoRoomTitle": "Bilik strategi terus terang Neo · Kenali melalui webtoon"
       }
+    },
+    "mobileEntry": {
+      "menu": "Menu",
+      "find": "Cari mengikut persoalan"
     }
   },
   "terms": {
@@ -3219,7 +3265,7 @@
       "monthlyButton": "Bayar dengan {credits} kredit bulanan",
       "monthlyButtonBusy": "Mengaktifkan pas dengan kredit bulanan...",
       "monthlyButtonShort": "Perlu {credits} · baki tidak cukup",
-      "terminationNotice": "Apabila had penggunaan habis digunakan, pas akan tamat. Membeli semula akan bermula dengan had penggunaan baharu. Kandungan berbayar tambahan boleh digunakan dengan bayaran sekali atau Batu Cahaya Bulan."
+      "terminationNotice": "Pas kekal aktif walaupun had konsultasi habis digunakan, dan Bacaan Ringan masih boleh digunakan. Untuk lebih banyak konsultasi utama, beli pas baharu atau guna bayaran sekali atau Batu Cahaya Bulan."
     },
     "access": {
       "passAppliedContinue": "Dibuka dengan pas anda."
@@ -14110,10 +14156,10 @@
       }
     },
     "rpt_tTestCard": {
-      "fallbackTitle": "Semak suhu logik anda, apabila akal bertindak balas sebelum emosi.",
-      "tagline": "The Frozen Logic: ujian santai berasaskan Saju tentang sejauh mana corak pemikiran dan pertimbangan anda menghampiri T, termasuk dalam bacaan penuh Saju dengan akses seumur hidup.",
-      "premiumIntro": "Ujian Extreme-T tidak menentukan personaliti anda. Ia menunjukkan sejauh mana pertimbangan anda condong kepada akal.",
-      "fallbackCta": "Mulakan diagnosis",
+      "fallbackTitle": "Check your logic temperature, where reason responds before emotion.",
+      "tagline": "The Frozen Logic: a playful Saju-based test of how close your thinking and judgment pattern is to Thinking (T), included in the Saju full reading, lifetime access.",
+      "premiumIntro": "The Extreme-T Test doesn't define your personality. It reflects how much your judgment leans toward reason.",
+      "fallbackCta": "Run the Diagnosis",
       "feats": {
         "0": "Measures the metal element, authority, expression and climate in your chart to produce a T score of 0–100 and a tier",
         "1": "Shows four stats: metal hardware, forced-control instinct, blunt-fact debugging and the cold-dry formation",
@@ -14133,7 +14179,7 @@
         "3": "Six summary chips plus today’s mission"
       },
       "premiumOutcomes": {
-        "0": "Bacaan ini termasuk dalam bacaan penuh Saju dengan akses seumur hidup.",
+        "0": "This reading is included in the Saju full reading, lifetime access.",
         "1": "[Relationship Circuit], [Love Algorithm], [Reality Processing], [Saju-based Extreme-T Reading] and [Debugging Prescription] open after a separate unlock.",
         "2": "The test is for reference and fun."
       },
@@ -14166,8 +14212,8 @@
           "a": "No. You do not answer questionnaire items. It scores the metal element, authority, expression and climate in your natal chart, for fun."
         },
         "1": {
-          "q": "Apa yang boleh saya lihat?",
-          "a": "Skor T, peringkat, nama jenis, empat statistik, [Strength Scan], [Fatal Bug], misi hari ini dan kad ringkasan dibuka dengan bacaan penuh Saju dengan akses seumur hidup."
+          "q": "What does it cover?",
+          "a": "The T score, tier, type name, four stats, [Strength Scan], [Fatal Bug], today's mission and the summary card all open with the Saju full reading, lifetime access."
         },
         "2": {
           "q": "Why can’t I see the relationship sections?",
@@ -14176,10 +14222,10 @@
       }
     },
     "rpt_hormone_vibe_section": {
-      "fallbackTitle": "Lihat sama ada daya tarikan anda menarik dengan kuat seperti jenis Teto atau meresap lembut seperti jenis Egen.",
-      "tagline": "Analisis berasaskan Saju anda yang membahagikan tenaga daya tarikan kepada gaya Teto dan Egen, termasuk dalam bacaan penuh Saju dengan akses seumur hidup.",
-      "premiumIntro": "Analisis Teto/Egen tidak meletakkan satu jenis lebih tinggi daripada yang lain. Ia menunjukkan cara daya tarikan anda memikat orang.",
-      "fallbackCta": "Lihat sekarang",
+      "fallbackTitle": "See whether your charm pulls strongly like a Teto type or seeps in gently like an Egen type.",
+      "tagline": "An analysis based on your Saju that splits your charm energy into Teto and Egen styles, included in the Saju full reading, lifetime access.",
+      "premiumIntro": "The Teto/Egen analysis doesn't rank one above the other. It lays out how your charm draws people in.",
+      "fallbackCta": "Check Now",
       "feats": {
         "0": "Tallies the Ten Gods across all seven positions except the day stem",
         "1": "Groups the Ten Gods into peers, output, resource, authority and wealth",
@@ -14195,10 +14241,10 @@
         "0": "Teto and Egen scores with a type reading",
         "1": "Ten Gods tallied across seven positions excluding the day stem",
         "2": "Weightings for the five groups: peers, output, resource, authority, wealth",
-        "3": "Termasuk dalam bacaan penuh Saju dengan akses seumur hidup"
+        "3": "Included in the Saju full reading, lifetime access"
       },
       "premiumOutcomes": {
-        "0": "Bacaan ini termasuk dalam bacaan penuh Saju dengan akses seumur hidup.",
+        "0": "This reading is included in the Saju full reading, lifetime access.",
         "1": "The analysis is for reference and entertainment.",
         "2": "Your charm type can vary by situation."
       },
@@ -14235,16 +14281,16 @@
           "a": "It uses only the Ten Gods in your natal chart, so the same birth date and time always gives the same result."
         },
         "2": {
-          "q": "Adakah saya perlu membayar secara berasingan?",
-          "a": "Tiada bayaran berasingan. Ia dibuka bersama bacaan penuh Saju dengan akses seumur hidup."
+          "q": "Do I pay for it separately?",
+          "a": "There is no separate payment. It opens together with the Saju full reading, lifetime access."
         }
       }
     },
     "rpt_lottoCard": {
-      "fallbackTitle": "Dapatkan nombor bertuah hari ini, dicabut daripada Lima Unsur dalam Saju anda dan simbolisme nombor.",
-      "tagline": "Ciri nombor simbolik yang mencabut lima kombinasi daripada carta kelahiran, tiang hari ini dan kitaran nasib anda, termasuk dalam bacaan penuh Saju dengan akses seumur hidup.",
-      "premiumIntro": "Saju Lotto tidak meramal kemenangan. Ia mencabut nombor simbolik yang sepadan dengan nasib hari ini.",
-      "fallbackCta": "Cabut nombor",
+      "fallbackTitle": "Get today's lucky numbers drawn from your Saju's Five Elements and number symbolism.",
+      "tagline": "A symbolic number feature that seeds five combinations from your natal chart plus today's day pillar and luck cycle, included in the Saju full reading, lifetime access.",
+      "premiumIntro": "The Saju Lotto doesn't predict a win. It draws symbolic numbers that fit today's fortune.",
+      "fallbackCta": "Draw Numbers",
       "feats": {
         "0": "Seeds the numbers from your natal chart plus today’s day pillar, luck cycle and round counter",
         "1": "Builds five games at once and labels them flow, stable, reversal, instinct and balance",
@@ -14260,10 +14306,10 @@
         "0": "Numbers seeded from your chart, today’s day pillar and luck cycle",
         "1": "Five games at once, each with a concept name",
         "2": "Redraw to raise the round counter and get a new set",
-        "3": "Termasuk dalam bacaan penuh Saju dengan akses seumur hidup"
+        "3": "Included in the Saju full reading, lifetime access"
       },
       "premiumOutcomes": {
-        "0": "Bacaan ini termasuk dalam bacaan penuh Saju dengan akses seumur hidup.",
+        "0": "This reading is included in the Saju full reading, lifetime access.",
         "1": "This is fun content that doesn't guarantee a win.",
         "2": "Please judge an actual purchase carefully."
       },
@@ -14301,15 +14347,15 @@
         },
         "2": {
           "q": "Can I save or share the number card?",
-          "a": "Cabutan nombor tiada fungsi simpan atau kongsi. Anda melihatnya terus pada skrin."
+          "a": "The number draw has no save or share feature. You read it directly on screen."
         }
       }
     },
     "rpt_sajuFourCutCard": {
-      "fallbackTitle": "Cipta jalur empat panel yang mentafsir semula data Saju anda dalam gaya gerai foto.",
-      "tagline": "Ayat terus terang yang mudah dirasai dalam empat panel, sedia untuk disimpan dan dikongsi, termasuk dalam bacaan penuh Saju dengan akses seumur hidup.",
-      "premiumIntro": "Empat Panel Saju tidak memutuskan nasib anda. Ia membolehkan anda menikmati Saju anda sebagai satu kad bergaya gerai foto.",
-      "fallbackCta": "Cipta empat panel",
+      "fallbackTitle": "Make a four-cut strip that reinterprets your Saju data in a photo-booth mood.",
+      "tagline": "Blunt but relatable lines packed into four cuts, ready to save and share, included in the Saju full reading, lifetime access.",
+      "premiumIntro": "The Saju Four-Cut doesn't state your fortune definitively. It lets you enjoy your Saju as a single photo-booth-style card.",
+      "fallbackCta": "Make a Four-Cut",
       "feats": {
         "0": "Builds four-cut lines from today’s day pillar energy",
         "1": "Lets you switch between four versions: form check, reply warmth, routine save and impulse lock",
@@ -14329,7 +14375,7 @@
         "3": "Image save plus KakaoTalk, device share or link copy"
       },
       "premiumOutcomes": {
-        "0": "Bacaan ini termasuk dalam bacaan penuh Saju dengan akses seumur hidup.",
+        "0": "This reading is included in the Saju full reading, lifetime access.",
         "1": "The sentences are for reference and entertainment.",
         "2": "The existing service standard applies."
       },
@@ -14366,16 +14412,16 @@
           "a": "Yes. You can save the four cuts as an image with your stickers in place."
         },
         "2": {
-          "q": "Adakah saya perlu membayar secara berasingan?",
-          "a": "Tiada bayaran berasingan. Ia dibuka bersama bacaan penuh Saju dengan akses seumur hidup."
+          "q": "Do I pay for it separately?",
+          "a": "There is no separate payment. It opens together with the Saju full reading, lifetime access."
         }
       }
     },
     "rpt_dopamineCard": {
-      "fallbackTitle": "Lihat sama ada anda mengejar rangsangan baharu atau lebih menyayangi kestabilan.",
-      "tagline": "Laporan yang menukar kecenderungan mencari rangsangan kepada skor dan gred mengikut aliran Saju anda, dengan radar 8 paksi, bidang tumpuan dan misi hari ini, termasuk dalam bacaan penuh Saju dengan akses seumur hidup.",
+      "fallbackTitle": "See whether you chase new stimulation or love stability more.",
+      "tagline": "A report that converts your stimulation-seeking tendency into a score and grade from your Saju flow, with an 8-axis stimulation radar, absorption areas and today's mission, included in the Saju full reading, lifetime access.",
       "premiumIntro": "This doesn't diagnose addiction -- it's a fun read, through your Saju flow, of where you draw energy from and where you burn out quickly.",
-      "fallbackCta": "Lihat indeks rangsangan saya",
+      "fallbackCta": "See Your Stimulation Score",
       "feats": {
         "0": "Converts your stimulation-seeking tendency into a 0–100 score, an SSS–D grade and a type name",
         "1": "Draws an eight-axis stimulation radar: new experiences, social media, shopping, gaming, study, travel, romance and exercise",
@@ -14396,7 +14442,7 @@
         "4": "Save and share the result card"
       },
       "premiumOutcomes": {
-        "0": "Bacaan ini termasuk dalam bacaan penuh Saju dengan akses seumur hidup.",
+        "0": "This reading is included in the Saju full reading, lifetime access.",
         "1": "This is content for temperament reference and entertainment.",
         "2": "The existing service standard applies."
       },
@@ -15890,7 +15936,7 @@
       "faq": {
         "0": {
           "q": "How is the price determined?",
-          "a": "The price depends on the number of cards in your chosen spread. You can review it on the payment screen before paying."
+          "a": "Each reading costs KRW 5,000 regardless of the number of cards. You can review it on the payment screen before paying."
         },
         "1": {
           "q": "What happens if generation fails?",
@@ -16399,7 +16445,7 @@
       "badge": "Free compatibility reading"
     },
     "saju": {
-      "tagline": "Mengira lapan aksara Saju anda dan memaparkan secara percuma carta, keseimbangan Lima Unsur serta satu baris kecenderungan. Tafsiran Sepuluh Dewa dan kitaran nasib disambung dalam bacaan penuh Saju berbayar.",
+      "tagline": "Calculates the eight characters of your Saju and shows your natal chart, Five Elements balance and a one-line tendency for free. Ten Gods and luck-cycle readings continue in the full paid Saju reading.",
       "feats": [
         "When you can't put your own disposition into words",
         "When you want to see the broad arc of your life once",
@@ -16416,7 +16462,7 @@
         "How does the broad arc of my life run?",
         "What kind of period am I in now?"
       ],
-      "fallbackCta": "Lihat carta Manseryeok percuma",
+      "fallbackCta": "See your free Manseryeok chart",
       "headline": "Explore the broad patterns of your life through your birth date and time.",
       "badge": "Start for free"
     },

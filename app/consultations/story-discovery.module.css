@@ -1,2 +1,59 @@
-.section{max-width:1040px;margin:40px auto;text-align:left;color:var(--cd-text,#402a38)}.section h2,.section h3{font-family:var(--font-serif);word-break:keep-all}.section h2{font-size:clamp(24px,4vw,32px);margin:0}.section>p{max-width:65ch;line-height:1.8;font-size:15px}.grid{display:grid;gap:28px;grid-template-columns:repeat(3,minmax(0,1fr));margin-top:24px}.grid article{min-width:0}.preview{display:block;overflow:hidden;background:var(--cd-samples-blush,#f8e4ea);border-radius:16px}.preview img{width:100%;height:auto;display:block}.grid h3{font-size:21px;margin:16px 0 8px}.grid p{font-size:15px;line-height:1.7;margin:8px 0;word-break:keep-all}.grid .benefits{font-size:13px}.actions{display:flex;flex-wrap:wrap;gap:0 16px;border-top:1px solid var(--cd-border,#dcc5cd);margin-top:16px}.actions a,.more{display:inline-flex;align-items:center;min-height:48px;color:inherit;text-underline-offset:5px;font-size:14px;font-weight:700}.more{margin-top:20px}.section a:focus-visible{outline:3px solid var(--cd-accent,#b53660);outline-offset:4px}
-@media(max-width:699px){.grid{grid-template-columns:1fr;gap:32px}}
+.section {
+  width: min(100%, 64rem);
+  margin-block: 1rem;
+  text-align: left;
+  --rule: var(--hm-gold-line);
+}
+.heading { border-top: 1px solid var(--rule); padding-block: 2rem 1.25rem; }
+.heading h2 { font-size: clamp(1.5rem, 4vw, 2.25rem); }
+.heading p, .story p { color: var(--cd-text-muted); }
+.section :is(h3, h4) { margin: 0; font: 700 1.25rem/1.45 var(--font-serif); }
+.grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2rem 1.5rem; margin-block: 2rem 1rem; }
+.grid article { position: relative; border-bottom: 1px solid var(--rule); }
+.story { display: block; text-decoration: none; }
+.preview { overflow: hidden; border-radius: 4px 16px 4px 4px; background: var(--cd-surface); }
+.preview img { display: block; width: 100%; height: auto; }
+.story h4 { margin-block: .75rem .25rem; }
+.story p { font-size: .9375rem; }
+.read, .start { display: inline-flex; align-items: center; gap: .5rem; min-height: 44px; font-size: .875rem; }
+.story .read { color: var(--hm-gold-ink); }
+.read { font-weight: 700; }
+.story .read { margin-right: 7rem; }
+.start { position: absolute; bottom: 0; right: 0; }
+.story:hover h4 { text-decoration: underline; text-underline-offset: .2em; }
+@media (max-width: 800px) {
+  .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 550px) {
+  .grid { grid-template-columns: 1fr; gap: 1.5rem; }
+}
+
+.contents { display: flex; flex-wrap: wrap; gap: 1.5rem; }
+.contents a { display: inline-flex; align-items: center; min-height: 44px; color: var(--hm-gold-ink); }
+.section .groupTitle { margin-block: 1.5rem 1rem; font-size: 1.4rem; }
+.preview { aspect-ratio: 3 / 2; }
+
+.heading { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: .5rem 1rem; }
+.ensemble { grid-column: 1 / -1; }
+.ensemble .preview { aspect-ratio: auto; }
+
+.mobileShelf{display:none}
+@media(max-width:699px){
+ .section .grid{display:none}
+ .mobileShelf{display:block}
+ .featured{overflow:hidden;border:1px solid var(--rule);border-radius:var(--cd-r-card);background:var(--cd-surface)}
+ .featured img{display:block;width:100%;height:auto;max-height:12rem;object-fit:cover;object-position:center 35%}
+ .featured h4,.featured p,.featured .actions{margin-inline:14px}
+ .featured h4{margin-top:12px}
+ .mobileShelf p{color:var(--cd-text-muted);font-size:.9375rem}
+ .actions{display:flex;justify-content:space-between;flex-wrap:wrap;gap:4px}
+ .actions a,.mobileShelf summary{display:flex;align-items:center;gap:6px;min-height:48px;font-weight:700}
+ .actions a{font-size:.875rem;color:var(--hm-gold-ink)}
+ .mobileShelf summary{justify-content:space-between;cursor:pointer;list-style:none}
+ .mobileShelf summary::-webkit-details-marker{display:none}
+ .mobileShelf summary:after{content:"";display:block;width:8px;height:8px;margin-inline:5px;border:solid currentColor;border-width:0 2px 2px 0;transform:rotate(45deg)}
+ .mobileShelf details[open]>summary:after{transform:rotate(225deg)}
+ .storyRow,.more{border-bottom:1px solid var(--rule)}
+ .more>summary{color:var(--hm-gold-ink)}
+ .section .groupTitle{margin-block:16px 8px}
+}

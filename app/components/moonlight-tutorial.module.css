@@ -1,0 +1,34 @@
+button.trigger[aria-haspopup="dialog"]{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,42%) 1fr;align-items:center;gap:clamp(.75rem,3vw,2rem);width:100%;overflow:hidden;padding:0;color:#422639;background:#fbf3e8;border:1px solid var(--hm-gold-line);border-radius:8px 22px 8px 8px;text-align:left}
+.trigger img{display:block;width:100%;height:clamp(8rem,18vw,12rem);object-fit:cover;object-position:50% 54%}
+.trigger small,.trigger strong{display:block;padding-right:1rem}
+.trigger strong{margin-top:.35rem;font:700 clamp(1rem,2vw,1.45rem)/1.45 var(--font-serif)}
+.panel h3{margin:0;font:700 1.2rem/1.5 var(--font-serif)}
+.reader {
+  position:fixed; inset:0; margin:auto; width:min(100%,34rem); max-width:100%; height:min(90dvh,54rem);
+  max-height:100dvh; padding:0; box-sizing:border-box; overflow:auto; overscroll-behavior:contain;
+  border:1px solid var(--hm-gold-line); border-radius:1rem; color:var(--cd-text);
+  background:var(--cd-bg); font-family:var(--font-body); line-height:1.65; overflow-wrap:anywhere;
+}
+.reader::backdrop {background:rgb(22 14 23 / .68)}
+.bar {position:sticky; top:0; z-index:1; display:flex; align-items:center; justify-content:space-between; padding:.2rem 1rem; background:var(--cd-surface); border-bottom:1px solid var(--hm-gold-line)}
+.bar span,.story h2 {font-family:var(--font-serif); font-weight:700}
+.reader .bar button {min-height:48px; padding:0 .5rem}
+.story {padding:1rem clamp(.8rem,4vw,1.5rem) 2rem}
+.story h2 {margin:.4rem 0 1.2rem; font-size:clamp(1.4rem,5vw,2rem)}
+.panel {margin-bottom:1.8rem; display:grid; gap:.65rem}
+.panel img {width:100%; height:auto; display:block; border-radius:.45rem}
+.panel p {margin:0; max-width:94%; padding:.6rem .9rem; font-size:1rem}
+.panel b {display:block; font-size:.82rem; color:var(--hm-gold-ink)}
+.bubble,.guest,.tag {background:var(--cd-surface); border:1px solid var(--hm-gold-line)}
+.bubble {justify-self:start; border-radius:.15rem 1rem 1rem 1rem}
+.guest {justify-self:end; border-radius:1rem .15rem 1rem 1rem}
+.tag {justify-self:center; padding:.2rem .7rem; font-family:var(--font-serif)}
+.panel a {display:inline-flex; gap:.3em; align-items:center; min-height:48px; text-decoration:underline}
+.reader .write {width:100%; min-height:48px; padding:.8rem; background:var(--cd-text); color:var(--cd-bg); border-radius:.55rem; text-align:center; font-weight:700}
+@media(max-width:600px){.reader {width:100%; height:100dvh; border:0; border-radius:0}.bar {padding-top:env(safe-area-inset-top)}.story {padding-bottom:calc(1.5rem + env(safe-area-inset-bottom))}}
+
+@media(max-width:699px){
+ button.trigger[aria-haspopup="dialog"]{grid-template-columns:50px 1fr;gap:10px;min-height:52px;padding:6px 12px;border-radius:var(--cd-r-card)}
+ .trigger img{width:50px;height:40px;object-fit:contain}
+ .trigger small{display:none}.trigger strong{margin:0;font-size:1rem}
+}

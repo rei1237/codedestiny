@@ -510,9 +510,9 @@ console.log("\n[9] 프론트 계약 — 결제·잠금 판정의 단일 정본")
   check("VVIP 화면: 공용 게이트(useCoinGate) 사용", /useCoinGate/.test(vvipCode));
   check("VVIP 화면: 🔴 회당 결제이므로 forceDeduct 를 주지 않는다", !/forceDeduct/.test(vvipCode));
   check("VVIP 화면: paymentMode 를 강제하지 않는다", !/paymentMode/.test(vvipCode));
-  check("VVIP 화면: featureKey nakshatra-vvip-codex · 300코인 · 30,000원",
+  check("VVIP 화면: featureKey nakshatra-vvip-codex · 50코인 · 5,000원",
     /FEATURE_KEY = "nakshatra-vvip-codex"/.test(vvipCode)
-    && /COIN_PRICE = 300/.test(vvipCode) && /AMOUNT_KRW = 30000/.test(vvipCode));
+    && /COIN_PRICE = 50/.test(vvipCode) && /AMOUNT_KRW = 5000/.test(vvipCode));
   check("VVIP 화면: PDF 는 공용 헬퍼를 쓴다(새 PDF 파이프라인 추가 금지)",
     /@\/lib\/pdf\/export-result-pdf/.test(vvipCode) && /data-pdf-section/.test(vvipCode));
 

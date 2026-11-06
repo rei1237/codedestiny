@@ -30,7 +30,7 @@ const tarotLoveSource = source("js/tarot-love-experience.js");
 const tarotReunionSource = source("js/tarot-reunion-experience.js");
 
 const expectedCosts = {
-  "tarot-year-fortune": 100,
+  "tarot-year-fortune": 50,
   "tarot-love-relationship": 50,
   "tarot-reunion-reading": 50,
   openJuyukModal: 30,
@@ -41,7 +41,7 @@ const expectedCosts = {
   "compat-astro-synastry": 50,
   "compat-astro-direct-synastry": 50,
   "compat-ziwei-compatibility": 50,
-  "compat-saju-compatibility": 100,
+  "compat-saju-compatibility": 50,
   "compat-sukuyo-compatibility": 50,
   "premium-sukuyo-compat-extra": 50,
   "sukuyo-relationship-encyclopedia": 50,
@@ -58,7 +58,7 @@ for (const [featureKey, cost] of Object.entries(expectedCosts)) {
   assert.equal(FEATURE_KEY_PRICE_TABLE[featureKey]?.cost, cost, `${featureKey} must be priced by server registry`);
 }
 
-assert.equal(FEATURE_KEY_PRICE_TABLE["tarot-year-fortune"]?.amountKRW, 10000, "tarot-year-fortune must use KRW 10,000 for new purchases");
+assert.equal(FEATURE_KEY_PRICE_TABLE["tarot-year-fortune"]?.amountKRW, 5000, "tarot-year-fortune must use KRW 5,000 for new purchases");
 
 for (const featureKey of [
   "tarot-year-fortune",
@@ -145,13 +145,13 @@ for (const featureKey of [
 for (const [featureKey, expected] of Object.entries({
   section_summary: { cost: 100, amountKRW: 10000, billingType: PAID_FEATURE_BILLING_TYPES.UNLOCK },
   section_daewun: { cost: 200, amountKRW: 20000, billingType: PAID_FEATURE_BILLING_TYPES.UNLOCK },
-  "relationship-boundary-test": { cost: 100, amountKRW: 10000, billingType: PAID_FEATURE_BILLING_TYPES.PER_USE },
+  "relationship-boundary-test": { cost: 50, amountKRW: 5000, billingType: PAID_FEATURE_BILLING_TYPES.PER_USE },
   rpt_quantumCard: { cost: 100, amountKRW: 10000, billingType: PAID_FEATURE_BILLING_TYPES.UNLOCK },
   rpt_energyCoordCard: { cost: 70, amountKRW: 7000, billingType: PAID_FEATURE_BILLING_TYPES.UNLOCK },
   "fun.quantumLotto.ritualReport": { cost: 10, amountKRW: 1000, billingType: PAID_FEATURE_BILLING_TYPES.PER_USE },
-  destiny_meeting_place: { cost: 70, amountKRW: 7000, billingType: PAID_FEATURE_BILLING_TYPES.PER_USE },
+  destiny_meeting_place: { cost: 50, amountKRW: 5000, billingType: PAID_FEATURE_BILLING_TYPES.PER_USE },
   "animal-destiny-unlock": { cost: 70, amountKRW: 7000, billingType: PAID_FEATURE_BILLING_TYPES.UNLOCK },
-  "love-code": { cost: 70, amountKRW: 7000, billingType: PAID_FEATURE_BILLING_TYPES.PER_USE },
+  "love-code": { cost: 50, amountKRW: 5000, billingType: PAID_FEATURE_BILLING_TYPES.PER_USE },
 })) {
   assert.deepEqual(
     { cost: (FEATURE_KEY_PRICE_TABLE[featureKey] || UNLOCK_PRODUCT_BY_FEATURE_KEY[featureKey])?.cost, amountKRW: (FEATURE_KEY_PRICE_TABLE[featureKey] || UNLOCK_PRODUCT_BY_FEATURE_KEY[featureKey])?.amountKRW, billingType: getPaidFeatureBillingType(featureKey) },

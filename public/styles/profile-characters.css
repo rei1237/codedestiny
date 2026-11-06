@@ -1,5 +1,5 @@
 #dpMasterCard .pc-avatar.dp-mc-avatar{width:80px;height:80px;flex:0 0 80px;background:transparent;border:0;box-shadow:none;overflow:hidden}
-.pc-sprite{display:inline-block;width:80px;height:80px;flex-shrink:0;background-size:400% 100%;background-repeat:no-repeat;background-position:0 0;animation:pc-idle 4.8s step-end infinite;vertical-align:middle}
+.pc-sprite{display:inline-block;width:80px;height:80px;flex-shrink:0;background-image:var(--pc-sprite);background-size:400% 100%;background-repeat:no-repeat;background-position:0 0;animation:pc-idle 4.8s step-end infinite;vertical-align:middle}
 @keyframes pc-idle{0%,62%,100%{background-position:0 0}68%{background-position:33.333333% 0}76%{background-position:66.666667% 0}84%{background-position:100% 0}}
 .pc-sprite--still{animation:none}
 .pc-panel{color:var(--cd-text);font-size:.875rem;line-height:1.6;min-width:0;margin-block:16px}
@@ -83,4 +83,5 @@
 .pc-birth-details p{margin:4px 0;text-align:center;line-height:1.6}
 .pc-game-card :is(button,a,summary):focus-visible{outline:2px solid var(--pc-gold);outline-offset:3px}
 .pc-game-card ::selection{background:var(--pc-gold);color:var(--pc-night)}
+@media(max-width:480px){.pc-sprite{background-image:var(--pc-sprite-mobile,var(--pc-sprite))}}
 @media(max-width:430px){.pc-game-inner{padding:20px 16px}.pc-game-hero{grid-template-columns:80px minmax(0,1fr) 44px;gap:10px}#dpListSheet #dpMasterCard.pc-game-card .pc-game-identity h2{font-size:19px}.pc-portrait{border-radius:20px 20px 12px 12px}}

@@ -66,10 +66,12 @@ export function MoonlightShopHero() {
       <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex min-w-0 flex-1 flex-col items-center gap-5 text-center sm:flex-row sm:text-left">
           <img
-            src="/assets/yeongnyangi/payment-alliance/moonlight-fish-ticket-shop-v1.webp"
-            alt="달빛 상점에서 고등어·연어·광어·참치 그림 꾸러미를 함께 소개하는 꽃돼지 연이와 영냥이"
-            width={1280}
-            height={853}
+            src="/images/home/honey-pot-duo-480.webp"
+            srcSet="/images/home/honey-pot-duo-480.webp 480w, /images/home/honey-pot-duo-960.webp 960w"
+            sizes="(min-width: 640px) 208px, 224px"
+            alt="꿀단지 하나를 함께 든 꽃돼지 연이와 영냥이"
+            width={960}
+            height={960}
             loading="eager"
             decoding="async"
             className="w-56 max-w-full flex-shrink-0 rounded-2xl sm:w-52"
@@ -78,9 +80,6 @@ export function MoonlightShopHero() {
             <h1 className="mt-2 break-keep text-3xl font-black leading-tight text-white sm:text-4xl">연이의 달빛 이용권 상점</h1>
             <p className="mt-3 text-sm font-semibold leading-6 text-[color:var(--moon-silver)] sm:text-base">
               달빛 이용권 상품과 원화 결제 조건을 한 화면에서 확인하세요.
-            </p>
-            <p className="mt-2 text-sm leading-6 text-[color:var(--moon-silver)]">
-              연이의 가게에 생선을 좋아하는 영냥이가 놀러 왔어요. “달빛도 좋지만, 생선은 더 좋다냥!”
             </p>
             <p className="mt-2 text-sm font-black leading-6 text-[color:var(--moon-gold)]">
               이용권은 원화 단건 결제로만 구매할 수 있습니다. 월정석으로는 이용권을 구매할 수 없습니다.

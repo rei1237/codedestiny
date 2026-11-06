@@ -1,4 +1,5 @@
 "use client";
+import {readGuideQuestion} from "@/lib/fortune/guide-handoff";
 import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
 import BirthTimeInput from "@/app/components/BirthTimeInput";
 
@@ -1080,6 +1081,7 @@ export default function NeoOperationRoomPage() {
   // 기본맛을 미리 골라 둔다 — 강도는 바꾸고 싶을 때만 누르는 선택이고, 단계를 하나 더 만들지 않는다.
   const [intensity, setIntensity] = useState<IntensityId | "">("standard");
   const [lastCommandChoice, setLastCommandChoice] = useState<NeoCommandChoice | null>(null);
+  const guideSeed = useRef("");
   const [question, setQuestion] = useState("");
   const [operationReady, setOperationReady] = useState(false);
   const [flowPhase, setFlowPhase] = useState<FlowPhase>("idle");
@@ -1475,8 +1477,11 @@ export default function NeoOperationRoomPage() {
     }
     setDialogueSeed(Math.floor(Math.random() * 9973));
     setEntryRevision(shouldOpenPrologue ? NEO_OPERATION_ROOM_ENTRY_REVISION : "");
-    setHasEnteredWarRoom(shouldOpenPrologue);
-    setHasCompletedPrologue(false);
+    const seed = guideSeed.current || readGuideQuestion();
+    guideSeed.current = seed;
+    if (seed) { setQuestion(seed); setEntryRevision(NEO_OPERATION_ROOM_ENTRY_REVISION); }
+    setHasEnteredWarRoom(Boolean(seed) || shouldOpenPrologue);
+    setHasCompletedPrologue(Boolean(seed));
     setPrologueStep(0);
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
     if (audio) audio.volume = NEO_WAR_ROOM_BGM_TRACK.volume;

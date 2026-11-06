@@ -53,6 +53,7 @@ import {
   invalidatePaidAccessDecisionCacheForUser,
   isPartialCancel,
   logSwallowedPaymentError,
+  readPassUseForOrder,
   refundPaymentAsOperator,
   revokeSinglePaymentContentAccess,
 } from "../lib/payment-refund.js";
@@ -2662,6 +2663,31 @@ async function handleCancel(request, env, auth) {
         code: "PORTONE_NOT_PAID",
         status: verifiedStatus || undefined,
       }, { status: 400 });
+    }
+  }
+
+  /* 사용 이력이 있는 이용권은 자동 취소하지 않고 관리자가 판단한다(스펙 6.3). 조회를 못 하면 사용 여부를
+     모르는 것이니 돈을 돌려주는 쪽으로 열지 않는다. 포인트 롤백과 PG 취소보다 먼저 막아야 한다. */
+  if (String(paymentRecord.paymentType || "") === "membership_pass") {
+    const passUse = await withMongoRetry(env, () => readPassUseForOrder(paymentRecord)).catch(() => null);
+    if (!passUse || passUse.hasUse) {
+      await writeFailureLog({
+        request,
+        userId: auth.userId,
+        impUid,
+        merchantUid,
+        source: "confirm",
+        stage: "cancel_pass_review",
+        code: "pass_refund_review_required",
+        message: passUse ? "Pass has use history." : "Pass use lookup failed.",
+        status: 409,
+        payload: body,
+      });
+      return json({
+        ok: false,
+        code: "PASS_REFUND_REVIEW_REQUIRED",
+        message: "이용 내역이 있는 이용권은 자동으로 취소할 수 없어요. 고객센터로 문의해 주세요.",
+      }, { status: 409 });
     }
   }
 

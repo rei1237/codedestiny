@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 const POINTS_LAYOUT_TEXT_TRANSLATIONS = {
   ko: {
     title: "이용권 상점",
-    description: "꿀꿀운세 이용권 구매와 주문 내역을 확인하는 개인 페이지입니다.",
+    description: "꿀단지 이용권 구매와 주문 내역을 확인하는 개인 페이지입니다.",
   },
   en: {
     title: "Pass Store",

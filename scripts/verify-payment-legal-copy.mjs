@@ -310,11 +310,50 @@ if (SELF_TEST) {
   process.exit(0);
 }
 
+// ── 8-2) 약관의 이용권 규칙이 판매 정본과 같은지 ─────────────────────────────────────
+// 약관은 금액을 산문으로 적으므로 정본이 바뀌면 조용히 어긋난다. 2026-11-04 개정 전에는
+// 이미 없어진 한도(30,000원 등)와 "한도를 다 쓰면 이용권 종료"를 계속 말하고 있었다.
+const { CURRENT_PASS_PLANS } = await import(new URL("../lib/payment/pass-policy.js", import.meta.url).href);
+const TERMS_KO = "app/terms-of-service/TermsContent.jsx";
+const TERMS_LOCALIZED = "lib/legal/legalContent.ts";
+const termsKo = read(TERMS_KO);
+const termsLocalized = read(TERMS_LOCALIZED);
+const wonText = (coin) => (coin * 100).toLocaleString("ko-KR") + "원";
+const tierNames = { standard: "작은 꿀단지", premium: "중간 꿀단지", vvip: "큰 꿀단지", family: "패밀리 꿀단지" };
+for (const [tier, name] of Object.entries(tierNames)) {
+  const plan = CURRENT_PASS_PLANS[tier];
+  assert.ok(plan, `CURRENT_PASS_PLANS.${tier} 가 없습니다`);
+  assert.ok(termsKo.includes(`${name} ${wonText(plan.monthlyLimitCoin)}`), `${TERMS_KO}: ${name} 상담 한도 ${wonText(plan.monthlyLimitCoin)} 가 없습니다`);
+  if (tier !== "family") assert.ok(termsKo.includes(`${name} ${wonText(plan.maxCoveredCoin)}`), `${TERMS_KO}: ${name} 건당 상한 ${wonText(plan.maxCoveredCoin)} 가 없습니다`);
+  assert.ok(termsKo.includes(`${name} ${wonText(plan.wonPrice / 100)}`), `${TERMS_KO}: ${name} 판매가 ${wonText(plan.wonPrice / 100)} 가 없습니다`);
+}
+for (const phrase of [
+  "상담 한도를 모두 사용해도 이용권은 유지",
+  "라이트 운세는 별도 이용 기간 없이",
+  "이미 구매한 이용권의 결제 금액과 상담 한도는 바뀌지 않",
+  "비정상적인 자동화 이용",
+]) assert.ok(termsKo.includes(phrase), `${TERMS_KO}: 필수 문구 "${phrase}" 가 없습니다`);
+for (const stale of ["이용 한도를 모두 사용하면 이용권이 종료", "판정 기준은 적용 가격 범위와 이용 한도 둘뿐", "the pass ends"]) {
+  assert.ok(!termsKo.includes(stale), `${TERMS_KO}: 옛 문구 "${stale}" 가 남아 있습니다`);
+}
+// 해외 약관(en·ja·zh·zh-TW)도 같은 계약이다. 옛 "10회 포함" 규칙과 "한도까지 유지"가 남으면 나라마다 조건이 갈린다.
+for (const stale of ["up to 10 uses", "until its usage limit is fully used", "10回まで", "利用上限を使い切るまで", "最多包含10次", "用完为止", "用完為止"]) {
+  assert.ok(!termsLocalized.includes(stale), `${TERMS_LOCALIZED}: 옛 문구 "${stale}" 가 남아 있습니다`);
+}
+const termsDate = termsKo.match(/TERMS_EFFECTIVE_DATE = "([^"]+)"/)?.[1];
+const localizedTerms = termsLocalized.slice(termsLocalized.indexOf("TERMS_CONTENT"), termsLocalized.indexOf("PRIVACY_CONTENT"));
+const localizedDates = [...localizedTerms.matchAll(/effectiveDate: "([^"]+)"/g)].map((m) => m[1]);
+assert.equal(localizedDates.length, 4, `${TERMS_LOCALIZED}: 해외 약관 시행일을 4개 찾아야 합니다`);
+for (const date of localizedDates) assert.equal(date, termsDate, `${TERMS_LOCALIZED}: 해외 약관 시행일 ${date} 가 정본 ${termsDate} 와 다릅니다`);
+assert.ok(termsKo.includes('id="terms-revision"'), `${TERMS_KO}: 개정 안내 블록이 없습니다`);
+assert.ok(read("app/terms-of-service/page.js").includes("<TermsRevisionNotice"), "약관 페이지가 개정 안내를 렌더하지 않습니다");
+assert.ok(read("lib/marketing/pass-benefits.mjs").includes("/terms/#terms-revision"), "홈 이용권 배너 아래 약관 개정 안내 링크가 없습니다");
+
 // ── 9) CI 트리거 커버리지 ──────────────────────────────────────────────────────────────
 // 검사기가 멀쩡한 것과 검사기가 **실행되는** 것은 다른 문제다(CLAUDE.md 원칙 10).
 const GATE_WORKFLOW = ".github/workflows/paid-flow-gates.yml";
 const gatePatterns = readGatePatterns(resolve(root, GATE_WORKFLOW));
-const READ_PATHS = [REFUND_ROWS, MARKET_REGISTRY, ...I18N_LOCALES.map((locale) => `public/i18n/${locale}.json`)];
+const READ_PATHS = [REFUND_ROWS, MARKET_REGISTRY, TERMS_KO, TERMS_LOCALIZED, "app/terms-of-service/page.js", "lib/marketing/pass-benefits.mjs", "lib/payment/pass-policy.js", ...I18N_LOCALES.map((locale) => `public/i18n/${locale}.json`)];
 for (const rel of READ_PATHS) {
   assert.ok(
     gateCoversAny(gatePatterns, rel),

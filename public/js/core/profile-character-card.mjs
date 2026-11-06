@@ -1,29 +1,33 @@
-import { SPIRITS, SPIRIT_BONUS_PERCENT, spriteUrl, findSpirit, spiritExp } from './profile-characters.mjs';
+import { SPIRITS, SPIRIT_BONUS_PERCENT, spriteUrl, mobileSpriteUrl, findSpirit, spiritExp } from './profile-characters.mjs';
 import { elementBadgeMarkup } from './profile-element-badge.mjs';
+export { elementBadgeMarkup };
 
 const mounts = new WeakMap();
 const previews = new Map();
 let activeMount = null;
 const koreaDate = () => new Date(Date.now() + 9 * 3600000).toISOString().slice(0, 10);
 function refreshDay() {
-  if (document.visibilityState !== 'hidden' && activeMount?.root.isConnected && activeMount.date !== koreaDate()) {
+  if (typeof document !== 'undefined' && document.visibilityState !== 'hidden' && activeMount?.root.isConnected && activeMount.date !== koreaDate()) {
     mountCharacterCard(activeMount.root, activeMount.profile, activeMount.options);
   }
 }
-window.addEventListener('focus', refreshDay);
-document.addEventListener('visibilitychange', refreshDay);
-window.addEventListener('cd:auth-changed', () => {
-  previews.clear();
-  if (activeMount?.root.isConnected) mountCharacterCard(activeMount.root, activeMount.profile, activeMount.options);
-});
+if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+  window.addEventListener('focus', refreshDay);
+  document.addEventListener('visibilitychange', refreshDay);
+  window.addEventListener('cd:auth-changed', () => {
+    previews.clear();
+    if (activeMount?.root.isConnected) mountCharacterCard(activeMount.root, activeMount.profile, activeMount.options);
+  });
+}
 const escape = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[ch]));
 const pad = value => String(value).padStart(2, '0');
 const errors = { INSUFFICIENT_HONEY_DROPS: '꿀방울이 부족해요. 출석으로 모은 뒤 다시 확인해 주세요.', SPIRIT_NOT_OWNED: '먼저 이 정령을 해금해 주세요.', SPIRIT_REQUEST_MISMATCH: '요청이 일치하지 않아요. 도감을 다시 열어 주세요.' };
 export function spriteMarkup(id, name, animate = true) {
   const url = spriteUrl(id);
-  return url ? `<span class="pc-sprite${animate ? '' : ' pc-sprite--still'}" role="img" aria-label="${escape(name)}" style="background-image:url('${url}')"></span>` : '';
+  const mobileUrl = mobileSpriteUrl(id);
+  return url ? `<span class="pc-sprite${animate ? '' : ' pc-sprite--still'}" role="img" aria-label="${escape(name)}" style="--pc-sprite:url('${url}');--pc-sprite-mobile:url('${mobileUrl}')"></span>` : '';
 }
-function birthInput(profile) {
+export function birthInput(profile) {
   const birth = profile?.birth || {};
   const place = profile?.location || {};
   return { birthDate: birth.year && birth.month && birth.day ? `${birth.year}-${pad(birth.month)}-${pad(birth.day)}` : '',
@@ -31,6 +35,22 @@ function birthInput(profile) {
     birthTimeUnknown: birth.timeUnknown === true || profile?.birthTimeUnknown === true,
     gender: profile?.gender || profile?.sex || '', calendarType: birth.calType || 'solar',
     ...(place.tz && place.lng != null ? { birthPlace: { longitude: Number(place.lng), latitude: Number(place.lat), timezone: place.tz } } : {}) };
+}
+function unwrapResult(result) {
+  const data = result?.data;
+  if (!result?.ok || !data?.ok || data.degraded) throw Object.assign(new Error(errors[data?.code] || data?.message || '잠시 불러오지 못했어요. 다시 시도해 주세요.'), { code:data?.code });
+  return data;
+}
+export async function loadProfileCharacterPreview(profile, { request }) {
+  const input = birthInput(profile);
+  const key = JSON.stringify([koreaDate(), input]);
+  if (previews.has(key)) return previews.get(key);
+  const job = Promise.resolve(request('/api/rpg/character-preview', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input),
+  })).then(unwrapResult).catch(error => { previews.delete(key); throw error; });
+  if (previews.size >= 12) previews.clear();
+  previews.set(key, job);
+  return job;
 }
 export async function mountCharacterCard(root, profile, options) {
   activeMount = { root, profile, options, date: koreaDate() };
@@ -50,20 +70,13 @@ export async function mountCharacterCard(root, profile, options) {
   const api = async (path, body) => {
     const result = await options.request(path, { method: body === undefined ? 'GET' : 'POST', ...(body === undefined ? {} : { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }) });
     if (!current()) throw new Error('STALE_PROFILE');
-    const data = result?.data;
-    if (!result?.ok || !data?.ok || data.degraded) throw Object.assign(new Error(errors[data?.code] || data?.message || '잠시 불러오지 못했어요. 다시 시도해 주세요.'), { code:data?.code });
-    return data;
+    return unwrapResult(result);
   };
   let preview, state = null, pending = false;
-  const input = birthInput(profile);
-  const date = koreaDate();
-  const key = JSON.stringify([date, input]);
   target.innerHTML = '<p role="status">나의 일주 캐릭터를 만나고 있어요.</p>';
   try {
-    preview = previews.get(key) || await api('/api/rpg/character-preview', input);
+    preview = await loadProfileCharacterPreview(profile, { request: options.request });
     if (!current()) return;
-    if (previews.size >= 12) previews.clear();
-    previews.set(key, preview);
   } catch (error) {
     if (!current()) return;
     const incomplete = error.code === 'PROFILE_INCOMPLETE' || error.code === 'CHARACTER_UNAVAILABLE';

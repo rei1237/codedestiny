@@ -1,57 +1,59 @@
 {
-  "style": "2D animal animation, four frames, transparent background",
+  "animalStyle": "Moonlit Yehwa 2.5D storybook watercolor, porcelain texture, transparent cutout",
+  "spiritStyle": "2D animal animation, four frames, transparent background",
   "generator": "OpenAI imagegen",
-  "date": "2026-10-17",
+  "date": "2026-11-06",
   "displaySize": "64–80px",
-  "derivative": "512x128 WebP via scripts/build-profile-sprites.mjs",
+  "desktopDerivative": "512x128 WebP via scripts/build-profile-sprites.mjs",
+  "mobileDerivative": "320x80 WebP via scripts/build-profile-sprites.mjs",
   "assets": [
     {
       "id": "animal-mouse",
-      "sourceFile": "exec-ee65b91c-c7ab-47fc-af7e-d2a11176f02b.png"
+      "sourceFile": "exec-7e3c2e9f-53ec-4902-9da9-24fb06bbe9fc.png"
     },
     {
       "id": "animal-ox",
-      "sourceFile": "exec-5eb6cdc9-5a16-42aa-b0d0-6e192c3f43e9.png"
+      "sourceFile": "exec-451ccdec-523c-4f54-85c9-cf4fce51c455.png"
     },
     {
       "id": "animal-tiger",
-      "sourceFile": "exec-caa211e0-479a-47a0-b466-956249ac9abc.png"
+      "sourceFile": "exec-16d2f9bc-308d-465d-aaf0-f53338c54b40.png"
     },
     {
       "id": "animal-rabbit",
-      "sourceFile": "exec-7c81b6bb-2596-4d02-8fa5-9166240d61b5.png"
+      "sourceFile": "exec-6c2c3f6f-352d-4b57-b013-828f35400e00.png"
     },
     {
       "id": "animal-dragon",
-      "sourceFile": "exec-72fc90be-07c3-45c2-af8f-e7b43faa4c8a.png"
+      "sourceFile": "exec-34a04723-131b-4ebf-bac1-9978b8074238.png"
     },
     {
       "id": "animal-snake",
-      "sourceFile": "exec-59ed7ffc-b865-4cf6-bc2d-3557a31c8375.png"
+      "sourceFile": "exec-384e39b7-40d0-4017-958d-b30de6539dd0.png"
     },
     {
       "id": "animal-horse",
-      "sourceFile": "exec-fce116a8-3cbc-4441-a4a5-9445174f570c.png"
+      "sourceFile": "exec-3b33a4f4-2a0e-4928-b683-c85d94d3d163.png"
     },
     {
       "id": "animal-sheep",
-      "sourceFile": "exec-f024414c-540f-4671-a36d-3f0addf5ea4c.png"
+      "sourceFile": "exec-a7ea692a-5926-446d-a5ed-4c2579afae15.png"
     },
     {
       "id": "animal-monkey",
-      "sourceFile": "exec-33a2497c-a408-4f4a-98d7-993204e8f89d.png"
+      "sourceFile": "exec-dd7f905f-a1f5-447e-bed2-69cb3a6d25df.png"
     },
     {
       "id": "animal-rooster",
-      "sourceFile": "exec-364d8396-e595-422d-b4a1-b31dd214348c.png"
+      "sourceFile": "exec-cdd3446c-9991-469c-8f61-3bd5f8fb5369.png"
     },
     {
       "id": "animal-dog",
-      "sourceFile": "exec-b7aa2c38-7d77-425c-b897-2aa66461430b.png"
+      "sourceFile": "exec-d26378e0-b08b-4f43-81b2-e241bfdef7a8.png"
     },
     {
       "id": "animal-pig",
-      "sourceFile": "exec-fea605ff-1624-43ae-aa9a-716a61d3b306.png"
+      "sourceFile": "exec-18463192-eeb5-44af-9be8-9812ec5d9051.png"
     },
     {
       "id": "spirit-00",

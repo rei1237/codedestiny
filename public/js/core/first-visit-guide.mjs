@@ -21,7 +21,7 @@ function installGuide() {
     {label:guideText('sceneReadingLabel'),title:guideText('sceneReadingTitle'),speech:guideText('sceneReadingBody')},
     {label:guideText('sceneDeeperLabel'),title:guideText('sceneDeeperTitle'),speech:guideText('sceneDeeperBody')}
   ];
-  const art=()=>'<span class="cd-first__art cd-first__atelier" aria-hidden="true"><img src="/assets/yeoni/atelier/talking-pig.webp" width="1280" height="384" alt=""></span>';
+  const art=()=>'<span class="cd-first__art cd-first__atelier" aria-hidden="true"><img data-first-portrait-src="/assets/yeoni/atelier/talking-pig.webp" width="1280" height="384" alt=""></span>';
   const story=document.createElement('div');story.className='cd-first__story';
   story.innerHTML=`<nav class="cd-first__scene-nav" data-first-aria="scenesLabel" aria-label="${guideText('scenesLabel')}">`+scenes().map((scene,index)=>'<button type="button" data-first-scene="'+index+'"><span>'+(index+1)+'</span>'+'<span data-first-copy="'+['sceneProfileLabel','sceneReadingLabel','sceneDeeperLabel'][index]+'">'+scene.label+'</span></button>').join('')+'</nav><div class="cd-first__scene">'+art()+`<div class="cd-first__speech" aria-live="polite"><span class="cd-first__speaker" data-first-copy="speaker">${guideText('speaker')}</span><h2></h2><p></p><button type="button" data-first-next></button></div></div>`;
   let sceneIndex=0,lastProgressStep=0;
@@ -44,9 +44,8 @@ function installGuide() {
   const dialog = document.createElement('dialog');
   dialog.className = 'cd-first cd-first__welcome';
   dialog.setAttribute('aria-labelledby','cdFirstTitle');dialog.setAttribute('aria-describedby','cdFirstDescription');
-  dialog.innerHTML = `<button type="button" class="cd-first__close" data-first-aria="close" aria-label="${guideText('close')}" data-first-close><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button><img src="/fuctionassets/%EC%97%B0%EC%9D%B4.webp" width="144" height="144" alt=""><h2 id="cdFirstTitle"><span data-first-copy="welcomeTitle">${guideText('welcomeTitle')}</span><br><span data-first-copy="welcomeReading">${guideText('welcomeReading')}</span></h2><p id="cdFirstDescription"><span data-first-copy="welcomeBody">${guideText('welcomeBody')}</span><br><span data-first-copy="welcomeLater">${guideText('welcomeLater')}</span></p><button class="cd-first__primary" type="button" data-first-start data-first-copy="start">${guideText('start')}</button><button type="button" data-first-close data-first-copy="later">${guideText('later')}</button>`;
+  dialog.innerHTML = `<button type="button" class="cd-first__close" data-first-aria="close" aria-label="${guideText('close')}" data-first-close><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button><h2 id="cdFirstTitle"><span data-first-copy="welcomeTitle">${guideText('welcomeTitle')}</span><br><span data-first-copy="welcomeReading">${guideText('welcomeReading')}</span></h2><p id="cdFirstDescription"><span data-first-copy="welcomeBody">${guideText('welcomeBody')}</span><br><span data-first-copy="welcomeLater">${guideText('welcomeLater')}</span></p><button class="cd-first__primary" type="button" data-first-start data-first-copy="start">${guideText('start')}</button><button type="button" data-first-close data-first-copy="later">${guideText('later')}</button>`;
   document.body.append(dialog);
-  dialog.querySelector('img').remove();
   dialog.querySelector('[data-first-start]').before(story,howTo);
   if(document.documentElement.lang.startsWith('ko')){
     const gift=document.createElement('a');gift.className='cd-first__reward-link';gift.href='/first-steps/';gift.textContent='무료 만세력을 본 뒤, 월정석 선물과 사용법 확인하기';
@@ -73,6 +72,8 @@ function installGuide() {
   function show(){
     if(dialog.open || !supported())return;
     opener = document.activeElement instanceof HTMLElement ? document.activeElement : root.querySelector('button');
+    const portrait = story.querySelector('[data-first-portrait-src]');
+    if (!portrait.hasAttribute('src')) portrait.src = portrait.dataset.firstPortraitSrc;
     writeFirstVisit(service,'offered',0,scope);dialog.showModal();firstVisitEvent(service,'view');
   }
   function begin(){
@@ -129,15 +130,16 @@ function installGuide() {
   window.addEventListener('cd:saju-summary-ready',()=>{
     resultReady=true;installResultHelp();requestAnimationFrame(sync);
   });
-  const observer = new MutationObserver(()=>{
+  function offerDesktopGuide(){
     sync();
-    if(firstVisitHome(location,service)&&readFirstVisit(service,scope).status==='new'&&!firstVisitOverlayBusy(document)&&home.getClientRects().length)show();
-  });
+    if (matchMedia('(min-width:700px)').matches && firstVisitHome(location,service) &&
+        readFirstVisit(service,scope).status==='new' && !firstVisitOverlayBusy(document) && home.getClientRects().length) show();
+  }
+  const observer = new MutationObserver(offerDesktopGuide);
   window.addEventListener('pagehide',()=>observer.disconnect(),{once:true});
   // Consent and existing dialogs take priority. Recheck when they close, not on a polling timer.
   setTimeout(()=>{
-    sync();
-    if(firstVisitHome(location,service)&&readFirstVisit(service,scope).status==='new'&&!firstVisitOverlayBusy(document)&&home.getClientRects().length)show();
+    offerDesktopGuide();
     observer.observe(document.documentElement,{attributes:true,attributeFilter:['lang']});
     observer.observe(home,{attributes:true,attributeFilter:['hidden','style']});
     document.querySelectorAll('dialog,#cdCookieConsent,#resultPage').forEach(el=>observer.observe(el,{attributes:true,attributeFilter:['open','class','hidden','style','aria-hidden']}));

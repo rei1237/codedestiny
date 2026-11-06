@@ -5312,6 +5312,18 @@ async function calculate(run){
     // 서버 본문 요청 입력(js/core/saju/section-client.js). 출생 정보·출생지만 담는다.
     window.__cdSajuSectionInput={birth:{date:bd,calType:calType,hour:hour,minute:minute,timeKnown:!_birthTimeUnknown},gender:GENDER,name:USER_NAME,
       place:{name:opt?opt.text:'대한민국 (서울)',longitude:bLong,latitude:bLat,timezone:bTz,baseTzOffset:bBaseTzOff}};
+    try {
+      var sectionProfileId = typeof window.cdBirthScopeCurrentProfileId === 'function' ? String(window.cdBirthScopeCurrentProfileId() || '').trim() : '';
+      if (!sectionProfileId && typeof window.__cdGetCurrentDestinyProfile === 'function') {
+        var sectionProfile = window.__cdGetCurrentDestinyProfile();
+        sectionProfileId = String((sectionProfile && (sectionProfile.id || sectionProfile.profileId || sectionProfile._id)) || '').trim();
+      }
+      window.__cdSajuSectionInput.profileId = sectionProfileId;
+      window.sessionStorage.setItem('cd:saju-section-input:v1', JSON.stringify(window.__cdSajuSectionInput));
+      if (window.CdSajuSectionClient && typeof window.CdSajuSectionClient.rememberInput === 'function') {
+        window.CdSajuSectionClient.rememberInput(window.__cdSajuSectionInput, sectionProfileId);
+      }
+    } catch (_sectionInputPersistError) {}
     window.__cdLastSummaryArgs={p:p,johu:johu,natal:natal};
     try { if(_cdSajuGateUnlocked('section_summary')) renderSummary(p,johu,natal); } catch(e) { try { window.__cdLastSummaryRenderError=e; } catch(_errKeepErr){} console.error('Summary 에러:', e); }
     // 기존 해금은 계산보다 먼저 복원될 수 있다. 본문 준비가 끝난 시점에 같은 게이트
@@ -5500,7 +5512,7 @@ function generateSajuTreasureMapPrompt(p, natal){
   return 'personal wealth luck treasure map inspired by saju five elements, '+profile.symbol+', '+profile.tone+' palette, mystical illustrated map, glowing route lines, lucky objects, elegant Korean fortune scroll design, warm magical lighting, high-detail fantasy map, 8k --ar 16:9';
 }
 
-var ASTROLOGY_AI_PROMPT_COST = 100;
+var ASTROLOGY_AI_PROMPT_COST = 50;
 var ASTROLOGY_AI_PROMPT_MIN_LENGTH = 5;
 var ASTROLOGY_AI_PROMPT_MAX_LENGTH = 1000;
 
@@ -7822,9 +7834,9 @@ function _requestSajuQuestionPrompt(question, privacyOptions, domain, options) {
   return _cdAIPromptGate({
     featureKey: 'saju_ai_prompt_generator',
     reason: '사주 AI 상담 결과 생성',
-    cost: 100,
-    amountKrw: 10000,
-    paymentAmount: 10000,
+    cost: 50,
+    amountKrw: 5000,
+    paymentAmount: 5000,
     requestId: 'saju-ai-prompt:' + requestNonce,
     categoryKey: 'saju',
     action: 'cdSajuTabEntry',
@@ -9032,13 +9044,16 @@ function _bindSajuQuestionPromptCard(rootEl) {
 
       try {
         var existing = document.getElementById('specialCharmCard');
-        if(existing) existing.remove();
+        var preserveDeliveredCharm = !!(existing
+          && !existing.querySelector('[data-cd-summary-fallback="1"]')
+          && String(existing.textContent || '').trim());
+        if(existing && !preserveDeliveredCharm) existing.remove();
         var existingAi = document.getElementById('aiPromptCard');
         if(existingAi) existingAi.remove();
         var existingQuestion = document.getElementById('sajuQuestionPromptGeneratorCard');
         if (existingQuestion) existingQuestion.remove();
 
-        if (targetCard) {
+        if (targetCard && !preserveDeliveredCharm) {
           targetCard.insertAdjacentHTML('afterend', html);
         }
 
@@ -12351,7 +12366,7 @@ function renderAstroInsightLegacyNeon() {
 
     function _astroSetCoinBalanceText(node, points) {
       if (!node) return;
-      node.textContent = '10,000원 · 이용권/단건결제 확인 후 생성';
+      node.textContent = '5,000원 · 이용권/단건결제 확인 후 생성';
     }
 
     function _astroBuildPromptHeaders() {
@@ -12628,7 +12643,7 @@ function renderAstroInsightLegacyNeon() {
         updateCount();
       });
       updateCount();
-      _astroSetPromptStatus(statusEl, '질문을 입력하면 10,000원 결제 확인 후 현재 차트와 최근 궁합 결과를 반영한 상담 답변을 생성합니다.', 'info');
+      _astroSetPromptStatus(statusEl, '질문을 입력하면 5,000원 결제 확인 후 현재 차트와 최근 궁합 결과를 반영한 상담 답변을 생성합니다.', 'info');
     }
     _astroMountPromptSection();
 
@@ -17960,7 +17975,7 @@ function renderZiwei(p, natal, targetId) {
       + '</div>';
   }
 
-  var _ZW_AI_PROMPT_COST = 100;
+  var _ZW_AI_PROMPT_COST = 50;
   var _ZW_AI_PROMPT_MAX_LENGTH = 1000;
   var _ZW_AI_PROMPT_MIN_LENGTH = 5;
   var _ZW_AI_PROMPT_FEATURE_KEY = 'ziwei_ai_prompt_generator';
@@ -18582,7 +18597,7 @@ function renderZiwei(p, natal, targetId) {
     });
 
     updateCount();
-    setStatus('질문 입력 후 버튼을 누르면 10,000원 결제 확인 후 상담 답변을 생성합니다.', 'info');
+    setStatus('질문 입력 후 버튼을 누르면 5,000원 결제 확인 후 상담 답변을 생성합니다.', 'info');
   }
 
   function _zwPortfolioBuildModalHtml(row, summary) {
@@ -23019,7 +23034,7 @@ async function runCompat(){
    먼저 끝내고, 생성·재개·보관은 서버(worker/routes/saju-compat-basic.js)가 한다. 이 파일은 연결만 하고,
    요청 본문·대기 기록·생성 실행은 js/saju-compat-flow.mjs, 화면 그리기는 js/saju-compat-render.mjs 가 맡는다.
    🔴 결제를 만들거나 환불하지 않는다. 생성이 실패하면 결제는 서버에 보존되고, 화면은 기존 결정론 결과 + 안내 + 이어받기 버튼이다. */
-var _SE_SAJU_COMPAT_COIN_COST = 100;
+var _SE_SAJU_COMPAT_COIN_COST = 50;
 var _SE_SAJU_COMPAT_PATH = '/api/saju-compat-basic/generate';
 var _seSajuCompatRun = 0; // 생성 세대 번호 — 새 실행이 시작되면 이전 실행은 화면을 더 건드리지 않는다.
 
@@ -25287,6 +25302,11 @@ function renderVillainStub(p) {
   if(!card || !resultArea) return;
   if(!p || !p.d || !p.d.g) {
     card.style.display = 'none';
+    return;
+  }
+  // Deferred shell rendering must not erase an already delivered paid/gift body.
+  if(!resultArea.querySelector('[data-cd-summary-fallback="1"]')&&String(resultArea.textContent||'').trim()){
+    card.style.display='block';
     return;
   }
   var chips = ['빌런 위험도 랭킹', '사주 근거(십성·합충·신살)', '빌런 시그널 체크', '긴급 차단 멘트', '관계 방어 자가진단'];

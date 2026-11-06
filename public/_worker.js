@@ -739,8 +739,12 @@ export default {
     const pathCollapsed = ["GET", "HEAD"].includes(request.method)
       && !/^\/(?:api|app)(?:\/|$)/.test(url.pathname) && /\/{2,}/.test(url.pathname);
     if (pathCollapsed) url.pathname = url.pathname.replace(/\/{2,}/g, "/");
-    // Temporarily remove play-only entry points from the fortune service.
-    if (/^\/(?:mini-games|destiny-poker|secret-house_real|saju\/love-simulation)(?:\.html|\/index\.html)?\/?$/.test(url.pathname)) {
+    // Temporarily remove play-only entry points from the fortune service. The
+    // verified SNULIFE reading flow may enter Secret House; its paid episode API
+    // still performs the normal account/profile entitlement check.
+    const isSnulifeSecretHouse = /^\/secret-house_real(?:\.html|\/index\.html)?\/?$/.test(url.pathname)
+      && url.searchParams.get('entry') === 'snulife';
+    if (!isSnulifeSecretHouse && /^\/(?:mini-games|destiny-poker|secret-house_real|saju\/love-simulation)(?:\.html|\/index\.html)?\/?$/.test(url.pathname)) {
       return new Response(null, { status: 302, headers: { Location: new URL('/ggulggul/', url).toString(), 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex' } });
     }
     if (/^\/tadagochi(?:\.html)?\/?$/.test(url.pathname)) {

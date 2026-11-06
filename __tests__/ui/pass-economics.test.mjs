@@ -15,10 +15,10 @@ test("approved pass prices keep the chosen coverage and the stress report remain
       { tier, wonPrice, maxCoveredCoin, monthlyLimitCoin }
     )),
     [
-      { tier: "standard", wonPrice: 9900, maxCoveredCoin: 50, monthlyLimitCoin: 200 },
-      { tier: "premium", wonPrice: 29900, maxCoveredCoin: 100, monthlyLimitCoin: 600 },
-      { tier: "vvip", wonPrice: 59900, maxCoveredCoin: 300, monthlyLimitCoin: 1200 },
-      { tier: "family", wonPrice: 149000, maxCoveredCoin: 999999999, monthlyLimitCoin: 3500 },
+      { tier: "standard", wonPrice: 14900, maxCoveredCoin: 50, monthlyLimitCoin: 200 },
+      { tier: "premium", wonPrice: 34900, maxCoveredCoin: 100, monthlyLimitCoin: 600 },
+      { tier: "vvip", wonPrice: 64900, maxCoveredCoin: 300, monthlyLimitCoin: 1200 },
+      { tier: "family", wonPrice: 154000, maxCoveredCoin: 999999999, monthlyLimitCoin: 3500 },
     ],
   );
   assert.equal(CURRENT_PASS_PLANS.family.monthlyLimitCoin * 100, 350000);

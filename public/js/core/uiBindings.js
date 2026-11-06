@@ -76,7 +76,7 @@ const __lazyActionLoaders = {
   openTarotHealingPage: () => Promise.resolve(window.location.assign('/tarot/healing/')),
   openTarotHealingModal: () => Promise.resolve(window.location.assign('/tarot/healing/')),
   openTarotSelfEsteemModal: () => __loadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-86062dc39929'),
-  openTarotYearFortuneModal: () => __loadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-d5a7f78af64e'),
+  openTarotYearFortuneModal: () => __loadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-afdec8293112'),
   openLifeBookModal: () => Promise.resolve(window.location.assign('/life-book-ai/')),
   closeLifeBookModal: () => Promise.resolve(),
   generateLifeBook: () => Promise.resolve(window.location.assign('/life-book-ai/')),
@@ -113,7 +113,7 @@ const __lazyActionLoaders = {
 };
 
 function __ensureSajuCoreScripts() {
-  return __loadScriptOnce('/js/destiny-profile.js?v=build-9fb9ddb703c4')
+  return __loadScriptOnce('/js/destiny-profile.js?v=build-8f25219abdba')
     .then(() => __loadScriptOnce('/js/services/sajuService.js'))
     .then(() => __loadScriptOnce('/js/core/saju/basicFortunePresentation.js?v=build-6891fb41d4aa'))
     .then(() => __loadScriptOnce('/js/core/saju/modalProfileState.js'))
@@ -726,6 +726,62 @@ function __releaseCollectionImagesChunked(collection) {
   });
 }
 
+// Keep this list in exact parity with index-inline-runtime.js. These actions open an
+// in-page surface; their crawlable href is a fallback, not a second navigation.
+const __cdRouteActionAllowList = {
+  runCompat: true,
+  openZiweiModal: true,
+  openAstroModal: true,
+  openSibylModal: true,
+  openTarotModal: true,
+  openPhysiognomyApp: true,
+  openPastLifeFaceApp: true,
+  openTarotLoveModal: true,
+  openTarotHealingModal: true,
+  openTarotSelfEsteemModal: true,
+  openTarotReunionModal: true,
+  openTarotYearFortuneModal: true,
+  openSukuyoModal: true,
+  navigateToVedic: true,
+  openDreamModal: true,
+  openHwatuModal: true,
+  openJuyukModal: true,
+  openIfaOracle: true,
+  openRoyalTeaOracle: true,
+  openRuneOracle: true,
+  openSikojenPovailu: true,
+  checkPrivacyAndCalculate: true,
+  cdSajuTabEntry: true,
+  cdOneStepFreeSajuEntry: true,
+  cdHomeZiweiEntry: true,
+  cdHomeSukuyoEntry: true,
+  cdHomeVedicEntry: true,
+  cdHomeAstroEntry: true,
+  cdHomeTarotEntry: true,
+  cdOpenAllFortunes: true,
+  dpOpenList: true,
+  cdOpenLibrary: true,
+  cdOpenAccount: true,
+  openSajuCompatArchive: true,
+  openAnimalTotemModal: true,
+  openSajuAnimalPage: true,
+  openDestinyFlowerStudio: true,
+  openAstrologyFlowerStudio: true,
+  openJamidusuFlowerStudio: true,
+  openSukuyoFlowerStudio: true,
+  openPsychoDreamModal: true,
+  openCelestialHarmony: true,
+  openDestinyBias: true,
+  openGeomancyOracle: true,
+  openKemetModal: true,
+  openMbtiModal: true,
+  startMindScanTarot: true,
+  startCrystalSoulTarot: true,
+  startIjikTarot: true,
+  openLoveSimulation: true,
+  openYogaGuru: true
+};
+
 export function bindGlobalActions(root) {
   if (!root || typeof root.addEventListener !== 'function') return;
   if (typeof window !== 'undefined') {
@@ -805,7 +861,8 @@ export function bindGlobalActions(root) {
       && event && event.cancelable
       && !(event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
       && (event.button === undefined || event.button === 0)
-      && (action === 'openSibylModal'
+      && (__cdRouteActionAllowList[action]
+        || action === 'openSibylModal'
         || actionEl.closest('.tarot-collection__grid, .feat-collection__grid'))) {
       event.preventDefault();
     }

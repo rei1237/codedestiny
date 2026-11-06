@@ -39,12 +39,22 @@ export async function manageEditions(request, env, dispatch) {
         !Number.isInteger(body.cap) || body.cap < 1 || body.cap > 100) {
       throw createHttpError(400, "상품명과 캐릭터, 발행 한도(1~100개)를 확인해 주세요.");
     }
+    const imageKey = body.imageKey ?? "";
+    if (typeof imageKey !== "string" || (imageKey && !/^insights\/featured\/\d{4}\/\d{2}\/\d+-[a-f0-9]{8}-[a-zA-Z0-9._-]{1,80}\.(jpg|png|webp)$/.test(imageKey))) {
+      throw createHttpError(400, "업로드한 상품 이미지를 선택해 주세요.");
+    }
     if (product) {
-      if (product.title === title && product.cap === body.cap && product.character === body.character) return json({products});
+      if (product.title === title && product.cap === body.cap && product.character === body.character && (product.imageKey || "") === imageKey) return json({products});
       throw createHttpError(409, "이미 다른 상품이 저장됐어요. 목록을 새로고침해 주세요.");
     }
     if (products.length >= 100) throw createHttpError(409, "테스트 상품은 100개까지 등록할 수 있어요.");
-    products.unshift({id:body.id,title,character:body.character,cap:body.cap,issueCount:0,portraitVersion:2});
+    let image = {};
+    if (imageKey) {
+      if (!await bucket.head(imageKey)) throw createHttpError(400, "상품 사진을 다시 업로드해 주세요.");
+      const base = (env.INSIGHT_IMAGE_PUBLIC_BASE_URL || new URL(request.url).origin + "/api/insights/images").replace(/\/+$/, "");
+      image = {imageKey, imageUrl:base + "/" + imageKey};
+    }
+    products.unshift({...image,id:body.id,title,character:body.character,cap:body.cap,issueCount:0,portraitVersion:2});
   } else if (body.action === "mint") {
     if (!product) throw createHttpError(404, "상품을 찾을 수 없어요.");
     if (!Number.isInteger(body.serial) || body.serial < 1 || body.serial > product.cap || body.serial > product.issueCount+1) {

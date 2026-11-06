@@ -2104,7 +2104,10 @@
           return;
         }
         if (data && data.profileAccess) _dpApplyProfileAccess(data.profileAccess);
-        if (String((data && data.currentId) || nextId || '').trim() === nextId) _dpClearPendingCurrentProfile(nextId);
+        if (String((data && data.currentId) || nextId || '').trim() === nextId) {
+          _dpClearPendingCurrentProfile(nextId);
+          notifyForestCard('saved');
+        }
       }).catch(function() {});
     }).catch(function() {});
   }
@@ -3318,7 +3321,7 @@
 
   // 서버 왕복 없이 '이용권 미커버'가 확정되는 신호만 판정한다.
   // 🔴 지연·타임아웃은 절대 근거로 쓰지 않는다 — 느린 것과 없는 것을 혼동하면 이용권 보유자가 결제창으로 샌다.
-  function _dpResolveCertainPassMiss(coinPrice) {
+  function _dpResolveCertainPassMiss(coinPrice, featureKey) {
     var cost = Math.max(0, Math.floor(Number(coinPrice || 0)));
     if (!(cost > 0)) return '';
     // (1) 미로그인 — 자격증명이 없으면 서버는 반드시 401이고, 이 집합에 이용권 보유자는 0명이다.
@@ -3332,11 +3335,13 @@
     // monthly_pass_limit_exceeded). 모듈이 없으면 확정하지 않는다(서버 검사로 폴백).
     var api = _dpPassVerdict();
     if (!api) return '';
-    var verdict = api.resolveVerdict(snapshot, cost);
+    var verdict = api.resolveVerdict(snapshot, cost, featureKey);
+    // 키를 모르면 라이트 운세인지 알 수 없다. 소진만으로 미커버를 확정하지 않고 서버에 묻는다.
+    if (!featureKey && verdict && verdict.reason === api.REASON_MONTHLY_LIMIT) return '';
     return verdict && verdict.cannotCover ? String(verdict.reason || 'subscription_snapshot_none') : '';
   }
 
-  function _dpReadActiveMembershipCoverage(cost) {
+  function _dpReadActiveMembershipCoverage(cost, featureKey) {
     try {
       var api = _dpPassVerdict();
       if (!api) return null;
@@ -3350,7 +3355,7 @@
       }
       if (!snapshot) return null;
       if (snapshot.stale === true) _dpRevalidateSubscriptionSnapshot();
-      var verdict = api.resolveVerdict(snapshot, cost);
+      var verdict = api.resolveVerdict(snapshot, cost, featureKey);
       if (verdict.coversNow) return { tier: verdict.tier, freeLimit: verdict.passLimit };
       return null;
     } catch (_) {
@@ -4474,8 +4479,13 @@
   }
 
   // 수단 이름이 있으면 '{method} …' 판, 없으면(티켓 없는 새 탭 복귀 등) 'Generic' 판을 고른다.
-  function _dpDirectResumeText(key, methodLabel) {
-    if (methodLabel) return _dpInterpolateText(_dpText(key), { method: methodLabel });
+  // 라벨은 문구를 만드는 시점에 구한다. 복귀 직후에는 언어 사전이 아직 없어 라벨이 한글 폴백으로 오기 때문이다.
+  // 그 폴백이 다른 언어 문구에 섞이지 않도록, 한글이 아닌 언어에서는 한글 라벨 대신 Generic 판을 쓴다.
+  function _dpDirectResumeText(key, method) {
+    var methodLabel = _dpDirectPayMethodLabelFor(method);
+    if (methodLabel && (_dpTextLang() === 'ko' || !/[가-힣]/.test(methodLabel))) {
+      return _dpInterpolateText(_dpText(key), { method: methodLabel });
+    }
     return _dpText(key + 'Generic');
   }
 
@@ -4824,7 +4834,6 @@
     var resumeMethod = String(
       (ticket && (ticket.paymentMethod || (ticket.confirmBody && ticket.confirmBody.paymentMethod))) || '',
     ).trim();
-    var resumeMethodLabel = _dpDirectPayMethodLabelFor(resumeMethod);
 
     if (!paymentId || failed) {
       // 승인이 나지 않은 복귀다 — 티켓을 회수한다.
@@ -4863,7 +4872,7 @@
       // 코드가 있으면 함께 보여 준다 — 고객 문의에서 이 한 줄이 원인 특정의 유일한 근거가 된다.
       // 🔴 오버레이 'payment-failed' 로 바꾸지 않는다 — 셸 meta 가 "청구됐다면 자동 환불"이라 PG 거절엔 맞지 않는다.
       window.alert(
-        (failMessage || _dpDirectResumeText('directResumeFailed', resumeMethodLabel))
+        (failMessage || _dpDirectResumeText('directResumeFailed', resumeMethod))
         + (failCode ? '\n(' + failCode + ')' : ''),
       );
       return;
@@ -4881,7 +4890,7 @@
       // 조용한 티켓 폴백은 대부분 결제 안 하고 이탈한 정상 케이스라, 무관한 화면에 확인 중
       // 오버레이를 띄우지 않는다 — 실제로 지급될 때만 아래 성공 경로가 스스로 안내한다.
       if (!isSilentTicketFallback && !isQuietRetry) {
-        _dpSetPaymentPending(true, _dpDirectResumeText('directResumeConfirming', resumeMethodLabel), 'unlock-saving');
+        _dpSetPaymentPending(true, _dpDirectResumeText('directResumeConfirming', resumeMethod), 'unlock-saving');
       }
       // 🔴 티켓은 confirm 성공 뒤에 지운다. 먼저 지우면 5xx 한 번에 승인된 결제의 복구 수단이 사라진다.
       // 티켓은 30분 TTL(_DP_DIRECT_RESUME_TTL_MS)로 스스로 만료되므로 남겨 둬도 되살아나지 않는다.
@@ -5045,7 +5054,7 @@
             _dpResumeDirectPaymentAfterRedirect({ pollingPaymentId: paymentId, userInitiated: true });
           } : (resumeAction ? function () { _dpOpenRouteAction(resumeAction); } : null),
           // 열기 버튼이 없으면 "다시 누르면 무료"가 사용자가 할 수 있는 유일한 행동이다.
-          resumeAction ? '' : _dpDirectResumeText('directResumeComplete', resumeMethodLabel),
+          resumeAction ? '' : _dpDirectResumeText('directResumeComplete', resumeMethod),
         );
       }
       // ⑧ 후속 훅이 붙을 자리(계측·외부 위젯). 재개 자체는 위에서 끝났다.
@@ -5519,12 +5528,12 @@
       // requireServerPassCheck 로 서버 재검증을 명시 요청한 호출부는 이 지름길을 타지 않는다.
       var _dpCertainPassMiss = (opts.disablePassFirst === true || opts.requireServerPassCheck === true)
         ? ''
-        : _dpResolveCertainPassMiss(coinPrice);
+        : _dpResolveCertainPassMiss(coinPrice, _dpReceiptFeatureKey);
       if (typeof window.__cdApplyMembershipPassBeforePayment === 'function' && opts.disablePassFirst !== true && !_dpCertainPassMiss) {
         // 낙관적 즉시 허용: 로컬 구독 스냅샷이 pass 커버를 확인하면 서버 왕복을 백그라운드로 돌려 속도를 유지한다
         // (정확성은 백그라운드 미커버 응답 시 세션 갱신으로 자기수정). 단 "확인 중 → 적용 완료" 2단계 UX는
         // 그대로 유지하고, 완료 오버레이 표시 중 onGranted(콘텐츠 생성)를 병렬 진행한다.
-        var _dpOptimisticCoverage = _dpOptimisticPassDisabled() ? null : _dpReadActiveMembershipCoverage(coinPrice);
+        var _dpOptimisticCoverage = _dpOptimisticPassDisabled() ? null : _dpReadActiveMembershipCoverage(coinPrice, _dpReceiptFeatureKey);
         if (_dpOptimisticCoverage) {
           _dpRecordMembershipPassInBackground(opts, title, coinPrice, requestId);
           _dpSetPaymentPending(true, '이용권을 확인하고 있어요…', 'pass');
@@ -8727,15 +8736,33 @@
           el.dataset.profileQuestExp = String(exp); _dpRefreshLevelStrip();
         },
         owner: function() { return _dpIsLoggedInScope() ? _dpSubSnapshotUserId() : ''; },
-        request: function(path, init) {
-          init.headers = _dpBuildAuthHeaders(init.headers || {}); init.credentials = 'include';
-          return _dpFetchJsonWithFallback(path, init, { timeoutMs: 10000, allowWorkerFallback: false });
-        }
+        request: _dpProfileCharacterRequest
       });
     }).catch(function() {
       var panel = el.querySelector('[data-profile-character]');
       if (panel) panel.textContent = '캐릭터를 불러오지 못했어요. 잠시 후 다시 확인해 주세요.';
     });
+  }
+
+  function _dpProfileCharacterRequest(path, init) {
+    init = init || {};
+    init.headers = _dpBuildAuthHeaders(init.headers || {});
+    init.credentials = 'include';
+    return _dpFetchJsonWithFallback(path, init, { timeoutMs: 10000, allowWorkerFallback: false });
+  }
+
+  function _dpFortuneSeal(type) {
+    var paths = {
+      saju: '<rect x="6" y="6" width="12" height="12" rx="2"/><path d="M12 7v10M7 12h10M9 9l6 6M15 9l-6 6"/>',
+      sukuyo: '<path d="M16.8 15.2A7 7 0 1 1 9 6.2a5.5 5.5 0 0 0 7.8 9Z"/><path d="m17.5 5 .5 1.5L19.5 7 18 7.5 17.5 9 17 7.5 15.5 7 17 6.5Z"/>',
+      ziwei: '<circle cx="12" cy="12" r="6"/><path d="m12 3 1.2 4.2L17 5l-2.2 3.8L19 10l-4.2 1.2L17 15l-3.8-2.2L12 17l-1.2-4.2L7 15l2.2-3.8L5 10l4.2-1.2L7 5l3.8 2.2Z"/>',
+      astro: '<path d="m12 3 1.5 6 5.5 3-5.5 3L12 21l-1.5-6L5 12l5.5-3Z"/><circle cx="12" cy="12" r="2"/>',
+      juyuk: '<path d="M6 7h12M6 11h4m4 0h4M6 15h4m4 0h4M6 19h12"/>',
+      vedic: '<path d="M12 4c1.2 3.4 3.3 5.5 6.7 6.7-3.4 1.2-5.5 3.3-6.7 6.7-1.2-3.4-3.3-5.5-6.7-6.7C8.7 9.5 10.8 7.4 12 4Z"/><circle cx="12" cy="12" r="2"/>',
+      tarot: '<rect x="7" y="4" width="10" height="16" rx="1.5"/><path d="M10 8h4m-2-2v4m-3 4h6m-5 3h4"/>',
+      kemet: '<path d="M3.5 12s3.2-4 8.5-4 8.5 4 8.5 4-3.2 4-8.5 4-8.5-4-8.5-4Z"/><circle cx="12" cy="12" r="2.8"/><path d="M12 5V3m0 18v-2"/>'
+    };
+    return '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round">' + (paths[type] || paths.astro) + '</svg>';
   }
 
   function _emptyCard() {
@@ -9364,9 +9391,7 @@
       container.innerHTML = '<div class="dp-list-empty">' + _esc(_dpText('profileEmptyTitle'))
         + '<br><small>' + _esc(_dpText('profileEmptyHint')) + '</small>'
         + '<br><button type="button" class="dp-list-empty-cta" onclick="dpStartProfileCreate();"'
-        + ' style="margin-top:16px;padding:11px 22px;border-radius:999px;border:1px solid rgba(255,215,0,0.42);'
-        + 'background:rgba(255,215,0,0.12);color:var(--dp-gold);font-size:0.86rem;font-weight:700;cursor:pointer;'
-        + 'touch-action:manipulation;-webkit-tap-highlight-color:transparent;">' + _esc(_dpText('profileAddNew')) + '</button></div>';
+        + '>' + _esc(_dpText('profileAddNew')) + '</button></div>';
       return;
     }
 
@@ -9610,8 +9635,10 @@
     var createConfirm = isUpdate ? _dpText('profileEditConfirm') : _dpText('profileCreateConfirm');
     if ((isUpdate || !hasProfiles) && !confirm(createConfirm)) return;
     var btn = document.getElementById('dpSaveBtn');
+    notifyForestCard('busy');
     var savingCardVisible = false;
     function restoreCardAfterSaveAttempt() {
+      notifyForestCard('ready');
       rollbackOptimisticCreate();
       if (!savingCardVisible) {
         renderMasterCard(DPStorage.current());
@@ -9729,6 +9756,7 @@
       renderProfileList();
       _dpScrollProfileIntoViewMobile();
       broadcastProfileChange(curr || created || null);
+      notifyForestCard('saved');
       _dpUpdateSaveBtn();
       if (isUpdate) {
         var savedBirthProfile = _dpFindProfileById(DPStorage.list(), createProfileId) || created || curr || null;
@@ -10011,7 +10039,24 @@
     }, 260);
   }
 
+  // The same-origin forest panel reuses this editor and its existing payment and save rules.
+  var forestCardMode = window.parent !== window && new URLSearchParams(window.location.search).get('forestCard');
+  function notifyForestCard(state) {
+    if (forestCardMode) window.parent.postMessage({ type: 'cd:forest-card', state: state }, window.location.origin);
+  }
+
   window.dpOpenList = function() {
+    if (forestCardMode) {
+      var style = document.querySelector('link[data-cd-noncritical-style-src^="/styles/fortune-ui.css"]');
+      if (style && !style.sheet) {
+        style.addEventListener('load', function() { window.dpOpenList(); }, { once: true });
+        style.addEventListener('error', function() { notifyForestCard('error'); }, { once: true });
+        style.rel = 'stylesheet';
+        style.media = 'all';
+        style.href = style.getAttribute('data-cd-noncritical-style-src');
+        return;
+      }
+    }
     var mounted = _dpEnsureListSheetMounted();
     var sheet = mounted && mounted.sheet;
     var overlay = mounted && mounted.overlay;
@@ -10022,6 +10067,7 @@
       return;
     }
 
+    if (forestCardMode) document.documentElement.classList.add('dp-forest-card');
     _dpBorrowMasterCardIntoSheet(sheet);
     sheet.classList.add('dp-sheet--open');
     overlay.classList.add('dp-sheet--open');
@@ -10031,6 +10077,8 @@
     function renderOpenList() {
       try {
         renderProfileList();
+        if (forestCardMode === 'create' && !DPStorage.list().length) window.dpStartProfileCreate();
+        notifyForestCard('ready');
         if (scroller) scroller.scrollTop = 0;
       } catch (err) {
         console.error('[DP] openList render failed', err);
@@ -10059,6 +10107,7 @@
       }
       _dpLoadFromServer(function(loaded) {
         if (!loaded) {
+          notifyForestCard('error');
           if (!hasCachedProfiles && container) {
             container.innerHTML = '<div class="dp-list-empty">\uC11C\uBC84\uC5D0\uC11C \uD504\uB85C\uD544 \uAD8C\uD55C\uC744 \uD655\uC778\uD558\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4.<br><small>\uC7A0\uC2DC \uD6C4 \uB2E4\uC2DC \uC5F4\uC5B4 \uC8FC\uC138\uC694.</small></div>';
           }
@@ -10090,6 +10139,7 @@
     }
 
     /* lockBody 잔여 스타일 강제 정리 (모바일 fullscreen 고착 방지) */
+    document.body.style.overflow = '';
     document.body.style.position = '';
     document.body.style.top = '';
     document.body.style.width = '';
@@ -10146,7 +10196,7 @@
       renderProfileList();
       broadcastProfileChange(p);
       _dpUpdateSaveBtn();
-      dpCloseList();
+      if (!forestCardMode) dpCloseList();
       spawnStardust(document.getElementById('dpMasterCard'));
       _toast('✨ ' + (p ? _esc(p.name) : '') + ' · 프로필 활성화', 'success');
     }
@@ -10679,30 +10729,49 @@
     ov.setAttribute('aria-hidden', 'false');
     ov.tabIndex = -1;
     ov.__dpReturnFocus = fortuneSelReturnFocus;
+    var fortuneTypes = [
+      ['saju', '사주 풀이'], ['sukuyo', '숙요점'], ['ziwei', '자미두수'], ['astro', '점성술'],
+      ['juyuk', '주역 거북점'], ['vedic', '베다점'], ['tarot', '타로'], ['kemet', '이집트 신탁']
+    ];
     ov.innerHTML =
       '<div class="dp-fsel-modal">'
-      + '<button type="button" class="dp-fsel-close-btn" aria-label="' + _esc(_dpText('close')) + '" onclick="window._dpCloseFortuneSel && window._dpCloseFortuneSel(); return false;">✕</button>'
+      + '<div class="dp-fsel-ornament" aria-hidden="true"></div>'
+      + '<button type="button" class="dp-fsel-close-btn" aria-label="' + _esc(_dpText('close')) + '" onclick="window._dpCloseFortuneSel && window._dpCloseFortuneSel(); return false;"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 7 10 10M17 7 7 17"/></svg></button>'
       + '<div class="dp-fsel-profile">'
-        + '<span class="dp-fsel-zodiac">' + zodiac + '</span>'
-        + '<div class="dp-fsel-pname">' + _esc(p.name) + '</div>'
-        + '<div class="dp-fsel-pdate">' + dateStr + '</div>'
-        + (l.label ? '<div class="dp-fsel-ploc">📍 ' + _esc(l.label) + '</div>' : '')
+        + '<div class="dp-fsel-character" data-fsel-character><span class="dp-fsel-zodiac" aria-label="띠 캐릭터">' + zodiac + '</span></div>'
+        + '<div class="dp-fsel-identity">'
+          + '<div class="dp-fsel-heading">달빛이 비추는<br>당신의 타고난 결</div>'
+          + '<div class="dp-fsel-pname">' + _esc(p.name) + '</div>'
+          + '<div class="dp-fsel-character-name" data-fsel-character-name role="status">일주 캐릭터를 만나고 있어요.</div>'
+          + '<div data-fsel-element></div>'
+        + '</div>'
       + '</div>'
-      + '<div class="dp-fsel-divider"></div>'
+      + '<div class="dp-fsel-meta"><span class="dp-fsel-pdate">' + dateStr + '</span>'
+        + (l.label ? '<span class="dp-fsel-ploc"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s6-5.2 6-11a6 6 0 1 0-12 0c0 5.8 6 11 6 11Z"/><circle cx="12" cy="10" r="2"/></svg>' + _esc(l.label) + '</span>' : '')
+      + '</div>'
+      + '<div class="dp-fsel-divider" aria-hidden="true"></div>'
       + '<div class="dp-fsel-ask" id="dpFortuneSelTitle">어떤 운세를 보시겠습니까?</div>'
       + '<div class="dp-fsel-btns">'
-        + '<button type="button" class="dp-fsel-btn dp-fsel-btn--saju"   onclick="window._dpOpenFortuneType(\'saju\')"   style="touch-action:manipulation"><span class="dp-fsel-btn-icon">🔮</span><span class="dp-fsel-btn-label">사주 풀이</span></button>'
-        + '<button type="button" class="dp-fsel-btn dp-fsel-btn--sukuyo" onclick="window._dpOpenFortuneType(\'sukuyo\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">💫</span><span class="dp-fsel-btn-label">숙요점</span></button>'
-        + '<button type="button" class="dp-fsel-btn dp-fsel-btn--ziwei" onclick="window._dpOpenFortuneType(\'ziwei\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">🌌</span><span class="dp-fsel-btn-label">자미두수</span></button>'
-        + '<button type="button" class="dp-fsel-btn dp-fsel-btn--astro" onclick="window._dpOpenFortuneType(\'astro\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">✨</span><span class="dp-fsel-btn-label">점성술</span></button>'
-        + '<button type="button" class="dp-fsel-btn dp-fsel-btn--juyuk" onclick="window._dpOpenFortuneType(\'juyuk\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">☯️</span><span class="dp-fsel-btn-label">주역 거북점</span></button>'
-        + '<button type="button" class="dp-fsel-btn dp-fsel-btn--vedic" onclick="window._dpOpenFortuneType(\'vedic\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">🪐</span><span class="dp-fsel-btn-label">베다점</span></button>'
-        + '<button type="button" class="dp-fsel-btn dp-fsel-btn--tarot"  onclick="window._dpOpenFortuneType(\'tarot\')"  style="touch-action:manipulation"><span class="dp-fsel-btn-icon">🃏</span><span class="dp-fsel-btn-label">타로</span></button>'
-        + '<button type="button" class="dp-fsel-btn dp-fsel-btn--kemet" onclick="window._dpOpenFortuneType(\'kemet\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">𓂀</span><span class="dp-fsel-btn-label">이집트 신탁</span></button>'
-      + '</div>'
-      + '</div>';
+        + fortuneTypes.map(function(item) { return '<button type="button" class="dp-fsel-btn dp-fsel-btn--' + item[0] + '" data-fortune-type="' + item[0] + '" onclick="window._dpOpenFortuneType(\'' + item[0] + '\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">' + _dpFortuneSeal(item[0]) + '</span><span class="dp-fsel-btn-label">' + item[1] + '</span></button>'; }).join('')
+      + '</div></div>';
     document.body.appendChild(ov);
     window._dpFortuneSelEl = ov;
+    import('/js/core/profile-character-card.mjs').then(function(module) {
+      return module.loadProfileCharacterPreview(p, { request: _dpProfileCharacterRequest }).then(function(preview) {
+        if (!ov.isConnected || window._dpFortuneSelEl !== ov || !preview || !preview.character) return;
+        var character = preview.character;
+        var characterSlot = ov.querySelector('[data-fsel-character]');
+        var nameSlot = ov.querySelector('[data-fsel-character-name]');
+        var elementSlot = ov.querySelector('[data-fsel-element]');
+        if (characterSlot) characterSlot.innerHTML = module.spriteMarkup(character.id, character.name, false);
+        if (nameSlot) nameSlot.textContent = character.ganji + ' · ' + character.name;
+        if (elementSlot) elementSlot.innerHTML = module.elementBadgeMarkup(character.element);
+        ov.classList.add('dp-fsel-overlay--character-ready');
+      });
+    }).catch(function() {
+      var nameSlot = ov.querySelector('[data-fsel-character-name]');
+      if (nameSlot) nameSlot.textContent = '띠 캐릭터로 먼저 안내할게요.';
+    });
     /* 🔴 창이 먼저 페인트되도록, 폼 동기화와 장식(파티클 12개 + getBoundingClientRect 강제 레이아웃)은
        다음 태스크로 넘긴다. 사용자가 유형을 고르기까지는 최소 모달 진입 0.38s + 이탈 0.35s 가 있어
        그 전에 반드시 끝난다.
@@ -10778,13 +10847,16 @@
     var returnFocus = ov.__dpReturnFocus;
     ov.setAttribute('aria-hidden', 'true');
     ov.classList.remove('dp-fsel-overlay--in');
-    setTimeout(function() { if (ov.parentNode) ov.parentNode.removeChild(ov); }, 350);
-    window._dpFortuneSelEl = null;
-    requestAnimationFrame(function() {
-      if (returnFocus && document.documentElement.contains(returnFocus) && typeof returnFocus.focus === 'function') {
-        try { returnFocus.focus({ preventScroll: true }); } catch (_) { returnFocus.focus(); }
+    setTimeout(function() {
+      if (ov.parentNode) ov.parentNode.removeChild(ov);
+      var focusTarget = returnFocus && document.documentElement.contains(returnFocus)
+        ? returnFocus
+        : document.querySelector('.dp-mc-load-btn');
+      if (focusTarget && typeof focusTarget.focus === 'function') {
+        try { focusTarget.focus({ preventScroll: true }); } catch (_) { focusTarget.focus(); }
       }
-    });
+    }, 260);
+    window._dpFortuneSelEl = null;
   };
 
   window._dpOpenFortuneType = function(type) {

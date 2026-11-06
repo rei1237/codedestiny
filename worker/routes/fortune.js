@@ -121,7 +121,7 @@ import { callGeminiText, createGeminiContextCache, deleteGeminiContextCache } fr
 import { cmsPromptText, primePromptTemplateOverrides } from "../lib/cms-prompts.js";
 import { hasRenderableLlmText, isCompleteLlmResponse } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
-import { canUseByPass, isActiveStatus, isInactiveStatus, normalizeHoneyPassEntitlement, resolveMonthlySpendQuota, resolvePremiumQuota } from "../lib/profile-limits.js";
+import { canUseByPass, isActiveStatus, isInactiveStatus, normalizeHoneyPassEntitlement, resolveMonthlySpendQuota, resolvePremiumQuota, resolveProfileLimitForClient } from "../lib/profile-limits.js";
 import { resolveCanonicalEntitlement } from "../lib/entitlement-policy.js";
 // 🔴 이용권 무료 통과는 **차감을 동반해야** 한도가 존재한다. 이 파일의 두 통과 지점
 // (AI 프롬프트 이용권 증빙 · SUBSCRIPTION_INCLUDED)은 coin-gate 를 거치지 않아 지금까지
@@ -681,7 +681,7 @@ async function runSajuAISectionWaves(env, { builtPrompt, systemPrompt, cache, de
         maxOutputTokens,
         timeoutMs,
         maxProviderAttempts: 1,
-        // 폴백 스텁이 20,000원 상품 결과로 전달되지 않도록 문턱을 건다. 전체가 아니라
+        // 폴백 스텁이 유료 상품 결과로 전달되지 않도록 문턱을 건다. 전체가 아니라
         // 이 그룹 최소의 30% — CLAUDE.md 의 fallbackMinChars 관례를 그룹 단위로 적용한 것이다.
         // 분량은 목표일 뿐이라 전달 실패 문턱은 낮게 둔다(2026-10-30, 40%→30%).
         fallbackMinChars: Math.round(group.minChars * 0.3),
@@ -824,7 +824,7 @@ export function validateSajuAIResultText(text, factSnapshot = null, options = {}
   const visibleChars = countSajuAIVisibleChars(normalized);
   if (hasRepeatedReportPassage(normalized)) return { ok: false, reason: "같은 상담 문장이 반복됩니다." };
   // 분량은 보강 목표지만 단독 실패 사유가 아니다. 구조·근거·안전이 유효한 결과를
-  // 20,000자보다 짧다는 이유만으로 폐기하면 결제 후 무결과가 된다.
+  // 목표 분량보다 짧다는 이유만으로 폐기하면 결제 후 무결과가 된다.
   const lengthWarning = visibleChars < SAJU_AI_MIN_RESULT_CHARS
     ? { visibleChars, targetMinChars: SAJU_AI_MIN_RESULT_CHARS, advisory: true }
     : null;
@@ -2529,9 +2529,9 @@ function resolveUnlockProductSpec(productId) {
 }
 
 const PROFILE_SUB_PLANS = {
-  standard: { name: "스탠다드", coins: 115, profileLimit: 3, durationDays: 30, lowWarnAt: 30 },
-  premium: { name: "프리미엄", coins: 360, profileLimit: 7, durationDays: 30, lowWarnAt: 50 },
-  vvip: { name: "VVIP", coins: 700, profileLimit: 15, durationDays: 30, lowWarnAt: 100 },
+  standard: { name: "스탠다드", coins: 115, profileLimit: 0, durationDays: 30, lowWarnAt: 30 },
+  premium: { name: "프리미엄", coins: 360, profileLimit: 0, durationDays: 30, lowWarnAt: 50 },
+  vvip: { name: "VVIP", coins: 700, profileLimit: 0, durationDays: 30, lowWarnAt: 100 },
   family: { name: "Code Destiny Family", coins: 3000, profileLimit: 0, durationDays: 30, lowWarnAt: 300, freeLimit: 999999999 },
 };
 
@@ -6176,7 +6176,7 @@ async function handleSubscriptionStatus(request, env, auth) {
   }
 
   const isActive = effectiveTier !== "free";
-  const profileLimit = isActive ? (PROFILE_SUB_PLANS[effectiveTier]?.profileLimit ?? 1) : 1;
+  const profileLimit = resolveProfileLimitForClient();
   const lowBalanceWarning = false;
   const policy = getPlanPolicy(isActive ? effectiveTier : null);
   const passLimit = isActive

@@ -55,6 +55,9 @@ export function characterForPillar(dayPillar, gender) {
 export function spriteUrl(id) {
   return BASE_ANIMALS.some(animal => animal.id === id) || findSpirit(id) ? `/assets/profile-characters/${id}.webp` : '';
 }
+export function mobileSpriteUrl(id) {
+  return BASE_ANIMALS.some(animal => animal.id === id) ? `/assets/profile-characters/mobile/${id}.webp` : spriteUrl(id);
+}
 export function spiritExp(kind, baseExp, ownedIds, equippedId) {
   const active = Boolean(findSpirit(equippedId) && ownedIds?.includes(equippedId));
   return active && (kind === 'checkin' || kind === 'quest') ? Math.floor(baseExp * (100 + SPIRIT_BONUS_PERCENT) / 100) : baseExp;

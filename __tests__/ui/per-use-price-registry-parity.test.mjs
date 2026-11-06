@@ -71,8 +71,8 @@ const ROWS = [
   ["physiognomy-pastlife-compatibility", "PastLifeFaceUI.js", /PLF_COMPAT_COIN_COST = (\d+);/g],
   ["physiognomy-pastlife-compatibility", "PastLifeFaceUI.js", /mode: 'compat',[^}]*price: '([\d,]+)원'/g, "krw"],
   ["compat-astro-synastry", "app/_lib/serviceFeatureRegistry.ts", /"기본 차트 무료", "궁합 ([\d,]+)원"/g, "krw"],
-  ["tarot-prompt-maker", "app/_lib/serviceFeatureRegistry.ts", /"priceLabel": "([\d,]+)원~[\d,]+원",\s*"seo": \{\s*"title": "타로 오라클 상담/g, "krw"],
-  ["tarot-prompt-maker-master", "app/_lib/serviceFeatureRegistry.ts", /"priceLabel": "[\d,]+원~([\d,]+)원",\s*"seo": \{\s*"title": "타로 오라클 상담/g, "krw"],
+  ["tarot-prompt-maker", "app/_lib/serviceFeatureRegistry.ts", /"priceLabel": "([\d,]+)원",\s*"seo": \{\s*"title": "타로 오라클 상담/g, "krw"],
+  ["tarot-prompt-maker-master", "app/_lib/serviceFeatureRegistry.ts", /"priceLabel": "([\d,]+)원",\s*"seo": \{\s*"title": "타로 오라클 상담/g, "krw"],
   ["animal-totem-basic", "app/_lib/serviceFeatureRegistry.ts", /"priceLabel": "([\d,]+)원",\s*"seo": \{\s*"title": "애니멀 토템 소개/g, "krw"],
 ];
 

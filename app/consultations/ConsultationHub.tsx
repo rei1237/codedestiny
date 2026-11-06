@@ -1,6 +1,6 @@
 "use client";
 import Image from 'next/image';
-import { consultationStories, storyBenefits, storyPreviewHeights } from './stories';
+import { consultationStories, expertStoryIds, signatureStoryIds, storyBenefits, storyPreviewHeights } from './stories';
 import { Archive, ArrowLeft, ArrowUpRight, MessageCircleHeart, Moon } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { RECORD_SERVICES } from '@/lib/records/service-registry';
@@ -14,8 +14,8 @@ import styles from './consultations.module.css';
 // 강약: 홈 덱과 같은 순서 — 대표 상담 3종(연애 비책·신년운세·인생의 책)이 첫 줄, 캐릭터 상담 셋이 뒤,
 // 나머지 일곱 개는 압축 목록으로 아래.
 const groups = {
-  signature: ['love-secret', 'new-year', 'life-book', 'neo', 'tea', 'codex'],
-  others: ['ziwei', 'astrology', 'vedic', 'sukuyo-compat', 'legacy-naming', 'karma', 'fusion'],
+  signature: signatureStoryIds,
+  others: expertStoryIds,
 } as const;
 const numerals = ['Ⅰ', 'Ⅱ', 'Ⅲ', 'Ⅳ', 'Ⅴ', 'Ⅵ'];
 // 대표 카드는 홈 덱(templates/home-funnel.html)과 같은 그림을 쓴다.
@@ -112,7 +112,7 @@ export default function ConsultationHub({ children }: { children?: ReactNode }) 
       </nav>
       <section id="signature" className={styles.section} aria-labelledby="signature-title">
         <div className={styles.sectionHeading}><h2 id="signature-title">{copy.signatureTitle}</h2><p>{copy.signatureLead}</p></div>
-        <div className={styles.deck}>{groups.signature.map(renderCard)}<article className={styles.tarot} data-service="heukwol"><a href="/heukwol/"><span className={styles.tarotTop} aria-hidden="true"><b>Ⅶ</b></span><span className={styles.tarotArt}><img src="/images/consultation-webtoons/heukwol/hw12-12.webp" alt="흑월과 마주한 연이와 네오" width="1122" height="1402" loading="lazy"/></span><div className={styles.tarotBody}><h3>흑월의 경고</h3><span className={styles.tarotLine}>선택한 해의 열두 달, 주의할 조건과 대응할 방법</span><span className={styles.prices}><PriceBadge featureKey="heukwol-warning-consultation" className={styles.price}/></span><span className={styles.tertiary}>이야기 펼치기<ArrowUpRight size={15} aria-hidden="true"/></span></div></a></article></div>
+        <div className={styles.deck}>{groups.signature.map(renderCard)}<article className={styles.tarot} data-service="heukwol"><a href="/heukwol/"><span className={styles.tarotTop} aria-hidden="true"><b>Ⅶ</b></span><span className={styles.tarotArt}><img src="/images/consultation-webtoons/heukwol/portraits/moon-library.webp" alt="흑월의 경고 이야기가 열리는 달빛 서재" width="900" height="1600" loading="lazy"/></span><div className={styles.tarotBody}><h3>흑월의 경고</h3><span className={styles.tarotLine}>선택한 해의 열두 달, 주의할 조건과 대응할 방법</span><span className={styles.prices}><PriceBadge featureKey="heukwol-warning-consultation" className={styles.price}/></span><span className={styles.tertiary}>이야기 펼치기<ArrowUpRight size={15} aria-hidden="true"/></span></div></a></article></div>
       </section>
       <section id="others" className={styles.section} aria-labelledby="others-title">
         <div className={styles.sectionHeading}><h2 id="others-title">{copy.othersTitle}</h2><p>{copy.othersLead}</p></div>

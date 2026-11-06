@@ -172,7 +172,7 @@ test('voiceStyle: only a Korean Yeongnyangi honorific order changes the identity
 
 const questionDecision={version:'question-consultation-20261007',category:'self',target:'self',horizon:'current',situation:'업무 부탁을 자주 받아요',options:'',period:'',constraints:'',confirmed:true};
 test('chat question catalog prices, support limits and stored identities share the server registry',()=>{
- const prices={mackerel:5000,salmon:10000,flounder:15000,tuna:30000};
+ const prices={mackerel:10000,salmon:15000,flounder:20000,tuna:30000};
  const catalog=m.chatQuestionProducts();assert.equal(catalog.length,21);
  for(const product of catalog){assert.equal(product.priceKRW,prices[product.fishId]);assert.equal(product.cdFeatureKey,'fortune-chat-question-'+product.fishId);assert.deepEqual(m.resolveStoredProduct(product.id),product);}
  for(const domain of ['tarot','astrology','sukuyo'])assert.ok(!catalog.some(p=>p.domain===domain&&p.fishId==='tuna'));

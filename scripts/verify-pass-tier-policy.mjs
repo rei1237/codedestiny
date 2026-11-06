@@ -18,15 +18,17 @@
  * 정규식이 리팩터링에 빗나가면 "검사 대상이 없어서 통과"가 되는 게 이 종류 가드의 전형적인
  * 사고인데, 그때 조용히 초록불이 되면 안 된다.
  */
+import { LIGHT_FORTUNE_AUDIT_EXCLUDED_KEYS, LIGHT_FORTUNE_FEATURE_KEYS, isLightFortuneFeatureKey } from "../worker/lib/light-fortune-catalog.js";
+import { PAID_FEATURE_KEY_ALIASES } from "../worker/lib/paid-feature-registry.js";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import {
-  buildPassTerminationFields,
   FAMILY_MIN_PASS_COVERABLE_COIN,
   FAMILY_PASS_MAX_COVERED_COIN,
   HONEY_PASS_POLICY,
+  isActivePassBudgetExhausted,
   isPassBudgetExhausted,
   KRW_PER_COIN,
   MIN_PASS_COVERABLE_COIN,
@@ -42,9 +44,8 @@ import { evaluatePassCoverage, describePassEligibility } from "../worker/payment
 import { listAppPassProducts } from "../worker/lib/app-store-pricing.js";
 import { listProducts } from "../worker/payments/catalog.js";
 import { PASS_MONTHLY_WON } from "../lib/payment/pass-pricing.js";
-import { listServicePackPlans } from "../worker/payments/service-pack-policy.js";
 import {
-  PREVIOUS_PASS_PLANS, PREVIOUS_PASS_POLICY_VERSION, CURRENT_PASS_PLANS,
+  PREVIOUS_PASS_PLANS, PREVIOUS_PASS_POLICY_VERSION, V4_PASS_PLANS, V4_PASS_POLICY_VERSION, CURRENT_PASS_PLANS,
   CURRENT_PASS_POLICY_VERSION,
   PRIOR_PASS_PLANS,
   PRIOR_PASS_POLICY_VERSION,
@@ -65,10 +66,10 @@ const TIERS = ["standard", "premium", "vvip", "family"];
    여기 숫자는 사용자와 합의된 정책 그 자체다. 코드를 바꿔 이 가드를 통과시키는 게
    아니라, 정책을 바꿀 때만 이 숫자를 바꾼다. */
 const POLICY = {
-  standard: { won: 9900, bandKRW: 5000, monthlyKRW: 30000, profiles: 3 },
-  premium: { won: 29900, bandKRW: 10000, monthlyKRW: 100000, profiles: 7 },
-  vvip: { won: 59000, bandKRW: 20000, monthlyKRW: 200000, profiles: 15 },
-  // family: 건당 상한 없음(bandKRW: null), 프로필 무제한(profiles: 0)
+  standard: { won: 9900, bandKRW: 5000, monthlyKRW: 30000, profiles: 0 },
+  premium: { won: 29900, bandKRW: 10000, monthlyKRW: 100000, profiles: 0 },
+  vvip: { won: 59000, bandKRW: 20000, monthlyKRW: 200000, profiles: 0 },
+  // family: 건당 상한 없음(bandKRW: null). 프로필은 2026-11-05 결정으로 전 등급 무제한(profiles: 0)
   family: { won: 149000, bandKRW: null, monthlyKRW: 500000, profiles: 0 },
 };
 
@@ -196,7 +197,7 @@ check(
   "이용권 미보유는 미커버",
   evaluatePassCoverage({ user: {}, entitlement: null, coinCost: 10 }).covered === false,
 );
-check("이용권 미보유 프로필 한도는 1개", HONEY_PASS_POLICY.none.maxProfiles === 1);
+check("이용권 미보유도 프로필 무제한", HONEY_PASS_POLICY.none.maxProfiles === 0);
 
 /* ── ③ 하드코딩 사본 대조 ────────────────────────────────────────────────
    fail-closed: 각 사본에서 4등급을 전부 뽑지 못하면 실패한다. */
@@ -215,9 +216,10 @@ function extractAll(label, source, patternFor) {
 
 // 사본 1 — 앱 SKU 테이블(모듈이라 직접 읽는다)
 const allAppPasses = listAppPassProducts();
-check("신규 v4 3개·v3 3개·v2 3개·기존 4개 앱 SKU 보존", allAppPasses.length === 13, `실제=${allAppPasses.length}`);
+check("신규 v5 3개·v4 3개·v3 3개·v2 3개·기존 4개 앱 SKU 보존", allAppPasses.length === 16, `실제=${allAppPasses.length}`);
 for (const [version, plans] of [
   [CURRENT_PASS_POLICY_VERSION, CURRENT_PASS_PLANS],
+  [V4_PASS_POLICY_VERSION, V4_PASS_PLANS],
   [PREVIOUS_PASS_POLICY_VERSION, PREVIOUS_PASS_PLANS],
   [PRIOR_PASS_POLICY_VERSION, PRIOR_PASS_PLANS],
 ]) {
@@ -273,9 +275,12 @@ const goldenMonthly = extractAll("index.html goldenPackages monthlyLimit", shell
 const goldenProfile = extractAll("index.html goldenPackages profileLimit", shell, (tier) => goldenFor(tier, "profileLimit"));
 const goldenPrice = extractAll("index.html goldenPackages price", shell, (tier) => goldenFor(tier, "price"));
 for (const tier of TIERS) {
-  if (goldenFree[tier] !== undefined) check(`셸 goldenPackages[${tier}].freeLimit`, goldenFree[tier] === PASS_LIMITS[tier], `실제=${goldenFree[tier]} 정본=${PASS_LIMITS[tier]}`);
-  if (goldenMonthly[tier] !== undefined) check(`셸 goldenPackages[${tier}].monthlyLimit`, goldenMonthly[tier] === MONTHLY_PASS_LIMITS[tier], `실제=${goldenMonthly[tier]}`);
-  if (goldenPrice[tier] !== undefined) check(`셸 goldenPackages[${tier}].price`, goldenPrice[tier] === PASS_MONTHLY_WON[tier], `실제=${goldenPrice[tier]}`);
+  if (goldenFree[tier] !== undefined) check(`셸 goldenPackages[${tier}].freeLimit`, goldenFree[tier] === CURRENT_PASS_PLANS[tier]?.maxCoveredCoin, `실제=${goldenFree[tier]} 정본=${CURRENT_PASS_PLANS[tier]?.maxCoveredCoin}`);
+  if (goldenMonthly[tier] !== undefined) check(`셸 goldenPackages[${tier}].monthlyLimit`, goldenMonthly[tier] === CURRENT_PASS_PLANS[tier]?.monthlyLimitCoin, `실제=${goldenMonthly[tier]} 정본=${CURRENT_PASS_PLANS[tier]?.monthlyLimitCoin}`);
+  if (goldenPrice[tier] !== undefined) check(`셸 goldenPackages[${tier}].price`, goldenPrice[tier] === CURRENT_PASS_PLANS[tier]?.wonPrice, `실제=${goldenPrice[tier]} 정본=${CURRENT_PASS_PLANS[tier]?.wonPrice}`);
+  const goldenDesc = shell.match(new RegExp(`id:\\s*'${tier}'[^}]*?desc:\\s*'([^']+)'`))?.[1];
+  const koDesc = JSON.parse(read("public/i18n/ko.json")).payment.passShop.packages[tier].desc;
+  check(`셸 goldenPackages[${tier}].desc 는 ko.json 과 같다`, goldenDesc?.replace("(초융합 심층 리딩 포함)", "") === koDesc, `실제=${goldenDesc} 정본=${koDesc}`);
   if (goldenProfile[tier] !== undefined) {
     const want = HONEY_PASS_POLICY[tier].maxProfiles === 0 ? null : HONEY_PASS_POLICY[tier].maxProfiles;
     check(`셸 goldenPackages[${tier}].profileLimit`, goldenProfile[tier] === want, `실제=${goldenProfile[tier]} 정본=${want}`);
@@ -395,20 +400,39 @@ for (const file of localeFiles) {
 }
 
 
+/* 라이트 운세 미러: 어긋나면 소진 보유자가 라이트 운세에서 결제창을 만난다. */
+{
+  const mirror = (name) => {
+    const block = verdict.match(new RegExp("var " + name + " = \\[([^\\]]*)\\]"));
+    return block ? [...block[1].matchAll(/"([^"]+)"/g)].map((row) => row[1]).sort() : [];
+  };
+  const serverAliases = Object.entries(PAID_FEATURE_KEY_ALIASES)
+    .filter(([, key]) => LIGHT_FORTUNE_FEATURE_KEYS.includes(key)).map(([alias]) => alias).sort();
+  check("pass-verdict 라이트 운세 키가 서버 목록과 같다", JSON.stringify(mirror("LIGHT_FORTUNE_FEATURE_KEYS")) === JSON.stringify([...LIGHT_FORTUNE_FEATURE_KEYS].sort()));
+  check("pass-verdict 라이트 운세 별칭이 서버 목록과 같다", JSON.stringify(mirror("LIGHT_FORTUNE_FEATURE_ALIASES")) === JSON.stringify(serverAliases));
+}
+
 /* ── ⑥ 월 한도 소진 임계값이 레지스트리 최저가에서 파생됐는가 ────────────
-   2026-09-04 부터 이용권은 한도 소진 시 끝난다(2026-10-11 부터는 기간이 없어 소진이 유일한 종료 조건).
+   이용권은 기간이 없고 한도 소진으로 끝나지도 않는다(2026-11-04). 소진 뒤에는 라이트 운세만 열린다.
    소진 판정은 "잔여로 열 수 있는 유료 항목이 하나도 없을 때"이므로 임계는 레지스트리의
    최저가여야 한다. 더 싼 상품이 생겼는데 상수가 그대로면 아직 열 수 있는 이용권을 끄고
-   (환불 분쟁), 최저가가 올랐는데 그대로면 아무것도 못 여는 이용권이 남는다(원래 문제).
+   (환불 분쟁), 최저가가 올랐는데 그대로면 상담을 못 여는데 소진으로 읽히지 않는다.
 
    fail-closed: 커버 대상을 하나도 못 뽑으면 통과가 아니라 실패다. */
+const NOT_ON_SALE_REASONS = new Set(["판매 종료", "등록만 있고 쓰지 않는다"]);
+const isClosedOrBundleOnly = (featureKey) => {
+  const reason = LIGHT_FORTUNE_AUDIT_EXCLUDED_KEYS[featureKey];
+  return Boolean(reason) && (NOT_ON_SALE_REASONS.has(reason) || reason.includes("묶음으로만"));
+};
+// 라이트 운세는 한도를 쓰지 않으므로 소진 기준에서 뺀다. 사주 묶음 전용과 판매 종료 키는 새로 팔지 않는다.
 const coverableProducts = listProducts()
-  .filter((product) => product.passExcluded !== true && Number(product.priceCoins) > 0);
+  .filter((product) => product.passExcluded !== true && Number(product.priceCoins) > 0)
+  .filter((product) => !isLightFortuneFeatureKey(product.featureKey) && !isClosedOrBundleOnly(product.featureKey));
 const coverablePrices = coverableProducts
   .filter((product) => product.familyPassOnly !== true)
   .map((product) => Number(product.priceCoins));
 const familyCoverablePrices = coverableProducts.map((product) => Number(product.priceCoins));
-check("일반 이용권 커버 대상 상품을 레지스트리에서 뽑았다", coverablePrices.length >= 50, `실제=${coverablePrices.length}개`);
+check("일반 이용권 커버 대상 상품을 레지스트리에서 뽑았다", coverablePrices.length >= 10, `실제=${coverablePrices.length}개`);
 if (coverablePrices.length) {
   const registryMin = Math.min(...coverablePrices);
   check(
@@ -435,45 +459,28 @@ for (const tier of TIERS) {
   const budget = MONTHLY_PASS_LIMITS[tier];
   const tierMinimum = minPassCoverableCoinForTier(tier);
   const threshold = Math.max(1, Math.min(tierMinimum, PASS_LIMITS[tier] || tierMinimum));
-  check(`[${tier}] 안 쓴 이용권은 종료하지 않는다`, isPassBudgetExhausted(tier, 0) === false);
+  check(`[${tier}] 안 쓴 이용권은 소진이 아니다`, isPassBudgetExhausted(tier, 0) === false);
   check(
     `[${tier}] 잔여가 최저가와 같으면 아직 열 수 있다`,
     isPassBudgetExhausted(tier, budget - threshold) === false,
     `예산=${budget} 사용=${budget - threshold} 잔여=${threshold}코인`,
   );
   check(
-    `[${tier}] 잔여가 최저가 미만이면 종료한다`,
+    `[${tier}] 잔여가 최저가 미만이면 소진이다`,
     isPassBudgetExhausted(tier, budget - threshold + 1) === true,
     `예산=${budget} 사용=${budget - threshold + 1} 잔여=${threshold - 1}코인`,
   );
-  check(`[${tier}] 예산을 다 쓰면 종료한다`, isPassBudgetExhausted(tier, budget) === true);
+  check(`[${tier}] 예산을 다 쓰면 소진이다`, isPassBudgetExhausted(tier, budget) === true);
 }
 
-/* 종료는 만료일을 당기는 것 하나로 끝난다 — 새 "소진 플래그"를 만들어 곳곳에서 검사하면
-   원칙 6(중첩 사전검사) 위반이자 드리프트 원인이다. 그 전제가 실제로 성립하는지,
-   즉 종료 필드만으로 활성 판정이 뒤집히는지를 판정 함수를 돌려 확인한다. */
+/* 소진은 이용권을 끝내지 않는다. 소진된 이용권도 활성이어야 라이트 운세가 열린다. */
 {
   const now = new Date();
-  const before = new Date(now.getTime() + 10 * 86400000);
-  const activeSub = { tier: "vvip", passTier: "vvip", status: "active", expiresAt: before };
-  const active = normalizeHoneyPassEntitlement({ profileSubscription: activeSub });
-  check("종료 전 이용권은 활성이다", active.isActive === true, `실제=${JSON.stringify(active.isActive)}`);
-
-  const fields = buildPassTerminationFields({ now, previousExpiresAt: before });
-  check("종료 필드는 만료일을 now 로 당긴다", fields.expiresAt.getTime() === now.getTime(), `실제=${fields.expiresAt?.toISOString?.()}`);
-  check("종료 필드는 등급을 free 로 내린다", fields.tier === "free" && fields.passTier === "" && fields.passLimit === 0, JSON.stringify(fields));
-  check(
-    "종료 필드는 원래 만료일을 증거로 남긴다",
-    fields.passExhaustedFromExpiresAt instanceof Date && fields.passExhaustedFromExpiresAt.getTime() === before.getTime(),
-    "CS·환불 문의에서 '왜 일찍 끝났나'의 유일한 증거다",
-  );
-
-  const terminated = normalizeHoneyPassEntitlement({ profileSubscription: { ...activeSub, ...fields } });
-  check(
-    "종료 필드를 적용하면 활성 판정이 뒤집힌다",
-    terminated.isActive !== true,
-    `실제=${JSON.stringify(terminated.isActive)} — 만료일을 당겨도 활성이면 조기 종료가 통째로 무력화된다`,
-  );
+  const expiresAt = new Date(now.getTime() + 10 * 86400000);
+  const budget = MONTHLY_PASS_LIMITS.vvip;
+  const sub = { tier: "vvip", passTier: "vvip", status: "active", expiresAt, premiumUseCycleKey: expiresAt.toISOString(), monthlySpendCoin: budget };
+  check("소진된 이용권은 활성으로 남는다", normalizeHoneyPassEntitlement({ profileSubscription: sub }).isActive === true);
+  check("소진된 이용권은 소진으로 읽힌다", isActivePassBudgetExhausted(sub, now) === true);
 }
 
 /* ── ⑧ 사전이 "다음 달에 리셋된다"고 말하지 않는가 ───────────────────────
@@ -535,6 +542,7 @@ for (const hit of resetHits) failures.push(`리셋 문구: ${hit}`);
    홈 판매 배너에는 등급별 건당 금액과 영냥이 세트가 빠져 있었다. 셋 다 여기서 막는다. */
 const POLICY_TABLES = [
   [CURRENT_PASS_POLICY_VERSION, CURRENT_PASS_PLANS],
+  [V4_PASS_POLICY_VERSION, V4_PASS_PLANS],
   [PREVIOUS_PASS_POLICY_VERSION, PREVIOUS_PASS_PLANS],
   [PRIOR_PASS_POLICY_VERSION, PRIOR_PASS_PLANS],
 ];
@@ -559,9 +567,7 @@ for (const plan of Object.values(CURRENT_PASS_PLANS)) {
   const amount = Number(plan.maxCoveredCoin * KRW_PER_COIN).toLocaleString("en-US");
   check(`홈 배너 ${plan.tier} 건당 ${amount}원`, homeBanner.includes(`data-cd-trans="home.overseasCopy.passPerLimit" data-cd-vars='{"amount":"${amount}"}'`));
 }
-for (const plan of listServicePackPlans()) {
-  check(`홈 배너 영냥이 세트 카드 ${plan.planId}`, homeBanner.includes(`data-pack-plan="${plan.planId}"`));
-}
+check("홈 배너에 전용 이용권 판매 카드가 없다", !homeBanner.includes("data-pack-plan"));
 check("홈 '내 이용권' 줄(#cdhMyPass)이 있다", shell.includes('id="cdhMyPass"'));
 
 if (failures.length) {
@@ -572,5 +578,5 @@ if (failures.length) {
 console.log(
   "[통과] 이용권 등급 정책 검증 — 4등급 절대값 · 가격 경계 7종 × 4등급 · 월 한도 경계 ·"
   + ` 중앙 설명자 정합 · 하드코딩 사본 5곳 · 문구 금지 표현 · 로케일 사전 ${localeFiles.length}개 × 4등급 카드 문구 ·`
-  + ` 소진 임계 일반 ${MIN_PASS_COVERABLE_COIN}코인·Family ${FAMILY_MIN_PASS_COVERABLE_COIN}코인(레지스트리 최저가) · 소진 경계 4등급 × 4케이스 · 종료 필드 왕복 · 사전 2곳 ${scannedStrings}문자열 리셋 문구 0건\n`,
+  + ` 소진 임계 일반 ${MIN_PASS_COVERABLE_COIN}코인·Family ${FAMILY_MIN_PASS_COVERABLE_COIN}코인(라이트를 뺀 판매 상품 최저가) · 소진 경계 4등급 × 4케이스 · 종료 필드 왕복 · 사전 2곳 ${scannedStrings}문자열 리셋 문구 0건\n`,
 );

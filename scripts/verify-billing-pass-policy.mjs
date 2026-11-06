@@ -170,9 +170,9 @@ const standard30 = decision({
 assert.equal(PASS_LIMITS_KRW[PASS_TIERS.STANDARD], 5000, "standard pass limit is 5,000 KRW");
 assert.equal(PASS_LIMITS_KRW[PASS_TIERS.PREMIUM], 10000, "premium pass limit is 10,000 KRW");
 assert.equal(PASS_LIMITS_KRW[PASS_TIERS.VVIP], 20000, "vvip pass limit is 20,000 KRW");
-assert.equal(HONEY_PASS_POLICY.standard.maxProfiles, 3, "standard profile limit comes from shared policy");
-assert.equal(HONEY_PASS_POLICY.premium.maxProfiles, 7, "premium profile limit comes from shared policy");
-assert.equal(HONEY_PASS_POLICY.vvip.maxProfiles, 15, "vvip profile limit comes from shared policy");
+assert.equal(HONEY_PASS_POLICY.standard.maxProfiles, 0, "standard leaves profiles uncapped");
+assert.equal(HONEY_PASS_POLICY.premium.maxProfiles, 0, "premium leaves profiles uncapped");
+assert.equal(HONEY_PASS_POLICY.vvip.maxProfiles, 0, "vvip leaves profiles uncapped");
 assert.equal(HONEY_PASS_POLICY.family.maxProfiles, 0, "family profile limit remains unlimited");
 assert.equal(canUseByPass(activePass(PASS_TIERS.STANDARD), 30), true, "standard covers 30 coins");
 assert.equal(standard30.amountKRW, 3000, "standard 30 amountKRW");
@@ -324,6 +324,21 @@ for (const featureKey of listServerPricedFeatureKeys()) {
       assert.deepEqual(shortBalance.equalPriorityMethods, paidMethods, `${featureKey}: 잔량이 부족해도 결제 선택지 유지`);
       assert.deepEqual(shortBalance.allowedPaymentMethods, allowedMethods, `${featureKey}: 잔량과 허용 수단을 구분`);
     }
+    continue;
+  }
+
+  // direct_or_pass(영냥이 생선 상담): 모든 이용권이 자기 건당 상한 안에서 연다. 코인 결제는 없다.
+  if (paymentPolicy.paymentScope === "direct_or_pass") {
+    for (const [label, decisionForTier, cap] of [
+      ["standard", standardDecision, PASS_LIMITS[PASS_TIERS.STANDARD]],
+      ["premium", premiumDecision, PASS_LIMITS[PASS_TIERS.PREMIUM]],
+      ["vvip", vvipDecision, PASS_LIMITS[PASS_TIERS.VVIP]],
+    ]) {
+      assert.equal(decisionForTier.canUseByPass, coinCost <= cap, `${featureKey}: ${label} 건당 상한 판정`);
+      assert.deepEqual(decisionForTier.allowedPaymentMethods, ["PASS", "DIRECT_KRW", "MOONLIGHT_STONE"], `${featureKey}: 허용 수단(${label})`);
+      assert.deepEqual(decisionForTier.hiddenMethods, coinCost <= cap ? ["DIRECT_KRW", "MOONLIGHT_STONE", "COIN"] : ["COIN"], `${featureKey}: 상한 초과면 코인만 숨기고 월정석·단건을 남긴다(${label})`);
+    }
+    assert.equal(familyDecision.canUseByPass, true, `${featureKey}: Family 이용권 유지`);
     continue;
   }
 
@@ -705,7 +720,7 @@ assertBefore(cardSubscriptionSource, "const rsp = directPayFields.orderMethod ==
 assertContains(pointsSource, "subscriptions?: Record<string, unknown>[]", "points page reads payments/me subscriptions");
 assertContains(pointsSource, "normalizeSubscriptionStatusFromPayload", "points page normalizes subscription payloads");
 assertContains(pointsSource, "mergeSubscriptionState", "points page merges server subscription state");
-assertContains(pointsSource, "<SubscriptionStatusCard subscription={subscription} />", "points page renders status card without monthly balance copy");
+assertContains(pointsSource, "<SubscriptionStatusCard subscription={subscription} passUsage={passUsage} />", "points page renders status card without monthly balance copy");
 const legacyPdfDiscountCopy = [
   "PDF 생성 시 3,000원 ",
   "자동 ",
@@ -883,7 +898,8 @@ assertContains(indexSource, "월정석은 이벤트성 선불 재화입니다.",
 assertContains(indexSource, "패밀리 꿀단지 이용권이 적용되었습니다.", "static family license pass success copy");
 assertContains(indexSource, 'href="/points/?source=flower-membership"', "the concise home pass offer links to the shop");
 assertContains(indexSource, "나에게 맞는 이용권 확인하기", "restored Yeoni guide links to pass comparison");
-assertContains(indexSource, "기존에 구매한 이용권은 구매 당시 조건을 유지합니다", "static offer preserves historical pass rights");
+assertContains(indexSource, "이미 구매한 이용권의 상담 한도는 그대로이고", "static offer preserves historical pass rights");
+assertContains(indexSource, "라이트 운세 혜택은 사용 중인 이용권에도 적용됩니다", "static offer says the light benefit reaches active passes");
 assertNotContains(indexSource, "forceDeduct: false", "static membership pass probe no longer sends the deprecated coin flag");
 assertNotContains(indexSource, "forceDeduct: true", "static paid flows never enable the deprecated coin flag");
 assertContains(indexSource, "opts.__cdPaymentGateAuthorized !== true", "static paid service gate checks pass before payment choice");

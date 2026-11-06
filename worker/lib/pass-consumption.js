@@ -6,18 +6,18 @@
 // (worker/lib/nakshatra-paid-access.js 의 4)분기 · worker/routes/master-love-codex.js)에서는
 // monthlySpendCoin 이 **한 번도 증가하지 않았다**. 누적이 안 쌓이니 월 누적 한도에 도달하는 것이
 // 구조적으로 불가능했고, 그 자리에서 읽던 resolveMonthlySpendQuota 검사는 참이 될 수 없는
-// 조건이었으며, 소진 종료(terminatePassOnBudgetExhaustion)도 영원히 트리거되지 않았다.
+// 조건이었다.
 //
 // 🔴 여기서 판정 로직을 새로 만들지 않는다. 정본은 worker/payments/passes.js 하나이고 이 파일은
 //    그 정본을 부르는 얇은 어댑터다. 등급·한도·소진 규칙의 사본을 여기 두지 말 것.
 //
-// 🔴 소진 플래그를 새로 만들지 않는다. consumePassCoverage 가 차감 직후 소진을 판정해
-//    expiresAt 을 now 로 당기고, 활성 판정이 전부 expiresAt 을 보므로 하위 게이트가 자동으로
-//    전부 닫힌다(passes.js applyBudgetExhaustionTermination 주석).
+// 소진은 이용권을 끝내지 않는다(2026-11-04). 상담은 잔여 한도 검사로 막고 라이트 운세는 그대로 연다.
 import { createHash } from "node:crypto";
 import { User, PointHistory } from "./models.js";
 import { invalidateAccessStateCacheForUser } from "./access-state-cache.js";
 import { mongoose, mongoTransactionOptions } from "./db.js";
+import { isLightFortuneFeatureKey } from "./light-fortune-catalog.js";
+import { isDirectOrFamilyPaidFeatureKey } from "./paid-feature-registry.js";
 import { scopeConnection } from "./db-scope-connection.js";
 
 function invalidatePassUsageReadCaches(userId) {
@@ -164,10 +164,10 @@ export async function hasConsumedPassFeature(user, featureKey, requestId, db = n
 }
 
 export async function consumePassForFeature({ user, entitlement, userId, featureKey, requestId = "", coinCost = 0, profileId = "", db = nativeDb }) {
-  if(String(featureKey || '').startsWith('yeongnyangi-'))return consumeYeongnyangiFamily({user,entitlement,userId,featureKey,requestId,coinCost,db});
+  if(String(featureKey || '').startsWith('yeongnyangi-'))return consumeYeongnyangiPass({user,entitlement,userId,featureKey,requestId,coinCost,db});
   const { buildPassConsumeMarker, consumePassCoverage, evaluatePassCoverage, recordPassUsageEvidence } = await loadPassPolicy();
   const cost = Math.max(0, Math.floor(Number(coinCost) || 0));
-  const coverage = evaluatePassCoverage({ user, entitlement, coinCost: cost });
+  const coverage = evaluatePassCoverage({ user, entitlement, coinCost: cost, lightFortune: isLightFortuneFeatureKey(featureKey) });
   // 멱등: 같은 (기능, requestId) 재시도가 예산을 두 번 깎지 않는다.
   // 정본과 같은 마커·같은 배열을 쓰므로 coin-gate 경로와도 서로 중복 차감하지 않는다.
   const markers = Array.isArray(user?.recentConsumeRequestIds) ? user.recentConsumeRequestIds : [];
@@ -212,7 +212,7 @@ export async function consumePassForFeature({ user, entitlement, userId, feature
 
 // Family retains the existing face-value allowance. Its receipt and consultation
 // claim commit with that one debit, serializing moonstone and PG choices.
-async function consumeYeongnyangiFamily({user,entitlement,userId,featureKey,requestId,coinCost,db}) {
+async function consumeYeongnyangiPass({user,entitlement,userId,featureKey,requestId,coinCost,db}) {
   const {buildPassConsumeMarker,consumePassCoverage,evaluatePassCoverage,recordPassUsageEvidence,findPassUsageEvidence}=await loadPassPolicy();
   const funding=await import('../yeongnyangi/payment-funding.js');
   const id=String(requestId || '').replace(/^yn-/,'');
@@ -222,11 +222,13 @@ async function consumeYeongnyangiFamily({user,entitlement,userId,featureKey,requ
   const existing=await findPassUsageEvidence(db,userId,featureKey,canonical)||await findPassUsageEvidence(db,userId,featureKey,id);
   const markers=Array.isArray(user?.recentConsumeRequestIds)?user.recentConsumeRequestIds:[];
   const marker=buildPassConsumeMarker(featureKey,canonical);
-  if(existing && existing.metadata?.accessMethod!=='FAMILY')throw Object.assign(new Error('Family 이용권 증빙을 확인해 주세요.'),{code:'PAYMENT_NOT_ACTIVE',status:409});
+  if(existing && !['FAMILY','PASS'].includes(existing.metadata?.accessMethod))throw Object.assign(new Error('이용권 증빙을 확인해 주세요.'),{code:'PAYMENT_NOT_ACTIVE',status:409});
   if(!existing && (markers.includes(marker)||markers.includes(buildPassConsumeMarker(featureKey,id))))
     throw Object.assign(new Error('이용권 차감 증빙을 확인 중입니다.'),{code:'PAYMENT_NOT_ACTIVE',status:409});
-  if(!existing && (String(coverage.tier)!=='family'||!coverage.covered))
-    return {covered:false,reason:coverage.tier!=='family'?'family_pass_required':coverage.reason,replayed:false,coverage};
+  // Fish consultations follow the pass's own per-item cap. Assorted and omakase stay Family-only.
+  const familyRequired=isDirectOrFamilyPaidFeatureKey(featureKey)&&String(coverage.tier)!=='family';
+  if(!existing && (familyRequired||!coverage.covered))
+    return {covered:false,reason:familyRequired?'family_pass_required':coverage.reason,replayed:false,coverage};
   const result=await db.transaction(async tx=>{
     const claim=await funding.reserveFortuneFunding(tx,{userId,requestId:canonical,featureKey,coinCost:cost,method:'PASS'});
     let receipt=existing,updated=user;
@@ -242,12 +244,14 @@ async function consumeYeongnyangiFamily({user,entitlement,userId,featureKey,requ
       if(!receipt)throw Object.assign(new Error('이용권 증빙 저장을 확인 중입니다.'),{code:'PAYMENT_EVIDENCE_PENDING',status:503});
     }
     const meta=receipt.metadata || {};
-    await funding.completeFortuneFunding(tx,claim,{evidenceId:receipt._id,tier:'family',debit:Number(meta.coinCost ?? cost),
+    // The receipt's tier wins: the buyer's pass may have changed since this consultation was debited.
+    const tier=String(meta.passTier || (meta.accessMethod==='FAMILY'?'family':coverage.tier));
+    await funding.completeFortuneFunding(tx,claim,{evidenceId:receipt._id,tier,debit:Number(meta.coinCost ?? cost),
       cycleKey:meta.passCycleKey || coverage.cycleKey,budgetCoin:meta.passBudgetCoin ?? coverage.budgetCoin,
       profileLimit:meta.passProfileLimit ?? user?.profileSubscription?.profileLimit,
       maxCoveredCoin:meta.passLimit ?? coverage.perItemLimit,
       policyVersion:meta.passPolicyVersion || user?.profileSubscription?.passPolicyVersion});
-    return {user:updated,coverage:{...coverage,covered:true,reason:'',tier:'family',
+    return {user:updated,coverage:{...coverage,covered:true,reason:'',tier,
       coinCost:Number(meta.coinCost ?? cost),cycleKey:meta.passCycleKey || coverage.cycleKey,
       budgetCoin:meta.passBudgetCoin ?? coverage.budgetCoin}};
   });
@@ -271,6 +275,8 @@ async function consumeYeongnyangiFamily({user,entitlement,userId,featureKey,requ
  * @returns {Promise<{refunded:boolean, amount?:number, skipped?:boolean, reason?:string}>}
  */
 export async function refundPassCoverage({ userId, cycleKey, cost, refundId, restorePass = null, sourcePointHistoryId = null, sourceFeatureKey = '', sourceRequestId = '', db = nativeDb }) {
+  // 라이트 운세는 사용액을 올린 적이 없으므로 되돌릴 것도 없다.
+  if (isLightFortuneFeatureKey(sourceFeatureKey)) return { refunded: false, skipped: true, reason: "PASS_BUDGET_EXEMPT" };
   const amount = Math.max(0, Math.floor(Number(cost) || 0));
   const key = String(cycleKey || "").trim();
   if (!userId || amount <= 0 || !key || !refundId) return { refunded: false, skipped: true };
