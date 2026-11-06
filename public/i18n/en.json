@@ -22067,8 +22067,8 @@
       "A": "✨ Destined match",
       "B": "😊 Connected match",
       "C": "🙂 Ordinary connection",
-      "D": "⚠️ Karmic match",
-      "F": "🌧️ Difficult-fate match"
+      "D": "Finding a shared daily rhythm",
+      "F": "Learning each other’s boundaries"
     },
     "gradeBadge": "Grade {grade}",
     "titleLine": "{type} — {self} × {partner}",
@@ -22168,14 +22168,14 @@
     },
     "past": {
       "title": "🔮 Past-life connection reading",
-      "subtitle": "PAST LIFE COMPATIBILITY · Day × year pillar cross analysis",
+      "subtitle": "A symbolic story about your relationship",
       "grade": {
         "S": "🌟 Grade S · Twin stars of a past life",
         "A": "✨ Grade A · A destined déjà-vu bond",
         "B": "🌱 Grade B · A bond sprouting again",
         "C": "⚪ Grade C · A fresh bond on a blank page",
-        "D": "⚠️ Grade D · A knot to untie, a karmic bond",
-        "F": "🌀 Grade F · Learning through pain, a bond of inherited hardship"
+        "D": "D · A knot to loosen gently",
+        "F": "F · A knot with room for two paths"
       },
       "crossSelf": "🧬 {self}'s day pillar ({selfPillar}) × {partner}'s year pillar ({partnerPillar})",
       "crossPartner": "🧬 {partner}'s day pillar ({partnerPillar}) × {self}'s year pillar ({selfPillar})",
@@ -22237,7 +22237,8 @@
       "hour": "Two lanterns facing dawn over distant mountains",
       "past-resonance": "Two lanterns drifting closer on a pond",
       "past-growth": "A bridge joining two banks with flowering trees",
-      "past-knot": "A loose silk knot beside a lotus"
+      "past-knot": "A loose silk knot beside a lotus",
+      "past-ferry": "A traveler lifts a lantern from a ferry toward someone on the shore"
     },
     "relationship": {
       "title": "Where your two charts meet",
@@ -22302,6 +22303,19 @@
       "candidates": "Candidates: {elements}",
       "unresolved": "No single useful element confirmed",
       "note": "Useful elements are shown as candidates, not settled answers, and anything that cannot be judged stays on hold. The compatibility score is calculated separately from element counts."
+    },
+    "entry": {
+      "title": "Saju compatibility for two",
+      "love": "Explore how you keep in touch and reconnect after disagreements.",
+      "business": "Explore how you share responsibilities and make decisions together.",
+      "friend": "Explore a pace of contact and personal space that suit you both.",
+      "preview": "Explore the report"
+    },
+    "reading": {
+      "contents": "Reading contents",
+      "say": "Something to say",
+      "strength": "Where you connect",
+      "adjust": "Where to adapt"
     }
   },
   "honeyUI": {

@@ -1,4 +1,4 @@
-import { COMPAT_ART, pastLifeArt } from './saju-compat-art.mjs';
+import { COMPAT_ART, storyArtFor } from './saju-compat-art.mjs';
 // 기본 사주 궁합 결과 렌더러 — 결과 화면과 보관함 상세가 같은 모듈로 같은 HTML 을 그린다.
 // 순수 함수(DOM·window 없음): 입력은 서버가 불변 저장한 스냅샷(worker/lib/saju-compat-schema.js 의
 // assembleSajuCompatSnapshot 결과)이고, 출력은 이스케이프된 HTML 문자열이다.
@@ -6,6 +6,16 @@ import { COMPAT_ART, pastLifeArt } from './saju-compat-art.mjs';
 // 사용자 노출 고정 문구는 SAJU_COMPAT_KO(한국어 정본)에 두고, 번역은 i18n/authored/sajuCompat-01.json 이 맡는다.
 
 export const SAJU_COMPAT_KO = {
+  "sajuCompat.art.past-ferry": "나루터의 사람을 향해 뱃전에서 등불을 들어 올리는 장면",
+  "sajuCompat.reading.adjust": "조율할 점",
+  "sajuCompat.reading.strength": "잘 맞는 점",
+  "sajuCompat.reading.say": "해볼 말",
+  "sajuCompat.reading.contents": "궁합 결과 목차",
+  "sajuCompat.entry.preview": "리포트 구성 보기",
+  "sajuCompat.entry.friend": "연락 간격과 서로 편하게 지낼 수 있는 거리를 살펴봐요.",
+  "sajuCompat.entry.business": "역할을 나누고 중요한 결정을 함께 내리는 방식을 읽어요.",
+  "sajuCompat.entry.love": "연락을 주고받는 속도와 다툰 뒤 다시 가까워지는 방식을 읽어요.",
+  "sajuCompat.entry.title": "두 사람의 사주 궁합",
   "sajuCompat.relation.he": "합",
   "sajuCompat.relation.chong": "충",
   "sajuCompat.relation.same": "동",
@@ -66,8 +76,8 @@ export const SAJU_COMPAT_KO = {
   "sajuCompat.grade.A": "✨ 운명 궁합",
   "sajuCompat.grade.B": "😊 인연 궁합",
   "sajuCompat.grade.C": "🙂 평범한 인연",
-  "sajuCompat.grade.D": "⚠️ 업보 궁합",
-  "sajuCompat.grade.F": "🌧️ 악연 궁합",
+  "sajuCompat.grade.D": "생활 리듬을 맞춰 가는 관계",
+  "sajuCompat.grade.F": "서로의 경계를 살피는 관계",
   "sajuCompat.gradeBadge": "{grade}급",
   "sajuCompat.titleLine": "{type} — {self} × {partner}",
   "sajuCompat.scoreLine": "명리 전용 궁합 점수: {score}/100",
@@ -150,13 +160,13 @@ export const SAJU_COMPAT_KO = {
   "sajuCompat.advice.conflictRoutine": "[갈등 복구 루틴]",
   "sajuCompat.advice.growthGoal": "[공동 성장 목표]",
   "sajuCompat.past.title": "🔮 전생 인연 풀이",
-  "sajuCompat.past.subtitle": "PAST LIFE COMPATIBILITY · 일주×년주 교차 분석",
+  "sajuCompat.past.subtitle": "두 사람의 관계를 빗댄 상징 이야기",
   "sajuCompat.past.grade.S": "🌟 S급 · 전생의 쌍둥이 별",
   "sajuCompat.past.grade.A": "✨ A급 · 운명의 데자뷰 인연",
   "sajuCompat.past.grade.B": "🌱 B급 · 다시 싹트는 인연",
   "sajuCompat.past.grade.C": "⚪ C급 · 백지 위의 새로운 인연",
-  "sajuCompat.past.grade.D": "⚠️ D급 · 풀어야 할 매듭, 업보(Karma)의 인연",
-  "sajuCompat.past.grade.F": "🌀 F급 · 피 흘리며 배우는 악연의 대물림",
+  "sajuCompat.past.grade.D": "⚠️ D급 · 천천히 풀어 가는 매듭",
+  "sajuCompat.past.grade.F": "🌀 F급 · 서로에게 길을 내주는 매듭",
   "sajuCompat.past.crossSelf": "🧬 {self}의 일주({selfPillar}) × {partner}의 년주({partnerPillar})",
   "sajuCompat.past.crossPartner": "🧬 {partner}의 일주({partnerPillar}) × {self}의 년주({selfPillar})",
   "sajuCompat.past.cross.he": "합(合)",
@@ -297,7 +307,7 @@ export function sajuCompatKeys() { return Object.keys(SAJU_COMPAT_KO); }
  * 스냅샷 → HTML. 스냅샷이 쓸 수 없는 모양이면 빈 문자열을 돌려주므로 호출부가 폴백(레거시 결과)을 고른다.
  * 비어 있는 서술 필드(결손)는 그 문단만 생략하고, 엔진 확정값(점수·등급·근거·교차)은 항상 그린다.
  */
-export function renderSajuCompat(snapshot, { t = createSajuCompatT(), selfName = "" } = {}) {
+export function renderSajuCompat(snapshot, { t = createSajuCompatT(), selfName = "", archive = false } = {}) {
   const facts = snapshot?.facts;
   if (!isObject(facts) || !isObject(facts.score) || !GRADES.includes(facts.grade?.code) || !Array.isArray(facts.reasons)) return "";
   const narrative = isObject(snapshot.narrative) ? snapshot.narrative : {};
@@ -311,14 +321,39 @@ export function renderSajuCompat(snapshot, { t = createSajuCompatT(), selfName =
     .map((line) => `<p class="${className}">${escapeHtml(line)}</p>`).join("");
   const section = (title, body, className = "") => (body ? `<div class="compat-section${className ? ` ${className}` : ""}"><div class="compat-section-title">${typeof title === "function" ? title() : title}</div>${body}</div>` : "");
 
+  // Pull a complete opening sentence from saved prose, preserving the rest verbatim.
+  function opening(text) {
+    const sentence = text.match(/^\s*(?:[“「『«"][^”」』»"\n]+[”」』»"]|[^\n]+?[.!?。！？।](?:[”」』»"])?(?=\s|$|[^\x00-\x7F])|[^\n]+)/u)?.[0] || '';
+    return { first: sentence.trim(), rest: text.slice(sentence.length).trim() };
+  }
+  const lead = opening(stringAt(narrative, 'overview'));
+  const routine = stringAt(narrative.prescription, 'conflictRoutine');
+  const spoken = /^[“「『«"]/.test(routine) ? opening(routine) : { first: '', rest: routine };
+  const reasonNode = narrative.reasonDetails || {};
+  const leadingReasons = new Map();
+  for (const polarity of ['+', '-']) {
+    const item = facts.reasons.find(reason => reason.polarity === polarity && stringAt(reasonNode, reason.code));
+    if (item) leadingReasons.set(item.code, opening(stringAt(reasonNode, item.code)));
+  }
+  const takeaway = (key, value) => value ? '<div><dt>' + T(key) + '</dt><dd>' + escapeHtml(value) + '</dd></div>' : '';
+  const reasonLead = polarity => {
+    const item = facts.reasons.find(row => row.polarity === polarity && leadingReasons.has(row.code));
+    return item ? leadingReasons.get(item.code).first : '';
+  };
+  const prefix = archive ? 'compat-archive-' : 'compat-reading-';
+  const summary = '<header class="compat-reading-lead"><h3>' + T('sajuCompat.titleLine', { type: t('sajuCompat.type.' + type), self, partner }) + '</h3>'
+    + paragraphs(lead.first, 'compat-summary-text') + '<dl>'
+    + takeaway('sajuCompat.reading.say', spoken.first) + takeaway('sajuCompat.reading.strength', reasonLead('+'))
+    + takeaway('sajuCompat.reading.adjust', reasonLead('-')) + '</dl></header>';
+
   const grade = `<div class="compat-grade-area"><div class="compat-grade-icon">${GRADE_ICON[code]}</div><div>`
     + `<div class="compat-grade-badge grade-${code.toLowerCase()}">${T("sajuCompat.gradeBadge", { grade: code })}</div>`
-    + `<div class="compat-grade-label">${T("sajuCompat.titleLine", { type: t(`sajuCompat.type.${type}`), self, partner })}<br><span class="compat-grade-sub">${T(`sajuCompat.grade.${code}`)}</span></div>`
+    + `<div class="compat-grade-label"><span class="compat-grade-sub">${T(`sajuCompat.grade.${code}`)}</span></div>`
     + `<div class="compat-grade-desc">${paragraphs(stringAt(narrative, "gradeComment"), "compat-text")}</div>`
     + `<div class="compat-grade-score">${T("sajuCompat.scoreLine", { score: facts.score.display })}</div></div></div>`;
 
   const overview = section(T("sajuCompat.overview.title"),
-    `<p class="compat-text compat-note">${T("sajuCompat.overview.note", { score: facts.score.display })}</p>${paragraphs(stringAt(narrative, "overview"), "compat-text")}`);
+    `<p class="compat-text compat-note">${T("sajuCompat.overview.note", { score: facts.score.display })}</p>${paragraphs(lead.rest, "compat-text")}`);
 
   const approved = approvedSides(snapshot);
   const approvedRow = (name, side) => `<p class="compat-text">${T("sajuCompat.approved.row", { name, strength: approvedStrength(side, t), yongshin: approvedYongshin(side, t) })}</p>`;
@@ -338,9 +373,8 @@ export function renderSajuCompat(snapshot, { t = createSajuCompatT(), selfName =
   }).join("");
   const details = section(() => T("sajuCompat.detail.title"), cards ? `<div class="compat-detail-grid">${cards}</div>` : "");
 
-  const reasonNode = isObject(narrative.reasonDetails) ? narrative.reasonDetails : {};
   const reasonItems = facts.reasons.map((reason) => {
-    const detail = stringAt(reasonNode, reason.code).replace(/\s*\n+\s*/g, " ");
+    const detail = (leadingReasons.get(reason.code)?.rest ?? stringAt(reasonNode, reason.code)).replace(/\s*\n+\s*/g, " ");
     return `<div class="compat-check-item"><span class="compat-check-icon">${reasonIcon(reason)}</span><span>`
       + `<b class="compat-check-reason">${T(`sajuCompat.reason.${reason.code}`, reasonVars(reason, facts, t))}</b>`
       + `${detail ? `<small class="compat-check-detail">${escapeHtml(detail)}</small>` : ""}</span></div>`;
@@ -371,7 +405,7 @@ export function renderSajuCompat(snapshot, { t = createSajuCompatT(), selfName =
   const adviceItems = [
     adviceLine(T(`sajuCompat.advice.${band}`), stringAt(prescriptionNode, "gradeAdvice")),
     adviceLine(T(`sajuCompat.advice.secret.${type}`), stringAt(prescriptionNode, "typeSecret")),
-    adviceLine(T("sajuCompat.advice.conflictRoutine"), stringAt(prescriptionNode, "conflictRoutine")),
+    adviceLine(T("sajuCompat.advice.conflictRoutine"), spoken.rest),
     adviceLine(T("sajuCompat.advice.growthGoal"), stringAt(prescriptionNode, "growthGoal")),
   ].join("");
   const advice = adviceItems ? `<div class="compat-advice-box"><div class="compat-advice-title">${T("sajuCompat.advice.title")}</div><div class="compat-advice-body">${adviceItems}</div></div>` : "";
@@ -390,13 +424,20 @@ export function renderSajuCompat(snapshot, { t = createSajuCompatT(), selfName =
   const chapters = evidence ? section(T('sajuCompat.relationship.chapters'), evidence.chapters.map((ch,i) =>
     `<article class="compat-story-chapter">${ch.available ? art(COMPAT_ART[ch.key]) : ''}<h3>${i+1} · ${T('sajuCompat.pillar.' + ch.key)} — ${T('sajuCompat.area.' + ch.key)}</h3>${paragraphs(ch.available ? stringAt(narrative.pillarStory, ch.key) : t('sajuCompat.relationship.unknownHour'), 'compat-text')}<details><summary>${T('sajuCompat.relationship.evidence')}</summary><ul>${evidence.cross.filter(row => ch.evidenceIds.includes(row.id)).map(row => '<li>' + escapeHtml(relation(row)) + '</li>').join('')}</ul></details></article>`).join('')
     + evidence.limitations.map(line => '<p class="compat-note">' + (limitationKeys[line] ? T('sajuCompat.limit.' + limitationKeys[line]) : escapeHtml(line)) + '</p>').join('')) : '';
-  const past = renderPastLife(snapshot, { t, T, self, partner, paragraphs });
+  const past = renderPastLife(snapshot, { t, T, self, partner, paragraphs, art });
+  const destination = (name, content) => content ? '<section id="' + prefix + name + '" tabindex="-1">' + content + '</section>' : '';
+  const jump = (name, key) => '<button type="button" aria-controls="' + prefix + name + '">' + T(key) + '</button>';
+  const links = (love ? jump('love', 'sajuCompat.love.title') : '') + (past ? jump('past', 'sajuCompat.past.title') : '');
+  const nav = links ? '<nav class="compat-reading-nav" aria-label="' + T('sajuCompat.reading.contents') + '">' + links + '</nav>' : '';
+  const evidencePanel = '<details class="compat-disclosure compat-reading-evidence"><summary>' + T('sajuCompat.relationship.evidence') + ' · ' + escapeHtml(facts.score.display) + '/100</summary>'
+    + grade + overview + approvedBlock + matrix + reasons + '</details>';
   return `<div class="compat-wrap cd-compat-snap" data-saju-compat-schema="${escapeHtml(snapshot.schemaVersion ?? "")}">`
-    + (evidence ? art(COMPAT_ART[type]) : "") + grade + overview + approvedBlock + matrix + chapters + energy + details + reasons + love + fact + (evidence && past ? art(pastLifeArt(facts.pastLife.grade.code)) : "") + past + advice
+    + summary + nav + evidencePanel + destination("love", love) + destination("past", past) + advice + details + fact + energy
+    + (evidence ? art(COMPAT_ART[type]) : "") + chapters
     + `<div class="compat-footnote">${T("sajuCompat.footer")}</div></div>`;
 }
 
-function renderPastLife(snapshot, { t, T, self, partner, paragraphs }) {
+function renderPastLife(snapshot, { t, T, self, partner, paragraphs, art }) {
   const past = snapshot.facts.pastLife;
   if (!isObject(past) || !GRADES.includes(past.grade?.code) || !Array.isArray(past.cross) || past.cross.length !== 2) return "";
   const narrative = isObject(snapshot.narrative?.pastLife) ? snapshot.narrative.pastLife : {};
@@ -420,12 +461,13 @@ function renderPastLife(snapshot, { t, T, self, partner, paragraphs }) {
   const gradeDesc = stringAt(narrative, "gradeDesc");
   return `<div class="pastlife-card"><div class="pastlife-header"><div><div class="pastlife-title-text">${T("sajuCompat.past.title")}</div>`
     + `<div class="pastlife-subtitle">${T("sajuCompat.past.subtitle")}</div></div></div>`
+    + (snapshot.facts.relationship ? art(storyArtFor(snapshot.facts.type, past, snapshot.promptVersion)) : "")
+    + `${story ? `<div class="pastlife-story-box"><div class="pastlife-story-icon">${PAST_ICON[code]}</div><div class="pastlife-story-text">${paragraphs(story, "compat-text")}</div></div>` : ""}`
+    + `${prescription ? `<div class="pastlife-prescription"><div class="pastlife-prescription-title">${T("sajuCompat.past.prescription")}</div><div class="pastlife-prescription-body">${paragraphs(prescription, "compat-text")}</div></div>` : ""}`
+    + reflection
     + `<div class="pastlife-karma-badge">${T(`sajuCompat.past.grade.${code}`)}</div>`
     + `${gradeDesc ? `<div class="pastlife-grade-desc">${paragraphs(gradeDesc, "compat-text")}</div>` : ""}`
     + row(T("sajuCompat.past.crossSelf", { self, partner, selfPillar: pillar(selfToPartner.from), partnerPillar: pillar(selfToPartner.to) }), selfToPartner, stringAt(readings, "selfToPartner"))
     + row(T("sajuCompat.past.crossPartner", { self, partner, selfPillar: pillar(partnerToSelf.to), partnerPillar: pillar(partnerToSelf.from) }), partnerToSelf, stringAt(readings, "partnerToSelf"))
-    + `${story ? `<div class="pastlife-story-box"><div class="pastlife-story-icon">${PAST_ICON[code]}</div><div class="pastlife-story-text">${paragraphs(story, "compat-text")}</div></div>` : ""}`
-    + `${prescription ? `<div class="pastlife-prescription"><div class="pastlife-prescription-title">${T("sajuCompat.past.prescription")}</div><div class="pastlife-prescription-body">${paragraphs(prescription, "compat-text")}</div></div>` : ""}`
-    + reflection
     + `<div class="pastlife-disclaimer">${T("sajuCompat.past.disclaimer")}</div></div>`;
 }

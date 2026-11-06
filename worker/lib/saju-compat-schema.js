@@ -1,3 +1,4 @@
+import { STORY_PROMPT_VERSION } from '../../js/saju-compat-art.mjs';
 import { buildSajuRelationshipEvidence } from './saju-relationship-evidence.js';
 // 기본 사주 궁합(compat-saju-compatibility) LLM 서술 서비스의 계약.
 //
@@ -14,7 +15,7 @@ export const SAJU_COMPAT_FEATURE_KEY = "compat-saju-compatibility";
 export const SAJU_COMPAT_REPORT_TYPE = "sajuCompatBasic";
 export const SAJU_COMPAT_TYPE = "saju-compat-basic";
 export const SAJU_COMPAT_SCHEMA_VERSION = 2;
-export const SAJU_COMPAT_PROMPT_VERSION = "saju-compat-basic-p2";
+export const SAJU_COMPAT_PROMPT_VERSION = STORY_PROMPT_VERSION;
 export const SAJU_COMPAT_GROUPS = ["core", "reasons", "practice", "pastLife"];
 
 const MAX_FACTS_BYTES = 16 * 1024;

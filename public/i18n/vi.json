@@ -22067,8 +22067,8 @@
       "A": "✨ Duyên định mệnh",
       "B": "😊 Duyên gắn kết",
       "C": "🙂 Duyên bình thường",
-      "D": "⚠️ Duyên nghiệp",
-      "F": "🌧️ Duyên nhiều thử thách"
+      "D": "Cùng điều chỉnh nhịp sống",
+      "F": "Tìm hiểu ranh giới của nhau"
     },
     "gradeBadge": "Hạng {grade}",
     "titleLine": "{type} — {self} × {partner}",
@@ -22168,14 +22168,14 @@
     },
     "past": {
       "title": "🔮 Luận giải duyên tiền kiếp",
-      "subtitle": "DUYÊN TIỀN KIẾP · Đối chiếu trụ ngày × trụ năm",
+      "subtitle": "Câu chuyện biểu tượng về mối quan hệ của hai người",
       "grade": {
         "S": "🌟 Hạng S · Hai ngôi sao song sinh kiếp trước",
         "A": "✨ Hạng A · Duyên quen như đã từng gặp",
         "B": "🌱 Hạng B · Duyên lại nảy mầm",
         "C": "⚪ Hạng C · Duyên mới trên trang trắng",
-        "D": "⚠️ Hạng D · Nút thắt cần tháo gỡ",
-        "F": "🌀 Hạng F · Bài học qua những khó khăn kế thừa"
+        "D": "Hạng D · Nút thắt dần được gỡ",
+        "F": "Hạng F · Nút thắt mở lối cho nhau"
       },
       "crossSelf": "🧬 Trụ ngày của {self} ({selfPillar}) × trụ năm của {partner} ({partnerPillar})",
       "crossPartner": "🧬 Trụ ngày của {partner} ({partnerPillar}) × trụ năm của {self} ({selfPillar})",
@@ -22237,7 +22237,8 @@
       "hour": "Hai ngọn đèn hướng về bình minh trên núi xa",
       "past-resonance": "Hai ngọn đèn trôi gần nhau trên hồ",
       "past-growth": "Cây cầu nối hai bờ có cây nở hoa",
-      "past-knot": "Nút lụa buộc lỏng bên hoa sen"
+      "past-knot": "Nút lụa buộc lỏng bên hoa sen",
+      "past-ferry": "Người trên thuyền nâng đèn về phía người trên bờ"
     },
     "relationship": {
       "title": "Nơi hai lá số gặp nhau",
@@ -22302,6 +22303,19 @@
       "candidates": "Ứng viên bổ trợ {elements}",
       "unresolved": "Chưa xác định một dụng thần duy nhất",
       "note": "Dụng thần được hiển thị dưới dạng ứng viên chứ không phải kết luận, mục nào chưa thể đánh giá sẽ được tạm hoãn. Điểm hợp nhau được tính riêng theo số lượng ngũ hành."
+    },
+    "entry": {
+      "title": "Duyên hợp tứ trụ của hai người",
+      "love": "Tìm hiểu nhịp liên lạc và cách làm hòa sau bất đồng.",
+      "business": "Tìm hiểu cách phân vai và cùng đưa ra quyết định quan trọng.",
+      "friend": "Tìm nhịp liên lạc và khoảng riêng dễ chịu cho cả hai.",
+      "preview": "Xem nội dung báo cáo"
+    },
+    "reading": {
+      "contents": "Mục lục bài luận",
+      "say": "Một lời để thử nói",
+      "strength": "Điểm hòa hợp",
+      "adjust": "Điểm cần điều chỉnh"
     }
   },
   "honeyUI": {

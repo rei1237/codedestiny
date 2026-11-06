@@ -4,4 +4,4 @@ export const SAJU_COMPAT_KO: Record<string, string>;
 export function escapeHtml(value: unknown): string;
 export function createSajuCompatT(translate?: SajuCompatTranslate | null): SajuCompatT;
 export function sajuCompatKeys(): string[];
-export function renderSajuCompat(snapshot: unknown, options?: { t?: SajuCompatT; selfName?: string }): string;
+export function renderSajuCompat(snapshot: unknown, options?: { t?: SajuCompatT; selfName?: string; archive?: boolean }): string;

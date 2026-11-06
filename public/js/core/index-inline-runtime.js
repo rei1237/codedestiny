@@ -1989,7 +1989,7 @@ var __cdLazyActionLoaders = {
   shareInstagram: function() { return __cdLoadScriptOnce('/js/share.js?v=build-67cbd46b7d92'); },
   shareAstroKakao: function() { return __cdLoadScriptOnce('/js/share.js?v=build-67cbd46b7d92'); },
   shareSajuResultImage: function() { return __cdLoadScriptOnce('/js/share.js?v=build-67cbd46b7d92'); },
-  openSajuCompatArchive: function() { return __cdLoadScriptOnce('/js/saju-compat-archive.js?v=build-b1d1aa1db384'); }
+  openSajuCompatArchive: function() { return __cdLoadScriptOnce('/js/saju-compat-archive.js?v=build-9ca3288edd38'); }
 };
 window.__cdLazyActionLoaders = __cdLazyActionLoaders;
 var __cdLazyActionState = {};
@@ -2290,7 +2290,7 @@ function __cdEnsureSajuCoreLoaded() {
     '/js/core/saju/natal-core.generated.js?v=build-38051d7297a0',
     '/js/core/kasi-calendar-service.js?v=build-99c5568a4710',
     '/js/compat-llm-prompts.js?v=build-f4b380e036d0',
-    '/js/saju-engine.js?v=build-2c3c3360d708',
+    '/js/saju-engine.js?v=build-703ec1c971ab',
       '/js/core/saju/extremeTResult.js?v=build-5f0576c62518',
       /* 숙요 정본(Swiss 항성 달 황경). quantum.js 의 calcSukuyoData 가 이것 없이는 수(宿)를 내지 않는다. */
       '/js/core/sukuyo-astronomy.js?v=build-5198c8e4c8b2',
@@ -2451,7 +2451,7 @@ function __cdEnsureSajuCompatModules() {
   if (window.__cdSajuCompat) return Promise.resolve(window.__cdSajuCompat);
   if (__cdSajuCompatLoadPromise) return __cdSajuCompatLoadPromise;
   __cdSajuCompatLoadPromise = Promise.all([
-    import('/js/saju-compat-render.mjs?v=build-05916878d879'),
+    import('/js/saju-compat-render.mjs?v=build-14320dfdfe5f'),
     import('/js/saju-compat-flow.mjs?v=build-b7c7a53904fd'),
     import('/js/core/paid-narrative-reader.js?v=build-c9b681355666')
   ]).then(function(mods) {
@@ -9049,7 +9049,7 @@ function __cdEnsureSukuyoZiweiCoreLoaded() {
     /* 원국 판정 정본(전역 SajuNatalCore). saju-engine 의 detectJong 이 이것 없이는 던진다. */
     '/js/core/saju/natal-core.generated.js?v=build-38051d7297a0',
     '/js/compat-llm-prompts.js?v=build-f4b380e036d0',
-      '/js/saju-engine.js?v=build-2c3c3360d708',
+      '/js/saju-engine.js?v=build-703ec1c971ab',
       '/js/core/sukuyo-astronomy.js?v=build-5198c8e4c8b2',
       '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-224c68bbb168'
   ];
@@ -10235,18 +10235,25 @@ function updateCompatUI() {
   var desc = document.getElementById('compatTypeDesc');
   var btn = document.getElementById('compatRunBtn');
   if (!t || !desc || !btn) return;
-  var v = t.value || 'love';
-  if (v === 'love') {
-    desc.textContent = '연애/결혼: 감정, 온기, 일지·십성 간의 조화가 중심에 머뭅니다.';
-    btn.innerHTML = '💗 연애 궁합 분석하기';
-  } else if (v === 'business') {
-    desc.textContent = '사업/동업: 역할·책임·보완 후보·상극을 중심으로 실무적·재무적 적합성을 평가합니다.';
-    btn.innerHTML = '💼 사업 궁합 분석하기';
-  } else {
-    desc.textContent = '친구/동료: 우정·협업·에너지 호흡을 중심으로 편안함과 시너지 포인트를 안내합니다.';
-    btn.innerHTML = '🤝 우정/동료 궁합 분석하기';
-  }
+  var help = {
+    love: '연락을 주고받는 속도와 다툰 뒤 다시 가까워지는 방식을 읽어요.',
+    business: '역할을 나누고 중요한 결정을 함께 내리는 방식을 읽어요.',
+    friend: '연락 간격과 서로 편하게 지낼 수 있는 거리를 살펴봐요.'
+  };
+  var type = Object.prototype.hasOwnProperty.call(help, t.value) ? t.value : 'love';
+  var key = 'sajuCompat.entry.' + type;
+  desc.setAttribute('data-key', key);
+  desc.textContent = typeof window.cdTranslate === 'function' ? window.cdTranslate(key, {}, help[type]) : help[type];
 }
+// The shell owns the URL hash. Move within the currently open reading or archive sheet.
+document.addEventListener('click', function (event) {
+  var button = event.target.closest && event.target.closest('.compat-reading-nav button');
+  if (!button) return;
+  var target = document.getElementById(button.getAttribute('aria-controls'));
+  if (!target || target.closest('.cd-compat-snap') !== button.closest('.cd-compat-snap')) return;
+  target.focus({ preventScroll: true });
+  target.scrollIntoView({ block: 'start' });
+});
 var compatTypeEl = document.getElementById('compatType');
 if (compatTypeEl) compatTypeEl.addEventListener('change', updateCompatUI);
 if (document.readyState === 'complete' || document.readyState === 'interactive') setTimeout(updateCompatUI, 50);

@@ -22067,8 +22067,8 @@
       "A": "✨ Vínculo del destino",
       "B": "😊 Vínculo cercano",
       "C": "🙂 Conexión cotidiana",
-      "D": "⚠️ Vínculo kármico",
-      "F": "🌧️ Vínculo difícil"
+      "D": "Encontrar un ritmo cotidiano común",
+      "F": "Conocer los límites de cada uno"
     },
     "gradeBadge": "Grado {grade}",
     "titleLine": "{type} — {self} × {partner}",
@@ -22168,14 +22168,14 @@
     },
     "past": {
       "title": "🔮 Vínculo de vidas pasadas",
-      "subtitle": "VIDAS PASADAS · Cruce del pilar del día × año",
+      "subtitle": "Un relato simbólico sobre vuestra relación",
       "grade": {
         "S": "🌟 Grado S · Estrellas gemelas de otra vida",
         "A": "✨ Grado A · Un déjà vu del destino",
         "B": "🌱 Grado B · Un vínculo que vuelve a brotar",
         "C": "⚪ Grado C · Un vínculo en una página nueva",
-        "D": "⚠️ Grado D · Un nudo kármico por desatar",
-        "F": "🌀 Grado F · Aprender de dificultades heredadas"
+        "D": "D · Un nudo que se afloja despacio",
+        "F": "F · Un nudo que da paso a dos caminos"
       },
       "crossSelf": "🧬 Pilar del día de {self} ({selfPillar}) × pilar del año de {partner} ({partnerPillar})",
       "crossPartner": "🧬 Pilar del día de {partner} ({partnerPillar}) × pilar del año de {self} ({selfPillar})",
@@ -22237,7 +22237,8 @@
       "hour": "Dos faroles ante el amanecer en montañas lejanas",
       "past-resonance": "Dos faroles se acercan sobre un estanque",
       "past-growth": "Un puente une dos orillas con árboles en flor",
-      "past-knot": "Un nudo de seda suelto junto a un loto"
+      "past-knot": "Un nudo de seda suelto junto a un loto",
+      "past-ferry": "Una persona alza un farol desde la barca hacia la orilla"
     },
     "relationship": {
       "title": "Donde se encuentran sus cartas",
@@ -22302,6 +22303,19 @@
       "candidates": "Candidatos: {elements}",
       "unresolved": "Sin un único elemento útil confirmado",
       "note": "Los elementos útiles se muestran como candidatos y no como respuestas definitivas; lo que no puede evaluarse queda en espera. La puntuación de compatibilidad se calcula aparte, según la cantidad de cada elemento."
+    },
+    "entry": {
+      "title": "Afinidad Saju entre dos personas",
+      "love": "Explora vuestro ritmo de contacto y cómo acercaros después de discutir.",
+      "business": "Explora cómo repartís responsabilidades y tomáis decisiones.",
+      "friend": "Encuentra un ritmo de contacto y un espacio cómodos para ambos.",
+      "preview": "Ver el contenido del informe"
+    },
+    "reading": {
+      "contents": "Índice de la lectura",
+      "say": "Algo que podéis decir",
+      "strength": "Punto de afinidad",
+      "adjust": "Punto de ajuste"
     }
   },
   "honeyUI": {
