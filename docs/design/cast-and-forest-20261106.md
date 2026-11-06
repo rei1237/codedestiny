@@ -26,7 +26,7 @@
 - 프레임 저장 후 부모의 프로필 조회 캐시를 기존 invalidateProfileCache로 비워 새 카드 이름을 반영한다.
 - typecheck 통과. 변경 React 파일 ESLint 오류 0개, 기존 저장소 함수의 미사용 인자 경고 1개.
 - check:fast는 77개 가드 중 캐시 핀 검사 1개에서 중단했다. 수정 후 해당 검사 자체와 6개 프로필 진입 회귀 테스트가 통과했다. 전체 재실행으로 표기하지 않는다.
-- 최종 pre-push와 main CI는 전달 시 별도 보고한다.
+- 최신 main 병합 후 npm run check:pre-push 전체 통과. 원격 main 0a0efa8fa의 기존 CI 실패로 push는 보류했다.
 
 ## SEO
 
