@@ -14,6 +14,8 @@ const bundle=await build({entryPoints:[path.join(root,'apps/toss/service/billing
 }}]});
 const loaded=new Module(path.join(root,'fusion-billing-test.cjs'));loaded.paths=Module._nodeModulePaths(root);loaded._compile(bundle.outputFiles[0].text,loaded.id);
 
+test.beforeEach(()=>{globalThis.window={addEventListener:()=>{},removeEventListener:()=>{}};});
+
 test('original useCoinGate imports resolve to Toss progress and paid-access adapters',()=>{
  const plugin=serviceCompat(),importer=path.join(root,'app/hooks/useCoinGate.ts');
  assert.match(plugin.resolveId('./usePayment',importer),/payment-state.jsx$/);
