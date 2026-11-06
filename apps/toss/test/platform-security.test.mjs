@@ -27,10 +27,11 @@ test('login without email works; only verified userKey survives',async()=>{
   assert.equal(calls[1][1].headers.Authorization,'Bearer private');
   assert.equal(calls[0][1].redirect,'error');
 });
-test('orders always carry server identity header; no unscoped query',async()=>{
+test('order status requires a local identity but never claims the endpoint verifies its owner',async()=>{
   await assert.rejects(lookupOrder({...env,TOSS_MTLS:{fetch:()=>assert.fail()}},'',orderId));
   await lookupOrder({...env,TOSS_MTLS:{fetch:async(url,init)=>{
-    assert.equal(init.headers['x-toss-user-key'],'123');
+    assert.equal(init.headers['x-toss-user-key'],undefined);
+    assert.equal(init.headers['x-anon-key'],undefined);
     assert.equal(JSON.parse(init.body).orderId,orderId);
     return Response.json({resultType:'SUCCESS',success:{orderId}});
   }}},'123',orderId);
