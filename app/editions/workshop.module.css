@@ -22,3 +22,8 @@
 .sheet dd { font-variant-numeric:tabular-nums; }
 .sheet button:not(:disabled):hover { background:var(--cd-accent-soft,transparent); }
 @media (max-width: 480px) { .sheet { padding-top:max(1.5rem,env(safe-area-inset-top)); } }
+
+.balance { font-variant-numeric:tabular-nums; }
+.ledger { width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; }
+.ledger th,.ledger td { padding:.65rem .25rem; text-align:start; border-bottom:1px solid var(--cd-border,currentColor); }
+.ledger small { font-weight:normal; }

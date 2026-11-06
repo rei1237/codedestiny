@@ -1,7 +1,8 @@
 'use client';
 import {useState} from 'react';
+import SaleStatus from '../../editions/verify/sale-status';
 import StagingProducts from './staging-products';
-import SpringSeries from './spring-series';
+
 import {RECORDS,issueUrl} from '../../../lib/editions/staging.mjs';
 import {Ticket} from '../../editions/workshop-ui';
 import s from '../../editions/workshop.module.css';
@@ -25,16 +26,17 @@ export default function StagingPrints({productionTest=false}) {
       } catch {setMessage('발행 목록을 불러오지 못했어요. 발행 상태를 새로고침해 주세요.');}
   }
   return <main className={`${s.sheet} ${studio.workshop}`}><header className={studio.shopfront}>
-    <div><h1>한정판 공방</h1><p>{productionTest?'운영 테스트':'스테이징'} · 테스트 NFT 전용</p></div>
+    <div><h1>한정판 공방</h1><p>{productionTest?'운영 테스트':'스테이징'} · 한정판 테스트 발행</p></div>
     <img src={editionPortraits.yeoni} width="84" height="112" alt="" />
   </header>
-    <StagingProducts records={items} refreshRecords={refreshRecords}/>
-    {productionTest && <SpringSeries/>}
+    <StagingProducts productionTest={productionTest} records={items} refreshRecords={refreshRecords}/>
+
     <h2>캐릭터 QR 보관함</h2>
     <output aria-live="polite">{message}</output>
     {items.map(item=><section key={item.code} id={'qr-'+item.code}><Ticket item={item} serial={item.serial}/>
       <img width="220" height="220" src={recordPath+'/'+item.code+'.png'} alt={item.title+' 발행기록 확인 QR'}/>
       <p>확인 코드: {item.code}</p>
+      {productionTest && <SaleStatus code={item.code} manual/>}
       <a href={recordPath+'/'+item.code+'.png'} download={item.code+'.png'}>QR 이미지 저장하기</a>
       <a href={urlFor(item.code)}>고객 화면 열기</a></section>)}</main>;
 }

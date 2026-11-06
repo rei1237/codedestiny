@@ -2,11 +2,12 @@
 import {useEffect,useRef,useState} from 'react';
 import {adminFetch,getFlowerAdminToken} from '../_lib/admin-api';
 import {uploadInsightImage} from '../insights/_lib/imageUpload';
+import BatchControls from './batch-controls';
 import s from './studio.module.css';
 import {Ticket,characters} from '../../editions/workshop-ui';
 
 const blank = {title:'',character:'yeoni',cap:1,imageKey:'',imageUrl:''};
-export default function StagingProducts({records, refreshRecords}) {
+export default function StagingProducts({records, refreshRecords, productionTest}) {
   const [form,setForm]=useState(blank);
   const [products,setProducts]=useState([]);
   const [busy,setBusy]=useState(true);
@@ -69,11 +70,11 @@ export default function StagingProducts({records, refreshRecords}) {
         <div role="status">{uploading ? '사진을 업로드하고 있어요.' : imageError}</div>
         {form.imageUrl && <button type="button" disabled={busy || uploading} onClick={()=>setForm({...form,imageKey:'',imageUrl:''})}>선택한 사진 빼기</button>}
         <Ticket item={form} serial={1} preview/>
-        <p>추가하면 상품명·캐릭터·한도가 확정돼요. NFT는 상품을 추가한 뒤 번호별로 발행해요.</p>
+        <p>추가하면 상품명·캐릭터·한도가 확정돼요. 추가한 뒤 원하는 때에 한 번호씩 발행할 수 있어요.</p>
         <button className={s.primary} disabled={busy || uploading || !form.title.trim()}>상품 추가하기</button>
       </form></details>
     </section>
-    <section><div className={s.bar}><h2>상품별 NFT 발행</h2><button disabled={busy} onClick={refresh}>발행 상태 새로고침</button></div>
+    <section><div className={s.bar}><h2>상품별 발행 관리</h2><button disabled={busy} onClick={refresh}>발행 상태 새로고침</button></div>
       <output aria-live="polite">{notice}</output>
       {!products.length && !busy && <p>아직 등록한 상품이 없어요.</p>}
       {products.map(product=>{
@@ -87,7 +88,8 @@ export default function StagingProducts({records, refreshRecords}) {
           <progress className={s.meter} value={confirmed} max={product.cap} aria-label={product.title+' 발행 완료 수'} />
           {pending ? <p>{product.issueCount}번 발행 대기 중 · 검증이 끝나면 아래에 QR이 표시돼요.</p>
           : product.issueCount===product.cap ? <p>모든 번호를 발행했어요.</p>
-          : <button className={s.primary} disabled={busy} onClick={()=>save({action:'mint',id:product.id,serial:product.issueCount+1})}>{String(product.issueCount+1).padStart(3,'0')}번 테스트 NFT 발행</button>}
+          : <button className={s.primary} disabled={busy} onClick={()=>save({action:'mint',id:product.id,serial:product.issueCount+1})}>{String(product.issueCount+1).padStart(3,'0')}번 공방 발행하기</button>}
+          {productionTest && <BatchControls product={product} records={records}/>}
         </article>;
       })}
     </section>
