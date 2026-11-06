@@ -43,6 +43,9 @@ export default function ShellHomeHardNavGuard() {
         return;
       }
       if (url.origin !== window.location.origin) return;
+      // The public home also owns in-page navigation. Only its real fragments stay here.
+      if (url.pathname === "/" && window.location.pathname === "/" && url.search === window.location.search &&
+          url.hash && document.getElementById(url.hash.slice(1))) return;
       const isPolicy = isStaticPolicyPath(url.pathname);
       if (!isShellHomePath(url.pathname) && !isPolicy) return;
 

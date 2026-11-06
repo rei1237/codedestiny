@@ -36,10 +36,16 @@ try {
   await page.goto('https://yehwa.local/' + (process.env.YEHWA_FULL_SHELL ? 'static/index.html' : 'fixture')); 
   await page.locator('[data-yh-mounted]').waitFor();
   if (!baseline) {
-   const free = page.locator('.yh-free-start');
+   const free = page.locator(width < 700 ? '.yh-entry[data-cd-service-id="saju"]' : '.yh-free-start');
    assert.equal(await free.getAttribute('href'),catalog.find(item=>item.id==='saju').quickHref);
    assert.ok(await free.evaluate(node=>{const r=node.getBoundingClientRect();return r.height>=44&&r.bottom<innerHeight;}),'free start visible without scrolling');
    await free.focus();assert.equal(await free.evaluate(node=>node===document.activeElement),true);
+  }
+  if (!baseline && width < 700) {
+   assert.equal(await page.locator('.yh-entry:visible').count(),3);
+   assert.equal(await page.locator('#yhResults').isVisible(),false);
+   await page.locator('.yh-find > summary').click();
+   await page.locator('[data-yh-concern=love]').click();
   }
   assert.equal(await page.locator('.yh-card-list:visible .yh-card').count(),3);
   for(const group of HOME_CONCERN_GROUPS){

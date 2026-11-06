@@ -2371,6 +2371,10 @@
         "yearTitle": "신년운세 웹툰으로 알아보기",
         "neoRoomTitle": "네오의 팩폭 전략실 웹툰으로 알아보기"
       }
+    },
+    "mobileEntry": {
+      "menu": "메뉴",
+      "find": "고민으로 찾기"
     }
   },
   "footer": {

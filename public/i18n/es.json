@@ -2522,6 +2522,10 @@
         "yearTitle": "Lectura del nuevo año · Descubrir en webtoon",
         "neoRoomTitle": "Sala de estrategia directa de Neo · Descubrir en webtoon"
       }
+    },
+    "mobileEntry": {
+      "menu": "Menú",
+      "find": "Buscar por inquietud"
     }
   },
   "terms": {

@@ -126,3 +126,7 @@
 .cardEditor{display:grid;gap:10px}
 .cardEditor iframe{width:100%;height:min(68dvh,560px);border:0;border-radius:12px;background:var(--cd-surface)}
 .cardEditor button{justify-self:start;color:var(--cd-forest-lantern);background:var(--cd-forest-deep)}
+
+.progress>summary{min-height:46px;padding:10px 2px;cursor:pointer;color:var(--cd-forest-mist)}
+@media(min-width:700px){.progress>summary{display:none}}
+@media(max-width:699px){.gateScene{aspect-ratio:2/1}.gateBody{gap:8px}.gateBody>.primary{grid-row:1}.progress{border-top:1px solid var(--cd-forest-rule)}}

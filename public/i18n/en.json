@@ -2522,6 +2522,10 @@
         "yearTitle": "Year-ahead reading · Explore the webtoon",
         "neoRoomTitle": "Neo's Straight-Talk Strategy Room · Explore the webtoon"
       }
+    },
+    "mobileEntry": {
+      "menu": "Menu",
+      "find": "Find by concern"
     }
   },
   "terms": {

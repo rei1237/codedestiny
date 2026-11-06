@@ -417,6 +417,8 @@
       if (!delayElapsed) return;
       openPopup();
     }
+    // On phones the same featured consultations are opened from the home menu.
+    if (window.matchMedia('(max-width:699px)').matches) return;
     eligibilityObserver = new MutationObserver(function () {
       if (!eligibilityFrame) eligibilityFrame = requestAnimationFrame(tryOpenPopup);
     });

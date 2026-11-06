@@ -69,3 +69,11 @@
   .guide[data-step="write"] .examples { grid-column: 2; grid-row: 2; }
   .guide[data-step="write"] > details { grid-column: 2; grid-row: 3; }
 }
+
+@media(min-width:700px){.examples>summary{display:none}}
+@media(min-width:760px){.guide[data-step="write"]>details.examples{grid-column:2;grid-row:2}}
+@media(max-width:699px){
+ .guide .examples p{display:none}.guide .examples{display:block}
+ .guide .examples button{width:100%}
+ .guide .primary,.guide textarea{border-radius:var(--cd-r-card)}
+}

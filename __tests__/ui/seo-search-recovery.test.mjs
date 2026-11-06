@@ -35,7 +35,7 @@ test('first-screen translations render before JS; missing translations fail the 
   const fixture = mkdtempSync(join(tmpdir(), 'cd-seo-locale-'));
   try {
     const html = read('index.html');
-    const hero = html.match(/<h1 id="cdhTitle"[^>]*>[\s\S]*?<\/h1>/)[0];
+    const hero = ['yhDesktopTitle','cdhTitle'].map(id => html.match(new RegExp('<h1[^>]*id="' + id + '"[^>]*>[\\s\\S]*?<\\/h1>'))[0]).join('');
     for (const [locale, dictionary] of [['en','en'],['ja','ja'],['zh','zh-cn'],['zh-tw','zh-tw']]) {
       mkdirSync(join(fixture, 'dist', locale), { recursive: true });
       mkdirSync(join(fixture, 'public', 'i18n'), { recursive: true });
@@ -51,8 +51,7 @@ test('first-screen translations render before JS; missing translations fail the 
       assert.match(output, /data-cd-origin-text=/, 'runtime Korean restoration is preserved');
     }
     const bad = JSON.parse(read('public/i18n/ja.json'));
-    // 히어로 제목이 실제로 쓰는 키(2026-10-17 "직관성" 단순화 뒤 home.simpleHome.title)를 지운다.
-    delete bad.home.yehwa.titleA;
+    delete bad.home.gardenCopy.quickTitle;
     writeFileSync(join(fixture, 'public/i18n/ja.json'), JSON.stringify(bad));
     assert.notEqual(run().status, 0);
   } finally {

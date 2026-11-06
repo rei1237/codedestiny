@@ -150,3 +150,19 @@
 .entryHelp { display:flex; flex-wrap:wrap; justify-content:center; gap:0 24px; }
 .entryHelp a { display:inline-flex; align-items:center; min-height:44px; font-size:.875rem; }
 .entryNote { color:var(--cd-text-muted); font-size:.875rem; text-align:center; }
+
+.mobileNav{display:none}
+@media(max-width:699px){
+ .page:has(.mobileNav){padding-bottom:calc(78px + env(safe-area-inset-bottom))}
+ .page:has(.mobileNav) .brandRow{justify-content:space-between}
+ .page:has(.mobileNav) .brandRow a{display:none}
+ .page:has(.mobileNav) .brandRow .wordmark{margin-right:auto}
+ .page:has(.mobileNav) .stage{gap:16px;padding-top:10px}
+ .page:has(.mobileNav) .title{font-size:clamp(1.55rem,6.4vw,2rem);line-height:1.32}
+ .page:has(.mobileNav) .deck{gap:10px;padding:5px 0 2px}
+ .page:has(.mobileNav) .card{border-radius:var(--cd-r-card);transform:none}
+ .page:has(.mobileNav) .cardNumeral,.page:has(.mobileNav) .cardFoil{display:none}
+ .mobileNav{position:fixed;z-index:20;inset:auto 0 0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:4px max(8px,env(safe-area-inset-right)) max(4px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left));border-top:1px solid var(--hm-gold-line);background:var(--cd-surface);color:var(--cd-text-muted)}
+ .mobileNav a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:48px;border-radius:var(--cd-r-control);font-size:.75rem;font-weight:600;text-decoration:none}
+ .mobileNav a[aria-current]{color:var(--cd-accent);background:color-mix(in srgb,var(--cd-accent) 8%,var(--cd-surface))}
+}

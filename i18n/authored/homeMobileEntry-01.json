@@ -1,0 +1,30 @@
+{
+  "home.mobileEntry.menu": {
+    "ko": "메뉴",
+    "en": "Menu",
+    "ja": "メニュー",
+    "zh-CN": "菜单",
+    "zh-TW": "選單",
+    "vi": "Menu",
+    "hi": "मेन्यू",
+    "es": "Menú",
+    "fr": "Menu",
+    "de": "Menü",
+    "nl": "Menu",
+    "ms": "Menu"
+  },
+  "home.mobileEntry.find": {
+    "ko": "고민으로 찾기",
+    "en": "Find by concern",
+    "ja": "悩みから探す",
+    "zh-CN": "按烦恼查找",
+    "zh-TW": "依煩惱尋找",
+    "vi": "Tìm theo điều băn khoăn",
+    "hi": "चिंता के अनुसार खोजें",
+    "es": "Buscar por inquietud",
+    "fr": "Chercher par préoccupation",
+    "de": "Nach Anliegen suchen",
+    "nl": "Zoek op vraag",
+    "ms": "Cari mengikut persoalan"
+  }
+}

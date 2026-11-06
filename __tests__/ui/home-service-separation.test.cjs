@@ -12,7 +12,7 @@ test('service chooser retains two real doors without service-home or affiliate c
   assert.doesNotMatch(source, /RecommendationFooter|<HomeMusicVideo|<YehwaHome|<ConsultationDiscovery|styles.bottomNav|buildFaqPageJsonLd/);
 });
 test('service home owns discovery, passes, saved results, help and the open film in order', () => {
-  const selectors = ['.yh-hero','.yh-concerns','.yh-results','#cdhPass','.yh-links','.cd-help-entry','#cdhMoonlightMv'];
+  const selectors = ['.yh-hero','.yh-concerns','.yh-results','.yh-links','#cdhPass','.cd-help-entry','#cdhMoonlightMv'];
   const nodes = selectors.map(selector => {
     assert.equal(doc.querySelectorAll(selector).length, 1, selector);
     return doc.querySelector(selector);
@@ -23,7 +23,7 @@ test('service home owns discovery, passes, saved results, help and the open film
   for (const group of doc.querySelectorAll('[data-yh-group]')) assert.ok(group.querySelectorAll('.yh-card').length <= 3);
   for (const href of ['/records/','/yeongnyangi/library/']) assert.ok(doc.querySelector(`.yh-links a[href="${href}"]`));
   assert.ok(doc.querySelector('#cdAllFortunesSearch'));
-  assert.ok(doc.querySelector('[data-yh-guide] img[src="/assets/yeoni/atelier/talking-pig.webp"]'));
+  assert.ok(doc.querySelector('[data-yh-guide] img[data-yh-portrait-src="/assets/yeoni/atelier/talking-pig.webp"]:not([src])'));
 });
 test('former root section fragments remain reachable through the unchanged legacy bridge', () => {
   for(const id of ['homeSignature','homeServices','homeConcerns','homeExample','homeMethods','homeFaq','homeExplore','home-consultation-methods']) assert.equal(doc.querySelectorAll('#'+id).length, 1, id);

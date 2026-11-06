@@ -10,6 +10,7 @@ const guideSource = copySource + '\n' + fs.readFileSync(path.join(root,'js/core/
 function setup(url='https://local.test/ggulggul/', blocked=false){
  const dom=new JSDOM('<html lang="ko"><body><main id="cdHomeFunnel"><section class="cdh-free"></section></main><form id="destinyCardForm"></form><section id="resultPage" hidden><section class="saju-result-guide"></section></section><div id="cdCookieConsent"></div></body></html>',{url,runScripts:'outside-only',pretendToBeVisual:true});
  const w=dom.window;
+ w.matchMedia=query=>({matches:query==='(min-width:700px)' && w.innerWidth>=700});
  w.HTMLElement.prototype.getClientRects=function(){return this.hidden?[]:[{width:100,height:40}];};
  w.HTMLElement.prototype.scrollIntoView=function(){};
  w.HTMLDialogElement.prototype.showModal=function(){this.setAttribute('open','');};
@@ -22,6 +23,15 @@ function setup(url='https://local.test/ggulggul/', blocked=false){
  w.close=()=>{w.dispatchEvent(new w.Event('pagehide'));close();};
  return {dom,w,run(){w.eval(guideSource);},tick(){timers.splice(0).forEach(fn=>fn());},read:()=>w.eval("readFirstVisit('ggulggul')")};
 }
+test('mobile first visit keeps the three entries available and opens guidance from its menu',()=>{
+ const ctx=setup(), {w}=ctx;
+ w.innerWidth=390;
+ ctx.run();ctx.tick();
+ assert.equal(w.document.querySelector('dialog').open,false);
+ w.document.querySelector('[data-first-replay]').click();
+ assert.equal(w.document.querySelector('dialog').open,true);
+ w.close();
+});
 test('home auto offer respects consent overlay and persists skip, replay is explicit',async()=>{
  const ctx=setup(),{w}=ctx;
  w.document.getElementById('cdCookieConsent').className='is-visible';

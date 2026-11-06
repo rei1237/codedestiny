@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { trackEvent } from "@/lib/analytics";
 import { dailyLine, litLanternCount } from "./forest-progress.mjs";
 import { useDailyJourney } from "./useDailyJourney";
+import HomeDisclosure from "../HomeDisclosure";
 import { ForestLines, GrowthCard } from "./ForestParts";
 import styles from "./forest.module.css";
 
@@ -100,7 +101,7 @@ export default function ForestGate() {
 
   const { hydrated, honey, status, stepsDone, ymd } = journey;
   const lit = honey ? litLanternCount(honey.streak, honey.streakEvery, honey.attended) : 0;
-  return <section ref={sectionRef} className={styles.gate} aria-labelledby="daily-home-title">
+  return <section id="homeForest" ref={sectionRef} className={styles.gate} aria-labelledby="daily-home-title">
     <div className={styles.gateScene}>
       <picture>
         <source media="(max-width: 600px)" type="image/avif" srcSet="/images/home/forest/gate-mobile.avif" />
@@ -116,11 +117,13 @@ export default function ForestGate() {
     </div>
     <div className={styles.gateBody}>
       <ForestLines line={dailyLine(ymd, stepsDone >= 3 ? "done" : "gate")} />
+      <HomeDisclosure className={styles.progress} label="오늘의 걸음과 성장 기록">
       <ul className={styles.gateStats}>
         <li><span>오늘 걸음</span><strong>{hydrated ? `${stepsDone} / 3` : "세 걸음"}</strong></li>
         <li><span>켜진 등불</span><strong>{honey ? `${lit} / ${honey.streakEvery}` : status === "guest" ? "로그인 후 확인" : status === "error" ? "확인하지 못했어요" : "확인 중"}</strong></li>
       </ul>
       <GrowthCard journey={journey} />
+      </HomeDisclosure>
       <button ref={ctaRef} type="button" className={styles.primary} aria-haspopup="dialog" onClick={enterForest}>{stepsDone >= 3 ? "오늘의 숲길 다시 보기" : stepsDone > 0 ? "숲길 이어 걷기" : "숲길 들어가기"}</button>
     </div>
     {open && <ForestWalk mode="dialog" journey={journey} initialStep={initialStep} onStepChange={rememberResumeStep} onClose={closeWalk} />}

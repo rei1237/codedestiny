@@ -2522,6 +2522,10 @@
         "yearTitle": "Jahresausblick · Im Webtoon entdecken",
         "neoRoomTitle": "Neos Klartext-Strategieraum · Im Webtoon entdecken"
       }
+    },
+    "mobileEntry": {
+      "menu": "Menü",
+      "find": "Nach Anliegen suchen"
     }
   },
   "terms": {

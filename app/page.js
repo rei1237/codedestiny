@@ -11,6 +11,7 @@ import { FOOTER_BYLINE, FOOTER_LINKS, FOOTER_NOTICE, FOOTER_TRUST_LINKS } from "
 import { BUSINESS_IDENTITY } from "../lib/site-policy-config";
 import LegacyHomeEntry from "./components/LegacyHomeEntry";
 import { HOME_QUICK_LINKS } from "../lib/seo/home-discovery.mjs";
+import MobileHomeNav from './components/MobileHomeNav';
 import HomeCardDeck from "./components/HomeCardDeck";
 import HomeDailyEntry from "./components/HomeDailyEntry";
 import { NativeHomeRoot, NativeHomeNav, NativeHomeText, NativeHomeCardLink, NativeHomeDictionaryText } from "./components/NativeHomeCopy";
@@ -146,6 +147,7 @@ export default function HomePage() {
           : <a href="/points/#moonlight-plans">문라이트 패스(꿀단지 이용권) 살펴보기</a>}</p>
       </main>
 
+      {!IS_APP_BUILD && <MobileHomeNav/>}
       <footer className={styles.footer}>
         <NativeHomeNav className={styles.footerNav} aria-label="정책과 문의">
           {FOOTER_LINKS.map(link => <Link prefetch={IS_APP_BUILD ? false : undefined} key={link.href} href={link.href} className={link.strong ? styles.footerStrong : undefined}><NativeHomeDictionaryText translationKey={link.trans}>{link.text}</NativeHomeDictionaryText></Link>)}

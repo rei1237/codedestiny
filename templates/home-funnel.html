@@ -3,11 +3,14 @@
 <div class="cdh cdh--simple cdh--focused" id="cdHomeFunnel" data-cd-funnel-section="home">
   <header class="cdh-top" aria-label="공통 헤더">
     <a href="/ggulggul/" class="cdh-brand"><img class="cdh-brand__mark" src="/fuctionassets/%EC%97%B0%EC%9D%B4.webp" width="40" height="40" alt="" decoding="async"><span>꿀꿀 운세<small data-cd-trans="home.simpleHome.tagline">명리학 기반 운세 상담</small></span></a>
+    <details class="yh-menu"><summary><span data-cd-trans="home.mobileEntry.menu">메뉴</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg></summary><div class="yh-menu-panel">
     <nav class="cdh-nav" aria-label="홈 주요 메뉴">
+      <a class="cdh-account-btn yh-featured-link" href="#cdSignatureConsult"><span data-cd-trans="home.guideCopy.signatureFeatured">대표 상담</span></a>
       <a class="cdh-account-btn" href="#cdhPass" data-cd-trans="home.myGarden.pass">이용권 · 월정석</a>
       <a class="cdh-account-btn" href="/login/" id="cdhAccountBtn" data-cd-sheet-open="cdAccountSheet" data-cd-account-open data-auth="guest" role="button" aria-haspopup="dialog" aria-controls="cdAccountSheet" aria-expanded="false"><span class="cdh-account-btn__guest" data-cd-trans="home.funnelCopy.login">로그인</span><span class="cdh-account-btn__member" data-cd-trans="home.funnelCopy.account">내 계정</span></a>
     </nav>
     <div class="cdh-tools"><div id="cdhThemeSlot"></div><div id="cdhLanguageSlot"></div></div>
+    </div></details>
   </header>
   <dialog class="cd-sheet" id="cdAccountSheet" data-cd-sheet aria-labelledby="cdAccountSheetTitle">
     <div class="cd-sheet__panel">
@@ -187,6 +190,7 @@
   <div class="cdh-flow">
 
 <div class="cdh-slot" id="cdhFusionSignatureSlot">{{fusionSignature}}</div>
+<details class="yh-secondary"><summary data-cd-trans="home.consultChoice.title">내 고민에 맞는 상담을 골라보세요</summary>
 <section class="cdh-consult-choice" id="cdhYeongnyangiSlot" aria-labelledby="cdhConsultChoiceTitle" data-marker="cd-yeongnyangi-neo-choice-v1">
   <img class="cdh-consult-choice__room" src="/assets/yeongnyangi/original/room-780.webp" srcset="/assets/yeongnyangi/original/room-780.webp 780w, /assets/yeongnyangi/original/room-1440.webp 1440w" sizes="(max-width: 640px) calc(100vw - 32px), min(100vw - 80px, 1280px)" width="1440" height="810" loading="lazy" decoding="async" alt="">
   <header class="cdh-consult-choice__head">
@@ -218,6 +222,7 @@
     </tbody>
   </table>
 </section>
+</details>
 <span id="homeSignature" aria-hidden="true"></span>
 <div class="cdh-slot" id="cdhFeatured"><div id="cdhSignatureSlot">{{signature}}
 </div></div>

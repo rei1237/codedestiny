@@ -25,8 +25,15 @@ function contrast(foreground, background) {
 // 첫 방문에 보여야 하는 것은 이것뿐이다. 접힌 곳(details)에 들어가 있으면 안 된다.
 async function assertEssentials(page, label) {
   assert.equal(await page.locator('a[href="/mini-games/"], a[href="/saju/love-simulation/"], a[href*="secret-house_real"]').count(), 0, label + ': paused content has no home entry');
+  if (page.viewportSize().width < 700) {
+    for (const fold of await page.locator('.yh-secondary').all()) {
+      assert.equal(await fold.evaluate(node => node.open), false, 'secondary mobile sections start closed');
+      await fold.locator(':scope > summary').click();
+    }
+    await page.evaluate(() => scrollTo(0, 0));
+  }
   const essentials = [
-    ['concern selection', '.yh-choices'],
+    ['concern selection', page.viewportSize().width < 700 ? '.yh-find > summary' : '.yh-choices'],
     ['signature deck', '#cdSignatureConsult'],
     ['sample guide', '#cdSignatureConsult .cd-sig__samples-link[href="/consultation-samples/"]'],
     ['free first', '#cdQuickServices'],
@@ -91,7 +98,7 @@ async function assertEssentials(page, label) {
 
       // 강약: 대표 상담 → 초융합 시그니처 → 무료로 먼저 → 꿀방울 → 1:1 상담 → 영냥이 배너 → 질문 카테고리 → 이용권 → 뮤직비디오 → 모든 운세 버튼 → 링크 → 달빛 이야기. DOM 순서와 화면 순서가 같다.
       const order = await page.evaluate(() => {
-        const nodes = ['.yh-hero', '.yh-concerns', '.yh-results', '#cdhPass', '.yh-links', '.cd-help-entry', '#cdhMoonlightMv', '#cdhFusionSignature', '#cdhYeongnyangiSlot', '#cdSignatureConsult', '#cdQuickServices', '.cdh-story'].map(selector => document.querySelector(selector));
+        const nodes = ['.yh-hero', '.yh-find', '.yh-links', '#cdhPass', '.cd-help-entry', '#cdhMoonlightMv', '#cdhFusionSignature', '#cdhYeongnyangiSlot', '#cdSignatureConsult', '#cdQuickServices', '.cdh-story'].map(selector => document.querySelector(selector));
         return {
           dom: nodes.every((node, index) => index === 0 || Boolean(nodes[index - 1].compareDocumentPosition(node) & Node.DOCUMENT_POSITION_FOLLOWING)),
           visual: nodes.map((node) => node.getBoundingClientRect().top + scrollY),
@@ -109,7 +116,7 @@ async function assertEssentials(page, label) {
         assert.equal(await page.locator(selector).isVisible(), false, `${width}px ${selector} stays off the home screen`);
       }
 
-      assert.match(await page.locator('#cdhTitle').innerText(), /어떤 이야기/, 'hero invites concern selection');
+      assert.match(await page.locator(width < 700 ? '#cdhTitle' : '#yhDesktopTitle').innerText(), width < 700 ? /어떤 운세/ : /어떤 이야기/, 'hero introduces the first choice');
       assert.equal(await page.locator('[data-yh-concern]').count(), 5, 'five concern groups');
       assert.equal(await page.locator('.cdh-all-cta__btn').count(), 1, 'full catalog remains available');
       assert.equal(await page.locator('#cdQuickServices .cdh-free-card').count(), 6, `${width}px free first offers the six methods`);
@@ -178,8 +185,18 @@ async function assertEssentials(page, label) {
           links: [...document.querySelectorAll('.cdh-links a')].some(filled),
         };
       });
-      assert.equal(fills.firstViewport.length, 1, `${width}px first viewport has one filled CTA (${fills.firstViewport.join(', ')})`);
-      assert.match(fills.firstViewport[0], /(?:cdh-primary|yh-free-start)/, `${width}px the one fill is the hero CTA`);
+      if (width < 700) {
+        await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+        const entries = page.locator('.yh-entry');
+        assert.equal(await entries.count(),3);
+        for (const entry of await entries.all()) {
+          const r = await entry.boundingBox();
+          assert.ok(r && r.height >= 44 && r.y >= 0 && r.y + r.height <= height, 'all three services fit in the first viewport');
+        }
+      } else {
+        assert.equal(fills.firstViewport.length, 1, `${width}px first viewport has one filled CTA (${fills.firstViewport.join(', ')})`);
+        assert.match(fills.firstViewport[0], /(?:cdh-primary|yh-free-start)/, `${width}px the one fill is the hero CTA`);
+      }
       assert.equal(fills.allCta, false, `${width}px "all fortunes" stays an outline button`);
       assert.equal(fills.links, false, `${width}px the closing link row stays text`);
 
@@ -218,14 +235,12 @@ async function assertEssentials(page, label) {
       await page.waitForFunction(() => !(document.getElementById('cdAllFortunes')?.open || document.getElementById('cdMobileFortuneOverview')?.classList.contains('is-open')), null, { timeout: 3000 });
       assert.equal(await page.locator('#cdhCollectionsWrap').isVisible(), false, `${width}px closing the list leaves collections folded`);
 
-      // 예전 검색 해시(#services)는 같은 모든 운세 목록을 연다. 모바일은 마지막으로 본 컬렉션을 다시 여는
-      // 기존 동작이 있어서, 컬렉션을 열기 전(하단 탭 흐름 앞)에 확인한다.
-      await page.evaluate(() => { location.hash = 'services'; });
-      await page.waitForFunction(() => Boolean(document.getElementById('cdAllFortunes')?.open || document.getElementById('cdMobileFortuneOverview')?.classList.contains('is-open')), null, { timeout: 3000 });
-      assert.equal(await page.evaluate(() => location.hash), '', `${width}px #services hash is consumed after opening the list`);
-      if (mobileList) await page.keyboard.press('Escape');
-      else await page.locator('#cdAllFortunes [data-cd-sheet-close]').click();
-      await page.waitForFunction(() => !(document.getElementById('cdAllFortunes')?.open || document.getElementById('cdMobileFortuneOverview')?.classList.contains('is-open')), null, { timeout: 3000 });
+      // Fresh external links must open the catalog without relying on local overlay history.
+      const direct = await browser.newPage({ viewport: { width, height }, reducedMotion: 'reduce' });
+      await direct.goto(origin + '/ggulggul/#services', { waitUntil: 'domcontentloaded' });
+      await direct.waitForFunction(() => Boolean(document.getElementById('cdAllFortunes')?.open || document.getElementById('cdMobileFortuneOverview')?.classList.contains('is-open')));
+      assert.equal(await direct.evaluate(() => location.hash), '', `${width}px #services hash is consumed after opening the list`);
+      await direct.close();
 
       if (width <= 430) {
         await page.locator('#cdMobileBottomNav [data-nav-key="fortunes"]').click();
@@ -245,7 +260,7 @@ async function assertEssentials(page, label) {
         width: document.getElementById('cdHomeFunnel').getBoundingClientRect().width,
         unique: ['cdQuickServices', 'cdSignatureConsult', 'cdhPass', 'cdAllFortunes', 'cdhTitle'].every((id) => document.querySelectorAll('#' + id).length === 1),
         neoButton: Boolean(document.querySelector('#cdhThemeSlot [data-theme-mode="neo"]')),
-        moved: Boolean(document.querySelector('#cdhQuickSlot #cdQuickServices') && document.querySelector('#cdhPassSlot .cdh-pass')),
+        moved: Boolean(document.querySelector('#cdhQuickSlot #cdQuickServices') && document.querySelector('#cdhPassSlot .pb--honey')),
         profileCardOnHome: Boolean(document.querySelector('#cdHomeFunnel #dpMasterCard')),
       }));
       assert.equal(layout.overflow, false, `${width}px overflow`);
@@ -258,7 +273,11 @@ async function assertEssentials(page, label) {
       if (width <= 430) assert.ok(layout.width <= width, `${width}px fits mobile canvas`);
 
       for (const mode of ['yeoni', 'neo']) {
-        if (mode === 'neo') await page.locator('#cdhThemeSlot [data-theme-mode="neo"]').click({ force: true });
+        if (mode === 'neo') {
+          if (width < 700) await page.locator('.yh-menu > summary').click();
+          await page.locator('#cdhThemeSlot [data-theme-mode="neo"]').click();
+          if (width < 700 && await page.locator('.yh-menu').evaluate(node => node.open)) await page.locator('.yh-menu > summary').click();
+        }
         else await page.evaluate(() => { document.documentElement.classList.remove('neo-mode'); document.body.classList.remove('neo-mode'); });
         await page.waitForFunction((neo) => document.documentElement.classList.contains('neo-mode') === neo, mode === 'neo');
         await page.locator('body').evaluate(async (node) => { await Promise.all(node.getAnimations().map((animation) => animation.finished.catch(() => {}))); });
@@ -267,7 +286,7 @@ async function assertEssentials(page, label) {
           const parse = (c) => { const n = (c.match(/-?[0-9.]+/g) || []).map(Number); return { a: n.length > 3 ? n[3] : 1 }; };
           const backdrop = (node) => { for (let el = node; el; el = el.parentElement) { const bg = getComputedStyle(el).backgroundColor; if (parse(bg).a >= 0.5) return bg; } return 'rgb(255, 255, 255)'; };
           const pair = (selector) => { const node = document.querySelector(selector); return node ? { selector, color: getComputedStyle(node).color, background: backdrop(node) } : { selector, missing: true }; };
-          return ['#cdSignatureConsult h2', '.cdh-free h2', '.cdh-free-card', '.cdh-all-cta__btn', '.cdh-all-cta__label', '.cdh-links a', '.cdh-free-card__copy strong', '.cdh-story__label strong', '#cdhPass .cdh-pass__title', '#cdhPass .cdh-pass__tier-price', '#cdhPass .cdh-pass__tier-line', '#cdhPass .cdh-pass__btn'].map(pair);
+          return ['#cdSignatureConsult h2', '.cdh-free h2', '.cdh-free-card', '.cdh-all-cta__btn', '.cdh-all-cta__label', '.cdh-links a', '.cdh-free-card__copy strong', '.cdh-story__label strong', '#cdhPass .pb__intro h2', '#cdhPass .pb__prices strong', '#cdhPass .pb__terms', '#cdhPass .pb__cta'].map(pair);
         });
         for (const item of pairs) {
           assert.ok(!item.missing, `${width}px ${mode} ${item.selector} exists`);
@@ -293,7 +312,7 @@ async function assertEssentials(page, label) {
     await deepLink.goto(origin + '/static/index.html#cdhFeatured', { waitUntil: 'domcontentloaded' });
     await deepLink.locator('#cdhFeatured #cdSignatureConsult').waitFor({ state: 'visible', timeout: 10000 });
     await deepLink.goto(origin + '/static/index.html#cdhPass', { waitUntil: 'domcontentloaded' });
-    await deepLink.locator('#cdhPass .cdh-pass__btn').waitFor({ state: 'visible', timeout: 10000 });
+    await deepLink.locator('#cdhPass .pb__cta').first().waitFor({ state: 'visible', timeout: 10000 });
     results.push({ deepLinks: ['#cdhFeatured', '#cdhPass'] });
     await deepLink.close();
 
@@ -321,9 +340,9 @@ async function assertEssentials(page, label) {
     }, user);
     await member.route('**/*', (route) => {
       const url = new URL(route.request().url());
-      if (url.hostname !== '127.0.0.1') return route.continue();
-      if (!url.pathname.startsWith('/api/')) return route.continue();
-      let data = { ok: true };
+      if (url.hostname !== '127.0.0.1') return route.abort();
+      if (!url.pathname.startsWith('/api/')) return route.fallback();
+      let data = { ok: true, products: [] };
       if (url.pathname === '/api/auth/me') data = { ok: true, user };
       else if (url.pathname === '/api/profile' && route.request().method() === 'POST') {
         const body = route.request().postDataJSON();
@@ -352,6 +371,7 @@ async function assertEssentials(page, label) {
     await member.waitForFunction(() => document.getElementById('sajuCalcLoadingOverlay')?.getAttribute('aria-hidden') === 'true', null, { timeout: 30000 });
     await member.goto(origin + '/static/index.html', { waitUntil: 'domcontentloaded' });
     await member.waitForSelector('#cdAuthLogoutBtn', { state: 'attached' });
+    await member.locator('.yh-menu > summary').click();
     await member.locator('#cdhAccountBtn').click();
     await member.locator('#cdAccountSheet [data-action="dpOpenList"]').click();
     await member.waitForFunction(() => document.querySelector('#dpMasterCardHost #dpMasterCard') && document.getElementById('dpListSheet')?.classList.contains('dp-sheet--open'));

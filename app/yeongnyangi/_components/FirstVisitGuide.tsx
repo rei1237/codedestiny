@@ -13,7 +13,7 @@ import styles from './first-visit.module.css';
 function GuideArt({step=0}:{step?:number}){
  return <span key={step} className={styles.portrait} aria-hidden="true"><Image src="/assets/novel/atelier/neo_cat.webp" alt="" width={1280} height={384} unoptimized/></span>;
 }
-export default function FirstVisitGuide(){
+export default function FirstVisitGuide({manualOnly=false}:{manualOnly?:boolean}){
  const locale=useLocale();
  const translate=useT('firstVisitGuide');
  // 안내 문구는 서버 HTML에 들어간다. 서버에는 사전이 없으므로 ko는 정적 JSON을 읽어 자리표시 문구가 크롤러에 나가지 않게 한다.
@@ -43,7 +43,7 @@ export default function FirstVisitGuide(){
   setHidden(readYeongnyangiGuideHidden()||state?.status==='dismissed');
  },[state?.status,scope]);
  useEffect(()=>{
-  if(!state||state.status!=='new'||profiles.loading||profiles.error||!firstVisitHome(window.location,'yeongnyangi'))return;
+  if(manualOnly||!state||state.status!=='new'||profiles.loading||profiles.error||!firstVisitHome(window.location,'yeongnyangi'))return;
   let cancelled=false;
   const offer=()=>{if(!cancelled&&!readYeongnyangiGuideHidden()&&readFirstVisit('yeongnyangi').status==='new'&&!firstVisitOverlayBusy(document))show();};
   const observer=new MutationObserver(offer);
@@ -51,7 +51,7 @@ export default function FirstVisitGuide(){
   return()=>{cancelled=true;clearTimeout(timer);observer.disconnect();};
  // show uses current DOM refs; state changes dispose the pending offer.
  // eslint-disable-next-line react-hooks/exhaustive-deps
- },[state?.status,scope,profiles.loading,profiles.error]);
+ },[manualOnly,state?.status,scope,profiles.loading,profiles.error]);
  useEffect(()=>{dialog.current?.close();},[scope]);
  useEffect(()=>{if(state?.status==='active')setScene(Math.min(2,Math.max(0,state.step-1)));},[state?.status,state?.step]);
  useEffect(()=>{

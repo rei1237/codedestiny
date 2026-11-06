@@ -2522,6 +2522,10 @@
         "yearTitle": "Lecture de la nouvelle année · Découvrir en webtoon",
         "neoRoomTitle": "Salle de stratégie sans détour de Neo · Découvrir en webtoon"
       }
+    },
+    "mobileEntry": {
+      "menu": "Menu",
+      "find": "Chercher par préoccupation"
     }
   },
   "terms": {

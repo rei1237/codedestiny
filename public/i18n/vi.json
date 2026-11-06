@@ -2522,6 +2522,10 @@
         "yearTitle": "Vận trình năm mới · Tìm hiểu qua webtoon",
         "neoRoomTitle": "Phòng chiến lược thẳng thắn của Neo · Tìm hiểu qua webtoon"
       }
+    },
+    "mobileEntry": {
+      "menu": "Menu",
+      "find": "Tìm theo điều băn khoăn"
     }
   },
   "terms": {

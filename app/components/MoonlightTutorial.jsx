@@ -41,7 +41,10 @@ export default function MoonlightTutorial({ questionInput }) {
 
   return <>
     <button type="button" ref={trigger} className={styles.trigger} onClick={() => setOpen(true)} aria-haspopup="dialog">
-      <Image src="/images/moonlight-guide/question.webp" width={627} height={627} alt="" />
+      <picture>
+        <source media="(max-width:699px)" srcSet="/images/home/mv/ornament-lotus-crest-160.webp"/>
+        <img src="/images/moonlight-guide/question.webp" width="627" height="627" loading="lazy" decoding="async" alt=""/>
+      </picture>
       <span><small>연이와 영냥이의 달빛 길잡이</small><strong>이용 안내 웹툰 읽기 <span aria-hidden="true">→</span></strong></span>
     </button>
     <dialog ref={dialog} className={styles.reader} aria-labelledby="moonlight-reader-title"
