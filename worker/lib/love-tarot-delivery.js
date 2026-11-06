@@ -23,7 +23,10 @@ const FINAL = ['instantMission', 'conversationTip', 'relationshipBoundary', 'nex
 async function seed(env, userId, body, buildBase) {
   const draw = await bindPaidTarotDraw(env, { featureKey: 'tarot-love-relationship', owner: userId, body });
   const locale = getAmbientAiLocale() || body.locale || 'ko';
-  const base = buildBase(body, locale);
+  // The bound server deal owns the positions and meanings shown before checkout.
+  const presented = draw.presentationFacts?.facts;
+  const base = buildBase(presented ? { ...body, cards: presented.cards } : body, locale);
+  if (presented) base.cards = presented.cards;
   const tasks = base.reading.positionBreakdown.map((card, index) => ({ id: `card-${index}`, title: card.positionTitle, cardIndex: index, paragraphs: 4, minChars: 1250,
     prompt: `${index + 1}번 카드만 정확히 네 문단으로 해설한다. 첫 문단은 카드의 상징·방향·포지션 질문을 연결한 구체적인 생활 장면, 둘째 문단은 관계에서 드러나는 감정의 신호와 반대 조건, 셋째 문단은 사용자가 실행할 조언, 넷째 문단은 조심할 조건과 중단·재검토 기준이다. 다른 카드는 이름만 짧게 언급한다.\n${buildTarotPositionPin({ label: card.positionTitle,
       cards: [{ name: getTarotCardByAnyId(card.cardId)?.nameKo || card.cardName, orientation: card.orientation }] })}` }));

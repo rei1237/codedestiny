@@ -1,9 +1,11 @@
 import { createHash } from 'node:crypto';
+import { PREPARED_DRAW_VERSION, pinDrawPresentation, readDrawPresentation } from './paid-tarot-presentation.js';
 import { createHttpError } from './http.js';
 import { withMongoRetry } from './db.js';
 import { paidTarotDrawCollection } from './paid-tarot-draw-store.js';
 import { commitDeck, selectDeckSlots } from '../../lib/tarot/committed-deck.mjs';
 import { getSpreadDefinition } from '../../lib/tarot/spreads.mjs';
+import { buildMindscanDeliveryFacts } from '../../lib/tarot/mindscan-reading.mjs';
 import { getMeaningByQuestion } from '../../lib/tarot/tarot-interpretation-engine.mjs';
 import { buildImageCandidates, cardCodeToLegacyNumericId, getTarotCardByAnyId, legacyNumericIdToCardCode } from '../../lib/tarot/tarot-cards.mjs';
 
@@ -23,9 +25,20 @@ export const paidTarotDrawKey = (featureKey, drawId) => createHash('sha256').upd
 const required = () => createHttpError(409, '카드를 다시 뽑아 주세요.', { reason: 'TAROT_DRAW_REQUIRED', retryable: false });
 
 function presentDraw(featureKey, doc) {
-  const base = { ok: true, version: PAID_TAROT_DRAW_VERSION, featureKey, drawId: doc.drawId };
+  const base = { ok: true, version: doc.version || PAID_TAROT_DRAW_VERSION, featureKey, drawId: doc.drawId };
   if (featureKey === 'tarot-mindscan') {
-    return { ...base, cards: doc.cards.map(card => ({ cardId: card.cardId, numericId: cardCodeToLegacyNumericId(card.cardId), orientation: card.orientation })) };
+    const cards = doc.cards.map(card => ({ cardId: card.cardId, numericId: cardCodeToLegacyNumericId(card.cardId), orientation: card.orientation }));
+    if (doc.version !== PREPARED_DRAW_VERSION) return { ...base, cards };
+    // Mindscan reads the orientation of each main/sub pair. The deck's individual
+    // reversal bits are not the orientations shown in its five-position reading.
+    const pairs = cards.slice(0, 5).map((main, i) => ({ mainCardId: main.numericId, subCardId: cards[i + 5].numericId }));
+    const { sectionInputs } = buildMindscanDeliveryFacts(pairs, 'mindscan', 'ko');
+    return { ...base, cards: cards.map((card, i) => {
+      const section = sectionInputs[i % 5];
+      const role = i < 5 ? 'main' : 'sub';
+      const profile = role === 'main' ? section.mainCard : section.subCard;
+      return { ...card, position: section.positionLabel, role, orientation: section.orientation, interpretation: profile.cardCoreMeaning };
+    }) };
   }
   const spread = getSpreadDefinition(FAMILIES[featureKey].spreadId);
   return { ...base, spreadType: spread.id, cards: doc.cards.map((saved, index) => {
@@ -40,17 +53,29 @@ function presentDraw(featureKey, doc) {
 export async function createPaidTarotDraw(env, body) {
   const featureKey = String(body?.featureKey || ''), family = FAMILIES[featureKey], drawId = body?.drawId;
   if (!family || typeof drawId !== 'string' || !DRAW_ID.test(drawId)) throw createHttpError(400, '카드 뽑기 요청을 확인해 주세요.', { reason: 'INVALID_TAROT_DRAW' });
+  const _id = paidTarotDrawKey(featureKey, drawId);
+  const collection = await paidTarotDrawCollection(env);
+  const existing = await withMongoRetry(env, () => collection.findOne({ _id }));
+  if (existing) return readSavedDraw(featureKey, existing);
   let draw;
   try { draw = selectDeckSlots(body, family.cardCount); } catch { throw createHttpError(400, '카드 선택을 확인해 주세요.', { reason: 'INVALID_TAROT_PICKS' }); }
-  const deck = commitDeck(), _id = paidTarotDrawKey(featureKey, drawId);
+  const deck = commitDeck();
   const value = { _id, featureKey, drawId, owner: '', version: PAID_TAROT_DRAW_VERSION, deckVersion: deck.version, method: draw.method, picks: draw.picks,
     cards: draw.picks.map(slot => ({ cardId: deck.order[slot], orientation: deck.reversed[slot] ? 'reversed' : 'upright' })), createdAt: new Date() };
-  const collection = await paidTarotDrawCollection(env);
+  if (env?.TAROT_CONSUMER_FACTS_V1 === 'true') {
+    value.version = PREPARED_DRAW_VERSION;
+    value.presentationFacts = pinDrawPresentation(value, presentDraw(featureKey, value));
+  }
   try { await withMongoRetry(env, () => collection.updateOne({ _id }, { $setOnInsert: value }, { upsert: true })); }
   catch (error) { if (error?.code !== 11000) throw error; }
   const saved = await withMongoRetry(env, () => collection.findOne({ _id }));
-  if (!Array.isArray(saved?.cards) || saved.cards.length !== family.cardCount) throw createHttpError(503, '카드를 저장하지 못했습니다. 다시 시도해 주세요.', { reason: 'TAROT_DRAW_STORAGE_UNAVAILABLE', retryable: true });
-  return presentDraw(featureKey, saved);
+  return readSavedDraw(featureKey, saved);
+}
+
+function readSavedDraw(featureKey, saved) {
+  if (!Array.isArray(saved?.cards) || saved.cards.length !== FAMILIES[featureKey].cardCount) throw createHttpError(503, '카드를 저장하지 못했습니다. 다시 시도해 주세요.', { reason: 'TAROT_DRAW_STORAGE_UNAVAILABLE', retryable: true });
+  const prepared = readDrawPresentation(saved);
+  return prepared ? { ...prepared.facts, presentationDigest: prepared.digest } : presentDraw(featureKey, saved);
 }
 
 const code = value => (typeof value === 'number' ? legacyNumericIdToCardCode(value) : getTarotCardByAnyId(value)?.code) || '';
@@ -74,6 +99,7 @@ export async function bindPaidTarotDraw(env, { featureKey, owner, body }) {
   const collection = await paidTarotDrawCollection(env);
   let doc = await withMongoRetry(env, () => collection.findOne({ _id }));
   if (!Array.isArray(doc?.cards) || doc.cards.length !== family.cardCount) throw required();
+  readDrawPresentation(doc);
   if (!doc.owner && userId) {
     await withMongoRetry(env, () => collection.updateOne({ _id, owner: '' }, { $set: { owner: userId, boundAt: new Date() } }));
     doc = await withMongoRetry(env, () => collection.findOne({ _id }));
