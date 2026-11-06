@@ -5,6 +5,7 @@ import android.appwidget.AppWidgetManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
+import android.os.Bundle;
 import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
@@ -76,8 +77,11 @@ public class CodeDestinyHomeWidgetPlugin extends Plugin {
         // 시스템이 새 위젯 id 를 extra 로 채워 넣어야 하므로 mutable 이어야 한다(명시적 인텐트).
         int flags = PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ? PendingIntent.FLAG_MUTABLE : 0);
         PendingIntent success = PendingIntent.getBroadcast(context, 0, callback, flags);
+        // 확인창 미리보기를 고른 부적·확언으로 그린다. 없으면 런처가 기본 확언 미리보기를 보여 준다.
+        Bundle extras = new Bundle();
+        extras.putParcelable(AppWidgetManager.EXTRA_APPWIDGET_PREVIEW, HomeWidgetProvider.views(context, choice));
         boolean shown;
-        try { shown = AppWidgetManager.getInstance(context).requestPinAppWidget(HomeWidgetProvider.component(context), null, success); }
+        try { shown = AppWidgetManager.getInstance(context).requestPinAppWidget(HomeWidgetProvider.component(context), extras, success); }
         catch (Exception ignored) { shown = false; }
         response.put("status", shown ? "requested" : "unsupported");
         response.put("token", token);

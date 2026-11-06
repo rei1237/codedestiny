@@ -38,6 +38,13 @@ public class HomeWidgetProvider extends AppWidgetProvider {
 
     static void render(Context context, AppWidgetManager manager, int widgetId) {
         HomeWidgetPolicy.Choice choice = HomeWidgetStore.resolveFor(context, widgetId, fallback(context), System.currentTimeMillis());
+        RemoteViews views = views(context, choice);
+        views.setOnClickPendingIntent(R.id.home_widget_root, editIntent(context, widgetId));
+        manager.updateAppWidget(widgetId, views);
+    }
+
+    /** 위젯 모양 — 홈 화면 위젯과 시스템 추가 확인창의 미리보기가 같은 것을 쓴다. */
+    static RemoteViews views(Context context, HomeWidgetPolicy.Choice choice) {
         RemoteViews views;
         if (choice.isTalisman()) {
             views = new RemoteViews(context.getPackageName(), R.layout.widget_talisman);
@@ -47,8 +54,7 @@ public class HomeWidgetProvider extends AppWidgetProvider {
             views = new RemoteViews(context.getPackageName(), R.layout.widget_affirmation);
             views.setTextViewText(R.id.home_widget_text, choice.text);
         }
-        views.setOnClickPendingIntent(R.id.home_widget_root, editIntent(context, widgetId));
-        manager.updateAppWidget(widgetId, views);
+        return views;
     }
 
     static int talismanDrawable(String itemId) {
