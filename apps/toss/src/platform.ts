@@ -25,6 +25,14 @@ async function invalidateCurrentSession(requestToken:string|null,requestEpoch:nu
 }
 export function isToss(){try{return ['toss','sandbox'].includes(Environment.environment);}catch{return false;}}
 export class ApiError extends Error {constructor(public code:string,public errorId='',public status=0){super(code);}}
+function authorizationStatus(error:unknown){
+  if(!error||typeof error!=='object')return 0;
+  const issue=error as {status?:unknown;code?:unknown};
+  if(issue.status===401||issue.status===403)return issue.status;
+  if(issue.code==='ACCESS_DENIED')return 403;
+  if(issue.code==='LOGIN_REQUIRED'||issue.code==='SESSION_EXPIRED')return 401;
+  return 0;
+}
 export async function api<T>(path:string,body?:unknown):Promise<T>{
   if(!SERVICE_AVAILABLE)throw new ApiError('TOSS_RELEASE_PENDING');
   const requestToken=token,requestEpoch=sessionEpoch,requestAttempt=loginAttempt;
@@ -132,7 +140,7 @@ export type CatalogProduct={id:string;name:string;sku:string;approvedPriceKRW:nu
 export type SaleProduct=CatalogProduct&{displayAmount:string};
 export type NativeSaleProduct=Omit<CatalogProduct,'chapters'>&{featureKey:string;displayAmount:string};
 function requireProductListSupport(){
-  let supported=false;try{supported=IAP.getProductItemList.isSupported();}catch{/* Unsupported bridge versions fail closed. */}
+  let supported=false;try{supported=IAP.getProductItemList.isSupported();}catch(error){if(authorizationStatus(error))throw error;/* Unsupported bridge versions fail closed. */}
   if(!supported)throw new ApiError('IAP_NOT_SUPPORTED');
 }
 export async function saleProducts():Promise<SaleProduct[]>{
@@ -171,7 +179,7 @@ function pausePaymentMedia(){
   return ()=>{if(restored||waiting)return;if(document.visibilityState==='visible')restore();else{waiting=true;document.addEventListener('visibilitychange',restore);}};
 }
 function recoverySupported(){
-  try{return IAP.getPendingOrders.isSupported()&&IAP.completeProductGrant.isSupported();}catch{return false;}
+  try{return IAP.getPendingOrders.isSupported()&&IAP.completeProductGrant.isSupported();}catch(error){if(authorizationStatus(error))throw error;return false;}
 }
 // These versions guarantee that the native SDK honors the grant callback's
 // true/false result. The purchase API itself has a lower support floor.
@@ -272,7 +280,7 @@ async function restorePurchasesOnce(sessionToken:string|null,epoch:number):Promi
       if(token!==sessionToken||sessionEpoch!==epoch)throw new ApiError('SESSION_CHANGED','',409);
       if(!acknowledged)throw new ApiError('GRANT_ACK_PENDING');
       recovered++;
-    }catch(error){if(error instanceof ApiError&&error.status===401)throw error;if(token!==sessionToken||sessionEpoch!==epoch)throw new ApiError('SESSION_CHANGED','',409);if(typeof error==='object'&&error&&'code' in error&&error.code==='UNSUPPORTED_APP_VERSION')throw error;if(error instanceof ApiError&&error.status===403)denied++;else failed++;}
+    }catch(error){if(error instanceof ApiError&&error.status===401)throw error;if(token!==sessionToken||sessionEpoch!==epoch)throw new ApiError('SESSION_CHANGED','',409);const status=authorizationStatus(error);if(status===401)throw error;if(typeof error==='object'&&error&&'code' in error&&error.code==='UNSUPPORTED_APP_VERSION')throw error;if(status===403)denied++;else failed++;}
   }
   return {recovered,failed,denied};
 }

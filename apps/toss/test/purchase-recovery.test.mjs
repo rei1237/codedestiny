@@ -14,8 +14,8 @@ async function adapter(available=true,authenticated=false){
   b.onResolve({filter:/^(@apps-in-toss\/web-framework|\.\/release)$/},args=>({path:args.path,namespace:'mock'}));
   b.onLoad({filter:/.*/,namespace:'mock'},args=>({contents:args.path==='./release'?'export const SERVICE_AVAILABLE='+available+';':`
    export const Environment={environment:'sandbox'},isMinVersionSupported=versions=>{const s=globalThis.tossRecoveryTest;s.minimumVersions=versions;if(s.versionProbeFailure)throw s.versionProbeFailure;return s.versionSupported!==false;},TossAuth={login:async()=>({authorizationCode:'mock',referrer:'SANDBOX'})},Storage={getItem:async()=>{const s=globalThis.tossRecoveryTest,value=s.stored||null;if(s.getStarted)s.getStarted();if(s.getWait)await s.getWait;return value;},removeItem:async()=>{const s=globalThis.tossRecoveryTest;if(s.removeFailure)throw s.removeFailure;if(s.removeError)throw Error('storage remove failed');if(s.removeStarted)s.removeStarted();if(s.removeWait)await s.removeWait;s.stored=null;},setItem:async(_key,value)=>{const s=globalThis.tossRecoveryTest;if(s.setStarted)s.setStarted();if(s.setWait)await s.setWait;if(s.storageFailure)throw s.storageFailure;if(s.setError||s.failSetFor===value)throw Error('storage unavailable');s.stored=value;}},Share={};
-   const productList=async()=>{const s=globalThis.tossRecoveryTest;s.productListCalls=(s.productListCalls||0)+1;if(s.productListError)throw s.productListError;return {products:[]};};productList.isSupported=()=>{if(globalThis.tossRecoveryTest.productSupportThrows)throw Error('bridge unavailable');return globalThis.tossRecoveryTest.supportProductList!==false;};const buy=options=>{const s=globalThis.tossRecoveryTest;s.purchaseOptions=options;if(s.synchronousThrow)throw Object.assign(Error('NETWORK_ERROR'),{code:'NETWORK_ERROR'});if(s.synchronousCancel)options.onError({code:'USER_CANCELED'});return ()=>{s.cleanupCount=(s.cleanupCount||0)+1;};};buy.isSupported=()=>true;
-   const pending=async()=>{const s=globalThis.tossRecoveryTest;s.pendingCalls=(s.pendingCalls||0)+1;if(s.pendingStarted)s.pendingStarted();if(s.pendingWait)await s.pendingWait;return s.malformed?undefined:{orders:s.orders};};pending.isSupported=()=>globalThis.tossRecoveryTest.supportPending!==false;const complete=async({params})=>{const s=globalThis.tossRecoveryTest;s.ack.push(params.orderId);if(s.ackStarted)s.ackStarted();if(s.ackWait)await s.ackWait;return !s.failAck;};complete.isSupported=()=>globalThis.tossRecoveryTest.supportComplete!==false;export const IAP={createOneTimePurchaseOrder:buy,getPendingOrders:pending,completeProductGrant:complete,getProductItemList:productList};
+   const productList=async()=>{const s=globalThis.tossRecoveryTest;s.productListCalls=(s.productListCalls||0)+1;if(s.productListError)throw s.productListError;return {products:[]};};productList.isSupported=()=>{const e=globalThis.tossRecoveryTest.productSupportThrows;if(e)throw e===true?Error('bridge unavailable'):e;return globalThis.tossRecoveryTest.supportProductList!==false;};const buy=options=>{const s=globalThis.tossRecoveryTest;s.purchaseOptions=options;if(s.synchronousThrow)throw Object.assign(Error('NETWORK_ERROR'),{code:'NETWORK_ERROR'});if(s.synchronousCancel)options.onError({code:'USER_CANCELED'});return ()=>{s.cleanupCount=(s.cleanupCount||0)+1;};};buy.isSupported=()=>true;
+   const pending=async()=>{const s=globalThis.tossRecoveryTest;s.pendingCalls=(s.pendingCalls||0)+1;if(s.pendingStarted)s.pendingStarted();if(s.pendingWait)await s.pendingWait;return s.malformed?undefined:{orders:s.orders};};pending.isSupported=()=>{const s=globalThis.tossRecoveryTest;if(s.pendingSupportFailure)throw s.pendingSupportFailure;return s.supportPending!==false;};const complete=async({params})=>{const s=globalThis.tossRecoveryTest;s.ack.push(params.orderId);if(s.ackStarted)s.ackStarted();if(s.ackWait)await s.ackWait;if(s.ackFailure)throw s.ackFailure;return !s.failAck;};complete.isSupported=()=>{const s=globalThis.tossRecoveryTest;if(s.completeSupportFailure)throw s.completeSupportFailure;return s.supportComplete!==false;};export const IAP={createOneTimePurchaseOrder:buy,getPendingOrders:pending,completeProductGrant:complete,getProductItemList:productList};
   `}));
  }}]});
  const loaded=new Module('purchase-recovery-check.cjs');loaded._compile(bundle.outputFiles[0].text,loaded.id);
@@ -24,6 +24,31 @@ async function adapter(available=true,authenticated=false){
  const withSession=buy=>(...args)=>{const before=globalThis.fetch;globalThis.fetch=(url,...rest)=>new URL(url).pathname.endsWith('/session')?Promise.resolve(Response.json({authenticated:true})):before(url,...rest);try{return buy(...args);}finally{globalThis.fetch=before;}};
  return {state,saleProducts:loaded.exports.saleProducts,nativeSaleProducts:loaded.exports.nativeSaleProducts,tarotLibraryProducts:loaded.exports.tarotLibraryProducts,restore:loaded.exports.restorePurchases,auto:loaded.exports.recoverAfterAuthentication,purchase:withSession(loaded.exports.purchase),purchaseTarot:withSession(loaded.exports.purchaseTarotLibrary),rawPurchase:loaded.exports.purchase,rawTarot:loaded.exports.purchaseTarotLibrary,login:loaded.exports.login,logout:loaded.exports.logout,unlinkCurrentSession:loaded.exports.unlinkCurrentSession,clearSession:loaded.exports.clearSession,api:loaded.exports.api,canonical:loaded.exports.canonicalResponse,onInvalidated:loaded.exports.onSessionInvalidated,restoreSession:loaded.exports.restoreSession};
 }
+
+for(const denial of [{status:401,code:'SESSION_EXPIRED'},{status:403,code:'ACCESS_DENIED'},{code:'ACCESS_DENIED'}])test(`native support probe preserves ${JSON.stringify(denial)}`,async()=>{
+ const {state,saleProducts,nativeSaleProducts,tarotLibraryProducts,restore}=await adapter(true,true),previous=globalThis.fetch;
+ state.productSupportThrows=denial;globalThis.fetch=async()=>{throw Error('unexpected catalog call');};
+ try{
+  for(const read of [saleProducts,nativeSaleProducts,tarotLibraryProducts])await assert.rejects(read(),error=>error===denial);
+  state.productSupportThrows=null;
+  for(const probe of ['pendingSupportFailure','completeSupportFailure']){state[probe]=denial;await assert.rejects(restore(),error=>error===denial);state[probe]=null;}
+  assert.equal(state.pendingCalls,undefined);assert.equal(state.productListCalls,undefined);
+ }finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
+});
+
+for(const denial of [{status:401,code:'SESSION_EXPIRED'},{status:403,code:'ACCESS_DENIED'},{code:'ACCESS_DENIED'}])test(`SDK acknowledgement preserves ${JSON.stringify(denial)}`,async()=>{
+ const {state,restore}=await adapter(true,true),previous=globalThis.fetch;state.orders=[{orderId:'saved',sku:'test'}];state.ackFailure=denial;
+ globalThis.fetch=async()=>Response.json({orderId:'saved',entitlement:'granted',durable:true});
+ try{if(denial.status===401)await assert.rejects(restore(),error=>error===denial);else assert.deepEqual(await restore(),{recovered:0,failed:0,denied:1});}
+ finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
+});
+test('late SDK authorization denial cannot invalidate a newer session',async()=>{
+ const {state,restore,login}=await adapter(true,true),previous=globalThis.fetch;state.orders=[{orderId:'saved',sku:'test'}];state.ackFailure={status:401,code:'SESSION_EXPIRED'};
+ let release,started;state.ackWait=new Promise(resolve=>{release=resolve;});const ackStarted=new Promise(resolve=>{started=resolve;});state.ackStarted=started;
+ globalThis.fetch=async url=>new URL(url).pathname.endsWith('/login')?Response.json({token:'new-session'}):Response.json({orderId:'saved',entitlement:'granted',durable:true});
+ try{const pending=restore();await ackStarted;await login();release();await assert.rejects(pending,error=>error.code==='SESSION_CHANGED'&&error.status===409);}
+ finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
+});
 
 test('pending purchases use server-owned product routing and acknowledge durable grants only',async()=>{
  const {state,restore}=await adapter(true,true),previous=globalThis.fetch;
