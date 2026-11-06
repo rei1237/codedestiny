@@ -13,7 +13,7 @@
 | 질문 직답 계약 + 마스터 조언 렌즈 | `worker/lib/consultation-answer-contract.js` | `CONSULTATION_ANSWER_VOICE_V1` (`engine-rollout.js` 표에서 ON) |
 | 결론 먼저 화면 | `lib/result-layout.ts` `ANSWER_FIRST_LAYOUT_V1` | 클라이언트 상수 `true` |
 | 기본 사주 궁합의 화면·상담 사실 일치 | `worker/lib/saju-compat-schema.js` 외 | 신규 결과에만 `approvedSaju` 저장 |
-| 숙요 IMD 신규 주문 | 기존 `a2bb89c75` | `SUKUYO_IMD_NEW_ORDERS_V1` (표에서 ON) |
+| 숙요 IMD 신규 주문 | 기존 `a2bb89c75` | `SUKUYO_IMD_NEW_ORDERS_V1` (켰다가 2026-11-07 `7c5b33403`으로 다시 끔. 아래 "숙요 플래그 재차단") |
 | 타로 결제 전 해석 고정 | 기존 `fdb4924ba` | 이미 켜진 `TAROT_CONSUMER_FACTS_V1`를 따름 |
 
 ### 질문 직답 계약
@@ -122,6 +122,12 @@ Swiss 모듈에 닿는 테스트 19개는 로컬에서 돌리지 않고 main CI�
 - 운영 CI와 릴리스는 지금처럼 `sweph-wasm`을 설치한다. 이 예외는 [CR-010](change-requests/CR-010.md)에 사용자 결정으로 기록했다. 워크플로의 루트 preflight 줄은 되돌렸다.
 - 그대로 끈 플래그: `ASTROLOGY_CONSUMER_FACTS_V1`, `VEDIC_CONSUMER_FACTS_V1`, `SUKUYO_CONSUMER_FACTS_V1`.
 - SEO 영향 없음: 공개 URL의 메타·구조화 데이터는 바꾸지 않았다. 결과 화면·보관함은 기존 색인 정책을 따른다.
+
+### 숙요 플래그 재차단 (2026-11-07)
+
+- `SUKUYO_IMD_NEW_ORDERS_V1`을 켠 뒤, 출생이 검증 구간 밖인 고객(대부분의 실제 고객)의 영냥이 숙요 무료 운세와 숙요 개인 질문이 `PRECISION_UNAVAILABLE` 503으로 실패했다. `worker/yeongnyangi/fortune/sukuyo/provider.ts`가 `verifiedSukuyoForCivilTime()`의 `null`을 기존 계산으로 넘기지 않고 503을 던지기 때문이다. 무료 운세(`free/readings.ts`)도 같은 경로를 탄다는 점을 이 문서와 33번 문서가 빠뜨렸다. 테스트는 검증 구간 안의 합성 출생만 썼다.
+- 사용자 결정에 따라 커밋 `7c5b33403`으로 표에서 그 줄을 지우고 재배포했다. 운영 결과: main CI run 42309310877 전 잡 통과 → 릴리스 run 42312013253 성공 → `verify-deployed-sha` PASS(Pages·Worker 모두 `7c5b33403`).
+- 다시 켜는 조건(사용자 결정): 범위 밖·경계 입력은 503 대신 기존 계산을 쓰고, 어느 버전으로 계산했는지 기록한다. 실제 고객 출생 연대 표본으로 확인한 뒤 켠다. 작업은 [인수인계 문서](../handoff/engine-hold-products-verified-provider-2026-11-07.md) 1단계다.
 
 ## 롤백
 
