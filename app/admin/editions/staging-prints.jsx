@@ -1,5 +1,6 @@
 'use client';
 import {useState} from 'react';
+import SaleStatus from '../../editions/verify/sale-status';
 import StagingProducts from './staging-products';
 
 import {RECORDS,issueUrl} from '../../../lib/editions/staging.mjs';
@@ -35,6 +36,7 @@ export default function StagingPrints({productionTest=false}) {
     {items.map(item=><section key={item.code} id={'qr-'+item.code}><Ticket item={item} serial={item.serial}/>
       <img width="220" height="220" src={recordPath+'/'+item.code+'.png'} alt={item.title+' 발행기록 확인 QR'}/>
       <p>확인 코드: {item.code}</p>
+      {productionTest && <SaleStatus code={item.code} manual/>}
       <a href={recordPath+'/'+item.code+'.png'} download={item.code+'.png'}>QR 이미지 저장하기</a>
       <a href={urlFor(item.code)}>고객 화면 열기</a></section>)}</main>;
 }
