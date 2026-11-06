@@ -4,6 +4,20 @@
 
 .secondary{min-height:48px;padding:10px 18px;border:1px solid var(--hw-rose);background:var(--cd-samples-sheet);color:var(--hw-rose);border-radius:var(--cd-r-control);cursor:pointer}.form>a,.result>a{display:inline-flex;align-items:center;min-height:44px}
 .writingScene{display:block;width:min(100%,26rem);height:auto;margin:0 auto 1.4rem;border-radius:12px;}
+.reportCover { margin: -38px -24px 24px; padding: 44px 28px; background: linear-gradient(90deg,#20192bef,#20192bb8), url('/images/consultation-webtoons/heukwol/portraits/moon-library.webp') center 25% / cover; color: #fff4e1; }
+.reportCover h1 { margin: .25em 0; font-size: clamp(30px,7vw,45px); }
+.reportCover p { margin: 0; }
+.reportCover p:first-child { color: #ead1a4; font-size: .9rem; }
+.readerTools { border-block-end: 1px solid var(--hw-line); scroll-margin-top: 1.5rem; }
+.readerTools > summary { padding-block: 15px; cursor: pointer; font-weight: 600; }
+.forewarning { padding: 20px; background: #302337; color: #fff3e3; border-inline-start: 3px solid #b59467; }
+.forewarning h3 { margin-top: 0; color: #efd6aa; }
+.readingVoice { margin-block: 2rem; }
+.readingVoice h3 { border-bottom: 1px solid var(--hw-line); padding-bottom: .5rem; }
+.actionList { padding: 16px 20px; background: var(--cd-samples-blush); }
+.actionList ul { padding-inline-start: 1.25rem; line-height: 1.8; }
+.chapterLinks { display: flex; justify-content: space-between; margin-block-start: 1rem; }
+.chapterLinks a { display: inline-flex; align-items: center; min-height: 44px; }
 .episode { max-width: 600px; margin-inline: auto; background: var(--hw-paper); }
 .episode header, .episode footer { padding: 20px 24px; color: #fff1df; background: #2b1d2a; }
 .episode h2 { margin: 10px 0 0; color: inherit; }
