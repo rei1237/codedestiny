@@ -22291,6 +22291,17 @@
       "hour": "Se excluye el efecto del pilar de la hora si se desconoce la hora de nacimiento.",
       "story": "Los cuatro capítulos conectan ámbitos de la vida; no predicen el orden ni el momento de los hechos.",
       "relations": "Una armonía no implica transformación elemental automática. Wonjin y Gwimun no determinan infidelidad, enfermedad mental ni el desenlace de una relación."
+    },
+    "approved": {
+      "strengthPending": "Lectura de fuerza en espera",
+      "title": "⚖️ Fuerza y elemento útil de ambos",
+      "row": "{name} — Fuerza del Maestro del Día: {strength} · Elemento útil: {yongshin}",
+      "strong": "Fuerte",
+      "weak": "Débil",
+      "pending": "En espera",
+      "candidates": "Candidatos: {elements}",
+      "unresolved": "Sin un único elemento útil confirmado",
+      "note": "Los elementos útiles se muestran como candidatos y no como respuestas definitivas; lo que no puede evaluarse queda en espera. La puntuación de compatibilidad se calcula aparte, según la cantidad de cada elemento."
     }
   },
   "honeyUI": {

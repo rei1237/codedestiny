@@ -22291,6 +22291,17 @@
       "hour": "Hour-pillar effects are excluded when the birth time is unknown.",
       "story": "The four chapters connect areas of life; they do not predict an order or timing of events.",
       "relations": "A harmony does not imply automatic elemental transformation. Wonjin and Gwimun do not establish infidelity, mental illness, or a relationship's outcome."
+    },
+    "approved": {
+      "strengthPending": "Strength reading on hold",
+      "title": "⚖️ Strength and useful-element reading for you both",
+      "row": "{name} — Day Master strength: {strength} · Useful element: {yongshin}",
+      "strong": "Strong",
+      "weak": "Weak",
+      "pending": "On hold",
+      "candidates": "Candidates: {elements}",
+      "unresolved": "No single useful element confirmed",
+      "note": "Useful elements are shown as candidates, not settled answers, and anything that cannot be judged stays on hold. The compatibility score is calculated separately from element counts."
     }
   },
   "honeyUI": {

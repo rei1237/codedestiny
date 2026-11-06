@@ -34,6 +34,27 @@ describe("today-saju-detail", () => {
   const verdict = judgeSajuDayFortune(natal, TODAY_PILLAR);
   const detail = buildTodaySajuDetail({ verdict, natal });
 
+  test("승인 판정 플래그면 일간 강약만 승인 표기로 바뀌고 점수·시간대 입력은 그대로다", () => {
+    const strengthOf = (d) => sectionByKey(d.sections, "pillar").items.find((item) => item.label === "일간 강약").value;
+    const approved = judgeSajuDayFortune(natal, TODAY_PILLAR, { approvedStrength: true });
+    const approvedDetail = buildTodaySajuDetail({ verdict: approved, natal });
+    expect(verdict.strengthLabel).toBeUndefined();
+    expect(strengthOf(detail)).toBe("신강(강한 편)");
+    expect(strengthOf(approvedDetail)).toBe("신강");
+    const { strengthLabel, ...rest } = approved;
+    expect(strengthLabel).toBe("신강");
+    expect(rest).toEqual(verdict);
+    expect(sectionByKey(approvedDetail.sections, "hours")).toEqual(sectionByKey(detail.sections, "hours"));
+    // 시각 미상이면 승인 강약은 보류다. 점수용 강약(신약)을 확정 표기로 올리지 않는다.
+    const unknownNatal = calculateLifeBookAiSaju({ ...NATAL, birthTimeUnknown: true });
+    const legacyUnknown = judgeSajuDayFortune(unknownNatal, TODAY_PILLAR);
+    const approvedUnknown = judgeSajuDayFortune(unknownNatal, TODAY_PILLAR, { approvedStrength: true });
+    expect(strengthOf(buildTodaySajuDetail({ verdict: legacyUnknown, natal: unknownNatal }))).toBe("신약(약한 편)");
+    expect(strengthOf(buildTodaySajuDetail({ verdict: approvedUnknown, natal: unknownNatal }))).toBe("판정 보류");
+    expect(approvedUnknown.score).toBe(legacyUnknown.score);
+    expect(approvedUnknown.strengthMode).toBe("weak");
+  });
+
   test("judgeSajuDayFortune 이 버리던 값이 섹션으로 나온다", () => {
     const keys = detail.sections.map((section) => section.key);
     expect(keys).toEqual(expect.arrayContaining(["pillar", "ten-god", "branch-relation", "hours", "remedy"]));

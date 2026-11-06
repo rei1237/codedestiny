@@ -22291,6 +22291,17 @@
       "hour": "Không xét tác động trụ giờ khi chưa rõ giờ sinh.",
       "story": "Bốn chương nối các lĩnh vực cuộc sống, không dự đoán thứ tự hay thời điểm sự kiện.",
       "relations": "Hợp không tự động hóa hành. Oán sân và quỷ môn không xác định ngoại tình, bệnh tâm thần hay kết cục quan hệ."
+    },
+    "approved": {
+      "strengthPending": "Tạm hoãn đánh giá mạnh yếu",
+      "title": "⚖️ Đánh giá mạnh yếu và dụng thần của hai người",
+      "row": "{name} — Mạnh yếu của nhật can: {strength} · Dụng thần: {yongshin}",
+      "strong": "Thân vượng",
+      "weak": "Thân nhược",
+      "pending": "Tạm hoãn",
+      "candidates": "Ứng viên bổ trợ {elements}",
+      "unresolved": "Chưa xác định một dụng thần duy nhất",
+      "note": "Dụng thần được hiển thị dưới dạng ứng viên chứ không phải kết luận, mục nào chưa thể đánh giá sẽ được tạm hoãn. Điểm hợp nhau được tính riêng theo số lượng ngũ hành."
     }
   },
   "honeyUI": {

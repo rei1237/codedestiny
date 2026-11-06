@@ -164,7 +164,7 @@ test('relationship facts, chapter labels and artwork descriptions render in ever
 });
 
 test('non-English compatibility dictionaries contain authored prose rather than English copies', () => {
-  for (const chunk of ['01', '02', '03', '04']) {
+  for (const chunk of ['01', '02', '03', '04', '05']) {
     const authored = JSON.parse(readFileSync(new URL(`../../i18n/authored/sajuCompat-${chunk}.json`, import.meta.url), 'utf8'));
     for (const [key, translations] of Object.entries(authored)) {
       if (key.startsWith('_') || translations.en.replace(/\{\w+\}/g, '').trim().split(/\s+/).length < 5) continue;

@@ -251,7 +251,8 @@ export function buildTodaySajuDetail({ verdict, natal }) {
   const pillarItems = [
     { label: "오늘 일진", value: `${verdict.dayGanjiKo}일 · ${verdict.dayElement}` },
     { label: "내 일간", value: `${verdict.dayMasterKo}(${dayMaster}) · ${STEM_ELEMENT[dayMaster] || ""}` },
-    { label: "일간 강약", value: STRENGTH_LABEL[verdict.strengthMode] || "중화(균형)" },
+    // 승인 판정 플래그면 judgeSajuDayFortune 이 실은 승인 강약을 그대로 보인다(점수용 strengthMode 는 표시하지 않는다).
+    { label: "일간 강약", value: verdict.strengthLabel || STRENGTH_LABEL[verdict.strengthMode] || "중화(균형)" },
     { label: "천간 십성", value: verdict.tenGod, note: `오늘 드러나는 결 — ${verdict.tenGodGroup}` },
   ];
   if (verdict.branchTenGod) {

@@ -128,6 +128,15 @@ export const SAJU_COMPAT_KO = {
   "sajuCompat.fact.KE_PARTNER_OVER_SELF": "일간 상극(당신이 피통제자)",
   "sajuCompat.fact.KIJI_RELIEF": "약점 보완의 달콤함",
   "sajuCompat.fact.HE_TRAP": "⚠ 합(合)의 함정 경보",
+  "sajuCompat.approved.strengthPending": "강약 판정 보류",
+  "sajuCompat.approved.title": "⚖️ 두 사람의 강약·용신 판정",
+  "sajuCompat.approved.row": "{name} — 일간 강약: {strength} · 용신: {yongshin}",
+  "sajuCompat.approved.strong": "신강",
+  "sajuCompat.approved.weak": "신약",
+  "sajuCompat.approved.pending": "판정 보류",
+  "sajuCompat.approved.candidates": "보완 후보 {elements}",
+  "sajuCompat.approved.unresolved": "단일 용신 미확정",
+  "sajuCompat.approved.note": "용신은 확정값이 아니라 후보로 보여 드리고, 판정할 수 없는 항목은 보류로 둡니다. 궁합 점수는 오행 수량 지표로 따로 계산했습니다.",
   "sajuCompat.fact.repeatScene": "반복되기 쉬운 장면",
   "sajuCompat.fact.recovery": "회복의 기준",
   "sajuCompat.advice.title": "🎯 천기적 처방",
@@ -255,6 +264,32 @@ function reasonVars(reason, facts, t) {
   }
 }
 
+const ELEMENT_BY_KO = { 목: "wood", 화: "fire", 토: "earth", 금: "metal", 수: "water" };
+
+/**
+ * 새 결과에만 저장되는 승인 판정(스냅샷 approvedSaju — 프롬프트가 읽은 그 값). 없거나 모양이 어긋나면 null 이라
+ * 예전 기록은 예전 화면 그대로 그린다. 판정을 다시 계산하지 않고, 후보·보류를 확정값으로 올리지 않는다.
+ */
+function approvedSides(snapshot) {
+  const approved = snapshot?.approvedSaju;
+  const valid = (side) => isObject(side) && [true, false, null].includes(side.isStrong) && typeof side.status === "string"
+    && (side.candidateNames === undefined || Array.isArray(side.candidateNames));
+  return isObject(approved) && valid(approved.self) && valid(approved.partner) ? approved : null;
+}
+
+const approvedStrength = (side, t) => t(`sajuCompat.approved.${side.isStrong === true ? "strong" : side.isStrong === false ? "weak" : "pending"}`);
+function approvedYongshin(side, t) {
+  if (side.status === "pending") return t("sajuCompat.approved.pending");
+  const names = (side.candidateNames || []).filter((name) => typeof name === "string" && name);
+  if (!names.length) return t("sajuCompat.approved.unresolved");
+  return t("sajuCompat.approved.candidates", { elements: names.map((name) => (ELEMENT_BY_KO[name] ? t(`sajuCompat.element.${ELEMENT_BY_KO[name]}`) : name)).join("·") });
+}
+// 사실 상자의 강약 표제도 승인 강약으로 고른다. 규칙은 엔진의 strengthFlag 와 같고, 어느 쪽이든 보류면 보류다.
+function approvedStrengthKey({ self, partner }) {
+  if (self.isStrong === null || partner.isStrong === null) return "sajuCompat.approved.strengthPending";
+  return `sajuCompat.fact.${self.isStrong && !partner.isStrong ? "STRENGTH_SELF_LEADS" : !self.isStrong && partner.isStrong ? "STRENGTH_PARTNER_LEADS" : "STRENGTH_PEER"}`;
+}
+
 /** 이 렌더러가 쓰는 고정 문구 키를 모두 돌려준다(테스트가 한국어 정본·번역 사전과 대조한다). */
 export function sajuCompatKeys() { return Object.keys(SAJU_COMPAT_KO); }
 
@@ -284,6 +319,11 @@ export function renderSajuCompat(snapshot, { t = createSajuCompatT(), selfName =
 
   const overview = section(T("sajuCompat.overview.title"),
     `<p class="compat-text compat-note">${T("sajuCompat.overview.note", { score: facts.score.display })}</p>${paragraphs(stringAt(narrative, "overview"), "compat-text")}`);
+
+  const approved = approvedSides(snapshot);
+  const approvedRow = (name, side) => `<p class="compat-text">${T("sajuCompat.approved.row", { name, strength: approvedStrength(side, t), yongshin: approvedYongshin(side, t) })}</p>`;
+  const approvedBlock = approved ? section(T("sajuCompat.approved.title"),
+    approvedRow(self, approved.self) + approvedRow(partner, approved.partner) + `<p class="compat-text compat-note">${T("sajuCompat.approved.note")}</p>`, "compat-approved") : "";
 
   const energyNode = isObject(narrative.energyHarmony) ? narrative.energyHarmony : {};
   const energy = section(() => T("sajuCompat.energy.title"), ENERGY_BLOCKS.map((key) => {
@@ -319,7 +359,7 @@ export function renderSajuCompat(snapshot, { t = createSajuCompatT(), selfName =
   const flags = Array.isArray(facts.factFlags) ? facts.factFlags : [];
   const factItems = [
     ...[...STRENGTH_FLAGS, ...KE_FLAGS, "KIJI_RELIEF", "HE_TRAP"].filter((flag) => flags.includes(flag))
-      .map((flag) => factItem(T(`sajuCompat.fact.${flag}`), stringAt(realityNode, FACT_NARRATIVE[flag]))),
+      .map((flag) => factItem(approved && STRENGTH_FLAGS.includes(flag) ? T(approvedStrengthKey(approved)) : T(`sajuCompat.fact.${flag}`), stringAt(realityNode, FACT_NARRATIVE[flag]))),
     factItem(T("sajuCompat.fact.repeatScene"), stringAt(realityNode, "repeatScene")),
     factItem(T("sajuCompat.fact.recovery"), stringAt(realityNode, "recovery")),
   ].join("");
@@ -352,7 +392,7 @@ export function renderSajuCompat(snapshot, { t = createSajuCompatT(), selfName =
     + evidence.limitations.map(line => '<p class="compat-note">' + (limitationKeys[line] ? T('sajuCompat.limit.' + limitationKeys[line]) : escapeHtml(line)) + '</p>').join('')) : '';
   const past = renderPastLife(snapshot, { t, T, self, partner, paragraphs });
   return `<div class="compat-wrap cd-compat-snap" data-saju-compat-schema="${escapeHtml(snapshot.schemaVersion ?? "")}">`
-    + (evidence ? art(COMPAT_ART[type]) : "") + grade + overview + matrix + chapters + energy + details + reasons + love + fact + (evidence && past ? art(pastLifeArt(facts.pastLife.grade.code)) : "") + past + advice
+    + (evidence ? art(COMPAT_ART[type]) : "") + grade + overview + approvedBlock + matrix + chapters + energy + details + reasons + love + fact + (evidence && past ? art(pastLifeArt(facts.pastLife.grade.code)) : "") + past + advice
     + `<div class="compat-footnote">${T("sajuCompat.footer")}</div></div>`;
 }
 

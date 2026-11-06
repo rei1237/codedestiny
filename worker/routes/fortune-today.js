@@ -30,6 +30,7 @@ import { BRANCH_HANJA, STEM_HANJA, ganji, lunarToSolar, solarToLunar } from "../
 import { getRoutePath, json, methodNotAllowed, notFound } from "../lib/http.js";
 import { calculateLifeBookAiSaju } from "../lib/life-book-ai-saju.js";
 import { judgeSajuDayFortune } from "../lib/saju-day-fortune.js";
+import { sajuAuthorityOn } from "../lib/saju-authority-consumer.js";
 import { buildSukuyoFromMoonLongitude, calculateSukuyoForMoment } from "../lib/sukuyo-astronomy.js";
 import { judgeDayFortune } from "../lib/sukuyo-relation-core.js";
 import { assembleTodayMoon } from "../lib/nakshatra-codex.js";
@@ -213,7 +214,7 @@ function withDepth(card, depth, wantDetail) {
   return out;
 }
 
-function buildSaju(input, today, wantDetail) {
+function buildSaju(input, today, wantDetail, approvedStrength = false) {
   const dayPillar = todayDayPillar(today);
   if (!input) {
     const publicCard = buildTodaySajuPublic(dayPillar);
@@ -242,7 +243,7 @@ function buildSaju(input, today, wantDetail) {
     isLeapMonth: input.calendarType === "lunar_leap",
     gender: input.gender,
   });
-  const verdict = judgeSajuDayFortune(natal, dayPillar);
+  const verdict = judgeSajuDayFortune(natal, dayPillar, { approvedStrength });
   if (!verdict) return null;
   return withDepth({
     system: "saju",
@@ -428,7 +429,7 @@ export async function buildTodayFortunes(env, input, today, { requestUrl, wantDe
 
   let saju = null;
   try {
-    saju = buildSaju(input, today, wantDetail);
+    saju = buildSaju(input, today, wantDetail, sajuAuthorityOn(env));
   } catch (error) {
     console.warn("[today-hub-saju-skip]", String(error?.message || error).slice(0, 200));
   }
