@@ -2,6 +2,9 @@ import {useEffect,useRef,useState,type FormEvent} from 'react';
 import {Clipboard,SetClipboardTextPermissionError,Share} from '@apps-in-toss/web-framework';
 import {APP_NAME} from '../src/platform';
 import {usePaidDeliveryScope} from '@/app/hooks/usePaidDeliveryScope';
+import {useAuthStore} from '@/app/_lib/auth-store';
+import type {AiPrefillSeed} from '@/app/_lib/ai-prefill-seed';
+import TossAstrologyProfilePicker from './TossAstrologyProfilePicker';
 import type {FptiAnalysisResult,FptiFormInput} from '@/lib/fpti/fpti-types';
 import {analyzeFptiFromSajuSource,calculateSajuSourceFromBirth} from '@/lib/fpti/fpti-adapter';
 import './toss-fpti.css';
@@ -13,12 +16,14 @@ const pillarLabels:Record<string,string>={year:'연주',month:'월주',day:'일�
 function bridgeIssue(error:unknown){const issue=error&&typeof error==='object'?error as {code?:string;status?:number}:{};return {denied:error instanceof SetClipboardTextPermissionError||issue.status===403||issue.code==='ACCESS_DENIED',login:issue.status===401||issue.code==='LOGIN_REQUIRED'||issue.code==='SESSION_EXPIRED',unsupported:issue.code==='UNSUPPORTED_APP_VERSION'};}
 const initial=():FptiFormInput=>({name:'',gender:'OTHER',birthDate:'',calendarType:'solar',birthTime:'',timeUnknown:false,birthRegion:''});
 export default function TossFpti(){
+ const auth=useAuthStore(),owner=String(auth.user?.id||auth.user?.userId||auth.user?._id||auth.user?.uid||'');
  const [form,setForm]=useState<FptiFormInput>(initial),[result,setResult]=useState<FptiAnalysisResult|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
  const [notice,setNotice]=useState(''),[permissionDenied,setPermissionDenied]=useState(false),[bridgeBusy,setBridgeBusy]=useState(false);
  const epoch=useRef(0),locked=useRef(false),phase=useRef(false),mounted=useRef(false),bridgeLock=useRef(false),bridgeEpoch=useRef(0);
  usePaidDeliveryScope(()=>{epoch.current++;bridgeEpoch.current++;phase.current=false;setResult(null);setForm(initial());setError('');setNotice('');setPermissionDenied(false);});
  useEffect(()=>{mounted.current=true;const back=(event:Event)=>{if(event.defaultPrevented)return;if(locked.current){event.preventDefault();return;}if(phase.current){event.preventDefault();epoch.current++;phase.current=false;bridgeEpoch.current++;setNotice('');setPermissionDenied(false);setResult(null);setError('');}};window.addEventListener('code-destiny:toss-back',back);return()=>{mounted.current=false;epoch.current++;bridgeEpoch.current++;window.removeEventListener('code-destiny:toss-back',back);};},[]);
  const change=<K extends keyof FptiFormInput>(key:K,value:FptiFormInput[K])=>{epoch.current++;setForm(previous=>({...previous,[key]:value}));setError('');};
+ const selectProfile=(seed:AiPrefillSeed)=>{if(seed.timezone!=='Asia/Seoul'){setError('대한민국 시간대로 설정된 출생 프로필을 선택해 주세요.');return;}if(!seed.birthDate){setError('프로필의 생년월일을 확인해 주세요.');return;}epoch.current++;setForm({name:seed.name||'',gender:seed.gender==='male'?'M':seed.gender==='female'?'F':'OTHER',birthDate:seed.birthDate,calendarType:seed.calendarType==='lunar'?(seed.isLeapMonth?'lunar_leap':'lunar'):'solar',birthTime:seed.birthTime||'',timeUnknown:seed.birthTimeUnknown===true||!seed.birthTime,birthRegion:seed.city||seed.region||''});setError('');};
  const submit=async(event:FormEvent)=>{event.preventDefault();if(locked.current)return;const current=++epoch.current;locked.current=true;setBusy(true);setError('');
   try{await new Promise<void>(resolve=>window.setTimeout(resolve,0));const source=calculateSajuSourceFromBirth(form),analysis=analyzeFptiFromSajuSource(source);if(mounted.current&&epoch.current===current){phase.current=true;setResult(analysis);window.scrollTo(0,0);}}
   catch{if(mounted.current&&epoch.current===current)setError('출생정보를 확인하지 못했어요. 날짜와 시간, 달력을 확인한 뒤 다시 시도해 주세요.');}
@@ -32,7 +37,7 @@ export default function TossFpti(){
  const requestPermission=()=>void exclusive(async current=>{try{const permission=await Clipboard.setText.openPermissionDialog();if(active(current)){setPermissionDenied(permission!=='allowed');setNotice(permission==='allowed'?'권한을 확인했어요. 복사를 다시 눌러 주세요.':'클립보드 쓰기 권한이 없어 복사할 수 없어요.');}}catch(error){if(active(current))failure(error,'클립보드');}});
  const rows=(title:string,items:string[])=>items.length?<section><h3>{title}</h3><ul>{items.map((item,i)=><li key={i}>{item}</li>)}</ul></section>:null;
  return <main className="toss-fpti"><header><p>사주 FPTI</p><h1>나의 운명 성향</h1><p>사주의 오행과 십성을 바탕으로 관계와 선택의 흐름을 살펴봐요.</p><p className="fpti-note">국내 출생을 기준으로 계산해요. 입력과 결과는 현재 화면에서만 사용하며, 나가면 저장되지 않아요.</p></header>
- {!result?<form onSubmit={submit}><fieldset disabled={busy}><legend>출생 정보</legend>
+ {!result?<form onSubmit={submit}>{auth.isAuthenticated&&owner?<fieldset disabled={busy}><legend>저장한 프로필</legend><TossAstrologyProfilePicker onSelect={selectProfile} calendarMode="native-lunar" inputId="fpti-profile"/></fieldset>:<p className="fpti-note">토스 로그인 후 저장한 프로필을 선택할 수 있어요.</p>}<fieldset disabled={busy}><legend>출생 정보</legend>
  <label>이름 또는 닉네임 (선택)<input value={form.name} maxLength={40} onChange={e=>change('name',e.target.value)}/></label>
  <label>생년월일<input type="date" required value={form.birthDate} onChange={e=>change('birthDate',e.target.value)}/></label>
  <label>달력<select value={form.calendarType} onChange={e=>change('calendarType',e.target.value as FptiFormInput['calendarType'])}><option value="solar">양력</option><option value="lunar">음력 평달</option><option value="lunar_leap">음력 윤달</option></select></label>
