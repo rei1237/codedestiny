@@ -6,13 +6,13 @@ import { recordsCopy } from '@/lib/records/copy';
 import styles from './records.module.css';
 import neoTheme from '@/src/features/neo-war-room/neo-operation-room-result.module.css';
 export const recordButton = styles.button;
-export default function RecordFrame({ title, lead, children, view = 'library', reading = '' }: { title: string; lead?: string; children: ReactNode; view?: 'library' | 'hub' | 'result'; reading?: string }) {
+export default function RecordFrame({ title, lead, children, view = 'library', reading = '', paymentSurface = 'web' }: { title: string; lead?: string; children: ReactNode; view?: 'library' | 'hub' | 'result'; reading?: string; paymentSurface?: 'web' | 'toss' }) {
   const c = recordsCopy(useLocale());
   return <main className={`${styles.page} ${view === 'library' ? styles.lightFrame : `${neoTheme.savedDocuments} ${styles.nightFrame}`}`} data-record-view={view} data-reading-family={reading || undefined}>
     <div className={styles.frame}>
       <nav className={styles.navigation} aria-label={title}>
-        <a className={styles.back} href={view === 'result' ? '/records/' : '/ggulggul/'}><ArrowLeft size={18} aria-hidden />{view === 'result' ? c.back : c.home}</a>
-        <a className={styles.back} href={view === 'hub' ? '/records/' : '/consultations/'}>{view === 'hub' ? <Archive size={18} aria-hidden /> : <MessageCircleHeart size={18} aria-hidden />}{view === 'hub' ? c.title : c.hub}</a>
+        <a className={styles.back} href={view === 'result' ? '/records/' : paymentSurface === 'toss' ? '/' : '/ggulggul/'}><ArrowLeft size={18} aria-hidden />{view === 'result' ? c.back : c.home}</a>
+        {paymentSurface === 'toss' ? view === 'result' && <a className={styles.back} href="/"><ArrowLeft size={18} aria-hidden />{c.home}</a> : <a className={styles.back} href={view === 'hub' ? '/records/' : '/consultations/'}>{view === 'hub' ? <Archive size={18} aria-hidden /> : <MessageCircleHeart size={18} aria-hidden />}{view === 'hub' ? c.title : c.hub}</a>}
       </nav>
       <header className={styles.heading}>
         <div><h1>{title}</h1>{lead && <p>{lead}</p>}</div>

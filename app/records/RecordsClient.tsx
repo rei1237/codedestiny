@@ -81,7 +81,7 @@ export default function RecordsClient({ showWebReception = true, refreshKey = 0,
     finally { if (current === epoch.current) setLoading(false); }
   }
   const statusLabel = (status: string) => (c as Record<string, string>)[status] || c.saved;
-  return <RecordFrame title={c.title} lead={c.lead}>
+  return <RecordFrame title={c.title} lead={c.lead} paymentSurface={paymentSurface}>
     {auth.status === 'error' || auth.status === 'temporarilyOffline' ? <section role="alert" className="space-y-3 py-8"><h2 className="text-xl font-semibold">{c.error}</h2><p>{c.errorLead}</p><button className={recordButton} onClick={() => void refreshAuth({ silent: true }).catch(() => {})}>{c.retry}</button></section> : auth.authReady && !auth.isAuthenticated ? <section className="space-y-3 py-8"><h2 className="text-xl font-semibold">{c.loginTitle}</h2><p>{c.loginLead}</p><a className={recordButton} href="/login/?next=%2Frecords%2F">{c.login}</a></section> : paymentSurface === 'toss' && auth.authReady && auth.isAuthenticated && !userKey ? <section role="alert"><p>로그인 계정을 확인하지 못했어요. 다시 시도해 주세요.</p><button className={recordButton} onClick={() => void refreshAuth({ silent: true }).catch(() => {})}>{c.retry}</button></section> : !auth.authReady || readyUser !== userKey ? <p role="status">{c.loading}</p> : <>
       {showWebReception && locale === 'ko' && <p className={styles.neoRecords}><a href="/neo-consultation/#neo-records">네오 작전 결정서 접수 내역 확인하기</a> · 답변은 받으신 이메일에서 확인해 주세요.</p>}
       <div className={styles.tools}>
