@@ -37,8 +37,18 @@ test('Toss result preserves payment denial and never asks the web billing gate',
  const ctx={URL,clean,json,nativeTossContext:()=>native,getOptionalUserFromRequest:async()=>native.auth,connectDb:async()=>{},buildResultLookup:()=>({}),KarmaDestinyAiConsultation:{findOne:()=>({lean:async()=>({id:'saved',status:'partial',inputHash:'hash',idempotencyKey:'request-0000001'})})},authorizedKarmaRecord:async()=>true,getPricing:()=>({}),resolveStartAccess:async()=>{webCalls++;return {ok:true};}};
  const result=vm.runInNewContext('('+fn('handleResult')+')',ctx);await assert.rejects(result({url:'https://example.invalid/api/karma-destiny-ai/result?sessionId=saved'}, {}, '/result'),e=>e.status===403);assert.equal(webCalls,0);
 });
-test('Toss cannot call the original web follow-up route',async()=>{
- const message=vm.runInNewContext('('+fn('handleMessage')+')',{nativeTossContext:()=>({}),notFound:()=>({status:404})});assert.equal((await message({},{})).status,404);
+test('Toss result recovery rechecks purchase authority before attaching answers',async()=>{
+ let checks=0;const doc={id:'saved',status:'completed',accessSource:'toss'},native={auth:{userId:'owner'},assertStored:async()=>{checks++;}};
+ const ctx={URL,clean,json,nativeTossContext:()=>native,getOptionalUserFromRequest:async()=>native.auth,connectDb:async()=>{},buildResultLookup:()=>({}),KarmaDestinyAiConsultation:{findOne:()=>({lean:async()=>doc})},authorizedKarmaRecord:async()=>{await native.assertStored();return true;},FEATURE_KEY:'karma',recoverSavedExpertFollowUps:async options=>{await options.verifyAccess();return options.consultation;},publicSession:value=>({ok:true,status:value.status})};
+ const result=vm.runInNewContext('('+fn('handleResult')+')',ctx);assert.equal((await result({url:'https://example.invalid/api/karma-destiny-ai/result?sessionId=saved'}, {}, '/result')).status,200);assert.equal(checks,2);
+ native.assertStored=async()=>{throw Object.assign(Error('refunded'),{status:409,code:'ORDER_REFUNDED'});};await assert.rejects(result({url:'https://example.invalid/api/karma-destiny-ai/result?sessionId=saved'}, {}, '/result'),e=>e.code==='ORDER_REFUNDED');
+});
+test('Toss follow-up uses the bound account and rechecks the purchase',async()=>{
+ let checks=0,delivered=0;const doc={id:'saved',userId:'owner',status:'completed',accessSource:'toss'};
+ const native={auth:{userId:'owner'},assertStored:async value=>{assert.equal(value,doc);checks++;}};
+ const ctx={readJson:async()=>({sessionId:'saved',message:'다음 선택은?'}),clean,nativeTossContext:()=>native,getOptionalUserFromRequest:async()=>native.auth,connectDb:async()=>{},KarmaDestinyAiConsultation:{findOne:filter=>({lean:async()=>filter.userId==='owner'?doc:null})},authorizedKarmaRecord:async(_request,value)=>{await native.assertStored(value);return true;},FEATURE_KEY:'karma-destiny-ai-consultation',deliverExpertFollowUp:async options=>{await options.verifyAccess();delivered++;return {status:200};},generateConsultationText:()=>{},buildFollowUpPrompt:()=>{},publicSession:()=>{}};
+ const message=vm.runInNewContext('('+fn('handleMessage')+')',ctx);assert.equal((await message({},{})).status,200);assert.equal(checks,2);assert.equal(delivered,1);
+ native.assertStored=async()=>{throw Object.assign(Error('refunded'),{status:409,code:'ORDER_REFUNDED'});};await assert.rejects(message({},{}),e=>e.code==='ORDER_REFUNDED');assert.equal(delivered,1);
 });
 test('Toss permission errors retain their status at the route boundary',async()=>{
  const ctx={getRoutePath:()=>'/result',handleResult:async()=>{throw Object.assign(Error('denied'),{status:403,code:'ACCESS_DENIED'});},nativeTossContext:()=>({}),json};

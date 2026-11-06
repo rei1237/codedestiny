@@ -71,6 +71,7 @@ export type KarmaResult = {
   summaryCards?: { keywords?: string[]; repeatingPattern?: string; currentTask?: string } | null;
   integratedResult?: Record<string, unknown> | null;
   chapters?: KarmaChapter[];
+  messages?: { role: string; content: string; createdAt?: string }[];
   finalLetter?: string;
   qualityCheck?: { passed?: boolean; totalCharCount?: number; chapterCount?: number; promptLeakDetected?: boolean } | null;
   generationProgress?: {
@@ -84,6 +85,7 @@ export type KarmaResult = {
   };
   message?: string;
   reason?: string;
+  retryable?: boolean;
 };
 
 export const LENS_ORDER = ["saju", "ziwei", "sukuyo", "western", "vedic"] as const;

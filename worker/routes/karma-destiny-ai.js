@@ -2866,13 +2866,12 @@ async function handleResult(request, env, path) {
   if (!nativeTossContext(request) && consultation.status === "completed" && await isStoredPaidResultRevoked(auth.userId, FEATURE_KEY, consultation)) {
     return json({ ok: false, reason: "PAYMENT_REVOKED", retryable: false }, { status: 403 });
   }
-  if (!nativeTossContext(request) && consultation.status === "completed") consultation = await recoverSavedExpertFollowUps({ auth, consultation, featureKey: FEATURE_KEY, model: KarmaDestinyAiConsultation });
+  if (consultation.status === "completed") consultation = await recoverSavedExpertFollowUps({ auth, consultation, featureKey: FEATURE_KEY, model: KarmaDestinyAiConsultation, ...(nativeTossContext(request) ? { verifyAccess: () => nativeTossContext(request).assertStored(consultation) } : {}) });
   const statusCode = ["generating", "partial", "delivery_pending"].includes(consultation.status) ? 202 : consultation.status === "generation_failed" ? 409 : 200;
   return json(publicSession(consultation), { status: statusCode });
 }
 
 async function handleMessage(request, env) {
-  if (nativeTossContext(request)) return notFound();
   const body = await readJson(request);
   const sessionId = clean(body?.sessionId || body?.consultationId, 120);
   const message = clean(body?.message || body?.question, 1200);
@@ -2891,7 +2890,7 @@ async function handleMessage(request, env) {
   if (!consultation) return invalidInput("상담 세션을 찾을 수 없습니다.", 404);
   if (!(await authorizedKarmaRecord(request, consultation))) return notFound();
 
-  return await deliverExpertFollowUp({ request, env, auth, consultation, message, featureKey: FEATURE_KEY, model: KarmaDestinyAiConsultation, generate: (original, question) => generateConsultationText(env, buildFollowUpPrompt(original, question), { mode: 'follow_up', minLength: 90, maxOutputTokens: 9200 }), render: publicSession });
+  return await deliverExpertFollowUp({ request, env, auth, consultation, message, featureKey: FEATURE_KEY, model: KarmaDestinyAiConsultation, generate: (original, question) => generateConsultationText(env, buildFollowUpPrompt(original, question), { mode: 'follow_up', minLength: 90, maxOutputTokens: 9200 }), render: publicSession, ...(nativeTossContext(request) ? { verifyAccess: () => nativeTossContext(request).assertStored(consultation) } : {}) });
 }
 
 export async function handleKarmaDestinyAiRoutes(request, env = {}) {

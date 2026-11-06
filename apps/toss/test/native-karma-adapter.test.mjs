@@ -38,5 +38,12 @@ test('a paid missing checkpoint resumes with the immutable stored input',async()
  state.order='DENIED';await assert.rejects(api.handleNativeKarma(request(),{},auth,'/generate-batch'),e=>e.status===403);state.order='PURCHASED';
 });
 test('unapproved original routes cannot be reached through the adapter',async()=>{
- await assert.rejects(api.handleNativeKarma(new Request('https://example.invalid/message',{method:'POST',body:'{}'}),{},auth,'/message'),e=>e.status===404);
+ await assert.rejects(api.handleNativeKarma(new Request('https://example.invalid/ensure-access',{method:'POST',body:'{}'}),{},auth,'/ensure-access'),e=>e.status===404);
+});
+test('follow-up is forwarded only with the bound owner and active purchase',async()=>{
+ state.doc={id:'saved-result',accessSource:'toss',userId:'owner',idempotencyKey:row.requestId,inputHash:row.inputHash,paymentId:orderId};state.order='PURCHASED';
+ const request=()=>new Request('https://example.invalid/message',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'saved-result',message:'다음 선택은?'})});
+ assert.equal((await api.handleNativeKarma(request(),{},auth,'/message')).status,200);assert.equal(state.lastPath,'/api/karma-destiny-ai/message');
+ state.order='REFUNDED';await assert.rejects(api.handleNativeKarma(request(),{},auth,'/message'),e=>e.code==='ORDER_REFUNDED');state.order='PURCHASED';
+ await assert.rejects(api.handleNativeKarma(request(),{},{...auth,ownerId:'other'},'/message'),e=>e.status===404);
 });

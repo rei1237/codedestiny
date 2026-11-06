@@ -41,7 +41,7 @@ function karmaContext(env,auth){
 }
 
 export async function handleNativeKarma(request,env,auth,path){
-  if(!((request.method==='GET'&&path==='/result')||(request.method==='POST'&&['/start','/generate-batch'].includes(path))))throw new TossError('NOT_FOUND',404);
+  if(!((request.method==='GET'&&path==='/result')||(request.method==='POST'&&['/start','/generate-batch','/message'].includes(path))))throw new TossError('NOT_FOUND',404);
   const url=new URL(request.url);url.pathname='/api/karma-destiny-ai'+path;
   let body=request.method==='POST'?await request.json():null;
   const directId=path==='/result'?url.searchParams.get('sessionId'):path==='/generate-batch'?body?.sessionId:null;
