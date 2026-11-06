@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1 --port 4317",
+    "dev:offline": "node --require=../../scripts/lib/mock-network-guard.cjs ./node_modules/vite/bin/vite.js --config test/offline/vite.config.ts --mode toss-offline",
     "typecheck": "tsc --noEmit",
     "build": "tsc --noEmit && vite build && ait build",
     "test": "node --test test/*.test.mjs",
