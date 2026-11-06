@@ -2,6 +2,12 @@
 
 확인일: 2026-11-04 (KST). 이 문서는 심사 통과 또는 제출 가능 판정이 아니다. 콘솔 설정과 외부 정책은 제출 직전에 다시 확인한다.
 
+2026-11-06 뒤로가기: [비게임 출시 가이드](https://developers-apps-in-toss.toss.im/checklist/app-nongame)는 토스 내비게이션과 별도 뒤로가기 버튼을 동시에 표시하지 않도록 요구한다. 토스 연이 편지 상담과 오미쿠지의 중복 버튼을 제거하고 네이티브 뒤로가기 이벤트의 단계 이동과 입력 보존을 로컬 모의 검사했다. 다른 서비스 전체와 실제 기기는 아직 미검증이다.
+
+2026-11-06 오미쿠지: 원본의 결정적 결과 엔진을 빌드 시 읽어 토스 입력·제비 뽑기·재추첨·부적·결과 보기를 연결했다. 로그인 계정의 질문과 결과는 같은 브라우저 세션에서 계정별로만 복구하며, 비로그인 결과는 메모리에만 남고 화면을 닫으면 사라진다. 기기 간 기록과 비로그인 결과 재열람은 미구현이다. [공식 클립보드 SDK](https://developers-apps-in-toss.toss.im/documentation/sdk/domains-api/clipboard/clipboard.settext)의 쓰기 권한을 설정하고 거부를 별도로 표시하며 [공식 공유 SDK](https://developers-apps-in-toss.toss.im/documentation/sdk/domains-api/share/share.createlink)의 토스 딥링크를 사용한다. 공유 문구에는 질문 원문을 넣지 않는다. 복사·공유 브리지의 중복 호출을 막고 화면 이탈 뒤 늦게 도착한 공유 링크는 열지 않으며 권한·로그인·버전 오류를 구분한다. 로컬 React 모의 검사만 수행했고 실제 토스 기기, 콘솔 권한 및 정책·개인정보 고지는 미검증이다. 원본 웹의 카카오 SDK는 토스 번들에서 사용하지 않는다.
+
+2026-11-06 사주 FPTI 조사: 무료 계산 외에 별도 심층 리포트가 있다. 원본 `worker/routes/fpti.js`의 `premium-fpti-report`는 저장 프로필의 출생정보를 기준으로 영구 해금을 확인하고 보관된 리포트를 읽는다. 토스 SKU·프로필 권리 대응과 원본의 로컬 저장·권한 오류 경계를 검증하지 않았으므로 단건 상담으로 바꾸거나 전체 이식을 완료로 처리하지 않는다.
+
 2026-11-06 결제 화면·이벤트 경계: [단건 구매 SDK](https://developers-apps-in-toss.toss.im/documentation/sdk/domains-api/iap/iap.createonetimepurchaseorder)가 제공하는 성공 이벤트의 주문 번호를 지급에 사용한 주문 번호와 대조한다. 불일치하거나 응답이 잘못되면 성공 화면을 열지 않고 추가 결제를 차단한다. 찻집·숙요 공통 가격은 계정이나 상품이 바뀌는 렌더에서도 이전 범위의 금액을 숨긴다. 모두 로컬 모의 검증이며 실제 구매자 식별, 주문 번호 없는 재시작 복구, 콘솔 승인·가격 대조 및 공식 기기 검증은 여전히 출시 차단이다.
 
 2026-11-06 숙요 구매 복구: 미연결 주문은 검증된 계정·상품·가격의 준비 입력을 사용자가 선택한 경우에만 연결한다. 저장 입력이 없을 때 새 입력을 기존 주문에 연결하고, 권한을 재확인한 생성 실패 결과를 같은 주문으로 명시적으로 재시도하는 경로를 로컬 모의 환경에서 검증했다. `toss_sukuyo_prepared_recovery_v1`은 스키마에만 선언했으며 `autoIndex:false`이므로 운영 인덱스를 생성하거나 확인하지 않았다. 공식 기기, SKU, 최초 구매자 결합 및 주문 번호 없는 결제의 판정을 대신하지 않는다.
@@ -26,7 +32,7 @@
 
 | 항목 | 확인 근거 | 현재 판정 |
 |---|---|---|
-| 서비스 범위 | `docs/toss/build-service-inventory.mjs`, `full-service-inventory.json`, `apps/toss/scripts/launch-status.mjs` | 현재 홈·React·시각 레지스트리 재생성 결과 후보 89, 수동 근거에 따른 부분 구현 31, 추가 추적 58. 전체 라우트와 구현 계약, 완전 검증·출시 제외 미확정. |
+| 서비스 범위 | `docs/toss/build-service-inventory.mjs`, `full-service-inventory.json`, `apps/toss/scripts/launch-status.mjs` | 현재 홈·React·시각 레지스트리 재생성 결과 후보 89, 수동 근거에 따른 부분 구현 32, 추가 추적 57. 전체 라우트와 구현 계약, 완전 검증·출시 제외 미확정. |
 | 권한·결제 | `worker/toss/catalog.js`, `apps/toss/src/release.ts`; 콘솔 인앱 상품 목록 | 승인 상품 배열 비어 있음, 앱 공개 게이트 닫힘, 콘솔 상품 없음. 가격·권리·승인 상태 대조 전 판매 금지. 인생의 책과 인생 총운은 기능 키에 따라 표시 이름을 구분하도록 수정했으며 공식 기기 검증은 남았다. |
 | 상품 수 | [공식 인앱 결제 가이드](https://developers-apps-in-toss.toss.im/guide/monetization/in-app-payment) | 비게임 최대 30개. 개별 서비스 권리와 기존 가격을 보존하는 매핑 미확정. |
 | 로그인·서버 인증 | 콘솔 토스 로그인 및 mTLS 화면 | 로그인 설정 미등록, 인증서 발급 안내 상태. 발급·설정·실제 연동 검증 필요. |

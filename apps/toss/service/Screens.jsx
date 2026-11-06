@@ -48,6 +48,7 @@ const Sukuyo=lazy(()=>import('./TossSukuyoGate'));
 const Records=lazy(()=>import('@/app/records/RecordsClient'));
 const Maya=lazy(()=>import('@/src/components/maya/MayaCalendarView'));
 const MayaPrompt=lazy(()=>import('./TossMayaPrompt'));
+const Omikuji=lazy(()=>import('./TossOmikujiGate'));
 function VedicProfile(props){return <AstrologyProfile {...props} calendarMode="lunar"/>;}
 function VedicPrice(){return <AstrologyPrice featureKey="vedic-ai-consultation"/>;}
 function ZiweiProfile(props){return <AstrologyProfile {...props} calendarMode="native-lunar"/>;}
@@ -75,6 +76,15 @@ function ConsultationRedirect({href}){
  useEffect(()=>{if(routed.current)return;routed.current=true;location.replace(href);},[href]);
  return <p role="status">상담을 열고 있어요.</p>;
 }
+// The shared auth reset clears sessionStorage even during ordinary shell entry.
+// Preserve only this feature's owner-scoped result; it is never shown until the
+// matching account has been restored. Unlink deletion remains a release gate.
+export function preserveOmikujiSession(storage,clear){
+ const rows=[];const prefix='toss:omikuji-session:v1:';
+ try{for(let index=0;index<storage.length;index++){try{const key=storage.key(index);if(!key?.startsWith(prefix))continue;const raw=storage.getItem(key);if(!raw||raw.length>5000)continue;const saved=JSON.parse(raw);if(typeof saved.scope!=='string'||!saved.scope.startsWith('user:')||saved.scope.length<=5||key!==prefix+encodeURIComponent(saved.scope)||typeof saved.input?.question!=='string'||saved.input.question.length>220||saved.screen!=='result')continue;rows.push([key,raw]);}catch{/* A malformed record must not discard other owners' results. */}}}catch{/* Storage is optional. */}
+ clear();
+ try{for(const [key,raw] of rows)if(storage.getItem(key)===null)storage.setItem(key,raw);}catch{/* The screen reports unavailable storage when saving. */}
+}
 export default function ServiceScreens(){
  const [ready,setReady]=useState(false),[error,setError]=useState(''),[busy,setBusy]=useState(false),[recoveryMessage,setRecoveryMessage]=useState(''),[recoveryEpoch,setRecoveryEpoch]=useState(0);
  const bootstrapDraft=useRef(null),bootstrapTeaDraft=useRef(null),bootstrapSukuyoDraft=useRef(null);
@@ -97,13 +107,14 @@ export default function ServiceScreens(){
   const capture=()=>{const pending=recallPendingAuthDrafts(storage,location);bootstrapDraft.current=captureLetterDraft(storage,location)||bootstrapDraft.current||pending.letter;bootstrapTeaDraft.current=captureTeaDraft(storage,location)||bootstrapTeaDraft.current||pending.tea;bootstrapSukuyoDraft.current=captureSukuyoDraft(storage)||bootstrapSukuyoDraft.current||pending.sukuyo;};
   const restore=user=>{restoreLetterDraft(storage,bootstrapDraft.current,{location,user});restoreTeaDraft(storage,bootstrapTeaDraft.current,{location,user});restoreSukuyoDraft(storage,bootstrapSukuyoDraft.current,{user});};
   capture();
-  const offSession=onSessionInvalidated(()=>{capture();handleSessionInvalidated({redirect:false});rememberPendingAuthDrafts(storage,drafts());});
-  clearClientAuthState();rememberPendingAuthDrafts(storage,drafts());restore();
-  const showError=error=>{if(!live||error?.code==='SESSION_CHANGED')return;const status=error?.status===401||error?.status===403?error.status:error?.code==='ACCESS_DENIED'?403:['LOGIN_REQUIRED','SESSION_EXPIRED'].includes(error?.code)?401:0,update=error?.code==='UNSUPPORTED_APP_VERSION'&&typeof error.message==='string'&&error.message.trim()&&error.message!==error.code?error.message:'';if(status===401){capture();clearClientAuthState();rememberPendingAuthDrafts(storage,drafts());}if(SERVICE_AVAILABLE)setRecoveryMessage(status===403?'구매 내역에 접근할 권한을 확인할 수 없어요. 구매한 계정과 주문 내역을 확인해 주세요.':status===401?'기록과 구매를 확인하려면 토스 로그인이 필요해요.':update||(['IAP_NOT_SUPPORTED','UNSUPPORTED_APP_VERSION'].includes(error?.code)?'현재 토스 앱에서는 구매 복구를 지원하지 않아요. 앱 업데이트 후 다시 확인해 주세요.':'구매 내역을 확인하지 못했어요. 추가 결제 전에 로그인과 연결 상태를 확인해 주세요.'));};
+  const offSession=onSessionInvalidated(()=>{capture();preserveOmikujiSession(storage,()=>handleSessionInvalidated({redirect:false}));rememberPendingAuthDrafts(storage,drafts());});
+  preserveOmikujiSession(storage,clearClientAuthState);rememberPendingAuthDrafts(storage,drafts());restore();
+  const showError=error=>{if(!live||error?.code==='SESSION_CHANGED')return;const status=error?.status===401||error?.status===403?error.status:error?.code==='ACCESS_DENIED'?403:['LOGIN_REQUIRED','SESSION_EXPIRED'].includes(error?.code)?401:0,update=error?.code==='UNSUPPORTED_APP_VERSION'&&typeof error.message==='string'&&error.message.trim()&&error.message!==error.code?error.message:'';if(status===401){capture();preserveOmikujiSession(storage,clearClientAuthState);rememberPendingAuthDrafts(storage,drafts());}if(SERVICE_AVAILABLE)setRecoveryMessage(status===403?'구매 내역에 접근할 권한을 확인할 수 없어요. 구매한 계정과 주문 내역을 확인해 주세요.':status===401?'기록과 구매를 확인하려면 토스 로그인이 필요해요.':update||(['IAP_NOT_SUPPORTED','UNSUPPORTED_APP_VERSION'].includes(error?.code)?'현재 토스 앱에서는 구매 복구를 지원하지 않아요. 앱 업데이트 후 다시 확인해 주세요.':'구매 내역을 확인하지 못했어요. 추가 결제 전에 로그인과 연결 상태를 확인해 주세요.'));};
   void restoreSession().then(async authenticated=>{if(!authenticated)return;const user=await refreshAuth({force:true});if(live){restore(user);clearPendingAuthDrafts(storage,drafts(),user);bootstrapDraft.current=null;bootstrapTeaDraft.current=null;bootstrapSukuyoDraft.current=null;setReady(true);}try{const notice=await recoverAfterAuthentication(true);if(live&&notice)setRecoveryMessage(notice);}catch(error){showError(error);}finally{if(live)setRecoveryEpoch(value=>value+1);}}).catch(showError).finally(()=>{if(live){restore();setReady(true);}});
   return()=>{live=false;offSession();};
  },[]);
  const recoveryBanner=recoveryMessage?<div role="status"><p>{recoveryMessage}</p><a href="/recovery">구매 내역 복구하기</a></div>:null;
+ if(location.pathname==='/omikuji'||location.pathname==='/omikuji/')return <LazyMotion features={domAnimation}><ToastProvider/>{recoveryBanner}{ready?<Suspense fallback={<p role="status">오미쿠지를 열고 있어요.</p>}><Omikuji/></Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</LazyMotion>;
  if(location.pathname==='/maya'||location.pathname==='/maya/')return <LazyMotion features={domAnimation}><ToastProvider/>{recoveryBanner}{ready?<Suspense fallback={<p role="status">마야 달력을 열고 있어요.</p>}><Maya paymentSurface="toss" TossPrompt={MayaPrompt}/></Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</LazyMotion>;
  if(location.pathname.startsWith('/karma-destiny-ai'))return <LazyMotion features={domAnimation}><ToastProvider/>{recoveryBanner}{ready?<Suspense fallback={<p role="status">운명의 업 상담을 열고 있어요.</p>}><Karma result={location.pathname.includes('/result')}/></Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</LazyMotion>;
  if(location.pathname.startsWith('/new-year-ai-consultation'))return <LazyMotion features={domAnimation}><ToastProvider/>{recoveryBanner}{ready?<Suspense fallback={<p role="status">신년운세 상담을 열고 있어요.</p>}><NewYear paymentSurface="toss" ProfilePicker={NewYearProfile} TossPrice={NewYearPrice}/></Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</LazyMotion>;

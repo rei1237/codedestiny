@@ -2,10 +2,11 @@ import {readFile,readdir,stat} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import {resolve,dirname,sep,extname} from 'node:path';
 import {createHash} from 'node:crypto';
+import {extractOmikujiEngine} from './omikuji-engine-loader.mjs';
 const publicRoot=fileURLToPath(new URL('../../../public/',import.meta.url)).replace(/[\\/]$/,'');
 const shim=fileURLToPath(new URL('../canonical/next.jsx',import.meta.url)).replaceAll('\\','/');
 const defaults={'next/image':'Image','next/link':'Link','next/dynamic':'dynamic'};
-const asset=/["'`(\s,](\/(?:assets|images|icons|neo-operation-room)\/[^"'`)\s,]*)(?=["'`)\s,])/g;
+const asset=/["'`(\s,](\/(?:assets|images|icons|neo-operation-room|fuctionassets\/omikuji-charms)\/[^"'`)\s,]*)(?=["'`)\s,])/g;
 const mime={'.webp':'image/webp','.avif':'image/avif','.png':'image/png','.jpg':'image/jpeg','.svg':'image/svg+xml','.woff2':'font/woff2','.mp3':'audio/mpeg','.json':'application/json'};
 
 // The same font bytes already exist in the original artwork tree. Resolve by
@@ -52,6 +53,7 @@ export default function serviceCompat(){
    return code;
   },
   resolveId(id,importer){
+   if(id==='virtual:omikuji-engine')return '\0toss-omikuji-engine';
    const sourceId=id.startsWith('.')&&importer?resolve(dirname(importer.split('?')[0]),id):id;
    const normalized=sourceId.replaceAll('\\','/');
    if(/\/app\/components\/ReviewRewardBanner(?:\.[jt]sx)?$/.test(normalized))return fileURLToPath(new URL('./WebReviewReward.jsx',import.meta.url));
@@ -65,7 +67,7 @@ export default function serviceCompat(){
    if(id.replaceAll('\\','/').endsWith('/app/checkout/CheckoutClient'))return fileURLToPath(new URL('./Checkout.jsx',import.meta.url));
    if(id==='next/navigation'||defaults[id])return '\0toss-service:'+id;
   },
-  load(id){if(!id.startsWith('\0toss-service:'))return;const name=id.slice('\0toss-service:'.length);return defaults[name]?`export {${defaults[name]} as default} from ${JSON.stringify(shim)};`:`export {useRouter,usePathname,useSearchParams} from ${JSON.stringify(shim)};`;},
+  async load(id){if(id==='\0toss-omikuji-engine'){const source=resolve(publicRoot,'emoi_omikuji_v2.html');this.addWatchFile(source);return extractOmikujiEngine(await readFile(source,'utf8'));}if(!id.startsWith('\0toss-service:'))return;const name=id.slice('\0toss-service:'.length);return defaults[name]?`export {${defaults[name]} as default} from ${JSON.stringify(shim)};`:`export {useRouter,usePathname,useSearchParams} from ${JSON.stringify(shim)};`;},
   configureServer(server){server.middlewares.use(async(req,res,next)=>{
    let path;try{path=resolve(publicRoot,'.'+decodeURIComponent(new URL(req.url,'http://localhost').pathname));}catch{return next();}
    if(!path.startsWith(publicRoot+sep)||!mime[extname(path)])return next();

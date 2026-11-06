@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "264a3cd509b7dd57ac3880fddcbddd1b5143251d",
+  "sourceCommit": "759b49df9cdf896e2c11179d89519146cbd565b3",
   "scope": "Source discovery plus explicitly verified aliases; not a count of implemented services. Unmapped contracts are blocking work, not exclusions.",
   "sourceCounts": {
     "home": 63,
@@ -1710,8 +1710,8 @@
         "library": "not-verified",
         "device": "not-tested",
         "canonicalId": "omikuji",
-        "candidateStatus": "requires-full-flow-port-and-verification",
-        "canonicalRoute": null
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/omikuji/"
       }
     },
     {
@@ -4527,12 +4527,13 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/omikuji/",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "public/emoi_omikuji_v2.html canonical deterministic engine",
+      "resultRenderer": "apps/toss/service/TossOmikuji.jsx",
+      "storageContract": "signed-in owner-scoped session-only input and result recovery; guest result remains in memory; no cross-device record",
+      "verification": "local React mock validates draw, reroll, back, session restore, account switch, clipboard permission and native share; guest recovery, official device, console permission and policy verification pending"
     },
     {
       "id": "palm-reading",
