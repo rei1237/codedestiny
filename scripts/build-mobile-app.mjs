@@ -459,6 +459,44 @@ export async function offloadCraftedDetailImages({ dist = DIST, root = ROOT, rem
   return { offloaded, kept, network };
 }
 
+// 부적 원본(장당 약 2.6MB)은 배경화면 스튜디오에서 고를 때만 웹 출처에서 받는다(TalismanStudio가
+// verifyOriginal로 sha를 다시 본다). 카탈로그 sha와 번들 사본·웹 사본이 모두 같을 때만 뺀다.
+export async function offloadTalismanOriginals({ dist = DIST, root = ROOT, remoteHash = sha256OfUrl, now = Date.now() } = {}) {
+  const catalogFile = path.join(dist, "assets", "talismans", "catalog.json");
+  if (!(await exists(catalogFile))) return { offloaded: [], kept: [], network: 0 };
+  const catalog = JSON.parse(await fs.readFile(catalogFile, "utf8"));
+  const cacheFile = path.join(root, "build-cache", "app-remote-verified-v1.json");
+  let cache = {};
+  try { cache = JSON.parse(await fs.readFile(cacheFile, "utf8")); } catch { /* first run */ }
+  const offloaded = [];
+  const kept = [];
+  let network = 0;
+  for (const asset of catalog.assets || []) {
+    const src = String(asset.src || "");
+    if (!/^\/assets\/talismans\/originals\/[a-z0-9-]+\.png$/.test(src)) continue;
+    const bundled = path.join(dist, ...src.slice(1).split("/"));
+    if (!(await exists(bundled))) continue;
+    const sha = createHash("sha256").update(await fs.readFile(bundled)).digest("hex");
+    if (sha !== asset.sha256) { kept.push({ src, reason: "local-differs" }); continue; }
+    const hit = cache[src];
+    let ok = Boolean(hit && hit.sha === sha && now - hit.at < REMOTE_VERIFY_TTL_MS);
+    if (!ok) {
+      let remote = null;
+      try { network += 1; remote = await remoteHash(CRAFTED_REMOTE_ORIGIN + src); } catch { /* keep bundled */ }
+      ok = remote === sha;
+      if (ok) cache[src] = { sha, at: now };
+      else { kept.push({ src, reason: remote ? "remote-differs" : "remote-missing" }); delete cache[src]; }
+    }
+    if (!ok) continue;
+    const bytes = (await fs.stat(bundled)).size;
+    await fs.rm(bundled);
+    offloaded.push({ path: src.slice(1), bytes });
+  }
+  await fs.mkdir(path.dirname(cacheFile), { recursive: true });
+  await fs.writeFile(cacheFile, JSON.stringify(cache));
+  return { offloaded, kept, network };
+}
+
 /**
  * 바이트가 같은 이미지 사본 중 참조 0건인 것 제거.
  *
@@ -893,6 +931,9 @@ async function main() {
   const crafted = await offloadCraftedDetailImages();
   console.log(`  ✅ 상세 그림 웹 참조 전환: ${crafted.offloaded.length}개 (${(crafted.offloaded.reduce((bytes, item) => bytes + item.bytes, 0) / 1048576).toFixed(1)} MB), 번들 유지 ${crafted.kept.length}개, 원격 확인 ${crafted.network}건`);
   for (const item of crafted.kept.filter((entry) => entry.reason !== "named-in-code").slice(0, 10)) console.log(`       - 유지 ${item.src} (${item.reason})`);
+  const talismans = await offloadTalismanOriginals();
+  console.log(`  ✅ 부적 원본 웹 참조 전환: ${talismans.offloaded.length}개 (${(talismans.offloaded.reduce((bytes, item) => bytes + item.bytes, 0) / 1048576).toFixed(1)} MB), 번들 유지 ${talismans.kept.length}개, 원격 확인 ${talismans.network}건`);
+  for (const item of talismans.kept) console.log(`       - 유지 ${item.src} (${item.reason})`);
   const removedSources = await removeUnusedBrandSources(referenced);
   console.log(`  ✅ 미사용 브랜드 원본 사본 제외: ${removedSources.length}개 (${(removedSources.reduce((bytes, item) => bytes + item.bytes, 0) / 1048576).toFixed(1)} MB)`);
   const removedPngs = await removeDeadPngOriginals(referenced);

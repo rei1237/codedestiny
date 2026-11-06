@@ -54,3 +54,28 @@ test('crafted detail art moves to the website only when its bytes match public a
   await assert.rejects(fs.access(path.join(dist, 'feature-details/crafted/x/same.webp')));
   for (const name of ['changed.webp', 'named.webp']) await fs.access(path.join(dist, 'feature-details/crafted/x', name));
 });
+
+test('talisman originals leave the app only when catalog, bundled and web bytes share one sha', async t => {
+  const { offloadTalismanOriginals, CRAFTED_REMOTE_ORIGIN } = await import('../../scripts/build-mobile-app.mjs');
+  const studio = await fs.readFile(path.join(__dirname, '../../app/app/talismans/TalismanStudio.tsx'), 'utf8');
+  assert.match(studio, /fetch\(\(IS_APP_BUILD \? TALISMAN_REMOTE_ORIGIN : ""\) \+ asset\.src/);
+  assert.match(studio, /TALISMAN_REMOTE_ORIGIN = "https:\/\/code-destiny\.com"/);
+  assert.match(studio, /await verifyOriginal\(bytes, asset\)/, 'remote originals must still pass the sha check');
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'cd-talisman-root-'));
+  const dist = path.join(root, 'dist');
+  t.after(() => fs.rm(root, { recursive: true, force: true }));
+  const folder = path.join(dist, 'assets/talismans/originals');
+  await fs.mkdir(folder, { recursive: true });
+  const ids = ['same', 'web-differs', 'local-edited', 'web-missing'];
+  for (const id of ids) await fs.writeFile(path.join(folder, `${id}.png`), id === 'local-edited' ? 'edited' : `png ${id}`);
+  await fs.writeFile(path.join(dist, 'assets/talismans/catalog.json'), JSON.stringify({ assets: ids.map(id => ({ id, src: `/assets/talismans/originals/${id}.png`, sha256: sha(`png ${id}`) })) }));
+  const requested = [];
+  const remoteHash = async url => { requested.push(url); return url.endsWith('web-missing.png') ? null : url.endsWith('web-differs.png') ? sha('other') : sha(`png ${url.split('/').pop().replace('.png', '')}`); };
+  const result = await offloadTalismanOriginals({ dist, root, remoteHash, now: 1 });
+  assert.deepEqual(result.offloaded.map(item => item.path), ['assets/talismans/originals/same.png']);
+  assert.deepEqual(result.kept.map(item => [item.src.split('/').pop(), item.reason]).sort(), [['local-edited.png', 'local-differs'], ['web-differs.png', 'remote-differs'], ['web-missing.png', 'remote-missing']]);
+  assert.ok(requested.every(url => url.startsWith(`${CRAFTED_REMOTE_ORIGIN}/assets/talismans/originals/`)));
+  assert.ok(!requested.some(url => url.endsWith('local-edited.png')));
+  await assert.rejects(fs.access(path.join(folder, 'same.png')));
+  for (const id of ['web-differs', 'local-edited', 'web-missing']) await fs.access(path.join(folder, `${id}.png`));
+});

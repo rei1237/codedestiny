@@ -3,10 +3,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Download, Moon, Share2, Smartphone } from "lucide-react";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
+import { IS_APP_BUILD } from "@/lib/app-build-target";
 import { approvedAssets, categories, scenes, verifyOriginal, type Category, type Scene } from "./catalog";
 import { fittedWallpaper, normalizeScreen, wallpaperFit, type ScreenSize, type WallpaperTarget } from "./wallpaper-fit";
 
 import { getTalismanCopy } from "./copy";
+
+const TALISMAN_REMOTE_ORIGIN = "https://code-destiny.com";
 
 type ExportAction = "original" | "fit" | "share" | "apply" | "picker";
 type NativeExports = {
@@ -76,7 +79,8 @@ export default function TalismanStudio() {
     let url = "";
     void (async () => {
       try {
-        const response = await fetch(asset.src, { signal: controller.signal, cache: "force-cache" });
+        // 앱 패키지는 sha가 웹과 같은 원본을 빼고 내보낸다 — 고를 때만 받고 아래 verifyOriginal이 같은지 본다.
+        const response = await fetch((IS_APP_BUILD ? TALISMAN_REMOTE_ORIGIN : "") + asset.src, { signal: controller.signal, cache: "force-cache" });
         if (!response.ok) throw new Error("IMAGE_UNAVAILABLE");
         const bytes = await response.arrayBuffer();
         await verifyOriginal(bytes, asset);
