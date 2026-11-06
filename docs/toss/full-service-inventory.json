@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "7f6eb56b23f405fa5ecf19478473ad7e302a9f7b",
+  "sourceCommit": "7c431ae36c0a47c7ca4d19d7e201290f73a07f8e",
   "scope": "Source discovery plus explicitly verified aliases; not a count of implemented services. Unmapped contracts are blocking work, not exclusions.",
   "sourceCounts": {
     "home": 63,
@@ -293,7 +293,7 @@
           "name": "운명의 나침반",
           "entry": "/destiny-compass/",
           "featureKey": "destiny-compass-life-voyage",
-          "accessEvidence": "7,000원"
+          "accessEvidence": "5,000원"
         },
         {
           "source": "shell-visual-details",
@@ -1237,7 +1237,7 @@
           "name": "동서 통합 궁합",
           "entry": "/nakshatra/compat/",
           "featureKey": "nakshatra-compat",
-          "accessEvidence": "20,000원"
+          "accessEvidence": "5,000원"
         },
         {
           "source": "shell-visual-details",
@@ -1267,7 +1267,7 @@
           "name": "택일 무후르타",
           "entry": "/nakshatra/muhurta/",
           "featureKey": "nakshatra-muhurta",
-          "accessEvidence": "7,000원"
+          "accessEvidence": "5,000원"
         },
         {
           "source": "shell-visual-details",
@@ -1297,7 +1297,7 @@
           "name": "나크샤트라 VVIP 코덱스",
           "entry": "/nakshatra/vvip/",
           "featureKey": "nakshatra-vvip-codex",
-          "accessEvidence": "30,000원"
+          "accessEvidence": "5,000원"
         },
         {
           "source": "shell-visual-details",
@@ -1835,7 +1835,7 @@
           "name": "사주 궁합",
           "entry": "/saju/compatibility/",
           "featureKey": "compat-saju-compatibility",
-          "accessEvidence": "10,000원"
+          "accessEvidence": "5,000원"
         }
       ],
       "toss": {
@@ -1879,7 +1879,7 @@
           "name": "사주 가디언 소환진",
           "entry": "openSajuGuardianPage",
           "featureKey": "saju-guardian-unlock",
-          "accessEvidence": "7,000원"
+          "accessEvidence": "5,000원"
         },
         {
           "source": "shell-visual-details",
@@ -2177,7 +2177,7 @@
           "name": "천체의 선율",
           "entry": "/celestial-harmony.html",
           "featureKey": "tarot-celestial-harmony",
-          "accessEvidence": "10,000원"
+          "accessEvidence": "5,000원"
         },
         {
           "source": "shell-visual-details",
@@ -2417,7 +2417,7 @@
           "name": "십이지신 천운 타로",
           "entry": "openTarotYearFortuneModal",
           "featureKey": "tarot-year-fortune",
-          "accessEvidence": "10,000원"
+          "accessEvidence": "5,000원"
         },
         {
           "source": "shell-visual-details",
@@ -2923,7 +2923,7 @@
           "name": "운명의 나침반",
           "entry": "/destiny-compass/",
           "featureKey": "destiny-compass-life-voyage",
-          "accessEvidence": "7,000원"
+          "accessEvidence": "5,000원"
         },
         {
           "source": "shell-visual-details",
@@ -3451,7 +3451,7 @@
       "inputContract": "worker/toss/native-karma.js + nativeKarmaContract",
       "resultRenderer": "apps/toss/service/TossKarma.tsx + app/karma-destiny-ai/result/KarmaDestinyAiResultClient.tsx",
       "storageContract": "owner-scoped Toss intent and original KarmaDestinyAiConsultation; approved SKU, purchaser binding, durable checkout and device verification pending",
-      "verification": "mock purchase, recovery, lunar leap validation and local mobile layout only; follow-up, other locales, official device and complete flow not verified"
+      "verification": "mock purchase, follow-up authorization and recovery, lunar leap validation and local mobile layout only; other locales, AI policy, official device and complete flow not verified"
     },
     {
       "id": "kemet-oracle",
@@ -3636,8 +3636,9 @@
       "tossRoute": "/love-secret-ai/",
       "sku": null,
       "inputContract": "worker/toss/native-love-secret.js",
-      "resultRenderer": "apps/toss/service/LoveSecret.jsx",
-      "storageContract": "owned-TossPurchase; device-and-console-approval-pending"
+      "resultRenderer": "apps/toss/service/LoveSecret.jsx + app/love-secret-ai/result/LoveSecretAiResultClient.tsx",
+      "storageContract": "owned Toss purchase, Toss-origin consultation and verified follow-up recovery; approved SKU, purchaser binding, durable checkout and device verification pending",
+      "verification": "mock result and follow-up access, refund and account-switch tests; legacy unmarked web records, AI policy and official device remain unverified"
     },
     {
       "id": "luck-sync-diary",
@@ -3922,7 +3923,7 @@
           "name": "동서 통합 궁합",
           "entry": "/nakshatra/compat/",
           "featureKey": "nakshatra-compat",
-          "accessEvidence": "20,000원"
+          "accessEvidence": "5,000원"
         },
         {
           "source": "shell-visual-details",
@@ -3953,7 +3954,7 @@
           "name": "택일 무후르타",
           "entry": "/nakshatra/muhurta/",
           "featureKey": "nakshatra-muhurta",
-          "accessEvidence": "7,000원"
+          "accessEvidence": "5,000원"
         },
         {
           "source": "shell-visual-details",
@@ -3984,7 +3985,7 @@
           "name": "나크샤트라 VVIP 코덱스",
           "entry": "/nakshatra/vvip/",
           "featureKey": "nakshatra-vvip-codex",
-          "accessEvidence": "30,000원"
+          "accessEvidence": "5,000원"
         },
         {
           "source": "shell-visual-details",
@@ -4536,7 +4537,7 @@
           "name": "사주 궁합",
           "entry": "/saju/compatibility/",
           "featureKey": "compat-saju-compatibility",
-          "accessEvidence": "10,000원"
+          "accessEvidence": "5,000원"
         }
       ],
       "aliasEvidence": [],
@@ -4591,7 +4592,7 @@
           "name": "사주 가디언 소환진",
           "entry": "openSajuGuardianPage",
           "featureKey": "saju-guardian-unlock",
-          "accessEvidence": "7,000원"
+          "accessEvidence": "5,000원"
         },
         {
           "source": "shell-visual-details",
@@ -4837,7 +4838,7 @@
           "name": "천체의 선율",
           "entry": "/celestial-harmony.html",
           "featureKey": "tarot-celestial-harmony",
-          "accessEvidence": "10,000원"
+          "accessEvidence": "5,000원"
         },
         {
           "source": "shell-visual-details",
@@ -5129,7 +5130,7 @@
           "name": "십이지신 천운 타로",
           "entry": "openTarotYearFortuneModal",
           "featureKey": "tarot-year-fortune",
-          "accessEvidence": "10,000원"
+          "accessEvidence": "5,000원"
         },
         {
           "source": "shell-visual-details",

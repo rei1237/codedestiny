@@ -2,6 +2,8 @@
 
 확인일: 2026-11-04 (KST). 이 문서는 심사 통과 또는 제출 가능 판정이 아니다. 콘솔 설정과 외부 정책은 제출 직전에 다시 확인한다.
 
+2026-11-06 통합 검증: 다른 세션의 최신 원격 main `a5fe57bdd7eb6c0aaab08592d9720a54f73ab7bb`을 전용 워크트리에서 통합했다(`7c431ae36c0a47c7ca4d19d7e201290f73a07f8e`). 사이트맵 원장과 네 XML 충돌은 병합 소스의 서명으로 재생성했고 URL 1,059개 드리프트 검사가 통과했다. 원격 main에 있던 `app/components/service-packs/service-packs.module.css`의 마지막 빈 줄 한 줄은 통합 공백 검사를 통과하도록 제거했다. 통합 트리 `check:fast`는 Node 4,623개·Jest 7,675개를 통과했고, 앱인토스 mock 659개와 로컬 번들도 통과했다. 다른 세션의 미커밋 파일은 건드리지 않았다. 이 통합은 main 반영·push·GitHub CI 또는 공식 기기 시험이 아니다.
+
 2026-11-06 지급 콜백 호환성: 공식 [단건 결제 SDK](https://developers-apps-in-toss.toss.im/documentation/sdk/domains-api/iap/iap.createonetimepurchaseorder)는 결제 API의 기본 지원 버전보다 높은 Android 5.231.1·iOS 5.230.0부터 지급 콜백의 성공·실패 반환 처리를 명시한다. `apps/toss/src/platform.ts`는 공식 `isMinVersionSupported`로 두 구매 진입점을 확인하며 미지원 시 새 결제창을 열지 않는다. 조회가 던진 인증·권한 오류는 원형을 유지하고, 미지급 주문 복구에는 이 추가 버전 제한을 적용하지 않는다. 연이 화면은 미지원 시 업데이트를 안내한다. 앱인토스 전용 mock 659개, 공식 devtools SDK mock, `check:fast`의 결제 게이트 77개·Node 4,529개·Jest 7,534개와 로컬 앱 번들이 통과했다. 모의 테스트는 버전별 실제 기기 동작이나 실제 주문을 증명하지 않는다.
 
 2026-11-06 추가 주문 검증 근거: [토스 운영진의 11월 5일 답변](https://techchat-apps-in-toss.toss.im/t/topic/5122)은 구매자 검증 API가 아직 제공되지 않고 QR 테스트는 실제 과금이라고 설명한다. [11월 3일 답변](https://techchat-apps-in-toss.toss.im/t/anonkey-iap/5097/6)은 SDK 콜백과 주문별 중복 방지 권고와 별개로 서버 독립 구매자 검증은 제공되지 않는다고 명시한다. 최초 주문 매핑은 여전히 출시 차단이다. [운영진의 가격 안내](https://techchat-apps-in-toss.toss.im/t/topic/4839/2)에 따르면 상품 가격은 콘솔 변경만으로 SDK 표시 금액에 반영될 수 있으므로 등록 시뿐 아니라 변경 시에도 기존 가격 정본과 최종 판매가를 대조해야 한다.
