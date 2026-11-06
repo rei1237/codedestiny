@@ -1,5 +1,6 @@
 import fs from 'node:fs/promises';
 import {publicationDate,koreanPublicationDay} from '../../lib/editions/ledger-date.mjs';
+import {archiveReceipt} from './archive-receipt.mjs';
 import os from 'node:os';
 import path from 'node:path';
 import {spawnSync} from 'node:child_process';
@@ -30,9 +31,11 @@ if(process.argv.includes('--check')) {
       const entry=entries.find(e=>e.id===item.editionId);
       if(entry.pins[item.serial-1]) {
         item.publishedOn=publicationDate({...item,publishedOn:entry.publishedDays[item.serial-1]});
+        if(entry.externalShas[item.serial-1])item.externalSha=entry.externalShas[item.serial-1];
         continue;
       }
       item.publishedOn=publishedToday;
+      await archiveReceipt(catalog,item);
       upload(item.code+'.json'); upload(item.code+'.png');
     }
     await fs.writeFile(path.join(dest,'index.json'),JSON.stringify({environment:TEST_ENVIRONMENT,items:catalog})+'\n');

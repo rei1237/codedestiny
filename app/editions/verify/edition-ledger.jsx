@@ -4,6 +4,7 @@ import {TEST_ENVIRONMENT,TEST_RECORDS} from '../../../lib/editions/production-te
 import {seriesRows} from '../../../lib/editions/batch-registry.mjs';
 import {publicationDate} from '../../../lib/editions/ledger-date.mjs';
 import {compareDeclaration} from '../../../lib/editions/declaration.mjs';
+import SaleStatus from './sale-status';
 import PublicBatch from './public-batch';
 import styles from '../workshop.module.css';
 
@@ -36,8 +37,9 @@ export default function EditionLedger({proof}) {
           <td>{day?<time dateTime={day}>{day.replace(/-/g,'. ')}</time>:'날짜 확인 중'}</td></tr>;
       })}</tbody></table>
       {catalog.declaration && <div><p>최초 공개 한도 {catalog.declaration.cap}개 · 공개 원본과 일치하는 기록 {catalog.declaration.confirmed}개</p>
-        {catalog.rows.length>catalog.declaration.confirmed && <p>이후 발행분은 공방 집계이며, 공개 원본과의 대조를 기다리고 있어요.</p>}
+
         <a href={catalog.declaration.url}>최초 발행 원본에서 수량 대조하기</a></div>}
+      <SaleStatus code={proof.code}/>
       <PublicBatch proof={proof} items={catalog.items}/>
     </>}
   </section>;

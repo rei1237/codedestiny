@@ -4,7 +4,7 @@ on:
   schedule:
     - cron: '7,27,47 * * * *'
 permissions:
-  contents: read
+  contents: write # Publish per-number archive tags; never push main from this job.
 concurrency:
   group: edition-production-test-issuer
   cancel-in-progress: false
@@ -14,6 +14,8 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
@@ -27,10 +29,14 @@ jobs:
           npm install --prefix local/edition-workshop --ignore-scripts --package-lock=false --no-audit --no-fund
       - name: Verify isolated test issuance
         if: steps.queue.outputs.pending == 'true'
-        run: node --test local/edition-workshop/production-test.test.mjs
+        run: node --test local/edition-workshop/production-test.test.mjs local/edition-workshop/external-record.test.mjs
       - name: Publish verified test receipts
         if: steps.queue.outputs.pending == 'true'
         env:
+          GH_TOKEN: ${{ github.token }}
+          GIT_CONFIG_COUNT: "1"
+          GIT_CONFIG_KEY_0: credential.https://github.com.helper
+          GIT_CONFIG_VALUE_0: "!gh auth git-credential"
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: node local/edition-workshop/publish-production-test.mjs
