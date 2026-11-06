@@ -5,7 +5,7 @@ import {TossPurchase,TossNativeConsultation} from '../../../worker/toss/models.j
 import {ZiweiAiConsultation} from '../../../worker/lib/models.js';
 
 const ownerId='507f1f77bcf86cd799439011';
-for(const service of ['tea','neo','fusion','life-book','love-secret','astrology','vedic','ziwei']){
+for(const service of ['tea','neo','fusion','life-book','love-secret','astrology','vedic','ziwei','maya']){
  test(`${service} can persist its approved purchase and immutable intent without database access`,()=>{
   const shared={_id:'offline-model-fixture',identityId:'offline-identity',ownerId,environment:'SANDBOX',
    nativeService:service,sku:'offline-only',approvedPriceKRW:10000,priceEvidence:'offline fixture'};
@@ -17,6 +17,11 @@ for(const service of ['tea','neo','fusion','life-book','love-secret','astrology'
 }
 test('unknown native service remains invalid in both persisted models',()=>{
  for(const Model of [TossPurchase,TossNativeConsultation])assert.ok(new Model({nativeService:'unknown'}).validateSync()?.errors.nativeService);
+});
+test('Maya result storage retains the prompt and its original input hash',()=>{
+ const result={version:'maya-prompt-v1',inputHash:'original',prompt:'saved prompt'};
+ const row=new TossNativeConsultation({savedResult:result});
+ assert.deepEqual(row.savedResult,result);
 });
 test('Ziwei stored results retain Toss origin and reject an unknown origin',()=>{
  const origin=ZiweiAiConsultation.schema.path('accessSource');

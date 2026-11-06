@@ -8,7 +8,7 @@ const require=createRequire(import.meta.url),Module=require('node:module');
 const calls={profiles:[],prepared:[],followups:0};
 const auth={_id:'identity',ownerId:'owner',userId:'owner',userKey:'123',environment:'SANDBOX'};
 const mocks={
- tarotProducts:[],grants:[],deliveries:0,dailyCalls:[],nativeLove:[],nativeAstrology:[],nativeVedic:[],nativeZiwei:[],nativeNewYear:[],nativeKarma:[],libraryRows:[],
+ tarotProducts:[],grants:[],deliveries:0,dailyCalls:[],nativeLove:[],nativeAstrology:[],nativeVedic:[],nativeZiwei:[],nativeNewYear:[],nativeKarma:[],nativeMaya:[],libraryRows:[],
  auth:async()=>auth,profile:async(...args)=>calls.profiles.push(args),
  product:sku=>({productId:sku.includes(':')?sku.split(':')[1]:sku,serviceId:sku.includes(':')?sku.split(':')[0]:'yeongnyangi',sku,approvedPriceKRW:1,approved:true}),
  prepare:async(_env,user,body,options)=>{calls.prepared.push({user,body,options});return {_id:'a'.repeat(64),productId:body.productId,amountKRW:1,snapshot:{manifest:[{id:'part',title:'answer',ordinal:0}]}};},
@@ -19,6 +19,7 @@ const stubMap={
  'worker/toss/letter.js':"import {TossError} from './policy.js';export const approvedLetterSale=domain=>{if(globalThis.__tossRouteMocks.letterApproved===domain)return {};throw new TossError('TOSS_PRODUCT_NOT_APPROVED',503);};export const prepareTossLetter=(...args)=>globalThis.__tossRouteMocks.letterPrepare(...args);export const prepareRecoveredTossLetter=(...args)=>globalThis.__tossRouteMocks.letterRecover(...args);export const recoverableLetterOrder=(...args)=>globalThis.__tossRouteMocks.letterOrder(...args);export const readRecoveringTossLetter=(...args)=>globalThis.__tossRouteMocks.letterDraft(...args);export const readTossLetter=async(...args)=>{try{return await globalThis.__tossRouteMocks.letterRead(...args);}catch(error){if(error.code==='ACCESS_DENIED')throw new TossError(error.code,error.status);throw error;}};",
  'worker/toss/letter-library.js':"export const letterLibraryPage=(...args)=>globalThis.__tossRouteMocks.letterList(...args);",
  'worker/toss/native-life-book.js':"export const prepareNativeLifeBook=()=>{};export const handleNativeLifeBook=()=>{};export const nativeLifeBookLibraryItem=()=>{};",
+ 'worker/toss/native-maya.js':"import {TossError} from './policy.js';const state=globalThis.__tossRouteMocks;export const prepareNativeMaya=(...args)=>{state.nativeMaya.push(['prepare',...args]);return {id:'offline-intent'};};export const readNativeMaya=(...args)=>{state.nativeMaya.push(['read',...args]);if(state.nativeFailure)throw new TossError(state.nativeFailure.code,state.nativeFailure.status);return {state:'PENDING'};};export const nativeMayaLibraryItem=()=>{};",
  'worker/toss/native-karma.js':"import {TossError} from './policy.js';const state=globalThis.__tossRouteMocks;export const prepareNativeKarma=(...args)=>{state.nativeKarma.push(args);return {id:'offline-intent'};};export const handleNativeKarma=(...args)=>{state.nativeKarma.push(args);if(state.nativeFailure)throw new TossError(state.nativeFailure.code,state.nativeFailure.status);return Response.json({ok:true,source:'original-karma'});};export const nativeKarmaLibraryItem=()=>{};",
  'worker/toss/native-new-year.js':"import {TossError} from './policy.js';const state=globalThis.__tossRouteMocks;export const prepareNativeNewYear=(...args)=>{state.nativeNewYear.push(args);return {id:'offline-intent'};};export const handleNativeNewYear=(...args)=>{state.nativeNewYear.push(args);if(state.nativeFailure)throw new TossError(state.nativeFailure.code,state.nativeFailure.status);return Response.json({ok:true,source:'original-new-year'});};export const nativeNewYearLibraryItem=()=>{};",
  'worker/toss/native-love-secret.js':"const calls=globalThis.__tossRouteMocks.nativeLove;export const prepareNativeLoveSecret=(...args)=>{calls.push(args);return {id:'offline-intent'};};export const handleNativeLoveSecret=(...args)=>{calls.push(args);return Response.json({ok:true,source:'original-love'});};export const nativeLoveSecretLibraryItem=()=>{};",
@@ -84,6 +85,16 @@ test('karma routes require release and account, and preserve denied result acces
  mocks.denyAuth=true;try{assert.equal((await request({input:{}},'/native/karma/prepare')).status,401);}finally{mocks.denyAuth=false;}
  const prepared=await request({input:{question:'x'}},'/native/karma/prepare');assert.equal(prepared.status,200);assert.equal(mocks.nativeKarma.at(-1)[1],auth);
  mocks.nativeFailure={code:'ACCESS_DENIED',status:403};try{const denied=await request({},'/canonical/karma-destiny-ai/start');assert.equal(denied.status,403);assert.equal((await denied.json()).error,'ACCESS_DENIED');}finally{mocks.nativeFailure=null;}
+});
+test('Maya routes enforce release and login, separate reads from generation, and preserve permission errors',async()=>{
+ const id='a'.repeat(64),path=`/native/maya/results/${id}`;
+ mocks.nativeMaya.length=0;assert.equal((await request({input:{}},'/native/maya/prepare',{})).status,503);assert.equal(mocks.nativeMaya.length,0);
+ mocks.denyAuth=true;try{assert.equal((await request({input:{}},'/native/maya/prepare')).status,401);}finally{mocks.denyAuth=false;}
+ assert.equal((await request({input:{question:'x'}},'/native/maya/prepare')).status,200);assert.equal(mocks.nativeMaya.at(-1)[2],auth);
+ const read=await handleTossRoutes(new Request('https://code-destiny.com/api/toss'+path,{headers:{Origin:'https://ai-saju-studio.private-apps.tossmini.com'}}),{TOSS_RELEASE_READY:'true'});
+ assert.equal(read.status,200);assert.equal(mocks.nativeMaya.at(-1)[3],id);assert.equal(mocks.nativeMaya.at(-1)[4],undefined);
+ assert.equal((await request({},path)).status,200);assert.deepEqual(mocks.nativeMaya.at(-1)[4],{generate:true});
+ mocks.nativeFailure={code:'ACCESS_DENIED',status:403};try{const denied=await request({},path);assert.equal(denied.status,403);assert.equal((await denied.json()).error,'ACCESS_DENIED');}finally{mocks.nativeFailure=null;}
 });
 
 test('conflicting sale SKUs block new orders but do not block an already stored tarot order',async()=>{
