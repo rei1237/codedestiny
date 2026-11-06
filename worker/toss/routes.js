@@ -235,6 +235,18 @@ export async function handleTossRoutes(request,env) {
       const {handleNativeKarma}=await import('./native-karma.js');
       return forwardServiceResponse(await handleNativeKarma(request,env,auth,path.slice('/canonical/karma-destiny-ai'.length)),headers);
     }
+    if(path==='/native/maya/recovery/drafts'&&request.method==='POST'){
+      await limit(env,auth._id,'native-maya-recovery',20);
+      const {listNativeMayaRecovery}=await import('./native-maya-recovery.js');
+      const input=await bodyOf(request);
+      return reply(await listNativeMayaRecovery(env,auth,input.orderId,input.cursor,verifyLibraryOrder));
+    }
+    if(path==='/native/maya/recovery/attach'&&request.method==='POST'){
+      await limit(env,auth._id,'native-maya-recovery',20);
+      const {attachNativeMayaRecovery}=await import('./native-maya-recovery.js');
+      const input=await bodyOf(request);
+      return reply(await attachNativeMayaRecovery(env,auth,input.orderId,input.intentId,verifyLibraryOrder));
+    }
     if(path==='/native/maya/prepare'&&request.method==='POST'){
       await limit(env,auth._id,'native-maya-prepare',6);
       const {prepareNativeMaya}=await import('./native-maya.js');

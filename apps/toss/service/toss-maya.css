@@ -25,3 +25,5 @@
   color: #112016;
   font-size: 16px;
 }
+.toss-maya .toss-maya-drafts { display: grid; gap: 12px; margin: 12px 0; padding: 0; list-style: none; }
+.toss-maya .toss-maya-drafts li { min-width: 0; padding: 12px; border: 1px solid #806b42; border-radius: 6px; overflow-wrap: anywhere; }

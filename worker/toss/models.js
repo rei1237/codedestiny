@@ -45,3 +45,8 @@ export const TossNativeConsultation = model('TossNativeConsultation', {
   orderId:{type:String,default:null},status:{type:String,enum:['prepared','paid','refunded'],default:'prepared'},
   savedResult:{type:mongoose.Schema.Types.Mixed,default:null},
 }, {collection:'toss_native_consultations'});
+// autoIndex is disabled: provision and verify this index before enabling recovery.
+TossNativeConsultation.schema.index(
+  {identityId:1,ownerId:1,environment:1,sku:1,approvedPriceKRW:1,createdAt:-1,_id:-1},
+  {name:'toss_maya_prepared_recovery_v1',partialFilterExpression:{nativeService:'maya',status:'prepared'}},
+);

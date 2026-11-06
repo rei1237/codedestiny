@@ -14,7 +14,7 @@ export async function prepareNativeMaya(env,auth,input,orderId){
   return prepareNativeConsultation(env,auth,prepared.input,orderId,prepared.contract,SERVICE);
 }
 
-async function checkedInput(row,auth){
+export async function checkedNativeMayaInput(row,auth){
   assertNativeIntent(row,auth);
   const input=normalizeMayaInput(row.input);
   if(row.nativeService!==SERVICE||row.featureKey!==FEATURE||row.requestId!==input.requestId||row.inputHash!==await hash(JSON.stringify(input)))throw new TossError('REQUEST_INPUT_MISMATCH',409);
@@ -32,7 +32,7 @@ export async function readNativeMaya(env,auth,id,{generate=false}={}){
   if(!idPattern.test(id))throw new TossError('RESULT_NOT_FOUND',404);
   const filter={_id:id,...ownerFilter(auth)};
   let row=await TossNativeConsultation.findOne(filter).lean();
-  const input=await checkedInput(row,auth);
+  const input=await checkedNativeMayaInput(row,auth);
   await verifiedIntent(env,auth,row);
   if(!row.savedResult&&generate){
     const prompt=buildMayaPrompt(input);
@@ -40,7 +40,7 @@ export async function readNativeMaya(env,auth,id,{generate=false}={}){
     row=await TossNativeConsultation.findOneAndUpdate({...filter,status:'paid',orderId:row.orderId,inputHash:row.inputHash,savedResult:null},{$set:{savedResult}},{new:true,runValidators:true}).lean()
       ||await TossNativeConsultation.findOne(filter).lean();
   }
-  await checkedInput(row,auth);
+  await checkedNativeMayaInput(row,auth);
   await verifiedIntent(env,auth,row);
   if(!row.savedResult)return {id:row._id,resultId:row.resultId,state:'PENDING'};
   return {id:row._id,resultId:row.resultId,state:'COMPLETED',prompt:savedPrompt(row)};
@@ -52,7 +52,7 @@ export async function nativeMayaLibraryItem(env,auth,purchase){
   if(!purchase.requestId)return {state:'UNASSIGNED',href:'/maya/?orderId='+encodeURIComponent(purchase._id)};
   if(!idPattern.test(purchase.requestId))throw new TossError('RESULT_NOT_FOUND',404);
   const row=await TossNativeConsultation.findOne({_id:purchase.requestId,...ownerFilter(auth),orderId:purchase._id}).lean();
-  const input=await checkedInput(row,auth);
+  const input=await checkedNativeMayaInput(row,auth);
   await verifiedIntent(env,auth,row);
   if(row.savedResult)savedPrompt(row);
   return {state:row.savedResult?'COMPLETED':'PENDING',resultId:row.resultId,href:'/maya/?intentId='+encodeURIComponent(row._id),question:input.question.slice(0,200)};
