@@ -53,11 +53,16 @@ export default function MoonlightTutorial({ onWrite }) {
         <header className={styles.bar}><span>꿀꿀 운세 이용 안내</span><button type="button" autoFocus onClick={() => dismiss()}>닫기</button></header>
         <article className={styles.story}>
           <h2 id="moonlight-reader-title">달빛 아래, 어디서 시작할까요?</h2>
-          {moonlightPanels.map(panel => <section key={panel.art} className={styles.panel} aria-label={panel.title}>
-            <Image src={'/images/moonlight-guide/' + panel.art + '.webp'} width={508} height={508}
-              alt={panel.alt} loading={panel.art === 'question' ? 'eager' : 'lazy'} />
+          {moonlightPanels.map((panel, index) => <section key={panel.art} className={styles.panel} aria-label={panel.title}>
+            {panel.img
+              ? <picture>
+                <source type="image/avif" srcSet={panel.img.widths.map(w => panel.img.avif + '-' + w + '.avif ' + w + 'w').join(', ')} sizes="(max-width:560px) calc(100vw - 32px), 508px" />
+                <img src={panel.img.src} width={508} height={508} alt={panel.alt} loading={index === 0 ? 'eager' : 'lazy'} decoding="async" />
+              </picture>
+              : <Image src={'/images/moonlight-guide/' + panel.art + '.webp'} width={508} height={508}
+                alt={panel.alt} loading={index === 0 ? 'eager' : 'lazy'} />}
             <h3>{panel.title}</h3>
-            <p className={styles.bubble}><b>{panel.speaker}</b>{panel.line}</p>
+            {panel.lines.map(([speaker, text]) => <p key={text} className={styles.bubble} data-cat={speaker === '영냥이' ? '' : undefined}><b>{speaker}</b>{text}</p>)}
             {panel.link && <a href={panel.link.href} target="_blank" rel="noreferrer">{panel.link.text} <small>(새 창)</small></a>}
           </section>)}
           <button className={styles.write} onClick={() => dismiss(true)}>내 질문 써보기</button>
