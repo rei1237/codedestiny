@@ -56,7 +56,7 @@ for(const [id,entry,api] of [['pet-saju','pet-saju.html','/api/pet-saju/blueprin
  groups.set(id,{id,discoveryIds:[],evidence:[{source:'index.html',entry:'/'+entry,api}],status:'not-ported',tossRoute:null,sku:null,inputContract:null,resultRenderer:null,storageContract:null});
 }
 const localEvidence={
- maya:{tossRoute:'/maya/',status:'local-partial',inputContract:'src/lib/maya-calendar.ts (date-only calendar calculation)',resultRenderer:'src/components/maya/MayaCalendarView.tsx',storageContract:'calendar selection is not stored; paid prompt and purchase recovery are not ported',verification:'mock home/direct route, native back and date calculation; 360/390/430px local browser only; paid prompt, language parity and official device not verified'},
+ maya:{tossRoute:'/maya/',status:'local-partial',inputContract:'worker/toss/maya-contract.js',resultRenderer:'apps/toss/service/TossMayaPrompt.tsx + src/components/maya/MayaCalendarView.tsx',storageContract:'owner-scoped prepared input, paid prompt and explicit unassigned-order recovery; production index and approved SKU pending',verification:'mock purchase, account/refund checks and draft recovery; source UI 3000 KRW conflicts with server registry 5000 KRW, actual SKU price, external-AI prompt policy and official device not verified'},
  manse:{tossRoute:'/manse',status:'local-partial',inputContract:'worker/toss/manse.js (canonical screen saju engine)',resultRenderer:'apps/toss/src/ManseReading.tsx',storageContract:'screen-only; web-profile-history-parity-pending'},
  flower:{tossRoute:'/flower',status:'local-partial',inputContract:'worker/toss/flower.js',resultRenderer:'apps/toss/src/FlowerReading.tsx',storageContract:'not-stored-by-current-policy'},
  'bias-destiny':{tossRoute:'/bias',status:'local-partial',inputContract:'app/saju/destiny-bias/engine/chemiReportBridge.ts',resultRenderer:'apps/toss/src/BiasReading.tsx + BiasReport.tsx',storageContract:'native-card-save-summary-share-mocked; device-and-web-history-parity-pending'},
@@ -90,6 +90,14 @@ for(const flow of TOSS_TAROT_LIBRARY_FLOWS){
  Object.assign(group,{status:'local-partial',tossRoute:'/tarot-library',inputContract:'lib/tarot/toss-library-flows.mjs',
   resultRenderer:'apps/toss/src/TarotLibrary.tsx',storageContract:flow.access==='free-local'?'local-reading-not-server-stored':'owned-TossPurchase-to-PaidExecutionRecord',
   verification:'mock-contracts-only; device-and-web-parity-pending'});
+}
+for(const row of rows){
+ const group=groups.get(aliases[row.id]||row.id);
+ if(!group)throw new Error('Missing canonical candidate for '+row.id);
+ row.toss.screen='not-independently-verified';
+ row.toss.canonicalId=group.id;
+ row.toss.candidateStatus=group.status;
+ row.toss.canonicalRoute=group.tossRoute;
 }
 const report={sourceCommit:execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim(),scope:'Source discovery plus explicitly verified aliases; not a count of implemented services. Unmapped contracts are blocking work, not exclusions.',sourceCounts:{home:context.window.__cdServiceRegistry.length,react:react.length,visual:Object.keys(visual).length},entries:rows,canonicalCandidates:[...groups.values()].sort((a,b)=>a.id.localeCompare(b.id))};
 fs.writeFileSync(path.join(root,'docs/toss/full-service-inventory.json'),JSON.stringify(report,null,2)+'\n');
