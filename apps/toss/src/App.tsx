@@ -17,6 +17,7 @@ import {errors,questions,readings,birthSystems,consultationServices,selectionFor
 import {initialSelection} from './initial-selection.mjs';
 import {tarotOrderFromQuery,tarotResultPath} from '../../../lib/tarot/toss-library-links.mjs';
 import {letterRecoveryPath} from '../../../lib/fortune/toss-letter-recovery-link.mjs';
+import {dispatchServiceBack} from '../service/native-back.mjs';
 
 const ResultEvidence=lazy(()=>import('./ResultEvidence'));
 const BiasReading=lazy(()=>import('./BiasReading'));
@@ -88,7 +89,7 @@ export default function App(){
       offSession=onSessionInvalidated(()=>{if(!live)return;authEpoch.current++;libraryEpoch.current++;setLoggedIn(false);setResult(null);setLibrary([]);setLibraryCursor(null);setDraft(null);setRestoredOrder(null);setTarotLibraryOrderId(currentPage()==='tarot-library'?tarotOrderFromQuery(location.search):'');setQuestion('');setBirth(emptyBirth());setPartner(emptyBirth());setScope({situation:'',options:'',period:'',constraints:'',relationshipType:''});setMessage(errors.SESSION_EXPIRED);});
       const area=(insets:{bottom:number})=>document.documentElement.style.setProperty('--safe-bottom',`${insets.bottom}px`);
       area(SafeArea.get());offArea=SafeArea.subscribe({onEvent:area});
-      offBack=graniteEvent.addEventListener('backEvent',{onEvent:()=>{if(depth.current>0)history.back();else void Screen.close();}});
+      offBack=graniteEvent.addEventListener('backEvent',{onEvent:()=>{if(dispatchServiceBack())return;if(depth.current>0)history.back();else void Screen.close();}});
       offHome=graniteEvent.addEventListener('homeEvent',{onEvent:()=>go('home')});
       SERVICE_AVAILABLE&&void restoreSession().then(async authenticated=>{if(!live)return;setLoggedIn(authenticated);if(authenticated){try{const notice=await recoverAfterAuthentication(true);if(live&&notice)setMessage(notice);}finally{if(live)setRecoveryEpoch(value=>value+1);}}}).catch(error=>{if(live)failure(error);});
       void saleProducts().then(setProducts).catch(failure);
@@ -144,7 +145,7 @@ export default function App(){
     {page==='daily'&&<Suspense fallback={<p role="status">오늘의 이야기를 준비하고 있어요.</p>}><DailyReadings loggedIn={loggedIn} onLogin={()=>requireLogin('daily')} onError={failure}/></Suspense>}
     {page==='bias'&&<Suspense fallback={<p role="status">최애운명 화면을 불러오고 있어요.</p>}><BiasReading/></Suspense>}
     {page==='flower'&&<Suspense fallback={<p role="status">운명의 꽃 화면을 불러오고 있어요.</p>}><FlowerReading loggedIn={loggedIn} onLogin={()=>requireLogin('flower')} onError={failure}/></Suspense>}
-    {page==='tarot-library'&&<Suspense fallback={<p role="status">타로 리딩을 준비하고 있어요.</p>}><TarotLibrary products={tarotProducts} loggedIn={loggedIn} onLogin={()=>requireLogin('tarot-library')} onError={failure} onBack={()=>go('home')} initialOrderId={tarotLibraryOrderId} onRereadClosed={()=>{setTarotLibraryOrderId('');if(currentPage()==='tarot-library'&&tarotOrderFromQuery(location.search)){const url=new URL(location.href);url.searchParams.delete('orderId');history.replaceState(history.state,'',url.pathname+url.search+url.hash);}}}/></Suspense>}
+    {page==='tarot-library'&&<Suspense fallback={<p role="status">타로 리딩을 준비하고 있어요.</p>}><TarotLibrary products={tarotProducts} loggedIn={loggedIn} onLogin={()=>requireLogin('tarot-library')} onError={failure} onBack={()=>go('home')} onRecovery={()=>go('recovery')} initialOrderId={tarotLibraryOrderId} onRereadClosed={()=>{setTarotLibraryOrderId('');if(currentPage()==='tarot-library'&&tarotOrderFromQuery(location.search)){const url=new URL(location.href);url.searchParams.delete('orderId');history.replaceState(history.state,'',url.pathname+url.search+url.hash);}}}/></Suspense>}
     {page==='draw'&&(draft?.tarotSpread?<TarotDraw key={draft.id} spread={draft.tarotSpread} busy={busy} onConfirm={picks=>void run(async()=>{
       if(!sale)throw new ApiError('TOSS_PRODUCT_NOT_APPROVED');
       const drawn=await api<{id:string;state:string;tarotSpread:TarotSpreadView}>(`/prepared/${draft.id}/draw`,{sku:sale.sku,method:'manual',picks});

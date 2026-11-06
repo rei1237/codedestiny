@@ -22,7 +22,7 @@ async function adapter(available=true,authenticated=false){
  if(authenticated){const previous=globalThis.fetch;globalThis.fetch=async()=>Response.json({token:'fixture-token'});try{await loaded.exports.login();}finally{globalThis.fetch=previous;}}
  // Existing grant tests start with a verified session; raw callers below exercise failures and races.
  const withSession=buy=>(...args)=>{const before=globalThis.fetch;globalThis.fetch=(url,...rest)=>new URL(url).pathname.endsWith('/session')?Promise.resolve(Response.json({authenticated:true})):before(url,...rest);try{return buy(...args);}finally{globalThis.fetch=before;}};
- return {state,saleProducts:loaded.exports.saleProducts,nativeSaleProducts:loaded.exports.nativeSaleProducts,tarotLibraryProducts:loaded.exports.tarotLibraryProducts,restore:loaded.exports.restorePurchases,auto:loaded.exports.recoverAfterAuthentication,purchase:withSession(loaded.exports.purchase),purchaseTarot:withSession(loaded.exports.purchaseTarotLibrary),rawPurchase:loaded.exports.purchase,rawTarot:loaded.exports.purchaseTarotLibrary,login:loaded.exports.login,logout:loaded.exports.logout,unlinkCurrentSession:loaded.exports.unlinkCurrentSession,clearSession:loaded.exports.clearSession,api:loaded.exports.api,canonical:loaded.exports.canonicalResponse,onInvalidated:loaded.exports.onSessionInvalidated,restoreSession:loaded.exports.restoreSession};
+ return {state,paymentRequiresReview:loaded.exports.paymentRequiresReview,saleProducts:loaded.exports.saleProducts,nativeSaleProducts:loaded.exports.nativeSaleProducts,tarotLibraryProducts:loaded.exports.tarotLibraryProducts,restore:loaded.exports.restorePurchases,auto:loaded.exports.recoverAfterAuthentication,purchase:withSession(loaded.exports.purchase),purchaseTarot:withSession(loaded.exports.purchaseTarotLibrary),rawPurchase:loaded.exports.purchase,rawTarot:loaded.exports.purchaseTarotLibrary,login:loaded.exports.login,logout:loaded.exports.logout,unlinkCurrentSession:loaded.exports.unlinkCurrentSession,clearSession:loaded.exports.clearSession,api:loaded.exports.api,canonical:loaded.exports.canonicalResponse,onInvalidated:loaded.exports.onSessionInvalidated,restoreSession:loaded.exports.restoreSession};
 }
 
 for(const kind of ['consultation','tarot'])test(`${kind} success requires the same order in the SDK success event`,async()=>{
@@ -338,8 +338,8 @@ for(const kind of ['consultation','tarot'])test(kind+' checkout exit blocks anot
 });
 
 test('abandoning an open purchase blocks another even after an empty recovery',async()=>{
- const {state,restore,purchase}=await adapter(true,true),previous=globalThis.fetch;
- try{await restore();const cleanup=purchase({sku:'first'},'request',()=>{},()=>{});await tick();const first=state.purchaseOptions;await assert.rejects(restore(),e=>e.code==='PAYMENT_IN_PROGRESS');cleanup();assert.throws(()=>purchase({sku:'second'},'request',()=>{},()=>{}),e=>e.code==='PAYMENT_STATUS_UNCERTAIN');assert.equal(await first.options.processProductGrant({orderId:'old'}),false);await restore();assert.throws(()=>purchase({sku:'second'},'request',()=>{},()=>{}),e=>e.code==='PAYMENT_STATUS_UNCERTAIN');}
+ const {state,restore,purchase,paymentRequiresReview}=await adapter(true,true),previous=globalThis.fetch;
+ try{assert.equal(paymentRequiresReview(),false);await restore();const cleanup=purchase({sku:'first'},'request',()=>{},()=>{});await tick();const first=state.purchaseOptions;await assert.rejects(restore(),e=>e.code==='PAYMENT_IN_PROGRESS');cleanup();assert.equal(paymentRequiresReview(),true);assert.throws(()=>purchase({sku:'second'},'request',()=>{},()=>{}),e=>e.code==='PAYMENT_STATUS_UNCERTAIN');assert.equal(await first.options.processProductGrant({orderId:'old'}),false);await restore();assert.equal(paymentRequiresReview(),true);assert.throws(()=>purchase({sku:'second'},'request',()=>{},()=>{}),e=>e.code==='PAYMENT_STATUS_UNCERTAIN');}
  finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
 });
 

@@ -14,7 +14,7 @@ const mocks={
  '@/app/fortune-chat/ConsultationResult':"export default ()=>null;",
  '@/app/fortune-chat/YeoniWelcome':"export default ()=>null;",
  '@/app/fortune-chat/consultation-api':"export const isConsultationId=id=>/^[a-f0-9]{64}$/.test(id);export const consultationApi={list:async()=>({consultations:[]})};",
- '../src/platform':"export const api=async()=>({consultations:[],nextCursor:null}),event=()=>{},purchase=()=>{},saleProducts=async()=>[{id:'yeoni:chat_saju',sku:'sku',displayAmount:'₩5,000'}];",
+ '../src/platform':"export const paymentRequiresReview=()=>false;export const api=async()=>({consultations:[],nextCursor:null}),event=()=>{},purchase=()=>{},saleProducts=async()=>[{id:'yeoni:chat_saju',sku:'sku',displayAmount:'₩5,000'}];",
  './native-back.mjs':"export const dispatchServiceBack=()=>{if(!window.dispatchEvent(new window.Event('code-destiny:toss-overlay-back',{cancelable:true})))return true;return !window.dispatchEvent(new window.Event('code-destiny:toss-back',{cancelable:true}));};"
 };
 const room=fs.readFileSync(path.join(root,'apps/toss/service/TossLetterRoom.tsx'),'utf8'),intake=fs.readFileSync(path.join(root,'app/fortune-chat/ConsultationIntake.tsx'),'utf8');

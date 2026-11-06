@@ -12,6 +12,7 @@ const React=require('react'),{createRoot}=require('react-dom/client');
 const bundle=await build({entryPoints:[path.resolve(import.meta.dirname,'../src/TarotLibrary.tsx')],bundle:true,write:false,format:'cjs',platform:'node',jsx:'automatic',external:['react','react/jsx-runtime'],plugins:[{name:'ui-boundaries',setup(b){
  b.onResolve({filter:/^(\.\/platform|\.\/TarotResultActions|@toss\/tds-mobile)$/},args=>({path:args.path,namespace:'mock'}));
  b.onLoad({filter:/.*/,namespace:'mock'},args=>({contents:args.path==='./platform'?`
+  export const paymentRequiresReview=()=>false;
   export const api=(...args)=>globalThis.tarotRecoveryUi.api(...args);
   export const purchaseTarotLibrary=()=>{throw Error('recovery must not open another purchase')};
  `:args.path==='./TarotResultActions'?'export default ()=>null;':`
