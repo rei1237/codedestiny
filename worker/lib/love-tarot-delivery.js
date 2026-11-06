@@ -1,3 +1,4 @@
+import { appendAnswerVoice, selectAnswerVoice } from './consultation-answer-contract.js';
 import { pinTarotNarrativeSeed, assertTarotNarrativeSnapshot } from './tarot-fact-consumer.js';
 import { narrativePriorDigest, normalizeNarrativeBody, parseNarrativeResponse, NARRATIVE_RESPONSE_SCHEMA } from './paid-narrative-candidate.js';
 import { buildLoveReadingPrompt } from '../../lib/tarot/love-reading-llm.mjs';
@@ -36,8 +37,9 @@ async function seed(env, userId, body, buildBase) {
     prompt: '정확히 네 문단으로 오늘의 실천, 대화의 방법, 관계의 경계, 일주일의 계획을 순서대로 현실적인 조언과 반대 조건, 사례와 함께 설명한다.' });
   tasks.push({ id: 'matrix', title: '여섯 카드의 연결과 구성', paragraphs: 8, minChars: 2200,
     prompt: `정확히 여덟 문단으로 ${MATRIX_SCOPE.join(', ')}을 순서대로 해설한다. 고정 입력의 카드와 방향을 바꾸지 않는다.` });
-  return pinTarotNarrativeSeed({ base, tasks,
-    prompt: `${buildOutputLanguageDirective(locale)}\n${buildLoveReadingPrompt(base.reading, locale, { userQuestion: body.userQuestion }).split('[리딩 작성 형식]')[0]}\n${TAROT_SHARED_RULE_BLOCK}` }, env, { ...body, locale }, draw);
+  const answerVoice = selectAnswerVoice(env);
+  return pinTarotNarrativeSeed({ base, tasks, ...(answerVoice ? { answerVoice } : {}),
+    prompt: appendAnswerVoice(`${buildOutputLanguageDirective(locale)}\n${buildLoveReadingPrompt(base.reading, locale, { userQuestion: body.userQuestion }).split('[리딩 작성 형식]')[0]}\n${TAROT_SHARED_RULE_BLOCK}`, answerVoice, { master: 'neutral', locale }) }, env, { ...body, locale }, draw);
 }
 // The stored cards a part may name. Naming another card, flipping an orientation or moving a card
 // to another position title makes the answer a failed attempt within the two-attempt cap. A state

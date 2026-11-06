@@ -52,7 +52,7 @@ function fixture(accessType = 'pass', currentSections = null) {
     updateOne: async (filter, update) => { if (doc && matches(doc, filter)) for (const [key, value] of Object.entries(update.$set || {})) set(doc, key, value); },
   };
   const plan = currentSections || ['overview', 'wealth', 'romance', 'monthly', 'health'].map(key => ({ key, label: key, minChars: 4000, maxChars: 5000 }));
-  const ctx = vm.createContext({ sajuAuthorityOn: () => false, runWithAiLocale, getAmbientAiLocale, storedAiLocale, toAiLocale, URL, Request, Response, Headers, Date, JSON, Map, crypto: webcrypto, console: { error() {} },
+  const ctx = vm.createContext({ ...require('../../worker/lib/consultation-answer-contract.js'), sajuAuthorityOn: () => false, runWithAiLocale, getAmbientAiLocale, storedAiLocale, toAiLocale, URL, Request, Response, Headers, Date, JSON, Map, crypto: webcrypto, console: { error() {} },
     // 증빙 claim 은 billing-evidence-claim.test.js 가 따로 검증한다 — 여기서는 통과로 둔다.
     claimRequestBillingEvidence: async () => ({ ok: true, skipped: true }), releaseRequestBillingEvidence: async () => ({ released: 0 }), evidenceClaimErrorBody: result => result, FEATURE_KEY: 'new-year-ai-consultation',
     reserveSupportRecoveryAttempt: async () => {},

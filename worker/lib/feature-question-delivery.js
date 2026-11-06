@@ -1,3 +1,4 @@
+import { pinAnswerVoice, selectAnswerVoice } from './consultation-answer-contract.js';
 import { appendBasicFortunePersona } from './expert-character-personas.js';
 import { narrativePriorDigest, normalizeNarrativeBody, parseNarrativeResponse } from './paid-narrative-candidate.js';
 import { jsonSchemaFromExample } from './json-text-repair.js';
@@ -63,7 +64,7 @@ export async function deliverFeatureQuestion(request, env, auth, supplied, { fea
         return { built: JSON.parse(JSON.stringify(built)), facts, paymentProof: proof,
           prompt: String(built.generatedPrompt || built.prompt || ''),
           systemPrompt: '각 점술 체계를 섞지 말고 제공된 계산값만 해설합니다. 시기 정보가 없으면 날짜를 지어내지 않습니다. 확률이나 타인의 마음을 단정하지 않고 근거와 반대 조건, 실행 가능한 선택을 제시합니다. 호칭은 처음부터 끝까지 \'당신\'으로 통일하고 HTML 태그를 쓰지 않습니다.',
-          asOf: referenceDate(), minBodyChars: 9600,
+          asOf: referenceDate(), minBodyChars: 9600, answerVoice: selectAnswerVoice(env),
           tasks: HEADINGS.map(([title, scope], index) => ({ id: `part-${index + 1}`, title, prompt: `${title}: ${scope}`, minChars: 960 })),
         };
       },
@@ -103,7 +104,7 @@ export function featureQuestionNarrativeAdapter(env, featureKey) {
     })),
     produce: async (task, state) => {
       const ai = await callGeminiText(env, `${state.prompt}\n\n[고정 계산 근거]\n${JSON.stringify(state.facts)}\n${state.asOf ? `[기준일] ${state.asOf}. 올해는 ${state.asOf.slice(0, 4)}년, 내년은 ${Number(state.asOf.slice(0, 4)) + 1}년입니다.\n` : ''}[이번 부분: ${task.id}] ${task.prompt || task.title}${narrativePriorDigest(state, task)}\nJSON {"claims":[{"factId":"fact-1","value":"해당 근거의 원래 값"}],"body":"상담 본문"}만 출력하세요. claims에는 실제 사용하는 계산 근거를 1~5개만 정확하게 복사합니다. 계산값 전체 요약을 부분마다 다시 쓰지 않습니다. 본문은 공백 제외 최소 ${task.minChars}자, 목표 1200~1400자입니다. 이 부분에 해당하는 근거와 구체적 생활 사례·반대 조건·행동을 각각 다른 문단으로 쓰고 마지막 문장을 완결합니다. 다른 부분은 쓰지 않습니다.`, {
-        systemPrompt: await appendBasicFortunePersona(env, featureKey, state.systemPrompt + questionEditorialContext(state, task), { locale: state.locale }), timeoutMs: 45000, maxOutputTokens: 9500,
+        systemPrompt: await appendBasicFortunePersona(env, featureKey, state.systemPrompt + questionEditorialContext(state, task), { locale: state.locale, answerVoice: pinAnswerVoice(state, env) }), timeoutMs: 45000, maxOutputTokens: 9500,
         thinkingBudget: 0, responseMimeType: 'application/json', fallbackToWorkersAI: false,
         responseSchema: questionResponseSchema,
       });

@@ -4,6 +4,7 @@
 // 베다 나크샤트라의 서로 다른 관점으로 통합해 읽는 역할만 한다. 두 체계를
 // 1:1로 대응하거나 LLM이 별자리를 추측하게 하지 않는다.
 
+import { answerVoiceBlock } from "./consultation-answer-contract.js";
 import { CHAKRA_REFLECTIONS } from "./nakshatra-life-reading.js";
 import { getNakshatraAttributes } from "../../constants/nakshatra-attributes.js";
 
@@ -180,6 +181,7 @@ export function buildWrittenMemory(done, limit = 8) {
 export function buildSectionPrompt(section, ctx) {
   const question = String(ctx?.question || "").trim();
   const memory = String(ctx?.writtenMemory || "").trim();
+  const voice = answerVoiceBlock(ctx?.answerVoice ?? null, { master: "neutral", locale: ctx?.locale || "ko" });
   return [
     NAKSHATRA_PERSONA.integrated,
     "",
@@ -204,6 +206,7 @@ export function buildSectionPrompt(section, ctx) {
     "- 운명·관계·상대 마음을 확정하지 않는다. 의료·법률·투자 판단이나 적중·성공 보장을 하지 않는다.",
     "- 가독성: 소제목은 ###, 목록은 -, 강조는 굵게 표기만 사용한다.",
     ...(section.rules || []).map((rule) => "- 규칙: " + rule),
+    ...(voice ? ["", voice] : []),
     "",
     "출력은 반드시 아래 JSON 하나만 쓴다. 코드블록·인사말·추가 설명은 금지한다.",
     '{ "keyInsight": "이 장의 결론 한 줄(45자 이내)", "vedicEvidence": "계산값 기반 베다 근거 한 줄", "sukuyoEvidence": "계산값 기반 숙요 근거 한 줄", "body": "사용자에게 들려줄 통합 상담문" }',

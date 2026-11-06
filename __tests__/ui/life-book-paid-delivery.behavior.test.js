@@ -54,7 +54,7 @@ function fixture(accessType = 'pass', env = {}) {
     updateOne: async (filter, update) => { if (!doc || !matches(doc, filter)) return; for (const [key, value] of Object.entries(update.$set || {})) set(doc, key, value); },
   };
   const plan = Array.from({ length: 15 }, (_, i) => ({ id: `section${i}`, kind: 'chapter', evidenceRefs: [], targetChars: 2600 }));
-  const ctx = vm.createContext({ runWithAiLocale, getAmbientAiLocale, storedAiLocale, toAiLocale, URL, Request, Response, Headers, Date, JSON, Map, crypto: webcrypto,
+  const ctx = vm.createContext({ ...require('../../worker/lib/consultation-answer-contract.js'), runWithAiLocale, getAmbientAiLocale, storedAiLocale, toAiLocale, URL, Request, Response, Headers, Date, JSON, Map, crypto: webcrypto,
     fetch: async () => { throw new Error('EXTERNAL_FETCH_BLOCKED'); },
     clean: (v, max = 100000) => String(v || '').trim().slice(0, max), randomToken: () => String(++tick),
     readJson: request => request.json(), json: (body, init) => new Response(JSON.stringify(body), init),

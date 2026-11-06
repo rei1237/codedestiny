@@ -10,6 +10,7 @@ import { GUARDIAN_CATEGORY_ADAPTER_PRIORITY, text } from "./guardian-fortune-ada
 import { buildFortuneQuestionFocus } from "./fortune-question-focus.js";
 import { sajuTemperamentPromptLines } from './saju-temperament.js';
 import { sajuAuthorityPromptFacts, SAJU_AUTHORITY_PROMPT_RULES } from './saju-authority-consumer.js';
+import { appendAnswerVoice } from './consultation-answer-contract.js';
 
 const MODE_SYSTEM_PROMPTS = Object.freeze({
   yeoni: [
@@ -31,6 +32,15 @@ const MODE_SYSTEM_PROMPTS = Object.freeze({
     "문장은 짧게 끊고 수식어를 줄인다. 듣기 좋은 말로 감싸지 말고 사용자가 놓치고 있는 지점을 정확히 짚되, 인신공격이나 단정은 하지 않는다.",
   ].join(" "),
 });
+
+// 질문 직답 계약이 켜지면(CONSULTATION_ANSWER_VOICE_V1) 연이의 구성 순서 문장만 바꾼다. 마음을 알아주는 결은 그대로다.
+const YEONI_ORDER_LEGACY = "구성 순서: 지금의 마음을 먼저 알아주고 → 계산 근거로 흐름을 설명하고 → 오늘 해볼 수 있는 한 가지로 닫는다. 결론을 첫 문장에 못 박지 않는다.";
+const YEONI_ORDER_ANSWER_FIRST = "구성 순서: 첫 두 문장 안에서 지금의 마음을 짚으며 질문에 대한 답을 말하고 → 계산 근거로 흐름을 설명하고 → 오늘 해볼 수 있는 한 가지로 닫는다. 답은 분명히 하되 상대 마음·미래는 단정하지 않는다.";
+
+function modeSystemPrompt(mode, answerVoice) {
+  const base = MODE_SYSTEM_PROMPTS[mode];
+  return answerVoice && mode === "yeoni" ? base.replace(YEONI_ORDER_LEGACY, YEONI_ORDER_ANSWER_FIRST) : base;
+}
 
 /**
  * 이전 대화 맥락. 이 화면은 채팅인데 매 턴이 단발이라 "이어서 묻는" 경험이 성립하지 않았다.
@@ -242,15 +252,16 @@ const GUARDIAN_CATEGORY_INSTRUCTIONS_KO = Object.freeze({
 
 /* 시스템 프롬프트 조립. 예전에는 buildGuardianFortunePrompt 안 인라인이라 관리자 화면이 읽을 수 없었다.
    문자열 구성은 그대로이고 함수로 빼기만 했다(동작 불변). */
-function buildGuardianSystemPrompt(mode) {
-  return [
-    MODE_SYSTEM_PROMPTS[mode],
+function buildGuardianSystemPrompt(mode, answerVoice = null) {
+  const prompt = [
+    modeSystemPrompt(mode, answerVoice),
     EXPERT_SYSTEM_GUIDANCE,
     "서버가 계산한 구조화된 근거만 사용하고, 운세를 새로 계산하거나 생년월일을 추론하지 마.",
     "의료·법률·투자에 대한 확정 조언, 상대의 속마음 확정, 재회·성공 보장, 공포와 결제 압박을 쓰지 마.",
     "연이와 네오는 같은 답을 다른 말투로 바꾸는 수준이 아니다. 연이는 감정의 안전감과 선택지를, 네오는 판단 기준과 실행 순서를 우선한다.",
     "반드시 JSON 하나만 반환하고 Markdown, 코드펜스, 설명 문장은 반환하지 마.",
   ].join(" ");
+  return appendAnswerVoice(prompt, answerVoice, { master: mode });
 }
 
 /* 관리자 프롬프트 랩 전용(lib/admin/prompt-lab-registry.mjs 참고).
@@ -283,7 +294,7 @@ export function buildAdminLabPrompt(body = {}, options = {}) {
   };
 }
 
-export function buildGuardianFortunePrompt({ input = {}, context = {} } = {}) {
+export function buildGuardianFortunePrompt({ input = {}, context = {}, answerVoice = null } = {}) {
   const inputSummary = context?.inputSummary || {};
   const mode = inputSummary.mode === "neo" || input?.mode === "neo" ? "neo" : "yeoni";
   const topic = GUARDIAN_FORTUNE_TOPICS[inputSummary.topic]
@@ -300,7 +311,7 @@ export function buildGuardianFortunePrompt({ input = {}, context = {} } = {}) {
     error.code = "GUARDIAN_PROMPT_INVALID_CATEGORY";
     throw error;
   }
-  const systemPrompt = buildGuardianSystemPrompt(mode);
+  const systemPrompt = buildGuardianSystemPrompt(mode, answerVoice);
 
   // 🔴 context 에서만 읽는다. input 은 정규화 전 원본이라 개수·길이·민감정보 필터를 안 거쳤다.
   const recentTurns = formatRecentTurns(context?.recentTurns);

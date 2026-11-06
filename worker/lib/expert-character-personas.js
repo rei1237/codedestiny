@@ -2,6 +2,7 @@
 // 원문·말투 검사는 expert-character-persona-text.js(순수 모듈)에 있다.
 
 import { cmsPromptText } from "./cms-prompts.js";
+import { appendAnswerVoice, selectAnswerVoice } from "./consultation-answer-contract.js";
 import {
   EXPERT_PERSONA_ENABLED,
   HANBI_LOVE_PERSONA_KO,
@@ -44,10 +45,15 @@ export async function resolveExpertPersona(env, key, { locale = "ko" } = {}) {
   return (await PERSONA_RESOLVERS[key](env)) || "";
 }
 
-/** base 시스템 프롬프트 뒤에 캐릭터 페르소나를 붙인다. */
-export async function appendExpertPersona(env, key, base, { locale = "ko" } = {}) {
+/**
+ * base 시스템 프롬프트 뒤에 캐릭터 페르소나를 붙이고, CONSULTATION_ANSWER_VOICE_V1 이 켜져 있으면
+ * 질문 직답 계약과 조언 렌즈를 이어 붙인다. answerVoice 를 주면(저장된 생성 스냅샷 값) 그 값을 따른다.
+ */
+export async function appendExpertPersona(env, key, base, { locale = "ko", answerVoice } = {}) {
   const persona = await resolveExpertPersona(env, key, { locale });
-  return persona ? `${base}\n\n${persona}` : base;
+  const withPersona = persona ? `${base}\n\n${persona}` : base;
+  const voice = answerVoice === undefined ? selectAnswerVoice(env) : answerVoice;
+  return appendAnswerVoice(withPersona, voice, { master: key, locale });
 }
 
 /** Server-owned feature mapping; reused for new parts and stored-result continuation. */

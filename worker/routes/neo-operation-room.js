@@ -1,3 +1,4 @@
+import { pinAnswerVoice, selectAnswerVoice } from "../lib/consultation-answer-contract.js";
 import {neoRefinementHistory,neoRefinementAllowance} from '../lib/neo-refinement-contract.js';
 import { jsonSchemaFromExample } from "../lib/json-text-repair.js";
 import { handleNeoStrategyBooks } from "./neo-strategy-books.js";
@@ -1121,6 +1122,7 @@ async function generateBriefing(env, normalized, methodSummary) {
     birthTimeUnknown: normalized.input.birthInfo?.birthTimeUnknown === true,
     relationshipStatus: normalized.input.relationshipStatus || "",
     methodSummary,
+    answerVoice: selectAnswerVoice(env),
   };
   // 궁합 모드는 챕터를 **더하지 않고 갈아 끼운다**(개수 14 유지) — 웨이브가 늘면
   // SYNC_LLM_TIMEOUT_CEILING_MS 예산 안에서 완주하지 못한다.
@@ -1217,6 +1219,7 @@ async function generateRefinedOrder(env, consultation, realityCheck) {
     initialBriefing: consultation?.initialBriefing || {},
     realityCheck,
     previousAdviceLog: buildPreviousAdviceLog(consultation?.initialBriefing),
+    answerVoice: selectAnswerVoice(env),
   };
   // 8챕터 ÷ 동시성 4 = 2웨이브, 웨이브마다 최대 2시도 × 45s → 최악 180s 로 엣지(100s)를 넘긴다.
   // 그러면 라우트가 실패를 판정하기 전에 요청이 잘려 refinementStatus 도 못 남기고 사용자만
@@ -1716,7 +1719,7 @@ async function handleStart(request, env, ctx = null, recoveryAuth = null) {
       await NeoOperationRoomConsultation.create({ id: sessionId, userId: auth.userId, idempotencyKey, inputHash: normalized.inputHash,
         ...(initialZiweiSummary ? { methodSummary: initialZiweiSummary } : {}),
         ...normalized.input, accessType: access.accessType, paymentId: access.paymentId || "", status: "generating",
-        llmMeta: { locale, resumeBody, sections: {}, attempts: {}, ...(auth.tossNative?{tossNative:true}:{}) } });
+        llmMeta: { locale, resumeBody, sections: {}, attempts: {}, answerVoice: selectAnswerVoice(env), ...(auth.tossNative?{tossNative:true}:{}) } });
       existing = await NeoOperationRoomConsultation.findOne({ id: sessionId, userId: auth.userId }).lean();
       if (!existing) throw resultStorageUnavailable(sessionId);
     } catch (error) {
@@ -1767,7 +1770,7 @@ async function handleStart(request, env, ctx = null, recoveryAuth = null) {
       });
       doc = await saveNeoDelivery(filter, { llmMeta: { ...doc.llmMeta, resumeBody, attempts } }, sessionId);
       await startRefundableExecution(env, auth, access, idempotencyKey, sessionId, pricing);
-      const context = { ...normalized.input, birthTimeUnknown: normalized.input.birthInfo?.birthTimeUnknown === true, methodSummary: doc.methodSummary };
+      const context = { ...normalized.input, birthTimeUnknown: normalized.input.birthInfo?.birthTimeUnknown === true, methodSummary: doc.methodSummary, answerVoice: pinAnswerVoice(doc.llmMeta, env) };
       let queue = Promise.resolve();
       const outcomes = await Promise.allSettled(selected.map(async section => {
         const previousDraft = attempts[`${section.id}:lengthRepair`] ? doc.llmMeta.sections?.[section.id] : null;
@@ -1955,7 +1958,7 @@ async function handleRefine(request, env) {
     if(neoRefinementAllowance(doc).remaining===0)return json({ok:false,reason:'REFINEMENT_LIMIT_REACHED'},{status:409});
     if(doc.refinementStatus==='generating'&&doc.llmMeta.refinement?.answerHash!==normalized.realityCheck.answerHash)return json({ok:false,reason:'REFINEMENT_IN_PROGRESS'},{status:409});
     const previous = doc.llmMeta.refinement;
-    const state = previous?.answerHash === normalized.realityCheck.answerHash ? previous : { answerHash: normalized.realityCheck.answerHash, realityCheck: normalized.realityCheck, sections: {}, attempts: {} };
+    const state = previous?.answerHash === normalized.realityCheck.answerHash ? previous : { answerHash: normalized.realityCheck.answerHash, realityCheck: normalized.realityCheck, answerVoice: selectAnswerVoice(env), sections: {}, attempts: {} };
     const accepted = (section, current) => neoRefinedSectionReady(section, current.sections[section.id], doc,
       true);
     const sectionChars = row => countPaidReportBodyChars(neoBody(mergeNeoRefinedSections(row ? [row] : [], doc)));
@@ -1970,7 +1973,7 @@ async function handleRefine(request, env) {
       });
       doc = await saveNeoDelivery(filter, { refinementStatus: "generating", refinementError: null, llmMeta: { ...doc.llmMeta, refinement: { ...state, attempts } } }, sessionId);
       const context = { selectedMethod: doc.selectedMethod, topic: doc.topic, intensity: doc.intensity, question: doc.question, methodSummary: doc.methodSummary,
-        initialBriefing: doc.initialBriefing, realityCheck: state.realityCheck, previousAdviceLog: buildPreviousAdviceLog(doc.initialBriefing), previousRefinements: neoRefinementHistory(doc) };
+        initialBriefing: doc.initialBriefing, realityCheck: state.realityCheck, previousAdviceLog: buildPreviousAdviceLog(doc.initialBriefing), previousRefinements: neoRefinementHistory(doc), answerVoice: pinAnswerVoice(state, env) };
       let queue = Promise.resolve();
       const outcomes = await Promise.allSettled(selected.map(async section => {
         const prompt = buildNeoRefinedSectionPrompt(section, context) + (attempts[`${section.id}:lengthRepair`] ? "\n[분량 보강] 기존 계산 근거를 유지하고 새로운 장면과 행동 조언을 더해 완결된 JSON으로 다시 작성한다. 반복으로 채우지 않는다." : "") + `\n[완료 기준] 제목·공백을 제외한 본문 최소 ${section.minChars}자, 목표 ${Math.ceil(section.minChars / 0.8)}자. 현실 점검 답변과 계산값에 근거하고 앞 영역을 반복하지 않는다.`;

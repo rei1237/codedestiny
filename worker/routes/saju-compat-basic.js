@@ -1,6 +1,7 @@
 // 꿀꿀운세 「기본 사주 궁합」 LLM 서비스(선결제). 점수·등급·합충은 브라우저 엔진이 확정해 보내고(facts),
 // 서버는 그 값을 검증·보존하며 서술만 생성한다. 결과는 완료 시 한 번 metadata.result 로 기록되는 불변 스냅샷이며
 // 보관함 목록·상세는 그 스냅샷을 읽기만 한다(열람은 LLM 을 다시 부르지 않는다).
+import { appendAnswerVoice, pinAnswerVoice, selectAnswerVoice } from "../lib/consultation-answer-contract.js";
 import { salvageTruncatedJsonObject } from "../../lib/llm-text.js";
 import { HttpError, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson, cookieValue } from "../lib/http.js";
 import { callGeminiText } from "../lib/gemini.js";
@@ -39,9 +40,9 @@ const clippedRetryTokens = (raw, tokens) => {
   try { JSON.parse(raw); return tokens; } catch { return Math.max(tokens, Math.min(32768, tokens * 2)); }
 };
 
-async function generateGroup(env, group, input, seen, promptOptions, previousRaw) {
+async function generateGroup(env, group, input, seen, promptOptions, previousRaw, answerVoice = null) {
   const ai = await callGeminiText(env, buildSajuCompatPrompt(group, input, promptOptions), {
-    systemPrompt: buildSajuCompatSystemPrompt(input),
+    systemPrompt: appendAnswerVoice(buildSajuCompatSystemPrompt(input), answerVoice, { master: "yeoni", locale: input.locale }),
     locale: toAiLocale(input.locale),
     temperature: 0.6,
     maxOutputTokens: clippedRetryTokens(previousRaw, group === "core" && input.facts.relationship ? 16384 : 8192),
@@ -90,7 +91,7 @@ export function sajuCompatNarrativeAdapter(env) {
       const stash = state.lenient?.[group] || null;
       const retry = attempt > 1 ? { issues: state.issues?.[group] || [], shortfall: Boolean(state.shortfall?.[group]) } : {};
       let fresh = null;
-      try { fresh = await generateGroup(env, group, input, seen, retry, state.rawResponses?.[group]); } catch { fresh = null; }
+      try { fresh = await generateGroup(env, group, input, seen, retry, state.rawResponses?.[group], pinAnswerVoice(state, env)); } catch { fresh = null; }
       let shaped = fresh?.shaped || null;
       const model = fresh?.model || stash?.model || "";
       if (attempt < 2) {
@@ -141,7 +142,8 @@ async function handleGenerate(request, env) {
       // seed는 납품 기록이 없을 때만 호출된다.
       const input = sajuAuthorityOn(env) ? withApprovedSajuCompat(normalized) : normalized;
       const tasks = sajuCompatTasks(input);
-      return { input, tasks, minBodyChars: tasks.reduce((sum, task) => sum + task.minChars, 0) };
+      const answerVoice = selectAnswerVoice(env);
+      return { input, tasks, minBodyChars: tasks.reduce((sum, task) => sum + task.minChars, 0), ...(answerVoice ? { answerVoice } : {}) };
     },
   });
 }

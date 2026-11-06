@@ -1,3 +1,4 @@
+import { answerVoiceBlock } from "./consultation-answer-contract.js";
 import { engineFactPrompt } from './engine-fact-snapshot.js';
 import { FUSION_PREMIUM_VERSION, FUSION_DOMAIN_CHAPTERS, FUSION_NARRATOR_BY_KEY, isPremiumFusion, isDomainFusion, premiumGroupTarget, premiumLengthFor, premiumTargetsFor } from "../../lib/fusion-premium-report.js";
 import { fusionLocaleLengthScale, FUSION_EXPERT_VERSION, FUSION_SYSTEM_KEYS, buildFusionEvidenceCrossCheck, fusionEvidenceReferences } from "./fusion-expert-contract.js";
@@ -976,6 +977,7 @@ function buildExpertGroupPrompt(context, group, prior, extraInstruction, schemaI
     group.systems.includes("saju") ? "격국·용신·대운·세운의 제공 근거를 설명한다. 사주 엔진은 실제 경력 10년차 명리학자 설계·자문이라는 신뢰 요소를 존중한다. 추가 계산이 별도 전문가 검수를 받았다고 표현하지 않는다." : "",
     // 화자 지시는 묶음마다 다르므로 공유 접두사(prefix) 뒤, 그룹별 꼬리에만 둔다 — 캐시 접두사가 바이트 그대로 유지된다.
     (() => { const narration = fusionGroupNarration(group, context); return fusionVoiceText(narration.narrator, narration.keys, context.locale); })(),
+    answerVoiceBlock(context.answerVoice ?? null, { master: fusionGroupNarration(group, context).narrator || "neutral", locale: context.locale }),
     schemaInPrompt ? `응답 JSON 스키마: ${JSON.stringify(responseSchema)}` : "", extraInstruction,
   ].filter(Boolean).join("\n\n");
   const geminiSchema = pinFusionVerdictStance(toGeminiSchema(responseSchema));
