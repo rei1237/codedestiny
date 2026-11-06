@@ -21,10 +21,13 @@ const text={
 };
 
 function errorMessage(error:unknown,t:typeof text.ko){
- const issue=error&&typeof error==='object'?error as {status?:number;code?:string}:{};
- if(issue.status===401||['LOGIN_REQUIRED','SESSION_EXPIRED'].includes(issue.code||''))return t.loginError;
- if(issue.status===403||issue.code==='ACCESS_DENIED')return t.denied;
+ const issue=error&&typeof error==='object'?error as {status?:number;code?:string;message?:string}:{};
+ if(issue.status===401)return t.loginError;
+ if(issue.status===403)return t.denied;
+ if(['LOGIN_REQUIRED','SESSION_EXPIRED'].includes(issue.code||''))return t.loginError;
+ if(issue.code==='ACCESS_DENIED')return t.denied;
  if(issue.code==='ORDER_REFUNDED')return t.refunded;
+ if(issue.code==='UNSUPPORTED_APP_VERSION'&&typeof issue.message==='string'&&issue.message.trim()&&issue.message!==issue.code)return issue.message;
  if(['IAP_NOT_SUPPORTED','UNSUPPORTED_APP_VERSION'].includes(issue.code||''))return t.unsupported;
  if(issue.code==='TOSS_PRODUCT_NOT_APPROVED'||issue.code==='TOSS_RELEASE_PENDING')return t.unavailable;
  return t.failure;
@@ -60,7 +63,7 @@ export default function TossMayaPrompt({result}:{result:MayaCalendarResult}){
   previousOwner.current=owner;const params=new URLSearchParams(location.search),currentId=params.get('intentId')||'';setIntentId(currentId);setOrderId(params.get('orderId')||'');if(auth.isAuthenticated&&owner&&idPattern.test(currentId))void open(currentId);
   return()=>{epoch.current++;};
  },[owner,auth.isAuthenticated,hide,open,setWorking,cancelPurchase]);
- useEffect(()=>{const off=onSessionInvalidated(()=>{epoch.current++;catalogEpoch.current++;cancelPurchase();hide();setSale(null);setSaleOwner('');setPaid(false);setWorking(false);setName('');setBirthDate('');setQuestion('');setError(textRef.current.loginError);});return()=>{off();};},[hide,setWorking,cancelPurchase]);
+ useEffect(()=>{const off=onSessionInvalidated(()=>{epoch.current++;catalogEpoch.current++;cancelPurchase();hide();setSale(null);setSaleOwner('');setPaid(false);setWorking(false);setName('');setBirthDate('');setQuestion('');setTopic(MAYA_PROMPT_TOPICS[0]);setError(textRef.current.loginError);});return()=>{off();};},[hide,setWorking,cancelPurchase]);
  useEffect(()=>{if(!auth.isAuthenticated||!owner||!idPattern.test(intentId))return;const recheck=()=>{if(!document.hidden&&!busyRef.current)void open(intentId);};document.addEventListener('visibilitychange',recheck);return()=>document.removeEventListener('visibilitychange',recheck);},[auth.isAuthenticated,owner,intentId,open]);
  useEffect(()=>{const back=(event:Event)=>{if(!event.defaultPrevented&&busyRef.current)event.preventDefault();};window.addEventListener('code-destiny:toss-back',back);return()=>window.removeEventListener('code-destiny:toss-back',back);},[]);
  useEffect(()=>()=>{epoch.current++;cancelPurchase();},[cancelPurchase]);

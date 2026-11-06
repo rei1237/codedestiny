@@ -28,7 +28,7 @@ test('purchase fixes the input and uses only the matching approved SKU price bef
  assert.equal(ui.calls[0][1].input.year,2024);assert.equal(ui.calls[0][1].input.day,29);assert.equal(location.search,`?intentId=${id}`);assert.match(document.body.textContent,/구매한 프롬프트/);
  }finally{await ctx.close();}});
 test('a denied restored order never displays an old result or a continuation button',async()=>{const ctx=await setup();try{
- history.replaceState({},'',`/maya/?intentId=${id}`);ui.read=async(path)=>{ui.calls.push([path]);throw Object.assign(new Error('denied'),{status:403,code:'ACCESS_DENIED'});};ui.owner='other';await ctx.render();
+ history.replaceState({},'',`/maya/?intentId=${id}`);ui.read=async(path)=>{ui.calls.push([path]);throw Object.assign(new Error('denied'),{status:403,code:'LOGIN_REQUIRED'});};ui.owner='other';await ctx.render();
  assert.match(document.body.textContent,/접근할 권한/);assert.doesNotMatch(document.body.textContent,/이어서 만들기/);assert.equal(document.querySelector('textarea[readonly]'),null);
  }finally{await ctx.close();}});
 test('a session invalidation clears a previously delivered prompt',async()=>{const ctx=await setup();try{
@@ -57,7 +57,7 @@ test('an unassigned recovered purchase attaches its original order without start
  await React.act(async()=>{[...document.querySelectorAll('button')].find(b=>b.textContent.includes('결제한 프롬프트 이어가기')).click();await new Promise(resolve=>setTimeout(resolve,0));});
  assert.equal(attempts,0);assert.equal(ui.calls[0][1].orderId,orderId);assert.match(document.body.textContent,/복구된 프롬프트/);assert.equal(location.search,`?intentId=${id}`);
  }finally{await ctx.close();}});
-test('a server and SDK price mismatch never opens the purchase sheet',async()=>{const ctx=await setup();try{
+test('a prepared price and approved catalog mismatch never opens the purchase sheet',async()=>{const ctx=await setup();try{
  ui.products=[sale];ui.owner='buyer';await ctx.render();let attempts=0;ui.purchase=()=>{attempts++;};ui.read=async()=>({id,sku:sale.sku,amountKRW:1,paid:false});
  await React.act(async()=>[...document.querySelectorAll('button')].find(b=>b.textContent.includes('단건 결제로')).click());assert.equal(attempts,0);assert.equal(location.search,'');
  }finally{await ctx.close();}});
@@ -82,4 +82,8 @@ test('native back cannot leave during payment but is available before a purchase
 test('unsupported Toss versions are identified without showing a fabricated result',async()=>{const ctx=await setup();try{
  ui.products=[sale];ui.owner='buyer';await ctx.render();ui.read=async()=>({id,sku:sale.sku,amountKRW:sale.approvedPriceKRW,paid:false});ui.purchase=()=>{throw {code:'IAP_NOT_SUPPORTED'};};
  await React.act(async()=>[...document.querySelectorAll('button')].find(b=>b.textContent.includes('단건 결제로')).click());assert.match(document.body.textContent,/앱 업데이트/);assert.equal(document.querySelector('textarea[readonly]'),null);assert.equal(location.search,'');
+ }finally{await ctx.close();}});
+test('the SDK-provided update guidance is shown when the Toss app version is unsupported',async()=>{const ctx=await setup();try{
+ ui.products=[sale];ui.owner='buyer';await ctx.render();ui.read=async()=>({id,sku:sale.sku,amountKRW:sale.approvedPriceKRW,paid:false});ui.purchase=()=>{throw {code:'UNSUPPORTED_APP_VERSION',message:'토스 앱을 최신 버전으로 업데이트해 주세요.'};};
+ await React.act(async()=>[...document.querySelectorAll('button')].find(b=>b.textContent.includes('단건 결제로')).click());assert.match(document.body.textContent,/토스 앱을 최신 버전으로 업데이트해 주세요/);
  }finally{await ctx.close();}});

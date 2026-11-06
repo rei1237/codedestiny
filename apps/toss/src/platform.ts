@@ -33,6 +33,7 @@ function authorizationStatus(error:unknown){
   if(issue.code==='LOGIN_REQUIRED'||issue.code==='SESSION_EXPIRED')return 401;
   return 0;
 }
+function sdkVersionError(error:unknown){return !!error&&typeof error==='object'&&'code' in error&&error.code==='UNSUPPORTED_APP_VERSION';}
 export async function api<T>(path:string,body?:unknown):Promise<T>{
   if(!SERVICE_AVAILABLE)throw new ApiError('TOSS_RELEASE_PENDING');
   const requestToken=token,requestEpoch=sessionEpoch,requestAttempt=loginAttempt;
@@ -140,7 +141,7 @@ export type CatalogProduct={id:string;name:string;sku:string;approvedPriceKRW:nu
 export type SaleProduct=CatalogProduct&{displayAmount:string};
 export type NativeSaleProduct=Omit<CatalogProduct,'chapters'>&{featureKey:string;displayAmount:string};
 function requireProductListSupport(){
-  let supported=false;try{supported=IAP.getProductItemList.isSupported();}catch(error){if(authorizationStatus(error))throw error;/* Unsupported bridge versions fail closed. */}
+  let supported=false;try{supported=IAP.getProductItemList.isSupported();}catch(error){if(authorizationStatus(error)||sdkVersionError(error))throw error;/* Unsupported bridge versions fail closed. */}
   if(!supported)throw new ApiError('IAP_NOT_SUPPORTED');
 }
 export async function saleProducts():Promise<SaleProduct[]>{
@@ -179,7 +180,7 @@ function pausePaymentMedia(){
   return ()=>{if(restored||waiting)return;if(document.visibilityState==='visible')restore();else{waiting=true;document.addEventListener('visibilitychange',restore);}};
 }
 function recoverySupported(){
-  try{return IAP.getPendingOrders.isSupported()&&IAP.completeProductGrant.isSupported();}catch(error){if(authorizationStatus(error))throw error;return false;}
+  try{return IAP.getPendingOrders.isSupported()&&IAP.completeProductGrant.isSupported();}catch(error){if(authorizationStatus(error)||sdkVersionError(error))throw error;return false;}
 }
 // These versions guarantee that the native SDK honors the grant callback's
 // true/false result. The purchase API itself has a lower support floor.

@@ -35,6 +35,11 @@ for(const denial of [{status:401,code:'SESSION_EXPIRED'},{status:403,code:'ACCES
   assert.equal(state.pendingCalls,undefined);assert.equal(state.productListCalls,undefined);
  }finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
 });
+test('SDK support probes retain the exact app update message',async()=>{
+ const {state,saleProducts,restore}=await adapter(true,true),failure={code:'UNSUPPORTED_APP_VERSION',message:'토스 앱을 업데이트해 주세요.'};
+ try{state.productSupportThrows=failure;await assert.rejects(saleProducts(),error=>error===failure);state.productSupportThrows=null;for(const key of ['pendingSupportFailure','completeSupportFailure']){state[key]=failure;await assert.rejects(restore(),error=>error===failure);state[key]=null;}}
+ finally{delete globalThis.tossRecoveryTest;}
+});
 
 for(const denial of [{status:401,code:'SESSION_EXPIRED'},{status:403,code:'ACCESS_DENIED'},{code:'ACCESS_DENIED'}])test(`SDK acknowledgement preserves ${JSON.stringify(denial)}`,async()=>{
  const {state,restore}=await adapter(true,true),previous=globalThis.fetch;state.orders=[{orderId:'saved',sku:'test'}];state.ackFailure=denial;

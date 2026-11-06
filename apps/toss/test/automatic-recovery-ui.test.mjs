@@ -22,6 +22,11 @@ test('direct consultation entry checks pending orders after session restoration 
 test('direct consultation entry does not query orders for a guest',async()=>{const view=await mount(false);try{assert.equal(view.state.calls,0);assert.doesNotMatch(document.body.textContent,/복구/);}finally{await view.close();}});
 
 test('direct consultation entry reports a permission denial without hiding the screen',async()=>{const view=await mount(true,'',{status:403});try{assert.match(document.body.textContent,/접근할 권한/);assert.match(document.body.textContent,/상담 화면/);}finally{await view.close();}});
+test('recovery preserves the SDK update message and code-only login errors',async()=>{
+ let view=await mount(true,'',{code:'UNSUPPORTED_APP_VERSION',message:'토스 앱을 최신 버전으로 업데이트해 주세요.'});try{assert.match(document.body.textContent,/토스 앱을 최신 버전으로 업데이트해 주세요/);}finally{await view.close();}
+ view=await mount(true,'',{code:'LOGIN_REQUIRED'});try{assert.match(document.body.textContent,/토스 로그인이 필요해요/);}finally{await view.close();}
+});
+test('an explicit 403 remains a denial even when an error code conflicts',async()=>{const view=await mount(true,'',{status:403,code:'LOGIN_REQUIRED'});try{assert.match(document.body.textContent,/접근할 권한/);assert.doesNotMatch(document.body.textContent,/토스 로그인이 필요해요/);}finally{await view.close();}});
 
 test('a delayed recovery does not keep the consultation screen loading',async()=>{let release;const wait=new Promise(resolve=>{release=resolve;});const view=await mount(true,'1건 복구',null,wait);try{assert.equal(view.state.calls,1);assert.match(document.body.textContent,/상담 화면/);await React.act(async()=>release());assert.match(document.body.textContent,/1건 복구/);}finally{await view.close();}});
 
