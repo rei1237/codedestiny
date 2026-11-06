@@ -7,7 +7,12 @@ await mkdir(output,{recursive:true});
 const browser=await chromium.launch({channel:'chrome'});
 try {
  const context=await browser.newContext({viewport:{width:360,height:800},isMobile:true,hasTouch:true,serviceWorkers:'block',reducedMotion:'reduce'});
- await context.route('**/*',r=>new URL(r.request().url()).origin===base?r.continue():r.abort());
+ await context.route('**/*',r=>{
+   const url=new URL(r.request().url());
+   if(url.origin!==base)return r.abort();
+   if(url.pathname.startsWith('/api/'))return r.fulfill({status:401,json:{ok:false}});
+   return r.continue();
+ });
  const page=await context.newPage();
  page.setDefaultTimeout(60000);
  const go=async()=>{await page.goto(base+'/',{waitUntil:'domcontentloaded',timeout:120000});await page.waitForSelector('form button:not(:disabled)');};
@@ -20,20 +25,21 @@ try {
  await fill(' ');await page.getByText('궁금한 내용을 한 줄 적어 주세요.').waitFor();await btn('먼저 연락해도 될까요?').click();
  await page.locator('#home-question').fill('');await page.locator('#home-question').blur();await shot('01-start');
  const questionField=page.locator('#home-question');
- const trigger=page.getByRole('button',{name:/처음 오셨나요/});
+ const trigger=page.getByRole('button',{name:/이용 안내 웹툰 읽기/});
  const reader=page.getByRole('dialog');
  const draft='답장을 기다릴 때 지킬 기준이 궁금해요.';
- assert.equal(await page.locator('img[src*="/moonlight-guide/"]').count(),0);
- for(const width of [360,1120]){
+ assert.equal(await page.locator('img[src*="/moonlight-guide/"]').count(),1);
+ for(const width of [360,390,430,1120]){
+   await go();
    await page.setViewportSize({width,height:800});
    await questionField.fill(draft);
    await trigger.click();
    await reader.waitFor();
-   assert.equal(await reader.locator('section').count(),6);
-   assert.equal(await reader.locator('p b').first().innerText(),'손님');
-   assert.equal(await reader.getByRole('link',{name:/문라이트 패스 이용 범위/}).getAttribute('href'),'/points/#moonlight-plans');
+   assert.equal(await reader.locator('section').count(),4);
+   assert.equal(await reader.locator('p b').first().innerText(),'꽃돼지 연이');
+   assert.equal(await reader.getByRole('link',{name:/마스터 상담 둘러보기/}).getAttribute('href'),'/consultations/');
    if(width===360){
-     for(const [index,name] of [[2,'04-comic-choice'],[4,'05-comic-pass']]){
+     for(const [index,name] of [[2,'04-comic-choice'],[3,'05-comic-records']]){
        const panel=reader.locator('section').nth(index);
        await panel.locator('img').scrollIntoViewIfNeeded();
        await panel.locator('img').evaluate(img=>img.decode());

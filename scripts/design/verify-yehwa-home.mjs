@@ -78,7 +78,7 @@ try {
   if (process.env.YEHWA_FULL_SHELL) {
    const allIds=await page.evaluate(()=>window.CodeDestinyAllFortunes.filter({}).map(item=>item.id));
    for(const item of catalog)assert.ok(allIds.includes(item.id),`full search retains ${item.id}`);
-   await page.locator('.yh-links [data-action="cdOpenAllFortunes"]').click();
+   await page.locator('.cdh-all-cta__btn').click();
    const search=page.locator('#cdAllFortunesSearch');
    await search.fill('검색되지않는없는운세');
    await page.locator('#cdAllFortunesResults .cd-af__empty-title').waitFor({state:'visible'});

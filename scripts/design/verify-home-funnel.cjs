@@ -111,7 +111,7 @@ async function assertEssentials(page, label) {
 
       assert.match(await page.locator('#cdhTitle').innerText(), /어떤 이야기/, 'hero invites concern selection');
       assert.equal(await page.locator('[data-yh-concern]').count(), 5, 'five concern groups');
-      assert.equal(await page.locator('.yh-links [data-action="cdOpenAllFortunes"]').count(), 1, 'full catalog remains available');
+      assert.equal(await page.locator('.cdh-all-cta__btn').count(), 1, 'full catalog remains available');
       assert.equal(await page.locator('#cdQuickServices .cdh-free-card').count(), 6, `${width}px free first offers the six methods`);
       assert.equal(await page.locator('#cdQuickServices .cdh-free-card').first().getAttribute('data-cdh-free'), '', `${width}px the first free card opens the one-step saju`);
       // 초융합 시그니처 띠: 다섯 마스터 · 50,000원 · 초융합 페이지로.

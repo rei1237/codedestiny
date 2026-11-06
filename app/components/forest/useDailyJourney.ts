@@ -39,6 +39,7 @@ export function useDailyJourney({ surface, enabled }: { surface: JourneySurface;
   const [progress, setProgress] = useState<JourneyProgress | null | undefined>(undefined);
   const [products, setProducts] = useState<JourneyProduct[]>([]);
   const [profile, setProfile] = useState<DestinyProfileCard | null>(null);
+  const [profileStatus, setProfileStatus] = useState<"loading" | "ready" | "error">("loading");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [picked, setPicked] = useState<{ action: DiarySmallAction; index: number } | null>(null);
@@ -82,7 +83,12 @@ export function useDailyJourney({ surface, enabled }: { surface: JourneySurface;
         setMessage(data.awarded ? `꿀방울 ${data.rewarded}개를 받았어요.` : "오늘은 이미 출석했어요.");
         if (data.awarded) { trackEvent("daily_home_attendance", { surface }); void recordGrowth("checkin", ""); }
       } else {
-        void fetchCurrentDestinyProfile().then(setProfile).catch(() => setProfile(null));
+        setProfileStatus("loading");
+        void fetchCurrentDestinyProfile(undefined, { reportFailure: true }).then(card => {
+          if (seq === requestSeq.current) { setProfile(card); setProfileStatus("ready"); }
+        }).catch(() => {
+          if (seq === requestSeq.current) { setProfile(null); setProfileStatus("error"); }
+        });
         void loadProgress();
       }
     } catch {
@@ -173,7 +179,7 @@ export function useDailyJourney({ surface, enabled }: { surface: JourneySurface;
     }
   }
 
-  return { surface, hydrated, ymd, entry, status, honey, progress, products, profile, busy, message, quest, picked, savedAction, attended, questDone, hasRecord, stepsDone, weekMap, attend, retry, selectQuest, rerollQuest, toggleQuest };
+  return { surface, hydrated, ymd, entry, status, honey, progress, products, profile, profileStatus, busy, message, quest, picked, savedAction, attended, questDone, hasRecord, stepsDone, weekMap, attend, retry, selectQuest, rerollQuest, toggleQuest };
 }
 
 export type DailyJourney = ReturnType<typeof useDailyJourney>;

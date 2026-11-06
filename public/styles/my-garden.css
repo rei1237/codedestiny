@@ -63,6 +63,10 @@ html body #cdAccountSheet #authQuickLinks .auth-btn{min-height:44px;margin:0;pad
 #dpListSheet .dp-sheet-foot{border-color:var(--mg-line)}
 #dpListSheet .dp-sheet-foot__link{background:var(--mg-surface);border-color:var(--mg-line);color:var(--mg-accent)}
 #dpListSheet :is(.dp-list-item,.dp-list-add,.dp-list-empty-cta){background:var(--mg-bg);border-color:var(--mg-line);color:var(--mg-accent);box-shadow:none;backdrop-filter:none}
+#dpListSheet :is(.dp-list-add,.dp-list-empty-cta){min-height:48px;margin-block:12px;padding:10px 22px;border:0;border-radius:var(--cd-r-control);background:var(--cd-cta-primary-bg);color:var(--cd-cta-primary-ink);font:inherit;font-weight:700;cursor:pointer}
+.dp-forest-card #dpListSheet{inset:0;width:100%;height:100%;max-width:none;max-height:none;transform:none;border-radius:0}
+.dp-forest-card #dpListSheet :is(.dp-sheet-head,.dp-sheet-foot,.dp-sheet-handle-wrap,#dpMasterCardHost){display:none}
+.dp-forest-card #dpListOverlay{background:var(--cd-surface)}
 #dpListSheet .dp-list-item--active{background:var(--mg-surface);border-color:var(--mg-accent)}
 #dpListSheet :is(.dp-li-name,.dp-list-empty){color:var(--mg-ink)}
 #dpListSheet :is(.dp-li-meta,.dp-li-loc){color:var(--mg-muted)}

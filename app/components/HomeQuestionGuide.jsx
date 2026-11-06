@@ -70,9 +70,9 @@ export default function HomeQuestionGuide(){
     {step==='write'?<><form onSubmit={submit}><label htmlFor="home-question">나의 질문</label>
       <textarea ref={input} id="home-question" rows={3} value={question} onChange={e=>{setQuestion(e.target.value);setNotice('');}} placeholder="먼저 연락하고 싶은데, 답장이 없으면 더 힘들어질까 봐 망설여져요."/>
       <button disabled={!ready} className={s.primary}>내 질문에 맞는 상담 찾기</button></form>
-      <MoonlightTutorial questionInput={input} />
       <div className={s.examples}><p>이런 질문으로 시작해 보세요</p>{examples.map(v=><button key={v} onClick={()=>{setQuestion(v);setNotice('');input.current.focus();}}>{v}</button>)}</div>
-      <details><summary>운세 종류로 찾기</summary><nav>{directory.map(v=><a key={v.key} href={v.href}>{v.title}</a>)}</nav></details></>:
+      <details><summary>운세 종류로 찾기</summary><nav>{directory.map(v=><a key={v.key} href={v.href}>{v.title}</a>)}</nav></details>
+      <MoonlightTutorial questionInput={input} /></>:
     <><div className={s.quote}><span>내가 한 질문</span><p>{question}</p></div>
     {step==='ask'?<><div className={s.options}>{options.map(([key,label])=><button key={key} onClick={()=>answer(label,key)}>{label}</button>)}
       <button aria-expanded={direct} onClick={()=>setDirect(!direct)}>직접 답하기</button></div>{direct&&<form onSubmit={e=>{e.preventDefault();answer(draft);}}><label htmlFor="home-answer">원하는 도움</label><textarea id="home-answer" autoFocus rows={2} value={draft} onChange={e=>setDraft(e.target.value)}/><button className={s.primary}>답변 반영하기</button></form>}</>:

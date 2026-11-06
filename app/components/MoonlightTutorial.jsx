@@ -41,21 +41,20 @@ export default function MoonlightTutorial({ questionInput }) {
 
   return <>
     <button type="button" ref={trigger} className={styles.trigger} onClick={() => setOpen(true)} aria-haspopup="dialog">
-      <Image src="/images/yeoni/welcome/yeoni-mark-v1-96.webp" width={36} height={36} alt="" />
-      <span>처음 오셨나요? <strong>연이의 이용 안내 웹툰</strong></span><span aria-hidden="true">›</span>
+      <Image src="/images/moonlight-guide/question.webp" width={627} height={627} alt="" />
+      <span><small>연이와 영냥이의 달빛 길잡이</small><strong>이용 안내 웹툰 읽기 <span aria-hidden="true">→</span></strong></span>
     </button>
     <dialog ref={dialog} className={styles.reader} aria-labelledby="moonlight-reader-title"
       onClose={finish}>
       {open && <>
-        <header className={styles.bar}><span>연이의 달빛 길잡이</span><button type="button" autoFocus onClick={() => dismiss()}>닫기</button></header>
+        <header className={styles.bar}><span>꿀꿀 운세 이용 안내</span><button type="button" autoFocus onClick={() => dismiss()}>닫기</button></header>
         <article className={styles.story}>
-          <h2 id="moonlight-reader-title">연이야, 먼저 연락해도 될까?</h2>
+          <h2 id="moonlight-reader-title">달빛 아래, 어디서 시작할까요?</h2>
           {moonlightPanels.map(panel => <section key={panel.art} className={styles.panel} aria-label={panel.title}>
             <Image src={'/images/moonlight-guide/' + panel.art + '.webp'} width={508} height={508}
-              alt={panel.alt} loading={panel.art === '1' ? 'eager' : 'lazy'} />
-            {panel.label && <strong className={styles.tag}>{panel.label}</strong>}
-            {panel.guest && <p className={styles.guest}><b>손님</b>{panel.guest}</p>}
-            <p className={styles.bubble}><b>꽃돼지 연이</b>{panel.yeoni}</p>
+              alt={panel.alt} loading={panel.art === 'question' ? 'eager' : 'lazy'} />
+            <h3>{panel.title}</h3>
+            <p className={styles.bubble}><b>{panel.speaker}</b>{panel.line}</p>
             {panel.link && <a href={panel.link.href} target="_blank" rel="noreferrer">{panel.link.text} <small>(새 창)</small></a>}
           </section>)}
           <button className={styles.write} onClick={() => dismiss(true)}>내 질문 써보기</button>

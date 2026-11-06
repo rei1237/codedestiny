@@ -2104,7 +2104,10 @@
           return;
         }
         if (data && data.profileAccess) _dpApplyProfileAccess(data.profileAccess);
-        if (String((data && data.currentId) || nextId || '').trim() === nextId) _dpClearPendingCurrentProfile(nextId);
+        if (String((data && data.currentId) || nextId || '').trim() === nextId) {
+          _dpClearPendingCurrentProfile(nextId);
+          notifyForestCard('saved');
+        }
       }).catch(function() {});
     }).catch(function() {});
   }
@@ -9370,9 +9373,7 @@
       container.innerHTML = '<div class="dp-list-empty">' + _esc(_dpText('profileEmptyTitle'))
         + '<br><small>' + _esc(_dpText('profileEmptyHint')) + '</small>'
         + '<br><button type="button" class="dp-list-empty-cta" onclick="dpStartProfileCreate();"'
-        + ' style="margin-top:16px;padding:11px 22px;border-radius:999px;border:1px solid rgba(255,215,0,0.42);'
-        + 'background:rgba(255,215,0,0.12);color:var(--dp-gold);font-size:0.86rem;font-weight:700;cursor:pointer;'
-        + 'touch-action:manipulation;-webkit-tap-highlight-color:transparent;">' + _esc(_dpText('profileAddNew')) + '</button></div>';
+        + '>' + _esc(_dpText('profileAddNew')) + '</button></div>';
       return;
     }
 
@@ -9616,8 +9617,10 @@
     var createConfirm = isUpdate ? _dpText('profileEditConfirm') : _dpText('profileCreateConfirm');
     if ((isUpdate || !hasProfiles) && !confirm(createConfirm)) return;
     var btn = document.getElementById('dpSaveBtn');
+    notifyForestCard('busy');
     var savingCardVisible = false;
     function restoreCardAfterSaveAttempt() {
+      notifyForestCard('ready');
       rollbackOptimisticCreate();
       if (!savingCardVisible) {
         renderMasterCard(DPStorage.current());
@@ -9735,6 +9738,7 @@
       renderProfileList();
       _dpScrollProfileIntoViewMobile();
       broadcastProfileChange(curr || created || null);
+      notifyForestCard('saved');
       _dpUpdateSaveBtn();
       if (isUpdate) {
         var savedBirthProfile = _dpFindProfileById(DPStorage.list(), createProfileId) || created || curr || null;
@@ -10017,7 +10021,24 @@
     }, 260);
   }
 
+  // The same-origin forest panel reuses this editor and its existing payment and save rules.
+  var forestCardMode = window.parent !== window && new URLSearchParams(window.location.search).get('forestCard');
+  function notifyForestCard(state) {
+    if (forestCardMode) window.parent.postMessage({ type: 'cd:forest-card', state: state }, window.location.origin);
+  }
+
   window.dpOpenList = function() {
+    if (forestCardMode) {
+      var style = document.querySelector('link[data-cd-noncritical-style-src^="/styles/fortune-ui.css"]');
+      if (style && !style.sheet) {
+        style.addEventListener('load', function() { window.dpOpenList(); }, { once: true });
+        style.addEventListener('error', function() { notifyForestCard('error'); }, { once: true });
+        style.rel = 'stylesheet';
+        style.media = 'all';
+        style.href = style.getAttribute('data-cd-noncritical-style-src');
+        return;
+      }
+    }
     var mounted = _dpEnsureListSheetMounted();
     var sheet = mounted && mounted.sheet;
     var overlay = mounted && mounted.overlay;
@@ -10028,6 +10049,7 @@
       return;
     }
 
+    if (forestCardMode) document.documentElement.classList.add('dp-forest-card');
     _dpBorrowMasterCardIntoSheet(sheet);
     sheet.classList.add('dp-sheet--open');
     overlay.classList.add('dp-sheet--open');
@@ -10037,6 +10059,8 @@
     function renderOpenList() {
       try {
         renderProfileList();
+        if (forestCardMode === 'create' && !DPStorage.list().length) window.dpStartProfileCreate();
+        notifyForestCard('ready');
         if (scroller) scroller.scrollTop = 0;
       } catch (err) {
         console.error('[DP] openList render failed', err);
@@ -10065,6 +10089,7 @@
       }
       _dpLoadFromServer(function(loaded) {
         if (!loaded) {
+          notifyForestCard('error');
           if (!hasCachedProfiles && container) {
             container.innerHTML = '<div class="dp-list-empty">\uC11C\uBC84\uC5D0\uC11C \uD504\uB85C\uD544 \uAD8C\uD55C\uC744 \uD655\uC778\uD558\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4.<br><small>\uC7A0\uC2DC \uD6C4 \uB2E4\uC2DC \uC5F4\uC5B4 \uC8FC\uC138\uC694.</small></div>';
           }
@@ -10152,7 +10177,7 @@
       renderProfileList();
       broadcastProfileChange(p);
       _dpUpdateSaveBtn();
-      dpCloseList();
+      if (!forestCardMode) dpCloseList();
       spawnStardust(document.getElementById('dpMasterCard'));
       _toast('✨ ' + (p ? _esc(p.name) : '') + ' · 프로필 활성화', 'success');
     }

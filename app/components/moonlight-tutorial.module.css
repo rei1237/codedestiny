@@ -1,15 +1,8 @@
-.trigger[aria-haspopup="dialog"] {
-  display:flex; align-items:center; gap:.55rem; width:100%; padding:.45rem .6rem;
-  background:var(--cd-bg); border:1px solid var(--hm-gold-line); border-radius:.7rem;
-  text-align:left; font-size:.875rem; line-height:1.45;
-}
-.trigger img {width:28px; height:28px}
-@media(max-width:400px){
-  .trigger[aria-haspopup="dialog"] {gap:.25rem;padding-inline:.2rem;letter-spacing:-.035em}
-  .trigger img {width:24px;height:24px}
-  .trigger span:last-child {display:none}
-}
-.trigger span:last-child {margin-inline-start:auto; font-size:1.1rem}
+button.trigger[aria-haspopup="dialog"]{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,42%) 1fr;align-items:center;gap:clamp(.75rem,3vw,2rem);width:100%;overflow:hidden;padding:0;color:#422639;background:#fbf3e8;border:1px solid var(--hm-gold-line);border-radius:8px 22px 8px 8px;text-align:left}
+.trigger img{display:block;width:100%;height:clamp(8rem,18vw,12rem);object-fit:cover;object-position:50% 54%}
+.trigger small,.trigger strong{display:block;padding-right:1rem}
+.trigger strong{margin-top:.35rem;font:700 clamp(1rem,2vw,1.45rem)/1.45 var(--font-serif)}
+.panel h3{margin:0;font:700 1.2rem/1.5 var(--font-serif)}
 .reader {
   position:fixed; inset:0; margin:auto; width:min(100%,34rem); max-width:100%; height:min(90dvh,54rem);
   max-height:100dvh; padding:0; box-sizing:border-box; overflow:auto; overscroll-behavior:contain;

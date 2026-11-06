@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
+import { invalidateProfileCache } from "@/app/_lib/user-session-cache";
 import type { DailyJourney, JourneyHoney } from "./useDailyJourney";
 import { forestZoneForLevel, litLanternCount } from "./forest-progress.mjs";
 import styles from "./forest.module.css";
@@ -31,15 +33,59 @@ export function LanternRow({ honey }: { honey: JourneyHoney }) {
 /** 프로필 카드 이름, 숲 구역, 레벨, 경험치 막대. 재조회한 값만 보여 준다. */
 export function GrowthCard({ journey }: { journey: DailyJourney }) {
   const { status, profile, progress } = journey;
-  const name = status === "loading" ? "카드 확인 중" : status === "guest" ? "나의 카드 만나기" : profile ? `${profile.name || "나의"} 카드` : "프로필 카드 확인하기";
-  const fallback = status === "guest" ? "로그인하면 계정의 성장 기록을 볼 수 있어요." : status === "error" ? "성장 기록을 확인해 주세요." : status === "ready" ? "성장 기록을 불러오지 못했어요." : "성장 기록 확인 중";
+  const [editing, setEditing] = useState(false);
+  const [frameStatus, setFrameStatus] = useState<"loading" | "ready" | "error">("loading");
+  const [saving, setSaving] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+  const frame = useRef<HTMLIFrameElement>(null);
+  const trigger = useRef<HTMLButtonElement>(null);
+  const closeButton = useRef<HTMLButtonElement>(null);
+  const retry = useRef(journey.retry);
+  useEffect(() => { retry.current = journey.retry; }, [journey.retry]);
+  useEffect(() => {
+    if (!editing) return;
+    closeButton.current?.focus();
+    const timer = window.setTimeout(() => setFrameStatus("error"), 25000);
+    function receive(event: MessageEvent) {
+      if (event.origin !== window.location.origin || event.source !== frame.current?.contentWindow || event.data?.type !== "cd:forest-card") return;
+      window.clearTimeout(timer);
+      switch (event.data.state) {
+        case "ready": setSaving(false); setFrameStatus("ready"); break;
+        case "busy": setSaving(true); break;
+        case "error": setFrameStatus("error"); break;
+        case "saved":
+        case "closed":
+          setSaving(false); setEditing(false);
+          trigger.current?.focus();
+          invalidateProfileCache("forest-card-saved");
+          retry.current();
+          break;
+      }
+    }
+    window.addEventListener("message", receive);
+    return () => { window.clearTimeout(timer); window.removeEventListener("message", receive); };
+  }, [editing, attempt]);
+  const name = profile ? `${profile.name || "나의"} 카드` : "숲길 프로필 카드";
+  const unavailable = status === "error" || (status === "ready" && journey.profileStatus === "error");
+  const loading = status === "loading" || (status === "ready" && journey.profileStatus === "loading");
+  const fallback = status === "guest" ? "카드 없이도 오늘의 숲길을 걸을 수 있어요." : unavailable ? "카드 정보를 불러오지 못했어요." : loading ? "카드를 확인하고 있어요." : "숲길에서 사용할 프로필 카드를 골라 보세요.";
   const ratio = progress ? Math.min(100, Math.round((progress.currentLevelExp / Math.max(1, progress.nextLevelExp)) * 100)) : 0;
   return <div className={styles.growth}>
     <div className={styles.growthHead}>
       <strong>{name}</strong>
-      {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-      <a href={CARD_MANAGE_HREF}>{status === "ready" && !profile ? "프로필 카드 만들기" : "카드 관리"}</a>
+      <button type="button" ref={trigger} className={styles.cardAction} aria-expanded={editing} disabled={loading || saving}
+        onClick={() => {
+          if (unavailable) { journey.retry(); return; }
+          setFrameStatus("loading"); setEditing(!editing);
+        }}>{unavailable ? "다시 확인하기" : profile ? "카드 바꾸기" : status === "guest" ? "프로필 카드 열기" : "첫 프로필 카드 만들기"}</button>
     </div>
+    {editing && <section className={styles.cardEditor} aria-label="숲길 프로필 카드">
+      <button ref={closeButton} type="button" disabled={saving} onClick={() => { setEditing(false); trigger.current?.focus(); }}>{saving ? "카드 저장 중" : "숲길로 돌아가기"}</button>
+      {frameStatus === "loading" && <p role="status">프로필 카드를 펼치고 있어요.</p>}
+      {frameStatus === "error" && <button type="button" onClick={() => { setFrameStatus("loading"); setAttempt(i => i + 1); }}>카드 다시 불러오기</button>}
+      <iframe key={attempt} ref={frame} title="숲길 프로필 카드 작성과 선택" hidden={frameStatus !== "ready"}
+        src={CARD_MANAGE_HREF + "&forestCard=" + (profile || status === "guest" ? "select" : "create")} />
+    </section>}
     {progress
       ? <div className={styles.growthBody}>
           <span className={styles.zone}>{forestZoneForLevel(progress.currentLevel)} · Lv. {progress.currentLevel}</span>
