@@ -12,6 +12,9 @@ export interface MayaCopy {
   heroTitle: string;
   heroTagline: string;
   heroDescription: string;
+  tossHeroDescription: string;
+  tossPromptUnavailable: string;
+  tossReferenceDisclaimer: string;
   chipLongCount: string;
   chipTzolkin: string;
   chipHaab: string;
@@ -85,6 +88,9 @@ const MAYA_COPY_EN: MayaCopy = {
   heroTitle: "Maya Reading",
   heroTagline: "Read today's flow through the time code of an ancient calendar",
   heroDescription: "See the selected date's Long Count, Tzolk'in, and Haab values at a glance, and prepare a consultation prompt based on the symbols of the Maya sacred calendar.",
+  tossHeroDescription: "Explore the selected date's Long Count, Tzolk'in, and Haab values in the Maya calendar.",
+  tossPromptUnavailable: "Maya prompt generation is not available in Toss yet.",
+  tossReferenceDisclaimer: "The selected date is shown in Maya calendar notation for entertainment. Consider practical information and professional advice for important decisions.",
   chipLongCount: "Long Count time coordinate",
   chipTzolkin: "Tzolk'in inner rhythm",
   chipHaab: "Haab season of the sun",
@@ -159,6 +165,9 @@ const MAYA_COPY: Partial<Record<LoadingLocale, MayaCopy>> = {
     heroTitle: "마야점",
     heroTagline: "고대 달력의 시간 코드로 오늘의 흐름을 읽습니다",
     heroDescription: "선택한 날짜의 Long Count, Tzolk'in, Haab 값을 한눈에 확인하고, 마야 sacred calendar의 상징을 바탕으로 상담 프롬프트를 준비하세요.",
+    tossHeroDescription: "선택한 날짜의 Long Count, Tzolk'in, Haab 값을 마야 달력에서 살펴보세요.",
+    tossPromptUnavailable: "토스용 프롬프트 생성은 아직 제공하지 않아요.",
+    tossReferenceDisclaimer: "선택한 날짜를 마야 달력 표기로 보여주는 엔터테인먼트용 참고 정보예요. 중요한 결정에는 현실적인 정보와 전문가의 조언도 함께 살펴보세요.",
     chipLongCount: "Long Count 시간 좌표",
     chipTzolkin: "Tzolk'in 내면 리듬",
     chipHaab: "Haab 태양의 계절",
@@ -231,6 +240,9 @@ const MAYA_COPY: Partial<Record<LoadingLocale, MayaCopy>> = {
     heroTitle: "マヤ占い",
     heroTagline: "古代暦の時間コードで今日の流れを読みます",
     heroDescription: "選択した日付のLong Count、Tzolk'in、Haabの値を一目で確認し、マヤの神聖暦のシンボルをもとに相談プロンプトを準備しましょう。",
+    tossHeroDescription: "選択した日付のLong Count、Tzolk'in、Haabの値をマヤ暦で確認できます。",
+    tossPromptUnavailable: "Tossでのプロンプト生成はまだ提供していません。",
+    tossReferenceDisclaimer: "選択した日付をマヤ暦で表示する娯楽目的の参考情報です。重要な判断には現実の情報や専門家の助言も併せてご確認ください。",
     chipLongCount: "Long Count 時間座標",
     chipTzolkin: "Tzolk'in 内面のリズム",
     chipHaab: "Haab 太陽の季節",
@@ -303,6 +315,9 @@ const MAYA_COPY: Partial<Record<LoadingLocale, MayaCopy>> = {
     heroTitle: "玛雅占卜",
     heroTagline: "以古代历法的时间密码解读今日的流转",
     heroDescription: "一目了然地查看所选日期的Long Count、Tzolk'in、Haab数值，并以玛雅神圣历法的象征为基础准备咨询提示词。",
+    tossHeroDescription: "在玛雅历中查看所选日期的Long Count、Tzolk'in和Haab数值。",
+    tossPromptUnavailable: "Toss暂不提供提示词生成功能。",
+    tossReferenceDisclaimer: "所选日期以玛雅历显示，仅供娱乐参考。重要决定请同时考虑现实信息与专业建议。",
     chipLongCount: "Long Count 时间坐标",
     chipTzolkin: "Tzolk'in 内在节律",
     chipHaab: "Haab 太阳的季节",
@@ -375,6 +390,9 @@ const MAYA_COPY: Partial<Record<LoadingLocale, MayaCopy>> = {
     heroTitle: "馬雅占卜",
     heroTagline: "以古代曆法的時間密碼解讀今日的流轉",
     heroDescription: "一目了然地查看所選日期的Long Count、Tzolk'in、Haab數值，並以馬雅神聖曆法的象徵為基礎準備諮詢提示詞。",
+    tossHeroDescription: "在馬雅曆中查看所選日期的Long Count、Tzolk'in和Haab數值。",
+    tossPromptUnavailable: "Toss暫不提供提示詞生成功能。",
+    tossReferenceDisclaimer: "所選日期以馬雅曆顯示，僅供娛樂參考。重要決定請同時考慮現實資訊與專業建議。",
     chipLongCount: "Long Count 時間座標",
     chipTzolkin: "Tzolk'in 內在節律",
     chipHaab: "Haab 太陽的季節",

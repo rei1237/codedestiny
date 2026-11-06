@@ -6,6 +6,9 @@ let expression;function walk(node){if(ts.isVariableDeclaration(node)&&node.name.
 test('direct Karma input and result URLs enter the service shell',()=>{
  for(const [pathname,expected] of [['/karma-destiny-ai/',true],['/karma-destiny-ai/result/',true],['/karma-destiny-ai/other/',false]])assert.equal(vm.runInNewContext(expression,{location:{pathname}}),expected);
 });
+test('direct Maya calendar URLs enter the service shell without capturing other paths',()=>{
+ for(const [pathname,expected] of [['/maya',true],['/maya/',true],['/maya/result/',false]])assert.equal(vm.runInNewContext(expression,{location:{pathname}}),expected);
+});
 const stubs={
  '@/app/_lib/auth-store':"export const useAuthStore=()=>globalThis.__karmaShellAuth;",
  '@/app/_lib/toss-consultation-copy':"export const useTossConsultationCopy=()=>({locale:'ko',copy:{login:'로그인 필요',loginLink:'토스로 로그인하기'}});",

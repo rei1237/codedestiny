@@ -40,6 +40,7 @@ const AstrologyResult=lazy(()=>import('@/app/astrology-ai/result/AstrologyAiResu
 const AstrologyProfile=lazy(()=>import('./TossAstrologyProfilePicker'));
 const AstrologyPrice=lazy(()=>import('./TossAstrologyPrice'));
 const Records=lazy(()=>import('@/app/records/RecordsClient'));
+const Maya=lazy(()=>import('@/src/components/maya/MayaCalendarView'));
 function VedicProfile(props){return <AstrologyProfile {...props} calendarMode="lunar"/>;}
 function VedicPrice(){return <AstrologyPrice featureKey="vedic-ai-consultation"/>;}
 function ZiweiProfile(props){return <AstrologyProfile {...props} calendarMode="native-lunar"/>;}
@@ -84,6 +85,7 @@ export default function ServiceScreens(){
  },[]);
  useEffect(()=>{install();let live=true;const offSession=onSessionInvalidated(()=>handleSessionInvalidated({redirect:false}));clearClientAuthState();const showError=error=>{if(!live||error?.code==='SESSION_CHANGED')return;if(error?.status===401)clearClientAuthState();if(SERVICE_AVAILABLE)setRecoveryMessage((error?.status===403||error?.code==='ACCESS_DENIED')?'구매 내역에 접근할 권한을 확인할 수 없어요. 구매한 계정과 주문 내역을 확인해 주세요.':['IAP_NOT_SUPPORTED','UNSUPPORTED_APP_VERSION'].includes(error?.code)?'현재 토스 앱에서는 구매 복구를 지원하지 않아요. 앱 업데이트 후 다시 확인해 주세요.':'구매 내역을 확인하지 못했어요. 추가 결제 전에 로그인과 연결 상태를 확인해 주세요.');};void restoreSession().then(async authenticated=>{if(!authenticated)return;await refreshAuth({force:true});if(live)setReady(true);try{const notice=await recoverAfterAuthentication(true);if(live&&notice)setRecoveryMessage(notice);}catch(error){showError(error);}finally{if(live)setRecoveryEpoch(value=>value+1);}}).catch(showError).finally(()=>{if(live)setReady(true);});return()=>{live=false;offSession();};},[]);
  const recoveryBanner=recoveryMessage?<div role="status"><p>{recoveryMessage}</p><a href="/recovery">구매 내역 복구하기</a></div>:null;
+ if(location.pathname==='/maya'||location.pathname==='/maya/')return <LazyMotion features={domAnimation}><ToastProvider/>{recoveryBanner}{ready?<Suspense fallback={<p role="status">마야 달력을 열고 있어요.</p>}><Maya paymentSurface="toss"/></Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</LazyMotion>;
  if(location.pathname.startsWith('/karma-destiny-ai'))return <LazyMotion features={domAnimation}><ToastProvider/>{recoveryBanner}{ready?<Suspense fallback={<p role="status">운명의 업 상담을 열고 있어요.</p>}><Karma result={location.pathname.includes('/result')}/></Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</LazyMotion>;
  if(location.pathname.startsWith('/new-year-ai-consultation'))return <LazyMotion features={domAnimation}><ToastProvider/>{recoveryBanner}{ready?<Suspense fallback={<p role="status">신년운세 상담을 열고 있어요.</p>}><NewYear paymentSurface="toss" ProfilePicker={NewYearProfile} TossPrice={NewYearPrice}/></Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</LazyMotion>;
  if(location.pathname.startsWith('/ziwei-ai'))return <LazyMotion features={domAnimation}><ToastProvider/>{recoveryBanner}{ready?<Suspense fallback={<p role="status">자미두수 상담을 열고 있어요.</p>}><Ziwei paymentSurface="toss" ProfilePicker={ZiweiProfile} TossPrice={ZiweiPrice}/></Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</LazyMotion>;
