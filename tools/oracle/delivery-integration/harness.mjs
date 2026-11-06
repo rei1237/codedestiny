@@ -187,7 +187,7 @@ export function server() {
       '/api/ziwei-ai/generate': 'handleStart', '/api/ziwei-ai/result': 'handleResult' };
     assert.ok(handlers[url.pathname], 'Only four in-memory endpoints allowed');
     state.requests.push({ path: url.pathname, method, body: wire(body) });
-    const result = await context[handlers[url.pathname]]({ body: wire(body), method, url: url.href, headers: new Headers() }, {});
+    const result = await context[handlers[url.pathname]]({ body: wire(body), method, url: url.href, headers: new Headers() }, state.env || {});
     return wire(result);
   };
   return state;

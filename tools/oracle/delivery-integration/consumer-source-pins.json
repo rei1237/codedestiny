@@ -1,11 +1,11 @@
 {
-  "baseline": "7ef443f7e",
+  "baseline": "44b6b18e6",
   "reviewedDifferences": [
     "worker/lib/guardian-fortune/adapters/ziwei.js",
     "worker/lib/ziwei-consumer-chart.js",
     "worker/lib/ziwei-execution-adapter.js"
   ],
-  "reason": "Reviewed default-OFF consumer selection wrapper and guardian integration. All pre-existing calendar, birth-clock and star-calculation source hashes unchanged.",
+  "reason": "Reviewed 44b6b18e6: the adapter falls back only on CALENDAR_AUTHORITY_OUT_OF_RANGE and still imports only ziwei-ai-chart.js. All other pinned files are unchanged.",
   "domains": {
     "ziwei": {
       "lib/korean-calendar/authority-data.generated.js": "4e8be46272be3dfd475621e802e3f4c4ac36831b5668e8882f24bb6b4430adfb",
@@ -28,7 +28,7 @@
       "worker/lib/guardian-fortune/expert-evidence.js": "7382403c2225c7bce26585cf2947b91980109564cd6a002b28da55fe27381176",
       "worker/lib/ziwei-ai-chart.js": "c5b05e4d30edf2bd7807b47a8e6048c3ea64193853b588947c5cfe4298d00fbf",
       "worker/lib/ziwei-consumer-chart.js": "7eeece9874e42a9aa11c3f473cb0f66fbe3818ce8462609c83348974f6ef2e48",
-      "worker/lib/ziwei-execution-adapter.js": "18d64ecf9d53f411ec70773a2b35766be75143ae1118fadbe15b0d15b2f8bd18"
+      "worker/lib/ziwei-execution-adapter.js": "03e6f279270f4a9765828f66f552b91ae4bda04d2a29622dcc2e9e7c69263b4c"
     }
   }
 }
