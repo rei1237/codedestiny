@@ -1,22 +1,8 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { registerHooks } from 'node:module';
-
+import './guard-vedic-imports.mjs';
 const library = './node_modules/astronomy-engine/esm/astronomy.js';
-const files = [
-  library, './imd-origin.mjs', '../../../lib/vedicCalculator.js',
-  ...['vedic-derived-calculations', 'sukuyo-coordinate', 'sukuyo-premium', 'sukuyo-relation-core', 'cms-record-store']
-    .map(name => '../../../worker/lib/' + name + '.js'),
-];
-const allowed = new Set(files.map(file => new URL(file, import.meta.url).href));
-registerHooks({ resolve(specifier, context, next) {
-  if (!specifier.startsWith('.') || !allowed.has(new URL(specifier, context.parentURL).href)) {
-    throw Error('UNREVIEWED_PANCHANG_IMPORT: ' + specifier);
-  }
-  return next(specifier, context);
-} });
-globalThis.fetch = () => { throw Error('OFFLINE_ONLY'); };
 const Astronomy = await import(library);
 const { imdOriginLongitude } = await import('./imd-origin.mjs');
 const { lahiriAyanamsha } = await import('../../../lib/vedicCalculator.js');

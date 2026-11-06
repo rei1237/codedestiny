@@ -8,6 +8,8 @@ npm ci --prefix tools/oracle/ephemeris-candidate --ignore-scripts --no-audit --n
 node tools/oracle/ephemeris-candidate/verify.mjs
 node tools/oracle/ephemeris-candidate/verify-sky.mjs
 node tools/oracle/ephemeris-candidate/verify-panchang.mjs
+node tools/oracle/ephemeris-candidate/verify-houses.mjs
+node tools/oracle/ephemeris-candidate/verify-extended-moon.mjs
 ```
 
 첫 검증은 패키지 버전·소스 해시·라이선스와 10개 천체의 지심 좌표를 확인한다. 두 번째는 서비스의 태양·달 별자리 함수를 호출한다. 세 번째는 같은 달 경도에 두 가지 항성 기준을 적용해 공식 달력의 전환 시각을 대조한다. 모두 운영 엔트리포인트·고객 정보를 사용하지 않는다.

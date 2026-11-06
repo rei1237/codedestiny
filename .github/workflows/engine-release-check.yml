@@ -7,6 +7,8 @@ on:
       - 'tools/oracle/ephemeris-candidate/**'
       - 'scripts/lib/moon-sky.mjs'
       - 'worker/lib/sukuyo-coordinate.js'
+      - 'worker/lib/imd-sidereal-profile.js'
+      - 'worker/lib/sukuyo-verified-provider.js'
       - 'worker/lib/sukuyo-premium.js'
       - 'worker/lib/sukuyo-relation-core.js'
       - 'worker/lib/cms-record-store.js'
@@ -40,3 +42,5 @@ jobs:
           node tools/oracle/ephemeris-candidate/verify.mjs
           node tools/oracle/ephemeris-candidate/verify-sky.mjs
           node tools/oracle/ephemeris-candidate/verify-panchang.mjs
+          node tools/oracle/ephemeris-candidate/verify-houses.mjs
+          node tools/oracle/ephemeris-candidate/verify-extended-moon.mjs
