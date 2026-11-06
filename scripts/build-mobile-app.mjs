@@ -333,6 +333,132 @@ export async function removeUnusedIntroductionImages(referenced, dist = DIST) {
   return removed;
 }
 
+// The yeongnyangi deck UI asks only for the default 'std' size (lib/tarot/yeongnyangi-deck.ts).
+// The deck manifest bundled into JS still lists thumb/hi, so the name index keeps them alive;
+// the app drops those two sizes explicitly and fails closed if any 'std' file is missing.
+export const APP_TAROT_KEPT_SIZE = "std";
+export async function removeUnusedTarotSizes(dist = DIST) {
+  const folder = path.join(dist, "assets", "yeongnyangi", "tarot", "v1");
+  const manifestFile = path.join(folder, "manifest.json");
+  if (!(await exists(manifestFile))) return [];
+  const manifest = JSON.parse(await fs.readFile(manifestFile, "utf8"));
+  const arts = [...(manifest.cards || []), manifest.back].filter(Boolean);
+  const local = (src) => path.join(dist, ...String(src).split("?")[0].replace(/^\//, "").split("/"));
+  for (const art of arts) {
+    for (const src of [art.files?.[APP_TAROT_KEPT_SIZE], art.avifFiles?.[APP_TAROT_KEPT_SIZE]].filter(Boolean)) {
+      if (!(await exists(local(src)))) throw new Error(`타로 ${APP_TAROT_KEPT_SIZE} 이미지가 없다: ${src}`);
+    }
+  }
+  const removed = [];
+  for (const art of arts) {
+    for (const files of [art.files, art.avifFiles]) {
+      for (const [size, src] of Object.entries(files || {})) {
+        if (size === APP_TAROT_KEPT_SIZE) continue;
+        const file = local(src);
+        if (!(await exists(file))) continue;
+        const bytes = (await fs.stat(file)).size;
+        await fs.rm(file);
+        removed.push({ path: path.relative(dist, file).replace(/\\/g, "/"), bytes });
+      }
+    }
+  }
+  return removed;
+}
+
+// Crafted detail artwork is fetched only after a closed <details> is opened, and a failed
+// image opens the full transcript (CraftedProductDetail onErrorCapture). The app points
+// those panels at the same files on the website instead of shipping ~100MB of art.
+// Fail-safe: a file stays bundled unless the website serves bytes identical to public/,
+// and any path that code or HTML names directly (not just a manifest) stays bundled too.
+export const CRAFTED_REMOTE_ORIGIN = "https://code-destiny.com";
+const CRAFTED_PREFIX = "/feature-details/crafted/";
+const CRAFTED_IMAGE_RE = /^\/feature-details\/crafted\/[a-z0-9-]+\/[a-z0-9-]+\.(?:webp|avif|png|jpe?g)$/i;
+const REMOTE_VERIFY_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+
+function collectCraftedImageSources(value, out = new Set()) {
+  if (typeof value === "string") { if (CRAFTED_IMAGE_RE.test(value)) out.add(value); }
+  else if (Array.isArray(value)) value.forEach((item) => collectCraftedImageSources(item, out));
+  else if (value && typeof value === "object") Object.values(value).forEach((item) => collectCraftedImageSources(item, out));
+  return out;
+}
+function rewriteCraftedImageSources(value, remote) {
+  if (typeof value === "string") return remote.has(value) ? CRAFTED_REMOTE_ORIGIN + value : value;
+  if (Array.isArray(value)) return value.map((item) => rewriteCraftedImageSources(item, remote));
+  if (value && typeof value === "object") return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, rewriteCraftedImageSources(item, remote)]));
+  return value;
+}
+
+async function sha256OfUrl(url) {
+  const response = await fetch(url, { signal: AbortSignal.timeout(30000), headers: { "user-agent": "code-destiny-app-build" } });
+  if (!response.ok) return null;
+  return createHash("sha256").update(Buffer.from(await response.arrayBuffer())).digest("hex");
+}
+
+export async function offloadCraftedDetailImages({ dist = DIST, root = ROOT, remoteHash = sha256OfUrl, now = Date.now() } = {}) {
+  const directory = path.join(dist, "feature-details");
+  if (!(await exists(path.join(directory, "crafted")))) return { offloaded: [], kept: [], network: 0 };
+  // Crafted manifests and the feature-detail JSON that embeds crafted editions are the only readers.
+  const manifests = [];
+  for (const file of await walk(directory, (name) => name.toLowerCase().endsWith(".json"))) {
+    manifests.push({ file, detail: JSON.parse(await fs.readFile(file, "utf8")) });
+  }
+  const sources = new Set();
+  for (const { detail } of manifests) collectCraftedImageSources(detail, sources);
+
+  // Paths written literally into code/HTML/RSC are rendered without the manifest rewrite.
+  const named = new Set();
+  const texts = await walk(dist, (file) => /\.(?:html|js|mjs|txt|css)$/i.test(file));
+  for (const file of texts) {
+    const text = await fs.readFile(file, "utf8");
+    if (!text.includes(CRAFTED_PREFIX)) continue;
+    for (const match of text.matchAll(/\/feature-details\/crafted\/[a-z0-9-]+\/[a-z0-9-]+\.(?:webp|avif|png|jpe?g)/gi)) named.add(match[0]);
+  }
+
+  const cacheFile = path.join(root, "build-cache", "app-remote-verified-v1.json");
+  let cache = {};
+  try { cache = JSON.parse(await fs.readFile(cacheFile, "utf8")); } catch { /* first run */ }
+  const candidates = [];
+  const kept = [];
+  for (const src of sources) {
+    const bundled = path.join(dist, ...src.slice(1).split("/"));
+    const original = path.join(root, "public", ...src.slice(1).split("/"));
+    if (named.has(src)) { kept.push({ src, reason: "named-in-code" }); continue; }
+    if (!(await exists(bundled)) || !(await exists(original))) { kept.push({ src, reason: "missing-local" }); continue; }
+    candidates.push({ src, bundled, sha: createHash("sha256").update(await fs.readFile(original)).digest("hex") });
+  }
+  const verified = new Set();
+  let cursor = 0;
+  let network = 0;
+  async function worker() {
+    while (cursor < candidates.length) {
+      const item = candidates[cursor++];
+      const hit = cache[item.src];
+      if (hit && hit.sha === item.sha && now - hit.at < REMOTE_VERIFY_TTL_MS) { verified.add(item.src); continue; }
+      let remote = null;
+      try { network += 1; remote = await remoteHash(CRAFTED_REMOTE_ORIGIN + item.src); } catch { /* keep bundled */ }
+      if (remote === item.sha) { verified.add(item.src); cache[item.src] = { sha: item.sha, at: now }; }
+      else { kept.push({ src: item.src, reason: remote ? "remote-differs" : "remote-missing" }); delete cache[item.src]; }
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(12, candidates.length) }, worker));
+  await fs.mkdir(path.dirname(cacheFile), { recursive: true });
+  await fs.writeFile(cacheFile, JSON.stringify(cache));
+
+  for (const { file, detail } of manifests) {
+    const before = JSON.stringify(detail);
+    const after = rewriteCraftedImageSources(detail, verified);
+    if (JSON.stringify(after) !== before) await fs.writeFile(file, JSON.stringify(after, null, 2));
+  }
+  const offloaded = [];
+  for (const item of candidates) {
+    if (!verified.has(item.src)) continue;
+    const bytes = (await fs.stat(item.bundled)).size;
+    await fs.rm(item.bundled);
+    offloaded.push({ path: item.src.slice(1), bytes });
+  }
+  return { offloaded, kept, network };
+}
+
 /**
  * 바이트가 같은 이미지 사본 중 참조 0건인 것 제거.
  *
@@ -762,6 +888,11 @@ async function main() {
   const referenced = await buildReferencedNameIndex();
   const removedIntroductions = await removeUnusedIntroductionImages(referenced);
   console.log(`  ✅ 미사용 상세 소개 그림 제외: ${removedIntroductions.length}개 (${(removedIntroductions.reduce((bytes, item) => bytes + item.bytes, 0) / 1048576).toFixed(1)} MB)`);
+  const removedTarot = await removeUnusedTarotSizes();
+  console.log(`  ✅ 앱이 쓰지 않는 타로 크기(thumb·hi) 제외: ${removedTarot.length}개 (${(removedTarot.reduce((bytes, item) => bytes + item.bytes, 0) / 1048576).toFixed(1)} MB)`);
+  const crafted = await offloadCraftedDetailImages();
+  console.log(`  ✅ 상세 그림 웹 참조 전환: ${crafted.offloaded.length}개 (${(crafted.offloaded.reduce((bytes, item) => bytes + item.bytes, 0) / 1048576).toFixed(1)} MB), 번들 유지 ${crafted.kept.length}개, 원격 확인 ${crafted.network}건`);
+  for (const item of crafted.kept.filter((entry) => entry.reason !== "named-in-code").slice(0, 10)) console.log(`       - 유지 ${item.src} (${item.reason})`);
   const removedSources = await removeUnusedBrandSources(referenced);
   console.log(`  ✅ 미사용 브랜드 원본 사본 제외: ${removedSources.length}개 (${(removedSources.reduce((bytes, item) => bytes + item.bytes, 0) / 1048576).toFixed(1)} MB)`);
   const removedPngs = await removeDeadPngOriginals(referenced);
