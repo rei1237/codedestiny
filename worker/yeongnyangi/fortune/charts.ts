@@ -180,7 +180,7 @@ export function chartView(c: DomainContext, source = "local"): ChartView {
         .map((f) => ({ label: f.label, value: display(f.value) })),
     });
   if (source === "local" && ["vedic", "sukuyo", "astrology"].includes(c.domain))
-    source = "Swiss Ephemeris · 기존 서비스의 천문 계산";
+    source = c.engineFacts?.options?.providerVersion || "Swiss Ephemeris · 기존 서비스의 천문 계산";
   return {
     domain: c.domain,
     title: titles[c.domain],

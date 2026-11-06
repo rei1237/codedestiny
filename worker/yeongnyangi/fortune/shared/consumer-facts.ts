@@ -4,9 +4,10 @@ import type { DomainContext, FortuneInput, CalculationOptions } from './contract
 
 export function pinDomainFacts(c: DomainContext, input: FortuneInput, options: CalculationOptions = {}): DomainContext {
   const natalEnabled = options.runtimeEnv?.YEONGNYANGI_NATAL_PROFILE_V1 === 'true' && c.facts.some(f => f.label === 'natalProfile');
-  if (!natalEnabled && (!['ziwei', 'tarot'].includes(c.domain) || (options.runtimeEnv?.[c.domain.toUpperCase() + '_CONSUMER_FACTS_V1'] !== 'true' && !(c.domain === 'ziwei' && options.runtimeEnv?.ZIWEI_CALENDAR_AUTHORITY_V2 === 'true')))) return c;
+  const verifiedSukuyo = c.domain === 'sukuyo' && options.verifiedSukuyo === true && options.runtimeEnv?.SUKUYO_IMD_NEW_ORDERS_V1 === 'true';
+  if (!natalEnabled && !verifiedSukuyo && (!['ziwei', 'tarot'].includes(c.domain) || (options.runtimeEnv?.[c.domain.toUpperCase() + '_CONSUMER_FACTS_V1'] !== 'true' && !(c.domain === 'ziwei' && options.runtimeEnv?.ZIWEI_CALENDAR_AUTHORITY_V2 === 'true')))) return c;
   const engineFacts = createEngineFactSnapshot(c.domain, { facts: c.facts, limitations: c.limitations, engineVersion: c.engineVersion }, input,
-    { support: ['vedic','sukuyo','astrology'].includes(c.domain) ? 'pending' : 'candidate', options: { asOf: options.asOf || null, relationshipReading: options.relationshipReading === true } });
+    { support: !verifiedSukuyo && ['vedic','sukuyo','astrology'].includes(c.domain) ? 'pending' : 'candidate', options: { asOf: options.asOf || null, relationshipReading: options.relationshipReading === true, ...(verifiedSukuyo ? {providerVersion:c.engineVersion} : {}) } });
   return { ...c, engineFactProtocol: 'engine-facts-v1', engineFacts };
 }
 

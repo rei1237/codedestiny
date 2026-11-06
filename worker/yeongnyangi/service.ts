@@ -1,4 +1,6 @@
 import {attachNatalProfile} from './fortune/shared/natal-profile';
+import { SUKUYO_IMD_VERSION } from '../lib/imd-sidereal-profile.js';
+import { engineFactDigest } from '../lib/engine-fact-snapshot.js';
 import {pinDomainFacts,sealDomainFacts,validateDomainFacts} from './fortune/shared/consumer-facts';
 import {CONSULTATION_EXPANSION_VERSION} from './fortune/consultation-expansion';
 import {FUSION_BOOK_VERSION,DIRECT_FUSION_ANSWER} from './fortune/fusion-book';
@@ -76,6 +78,13 @@ import { hasRequestAccess } from './access-methods.js';
  */
 export function snapshotAnalysis(snapshot:any) {
   const matrix=snapshot?.v7Timing;
+  const sukuyo=snapshot?.analysis?.contexts?.sukuyo;
+  if(sukuyo?.engineFacts?.options?.providerVersion || sukuyo?.engineVersion===SUKUYO_IMD_VERSION){
+    validateDomainFacts(sukuyo);
+    const payload = {facts:sukuyo.facts, limitations:sukuyo.limitations, engineVersion:sukuyo.engineVersion};
+    if(!sukuyo.engineFacts || sukuyo.engineVersion!==sukuyo.engineFacts.options.providerVersion ||
+       engineFactDigest(payload)!==engineFactDigest(sukuyo.engineFacts.facts)) throw new FortuneError('ENGINE_FACT_CONTEXT_MISMATCH',500);
+  }
   if(!matrix)return snapshot.analysis;
   const contexts=snapshot.analysis.contexts;
   return {...snapshot.analysis,contexts:{...contexts,[matrix.domain]:withV7Timing(contexts[matrix.domain],matrix)}};
@@ -235,7 +244,7 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
     tarotV3&&system==='tarot'?domainContext('tarot',{spreadId:tarotOrder!.spread.id,drawPending:true}):
     tarotV2&&system==='tarot'?calculateTarotConsultation(kind!.id as TarotConsultationId):
     (askEvidenceEnabled||relationship)&&system==='tarot' ? calculateAskTarot(normalized[system],product.readingKind!=='single')
-      : await domains[system].calculate(normalized[system],{runtimeEnv:env,asOf:date,asOfInstant:now.toISOString(),relationshipReading:relationship,tarotFusion:product.readingKind!=='single',...(system==='saju'&&experience?{experience}:{})}));
+      : await domains[system].calculate(normalized[system],{verifiedSukuyo:Boolean(questionIntentId && product.readingKind==='single' && system==='sukuyo' && !partner && !spiritInput),runtimeEnv:env,asOf:date,asOfInstant:now.toISOString(),relationshipReading:relationship,tarotFusion:product.readingKind!=='single',...(system==='saju'&&experience?{experience}:{})}));
   if(contexts.saju&&!spiritInput)contexts.saju=withSajuCycleEvidence(contexts.saju,date);
   if(relationship&&product.domain!=='tarot'){
     const system=product.domain,input=normalized[system];

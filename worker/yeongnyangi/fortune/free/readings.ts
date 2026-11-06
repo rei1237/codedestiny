@@ -8,7 +8,7 @@ import {context} from '../shared/domain';
 import {FortuneError,type DomainContext,type DomainId,type FortuneInput,type FortuneLLMRequest} from '../shared/contracts';
 import {ganji,formatPillar} from '../../../../lib/korean-calendar/index.js';
 import {tenGodFor} from '../../../lib/life-book-ai-saju.js';
-import {calculateSukuyoForMoment} from '../../../lib/sukuyo-astronomy.js';
+import {sukuyoForReading} from '../sukuyo/provider';
 import {relationFromForwardDistance} from '../../../lib/sukuyo-relation-core.js';
 import {drawTarotCardsForSpread} from '../../../../lib/tarot/tarot-interpretation-engine.mjs';
 import {buildKuseiPromptPayload} from '../../../../app/fortune/prompt-hub/kusei-calc';
@@ -73,7 +73,7 @@ export async function calculateFree(category:string,input:FortuneInput,draft:Rec
  const at=day+'T12:00:00+09:00',p=input.personA;
  if(env.YEONGNYANGI_NATAL_PROFILE_V1==='true'&&['saju','vedic','sukuyo','ziwei','astrology'].includes(category)){
   const d=category as DomainId;
-  const c=await domains[d].calculate(domains[d].validateInput({...input,readingMode:'personal'}),{runtimeEnv:env,asOf:at});
+  const c=await domains[d].calculate(domains[d].validateInput({...input,readingMode:'personal'}),{runtimeEnv:env,asOf:at,verifiedSukuyo:d==='sukuyo'});
   const natalProfile=natalProfileOf(c);
   if(!natalProfile)throw new FortuneError('NATAL_FACTS_UNAVAILABLE',503);
   return {category,day,title:config.label,kind:'calculated',summary:natalProfile.summary,paragraphs:natalProfile.paragraphs,basis:natalProfile.basis,limitations:natalProfile.limitations,charts:[chartView(c)],prompt:withContinuation(buildDomainPrompt(d,input,c)),natalProfile,version:'anchovy-natal-v1'};
@@ -120,14 +120,14 @@ export async function calculateFree(category:string,input:FortuneInput,draft:Rec
   const calculated=pinDomainFacts(attachNatalProfile(context('tarot',{spreadId:'three_card_cause_process_outcome',cards},limitations),input,{runtimeEnv:env,asOf:at}),input,{runtimeEnv:env,asOf:at});
   charts=[chartView(calculated)];prompt=buildDomainPrompt('tarot',input,calculated);
  } else if(['ziwei','sukuyo','vedic','astrology'].includes(category)) {
-  const d=category as DomainId,c=await domains[d].calculate(domains[d].validateInput({...input,readingMode:'personal'}),{runtimeEnv:env,asOf:at}),chart=chartView(c);
+  const d=category as DomainId,c=await domains[d].calculate(domains[d].validateInput({...input,readingMode:'personal'}),{runtimeEnv:env,asOf:at,verifiedSukuyo:d==='sukuyo'}),chart=chartView(c);
   charts=[chart];prompt=buildDomainPrompt(d,input,c);
   basis=chart.groups.slice(0,3).flatMap(g=>g.items.slice(0,2).map(i=>({label:`${g.label} · ${i.label}`,value:i.value})));limitations=c.limitations;kind='calculated';
   const frame=frames[category]||['네 본명숙은 태어난 순간의 달 위치에서 계산해.','가까운 관계에서도 편안한 거리는 서로 다를 수 있어.','네가 원하는 속도와 상대가 편한 속도를 말로 확인해봐.'];
   paragraphs=[`${basis[0]?.label}에서 ‘${basis[0]?.value}’가 확인됐어. ${frame[0]}`,frame[1],`이 자료는 ${chart.title}에서 확인한 단서야. ${basis.slice(1,3).map(b=>`${b.label}: ${b.value}`).join(' · ')}. 한 값만으로 너를 규정하지는 않을게.`,frame[2]];
   if(category==='sukuyo') {
    const [year,month,date]=day.split('-').map(Number);
-   const today=await calculateSukuyoForMoment(env,{year,month,day:date,hour:12,minute:0,timezoneOffsetHours:9,calendarType:'solar'},{strictSwiss:true});
+   const today=await sukuyoForReading(env,{year,month,day:date,hour:12,minute:0,timezoneOffsetHours:9,calendarType:'solar'},true);
    const natal=c.facts.find(x=>x.label==='personA')!.value as {index:number;strengths?:string[];shadows?:string[];keywords?:string[]};
    paragraphs[1]=`이 숙의 키워드는 ${(natal.keywords||[]).join('·')}이야. ${(natal.strengths||[]).join('·')}을 강점으로 읽지만, ${(natal.shadows||['한 가지 방식에 치우침']).join('·')}으로 과해지지 않도록 균형을 살펴봐.`;
    const relation=relationFromForwardDistance((today.index-natal.index+27)%27);
