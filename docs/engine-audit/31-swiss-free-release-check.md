@@ -28,3 +28,5 @@ node tools/oracle/release-check/preflight.mjs .
 첫 세 명령은 통과했다. 마지막 명령은 전체 루트에 대해 의도대로 종료 코드 1을 반환했다. TypeScript 검사와 worker 미선언 변수 검사도 통과했다. 실제 배포 환경에서 npm을 설치하거나 GitHub Actions 워크플로를 dispatch하지 않았다. 사주·자미·타로의 기존 고객 결과와 결제 정책은 변경하지 않았다.
 
 **운영 결정.** 금지 의존성을 패키지나 빌드에서 이름만 숨겨도 기본 Worker·정적 셸·일부 유료 상품에 실제 호출이 남는다. 준비되지 않은 가드를 main에 올리면 관련 CI·배포·롤백이 함께 중단된다. 전체 경로의 승격과 기존 타로 보완 `fdb4924ba`의 배포는 [CR-011](change-requests/CR-011.md)의 상품 범위와 검증된 공급자/구매 보류 조건을 먼저 해결해야 한다.
+
+**2026-11-07 갱신.** 사용자 결정으로 운영 반영을 진행했다. 워크플로의 루트 preflight 줄은 되돌렸고, 그 예외는 [CR-010](change-requests/CR-010.md)에 기록했다. 격리 검증 워크플로 `engine-release-check.yml`은 유지한다.

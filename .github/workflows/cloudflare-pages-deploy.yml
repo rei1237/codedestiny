@@ -347,9 +347,7 @@ jobs:
           cache: npm
 
       - name: Install dependencies once
-        run: |
-          node tools/oracle/release-check/preflight.mjs .
-          npm ci
+        run: npm ci
 
       # 브라우저는 매 런 ~130MB 를 새로 받는다. 잠금파일이 그대로면 같은 버전이므로
       # 캐시에서 복원한다. install 스텝은 그대로 둔다 — 복원돼도 무결성을 확인하고,
@@ -606,9 +604,7 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: |
-          node tools/oracle/release-check/preflight.mjs .
-          npm ci
+        run: npm ci
 
       # 브라우저는 매 런 ~130MB 를 새로 받는다. 잠금파일이 그대로면 같은 버전이므로
       # 캐시에서 복원한다. install 스텝은 그대로 둔다 — 복원돼도 무결성을 확인하고,
@@ -622,9 +618,7 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Install isolated staging EVM and QR tooling
-        run: |
-          node tools/oracle/release-check/preflight.mjs local/edition-workshop
-          npm ci --prefix local/edition-workshop --ignore-scripts --no-audit --no-fund
+        run: npm install --prefix local/edition-workshop --ignore-scripts --package-lock=false --no-audit --no-fund
 
       - name: Verify named edition issuance and character QR
         run: node --test local/edition-workshop/studio.test.mjs local/edition-workshop/production-test.test.mjs
@@ -755,9 +749,7 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: |
-          node tools/oracle/release-check/preflight.mjs .
-          npm ci
+        run: npm ci
 
       # 브라우저는 매 런 ~130MB 를 새로 받는다. 잠금파일이 그대로면 같은 버전이므로
       # 캐시에서 복원한다. install 스텝은 그대로 둔다 — 복원돼도 무결성을 확인하고,

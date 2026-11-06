@@ -510,9 +510,7 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: |
-          node tools/oracle/release-check/preflight.mjs .
-          npm ci
+        run: npm ci
 
       # Non-critical tiers run npm test here, including the Chromium UI tests.
       # Critical tiers run test:node in PR CI's browser-equipped required guards job.

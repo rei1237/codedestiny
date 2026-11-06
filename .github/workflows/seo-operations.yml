@@ -31,9 +31,7 @@ jobs:
           cache: npm
       # The detector tests import parse5 and dotenv through scripts/seo-public-inventory.mjs and keyword-research.mjs.
       - name: Install dependencies
-        run: |
-          node tools/oracle/release-check/preflight.mjs .
-          npm ci
+        run: npm ci
       - name: Test detector with mock inputs
         run: node --test scripts/seo/*.test.mjs
       - name: Daily public health

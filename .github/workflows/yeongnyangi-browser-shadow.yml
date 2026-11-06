@@ -69,9 +69,7 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: |
-          node tools/oracle/release-check/preflight.mjs .
-          npm ci
+        run: npm ci
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium webkit

@@ -28,9 +28,7 @@ jobs:
         with:
           node-version: '24'
           cache: npm
-      - run: |
-          node tools/oracle/release-check/preflight.mjs .
-          npm ci --ignore-scripts
+      - run: npm ci --ignore-scripts
       - name: Start isolated local replica set
         run: |
           uname -r
