@@ -69,3 +69,21 @@ test('native preference wins stale page language and regional variants normalize
     assert.equal(ctx.nativeAppText('exitHint'),ctx.nativeAppCopy.fr.exitHint);
   } finally {dom.window.close();}
 });
+test('exit hint sits on body above the visible tab bar, not inside a transformed card',()=>{
+  const {dom,ctx}=fixture();
+  try {
+    const doc=dom.window.document;
+    doc.body.insertAdjacentHTML('beforeend','<ul><li data-yn-night style="transform:rotate(2deg)">card</li></ul><nav class="cd-mnav"></nav>');
+    Object.defineProperty(dom.window,'innerHeight',{value:832,configurable:true});
+    doc.querySelector('nav.cd-mnav').getBoundingClientRect=()=>({top:694,bottom:826,height:132});
+    ctx.showExitHint();
+    let hint=doc.getElementById('cdAppExitHint');
+    assert.equal(hint.parentElement,doc.body);
+    assert.equal(hint.style.bottom,'150px');
+    hint.remove();
+    doc.querySelector('nav.cd-mnav').remove();
+    ctx.showExitHint();
+    hint=doc.getElementById('cdAppExitHint');
+    assert.match(hint.style.cssText,/bottom:\s*calc\(24px \+ env\(/);
+  } finally {dom.window.close();}
+});

@@ -1303,16 +1303,25 @@
     hint.setAttribute("role", "status");
     hint.setAttribute("aria-live", "polite");
     hint.textContent = nativeAppText("exitHint");
+    // body에 붙인다 — 홈의 영냥이 카드([data-yn-night])처럼 transform이 걸린 조상 안에서는 fixed가 카드 기준이 된다.
+    // 하단 탭바가 보이면 실제 높이를 재서 그 위 12px에, 없으면 홈 인디케이터 위 24px에 둔다.
+    var nav = document.querySelector("nav.cd-mnav");
+    var navRect = nav && nav.getBoundingClientRect();
+    var navTop = navRect && navRect.height > 0 && navRect.top < window.innerHeight ? navRect.top : 0;
+    var theme = document.querySelector(".ynOriginal");
+    var themeStyle = theme && window.getComputedStyle ? window.getComputedStyle(theme) : null;
+    var ink = themeStyle && themeStyle.getPropertyValue("--yn-raised").trim();
+    var ivory = themeStyle && themeStyle.getPropertyValue("--yn-ivory").trim();
     hint.style.cssText = [
       "position:fixed", "left:50%", "transform:translateX(-50%)",
-      "bottom:calc(88px + env(safe-area-inset-bottom,0px))",
+      navTop ? "bottom:" + Math.round(window.innerHeight - navTop + 12) + "px" : "bottom:calc(24px + env(safe-area-inset-bottom,0px))",
       "z-index:2147483000", "padding:10px 18px", "border-radius:999px",
       // DESIGN.md 연이 Ink(#3c1830) + Glow-Not-Shadow(로즈 틴트 그림자).
-      "background:var(--yn-raised,var(--cd-text))", "color:var(--yn-ivory,var(--cd-bg))", "font-size:14px", "font-weight:700",
+      "background:" + (ink || "var(--cd-text)"), "color:" + (ivory || "var(--cd-bg)"), "font-size:14px", "font-weight:700",
       "width:max-content", "max-width:calc(100vw - 32px)", "box-sizing:border-box", "text-align:center",
       "box-shadow:var(--cd-shadow)", "pointer-events:none",
     ].join(";");
-    (document.querySelector(".ynOriginal, [data-yn-night]") || document.body).appendChild(hint);
+    document.body.appendChild(hint);
     exitHintTimer = window.setTimeout(resetExitIntent, 2000);
   }
 
