@@ -16,6 +16,12 @@ async function mount(authenticated,notice='',options={}){globalThis.__homeRecove
 test('home checks pending orders after restoring a session',async()=>{const view=await mount(true,'1건 복구');try{assert.equal(view.state.calls,1);assert.match(document.body.textContent,/1건 복구/);}finally{await view.close();}});
 test('home does not check pending orders without a restored session',async()=>{const view=await mount(false);try{assert.equal(view.state.calls,0);}finally{await view.close();}});
 
+for(const denial of [{status:403,code:'ACCESS_DENIED'},{code:'ACCESS_DENIED'},{status:401,code:'SESSION_EXPIRED'}])test(`native ${denial.code} remains distinct and hides a visible result`,async()=>{
+ history.replaceState({},'', '/result?id=result-1');let finish,denied=false;const wait=new Promise(resolve=>{finish=()=>{denied=true;resolve();};});const pending=new Promise(()=>{});
+ const view=await mount(true,'',{wait,error:denial,api:async()=>denied?pending:({id:'result-1',state:'COMPLETED',chapters:[{title:'결과',summary:'확인된 이전 결과'}],manifest:[{title:'결과'}],recovery:{savedChapters:1,totalChapters:1,canRetryNow:false,reviewRequired:false}})});
+ try{assert.match(document.body.textContent,/확인된 이전 결과/);await React.act(async()=>finish());assert.doesNotMatch(document.body.textContent,/확인된 이전 결과/);assert.match(document.body.textContent,denial.code==='ACCESS_DENIED'?/접근 권한을 확인할 수 없어요/:/로그인 시간이 만료/);}finally{await view.close();history.replaceState({},'', '/');}
+});
+
 test('delayed recovery refreshes an already opened library without another purchase',async()=>{
  history.replaceState({},'', '/library');let finish,ready=false,reads=0;const wait=new Promise(resolve=>{finish=()=>{ready=true;resolve();};});
  const row={orderId:'order-1',status:'PURCHASED',state:'UNASSIGNED',serviceId:'yeongnyangi',productId:'saju_mackerel',selectionId:'saju_mackerel',createdAt:'2026-01-01'};

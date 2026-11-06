@@ -67,12 +67,15 @@ export default function App(){
   const reading=readings.find(p=>p.id===selected)||readings[0],sale=products.find(p=>p.id===selected);
   function go(next:Page,query=''){if(!query&&['catalog','product','birth','login','draw','purchase'].includes(next))query='?product='+encodeURIComponent(selected);history.pushState({},'',`/${next==='home'?'':next}${query||(next==='result'&&resultId?'?id='+encodeURIComponent(resultId):'')}`);depth.current++;setPage(next);setMessage('');window.scrollTo(0,0);}
   function failure(error:unknown){
-    if(error instanceof ApiError&&error.code==='SESSION_CHANGED')return;
     const code=error instanceof ApiError?error.code:typeof error==='object'&&error&&'code' in error?String(error.code):'REQUEST_FAILED';
+    if(code==='SESSION_CHANGED')return;
+    const status=typeof error==='object'&&error&&'status' in error?error.status:0;
+    const forbidden=status===403||code==='ACCESS_DENIED';
+    const unauthorized=status===401||['LOGIN_REQUIRED','SESSION_EXPIRED'].includes(code);
     const updateGuidance=code==='UNSUPPORTED_APP_VERSION'&&typeof error==='object'&&error&&'message' in error&&typeof error.message==='string'&&error.message.trim()&&error.message!==code?error.message:'';
-    setMessage(((error instanceof ApiError&&error.status===403?'접근 권한을 확인할 수 없어요. 구매한 계정과 주문 내역을 확인해 주세요.':error instanceof ApiError&&error.status===401?errors.SESSION_EXPIRED:updateGuidance||errors[code]||errors.REQUEST_FAILED))+(error instanceof ApiError&&error.errorId?` 오류번호: ${error.errorId}`:''));
-    if(error instanceof ApiError&&error.status===403)setResult(null);
-    if(error instanceof ApiError&&error.status===401){setLoggedIn(false);setResult(null);setLibrary([]);setDraft(null);setQuestion('');setBirth(emptyBirth());setPartner(emptyBirth());setScope({situation:'',options:'',period:'',constraints:'',relationshipType:''});}
+    setMessage((forbidden?'접근 권한을 확인할 수 없어요. 구매한 계정과 주문 내역을 확인해 주세요.':unauthorized?errors.SESSION_EXPIRED:updateGuidance||errors[code]||errors.REQUEST_FAILED)+(error instanceof ApiError&&error.errorId?` 오류번호: ${error.errorId}`:''));
+    if(forbidden)setResult(null);
+    if(unauthorized){authEpoch.current++;libraryEpoch.current++;setLoggedIn(false);setResult(null);setLibrary([]);setLibraryCursor(null);setDraft(null);setRestoredOrder(null);setTarotLibraryOrderId(currentPage()==='tarot-library'?tarotOrderFromQuery(location.search):'');setQuestion('');setBirth(emptyBirth());setPartner(emptyBirth());setScope({situation:'',options:'',period:'',constraints:'',relationshipType:''});}
   }
   async function run(task:()=>Promise<void>){if(busy)return;setBusy(true);setMessage('');try{await task();}catch(error){failure(error);}finally{setBusy(false);}}
   function requireLogin(next:Page){if(loggedIn){go(next);return;}if(next==='tarot-library'&&tarotLibraryOrderId){const target=tarotResultPath(tarotLibraryOrderId);if(target){location.assign('/login/?next='+encodeURIComponent(target));return;}}setReturnAfterLogin(next);go('login');}
