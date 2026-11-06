@@ -8,7 +8,7 @@ const mocks={
  '@/app/components/PriceBadge':"export const PriceBadge=()=>null;",
  './consultation-world':"export const TAROT_KINDS=[{id:'choice',label:'선택'}];",
  './consultation-access':"export const HONEY_COST=30;",
- '@/app/_lib/auth-store':"export const useAuthStore=()=>({isAuthenticated:true,user:{id:'owner'}});",
+ '@/app/_lib/auth-store':"export const useAuthStore=()=>({isAuthenticated:true,user:{id:'owner'}});export const getAuthState=()=>({isAuthenticated:true,user:{id:'owner'}});export const subscribeAuth=()=>()=>{};",
  '@/app/yeongnyangi/_lib/use-profiles':"export const profileKey=p=>p.profileId;export const useProfiles=()=>({profiles:[{profileId:'p',name:'본인'}],profileId:'p',select:()=>{},saved:()=>{},guest:false,loading:false,refresh:async()=>{}});",
  '@/app/yeongnyangi/_components/ProfileForm':"export default ()=>null;",
  '@/app/fortune-chat/ConsultationResult':"export default ()=>null;",
