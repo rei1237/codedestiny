@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "1cb3a097a41c0c17452f830114989a36b2ad40e7",
+  "sourceCommit": "239282874a24eb7e365d350abb20f1d8126cd57a",
   "scope": "Source discovery plus explicitly verified aliases; not a count of implemented services. Unmapped contracts are blocking work, not exclusions.",
   "sourceCounts": {
     "home": 63,
