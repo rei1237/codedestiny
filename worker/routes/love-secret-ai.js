@@ -1575,6 +1575,7 @@ async function handleStart(request, env, route = "/api/love-secret-ai/generate",
   const seed = {
     id: sessionId,
     userId: clean(auth.userId),
+    accessSource: nativeTossContext(request) ? 'toss' : existing?.accessSource || '',
     attemptId,
     myInfo: normalized.input.myInfo,
     partnerInfo: normalized.input.partnerInfo || null,

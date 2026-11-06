@@ -1210,6 +1210,7 @@ const loveSecretAiPersonInfoSchema = new mongoose.Schema({
 const loveSecretAiConsultationSchema = new mongoose.Schema({
   id: { type: String, required: true, unique: true, trim: true, maxlength: 120, index: true },
   userId: { type: String, required: true, trim: true, index: true },
+  accessSource: { type: String, enum: ["", "toss"], default: "" },
   myInfo: { type: loveSecretAiPersonInfoSchema, required: true },
   partnerInfo: { type: loveSecretAiPersonInfoSchema, default: null },
   relationshipStatus: { type: String, required: true, trim: true, maxlength: 80, index: true },
