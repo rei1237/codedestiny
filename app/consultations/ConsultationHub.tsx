@@ -1,6 +1,6 @@
 "use client";
 import Image from 'next/image';
-import { consultationStories, expertStoryIds, signatureStoryIds, storyBenefits, storyPreviewHeights } from './stories';
+import { consultationStories, expertStoryIds, signatureStoryIds, storyBenefits } from './stories';
 import { Archive, ArrowLeft, ArrowUpRight, MessageCircleHeart, Moon } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { RECORD_SERVICES } from '@/lib/records/service-registry';
@@ -49,8 +49,8 @@ export default function ConsultationHub({ children }: { children?: ReactNode }) 
   const renderStoryCard = (id: string) => {
     const {service,name}=describe(id);
     return <article className={styles.storyCard} key={id} data-service={id}>
-      <a className={styles.storyPreview} href={'/consultations/'+id+'/'} aria-label={name+' 웹툰으로 알아보기'} style={{aspectRatio:'724 / '+storyPreviewHeights[id]}}>
-        <Image src={'/images/consultation-webtoons/'+id+'.webp'} width={724} height={2172} alt="" loading="lazy"/>
+      <a className={styles.storyPreview} href={'/consultations/'+id+'/'} aria-label={name+' 웹툰으로 알아보기'} style={{aspectRatio:'3 / 2'}}>
+        <Image src={'/images/consultation-webtoons/covers/'+id+'.webp'} width={720} height={480} alt="" loading="lazy"/>
       </a>
       <h3>{name}</h3><p className={styles.storyConcern}>{consultationStories[id].lead}</p>
       <ul className={styles.storyBenefits} aria-label="상담에서 얻는 것">{storyBenefits[id].map(benefit=><li key={benefit}>{benefit}</li>)}</ul>

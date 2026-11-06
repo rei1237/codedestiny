@@ -2,7 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync,existsSync} from 'node:fs';
 import {JSDOM} from 'jsdom';
-import {consultationStories,storyBenefits,storyPreviewHeights} from '../../lib/brand/consultation-stories.mjs';
+import {consultationStories,storyBenefits} from '../../lib/brand/consultation-stories.mjs';
+import {consultationWebtoons} from '../../lib/brand/consultation-webtoons.mjs';
+
+const LEAD_WORKS=new Set(['tea','neo','love-secret','heukwol','fusion']);
 import {RECORD_SERVICES} from '../../lib/records/service-registry.js';
 
 test('all 13 stories retain an existing service, art, three benefits and a dedicated entry cover',()=>{
@@ -12,8 +15,16 @@ test('all 13 stories retain an existing service, art, three benefits and a dedic
     const service=RECORD_SERVICES.find(s=>s.id===id);
     assert.ok(service?.href && service.featureKey,id);
     assert.equal(storyBenefits[id].length,3,id);
-    assert.ok(storyPreviewHeights[id]>250 && storyPreviewHeights[id]<500,id);
-    assert.ok(existsSync('public/images/consultation-webtoons/'+id+'.webp'),id);
+    const cuts=consultationWebtoons[id]?.cuts||[];
+    const [min,max]=LEAD_WORKS.has(id)?[10,16]:[8,12];
+    assert.ok(cuts.length>=min && cuts.length<=max,id+' cut count '+cuts.length);
+    assert.ok(cuts.some(cut=>cut.cover),id+' cover cut');
+    assert.equal(new Set(cuts.map(cut=>cut.src)).size,cuts.length,id+' distinct art');
+    for(const cut of cuts){
+      assert.ok(cut.alt && cut.w>0 && cut.h>0,cut.src);
+      assert.ok(existsSync('public'+cut.src+'-'+cut.fallback+'.webp'),cut.src);
+      for(const w of cut.widths)assert.ok(existsSync('public'+cut.src+'-'+w+'.avif'),cut.src+' '+w);
+    }
     assert.ok(existsSync('public/images/consultation-webtoons/covers/'+id+'.webp'),id+' entry cover');
     for (const link of dom.window.document.querySelectorAll('a[href="/consultations/'+id+'/"]')) {
       assert.ok(link.matches('.yh-story-option > .yh-story-link'), id);
