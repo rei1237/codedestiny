@@ -1,6 +1,7 @@
 import {useEffect,useRef,useState,type FormEvent} from 'react';
 import {Clipboard,SetClipboardTextPermissionError,Share} from '@apps-in-toss/web-framework';
 import {APP_NAME} from '../src/platform';
+import {usePaidDeliveryScope} from '@/app/hooks/usePaidDeliveryScope';
 import type {FptiAnalysisResult,FptiFormInput} from '@/lib/fpti/fpti-types';
 import {analyzeFptiFromSajuSource,calculateSajuSourceFromBirth} from '@/lib/fpti/fpti-adapter';
 import './toss-fpti.css';
@@ -15,12 +16,13 @@ export default function TossFpti(){
  const [form,setForm]=useState<FptiFormInput>(initial),[result,setResult]=useState<FptiAnalysisResult|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
  const [notice,setNotice]=useState(''),[permissionDenied,setPermissionDenied]=useState(false),[bridgeBusy,setBridgeBusy]=useState(false);
  const epoch=useRef(0),locked=useRef(false),phase=useRef(false),mounted=useRef(false),bridgeLock=useRef(false),bridgeEpoch=useRef(0);
+ usePaidDeliveryScope(()=>{epoch.current++;bridgeEpoch.current++;phase.current=false;setResult(null);setForm(initial());setError('');setNotice('');setPermissionDenied(false);});
  useEffect(()=>{mounted.current=true;const back=(event:Event)=>{if(event.defaultPrevented)return;if(locked.current){event.preventDefault();return;}if(phase.current){event.preventDefault();epoch.current++;phase.current=false;bridgeEpoch.current++;setNotice('');setPermissionDenied(false);setResult(null);setError('');}};window.addEventListener('code-destiny:toss-back',back);return()=>{mounted.current=false;epoch.current++;bridgeEpoch.current++;window.removeEventListener('code-destiny:toss-back',back);};},[]);
  const change=<K extends keyof FptiFormInput>(key:K,value:FptiFormInput[K])=>{epoch.current++;setForm(previous=>({...previous,[key]:value}));setError('');};
  const submit=async(event:FormEvent)=>{event.preventDefault();if(locked.current)return;const current=++epoch.current;locked.current=true;setBusy(true);setError('');
   try{await new Promise<void>(resolve=>window.setTimeout(resolve,0));const source=calculateSajuSourceFromBirth(form),analysis=analyzeFptiFromSajuSource(source);if(mounted.current&&epoch.current===current){phase.current=true;setResult(analysis);window.scrollTo(0,0);}}
   catch{if(mounted.current&&epoch.current===current)setError('출생정보를 확인하지 못했어요. 날짜와 시간, 달력을 확인한 뒤 다시 시도해 주세요.');}
-  finally{locked.current=false;if(mounted.current&&epoch.current===current)setBusy(false);}
+  finally{locked.current=false;if(mounted.current)setBusy(false);}
  };
  const exclusive=async(task:(current:number)=>Promise<void>)=>{if(bridgeLock.current)return;bridgeLock.current=true;setBridgeBusy(true);const current=bridgeEpoch.current;try{await task(current);}finally{bridgeLock.current=false;if(mounted.current)setBridgeBusy(false);}};
  const active=(current:number)=>mounted.current&&phase.current&&bridgeEpoch.current===current;
