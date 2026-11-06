@@ -8,6 +8,7 @@ import "./styles/tea-tarot-artwork.module.css";
 import "./styles/tea-result-companion.module.css";
 import { readEntryBookmark, saveEntryBookmark } from "./lib/entryBookmark";
 import { handleTeaNativeBack } from "./lib/tossBack";
+import { tossTeaAccessError } from "./lib/tossAccessBoundary";
 import roomStyles from "./styles/tea-room.module.css";
 import "@/components/fortune/ConsultationShare.module.css";
 
@@ -17,6 +18,7 @@ import { AnimatePresence, m, useReducedMotion } from "framer-motion";
 import { Volume2, VolumeX } from "lucide-react";
 import FortuneTeaHouseImmersiveShell from "./components/FortuneTeaHouseImmersiveShell";
 import FortuneTeaHouseLanding from "./components/FortuneTeaHouseLanding";
+import type {TossTeaPriceComponent} from "./lib/tossPriceSelection";
 import AssetImage from "./components/AssetImage";
 import TeaHouseButton from "./components/TeaHouseButton";
 import HoneyDropRewardOverlay from "./components/HoneyDropRewardOverlay";
@@ -112,6 +114,8 @@ type FortuneTeaHouseConsultApiResponse = {
   ok?: boolean;
   status?: string;
   reason?: string;
+  code?: string;
+  error?: string;
   retryable?: boolean;
   completedSections?: Array<{ key: string; title: string; body: string }>;
   totalSections?: number;
@@ -570,7 +574,7 @@ function isServerReadableSukuyoBirthDate(value?: string) {
   return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
 }
 
-export default function FortuneTeaHousePage({paymentSurface = "web"}: {paymentSurface?: "web" | "toss"} = {}) {
+export default function FortuneTeaHousePage({paymentSurface = "web",TossPrice}: {paymentSurface?: "web" | "toss";TossPrice?:TossTeaPriceComponent} = {}) {
   const authState = useAuthStore();
   const recoveryOwner = toText(authState.user?.id || authState.user?.userId || authState.user?._id || authState.user?.uid);
   const [stage, setStage] = useState<TeaHouseStage>("landing");
@@ -1308,6 +1312,8 @@ export default function FortuneTeaHousePage({paymentSurface = "web"}: {paymentSu
         // 이용권 확인이 확답을 못 준 경우(일시 장애·서버 오류)는 붙잡거나 종료하지 말고 결제창을 연다.
         // 결제 게이팅 정책 §1("확답 못 하면 기다리지 말고 결제창")이자 형제 구현(AstrologyAiClient 등)의 passGateDegraded 패턴이다.
         // 분류되지 않은 5xx 도 포함한다 — retryable 플래그 없이 오는 서버 오류가 결제창을 닫아버리던 사각지대였다.
+        const accessError = tossTeaAccessError(paymentSurface, accessCheck.response.status, accessCheck.payload);
+        if (accessError) throw accessError;
         const passGateDegraded = isRetriableResultPollFailure(accessCheck.response.status, accessCheck.payload)
           || accessCheck.response.status >= 500;
         if (accessCheck.response.ok && accessCheck.payload.ok) {
@@ -1483,7 +1489,8 @@ export default function FortuneTeaHousePage({paymentSurface = "web"}: {paymentSu
     } catch (error) {
       if (consultRunRef.current !== consultRunId) return;
       logSubmitStep("error");
-      trackEvent("tea_generation_error", { method: nextQuestionInput.consultationMode, code: "GENERATION_UNAVAILABLE" });
+      const accessCode = error instanceof Error && "code" in error ? (error as Error & { code?: string }).code : "";
+      trackEvent("tea_generation_error", { method: nextQuestionInput.consultationMode, code: accessCode === "ACCESS_DENIED" || accessCode === "LOGIN_REQUIRED" ? accessCode : "GENERATION_UNAVAILABLE" });
       const generationPending = error instanceof Error && (error as Error & { generationPending?: boolean }).generationPending;
       const blocksLocalPreview = error instanceof Error && (
         (error as Error & { paymentRequired?: boolean }).paymentRequired
@@ -1611,6 +1618,7 @@ export default function FortuneTeaHousePage({paymentSurface = "web"}: {paymentSu
           </div>
         </section>}{renderSavedSections()}<QuestionInputScene
           paymentSurface={paymentSurface}
+          TossPrice={TossPrice}
           key={`${recoveryOwner}:${questionInput.attemptId || "draft"}`}
           selectedCup={selectedCup}
           initialInput={questionInput}

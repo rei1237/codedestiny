@@ -14,6 +14,8 @@ const mocks={
  '../src/platform':"export const isToss=()=>false,restoreSession=async()=>false,recoverAfterAuthentication=async()=>'',onSessionInvalidated=()=>()=>{},canonicalResponse=()=>{},login=()=>{};",
  './transport.mjs':"export const createServiceFetch=()=>globalThis.fetch;",
  './native-back.mjs':"export const dispatchServiceBack=()=>false;",
+ './letter-draft-bootstrap.mjs':"export const captureLetterDraft=()=>null,restoreLetterDraft=()=>{};",
+ './tea-draft-bootstrap.mjs':"export const captureTeaDraft=()=>null,restoreTeaDraft=()=>{};",
  '@/app/_lib/auth-client':"export const clearClientAuthState=()=>{};",
  '@/app/_lib/auth-store':"export const refreshAuth=async()=>{},handleSessionInvalidated=()=>{};",
  '@apps-in-toss/web-framework':"export const SafeArea={},Screen={},graniteEvent={};",

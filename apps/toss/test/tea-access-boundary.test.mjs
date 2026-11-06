@@ -1,0 +1,12 @@
+import '../../../scripts/lib/mock-network-guard.cjs';
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {build} from 'esbuild';
+import {createRequire} from 'node:module';
+import path from 'node:path';
+const root=path.resolve(import.meta.dirname,'../../..'),require=createRequire(import.meta.url),Module=require('node:module');
+const bundle=await build({entryPoints:[path.join(root,'src/features/fortune-tea-house/lib/tossAccessBoundary.ts')],bundle:true,platform:'node',format:'cjs',write:false});
+const loaded=new Module(path.join(root,'tea-access-boundary-fixture.cjs'));loaded._compile(bundle.outputFiles[0].text,loaded.id);
+const {tossTeaAccessError}=loaded.exports;
+test('Toss authentication and permission errors block payment and preview even when a payload asks for payment',()=>{for(const [status,payload,expected] of [[401,{paymentRequired:true},'LOGIN_REQUIRED'],[403,{code:'LOGIN_REQUIRED',paymentRequired:true},'ACCESS_DENIED'],[400,{code:'ACCESS_DENIED'},'ACCESS_DENIED'],[400,{reason:'SESSION_EXPIRED'},'LOGIN_REQUIRED'],[503,{error:'ACCESS_DENIED'},'ACCESS_DENIED']]){const error=tossTeaAccessError('toss',status,payload);assert.equal(error.code,expected);assert.equal(error.paymentRequired,true);assert.ok(error.message);}});
+test('web behavior and ordinary payment-required responses remain unchanged',()=>{assert.equal(tossTeaAccessError('web',401,{}),null);assert.equal(tossTeaAccessError('toss',402,{paymentRequired:true}),null);assert.equal(tossTeaAccessError('toss',503,{}),null);});

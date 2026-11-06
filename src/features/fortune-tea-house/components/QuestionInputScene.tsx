@@ -28,8 +28,12 @@ import TeaHouseButton from "./TeaHouseButton";
 import styles from "../styles/tea-question.module.css";
 
 import { useTeaHouseCopy } from "../lib/teaHouseCopy";
+import {tossTeaPaymentCopy} from "../lib/tossPaymentCopy";
+import {useLocale} from "@/lib/i18n/useT";
+import type {TossTeaPriceComponent} from "../lib/tossPriceSelection";
 type QuestionInputSceneProps = {
   paymentSurface?: "web" | "toss";
+  TossPrice?:TossTeaPriceComponent;
   selectedCup: TeaHouseCup;
   initialInput?: Partial<FortuneTeaHouseQuestionInput>;
   onSubmit: (input: FortuneTeaHouseQuestionInput) => void;
@@ -399,15 +403,16 @@ const KO = {
   topicSyncNotice: "{cup} 상담은 {topic}으로 고정되어 있어요.",
 };
 
-export default function QuestionInputScene({ paymentSurface = "web", selectedCup, initialInput, onSubmit, onBack, onDraftChange, isSubmitting = false, submitError = "", priceLabels = {} }: QuestionInputSceneProps) {
+export default function QuestionInputScene({ paymentSurface = "web", TossPrice, selectedCup, initialInput, onSubmit, onBack, onDraftChange, isSubmitting = false, submitError = "", priceLabels = {} }: QuestionInputSceneProps) {
   const copy = useTeaHouseCopy("questionInput", KO);
+  const tossCopy=tossTeaPaymentCopy(useLocale());
   const categories = useTeaHouseCopy("questionCategories", CATEGORY_KO);
   const [consultationMode, setConsultationMode] = useState<FortuneTeaHouseConsultMode>(initialInput?.consultationMode || "tarot");
   const jointSaju = consultationMode === "saju" && initialInput?.sajuReportVersion === "saju-specialist-v2";
   const priceLabelForMode = useCallback(
     (mode: FortuneTeaHouseConsultMode, spread?: FortuneTeaTarotSpread) =>
-      priceLabels[mode] || getFortuneTeaHouseConsultPriceLabel(mode, spread, jointSaju ? "saju-specialist-v2" : undefined),
-    [priceLabels, jointSaju],
+      paymentSurface === "toss" ? tossCopy.pricePending : priceLabels[mode] || getFortuneTeaHouseConsultPriceLabel(mode, spread, jointSaju ? "saju-specialist-v2" : undefined),
+    [priceLabels, jointSaju, paymentSurface, tossCopy.pricePending],
   );
   const [nickname, setNickname] = useState(initialInput?.nickname || "");
   const [profileId, setProfileId] = useState(initialInput?.profileId || "");
@@ -833,14 +838,14 @@ export default function QuestionInputScene({ paymentSurface = "web", selectedCup
 
   const sukuyoAutoQuestionPreview = consultationMode === "sukuyo" ? buildSukuyoAutoQuestion() : "";
 
-  if (confirmation) return <TeaConsultConfirmation paymentSurface={paymentSurface} input={confirmation} cupId={selectedCup.id} onBack={() => setConfirmation(null)} onConfirm={onSubmit} busy={isSubmitting}/>;
+  if (confirmation) return <TeaConsultConfirmation paymentSurface={paymentSurface} TossPrice={TossPrice} input={confirmation} cupId={selectedCup.id} onBack={() => setConfirmation(null)} onConfirm={onSubmit} busy={isSubmitting}/>;
 
   return (
     <section className={`${styles.questionScene}`} aria-labelledby="teaQuestionTitle">
       <div className={styles.questionActor}>
         <img className={styles.yeoniPortrait} src={jointSaju ? "/images/consultation/saju-yeoni-neo-joint-v1-640.webp" : "/images/fortune-tea-house/yeoni-moonlight-novel.webp"} alt={jointSaju ? "명식을 함께 살펴보는 연이와 네오" : ""} width="1536" height="1024" />
         <div className={styles.questionInvitation}>
-          {consultationMode === "saju" && <PriceBadge featureKey={jointSaju ? "fortune-tea-house-saju-joint-consultation" : "fortune-tea-house-saju-consultation"} prefix={jointSaju ? "공동 상담 · 단건 " : "연이 사주 상담 · 단건 "} className="inline-flex rounded-full border border-[var(--cd-border)] bg-[var(--cd-surface)] px-3 py-2 text-sm font-bold text-[var(--cd-text)]" />}
+          {paymentSurface !== "toss" && consultationMode === "saju" && <PriceBadge featureKey={jointSaju ? "fortune-tea-house-saju-joint-consultation" : "fortune-tea-house-saju-consultation"} prefix={jointSaju ? "공동 상담 · 단건 " : "연이 사주 상담 · 단건 "} className="inline-flex rounded-full border border-[var(--cd-border)] bg-[var(--cd-surface)] px-3 py-2 text-sm font-bold text-[var(--cd-text)]" />}
           <p className={styles.chosenTea}>{selectedCup.name} · {selectedCup.topic}</p>
           <h2 id="teaQuestionTitle">{jointSaju ? "연이·네오 공동 사주 상담" : consultationMode === "saju" ? "연이의 사주 상담" : copy.questionTitle}</h2>
           <p>{jointSaju ? "연이는 마음과 반복 패턴을, 네오는 선택의 이득과 부담을 짚어요. 내 질문과 명식의 근거를 연결해 직업·재물·관계·회복 리듬부터 30일 실행 계획까지 함께 정리합니다." : consultationMode === "saju" ? "연이가 내 질문과 명식의 근거를 연결해 현재의 흐름과 현실적인 선택을 함께 살펴봐요." : copy.welcomeNote}</p>
@@ -869,7 +874,7 @@ export default function QuestionInputScene({ paymentSurface = "web", selectedCup
                   role="radio"
                   aria-checked={selected}
                   aria-label={`${copy[option.titleKey]}. ${copy[option.descriptionKey]}. ${copy[option.suitedForKey]}. ${option.id === "tarot"
-                    ? copy.tarotPriceLine.replace("{three}", getFortuneTeaHouseConsultPriceLabel("tarot", "three")).replace("{five}", getFortuneTeaHouseConsultPriceLabel("tarot", "five"))
+                    ? paymentSurface === "toss" ? tossCopy.pricePending : copy.tarotPriceLine.replace("{three}", getFortuneTeaHouseConsultPriceLabel("tarot", "three")).replace("{five}", getFortuneTeaHouseConsultPriceLabel("tarot", "five"))
                     : priceLabelForMode(option.id)}`}
                   className={`${styles.consultModeCard}`}
                   data-mode={option.id}
@@ -887,7 +892,7 @@ export default function QuestionInputScene({ paymentSurface = "web", selectedCup
                       <span>
                         <b>{copy.ksa9e9pj}</b>
                         {option.id === "tarot"
-                          ? copy.tarotPriceLine.replace("{three}", getFortuneTeaHouseConsultPriceLabel("tarot", "three")).replace("{five}", getFortuneTeaHouseConsultPriceLabel("tarot", "five"))
+                          ? paymentSurface === "toss" ? tossCopy.pricePending : copy.tarotPriceLine.replace("{three}", getFortuneTeaHouseConsultPriceLabel("tarot", "three")).replace("{five}", getFortuneTeaHouseConsultPriceLabel("tarot", "five"))
                           : priceLabelForMode(option.id)}
                       </span>
                     </span>
@@ -1557,7 +1562,7 @@ export default function QuestionInputScene({ paymentSurface = "web", selectedCup
                     >
                       <strong>{copy[option.titleKey]}<Check size={17} className={styles.spreadCheck} aria-hidden="true" /></strong>
                       <span>{copy[option.descriptionKey]}</span>
-                      <span className={styles.spreadPrice}>{getFortuneTeaHouseConsultPriceLabel("tarot", option.id)}</span>
+                      <span className={styles.spreadPrice}>{paymentSurface === "toss" ? tossCopy.pricePending : getFortuneTeaHouseConsultPriceLabel("tarot", option.id)}</span>
                     </button>
                   );
                 })}

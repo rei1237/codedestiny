@@ -6,6 +6,7 @@ import { getAuthState } from "@/app/_lib/auth-store";
 import { teaSpreads, recommendTeaSpread } from "@/lib/fortune-tea-house/tarot-contract.mjs";
 import { teaSpreadCopy } from "../data/teaSpreadCopy";
 import { getFortuneTeaHouseConsultPriceLabel, getFortuneTeaHouseConsultFeatureKey } from "../data/consultPricing";
+import {rememberTossTeaPrice,type TossTeaPriceComponent,type TossTeaPriceSelection} from "../lib/tossPriceSelection";
 import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import { useLocale } from "@/lib/i18n/useT";
 import type { FortuneTeaHouseQuestionInput } from "../data/consult";
@@ -28,13 +29,16 @@ const KO = {
 type Draft={attemptId:string;status:string;deckSize:number;cards?:unknown[];spread:{cardCount:number;title:string;positions:{id:string;label:string}[]}};
 type TeaSpread={id:string;cardCount:number;positions:{id:string}[]};
 const availableSpreads:TeaSpread[]=teaSpreads;
-export default function TeaConsultConfirmation({paymentSurface="web",input,cupId,onConfirm,onBack,busy=false}:{paymentSurface?:"web"|"toss";input:FortuneTeaHouseQuestionInput;cupId:string;onConfirm:(input:FortuneTeaHouseQuestionInput)=>void;onBack:()=>void;busy?:boolean}){
+export default function TeaConsultConfirmation({paymentSurface="web",TossPrice,input,cupId,onConfirm,onBack,busy=false}:{paymentSurface?:"web"|"toss";TossPrice?:TossTeaPriceComponent;input:FortuneTeaHouseQuestionInput;cupId:string;onConfirm:(input:FortuneTeaHouseQuestionInput)=>void;onBack:()=>void;busy?:boolean}){
  const copy=useTeaHouseCopy("confirmation",KO);
  const locale=useLocale();
  const spreadsCopy=useTeaHouseCopy("spreadV2",teaSpreadCopy);
  const isTarot=input.consultationMode==="tarot";
  const [spreadId,setSpreadId]=useState<string>(()=>availableSpreads.find(s=>s.id===input.tarotSpreadId)?.id||recommendTeaSpread(input.question,input.tarotSpread)?.id||"yn_knot_three");
  const [draft,setDraft]=useState<Draft|null>(null),[picks,setPicks]=useState<number[]>([]),[loading,setLoading]=useState(false),[error,setError]=useState("");
+ const [tossPrice,setTossPrice]=useState<TossTeaPriceSelection|null>(null);
+ const [loginError,setLoginError]=useState(false);
+ useEffect(()=>()=>{if(paymentSurface==="toss")rememberTossTeaPrice(null);},[paymentSurface]);
  useEffect(()=>{
   if(paymentSurface!=="toss")return;
   const onNativeBack=(event:Event)=>{event.preventDefault();if(!busy&&!loading)onBack();};
@@ -45,30 +49,40 @@ export default function TeaConsultConfirmation({paymentSurface="web",input,cupId
  const spreadCopy=spreadsCopy[chosen.id as keyof typeof spreadsCopy];
  const people=input.consultationMode==="sukuyo" ? [input.sukuyo?.user,input.sukuyo?.partner] : input.consultationMode==="sajuCompatibility" ? [input.sajuCompatibility?.user,input.sajuCompatibility?.partner] : [input];
  const size=chosen.cardCount===5?"five":"three";
+ const featureKey=getFortuneTeaHouseConsultFeatureKey(input.consultationMode,isTarot?size:undefined,input.sajuReportVersion);
+ const recoveryOrder=paymentSurface==="toss"&&typeof window!=="undefined"&&/^[a-f\d]{8}-[a-f\d]{4}-[a-f\d]{4}-[a-f\d]{4}-[a-f\d]{12}$/i.test(new URLSearchParams(window.location.search).get("orderId")||"");
+ const priceReady=paymentSurface!=="toss"||recoveryOrder||Boolean(tossPrice&&tossPrice.featureKey===featureKey);
+ function fail(reason:unknown){
+  const issue=reason&&typeof reason==='object'?reason as {status?:number;code?:string}:{};
+  const status=issue.status===401||issue.status===403?issue.status:issue.code==='ACCESS_DENIED'?403:['LOGIN_REQUIRED','SESSION_EXPIRED'].includes(issue.code||'')?401:0;
+  setLoginError(paymentSurface==='toss'&&status===401);
+  setError(paymentSurface==='toss'&&status===401?tossTeaPaymentCopy(locale).loginRequired:paymentSurface==='toss'&&status===403?tossTeaPaymentCopy(locale).accessDenied:copy.retry);
+ }
+ async function readPayload(response:Response){const raw=await response.json().catch(()=>({})),payload=raw&&typeof raw==='object'?raw:{};if(!response.ok||!payload.ok){const code=typeof payload.error==='string'?payload.error:payload.error?.code||payload.code;throw Object.assign(new Error('TAROT_PREPARE_FAILED'),{status:response.status,code});}return payload;}
  async function prepare(){
   if(!getAuthState().user){setError(copy.login);return;}
-  setLoading(true);setError("");
+  setLoading(true);setError("");setLoginError(false);
   try{
    const key="cd_tea_draw_attempt";
    const identity=JSON.stringify([getAuthState().user?.id,spreadId,input.question,cupId,input.concernTopic]);
    let attemptId=input.attemptId && input.tarotSpreadId===spreadId ? input.attemptId : crypto.randomUUID();
    try{const saved=JSON.parse(sessionStorage.getItem(key)||"null");if(!input.attemptId && saved?.identity===identity)attemptId=saved.attemptId;else sessionStorage.setItem(key,JSON.stringify({identity,attemptId}));}catch{/* Browser storage is optional; the server is authoritative. */}
    const response=await authFetch("/api/fortune-tea-house/tarot/prepare",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...input,selectedTeaCupId:cupId,tarotSpreadId:spreadId,attemptId})});
-   const payload=await response.json();if(!response.ok||!payload.ok)throw new Error();
+   const payload=await readPayload(response);
    setDraft(payload.draft);
-  }catch{setError(copy.retry);}finally{setLoading(false);}
+  }catch(reason){fail(reason);}finally{setLoading(false);}
  }
  async function draw(auto=false){
-  if(!draft||loading)return;setLoading(true);setError("");
+  if(!draft||loading)return;setLoading(true);setError("");setLoginError(false);
   try{
    const response=await authFetch("/api/fortune-tea-house/tarot/draw",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({attemptId:draft.attemptId,...(auto?{auto:true}:{picks})})});
-   const payload=await response.json();if(!response.ok||!payload.ok)throw new Error();
+   const payload=await readPayload(response);
    setDraft(payload.draft);
-  }catch{setError(copy.retry);}finally{setLoading(false);}
+  }catch(reason){fail(reason);}finally{setLoading(false);}
  }
  return <section className={styles.confirm} aria-labelledby="tea-confirm-title">
   <h2 id="tea-confirm-title">{copy.titleKo}</h2><p>{copy.question}</p><blockquote>{input.question}</blockquote>
-  <p>{copy.scope}</p><p>{copy.price}: <strong>{getFortuneTeaHouseConsultPriceLabel(input.consultationMode,isTarot?size:undefined,input.sajuReportVersion)}</strong></p><p>{paymentSurface==="toss"?tossTeaPaymentCopy(locale).policy:copy.policy}</p>
+  <p>{copy.scope}</p><p>{copy.price}: <strong>{paymentSurface==="toss"?(recoveryOrder?tossTeaPaymentCopy(locale).pricePending:TossPrice?<TossPrice featureKey={featureKey} onPrice={setTossPrice}/>:tossTeaPaymentCopy(locale).pricePending):getFortuneTeaHouseConsultPriceLabel(input.consultationMode,isTarot?size:undefined,input.sajuReportVersion)}</strong></p><p>{paymentSurface==="toss"?tossTeaPaymentCopy(locale).policy:copy.policy}</p>
   {locale==="ko"&&<CraftedProductDisclosure featureKey={getFortuneTeaHouseConsultFeatureKey(input.consultationMode,isTarot?size:undefined,input.sajuReportVersion)} panelTextOverrides={paymentSurface==="toss"?{"editorial-5":"상담에서 요청하는 정보와 지금 가장 궁금한 질문을 준비해 주세요.\n\n토스 단건 결제는 결제 단계에서 확인해 주세요."}:undefined}/>}
   {!isTarot&&<div><h3>{copy.information}</h3><ul>{people.map((person,index)=>person&&<li key={index}>{[
     "name" in person ? person.name : input.nickname,person.birthDate,
@@ -85,7 +99,7 @@ export default function TeaConsultConfirmation({paymentSurface="web",input,cupId
     <div className={styles.actions}><TeaHouseButton onClick={()=>void draw()} disabled={picks.length!==chosen.cardCount} loading={loading}>{copy.draw}</TeaHouseButton><TeaHouseButton variant="ghost" onClick={()=>void draw(true)} disabled={loading}>{copy.auto}</TeaHouseButton></div>
    </>}
   </>}
-  {error&&<p role="alert">{error}{!getAuthState().user&&<a href="/login/?next=%2Ffortune-tea-house%2F">{copy.login}</a>}</p>}
-  <div className={styles.actions}><TeaHouseButton variant="ghost" onClick={onBack} disabled={busy||loading}>{copy.edit}</TeaHouseButton><TeaHouseButton disabled={loading||(isTarot&&draft?.status!=="drawn")} loading={busy} onClick={()=>{trackEvent("tea_consult_confirmed",{method:input.consultationMode});onConfirm({...input,consultationVersion:"tea-v2",...(isTarot?{attemptId:draft!.attemptId,tarotSpreadId:spreadId,tarotSpread:size}:{})});}}>{paymentSurface==="toss"?tossTeaPaymentCopy(locale).action:copy.continue}</TeaHouseButton></div>
+  {error&&<p role="alert">{error}{(loginError||!getAuthState().user)&&<a href={paymentSurface==="toss"?"/login/?next=%2Ffortune-tea-house%2F%3FrestoreTeaDraft%3D1":"/login/?next=%2Ffortune-tea-house%2F"}>{paymentSurface==="toss"?tossTeaPaymentCopy(locale).loginAction:copy.login}</a>}</p>}
+  <div className={styles.actions}><TeaHouseButton variant="ghost" onClick={onBack} disabled={busy||loading}>{copy.edit}</TeaHouseButton><TeaHouseButton disabled={loading||!priceReady||(isTarot&&draft?.status!=="drawn")} loading={busy} onClick={()=>{if(!priceReady)return;if(paymentSurface==="toss")rememberTossTeaPrice(recoveryOrder?null:tossPrice);trackEvent("tea_consult_confirmed",{method:input.consultationMode});onConfirm({...input,consultationVersion:"tea-v2",...(isTarot?{attemptId:draft!.attemptId,tarotSpreadId:spreadId,tarotSpread:size}:{})});}}>{paymentSurface==="toss"?tossTeaPaymentCopy(locale).action:copy.continue}</TeaHouseButton></div>
  </section>;
 }

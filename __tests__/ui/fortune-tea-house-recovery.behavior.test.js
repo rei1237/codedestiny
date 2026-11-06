@@ -50,6 +50,13 @@ function recoveryApi(window) {
   vm.runInNewContext(js, { exports, window, Date });
   return exports;
 }
+function tossAccessApi() {
+  const exports = {};
+  const source = fs.readFileSync(path.join(root, "src/features/fortune-tea-house/lib/tossAccessBoundary.ts"), "utf8");
+  const js = ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS } }).outputText;
+  vm.runInNewContext(js, { exports, Error });
+  return exports;
+}
 const input = { consultationMode: "saju", question: "원래 상담 질문", profileId: "profile-a" };
 test('actual polling survives 503 without changing evidence and remains bounded', async () => {
   const body={attemptId:'original',billingGate:{paymentId:'original-payment'}};
@@ -82,6 +89,7 @@ function harness({ window = { localStorage: store(), sessionStorage: store() }, 
   let succeed = false;
   const state = {
     ...api, Error, AbortController, URLSearchParams, console, isSubmitting: false,
+    paymentSurface: "web", ...tossAccessApi(),
     trackEvent(_name, properties) { assert.ok(Object.keys(properties).every(key => ["method", "code"].includes(key)), "analytics must not include personal input"); },
     submitLockRef: { current: false }, submitSucceededRef: { current: false },
     consultRunRef: { current: 0 }, unusedPaidAttemptRef: { current: saved },
@@ -384,4 +392,17 @@ test('BGM restores both saved choices and offers an explicit retry after autopla
   const state={bgmEnabled:true,bgmStatus:'blocked',playBgm:force=>state.played=force,setBgmEnabled:()=>assert.fail('must not turn music off'),window:{}};
   vm.runInNewContext(functionSource('toggleBgm')+';toggleBgm();',state);
   assert.equal(state.played,true);
+});
+
+test("Toss access denial stops before checkout or local preview", async () => {
+  for (const [status, payload, message] of [[401, { paymentRequired: true }, /로그인/], [403, { paymentRequired: true }, /권한/], [503, { error: "ACCESS_DENIED" }, /권한/]]) {
+    const h = harness();
+    h.state.paymentSurface = "toss";
+    h.state.postFortuneTeaEnsureAccessRequest = async () => ({ response: { ok: false, status }, payload });
+    await h.submit();
+    assert.equal(h.gateCalls(), 0);
+    assert.equal(h.posts.length, 0);
+    assert.equal(h.state.completed, undefined);
+    assert.match(h.state.error, message);
+  }
 });
