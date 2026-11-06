@@ -32,7 +32,7 @@
 
 | 항목 | 확인 근거 | 현재 판정 |
 |---|---|---|
-| 서비스 범위 | `docs/toss/build-service-inventory.mjs`, `full-service-inventory.json`, `apps/toss/scripts/launch-status.mjs` | 현재 홈·React·시각 레지스트리 재생성 결과 후보 89, 수동 근거에 따른 부분 구현 32, 추가 추적 57. 전체 라우트와 구현 계약, 완전 검증·출시 제외 미확정. |
+| 서비스 범위 | `docs/toss/build-service-inventory.mjs`, `full-service-inventory.json`, `apps/toss/scripts/launch-status.mjs` | 현재 인벤토리 기준 후보 89, 로컬 부분 구현 33, 전체 이식·검증 필요 54, 미이식 2. 전체 라우트와 구현 계약, 완전 검증·출시 제외 미확정. |
 | 권한·결제 | `worker/toss/catalog.js`, `apps/toss/src/release.ts`; 콘솔 인앱 상품 목록 | 승인 상품 배열 비어 있음, 앱 공개 게이트 닫힘, 콘솔 상품 없음. 가격·권리·승인 상태 대조 전 판매 금지. 인생의 책과 인생 총운은 기능 키에 따라 표시 이름을 구분하도록 수정했으며 공식 기기 검증은 남았다. |
 | 상품 수 | [공식 인앱 결제 가이드](https://developers-apps-in-toss.toss.im/guide/monetization/in-app-payment) | 비게임 최대 30개. 개별 서비스 권리와 기존 가격을 보존하는 매핑 미확정. |
 | 로그인·서버 인증 | 콘솔 토스 로그인 및 mTLS 화면 | 로그인 설정 미등록, 인증서 발급 안내 상태. 발급·설정·실제 연동 검증 필요. |
@@ -78,7 +78,7 @@
 ## 공식 기준별 미완료 체크리스트
 
 - [ ] [AI 채팅·상담 운영 요건](https://developers-apps-in-toss.toss.im/intro/guide): 위험 키워드와 문맥을 함께 판단하는 필터, 일관된 거절, 자살·자해 발화에 대한 안전 응답, 문제 응답을 신속히 수정·차단하는 운영 체계를 상담 입력·출력과 후속 질문 전체에서 검증한다. 모델·프롬프트 변경 전 검토 요청 절차도 확인한다. 2026-11-05 기준 `worker/toss`, `worker/yeongnyangi`, 대표 상담 라우트와 공통 라이브러리를 제한적으로 추적했으나 요건 전체의 적용 근거는 확인하지 못했다. 검색 결과만으로 구현 부재를 단정하지 않으며, 통합 검증 전에는 심사 차단이다.
-- [ ] [SDK 3.x 개발 테스트](https://developers-apps-in-toss.toss.im/documentation/integration/sdk-3.x#test-environment): `apps/toss/package.json`에 공식 devtools 패키지는 있지만 `apps/toss/vite.config.ts`에는 공식 플러그인이 연결되어 있지 않다. 기존 `canonical/vite-preview.mjs`는 일부 상담용 별도 픽스처이며 공식 도구로 출시 전체 경로를 점검한 증거가 아니다. 운영 API·실결제·실 LLM·운영 DB로 폴백하지 않는 로컬 목 경계를 마련하고 공식 devtools와 실제 기기에서 각각 검증한다.
+- [ ] [SDK 3.x 개발 테스트](https://developers-apps-in-toss.toss.im/documentation/integration/sdk-3.x#test-environment): `apps/toss/test/offline/vite.config.ts`는 공식 devtools를 목 모드와 네트워크 차단 픽스처로 연결한다. 일부 로컬 경로만 확인했으며 공식 도구에서 출시 전체 경로를 점검한 증거가 아니다. 운영 API·실결제·실 LLM·운영 DB로 폴백하지 않는 경계를 유지하며 전체 경로와 실제 기기를 각각 검증한다.
 - [ ] [비게임 출시 가이드](https://developers-apps-in-toss.toss.im/checklist/app-nongame): 등록할 기능의 직접 진입, 뒤로가기·닫기·홈, 기기 변경 후 기록과 접근성을 실제 기기에서 확인한다. `apps/toss/src/main.tsx`, `apps/toss/service/Screens.jsx`만으로 전체 경로 통과를 뜻하지 않는다. 찻집 뒤로가기와 첫 화면 닫기는 토스 셸에 연결하고 중복 버튼을 숨겼으나 실제 기기의 단계 이동·복구는 미검증이다.
 - [ ] 같은 가이드의 라이트 모드·핀치 줌·권한 거부·속도·브리지 중복 호출을 확인한다. `apps/toss/apps-in-toss.config.ts`는 내비게이션을 light로 설정하지만 원본 결과 화면 CSS와 viewport는 별도 검증이 필요하다.
 - [ ] [서비스 오픈 정책](https://developers-apps-in-toss.toss.im/intro/guide): 토스 로그인만 사용하고 디지털 상품은 인앱 결제로 처리하며, 주요 기능을 외부 사이트나 중첩 웹뷰로 넘기지 않는다. 각 콘텐츠의 사전 AI 고지·결과 표시 및 금지 표현도 검토한다.
@@ -105,3 +105,5 @@
 연이 편지 로컬 결제 보강: 화면 이탈이나 계정 전환이 진행 중인 조회를 무효화하며, 결제 화면이 이미 시작됐으면 정리 후 구매 상태 재확인을 안내한다. 결제 직전 같은 상품의 SKU·등록 가격·SDK 표시 금액을 다시 조회하고 달라진 경우 새 정보를 보여 준 뒤 명시적 재선택을 받는다. 기존 주문 복구는 복귀 시 주문과 초안부터 다시 확인한다. 이 검사는 실제 가격·SKU 승인, 기기 간 복구 및 최초 구매자 검증을 대신하지 않는다.
 
 연이 편지 복구 중 환불·미결제·주문 불일치 또는 권한 철회가 확인되거나 토스 주문 확인·지급 저장 확인에 실패하면 초안과 이어가기 버튼을 숨기고 구매 내역 확인을 안내한다. 다시 확인할 때는 같은 주문과 저장된 초안을 재검증한다. 로그인 상태 변경과 세션 확인 실패도 일반 상담 오류와 구분한다. 로컬 mock 회귀이며 실제 환불 동기화는 미검증이다.
+
+2026-11-07 영냥이 결제 경계: 토스 계정별 상담을 다시 읽고 구매 직전 상담·상품·표시 가격을 재확인한다. 계정 전환이나 화면 이탈 후 지연된 결제 요청은 열지 않고, 권한 거부·환불 또는 불확실한 구매는 결과나 재결제 대신 재확인·복구로 안내한다. 로컬 모의 검증이며 구매자 최초 검증, 승인 SKU·실제 판매가 대조와 공식 기기 검증은 남아 있다.

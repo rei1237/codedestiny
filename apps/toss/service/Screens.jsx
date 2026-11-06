@@ -12,7 +12,7 @@ import {captureLetterDraft,restoreLetterDraft} from './letter-draft-bootstrap.mj
 import {captureTeaDraft,restoreTeaDraft} from './tea-draft-bootstrap.mjs';
 import {captureSukuyoDraft,restoreSukuyoDraft} from './sukuyo-draft-bootstrap.mjs';
 import {recallPendingAuthDrafts,rememberPendingAuthDrafts,clearPendingAuthDrafts} from './draft-quarantine.mjs';
-import Checkout from './Checkout';
+import PreparedCheckout from './PreparedCheckout';
 import YeongnyangiLayout from '@/app/yeongnyangi/layout';
 import styles from '@/app/yeongnyangi/yeongnyangi.module.css';
 import '@/styles/globals.css';
@@ -59,19 +59,6 @@ function NewYearPrice(){return <AstrologyPrice featureKey="new-year-ai-consultat
 const releaseAvailability={title:'출시 준비 중',message:'상품 등록과 검수가 완료되면 토스에서 상담 결과를 생성하고 보관할 수 있어요.',action:{href:'/neo-operation-room/',label:'전략실 둘러보기'}};
 let installed=false;
 function install(){if(installed)return;installed=true;window.fetch=createServiceFetch({nativeFetch:window.fetch.bind(window),send:canonicalResponse,origin:location.origin});}
-function PreparedCheckout(){
- const [row,setRow]=useState(null),[error,setError]=useState('');
- useEffect(()=>{const controller=new AbortController();const id=new URLSearchParams(location.search).get('requestId');
-  if(!/^[a-f0-9]{64}$/.test(id||'')){setError('상담 입력 화면에서 다시 시작해 주세요.');return;}
-  void canonicalResponse('/canonical/yeongnyangi/requests/'+id,new Request(location.origin,{signal:controller.signal})).then(async response=>{
-   if(!response.ok)throw Object.assign(new Error('REQUEST_FAILED'),{status:response.status});const data=await response.json();if(!data.fortune)throw new Error();
-   if(controller.signal.aborted)return;
-   if(data.fortune.paid===true){location.replace('/yeongnyangi/result/?id='+encodeURIComponent(id));return;}
-   setRow(data.fortune);
-  }).catch(error=>{if(!controller.signal.aborted)setError((error?.status===403||error?.code==='ACCESS_DENIED')?'구매 내역에 접근할 권한을 확인할 수 없어요. 구매한 계정과 주문 내역을 확인해 주세요.':(error?.status===401||['SESSION_EXPIRED','LOGIN_REQUIRED'].includes(error?.code))?'기록과 구매를 확인하려면 토스 로그인이 필요해요.':'상담을 불러오지 못했어요. 다시 열어 주세요.');});return()=>controller.abort();
- },[]);
- return error?<p role="alert">{error}</p>:row?<Checkout draft={{product:row.product,question:row.consultation?.question,chapters:row.manifest.length,ready:row.state==='CREATED'||row.paid,onPrepare:async()=>row}}/>:<p role="status">상담을 확인하고 있어요.</p>;
-}
 function ConsultationRedirect({href}){
  const routed=useRef(false);
  useEffect(()=>{if(routed.current)return;routed.current=true;location.replace(href);},[href]);
