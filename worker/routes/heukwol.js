@@ -2,13 +2,12 @@ import { createHash } from 'node:crypto';
 import { requireAuth } from '../lib/auth.js';
 import { connectDb } from '../lib/db.js';
 import { ProfileCard, PointHistory, ServiceExecutionTransaction } from '../lib/models.js';
-import { profileCardSolarBirth } from '../lib/paid-content-read-access.js';
 import { getBillingFeaturePricing } from '../lib/billing-feature-registry.js';
 import { verifyPerUsePayment } from '../lib/nakshatra-paid-access.js';
 import { claimRequestBillingEvidence } from '../lib/billing-evidence-claim.js';
 import { isStoredPaidResultRevoked } from '../lib/paid-result-revocation.js';
 import { startServiceExecution, completeServiceExecution, failServiceExecution } from '../lib/service-execution-task.js';
-import { buildHeukwolAnalysis } from '../lib/heukwol-analysis.js';
+import { buildHeukwolAnalysis, heukwolProfileBirth } from '../lib/heukwol-analysis.js';
 import { HEUKWOL_FEATURE_KEY, HEUKWOL_CHAPTERS, HEUKWOL_MIN_CHARS, generateHeukwolChapter } from "../lib/heukwol-report.js";
 import { json, readJson, handleRouteError } from '../lib/http.js';
 
@@ -101,7 +100,7 @@ export async function handleHeukwolRoutes(request,env) {
     }
     const card=await ProfileCard.findOne({userId,profileId:input.profileId}).lean();
     if(!card)return error(400,'PROFILE_REQUIRED','저장한 프로필을 선택해 주세요.');
-    const birth=profileCardSolarBirth(card);
+    const birth=heukwolProfileBirth(card);
     const analysis=buildHeukwolAnalysis(birth,input.year,undefined,{env});
     const pricing=getBillingFeaturePricing({featureKey:HEUKWOL_FEATURE_KEY}).pricing;
     if(path.endsWith('/prepare'))return json({ok:true,pricing,year:analysis.year,method:analysis.method});

@@ -36,7 +36,7 @@ const ELEMENT_TRAITS = {
 };
 export function buildSibylAnnual(birth, year) {
   if (!birth?.date) throw new Error('SIBYL_INVALID_BIRTH_INPUT');
-  const saju = calculateLifeBookAiSaju({ birthDate: birth.date, birthTime: birth.time, birthTimeUnknown: !birth.timeKnown, calendarType: 'solar', gender: birth.gender }, { year });
+  const saju = calculateLifeBookAiSaju({ birthDate: birth.date, birthTime: birth.time, birthTimeUnknown: !birth.timeKnown, calendarType: 'solar', gender: birth.gender, birthPlace: birth.birthPlace }, { year });
   const terms = [...(nodeTerms(year) || []), ...(nodeTerms(year + 1) || []).slice(0,2)];
   const start = terms.findIndex(t => t.index === 2); // 입춘부터 다음 입춘 직전까지: civil January is not a fabricated year boundary.
   if (start < 0 || terms.length < start + 13) throw new Error('SIBYL_CALENDAR_UNAVAILABLE');
