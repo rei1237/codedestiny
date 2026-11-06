@@ -35,7 +35,13 @@
 .walk .secondary { border: 1px solid var(--cd-forest-rule-strong); background: transparent; color: var(--cd-forest-ink); }
 .walk .primary:disabled, .walk .secondary:disabled { opacity: .7; cursor: default; }
 .muted { color: var(--cd-forest-mist); }
-.growth { --portrait-card:#352235; --portrait-ink:#fff5e6; --portrait-gold:#ebcd91; display:grid; gap:8px; padding:16px; border-radius:var(--cd-r-card); background:var(--portrait-card); color:var(--portrait-ink); }
+.growth {
+  --portrait-card:#352235; --portrait-ink:#fff5e6; --portrait-gold:#ebcd91;
+  display:grid; gap:12px; padding:clamp(16px,4vw,24px);
+  background:linear-gradient(125deg,color-mix(in srgb,var(--portrait-card) 91%,var(--portrait-gold)),var(--portrait-card) 65%);
+  color:var(--portrait-ink); border:1px solid color-mix(in srgb,var(--portrait-card) 48%,var(--portrait-gold));
+  border-radius:var(--cd-r-card); box-shadow:0 7px 16px -13px var(--portrait-card);
+}
 .growthHead { display:flex; align-items:center; gap:14px; }
 .growthHead strong { font:700 1.1875rem/1.4 var(--font-serif); overflow-wrap:anywhere; }
 .growth a { display: inline-flex; flex: none; align-items: center; min-height: 44px; color: var(--cd-forest-lantern); font-size: .8125rem; font-weight: 700; text-underline-offset: 3px; }
@@ -121,7 +127,15 @@
 }
 
 .cardAction,.cardEditor button{min-height:48px;padding:10px 16px;border:0;border-radius:12px;font:inherit;font-weight:700;cursor:pointer}
-.growth .cardAction,.growth a { padding:0; min-height:44px; color:var(--portrait-gold); background:transparent; text-decoration:underline; text-underline-offset:4px; }
+.growth .cardAction,.growth a {
+  display:inline-flex; align-items:center; justify-content:center; gap:8px; margin-top:8px; min-height:44px;
+  padding:8px 13px; border:1px solid var(--portrait-gold); border-radius:var(--cd-r-control);
+  color:var(--portrait-gold); background:transparent; text-decoration:none; font:700 .875rem/1.4 var(--font-body);
+}
+.growth[data-forest-profile="example"] :is(.cardAction,a) { color:var(--portrait-card); background:var(--portrait-gold); }
+.growth .joinAction { margin-top:0; }
+.growth .cardAction[aria-disabled="true"] { cursor:default; }
+
 .cardEditor{display:grid;gap:10px}
 .cardEditor iframe{width:100%;height:min(68dvh,560px);border:0;border-radius:12px;background:var(--cd-surface)}
 .cardEditor button{justify-self:start;color:var(--cd-forest-lantern);background:var(--cd-forest-deep)}
@@ -132,10 +146,14 @@
 
 .identity { min-width:0; display:grid; justify-items:start; text-align:left; }
 .identity small { color:var(--portrait-ink); line-height:1.55; font-size:.875rem; }
-.portrait { display:grid; place-items:center; flex:0 0 80px; width:80px; height:80px; border-radius:16px; background:var(--portrait-ink); }
-.portrait span { width:74px; height:74px; background-size:400% 100%; background-repeat:no-repeat; background-position:0 0; }
+.portrait {
+  display:grid; place-items:center; flex:none; width:clamp(84px,24vw,104px); aspect-ratio:1;
+  border:1px solid var(--portrait-gold); border-radius:20px;
+  background:var(--portrait-ink); box-shadow:0 0 0 3px var(--portrait-card),0 0 0 4px color-mix(in srgb,var(--portrait-gold) 48%,transparent);
+}
+.portrait span { width:90%; aspect-ratio:1; background-size:400% 100%; background-repeat:no-repeat; background-position:0 0; }
 .walkProfile { width:min(100%,720px); margin:0 auto; padding:6px 16px 14px; }
-.gate .primary { background:var(--cd-forest-moss); color:var(--cd-forest-ink); border-color:var(--cd-forest-moss); border-radius:var(--cd-r-control); }
+.gate .primary { background:linear-gradient(120deg,var(--cd-forest-moss),var(--cd-forest-deep)); color:var(--cd-forest-ink); border-color:var(--cd-forest-moss); border-radius:var(--cd-r-control); }
 
 /* 숲 입구와 걸음 화면은 같은 종이색을 쓰고, 계정 카드는 고유한 자두색을 유지한다. */
 .dialog .walk { background:var(--cd-forest-paper); color:var(--cd-forest-paper-ink); }

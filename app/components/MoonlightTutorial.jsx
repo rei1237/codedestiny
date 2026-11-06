@@ -43,9 +43,9 @@ export default function MoonlightTutorial({ onWrite }) {
   return <>
     <button type="button" ref={trigger} className={styles.trigger} onClick={() => setOpen(true)} aria-haspopup="dialog">
       <picture>
-        <img src="/images/moonlight-guide/question.webp" width="627" height="627" loading="lazy" decoding="async" alt=""/>
+        <img src="/images/moonlight-guide/question.webp" srcSet="/images/moonlight-guide/question-320.webp 320w, /images/moonlight-guide/question.webp 627w" sizes="(max-width:699px) min(44vw, 195px), 165px" width="627" height="627" decoding="async" alt=""/>
       </picture>
-      <span><small>처음 오셨나요?</small><strong>이용 안내 웹툰 보기 <span aria-hidden="true">→</span></strong></span>
+      <span><small>처음 오셨나요?</small><strong>이용 안내 웹툰 보기<span className={styles.guideArrow} aria-hidden="true">→</span></strong></span>
     </button>
     <dialog ref={dialog} className={styles.reader} aria-labelledby="moonlight-reader-title"
       onClose={finish}>

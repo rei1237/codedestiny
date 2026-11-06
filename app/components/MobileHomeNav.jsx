@@ -1,13 +1,13 @@
 "use client";
 import {useEffect, useState} from 'react';
-import {BookOpen, Layers, MessageCircle, Trees} from 'lucide-react';
+import {BookOpen, Layers, MessageCircle, IdCard} from 'lucide-react';
 import styles from '../home-main.module.css';
 
 const destinations = [
   { id: 'webServiceTitle', label: '홈', icon: Layers },
   { id: 'homeCardTitle', label: '상담 추천', icon: MessageCircle },
   { id: 'homeStoryTitle', label: '웹툰 서가', icon: BookOpen },
-  { id: 'homeForest', label: '숲길', icon: Trees },
+  { id: 'homeForest', label: '카드·혜택', icon: IdCard },
 ];
 
 export default function MobileHomeNav() {
