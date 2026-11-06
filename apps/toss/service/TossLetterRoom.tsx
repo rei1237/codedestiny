@@ -8,7 +8,6 @@ import ConsultationResult from '@/app/fortune-chat/ConsultationResult';
 import YeoniWelcome from '@/app/fortune-chat/YeoniWelcome';
 import {consultationApi,isConsultationId,type ChatConsultation,type ChatConsultationSummary,type ChatDomain,type ChatTarotKind} from '@/app/fortune-chat/consultation-api';
 import {api,event,purchase,saleProducts,type SaleProduct} from '../src/platform';
-import {dispatchServiceBack} from './native-back.mjs';
 import base from '@/app/fortune-chat/fortune-chat.module.css';
 import styles from '@/app/fortune-chat/consultation.module.css';
 import salon from '@/app/fortune-chat/yeoni-salon.module.css';
@@ -78,7 +77,7 @@ export default function TossLetterRoom({initialId='',initialOrderId=''}:{initial
  const startNew=()=>{if(initialOrderId&&!recoveryResolved){location.assign('/fortune-tea-house/?counsel=letter');return;}epoch.current++;setRow(null);setError('');setNotice('');remember('');void list();};
  if(previousAccount.current&&(!auth.isAuthenticated||previousAccount.current!==account))return <main className={`${base.room} ${salon.room}`}><p role="status">계정을 확인하고 있어요.</p></main>;
  return <main className={`${base.room} ${salon.room}`} style={{paddingBottom:'var(--toss-service-bottom, 0px)'}} data-consultation-room data-persona="yeoni">
-  <header className={`${base.header} ${salon.header}`}><button type="button" aria-label="뒤로" disabled={busy} onClick={()=>{if(!dispatchServiceBack())location.assign('/fortune-tea-house/');}}>←</button><strong>연이 상담</strong><Link href="/records/">지난 상담</Link><Link href="/fortune-tea-house/">찻집</Link></header>
+  <header className={`${base.header} ${salon.header}`}><strong>연이 상담</strong><Link href="/records/">지난 상담</Link><Link href="/fortune-tea-house/">찻집</Link></header>
   <div className={`${base.timeline} ${salon.timeline}`}>
    {!row&&busy&&<p role="status">상담을 확인하고 있어요.</p>}
    {!row&&!busy&&<><YeoniWelcome/><ConsultationIntake question={question} onQuestion={setQuestion} domain={domain} onDomain={setDomain} tarotKind={tarotKind} onTarotKind={setTarotKind} guest={guest} busy={busy} enabled={initialOrderId&&!recoveryResolved?Boolean(recovered):Boolean(product)} paymentSurface="toss" tossPrice={product?.displayAmount} recoveredOrder={Boolean(recovered)} lockedDomain={recovered?.domain} tossUnavailable={catalogState!=='loading'&&!product} ready={guest||domain==='tarot'||!!profileId} profileName={profiles.find(p=>profileKey(p)===profileId)?.name||''} onCreate={()=>void create()} profile={guest?<button type="button" onClick={toLogin}>토스로 로그인하기</button>:profilesLoading?<p role="status">프로필을 불러오는 중이에요.</p>:profilesError?<div role="alert"><p>{profilesError}</p><button type="button" onClick={()=>void refreshProfiles(true)}>프로필 다시 확인하기</button></div>:!profiles.length||addingProfile?<ProfileForm locale="ko" onSaved={profile=>{saved(profile);setAddingProfile(false);void refreshProfiles(true);}}/>:<div><select aria-label="상담할 프로필" value={profileId} onChange={event=>select(event.target.value)}><option value="">프로필 선택하기</option>{profiles.map(p=><option key={profileKey(p)} value={profileKey(p)}>{p.name||'이름 없는 프로필'}</option>)}</select><button type="button" onClick={()=>setAddingProfile(true)}>새 프로필</button></div>}/></>}
