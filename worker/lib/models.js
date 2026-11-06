@@ -1407,6 +1407,7 @@ const sukuyoCompatibilityAiConsultationSchema = new mongoose.Schema({
   },
   relationshipType: { type: String, required: true, trim: true, maxlength: 80 },
   topic: { type: String, required: true, trim: true, maxlength: 80 },
+  accessSource: { type: String, default: "" },
   accessType: { type: String, enum: ["pass", "paid", "subscription", "admin"], required: true },
   paymentId: { type: String, default: "", trim: true, maxlength: 160, index: true },
   messages: { type: [sukuyoCompatibilityAiMessageSchema], default: [] },

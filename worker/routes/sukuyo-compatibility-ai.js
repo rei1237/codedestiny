@@ -14,6 +14,8 @@ import { isStoredPaidResultRevoked } from "../lib/paid-result-revocation.js";
 import { clampSyncLlmTimeoutMs, EDGE_RESPONSE_DEADLINE_MS } from "../lib/sync-llm-timeout.js";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
+import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
+import { nativeTossContext } from "../toss/native-context.js";
 // 이용권 정산 모듈은 db 트랜잭션 옵션까지 끌고 와 쓸 때만 불러온다(이 라우트를 db 대역으로 띄우는 테스트 보호).
 const loadPerUsePaidAccess = () => import("../lib/nakshatra-paid-access.js");
 import { MonthlyCreditLedger, PaidExecutionRecord, Payment, PointHistory, SukuyoCompatibilityAiConsultation, User } from "../lib/models.js";
@@ -1178,7 +1180,7 @@ async function resolveBillingUsageEvidence(env, auth, body = {}) {
 // 계산 근거만 즉시 돌려준다 — LLM 미호출, DB 접근 없음, 과금 없음.
 // 신원 확인은 로컬 JWT 검증만 써서 Mongo를 한 번도 건드리지 않는다.
 async function handleBasis(request, env) {
-  const userId = await peekAccessTokenUserId(request, env);
+  const userId = nativeTossContext(request)?.auth?.userId || await peekAccessTokenUserId(request, env);
   if (!userId) return json({ ok: false, reason: "LOGIN_REQUIRED", message: MESSAGES.login }, { status: 401 });
 
   const normalized = normalizeInput(await readJson(request));
@@ -1204,7 +1206,7 @@ async function handleEnsureAccess(request, env) {
   });
   let auth = null;
   try {
-    auth = await requireAuth(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
+    auth = nativeTossContext(request)?.auth || await requireAuth(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
   } catch (error) {
     // 일시적 DB 장애는 로그아웃 유발 401이 아니라 재시도 가능한 503으로 흘려보낸다.
     if (isTransientMongoError(error)) throw error;
@@ -1225,6 +1227,11 @@ async function handleEnsureAccess(request, env) {
     requestId: idempotencyKey,
     consultationType: normalized.consultationType,
   });
+  const toss = nativeTossContext(request);
+  if (toss) {
+    const access = await toss.access(body, normalized, idempotencyKey);
+    return access?.ok ? json({ ok: true, accessType: "paid" }) : json({ ok: false, reason: "PAYMENT_REQUIRED" }, { status: 402 });
+  }
   const user = await resolveUser(auth, env);
   const accessHash = await inputHash(normalized);
   if (clean(user?.role).toLowerCase() === "admin") {
@@ -1270,6 +1277,7 @@ async function handleEnsureAccess(request, env) {
 
 async function resolveStartAccess(request, env, auth, body, normalized, accessHash) {
   const idempotencyKey = normalizeId(body.idempotencyKey || request.headers.get("idempotency-key"));
+  if (nativeTossContext(request)) return nativeTossContext(request).access(body, normalized, idempotencyKey);
   const token = clean(body.accessToken || body.access_token);
   const tokenPayload = token ? await verifyToken(env, token).catch(() => null) : null;
   if (tokenPayload && (tokenPayload.userId !== String(auth.userId) || tokenPayload.inputHash !== accessHash || (tokenPayload.idempotencyKey && tokenPayload.idempotencyKey !== idempotencyKey))) return { ok: false };
@@ -1824,7 +1832,7 @@ async function confirmSukuyoDelivery(userId, sessionId, messages, lease) {
 async function handleStart(request, env, recoveryAuth = null) {
   let auth = null;
   try {
-    auth = recoveryAuth || await requireAuth(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
+    auth = nativeTossContext(request)?.auth || recoveryAuth || await requireAuth(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
   } catch (error) {
     // 일시적 DB 장애는 로그아웃 유발 401이 아니라 재시도 가능한 503으로 흘려보낸다.
     if (isTransientMongoError(error)) throw error;
@@ -1836,6 +1844,8 @@ async function handleStart(request, env, recoveryAuth = null) {
     await connectDb(env);
     const saved = await SukuyoCompatibilityAiConsultation.findOne({ _id: normalizeId(body.resumeSessionId), userId: auth.userId }).lean();
     if (!saved) return notFound();
+    if (nativeTossContext(request)) await nativeTossContext(request).assertStored(saved);
+    else if (saved.accessSource === "toss") return notFound();
     if (consultationStatus(saved) === "completed") return json({ ok: true, saved: true, consultation: await serializeConsultation(saved) });
     if (!saved.llmMeta?.resumeBody) return json({ ok: false, reason: "REQUEST_CONFLICT" }, { status: 409 });
     body = { ...saved.llmMeta.resumeBody, idempotencyKey: saved.idempotencyKey };
@@ -1858,13 +1868,26 @@ async function handleStart(request, env, recoveryAuth = null) {
     personB: normalized.consultationType === "compatibility" ? normalized.personB : null,
   });
   if (!normalized.ok) return json({ ok: false, reason: "INVALID_INPUT", message: MESSAGES.invalidInput, errors: normalized.errors }, { status: 422 });
-  const lockKey = `${auth.userId}:${idempotencyKey}`;
-  if (startLocks.has(lockKey)) return (await startLocks.get(lockKey)).clone();
+  const tossAuth = nativeTossContext(request)?.auth;
+  const lockKey = `${tossAuth ? `toss:${tossAuth.identityId}:${tossAuth.environment}:` : ""}${auth.userId}:${idempotencyKey}`;
+  if (startLocks.has(lockKey)) {
+    // A shared in-flight result is still private. Verify this exact immutable
+    // input and order again after waiting, including refund/session changes.
+    const response = await startLocks.get(lockKey);
+    if (tossAuth && !(await nativeTossContext(request).access(body, normalized, idempotencyKey))?.ok) {
+      return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
+    }
+    return response.clone();
+  }
 
   let activeLease = "";
   const pending = (async () => {
     await connectDb(env);
     const existing = await SukuyoCompatibilityAiConsultation.findOne({ userId: auth.userId, idempotencyKey }).lean();
+    if (existing && nativeTossContext(request)) {
+      await nativeTossContext(request).assertStored(existing);
+      if (existing.inputHash !== await inputHash(normalized)) return json({ ok: false, reason: "REQUEST_CONFLICT" }, { status: 409 });
+    } else if (existing?.accessSource === "toss") return notFound();
     const existingStatus = existing ? consultationStatus(existing) : "";
     // 완료본(그리고 status 가 없던 옛 문서)은 지금까지처럼 그대로 재사용한다.
     if (existingStatus === "completed") {
@@ -1905,7 +1928,8 @@ async function handleStart(request, env, recoveryAuth = null) {
     }
     if (existingStatus === "delivery_pending") {
       const completed = await confirmSukuyoDelivery(auth.userId, String(existing._id), existing.messages, existing.generationLease);
-      await recordSuccessfulUsage(auth, idempotencyKey, access, completed, new Date()).catch(() => {});
+      if (nativeTossContext(request)) await nativeTossContext(request).assertStored(completed);
+      if (!nativeTossContext(request)) await recordSuccessfulUsage(auth, idempotencyKey, access, completed, new Date()).catch(() => {});
       return json({ ok: true, consultation: await serializeConsultation(completed), reused: true });
     }
     // 결제 증빙 1건 = 상담 1건. 이용권 차감은 이미 이번 키에 묶여 있어 claim 할 ID 가 없다.
@@ -1978,6 +2002,7 @@ async function handleStart(request, env, recoveryAuth = null) {
       userId: auth.userId,
       idempotencyKey,
       inputHash: accessHash,
+      accessSource: nativeTossContext(request) ? "toss" : "",
       generationLease: crypto.randomUUID(),
       personA: {
         name: normalized.personA.name,
@@ -2036,6 +2061,11 @@ async function handleStart(request, env, recoveryAuth = null) {
         // 같은 키의 시드를 다른 isolate 가 방금 먼저 넣었다 — 우리는 생성하지 않고 합류한다.
         // LLM 6회가 실제로 절약되는 지점이다(예전에는 생성이 끝난 뒤에야 이 에러를 만났다).
         const duplicate = await SukuyoCompatibilityAiConsultation.findOne({ userId: auth.userId, idempotencyKey }).lean();
+        if (nativeTossContext(request)) {
+          if (!duplicate) throw resultStorageUnavailable(idempotencyKey);
+          await nativeTossContext(request).assertStored(duplicate);
+          if (duplicate.inputHash !== accessHash) return json({ ok: false, reason: "REQUEST_CONFLICT" }, { status: 409 });
+        } else if (duplicate?.accessSource === "toss") return notFound();
         if (duplicate && consultationStatus(duplicate) === "completed") {
           return json({ ok: true, consultation: await serializeConsultation(duplicate), reused: true });
         }
@@ -2071,6 +2101,7 @@ async function handleStart(request, env, recoveryAuth = null) {
           status: "partial", generationLease: "", "llmMeta.recoveryReviewRequired": true,
           generationError: { code: clean(genError?.code || "LLM_GENERATION_FAILED", 80), at: new Date().toISOString() },
         });
+        if (nativeTossContext(request)) await nativeTossContext(request).assertStored(partial);
         return json({ ok: true, saved: false, status: "partial", retryable: false, reviewRequired: true,
           sessionId, resumeSessionId: sessionId, idempotencyKey, consultation: await serializeConsultation(partial) }, { status: 202 });
       }
@@ -2097,9 +2128,10 @@ async function handleStart(request, env, recoveryAuth = null) {
     ];
     if (normalized.consultationType === "compatibility" && !firstAnswer.complete) {
       const partial = await saveSukuyoCheckpoint(sessionId, auth.userId, seedFields.generationLease, { status: "partial", messages, generationLease: "" });
+      if (nativeTossContext(request)) await nativeTossContext(request).assertStored(partial);
       return json({ ok: true, saved: false, status: "partial", retryable: firstAnswer.retryable, sessionId, resumeSessionId: sessionId, idempotencyKey, consultation: await serializeConsultation(partial) }, { status: 202 });
     }
-    const freshAccess = await resolveStartAccess(request, env, auth, body, normalized, accessHash).catch(() => { throw resultStorageUnavailable(sessionId); });
+    const freshAccess = await resolveStartAccess(request, env, auth, body, normalized, accessHash).catch(error => { if (nativeTossContext(request) && error?.status) throw error; throw resultStorageUnavailable(sessionId); });
     if (!freshAccess.ok) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
     const pendingDelivery = await SukuyoCompatibilityAiConsultation.findOneAndUpdate(
       { _id: sessionId, userId: auth.userId, status: "generating", generationLease: seedFields.generationLease },
@@ -2116,7 +2148,8 @@ async function handleStart(request, env, recoveryAuth = null) {
     ).lean().catch(() => { throw resultStorageUnavailable(sessionId); });
     if (!pendingDelivery) throw resultStorageUnavailable(sessionId);
     const completed = await confirmSukuyoDelivery(auth.userId, sessionId, messages, seedFields.generationLease);
-    await recordSuccessfulUsage(auth, idempotencyKey, access, { _id: sessionId }, now).catch(() => {});
+    if (nativeTossContext(request)) await nativeTossContext(request).assertStored(completed);
+    if (!nativeTossContext(request)) await recordSuccessfulUsage(auth, idempotencyKey, access, { _id: sessionId }, now).catch(() => {});
     return json({
       ok: true,
       consultation: await serializeConsultation(completed),
@@ -2125,7 +2158,11 @@ async function handleStart(request, env, recoveryAuth = null) {
     if (error?.code === "RESULT_STORAGE_UNAVAILABLE") return json(resultStorageFailurePayload(error), { status: 503 });
     const status = Number(error?.status || 500);
     const code = clean(error?.code || "SERVER_ERROR");
-    const message = code === "LLM_FAILED"
+    const message = nativeTossContext(request) && code === "ACCESS_DENIED"
+      ? "이 상담의 접근 권한을 확인할 수 없어요. 구매한 계정을 확인해 주세요."
+      : nativeTossContext(request) && ["LOGIN_REQUIRED", "SESSION_EXPIRED"].includes(code)
+        ? "토스 로그인 상태를 다시 확인해 주세요."
+        : code === "LLM_FAILED"
       ? MESSAGES.llmFailed
       : code === "CALCULATION_FAILED"
         ? MESSAGES.calculationFailed
@@ -2170,7 +2207,7 @@ function buildFollowupPrompt(consultation, userMessage) {
 async function handleMessage(request, env) {
   let auth = null;
   try {
-    auth = await requireAuth(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
+    auth = nativeTossContext(request)?.auth || await requireAuth(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
   } catch (error) {
     // 일시적 DB 장애는 로그아웃 유발 401이 아니라 재시도 가능한 503으로 흘려보낸다.
     if (isTransientMongoError(error)) throw error;
@@ -2185,6 +2222,8 @@ async function handleMessage(request, env) {
   await connectDb(env);
   const consultation = await SukuyoCompatibilityAiConsultation.findOne({ _id: sessionId, userId: auth.userId });
   if (!consultation) return json({ ok: false, reason: "NOT_FOUND", message: "상담 내역을 찾지 못했습니다." }, { status: 404 });
+  if (nativeTossContext(request)) await nativeTossContext(request).assertStored(consultation);
+  else if (consultation.accessSource === "toss") return notFound();
   // 시드/실패본에는 이어 붙일 맥락이 없다. 빈 messages 로 만든 프롬프트는 근거 없는 답을 내고,
   // 그 답이 시드에 append 되어 미완성 문서가 "결과 있는 문서"로 둔갑한다. LLM 호출 앞에서 막는다.
   // 옛 문서(status 없음)는 completed 로 읽혀 그대로 통과한다.
@@ -2219,6 +2258,7 @@ async function handleMessage(request, env) {
     return json({ ok: false, reason: "LLM_FAILED", message: MESSAGES.llmFailed }, { status: 503 });
   }
   const now = new Date();
+  if (nativeTossContext(request)) await nativeTossContext(request).assertStored(consultation);
   consultation.messages.push({ role: "user", content, createdAt: now });
   consultation.messages.push({ role: "assistant", content: answer, createdAt: now });
   consultation.provider = provider || consultation.provider;
@@ -2230,7 +2270,7 @@ async function handleMessage(request, env) {
 async function handleResult(request, env) {
   let auth = null;
   try {
-    auth = await requireAuth(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
+    auth = nativeTossContext(request)?.auth || await requireAuth(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
   } catch (error) {
     // 일시적 DB 장애는 로그아웃 유발 401이 아니라 재시도 가능한 503으로 흘려보낸다.
     if (isTransientMongoError(error)) throw error;
@@ -2241,8 +2281,10 @@ async function handleResult(request, env) {
 
   await connectDb(env);
   if (!sessionId) {
+    if (nativeTossContext(request)) return json({ ok: true, pendingSessionId: "", consultations: [] });
     const rows = await SukuyoCompatibilityAiConsultation.find({
       userId: auth.userId,
+      accessSource: { $ne: "toss" },
       // Preserve pre-status completed manuscripts, but never admit unknown/failed states or empty seeds.
       $or: [{ status: "completed" }, { status: { $exists: false },
         messages: { $elemMatch: { role: "assistant", content: { $type: "string", $regex: "\\S" } } } }],
@@ -2253,7 +2295,7 @@ async function handleResult(request, env) {
       .limit(10)
       .select("personA.name personA.shuku personB.name personB.shuku sukuyoResult.relationType relationshipType createdAt updatedAt")
       .lean();
-    const pending = await SukuyoCompatibilityAiConsultation.findOne({ userId: auth.userId, status: { $in: ["generating", "partial", "delivery_pending"] } }).sort({ createdAt: -1 }).lean();
+    const pending = await SukuyoCompatibilityAiConsultation.findOne({ userId: auth.userId, accessSource: { $ne: "toss" }, status: { $in: ["generating", "partial", "delivery_pending"] } }).sort({ createdAt: -1 }).lean();
     return json({
       ok: true,
       pendingSessionId: pending ? String(pending._id) : "",
@@ -2276,6 +2318,8 @@ async function handleResult(request, env) {
   }
   const consultation = await SukuyoCompatibilityAiConsultation.findOne({ _id: sessionId, userId: auth.userId }).lean();
   if (!consultation) return json({ ok: false, reason: "NOT_FOUND", message: "상담 내역을 찾지 못했습니다." }, { status: 404 });
+  if (nativeTossContext(request)) await nativeTossContext(request).assertStored(consultation);
+  else if (consultation.accessSource === "toss") return notFound();
   const status = consultationStatus(consultation);
   if (["generating", "partial", "delivery_pending"].includes(status)) {
     const body = consultation.llmMeta?.resumeBody;
@@ -2289,7 +2333,7 @@ async function handleResult(request, env) {
   if (status === "generation_failed") {
     return json({ ok: false, sessionId, status, reason: "LLM_FAILED", message: MESSAGES.llmFailed }, { status: 503 });
   }
-  if (await isStoredPaidResultRevoked(auth.userId, FEATURE_KEY, consultation)) {
+  if (!nativeTossContext(request) && await isStoredPaidResultRevoked(auth.userId, FEATURE_KEY, consultation)) {
     return json({ ok: false, reason: "PAYMENT_REVOKED", retryable: false }, { status: 403 });
   }
   return json({ ok: true, consultation: await serializeConsultation(consultation) });
@@ -2305,6 +2349,7 @@ export async function handleSukuyoCompatibilityAiRoutes(request, env = {}) {
       logSukyoAi("[Sukyo AI LLM Error]", { route: "/api/sukuyo-compatibility-ai/result", errorMessage: clean(error?.message || error, 500) }, error, env);
       // 폴링은 이미 인가된 세션의 결과 조회다. 일시적 DB/인증 장애를 하드 500으로 내리면 폴링이 종료돼
       // 로그아웃/실패로 굳으므로, 재시도 가능한 503으로 흘려보내 클라가 자가복구하게 한다(전 AI 라우트 정본).
+      if (nativeTossContext(request) && error?.status) return json({ ok: false, reason: error.code || "ACCESS_DENIED" }, { status: error.status });
       if (isTransientMongoError(error) || isAuthDbInfraError(error)) {
         return json({ ok: false, retryable: true, reason: "DB_DEGRADED", message: "일시적인 연결 문제가 있어요. 잠시 후 다시 시도해 주세요." }, { status: 503 });
       }
@@ -2325,6 +2370,7 @@ export async function handleSukuyoCompatibilityAiRoutes(request, env = {}) {
       errorMessage: clean(error?.message || error, 500),
     }, error, env);
     // 풀 초기화 버스트/인증 조회 중 일시 DB 장애는 재시도 신호와 함께 503으로 — 하드 500 방지(전 AI 라우트 정본).
+    if (nativeTossContext(request) && error?.status) return json({ ok: false, reason: error.code || "ACCESS_DENIED" }, { status: error.status });
     if (isTransientMongoError(error) || isAuthDbInfraError(error)) {
       return json({
         ok: false,
@@ -2366,11 +2412,53 @@ export const __sukuyoCompatibilityAiTestUtils = {
   clearStartLocks: () => startLocks.clear(),
 };
 
+// Validate and bind the original two-person input before a Toss purchase.
+// This does not register a product, grant access or change the web payment path.
+export async function nativeSukuyoContract(body = {}) {
+  const invalid = () => Object.assign(new Error("상담 입력을 다시 확인해 주세요."), { status: 400, code: "INVALID_INPUT" });
+  if (!body || typeof body !== "object" || Array.isArray(body)) throw invalid();
+  const normalized = normalizeInput(body);
+  const requestId = normalizeId(body.idempotencyKey || body.requestId);
+  if (!normalized.ok || requestId.length < 12) throw invalid();
+  const people = [body.personA || body.self || body.user || body];
+  if (normalized.consultationType === "compatibility") people.push(body.personB || body.partner || { calendarType: body.partnerCalendarType, birthTime: body.partnerBirthTime });
+  for (const person of people) {
+    const calendar = clean(person?.calendarType || person?.calType).toLowerCase();
+    const time = clean(person?.birthTime || person?.time);
+    if (!["solar", "lunar", "lunar_leap", "양력", "음력", "음력 윤달"].includes(calendar) || (time && !normalizeBirthTime(time))) throw invalid();
+  }
+  try {
+    lunarForPerson(normalized.personA);
+    if (normalized.consultationType === "compatibility") lunarForPerson(normalized.personB);
+  } catch { throw invalid(); }
+  const pricing = getBillingFeaturePricing({ featureKey: FEATURE_KEY }).pricing;
+  if (!pricing || !Number.isSafeInteger(pricing.amountKRW) || pricing.amountKRW <= 0) throw Object.assign(new Error("상담 상품을 확인할 수 없어요."), { status: 503, code: "PRICING_UNAVAILABLE" });
+  return { requestId, resultId: requestId, featureKey: FEATURE_KEY, inputHash: await inputHash(normalized), pricing: { ...pricing, productId: FEATURE_KEY } };
+}
+
+export async function nativeSukuyoStoredState(env, userId, value, lookup = "request") {
+  if (lookup === "id" && !isObjectIdLike(value)) return null;
+  const filter = lookup === "id"
+    ? { userId: String(userId), _id: value }
+    : { userId: String(userId), idempotencyKey: value };
+  return withMongoRetry(env, () => SukuyoCompatibilityAiConsultation.findOne(filter).lean());
+}
+
 // Internal cron continuation: only a stored owner/id is accepted, never client input.
 // The normal handler rereads that owner's record and rechecks existing payment proof.
-export function resumeConsultationOnServer(env, doc) {
+export async function resumeConsultationOnServer(env, doc) {
   if (!doc?.userId || !doc._id) throw new Error("RECOVERY_doc._id_REQUIRED");
   const request = new Request("https://internal.invalid/api/sukuyo-compatibility-ai/resume", { method: "POST", headers: { "content-type": "application/json" },
     body: JSON.stringify({ resumeSessionId: String(doc._id) }) });
-  return handleStart(request, env, { userId: String(doc.userId) });
+  const stored = await nativeSukuyoStoredState(env, String(doc.userId), String(doc._id), "id");
+  if (stored?.accessSource === "toss") {
+    const { bindNativeSukuyoRecovery } = await import("../toss/native-sukuyo.js");
+    if (!await bindNativeSukuyoRecovery(request, env, stored)) throw new Error("TOSS_RECOVERY_INTENT_MISSING");
+  }
+  return handleStart(request, env, nativeTossContext(request)?.auth || { userId: String(doc.userId) });
+}
+
+export async function recoverUnstartedNativeConsultations(env, options) {
+  const { bootstrapNativeSukuyoOrders } = await import("../toss/native-sukuyo.js");
+  return bootstrapNativeSukuyoOrders(env, options);
 }

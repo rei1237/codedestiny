@@ -8,7 +8,7 @@ const require=createRequire(import.meta.url),Module=require('node:module');
 const calls={profiles:[],prepared:[],followups:0};
 const auth={_id:'identity',ownerId:'owner',userId:'owner',userKey:'123',environment:'SANDBOX'};
 const mocks={
- tarotProducts:[],grants:[],deliveries:0,dailyCalls:[],nativeLove:[],nativeAstrology:[],nativeVedic:[],nativeZiwei:[],nativeNewYear:[],nativeKarma:[],nativeMaya:[],libraryRows:[],
+ tarotProducts:[],grants:[],deliveries:0,dailyCalls:[],nativeLove:[],nativeAstrology:[],nativeVedic:[],nativeZiwei:[],nativeNewYear:[],nativeKarma:[],nativeMaya:[],nativeSukuyo:[],libraryRows:[],
  auth:async()=>auth,profile:async(...args)=>calls.profiles.push(args),
  product:sku=>({productId:sku.includes(':')?sku.split(':')[1]:sku,serviceId:sku.includes(':')?sku.split(':')[0]:'yeongnyangi',sku,approvedPriceKRW:1,approved:true}),
  prepare:async(_env,user,body,options)=>{calls.prepared.push({user,body,options});return {_id:'a'.repeat(64),productId:body.productId,amountKRW:1,snapshot:{manifest:[{id:'part',title:'answer',ordinal:0}]}};},
@@ -16,6 +16,7 @@ const mocks={
 };
 globalThis.__tossRouteMocks=mocks;
 const stubMap={
+ 'worker/toss/native-sukuyo.js':"import {TossError} from './policy.js';const state=globalThis.__tossRouteMocks;export const prepareNativeSukuyo=(...args)=>{state.nativeSukuyo.push(args);return {id:'offline-intent'};};export const handleNativeSukuyo=(...args)=>{state.nativeSukuyo.push(args);if(state.nativeFailure)throw new TossError(state.nativeFailure.code,state.nativeFailure.status);return Response.json({ok:true,source:'original-sukuyo'});};export const nativeSukuyoLibraryItem=()=>{};",
  'worker/toss/native-maya-recovery.js':"import {TossError} from './policy.js';const state=globalThis.__tossRouteMocks;export const listNativeMayaRecovery=(...args)=>{state.nativeRecovery.push(['list',...args]);if(state.nativeFailure)throw new TossError(state.nativeFailure.code,state.nativeFailure.status);return {state:'UNASSIGNED',drafts:[]};};export const attachNativeMayaRecovery=(...args)=>{state.nativeRecovery.push(['attach',...args]);if(state.nativeFailure)throw new TossError(state.nativeFailure.code,state.nativeFailure.status);return {state:'ASSIGNED',intentId:args[3]};};",
  'worker/toss/letter.js':"import {TossError} from './policy.js';export const approvedLetterSale=domain=>{if(globalThis.__tossRouteMocks.letterApproved===domain)return {};throw new TossError('TOSS_PRODUCT_NOT_APPROVED',503);};export const prepareTossLetter=(...args)=>globalThis.__tossRouteMocks.letterPrepare(...args);export const prepareRecoveredTossLetter=(...args)=>globalThis.__tossRouteMocks.letterRecover(...args);export const recoverableLetterOrder=(...args)=>globalThis.__tossRouteMocks.letterOrder(...args);export const readRecoveringTossLetter=(...args)=>globalThis.__tossRouteMocks.letterDraft(...args);export const readTossLetter=async(...args)=>{try{return await globalThis.__tossRouteMocks.letterRead(...args);}catch(error){if(error.code==='ACCESS_DENIED')throw new TossError(error.code,error.status);throw error;}};",
  'worker/toss/letter-library.js':"export const letterLibraryPage=(...args)=>globalThis.__tossRouteMocks.letterList(...args);",
@@ -63,6 +64,7 @@ async function request(body,path='/prepare',env={TOSS_RELEASE_READY:'true'}){
  return handleTossRoutes(new Request('https://code-destiny.com/api/toss'+path,{method:'POST',headers:{Origin:'https://ai-saju-studio.private-apps.tossmini.com','Content-Type':'application/json'},body:JSON.stringify(body)}),env);
 }
 test('release gate prevents any profile or prepared row write',async()=>{const r=await request(input(),'/prepare',{});assert.equal(r.status,503);assert.equal(calls.profiles.length,0);assert.equal(calls.prepared.length,0);});
+test('Sukuyo routes require release and account and preserve permission denial',async()=>{mocks.nativeSukuyo.length=0;assert.equal((await request({input:{}},'/native/sukuyo/prepare',{})).status,503);assert.equal(mocks.nativeSukuyo.length,0);mocks.denyAuth=true;try{assert.equal((await request({input:{}},'/native/sukuyo/prepare')).status,401);}finally{mocks.denyAuth=false;}assert.equal((await request({input:{question:'x'}},'/native/sukuyo/prepare')).status,200);assert.equal(mocks.nativeSukuyo.at(-1)[1],auth);mocks.nativeFailure={code:'ACCESS_DENIED',status:403};try{const denied=await request({},'/canonical/sukuyo-compatibility-ai/start');assert.equal(denied.status,403);assert.equal((await denied.json()).error,'ACCESS_DENIED');}finally{mocks.nativeFailure=null;}});
 test('astrology routes require release and account, and preserve denied result access',async()=>{
  mocks.nativeAstrology.length=0;assert.equal((await request({input:{question:'x'}},'/native/astrology/prepare',{})).status,503);assert.equal(mocks.nativeAstrology.length,0);
  mocks.denyAuth=true;try{assert.equal((await request({input:{}},'/native/astrology/prepare')).status,401);}finally{mocks.denyAuth=false;}
