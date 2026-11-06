@@ -4,7 +4,9 @@ export const APP_NAME='ai-saju-studio';
 const API='https://code-destiny.com/api/toss';
 let token:string|null=null;
 let sessionEpoch=0;
+export function getTossSessionRevision(){return sessionEpoch;}
 let loginAttempt=0;
+export function getTossLoginAttempt(){return loginAttempt;}
 let storageQueue:Promise<void>=Promise.resolve();
 const sessionListeners=new Set<()=>void>();
 export function onSessionInvalidated(listener:()=>void){sessionListeners.add(listener);return ()=>sessionListeners.delete(listener);}
