@@ -38,6 +38,22 @@ test('gift navigation contains only active allowlisted shortcuts and clears on a
   assert.equal(document.getElementById('snuReadingContents'), null);
   dom.window.close();
 });
+test('gift navigation uses the canonical service-card names', () => {
+  const expected = new Map([
+    ['section_summary', '라이트 사주 풀이'],
+    ['section_daewun', '대운 분석 · 지금부터 다음 시기까지'],
+    ['rpt_quantumCard', '퀀텀 명리 엔진'],
+    ['rpt_energyCoordCard', '사주로 보는 여행지'],
+    ['rpt_villainCard', '빌런 블랙리스트'],
+    ['rpt_healthReportCard', '명리 헬스 리포트'],
+    ['rpt_specialCharmCard', '나의 매력 클래스'],
+    ['rpt_skillTreeCard', '인생 스킬 트리'],
+    ['rpt_secretHouseEntryCard', '시크릿 하우스 : 연애 시뮬'],
+    ['animal-destiny-unlock', '사주 동물 테스트'],
+    ['saju-career-style', '사주로 찾는 나의 일 스타일'],
+  ]);
+  assert.deepEqual(new Map(SNU_SAJU_FEATURES.map(item => [item.featureKey, item.title])), expected);
+});
 test('gift entry selects its server profile instead of the active or first profile', () => {
   const profiles = [{ id: 'other' }, { id: 'gift' }];
   assert.equal(resolveSnuReadingProfile(state, profiles), profiles[1]);
