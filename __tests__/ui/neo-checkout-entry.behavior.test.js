@@ -9,7 +9,7 @@ function fixture({ status = 401, gateOk = true, errorCode = 'PAYMENT_CANCELLED',
   const calls = [], states = {};
   const ctx = {
     Error, Boolean, Object, String, Number,
-    busy: false, submitLockRef: { current: false }, pendingAccess: null,
+    paymentSurface: 'web', canStart: true, draftOwner: '', busy: false, submitLockRef: { current: false }, pendingAccess: null,
     idempotencyKeyRef: { current: '' }, idempotencyFingerprintRef: { current: '' },
     validationInput: {}, dialogueLocale: 'ko', FEATURE_KEY: 'neo-operation-room-consultation', FEATURE_TITLE: '네오',
     NEO_WAR_ROOM_ACCESS_ENDPOINT: '/ensure-access', API_ENDPOINTS: { ensureAccess: '/ensure-access' },

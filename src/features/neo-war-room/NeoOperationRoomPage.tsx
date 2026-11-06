@@ -1,17 +1,18 @@
 "use client";
 import {readGuideQuestion} from "@/lib/fortune/guide-handoff";
 import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
+import type { AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
 import BirthTimeInput from "@/app/components/BirthTimeInput";
 
 
 import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent, type KeyboardEvent } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type ComponentType, type CSSProperties, type FormEvent, type KeyboardEvent } from "react";
 import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
 import { getNeoWelcome } from "./data/welcome";
 import { getNeoBookCopy } from "./data/strategy-book";
-import { receiveNeoBriefing } from "./paid-delivery";
+import { neoTossAccessError, receiveNeoBriefing } from "./paid-delivery";
 import { authFetch } from "@/app/_lib/auth-client";
 import { isRetriableResultPollFailure } from "@/app/_lib/consultationResultPolling";
 import { toDisplayText } from "@/lib/llm-text";
@@ -21,6 +22,8 @@ import {
   runBillingCoinGate,
 } from "@/app/_lib/billing-client";
 import { useServerPrice } from "@/app/hooks/useServerPrice";
+import { tossConsultationCopy } from "@/app/_lib/toss-consultation-copy";
+import { rememberTossTeaPrice, type TossTeaPriceComponent, type TossTeaPriceSelection } from "@/src/features/fortune-tea-house/lib/tossPriceSelection";
 import { packPaidResumeArg, unpackPaidResumeArg, usePaidResume } from "@/app/hooks/usePaidResume";
 import LlmParagraphs from "@/components/fortune/LlmParagraphs";
 import { ExpertStickyCta, ExpertValueCards } from "@/app/components/expert-consulting/ExpertConsultationFrame";
@@ -51,6 +54,7 @@ import {
   buildDefaultNeoWarRoomBirthState,
   buildDefaultNeoWarRoomPartnerState,
   buildNeoWarRoomAccessPayload,
+  assertNeoWarRoomIdempotencyKeyStored,
   clearNeoWarRoomIdempotencyKey,
   createNeoWarRoomInputFingerprint,
   isNeoWarRoomCompatActive,
@@ -1073,7 +1077,11 @@ function useNeoTypewriter(text: string, enabled: boolean) {
   return { displayed, isTyping, complete };
 }
 
-export default function NeoOperationRoomPage() {
+export default function NeoOperationRoomPage({ paymentSurface = "web", TossPrice, TossProfile, draftOwner = "" }: { paymentSurface?: "web" | "toss"; TossPrice?: TossTeaPriceComponent; TossProfile?: ComponentType<{onSelect:(seed:AiPrefillSeed)=>void;calendarMode?:"lunar";label?:string}>; draftOwner?: string } = {}) {
+  const ProfilePicker = paymentSurface === "toss" ? TossProfile : SavedBirthProfilePicker;
+  const [tossPrice, setTossPrice] = useState<TossTeaPriceSelection | null>(null);
+  const [priceEpoch, setPriceEpoch] = useState(0);
+  useEffect(() => () => { if (paymentSurface === "toss") rememberTossTeaPrice(null); }, [paymentSurface]);
   const [birthState, setBirthState] = useState(buildDefaultNeoWarRoomBirthState);
   const [partnerState, setPartnerState] = useState(buildDefaultNeoWarRoomPartnerState);
   const [method, setMethod] = useState<NeoWarRoomConsultMode | "">("");
@@ -1095,10 +1103,13 @@ export default function NeoOperationRoomPage() {
   const [refinedOrder, setRefinedOrder] = useState<NeoRefinedOrder | null>(null);
   const [refinePhase, setRefinePhase] = useState<"idle" | "generating" | "completed" | "failed">("idle");
   const [recoveryEpoch, setRecoveryEpoch] = useState(0);
-  const captureOwner = usePaidDeliveryScope(() => {
+  const accessEpoch = useRef(0);
+  const captureAccount = usePaidDeliveryScope(() => {
+    accessEpoch.current += 1;
     setBriefing(null); setSessionId(""); setRefinedOrder(null); setFlowPhase("idle");
     setRecoveryEpoch(value => value + 1);
   });
+  const captureOwner = useCallback(() => { const account = captureAccount(), epoch = accessEpoch.current; return () => account() && epoch === accessEpoch.current; }, [captureAccount]);
   useEffect(() => {
     const isCurrent = captureOwner();
     const recover = async () => {
@@ -1228,7 +1239,9 @@ export default function NeoOperationRoomPage() {
         : flowPhase === "completed"
           ? 100
           : Math.min(92, 34 + operationStageIndex * 6);
-  const canStart = !busy;
+  const hasRecoveryOrder = paymentSurface === "toss" && typeof window !== "undefined" && Boolean(new URLSearchParams(window.location.search).get("orderId"));
+  const priceReady = Boolean(draftOwner && tossPrice && tossPrice.owner === draftOwner && tossPrice.featureKey === FEATURE_KEY && tossPrice.sku && tossPrice.displayAmount);
+  const canStart = !busy && (paymentSurface !== "toss" || hasRecoveryOrder || priceReady);
   const birthFieldsDisabled = birthState.profileMode === "saved";
   const compatActive = isNeoWarRoomCompatActive({ method, topic, partner: partnerState });
   // 상대 칸은 궁합을 지원하는 술수 + 연애·재회 주제일 때만 연다. 조건이 깨지면 칸이 사라지고,
@@ -1255,7 +1268,8 @@ export default function NeoOperationRoomPage() {
   // 같은 금액을 빌드타임 레지스트리(worker/lib/paid-feature-registry.js)에서 네트워크 0으로 얻을 수 있다.
   // 표시 가격은 정본 레지스트리에서, 결제 금액과 권한은 공용 결제 게이트에서 확인한다.
   const registryConsultPrice = useServerPrice({ featureKey: FEATURE_KEY });
-  const displayConsultPriceLabel = registryConsultPrice.label;
+  const displayConsultPriceLabel = paymentSurface === "toss" ? "" : registryConsultPrice.label;
+  const tossCopy = tossConsultationCopy(dialogueLocale);
   const lastChoiceDialogue = useMemo(() => {
     if (lastCommandChoice?.kind === "method" && method === lastCommandChoice.value) return getNeoMethodDialogue(method, dialogueSeed, dialogueLocale);
     if (lastCommandChoice?.kind === "topic" && topic === lastCommandChoice.value) return getNeoTopicDialogue(topic, dialogueSeed, dialogueLocale);
@@ -1477,7 +1491,7 @@ export default function NeoOperationRoomPage() {
     }
     setDialogueSeed(Math.floor(Math.random() * 9973));
     setEntryRevision(shouldOpenPrologue ? NEO_OPERATION_ROOM_ENTRY_REVISION : "");
-    const seed = guideSeed.current || readGuideQuestion();
+    const seed = paymentSurface === "toss" ? "" : guideSeed.current || readGuideQuestion();
     guideSeed.current = seed;
     if (seed) { setQuestion(seed); setEntryRevision(NEO_OPERATION_ROOM_ENTRY_REVISION); }
     setHasEnteredWarRoom(Boolean(seed) || shouldOpenPrologue);
@@ -1495,7 +1509,7 @@ export default function NeoOperationRoomPage() {
     return () => {
       if (audio) audio.pause();
     };
-  }, []);
+  }, [paymentSurface]);
 
   useEffect(() => {
     const sync = () => setDialogueLocale(getCurrentLoadingLocale());
@@ -1567,9 +1581,10 @@ export default function NeoOperationRoomPage() {
 
   // 저장된 프로필 시드는 스토리지 접근이라 렌더가 아닌 마운트 후(클라이언트 전용)에 주입한다.
   useEffect(() => {
+    if (paymentSurface === "toss") return;
     const seeded = buildInitialNeoWarRoomBirthState();
     if (seeded.hasSavedProfile) setBirthState(seeded);
-  }, []);
+  }, [paymentSurface]);
 
   useEffect(() => {
     if (typeof window === "undefined" || !window.matchMedia) return;
@@ -1761,11 +1776,12 @@ export default function NeoOperationRoomPage() {
   }
 
   function completeWithSession(session: NeoSession) {
+    if (paymentSurface === "toss" && (session as NeoSession & { status?: string }).status && (session as NeoSession & { status?: string }).status !== "completed") return;
     // 결과를 받았으면 저장된 요청키를 비운다 — 남겨 두면 같은 입력의 다음 상담이 옛 키로 나가
     // 서버가 replay 로 흡수해 "새 상담인데 옛 결과"가 된다. (실패는 비우지 않는다 — 재시도가 같은
     // 키로 나가야 이미 끝난 차감이 이중 결제가 되지 않는다.)
     if (idempotencyFingerprintRef.current) {
-      clearNeoWarRoomIdempotencyKey(idempotencyFingerprintRef.current);
+      clearNeoWarRoomIdempotencyKey(idempotencyFingerprintRef.current, paymentSurface === "toss" ? draftOwner : "");
       idempotencyFingerprintRef.current = "";
     }
     if ((session as NeoSession & { status?: string }).status && (session as NeoSession & { status?: string }).status !== "completed") return;
@@ -1814,6 +1830,11 @@ export default function NeoOperationRoomPage() {
     window.setTimeout(reveal, BRIEFING_SEAL_DELAY_MS);
   }
 
+  function clearTossAccess() {
+    if (paymentSurface !== "toss") return;
+    accessEpoch.current += 1; setBriefing(null); setCompatSummary(null); setSessionId(""); setRefinedOrder(null); setResultUrl(""); setSelectedRealityChecks([]); setRealityFreeform("");
+  }
+
   async function pollPendingBriefing(resultId: string, accessToken = "") {
     const isCurrent = captureOwner();
     const data = await receiveNeoBriefing<NeoSession>(resultId, partial => {
@@ -1821,7 +1842,7 @@ export default function NeoOperationRoomPage() {
       setSessionId(partial.sessionId || partial.id || "");
       setBriefing(partial.initialBriefing || null);
       setResultUrl(partial.resultUrl || "");
-    }, isCurrent, accessToken);
+    }, isCurrent, accessToken, "briefing", paymentSurface === "toss" ? "toss" : "web");
     if (!isCurrent()) throw new Error("ACCOUNT_CHANGED");
     finishBriefing(data);
   }
@@ -1831,7 +1852,7 @@ export default function NeoOperationRoomPage() {
   // pollPendingBriefing 이 이 구멍을 막아 왔고 2차만 단발 fetch 였다 — 같은 예산·같은 종료 조건으로 맞춘다.
   async function pollPendingRefinedOrder(resultId: string) {
     const isCurrent = captureOwner();
-    const data = await receiveNeoBriefing<NeoSession>(resultId, () => {}, isCurrent, "", "refinement");
+    const data = await receiveNeoBriefing<NeoSession>(resultId, () => {}, isCurrent, "", "refinement", paymentSurface === "toss" ? "toss" : "web");
     if (!isCurrent()) throw new Error("ACCOUNT_CHANGED");
     completeWithSession(data); setStatusMessage(paidGateCopy.refinedArrivedMessage);
   }
@@ -1844,7 +1865,7 @@ export default function NeoOperationRoomPage() {
    * 🔴 생성이 실패하면 false 를 돌려 영수증을 남긴다 — 복귀 문서에는 폼 입력이 없어 사용자가 스스로
    *    재시도할 수단이 '지금 열기' 카드밖에 없다(같은 멱등키로 다시 나가므로 이중 차감이 아니다).
    */
-  const buildResume = usePaidResume(FEATURE_KEY, async (args, grant) => {
+  const buildResume = usePaidResume(paymentSurface === "toss" ? "" : FEATURE_KEY, async (args, grant) => {
     const idempotencyKey = toText(args.idempotencyKey);
     const payload = unpackPaidResumeArg<NeoWarRoomAccessPayload>(args.payload);
     if (!idempotencyKey || !payload) return false;
@@ -1862,7 +1883,9 @@ export default function NeoOperationRoomPage() {
       setFlowPhase("failed");
       setOperationReady(false);
       setStatusMessage("");
-      setErrorMessage(getNeoErrorCopy(code, dialogueLocale) || getNeoErrorCopy("SERVER_ERROR", dialogueLocale));
+      const denied = paymentSurface === "toss" && neoTossAccessError(caught);
+      if (denied) clearTossAccess();
+      setErrorMessage(denied ? denied === "LOGIN_REQUIRED" ? tossCopy.login : tossCopy.denied : getNeoErrorCopy(code, dialogueLocale) || getNeoErrorCopy("SERVER_ERROR", dialogueLocale));
       return false;
     }
   });
@@ -1879,7 +1902,7 @@ export default function NeoOperationRoomPage() {
       API_ENDPOINTS.start,
       { ...payload, ...access },
       idempotencyKey,
-    ).catch(() => null);
+    ).catch(error => { if (paymentSurface === "toss" && neoTossAccessError(error)) throw error; return null; });
     if (!isCurrent()) throw new Error("ACCOUNT_CHANGED");
     if (!started) {
       setStatusMessage(paidGateCopy.alreadyGeneratingMessage);
@@ -1888,6 +1911,7 @@ export default function NeoOperationRoomPage() {
     }
     if (!isCurrent()) throw new Error("ACCOUNT_CHANGED");
     const { response, data } = started;
+    if (paymentSurface === "toss") { const denied = neoTossAccessError(response) || neoTossAccessError(data); if (denied) throw new Error(denied); }
     if (data.ok && data.initialBriefing && (data as NeoSession & { status?: string }).status === "completed") {
       finishBriefing(data);
       return;
@@ -1932,7 +1956,9 @@ export default function NeoOperationRoomPage() {
         );
         response = sent.response;
         data = sent.data;
-      } catch {
+        if (paymentSurface === "toss") { const denied = neoTossAccessError(response) || neoTossAccessError(data); if (denied) throw new Error(denied); }
+      } catch (caught) {
+        if (paymentSurface === "toss" && neoTossAccessError(caught)) throw caught;
         // 응답 자체를 못 받았다(네트워크·엣지 컷). 서버는 계속 쓰고 있을 수 있으니 폴링으로 수렴한다.
         response = null;
       }
@@ -1952,15 +1978,17 @@ export default function NeoOperationRoomPage() {
     } catch (caught) {
       if (!isCurrent()) return;
       const code = caught instanceof Error ? caught.message : "SERVER_ERROR";
+      const denied = paymentSurface === "toss" && neoTossAccessError(caught);
+      if (denied) clearTossAccess();
       setRefinePhase("failed");
       setStatusMessage("");
-      setRefineError(getNeoErrorCopy(code, dialogueLocale) || paidGateCopy.refineGenericError);
+      setRefineError(denied ? denied === "LOGIN_REQUIRED" ? tossCopy.login : tossCopy.denied : getNeoErrorCopy(code, dialogueLocale) || paidGateCopy.refineGenericError);
     }
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (busy || submitLockRef.current) return;
+    if (busy || submitLockRef.current || !canStart) return;
     const errors = validateNeoWarRoomInput(validationInput, dialogueLocale);
     setValidationErrors(errors);
     if (errors.length) {
@@ -1981,10 +2009,16 @@ export default function NeoOperationRoomPage() {
     const inputFingerprint = createNeoWarRoomInputFingerprint(validationInput);
     // 🔴 마지막 폴백을 useRef 에서 sessionStorage 로 바꿨다. ref 는 새로고침에 사라지므로
     //    "결제 실패 → 새로고침 → 재시도"가 새 멱등키로 나가 **두 번째 월정석 차감**이 됐다.
-    const idempotencyKey =
-      pendingAccess?.inputFingerprint === inputFingerprint
+    let idempotencyKey: string;
+    try {
+      idempotencyKey = pendingAccess?.inputFingerprint === inputFingerprint
         ? pendingAccess.idempotencyKey
-        : idempotencyKeyRef.current || resolveNeoWarRoomIdempotencyKey(inputFingerprint);
+        : idempotencyKeyRef.current || resolveNeoWarRoomIdempotencyKey(inputFingerprint, paymentSurface === "toss" ? draftOwner : "");
+      if (paymentSurface === "toss") assertNeoWarRoomIdempotencyKeyStored(inputFingerprint, draftOwner, idempotencyKey);
+    } catch {
+      setFlowPhase("failed"); setOperationReady(false); setStatusMessage(""); setErrorMessage(tossCopy.uncertain);
+      return;
+    }
     idempotencyKeyRef.current = idempotencyKey;
     idempotencyFingerprintRef.current = inputFingerprint;
     const payload = buildNeoWarRoomAccessPayload(validationInput, idempotencyKey);
@@ -2008,10 +2042,11 @@ export default function NeoOperationRoomPage() {
     const isCurrent = captureOwner();
     setFlowPhase("payment");
     setOperationReady(false);
-    setStatusMessage(paidGateCopy.confirmingPassMessage);
+    setStatusMessage(paymentSurface === "toss" ? tossCopy.saleChecking : paidGateCopy.confirmingPassMessage);
     try {
       // 공용 게이트가 로컬 이용권 스냅샷과 결제창을 소유한다.
       // 서버 선확인으로 로그인/결제창 진입을 막지 않는다. /start가 최종 증빙을 검증한다.
+      if (paymentSurface === "toss" && !hasRecoveryOrder) rememberTossTeaPrice(tossPrice);
       const gate = await runBillingCoinGate({
         featureKey: FEATURE_KEY,
         categoryKey: "premium-consultation",
@@ -2031,6 +2066,7 @@ export default function NeoOperationRoomPage() {
       if (!isCurrent()) return;
       if (!gate.ok || !gate.data) {
         const code = toText(gate.error?.code || (gate.status === 401 ? "LOGIN_REQUIRED" : "PAYMENT_VERIFY_FAILED")).toUpperCase();
+        if (paymentSurface === "toss") { if (!hasRecoveryOrder) { setTossPrice(null); setPriceEpoch(value => value + 1); } throw Object.assign(new Error(code), { tossMessage: gate.error?.message }); }
         throw new Error(code === "PAYMENT_CANCELLED" ? "PAYMENT_CANCELLED" : code === "AUTH_REQUIRED" ? "LOGIN_REQUIRED" : "PAYMENT_VERIFY_FAILED");
       }
       await startBriefing(idempotencyKey, payload, extractPaymentContext(gate, idempotencyKey));
@@ -2061,7 +2097,10 @@ export default function NeoOperationRoomPage() {
       setFlowPhase("failed");
       setOperationReady(false);
       setStatusMessage("");
-      setErrorMessage(getNeoErrorCopy(code, dialogueLocale) || getNeoErrorCopy("SERVER_ERROR", dialogueLocale));
+      const denied = paymentSurface === "toss" && neoTossAccessError(caught);
+      if (denied) clearTossAccess();
+      const tossMessage = paymentSurface === "toss" && caught && typeof caught === "object" && "tossMessage" in caught && typeof caught.tossMessage === "string" ? caught.tossMessage : "";
+      setErrorMessage(denied ? denied === "LOGIN_REQUIRED" ? tossCopy.login : tossCopy.denied : tossMessage || getNeoErrorCopy(code, dialogueLocale) || getNeoErrorCopy("SERVER_ERROR", dialogueLocale));
     } finally {
       submitLockRef.current = false;
     }
@@ -2182,7 +2221,7 @@ export default function NeoOperationRoomPage() {
             </h1>
             <p className={styles.subtitle}>{welcome.lead}</p>
             <div className={styles.entryBrief} aria-label={heroHeaderText.entryBriefAria}>
-              {getEntryBriefingItems(dialogueLocale).map((item) => (
+              {getEntryBriefingItems(dialogueLocale).filter((_, index) => paymentSurface !== "toss" || index !== 3).map((item) => (
                 <span key={item.label}>
                   <strong>{item.label}</strong>
                   <em>{item.value}</em>
@@ -2562,7 +2601,7 @@ export default function NeoOperationRoomPage() {
                 <h2 id="neo-profile-title">{formCopy["birthInfo.title"]}</h2>
               </div>
               <p className={styles.sectionCopy}>{formCopy["birthInfo.sectionCopy"]}</p>
-              <SavedBirthProfilePicker calendarMode="lunar" onSelect={seed=>{resetPendingFlow();setLastCommandChoice(null);const birth:NeoWarRoomBirthInput=({name:seed.name || "",gender:seed.gender === "male" || seed.gender === "female" ? seed.gender : "",birthDate:seed.birthDate || "",birthTime:seed.birthTime || "",birthTimeUnknown:Boolean(seed.birthTimeUnknown),calendarType:seed.calendarType || "solar",city:seed.city || "",country:seed.country || "",timezone:seed.timezone || "",latitude:seed.latitude || "",longitude:seed.longitude || ""});setBirthState(previous=>({...previous,profileMode:"manual",hasSavedProfile:true,savedBirth:birth,birth}));}} />
+              {ProfilePicker && <ProfilePicker calendarMode="lunar" onSelect={seed=>{resetPendingFlow();setLastCommandChoice(null);const birth:NeoWarRoomBirthInput=({name:seed.name || "",gender:seed.gender === "male" || seed.gender === "female" ? seed.gender : "",birthDate:seed.birthDate || "",birthTime:seed.birthTime || "",birthTimeUnknown:Boolean(seed.birthTimeUnknown),calendarType:seed.calendarType || "solar",city:seed.city || "",country:seed.country || "",timezone:seed.timezone || "",latitude:seed.latitude || "",longitude:seed.longitude || ""});setBirthState(previous=>({...previous,profileMode:"manual",hasSavedProfile:true,savedBirth:birth,birth}));}} />}
               <div className={styles.profileModeGrid} role="group" aria-label={formCopy["birthInfo.modeGroupAria"]}>
                 <button
                   type="button"
@@ -2713,7 +2752,7 @@ export default function NeoOperationRoomPage() {
                           </button>
                         ))}
                       </div>
-                      <SavedBirthProfilePicker calendarMode="lunar" label="상대의 저장된 프로필" onSelect={seed=>{resetPendingFlow();setLastCommandChoice(null);const birth:NeoWarRoomBirthInput=({name:seed.name || "",gender:seed.gender === "male" || seed.gender === "female" ? seed.gender : "",birthDate:seed.birthDate || "",birthTime:seed.birthTime || "",birthTimeUnknown:Boolean(seed.birthTimeUnknown),calendarType:seed.calendarType || "solar",city:seed.city || "",country:seed.country || "",timezone:seed.timezone || "",latitude:seed.latitude || "",longitude:seed.longitude || ""});setPartnerState(previous=>({...previous,birth}));}} />
+                      {ProfilePicker && <ProfilePicker calendarMode="lunar" label="상대의 저장된 프로필" onSelect={seed=>{resetPendingFlow();setLastCommandChoice(null);const birth:NeoWarRoomBirthInput=({name:seed.name || "",gender:seed.gender === "male" || seed.gender === "female" ? seed.gender : "",birthDate:seed.birthDate || "",birthTime:seed.birthTime || "",birthTimeUnknown:Boolean(seed.birthTimeUnknown),calendarType:seed.calendarType || "solar",city:seed.city || "",country:seed.country || "",timezone:seed.timezone || "",latitude:seed.latitude || "",longitude:seed.longitude || ""});setPartnerState(previous=>({...previous,birth}));}} />}
                       <div className={styles.birthGrid}>
                         <label className={styles.fieldLabel}>
                           {formCopy["partner.name"]}
@@ -2863,7 +2902,7 @@ export default function NeoOperationRoomPage() {
                 {compatActive ? (
                   <span>{formCopy["partner.launchBadge"]}{compatStatusLabel ? ` · ${compatStatusLabel}` : ""}</span>
                 ) : null}
-                <span>{displayConsultPriceLabel ? `${getNeoFeatureTitle(dialogueLocale)} · ${displayConsultPriceLabel}` : getNeoFeatureTitle(dialogueLocale)}</span>
+                <span>{getNeoFeatureTitle(dialogueLocale)}{paymentSurface === "toss" ? !hasRecoveryOrder && TossPrice ? <> · {tossCopy.priceLabel} · <TossPrice key={priceEpoch} featureKey={FEATURE_KEY} onPrice={setTossPrice} /></> : null : displayConsultPriceLabel ? ` · ${displayConsultPriceLabel}` : null}</span>
               </div>
               <button type="submit" className={styles.startButton} disabled={!canStart} aria-busy={busy}>
                 <span className={styles.ctaButtonCopy}>
@@ -3416,7 +3455,7 @@ export default function NeoOperationRoomPage() {
           ) : null}
         </div>
       </form>
-      <ExpertStickyCta theme="neo" targetId="neo-operation-command-deck" label={formCopy["launchConfirm.ctaStart"]} price={<span>{displayConsultPriceLabel || "상담 이용 가격 확인"}</span>} />
+      <ExpertStickyCta theme="neo" targetId="neo-operation-command-deck" label={formCopy["launchConfirm.ctaStart"]} price={<span>{paymentSurface === "toss" ? tossCopy.priceLabel : displayConsultPriceLabel || "상담 이용 가격 확인"}</span>} />
       </>
       ) : null}
     </main>

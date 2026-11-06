@@ -389,36 +389,46 @@ export function createNeoWarRoomIdempotencyKey() {
  */
 const NEO_WAR_ROOM_REQUEST_KEY_PREFIX = "cd_neo_war_room_request_key::";
 
-function neoWarRoomRequestKeyStorageKey(inputFingerprint: string) {
+function neoWarRoomRequestKeyStorageKey(inputFingerprint: string, ownerScope = "") {
   // 지문 원문은 생년월일·질문을 담고 있어 그대로 키로 쓰지 않는다(저장소 노출 최소화 + 길이 제한).
   let hash = 5381;
   for (let index = 0; index < inputFingerprint.length; index += 1) {
     hash = ((hash * 33) ^ inputFingerprint.charCodeAt(index)) >>> 0;
   }
-  return `${NEO_WAR_ROOM_REQUEST_KEY_PREFIX}${hash.toString(36)}`;
+  return `${NEO_WAR_ROOM_REQUEST_KEY_PREFIX}${ownerScope ? `${encodeURIComponent(ownerScope)}::` : ""}${hash.toString(36)}`;
 }
 
-export function resolveNeoWarRoomIdempotencyKey(inputFingerprint: string) {
-  const storageKey = neoWarRoomRequestKeyStorageKey(inputFingerprint);
+export function resolveNeoWarRoomIdempotencyKey(inputFingerprint: string, ownerScope = "") {
+  const storageKey = neoWarRoomRequestKeyStorageKey(inputFingerprint, ownerScope);
   try {
     const saved = window.sessionStorage.getItem(storageKey);
     if (saved) return saved;
   } catch {
+    if (ownerScope) throw new Error('REQUEST_STORAGE_UNAVAILABLE');
     return createNeoWarRoomIdempotencyKey();
   }
   const created = createNeoWarRoomIdempotencyKey();
   try {
     window.sessionStorage.setItem(storageKey, created);
   } catch {
-    /* 저장 실패는 치명적이지 않다 — 이번 시도는 그대로 진행한다. */
+    if (ownerScope) throw new Error('REQUEST_STORAGE_UNAVAILABLE');
+    /* 웹의 기존 저장 실패 폴백은 유지한다. */
   }
   return created;
 }
 
-/** 결과를 받은 뒤에는 같은 입력이라도 새 상담이므로 저장된 키를 비운다(재사용 = 무료 재열람 오해). */
-export function clearNeoWarRoomIdempotencyKey(inputFingerprint: string) {
+export function assertNeoWarRoomIdempotencyKeyStored(inputFingerprint: string, ownerScope: string, expectedKey: string) {
   try {
-    window.sessionStorage.removeItem(neoWarRoomRequestKeyStorageKey(inputFingerprint));
+    if (!ownerScope || !expectedKey || window.sessionStorage.getItem(neoWarRoomRequestKeyStorageKey(inputFingerprint, ownerScope)) !== expectedKey) throw new Error("REQUEST_STORAGE_UNAVAILABLE");
+  } catch {
+    throw new Error("REQUEST_STORAGE_UNAVAILABLE");
+  }
+}
+
+/** 결과를 받은 뒤에는 같은 입력이라도 새 상담이므로 저장된 키를 비운다(재사용 = 무료 재열람 오해). */
+export function clearNeoWarRoomIdempotencyKey(inputFingerprint: string, ownerScope = "") {
+  try {
+    window.sessionStorage.removeItem(neoWarRoomRequestKeyStorageKey(inputFingerprint, ownerScope));
   } catch {
     /* 무시 */
   }

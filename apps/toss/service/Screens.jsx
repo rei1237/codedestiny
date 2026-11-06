@@ -28,7 +28,7 @@ const Tea=lazy(()=>import('@/src/features/fortune-tea-house/FortuneTeaHousePage'
 const TeaPrice=lazy(()=>import('./TossTeaPrice'));
 const LetterRoom=lazy(()=>import('./TossLetterRoom'));
 const SavedTea=lazy(()=>import('@/app/fortune-tea-house/SavedTeaReading'));
-const Neo=lazy(()=>import('@/src/features/neo-war-room/NeoOperationRoomPage'));
+const Neo=lazy(()=>import('./TossNeoGate'));
 const NeoResult=lazy(()=>import('@/src/features/neo-war-room/NeoOperationRoomResultPage'));
 const NeoBooks=lazy(()=>import('@/src/features/neo-war-room/NeoStrategyBooksPage'));
 const LoveSecret=lazy(()=>import('./LoveSecret'));
