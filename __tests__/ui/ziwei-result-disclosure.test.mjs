@@ -39,6 +39,15 @@ test('nested shared references retain their original reader state through failed
   } finally { dom.window.close(); }
 });
 
+test('PDF capture also opens reading evidence and karma evidence, then restores them', async () => {
+  const dom = new JSDOM('<main><details data-reading-evidence><p>chart</p></details><details class="kdo-evidence"><p>basis</p></details><details class="kdo-evidence" open><p>kept</p></details><details><p>tools</p></details></main>', { pretendToBeVisual: true });
+  const root = dom.window.document.querySelector('main'), details = [...root.querySelectorAll('details')];
+  try {
+    assert.equal(await withOpenResultReferences(root, async () => details.map(item => item.open)).then(state => { assert.deepEqual(state, [true, true, true, false]); return 'ok'; }), 'ok');
+    assert.deepEqual(details.map(item => item.open), [false, false, true, false]);
+  } finally { dom.window.close(); }
+});
+
 test('other service presentation changes preserve named payment, storage and parsing functions', () => {
   const scopes = {
     'app/vedic-ai/VedicAiClient.tsx': ['VedicAiClient', 'StructuredReadingResult', 'handlePdfDownload'],

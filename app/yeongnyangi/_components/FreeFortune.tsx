@@ -15,15 +15,17 @@ import {useProfiles} from '../_lib/use-profiles';
 import '../_original/free-fortune.css';
 import NatalChartTable from './NatalChartTable';
 import ResultSharing from './ResultSharing';
+import {ANSWER_FIRST_LAYOUT_V1} from '@/lib/result-layout';
 
 export function Reading({reading}:{reading:FreeReading}){
  useEffect(()=>{trackEvent("free_result_view",{feature_id:reading.category,surface:"yeongnyangi_free",content_type:reading.kind,content_version:reading.version});},[reading]);
+ // Answer-first: summary and reading lead; the 만세력 table sits inside the closed saju chart box after the reading.
+ const chartDetails=reading.charts?.map((chart,index)=><details className="free-chart" key={chart.domain} open={!ANSWER_FIRST_LAYOUT_V1&&!reading.natalProfile&&index===0}><summary>{chart.title}</summary>{ANSWER_FIRST_LAYOUT_V1&&chart.domain==='saju'&&<NatalChartTable chart={chart}/>}<p>{chart.source}</p>{chart.groups.map((group,index)=><section key={`${group.label}-${index}`}><h4>{group.label}</h4><dl>{group.items.map(item=><div key={`${item.label}-${item.value}`}><dt>{item.label}</dt><dd>{item.value}</dd></div>)}</dl></section>)}</details>);
+ const body=<><h4>{reading.natalProfile?'타고난 성향을 조금 더 풀어볼게.':'영냥이가 조금 더 풀어줄게.'}</h4>{reading.natalProfile&&<p className="free-natal-note">같은 출생 정보와 계산 기준에서는 유지되는 성향이야. 시기에 따른 운세와는 나누어 읽어줘.</p>}<div className="room-daily-message">{reading.paragraphs.map((text,index)=><p key={index}>{text}</p>)}</div></>;
  return <article className="free-reading">
   <div className="free-reading-heading"><div><p>{reading.natalProfile?'타고난 성향 · 출생 명반 기준':reading.day} · {reading.kind==='reflection'?'질문과 상징 해설':reading.kind==='symbolic'?'상징 리딩':'계산 근거가 있는 해설'}</p><h3>{reading.title}</h3></div></div>
   <div className="free-summary"><strong>짧게 말하면</strong><p>{reading.summary}</p></div>
-  {reading.charts?.filter(chart=>chart.domain==='saju').map(chart=><NatalChartTable key={chart.domain} chart={chart}/>)}
-  {reading.charts?.map((chart,index)=><details className="free-chart" key={chart.domain} open={!reading.natalProfile&&index===0}><summary>{chart.title}</summary><p>{chart.source}</p>{chart.groups.map((group,index)=><section key={`${group.label}-${index}`}><h4>{group.label}</h4><dl>{group.items.map(item=><div key={`${item.label}-${item.value}`}><dt>{item.label}</dt><dd>{item.value}</dd></div>)}</dl></section>)}</details>)}
-  <h4>{reading.natalProfile?'타고난 성향을 조금 더 풀어볼게.':'영냥이가 조금 더 풀어줄게.'}</h4>{reading.natalProfile&&<p className="free-natal-note">같은 출생 정보와 계산 기준에서는 유지되는 성향이야. 시기에 따른 운세와는 나누어 읽어줘.</p>}<div className="room-daily-message">{reading.paragraphs.map((text,index)=><p key={index}>{text}</p>)}</div>
+  {ANSWER_FIRST_LAYOUT_V1?<>{body}{chartDetails}</>:<>{reading.charts?.filter(chart=>chart.domain==='saju').map(chart=><NatalChartTable key={chart.domain} chart={chart}/>)}{chartDetails}{body}</>}
   <details className="free-evidence"><summary>어떤 근거로 읽었을까?</summary><dl>{reading.basis.map((basis,index)=><div key={index}><dt>{basis.label}</dt><dd>{basis.value}</dd></div>)}</dl>{reading.limitations.map((item,index)=><p key={index}>{item}</p>)}</details>
   <ResultSharing key={`${reading.category}-${reading.day}`} reading={reading}/>
   <FreeQuestionNext category={reading.category} source="yeongnyangi_free"/>

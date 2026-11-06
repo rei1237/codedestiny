@@ -28,6 +28,10 @@ import TeaHouseButton from "./TeaHouseButton";
 import TeaHouseDialogueBox from "./TeaHouseDialogueBox";
 import TeaHouseFollowUpCard, { type TeaHouseFollowUpPatch } from "./TeaHouseFollowUpCard";
 import TeaHouseSajuResultPanel from "./TeaHouseSajuResultPanel";
+import SajuPillarBoard from "./SajuPillarBoard";
+import FiveElementBalance from "./FiveElementBalance";
+import ResultReference from "@/components/fortune/ResultReference";
+import { ANSWER_FIRST_LAYOUT_V1 } from "@/lib/result-layout";
 import TeaHouseSajuCompatResultPanel from "./TeaHouseSajuCompatResultPanel";
 import TeaHouseSukuyoResultPanel from "./TeaHouseSukuyoResultPanel";
 import TenGodSymbolCard from "./TenGodSymbolCard";
@@ -798,7 +802,7 @@ export default function TeaHouseResultSheet({
         </section>}
 
         {isSajuCompatMode ? <TeaHouseSajuCompatResultPanel result={result} /> : null}
-        {isSajuMode ? <TeaHouseSajuResultPanel result={result} onShowTarot={onShowTarot} onEditBirthInfo={onEditBirthInfo} showTarotAction={false} /> : null}
+        {isSajuMode ? <TeaHouseSajuResultPanel result={result} onShowTarot={onShowTarot} onEditBirthInfo={onEditBirthInfo} showTarotAction={false} chartsAfterReading={ANSWER_FIRST_LAYOUT_V1} /> : null}
         {isSukuyoMode ? <TeaHouseSukuyoResultPanel result={result} /> : null}
 
         {isTarotMode ? (
@@ -1088,6 +1092,14 @@ export default function TeaHouseResultSheet({
             <LlmParagraphs text={result.closingLine} pClassName={styles.sajuSummary} />
           </div>
         </section>
+        ) : null}
+
+        {/* Answer-first: the saju chart follows the reading, closed; PDF export opens it while capturing. */}
+        {ANSWER_FIRST_LAYOUT_V1 && isSajuMode && result.saju.available ? (
+          <ResultReference>
+            <SajuPillarBoard pillars={result.saju.pillars} />
+            <FiveElementBalance elements={result.saju.fiveElements} method={result.saju.elementMethod} />
+          </ResultReference>
         ) : null}
 
         <ConsultationShare key={rawResult.resultId} brand="tea" choices={[{id:"invitation",label:copy.safeShareLabel,text:copy.safeShareText},...teaHouseShareChoices(rawResult)]} />

@@ -41,6 +41,7 @@ import LoveSecretChecklist, { type ActionSecret } from "./LoveSecretChecklist";
 import PremiumResultShare from "@/components/fortune/PremiumResultShare";
 import { groupLoveSections, resolveLoveSpeaker, type LoveCardVariant, type LoveSectionGroup, type LoveSpeaker } from "./love-secret-sections";
 import LoveSecretResultSection, { LoveSpeakerChip } from "./LoveReadingChapter";
+import { ANSWER_FIRST_LAYOUT_V1 } from "@/lib/result-layout";
 import { getCurrentLoadingLocale, INTL_LOCALE_BY_LOADING_LOCALE, type LoadingLocale } from "@/constants/loadingMessages";
 
 type LoveSecretResultCopy = {
@@ -1233,7 +1234,7 @@ function LoveSecretResultPageContent({
           <LoveSecretConnectionCard myName={myName} partnerName={partnerName} topic={topic} generatedAt={generatedAt} />
         </header>
 
-        {consultation.sajuSummary?.myChart && (
+        {!ANSWER_FIRST_LAYOUT_V1 && consultation.sajuSummary?.myChart && (
           <LoveSecretSajuSummary summary={consultation.sajuSummary} myName={myName} partnerName={partnerName} />
         )}
 
@@ -1316,6 +1317,10 @@ function LoveSecretResultPageContent({
             </p>
             <p className="mt-6 text-sm font-bold text-[var(--ls-text-muted)]">{copy.yeoniSignature}</p>
           </footer>
+        )}
+
+        {ANSWER_FIRST_LAYOUT_V1 && consultation.sajuSummary?.myChart && (
+          <LoveSecretSajuSummary summary={consultation.sajuSummary} myName={myName} partnerName={partnerName} />
         )}
 
         <div className="mt-8 flex justify-center">
@@ -1471,14 +1476,14 @@ function ConnectionName({ role, name, className }: { role: string; name: string;
 
 function LoveSecretSajuSummary({ summary, myName, partnerName }: { summary: SajuSummary; myName: string; partnerName: string }) {
   const copy = useLoveSecretResultCopy();
-  return (
-    <section className="mt-5 rounded-3xl border border-[var(--ls-line)] bg-[var(--ls-surface)] p-5">
-      <ResultReference label={copy.sajuBasicsHeading}>
+  const charts = (
       <div className="grid gap-4 lg:grid-cols-2">
         <SajuChartCard label={myName} chart={summary.myChart} />
         {summary.partnerChart ? <SajuChartCard label={partnerName} chart={summary.partnerChart} /> : null}
       </div>
-      </ResultReference>
+  );
+  const details = (
+    <>
       {summary.compatibility && (
         <div className="mt-4 rounded-2xl border border-[var(--ls-line)] bg-[var(--ls-surface-2)] p-4 text-sm leading-7 text-[var(--ls-text-muted)]">
           <p className="font-black text-[var(--ls-accent)]">{copy.compatibilityFlowLabel}</p>
@@ -1493,6 +1498,18 @@ function LoveSecretSajuSummary({ summary, myName, partnerName }: { summary: Saju
           {copy.noonBasisNote}
         </p>
       ) : null}
+    </>
+  );
+  // Answer-first: after the reading, the whole saju basis (charts, compatibility basis, noon note) stays closed.
+  if (ANSWER_FIRST_LAYOUT_V1) return (
+    <section className="mt-5 rounded-3xl border border-[var(--ls-line)] bg-[var(--ls-surface)] p-5">
+      <ResultReference label={copy.sajuBasicsHeading}>{charts}{details}</ResultReference>
+    </section>
+  );
+  return (
+    <section className="mt-5 rounded-3xl border border-[var(--ls-line)] bg-[var(--ls-surface)] p-5">
+      <ResultReference label={copy.sajuBasicsHeading}>{charts}</ResultReference>
+      {details}
     </section>
   );
 }
