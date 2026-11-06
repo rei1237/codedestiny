@@ -11755,116 +11755,135 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
       }
       /* ── 운세 선택 모달 (dp-fsel) ── */
       .dp-fsel-overlay {
+        --fsel-paper:var(--cd-surface);
+        --fsel-paper-soft:var(--cd-surface-2);
+        --fsel-ink:var(--cd-text);
+        --fsel-muted:var(--cd-text-muted);
+        --fsel-accent:var(--cd-accent);
+        --fsel-gold:var(--cd-yehwa-line-deep);
+        --fsel-line:var(--cd-border);
         position:fixed; inset:0; z-index:2050000;
-        background:rgba(0,0,0,0);
+        background:transparent;
         display:flex; align-items:flex-end; justify-content:center;
-        transition:background 0.32s ease;
+        padding:12px 12px 0;
+        transition:background 0.26s ease;
         pointer-events:none;
       }
       .dp-fsel-overlay--in {
-        background:rgba(4,6,18,0.93);
+        background:color-mix(in srgb,var(--cd-bg) 82%,transparent);
         pointer-events:auto;
       }
       .dp-fsel-modal {
-        position:relative;
-        background:linear-gradient(160deg,rgba(10,8,30,0.99),rgba(20,10,55,0.99));
-        border:1px solid rgba(255,215,0,0.28);
-        border-radius:24px 24px 0 0;
-        padding:36px 24px 40px;
-        width:100%; max-width:480px;
-        max-height:80dvh; overflow-y:auto;
-        box-shadow:0 -8px 60px rgba(130,60,255,0.28);
-        transform:translateY(100%);
-        transition:transform 0.38s cubic-bezier(0.22,1,0.36,1);
+        position:relative; isolation:isolate;
+        width:100%; max-width:430px;
+        max-height:calc(100dvh - 12px); overflow-y:auto; overscroll-behavior:contain;
+        padding:22px 20px max(22px,env(safe-area-inset-bottom));
+        border-width:1px 1px 0; border-style:solid; border-color:var(--fsel-gold);
+        border-radius:26px 26px 0 0;
+        background:
+          radial-gradient(circle at 18% 4%,color-mix(in srgb,var(--cd-accent-soft) 28%,transparent),transparent 34%),
+          linear-gradient(160deg,var(--fsel-paper),var(--fsel-paper-soft));
+        color:var(--fsel-ink);
+        box-shadow:0 -18px 54px color-mix(in srgb,var(--cd-shadow-ink) 30%,transparent),inset 0 1px var(--cd-hairline);
+        transform:translateY(102%);
+        transition:transform 0.32s cubic-bezier(0.22,1,0.36,1);
+        scrollbar-width:thin; scrollbar-color:var(--fsel-gold) transparent;
       }
       .dp-fsel-overlay--in .dp-fsel-modal {
         transform:translateY(0);
       }
       .dp-fsel-close-btn {
-        position:absolute; top:16px; right:18px;
+        position:absolute; top:12px; right:12px;
         z-index:10;
         min-width:44px; min-height:44px;
         width:44px; height:44px; padding:0;
-        border:none; border-radius:50%;
-        background:rgba(255,255,255,0.07);
-        color:rgba(255,255,255,0.4); font-size:0.85rem;
+        border:1px solid var(--fsel-line); border-radius:50%;
+        background:color-mix(in srgb,var(--fsel-paper) 86%,transparent);
+        color:var(--fsel-muted);
         display:flex; align-items:center; justify-content:center;
         cursor:pointer; touch-action:manipulation;
         -webkit-tap-highlight-color:transparent;
         pointer-events:auto;
       }
-      .dp-fsel-close-btn:active { background:rgba(255,255,255,0.14); }
+      .dp-fsel-close-btn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round}
+      .dp-fsel-close-btn:hover,.dp-fsel-close-btn:active { background:var(--fsel-paper-soft); color:var(--fsel-ink); }
       .dp-fsel-close-btn:focus-visible,
       .dp-fsel-btn:focus-visible {
-        outline:3px solid #f5db9a;
+        outline:3px solid var(--fsel-accent);
         outline-offset:3px;
       }
       .dp-fsel-profile {
-        text-align:center; margin-bottom:20px;
+        display:grid; grid-template-columns:112px minmax(0,1fr); gap:16px;
+        align-items:center; min-height:126px; padding:8px 36px 8px 0;
       }
+      .dp-fsel-character{
+        position:relative; display:grid; place-items:center; width:112px; height:112px;
+        border:1px solid var(--fsel-gold); border-radius:50% 50% 44% 44%;
+        background:radial-gradient(circle,var(--cd-yehwa-ivory) 0 58%,color-mix(in srgb,var(--fsel-gold) 20%,transparent) 59% 100%);
+        box-shadow:inset 0 0 0 6px color-mix(in srgb,var(--fsel-paper) 72%,transparent),0 8px 24px color-mix(in srgb,var(--fsel-gold) 18%,transparent);
+      }
+      .dp-fsel-character:before{content:'';position:absolute;inset:-7px;border:1px solid color-mix(in srgb,var(--fsel-gold) 48%,transparent);border-radius:50%;clip-path:polygon(0 0,72% 0,72% 100%,0 100%)}
+      .dp-fsel-character .pc-sprite{width:96px;height:96px;filter:drop-shadow(0 7px 6px color-mix(in srgb,var(--cd-shadow-ink) 18%,transparent))}
       .dp-fsel-zodiac {
-        display:block; font-size:2.6rem; margin-bottom:8px;
-        filter:drop-shadow(0 0 12px rgba(255,215,0,0.5));
+        display:grid; place-items:center; width:80px; height:80px; font-size:2.35rem;
+        filter:drop-shadow(0 5px 8px color-mix(in srgb,var(--fsel-gold) 35%,transparent));
       }
+      .dp-fsel-identity{min-width:0;text-align:left}
+      .dp-fsel-heading{margin:0 0 5px;font-family:var(--font-serif,'Gowun Batang',serif);font-size:1.06rem;font-weight:700;line-height:1.45;letter-spacing:-.025em;color:var(--fsel-ink);text-wrap:balance}
       .dp-fsel-pname {
-        font-family:'Gowun Dodum',serif;
-        font-size:1.15rem; font-weight:900; color:#fff;
-        margin-bottom:5px;
+        font-size:0.76rem; font-weight:800; color:var(--fsel-accent); margin-bottom:2px;
       }
+      .dp-fsel-character-name{min-height:20px;font-size:.72rem;line-height:1.55;color:var(--fsel-muted);overflow-wrap:anywhere}
+      .dp-fsel-identity .pc-element-badge{margin-top:5px;gap:5px;color:var(--pc-element)}
+      .dp-fsel-identity .pc-element-seal{width:27px;height:27px}
+      .dp-fsel-identity .pc-element-caption{font-size:8px;color:var(--fsel-muted)}
+      .dp-fsel-identity .pc-element-badge strong{font-size:10px}
+      .dp-fsel-meta{display:flex;flex-wrap:wrap;align-items:center;gap:5px 12px;padding:8px 4px 0;color:var(--fsel-muted)}
       .dp-fsel-pdate {
-        font-size:0.78rem; color:rgba(200,185,255,0.65); margin-bottom:3px;
+        font-size:0.68rem;
       }
       .dp-fsel-ploc {
-        font-size:0.72rem; color:rgba(180,180,220,0.45);
+        display:inline-flex;align-items:center;gap:3px;font-size:0.68rem;
       }
+      .dp-fsel-ploc svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:1.5}
       .dp-fsel-divider {
-        height:1px; background:rgba(255,215,0,0.15); margin:18px 0;
+        position:relative;height:1px;background:var(--fsel-line);margin:12px 0 10px;
       }
+      .dp-fsel-divider:after{content:'';position:absolute;left:50%;top:50%;width:8px;height:8px;transform:translate(-50%,-50%) rotate(45deg);background:var(--fsel-paper-soft);border:1px solid var(--fsel-gold)}
       .dp-fsel-ask {
-        font-family:'Gowun Dodum',serif;
-        font-size:0.88rem; color:rgba(220,200,255,0.7);
-        text-align:center; letter-spacing:1px; margin-bottom:20px;
+        font-family:var(--font-serif,'Gowun Batang',serif);
+        font-size:0.78rem; color:var(--fsel-muted);
+        text-align:center; letter-spacing:.04em; margin-bottom:10px;
       }
       .dp-fsel-btns {
         display:grid; grid-template-columns:1fr 1fr;
-        gap:10px;
+        gap:8px;
       }
       .dp-fsel-btn {
-        display:flex; align-items:center; gap:10px;
-        padding:14px 16px;
-        background:rgba(255,255,255,0.04);
-        border:1px solid rgba(255,255,255,0.12);
-        border-radius:14px; cursor:pointer;
+        display:grid;grid-template-columns:28px minmax(0,1fr);align-items:center;gap:8px;
+        min-height:48px;padding:6px 10px;
+        background:color-mix(in srgb,var(--fsel-paper) 72%,transparent);
+        border:1px solid var(--fsel-line);
+        border-radius:12px; cursor:pointer;color:var(--fsel-ink);
         touch-action:manipulation; -webkit-tap-highlight-color:transparent;
         transition:background 0.18s, border-color 0.18s, transform 0.12s;
       }
-      .dp-fsel-btn:active { transform:scale(0.96); }
-      .dp-fsel-btn-icon  { font-size:1.6rem; flex-shrink:0; }
+      .dp-fsel-btn:hover{background:var(--fsel-paper-soft);border-color:var(--fsel-gold)}
+      .dp-fsel-btn:active { transform:scale(0.98); }
+      .dp-fsel-btn-icon  { display:grid;place-items:center;width:28px;height:28px;border:1px solid var(--fsel-gold);border-radius:50%;color:var(--fsel-accent); }
+      .dp-fsel-btn-icon svg{width:17px;height:17px}
       .dp-fsel-btn-label {
-        font-family:'Gowun Dodum',serif;
-        font-size:0.88rem; font-weight:700;
-        color:rgba(255,255,255,0.8); white-space:nowrap;
+        font-size:0.76rem; font-weight:700; color:var(--fsel-ink); white-space:nowrap;text-align:left;
       }
-      .dp-fsel-btn--saju   { border-color:rgba(255,200,50,0.3);  }
-      .dp-fsel-btn--saju:hover   { background:rgba(255,200,50,0.1);  border-color:rgba(255,200,50,0.5);  }
-      .dp-fsel-btn--sukuyo { border-color:rgba(167,139,250,0.3); }
-      .dp-fsel-btn--sukuyo:hover { background:rgba(167,139,250,0.1); border-color:rgba(167,139,250,0.5); }
-      .dp-fsel-btn--ziwei  { border-color:rgba(232,121,249,0.3); }
-      .dp-fsel-btn--ziwei:hover  { background:rgba(232,121,249,0.1); border-color:rgba(232,121,249,0.5); }
-      .dp-fsel-btn--astro  { border-color:rgba(167,209,255,0.3); }
-      .dp-fsel-btn--astro:hover  { background:rgba(167,209,255,0.1); border-color:rgba(167,209,255,0.5); }
-      .dp-fsel-btn--juyuk { border-color:rgba(184,134,11,0.32); }
-      .dp-fsel-btn--juyuk:hover { background:rgba(184,134,11,0.12); border-color:rgba(184,134,11,0.55); }
-      .dp-fsel-btn--tarot  { border-color:rgba(139,92,246,0.35); }
-      .dp-fsel-btn--tarot:hover  { background:rgba(139,92,246,0.12); border-color:rgba(139,92,246,0.55); }
-      .dp-fsel-btn--kemet { border-color:rgba(212,175,55,0.32); }
-      .dp-fsel-btn--kemet:hover { background:rgba(212,175,55,0.12); border-color:rgba(212,175,55,0.55); }
-      .dp-fsel-btn--vedic  { border-color:rgba(99,176,255,0.3); }
-      .dp-fsel-btn--vedic:hover  { background:rgba(99,176,255,0.1); border-color:rgba(99,176,255,0.5); }
-      .dp-fsel-btn--locked { opacity:0.75; border-color:rgba(255,255,255,0.15) !important; background:rgba(0,0,0,0.18) !important; }
+      .dp-fsel-btn--locked { opacity:0.68; background:var(--fsel-paper-soft)!important; }
       .dp-fsel-btn--locked .dp-fsel-btn-icon { filter:grayscale(0.6); }
-      .dp-fsel-btn--locked .dp-fsel-btn-label { color:rgba(255,255,255,0.55); }
-      .dp-fsel-btn-cost { display:block; font-size:0.68rem; font-weight:600; color:rgba(251,191,36,0.82); margin-top:2px; letter-spacing:0.01em; }
+      .dp-fsel-btn--locked .dp-fsel-btn-label { color:var(--fsel-muted); }
+      .dp-fsel-btn-cost { display:block; font-size:0.62rem; font-weight:600; color:var(--fsel-accent); margin-top:1px; letter-spacing:0.01em; }
+      .dp-fsel-ornament{position:absolute;inset:0 0 auto;height:72px;overflow:hidden;border-radius:26px 26px 0 0;pointer-events:none;opacity:.3}
+      .dp-fsel-ornament:before{content:'';position:absolute;top:-22px;left:-12px;width:160px;height:80px;background:var(--fsel-gold);-webkit-mask:var(--cd-yehwa-mask-branch-h) left center/auto 54px no-repeat;mask:var(--cd-yehwa-mask-branch-h) left center/auto 54px no-repeat}
+      @media (min-width:600px){.dp-fsel-overlay{align-items:center;padding:18px}.dp-fsel-modal{border-bottom-width:1px;border-radius:26px;max-height:calc(100dvh - 36px);transform:translateY(16px) scale(.97);opacity:0;transition:transform .26s ease,opacity .26s ease}.dp-fsel-overlay--in .dp-fsel-modal{transform:none;opacity:1}}
+      @media (max-width:380px){.dp-fsel-overlay{padding-inline:6px}.dp-fsel-modal{padding-inline:14px}.dp-fsel-profile{grid-template-columns:92px minmax(0,1fr);gap:12px;min-height:106px}.dp-fsel-character{width:92px;height:92px}.dp-fsel-character .pc-sprite{width:80px;height:80px}.dp-fsel-heading{font-size:.95rem}.dp-fsel-btn{padding-inline:7px;gap:6px}.dp-fsel-btn-label{font-size:.71rem}}
+      @media (prefers-reduced-motion:reduce){.dp-fsel-overlay,.dp-fsel-modal,.dp-fsel-btn{transition:none!important}.dp-fsel-modal{transform:none}}
 
       .dp-save-overlay {
         position:fixed; inset:0; z-index:2000000;

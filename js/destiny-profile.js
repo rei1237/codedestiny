@@ -8736,15 +8736,33 @@
           el.dataset.profileQuestExp = String(exp); _dpRefreshLevelStrip();
         },
         owner: function() { return _dpIsLoggedInScope() ? _dpSubSnapshotUserId() : ''; },
-        request: function(path, init) {
-          init.headers = _dpBuildAuthHeaders(init.headers || {}); init.credentials = 'include';
-          return _dpFetchJsonWithFallback(path, init, { timeoutMs: 10000, allowWorkerFallback: false });
-        }
+        request: _dpProfileCharacterRequest
       });
     }).catch(function() {
       var panel = el.querySelector('[data-profile-character]');
       if (panel) panel.textContent = '캐릭터를 불러오지 못했어요. 잠시 후 다시 확인해 주세요.';
     });
+  }
+
+  function _dpProfileCharacterRequest(path, init) {
+    init = init || {};
+    init.headers = _dpBuildAuthHeaders(init.headers || {});
+    init.credentials = 'include';
+    return _dpFetchJsonWithFallback(path, init, { timeoutMs: 10000, allowWorkerFallback: false });
+  }
+
+  function _dpFortuneSeal(type) {
+    var paths = {
+      saju: '<rect x="6" y="6" width="12" height="12" rx="2"/><path d="M12 7v10M7 12h10M9 9l6 6M15 9l-6 6"/>',
+      sukuyo: '<path d="M16.8 15.2A7 7 0 1 1 9 6.2a5.5 5.5 0 0 0 7.8 9Z"/><path d="m17.5 5 .5 1.5L19.5 7 18 7.5 17.5 9 17 7.5 15.5 7 17 6.5Z"/>',
+      ziwei: '<circle cx="12" cy="12" r="6"/><path d="m12 3 1.2 4.2L17 5l-2.2 3.8L19 10l-4.2 1.2L17 15l-3.8-2.2L12 17l-1.2-4.2L7 15l2.2-3.8L5 10l4.2-1.2L7 5l3.8 2.2Z"/>',
+      astro: '<path d="m12 3 1.5 6 5.5 3-5.5 3L12 21l-1.5-6L5 12l5.5-3Z"/><circle cx="12" cy="12" r="2"/>',
+      juyuk: '<path d="M6 7h12M6 11h4m4 0h4M6 15h4m4 0h4M6 19h12"/>',
+      vedic: '<path d="M12 4c1.2 3.4 3.3 5.5 6.7 6.7-3.4 1.2-5.5 3.3-6.7 6.7-1.2-3.4-3.3-5.5-6.7-6.7C8.7 9.5 10.8 7.4 12 4Z"/><circle cx="12" cy="12" r="2"/>',
+      tarot: '<rect x="7" y="4" width="10" height="16" rx="1.5"/><path d="M10 8h4m-2-2v4m-3 4h6m-5 3h4"/>',
+      kemet: '<path d="M3.5 12s3.2-4 8.5-4 8.5 4 8.5 4-3.2 4-8.5 4-8.5-4-8.5-4Z"/><circle cx="12" cy="12" r="2.8"/><path d="M12 5V3m0 18v-2"/>'
+    };
+    return '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round">' + (paths[type] || paths.astro) + '</svg>';
   }
 
   function _emptyCard() {
@@ -10121,6 +10139,7 @@
     }
 
     /* lockBody 잔여 스타일 강제 정리 (모바일 fullscreen 고착 방지) */
+    document.body.style.overflow = '';
     document.body.style.position = '';
     document.body.style.top = '';
     document.body.style.width = '';
@@ -10710,30 +10729,49 @@
     ov.setAttribute('aria-hidden', 'false');
     ov.tabIndex = -1;
     ov.__dpReturnFocus = fortuneSelReturnFocus;
+    var fortuneTypes = [
+      ['saju', '사주 풀이'], ['sukuyo', '숙요점'], ['ziwei', '자미두수'], ['astro', '점성술'],
+      ['juyuk', '주역 거북점'], ['vedic', '베다점'], ['tarot', '타로'], ['kemet', '이집트 신탁']
+    ];
     ov.innerHTML =
       '<div class="dp-fsel-modal">'
-      + '<button type="button" class="dp-fsel-close-btn" aria-label="' + _esc(_dpText('close')) + '" onclick="window._dpCloseFortuneSel && window._dpCloseFortuneSel(); return false;">✕</button>'
+      + '<div class="dp-fsel-ornament" aria-hidden="true"></div>'
+      + '<button type="button" class="dp-fsel-close-btn" aria-label="' + _esc(_dpText('close')) + '" onclick="window._dpCloseFortuneSel && window._dpCloseFortuneSel(); return false;"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 7 10 10M17 7 7 17"/></svg></button>'
       + '<div class="dp-fsel-profile">'
-        + '<span class="dp-fsel-zodiac">' + zodiac + '</span>'
-        + '<div class="dp-fsel-pname">' + _esc(p.name) + '</div>'
-        + '<div class="dp-fsel-pdate">' + dateStr + '</div>'
-        + (l.label ? '<div class="dp-fsel-ploc">📍 ' + _esc(l.label) + '</div>' : '')
+        + '<div class="dp-fsel-character" data-fsel-character><span class="dp-fsel-zodiac" aria-label="띠 캐릭터">' + zodiac + '</span></div>'
+        + '<div class="dp-fsel-identity">'
+          + '<div class="dp-fsel-heading">달빛이 비추는<br>당신의 타고난 결</div>'
+          + '<div class="dp-fsel-pname">' + _esc(p.name) + '</div>'
+          + '<div class="dp-fsel-character-name" data-fsel-character-name role="status">일주 캐릭터를 만나고 있어요.</div>'
+          + '<div data-fsel-element></div>'
+        + '</div>'
       + '</div>'
-      + '<div class="dp-fsel-divider"></div>'
+      + '<div class="dp-fsel-meta"><span class="dp-fsel-pdate">' + dateStr + '</span>'
+        + (l.label ? '<span class="dp-fsel-ploc"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s6-5.2 6-11a6 6 0 1 0-12 0c0 5.8 6 11 6 11Z"/><circle cx="12" cy="10" r="2"/></svg>' + _esc(l.label) + '</span>' : '')
+      + '</div>'
+      + '<div class="dp-fsel-divider" aria-hidden="true"></div>'
       + '<div class="dp-fsel-ask" id="dpFortuneSelTitle">어떤 운세를 보시겠습니까?</div>'
       + '<div class="dp-fsel-btns">'
-        + '<button type="button" class="dp-fsel-btn dp-fsel-btn--saju"   onclick="window._dpOpenFortuneType(\'saju\')"   style="touch-action:manipulation"><span class="dp-fsel-btn-icon">🔮</span><span class="dp-fsel-btn-label">사주 풀이</span></button>'
-        + '<button type="button" class="dp-fsel-btn dp-fsel-btn--sukuyo" onclick="window._dpOpenFortuneType(\'sukuyo\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">💫</span><span class="dp-fsel-btn-label">숙요점</span></button>'
-        + '<button type="button" class="dp-fsel-btn dp-fsel-btn--ziwei" onclick="window._dpOpenFortuneType(\'ziwei\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">🌌</span><span class="dp-fsel-btn-label">자미두수</span></button>'
-        + '<button type="button" class="dp-fsel-btn dp-fsel-btn--astro" onclick="window._dpOpenFortuneType(\'astro\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">✨</span><span class="dp-fsel-btn-label">점성술</span></button>'
-        + '<button type="button" class="dp-fsel-btn dp-fsel-btn--juyuk" onclick="window._dpOpenFortuneType(\'juyuk\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">☯️</span><span class="dp-fsel-btn-label">주역 거북점</span></button>'
-        + '<button type="button" class="dp-fsel-btn dp-fsel-btn--vedic" onclick="window._dpOpenFortuneType(\'vedic\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">🪐</span><span class="dp-fsel-btn-label">베다점</span></button>'
-        + '<button type="button" class="dp-fsel-btn dp-fsel-btn--tarot"  onclick="window._dpOpenFortuneType(\'tarot\')"  style="touch-action:manipulation"><span class="dp-fsel-btn-icon">🃏</span><span class="dp-fsel-btn-label">타로</span></button>'
-        + '<button type="button" class="dp-fsel-btn dp-fsel-btn--kemet" onclick="window._dpOpenFortuneType(\'kemet\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">𓂀</span><span class="dp-fsel-btn-label">이집트 신탁</span></button>'
-      + '</div>'
-      + '</div>';
+        + fortuneTypes.map(function(item) { return '<button type="button" class="dp-fsel-btn dp-fsel-btn--' + item[0] + '" data-fortune-type="' + item[0] + '" onclick="window._dpOpenFortuneType(\'' + item[0] + '\')" style="touch-action:manipulation"><span class="dp-fsel-btn-icon">' + _dpFortuneSeal(item[0]) + '</span><span class="dp-fsel-btn-label">' + item[1] + '</span></button>'; }).join('')
+      + '</div></div>';
     document.body.appendChild(ov);
     window._dpFortuneSelEl = ov;
+    import('/js/core/profile-character-card.mjs').then(function(module) {
+      return module.loadProfileCharacterPreview(p, { request: _dpProfileCharacterRequest }).then(function(preview) {
+        if (!ov.isConnected || window._dpFortuneSelEl !== ov || !preview || !preview.character) return;
+        var character = preview.character;
+        var characterSlot = ov.querySelector('[data-fsel-character]');
+        var nameSlot = ov.querySelector('[data-fsel-character-name]');
+        var elementSlot = ov.querySelector('[data-fsel-element]');
+        if (characterSlot) characterSlot.innerHTML = module.spriteMarkup(character.id, character.name, false);
+        if (nameSlot) nameSlot.textContent = character.ganji + ' · ' + character.name;
+        if (elementSlot) elementSlot.innerHTML = module.elementBadgeMarkup(character.element);
+        ov.classList.add('dp-fsel-overlay--character-ready');
+      });
+    }).catch(function() {
+      var nameSlot = ov.querySelector('[data-fsel-character-name]');
+      if (nameSlot) nameSlot.textContent = '띠 캐릭터로 먼저 안내할게요.';
+    });
     /* 🔴 창이 먼저 페인트되도록, 폼 동기화와 장식(파티클 12개 + getBoundingClientRect 강제 레이아웃)은
        다음 태스크로 넘긴다. 사용자가 유형을 고르기까지는 최소 모달 진입 0.38s + 이탈 0.35s 가 있어
        그 전에 반드시 끝난다.
@@ -10809,13 +10847,16 @@
     var returnFocus = ov.__dpReturnFocus;
     ov.setAttribute('aria-hidden', 'true');
     ov.classList.remove('dp-fsel-overlay--in');
-    setTimeout(function() { if (ov.parentNode) ov.parentNode.removeChild(ov); }, 350);
-    window._dpFortuneSelEl = null;
-    requestAnimationFrame(function() {
-      if (returnFocus && document.documentElement.contains(returnFocus) && typeof returnFocus.focus === 'function') {
-        try { returnFocus.focus({ preventScroll: true }); } catch (_) { returnFocus.focus(); }
+    setTimeout(function() {
+      if (ov.parentNode) ov.parentNode.removeChild(ov);
+      var focusTarget = returnFocus && document.documentElement.contains(returnFocus)
+        ? returnFocus
+        : document.querySelector('.dp-mc-load-btn');
+      if (focusTarget && typeof focusTarget.focus === 'function') {
+        try { focusTarget.focus({ preventScroll: true }); } catch (_) { focusTarget.focus(); }
       }
-    });
+    }, 260);
+    window._dpFortuneSelEl = null;
   };
 
   window._dpOpenFortuneType = function(type) {

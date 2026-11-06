@@ -120,7 +120,7 @@ try {
         } catch (_) {}
       });
     }
-    await page.goto(`http://127.0.0.1:${port}/`, { waitUntil: "load", timeout: 120000 });
+    await page.goto(`http://127.0.0.1:${port}/ggulggul/`, { waitUntil: "load", timeout: 120000 });
     await page.waitForTimeout(6000);
     // 🔴 추출원을 셸의 로딩 방식에 의존하지 않는다. 이 스크립트가 만든 부분집합을 셸이 쓰기
     //    시작하면 전체 시트는 지연 로더로 넘어가고, 6초 안에는 CSSOM 에 없다 — 그러면 다음
@@ -153,6 +153,32 @@ try {
             "이대로 뽑으면 .dp-mc-* 규칙이 다시 지연 시트에 남는다.",
         );
       }
+
+      // 마이 시트의 실제 링크를 통해 프로필 시트를 연다. 초기 CSS에 아래 fixed 규칙이 없으면
+      // 클릭 직후 시트가 문서 아래에 렌더되어 홈으로 튕긴 것처럼 보인다.
+      await page.evaluate(() => window.cdOpenAccount?.());
+      await page.waitForSelector('#cdAccountSheet[open]', { state: 'attached', timeout: 15000 });
+      const beforeUrl = page.url();
+      await page.$eval('#cdAccountSheet [data-action="dpOpenList"]', (el) => el.click());
+      await page.waitForSelector('#dpListSheet.dp-sheet--open', { state: 'attached', timeout: 15000 });
+      const sheetState = await page.evaluate(() => {
+        const sheet = document.querySelector('#dpListSheet.dp-sheet--open');
+        const overlay = document.querySelector('#dpListOverlay.dp-sheet--open');
+        const style = sheet ? getComputedStyle(sheet) : null;
+        const rect = sheet?.getBoundingClientRect();
+        return {
+          position: style?.position || '',
+          zIndex: Number(style?.zIndex || 0),
+          inViewport: !!rect && rect.top < innerHeight && rect.bottom > 0,
+          overlay: !!overlay,
+        };
+      });
+      if (page.url() !== beforeUrl || sheetState.position !== 'fixed' || sheetState.zIndex < 1 || !sheetState.inViewport || !sheetState.overlay) {
+        throw new Error(`[critical-css] ${cell.name}: 프로필 시트 배치 실패 ${JSON.stringify(sheetState)} URL ${beforeUrl} → ${page.url()}`);
+      }
+      const sheetFound = await page.evaluate(collectMatchingRules, '#dpListSheet');
+      const overlayFound = await page.evaluate(collectMatchingRules, '#dpListOverlay');
+      for (const row of [...sheetFound, ...overlayFound]) if (!kept.has(row.text)) kept.set(row.text, row);
     }
     const found = await page.evaluate(collectMatchingRules);
     for (const row of found) if (!kept.has(row.text)) kept.set(row.text, row);
@@ -360,10 +386,13 @@ function assertNoEmptyDeclarations(css) {
 function assertInteractionSurfacesPresent(css) {
   // .dp-fsel-ploc 은 프로필에 location.label 이 있을 때만 렌더된다 — 픽스처가 그 분기를 끄면
   // 조용히 빠지므로 여기서 함께 잡는다(실제로 첫 수확에서 이것만 빠졌다).
-  const REQUIRED = [".dp-fsel-overlay", ".dp-fsel-modal", ".dp-fsel-btn", ".dp-fsel-ploc"];
+  const REQUIRED = [".dp-fsel-overlay", ".dp-fsel-modal", ".dp-fsel-btn", ".dp-fsel-ploc", ".dp-sheet", ".dp-sheet-overlay"];
   const missing = REQUIRED.filter((token) => !css.includes(token));
-  if (!missing.length) return;
+  const sheetRule = css.match(/\.dp-sheet\s*\{[^}]*\}/)?.[0] || '';
+  const sheetSemanticMissing = !/position:\s*fixed/.test(sheetRule) || !/(?:inset|bottom):/.test(sheetRule) || !/z-index:/.test(sheetRule);
+  if (!missing.length && !sheetSemanticMissing) return;
   console.error(`[critical-css] 🔴 상호작용 표면 규칙이 산출물에 없다: ${missing.join(", ")}`);
+  if (sheetSemanticMissing) console.error('[critical-css] 🔴 .dp-sheet 규칙에 position:fixed, 화면 배치, z-index 중 하나가 없다.');
   console.error("  셀 루프의 모달 수확(.dp-mc-load-btn 클릭 → .dp-fsel-overlay)이 실제로 돌았는지 확인할 것.");
   console.error("  이대로 쓰면 모바일에서 프로필 카드를 눌러도 창이 지연 시트 도착까지 안 뜬다.");
   process.exit(1);
