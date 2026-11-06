@@ -2319,6 +2319,22 @@
     "public/images/moonlight-guide/1.webp"
    ],
    "prompt": "Vertical-scroll Korean webtoon panel. Characters: flower-pig Yeoni (the cute pink pig mascot with a flower, match the reference sheet exactly); Yeongnyangi (fluffy white cat with exactly TWO pink-lined ears, golden-violet half-lidded eyes, navy wizard hat with gold crescent moon and tassel, navy cape with gold trim, purple gem collar; aloof expression; match the reference exactly). A first-time visitor (young Korean woman with short dark wavy hair and a sage-green cable-knit sweater, as in the attached guide art) sits at a moonlit tea table, index finger hovering hesitantly between two face-down tarot cards: the left card back is pink with a lotus, the right card back is navy with a gold crescent. The pink flower-pig mascot peeks out from behind the pink card, smiling; Yeongnyangi (white cat with wizard hat) peeks out from behind the navy card, aloof. Same soft pastel storybook style as the guide art references. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "guide",
+   "cut": "05",
+   "files": "public/images/moonlight-guide/card.webp (720, replaces forest.webp)",
+   "origin": "generated",
+   "source": "out/guide/05-card.png",
+   "sourceSha256": "c4cfeca21bbaaeb3",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/연이 프로필1.png",
+    "CodeDestiny-Build/양냥이 프로필 시트.webp",
+    "public/images/moonlight-guide/5.webp"
+   ],
+   "prompt": "Cozy indoor tea-house table at night, warm lamplight, plum and honey-gold palette, NO forest, NO trees, NO lanterns on a path. The pink flower-pig mascot Yeoni (pink lotus flower on head, lilac neckerchief, match reference exactly) proudly holds up a small framed profile card showing a tiny cute character portrait with a little level star badge. On the table in front lies an open monthly attendance calendar sheet: a 7-column grid of blank squares where several squares are stamped with glossy golden honey-drop stamps and one square holds a tiny honey jar; no writing on it. Yeongnyangi (fluffy white cat with exactly TWO pink-lined ears, golden-violet half-lidded eyes, navy wizard hat with gold crescent moon and tassel, navy cape with gold trim, purple gem collar; aloof but secretly pleased) presses a round honey-drop stamp onto today's square with one paw, a small sparkle where it lands. A small honey jar with glowing drops sits nearby. Game-like, playful, cheerful mood, square composition, soft pastel storybook style matching reference 3."
   }
  ],
  "legacySingleImage": {

@@ -7,7 +7,7 @@ const destinations = [
   { id: 'webServiceTitle', label: '홈', icon: Layers },
   { id: 'homeCardTitle', label: '상담 추천', icon: MessageCircle },
   { id: 'homeStoryTitle', label: '웹툰 서가', icon: BookOpen },
-  { id: 'homeForest', label: '카드·혜택', icon: IdCard },
+  { id: 'homeDailyCard', label: '출석부', icon: IdCard },
 ];
 
 export default function MobileHomeNav() {

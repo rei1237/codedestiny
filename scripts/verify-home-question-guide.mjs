@@ -112,7 +112,7 @@ try {
  await go();
  const firstStory=page.locator('section[aria-labelledby="homeStoryTitle"] a[data-story-id="yeongnyangi"]');
  await page.setViewportSize({width:390,height:844});
- await captureForestAndInstall();
+ await captureDailyCardAndInstall();
  await firstStory.click();
  await page.waitForURL(url=>/^\/yeongnyangi\/season-1\/ep\d+\/$/.test(url.pathname));
  await page.locator('[data-serial-episode] img').first().waitFor();
@@ -155,14 +155,15 @@ try {
    assert(await toggle.evaluate(el=>el===document.activeElement));
    await page.evaluate(()=>window.scrollTo({top:0,behavior:'instant'}));
  }
- async function captureForestAndInstall(){
-   const gate=page.locator('#homeForest');
-   await imageMetrics(gate.locator('picture img'));
+ async function captureDailyCardAndInstall(){
+   const gate=page.locator('#homeDailyCard');
+   assert.equal(await gate.locator('img[src*="/images/home/forest/"]').count(),0);
+   await gate.scrollIntoViewIfNeeded();
    await gate.getByText('프로필 카드 예시',{exact:true}).waitFor();
    await gate.locator('[data-character-id]').evaluate(async el=>{
      const sprite=new Image();sprite.src=getComputedStyle(el).backgroundImage.slice(5,-2);await sprite.decode();
    });
-   await captureSection(gate,'forest-example-390');
+   await captureSection(gate,'daily-card-example-390');
    const install=page.getByRole('complementary',{name:'홈 화면에 추가'});
    await imageMetrics(install.locator('img').first());
    const play=install.getByRole('link',{name:/Google Play/});

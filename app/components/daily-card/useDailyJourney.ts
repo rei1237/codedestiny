@@ -1,8 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useDiaryToday, useDiaryWriter } from "@/app/diary/_components/DiaryStoreProvider";
-import { readStoredEntry } from "@/app/diary/_lib/today-snapshot";
 import type { DiaryTodoItem } from "@/app/diary/_lib/ext-snapshot";
 import { kstTodayYmd } from "@/app/diary/_lib/kst-date";
 import { smallActionsFor, pickSmallAction, type DiarySmallAction } from "@/app/diary/_lib/small-action-pool";
@@ -17,11 +16,11 @@ import { authFetch } from "@/app/_lib/auth-client";
 import { hasClientAuthHint } from "@/app/_lib/user-session-cache";
 import { trackEvent } from "@/lib/analytics";
 import { awardRpg } from "@/app/destiny-compass/_lib/rpg-bridge";
-import { QUEST_ID_PREFIX, entryHasRecord, findQuestTodo, journeyStepsDone, msUntilKstMidnight, weekForestMap } from "./forest-progress.mjs";
+import { QUEST_ID_PREFIX, entryHasRecord, findQuestTodo, journeyStepsDone, msUntilKstMidnight } from "./daily-progress.mjs";
 
-type ForestPortrait = { id: string; name: string; animal: string; ganji: string; element: string; equipped: boolean };
+type CardPortrait = { id: string; name: string; animal: string; ganji: string; element: string; equipped: boolean };
 
-async function readPortrait(profile: DestinyProfileCard): Promise<ForestPortrait> {
+async function readPortrait(profile: DestinyProfileCard): Promise<CardPortrait> {
   const request = async (path: string, init: RequestInit = {}) => {
     const response = await authFetch(getApiUrl(path), { ...init, credentials: "include", cache: "no-store" }, { retryOn401: hasClientAuthHint() });
     return { ok: response.ok, data: await response.json() };
@@ -38,7 +37,7 @@ async function readPortrait(profile: DestinyProfileCard): Promise<ForestPortrait
     ganji: animal.ganji, element: animal.element, equipped: Boolean(spirit) };
 }
 
-export type JourneyHoney = { balance: number; attended: boolean; streak: number; nextBonusIn: number; streakEvery: number; streakBonus: number; attendanceEvery: number; promptCost: number; awarded?: boolean; rewarded?: number };
+export type JourneyHoney = { balance: number; attended: boolean; streak: number; nextBonusIn: number; streakEvery: number; streakBonus: number; attendanceEvery: number; promptCost: number; day?: string; monthDays?: { day: string; bonus?: boolean }[]; awarded?: boolean; rewarded?: number; bonus?: number };
 export type JourneyProgress = { currentLevel: number; currentLevelExp: number; nextLevelExp: number };
 export type JourneyProduct = { productId: string; title: string; honeyCost: number };
 export type JourneyStatus = "loading" | "guest" | "ready" | "error";
@@ -49,11 +48,11 @@ const LAST_VISIT_KEY = "cd.daily-home.last-visit";
 const WALK_COMPLETED_KEY = "cd.daily-home.walk-completed";
 
 /**
- * 오늘의 숲길 데이터. 출석·경험치 규칙과 값은 서버에 있고, 실천·기록은 기존 다이어리 저장소를 쓴다.
+ * 내 캐릭터 출석부 데이터. 출석·경험치 규칙과 값은 서버에 있고, 실천·기록은 기존 다이어리 저장소를 쓴다.
  * 🔴 `enabled` 가 true 가 된 뒤에만 API 를 부른다 — 홈 첫 로딩에 부담을 주지 않기 위해서다.
  */
 export function useDailyJourney({ surface, enabled }: { surface: JourneySurface; enabled: boolean }) {
-  const { hydrated, ymd, entry, store, ext, chart } = useDiaryToday();
+  const { hydrated, ymd, entry, ext, chart } = useDiaryToday();
   const { updateExtDay, refresh } = useDiaryWriter();
   const [status, setStatus] = useState<JourneyStatus>("loading");
   const [honey, setHoney] = useState<JourneyHoney | null>(null);
@@ -62,7 +61,7 @@ export function useDailyJourney({ surface, enabled }: { surface: JourneySurface;
   const [profile, setProfile] = useState<DestinyProfileCard | null>(null);
   const [profileStatus, setProfileStatus] = useState<"loading" | "ready" | "error">("loading");
   const [profileRevision, setProfileRevision] = useState(0);
-  const [portrait, setPortrait] = useState<ForestPortrait | null>(null);
+  const [portrait, setPortrait] = useState<CardPortrait | null>(null);
   const [portraitFailed, setPortraitFailed] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
@@ -89,7 +88,7 @@ export function useDailyJourney({ surface, enabled }: { surface: JourneySurface;
     await loadProgress();
   }, [loadProgress]);
   const loadHoney = useCallback(async (method: "GET" | "POST" = "GET") => {
-    // 출석 중에는 조회를 보내지 않고, 먼저 나간 조회의 답은 버린다. 늦은 답이 켠 등불을 되돌리면 안 된다.
+    // 출석 중에는 조회를 보내지 않고, 먼저 나간 조회의 답은 버린다. 늦은 답이 찍은 도장을 되돌리면 안 된다.
     if (posting.current) return;
     if (method === "POST") { posting.current = true; setBusy(true); }
     const seq = ++requestSeq.current;
@@ -118,7 +117,7 @@ export function useDailyJourney({ surface, enabled }: { surface: JourneySurface;
     }
   }, [loadProgress, recordGrowth, surface]);
 
-  // 입구와 모든 걸음은 동일한 선택 카드와 장착 상태를 공유한다.
+  // 카드·출석·퀘스트는 모두 같은 선택 카드와 장착 상태를 쓴다.
   useEffect(() => {
     let active = true;
     setProfile(null); setPortrait(null); setPortraitFailed(false); setProfileStatus("loading");
@@ -194,7 +193,6 @@ export function useDailyJourney({ surface, enabled }: { surface: JourneySurface;
   const questDone = Boolean(quest?.done);
   const hasRecord = entryHasRecord(entry);
   const stepsDone = journeyStepsDone({ attended, questDone, hasRecord });
-  const weekMap = useMemo(() => weekForestMap(ymd, (day: string) => readStoredEntry(store, day), ext), [ymd, store, ext]);
 
   useEffect(() => {
     if (!hydrated || !ymd || stepsDone < 3) return;
@@ -226,7 +224,7 @@ export function useDailyJourney({ surface, enabled }: { surface: JourneySurface;
     }
   }
 
-  return { surface, hydrated, ymd, entry, status, honey, progress, products, profile, profileStatus, portrait, portraitFailed, busy, message, quest, picked, savedAction, attended, questDone, hasRecord, stepsDone, weekMap, attend, retry, selectQuest, rerollQuest, toggleQuest };
+  return { surface, hydrated, ymd, entry, status, honey, progress, products, profile, profileStatus, portrait, portraitFailed, busy, message, quest, picked, savedAction, attended, questDone, hasRecord, stepsDone, attend, retry, selectQuest, rerollQuest, toggleQuest };
 }
 
 export type DailyJourney = ReturnType<typeof useDailyJourney>;
