@@ -5,7 +5,7 @@ const mocks={
  '@/app/_lib/auth-store':"export const useAuthStore=()=>globalThis.__letterRoom.auth;",
  '@/app/yeongnyangi/_lib/use-profiles':"export const profileKey=p=>p.profileId;export const useProfiles=()=>globalThis.__letterRoom.profiles||({profiles:[{profileId:'p',name:'본인'}],profileId:'p',select:()=>{},saved:()=>{},guest:false,loading:false,refresh:async()=>{}});",
  '@/app/yeongnyangi/_components/ProfileForm':"export default ()=>null;",
- '@/app/fortune-chat/ConsultationIntake':"import React from 'react';export default p=>React.createElement('div',{'data-question':p.question},p.profile,React.createElement('button',{onClick:()=>p.onQuestion('질문입니다')},'질문 입력'),React.createElement('button',{onClick:()=>p.onQuestion('')},'질문 지우기'),React.createElement('button',{onClick:p.onCreate,disabled:!p.enabled},'상담 준비'));",
+ '@/app/fortune-chat/ConsultationIntake':"import React from 'react';export default p=>React.createElement('div',{'data-question':p.question,'data-price':p.tossPrice||''},p.profile,React.createElement('button',{onClick:()=>p.onQuestion('질문입니다')},'질문 입력'),React.createElement('button',{onClick:()=>p.onQuestion('')},'질문 지우기'),React.createElement('button',{onClick:p.onCreate,disabled:!p.enabled},'상담 준비'));",
  '@/app/fortune-chat/ConsultationResult':"import React from 'react';export default ({row})=>row.chapters?.length?React.createElement('p',null,'결과 내용 '+(row.chapters?.[0]?.summary||'')):null;",
  '@/app/fortune-chat/YeoniWelcome':"export default ()=>null;",
  '@/app/fortune-chat/consultation-api':"export class ConsultationApiError extends Error{constructor(status){super();this.status=status;}};export const isConsultationId=id=>/^[a-f0-9]{64}$/.test(id);export const consultationApi={list:(...a)=>globalThis.__letterRoom.list(...a),read:(...a)=>globalThis.__letterRoom.read(...a),create:(...a)=>globalThis.__letterRoom.create(...a),generate:(...a)=>globalThis.__letterRoom.generate(...a)};",
@@ -15,6 +15,57 @@ const mocks={
 const src=fs.readFileSync(path.join(root,'apps/toss/service/TossLetterRoom.tsx'),'utf8');
 const built=await build({stdin:{contents:src,resolveDir:path.join(root,'apps/toss/service'),loader:'tsx'},bundle:true,write:false,platform:'node',format:'cjs',jsx:'automatic',external:['react','react/jsx-runtime'],plugins:[{name:'letter-boundaries',setup(b){b.onResolve({filter:/.*/},a=>/^react(?:\/jsx-runtime)?$/.test(a.path)?{path:a.path,external:true}:{path:a.path,namespace:'mock'});b.onLoad({filter:/.*/,namespace:'mock'},({path:p})=>({contents:mocks[p]||(p.endsWith('.css')?'export default {};':'export default ()=>null;')}));}}]});
 const m=new Module(path.join(root,'letter-room-test.cjs'));m.paths=Module._nodeModulePaths(path.join(root,'apps/toss'));m._compile(built.outputFiles[0].text,m.id);
+test('letter catalog is reverified for the current account before displaying a price',async()=>{
+ const dom=new JSDOM('<div id="root"></div>',{url:'http://localhost/fortune-tea-house/?counsel=letter'});globalThis.window=dom.window;globalThis.document=dom.window.document;globalThis.location=dom.window.location;globalThis.sessionStorage=dom.window.sessionStorage;globalThis.IS_REACT_ACT_ENVIRONMENT=true;let calls=0;
+ globalThis.__letterRoom={auth:{isAuthenticated:true,user:{id:'owner-a'}},products:async()=>{calls++;return [{id:'yeoni:chat_saju',sku:'sku',displayAmount:globalThis.__letterRoom.auth.user.id}];},list:async()=>({consultations:[]})};
+ const app=createRoot(document.getElementById('root'));try{
+  await React.act(async()=>app.render(React.createElement(m.exports.default)));assert.equal(document.querySelector('[data-price]').dataset.price,'owner-a');
+  globalThis.__letterRoom.auth={isAuthenticated:true,user:{id:'owner-b'}};await React.act(async()=>app.render(React.createElement(m.exports.default)));assert.equal(calls,2);assert.equal(document.querySelector('[data-price]').dataset.price,'owner-b');
+ }finally{await React.act(async()=>app.unmount());dom.window.close();delete globalThis.__letterRoom;}
+});
+test('a late catalog response cannot restore a previous account price',async()=>{
+ const dom=new JSDOM('<div id="root"></div>',{url:'http://localhost/fortune-tea-house/?counsel=letter'});globalThis.window=dom.window;globalThis.document=dom.window.document;globalThis.location=dom.window.location;globalThis.sessionStorage=dom.window.sessionStorage;globalThis.IS_REACT_ACT_ENVIRONMENT=true;let finishOld;
+ globalThis.__letterRoom={auth:{isAuthenticated:true,user:{id:'owner-a'}},products:()=>globalThis.__letterRoom.auth.user.id==='owner-a'?new Promise(resolve=>{finishOld=resolve;}):Promise.resolve([{id:'yeoni:chat_saju',sku:'sku',displayAmount:'new-price'}]),list:async()=>({consultations:[]})};
+ const app=createRoot(document.getElementById('root'));try{
+  await React.act(async()=>app.render(React.createElement(m.exports.default)));globalThis.__letterRoom.auth={isAuthenticated:true,user:{id:'owner-b'}};await React.act(async()=>app.render(React.createElement(m.exports.default)));assert.equal(document.querySelector('[data-price]').dataset.price,'new-price');
+  await React.act(async()=>finishOld([{id:'yeoni:chat_saju',sku:'sku',displayAmount:'old-price'}]));assert.equal(document.querySelector('[data-price]').dataset.price,'new-price');
+ }finally{await React.act(async()=>app.unmount());dom.window.close();delete globalThis.__letterRoom;}
+});
+test('a previous account catalog denial is not shown as the new account state',async()=>{
+ const dom=new JSDOM('<div id="root"></div>',{url:'http://localhost/fortune-tea-house/?counsel=letter'});globalThis.window=dom.window;globalThis.document=dom.window.document;globalThis.location=dom.window.location;globalThis.sessionStorage=dom.window.sessionStorage;globalThis.IS_REACT_ACT_ENVIRONMENT=true;
+ globalThis.__letterRoom={auth:{isAuthenticated:true,user:{id:'owner-a'}},products:()=>globalThis.__letterRoom.auth.user.id==='owner-a'?Promise.reject({status:403}):new Promise(()=>{}),list:async()=>({consultations:[]})};const app=createRoot(document.getElementById('root'));try{
+  await React.act(async()=>app.render(React.createElement(m.exports.default)));assert.match(document.body.textContent,/접근할 권한/);
+  globalThis.__letterRoom.auth={isAuthenticated:true,user:{id:'owner-b'}};await React.act(async()=>app.render(React.createElement(m.exports.default)));assert.doesNotMatch(document.body.textContent,/접근할 권한/);
+ }finally{await React.act(async()=>app.unmount());dom.window.close();delete globalThis.__letterRoom;}
+});
+test('an account transition never paints the previous account result',async()=>{
+ const id='a'.repeat(64),dom=new JSDOM('<div id="root"></div>',{url:'http://localhost/fortune-tea-house/?counsel=letter&consultation='+id});globalThis.window=dom.window;globalThis.document=dom.window.document;globalThis.location=dom.window.location;globalThis.sessionStorage=dom.window.sessionStorage;globalThis.IS_REACT_ACT_ENVIRONMENT=true;const paints=[];
+ globalThis.__letterRoom={auth:{isAuthenticated:true,user:{id:'owner-a'}},products:async()=>[],list:async()=>({consultations:[]}),read:async()=>globalThis.__letterRoom.auth.user.id==='owner-a'?{id,persona:'yeoni',productId:'chat_saju',state:'COMPLETED',paid:true,chapters:[{summary:'이전 계정 비공개 결과'}]}:new Promise(()=>{})};
+ const Harness=()=>{React.useLayoutEffect(()=>{paints.push(document.body.textContent);});return React.createElement(m.exports.default,{initialId:id});};const app=createRoot(document.getElementById('root'));try{
+  await React.act(async()=>app.render(React.createElement(Harness)));assert.match(document.body.textContent,/이전 계정 비공개 결과/);paints.length=0;
+  globalThis.__letterRoom.auth={isAuthenticated:true,user:{id:'owner-b'}};await React.act(async()=>app.render(React.createElement(Harness)));assert.ok(paints.length);assert.doesNotMatch(paints[0],/이전 계정 비공개 결과/);
+ }finally{await React.act(async()=>app.unmount());dom.window.close();delete globalThis.__letterRoom;}
+});
+test('an assigned recovery order is rechecked after switching accounts before a new purchase can be offered',async()=>{
+ const orderId='01900000-1111-7111-8111-000000000001',id='d'.repeat(64),dom=new JSDOM('<div id="root"></div>',{url:'http://localhost/fortune-tea-house/?counsel=letter&orderId='+orderId});
+ globalThis.window=dom.window;globalThis.document=dom.window.document;globalThis.location=dom.window.location;globalThis.sessionStorage=dom.window.sessionStorage;globalThis.IS_REACT_ACT_ENVIRONMENT=true;let recoveryCalls=0,payments=0;
+ globalThis.__letterRoom={auth:{isAuthenticated:true,user:{id:'owner-a'}},products:async()=>[{id:'yeoni:chat_saju',sku:'sku',displayAmount:'테스트 금액'}],list:async()=>({consultations:[]}),read:async()=>{if(globalThis.__letterRoom.auth.user.id!=='owner-a')throw Object.assign(Error('denied'),{status:403});return {id,persona:'yeoni',productId:'chat_saju',state:'COMPLETED',paid:true,chapters:[{summary:'첫 계정 결과'}]};},purchase:()=>{payments++;},api:async()=>{recoveryCalls++;if(globalThis.__letterRoom.auth.user.id!=='owner-a')throw Object.assign(Error('denied'),{status:403});return {order:{orderId,status:'ASSIGNED',requestId:id}};}};
+ const app=createRoot(document.getElementById('root'));try{
+  await React.act(async()=>app.render(React.createElement(m.exports.default,{initialOrderId:orderId})));assert.match(document.body.textContent,/첫 계정 결과/);
+  globalThis.__letterRoom.auth={isAuthenticated:true,user:{id:'owner-b'}};await React.act(async()=>app.render(React.createElement(m.exports.default,{initialOrderId:orderId})));
+  assert.equal(recoveryCalls,2);assert.doesNotMatch(document.body.textContent,/첫 계정 결과/);assert.match(document.body.textContent,/접근할 권한/);assert.equal([...document.querySelectorAll('button')].find(b=>b.textContent==='상담 준비').disabled,true);assert.equal(payments,0);
+ }finally{await React.act(async()=>app.unmount());dom.window.close();delete globalThis.__letterRoom;}
+});
+test('an assigned recovery order is rechecked after logout and login to the same account',async()=>{
+ const orderId='01900000-1111-7111-8111-000000000001',id='d'.repeat(64),dom=new JSDOM('<div id="root"></div>',{url:'http://localhost/fortune-tea-house/?counsel=letter&orderId='+orderId});
+ globalThis.window=dom.window;globalThis.document=dom.window.document;globalThis.location=dom.window.location;globalThis.sessionStorage=dom.window.sessionStorage;globalThis.IS_REACT_ACT_ENVIRONMENT=true;let recoveryCalls=0;
+ globalThis.__letterRoom={auth:{isAuthenticated:true,user:{id:'owner-a'}},products:async()=>[],list:async()=>({consultations:[]}),read:async()=>({id,persona:'yeoni',productId:'chat_saju',state:'COMPLETED',paid:true,chapters:[{summary:'결과'}]}),api:async()=>{recoveryCalls++;return {order:{orderId,status:'ASSIGNED',requestId:id}};}};
+ const app=createRoot(document.getElementById('root'));try{
+  await React.act(async()=>app.render(React.createElement(m.exports.default,{initialOrderId:orderId})));assert.equal(recoveryCalls,1);
+  globalThis.__letterRoom.auth={isAuthenticated:false,user:null};await React.act(async()=>app.render(React.createElement(m.exports.default,{initialOrderId:orderId})));
+  globalThis.__letterRoom.auth={isAuthenticated:true,user:{id:'owner-a'}};await React.act(async()=>app.render(React.createElement(m.exports.default,{initialOrderId:orderId})));assert.equal(recoveryCalls,2);
+ }finally{await React.act(async()=>app.unmount());dom.window.close();delete globalThis.__letterRoom;}
+});
 test('letter preserves SDK update guidance and code-only access denial',async()=>{
  const dom=new JSDOM('<div id="root"></div>',{url:'http://localhost/fortune-tea-house/?counsel=letter'});globalThis.window=dom.window;globalThis.document=dom.window.document;globalThis.location=dom.window.location;globalThis.sessionStorage=dom.window.sessionStorage;globalThis.IS_REACT_ACT_ENVIRONMENT=true;
  const id='a'.repeat(64),draft={id,persona:'yeoni',productId:'chat_saju',state:'CREATED',paid:false,chapters:[]};let failure={code:'UNSUPPORTED_APP_VERSION',message:'토스 앱을 최신 버전으로 업데이트해 주세요.'};
