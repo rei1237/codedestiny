@@ -1,5 +1,5 @@
 import {SERVICE_AVAILABLE} from './release';
-import {Environment,IAP,TossAuth,Storage,Share} from '@apps-in-toss/web-framework';
+import {Environment,IAP,TossAuth,Storage,Share,isMinVersionSupported} from '@apps-in-toss/web-framework';
 export const APP_NAME='ai-saju-studio';
 const API='https://code-destiny.com/api/toss';
 let token:string|null=null;
@@ -173,6 +173,12 @@ function pausePaymentMedia(){
 function recoverySupported(){
   try{return IAP.getPendingOrders.isSupported()&&IAP.completeProductGrant.isSupported();}catch{return false;}
 }
+// These versions guarantee that the native SDK honors the grant callback's
+// true/false result. The purchase API itself has a lower support floor.
+function requirePurchaseSupport(){
+  // Exceptions are propagated unchanged, including native authorization errors.
+  if(!IAP.createOneTimePurchaseOrder.isSupported()||!isMinVersionSupported({android:'5.231.1',ios:'5.230.0'}))throw new ApiError('IAP_NOT_SUPPORTED');
+}
 function requireRecoveryReady(){
   if(!token)throw new ApiError('LOGIN_REQUIRED');
   if(paymentInFlight)throw new ApiError('PAYMENT_IN_PROGRESS');
@@ -187,7 +193,7 @@ export function purchase(product:SaleProduct,requestId:string,onDone:()=>void,on
   if(!SERVICE_AVAILABLE)throw new ApiError('TOSS_RELEASE_PENDING');
   if(!isToss())throw new ApiError('TOSS_APP_REQUIRED');
   requireRecoveryReady();
-  if(!IAP.createOneTimePurchaseOrder.isSupported())throw new ApiError('IAP_NOT_SUPPORTED');
+  requirePurchaseSupport();
   let unsubscribe:()=>void=()=>{},granted=false,settled=false,cleaned=false,sdkStarted=false;
   const requestToken=token,requestEpoch=sessionEpoch,requestAttempt=loginAttempt;
   const sessionChanged=()=>token!==requestToken||sessionEpoch!==requestEpoch||loginAttempt!==requestAttempt;
@@ -209,7 +215,7 @@ export function purchaseTarotLibrary(product:TarotLibraryProduct,input:unknown,o
   if(!SERVICE_AVAILABLE)throw new ApiError('TOSS_RELEASE_PENDING');
   if(!isToss())throw new ApiError('TOSS_APP_REQUIRED');
   requireRecoveryReady();
-  if(!IAP.createOneTimePurchaseOrder.isSupported())throw new ApiError('IAP_NOT_SUPPORTED');
+  requirePurchaseSupport();
   let unsubscribe:()=>void=()=>{},grantedOrder='',settled=false,cleaned=false,sdkStarted=false;
   const requestToken=token,requestEpoch=sessionEpoch,requestAttempt=loginAttempt;
   const sessionChanged=()=>token!==requestToken||sessionEpoch!==requestEpoch||loginAttempt!==requestAttempt;

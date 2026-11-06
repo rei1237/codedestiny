@@ -13,7 +13,7 @@ async function adapter(available=true,authenticated=false){
  const bundle=await build({entryPoints:[path.resolve(import.meta.dirname,'../src/platform.ts')],bundle:true,write:false,format:'cjs',platform:'node',plugins:[{name:'offline-sdk',setup(b){
   b.onResolve({filter:/^(@apps-in-toss\/web-framework|\.\/release)$/},args=>({path:args.path,namespace:'mock'}));
   b.onLoad({filter:/.*/,namespace:'mock'},args=>({contents:args.path==='./release'?'export const SERVICE_AVAILABLE='+available+';':`
-   export const Environment={environment:'sandbox'},TossAuth={login:async()=>({authorizationCode:'mock',referrer:'SANDBOX'})},Storage={getItem:async()=>{const s=globalThis.tossRecoveryTest,value=s.stored||null;if(s.getStarted)s.getStarted();if(s.getWait)await s.getWait;return value;},removeItem:async()=>{const s=globalThis.tossRecoveryTest;if(s.removeFailure)throw s.removeFailure;if(s.removeError)throw Error('storage remove failed');if(s.removeStarted)s.removeStarted();if(s.removeWait)await s.removeWait;s.stored=null;},setItem:async(_key,value)=>{const s=globalThis.tossRecoveryTest;if(s.setStarted)s.setStarted();if(s.setWait)await s.setWait;if(s.storageFailure)throw s.storageFailure;if(s.setError||s.failSetFor===value)throw Error('storage unavailable');s.stored=value;}},Share={};
+   export const Environment={environment:'sandbox'},isMinVersionSupported=versions=>{const s=globalThis.tossRecoveryTest;s.minimumVersions=versions;if(s.versionProbeFailure)throw s.versionProbeFailure;return s.versionSupported!==false;},TossAuth={login:async()=>({authorizationCode:'mock',referrer:'SANDBOX'})},Storage={getItem:async()=>{const s=globalThis.tossRecoveryTest,value=s.stored||null;if(s.getStarted)s.getStarted();if(s.getWait)await s.getWait;return value;},removeItem:async()=>{const s=globalThis.tossRecoveryTest;if(s.removeFailure)throw s.removeFailure;if(s.removeError)throw Error('storage remove failed');if(s.removeStarted)s.removeStarted();if(s.removeWait)await s.removeWait;s.stored=null;},setItem:async(_key,value)=>{const s=globalThis.tossRecoveryTest;if(s.setStarted)s.setStarted();if(s.setWait)await s.setWait;if(s.storageFailure)throw s.storageFailure;if(s.setError||s.failSetFor===value)throw Error('storage unavailable');s.stored=value;}},Share={};
    const productList=async()=>{const s=globalThis.tossRecoveryTest;s.productListCalls=(s.productListCalls||0)+1;if(s.productListError)throw s.productListError;return {products:[]};};productList.isSupported=()=>{if(globalThis.tossRecoveryTest.productSupportThrows)throw Error('bridge unavailable');return globalThis.tossRecoveryTest.supportProductList!==false;};const buy=options=>{const s=globalThis.tossRecoveryTest;s.purchaseOptions=options;if(s.synchronousThrow)throw Object.assign(Error('NETWORK_ERROR'),{code:'NETWORK_ERROR'});if(s.synchronousCancel)options.onError({code:'USER_CANCELED'});return ()=>{s.cleanupCount=(s.cleanupCount||0)+1;};};buy.isSupported=()=>true;
    const pending=async()=>{const s=globalThis.tossRecoveryTest;s.pendingCalls=(s.pendingCalls||0)+1;if(s.pendingStarted)s.pendingStarted();if(s.pendingWait)await s.pendingWait;return s.malformed?undefined:{orders:s.orders};};pending.isSupported=()=>globalThis.tossRecoveryTest.supportPending!==false;const complete=async({params})=>{const s=globalThis.tossRecoveryTest;s.ack.push(params.orderId);if(s.ackStarted)s.ackStarted();if(s.ackWait)await s.ackWait;return !s.failAck;};complete.isSupported=()=>globalThis.tossRecoveryTest.supportComplete!==false;export const IAP={createOneTimePurchaseOrder:buy,getPendingOrders:pending,completeProductGrant:complete,getProductItemList:productList};
   `}));
@@ -102,6 +102,17 @@ for(const unsupported of ['supportPending','supportComplete'])test(unsupported+'
   for(const buy of [purchase,purchaseTarot])assert.throws(()=>buy({sku:'mock'},'request',()=>{},()=>{}),error=>error.code==='IAP_NOT_SUPPORTED');
   assert.equal(state.pendingCalls,undefined);assert.equal(state.purchaseOptions,undefined);
  }finally{delete globalThis.tossRecoveryTest;}
+});
+
+for(const condition of ['versionSupported','versionProbeFailure'])test(condition+' blocks both purchase types while existing orders remain recoverable',async()=>{
+ const {state,restore,purchase,purchaseTarot}=await adapter(true,true),previous=globalThis.fetch;
+ const denial=Object.assign(new Error('denied'),{code:'ACCESS_DENIED',status:403});state[condition]=condition==='versionSupported'?false:denial;state.orders=[{orderId:'saved',sku:'fixture'}];
+ globalThis.fetch=async()=>Response.json({orderId:'saved',entitlement:'granted',durable:true});
+ try{
+  assert.deepEqual(await restore(),{recovered:1,failed:0,denied:0});assert.deepEqual(state.ack,['saved']);
+  for(const buy of [purchase,purchaseTarot])assert.throws(()=>buy({sku:'fixture'},'request',()=>{},()=>{}),error=>condition==='versionSupported'?error.code==='IAP_NOT_SUPPORTED':error===denial&&error.code==='ACCESS_DENIED'&&error.status===403);
+  assert.deepEqual(state.minimumVersions,{android:'5.231.1',ios:'5.230.0'});assert.equal(state.purchaseOptions,undefined);
+ }finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
 });
 
 test('a malformed or failed recovery blocks purchase until a successful retry',async()=>{
