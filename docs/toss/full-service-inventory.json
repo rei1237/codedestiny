@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "7c431ae36c0a47c7ca4d19d7e201290f73a07f8e",
+  "sourceCommit": "f58e527c14d4ddc30be3ab1c598e6d2ab60bd68b",
   "scope": "Source discovery plus explicitly verified aliases; not a count of implemented services. Unmapped contracts are blocking work, not exclusions.",
   "sourceCounts": {
     "home": 63,
@@ -3780,12 +3780,13 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/maya/",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "src/lib/maya-calendar.ts (date-only calendar calculation)",
+      "resultRenderer": "src/components/maya/MayaCalendarView.tsx",
+      "storageContract": "calendar selection is not stored; paid prompt and purchase recovery are not ported",
+      "verification": "mock home/direct route, native back and date calculation; 360/390/430px local browser only; paid prompt, language parity and official device not verified"
     },
     {
       "id": "mbti-animal-compat",
