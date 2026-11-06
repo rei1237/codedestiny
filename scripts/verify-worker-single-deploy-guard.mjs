@@ -38,8 +38,14 @@ const forbiddenWorkerCommands = /(?:wrangler\s+(?:pages\s+)?deploy\b|wrangler\s+
  * 🔴 일일 운세 발행은 그 **유일한 자동화 예외**다. 사용자가 오늘 운세를 읽는 곳은 프로덕션이라
  * 컷오버 뒤에도 이것만은 자동으로 나가야 한다. 구현에서 우연히 흘러나오는 게 아니라 여기에
  * 명시적으로 선언한다.
+ *
+ * 영냥이 주간 회차 발행(토 21:05 KST)이 같은 성격의 두 번째 예외다. 둘 다 새 코드를 싣지 않고
+ * **지금 라이브인 커밋**을 Pages 만(pages_only) 다시 빌드해, 빌드 시각에 굳는 콘텐츠(운세 날짜·연재 회차)만 바꾼다.
  */
-const productionDispatchAllowlist = new Set([".github/workflows/fortune-daily-publish.yml"]);
+const productionDispatchAllowlist = new Set([
+  ".github/workflows/fortune-daily-publish.yml",
+  ".github/workflows/yeongnyangi-weekly-publish.yml",
+]);
 const productionDispatchCall = /gh\s+workflow\s+run[^\n]*cloudflare-pages-deploy\.yml/;
 
 function assert(condition, message) {

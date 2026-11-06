@@ -81,11 +81,12 @@ try {
    await questionField.fill(draft);
    await trigger.click();
    await reader.waitFor();
-   assert.equal(await reader.locator('section').count(),4);
+   assert.equal(await reader.locator('section').count(),7);
+   assert.equal(await reader.locator('p[data-cat] b').first().innerText(),'영냥이','both guides speak');
    assert.equal(await reader.locator('p b').first().innerText(),'꽃돼지 연이');
    assert.equal(await reader.getByRole('link',{name:/마스터 상담 둘러보기/}).getAttribute('href'),'/consultations/');
    if(width===360){
-     for(const [index,name] of [[2,'04-comic-choice'],[3,'05-comic-records']]){
+     for(const [index,name] of [[0,'03-comic-first'],[4,'04-comic-profile'],[6,'05-comic-records']]){
        const panel=reader.locator('section').nth(index);
        await panel.locator('img').scrollIntoViewIfNeeded();
        await panel.locator('img').evaluate(img=>img.decode());
@@ -113,8 +114,8 @@ try {
  await page.setViewportSize({width:390,height:844});
  await captureForestAndInstall();
  await firstStory.click();
- await page.waitForURL(url=>url.pathname==='/yeongnyangi/room/' && url.hash==='#story');
- await page.locator('dialog[open] [data-panel="01"]').waitFor();
+ await page.waitForURL(url=>/^\/yeongnyangi\/season-1\/ep\d+\/$/.test(url.pathname));
+ await page.locator('[data-serial-episode] img').first().waitFor();
  await page.setViewportSize({width:360,height:800});
  console.log('PASS comic desktop/mobile, focus, back, zoom, draft submission');
  async function captureSection(section,name){
@@ -135,8 +136,9 @@ try {
    const artwork=new Set();
    for(const link of await links.all()){
      const id=await link.getAttribute('data-story-id');
-     const href=id==='yeongnyangi'?'/yeongnyangi/room/#story':id==='heukwol'?'/heukwol/#heukwol-story':'/consultations/'+id+'/#story';
+     const href=id==='yeongnyangi'?await link.getAttribute('href'):id==='heukwol'?'/heukwol/#heukwol-story':'/consultations/'+id+'/#story';
      assert.equal(await link.getAttribute('href'),href,id+' reader');
+     if(id==='yeongnyangi')assert.match(href,/^\/yeongnyangi\/season-1\/ep\d+\/$/,'영냥이 card opens the latest episode');
      const image=link.locator('img');
      assert.equal(await image.count(),1,id+' has one cover');
      const art=await imageMetrics(image);

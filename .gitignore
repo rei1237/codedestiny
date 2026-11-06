@@ -159,3 +159,6 @@ reports/
 
 # Reproducible local SEO crawl, browser screenshots and Lighthouse reports.
 seo-qa/
+
+# 영냥이 연재: 공개 회차만 빌드 때 content/yeongnyangi/season-1/ 에서 복사(scripts/publish-yeongnyangi-serial.mjs)
+public/assets/yeongnyangi/season-1/
