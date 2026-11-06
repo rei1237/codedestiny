@@ -180,6 +180,27 @@ test('server recovery does not complete if native access is revoked during gener
   expect(report.messages).toHaveLength(1);
 });
 
+test('Love Secret native follow-up rechecks purchase and marks legacy Toss input for recovery', async () => {
+  const source=fs.readFileSync('worker/routes/love-secret-ai.js','utf8'),tree=ts.createSourceFile('route.js',source,99,true,1);
+  const handler=tree.statements.find(node=>node.name?.text==='handleMessage').getText(tree);
+  let checks=0, delivered=0;const native={auth:{userId:owner},assertStored:async()=>{checks++;}};
+  const context=vm.createContext({readJson:req=>req.json(),clean:value=>String(value||''),invalidInput:()=>new Response('{}',{status:404}),notFound:()=>new Response('{}',{status:404}),loginRequired:()=>new Response('{}',{status:401}),getOptionalUserFromRequest:async()=>native.auth,connectDb:async()=>{},nativeTossContext:()=>native,LoveSecretAiConsultation:reportModel,FEATURE_KEY:'love-secret-ai-consultation',deliverExpertFollowUp:async options=>{expect(options.consultation.accessSource).toBe('toss');await options.verifyAccess();delivered++;return new Response('{}');},generateFollowUp:()=>{},publicSession:()=>{}});
+  vm.runInContext(handler,context);
+  const request=()=>new Request('https://mock.test/message',{method:'POST',body:JSON.stringify({sessionId:report.id,message:'다음 선택은 무엇일까요?'})});
+  expect((await context.handleMessage(request(),{})).status).toBe(200);expect(checks).toBe(2);expect(delivered).toBe(1);
+  native.assertStored=async()=>{throw Object.assign(Error('refunded'),{status:409,code:'ORDER_REFUNDED'});};
+  await expect(context.handleMessage(request(),{})).rejects.toMatchObject({code:'ORDER_REFUNDED'});expect(delivered).toBe(1);
+});
+test('Love Secret Toss records are not exposed through web follow-up',async()=>{
+  report.accessSource='toss';
+  const source=fs.readFileSync('worker/routes/love-secret-ai.js','utf8'),tree=ts.createSourceFile('route.js',source,99,true,1);
+  const handler=tree.statements.find(node=>node.name?.text==='handleMessage').getText(tree);let delivered=0;
+  const context=vm.createContext({readJson:req=>req.json(),clean:value=>String(value||''),invalidInput:()=>new Response('{}',{status:404}),notFound:()=>new Response('{}',{status:404}),loginRequired:()=>new Response('{}',{status:401}),getOptionalUserFromRequest:async()=>({userId:owner}),connectDb:async()=>{},nativeTossContext:()=>null,LoveSecretAiConsultation:reportModel,deliverExpertFollowUp:async()=>{delivered++;}});
+  vm.runInContext(handler,context);
+  const request=new Request('https://mock.test/message',{method:'POST',body:JSON.stringify({sessionId:report.id,message:'다음 선택은 무엇일까요?'})});
+  expect((await context.handleMessage(request,{})).status).toBe(404);expect(delivered).toBe(0);
+});
+
 test.each(AI_OUTPUT_LOCALES)('%s: follow-up uses the original report language and reopens without generation', async locale => {
   report.llmMeta.resumeBody = { locale };
   const languages = [], original = provider.getMockImplementation();

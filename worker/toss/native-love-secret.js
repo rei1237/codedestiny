@@ -34,7 +34,6 @@ function loveSecretContext(env,auth){
 }
 
 export async function handleNativeLoveSecret(request,env,auth,path){
-  if(path==='/message')throw new TossError('TOSS_FEATURE_NOT_AVAILABLE',503);
   const url=new URL(request.url);url.pathname='/api/love-secret-ai'+path;
   const virtualId=url.searchParams.get('attemptId')||url.searchParams.get('sessionId');
   if(path==='/result'&&/^toss_[a-f0-9]{64}$/.test(virtualId||'')){
