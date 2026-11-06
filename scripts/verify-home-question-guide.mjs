@@ -97,7 +97,7 @@ try {
      assert(await reader.evaluate(el=>el.scrollWidth<=el.clientWidth+1));
      await reader.getByRole('button',{name:'내 질문 써보기'}).click();
      await page.waitForFunction(()=>document.activeElement?.id==='home-question');
-     await page.reload();await openQuestions();await questionField.fill(draft);await trigger.click();
+     await page.reload();await openQuestions();await questionField.fill(draft);await trigger.click();await reader.waitFor();
    }
    await page.keyboard.press('Escape');await reader.waitFor({state:'hidden'});
    assert(await trigger.evaluate(el=>el===document.activeElement));
@@ -107,7 +107,7 @@ try {
    await page.waitForFunction(()=>document.activeElement?.id==='home-question');
    assert.equal(await questionField.inputValue(),draft);
    await btn('내 질문에 맞는 상담 찾기').click();
-   await page.getByRole('heading',{name:'네오의 팩폭 전략실',exact:true}).waitFor();await btn('질문 수정하기').click();
+   await page.getByRole('heading',{name:'네오의 팩폭 전략실',exact:true,level:2}).waitFor();await btn('질문 수정하기').click();
  }
  await go();
  const firstStory=page.locator('section[aria-labelledby="homeStoryTitle"] a[data-story-id="yeongnyangi"]');
@@ -203,7 +203,7 @@ try {
  ['사주로 제가 연애에서 반복하는 패턴을 알고 싶어요.','운세보는 영냥이','/yeongnyangi/fortune/','textarea'],
  ['위로보다 타로 카드로 지금 관계를 보고 싶어요.','우리는 무슨 사이? · 관계 타로','/tarot/love/',null]];
  for(const [i,[q,name,path,selector]] of cases.entries()){
-   await go();await fill(q);await page.getByRole('heading',{name,exact:true}).waitFor();
+   await go();await fill(q);await page.getByRole('heading',{name,exact:true,level:2}).waitFor();
    if(i===1)await shot('03-match');
    const link=page.locator('section[aria-labelledby="homeQuestionTitle"] a').first();await link.click({timeout:120000});
    await page.waitForURL(u=>u.pathname===path,{timeout:120000});assert(!decodeURIComponent(page.url()).includes(q));
@@ -219,8 +219,8 @@ try {
  await page.waitForFunction(v=>document.querySelector('#yeoni-question')?.value===v,cases[0][0]);console.log('PASS letter intake flag');
  await go();await fill('연애가 고민이에요.');await shot('02-followup');await page.goBack();assert.equal(await page.locator('#home-question').inputValue(),'연애가 고민이에요.');
  await fill('연애가 고민이에요.');await btn('직접 답하기').click();await page.locator('#home-answer').fill('카드를 뽑아 지금 상황을 보고 싶어요.');await btn('답변 반영하기').click();
- await page.getByRole('heading',{name:cases[3][1]}).waitFor();assert.equal(await page.getByRole('link',{name:'관계 타로 배열 보기'}).getAttribute('href'),'/tarot/love/');
- await btn('이전 답변 수정하기').click();assert.match(await page.locator('#home-answer').inputValue(),/카드/);await btn('판단할 기준을 세우고 싶어요.').click();await page.getByRole('heading',{name:cases[1][1]}).waitFor();
+ await page.getByRole('heading',{name:cases[3][1],level:2}).waitFor();assert.equal(await page.getByRole('link',{name:'관계 타로 배열 보기'}).getAttribute('href'),'/tarot/love/');
+ await btn('이전 답변 수정하기').click();assert.match(await page.locator('#home-answer').inputValue(),/카드/);await btn('판단할 기준을 세우고 싶어요.').click();await page.getByRole('heading',{name:cases[1][1],level:2}).waitFor();
  await btn('처음 질문 수정하기').click();await page.setViewportSize({width:360,height:390});const long='연락을 기다리며 '.repeat(60)+'기준이 필요해요.';await fill(long);assert.equal(await page.locator('section[aria-labelledby="homeQuestionTitle"] p').first().textContent(),long);assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));console.log('PASS 5 followup/edit/short viewport/long question');
  await go();await openQuestions();await page.getByText('운세 종류로 찾기',{exact:true}).click();await page.locator('details nav').getByRole('link',{name:'타로',exact:true}).click();await page.waitForURL('**/tarot/');await page.locator('h1').first().waitFor();console.log('PASS 6 /tarot/');
 }finally{await browser.close();}
