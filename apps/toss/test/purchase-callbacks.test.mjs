@@ -57,7 +57,7 @@ test('media resumes after a durable grant and is not restarted twice',async()=>{
  try{
   let done=0;purchase(product,'request',()=>done++,()=>assert.fail('unexpected error'));await tick();
   assert.equal(await state.options.options.processProductGrant({orderId:'order'}),true);
-  state.options.onEvent({});state.options.onEvent({});assert.equal(done,1);assert.equal(media.plays,1);
+  state.options.onEvent({type:'success',data:{orderId:'order'}});state.options.onEvent({type:'success',data:{orderId:'order'}});assert.equal(done,1);assert.equal(media.plays,1);
  }finally{globalThis.document=originalDocument;globalThis.fetch=originalFetch;delete globalThis.__purchaseCallbacks;}
 });
 

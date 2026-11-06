@@ -203,7 +203,7 @@ export function purchase(product:Pick<SaleProduct,'sku'>,requestId:string,onDone
   if(!isToss())throw new ApiError('TOSS_APP_REQUIRED');
   requireRecoveryReady();
   requirePurchaseSupport();
-  let unsubscribe:()=>void=()=>{},granted=false,settled=false,cleaned=false,sdkStarted=false;
+  let unsubscribe:()=>void=()=>{},grantedOrder='',settled=false,cleaned=false,sdkStarted=false;
   const requestToken=token,requestEpoch=sessionEpoch,requestAttempt=loginAttempt;
   const sessionChanged=()=>token!==requestToken||sessionEpoch!==requestEpoch||loginAttempt!==requestAttempt;
   const attempt=paymentInFlight=Symbol('purchase');
@@ -214,10 +214,10 @@ export function purchase(product:Pick<SaleProduct,'sku'>,requestId:string,onDone
   const fail=(error:unknown)=>{if(settled)return;settled=true;const canceled=typeof error==='object'&&error&&'code' in error&&error.code==='USER_CANCELED';if(sdkStarted){paymentUncertain=true;blockRecovery();}clean();onError(sessionChanged()?new ApiError('SESSION_CHANGED','',409):sdkStarted&&canceled?new ApiError('PAYMENT_STATUS_UNCERTAIN'):error);};
   void (async()=>{try{const verified=await api<{authenticated?:boolean}>('/session');if(settled)return;if(sessionChanged())throw new ApiError('SESSION_CHANGED','',409);if(verified?.authenticated!==true)throw new ApiError('SESSION_CHECK_FAILED');sdkStarted=true;unsubscribe=IAP.createOneTimePurchaseOrder({options:{sku:product.sku,processProductGrant:async({orderId})=>{
     if(settled||sessionChanged())return false;
-    granted=false;
-    try{const receipt=await api<Receipt>('/orders/grant',{sku:product.sku,orderId,requestId});granted=!settled&&!sessionChanged()&&validReceipt(receipt,orderId)&&receipt.requestId===requestId;return granted;}
+    grantedOrder='';
+    try{const receipt=await api<Receipt>('/orders/grant',{sku:product.sku,orderId,requestId});const granted=!settled&&!sessionChanged()&&validReceipt(receipt,orderId)&&receipt.requestId===requestId;grantedOrder=granted?orderId:'';return granted;}
     catch(error){fail(error);return false;}
-  }},onEvent:()=>{if(settled)return;settled=true;if(!granted){paymentUncertain=true;blockRecovery();}clean();if(sessionChanged())onError(new ApiError('SESSION_CHANGED','',409));else if(granted)onDone();else onError(new ApiError('GRANT_NOT_DURABLE'));},onError:fail});if(cleaned)unsubscribe();}catch(error){if(!settled){if(sdkStarted){paymentUncertain=true;blockRecovery();}settled=true;clean();onError(error);}}})();
+  }},onEvent:(event)=>{if(settled)return;settled=true;const confirmed=Boolean(grantedOrder&&event?.type==='success'&&event.data?.orderId===grantedOrder);if(!confirmed){paymentUncertain=true;blockRecovery();}clean();if(sessionChanged())onError(new ApiError('SESSION_CHANGED','',409));else if(confirmed)onDone();else onError(new ApiError(grantedOrder?'PAYMENT_STATUS_UNCERTAIN':'GRANT_NOT_DURABLE'));},onError:fail});if(cleaned)unsubscribe();}catch(error){if(!settled){if(sdkStarted){paymentUncertain=true;blockRecovery();}settled=true;clean();onError(error);}}})();
   return ()=>clean();
 }
 export function purchaseTarotLibrary(product:TarotLibraryProduct,input:unknown,onDone:(orderId:string)=>void,onError:(error:unknown)=>void){
@@ -239,7 +239,7 @@ export function purchaseTarotLibrary(product:TarotLibraryProduct,input:unknown,o
     grantedOrder='';
     try{const receipt=await api<Receipt>('/tarot-library/orders/grant',{sku:product.sku,orderId,input});const granted=!settled&&!sessionChanged()&&validReceipt(receipt,orderId);grantedOrder=granted?orderId:'';return granted;}
     catch(error){fail(error);return false;}
-  }},onEvent:()=>{if(settled)return;settled=true;if(!grantedOrder){paymentUncertain=true;blockRecovery();}clean();if(sessionChanged())onError(new ApiError('SESSION_CHANGED','',409));else if(grantedOrder)onDone(grantedOrder);else onError(new ApiError('GRANT_NOT_DURABLE'));},onError:fail});if(cleaned)unsubscribe();}catch(error){if(!settled){if(sdkStarted){paymentUncertain=true;blockRecovery();}settled=true;clean();onError(error);}}})();
+  }},onEvent:(event)=>{if(settled)return;settled=true;const confirmed=Boolean(grantedOrder&&event?.type==='success'&&event.data?.orderId===grantedOrder);if(!confirmed){paymentUncertain=true;blockRecovery();}clean();if(sessionChanged())onError(new ApiError('SESSION_CHANGED','',409));else if(confirmed)onDone(grantedOrder);else onError(new ApiError(grantedOrder?'PAYMENT_STATUS_UNCERTAIN':'GRANT_NOT_DURABLE'));},onError:fail});if(cleaned)unsubscribe();}catch(error){if(!settled){if(sdkStarted){paymentUncertain=true;blockRecovery();}settled=true;clean();onError(error);}}})();
   return ()=>clean();
 }
 type RecoveryCounts={recovered:number;failed:number;denied:number};

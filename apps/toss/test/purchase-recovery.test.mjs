@@ -25,6 +25,18 @@ async function adapter(available=true,authenticated=false){
  return {state,saleProducts:loaded.exports.saleProducts,nativeSaleProducts:loaded.exports.nativeSaleProducts,tarotLibraryProducts:loaded.exports.tarotLibraryProducts,restore:loaded.exports.restorePurchases,auto:loaded.exports.recoverAfterAuthentication,purchase:withSession(loaded.exports.purchase),purchaseTarot:withSession(loaded.exports.purchaseTarotLibrary),rawPurchase:loaded.exports.purchase,rawTarot:loaded.exports.purchaseTarotLibrary,login:loaded.exports.login,logout:loaded.exports.logout,unlinkCurrentSession:loaded.exports.unlinkCurrentSession,clearSession:loaded.exports.clearSession,api:loaded.exports.api,canonical:loaded.exports.canonicalResponse,onInvalidated:loaded.exports.onSessionInvalidated,restoreSession:loaded.exports.restoreSession};
 }
 
+for(const kind of ['consultation','tarot'])test(`${kind} success requires the same order in the SDK success event`,async()=>{
+ const {state,restore,purchase,purchaseTarot}=await adapter(true,true),previous=globalThis.fetch;let done=0,reported;
+ globalThis.fetch=async()=>Response.json({orderId:'paid',requestId:'request',entitlement:'granted',durable:true});
+ try{await restore();if(kind==='consultation')purchase({sku:'sku'},'request',()=>done++,error=>{reported=error;});else purchaseTarot({sku:'sku'},{},()=>done++,error=>{reported=error;});await tick();assert.equal(await state.purchaseOptions.options.processProductGrant({orderId:'paid'}),true);state.purchaseOptions.onEvent({type:'success',data:{orderId:'other'}});assert.equal(done,0);assert.equal(reported.code,'PAYMENT_STATUS_UNCERTAIN');assert.throws(()=>purchase({sku:'sku'},'request2',()=>{},()=>{}),e=>e.code==='PAYMENT_STATUS_UNCERTAIN');}
+ finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
+});
+for(const kind of ['consultation','tarot'])for(const event of [undefined,{}, {type:'success',data:{}},{type:'unexpected',data:{orderId:'paid'}}])test(`${kind} rejects a malformed SDK event ${JSON.stringify(event)}`,async()=>{
+ const {state,restore,purchase,purchaseTarot}=await adapter(true,true),previous=globalThis.fetch;let done=0,reported;globalThis.fetch=async()=>Response.json({orderId:'paid',requestId:'request',entitlement:'granted',durable:true});
+ try{await restore();if(kind==='consultation')purchase({sku:'sku'},'request',()=>done++,error=>{reported=error;});else purchaseTarot({sku:'sku'},{},()=>done++,error=>{reported=error;});await tick();assert.equal(await state.purchaseOptions.options.processProductGrant({orderId:'paid'}),true);state.purchaseOptions.onEvent(event);assert.equal(done,0);assert.equal(reported.code,'PAYMENT_STATUS_UNCERTAIN');}
+ finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
+});
+
 for(const denial of [{status:401,code:'SESSION_EXPIRED'},{status:403,code:'ACCESS_DENIED'},{code:'ACCESS_DENIED'}])test(`native support probe preserves ${JSON.stringify(denial)}`,async()=>{
  const {state,saleProducts,nativeSaleProducts,tarotLibraryProducts,restore}=await adapter(true,true),previous=globalThis.fetch;
  state.productSupportThrows=denial;globalThis.fetch=async()=>{throw Error('unexpected catalog call');};
@@ -198,7 +210,7 @@ for(const kind of ['purchase','purchaseTarot'])test(kind+' refuses SDK success w
  try{
   adapterResult[kind]({sku:'mock'},kind==='purchase'?'request':{},()=>done++,error=>errors.push(error));await tick();
   assert.equal(await state.purchaseOptions.options.processProductGrant({orderId:'order'}),false);
-  state.purchaseOptions.onEvent({type:'success'});state.purchaseOptions.onEvent({type:'success'});
+  state.purchaseOptions.onEvent({type:'success',data:{orderId:'order'}});state.purchaseOptions.onEvent({type:'success',data:{orderId:'order'}});
   assert.equal(done,0);assert.equal(errors.length,1);assert.equal(errors[0].code,'GRANT_NOT_DURABLE');
  }finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
 });
@@ -208,7 +220,7 @@ for(const kind of ['purchase','purchaseTarot'])test(kind+' completes only after 
  try{
   adapterResult[kind]({sku:'mock'},kind==='purchase'?'request':{},()=>done++,error=>assert.fail(error));await tick();
   assert.equal(await state.purchaseOptions.options.processProductGrant({orderId:'order'}),true);
-  assert.equal(done,0);state.purchaseOptions.onEvent({type:'success'});state.purchaseOptions.onEvent({type:'success'});assert.equal(done,1);
+  assert.equal(done,0);state.purchaseOptions.onEvent({type:'success',data:{orderId:'order'}});state.purchaseOptions.onEvent({type:'success',data:{orderId:'order'}});assert.equal(done,1);
  }finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
 });
 test('disabled release cannot even open the native payment sheet',async()=>{
@@ -334,14 +346,14 @@ test('abandoning an open purchase blocks another even after an empty recovery',a
 test('old cleanup cannot release the lock of a later purchase',async()=>{
  const {state,restore,purchase,purchaseTarot}=await adapter(true,true),previous=globalThis.fetch;
  globalThis.fetch=async()=>Response.json({orderId:'paid',requestId:'request',entitlement:'granted',durable:true});
- try{await restore();const oldCleanup=purchase({sku:'first'},'request',()=>{},()=>{});await tick();assert.equal(await state.purchaseOptions.options.processProductGrant({orderId:'paid'}),true);state.purchaseOptions.onEvent({type:'success'});purchaseTarot({sku:'second'},'input',()=>{},()=>{});oldCleanup();assert.throws(()=>purchase({sku:'third'},'request',()=>{},()=>{}),e=>e.code==='PAYMENT_IN_PROGRESS');}
+ try{await restore();const oldCleanup=purchase({sku:'first'},'request',()=>{},()=>{});await tick();assert.equal(await state.purchaseOptions.options.processProductGrant({orderId:'paid'}),true);state.purchaseOptions.onEvent({type:'success',data:{orderId:'paid'}});purchaseTarot({sku:'second'},'input',()=>{},()=>{});oldCleanup();assert.throws(()=>purchase({sku:'third'},'request',()=>{},()=>{}),e=>e.code==='PAYMENT_IN_PROGRESS');}
  finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
 });
 
 test('a purchase completed after switching accounts cannot navigate to the old result',async()=>{
  const {state,restore,purchase,login}=await adapter(),previous=globalThis.fetch;let sessions=0,done=0,error;
  globalThis.fetch=async(url)=>new URL(url).pathname.endsWith('/login')?Response.json({token:'user-'+ ++sessions}):Response.json({orderId:'paid',requestId:'request',entitlement:'granted',durable:true});
- try{await login();await restore();purchase({sku:'first'},'request',()=>done++,e=>{error=e;});await tick();assert.equal(await state.purchaseOptions.options.processProductGrant({orderId:'paid'}),true);await login();state.purchaseOptions.onEvent({type:'success'});assert.equal(done,0);assert.equal(error.code,'SESSION_CHANGED');}
+ try{await login();await restore();purchase({sku:'first'},'request',()=>done++,e=>{error=e;});await tick();assert.equal(await state.purchaseOptions.options.processProductGrant({orderId:'paid'}),true);await login();state.purchaseOptions.onEvent({type:'success',data:{orderId:'paid'}});assert.equal(done,0);assert.equal(error.code,'SESSION_CHANGED');}
  finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
 });
 
@@ -552,7 +564,7 @@ for(const kind of ['rawPurchase','rawTarot'])test(kind+' ignores SDK success if 
  try{
   a[kind]({sku:'mock'},kind==='rawPurchase'?'request':{},()=>{done++},error=>{reported=error});await tick();
   assert.equal(await state.purchaseOptions.options.processProductGrant({orderId:'paid'}),true);
-  const login=a.login();await loginBegun;state.purchaseOptions.onEvent({type:'success'});
+  const login=a.login();await loginBegun;state.purchaseOptions.onEvent({type:'success',data:{orderId:'paid'}});
   assert.equal(done,0);assert.equal(reported.code,'SESSION_CHANGED');releaseLogin(Response.json({token:'new-session'}));await login;
  }finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
 });
