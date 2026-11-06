@@ -1,4 +1,4 @@
-import { BirthProfile, FortuneError } from "./contracts";
+import { type BirthProfile, FortuneError } from "./contracts";
 // Resolve wall-clock time with IANA history. Reject skipped/repeated DST times.
 export function chartInput(profile: BirthProfile) {
   if (!profile.birthTime || !profile.birthPlace)

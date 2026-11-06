@@ -105,25 +105,9 @@ test('relationship pre-purchase validation rejects missing partner, foreign owne
  globalThis.__kindTest.profileOverride=filter=>{assert.equal(filter.userId,'owner');return null;};
  try{await assert.rejects(()=>prepareFortune(env,'owner',relationRequest('ziwei')),e=>e.code==='PROFILE_NOT_FOUND');}finally{delete globalThis.__kindTest.profileOverride;}
 });
-test('overseas solar clock agrees with independent Swiss EOT within the declared daily approximation',async()=>{
- const {readFile}=await import('node:fs/promises');
- const {default:create}=await import('sweph-wasm/wasm/swisseph');
- const {default:Swiss}=await import('sweph-wasm');
- const raw=await create({wasmBinary:await readFile('public/js/vendor/sweph-wasm/wasm/swisseph.wasm')});
- const swe=new Swiss(raw);
- // Swiss programmer reference §9.4: E = LAT - LMT, UT input, output in days.
- for(const birthDate of ['1990-07-01','2000-02-11','2024-11-03']){
-  const clock=loaded.exports.ziweiRelationshipClock({birthDate,birthTime:'12:00',gender:'female',calendarType:'solar',birthPlace:{latitude:0,longitude:0,timezone:'UTC'}});
-  const exact=swe.swe_time_equ(Date.parse(clock.audit.utc)/86400000+2440587.5)*1440;
-  assert.ok(Math.abs(clock.audit.equationOfTimeMinutes-exact)<1,'daily approximation must remain within one minute at independent fixtures');
-  assert.equal(Math.sign(clock.audit.equationOfTimeMinutes),Math.sign(exact));
- }
- const clock=loaded.exports.ziweiRelationshipClock;
- const p={birthDate:'2000-02-11',birthTime:'00:00',gender:'female',calendarType:'solar',birthPlace:{latitude:0,longitude:0,timezone:'UTC'}};
- assert.equal(clock(p).profile.birthDate,'2000-02-10');
- assert.equal(clock({...p,birthTime:'00:15'}).profile.birthDate,'2000-02-11');
- assert.equal(clock({...p,birthTime:'01:14'}).profile.birthTime.slice(0,2),'00');
- assert.equal(clock({...p,birthTime:'01:15'}).profile.birthTime.slice(0,2),'01');
+test('overseas solar clock agrees with JPL Horizons within the declared daily approximation', async () => {
+ const { verifyGreenwichSolarClock } = await import('../fixtures/jpl-greenwich-solar-clock.mjs');
+ verifyGreenwichSolarClock(loaded.exports.ziweiRelationshipClock);
 });
 test('relationship copy references exist and every tier retains all required report topics',async()=>{
  const {readFile}=await import('node:fs/promises');
