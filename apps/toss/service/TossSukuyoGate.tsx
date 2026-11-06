@@ -16,6 +16,6 @@ function Price({onPrice}:{onPrice:(selection:TossTeaPriceSelection|null)=>void})
 export default function TossSukuyoGate(){
  const auth=useAuthStore(),owner=String(auth.user?.id||auth.user?.userId||auth.user?._id||auth.user?.uid||'');
  if(!auth.isAuthenticated||!owner){const next=typeof window==='undefined'?'/sukuyo-compatibility-ai/':window.location.pathname+window.location.search;return <section><h1>숙요점 궁합 전문가 상담</h1><p>토스로 로그인한 뒤 상담을 이어갈 수 있어요.</p><a href={'/login/?next='+encodeURIComponent(next)}>토스로 로그인하기</a></section>;}
- if(typeof window!=='undefined'&&new URLSearchParams(window.location.search).has('orderId'))return <TossSukuyoRecovery key={owner} owner={owner} orderId={new URLSearchParams(window.location.search).get('orderId')||''}/>;
+ if(typeof window!=='undefined'&&new URLSearchParams(window.location.search).has('orderId'))return <TossSukuyoRecovery key={owner} owner={owner} orderId={new URLSearchParams(window.location.search).get('orderId')||''} renderInput={attach=><SukuyoCompatibilityAiClient key={owner} paymentSurface="toss" draftOwner={owner} ProfilePicker={Profile} recoverPurchase={attach}/>}/>;
  return <SukuyoCompatibilityAiClient key={owner} paymentSurface="toss" draftOwner={owner} ProfilePicker={Profile} TossPrice={Price}/>;
 }

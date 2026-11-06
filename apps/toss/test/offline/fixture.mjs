@@ -20,13 +20,15 @@ export function createOfflineFixtureApi(storage){
   if(path==='/canonical/profile'&&method==='GET')return respond({ok:true,profiles:[]});
   if(path==='/canonical/sukuyo-compatibility-ai/result'&&method==='GET'){
    const id=url.searchParams.get('id');if(!id)return respond({ok:true,consultations:[],pendingSessionId:''});
-   if(/^toss_[a-f0-9]{64}$/.test(id)){const intent=state.intents.get(id.slice(5));if(!intent?.paid||intent.service!=='sukuyo')return respond({error:'RESULT_NOT_FOUND'},404);return intent.result?respond({ok:true,consultation:intent.result}):respond({ok:true,status:'partial',sessionId:id,idempotencyKey:intent.input.idempotencyKey},202);}
+   if(/^toss_[a-f0-9]{64}$/.test(id)){const intent=state.intents.get(id.slice(5));if(!intent?.paid||intent.service!=='sukuyo')return respond({error:'RESULT_NOT_FOUND'},404);if(intent.result?.status==='generation_failed')return respond({ok:true,status:'generation_failed',sessionId:intent.result.id,idempotencyKey:intent.input.idempotencyKey,retryable:(intent.retryCount||0)<2});return intent.result?respond({ok:true,consultation:intent.result}):respond({ok:true,status:'partial',sessionId:id,idempotencyKey:intent.input.idempotencyKey},202);}
    const intent=[...state.intents.values()].find(row=>row.service==='sukuyo'&&row.result?.id===id);
+   if(intent?.paid&&intent.result?.status==='generation_failed')return respond({ok:true,status:'generation_failed',sessionId:id,idempotencyKey:intent.input.idempotencyKey,retryable:(intent.retryCount||0)<2});
    return intent?.paid?respond({ok:true,consultation:intent.result}):respond({error:'RESULT_NOT_FOUND'},404);
   }
   if(path==='/canonical/sukuyo-compatibility-ai/prepare'&&method==='POST')return respond({ok:false,reason:'PAYMENT_REQUIRED'},402);
   // Test-only unassigned order; this route cannot call an SDK or real payment.
   if(path==='/test/sukuyo/unassigned'&&method==='POST'){const {orderId}=await request.json();if(!/^[a-f0-9-]{36}$/i.test(orderId||'')||state.orders.has(orderId))return respond({error:'MOCK_ORDER_INVALID'},400);state.orders.set(orderId,null);state.testOrderSkus.set(orderId,sukuyoProduct.sku);save();return respond({ok:true});}
+  if(path==='/test/sukuyo/fail'&&method==='POST'){const {intentId}=await request.json(),intent=state.intents.get(intentId);if(!intent?.paid||intent.service!=='sukuyo')return respond({error:'RESULT_NOT_FOUND'},404);intent.result={id:intent.id.slice(-24),status:'generation_failed'};intent.retryCount=0;save();return respond({ok:true,resultId:intent.result.id});}
   if(path==='/native/sukuyo/recovery/drafts'&&method==='POST'){
    const {orderId}=await request.json();if(!state.orders.has(orderId))return respond({error:'RESULT_NOT_FOUND'},404);if((state.testOrderSkus.get(orderId)||state.intents.get(state.orders.get(orderId))?.sku)!==sukuyoProduct.sku)return respond({error:'ORDER_PRODUCT_MISMATCH'},409);
    const assigned=state.orders.get(orderId);if(assigned)return respond({state:'ASSIGNED',intentId:assigned});
@@ -40,14 +42,19 @@ export function createOfflineFixtureApi(storage){
    state.orders.set(orderId,intentId);intent.orderId=orderId;intent.paid=true;save();return respond({state:'ASSIGNED',intentId});
   }
   if(path==='/native/sukuyo/prepare'&&method==='POST'){
-   const body=await request.json();if(!body.input||body.orderId||!body.input.idempotencyKey)return respond({error:'MOCK_UNSUPPORTED'},400);
+   const body=await request.json();if(!body.input||!body.input.idempotencyKey)return respond({error:'MOCK_UNSUPPORTED'},400);
+   if(body.orderId&&(!state.orders.has(body.orderId)||state.testOrderSkus.get(body.orderId)!==sukuyoProduct.sku))return respond({error:'RESULT_NOT_FOUND'},404);
    const previous=[...state.intents.values()].find(row=>row.service==='sukuyo'&&row.input.idempotencyKey===body.input.idempotencyKey);
-   if(previous)return JSON.stringify(previous.input)===JSON.stringify(body.input)?respond(previous):respond({error:'REQUEST_INPUT_MISMATCH'},409);
-   const id=(++state.sequence).toString(16).padStart(64,'0'),intent={id,service:'sukuyo',sku:sukuyoProduct.sku,amountKRW:sukuyoProduct.approvedPriceKRW,paid:false,orderId:null,input:body.input};state.intents.set(id,intent);save();return respond(intent);
+   if(previous&&JSON.stringify(previous.input)!==JSON.stringify(body.input))return respond({error:'REQUEST_INPUT_MISMATCH'},409);
+   const assigned=body.orderId&&state.orders.get(body.orderId);if(assigned&&assigned!==previous?.id)return respond({error:'ORDER_ALREADY_ASSIGNED'},409);
+   const id=previous?.id||(++state.sequence).toString(16).padStart(64,'0'),intent=previous||{id,service:'sukuyo',sku:sukuyoProduct.sku,amountKRW:sukuyoProduct.approvedPriceKRW,paid:false,orderId:null,input:body.input};
+   if(body.orderId){if(intent.orderId&&intent.orderId!==body.orderId)return respond({error:'REQUEST_ALREADY_FUNDED'},409);state.orders.set(body.orderId,id);intent.orderId=body.orderId;intent.paid=true;}
+   state.intents.set(id,intent);save();return respond(intent);
   }
   if(path==='/canonical/sukuyo-compatibility-ai/generate'&&method==='POST'){
    const body=await request.json(),intent=[...state.intents.values()].find(row=>row.service==='sukuyo'&&(body.idempotencyKey&&row.input.idempotencyKey===body.idempotencyKey||body.resumeSessionId&&(row.result?.id===body.resumeSessionId||'toss_'+row.id===body.resumeSessionId)));
    if(!intent?.paid)return respond({error:'PAYMENT_REQUIRED'},402);
+   if(intent.result?.status==='generation_failed'){if(body.retryGeneration!==true||(intent.retryCount||0)>=2)return respond({error:'LLM_FAILED'},409);intent.retryCount=(intent.retryCount||0)+1;}
    intent.result={id:intent.id.slice(-24),idempotencyKey:intent.input.idempotencyKey,status:'completed',consultationType:'compatibility',personA:{name:'테스트 A'},personB:{name:'테스트 B'},sukuyoResult:{},relationshipType:'연인',topic:'전체 궁합',messages:[{role:'assistant',content:'[테스트 전용 예시] 실제 상담 결과가 아닙니다.'}]};save();return respond({ok:true,consultation:intent.result});
   }
   const sukuyoIntent=/^\/native\/sukuyo\/intents\/([a-f0-9]{64})$/.exec(path);

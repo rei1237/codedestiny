@@ -1842,6 +1842,7 @@ async function handleStart(request, env, recoveryAuth = null) {
   }
   if (nativeTossContext(request) && !auth?.userId) return json({ ok: false, reason: "LOGIN_REQUIRED" }, { status: 401 });
   let body = await readJson(request);
+  const nativeRetryRequested = Boolean(nativeTossContext(request) && body.resumeSessionId && body.retryGeneration === true);
   if (body.resumeSessionId) {
     if (!isObjectIdLike(body.resumeSessionId)) return notFound();
     await connectDb(env);
@@ -1905,8 +1906,10 @@ async function handleStart(request, env, recoveryAuth = null) {
         { status: 202 },
       );
     }
-    if (existingStatus === "generation_failed") return json({ ok: false,
-      reason: existing?.generationError?.code === "REFUND_REVIEW_REQUIRED" ? "REFUND_REVIEW_REQUIRED" : "LLM_FAILED" }, { status: 409 });
+    const failedRetry = existingStatus === "generation_failed" && nativeRetryRequested && existing?.generationError?.code !== "REFUND_REVIEW_REQUIRED";
+    const manualRetryCount = Number(existing?.llmMeta?.manualRetryCount || 0);
+    if (existingStatus === "generation_failed" && (!failedRetry || !Number.isSafeInteger(manualRetryCount) || manualRetryCount < 0 || manualRetryCount >= 2)) return json({ ok: false,
+      reason: existing?.generationError?.code === "REFUND_REVIEW_REQUIRED" ? "REFUND_REVIEW_REQUIRED" : manualRetryCount >= 2 ? "GENERATION_REVIEW_REQUIRED" : "LLM_FAILED" }, { status: 409 });
     const accessHash = await inputHash(normalized);
     if (existing?.inputHash && existing.inputHash !== accessHash) return json({ ok: false, reason: "REQUEST_CONFLICT", message: "기존 상담과 입력이 달라요. 저장된 상담에서 이어서 시도해 주세요." }, { status: 409 });
     logSukyoAi("[Sukyo AI LLM Access Check Start]", {
@@ -2024,7 +2027,7 @@ async function handleStart(request, env, recoveryAuth = null) {
       accessType: access.accessType,
       paymentId: access.paymentId || paymentIdFromBody(body),
       messages: existing?.messages || [],
-      llmMeta: { ...(existing?.llmMeta || {}), calculation, ...(calculationFacts ? { engineFacts: calculationFacts } : {}), resumeBody: existing?.llmMeta?.resumeBody || { ...body, accessToken: undefined, access_token: undefined } },
+      llmMeta: { ...(existing?.llmMeta || {}), ...(failedRetry ? { attempts: {}, manualRetryCount: manualRetryCount + 1 } : {}), calculation, ...(calculationFacts ? { engineFacts: calculationFacts } : {}), resumeBody: existing?.llmMeta?.resumeBody || { ...body, accessToken: undefined, access_token: undefined } },
       provider: "",
       model: "",
       status: "generating",
@@ -2044,7 +2047,7 @@ async function handleStart(request, env, recoveryAuth = null) {
           _id: existing._id,
           userId: auth.userId,
           status: { $nin: ["completed", "delivery_pending"] },
-          $or: [{ status: "partial" }, { status: "generating", updatedAt: { $lt: staleCutoff } }],
+          $or: [{ status: "partial" }, { status: "generating", updatedAt: { $lt: staleCutoff } }, ...(failedRetry ? [{ status: "generation_failed", "generationError.code": { $ne: "REFUND_REVIEW_REQUIRED" }, "llmMeta.manualRetryCount": existing?.llmMeta?.manualRetryCount === undefined ? { $exists: false } : existing.llmMeta.manualRetryCount }] : [])],
         },
         { $set: { ...seedFields, updatedAt: now } },
       );
@@ -2084,7 +2087,7 @@ async function handleStart(request, env, recoveryAuth = null) {
         // 궁합은 웨이브 1만 만들고 응답한다. 나머지 4웨이브는 /continue 가 이어 받는다 —
         // 20장을 한 요청에 몰면 엣지 100초 컷에 걸려 결제만 되고 결과가 사라진다.
         ? await runWithAiLocale(storedAiLocale(existing || seedFields), async () => createCompatibilityAnswer(env, { ...normalized, idempotencyKey }, calculation, {
-          sections: existing?.llmMeta?.sections || {}, attempts: existing?.llmMeta?.attempts || {}, summary: existing?.llmMeta?.summary, rawResponses: existing?.llmMeta?.rawResponses,
+          sections: existing?.llmMeta?.sections || {}, attempts: seedFields.llmMeta.attempts || {}, summary: existing?.llmMeta?.summary, rawResponses: existing?.llmMeta?.rawResponses,
           onReserve: (groupId, attempt, lengthRepair) => saveSukuyoCheckpoint(sessionId, auth.userId, seedFields.generationLease, { [`llmMeta.attempts.${groupId}`]: attempt, ...(lengthRepair ? { [`llmMeta.attempts.${groupId}:lengthRepair`]: 1 } : {}) }),
           onCheckpoint: ({ sections, summary, rawResponses, truncatedGroup }) => saveSukuyoCheckpoint(sessionId, auth.userId, seedFields.generationLease, { 'llmMeta.sections': sections, 'llmMeta.summary': summary, 'llmMeta.rawResponses': rawResponses, ...(truncatedGroup ? { [`llmMeta.attempts.${truncatedGroup}:truncated`]: 1 } : {}) }),
         }))
@@ -2336,6 +2339,14 @@ async function handleResult(request, env) {
       status: status === "generating" && isStaleGenerating(consultation) ? "partial" : status, consultation: await serializeConsultation(consultation) }, { status: 202 });
   }
   if (status === "generation_failed") {
+    if (nativeTossContext(request)) {
+      const retries = Number(consultation.llmMeta?.manualRetryCount || 0);
+      const resumeBody = consultation.llmMeta?.resumeBody;
+      const normalizedResume = resumeBody ? normalizeInput(resumeBody) : null;
+      const validResume = normalizedResume?.ok && await inputHash(normalizedResume) === consultation.inputHash;
+      const retryable = Boolean(validResume && consultation.generationError?.code !== "REFUND_REVIEW_REQUIRED" && Number.isSafeInteger(retries) && retries >= 0 && retries < 2);
+      return json({ ok: true, sessionId, idempotencyKey: consultation.idempotencyKey, status, retryable, reviewRequired: !retryable });
+    }
     return json({ ok: false, sessionId, status, reason: "LLM_FAILED", message: MESSAGES.llmFailed }, { status: 503 });
   }
   if (!nativeTossContext(request) && await isStoredPaidResultRevoked(auth.userId, FEATURE_KEY, consultation)) {

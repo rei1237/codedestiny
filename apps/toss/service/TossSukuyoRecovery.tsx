@@ -1,4 +1,4 @@
-import {useCallback,useEffect,useRef,useState} from 'react';
+import {useCallback,useEffect,useRef,useState,type ReactNode} from 'react';
 import {api,onSessionInvalidated} from '../src/platform';
 import './toss-sukuyo-recovery.css';
 
@@ -22,8 +22,9 @@ function message(error:unknown){
  return '주문을 확인하지 못했어요. 다시 결제하지 말고 구매 복구를 확인해 주세요.';
 }
 function openIntent(id:string){location.replace('/sukuyo-compatibility-ai/?cid='+encodeURIComponent('toss_'+id));}
-export default function TossSukuyoRecovery({orderId,owner}:{orderId:string;owner:string}){
+export default function TossSukuyoRecovery({orderId,owner,renderInput}:{orderId:string;owner:string;renderInput?:(attach:(input:Record<string,unknown>,key:string)=>Promise<void>)=>ReactNode}){
  const [rows,setRows]=useState<Draft[]>([]),[rowsOwner,setRowsOwner]=useState(''),[cursor,setCursor]=useState<string|null>(null),[error,setError]=useState(''),[busy,setBusy]=useState(false),[loaded,setLoaded]=useState(false);
+ const [inputMode,setInputMode]=useState(false);
  const epoch=useRef(0),busyRef=useRef(false);
  const working=useCallback((value:boolean)=>{busyRef.current=value;setBusy(value);},[]);
  const reset=useCallback(()=>{setRows([]);setRowsOwner('');setCursor(null);},[]);
@@ -47,15 +48,31 @@ export default function TossSukuyoRecovery({orderId,owner}:{orderId:string;owner
   catch(reason){if(current===epoch.current){reset();setLoaded(false);setError(message(reason));}}
   finally{if(current===epoch.current)working(false);}
  };
+ const attachNew=async(input:Record<string,unknown>,key:string)=>{
+  if(busyRef.current||!loaded||rowsOwner!==owner||!orderPattern.test(orderId)||typeof key!=='string'||key.length<12)throw new Error('RESULT_MISMATCH');
+  const current=++epoch.current;working(true);setError('');
+  try{
+   const intent=await api<{id:string;paid:boolean;orderId:string|null}>('/native/sukuyo/prepare',{orderId,input:{...input,idempotencyKey:key}});
+   if(current!==epoch.current)throw new Error('SESSION_CHANGED');
+   if(!idPattern.test(intent.id||'')||intent.paid!==true||intent.orderId!==orderId)throw new Error('RESULT_MISMATCH');
+   const verified=await api<RecoveryPage>('/native/sukuyo/recovery/drafts',{orderId});
+   if(current!==epoch.current)throw new Error('SESSION_CHANGED');
+   if(verified.state!=='ASSIGNED'||verified.intentId!==intent.id)throw new Error('RESULT_MISMATCH');
+   openIntent(intent.id);
+  }catch(reason){if(current===epoch.current){reset();setLoaded(false);setInputMode(false);setError(message(reason));}throw reason;}
+  finally{if(current===epoch.current)working(false);}
+ };
  useEffect(()=>{void load();return()=>{epoch.current++;busyRef.current=false;};},[load]);
- useEffect(()=>{const off=onSessionInvalidated(()=>{epoch.current++;busyRef.current=false;setBusy(false);reset();setLoaded(false);setError('구매한 계정으로 다시 로그인해 주세요.');});return()=>{off();};},[reset]);
- useEffect(()=>{const back=(event:Event)=>{if(busyRef.current)event.preventDefault();};window.addEventListener('code-destiny:toss-back',back);return()=>window.removeEventListener('code-destiny:toss-back',back);},[]);
+ useEffect(()=>{const off=onSessionInvalidated(()=>{epoch.current++;busyRef.current=false;setBusy(false);reset();setLoaded(false);setInputMode(false);setError('구매한 계정으로 다시 로그인해 주세요.');});return()=>{off();};},[reset]);
+ useEffect(()=>{const back=(event:Event)=>{if(event.defaultPrevented)return;if(busyRef.current){event.preventDefault();return;}if(inputMode){event.preventDefault();setInputMode(false);void load();}};window.addEventListener('code-destiny:toss-back',back);return()=>window.removeEventListener('code-destiny:toss-back',back);},[inputMode,load]);
+ if(inputMode&&loaded&&rowsOwner===owner&&renderInput)return <>{renderInput(attachNew)}</>;
  return <section className="toss-sukuyo-recovery"><div className="toss-sukuyo-recovery__content"><h1>결제한 숙요 상담 확인</h1><p>다시 결제하지 말고, 이 주문에 연결할 이전 입력을 선택해 주세요.</p>
   {busy&&<p role="status">주문과 저장된 입력을 확인하고 있어요.</p>}
   {error&&<div role="alert"><p>{error}</p><button type="button" disabled={busy} onClick={()=>void load()}>다시 확인하기</button></div>}
-  {!busy&&loaded&&rowsOwner===owner&&rows.length===0&&<p>연결할 저장 입력을 찾지 못했어요. 기록 보관함이나 고객지원에서 주문을 확인해 주세요.</p>}
+  {!busy&&loaded&&rowsOwner===owner&&rows.length===0&&<p>{renderInput?'저장된 이전 입력이 없어요. 새 입력을 작성해 이 주문에 연결할 수 있어요.':'연결할 저장 입력을 찾지 못했어요. 기록 보관함이나 고객지원에서 주문을 확인해 주세요.'}</p>}
   {!busy&&rowsOwner===owner&&rows.length>0&&<ul>{rows.map(row=><li key={row.id}><p>{row.input.personA.name||'나'} · {personDetails(row.input.personA)}</p>{row.input.personB&&<p>{row.input.personB.name||'상대'} · {personDetails(row.input.personB)}</p>}<p>{row.input.relationshipType} · {row.input.topic}</p><p>{row.input.question}</p><p>{new Date(row.createdAt).toLocaleString('ko-KR')}</p><button type="button" disabled={busy} onClick={()=>void attach(row.id)}>이 입력으로 상담 이어가기</button></li>)}</ul>}
   {!busy&&rowsOwner===owner&&cursor&&<button type="button" disabled={busy} onClick={()=>void load(cursor)}>이전 입력 더 보기</button>}
+  {!busy&&loaded&&rowsOwner===owner&&renderInput&&<button type="button" onClick={()=>setInputMode(true)}>새 입력으로 연결하기</button>}
   <a href="/records/">기록 보관함 열기</a>
  </div></section>;
 }

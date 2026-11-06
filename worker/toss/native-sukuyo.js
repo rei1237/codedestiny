@@ -48,7 +48,7 @@ export async function handleNativeSukuyo(request,env,auth,path){
     const row=await TossNativeConsultation.findOne({_id:body.resumeSessionId.slice(5),...ownerFilter(auth)}).lean();
     await verifiedIntent(env,auth,row);
     const doc=await nativeSukuyoStoredState(env,auth.userId,row.requestId,'request');
-    body=doc?{resumeSessionId:String(doc._id)}:{...row.input,idempotencyKey:row.requestId};
+    body=doc?{resumeSessionId:String(doc._id),...(body.retryGeneration===true?{retryGeneration:true}:{})}:{...row.input,idempotencyKey:row.requestId};
   }
   const forwarded=new Request(url,{method:request.method,headers:{'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{}),signal:request.signal});
   const context=sukuyoContext(env,auth);bindNativeTossRequest(forwarded,context);

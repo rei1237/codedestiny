@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "f233be87005169ed97226c7070dc5d8619830697",
+  "sourceCommit": "264a3cd509b7dd57ac3880fddcbddd1b5143251d",
   "scope": "Source discovery plus explicitly verified aliases; not a count of implemented services. Unmapped contracts are blocking work, not exclusions.",
   "sourceCounts": {
     "home": 63,
@@ -5073,7 +5073,7 @@
       "sku": null,
       "inputContract": "worker/toss/native-sukuyo.js + nativeSukuyoContract",
       "resultRenderer": "apps/toss/service/TossSukuyoGate.tsx + app/sukuyo-compatibility-ai/SukuyoCompatibilityAiClient.tsx",
-      "storageContract": "owner-scoped Toss intent and Toss-origin SukuyoCompatibilityAiConsultation; verified saved-input selection for unassigned orders, new-input and failed-generation recovery incomplete",
+      "storageContract": "owner-scoped Toss intent and Toss-origin SukuyoCompatibilityAiConsultation; verified saved-input selection or explicit new input for unassigned orders; bounded explicit retry after authorized generation failure",
       "verification": "local SDK mock purchase, result reload, selected-input recovery, account isolation and back-event checks only; production recovery index, approved SKU, purchaser binding, durable checkout, safety policy and official device pending"
     },
     {

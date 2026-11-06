@@ -499,6 +499,7 @@ const TOSS_ERROR_TEXT: Record<string,string> = {
   PAYMENT_STATUS_UNCERTAIN: "결제 상태를 확인하지 못했어요. 추가로 결제하지 말고 구매 내역을 확인해 주세요.",
   RECOVERY_REQUIRED: "새 결제 전에 구매 내역을 확인해 주세요.",
   TOSS_PRICE_CHANGED: "상담 가격을 다시 확인한 뒤 시작해 주세요.",
+  GENERATION_REVIEW_REQUIRED: "상담 확인이 필요해요. 추가 결제하지 말고 고객센터에 문의해 주세요.",
   TEMPORARY_UNAVAILABLE: "상담을 확인하지 못했어요. 결제했다면 추가 결제하지 말고 기록을 확인해 주세요.",
   GENERATION_TIMEOUT: "상담이 아직 완성되지 않았어요. 추가 결제하지 말고 기록을 확인해 주세요.",
   GENERATION_INTERRUPTED: "상담 생성이 중단됐어요. 추가 결제하지 말고 기록을 확인해 주세요.",
@@ -643,6 +644,7 @@ type StartResult = {
   reason?: string;
   message?: string;
   status?: string;
+  retryable?: boolean;
   reviewRequired?: boolean;
   sessionId?: string;
   consultation?: Consultation;
@@ -1302,7 +1304,7 @@ type RecentConsultation = {
   updatedAt?: string;
 };
 
-export default function SukuyoCompatibilityAiClient({paymentSurface="web",draftOwner="",ProfilePicker,TossPrice}:{paymentSurface?:"web"|"toss";draftOwner?:string;ProfilePicker?:ComponentType<{onSelect:(seed:AiPrefillSeed)=>void;id:string}>;TossPrice?:ComponentType<{onPrice:(selection:TossTeaPriceSelection|null)=>void}>} = {}) {
+export default function SukuyoCompatibilityAiClient({paymentSurface="web",draftOwner="",ProfilePicker,TossPrice,recoverPurchase}:{paymentSurface?:"web"|"toss";draftOwner?:string;ProfilePicker?:ComponentType<{onSelect:(seed:AiPrefillSeed)=>void;id:string}>;TossPrice?:ComponentType<{onPrice:(selection:TossTeaPriceSelection|null)=>void}>;recoverPurchase?:(input:Record<string,unknown>,key:string)=>Promise<void>} = {}) {
   const locale = useSukuyoCompatLocale();
   const [clientReady, setClientReady] = useState(false);
   useEffect(() => { setClientReady(true); }, []);
@@ -1325,6 +1327,9 @@ export default function SukuyoCompatibilityAiClient({paymentSurface="web",draftO
   const relationshipType = "연인";
   const topic = "전체 궁합";
   const [consultation, setConsultation] = useState<Consultation | null>(null);
+  const [directRecord,setDirectRecord]=useState(()=>paymentSurface === "toss" && typeof window !== "undefined" && Boolean(new URLSearchParams(window.location.search).get("cid")));
+  const [checkingRecord,setCheckingRecord]=useState(directRecord);
+  const [retryRecord,setRetryRecord]=useState<{id:string;key:string;retryable:boolean}|null>(null);
   // 서버가 계산한 두 별의 근거 — 대기 화면이 실제 값을 단계별로 보여 준다.
   const [basis, setBasis] = useState<AnalysisBasis | null>(null);
   const [resultOpen, setResultOpen] = useState(false);
@@ -1341,7 +1346,7 @@ export default function SukuyoCompatibilityAiClient({paymentSurface="web",draftO
   const [resumeEpoch, setResumeEpoch] = useState(0);
   const captureDeliveryScope = usePaidDeliveryScope(() => {
     pendingGenerationRef.current = null; submitKeyRef.current = ""; submitLockRef.current = false;
-    if(paymentSurface === "toss"){tossCheckRevision.current++;setPersonA({...EMPTY_PERSON});setPersonB({...EMPTY_PERSON});setTossPrice(null);setResultOpen(false);}
+    if(paymentSurface === "toss"){tossCheckRevision.current++;setPersonA({...EMPTY_PERSON});setPersonB({...EMPTY_PERSON});setTossPrice(null);setResultOpen(false);setRetryRecord(null);setCheckingRecord(false);}
     setConsultation(null); setRecentList([]); setError(""); setNotice(""); setPhase("idle"); setResumeEpoch(value => value + 1);
   });
   const { seed: profileSeed, seedVersion } = useAiProfileSeed({enabled:paymentSurface !== "toss"});
@@ -1380,7 +1385,7 @@ export default function SukuyoCompatibilityAiClient({paymentSurface="web",draftO
     const onBack=(event:Event)=>{
       if(resultOpen){event.preventDefault();setResultOpen(false);return;}
       if(busy){event.preventDefault();setNotice("상담을 확인하고 있어요. 잠시 후 다시 시도해 주세요.");return;}
-      if(consultation){event.preventDefault();setConsultation(null);setError("");setNotice("");try{const url=new URL(window.location.href);url.searchParams.delete("cid");window.history.replaceState(null,"",url.pathname+url.search+url.hash);}catch{/* The saved record remains available. */}}
+      if(consultation){event.preventDefault();setConsultation(null);setDirectRecord(false);setRetryRecord(null);setError("");setNotice("");try{const url=new URL(window.location.href);url.searchParams.delete("cid");window.history.replaceState(null,"",url.pathname+url.search+url.hash);}catch{/* The saved record remains available. */}}
     };
     window.addEventListener("code-destiny:toss-back",onBack);
     return()=>window.removeEventListener("code-destiny:toss-back",onBack);
@@ -1407,7 +1412,7 @@ export default function SukuyoCompatibilityAiClient({paymentSurface="web",draftO
       if (cancelled || !isCurrent()) return;
       const denied=paymentSurface === "toss" ? tossSukuyoFailure(response?.status||0,data) : "";
       if(denied === "LOGIN_REQUIRED" || denied === "ACCESS_DENIED"){
-        tossCheckRevision.current++;pendingGenerationRef.current=null;setConsultation(null);setRecentList([]);setResultOpen(false);setError(sukuyoErrorText(denied,"toss"));return;
+        tossCheckRevision.current++;pendingGenerationRef.current=null;setConsultation(null);setRecentList([]);setResultOpen(false);setRetryRecord(null);setCheckingRecord(false);setError(sukuyoErrorText(denied,"toss"));return;
       }
       if (Array.isArray(data.consultations)) setRecentList(data.consultations);
       const cid = data.pendingSessionId || new URLSearchParams(window.location.search).get("cid");
@@ -1425,6 +1430,11 @@ export default function SukuyoCompatibilityAiClient({paymentSurface="web",draftO
       window.removeEventListener("pageshow", resume); window.removeEventListener("focus", resume);
     };
   }, []);
+  useEffect(()=>{
+    if(paymentSurface!=="toss")return;
+    const onHistory=()=>{setDirectRecord(Boolean(new URLSearchParams(window.location.search).get("cid")));setRetryRecord(null);};
+    window.addEventListener("popstate",onHistory);return()=>window.removeEventListener("popstate",onHistory);
+  },[paymentSurface]);
 
   // 궁합 초대(?cp=) — 공유자(A)의 생일을 상대 칸(personB)에 자동 채움. base64url(JSON), share.js 인코드와 대칭.
   useEffect(() => {
@@ -1462,7 +1472,7 @@ export default function SukuyoCompatibilityAiClient({paymentSurface="web",draftO
     const ownerCurrent = captureDeliveryScope(),revision=paymentSurface === "toss" ? ++tossCheckRevision.current : 0;
     const isCurrent=()=>ownerCurrent()&&(paymentSurface !== "toss" || revision===tossCheckRevision.current);
     submitLockRef.current = true;
-    if(paymentSurface === "toss"){setConsultation(null);setResultOpen(false);setError("");}
+    if(paymentSurface === "toss"){setConsultation(null);setResultOpen(false);setRetryRecord(null);setCheckingRecord(true);setError("");}
     try {
       const response = await authFetch(`/api/sukuyo-compatibility-ai/result?id=${encodeURIComponent(id)}`);
       const data = await response.json().catch(() => ({})) as StartResult;
@@ -1470,10 +1480,14 @@ export default function SukuyoCompatibilityAiClient({paymentSurface="web",draftO
       const denied=paymentSurface === "toss" ? tossSukuyoFailure(response.status,data) : "";
       if(denied === "LOGIN_REQUIRED" || denied === "ACCESS_DENIED" || denied === "ORDER_REFUNDED")throw new Error(denied);
       if (!data.ok) throw new Error(data.reason || "SERVER_ERROR");
+      if(paymentSurface === "toss" && data.status === "generation_failed"){
+        if(typeof data.sessionId!=="string" || !/^[0-9a-f]{24}$/i.test(data.sessionId) || typeof data.idempotencyKey!=="string" || !data.idempotencyKey)throw new Error("RESULT_MISMATCH");
+        setRetryRecord({id:data.sessionId,key:data.idempotencyKey,retryable:data.retryable===true});return;
+      }
       if (data.consultation) { setConsultation(data.consultation); rememberConsultationUrl(id); }
       if (response.status === 202) await startConsultation(data.idempotencyKey || data.consultation?.idempotencyKey || submitKeyRef.current || makeIdempotencyKey(), {}, true, { resumeSessionId: id });
     } catch (error) { if (isCurrent()) { const code=error instanceof Error?error.message:"NETWORK_ERROR";if(paymentSurface === "toss"){setConsultation(null);setResultOpen(false);pendingGenerationRef.current=null;}setError(paymentSurface === "toss"?sukuyoErrorText(code,"toss"):code);setPhase("idle"); } }
-    finally { if (ownerCurrent()) submitLockRef.current = false; }
+    finally { if (ownerCurrent()) {submitLockRef.current = false;if(paymentSurface === "toss")setCheckingRecord(false);} }
   }
 
   useEffect(() => {
@@ -1556,7 +1570,7 @@ export default function SukuyoCompatibilityAiClient({paymentSurface="web",draftO
 
   // 🔴 payloadOverride: 결제 복귀 재개는 새 문서라 위 useMemo payload 가 기본 폼으로 되살아나 있다.
   //    재개 경로는 결제 직전에 굳혀 둔 입력을 그대로 넘겨야 다른 사람의 궁합이 생성되지 않는다.
-  async function startConsultation(idempotencyKey: string, access: Record<string, unknown>, paymentWasRequired = false, payloadOverride?: Record<string, unknown>) {
+  async function startConsultation(idempotencyKey: string, access: Record<string, unknown>, paymentWasRequired = false, payloadOverride?: Record<string, unknown>, explicitRetry = false) {
     const ownerCurrent = captureDeliveryScope(),revision=tossCheckRevision.current;
     const isCurrent=()=>ownerCurrent()&&(paymentSurface !== "toss" || revision===tossCheckRevision.current);
     pendingGenerationRef.current = { key: idempotencyKey, body: payloadOverride || payload, access };
@@ -1569,7 +1583,9 @@ export default function SukuyoCompatibilityAiClient({paymentSurface="web",draftO
       if (!pending) return false;
       let started: { status: number; data: StartResult };
       try {
-        started = await postJson<StartResult>("/api/sukuyo-compatibility-ai/generate", pending.sessionId ? { resumeSessionId: pending.sessionId } : { ...pending.body, ...pending.access, idempotencyKey }, idempotencyKey);
+        const requestBody=pending.sessionId ? { resumeSessionId: pending.sessionId } : { ...pending.body, ...pending.access, idempotencyKey };
+        if(explicitRetry){Object.assign(requestBody,{retryGeneration:true});explicitRetry=false;}
+        started = await postJson<StartResult>("/api/sukuyo-compatibility-ai/generate", requestBody, idempotencyKey);
       } catch (error) {
         if (!isCurrent()) return false;
         if (++failures > 2) throw error;
@@ -1602,6 +1618,14 @@ export default function SukuyoCompatibilityAiClient({paymentSurface="web",draftO
     setPhase("idle"); return false;
   }
 
+  async function retrySavedConsultation(){
+    if(!retryRecord?.retryable || submitLockRef.current || busy)return;
+    const current=captureDeliveryScope(),record=retryRecord;submitLockRef.current=true;setRetryRecord(null);setError("");setNotice("");
+    try{await startConsultation(record.key,{},true,{resumeSessionId:record.id},true);}
+    catch(caught){if(current()){const code=caught instanceof TypeError?"NETWORK_ERROR":caught instanceof Error?caught.message:"SERVER_ERROR";setError(sukuyoErrorText(code,"toss"));setPhase("idle");}}
+    finally{if(current())submitLockRef.current=false;}
+  }
+
   // 모바일 PortOne 리다이렉트로 runSubmit 의 await 가 죽은 뒤, 복귀한 새 문서에서 생성을 이어받는다.
   // 🔴 게이트를 다시 타지 않고 게이트 없는 코어(startConsultation)를 원래 idempotencyKey 로 부른다.
   const buildResume = usePaidResume(FEATURE_KEY, async (args, grant) => {
@@ -1629,6 +1653,15 @@ export default function SukuyoCompatibilityAiClient({paymentSurface="web",draftO
 
   async function handleSubmit() {
     if (submitLockRef.current || busy) return;
+    if(paymentSurface === "toss" && recoverPurchase){
+      const user=getAuthState().user,owner=String(user?.id||user?.userId||user?._id||user?.uid||"");
+      if(!owner||owner!==draftOwner){setError(sukuyoErrorText("LOGIN_REQUIRED","toss"));return;}
+      if(!validatePayload()){setError(getPayloadValidationMessage());return;}
+      const current=captureDeliveryScope(),key=submitKeyRef.current||makeIdempotencyKey();submitKeyRef.current=key;submitLockRef.current=true;setError("");setNotice("");setPhase("access");
+      try{await recoverPurchase(payload,key);}catch(caught){if(current()){const code=caught instanceof TypeError?"NETWORK_ERROR":caught instanceof Error?caught.message:"SERVER_ERROR";setError(sukuyoErrorText(code,"toss"));}}
+      finally{if(current()){submitLockRef.current=false;setPhase("idle");}}
+      return;
+    }
     if(paymentSurface === "toss" && !pendingGenerationRef.current){
       const user=getAuthState().user,owner=String(user?.id||user?.userId||user?._id||user?.uid||"");
       if(!tossPrice||tossPrice.owner!==owner||tossPrice.featureKey!==FEATURE_KEY){setError("상담 가격을 확인한 뒤 다시 시작해 주세요.");return;}
@@ -1899,7 +1932,13 @@ export default function SukuyoCompatibilityAiClient({paymentSurface="web",draftO
         </aside>
 
         {clientReady && <section className={`${styles.workPanel}${!consultation ? ` ${styles.workPanelWithCta}` : ""}`}>
-          {!consultation ? (
+          {paymentSurface === "toss" && directRecord && !consultation ? (
+            <div className={styles.panelHeader}>
+              <h2>결제한 상담 확인</h2>
+              {checkingRecord||busy?<p role="status">주문과 상담 상태를 확인하고 있어요.</p>:retryRecord?.retryable?<><p>상담 생성이 멈췄어요. 기존 주문으로 다시 이어갈 수 있어요.</p><button type="button" className={styles.primaryButton} onClick={()=>void retrySavedConsultation()}>기존 상담 다시 만들기</button></>:retryRecord?<><p>상담 확인이 필요해요. 추가 결제하지 말고 고객센터에 문의해 주세요.</p><a href="/support/">고객지원 열기</a></>:<><p role="alert">{error||"상담을 확인하지 못했어요. 추가 결제하지 말고 기록 보관함을 확인해 주세요."}</p><button type="button" onClick={()=>{const id=new URLSearchParams(window.location.search).get("cid");if(id)void loadRecentConsultation(id);}}>다시 확인하기</button></>}
+              <a href="/records/">기록 보관함 열기</a>
+            </div>
+          ) : !consultation ? (
             <>
               <div className={styles.panelHeader}>
                 <p><Sparkles size={15} /> Moonlight Compatibility</p>
@@ -1934,10 +1973,10 @@ export default function SukuyoCompatibilityAiClient({paymentSurface="web",draftO
               </div>
 
               <div className={styles.actions}>
-                {paymentSurface === "toss" ? TossPrice && <TossPrice onPrice={setTossPrice}/> : <PriceBadge featureKey="sukuyo-compatibility-ai" prefix="상담 이용 가격 " className={styles.priceBadgeInline} />}
-                <button type="button" className={styles.primaryButton} onClick={handleSubmit} disabled={busy || !bothComplete || (paymentSurface === "toss" && !tossPrice && !pendingGenerationRef.current)}>
+                {paymentSurface === "toss" ? !recoverPurchase && TossPrice && <TossPrice onPrice={setTossPrice}/> : <PriceBadge featureKey="sukuyo-compatibility-ai" prefix="상담 이용 가격 " className={styles.priceBadgeInline} />}
+                <button type="button" className={styles.primaryButton} onClick={handleSubmit} disabled={busy || !bothComplete || (paymentSurface === "toss" && !recoverPurchase && !tossPrice && !pendingGenerationRef.current)}>
                   {busy ? <Loader2 size={18} className={styles.spin} /> : <Sparkles size={18} />}
-                  두 사람의 인연 읽기
+                  {recoverPurchase?"결제한 상담 이어가기":"두 사람의 인연 읽기"}
                 </button>
               </div>
               <p className={styles.ctaNote}>
@@ -1987,10 +2026,10 @@ export default function SukuyoCompatibilityAiClient({paymentSurface="web",draftO
               {/* 모바일 전용 하단 고정 CTA. 이 화면은 전역 하단 네비를 숨기므로(.fullscreenBody) 겹칠 상대가 없다.
                   가격은 반드시 PriceBadge(서버 조회)로만 — 숫자를 직접 렌더하지 않는다. */}
               <div className={styles.mobileCta}>
-                {paymentSurface === "toss" ? <span className={styles.mobileCtaPrice}>{tossPrice?.displayAmount || "위에서 상품 상태 확인"}</span> : <PriceBadge featureKey="sukuyo-compatibility-ai" prefix="" className={styles.mobileCtaPrice} />}
-                <button type="button" onClick={handleSubmit} disabled={busy || !bothComplete || (paymentSurface === "toss" && !tossPrice && !pendingGenerationRef.current)}>
+                {paymentSurface === "toss" ? <span className={styles.mobileCtaPrice}>{recoverPurchase?"결제한 주문 연결":tossPrice?.displayAmount || "위에서 상품 상태 확인"}</span> : <PriceBadge featureKey="sukuyo-compatibility-ai" prefix="" className={styles.mobileCtaPrice} />}
+                <button type="button" onClick={handleSubmit} disabled={busy || !bothComplete || (paymentSurface === "toss" && !recoverPurchase && !tossPrice && !pendingGenerationRef.current)}>
                   {busy ? <Loader2 size={16} className={styles.spin} /> : <Sparkles size={16} />}
-                  두 사람의 인연 읽기
+                  {recoverPurchase?"결제한 상담 이어가기":"두 사람의 인연 읽기"}
                 </button>
               </div>
 
