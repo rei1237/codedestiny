@@ -81,7 +81,7 @@ try{
     await page.locator('.cd-boot-gate__veil').waitFor({state:'hidden',timeout:60000});
     await page.locator('#resultPage').waitFor({state:'visible'});
     await page.locator('#snuReadingContents').evaluate(node=>{node.open=true;node.scrollIntoView({block:'start',behavior:'instant'});});
-    assert.equal(await page.locator('#snuReadingContents nav a').count(),10);
+    assert.equal(await page.locator('#snuReadingContents nav a').count(),SNU_SAJU_FEATURES.length);
     assert(await page.locator('#snuReadingContents nav a').first().isVisible());
     assert.equal(await page.locator('.saju-reading-toc').count(),1);
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);
@@ -107,7 +107,7 @@ try{
     assert(await guideAction.evaluate(link=>{const box=link.getBoundingClientRect();const hit=document.elementFromPoint(box.x+box.width/2,box.y+box.height/2);return hit===link||link.contains(hit);}), 'the pending gift reminder must remain above the fixed navigation');
     assert.equal(unlocks,1,'a reminder must not grant a second gift');
     await pendingPage.screenshot({path:resolve(output,`snu-partial-reminder-${width}.png`)});
-    rows.push({width,claims,unlocks,profile:'fixture-gift',shortcuts:10,overflow:false,completedGuideHidden:true,guideActionUncovered:true,logoutCleared:true,keyboardGrant:true,focusMoved:true});
+    rows.push({width,claims,unlocks,profile:'fixture-gift',shortcuts:SNU_SAJU_FEATURES.length,overflow:false,completedGuideHidden:true,guideActionUncovered:true,logoutCleared:true,keyboardGrant:true,focusMoved:true});
     await pendingContext.close();
   }
   await writeFile(resolve(output,'proof.json'),JSON.stringify(rows,null,2));
