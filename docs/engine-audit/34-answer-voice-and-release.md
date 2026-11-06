@@ -108,7 +108,16 @@
 
 Swiss 모듈에 닿는 테스트 19개는 로컬에서 돌리지 않고 main CI에 맡겼다. 그중 하나가 `saju-compat-basic-delivery`, 또 하나가 `saju-authority-new-year`다. 다만 궁합 보완 작업 중에 이 두 테스트를 한 번 실행했다. 의도한 계산은 없었지만, `swiss-ephemeris.js`의 최상위 import 때문에 `sweph-wasm` 모듈이 메모리에 로드되었을 수 있다.
 
+같은 일이 push 단계에서 한 번 더 있었다. `scripts/run-mock-tests.mjs node <파일>`은 지정한 파일만 도는 게 아니라 `test:node` 전체 패턴에 그 파일을 덧붙인다. 그래서 oracle guard 없이 전체 묶음이 최대 150초 동안 돌았다. worktree의 `node_modules`에 `sweph-wasm`이 있으므로, 그 사이 Swiss에 닿는 테스트가 이 모듈을 로드했을 수 있다. 그 뒤로는 Swiss 연결 검사에서 통과한 623개 파일만 guard 아래에서 돌렸고, 4,423개 테스트가 모두 통과했다.
+
 ## 운영 반영
+
+- 운영 Pages와 Worker 모두 `05e03a0ed`로 배포됐다(릴리스 run 42297582510, `verify-deployed-sha` PASS). 그 전에 main CI run 42291672469가 모든 잡에서 통과했고, 스테이징 배포 run 42291759332도 성공했다.
+- push하면서 main CI를 깨뜨린 원인 네 가지를 고쳤다. 엔진 코드는 바꾸지 않았다.
+  - `paid-report-length-recovery`(찻집), `paid-report-partial`(코덱스), `ziwei-execution-lifecycle`의 VM 하네스에 질문 직답 계약 함수를 주입했다. 자미 하네스는 이 함수가 없어서 `test:node` 레인을 24분 동안 멈춰 세웠다.
+  - `config/env.contract.json`에 `SUKUYO_IMD_NEW_ORDERS_V1`을 등록했다(env-parity).
+  - `yeongnyangi-natal-profile`의 fixture가 `sukuyo-verified-provider.js`를 `sukuyo-astronomy.js`처럼 대체한다.
+  - `sukuyo-verified-order`는 다른 영냥이 하네스처럼 `LLM_DRY_RUN:'false'`를 env에 명시한다. 목 러너가 `LLM_DRY_RUN=true`를 설정하기 때문이다.
 
 - 운영 CI와 릴리스는 지금처럼 `sweph-wasm`을 설치한다. 이 예외는 [CR-010](change-requests/CR-010.md)에 사용자 결정으로 기록했다. 워크플로의 루트 preflight 줄은 되돌렸다.
 - 그대로 끈 플래그: `ASTROLOGY_CONSUMER_FACTS_V1`, `VEDIC_CONSUMER_FACTS_V1`, `SUKUYO_CONSUMER_FACTS_V1`.
