@@ -17,7 +17,7 @@ function makeStart(data, status) {
   const notices = [], phases = [], consultations = [];
   let requests = 0;
   const pendingGenerationRef = { current: null }, submitKeyRef = { current: 'key' };
-  const context = { captureDeliveryScope: () => () => true, pendingGenerationRef, submitKeyRef,
+  const context = { paymentSurface: 'web', tossCheckRevision: { current: 0 }, captureDeliveryScope: () => () => true, pendingGenerationRef, submitKeyRef,
     payload: {}, document: { hidden: false }, setPhase: value => phases.push(value),
     postJson: async () => { requests++; return { status, data }; },
     rememberConsultationUrl: () => {}, setConsultation: value => consultations.push(value),

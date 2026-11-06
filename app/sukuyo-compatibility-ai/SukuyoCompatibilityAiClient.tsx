@@ -9,11 +9,14 @@ import ReviewRewardBanner from "@/app/components/ReviewRewardBanner";
 
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { ReactNode } from "react";
+import type { ComponentType, ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { m, useReducedMotion } from "framer-motion";
 import { CalendarDays, Download, HeartHandshake, Loader2, Moon, Orbit, Sparkles, X } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
+import { getAuthState } from "@/app/_lib/auth-store";
+import { readSukuyoDraft, saveSukuyoDraft, clearSukuyoDraft } from "@/apps/toss/service/sukuyo-draft-bootstrap.mjs";
+import { rememberTossTeaPrice, type TossTeaPriceSelection } from "@/src/features/fortune-tea-house/lib/tossPriceSelection";
 import { isRetriableResultPollFailure, runAccessCheckWithTransientRetry } from "@/app/_lib/consultationResultPolling";
 import { useBodyScrollLock } from "@/app/_lib/body-scroll-lock";
 import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from "@/lib/llm-text";
@@ -487,6 +490,29 @@ const ERROR_TEXT: Record<string, string> = {
   GENERATION_TIMEOUT: "상담문이 아직 완성되지 않았어요. 이용권은 그대로 보존되니, 잠시 후 다시 시도해 주세요.",
   GENERATION_INTERRUPTED: "상담 생성이 중간에 끊겼어요. 이용권은 그대로 보존되니 다시 시도해 주세요.",
 };
+
+const TOSS_ERROR_TEXT: Record<string,string> = {
+  LOGIN_REQUIRED: "토스로 로그인한 뒤 상담을 이어가 주세요.",
+  ACCESS_DENIED: "이 상담의 접근 권한을 확인할 수 없어요. 구매한 계정을 확인해 주세요.",
+  ORDER_REFUNDED: "환불된 상담은 다시 열 수 없어요. 결제 내역을 확인해 주세요.",
+  PAYMENT_CANCELLED: "결제를 취소했어요. 필요할 때 다시 시도해 주세요.",
+  PAYMENT_STATUS_UNCERTAIN: "결제 상태를 확인하지 못했어요. 추가로 결제하지 말고 구매 내역을 확인해 주세요.",
+  RECOVERY_REQUIRED: "새 결제 전에 구매 내역을 확인해 주세요.",
+  TOSS_PRICE_CHANGED: "상담 가격을 다시 확인한 뒤 시작해 주세요.",
+  TEMPORARY_UNAVAILABLE: "상담을 확인하지 못했어요. 결제했다면 추가 결제하지 말고 기록을 확인해 주세요.",
+  GENERATION_TIMEOUT: "상담이 아직 완성되지 않았어요. 추가 결제하지 말고 기록을 확인해 주세요.",
+  GENERATION_INTERRUPTED: "상담 생성이 중단됐어요. 추가 결제하지 말고 기록을 확인해 주세요.",
+};
+function sukuyoErrorText(code:string,surface:"web"|"toss"){
+  return (surface === "toss" && TOSS_ERROR_TEXT[code]) || ERROR_TEXT[code] || ERROR_TEXT.SERVER_ERROR;
+}
+function tossSukuyoFailure(status:number,value:unknown){
+  const data=asRecord(value),code=String(data.code||data.reason||asRecord(data.error).code||"");
+  if(status===403 || (status!==401 && code==="ACCESS_DENIED"))return "ACCESS_DENIED";
+  if(status===401 || ["LOGIN_REQUIRED","SESSION_EXPIRED"].includes(code))return "LOGIN_REQUIRED";
+  if(code==="USER_CANCELED")return "PAYMENT_CANCELLED";
+  return code;
+}
 
 function makeIdempotencyKey() {
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
@@ -1276,7 +1302,7 @@ type RecentConsultation = {
   updatedAt?: string;
 };
 
-export default function SukuyoCompatibilityAiClient() {
+export default function SukuyoCompatibilityAiClient({paymentSurface="web",draftOwner="",ProfilePicker,TossPrice}:{paymentSurface?:"web"|"toss";draftOwner?:string;ProfilePicker?:ComponentType<{onSelect:(seed:AiPrefillSeed)=>void;id:string}>;TossPrice?:ComponentType<{onPrice:(selection:TossTeaPriceSelection|null)=>void}>} = {}) {
   const locale = useSukuyoCompatLocale();
   const [clientReady, setClientReady] = useState(false);
   useEffect(() => { setClientReady(true); }, []);
@@ -1288,8 +1314,14 @@ export default function SukuyoCompatibilityAiClient() {
   const hanbiEmpty = getExpertLine("hanbi", "empty", locale);
   const hanbiError = getExpertLine("hanbi", "error", locale);
   const reduceMotion = useReducedMotion() === true;
-  const [personA, setPersonA] = useState<PersonForm>(() => buildInitialPersonA());
-  const [personB, setPersonB] = useState<PersonForm>({ ...EMPTY_PERSON });
+  const draft = useRef<{personA:PersonForm;personB:PersonForm}|null>(null);
+  if (paymentSurface === "toss" && draft.current === null && typeof window !== "undefined") {
+    try { draft.current = readSukuyoDraft(window.sessionStorage,{id:draftOwner}) as {personA:PersonForm;personB:PersonForm}|null; } catch { /* Optional local draft. */ }
+  }
+  const [personA, setPersonA] = useState<PersonForm>(() => paymentSurface === "toss" ? draft.current?.personA || { ...EMPTY_PERSON } : buildInitialPersonA());
+  const [personB, setPersonB] = useState<PersonForm>(() => paymentSurface === "toss" ? draft.current?.personB || { ...EMPTY_PERSON } : { ...EMPTY_PERSON });
+  const [tossPrice, setTossPrice] = useState<TossTeaPriceSelection|null>(null);
+  const tossCheckRevision = useRef(0);
   const relationshipType = "연인";
   const topic = "전체 궁합";
   const [consultation, setConsultation] = useState<Consultation | null>(null);
@@ -1309,14 +1341,22 @@ export default function SukuyoCompatibilityAiClient() {
   const [resumeEpoch, setResumeEpoch] = useState(0);
   const captureDeliveryScope = usePaidDeliveryScope(() => {
     pendingGenerationRef.current = null; submitKeyRef.current = ""; submitLockRef.current = false;
+    if(paymentSurface === "toss"){tossCheckRevision.current++;setPersonA({...EMPTY_PERSON});setPersonB({...EMPTY_PERSON});setTossPrice(null);setResultOpen(false);}
     setConsultation(null); setRecentList([]); setError(""); setNotice(""); setPhase("idle"); setResumeEpoch(value => value + 1);
   });
-  const { seed: profileSeed, seedVersion } = useAiProfileSeed();
+  const { seed: profileSeed, seedVersion } = useAiProfileSeed({enabled:paymentSurface !== "toss"});
   const formTouchedRef = useRef(false);
+
+  useEffect(()=>{
+    if(paymentSurface !== "toss" || !draftOwner || typeof window === "undefined")return;
+    const user=getAuthState().user,owner=String(user?.id||user?.userId||user?._id||user?.uid||"");
+    if(owner!==draftOwner)return;
+    try{saveSukuyoDraft(window.sessionStorage,{id:draftOwner},personA,personB);}catch{/* Optional local draft. */}
+  },[paymentSurface,draftOwner,personA,personB]);
 
   // 서버에서 프로필 카드가 뒤늦게 도착해도, 사용자가 입력을 시작하기 전이라면 본인(나의 별) 폼에 반영
   useEffect(() => {
-    if (!profileSeed) return;
+    if (paymentSurface === "toss" || !profileSeed) return;
     setPersonA((prev) => (formTouchedRef.current ? prev : applyProfileSeedToPerson(prev, profileSeed)));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seedVersion]);
@@ -1335,6 +1375,17 @@ export default function SukuyoCompatibilityAiClient() {
     if (result) setResultOpen(true);
   }, [result]);
 
+  useEffect(()=>{
+    if(paymentSurface !== "toss")return;
+    const onBack=(event:Event)=>{
+      if(resultOpen){event.preventDefault();setResultOpen(false);return;}
+      if(busy){event.preventDefault();setNotice("상담을 확인하고 있어요. 잠시 후 다시 시도해 주세요.");return;}
+      if(consultation){event.preventDefault();setConsultation(null);setError("");setNotice("");try{const url=new URL(window.location.href);url.searchParams.delete("cid");window.history.replaceState(null,"",url.pathname+url.search+url.hash);}catch{/* The saved record remains available. */}}
+    };
+    window.addEventListener("code-destiny:toss-back",onBack);
+    return()=>window.removeEventListener("code-destiny:toss-back",onBack);
+  },[paymentSurface,resultOpen,busy,consultation]);
+
   function rememberConsultationUrl(id: string) {
     if (!id || typeof window === "undefined") return;
     try {
@@ -1347,12 +1398,17 @@ export default function SukuyoCompatibilityAiClient() {
   }
 
   useEffect(() => {
-    let cancelled = false; const isCurrent = captureDeliveryScope();
+    let cancelled = false; const ownerCurrent = captureDeliveryScope(), revision = tossCheckRevision.current;
+    const isCurrent = () => ownerCurrent() && (paymentSurface !== "toss" || revision === tossCheckRevision.current);
     void (async () => {
       if (submitLockRef.current) return;
       const response = await authFetch("/api/sukuyo-compatibility-ai/result").catch(() => null);
-      const data = response?.ok ? await response.json().catch(() => ({})) : {};
+      const data = response ? await response.json().catch(() => ({})) : {};
       if (cancelled || !isCurrent()) return;
+      const denied=paymentSurface === "toss" ? tossSukuyoFailure(response?.status||0,data) : "";
+      if(denied === "LOGIN_REQUIRED" || denied === "ACCESS_DENIED"){
+        tossCheckRevision.current++;pendingGenerationRef.current=null;setConsultation(null);setRecentList([]);setResultOpen(false);setError(sukuyoErrorText(denied,"toss"));return;
+      }
       if (Array.isArray(data.consultations)) setRecentList(data.consultations);
       const cid = data.pendingSessionId || new URLSearchParams(window.location.search).get("cid");
       if (cid) void loadRecentConsultation(cid);
@@ -1403,16 +1459,21 @@ export default function SukuyoCompatibilityAiClient() {
 
   async function loadRecentConsultation(id: string) {
     if (submitLockRef.current) return;
-    const isCurrent = captureDeliveryScope(); submitLockRef.current = true;
+    const ownerCurrent = captureDeliveryScope(),revision=paymentSurface === "toss" ? ++tossCheckRevision.current : 0;
+    const isCurrent=()=>ownerCurrent()&&(paymentSurface !== "toss" || revision===tossCheckRevision.current);
+    submitLockRef.current = true;
+    if(paymentSurface === "toss"){setConsultation(null);setResultOpen(false);setError("");}
     try {
       const response = await authFetch(`/api/sukuyo-compatibility-ai/result?id=${encodeURIComponent(id)}`);
       const data = await response.json().catch(() => ({})) as StartResult;
       if (!isCurrent()) return;
+      const denied=paymentSurface === "toss" ? tossSukuyoFailure(response.status,data) : "";
+      if(denied === "LOGIN_REQUIRED" || denied === "ACCESS_DENIED" || denied === "ORDER_REFUNDED")throw new Error(denied);
       if (!data.ok) throw new Error(data.reason || "SERVER_ERROR");
       if (data.consultation) { setConsultation(data.consultation); rememberConsultationUrl(id); }
       if (response.status === 202) await startConsultation(data.idempotencyKey || data.consultation?.idempotencyKey || submitKeyRef.current || makeIdempotencyKey(), {}, true, { resumeSessionId: id });
-    } catch (error) { if (isCurrent()) { setError(error instanceof Error ? error.message : ERROR_TEXT.NETWORK_ERROR); setPhase("idle"); } }
-    finally { if (isCurrent()) submitLockRef.current = false; }
+    } catch (error) { if (isCurrent()) { const code=error instanceof Error?error.message:"NETWORK_ERROR";if(paymentSurface === "toss"){setConsultation(null);setResultOpen(false);pendingGenerationRef.current=null;}setError(paymentSurface === "toss"?sukuyoErrorText(code,"toss"):code);setPhase("idle"); } }
+    finally { if (ownerCurrent()) submitLockRef.current = false; }
   }
 
   useEffect(() => {
@@ -1496,7 +1557,8 @@ export default function SukuyoCompatibilityAiClient() {
   // 🔴 payloadOverride: 결제 복귀 재개는 새 문서라 위 useMemo payload 가 기본 폼으로 되살아나 있다.
   //    재개 경로는 결제 직전에 굳혀 둔 입력을 그대로 넘겨야 다른 사람의 궁합이 생성되지 않는다.
   async function startConsultation(idempotencyKey: string, access: Record<string, unknown>, paymentWasRequired = false, payloadOverride?: Record<string, unknown>) {
-    const isCurrent = captureDeliveryScope();
+    const ownerCurrent = captureDeliveryScope(),revision=tossCheckRevision.current;
+    const isCurrent=()=>ownerCurrent()&&(paymentSurface !== "toss" || revision===tossCheckRevision.current);
     pendingGenerationRef.current = { key: idempotencyKey, body: payloadOverride || payload, access };
     setPhase("start");
     let failures = 0;
@@ -1515,6 +1577,10 @@ export default function SukuyoCompatibilityAiClient() {
       }
       if (!isCurrent()) return false;
       const { status, data } = started;
+      const denied=paymentSurface === "toss"?tossSukuyoFailure(status,data):"";
+      if(denied === "LOGIN_REQUIRED" || denied === "ACCESS_DENIED" || denied === "ORDER_REFUNDED"){
+        tossCheckRevision.current++;pendingGenerationRef.current=null;setConsultation(null);setResultOpen(false);throw new Error(denied);
+      }
       const sessionId = data.sessionId || data.consultation?.id || (/^[0-9a-f]{24}$/i.test(data.resultId || "") ? data.resultId : "");
       if (sessionId) { pending.sessionId = sessionId; rememberConsultationUrl(sessionId); }
       if (status === 503 && data.reason === "RESULT_STORAGE_UNAVAILABLE" && ++failures <= 2) { await sleep(failures * 1500); continue; }
@@ -1527,6 +1593,7 @@ export default function SukuyoCompatibilityAiClient() {
         return false;
       }
       if (status !== 202 && data.consultation && (!data.consultation.status || data.consultation.status === "completed")) {
+        if(paymentSurface === "toss" && typeof window !== "undefined")try{clearSukuyoDraft(window.sessionStorage,{id:draftOwner});}catch{/* Optional local draft. */}
         pendingGenerationRef.current = null; submitKeyRef.current = ""; setError(""); setNotice(""); setPhase("idle"); return true;
       }
       setNotice("완성된 내용을 저장했습니다. 다음 장을 이어서 작성하고 있어요.");
@@ -1552,7 +1619,7 @@ export default function SukuyoCompatibilityAiClient() {
     } catch (caught) {
       if (!isCurrent()) return false;
       const code = caught instanceof TypeError ? "NETWORK_ERROR" : caught instanceof Error ? caught.message : "SERVER_ERROR";
-      setError(ERROR_TEXT[code] || ERROR_TEXT.SERVER_ERROR);
+      setError(sukuyoErrorText(code,paymentSurface));
       setPhase("idle");
       return false;
     } finally {
@@ -1562,11 +1629,17 @@ export default function SukuyoCompatibilityAiClient() {
 
   async function handleSubmit() {
     if (submitLockRef.current || busy) return;
+    if(paymentSurface === "toss" && !pendingGenerationRef.current){
+      const user=getAuthState().user,owner=String(user?.id||user?.userId||user?._id||user?.uid||"");
+      if(!tossPrice||tossPrice.owner!==owner||tossPrice.featureKey!==FEATURE_KEY){setError("상담 가격을 확인한 뒤 다시 시작해 주세요.");return;}
+      rememberTossTeaPrice(tossPrice);
+    }
     const isCurrent = captureDeliveryScope();
     submitLockRef.current = true;
     try {
       await runSubmit();
     } finally {
+      if(paymentSurface === "toss")rememberTossTeaPrice(null);
       if (isCurrent()) submitLockRef.current = false;
     }
   }
@@ -1576,10 +1649,10 @@ export default function SukuyoCompatibilityAiClient() {
     const pending = pendingGenerationRef.current;
     if (pending) {
       try { await startConsultation(pending.key, pending.access, true, pending.sessionId ? { resumeSessionId: pending.sessionId } : pending.body); }
-      catch (error) { if (isCurrent()) { const code = error instanceof TypeError ? "NETWORK_ERROR" : error instanceof Error ? error.message : "SERVER_ERROR"; setError(ERROR_TEXT[code] || ERROR_TEXT.SERVER_ERROR); setPhase("idle"); } }
+      catch (error) { if (isCurrent()) { const code = error instanceof TypeError ? "NETWORK_ERROR" : error instanceof Error ? error.message : "SERVER_ERROR"; setError(sukuyoErrorText(code,paymentSurface)); setPhase("idle"); } }
       return;
     }
-    const previewState = readDevPreviewState();
+    const previewState = paymentSurface === "toss" ? null : readDevPreviewState();
     if (previewState) {
       setPhase("start");
       const preview = buildSukuyoCompatibilityPreviewPayload(previewState);
@@ -1604,7 +1677,7 @@ export default function SukuyoCompatibilityAiClient() {
     setNotice("");
     setPhase("access");
     // 근거는 결제/생성과 무관한 순수 계산이라 기다리지 않고 병렬로 받는다(실패하면 null이라 흐름을 막지 않는다).
-    void fetchAnalysisBasis("/api/sukuyo-compatibility-ai/basis", payload).then(setBasis);
+    void fetchAnalysisBasis("/api/sukuyo-compatibility-ai/basis", payload).then(value=>{if(isCurrent())setBasis(value);}).catch(()=>{});
     beginPaidFeatureGateCheck({
       featureKey: FEATURE_KEY,
       requestId: idempotencyKey,
@@ -1613,7 +1686,7 @@ export default function SukuyoCompatibilityAiClient() {
       paymentMode: "MEMBERSHIP_PASS",
     });
     // 이용권 판정(unlock-status)을 아래 접근 확인 왕복과 겹쳐 돌린다 — 결제 게이트가 같은 키로 재사용해 직렬 왕복이 1회 준다.
-    void primePaymentEligibility(buildBillingGateInput({}, idempotencyKey));
+    if(paymentSurface !== "toss")void primePaymentEligibility(buildBillingGateInput({}, idempotencyKey));
     try {
       // 이용권 확인 앞단의 일시적 DB 장애(503 DB_DEGRADED 등)는 재시도로 흡수한다 — 하드 실패로 굳지 않게.
       const { status, data } = await runAccessCheckWithTransientRetry(
@@ -1625,6 +1698,8 @@ export default function SukuyoCompatibilityAiClient() {
         { onRetry: () => setNotice("연결이 잠시 불안정해요. 이용권을 다시 확인하는 중입니다.") },
       );
       if (!isCurrent()) return;
+      const accessFailure=paymentSurface === "toss"?tossSukuyoFailure(status,data):"";
+      if(accessFailure === "LOGIN_REQUIRED" || accessFailure === "ACCESS_DENIED")throw new Error(accessFailure);
       if (data.ok) {
         completePaidFeatureGateCheck({
           featureKey: FEATURE_KEY,
@@ -1644,7 +1719,7 @@ export default function SukuyoCompatibilityAiClient() {
       // 실패 시 무조건 결제창). runBillingCoinGate가 billing.js coin-gate로 pass를 재검사(W2 재시도)해 처리한다.
       const passGateDegraded = isRetriableResultPollFailure(status, denied);
       if (!passGateDegraded && denied.reason !== "PAYMENT_REQUIRED") throw new Error(toText(denied.reason) || "SERVER_ERROR");
-      setNotice(ERROR_TEXT.PAYMENT_REQUIRED);
+      setNotice(paymentSurface === "toss" ? "토스에서 결제 정보를 확인해 주세요." : ERROR_TEXT.PAYMENT_REQUIRED);
       setPhase("payment");
       const paymentPayload = asRecord("paymentPayload" in denied ? denied.paymentPayload : {});
       const runtimeResult = await runBillingCoinGate({
@@ -1654,6 +1729,7 @@ export default function SukuyoCompatibilityAiClient() {
       if (!isCurrent()) return;
       if (!isPaymentGranted(runtimeResult)) {
         const runtimeCode = String(runtimeResult.error?.code || "").toUpperCase();
+        if(paymentSurface === "toss")throw new Error(tossSukuyoFailure(runtimeResult.status,runtimeResult.error)||"PAYMENT_VERIFY_FAILED");
         if (runtimeCode === "PAYMENT_CANCELLED") throw new Error("PAYMENT_CANCELLED");
         throw new Error("PAYMENT_VERIFY_FAILED");
       }
@@ -1667,14 +1743,15 @@ export default function SukuyoCompatibilityAiClient() {
       const entitlementFailure = paymentCancelled || code === "PAYMENT_VERIFY_FAILED" || code === "PAYMENT_REQUIRED" || code === "LOGIN_REQUIRED";
       // 일시적 접속 장애는 이용권/생성 결함이 아니므로 별도 문구로 안내한다.
       const isTransient = code === "TEMPORARY_UNAVAILABLE" || code === "NETWORK_ERROR";
-      setError(ERROR_TEXT[code] || ERROR_TEXT.SERVER_ERROR);
+      if(paymentSurface === "toss" && ["LOGIN_REQUIRED","ACCESS_DENIED","ORDER_REFUNDED"].includes(code)){tossCheckRevision.current++;pendingGenerationRef.current=null;setConsultation(null);setResultOpen(false);}
+      setError(sukuyoErrorText(code,paymentSurface));
       failPaidFeatureGateCheck({
         featureKey: FEATURE_KEY,
         requestId: idempotencyKey,
         title: isTransient ? "잠시 후 다시 시도" : entitlementFailure ? "이용권 확인 실패" : "상담 생성 실패",
         reason: "숙요점 궁합 전문가 상담",
         paymentMode: "MEMBERSHIP_PASS",
-        message: ERROR_TEXT[code] || ERROR_TEXT.SERVER_ERROR,
+        message: sukuyoErrorText(code,paymentSurface),
         cancelled: paymentCancelled,
       });
       setPhase("idle");
@@ -1694,7 +1771,7 @@ export default function SukuyoCompatibilityAiClient() {
     ].filter(Boolean);
     return (
       <>
-        <SavedBirthProfilePicker label={target === "a" ? "나의 저장된 프로필" : "상대의 저장된 프로필"} disabled={busy} onSelect={seed => { formTouchedRef.current = true; (target === "a" ? setPersonA : setPersonB)(applyProfileSeedToPerson({ ...EMPTY_PERSON }, seed)); }} />
+        {paymentSurface === "toss" ? ProfilePicker && <ProfilePicker id={`toss-sukuyo-profile-${target}`} onSelect={seed => { formTouchedRef.current = true; (target === "a" ? setPersonA : setPersonB)(applyProfileSeedToPerson({ ...EMPTY_PERSON }, seed)); }}/> : <SavedBirthProfilePicker label={target === "a" ? "나의 저장된 프로필" : "상대의 저장된 프로필"} disabled={busy} onSelect={seed => { formTouchedRef.current = true; (target === "a" ? setPersonA : setPersonB)(applyProfileSeedToPerson({ ...EMPTY_PERSON }, seed)); }} />}
         <div className={`${styles.field} ${styles.primaryField}`}>
           <label htmlFor={`${prefix}-birth-date`}>생년월일</label>
           <input id={`${prefix}-birth-date`} {...birthDateTextInputProps(value.birthDate, (nextBirthDate) => updatePerson(target, { birthDate: nextBirthDate }))} disabled={busy} />
@@ -1793,7 +1870,7 @@ export default function SukuyoCompatibilityAiClient() {
     <main className={styles.screen} data-sukuyo-ai-consultation data-duo-linked={bothComplete ? "true" : undefined} data-character={hanbiOn ? "hanbi" : undefined}>
       <div className={styles.threadLine} />
       <div className={styles.starField} aria-hidden="true" />
-      {!consultation && locale === "ko" && <div className={styles.productGuide}><CraftedProductDisclosure featureKey="sukuyo-compatibility-ai" /></div>}
+      {!consultation && locale === "ko" && paymentSurface !== "toss" && <div className={styles.productGuide}><CraftedProductDisclosure featureKey="sukuyo-compatibility-ai" /></div>}
       <section className={`${styles.shell} mx-auto w-full`}>
         <aside
           className={styles.visualPanel}
@@ -1857,13 +1934,14 @@ export default function SukuyoCompatibilityAiClient() {
               </div>
 
               <div className={styles.actions}>
-                <PriceBadge featureKey="sukuyo-compatibility-ai" prefix="상담 이용 가격 " className={styles.priceBadgeInline} />
-                <button type="button" className={styles.primaryButton} onClick={handleSubmit} disabled={busy || !bothComplete}>
+                {paymentSurface === "toss" ? TossPrice && <TossPrice onPrice={setTossPrice}/> : <PriceBadge featureKey="sukuyo-compatibility-ai" prefix="상담 이용 가격 " className={styles.priceBadgeInline} />}
+                <button type="button" className={styles.primaryButton} onClick={handleSubmit} disabled={busy || !bothComplete || (paymentSurface === "toss" && !tossPrice && !pendingGenerationRef.current)}>
                   {busy ? <Loader2 size={18} className={styles.spin} /> : <Sparkles size={18} />}
                   두 사람의 인연 읽기
                 </button>
               </div>
               <p className={styles.ctaNote}>
+                {paymentSurface === "toss" && <span>AI가 작성한 상담 결과예요.</span>}
                 <span>태어난 시간은 필요하지 않습니다.</span>
                 <span>관계 지표는 참고로 살피고, 두 사람이 반복해서 만나게 되는 관계의 리듬을 읽습니다.</span>
               </p>
@@ -1909,8 +1987,8 @@ export default function SukuyoCompatibilityAiClient() {
               {/* 모바일 전용 하단 고정 CTA. 이 화면은 전역 하단 네비를 숨기므로(.fullscreenBody) 겹칠 상대가 없다.
                   가격은 반드시 PriceBadge(서버 조회)로만 — 숫자를 직접 렌더하지 않는다. */}
               <div className={styles.mobileCta}>
-                <PriceBadge featureKey="sukuyo-compatibility-ai" prefix="" className={styles.mobileCtaPrice} />
-                <button type="button" onClick={handleSubmit} disabled={busy || !bothComplete}>
+                {paymentSurface === "toss" ? <span className={styles.mobileCtaPrice}>{tossPrice?.displayAmount || "위에서 상품 상태 확인"}</span> : <PriceBadge featureKey="sukuyo-compatibility-ai" prefix="" className={styles.mobileCtaPrice} />}
+                <button type="button" onClick={handleSubmit} disabled={busy || !bothComplete || (paymentSurface === "toss" && !tossPrice && !pendingGenerationRef.current)}>
                   {busy ? <Loader2 size={16} className={styles.spin} /> : <Sparkles size={16} />}
                   두 사람의 인연 읽기
                 </button>
@@ -2029,6 +2107,6 @@ export default function SukuyoCompatibilityAiClient() {
 export function SavedSukuyoSummary({ value }: { value: unknown }) {
   const result = value && typeof value === 'object' ? value as Partial<CompatResult> : {};
   const meta = result.meta;
-  if (!meta?.person_a || !meta.person_b || !meta.relation || !meta.scores || !['destiny','harmony','emotion','growth','stability','total'].every(key => typeof meta.scores[key] === 'number' && Number.isFinite(meta.scores[key]))) return null;
+  if (!meta?.person_a || !meta.person_b || !meta.relation || !meta.scores || !(['destiny','harmony','emotion','growth','stability','total'] as const).every(key => typeof meta.scores[key] === 'number' && Number.isFinite(meta.scores[key]))) return null;
   return <div><CompatSummaryHeader meta={meta}/>{meta.axes && <AxisStarSection axes={meta.axes} notes={result.scoreNotes} forceVisible/>}<TraitCompareTable a={meta.person_a} b={meta.person_b}/></div>;
 }

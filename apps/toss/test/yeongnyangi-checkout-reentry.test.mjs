@@ -20,6 +20,7 @@ const bundle=await build({entryPoints:[source],bundle:true,write:false,platform:
   export const canonicalResponse=(...args)=>globalThis.checkoutReentry.send(...args);
   export const LazyMotion=()=>null,domAnimation={},SafeArea={},Screen={},graniteEvent={},ToastProvider=()=>null,dispatchServiceBack=()=>false;
   export const captureTeaDraft=()=>null,restoreTeaDraft=()=>{},captureLetterDraft=()=>null,restoreLetterDraft=()=>{},clearClientAuthState=()=>{},refreshAuth=()=>{},handleSessionInvalidated=()=>{},SERVICE_AVAILABLE=false,restoreSession=()=>{},recoverAfterAuthentication=()=>{},onSessionInvalidated=()=>()=>{},login=()=>{},isToss=()=>false,createServiceFetch=()=>{};
+  export const captureSukuyoDraft=()=>null,restoreSukuyoDraft=()=>{},recallPendingAuthDrafts=()=>({}),rememberPendingAuthDrafts=()=>{},clearPendingAuthDrafts=()=>{};
  `}));
 }}]});
 const loaded=new Module(path.resolve(import.meta.dirname,'checkout-reentry.cjs'));

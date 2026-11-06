@@ -6,7 +6,7 @@ import {usePaidDeliveryScope} from '@/app/hooks/usePaidDeliveryScope';
 import {useTossConsultationCopy} from '@/app/_lib/toss-consultation-copy';
 
 // Profile choices are always read from the current Toss identity, never web cache.
-export default function TossAstrologyProfilePicker({onSelect,calendarMode='solar'}:{onSelect:(seed:AiPrefillSeed)=>void;calendarMode?:'solar'|'lunar'|'native-lunar'}){
+export default function TossAstrologyProfilePicker({onSelect,calendarMode='solar',inputId='toss-astrology-profile'}:{onSelect:(seed:AiPrefillSeed)=>void;calendarMode?:'solar'|'lunar'|'native-lunar';inputId?:string}){
  const {copy}=useTossConsultationCopy();
  const [profiles,setProfiles]=useState<DestinyProfileCard[]>([]),[loading,setLoading]=useState(true),[message,setMessage]=useState(''),[epoch,setEpoch]=useState(0);
  const revision=useRef(0);
@@ -22,5 +22,5 @@ export default function TossAstrologyProfilePicker({onSelect,calendarMode='solar
   const {lunarToSolar}=await import('@/lib/korean-calendar');const [year,month,day]=(seed.birthDate||'').split('-').map(Number);const date=lunarToSolar(year,month,day,Boolean(seed.isLeapMonth));if(!date)throw new Error('INVALID_LUNAR_DATE');
   seed={...seed,birthDate:[date.year,String(date.month).padStart(2,'0'),String(date.day).padStart(2,'0')].join('-'),calendarType:'solar',isLeapMonth:false};
  }if(same())onSelect(seed);}catch{if(same())setMessage('profileInvalid');}};
- return <div>{profiles.length>0?<><label htmlFor="toss-astrology-profile">{copy.profiles}</label><select style={{minHeight:44}} id="toss-astrology-profile" defaultValue="" disabled={loading} onChange={event=>void choose(event.target.value)}><option value="">{copy.selectProfile}</option>{profiles.map(profile=><option key={profile.id||profile.profileId} value={profile.id||profile.profileId}>{profile.name||copy.profiles}</option>)}</select></>:<strong>{copy.profiles}</strong>}<p role="status">{loading?copy.profilesLoading:message?copy[message as keyof typeof copy]:!profiles.length?copy.profilesEmpty:copy.profilesSelected} </p>{message&&<button type="button" style={{minHeight:44}} onClick={()=>void reload()}>{copy.profileRetry}</button>}</div>;
+ return <div>{profiles.length>0?<><label htmlFor={inputId}>{copy.profiles}</label><select style={{minHeight:44}} id={inputId} defaultValue="" disabled={loading} onChange={event=>void choose(event.target.value)}><option value="">{copy.selectProfile}</option>{profiles.map(profile=><option key={profile.id||profile.profileId} value={profile.id||profile.profileId}>{profile.name||copy.profiles}</option>)}</select></>:<strong>{copy.profiles}</strong>}<p role="status">{loading?copy.profilesLoading:message?copy[message as keyof typeof copy]:!profiles.length?copy.profilesEmpty:copy.profilesSelected} </p>{message&&<button type="button" style={{minHeight:44}} onClick={()=>void reload()}>{copy.profileRetry}</button>}</div>;
 }

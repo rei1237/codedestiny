@@ -1180,7 +1180,8 @@ async function resolveBillingUsageEvidence(env, auth, body = {}) {
 // 계산 근거만 즉시 돌려준다 — LLM 미호출, DB 접근 없음, 과금 없음.
 // 신원 확인은 로컬 JWT 검증만 써서 Mongo를 한 번도 건드리지 않는다.
 async function handleBasis(request, env) {
-  const userId = nativeTossContext(request)?.auth?.userId || await peekAccessTokenUserId(request, env);
+  const native = nativeTossContext(request);
+  const userId = native ? native.auth?.userId : await peekAccessTokenUserId(request, env);
   if (!userId) return json({ ok: false, reason: "LOGIN_REQUIRED", message: MESSAGES.login }, { status: 401 });
 
   const normalized = normalizeInput(await readJson(request));
@@ -1206,12 +1207,13 @@ async function handleEnsureAccess(request, env) {
   });
   let auth = null;
   try {
-    auth = nativeTossContext(request)?.auth || await requireAuth(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
+    auth = nativeTossContext(request) ? nativeTossContext(request).auth : await requireAuth(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
   } catch (error) {
     // 일시적 DB 장애는 로그아웃 유발 401이 아니라 재시도 가능한 503으로 흘려보낸다.
     if (isTransientMongoError(error)) throw error;
     return json({ ok: false, reason: "LOGIN_REQUIRED" }, { status: 401 });
   }
+  if (nativeTossContext(request) && !auth?.userId) return json({ ok: false, reason: "LOGIN_REQUIRED" }, { status: 401 });
   const normalized = normalizeInput(body);
   logSukyoAi("[Sukyo AI LLM Payload Validated]", {
     route: "/api/sukuyo-compatibility-ai/prepare",
@@ -1832,12 +1834,13 @@ async function confirmSukuyoDelivery(userId, sessionId, messages, lease) {
 async function handleStart(request, env, recoveryAuth = null) {
   let auth = null;
   try {
-    auth = nativeTossContext(request)?.auth || recoveryAuth || await requireAuth(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
+    auth = nativeTossContext(request) ? nativeTossContext(request).auth : recoveryAuth || await requireAuth(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
   } catch (error) {
     // 일시적 DB 장애는 로그아웃 유발 401이 아니라 재시도 가능한 503으로 흘려보낸다.
     if (isTransientMongoError(error)) throw error;
     return json({ ok: false, reason: "LOGIN_REQUIRED", message: MESSAGES.login }, { status: 401 });
   }
+  if (nativeTossContext(request) && !auth?.userId) return json({ ok: false, reason: "LOGIN_REQUIRED" }, { status: 401 });
   let body = await readJson(request);
   if (body.resumeSessionId) {
     if (!isObjectIdLike(body.resumeSessionId)) return notFound();
@@ -2207,12 +2210,13 @@ function buildFollowupPrompt(consultation, userMessage) {
 async function handleMessage(request, env) {
   let auth = null;
   try {
-    auth = nativeTossContext(request)?.auth || await requireAuth(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
+    auth = nativeTossContext(request) ? nativeTossContext(request).auth : await requireAuth(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
   } catch (error) {
     // 일시적 DB 장애는 로그아웃 유발 401이 아니라 재시도 가능한 503으로 흘려보낸다.
     if (isTransientMongoError(error)) throw error;
     return json({ ok: false, reason: "LOGIN_REQUIRED", message: MESSAGES.login }, { status: 401 });
   }
+  if (nativeTossContext(request) && !auth?.userId) return json({ ok: false, reason: "LOGIN_REQUIRED" }, { status: 401 });
   const body = await readJson(request);
   const sessionId = clean(body.sessionId || body.consultationId || body.id);
   const content = clean(body.message || body.content || body.question, 1600);
@@ -2270,12 +2274,13 @@ async function handleMessage(request, env) {
 async function handleResult(request, env) {
   let auth = null;
   try {
-    auth = nativeTossContext(request)?.auth || await requireAuth(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
+    auth = nativeTossContext(request) ? nativeTossContext(request).auth : await requireAuth(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
   } catch (error) {
     // 일시적 DB 장애는 로그아웃 유발 401이 아니라 재시도 가능한 503으로 흘려보낸다.
     if (isTransientMongoError(error)) throw error;
     return json({ ok: false, reason: "LOGIN_REQUIRED", message: MESSAGES.login }, { status: 401 });
   }
+  if (nativeTossContext(request) && !auth?.userId) return json({ ok: false, reason: "LOGIN_REQUIRED" }, { status: 401 });
   const url = new URL(request.url);
   const sessionId = clean(url.searchParams.get("id") || url.searchParams.get("sessionId"), 60);
 
