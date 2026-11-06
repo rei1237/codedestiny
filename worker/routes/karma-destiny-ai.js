@@ -3013,5 +3013,14 @@ export async function recoverUnstartedNativeConsultations(env,options) {
 
 export function serverExpertFollowUpAdapter(env) {
   const { featureKey, reportType, produce, render } = expertFollowUpNarrativeAdapter({ featureKey: FEATURE_KEY, generate: (original, question) => generateConsultationText(env, buildFollowUpPrompt(original, question), { mode: 'follow_up', minLength: 90, maxOutputTokens: 9200 }) });
-  return { featureKey, reportType, produce, render };
+  const verifyRecovery = async execution => {
+    const id = clean(execution?.metadata?.paidNarrative?.input?.id, 120);
+    const userId = clean(execution?.userId);
+    const stored = await withMongoRetry(env, () => KarmaDestinyAiConsultation.findOne({ id, userId, status: 'completed', accessSource: 'toss' }).lean());
+    if (!stored) throw Object.assign(new Error('TOSS_RECOVERY_INTENT_MISSING'), { code: 'TOSS_RECOVERY_INTENT_MISSING' });
+    const request = new Request('https://internal.invalid/karma-follow-up/recovery', { method: 'POST' });
+    const { bindNativeKarmaRecovery } = await import('../toss/native-karma.js');
+    if (!await bindNativeKarmaRecovery(request, env, stored)) throw Object.assign(new Error('TOSS_RECOVERY_INTENT_MISSING'), { code: 'TOSS_RECOVERY_INTENT_MISSING' });
+  };
+  return { featureKey, reportType, produce, render, verifyRecovery };
 }

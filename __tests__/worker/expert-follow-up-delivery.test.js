@@ -152,6 +152,34 @@ test('server resumes the original follow-up budget and GET attaches once without
   expect(report.messages).toHaveLength(3);expect(provider).toHaveBeenCalledTimes(2);
 });
 
+test('server recovery of a native follow-up fails closed without order verification', async () => {
+  report.accessSource = 'toss';
+  provider.mockImplementationOnce(async () => null);
+  expect((await start()).status).toBe(202);
+  const { expertFollowUpNarrativeAdapter } = await import('../../worker/lib/expert-follow-up-delivery.js');
+  const { resumePaidNarrativeOnServer } = await import('../../worker/lib/paid-narrative-delivery.js');
+  const adapter = expertFollowUpNarrativeAdapter({ featureKey: 'karma-destiny-ai-consultation', generate: provider });
+  await expect(resumePaidNarrativeOnServer({}, docs[0], adapter)).rejects.toMatchObject({ code: 'TOSS_RECOVERY_UNAVAILABLE' });
+  expect(provider).toHaveBeenCalledTimes(1);
+  expect(docs[0].premiumStatus).not.toBe('completed');
+  const verifyRecovery = jest.fn(async () => {});
+  expect((await resumePaidNarrativeOnServer({}, docs[0], { ...adapter, verifyRecovery })).status).toBe(200);
+  expect(verifyRecovery).toHaveBeenCalledTimes(2);
+});
+
+test('server recovery does not complete if native access is revoked during generation', async () => {
+  report.accessSource = 'toss';
+  provider.mockImplementationOnce(async () => null);
+  expect((await start()).status).toBe(202);
+  const { expertFollowUpNarrativeAdapter } = await import('../../worker/lib/expert-follow-up-delivery.js');
+  const { resumePaidNarrativeOnServer } = await import('../../worker/lib/paid-narrative-delivery.js');
+  const adapter = expertFollowUpNarrativeAdapter({ featureKey: 'karma-destiny-ai-consultation', generate: provider });
+  const verifyRecovery = jest.fn().mockResolvedValueOnce().mockRejectedValueOnce(Object.assign(new Error('ORDER_REFUNDED'), { code: 'ORDER_REFUNDED', status: 409 }));
+  await expect(resumePaidNarrativeOnServer({}, docs[0], { ...adapter, verifyRecovery })).rejects.toMatchObject({ code: 'ORDER_REFUNDED' });
+  expect(docs[0].premiumStatus).not.toBe('completed');
+  expect(report.messages).toHaveLength(1);
+});
+
 test.each(AI_OUTPUT_LOCALES)('%s: follow-up uses the original report language and reopens without generation', async locale => {
   report.llmMeta.resumeBody = { locale };
   const languages = [], original = provider.getMockImplementation();

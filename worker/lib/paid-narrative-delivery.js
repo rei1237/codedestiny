@@ -80,7 +80,7 @@ function respond(doc, render, busy = false, measure) {
 
 // Uses the existing execution collection; no provider call survives beyond its own
 // bounded request, and every accepted part is confirmed before the next wave.
-export async function runPaidNarrativeDelivery(request, env, auth, body, { featureKey, reportType, seed, verify, render, produce, onExhausted, measureBody, completeBody, recoverSavedPart, repairShortParts = false, savedOnly = false, timeoutMs = 45000, generationOrigin = "" }) {
+export async function runPaidNarrativeDelivery(request, env, auth, body, { featureKey, reportType, seed, verify, render, produce, onExhausted, measureBody, completeBody, recoverSavedPart, repairShortParts = false, savedOnly = false, timeoutMs = 45000, generationOrigin = "", verifyRecovery }) {
   const userId = auth.userId;
   const params = new URL(request.url).searchParams;
   const resumeId = request.method === "GET" ? params.get("resultId") : body.resumeResultId;
@@ -90,6 +90,12 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
   // A paid-intent record shares the collection but never carries paidNarrative.
   let doc = await find(env, { userId, featureKey, "metadata.paidNarrative": { $exists: true }, ...(executionKey ? { executionKey } : { status: "pending" }) });
   if (!doc && (request.method === "GET" || resumeId)) return json({ ok: false, reason: "RESULT_NOT_FOUND" }, { status: 404 });
+  const verifyNativeRecovery = async () => {
+    if (generationOrigin !== 'server' || doc?.metadata?.paidNarrative?.input?.accessSource !== 'toss') return;
+    if (!verifyRecovery) throw Object.assign(new Error('TOSS_RECOVERY_UNAVAILABLE'), { code: 'TOSS_RECOVERY_UNAVAILABLE' });
+    await verifyRecovery(doc);
+  };
+  await verifyNativeRecovery();
   const original = doc?.metadata?.paidNarrative?.body || body;
   // A record the intent task created stores its server proof of this exact
   // purchase, and its body predates the checkout evidence the route verifier
@@ -219,6 +225,7 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
       return respond(doc, render, false, measureBody);
     }
     doc = await save(env, filter, { metadata: { ...doc.metadata, result: render(state) }, premiumStatus: "generating" });
+    await verifyNativeRecovery();
     if (await revoked(env, doc, featureKey, original)) return json({ ok: false, retryable: false, reason: "PAYMENT_REVOKED" }, { status: 403 });
     doc = await save(env, filter, { status: "success", premiumStatus: "completed", deliveryStatus: "delivered", completedAt: new Date(),
       ...(savedOnly ? { metadata: { ...doc.metadata, paidNarrativeRecovery: null } } : {}) });
