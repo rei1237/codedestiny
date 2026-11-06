@@ -189,7 +189,7 @@ function requireRecoveryReady(){
 }
 let paymentInFlight:symbol|null=null;
 let paymentUncertain=false;
-export function purchase(product:SaleProduct,requestId:string,onDone:()=>void,onError:(error:unknown)=>void){
+export function purchase(product:Pick<SaleProduct,'sku'>,requestId:string,onDone:()=>void,onError:(error:unknown)=>void){
   if(!SERVICE_AVAILABLE)throw new ApiError('TOSS_RELEASE_PENDING');
   if(!isToss())throw new ApiError('TOSS_APP_REQUIRED');
   requireRecoveryReady();

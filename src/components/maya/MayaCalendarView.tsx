@@ -3,7 +3,7 @@
 import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import { getCurrentLoadingLocale } from "@/constants/loadingMessages";
 import { useMemo, useState } from "react";
-import type { CSSProperties, ReactNode } from "react";
+import type { ComponentType, CSSProperties, ReactNode } from "react";
 import { CalendarClock, ChevronDown, Sun } from "lucide-react";
 import {
   buildMayaMonthGrid,
@@ -12,6 +12,7 @@ import {
   getDaysInMonth,
   getTodayParts,
   type MayaDateParts,
+  type MayaCalendarResult,
 } from "@/src/lib/maya-calendar";
 import MayaDateSummaryCard from "./MayaDateSummaryCard";
 import MayaPromptGeneratorCard from "./MayaPromptGeneratorCard";
@@ -140,7 +141,7 @@ function MayaMountainTempleVisual({ alt }: { alt: string }) {
   );
 }
 
-export default function MayaCalendarView({ paymentSurface = "web" }: { paymentSurface?: "web" | "toss" }) {
+export default function MayaCalendarView({ paymentSurface = "web", TossPrompt }: { paymentSurface?: "web" | "toss"; TossPrompt?: ComponentType<{result: MayaCalendarResult}> }) {
   const copy = useMayaCopy();
   const today = useMemo(() => getTodayParts(), []);
   const [selected, setSelected] = useState<MayaDateParts>(today);
@@ -365,7 +366,7 @@ export default function MayaCalendarView({ paymentSurface = "web" }: { paymentSu
         </div>
 
         <aside className="min-w-0 space-y-6">
-          {paymentSurface === "toss" ? <section className="rounded-lg border border-[#d8b56d]/18 bg-[#04100d]/82 p-5 text-sm leading-7 text-[#e6dcc1]" role="status"><h2 className={`text-lg font-black text-[#f8efd2] ${DISPLAY_FONT_CLASS}`}>{copy.promptHeading}</h2><p>{copy.tossPromptUnavailable}</p></section> : <>
+          {paymentSurface === "toss" ? TossPrompt ? <TossPrompt result={selectedResult} /> : <section className="rounded-lg border border-[#d8b56d]/18 bg-[#04100d]/82 p-5 text-sm leading-7 text-[#e6dcc1]" role="status"><h2 className={`text-lg font-black text-[#f8efd2] ${DISPLAY_FONT_CLASS}`}>{copy.promptHeading}</h2><p>{copy.tossPromptUnavailable}</p></section> : <>
             {getCurrentLoadingLocale() === "ko" && <div style={{"--crafted-mobile-width":"calc(100vw - 48px)"} as CSSProperties}><CraftedProductDisclosure featureKey="maya-prompt-generator" /></div>}
             <MayaPromptGeneratorCard result={selectedResult} />
           </>}
