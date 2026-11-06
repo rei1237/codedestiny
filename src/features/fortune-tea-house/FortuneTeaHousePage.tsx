@@ -860,6 +860,7 @@ export default function FortuneTeaHousePage({paymentSurface = "web",TossPrice}: 
   }, [clearGenerationProgressTimer]);
 
   const refreshHoneyDrops = useCallback(async (): Promise<boolean> => {
+    if (paymentSurface === "toss") return false;
     try {
       const response = await authFetch("/api/fortune-tea-house/honey-drops/balance", { cache: "no-store" });
       if (!response.ok) return false;
@@ -882,9 +883,10 @@ export default function FortuneTeaHousePage({paymentSurface = "web",TossPrice}: 
     } catch {
       return false;
     }
-  }, []);
+  }, [paymentSurface]);
 
   useEffect(() => {
+    if (paymentSurface === "toss") return;
     let cancelled = false;
     let retryTimerId: number | null = null;
 
@@ -908,7 +910,7 @@ export default function FortuneTeaHousePage({paymentSurface = "web",TossPrice}: 
       if (fallbackTimerId !== null) window.clearTimeout(fallbackTimerId);
       if (retryTimerId !== null) window.clearTimeout(retryTimerId);
     };
-  }, [refreshHoneyDrops]);
+  }, [paymentSurface, refreshHoneyDrops]);
 
   useEffect(() => {
     setNotice("");
@@ -1650,6 +1652,7 @@ export default function FortuneTeaHousePage({paymentSurface = "web",TossPrice}: 
         {generationProgress.status === "complete" && !teaGreetingDismissed && <TeaCompletionGreeting onDismiss={() => setTeaGreetingDismissed(true)} />}
         <TeaHouseResultSheet
           result={consultResult}
+          paymentSurface={paymentSurface}
           honeyDrops={honeyDrops}
           onRestart={restartConsultation}
           onShowTarot={() => goToStage("tarotReveal")}
@@ -1692,7 +1695,7 @@ export default function FortuneTeaHousePage({paymentSurface = "web",TossPrice}: 
       />
 
 
-      {stage === "teaSelect" ? (
+      {stage === "teaSelect" && paymentSurface !== "toss" ? (
         <HoneyDropRewardOverlay
           inline
           paymentSurface={paymentSurface}
@@ -1704,7 +1707,7 @@ export default function FortuneTeaHousePage({paymentSurface = "web",TossPrice}: 
         />
       ) : null}
 
-      {isTarotAlbumOpen ? (
+      {paymentSurface !== "toss" && isTarotAlbumOpen ? (
         <Suspense fallback={<TarotAlbumLoadingDialog onClose={() => setIsTarotAlbumOpen(false)} />}>
           <DestinyCafeTarotAlbum
             isOpen={isTarotAlbumOpen}

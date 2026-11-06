@@ -37,6 +37,7 @@ import { useTeaHouseCopy } from "../lib/teaHouseCopy";
 import { useLocale } from "@/lib/i18n/useT";
 type TeaHouseResultSheetProps = {
   readOnly?: boolean;
+  paymentSurface?: "web" | "toss";
   result: FortuneTeaHouseConsultResponse;
   onRestart: () => void;
   onShowTarot: () => void;
@@ -393,6 +394,7 @@ export default function TeaHouseResultSheet({
   onHoneyDropsChange,
   onResultUpdate,
   readOnly = false,
+  paymentSurface = "web",
 }: TeaHouseResultSheetProps) {
   const copy = useTeaHouseCopy("resultSheet", KO);
   const tenGodMeta = useTeaHouseCopy("tenGods", tenGodMetaMap, { skipKeys: TEN_GOD_SKIP_KEYS });
@@ -1034,7 +1036,7 @@ export default function TeaHouseResultSheet({
 
         <TeaHouseFollowUpCard result={rawResult} readOnly={readOnly} onChange={applyFollowUpPatch} />
 
-        <section className={`${styles.resultBlock} ${styles.honeyLetterBlock}`} aria-labelledby="honeyLetterTitle">
+        {paymentSurface !== "toss" && <section className={`${styles.resultBlock} ${styles.honeyLetterBlock}`} aria-labelledby="honeyLetterTitle">
           <div className={styles.honeyLetterLayout}>
             <div className={styles.honeyLetterMascotWrap} aria-hidden>
               <AssetImage className={styles.honeyLetterMascot} src={result.sajuReportVersion === "saju-specialist-v2" ? "/images/master-profiles/yeoni-teahouse-portrait.webp" : "/images/fortune-tea-house/renewal/pig-cheer.webp"} alt="" />
@@ -1078,7 +1080,7 @@ export default function TeaHouseResultSheet({
               {honeyLetterMessage ? <strong className={styles.honeyLetterStatus}>{honeyLetterMessage}</strong> : null}
             </div>
           </div>
-        </section>
+        </section>}
 
         {result.closingLine ? (
         <section className={`${styles.resultBlock} `} aria-labelledby="closingResultTitle" data-tea-pdf-section>
