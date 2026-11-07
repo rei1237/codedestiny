@@ -8,7 +8,7 @@ const {retentionIndexPlan,auditLibraryRetention}=await import('../../scripts/aud
 const read=path=>readFile(new URL('../../'+path,import.meta.url),'utf8');
 
 test('permanent split keeps Yeongnyangi and Ggulggul entry points distinct',async()=>{
- assert.match(await read('app/yeongnyangi/_original/FortuneHome.tsx'),/href="\/yeongnyangi\/library\/"/);
+ assert.match(await read('app/yeongnyangi/_home/FortuneHome.tsx'),/href="\/yeongnyangi\/library\/"/);
  assert.match(await read('js/core/shell-sheet.js'),/cdOpenLibrary = function \(\) \{ window.location.assign\('\/records\/'\)/);
  assert.match(await read('app/yeongnyangi/_lib/reading-copy.ts'),/library:'영냥이 보관함'/);
  assert.match(await read('lib/records/copy.ts'),/title: '꿀꿀운세 보관함'/);

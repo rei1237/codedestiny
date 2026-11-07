@@ -118,7 +118,7 @@ next: "로드맵 S8: 정적 셸 결과 공유 묶음(사주·타로·점성술·
 ## 구현된 내용
 
 1. `lib/brand/founder.ts`, `app/components/FounderTrust.tsx`, 대응 CSS: 경력·공개 예측 게시일·원문·AI 해설과 제작자의 역할을 한곳에서 관리한다.
-2. `app/yeongnyangi/_original/FortuneHome.tsx`, `app/page.js`: 첫 화면 경력과 가격, 공개 기록 링크, 구매 전 상담 예시 링크, SEO 설명을 개선했다. 현재 실제 루트는 영냥이 React 홈이다. ARCHITECTURE/SEO 상세 문서의 오래된 ‘루트는 index.html’ 문장을 그대로 따르지 말고 최신 CLAUDE와 실제 빌드 경계를 확인한다.
+2. `app/yeongnyangi/_home/FortuneHome.tsx`, `app/page.js`: 첫 화면 경력과 가격, 공개 기록 링크, 구매 전 상담 예시 링크, SEO 설명을 개선했다. 현재 실제 루트는 영냥이 React 홈이다. ARCHITECTURE/SEO 상세 문서의 오래된 ‘루트는 index.html’ 문장을 그대로 따르지 말고 최신 CLAUDE와 실제 빌드 경계를 확인한다.
 3. `app/yeongnyangi/1000-won-fortune/page.tsx`: 신뢰 자료와 영냥이 OG 이미지, 본문과 일치하는 설명. URL·canonical·색인 정책·가격 registry 유지. sitemap lastmod 2개 경로 갱신.
 4. `app/yeongnyangi/_lib/result-share.ts`: 28개 상품·신점·호라리의 공개 재진입 URL, 허용값만 들어가는 공유 UTM, 무료 요약 어댑터, 짧은 문구 1080×1080 큰 글씨 이미지.
 5. `ResultSharing.tsx`, `FreeFortune.tsx`, `Result.tsx`, `SpiritResult.tsx`: 무료·유료·질문형 결과에 공유 편집기. 질문 기본 제외, 문구 편집·180자 줄이기, 카카오·네이티브·문구 복사·이미지 공유/저장, 취소/실패 안내, 기존 익명 소개에 공개 링크 추가.

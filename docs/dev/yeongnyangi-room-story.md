@@ -70,13 +70,13 @@ node scripts/verify-yeongnyangi-room-story-browser.mjs
 
 ## 수정 파일
 
-- `app/yeongnyangi/_original/home-data.ts`: 9장면과 선택 대사의 정본.
-- `app/yeongnyangi/_original/StoryPanel.tsx`: 문단, 삽화, 장면 선택, 음악 컨트롤.
-- `app/yeongnyangi/_original/Room.tsx`: 방과 이야기, 무료 운세 진입 연결.
-- `app/yeongnyangi/_original/RoomInteractions.tsx`: 방 놀이와 마음별 쪽지.
-- `app/yeongnyangi/_original/RoomSoundtrack.tsx`: 기존 음원 4곡과 재생 생명주기.
-- `app/yeongnyangi/_original/room-story.css`: 방·이야기 화면의 반응형 스타일.
-- `app/yeongnyangi/_components/FreeFortune.tsx`, `app/yeongnyangi/_original/free-fortune.css`: 확인된 멸치 사용 뒤의 반응 연출.
+- `app/yeongnyangi/_home/home-data.ts`: 9장면과 선택 대사의 정본.
+- `app/yeongnyangi/_home/StoryPanel.tsx`: 문단, 삽화, 장면 선택, 음악 컨트롤.
+- `app/yeongnyangi/_home/Room.tsx`: 방과 이야기, 무료 운세 진입 연결.
+- `app/yeongnyangi/_home/RoomInteractions.tsx`: 방 놀이와 마음별 쪽지.
+- `app/yeongnyangi/_home/RoomSoundtrack.tsx`: 기존 음원 4곡과 재생 생명주기.
+- `app/yeongnyangi/_home/room-story.css`: 방·이야기 화면의 반응형 스타일.
+- `app/yeongnyangi/_components/FreeFortune.tsx`, `app/yeongnyangi/_home/free-fortune.css`: 확인된 멸치 사용 뒤의 반응 연출.
 - `public/assets/yeongnyangi/original/neo-mirror-grief.webp`, `public/assets/yeongnyangi/original/neo-fish-curse.webp`: 직접 생성한 삽화.
 - `scripts/verify-yeongnyangi-room-story-browser.mjs`, `scripts/verify-yeongnyangi-room-soundtrack.mjs`: 화면·mock 운세·음악 회귀 검증.
 - `docs/dev/yeongnyangi-room-story.md`: 계획, 생성 프롬프트와 검증 기록.

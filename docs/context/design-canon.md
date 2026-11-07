@@ -52,7 +52,7 @@
 
 | 표면 | 스타일 | 고치는 곳 |
 |---|---|---|
-| 영냥이 | CSS Modules + `_original/*.css`, 키프레임 애니메이션 포함 | `app/yeongnyangi/` |
+| 영냥이 | CSS Modules + `_home/*.css`, 키프레임 애니메이션 포함 | `app/yeongnyangi/` |
 | 그 밖 App Router | Tailwind. 읽기형·허브·정책 화면은 DESIGN.md §8 표면 3종 중 하나 | `app/**` |
 | 정적 셸(꽃돼지 `/ggulggul/`, 로케일) | `index.html` 정본 → `npm run sync:public` 으로 미러 생성 | `index.html` |
 

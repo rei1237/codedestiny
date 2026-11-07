@@ -6,8 +6,8 @@ import {useReadingLanguage} from '../_lib/use-reading-language';
 import {chromeCopy} from '../_lib/chrome-copy';
 import {CONSULTATION_DRAFT_KEY} from '@/lib/fortune/question-entry';
 import {readDestinyProfileAccountId} from '@/app/_lib/profile-card-storage';
-import {offerPrologue} from '../_original/prologue-visit';
-const StoryPanel=dynamic(()=>import('../_original/StoryPanel'),{ssr:false});
+import {offerPrologue} from '../_home/prologue-visit';
+const StoryPanel=dynamic(()=>import('../_home/StoryPanel'),{ssr:false});
 function ConsultationLoading(){const {siteLocale}=useReadingLanguage();return <p role="status" className={styles.loading}>{chromeCopy(siteLocale).loading}</p>;}
 // This form, like the full consultation, is selected only after resolving the
 // browser's route, language and private draft. Keep that client-only boundary explicit.

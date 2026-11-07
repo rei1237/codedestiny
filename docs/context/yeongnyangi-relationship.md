@@ -92,8 +92,8 @@ npm run check:fast
 - `app/yeongnyangi/_components/relationship.module.css`
 - `app/yeongnyangi/_lib/api.ts`
 - `app/yeongnyangi/_lib/relationship-copy.ts`
-- `app/yeongnyangi/_original/FortuneHome.tsx`
-- `app/yeongnyangi/_original/original.css`
+- `app/yeongnyangi/_home/FortuneHome.tsx`
+- `app/yeongnyangi/_home/original.css`
 - `config/sitemap-lastmod.json`
 - `lib/tarot/spreads.mjs`
 - `lib/tarot/yeongnyangi-relationship-spread.mjs`

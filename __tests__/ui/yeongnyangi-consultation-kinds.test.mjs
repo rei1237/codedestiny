@@ -114,7 +114,7 @@ test('relationship copy references exist and every tier retains all required rep
  const source=await readFile('app/yeongnyangi/_lib/relationship-copy.ts','utf8');
  const compiled=await build({stdin:{contents:source,loader:'ts'},format:'esm',write:false});
  const {relationshipCopy}=await import('data:text/javascript;base64,'+Buffer.from(compiled.outputFiles[0].text).toString('base64'));
- for(const file of ['app/yeongnyangi/_components/Consultation.tsx','app/yeongnyangi/_components/TarotDrawRitual.tsx','app/yeongnyangi/_original/FortuneHome.tsx']){
+ for(const file of ['app/yeongnyangi/_components/Consultation.tsx','app/yeongnyangi/_components/TarotDrawRitual.tsx','app/yeongnyangi/_home/FortuneHome.tsx']){
   const content=await readFile(file,'utf8');
   for(const match of content.matchAll(/relationshipCopy\.(\w+)/g))assert.ok(relationshipCopy[match[1]],`${file}: ${match[1]}`);
  }

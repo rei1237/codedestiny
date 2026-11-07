@@ -74,7 +74,7 @@ next: "완료 — docs/CONTEXT_AUDIT.md:219 근거로 보존 (Gemini 고지는 i
 
 ## 주요 파일
 
-- `app/yeongnyangi/_original/*`: 원본 메인/방/자산 경험과 공통 인증 연결.
+- `app/yeongnyangi/_home/*`: 원본 메인/방/자산 경험과 공통 인증 연결.
 - `app/yeongnyangi/_components/{Consultation,ProfileForm,Result,Library}.tsx`: 입력·구매·생성·복원.
 - `app/checkout/CheckoutClient.tsx`, `app/components/PaymentProcessingContext.tsx`: 영냥이 checkout/처리 popup.
 - `worker/routes/yeongnyangi.js`, `worker/yeongnyangi/{service.ts,repository.js,payment-intent.js}`: API/상태/결제 결합.

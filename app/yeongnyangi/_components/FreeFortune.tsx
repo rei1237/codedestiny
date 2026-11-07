@@ -12,7 +12,7 @@ import {fortuneApi,loginForCurrentPage} from '../_lib/api';
 import {readDestinyProfileAccountId} from '@/app/_lib/profile-card-storage';
 import ProfilePicker from './ProfilePicker';
 import {useProfiles} from '../_lib/use-profiles';
-import '../_original/free-fortune.css';
+import '../_home/free-fortune.css';
 import NatalChartTable from './NatalChartTable';
 import ResultSharing from './ResultSharing';
 import {ANSWER_FIRST_LAYOUT_V1} from '@/lib/result-layout';

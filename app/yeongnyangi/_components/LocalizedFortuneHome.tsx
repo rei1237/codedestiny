@@ -8,7 +8,7 @@ import styles from '../yeongnyangi.module.css';
 import heroStyles from './night-hero.module.css';
 import {LocaleSwitcher} from '@/app/components/LocaleSwitcher';
 import QuestionSkyEntry from './QuestionSkyEntry';
-import SessionControls from '../_original/SessionControls';
+import SessionControls from '../_home/SessionControls';
 import {relationshipCopyFor} from '../_lib/relationship-locales';
 
 export default function LocalizedFortuneHome({locale,offers}:{locale:ReadingLocale;offers:ProductOffers}){

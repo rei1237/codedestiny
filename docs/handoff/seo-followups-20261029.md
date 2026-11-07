@@ -127,7 +127,7 @@ next: "운영 반영 확인됨(2026-10-30, 81200d3cc, 시즌 점검 13쪽 정상
 
 - [ ] **영냥이 'AI 상담' 문구 → "대통령 운세를 짚은 명리학자 박병하(네오)가 만든 서비스" 강조**
   - 대상 예: `app/yeongnyangi/_components/QuestionSkyConsultation.tsx:58`, `app/yeongnyangi/1000-won-fortune/page.tsx:117`, `lib/brand/consultation-methods.mjs`.
-  - 근거 문구 정본: `app/components/FounderTrust.tsx`, `lib/brand/differentiation-faqs.mjs`, `app/yeongnyangi/_original/home-data.ts`.
+  - 근거 문구 정본: `app/components/FounderTrust.tsx`, `lib/brand/differentiation-faqs.mjs`, `app/yeongnyangi/_home/home-data.ts`.
   - 🔴 인공지능기본법(2026-01 시행)에 생성형 AI 사전 고지 의무가 있다. 헤드라인에서는 빼도 고지 문구는 최소 1곳 남긴다(법무 확인). "적중 보장 아님"을 유지한다.
 - [ ] **개고 표기 버그**: 未가 개고될 때 지장간이 "을목(乙木)"으로 나와야 하는데 "을미"로 나온다.
   - 후보: `worker/lib/saju-ai-prompt.js:820-835`(`buildEarthStorageOpeningSummary`·`buildOpenedHiddenStemsForStorage`), `js/core/saju/reading-depth.generated.js:463`, `app/saju/animal-destiny/engine/localSajuCalculator.ts:1466,1882`.

@@ -182,7 +182,7 @@
   "app/yeongnyangi/_components/QuestionScope.tsx",
   "app/yeongnyangi/_components/SummaryReport.tsx",
   "app/yeongnyangi/_components/YeongnyangiGuide.tsx",
-  "app/yeongnyangi/_original/ServiceNavigation.tsx",
+  "app/yeongnyangi/_home/ServiceNavigation.tsx",
   "app/yeongnyangi/fortune/page.tsx",
   "app/yeongnyangi/layout.tsx",
   "app/yeongnyangi/library/page.tsx",

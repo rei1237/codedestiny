@@ -122,9 +122,9 @@ SEO용 공개 정적 로케일 목록과 런타임 목록은 역할이 다르다
 - `app/yeongnyangi/_lib/tarot-ritual-copy.ts`
 - `app/yeongnyangi/_lib/tarot-ritual-locales.ts`
 - `app/yeongnyangi/_lib/use-reading-language.ts`
-- `app/yeongnyangi/_original/FortuneHome.tsx`
-- `app/yeongnyangi/_original/ServiceNavigation.tsx`
-- `app/yeongnyangi/_original/SessionControls.tsx`
+- `app/yeongnyangi/_home/FortuneHome.tsx`
+- `app/yeongnyangi/_home/ServiceNavigation.tsx`
+- `app/yeongnyangi/_home/SessionControls.tsx`
 - `app/yeongnyangi/layout.tsx`
 - `app/yeongnyangi/readings/[domain]/page.tsx`
 - `config/sitemap-lastmod.json`

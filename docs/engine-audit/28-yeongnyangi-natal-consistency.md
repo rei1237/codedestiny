@@ -49,7 +49,7 @@ date: 2026-11-02
 - app/yeongnyangi/_components/reading-loading.module.css
 - app/yeongnyangi/_components/ReadingCharts.tsx
 - app/yeongnyangi/_components/ReadingLoading.tsx
-- app/yeongnyangi/_original/free-fortune.css
+- app/yeongnyangi/_home/free-fortune.css
 - public/assets/yeongnyangi/readings/natal-loading-sprite-v2.webp
 - tools/oracle/next-delivery/verify-natal-ui.mjs
 - worker/yeongnyangi/fortune/chapter-facts.ts

@@ -12787,15 +12787,7 @@
       "apiPaths": []
     },
     {
-      "file": "app/yeongnyangi/_original/FishCatalog.tsx",
-      "sha256": "b0732a8bb02f30eb4d8d35a1327e3b061c528ea222afacc6a47b70e1b3c9abc1",
-      "route": null,
-      "frontendType": "React",
-      "features": [],
-      "apiPaths": []
-    },
-    {
-      "file": "app/yeongnyangi/_original/FortuneHome.tsx",
+      "file": "app/yeongnyangi/_home/FortuneHome.tsx",
       "sha256": "57c85463fb6c4daa2e1cab742a1bc4acf55e2753e453d7803da9ddf4acedd785",
       "route": null,
       "frontendType": "React",
@@ -12803,7 +12795,7 @@
       "apiPaths": []
     },
     {
-      "file": "app/yeongnyangi/_original/ServiceNavigation.tsx",
+      "file": "app/yeongnyangi/_home/ServiceNavigation.tsx",
       "sha256": "78b27a809bb607e3cd9bc3ad173eb97a10e967ed08e723b15636e528862abbab",
       "route": null,
       "frontendType": "React",
@@ -12811,7 +12803,7 @@
       "apiPaths": []
     },
     {
-      "file": "app/yeongnyangi/_original/service-links.ts",
+      "file": "app/yeongnyangi/_home/service-links.ts",
       "sha256": "7a9518e769d148391dc5dfc2909a8a36a8714dd4207bed20813bf1a45ab02d38",
       "route": null,
       "frontendType": "React",

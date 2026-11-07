@@ -4,7 +4,7 @@ import {createServer} from 'node:http';
 import assert from 'node:assert/strict';
 
 // Exercise the actual React hook, isolated from Next and all service APIs.
-const bundle=await build({stdin:{contents:`import React from 'react';import {createRoot} from 'react-dom/client';import {useRoomSoundtrack,RoomSoundControls} from './app/yeongnyangi/_original/RoomSoundtrack';function App(){const sound=useRoomSoundtrack('room');return <RoomSoundControls sound={sound}/>;}const root=createRoot(document.getElementById('root'));root.render(<App/>);window.unmountRoom=()=>root.unmount();`,resolveDir:process.cwd(),loader:'tsx'},bundle:true,write:false,platform:'browser',format:'iife',jsx:'automatic'});
+const bundle=await build({stdin:{contents:`import React from 'react';import {createRoot} from 'react-dom/client';import {useRoomSoundtrack,RoomSoundControls} from './app/yeongnyangi/_home/RoomSoundtrack';function App(){const sound=useRoomSoundtrack('room');return <RoomSoundControls sound={sound}/>;}const root=createRoot(document.getElementById('root'));root.render(<App/>);window.unmountRoom=()=>root.unmount();`,resolveDir:process.cwd(),loader:'tsx'},bundle:true,write:false,platform:'browser',format:'iife',jsx:'automatic'});
 const server=createServer((req,res)=>{res.setHeader('Content-Type',req.url==='/app.js'?'text/javascript':'text/html');res.end(req.url==='/app.js'?bundle.outputFiles[0].text:'<!doctype html><html><body><div id="root"></div><script src="/app.js"></script></body></html>');});
 await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
 const browser=await chromium.launch({headless:true});

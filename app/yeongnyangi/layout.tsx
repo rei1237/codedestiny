@@ -2,7 +2,7 @@
 import {useEffect,type ReactNode} from 'react';
 import {usePathname} from 'next/navigation';
 import styles from './yeongnyangi.module.css';
-import './_original/original.css';
+import './_home/original.css';
 import {useReadingLanguage} from './_lib/use-reading-language';
 import {chromeCopy} from './_lib/chrome-copy';
 import {LocaleSwitcher} from '@/app/components/LocaleSwitcher';

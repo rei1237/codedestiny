@@ -104,8 +104,8 @@ main c96764241의 PR CI 38329231428 실패를 최종 확인했다. Static guards
 - app/yeongnyangi/_components/NightHero.tsx
 - app/yeongnyangi/_components/QuestionScope.tsx
 - app/yeongnyangi/_components/YeongnyangiGuide.tsx
-- app/yeongnyangi/_original/FortuneHome.tsx
-- app/yeongnyangi/_original/ServiceNavigation.tsx
+- app/yeongnyangi/_home/FortuneHome.tsx
+- app/yeongnyangi/_home/ServiceNavigation.tsx
 - app/yeongnyangi/page.tsx
 - config/sitemap-lastmod.json
 - destiny-poker.html

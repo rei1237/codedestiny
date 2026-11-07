@@ -13,7 +13,7 @@ test('daily tarot: illustrated entry preserves attendance gate, reveal and day s
  };
  const built=await build({stdin:{contents:`import React from 'react';import{createRoot}from'react-dom/client';import DailyTarotCard from './app/yeongnyangi/_components/DailyTarotCard';createRoot(document.getElementById('root')).render(<DailyTarotCard/>);`,resolveDir:process.cwd(),loader:'tsx'},bundle:true,write:false,outdir:'tarot-mock',jsx:'automatic',plugins:[{name:'tarot-mocks',setup(b){b.onResolve({filter:/.*/},a=>mocks[a.path]?{path:a.path,namespace:'mock'}:undefined);b.onLoad({filter:/.*/,namespace:'mock'},a=>({contents:mocks[a.path],loader:'tsx',resolveDir:process.cwd()}));}}]});
  const js=built.outputFiles.find(f=>f.path.endsWith('.js')).text,css=built.outputFiles.find(f=>f.path.endsWith('.css')).text;
- const room=readFileSync('app/yeongnyangi/_original/room.css','utf8');
+ const room=readFileSync('app/yeongnyangi/_home/room.css','utf8');
  const server=createServer((req,res)=>{
   if(req.url==='/app.js'){res.setHeader('Content-Type','text/javascript');res.end(js);}
   else if(req.url.startsWith('/assets/yeongnyangi/')){res.setHeader('Content-Type',req.url.endsWith('.avif')?'image/avif':req.url.endsWith('.png')?'image/png':'image/webp');try{res.end(readFileSync(resolve('public',req.url.slice(1))));}catch{res.statusCode=404;res.end();}}

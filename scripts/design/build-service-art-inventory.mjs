@@ -41,7 +41,7 @@ const catFeatures = {
 for (const [key, description] of Object.entries(catFeatures)) {
   const slug = `yeongnyangi-${key}`;
   catalogue.index.push({slug, title: `영냥이 ${key}`, href: '/yeongnyangi/'});
-  catalogue.items[slug] = { description, benefits: [], aliases: [slug], evidence: ['app/yeongnyangi/_original/home-data.ts', 'worker/yeongnyangi/payments/catalog.ts'], image: `/assets/yeongnyangi/original/${key}.webp` };
+  catalogue.items[slug] = { description, benefits: [], aliases: [slug], evidence: ['app/yeongnyangi/_home/home-data.ts', 'worker/yeongnyangi/payments/catalog.ts'], image: `/assets/yeongnyangi/original/${key}.webp` };
 }
 const entryScenes = {
  'tea-saju-compat': ['연이 사주 궁합','yeoni','Human Yeoni seated to the right, comparing TWO parallel sets of FOUR pillar strips representing two people, with small natural element emblems. A red silk thread loosely connects the two sets. One open hand indicates each set, palms natural with five fingers. Distinct partner-chart comparison, no tarot cards, no moon spheres, no western wheel.'],

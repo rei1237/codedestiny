@@ -68,7 +68,7 @@ next: 기존 워크트리의 미커밋 전환 효과를 보존한 채 고민 100
 
 ## 완료·로컬 커밋 e08e20197
 
-수정 파일: app/yeongnyangi/_original/FortuneHome.tsx, original.css, .ignore.
+수정 파일: app/yeongnyangi/_home/FortuneHome.tsx, original.css, .ignore.
 
 - 사용자가 선택한 기존 이미지 `/images/home/yeoni-pass-mascot-480.webp` 사용. 240/480 responsive srcSet.
 - `달빛 따라, 꿀꿀운세로.` / `꽃돼지 연이가 기다리는 다정한 운세 정원.`
