@@ -60,7 +60,7 @@ try {
   await page.locator('[aria-label="화면에서 편집"]').scrollIntoViewIfNeeded();
   await page.screenshot({ path: resolve(output, "mobile.png"), fullPage: false });
   await page.setViewportSize({ width: 1440, height: 1000 });
-  await page.getByRole("button", { name: "라이트 노벨 대본", exact: true }).click();
+  await page.getByLabel("편집할 화면·결과").selectOption({ label: "라이트 노벨 대본" });
   await page.getByRole("button", { name: new RegExp(episode.title) }).first().click();
   await page.getByText(/현재 화면에서 연결된 위치 [1-9]/).waitFor({ timeout: 120000 });
   await preview.getByText(episode.beats[0].t, { exact: true }).click({ timeout: 120000 });

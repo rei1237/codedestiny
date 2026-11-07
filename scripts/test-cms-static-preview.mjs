@@ -38,7 +38,7 @@ try{
  await page.getByRole('button',{name:'초안에 적용',exact:true}).click();
  assert.match(await page.getByLabel('저장할 문구').innerText(),/서로의 이야기를 천천히 들어 보세요/);
  await page.getByRole('textbox',{name:'결과 문장 검색'}).fill('');
- await sentences.getByRole('button',{name:'서로의 이야기를 천천히 들어 보세요.',exact:true}).waitFor();
+ await sentences.getByText('서로의 이야기를 천천히 들어 보세요.',{exact:true}).waitFor();
  mkdirSync(resolve(root,'test-results/cms-static-preview'),{recursive:true});
  await page.screenshot({path:resolve(root,'test-results/cms-static-preview/desktop.png')});
  await page.setViewportSize({width:390,height:844});
