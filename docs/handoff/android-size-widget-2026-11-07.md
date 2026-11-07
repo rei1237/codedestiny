@@ -44,7 +44,7 @@ next: "SM-M156S(RFCXB0CP4AR)를 USB로 다시 연결하고 final3 benchmark APK�
 | 앱 비회원 영냥이 진입 때 me 401→refresh 401×2→로그아웃 방송 | 6f5200d98 |
 | 릴리스 점검 local.properties·google-services.json 오탐 경고 | 2ce0caf4d |
 | 목록 썸네일이 960×640을 디코드 → 기능당 -320 썸네일 한 장 유지(약 +2.7MB) | f9275e33d |
+| 위 수정(auth-client·AppChrome 등 공유 모듈)으로 사이트맵 원장 서명 156개가 어긋나 verify:sitemap-drift 차단 → 재생성 | 12c8e67ec |
 
 - access-state 이중 호출(profileId 유무)은 코드 읽기로 세운 가설이었고 기기 기록(me→refresh→me)에는 없었다. 손님은 부르지 않는다. 로그인 상태 기기 추적에서 다시 볼 것.
 - 위 수정 이후 APK는 아직 다시 빌드하지 않았다(final3는 aa2a69ff4 기준). 다음: scratchpad build-android.ps1로 재빌드 → 실기기 확인.
-
