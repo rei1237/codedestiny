@@ -7,11 +7,9 @@ import ZiweiPalaceGrid from '@/app/components/ziwei/ZiweiPalaceGrid';
 import {BirthFields,birthPayload,emptyBirth} from './BirthFields';
 import {Button} from './Button';
 import TossSessionScope from './TossSessionScope';
-import {SERVICE_AVAILABLE} from './release';
 import './ziwei-chart.css';
 
 export default function ZiweiChart(){
-  if(!SERVICE_AVAILABLE)return <section><h1>자미두수 명반</h1><p>출시 후 태어난 날과 시각으로 열두 궁의 별을 살펴볼 수 있어요.</p></section>;
   return <TossSessionScope><ChartForm/></TossSessionScope>;
 }
 

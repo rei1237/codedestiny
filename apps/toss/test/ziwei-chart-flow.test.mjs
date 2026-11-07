@@ -20,9 +20,8 @@ const bundle=await build({
   tsconfig:path.resolve(import.meta.dirname,'../tsconfig.json'),
   alias:{'@':path.resolve(import.meta.dirname,'../../..')},external:['react','react/jsx-runtime'],
   loader:{'.css':'empty'},plugins:[{name:'test-toss-bridges',setup(builder){
-    builder.onResolve({filter:/^(\.\/platform|\.\/release|@toss\/tds-mobile)$/},args=>({namespace:'test',path:args.path}));
+    builder.onResolve({filter:/^(\.\/platform|@toss\/tds-mobile)$/},args=>({namespace:'test',path:args.path}));
     builder.onLoad({filter:/.*/,namespace:'test'},({path:id})=>{
-      if(id==='./release')return {contents:'export const SERVICE_AVAILABLE=true'};
       if(id==='./platform')return {contents:'export const getTossSessionRevision=()=>window.testSessionEpoch||0; export const onTossSessionRevisionChanged=fn=>{window.addEventListener("session",fn);return ()=>window.removeEventListener("session",fn)};'};
       return {contents:`import React from 'react';
         export const Button=({children,display,variant,loading,...props})=>React.createElement('button',props,children);
