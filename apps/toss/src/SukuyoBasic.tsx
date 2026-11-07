@@ -22,7 +22,9 @@ function validResult(value:SukuyoResult){return value?.stored===false&&typeof va
 export function SukuyoBasicResult({result}:{result:SukuyoResult}){
  const {canonical,reading}=result;
  return <section className="sukuyo-basic-result" aria-live="polite">
+  <img className="sukuyo-master-art" src="/images/master-profiles/hanbi-sukuyo-reading.webp" width="1200" height="800" loading="lazy" alt="달빛 아래 책을 펼쳐 본명숙을 읽는 서한비"/>
   <h2>당신의 본명숙은 {result.mansion}</h2><p>27숙 중 {canonical.natalSukuyo.displayIndex}번째 자리예요. 태어난 순간 달의 위치를 바탕으로 성향의 흐름을 살펴봅니다.</p>
+  <p>서한비입니다. 달이 머문 자리에서 당신의 성향을 읽어 드릴게요. 강점과 마음이 지치는 순간을 함께 살펴보겠습니다.</p>
   <dl className="daily-basis"><div><dt>방향</dt><dd>{canonical.natalSukuyo.direction}</dd></div><div><dt>속성</dt><dd>{canonical.natalSukuyo.element}</dd></div></dl>
   <div className="sukuyo-summary">{reading.summaryCards.map((card,i)=><article className="paper" key={i}><h3>{card.label}</h3><strong>{card.value}</strong><p>{card.note}</p></article>)}</div>
   <h2>성향과 생활의 리듬</h2>{attributes.map(([key,title])=>{const items=canonical.sukuyoAttributes[key];return Array.isArray(items)&&items.length?<section key={key}><h3>{title}</h3><ul>{items.map((item,i)=><li key={i}>{item}</li>)}</ul></section>:null;})}

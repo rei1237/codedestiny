@@ -29,6 +29,16 @@ test('all 27 canonical lunar sectors produce their matching free dashboard',asyn
   const result=await calculateTossSukuyoBasic({birth},env,fake);assert.equal(result.mansionIdx,index);assert.equal(result.canonical.natalSukuyo.index,index);assert.equal(result.reading.summaryCards.length,4);
  }
 });
+test('regular and leap lunar input match their own canonical solar dates',async()=>{
+ for(const [calType,solarMonth,solarDay] of [['lunar',4,23],['lunar_leap',5,23]]){
+  const lunarBirth={...birth,date:{...birth.date,year:2020,month:4,day:1,calType}};
+  const solarBirth={...birth,date:{...birth.date,year:2020,month:solarMonth,day:solarDay,calType:'solar'}};
+  const lunar=await calculateTossSukuyoBasic({birth:lunarBirth},env,engine),solar=await calculateTossSukuyoBasic({birth:solarBirth},env,engine);
+  assert.equal(lunar.mansionIdx,solar.mansionIdx);assert.equal(lunar.mansion,solar.mansion);
+ }
+ const invalid={...birth,date:{...birth.date,year:2021,month:4,day:1,calType:'lunar_leap'}};
+ await assert.rejects(calculateTossSukuyoBasic({birth:invalid},env,engine),error=>error.code==='INVALID_LUNAR_DATE');
+});
 test('unknown time, mismatched chart and permission failures never produce a reading',async()=>{
  const unknown={...birth,date:{...birth.date,timeUnknown:true,hour:null,minute:null}};
  await assert.rejects(calculateTossSukuyoBasic({birth:unknown},env,engine),error=>error.code==='BIRTH_TIME_REQUIRED');
