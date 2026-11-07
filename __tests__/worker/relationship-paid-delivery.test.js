@@ -6,7 +6,7 @@ import { jest } from '@jest/globals';
 const timeoutPolicy = jest.requireActual('../../worker/lib/sync-llm-timeout.js');
 jest.unstable_mockModule('../../worker/lib/sync-llm-timeout.js', () => ({ ...timeoutPolicy, PAID_LLM_PARTS_PER_REQUEST: 4 }));
 
-let route, resumeOnServer, bindNative, docs, provider, accessMode, revoked, userId, fault, lost, fetchBlock, refunds, closes, executionMetadata, refundOutcome, webVerifications;
+let route, resumeOnServer, bindNative, nativeRecovery, docs, provider, accessMode, revoked, userId, fault, lost, fetchBlock, refunds, closes, executionMetadata, refundOutcome, webVerifications;
 const user='64b7f2a1c3d4e5f601234567';
 const clone=value=>structuredClone(value);
 const get=(doc,key)=>key.split('.').reduce((value,key)=>value?.[key],doc);
@@ -41,10 +41,11 @@ beforeAll(async()=>{
  }));
  jest.unstable_mockModule('../../worker/lib/structured-consultation.js',()=>({...structured,callGeminiJsonWithRetry:(...args)=>provider(...args)}));
  jest.unstable_mockModule('../../worker/lib/service-execution-task.js',()=>({startServiceExecution:async(_env,_user,input)=>{executionMetadata=input.metadata;return {};},completeServiceExecution:async()=>{expect(docs[0].status).toBe('completed');closes++;},failServiceExecution:async()=>{expect(docs[0].status).toBe('generation_failed');refunds++;return refundOutcome;}}));
+ jest.unstable_mockModule('../../worker/toss/native-relationship.js',()=>({bindNativeRelationshipRecovery:(...args)=>nativeRecovery(...args)}));
  ({handleRelationshipBoundaryTestRoutes:route,resumeConsultationOnServer:resumeOnServer}=await import('../../worker/routes/relationship-boundary-test.js'));
  ({bindNativeTossRequest:bindNative}=await import('../../worker/toss/native-context.js'));
 });
-beforeEach(()=>{docs=[];accessMode='pass';revoked=false;userId=user;fault=null;lost=false;refunds=0;closes=0;executionMetadata=null;refundOutcome={refundStatus:"refunded"};webVerifications=0;
+beforeEach(()=>{docs=[];accessMode='pass';revoked=false;userId=user;fault=null;lost=false;refunds=0;closes=0;executionMetadata=null;refundOutcome={refundStatus:"refunded"};webVerifications=0;nativeRecovery=async()=>{throw new Error('native recovery evidence required');};
  provider=jest.fn(async(_env,prompt,options)=>{
   expect(options.timeoutMs).toBe(45000);expect(options.attempts).toBe(1);expect(options.fallbackToWorkersAI).toBe(false);
   const evidenceHash=prompt.match(/evidenceHash[":\s]+([a-f0-9]{64})/)[1];
@@ -72,12 +73,17 @@ test('Toss report uses only its verified authority for generation, resumption an
  const native=nativeFixture();expect((await nativeRequest('prepare',body,native)).status).toBe(404);
  expect((await nativeRequest('generate',body,native)).status).toBe(202);expect(docs[0].accessType).toBe('toss');
  expect((await post({resumeSessionId:docs[0].id})).status).toBe(404);expect(webVerifications).toBe(0);
- expect((await resumeOnServer({},docs[0])).status).toBe(404);expect(webVerifications).toBe(0);
+ await expect(resumeOnServer({},docs[0])).rejects.toThrow('native recovery evidence required');expect(webVerifications).toBe(0);
  expect((await nativeRequest('generate',{resumeSessionId:docs[0].id},native)).status).toBe(202);
  expect((await nativeRequest('generate',{resumeSessionId:docs[0].id},native)).status).toBe(200);
  const web=await route(new Request('https://mock.test/api/relationship-boundary-test/result?sessionId='+docs[0].id),{});expect(web.status).toBe(404);
  const reread=await nativeRequest('result?sessionId='+docs[0].id,null,native,'GET');expect(reread.status).toBe(200);expect((await reread.json()).sessionId).toBe(docs[0].id);
  expect(webVerifications).toBe(0);expect(refunds).toBe(0);expect(closes).toBe(0);expect(provider).toHaveBeenCalledTimes(11);
+});
+test('server recovery must bind native authority before it can resume a Toss report',async()=>{
+ const native=nativeFixture();expect((await nativeRequest('generate',body,native)).status).toBe(202);
+ nativeRecovery=async request=>{bindNative(request,native);};expect((await resumeOnServer({},docs[0])).status).toBe(202);
+ expect(webVerifications).toBe(0);expect(native.access).toHaveBeenCalledTimes(2);
 });
 test('Toss authority denial is retained and never invokes the web gate or provider',async()=>{
  const native=nativeFixture();native.access.mockRejectedValue(Object.assign(new Error('denied'),{status:403,code:'ACCESS_DENIED'}));

@@ -299,9 +299,20 @@ export async function handleRelationshipBoundaryTestRoutes(request, env = {}) {
 
 export const __relationshipBoundaryTestTestUtils = { normalize, scoreBoundary, storyDirectionFor, prompt, buildSectionPrompt, SECTION_SPECS, SECTION_TITLES, paymentPayload };
 
-export function resumeConsultationOnServer(env, doc) {
+export async function resumeConsultationOnServer(env, doc) {
   if (!doc?.userId || !doc.id) throw new Error("RECOVERY_doc.id_REQUIRED");
+  const stored=await findRelationshipResult(env,{userId:String(doc.userId),id:String(doc.id)});
+  if(!stored)return json({ok:false,reason:'RESULT_NOT_FOUND'},{status:404});
   const request = new Request("https://internal.invalid/api/relationship-boundary-test/resume", { method: "POST", headers: { "content-type": "application/json" },
     body: JSON.stringify({ resumeSessionId: String(doc.id) }) });
+  if(stored.accessType==='toss'){
+    const {bindNativeRelationshipRecovery}=await import('../toss/native-relationship.js');
+    await bindNativeRelationshipRecovery(request,env,stored);
+  }
   return handleStart(request, env, { userId: String(doc.userId) });
+}
+
+export async function recoverUnstartedNativeConsultations(env,options){
+  const {bootstrapNativeRelationshipOrders}=await import('../toss/native-relationship.js');
+  return bootstrapNativeRelationshipOrders(env,options);
 }

@@ -9,7 +9,7 @@ const require=createRequire(import.meta.url),Module=require('node:module');
 const calls={profiles:[],prepared:[],followups:0};
 const auth={_id:'identity',ownerId:'owner',userId:'owner',userKey:'123',environment:'SANDBOX'};
 const mocks={
- approvedProducts:[],tarotProducts:[],grants:[],deliveries:0,dailyCalls:[],nativeLove:[],nativeAstrology:[],nativeVedic:[],nativeZiwei:[],nativeNewYear:[],nativeKarma:[],nativeMaya:[],nativeSukuyo:[],nativeSukuyoRecovery:[],libraryRows:[],
+ approvedProducts:[],tarotProducts:[],grants:[],deliveries:0,dailyCalls:[],nativeLove:[],nativeRelationship:[],nativeAstrology:[],nativeVedic:[],nativeZiwei:[],nativeNewYear:[],nativeKarma:[],nativeMaya:[],nativeSukuyo:[],nativeSukuyoRecovery:[],libraryRows:[],
  auth:async()=>auth,profile:async(...args)=>calls.profiles.push(args),
  product:sku=>({productId:sku.includes(':')?sku.split(':')[1]:sku,serviceId:sku.includes(':')?sku.split(':')[0]:'yeongnyangi',sku,approvedPriceKRW:1,approved:true}),
  prepare:async(_env,user,body,options)=>{calls.prepared.push({user,body,options});return {_id:'a'.repeat(64),productId:body.productId,amountKRW:1,snapshot:{manifest:[{id:'part',title:'answer',ordinal:0}]}};},
@@ -19,6 +19,7 @@ globalThis.__tossRouteMocks=mocks;
 const stubMap={
  'worker/toss/native-sukuyo-recovery.js':"import {TossError} from './policy.js';const s=globalThis.__tossRouteMocks;export const listNativeSukuyoRecovery=(...args)=>{s.nativeSukuyoRecovery.push(['list',...args]);if(s.nativeFailure)throw new TossError(s.nativeFailure.code,s.nativeFailure.status);return {state:'UNASSIGNED',drafts:[]};};export const attachNativeSukuyoRecovery=(...args)=>{s.nativeSukuyoRecovery.push(['attach',...args]);if(s.nativeFailure)throw new TossError(s.nativeFailure.code,s.nativeFailure.status);return {state:'ASSIGNED',intentId:args[3]};};",
  'worker/toss/native-sukuyo.js':"import {TossError} from './policy.js';const state=globalThis.__tossRouteMocks;export const prepareNativeSukuyo=(...args)=>{state.nativeSukuyo.push(args);return {id:'offline-intent'};};export const handleNativeSukuyo=(...args)=>{state.nativeSukuyo.push(args);if(state.nativeFailure)throw new TossError(state.nativeFailure.code,state.nativeFailure.status);return Response.json({ok:true,source:'original-sukuyo'});};export const nativeSukuyoLibraryItem=()=>{};",
+ 'worker/toss/native-relationship.js':"import {TossError} from './policy.js';const state=globalThis.__tossRouteMocks;export const prepareNativeRelationship=(...args)=>{state.nativeRelationship.push(args);return {id:'offline-intent'};};export const handleNativeRelationship=(...args)=>{state.nativeRelationship.push(args);if(state.nativeFailure)throw new TossError(state.nativeFailure.code,state.nativeFailure.status);return Response.json({ok:true,source:'original-relationship'});};export const nativeRelationshipLibraryItem=()=>{};",
  'worker/toss/native-maya-recovery.js':"import {TossError} from './policy.js';const state=globalThis.__tossRouteMocks;export const listNativeMayaRecovery=(...args)=>{state.nativeRecovery.push(['list',...args]);if(state.nativeFailure)throw new TossError(state.nativeFailure.code,state.nativeFailure.status);return {state:'UNASSIGNED',drafts:[]};};export const attachNativeMayaRecovery=(...args)=>{state.nativeRecovery.push(['attach',...args]);if(state.nativeFailure)throw new TossError(state.nativeFailure.code,state.nativeFailure.status);return {state:'ASSIGNED',intentId:args[3]};};",
  'worker/toss/letter.js':"import {TossError} from './policy.js';export const approvedLetterSale=domain=>{if(globalThis.__tossRouteMocks.letterApproved===domain)return {};throw new TossError('TOSS_PRODUCT_NOT_APPROVED',503);};export const prepareTossLetter=(...args)=>globalThis.__tossRouteMocks.letterPrepare(...args);export const prepareRecoveredTossLetter=(...args)=>globalThis.__tossRouteMocks.letterRecover(...args);export const recoverableLetterOrder=(...args)=>globalThis.__tossRouteMocks.letterOrder(...args);export const readRecoveringTossLetter=(...args)=>globalThis.__tossRouteMocks.letterDraft(...args);export const readTossLetter=async(...args)=>{try{return await globalThis.__tossRouteMocks.letterRead(...args);}catch(error){if(error.code==='ACCESS_DENIED')throw new TossError(error.code,error.status);throw error;}};",
  'worker/toss/letter-library.js':"export const letterLibraryPage=(...args)=>globalThis.__tossRouteMocks.letterList(...args);",
@@ -309,6 +310,12 @@ test('Love Secret routes require the release gate and verified account before th
  const generated=await request({userId:'attacker'},'/canonical/love-secret-ai/generate');
  assert.equal(generated.status,200);assert.equal(mocks.nativeLove.at(-1)[2],auth);
  assert.equal(mocks.nativeLove.at(-1)[3],'/generate');
+});
+test('relationship routes enforce release and session boundaries and preserve native permission errors',async()=>{
+ mocks.nativeRelationship.length=0;assert.equal((await request({input:{}},'/native/relationship/prepare',{})).status,503);assert.equal(mocks.nativeRelationship.length,0);
+ mocks.denyAuth=true;try{assert.equal((await request({input:{}},'/native/relationship/prepare')).status,401);}finally{mocks.denyAuth=false;}
+ const prepared=await request({input:{idempotencyKey:'rbt-offline'}},'/native/relationship/prepare');assert.equal(prepared.status,200);assert.equal(mocks.nativeRelationship.at(-1)[1],auth);
+ mocks.nativeFailure={code:'ACCESS_DENIED',status:403};try{const denied=await request({},'/canonical/relationship-boundary-test/generate');assert.equal(denied.status,403);assert.equal((await denied.json()).error,'ACCESS_DENIED');}finally{mocks.nativeFailure=null;}
 });
 
 for(const kind of ['consultation','tarot'])test('stored '+kind+' purchase restores after the sale SKU is retired',async()=>{
