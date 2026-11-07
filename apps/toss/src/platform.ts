@@ -40,27 +40,33 @@ function authorizationStatus(error:unknown){
   return 0;
 }
 function sdkVersionError(error:unknown){return !!error&&typeof error==='object'&&'code' in error&&error.code==='UNSUPPORTED_APP_VERSION';}
+function responseErrorCode(value:unknown,fallback:string){
+  if(!value||typeof value!=='object')return fallback;
+  const issue=value as {error?:unknown;reason?:unknown};
+  if(typeof issue.error==='string'&&issue.error)return issue.error;
+  return typeof issue.reason==='string'&&/^[A-Z][A-Z0-9_]{0,79}$/.test(issue.reason)?issue.reason:fallback;
+}
 export async function api<T>(path:string,body?:unknown):Promise<T>{
   if(!SERVICE_AVAILABLE)throw new ApiError('TOSS_RELEASE_PENDING');
   const requestToken=token,requestEpoch=sessionEpoch,requestAttempt=loginAttempt;
   const response=await fetch(API+path,{method:body===undefined?'GET':'POST',credentials:'omit',
     headers:{...(body===undefined?{}:{'Content-Type':'application/json'}),...(requestToken?{Authorization:`Bearer ${requestToken}`}:{})},
-    ...(body===undefined?{}:{body:JSON.stringify(body)}),signal:AbortSignal.timeout(path.endsWith('/conversation')||body!==undefined&&path.startsWith('/tarot-library/results/')?75000:20000)});
+    ...(body===undefined?{}:{body:JSON.stringify(body)}),signal:AbortSignal.timeout(path.endsWith('/conversation')||body!==undefined&&(path.startsWith('/tarot-library/results/')||/^\/native\/pet\/intents\/[a-f0-9]{64}\/generate$/.test(path))?75000:20000)});
   if(path!=='/login'&&(token!==requestToken||sessionEpoch!==requestEpoch))throw new ApiError('SESSION_CHANGED','',409);
   if(response.status===401){
     if(path!=='/login')await invalidateCurrentSession(requestToken,requestEpoch,requestAttempt);
     const invalidationEpoch=sessionEpoch,failure=await response.json().catch(()=>({}));
     if(path!=='/login'&&(sessionEpoch!==invalidationEpoch||loginAttempt!==requestAttempt))throw new ApiError('SESSION_CHANGED','',409);
-    throw new ApiError(typeof failure.error==='string'?failure.error:'SESSION_EXPIRED',failure.errorId,401);
+    throw new ApiError(responseErrorCode(failure,'SESSION_EXPIRED'),failure?.errorId,401);
   }
   if(response.status===403){
     const failure=await response.json().catch(()=>({}));
     if(path!=='/login'&&(token!==requestToken||sessionEpoch!==requestEpoch))throw new ApiError('SESSION_CHANGED','',409);
-    throw new ApiError(typeof failure.error==='string'?failure.error:'ACCESS_DENIED',failure.errorId,403);
+    throw new ApiError(responseErrorCode(failure,'ACCESS_DENIED'),failure?.errorId,403);
   }
   const data=await response.json();
   if(path!=='/login'&&(token!==requestToken||sessionEpoch!==requestEpoch))throw new ApiError('SESSION_CHANGED','',409);
-  if(!response.ok)throw new ApiError(data.error,data.errorId,response.status);
+  if(!response.ok)throw new ApiError(responseErrorCode(data,'REQUEST_FAILED'),data?.errorId,response.status);
   return data;
 }
 function guardSessionResponse(response:Response,requestToken:string|null,requestEpoch:number,requestAttempt?:number){
