@@ -101,3 +101,9 @@ test('웹 /: 헤더의 페이지 안 링크(href="#...")는 모두 웹 렌더에
 test('웹 /: MobileHomeNav 는 웹 분기에 없다(고정 CTA 가 대신한다)', () => {
   assert.doesNotMatch(page, /MobileHomeNav/);
 });
+
+test('app/layout.js: analytics.js 캐시 키는 파일 내용 해시와 같다(`/` 가 Next 페이지라 여기서 로드한다)', async () => {
+  const {createHash} = await import('node:crypto');
+  const key = createHash('sha256').update(readFileSync(new URL('../../js/core/analytics.js', import.meta.url))).digest('hex').slice(0, 12);
+  assert.ok(read('app/layout.js').includes(`/js/core/analytics.js?v=build-${key}`));
+});
