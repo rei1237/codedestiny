@@ -337,6 +337,50 @@
     return null;
   }
 
+  // --- 외국어 사본 링크 -----------------------------------------------------
+  //
+  // build-mobile-app.mjs의 removeLocaleMirrors가 en·ja·zh·zh-tw 폴더를 앱에서 뺀다(짝을 이룬다).
+  // 그 링크는 같은 화면의 한국어 경로로 바꾼다. 한국어 짝이 지금 보는 화면이면
+  // (예: /insights/ziwei-basics/의 "English" 알약) 링크를 걷어낸다.
+  // 다른 사이트 링크는 건드리지 않는다 — 우리 도메인과 앱 출처만 대상이다.
+  var LOCALE_MIRROR_RE = /^\/(?:en|ja|zh-tw|zh)(?=\/|$)/i;
+  var OWN_HOST_RE = /^(?:localhost|(?:www\.)?code-destiny\.com)$/i;
+
+  function koreanTwinPath(href) {
+    var raw = String(href || "");
+    var path = raw;
+    var absolute = raw.match(/^(?:https?:|capacitor:)?\/\/([^/?#]+)(.*)$/i);
+    if (absolute) {
+      if (!OWN_HOST_RE.test(absolute[1].split(":")[0])) return null;
+      path = absolute[2] || "/";
+    }
+    if (path.charAt(0) !== "/" || !LOCALE_MIRROR_RE.test(path)) return null;
+    // 일본 특정상거래법 고지는 한국어판이 없는 법정 고지라 앱에 남아 있다(APP_KEPT_LOCALE_PAGES).
+    if (/^\/ja\/tokushoho(?:\/|\?|#|$)/i.test(path)) return null;
+    var tail = path.replace(LOCALE_MIRROR_RE, "") || "/";
+    var parts = tail.match(/^([^?#]*)(.*)$/);
+    // 번역 글은 주소 끝에 언어 꼬리표가 붙는다(ziwei-basics-en → ziwei-basics).
+    var pathname = (parts[1] || "/").replace(/-(?:en|jp|ja|zh|tw|cn)(?=\/|$)/gi, "");
+    return (pathname.charAt(0) === "/" ? pathname : "/" + pathname) + parts[2];
+  }
+
+  function isCurrentPage(path) {
+    function normalize(value) {
+      return String(value || "").replace(/[?#].*$/, "").replace(/\/index\.html$/i, "/").replace(/\/+$/, "") || "/";
+    }
+    return normalize(path) === normalize(window.location.pathname);
+  }
+
+  // 언어 선택기도 앱에서는 숨긴다. 앱의 언어는 Android 앱별 언어 설정과 네이티브 브리지가 맡는다.
+  //   #langWrap                : 정적 셸(static/index.html, /ggulggul/)의 선택기 — 홈에서 고르면 /en/ 등으로 이동한다.
+  //   [data-cd-locale-switcher] : React LocaleSwitcher(app/components/LocaleSwitcher.tsx).
+  try {
+    var localeStyle = document.createElement("style");
+    localeStyle.id = "cdAppLocaleSwitcherHidden";
+    localeStyle.textContent = "#langWrap,[data-cd-locale-switcher]{display:none!important}";
+    (document.head || document.documentElement).appendChild(localeStyle);
+  } catch (e) { /* noop */ }
+
   // 홈의 SEO 섹션은 앵커만 지우면 제목만 남은 빈 껍데기가 된다 — 섹션째 걷어낸다.
   // body의 부모가 곧 섹션 카드 컨테이너다(index.html: 토글 헤더 + 본문을 감싼 div).
   var PRUNED_SECTION_BODY_IDS = [];
@@ -355,16 +399,28 @@
     }
   }
 
+  function scrubAnchor(anchor) {
+    var href = anchor.getAttribute("href");
+    var twin = koreanTwinPath(href);
+    if (twin) {
+      if (isCurrentPage(twin)) {
+        anchor.remove();
+        return;
+      }
+      anchor.setAttribute("href", twin);
+      anchor.removeAttribute("hreflang");
+      href = twin;
+    }
+    var route = matchPrunedRoute(href);
+    // 대체 화면이 있는 링크(/points)는 남겨두고 클릭만 돌린다 — 사용자가 이용권을
+    // 사려다 버튼이 사라지면 그게 더 나쁘다.
+    if (route && !route.redirect) anchor.remove();
+  }
+
   function scrubPrunedLinks(root) {
     if (!root || !root.querySelectorAll) return;
     var anchors = root.querySelectorAll("a[href]");
-    for (var i = 0; i < anchors.length; i += 1) {
-      var route = matchPrunedRoute(anchors[i].getAttribute("href"));
-      // 대체 화면이 있는 링크(/points)는 남겨두고 클릭만 돌린다 — 사용자가 이용권을
-      // 사려다 버튼이 사라지면 그게 더 나쁘다.
-      if (!route || route.redirect) continue;
-      anchors[i].remove();
-    }
+    for (var i = 0; i < anchors.length; i += 1) scrubAnchor(anchors[i]);
   }
 
   function applyPrunedRouteCleanup() {
@@ -392,10 +448,7 @@
         for (var j = 0; j < added.length; j += 1) {
           if (added[j].nodeType !== 1) continue;
           scrubPrunedLinks(added[j]);
-          if (added[j].matches && added[j].matches("a[href]")) {
-            var route = matchPrunedRoute(added[j].getAttribute("href"));
-            if (route && !route.redirect) added[j].remove();
-          }
+          if (added[j].matches && added[j].matches("a[href]")) scrubAnchor(added[j]);
         }
       }
     });
@@ -411,7 +464,15 @@
   document.addEventListener("click", function (event) {
     var anchor = event.target && event.target.closest ? event.target.closest("a[href]") : null;
     if (!anchor) return;
-    var route = matchPrunedRoute(anchor.getAttribute("href"));
+    var href = anchor.getAttribute("href");
+    var twin = koreanTwinPath(href);
+    var route = matchPrunedRoute(twin || href);
+    if (twin && !route) {
+      event.preventDefault();
+      event.stopPropagation();
+      if (!isCurrentPage(twin)) window.location.assign(twin);
+      return;
+    }
     if (!route) return;
     event.preventDefault();
     event.stopPropagation();

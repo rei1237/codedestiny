@@ -165,6 +165,35 @@ export async function removeAppForbiddenRoutes(dist = DIST) {
   return removed;
 }
 
+// 앱은 한국어 화면만 싣는다(2026-11-08 결정). en·ja·zh·zh-tw 폴더는 웹 검색용 번역 사본으로 약 105MB다.
+// 앱 안의 언어는 네이티브 언어 브리지(app-native-bridge.js, ?lang=)와 Android 앱별 언어 설정이 맡고,
+// 이 폴더로 이동하지 않는다. 남은 링크는 scripts/app-payment-guard.js 가 한국어 경로로 바꾸거나
+// 걷어내고, 화면의 언어 선택기도 숨긴다(두 파일이 짝을 이룬다).
+// 예외: 일본 특정상거래법 고지(ja/tokushoho)는 한국어판이 없는 법정 고지라 남긴다. 일본어로 보는
+// 사용자의 푸터가 이 주소를 건다(__tests__/ui/locale-footer.static.test.js). 가드의 예외와 짝이다.
+export const APP_REMOVED_LOCALE_DIRS = ["en", "ja", "zh", "zh-tw"];
+export const APP_KEPT_LOCALE_PAGES = ["ja/tokushoho"];
+
+export async function removeLocaleMirrors(dist = DIST) {
+  const removed = [];
+  for (const locale of APP_REMOVED_LOCALE_DIRS) {
+    const dir = path.join(dist, locale);
+    if (!(await exists(dir))) continue;
+    const kept = APP_KEPT_LOCALE_PAGES.filter((page) => page.startsWith(`${locale}/`)).map((page) => page.slice(locale.length + 1));
+    if (!kept.length) {
+      await fs.rm(dir, { recursive: true, force: true });
+      removed.push(locale);
+      continue;
+    }
+    for (const entry of await fs.readdir(dir)) {
+      if (kept.includes(entry)) continue;
+      await fs.rm(path.join(dir, entry), { recursive: true, force: true });
+    }
+    removed.push(`${locale}(${kept.join(", ")} 제외)`);
+  }
+  return removed;
+}
+
 // 웹 배포 전용 산출물 — 앱(Capacitor 로컬 번들) 런타임은 아무도 읽지 않는다.
 // 2026-09-02 3면 git grep 감사: 앱 코드·네이티브(MainActivity/RouteProcessor)·가드 스크립트에 fetch·참조 0건.
 // 참조 검사 방식이 아니라 명시 목록인 이유: og/ 는 <meta og:image> 절대 URL 속 파일명을
@@ -911,7 +940,7 @@ export function stripSameOriginResizePrefixes(text) {
 //   · cd-footer-shell — SEO 내부 링크 허브. 앱에는 하단 네비·홈 IA 가 같은 진입을 갖고,
 //     그 안의 /insights/ 는 REMOVED_ROUTE_DIRS 로 앱에서 지워지는 죽은 링크다.
 //   · cdAdminFlowerWrap — 관리자 진입. WEB_ONLY_ARTIFACTS 의 admin/ 제거와 한 쌍이다.
-// 남기는 것: 개인정보 수집 안내문 · 정책 링크 6개 · 사업자 정보 · 언어 선택기(법적·기능 필수).
+// 남기는 것: 개인정보 수집 안내문 · 정책 링크 6개 · 사업자 정보(법적 필수). 언어 선택기는 가드가 CSS로 숨긴다.
 const APP_STRIP_RE = /<!--cd-app-strip-->[\s\S]*?<!--\/cd-app-strip-->/g;
 const APP_STRIP_MARKER_RE = /<!--\/?cd-app-strip-->/g;
 
@@ -1015,6 +1044,8 @@ async function main() {
 
   const removed = await removeAppForbiddenRoutes();
   console.log(`  ✅ 앱에 없는 라우트 제거: ${removed.length ? removed.join(", ") : "(없음)"}`);
+  const removedLocales = await removeLocaleMirrors();
+  console.log(`  ✅ 외국어 웹 사본 제외(앱은 한국어 경로만): ${removedLocales.length ? removedLocales.join(", ") : "(없음)"}`);
 
   const aliased = await aliasStandaloneHtmlRoutes();
   console.log(`  ✅ 단독 HTML 라우트 별칭: ${aliased.length ? aliased.join(", ") : "(없음)"}`);

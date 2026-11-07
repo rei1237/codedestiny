@@ -139,3 +139,38 @@ test('the date archive leaves the app and the guard strips links that would poin
   const guard = await fs.readFile(path.join(__dirname, '../../scripts/app-payment-guard.js'), 'utf8');
   assert.ok(guard.includes(String.raw`{ pattern: /^\/fortune\/date(\/|\?|#|$)/ },`), 'guard must strip /fortune/date links without a redirect');
 });
+
+test('foreign-language copies leave the app and their links open the Korean page or disappear', async t => {
+  const { removeLocaleMirrors } = await import('../../scripts/build-mobile-app.mjs');
+  const dist = await fs.mkdtemp(path.join(os.tmpdir(), 'cd-locales-'));
+  t.after(() => fs.rm(dist, { recursive: true, force: true }));
+  for (const rel of ['en/index.html', 'ja/tokushoho/index.html', 'zh/insights/a/index.html', 'zh-tw/index.html', 'insights/ziwei-basics/index.html']) { await fs.mkdir(path.dirname(path.join(dist, rel)), { recursive: true }); await fs.writeFile(path.join(dist, rel), 'x'); }
+  assert.deepEqual(await removeLocaleMirrors(dist), ['en', 'ja(tokushoho 제외)', 'zh', 'zh-tw']);
+  for (const rel of ['en', 'ja/index.html', 'zh', 'zh-tw']) await assert.rejects(fs.access(path.join(dist, rel)));
+  await fs.access(path.join(dist, 'ja/tokushoho/index.html'));
+  await fs.access(path.join(dist, 'insights/ziwei-basics/index.html'));
+
+  const { JSDOM } = require('jsdom');
+  const guard = await fs.readFile(path.join(__dirname, '../../scripts/app-payment-guard.js'), 'utf8');
+  const dom = new JSDOM(`<!doctype html><body>
+    <div id="langWrap"></div><div data-cd-locale-switcher></div>
+    <a id="self" hreflang="en" href="/en/insights/ziwei-basics-en/index.html">English</a>
+    <a id="other" hreflang="ja" href="https://code-destiny.com/ja/yeongnyangi/?q=1">日本語</a>
+    <a id="date" href="/zh/fortune/date/2026-11-01/rat/">date</a>
+    <a id="foreign" href="https://example.com/en/page">ext</a>
+    <a id="legal" href="/ja/tokushoho/">特定商取引法</a>
+  </body>`, { url: 'https://localhost/insights/ziwei-basics/index.html', runScripts: 'outside-only' });
+  t.after(() => dom.window.close());
+  dom.window.eval(guard);
+  const doc = dom.window.document;
+  if (doc.readyState === 'loading') await new Promise(resolve => doc.addEventListener('DOMContentLoaded', resolve));
+  assert.equal(doc.getElementById('self'), null, 'a link to the page being read is removed');
+  assert.equal(doc.getElementById('other').getAttribute('href'), '/yeongnyangi/?q=1');
+  assert.equal(doc.getElementById('other').hasAttribute('hreflang'), false);
+  assert.equal(doc.getElementById('date'), null, 'a Korean twin inside a pruned route is removed');
+  assert.equal(doc.getElementById('foreign').getAttribute('href'), 'https://example.com/en/page');
+  assert.equal(doc.getElementById('legal').getAttribute('href'), '/ja/tokushoho/', 'the Japanese legal notice stays in the app');
+  assert.equal(doc.getElementById('cdAppLocaleSwitcherHidden').textContent, '#langWrap,[data-cd-locale-switcher]{display:none!important}');
+  const switcher = await fs.readFile(path.join(__dirname, '../../app/components/LocaleSwitcher.tsx'), 'utf8');
+  assert.match(switcher, /<div data-cd-locale-switcher=""/, 'the React switcher keeps the marker the guard hides');
+});

@@ -170,7 +170,8 @@ export function LocaleSwitcher({preservePath=false,locale}:{preservePath?:boolea
   };
 
   return (
-    <div style={{ position: "relative", display: "inline-flex", alignItems: "center" }}>
+    // data-cd-locale-switcher: 앱 가드(scripts/app-payment-guard.js)가 이 표식으로 선택기를 숨긴다.
+    <div data-cd-locale-switcher="" style={{ position: "relative", display: "inline-flex", alignItems: "center" }}>
       <button
         type="button"
         aria-label={copy.changeLanguage}
