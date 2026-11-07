@@ -6,7 +6,8 @@ import path from 'node:path';
 import {build} from 'esbuild';
 import {JSDOM} from 'jsdom';
 import {trustStoriesCopy} from '../../lib/brand/trust-stories.mjs';
-import {HOME_CONCERNS} from '../../lib/marketing/home-concerns.mjs';
+import {HOME_CONCERNS, REFUND_LINE, REFUND_POLICY_HREF, REFUND_POLICY_LABEL} from '../../lib/marketing/home-concerns.mjs';
+import {entryCuts} from '../../lib/brand/entry-webtoon.mjs';
 
 // 진입 웹툰(/) 렌더 계층. 그림 파일은 아직 없어도 된다(마크업만 본다). 가격은 레지스트리에서 읽고,
 // 레지스트리가 답하지 못하면(null) 가격 줄만 빠져야 한다(Review Focus #2).
@@ -179,4 +180,14 @@ test('entry webtoon: 고정 CTA는 감시 컷이 화면 위로 지나간 뒤에�
   observers[0].callback([{isIntersecting: true, boundingClientRect: {bottom: 200, top: 10}}]); await settle();
   assert.equal(sticky.closest('[data-visible]').getAttribute('data-visible'), 'false');
   win.close();
+});
+
+test('entry webtoon: 안심 박스는 승인된 환불 한 줄·링크 문구를 상수에서 읽고, offer-safety 컷에는 대사가 없다 (R16)', async () => {
+  const html = await renderEntry();
+  assert.equal(html.split(REFUND_LINE).length - 1, 1, 'REFUND_LINE 은 / 에서 한 번만');
+  const safety = html.match(/<ul class="safety"[^>]*>.*?<\/ul>/s)?.[0] || '';
+  assert.ok(safety.includes(`<li>${REFUND_LINE}</li>`), '안심 박스 안');
+  assert.ok(safety.includes(`href="${REFUND_POLICY_HREF}"`));
+  assert.ok(safety.includes(REFUND_POLICY_LABEL));
+  assert.equal(entryCuts().find(cut => cut.id === 'offer-safety')?.lines.length, 0);
 });

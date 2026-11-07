@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { Lock } from 'lucide-react';
-import { HOME_CONCERNS, REFUND_POLICY_HREF } from '@/lib/marketing/home-concerns.mjs';
+import { HOME_CONCERNS, REFUND_LINE, REFUND_POLICY_HREF, REFUND_POLICY_LABEL } from '@/lib/marketing/home-concerns.mjs';
 import type { OfferPrices } from './EntryWebtoon';
 import styles from './entry-webtoon.module.css';
 
@@ -79,8 +79,8 @@ function Deeper({ prices }: { prices: OfferPrices }) {
 function Safety() {
   return <ul className={styles.safety} aria-label="결제 안심 안내">
     <li>결제 전 예시 확인</li>
-    <li>생성에 실패하면 자동 환불</li>
-    <li><a href={REFUND_POLICY_HREF}>환불 정책 <span aria-hidden="true">→</span></a></li>
+    <li>{REFUND_LINE}</li>
+    <li><a href={REFUND_POLICY_HREF}>{REFUND_POLICY_LABEL} <span aria-hidden="true">→</span></a></li>
   </ul>;
 }
 
