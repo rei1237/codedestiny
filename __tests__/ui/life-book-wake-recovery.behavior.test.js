@@ -27,6 +27,7 @@ test('actual life-book result resume effect reloads an abandoned session on ever
   const reloadEpochCalls = [];
   const resumeCallsRef = { current: 5 };
   const context = {
+    paymentSurface: undefined,
     window: surface('window:'),
     document: { ...surface('document:'), hidden: false },
     setPollAttempts: (value) => pollAttemptsCalls.push(value),

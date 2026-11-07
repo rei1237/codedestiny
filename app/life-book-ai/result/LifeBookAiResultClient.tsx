@@ -57,6 +57,7 @@ type LifeBookResult = {
   idempotencyKey?: string;
   accessType?: string;
   status?: string;
+  saved?: boolean;
   title?: string;
   topic?: string;
   birthInfo?: {
@@ -74,6 +75,7 @@ type LifeBookResult = {
   updatedAt?: string;
   message?: string;
   reason?: string;
+  code?: string;
 };
 
 type LifeBookChapter = {
@@ -1374,6 +1376,12 @@ function ChapterProse({ value = "", live, className }: { value?: string; live: b
   );
 }
 
+function tossResultFailure(status: number, payload: LifeBookResult, fallback: string) {
+  if (status === 401) return "상담을 확인하려면 토스 로그인이 필요해요.";
+  if (status === 409 && !["ORDER_REFUNDED", "ORDER_NOT_PAID", "PAYMENT_REVOKED"].includes(toText(payload.reason || payload.code))) return toText(payload.message) || fallback;
+  return "구매 내역에 접근할 권한을 확인할 수 없어요. 구매한 계정과 주문 내역을 확인해 주세요.";
+}
+
 function LifeBookResultContent({ paymentSurface }: { paymentSurface?: "toss" }) {
   const copy = useLifeBookResultCopy();
   const params = useSearchParams();
@@ -1396,30 +1404,38 @@ function LifeBookResultContent({ paymentSurface }: { paymentSurface?: "toss" }) 
   const pollIntervalMs = 3200;
   // 429 응답 연속 횟수 — CF rate-limit(10초당 100회) 회피용 지수 백오프 계수
   const rateLimitStreakRef = useRef(0);
-  const resumeInFlightRef = useRef(false);
+  const resumeInFlightRef = useRef<symbol | null>(null);
   const resumeCallsRef = useRef(0);
+  const authorityRevisionRef = useRef(0);
   const [reloadEpoch, setReloadEpoch] = useState(0);
   const captureDeliveryScope = usePaidDeliveryScope(() => {
     setResult(null); setError(""); setPollAttempts(0);
-    resumeInFlightRef.current = false; resumeCallsRef.current = 0;
+    resumeInFlightRef.current = null; resumeCallsRef.current = 0;
     setReloadEpoch(value => value + 1);
   });
 
   const loadResult = useCallback(async () => {
     if (resumeInFlightRef.current) return;
-    const isCurrent = captureDeliveryScope();
+    const owner = captureDeliveryScope();
+    const revision = paymentSurface === "toss" ? ++authorityRevisionRef.current : authorityRevisionRef.current;
+    const isCurrent = () => owner() && (paymentSurface !== "toss" || revision === authorityRevisionRef.current);
     try {
-      const previewState = readDevPreviewState();
+      const previewState = paymentSurface === "toss" ? null : readDevPreviewState();
       const response = previewState
         ? buildDevPreviewResponse(buildLifeBookPreviewPayload(previewState), previewState === "failed" ? 503 : 200)
         : await authFetch(`/api/life-book-ai/result?attemptId=${encodeURIComponent(attemptId)}`);
       let payload = await response.json().catch(() => ({})) as LifeBookResult;
       if (!isCurrent()) return;
-      if (paymentSurface === "toss" && response.status === 403) { setResult(null); setError("구매 내역에 접근할 권한을 확인할 수 없어요. 구매한 계정과 주문 내역을 확인해 주세요."); setLoading(false); return; }
+      if (paymentSurface === "toss" && [401, 402, 403, 409].includes(response.status)) {
+        setResult(null);
+        setError(tossResultFailure(response.status, payload, copy.loadFailed));
+        setLoading(false); return;
+      }
       if (response.status === 202 && ["partial", "delivery_pending"].includes(payload.status || "")) {
         setResult(payload); setLoading(false);
         if (document.hidden || resumeCallsRef.current >= 12) return;
-        resumeInFlightRef.current = true;
+        const flight = Symbol("life-book-resume");
+        resumeInFlightRef.current = flight;
         resumeCallsRef.current += 1;
         try {
           const resumed = await authFetch("/api/life-book-ai/generate", {
@@ -1428,11 +1444,21 @@ function LifeBookResultContent({ paymentSurface }: { paymentSurface?: "toss" }) 
           });
           const next = await resumed.json().catch(() => ({})) as LifeBookResult;
           if (!isCurrent()) return;
-          if (paymentSurface === "toss" && resumed.status === 403) { setResult(null); setError("구매 내역에 접근할 권한을 확인할 수 없어요. 구매한 계정과 주문 내역을 확인해 주세요."); setLoading(false); return; }
+          if (paymentSurface === "toss" && [401, 402, 403, 409].includes(resumed.status)) {
+            setResult(null);
+            setError(tossResultFailure(resumed.status, next, copy.loadFailed));
+            setLoading(false); return;
+          }
           if (!resumed.ok || next.ok === false) throw new Error(toText(next.message) || copy.loadFailed);
+          if (paymentSurface === "toss" && next.status === "completed" && next.saved !== true) { setResult(null); setError(copy.loadFailed); return; }
           payload = next;
           setResult(next); setError("");
-        } finally { if (isCurrent()) resumeInFlightRef.current = false; }
+        } finally {
+          if (resumeInFlightRef.current === flight) {
+            resumeInFlightRef.current = null;
+            if (paymentSurface === "toss" && owner() && !isCurrent()) setReloadEpoch(value => value + 1);
+          }
+        }
         return;
       }
       if (pending && response.status === 404) {
@@ -1475,6 +1501,7 @@ function LifeBookResultContent({ paymentSurface }: { paymentSurface?: "toss" }) 
       if (!response.ok || payload?.ok === false) {
         throw new Error(toText(payload?.message) || copy.loadFailed);
       }
+      if (paymentSurface === "toss" && (payload.status !== "completed" || payload.saved !== true)) { setResult(null); setError(copy.loadFailed); return; }
       setResult(payload);
       setError("");
       setPollAttempts(0);
@@ -1493,6 +1520,7 @@ function LifeBookResultContent({ paymentSurface }: { paymentSurface?: "toss" }) 
   useEffect(() => {
     const resume = () => {
       if (document.hidden) return;
+      if (paymentSurface === "toss") { authorityRevisionRef.current++; setResult(null); setLoading(true); }
       setPollAttempts(0); resumeCallsRef.current = 0;
       setReloadEpoch(value => value + 1);
     };
@@ -1506,7 +1534,7 @@ function LifeBookResultContent({ paymentSurface }: { paymentSurface?: "toss" }) 
       window.removeEventListener("pageshow", resume);
       window.removeEventListener("focus", resume);
     };
-  }, []);
+  }, [paymentSurface]);
 
   useEffect(() => {
     // status가 generating일 때만 폴링한다. pending 플래그를 함께 보면 completed가 된 뒤에도
