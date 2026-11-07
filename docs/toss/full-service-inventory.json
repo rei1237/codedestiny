@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "dd70c8e1e5d8a9c7d2f07fc6944678cc068d6200",
+  "sourceCommit": "43d30d0b32ddd0568c75195d738dffd73ef32f3e",
   "scope": "Source discovery plus explicitly verified aliases; not a count of implemented services. Unmapped contracts are blocking work, not exclusions.",
   "sourceCounts": {
     "home": 63,
@@ -3338,7 +3338,10 @@
           "accessEvidence": null
         }
       ],
-      "aliasEvidence": [],
+      "aliasEvidence": [
+        "js/core/saju/reportDashboard.js:trip -> energyCoordCard",
+        "index.html:energy-travel.inlineAliases -> rpt_energyCoordCard"
+      ],
       "status": "requires-full-flow-port-and-verification",
       "tossRoute": null,
       "sku": null,
@@ -3608,7 +3611,10 @@
           "accessEvidence": null
         }
       ],
-      "aliasEvidence": [],
+      "aliasEvidence": [
+        "js/core/saju/reportDashboard.js:sajuhealth -> healthReportCard",
+        "index.html:health-rhythm.inlineAliases -> rpt_healthReportCard"
+      ],
       "status": "requires-full-flow-port-and-verification",
       "tossRoute": null,
       "sku": null,
@@ -3855,7 +3861,10 @@
           "accessEvidence": null
         }
       ],
-      "aliasEvidence": [],
+      "aliasEvidence": [
+        "js/core/saju/reportDashboard.js:sajurpg -> skillTreeCard",
+        "index.html:life-skill-tree.inlineAliases -> rpt_skillTreeCard"
+      ],
       "status": "requires-full-flow-port-and-verification",
       "tossRoute": null,
       "sku": null,
@@ -3958,7 +3967,20 @@
       "sku": null,
       "inputContract": null,
       "resultRenderer": null,
-      "storageContract": null
+      "storageContract": null,
+      "subfeatures": [
+        {
+          "id": "fortunePlanner",
+          "entry": "/diary/",
+          "status": "requires-full-flow-port-and-verification"
+        },
+        {
+          "id": "legacyLuckSyncDiary",
+          "entry": "js/luck-sync-diary.js:openLegacyLuckSyncDiary",
+          "status": "requires-full-flow-port-and-verification",
+          "verification": "legacy stored records and migration not verified"
+        }
+      ]
     },
     {
       "id": "manse",
@@ -4590,7 +4612,10 @@
           "accessEvidence": null
         }
       ],
-      "aliasEvidence": [],
+      "aliasEvidence": [
+        "js/core/saju/reportDashboard.js:meryok -> specialCharmCard",
+        "index.html:personal-charm.inlineAliases -> rpt_specialCharmCard"
+      ],
       "status": "requires-full-flow-port-and-verification",
       "tossRoute": null,
       "sku": null,
@@ -4716,7 +4741,10 @@
           "accessEvidence": null
         }
       ],
-      "aliasEvidence": [],
+      "aliasEvidence": [
+        "js/core/saju/reportDashboard.js:quantum -> quantumCard",
+        "index.html:quantum-saju.inlineAliases -> rpt_quantumCard"
+      ],
       "status": "requires-full-flow-port-and-verification",
       "tossRoute": null,
       "sku": null,
@@ -4739,13 +4767,36 @@
           "accessEvidence": null
         }
       ],
-      "aliasEvidence": [],
+      "aliasEvidence": [
+        "js/core/saju/reportDashboard.js:vilun -> villainCard",
+        "index.html:relationship-boundaries.inlineAliases -> rpt_villainCard"
+      ],
       "status": "requires-full-flow-port-and-verification",
       "tossRoute": null,
       "sku": null,
       "inputContract": null,
       "resultRenderer": null,
       "storageContract": null
+    },
+    {
+      "id": "relationship-boundary-test",
+      "discoveryIds": [],
+      "evidence": [
+        {
+          "source": "js/core/saju/reportDashboard.js:relationshipTemptation",
+          "entry": "/relationship-boundary-test/",
+          "implementation": "app/relationship-boundary-test/page.tsx",
+          "featureKey": "relationship-boundary-test",
+          "accessEvidence": "independent paid report"
+        }
+      ],
+      "status": "not-ported",
+      "tossRoute": null,
+      "sku": null,
+      "inputContract": null,
+      "resultRenderer": null,
+      "storageContract": null,
+      "verification": "separate from relationship-boundaries (villain blacklist); purchase, stored results, policy and Toss flow unverified"
     },
     {
       "id": "royal-tea-oracle",
@@ -4815,7 +4866,51 @@
       "sku": null,
       "inputContract": null,
       "resultRenderer": null,
-      "storageContract": null
+      "storageContract": null,
+      "subfeatures": [
+        {
+          "id": "sajuprompt",
+          "target": "aiPromptCard",
+          "source": "js/core/saju/reportDashboard.js",
+          "status": "requires-full-flow-port-and-verification",
+          "accessEvidence": "dashboard points to section_summary; historic rights unverified"
+        },
+        {
+          "id": "tbal",
+          "target": "tTestCard",
+          "source": "js/core/saju/reportDashboard.js",
+          "status": "requires-full-flow-port-and-verification",
+          "accessEvidence": "dashboard points to section_summary; historic rights unverified"
+        },
+        {
+          "id": "tetoegen",
+          "target": "hormone-vibe-section",
+          "source": "js/core/saju/reportDashboard.js",
+          "status": "requires-full-flow-port-and-verification",
+          "accessEvidence": "dashboard points to section_summary; historic rights unverified"
+        },
+        {
+          "id": "lotto",
+          "target": "lottoCard",
+          "source": "js/core/saju/reportDashboard.js",
+          "status": "requires-full-flow-port-and-verification",
+          "accessEvidence": "dashboard says Saju bundle; separate entitlement mapping unverified"
+        },
+        {
+          "id": "4CUT",
+          "target": "sajuFourCutCard",
+          "source": "js/core/saju/reportDashboard.js",
+          "status": "requires-full-flow-port-and-verification",
+          "accessEvidence": "dashboard points to section_summary; historic rights unverified"
+        },
+        {
+          "id": "dopamine",
+          "target": "dopamineCard",
+          "source": "js/core/saju/reportDashboard.js",
+          "status": "requires-full-flow-port-and-verification",
+          "accessEvidence": "dashboard points to section_summary; historic rights unverified"
+        }
+      ]
     },
     {
       "id": "saju-compatibility",
