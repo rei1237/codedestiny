@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "5a93cb4896a7ccca488730dd181eddedbcba5c47",
+  "sourceCommit": "dd431bff04c2aa6ce98987738183cf67f520afd7",
   "scope": "Source discovery plus explicitly verified aliases; not a count of implemented services. Unmapped contracts are blocking work, not exclusions.",
   "sourceCounts": {
     "home": 63,
@@ -251,8 +251,8 @@
         "library": "not-verified",
         "device": "not-tested",
         "canonicalId": "career-style",
-        "candidateStatus": "requires-full-flow-port-and-verification",
-        "canonicalRoute": null
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/saju/career-style"
       }
     },
     {
@@ -3177,12 +3177,12 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/saju/career-style",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null,
+      "inputContract": "Public six-condition self-check and fixed sample only; no birth/profile/generation or payment request.",
+      "resultRenderer": "apps/toss/src/CareerStylePreview.tsx",
+      "storageContract": "In-memory selection only. Eight personal chapters, original owner/birth entitlement, archive and device parity pending.",
       "webEntitlement": {
         "featureKey": "saju-career-style",
         "bundleKey": "saju_lifetime_bundle",

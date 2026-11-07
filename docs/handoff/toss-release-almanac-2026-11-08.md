@@ -10,14 +10,14 @@ next: "지정 워크트리에서 원격 main과 인수인계 커밋이 같은지
 
 1. 작업 위치는 `D:\Development\code-destiny\.codex-worktrees\toss-release-20261103-231835`, 브랜치는 `wt/toss-release-20261103-231835`다. 새 브랜치나 PR을 만들지 않는다. `git status --short -b`, `git fetch origin`, `git rev-parse HEAD origin/main`, `npm run launch:status --prefix apps/toss`로 수치와 SHA를 다시 확인한다. 다른 세션의 작업이 반영돼 SHA가 바뀌었으면 해당 커밋들과의 선후 관계를 먼저 확인한다.
 2. 이 문서를 추가한 커밋은 `git log -1 --format=%H -- docs/handoff/toss-release-almanac-2026-11-08.md`로 식별한다. 그 SHA에 대해 `gh run list --commit <SHA> --branch main`으로 CI required(워크플로 PR CI), Paid Flow Gates, Secret Scan을 구분한다. Linux 아티팩트는 full_ci와 toss_artifact가 모두 true인 pr-ci.yml 수동 실행의 **Verify portable Toss bundle** 단계와 `toss-preview-<SHA>` 아티팩트로 판정한다. 실행 중/미실행은 통과가 아니다. 이 문서 자체는 승인 증거가 아니다.
-3. 토스의 답변을 기다리는 동안 서버 원장에 나온 기존 구매 권리를 보존하는 범위에서 이식을 진행한다. 다음 후보는 사주 묶음 중 직업 성향: `app/saju/career-style/CareerStyleClient.tsx` → `worker/routes/career-style.js` → `worker/lib/career-style-access.js`. 인증된 계정의 출생 프로필과 기존 묶음/과거 구매 권리를 mock으로 분리해 검증한다. 미승인 결제창은 열지 않는다.
+3. 토스의 답변을 기다리는 동안 서버 원장에 나온 기존 구매 권리를 보존하는 범위에서 이식을 진행한다. 직업 성향의 공개 예시·여섯 업무조건 자기점검은 완료했다. 남은 개인 리포트 8장의 근거: `app/saju/career-style/CareerStyleClient.tsx` → `worker/routes/career-style.js` → `worker/lib/career-style-access.js`. 인증된 계정의 출생 프로필과 기존 묶음/과거 구매 권리를 mock으로 분리해 검증한다. 미승인 결제창은 열지 않는다.
 
 ## 지금 상태
 
-- 마지막 제품 코드 커밋: `819e0ea115f09e62c13b9d556c0850da4d6666bd` (명식·오행). 직전 원장: `68a1f4a07`; 동물점: `5a93cb489`; 음악 원장 검사 복구: `a75898026`; 차트·음악실: `b1648115e`; 기본 사주·유명인·노벨: `42628b3b7`. 문서 작성 직전 origin/main은 `7e62a910ad1d1e78b7d09750cac1ff8546984eef`였다. 이후 전달 여부는 위 명령으로 확인한다.
-- 처음 90개 중 미이식 51 / 부분 39 → 현재 **미이식 44 / 부분 46 / 공식 완료 0 / 제외 0**. 승인 고유 SKU 0, 공개 설정 false. 새로 부분 이식한 7개는 기본 사주, 유명인 사주, 연이의 운명 노벨, 서양 점성술 출생차트, 베다점 출생차트, 음악실, 십이운성 동물점이다. 공개 27수 도감은 숙요점에서 이어지는 하위 기능이며 나크샤트라 유료 개인 리딩을 완료로 세지 않는다.
+- 마지막 제품 코드 커밋: `dd431bff04c2aa6ce98987738183cf67f520afd7` (공개 직업 성향). 명식·오행은 `819e0ea115f09e62c13b9d556c0850da4d6666bd`, 오프라인 공개 카탈로그는 `28a283fe7`. 직전 원장: `68a1f4a07`; 동물점: `5a93cb489`; 음악 원장 검사 복구: `a75898026`; 차트·음악실: `b1648115e`; 기본 사주·유명인·노벨: `42628b3b7`. 명식과 7개 이식은 origin/main `3924a349083cb954a19fa130a796519bf5e4e0c1`에 전달했다. 이 SHA의 [Linux 번들 수동 실행](https://github.com/rei1237/codedestiny/actions/runs/42423900230)은 요청했다. 직업 성향을 포함한 최종 전달 SHA는 첫 행동의 명령으로 확인한다.
+- 처음 90개 중 미이식 51 / 부분 39 → 현재 **미이식 43 / 부분 47 / 공식 완료 0 / 제외 0**. 승인 고유 SKU 0, 공개 설정 false. 새로 부분 이식한 8개는 기본 사주, 유명인 사주, 연이의 운명 노벨, 서양 점성술 출생차트, 베다점 출생차트, 음악실, 십이운성 동물점, 나의 일 스타일이다. 공개 27수 도감은 숙요점에서 이어지는 하위 기능이며 나크샤트라 유료 개인 리딩을 완료로 세지 않는다.
 - 원장: `docs/toss/full-service-inventory.json`. 실행 계획: `docs/toss/2026-10-28-launch-plan.md`. 심사 체크리스트: `docs/toss/2026-11-04-review-readiness.md`. 이전 토스 상담·QR·기기 이력: `docs/handoff/2026-11-07-astra-handoff.md`와 이전 세션의 증거를 이용한다.
-- 추가 증거 루트: `D:\Development\code-destiny-deliverables\toss-release-20261108`. `mock/almanac/basic-detail.png`, `mock/almanac/manse-detail.png`는 **실제 기기가 아닌** 공식 devtools 오프라인 브라우저 화면이다. `819e0ea11/port-progress.json`은 커밋 시점의 후보 90개 상태다. 기존 기기 스크린샷은 이전 버전이며 이번 UI의 공식 기기 증거가 아니다.
+- 추가 증거 루트: `D:\Development\code-destiny-deliverables\toss-release-20261108`. `mock/almanac/basic-detail.png`, `mock/almanac/manse-detail.png`는 **실제 기기가 아닌** 공식 devtools 오프라인 브라우저 화면이다. `819e0ea11/port-progress.json`은 커밋 시점의 후보 90개 상태다. `dd431bff0/port-progress.json`은 직업 성향 포함 최신 스냅샷, `mock/career-style/`은 320/390/430px 모의 화면이다. 기존 기기 스크린샷은 이전 버전이며 이번 UI의 공식 기기 증거가 아니다.
 
 ## 작업 규칙
 
@@ -32,10 +32,12 @@ next: "지정 워크트리에서 원격 main과 인수인계 커밋이 같은지
 
 ## 단계
 
-- [x] 토스 앱 전체 테스트 1,408/1,408, 타입 검사, Windows 로컬 빌드 통과. 마지막 Windows AIT 91,725,768바이트 / 압축 해제 99,294,252바이트. 경로 1,247개가 Windows식이므로 제출물로 쓰면 안 된다.
+- [x] 토스 앱 전체 테스트 1,410/1,410, 타입 검사, Windows 로컬 빌드 통과. 마지막 Windows AIT 91,983,790바이트 / 압축 해제 99,553,950바이트. 경로 1,250개가 Windows식이므로 제출물로 쓰면 안 된다.
 - [x] 기본 사주·만세력의 320/390/430px 모의 화면, 세션 전환·뒤로가기·생시 미상, 오행 글자 펼치기 확인. 윤달 2023-02-01 / 시각 미상의 모의 기본 사주는 목 4·화 0·토 1·금 0·수 1.
+- [x] 직업 성향: 여섯 업무조건 선택에 맞는 질문·행동과 원본 갑목 고정 예시를 공개한다. 오프라인 UI 테스트, 웹 원본 소유·사주 묶음 23개 테스트 및 세션·연결 해제 5개 검사 통과. 새 공개 화면은 구매·로그인·DB API를 호출하지 않는다. 공개 카탈로그에 인증을 요구하던 모의 서버만 고쳐 게스트 명식에서 거짓 세션 만료 안내가 사라진 것을 관찰했다.
 - [x] 음악 상품 검사 11/11, 수정 후 저장소 `check:fast`(Jest 456개 묶음·7,703개 테스트) 및 제품 커밋 `check:pre-push` 통과.
-- [ ] 최종 명식 UI까지 포함한 추가 `check:fast`는 문서 작성 시 실행 중. 현재 세션 로그 `D:\Development\Temp\cd-toss-finalui-fast-21616.log`에서 최종 종료를 확인한다. 문서 커밋의 pre-push, push, CI 상태는 최종 보고와 첫 행동의 명령을 기준으로 확인한다. 이전 `7e62a910a`의 [Linux 번들 검사](https://github.com/rei1237/codedestiny/actions/runs/42418236006)는 성공했지만 새 SHA를 대신하지 않는다.
+- [x] 명식 UI까지 포함한 추가 `check:fast`는 Node 4,645/4,645, Jest 456/456개 묶음·7,703/7,703으로 통과했다. `3924a3490` 트리의 `check:pre-push` 성공 후 원격 main에 반영했다.
+- [ ] 직업 성향까지 포함한 추가 `check:fast` 로그: `D:\Development\Temp\cd-toss-career-fast-22480.log`. 최종 문서 커밋의 pre-push, push, CI 상태는 최종 보고와 첫 행동의 명령을 기준으로 확인한다. 이전 `7e62a910a`의 [Linux 번들 검사](https://github.com/rei1237/codedestiny/actions/runs/42418236006)는 성공했지만 새 SHA를 대신하지 않는다.
 - [ ] 새 SHA의 공식 Linux 번들, 실제 기기의 앱 상단 이름·명식·오행 및 모든 유료 경로의 공식 샌드박스 주문번호/복구 증거. 일반 구매 버튼을 눌러 대체하지 않는다.
 - [ ] 파트너 답변·콘솔 승인 SKU·금액·로그인/mTLS·심사 자료·아이콘·연령·개인정보·분석 이벤트·출시 설정 및 원장 전체 흐름 확인. 모든 차단을 해소한 뒤 한국어 제출 직전 보고를 보내고 명시적 승인을 기다린다. 현재는 심사 제출 불가.
 
