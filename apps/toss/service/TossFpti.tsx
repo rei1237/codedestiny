@@ -5,6 +5,7 @@ import {usePaidDeliveryScope} from '@/app/hooks/usePaidDeliveryScope';
 import {useAuthStore} from '@/app/_lib/auth-store';
 import type {AiPrefillSeed} from '@/app/_lib/ai-prefill-seed';
 import TossAstrologyProfilePicker from './TossAstrologyProfilePicker';
+import TossFptiDictionary from './TossFptiDictionary';
 import {readFptiResult,saveFptiResult} from './fpti-session.mjs';
 import type {FptiAnalysisResult,FptiFormInput} from '@/lib/fpti/fpti-types';
 import {analyzeFptiFromSajuSource,calculateSajuSourceFromBirth} from '@/lib/fpti/fpti-adapter';
@@ -63,5 +64,5 @@ export default function TossFpti(){
  <details><summary>계산 기준과 참고 사항</summary>{rows('계산 참고',shown.evidence.calculationNotes)}</details>
  <div className="fpti-actions"><button type="button" disabled={bridgeBusy} onClick={copy}>결과 문구 복사하기</button><button type="button" disabled={bridgeBusy} onClick={share}>결과 공유하기</button></div>{notice&&<p role="status">{notice}</p>}{permissionDenied&&<button type="button" disabled={bridgeBusy} onClick={requestPermission}>클립보드 권한 확인하기</button>}
  <button type="button" onClick={()=>{phase.current=false;resultOwner.current='';bridgeEpoch.current++;setNotice('');setPermissionDenied(false);setResult(null);if(directRef.current){history.replaceState({},'','/saju-fpti/');directRef.current=false;setDirect(false);}window.scrollTo(0,0);}}>입력 수정하기</button></article>}
- </main>;
+ <TossFptiDictionary currentCode={shown?.code}/></main>;
 }
