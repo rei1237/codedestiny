@@ -25,7 +25,7 @@ for (const channel of ['chrome', 'msedge']) {
       // 홈: 히어로 버튼 하나 → 대표 상담 덱 → 초융합 시그니처 → 무료로 먼저 → 꿀방울 → 1:1 상담 → 영냥이 배너 → 질문 카테고리 → 이용권 → 뮤직비디오 → 모든 운세 보기 → 링크 → 달빛 이야기.
       assert.equal(await main.locator('.yh-hero .yh-free-start').getAttribute('href'), '/?action=cdOneStepFreeSajuEntry');
       assert.equal(await page.locator('#cdhMore').count(), 0, 'no folded catalog on home');
-      const order = await page.evaluate(() => ['.yh-hero','.yh-find','.yh-links','#cdhPass','.cd-help-entry','#cdhMoonlightMv','#cdhFusionSignature','#cdhYeongnyangiSlot','#cdSignatureConsult','#cdQuickServices','.cdh-story'].map(sel => { const item = document.querySelector(sel); return (item.closest('.yh-secondary:not([open])') || item).getBoundingClientRect().top + scrollY; }));
+      const order = await page.evaluate(() => ['.yh-hero','.yh-find','.yh-links','#cdhPass','.cd-help-entry','#cdhMoonlightMv','#cdhFusionSignature','#cdhYeongnyangiSlot','#cdSignatureConsult','#cdQuickServices','.cdh-story'].map(sel => document.querySelector(sel)).filter(item => item.closest('.yh-secondary:not([open])') || item.getClientRects().length).map(item => { /* 700px 미만에서 숨긴 무료로 먼저는 화면 순서에서 뺀다 */ return (item.closest('.yh-secondary:not([open])') || item).getBoundingClientRect().top + scrollY; }));
       assert(order.every((top,i) => i===0 || top>order[i-1]), JSON.stringify(order));
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
       assert(overflow <= 0, 'home overflow: '+width+' / '+overflow);

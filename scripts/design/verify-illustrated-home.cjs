@@ -28,21 +28,25 @@ const profile = { id:'home-art-fixture', name:'검증용 프로필', gender:'F',
     }
     for(const width of [360,390,430,1440]) {
       const page=await pageFor(width);
-      // 2026-10-17 단순화: 체계 아이콘 6개 대신 "무료로 먼저" 카드 3장(무료 사주·오늘의 운세·무료 타로)만 둔다.
-      const ids=await page.locator('#cdQuickServices a').evaluateAll(nodes=>nodes.map(n=>n.dataset.cdServiceId||n.getAttribute('href')));
-      assert.deepEqual(ids,['saju','/today/','tarot']);
+      // 700px 미만: 첫 줄 하나에 여섯 체계와 오늘의 운세(무료로 먼저는 숨김). 그 이상: 무료로 먼저 여섯 장.
+      const services=width<700?'.yh-entries .yh-entry':'#cdQuickServices a';
+      const ids=await page.locator(services).evaluateAll(nodes=>nodes.map(n=>n.dataset.cdServiceId||n.getAttribute('href')));
+      assert.deepEqual(ids,width<700?['saju','tarot','ziwei','sukuyo','vedic','astrology','daily-fortune']:['saju','tarot','ziwei','sukuyo','vedic','astrology']);
       for(const mode of ['pig','neo']) {
+        // 작은 화면에서는 테마 전환이 메뉴(접힘) 안에 있다.
+        await page.locator('#cdhThemeSlot').evaluate(node=>{const fold=node.closest('details');if(fold)fold.open=true;});
         await page.locator(`#cdhThemeSlot [data-theme-mode="${mode}"]`).click();
-        const geometry=await page.locator('#cdQuickServices a').evaluateAll(nodes=>nodes.map(n=>{const b=n.getBoundingClientRect();return {x:b.x,y:b.y,right:b.right,width:b.width,height:b.height};}));
+        await page.locator('#cdhThemeSlot').evaluate(node=>{const fold=node.closest('details');if(fold)fold.open=false;});
+        const geometry=await page.locator(services).evaluateAll(nodes=>nodes.map(n=>{const b=n.getBoundingClientRect();return {x:b.x,y:b.y,right:b.right,width:b.width,height:b.height};}));
         assert.ok(geometry.every(b=>b.x>=0&&b.right<=width&&b.height>=44&&b.width>=44),'touch targets fully inside viewport');
         // 2026-10-13: 라이트·다크 모두 연이 하나다(네오 히어로 그림 제거).
-        assert.equal(await page.locator('.cdh-scene-art [data-character="yeoni"]').isVisible(),true);
-        assert.equal(await page.locator('.cdh-scene-art [data-character="neo"]').count(),0);
+        assert.equal(await page.locator('.yh-art [data-character="yeoni"]').isVisible(),true);
+        assert.equal(await page.locator('.yh-art [data-character="neo"]').count(),0);
       }
       await page.reload({waitUntil:'domcontentloaded'});
       await page.waitForFunction(()=>document.documentElement.classList.contains('neo-mode'));
-      assert.equal(await page.locator('.cdh-scene-art [data-character="yeoni"]').isVisible(),true,'saved dark mode keeps Yeoni');
-      const tarot=page.locator('#cdQuickServices [data-cd-service-id="tarot"]');
+      assert.equal(await page.locator('.yh-art [data-character="yeoni"]').isVisible(),true,'saved dark mode keeps Yeoni');
+      const tarot=page.locator(services+'[data-cd-service-id="tarot"]');
       await tarot.focus();await page.keyboard.press('Enter');
       if(width<640){
         await page.locator('#tarotCollection.cd-mobile-collection-fullscreen').waitFor({state:'visible'});
@@ -69,7 +73,7 @@ const profile = { id:'home-art-fixture', name:'검증용 프로필', gender:'F',
     for(const target of [{id:'saju'}]) {
       const page=await pageFor();
       if(target.id!=='saju')await page.evaluate(async p=>{await window.__cdEnsureDestinyProfileLoaded();const s=window.DestinyProfileManager.storage;s.save([p]);s.setCurrent(p.id);await window.__cdEnsureBirthModalDepsLoaded();},profile);
-      await page.locator(`#cdQuickServices [data-cd-service-id="${target.id}"]`).click();
+      await page.locator(`.yh-entries [data-cd-service-id="${target.id}"]`).click();
       if(target.id==='saju')await page.locator('#destinyCardForm #nameInput').waitFor({state:'visible'});
       else if(target.id==='vedic'){await page.waitForURL(/\/vedic-astrology(?:\.html)?(?:[?#]|$)/);await page.locator('#vedicConsultation').waitFor({state:'visible',timeout:30000});}
       else await page.locator('#'+target.overlay).waitFor({state:'visible',timeout:30000});

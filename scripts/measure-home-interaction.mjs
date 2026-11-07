@@ -70,8 +70,9 @@ const TARGETS = [
     type: "type",
     text: "사주",
     setup: async (page) => {
-      await scrollIntoView(page, ".cdh-all-cta__btn");
-      await page.click(".cdh-all-cta__btn");
+      // 412px 에서는 하단 버튼이 숨고 첫 줄 아래 '모든 운세 보기'(.yh-all)만 보인다.
+      await scrollIntoView(page, ".yh-all");
+      await page.click(".yh-all");
       await page.waitForSelector("#cdAllFortunesSearch", { state: "visible" });
     },
     teardown: closeOverlays,

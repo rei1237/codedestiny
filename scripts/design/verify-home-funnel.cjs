@@ -36,11 +36,12 @@ async function assertEssentials(page, label) {
     ['concern selection', page.viewportSize().width < 700 ? '.yh-find > summary' : '.yh-choices'],
     ['signature deck', '#cdSignatureConsult'],
     ['sample guide', '#cdSignatureConsult .cd-sig__samples-link[href="/consultation-samples/"]'],
-    ['free first', '#cdQuickServices'],
+    // 700px 미만에서는 첫 줄 체계 선택지가 '무료로 먼저'와 '모든 운세 보기'를 맡는다(같은 선택지를 두 번 보이지 않는다).
+    ['free first', page.viewportSize().width < 700 ? '.yh-entries' : '#cdQuickServices'],
     ['pass', '#cdhPass .pb__cta'],
     ['light fortune banner', '#cdhPass .pb__banner'],
     ['light fortune list', '#cdhPass .pb__light-list > summary'],
-    ['all fortunes button', '.cdh-all-cta__btn'],
+    ['all fortunes button', page.viewportSize().width < 700 ? '.yh-all' : '.cdh-all-cta__btn'],
     // 미니게임은 쉬는 중이다(b8f2fcb7a). 마지막 줄은 "작은 운세 한 모금" 접힘이고, 접힘 버튼(summary)이 보이면 된다.
     ['light fortunes fold', '#cdhLightFortunes > summary'],
     ['fusion consultation', '#cdhFusionSignature'],
@@ -101,7 +102,8 @@ async function assertEssentials(page, label) {
         const nodes = ['.yh-hero', '.yh-find', '.yh-links', '#cdhPass', '.cd-help-entry', '#cdhMoonlightMv', '#cdhFusionSignature', '#cdhYeongnyangiSlot', '#cdSignatureConsult', '#cdQuickServices', '.cdh-story'].map(selector => document.querySelector(selector));
         return {
           dom: nodes.every((node, index) => index === 0 || Boolean(nodes[index - 1].compareDocumentPosition(node) & Node.DOCUMENT_POSITION_FOLLOWING)),
-          visual: nodes.map((node) => node.getBoundingClientRect().top + scrollY),
+          // 700px 미만에서 일부러 숨긴 블록(#cdQuickServices)은 화면 순서에서 뺀다.
+          visual: nodes.filter((node) => node.getClientRects().length).map((node) => node.getBoundingClientRect().top + scrollY),
         };
       });
       assert.ok(order.dom, `${width}px home flow keeps signature → fusion → free → honey → consult → questions → pass → MV → all fortunes → links → story in DOM`);
@@ -188,10 +190,10 @@ async function assertEssentials(page, label) {
       if (width < 700) {
         await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
         const entries = page.locator('.yh-entry');
-        assert.equal(await entries.count(),3);
+        assert.equal(await entries.count(),7);
         for (const entry of await entries.all()) {
           const r = await entry.boundingBox();
-          assert.ok(r && r.height >= 44 && r.y >= 0 && r.y + r.height <= height, 'all three services fit in the first viewport');
+          assert.ok(r && r.height >= 44 && r.y >= 0 && r.y + r.height <= height, 'all seven entries fit in the first viewport');
         }
       } else {
         assert.equal(fills.firstViewport.length, 1, `${width}px first viewport has one filled CTA (${fills.firstViewport.join(', ')})`);
@@ -357,7 +359,8 @@ async function assertEssentials(page, label) {
     await member.goto(origin + '/static/index.html', { waitUntil: 'domcontentloaded' });
     await member.waitForSelector('#cdAuthLogoutBtn', { state: 'attached' });
     await assertEssentials(member, 'logged in');
-    await member.locator('[data-cdh-free]').first().click();
+    // 같은 무료 사주 입구: 700px 미만은 첫 줄 사주, 그 이상은 무료로 먼저 첫 장.
+    await member.locator('[data-cdh-free]:visible, .yh-entry[data-cd-service-id="saju"]:visible').first().click();
     await member.locator('#nameInput').fill('꽃길 테스트');
     await member.locator('#birthDate').fill('1995-05-15');
     await member.locator('#birthDate').dispatchEvent('change');

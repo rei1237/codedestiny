@@ -444,7 +444,8 @@
     var focusInside = more.contains(document.activeElement);
     more.hidden = true;
     // 닫힌 영역 안에 포커스를 남기지 않는다 — 같은 자리의 '모든 운세 보기' 버튼으로 돌려준다.
-    var fallback = home.querySelector('.cdh-all-cta__btn');
+    // 700px 미만에서는 하단 버튼이 숨으므로 첫 줄의 '모든 운세 보기'로 돌려준다.
+    var fallback = Array.prototype.filter.call(home.querySelectorAll('.cdh-all-cta__btn, .yh-all'), function (node) { return node.getClientRects().length > 0; })[0];
     if (focusInside && fallback) {
       try { fallback.focus({ preventScroll: true }); } catch (_) { fallback.focus(); }
     }
