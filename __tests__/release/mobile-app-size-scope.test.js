@@ -116,6 +116,24 @@ test('each feature ships one introduction image plus one list thumbnail and ever
   for (const target of new Set(aliases.values())) await fs.access(path.join(dist, target));
 });
 
+test('tarot card jpegs leave the app only beside the same webp art and resolve to it natively', async t => {
+  const { aliasTarotCardJpegs, APP_IMAGE_ALIAS_FILE } = await import('../../scripts/build-mobile-app.mjs');
+  const java = await fs.readFile(path.join(__dirname, '../../apps/mobile/android/app/src/main/java/com/codedestiny/app/AppImageAliases.java'), 'utf8');
+  assert.match(java, /"\/tarot-cards\/"/, 'native aliases must cover the tarot-cards folder');
+  const dist = await fs.mkdtemp(path.join(os.tmpdir(), 'cd-tarot-jpeg-'));
+  t.after(() => fs.rm(dist, { recursive: true, force: true }));
+  const dir = path.join(dist, 'tarot-cards');
+  await fs.mkdir(dir, { recursive: true });
+  for (const name of ['thehermit.jpeg', 'thehermit.webp', 'TheLovers.jpg', 'TheLovers.webp', 'redrawn.jpeg', 'redrawn.webp', 'lonely.jpeg']) await fs.writeFile(path.join(dir, name), name);
+  await fs.writeFile(path.join(dist, APP_IMAGE_ALIAS_FILE), '/images/service-introductions/saju.webp\t/images/service-introductions/saju-960.webp\n');
+  const sameArt = async a => path.basename(a) !== 'redrawn.jpeg';
+  const { aliases } = await aliasTarotCardJpegs({ dist, sameArt });
+  assert.deepEqual((await fs.readdir(dir)).sort(), ['TheLovers.webp', 'lonely.jpeg', 'redrawn.jpeg', 'redrawn.webp', 'thehermit.webp'], 'a jpeg without the same webp art stays');
+  assert.deepEqual([...aliases], [['/tarot-cards/TheLovers.jpg', '/tarot-cards/TheLovers.webp'], ['/tarot-cards/thehermit.jpeg', '/tarot-cards/thehermit.webp']]);
+  const table = (await fs.readFile(path.join(dist, APP_IMAGE_ALIAS_FILE), 'utf8')).trim().split('\n');
+  assert.deepEqual(table, ['/images/service-introductions/saju.webp\t/images/service-introductions/saju-960.webp', '/tarot-cards/thehermit.jpeg\t/tarot-cards/thehermit.webp', '/tarot-cards/TheLovers.jpg\t/tarot-cards/TheLovers.webp'], 'introduction rows written earlier are kept');
+});
+
 test('verified dead image families leave the app, but assembled names and referenced files stay', async t => {
   const { removeVerifiedDeadImages } = await import('../../scripts/build-mobile-app.mjs');
   const dist = await fs.mkdtemp(path.join(os.tmpdir(), 'cd-dead-'));

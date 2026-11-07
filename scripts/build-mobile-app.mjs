@@ -566,7 +566,8 @@ export async function offloadTalismanOriginals({ dist = DIST, root = ROOT, remot
 // MainActivity.resolveRoute(AppImageAliases)가 이 표로 요청을 돌려주므로 srcset이나 `${base}-320.webp`처럼
 // 조립되는 경로도 그대로 그려진다. 웹 원본(public)은 건드리지 않는다.
 export const APP_IMAGE_ALIAS_FILE = "app-image-aliases.tsv";
-async function sharpSameArt(a, b) {
+// limit: 48×32 축소본 픽셀 평균 차이. 같은 형식 사본은 2 미만, jpeg↔webp 재인코딩은 7 안팎, 다른 그림은 30 이상이다.
+async function sharpSameArt(a, b, limit = 2) {
   const { default: sharp } = await import("sharp");
   // 버퍼로 읽는다 — 경로를 주면 sharp가 핸들을 쥔 채라 윈도우에서 뒤이은 삭제가 막힌다.
   const [ba, bb] = await Promise.all([fs.readFile(a), fs.readFile(b)]);
@@ -576,7 +577,7 @@ async function sharpSameArt(a, b) {
   const [ra, rb] = await Promise.all([raw(ba), raw(bb)]);
   let diff = 0;
   for (let i = 0; i < ra.length; i += 1) diff += Math.abs(ra[i] - rb[i]);
-  return diff / ra.length < 2;
+  return diff / ra.length < limit;
 }
 export async function consolidateIntroductionImages({ dist = DIST, sameArt = sharpSameArt } = {}) {
   const introDir = path.join(dist, "images", "service-introductions");
@@ -629,6 +630,44 @@ export async function consolidateIntroductionImages({ dist = DIST, sameArt = sha
   }
   const table = [...aliases].sort(([a], [b]) => a.localeCompare(b)).map(([from, to]) => `${from}\t${to}`).join("\n");
   await fs.writeFile(path.join(dist, APP_IMAGE_ALIAS_FILE), table ? table + "\n" : "");
+  return { removed, aliases };
+}
+
+/**
+ * 타로 카드 그림(tarot-cards)은 같은 그림이 jpeg·webp 두 벌로 실려 있다. 여러 화면이 `.jpeg` 이름을
+ * 조립해 부르므로 호출부를 고치는 대신 jpeg를 빼고 별칭 표에 "jpeg → 같은 이름 webp"를 더한다.
+ * WebView는 이미지를 바이트 서명으로 디코드하므로 jpeg 경로로 webp 바이트를 받아도 그려진다.
+ * 크기가 다르거나 그림이 달라 보이면 남긴다. consolidateIntroductionImages 뒤에 돌아 표에 덧붙인다.
+ */
+export const APP_TAROT_JPEG_SAME_ART_LIMIT = 12;
+export async function aliasTarotCardJpegs({ dist = DIST, sameArt = (a, b) => sharpSameArt(a, b, APP_TAROT_JPEG_SAME_ART_LIMIT) } = {}) {
+  const dir = path.join(dist, "tarot-cards");
+  const removed = [];
+  const aliases = new Map();
+  if (!(await exists(dir))) return { removed, aliases };
+  const names = new Set(await fs.readdir(dir));
+  for (const name of [...names].sort()) {
+    const match = name.match(/^(.+)\.jpe?g$/i);
+    if (!match || !names.has(`${match[1]}.webp`)) continue;
+    const file = path.join(dir, name);
+    if (!(await sameArt(file, path.join(dir, `${match[1]}.webp`)))) continue;
+    const bytes = (await fs.stat(file)).size;
+    await fs.rm(file);
+    aliases.set(`/tarot-cards/${name}`, `/tarot-cards/${match[1]}.webp`);
+    removed.push({ path: `tarot-cards/${name}`, bytes });
+  }
+  if (aliases.size) {
+    const tableFile = path.join(dist, APP_IMAGE_ALIAS_FILE);
+    const rows = new Map();
+    if (await exists(tableFile)) {
+      for (const line of (await fs.readFile(tableFile, "utf8")).split(/\r?\n/)) {
+        const [from, to] = line.split("\t");
+        if (from && to) rows.set(from, to);
+      }
+    }
+    for (const [from, to] of aliases) rows.set(from, to);
+    await fs.writeFile(tableFile, [...rows].sort(([a], [b]) => a.localeCompare(b)).map(([from, to]) => `${from}\t${to}`).join("\n") + "\n");
+  }
   return { removed, aliases };
 }
 
@@ -1075,6 +1114,9 @@ async function main() {
   // 남긴 한 장은 이름이 코드에 조립돼 있어도 지워지지 않게 참조 색인에 넣는다(중복 사본 정리 단계).
   for (const target of introductions.aliases.values()) referenced.add(path.posix.basename(target));
   console.log(`  ✅ 기능 소개 그림 한 장으로: ${introductions.removed.length}개 제외 (${(introductions.removed.reduce((bytes, item) => bytes + item.bytes, 0) / 1048576).toFixed(1)} MB), 남긴 그림 ${new Set(introductions.aliases.values()).size}장`);
+  const tarotJpegs = await aliasTarotCardJpegs();
+  for (const target of tarotJpegs.aliases.values()) referenced.add(path.posix.basename(target));
+  console.log(`  ✅ 타로 카드 jpeg를 같은 그림 webp로: ${tarotJpegs.removed.length}개 제외 (${(tarotJpegs.removed.reduce((bytes, item) => bytes + item.bytes, 0) / 1048576).toFixed(1)} MB)`);
   const removedSources = await removeUnusedBrandSources(referenced);
   console.log(`  ✅ 미사용 브랜드 원본 사본 제외: ${removedSources.length}개 (${(removedSources.reduce((bytes, item) => bytes + item.bytes, 0) / 1048576).toFixed(1)} MB)`);
   const removedDead = await removeVerifiedDeadImages(referenced);

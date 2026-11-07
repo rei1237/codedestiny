@@ -13,15 +13,15 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * 앱 번들에서 뺀 기능 소개 그림 경로 → 기능마다 남긴 한 장.
+ * 앱 번들에서 뺀 기능 소개 그림 경로 → 기능마다 남긴 한 장, 타로 카드 jpeg → 같은 그림 webp.
  *
- * 표는 scripts/build-mobile-app.mjs 의 consolidateIntroductionImages 가 public/app-image-aliases.tsv 로 만든다.
+ * 표는 scripts/build-mobile-app.mjs 의 consolidateIntroductionImages·aliasTarotCardJpegs 가 public/app-image-aliases.tsv 로 만든다.
  * srcset 이나 `${base}-320.webp` 처럼 조립되는 경로도 있어 웹 코드 대신 여기서 돌려준다.
- * 두 폴더 요청에서만 처음 한 번 읽는다 — 앱 시작 경로에는 비용이 없다.
+ * 세 폴더 요청에서만 처음 한 번 읽는다 — 앱 시작 경로에는 비용이 없다.
  */
 final class AppImageAliases {
     static final String FILE = "app-image-aliases.tsv";
-    private static final String[] PREFIXES = { "/images/service-introductions/", "/feature-details/assets/" };
+    private static final String[] PREFIXES = { "/images/service-introductions/", "/feature-details/assets/", "/tarot-cards/" };
     private static volatile Map<String, String> table;
 
     private AppImageAliases() {}
