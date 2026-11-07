@@ -44,24 +44,24 @@ next: "1단계 네오 대사 다듬기 → 2단계 세 브랜치를 origin/main�
 지금 출력(돼지띠, 2026-11-08): `오늘 일진은 丙戌. 돼지띠 쪽에서 보면 「일진 술(戌)」. 크게 당기지도 밀지도 않는 날이야. 준비한 순서가 하루를 정해. 천간 쪽은 화(丙) → 수 · 재성 — 내가 다루는 기운.`
 
 문제와 고칠 방향:
-- [ ] **일진이 한자만 나온다.** 천간 10자·지지 12자의 한글 독음 표를 두고 `병술(丙戌)일`로 쓴다. 별자리 쪽 대사도 같은 함수를 쓴다.
-- [ ] **배지를 그대로 읽는다.** `relation.badge`를 낭독하지 말고 `relation.kind`별 자연어로 바꾼다.
+- [x] **일진이 한자만 나온다.** 천간 10자·지지 12자의 한글 독음 표를 두고 `병술(丙戌)일`로 쓴다. 별자리 쪽 대사도 같은 함수를 쓴다.
+- [x] **배지를 그대로 읽는다.** `relation.badge`를 낭독하지 말고 `relation.kind`별 자연어로 바꾼다.
   - neutral: `술(戌)의 날이라 돼지띠와는 합도 충도 아니야.`
   - clash: badge의 `· ` 뒤 글자를 써서 `돼지띠와 정면으로 부딪히는 사해충(巳亥沖)이 든 날이야.` (한자는 BRANCH 표에 있으면)
   - trine: `돼지띠와 ○○ 삼합 그룹으로 이어지는 날이야.`
   - same: `돼지띠와 같은 지지가 겹치는 비화(比和)의 날이야.`
   - 그 뒤에 기존 `NEO_KIND_LINE`을 붙인다. neutral 문구가 "외부 변수가 적다"고 예측하지 않게 둔다(`day-relation.ts` neutral detail의 단서 참고).
-- [ ] **근거가 표 문자열 그대로다.** `basis`의 "오행 생극" 값(`화(丙) → 수 · 재성 — 내가 다루는 기운`)을 정규식 `^(.)\((.)\)\s*→\s*(.)\s*·\s*([^—]+?)\s*—\s*(.+)$`로 풀어 `천간 병(丙)은 화(火)라, 수(水)인 돼지띠에겐 재성, 곧 내가 다루는 기운이야.`로 쓴다. 형식이 다르면 지금처럼 원문을 쓴다.
-- [ ] `__tests__/fortune/daily-webtoon.test.mjs`에 단언을 더한다: 네오 대사에 한글 독음 일진이 들어가고, `「`나 `→`가 들어가지 않는다. 띠 12종과 30일을 돌려 확인한다.
-- [ ] `node --test __tests__/fortune/daily-webtoon.test.mjs` 통과 → `npm run sitemap:generate`(원장 서명) → 커밋.
+- [x] **근거가 표 문자열 그대로다.** `basis`의 "오행 생극" 값(`화(丙) → 수 · 재성 — 내가 다루는 기운`)을 정규식 `^(.)\((.)\)\s*→\s*(.)\s*·\s*([^—]+?)\s*—\s*(.+)$`로 풀어 `천간 병(丙)은 화(火)라, 수(水)인 돼지띠에겐 재성, 곧 내가 다루는 기운이야.`로 쓴다. 형식이 다르면 지금처럼 원문을 쓴다.
+- [x] `__tests__/fortune/daily-webtoon.test.mjs`에 단언을 더한다: 네오 대사에 한글 독음 일진이 들어가고, `「`나 `→`가 들어가지 않는다. 띠 12종과 30일을 돌려 확인한다.
+- [x] `node --test __tests__/fortune/daily-webtoon.test.mjs` 통과 → `npm run sitemap:generate`(원장 서명) → 커밋.
 
 ### 2. 세 브랜치를 origin/main에 올리기
-- [ ] 위 공유 main 규칙대로 origin/main 기준 분리 워크트리를 만든다.
-- [ ] 순서: legacy-cleanup → daily-webtoon → android-size-widget. 각 브랜치는 merge-base 이후 자기 커밋만 cherry-pick한다(`git log --reverse --format=%h origin/main..<브랜치>`; 병합 커밋은 건너뛴다).
-- [ ] 충돌 처리: 사이트맵 원장과 사이트맵 XML은 origin 판을 받고 마지막에 `npm run sitemap:generate` 한 번. 공개 미러와 캐시 키는 `npm run sync:public`으로 다시 만든다. 그 밖의 충돌은 양쪽 의도를 읽고 합친다. 결제·인증 파일에서 충돌이 나면 멈추고 보고한다.
-- [ ] android 브랜치는 behind 318이라 충돌이 가장 많다. `scripts/build-mobile-app.mjs`와 모바일 가드 테스트(`__tests__/release/mobile-app-size-scope.test.js`)를 특히 본다. legacy-cleanup이 지운 파일을 android 쪽이 참조하면 남긴다.
-- [ ] 검증: `ALLOW_DEV_SERVER_DURING_BUILD=1 node scripts/check-changed.mjs --base=origin/main --committed-head`(백그라운드)와 `npm run check:pre-push`.
-- [ ] `git push origin HEAD:main`. 그 뒤 main CI 결과를 한 번만 확인한다(폴링 금지). 다른 사람 커밋으로 main이 이미 빨갛다면 그 커밋을 보고한다.
+- [x] 위 공유 main 규칙대로 origin/main 기준 분리 워크트리를 만든다.
+- [x] 순서: legacy-cleanup → daily-webtoon → android-size-widget. 각 브랜치는 merge-base 이후 자기 커밋만 cherry-pick한다(`git log --reverse --format=%h origin/main..<브랜치>`; 병합 커밋은 건너뛴다).
+- [x] 충돌 처리: 사이트맵 원장과 사이트맵 XML은 origin 판을 받고 마지막에 `npm run sitemap:generate` 한 번. 공개 미러와 캐시 키는 `npm run sync:public`으로 다시 만든다. 그 밖의 충돌은 양쪽 의도를 읽고 합친다. 결제·인증 파일에서 충돌이 나면 멈추고 보고한다.
+- [x] android 브랜치는 behind 318이라 충돌이 가장 많다. `scripts/build-mobile-app.mjs`와 모바일 가드 테스트(`__tests__/release/mobile-app-size-scope.test.js`)를 특히 본다. legacy-cleanup이 지운 파일을 android 쪽이 참조하면 남긴다.
+- [x] 검증: `ALLOW_DEV_SERVER_DURING_BUILD=1 node scripts/check-changed.mjs --base=origin/main --committed-head`(백그라운드)와 `npm run check:pre-push`.
+- [x] `git push origin HEAD:main`. 그 뒤 main CI 결과를 한 번만 확인한다(폴링 금지). 다른 사람 커밋으로 main이 이미 빨갛다면 그 커밋을 보고한다.
 
 ### 3. 운영 승격 (승인됨, 1회)
 - [ ] main CI 통과를 확인한다. 운영 릴리스 전 검증으로 `npm run verify:release`를 한다(CLAUDE.md 92행).
@@ -80,3 +80,10 @@ next: "1단계 네오 대사 다듬기 → 2단계 세 브랜치를 origin/main�
 - [ ] 이 문서와 android, legacy-cleanup 문서에 결과(SHA, 운영 run id, AAB 크기와 VERSION_CODE)를 적고 `status: done`.
 - [ ] 병합이 끝난 워크트리 세 개는 `npm run worktree:remove`로 정리한다. 미병합 커밋이 남았으면 남긴다.
 - [ ] 사용자에게 한국어로 보고: 운영 반영 내용, 301 확인, Play 업로드 결과, 남은 위험.
+
+## 결과 기록
+- 1단계: 네오 대사 커밋 `efd5a0d4b`(main에서는 rebase 뒤 새 SHA). check:fast exit 0(node 4655, Jest 7705).
+- 2단계: 병합 워크트리 `D:\Development\codedestiny-worktrees\release-merge-20261108`에서 legacy 10 + webtoon 4 + android 34(사이트맵 전용 d9138b654·12c8e67ec는 빈 커밋이라 건너뜀) cherry-pick, 공개 미러·사이트맵 재생성. 충돌은 사이트맵 원장뿐(origin 판 → 재생성).
+  - 🔴 1차 check-changed 실패 2건, 둘 다 병합 뒤 테스트 문제: ① android 손님 세션 테스트가 legacy가 이름을 바꾼 `_original` 경로를 읽음 ② 일일 타로 브라우저 테스트가 `process is not defined`(android `IS_APP_BUILD`가 esbuild 번들에서 process.env를 읽음, android 브랜치 단독에서도 실패). 테스트만 고쳤다.
+  - 2차 check-changed exit 0(node fail 0, Jest 7700, 빌드·verify-dist·AdSense), check:pre-push 6종 통과.
+  - push 직전 origin/main에 toss 커밋 4개(6d93669df까지)가 들어와 rebase, toss 테스트 10/10·pre-push 재통과 뒤 `git push origin HEAD:main` → **`6d93669df..70eaf737b`**.
