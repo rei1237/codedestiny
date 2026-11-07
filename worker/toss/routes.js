@@ -44,8 +44,8 @@ async function bodyOf(request) {
   if(text.length>12000)throw new TossError('BODY_TOO_LARGE',413);
   try{return JSON.parse(text);}catch{throw new TossError('JSON_INVALID');}
 }
-async function limit(env,subject,endpoint,max) {
-  const state=await incrementRateLimit({env,subjectHash:await hash(subject),endpoint:`toss:${endpoint}`,windowMs:60000});
+async function limit(env,subject,endpoint,max,windowMs=60000) {
+  const state=await incrementRateLimit({env,subjectHash:await hash(subject),endpoint:`toss:${endpoint}`,windowMs});
   if(state.count>max)throw new TossError('TOO_MANY_REQUESTS',429);
 }
 export async function handleTossRoutes(request,env) {
@@ -360,6 +360,11 @@ export async function handleTossRoutes(request,env) {
       await limit(env,auth._id,'sukuyo-basic',6);
       const [{calculateTossSukuyoBasic},{domains}]=await Promise.all([import('./sukuyo-basic.js'),import('../yeongnyangi/fortune/index.ts')]);
       return reply(await calculateTossSukuyoBasic(await bodyOf(request),env,domains.sukuyo));
+    }
+    if(path==='/human-design/chart'&&request.method==='POST') {
+      await limit(env,auth._id,'human-design-chart',20,600000);
+      const {calculateTossHumanDesign}=await import('./human-design.js');
+      return reply(await calculateTossHumanDesign(await bodyOf(request),env));
     }
     if(path==='/flower/match'&&request.method==='POST') {
       await limit(env,auth._id,'flower',6);
