@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: active
 updated: 2026-11-04
 next: 대표 상담의 토스 결제·추가 질문·복구를 검증하고 미이식 서비스와 콘솔 제출 요건을 계속 처리한다.
 ---
