@@ -1,7 +1,8 @@
-import {useEffect,useRef,useState,type FormEvent} from 'react';
+import {useEffect,useLayoutEffect,useRef,useState,type FormEvent} from 'react';
 import {BirthFields,emptyBirth,birthPayload} from './BirthFields';
 import {Button} from './Button';
 import {api} from './platform';
+import TossSessionScope from './TossSessionScope';
 
 export type ManseResult={stored:false;engineVersion:string;limitations:string[];pillars:{key:string;ganji:string|null;tenGod:string|null}[];elements:Record<string,number>;elementBasis:string|null;cycles:{label:string}[]};
 const pillars:Record<string,string>={year:'연주',month:'월주',day:'일주',hour:'시주'};
@@ -17,10 +18,12 @@ export function ManseResults({result}:{result:ManseResult}){
     <p className="muted">이 결과는 현재 화면에서만 확인할 수 있으며 보관함에는 저장되지 않아요.</p>
   </section>;
 }
-export default function ManseReading({loggedIn,onLogin,onError,request=api}:{loggedIn:boolean;onLogin:()=>void;onError:(error:unknown)=>void;request?:typeof api}){
+type Props={loggedIn:boolean;onLogin:()=>void;onError:(error:unknown)=>void;request?:typeof api};
+export default function ManseReading(props:Props){return <TossSessionScope><ManseReadingContent {...props}/></TossSessionScope>;}
+function ManseReadingContent({loggedIn,onLogin,onError,request=api}:Props){
   const [birth,setBirth]=useState(emptyBirth),[result,setResult]=useState<ManseResult|null>(null),[busy,setBusy]=useState(false);
   const epoch=useRef(0),pending=useRef(false);
-  useEffect(()=>()=>{epoch.current++;},[]);
+  useLayoutEffect(()=>()=>{epoch.current++;},[]);
   useEffect(()=>{epoch.current++;pending.current=false;setResult(null);setBirth(emptyBirth());setBusy(false);},[loggedIn]);
   async function submit(event:FormEvent){event.preventDefault();if(!loggedIn){onLogin();return;}if(pending.current)return;
     const current=++epoch.current;pending.current=true;setBusy(true);setResult(null);

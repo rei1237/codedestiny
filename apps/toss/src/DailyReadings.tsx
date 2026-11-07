@@ -1,9 +1,10 @@
 import {FloralInputWelcome} from './Brand';
-import {useEffect,useRef,useState,type ComponentProps,type FormEvent} from 'react';
+import {useEffect,useLayoutEffect,useRef,useState,type ComponentProps,type FormEvent} from 'react';
 import {TextArea,TextField} from '@toss/tds-mobile';
 import {Button} from './Button';
 import {BirthFields,birthPayload,emptyBirth} from './BirthFields';
 import {api} from './platform';
+import TossSessionScope from './TossSessionScope';
 import {freeCategories,birthCategories,type FreeCategoryId,type FreeReading,type AttendanceState} from '../../../worker/yeongnyangi/fortune/free/categories';
 
 const categories=freeCategories.filter(item=>item.id!=='horary');
@@ -22,11 +23,13 @@ export function DailyResult({result}:{result:FreeReading}){
   </article>;
 }
 
-export default function DailyReadings({loggedIn,onLogin,onError,request=api}:Props){
+export default function DailyReadings(props:Props){return <TossSessionScope><DailyReadingsContent {...props}/></TossSessionScope>;}
+function DailyReadingsContent({loggedIn,onLogin,onError,request=api}:Props){
   const [state,setState]=useState<AttendanceState|null>(null),[category,setCategory]=useState<FreeCategoryId>('basic');
   const [birth,setBirth]=useState(emptyBirth),[draft,setDraft]=useState<Record<string,string>>({});
   const [result,setResult]=useState<FreeReading|null>(null),[busy,setBusy]=useState(false),[loading,setLoading]=useState(false),[failed,setFailed]=useState(false);
   const epoch=useRef(0),operation=useRef<object|null>(null);
+  useLayoutEffect(()=>()=>{epoch.current++;operation.current=null;},[]);
   const config=categories.find(item=>item.id===category)!;
   useEffect(()=>{let live=true;epoch.current++;setState(null);setResult(null);setFailed(false);if(!loggedIn){operation.current=null;setBusy(false);setLoading(false);setBirth(emptyBirth());setDraft({});}
     if(loggedIn){setLoading(true);request<AttendanceState>('/daily/status').then(data=>{if(live)setState(data);}).catch(error=>{if(live){setFailed(true);onError(error);}}).finally(()=>{if(live)setLoading(false);});}

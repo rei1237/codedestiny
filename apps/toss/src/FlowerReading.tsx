@@ -1,8 +1,9 @@
 import {FloralInputWelcome} from './Brand';
-import {useEffect,useRef,useState,type FormEvent} from 'react';
+import {useEffect,useLayoutEffect,useRef,useState,type FormEvent} from 'react';
 import {Button} from './Button';
 import {BirthFields,emptyBirth,birthPayload} from './BirthFields';
 import {api} from './platform';
+import TossSessionScope from './TossSessionScope';
 import {buildFlowerSvg} from '../../../js/services/destiny-flower-art.js';
 
 const sourceNames={saju:'사주의 꽃',astrology:'별자리의 꽃',jamidusu:'자미두수의 꽃',sukuyo:'숙요의 꽃'};
@@ -25,9 +26,12 @@ export function FlowerResults({result}:{result:FlowerResponse}){
     </article>;
   })}</div>;
 }
-export default function FlowerReading({loggedIn,onLogin,onError,request=api}:{loggedIn:boolean;onLogin:()=>void;onError:(error:unknown)=>void;request?:typeof api}){
+type Props={loggedIn:boolean;onLogin:()=>void;onError:(error:unknown)=>void;request?:typeof api};
+export default function FlowerReading(props:Props){return <TossSessionScope><FlowerReadingContent {...props}/></TossSessionScope>;}
+function FlowerReadingContent({loggedIn,onLogin,onError,request=api}:Props){
   const [birth,setBirth]=useState(emptyBirth),[busy,setBusy]=useState(false),[result,setResult]=useState<FlowerResponse|null>(null);
   const epoch=useRef(0),pending=useRef(false);
+  useLayoutEffect(()=>()=>{epoch.current++;},[]);
   useEffect(()=>{epoch.current++;pending.current=false;setBirth(emptyBirth());setResult(null);setBusy(false);return()=>{epoch.current++;};},[loggedIn]);
   async function submit(event:FormEvent){event.preventDefault();if(!loggedIn){onLogin();return;}if(pending.current)return;
     const current=++epoch.current;pending.current=true;setBusy(true);setResult(null);

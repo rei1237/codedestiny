@@ -5,6 +5,9 @@ const API='https://code-destiny.com/api/toss';
 let token:string|null=null;
 let sessionEpoch=0;
 export function getTossSessionRevision(){return sessionEpoch;}
+const sessionRevisionListeners=new Set<()=>void>();
+export function onTossSessionRevisionChanged(listener:()=>void){sessionRevisionListeners.add(listener);return ()=>sessionRevisionListeners.delete(listener);}
+function advanceSessionRevision(){const revision=++sessionEpoch;for(const listener of [...sessionRevisionListeners]){if(sessionEpoch!==revision)break;if(!sessionRevisionListeners.has(listener))continue;try{listener();}catch{/* A UI observer cannot change the authentication result. */}}return revision;}
 let loginAttempt=0;
 export function getTossLoginAttempt(){return loginAttempt;}
 let storageQueue:Promise<void>=Promise.resolve();
@@ -90,7 +93,8 @@ export async function restoreSession(){
   await storageQueue;
   const startingEpoch=sessionEpoch,stored=await Storage.getItem('toss-session');
   if(sessionEpoch!==startingEpoch)return Boolean(token);
-  token=stored;sessionEpoch++;
+  token=stored;const restoredEpoch=advanceSessionRevision();
+  if(sessionEpoch!==restoredEpoch)return Boolean(token);
   if(!token)return false;
   try{await api('/session');return true;}catch(error){if(error instanceof ApiError&&error.status===401)return false;throw error;}
 }
@@ -103,7 +107,7 @@ export async function login(){
   let session:{token:string};
   try{session=await api<{token:string}>('/login',code);}catch(error){if(attempt!==loginAttempt)throw new ApiError('SESSION_CHANGED','',409);throw error;}
   if(attempt!==loginAttempt)throw new ApiError('SESSION_CHANGED','',409);
-  token=session.token;const writeEpoch=++sessionEpoch,sessionToken=token;
+  token=session.token;const writeEpoch=advanceSessionRevision(),sessionToken=token;
   try{await queueStorage(async()=>{if(sessionEpoch===writeEpoch)await Storage.setItem('toss-session',sessionToken);});}
   catch(error){
     let cleanupError:unknown,clearedEpoch:number|undefined;
@@ -129,7 +133,7 @@ export async function login(){
   }
   if(attempt!==loginAttempt||sessionEpoch!==writeEpoch)throw new ApiError('SESSION_CHANGED','',409);
 }
-export async function clearSession(cancelPendingLogin=true){if(cancelPendingLogin)loginAttempt++;token=null;const clearEpoch=++sessionEpoch;if(isToss())await queueStorage(async()=>{if(sessionEpoch===clearEpoch)await Storage.removeItem('toss-session');});return clearEpoch;}
+export async function clearSession(cancelPendingLogin=true){if(cancelPendingLogin)loginAttempt++;token=null;const clearEpoch=advanceSessionRevision();if(isToss())await queueStorage(async()=>{if(sessionEpoch===clearEpoch)await Storage.removeItem('toss-session');});return clearEpoch;}
 export async function unlinkCurrentSession(){
   const unlinkEpoch=sessionEpoch,unlinkAttempt=loginAttempt;
   const result=await api<{remoteUnlink:string}>('/unlink',{});
