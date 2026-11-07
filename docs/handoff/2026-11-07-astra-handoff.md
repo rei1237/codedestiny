@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-11-08
-next: 반려동물 유료 흐름(6dc70bbea)까지 반영됨. 남은 미이식·부분 구현 서비스와 공식 기기·콘솔 차단 항목을 처리한다.
+next: 먼저 "후속 과제 — 보관함 구매 제목"을 처리한 뒤, 남은 미이식·부분 구현 서비스와 공식 기기·콘솔 차단 항목을 이어 간다.
 ---
 
 # 앱인토스 출시 인수인계 — Astra
@@ -48,11 +48,27 @@ Code Destiny의 앱인토스 출시 범위 전체를 구현하고 공식 테스�
 - `91a52e63a`: 토스 인증 API·상품 키·모델 매핑. 결과 화면 미완료 동안 보관함은 검증 후 `ACCESS_REVIEW`로 처리하며 링크를 제공하지 않는다. 승인 SKU는 여전히 없다.
 - `2717700abbfe65cfe153fcad60ff57ef4563eade`: 앱 API의 반려동물 생성 요청 제한을 75초로 늘리고 `reason` 기반 권한 오류를 보존한다. 앱 라우터 통합 테스트의 새 모의 어댑터 누락도 수정했다. 이 코드까지 앱 전체 테스트 1,380개, 앱 타입 검사, `check:fast` 결제 게이트 77개와 Jest 7,703개가 통과했다.
 - `6dc70bbea33123966ddc9812812bc3e70eb2652a` (2026-11-08): 반려동물 심층 리포트·궁합의 가격 재확인·SDK 결제·같은 intent 생성 폴링·결과 렌더·뒤로가기/이탈·직접 `intentId`·미할당 `orderId` 복구를 연결했다. 보관함은 같은 소유자·주문·저장 입력을 검증한 뒤에만 링크를 준다(`ACCESS_REVIEW` 대체). 구매·이어보기 진입은 `SERVICE_AVAILABLE`이 켜질 때만 보인다. 앱 전체 1,388개·타입 검사·`check:fast`(Jest 7,703개) 통과. 공식 기기·샌드박스 검증은 아직 0건이다.
-- 찻집 뒤로가기 코드는 `c8bd6c422`에 이미 있다. 남은 것은 공식 기기 검증이다. 후속: 앱 보관함 제목 분기에 maya·sukuyo·tea·neo가 없다(기존 문제).
+- 찻집 뒤로가기 코드는 `c8bd6c422`에 이미 있다. 남은 것은 공식 기기 검증이다. 보관함 제목 누락은 아래 "후속 과제" 절에 정리했다.
 - (완료, 위 항목) 이전 다음 핵심은 `apps/toss/service/TossPetSaju.tsx`의 두 유료 흐름, 가격 재확인·SDK 결제, 계정 변경·뒤로가기, 성공/부분/오류/재시도, 결과 전달, 직접 URL·보관함·미할당 주문 복구, 첫 체크포인트 이전 중단의 예약 복구를 끝까지 구현하고 검증하는 것이다. 앱이 긴 생성 결과를 기다릴 수 있는 시간과 환불/거부 오류 보존을 유지한다. 현재 승인 전에는 구매 버튼과 결과 이어보기 링크를 노출하지 않는다.
 - 그 후 52개 미이식 후보와 38개 부분 구현의 하위 흐름을 전체적으로 재분류·완료하고, 찻집·연이·대표 상담·모든 유료 경로를 공식 환경에서 확인한다. 각 변경 단위별 `npm run check:fast -- --plan`, `npm run check:fast` 및 의미 있는 회귀 검사를 실행하고 통과한 단위마다 커밋한다.
 
 최근 오프라인 검증: 토스 앱 전체 1,380개 통과, 토스 앱 타입 검사 통과, 공통 유료 엔진 관련 Jest 97개 및 반려동물 API·계약 관련 검사 25개 통과. 마지막 코드 커밋의 `check:fast`는 결제 게이트 77개·Jest 7,703개 통과. 이 수치는 당시 로컬 코드·모의 환경에 한정되며 공식 샌드박스, 실제 결제, 이 작업의 GitHub CI 또는 이후 코드 검증을 증명하지 않는다.
+
+## 후속 과제 — 보관함 구매 제목 (새 세션에서 바로 시작 가능)
+
+문제: [apps/toss/src/App.tsx](../../apps/toss/src/App.tsx) 217행 보관함 제목 분기에 `maya`·`sukuyo`·`tea`·`neo`가 없다. [worker/toss/library.js](../../worker/toss/library.js) 21·29행은 네이티브 행의 `serviceId`를 행 값 그대로(차단 행은 없으면 `'yeongnyangi'`) 돌려주므로, 이 네 서비스의 구매가 "영냥이 · 구매…" 또는 엉뚱한 상담명으로 보일 수 있다. 코드만으로 결제·권한은 바뀌지 않는다(표시 문제).
+
+현재 코드에 있는 이름(서로 다르다 — 임의로 고르지 않는다):
+- 숙요: `TossSukuyoGate.tsx` h1 "숙요점 궁합 전문가 상담"
+- 네오: `TossNeoGate.tsx` h1 "네오의 팩폭 전략실" vs `apps/toss/src/content.ts` 14행 "네오 · 별빛 전략실"
+- 마야: `UnifiedHome.tsx` 카드 "마야 달력"(상품 featureKey `maya-prompt-generator`, 화면 h1 없음)
+- 찻집: `worker/toss/native-tea.js`는 여러 featureKey(예: `life-fortune-ai-consultation`, `pet-saju-ai-consultation`)를 찻집 경로로 받는다 → featureKey별 제목이 필요한지 먼저 확인
+
+할 일:
+1. 위 이름 중 판매 상품명으로 쓸 것을 결정한다. 화면·콘솔 상품명과 맞아야 하므로 확정이 안 되면 사용자에게 네오·마야 이름만 한 번 묻는다.
+2. `p.nativeService==='pet'?…` 체인에 네 분기를 추가하고, 찻집은 featureKey 기준 제목을 둔다.
+3. [apps/toss/test/automatic-recovery-home.test.mjs](../../apps/toss/test/automatic-recovery-home.test.mjs) 74행 "library distinguishes life-fortune and life-book purchase titles"와 같은 방식으로 네 서비스 제목 테스트를 추가한다.
+4. 토스 앱 테스트·타입 검사·`check:fast` → 커밋 → main 반영(아래 "작업 위치와 안전한 통합") → 해당 SHA의 PR CI 확인.
 
 ## 브라우저와 UI 작업
 
