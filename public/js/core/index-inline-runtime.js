@@ -1607,6 +1607,21 @@ function __cdIsTileLockUnlocked(actionEl, lockKey) {
   return false;
 }
 
+// 로그인 게이트 공통 진입: 홈 루트 대신 상품·고민(action, concern)이 담긴 현재 경로로 돌아오게 한다.
+function __cdGateLogin(reason) {
+  var path = (window.location.pathname || '/') + (window.location.search || '');
+  try {
+    if (typeof window.__cdResolveLoginNextPath === 'function') path = window.__cdResolveLoginNextPath(path, reason) || path;
+  } catch (_) {}
+  if (typeof window.__cdOpenLoginRequiredModal === 'function') {
+    window.__cdOpenLoginRequiredModal({ nextPath: path, reason: reason });
+    return false;
+  }
+  window.location.assign('/login/?next=' + encodeURIComponent(path));
+  return false;
+}
+window.__cdGateLogin = __cdGateLogin;
+
 function __cdRequireTileLockGate(actionEl) {
   if (!actionEl) return true;
   if (actionEl.getAttribute('data-pvw-bypass')) return true;
@@ -1615,9 +1630,7 @@ function __cdRequireTileLockGate(actionEl) {
   if (!lockKey || lockCost <= 0) return true;
 
   if (!__cdHasAuthToken()) {
-    if (window.confirm(_indexRuntimeText("indexRuntime.confirm.001"))) {
-      window.location.href = '/login?next=%2F';
-    }
+    __cdGateLogin('tile_lock');
     return false;
   }
 
@@ -3644,9 +3657,7 @@ function __cdBindAnimalTotemTileDirect() {
         }
         // ⚠️ 미로그인 상태: _cdCoinGatePerUse 미정의
         if (!__cdHasAuthToken()) {
-          if (window.confirm(_indexRuntimeText("indexRuntime.confirm.002"))) {
-            window.location.href = '/login?next=%2F';
-          }
+          __cdGateLogin('coin_gate');
           return;
         }
         // 로그인 상태인데 _cdCoinGatePerUse가 없으면 오류로 간주
@@ -7719,9 +7730,7 @@ function _dfRequirePaidSourceUnlock(source) {
   }
 
   if (!__cdHasAuthToken()) {
-    if (window.confirm(_indexRuntimeText("indexRuntime.confirm.003"))) {
-      window.location.href = '/login?next=%2F';
-    }
+    __cdGateLogin('flower_atelier');
     return false;
   }
 
