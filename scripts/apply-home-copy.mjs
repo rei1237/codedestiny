@@ -8,11 +8,9 @@
 import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { homeCopyDefaults } from '../lib/cms/home-copy.mjs';
+import { homeCopyDefaults, HOME_COPY_BANNED as BANNED, HOME_COPY_MAX_LENGTH as MAX_LENGTH } from '../lib/cms/home-copy.mjs';
 
 const NS = 'home-copy';
-const BANNED = /적중|1위|최고|100%|1년 전/;
-const MAX_LENGTH = 2000;
 const SCRIPT_ID = 'cdConcernCopy';
 const SCRIPT_RE = new RegExp(`<script type="application/json" id="${SCRIPT_ID}">[\\s\\S]*?</script>`);
 const HERO_RE = /(<([a-z][a-z0-9]*)\b[^>]*\sdata-cms="home-copy:ggulggul-hero:([\w-]+)"[^>]*>)([^<]*)(<\/\2>)/g;

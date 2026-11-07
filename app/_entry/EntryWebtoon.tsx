@@ -1,6 +1,6 @@
 import { ENTRY_WEBTOON, entryCuts } from '@/lib/brand/entry-webtoon.mjs';
 import { cmsRecordFlat } from '@/lib/cms/build-text';
-import { homeCopyDefaults } from '@/lib/cms/home-copy.mjs';
+import { homeCopyDefaults, HOME_COPY_BANNED, HOME_COPY_MAX_LENGTH } from '@/lib/cms/home-copy.mjs';
 import { HOME_CONCERNS, freeEntryHref } from '@/lib/marketing/home-concerns.mjs';
 // 기록 상수는 네임스페이스로 읽는다(정치어 정적 테스트의 허용 개수를 최소로 유지).
 import * as trustStories from '@/lib/brand/trust-stories.mjs';
@@ -54,14 +54,15 @@ export function buildOfferPrices(): OfferPrices {
   };
 }
 
-// 관리자(CMS ns home-copy · entry-webtoon)가 고친 대사. 필드 이름은 line:<cutId>:<index>, 비었거나 목록에 없는 키는 대본 원문.
+// 관리자(CMS ns home-copy · entry-webtoon)가 고친 대사. 필드 이름은 line:<cutId>:<index>, 비었거나 금칙어가 있거나 너무 길거나 목록에 없는 키는 대본 원문.
 const WEBTOON_COPY = cmsRecordFlat('home-copy', 'entry-webtoon', homeCopyDefaults()['entry-webtoon']);
 
 function Lines({ cutId, lines }: { cutId: string; lines: EntryCut['lines'] }) {
   if (!lines.length) return null;
   return <div className={styles.lines}>
     {lines.map((line, index) => {
-      const text = WEBTOON_COPY[`line:${cutId}:${index}`] ?? line.text;
+      const edited = WEBTOON_COPY[`line:${cutId}:${index}`];
+      const text = edited && edited.length <= HOME_COPY_MAX_LENGTH && !HOME_COPY_BANNED.test(edited) ? edited : line.text;
       return line.speaker === 'caption'
         ? <p key={index} className={`${styles.line} ${styles.caption}`}>{text}</p>
         : <p key={index} className={`${styles.line} ${styles.bubble} ${styles[line.speaker]}`} data-speaker={line.speaker}>

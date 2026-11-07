@@ -7,7 +7,7 @@ import path from 'node:path';
 import {build} from 'esbuild';
 import {JSDOM} from 'jsdom';
 import {CMS_NAMESPACES, getCmsNamespace} from '../../lib/cms/registry.mjs';
-import {homeCopyDefaults} from '../../lib/cms/home-copy.mjs';
+import {homeCopyDefaults, HOME_COPY_BANNED, HOME_COPY_MAX_LENGTH} from '../../lib/cms/home-copy.mjs';
 import {entryCuts} from '../../lib/brand/entry-webtoon.mjs';
 import {renderYehwaHome} from '../../lib/marketing/yehwa-home.mjs';
 import {applyHomeCopyToHtml, homeCopyOverrides} from '../../scripts/apply-home-copy.mjs';
@@ -17,7 +17,7 @@ import {loadTsModule} from '../../scripts/lib/load-ts-module.mjs';
 const require = createRequire(import.meta.url), Module = require('node:module');
 const {previewPath} = loadTsModule('app/admin/cms/_lib/visual-fields.ts');
 const defaults = homeCopyDefaults();
-const BANNED = /적중|1위|최고|100%|1년 전/;
+const BANNED = HOME_COPY_BANNED;
 
 const stubCms = entries => ({name: 'stub-cms', setup(builder) {
   builder.onResolve({filter: /cms\.generated\.json$/}, () => ({path: 'cms-stub', namespace: 'cms-stub'}));
@@ -87,6 +87,20 @@ test('웹툰: cms.generated.json 의 line:imagine-night:0 수정값이 / 렌더�
   assert.ok(!edited.includes('목록에 없는 키는 무시'));
   assert.ok(edited.includes(defaults['entry-webtoon']['line:imagine-phone:0']), '빈 값은 기본 문장으로');
   assert.ok(edited.includes(defaults['entry-webtoon']['line:imagine-night:1']), '고치지 않은 줄은 그대로');
+});
+
+test('웹툰: 금칙어(적중·100%)·너무 긴 수정값은 무시하고 기본 대사를 쓴다', async () => {
+  const banned = await renderEntry({'home-copy': {'entry-webtoon': {record: {
+    'line:imagine-night:0': {text: '적중 보장 풀이예요'},
+    'line:imagine-phone:0': {text: '100% 맞아요'},
+    'line:imagine-night:1': {text: '길'.repeat(HOME_COPY_MAX_LENGTH + 1)},
+  }}}});
+  assert.ok(!banned.includes('적중 보장'));
+  assert.ok(!banned.includes('100% 맞아요'));
+  assert.ok(!banned.includes('길'.repeat(HOME_COPY_MAX_LENGTH + 1)));
+  for (const key of ['line:imagine-night:0', 'line:imagine-phone:0', 'line:imagine-night:1']) {
+    assert.ok(banned.includes(defaults['entry-webtoon'][key].replace(/&/g, '&amp;').replace(/'/g, '&#x27;')) || banned.includes(defaults['entry-webtoon'][key]), key);
+  }
 });
 
 const heroHtml = () => renderYehwaHome(JSON.parse(readFileSync('lib/marketing/yehwa-home.generated.json', 'utf8')), {
