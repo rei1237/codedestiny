@@ -27,7 +27,7 @@ import { IS_APP_BUILD } from "../lib/app-build-target";
 const { service, characters } = BRAND_FACTS;
 const YEONGNYANGI = characters.find((character) => character.key === "yeongnyangi");
 const HOME_TITLE = brandCopy("homeSearchTitle");
-const HOME_DESCRIPTION = "연이와 네오의 웹툰으로 운세 상담이 시작돼요. 연애·재회·재물·직장·올해 고민을 고르면 무료 만세력이 열리고, 더 보고 싶을 때만 상담을 고를 수 있어요.";
+const HOME_DESCRIPTION = "연이와 네오의 웹툰으로 운세 상담이 시작돼요. 연애·재회·재물·직장·올해 고민을 고르면 무료 만세력이 열리고, 더 보고 싶을 때만 이어서 상담을 고를 수 있어요.";
 // summary_large_image 카드라 1200×630 공유 이미지를 쓴다. 정적 홈 셸(index.html)과 같은 그림이다.
 const HOME_IMAGE = siteSeo.defaultOgImage;
 const ART = "/images/home/illustrated";
