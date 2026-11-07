@@ -46,12 +46,22 @@ test('entry webtoon: 대사에 금지 표현·정치 단어가 없고 화자는 
     assert.ok(['yeoni', 'neo', 'pig', 'caption'].includes(line.speaker), line.speaker);
     assert.ok(line.text.trim());
   }
-  const text = lines.map(l => l.text).join('\n');
-  assert.doesNotMatch(text, /적중|1위|최고|100%|1년 전|혁명/);
+  // 금지 표현·금액 검사는 대사뿐 아니라 제목·H1·라벨·보조 입구·alt까지 대본의 모든 문자열에 건다.
+  const strings = [];
+  const collect = value => {
+    if (typeof value === 'string') strings.push(value);
+    else if (value && typeof value === 'object') Object.values(value).forEach(collect);
+  };
+  collect(ENTRY_WEBTOON);
+  for (const s of [ENTRY_WEBTOON.title, ENTRY_WEBTOON.h1, ENTRY_WEBTOON.ctaLabel, ...ENTRY_WEBTOON.sideLinks.map(l => l.label), ...entryCuts().filter(c => c.image).map(c => c.image.alt)]) {
+    assert.ok(strings.includes(s), `검사 대상 누락: ${s}`);
+  }
+  const all = strings.join('\n');
+  assert.doesNotMatch(all, /적중|1위|최고|100%|1년 전|혁명/);
   // 판매가는 레지스트리에서만 읽는다. 대본에 금액을 쓰지 않는다.
-  assert.doesNotMatch(text, /\d[\d,]*\s*원|[만천]\s*원/);
-  // 독자를 돼지라 부르지 않는다.
-  assert.doesNotMatch(text, /돼지/);
+  assert.doesNotMatch(all, /\d[\d,]*\s*원|[만천]\s*원/);
+  // 독자를 돼지라 부르지 않는다. "꽃돼지 연이"는 캐릭터 이름(alt)이라 대사에만 건다.
+  assert.doesNotMatch(lines.map(l => l.text).join('\n'), /돼지/);
   assert.equal(JSON.stringify(ENTRY_WEBTOON).match(/대통령|탄핵|윤석열|이재명|대선/g), null);
 });
 
@@ -77,6 +87,7 @@ test('home concerns: 무료 진입 링크', () => {
   assert.equal(plain, '/ggulggul/?action=cdOneStepFreeSajuEntry&from=entry_webtoon');
   assert.doesNotMatch(plain, /concern/);
   assert.doesNotMatch(freeEntryHref('<script>', 'entry_webtoon'), /concern|script/);
+  for (const from of ['', undefined]) assert.equal(freeEntryHref('love', from), '/ggulggul/?action=cdOneStepFreeSajuEntry&concern=love');
 });
 
 test('home concerns: featureKey는 모두 레지스트리 키, 환불 문구와 경로', () => {
