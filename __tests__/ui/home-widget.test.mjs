@@ -32,6 +32,8 @@ test('home widget entry is a plain Android-app link without startup work', () =>
   // in a head <style> the bridge adds, not in an <html data-*> flag.
   const bridge = read('../../scripts/app-native-bridge.js');
   assert.doesNotMatch(css + bridge, /native-platform|nativePlatform/);
+  const chromeStyle = bridge.slice(bridge.indexOf("appChromeStyle.textContent"), bridge.indexOf("appChromeStyle);"));
+  assert.doesNotMatch(chromeStyle, /html\[data-runtime-target="mobile-app"\]/, "app chrome rules must not depend on an <html> attribute");
   const reveal = bridge.match(/getPlatform\(\) === "android"\)\) \{([\s\S]*?)\n    \}/);
   assert.ok(reveal, 'reveal runs only on Android');
   assert.match(reveal[1], /\[data-cd-home-widget-entry\]\{display:inline-flex!important\}/);

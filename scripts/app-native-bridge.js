@@ -256,28 +256,31 @@
     var appChromeStyle = document.createElement("style");
     appChromeStyle.id = "cdAppChromeStyle";
     appChromeStyle.textContent = [
-      'html[data-runtime-target="mobile-app"] .lang-toggle-wrap,',
-      'html[data-runtime-target="mobile-app"] #google_translate_element{display:none!important}',
+      // 이 <style> 은 앱 번들에만 들어가므로 앱 여부를 다시 묻지 않는다. html[data-runtime-target] 으로 걸면
+      // React 가 루트를 다시 잡을 때(하이드레이션 실패 등) <html> 속성을 비워 규칙이 통째로 꺼진다.
+      // html:root 는 그 속성 선택자와 특이도(0,1,1)가 같다.
+      'html:root .lang-toggle-wrap,',
+      'html:root #google_translate_element{display:none!important}',
       // 상태바 아래로 밀어 넣기.
       //
       // MainActivity 가 edge-to-edge(setDecorFitsSystemWindows(false))로 그리므로 웹뷰가 상태바
       // 아래까지 차지한다. 셸의 body 규칙은 left/right/bottom 만 env() 로 잡고 top 이 빠져 있어
       // 상단 앱바(연이/네오 토글이 있는 줄)가 상태바·노치에 가린다.
       // 웹은 그대로 두고 앱에서만 top 을 채운다 — 셸 규칙(0,0,1)보다 특이도가 높아 확실히 이긴다.
-      'html[data-runtime-target="mobile-app"] body{padding-top:env(safe-area-inset-top,0px)}',
+      'html:root body{padding-top:env(safe-area-inset-top,0px)}',
 
       // 길게 눌러 "이미지 저장/링크 열기" 메뉴가 뜨면 앱 같지 않다. 텍스트 선택은 건드리지
       // 않는다 — 사용자가 운세 결과를 복사해 저장하는 경로라 user-select 로 막으면 안 된다.
-      'html[data-runtime-target="mobile-app"]{-webkit-touch-callout:none}',
-      'html[data-runtime-target="mobile-app"] img{-webkit-user-drag:none;user-drag:none}',
+      'html:root{-webkit-touch-callout:none}',
+      'html:root img{-webkit-user-drag:none;user-drag:none}',
 
       // 하단 네비(#cdMobileBottomNav, 고정 56px+inset)에 마지막 줄이 가리는 것을 막는다.
       // 셸은 #inputPage 에만 여백을 줬는데 네비는 결과 화면에서도 떠 있다.
-      'html[data-runtime-target="mobile-app"] #resultPage{padding-bottom:calc(136px + env(safe-area-inset-bottom,0px))}',
+      'html:root #resultPage{padding-bottom:calc(136px + env(safe-area-inset-bottom,0px))}',
       // sticky CTA 는 제스처바 위로 올린다(셸 규칙에 inset 이 빠져 있다).
-      'html[data-runtime-target="mobile-app"] .tile-pvw-cta-sticky{padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}',
+      'html:root .tile-pvw-cta-sticky{padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}',
       // 라벨이 길면(en/ja) 잘리기만 하고 끝나므로 말줄임을 준다.
-      'html[data-runtime-target="mobile-app"] .cd-mobile-bottom-nav__item{text-overflow:ellipsis}',
+      'html:root .cd-mobile-bottom-nav__item{text-overflow:ellipsis}',
 
       // 화면 전환 — 이 사이트는 다중 페이지 정적 export 라 문서 간 이동이 풀 페이지 로드다.
       // JS 로 슬라이드를 넣을 수 없으므로 크로스도큐먼트 View Transition 으로 흰 화면 깜빡임만
