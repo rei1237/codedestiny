@@ -32,8 +32,19 @@ next: "SM-M156S(RFCXB0CP4AR)를 USB로 다시 연결하고 final3 benchmark APK�
 - 재부팅 뒤 위젯 표시(기기 PIN 잠금)
 - 실제 로그인·Play 테스트 결제(benchmark는 API 모의, 내부 테스트 트랙 업로드 승인 필요)
 
-## 후속 과제(이번 범위 밖)
-- 모바일에서 '모든 운세 보기'가 .yh-all과 .cdh-all-cta__btn 두 번 노출
-- 낡은 브라우저 검증기: verify-illustrated-home(카드 3장 기대), verify-home-funnel·verify-consultation-home-browser(모바일 #cdQuickServices 순서)
-- 위젯 설정 화면 이중 헤더, 추가 버튼이 첫 화면 아래
-- 죽은 html[data-runtime-target] 규칙, 하단 여백 선택자, prefetch 테스트, 비회원 인증 갱신 연쇄, local.properties·google-services.json 경고, 960px 썸네일
+## 범위 밖 문제 수정(사용자 요청 "범위 밖의 문제도 수정해")
+| 문제 | 커밋 |
+|---|---|
+| 모바일 '모든 운세 보기' 두 번 노출 | 52ede0666 |
+| 낡은 브라우저 검증기 3종 | 52ede0666 |
+| 위젯 설정 화면 이중 헤더·추가 버튼이 첫 화면 아래 | 3feed241d |
+| 죽은 html[data-runtime-target] 규칙 → html:root | f72b10bbf |
+| 하단 여백 검증기 선택자 + 찻집 입장 '다음 대사'가 시스템 UI에 가리던 실제 버그 | 05a97a7b7 |
+| native-home-copy prefetch 테스트 | b0802378c |
+| 앱 비회원 영냥이 진입 때 me 401→refresh 401×2→로그아웃 방송 | 6f5200d98 |
+| 릴리스 점검 local.properties·google-services.json 오탐 경고 | 2ce0caf4d |
+| 목록 썸네일이 960×640을 디코드 → 기능당 -320 썸네일 한 장 유지(약 +2.7MB) | f9275e33d |
+
+- access-state 이중 호출(profileId 유무)은 코드 읽기로 세운 가설이었고 기기 기록(me→refresh→me)에는 없었다. 손님은 부르지 않는다. 로그인 상태 기기 추적에서 다시 볼 것.
+- 위 수정 이후 APK는 아직 다시 빌드하지 않았다(final3는 aa2a69ff4 기준). 다음: scratchpad build-android.ps1로 재빌드 → 실기기 확인.
+
