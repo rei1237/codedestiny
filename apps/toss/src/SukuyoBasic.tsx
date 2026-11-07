@@ -12,8 +12,8 @@ type SukuyoResult={stored:false;mansion:string;mansionIdx:number;engineVersion:s
 const attributes:[string,string][]=[['temperament','기질'],['relationshipStyle','관계 성향'],['careerStyle','일 성향'],['wealthStyle','돈 습관'],['recoveryPattern','회복 리듬']];
 function validResult(value:SukuyoResult){return value?.stored===false&&typeof value.mansion==='string'&&Number.isInteger(value.mansionIdx)&&value.mansionIdx>=0&&value.mansionIdx<27
  &&typeof value.engineVersion==='string'&&Array.isArray(value.limitations)&&value.limitations.every(line=>typeof line==='string')
- &&Array.isArray(value.reading?.summaryCards)&&value.reading.summaryCards.every(card=>card&&typeof card.label==='string'&&typeof card.value==='string'&&typeof card.note==='string')
- &&Array.isArray(value.reading?.relationMiniMap)&&value.reading.relationMiniMap.every(item=>item&&['label','han','essence','light','shadow','guide'].every(key=>typeof item[key as keyof Relation]==='string'))
+ &&Array.isArray(value.reading?.summaryCards)&&value.reading.summaryCards.length>0&&value.reading.summaryCards.every(card=>card&&typeof card.label==='string'&&typeof card.value==='string'&&typeof card.note==='string')
+ &&Array.isArray(value.reading?.relationMiniMap)&&value.reading.relationMiniMap.length>0&&value.reading.relationMiniMap.every(item=>item&&['label','han','essence','light','shadow','guide'].every(key=>typeof item[key as keyof Relation]==='string'))
  &&!!value.canonical?.natalSukuyo&&typeof value.canonical.natalSukuyo.displayIndex==='number'&&typeof value.canonical.natalSukuyo.direction==='string'&&typeof value.canonical.natalSukuyo.element==='string'
  &&!!value.canonical.sukuyoAttributes&&attributes.every(([key])=>{const items=value.canonical.sukuyoAttributes[key];return items===undefined||Array.isArray(items)&&items.every(item=>typeof item==='string');})
  &&typeof value.reading.dailyPrescription?.moon?.label==='string'&&typeof value.reading.dailyPrescription.moon.desc==='string'
@@ -45,7 +45,11 @@ function SukuyoBasicContent({loggedIn,onLogin,onError,request=api}:Props){
   if(birth.unknown){setIssue('본명숙을 정확히 살펴보려면 태어난 시각이 필요해요.');return;}
   const current=++epoch.current;pending.current=true;setBusy(true);setResult(null);setIssue('');
   try{const next=await request<SukuyoResult>('/sukuyo/basic',{birth:birthPayload(birth)});if(current===epoch.current){if(!validResult(next))throw new Error('INVALID_RESULT');setResult(next);}}
-  catch(error){if(current===epoch.current){const detail=error&&typeof error==='object'?error as {status?:number;code?:string}:{};if(detail.status===401||detail.status===403||['SESSION_CHANGED','LOGIN_REQUIRED','SESSION_EXPIRED','ACCESS_DENIED'].includes(detail.code||''))onError(error);else setIssue('숙요 계산을 마치지 못했어요. 입력을 확인하고 다시 시도해 주세요.');}}
+  catch(error){if(current===epoch.current){const detail=error&&typeof error==='object'?error as {status?:number;code?:string}:{};
+   if(detail.status===401||['SESSION_CHANGED','LOGIN_REQUIRED','SESSION_EXPIRED'].includes(detail.code||''))onError(error);
+   else if(detail.status===403||detail.code==='ACCESS_DENIED')setIssue('토스 이용 권한을 확인할 수 없어요. 계정을 확인한 뒤 다시 시도해 주세요.');
+   else if(detail.code==='TOSS_RELEASE_PENDING')setIssue('서비스를 준비하고 있어요. 잠시 후 다시 시도해 주세요.');
+   else setIssue('숙요 계산을 마치지 못했어요. 입력을 확인하고 다시 시도해 주세요.');}}
   finally{if(current===epoch.current){pending.current=false;setBusy(false);}}
  }
  return <section><h1>달이 머문 자리, 나의 숙요점</h1><p>태어난 순간의 달이 비추는 기질과 관계의 리듬을 살펴봐요.</p>

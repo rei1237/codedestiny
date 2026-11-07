@@ -17,8 +17,13 @@ test('login boundary, free calculation and native back preserve the form',async(
  }finally{await React.act(()=>root.unmount());}
 });
 test('permission denial stays distinct and a retryable failure keeps input',async()=>{
- const root=createRoot(document.getElementById('root')),errors=[];let fail=true;const request=async()=>{if(fail)throw {status:403,code:'ACCESS_DENIED'};throw Error('offline');};
- try{await React.act(async()=>root.render(React.createElement(Screen,{loggedIn:true,onLogin:()=>{},onError:e=>errors.push(e),request})));await React.act(async()=>fill());await React.act(async()=>submit());assert.equal(errors[0].status,403);assert.doesNotMatch(document.body.textContent,/계산을 마치지 못했어요/);fail=false;await React.act(async()=>submit());assert.match(document.body.textContent,/다시 시도해 주세요/);assert.equal(document.querySelector('input[type=date]').value,'1990-01-01');}
+ const root=createRoot(document.getElementById('root')),errors=[];let failure='denied';const request=async()=>{if(failure==='denied')throw {status:403,code:'ACCESS_DENIED'};if(failure==='release')throw {status:503,code:'TOSS_RELEASE_PENDING'};throw Error('offline');};
+ try{await React.act(async()=>root.render(React.createElement(Screen,{loggedIn:true,onLogin:()=>{},onError:e=>errors.push(e),request})));await React.act(async()=>fill());await React.act(async()=>submit());assert.equal(errors.length,0);assert.match(document.body.textContent,/토스 이용 권한을 확인할 수 없어요/);assert.doesNotMatch(document.body.textContent,/주문 내역/);failure='release';await React.act(async()=>submit());assert.match(document.body.textContent,/서비스를 준비하고 있어요/);failure='network';await React.act(async()=>submit());assert.match(document.body.textContent,/다시 시도해 주세요/);assert.equal(document.querySelector('input[type=date]').value,'1990-01-01');}
+ finally{await React.act(()=>root.unmount());}
+});
+test('an expired login is passed to the shell instead of displayed as a calculation failure',async()=>{
+ const root=createRoot(document.getElementById('root')),errors=[];const request=async()=>{throw {status:401,code:'SESSION_EXPIRED'};};
+ try{await React.act(async()=>root.render(React.createElement(Screen,{loggedIn:true,onLogin:()=>{},onError:e=>errors.push(e),request})));await React.act(async()=>fill());await React.act(async()=>submit());assert.equal(errors[0].status,401);assert.doesNotMatch(document.body.textContent,/계산을 마치지 못했어요/);}
  finally{await React.act(()=>root.unmount());}
 });
 test('session replacement discards an old result and does not unlock a new request',async()=>{
@@ -31,5 +36,10 @@ test('session replacement discards an old result and does not unlock a new reque
 test('malformed results and an unknown birth time do not display a result',async()=>{
  const root=createRoot(document.getElementById('root'));let calls=0;const request=async()=>{calls++;return {...sample,reading:{...sample.reading,summaryCards:[null]}};};
  try{await React.act(async()=>root.render(React.createElement(Screen,{loggedIn:true,onLogin:()=>{},onError:()=>assert.fail(),request})));await React.act(async()=>fill());await React.act(async()=>submit());assert.match(document.body.textContent,/다시 시도해 주세요/);assert.doesNotMatch(document.body.textContent,/본명숙은 필/);await React.act(async()=>document.querySelector('input[type=checkbox]').click());await React.act(async()=>submit());assert.equal(calls,1);assert.match(document.body.textContent,/태어난 시각이 필요해요/);}
+ finally{await React.act(()=>root.unmount());}
+});
+test('an empty free dashboard is treated as an unavailable result',async()=>{
+ const root=createRoot(document.getElementById('root'));const request=async()=>({...sample,reading:{...sample.reading,summaryCards:[]}});
+ try{await React.act(async()=>root.render(React.createElement(Screen,{loggedIn:true,onLogin:()=>{},onError:()=>assert.fail(),request})));await React.act(async()=>fill());await React.act(async()=>submit());assert.match(document.body.textContent,/계산을 마치지 못했어요/);assert.doesNotMatch(document.body.textContent,/본명숙은 필/);}
  finally{await React.act(()=>root.unmount());}
 });
