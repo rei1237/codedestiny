@@ -25,6 +25,7 @@ import { PERIOD_KEY, SIGN_KEY, ref, type MarkedText } from "./i18n-marker";
 import { animalDayRelation, zodiacDayRelation, type DayRelation } from "./day-relation";
 import { averageScores, computeSignScore, type FortuneScore, type ScoreAxis } from "./fortune-score";
 import { formatShortDate, loadMonthRange, loadWeekRange, type DayCell } from "./range-data";
+import type { DailySkyFacts } from "./daily-webtoon";
 
 export interface FactRow {
   label: string;
@@ -70,6 +71,8 @@ export interface SignViewModel {
   /** 같은 서술의 런타임 치환 재료. 한국어 원문은 narrative 에 그대로 남는다. */
   narrativeI18n?: MarkedText;
   relation: DayRelation | null;
+  /** today·tomorrow 만 — 운세 웹툰 대사의 재료(일진·달 자리·달의 위상) */
+  sky?: DailySkyFacts;
   weekDays?: WeekDayRow[];
   highlights?: FactRow[];
 }
@@ -113,6 +116,7 @@ function buildDaily(profile: SignProfile, period: "today" | "tomorrow"): SignVie
     titleDateLabel: formatShortDate(date),
     dateKey: date,
     relation,
+    sky: { ilchin: pkg.calendar.ilchin, moonSign: pkg.sky_today.moon_sign, moonPhase: pkg.sky_today.moon_phase },
     facts: [
       { label: "일진", value: pkg.calendar.ilchin },
       { label: "월건", value: pkg.calendar.wolgeon },

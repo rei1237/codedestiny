@@ -27,6 +27,7 @@ import YeoniPortrait, { moodForScore } from "../YeoniPortrait";
 import { tomorrowReadingCopy } from "@/lib/i18n/fortune-hub-copy.mjs";
 import { TOMORROW_PREPARATION_DETAILS } from "@/lib/i18n/search-reading-paths.mjs";
 import tomorrowStyles from "../tomorrow.module.css";
+import DailyFortuneWebtoon from "../DailyFortuneWebtoon";
 
 const SCORE_AXES = [
   { key: "love", label: "애정운", section: "love" },
@@ -187,6 +188,20 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
 
         {period === "tomorrow" && (
         <p className={`mt-5 break-keep text-sm leading-7 ${MUTED}`}>{FORTUNE_EDITORIAL_DISCLOSURE[locale]}</p>
+        )}
+
+        {/* 오늘·내일 운세 웹툰 — 그날 계산값으로 말풍선을 채운 7컷(한국어 화면만) */}
+        {locale === "ko" && (period === "today" || period === "tomorrow") && sourceVm.sky && (
+          <DailyFortuneWebtoon
+            period={period}
+            dateKey={sourceVm.dateKey}
+            profile={sourceVm.profile}
+            entry={sourceVm.entry}
+            score={sourceVm.score}
+            basis={sourceVm.basis}
+            relation={sourceVm.relation}
+            sky={sourceVm.sky}
+          />
         )}
 
         {/* 기간별 기준 값 — 매 기간 실제로 다른 값이다 */}

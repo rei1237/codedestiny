@@ -9,7 +9,7 @@ export type WebtoonCut = {
 const SIZES = '(max-width:680px) 100vw, 680px';
 
 /** One painted cut per figure; every line of dialogue stays selectable HTML below the art. */
-export default function CutReader({ cuts, eager = 2, tone = 'paper' }: { cuts: WebtoonCut[]; eager?: number; tone?: 'paper' | 'night' }) {
+export default function CutReader({ cuts, eager = 2, tone = 'paper' }: { cuts: WebtoonCut[]; eager?: number; tone?: 'paper' | 'night' | 'yehwa' }) {
   return <ol className={`${styles.reader} ${styles[tone]}`}>
     {cuts.map((cut, index) => <li key={cut.src} className={styles.cut} data-kind={cut.kind}>
       <figure>

@@ -1,5 +1,6 @@
 .reader{list-style:none;margin:0;padding:0 0 24px;display:grid;gap:28px;--cut-ink:#2b2230;--cut-muted:#6d5f6c;--cut-bubble:#fffaf3;--cut-line:#e4d6cc;--cut-accent:#b4566f}
 .night{--cut-ink:#eee3d0;--cut-muted:#c9bba5;--cut-bubble:#241d33;--cut-line:#4a3d5c;--cut-accent:#d7b984}
+.yehwa{--cut-ink:#fff1f7;--cut-muted:rgba(255,214,232,.86);--cut-bubble:#2e0a20;--cut-line:rgba(244,190,209,.38);--cut-accent:rgba(255,196,222,.96)}
 .cut figure{margin:0}
 .cut img{display:block;width:100%;height:auto;background:var(--cut-line)}
 .cut figcaption{display:grid;gap:10px;padding:14px 18px 0}
