@@ -1608,8 +1608,32 @@ function __cdIsTileLockUnlocked(actionEl, lockKey) {
 }
 
 // 로그인 게이트 공통 진입: 홈 루트 대신 상품·고민(action, concern)이 담긴 현재 경로로 돌아오게 한다.
-function __cdGateLogin(reason) {
-  var path = (window.location.pathname || '/') + (window.location.search || '');
+// 홈에서 잠긴 타일을 누르면 주소에 ?action= 이 없으므로, 누른 타일의 action 과 고른 고민을 주소에 실어 보낸다.
+// action 은 로드 시 ?action= 디스패처(__cdRouteActionAllowList)가 받는 값만 싣는다(인자는 그쪽이 읽지 않는다).
+var __CD_GATE_CONCERN_IDS = { love: true, reunion: true, money: true, job: true, year: true };
+function __cdBuildGateNextPath(actionEl) {
+  var pathname = window.location.pathname || '/';
+  var search = window.location.search || '';
+  var params = new URLSearchParams(search);
+  if (params.get('action')) return pathname + search;
+  var action = actionEl && actionEl.getAttribute ? String(actionEl.getAttribute('data-action') || '').trim() : '';
+  var allow = typeof __cdRouteActionAllowList === 'object' && __cdRouteActionAllowList;
+  if (!/^[A-Za-z][A-Za-z0-9_]*$/.test(action) || !allow || allow[action] !== true || !Object.prototype.hasOwnProperty.call(allow, action)) {
+    return pathname + search;
+  }
+  var concern = String(params.get('concern') || '').trim();
+  if (!__CD_GATE_CONCERN_IDS[concern] || !Object.prototype.hasOwnProperty.call(__CD_GATE_CONCERN_IDS, concern)) {
+    concern = '';
+    try { concern = String(window.sessionStorage.getItem('cd:home-concern') || '').trim(); } catch (_) {}
+    if (!__CD_GATE_CONCERN_IDS[concern] || !Object.prototype.hasOwnProperty.call(__CD_GATE_CONCERN_IDS, concern)) concern = '';
+  }
+  params.delete('concern');
+  params.set('action', action);
+  if (concern) params.set('concern', concern);
+  return pathname + '?' + params.toString();
+}
+function __cdGateLogin(reason, actionEl) {
+  var path = __cdBuildGateNextPath(actionEl);
   try {
     if (typeof window.__cdResolveLoginNextPath === 'function') path = window.__cdResolveLoginNextPath(path, reason) || path;
   } catch (_) {}
@@ -1630,7 +1654,7 @@ function __cdRequireTileLockGate(actionEl) {
   if (!lockKey || lockCost <= 0) return true;
 
   if (!__cdHasAuthToken()) {
-    __cdGateLogin('tile_lock');
+    __cdGateLogin('tile_lock', actionEl);
     return false;
   }
 

@@ -23,15 +23,26 @@ function extractFunction(source, name) {
 }
 
 // 게이트 함수를 jsdom 창 위에서 실행하되, 이동은 location.assign 대신 기록만 한다.
-function bootGate(setup) {
-  const dom = new JSDOM('<!doctype html><body></body>', { url: 'https://example.test' + PATH + '#frag' });
+const ALLOW = { openTarotModal: true, openTarotLoveModal: true };
+function bootGate(setup, url = PATH) {
+  const dom = new JSDOM('<!doctype html><body></body>', { url: 'https://example.test' + url + '#frag' });
   const calls = { modal: [], assigned: [] };
   const { pathname, search } = dom.window.location;
-  const win = { location: { pathname, search, hash: '#frag', assign: url => calls.assigned.push(url) } };
+  const win = { location: { pathname, search, hash: '#frag', assign: u => calls.assigned.push(u) }, sessionStorage: dom.window.sessionStorage };
   setup(win, calls);
-  const gate = runInNewContext('(function (window) {' + extractFunction(runtime, '__cdGateLogin') + '; return __cdGateLogin; })', {})(win);
-  return { gate, calls };
+  const concernIds = runtime.match(/var __CD_GATE_CONCERN_IDS = {[^}]*};/)[0];
+  const code = '(function (window) {' + concernIds + extractFunction(runtime, '__cdBuildGateNextPath')
+    + extractFunction(runtime, '__cdGateLogin') + '; return __cdGateLogin; })';
+  const gate = runInNewContext(code, { __cdRouteActionAllowList: ALLOW, URLSearchParams })(win);
+  const tile = action => {
+    const el = dom.window.document.createElement('button');
+    if (action != null) el.setAttribute('data-action', action);
+    return el;
+  };
+  return { gate, calls, tile };
 }
+const modalStub = (w, c) => { w.__cdOpenLoginRequiredModal = opts => { c.modal.push(opts); return true; }; };
+const nextOf = calls => JSON.parse(JSON.stringify(calls.modal))[0].nextPath;
 
 test('잠금 타일, 토템, 꽃 아틀리에 로그인 게이트에 confirm 과 루트 복귀가 남지 않는다', () => {
   for (const n of ['001', '002', '003']) {
@@ -68,4 +79,52 @@ test('로그인 모달이 없으면 /login/?next=현재경로 로 이동한다',
   const { gate, calls } = bootGate(() => {});
   assert.equal(gate('tile_lock'), false);
   assert.deepEqual(calls.assigned, ['/login/?next=' + encodeURIComponent(PATH)]);
+});
+
+test('주소에 action 이 없는 홈에서 잠긴 타일을 누르면 그 타일의 action 을 싣고 돌아온다', () => {
+  const { gate, calls, tile } = bootGate(modalStub, '/ggulggul/');
+  gate('tile_lock', tile('openTarotModal'));
+  assert.equal(nextOf(calls), '/ggulggul/?action=openTarotModal');
+});
+
+test('고른 고민(sessionStorage cd:home-concern)이 있으면 concern 도 싣는다', () => {
+  const { gate, calls, tile } = bootGate((w, c) => { modalStub(w, c); w.sessionStorage.setItem('cd:home-concern', 'job'); }, '/ggulggul/');
+  gate('tile_lock', tile('openTarotModal'));
+  assert.equal(nextOf(calls), '/ggulggul/?action=openTarotModal&concern=job');
+});
+
+test('주소의 concern 이 저장값보다 우선한다', () => {
+  const { gate, calls, tile } = bootGate((w, c) => { modalStub(w, c); w.sessionStorage.setItem('cd:home-concern', 'job'); }, '/ggulggul/?concern=love');
+  gate('tile_lock', tile('openTarotModal'));
+  assert.equal(nextOf(calls), '/ggulggul/?action=openTarotModal&concern=love');
+});
+
+test('sessionStorage 읽기가 던져도 모달은 action 만 담고 열린다', () => {
+  const { gate, calls, tile } = bootGate((w, c) => {
+    modalStub(w, c);
+    w.sessionStorage = { getItem() { throw new Error('denied'); } };
+  }, '/ggulggul/');
+  assert.equal(gate('tile_lock', tile('openTarotModal')), false);
+  assert.equal(nextOf(calls), '/ggulggul/?action=openTarotModal');
+});
+
+test('허용되지 않은 action 이나 목록 밖 concern 은 붙이지 않는다', () => {
+  for (const bad of ['bad action', 'notAllowed', '__proto__', 'constructor', '', null]) {
+    const { gate, calls, tile } = bootGate((w, c) => { modalStub(w, c); w.sessionStorage.setItem('cd:home-concern', 'foo'); }, '/ggulggul/');
+    gate('tile_lock', tile(bad));
+    assert.equal(nextOf(calls), '/ggulggul/', String(bad));
+  }
+  const { gate, calls, tile } = bootGate((w, c) => { modalStub(w, c); w.sessionStorage.setItem('cd:home-concern', 'foo'); }, '/ggulggul/?concern=foo');
+  gate('tile_lock', tile('openTarotModal'));
+  assert.equal(nextOf(calls), '/ggulggul/?action=openTarotModal');
+});
+
+test('주소에 이미 action 이 있으면 타일과 상관없이 현재 경로를 그대로 쓴다', () => {
+  const { gate, calls, tile } = bootGate(modalStub, PATH);
+  gate('tile_lock', tile('openTarotLoveModal'));
+  assert.equal(nextOf(calls), PATH);
+});
+
+test('잠금 타일 게이트는 누른 타일을 헬퍼에 넘긴다', () => {
+  assert.ok(runtime.includes("__cdGateLogin('tile_lock', actionEl)"));
 });
