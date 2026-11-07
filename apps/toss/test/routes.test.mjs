@@ -49,6 +49,7 @@ const stubMap={
  'worker/yeongnyangi/repository.js':"export const readRequest=(...args)=>globalThis.__tossRouteMocks.read(...args);export const resumeRequest=()=>{};",
  'worker/yeongnyangi/queue.js':"export const enqueueConsultation=()=>{};",
  'worker/yeongnyangi/fortune/index.ts':"export const domains={};",
+ 'worker/toss/sukuyo-basic.js':"import {TossError} from './policy.js';export const calculateTossSukuyoBasic=async()=>{const state=globalThis.__tossRouteMocks;state.sukuyoBasicCalls++;if(state.nativeFailure)throw new TossError(state.nativeFailure.code,state.nativeFailure.status);return {stored:false};};",
  'worker/toss/flower.js':"export const matchTossFlowers=async()=>{globalThis.__tossRouteMocks.flowerCalls++;return {sources:{},stored:false};};",
  'worker/toss/daily.js':"const call=(...args)=>{globalThis.__tossRouteMocks.dailyCalls.push(args);return {ok:true};};export const attendanceStatus=call,attend=call,unlockToday=call,getFreeReading=call,prepareTossDaily=call;",
  'worker/yeongnyangi/question-followup.ts':"export const questionConversation=globalThis.__tossRouteMocks.followup;"
@@ -280,6 +281,16 @@ test('manse requires release readiness and account, never creates a profile or p
  const response=await request({birth},'/manse/calculate');
  assert.equal(response.status,200);assert.deepEqual(await response.json(),{stored:false});
  assert.equal(calls.profiles.length,0);assert.equal(calls.prepared.length,0);
+});
+
+test('basic Sukuyo requires release and login without creating profiles or orders',async()=>{
+ mocks.sukuyoBasicCalls=0;
+ assert.equal((await request({birth},'/sukuyo/basic',{})).status,503);
+ mocks.denyAuth=true;try{assert.equal((await request({birth},'/sukuyo/basic')).status,401);}finally{mocks.denyAuth=false;}
+ assert.equal(mocks.sukuyoBasicCalls,0);
+ const response=await request({birth},'/sukuyo/basic');assert.equal(response.status,200);assert.deepEqual(await response.json(),{stored:false});
+ assert.equal(mocks.sukuyoBasicCalls,1);assert.equal(calls.profiles.length,0);assert.equal(calls.prepared.length,0);
+ mocks.nativeFailure={code:'ACCESS_DENIED',status:403};try{const denied=await request({birth},'/sukuyo/basic');assert.equal(denied.status,403);assert.equal((await denied.json()).error,'ACCESS_DENIED');}finally{mocks.nativeFailure=null;}
 });
 
 test('Love Secret routes require the release gate and verified account before the original adapter',async()=>{

@@ -14025,6 +14025,123 @@ function renderSukuyoNatureDeepDivePaid(lunarObj) {
   return { html: syBuildSukuyoNatureDeepDiveHtml(sData, reading, dailyFlow, lunarObj), mansion: sData.mansion, mansionIdx: sData.mansionIdx };
 }
 
+  // Canonical free fields only; the separate paid reading above remains gated.
+function syBuildBasicReadingFree(canonicalData, sData, daily, guardian) {
+  if (!sData || !daily) return null;
+
+  var natal = canonicalData && canonicalData.natalSukuyo ? canonicalData.natalSukuyo : {};
+  var traits = sData.traits || {};
+  var moon = daily.moon || { emoji: '🌙', label: _sajuQuantumText("sq_7378_prop_label"), desc: '' };
+  var coreTokens = syCanonicalTokenize(traits.core || traits.desc, '고요하지만 오래가는 빛을 가진 별입니다.');
+  var hiddenTokens = syCanonicalTokenize(traits.hidden || traits.desc, '조용한 시간에 감정 리듬이 더 또렷해집니다.');
+  var karmaTokens = syCanonicalTokenize(traits.karma || traits.love, '좋은 인연은 작은 배려에서 자라납니다.');
+  var relationTokens = syCanonicalList(canonicalData && canonicalData.sukuyoAttributes && canonicalData.sukuyoAttributes.relationshipStyle, []);
+  var recoveryTokens = syCanonicalList(canonicalData && canonicalData.sukuyoAttributes && canonicalData.sukuyoAttributes.recoveryPattern, []);
+  var ritual = daily.ritual || { color: '#c0a060', food: '따뜻한 차', action: '심호흡 10번' };
+  var mansionLabel = sData.mansion || ((natal.nameKo || '미상') + '宿(' + (natal.nameHan || '?') + ')');
+  var relationDirection = syComposeFromTokens(relationTokens.length ? relationTokens : karmaTokens, '배려와 경계를 함께 지킬수록 인연이 깊어집니다.');
+  var recoveryKeyword = syFirstToken(recoveryTokens, syFirstToken(syCanonicalTokenize(ritual.action, '호흡'), '호흡'));
+  var guardianName = guardian && guardian.name ? guardian.name : '달빛 지표';
+  var guardianEmoji = guardian && guardian.emoji ? guardian.emoji : '✨';
+  var guardianColor = syGuardianColorByIndex(sData.mansionIdx);
+  var guardianPlace = syGuardianPlaceByIndex(sData.mansionIdx);
+
+  var reading = {
+    hero: {
+      title: _sajuQuantumText("sq_7444_prop_title"),
+      subtitle: _sajuQuantumText("sq_7445_prop_subtitle"),
+      mansionLabel: mansionLabel,
+      moonLabel: moon.label || '달빛 흐름'
+    },
+    summaryCards: [
+      { label: _sajuQuantumText("sq_7450_prop_label"), value: mansionLabel, tone: '타고난 별', note: syComposeFromTokens(coreTokens, '당신의 중심성이 오늘의 방향을 정합니다.') },
+      { label: _sajuQuantumText("sq_7451_prop_label"), value: syFirstToken(coreTokens, '고요한 집중형'), tone: syScoreBand(daily.overall), note: syComposeFromTokens(hiddenTokens, '내면의 리듬을 지키면 안정이 커집니다.') },
+      { label: _sajuQuantumText("sq_7452_prop_label"), value: relationDirection, tone: syScoreBand(daily.relations), note: syComposeFromTokens(karmaTokens, '가까운 관계에서 따뜻한 말 한마디가 큰 힘이 됩니다.') },
+      { label: _sajuQuantumText("sq_7453_prop_label"), value: recoveryKeyword, tone: syScoreBand(daily.love), note: syComposeFromTokens(recoveryTokens, '무리하지 않는 회복 루틴이 감정 균형을 지켜줍니다.') }
+    ],
+    relationMiniMap: [
+      {
+        label: _sajuQuantumText("sq_7471_prop_label"),
+        han: '榮親',
+        essence: '서로를 살리고 돌보는 번영과 보호의 인연입니다.',
+        light: '응원, 신뢰, 생활의 안정감이 자연스럽게 자라납니다.',
+        shadow: '편안함이 의존으로 흐르면 경계가 흐려질 수 있습니다.',
+        guide: '고마움과 개인 시간을 함께 지키면 오래 빛납니다.',
+        tone: 'bloom'
+      },
+      {
+        label: _sajuQuantumText("sq_7480_prop_label"),
+        han: '業胎',
+        essence: '전생의 숙제처럼 반복되는 배움과 성장의 인연입니다.',
+        light: '같은 과제를 마주하며 서로의 성숙을 빠르게 깨웁니다.',
+        shadow: '책임을 떠넘기거나 구원하려 들면 피로가 누적됩니다.',
+        guide: '역할, 약속, 부담의 선을 분명히 나누어야 합니다.',
+        tone: 'karma'
+      },
+      {
+        label: _sajuQuantumText("sq_7489_prop_label"),
+        han: '友衰',
+        essence: '친구 같은 위로와 섬세한 정서 교감의 인연입니다.',
+        light: '취향, 대화, 쉼의 리듬이 맞아 마음을 부드럽게 풉니다.',
+        shadow: '불편한 말을 미루면 서운함이 조용히 깊어집니다.',
+        guide: '다정함 안에서도 현실 문제를 제때 말해야 합니다.',
+        tone: 'moon'
+      },
+      {
+        label: _sajuQuantumText("sq_7498_prop_label"),
+        han: '成危',
+        essence: '서로 다른 관점이 현실의 성취를 자극하는 인연입니다.',
+        light: '일, 목표, 생활 기반을 함께 다룰 때 서로의 부족한 면을 보완합니다.',
+        shadow: '속도와 판단 기준이 어긋나면 가까이 있어도 거리감이 생길 수 있습니다.',
+        guide: '역할, 기대치, 결정권을 먼저 나누면 긴장이 성장 동력으로 바뀝니다.',
+        tone: 'axis'
+      },
+      {
+        label: _sajuQuantumText("sq_7507_prop_label"),
+        han: '安壞',
+        essence: '강한 끌림과 흔들림이 동시에 오는 각성의 인연입니다.',
+        light: '오래 묵은 패턴을 깨고 변화를 시작하게 만듭니다.',
+        shadow: '자극이 집착과 상처로 번지면 서로를 소모시킵니다.',
+        guide: '감정 냉각 시간과 경계선을 관계의 의식처럼 정하세요.',
+        tone: 'storm'
+      },
+      {
+        label: '명',
+        han: '命',
+        essence: '서로를 거울처럼 비추는 동질감의 인연입니다.',
+        light: '말하지 않아도 비슷한 결을 알아보고 빠르게 편안해집니다.',
+        shadow: '같은 약점이 반복되면 관계가 제자리에서 맴돌 수 있습니다.',
+        guide: '닮은 점을 확인한 뒤 서로 다른 역할을 의식적으로 맡으세요.',
+        tone: 'mirror'
+      }
+    ],
+    dailyPrescription: {
+      moon: moon,
+      insight: daily.insight || '',
+      ritual: ritual,
+      overall: daily.overall,
+      relations: daily.relations,
+      love: daily.love,
+      wealth: daily.wealth,
+      message: syComposeFromTokens(syCanonicalTokenize(daily.insight, '오늘은 감정의 속도를 한 템포 낮추면 흐름이 좋아집니다.'), '오늘은 감정의 속도를 한 템포 낮추면 흐름이 좋아집니다.'),
+      action: ritual.action || '심호흡 10번',
+      avoid: syFirstToken(syCanonicalTokenize(traits.hidden, '서둘러 결론 내리기'), '서둘러 결론 내리기'),
+      luckyColor: ritual.color || '#c0a060',
+      luckyPlace: syGuardianPlaceByIndex(sData.mansionIdx)
+    },
+    guardian: {
+      name: guardianName,
+      emoji: guardianEmoji,
+      color: guardianColor,
+      place: guardianPlace,
+      action: ritual.action || '심호흡 10번',
+      mantra: traits.mantra || '오늘의 한 걸음이 내일의 별빛이 됩니다.'
+    }
+  };
+
+  return reading;
+}
+
   // ── paid sukuyo compatibility + precision extension ──
 // 숙요 기본 궁합(compat-sukuyo-compatibility)·정밀 궁합 확장(premium-sukuyo-compat-extra) 본문.
 // js/saju-engine-tarot-sukuyo-quantum.js 의 window._triggerSynergyCheckCore 렌더 부분을 그대로 옮겼다(문장·식 수정 없음).
@@ -26418,6 +26535,21 @@ var EL_ORGAN  = { wood: '간·담', fire: '심장·소장', earth: '비·위', m
     renderExtremeTPaidPanels: window.renderExtremeTPaidPanels,
     renderSukuyoEncyclopediaPaid: renderSukuyoEncyclopediaPaid,
     renderSukuyoNatureDeepDivePaid: renderSukuyoNatureDeepDivePaid,
+    buildSukuyoBasicFree: function (lunarObj, sourceProfile) {
+      if (!lunarObj || !Number.isFinite(lunarObj.moonEclipticLongitude)) return null;
+      var sData = calcSukuyoData(lunarObj);
+      if (!sData) return null;
+      var daily = getDailyKarmicGuidance(lunarObj, sData.mansion);
+      var canonical = syBuildLocalCanonicalData(lunarObj, sData, daily, sourceProfile);
+      var guardian;
+      try { guardian = syResolveMansionGuardian(sData.mansion, sData.mansionIdx); }
+      catch (_e) { guardian = { name: '달빛 지표', emoji: '✨' }; }
+      var reading = syBuildBasicReadingFree(canonical, sData, daily, guardian);
+      if (!canonical || !reading) return null;
+      return { mansion: sData.mansion, mansionIdx: sData.mansionIdx,
+        canonical: { natalSukuyo: canonical.natalSukuyo, lunarPhase: canonical.lunarPhase,
+          sukuyoAttributes: canonical.sukuyoAttributes, validation: canonical.validation }, reading: reading };
+    },
     renderSukuyoCompatPaid: renderSukuyoCompatPaid,
     renderEnergyCoord: renderEnergyCoord,
     renderVillain: renderVillain,

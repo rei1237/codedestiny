@@ -113,10 +113,15 @@ const paidNames = declared(paidAst); const cycleNames = declared(cycleAst); cons
 // The quantum/energy cards' ganji/fortune/text helpers live in the tarot chunk. Its copy table is trimmed to
 // the keys the cards use (the rest is other cards' copy); every other statement is verbatim.
 const tarotAst = parse('saju-engine-tarot-sukuyo-quantum.js', read('js/saju-engine-tarot-sukuyo-quantum.js'));
+const freeSukuyoNode = tarotAst.statements.find(n => ts.isFunctionDeclaration(n) && n.name?.text === 'syBuildBasicReading');
+if (!freeSukuyoNode) throw new Error('Missing canonical free Sukuyo reading');
+const freeSukuyoSrc = freeSukuyoNode.getText(tarotAst).replace(/^function syBuildBasicReading\(/, 'function syBuildBasicReadingFree(');
+if (freeSukuyoSrc === freeSukuyoNode.getText(tarotAst)) throw new Error('Cannot isolate free Sukuyo reading');
+const freeSukuyoAst = parse('free-sukuyo.js', freeSukuyoSrc);
 const Q_TEXT = 'SAJU_QUANTUM_TEXT_TRANSLATIONS';
-const tarotPicked = closure(tarotAst, tarotAst.statements, [...refs(quantumAst), ...refs(encyclopediaAst), ...refs(natureAst), ...refs(compatAst), ...refs(energyAst)], new Set([...quantumNames, ...encyclopediaNames, ...natureNames, ...compatNames, ...energyNames, Q_TEXT]));
+const tarotPicked = closure(tarotAst, tarotAst.statements, [...refs(quantumAst), ...refs(encyclopediaAst), ...refs(natureAst), ...refs(freeSukuyoAst), ...refs(compatAst), ...refs(energyAst)], new Set([...quantumNames, ...encyclopediaNames, ...natureNames, ...compatNames, ...energyNames, Q_TEXT]));
 const tarotNames = new Set(tarotPicked.flatMap(t => [...declared(parse('t.js', t))]));
-const Q_KEYS = [...new Set([quantumSrc, encyclopediaSrc, natureSrc, compatSrc, energySrc, ...tarotPicked].join('\n').match(/_sajuQuantumText\("([^"]+)"\)/g).map(m => m.slice(18, -2)))].sort();
+const Q_KEYS = [...new Set([quantumSrc, encyclopediaSrc, natureSrc, freeSukuyoSrc, compatSrc, energySrc, ...tarotPicked].join('\n').match(/_sajuQuantumText\("([^"]+)"\)/g).map(m => m.slice(18, -2)))].sort();
 const qTextNode = tarotAst.statements.find(n => ownNames(n).includes(Q_TEXT));
 const qTextKo = new Function(`return (${qTextNode.declarationList.declarations[0].initializer.getText(tarotAst)});`)().ko;
 for (const k of Q_KEYS) if (!qTextKo[k]) throw new Error(`Missing quantum text: ${k}`);
@@ -252,6 +257,9 @@ ${encyclopediaSrc.trim()}
   // ── paid sukuyo nature deep dive ──
 ${natureSrc.trim()}
 
+  // Canonical free fields only; the separate paid reading above remains gated.
+${freeSukuyoSrc.trim()}
+
   // ── paid sukuyo compatibility + precision extension ──
 ${compatSrc.trim()}
 
@@ -286,6 +294,21 @@ ${healthSrc.trim()}
     renderExtremeTPaidPanels: window.renderExtremeTPaidPanels,
     renderSukuyoEncyclopediaPaid: renderSukuyoEncyclopediaPaid,
     renderSukuyoNatureDeepDivePaid: renderSukuyoNatureDeepDivePaid,
+    buildSukuyoBasicFree: function (lunarObj, sourceProfile) {
+      if (!lunarObj || !Number.isFinite(lunarObj.moonEclipticLongitude)) return null;
+      var sData = calcSukuyoData(lunarObj);
+      if (!sData) return null;
+      var daily = getDailyKarmicGuidance(lunarObj, sData.mansion);
+      var canonical = syBuildLocalCanonicalData(lunarObj, sData, daily, sourceProfile);
+      var guardian;
+      try { guardian = syResolveMansionGuardian(sData.mansion, sData.mansionIdx); }
+      catch (_e) { guardian = { name: '달빛 지표', emoji: '✨' }; }
+      var reading = syBuildBasicReadingFree(canonical, sData, daily, guardian);
+      if (!canonical || !reading) return null;
+      return { mansion: sData.mansion, mansionIdx: sData.mansionIdx,
+        canonical: { natalSukuyo: canonical.natalSukuyo, lunarPhase: canonical.lunarPhase,
+          sukuyoAttributes: canonical.sukuyoAttributes, validation: canonical.validation }, reading: reading };
+    },
     renderSukuyoCompatPaid: renderSukuyoCompatPaid,
     renderEnergyCoord: renderEnergyCoord,
     renderVillain: renderVillain,

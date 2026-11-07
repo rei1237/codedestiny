@@ -132,6 +132,13 @@ function sukuyoRuntime(input) {
   return createSajuSectionRuntime({ window, document: documentShim(false, { innerHTML: "" }, { area: { innerHTML: "" }, card: { style: {} } }, { css: "", byId: {} }), localStorage: window.localStorage, neo: false, lang, now: input.now instanceof Date ? input.now : new Date() });
 }
 
+// Only the original free dashboard fields leave this boundary; paid renderers stay separate.
+export function buildSukuyoBasicFree({ lunarObj, sourceProfile, now } = {}) {
+  const result = sukuyoRuntime({ now }).buildSukuyoBasicFree(lunarObj, sourceProfile);
+  if (!result) throw new Error("SUKUYO_BASIC_RENDER_FAILED");
+  return result;
+}
+
 function buildNatureDeepDiveHtml(input) {
   const longitude = Number(input.sukuyo?.moonEclipticLongitude);
   if (!Number.isFinite(longitude)) throw new Error("SUKUYO_NATURE_MOON_LONGITUDE_MISSING");

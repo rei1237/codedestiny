@@ -356,6 +356,11 @@ export async function handleTossRoutes(request,env) {
       const [{calculateTossManse},{domains}]=await Promise.all([import('./manse.js'),import('../yeongnyangi/fortune/index.ts')]);
       return reply(await calculateTossManse(await bodyOf(request),domains.saju));
     }
+    if(path==='/sukuyo/basic'&&request.method==='POST') {
+      await limit(env,auth._id,'sukuyo-basic',6);
+      const [{calculateTossSukuyoBasic},{domains}]=await Promise.all([import('./sukuyo-basic.js'),import('../yeongnyangi/fortune/index.ts')]);
+      return reply(await calculateTossSukuyoBasic(await bodyOf(request),env,domains.sukuyo));
+    }
     if(path==='/flower/match'&&request.method==='POST') {
       await limit(env,auth._id,'flower',6);
       const [{matchTossFlowers},{domains}]=await Promise.all([import('./flower.js'),import('../yeongnyangi/fortune/index.ts')]);

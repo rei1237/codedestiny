@@ -24,15 +24,16 @@ const BiasReading=lazy(()=>import('./BiasReading'));
 const FlowerReading=lazy(()=>import('./FlowerReading'));
 const TarotLibrary=lazy(()=>import('./TarotLibrary'));
 const ManseReading=lazy(()=>import('./ManseReading'));
+const SukuyoBasic=lazy(()=>import('./SukuyoBasic'));
 const DailyReadings=lazy(()=>import('./DailyReadings'));
 const yeongnyangiSpreads=canonicalTarotSpreads as {id:string;title:string;summary:string;cardCount:number;requiredInputs:string[];topic:string}[];
 const tarotLibraryTitle=new Map((TOSS_TAROT_LIBRARY_FLOWS as readonly {id:string;name:string}[]).map(flow=>[flow.id,flow.name]));
 
-type Page='manse'|'daily'|'draw'|'flower'|'bias'|'tarot-library'|'home'|'catalog'|'product'|'birth'|'login'|'purchase'|'result'|'library'|'recovery'|'settings'|'terms'|'support'|'withdraw'|'example';
+type Page='manse'|'sukuyo'|'daily'|'draw'|'flower'|'bias'|'tarot-library'|'home'|'catalog'|'product'|'birth'|'login'|'purchase'|'result'|'library'|'recovery'|'settings'|'terms'|'support'|'withdraw'|'example';
 type Chapter={title:string;summary:string;analysis:string[];advice?:string;example?:string;persona?:string;blocks?:{id:string;title:string;paragraphs:string[]}[];questionAnswers?:{answer:string;reason?:string;basis?:string;timing:string;action:string;review:string}[]};
 type Result={charts?:ReadingChart[];serviceId?:string;conversation?:Conversation;id:string;state:string;chapters:Chapter[];manifest:{id:string;title:string}[];recovery:{savedChapters:number;totalChapters:number;canRetryNow:boolean;reviewRequired:boolean};errorCode?:string};
 type Purchase={featureKey?:string;nativeService?:string;href?:string;serviceId:string;selectionId:string;orderId:string;sku:string;productId:string;requestId:string|null;status:string;state:string;completedSections:number;totalSections:number|null;createdAt:string};
-const allowedPages=new Set<Page>(['manse','daily','draw','flower','bias','tarot-library','home','catalog','product','birth','login','purchase','result','library','recovery','settings','terms','support','withdraw','example']);
+const allowedPages=new Set<Page>(['manse','sukuyo','daily','draw','flower','bias','tarot-library','home','catalog','product','birth','login','purchase','result','library','recovery','settings','terms','support','withdraw','example']);
 function currentPage():Page {
   const value=location.pathname.replace(/^\/|\/$/g,'');
   if(['privacy-policy','refund-policy'].includes(value))return 'terms';
@@ -157,13 +158,14 @@ export default function App(){
   const example=<Button variant="weak" display="block" onClick={()=>{go('example');event('example_view',{productId:selected});}}>결과 예시 보기</Button>;
   const items=<div className="reading-list">{readings.filter(p=>p.domain===activeDomain&&p.serviceId===activeService).map(p=><button className="reading" key={p.id} onClick={()=>choose(p.id)}><span><small>{p.tag}</small><strong>{p.name}</strong><span>{p.description}</span></span><span aria-hidden>›</span></button>)}</div>;
   const themePage=page==='login'?returnAfterLogin:page;
-  const theme=['flower','bias','tarot-library','manse'].includes(themePage)?'ggulggul':themePage==='daily'||themePage==='home'?'yeongnyangi':page==='result'&&result?.serviceId?result.serviceId:activeService;
+  const theme=['flower','bias','tarot-library','manse','sukuyo'].includes(themePage)?'ggulggul':themePage==='daily'||themePage==='home'?'yeongnyangi':page==='result'&&result?.serviceId?result.serviceId:activeService;
   if(previousAuthenticated.current&&acceptedRevision!==sessionRevision)return <main><p role="status">로그인 상태를 다시 확인하고 있어요.</p></main>;
   return <main className={`page-${page} adviser-${theme}`}>
     {!SERVICE_AVAILABLE?<div className="preview-note">출시 전 화면 테스트 · 로그인·구매·상담 생성은 아직 제공하지 않아요</div>:!isToss()&&<div className="preview-note">브라우저 미리보기 · 로그인과 구매는 토스 앱에서 가능해요</div>}
     {message&&<div role="alert" className="notice">{message}<Button size="small" variant="weak" onClick={()=>setMessage('')}>닫기</Button></div>}
     {import.meta.env.DEV&&<a className="test-entry" href="/test/playground.html">직접 테스트하기 · 가능한 기능 확인</a>}
     {page==='manse'&&<Suspense fallback={<p role="status">만세력을 준비하고 있어요.</p>}><ManseReading loggedIn={loggedIn} onLogin={()=>requireLogin('manse')} onError={failure}/></Suspense>}
+    {page==='sukuyo'&&<Suspense fallback={<p role="status">숙요점을 준비하고 있어요.</p>}><SukuyoBasic loggedIn={loggedIn} onLogin={()=>requireLogin('sukuyo')} onError={failure}/></Suspense>}
     {page==='daily'&&<Suspense fallback={<p role="status">오늘의 이야기를 준비하고 있어요.</p>}><DailyReadings loggedIn={loggedIn} onLogin={()=>requireLogin('daily')} onError={failure}/></Suspense>}
     {page==='bias'&&<Suspense fallback={<p role="status">최애운명 화면을 불러오고 있어요.</p>}><BiasReading/></Suspense>}
     {page==='flower'&&<Suspense fallback={<p role="status">운명의 꽃 화면을 불러오고 있어요.</p>}><FlowerReading loggedIn={loggedIn} onLogin={()=>requireLogin('flower')} onError={failure}/></Suspense>}
