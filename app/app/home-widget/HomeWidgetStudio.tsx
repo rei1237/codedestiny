@@ -136,13 +136,16 @@ export default function HomeWidgetStudio() {
             : <fieldset disabled={busy}><legend>{copy.affirmationLegend}</legend><div className="cd-talisman-scenes">
               {AFFIRMATION_IDS.map(id => <label key={id}><input type="radio" name="home-widget-affirmation" checked={affirmation === id} onChange={() => choose(() => setAffirmation(id))} /><span>{copy.affirmations[id]}</span></label>)}
             </div></fieldset>}
-          <div className="cd-talisman-actions" aria-busy={busy}>
-            <button type="button" disabled={busy || status === "web"} onClick={() => void place()}>{editId ? copy.change : copy.add}</button>
-          </div>
-          <p className="cd-talisman-status" role="status" aria-live="polite">{message}</p>
           {showManual ? <div className="cd-talisman-instructions"><p><strong>{copy.manualTitle}</strong><br />{copy.manualSteps}</p><p>{copy.manualHint}</p></div> : null}
           <p className="cd-talisman-caption">{copy.remove}</p>
         </section>
+      </div>
+      {/* 고르는 동안에도 추가 버튼과 진행 상태가 화면 아래에 늘 보이게 둔다. */}
+      <div className="cd-home-widget-dock">
+        <div className="cd-talisman-actions" aria-busy={busy}>
+          <button type="button" disabled={busy || status === "web"} onClick={() => void place()}>{editId ? copy.change : copy.add}</button>
+        </div>
+        <p className="cd-talisman-status" role="status" aria-live="polite">{message}</p>
       </div>
     </main>
   );

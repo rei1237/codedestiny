@@ -146,6 +146,9 @@ const FEATURE_NAV_SELF_MANAGED_ROUTES = [
   // 자체 상단바(뒤로·홈·검색) + 자체 하단바. 위 /admin 주석과 같은 이유로 두 배열에 함께 둔다.
   "/diary",
   "/karma-destiny-ai",
+  // 앱 부적·홈 위젯 화면은 자체 머리말(뒤로·꿀꿀운세)이 있다. /app 은 CHROMELESS 라 여기 없으면 공용 나브가 한 겹 더 뜬다.
+  "/app/talismans",
+  "/app/home-widget",
 ];
 
 const LOCALE_CODES = ["ko", "en", "ja", "zh-CN", "zh-TW", "vi", "hi", "es", "fr", "de", "nl", "ms"] as const;

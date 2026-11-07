@@ -39,3 +39,14 @@ test('home widget entry is a plain Android-app link without startup work', () =>
   const copy = JSON.parse(read('../../lib/i18n/native-home-copy.json'));
   assert.deepEqual(Object.keys(copy['홈 화면에 부적·확언 놓기']).sort(), Object.keys(copy['마음이 향하는 상담 공간을 골라보세요.']).sort());
 });
+
+test('widget studio keeps one header and the add button docked on screen', () => {
+  // /app 은 CHROMELESS 라 자체 머리말 목록에도 없으면 공용 뒤로·홈 나브가 한 겹 더 뜬다.
+  const chrome = read('../../app/components/AppChrome.tsx');
+  const selfManaged = chrome.slice(chrome.indexOf('const FEATURE_NAV_SELF_MANAGED_ROUTES'), chrome.indexOf('const LOCALE_CODES'));
+  assert.match(selfManaged, /"\/app\/home-widget"/);
+  assert.match(selfManaged, /"\/app\/talismans"/);
+  const studio = read('../../app/app/home-widget/HomeWidgetStudio.tsx');
+  assert.match(studio, /<div className="cd-home-widget-dock">\s*<div className="cd-talisman-actions"/);
+  assert.match(read('../../app/app/home-widget/home-widget.css'), /\.cd-home-widget-dock \{ position: sticky; bottom: 0;/);
+});

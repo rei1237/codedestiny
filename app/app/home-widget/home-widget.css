@@ -9,3 +9,11 @@
 .cd-home-widget-tile > strong { font-family: var(--font-serif); font-size: .92rem; font-weight: 500; line-height: 1.45; text-align: center; word-break: keep-all; overflow-wrap: anywhere; }
 .cd-home-widget .cd-talisman-scenes label > span { word-break: keep-all; }
 .cd-home-widget .cd-talisman-instructions p { margin: 0 0 8px; }
+/* 추가 버튼은 화면 아래에 붙여 둔다. 앱 시스템 바 높이만큼 아래 여백을 더한다. */
+.cd-home-widget { padding-bottom: 0; }
+.cd-home-widget-dock { position: sticky; bottom: 0; z-index: 2; margin: 24px -20px 0; padding: 12px 20px max(12px, env(safe-area-inset-bottom)); border-top: 1px solid var(--yn-line); background: var(--yn-deep); }
+.cd-home-widget-dock .cd-talisman-actions { margin-top: 0; }
+.cd-home-widget-dock .cd-talisman-status { min-height: 0; margin: 8px 0 0; }
+.cd-home-widget-dock .cd-talisman-status:empty { margin: 0; }
+@media (max-width: 739px) { .cd-home-widget .cd-talisman-intro { padding: 20px 0 18px; } }
+@media (min-width: 740px) { .cd-home-widget-dock { margin-inline: -40px; padding-inline: 40px; } }
