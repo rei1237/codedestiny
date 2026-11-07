@@ -54,6 +54,14 @@ export class ConsultationApiError extends Error {
 
 export const isConsultationId = (value: unknown): value is string => typeof value === "string" && /^[a-f0-9]{64}$/.test(value);
 
+// Native session guards can reject either the request or the response body.
+// Keep those failures distinct from malformed JSON and ordinary network errors.
+function isSessionBoundaryError(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const issue = error as { status?: unknown; code?: unknown };
+  return issue.status === 401 || issue.status === 403 || ["SESSION_CHANGED", "SESSION_EXPIRED", "LOGIN_REQUIRED", "ACCESS_DENIED"].includes(String(issue.code));
+}
+
 async function call<T>(path: string, body?: object): Promise<T> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), body ? 100000 : 25000);
@@ -63,7 +71,7 @@ async function call<T>(path: string, body?: object): Promise<T> {
       signal: controller.signal,
       ...(body ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) } : {}),
     });
-    const payload = await response.json().catch(() => ({}));
+    const payload = await response.json().catch((error: unknown) => { if (isSessionBoundaryError(error)) throw error; return {}; });
     if (!response.ok) {
       const code = payload?.error?.code || payload?.code || (response.status === 404 ? "NOT_FOUND" : "REQUEST_FAILED");
       const message = payload?.message || payload?.error?.message || "상담을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.";
@@ -71,7 +79,7 @@ async function call<T>(path: string, body?: object): Promise<T> {
     }
     return payload as T;
   } catch (error) {
-    if (error instanceof ConsultationApiError) throw error;
+    if (error instanceof ConsultationApiError || isSessionBoundaryError(error)) throw error;
     if ((error as Error)?.name === "AbortError") throw new ConsultationApiError("REQUEST_TIMEOUT", "응답이 늦어지고 있어요. 같은 상담에서 다시 확인해 주세요.", 504, true);
     throw new ConsultationApiError("NETWORK_ERROR", "연결이 잠시 끊겼어요. 같은 상담에서 다시 확인해 주세요.", 0, true);
   } finally {
