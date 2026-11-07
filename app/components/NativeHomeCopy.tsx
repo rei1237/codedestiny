@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import {useRouter} from 'next/navigation';
-import {createContext, useContext, type ReactNode} from 'react';
+import {createContext, useContext, useEffect, type ReactNode} from 'react';
 import {IS_APP_BUILD} from '@/lib/app-build-target';
 import {useLocale, useTPick} from '@/lib/i18n/useT';
 import type {RuntimeLocale} from '@/lib/i18n/dictionary';
@@ -55,6 +55,19 @@ export function NativeHomeCardLink({name, action, external, ...props}: {
   const router = useRouter();
   // App: nothing loads at render; the route starts loading when a finger lands, not after it lifts.
   const onPointerDown = IS_APP_BUILD && !external ? () => router.prefetch(props.href) : undefined;
+  // App: once the home is idle, warm the in-app route from the bundle too (local files, no server call),
+  // so a tap does not wait for its chunks. The web home keeps prefetch off.
+  const idleHref = IS_APP_BUILD && !external ? props.href : null;
+  useEffect(() => {
+    if (!idleHref) return;
+    const run = () => router.prefetch(idleHref);
+    if (typeof window.requestIdleCallback === 'function') {
+      const id = window.requestIdleCallback(run, {timeout: 4000});
+      return () => window.cancelIdleCallback(id);
+    }
+    const timer = window.setTimeout(run, 2000);
+    return () => window.clearTimeout(timer);
+  }, [idleHref, router]);
   return external
     ? <a {...props} aria-label={accessibleLabel}>{label}</a>
     : <Link {...props} prefetch={false} onPointerDown={onPointerDown} aria-label={accessibleLabel}>{label}</Link>;
