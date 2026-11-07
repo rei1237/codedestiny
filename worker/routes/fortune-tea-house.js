@@ -4412,7 +4412,7 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "", 
  * 그룹 하나를 생성한다. **절대 throw 하지 않는다** — 한 그룹의 실패가 나머지를 죽이면
  * 결제한 상담이 통째로 사라진다(love-secret-ai.js 와 같은 계약).
  */
-async function generateFortuneTeaGroup(env, { request, fallback, group, consultationMode, timeoutMs, qualityHint = "", attempt = 0, answerVoice = null }) {
+async function generateFortuneTeaGroup(env, { request, fallback, group, consultationMode, timeoutMs, qualityHint = "", attempt = 0, answerVoice = null, cacheAllowed = true }) {
   const fail = (reason, provider = "", model = "") => ({ key: group.key, ok: false, parsed: null, chars: 0, reason, provider, model });
   // 🔴 clampSyncLlmTimeoutMs 는 0/음수를 받으면 상한 85s 로 되돌아간다 — 그 앞에서 막아야 한다.
   if (!(timeoutMs > 0)) return fail("BUDGET_EXHAUSTED");
@@ -4435,7 +4435,9 @@ async function generateFortuneTeaGroup(env, { request, fallback, group, consulta
       // 실패한 시도의 응답이 같은 키를 차지하지 않는다.
       // minChars: 그룹 목표에 못 미친 응답은 저장하지 않는다 — 저장하면 웨이브 2 가 판정한
       // 미달 결과가 30일간 같은 키에서 재현된다.
-      cache: {
+      // Native Toss consultations can contain sensitive personal details; keep
+      // their generated text out of the shared cross-request LLM cache.
+      cache: cacheAllowed ? {
         store: createLlmCacheStore(env),
         deterministic: true,
         ttlSeconds: 30 * 24 * 60 * 60,
@@ -4445,7 +4447,7 @@ async function generateFortuneTeaGroup(env, { request, fallback, group, consulta
         // r: FORTUNE_TEA_PROMPT_REV — 사실값·프롬프트를 바꾸는 커밋마다 올린다(되돌릴 때도 올린다).
         keyExtra: `tea-house-${consultationMode}-${group.key}-${request.consultationVersion === "tea-v2" ? "yeoni-evidence-v2" : isSajuFamilyMode(consultationMode) ? "v5" : "v4"}-r${FORTUNE_TEA_PROMPT_REV}${answerVoice ? `-${answerVoice}` : ""}`,
         minChars: group.minChars,
-      },
+      } : undefined,
     });
     // lib/llm-client.ts 는 Gemini 타임아웃 뒤 Workers AI 폴백을 타임아웃 없이 돌린다.
     // 그 경로가 예산을 넘겨 엣지 컷을 유발하지 않도록 하드 레이스를 건다.
@@ -4602,7 +4604,7 @@ async function generateTeaCheckpoint(request, fallback, env, { auth, resultId, l
         return [...new Set(errors)];
     };
     const outcomes = await Promise.allSettled(eligible.map(async (group) => {
-        const output = await runWithAiLocale(state.locale, () => generateFortuneTeaGroup(env, { request: state.request, fallback: state.fallback, group, consultationMode: state.request.consultationMode, timeoutMs: 45000, attempt: state.attempts[group.key] - 1, qualityHint: state.qualityError || '', answerVoice: pinAnswerVoice(state, env) }));
+        const output = await runWithAiLocale(state.locale, () => generateFortuneTeaGroup(env, { request: state.request, fallback: state.fallback, group, consultationMode: state.request.consultationMode, timeoutMs: 45000, attempt: state.attempts[group.key] - 1, qualityHint: state.qualityError || '', answerVoice: pinAnswerVoice(state, env), cacheAllowed: auth?.tossNative !== true }));
         if (!output.ok)
             return;
         // Required provider fields must exist before the deterministic fallback is merged.

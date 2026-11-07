@@ -9,11 +9,13 @@ const require = createRequire(import.meta.url);
 
 export function mockTestInvocation(mode, extraArgs = [], inherited = process.env) {
   if (!['jest', 'node'].includes(mode)) throw new Error('Usage: node scripts/run-mock-tests.mjs <jest|node> [test arguments]');
+  const concurrency = inherited.CD_NODE_TEST_CONCURRENCY;
+  if (mode === 'node' && concurrency !== undefined && !/^[1-9]\d{0,2}$/.test(concurrency)) throw new Error('CD_NODE_TEST_CONCURRENCY must be a positive integer');
   const guard = resolve(root, 'scripts/lib/mock-network-guard.cjs').replaceAll('\\', '/');
   return {
     args: mode === 'jest'
       ? [require.resolve('jest/bin/jest'), ...JEST_BASE_ARGS, ...extraArgs]
-      : ['--test', ...NODE_TEST_PATTERNS, ...extraArgs],
+      : ['--test', ...(concurrency === undefined ? [] : [`--test-concurrency=${concurrency}`]), ...NODE_TEST_PATTERNS, ...extraArgs],
     env: {
       ...inherited,
       NODE_OPTIONS: `${inherited.NODE_OPTIONS || ''} --experimental-vm-modules --require="${guard}"`.trim(),

@@ -1,6 +1,6 @@
 import {withMongoRetry} from "../lib/db.js";
 import {TossNativeConsultation,TossPurchase,TossIdentity} from './models.js';
-import {APPROVED_TOSS_NATIVE_PRODUCTS} from './catalog.js';
+import {APPROVED_TOSS_NATIVE_PRODUCTS,assertUniqueApprovedSaleSkus} from './catalog.js';
 import {hash,unseal} from './crypto.js';
 import {TossError} from './policy.js';
 import {lookupOrder} from './partner.js';
@@ -22,9 +22,10 @@ export function approvedNativeTeaProduct(sku){
   return nativeProduct(item,{featureKey:item?.featureKey,pricing:pricing.pricing||{}});
 }
 export function nativeTeaCatalog(){
+  assertUniqueApprovedSaleSkus();
   return APPROVED_TOSS_NATIVE_PRODUCTS.map(item=>{
     const product=approvedNativeTeaProduct(item.sku);
-    return {id:product.productId,name:product.nativeService==='love-secret'?'연애 비책':product.nativeService==='life-book'?'인생의 책':product.nativeService==='fusion'?'초융합 운세':product.nativeService==='neo'?'네오의 팩폭 전략실':'운명의 찻집',sku:product.sku,featureKey:product.featureKey,
+    return {id:product.productId,name:product.nativeService==='pet'?(product.featureKey==='pet-saju-ai-consultation'?'반려동물 사주 심층 리포트':'반려동물 궁합'):product.nativeService==='relationship'?'관계 경계 리포트':product.nativeService==='sukuyo'?'숙요점 궁합 전문가 상담':product.nativeService==='maya'?'마야점 프롬프트':product.nativeService==='karma'?'운명의 업 전문가 상담':product.nativeService==='new-year'?'신년운세 전문가 상담':product.nativeService==='ziwei'?'자미두수 전문가 상담':product.nativeService==='vedic'?'베다 전문가 상담':product.nativeService==='astrology'?'점성술 전문가 상담':product.nativeService==='love-secret'?'연애 비책':product.nativeService==='life-book'?(product.featureKey==='life-fortune-ai-consultation'?'인생 총운':'인생의 책'):product.nativeService==='fusion'?'초융합 운세':product.nativeService==='neo'?'네오의 팩폭 전략실':'운명의 찻집',sku:product.sku,featureKey:product.featureKey,
       approvedPriceKRW:product.approvedPriceKRW,available:true};
   });
 }
@@ -42,8 +43,12 @@ export async function prepareNativeConsultation(env,auth,input,orderId,contract,
   if(recovered?.requestId&&recovered.requestId!==id)throw new TossError('ORDER_ALREADY_ASSIGNED',409);
   if(previous){
     assertNativeIntent(previous,auth,contract);
-    if(!orderId||previous.status==='paid')return view(previous);
+    if(!orderId||previous.status==='paid'){
+      if(previous.status!=='paid')assertUniqueApprovedSaleSkus();
+      return view(previous);
+    }
   }
+  if(!recovered)assertUniqueApprovedSaleSkus();
   const product=recovered?retainedNativeProduct(recovered,auth):nativeProduct(APPROVED_TOSS_NATIVE_PRODUCTS.find(item=>item.nativeService===service&&item.featureKey===contract.featureKey),contract);
   if(product.featureKey!==contract.featureKey)throw new TossError('ORDER_PRODUCT_MISMATCH',409);
   const saved=await TossNativeConsultation.findOneAndUpdate({_id:id},{$setOnInsert:{
@@ -121,8 +126,12 @@ export async function handleNativeTea(request,env,auth,path){
     const rows=await TossNativeConsultation.find({...ownerFilter(auth),status:'paid',...(resultId?{resultId}:{})}).sort({createdAt:-1}).limit(50).lean();
     for(const row of rows){
       const doc=await nativeTeaStoredState(env,auth.userId,row.resultId);
+      if(doc){
+        if(doc.featureKey!==row.featureKey||doc.generationRequestHash!==row.inputHash||doc.deliveryAccessKey!==row.orderId)throw new TossError('RESULT_NOT_FOUND',404);
+        await teaContext(env,auth).assertStored(doc);
+      }
+      else await verifiedIntent(env,auth,row);
       if(doc?.status==='completed')continue;
-      await verifiedIntent(env,auth,row);
       return Response.json({ok:true,status:'partial',retryable:true,resultId:row.resultId,completedSections:[],requestPayload:row.input},{status:202});
     }
   }
@@ -137,7 +146,9 @@ export async function nativeTeaLibraryItem(env,auth,purchase){
   const row=await TossNativeConsultation.findOne({_id:purchase.requestId,...ownerFilter(auth),orderId:purchase._id}).lean();
   assertNativeIntent(row,auth);
   const doc=await nativeTeaStoredState(env,auth.userId,row.resultId);
-  if(doc&&(doc.generationRequestHash!==row.inputHash||doc.deliveryAccessKey!==purchase._id))throw new TossError('RESULT_NOT_FOUND',404);
+  if(doc)await teaContext(env,auth).assertStored(doc);
+  else await verifiedIntent(env,auth,row);
+  if(doc&&(doc.featureKey!==row.featureKey||doc.generationRequestHash!==row.inputHash||doc.deliveryAccessKey!==purchase._id))throw new TossError('RESULT_NOT_FOUND',404);
   const completed=doc?.status==='completed';
   return {state:completed?'COMPLETED':doc?.status==='generation_failed'?'GENERATION_FAILED':'PENDING',
     resultId:row.resultId,href:href+(completed?'?resultId=':'?recoverResultId=')+encodeURIComponent(row.resultId),
@@ -167,10 +178,11 @@ export async function nativeTeaRecords(env,auth,params){
     const neo=row.nativeService==='neo';
     const fusion=row.nativeService==='fusion';
     const lifeBook=row.nativeService==='life-book';
+    const lifeBookTitle=row.featureKey==='life-fortune-ai-consultation'?'인생 총운':'인생의 책';
     const loveSecret=row.nativeService==='love-secret';
     const saved=loveSecret?await (await import('./native-love-secret.js')).nativeLoveSecretLibraryItem(env,auth,purchase):lifeBook?await (await import('./native-life-book.js')).nativeLifeBookLibraryItem(env,auth,purchase):fusion?await (await import('./native-fusion.js')).nativeFusionLibraryItem(env,auth,purchase):neo?await (await import('./native-neo.js')).nativeNeoLibraryItem(env,auth,purchase):await nativeTeaLibraryItem(env,auth,purchase);
-    items.push({id:saved.resultId||row.resultId,key:row.nativeService+':'+row.resultId,source:row.nativeService,serviceId:row.nativeService,serviceName:loveSecret?'연애 비책':lifeBook?'인생의 책':fusion?'초융합 운세':neo?'네오의 팩폭 전략실':'연이의 운명 찻집',
-      title:saved.question||(loveSecret?'연애 비책':lifeBook?'인생의 책':fusion?'초융합 운세':neo?'네오의 팩폭 전략실':'운명의 찻집'),question:saved.question,createdAt:row.createdAt,status:saved.state==='COMPLETED'?'completed':'generating',
+    items.push({id:saved.resultId||row.resultId,key:row.nativeService+':'+row.resultId,source:row.nativeService,serviceId:row.nativeService,serviceName:loveSecret?'연애 비책':lifeBook?lifeBookTitle:fusion?'초융합 운세':neo?'네오의 팩폭 전략실':'연이의 운명 찻집',
+      title:saved.question||(loveSecret?'연애 비책':lifeBook?lifeBookTitle:fusion?'초융합 운세':neo?'네오의 팩폭 전략실':'운명의 찻집'),question:saved.question,createdAt:row.createdAt,status:saved.state==='COMPLETED'?'completed':'generating',
       character:neo?'neo':(fusion||lifeBook||loveSecret)?'':'yeoni',group:'report',href:saved.href,nativeHref:saved.href,startHref:loveSecret?'/love-secret-ai/':lifeBook?'/life-book-ai/':fusion?'/fusion-fortune/':neo?'/neo-operation-room/':'/fortune-tea-house/'});
   }
   const last=rows[49];

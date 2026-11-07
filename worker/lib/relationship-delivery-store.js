@@ -43,19 +43,24 @@ export async function runRelationshipDelivery(env, auth, supplied, callbacks) {
   let stored = await findRelationshipResult(env, supplied.resumeSessionId
     ? { userId, id: supplied.resumeSessionId } : { userId, idempotencyKey: supplied.idempotencyKey });
   if (supplied.resumeSessionId && !stored) return json({ ok: false, reason: "RESULT_NOT_FOUND" }, { status: 404 });
+  // A Toss-funded report must never fall back to the web payment authority.
+  if (stored && (stored.accessType === 'toss') !== Boolean(callbacks.native)) return json({ ok: false, reason: "RESULT_NOT_FOUND" }, { status: 404 });
   const body = stored?.llmMeta?.resumeBody || (stored && supplied.resumeSessionId ? { targetInfo: stored.targetInfo, idempotencyKey: stored.idempotencyKey } : supplied);
   const input = callbacks.normalize(body);
   if (!input.ok || typeof body.idempotencyKey !== "string" || body.idempotencyKey.length < 12 || body.idempotencyKey.length > 180) return json({ ok: false, reason: "INVALID_INPUT" }, { status: 422 });
   if (stored?.inputHash && (stored.inputHash !== input.inputHash || ((supplied.targetInfo || supplied.selfInfo) && callbacks.normalize(supplied).inputHash !== stored.inputHash))) return json({ ok: false, reason: "INPUT_MISMATCH" }, { status: 409 });
-  const access = await callbacks.verify(userId, body.idempotencyKey);
+  const access = await callbacks.verify(userId, body.idempotencyKey, input);
   if (access.proven === null) throw storageFailure(stored?.id || body.idempotencyKey);
   if (!access.proven) return json({ ok: false, reason: "PAYMENT_REQUIRED" }, { status: 402 });
-  if (await relationshipRevoked(stored || { userId, idempotencyKey: body.idempotencyKey, paymentId: access.transactionId })) return json({ ok: false, reason: "PAYMENT_REVOKED", retryable: false }, { status: 403 });
+  if (callbacks.native && (access.source !== 'toss' || !access.transactionId)) return json({ ok: false, reason: "PAYMENT_REQUIRED" }, { status: 402 });
+  const revoked = callbacks.revoked || relationshipRevoked;
+  if (await revoked(stored || { userId, idempotencyKey: body.idempotencyKey, paymentId: access.transactionId, inputHash: input.inputHash })) return json({ ok: false, reason: "PAYMENT_REVOKED", retryable: false }, { status: 403 });
+  const pending = async doc => { if (callbacks.native) await callbacks.assertStored(doc); return relationshipPending(doc); };
   if (stored?.status === "completed") return json(relationshipPublicResult(stored));
   if (stored?.status === "generation_failed") return json({ ok: false, reason: "GENERATION_FAILED", retryable: false, sessionId: stored.id }, { status: 503 });
   const now = new Date(), token = randomUUID();
   const lease = { token, until: new Date(now.getTime() + 120000).toISOString() };
-  if (stored?.llmMeta?.lease?.token && new Date(stored.llmMeta.lease.until) > now) return relationshipPending(stored);
+  if (stored?.llmMeta?.lease?.token && new Date(stored.llmMeta.lease.until) > now) return pending(stored);
   const sessionId = stored?.id || `rbt_${randomUUID()}`;
   if (!stored?.llmMeta?.delivery) {
     let seed;
@@ -77,11 +82,11 @@ export async function runRelationshipDelivery(env, auth, supplied, callbacks) {
     try {
       const claimed = await RelationshipBoundaryTest.findOneAndUpdate({ userId, id: sessionId, status: { $in: ["generating", "partial", "delivery_pending"] }, "llmMeta.lease.token": stored.llmMeta.lease?.token ?? null },
         { $set: { "llmMeta.lease": lease } }, { returnDocument: "after" }).lean();
-      if (!claimed) return relationshipPending(stored);
+      if (!claimed) return pending(stored);
       stored = claimed;
     } catch { throw storageFailure(sessionId); }
   }
-  if (stored.llmMeta.lease.token !== token) return relationshipPending(stored);
+  if (stored.llmMeta.lease.token !== token) return pending(stored);
   const filter = { userId, id: sessionId, status: { $in: ["generating", "partial", "delivery_pending"] }, "llmMeta.lease.token": token };
   try {
     await callbacks.open(userId, body.idempotencyKey, sessionId, stored.paymentId, stored.llmMeta.passRefund);
@@ -96,18 +101,19 @@ export async function runRelationshipDelivery(env, auth, supplied, callbacks) {
         // Exhaustion stays visible and bounded; it must not trigger a new refund.
         if (stored.llmMeta.recoveryNoRefund === true) {
           stored = await save(filter, { status: 'partial', generationError: { reason: 'READING_INCOMPLETE' } });
-          return relationshipPending(stored);
+          return await pending(stored);
         }
         stored = await save(filter, { status: "generation_failed", generationError: { reason: "READING_INCOMPLETE" } });
         const refunded = await callbacks.refund(userId, body.idempotencyKey, sessionId, "READING_INCOMPLETE", stored.paymentId, stored.llmMeta.passRefund);
         return json({ ok: false, reason: "GENERATION_FAILED", retryable: false, sessionId, refunded }, { status: 503 });
       }
     }
-    if (!relationshipDeliveryComplete(stored.llmMeta.delivery)) return relationshipPending(stored);
+    if (!relationshipDeliveryComplete(stored.llmMeta.delivery)) return await pending(stored);
     stored = await save(filter, { ...relationshipContent(stored.llmMeta), status: "delivery_pending" });
-    if (await relationshipRevoked(stored)) return json({ ok: false, reason: "PAYMENT_REVOKED", retryable: false }, { status: 403 });
+    if (await revoked(stored)) return json({ ok: false, reason: "PAYMENT_REVOKED", retryable: false }, { status: 403 });
     stored = await save(filter, { status: "completed", generationError: null });
     await callbacks.close(userId, body.idempotencyKey, sessionId, stored.paymentId, stored.llmMeta.passRefund);
+    if (callbacks.native) await callbacks.assertStored(stored);
     return json(relationshipPublicResult(stored));
   } finally {
     await RelationshipBoundaryTest.updateOne({ userId, id: sessionId, "llmMeta.lease.token": token }, { $set: { "llmMeta.lease.token": "", "llmMeta.lease.until": null } }).catch(() => {});

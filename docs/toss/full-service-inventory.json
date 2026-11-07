@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "bad2656a5cd2d9126bf5320a0395dfc1a0847486",
+  "sourceCommit": "e1248999e504c587ce68cba02d6cacf6653a4840",
   "scope": "Source discovery plus explicitly verified aliases; not a count of implemented services. Unmapped contracts are blocking work, not exclusions.",
   "sourceCounts": {
     "home": 63,
@@ -17,7 +17,7 @@
           "name": "십이운성 동물점",
           "entry": "/saju/animal-destiny/",
           "featureKey": "animal-destiny-unlock",
-          "accessEvidence": "7,000원"
+          "accessEvidence": "묶음 포함"
         },
         {
           "source": "shell-visual-details",
@@ -29,12 +29,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "animal-destiny",
+        "candidateStatus": "requires-full-flow-port-and-verification",
+        "canonicalRoute": null
       }
     },
     {
@@ -51,12 +54,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "animal-destiny",
+        "candidateStatus": "requires-full-flow-port-and-verification",
+        "canonicalRoute": null
       }
     },
     {
@@ -89,12 +95,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "animal-totem",
+        "candidateStatus": "requires-full-flow-port-and-verification",
+        "canonicalRoute": null
       }
     },
     {
@@ -127,12 +136,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "astrology",
+        "candidateStatus": "requires-full-flow-port-and-verification",
+        "canonicalRoute": null
       }
     },
     {
@@ -149,12 +161,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "astrology-ai",
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/astrology-ai/"
       }
     },
     {
@@ -171,12 +186,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "flower",
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/flower"
       }
     },
     {
@@ -201,12 +219,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "bias-destiny",
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/bias"
       }
     },
     {
@@ -218,17 +239,20 @@
           "id": "career-style",
           "name": "나의 일 스타일",
           "entry": "/saju/career-style/",
-          "featureKey": null,
-          "accessEvidence": "무료 시작"
+          "featureKey": "saju-career-style",
+          "accessEvidence": "묶음 포함"
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "career-style",
+        "candidateStatus": "requires-full-flow-port-and-verification",
+        "canonicalRoute": null
       }
     },
     {
@@ -245,12 +269,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "cosmic-soul-meditation",
+        "candidateStatus": "requires-full-flow-port-and-verification",
+        "canonicalRoute": null
       }
     },
     {
@@ -275,12 +302,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "today-hub",
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/daily"
       }
     },
     {
@@ -293,7 +323,7 @@
           "name": "운명의 나침반",
           "entry": "/destiny-compass/",
           "featureKey": "destiny-compass-life-voyage",
-          "accessEvidence": "7,000원"
+          "accessEvidence": "5,000원"
         },
         {
           "source": "shell-visual-details",
@@ -305,12 +335,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "destiny-compass",
+        "candidateStatus": "requires-full-flow-port-and-verification",
+        "canonicalRoute": null
       }
     },
     {
@@ -327,12 +360,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "flower",
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/flower"
       }
     },
     {
@@ -357,12 +393,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "destiny-meeting-place",
+        "candidateStatus": "requires-full-flow-port-and-verification",
+        "canonicalRoute": null
       }
     },
     {
@@ -387,12 +426,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "dream",
+        "candidateStatus": "requires-full-flow-port-and-verification",
+        "canonicalRoute": null
       }
     },
     {
@@ -417,12 +459,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "dream-psycho-analysis",
+        "candidateStatus": "requires-full-flow-port-and-verification",
+        "canonicalRoute": null
       }
     },
     {
@@ -439,12 +484,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "energy-travel",
+        "candidateStatus": "requires-full-flow-port-and-verification",
+        "canonicalRoute": null
       }
     },
     {
@@ -469,12 +517,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "face-reading",
+        "candidateStatus": "requires-full-flow-port-and-verification",
+        "canonicalRoute": null
       }
     },
     {
@@ -499,12 +550,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "famous-saju",
+        "candidateStatus": "requires-full-flow-port-and-verification",
+        "canonicalRoute": null
       }
     },
     {
@@ -517,12 +571,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "flower",
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/flower"
       }
     },
     {
@@ -547,12 +604,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "fortune-chat",
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/fortune-tea-house/?counsel=letter"
       }
     },
     {
@@ -577,12 +637,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "fortune-tea-house",
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/fortune-tea-house/"
       }
     },
     {
@@ -607,12 +670,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "fusion-fortune",
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/fusion-fortune/"
       }
     },
     {
@@ -637,12 +703,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "geomancy-oracle",
+        "candidateStatus": "requires-full-flow-port-and-verification",
+        "canonicalRoute": null
       }
     },
     {
@@ -659,12 +728,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "health-rhythm",
+        "candidateStatus": "requires-full-flow-port-and-verification",
+        "canonicalRoute": null
       }
     },
     {
@@ -689,12 +761,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "human-design",
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/human-design"
       }
     },
     {
@@ -719,12 +794,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "ifa-oracle",
+        "candidateStatus": "requires-full-flow-port-and-verification",
+        "canonicalRoute": null
       }
     },
     {
@@ -749,12 +827,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "juyuk-turtle",
+        "candidateStatus": "requires-full-flow-port-and-verification",
+        "canonicalRoute": null
       }
     },
     {
@@ -779,12 +860,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "karma-destiny-ai",
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/karma-destiny-ai/"
       }
     },
     {
@@ -809,12 +893,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "kemet-oracle",
+        "candidateStatus": "requires-full-flow-port-and-verification",
+        "canonicalRoute": null
       }
     },
     {
@@ -839,12 +926,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "life-book-ai",
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/life-book-ai/"
       }
     },
     {
@@ -861,12 +951,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "life-fortune-report",
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/life-book-ai/"
       }
     },
     {
@@ -883,12 +976,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "life-skill-tree",
+        "candidateStatus": "requires-full-flow-port-and-verification",
+        "canonicalRoute": null
       }
     },
     {
@@ -905,12 +1001,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "love-code",
+        "candidateStatus": "requires-full-flow-port-and-verification",
+        "canonicalRoute": null
       }
     },
     {
@@ -935,12 +1034,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "love-secret-ai",
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/love-secret-ai/"
       }
     },
     {
@@ -957,12 +1059,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "love-code",
+        "candidateStatus": "requires-full-flow-port-and-verification",
+        "canonicalRoute": null
       }
     },
     {
@@ -987,12 +1092,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "luck-sync-diary",
+        "candidateStatus": "requires-full-flow-port-and-verification",
+        "canonicalRoute": null
       }
     },
     {
@@ -1017,12 +1125,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "manse",
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/manse"
       }
     },
     {
@@ -1047,12 +1158,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "master-love-codex",
+        "candidateStatus": "requires-full-flow-port-and-verification",
+        "canonicalRoute": null
       }
     },
     {
@@ -1069,12 +1183,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "master-love-codex-compat",
+        "candidateStatus": "requires-full-flow-port-and-verification",
+        "canonicalRoute": null
       }
     },
     {
@@ -1099,12 +1216,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "maya",
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/maya/"
       }
     },
     {
@@ -1129,12 +1249,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "mbti-animal-compat",
+        "candidateStatus": "requires-full-flow-port-and-verification",
+        "canonicalRoute": null
       }
     },
     {
@@ -1159,12 +1282,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "music",
+        "candidateStatus": "requires-full-flow-port-and-verification",
+        "canonicalRoute": null
       }
     },
     {
@@ -1189,12 +1315,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "nakshatra",
+        "candidateStatus": "requires-full-flow-port-and-verification",
+        "canonicalRoute": null
       }
     },
     {
@@ -1219,12 +1348,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "nakshatra-ai",
+        "candidateStatus": "requires-full-flow-port-and-verification",
+        "canonicalRoute": null
       }
     },
     {
@@ -1237,7 +1369,7 @@
           "name": "동서 통합 궁합",
           "entry": "/nakshatra/compat/",
           "featureKey": "nakshatra-compat",
-          "accessEvidence": "20,000원"
+          "accessEvidence": "5,000원"
         },
         {
           "source": "shell-visual-details",
@@ -1249,12 +1381,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "nakshatra-compat",
+        "candidateStatus": "requires-full-flow-port-and-verification",
+        "canonicalRoute": null
       }
     },
     {
@@ -1267,7 +1402,7 @@
           "name": "택일 무후르타",
           "entry": "/nakshatra/muhurta/",
           "featureKey": "nakshatra-muhurta",
-          "accessEvidence": "7,000원"
+          "accessEvidence": "5,000원"
         },
         {
           "source": "shell-visual-details",
@@ -1279,12 +1414,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "nakshatra-muhurta",
+        "candidateStatus": "requires-full-flow-port-and-verification",
+        "canonicalRoute": null
       }
     },
     {
@@ -1297,7 +1435,7 @@
           "name": "나크샤트라 VVIP 코덱스",
           "entry": "/nakshatra/vvip/",
           "featureKey": "nakshatra-vvip-codex",
-          "accessEvidence": "30,000원"
+          "accessEvidence": "5,000원"
         },
         {
           "source": "shell-visual-details",
@@ -1309,12 +1447,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "nakshatra-vvip-codex",
+        "candidateStatus": "requires-full-flow-port-and-verification",
+        "canonicalRoute": null
       }
     },
     {
@@ -1339,12 +1480,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "naming-ai",
+        "candidateStatus": "requires-full-flow-port-and-verification",
+        "canonicalRoute": null
       }
     },
     {
@@ -1361,12 +1505,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "neo-consultation",
+        "candidateStatus": "requires-full-flow-port-and-verification",
+        "canonicalRoute": null
       }
     },
     {
@@ -1391,12 +1538,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "neo-operation-room",
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/neo-operation-room/"
       }
     },
     {
@@ -1421,12 +1571,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "neville-meditation",
+        "candidateStatus": "requires-full-flow-port-and-verification",
+        "canonicalRoute": null
       }
     },
     {
@@ -1451,12 +1604,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "new-year-ai",
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/new-year-ai-consultation/"
       }
     },
     {
@@ -1481,12 +1637,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "novel",
+        "candidateStatus": "requires-full-flow-port-and-verification",
+        "canonicalRoute": null
       }
     },
     {
@@ -1503,12 +1662,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "olympus-oracle",
+        "candidateStatus": "requires-full-flow-port-and-verification",
+        "canonicalRoute": null
       }
     },
     {
@@ -1541,12 +1703,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "omikuji",
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/omikuji/"
       }
     },
     {
@@ -1579,12 +1744,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "palm-reading",
+        "candidateStatus": "requires-full-flow-port-and-verification",
+        "canonicalRoute": null
       }
     },
     {
@@ -1601,12 +1769,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "personal-charm",
+        "candidateStatus": "requires-full-flow-port-and-verification",
+        "canonicalRoute": null
       }
     },
     {
@@ -1631,12 +1802,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "physiognomy",
+        "candidateStatus": "requires-full-flow-port-and-verification",
+        "canonicalRoute": null
       }
     },
     {
@@ -1653,12 +1827,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "points",
+        "candidateStatus": "requires-full-flow-port-and-verification",
+        "canonicalRoute": null
       }
     },
     {
@@ -1683,12 +1860,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "psychotest",
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/psychotest/"
       }
     },
     {
@@ -1705,12 +1885,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "quantum-saju",
+        "candidateStatus": "requires-full-flow-port-and-verification",
+        "canonicalRoute": null
       }
     },
     {
@@ -1727,12 +1910,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "relationship-boundaries",
+        "candidateStatus": "requires-full-flow-port-and-verification",
+        "canonicalRoute": null
       }
     },
     {
@@ -1757,12 +1943,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "royal-tea-oracle",
+        "candidateStatus": "requires-full-flow-port-and-verification",
+        "canonicalRoute": null
       }
     },
     {
@@ -1795,12 +1984,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "saju",
+        "candidateStatus": "requires-full-flow-port-and-verification",
+        "canonicalRoute": null
       }
     },
     {
@@ -1817,12 +2009,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "saju-guardian",
+        "candidateStatus": "requires-full-flow-port-and-verification",
+        "canonicalRoute": null
       }
     },
     {
@@ -1835,16 +2030,19 @@
           "name": "사주 궁합",
           "entry": "/saju/compatibility/",
           "featureKey": "compat-saju-compatibility",
-          "accessEvidence": "10,000원"
+          "accessEvidence": "5,000원"
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "saju-compatibility",
+        "candidateStatus": "requires-full-flow-port-and-verification",
+        "canonicalRoute": null
       }
     },
     {
@@ -1861,12 +2059,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "saju-fpti",
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/saju-fpti/"
       }
     },
     {
@@ -1879,7 +2080,7 @@
           "name": "사주 가디언 소환진",
           "entry": "openSajuGuardianPage",
           "featureKey": "saju-guardian-unlock",
-          "accessEvidence": "7,000원"
+          "accessEvidence": "5,000원"
         },
         {
           "source": "shell-visual-details",
@@ -1891,12 +2092,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "saju-guardian",
+        "candidateStatus": "requires-full-flow-port-and-verification",
+        "canonicalRoute": null
       }
     },
     {
@@ -1913,12 +2117,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "life-book-ai",
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/life-book-ai/"
       }
     },
     {
@@ -1943,12 +2150,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "saju-sibyl",
+        "candidateStatus": "requires-full-flow-port-and-verification",
+        "canonicalRoute": null
       }
     },
     {
@@ -1965,12 +2175,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "secret-house",
+        "candidateStatus": "requires-full-flow-port-and-verification",
+        "canonicalRoute": null
       }
     },
     {
@@ -1987,12 +2200,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "stonehenge-runes",
+        "candidateStatus": "requires-full-flow-port-and-verification",
+        "canonicalRoute": null
       }
     },
     {
@@ -2017,12 +2233,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "stonehenge-runes",
+        "candidateStatus": "requires-full-flow-port-and-verification",
+        "canonicalRoute": null
       }
     },
     {
@@ -2047,12 +2266,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "sukuyo",
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/sukuyo"
       }
     },
     {
@@ -2069,12 +2291,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "sukuyo-compatibility-ai",
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/sukuyo-compatibility-ai/"
       }
     },
     {
@@ -2091,12 +2316,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "flower",
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/flower"
       }
     },
     {
@@ -2121,12 +2349,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "sukuyo",
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/sukuyo"
       }
     },
     {
@@ -2159,12 +2390,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "tarot",
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/tarot-library"
       }
     },
     {
@@ -2177,7 +2411,7 @@
           "name": "천체의 선율",
           "entry": "/celestial-harmony.html",
           "featureKey": "tarot-celestial-harmony",
-          "accessEvidence": "10,000원"
+          "accessEvidence": "5,000원"
         },
         {
           "source": "shell-visual-details",
@@ -2189,12 +2423,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "tarot-celestial-harmony",
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/tarot-library"
       }
     },
     {
@@ -2219,12 +2456,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "tarot-crystal-soul",
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/tarot-library"
       }
     },
     {
@@ -2249,12 +2489,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "tarot-ijik",
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/tarot-library"
       }
     },
     {
@@ -2279,12 +2522,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "tarot-love-relationship",
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/tarot-library"
       }
     },
     {
@@ -2309,12 +2555,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "tarot-mindscan",
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/tarot-library"
       }
     },
     {
@@ -2339,12 +2588,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "tarot-numerology",
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/tarot-library"
       }
     },
     {
@@ -2369,12 +2621,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "tarot-prompt-maker",
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/tarot-library"
       }
     },
     {
@@ -2399,12 +2654,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "tarot-reunion",
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/tarot-library"
       }
     },
     {
@@ -2417,7 +2675,7 @@
           "name": "십이지신 천운 타로",
           "entry": "openTarotYearFortuneModal",
           "featureKey": "tarot-year-fortune",
-          "accessEvidence": "10,000원"
+          "accessEvidence": "5,000원"
         },
         {
           "source": "shell-visual-details",
@@ -2429,12 +2687,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "tarot-year-fortune",
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/tarot-library"
       }
     },
     {
@@ -2459,12 +2720,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "today-hub",
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/daily"
       }
     },
     {
@@ -2497,12 +2761,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "vedic",
+        "candidateStatus": "requires-full-flow-port-and-verification",
+        "canonicalRoute": null
       }
     },
     {
@@ -2519,12 +2786,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "vedic-ai",
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/vedic-ai/"
       }
     },
     {
@@ -2537,12 +2807,15 @@
         }
       ],
       "toss": {
-        "screen": "saju-preview-only",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "yeongnyangi",
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/catalog"
       }
     },
     {
@@ -2567,12 +2840,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "yoga-guru",
+        "candidateStatus": "requires-full-flow-port-and-verification",
+        "canonicalRoute": null
       }
     },
     {
@@ -2605,12 +2881,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "ziwei",
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/ziwei/chart"
       }
     },
     {
@@ -2635,12 +2914,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "ziwei-ai",
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/ziwei-ai/"
       }
     },
     {
@@ -2657,12 +2939,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "ziwei-deep-report",
+        "candidateStatus": "requires-full-flow-port-and-verification",
+        "canonicalRoute": null
       }
     },
     {
@@ -2679,12 +2964,15 @@
         }
       ],
       "toss": {
-        "screen": "not-ported",
+        "screen": "not-independently-verified",
         "login": "not-verified",
         "iapSku": null,
         "result": "not-verified",
         "library": "not-verified",
-        "device": "not-tested"
+        "device": "not-tested",
+        "canonicalId": "flower",
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/flower"
       }
     }
   ],
@@ -2692,7 +2980,8 @@
     {
       "id": "animal-destiny",
       "discoveryIds": [
-        "animal-destiny"
+        "animal-destiny",
+        "animal-guardian-unlock"
       ],
       "evidence": [
         {
@@ -2701,7 +2990,7 @@
           "name": "십이운성 동물점",
           "entry": "/saju/animal-destiny/",
           "featureKey": "animal-destiny-unlock",
-          "accessEvidence": "7,000원"
+          "accessEvidence": "묶음 포함"
         },
         {
           "source": "shell-visual-details",
@@ -2710,22 +2999,7 @@
           "entry": "/saju/animal-destiny/",
           "featureKey": null,
           "accessEvidence": null
-        }
-      ],
-      "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
-      "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
-    },
-    {
-      "id": "animal-guardian-unlock",
-      "discoveryIds": [
-        "animal-guardian-unlock"
-      ],
-      "evidence": [
+        },
         {
           "source": "shell-visual-details",
           "id": "animal-guardian-unlock",
@@ -2735,7 +3009,10 @@
           "accessEvidence": null
         }
       ],
-      "aliasEvidence": [],
+      "aliasEvidence": [
+        "js/core/service-registry.js:animal-destiny-unlock",
+        "index.html:animal-guardian-unlock.inlineAliases"
+      ],
       "status": "requires-full-flow-port-and-verification",
       "tossRoute": null,
       "sku": null,
@@ -2837,12 +3114,13 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/astrology-ai/",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "worker/toss/native-astrology.js + nativeAstrologyContract",
+      "resultRenderer": "app/astrology-ai/AstrologyAiClient.tsx + app/astrology-ai/result/AstrologyAiResultClient.tsx",
+      "storageContract": "owned-TossPurchase and Toss-origin AstrologyAiConsultation; approved SKU, durable checkout, policy and device verification pending",
+      "verification": "mock-contracts-only; complete flow and official sandbox not verified"
     },
     {
       "id": "bias-destiny",
@@ -2886,8 +3164,8 @@
           "id": "career-style",
           "name": "나의 일 스타일",
           "entry": "/saju/career-style/",
-          "featureKey": null,
-          "accessEvidence": "무료 시작"
+          "featureKey": "saju-career-style",
+          "accessEvidence": "묶음 포함"
         }
       ],
       "aliasEvidence": [],
@@ -2933,7 +3211,7 @@
           "name": "운명의 나침반",
           "entry": "/destiny-compass/",
           "featureKey": "destiny-compass-life-voyage",
-          "accessEvidence": "7,000원"
+          "accessEvidence": "5,000원"
         },
         {
           "source": "shell-visual-details",
@@ -3060,7 +3338,10 @@
           "accessEvidence": null
         }
       ],
-      "aliasEvidence": [],
+      "aliasEvidence": [
+        "js/core/saju/reportDashboard.js:trip -> energyCoordCard",
+        "index.html:energy-travel.inlineAliases -> rpt_energyCoordCard"
+      ],
       "status": "requires-full-flow-port-and-verification",
       "tossRoute": null,
       "sku": null,
@@ -3215,11 +3496,12 @@
       ],
       "aliasEvidence": [],
       "status": "local-partial",
-      "tossRoute": "/catalog",
+      "tossRoute": "/fortune-tea-house/?counsel=letter",
       "sku": null,
-      "inputContract": "worker/toss/services.js",
-      "resultRenderer": "apps/toss/src/App.tsx",
-      "storageContract": "persona-bound-TossPurchase-to-YeongnyangiRequest"
+      "inputContract": "worker/toss/letter.js + worker/toss/services.js",
+      "resultRenderer": "apps/toss/service/TossLetterRoom.tsx + app/fortune-chat/ConsultationIntake.tsx",
+      "storageContract": "persona-bound-TossPurchase-to-YeongnyangiRequest; official device and approved SKU pending",
+      "verification": "original Yeoni letter intake and owner-bound recovery are mocked; full web parity and device tests pending"
     },
     {
       "id": "fortune-tea-house",
@@ -3245,12 +3527,12 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/fortune-tea-house/",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "worker/toss/native-tea.js",
+      "resultRenderer": "apps/toss/service/Screens.jsx",
+      "storageContract": "owned-TossPurchase; device-and-console-approval-pending"
     },
     {
       "id": "fusion-fortune",
@@ -3276,12 +3558,12 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/fusion-fortune/",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "worker/toss/native-fusion.js",
+      "resultRenderer": "apps/toss/service/Fusion.jsx",
+      "storageContract": "owned-TossPurchase; device-and-console-approval-pending"
     },
     {
       "id": "geomancy-oracle",
@@ -3329,7 +3611,10 @@
           "accessEvidence": null
         }
       ],
-      "aliasEvidence": [],
+      "aliasEvidence": [
+        "js/core/saju/reportDashboard.js:sajuhealth -> healthReportCard",
+        "index.html:health-rhythm.inlineAliases -> rpt_healthReportCard"
+      ],
       "status": "requires-full-flow-port-and-verification",
       "tossRoute": null,
       "sku": null,
@@ -3361,12 +3646,13 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/human-design",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "worker/toss/human-design.js + original human-design ephemeris",
+      "resultRenderer": "apps/toss/src/HumanDesignChart.tsx + original interactive BodyGraph and DetailSheet",
+      "storageContract": "screen-only free chart; no saved result or cross-device recovery",
+      "verification": "offline mock and local Swiss ephemeris (one independently recorded 26-activation chart), original graph, calendar, auth, session and back checks; full free-screen parity, production astronomy configuration, previously paid guides, premium report and official device remain unverified"
     },
     {
       "id": "ifa-oracle",
@@ -3454,12 +3740,13 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/karma-destiny-ai/",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "worker/toss/native-karma.js + nativeKarmaContract",
+      "resultRenderer": "apps/toss/service/TossKarma.tsx + app/karma-destiny-ai/result/KarmaDestinyAiResultClient.tsx",
+      "storageContract": "owner-scoped Toss intent and original KarmaDestinyAiConsultation; approved SKU, purchaser binding, durable checkout and device verification pending",
+      "verification": "mock purchase, follow-up authorization and recovery, lunar leap validation and local mobile layout only; other locales, AI policy, official device and complete flow not verified"
     },
     {
       "id": "kemet-oracle",
@@ -3528,12 +3815,12 @@
         "js/core/service-registry.js",
         "app/_lib/serviceFeatureRegistry.ts"
       ],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/life-book-ai/",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "worker/toss/native-life-book.js",
+      "resultRenderer": "apps/toss/service/LifeBook.jsx",
+      "storageContract": "owned-TossPurchase; device-and-console-approval-pending"
     },
     {
       "id": "life-fortune-report",
@@ -3551,12 +3838,13 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/life-book-ai/",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "worker/routes/life-book-ai.js:nativeLifeBookContract (lifeFortune mode)",
+      "resultRenderer": "apps/toss/service/LifeBook.jsx + app/life-book-ai/LifeBookAiClient.tsx",
+      "storageContract": "owned-TossPurchase with life-fortune-ai-consultation feature; device-and-console-approval-pending",
+      "verification": "apps/toss/test/fusion-billing.test.mjs covers payload and request id only; full parity pending"
     },
     {
       "id": "life-skill-tree",
@@ -3573,7 +3861,10 @@
           "accessEvidence": null
         }
       ],
-      "aliasEvidence": [],
+      "aliasEvidence": [
+        "js/core/saju/reportDashboard.js:sajurpg -> skillTreeCard",
+        "index.html:life-skill-tree.inlineAliases -> rpt_skillTreeCard"
+      ],
       "status": "requires-full-flow-port-and-verification",
       "tossRoute": null,
       "sku": null,
@@ -3639,12 +3930,13 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/love-secret-ai/",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "worker/toss/native-love-secret.js",
+      "resultRenderer": "apps/toss/service/LoveSecret.jsx + app/love-secret-ai/result/LoveSecretAiResultClient.tsx",
+      "storageContract": "owned Toss purchase, Toss-origin consultation and verified follow-up recovery; approved SKU, purchaser binding, durable checkout and device verification pending",
+      "verification": "mock result and follow-up access, refund and account-switch tests; legacy unmarked web records, AI policy and official device remain unverified"
     },
     {
       "id": "luck-sync-diary",
@@ -3675,7 +3967,20 @@
       "sku": null,
       "inputContract": null,
       "resultRenderer": null,
-      "storageContract": null
+      "storageContract": null,
+      "subfeatures": [
+        {
+          "id": "fortunePlanner",
+          "entry": "/diary/",
+          "status": "requires-full-flow-port-and-verification"
+        },
+        {
+          "id": "legacyLuckSyncDiary",
+          "entry": "js/luck-sync-diary.js:openLegacyLuckSyncDiary",
+          "status": "requires-full-flow-port-and-verification",
+          "verification": "legacy stored records and migration not verified"
+        }
+      ]
     },
     {
       "id": "manse",
@@ -3786,12 +4091,13 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/maya/",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "worker/toss/maya-contract.js",
+      "resultRenderer": "apps/toss/service/TossMayaPrompt.tsx + src/components/maya/MayaCalendarView.tsx",
+      "storageContract": "owner-scoped prepared input, paid prompt and explicit unassigned-order recovery; production index and approved SKU pending",
+      "verification": "mock purchase, account/refund checks and draft recovery; source UI 3000 KRW conflicts with server registry 5000 KRW, actual SKU price, external-AI prompt policy and official device not verified"
     },
     {
       "id": "mbti-animal-compat",
@@ -3929,7 +4235,7 @@
           "name": "동서 통합 궁합",
           "entry": "/nakshatra/compat/",
           "featureKey": "nakshatra-compat",
-          "accessEvidence": "20,000원"
+          "accessEvidence": "5,000원"
         },
         {
           "source": "shell-visual-details",
@@ -3960,7 +4266,7 @@
           "name": "택일 무후르타",
           "entry": "/nakshatra/muhurta/",
           "featureKey": "nakshatra-muhurta",
-          "accessEvidence": "7,000원"
+          "accessEvidence": "5,000원"
         },
         {
           "source": "shell-visual-details",
@@ -3991,7 +4297,7 @@
           "name": "나크샤트라 VVIP 코덱스",
           "entry": "/nakshatra/vvip/",
           "featureKey": "nakshatra-vvip-codex",
-          "accessEvidence": "30,000원"
+          "accessEvidence": "5,000원"
         },
         {
           "source": "shell-visual-details",
@@ -4088,12 +4394,12 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/neo-operation-room/",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "worker/toss/native-neo.js",
+      "resultRenderer": "apps/toss/service/Screens.jsx",
+      "storageContract": "owned-TossPurchase; device-and-console-approval-pending"
     },
     {
       "id": "neville-meditation",
@@ -4150,12 +4456,13 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/new-year-ai-consultation/",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "worker/toss/native-new-year.js + nativeNewYearContract",
+      "resultRenderer": "app/new-year-ai-consultation/NewYearAiClient.tsx",
+      "storageContract": "owned Toss purchase and Toss-origin NewYearAiConsultation; approved SKU, durable checkout, policy and device verification pending",
+      "verification": "mock contracts, local mobile layout and build only; Japanese input states results are Korean; other locale quality, official device and full flow not verified"
     },
     {
       "id": "novel",
@@ -4243,12 +4550,13 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/omikuji/",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "public/emoi_omikuji_v2.html canonical deterministic engine",
+      "resultRenderer": "apps/toss/service/TossOmikuji.jsx",
+      "storageContract": "signed-in owner-scoped session-only input and result recovery; guest result remains in memory; no cross-device record",
+      "verification": "local React mock validates draw, reroll, back, session restore, account switch, clipboard permission and native share; guest recovery, official device, console permission and policy verification pending"
     },
     {
       "id": "palm-reading",
@@ -4304,7 +4612,10 @@
           "accessEvidence": null
         }
       ],
-      "aliasEvidence": [],
+      "aliasEvidence": [
+        "js/core/saju/reportDashboard.js:meryok -> specialCharmCard",
+        "index.html:personal-charm.inlineAliases -> rpt_specialCharmCard"
+      ],
       "status": "requires-full-flow-port-and-verification",
       "tossRoute": null,
       "sku": null,
@@ -4322,12 +4633,13 @@
           "api": "/api/pet-saju/blueprint"
         }
       ],
-      "status": "not-ported",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/pet-saju/",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "worker/toss/pet-saju.js deterministic blueprint + worker/toss/pet-paid-contract.js paid inputs",
+      "resultRenderer": "apps/toss/service/TossPetSaju.tsx with original sprite artwork and paid report reader",
+      "storageContract": "up to five free pet inputs in current screen memory; no app-restart or cross-device recovery of that list. Paid results use an owned order and intent in worker/toss/native-pet-paid.js",
+      "verification": "local mock covers all 10 free species, paid report and compatibility checkout, intent resume, library ownership and recovery. Original screen displays 3000 KRW per paid feature while server registry specifies 5000 KRW; approved SKUs, saved pets, device verification and official purchase recovery remain pending"
     },
     {
       "id": "physiognomy",
@@ -4407,12 +4719,13 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/psychotest/",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "22 original tests in src/features/psychotest/data/testData.ts",
+      "resultRenderer": "apps/toss/service/TossPsychotest.tsx + src/features/psychotest/TestPlayer.tsx",
+      "storageContract": "owner-scoped in-memory results for the current screen session only; app restart and cross-device recovery absent",
+      "verification": "local React mock exercises 22 result paths, back, account switch and clipboard permissions; clinical wording and fabricated fixed trait scores narrowed for Toss; complete editorial audit, official policy, screen-reader and device verification pending"
     },
     {
       "id": "quantum-saju",
@@ -4429,7 +4742,10 @@
           "accessEvidence": null
         }
       ],
-      "aliasEvidence": [],
+      "aliasEvidence": [
+        "js/core/saju/reportDashboard.js:quantum -> quantumCard",
+        "index.html:quantum-saju.inlineAliases -> rpt_quantumCard"
+      ],
       "status": "requires-full-flow-port-and-verification",
       "tossRoute": null,
       "sku": null,
@@ -4452,13 +4768,36 @@
           "accessEvidence": null
         }
       ],
-      "aliasEvidence": [],
+      "aliasEvidence": [
+        "js/core/saju/reportDashboard.js:vilun -> villainCard",
+        "index.html:relationship-boundaries.inlineAliases -> rpt_villainCard"
+      ],
       "status": "requires-full-flow-port-and-verification",
       "tossRoute": null,
       "sku": null,
       "inputContract": null,
       "resultRenderer": null,
       "storageContract": null
+    },
+    {
+      "id": "relationship-boundary-test",
+      "discoveryIds": [],
+      "evidence": [
+        {
+          "source": "js/core/saju/reportDashboard.js:relationshipTemptation",
+          "entry": "/relationship-boundary-test/",
+          "implementation": "app/relationship-boundary-test/page.tsx",
+          "featureKey": "relationship-boundary-test",
+          "accessEvidence": "independent paid report"
+        }
+      ],
+      "status": "local-partial",
+      "tossRoute": "/relationship-boundary-test/",
+      "sku": null,
+      "inputContract": "worker/routes/relationship-boundary-test.js:nativeRelationshipContract + worker/toss/native-relationship.js",
+      "resultRenderer": "apps/toss/service/TossRelationship.tsx + app/relationship-boundary-test/RelationshipReportParts.tsx",
+      "storageContract": "owner-scoped Toss intent and relationship report, paid-order check before results and resume; production index and approved SKU pending",
+      "verification": "local mock checkout, price changes, account and refund boundaries, partial result, recovery and native back; order buyer binding, order-ID-less checkout uncertainty, generation failure handling, policy and official device remain unverified"
     },
     {
       "id": "royal-tea-oracle",
@@ -4528,30 +4867,51 @@
       "sku": null,
       "inputContract": null,
       "resultRenderer": null,
-      "storageContract": null
-    },
-    {
-      "id": "saju-animal",
-      "discoveryIds": [
-        "saju-animal"
-      ],
-      "evidence": [
+      "storageContract": null,
+      "subfeatures": [
         {
-          "source": "react-registry",
-          "id": "saju-animal",
-          "name": "사주 가디언 아트",
-          "entry": "/saju-guardian",
-          "featureKey": null,
-          "accessEvidence": "free"
+          "id": "sajuprompt",
+          "target": "aiPromptCard",
+          "source": "js/core/saju/reportDashboard.js",
+          "status": "requires-full-flow-port-and-verification",
+          "accessEvidence": "dashboard points to section_summary; historic rights unverified"
+        },
+        {
+          "id": "tbal",
+          "target": "tTestCard",
+          "source": "js/core/saju/reportDashboard.js",
+          "status": "requires-full-flow-port-and-verification",
+          "accessEvidence": "dashboard points to section_summary; historic rights unverified"
+        },
+        {
+          "id": "tetoegen",
+          "target": "hormone-vibe-section",
+          "source": "js/core/saju/reportDashboard.js",
+          "status": "requires-full-flow-port-and-verification",
+          "accessEvidence": "dashboard points to section_summary; historic rights unverified"
+        },
+        {
+          "id": "lotto",
+          "target": "lottoCard",
+          "source": "js/core/saju/reportDashboard.js",
+          "status": "requires-full-flow-port-and-verification",
+          "accessEvidence": "dashboard says Saju bundle; separate entitlement mapping unverified"
+        },
+        {
+          "id": "4CUT",
+          "target": "sajuFourCutCard",
+          "source": "js/core/saju/reportDashboard.js",
+          "status": "requires-full-flow-port-and-verification",
+          "accessEvidence": "dashboard points to section_summary; historic rights unverified"
+        },
+        {
+          "id": "dopamine",
+          "target": "dopamineCard",
+          "source": "js/core/saju/reportDashboard.js",
+          "status": "requires-full-flow-port-and-verification",
+          "accessEvidence": "dashboard points to section_summary; historic rights unverified"
         }
-      ],
-      "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
-      "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      ]
     },
     {
       "id": "saju-compatibility",
@@ -4565,7 +4925,7 @@
           "name": "사주 궁합",
           "entry": "/saju/compatibility/",
           "featureKey": "compat-saju-compatibility",
-          "accessEvidence": "10,000원"
+          "accessEvidence": "5,000원"
         }
       ],
       "aliasEvidence": [],
@@ -4592,26 +4952,36 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/saju-fpti/",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "lib/fpti/fpti-adapter.ts",
+      "resultRenderer": "apps/toss/service/TossFpti.tsx",
+      "storageContract": "same-tab owner-scoped free result only; profile entitlement and permanent premium report not ported",
+      "verification": "mock UI and original calculation only; free-screen parity, approved permanent rights and official device pending"
     },
     {
       "id": "saju-guardian",
       "discoveryIds": [
+        "saju-animal",
         "saju-guardian"
       ],
       "evidence": [
+        {
+          "source": "react-registry",
+          "id": "saju-animal",
+          "name": "사주 가디언 아트",
+          "entry": "/saju-guardian",
+          "featureKey": null,
+          "accessEvidence": "free"
+        },
         {
           "source": "home-registry",
           "id": "saju-guardian",
           "name": "사주 가디언 소환진",
           "entry": "openSajuGuardianPage",
           "featureKey": "saju-guardian-unlock",
-          "accessEvidence": "7,000원"
+          "accessEvidence": "5,000원"
         },
         {
           "source": "shell-visual-details",
@@ -4622,13 +4992,18 @@
           "accessEvidence": null
         }
       ],
-      "aliasEvidence": [],
+      "aliasEvidence": [
+        "index.html:openSajuGuardianPage -> /saju-guardian",
+        "app/_lib/serviceFeatureRegistry.ts:saju-animal.launchRoute",
+        "app/saju-guardian/SajuGuardianClient.tsx:verifyGuardianUnlockAccess; registry free/paid descriptions conflict"
+      ],
       "status": "requires-full-flow-port-and-verification",
       "tossRoute": null,
       "sku": null,
       "inputContract": null,
       "resultRenderer": null,
-      "storageContract": null
+      "storageContract": null,
+      "verification": "same screen; free registry description conflicts with paid unlock evidence; access contract must be reconciled before port"
     },
     {
       "id": "saju-sibyl",
@@ -4770,12 +5145,13 @@
         "js/core/service-registry.js",
         "app/_lib/serviceFeatureRegistry.ts"
       ],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/sukuyo",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "worker/toss/sukuyo-basic.js + canonical Sukuyo domain and free dashboard",
+      "resultRenderer": "apps/toss/src/SukuyoBasic.tsx",
+      "storageContract": "screen-only; no result storage or cross-device recovery",
+      "verification": "local offline canonical calculation plus 27 synthetic lunar sectors, home/direct route, native-back and session-isolation checks; original annual flow, relationship tools, paid nature/compatibility rights, editorial review and official device remain incomplete"
     },
     {
       "id": "sukuyo-compatibility-ai",
@@ -4793,12 +5169,13 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/sukuyo-compatibility-ai/",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "worker/toss/native-sukuyo.js + nativeSukuyoContract",
+      "resultRenderer": "apps/toss/service/TossSukuyoGate.tsx + app/sukuyo-compatibility-ai/SukuyoCompatibilityAiClient.tsx",
+      "storageContract": "owner-scoped Toss intent and Toss-origin SukuyoCompatibilityAiConsultation; verified saved-input selection or explicit new input for unassigned orders; bounded explicit retry after authorized generation failure",
+      "verification": "local SDK mock purchase, result reload, selected-input recovery, account isolation and back-event checks only; production recovery index, approved SKU, purchaser binding, durable checkout, safety policy and official device pending"
     },
     {
       "id": "tarot",
@@ -4852,7 +5229,7 @@
           "name": "천체의 선율",
           "entry": "/celestial-harmony.html",
           "featureKey": "tarot-celestial-harmony",
-          "accessEvidence": "10,000원"
+          "accessEvidence": "5,000원"
         },
         {
           "source": "shell-visual-details",
@@ -5144,7 +5521,7 @@
           "name": "십이지신 천운 타로",
           "entry": "openTarotYearFortuneModal",
           "featureKey": "tarot-year-fortune",
-          "accessEvidence": "10,000원"
+          "accessEvidence": "5,000원"
         },
         {
           "source": "shell-visual-details",
@@ -5207,12 +5584,12 @@
       "aliasEvidence": [
         "js/core/service-registry.js"
       ],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/daily",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "worker/toss/daily.js",
+      "resultRenderer": "apps/toss/src/DailyReadings.tsx",
+      "storageContract": "server-owned-daily-result; horary-and-full-web-parity-pending"
     },
     {
       "id": "vedic",
@@ -5269,12 +5646,13 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/vedic-ai/",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "worker/toss/native-vedic.js + nativeVedicContract",
+      "resultRenderer": "app/vedic-ai/VedicAiClient.tsx",
+      "storageContract": "owned Toss purchase and Toss-origin VedicAiConsultation; approved SKU, durable checkout, policy and device verification pending",
+      "verification": "mock contracts, local mobile layout and build only; official Toss device and full flow not verified"
     },
     {
       "id": "yeongnyangi",
@@ -5358,12 +5736,13 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/ziwei/chart",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "BirthFields + normalizeZiweiInput + calculateZiweiChart; domestic locations only",
+      "resultRenderer": "apps/toss/src/ZiweiChart.tsx + canonical ZiweiPalaceGrid",
+      "storageContract": "current screen only; clear input and chart on session replacement or exit",
+      "verification": "basic twelve-palace chart only; original detailed readings, profile recovery, device navigation and accessibility pending"
     },
     {
       "id": "ziwei-ai",
@@ -5389,12 +5768,13 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/ziwei-ai/",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "worker/toss/native-ziwei.js + nativeZiweiContract",
+      "resultRenderer": "app/ziwei-ai/ZiweiAiClient.tsx",
+      "storageContract": "owned Toss purchase and Toss-origin ZiweiAiConsultation; approved SKU, durable checkout, policy and device verification pending",
+      "verification": "mock contracts, local mobile layout and build only; Japanese input states results are Korean; other locale quality, official device and full flow not verified"
     },
     {
       "id": "ziwei-deep-report",

@@ -39,7 +39,7 @@ const loveSecretFaqItems = [
 
 
 export default function LoveSecret(){return <>
-  <LoveSecretAiClient paymentNotice={SERVICE_AVAILABLE?'토스 단건 결제로 상담을 시작해요. 기존 웹 이용권과 월정석은 이 결제에 적용되지 않아요.':'상품 등록과 검수가 완료되면 토스 단건 결제로 상담을 시작할 수 있어요.'}/>
+  <LoveSecretAiClient paymentSurface="toss" paymentNotice={SERVICE_AVAILABLE?'토스 단건 결제로 상담을 시작해요. 기존 웹 이용권과 월정석은 이 결제에 적용되지 않아요.':'상품 등록과 검수가 완료되면 토스 단건 결제로 상담을 시작할 수 있어요.'}/>
   <ResultSamples ids={['love-secret']}/>
 
 <ServiceIntroSection label="연애 비책 전문가 상담 안내">

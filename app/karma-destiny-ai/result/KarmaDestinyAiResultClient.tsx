@@ -5,9 +5,10 @@ import Link from "next/link";
 import { authFetch } from "@/app/_lib/auth-client";
 import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
 import { useSearchParams } from "next/navigation";
-import { Fragment, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, Suspense, useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { ArrowLeft, ChevronDown, ChevronUp, Copy, Download, Loader2, Menu, RefreshCw, X } from "lucide-react";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
+import {tossConsultationCopy} from "@/app/_lib/toss-consultation-copy";
 import ConsultationReading from "@/components/fortune/ConsultationReading";
 import ResultReference from "@/components/fortune/ResultReference";
 import ConsultationShare from "@/components/fortune/ConsultationShare";
@@ -813,7 +814,7 @@ function useKarmaResultCopy(): KarmaResultCopy {
   return getKarmaResultCopy(locale);
 }
 
-async function requestJson<T>(url: string, init: RequestInit | undefined, copy: KarmaResultCopy): Promise<T> {
+async function requestJson<T>(url: string, init: RequestInit | undefined, copy: KarmaResultCopy, strict = false): Promise<T> {
   const response = await authFetch(url, {
     credentials: "include",
     cache: "no-store",
@@ -824,15 +825,28 @@ async function requestJson<T>(url: string, init: RequestInit | undefined, copy: 
     },
   });
   const payload = await response.json().catch(() => ({}));
-  if (!response.ok && payload?.ok !== true) {
-    const error = new Error(payload?.message || copy.loadFailed) as Error & { retryable?: boolean };
-    error.retryable = response.status === 503 && payload?.retryable === true;
+  if ((!response.ok && (strict || payload?.ok !== true)) || (strict && (payload?.ok !== true || (payload?.status === "completed" && payload?.saved !== true)))) {
+    const error = new Error(payload?.message || copy.loadFailed) as Error & { retryable?: boolean; status?:number; code?:string };
+    error.status = response.status;
+    error.code = payload?.code || payload?.reason || payload?.error?.code || (strict && response.ok ? "RESULT_UNAVAILABLE" : undefined);
+    error.retryable = response.status === 503 && typeof payload?.retryable === "boolean" ? payload.retryable : undefined;
     throw error;
   }
   return payload as T;
 }
 
 const DATE_GENERATING_EN = "Generating";
+const TOSS_RECOVERY_LABEL:Record<LoadingLocale,string>={ko:"구매 내역 복구",en:"Recover purchases",ja:"購入履歴を復元", "zh-CN":"恢复购买记录", "zh-TW":"恢復購買紀錄",vi:"Khôi phục giao dịch",hi:"खरीद पुनर्स्थापित करें",es:"Recuperar compras",fr:"Restaurer les achats",de:"Käufe wiederherstellen",nl:"Aankopen herstellen",ms:"Pulihkan pembelian"};
+const TOSS_FOLLOW_UP:Record<LoadingLocale,[string,string,string,string]>={
+  ko:["추가 질문","궁금한 내용을 이어서 물어보세요.","질문하기","답변을 확인하고 있어요."],en:["Follow-up question","Ask about what you would like to explore further.","Ask","Checking your answer."],ja:["追加の質問","さらに知りたいことを質問してください。","質問する","回答を確認しています。"],
+  "zh-CN":["追加提问","请继续提出想了解的问题。","提问","正在确认回答。"],"zh-TW":["追加提問","請繼續提出想了解的問題。","提問","正在確認回答。"],vi:["Câu hỏi tiếp theo","Hãy hỏi thêm điều bạn muốn tìm hiểu.","Gửi câu hỏi","Đang kiểm tra câu trả lời."],hi:["अगला प्रश्न","जिस बारे में और जानना चाहें, पूछें।","पूछें","उत्तर की जाँच हो रही है।"],
+  es:["Pregunta adicional","Pregunta lo que quieras explorar más.","Preguntar","Comprobando la respuesta."],fr:["Question complémentaire","Posez une question pour approfondir.","Demander","Vérification de la réponse."],de:["Weitere Frage","Frage nach dem, was du vertiefen möchtest.","Fragen","Antwort wird geprüft."],nl:["Vervolgvraag","Vraag wat je verder wilt onderzoeken.","Vragen","Antwoord controleren."],ms:["Soalan lanjutan","Tanya perkara yang ingin anda ketahui lebih lanjut.","Tanya","Menyemak jawapan."]
+};
+const TOSS_FOLLOW_FAILURE:Record<LoadingLocale,[string,string]>={
+  ko:["답변을 확인하지 못했어요. 같은 질문으로 다시 확인해 주세요.","답변 확인을 위해 고객지원에 문의해 주세요."],en:["Could not check the answer. Please retry the same question.","Contact support to check your answer."],ja:["回答を確認できませんでした。同じ質問でもう一度お試しください。","回答の確認についてサポートにお問い合わせください。"],
+  "zh-CN":["无法确认回答，请用同一问题重试。","请联系客服确认回答。"],"zh-TW":["無法確認回答，請用相同問題重試。","請聯絡客服確認回答。"],vi:["Không thể kiểm tra câu trả lời. Hãy thử lại cùng câu hỏi.","Liên hệ hỗ trợ để kiểm tra câu trả lời."],hi:["उत्तर की जाँच नहीं हो सकी। वही प्रश्न फिर भेजें।","उत्तर की जाँच के लिए सहायता से संपर्क करें।"],
+  es:["No se pudo comprobar la respuesta. Repite la misma pregunta.","Contacta con soporte para comprobar tu respuesta."],fr:["Impossible de vérifier la réponse. Réessayez la même question.","Contactez le support pour vérifier votre réponse."],de:["Die Antwort konnte nicht geprüft werden. Versuche dieselbe Frage erneut.","Kontaktiere den Support, um die Antwort zu prüfen."],nl:["Het antwoord kon niet worden gecontroleerd. Probeer dezelfde vraag opnieuw.","Neem contact op met de klantenservice voor je antwoord."],ms:["Jawapan tidak dapat disemak. Cuba soalan yang sama sekali lagi.","Hubungi sokongan untuk menyemak jawapan anda."]
+};
 const DATE_GENERATING_COPY: Partial<Record<LoadingLocale, string>> = {
   ko: "생성 중", ja: "生成中", "zh-CN": "生成中", "zh-TW": "生成中", vi: "Đang tạo",
   hi: "बन रहा है", es: "Generando", fr: "Génération en cours", de: "Wird erstellt",
@@ -849,8 +863,10 @@ function formatDate(value: string | undefined, locale: LoadingLocale) {
 
 type Density = "full" | "summary";
 
-function KarmaDestinyResultInner() {
+function KarmaDestinyResultInner({paymentSurface}:{paymentSurface:"web"|"toss"}) {
   const copy = useKarmaResultCopy();
+  const tossLocale=getCurrentLoadingLocale(),tossCopy=tossConsultationCopy(tossLocale);
+  const tossLogin=tossCopy.login,tossDeniedMessage=tossCopy.denied,tossUncertain=tossCopy.uncertain,tossRefunded=tossCopy.refunded;
   const searchParams = useSearchParams();
   const [recoveredSessionId, setRecoveredSessionId] = useState("");
   const [resumeEpoch, setResumeEpoch] = useState(0);
@@ -861,6 +877,11 @@ function KarmaDestinyResultInner() {
   const [tocOpen, setTocOpen] = useState(false);
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
+  const [tossDenied, setTossDenied] = useState(false);
+  const [followQuestion, setFollowQuestion] = useState("");
+  const [followError, setFollowError] = useState("");
+  const [followSending, setFollowSending] = useState(false);
+  const followLockRef = useRef<symbol|null>(null);
   const [openChapters, setOpenChapters] = useState<Set<string>>(new Set());
   const [expandedBodies, setExpandedBodies] = useState<Set<string>>(new Set());
   const [openEvidence, setOpenEvidence] = useState<Set<string>>(new Set());
@@ -870,7 +891,8 @@ function KarmaDestinyResultInner() {
   const [readCount, setReadCount] = useState(0);
   const [exporting, setExporting] = useState(false);
   const [downloading, setDownloading] = useState(false);
-  const batchInFlightRef = useRef(false);
+  const authorityRevisionRef = useRef(0);
+  const batchInFlightRef = useRef<symbol|null>(null);
   const readIdsRef = useRef<Set<string>>(new Set());
   // handleDownload 가 전 챕터를 강제로 펼치면 스크롤 없이 DOM 이 뷰포트에 들어와 "전부 읽음"
   // 으로 오염된다. state 가 아니라 ref 여야 옵저버 콜백이 최신값을 본다.
@@ -883,8 +905,9 @@ function KarmaDestinyResultInner() {
   const maxGenerationStalls = 48;
   const transientFailuresRef = useRef(0);
   const captureOwner = usePaidDeliveryScope(() => {
-    setResult(null); setError(""); setNotice(""); setRecoveredSessionId(""); setLoading(true); setContinuing(false);
-    batchInFlightRef.current = false; transientFailuresRef.current = 0; generationStallRef.current = { lastChapters: -1, stalls: 0 };
+    authorityRevisionRef.current++;
+    setResult(null); setError(""); setNotice(""); setRecoveredSessionId(""); setLoading(true); setContinuing(false); setFollowQuestion(""); setFollowError(""); setFollowSending(false); followLockRef.current = null;
+    batchInFlightRef.current = null; transientFailuresRef.current = 0; generationStallRef.current = { lastChapters: -1, stalls: 0 };
     setOpenChapters(new Set()); setExpandedBodies(new Set()); setOpenEvidence(new Set()); setReadCount(0); readIdsRef.current = new Set();
     setResumeEpoch(value => value + 1);
   });
@@ -909,8 +932,10 @@ function KarmaDestinyResultInner() {
   const todayLine = useMemo(() => pickTodayLine(report?.keyLines || []), [report?.keyLines]);
 
   const loadResult = useCallback(async () => {
-    const isCurrent = captureOwner();
-    const previewState = readDevPreviewState();
+    const owner = captureOwner(), revision = ++authorityRevisionRef.current;
+    const isCurrent = () => owner() && (paymentSurface !== "toss" || revision === authorityRevisionRef.current);
+    if (paymentSurface === "toss") {setResult(null);setLoading(true);setContinuing(false);setTossDenied(false);}
+    const previewState = paymentSurface === "toss" ? null : readDevPreviewState();
     if (previewState) {
       setResult(buildKarmaDestinyPreviewPayload(previewState) as KarmaResult);
       setError("");
@@ -918,28 +943,33 @@ function KarmaDestinyResultInner() {
       return;
     }
     try {
-      const payload = await requestJson<KarmaResult>(`/api/karma-destiny-ai/result?sessionId=${encodeURIComponent(sessionId)}`, undefined, copy);
+      const payload = await requestJson<KarmaResult>(`/api/karma-destiny-ai/result?sessionId=${encodeURIComponent(sessionId)}`, undefined, copy, paymentSurface === "toss");
       if (!isCurrent()) return;
       if (!sessionId && payload.sessionId) { setRecoveredSessionId(payload.sessionId); window.history.replaceState(null, "", `/karma-destiny-ai/result?sessionId=${encodeURIComponent(payload.sessionId)}`); }
       setResult(payload);
       setError("");
     } catch (caught) {
-      if (isCurrent()) setError(friendlyErrorMessage(caught, copy.loadFailed));
+      if (isCurrent()) {
+        const {status,code} = (caught || {}) as {status?:number;code?:string};
+        if (paymentSurface === "toss") {setResult(null);setTossDenied([401,403,409,402].includes(status || 0) || code === "RESULT_UNAVAILABLE");setError(status === 401 ? tossLogin : status === 403 ? tossDeniedMessage : ["ORDER_REFUNDED","PAYMENT_REVOKED"].includes(code || "") ? tossRefunded : tossUncertain);}
+        else setError(friendlyErrorMessage(caught, copy.loadFailed));
+      }
     } finally {
       if (isCurrent()) setLoading(false);
     }
-  }, [sessionId, copy, captureOwner]);
+  }, [sessionId, copy, captureOwner, paymentSurface, tossLogin, tossDeniedMessage, tossUncertain, tossRefunded]);
 
   const continueGeneration = useCallback(async () => {
     if (!sessionId || batchInFlightRef.current || document.visibilityState === "hidden") return;
-    const isCurrent = captureOwner();
-    batchInFlightRef.current = true;
+    const owner = captureOwner(), revision = authorityRevisionRef.current;
+    const isCurrent = () => owner() && (paymentSurface !== "toss" || revision === authorityRevisionRef.current);
+    const attempt = batchInFlightRef.current = Symbol("karma-batch");
     setContinuing(true);
     try {
       const payload = await requestJson<KarmaResult>("/api/karma-destiny-ai/generate-batch", {
         method: "POST",
         body: JSON.stringify({ sessionId }),
-      }, copy);
+      }, copy, paymentSurface === "toss");
       if (!isCurrent()) return;
       transientFailuresRef.current = 0;
       const completed = Number(payload?.generationProgress?.completedChapters ?? 0);
@@ -958,13 +988,45 @@ function KarmaDestinyResultInner() {
       }
     } catch (caught) {
       if (!isCurrent()) return;
+      const {status,code} = (caught || {}) as {status?:number;code?:string};
+      if (paymentSurface === "toss") {authorityRevisionRef.current++;setResult(null);setTossDenied([401,403,409,402].includes(status || 0) || code === "RESULT_UNAVAILABLE");setError(status === 401 ? tossLogin : status === 403 ? tossDeniedMessage : ["ORDER_REFUNDED","PAYMENT_REVOKED"].includes(code || "") ? tossRefunded : tossUncertain);return;}
       transientFailuresRef.current += 1;
       if ((caught instanceof TypeError || (caught as { retryable?: boolean })?.retryable) && transientFailuresRef.current < 6) setError("");
       else setError(friendlyErrorMessage(caught, copy.generationHalted));
     } finally {
-      if (isCurrent()) { batchInFlightRef.current = false; setContinuing(false); }
+      if (batchInFlightRef.current === attempt) {batchInFlightRef.current = null;if (owner()) setContinuing(false);}
     }
-  }, [sessionId, copy, captureOwner]);
+  }, [sessionId, copy, captureOwner, paymentSurface, tossLogin, tossDeniedMessage, tossUncertain, tossRefunded]);
+
+  const sendTossFollowUp = useCallback(async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const question = followQuestion.trim(), originalId = result?.sessionId;
+    if (paymentSurface !== "toss" || result?.status !== "completed" || !originalId || question.length < 2 || followLockRef.current) return;
+    const owner = captureOwner(), revision = authorityRevisionRef.current, attempt = followLockRef.current = Symbol("karma-follow-up");
+    const current = () => owner() && revision === authorityRevisionRef.current && followLockRef.current === attempt;
+    setFollowSending(true); setFollowError("");
+    try {
+      let payload: KarmaResult | undefined;
+      for (let count = 0; count < 4 && current(); count += 1) {
+        payload = await requestJson<KarmaResult>("/api/karma-destiny-ai/message", {method:"POST",body:JSON.stringify({sessionId:originalId,message:question})}, copy, true);
+        if (payload.status === "completed" && Array.isArray(payload.messages)) break;
+        if (payload.retryable === false) { if (current()) setFollowError(TOSS_FOLLOW_FAILURE[tossLocale][1]); return; }
+        if (count < 3) await new Promise(resolve => window.setTimeout(resolve, 1200));
+      }
+      if (!current()) return;
+      if (payload?.status !== "completed" || !Array.isArray(payload.messages)) { setFollowError(TOSS_FOLLOW_FAILURE[tossLocale][0]); return; }
+      setResult(payload); setFollowQuestion("");
+    } catch (caught) {
+      if (!current()) return;
+      const {status,code,retryable} = (caught || {}) as {status?:number;code?:string;retryable?:boolean};
+      if ([401,403,409,402].includes(status || 0)) {
+        authorityRevisionRef.current++; setResult(null); setTossDenied(true);
+        setError(status === 401 ? tossLogin : status === 403 ? tossDeniedMessage : ["ORDER_REFUNDED","PAYMENT_REVOKED"].includes(code || "") ? tossRefunded : tossUncertain);
+      } else setFollowError(TOSS_FOLLOW_FAILURE[tossLocale][status === 503 && retryable === false ? 1 : 0]);
+    } finally {
+      if (followLockRef.current === attempt) { followLockRef.current = null; if (owner()) setFollowSending(false); }
+    }
+  }, [followQuestion, result, paymentSurface, captureOwner, copy, tossLocale, tossLogin, tossDeniedMessage, tossUncertain, tossRefunded]);
 
   useEffect(() => {
     void loadResult();
@@ -1140,7 +1202,7 @@ function KarmaDestinyResultInner() {
       <main className="kdai-result-page">
         <div className="kdai-error-state">
           <p>{error}</p>
-          <Link href="/karma-destiny-ai"><ArrowLeft size={17} /> {copy.retryInput}</Link>
+          {paymentSurface === "toss" ? <><button type="button" style={{minHeight:44}} onClick={() => setResumeEpoch(value=>value+1)}>{tossCopy.retry}</button> <Link href="/recovery" style={{display:"inline-flex",alignItems:"center",minHeight:44}}>{TOSS_RECOVERY_LABEL[tossLocale]}</Link>{!tossDenied && <Link href="/karma-destiny-ai" style={{display:"inline-flex",alignItems:"center",minHeight:44}}><ArrowLeft size={17} /> {copy.retryInput}</Link>}</> : <Link href="/karma-destiny-ai"><ArrowLeft size={17} /> {copy.retryInput}</Link>}
         </div>
         <ResultStyles />
       </main>
@@ -1149,7 +1211,7 @@ function KarmaDestinyResultInner() {
 
   const isGenerating = ["generating", "partial", "delivery_pending"].includes(result?.status || "");
   const isCompleted = result?.status === "completed";
-  const shareChoices = isCompleted ? karmaShareChoices(result) : [];
+  const shareChoices = isCompleted && paymentSurface !== "toss" ? karmaShareChoices(result) : [];
   const summaryMode = density === "summary" && !exporting;
 
   // 탭은 실제로 마운트된 섹션에서만 만든다. 렌더되지 않는 단으로 가는 탭이 있으면 안 된다.
@@ -1237,10 +1299,10 @@ function KarmaDestinyResultInner() {
               <div className="kdai-report-actions">
                 <button type="button" onClick={() => setTocOpen(true)}><Menu size={17} /> {copy.tocButton}</button>
                 <button type="button" onClick={() => void copyAll()}><Copy size={17} /> {copy.copyAllButton}</button>
-                <button type="button" onClick={handleDownload} disabled={downloading || !isCompleted}>
+                {paymentSurface !== "toss" && <button type="button" onClick={handleDownload} disabled={downloading || !isCompleted}>
                   {downloading ? <Loader2 size={17} className="kdai-spin" /> : <Download size={17} />}
                   {copy.pdfSaveButton}
-                </button>
+                </button>}
               </div>
             </header>
 
@@ -1456,6 +1518,18 @@ function KarmaDestinyResultInner() {
               </section>
             )}
 
+            {paymentSurface === "toss" && isCompleted && result?.sessionId && (
+              <section className="kdo-pane" style={{padding:20,marginTop:24}} aria-labelledby="karma-follow-up-title">
+                <h2 id="karma-follow-up-title">{TOSS_FOLLOW_UP[tossLocale][0]}</h2>
+                {(result.messages || []).slice(2).map((message,index)=><p key={index} style={{whiteSpace:"pre-wrap",overflowWrap:"anywhere"}}><strong>{message.role === "user" ? copy.defaultUserName : TOSS_FOLLOW_UP[tossLocale][0]}:</strong> {message.content}</p>)}
+                <form onSubmit={sendTossFollowUp} style={{display:"grid",gap:12}}>
+                  <label htmlFor="karma-follow-question">{TOSS_FOLLOW_UP[tossLocale][1]}</label>
+                  <textarea id="karma-follow-question" value={followQuestion} onChange={event=>setFollowQuestion(event.target.value)} maxLength={1200} disabled={followSending} style={{minHeight:88,width:"100%"}} />
+                  <button type="submit" disabled={followSending || followQuestion.trim().length < 2} style={{minHeight:44}}>{followSending ? TOSS_FOLLOW_UP[tossLocale][3] : TOSS_FOLLOW_UP[tossLocale][2]}</button>
+                  {followError && <p role="alert">{followError}</p>}
+                </form>
+              </section>
+            )}
             <footer className="kdai-disclaimer" data-kdai-pdf-page>
               {copy.disclaimer}
             </footer>
@@ -1496,10 +1570,10 @@ function KarmaDestinySuspenseFallback() {
   );
 }
 
-export default function KarmaDestinyAiResultClient() {
+export default function KarmaDestinyAiResultClient({paymentSurface="web"}:{paymentSurface?:"web"|"toss"} = {}) {
   return (
     <Suspense fallback={<KarmaDestinySuspenseFallback />}>
-      <KarmaDestinyResultInner />
+      <KarmaDestinyResultInner paymentSurface={paymentSurface} />
     </Suspense>
   );
 }

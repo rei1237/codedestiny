@@ -1492,6 +1492,7 @@ async function handleStart(request, env, route = "/api/love-secret-ai/generate",
     const saved = await LoveSecretAiConsultation.findOne({ id: clean(body.resumeSessionId), userId: clean(resumeAuth.userId) }).lean();
     if (!saved) return invalidInput("저장된 상담을 찾을 수 없습니다.", 404);
     if (nativeTossContext(request)) await nativeTossContext(request).assertStored(saved);
+    else if (saved.accessSource === 'toss') return notFound();
     if (saved.status === "completed") return json(publicSession(saved));
     if (!saved.llmMeta?.delivery?.resumeBody) return invalidInput("원래 상담 요청으로 다시 시도해 주세요.", 409);
     body = { ...saved.llmMeta.delivery.resumeBody, idempotencyKey: saved.idempotencyKey, requestId: saved.idempotencyKey };
@@ -1529,6 +1530,7 @@ async function handleStart(request, env, route = "/api/love-secret-ai/generate",
 
   const existing = await withMongoRetry(env, () => LoveSecretAiConsultation.findOne({ userId: clean(auth.userId), idempotencyKey }).lean());
   if (existing && nativeTossContext(request)) await nativeTossContext(request).assertStored(existing);
+  else if (existing?.accessSource === 'toss') return notFound();
   if (existing && clean(existing.inputHash) !== normalized.inputHash) {
     return invalidInput("같은 요청 키로 다른 상담 정보를 사용할 수 없습니다.", 409);
   }
@@ -1580,6 +1582,7 @@ async function handleStart(request, env, route = "/api/love-secret-ai/generate",
   const seed = {
     id: sessionId,
     userId: clean(auth.userId),
+    accessSource: nativeTossContext(request) ? 'toss' : existing?.accessSource || '',
     attemptId,
     myInfo: normalized.input.myInfo,
     partnerInfo: normalized.input.partnerInfo || null,
@@ -1624,6 +1627,7 @@ async function handleStart(request, env, route = "/api/love-secret-ai/generate",
       if (error?.code === 11000) {
         const duplicate = await LoveSecretAiConsultation.findOne({ userId: clean(auth.userId), idempotencyKey }).lean();
         if (duplicate && nativeTossContext(request)) await nativeTossContext(request).assertStored(duplicate);
+        else if (duplicate?.accessSource === 'toss') return notFound();
         if (duplicate?.status === "completed") return json(publicSession(duplicate));
         return json({ ok: true, sessionId: duplicate?.id || sessionId, status: "generating", message: "연애 비책 상담을 준비하고 있습니다" }, { status: 202 });
       }
@@ -1784,6 +1788,7 @@ async function handleResult(request, env, pathId = "") {
     return json({ ok: false, reason: "RESULT_NOT_FOUND", message: "저장된 연애 비책 상담 결과를 찾을 수 없습니다." }, { status: 404 });
   }
   if (nativeTossContext(request)) await nativeTossContext(request).assertStored(consultation);
+  else if (consultation.accessSource === 'toss') return notFound();
   if (consultation.status !== "completed" && consultation.llmMeta?.delivery?.resumeBody) {
     const originalBody = consultation.llmMeta.delivery.resumeBody;
     const access = await resolveStartAccess({ request, env, auth, body: originalBody, normalized: normalizeRequestBody(originalBody), pricing: getPricing(), idempotencyKey: consultation.idempotencyKey });
@@ -1816,7 +1821,7 @@ async function handleResult(request, env, pathId = "") {
     return json({ ok: false, reason: "PAYMENT_REVOKED", retryable: false }, { status: 403 });
   }
 
-  if (!nativeTossContext(request)) consultation = await recoverSavedExpertFollowUps({ auth, consultation, featureKey: FEATURE_KEY, model: LoveSecretAiConsultation });
+  consultation = await recoverSavedExpertFollowUps({ auth, consultation, featureKey: FEATURE_KEY, model: LoveSecretAiConsultation, ...(nativeTossContext(request) ? { verifyAccess: () => nativeTossContext(request).assertStored(consultation) } : {}) });
 
   const payload = publicSession(consultation);
   const assistantContent = payload.messages.find((message) => message.role === "assistant")?.content || "";
@@ -1843,8 +1848,11 @@ async function handleMessage(request, env) {
     status: "completed",
   }).lean();
   if (!consultation) return invalidInput("상담 세션을 찾을 수 없습니다.", 404);
+  const native = nativeTossContext(request);
+  if (native) await native.assertStored(consultation);
+  else if (consultation.accessSource === 'toss') return notFound();
 
-  return await deliverExpertFollowUp({ request, env, auth, consultation, message, featureKey: FEATURE_KEY, model: LoveSecretAiConsultation, generate: (original, question) => generateFollowUp(env, original, question), render: publicSession });
+  return await deliverExpertFollowUp({ request, env, auth, consultation: native ? {...consultation, accessSource:'toss'} : consultation, message, featureKey: FEATURE_KEY, model: LoveSecretAiConsultation, generate: (original, question) => generateFollowUp(env, original, question), render: publicSession, ...(native ? { verifyAccess: () => native.assertStored(consultation) } : {}) });
 }
 
 export async function handleLoveSecretAiRoutes(request, env = {}, ctx) {
@@ -1894,7 +1902,7 @@ export async function resumeConsultationOnServer(env, doc) {
   if (!doc?.userId || !doc.id) throw new Error("RECOVERY_doc.id_REQUIRED");
   const request = new Request("https://internal.invalid/api/love-secret-ai/resume", { method: "POST", headers: { "content-type": "application/json" },
     body: JSON.stringify({ resumeSessionId: String(doc.id) }) });
-  const stored = await nativeLoveSecretStoredState(env, String(doc.userId), String(doc.id));
+  const stored = await nativeLoveSecretStoredState(env, String(doc.userId), String(doc.id), 'id');
   if (stored) {
     const { bindNativeLoveSecretRecovery } = await import('../toss/native-love-secret.js');
     await bindNativeLoveSecretRecovery(request, env, stored);
@@ -1908,8 +1916,10 @@ export function nativeLoveSecretContract(body) {
   if (!normalized.ok || requestId.length < 12) throw Object.assign(new Error('상담 입력을 다시 확인해 주세요.'), {status:400});
   return {requestId,resultId:requestId,featureKey:FEATURE_KEY,inputHash:normalized.inputHash,pricing:getPricing().pricing};
 }
-export async function nativeLoveSecretStoredState(env,userId,resultId) {
-  return withMongoRetry(env,()=>LoveSecretAiConsultation.findOne({userId:String(userId),$or:[{id:resultId},{idempotencyKey:resultId}]}).lean());
+export async function nativeLoveSecretStoredState(env, userId, resultId, lookup = 'either') {
+  const owner = {userId:String(userId)};
+  const filter = lookup === 'request' ? {...owner,idempotencyKey:resultId} : lookup === 'id' ? {...owner,id:resultId} : {...owner,$or:[{id:resultId},{idempotencyKey:resultId}]};
+  return withMongoRetry(env, () => LoveSecretAiConsultation.findOne(filter).lean());
 }
 export async function recoverUnstartedNativeConsultations(env,options) {
   const { bootstrapNativeLoveSecretOrders } = await import('../toss/native-love-secret.js');
@@ -1918,5 +1928,13 @@ export async function recoverUnstartedNativeConsultations(env,options) {
 
 export function serverExpertFollowUpAdapter(env) {
   const { featureKey, reportType, produce, render } = expertFollowUpNarrativeAdapter({ featureKey: FEATURE_KEY, generate: (original, question) => generateFollowUp(env, original, question) });
-  return { featureKey, reportType, produce, render };
+  const verifyRecovery = async execution => {
+    const id = clean(execution?.metadata?.paidNarrative?.input?.id, 120), userId = clean(execution?.userId);
+    const stored = await withMongoRetry(env, () => LoveSecretAiConsultation.findOne({id,userId,status:'completed'}).lean());
+    if (!stored) throw Object.assign(new Error('TOSS_RECOVERY_INTENT_MISSING'), {code:'TOSS_RECOVERY_INTENT_MISSING'});
+    const request = new Request('https://internal.invalid/love-secret-follow-up/recovery',{method:'POST'});
+    const {bindNativeLoveSecretRecovery} = await import('../toss/native-love-secret.js');
+    if (!await bindNativeLoveSecretRecovery(request,env,stored)) throw Object.assign(new Error('TOSS_RECOVERY_INTENT_MISSING'), {code:'TOSS_RECOVERY_INTENT_MISSING'});
+  };
+  return { featureKey, reportType, produce, render, verifyRecovery };
 }

@@ -88,6 +88,7 @@ export {calculateFree} from './worker/yeongnyangi/fortune/free/readings';`,resol
       'module.exports=new Proxy({}, {get:(t,k)=>k==="__esModule"?false:globalThis.__sukuyoAudit.blocked})':substitutions[args.path]}));
   }}]});
 assert.ok(!Object.keys(built.metafile.inputs).some(file=>/swiss-ephemeris|sweph-wasm|sukuyo-astronomy|\.wasm/i.test(file)));
+assert.ok(!Object.keys(built.metafile.inputs).some(file=>/providers[\\/]code-destiny/.test(file)), 'real LLM provider must never be bundled');
 const require=createRequire(import.meta.url), Module=require('node:module');
 const m=new Module(path.resolve('sukuyo-fixture.cjs'));
 m.paths=Module._nodeModulePaths(root);

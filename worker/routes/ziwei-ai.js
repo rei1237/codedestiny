@@ -9,7 +9,9 @@ import { koreanizeExpertTerms } from "../lib/korean-term-gloss.js";
 import { createHash, randomUUID } from "node:crypto";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { resolveForbiddenPatterns } from "../lib/llm-leak-guard.js";
-import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest, isAuthDbInfraError, peekAccessTokenUserId } from "../lib/auth.js";
+import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest as webOptionalUser, isAuthDbInfraError, peekAccessTokenUserId } from "../lib/auth.js";
+import { nativeTossContext } from "../toss/native-context.js";
+const getOptionalUserFromRequest = (request, ...args) => nativeTossContext(request)?.auth || webOptionalUser(request, ...args);
 import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
 import { clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
@@ -2456,6 +2458,8 @@ function publicConsultation(doc) {
 }
 
 async function handleEnsureAccess(request, env, route = "/api/ziwei-ai/prepare") {
+  // Toss purchase preparation goes through its own immutable intent endpoint.
+  if (nativeTossContext(request)) return notFound();
   logZiweiAi("Prepare Start", safeLogPayload({ route, env }));
   const body = await readJson(request);
   const idempotencyKey = readIdempotencyKey(request, body);
@@ -2475,6 +2479,7 @@ async function handleEnsureAccess(request, env, route = "/api/ziwei-ai/prepare")
     await connectDb(env);
     logZiweiAi("Chart Data Start", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "ok", env }));
     const existing = await ZiweiAiConsultation.findOne({ userId: clean(auth.userId), idempotencyKey }).lean();
+    if (existing?.accessSource === 'toss') return notFound();
     if (existing && (existing.inputHash !== normalized.inputHash || (existing.serviceType && existing.serviceType !== SERVICE_KEY))) return invalidInput(MESSAGES.invalidInput, 409);
     if (existing?.status === "completed") return json({ ...publicConsultation(existing), ...(body.calculationProtocol ? { calculationReady: true } : {}) });
     await resolveZiweiPreparation({ model: ZiweiCalculationPreparation, userId: clean(auth.userId), requestId: idempotencyKey, inputHash: normalized.inputHash, input: normalized.input, rawBody: body, existing, action: "prepare", year: new Date().getFullYear(), calendarAuthorityV2: env?.ZIWEI_CALENDAR_AUTHORITY_V2 === 'true' });
@@ -2591,6 +2596,11 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
   return { ok: false, reason: "PAYMENT_REQUIRED" };
 }
 
+async function resolveZiweiRequestAccess(args) {
+  const native = nativeTossContext(args.request);
+  return native ? native.access(args.body, args.normalized, args.idempotencyKey) : resolveStartAccess(args);
+}
+
 async function handleStart(request, env, route = "/api/ziwei-ai/generate", recoveryAuth = null) {
   let body = await readJson(request);
   const auth = recoveryAuth || await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
@@ -2600,6 +2610,8 @@ async function handleStart(request, env, route = "/api/ziwei-ai/generate", recov
   if (body.resumeSessionId) {
     const saved = await ZiweiAiConsultation.findOne({ id: clean(body.resumeSessionId, 120), userId: clean(auth.userId) }).lean();
     if (!saved || (saved.serviceType && saved.serviceType !== SERVICE_KEY)) return notFound();
+    if (nativeTossContext(request)) await nativeTossContext(request).assertStored(saved);
+    else if (saved.accessSource === 'toss') return notFound();
     if (saved.status === "completed") return json(publicConsultation(saved));
     if (!saved.llmMeta?.resumeBody) return invalidInput("원래 상담 요청으로 다시 시도해 주세요.", 409);
     body = { ...saved.llmMeta.resumeBody }; idempotencyKey = saved.idempotencyKey;
@@ -2609,9 +2621,11 @@ async function handleStart(request, env, route = "/api/ziwei-ai/generate", recov
   if (idempotencyKey.length < 12) return invalidInput();
   const pricing = getPricing();
   const existing = await ZiweiAiConsultation.findOne({ userId: clean(auth.userId), idempotencyKey }).lean();
+  if (existing && nativeTossContext(request)) await nativeTossContext(request).assertStored(existing);
+  else if (existing?.accessSource === 'toss') return notFound();
   if (existing && (existing.inputHash !== normalized.inputHash || (existing.serviceType && existing.serviceType !== SERVICE_KEY))) return invalidInput("같은 요청 키로 다른 상담 정보를 사용할 수 없습니다.", 409);
   if (existing?.status === "completed") return json(publicConsultation(existing));
-  if (existing?.status === "generation_failed") return json({ ok: false, reason: "GENERATION_FAILED", message: MESSAGES.llmFailed }, { status: 409 });
+  if (existing?.status === "generation_failed" && !nativeTossContext(request)) return json({ ok: false, reason: "GENERATION_FAILED", message: MESSAGES.llmFailed }, { status: 409 });
   let initialChart, preparationId;
   try {
     if (existing?.status !== "delivery_pending") {
@@ -2621,7 +2635,7 @@ async function handleStart(request, env, route = "/api/ziwei-ai/generate", recov
   } catch (error) {
     return preparationFailed(error);
   }
-  const access = await resolveStartAccess({ request, env, auth, body, normalized, pricing, idempotencyKey });
+  const access = await resolveZiweiRequestAccess({ request, env, auth, body, normalized, pricing, idempotencyKey });
   if (!access.ok) return paymentVerifyFailed();
   logZiweiAi("Payment Guard Passed", { route, requestId: idempotencyKey, access: access.accessType });
   const sessionId = existing?.id || `zwai_${randomUUID()}`;
@@ -2632,23 +2646,30 @@ async function handleStart(request, env, route = "/api/ziwei-ai/generate", recov
   if (existing?.status === "generating" && !existing.llmMeta?.resumeBody && Date.now() - new Date(existing.updatedAt || existing.createdAt).getTime() < GENERATING_FRESHNESS_MS) return pending(existing);
   // 결제창 증빙 1건 = 상담 1건. 카드 직접 결제(verifyPaymentForStart)는 이미 이번 키에 묶여 있고, 이용권은 전달 때 이번 키로 차감한다.
   const evidenceIds = access.claimEvidenceIds;
-  const evidenceClaim = await claimRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds, featureKey: FEATURE_KEY });
-  if (!evidenceClaim.ok) return json(evidenceClaimErrorBody(evidenceClaim), { status: evidenceClaim.status });
+  if (!nativeTossContext(request)) {
+    const evidenceClaim = await claimRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds, featureKey: FEATURE_KEY });
+    if (!evidenceClaim.ok) return json(evidenceClaimErrorBody(evidenceClaim), { status: evidenceClaim.status });
+  }
   let doc;
   try {
     if (existing) {
-      doc = await ZiweiAiConsultation.findOneAndUpdate({ ...owner, status: { $nin: ["completed", "generation_failed"] }, $or: [{ generationLease: "" }, { generationLease: { $exists: false } }, { updatedAt: { $lt: new Date(Date.now() - 120000) } }] }, { $set: { generationLease: lease } }, { new: true }).lean();
+      doc = await ZiweiAiConsultation.findOneAndUpdate({ ...owner, status: nativeTossContext(request) ? { $ne: "completed" } : { $nin: ["completed", "generation_failed"] }, $or: [{ generationLease: "" }, { generationLease: { $exists: false } }, { updatedAt: { $lt: new Date(Date.now() - 120000) } }] }, { $set: { generationLease: lease, ...(nativeTossContext(request) && existing.status === 'generation_failed' ? { status: 'generating', generationError: null } : {}) } }, { new: true }).lean();
       if (!doc) return pending(existing);
     } else {
       const resumeBody = { ...body, idempotencyKey, accessType: access.accessType };
       delete resumeBody.accessToken;
-      doc = await ZiweiAiConsultation.create({ ...owner, serviceType: SERVICE_KEY, idempotencyKey, inputHash: normalized.inputHash, birthInfo: normalized.input.birthInfo, topic: normalized.input.topic, userQuestion: normalized.input.userQuestion, accessType: access.accessType, paymentId: clean(access.paymentId, 160), status: "generating", generationLease: lease, messages: [], llmMeta: { resumeBody, groups: {}, attempts: {}, chartSnapshot: initialChart, ...(preparationId ? { calculationPreparationId: preparationId } : {}), ...(selectAnswerVoice(env) ? { answerVoice: selectAnswerVoice(env) } : {}) } });
+      doc = await ZiweiAiConsultation.create({ ...owner, serviceType: SERVICE_KEY, idempotencyKey, inputHash: normalized.inputHash, birthInfo: normalized.input.birthInfo, topic: normalized.input.topic, userQuestion: normalized.input.userQuestion, accessType: access.accessType, ...(nativeTossContext(request) ? { accessSource: 'toss' } : {}), paymentId: clean(access.paymentId, 160), status: "generating", generationLease: lease, messages: [], llmMeta: { resumeBody, groups: {}, attempts: {}, chartSnapshot: initialChart, ...(preparationId ? { calculationPreparationId: preparationId } : {}), ...(selectAnswerVoice(env) ? { answerVoice: selectAnswerVoice(env) } : {}) } });
       doc = typeof doc.toObject === "function" ? doc.toObject() : doc;
     }
   } catch (error) {
     if (error?.code === 11000) {
       const duplicate = await ZiweiAiConsultation.findOne({ userId: clean(auth.userId), idempotencyKey }).lean();
-      if (duplicate) return duplicate.status === "completed" ? json(publicConsultation(duplicate)) : pending(duplicate);
+      if (duplicate) {
+        if (nativeTossContext(request)) await nativeTossContext(request).assertStored(duplicate);
+        else if (duplicate.accessSource === 'toss') return notFound();
+        if (nativeTossContext(request) && (duplicate.inputHash !== normalized.inputHash || (duplicate.serviceType && duplicate.serviceType !== SERVICE_KEY))) return invalidInput(MESSAGES.invalidInput, 409);
+        return duplicate.status === "completed" ? json(publicConsultation(duplicate)) : pending(duplicate);
+      }
     }
     return json(resultStorageFailurePayload(resultStorageUnavailable(sessionId)), { status: 503 });
   }
@@ -2671,27 +2692,109 @@ async function handleStart(request, env, route = "/api/ziwei-ai/generate", recov
       doc = await saveZiweiDelivery(locked, { status: generated.complete ? "delivery_pending" : "partial", llmMeta: { ...doc.llmMeta, ...generated.meta }, messages: [{ role: "user", content: normalized.input.userQuestion || normalized.input.topic, createdAt: now }, { role: "assistant", content: generated.text, createdAt: now }] }, sessionId);
       if (!generated.complete) return pending(doc);
     }
-    const fresh = await resolveStartAccess({ request, env, auth, body: doc.llmMeta.resumeBody, normalized, pricing, idempotencyKey });
+    const fresh = await resolveZiweiRequestAccess({ request, env, auth, body: doc.llmMeta.resumeBody, normalized, pricing, idempotencyKey });
     if (!fresh.ok) return paymentVerifyFailed();
-    await applyUsageOnce({ userId: auth.userId, sessionId, accessType: access.accessType, paymentId: access.paymentId || "", pricing, prepaid: access.prepaid === true, requestId: idempotencyKey });
+    if (!nativeTossContext(request)) await applyUsageOnce({ userId: auth.userId, sessionId, accessType: access.accessType, paymentId: access.paymentId || "", pricing, prepaid: access.prepaid === true, requestId: idempotencyKey });
     doc = await saveZiweiDelivery(locked, { status: "completed", generationLease: "", generationError: null }, sessionId);
-    if (access.accessType === "paid" && access.paymentId) await Payment.updateOne({ userId: auth.userId, featureKey: FEATURE_KEY, merchantUid: access.paymentId, status: { $in: ["paid", "success", "fulfilled"] } }, { $set: { status: "fulfilled", sessionId, reportId: sessionId, orderState: "UNLOCKED" } }).catch(() => {});
+    if (!nativeTossContext(request) && access.accessType === "paid" && access.paymentId) await Payment.updateOne({ userId: auth.userId, featureKey: FEATURE_KEY, merchantUid: access.paymentId, status: { $in: ["paid", "success", "fulfilled"] } }, { $set: { status: "fulfilled", sessionId, reportId: sessionId, orderState: "UNLOCKED" } }).catch(() => {});
     return json(publicConsultation(doc));
   } catch (error) {
     if (error?.code === "CALCULATION_SNAPSHOT_REQUIRED") return calculationFailed();
     if (String(error?.code || "").startsWith("CALCULATION_PREPARATION_")) return preparationFailed(error);
     if (error?.code === "RESULT_STORAGE_UNAVAILABLE") return json(resultStorageFailurePayload(error), { status: 503 });
+    if (nativeTossContext(request) && error?.status) return json({ ok: false, reason: error.code || 'ACCESS_DENIED' }, { status: error.status });
     // Once a complete body exists, payment/apply uncertainty must retry that same delivery, never refund or regenerate.
     if (doc.status === "delivery_pending") return json(resultStorageFailurePayload(resultStorageUnavailable(sessionId)), { status: 503 });
     await saveZiweiDelivery(locked, { status: "generation_failed", generationError: { code: clean(error?.code || "LLM_GENERATION_FAILED", 80), message: clean(error?.message, 500) } }, sessionId);
-    const restored = await restorePrepaidAccessOnFailure({ userId: auth.userId, access, idempotencyKey, pricing, error });
-    await releaseRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds }).catch(() => null);
-    const refund = await refundCardPaymentOnFailure(env, auth, access, error);
+    const restored = !nativeTossContext(request) && await restorePrepaidAccessOnFailure({ userId: auth.userId, access, idempotencyKey, pricing, error });
+    if (!nativeTossContext(request)) await releaseRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds }).catch(() => null);
+    const refund = nativeTossContext(request) ? {} : await refundCardPaymentOnFailure(env, auth, access, error);
     logZiweiAi("Refund Or Restore", { route, requestId: idempotencyKey, restored, refunded: refund.refunded === true });
     return json({ ok: false, reason: "LLM_ERROR", message: MESSAGES.llmFailed }, { status: 503 });
   } finally {
     await ZiweiAiConsultation.updateOne({ ...owner, generationLease: lease }, { $set: { generationLease: "" } }).catch(() => {});
   }
+}
+
+// Web identities and Toss identities are separate; still fail closed if an ID
+// collision ever makes a Toss record visible to the web lookup.
+async function handleWebZiweiResult(request, env) {
+  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+  if (!auth) return handleResult(request, env);
+  const url = new URL(request.url);
+  const id = clean(url.searchParams.get("id") || url.searchParams.get("sessionId"), 120);
+  await connectDb(env);
+  const tossRecord = await ZiweiAiConsultation.findOne({ userId: clean(auth.userId), accessSource: 'toss', ...(id ? { id } : {}) }).lean();
+  if (tossRecord) return id ? notFound() : json({ ok: true, pendingSessionId: '', consultations: [] });
+  return handleResult(request, env);
+}
+
+async function handleTossZiweiResult(request, env) {
+  // 폴링은 이미 인가된 세션의 결과 조회다. 인증 판정에서 일시적 DB 장애가 나면 하드 503으로 끊지 말고
+  // 재시도 가능하다는 신호를 실어 보내 클라가 폴링을 이어가게 한다(nakshatra/neo와 동일한 완충).
+  let auth = null;
+  try {
+    auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+  } catch (error) {
+    return json({
+      ok: false,
+      retryable: true,
+      reason: "DB_DEGRADED",
+      message: "일시적인 연결 문제가 있어요. 잠시 후 다시 시도해 주세요.",
+    }, { status: 503 });
+  }
+  if (!auth) return loginRequired();
+  const url = new URL(request.url);
+  const sessionId = clean(url.searchParams.get("id") || url.searchParams.get("sessionId"), 120);
+
+  await connectDb(env);
+  if (!sessionId) {
+    if (nativeTossContext(request)) return json({ ok: true, pendingSessionId: '', consultations: [] });
+    const rows = await ZiweiAiConsultation.find({ userId: clean(auth.userId), accessSource: { $ne: 'toss' }, status: "completed" })
+      // createdAt 정렬은 기존 {userId,createdAt:-1} 인덱스를 그대로 탄다. updatedAt 에는 인덱스가
+      // 없어 해당 사용자의 문서를 전부 FETCH 한 뒤 메모리 정렬하므로 아래 select 가 무력화된다.
+      .sort({ createdAt: -1 })
+      .limit(10)
+      .select("id topic birthInfo ziweiChart.lifePalace ziweiChart.chartSummary createdAt updatedAt")
+      .lean();
+    return json({
+      ok: true,
+      pendingSessionId: (await ZiweiAiConsultation.findOne({ userId: clean(auth.userId), accessSource: { $ne: 'toss' }, serviceType: SERVICE_KEY, status: { $in: ["generating", "partial", "delivery_pending"] } }).sort({ createdAt: -1 }).select("id").lean())?.id || "",
+      consultations: rows.map((row) => ({
+        id: clean(row.id),
+        topic: clean(row.topic),
+        name: clean(row.birthInfo?.name, 80),
+        lifePalace: clean(row.ziweiChart?.lifePalace, 20),
+        chartSummary: clean(row.ziweiChart?.chartSummary, 200),
+        createdAt: row.createdAt,
+        updatedAt: row.updatedAt,
+      })),
+    });
+  }
+
+  const consultation = await ZiweiAiConsultation.findOne({
+    id: sessionId,
+    userId: clean(auth.userId),
+  }).lean();
+  if (!consultation) return notFound();
+  if (consultation.serviceType && consultation.serviceType !== SERVICE_KEY) return notFound();
+  if (nativeTossContext(request)) await nativeTossContext(request).assertStored(consultation);
+  else if (consultation.accessSource === 'toss') return notFound();
+  if (["generating", "partial", "delivery_pending"].includes(consultation.status)) {
+    if (consultation.llmMeta?.resumeBody) {
+      const body = consultation.llmMeta.resumeBody;
+      const access = await resolveZiweiRequestAccess({ request, env, auth, body, normalized: normalizeConsultationInput(body), pricing: getPricing(), idempotencyKey: consultation.idempotencyKey });
+      if (!access.ok) return paymentVerifyFailed();
+    }
+    return json({ ...publicConsultation(consultation), status: consultation.status, retryable: true }, { status: 202, headers: { "Retry-After": "3" } });
+  }
+  if (consultation.status !== "completed") {
+    return json({ ok: false, reason: "GENERATION_FAILED", message: MESSAGES.llmFailed }, { status: 409 });
+  }
+  if (!nativeTossContext(request) && await isStoredPaidResultRevoked(auth.userId, FEATURE_KEY, consultation, { ignoreNeverPaidExpiry: true })) {
+    return json({ ok: false, reason: "PAYMENT_REVOKED", retryable: false }, { status: 403 });
+  }
+  return json(publicConsultation(consultation));
 }
 
 async function handleResult(request, env) {
@@ -2769,7 +2872,7 @@ function preparationFailed(error) {
 
 // New protocol reads the prepared basis; legacy no-key previews retain their pure calculation contract.
 async function handleBasis(request, env) {
-  const userId = await peekAccessTokenUserId(request, env);
+  const userId = nativeTossContext(request)?.auth?.userId || await peekAccessTokenUserId(request, env);
   if (!userId) return loginRequired();
 
   const body = await readJson(request);
@@ -2784,11 +2887,14 @@ async function handleBasis(request, env) {
     else {
       await connectDb(env);
       const existing = await ZiweiAiConsultation.findOne({ userId: clean(userId), idempotencyKey: requestId }).lean();
+      if (existing && nativeTossContext(request)) await nativeTossContext(request).assertStored(existing);
+      else if (existing?.accessSource === 'toss') return notFound();
       if (existing && (existing.inputHash !== normalized.inputHash || (existing.serviceType && existing.serviceType !== SERVICE_KEY))) return invalidInput(MESSAGES.invalidInput, 409);
       chart = preparedZiweiChart(await resolveZiweiPreparation({ model: ZiweiCalculationPreparation, userId: clean(userId), requestId, inputHash: normalized.inputHash, input: normalized.input, rawBody: body, existing, action: "basis", year: new Date().getFullYear(), calendarAuthorityV2: env?.ZIWEI_CALENDAR_AUTHORITY_V2 === 'true' }));
     }
     return json(buildZiweiAnalysisBasis(chart, normalized.input.birthInfo));
   } catch (error) {
+    if (nativeTossContext(request) && error?.status) throw error;
     console.warn("[ziwei-ai] basis failed", clean(error?.message || error, 200));
     if (legacyPreview) return calculationFailed();
     return preparationFailed(error);
@@ -2800,7 +2906,7 @@ export async function handleZiweiAiRoutes(request, env = {}, ctx = null) {
   const path = getRoutePath(request, "/api/ziwei-ai");
 
   try {
-    if (method === "GET" && path === "/result") return await handleResult(request, env);
+    if (method === "GET" && path === "/result") return await (nativeTossContext(request) ? handleTossZiweiResult(request, env) : handleWebZiweiResult(request, env));
     if (method === "POST" && path === "/basis") return await handleBasis(request, env);
     if (method === "POST" && (path === "/prepare" || path === "/ensure-access")) {
       return await handleEnsureAccess(request, env, path === "/prepare" ? "/api/ziwei-ai/prepare" : "/api/ziwei-ai/ensure-access");
@@ -2812,6 +2918,7 @@ export async function handleZiweiAiRoutes(request, env = {}, ctx = null) {
     return methodNotAllowed();
   } catch (error) {
     if (error?.code === "RESULT_STORAGE_UNAVAILABLE") return json(resultStorageFailurePayload(error), { status: 503 });
+    if (nativeTossContext(request) && error?.status) return json({ ok: false, reason: error.code || 'ACCESS_DENIED' }, { status: error.status });
     console.error("[ziwei-ai]", clean(error?.code || error?.message || error, 500));
     // 풀 초기화 버스트/인증 조회 중 일시 DB 장애는 재시도 신호와 함께 503으로 — 하드 500 방지.
     if (isTransientMongoError(error) || isAuthDbInfraError(error)) {
@@ -2824,6 +2931,32 @@ export async function handleZiweiAiRoutes(request, env = {}, ctx = null) {
     }
     return serverError();
   }
+}
+
+// Validate the original input and retain the existing price before any Toss purchase.
+// This contract alone does not approve or enable an in-app product.
+export function nativeZiweiContract(body) {
+  const normalized = normalizeConsultationInput(body || {});
+  const requestId = clean(body?.idempotencyKey || body?.requestId, 180);
+  if (!normalized.ok || requestId.length < 12) throw Object.assign(new Error('상담 입력을 다시 확인해 주세요.'), { status: 400 });
+  return { requestId, resultId: requestId, featureKey: FEATURE_KEY, inputHash: normalized.inputHash, pricing: getPricing().pricing };
+}
+// Persist the same calculation snapshot used by the original web protocol before
+// returning a purchasable intent. No payment or consultation generation occurs.
+export async function prepareNativeZiweiCalculation(env, auth, body) {
+  const contract = nativeZiweiContract(body);
+  const normalized = normalizeConsultationInput(body);
+  await connectDb(env);
+  const existing = await ZiweiAiConsultation.findOne({ userId: clean(auth.userId), idempotencyKey: contract.requestId }).lean();
+  if (existing && (existing.accessSource !== 'toss' || existing.inputHash !== contract.inputHash || (existing.serviceType && existing.serviceType !== SERVICE_KEY))) {
+    throw Object.assign(new Error('REQUEST_INPUT_MISMATCH'), { code: 'REQUEST_INPUT_MISMATCH', status: 409 });
+  }
+  await resolveZiweiPreparation({ model: ZiweiCalculationPreparation, userId: clean(auth.userId), requestId: contract.requestId, inputHash: normalized.inputHash, input: normalized.input, rawBody: body, existing, action: 'prepare', year: new Date().getFullYear(), calendarAuthorityV2: env?.ZIWEI_CALENDAR_AUTHORITY_V2 === 'true' });
+}
+export async function nativeZiweiStoredState(env, userId, resultId, lookup = 'either') {
+  const owner = { userId: String(userId), serviceType: SERVICE_KEY };
+  const filter = lookup === 'request' ? { ...owner, idempotencyKey: resultId } : lookup === 'id' ? { ...owner, id: resultId } : { ...owner, $or: [{ id: resultId }, { idempotencyKey: resultId }] };
+  return withMongoRetry(env, () => ZiweiAiConsultation.findOne(filter).lean());
 }
 
 export const __ziweiAiTestUtils = {
@@ -2865,9 +2998,18 @@ export const __ziweiAiTestUtils = {
 
 // Internal cron continuation: only a stored owner/id is accepted, never client input.
 // The normal handler rereads that owner's record and rechecks existing payment proof.
-export function resumeConsultationOnServer(env, doc) {
+export async function resumeConsultationOnServer(env, doc) {
   if (!doc?.userId || !doc.id) throw new Error("RECOVERY_doc.id_REQUIRED");
   const request = new Request("https://internal.invalid/api/ziwei-ai/resume", { method: "POST", headers: { "content-type": "application/json" },
     body: JSON.stringify({ resumeSessionId: String(doc.id) }) });
-  return handleStart(request, env, undefined, { userId: String(doc.userId) });
+  const stored = await nativeZiweiStoredState(env, String(doc.userId), String(doc.id), 'id');
+  if (stored?.accessSource === 'toss') {
+    const { bindNativeZiweiRecovery } = await import('../toss/native-ziwei.js');
+    if (!await bindNativeZiweiRecovery(request, env, stored)) throw new Error('TOSS_RECOVERY_INTENT_MISSING');
+  }
+  return handleStart(request, env, undefined, nativeTossContext(request)?.auth || { userId: String(doc.userId) });
+}
+export async function recoverUnstartedNativeConsultations(env, options) {
+  const { bootstrapNativeZiweiOrders } = await import('../toss/native-ziwei.js');
+  return bootstrapNativeZiweiOrders(env, options);
 }

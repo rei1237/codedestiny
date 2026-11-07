@@ -8,7 +8,8 @@ import { KarmaRelationshipFields, KarmaRelationshipGuide, emptyRelationshipConte
 
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { CalendarDays, Download, Loader2, MapPin, Maximize2, Send, Sparkles, WalletCards, X } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent, type ComponentType } from "react";
+import {useTossConsultationCopy} from "@/app/_lib/toss-consultation-copy";
 import {
   beginPaidFeatureGateCheck,
   completePaidFeatureGateCheck,
@@ -329,7 +330,7 @@ const KARMA_DESTINY_EN: KarmaDestinyCopy = {
   heroDescription: "In the recurring flow of your life, we reveal the pattern you need to break and the new path you need to open now.",
   premiumMapAriaLabel: "Karma Destiny Consultation Composition",
   premiumMapHeading: "A Karma Destiny Report Spanning 30,000+ Characters",
-  premiumMapDesc: "Fitting a premium consultation, we weave Saju, astrology, and Vedic symbolism together with real-world action strategies across a 16-chapter narrative.",
+  premiumMapDesc: "Fitting a premium consultation, we weave Saju, astrology, and Vedic symbolism together with real-world action strategies across a 15-chapter narrative.",
   formHeading: "Information to Read the Thread of Your Destiny",
   profileLoadAria: "Load birth information from profile card",
   profileLoadCta: "Load from profile card",
@@ -580,7 +581,7 @@ const KARMA_DESTINY_COPY: Partial<Record<LoadingLocale, KarmaDestinyCopy>> = {
     heroDescription: "繰り返される人生の流れの中で、今断ち切るべきパターンと新たに開くべき道を読み解きます。",
     premiumMapAriaLabel: "運命の業相談の構成",
     premiumMapHeading: "30,000字以上で開く運命の業レポート",
-    premiumMapDesc: "プレミアム相談に見合うよう、命理・占星・ヴェーダの象徴と現実的な行動戦略を16章の長文で編みます。",
+    premiumMapDesc: "プレミアム相談に見合うよう、命理・占星・ヴェーダの象徴と現実的な行動戦略を15章の長文で編みます。",
     formHeading: "運命の糸を読むための情報",
     profileLoadAria: "プロフィールカードから出生情報を読み込む",
     profileLoadCta: "プロフィールカードから読み込む",
@@ -704,7 +705,7 @@ const KARMA_DESTINY_COPY: Partial<Record<LoadingLocale, KarmaDestinyCopy>> = {
     heroDescription: "在反复出现的人生流向中，为您解读现在需要斩断的模式与需要开启的新道路。",
     premiumMapAriaLabel: "命运业力咨询构成",
     premiumMapHeading: "3万字以上展开的命运业力报告",
-    premiumMapDesc: "配合高价咨询，将命理、占星、吠陀象征与现实行动策略编织成16章长文流程。",
+    premiumMapDesc: "配合高价咨询，将命理、占星、吠陀象征与现实行动策略编织成15章长文流程。",
     formHeading: "解读命运之线所需的信息",
     profileLoadAria: "从个人资料卡加载出生信息",
     profileLoadCta: "从个人资料卡加载",
@@ -828,7 +829,7 @@ const KARMA_DESTINY_COPY: Partial<Record<LoadingLocale, KarmaDestinyCopy>> = {
     heroDescription: "在反覆出現的人生流向中，為您解讀現在需要斬斷的模式與需要開啟的新道路。",
     premiumMapAriaLabel: "命運業力諮詢構成",
     premiumMapHeading: "3萬字以上展開的命運業力報告",
-    premiumMapDesc: "配合高價諮詢，將命理、占星、吠陀象徵與現實行動策略編織成16章長文流程。",
+    premiumMapDesc: "配合高價諮詢，將命理、占星、吠陀象徵與現實行動策略編織成15章長文流程。",
     formHeading: "解讀命運之線所需的資訊",
     profileLoadAria: "從個人資料卡載入出生資訊",
     profileLoadCta: "從個人資料卡載入",
@@ -952,7 +953,7 @@ const KARMA_DESTINY_COPY: Partial<Record<LoadingLocale, KarmaDestinyCopy>> = {
     heroDescription: "Trong dòng chảy lặp lại của cuộc đời, chúng tôi tiết lộ khuôn mẫu cần phá vỡ ngay bây giờ và con đường mới cần mở ra.",
     premiumMapAriaLabel: "Cấu trúc tư vấn Nghiệp Số Mệnh",
     premiumMapHeading: "Báo Cáo Nghiệp Số Mệnh Hơn 30.000 Ký Tự",
-    premiumMapDesc: "Phù hợp với buổi tư vấn cao cấp, chúng tôi kết hợp mệnh lý, chiêm tinh và biểu tượng Vệ Đà với chiến lược hành động thực tế qua 16 chương dài.",
+    premiumMapDesc: "Phù hợp với buổi tư vấn cao cấp, chúng tôi kết hợp mệnh lý, chiêm tinh và biểu tượng Vệ Đà với chiến lược hành động thực tế qua 15 chương dài.",
     formHeading: "Thông Tin Để Đọc Sợi Chỉ Số Mệnh Của Bạn",
     profileLoadAria: "Tải thông tin sinh từ thẻ hồ sơ",
     profileLoadCta: "Tải từ thẻ hồ sơ",
@@ -1076,7 +1077,7 @@ const KARMA_DESTINY_COPY: Partial<Record<LoadingLocale, KarmaDestinyCopy>> = {
     heroDescription: "जीवन के दोहराए जाने वाले प्रवाह में, हम उस पैटर्न को उजागर करते हैं जिसे अभी तोड़ने की ज़रूरत है और उस नए रास्ते को जो खोलने की ज़रूरत है।",
     premiumMapAriaLabel: "कर्म भाग्य परामर्श संरचना",
     premiumMapHeading: "30,000+ अक्षरों वाली कर्म भाग्य रिपोर्ट",
-    premiumMapDesc: "प्रीमियम परामर्श के अनुरूप, हम साजू, ज्योतिष और वैदिक प्रतीकवाद को वास्तविक कार्य रणनीतियों के साथ 16 अध्यायों की लंबी कथा में बुनते हैं।",
+    premiumMapDesc: "प्रीमियम परामर्श के अनुरूप, हम साजू, ज्योतिष और वैदिक प्रतीकवाद को वास्तविक कार्य रणनीतियों के साथ 15 अध्यायों की लंबी कथा में बुनते हैं।",
     formHeading: "आपके भाग्य के धागे को पढ़ने के लिए जानकारी",
     profileLoadAria: "प्रोफ़ाइल कार्ड से जन्म जानकारी लोड करें",
     profileLoadCta: "प्रोफ़ाइल कार्ड से लोड करें",
@@ -1200,7 +1201,7 @@ const KARMA_DESTINY_COPY: Partial<Record<LoadingLocale, KarmaDestinyCopy>> = {
     heroDescription: "En el flujo recurrente de tu vida, revelamos el patrón que necesitas romper ahora y el nuevo camino que necesitas abrir.",
     premiumMapAriaLabel: "Composición de la consulta de Karma y Destino",
     premiumMapHeading: "Un Informe de Karma y Destino de más de 30,000 caracteres",
-    premiumMapDesc: "Acorde a una consulta premium, entrelazamos el simbolismo de Saju, astrología y sabiduría védica con estrategias de acción reales a lo largo de una narrativa de 16 capítulos.",
+    premiumMapDesc: "Acorde a una consulta premium, entrelazamos el simbolismo de Saju, astrología y sabiduría védica con estrategias de acción reales a lo largo de una narrativa de 15 capítulos.",
     formHeading: "Información para Leer el Hilo de tu Destino",
     profileLoadAria: "Cargar información de nacimiento desde tu tarjeta de perfil",
     profileLoadCta: "Cargar desde la tarjeta de perfil",
@@ -1324,7 +1325,7 @@ const KARMA_DESTINY_COPY: Partial<Record<LoadingLocale, KarmaDestinyCopy>> = {
     heroDescription: "Dans le flux récurrent de votre vie, nous révélons le schéma que vous devez rompre maintenant et la nouvelle voie que vous devez ouvrir.",
     premiumMapAriaLabel: "Composition de la consultation Karma et Destin",
     premiumMapHeading: "Un Rapport Karma et Destin de plus de 30 000 caractères",
-    premiumMapDesc: "En accord avec une consultation premium, nous entrelaçons le symbolisme du Saju, de l'astrologie et de la sagesse védique avec des stratégies d'action concrètes sur un récit de 16 chapitres.",
+    premiumMapDesc: "En accord avec une consultation premium, nous entrelaçons le symbolisme du Saju, de l'astrologie et de la sagesse védique avec des stratégies d'action concrètes sur un récit de 15 chapitres.",
     formHeading: "Informations pour Lire le Fil de votre Destin",
     profileLoadAria: "Charger les informations de naissance depuis votre carte de profil",
     profileLoadCta: "Charger depuis la carte de profil",
@@ -1448,7 +1449,7 @@ const KARMA_DESTINY_COPY: Partial<Record<LoadingLocale, KarmaDestinyCopy>> = {
     heroDescription: "Im wiederkehrenden Fluss Ihres Lebens enthüllen wir das Muster, das Sie jetzt durchbrechen müssen, und den neuen Weg, den Sie öffnen müssen.",
     premiumMapAriaLabel: "Zusammensetzung der Karma-Schicksal-Beratung",
     premiumMapHeading: "Ein Karma-Schicksal-Bericht mit über 30.000 Zeichen",
-    premiumMapDesc: "Passend zu einer Premium-Beratung verweben wir Saju-, Astrologie- und vedische Symbolik mit realen Handlungsstrategien über eine 16-kapitelige Erzählung.",
+    premiumMapDesc: "Passend zu einer Premium-Beratung verweben wir Saju-, Astrologie- und vedische Symbolik mit realen Handlungsstrategien über eine 15-kapitelige Erzählung.",
     formHeading: "Informationen, um den Faden Ihres Schicksals zu lesen",
     profileLoadAria: "Geburtsinformationen aus Ihrer Profilkarte laden",
     profileLoadCta: "Aus Profilkarte laden",
@@ -1572,7 +1573,7 @@ const KARMA_DESTINY_COPY: Partial<Record<LoadingLocale, KarmaDestinyCopy>> = {
     heroDescription: "In de terugkerende stroom van je leven onthullen we het patroon dat je nu moet doorbreken en het nieuwe pad dat je moet openen.",
     premiumMapAriaLabel: "Samenstelling van het Karma-lot consult",
     premiumMapHeading: "Een Karma-lot rapport van meer dan 30.000 tekens",
-    premiumMapDesc: "Passend bij een premium consult verweven we Saju-, astrologie- en vedische symboliek met echte actiestrategieën in een verhaal van 16 hoofdstukken.",
+    premiumMapDesc: "Passend bij een premium consult verweven we Saju-, astrologie- en vedische symboliek met echte actiestrategieën in een verhaal van 15 hoofdstukken.",
     formHeading: "Informatie om de draad van je lot te lezen",
     profileLoadAria: "Geboortegegevens laden vanuit je profielkaart",
     profileLoadCta: "Laden vanuit profielkaart",
@@ -1696,7 +1697,7 @@ const KARMA_DESTINY_COPY: Partial<Record<LoadingLocale, KarmaDestinyCopy>> = {
     heroDescription: "Dalam aliran berulang kehidupan anda, kami mendedahkan corak yang perlu diputuskan sekarang dan jalan baharu yang perlu dibuka.",
     premiumMapAriaLabel: "Komposisi perundingan Karma Takdir",
     premiumMapHeading: "Laporan Karma Takdir Melebihi 30,000 Aksara",
-    premiumMapDesc: "Bersesuaian dengan perundingan premium, kami menganyam simbolisme Saju, astrologi dan Veda bersama strategi tindakan sebenar sepanjang naratif 16 bab.",
+    premiumMapDesc: "Bersesuaian dengan perundingan premium, kami menganyam simbolisme Saju, astrologi dan Veda bersama strategi tindakan sebenar sepanjang naratif 15 bab.",
     formHeading: "Maklumat untuk Membaca Benang Takdir Anda",
     profileLoadAria: "Muatkan maklumat kelahiran daripada kad profil",
     profileLoadCta: "Muatkan daripada kad profil",
@@ -1782,6 +1783,11 @@ function useKarmaDestinyCopy(): KarmaDestinyCopy {
 const FEATURE_KEY = "karma-destiny-ai-consultation";
 const FEATURE_COST = 300;
 const FEATURE_AMOUNT_KRW = 30000;
+const TOSS_LEAP_LABEL:Record<LoadingLocale,string> = {
+  ko:"윤달",en:"Leap lunar month",ja:"閏月", "zh-CN":"闰月", "zh-TW":"閏月",
+  vi:"Tháng nhuận âm lịch",hi:"अधिक चंद्र मास",es:"Mes lunar intercalar",fr:"Mois lunaire intercalaire",
+  de:"Lunarer Schaltmonat",nl:"Schrikkelmaand in de maankalender",ms:"Bulan lompat lunar",
+};
 
 const FOCUS_AREA_OPTIONS: Array<{ value: FocusAreaType; label: string }> = [
   { value: "overall", label: "전체 운명의 업" },
@@ -2275,12 +2281,14 @@ function KarmaResultModal({
   );
 }
 
-export default function KarmaDestinyAiPage() {
+export default function KarmaDestinyAiPage({paymentSurface="web",ProfilePicker,TossPrice}:{paymentSurface?:"web"|"toss";ProfilePicker?:ComponentType<{onSelect:(seed:AiPrefillSeed)=>void}>;TossPrice?:ComponentType} = {}) {
   const copy = useKarmaDestinyCopy();
+  const {copy:tossCopy} = useTossConsultationCopy(paymentSurface === "toss");
   const [clientReady, setClientReady] = useState(false);
   useEffect(() => { setClientReady(true); }, []);
   const locale = getCurrentLoadingLocale();
-  const [form, setForm] = useState<ConsultationForm>(() => buildInitialForm());
+  const [form, setForm] = useState<ConsultationForm>(() => paymentSurface === "toss" ? defaultForm() : buildInitialForm());
+  const [tossLeapMonth,setTossLeapMonth] = useState(false);
   const [status, setStatus] = useState<FlowStatus>("idle");
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
@@ -2295,13 +2303,14 @@ export default function KarmaDestinyAiPage() {
   const startLockRef = useRef(false);
   const idempotencyKeyRef = useRef(createIdempotencyKey());
   const latestOpenedResultRef = useRef("");
-  const { seed: profileSeed, seedVersion, reload: reloadProfileSeed } = useAiProfileSeed();
+  const { seed: profileSeed, seedVersion, reload: reloadProfileSeed } = useAiProfileSeed({enabled:paymentSurface !== "toss"});
   const formTouchedRef = useRef(false);
 
   // 서버에서 프로필 카드가 뒤늦게 도착해도, 사용자가 입력을 시작하기 전이라면 폼에 반영
   const [recoveryEpoch, setRecoveryEpoch] = useState(0);
-  const captureOwner = usePaidDeliveryScope(() => { setMessages([]); setSessionId(""); setIntegratedResult(null); setSummaryCards(null); setError(""); setNotice(""); startLockRef.current = false; setRecoveryEpoch(value => value + 1); });
+  const captureOwner = usePaidDeliveryScope(() => { setMessages([]); setSessionId(""); setIntegratedResult(null); setSummaryCards(null); setError(""); setNotice(""); startLockRef.current = false; if(paymentSurface === "toss"){setForm(defaultForm());setTossLeapMonth(false);idempotencyKeyRef.current=createIdempotencyKey();} setRecoveryEpoch(value => value + 1); });
   useEffect(() => {
+    if (paymentSurface === "toss") return;
     const restore = async () => {
       if (document.visibilityState === "hidden" || startLockRef.current) return;
       const isCurrent = captureOwner();
@@ -2317,7 +2326,7 @@ export default function KarmaDestinyAiPage() {
       window.removeEventListener("online", restore); document.removeEventListener("visibilitychange", restore);
       window.removeEventListener("pageshow", restore); window.removeEventListener("focus", restore);
     };
-  }, [recoveryEpoch, captureOwner]);
+  }, [recoveryEpoch, captureOwner, paymentSurface]);
   useEffect(() => {
     if (!profileSeed) return;
     setForm((prev) => (formTouchedRef.current ? prev : applyProfileSeedToForm(prev, profileSeed)));
@@ -2325,6 +2334,7 @@ export default function KarmaDestinyAiPage() {
   }, [seedVersion]);
 
   function loadFormFromProfileCard(selectedSeed?: AiPrefillSeed) {
+    if (paymentSurface === "toss") setTossLeapMonth(false);
     if (selectedSeed) formTouchedRef.current = true;
     void (selectedSeed ? Promise.resolve(selectedSeed) : reloadProfileSeed()).then((seed) => {
       if (seed) setForm((prev) => applyProfileSeedToForm(prev, seed));
@@ -2373,6 +2383,7 @@ export default function KarmaDestinyAiPage() {
   const updateField = (field: keyof ConsultationForm) => (event: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const target = event.target;
     const value = target instanceof HTMLInputElement && target.type === "checkbox" ? target.checked : target.value;
+    if (paymentSurface === "toss" && field === "calendarType") setTossLeapMonth(false);
     setForm((prev) => ({ ...prev, [field]: value } as ConsultationForm));
     resetAttempt();
   };
@@ -2448,7 +2459,7 @@ export default function KarmaDestinyAiPage() {
   /* 모바일 PortOne 은 상단 프레임을 리다이렉트해 runBillingCoinGate 의 await 가 페이지와 함께
      죽는다. 그러면 /start 가 영영 안 불려 결제한 사용자가 빈 폼으로 돌아온다. grant.payload 는
      서버 확정 응답 그대로라 인페이지 gate.data(=billingGate) 자리에 그대로 들어간다. */
-  const buildResume = usePaidResume(FEATURE_KEY, async (args, grant) => {
+  const buildResume = usePaidResume(paymentSurface === "toss" ? "" : FEATURE_KEY, async (args, grant) => {
     const idempotencyKey = typeof args.idempotencyKey === "string" ? args.idempotencyKey : "";
     const payload = unpackPaidResumeArg<ReturnType<typeof buildConsultationPayload>>(args.payload);
     if (!idempotencyKey || !payload) return false;
@@ -2483,7 +2494,37 @@ export default function KarmaDestinyAiPage() {
     };
   };
 
+  const handleTossSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (startLockRef.current || isBusy) return;
+    const validation = validateConsultationForm(form, copy);
+    if (validation) { setError(validation); setStatus("error"); return; }
+    const isCurrent = captureOwner(), idempotencyKey = idempotencyKeyRef.current;
+    const payload = {...buildConsultationPayload(form), ...(form.calendarType === "lunar" && tossLeapMonth ? {isLeapMonth:true} : {}), requestId:idempotencyKey};
+    let paymentFinished = false;
+    startLockRef.current = true; setError(""); setNotice(""); setStatus("payment");
+    try {
+      const gate = await runBillingCoinGate({featureKey:FEATURE_KEY,requestId:idempotencyKey,resume:buildResume({idempotencyKey,payload:packPaidResumeArg(payload)})});
+      if (!isCurrent()) return;
+      if (!gate.ok || !gate.data) throw Object.assign(new Error(gate.error?.message || tossCopy.uncertain), {code:gate.error?.code,status:gate.status});
+      paymentFinished = true;
+      setStatus("reading");
+      const response = await authFetch("/api/karma-destiny-ai/start", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...payload,idempotencyKey})});
+      const result = await response.json().catch(()=>({}));
+      if (!isCurrent()) return;
+      if (!response.ok || !result?.ok || !result.sessionId) throw Object.assign(new Error(result?.message || tossCopy.uncertain), {code:result?.code || result?.reason,status:response.status});
+      window.location.replace(`/karma-destiny-ai/result?sessionId=${encodeURIComponent(result.sessionId)}`);
+    } catch (caught) {
+      if (!isCurrent()) return;
+      const failure = caught && typeof caught === "object" ? caught as {code?:string;status?:number;message?:string} : {};
+      const code = String(failure.code || "");
+      setError(failure.status === 401 || ["LOGIN_REQUIRED","SESSION_EXPIRED"].includes(code) ? tossCopy.login : failure.status === 403 || ["ACCESS_DENIED","ORDER_OWNERSHIP_MISMATCH"].includes(code) ? tossCopy.denied : ["ORDER_REFUNDED","PAYMENT_REVOKED"].includes(code) ? tossCopy.refunded : paymentFinished ? tossCopy.uncertain : failure.message || tossCopy.uncertain);
+      setStatus("error");
+    } finally { if (isCurrent()) startLockRef.current = false; }
+  };
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    if (paymentSurface === "toss") return handleTossSubmit(event);
     event.preventDefault();
     if (startLockRef.current || isBusy) return;
     const validationMessage = validateConsultationForm(form, copy);
@@ -2611,7 +2652,7 @@ export default function KarmaDestinyAiPage() {
   const keywords = summaryCards?.keywords?.length ? summaryCards.keywords.slice(0, 3) : copy.defaultKeywords;
 
   return (
-    <main className={`kdai-page ${polish.page}`} data-karma-destiny-ai="v20260629">
+    <main className={`kdai-page ${polish.page}`} lang={paymentSurface === "toss" ? locale : undefined} data-karma-destiny-ai="v20260629">
       <ConsultationMasterIntro kind="karma" label={copy.heroTitle} lead={copy.heroDescription} actionHref={clientReady ? "#karma-destiny-consultation" : undefined} actionId="karma-hero-start">
         {clientReady && <div className="kdai-status" data-status={status} role="status">
           {isBusy ? <Loader2 size={16} className="kdai-spin" /> : <Sparkles size={16} />}
@@ -2622,7 +2663,8 @@ export default function KarmaDestinyAiPage() {
 
       <ExpertValueCards
         theme="karma"
-        points={[
+        ariaLabel={paymentSurface === "toss" ? copy.premiumMapAriaLabel : undefined}
+        points={paymentSurface === "toss" && locale !== "ko" ? copy.premiumValueCards.slice(0,3).map(title=>({title,description:""})) : [
           { title: "반복되는 관계 패턴", description: "같은 장면에서 마음이 흔들리는 이유를 정리합니다." },
           { title: "일과 돈의 막힘", description: "노력의 방향을 막는 습관과 선택의 결을 살핍니다." },
           { title: "다시 선택할 방향", description: "놓아도 되는 감정의 매듭과 다음 행동을 찾습니다." },
@@ -2632,11 +2674,11 @@ export default function KarmaDestinyAiPage() {
       <section className="kdai-premium-map" aria-label={copy.premiumMapAriaLabel}>
         <div className="kdai-premium-map__intro">
           <span>Premium Karma Report</span>
-          <h2>{copy.premiumMapHeading}</h2>
+          <h2>{paymentSurface === "toss" ? copy.premiumMapAriaLabel : copy.premiumMapHeading}</h2>
           <p>{copy.premiumMapDesc}</p>
         </div>
         <div className="kdai-premium-map__cards">
-          {copy.premiumValueCards.map((item) => (
+          {(paymentSurface === "toss" ? copy.premiumValueCards.slice(0,3) : copy.premiumValueCards).map((item) => (
             <article key={item}>
               <Sparkles size={16} />
               <strong>{item}</strong>
@@ -2646,7 +2688,7 @@ export default function KarmaDestinyAiPage() {
       </section>
 
       {clientReady && <>
-      {getCurrentLoadingLocale() === "ko" && <div style={{width:"100%",maxWidth:540,margin:"24px auto",position:"relative",zIndex:1,textAlign:"left",color:"#463a31",background:"#eee7dc",borderRadius:12}}><CraftedProductDisclosure featureKey="karma-destiny-ai-consultation" summaryLabel="붉은 실 · 운명의 업 상담 상세 안내" /></div>}
+      {paymentSurface !== "toss" && getCurrentLoadingLocale() === "ko" && <div style={{width:"100%",maxWidth:540,margin:"24px auto",position:"relative",zIndex:1,textAlign:"left",color:"#463a31",background:"#eee7dc",borderRadius:12}}><CraftedProductDisclosure featureKey="karma-destiny-ai-consultation" summaryLabel="붉은 실 · 운명의 업 상담 상세 안내" /></div>}
       <section className="kdai-workspace">
         <form data-moonlit-form="" id="karma-destiny-consultation" className="kdai-form kdai-panel" onSubmit={handleSubmit}>
           <div className="kdai-panel-title kdai-panel-title--split">
@@ -2654,8 +2696,9 @@ export default function KarmaDestinyAiPage() {
               <CalendarDays size={18} />
               <h2>{copy.formHeading}</h2>
             </div>
-            <SavedBirthProfilePicker calendarMode="lunar" onSelect={loadFormFromProfileCard} />
+            {paymentSurface !== "toss" && <SavedBirthProfilePicker calendarMode="lunar" onSelect={loadFormFromProfileCard} />}
           </div>
+          {paymentSurface === "toss" && <>{ProfilePicker && <ProfilePicker onSelect={loadFormFromProfileCard} />}<p>{tossCopy.ai}</p></>}
 
           <div className="kdai-grid">
             <label>
@@ -2683,6 +2726,8 @@ export default function KarmaDestinyAiPage() {
               </select>
             </label>
           </div>
+
+          {paymentSurface === "toss" && form.calendarType === "lunar" && <label className="kdai-check"><input type="checkbox" checked={tossLeapMonth} onChange={event=>{setTossLeapMonth(event.target.checked);resetAttempt();}}/><span>{TOSS_LEAP_LABEL[locale]}</span></label>}
 
           <div className="kdai-time-row">
             <label>
@@ -2754,16 +2799,16 @@ export default function KarmaDestinyAiPage() {
           {/* 프리미엄 상담이 무엇을 사는지 숫자로 밝힌다. 값은 worker/routes/karma-destiny-ai.js 의
               INITIAL_CONSULTATION_MIN_LENGTH·PREMIUM_CHAPTERS·PREMIUM_REINFORCEMENT_MAX_ATTEMPTS
               가 실제로 강제하는 계약이다. */}
-          <DeliverableSpec
+          {paymentSurface !== "toss" && <DeliverableSpec
             keyPrefix="karmaDestiny.deliverable"
             className="kdai-deliverable"
             titleClassName="kdai-deliverable__title"
             labelClassName="kdai-deliverable__label"
             valueClassName="kdai-deliverable__value"
             noteClassName="kdai-deliverable__note"
-          />
+          />}
           <div className="flex items-center justify-end">
-            <PriceBadge featureKey="karma-destiny-ai-consultation" prefix={copy.priceLabelPrefix} />
+            {paymentSurface === "toss" ? TossPrice && <TossPrice /> : <PriceBadge featureKey="karma-destiny-ai-consultation" prefix={copy.priceLabelPrefix} />}
           </div>
           <button className="kdai-primary" type="submit" disabled={isBusy}>
             {isBusy ? <Loader2 size={18} className="kdai-spin" /> : <WalletCards size={18} />}
@@ -2830,7 +2875,7 @@ export default function KarmaDestinyAiPage() {
             ))}
           </div>
 
-          <form className="kdai-follow" onSubmit={handleFollowUp}>
+          {paymentSurface !== "toss" && <form className="kdai-follow" onSubmit={handleFollowUp}>
             <textarea
               value={followUp}
               onChange={(event) => setFollowUp(event.target.value)}
@@ -2842,7 +2887,7 @@ export default function KarmaDestinyAiPage() {
               {sending ? <Loader2 size={18} className="kdai-spin" /> : <Send size={18} />}
               <span>{copy.askCta}</span>
             </button>
-          </form>
+          </form>}
         </section>
       </section>
 
@@ -2858,7 +2903,7 @@ export default function KarmaDestinyAiPage() {
         />
       )}
 
-      {messages.length === 0 && status === "idle" && (
+      {paymentSurface !== "toss" && messages.length === 0 && status === "idle" && (
         <ExpertStickyCta
           theme="karma"
           targetId="karma-destiny-consultation"

@@ -6,9 +6,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { BookOpen, Download, Loader2, Lock } from "lucide-react";
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
-import { receiveNeoBriefing } from "./paid-delivery";
+import { neoTossAccessError, receiveNeoBriefing } from "./paid-delivery";
 import { authFetch } from "@/app/_lib/auth-client";
 import { toDisplayText } from "@/lib/llm-text";
 import { buildResizedAssetUrl } from "@/lib/r2-public-url";
@@ -415,7 +415,7 @@ function buildNeoSincereLetter(session: NeoResultSession, methodName: string, lo
   ).join("\n\n");
 }
 
-export default function NeoOperationRoomResultPage({ availability }: { availability?: { title: string; message: string; action?: { href: string; label: string } } } = {}) {
+export default function NeoOperationRoomResultPage({ availability, paymentSurface }: { availability?: { title: string; message: string; action?: { href: string; label: string } }; paymentSurface?: 'toss' } = {}) {
   const searchParams = useSearchParams();
   const attemptId = searchParams?.get("attemptId") || searchParams?.get("id") || "";
   const localPreviewEnabled = process.env.NODE_ENV !== "production";
@@ -463,12 +463,15 @@ export default function NeoOperationRoomResultPage({ availability }: { availabil
   }, []);
 
   const [recoveryEpoch, setRecoveryEpoch] = useState(0);
+  const accessEpoch = useRef(0);
   const captureOwner = usePaidDeliveryScope(() => {
-    setSession(null); setSelectedChecks([]); setFreeform(""); setShowRealityForm(false);
+    accessEpoch.current += 1;
+    setSession(null); setSelectedChecks([]); setFreeform(""); setShowRealityForm(false); setPdfLoading(false); setExportExpand(false); setRefining(false);
     setRecoveryEpoch(value => value + 1);
   });
+  const captureAccess = useCallback(() => { const owner = captureOwner(), epoch = accessEpoch.current; return () => owner() && epoch === accessEpoch.current; }, [captureOwner]);
   useEffect(() => {
-    const recover = () => { if (document.visibilityState !== "hidden" && navigator.onLine) setRecoveryEpoch(value => value + 1); };
+    const recover = () => { if (document.visibilityState !== "hidden" && navigator.onLine) { if (paymentSurface === "toss" && !localPreviewMode) { accessEpoch.current += 1; setSession(null); setLoading(true); setPdfLoading(false); setExportExpand(false); setRefining(false); } setRecoveryEpoch(value => value + 1); } };
     window.addEventListener("online", recover);
     window.addEventListener("pageshow", recover);
     window.addEventListener("focus", recover);
@@ -479,10 +482,10 @@ export default function NeoOperationRoomResultPage({ availability }: { availabil
       window.removeEventListener("focus", recover);
       document.removeEventListener("visibilitychange", recover);
     };
-  }, []);
+  }, [paymentSurface, localPreviewMode]);
   useEffect(() => {
     let cancelled = false;
-    const ownerIsCurrent = captureOwner();
+    const ownerIsCurrent = captureAccess();
     const isCurrent = () => !cancelled && ownerIsCurrent();
     async function loadResult() {
       if(availability){setLoading(false);setError(availability.message);return;}
@@ -491,16 +494,17 @@ export default function NeoOperationRoomResultPage({ availability }: { availabil
         setSession(previewSession); setLoading(false); return;
       }
       setError("");
+      if (paymentSurface === "toss") { setSession(null); setLoading(true); }
       try {
         let data = await receiveNeoBriefing<NeoResultSession>(attemptId, partial => {
           if (!isCurrent()) return;
           setSession(partial); setLoading(false);
           if (!attemptId && partial.sessionId) window.history.replaceState(null, "", `/neo-operation-room/result?attemptId=${encodeURIComponent(partial.sessionId)}`);
-        }, isCurrent);
+        }, isCurrent, "", "briefing", paymentSurface === "toss" ? "toss" : "web");
         if (!isCurrent()) return;
         setSession(data);
         if (data.refinementStatus === "generating" && data.sessionId) {
-          data = await receiveNeoBriefing<NeoResultSession>(data.sessionId, partial => { if (isCurrent()) setSession(partial); }, isCurrent, "", "refinement");
+          data = await receiveNeoBriefing<NeoResultSession>(data.sessionId, partial => { if (isCurrent()) setSession(partial); }, isCurrent, "", "refinement", paymentSurface === "toss" ? "toss" : "web");
           if (!isCurrent()) return;
           setSession(data);
         }
@@ -512,15 +516,17 @@ export default function NeoOperationRoomResultPage({ availability }: { availabil
         setLoading(false);
         const code = caught instanceof Error ? caught.message : "";
         const accessDenied = ["ORDER_REFUNDED", "ORDER_MISMATCH", "REQUEST_INPUT_MISMATCH"].includes(code);
-        setError(code === "LOGIN_REQUIRED" ? resultCopy.loginRequiredError : accessDenied ? getNeoErrorCopy("PAYMENT_VERIFY_FAILED", dialogueLocale) : resultCopy.pollTimeoutError);
+        const tossDenied = paymentSurface === "toss" && neoTossAccessError(caught);
+        if (paymentSurface === "toss") { accessEpoch.current += 1; setSession(null); setSelectedChecks([]); setFreeform(""); setShowRealityForm(false); setRefining(false); setPdfLoading(false); setExportExpand(false); }
+        setError(code === "LOGIN_REQUIRED" || tossDenied === "LOGIN_REQUIRED" ? resultCopy.loginRequiredError : tossDenied ? getNeoBookCopy(dialogueLocale).unavailable : accessDenied ? getNeoErrorCopy("PAYMENT_VERIFY_FAILED", dialogueLocale) : resultCopy.pollTimeoutError);
       }
     }
     void loadResult();
     return () => { cancelled = true; };
-  }, [attemptId, localPreviewMode, recoveryEpoch, captureOwner, resultCopy.loginRequiredError, resultCopy.pollTimeoutError, availability, dialogueLocale]);
+  }, [attemptId, localPreviewMode, recoveryEpoch, captureAccess, resultCopy.loginRequiredError, resultCopy.pollTimeoutError, availability, dialogueLocale, paymentSurface]);
 
   async function handleRefine() {
-    const isCurrent = captureOwner();
+    const isCurrent = captureAccess();
     if (!session?.sessionId) return;
     if(session.refinementAllowance?.remaining===0){setRefineError("현실 점검 질문 2회를 모두 마쳤어요. 저장된 답변을 확인해 주세요.");return;}
     if (!selectedChecks.length && freeform.trim().length < 4) {
@@ -559,8 +565,11 @@ export default function NeoOperationRoomResultPage({ availability }: { availabil
             freeform: freeform.trim(),
           }),
         });
+        if (paymentSurface === "toss") { const code = neoTossAccessError(response); if (code) throw new Error(code); }
         data = await response.json().catch(() => ({}));
-      } catch {
+        if (paymentSurface === "toss") { const code = neoTossAccessError(data); if (code) throw new Error(code); }
+      } catch (caught) {
+        if (paymentSurface === "toss" && neoTossAccessError(caught)) throw caught;
         // 응답을 못 받았다(네트워크·엣지 컷). /refine 은 8챕터를 동기로 쓰므로 서버는 아직 진행 중일
         // 수 있다 — 단발 실패로 끝내면 사용자는 "재시도를 계속해야 나온다"를 겪는다.
         response = null;
@@ -582,7 +591,11 @@ export default function NeoOperationRoomResultPage({ availability }: { availabil
       setSession(refined);
       setShowRealityForm(false);
     } catch (caught) {
-      if (isCurrent()) setRefineError(caught instanceof Error ? caught.message : resultCopy.refineGenericError);
+      if (isCurrent()) {
+        const denied = paymentSurface === "toss" && neoTossAccessError(caught);
+        if (denied) { accessEpoch.current += 1; setSession(null); setSelectedChecks([]); setFreeform(""); setShowRealityForm(false); setRefining(false); setPdfLoading(false); setExportExpand(false); setError(denied === "LOGIN_REQUIRED" ? resultCopy.loginRequiredError : getNeoBookCopy(dialogueLocale).unavailable); }
+        else setRefineError(caught instanceof Error ? caught.message : resultCopy.refineGenericError);
+      }
     } finally {
       if (isCurrent()) setRefining(false);
     }
@@ -590,8 +603,8 @@ export default function NeoOperationRoomResultPage({ availability }: { availabil
 
   // 1차 브리핑 로딩이 쓰는 예산(4s × 60)과 같다. refinedOrder 가 붙거나 서버가 실패를 확정할 때까지 본다.
   async function pollRefinedOrder(resultId: string): Promise<NeoResultSession> {
-    const isCurrent = captureOwner();
-    return receiveNeoBriefing<NeoResultSession>(resultId, partial => { if (isCurrent()) setSession(partial); }, isCurrent, "", "refinement");
+    const isCurrent = captureAccess();
+    return receiveNeoBriefing<NeoResultSession>(resultId, partial => { if (isCurrent()) setSession(partial); }, isCurrent, "", "refinement", paymentSurface === "toss" ? "toss" : "web");
   }
 
   async function handlePdfDownload() {
@@ -601,8 +614,23 @@ export default function NeoOperationRoomResultPage({ availability }: { availabil
       setPdfError(resultCopy.pdfLockedHint);
       return;
     }
-    setPdfLoading(true);
-    setPdfError("");
+    const isCurrent = captureAccess();
+    if (paymentSurface === "toss") {
+      setPdfLoading(true); setPdfError("");
+      try {
+        const id = session?.sessionId || attemptId;
+        const response = await authFetch(`/api/neo-operation-room/result${id ? `?attemptId=${encodeURIComponent(id)}` : ""}`, { headers: { Accept: "application/json" } });
+        const responseDenied = neoTossAccessError(response); if (responseDenied) throw new Error(responseDenied);
+        const verified = await response.json();
+        const resultDenied = neoTossAccessError(verified); if (resultDenied) throw new Error(resultDenied);
+        if (!isCurrent()) return;
+        if (!response.ok || !verified.ok || verified.status !== "completed" || (id && verified.sessionId !== id)) throw new Error("RESULT_RECHECK_FAILED");
+      } catch (caught) {
+        if (isCurrent()) { const denied = neoTossAccessError(caught); accessEpoch.current += 1; setSession(null); setSelectedChecks([]); setFreeform(""); setShowRealityForm(false); setRefining(false); setExportExpand(false); setError(denied === "LOGIN_REQUIRED" ? resultCopy.loginRequiredError : denied ? getNeoBookCopy(dialogueLocale).unavailable : getNeoBookCopy(dialogueLocale).error); setPdfLoading(false); }
+        return;
+      }
+      if (!isCurrent()) return;
+    } else { setPdfLoading(true); setPdfError(""); }
     // 접힌 상담 원문을 전부 펼쳐 캡처한다. exportExpand는 독자의 펼침 상태를 바꾸지 않는다.
     setExportExpand(true);
     await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
@@ -659,6 +687,7 @@ export default function NeoOperationRoomResultPage({ availability }: { availabil
       const sessionKey = safeFilePart(session?.sessionId || session?.id || attemptId || "preview");
       const fileName = `neo-operation-order-${sessionKey}-${todayKey()}.pdf`;
       const blob = pdf.output("blob");
+      if (!isCurrent()) return;
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement("a");
       anchor.href = url;
@@ -668,10 +697,9 @@ export default function NeoOperationRoomResultPage({ availability }: { availabil
       anchor.remove();
       window.setTimeout(() => URL.revokeObjectURL(url), 1000);
     } catch {
-      setPdfError(resultCopy.pdfSaveError);
+      if (isCurrent()) setPdfError(resultCopy.pdfSaveError);
     } finally {
-      setExportExpand(false);
-      setPdfLoading(false);
+      if (isCurrent()) { setExportExpand(false); setPdfLoading(false); }
     }
   }
 
@@ -780,6 +808,7 @@ export default function NeoOperationRoomResultPage({ availability }: { availabil
 
       {session && briefing ? (
         <div className={styles.layout}>
+          {paymentSurface === 'toss' && <p role="note">AI가 작성한 상담 결과예요.</p>}
           <aside className={styles.sidePanel}>
             <NeoWarRoomAssetImage
               asset={selectedMethodDefinition.coverAsset}

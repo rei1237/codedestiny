@@ -36,7 +36,7 @@ export async function handleNativeNeo(request,env,auth,path){
   if(path==='/result'&&/^toss_[a-f0-9]{64}$/.test(virtualId||'')){
     const row=await TossNativeConsultation.findOne({_id:virtualId.slice(5),...ownerFilter(auth)}).lean();
     await verifiedIntent(env,auth,row);
-    const doc=await nativeNeoStoredState(env,auth.userId,row.requestId);
+    const doc=await nativeNeoStoredState(env,auth.userId,row.requestId,'request');
     if(doc)url.searchParams.set('attemptId',doc.id);
   }
   let body=request.method==='POST'?await request.json():null;
@@ -45,7 +45,7 @@ export async function handleNativeNeo(request,env,auth,path){
   if(path==='/start'&&/^toss_[a-f0-9]{64}$/.test(body?.sessionId||'')){
     const row=await TossNativeConsultation.findOne({_id:body.sessionId.slice(5),...ownerFilter(auth)}).lean();
     await verifiedIntent(env,auth,row);
-    const doc=await nativeNeoStoredState(env,auth.userId,row.requestId);
+    const doc=await nativeNeoStoredState(env,auth.userId,row.requestId,'request');
     body=doc?{sessionId:doc.id}:row.input;
   }
   const forwarded=new Request(url,{method:request.method,headers:{'Content-Type':'application/json'},
@@ -55,14 +55,14 @@ export async function handleNativeNeo(request,env,auth,path){
   const response=await handleNeoOperationRoomRoutes(forwarded,env);
   if(response.ok&&['/start','/refine'].includes(path)){
     const data=await response.clone().json();
-    if(data.sessionId)await context.assertStored(await nativeNeoStoredState(env,auth.userId,data.sessionId));
+    if(data.sessionId)await context.assertStored(await nativeNeoStoredState(env,auth.userId,data.sessionId,'id'));
   }
   if(path==='/result'&&request.method==='GET'&&response.status===404){
     const id=url.searchParams.get('attemptId')||url.searchParams.get('id');
     const rows=await TossNativeConsultation.find({...ownerFilter(auth),status:'paid',
       ...(id?(/^toss_[a-f0-9]{64}$/.test(id)?{_id:id.slice(5)}:{requestId:id}):{})}).sort({createdAt:-1}).limit(50).lean();
     for(const row of rows){
-      if(await nativeNeoStoredState(env,auth.userId,row.requestId))continue;
+      if(await nativeNeoStoredState(env,auth.userId,row.requestId,'request'))continue;
       await verifiedIntent(env,auth,row);
       return Response.json({ok:true,status:'partial',retryable:true,sessionId:'toss_'+row._id},{status:202});
     }
@@ -73,8 +73,8 @@ export async function handleNativeNeo(request,env,auth,path){
 export async function nativeNeoLibraryItem(env,auth,purchase){
   if(!purchase.requestId)return {state:'UNASSIGNED',href:'/neo-operation-room/?orderId='+encodeURIComponent(purchase._id)};
   const row=await TossNativeConsultation.findOne({_id:purchase.requestId,...ownerFilter(auth),orderId:purchase._id}).lean();
-  assertNativeIntent(row,auth);
-  const doc=await nativeNeoStoredState(env,auth.userId,row.requestId);
+  await verifiedIntent(env,auth,row);
+  const doc=await nativeNeoStoredState(env,auth.userId,row.requestId,'request');
   if(doc&&(doc.inputHash!==row.inputHash||doc.paymentId!==purchase._id))throw new TossError('RESULT_NOT_FOUND',404);
   const resultId=doc?.id||'toss_'+row._id;
   return {state:doc?.status==='completed'?'COMPLETED':doc?.status==='generation_failed'?'GENERATION_FAILED':'PENDING',resultId,

@@ -9,6 +9,7 @@ import { useTeaHouseCopy } from "../lib/teaHouseCopy";
 
 type HoneyDropRewardOverlayProps = {
   inline?: boolean;
+  paymentSurface?: "web" | "toss";
   honeyDrops: FortuneTeaHouseHoneyDropsState | null;
   burstKey: number;
   message: string;
@@ -107,7 +108,8 @@ function getPigAnswer(question: string, copy: typeof KO) {
   return copy.defaultAnswer;
 }
 
-function renderPigAnswerText(text: string): ReactNode {
+function renderPigAnswerText(text: string, paymentSurface: "web" | "toss"): ReactNode {
+  if (paymentSurface === "toss") return text.replaceAll("code-destiny.com", "코드데스티니");
   const parts = text.split("code-destiny.com");
   return parts.map((part, index) => (
     <span key={`${part}-${index}`}>
@@ -121,14 +123,15 @@ function renderPigAnswerText(text: string): ReactNode {
   ));
 }
 
-function TypewriterText({ text }: { text: string }) {
+function TypewriterText({ text, paymentSurface }: { text: string; paymentSurface: "web" | "toss" }) {
+  const displayText = paymentSurface === "toss" ? text.replaceAll("code-destiny.com", "코드데스티니") : text;
   const [visibleLength, setVisibleLength] = useState(0);
 
   useEffect(() => {
     setVisibleLength(0);
     const timer = window.setInterval(() => {
       setVisibleLength((current) => {
-        if (current >= text.length) {
+        if (current >= displayText.length) {
           window.clearInterval(timer);
           return current;
         }
@@ -136,12 +139,12 @@ function TypewriterText({ text }: { text: string }) {
       });
     }, 18);
     return () => window.clearInterval(timer);
-  }, [text]);
+  }, [displayText]);
 
-  return <>{renderPigAnswerText(text.slice(0, visibleLength))}</>;
+  return <>{renderPigAnswerText(displayText.slice(0, visibleLength), paymentSurface)}</>;
 }
 
-function HoneyPigQnaPanel() {
+function HoneyPigQnaPanel({ paymentSurface }: { paymentSurface: "web" | "toss" }) {
   const copy = useTeaHouseCopy("honeyReward", KO);
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<PigChatMessage[]>([
@@ -222,7 +225,7 @@ function HoneyPigQnaPanel() {
           {messages.map((chat) => (
             <div key={chat.id} className={styles.honeyPigBubbleRow} data-role={chat.role}>
               <div className={styles.honeyPigBubble}>
-                {chat.role === "pig" && chat.typing ? <TypewriterText text={chat.text} /> : renderPigAnswerText(chat.text)}
+                {chat.role === "pig" && chat.typing ? <TypewriterText text={chat.text} paymentSurface={paymentSurface} /> : renderPigAnswerText(chat.text, paymentSurface)}
               </div>
             </div>
           ))}
@@ -262,7 +265,7 @@ function HoneyPigQnaPanel() {
   );
 }
 
-export default function HoneyDropRewardOverlay({ honeyDrops, burstKey, message, onOpenTarotAlbum, onRequestRefresh, inline = false }: HoneyDropRewardOverlayProps) {
+export default function HoneyDropRewardOverlay({ honeyDrops, burstKey, message, onOpenTarotAlbum, onRequestRefresh, inline = false, paymentSurface = "web" }: HoneyDropRewardOverlayProps) {
   const copy = useTeaHouseCopy("honeyReward", KO);
   const [showInfo, setShowInfo] = useState(false);
   const [honeyModeActive, setHoneyModeActive] = useState(false);
@@ -373,7 +376,7 @@ export default function HoneyDropRewardOverlay({ honeyDrops, burstKey, message, 
         </div>
       ) : null}
 
-      {honeyModeActive && unlocked ? <HoneyPigQnaPanel /> : null}
+      {honeyModeActive && unlocked ? <HoneyPigQnaPanel paymentSurface={paymentSurface} /> : null}
 
       {showBurst ? (
         <div className={styles.honeyDropBurst} key={burstKey} aria-hidden>

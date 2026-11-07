@@ -3,7 +3,7 @@ import { RecommendationResult } from "@/app/components/recommendations/Recommend
 import { adviceTopics } from "@/js/recommendations-context.mjs";
 import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
 
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
 import {
   AlertCircle,
   ArrowLeft,
@@ -687,6 +687,17 @@ type Consultation = {
   messages?: Array<{ role: "user" | "assistant"; content: string; createdAt?: string }>;
   message?: string;
   reason?: string;
+  retryable?: boolean;
+};
+
+const TOSS_LOVE_FOLLOW: Record<LoadingLocale, [string,string,string,string,string]> = {
+  ko:["추가 질문","궁금한 내용을 이어서 물어보세요.","질문하기","같은 질문으로 다시 확인해 주세요.","답변 확인을 위해 고객지원에 문의해 주세요."],
+  en:["Follow-up question","Ask what you would like to explore further.","Ask","Please retry the same question.","Contact support to check your answer."],
+  ja:["追加の質問","さらに知りたいことを質問してください。","質問する","同じ質問でもう一度お試しください。","回答の確認についてサポートにお問い合わせください。"],
+  "zh-CN":["追加提问","请继续提出想了解的问题。","提问","请用同一问题重试。","请联系客服确认回答。"],"zh-TW":["追加提問","請繼續提出想了解的問題。","提問","請用相同問題重試。","請聯絡客服確認回答。"],
+  vi:["Câu hỏi tiếp theo","Hãy hỏi thêm điều bạn muốn tìm hiểu.","Gửi câu hỏi","Hãy thử lại cùng câu hỏi.","Liên hệ hỗ trợ để kiểm tra câu trả lời."],hi:["अगला प्रश्न","जिस बारे में और जानना चाहें, पूछें।","पूछें","वही प्रश्न फिर भेजें।","उत्तर के लिए सहायता से संपर्क करें।"],
+  es:["Pregunta adicional","Pregunta lo que quieras explorar más.","Preguntar","Repite la misma pregunta.","Contacta con soporte para comprobar tu respuesta."],fr:["Question complémentaire","Posez une question pour approfondir.","Demander","Réessayez la même question.","Contactez le support pour vérifier votre réponse."],
+  de:["Weitere Frage","Frage nach dem, was du vertiefen möchtest.","Fragen","Versuche dieselbe Frage erneut.","Kontaktiere den Support, um die Antwort zu prüfen."],nl:["Vervolgvraag","Vraag wat je verder wilt onderzoeken.","Vragen","Probeer dezelfde vraag opnieuw.","Neem contact op met de klantenservice voor je antwoord."],ms:["Soalan lanjutan","Tanya perkara yang ingin anda ketahui lebih lanjut.","Tanya","Cuba soalan yang sama sekali lagi.","Hubungi sokongan untuk menyemak jawapan anda."]
 };
 
 // 서버가 sections 없이 messages 만 줬을 때 프로즈를 되살리는 제목 집합(worker 그룹 정의와 같은 순서).
@@ -842,7 +853,7 @@ function buildResultEndpoint() {
   return `/api/love-secret-ai/result${query.toString() ? `?${query.toString()}` : ""}`;
 }
 
-export default function LoveSecretAiResultClient() {
+export default function LoveSecretAiResultClient({ paymentSurface }: { paymentSurface?: "toss" } = {}) {
   const copy = useLoveSecretResultCopy();
   const [consultation, setConsultation] = useState<Consultation | null>(null);
   const [loading, setLoading] = useState(true);
@@ -850,13 +861,19 @@ export default function LoveSecretAiResultClient() {
   const [error, setError] = useState("");
   const [pdfLoading, setPdfLoading] = useState(false);
   const [actionError, setActionError] = useState("");
+  const [followQuestion, setFollowQuestion] = useState("");
+  const [followError, setFollowError] = useState("");
+  const [followSending, setFollowSending] = useState(false);
+  const followLockRef = useRef<symbol|null>(null);
   const [viewAll, setViewAll] = usePagedViewerMode("loveSecretViewerModeV1");
   // export 여부의 단일 진리 소스. data-ls-export 와 expandForExport 가 같은 값을 본다.
   const [exportMode, setExportMode] = useState<"idle" | "pdf">("idle");
   const progressRef = useRef<HTMLDivElement | null>(null);
+  const authorityRevisionRef = useRef(0);
   const [reloadEpoch, setReloadEpoch] = useState(0);
   const captureDeliveryScope = usePaidDeliveryScope(() => {
-    setConsultation(null); setPending(false); setReloadEpoch(value => value + 1);
+    authorityRevisionRef.current++;
+    setConsultation(null); setPending(false); setFollowQuestion(""); setFollowError(""); setFollowSending(false); followLockRef.current = null; setReloadEpoch(value => value + 1);
   });
 
   useEffect(() => {
@@ -864,19 +881,22 @@ export default function LoveSecretAiResultClient() {
     let timer = 0;
     let attempts = 0;
     let resumes = 0;
-    const isCurrent = captureDeliveryScope();
+    const owner = captureDeliveryScope(), revision = ++authorityRevisionRef.current;
+    const isCurrent = () => owner() && (paymentSurface !== 'toss' || revision === authorityRevisionRef.current);
+    if (paymentSurface === 'toss') { setConsultation(null); setLoading(true); setPending(false); }
     // 생성은 요청 안에서 끝나지만(최대 ~90초) 네트워크·재시도 여지를 두고 상한을 넉넉히 잡는다.
     // 2.5s 간격이라 CF rate-limit(10초당 100회)에는 여유가 크다.
     const maxAttempts = 140;
     async function loadResult() {
       setError("");
       try {
-        const previewState = readDevPreviewState();
+        const previewState = paymentSurface === 'toss' ? null : readDevPreviewState();
         const response = previewState
           ? buildDevPreviewResponse(buildLoveSecretPreviewPayload(previewState), previewState === "failed" ? 503 : 200)
           : await authFetch(buildResultEndpoint());
         const payload = await response.json().catch(() => ({})) as Consultation;
         if (!alive || !isCurrent()) return;
+        if (paymentSurface === "toss" && [401,402,403,409].includes(response.status)) { setConsultation(null); setPending(false); setError(response.status === 401 ? "상담을 확인하려면 토스 로그인이 필요해요." : "구매 내역에 접근할 권한을 확인할 수 없어요. 구매한 계정과 주문 내역을 확인해 주세요."); return; }
         const resumeId = payload.sessionId || payload.resultId;
         if ((payload.status === "partial" || payload.reason === "RESULT_STORAGE_UNAVAILABLE") && resumeId) {
           if (payload.status === "partial") setConsultation(payload);
@@ -890,6 +910,7 @@ export default function LoveSecretAiResultClient() {
             if (!alive || !isCurrent()) return;
             const next = await resumed.json().catch(() => ({})) as Consultation;
             if (!alive || !isCurrent()) return;
+            if (paymentSurface === "toss" && [401,402,403,409].includes(resumed.status)) { setConsultation(null); setPending(false); setError(resumed.status === 401 ? "상담을 확인하려면 토스 로그인이 필요해요." : "구매 내역에 접근할 권한을 확인할 수 없어요. 구매한 계정과 주문 내역을 확인해 주세요."); return; }
             if (!resumed.ok) throw new Error(next.message || copy.loadResultFailedError);
             if (next.status === "completed" && next.saved === true) {
               setConsultation(next); setPending(false); return;
@@ -913,6 +934,9 @@ export default function LoveSecretAiResultClient() {
           timer = window.setTimeout(loadResult, attempts <= 1 ? 700 : 2500);
           return;
         }
+        if (paymentSurface === 'toss' && response.ok && (payload.status !== 'completed' || payload.saved !== true)) {
+          setConsultation(null); setPending(false); setError(copy.loadResultFailedError); return;
+        }
         if (!response.ok || payload?.ok === false) throw new Error(toText(payload?.message) || copy.loadResultFailedError);
         if (alive && isCurrent()) {
           setConsultation(payload);
@@ -925,7 +949,7 @@ export default function LoveSecretAiResultClient() {
       }
     }
     void loadResult();
-    const onVisible = () => { if (!document.hidden && alive && isCurrent()) setReloadEpoch(value => value + 1); };
+    const onVisible = () => { if (!document.hidden && alive && isCurrent()) { if (paymentSurface === 'toss') { authorityRevisionRef.current++; setConsultation(null); setLoading(true); } setReloadEpoch(value => value + 1); } };
     document.addEventListener("visibilitychange", onVisible);
     window.addEventListener("pageshow", onVisible); window.addEventListener("focus", onVisible);
     return () => {
@@ -937,7 +961,25 @@ export default function LoveSecretAiResultClient() {
     // 마운트 시 1회만 로드한다; 로딩 중 로케일이 바뀌어도 진행 중인 폴링을 재시작하지 않는다
     // (copy.* 는 에러 메시지 문구일 뿐 재요청 트리거가 아니다).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reloadEpoch]);
+  }, [reloadEpoch, paymentSurface]);
+
+  async function sendTossFollowUp(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const question=followQuestion.trim(), id=consultation?.sessionId, locale=getCurrentLoadingLocale();
+    if (paymentSurface !== 'toss' || consultation?.status !== 'completed' || consultation.saved !== true || !id || question.length < 2 || followLockRef.current) return;
+    const owner=captureDeliveryScope(), revision=authorityRevisionRef.current, attempt=followLockRef.current=Symbol('love-follow-up');
+    const current=()=>owner() && revision===authorityRevisionRef.current && followLockRef.current===attempt;
+    setFollowSending(true);setFollowError('');
+    try {
+      const response=await authFetch('/api/love-secret-ai/message',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:id,message:question})});
+      const payload=await response.json().catch(()=>({})) as Consultation;
+      if (!current()) return;
+      if ([401,402,403,409].includes(response.status)) {authorityRevisionRef.current++;setConsultation(null);setError(response.status===401?'상담을 확인하려면 토스 로그인이 필요해요.':'구매 내역에 접근할 권한을 확인할 수 없어요. 구매한 계정과 주문 내역을 확인해 주세요.');return;}
+      if (!response.ok || payload.ok!==true || payload.sessionId!==id || payload.status!=='completed' || payload.saved!==true || !Array.isArray(payload.messages)) {setFollowError(TOSS_LOVE_FOLLOW[locale][payload.retryable===false?4:3]);return;}
+      setConsultation(payload);setFollowQuestion('');
+    } catch {if(current())setFollowError(TOSS_LOVE_FOLLOW[locale][3]);}
+    finally {if(followLockRef.current===attempt){followLockRef.current=null;if(owner())setFollowSending(false);}}
+  }
 
   // 스크롤 진행률은 리렌더 없이 DOM 에 직접 쓴다(스크롤 프레임마다 setState 하면 결과 전체가 다시 그려진다).
   useEffect(() => {
@@ -1038,19 +1080,21 @@ export default function LoveSecretAiResultClient() {
           </a>
           {consultation && (
             <div className="flex flex-wrap items-center gap-2">
+              {paymentSurface !== "toss" && (
               <button
-                type="button"
-                onClick={() => {
-                  window.dispatchEvent(new Event("premium-share-open:letter"));
-                  document.getElementById("letter-share-editor")?.scrollIntoView({ behavior: "smooth", block: "start" });
-                }}
-                disabled={!isShareReady}
-                aria-label={copy.shareCardAria}
-                className={`${theme.focusRing} inline-flex min-h-11 items-center gap-2 rounded-full border border-[var(--ls-line-control)] bg-[var(--ls-surface)] px-4 text-sm font-bold text-[var(--ls-text)] transition hover:bg-[var(--ls-surface-sunken)] disabled:opacity-60`}
-              >
-                <Share2 className="h-4 w-4" aria-hidden="true" />
-                {copy.shareCardCta}
-              </button>
+                  type="button"
+                  onClick={() => {
+                    window.dispatchEvent(new Event("premium-share-open:letter"));
+                    document.getElementById("letter-share-editor")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                  }}
+                  disabled={!isShareReady}
+                  aria-label={copy.shareCardAria}
+                  className={`${theme.focusRing} inline-flex min-h-11 items-center gap-2 rounded-full border border-[var(--ls-line-control)] bg-[var(--ls-surface)] px-4 text-sm font-bold text-[var(--ls-text)] transition hover:bg-[var(--ls-surface-sunken)] disabled:opacity-60`}
+                >
+                  <Share2 className="h-4 w-4" aria-hidden="true" />
+                  {copy.shareCardCta}
+                </button>
+              )}
               <LoveSecretPdfButton loading={pdfLoading} onClick={() => void handlePdfDownload()} />
             </div>
           )}
@@ -1096,7 +1140,8 @@ export default function LoveSecretAiResultClient() {
             </button>
           </div>
         )}
-        {!loading && consultation && (
+        {!loading && consultation && <>
+          {paymentSurface === 'toss' && <p role="note">AI가 작성한 상담 결과예요.</p>}
           <LoveSecretResultPageContent
             consultation={consultation}
             sections={sections}
@@ -1111,9 +1156,21 @@ export default function LoveSecretAiResultClient() {
             onViewAllChange={setViewAll}
             expandForExport={exporting}
           />
-        )}
-        {isShareReady && <ReviewRewardBanner afterResult locale={getCurrentLoadingLocale() === "ko" ? "ko" : "en"} />}
-        {isShareReady && consultationKey && (
+          {paymentSurface === 'toss' && consultation.status === 'completed' && consultation.saved === true && consultation.sessionId && (
+            <section className="mt-6 rounded-2xl border border-[var(--ls-line)] p-4" aria-labelledby="love-follow-title">
+              <h2 id="love-follow-title">{TOSS_LOVE_FOLLOW[getCurrentLoadingLocale()][0]}</h2>
+              {(consultation.messages || []).slice(2).map((message,index)=><p key={index} className="my-3 whitespace-pre-wrap break-words">{message.content}</p>)}
+              <form onSubmit={sendTossFollowUp} className="grid gap-3" aria-busy={followSending}>
+                <label htmlFor="love-follow-question">{TOSS_LOVE_FOLLOW[getCurrentLoadingLocale()][1]}</label>
+                <textarea id="love-follow-question" value={followQuestion} onChange={event=>setFollowQuestion(event.target.value)} maxLength={1200} disabled={followSending} className="min-h-24 w-full rounded-lg p-3 text-black" />
+                <button type="submit" disabled={followSending || followQuestion.trim().length < 2} className="min-h-11 rounded-full border border-[var(--ls-line)] px-4 font-bold disabled:opacity-50">{followSending && <Loader2 className="mr-2 inline-block animate-spin" size={16} aria-hidden="true" />}{TOSS_LOVE_FOLLOW[getCurrentLoadingLocale()][2]}</button>
+                {followError && <p role="alert">{followError}</p>}
+              </form>
+            </section>
+          )}
+        </>}
+        {paymentSurface !== "toss" && isShareReady && <ReviewRewardBanner afterResult locale={getCurrentLoadingLocale() === "ko" ? "ko" : "en"} />}
+        {paymentSurface !== "toss" && isShareReady && consultationKey && (
           <PremiumResultShare
             kind="letter"
             title={copy.deckLabel}

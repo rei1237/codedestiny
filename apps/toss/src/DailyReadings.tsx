@@ -1,9 +1,10 @@
 import {FloralInputWelcome} from './Brand';
-import {useEffect,useRef,useState,type ComponentProps,type FormEvent} from 'react';
+import {useEffect,useLayoutEffect,useRef,useState,type ComponentProps,type FormEvent} from 'react';
 import {TextArea,TextField} from '@toss/tds-mobile';
 import {Button} from './Button';
 import {BirthFields,birthPayload,emptyBirth} from './BirthFields';
 import {api} from './platform';
+import TossSessionScope from './TossSessionScope';
 import {freeCategories,birthCategories,type FreeCategoryId,type FreeReading,type AttendanceState} from '../../../worker/yeongnyangi/fortune/free/categories';
 
 const categories=freeCategories.filter(item=>item.id!=='horary');
@@ -22,13 +23,15 @@ export function DailyResult({result}:{result:FreeReading}){
   </article>;
 }
 
-export default function DailyReadings({loggedIn,onLogin,onError,request=api}:Props){
+export default function DailyReadings(props:Props){return <TossSessionScope><DailyReadingsContent {...props}/></TossSessionScope>;}
+function DailyReadingsContent({loggedIn,onLogin,onError,request=api}:Props){
   const [state,setState]=useState<AttendanceState|null>(null),[category,setCategory]=useState<FreeCategoryId>('basic');
   const [birth,setBirth]=useState(emptyBirth),[draft,setDraft]=useState<Record<string,string>>({});
   const [result,setResult]=useState<FreeReading|null>(null),[busy,setBusy]=useState(false),[loading,setLoading]=useState(false),[failed,setFailed]=useState(false);
-  const epoch=useRef(0),operation=useRef(false);
+  const epoch=useRef(0),operation=useRef<object|null>(null);
+  useLayoutEffect(()=>()=>{epoch.current++;operation.current=null;},[]);
   const config=categories.find(item=>item.id===category)!;
-  useEffect(()=>{let live=true;epoch.current++;setState(null);setResult(null);setFailed(false);
+  useEffect(()=>{let live=true;epoch.current++;setState(null);setResult(null);setFailed(false);if(!loggedIn){operation.current=null;setBusy(false);setLoading(false);setBirth(emptyBirth());setDraft({});}
     if(loggedIn){setLoading(true);request<AttendanceState>('/daily/status').then(data=>{if(live)setState(data);}).catch(error=>{if(live){setFailed(true);onError(error);}}).finally(()=>{if(live)setLoading(false);});}
     return()=>{live=false;epoch.current++;};
   },[loggedIn,request]);
@@ -37,9 +40,9 @@ export default function DailyReadings({loggedIn,onLogin,onError,request=api}:Pro
     setLoading(true);request<{result:FreeReading|null}>('/daily/reading?category='+category).then(data=>{if(epoch.current===ticket)setResult(data.result);}).catch(error=>{if(epoch.current===ticket){setFailed(true);onError(error);}}).finally(()=>{if(epoch.current===ticket)setLoading(false);});
     return()=>{epoch.current++;};
   },[category,state?.unlocked,state?.day,loggedIn,request]);
-  async function run(task:()=>Promise<void>){if(operation.current)return;operation.current=true;setBusy(true);try{await task();}catch(error){onError(error);}finally{operation.current=false;setBusy(false);}}
-  async function attendance(path:string){const ticket=epoch.current;await run(async()=>{const next=await request<AttendanceState>(path,{});if(ticket===epoch.current)setState(next);});}
-  async function submit(event:FormEvent){event.preventDefault();const ticket=epoch.current;await run(async()=>{const next=await request<FreeReading>('/daily/reading',{category,draft,...(birthCategories.has(category)?{birth:birthPayload(birth)}:{})});if(ticket===epoch.current)setResult(next);});}
+  async function run(task:()=>Promise<void>){if(operation.current)return;const active={},ticket=epoch.current;operation.current=active;setBusy(true);try{await task();}catch(error){if(ticket===epoch.current)onError(error);}finally{if(operation.current===active){operation.current=null;setBusy(false);}}}
+  async function attendance(path:string){if(!loggedIn)return;const ticket=epoch.current;await run(async()=>{const next=await request<AttendanceState>(path,{});if(ticket===epoch.current)setState(next);});}
+  async function submit(event:FormEvent){event.preventDefault();if(!loggedIn)return;const ticket=epoch.current;await run(async()=>{const next=await request<FreeReading>('/daily/reading',{category,draft,...(birthCategories.has(category)?{birth:birthPayload(birth)}:{})});if(ticket===epoch.current)setResult(next);});}
   function value(key:string,next:string){setDraft(current=>({...current,[key]:next}));}
   return <section className="daily-reading">
     <h1>오늘을 읽는<br/>작은 이야기</h1><p className="intro">출석으로 모은 멸치로 오늘의 운세를 열고, 마음에 남은 이야기를 다시 읽어보세요.</p>
@@ -53,7 +56,7 @@ export default function DailyReadings({loggedIn,onLogin,onError,request=api}:Pro
       {failed&&<section className="notice"><p>기록을 확인하지 못했어요. 확인 후 다시 이어갈 수 있어요.</p><Button variant="weak" onClick={()=>void run(async()=>{const ticket=epoch.current;const next=await request<AttendanceState>('/daily/status');if(ticket!==epoch.current)return;setState(next);if(next.unlocked){const saved=await request<{result:FreeReading|null}>('/daily/reading?category='+category);if(ticket!==epoch.current)return;setResult(saved.result);}setFailed(false);})}>기록 다시 확인하기</Button></section>}
     </>}
     <section className="daily-categories"><h2>오늘 만나볼 이야기</h2><p className="muted">계산 체계마다 바라보는 관점이 달라요. 각 결과에서 계산 근거와 해석의 한계를 함께 확인하세요.</p><div className="daily-options" role="group" aria-label="오늘의 운세 종류">{categories.map(item=><button key={item.id} aria-pressed={category===item.id} disabled={busy} onClick={()=>{setCategory(item.id);setDraft({});}}>{item.label}</button>)}</div></section>
-    {state?.unlocked&&!loading&&!failed&&(result?<><DailyResult result={result}/><p className="muted">오늘 저장된 원문이에요. 다른 종류를 선택하면 그 이야기로 이동해요.</p></>:<form className="form daily-form floral-form" onSubmit={event=>void submit(event)}><FloralInputWelcome/><h2>{config.label} 준비하기</h2><p>{config.description}</p>
+    {loggedIn&&state?.unlocked&&!loading&&!failed&&(result?<><DailyResult result={result}/><p className="muted">오늘 저장된 원문이에요. 다른 종류를 선택하면 그 이야기로 이동해요.</p></>:<form className="form daily-form floral-form" onSubmit={event=>void submit(event)}><FloralInputWelcome/><h2>{config.label} 준비하기</h2><p>{config.description}</p>
       <p className="muted">입력한 기간과 요청은 질문을 정리하는 데 사용해요. 실제 계산 기준과 제공 범위는 결과의 근거에서 확인할 수 있어요.</p>
       {birthCategories.has(category)&&<BirthFields value={birth} onChange={setBirth} title="풀이 대상의 출생정보"/>}
       {config.fields.filter(field=>!birthKeys.has(field.id)).map(field=><div key={category+field.id}>

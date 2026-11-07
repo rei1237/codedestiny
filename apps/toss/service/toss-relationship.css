@@ -1,0 +1,13 @@
+.toss-relationship{padding-bottom:calc(24px + var(--toss-service-bottom,0px))}
+.toss-relationship .tr-person{display:grid;gap:10px;margin:24px 0;padding:0;border:0}
+.toss-relationship .tr-person legend{margin-bottom:12px;font-size:1.1rem;font-weight:700}
+.toss-relationship .tr-person label:not(.tr-check){margin-top:6px;font-weight:600}
+.toss-relationship .tr-person input:not([type=checkbox]),.toss-relationship .tr-person select{box-sizing:border-box;width:100%;min-height:48px;padding:10px 14px;border:1px solid var(--rt-border);border-radius:12px;background:var(--rt-surface);color:var(--rt-ink);font:inherit}
+.toss-relationship .tr-check{display:flex;align-items:center;gap:10px;min-height:44px;line-height:1.5}
+.toss-relationship .tr-check input{width:20px;height:20px;accent-color:var(--rt-accent)}
+.toss-relationship .tr-note{margin:18px 0;color:var(--rt-muted);line-height:1.65}
+.toss-relationship .tr-primary,.toss-relationship .rt-summary button,.toss-relationship .tr-status button{min-height:48px;padding:10px 16px;border:1px solid var(--rt-accent);border-radius:12px;background:var(--rt-accent);color:var(--rt-surface);font:inherit;font-weight:700}
+.toss-relationship .tr-primary{width:100%;margin-top:16px}
+.toss-relationship button:disabled{opacity:.6}
+.toss-relationship .tr-status{display:grid;gap:10px;margin:0;padding:16px 24px;line-height:1.6}
+.toss-relationship .tr-status a{color:var(--rt-accent);text-underline-offset:3px}

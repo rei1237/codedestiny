@@ -47,3 +47,4 @@
 @media(max-width:360px){.adviser-choices{gap:7px}.adviser-art{height:116px}.adviser-choice small{font-size:10px}.feature-tarot{gap:12px}.hero h1{font-size:28px}.tarot-deck{gap:8px}.tarot-library-item{gap:12px}.tarot-list-art{width:72px;height:64px}}
 
 .page-catalog>label{display:block;font-size:14px;font-weight:650}.page-catalog>label select{display:block;margin-top:8px}
+.sukuyo-master-art{display:block;width:100%;height:auto;border-radius:16px;margin-top:28px}

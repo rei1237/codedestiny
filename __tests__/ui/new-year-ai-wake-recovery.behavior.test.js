@@ -25,6 +25,7 @@ test('실제 신년운세 화면의 재개 이펙트는 포그라운드 전환 4
   });
   const epochCalls = [];
   const context = {
+    paymentSurface: 'web',
     window: surface('window:'),
     document: { ...surface('document:'), hidden: false },
     setReloadEpoch: (updater) => epochCalls.push(updater),

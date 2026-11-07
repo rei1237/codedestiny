@@ -11,7 +11,7 @@ import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
 import { AI_LOCALE_HEADER } from "@/lib/i18n/ai-locale";
 
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
-import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type ComponentType, type FormEvent } from "react";
 import { readAiProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { PriceBadge } from "@/app/components/PriceBadge";
@@ -1543,22 +1543,29 @@ function sleep(ms: number) {
 const RESULT_POLL_BACKOFF_MS = [700, 3000, 5000, 8000];
 const RESULT_POLL_MAX_ATTEMPTS = 40;
 
-async function pollAstrologyResult(sessionId: string, scope: LocaleRequestScope): Promise<Consultation | null> {
+async function pollAstrologyResult(sessionId: string, scope: LocaleRequestScope, paymentSurface: "web" | "toss"): Promise<Consultation | null> {
   for (let attempt = 0; attempt < RESULT_POLL_MAX_ATTEMPTS; attempt += 1) {
     await sleep(RESULT_POLL_BACKOFF_MS[Math.min(attempt, RESULT_POLL_BACKOFF_MS.length - 1)]);
     if (!scope.isCurrent()) return null;
     let response: Response;
     try {
       response = await authFetch(`/api/astrology-ai/result/${encodeURIComponent(sessionId)}`, { method: "GET" }, { retryOn401: false });
-    } catch {
+    } catch (caught) {
+      const failure = caught && typeof caught === "object" ? caught as {status?:number;code?:string} : {};
+      if (paymentSurface === "toss" && (failure.status === 401 || ["LOGIN_REQUIRED", "SESSION_EXPIRED"].includes(failure.code || ""))) throw new Error("LOGIN_REQUIRED");
+      if (paymentSurface === "toss" && (failure.status === 403 || failure.code === "ACCESS_DENIED")) throw new Error("ACCESS_DENIED");
       continue;
     }
     if (!scope.isCurrent()) return null;
+    if (paymentSurface === "toss" && response.status === 401) throw new Error("LOGIN_REQUIRED");
+    if (paymentSurface === "toss" && response.status === 403) throw new Error("ACCESS_DENIED");
     if (response.status === 202) {
       if (typeof document !== "undefined" && document.visibilityState === "hidden") return null;
       const resumed = await authFetch(API_ENDPOINTS.start, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ resumeSessionId: sessionId }) });
       if (!scope.isCurrent()) return null;
       const data = await resumed.json().catch(() => ({}));
+      if (paymentSurface === "toss" && resumed.status === 401) throw new Error("LOGIN_REQUIRED");
+      if (paymentSurface === "toss" && resumed.status === 403) throw new Error("ACCESS_DENIED");
       if (resumed.status === 202 || (resumed.status === 503 && data.retryable)) continue;
       if (!resumed.ok || data.ok === false) throw new Error(data.reason || "SERVER_ERROR");
       return data as Consultation;
@@ -1578,14 +1585,22 @@ function pointLabel(point: ChartPoint | null | undefined, copy: AstrologyClientC
   return `${point.signKo || point.sign} ${degree}`.trim();
 }
 
-export default function AstrologyAiClient() {
+export default function AstrologyAiClient({paymentSurface = "web", ProfilePicker, TossPrice}: {paymentSurface?: "web" | "toss"; ProfilePicker?:ComponentType<{onSelect:(seed:AiPrefillSeed)=>void}>; TossPrice?:ComponentType}) {
   const locale = useAstrologyClientLocale();
   // The public introduction can paint from HTML. Private profile-backed fields
   // keep their existing browser initialization and only mount after hydration.
   const [clientReady, setClientReady] = useState(false);
   useEffect(() => { setClientReady(true); }, []);
   const copy = getAstrologyClientCopy(locale);
-  const [form, setForm] = useState<FormState>(buildInitialForm);
+  const progressSteps=paymentSurface === "toss" ? copy.progressSteps.map((step,index)=>index===1?{...step,description:"구매한 상담의 권한을 확인합니다."}:step) : copy.progressSteps;
+  const errorText = (code:string) => {
+    if (paymentSurface !== "toss") return copy.errorText[code] || copy.errorText.SERVER_ERROR;
+    if (code === "LOGIN_REQUIRED") return "상담을 시작하려면 토스 로그인이 필요해요.";
+    if (code === "ACCESS_DENIED") return "구매 내역에 접근할 권한을 확인할 수 없어요. 구매한 계정과 주문 내역을 확인해 주세요.";
+    if (["INVALID_INPUT", "CALCULATION_ERROR", "PLACE_ERROR", "PAYMENT_CANCELLED"].includes(code)) return copy.errorText[code];
+    return "상담을 확인하지 못했어요. 결제가 완료되었다면 다시 결제하지 말고 구매 내역 복구에서 확인해 주세요.";
+  };
+  const [form, setForm] = useState<FormState>(() => paymentSurface === "toss" ? defaultForm() : buildInitialForm());
   const [phase, setPhase] = useState<FlowPhase>("idle");
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
@@ -1599,7 +1614,7 @@ export default function AstrologyAiClient() {
   const idempotencyKeyRef = useRef(makeIdempotencyKey());
   const progressTimersRef = useRef<number[]>([]);
   const [resumeEpoch, setResumeEpoch] = useState(0);
-  const captureOwner = usePaidDeliveryScope(() => { setConsultation(null); setResultUrl(""); setPhase("idle"); setError(""); setResumeEpoch(value => value + 1); });
+  const captureOwner = usePaidDeliveryScope(() => { setConsultation(null); setResultUrl(""); setPhase("idle"); setError(""); setResumeEpoch(value => value + 1); if(paymentSurface === "toss"){setForm(defaultForm());setBasis(null);setNotice("");idempotencyKeyRef.current=makeIdempotencyKey();} });
   useEffect(() => {
     const sameOwner = captureOwner();
     let alive = true;
@@ -1634,20 +1649,21 @@ export default function AstrologyAiClient() {
     setError("");
     setNotice("");
   });
-  const { seed: profileSeed, seedVersion, reload: reloadProfileSeed } = useAiProfileSeed();
+  const { seed: profileSeed, seedVersion, reload: reloadProfileSeed } = useAiProfileSeed({enabled:paymentSurface !== "toss"});
   const formTouchedRef = useRef(false);
 
   // 서버에서 프로필 카드가 뒤늦게 도착해도, 사용자가 입력을 시작하기 전이라면 폼에 반영
   useEffect(() => {
-    if (!profileSeed) return;
+    if (paymentSurface === "toss" || !profileSeed) return;
     setForm((prev) => (formTouchedRef.current ? prev : applyProfileSeedToForm(prev, profileSeed)));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [seedVersion]);
+  }, [seedVersion, paymentSurface]);
 
   function loadFormFromProfileCard(selectedSeed?: AiPrefillSeed) {
+    const sameOwner = captureOwner();
     if (selectedSeed) formTouchedRef.current = true;
     void (selectedSeed ? Promise.resolve(selectedSeed) : reloadProfileSeed()).then((seed) => {
-      if (seed) setForm((prev) => applyProfileSeedToForm(prev, seed));
+      if (seed && sameOwner()) setForm((prev) => applyProfileSeedToForm(prev, seed));
     });
   }
 
@@ -1739,6 +1755,7 @@ export default function AstrologyAiClient() {
   function openResultPage(url: string) {
     if (!url || typeof window === "undefined") return;
     console.info("[AstrologyAI] result open requested", { url });
+    if (paymentSurface === "toss") { window.location.assign(url); return; }
     const opened = window.open(url, "_blank");
     if (opened) {
       opened.opener = null;
@@ -1767,8 +1784,11 @@ export default function AstrologyAiClient() {
       const startBody = { ...(payloadOverride || buildPayload()), ...access, locale: scope.locale };
       try {
         ({ response, data } = await postJson<StartResponse>(API_ENDPOINTS.start, startBody, idempotencyKey, scope.locale));
-      } catch {
+      } catch (caught) {
         if (!scope.isCurrent()) return false;
+        const failure = caught && typeof caught === "object" ? caught as {status?:number;code?:string} : {};
+        if (paymentSurface === "toss" && (failure.status === 401 || ["LOGIN_REQUIRED", "SESSION_EXPIRED"].includes(failure.code || ""))) throw new Error("LOGIN_REQUIRED");
+        if (paymentSurface === "toss" && (failure.status === 403 || failure.code === "ACCESS_DENIED")) throw new Error("ACCESS_DENIED");
         // 네트워크 순단 시 같은 idempotencyKey로 1회 재시도 — 서버가 이미 생성 중이면 202로 수렴한다.
         ({ response, data } = await postJson<StartResponse>(API_ENDPOINTS.start, startBody, idempotencyKey, scope.locale));
       }
@@ -1778,10 +1798,12 @@ export default function AstrologyAiClient() {
         const pendingSessionId = toText(asRecord(data).sessionId);
         if (!pendingSessionId) throw new Error("SERVER_ERROR");
         console.info("[AstrologyAI] generation pending, polling result", { sessionId: pendingSessionId });
-        const polled = await pollAstrologyResult(pendingSessionId, scope);
+        const polled = await pollAstrologyResult(pendingSessionId, scope, paymentSurface);
         if (!polled || !scope.isCurrent()) return false;
         next = polled;
       } else {
+        if (paymentSurface === "toss" && response.status === 401) throw new Error("LOGIN_REQUIRED");
+        if (paymentSurface === "toss" && response.status === 403) throw new Error("ACCESS_DENIED");
         if ("ok" in data && data.ok === false) {
           const reason = toText(data.reason || "SERVER_ERROR");
           throw new Error(reason || "SERVER_ERROR");
@@ -1827,7 +1849,7 @@ export default function AstrologyAiClient() {
     } catch (caught) {
       const code = caught instanceof Error ? caught.message : "SERVER_ERROR";
       console.error("[AstrologyAI] resume generation failed", { requestId: idempotencyKey, code });
-      setError(copy.errorText[code] || copy.errorText.SERVER_ERROR);
+      setError(errorText(code));
       setPhase("idle");
       return false;
     } finally {
@@ -1852,7 +1874,8 @@ export default function AstrologyAiClient() {
     setPhase("access");
     setProgressIndex(1);
     // 근거는 결제/생성과 무관한 순수 계산이라 기다리지 않고 병렬로 받는다(실패하면 null이라 흐름을 막지 않는다).
-    void fetchAnalysisBasis(API_ENDPOINTS.basis, buildPayload()).then(setBasis);
+    const sameBasisOwner = captureOwner();
+    void fetchAnalysisBasis(API_ENDPOINTS.basis, buildPayload()).then(value => { if (sameBasisOwner()) setBasis(value); });
     beginPaidFeatureGateCheck({
       featureKey: FEATURE_KEY,
       requestId: idempotencyKey,
@@ -1861,7 +1884,7 @@ export default function AstrologyAiClient() {
       paymentMode: "MEMBERSHIP_PASS",
     });
     // 이용권 판정(unlock-status)을 아래 접근 확인 왕복과 겹쳐 돌린다 — 결제 게이트가 같은 키로 재사용해 직렬 왕복이 1회 준다.
-    void primePaymentEligibility({
+    if (paymentSurface !== "toss") void primePaymentEligibility({
       featureKey: FEATURE_KEY,
       categoryKey: "premium-consultation",
       subFeatureKey: FEATURE_KEY,
@@ -1895,12 +1918,14 @@ export default function AstrologyAiClient() {
       const accessResult = data as Exclude<EnsureAccessResult, { ok: true }>;
       if (accessResult.reason === "LOGIN_REQUIRED" || response.status === 401) throw new Error("LOGIN_REQUIRED");
       if (accessResult.reason === "INVALID_INPUT") throw new Error("INVALID_INPUT");
+      if (paymentSurface === "toss" && response.status === 403) throw new Error("ACCESS_DENIED");
       // 재시도를 소진하고도 일시적 장애가 지속되면, dead-end 대신 결제창(단건+월정석)을 연다(요구사항: 이용권 확인
       // 실패 시 무조건 결제창). runBillingCoinGate가 billing.js coin-gate로 pass를 재검사(W2 재시도)해 처리한다.
       const passGateDegraded = isRetriableResultPollFailure(response.status, accessResult);
+      if (paymentSurface === "toss" && passGateDegraded) throw new Error("TEMPORARY_UNAVAILABLE");
       if (!passGateDegraded && accessResult.reason !== "PAYMENT_REQUIRED") throw new Error("SERVER_ERROR");
 
-      setNotice(copy.errorText.PAYMENT_REQUIRED);
+      setNotice(paymentSurface === "toss" ? "상담 상품을 확인하고 있어요." : copy.errorText.PAYMENT_REQUIRED);
       setPhase("payment");
       const paymentRequired = accessResult as Extract<EnsureAccessResult, { ok: false; reason: "PAYMENT_REQUIRED" }>;
       const paymentPayload = asRecord(paymentRequired.paymentPayload);
@@ -1920,7 +1945,7 @@ export default function AstrologyAiClient() {
       });
       if (!gate.ok || !gate.data) {
         const code = toText(gate.error?.code || (gate.status === 401 ? "LOGIN_REQUIRED" : "PAYMENT_VERIFY_FAILED")).toUpperCase();
-        throw new Error(code === "PAYMENT_CANCELLED" ? "PAYMENT_CANCELLED" : code === "AUTH_REQUIRED" ? "LOGIN_REQUIRED" : "PAYMENT_VERIFY_FAILED");
+        throw new Error(paymentSurface === "toss" && gate.status === 403 ? "ACCESS_DENIED" : code === "USER_CANCELED" || code === "PAYMENT_CANCELLED" ? "PAYMENT_CANCELLED" : code === "AUTH_REQUIRED" || gate.status === 401 ? "LOGIN_REQUIRED" : "PAYMENT_VERIFY_FAILED");
       }
       console.info("[AstrologyAI] access check success", { requestId: idempotencyKey, accessType: "billing-gate" });
       await startConsultation(idempotencyKey, extractPaymentContext(gate, idempotencyKey));
@@ -1934,14 +1959,14 @@ export default function AstrologyAiClient() {
       }
       // 일시적 접속 장애는 이용권 결함이 아니므로 "이용권 확인 실패"로 표기하지 않는다.
       const isTransient = code === "TEMPORARY_UNAVAILABLE" || code === "RATE_LIMITED";
-      setError(copy.errorText[code] || copy.errorText.SERVER_ERROR);
+      setError(errorText(code));
       failPaidFeatureGateCheck({
         featureKey: FEATURE_KEY,
         requestId: idempotencyKey,
         title: isTransient ? copy.passCheckRetryTitle : copy.passCheckFailedTitle,
         reason: copy.featureTitle,
         paymentMode: "MEMBERSHIP_PASS",
-        message: copy.errorText[code] || copy.errorText.SERVER_ERROR,
+        message: errorText(code),
         cancelled: paymentCancelled,
       });
       setPhase("idle");
@@ -1964,8 +1989,8 @@ export default function AstrologyAiClient() {
     setPhase("idle");
   }
 
-  const activeStep = phase === "ready" ? copy.progressSteps.length - 1 : Math.min(progressIndex, copy.progressSteps.length - 1);
-  const progressPercent = phase === "idle" ? 8 : Math.round(((activeStep + 1) / copy.progressSteps.length) * 100);
+  const activeStep = phase === "ready" ? progressSteps.length - 1 : Math.min(progressIndex, progressSteps.length - 1);
+  const progressPercent = phase === "idle" ? 8 : Math.round(((activeStep + 1) / progressSteps.length) * 100);
   // 윤달 — enabled 를 끄면 기존 Moon 궤도 헤더와 문구만 남는다.
   const yunOn = isExpertCharacterEnabled("yun");
   const yunHero = { ...getExpertCharacter("yun").hero, src: "/images/service-introductions/astrology-ai-960.webp", alt: "윤달이 서양 점성술 출생차트의 행성과 하우스를 짚는 상담 장면" };
@@ -1976,7 +2001,7 @@ export default function AstrologyAiClient() {
   const yunError = getExpertLine("yun", "error", locale);
 
   return (
-    <main className="astro-ai-page relative min-h-screen overflow-hidden bg-[#050816] text-slate-100 [font-family:var(--font-body)]">
+    <main className="astro-ai-page relative min-h-screen overflow-hidden bg-[#050816] text-slate-100 [font-family:var(--font-body)]" style={paymentSurface === "toss" ? {paddingBottom:"var(--toss-service-bottom, 0px)"} : undefined}>
       <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(180deg,#050816_0%,#0b1028_42%,#050816_100%)]" aria-hidden="true" />
       <div className="pointer-events-none fixed inset-0 opacity-45 [background-image:radial-gradient(#f8e7b0_1px,transparent_1px),radial-gradient(#a9b7ff_1px,transparent_1px)] [background-position:0_0,32px_44px] [background-size:86px_86px,132px_132px]" aria-hidden="true" />
       <div className="pointer-events-none fixed inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#f5d487]/60 to-transparent" aria-hidden="true" />
@@ -2038,7 +2063,7 @@ export default function AstrologyAiClient() {
             </header>
 
             {clientReady && <>
-            {getCurrentLoadingLocale() === "ko" && <CraftedProductDisclosure featureKey="astrology-ai-consultation" />}
+            {paymentSurface !== "toss" && getCurrentLoadingLocale() === "ko" && <CraftedProductDisclosure featureKey="astrology-ai-consultation" />}
             <ExpertValueCards theme={yunOn ? "yun" : "astrology"} points={[yunOn ? { title: "생시부터 묻는 이유", description: "태어난 분까지 알면 상승궁과 열두 하우스가 또렷해지고, 태양·달과 함께 기질의 중심을 정확히 잡습니다." } : { title: "차트의 중심", description: "태양·달·상승궁이 보여주는 기질과 감정의 리듬을 정리합니다." }, { title: "지금의 하늘", description: "행성과 하우스의 흐름을 현재의 질문과 맞물려 읽습니다." }, { title: "선택의 타이밍", description: "변화를 밀어붙일 때와 숨을 고를 때를 구체적으로 나눠 봅니다." }]} />
             <form data-moonlit-form="" id="astrology-ai-form" onSubmit={handleSubmit} className="space-y-5">
               <section className={PANEL_CLASS}>
@@ -2050,7 +2075,7 @@ export default function AstrologyAiClient() {
                     <h2 className="text-lg font-black text-white">{copy.birthInfoHeading}</h2>
                     <p className="mt-1 text-sm leading-6 text-slate-300">{copy.birthInfoDesc}</p>
                   </div>
-                  <SavedBirthProfilePicker calendarMode="solar" onSelect={loadFormFromProfileCard} />
+                  {paymentSurface === "toss" ? ProfilePicker && <ProfilePicker onSelect={loadFormFromProfileCard} /> : <SavedBirthProfilePicker calendarMode="solar" onSelect={loadFormFromProfileCard} />}
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2">
@@ -2169,7 +2194,7 @@ export default function AstrologyAiClient() {
               </section>
 
               <div className="flex items-center justify-end">
-                <PriceBadge featureKey="astrology-ai-consultation" prefix={copy.priceLabelPrefix} />
+                {paymentSurface === "toss" ? TossPrice && <TossPrice/> : <PriceBadge featureKey="astrology-ai-consultation" prefix={copy.priceLabelPrefix} />}
               </div>
               <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
                 <button type="submit" disabled={busy} className="group relative inline-flex min-h-14 items-center justify-center gap-2 overflow-hidden rounded-lg bg-[#f5d487] px-6 text-base font-black text-[#161019] shadow-xl shadow-[#f5d487]/20 transition hover:bg-[#ffe6a8] focus:outline-none focus:ring-2 focus:ring-[#f5d487]/40 disabled:cursor-not-allowed disabled:opacity-60">
@@ -2184,7 +2209,7 @@ export default function AstrologyAiClient() {
                 </button>
               </div>
             </form>
-            <ExpertStickyCta theme={yunOn ? "yun" : "astrology"} targetId="astrology-ai-form" label="별빛 상담 시작" price={<PriceBadge featureKey="astrology-ai-consultation" prefix="상담 이용 가격 " />} />
+            {paymentSurface !== "toss" && <ExpertStickyCta theme={yunOn ? "yun" : "astrology"} targetId="astrology-ai-form" label="별빛 상담 시작" price={<PriceBadge featureKey="astrology-ai-consultation" prefix="상담 이용 가격 " />} />}
             </>}
           </div>
 
@@ -2206,7 +2231,7 @@ export default function AstrologyAiClient() {
               </div>
 
               <div className="grid gap-3">
-                {copy.progressSteps.map((step, index) => {
+                {progressSteps.map((step, index) => {
                   const done = phase === "ready" || index < activeStep;
                   const active = index === activeStep && phase !== "idle";
                   return (
@@ -2248,8 +2273,8 @@ export default function AstrologyAiClient() {
                 <div className="mt-5 text-slate-200 [--cd-basis-popover-bg:#0b1027]">
                   <AnalysisBasisLoading
                     basis={basis}
-                    fallbackLabel={copy.progressSteps[Math.min(progressIndex, copy.progressSteps.length - 1)].title}
-                    fallbackDetail={copy.progressSteps[Math.min(progressIndex, copy.progressSteps.length - 1)].description}
+                    fallbackLabel={progressSteps[Math.min(progressIndex, progressSteps.length - 1)].title}
+                    fallbackDetail={progressSteps[Math.min(progressIndex, progressSteps.length - 1)].description}
                   />
                 </div>
               )}
@@ -2279,6 +2304,7 @@ export default function AstrologyAiClient() {
                     <p className="leading-6">{error}</p>
                   </div>
                   <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-1">
+                    {paymentSurface === "toss" && error === errorText("LOGIN_REQUIRED") && <a href="/login/?next=%2Fastrology-ai%2F" className="min-h-11 rounded-lg border border-white/15 px-3 py-3 font-bold text-white">토스로 로그인하기</a>}
                     <button type="submit" form="astrology-ai-form" className="min-h-11 rounded-lg bg-rose-100 px-3 font-bold text-rose-950">
                       {copy.retryCta}
                     </button>

@@ -11,9 +11,11 @@ import { adviceTopics } from "@/js/recommendations-context.mjs";
 const PaidResultImageGuide = dynamic(() => import('@/components/fortune/PaidResultImageGuide'), { ssr: false });
 
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type ComponentType, type CSSProperties, type FormEvent } from "react";
 import { readAiProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
+import { tossConsultationCopy, useTossConsultationCopy } from "@/app/_lib/toss-consultation-copy";
+import { tossZiweiJapanese } from "@/app/_lib/toss-ziwei-copy";
 import { PriceBadge } from "@/app/components/PriceBadge";
 import { ExpertStickyCta, ExpertValueCards } from "@/app/components/expert-consulting/ExpertConsultationFrame";
 import ExpertCharacterStage from "@/app/components/expert-consulting/ExpertCharacterStage";
@@ -620,6 +622,48 @@ export async function pollZiweiResult(sessionId: string, isCurrent = () => true,
   throw new Error("GENERATION_TIMEOUT");
 }
 
+function tossZiweiMessage(code:string) {
+  const copy=tossConsultationCopy(getCurrentLoadingLocale());
+  if (["LOGIN_REQUIRED","SESSION_EXPIRED"].includes(code)) return copy.login;
+  if (["ACCESS_DENIED","ORDER_OWNERSHIP_MISMATCH"].includes(code)) return copy.denied;
+  if (["ORDER_REFUNDED","PAYMENT_REVOKED"].includes(code)) return copy.refunded;
+  if (code === "USER_CANCELED") return copy.cancelled;
+  return copy.uncertain;
+}
+function tossZiweiFailure(error:unknown){
+  const failure=error&&typeof error==='object'?error as {status?:number;code?:string}:{};
+  if(failure.status===401||['AUTH_REQUIRED','LOGIN_REQUIRED','SESSION_EXPIRED'].includes(failure.code||''))return 'LOGIN_REQUIRED';
+  if(failure.status===403||failure.code==='ACCESS_DENIED')return 'ACCESS_DENIED';
+  const code=failure.code||(error instanceof Error?error.message:'REQUEST_FAILED');
+  return code==='AUTH_REQUIRED'?'LOGIN_REQUIRED':code;
+}
+async function readTossZiweiResponse(response:Response):Promise<ApiResult> {
+  const data=await response.json().catch(()=>({}));
+  if(response.status===401)throw new Error('LOGIN_REQUIRED');
+  if(response.status===403)throw new Error('ACCESS_DENIED');
+  if((!response.ok||data.ok===false)&&!(response.status===503&&data.retryable))throw new Error(String(data.reason||data.code||data.error?.code||'REQUEST_FAILED'));
+  return data as ApiResult;
+}
+async function pollTossZiweiResult(id:string,isCurrent:()=>boolean,onVerified:()=>void,onPartial:(value:Consultation)=>void):Promise<ApiResult> {
+  for(let attempt=0;attempt<RESULT_POLL_MAX_ATTEMPTS;attempt++){
+    if(!isCurrent())throw new Error('SESSION_CHANGED');
+    const response=await authFetch(`/api/ziwei-ai/result?id=${encodeURIComponent(id)}`,{method:'GET'},{retryOn401:false});
+    const data=await readTossZiweiResponse(response);
+    if(!isCurrent())throw new Error('SESSION_CHANGED');
+    if(response.status===503&&data.retryable){await sleep(RESULT_POLL_BACKOFF_MS[Math.min(attempt,RESULT_POLL_BACKOFF_MS.length-1)]);continue;}
+    onVerified();if(data.consultation)onPartial(data.consultation);
+    if(response.status!==202)return data;
+    if(typeof document!=='undefined'&&document.visibilityState==='hidden')return {ok:false,reason:'GENERATION_PAUSED'};
+    const next=await authFetch('/api/ziwei-ai/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({resumeSessionId:id})},{retryOn401:false});
+    const resumed=await readTossZiweiResponse(next);
+    if(!isCurrent())throw new Error('SESSION_CHANGED');
+    if(resumed.consultation)onPartial(resumed.consultation);
+    if(next.status!==202&&!(next.status===503&&resumed.retryable))return resumed;
+    await sleep(RESULT_POLL_BACKOFF_MS[Math.min(attempt,RESULT_POLL_BACKOFF_MS.length-1)]);
+  }
+  throw new Error('GENERATION_TIMEOUT');
+}
+
 function toText(value: unknown) {
   return toDisplayText(value);
 }
@@ -839,12 +883,14 @@ function formatTransformation(value: string | undefined) {
   return toText(value) || "-";
 }
 
-export default function ZiweiAiPage() {
+export default function ZiweiAiPage({paymentSurface="web",ProfilePicker,TossPrice}:{paymentSurface?:"web"|"toss";ProfilePicker?:ComponentType<{onSelect:(seed:AiPrefillSeed)=>void}>;TossPrice?:ComponentType}) {
   const [clientReady, setClientReady] = useState(false);
   useEffect(() => { setClientReady(true); }, []);
   const copy = useZiweiAiCopy();
+  const {locale:tossLocale,copy:tossCopy}=useTossConsultationCopy(paymentSurface === "toss");
+  const tossJapanese=paymentSurface === "toss" && tossLocale === "ja" ? tossZiweiJapanese : null;
   const resultCopy = getResultReferenceCopy(getCurrentLoadingLocale());
-  const [form, setForm] = useState<FormState>(buildInitialZiweiForm);
+  const [form, setForm] = useState<FormState>(()=>paymentSurface === "toss" ? {...defaultForm} : buildInitialZiweiForm());
   const [phase, setPhase] = useState<Phase>("idle");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -856,24 +902,29 @@ export default function ZiweiAiPage() {
   const idempotencyRef = useRef("");
   const busyRef = useRef(false);
   const resultRef = useRef<HTMLDivElement | null>(null);
-  const { seed: profileSeed, seedVersion, reload: reloadProfileSeed } = useAiProfileSeed();
+  const { seed: profileSeed, seedVersion, reload: reloadProfileSeed } = useAiProfileSeed({enabled:paymentSurface !== "toss"});
   const formTouchedRef = useRef(false);
   const [resumeEpoch, setResumeEpoch] = useState(0);
+  const [tossRecovery,setTossRecovery]=useState<"none"|"checking"|"allowed"|"denied"|"error">(()=>paymentSurface === "toss" && typeof window !== "undefined" && Boolean(new URLSearchParams(window.location.search).get("cid")) ? "checking" : "none");
+  const tossRevision=useRef(0),tossSubmitRevision=useRef(0),tossViewedId=useRef(''),tossLastError=useRef<{code:string;message:string}|null>(null);
   const captureOwner = usePaidDeliveryScope(() => {
     setConsultation(null); setBasis(null); setRecentList([]); setError(""); setNotice(""); setPhase("idle");
+    if(paymentSurface === "toss"){tossRevision.current++;tossSubmitRevision.current++;tossViewedId.current='';tossLastError.current=null;setForm({...defaultForm});formTouchedRef.current=false;setTossRecovery(typeof window !== "undefined" && new URLSearchParams(window.location.search).get("cid") ? "checking" : "none");}
     busyRef.current = false; idempotencyRef.current = ""; setResumeEpoch(value => value + 1);
   });
+  const showTossError=(code:string)=>{const message=tossZiweiMessage(code);tossLastError.current={code,message};setError(message);};
+  useEffect(()=>{if(paymentSurface !== "toss"||!tossLastError.current)return;const previous=tossLastError.current,message=tossZiweiMessage(previous.code);tossLastError.current={code:previous.code,message};setError(current=>current===previous.message?message:current);},[paymentSurface,tossLocale]);
 
   // 서버에서 프로필 카드가 뒤늦게 도착해도, 사용자가 입력을 시작하기 전이라면 폼에 반영
   useEffect(() => {
-    if (!profileSeed) return;
+    if (paymentSurface === "toss" || !profileSeed) return;
     setForm((prev) => (formTouchedRef.current ? prev : applyProfileSeedToZiweiForm(prev, profileSeed)));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seedVersion]);
 
   // 운명의 섬 12궁 허브에서 넘어온 궁별 프리셋(focusArea + 질문)을 1회 반영. 결제·생성 로직과 무관.
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (paymentSurface === "toss" || typeof window === "undefined") return;
     let preset: { focusArea?: string; question?: string } | null = null;
     try {
       const raw = sessionStorage.getItem("ziweiIslandPreset");
@@ -897,6 +948,7 @@ export default function ZiweiAiPage() {
   }, []);
 
   function loadFormFromProfileCard(selectedSeed?: AiPrefillSeed) {
+    if(paymentSurface === "toss" && tossRecovery !== "none")return;
     if (selectedSeed) formTouchedRef.current = true;
     void (selectedSeed ? Promise.resolve(selectedSeed) : reloadProfileSeed()).then((seed) => {
       if (seed) setForm((prev) => applyProfileSeedToZiweiForm(prev, seed));
@@ -912,6 +964,22 @@ export default function ZiweiAiPage() {
     } catch {
       // URL 갱신 실패는 무시
     }
+  }
+
+  async function resumeTossConsultation(id:string,ownerCurrent:()=>boolean=()=>true){
+    if(busyRef.current)return false;
+    const revision=++tossRevision.current,owner=captureOwner(),isCurrent=()=>owner()&&ownerCurrent()&&revision===tossRevision.current;
+    busyRef.current=true;setConsultation(null);setBasis(null);setTossRecovery('checking');setPhase('reading');setError('');
+    try{
+      const data=await pollTossZiweiResult(id,isCurrent,()=>setTossRecovery('allowed'),value=>{if(isCurrent())setConsultation(value);});
+      if(!isCurrent())return false;
+      if(data.consultation)setConsultation(data.consultation);
+      setPhase(data.consultation?.status==='completed'?'ready':'idle');
+      return data.consultation?.status==='completed';
+    }catch(caught){
+      if(isCurrent()){const code=tossZiweiFailure(caught);setConsultation(null);setTossRecovery(['ACCESS_DENIED','ORDER_OWNERSHIP_MISMATCH','ORDER_REFUNDED','PAYMENT_REVOKED','LOGIN_REQUIRED','SESSION_EXPIRED','RESULT_NOT_FOUND'].includes(code)?'denied':code==='GENERATION_FAILED'?'allowed':'error');showTossError(code);setPhase('idle');}
+      return false;
+    }finally{if(isCurrent())busyRef.current=false;}
   }
 
   async function resumeSavedConsultation(id: string) {
@@ -930,6 +998,7 @@ export default function ZiweiAiPage() {
     } finally { if (isCurrent()) busyRef.current = false; }
   }
   useEffect(() => {
+    if(paymentSurface === "toss")return;
     const resume = () => { if (document.visibilityState !== "hidden") setResumeEpoch(value => value + 1); };
     window.addEventListener("online", resume); document.addEventListener("visibilitychange", resume);
     window.addEventListener("pageshow", resume); window.addEventListener("focus", resume);
@@ -937,9 +1006,24 @@ export default function ZiweiAiPage() {
       window.removeEventListener("online", resume); document.removeEventListener("visibilitychange", resume);
       window.removeEventListener("pageshow", resume); window.removeEventListener("focus", resume);
     };
-  }, []);
+  }, [paymentSurface]);
+  useEffect(()=>{
+    if(paymentSurface !== "toss")return;
+    const resume=()=>{const changed=(new URLSearchParams(window.location.search).get('cid')||'')!==tossViewedId.current;if(document.visibilityState!=='hidden'&&(!busyRef.current||changed))setResumeEpoch(current=>current+1);};
+    window.addEventListener('online',resume);window.addEventListener('pageshow',resume);window.addEventListener('focus',resume);window.addEventListener('popstate',resume);document.addEventListener('visibilitychange',resume);
+    return()=>{window.removeEventListener('online',resume);window.removeEventListener('pageshow',resume);window.removeEventListener('focus',resume);window.removeEventListener('popstate',resume);document.removeEventListener('visibilitychange',resume);};
+  },[paymentSurface]);
   useEffect(() => {
     const isCurrent = captureOwner(); let cancelled = false;
+    if(paymentSurface === "toss"){
+      const cid=new URLSearchParams(window.location.search).get('cid');
+      const changed=(cid||'')!==tossViewedId.current;
+      if(changed){tossViewedId.current=cid||'';tossRevision.current++;tossSubmitRevision.current++;busyRef.current=false;setConsultation(null);setBasis(null);setError('');}
+      else if(busyRef.current)return ()=>{cancelled=true;};
+      if(cid)void resumeTossConsultation(cid,()=>!cancelled&&isCurrent());
+      else if(changed){setConsultation(null);setTossRecovery('none');}
+      return ()=>{cancelled=true;};
+    }
     (async () => {
       try {
         const response = await authFetch("/api/ziwei-ai/result");
@@ -991,6 +1075,7 @@ export default function ZiweiAiPage() {
   const musungClose = getExpertLine("musung", "result.close");
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
+    if(paymentSurface === "toss" && tossRecovery !== "none")return;
     formTouchedRef.current = true;
     setForm((current) => ({ ...current, [key]: value }));
     if (!busyRef.current) {
@@ -1024,7 +1109,7 @@ export default function ZiweiAiPage() {
 
   // 모바일 PortOne 리다이렉트로 handleSubmit 의 await 가 죽은 뒤, 복귀한 새 문서에서 생성을 이어받는다.
   // 🔴 게이트를 다시 타지 않고 게이트 없는 코어(generateConsultation)를 원래 idempotencyKey 로 부른다.
-  const buildResume = usePaidResume(FEATURE_KEY, async (args, grant) => {
+  const buildResume = usePaidResume(paymentSurface === "toss" ? "" : FEATURE_KEY, async (args, grant) => {
     const idempotencyKey = typeof args.idempotencyKey === "string" ? args.idempotencyKey : "";
     const payload = unpackPaidResumeArg<ReturnType<typeof buildConsultationPayload>>(args.payload);
     if (!idempotencyKey || !payload) return false;
@@ -1042,6 +1127,54 @@ export default function ZiweiAiPage() {
       busyRef.current = false;
     }
   });
+
+  async function handleTossSubmit(event:FormEvent<HTMLFormElement>){
+    event.preventDefault();
+    if(busyRef.current||tossRecovery!=='none')return;
+    const validation=validateForm(form);
+    if(validation){setError(tossJapanese?.invalid || validation);return;}
+    const owner=captureOwner(),revision=++tossSubmitRevision.current,isCurrent=()=>owner()&&revision===tossSubmitRevision.current;
+    const idempotencyKey=idempotencyRef.current||createIdempotencyKey();idempotencyRef.current=idempotencyKey;
+    const payload=buildConsultationPayload(form,idempotencyKey);
+    busyRef.current=true;setPhase('checking');setError('');setNotice(tossCopy.saleChecking);
+    let gateStarted=false;
+    try{
+      gateStarted=true;
+      const gate=await runBillingCoinGate({featureKey:FEATURE_KEY,requestId:idempotencyKey,resume:buildResume({idempotencyKey,payload:packPaidResumeArg(payload)})});
+      if(!isCurrent())return;
+      if(!isPaymentGranted(gate))throw new Error(String(gate.error?.code||'PURCHASE_FAILED'));
+      setPhase('reading');setNotice('');
+      const response=await authFetch('/api/ziwei-ai/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)},{retryOn401:false});
+      const data=await readTossZiweiResponse(response);
+      if(!isCurrent())return;
+      if(data.consultation){setConsultation(data.consultation);rememberConsultationUrl(data.consultation.id);tossViewedId.current=data.consultation.id;}
+      if(response.status===200&&data.consultation?.status==='completed'){setTossRecovery('allowed');setPhase('ready');return;}
+      const id=data.sessionId||data.resultId;
+      if(!id)throw new Error('RESULT_UNAVAILABLE');
+      rememberConsultationUrl(id);setTossRecovery('allowed');
+      tossViewedId.current=id;
+      const result=await pollTossZiweiResult(id,isCurrent,()=>setTossRecovery('allowed'),value=>{if(isCurrent())setConsultation(value);});
+      if(!isCurrent())return;
+      if(result.consultation)setConsultation(result.consultation);
+      setPhase(result.consultation?.status==='completed'?'ready':'idle');
+    }catch(caught){
+      if(isCurrent()){const code=tossZiweiFailure(caught);setConsultation(null);setNotice('');if(gateStarted)setTossRecovery(['ACCESS_DENIED','ORDER_OWNERSHIP_MISMATCH','LOGIN_REQUIRED','SESSION_EXPIRED','ORDER_REFUNDED'].includes(code)?'denied':'error');showTossError(code);setPhase('idle');}
+    }finally{if(isCurrent())busyRef.current=false;}
+  }
+  async function retryTossZiwei(){
+    if(paymentSurface !== 'toss'||tossRecovery!=='allowed'||busyRef.current)return;
+    const id=new URLSearchParams(window.location.search).get('cid');if(!id)return;
+    const owner=captureOwner(),revision=++tossRevision.current,isCurrent=()=>owner()&&revision===tossRevision.current;
+    busyRef.current=true;setPhase('reading');setError('');
+    try{
+      const response=await authFetch('/api/ziwei-ai/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({resumeSessionId:id})},{retryOn401:false});
+      const data=await readTossZiweiResponse(response);
+      if(!isCurrent())return;
+      if(data.consultation?.status==='completed'){setConsultation(data.consultation);setPhase('ready');return;}
+      busyRef.current=false;await resumeTossConsultation(id,owner);
+    }catch(caught){if(isCurrent()){const code=tossZiweiFailure(caught);setConsultation(null);setTossRecovery(['ACCESS_DENIED','ORDER_OWNERSHIP_MISMATCH','ORDER_REFUNDED','PAYMENT_REVOKED','LOGIN_REQUIRED','SESSION_EXPIRED','RESULT_NOT_FOUND'].includes(code)?'denied':'error');showTossError(code);setPhase('idle');}}
+    finally{if(isCurrent())busyRef.current=false;}
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -1190,13 +1323,13 @@ export default function ZiweiAiPage() {
   }
 
   return (
-    <main className="ziweiAiShell">
+    <main className="ziweiAiShell" lang={paymentSurface === "toss" ? tossLocale : undefined} style={paymentSurface === "toss" ? {paddingBottom:"var(--toss-service-bottom, 0px)"} : undefined}>
       <section className={`ziweiHero${musungOn ? " isMusung" : ""}`}>
         {musungOn ? (
           <div className="musungHeroArt">
             <picture>
               <source srcSet={[320, 480, 640, 960].map(width => `${introductionArt["ziwei-ai"].cardImage.replace("-320", `-${width}`)} ${width}w`).join(", ")} sizes="(min-width: 1400px) 1316px, 100vw" />
-              <Image src={musungHero.src} alt={musungHero.alt} fill unoptimized loading="eager" fetchPriority="high" sizes="(min-width: 1400px) 1316px, 100vw" />
+              <Image src={musungHero.src} alt={tossJapanese?.title || musungHero.alt} fill unoptimized loading="eager" fetchPriority="high" sizes="(min-width: 1400px) 1316px, 100vw" />
             </picture>
           </div>
         ) : (
@@ -1210,113 +1343,120 @@ export default function ZiweiAiPage() {
         )}
         <div className="heroBackdropText" aria-hidden="true">紫微斗數</div>
         <div className="heroCopy">
-          <p className="eyebrow"><Stars size={16} /> {musungOn ? `${getExpertCharacterName("musung")} · ${getExpertCharacterTitle("musung")}` : "紫微斗數 · 별궁 전문가 상담"}</p>
-          <h2>자미두수 전문가 상담</h2>
-          <p>명궁과 12궁의 별 흐름을 따라 지금 가장 궁금한 질문을 차분히 풀어드립니다.</p>
+          <p className="eyebrow"><Stars size={16} /> {tossJapanese?.eyebrow || (musungOn ? `${getExpertCharacterName("musung")} · ${getExpertCharacterTitle("musung")}` : "紫微斗數 · 별궁 전문가 상담")}</p>
+          <h2>{tossJapanese?.title || '자미두수 전문가 상담'}</h2>
+          <p>{tossJapanese?.subtitle || '명궁과 12궁의 별 흐름을 따라 지금 가장 궁금한 질문을 차분히 풀어드립니다.'}</p>
         </div>
         {/* heroCopy 밖에 둔다 — 안에 두면 .heroCopy p:last-child 가 대사창 글자를 덮는다. */}
-        <ExpertCharacterStage character="musung" mood={musungGreet.mood} line={musungGreet.text} placement="inline" className="musungHeroStage" />
+        {!tossJapanese && <ExpertCharacterStage character="musung" mood={musungGreet.mood} line={musungGreet.text} placement="inline" className="musungHeroStage" />}
         <div className="heroSeparator" aria-hidden="true" />
       </section>
 
-      {!consultation && copy === ZIWEI_AI_COPY.ko && <div className="craftedGuide"><CraftedProductDisclosure featureKey="ziwei-ai-consultation" /></div>}
+      {!consultation && paymentSurface !== "toss" && copy === ZIWEI_AI_COPY.ko && <div className="craftedGuide"><CraftedProductDisclosure featureKey="ziwei-ai-consultation" /></div>}
       <section className="workspace">
-        <ExpertValueCards theme={musungOn ? "musung" : "ziwei"} points={[musungOn ? { title: "막힌 별부터 판결", description: "명반에서 화기(化忌)가 걸린 궁을 먼저 짚고, 그 자리를 화록(化祿)으로 돌릴 구체적인 행동을 처방합니다." } : { title: "명궁의 기질", description: "명궁과 주요 별이 보여주는 기본 반응과 선택 습관을 살핍니다." }, { title: "12궁의 무대", description: "일·돈·관계처럼 지금 질문이 놓인 삶의 영역을 나눠 읽습니다." }, { title: "별의 전환점", description: "현재 흐름에서 서두를 때와 정리할 때를 현실적인 언어로 짚습니다." }]} />
-        {clientReady && (<form data-moonlit-form="" id="ziwei-consultation-form" className="consultForm" onSubmit={handleSubmit}>
+        <ExpertValueCards theme={musungOn ? "musung" : "ziwei"} ariaLabel={tossJapanese ? tossCopy.sectionLabel : undefined} points={tossJapanese ? tossJapanese.cards.map(card=>({...card})) : [musungOn ? { title: "막힌 별부터 판결", description: "명반에서 화기(化忌)가 걸린 궁을 먼저 짚고, 그 자리를 화록(化祿)으로 돌릴 구체적인 행동을 처방합니다." } : { title: "명궁의 기질", description: "명궁과 주요 별이 보여주는 기본 반응과 선택 습관을 살핍니다." }, { title: "12궁의 무대", description: "일·돈·관계처럼 지금 질문이 놓인 삶의 영역을 나눠 읽습니다." }, { title: "별의 전환점", description: "현재 흐름에서 서두를 때와 정리할 때를 현실적인 언어로 짚습니다." }]} />
+        {paymentSurface === "toss" && <p>{tossCopy.ai}</p>}
+        {tossJapanese && <p>{tossJapanese.resultLanguage}</p>}
+        {clientReady && (<form data-moonlit-form="" id="ziwei-consultation-form" className="consultForm" onSubmit={paymentSurface === "toss" ? handleTossSubmit : handleSubmit}>
           <div className="formHeader flex-wrap">
             <div className="flex min-w-0 flex-1 items-center gap-2">
               <Sparkles size={20} />
-              <strong>별궁을 열기 위한 정보</strong>
+              <strong>{tossJapanese?.form || '별궁을 열기 위한 정보'}</strong>
             </div>
-            <SavedBirthProfilePicker onSelect={loadFormFromProfileCard} />
+            {paymentSurface === "toss" ? (tossRecovery === "none" && ProfilePicker && <ProfilePicker onSelect={loadFormFromProfileCard} />) : <SavedBirthProfilePicker onSelect={loadFormFromProfileCard} />}
           </div>
 
           <label>
-            <span>이름 또는 닉네임</span>
-            <input value={form.name} onChange={(event) => update("name", event.target.value)} maxLength={80} disabled={busy} />
+            <span>{tossJapanese?.name || '이름 또는 닉네임'}</span>
+            <input value={form.name} onChange={(event) => update("name", event.target.value)} maxLength={80} disabled={busy || (paymentSurface === "toss" && tossRecovery !== "none")} />
           </label>
 
           <div className="fieldRow">
             <label>
-              <span>성별</span>
-              <select value={form.gender} onChange={(event) => update("gender", event.target.value as Gender)} disabled={busy}>
-                <option value="">선택</option>
-                <option value="female">여성</option>
-                <option value="male">남성</option>
-                <option value="unknown">비공개</option>
+              <span>{tossJapanese?.gender || '성별'}</span>
+              <select value={form.gender} onChange={(event) => update("gender", event.target.value as Gender)} disabled={busy || (paymentSurface === "toss" && tossRecovery !== "none")}>
+                <option value="">{tossJapanese?.select || '선택'}</option>
+                <option value="female">{tossJapanese?.female || '여성'}</option>
+                <option value="male">{tossJapanese?.male || '남성'}</option>
+                <option value="unknown">{tossJapanese?.private || '비공개'}</option>
               </select>
             </label>
             <label>
-              <span>생년월일</span>
-              <input {...birthDateTextInputProps(form.birthDate, (nextBirthDate) => update("birthDate", nextBirthDate))} disabled={busy} />
+              <span>{tossJapanese?.birthDate || '생년월일'}</span>
+              <input {...birthDateTextInputProps(form.birthDate, (nextBirthDate) => update("birthDate", nextBirthDate))} disabled={busy || (paymentSurface === "toss" && tossRecovery !== "none")} />
             </label>
           </div>
 
           <div className="fieldRow">
             <label>
-              <span>출생시간</span>
-              <BirthTimeInput  value={form.birthTime} onChange={(event) => update("birthTime", event.target.value)} disabled={busy || form.birthTimeUnknown} />
+              <span>{tossJapanese?.birthTime || '출생시간'}</span>
+              <BirthTimeInput aria-label={tossJapanese?.birthTime} value={form.birthTime} onChange={(event) => update("birthTime", event.target.value)} disabled={busy || form.birthTimeUnknown || (paymentSurface === "toss" && tossRecovery !== "none")} />
             </label>
             <label>
-              <span>양력/음력</span>
-              <select value={form.calendarType} onChange={(event) => update("calendarType", event.target.value as CalendarType)} disabled={busy}>
-                <option value="solar">양력</option>
-                <option value="lunar">음력</option>
+              <span>{tossJapanese?.calendar || '양력/음력'}</span>
+              <select value={form.calendarType} onChange={(event) => update("calendarType", event.target.value as CalendarType)} disabled={busy || (paymentSurface === "toss" && tossRecovery !== "none")}>
+                <option value="solar">{tossJapanese?.solar || '양력'}</option>
+                <option value="lunar">{tossJapanese?.lunar || '음력'}</option>
               </select>
             </label>
           </div>
 
           <div className="toggles">
             <label className="check">
-              <input type="checkbox" checked={form.birthTimeUnknown} onChange={(event) => update("birthTimeUnknown", event.target.checked)} disabled={busy} />
-              <span>출생시간 모름</span>
+              <input type="checkbox" checked={form.birthTimeUnknown} onChange={(event) => update("birthTimeUnknown", event.target.checked)} disabled={busy || (paymentSurface === "toss" && tossRecovery !== "none")} />
+              <span>{tossJapanese?.unknown || '출생시간 모름'}</span>
             </label>
             {form.calendarType === "lunar" && (
               <label className="check">
-                <input type="checkbox" checked={form.isLeapMonth} onChange={(event) => update("isLeapMonth", event.target.checked)} disabled={busy} />
-                <span>윤달</span>
+                <input type="checkbox" checked={form.isLeapMonth} onChange={(event) => update("isLeapMonth", event.target.checked)} disabled={busy || (paymentSurface === "toss" && tossRecovery !== "none")} />
+                <span>{tossJapanese?.leap || '윤달'}</span>
               </label>
             )}
           </div>
 
           <label>
-            <span>상담 주제</span>
-            <select value={form.focusArea} onChange={(event) => update("focusArea", event.target.value as FocusArea)} disabled={busy}>
-              {FOCUS_OPTIONS.map((topic) => <option key={topic.value} value={topic.value}>{topic.label}</option>)}
+            <span>{tossJapanese?.topic || '상담 주제'}</span>
+            <select value={form.focusArea} onChange={(event) => update("focusArea", event.target.value as FocusArea)} disabled={busy || (paymentSurface === "toss" && tossRecovery !== "none")}>
+              {FOCUS_OPTIONS.map((topic,index) => <option key={topic.value} value={topic.value}>{tossJapanese?.topics[index] || topic.label}</option>)}
             </select>
           </label>
 
           <label>
-            <span>별궁에 묻고 싶은 질문</span>
+            <span>{tossJapanese?.question || '별궁에 묻고 싶은 질문'}</span>
             <textarea
               value={form.question}
               onChange={(event) => update("question", event.target.value)}
               maxLength={1200}
               rows={5}
-              disabled={busy}
-              placeholder="지금 마음에 가장 크게 떠오르는 고민을 적어 주세요."
+              disabled={busy || (paymentSurface === "toss" && tossRecovery !== "none")}
+              placeholder={tossJapanese?.placeholder || '지금 마음에 가장 크게 떠오르는 고민을 적어 주세요.'}
             />
           </label>
 
           <div className="flex items-center justify-end">
-            <PriceBadge featureKey="ziwei-ai-consultation" prefix="상담 이용 가격 " />
+            {paymentSurface === "toss" ? (TossPrice && <TossPrice/>) : <PriceBadge featureKey="ziwei-ai-consultation" prefix="상담 이용 가격 " />}
           </div>
-          <button className="primaryBtn" type="submit" disabled={busy}>
+          <button className="primaryBtn" type="submit" disabled={busy || (paymentSurface === "toss" && tossRecovery !== "none")}>
             {busy ? <Loader2 className="spin" size={18} /> : <WalletCards size={18} />}
-            {busy ? "명반의 별을 읽는 중..." : "별궁 전문가 상담 받기"}
+            {busy ? (tossJapanese?.busy || '명반의 별을 읽는 중...') : (tossJapanese?.submit || '별궁 전문가 상담 받기')}
           </button>
 
           {notice && <p className="notice"><Moon size={16} />{notice}</p>}
           {/* 캐릭터 한 줄은 사실 문구 앞에만 둔다 — 결제·재시도 안내는 그대로. */}
           {error && <ExpertCharacterStage character="musung" mood={musungError.mood} line={musungError.text} placement="inline" />}
-          {error && <p className="error">{error}</p>}
+          {error && <p className="error" role="alert">{error}</p>}
+          {paymentSurface === "toss" && !consultation && tossRecovery === 'allowed' && <button type="button" style={{minHeight:44}} disabled={busy} onClick={()=>void retryTossZiwei()}>{tossCopy.resume}</button>}
+          {paymentSurface === "toss" && error && tossLastError.current?.code === 'LOGIN_REQUIRED' && <a href={'/login/?next='+encodeURIComponent('/ziwei-ai/'+(typeof window !== 'undefined'?window.location.search:''))}>{tossCopy.loginLink}</a>}
+          {paymentSurface === "toss" && error && typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('cid') && <button type="button" style={{minHeight:44}} disabled={busy} onClick={()=>setResumeEpoch(value=>value+1)}>{tossCopy.retryAuthority}</button>}
+          {paymentSurface === "toss" && error && !new URLSearchParams(typeof window !== 'undefined'?window.location.search:'').get('cid') && <a href="/records/">{tossJapanese?.records || '기록 보관함 확인하기'}</a>}
         </form>)}
-        {clientReady && (<ExpertStickyCta theme={musungOn ? "musung" : "ziwei"} targetId={consultation ? "ziwei-saved-result" : "ziwei-consultation-form"} label={consultation ? "저장된 상담 읽기" : "별궁 상담 열기"} price={<PriceBadge featureKey="ziwei-ai-consultation" prefix="상담 이용 가격 " />} />)}
+        {clientReady && (<ExpertStickyCta theme={musungOn ? "musung" : "ziwei"} targetId={consultation ? "ziwei-saved-result" : "ziwei-consultation-form"} label={consultation ? (tossJapanese?.saved || '저장된 상담 읽기') : (tossJapanese?.open || '별궁 상담 열기')} price={paymentSurface === "toss" ? null : <PriceBadge featureKey="ziwei-ai-consultation" prefix="상담 이용 가격 " />} />)}
 
         <div className="resultPane" id="ziwei-saved-result">
+          {paymentSurface === "toss" && consultation?.status === 'completed' && <button type="button" style={{minHeight:44}} onClick={()=>{const url=new URL(window.location.href);url.searchParams.delete('cid');url.searchParams.delete('orderId');window.history.replaceState(null,'',url.toString());tossViewedId.current='';tossRevision.current++;idempotencyRef.current='';setConsultation(null);setTossRecovery('none');setPhase('idle');}}>{tossJapanese?.again || '다시 상담하기'}</button>}
           {isLoadingConsultation ? (
             <div className="loadingState">
-              {musungOn ? (
+              {musungOn && !tossJapanese ? (
                 <ExpertCharacterStage
                   character="musung"
                   mood={musungLoading.mood}
@@ -1334,8 +1474,8 @@ export default function ZiweiAiPage() {
                   근거가 아직 없거나 조회에 실패하면 기존 단계 문구로 되돌아간다. */}
               <AnalysisBasisLoading
                 basis={basis}
-                fallbackLabel={LOADING_STAGES[currentLoadingStage].label}
-                fallbackDetail={LOADING_STAGES[currentLoadingStage].sub}
+                fallbackLabel={tossJapanese?.busy || LOADING_STAGES[currentLoadingStage].label}
+                fallbackDetail={tossJapanese?.resultLanguage || LOADING_STAGES[currentLoadingStage].sub}
               />
             </div>
           ) : !consultation ? (
@@ -1343,14 +1483,14 @@ export default function ZiweiAiPage() {
               <div className="zwvPreviewBoard" aria-hidden="true">
                 {PREVIEW_PALACES.map((name, index) => (
                   <i key={name} className={index === 0 ? "isLife" : ""}>
-                    <b>{name}</b>
+                    <b>{tossJapanese?.palaces[index] || name}</b>
                     <span>{index === 0 ? "★" : index % 3 === 0 ? "✦" : "·"}</span>
                   </i>
                 ))}
               </div>
-              <strong>별궁을 펼칠 준비가 되어 있습니다</strong>
-              <span>상담이 시작되면 이 자리에 당신의 12궁 명반과 주성이 놓입니다.</span>
-              <ExpertCharacterStage character="musung" mood={musungEmpty.mood} line={musungEmpty.text} placement="inline" className="musungEmptyStage" />
+              <strong>{tossJapanese?.emptyTitle || '별궁을 펼칠 준비가 되어 있습니다'}</strong>
+              <span>{tossJapanese?.emptyText || '상담이 시작되면 이 자리에 당신의 12궁 명반과 주성이 놓입니다.'}</span>
+              {!tossJapanese && <ExpertCharacterStage character="musung" mood={musungEmpty.mood} line={musungEmpty.text} placement="inline" className="musungEmptyStage" />}
               {recentList.length > 0 && (
                 <div className="zwvRecentList" aria-label={copy.recentListAria}>
                   <strong>지난 별궁 기록 다시 보기</strong>
@@ -1365,7 +1505,7 @@ export default function ZiweiAiPage() {
             </div>
           ) : (
             <>
-              {consultation.status !== "completed" && <div role="status" className="notice">저장된 {consultation.completedGroups?.length || 0}/6 묶음부터 읽어 보세요. <button type="button" disabled={busy} onClick={() => void resumeSavedConsultation(consultation.id)}>이어서 생성하기</button></div>}
+              {consultation.status !== "completed" && <div role="status" className="notice">저장된 {consultation.completedGroups?.length || 0}/6 묶음부터 읽어 보세요. <button type="button" disabled={busy || (paymentSurface === "toss" && tossRecovery !== "allowed")} onClick={() => void (paymentSurface === "toss" ? resumeTossConsultation(consultation.id) : resumeSavedConsultation(consultation.id))}>이어서 생성하기</button></div>}
               <div className="resultToolbar" data-ziwei-pdf-download="complete-result-v20260630">
                 <div>
                   <span>{consultation.status === "completed" ? "완성 상담" : "상담 생성 중"}</span>
@@ -1520,7 +1660,7 @@ export default function ZiweiAiPage() {
         </div>
       </section>
       {/* 소개용 캐릭터 프로필 — 상담 진행·결과 화면에서는 내린다. */}
-      {musungOn && !consultation && !busy && <MasterProfile profile={masterProfiles.musung} />}
+      {paymentSurface !== "toss" && musungOn && !consultation && !busy && <MasterProfile profile={masterProfiles.musung} />}
 
       <style>{ZWV_CSS}</style>
       <style>{`

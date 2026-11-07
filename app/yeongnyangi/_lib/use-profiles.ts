@@ -19,7 +19,7 @@ export function isProfileBillingSyncEvent(event:Event){
  const source=String(detail?.source||'').toLowerCase(),kind=String(detail?.event||'').toLowerCase();
  return source==='subscription-sync'||source==='membership-cache'||['payment','subscription','monthlystonebalance'].includes(kind);
 }
-export function useProfiles({forceFreshOnMount=false,skipBillingSync=false}:{forceFreshOnMount?:boolean;skipBillingSync?:boolean}={}){
+export function useProfiles({forceFreshOnMount=false,skipBillingSync=false,requireVerified=false}:{forceFreshOnMount?:boolean;skipBillingSync?:boolean;requireVerified?:boolean}={}){
  const [profiles,setProfiles]=useState<DestinyProfileCard[]>([]),[profileId,setProfileId]=useState('');
  const [guest,setGuest]=useState(false),[loading,setLoading]=useState(true),[error,setError]=useState('');
  const scope=useRef(''),revision=useRef(0),selection=useRef(''),selectedByUser=useRef(false),list=useRef<DestinyProfileCard[]>([]);
@@ -32,30 +32,36 @@ export function useProfiles({forceFreshOnMount=false,skipBillingSync=false}:{for
  },[persist]);
  const refresh=useCallback(async(force=false,reset=false)=>{
   const requestScope=readDestinyProfileAccountId(),version=++revision.current;
+  const verifiedSelection=requireVerified&&requestScope===scope.current?selection.current:'';
   if(reset||requestScope!==scope.current){
-   scope.current=requestScope;const initial=seed(requestScope);
+   scope.current=requestScope;const initial=requireVerified?{profiles:[] as DestinyProfileCard[],profileId:''}:seed(requestScope);
    list.current=initial.profiles;selection.current=initial.profileId||profileKey(initial.profiles[0]||{});
    selectedByUser.current=Boolean(initial.profileId);setProfiles(initial.profiles);setProfileId(selection.current);setGuest(false);
   }
+  if(requireVerified){list.current=[];selection.current='';setProfiles([]);setProfileId('');}
   setLoading(true);setError('');
   try{
-   const response=await authFetch('/api/yeongnyangi/profiles',force?{headers:{'x-code-destiny-cache-refresh':'1'}}:{}, {forceFresh:force});
+   const fresh=force||requireVerified;
+   const response=await authFetch('/api/yeongnyangi/profiles',fresh?{headers:{'x-code-destiny-cache-refresh':'1'}}:{}, {forceFresh:fresh});
    if(version!==revision.current||requestScope!==readDestinyProfileAccountId())return;
    if(response.status===401){list.current=[];selection.current='';setProfiles([]);setProfileId('');setGuest(true);if(requestScope)sessionStorage.removeItem(storageKey(requestScope));return;}
+   if(requireVerified&&response.status===403)throw new Error('프로필에 접근할 권한을 확인할 수 없어요.');
    const data=await response.json() as ProfileResponse;
    if(version!==revision.current||requestScope!==readDestinyProfileAccountId())return;
    if(!response.ok||data.ok!==true||!Array.isArray(data.profiles))throw new Error(data.message||'프로필을 불러오지 못했어요. 다시 확인해 주세요.');
    const next=data.profiles.map(normalizeDestinyProfileCard).filter((p):p is DestinyProfileCard=>Boolean(p&&profileKey(p)));
    list.current=next;setProfiles(next);setGuest(false);
+   if(verifiedSelection&&next.some(p=>profileKey(p)===verifiedSelection))selection.current=verifiedSelection;
+   else if(verifiedSelection)setError('선택한 프로필을 찾지 못했어요. 함께 읽을 프로필을 다시 골라 주세요.');
    if(selection.current&&!next.some(p=>profileKey(p)===selection.current)){
     selection.current='';selectedByUser.current=true;setError('선택한 프로필을 찾지 못했어요. 함께 읽을 프로필을 다시 골라 주세요.');
    }else if(!selectedByUser.current){
     selection.current=next.some(p=>profileKey(p)===data.currentId)?String(data.currentId):profileKey(next[0]||{});
    }
    setProfileId(selection.current);persist();
-  }catch(reason){if(version===revision.current)setError(reason instanceof Error?reason.message:'프로필을 다시 확인해 주세요.');}
+  }catch(reason){if(version===revision.current){if(requireVerified){list.current=[];selection.current='';setProfiles([]);setProfileId('');}const failure=reason&&typeof reason==='object'?reason as {status?:number;code?:string}:{};if(requireVerified&&(failure.status===401||['LOGIN_REQUIRED','SESSION_EXPIRED'].includes(failure.code||''))){setGuest(true);setError('');}else setError(requireVerified&&(failure.status===403||failure.code==='ACCESS_DENIED')?'프로필에 접근할 권한을 확인할 수 없어요.':reason instanceof Error?reason.message:'프로필을 다시 확인해 주세요.');}}
   finally{if(version===revision.current)setLoading(false);}
- },[persist]);
+ },[persist,requireVerified]);
  const saved=useCallback((profile:DestinyProfileCard)=>{
   // An older list response must not remove a profile saved while it was in flight.
   revision.current++;const normalized=normalizeDestinyProfileCard(profile)||profile;

@@ -3,7 +3,7 @@
 import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import { getCurrentLoadingLocale } from "@/constants/loadingMessages";
 import { useMemo, useState } from "react";
-import type { CSSProperties, ReactNode } from "react";
+import type { ComponentType, CSSProperties, ReactNode } from "react";
 import { CalendarClock, ChevronDown, Sun } from "lucide-react";
 import {
   buildMayaMonthGrid,
@@ -12,6 +12,7 @@ import {
   getDaysInMonth,
   getTodayParts,
   type MayaDateParts,
+  type MayaCalendarResult,
 } from "@/src/lib/maya-calendar";
 import MayaDateSummaryCard from "./MayaDateSummaryCard";
 import MayaPromptGeneratorCard from "./MayaPromptGeneratorCard";
@@ -140,7 +141,7 @@ function MayaMountainTempleVisual({ alt }: { alt: string }) {
   );
 }
 
-export default function MayaCalendarView() {
+export default function MayaCalendarView({ paymentSurface = "web", TossPrompt }: { paymentSurface?: "web" | "toss"; TossPrompt?: ComponentType<{result: MayaCalendarResult}> }) {
   const copy = useMayaCopy();
   const today = useMemo(() => getTodayParts(), []);
   const [selected, setSelected] = useState<MayaDateParts>(today);
@@ -175,7 +176,7 @@ export default function MayaCalendarView() {
   }
 
   return (
-    <main className={`relative min-h-screen overflow-x-hidden bg-[#020706] text-[#f7f1df] ${UI_FONT_CLASS}`}>
+    <main className={`relative min-h-screen overflow-x-hidden bg-[#020706] text-[#f7f1df] ${UI_FONT_CLASS}`} style={paymentSurface === "toss" ? { paddingBottom: "var(--toss-service-bottom, 0px)" } : undefined}>
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_78%_8%,rgba(216,181,109,0.22),transparent_26%),radial-gradient(circle_at_18%_4%,rgba(50,132,103,0.20),transparent_30%),radial-gradient(circle_at_52%_42%,rgba(8,31,24,0.64),transparent_42%),linear-gradient(180deg,#020706_0%,#071611_43%,#020605_100%)]" />
       <div className="pointer-events-none absolute inset-x-0 top-0 h-72 opacity-70 [background:radial-gradient(ellipse_at_50%_0%,rgba(236,200,128,0.24)_0%,transparent_42%),linear-gradient(155deg,transparent_0_20%,rgba(244,235,205,0.10)_20%_27%,transparent_27%_36%,rgba(18,55,43,0.34)_36%_48%,transparent_48%_100%)]" />
       <div className="pointer-events-none absolute inset-0 opacity-45 [background-image:linear-gradient(115deg,rgba(216,181,109,0.06)_1px,transparent_1px),linear-gradient(65deg,rgba(111,191,154,0.06)_1px,transparent_1px),radial-gradient(1px_1px_at_18%_24%,rgba(245,239,217,0.60),transparent),radial-gradient(1px_1px_at_72%_18%,rgba(216,181,109,0.58),transparent),radial-gradient(1px_1px_at_84%_68%,rgba(111,191,154,0.46),transparent)] [background-size:92px_92px,132px_132px,180px_180px,240px_240px,310px_310px]" />
@@ -196,7 +197,7 @@ export default function MayaCalendarView() {
               {copy.heroTagline}
             </p>
             <p className="relative mt-4 max-w-3xl text-base leading-8 text-[#eee5cb] md:text-lg">
-              {copy.heroDescription}
+              {paymentSurface === "toss" ? copy.tossHeroDescription : copy.heroDescription}
             </p>
             <div className="relative mt-6 flex flex-wrap gap-3 text-xs font-bold text-[#ede3c3]">
               <span className="rounded-lg border border-[#d8b56d]/34 bg-[#0b120e]/82 px-3 py-2 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04),0_0_22px_rgba(216,181,109,0.10)]">{copy.chipLongCount}</span>
@@ -365,13 +366,15 @@ export default function MayaCalendarView() {
         </div>
 
         <aside className="min-w-0 space-y-6">
-          {getCurrentLoadingLocale() === "ko" && <div style={{"--crafted-mobile-width":"calc(100vw - 48px)"} as CSSProperties}><CraftedProductDisclosure featureKey="maya-prompt-generator" /></div>}
-          <MayaPromptGeneratorCard result={selectedResult} />
+          {paymentSurface === "toss" ? TossPrompt ? <TossPrompt result={selectedResult} /> : <section className="rounded-lg border border-[#d8b56d]/18 bg-[#04100d]/82 p-5 text-sm leading-7 text-[#e6dcc1]" role="status"><h2 className={`text-lg font-black text-[#f8efd2] ${DISPLAY_FONT_CLASS}`}>{copy.promptHeading}</h2><p>{copy.tossPromptUnavailable}</p></section> : <>
+            {getCurrentLoadingLocale() === "ko" && <div style={{"--crafted-mobile-width":"calc(100vw - 48px)"} as CSSProperties}><CraftedProductDisclosure featureKey="maya-prompt-generator" /></div>}
+            <MayaPromptGeneratorCard result={selectedResult} />
+          </>}
           <section className="relative overflow-hidden rounded-lg border border-[#d8b56d]/18 bg-[#04100d]/82 p-5 text-sm leading-7 text-[#e6dcc1] shadow-[0_18px_60px_rgba(0,0,0,0.26)] backdrop-blur">
             <div className="pointer-events-none absolute inset-0 opacity-28 [background-image:linear-gradient(135deg,rgba(216,181,109,0.07)_1px,transparent_1px)] [background-size:26px_26px]" />
             <h2 className={`relative text-lg font-black text-[#f8efd2] ${DISPLAY_FONT_CLASS}`}>{copy.referenceHeading}</h2>
             <p className="relative mt-3">
-              {copy.referenceDisclaimer}
+              {paymentSurface === "toss" ? copy.tossReferenceDisclaimer : copy.referenceDisclaimer}
             </p>
           </section>
         </aside>

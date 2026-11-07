@@ -41,6 +41,8 @@ main select,.tarot-input-label input{background:var(--moon-surface);border-color
 main input[type=checkbox]{accent-color:var(--moon-accent)}
 .birth-fields{padding:20px 0;border-top:1px solid var(--moon-line);border-bottom:1px solid var(--moon-line-soft)}
 .birth-fields legend{padding:0 10px 0 0;color:var(--moon-accent)}
+.human-design-chart .birth-fields label{display:grid;gap:8px;font-size:14px;font-weight:600}
+.human-design-chart .birth-fields input,.human-design-chart .birth-fields select{width:100%;min-width:0;min-height:52px;padding:12px;border:1px solid var(--moon-line);border-radius:10px;background:var(--moon-surface);color:var(--moon-ink);font:inherit}
 .result-evidence,.bias-reading details{border-color:var(--moon-line-soft)}
 main summary{min-height:52px;padding:15px 4px;line-height:1.6;color:var(--moon-accent)}
 .result-chart-options button{background:var(--moon-paper);border-color:var(--moon-line);color:var(--moon-ink)}

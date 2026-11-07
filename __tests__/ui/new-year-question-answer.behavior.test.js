@@ -44,6 +44,7 @@ async function submit({ failAccessOnce = false, generationError = false, denied 
   visit(ast);
   const calls = { checks: [], starts: [], failed: [] };
   const ctx = vm.createContext({
+    paymentSurface: 'web',
     setTimeout, clearTimeout,
     captureDeliveryScope: () => () => true, startLockRef: { current: false }, isBusy: false,
     pendingGenerationRef: { current: null }, readDevPreviewState: () => null,

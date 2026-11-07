@@ -10,7 +10,7 @@ import { usePrefersReducedMotion } from "../lib/usePrefersReducedMotion";
 import styles from "../styles/tea-novel.module.css";
 import YeoniTalkingPortrait from "./YeoniTalkingPortrait";
 
-type Props = { stage: TeaHouseEntryStage; onStageChange: (stage: TeaHouseEntryStage) => void; onComplete: () => void; onSkip: () => void };
+type Props = { stage: TeaHouseEntryStage; onStageChange: (stage: TeaHouseEntryStage) => void; onComplete: () => void; onSkip: () => void; paymentSurface?: "web" | "toss" };
 const SKIP_KEYS = ["stage", "actor", "background", "speaker", "mood"];
 const KO = {
  title: "달빛 아래, 연이의 이야기", narrator: "달빛의 기록", pig: "꽃돼지 연이", yeoni: "연이",
@@ -21,7 +21,7 @@ const KO = {
  replies: ["오늘은 잘해 내려고 애쓰지 않아도 괜찮아요. 차가 우러나는 동안, 마음도 잠깐 쉬어 가요.", "그 사람에 관한 이야기군요. 어떤 마음일 거라고 미리 정하지 않고, 당신이 겪은 장면부터 함께 살펴볼게요.", "아직 이름 붙이지 않아도 괜찮아요. 찻잔을 둘러보다 마음에 걸리는 것이 생기면, 그때 말해 주세요."],
 };
 
-export default function TeaHouseEntryScene({ stage, onStageChange, onComplete, onSkip }: Props) {
+export default function TeaHouseEntryScene({ stage, onStageChange, onComplete, onSkip, paymentSurface = "web" }: Props) {
  const copy = useTeaHouseCopy("entryNovel", KO);
  const scenes = useTeaHouseCopy("entryScenes", teaHouseEntryScenes, { skipKeys: SKIP_KEYS });
  const reducedMotion = usePrefersReducedMotion();
@@ -92,6 +92,16 @@ export default function TeaHouseEntryScene({ stage, onStageChange, onComplete, o
   else if (sceneIndex > 0) { const prev = scenes[sceneIndex - 1]; go(prev.stage, prev.lines.length - 1); }
  }
  function openLog() { setAuto(false); setLogOpen(true); logRef.current?.showModal(); }
+ useEffect(() => {
+  if (paymentSurface !== "toss") return;
+  const onNativeBack = (event: Event) => {
+   if (logOpen) { event.preventDefault(); logRef.current?.close(); return; }
+   if (artOnly) { event.preventDefault(); setArtOnly(false); return; }
+   if (reply !== null || lineIndex > 0 || sceneIndex > 0) { event.preventDefault(); previous(); }
+  };
+  window.addEventListener("code-destiny:toss-back", onNativeBack, true);
+  return () => window.removeEventListener("code-destiny:toss-back", onNativeBack, true);
+ });
  const speakerLabel = speaker === "narration" ? copy.narrator : speaker === "연이" ? copy.yeoni : copy.pig;
 
  return <section className={styles.world + " " + styles.reader} data-entry-stage={stage} data-human={humanScene} aria-labelledby="teaHouseEntryTitle">

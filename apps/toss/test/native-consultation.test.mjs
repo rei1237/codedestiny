@@ -27,6 +27,59 @@ test('native catalogue requires approved exact service, feature and price eviden
  assert.equal(nativeProduct(product,contract),product);
  for(const wrong of [{...product,approved:false},{...product,approvedPriceKRW:1},{...product,nativeService:'neo'},{...product,featureKey:'different'}])assert.throws(()=>nativeProduct(wrong,contract));
 });
+test('relationship report grants require its own approved SKU, price and immutable input',async()=>{
+ const relation={...product,nativeService:'relationship',featureKey:'relationship-boundary-test',productId:'native:relationship:relationship-boundary-test'};
+ const relationContract={...contract,featureKey:relation.featureKey};assert.equal(nativeProduct(relation,relationContract),relation);
+ for(const wrong of [{...relation,approved:false},{...relation,featureKey:'love-secret-ai-consultation'},{...relation,approvedPriceKRW:1},{...relation,priceEvidence:''}])assert.throws(()=>nativeProduct(wrong,relationContract));
+ const storage=store();storage.state.intent={...storage.state.intent,nativeService:'relationship',featureKey:relation.featureKey};
+ const receipt=await grantNativeOrder({store:storage,auth,product:relation,order,requestId:initial._id});assert.equal(receipt.durable,true);
+ assert.equal(storage.state.purchases.get(order.orderId).nativeService,'relationship');await assert.rejects(grantNativeOrder({store:storage,auth,product,order,requestId:initial._id}),/ORDER_OWNERSHIP_MISMATCH/);
+});
+test('each pet product requires its own approved SKU, feature, price and immutable intent',async()=>{
+ for(const featureKey of ['pet-saju-ai-consultation','pet-compatibility-ai']){
+  const petProduct={...product,nativeService:'pet',featureKey,productId:`native:pet:${featureKey}`},petContract={...contract,featureKey};
+  assert.equal(nativeProduct(petProduct,petContract),petProduct);
+  for(const wrong of [{...petProduct,approved:false},{...petProduct,featureKey:'relationship-boundary-test'},{...petProduct,approvedPriceKRW:1},{...petProduct,priceEvidence:''}])assert.throws(()=>nativeProduct(wrong,petContract));
+  const storage=store();storage.state.intent={...storage.state.intent,nativeService:'pet',featureKey};
+  const receipt=await grantNativeOrder({store:storage,auth,product:petProduct,order,requestId:initial._id});assert.equal(receipt.durable,true);
+  const other={...petProduct,featureKey:featureKey==='pet-saju-ai-consultation'?'pet-compatibility-ai':'pet-saju-ai-consultation'};
+  await assert.rejects(grantNativeOrder({store:storage,auth,product:other,order,requestId:initial._id}),/ORDER_OWNERSHIP_MISMATCH/);
+ }
+});
+test('astrology orders require their own approved feature and immutable price',async()=>{
+ const astrology={...product,nativeService:'astrology',featureKey:'astrology-ai-consultation',productId:'native:astrology:astrology-ai-consultation'};
+ const astrologyContract={...contract,featureKey:astrology.featureKey};
+ assert.equal(nativeProduct(astrology,astrologyContract),astrology);
+ for(const wrong of [{...astrology,approved:false},{...astrology,featureKey:product.featureKey},{...astrology,approvedPriceKRW:1},{...astrology,priceEvidence:''}])assert.throws(()=>nativeProduct(wrong,astrologyContract));
+ const storage=store();storage.state.intent={...storage.state.intent,nativeService:'astrology',featureKey:astrology.featureKey};
+ const receipt=await grantNativeOrder({store:storage,auth,product:astrology,order,requestId:initial._id});
+ assert.equal(receipt.durable,true);assert.equal(storage.state.purchases.get(order.orderId).nativeService,'astrology');
+ await assert.rejects(grantNativeOrder({store:storage,auth,product,order,requestId:initial._id}),/ORDER_OWNERSHIP_MISMATCH/);
+});
+test('Vedic orders cannot use another service, price or unapproved SKU',async()=>{
+ const vedic={...product,nativeService:'vedic',featureKey:'vedic-ai-consultation',productId:'native:vedic:vedic-ai-consultation'};
+ const vedicContract={...contract,featureKey:vedic.featureKey};assert.equal(nativeProduct(vedic,vedicContract),vedic);
+ for(const wrong of [{...vedic,approved:false},{...vedic,featureKey:'astrology-ai-consultation'},{...vedic,approvedPriceKRW:1},{...vedic,priceEvidence:''}])assert.throws(()=>nativeProduct(wrong,vedicContract));
+ const storage=store();storage.state.intent={...storage.state.intent,nativeService:'vedic',featureKey:vedic.featureKey};
+ const receipt=await grantNativeOrder({store:storage,auth,product:vedic,order,requestId:initial._id});assert.equal(receipt.durable,true);
+ await assert.rejects(grantNativeOrder({store:storage,auth,product,order,requestId:initial._id}),/ORDER_OWNERSHIP_MISMATCH/);
+});
+test('Ziwei orders require their own approved feature and immutable price',async()=>{
+ const ziwei={...product,nativeService:'ziwei',featureKey:'ziwei-ai-consultation',productId:'native:ziwei:ziwei-ai-consultation'};
+ const ziweiContract={...contract,featureKey:ziwei.featureKey};assert.equal(nativeProduct(ziwei,ziweiContract),ziwei);
+ for(const wrong of [{...ziwei,approved:false},{...ziwei,featureKey:'vedic-ai-consultation'},{...ziwei,approvedPriceKRW:1},{...ziwei,priceEvidence:''}])assert.throws(()=>nativeProduct(wrong,ziweiContract));
+ const storage=store();storage.state.intent={...storage.state.intent,nativeService:'ziwei',featureKey:ziwei.featureKey};
+ const receipt=await grantNativeOrder({store:storage,auth,product:ziwei,order,requestId:initial._id});assert.equal(receipt.durable,true);
+ await assert.rejects(grantNativeOrder({store:storage,auth,product,order,requestId:initial._id}),/ORDER_OWNERSHIP_MISMATCH/);
+});
+test('Karma orders require their own approved product, price and owner',async()=>{
+ const karma={...product,nativeService:'karma',featureKey:'karma-destiny-ai-consultation',productId:'native:karma:karma-destiny-ai-consultation'};
+ const karmaContract={...contract,featureKey:karma.featureKey};assert.equal(nativeProduct(karma,karmaContract),karma);
+ for(const wrong of [{...karma,approved:false},{...karma,featureKey:'new-year-ai-consultation'},{...karma,approvedPriceKRW:1},{...karma,priceEvidence:''}])assert.throws(()=>nativeProduct(wrong,karmaContract));
+ const storage=store();storage.state.intent={...storage.state.intent,nativeService:'karma',featureKey:karma.featureKey};
+ const receipt=await grantNativeOrder({store:storage,auth,product:karma,order,requestId:initial._id});assert.equal(receipt.durable,true);
+ await assert.rejects(grantNativeOrder({store:storage,auth,product,order,requestId:initial._id}),/ORDER_OWNERSHIP_MISMATCH/);
+});
 test('one original consultation input binds one order atomically and grant retries never generate',async()=>{
  const storage=store(),args={store:storage,auth,product,order,requestId:initial._id};
  const first=await grantNativeOrder(args),again=await grantNativeOrder(args);

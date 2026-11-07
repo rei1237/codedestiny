@@ -58,6 +58,8 @@ test('actual love-secret-ai result-screen polling effect re-fetches on every for
   const epochCalls = [];
   let currentOwner = true;
   const context = {
+    paymentSurface: undefined,
+    authorityRevisionRef: { current: 0 },
     window: { ...surface('window:'), setTimeout: () => 1, clearTimeout: () => {} },
     document: { ...surface('document:'), hidden: false },
     captureDeliveryScope: () => () => currentOwner,

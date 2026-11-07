@@ -4,7 +4,9 @@ import { describe, expect, it } from "@jest/globals";
 import {
   __relationshipBoundaryTestTestUtils,
   handleRelationshipBoundaryTestRoutes,
+  nativeRelationshipContract,
 } from "../../worker/routes/relationship-boundary-test.js";
+import { getBillingFeaturePricing } from '../../worker/lib/billing-feature-registry.js';
 
 describe("relationship boundary test", () => {
   it("rejects a target without the required gender before any payment or provider path", async () => {
@@ -53,5 +55,16 @@ describe("relationship boundary test", () => {
       featureKey: "relationship-boundary-test", amountKRW: 5000,
       allowedPaymentModes: ["MEMBERSHIP_PASS", "MOONLIGHT_STONE", "DIRECT_KRW"],
     });
+  });
+
+  it('binds the native intent to the original input and existing registry price',()=>{
+    const body={idempotencyKey:'rbt-test-request-0001',targetInfo:{gender:'female',birthDate:'1990-01-01',birthTime:'12:00',calendarType:'solar',birthTimeUnknown:false,isLeapMonth:false}};
+    const first=nativeRelationshipContract(body),same=nativeRelationshipContract({...body}),changed=nativeRelationshipContract({...body,targetInfo:{...body.targetInfo,birthDate:'1990-01-02'}});
+    expect(first).toEqual(same);expect(first.inputHash).not.toBe(changed.inputHash);expect(first.resultId).toBe(changed.resultId);
+    expect(first.pricing).toEqual({amountKRW:getBillingFeaturePricing({featureKey:'relationship-boundary-test'}).pricing.amountKRW});
+    expect(()=>nativeRelationshipContract({...body,idempotencyKey:{$ne:null}})).toThrow();
+    expect(()=>nativeRelationshipContract({...body,targetInfo:{...body.targetInfo,gender:''}})).toThrow();
+    expect(()=>nativeRelationshipContract({...body,targetInfo:{...body.targetInfo,unrelatedPrivateField:'unused'}})).toThrow();
+    expect(()=>nativeRelationshipContract({...body,paymentEvidence:'client-asserted'})).toThrow();
   });
 });

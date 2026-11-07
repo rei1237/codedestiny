@@ -37,7 +37,7 @@ function clientFixture() {
   const ast = ts.createSourceFile(file, fs.readFileSync(file, 'utf8'), ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
   let fn; function visit(node) { if (ts.isFunctionDeclaration(node) && node.name?.text === 'startConsultation') fn = node; ts.forEachChild(node, visit); } visit(ast); assert.ok(fn);
   const requests = [], states = [], pendingGenerationRef = { current: null }; let current = true;
-  const ctx = vm.createContext({ document: { hidden: false }, captureDeliveryScope: () => () => current, payload: {}, pendingGenerationRef,
+  const ctx = vm.createContext({ paymentSurface: 'web', tossCheckRevision: { current: 0 }, document: { hidden: false }, captureDeliveryScope: () => () => current, payload: {}, pendingGenerationRef,
     setPhase() {}, setNotice() {}, setError() {}, submitKeyRef: { current: 'paid-key' }, setConsultation: data => states.push(data.status), rememberConsultationUrl() {}, sleep: async () => {},
     postJson: async (_path, body, key) => { requests.push({ body, key }); const done = requests.length === 5; return { status: done ? 200 : 202, data: { ok: true, status: done ? 'completed' : 'partial', sessionId: '64b7f2a1c3d4e5f600000001', consultation: { id: '64b7f2a1c3d4e5f600000001', status: done ? 'completed' : 'partial' } } }; },
   });

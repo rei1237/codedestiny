@@ -20,7 +20,8 @@ export async function partnerRequest(env, operation, {body, accessToken, userKey
   if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
   if (operation === 'order') {
     if (!/^[1-9]\d*$/.test(userKey || '')) throw new TossError('TOSS_IDENTITY_REQUIRED', 401);
-    headers['x-toss-user-key'] = userKey;
+    // The partner endpoint does not accept user headers or prove order ownership.
+    // This local identity check is only a prerequisite; it does not bind buyer to order.
   }
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 10000);

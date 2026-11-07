@@ -79,7 +79,10 @@ export async function loadPaidNarrativeAdapter(env, featureKey, reportType, user
     case "petSajuReport":
     case "petCompatReport": {
       const { petNarrativeAdapter } = await import("../routes/pet-saju-ai.js");
-      return petNarrativeAdapter(env, reportType);
+      return { ...petNarrativeAdapter(env, reportType), verifyRecovery: async doc => {
+        const { verifyNativePetRecovery } = await import("../toss/native-pet-paid.js");
+        return verifyNativePetRecovery(env, doc);
+      } };
     }
     case "animal-totem": {
       const { animalTotemNarrativeAdapter } = await import("../routes/animal-totem.js");

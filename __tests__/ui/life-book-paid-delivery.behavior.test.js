@@ -473,7 +473,7 @@ test('Toss original life-book waves use one bound order, saved chapters, recover
   const stubs={
     'worker/lib/db.js':'export const withMongoRetry=async(e,f)=>f();',
     'worker/toss/models.js':'export const {TossNativeConsultation,TossPurchase,TossIdentity}=globalThis.__lifeNative.models;',
-    'worker/toss/catalog.js':'export const APPROVED_TOSS_NATIVE_PRODUCTS=globalThis.__lifeNative.catalog;',
+    'worker/toss/catalog.js':'export const assertUniqueApprovedSaleSkus=()=>{};export const APPROVED_TOSS_NATIVE_PRODUCTS=globalThis.__lifeNative.catalog;',
     'worker/toss/partner.js':'export const lookupOrder=async()=>globalThis.__lifeNative.order;',
     'worker/toss/purchases.js':'export const purchaseStore={transaction:globalThis.__lifeNative.transaction};export const recordTossRefund=async()=>{};',
     'worker/toss/crypto.js':`import {createHash} from 'node:crypto';export const hash=async x=>createHash('sha256').update(x).digest('hex');export const unseal=async()=> '123';`,

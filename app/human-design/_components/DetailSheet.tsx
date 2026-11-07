@@ -131,7 +131,7 @@ export default function DetailSheet({ chart, locale, selection, onClose, guideAp
     });
     listBlocks.push({
       heading: pick(UI_TEXT.participatesIn, locale),
-      items: gateChannels.map((channel) => {
+      items: gateChannels.map((channel: { channelId: string; centerA: string; centerB: string }) => {
         const done = completedById.has(channel.channelId);
         const state = done ? pick(UI_TEXT.complete, locale) : pick(UI_TEXT.incomplete, locale);
         return `${channel.channelId} · ${centerName(channel.centerA, locale)} ↔ ${centerName(channel.centerB, locale)} · ${state}`;

@@ -164,6 +164,7 @@ function clientFixture({ storageFailure = false, switchAccount = false } = {}) {
   const calls = []; let completed = 0, current = true;
   const pendingGenerationRef = { current: null };
   const ctx = vm.createContext({ nativeTossContext:()=>null, document: { hidden: false },
+    paymentNotice: undefined, permissionFailure: '권한 오류', serverFailure: '서버 오류', generationFailure: '생성 오류',
     captureDeliveryScope: () => () => current, pendingGenerationRef,
     setPhase() {}, releasePaidFeatureGate() {}, setProgressIndex() {}, markPaidAttemptGenerationStarted() {},
     activeAttemptId: () => 'paid-attempt', pollResult: async () => { throw new Error('UNEXPECTED_POLL'); },
@@ -174,7 +175,7 @@ function clientFixture({ storageFailure = false, switchAccount = false } = {}) {
     postJson: async (path, body, key) => {
       calls.push({ path, body, key });
       if (switchAccount) current = false;
-      return { payload: storageFailure ? { ok: false, reason: 'RESULT_STORAGE_UNAVAILABLE' } : {
+      return { response: { status: 200 }, payload: storageFailure ? { ok: false, reason: 'RESULT_STORAGE_UNAVAILABLE' } : {
         ok: true, sessionId: 'stored-session', status: calls.length === 6 ? 'completed' : 'partial', saved: calls.length === 6,
         messages: [{ role: 'assistant', content: '부분 본문' }], completedGroups: Array(calls.length).fill('group'),
       } };
@@ -290,7 +291,7 @@ test('Toss original love-secret waves use one bound order, saved chapters, recov
   state.handle=async(request,env)=>{
     assert.equal(request.headers.get('Authorization'),null);assert.equal(request.headers.get('Cookie'),null);
     if(state.stopBeforeCheckpoint){state.bootstrapInput=await request.json();return Response.json({ok:false},{status:503});}
-    try{return new URL(request.url).pathname.endsWith('/result')?await f.ctx.handleResult(request,env):await f.ctx.handleStart(request,env);}
+    try{const path=new URL(request.url).pathname;return path.endsWith('/result')?await f.ctx.handleResult(request,env):path.endsWith('/message')?await f.ctx.handleMessage(request,env):await f.ctx.handleStart(request,env);}
     catch(error){return Response.json({reason:error.code},{status:error.status||500});}
   };
   globalThis.__loveNative = state;
@@ -298,7 +299,7 @@ test('Toss original love-secret waves use one bound order, saved chapters, recov
   const stubs={
     'worker/lib/db.js':'export const withMongoRetry=async(e,f)=>f();',
     'worker/toss/models.js':'export const {TossNativeConsultation,TossPurchase,TossIdentity}=globalThis.__loveNative.models;',
-    'worker/toss/catalog.js':'export const APPROVED_TOSS_NATIVE_PRODUCTS=globalThis.__loveNative.catalog;',
+    'worker/toss/catalog.js':'export const assertUniqueApprovedSaleSkus=()=>{};export const APPROVED_TOSS_NATIVE_PRODUCTS=globalThis.__loveNative.catalog;',
     'worker/toss/partner.js':'export const lookupOrder=async()=>globalThis.__loveNative.order;',
     'worker/toss/purchases.js':'export const purchaseStore={transaction:globalThis.__loveNative.transaction};export const recordTossRefund=async()=>{};',
     'worker/toss/crypto.js':`import {createHash} from 'node:crypto';export const hash=async x=>createHash('sha256').update(x).digest('hex');export const unseal=async()=> '123';`,
@@ -323,7 +324,9 @@ test('Toss original love-secret waves use one bound order, saved chapters, recov
   f.ctx.claimRequestBillingEvidence=()=>{throw Error('WEB_CLAIM_FORBIDDEN');};
   f.ctx.releaseRequestBillingEvidence=()=>{throw Error('WEB_RELEASE_FORBIDDEN');};
   f.ctx.isStoredPaidResultRevoked=()=>{throw Error('WEB_REVOCATION_FORBIDDEN');};
-  load(f.ctx,'worker/routes/love-secret-ai.js',['resolveStartAccess','applyUsageOnce','handleResult']);
+  f.ctx.recoverSavedExpertFollowUps=async ({consultation,verifyAccess})=>{await verifyAccess();return consultation;};
+  f.ctx.deliverExpertFollowUp=async ({consultation,verifyAccess})=>{await verifyAccess();assert.equal(consultation.accessSource,'toss');return Response.json({ok:true,saved:true});};
+  load(f.ctx,'worker/routes/love-secret-ai.js',['resolveStartAccess','applyUsageOnce','handleResult','handleMessage']);
   const call=(suffix,body,who=auth)=>api.handleNativeLoveSecret(new Request('https://example.invalid'+suffix,{method:body?'POST':'GET',headers:{Authorization:'forbidden',Cookie:'forbidden'},...(body?{body:JSON.stringify(body)}:{})}),{},who,suffix.split('?')[0]);
   const prepared=await api.prepareNativeLoveSecret({},auth,input);
   assert.equal((await call('/generate',input)).status,402);
@@ -341,9 +344,10 @@ test('Toss original love-secret waves use one bound order, saved chapters, recov
   const resumedRequest=new Request('https://internal.invalid/api/love-secret-ai/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({resumeSessionId:f.doc.id})});
   assert.equal(await api.bindNativeLoveSecretRecovery(resumedRequest,{TOSS_RELEASE_READY:'true'},f.doc),true);
   assert.equal((await f.ctx.handleStart(resumedRequest,{})).status,202);
-  await assert.rejects(call('/message',{sessionId:f.doc.id,message:'question'}),/TOSS_FEATURE_NOT_AVAILABLE/);
+  assert.equal((await call('/message',{sessionId:f.doc.id,message:'question'})).status,404);
   for(let i=0;i<10&&f.doc.status!=='completed';i++)assert.ok([200,202].includes((await call('/generate',{resumeSessionId:f.doc.id})).status));
   assert.equal(f.doc.status,'completed');
+  assert.equal((await call('/message',{sessionId:f.doc.id,message:'question'})).status,200);
   const library=await api.nativeLoveSecretLibraryItem({},auth,state.purchases[0]);
   assert.equal(library.state,'COMPLETED');assert.ok(library.href.startsWith('/love-secret-ai/result/'));
   assert.equal(f.calls,6);assert.equal(f.usage,0);assert.equal(f.refunds,0);

@@ -19,7 +19,7 @@ export const TossPurchase = model('TossPurchase', {
   _id: String, identityId: {type:String,required:true}, ownerId: {type:mongoose.Schema.Types.ObjectId,required:true},
   sku: {type:String,required:true}, productId: {type:String,required:true},
   tarotFlowId: {type:String,default:''}, featureKey: {type:String,default:''}, executionId: {type:String,default:''},
-  nativeService: {type:String,enum:['','tea','neo','fusion','life-book','love-secret'],default:''},
+  nativeService: {type:String,enum:['','tea','neo','fusion','life-book','love-secret','astrology','vedic','ziwei','new-year','karma','maya','sukuyo','relationship','pet'],default:''},
   serviceId: {type:String,enum:['yeongnyangi','yeoni','neo'],default:'yeongnyangi'},
   approvedPriceKRW: {type:Number,required:true}, priceEvidence: {type:String,required:true},
   status: {type:String,enum:['PAYMENT_COMPLETED','PURCHASED','REFUNDED'],required:true},
@@ -35,7 +35,7 @@ export const TossPurchase = model('TossPurchase', {
 export const TossNativeConsultation = model('TossNativeConsultation', {
   _id:String,identityId:{type:String,required:true},ownerId:{type:mongoose.Schema.Types.ObjectId,required:true},
   environment:{type:String,enum:['DEFAULT','SANDBOX'],required:true},
-  nativeService:{type:String,enum:['tea','neo','fusion','life-book','love-secret'],required:true},
+  nativeService:{type:String,enum:['tea','neo','fusion','life-book','love-secret','astrology','vedic','ziwei','new-year','karma','maya','sukuyo','relationship','pet'],required:true},
   requestId:{type:String,required:true},resultId:{type:String,required:true},
   featureKey:{type:String,required:true},inputHash:{type:String,required:true},
   input:{type:mongoose.Schema.Types.Mixed,required:true},
@@ -43,4 +43,18 @@ export const TossNativeConsultation = model('TossNativeConsultation', {
   pricing:{type:mongoose.Schema.Types.Mixed,required:true},
   sku:{type:String,required:true},approvedPriceKRW:{type:Number,required:true},priceEvidence:{type:String,required:true},
   orderId:{type:String,default:null},status:{type:String,enum:['prepared','paid','refunded'],default:'prepared'},
+  savedResult:{type:mongoose.Schema.Types.Mixed,default:null},
 }, {collection:'toss_native_consultations'});
+// autoIndex is disabled: provision and verify this index before enabling recovery.
+TossNativeConsultation.schema.index(
+  {identityId:1,ownerId:1,environment:1,sku:1,approvedPriceKRW:1,createdAt:-1,_id:-1},
+  {name:'toss_maya_prepared_recovery_v1',partialFilterExpression:{nativeService:'maya',status:'prepared'}},
+);
+TossNativeConsultation.schema.index(
+  {identityId:1,ownerId:1,environment:1,sku:1,approvedPriceKRW:1,createdAt:-1,_id:-1},
+  {name:'toss_sukuyo_prepared_recovery_v1',partialFilterExpression:{nativeService:'sukuyo',status:'prepared'}},
+);
+TossNativeConsultation.schema.index(
+  {nativeService:1,status:1,generationStartedAt:1,createdAt:1,recoveryNextAt:1},
+  {name:'toss_relationship_bootstrap_v1',partialFilterExpression:{nativeService:'relationship',status:'paid'}},
+);

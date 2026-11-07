@@ -67,13 +67,14 @@ test('the actual Karma result GET recovers an answer saved before the parent tra
   const source = fs.readFileSync('worker/routes/karma-destiny-ai.js', 'utf8'), tree = ts.createSourceFile('route.js', source, 99, true, 1);
   const handler = tree.statements.find(node => node.name?.text === 'handleResult').getText(tree);
   const context = vm.createContext({
-    URL, clean: value => String(value || ''), getOptionalUserFromRequest: async () => ({ userId: owner }), connectDb: async () => {},
+    URL, clean: value => String(value || ''), getOptionalUserFromRequest: async () => ({ userId: owner }), connectDb: async () => {}, nativeTossContext: () => null,
     KarmaDestinyAiConsultation: reportModel, buildResultLookup: () => ({ id: report.id, userId: owner }), resolveStartAccess: async () => ({ ok: true }),
     paymentVerifyFailed: () => new Response('{}', { status: 403 }), loginRequired: () => new Response('{}', { status: 401 }),
     invalidInput: () => new Response('{}', { status: 404 }), FEATURE_KEY: 'karma-destiny-ai-consultation', recoverSavedExpertFollowUps: recover,
     isStoredPaidResultRevoked: async () => revoked,
     publicSession: value => ({ ok: true, messages: value.messages, status: value.status }), json: (value, init) => Response.json(value, init),
   });
+  vm.runInContext(tree.statements.find(node => node.name?.text === 'authorizedKarmaRecord').getText(tree), context);
   vm.runInContext(handler, context);
   const response = await context.handleResult(new Request(`https://mock.test/api/karma-destiny-ai/result?sessionId=${report.id}`), {}, '/result');
   const restored = await response.json();
@@ -91,6 +92,50 @@ test('a revoked result reload does not attach the saved follow-up answer', async
   expect(provider).toHaveBeenCalledTimes(1);
 });
 test('revoked purchase cannot generate or reopen a follow-up', async () => { await start(); revoked = true; expect((await start()).status).toBe(403); expect(provider).toHaveBeenCalledTimes(1); });
+test('a verified Toss follow-up reuses its own saved answer and rejects a later revoked order', async () => {
+  report.accessSource = 'toss';
+  const verifyAccess = jest.fn(async () => {});
+  expect((await start({ verifyAccess })).status).toBe(200);
+  expect(docs[0].metadata.paidNarrative.input.accessSource).toBe('toss');
+  // Earlier native follow-ups predate the dedicated metadata marker.
+  delete docs[0].metadata.tossPaidNarrative;
+  expect((await start({ verifyAccess })).status).toBe(200);
+  expect(provider).toHaveBeenCalledTimes(1);
+  verifyAccess.mockImplementation(async () => { throw Object.assign(new Error('ORDER_REFUNDED'), { status: 403, code: 'ORDER_REFUNDED' }); });
+  const response = await start({ verifyAccess });
+  expect(response.status).toBe(403);
+  expect((await response.json()).reason).toBe('ORDER_REFUNDED');
+  expect(provider).toHaveBeenCalledTimes(1);
+});
+test('a Toss follow-up without its native order verifier cannot generate or create a record', async () => {
+  report.accessSource = 'toss';
+  expect((await start()).status).toBe(404);
+  expect(provider).not.toHaveBeenCalled();
+  expect(docs).toHaveLength(0);
+});
+test.each([[401, 'SESSION_EXPIRED'], [403, 'PURCHASE_REVOKED']])('native access denial %s is preserved before generation', async (status, code) => {
+  const verifyAccess = async () => { throw Object.assign(new Error(code), { status, code }); };
+  const response = await start({ verifyAccess });
+  expect(response.status).toBe(status);
+  expect(await response.json()).toMatchObject({ reason: code, retryable: false });
+  expect(provider).not.toHaveBeenCalled();
+  expect(docs).toHaveLength(0);
+});
+test('a temporary native access failure remains retryable', async () => {
+  const verifyAccess = async () => { throw Object.assign(new Error('TEMPORARY_FAILURE'), { status: 503, code: 'TEMPORARY_FAILURE' }); };
+  const response = await start({ verifyAccess });
+  expect(response.status).toBe(503);
+  expect(await response.json()).toMatchObject({ reason: 'TEMPORARY_FAILURE', retryable: true });
+  expect(provider).not.toHaveBeenCalled();
+});
+test('native access denial prevents recovery from attaching a saved answer', async () => {
+  fault = 'throw';
+  expect((await start()).status).toBe(503);
+  const denied = Object.assign(new Error('PURCHASE_REVOKED'), { status: 403, code: 'PURCHASE_REVOKED' });
+  await expect(recover({ auth: { userId: owner }, consultation: structuredClone(report), featureKey: 'karma-destiny-ai-consultation', model: reportModel, verifyAccess: async () => { throw denied; } })).rejects.toBe(denied);
+  expect(report.messages).toHaveLength(1);
+  expect(provider).toHaveBeenCalledTimes(1);
+});
 test('quality failure keeps original report and bounded attempts', async () => {
   provider.mockResolvedValue({ text: '짧고 잘림', provider: 'gemini' });
   for (let i = 0; i < 4; i++) expect((await start()).status).toBe(202);
@@ -106,7 +151,8 @@ test.each(['karma-destiny-ai', 'love-secret-ai'])('actual %s message handler rej
   const source = fs.readFileSync(`worker/routes/${kind}.js`, 'utf8'), tree = ts.createSourceFile('route.js', source, 99, true, 1);
   const handler = tree.statements.find(node => node.name?.text === 'handleMessage').getText(tree);
   let userId = owner;
-  const context = vm.createContext({ readJson: req => req.json(), clean: value => String(value || ''), invalidInput: () => new Response('{}', { status: 404 }), loginRequired: () => new Response('{}', { status: 401 }), getOptionalUserFromRequest: async () => ({ userId }), connectDb: async () => {}, KarmaDestinyAiConsultation: reportModel, LoveSecretAiConsultation: reportModel, FEATURE_KEY: `${kind}-consultation`, deliverExpertFollowUp: deliver, generateFollowUp: async (_env, original) => provider(original), generateConsultationText: async () => provider(report), buildFollowUpPrompt: () => '', publicSession: value => ({ ok: true, messages: value.messages }) });
+  const context = vm.createContext({ readJson: req => req.json(), clean: value => String(value || ''), invalidInput: () => new Response('{}', { status: 404 }), loginRequired: () => new Response('{}', { status: 401 }), getOptionalUserFromRequest: async () => ({ userId }), connectDb: async () => {}, nativeTossContext: () => null, KarmaDestinyAiConsultation: reportModel, LoveSecretAiConsultation: reportModel, FEATURE_KEY: `${kind}-consultation`, deliverExpertFollowUp: deliver, generateFollowUp: async (_env, original) => provider(original), generateConsultationText: async () => provider(report), buildFollowUpPrompt: () => '', publicSession: value => ({ ok: true, messages: value.messages }) });
+  if (kind === 'karma-destiny-ai') vm.runInContext(tree.statements.find(node => node.name?.text === 'authorizedKarmaRecord').getText(tree), context);
   vm.runInContext(handler, context);
   const request = () => new Request('https://mock.test/api/message', { method: 'POST', body: JSON.stringify({ sessionId: report.id, message: '다음 선택은 어떻게 할까요?' }) });
   expect((await context.handleMessage(request(), {})).status).toBe(200);
@@ -125,6 +171,55 @@ test('server resumes the original follow-up budget and GET attaches once without
   expect(report.messages).toHaveLength(3);expect(provider).toHaveBeenCalledTimes(2);
   await recover({auth:{userId:owner},consultation:report,featureKey:'karma-destiny-ai-consultation',model:reportModel});
   expect(report.messages).toHaveLength(3);expect(provider).toHaveBeenCalledTimes(2);
+});
+
+test('server recovery of a native follow-up fails closed without order verification', async () => {
+  report.accessSource = 'toss';
+  provider.mockImplementationOnce(async () => null);
+  expect((await start({ verifyAccess: async () => {} })).status).toBe(202);
+  const { expertFollowUpNarrativeAdapter } = await import('../../worker/lib/expert-follow-up-delivery.js');
+  const { resumePaidNarrativeOnServer } = await import('../../worker/lib/paid-narrative-delivery.js');
+  const adapter = expertFollowUpNarrativeAdapter({ featureKey: 'karma-destiny-ai-consultation', generate: provider });
+  await expect(resumePaidNarrativeOnServer({}, docs[0], adapter)).rejects.toMatchObject({ code: 'TOSS_RECOVERY_UNAVAILABLE' });
+  expect(provider).toHaveBeenCalledTimes(1);
+  expect(docs[0].premiumStatus).not.toBe('completed');
+  const verifyRecovery = jest.fn(async () => {});
+  expect((await resumePaidNarrativeOnServer({}, docs[0], { ...adapter, verifyRecovery })).status).toBe(200);
+  expect(verifyRecovery).toHaveBeenCalledTimes(3);
+});
+
+test('server recovery does not complete if native access is revoked during generation', async () => {
+  report.accessSource = 'toss';
+  provider.mockImplementationOnce(async () => null);
+  expect((await start({ verifyAccess: async () => {} })).status).toBe(202);
+  const { expertFollowUpNarrativeAdapter } = await import('../../worker/lib/expert-follow-up-delivery.js');
+  const { resumePaidNarrativeOnServer } = await import('../../worker/lib/paid-narrative-delivery.js');
+  const adapter = expertFollowUpNarrativeAdapter({ featureKey: 'karma-destiny-ai-consultation', generate: provider });
+  const verifyRecovery = jest.fn().mockResolvedValueOnce().mockRejectedValueOnce(Object.assign(new Error('ORDER_REFUNDED'), { code: 'ORDER_REFUNDED', status: 409 }));
+  await expect(resumePaidNarrativeOnServer({}, docs[0], { ...adapter, verifyRecovery })).rejects.toMatchObject({ code: 'ORDER_REFUNDED' });
+  expect(docs[0].premiumStatus).not.toBe('completed');
+  expect(report.messages).toHaveLength(1);
+});
+
+test('Love Secret native follow-up rechecks purchase and marks legacy Toss input for recovery', async () => {
+  const source=fs.readFileSync('worker/routes/love-secret-ai.js','utf8'),tree=ts.createSourceFile('route.js',source,99,true,1);
+  const handler=tree.statements.find(node=>node.name?.text==='handleMessage').getText(tree);
+  let checks=0, delivered=0;const native={auth:{userId:owner},assertStored:async()=>{checks++;}};
+  const context=vm.createContext({readJson:req=>req.json(),clean:value=>String(value||''),invalidInput:()=>new Response('{}',{status:404}),notFound:()=>new Response('{}',{status:404}),loginRequired:()=>new Response('{}',{status:401}),getOptionalUserFromRequest:async()=>native.auth,connectDb:async()=>{},nativeTossContext:()=>native,LoveSecretAiConsultation:reportModel,FEATURE_KEY:'love-secret-ai-consultation',deliverExpertFollowUp:async options=>{expect(options.consultation.accessSource).toBe('toss');await options.verifyAccess();delivered++;return new Response('{}');},generateFollowUp:()=>{},publicSession:()=>{}});
+  vm.runInContext(handler,context);
+  const request=()=>new Request('https://mock.test/message',{method:'POST',body:JSON.stringify({sessionId:report.id,message:'다음 선택은 무엇일까요?'})});
+  expect((await context.handleMessage(request(),{})).status).toBe(200);expect(checks).toBe(2);expect(delivered).toBe(1);
+  native.assertStored=async()=>{throw Object.assign(Error('refunded'),{status:409,code:'ORDER_REFUNDED'});};
+  await expect(context.handleMessage(request(),{})).rejects.toMatchObject({code:'ORDER_REFUNDED'});expect(delivered).toBe(1);
+});
+test('Love Secret Toss records are not exposed through web follow-up',async()=>{
+  report.accessSource='toss';
+  const source=fs.readFileSync('worker/routes/love-secret-ai.js','utf8'),tree=ts.createSourceFile('route.js',source,99,true,1);
+  const handler=tree.statements.find(node=>node.name?.text==='handleMessage').getText(tree);let delivered=0;
+  const context=vm.createContext({readJson:req=>req.json(),clean:value=>String(value||''),invalidInput:()=>new Response('{}',{status:404}),notFound:()=>new Response('{}',{status:404}),loginRequired:()=>new Response('{}',{status:401}),getOptionalUserFromRequest:async()=>({userId:owner}),connectDb:async()=>{},nativeTossContext:()=>null,LoveSecretAiConsultation:reportModel,deliverExpertFollowUp:async()=>{delivered++;}});
+  vm.runInContext(handler,context);
+  const request=new Request('https://mock.test/message',{method:'POST',body:JSON.stringify({sessionId:report.id,message:'다음 선택은 무엇일까요?'})});
+  expect((await context.handleMessage(request,{})).status).toBe(404);expect(delivered).toBe(0);
 });
 
 test.each(AI_OUTPUT_LOCALES)('%s: follow-up uses the original report language and reopens without generation', async locale => {

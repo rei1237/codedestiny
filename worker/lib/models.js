@@ -927,6 +927,7 @@ const newYearAiMessageSchema = new mongoose.Schema({
 const newYearAiConsultationSchema = new mongoose.Schema({
   id: { type: String, required: true, unique: true, trim: true, maxlength: 120, index: true },
   userId: { type: String, required: true, trim: true, index: true },
+  accessSource: { type: String, enum: ["", "toss"], default: "" },
   year: { type: Number, required: true, min: 1900, max: 2100, index: true },
   birthInfo: {
     name: { type: String, default: "", trim: true, maxlength: 80 },
@@ -977,6 +978,7 @@ const karmaDestinyAiChapterSchema = new mongoose.Schema({
 }, { _id: false });
 
 const karmaDestinyAiConsultationSchema = new mongoose.Schema({
+  accessSource: { type: String, default: 'web', enum: ['web', 'toss'], index: true },
   id: { type: String, required: true, unique: true, trim: true, maxlength: 120, index: true },
   reportId: { type: String, default: "", trim: true, maxlength: 120, index: true },
   attemptId: { type: String, default: "", trim: true, maxlength: 180, index: true },
@@ -988,6 +990,7 @@ const karmaDestinyAiConsultationSchema = new mongoose.Schema({
     birthTime: { type: String, default: "", trim: true, maxlength: 5 },
     birthTimeUnknown: { type: Boolean, default: false },
     calendarType: { type: String, enum: ["solar", "lunar"], required: true },
+    isLeapMonth: { type: Boolean, default: false },
     birthPlace: {
       city: { type: String, default: "", trim: true, maxlength: 100 },
       country: { type: String, default: "", trim: true, maxlength: 100 },
@@ -1083,6 +1086,7 @@ const ziweiAiConsultationSchema = new mongoose.Schema({
   ziweiChart: { type: ziweiAiChartSchema, default: () => ({}) },
   // 운명의 섬 12궁 심층 상담(별도 상품)이 이 컬렉션을 공유한다. 기존 문서는 기본값으로 무영향.
   serviceType: { type: String, default: "ziwei-ai", trim: true, maxlength: 60 },
+  accessSource: { type: String, enum: ["", "toss"], default: "" },
   palaceKey: { type: String, default: "", trim: true, maxlength: 20 },
   sectionKeys: { type: [String], default: [] },
   accessType: { type: String, enum: ["pass", "paid", "subscription", "admin"], required: true, index: true },
@@ -1205,6 +1209,7 @@ const loveSecretAiPersonInfoSchema = new mongoose.Schema({
 const loveSecretAiConsultationSchema = new mongoose.Schema({
   id: { type: String, required: true, unique: true, trim: true, maxlength: 120, index: true },
   userId: { type: String, required: true, trim: true, index: true },
+  accessSource: { type: String, enum: ["", "toss"], default: "" },
   myInfo: { type: loveSecretAiPersonInfoSchema, required: true },
   partnerInfo: { type: loveSecretAiPersonInfoSchema, default: null },
   relationshipStatus: { type: String, required: true, trim: true, maxlength: 80, index: true },
@@ -1402,6 +1407,7 @@ const sukuyoCompatibilityAiConsultationSchema = new mongoose.Schema({
   },
   relationshipType: { type: String, required: true, trim: true, maxlength: 80 },
   topic: { type: String, required: true, trim: true, maxlength: 80 },
+  accessSource: { type: String, default: "" },
   accessType: { type: String, enum: ["pass", "paid", "subscription", "admin"], required: true },
   paymentId: { type: String, default: "", trim: true, maxlength: 160, index: true },
   messages: { type: [sukuyoCompatibilityAiMessageSchema], default: [] },
@@ -1468,6 +1474,7 @@ const vedicAiConsultationSchema = new mongoose.Schema({
     calculationMeta: { type: mongoose.Schema.Types.Mixed, default: null },
   },
   accessType: { type: String, enum: ["pass", "paid", "subscription"], required: true, index: true },
+  accessSource: { type: String, enum: ["", "toss"], default: "" },
   paymentId: { type: String, default: "", trim: true, maxlength: 160, index: true },
   messages: { type: [vedicAiMessageSchema], default: [] },
   // 결제 멱등 키와 분리된 결과 메타데이터. 같은 결제 요청의 다른 UI 언어는 기존 결과를 재열람한다.
@@ -1521,6 +1528,7 @@ const astrologyAiConsultationSchema = new mongoose.Schema({
   userQuestion: { type: String, default: "", trim: true, maxlength: 1400 },
   astrologyChart: { type: mongoose.Schema.Types.Mixed, default: null },
   accessType: { type: String, enum: ["pass", "paid", "subscription", "admin"], required: true },
+  accessSource: { type: String, enum: ["", "toss"], default: "" },
   paymentId: { type: String, default: "", trim: true, maxlength: 160, index: true },
   messages: { type: [astrologyAiMessageSchema], default: [] },
   status: { type: String, enum: ["generating", "partial", "delivery_pending", "completed", "generation_failed"], default: "generating", index: true },

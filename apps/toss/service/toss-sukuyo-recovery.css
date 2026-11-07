@@ -1,0 +1,15 @@
+.toss-sukuyo-recovery {
+  min-height: 100dvh;
+  padding: 28px 20px calc(28px + max(var(--toss-service-bottom, 0px), env(safe-area-inset-bottom, 0px)));
+  background: #181424;
+  color: #f8f0e5;
+}
+.toss-sukuyo-recovery__content { max-width: 42rem; margin: 0 auto; }
+.toss-sukuyo-recovery h1 { margin: 0 0 16px; font-size: 1.55rem; line-height: 1.35; }
+.toss-sukuyo-recovery p { line-height: 1.65; overflow-wrap: anywhere; }
+.toss-sukuyo-recovery ul { display: grid; gap: 12px; padding: 0; list-style: none; }
+.toss-sukuyo-recovery li { min-width: 0; padding: 16px; border: 1px solid #756778; border-radius: 12px; background: #262033; }
+.toss-sukuyo-recovery li p { margin: 0 0 8px; }
+.toss-sukuyo-recovery button, .toss-sukuyo-recovery a { display: inline-flex; align-items: center; min-height: 44px; padding: 10px 14px; border: 1px solid #ddc497; border-radius: 8px; background: transparent; color: #f8f0e5; font: inherit; text-decoration: none; }
+.toss-sukuyo-recovery button:disabled { opacity: .55; }
+.toss-sukuyo-recovery button:focus-visible, .toss-sukuyo-recovery a:focus-visible { outline: 3px solid #f2dcae; outline-offset: 3px; }

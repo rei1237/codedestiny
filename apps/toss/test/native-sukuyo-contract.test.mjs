@@ -1,0 +1,16 @@
+import '../../../scripts/lib/mock-network-guard.cjs';
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {build} from 'esbuild';
+import {createRequire} from 'node:module';
+import path from 'node:path';
+const root=path.resolve(import.meta.dirname,'../../..'),Module=createRequire(import.meta.url)('node:module');
+const bundle=await build({stdin:{contents:"export {nativeSukuyoContract} from './worker/routes/sukuyo-compatibility-ai.js';export {getBillingFeaturePricing} from './worker/lib/billing-feature-registry.js';export {nativeProduct} from './worker/toss/native-consultation.js';",resolveDir:root},bundle:true,write:false,platform:'node',format:'cjs',packages:'external',external:['*.wasm']});
+const loaded=new Module(path.join(root,'sukuyo-contract-fixture.cjs'));loaded.paths=Module._nodeModulePaths(root);loaded._compile(bundle.outputFiles[0].text,loaded.id);
+const {nativeSukuyoContract,getBillingFeaturePricing,nativeProduct}=loaded.exports;
+const input={idempotencyKey:'test-attempt-0001',consultationType:'compatibility',personA:{name:'테스트 A',gender:'female',birthDate:'1992-03-02',birthTime:'09:00',calendarType:'solar'},personB:{name:'테스트 B',gender:'male',birthDate:'1990-01-02',birthTime:'',calendarType:'solar'},relationshipType:'연인',topic:'전체 궁합',question:'관계의 흐름을 알고 싶어요.'};
+test('Sukuyo Toss intent binds both original people, question and registry pricing',async()=>{const result=await nativeSukuyoContract(input);assert.equal(result.featureKey,'sukuyo-compatibility-ai');assert.deepEqual(result.pricing,{...getBillingFeaturePricing({featureKey:result.featureKey}).pricing,productId:result.featureKey});assert.match(result.inputHash,/^[A-Za-z0-9_-]{43}$/);assert.notEqual((await nativeSukuyoContract({...input,personB:{...input.personB,birthDate:'1990-01-03'}})).inputHash,result.inputHash);assert.notEqual((await nativeSukuyoContract({...input,question:'다른 질문이에요.'})).inputHash,result.inputHash);assert.equal('personA' in result,false);assert.equal('question' in result,false);});
+test('Sukuyo Toss intent rejects malformed two-person inputs before payment',async()=>{for(const change of [{idempotencyKey:'short'},{personA:{...input.personA,birthDate:'1992-02-31'}},{personB:{...input.personB,calendarType:'unknown'}},{personB:{...input.personB,birthTime:'25:00'}},{personA:{...input.personA,birthDate:'2023-02-30',calendarType:'lunar',isLeapMonth:true}}])await assert.rejects(nativeSukuyoContract({...input,...change}),e=>e.status===400&&e.code==='INVALID_INPUT');});
+
+test('empty, non-object or array request bodies fail as input errors',async()=>{for(const body of [null,[], 'invalid'])await assert.rejects(nativeSukuyoContract(body),e=>e.status===400&&e.code==='INVALID_INPUT');});
+test('only an approved Sukuyo SKU with the registry price can be sold',async()=>{const contract=await nativeSukuyoContract(input),product={nativeService:'sukuyo',featureKey:contract.featureKey,productId:'native:sukuyo:'+contract.featureKey,sku:'mock-sku',approved:true,approvedPriceKRW:contract.pricing.amountKRW,priceEvidence:'test-only'};assert.equal(nativeProduct(product,contract),product);for(const change of [{approved:false},{featureKey:'other'},{approvedPriceKRW:product.approvedPriceKRW+1},{priceEvidence:''}])assert.throws(()=>nativeProduct({...product,...change},contract),e=>e.code==='TOSS_PRODUCT_NOT_APPROVED');});

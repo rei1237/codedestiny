@@ -56,7 +56,7 @@ export async function matchTossFlowers(body,env,engines){
       // Validation owns lunar conversion, historical clock handling and missing input rules.
       const input=engine.validateInput(raw);
       if(!input.personA?.birthTime)throw new TossError('BIRTH_TIME_REQUIRED',400);
-      const context=await engine.calculate(input,id==='sukuyo'?env:{runtimeEnv:env});
+      const context=await engine.calculate(input,{runtimeEnv:env});
       const matched=matchers[source](flowerProfile(source,input,context));
       if(!matched?.flower)throw new TossError('FLOWER_CHART_UNAVAILABLE',503);
       // Do not return the matcher's full profile, chart, birth or internal ranking payload.

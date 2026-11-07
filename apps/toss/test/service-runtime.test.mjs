@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {build} from 'esbuild';
 import {fileURLToPath} from 'node:url';
 import {createServiceFetch} from '../service/transport.mjs';
-import {screenDeckManifest,localBrandFonts} from '../service/vite-service.mjs';
+import serviceCompat,{screenDeckManifest,localBrandFonts,sampleIntroductionArt,responsiveIntroductionArt,isTea640Reference,isYeongnyangi640Reference} from '../service/vite-service.mjs';
 import {readFile} from 'node:fs/promises';
 import {geocodePlace} from '../../../worker/lib/geocode.js';
 
@@ -22,12 +22,45 @@ test('release deck preserves the exact displayed artwork and does not include un
  const compact=screenDeckManifest(manifest);
  for(const [index,card] of compact.cards.entries()){
   assert.equal(card.files.std,manifest.cards[index].files.std);
-  assert.equal(card.avifFiles.std,manifest.cards[index].avifFiles.std);
+  assert.equal(card.avifFiles.std,undefined);
   assert.equal(card.contentHash,manifest.cards[index].contentHash);
   assert.deepEqual(Object.keys(card.files),['std']);
  }
  assert.equal(compact.back.files.std,manifest.back.files.std);
+ assert.equal(compact.back.avifFiles.std,undefined);
+ for(const card of [...compact.cards,compact.back])assert.ok((await readFile(new URL('../../../public'+card.files.std,import.meta.url))).length>0);
  assert.ok(manifest.cards[0].files.hi,'the shared source manifest remains untouched');
+});
+
+test('only the known tea 640px dynamic path is narrowed',()=>{
+ assert.equal(isTea640Reference('/images/service-introductions/tea-${mode}-640.webp'),true);
+ assert.equal(isTea640Reference('/images/service-introductions/tea-${mode}-960.webp'),false);
+ assert.equal(isTea640Reference('/images/service-introductions/tea-saju-640.webp'),false);
+});
+
+test('only the known Yeongnyangi 640px template is narrowed',()=>{
+ assert.equal(isYeongnyangi640Reference('/images/service-introductions/yeongnyangi-${e.id.replaceAll(`_`,`-`)}-640.webp`'),true);
+ assert.equal(isYeongnyangi640Reference('/images/service-introductions/yeongnyangi-${id}-960.webp`'),false);
+ assert.equal(isYeongnyangi640Reference('/images/service-introductions/yeongnyangi-saju-640.webp`'),false);
+});
+
+test('Toss sample and Ziwei artwork projections preserve every original referenced record',async()=>{
+ const registry=JSON.parse(await readFile(new URL('../../../lib/marketing/service-introduction-art.json',import.meta.url),'utf8'));
+ const samples=JSON.parse(await readFile(new URL('../../../lib/marketing/result-samples.json',import.meta.url),'utf8'));
+ const compact=sampleIntroductionArt(registry,samples),visuals=new Set(samples.map(sample=>sample.visual));
+ for(const [id,art] of Object.entries(registry))if(id==='fortune-tea-house'||visuals.has(art.image))assert.deepEqual(compact[id],art);
+ assert.ok(Object.keys(compact).length<Object.keys(registry).length);
+ const plugin=serviceCompat(),id='./service-introduction-art.json';
+ const sampleId=plugin.resolveId(id,'/repo/lib/marketing/render-result-samples.mjs');
+ const ziweiId=plugin.resolveId('@/lib/marketing/service-introduction-art.json','/repo/app/ziwei-ai/ZiweiAiClient.tsx');
+ const readModule=async name=>(await import('data:text/javascript;base64,'+Buffer.from(await plugin.load(name)).toString('base64'))).default;
+ assert.deepEqual(await readModule(sampleId),compact);
+ assert.deepEqual(await readModule(ziweiId),{'ziwei-ai':registry['ziwei-ai']});
+ assert.equal(plugin.resolveId(id,'/repo/other-consumer.mjs'),undefined);
+ const refs=responsiveIntroductionArt(registry,samples);
+ for(const ref of refs)assert.ok((await readFile(new URL('../../../public'+ref,import.meta.url))).length>0,ref);
+ assert.ok(refs.includes(registry['ziwei-ai'].cardImage.replace('-320','-480')));
+ assert.ok(refs.includes(registry['fortune-tea-house'].image.replace('.webp','-480.webp')));
 });
 
 test('shared birthplace lookup preserves timezone and explicit fallback semantics without live calls',async()=>{
@@ -75,12 +108,12 @@ test('canonical catalog is fail-closed; profiles use owner-scoped immutable retr
   assert.equal((await canonicalModule.canonicalProfiles({ownerId:'owner-a'})).profiles[0].name,'first');
   assert.equal((await canonicalModule.canonicalProfiles({ownerId:'owner-b'})).profiles[0].name,'second');
   assert.ok(writes.every(row=>row.filter.userId&&row.update.$set===undefined));
-  const row={_id:'01900000-1111-7111-8111-000000000042',requestId:'a'.repeat(64),productId:product.id,serviceId:'yeongnyangi',status:'GRANTED',grantedAt:new Date().toISOString()};
+  const row={_id:'01900000-1111-7111-8111-000000000042',requestId:'a'.repeat(64),productId:product.id,approvedPriceKRW:product.priceKRW,serviceId:'yeongnyangi',status:'GRANTED',grantedAt:new Date().toISOString()};
   const original={...product,name:'구매 당시 상품명',priceKRW:1234};
   let reads=0;
-  const page=await canonicalModule.canonicalLibraryPage([row],async id=>{reads++;assert.equal(id,row.requestId);return {productId:product.id,state:'COMPLETED',chapters:[{}],snapshot:{product:original,locale:'en',manifest:[{}]}};});
+  const page=await canonicalModule.canonicalLibraryPage([row],async id=>{reads++;assert.equal(id,row.requestId);return {_id:id,paymentClaimOrderId:row._id,accessMethod:'TOSS_IAP',amountKRW:row.approvedPriceKRW,productId:product.id,state:'COMPLETED',chapters:[{}],snapshot:{product:original,locale:'en',manifest:[{}]}};},async()=>{});
   assert.equal(reads,1);assert.deepEqual(page.fortunes[0].product,original);assert.equal(page.fortunes[0].locale,'en');assert.equal(page.fortunes[0].canRetry,false);
   const refunded=await canonicalModule.canonicalLibraryPage([{...row,status:'REFUNDED'}],async()=>({productId:product.id,state:'COMPLETED',snapshot:{product:original}}));
-  assert.equal(refunded.fortunes[0].paid,false);assert.equal(refunded.fortunes[0].state,'REFUNDED');
+  assert.deepEqual(refunded.fortunes,[]);
  }finally{delete globalThis.__canonicalProfileStore;}
 });

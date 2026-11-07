@@ -26,6 +26,7 @@ test('actual neo result recover effect resumes polling on every foreground event
   let epoch = 0;
   const context = {
     window: surface('window:'), document: { ...surface('document:'), visibilityState: 'visible' }, navigator: { onLine: true },
+    paymentSurface: 'web', localPreviewMode: '',
     setRecoveryEpoch: update => { epoch = update(epoch); },
   };
   const cleanup = vm.runInNewContext('(' + effect + ')()', context);
@@ -36,6 +37,27 @@ test('actual neo result recover effect resumes polling on every foreground event
   assert.equal(epoch, 4);
   context.document.visibilityState = 'hidden'; epoch = 0; handlers.get('window:pageshow')(); assert.equal(epoch, 0);
   context.navigator.onLine = false; context.document.visibilityState = 'visible'; handlers.get('window:online')(); assert.equal(epoch, 0);
+  cleanup(); assert.equal(handlers.size, 0);
+});
+
+test('neo Toss foreground recheck hides the previous result and invalidates pending responses', () => {
+  const effect = extractEffect('src/features/neo-war-room/NeoOperationRoomResultPage.tsx', 'setRecoveryEpoch(value => value + 1)');
+  const handlers = new Map(), surface = name => ({
+    addEventListener: (event, run) => handlers.set(name + event, run),
+    removeEventListener: event => handlers.delete(name + event),
+  });
+  const shown = [], loading = [], accessEpoch = { current: 0 };
+  const context = {
+    window: surface('window:'), document: { ...surface('document:'), visibilityState: 'visible' }, navigator: { onLine: true },
+    paymentSurface: 'toss', localPreviewMode: '', accessEpoch,
+    setSession: value => shown.push(value), setLoading: value => loading.push(value),
+    setPdfLoading: () => {}, setExportExpand: () => {}, setRefining: () => {}, setRecoveryEpoch: () => {},
+  };
+  const cleanup = vm.runInNewContext('(' + effect + ')()', context);
+  handlers.get('window:focus')();
+  assert.equal(accessEpoch.current, 1);
+  assert.deepEqual(shown, [null]);
+  assert.deepEqual(loading, [true]);
   cleanup(); assert.equal(handlers.size, 0);
 });
 

@@ -37,3 +37,8 @@ test('unlisted, excluded and mismatched pairs fail closed', async () => {
 test('guardian turns are not resumed while the real model is off', async () => {
   await expect(loadPaidNarrativeAdapter({ NODE_ENV: 'production' }, 'fortune-chat-consultation', 'guardianPaidTurn', 'user-1')).resolves.toBeNull();
 });
+
+test.each([['pet-saju-ai-consultation','petSajuReport'],['pet-compatibility-ai','petCompatReport']])('%s native recovery fails closed while Toss release is disabled', async (featureKey, reportType) => {
+  const adapter = await loadPaidNarrativeAdapter(env, featureKey, reportType, 'user-1');
+  await expect(adapter.verifyRecovery({})).rejects.toMatchObject({ code: 'TOSS_RELEASE_PENDING', status: 503 });
+});

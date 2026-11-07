@@ -137,7 +137,7 @@ CODE DESTINY의 기존 계산·해석·구매 기록을 보존하면서 토스 �
 - `apps/toss` 독립 패키지와 lockfile. 루트 Next.js/PortOne 번들을 임베드하지 않는다.
 - 설치된 SDK 타입과 공식 문서를 함께 확인한다. 기존 User는 이메일 필수이므로 Toss 식별자를 기존 웹 계정으로 자동 병합하지 않는다.
 - 영냥이 `prepareFortune`, `presentFortune`, `generateNextChapter`, repository, queue, recovery와 계산 모듈 재사용 검토 중.
-- IAP 서버 조회는 사용자 범위의 `x-toss-user-key` 필수. 공식 주문 응답에는 금액이 없으므로 금액을 서버 조회 결과라고 꾸미지 않는다. 콘솔 승인 SKU 가격 스냅샷과 SDK 상품 정보 대조가 필요하다.
+- 2026-11-06 정정: [공식 IAP 서버 조회](https://developers-apps-in-toss.toss.im/documentation/common/monetization/iap/in-app-purchase#api)는 사용자 헤더를 받지 않으며, 이 조회만으로 최초 구매자를 검증할 수 없다. 출시 차단 상태다. 공식 주문 응답에 금액도 없으므로 콘솔 승인 SKU 가격과 SDK 상품 정보의 대조가 필요하다.
 - 화면 방향: 라이트 중성 바탕, 질문 우선, 영냥이 원본, 보라 CTA, 네이비/골드 강조. TDS 공통 UI. 첫 진입 로그인 자동 실행 금지.
 
 ## 재개할 때 다음 행동

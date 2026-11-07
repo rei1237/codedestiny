@@ -5,7 +5,7 @@ import {normalizeIncomingProfile,validateRequiredBirth,toClientProfile} from '..
 import {APPROVED_TOSS_PRODUCTS,approvedProduct} from './catalog.js';
 import {TossError} from './policy.js';
 import {libraryPage} from './library.js';
-import {requestMatchesService} from './services.js';
+import {requestMatchesPurchase} from './services.js';
 import {resolveStoredProduct} from '../yeongnyangi/payments/catalog.ts';
 
 // The original screens keep their response contract. Authentication and payment
@@ -51,16 +51,17 @@ export async function drawCanonicalFortune(env,auth,id,input) {
   return {fortune:presentFortune(await drawTarotSpread(env,auth.userId,id,input))};
 }
 
-export async function canonicalLibraryPage(rows,read) {
+export async function canonicalLibraryPage(rows,read,verify) {
   const snapshots=new Map();
   const page=await libraryPage(rows,async id=>{
     const saved=await read(id),purchase=rows.find(row=>row.requestId===id);
-    if(saved&&requestMatchesService(saved,purchase))snapshots.set(id,saved.snapshot);
+    if(saved&&requestMatchesPurchase(saved,purchase))snapshots.set(id,saved.snapshot);
     return saved;
-  });
-  return {fortunes:page.purchases.filter(row=>row.requestId).map(row=>({
+  },undefined,undefined,verify);
+  if(page.purchases.some(row=>row.state==='READ_FAILED'))throw new TossError('RECORDS_UNAVAILABLE',503);
+  return {fortunes:page.purchases.filter(row=>row.requestId&&!['REFUNDED','ACCESS_REVIEW'].includes(row.state)).map(row=>({
     id:row.requestId,product:snapshots.get(row.requestId)?.product||resolveStoredProduct(row.productId),
-    state:row.state,paid:row.status!=='REFUNDED',createdAt:row.createdAt,
+    state:row.state,paid:row.status!=='REFUNDED'&&row.state!=='READ_FAILED',createdAt:row.createdAt,
     locale:snapshots.get(row.requestId)?.locale||'ko',
     completedChapters:row.completedSections,totalChapters:row.totalSections,
     recovering:!['COMPLETED','REFUNDED'].includes(row.state),

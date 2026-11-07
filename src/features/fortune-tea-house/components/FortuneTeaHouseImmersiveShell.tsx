@@ -14,6 +14,7 @@ type FortuneTeaHouseImmersiveShellProps = {
   stage: TeaHouseStage;
   notice?: string;
   onBackToLanding: () => void;
+  paymentSurface?: "web" | "toss";
   children: ReactNode;
   soundControl?: ReactNode;
 };
@@ -26,7 +27,7 @@ const KO = {
 };
 const BRAND = { title: "연이의 운명 찻집" };
 
-export default function FortuneTeaHouseImmersiveShell({ stage, notice = "", onBackToLanding, children, soundControl }: FortuneTeaHouseImmersiveShellProps) {
+export default function FortuneTeaHouseImmersiveShell({ stage, notice = "", onBackToLanding, paymentSurface = "web", children, soundControl }: FortuneTeaHouseImmersiveShellProps) {
   const copy = useTeaHouseCopy("shell", KO);
   const brand = useTeaHouseCopy("homeV2", BRAND);
   const backgroundAssets = getStageBackgroundAssets(stage);
@@ -43,7 +44,7 @@ export default function FortuneTeaHouseImmersiveShell({ stage, notice = "", onBa
   return (
     <main className={room.room + (isTeaHouseEntryStage(stage) || ["teaSelect", "teaCupRitual", "questionInput", "scentLoading"].includes(stage) ? " " + novel.world + " " + room.moonlit : "")} data-stage={stage} style={backgroundStyle}>
       <div className={room.atmosphere} aria-hidden><FloatingPetals /></div>
-      <header className={room.header}><button type="button" onClick={onBackToLanding}>{copy.back}</button><Link href="/fortune-tea-house/">{brand.title}</Link><Link href="/ggulggul/" aria-label={copy.homeAria}>{copy.home}</Link></header>
+      <header className={room.header}>{paymentSurface !== "toss" ? <button type="button" onClick={onBackToLanding}>{copy.back}</button> : <span aria-hidden="true" />}<Link href="/fortune-tea-house/">{brand.title}</Link><Link href="/ggulggul/" aria-label={copy.homeAria}>{copy.home}</Link></header>
       <div className={room.soundBar}>{soundControl}</div>
       {notice && <p className={room.notice} role="status">{notice}</p>}
       {children}

@@ -27,7 +27,7 @@ const stubs={
   'worker/lib/db.js':'export const withMongoRetry=async(e,f)=>f();',
   'worker/toss/native-fusion.js':'export const nativeFusionLibraryItem=()=>{throw Error("FUSION_OUTSIDE_TEST")};',
   'worker/toss/models.js':'export const {TossNativeConsultation,TossPurchase,TossIdentity}=globalThis.__nativeNeoBoundary.models;',
-  'worker/toss/catalog.js':'export const APPROVED_TOSS_NATIVE_PRODUCTS=globalThis.__nativeNeoBoundary.catalog;',
+  'worker/toss/catalog.js':'export const assertUniqueApprovedSaleSkus=()=>{};export const APPROVED_TOSS_NATIVE_PRODUCTS=globalThis.__nativeNeoBoundary.catalog;',
   'worker/toss/partner.js':'export const lookupOrder=async()=>{globalThis.__nativeNeoBoundary.lookups++;return globalThis.__nativeNeoBoundary.order;};',
   'worker/toss/purchases.js':'export const purchaseStore={};export const recordTossRefund=async()=>{globalThis.__nativeNeoBoundary.refunds++;};',
   'worker/lib/billing-feature-registry.js':'export const getBillingFeaturePricing=()=>({pricing:{amountKRW:6000}});',
@@ -81,8 +81,10 @@ test('Neo preserves its original input and saved result across first-checkpoint 
  await assert.rejects(call('/result?attemptId='+virtual,null,{...auth,ownerId:'other'}),/RESULT_NOT_FOUND/);
  await assert.rejects(call('/result?attemptId='+virtual,null,{...auth,environment:'DEFAULT'}),/RESULT_NOT_FOUND/);
  state.order={...order,status:'REFUNDED'};
+ await assert.rejects(api.nativeNeoLibraryItem({},auth,state.purchases[0]),/ORDER_REFUNDED/);
  await assert.rejects(call('/result?attemptId='+virtual),/ORDER_REFUNDED/);
  state.order=order;state.identity=false;
+ await assert.rejects(api.nativeNeoLibraryItem({},auth,state.purchases[0]),/SESSION_EXPIRED/);
  await assert.rejects(call('/result?attemptId='+virtual),/SESSION_EXPIRED/);
  assert.equal(state.web,0);
 });

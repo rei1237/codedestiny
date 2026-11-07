@@ -1,16 +1,25 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {LIBRARY_PAGE_SIZE,libraryFilter,libraryPage} from '../../../worker/toss/library.js';
+import {LIBRARY_PAGE_SIZE,libraryFilter,libraryPage as realLibraryPage} from '../../../worker/toss/library.js';
+import {TossError} from '../../../worker/toss/policy.js';
+const libraryPage=(rows,read,readTarot,readNative)=>realLibraryPage(rows,read,readTarot,readNative,async()=>{});
 const date=new Date('2026-10-08T00:00:00.000Z');
-const row=index=>({_id:`01900000-1111-7111-8111-${String(index).padStart(12,'0')}`,identityId:'owner',environment:'DEFAULT',productId:'saju_mackerel',serviceId:'yeongnyangi',requestId:'saved',status:'PURCHASED',grantedAt:date});
-const saved={productId:'saju_mackerel',state:'COMPLETED',chapters:[{}],snapshot:{manifest:[{}]}};
+const row=index=>({_id:`01900000-1111-7111-8111-${String(index).padStart(12,'0')}`,identityId:'owner',environment:'DEFAULT',productId:'saju_mackerel',serviceId:'yeongnyangi',requestId:'saved',approvedPriceKRW:3000,status:'PURCHASED',grantedAt:date});
+const saved={_id:'saved',paymentClaimOrderId:row(1)._id,accessMethod:'TOSS_IAP',amountKRW:3000,productId:'saju_mackerel',state:'COMPLETED',chapters:[{}],snapshot:{manifest:[{}]}};
+test('only the order that actually funded the matching request can expose a result',async()=>{
+ for(const invalid of [{accessMethod:null},{paymentClaimOrderId:row(2)._id},{_id:'another'},{amountKRW:3001}]){
+  const item=(await libraryPage([row(1)],async()=>({...saved,...invalid}))).purchases[0];
+  assert.equal(item.state,'READ_FAILED');assert.equal(item.completedSections,0);
+ }
+ assert.equal((await libraryPage([row(1)],async()=>saved)).purchases[0].state,'COMPLETED');
+});
 test('cursor preserves authenticated owner and environment with a stable date/order tie-break',async()=>{
  const rows=Array.from({length:LIBRARY_PAGE_SIZE+1},(_,i)=>row(100-i));
  const page=await libraryPage(rows,async()=>saved);
- assert.equal(page.purchases.length,50);assert.equal(page.nextCursor,`${date.toISOString()},${rows[49]._id}`);
+ assert.equal(page.purchases.length,LIBRARY_PAGE_SIZE);assert.equal(page.nextCursor,`${date.toISOString()},${rows[LIBRARY_PAGE_SIZE-1]._id}`);
  const filter=libraryFilter({_id:'different-owner',environment:'SANDBOX'},page.nextCursor);
  assert.equal(filter.identityId,'different-owner');assert.equal(filter.environment,'SANDBOX');
- assert.deepEqual(filter.$or,[{grantedAt:{$lt:date}},{grantedAt:date,_id:{$lt:rows[49]._id}}]);
+ assert.deepEqual(filter.$or,[{grantedAt:{$lt:date}},{grantedAt:date,_id:{$lt:rows[LIBRARY_PAGE_SIZE-1]._id}}]);
  assert.equal((await libraryPage(rows.slice(-1),async()=>saved)).nextCursor,null);
 });
 test('malformed cursor cannot inject identity or Mongo operators',()=>{
@@ -20,6 +29,15 @@ test('read failure keeps paid row and cannot appear as a new unassigned consulta
  const page=await libraryPage([row(1)],async()=>{throw new Error('private database details');});
  assert.equal(page.purchases[0].state,'READ_FAILED');assert.equal(page.purchases[0].requestId,'saved');
  assert.ok(!JSON.stringify(page).includes('private database'));
+});
+test('authorization errors remain distinct for consultation, tarot and native records',async()=>{
+ const denied=async()=>{throw new TossError('ACCESS_DENIED',403);};
+ const expired=async()=>{throw new TossError('SESSION_EXPIRED',401);};
+ for(const errorReader of [denied,expired]){
+  await assert.rejects(libraryPage([row(1)],errorReader),error=>error.status===401||error.status===403);
+  await assert.rejects(libraryPage([{...row(2),tarotFlowId:'tarot-mindscan'}],async()=>null,errorReader),error=>error.status===401||error.status===403);
+  await assert.rejects(libraryPage([{...row(3),nativeService:'tea'}],async()=>null,async()=>null,errorReader),error=>error.status===401||error.status===403);
+ }
 });
 test('wrong persona evidence is hidden; refunded purchases stay refunded despite a stale complete result',async()=>{
  const mismatch=await libraryPage([row(1)],async()=>({...saved,persona:'neo'}));
@@ -47,3 +65,13 @@ test('original tea records retain their native result link and never use the gen
  const refunded=(await libraryPage([{...native,status:'REFUNDED'}],forbidden,forbidden,read)).purchases[0];
  assert.equal(refunded.state,'REFUNDED');assert.equal(refunded.href,undefined);
 });
+
+test('native life-fortune retains its feature key for the original purchased title',async()=>{
+ const native={...row(4),nativeService:'life-book',featureKey:'life-fortune-ai-consultation'};
+ const result=(await libraryPage([native],async()=>null,async()=>null,async()=>({state:'COMPLETED',href:'/life-book-ai/result/'}))).purchases[0];
+ assert.equal(result.featureKey,'life-fortune-ai-consultation');assert.equal(result.nativeService,'life-book');
+});
+
+test('missing order verifier fails closed before reading a saved result',async()=>{let reads=0;const page=await realLibraryPage([row(1)],async()=>{reads++;return saved;});assert.equal(page.purchases[0].state,'READ_FAILED');assert.equal(reads,0);});
+
+test('partner verification is bounded while every purchased row is checked',async()=>{let active=0,max=0,calls=0;const rows=Array.from({length:20},(_,i)=>row(i));const verify=async()=>{active++;max=Math.max(max,active);calls++;await new Promise(resolve=>setTimeout(resolve,5));active--;};const page=await realLibraryPage(rows,async()=>saved,undefined,undefined,verify);assert.equal(calls,20);assert.equal(max,4);assert.equal(page.purchases.length,20);});

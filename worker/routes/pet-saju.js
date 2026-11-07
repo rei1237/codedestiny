@@ -59,7 +59,7 @@ export function computePetBlueprint(rawProfile, date, label = "프로필") {
   return { profile, saju, blueprint: buildPetBlueprint(profile, saju, { date, petKey }) };
 }
 
-function stripPaidSections(blueprint) {
+export function stripPaidSections(blueprint) {
   const { deep, ...free } = blueprint;
   return free;
 }
@@ -72,7 +72,7 @@ async function handleBlueprint(request) {
 }
 
 /** 프론트가 종/품종/성격 목록을 하드코딩하지 않도록 서버 상수를 그대로 내려준다. */
-function handleCatalog() {
+export function petSajuCatalog() {
   const species = Object.entries(SPECIES_TABLE).map(([key, value]) => ({
     key,
     labelKo: value.labelKo,
@@ -94,8 +94,9 @@ function handleCatalog() {
   const activityLevels = Object.entries(ACTIVITY_LEVELS).map(([key, value]) => ({ key, labelKo: value.labelKo }));
   const environments = Object.entries(ENVIRONMENT_TABLE).map(([key, value]) => ({ key, labelKo: value.labelKo }));
   const companions = Object.entries(COMPANION_TABLE).map(([key, value]) => ({ key, labelKo: value.labelKo }));
-  return json({ ok: true, catalog: { species, breeds, traits, activityLevels, environments, companions } });
+  return { species, breeds, traits, activityLevels, environments, companions };
 }
+function handleCatalog() { return json({ ok: true, catalog: petSajuCatalog() }); }
 
 function routeError(error) {
   if (error instanceof HttpError) {

@@ -65,7 +65,7 @@ function resultBridgeCopy(locale?:FortuneRecord['locale']){
   garden:"Return to Yeoni's garden",
  };
 }
-function ResultBridge({row,locale}:{row:FortuneRecord;locale?:FortuneRecord['locale']}){
+function ResultBridge({row,locale,paymentSurface}:{row:FortuneRecord;locale?:FortuneRecord['locale'];paymentSurface?:'toss'}){
  const copy=resultBridgeCopy(locale);
  const domain=row.product.systems.length>1?'fusion':row.product.domain;
  const href=`/yeongnyangi/fortune/?domain=${encodeURIComponent(domain)}&lang=${encodeURIComponent(locale||'ko')}`;
@@ -76,7 +76,7 @@ function ResultBridge({row,locale}:{row:FortuneRecord;locale?:FortuneRecord['loc
   </div>
   <nav aria-label={copy.title}>
    <a className={styles.button} href={href}>{copy.related}</a>
-   <a href={`/ggulggul/?lang=${encodeURIComponent(locale||'ko')}`}>{copy.garden}</a>
+   {paymentSurface !== 'toss' && <a href={`/ggulggul/?lang=${encodeURIComponent(locale||'ko')}`}>{copy.garden}</a>}
   </nav>
  </section>;
 }
@@ -89,11 +89,11 @@ function sameRequest(fortune:FortuneRecord,id:string){
  if(fortune.id!==id||(fortune.recovery?.requestId&&fortune.recovery.requestId!==id))throw new FortuneApiError('RECOVERY_ID_MISMATCH','원래 상담과 복구 응답이 일치하지 않아요. 다시 결제하지 말고 주문번호와 함께 문의해 주세요.',409,false);
  return fortune;
 }
-export default function Result(){
+export default function Result({paymentSurface}:{paymentSurface?:"toss"}={}){
  const {siteLocale}=useReadingLanguage();
  const siteLanguage=useRef(siteLocale);siteLanguage.current=siteLocale;
  const [row,setRow]=useState<FortuneRecord|null>(null),[error,setError]=useState(''),[busy,setBusy]=useState(false);
- const lock=useRef(false),mounted=useRef(true);
+ const lock=useRef(false),mounted=useRef(true),permissionEpoch=useRef(0);
  const [reload,setReload]=useState(0);
  const [ritualGate,setRitualGate]=useState<{id:string;done:boolean}|null>(null);
  const requestId=useRef('');
@@ -110,12 +110,28 @@ export default function Result(){
   document.addEventListener('visibilitychange',restore);
   return ()=>{document.removeEventListener('visibilitychange',restore);document.title=original;};
  },[row]);
+ function hideDeniedTossResult(e:unknown){
+  if(paymentSurface !== 'toss')return false;
+  if(!(e instanceof FortuneApiError)){if(mounted.current){setRow(null);setError('구매 상태를 확인할 수 없어요. 다시 결제하지 말고 주문 내역을 확인해 주세요.');}return true;}
+  const orderUnverified=e.status===0||[402,404,408,429].includes(e.status)||e.status>=500||['ORDER_REFUNDED','ORDER_NOT_PAID','PAYMENT_REVIEW_REQUIRED','INVALID_RESPONSE','RECOVERY_ID_MISMATCH'].includes(e.code);
+  if(![401,403].includes(e.status)&&!orderUnverified)return false;
+  if(!mounted.current)return true;
+  setRow(null);setError(e.status===401?'기록과 구매를 확인하려면 토스 로그인이 필요해요.':e.code==='ORDER_REFUNDED'?'환불된 주문이에요. 주문 내역을 확인해 주세요.':orderUnverified?'구매 상태를 확인할 수 없어요. 다시 결제하지 말고 주문 내역을 확인해 주세요.':'구매 내역에 접근할 권한을 확인할 수 없어요. 구매한 계정과 주문 내역을 확인해 주세요.');return true;
+ }
+ function startTossFollowup(){return ++permissionEpoch.current;}
+ function finishTossFollowup(next:FortuneRecord,epoch:number){if(mounted.current&&epoch===permissionEpoch.current&&row)setRow(sameRequest(next,row.id));}
+ function failTossFollowup(error:unknown,epoch:number){
+  if(!mounted.current||epoch!==permissionEpoch.current)return true;
+  if(hideDeniedTossResult(error)){if(error instanceof FortuneApiError&&error.status===401)loginForCurrentPage();return true;}
+  return false;
+ }
  async function generate(id:string){
   if(lock.current)return;lock.current=true;setBusy(true);setError('');
+  const permission=paymentSurface==='toss'?++permissionEpoch.current:0;
   try{
     const {fortune}=await fortuneApi<{fortune:FortuneRecord}>(`requests/${id}/generate`,{});
-    if(mounted.current)setRow(sameRequest(fortune,id));
-  }catch(e){if(e instanceof FortuneApiError&&e.status===401)loginForCurrentPage();else if(mounted.current)setError(row?.locale&&row.locale!=='ko'?resultStateCopy(row.locale).generateFailed:friendlyErrorMessage(e,resultStateCopy().generateFailed));}
+    if(mounted.current&&(paymentSurface!=='toss'||permission===permissionEpoch.current))setRow(sameRequest(fortune,id));
+  }catch(e){if((paymentSurface==='toss'&&permission!==permissionEpoch.current))return;if(hideDeniedTossResult(e)){if(e instanceof FortuneApiError&&e.status===401)loginForCurrentPage();}else if(e instanceof FortuneApiError&&e.status===401)loginForCurrentPage();else if(mounted.current)setError(row?.locale&&row.locale!=='ko'?resultStateCopy(row.locale).generateFailed:friendlyErrorMessage(e,resultStateCopy().generateFailed));}
   finally{lock.current=false;if(mounted.current)setBusy(false);}
  }
  useEffect(()=>{
@@ -125,8 +141,9 @@ export default function Result(){
   requestId.current=id;
   let cancelled=false,timer:ReturnType<typeof setTimeout>|undefined;
   async function load(attempt=0){
+   const permission=paymentSurface==='toss'?++permissionEpoch.current:0;
    try{
-    let {fortune}=await fortuneApi<{fortune:FortuneRecord}>(`requests/${id}`);fortune=sameRequest(fortune,id);
+    let {fortune}=await fortuneApi<{fortune:FortuneRecord}>(`requests/${id}`);if((paymentSurface==='toss'&&permission!==permissionEpoch.current))return;fortune=sameRequest(fortune,id);
     let notice='';
     // A v3 tarot order waiting for the buyer's card pick is not payable yet, so there is no payment to attach.
     if(!fortune.paid && fortune.state!=='REFUNDED' && fortune.state!=='AWAITING_DRAW'){
@@ -134,18 +151,20 @@ export default function Result(){
      // 기다려도 바뀌지 않는 답(가격 변경 등)만 안내한다.
      try{fortune=sameRequest((await fortuneApi<{fortune:FortuneRecord}>(`requests/${id}/activate`,{})).fortune,id);}
      catch(e){
-      if(e instanceof FortuneApiError&&(e.status===401||e.code==='RECOVERY_ID_MISMATCH'))throw e;
+      if(e instanceof FortuneApiError&&(e.status===401||(paymentSurface==='toss'&&(e.status===403||['ORDER_REFUNDED','ORDER_NOT_PAID','PAYMENT_REVIEW_REQUIRED'].includes(e.code)))||e.code==='RECOVERY_ID_MISMATCH'))throw e;
       if(e instanceof FortuneApiError&&e.status!==402&&!e.retryable&&e.code!=='PAYMENT_ATTACH_CONFLICT')notice=fortune.locale&&fortune.locale!=='ko'?resultStateCopy(fortune.locale).paymentRequired:friendlyErrorMessage(e,resultStateCopy().paymentRequired);
      }
     }
-    if(!cancelled){setRow(fortune);setError(notice);}
+    if(!cancelled&&(paymentSurface!=='toss'||permission===permissionEpoch.current)){setRow(fortune);setError(notice);}
    }catch(e){
-    if(cancelled)return;
+    if(cancelled||(paymentSurface==='toss'&&permission!==permissionEpoch.current))return;
+    if(hideDeniedTossResult(e)){if(e instanceof FortuneApiError&&e.status===401)loginForCurrentPage();return;}
     if(e instanceof FortuneApiError&&e.status===401){loginForCurrentPage();return;}
     setError(siteLanguage.current==='ko'?friendlyErrorMessage(e,resultStateCopy().loadFailed):resultStateCopy(siteLanguage.current).loadFailed);
     if(attempt<3 && (!(e instanceof FortuneApiError)||e.retryable))timer=setTimeout(()=>void load(attempt+1),Math.max(2000*2**attempt,e instanceof FortuneApiError?e.retryAfterSeconds*1000:0));
    }
   }
+  if(paymentSurface==='toss')setRow(null);
   void load();
   return ()=>{cancelled=true;mounted.current=false;if(timer)clearTimeout(timer);};
  },[reload]);
@@ -154,10 +173,11 @@ export default function Result(){
   const held=['GENERATION_REVIEW_REQUIRED','AUTOMATIC_RECOVERY_STOPPED','ASK_LIMITED_REVIEW_REQUIRED','DELIVERY_REFUND_PENDING'].includes(row.errorCode || '');
   let cancelled=false;
   const timer=setTimeout(async()=>{
+   const permission=paymentSurface==='toss'?++permissionEpoch.current:0;
    try{
     const {fortune}=await fortuneApi<{fortune:FortuneRecord}>(`requests/${row.id}`);
-    if(!cancelled){setRow(sameRequest(fortune,row.id));setError('');}
-   }catch(e){if(!cancelled){if(e instanceof FortuneApiError&&e.status===401)loginForCurrentPage();else {setError(resultStateCopy(row.locale).pollFailed);setRow({...row});}}}
+    if(!cancelled&&(paymentSurface!=='toss'||permission===permissionEpoch.current)){setRow(sameRequest(fortune,row.id));setError('');}
+   }catch(e){if(!cancelled&&(paymentSurface!=='toss'||permission===permissionEpoch.current)){if(hideDeniedTossResult(e)){if(e instanceof FortuneApiError&&e.status===401)loginForCurrentPage();}else if(e instanceof FortuneApiError&&e.status===401)loginForCurrentPage();else {setError(resultStateCopy(row.locale).pollFailed);setRow({...row});}}}
   },held?HELD_POLL_MS:RESULT_POLL_MS);
   return ()=>{cancelled=true;clearTimeout(timer);};
  },[row]);
@@ -167,11 +187,13 @@ export default function Result(){
   let cancelled=false;
   const timer=setTimeout(async()=>{
    payChecks.current+=1;
+   const permission=paymentSurface==='toss'?++permissionEpoch.current:0;
    try{
     const {fortune}=await fortuneApi<{fortune:FortuneRecord}>(`requests/${row.id}/activate`,{});
-    if(!cancelled)setRow(sameRequest(fortune,row.id));
+    if(!cancelled&&(paymentSurface!=='toss'||permission===permissionEpoch.current))setRow(sameRequest(fortune,row.id));
    }catch(e){
-    if(cancelled)return;
+    if(cancelled||(paymentSurface==='toss'&&permission!==permissionEpoch.current))return;
+    if(hideDeniedTossResult(e)){if(e instanceof FortuneApiError&&e.status===401)loginForCurrentPage();return;}
     if(e instanceof FortuneApiError&&e.status===401){loginForCurrentPage();return;}
     // 402·일시 네트워크 오류는 아직 확정 전이라는 뜻이다. 단, Family 월 한도 초과는 기다려도 바뀌지 않는 확정 답이다.
     const waiting=!(e instanceof FortuneApiError)||((e.status===402&&e.code!=='MONTHLY_PASS_LIMIT_EXCEEDED')||e.retryable||e.code==='PAYMENT_ATTACH_CONFLICT');
@@ -202,10 +224,11 @@ export default function Result(){
  const interpreting=!!row?.paid&&['PAID','GENERATING'].includes(row.state)&&!row.errorCode&&!row.recovery?.canRetryNow&&!error;
  const loading=interpreting?<ReadingLoading stage={row!.chapters.length===row!.manifest.length?'verifying':'generating'} saved={row!.chapters.length} total={row!.manifest.length} product={row!.product} locale={row!.locale} compact={row!.chapters.length>0}/>:null;
  if(row?.consultation?.spirit||row?.consultation?.questionSky)return <section className={styles.reader}>
+  {paymentSurface==='toss'&&row.paid&&row.chapters.length>0&&<p role="note">AI가 작성한 상담 결과예요.</p>}
   {row.paid&&row.state!=='REFUNDED'&&<FishReceipt product={row.product} locale={row.locale}/>}
   {loading}
-  <SpiritResult row={row} onRow={setRow}/>
-  {row.state==='COMPLETED'&&<>{shouldInvitePaidReview(row)&&<ReviewRewardBanner afterResult brand="yeongnyangi" locale={row.locale||'ko'}/>}<ResultBenefits requestId={row.id} locale={row.locale||'ko'}/><ResultBridge row={row} locale={row.locale}/><ResultSharing key={row.id} row={row}/><RecommendationResult service={row.product.id} locale={row.locale} brand="yeongnyangi" practiceTags={chapterAdviceTopics(row.chapters)}/></>}
+  <SpiritResult row={row} onRow={setRow} paymentSurface={paymentSurface} {...(paymentSurface === "toss" ? {onFollowupStart:startTossFollowup,onFollowupResult:finishTossFollowup,onFollowupError:failTossFollowup} : {})}/>
+  {row.state==='COMPLETED'&&<>{shouldInvitePaidReview(row)&&<ReviewRewardBanner afterResult brand="yeongnyangi" locale={row.locale||'ko'}/>}<ResultBenefits requestId={row.id} locale={row.locale||'ko'}/><ResultBridge row={row} locale={row.locale} paymentSurface={paymentSurface}/><ResultSharing key={row.id} row={row}/><RecommendationResult service={row.product.id} locale={row.locale} brand="yeongnyangi" practiceTags={chapterAdviceTopics(row.chapters)}/></>}
   {row.state==='REFUNDED'?<p>{stateCopy.refunded}</p>:!row.paid?<><p>{stateCopy.paymentRequired}</p>{payWatching&&<p role="status">{stateCopy.paymentWaiting}</p>}<button onClick={()=>window.location.reload()}>{stateCopy.checkPayment}</button>{!error&&<a className={styles.primaryAction} href={checkoutPath(row,siteLocale)}>{copy.checkout}</a>}</>:!['COMPLETED','AWAITING_FOLLOWUP'].includes(row.state)&&<>
     {row.errorCode==='DELIVERY_REFUND_PENDING'?<p role="status">{deliveryRefundCopy(row.locale)}</p>:row.recovery?.canRetryNow?<><p role="alert">{copy.recoveryStopped}</p><button className={styles.retryButton} disabled={busy} onClick={()=>void generate(row.id)}><PawPrint size={18} aria-hidden="true"/>{copy.recovery}</button></>:['GENERATION_REVIEW_REQUIRED','AUTOMATIC_RECOVERY_STOPPED','ASK_LIMITED_REVIEW_REQUIRED','DELIVERY_REFUND_PENDING'].includes(row.errorCode||'')?<p role="status">{copy.held}</p>:row.errorCode==='PAYMENT_NOT_ACTIVE'?<p role="alert">{copy.support}</p>:<p>{stateCopy.serverResume}</p>}
   </>}
@@ -213,6 +236,7 @@ export default function Result(){
   {error&&<><p role="alert">{row.locale&&row.locale!=='ko'?stateCopy.loadFailed:error} {stateCopy.paidWarning}</p><button className={styles.retryButton} disabled={busy} onClick={()=>void generate(row.id)}><PawPrint size={18} aria-hidden="true"/>{stateCopy.retry}</button></>}<OrderReference id={row.id} locale={row.locale}/>
  </section>;
  return <section className={styles.reader} lang={locale}>
+  {paymentSurface==='toss'&&row?.paid&&row.chapters.length>0&&<p role="note">AI가 작성한 상담 결과예요.</p>}
   <h1>{row?(locale==='ko'?`${row.product.name} · ${row.product.fishName}`:`${localizedSystem(row.product.readingKind==='single'?row.product.domain:'fusion',locale)} · ${localizedTier(row.product.fishId,locale)}`):stateCopy.result}</h1>
   {row&&row.state!=='COMPLETED'&&<OrderReference id={row.id} locale={row.locale}/>}
 
@@ -241,7 +265,7 @@ export default function Result(){
    {row.conversation&&<QuestionConversation row={row} onRow={setRow}/>}
    {row.state==='COMPLETED'&&<SummaryReportView row={row}/>}
    {row.state==='COMPLETED'&&<ResultBenefits requestId={row.id} locale={row.locale||'ko'}/>}
-   {row.state==='COMPLETED'&&<>{shouldInvitePaidReview(row)&&<ReviewRewardBanner afterResult brand="yeongnyangi" locale={row.locale||'ko'}/>}<ResultBridge row={row} locale={row.locale}/><ResultSharing key={row.id} row={row}/><RecommendationResult service={row.product.id} locale={row.locale} brand="yeongnyangi" practiceTags={chapterAdviceTopics(row.chapters)}/><OrderReference id={row.id} locale={row.locale}/>{row.consultation&&<details className={styles.questionContext}><summary>{consultationLabel}</summary>{row.consultation.question&&<p style={{whiteSpace:'pre-wrap'}}>{row.consultation.question}</p>}{row.consultation.relationship?.participants&&<p>{row.consultation.relationship.participants.self} · {row.consultation.relationship.participants.partner}</p>}{row.consultation.asOf&&<p>{stateCopy.asOf}: {row.consultation.asOf} · {row.consultation.timezone||'Asia/Seoul'}</p>}{row.consultation.period&&<p>{stateCopy.period}: {periodLabel}. {stateCopy.periodHint}</p>}</details>}</>}
+   {row.state==='COMPLETED'&&<>{shouldInvitePaidReview(row)&&<ReviewRewardBanner afterResult brand="yeongnyangi" locale={row.locale||'ko'}/>}<ResultBridge row={row} locale={row.locale} paymentSurface={paymentSurface}/><ResultSharing key={row.id} row={row}/><RecommendationResult service={row.product.id} locale={row.locale} brand="yeongnyangi" practiceTags={chapterAdviceTopics(row.chapters)}/><OrderReference id={row.id} locale={row.locale}/>{row.consultation&&<details className={styles.questionContext}><summary>{consultationLabel}</summary>{row.consultation.question&&<p style={{whiteSpace:'pre-wrap'}}>{row.consultation.question}</p>}{row.consultation.relationship?.participants&&<p>{row.consultation.relationship.participants.self} · {row.consultation.relationship.participants.partner}</p>}{row.consultation.asOf&&<p>{stateCopy.asOf}: {row.consultation.asOf} · {row.consultation.timezone||'Asia/Seoul'}</p>}{row.consultation.period&&<p>{stateCopy.period}: {periodLabel}. {stateCopy.periodHint}</p>}</details>}</>}
    {row.paid&&row.state!=='REFUNDED'&&<><ReadingIdentity product={row.product} locale={row.locale}/><FishReceipt product={row.product} locale={row.locale}/></>}
    </>}
   </>}

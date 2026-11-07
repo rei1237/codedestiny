@@ -13,6 +13,7 @@ import "../worker/lib/app-store-models.js";
 import "../worker/lib/feedback-models.js";
 import "../worker/lib/review-models.js";
 import "../worker/lib/yeongnyangi-models.js";
+import "../worker/toss/models.js";
 
 config({ path: ".env.local" });
 config({ path: ".env" });

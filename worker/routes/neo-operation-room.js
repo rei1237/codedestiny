@@ -2093,7 +2093,9 @@ export function nativeNeoContract(body){
   if(!normalized.ok||requestId.length<12)throw Object.assign(new Error('상담 입력을 다시 확인해 주세요.'),{status:400});
   return {requestId,resultId:requestId,featureKey:FEATURE_KEY,inputHash:normalized.inputHash,pricing:getPricing().pricing};
 }
-export async function nativeNeoStoredState(env,userId,resultId){
+export async function nativeNeoStoredState(env, userId, resultId, lookup = 'either') {
+  const owner = {userId:String(userId)};
+  const filter = lookup === 'request' ? {...owner,idempotencyKey:resultId} : lookup === 'id' ? {...owner,id:resultId} : {...owner,$or:[{id:resultId},{idempotencyKey:resultId}]};
   await connectDb(env);
-  return NeoOperationRoomConsultation.findOne({userId:String(userId),$or:[{id:resultId},{idempotencyKey:resultId}]}).lean();
+  return NeoOperationRoomConsultation.findOne(filter).lean();
 }

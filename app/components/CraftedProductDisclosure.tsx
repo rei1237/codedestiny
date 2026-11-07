@@ -6,7 +6,7 @@ import type {ComponentProps} from 'react';
 import styles from './crafted-product-disclosure.module.css';
 
 type Detail=ComponentProps<typeof CraftedProductDetail>['detail'];
-function AuthoredDisclosure({id,summaryLabel}:{id:string;summaryLabel:string}){
+function AuthoredDisclosure({id,summaryLabel,panelTextOverrides}:{id:string;summaryLabel:string;panelTextOverrides?:Record<string,string>}){
  const [detail,setDetail]=useState<Detail|null>(null);
  const [error,setError]=useState(false);
  const loading=useRef(false);
@@ -16,14 +16,18 @@ function AuthoredDisclosure({id,summaryLabel}:{id:string;summaryLabel:string}){
   try{
    const response=await fetch('/feature-details/crafted/'+id+'/manifest.json');
    if(!response.ok)throw new Error('DETAIL_UNAVAILABLE');
-   setDetail(await response.json());
+   const data:Detail=await response.json();
+   setDetail(panelTextOverrides&&Array.isArray(data.panels)?{...data,panels:data.panels.map(panel=>{
+    const id='id' in panel&&typeof panel.id==='string'?panel.id:'';
+    return id&&panelTextOverrides[id]?{...panel,text:panelTextOverrides[id]}:panel;
+   })}:data);
   }catch{setError(true);}finally{loading.current=false;}
  }}>
   <summary>{summaryLabel}</summary>
   {detail?<CraftedProductDetail detail={detail}/>:<p role="status">{error?'상세 안내를 불러오지 못했어요. 접었다 다시 펼쳐 주세요.':'상세 안내를 준비하고 있어요.'}</p>}
  </details>;
 }
-export default function CraftedProductDisclosure({featureKey,variant,summaryLabel="이 상담을 글과 그림으로 자세히 보기"}:{featureKey:string;variant?:string;summaryLabel?:string}){
+export default function CraftedProductDisclosure({featureKey,variant,summaryLabel="이 상담을 글과 그림으로 자세히 보기",panelTextOverrides}:{featureKey:string;variant?:string;summaryLabel?:string;panelTextOverrides?:Record<string,string>}){
  const id=(variant&&craftedVariantProductIds[featureKey]?.[variant])||craftedProductIds[featureKey];
- return id?<AuthoredDisclosure key={id} id={id} summaryLabel={summaryLabel}/>:null;
+ return id?<AuthoredDisclosure key={id} id={id} summaryLabel={summaryLabel} panelTextOverrides={panelTextOverrides}/>:null;
 }

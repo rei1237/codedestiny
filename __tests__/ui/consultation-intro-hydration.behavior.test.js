@@ -33,6 +33,7 @@ function screenFixture(file) {
     '@/app/hooks/usePaidDeliveryScope': { usePaidDeliveryScope: () => () => () => true },
     '@/app/hooks/useLocaleRequestScope': { useLocaleRequestScope: () => () => ({ isCurrent: () => true }) },
     '@/app/hooks/usePaidResume': { usePaidResume() {} },
+    '@/app/_lib/toss-consultation-copy': { useTossConsultationCopy: () => ({ locale: 'ko', copy: {} }), tossConsultationCopy: () => ({}) },
     '@/app/_lib/auth-client': { authFetch: async (url, init) => {
       state.requests.push({ url, method: init?.method || 'GET' });
       return { ok: false, status: 401, json: async () => ({ ok: false }) };

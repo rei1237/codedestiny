@@ -34,6 +34,7 @@ function setup({ old = false, on = false } = {}) {
     structuredClone, createHash, console: { log() {}, warn() {}, error() {} },
     Date: class extends Date { constructor(...args) { super(...(args.length ? args : [epoch])); } static now() { return epoch; } getFullYear() { return state.year; } },
     readJson: async request => clone(request.body), clean: x => String(x || ''),
+    nativeTossContext: () => state.toss ? { assertStored: async () => {} } : null,
     getOptionalUserFromRequest: async () => ({ userId: state.userId }), connectDb: async () => {},
     peekAccessTokenUserId: async () => state.userId, safeLogPayload: x => x,
     isAdmin: () => state.admin, createAccessToken: async () => 'mock-access-token',
@@ -49,6 +50,7 @@ function setup({ old = false, on = false } = {}) {
     calculationFailed: () => ({ status: 422, body: { reason: 'CALCULATION_FAILED' } }), paymentVerifyFailed: () => ({ status: 402 }),
     MESSAGES: { llmFailed: 'mock' }, SERVICE_KEY: 'ziwei-ai', FEATURE_KEY: 'ziwei-ai-consultation', GENERATING_FRESHNESS_MS: 120000,
     resolveStartAccess: async () => { state.billing++; return { ok: true, accessType: 'pass', claimEvidenceIds: ['same-evidence'] }; },
+    resolveZiweiRequestAccess: args => state.toss ? Promise.resolve({ ok: true, accessType: 'toss' }) : context.resolveStartAccess(args),
     logZiweiAi() {}, randomUUID: () => `uuid-${++state.uuid}`,
     claimRequestBillingEvidence: async () => { state.claims++; return { ok: true }; }, evidenceClaimErrorBody: () => ({}),
     ZiweiCalculationPreparation: {
@@ -85,7 +87,7 @@ function setup({ old = false, on = false } = {}) {
     saveZiweiDelivery: async (q, fields) => { if (state.fault === 'save') throw storageError(); return update(q, fields); },
     runWithAiLocale: (_locale, fn) => fn(), storedAiLocale: () => 'ko',
     generateInitialConsultation: async (_env, options) => {
-      state.generations++; if (state.waitForGeneration) await state.waitForGeneration;
+      state.generations++; state.generatedVoice = options.answerVoice; if (state.waitForGeneration) await state.waitForGeneration;
       assert.ok(options.chart); return { complete: state.complete, text: 'stored mock chapters', meta: {} };
     },
     enforceZiweiChartFacts: text => ({ text }), applyUsageOnce: async () => { state.usage++; },
@@ -103,7 +105,7 @@ function setup({ old = false, on = false } = {}) {
   vm.runInContext('const preparedChartYears = new WeakMap();', context);
   for (const name of ['preparedZiweiChart', 'preparationFailed', 'handleEnsureAccess', 'handleBasis']) vm.runInContext(functionText(source, name), context);
   vm.runInContext(functionText(old ? baseline : source, 'handleStart'), context);
-  state.start = (body = requestBody) => context.handleStart({ body }, { ZIWEI_CALENDAR_AUTHORITY_V2: String(state.on) });
+  state.start = (body = requestBody) => context.handleStart({ body }, { ZIWEI_CALENDAR_AUTHORITY_V2: String(state.on), CONSULTATION_ANSWER_VOICE_V1: String(Boolean(state.voice)) });
   state.prepare = (body = requestBody) => context.handleEnsureAccess({ body }, { ZIWEI_CALENDAR_AUTHORITY_V2: String(state.on) });
   state.basis = (body = requestBody) => context.handleBasis({ body }, { ZIWEI_CALENDAR_AUTHORITY_V2: String(state.on) });
   state.resume = () => state.start({ resumeSessionId: state.docs[0].id });
@@ -133,7 +135,8 @@ test('concurrent identical requests keep one winning snapshot and one generation
   await s.prepare();
   let release; s.waitForGeneration = new Promise(resolve => { release = resolve; });
   const first = s.start();
-  while (!s.generations) await new Promise(resolve => setImmediate(resolve));
+  for (let attempt = 0; attempt < 1000 && !s.generations; attempt++) await new Promise(resolve => setImmediate(resolve));
+  if (!s.generations) { release(); await first; assert.fail('generation did not start'); }
   s.on = false;
   const second = await s.start(); assert.equal(second.status, 202);
   release(); assert.equal((await first).status, 200);
@@ -286,4 +289,13 @@ test('CR-006 new default-OFF requests pin legacy and body flags cannot enable v2
   assert.equal(place.preparations.size, 1); assert.equal(place.calculations, 1);
   const legacy = setup(); legacy.fault = 'calculate';
   assert.equal((await legacy.basis({ birthInfo: birth })).status, 422);
+});
+
+test('Toss origin and the selected answer contract are both retained in the first saved consultation', async () => {
+  const s = setup({ on: true }); s.toss = true; s.voice = true; await s.prepare();
+  assert.equal((await s.start()).status, 200);
+  assert.equal(s.created[0].accessSource, 'toss');
+  assert.equal(s.created[0].llmMeta.answerVoice, 'answer-voice-v1');
+  assert.equal(s.generatedVoice, 'answer-voice-v1');
+  assert.equal(s.usage, 0);
 });
