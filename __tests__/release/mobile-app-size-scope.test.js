@@ -80,7 +80,7 @@ test('talisman originals leave the app only when catalog, bundled and web bytes 
   for (const id of ['web-differs', 'local-edited', 'web-missing']) await fs.access(path.join(folder, `${id}.png`));
 });
 
-test('each feature ships one introduction image and every dropped variant resolves to it natively', async t => {
+test('each feature ships one introduction image plus one list thumbnail and every dropped variant resolves natively', async t => {
   const { consolidateIntroductionImages, APP_IMAGE_ALIAS_FILE } = await import('../../scripts/build-mobile-app.mjs');
   const activity = await fs.readFile(path.join(__dirname, '../../apps/mobile/android/app/src/main/java/com/codedestiny/app/MainActivity.java'), 'utf8');
   assert.match(activity, /AppImageAliases\.lookup\(getAssets\(\), path\)/, 'resolveRoute must serve dropped variants from the kept image');
@@ -91,19 +91,22 @@ test('each feature ships one introduction image and every dropped variant resolv
   await fs.mkdir(intro, { recursive: true });
   await fs.mkdir(detail, { recursive: true });
   for (const name of ['saju.webp', 'saju-320.webp', 'saju-640.webp', 'saju-960.webp', 'tarot-960.webp', 'lonely-640.webp', 'lonely.webp']) await fs.writeFile(path.join(intro, name), name);
-  for (const name of ['saju-320.webp', 'saju-960.webp', 'saju-og.webp', 'tarot-960.webp', 'tarot-catalog-320.webp', 'own-480.webp', 'own-960.webp', 'own-960.webp.json']) await fs.writeFile(path.join(detail, name), name);
+  for (const name of ['saju-320.webp', 'saju-960.webp', 'saju-og.webp', 'tarot-960.webp', 'tarot-catalog-320.webp', 'own-320.webp', 'own-catalog-320.webp', 'own-480.webp', 'own-960.webp', 'own-960.webp.json']) await fs.writeFile(path.join(detail, name), name);
   const compared = [];
   const sameArt = async (a, b) => { compared.push(path.basename(a)); return path.basename(a) === 'saju-960.webp'; };
   const { aliases } = await consolidateIntroductionImages({ dist, sameArt });
   const left = async dir => (await fs.readdir(dir)).sort();
-  assert.deepEqual(await left(intro), ['lonely-640.webp', 'lonely.webp', 'saju-960.webp', 'tarot-960.webp'], 'variants without a 960 stay untouched');
-  assert.deepEqual(await left(detail), ['own-960.webp', 'own-960.webp.json', 'tarot-960.webp'], 'a differing 960 copy stays as that feature\'s one image');
+  assert.deepEqual(await left(intro), ['lonely-640.webp', 'lonely.webp', 'saju-320.webp', 'saju-960.webp', 'tarot-960.webp'], 'variants without a 960 stay untouched');
+  assert.deepEqual(await left(detail), ['own-320.webp', 'own-960.webp', 'own-960.webp.json', 'tarot-960.webp'], 'a differing 960 copy stays as that feature\'s one image');
   assert.deepEqual(compared.sort(), ['saju-960.webp', 'tarot-960.webp']);
   assert.equal(aliases.get('/images/service-introductions/saju.webp'), '/images/service-introductions/saju-960.webp');
   assert.equal(aliases.get('/feature-details/assets/saju-960.webp'), '/images/service-introductions/saju-960.webp');
   assert.equal(aliases.get('/feature-details/assets/saju-og.webp'), '/images/service-introductions/saju-960.webp');
   assert.equal(aliases.get('/feature-details/assets/tarot-catalog-320.webp'), '/feature-details/assets/tarot-960.webp');
   assert.equal(aliases.get('/feature-details/assets/own-480.webp'), '/feature-details/assets/own-960.webp');
+  // 목록 썸네일은 960 그림을 디코드하지 않게 짝인 -320 으로 간다.
+  assert.equal(aliases.get('/feature-details/assets/saju-320.webp'), '/images/service-introductions/saju-320.webp');
+  assert.equal(aliases.get('/feature-details/assets/own-catalog-320.webp'), '/feature-details/assets/own-320.webp');
   const table = await fs.readFile(path.join(dist, APP_IMAGE_ALIAS_FILE), 'utf8');
   assert.equal(table.trim().split('\n').length, aliases.size);
   for (const target of new Set(aliases.values())) await fs.access(path.join(dist, target));

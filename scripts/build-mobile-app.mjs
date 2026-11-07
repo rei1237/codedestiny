@@ -497,7 +497,7 @@ export async function offloadTalismanOriginals({ dist = DIST, root = ROOT, remot
   return { offloaded, kept, network };
 }
 
-// 기능 소개 그림은 기능마다 한 장(<기능>-960.webp)만 앱에 싣는다. 다른 크기 변형(원본 1536·320·480·640),
+// 기능 소개 그림은 기능마다 한 장(<기능>-960.webp)과 목록용 썸네일 한 장(-320)만 앱에 싣는다. 다른 크기 변형(원본 1536·480·640),
 // 메타 태그 전용 OG, 그림이 같은 feature-details 사본은 빼고 "뺀 경로 → 남긴 한 장" 표를 남긴다.
 // MainActivity.resolveRoute(AppImageAliases)가 이 표로 요청을 돌려주므로 srcset이나 `${base}-320.webp`처럼
 // 조립되는 경로도 그대로 그려진다. 웹 원본(public)은 건드리지 않는다.
@@ -531,7 +531,8 @@ export async function consolidateIntroductionImages({ dist = DIST, sameArt = sha
   const intro = new Set(introNames);
   for (const name of introNames) {
     const match = name.match(/^(.+?)(?:-(320|480|640))?\.webp$/);
-    if (!match || name.endsWith("-960.webp") || !intro.has(`${match[1]}-960.webp`)) continue;
+    // 목록 썸네일(표시 폭 약 100~160px)이 960 그림을 디코드하지 않게 같은 비율의 -320 한 장은 남긴다.
+    if (!match || name.endsWith("-960.webp") || match[2] === "320" || !intro.has(`${match[1]}-960.webp`)) continue;
     await drop(introDir, name, `/images/service-introductions/${match[1]}-960.webp`);
   }
   if (await exists(detailDir)) {
@@ -551,7 +552,15 @@ export async function consolidateIntroductionImages({ dist = DIST, sameArt = sha
         await drop(detailDir, own, shared);
         keep = shared;
       }
-      for (const name of names) if (name !== own) await drop(detailDir, name, keep);
+      // 작은 변형(320·catalog-320)은 남긴 그림과 짝인 썸네일 한 장으로 모은다: 소개 그림을 쓰면 소개 -320,
+      // 아니면 이 기능의 -320, 그것도 없으면 큰 그림.
+      const introThumb = `${slug}-320.webp`;
+      const ownThumb = keep === shared && intro.has(introThumb) ? null : names.find((name) => name === introThumb) || null;
+      const thumb = ownThumb ? `/feature-details/assets/${ownThumb}` : keep === shared && intro.has(introThumb) ? `/images/service-introductions/${introThumb}` : keep;
+      for (const name of names) {
+        if (name === own || name === ownThumb) continue;
+        await drop(detailDir, name, /-(?:catalog-)?320\.webp$/.test(name) ? thumb : keep);
+      }
     }
   }
   const table = [...aliases].sort(([a], [b]) => a.localeCompare(b)).map(([from, to]) => `${from}\t${to}`).join("\n");
