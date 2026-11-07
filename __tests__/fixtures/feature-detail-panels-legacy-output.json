@@ -1,7 +1,7 @@
 {
  "detail/animal-destiny.json": {
   "input": "b1ba73d5b42210cb",
-  "output": "bb353df63330e4ee"
+  "output": "1a5ed1776f0614c3"
  },
  "detail/animal-totem.json": {
   "input": "6d872cdba06d16b2",
@@ -17,7 +17,7 @@
  },
  "detail/astrology.json": {
   "input": "7a1213e1c186868a",
-  "output": "0b3631b53869d3e1"
+  "output": "a8ec923cf720d110"
  },
  "detail/bias-destiny.json": {
   "input": "cf20af65845044fc",
@@ -53,7 +53,7 @@
  },
  "detail/face-reading.json": {
   "input": "0bf51c567e7ac65d",
-  "output": "b5cc190fe5785333"
+  "output": "237741656849ba26"
  },
  "detail/famous-saju.json": {
   "input": "c3df1442a571d29d",
@@ -189,7 +189,7 @@
  },
  "detail/psychotest.json": {
   "input": "7c0158ebcd7d26fa",
-  "output": "dc83be225d570738"
+  "output": "8abaa944b55fdeef"
  },
  "detail/royal-tea-oracle.json": {
   "input": "22c957a64fcf86c4",
@@ -225,7 +225,7 @@
  },
  "detail/sukyo.json": {
   "input": "7b9888839aa36ef3",
-  "output": "d8c4ed1de742b76b"
+  "output": "85beb99e72a1dc0d"
  },
  "detail/tarot-celestial-harmony.json": {
   "input": "01b02c5f01095fc6",
@@ -265,7 +265,7 @@
  },
  "detail/tarot.json": {
   "input": "ab288229625886c7",
-  "output": "4b7f5a307930949b"
+  "output": "c33613b32b63d528"
  },
  "detail/today-hub.json": {
   "input": "e2d4e7a843fc5adb",
@@ -277,7 +277,7 @@
  },
  "detail/vedic.json": {
   "input": "3271c1d2de0b184e",
-  "output": "cf7f1a544d137976"
+  "output": "71073922e65f137a"
  },
  "detail/yoga-guru.json": {
   "input": "3f0e5647541cfc4d",
@@ -293,7 +293,7 @@
  },
  "detail/ziwei.json": {
   "input": "9fae158646916ea8",
-  "output": "317f4ab80572849d"
+  "output": "5015245ccf4efd22"
  },
  "crafted/animal-destiny": {
   "input": "ae6bcdbbee646638",

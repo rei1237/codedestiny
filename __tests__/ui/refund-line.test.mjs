@@ -30,6 +30,15 @@ test('상세 패널 히어로 CTA 옆에 REFUND_LINE과 정책 링크가 있다'
   assert.doesNotMatch(action, BANNED);
 });
 
+test('무료 기능 상세 패널에는 환불 한 줄이 없고 유료·미정은 있다', () => {
+  const detail = { verification: 'verified', title: '무료 풀이', description: '설명', href: '/free/', ctaLabel: '시작하기', headline: '무료' };
+  const html = accessType => renderFeatureDetailPanels({ ...detail, accessType }, { startPriceLabel: '무료' });
+  const free = html('free');
+  assert.ok(free.includes('href="/free/"') && !free.includes(REFUND_LINE) && !free.includes(REFUND_POLICY_HREF));
+  assert.ok(html('paid').includes(REFUND_LINE));
+  assert.ok(html('unknown').includes(REFUND_LINE));
+});
+
 test('CTA가 없는 패널(가격 라벨·내부 href 없음)에는 환불 한 줄을 붙이지 않는다', () => {
   const detail = { verification: 'verified', title: '연애 비책', description: '설명', href: 'https://evil.example/', ctaLabel: '시작하기', headline: '고백할까?' };
   assert.ok(!renderFeatureDetailPanels(detail, { startPriceLabel: '시작 가격 확인' }).includes(REFUND_LINE));
@@ -44,10 +53,14 @@ test('FeatureIntroductionActions가 CTA 아래에 REFUND_LINE과 정책 링크�
     external: ['react', 'react/jsx-runtime'],
   });
   const { Actions } = createRequire(import.meta.url)(outfile);
-  const html = renderToStaticMarkup(createElement(Actions, { detail: { featureKey: undefined, href: '/features/x/', ctaLabel: '시작하기', accessType: 'free' } }));
+  const render = accessType => renderToStaticMarkup(createElement(Actions, { detail: { featureKey: undefined, href: '/features/x/', ctaLabel: '시작하기', accessType } }));
+  const html = render('paid');
   assert.ok(html.includes(REFUND_LINE), html);
   assert.ok(html.includes(`href="${REFUND_POLICY_HREF}"`));
   assert.ok(html.indexOf('시작하기') < html.indexOf(REFUND_LINE), '환불 한 줄은 CTA 뒤에 온다');
+  // 무료 기능에는 결제가 없어 환불 약속이 틀린 말이 된다.
+  const free = render('free');
+  assert.ok(!free.includes(REFUND_LINE) && !free.includes(REFUND_POLICY_HREF), free);
 });
 
 test('연애 비책 약속 카드 하단과 결과 화면이 환불 한 줄과 후기 배너를 렌더한다', () => {
