@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "42bfbb45ab7b64af14fa340bf4cc449833a45bb2",
+  "sourceCommit": "e1248999e504c587ce68cba02d6cacf6653a4840",
   "scope": "Source discovery plus explicitly verified aliases; not a count of implemented services. Unmapped contracts are blocking work, not exclusions.",
   "sourceCounts": {
     "home": 63,
@@ -2888,8 +2888,8 @@
         "library": "not-verified",
         "device": "not-tested",
         "canonicalId": "ziwei",
-        "candidateStatus": "requires-full-flow-port-and-verification",
-        "canonicalRoute": null
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/ziwei/chart"
       }
     },
     {
@@ -4636,10 +4636,10 @@
       "status": "local-partial",
       "tossRoute": "/pet-saju/",
       "sku": null,
-      "inputContract": "worker/toss/pet-saju.js + worker/routes/pet-saju.js original deterministic catalog and blueprint",
-      "resultRenderer": "apps/toss/service/TossPetSaju.tsx with original sprite artwork",
-      "storageContract": "up to five pet inputs in current screen memory; no app-restart or cross-device recovery",
-      "verification": "local mock covers all 10 free species, direct and home routes, back, session and permission boundaries; original tree animation and device rendering, saved pets, paid report and compatibility, content policy and official device remain incomplete. Original screen displays 3000 KRW per paid feature while server registry specifies 5000 KRW; resolve before SKU registration"
+      "inputContract": "worker/toss/pet-saju.js deterministic blueprint + worker/toss/pet-paid-contract.js paid inputs",
+      "resultRenderer": "apps/toss/service/TossPetSaju.tsx with original sprite artwork and paid report reader",
+      "storageContract": "up to five free pet inputs in current screen memory; no app-restart or cross-device recovery of that list. Paid results use an owned order and intent in worker/toss/native-pet-paid.js",
+      "verification": "local mock covers all 10 free species, paid report and compatibility checkout, intent resume, library ownership and recovery. Original screen displays 3000 KRW per paid feature while server registry specifies 5000 KRW; approved SKUs, saved pets, device verification and official purchase recovery remain pending"
     },
     {
       "id": "physiognomy",
@@ -5736,12 +5736,13 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/ziwei/chart",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "BirthFields + normalizeZiweiInput + calculateZiweiChart; domestic locations only",
+      "resultRenderer": "apps/toss/src/ZiweiChart.tsx + canonical ZiweiPalaceGrid",
+      "storageContract": "current screen only; clear input and chart on session replacement or exit",
+      "verification": "basic twelve-palace chart only; original detailed readings, profile recovery, device navigation and accessibility pending"
     },
     {
       "id": "ziwei-ai",
