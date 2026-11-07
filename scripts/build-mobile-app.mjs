@@ -48,7 +48,8 @@ const GUARD_TAG = `${REFERRER_META}<script src="${BRIDGE_PUBLIC_PATH}"></script>
 //
 //   points / premium-unlock : 웹 결제 스토어(PortOne). 앱은 /app/store를 쓴다.
 //   points/history, insights, famous-saju : 동일 계정 기록과 읽기 콘텐츠이므로 보존한다.
-const REMOVED_ROUTE_DIRS = ["premium-unlock"];
+// fortune/date: 지난 30일 날짜별 띠운세 보관함(웹 SEO 전용, 상세는 noindex). 앱에서는 약 50MB(압축 10MiB)를 차지해 뺀다.
+const REMOVED_ROUTE_DIRS = ["premium-unlock", "fortune/date"];
 const LOCALE_PREFIXES = ["", "en", "ja", "zh", "zh-tw"];
 
 // 자산은 목록으로 지우지 않는다 — 반드시 참조 검사를 거친다.

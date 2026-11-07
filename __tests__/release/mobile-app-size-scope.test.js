@@ -127,3 +127,15 @@ test('verified dead image families leave the app, but assembled names and refere
   const art = await fs.readFile(path.join(__dirname, '../../app/yeongnyangi/_components/HeavenLightCinema.tsx'), 'utf8');
   assert.match(art, /heaven-light-v72-ch\$\{index\+1\}-320\.webp/, 'cinema must still read v72 chapter art the rule keeps');
 });
+
+test('the date archive leaves the app and the guard strips links that would point at it', async t => {
+  const { removeAppForbiddenRoutes } = await import('../../scripts/build-mobile-app.mjs');
+  const dist = await fs.mkdtemp(path.join(os.tmpdir(), 'cd-routes-'));
+  t.after(() => fs.rm(dist, { recursive: true, force: true }));
+  for (const rel of ['fortune/date/2026-11-01/rat/index.html', 'fortune/today/rat/index.html']) { await fs.mkdir(path.dirname(path.join(dist, rel)), { recursive: true }); await fs.writeFile(path.join(dist, rel), 'x'); }
+  await removeAppForbiddenRoutes(dist);
+  await assert.rejects(fs.access(path.join(dist, 'fortune/date')));
+  await fs.access(path.join(dist, 'fortune/today/rat/index.html'));
+  const guard = await fs.readFile(path.join(__dirname, '../../scripts/app-payment-guard.js'), 'utf8');
+  assert.ok(guard.includes(String.raw`{ pattern: /^\/fortune\/date(\/|\?|#|$)/ },`), 'guard must strip /fortune/date links without a redirect');
+});

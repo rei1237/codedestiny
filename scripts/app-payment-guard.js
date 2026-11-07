@@ -311,6 +311,8 @@
   var PRUNED_ROUTES = [
     { pattern: /^\/points(\/|\?|#|$)/, redirect: "/app/store/" },
     { pattern: /^\/premium-unlock(\/|\?|#|$)/, redirect: "/app/store/" },
+    // 날짜별 운세 보관함은 웹 SEO 전용이다(build-mobile-app.mjs REMOVED_ROUTE_DIRS). 앱에서는 링크째 걷어낸다.
+    { pattern: /^\/fortune\/date(\/|\?|#|$)/ },
   ];
 
   function toPath(href) {
