@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "42628b3b78873836e73a93e560f463754f985d06",
+  "sourceCommit": "b1648115e9f270299aedbfd8b9243c47de3f16ee",
   "scope": "Source discovery plus explicitly verified aliases; not a count of implemented services. Unmapped contracts are blocking work, not exclusions.",
   "sourceCounts": {
     "home": 63,
@@ -143,8 +143,8 @@
         "library": "not-verified",
         "device": "not-tested",
         "canonicalId": "astrology",
-        "candidateStatus": "requires-full-flow-port-and-verification",
-        "canonicalRoute": null
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/astrology"
       }
     },
     {
@@ -1289,8 +1289,8 @@
         "library": "not-verified",
         "device": "not-tested",
         "canonicalId": "music",
-        "candidateStatus": "requires-full-flow-port-and-verification",
-        "canonicalRoute": null
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/music"
       }
     },
     {
@@ -2768,8 +2768,8 @@
         "library": "not-verified",
         "device": "not-tested",
         "canonicalId": "vedic",
-        "candidateStatus": "requires-full-flow-port-and-verification",
-        "canonicalRoute": null
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/vedic"
       }
     },
     {
@@ -3018,7 +3018,15 @@
       "sku": null,
       "inputContract": null,
       "resultRenderer": null,
-      "storageContract": null
+      "storageContract": null,
+      "webEntitlement": {
+        "featureKey": "animal-destiny-unlock",
+        "bundleKey": "saju_lifetime_bundle",
+        "birthScoped": true,
+        "individualSaleClosed": true,
+        "source": "worker/lib/saju-bundle-policy.js",
+        "contentSource": "content/product-details/animal-destiny/manifest.json"
+      }
     },
     {
       "id": "animal-totem",
@@ -3091,12 +3099,12 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/astrology",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "authenticated birth input; precise Swiss tropical/Placidus chart",
+      "resultRenderer": "apps/toss/src/BasicSkyChart.tsx",
+      "storageContract": "result in memory only; guest/web profiles, wheel, original unlocks and device parity pending"
     },
     {
       "id": "astrology-ai",
@@ -3174,7 +3182,14 @@
       "sku": null,
       "inputContract": null,
       "resultRenderer": null,
-      "storageContract": null
+      "storageContract": null,
+      "webEntitlement": {
+        "featureKey": "saju-career-style",
+        "bundleKey": "saju_lifetime_bundle",
+        "birthScoped": true,
+        "individualSaleClosed": true,
+        "source": "worker/lib/saju-bundle-policy.js"
+      }
     },
     {
       "id": "cosmic-soul-meditation",
@@ -3347,7 +3362,15 @@
       "sku": null,
       "inputContract": null,
       "resultRenderer": null,
-      "storageContract": null
+      "storageContract": null,
+      "webEntitlement": {
+        "featureKey": "rpt_energyCoordCard",
+        "bundleKey": "saju_lifetime_bundle",
+        "birthScoped": true,
+        "individualSaleClosed": true,
+        "source": "worker/lib/saju-bundle-policy.js",
+        "contentSource": "content/product-details/energy-travel/manifest.json"
+      }
     },
     {
       "id": "face-reading",
@@ -3620,7 +3643,15 @@
       "sku": null,
       "inputContract": null,
       "resultRenderer": null,
-      "storageContract": null
+      "storageContract": null,
+      "webEntitlement": {
+        "featureKey": "rpt_healthReportCard",
+        "bundleKey": "saju_lifetime_bundle",
+        "birthScoped": true,
+        "individualSaleClosed": true,
+        "source": "worker/lib/saju-bundle-policy.js",
+        "contentSource": "content/product-details/health-rhythm/manifest.json"
+      }
     },
     {
       "id": "human-design",
@@ -3870,7 +3901,15 @@
       "sku": null,
       "inputContract": null,
       "resultRenderer": null,
-      "storageContract": null
+      "storageContract": null,
+      "webEntitlement": {
+        "featureKey": "rpt_skillTreeCard",
+        "bundleKey": "saju_lifetime_bundle",
+        "birthScoped": true,
+        "individualSaleClosed": true,
+        "source": "worker/lib/saju-bundle-policy.js",
+        "contentSource": "content/product-details/life-skill-tree/manifest.json"
+      }
     },
     {
       "id": "love-code",
@@ -4154,12 +4193,12 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/music",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "stream list projected from original track manifest and free_full policy only",
+      "resultRenderer": "apps/toss/src/MusicShelf.tsx",
+      "storageContract": "stream only; paid downloads, library and device audio parity pending"
     },
     {
       "id": "nakshatra",
@@ -4190,7 +4229,12 @@
       "sku": null,
       "inputContract": null,
       "resultRenderer": null,
-      "storageContract": null
+      "storageContract": null,
+      "publicSubflows": [
+        "/nakshatra/codex",
+        "/nakshatra/codex/[0..26]"
+      ],
+      "verification": "Public atlas only; paid personal reading has no Toss order flow. Remains on remainingPorts."
     },
     {
       "id": "nakshatra-ai",
@@ -4621,7 +4665,15 @@
       "sku": null,
       "inputContract": null,
       "resultRenderer": null,
-      "storageContract": null
+      "storageContract": null,
+      "webEntitlement": {
+        "featureKey": "rpt_specialCharmCard",
+        "bundleKey": "saju_lifetime_bundle",
+        "birthScoped": true,
+        "individualSaleClosed": true,
+        "source": "worker/lib/saju-bundle-policy.js",
+        "contentSource": "content/product-details/personal-charm/manifest.json"
+      }
     },
     {
       "id": "pet-saju",
@@ -4751,7 +4803,15 @@
       "sku": null,
       "inputContract": null,
       "resultRenderer": null,
-      "storageContract": null
+      "storageContract": null,
+      "webEntitlement": {
+        "featureKey": "rpt_quantumCard",
+        "bundleKey": "saju_lifetime_bundle",
+        "birthScoped": true,
+        "individualSaleClosed": true,
+        "source": "worker/lib/saju-bundle-policy.js",
+        "contentSource": "content/product-details/quantum-saju/manifest.json"
+      }
     },
     {
       "id": "relationship-boundaries",
@@ -4777,7 +4837,15 @@
       "sku": null,
       "inputContract": null,
       "resultRenderer": null,
-      "storageContract": null
+      "storageContract": null,
+      "webEntitlement": {
+        "featureKey": "rpt_villainCard",
+        "bundleKey": "saju_lifetime_bundle",
+        "birthScoped": true,
+        "individualSaleClosed": true,
+        "source": "worker/lib/saju-bundle-policy.js",
+        "contentSource": "content/product-details/relationship-boundaries/manifest.json"
+      }
     },
     {
       "id": "relationship-boundary-test",
@@ -5051,13 +5119,23 @@
           "accessEvidence": null
         }
       ],
-      "aliasEvidence": [],
+      "aliasEvidence": [
+        "js/core/saju/reportDashboard.js -> /secret-house_real.html -> POST /api/saju/section (rpt_secretHouseEntryCard)"
+      ],
       "status": "requires-full-flow-port-and-verification",
       "tossRoute": null,
       "sku": null,
       "inputContract": null,
       "resultRenderer": null,
-      "storageContract": null
+      "storageContract": null,
+      "webEntitlement": {
+        "featureKey": "rpt_secretHouseEntryCard",
+        "bundleKey": "saju_lifetime_bundle",
+        "birthScoped": true,
+        "individualSaleClosed": true,
+        "source": "worker/lib/saju-bundle-policy.js",
+        "contentSource": "content/product-details/secret-house/manifest.json"
+      }
     },
     {
       "id": "stonehenge-runes",
@@ -5623,12 +5701,12 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/vedic",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "authenticated birth input; precise Swiss sidereal/Lahiri chart",
+      "resultRenderer": "apps/toss/src/BasicSkyChart.tsx",
+      "storageContract": "result in memory only; guest/web profiles, full chart and device parity pending"
     },
     {
       "id": "vedic-ai",
