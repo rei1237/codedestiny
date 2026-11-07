@@ -7,11 +7,12 @@ const captions = {
 export const COMPAT_ART = Object.freeze(Object.fromEntries(Object.entries(captions).map(([id, alt]) => [id, Object.freeze({ id, src:`/images/compat-story/${id}.webp`, width:1200, height:800, alt })])));
 export function pastLifeArt(grade) { return COMPAT_ART[['S','A'].includes(grade) ? 'past-resonance' : ['D','F'].includes(grade) ? 'past-knot' : 'past-growth']; }
 
-export const STORY_PROMPT_VERSION = 'saju-compat-basic-p3';
+export const STORY_PROMPT_VERSION = 'saju-compat-basic-p4';
+export function usesStoryArt(version) { return version === 'saju-compat-basic-p3' || version === STORY_PROMPT_VERSION; }
 
 // The saved prompt version ties the story to its plate, including in the archive.
 export function storyArtFor(type, past, promptVersion) {
-  const isFerry = promptVersion === STORY_PROMPT_VERSION && type === 'love'
+  const isFerry = usesStoryArt(promptVersion) && type === 'love'
     && past.cross.filter(row => row.gan === 'he' || row.ji === 'he').length === 1;
   return isFerry ? COMPAT_ART['past-ferry'] : pastLifeArt(past.grade.code);
 }
