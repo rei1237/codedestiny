@@ -2,6 +2,8 @@ import { buildSajuRelationshipEvidence } from '../lib/saju-relationship-evidence
 import { createHash } from "node:crypto";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { getOptionalUserFromRequest } from "../lib/auth.js";
+import { nativeTossContext } from '../toss/native-context.js';
+import { TossError } from '../toss/policy.js';
 import { isTransientMongoError } from "../lib/db.js";
 
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
@@ -53,6 +55,24 @@ function pricing() {
   const current = resolved?.pricing || {};
   if (!resolved?.ok || Number(current.coinPrice || current.cost) !== COST || Number(current.amountKRW) !== AMOUNT_KRW) throw new Error("PRICE_NOT_FOUND");
   return { coinPrice: COST, amountKRW: AMOUNT_KRW, membershipCreditCost: calculateMembershipCreditCost(COST) };
+}
+
+// The original input normalizer and registry price remain authoritative for
+// the native intent. This does not create or approve a Toss sale SKU.
+export function nativeRelationshipContract(body) {
+  if (!body || typeof body !== 'object' || Array.isArray(body) || typeof body.idempotencyKey !== 'string') throw new TossError('INVALID_INPUT', 422);
+  const personKeys=new Set(['gender','birthDate','birthTime','birthTimeUnknown','calendarType','isLeapMonth']);
+  const person=value=>value && typeof value==='object' && !Array.isArray(value) && Object.keys(value).every(key=>personKeys.has(key));
+  if (!Object.keys(body).every(key=>['idempotencyKey','targetInfo','selfInfo'].includes(key)) || !person(body.targetInfo) || (body.selfInfo !== undefined && !person(body.selfInfo))) throw new TossError('INVALID_INPUT',422);
+  const requestId=clean(body.idempotencyKey,180),input=normalize(body);
+  if (requestId !== body.idempotencyKey || !/^[a-zA-Z0-9_:-]{12,180}$/.test(requestId) || !input.ok) throw new TossError('INVALID_INPUT', 422);
+  try { calculateLoveSecretAiSaju(input.normalized, { mode: 'validate' }); } catch { throw new TossError('CALCULATION_FAILED', 422); }
+  return {requestId,resultId:`rbt_${hash({requestId}).slice(0,48)}`,featureKey:FEATURE_KEY,inputHash:input.inputHash,pricing:{amountKRW:pricing().amountKRW}};
+}
+
+export async function nativeRelationshipStoredState(env,userId,value,by='id') {
+  if (typeof userId !== 'string' || !userId || typeof value !== 'string' || !/^[a-zA-Z0-9_:-]{8,180}$/.test(value) || !['id','request'].includes(by)) throw new TossError('RESULT_NOT_FOUND',404);
+  return findRelationshipResult(env,{userId,...(by==='request'?{idempotencyKey:value}:{id:value})});
 }
 
 function paymentPayload(requestId) {
@@ -176,6 +196,8 @@ function prompt(saju, result, targetGender) {
 }
 
 async function handlePrepare(request, env) {
+  // Toss uses its own immutable intent and must never receive the web checkout payload.
+  if (nativeTossContext(request)) return notFound();
   const body = await readJson(request); const requestId = clean(body.idempotencyKey || request.headers.get("Idempotency-Key"), 180); const input = normalize(body);
   if (!input.ok || requestId.length < 12) return json({ ok: false, reason: "INVALID_INPUT", message: input.message || "대상자의 생년 정보와 성별을 확인해 주세요." }, { status: 422 });
   try { calculateLoveSecretAiSaju(input.normalized, { mode: "validate" }); } catch { return json({ ok: false, reason: "CALCULATION_FAILED", message: "사주 계산을 준비하지 못했어요. 입력값을 확인해 주세요." }, { status: 422 }); }
@@ -219,13 +241,15 @@ async function refundExecution(env, userId, requestId, sessionId, reasonMessage,
 
 async function handleStart(request, env, recoveryAuth = null) {
   const body = await readJson(request);
-  const auth = recoveryAuth || await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+  const native = nativeTossContext(request);
+  const auth = native?.auth || recoveryAuth || await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
   if (!auth) return json({ ok: false, reason: "LOGIN_REQUIRED" }, { status: 401 });
   const supplied = { ...body, idempotencyKey: body.idempotencyKey || request.headers.get("Idempotency-Key") || "" };
   if (!supplied.resumeSessionId && supplied.idempotencyKey.length < 12) return json({ ok: false, reason: "INVALID_INPUT" }, { status: 422 });
   return runRelationshipDelivery(env, auth, supplied, {
     normalize,
-    verify: (userId, requestId) => verifyPerUsePayment(env, { userId, featureKey: FEATURE_KEY, coinPrice: COST, requestId,
+    ...(native ? { native: true, assertStored: doc => native.assertStored(doc), revoked: async doc => { await native.assertStored(doc); return false; } } : {}),
+    verify: (userId, requestId, input) => native ? native.access(requestId, input) : verifyPerUsePayment(env, { userId, featureKey: FEATURE_KEY, coinPrice: COST, requestId,
       requireExisting: Boolean(supplied.resumeSessionId || recoveryAuth) }),
     seed: input => {
       const saju = calculateLoveSecretAiSaju(input.normalized), boundary = scoreBoundary(saju);
@@ -238,18 +262,26 @@ async function handleStart(request, env, recoveryAuth = null) {
         meta: { schemaVersion: 2, mode: input.mode, sceneIds: input.mode === "couple" ? ["overview", "communication", "boundary", "trust", "future"] : ["opening", "attention", "tension", "trust", "choice"], facts: saju, titles: sectionSpecs(saju).map(item => item.title), scoreAnchor: { score: boundary.score, grade: boundary.grade }, framePrompt: prompt(saju, boundary, input.targetInfo.gender), sectionPrompts: SECTION_SPECS.map((_, i) => buildSectionPrompt(saju, boundary, input.targetInfo.gender, i)) },
       };
     },
-    open: (...args) => openRefundableExecution(env, ...args),
-    close: (...args) => closeExecution(env, ...args),
-    refund: (...args) => refundExecution(env, ...args),
+    open: (...args) => native ? undefined : openRefundableExecution(env, ...args),
+    close: (...args) => native ? undefined : closeExecution(env, ...args),
+    refund: (...args) => native ? false : refundExecution(env, ...args),
   });
 }
 async function handleResult(request, env) {
-  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+  const native = nativeTossContext(request);
+  const auth = native?.auth || await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
   if (!auth) return json({ ok: false, reason: "LOGIN_REQUIRED" }, { status: 401 });
   const params = new URL(request.url).searchParams;
   const sessionId = clean(params.get("sessionId"), 120);
-  const doc = await findRelationshipResult(env, { userId: String(auth.userId), ...(sessionId ? { id: sessionId } : { status: { $in: ["generating", "partial", "delivery_pending"] } }) });
+  const doc = await findRelationshipResult(env, { userId: String(auth.userId), ...(native ? {accessType:'toss'} : {}), ...(sessionId ? { id: sessionId } : { status: { $in: ["generating", "partial", "delivery_pending"] } }) });
   if (!doc) return json({ ok: false, reason: "RESULT_NOT_FOUND" }, { status: 404 });
+  if ((doc.accessType === 'toss') !== Boolean(native)) return notFound();
+  if (native) {
+    await native.assertStored(doc);
+    if (doc.status === "completed") return json(relationshipPublicResult(doc));
+    if (doc.status === "generation_failed") return json({ ok: false, reason: "GENERATION_FAILED", retryable: false, sessionId: doc.id }, { status: 503 });
+    return relationshipPending(doc);
+  }
   const proof = await verifyPerUsePayment(env, { userId: auth.userId, featureKey: FEATURE_KEY, coinPrice: COST, requestId: doc.idempotencyKey });
   if (proof.proven === null) return json({ ok: false, reason: "RESULT_STORAGE_UNAVAILABLE", retryable: true, resultId: doc.id }, { status: 503 });
   if (!proof.proven || await relationshipRevoked(doc)) return json({ ok: false, reason: "PAYMENT_REVOKED", retryable: false }, { status: 403 });
@@ -262,7 +294,7 @@ export async function handleRelationshipBoundaryTestRoutes(request, env = {}) {
   // 🔴 await 없이 반환하면 핸들러 예외가 이 try/catch 를 지나쳐 최상위로 샌다
   //    (그러면 DB_DEGRADED 판정도 못 하고 비-JSON 응답이 될 수 있다).
   try { const path = getRoutePath(request, "/api/relationship-boundary-test"); if (request.method === "POST" && path === "/prepare") return await handlePrepare(request, env); if (request.method === "POST" && path === "/generate") return await handleStart(request, env); if (request.method === "GET" && path === "/result") return await handleResult(request, env); return ["GET", "POST"].includes(request.method) ? notFound() : methodNotAllowed(); }
-  catch (error) { if (error.code === "RESULT_STORAGE_UNAVAILABLE") return json({ ok: false, retryable: true, reason: error.code, resultId: error.resultId }, { status: 503 }); if (isTransientMongoError(error)) return json({ ok: false, retryable: true, reason: "DB_DEGRADED", message: "일시적인 연결 문제가 있어요." }, { status: 503 }); console.error("[relationship-boundary-test]", clean(error?.message || error, 300)); return json({ ok: false, reason: "SERVER_ERROR", message: "결과를 준비하는 중 문제가 생겼어요." }, { status: 500 }); }
+  catch (error) { if (nativeTossContext(request) && Number.isInteger(error?.status) && error.status >= 400 && error.status < 600) return json({ok:false,reason:error.code || 'RESULT_NOT_AVAILABLE'}, {status:error.status}); if (error.code === "RESULT_STORAGE_UNAVAILABLE") return json({ ok: false, retryable: true, reason: error.code, resultId: error.resultId }, { status: 503 }); if (isTransientMongoError(error)) return json({ ok: false, retryable: true, reason: "DB_DEGRADED", message: "일시적인 연결 문제가 있어요." }, { status: 503 }); console.error("[relationship-boundary-test]", clean(error?.message || error, 300)); return json({ ok: false, reason: "SERVER_ERROR", message: "결과를 준비하는 중 문제가 생겼어요." }, { status: 500 }); }
 }
 
 export const __relationshipBoundaryTestTestUtils = { normalize, scoreBoundary, storyDirectionFor, prompt, buildSectionPrompt, SECTION_SPECS, SECTION_TITLES, paymentPayload };

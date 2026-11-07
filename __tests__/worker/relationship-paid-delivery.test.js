@@ -6,7 +6,7 @@ import { jest } from '@jest/globals';
 const timeoutPolicy = jest.requireActual('../../worker/lib/sync-llm-timeout.js');
 jest.unstable_mockModule('../../worker/lib/sync-llm-timeout.js', () => ({ ...timeoutPolicy, PAID_LLM_PARTS_PER_REQUEST: 4 }));
 
-let route, docs, provider, accessMode, revoked, userId, fault, lost, fetchBlock, refunds, closes, executionMetadata, refundOutcome;
+let route, resumeOnServer, bindNative, docs, provider, accessMode, revoked, userId, fault, lost, fetchBlock, refunds, closes, executionMetadata, refundOutcome, webVerifications;
 const user='64b7f2a1c3d4e5f601234567';
 const clone=value=>structuredClone(value);
 const get=(doc,key)=>key.split('.').reduce((value,key)=>value?.[key],doc);
@@ -35,15 +35,16 @@ beforeAll(async()=>{
  const db=await import('../../worker/lib/db.js'),auth=await import('../../worker/lib/auth.js'),models=await import('../../worker/lib/models.js'),structured=await import('../../worker/lib/structured-consultation.js');
  jest.unstable_mockModule('../../worker/lib/db.js',()=>({...db,connectDb:async()=>{}}));
  jest.unstable_mockModule('../../worker/lib/auth.js',()=>({...auth,getOptionalUserFromRequest:async()=>({userId})}));
- jest.unstable_mockModule('../../worker/lib/nakshatra-paid-access.js',()=>withSettle({verifyPerUsePayment:async()=>({proven:true,source:accessMode,...(accessMode==='pass'?{passRefund:docs.length?undefined:{cycleKey:'2026-10-01',cost:300}}:{transactionId:'original-'+accessMode})})}));
+ jest.unstable_mockModule('../../worker/lib/nakshatra-paid-access.js',()=>withSettle({verifyPerUsePayment:async()=>{webVerifications++;return {proven:true,source:accessMode,...(accessMode==='pass'?{passRefund:docs.length?undefined:{cycleKey:'2026-10-01',cost:300}}:{transactionId:'original-'+accessMode})};}}));
  jest.unstable_mockModule('../../worker/lib/models.js',()=>({...models,RelationshipBoundaryTest:model,
   PaidExecutionRecord:{findOne:()=>query(revoked?{}:null)},Payment:{findOne:()=>query(null)},PointHistory:{findOne:()=>query(null)},MonthlyCreditLedger:{findOne:()=>query(null)},
  }));
  jest.unstable_mockModule('../../worker/lib/structured-consultation.js',()=>({...structured,callGeminiJsonWithRetry:(...args)=>provider(...args)}));
  jest.unstable_mockModule('../../worker/lib/service-execution-task.js',()=>({startServiceExecution:async(_env,_user,input)=>{executionMetadata=input.metadata;return {};},completeServiceExecution:async()=>{expect(docs[0].status).toBe('completed');closes++;},failServiceExecution:async()=>{expect(docs[0].status).toBe('generation_failed');refunds++;return refundOutcome;}}));
- ({handleRelationshipBoundaryTestRoutes:route}=await import('../../worker/routes/relationship-boundary-test.js'));
+ ({handleRelationshipBoundaryTestRoutes:route,resumeConsultationOnServer:resumeOnServer}=await import('../../worker/routes/relationship-boundary-test.js'));
+ ({bindNativeTossRequest:bindNative}=await import('../../worker/toss/native-context.js'));
 });
-beforeEach(()=>{docs=[];accessMode='pass';revoked=false;userId=user;fault=null;lost=false;refunds=0;closes=0;executionMetadata=null;refundOutcome={refundStatus:"refunded"};
+beforeEach(()=>{docs=[];accessMode='pass';revoked=false;userId=user;fault=null;lost=false;refunds=0;closes=0;executionMetadata=null;refundOutcome={refundStatus:"refunded"};webVerifications=0;
  provider=jest.fn(async(_env,prompt,options)=>{
   expect(options.timeoutMs).toBe(45000);expect(options.attempts).toBe(1);expect(options.fallbackToWorkersAI).toBe(false);
   const evidenceHash=prompt.match(/evidenceHash[":\s]+([a-f0-9]{64})/)[1];
@@ -59,6 +60,37 @@ const body={idempotencyKey:'original-paid-request',targetInfo:{gender:'female',b
 const post=value=>route(new Request('https://mock.test/api/relationship-boundary-test/generate',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(value)}),{});
 const start=()=>post(body);
 const resume=()=>post({resumeSessionId:docs[0].id});
+function nativeRequest(path,value,context,method='POST'){
+ const request=new Request('https://mock.test/api/relationship-boundary-test/'+path,{method,...(method==='POST'?{headers:{'content-type':'application/json'},body:JSON.stringify(value)}:{})});
+ bindNative(request,context);return route(request,{});
+}
+function nativeFixture(){
+ const orderId='01900000-1111-7111-8111-000000000001';
+ return {auth:{userId:user,tossNative:true},access:jest.fn(async(requestId,input)=>{expect(requestId).toBe(body.idempotencyKey);expect(input.inputHash).toMatch(/^[a-f0-9]{64}$/);return {proven:true,source:'toss',transactionId:orderId};}),assertStored:jest.fn(async doc=>{expect(doc.userId).toBe(user);expect(doc.idempotencyKey).toBe(body.idempotencyKey);expect(doc.paymentId).toBe(orderId);expect(doc.inputHash).toMatch(/^[a-f0-9]{64}$/);})};
+}
+test('Toss report uses only its verified authority for generation, resumption and reread',async()=>{
+ const native=nativeFixture();expect((await nativeRequest('prepare',body,native)).status).toBe(404);
+ expect((await nativeRequest('generate',body,native)).status).toBe(202);expect(docs[0].accessType).toBe('toss');
+ expect((await post({resumeSessionId:docs[0].id})).status).toBe(404);expect(webVerifications).toBe(0);
+ expect((await resumeOnServer({},docs[0])).status).toBe(404);expect(webVerifications).toBe(0);
+ expect((await nativeRequest('generate',{resumeSessionId:docs[0].id},native)).status).toBe(202);
+ expect((await nativeRequest('generate',{resumeSessionId:docs[0].id},native)).status).toBe(200);
+ const web=await route(new Request('https://mock.test/api/relationship-boundary-test/result?sessionId='+docs[0].id),{});expect(web.status).toBe(404);
+ const reread=await nativeRequest('result?sessionId='+docs[0].id,null,native,'GET');expect(reread.status).toBe(200);expect((await reread.json()).sessionId).toBe(docs[0].id);
+ expect(webVerifications).toBe(0);expect(refunds).toBe(0);expect(closes).toBe(0);expect(provider).toHaveBeenCalledTimes(11);
+});
+test('Toss authority denial is retained and never invokes the web gate or provider',async()=>{
+ const native=nativeFixture();native.access.mockRejectedValue(Object.assign(new Error('denied'),{status:403,code:'ACCESS_DENIED'}));
+ const response=await nativeRequest('generate',body,native);expect(response.status).toBe(403);expect(await response.json()).toMatchObject({reason:'ACCESS_DENIED'});expect(provider).not.toHaveBeenCalled();expect(webVerifications).toBe(0);expect(docs).toHaveLength(0);
+});
+test('native authority cannot accidentally return a web payment source',async()=>{
+ const native=nativeFixture();native.access.mockResolvedValue({proven:true,source:'pass',transactionId:'web-payment'});
+ expect((await nativeRequest('generate',body,native)).status).toBe(402);expect(provider).not.toHaveBeenCalled();expect(webVerifications).toBe(0);expect(docs).toHaveLength(0);
+});
+test('a Toss order denied during generation does not expose a saved partial result',async()=>{
+ const native=nativeFixture();native.assertStored.mockImplementation(async()=>{if(docs.length)throw Object.assign(new Error('refund'),{status:409,code:'ORDER_REFUNDED'});});
+ const response=await nativeRequest('generate',body,native);expect(response.status).toBe(409);expect(await response.json()).toMatchObject({reason:'ORDER_REFUNDED'});expect(docs[0].status).toBe('partial');expect(webVerifications).toBe(0);expect(refunds).toBe(0);
+});
 test.each(['pass','monthly','single'])('%s checkpoints eleven parts and reopens completed without generation',async mode=>{
  accessMode=mode;expect((await start()).status).toBe(202);expect((await resume()).status).toBe(202);expect((await resume()).status).toBe(200);
  expect(provider).toHaveBeenCalledTimes(11);expect((await start()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(11);expect(refunds).toBe(0);expect(closes).toBe(1);
