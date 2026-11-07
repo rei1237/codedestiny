@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { yeongnyangiCardArt } from '@/lib/tarot/yeongnyangi-deck';
+import { IS_APP_BUILD } from '@/lib/app-build-target';
 
 export default function TarotCardArt({ cardCode, locale, className }: { cardCode?: string; locale?: string; className?: string }) {
   const [failed, setFailed] = useState(false);
