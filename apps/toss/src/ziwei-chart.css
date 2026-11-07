@@ -1,0 +1,5 @@
+.ziwei-palaces { gap: 1px; margin-block: 1.5rem; background: var(--moon-line); border: 1px solid var(--moon-line); }
+.ziwei-palace, .ziwei-center { display: grid; align-content: center; gap: .25rem; min-width: 0; padding: .6rem .3rem; background: var(--moon-surface); text-align: center; overflow-wrap: anywhere; }
+.ziwei-palace span, .ziwei-palace small { font-size: .85rem; }
+.ziwei-center { background: var(--moon-paper); }
+.ziwei-center strong { font: 600 1.25rem var(--toss-serif); }
