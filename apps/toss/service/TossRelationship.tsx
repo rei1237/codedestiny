@@ -22,9 +22,11 @@ function reportOf(value:Payload):Report|null{
 }
 function message(error:unknown){
  const issue=error&&typeof error==='object'?error as {status?:number;code?:string;message?:string}:{};
- if(issue.status===401||['LOGIN_REQUIRED','SESSION_EXPIRED'].includes(issue.code||''))return '기록과 구매를 확인하려면 토스 로그인이 필요해요.';
+ if(issue.status===401)return '기록과 구매를 확인하려면 토스 로그인이 필요해요.';
+ if(issue.status===403&&!['ORDER_REFUNDED','PAYMENT_REVOKED'].includes(issue.code||''))return '구매 내역에 접근할 권한을 확인할 수 없어요. 구매한 계정을 확인해 주세요.';
  if(issue.code==='ORDER_REFUNDED'||issue.code==='PAYMENT_REVOKED')return '취소·환불된 상담은 다시 열 수 없어요. 구매 내역을 확인해 주세요.';
  if(issue.status===403||issue.code==='ACCESS_DENIED')return '구매 내역에 접근할 권한을 확인할 수 없어요. 구매한 계정을 확인해 주세요.';
+ if(['LOGIN_REQUIRED','SESSION_EXPIRED'].includes(issue.code||''))return '기록과 구매를 확인하려면 토스 로그인이 필요해요.';
  if(issue.code==='GENERATION_FAILED')return '상담 생성이 완료되지 않았어요. 추가 결제하지 말고 구매 내역을 확인하거나 고객지원에 문의해 주세요.';
  if(issue.code==='UNSUPPORTED_APP_VERSION'&&issue.message&&issue.message!==issue.code)return issue.message;
  if(['IAP_NOT_SUPPORTED','UNSUPPORTED_APP_VERSION'].includes(issue.code||''))return '현재 토스 앱에서는 이 기능을 지원하지 않아요. 앱을 업데이트한 뒤 다시 확인해 주세요.';
