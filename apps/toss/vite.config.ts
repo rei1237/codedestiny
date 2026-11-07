@@ -1,6 +1,7 @@
 import {defineConfig} from 'vite';
 import {fileURLToPath} from 'node:url';
 import {createRequire} from 'node:module';
+import animalAlmanac from './canonical/animal-almanac.mjs';
 import musicShelf from './canonical/music-shelf';
 import mansionAtlas from './canonical/mansion-atlas';
 import novelReader from './canonical/novel-book.mjs';
@@ -13,4 +14,4 @@ const theme=require('../../tailwind.config.js');
 const root=fileURLToPath(new URL('../../',import.meta.url)).replaceAll('\\','/');
 // Shared web components use Next's jsx:preserve. This CSR build must transform
 // them too, without changing the web application's TypeScript configuration.
-export default defineConfig(({mode})=>({base:'/',plugins:[musicShelf(),mansionAtlas(),novelReader(),famousArchive(),mode==='preview-fixtures'?canonicalPreview():serviceCompat()],oxc:{jsx:{runtime:'automatic'}},resolve:{alias:{'@':fileURLToPath(new URL('../../',import.meta.url))},dedupe:['react','react-dom']},css:{postcss:{plugins:[localBrandFonts(),tailwind({...theme,content:theme.content.map((path:string)=>root+'/'+path.replace(/^\.\//,''))})]}},build:{sourcemap:false,target:'es2022'},server:{host:'127.0.0.1',port:4317}}));
+export default defineConfig(({mode})=>({base:'/',plugins:[animalAlmanac(),musicShelf(),mansionAtlas(),novelReader(),famousArchive(),mode==='preview-fixtures'?canonicalPreview():serviceCompat()],oxc:{jsx:{runtime:'automatic'}},resolve:{alias:{'@':fileURLToPath(new URL('../../',import.meta.url))},dedupe:['react','react-dom']},css:{postcss:{plugins:[localBrandFonts(),tailwind({...theme,content:theme.content.map((path:string)=>root+'/'+path.replace(/^\.\//,''))})]}},build:{sourcemap:false,target:'es2022'},server:{host:'127.0.0.1',port:4317}}));
