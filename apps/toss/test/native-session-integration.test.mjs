@@ -50,6 +50,7 @@ async function mount(readResult){
     const pathname=new URL(url).pathname.replace('/api/toss',''),authorization=options.headers?.Authorization;
     if(pathname==='/login')return Response.json({token:'account-b'});
     if(pathname==='/session')return Response.json({authenticated:true});
+    if(pathname==='/logout')return Response.json({error:'REQUEST_FAILED'},{status:503});
     if(pathname==='/catalog')return Response.json({products:[]});
     if(pathname==='/tarot-library/catalog')return Response.json({flows:[]});
     if(pathname==='/events')return Response.json({});
@@ -82,4 +83,17 @@ test('actual platform rejects a delayed result from the previous account',async(
     assert.match(document.body.textContent,/새 계정의 상담 원문/);
     assert.doesNotMatch(document.body.textContent,/늦게 도착한 이전 상담 원문/);
   }finally{await view.close();}
+});
+
+test('a failed logout cannot leave the app displaying an authenticated session',async()=>{
+  history.replaceState({},'','/settings');
+  const view=await mount(()=>{throw new Error('unexpected result request');});
+  try{
+    const logout=[...document.querySelectorAll('button')].find(button=>button.textContent==='로그아웃');
+    assert.ok(logout);
+    await React.act(async()=>logout.click());
+    assert.equal(platform.hasTossSession(),false);
+    assert.ok([...document.querySelectorAll('button')].some(button=>button.textContent==='토스 로그인'));
+    assert.ok(![...document.querySelectorAll('button')].some(button=>button.textContent==='로그아웃'));
+  }finally{await view.close();history.replaceState({},'','/result?id=result-1');}
 });
