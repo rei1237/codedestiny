@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "eeedb182ef1aa7fa9c31960452478c8ed7e77c06",
+  "sourceCommit": "42bfbb45ab7b64af14fa340bf4cc449833a45bb2",
   "scope": "Source discovery plus explicitly verified aliases; not a count of implemented services. Unmapped contracts are blocking work, not exclusions.",
   "sourceCounts": {
     "home": 63,
@@ -4633,13 +4633,13 @@
           "api": "/api/pet-saju/blueprint"
         }
       ],
-      "status": "not-ported",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/pet-saju/",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null,
-      "verification": "original free catalog and blueprint are available behind Toss authentication; Toss screen, saved pets and both paid report flows are not ported. Original screen displays 3000 KRW for each paid feature, while the server registry specifies 5000 KRW; resolve the actual existing price before SKU registration."
+      "inputContract": "worker/toss/pet-saju.js + worker/routes/pet-saju.js original deterministic catalog and blueprint",
+      "resultRenderer": "apps/toss/service/TossPetSaju.tsx with original sprite artwork",
+      "storageContract": "up to five pet inputs in current screen memory; no app-restart or cross-device recovery",
+      "verification": "local mock covers all 10 free species, direct and home routes, back, session and permission boundaries; original tree animation and device rendering, saved pets, paid report and compatibility, content policy and official device remain incomplete. Original screen displays 3000 KRW per paid feature while server registry specifies 5000 KRW; resolve before SKU registration"
     },
     {
       "id": "physiognomy",
