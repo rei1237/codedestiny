@@ -1,7 +1,7 @@
 ---
 status: in-progress
-updated: 2026-11-07
-next: "SM-M156S(RFCXB0CP4AR)를 USB로 다시 연결하고 final4 benchmark APK를 설치해 홈 첫 줄 7개·위젯 진입 버튼·핀 확인창 미리보기를 실기기에서 확인"
+updated: 2026-11-08
+next: "추가 개선 계획 A단계(앱 미사용 이미지·로케일·날짜 라우트 제외, 폰트·LCP·prefetch) 진행"
 ---
 
 # Android 앱 용량·속도·홈 화면 위젯 (wt/android-size-widget-20261107-021350)
@@ -47,4 +47,11 @@ next: "SM-M156S(RFCXB0CP4AR)를 USB로 다시 연결하고 final4 benchmark APK�
 | 위 수정(auth-client·AppChrome 등 공유 모듈)으로 사이트맵 원장 서명 156개가 어긋나 verify:sitemap-drift 차단 → 재생성 | 12c8e67ec |
 
 - access-state 이중 호출(profileId 유무)은 코드 읽기로 세운 가설이었고 기기 기록(me→refresh→me)에는 없었다. 손님은 부르지 않는다. 로그인 상태 기기 추적에서 다시 볼 것.
-- final4(869eb11c2)로 다시 빌드했다. 실기기 확인은 폰이 연결되지 않아 아직이다(아래 목록). 손님이 영냥이에 들어갈 때 `/api/auth/me` 한 번만 부르고 refresh·로그아웃 방송이 없는지도 WebView CDP로 볼 것.
+- final4(869eb11c2)로 다시 빌드했다.
+
+## final4 실기기 확인(2026-11-08, benchmark 패키지, pm clear 뒤)
+- `/ggulggul/` 첫 줄: 사주·타로·자미두수·숙요점·베다점·점성술·오늘의 운세 7개, '무료로 먼저' 격자 숨김, 깨진 이미지 0(127장 중 목록 썸네일 -320 5장).
+- 진입 화면 `/`·`/feature-details/`: "홈 화면에 부적·확언 놓기" 버튼 노출(display flex), 깨진 이미지 0.
+- 손님 영냥이 진입 API: geo → `/api/auth/me` 1회 → restore-credential/challenge. refresh·로그아웃 방송 없음.
+- 스크립트·결과: scratchpad measure/qa-final4.mjs·qa-final4b.mjs, output\android-size-widget-20261107\widget-qa\qa-final4*.json, f4-*.png
+- 기존 문제(이번 변경과 무관, 11-07 스크린샷에도 있음): `/ggulggul/`의 "어떤 운세를 볼까요?" 제목과 격자가 화면 왼쪽 끝에 붙고 오른쪽 카드가 잘림.
