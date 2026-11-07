@@ -57,7 +57,7 @@ test('Maya is reachable from the Toss home without starting payment',async()=>{
  });
  const root=createRoot(document.getElementById('root')),opened=[];
  try{await React.act(async()=>root.render(React.createElement(Home,{onOpen:value=>opened.push(value),onConsult:()=>{}})));
-  const world=[...document.querySelectorAll('nav button')].find(button=>button.textContent==='꿀꿀 운세');assert.ok(world);await React.act(async()=>world.click());
+  const world=[...document.querySelectorAll('nav button')].find(button=>button.textContent==='꿀꿀운세');assert.ok(world);await React.act(async()=>world.click());
   const maya=[...document.querySelectorAll('button')].find(button=>button.textContent.includes('마야 달력'));assert.ok(maya);await React.act(async()=>maya.click());assert.deepEqual(opened,['maya']);
  }finally{await React.act(async()=>root.unmount());dom.window.close();}
 });
