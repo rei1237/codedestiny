@@ -398,6 +398,8 @@ export async function removeUnusedIntroductionImages(referenced, dist = DIST) {
 // The yeongnyangi deck UI asks only for the default 'std' size (lib/tarot/yeongnyangi-deck.ts).
 // The deck manifest bundled into JS still lists thumb/hi, so the name index keeps them alive;
 // the app drops those two sizes explicitly and fails closed if any 'std' file is missing.
+// The app also ships the webp only: TarotCardArt/TarotDrawRitual skip the avif source under IS_APP_BUILD,
+// because a <picture> whose chosen source 404s does not fall back to its <img>.
 export const APP_TAROT_KEPT_SIZE = "std";
 export async function removeUnusedTarotSizes(dist = DIST) {
   const folder = path.join(dist, "assets", "yeongnyangi", "tarot", "v1");
@@ -407,15 +409,15 @@ export async function removeUnusedTarotSizes(dist = DIST) {
   const arts = [...(manifest.cards || []), manifest.back].filter(Boolean);
   const local = (src) => path.join(dist, ...String(src).split("?")[0].replace(/^\//, "").split("/"));
   for (const art of arts) {
-    for (const src of [art.files?.[APP_TAROT_KEPT_SIZE], art.avifFiles?.[APP_TAROT_KEPT_SIZE]].filter(Boolean)) {
+    for (const src of [art.files?.[APP_TAROT_KEPT_SIZE]].filter(Boolean)) {
       if (!(await exists(local(src)))) throw new Error(`타로 ${APP_TAROT_KEPT_SIZE} 이미지가 없다: ${src}`);
     }
   }
   const removed = [];
   for (const art of arts) {
-    for (const files of [art.files, art.avifFiles]) {
+    for (const [format, files] of [["webp", art.files], ["avif", art.avifFiles]]) {
       for (const [size, src] of Object.entries(files || {})) {
-        if (size === APP_TAROT_KEPT_SIZE) continue;
+        if (format === "webp" && size === APP_TAROT_KEPT_SIZE) continue;
         const file = local(src);
         if (!(await exists(file))) continue;
         const bytes = (await fs.stat(file)).size;

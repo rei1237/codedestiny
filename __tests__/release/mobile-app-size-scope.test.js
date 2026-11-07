@@ -20,9 +20,13 @@ test('app keeps only the tarot size the deck UI requests and fails closed withou
   await fs.writeFile(path.join(folder, 'manifest.json'), JSON.stringify({ cards: [art('M00')], back: art('back') }));
   for (const id of ['M00', 'back']) for (const name of [`${id}-240.webp`, `${id}-600.webp`, `${id}-1200.webp`, `${id}-600.avif`, `${id}-1200.avif`]) await fs.writeFile(path.join(folder, name), 'x');
   const removed = (await removeUnusedTarotSizes(dist)).map(item => item.path).sort();
-  assert.deepEqual(removed, ['M00-1200.avif', 'M00-1200.webp', 'M00-240.webp', 'back-1200.avif', 'back-1200.webp', 'back-240.webp'].map(name => `assets/yeongnyangi/tarot/v1/${name}`));
-  for (const name of ['M00-600.webp', 'M00-600.avif', 'back-600.webp']) await fs.access(path.join(folder, name));
-  await fs.rm(path.join(folder, 'M00-600.avif'));
+  assert.deepEqual(removed, ['M00-1200.avif', 'M00-1200.webp', 'M00-240.webp', 'M00-600.avif', 'back-1200.avif', 'back-1200.webp', 'back-240.webp', 'back-600.avif'].map(name => `assets/yeongnyangi/tarot/v1/${name}`));
+  for (const name of ['M00-600.webp', 'back-600.webp']) await fs.access(path.join(folder, name));
+  for (const file of ['app/yeongnyangi/_components/TarotCardArt.tsx', 'app/yeongnyangi/_components/TarotDrawRitual.tsx']) {
+    const source = await fs.readFile(path.join(__dirname, '../..', file), 'utf8');
+    assert.match(source, /IS_APP_BUILD\s*\?\s*null\s*:\s*art\.avifSrc|!IS_APP_BUILD && art\.avifSrc/, `${file} must not request the avif the app drops`);
+  }
+  await fs.rm(path.join(folder, 'M00-600.webp'));
   await assert.rejects(removeUnusedTarotSizes(dist), /std/);
 });
 

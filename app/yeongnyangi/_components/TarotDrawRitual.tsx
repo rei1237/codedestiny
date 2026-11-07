@@ -6,6 +6,7 @@ import {Volume2,VolumeX} from 'lucide-react';
 import type {ReadingChart} from '@/worker/yeongnyangi/fortune/reading-presentation';
 import type {ReadingLocale} from '@/worker/yeongnyangi/fortune/reading-locale';
 import {yeongnyangiCardArt} from '@/lib/tarot/yeongnyangi-deck';
+import {IS_APP_BUILD} from '@/lib/app-build-target';
 import {tarotRitualCopy} from '../_lib/tarot-ritual-copy';
 import {chartTerm} from '../_lib/reading-chart-copy';
 import TarotCardArt from './TarotCardArt';
@@ -49,7 +50,7 @@ export default function TarotDrawRitual({requestId,chart,locale,onComplete}:{req
  },[stage,breath]);
  useEffect(()=>{
   if(stage!=='reveal')return;
-  for(const card of cards){const art=yeongnyangiCardArt(card.cardCode,locale);for(const src of [art.avifSrc,art.src].filter(Boolean)){const image=new Image();image.src=src as string;}}
+  for(const card of cards){const art=yeongnyangiCardArt(card.cardCode,locale);for(const src of [IS_APP_BUILD?null:art.avifSrc,art.src].filter(Boolean)){const image=new Image();image.src=src as string;}}
  },[stage,cards,locale]);
  useEffect(()=>{
   if(stage!=='reading')return;
