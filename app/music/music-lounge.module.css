@@ -261,3 +261,23 @@
   .page *, .page *::before, .page *::after { transition-duration: 0.01ms !important; animation: none !important; }
   .mini { transition: none; }
 }
+.artistProfiles { margin-block: 0 24px; border-block: 1px solid var(--line); }
+.artistProfiles > summary { min-height: var(--tap); padding: 14px 4px; color: var(--gold); font-size: 15px; font-weight: 700; cursor: pointer; }
+.artistProfiles > summary:focus-visible,.artistMemberButtons button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+.artistProfileBody { padding: 4px 4px 24px; font-size: 15px; line-height: 1.75; overflow-wrap: anywhere; }
+.artistIntro { margin: 0 0 20px; color: var(--ivory-2); }
+.artistGroupImage { display: block; width: 100%; height: auto; border-radius: var(--radius); }
+.artistMemberButtons { display: flex; flex-wrap: wrap; gap: 8px; margin-block: 20px 28px; }
+.artistMemberButtons button { flex: 1 1 76px; min-height: var(--tap); padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--night); color: var(--ivory); font: inherit; font-size: 12px; cursor: pointer; transition: color var(--ease),background-color var(--ease); }
+.artistMemberButtons button[aria-pressed="true"] { border-color: var(--gold); background: var(--gold); color: var(--ink); font-weight: 700; }
+.artistMemberButtons button:hover { border-color: var(--gold); }
+.artistMemberProfile { max-width: 65ch; }
+.artistMemberProfile h2 { font-size: 26px; line-height: 1.3; margin: 0; }
+.artistMemberProfile h2 span { margin-inline-start: 8px; font-size: 14px; color: var(--ivory-2); }
+.artistRole { color: var(--gold); margin: 8px 0 20px; font-size: 13px; }
+.artistTagline { font-size: 19px; line-height: 1.5; color: var(--ivory); }
+.artistMemberProfile dl { margin-block: 24px; }
+.artistMemberProfile dl > div { display: grid; grid-template-columns: 80px 1fr; gap: 12px; margin-block: 10px; }
+.artistMemberProfile dt { color: var(--ivory-2); }
+.artistMemberProfile dd { margin: 0; }
+.artistMemberProfile h3 { margin: 32px 0 8px; font-size: 17px; }
