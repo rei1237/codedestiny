@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "d17bf8fd7c309595ad3d9b15e0c51ec8f1033c0d",
+  "sourceCommit": "950ac903fb393245bb401c14d01486f38f6d4ed2",
   "scope": "Source discovery plus explicitly verified aliases; not a count of implemented services. Unmapped contracts are blocking work, not exclusions.",
   "sourceCounts": {
     "home": 63,
@@ -2273,8 +2273,8 @@
         "library": "not-verified",
         "device": "not-tested",
         "canonicalId": "sukuyo",
-        "candidateStatus": "requires-full-flow-port-and-verification",
-        "canonicalRoute": null
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/sukuyo"
       }
     },
     {
@@ -2356,8 +2356,8 @@
         "library": "not-verified",
         "device": "not-tested",
         "canonicalId": "sukuyo",
-        "candidateStatus": "requires-full-flow-port-and-verification",
-        "canonicalRoute": null
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/sukuyo"
       }
     },
     {
@@ -5048,12 +5048,13 @@
         "js/core/service-registry.js",
         "app/_lib/serviceFeatureRegistry.ts"
       ],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/sukuyo",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "worker/toss/sukuyo-basic.js + canonical Sukuyo domain and free dashboard",
+      "resultRenderer": "apps/toss/src/SukuyoBasic.tsx",
+      "storageContract": "screen-only; no result storage or cross-device recovery",
+      "verification": "local offline canonical calculation plus 27 synthetic lunar sectors, home/direct route, native-back and session-isolation checks; original annual flow, relationship tools, paid nature/compatibility rights, editorial review and official device remain incomplete"
     },
     {
       "id": "sukuyo-compatibility-ai",
