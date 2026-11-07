@@ -7,41 +7,56 @@
         "featureKey": "tarot-love-relationship",
         "label": "연애",
         "amountKRW": 5000,
-        "href": "/features/tarot-love-relationship/"
+        "priceLabel": "5,000원",
+        "href": "/features/tarot-love-relationship/",
+        "sajuField": "love"
       },
       "reunion": {
         "featureKey": "tarot-reunion-reading",
         "label": "재회",
         "amountKRW": 5000,
-        "href": "/features/tarot-reunion/"
+        "priceLabel": "5,000원",
+        "href": "/features/tarot-reunion/",
+        "sajuField": "relationship"
       },
       "money": {
         "featureKey": "tarot-year-fortune",
         "label": "돈",
         "amountKRW": 5000,
-        "href": "/features/tarot-year-fortune/"
+        "priceLabel": "5,000원",
+        "href": "/features/tarot-year-fortune/",
+        "sajuField": "wealth"
       },
       "job": {
         "featureKey": "tarot-ijik",
         "label": "이직",
         "amountKRW": 5000,
-        "href": "/features/tarot-ijik/"
+        "priceLabel": "5,000원",
+        "href": "/features/tarot-ijik/",
+        "sajuField": "career"
       },
       "year": {
         "featureKey": "tarot-year-fortune",
         "label": "올해 흐름",
         "amountKRW": 5000,
-        "href": "/features/tarot-year-fortune/"
+        "priceLabel": "5,000원",
+        "href": "/features/tarot-year-fortune/",
+        "sajuField": "lifestyle"
       }
     },
     "bundle": {
       "featureKey": "saju_lifetime_bundle",
       "amountKRW": 29000,
       "priceLabel": "29,000원"
+    },
+    "refund": {
+      "line": "생성에 실패하면 자동 환불돼요",
+      "href": "/refund-policy/"
     }
   };
   Object.keys(data.concerns).forEach(function (id) { Object.freeze(data.concerns[id]); });
   Object.freeze(data.concerns);
   Object.freeze(data.bundle);
+  Object.freeze(data.refund);
   root.CdConcernOffers = Object.freeze(data);
 })(typeof window !== 'undefined' ? window : globalThis);

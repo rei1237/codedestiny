@@ -117,7 +117,9 @@ test('묶음 가격 표기는 29,000원 하나다', async () => {
   assert.deepEqual(cardPrices.map(match => match[1]), [BUNDLE, BUNDLE]);
   assert.match(index, /_ensureFeaturePricing\(key\)\.then\(render/);
   assert.doesNotMatch(index, /<span class="pf-coin-amount">묶음 [\d,]+원/);
-  assert.match(read('js/core/saju/bundle-offer.js'), /PRICE_LABEL = '29,000원'/);
+  // 묶음 안내 카드는 가격을 생성 파일(정본 가격표에서 만든 CdConcernOffers.bundle)에서 읽는다.
+  assert.match(read('js/core/saju/bundle-offer.js'), /CdConcernOffers/);
+  assert.match(read('js/core/saju/concern-offers.generated.js'), /"priceLabel": "29,000원"/);
 });
 
 test('묶음 이름이 하나로 통일되어 있다', async () => {

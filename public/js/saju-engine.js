@@ -4425,10 +4425,20 @@ var sajuResultSessionPending = null;
 function sajuLoginDraftScope(path) {
   return ['/', '/index.html', '/ggulggul', '/ggulggul/'].indexOf(path) >= 0 ? '/ggulggul/' : path;
 }
+// 고른 고민(허용 목록 안의 값만). 로그인하고 돌아와도 같은 고민의 답을 보여 주려고 복귀 주소와 임시 보관에 싣는다.
+function _cdSajuConcern() {
+  try {
+    return window.CdConcernAnswer && typeof window.CdConcernAnswer.resolveConcern === 'function'
+      ? window.CdConcernAnswer.resolveConcern() : null;
+  } catch (_) { return null; }
+}
 function getSajuLoginReturnPath() {
   var url = new URL(getSajuReturnPath(), window.location.origin);
   url.pathname = sajuLoginDraftScope(url.pathname);
   url.searchParams.set('action', 'cdOneStepFreeSajuEntry');
+  var concern = _cdSajuConcern();
+  url.searchParams.delete('concern');
+  if (concern) url.searchParams.set('concern', concern);
   return url.pathname + url.search + url.hash;
 }
 function saveSajuLoginDraft() {
@@ -4440,6 +4450,8 @@ function saveSajuLoginDraft() {
   var calendar = document.querySelector('input[name="calType"]:checked');
   var draft = { savedAt: Date.now(), path: sajuLoginDraftScope(location.pathname),
     fields: fields, gender: GENDER || window._gender, timeUnknown: window.__cdBirthTimeUnknown === true, calendar: calendar ? calendar.value : 'solar' };
+  var concern = _cdSajuConcern();
+  if (concern) draft.concern = concern;
   sessionStorage.setItem(SAJU_LOGIN_DRAFT_KEY, JSON.stringify(draft));
 }
 async function ensureSajuResultSession(run) {
@@ -4482,6 +4494,8 @@ async function restoreSajuLoginDraft() {
     });
     if (draft.gender === 'M' || draft.gender === 'F') setGender(draft.gender);
     window.__cdBirthTimeUnknown = draft.timeUnknown === true;
+    // 고민 값은 읽는 쪽(CdConcernAnswer.resolveConcern)이 허용 목록으로 다시 거른다.
+    if (typeof draft.concern === 'string') { try { sessionStorage.setItem('cd:home-concern', draft.concern.slice(0, 32)); } catch (_) {} }
     document.querySelectorAll('input[name="calType"]').forEach(function(el) { el.checked = el.value === draft.calendar; });
     setSajuFormStatus('입력 정보를 불러왔어요. 로그인 후 무료 만세력을 이어서 볼 수 있어요.', 'info');
     // Do not redirect again when the user cancels login or uses browser Back.
@@ -5334,6 +5348,7 @@ async function calculate(run){
     // 묶음 안내 카드와 묶음 전용 렌더러. 묶음이 닫혀 있으면 안내만 깔고 아무 카드도 만들지 않는다(해제되면 같은 함수가 다시 그린다).
     window.__cdLastBundleArgs={p:p,natal:natal,bazi:bazi,johu:johu};
     _cdBundleSurfaceRenderKey='';
+    try { _cdRenderConcernAnswer(); } catch(e) { console.error('ConcernAnswer 에러:', e); }
     try { _cdRenderBundleSurfaces(); } catch(e) { console.error('BundleSurfaces 에러:', e); }
     // 에너지 원정 리포트 본문은 서버(/api/saju/section, rpt_energyCoordCard)가 해금을 확인한 뒤 카드를 열 때 배달한다.
     // 여기서는 무료 스텁만 깐다(js/saju-engine-tarot-sukuyo-quantum.js renderEnergyCoordStub).
@@ -22095,6 +22110,22 @@ function _cdRenderNatalOneLiner(p){
 }
 var _cdBundleSurfaceRenderKey='';
 // 묶음 안내 카드는 닫혀 있을 때만, 묶음 전용 카드는 열려 있을 때만 그린다. 해금 이벤트에서도 같은 함수가 다시 돈다.
+// 무료 결과: 고른 고민의 짧은 답 → 그 고민의 단건 → 묶음 안내(#sajuBundleOffer) 순서. 그리는 일은 js/core/saju/concern-answer.js.
+// 올해 흐름을 못 구해도 답 칸은 일반 문장으로 그린다.
+function _cdRenderConcernAnswer(){
+  var host=document.getElementById('sajuConcernAnswer');
+  if(!host||!window.CdConcernAnswer||typeof window.CdConcernAnswer.render!=='function')return;
+  var ctx={};
+  try{
+    var yNow=_cdCurrentYearGanZhi();
+    if(yNow.yg&&yNow.yz){
+      var ygd=GAN[yNow.yg]||{e:'earth',n:'?'};
+      var yEv=evalDaewun(yNow.yg,yNow.yz);
+      ctx={ygd:ygd,yEv:yEv,gaeun:getDetailedGaeun(ygd.e,yEv.score>=60)};
+    }
+  }catch(e){ ctx={}; }
+  window.CdConcernAnswer.render(host,ctx);
+}
 function _cdRenderBundleSurfaces(){
   var args=window.__cdLastBundleArgs;
   var offerHost=document.getElementById('sajuBundleOffer');
@@ -24376,11 +24407,8 @@ function renderCurrentSeasonSummary(bazi){
 
     // 올해 세운은 현재 한국 표준시와 입춘 경계를 함께 적용한다.
     var nowKst=new Date(Date.now()+9*60*60*1000);
-    var nowYear=nowKst.getUTCFullYear(),yg='',yz='';
-    try{
-      var yBazi=_coreEightChar(nowYear,nowKst.getUTCMonth()+1,nowKst.getUTCDate(),nowKst.getUTCHours(),nowKst.getUTCMinutes());
-      yg=yBazi.getYearGan();yz=yBazi.getYearZhi();
-    }catch(e){}
+    var nowYear=nowKst.getUTCFullYear();
+    var yNow=_cdCurrentYearGanZhi(),yg=yNow.yg,yz=yNow.yz;
 
     var parts=[];
     if(cur){
@@ -24422,6 +24450,15 @@ function renderCurrentSeasonSummary(bazi){
     var flowRel=function(g,j){return _getDwHapResults(g,j).map(function(r){return {type:r.type,src:r.src,partner:r.partner,isChung:r.isChung,transformed:r.transformed};});};
     if (window.SajuReadingPresentation) window.SajuReadingPresentation.setFlow([cur ? {kind:'period',g:cur.g,j:cur.j,score:cEv.score,label:cEv.label,summary:cEv.evalSummary||'',age:cStart,end:cEnd,relations:flowRel(cur.g,cur.j)} : null, yg&&yz ? {kind:'year',g:yg,j:yz,score:yEv.score,label:yEv.label,summary:yEv.evalSummary||'',year:nowYear,relations:flowRel(yg,yz)} : null].filter(Boolean));
   }catch(err){ console.error('올해의 나 요약 오류',err); }
+}
+// 올해 세운 간지. 현재 한국 표준시와 입춘 경계를 함께 적용하고, 못 구하면 빈 값을 준다.
+function _cdCurrentYearGanZhi(){
+  var nowKst=new Date(Date.now()+9*60*60*1000),yg='',yz='';
+  try{
+    var yBazi=_coreEightChar(nowKst.getUTCFullYear(),nowKst.getUTCMonth()+1,nowKst.getUTCDate(),nowKst.getUTCHours(),nowKst.getUTCMinutes());
+    yg=yBazi.getYearGan();yz=yBazi.getYearZhi();
+  }catch(e){}
+  return {yg:yg,yz:yz};
 }
 // 🔴 종합 풀이(section_summary)·대운 풀이(section_daewun) 본문은 서버(/api/saju/section)가 해금을 확인한 뒤에만 만든다.
 // 여기에는 생성기가 없다 — js/core/saju/section-client.js 가 요청하고 받은 HTML 을 넣는다.
