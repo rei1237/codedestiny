@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "e1248999e504c587ce68cba02d6cacf6653a4840",
+  "sourceCommit": "42628b3b78873836e73a93e560f463754f985d06",
   "scope": "Source discovery plus explicitly verified aliases; not a count of implemented services. Unmapped contracts are blocking work, not exclusions.",
   "sourceCounts": {
     "home": 63,
@@ -557,8 +557,8 @@
         "library": "not-verified",
         "device": "not-tested",
         "canonicalId": "famous-saju",
-        "candidateStatus": "requires-full-flow-port-and-verification",
-        "canonicalRoute": null
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/insights/famous-saju"
       }
     },
     {
@@ -1644,8 +1644,8 @@
         "library": "not-verified",
         "device": "not-tested",
         "canonicalId": "novel",
-        "candidateStatus": "requires-full-flow-port-and-verification",
-        "canonicalRoute": null
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/novel"
       }
     },
     {
@@ -1991,8 +1991,8 @@
         "library": "not-verified",
         "device": "not-tested",
         "canonicalId": "saju",
-        "candidateStatus": "requires-full-flow-port-and-verification",
-        "canonicalRoute": null
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/saju/basic/play"
       }
     },
     {
@@ -3404,12 +3404,12 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/insights/famous-saju",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "published profile search by name, alias or field",
+      "resultRenderer": "apps/toss/src/FamousSaju.tsx",
+      "storageContract": "public articles only; historical archive, detail deep links and device parity pending"
     },
     {
       "id": "flower",
@@ -4488,12 +4488,12 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/novel",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "Korean transcript; original manifest, cast and ending choices",
+      "resultRenderer": "apps/toss/src/NovelReader.tsx",
+      "storageContract": "in-screen reading position only; persistent bookmark, visual/audio and device parity pending"
     },
     {
       "id": "olympus-oracle",
@@ -4862,12 +4862,12 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/saju/basic/play",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null,
+      "inputContract": "shared natal engine; Korean city, solar/lunar/leap and unknown hour",
+      "resultRenderer": "apps/toss/src/BasicSajuReading.tsx",
+      "storageContract": "memory-only free basic chart; web result and device parity pending",
       "subfeatures": [
         {
           "id": "sajuprompt",
