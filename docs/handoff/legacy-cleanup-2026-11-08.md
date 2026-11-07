@@ -22,7 +22,7 @@
 
 - **다른 브랜치·워크트리가 고치는 파일**: 지우면 병합 충돌이 나서 남겼다. QuestionScope 묶음(`QuestionScope.tsx`, `ConsultationCompanion.tsx`와 CSS), 스크립트 27개(`scripts/design/verify-*`, `translate-*`, `verify-consultation-home-browser` 등)가 해당한다. 그 브랜치가 병합된 뒤 다시 확인해 지운다.
 - **문서가 정본으로 부르는 스크립트 3개**: `verify-home-entry-locale.cjs`, `qa/recheck-yeongnyangi-samples.mjs`, `verify-yeongnyangi-relationship-browser.mjs`.
-- **public 이미지 후보 175개(26.2MiB)**: 참조는 0건이지만 `${ISLAND_ASSET_ROOT}/guardians/${slug}-v1.webp`, `heaven-light-v72-ch${i}-320`, `saju/nature/${stem}-960`처럼 이름을 실행 중에 만드는 폴더에 있다. 확인하지 못해 남겼다. 후보 목록은 세션 작업 폴더의 `b3-candidates.json`, `b3-probe.txt`에 있었다.
+- **public 이미지 후보 175개(26.2MiB)**: 참조는 0건이지만 `${ISLAND_ASSET_ROOT}/guardians/${slug}-v1.webp`, `heaven-light-v72-ch${i}-320`, `saju/nature/${stem}-960`처럼 이름을 실행 중에 만드는 폴더에 있다. 확인하지 못해 남겼다. 후보 목록과 조사 기록은 `D:\Development\code-destiny\output\legacy-cleanup-20261108\`(`b3-candidates.json`, `b3-probe.txt`, `b2-orphans.md`, `b4-scripts.md`)에 있다.
 - **트래픽을 모르는 콘텐츠**: `/nakshatra/codex/*` 27쪽, `/saju/monthly/2026-09/*` 11쪽, `/compare/*` 3쪽. 사이트맵과 허브가 링크하고 있고 검색 유입 수치가 없어 지우지 않았다.
 
 ## scripts 폴더 대이동을 하지 않은 이유
