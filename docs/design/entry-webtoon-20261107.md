@@ -47,7 +47,7 @@
 | 19 | offer-manseryeok | offer | HTML 제안 카드 | - | 꽃돼지 연이: 01 무료 만세력! 당신의 사주 8글자와 한 줄 성향을 바로 보여 드려요. | 예시 카드에 "예시" 라벨 | - |
 | 20 | offer-answer | offer | HTML 제안 카드 | - | 꽃돼지 연이: 02 무료 고민 답! 고른 고민에 두세 줄로 먼저 답해 드려요. | 고른 고민의 예시 답 | - |
 | 21 | offer-deeper | offer | HTML 제안 카드 | - | 꽃돼지 연이: 03 더 깊게! 고민별 상담, 사주 평생 소장 묶음, 대표 상담 3종이 있어요. | 가격은 레지스트리에서 읽고 잠금 미리보기에 "지금은 일부만 보여요" | - |
-| 22 | offer-safety | offer | HTML 안심 박스 | - | 캡션: 결제 전에 예시를 먼저 확인할 수 있어요. / 생성에 실패하면 자동 환불돼요. | 환불 정책 링크 `REFUND_POLICY_HREF`(`/refund-policy/`) | - |
+| 22 | offer-safety | offer | HTML 안심 박스 | - | 대사 없음(안심 박스가 결제 전 예시 확인·자동 환불 문구를 한 번만 보여 줌) | 환불 정책 링크 `REFUND_POLICY_HREF`(`/refund-policy/`) | - |
 | 23 | invite-tea | invite | 그림 | 1024×1536 | 연이: 당신의 흐름, 무료로 먼저 확인해 보세요. | Human Yeoni holding out a steaming teacup with both hands toward the viewer, gentle smile, teahouse interior softly blurred, lantern bokeh | Y |
 | 24 | invite-cta | invite | HTML CTA | - | (없음, 버튼 `ctaLabel` "무료로 내 운세 보기") | `freeEntryHref(concern, 'entry_webtoon')`. 앵커 `#entry-invite` | - |
 | 25 | invite-yeongnyangi | invite | 그림 | 1080×720 | 연이: 고양이에게 털어놓고 싶은 밤이라면, 영냥이도 기다리고 있어요. | Yeongnyangi, a fluffy white cat with exactly two ears, navy wizard hat with gold crescent, curled on a cushion by the teahouse window at night, looking up with half-lidded eyes | C |
