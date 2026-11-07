@@ -17,7 +17,7 @@ export default function CutReader({ cuts, eager = 2, tone = 'paper' }: { cuts: W
           <source type="image/avif" srcSet={cut.widths.map(w => `${cut.src}-${w}.avif ${w}w`).join(', ')} sizes={SIZES} />
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={`${cut.src}-${cut.fallback}.webp`} width={cut.w} height={cut.h} alt={cut.alt}
-            loading={index < eager ? 'eager' : 'lazy'} decoding="async" {...(index === 0 ? { fetchPriority: 'high' as const } : {})} />
+            loading={index < eager ? 'eager' : 'lazy'} decoding="async" {...(index === 0 && eager > 0 ? { fetchPriority: 'high' as const } : {})} />
         </picture>
         {cut.lines.length > 0 && <figcaption>{cut.lines.map(line => line.speaker
           ? <p key={line.text} className={styles.bubble}><b>{line.speaker}</b>{line.text}</p>
