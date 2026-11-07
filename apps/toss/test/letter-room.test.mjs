@@ -15,6 +15,32 @@ const mocks={
 const src=fs.readFileSync(path.join(root,'apps/toss/service/TossLetterRoom.tsx'),'utf8');
 const built=await build({stdin:{contents:src,resolveDir:path.join(root,'apps/toss/service'),loader:'tsx'},bundle:true,write:false,platform:'node',format:'cjs',jsx:'automatic',external:['react','react/jsx-runtime'],plugins:[{name:'letter-boundaries',setup(b){b.onResolve({filter:/.*/},a=>/^react(?:\/jsx-runtime)?$/.test(a.path)?{path:a.path,external:true}:{path:a.path,namespace:'mock'});b.onLoad({filter:/.*/,namespace:'mock'},({path:p})=>({contents:mocks[p]||(p.endsWith('.css')?'export default {};':'export default ()=>null;')}));}}]});
 const m=new Module(path.join(root,'letter-room-test.cjs'));m.paths=Module._nodeModulePaths(path.join(root,'apps/toss'));m._compile(built.outputFiles[0].text,m.id);
+for(const [label,revoked,expected] of [
+ ['refunded',{state:'REFUNDED'},/환불된 상담/],
+ ['refund pending',{recovery:{refundPending:true,canRetryNow:true}},/추가 결제하지 말고/],
+ ['inactive payment',{errorCode:'PAYMENT_NOT_ACTIVE',recovery:{canRetryNow:true}},/추가 결제하지 말고/],
+])test(`letter ${label} hides previously readable content and continuation`,async()=>{
+ const id='a'.repeat(64),dom=new JSDOM('<div id="root"></div>',{url:'http://localhost/fortune-tea-house/?counsel=letter&consultation='+id});globalThis.window=dom.window;globalThis.document=dom.window.document;globalThis.location=dom.window.location;globalThis.sessionStorage=dom.window.sessionStorage;globalThis.IS_REACT_ACT_ENVIRONMENT=true;
+ let changed=false,purchases=0,generations=0;const row={id,persona:'yeoni',productId:'chat_saju',state:'COMPLETED',paid:true,chapters:[{summary:'이전에 승인된 결과'}]};
+ globalThis.__letterRoom={auth:{isAuthenticated:true,user:{id:'owner'}},products:async()=>[],list:async()=>({consultations:[]}),read:async()=>changed?{...row,...revoked}:row,purchase:()=>purchases++,generate:()=>generations++};
+ const app=createRoot(document.getElementById('root'));try{
+  await React.act(async()=>app.render(React.createElement(m.exports.default,{initialId:id})));assert.match(document.body.textContent,/이전에 승인된 결과/);
+  changed=true;Object.defineProperty(document,'hidden',{configurable:true,value:false});await React.act(async()=>document.dispatchEvent(new dom.window.Event('visibilitychange')));
+  assert.doesNotMatch(document.body.textContent,/이전에 승인된 결과|이어서 쓰기|연이가 답을 쓰고 있어요/);assert.match(document.body.textContent,expected);assert.equal(purchases,0);assert.equal(generations,0);
+ }finally{await React.act(async()=>app.unmount());dom.window.close();delete globalThis.__letterRoom;}
+});
+test('a revoked pre-payment letter never opens the payment SDK',async()=>{
+ const id='a'.repeat(64),dom=new JSDOM('<div id="root"></div>',{url:'http://localhost/fortune-tea-house/?counsel=letter&consultation='+id});globalThis.window=dom.window;globalThis.document=dom.window.document;globalThis.location=dom.window.location;globalThis.sessionStorage=dom.window.sessionStorage;globalThis.IS_REACT_ACT_ENVIRONMENT=true;
+ let reads=0,purchases=0;const draft={id,persona:'yeoni',productId:'chat_saju',state:'CREATED',paid:false,chapters:[]};
+ globalThis.__letterRoom={auth:{isAuthenticated:true,user:{id:'owner'}},products:async()=>[{id:'yeoni:chat_saju',sku:'sku',displayAmount:'test'}],list:async()=>({consultations:[]}),read:async()=>++reads===1?draft:{...draft,paid:true,state:'REFUNDED',chapters:[{summary:'권한 없는 결과'}]},purchase:()=>purchases++};
+ const app=createRoot(document.getElementById('root'));try{await React.act(async()=>app.render(React.createElement(m.exports.default,{initialId:id})));await React.act(async()=>[...document.querySelectorAll('button')].find(b=>b.textContent.includes('단건 결제')).click());assert.equal(purchases,0);assert.doesNotMatch(document.body.textContent,/권한 없는 결과|이어서 쓰기/);assert.match(document.body.textContent,/환불된 상담/);}finally{await React.act(async()=>app.unmount());dom.window.close();delete globalThis.__letterRoom;}
+});
+test('letter generation does not expose a result whose payment became inactive',async()=>{
+ const id='a'.repeat(64),dom=new JSDOM('<div id="root"></div>',{url:'http://localhost/fortune-tea-house/?counsel=letter&consultation='+id});globalThis.window=dom.window;globalThis.document=dom.window.document;globalThis.location=dom.window.location;globalThis.sessionStorage=dom.window.sessionStorage;globalThis.IS_REACT_ACT_ENVIRONMENT=true;
+ const partial={id,persona:'yeoni',productId:'chat_saju',state:'GENERATING',paid:true,chapters:[],recovery:{canRetryNow:true}};let generations=0;
+ globalThis.__letterRoom={auth:{isAuthenticated:true,user:{id:'owner'}},products:async()=>[],list:async()=>({consultations:[]}),read:async()=>partial,generate:async()=>{generations++;return {...partial,errorCode:'PAYMENT_NOT_ACTIVE',chapters:[{summary:'권한 없는 결과'}]};}};
+ const app=createRoot(document.getElementById('root'));try{await React.act(async()=>app.render(React.createElement(m.exports.default,{initialId:id})));await React.act(async()=>[...document.querySelectorAll('button')].find(b=>b.textContent==='이어서 쓰기').click());assert.equal(generations,1);assert.doesNotMatch(document.body.textContent,/권한 없는 결과|이어서 쓰기/);assert.match(document.body.textContent,/추가 결제하지 말고/);}finally{await React.act(async()=>app.unmount());dom.window.close();delete globalThis.__letterRoom;}
+});
 test('letter catalog is reverified for the current account before displaying a price',async()=>{
  const dom=new JSDOM('<div id="root"></div>',{url:'http://localhost/fortune-tea-house/?counsel=letter'});globalThis.window=dom.window;globalThis.document=dom.window.document;globalThis.location=dom.window.location;globalThis.sessionStorage=dom.window.sessionStorage;globalThis.IS_REACT_ACT_ENVIRONMENT=true;let calls=0;
  globalThis.__letterRoom={auth:{isAuthenticated:true,user:{id:'owner-a'}},products:async()=>{calls++;return [{id:'yeoni:chat_saju',sku:'sku',displayAmount:globalThis.__letterRoom.auth.user.id}];},list:async()=>({consultations:[]})};
