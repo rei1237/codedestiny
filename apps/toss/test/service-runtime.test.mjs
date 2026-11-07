@@ -26,6 +26,8 @@ test('release deck preserves the exact displayed artwork and does not include un
   assert.equal(card.contentHash,manifest.cards[index].contentHash);
   assert.deepEqual(Object.keys(card.files),['std']);
  }
+ assert.ok(manifest.frame.files.std);
+ assert.equal(compact.frame,undefined);
  assert.equal(compact.back.files.std,manifest.back.files.std);
  assert.equal(compact.back.avifFiles.std,undefined);
  for(const card of [...compact.cards,compact.back])assert.ok((await readFile(new URL('../../../public'+card.files.std,import.meta.url))).length>0);

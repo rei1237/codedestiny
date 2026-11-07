@@ -39,7 +39,9 @@ export function localBrandFonts(){
 // The Worker and web site's manifest are never modified.
 export function screenDeckManifest(manifest){
  const screen=card=>{const {files,avifFiles,integrity,sourceContentHash,...metadata}=card;return {...metadata,files:{std:files.std},avifFiles:{}};};
- return {...manifest,cards:manifest.cards.map(screen),back:screen(manifest.back)};
+ // The Toss card renderer draws the card or its back; it never requests the standalone frame artwork.
+ const {frame,...deck}=manifest;
+ return {...deck,cards:manifest.cards.map(screen),back:screen(manifest.back)};
 }
 
 // The sample renderer only compares its own visual paths and the tea artwork.
