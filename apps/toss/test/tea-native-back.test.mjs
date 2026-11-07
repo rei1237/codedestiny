@@ -22,6 +22,16 @@ test('Toss shell omits the duplicate back button while the web keeps it',async()
  assert.match(render('toss'),/연이의 운명 찻집/);
 });
 
+test('the Toss CSR link opens the miniapp home and preserves service-specific destinations',async()=>{
+ const entry=path.resolve(import.meta.dirname,'../canonical/next.jsx');
+ const bundle=await build({entryPoints:[entry],bundle:true,write:false,platform:'node',format:'cjs',jsx:'automatic',external:['react','react/jsx-runtime']});
+ const loaded=new Module(entry+'.cjs');loaded.paths=Module._nodeModulePaths(path.resolve(import.meta.dirname,'..'));loaded._compile(bundle.outputFiles[0].text,loaded.id);
+ const {renderToStaticMarkup}=require('react-dom/server');
+ const link=href=>renderToStaticMarkup(React.createElement(loaded.exports.Link,{href},'이동'));
+ assert.equal(link('/ggulggul/'),'<a href="/">이동</a>');
+ assert.equal(link('/fortune-tea-house/?counsel=letter'),'<a href="/fortune-tea-house/?counsel=letter">이동</a>');
+});
+
 test('tea back closes overlays, preserves active work and navigates the current stage',async()=>{
  const entry=path.resolve(import.meta.dirname,'../../../src/features/fortune-tea-house/lib/tossBack.ts');
  const bundle=await build({entryPoints:[entry],bundle:true,write:false,platform:'node',format:'cjs'});
