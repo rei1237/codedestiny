@@ -1,0 +1,11 @@
+.reader{list-style:none;margin:0;padding:0 0 24px;display:grid;gap:28px;--cut-ink:#2b2230;--cut-muted:#6d5f6c;--cut-bubble:#fffaf3;--cut-line:#e4d6cc;--cut-accent:#b4566f}
+.night{--cut-ink:#eee3d0;--cut-muted:#c9bba5;--cut-bubble:#241d33;--cut-line:#4a3d5c;--cut-accent:#d7b984}
+.cut figure{margin:0}
+.cut img{display:block;width:100%;height:auto;background:var(--cut-line)}
+.cut figcaption{display:grid;gap:10px;padding:14px 18px 0}
+.bubble{position:relative;justify-self:start;max-width:min(92%,34em);margin:0;padding:12px 16px;border:1px solid var(--cut-line);border-radius:18px 18px 18px 4px;background:var(--cut-bubble);color:var(--cut-ink);font-size:16px;line-height:1.7;word-break:keep-all;overflow-wrap:anywhere}
+.bubble b{display:block;margin-bottom:2px;color:var(--cut-accent);font-size:13px;letter-spacing:.02em}
+.bubble+.bubble{justify-self:end;border-radius:18px 18px 4px 18px}
+.narration{margin:0;padding:0 4px;color:var(--cut-muted);font-family:'Yeongnyangi Myeongjo',serif;font-size:15px;line-height:1.8;word-break:keep-all;text-align:center}
+.cut[data-kind='silent'] figure{padding-block:6px}
+@media (min-width:681px){.cut figcaption{padding-inline:24px}}

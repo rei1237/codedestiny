@@ -22067,8 +22067,8 @@
       "A": "✨ Rencontre du destin",
       "B": "😊 Lien de proximité",
       "C": "🙂 Lien ordinaire",
-      "D": "⚠️ Lien karmique",
-      "F": "🌧️ Lien difficile"
+      "D": "Trouver un rythme de vie commun",
+      "F": "Comprendre les limites de chacun"
     },
     "gradeBadge": "Classe {grade}",
     "titleLine": "{type} — {self} × {partner}",
@@ -22168,14 +22168,14 @@
     },
     "past": {
       "title": "🔮 Lien de vies antérieures",
-      "subtitle": "VIES ANTÉRIEURES · Croisement jour × année",
+      "subtitle": "Un récit symbolique de votre relation",
       "grade": {
         "S": "🌟 Classe S · Étoiles jumelles d'une autre vie",
         "A": "✨ Classe A · Un déjà-vu du destin",
         "B": "🌱 Classe B · Un lien qui renaît",
         "C": "⚪ Classe C · Un lien sur une page blanche",
-        "D": "⚠️ Classe D · Un nœud karmique à dénouer",
-        "F": "🌀 Classe F · Apprendre des épreuves héritées"
+        "D": "D · Un nœud à défaire doucement",
+        "F": "F · Un nœud qui laisse place à deux chemins"
       },
       "crossSelf": "🧬 Pilier du jour de {self} ({selfPillar}) × pilier de l'année de {partner} ({partnerPillar})",
       "crossPartner": "🧬 Pilier du jour de {partner} ({partnerPillar}) × pilier de l'année de {self} ({selfPillar})",
@@ -22237,7 +22237,8 @@
       "hour": "Deux lanternes face à l'aube sur les montagnes lointaines",
       "past-resonance": "Deux lanternes se rapprochent sur un étang",
       "past-growth": "Un pont reliant deux rives fleuries",
-      "past-knot": "Un nœud de soie lâche près d'un lotus"
+      "past-knot": "Un nœud de soie lâche près d'un lotus",
+      "past-ferry": "Une personne lève une lanterne depuis la barque vers la rive"
     },
     "relationship": {
       "title": "Là où vos deux thèmes se rencontrent",
@@ -22302,6 +22303,19 @@
       "candidates": "Candidats : {elements}",
       "unresolved": "Aucun élément utile unique confirmé",
       "note": "Les éléments utiles sont présentés comme des candidats et non comme des réponses définitives ; ce qui ne peut être évalué reste en attente. Le score de compatibilité est calculé à part, selon le nombre de chaque élément."
+    },
+    "entry": {
+      "title": "Affinités Saju à deux",
+      "love": "Découvrez votre rythme de contact et comment renouer après un désaccord.",
+      "business": "Découvrez comment vous partagez les rôles et prenez vos décisions.",
+      "friend": "Trouvez un rythme de contact et une distance qui vous conviennent.",
+      "preview": "Voir le contenu du rapport"
+    },
+    "reading": {
+      "contents": "Sommaire de la lecture",
+      "say": "Une phrase à essayer",
+      "strength": "Point d’entente",
+      "adjust": "Point à ajuster"
     }
   },
   "honeyUI": {

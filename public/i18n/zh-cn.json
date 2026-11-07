@@ -22067,8 +22067,8 @@
       "A": "✨ 命定契合",
       "B": "😊 有缘契合",
       "C": "🙂 平凡的缘分",
-      "D": "⚠️ 业缘契合",
-      "F": "🌧️ 磨难之缘"
+      "D": "逐渐协调生活节奏",
+      "F": "了解彼此的界限"
     },
     "gradeBadge": "{grade}级",
     "titleLine": "{type} — {self} × {partner}",
@@ -22168,14 +22168,14 @@
     },
     "past": {
       "title": "🔮 前世缘分解读",
-      "subtitle": "PAST LIFE COMPATIBILITY · 日柱×年柱交叉分析",
+      "subtitle": "映照两人关系的象征故事",
       "grade": {
         "S": "🌟 S级 · 前世的双子星",
         "A": "✨ A级 · 命运的似曾相识之缘",
         "B": "🌱 B级 · 再度萌芽的缘分",
         "C": "⚪ C级 · 白纸上的全新缘分",
-        "D": "⚠️ D级 · 待解的结，业力(Karma)之缘",
-        "F": "🌀 F级 · 在痛中学习、苦缘的传承"
+        "D": "D级 · 慢慢解开的结",
+        "F": "F级 · 为彼此留出路的结"
       },
       "crossSelf": "🧬 {self}的日柱（{selfPillar}）× {partner}的年柱（{partnerPillar}）",
       "crossPartner": "🧬 {partner}的日柱（{partnerPillar}）× {self}的年柱（{selfPillar}）",
@@ -22237,7 +22237,8 @@
       "hour": "面向远山晨光的两盏灯",
       "past-resonance": "池面上逐渐靠近的两盏灯",
       "past-growth": "连接两岸花树的桥",
-      "past-knot": "莲花旁轻轻系起的丝结"
+      "past-knot": "莲花旁轻轻系起的丝结",
+      "past-ferry": "旅人从船边向岸上的人举起灯笼"
     },
     "relationship": {
       "title": "两份命盘交汇之处",
@@ -22302,6 +22303,19 @@
       "candidates": "补益候选 {elements}",
       "unresolved": "单一用神未确定",
       "note": "用神以候选而非定论呈现，无法判定的项目暂缓。合盘分数另按五行数量指标计算。"
+    },
+    "entry": {
+      "title": "两人的四柱合盘",
+      "love": "看看两人联系的节奏，以及争执后怎样重新靠近。",
+      "business": "看看两人如何分工，一起做重要决定。",
+      "friend": "看看怎样的联系频率和相处距离让双方更自在。",
+      "preview": "查看报告内容"
+    },
+    "reading": {
+      "contents": "合盘目录",
+      "say": "可以试着说",
+      "strength": "合拍之处",
+      "adjust": "需要磨合之处"
     }
   },
   "honeyUI": {

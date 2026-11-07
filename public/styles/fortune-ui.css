@@ -17471,3 +17471,21 @@ html:has(#destinyFlowerStudioOverlay.is-show) { scrollbar-gutter: auto !importan
 .cd-compat-snap summary:focus-visible{outline:2px solid var(--cd-accent);outline-offset:4px}
 .cd-compat-snap .compat-relation-map{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:16px;background:var(--cd-surface-2);color:var(--cd-text);border-radius:var(--cd-r-card);overflow-wrap:anywhere}
 @media(max-width:600px){.cd-compat-snap .compat-relation-map{grid-template-columns:1fr}.cd-compat-snap .compat-story-chapter{margin-top:32px}}
+
+/* Saju compatibility reading, shared by the result and the archive sheet. */
+#compatCard .compat-entry-cover { overflow: hidden; border-radius: var(--cd-r-card); background: #392132; color: #fff7ee; }
+#compatCard .compat-entry-cover img { display: block; width: 100%; height: clamp(96px, 23vw, 164px); object-fit: cover; object-position: 50% 55%; }
+#compatCard .compat-entry-cover .sec-title { color: inherit; padding: 12px 18px; margin: 0; }
+#compatCard .compat-entry-cover { margin-bottom: 16px; }
+.compat-disclosure > summary { cursor: pointer; padding: 12px 0; line-height: 1.5; font-weight: 650; }
+.cd-compat-snap .compat-reading-lead { color: var(--cd-text); padding-block: 8px; }
+.compat-reading-lead h3 { font-family: var(--font-display, serif); margin: 0 0 10px; line-height: 1.45; }
+.compat-reading-lead .compat-summary-text { margin: 0; line-height: 1.7; font-size: 1.08rem; }
+.compat-reading-lead dl { margin: 12px 0 0; }
+.compat-reading-lead dl > div { padding: 8px 0; border-top: 1px solid var(--cd-border); }
+.compat-reading-lead dt { font-size: .88rem; font-weight: 700; }
+.compat-reading-lead dd { margin: 3px 0 0; line-height: 1.65; }
+.compat-reading-nav { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-bottom: 12px; }
+.compat-reading-nav button { border: 0; background: transparent; padding: 0 4px; font: inherit; text-decoration: underline; cursor: pointer; display: inline-flex; align-items: center; min-height: 44px; color: var(--cd-text); text-underline-offset: 4px; }
+.cd-compat-snap section[id] { scroll-margin-top: 80px; }
+.compat-reading-evidence { margin-block: 16px; }

@@ -1,80 +1,2420 @@
 {
+ "generatedAt": "2026-11-06T18:43:03.307Z",
+ "missing": [],
+ "cuts": [
+  {
+   "work": "tea",
+   "cut": "01",
+   "files": "public/images/consultation-webtoons/tea/01-{640,1080}.avif + 01-720.webp",
+   "origin": "reused",
+   "source": "public/images/service-introductions/fortune-tea-house.webp",
+   "sourceSha256": "54c9c42a46dfb18c"
+  },
+  {
+   "work": "tea",
+   "cut": "02",
+   "files": "public/images/consultation-webtoons/tea/02-{640,1080}.avif + 02-720.webp",
+   "origin": "generated",
+   "source": "out/covers/tea.png",
+   "sourceSha256": "9a7334b40f291488",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": []
+  },
+  {
+   "work": "tea",
+   "cut": "03",
+   "files": "public/images/consultation-webtoons/tea/03-{640,1080}.avif + 03-720.webp",
+   "origin": "generated",
+   "source": "out/tea/03.png",
+   "sourceSha256": "7035a653213739b8",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/covers/tea.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Close-up of the guest (young Korean woman, short dark bob hair, oversized grey knit cardigan, holding a smartphone; same person as in the attached tea-house cover)'s two hands holding a smartphone on a wooden tea table; the screen glows softly with a blank message bubble, thumb hovering, not pressing. A celadon teacup steams next to it. Rainy window reflection. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "tea",
+   "cut": "04",
+   "files": "public/images/consultation-webtoons/tea/04-{640,1024}.avif + 04-720.webp",
+   "origin": "generated",
+   "source": "out/tea/04.png",
+   "sourceSha256": "63cb76735f68b04e",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/covers/tea.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Medium shot of the guest (young Korean woman, short dark bob hair, oversized grey knit cardigan, holding a smartphone; same person as in the attached tea-house cover) seated at the tea table, looking down, lips pressed, steam rising from the cup between her hands. Warm lamp light, rain behind. Yeoni is not in this panel. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "tea",
+   "cut": "05",
+   "files": "public/images/consultation-webtoons/tea/05-{640,1024}.avif + 05-720.webp",
+   "origin": "generated",
+   "source": "out/tea/05.png",
+   "sourceSha256": "3ceb1d60a70adbc2",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/yeoni-teahouse-portrait.webp",
+    "CodeDestiny-Build/여_연이 프로필 사복버전.webp",
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/covers/tea.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Yeoni (young Korean woman, long wavy pastel-pink hair with a flower hairpin, soft pink eyes, pastel floral hanbok-style dress; she is HUMAN, match the reference portrait). Yeoni pouring a second cup of tea from a celadon teapot with a calm, gentle smile, looking at the guest off-panel. Cozy hanok tea house interior, warm lanterns. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "tea",
+   "cut": "06",
+   "files": "public/images/consultation-webtoons/tea/06-{640,1024}.avif + 06-720.webp",
+   "origin": "generated",
+   "source": "out/tea/06.png",
+   "sourceSha256": "681b29bf7fd05df9",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/covers/tea.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Close-up of the guest (young Korean woman, short dark bob hair, oversized grey knit cardigan, holding a smartphone; same person as in the attached tea-house cover), eyes glistening with held-back tears, speaking quietly, hands tight around the teacup. Soft rim light. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "tea",
+   "cut": "07",
+   "files": "public/images/consultation-webtoons/tea/07-{640,1080}.avif + 07-720.webp",
+   "origin": "generated",
+   "source": "out/tea/07.png",
+   "sourceSha256": "a463b9b756636ce3",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/yeoni-teahouse-portrait.webp",
+    "CodeDestiny-Build/여_연이 프로필 사복버전.webp",
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/covers/tea.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Yeoni (young Korean woman, long wavy pastel-pink hair with a flower hairpin, soft pink eyes, pastel floral hanbok-style dress; she is HUMAN, match the reference portrait). Top-down view of the tea table: Yeoni's hands laying out three blank cream paper slips in a row next to a small brush pen and the teacups. The slips are completely blank. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "tea",
+   "cut": "08",
+   "files": "public/images/consultation-webtoons/tea/08-{640,1080}.avif + 08-720.webp",
+   "origin": "generated",
+   "source": "out/tea/08.png",
+   "sourceSha256": "81df060d38ad99ee",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/covers/tea.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Close-up of the guest (young Korean woman, short dark bob hair, oversized grey knit cardigan, holding a smartphone; same person as in the attached tea-house cover)'s hand writing on one paper slip with a brush pen; the writing is soft blurred ink strokes, not readable. Teacup and rain-light around. Quiet, intimate. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "tea",
+   "cut": "09",
+   "files": "public/images/consultation-webtoons/tea/09-{640,1080}.avif + 09-720.webp",
+   "origin": "generated",
+   "source": "out/tea/09.png",
+   "sourceSha256": "1601236b4b5e03df",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/yeoni-teahouse-portrait.webp",
+    "CodeDestiny-Build/여_연이 프로필 사복버전.webp",
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/covers/tea.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Yeoni (young Korean woman, long wavy pastel-pink hair with a flower hairpin, soft pink eyes, pastel floral hanbok-style dress; she is HUMAN, match the reference portrait). Two-shot across the tea table: the guest (young Korean woman, short dark bob hair, oversized grey knit cardigan, holding a smartphone; same person as in the attached tea-house cover) looking up surprised and lighter, holding the written slip; Yeoni listening with hands folded, not pointing or deciding, warm smile. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "tea",
+   "cut": "10",
+   "files": "public/images/consultation-webtoons/tea/10-{640,1024}.avif + 10-720.webp",
+   "origin": "generated",
+   "source": "out/tea/10.png",
+   "sourceSha256": "19a1e5bd54af7095",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/yeoni-teahouse-portrait.webp",
+    "CodeDestiny-Build/여_연이 프로필 사복버전.webp",
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/covers/tea.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Yeoni (young Korean woman, long wavy pastel-pink hair with a flower hairpin, soft pink eyes, pastel floral hanbok-style dress; she is HUMAN, match the reference portrait). the guest (young Korean woman, short dark bob hair, oversized grey knit cardigan, holding a smartphone; same person as in the attached tea-house cover) at the tea house doorway opening a transparent umbrella into the light rain, phone in her other hand, a small relieved smile; Yeoni seen behind through the doorway waving softly. Lantern glow on wet stones. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "neo",
+   "cut": "01",
+   "files": "public/images/consultation-webtoons/neo/01-{640,1080}.avif + 01-720.webp",
+   "origin": "reused",
+   "source": "public/images/service-introductions/neo-operation-room.webp",
+   "sourceSha256": "a73fda2093c0471e"
+  },
+  {
+   "work": "neo",
+   "cut": "02",
+   "files": "public/images/consultation-webtoons/neo/02-{640,1080}.avif + 02-720.webp",
+   "origin": "generated",
+   "source": "out/neo/02.png",
+   "sourceSha256": "98937395e6b026a3",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/neo-strategy-portrait.webp",
+    "CodeDestiny-Build/네오 인간 프로필1.png",
+    "public/images/service-introductions/neo-operation-room.webp"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Neo (young HUMAN man, short silver-white hair, grey-blue eyes, navy military-style coat with gold trim, white half cape, black gloves; fully human, NO lion or animal anywhere, match the reference). EDIT the third attached image (the original Neo strategy-room artwork): keep Neo, the composition, lighting and style exactly. On the strategy map in front of him add two clearly separated glowing markers: a gold marker on the left resting on a sealed contract envelope, and a blue marker on the right resting on a closed proposal folder. Neo's gloved index finger hovers between the two markers. Remove any text. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "neo",
+   "cut": "03",
+   "files": "public/images/consultation-webtoons/neo/03-{640,1024}.avif + 03-720.webp",
+   "origin": "generated",
+   "source": "out/neo/03.png",
+   "sourceSha256": "8c73f2686ad793c7",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/neo-strategy-portrait.webp",
+    "CodeDestiny-Build/네오 인간 프로필1.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Neo (young HUMAN man, short silver-white hair, grey-blue eyes, navy military-style coat with gold trim, white half cape, black gloves; fully human, NO lion or animal anywhere, match the reference). the guest (young Korean man, messy black hair, dark charcoal hoodie, office ID lanyard) standing in Neo's strategy room holding a closed proposal folder in one hand and a buzzing smartphone in the other, overwhelmed expression. Strategy table and map in background. Neo not in frame. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "neo",
+   "cut": "04",
+   "files": "public/images/consultation-webtoons/neo/04-{640,1080}.avif + 04-720.webp",
+   "origin": "generated",
+   "source": "out/neo/04.png",
+   "sourceSha256": "00f3ce3d93821c84",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/neo-strategy-portrait.webp",
+    "CodeDestiny-Build/네오 인간 프로필1.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Neo (young HUMAN man, short silver-white hair, grey-blue eyes, navy military-style coat with gold trim, white half cape, black gloves; fully human, NO lion or animal anywhere, match the reference). Close-up of Neo's black-gloved hand sliding a gold marker and a blue marker far apart on the strategy map. Candle light, ink lines on the map, no text. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "neo",
+   "cut": "05",
+   "files": "public/images/consultation-webtoons/neo/05-{640,1024}.avif + 05-720.webp",
+   "origin": "generated",
+   "source": "out/neo/05.png",
+   "sourceSha256": "8f3ceb10ad12df02",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/neo-strategy-portrait.webp",
+    "CodeDestiny-Build/네오 인간 프로필1.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Neo (young HUMAN man, short silver-white hair, grey-blue eyes, navy military-style coat with gold trim, white half cape, black gloves; fully human, NO lion or animal anywhere, match the reference). Close-up of Neo, sharp level gaze toward the viewer, a faint dry half smile, chin slightly raised, one gloved hand resting on the table. Not cruel; confident. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "neo",
+   "cut": "06",
+   "files": "public/images/consultation-webtoons/neo/06-{640,1024}.avif + 06-720.webp",
+   "origin": "generated",
+   "source": "out/neo/06.png",
+   "sourceSha256": "bf75f1f5e5ec0ce8",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [],
+   "prompt": "Vertical-scroll Korean webtoon panel. the guest (young Korean man, messy black hair, dark charcoal hoodie, office ID lanyard) wincing and rubbing the back of his neck, half laughing at himself. Dim strategy room light with maps and candles. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "neo",
+   "cut": "07",
+   "files": "public/images/consultation-webtoons/neo/07-{640,1080}.avif + 07-720.webp",
+   "origin": "generated",
+   "source": "out/neo/07.png",
+   "sourceSha256": "17baf2d97b86db28",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/neo-strategy-portrait.webp",
+    "CodeDestiny-Build/네오 인간 프로필1.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Neo (young HUMAN man, short silver-white hair, grey-blue eyes, navy military-style coat with gold trim, white half cape, black gloves; fully human, NO lion or animal anywhere, match the reference). Neo leaning forward over the strategy table toward the guest (young Korean man, messy black hair, dark charcoal hoodie, office ID lanyard), a gold marker and a blue marker glowing between them, Neo asking a direct question with a steady look. Dramatic but calm lighting. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "neo",
+   "cut": "08",
+   "files": "public/images/consultation-webtoons/neo/08-{640,1080}.avif + 08-720.webp",
+   "origin": "generated",
+   "source": "out/neo/08.png",
+   "sourceSha256": "ac07ef3ce86e90c5",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [],
+   "prompt": "Vertical-scroll Korean webtoon panel. Close-up of the guest (young Korean man, messy black hair, dark charcoal hoodie, office ID lanyard) looking down at his phone screen (blank glowing screen) in thought, a wall clock near midnight blurred behind him. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "neo",
+   "cut": "09",
+   "files": "public/images/consultation-webtoons/neo/09-{640,1080}.avif + 09-720.webp",
+   "origin": "generated",
+   "source": "out/neo/09.png",
+   "sourceSha256": "c96983fe16c211c5",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/neo-strategy-portrait.webp",
+    "CodeDestiny-Build/네오 인간 프로필1.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Neo (young HUMAN man, short silver-white hair, grey-blue eyes, navy military-style coat with gold trim, white half cape, black gloves; fully human, NO lion or animal anywhere, match the reference). the guest (young Korean man, messy black hair, dark charcoal hoodie, office ID lanyard) placing the gold marker in the center of the strategy map with resolve; Neo standing with arms crossed, giving one approving nod. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "neo",
+   "cut": "10",
+   "files": "public/images/consultation-webtoons/neo/10-{640,1024}.avif + 10-720.webp",
+   "origin": "generated",
+   "source": "out/neo/10.png",
+   "sourceSha256": "7c7710d60edd8a78",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/neo-strategy-portrait.webp",
+    "CodeDestiny-Build/네오 인간 프로필1.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Neo (young HUMAN man, short silver-white hair, grey-blue eyes, navy military-style coat with gold trim, white half cape, black gloves; fully human, NO lion or animal anywhere, match the reference). the guest (young Korean man, messy black hair, dark charcoal hoodie, office ID lanyard) walking out down a dark corridor with the phone at his ear, determined; in the background through the open door Neo writes the next note at the lit strategy table. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "love-secret",
+   "cut": "01",
+   "files": "public/images/consultation-webtoons/love-secret/01-{640,1080}.avif + 01-720.webp",
+   "origin": "reused",
+   "source": "public/images/service-introductions/love-secret-ai.webp",
+   "sourceSha256": "f6fef2c35347e48a"
+  },
+  {
+   "work": "love-secret",
+   "cut": "02",
+   "files": "public/images/consultation-webtoons/love-secret/02-{640,1080}.avif + 02-720.webp",
+   "origin": "generated",
+   "source": "out/love-secret/02.png",
+   "sourceSha256": "6728503316d52f3e",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [],
+   "prompt": "Vertical-scroll Korean webtoon panel. Split-screen illustration divided by a thin glowing red thread down the middle. LEFT: Jiwoo (young Korean woman, shoulder-length wavy brown hair, cream cardigan) sitting on her bed at night hugging her knees, looking hurt at her phone. RIGHT: Hyun (young Korean man, short black hair, navy shirt with loosened collar) at an office desk late at night, exhausted, typing quickly on his phone beside a laptop. Both phone screens are blank glowing light. Night city blues on the right, warm lamp on the left. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "love-secret",
+   "cut": "03",
+   "files": "public/images/consultation-webtoons/love-secret/03-{640,1024}.avif + 03-720.webp",
+   "origin": "generated",
+   "source": "out/love-secret/03.png",
+   "sourceSha256": "eac943f558a7556f",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [],
+   "prompt": "Vertical-scroll Korean webtoon panel. Close-up of Jiwoo (young Korean woman, shoulder-length wavy brown hair, cream cardigan) in her dark bedroom, phone light on her face, eyes uneasy, biting her lip. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "love-secret",
+   "cut": "04",
+   "files": "public/images/consultation-webtoons/love-secret/04-{640,1024}.avif + 04-720.webp",
+   "origin": "generated",
+   "source": "out/love-secret/04.png",
+   "sourceSha256": "da3c07c5391750c2",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [],
+   "prompt": "Vertical-scroll Korean webtoon panel. Close-up of Hyun (young Korean man, short black hair, navy shirt with loosened collar) at his office desk, rubbing his eyes with fatigue, phone placed face-down next to a laptop with blurred spreadsheets. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "love-secret",
+   "cut": "05",
+   "files": "public/images/consultation-webtoons/love-secret/05-{640,1080}.avif + 05-720.webp",
+   "origin": "generated",
+   "source": "out/love-secret/05.png",
+   "sourceSha256": "0d9c625cdae3f92f",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/yeoni-love-portrait.webp",
+    "public/images/master-profiles/hanbi-love-portrait.webp"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Yeoni (young Korean woman, long wavy pastel-pink hair with a flower hairpin, soft pink eyes, pastel floral hanbok-style dress; HUMAN, match the reference portrait); Seo Hanbi (young woman, long wavy black hair, calm dark eyes, deep indigo patterned coat dress; match the reference). In a cozy night consultation room, Yeoni sits across from Jiwoo (young Korean woman, shoulder-length wavy brown hair, cream cardigan), leaning in, listening with full attention; Seo Hanbi sits at the side quietly holding a small brass compass. Warm lantern light, star map on the table. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "love-secret",
+   "cut": "06",
+   "files": "public/images/consultation-webtoons/love-secret/06-{640,1024}.avif + 06-720.webp",
+   "origin": "generated",
+   "source": "out/love-secret/06.png",
+   "sourceSha256": "1faf8afe66271b26",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/yeoni-love-portrait.webp"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Yeoni (young Korean woman, long wavy pastel-pink hair with a flower hairpin, soft pink eyes, pastel floral hanbok-style dress; HUMAN, match the reference portrait). Jiwoo (young Korean woman, shoulder-length wavy brown hair, cream cardigan) speaking with hands clasped, worried, in the consultation room; Yeoni softly out of focus at the edge of the frame. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "love-secret",
+   "cut": "07",
+   "files": "public/images/consultation-webtoons/love-secret/07-{640,1024}.avif + 07-720.webp",
+   "origin": "generated",
+   "source": "out/love-secret/07.png",
+   "sourceSha256": "012ddee63b704026",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/hanbi-love-portrait.webp",
+    "CodeDestiny-Build/서한비 프로필 시트.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Seo Hanbi (young woman, long wavy black hair, calm dark eyes, deep indigo patterned coat dress; match the reference). Close-up of Seo Hanbi, calm and precise, looking straight at the listener, one hand resting on a brass compass. Indigo shadows, candle glow. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "love-secret",
+   "cut": "08",
+   "files": "public/images/consultation-webtoons/love-secret/08-{640,1080}.avif + 08-720.webp",
+   "origin": "generated",
+   "source": "out/love-secret/08.png",
+   "sourceSha256": "f9ec7281e11970fa",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/hanbi-love-portrait.webp",
+    "CodeDestiny-Build/서한비 프로필 시트.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Seo Hanbi (young woman, long wavy black hair, calm dark eyes, deep indigo patterned coat dress; match the reference). Close-up of Seo Hanbi's hands placing two blank cards side by side on the star-map table: on one card sits a tiny lit lantern, on the other a tiny hourglass. No text on cards. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "love-secret",
+   "cut": "09",
+   "files": "public/images/consultation-webtoons/love-secret/09-{640,1024}.avif + 09-720.webp",
+   "origin": "generated",
+   "source": "out/love-secret/09.png",
+   "sourceSha256": "68d42db69acd410b",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/yeoni-love-portrait.webp"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Yeoni (young Korean woman, long wavy pastel-pink hair with a flower hairpin, soft pink eyes, pastel floral hanbok-style dress; HUMAN, match the reference portrait). Jiwoo (young Korean woman, shoulder-length wavy brown hair, cream cardigan) calmly typing a message on her phone (blank screen) with a softened, steady expression; Yeoni beside her smiling warmly. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "love-secret",
+   "cut": "10",
+   "files": "public/images/consultation-webtoons/love-secret/10-{640,1024}.avif + 10-720.webp",
+   "origin": "generated",
+   "source": "out/love-secret/10.png",
+   "sourceSha256": "33ee235e5fc6da7e",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [],
+   "prompt": "Vertical-scroll Korean webtoon panel. Jiwoo (young Korean woman, shoulder-length wavy brown hair, cream cardigan) by her window at night, calm, the phone on the sill with its screen dark; city lights outside. Peaceful open ending. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "heukwol",
+   "cut": "01",
+   "files": "public/images/consultation-webtoons/heukwol/01-{640,1080}.avif + 01-720.webp",
+   "origin": "generated",
+   "source": "out/heukwol/01.png",
+   "sourceSha256": "d2abb7edf03f3241",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/heukwol/moon-library.webp"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Wide establishing shot of the moon library at night as in the attached background reference, but the moon outside is being swallowed by a black eclipse; moonlight dimming across the bookshelves. No people. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "heukwol",
+   "cut": "02",
+   "files": "public/images/consultation-webtoons/heukwol/02-{640,1080}.avif + 02-720.webp",
+   "origin": "generated",
+   "source": "out/heukwol/02.png",
+   "sourceSha256": "e3443c22328c5bd8",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/흑월 프로필 시트.png",
+    "public/images/master-profiles/yeoni-teahouse-portrait.webp",
+    "public/images/master-profiles/neo-strategy-portrait.webp"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Heukwol (ethereal woman, long straight black hair adorned with red flowers, pale skin, eyes ringed like a solar eclipse, dark layered hanbok, a black-moon eclipse aura; she warns, she is not a monster; match the reference sheet); Yeoni (young Korean woman, long wavy pastel-pink hair with a flower hairpin, soft pink eyes, pastel floral hanbok-style dress; she is HUMAN, match the reference portrait); Neo (young HUMAN man, short silver-white hair, grey-blue eyes, navy military-style coat with gold trim, white half cape, black gloves; fully human, NO lion or animal anywhere, match the reference). Heukwol stands beside a tall dark wooden door wrapped in black vines, a black eclipse behind her, her hand gently resting on the door frame like a warning. In the foreground, seen from behind and side, Yeoni and Neo stand with the guest (young Korean woman, dark low ponytail, beige trench coat) between them, all facing the door. Mysterious, beautiful, not horror. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "heukwol",
+   "cut": "03",
+   "files": "public/images/consultation-webtoons/heukwol/03-{640,1024}.avif + 03-720.webp",
+   "origin": "generated",
+   "source": "out/heukwol/03.png",
+   "sourceSha256": "b3f58eaabc35a555",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/흑월 프로필 시트.png",
+    "public/images/consultation-webtoons/heukwol/hw12-02.webp"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Heukwol (ethereal woman, long straight black hair adorned with red flowers, pale skin, eyes ringed like a solar eclipse, dark layered hanbok, a black-moon eclipse aura; she warns, she is not a monster; match the reference sheet). Close-up of Heukwol with a soft, almost kind smile, eclipse light ringing her eyes, red flowers in her black hair, leaning slightly toward the guest. Unsettling gentleness. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "heukwol",
+   "cut": "04",
+   "files": "public/images/consultation-webtoons/heukwol/04-{640,1080}.avif + 04-720.webp",
+   "origin": "generated",
+   "source": "out/heukwol/04.png",
+   "sourceSha256": "ae104c08e4a6cb79",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [],
+   "prompt": "Vertical-scroll Korean webtoon panel. Close-up of the guest (young Korean woman, dark low ponytail, beige trench coat)'s thumb pressing send on a smartphone in a hurry; the blank glowing screen reflects a dark door with vines. Black vine shadows creep across the hand. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "heukwol",
+   "cut": "05",
+   "files": "public/images/consultation-webtoons/heukwol/05-{640,1024}.avif + 05-720.webp",
+   "origin": "generated",
+   "source": "out/heukwol/05.png",
+   "sourceSha256": "8143d7114a630b7a",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [],
+   "prompt": "Vertical-scroll Korean webtoon panel. the guest (young Korean woman, dark low ponytail, beige trench coat) sinking to her knees on the library floor, covering her face with her hands; thin black cracks spread across the floor toward a vine-covered door. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "heukwol",
+   "cut": "06",
+   "files": "public/images/consultation-webtoons/heukwol/06-{640,1024}.avif + 06-720.webp",
+   "origin": "generated",
+   "source": "out/heukwol/06.png",
+   "sourceSha256": "3fa838eb6fc93ba2",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/yeoni-teahouse-portrait.webp",
+    "CodeDestiny-Build/여_연이 프로필 사복버전.webp"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Yeoni (young Korean woman, long wavy pastel-pink hair with a flower hairpin, soft pink eyes, pastel floral hanbok-style dress; she is HUMAN, match the reference portrait). Yeoni kneeling beside the crouched guest (the guest (young Korean woman, dark low ponytail, beige trench coat)), one hand on the guest's shoulder, but her eyes turned sharply toward the bottom of a dark vine-covered door, where a thin line of warm light leaks out. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "heukwol",
+   "cut": "07",
+   "files": "public/images/consultation-webtoons/heukwol/07-{640,1080}.avif + 07-720.webp",
+   "origin": "generated",
+   "source": "out/heukwol/07.png",
+   "sourceSha256": "51939d5021dc8adf",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/yeoni-teahouse-portrait.webp",
+    "CodeDestiny-Build/여_연이 프로필 사복버전.webp"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Yeoni (young Korean woman, long wavy pastel-pink hair with a flower hairpin, soft pink eyes, pastel floral hanbok-style dress; she is HUMAN, match the reference portrait). Close-up of Yeoni's hand and ear pressed gently against the dark vine-covered door; a thread of warm golden light slips through the gap at her fingertips. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "heukwol",
+   "cut": "08",
+   "files": "public/images/consultation-webtoons/heukwol/08-{640,1024}.avif + 08-720.webp",
+   "origin": "generated",
+   "source": "out/heukwol/08.png",
+   "sourceSha256": "6c9e5aad5599ee3c",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/yeoni-teahouse-portrait.webp",
+    "CodeDestiny-Build/여_연이 프로필 사복버전.webp"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Yeoni (young Korean woman, long wavy pastel-pink hair with a flower hairpin, soft pink eyes, pastel floral hanbok-style dress; she is HUMAN, match the reference portrait). Yeoni turning back toward the guest with a firm, warm expression, warm light from a door gap behind her. Determined, gentle. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "heukwol",
+   "cut": "09",
+   "files": "public/images/consultation-webtoons/heukwol/09-{640,1080}.avif + 09-720.webp",
+   "origin": "generated",
+   "source": "out/heukwol/09.png",
+   "sourceSha256": "e732d38568c82ca2",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/neo-strategy-portrait.webp",
+    "CodeDestiny-Build/네오 인간 프로필1.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Neo (young HUMAN man, short silver-white hair, grey-blue eyes, navy military-style coat with gold trim, white half cape, black gloves; fully human, NO lion or animal anywhere, match the reference). Neo at a small strategy table beside a dark door, drawing a decisive line with a pen that splits one dark path on a map into two paths; his expression serious, taking the warning seriously. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "heukwol",
+   "cut": "10",
+   "files": "public/images/consultation-webtoons/heukwol/10-{640,1080}.avif + 10-720.webp",
+   "origin": "generated",
+   "source": "out/heukwol/10.png",
+   "sourceSha256": "424211461dce6ed0",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [],
+   "prompt": "Vertical-scroll Korean webtoon panel. Close-up of the guest (young Korean woman, dark low ponytail, beige trench coat)'s thumb resting still above the phone keyboard, not sending; a small warm light glows from the blank screen; black vine shadow receding from her wrist. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "heukwol",
+   "cut": "11",
+   "files": "public/images/consultation-webtoons/heukwol/11-{640,1024}.avif + 11-720.webp",
+   "origin": "generated",
+   "source": "out/heukwol/11.png",
+   "sourceSha256": "72f5c86b114c07b0",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/흑월 프로필 시트.png",
+    "public/images/consultation-webtoons/heukwol/hw12-02.webp"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Heukwol (ethereal woman, long straight black hair adorned with red flowers, pale skin, eyes ringed like a solar eclipse, dark layered hanbok, a black-moon eclipse aura; she warns, she is not a monster; match the reference sheet). Heukwol watching from the shadow between bookshelves, arms folded, a small intrigued smile; behind her the eclipse has thinned slightly, a sliver of moonlight returning. She is not defeated, she is observing. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "heukwol",
+   "cut": "12",
+   "files": "public/images/consultation-webtoons/heukwol/12-{640,1024}.avif + 12-720.webp",
+   "origin": "generated",
+   "source": "out/heukwol/12.png",
+   "sourceSha256": "d99ab88a76e0a06c",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/yeoni-teahouse-portrait.webp",
+    "public/images/master-profiles/neo-strategy-portrait.webp"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Yeoni (young Korean woman, long wavy pastel-pink hair with a flower hairpin, soft pink eyes, pastel floral hanbok-style dress; she is HUMAN, match the reference portrait); Neo (young HUMAN man, short silver-white hair, grey-blue eyes, navy military-style coat with gold trim, white half cape, black gloves; fully human, NO lion or animal anywhere, match the reference). A dark door now slightly open, soft moonlight spilling out and forming a path that forks into two; Yeoni and Neo walk on either side of the guest (young Korean woman, dark low ponytail, beige trench coat) toward the lighter fork. Seen from behind. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "fusion",
+   "cut": "01",
+   "files": "public/images/consultation-webtoons/fusion/01-{640,1080}.avif + 01-720.webp",
+   "origin": "generated",
+   "source": "out/fusion/01.png",
+   "sourceSha256": "82c546391d304fac",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [],
+   "prompt": "Vertical-scroll Korean webtoon panel. Wide shot of a round night consultation hall with one large round table; on it six distinct divination instruments glow in a circle: a four-pillars saju scroll with five-element stones, a fan of tarot cards, a lunar-mansion board, a square Vedic chart with a bead string, a circular western natal wheel, and a twelve-palace Ziwei grid. No people, no text. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "fusion",
+   "cut": "02",
+   "files": "public/images/consultation-webtoons/fusion/02-{640,1080}.avif + 02-720.webp",
+   "origin": "generated",
+   "source": "out/fusion/02.png",
+   "sourceSha256": "709eb3ec2120ebf8",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/neo-strategy-portrait.webp",
+    "public/images/master-profiles/yeoni-teahouse-portrait.webp",
+    "public/images/master-profiles/hanbi-sukuyo-portrait.webp",
+    "public/images/master-profiles/yun-astrology-portrait.webp",
+    "public/images/master-profiles/musung-ziwei-portrait.webp"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Neo (young HUMAN man, short silver-white hair, grey-blue eyes, navy military-style coat with gold trim, white half cape, black gloves; fully human, NO lion or animal anywhere, match the reference); Yeoni (young Korean woman, long wavy pastel-pink hair with a flower hairpin, soft pink eyes, pastel floral hanbok-style dress; she is HUMAN, match the reference portrait); Seo Hanbi (young woman, long wavy black hair, calm dark eyes, deep indigo patterned coat dress; match the reference). Five masters gathered around a round table, all leaning over the same single cream envelope (a job offer letter) in the center: Neo (silver hair, navy coat, white cape), Yeoni (pink hair, floral hanbok), Seo Hanbi (long black hair, indigo coat dress), Yundal (navy-purple low ponytail, navy moon robe, gold pendant), Musung (long dark purple hair, violet eyes, black robe, gold feather). Each has their own instrument in front of them. the guest (young Korean woman, straight black hair to shoulders, white blouse and grey blazer) sits at the near side, seen from behind. All five are human; NO lion or animals. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "fusion",
+   "cut": "03",
+   "files": "public/images/consultation-webtoons/fusion/03-{640,1024}.avif + 03-720.webp",
+   "origin": "generated",
+   "source": "out/fusion/03.png",
+   "sourceSha256": "e8cf3555fd22da2d",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/neo-strategy-portrait.webp",
+    "CodeDestiny-Build/네오 인간 프로필1.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Neo (young HUMAN man, short silver-white hair, grey-blue eyes, navy military-style coat with gold trim, white half cape, black gloves; fully human, NO lion or animal anywhere, match the reference). Neo pointing at a four-pillars saju scroll with glowing five-element stones, confident expression, round table setting. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "fusion",
+   "cut": "04",
+   "files": "public/images/consultation-webtoons/fusion/04-{640,1024}.avif + 04-720.webp",
+   "origin": "generated",
+   "source": "out/fusion/04.png",
+   "sourceSha256": "6b00cd57e8832f5d",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/musung-ziwei-portrait.webp",
+    "CodeDestiny-Build/무성 프로필 시트.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Musung (man with long dark purple hair, sharp violet eyes, black robe with gold feather ornament, stern; match the reference). Musung touching one glowing cell of a twelve-palace Ziwei grid with a brush, stern focused look. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "fusion",
+   "cut": "05",
+   "files": "public/images/consultation-webtoons/fusion/05-{640,1024}.avif + 05-720.webp",
+   "origin": "generated",
+   "source": "out/fusion/05.png",
+   "sourceSha256": "5552c0d134ab4b6a",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/yun-astrology-portrait.webp",
+    "CodeDestiny-Build/윤달 프로필 시트.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Yundal (young man, dark navy-purple hair in a low ponytail, gentle smile, dark navy robe with crescent-moon embroidery, round gold pendant; match the reference). Yundal holding a string of moon-phase beads over a square Vedic chart and a circular natal wheel, calm thoughtful smile, slightly tilting his head. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "fusion",
+   "cut": "06",
+   "files": "public/images/consultation-webtoons/fusion/06-{640,1024}.avif + 06-720.webp",
+   "origin": "generated",
+   "source": "out/fusion/06.png",
+   "sourceSha256": "b0f5ea870c30e717",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/yeoni-teahouse-portrait.webp",
+    "CodeDestiny-Build/여_연이 프로필 사복버전.webp"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Yeoni (young Korean woman, long wavy pastel-pink hair with a flower hairpin, soft pink eyes, pastel floral hanbok-style dress; she is HUMAN, match the reference portrait). Yeoni holding up one tarot card (back side facing viewer, ornate pattern, no text), warm smile, soft candle light. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "fusion",
+   "cut": "07",
+   "files": "public/images/consultation-webtoons/fusion/07-{640,1024}.avif + 07-720.webp",
+   "origin": "generated",
+   "source": "out/fusion/07.png",
+   "sourceSha256": "10d87d7c5c63af34",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/hanbi-sukuyo-portrait.webp",
+    "CodeDestiny-Build/서한비 프로필 시트.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Seo Hanbi (young woman, long wavy black hair, calm dark eyes, deep indigo patterned coat dress; match the reference). Seo Hanbi placing a moon stone on a lunar-mansion board, calm precise expression, indigo light. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "fusion",
+   "cut": "08",
+   "files": "public/images/consultation-webtoons/fusion/08-{640,1080}.avif + 08-720.webp",
+   "origin": "generated",
+   "source": "out/fusion/08.png",
+   "sourceSha256": "d67feb60888bcb7b",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [],
+   "prompt": "Vertical-scroll Korean webtoon panel. Top-down view of a round table with six divination instruments: streams of light rise from them; most streams merge into one bright point in the center, while one stream bends to a separate smaller point beside it. Beautiful light diagram, no text, no people. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "fusion",
+   "cut": "09",
+   "files": "public/images/consultation-webtoons/fusion/09-{640,1080}.avif + 09-720.webp",
+   "origin": "generated",
+   "source": "out/fusion/09.png",
+   "sourceSha256": "ed7c483ab4c7c556",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/neo-strategy-portrait.webp",
+    "public/images/master-profiles/yeoni-teahouse-portrait.webp",
+    "public/images/master-profiles/hanbi-sukuyo-portrait.webp"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Neo (young HUMAN man, short silver-white hair, grey-blue eyes, navy military-style coat with gold trim, white half cape, black gloves; fully human, NO lion or animal anywhere, match the reference); Yeoni (young Korean woman, long wavy pastel-pink hair with a flower hairpin, soft pink eyes, pastel floral hanbok-style dress; she is HUMAN, match the reference portrait). Neo standing and summarizing with one finger raised, Yeoni and Seo Hanbi (long black hair, indigo coat dress) nodding beside him at the round table, the guest (young Korean woman, straight black hair to shoulders, white blouse and grey blazer) listening attentively. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "fusion",
+   "cut": "10",
+   "files": "public/images/consultation-webtoons/fusion/10-{640,1024}.avif + 10-720.webp",
+   "origin": "generated",
+   "source": "out/fusion/10.png",
+   "sourceSha256": "b8e8cd3db90b5ef2",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [],
+   "prompt": "Vertical-scroll Korean webtoon panel. the guest (young Korean woman, straight black hair to shoulders, white blouse and grey blazer) at her desk at dawn writing an email on a laptop (blank screen glow), calm determined face; faint luminous shapes of divination instruments float softly behind her. No text. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "new-year",
+   "cut": "01",
+   "files": "public/images/consultation-webtoons/new-year/01-{640,1080}.avif + 01-720.webp",
+   "origin": "reused",
+   "source": "public/images/service-introductions/new-year-ai.webp",
+   "sourceSha256": "6c21a354c379eeba"
+  },
+  {
+   "work": "new-year",
+   "cut": "02",
+   "files": "public/images/consultation-webtoons/new-year/02-{640,1080}.avif + 02-720.webp",
+   "origin": "generated",
+   "source": "out/new-year/02.png",
+   "sourceSha256": "fb53cd07f95f0c92",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/neo-new-year-portrait.webp",
+    "CodeDestiny-Build/네오 인간 프로필1.png",
+    "public/images/service-introductions/new-year-ai.webp"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Neo (young HUMAN man, short silver-white hair, grey-blue eyes, outfit exactly as in the new-year reference portrait; fully human, NO lion or animal anywhere). Neo pinning a small red flag into the spring section of a large painted twelve-season map on the table (spring blossoms, summer green, autumn maple, winter snow regions), while the guest (Korean woman in her thirties, hair tied back, cafe apron over a beige sweater, holding a small calendar notebook) sits across the table watching hopefully. No text on the map. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "new-year",
+   "cut": "03",
+   "files": "public/images/consultation-webtoons/new-year/03-{640,1024}.avif + 03-720.webp",
+   "origin": "generated",
+   "source": "out/new-year/03.png",
+   "sourceSha256": "c1a1d0cba52e49dc",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/new-year/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. the guest (Korean woman in her thirties, hair tied back, cafe apron over a beige sweater, holding a small calendar notebook) speaking hesitantly, fingers tight on her notebook, across a map table. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "new-year",
+   "cut": "04",
+   "files": "public/images/consultation-webtoons/new-year/04-{640,1080}.avif + 04-720.webp",
+   "origin": "generated",
+   "source": "out/new-year/04.png",
+   "sourceSha256": "5e85b1b71cca9e18",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/neo-new-year-portrait.webp",
+    "CodeDestiny-Build/네오 인간 프로필1.png",
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/new-year/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Neo (young HUMAN man, short silver-white hair, grey-blue eyes, outfit exactly as in the new-year reference portrait; fully human, NO lion or animal anywhere). Close-up of Neo's gloved hand placing a red flag on the spring blossom area and a blue stone on the summer area of the painted season map. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "new-year",
+   "cut": "05",
+   "files": "public/images/consultation-webtoons/new-year/05-{640,1024}.avif + 05-720.webp",
+   "origin": "generated",
+   "source": "out/new-year/05.png",
+   "sourceSha256": "1c26316b39e3f9fb",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/neo-new-year-portrait.webp",
+    "CodeDestiny-Build/네오 인간 프로필1.png",
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/new-year/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Neo (young HUMAN man, short silver-white hair, grey-blue eyes, outfit exactly as in the new-year reference portrait; fully human, NO lion or animal anywhere). Neo explaining with one finger on the map, focused strategist expression, warm lamp light. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "new-year",
+   "cut": "06",
+   "files": "public/images/consultation-webtoons/new-year/06-{640,1024}.avif + 06-720.webp",
+   "origin": "generated",
+   "source": "out/new-year/06.png",
+   "sourceSha256": "4f78a02e37047caa",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/new-year/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. the guest (Korean woman in her thirties, hair tied back, cafe apron over a beige sweater, holding a small calendar notebook) looking worried, leaning forward. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "new-year",
+   "cut": "07",
+   "files": "public/images/consultation-webtoons/new-year/07-{640,1024}.avif + 07-720.webp",
+   "origin": "generated",
+   "source": "out/new-year/07.png",
+   "sourceSha256": "2f4f280391ca053c",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/neo-new-year-portrait.webp",
+    "CodeDestiny-Build/네오 인간 프로필1.png",
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/new-year/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Neo (young HUMAN man, short silver-white hair, grey-blue eyes, outfit exactly as in the new-year reference portrait; fully human, NO lion or animal anywhere). Neo with arms crossed, a calm half smile, reassuring but firm. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "new-year",
+   "cut": "08",
+   "files": "public/images/consultation-webtoons/new-year/08-{640,1080}.avif + 08-720.webp",
+   "origin": "generated",
+   "source": "out/new-year/08.png",
+   "sourceSha256": "a6fa461d42a24b8b",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/new-year/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Close-up of the painted twelve-season map: the autumn maple region glows softly gold while other seasons are dimmer. No text. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "new-year",
+   "cut": "09",
+   "files": "public/images/consultation-webtoons/new-year/09-{640,1080}.avif + 09-720.webp",
+   "origin": "generated",
+   "source": "out/new-year/09.png",
+   "sourceSha256": "a4d5e7efe52f49ed",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/neo-new-year-portrait.webp",
+    "CodeDestiny-Build/네오 인간 프로필1.png",
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/new-year/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Neo (young HUMAN man, short silver-white hair, grey-blue eyes, outfit exactly as in the new-year reference portrait; fully human, NO lion or animal anywhere). the guest (Korean woman in her thirties, hair tied back, cafe apron over a beige sweater, holding a small calendar notebook) writing determinedly in her calendar notebook; Neo across the table giving a short nod. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "new-year",
+   "cut": "10",
+   "files": "public/images/consultation-webtoons/new-year/10-{640,1024}.avif + 10-720.webp",
+   "origin": "generated",
+   "source": "out/new-year/10.png",
+   "sourceSha256": "bcb22020f71d2957",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/new-year/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. the guest (Korean woman in her thirties, hair tied back, cafe apron over a beige sweater, holding a small calendar notebook) walking down a snowy street at dusk holding her notebook, tiny spring buds visible on a branch above her. Hopeful. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "life-book",
+   "cut": "01",
+   "files": "public/images/consultation-webtoons/life-book/01-{640,1080}.avif + 01-720.webp",
+   "origin": "reused",
+   "source": "public/images/service-introductions/life-book-ai.webp",
+   "sourceSha256": "46dcab9c4409d6ca"
+  },
+  {
+   "work": "life-book",
+   "cut": "02",
+   "files": "public/images/consultation-webtoons/life-book/02-{640,1080}.avif + 02-720.webp",
+   "origin": "generated",
+   "source": "out/life-book/02.png",
+   "sourceSha256": "69f002a0351cf1ac",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/yun-life-book-portrait.webp",
+    "CodeDestiny-Build/윤달 프로필 시트.png",
+    "public/images/service-introductions/life-book-ai.webp"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Yundal (young man, dark navy-purple hair in a low ponytail, gentle smile, dark navy robe with crescent-moon embroidery, round gold pendant; match the reference) and his fluffy white cat. Yundal opening a giant glowing book on the desk; from its pages rises a small illustrated scene of a child drawing alone at a sunny desk. the guest (young Korean man, round glasses, soft brown cardigan) sits across, amazed. The fluffy white cat sits on the desk. No text. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "life-book",
+   "cut": "03",
+   "files": "public/images/consultation-webtoons/life-book/03-{640,1080}.avif + 03-720.webp",
+   "origin": "generated",
+   "source": "out/life-book/03.png",
+   "sourceSha256": "195439fe083fdde0",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/life-book/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Inside the book page: a watercolor-like scene of a small boy drawing alone at a desk in sunlight, crayons scattered. No text. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "life-book",
+   "cut": "04",
+   "files": "public/images/consultation-webtoons/life-book/04-{640,1024}.avif + 04-720.webp",
+   "origin": "generated",
+   "source": "out/life-book/04.png",
+   "sourceSha256": "918328aa333e9a41",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/life-book/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. the guest (young Korean man, round glasses, soft brown cardigan) looking a bit lost, smiling wryly, hands around a teacup. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "life-book",
+   "cut": "05",
+   "files": "public/images/consultation-webtoons/life-book/05-{640,1024}.avif + 05-720.webp",
+   "origin": "generated",
+   "source": "out/life-book/05.png",
+   "sourceSha256": "a9ace5bc135117c6",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/yun-life-book-portrait.webp",
+    "CodeDestiny-Build/윤달 프로필 시트.png",
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/life-book/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Yundal (young man, dark navy-purple hair in a low ponytail, gentle smile, dark navy robe with crescent-moon embroidery, round gold pendant; match the reference) and his fluffy white cat. Yundal speaking warmly, one hand resting on the open book, gold pendant glinting. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "life-book",
+   "cut": "06",
+   "files": "public/images/consultation-webtoons/life-book/06-{640,1080}.avif + 06-720.webp",
+   "origin": "generated",
+   "source": "out/life-book/06.png",
+   "sourceSha256": "158575485f6aebb1",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/life-book/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Close-up of a fluffy white cat's paw turning a page of a glowing old book. No text. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "life-book",
+   "cut": "07",
+   "files": "public/images/consultation-webtoons/life-book/07-{640,1080}.avif + 07-720.webp",
+   "origin": "generated",
+   "source": "out/life-book/07.png",
+   "sourceSha256": "56511cc1a7050c8b",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/life-book/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. An open book page showing two illustrated vignettes side by side: on the left a young man in glasses presenting a design on a board to colleagues; on the right the same young man drawing in a sketchbook at night by a lamp. No text. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "life-book",
+   "cut": "08",
+   "files": "public/images/consultation-webtoons/life-book/08-{640,1080}.avif + 08-720.webp",
+   "origin": "generated",
+   "source": "out/life-book/08.png",
+   "sourceSha256": "b379c3bac8581d69",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/yun-life-book-portrait.webp",
+    "CodeDestiny-Build/윤달 프로필 시트.png",
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/life-book/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Yundal (young man, dark navy-purple hair in a low ponytail, gentle smile, dark navy robe with crescent-moon embroidery, round gold pendant; match the reference) and his fluffy white cat. the guest (young Korean man, round glasses, soft brown cardigan) asking earnestly, Yundal smiling gently and shaking his head slightly, the open book between them. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "life-book",
+   "cut": "09",
+   "files": "public/images/consultation-webtoons/life-book/09-{640,1080}.avif + 09-720.webp",
+   "origin": "generated",
+   "source": "out/life-book/09.png",
+   "sourceSha256": "0aad19128f043350",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/life-book/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Close-up of the guest (young Korean man, round glasses, soft brown cardigan)'s hand picking up a pencil above a blank page of the glowing book. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "life-book",
+   "cut": "10",
+   "files": "public/images/consultation-webtoons/life-book/10-{640,1024}.avif + 10-720.webp",
+   "origin": "generated",
+   "source": "out/life-book/10.png",
+   "sourceSha256": "ad1cd312d3961df7",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/life-book/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. the guest (young Korean man, round glasses, soft brown cardigan) at a small home desk late at night with an open sketchbook and lamp, a small content smile; a white cat silhouette sits on the windowsill under the moon. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "codex",
+   "cut": "01",
+   "files": "public/images/consultation-webtoons/codex/01-{640,1080}.avif + 01-720.webp",
+   "origin": "reused",
+   "source": "public/images/service-introductions/master-love-codex.webp",
+   "sourceSha256": "449867d135ad7d0d"
+  },
+  {
+   "work": "codex",
+   "cut": "02",
+   "files": "public/images/consultation-webtoons/codex/02-{640,1080}.avif + 02-720.webp",
+   "origin": "generated",
+   "source": "out/codex/02.png",
+   "sourceSha256": "307453f7861d895b",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/master-love-portrait.webp",
+    "public/images/service-introductions/master-love-codex.webp"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: the Master (elegant woman, long wavy black hair, warm red eyes, crimson lace dress, gold jewelry; match the reference). The Master with two books open side by side on a crimson table: left a four-pillars saju scroll with five-element stones, right a twelve-palace Ziwei grid; a thin red thread runs between the two books. the guest (young Korean woman, short black hair, white blouse) leans in from the other side. No text. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "codex",
+   "cut": "03",
+   "files": "public/images/consultation-webtoons/codex/03-{640,1024}.avif + 03-720.webp",
+   "origin": "generated",
+   "source": "out/codex/03.png",
+   "sourceSha256": "09bb63cf97deb505",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/codex/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. the guest (young Korean woman, short black hair, white blouse) speaking with a tired, honest expression, candle-lit crimson room. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "codex",
+   "cut": "04",
+   "files": "public/images/consultation-webtoons/codex/04-{640,1080}.avif + 04-720.webp",
+   "origin": "generated",
+   "source": "out/codex/04.png",
+   "sourceSha256": "c213f7d3a790e379",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/master-love-portrait.webp",
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/codex/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: the Master (elegant woman, long wavy black hair, warm red eyes, crimson lace dress, gold jewelry; match the reference). Close-up of the Master's finger with a gold ring tracing a red thread from a saju scroll to a Ziwei grid cell. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "codex",
+   "cut": "05",
+   "files": "public/images/consultation-webtoons/codex/05-{640,1024}.avif + 05-720.webp",
+   "origin": "generated",
+   "source": "out/codex/05.png",
+   "sourceSha256": "f49abe7659be777c",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/master-love-portrait.webp",
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/codex/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: the Master (elegant woman, long wavy black hair, warm red eyes, crimson lace dress, gold jewelry; match the reference). The Master speaking with warm red eyes, chin resting on one hand, gentle knowing smile. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "codex",
+   "cut": "06",
+   "files": "public/images/consultation-webtoons/codex/06-{640,1024}.avif + 06-720.webp",
+   "origin": "generated",
+   "source": "out/codex/06.png",
+   "sourceSha256": "143cc56fb9bd92be",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/codex/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. the guest (young Korean woman, short black hair, white blouse) looking down in quiet realization, hand over her heart. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "codex",
+   "cut": "07",
+   "files": "public/images/consultation-webtoons/codex/07-{640,1080}.avif + 07-720.webp",
+   "origin": "generated",
+   "source": "out/codex/07.png",
+   "sourceSha256": "8cf9f0e2a7b45ed5",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/master-love-portrait.webp",
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/codex/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: the Master (elegant woman, long wavy black hair, warm red eyes, crimson lace dress, gold jewelry; match the reference). The Master gesturing over both books where the red thread forms a single knot between them. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "codex",
+   "cut": "08",
+   "files": "public/images/consultation-webtoons/codex/08-{640,1080}.avif + 08-720.webp",
+   "origin": "generated",
+   "source": "out/codex/08.png",
+   "sourceSha256": "bd821b2d0b702c88",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/codex/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. A neat stack of glowing cream pages with red ribbon floating above a crimson table, like a bound codex. No text. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "codex",
+   "cut": "09",
+   "files": "public/images/consultation-webtoons/codex/09-{640,1080}.avif + 09-720.webp",
+   "origin": "generated",
+   "source": "out/codex/09.png",
+   "sourceSha256": "4b279885403c0420",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/master-love-portrait.webp",
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/codex/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: the Master (elegant woman, long wavy black hair, warm red eyes, crimson lace dress, gold jewelry; match the reference). the guest (young Korean woman, short black hair, white blouse) holding one page to her chest with a small smile; the Master smiling back. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "codex",
+   "cut": "10",
+   "files": "public/images/consultation-webtoons/codex/10-{640,1024}.avif + 10-720.webp",
+   "origin": "generated",
+   "source": "out/codex/10.png",
+   "sourceSha256": "0b414290323be384",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/codex/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. the guest (young Korean woman, short black hair, white blouse) in a sunny cafe accepting a coffee cup handed to her by a friend, smiling and not refusing. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "ziwei",
+   "cut": "01",
+   "files": "public/images/consultation-webtoons/ziwei/01-{640,1080}.avif + 01-720.webp",
+   "origin": "reused",
+   "source": "public/images/service-introductions/ziwei-ai.webp",
+   "sourceSha256": "6198300f05b1c756"
+  },
+  {
+   "work": "ziwei",
+   "cut": "02",
+   "files": "public/images/consultation-webtoons/ziwei/02-{640,1080}.avif + 02-720.webp",
+   "origin": "generated",
+   "source": "out/ziwei/02.png",
+   "sourceSha256": "5efae5245d3e973d",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/musung-ziwei-portrait.webp",
+    "CodeDestiny-Build/무성 프로필 시트.png",
+    "public/images/service-introductions/ziwei-ai.webp"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Musung (man with long dark purple hair, sharp violet eyes, black robe with gold feather ornament, stern; match the reference). Musung pointing a brush at one glowing palace of a twelve-palace Ziwei grid on the table; the guest (young Korean man, neat short hair, light blue office shirt) sits across, tense. No text in the grid. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "ziwei",
+   "cut": "03",
+   "files": "public/images/consultation-webtoons/ziwei/03-{640,1024}.avif + 03-720.webp",
+   "origin": "generated",
+   "source": "out/ziwei/03.png",
+   "sourceSha256": "890461a52ebf7dfa",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/ziwei/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. the guest (young Korean man, neat short hair, light blue office shirt) frustrated, rubbing his forehead. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "ziwei",
+   "cut": "04",
+   "files": "public/images/consultation-webtoons/ziwei/04-{640,1080}.avif + 04-720.webp",
+   "origin": "generated",
+   "source": "out/ziwei/04.png",
+   "sourceSha256": "8fe54e88eb946da5",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/musung-ziwei-portrait.webp",
+    "CodeDestiny-Build/무성 프로필 시트.png",
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/ziwei/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Musung (man with long dark purple hair, sharp violet eyes, black robe with gold feather ornament, stern; match the reference). Close-up of a brush tip tapping one cell of a Ziwei grid where a small star glows; ink and gold leaf. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "ziwei",
+   "cut": "05",
+   "files": "public/images/consultation-webtoons/ziwei/05-{640,1024}.avif + 05-720.webp",
+   "origin": "generated",
+   "source": "out/ziwei/05.png",
+   "sourceSha256": "045e5aab03d0f6fb",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/musung-ziwei-portrait.webp",
+    "CodeDestiny-Build/무성 프로필 시트.png",
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/ziwei/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Musung (man with long dark purple hair, sharp violet eyes, black robe with gold feather ornament, stern; match the reference). Musung speaking sternly but fairly, violet eyes steady. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "ziwei",
+   "cut": "06",
+   "files": "public/images/consultation-webtoons/ziwei/06-{640,1024}.avif + 06-720.webp",
+   "origin": "generated",
+   "source": "out/ziwei/06.png",
+   "sourceSha256": "abf49e657e057394",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/ziwei/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. the guest (young Korean man, neat short hair, light blue office shirt) looking up slowly, the tension leaving his face. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "ziwei",
+   "cut": "07",
+   "files": "public/images/consultation-webtoons/ziwei/07-{640,1024}.avif + 07-720.webp",
+   "origin": "generated",
+   "source": "out/ziwei/07.png",
+   "sourceSha256": "8245abd803fd87d0",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/musung-ziwei-portrait.webp",
+    "CodeDestiny-Build/무성 프로필 시트.png",
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/ziwei/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Musung (man with long dark purple hair, sharp violet eyes, black robe with gold feather ornament, stern; match the reference). Musung folding his hands, a rare small nod. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "ziwei",
+   "cut": "08",
+   "files": "public/images/consultation-webtoons/ziwei/08-{640,1080}.avif + 08-720.webp",
+   "origin": "generated",
+   "source": "out/ziwei/08.png",
+   "sourceSha256": "aaaa64b2be5dd564",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/ziwei/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. the guest (young Korean man, neat short hair, light blue office shirt) in a bright meeting room calmly raising his hand with a question, colleagues listening. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "astrology",
+   "cut": "01",
+   "files": "public/images/consultation-webtoons/astrology/01-{640,1080}.avif + 01-720.webp",
+   "origin": "reused",
+   "source": "public/images/service-introductions/astrology-ai.webp",
+   "sourceSha256": "7b59617f936ae25c"
+  },
+  {
+   "work": "astrology",
+   "cut": "02",
+   "files": "public/images/consultation-webtoons/astrology/02-{640,1080}.avif + 02-720.webp",
+   "origin": "generated",
+   "source": "out/astrology/02.png",
+   "sourceSha256": "23ae729fb3be859e",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/yun-astrology-portrait.webp",
+    "CodeDestiny-Build/윤달 프로필 시트.png",
+    "public/images/service-introductions/astrology-ai.webp"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Yundal (young man, dark navy-purple hair in a low ponytail, gentle smile, dark navy robe with crescent-moon embroidery, round gold pendant; match the reference). Yundal pointing at a circular western natal chart on the table where three lights glow: a gold sun, a silver moon and a rose ascendant point. the guest (young Korean woman, long straight brown hair, mustard knit top) sits across, curious. No letters or glyph text. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "astrology",
+   "cut": "03",
+   "files": "public/images/consultation-webtoons/astrology/03-{640,1024}.avif + 03-720.webp",
+   "origin": "generated",
+   "source": "out/astrology/03.png",
+   "sourceSha256": "346669d19bfd41af",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/astrology/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. the guest (young Korean woman, long straight brown hair, mustard knit top) laughing awkwardly, shoulders slumped. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "astrology",
+   "cut": "04",
+   "files": "public/images/consultation-webtoons/astrology/04-{640,1080}.avif + 04-720.webp",
+   "origin": "generated",
+   "source": "out/astrology/04.png",
+   "sourceSha256": "6928b4602c3e15e7",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/yun-astrology-portrait.webp",
+    "CodeDestiny-Build/윤달 프로필 시트.png",
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/astrology/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Yundal (young man, dark navy-purple hair in a low ponytail, gentle smile, dark navy robe with crescent-moon embroidery, round gold pendant; match the reference). Close-up of a natal chart wheel with three glowing points: gold sun, silver moon, rose ascendant; Yundal's fingertip near the moon. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "astrology",
+   "cut": "05",
+   "files": "public/images/consultation-webtoons/astrology/05-{640,1024}.avif + 05-720.webp",
+   "origin": "generated",
+   "source": "out/astrology/05.png",
+   "sourceSha256": "03b1ef89e753525e",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/yun-astrology-portrait.webp",
+    "CodeDestiny-Build/윤달 프로필 시트.png",
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/astrology/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Yundal (young man, dark navy-purple hair in a low ponytail, gentle smile, dark navy robe with crescent-moon embroidery, round gold pendant; match the reference). Yundal explaining gently, kind eyes, moon-embroidered robe. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "astrology",
+   "cut": "06",
+   "files": "public/images/consultation-webtoons/astrology/06-{640,1024}.avif + 06-720.webp",
+   "origin": "generated",
+   "source": "out/astrology/06.png",
+   "sourceSha256": "79232b87379b929c",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/astrology/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. the guest (young Korean woman, long straight brown hair, mustard knit top)'s face softening, eyes relieved. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "astrology",
+   "cut": "07",
+   "files": "public/images/consultation-webtoons/astrology/07-{640,1024}.avif + 07-720.webp",
+   "origin": "generated",
+   "source": "out/astrology/07.png",
+   "sourceSha256": "1ce68322bf0b335f",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/yun-astrology-portrait.webp",
+    "CodeDestiny-Build/윤달 프로필 시트.png",
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/astrology/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Yundal (young man, dark navy-purple hair in a low ponytail, gentle smile, dark navy robe with crescent-moon embroidery, round gold pendant; match the reference). Yundal smiling and holding up a small silver moon token. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "astrology",
+   "cut": "08",
+   "files": "public/images/consultation-webtoons/astrology/08-{640,1080}.avif + 08-720.webp",
+   "origin": "generated",
+   "source": "out/astrology/08.png",
+   "sourceSha256": "e8809a32dfac7c0e",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/astrology/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. the guest (young Korean woman, long straight brown hair, mustard knit top) at home wrapped in a blanket with tea, the moon in the window, peaceful. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "vedic",
+   "cut": "01",
+   "files": "public/images/consultation-webtoons/vedic/01-{640,1080}.avif + 01-720.webp",
+   "origin": "reused",
+   "source": "public/images/service-introductions/vedic-ai.webp",
+   "sourceSha256": "b284c03b51f21738"
+  },
+  {
+   "work": "vedic",
+   "cut": "02",
+   "files": "public/images/consultation-webtoons/vedic/02-{640,1080}.avif + 02-720.webp",
+   "origin": "generated",
+   "source": "out/vedic/02.png",
+   "sourceSha256": "d1eb15b55d66cc86",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/yun-astrology-portrait.webp",
+    "CodeDestiny-Build/윤달 프로필 시트.png",
+    "public/images/service-introductions/vedic-ai.webp"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Yundal (young man, dark navy-purple hair in a low ponytail, gentle smile, dark navy robe with crescent-moon embroidery, round gold pendant; match the reference). Yundal moving one bead along a long string of twenty-seven moon beads beside a square North-Indian style chart diagram; the guest (Korean man in his late twenties, short hair, olive jacket, tired eyes) sits across looking drained. No text. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "vedic",
+   "cut": "03",
+   "files": "public/images/consultation-webtoons/vedic/03-{640,1024}.avif + 03-720.webp",
+   "origin": "generated",
+   "source": "out/vedic/03.png",
+   "sourceSha256": "e4441933efa13c23",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/vedic/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. the guest (Korean man in his late twenties, short hair, olive jacket, tired eyes) slumped in his chair, staring blankly. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "vedic",
+   "cut": "04",
+   "files": "public/images/consultation-webtoons/vedic/04-{640,1080}.avif + 04-720.webp",
+   "origin": "generated",
+   "source": "out/vedic/04.png",
+   "sourceSha256": "38349230f3e29fcf",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/yun-astrology-portrait.webp",
+    "CodeDestiny-Build/윤달 프로필 시트.png",
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/vedic/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Yundal (young man, dark navy-purple hair in a low ponytail, gentle smile, dark navy robe with crescent-moon embroidery, round gold pendant; match the reference). Close-up of Yundal's fingers sliding a glowing bead on a string of moon beads above a square chart. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "vedic",
+   "cut": "05",
+   "files": "public/images/consultation-webtoons/vedic/05-{640,1024}.avif + 05-720.webp",
+   "origin": "generated",
+   "source": "out/vedic/05.png",
+   "sourceSha256": "43caffb4634e3960",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/yun-astrology-portrait.webp",
+    "CodeDestiny-Build/윤달 프로필 시트.png",
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/vedic/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Yundal (young man, dark navy-purple hair in a low ponytail, gentle smile, dark navy robe with crescent-moon embroidery, round gold pendant; match the reference). Yundal explaining calmly, pendant glowing, square chart behind. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "vedic",
+   "cut": "06",
+   "files": "public/images/consultation-webtoons/vedic/06-{640,1024}.avif + 06-720.webp",
+   "origin": "generated",
+   "source": "out/vedic/06.png",
+   "sourceSha256": "e707e00126a595e4",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/vedic/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. the guest (Korean man in his late twenties, short hair, olive jacket, tired eyes) sitting up a little, surprised. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "vedic",
+   "cut": "07",
+   "files": "public/images/consultation-webtoons/vedic/07-{640,1024}.avif + 07-720.webp",
+   "origin": "generated",
+   "source": "out/vedic/07.png",
+   "sourceSha256": "bd5890fff5d77429",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/yun-astrology-portrait.webp",
+    "CodeDestiny-Build/윤달 프로필 시트.png",
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/vedic/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Yundal (young man, dark navy-purple hair in a low ponytail, gentle smile, dark navy robe with crescent-moon embroidery, round gold pendant; match the reference). Yundal nodding warmly. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "vedic",
+   "cut": "08",
+   "files": "public/images/consultation-webtoons/vedic/08-{640,1080}.avif + 08-720.webp",
+   "origin": "generated",
+   "source": "out/vedic/08.png",
+   "sourceSha256": "dcbdac489a777bec",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/vedic/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. the guest (Korean man in his late twenties, short hair, olive jacket, tired eyes) watering a small potted plant on a sunny windowsill in the morning, calm. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "sukuyo-compat",
+   "cut": "01",
+   "files": "public/images/consultation-webtoons/sukuyo-compat/01-{640,1080}.avif + 01-720.webp",
+   "origin": "reused",
+   "source": "public/images/service-introductions/sukuyo-compatibility-ai.webp",
+   "sourceSha256": "0d0accfdba506b5b"
+  },
+  {
+   "work": "sukuyo-compat",
+   "cut": "02",
+   "files": "public/images/consultation-webtoons/sukuyo-compat/02-{640,1080}.avif + 02-720.webp",
+   "origin": "generated",
+   "source": "out/sukuyo-compat/02.png",
+   "sourceSha256": "e33f6e5c8aed351f",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/hanbi-sukuyo-portrait.webp",
+    "CodeDestiny-Build/서한비 프로필 시트.png",
+    "public/images/service-introductions/sukuyo-compatibility-ai.webp"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Seo Hanbi (young woman, long wavy black hair, calm dark eyes, deep indigo patterned coat dress; match the reference). Seo Hanbi seated behind a lunar-mansion board with two glowing moons placed apart on it; across the table friend A (young Korean woman, high ponytail, red hoodie) and friend B (young Korean woman, long black hair with bangs, lavender cardigan) sit a little apart, arms crossed, avoiding eye contact. No text. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "sukuyo-compat",
+   "cut": "03",
+   "files": "public/images/consultation-webtoons/sukuyo-compat/03-{640,1080}.avif + 03-720.webp",
+   "origin": "generated",
+   "source": "out/sukuyo-compat/03.png",
+   "sourceSha256": "1fc3eb8bd38727b0",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/sukuyo-compat/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. friend A (young Korean woman, high ponytail, red hoodie) and friend B (young Korean woman, long black hair with bangs, lavender cardigan) talking at the same time, both frustrated, at a candle-lit table. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "sukuyo-compat",
+   "cut": "04",
+   "files": "public/images/consultation-webtoons/sukuyo-compat/04-{640,1080}.avif + 04-720.webp",
+   "origin": "generated",
+   "source": "out/sukuyo-compat/04.png",
+   "sourceSha256": "f32710c42aff57d4",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/hanbi-sukuyo-portrait.webp",
+    "CodeDestiny-Build/서한비 프로필 시트.png",
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/sukuyo-compat/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Seo Hanbi (young woman, long wavy black hair, calm dark eyes, deep indigo patterned coat dress; match the reference). Close-up of Seo Hanbi's hands placing two moon stones on the lunar-mansion board, a silk measuring cord laid between them. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "sukuyo-compat",
+   "cut": "05",
+   "files": "public/images/consultation-webtoons/sukuyo-compat/05-{640,1024}.avif + 05-720.webp",
+   "origin": "generated",
+   "source": "out/sukuyo-compat/05.png",
+   "sourceSha256": "6f23cee1f42d3302",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/hanbi-sukuyo-portrait.webp",
+    "CodeDestiny-Build/서한비 프로필 시트.png",
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/sukuyo-compat/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Seo Hanbi (young woman, long wavy black hair, calm dark eyes, deep indigo patterned coat dress; match the reference). Seo Hanbi explaining calmly, elegant, indigo coat dress. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "sukuyo-compat",
+   "cut": "06",
+   "files": "public/images/consultation-webtoons/sukuyo-compat/06-{640,1080}.avif + 06-720.webp",
+   "origin": "generated",
+   "source": "out/sukuyo-compat/06.png",
+   "sourceSha256": "ee37acb5bc759b04",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/sukuyo-compat/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. friend A (young Korean woman, high ponytail, red hoodie) and friend B (young Korean woman, long black hair with bangs, lavender cardigan) glancing at each other sheepishly, the tension easing. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "sukuyo-compat",
+   "cut": "07",
+   "files": "public/images/consultation-webtoons/sukuyo-compat/07-{640,1024}.avif + 07-720.webp",
+   "origin": "generated",
+   "source": "out/sukuyo-compat/07.png",
+   "sourceSha256": "3c1777fddfb9c3b0",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/hanbi-sukuyo-portrait.webp",
+    "CodeDestiny-Build/서한비 프로필 시트.png",
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/sukuyo-compat/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Seo Hanbi (young woman, long wavy black hair, calm dark eyes, deep indigo patterned coat dress; match the reference). Seo Hanbi with a faint smile, raising one finger. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "sukuyo-compat",
+   "cut": "08",
+   "files": "public/images/consultation-webtoons/sukuyo-compat/08-{640,1080}.avif + 08-720.webp",
+   "origin": "generated",
+   "source": "out/sukuyo-compat/08.png",
+   "sourceSha256": "be205f0263fb4996",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/sukuyo-compat/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. friend A (young Korean woman, high ponytail, red hoodie) and friend B (young Korean woman, long black hair with bangs, lavender cardigan) walking side by side on an autumn street laughing, phones in their pockets. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "legacy-naming",
+   "cut": "01",
+   "files": "public/images/consultation-webtoons/legacy-naming/01-{640,1080}.avif + 01-720.webp",
+   "origin": "reused",
+   "source": "public/images/service-introductions/naming-ai.webp",
+   "sourceSha256": "c70ae8866608bf4a"
+  },
+  {
+   "work": "legacy-naming",
+   "cut": "02",
+   "files": "public/images/consultation-webtoons/legacy-naming/02-{640,1080}.avif + 02-720.webp",
+   "origin": "generated",
+   "source": "out/legacy-naming/02.png",
+   "sourceSha256": "b51fe6d6c7a7977d",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/service-introductions/naming-ai.webp"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. a young Korean couple (wife with low bun and cream sweater, husband with short hair and navy sweater) sitting at a wooden desk with three blank cream name cards laid out, five small element orbs glowing beside them; a newborn sleeps in a bassinet next to the desk. Warm evening light. No text on the cards. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "legacy-naming",
+   "cut": "03",
+   "files": "public/images/consultation-webtoons/legacy-naming/03-{640,1080}.avif + 03-720.webp",
+   "origin": "generated",
+   "source": "out/legacy-naming/03.png",
+   "sourceSha256": "9d9ff51f5827a5fe",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/legacy-naming/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. a young Korean couple (wife with low bun and cream sweater, husband with short hair and navy sweater) discussing, the wife holding one card, the husband tilting his head. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "legacy-naming",
+   "cut": "04",
+   "files": "public/images/consultation-webtoons/legacy-naming/04-{640,1080}.avif + 04-720.webp",
+   "origin": "generated",
+   "source": "out/legacy-naming/04.png",
+   "sourceSha256": "51953a26a5375b87",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/legacy-naming/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Close-up of two hands holding blank name cards side by side, five element orbs (wood, fire, earth, metal, water) glowing beneath. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "legacy-naming",
+   "cut": "05",
+   "files": "public/images/consultation-webtoons/legacy-naming/05-{640,1080}.avif + 05-720.webp",
+   "origin": "generated",
+   "source": "out/legacy-naming/05.png",
+   "sourceSha256": "782bbdb2140731c7",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/legacy-naming/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. The couple looking together at a tablet showing a blank comparison layout of soft color bars (no text), side by side. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "legacy-naming",
+   "cut": "06",
+   "files": "public/images/consultation-webtoons/legacy-naming/06-{640,1024}.avif + 06-720.webp",
+   "origin": "generated",
+   "source": "out/legacy-naming/06.png",
+   "sourceSha256": "393a339f6111115d",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/legacy-naming/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. The husband leaning over the bassinet, softly whispering to the sleeping baby. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "legacy-naming",
+   "cut": "07",
+   "files": "public/images/consultation-webtoons/legacy-naming/07-{640,1024}.avif + 07-720.webp",
+   "origin": "generated",
+   "source": "out/legacy-naming/07.png",
+   "sourceSha256": "5c5982c67e940c2e",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/legacy-naming/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. The wife smiling with tears in her eyes, one card pressed to her chest. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "legacy-naming",
+   "cut": "08",
+   "files": "public/images/consultation-webtoons/legacy-naming/08-{640,1080}.avif + 08-720.webp",
+   "origin": "generated",
+   "source": "out/legacy-naming/08.png",
+   "sourceSha256": "e9b4330924e0180f",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/legacy-naming/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Close-up of a newborn's tiny hand grasping a parent's finger, soft morning light. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "karma",
+   "cut": "01",
+   "files": "public/images/consultation-webtoons/karma/01-{640,1080}.avif + 01-720.webp",
+   "origin": "reused",
+   "source": "public/images/service-introductions/karma-destiny-ai.webp",
+   "sourceSha256": "0ea4f3f0dcb40cbb"
+  },
+  {
+   "work": "karma",
+   "cut": "02",
+   "files": "public/images/consultation-webtoons/karma/02-{640,1080}.avif + 02-720.webp",
+   "origin": "generated",
+   "source": "out/karma/02.png",
+   "sourceSha256": "f61732e9e310e06d",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/neo-strategy-portrait.webp",
+    "public/images/master-profiles/hanbi-sukuyo-portrait.webp",
+    "public/images/service-introductions/karma-destiny-ai.webp"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Neo (young HUMAN man, short silver-white hair, grey-blue eyes, navy military-style coat with gold trim, white half cape, black gloves; fully human, NO lion or animal anywhere, match the reference); Seo Hanbi (young woman, long wavy black hair, calm dark eyes, deep indigo patterned coat dress; match the reference). Neo and Seo Hanbi sitting at a table covered in tangled red threads with one tight knot in the center; the guest (young Korean woman, curly shoulder-length hair, mustard sweater, ID lanyard) sits across, holding the end of one thread. Neo is fully human; NO lion. No text. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "karma",
+   "cut": "03",
+   "files": "public/images/consultation-webtoons/karma/03-{640,1024}.avif + 03-720.webp",
+   "origin": "generated",
+   "source": "out/karma/03.png",
+   "sourceSha256": "0e24a5099d54fe62",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/karma/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. the guest (young Korean woman, curly shoulder-length hair, mustard sweater, ID lanyard) with a tired smile, sleeves pushed up, late-night office feel. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "karma",
+   "cut": "04",
+   "files": "public/images/consultation-webtoons/karma/04-{640,1080}.avif + 04-720.webp",
+   "origin": "generated",
+   "source": "out/karma/04.png",
+   "sourceSha256": "bfe9516ebd23218e",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/hanbi-sukuyo-portrait.webp",
+    "CodeDestiny-Build/서한비 프로필 시트.png",
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/karma/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Seo Hanbi (young woman, long wavy black hair, calm dark eyes, deep indigo patterned coat dress; match the reference). Close-up of Seo Hanbi's slender fingers patiently loosening a tight knot of red thread. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "karma",
+   "cut": "05",
+   "files": "public/images/consultation-webtoons/karma/05-{640,1024}.avif + 05-720.webp",
+   "origin": "generated",
+   "source": "out/karma/05.png",
+   "sourceSha256": "22c09b80a98f77be",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/hanbi-sukuyo-portrait.webp",
+    "CodeDestiny-Build/서한비 프로필 시트.png",
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/karma/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Seo Hanbi (young woman, long wavy black hair, calm dark eyes, deep indigo patterned coat dress; match the reference). Seo Hanbi speaking softly, eyes on the guest. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "karma",
+   "cut": "06",
+   "files": "public/images/consultation-webtoons/karma/06-{640,1024}.avif + 06-720.webp",
+   "origin": "generated",
+   "source": "out/karma/06.png",
+   "sourceSha256": "edcc10c944e7c9d2",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/images/master-profiles/neo-strategy-portrait.webp",
+    "CodeDestiny-Build/네오 인간 프로필1.png",
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/karma/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Neo (young HUMAN man, short silver-white hair, grey-blue eyes, navy military-style coat with gold trim, white half cape, black gloves; fully human, NO lion or animal anywhere, match the reference). Neo leaning back, holding up a pair of small gold scissors, decisive look. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "karma",
+   "cut": "07",
+   "files": "public/images/consultation-webtoons/karma/07-{640,1024}.avif + 07-720.webp",
+   "origin": "generated",
+   "source": "out/karma/07.png",
+   "sourceSha256": "96c80268171be39d",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/karma/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. the guest (young Korean woman, curly shoulder-length hair, mustard sweater, ID lanyard) taking a breath, small brave smile. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "karma",
+   "cut": "08",
+   "files": "public/images/consultation-webtoons/karma/08-{640,1080}.avif + 08-720.webp",
+   "origin": "generated",
+   "source": "out/karma/08.png",
+   "sourceSha256": "52311afc33b72b90",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/karma/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. the guest (young Korean woman, curly shoulder-length hair, mustard sweater, ID lanyard) leaving the office building on time at sunset, a loose red thread trailing behind her, untied. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "yn-ep1",
+   "cut": "01",
+   "files": "content/yeongnyangi/season-1/ep1/01-{640,1080}.avif + 01-720.webp",
+   "origin": "generated",
+   "source": "out/yeongnyangi/ep1/01.png",
+   "sourceSha256": "997c4b31d39ef4f8",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/assets/yeongnyangi/original/room-1440.webp",
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/yeongnyangi/ep1/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. The cozy moonlit fortune room from the reference at night on the eve of first snow; a small round brass brazier with glowing coals newly lit in the middle of the floor, its warm glow on the wooden floor; a round plum-purple velvet floor cushion with gold tassels placed right next to it instead of by the window. No characters. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "yn-ep1",
+   "cut": "02",
+   "files": "content/yeongnyangi/season-1/ep1/02-{640,1080}.avif + 02-720.webp",
+   "origin": "generated",
+   "source": "out/yeongnyangi/ep1/02.png",
+   "sourceSha256": "3b07c00db30c4cac",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/양냥이 프로필 시트.webp",
+    "CodeDestiny-Build/여_연이 프로필 사복버전.webp",
+    "public/assets/yeongnyangi/original/room-1440.webp"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Yeongnyangi (fluffy white cat with exactly TWO pink-lined ears, golden-violet half-lidded eyes, navy wizard hat with gold crescent moon and tassel, navy cape with gold trim, purple gem collar; aloof expression; match the reference exactly); Yeoni (young Korean woman, long wavy pastel-pink hair, soft pink eyes, cozy casual clothes as in the casual-outfit reference; HUMAN). Yeongnyangi sits on a round plum-purple velvet floor cushion with gold tassels right beside a small round brass brazier with glowing coals, half-lidded and aloof; Yeoni stands in the open sliding door with a few snowflakes on her shoulders and hair, rubbing her cold hands, looking at the cushion's new spot. Warm interior, blue night outside. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "yn-ep1",
+   "cut": "03",
+   "files": "content/yeongnyangi/season-1/ep1/03-{640,1080}.avif + 03-720.webp",
+   "origin": "generated",
+   "source": "out/yeongnyangi/ep1/03.png",
+   "sourceSha256": "deb805a3ede0da0c",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/여_연이 프로필 사복버전.webp",
+    "public/assets/yeongnyangi/prologue/14.webp",
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/yeongnyangi/ep1/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Yeoni (young Korean woman, long wavy pastel-pink hair, soft pink eyes, cozy casual clothes as in the casual-outfit reference; HUMAN). Close-up of Yeoni's cold reddened fingertips held out toward the glow of a small round brass brazier with glowing coals. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "yn-ep1",
+   "cut": "04",
+   "files": "content/yeongnyangi/season-1/ep1/04-{640,1024}.avif + 04-720.webp",
+   "origin": "generated",
+   "source": "out/yeongnyangi/ep1/04.png",
+   "sourceSha256": "5fc1d592310df19e",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/양냥이 프로필 시트.webp",
+    "public/assets/yeongnyangi/original/hero-800.webp",
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/yeongnyangi/ep1/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Yeongnyangi (fluffy white cat with exactly TWO pink-lined ears, golden-violet half-lidded eyes, navy wizard hat with gold crescent moon and tassel, navy cape with gold trim, purple gem collar; aloof expression; match the reference exactly). Close-up of Yeongnyangi turning his face away with both ears pointed sideways, eyes closed in exaggerated indifference, sitting on a round plum-purple velvet floor cushion with gold tassels. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "yn-ep1",
+   "cut": "05",
+   "files": "content/yeongnyangi/season-1/ep1/05-{640,1080}.avif + 05-720.webp",
+   "origin": "generated",
+   "source": "out/yeongnyangi/ep1/05.png",
+   "sourceSha256": "ea411948f656f98c",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/양냥이 프로필 시트.webp",
+    "public/assets/yeongnyangi/original/hero-800.webp",
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/yeongnyangi/ep1/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Yeongnyangi (fluffy white cat with exactly TWO pink-lined ears, golden-violet half-lidded eyes, navy wizard hat with gold crescent moon and tassel, navy cape with gold trim, purple gem collar; aloof expression; match the reference exactly). Yeongnyangi standing up from a round plum-purple velvet floor cushion with gold tassels, doing a long cat stretch, then stepping off onto the bare floor; his tail flicks back toward the empty cushion as if pointing at it. a small round brass brazier with glowing coals glowing beside. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "yn-ep1",
+   "cut": "06",
+   "files": "content/yeongnyangi/season-1/ep1/06-{640,1024}.avif + 06-720.webp",
+   "origin": "generated",
+   "source": "out/yeongnyangi/ep1/06.png",
+   "sourceSha256": "fde982dcec3c8b9b",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/양냥이 프로필 시트.webp",
+    "CodeDestiny-Build/여_연이 프로필 사복버전.webp",
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/yeongnyangi/ep1/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Yeongnyangi (fluffy white cat with exactly TWO pink-lined ears, golden-violet half-lidded eyes, navy wizard hat with gold crescent moon and tassel, navy cape with gold trim, purple gem collar; aloof expression; match the reference exactly); Yeoni (young Korean woman, long wavy pastel-pink hair, soft pink eyes, cozy casual clothes as in the casual-outfit reference; HUMAN). Yeoni hesitating beside the empty cushion, hands clasped; Yeongnyangi sitting on the cold floor a little away, looking out the window with his back half turned. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "yn-ep1",
+   "cut": "07",
+   "files": "content/yeongnyangi/season-1/ep1/07-{640,1024}.avif + 07-720.webp",
+   "origin": "generated",
+   "source": "out/yeongnyangi/ep1/07.png",
+   "sourceSha256": "9d42b7794766d4cd",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/여_연이 프로필 사복버전.webp",
+    "public/assets/yeongnyangi/prologue/14.webp",
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/yeongnyangi/ep1/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Yeoni (young Korean woman, long wavy pastel-pink hair, soft pink eyes, cozy casual clothes as in the casual-outfit reference; HUMAN). Yeoni sitting on a round plum-purple velvet floor cushion with gold tassels next to a small round brass brazier with glowing coals, eyes softly closed, shoulders relaxing in the warmth, a small surprised smile. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "yn-ep1",
+   "cut": "08",
+   "files": "content/yeongnyangi/season-1/ep1/08-{640,1080}.avif + 08-720.webp",
+   "origin": "generated",
+   "source": "out/yeongnyangi/ep1/08.png",
+   "sourceSha256": "db6d02cd5df7888f",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/여_연이 프로필 사복버전.webp",
+    "public/assets/yeongnyangi/prologue/14.webp",
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/yeongnyangi/ep1/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Yeoni (young Korean woman, long wavy pastel-pink hair, soft pink eyes, cozy casual clothes as in the casual-outfit reference; HUMAN). Close-up of Yeoni's hand brushing the velvet of a round plum-purple velvet floor cushion with gold tassels, revealing a pressed rectangular envelope-shaped mark in the velvet, with a tiny round seal impression at one corner. No text. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "yn-ep1",
+   "cut": "09",
+   "files": "content/yeongnyangi/season-1/ep1/09-{640,1024}.avif + 09-720.webp",
+   "origin": "generated",
+   "source": "out/yeongnyangi/ep1/09.png",
+   "sourceSha256": "7fc8e62257cbcb43",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/양냥이 프로필 시트.webp",
+    "public/assets/yeongnyangi/original/hero-800.webp",
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/yeongnyangi/ep1/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Yeongnyangi (fluffy white cat with exactly TWO pink-lined ears, golden-violet half-lidded eyes, navy wizard hat with gold crescent moon and tassel, navy cape with gold trim, purple gem collar; aloof expression; match the reference exactly). Yeongnyangi quickly slapping one front paw down on the cushion mark, ears flattened, eyes wide, flustered but trying to look dignified. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "yn-ep1",
+   "cut": "10",
+   "files": "content/yeongnyangi/season-1/ep1/10-{640,1024}.avif + 10-720.webp",
+   "origin": "generated",
+   "source": "out/yeongnyangi/ep1/10.png",
+   "sourceSha256": "cc43066a3ccb663f",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/양냥이 프로필 시트.webp",
+    "CodeDestiny-Build/여_연이 프로필 사복버전.webp",
+    "public/assets/yeongnyangi/original/room-1440.webp",
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/yeongnyangi/ep1/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Yeongnyangi (fluffy white cat with exactly TWO pink-lined ears, golden-violet half-lidded eyes, navy wizard hat with gold crescent moon and tassel, navy cape with gold trim, purple gem collar; aloof expression; match the reference exactly); Yeoni (young Korean woman, long wavy pastel-pink hair, soft pink eyes, cozy casual clothes as in the casual-outfit reference; HUMAN). Wide quiet ending: Yeoni on a round plum-purple velvet floor cushion with gold tassels by a small round brass brazier with glowing coals; Yeongnyangi curled up right against her knee but facing away from her, tail wrapped around himself; the first snow falling outside the round window. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "yn-ep2",
+   "cut": "01",
+   "files": "content/yeongnyangi/season-1/ep2/01-{640,1080}.avif + 01-720.webp",
+   "origin": "generated",
+   "source": "out/yeongnyangi/ep2/01.png",
+   "sourceSha256": "365d5a53ad51349d",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/assets/yeongnyangi/original/room-1440.webp",
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/yeongnyangi/ep2/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Exterior view of the fortune room's round window at night in heavy rain, warm light inside, raindrops streaking the glass, a paper lantern swaying by the eaves. No characters. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "yn-ep2",
+   "cut": "02",
+   "files": "content/yeongnyangi/season-1/ep2/02-{640,1080}.avif + 02-720.webp",
+   "origin": "generated",
+   "source": "out/yeongnyangi/ep2/02.png",
+   "sourceSha256": "1a13696e1c272513",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/양냥이 프로필 시트.webp",
+    "CodeDestiny-Build/여_연이 프로필 사복버전.webp",
+    "public/assets/yeongnyangi/original/room-1440.webp"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Yeongnyangi (fluffy white cat with exactly TWO pink-lined ears, golden-violet half-lidded eyes, navy wizard hat with gold crescent moon and tassel, navy cape with gold trim, purple gem collar; aloof expression; match the reference exactly); Yeoni (young Korean woman, long wavy pastel-pink hair, soft pink eyes, cozy casual clothes as in the casual-outfit reference; HUMAN). Yeoni kneeling by a small round brass brazier with glowing coals holding up a cream envelope with a damp, darkened corner and a small dark ink seal shaped like a brush tip; Yeongnyangi lunging toward her mid-step, one paw raised, ears back, alarmed. No text on the envelope. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "yn-ep2",
+   "cut": "03",
+   "files": "content/yeongnyangi/season-1/ep2/03-{640,1024}.avif + 03-720.webp",
+   "origin": "generated",
+   "source": "out/yeongnyangi/ep2/03.png",
+   "sourceSha256": "d244ffb4dfa464e8",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/여_연이 프로필 사복버전.webp",
+    "public/assets/yeongnyangi/prologue/14.webp",
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/yeongnyangi/ep2/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Yeoni (young Korean woman, long wavy pastel-pink hair, soft pink eyes, cozy casual clothes as in the casual-outfit reference; HUMAN). Yeoni holding the envelope carefully with both hands, worried, showing the wet corner; the base of a small round brass brazier with glowing coals beside her. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "yn-ep2",
+   "cut": "04",
+   "files": "content/yeongnyangi/season-1/ep2/04-{640,1024}.avif + 04-720.webp",
+   "origin": "generated",
+   "source": "out/yeongnyangi/ep2/04.png",
+   "sourceSha256": "ecbd3f1f1ff89d27",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/양냥이 프로필 시트.webp",
+    "public/assets/yeongnyangi/original/hero-800.webp",
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/yeongnyangi/ep2/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Yeongnyangi (fluffy white cat with exactly TWO pink-lined ears, golden-violet half-lidded eyes, navy wizard hat with gold crescent moon and tassel, navy cape with gold trim, purple gem collar; aloof expression; match the reference exactly). Close-up of Yeongnyangi frozen, eyes fixed on the wet envelope, ears slowly lowering, conflicted. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "yn-ep2",
+   "cut": "05",
+   "files": "content/yeongnyangi/season-1/ep2/05-{640,1080}.avif + 05-720.webp",
+   "origin": "generated",
+   "source": "out/yeongnyangi/ep2/05.png",
+   "sourceSha256": "a67b001082529923",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/양냥이 프로필 시트.webp",
+    "public/assets/yeongnyangi/original/hero-800.webp",
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/yeongnyangi/ep2/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Yeongnyangi (fluffy white cat with exactly TWO pink-lined ears, golden-violet half-lidded eyes, navy wizard hat with gold crescent moon and tassel, navy cape with gold trim, purple gem collar; aloof expression; match the reference exactly). Close-up of Yeongnyangi's two fluffy front paws very gently holding the edge of a cream envelope near the warm glow of a small round brass brazier with glowing coals, trying to dry it. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "yn-ep2",
+   "cut": "06",
+   "files": "content/yeongnyangi/season-1/ep2/06-{640,1080}.avif + 06-720.webp",
+   "origin": "generated",
+   "source": "out/yeongnyangi/ep2/06.png",
+   "sourceSha256": "62ee5b39662c5622",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/양냥이 프로필 시트.webp",
+    "CodeDestiny-Build/여_연이 프로필 사복버전.webp",
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/yeongnyangi/ep2/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Yeongnyangi (fluffy white cat with exactly TWO pink-lined ears, golden-violet half-lidded eyes, navy wizard hat with gold crescent moon and tassel, navy cape with gold trim, purple gem collar; aloof expression; match the reference exactly); Yeoni (young Korean woman, long wavy pastel-pink hair, soft pink eyes, cozy casual clothes as in the casual-outfit reference; HUMAN). Yeoni offering her open hands for the envelope with a gentle smile; Yeongnyangi glaring up at her suspiciously, paws still on the envelope. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "yn-ep2",
+   "cut": "07",
+   "files": "content/yeongnyangi/season-1/ep2/07-{640,1024}.avif + 07-720.webp",
+   "origin": "generated",
+   "source": "out/yeongnyangi/ep2/07.png",
+   "sourceSha256": "6e60313dba34766c",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/여_연이 프로필 사복버전.webp",
+    "public/assets/yeongnyangi/prologue/14.webp",
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/yeongnyangi/ep2/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Yeoni (young Korean woman, long wavy pastel-pink hair, soft pink eyes, cozy casual clothes as in the casual-outfit reference; HUMAN). Yeoni holding the envelope toward the brazier's warmth with both hands, her eyes firmly closed, patient. Steam rising faintly from the damp corner. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "yn-ep2",
+   "cut": "08",
+   "files": "content/yeongnyangi/season-1/ep2/08-{640,1024}.avif + 08-720.webp",
+   "origin": "generated",
+   "source": "out/yeongnyangi/ep2/08.png",
+   "sourceSha256": "7327ac1fc46fcb07",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/양냥이 프로필 시트.webp",
+    "public/assets/yeongnyangi/original/hero-800.webp",
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/yeongnyangi/ep2/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Yeongnyangi (fluffy white cat with exactly TWO pink-lined ears, golden-violet half-lidded eyes, navy wizard hat with gold crescent moon and tassel, navy cape with gold trim, purple gem collar; aloof expression; match the reference exactly). Yeongnyangi sitting close, looking up at Yeoni's closed eyes, his expression softening despite himself, ears relaxing. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "yn-ep2",
+   "cut": "09",
+   "files": "content/yeongnyangi/season-1/ep2/09-{640,1080}.avif + 09-720.webp",
+   "origin": "generated",
+   "source": "out/yeongnyangi/ep2/09.png",
+   "sourceSha256": "b7a6fbe0388be875",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/양냥이 프로필 시트.webp",
+    "public/assets/yeongnyangi/original/hero-800.webp",
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/yeongnyangi/ep2/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Yeongnyangi (fluffy white cat with exactly TWO pink-lined ears, golden-violet half-lidded eyes, navy wizard hat with gold crescent moon and tassel, navy cape with gold trim, purple gem collar; aloof expression; match the reference exactly). Close-up of the dried cream envelope laid back on a round plum-purple velvet floor cushion with gold tassels, a faint blank line where a recipient's name would go, a brush-tip seal on the flap; Yeongnyangi's paw resting beside it. No text. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "yn-ep2",
+   "cut": "10",
+   "files": "content/yeongnyangi/season-1/ep2/10-{640,1024}.avif + 10-720.webp",
+   "origin": "generated",
+   "source": "out/yeongnyangi/ep2/10.png",
+   "sourceSha256": "d5d4c058eeb6a67f",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/양냥이 프로필 시트.webp",
+    "CodeDestiny-Build/여_연이 프로필 사복버전.webp",
+    "public/assets/yeongnyangi/original/room-1440.webp",
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/yeongnyangi/ep2/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Yeongnyangi (fluffy white cat with exactly TWO pink-lined ears, golden-violet half-lidded eyes, navy wizard hat with gold crescent moon and tassel, navy cape with gold trim, purple gem collar; aloof expression; match the reference exactly); Yeoni (young Korean woman, long wavy pastel-pink hair, soft pink eyes, cozy casual clothes as in the casual-outfit reference; HUMAN). Yeoni at the door opening an umbrella into the rain, looking back over her shoulder; Yeongnyangi sitting on the cushion with the envelope under his paw, looking away. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "yn-ep3",
+   "cut": "01",
+   "files": "content/yeongnyangi/season-1/ep3/01-{640,1080}.avif + 01-720.webp",
+   "origin": "generated",
+   "source": "out/yeongnyangi/ep3/01.png",
+   "sourceSha256": "bfef2df20d839639",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "public/assets/yeongnyangi/original/room-1440.webp",
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/yeongnyangi/ep3/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. The fortune room on a clear frosty night, a small round brass brazier with glowing coals glowing, a round plum-purple velvet floor cushion with gold tassels beside it, a cream envelope resting on the cushion; an old calligraphy brush lies forgotten under a low desk in the corner. No characters. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "yn-ep3",
+   "cut": "02",
+   "files": "content/yeongnyangi/season-1/ep3/02-{640,1080}.avif + 02-720.webp",
+   "origin": "generated",
+   "source": "out/yeongnyangi/ep3/02.png",
+   "sourceSha256": "a52928d6ce6780c3",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/양냥이 프로필 시트.webp",
+    "CodeDestiny-Build/여_연이 프로필 사복버전.webp",
+    "public/assets/yeongnyangi/original/room-1440.webp"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Yeongnyangi (fluffy white cat with exactly TWO pink-lined ears, golden-violet half-lidded eyes, navy wizard hat with gold crescent moon and tassel, navy cape with gold trim, purple gem collar; aloof expression; match the reference exactly); Yeoni (young Korean woman, long wavy pastel-pink hair, soft pink eyes, cozy casual clothes as in the casual-outfit reference; HUMAN). Yeoni kneeling and offering a small dried fish on a little blue-white plate with both hands, smiling; Yeongnyangi on the cushion, nose twitching toward the fish despite his stern face, one paw on the cream envelope. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "yn-ep3",
+   "cut": "03",
+   "files": "content/yeongnyangi/season-1/ep3/03-{640,1024}.avif + 03-720.webp",
+   "origin": "generated",
+   "source": "out/yeongnyangi/ep3/03.png",
+   "sourceSha256": "48b6808db07fb68d",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/양냥이 프로필 시트.webp",
+    "public/assets/yeongnyangi/original/hero-800.webp",
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/yeongnyangi/ep3/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Yeongnyangi (fluffy white cat with exactly TWO pink-lined ears, golden-violet half-lidded eyes, navy wizard hat with gold crescent moon and tassel, navy cape with gold trim, purple gem collar; aloof expression; match the reference exactly). Close-up of Yeongnyangi's face torn between pride and the smell of fish, whiskers twitching, eyes narrowed. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "yn-ep3",
+   "cut": "04",
+   "files": "content/yeongnyangi/season-1/ep3/04-{640,1080}.avif + 04-720.webp",
+   "origin": "generated",
+   "source": "out/yeongnyangi/ep3/04.png",
+   "sourceSha256": "10a65c1ee90b1fa2",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/양냥이 프로필 시트.webp",
+    "public/assets/yeongnyangi/original/hero-800.webp",
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/yeongnyangi/ep3/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Yeongnyangi (fluffy white cat with exactly TWO pink-lined ears, golden-violet half-lidded eyes, navy wizard hat with gold crescent moon and tassel, navy cape with gold trim, purple gem collar; aloof expression; match the reference exactly). Close-up of Yeongnyangi nudging the cream envelope across the cushion toward Yeoni's knee with his nose. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "yn-ep3",
+   "cut": "05",
+   "files": "content/yeongnyangi/season-1/ep3/05-{640,1024}.avif + 05-720.webp",
+   "origin": "generated",
+   "source": "out/yeongnyangi/ep3/05.png",
+   "sourceSha256": "dfbcae9400c204c2",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/여_연이 프로필 사복버전.webp",
+    "public/assets/yeongnyangi/prologue/14.webp",
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/yeongnyangi/ep3/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Yeoni (young Korean woman, long wavy pastel-pink hair, soft pink eyes, cozy casual clothes as in the casual-outfit reference; HUMAN). Yeoni holding the envelope, turning it over, surprised: the recipient line on the front is completely empty. No text anywhere. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "yn-ep3",
+   "cut": "06",
+   "files": "content/yeongnyangi/season-1/ep3/06-{640,1024}.avif + 06-720.webp",
+   "origin": "generated",
+   "source": "out/yeongnyangi/ep3/06.png",
+   "sourceSha256": "d7a5be257a20d473",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/양냥이 프로필 시트.webp",
+    "public/assets/yeongnyangi/original/hero-800.webp",
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/yeongnyangi/ep3/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Yeongnyangi (fluffy white cat with exactly TWO pink-lined ears, golden-violet half-lidded eyes, navy wizard hat with gold crescent moon and tassel, navy cape with gold trim, purple gem collar; aloof expression; match the reference exactly). Yeongnyangi looking across the room at the old calligraphy brush lying under the low desk, melancholy, ears down. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "yn-ep3",
+   "cut": "07",
+   "files": "content/yeongnyangi/season-1/ep3/07-{640,1080}.avif + 07-720.webp",
+   "origin": "generated",
+   "source": "out/yeongnyangi/ep3/07.png",
+   "sourceSha256": "6591c1644fc61dc2",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/네오 인간 프로필1.png",
+    "public/assets/yeongnyangi/prologue/09.webp",
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/yeongnyangi/ep3/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: human Neo (young man, silver-white hair, as in the reference; fully human). Flashback in faded sepia-violet tones: a young man's hand in a wide sleeve, with silver-white hair visible at the edge of frame, writing on a cream letter by candlelight; then the calligraphy brush slipping from his fingers and rolling away across the floor. Dreamlike soft edges. No text. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "yn-ep3",
+   "cut": "08",
+   "files": "content/yeongnyangi/season-1/ep3/08-{640,1080}.avif + 08-720.webp",
+   "origin": "generated",
+   "source": "out/yeongnyangi/ep3/08.png",
+   "sourceSha256": "7e69f3a09c00221e",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/양냥이 프로필 시트.webp",
+    "CodeDestiny-Build/여_연이 프로필 사복버전.webp",
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/yeongnyangi/ep3/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Yeongnyangi (fluffy white cat with exactly TWO pink-lined ears, golden-violet half-lidded eyes, navy wizard hat with gold crescent moon and tassel, navy cape with gold trim, purple gem collar; aloof expression; match the reference exactly); Yeoni (young Korean woman, long wavy pastel-pink hair, soft pink eyes, cozy casual clothes as in the casual-outfit reference; HUMAN). Yeoni leaning toward Yeongnyangi with an encouraging smile; Yeongnyangi holding up one fluffy paw and looking at it, deadpan. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "yn-ep3",
+   "cut": "09",
+   "files": "content/yeongnyangi/season-1/ep3/09-{640,1080}.avif + 09-720.webp",
+   "origin": "generated",
+   "source": "out/yeongnyangi/ep3/09.png",
+   "sourceSha256": "94e827aedc33edb7",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/여_연이 프로필 사복버전.webp",
+    "public/assets/yeongnyangi/prologue/14.webp",
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/yeongnyangi/ep3/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Yeoni (young Korean woman, long wavy pastel-pink hair, soft pink eyes, cozy casual clothes as in the casual-outfit reference; HUMAN). Close-up of Yeoni's hand holding out the old calligraphy brush, retrieved from under the desk, toward the viewer. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "yn-ep3",
+   "cut": "10",
+   "files": "content/yeongnyangi/season-1/ep3/10-{640,1024}.avif + 10-720.webp",
+   "origin": "generated",
+   "source": "out/yeongnyangi/ep3/10.png",
+   "sourceSha256": "41ee7e33817ff0a4",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/양냥이 프로필 시트.webp",
+    "CodeDestiny-Build/여_연이 프로필 사복버전.webp",
+    "public/assets/yeongnyangi/original/room-1440.webp",
+    "CodeDestiny-Build/webtoon-revamp-20261107/out/yeongnyangi/ep3/02.png"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: Yeongnyangi (fluffy white cat with exactly TWO pink-lined ears, golden-violet half-lidded eyes, navy wizard hat with gold crescent moon and tassel, navy cape with gold trim, purple gem collar; aloof expression; match the reference exactly); Yeoni (young Korean woman, long wavy pastel-pink hair, soft pink eyes, cozy casual clothes as in the casual-outfit reference; HUMAN). Yeongnyangi sitting upright on the cushion facing Yeoni, both ears turned forward, mouth slightly open as if about to say something important; Yeoni waiting with the brush poised over the blank envelope. Brazier glow, frost on the window. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "guide",
+   "cut": "01",
+   "files": "public/images/moonlight-guide/first-{508,1016}.avif + first-720.webp",
+   "origin": "generated",
+   "source": "out/guide/01.png",
+   "sourceSha256": "aa4519a26df7975e",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/연이 프로필1.png",
+    "CodeDestiny-Build/양냥이 프로필 시트.webp",
+    "public/images/moonlight-guide/4.webp",
+    "public/images/moonlight-guide/1.webp"
+   ],
+   "prompt": "Vertical-scroll Korean webtoon panel. Characters: flower-pig Yeoni (the cute pink pig mascot with a flower, match the reference sheet exactly); Yeongnyangi (fluffy white cat with exactly TWO pink-lined ears, golden-violet half-lidded eyes, navy wizard hat with gold crescent moon and tassel, navy cape with gold trim, purple gem collar; aloof expression; match the reference exactly). A first-time visitor (young Korean woman with short dark wavy hair and a sage-green cable-knit sweater, as in the attached guide art) sits at a moonlit tea table, index finger hovering hesitantly between two face-down tarot cards: the left card back is pink with a lotus, the right card back is navy with a gold crescent. The pink flower-pig mascot peeks out from behind the pink card, smiling; Yeongnyangi (white cat with wizard hat) peeks out from behind the navy card, aloof. Same soft pastel storybook style as the guide art references. Match the painterly premium style of the attached references."
+  },
+  {
+   "work": "guide",
+   "cut": "05",
+   "files": "public/images/moonlight-guide/card.webp (720, replaces forest.webp)",
+   "origin": "generated",
+   "source": "out/guide/05-card.png",
+   "sourceSha256": "c4cfeca21bbaaeb3",
+   "tool": "OpenAI gpt-image-2 via Codex CLI image_gen (OAuth)",
+   "date": "2026-11-07",
+   "referenceImages": [
+    "CodeDestiny-Build/연이 프로필1.png",
+    "CodeDestiny-Build/양냥이 프로필 시트.webp",
+    "public/images/moonlight-guide/5.webp"
+   ],
+   "prompt": "Cozy indoor tea-house table at night, warm lamplight, plum and honey-gold palette, NO forest, NO trees, NO lanterns on a path. The pink flower-pig mascot Yeoni (pink lotus flower on head, lilac neckerchief, match reference exactly) proudly holds up a small framed profile card showing a tiny cute character portrait with a little level star badge. On the table in front lies an open monthly attendance calendar sheet: a 7-column grid of blank squares where several squares are stamped with glossy golden honey-drop stamps and one square holds a tiny honey jar; no writing on it. Yeongnyangi (fluffy white cat with exactly TWO pink-lined ears, golden-violet half-lidded eyes, navy wizard hat with gold crescent moon and tassel, navy cape with gold trim, purple gem collar; aloof but secretly pleased) presses a round honey-drop stamp onto today's square with one paw, a small sparkle where it lands. A small honey jar with glowing drops sits nearby. Game-like, playful, cheerful mood, square composition, soft pastel storybook style matching reference 3."
+  }
+ ],
+ "legacySingleImage": {
   "vedic": {
-    "source": "C:/Users/user/.codex/generated_images/01a1a2d0-5fee-7e62-ae37-193d486c6eec/exec-8c512ef7-ba5d-46ec-8cf2-a68d8d17baaf.png",
-    "width": 724,
-    "height": 2172,
-    "bytes": 718550
+   "source": "C:/Users/user/.codex/generated_images/01a1a2d0-5fee-7e62-ae37-193d486c6eec/exec-8c512ef7-ba5d-46ec-8cf2-a68d8d17baaf.png",
+   "width": 724,
+   "height": 2172,
+   "bytes": 718550
   },
   "ziwei": {
-    "source": "C:/Users/user/.codex/generated_images/01a1ae08-b0fd-7363-a1f7-93cdc0e7c516/exec-8a10a409-72d9-4ebd-af6c-66d83c766bf4.png",
-    "width": 724,
-    "height": 2172,
-    "bytes": 488680
+   "source": "C:/Users/user/.codex/generated_images/01a1ae08-b0fd-7363-a1f7-93cdc0e7c516/exec-8a10a409-72d9-4ebd-af6c-66d83c766bf4.png",
+   "width": 724,
+   "height": 2172,
+   "bytes": 488680
   },
   "love-secret": {
-    "source": "C:/Users/user/.codex/generated_images/01a1ae08-b0fd-7363-a1f7-93cdc0e7c516/exec-8bb09dbc-c7ce-4d01-ab82-65d0c0be7509.png",
-    "width": 724,
-    "height": 2172,
-    "bytes": 496166
+   "source": "C:/Users/user/.codex/generated_images/01a1ae08-b0fd-7363-a1f7-93cdc0e7c516/exec-8bb09dbc-c7ce-4d01-ab82-65d0c0be7509.png",
+   "width": 724,
+   "height": 2172,
+   "bytes": 496166
   },
   "new-year": {
-    "source": "C:/Users/user/.codex/generated_images/01a1a2d0-5fee-7e62-ae37-193d486c6eec/exec-2028f8eb-8eea-4fe5-8848-96d8a1eab7c2.png",
-    "width": 724,
-    "height": 2172,
-    "bytes": 716522
+   "source": "C:/Users/user/.codex/generated_images/01a1a2d0-5fee-7e62-ae37-193d486c6eec/exec-2028f8eb-8eea-4fe5-8848-96d8a1eab7c2.png",
+   "width": 724,
+   "height": 2172,
+   "bytes": 716522
   },
   "life-book": {
-    "source": "C:/Users/user/.codex/generated_images/01a1a2d0-5fee-7e62-ae37-193d486c6eec/exec-7f9f3bc4-cf76-41b8-9fdb-45c4f6ab77dc.png",
-    "width": 724,
-    "height": 2172,
-    "bytes": 697608
+   "source": "C:/Users/user/.codex/generated_images/01a1a2d0-5fee-7e62-ae37-193d486c6eec/exec-7f9f3bc4-cf76-41b8-9fdb-45c4f6ab77dc.png",
+   "width": 724,
+   "height": 2172,
+   "bytes": 697608
   },
   "sukuyo-compat": {
-    "source": "C:/Users/user/.codex/generated_images/01a1ae08-b0fd-7363-a1f7-93cdc0e7c516/exec-5fbd8a0d-88d6-4403-b09c-99d9329e9d5a.png",
-    "width": 724,
-    "height": 2172,
-    "bytes": 473932
+   "source": "C:/Users/user/.codex/generated_images/01a1ae08-b0fd-7363-a1f7-93cdc0e7c516/exec-5fbd8a0d-88d6-4403-b09c-99d9329e9d5a.png",
+   "width": 724,
+   "height": 2172,
+   "bytes": 473932
   },
   "neo": {
-    "source": "C:/Users/user/.codex/generated_images/01a1a2d0-5fee-7e62-ae37-193d486c6eec/exec-46e00771-c0db-4970-a4ab-bc048272cae4.png",
-    "width": 724,
-    "height": 2172,
-    "bytes": 722746
+   "source": "C:/Users/user/.codex/generated_images/01a1a2d0-5fee-7e62-ae37-193d486c6eec/exec-46e00771-c0db-4970-a4ab-bc048272cae4.png",
+   "width": 724,
+   "height": 2172,
+   "bytes": 722746
   },
   "tea": {
-    "source": "C:/Users/user/.codex/generated_images/01a1a2d0-5fee-7e62-ae37-193d486c6eec/exec-30900132-2ce6-430a-9b87-8ee44625c56a.png",
-    "width": 724,
-    "height": 2172,
-    "bytes": 730740
+   "source": "C:/Users/user/.codex/generated_images/01a1a2d0-5fee-7e62-ae37-193d486c6eec/exec-30900132-2ce6-430a-9b87-8ee44625c56a.png",
+   "width": 724,
+   "height": 2172,
+   "bytes": 730740
   },
   "astrology": {
-    "source": "C:/Users/user/.codex/generated_images/01a1a2d0-5fee-7e62-ae37-193d486c6eec/exec-b1aa43ca-b71d-472c-aa38-f0f935441463.png",
-    "width": 724,
-    "height": 2172,
-    "bytes": 729478
+   "source": "C:/Users/user/.codex/generated_images/01a1a2d0-5fee-7e62-ae37-193d486c6eec/exec-b1aa43ca-b71d-472c-aa38-f0f935441463.png",
+   "width": 724,
+   "height": 2172,
+   "bytes": 729478
   },
   "codex": {
-    "source": "C:/Users/user/.codex/generated_images/01a1a2d0-5fee-7e62-ae37-193d486c6eec/exec-c9eb754f-a0fa-49ee-8e46-d5005dd9fc0f.png",
-    "width": 724,
-    "height": 2172,
-    "bytes": 685588
+   "source": "C:/Users/user/.codex/generated_images/01a1a2d0-5fee-7e62-ae37-193d486c6eec/exec-c9eb754f-a0fa-49ee-8e46-d5005dd9fc0f.png",
+   "width": 724,
+   "height": 2172,
+   "bytes": 685588
   },
   "legacy-naming": {
-    "source": "C:/Users/user/.codex/generated_images/01a1a2d0-5fee-7e62-ae37-193d486c6eec/exec-f8e170c0-cd3d-41d7-ae7d-77f33c302c13.png",
-    "width": 724,
-    "height": 2172,
-    "bytes": 561122
+   "source": "C:/Users/user/.codex/generated_images/01a1a2d0-5fee-7e62-ae37-193d486c6eec/exec-f8e170c0-cd3d-41d7-ae7d-77f33c302c13.png",
+   "width": 724,
+   "height": 2172,
+   "bytes": 561122
   },
   "karma": {
-    "source": "C:/Users/user/.codex/generated_images/01a1ae08-b0fd-7363-a1f7-93cdc0e7c516/exec-f096494f-690a-4b39-8286-ce9da8843c91.png",
-    "width": 724,
-    "height": 2172,
-    "bytes": 522172
+   "source": "C:/Users/user/.codex/generated_images/01a1ae08-b0fd-7363-a1f7-93cdc0e7c516/exec-f096494f-690a-4b39-8286-ce9da8843c91.png",
+   "width": 724,
+   "height": 2172,
+   "bytes": 522172
   },
   "fusion": {
-    "source": "C:/Users/user/.codex/generated_images/01a1ae08-b0fd-7363-a1f7-93cdc0e7c516/exec-02080c3b-c6a8-42e9-934a-debfccec6930.png",
-    "width": 724,
-    "height": 2172,
-    "bytes": 573712
+   "source": "C:/Users/user/.codex/generated_images/01a1ae08-b0fd-7363-a1f7-93cdc0e7c516/exec-02080c3b-c6a8-42e9-934a-debfccec6930.png",
+   "width": 724,
+   "height": 2172,
+   "bytes": 573712
   }
+ }
 }

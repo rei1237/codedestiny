@@ -3,6 +3,7 @@ import { connectDb } from '../lib/db.js';
 import { json, readJson, methodNotAllowed, handleRouteError } from '../lib/http.js';
 import { enforceSensitiveEndpointSecurity } from '../lib/security/index.js';
 import { HONEY_UNLOCK_PRODUCTS } from '../lib/honey-unlock-catalog.js';
+import { HONEY_ATTENDANCE_EVERY, HONEY_STREAK_BONUS, HONEY_STREAK_EVERY, PROMPT_HUB_HONEY_COST } from '../lib/honey-wallet.js';
 import { spendHoneyUnlock } from '../lib/honey-unlocks.js';
 import { getUnlockedContentSnapshot } from '../lib/content-unlocks.js';
 import { CREDENTIAL_CACHE_PREFIXES, purgeCredentialCache } from '../lib/credential-scoped-cache.js';
@@ -13,7 +14,9 @@ export async function handleHoneyUnlockRoutes(request, env) {
   try {
     if (url.pathname === '/api/honey/catalog') {
       if (request.method !== 'GET') return methodNotAllowed();
-      return json({ ok: true, products: HONEY_UNLOCK_PRODUCTS, otherUses: [] }, noStore);
+      // 비회원 출석부도 실제 지급 규칙을 보여 주도록 규칙 상수만 공개한다(잔액·출석 여부는 로그인 후 /api/honey/attendance).
+      const attendance = { attendanceEvery: HONEY_ATTENDANCE_EVERY, streakEvery: HONEY_STREAK_EVERY, streakBonus: HONEY_STREAK_BONUS, promptCost: PROMPT_HUB_HONEY_COST };
+      return json({ ok: true, products: HONEY_UNLOCK_PRODUCTS, otherUses: [], attendance }, noStore);
     }
     if (!['GET', 'POST'].includes(request.method)) return methodNotAllowed();
     const auth = await requireUserFromRequest(request, env);

@@ -22067,8 +22067,8 @@
       "A": "✨ Schicksalhafte Verbindung",
       "B": "😊 Verbundene Beziehung",
       "C": "🙂 Alltägliche Verbindung",
-      "D": "⚠️ Karmische Verbindung",
-      "F": "🌧️ Herausfordernde Verbindung"
+      "D": "Einen gemeinsamen Rhythmus finden",
+      "F": "Gegenseitige Grenzen verstehen"
     },
     "gradeBadge": "Stufe {grade}",
     "titleLine": "{type} — {self} × {partner}",
@@ -22168,14 +22168,14 @@
     },
     "past": {
       "title": "🔮 Deutung früherer Verbindungen",
-      "subtitle": "FRÜHERE LEBEN · Vergleich von Tages- und Jahrespfeiler",
+      "subtitle": "Eine sinnbildliche Geschichte über eure Beziehung",
       "grade": {
         "S": "🌟 Stufe S · Zwillingssterne eines früheren Lebens",
         "A": "✨ Stufe A · Schicksalhaftes Déjà-vu",
         "B": "🌱 Stufe B · Eine neu aufkeimende Verbindung",
         "C": "⚪ Stufe C · Eine Verbindung auf einem neuen Blatt",
-        "D": "⚠️ Stufe D · Ein karmischer Knoten zum Lösen",
-        "F": "🌀 Stufe F · Lernen aus übernommenen Schwierigkeiten"
+        "D": "D · Ein Knoten, der sich langsam löst",
+        "F": "F · Ein Knoten mit Raum für zwei Wege"
       },
       "crossSelf": "🧬 Tagespfeiler von {self} ({selfPillar}) × Jahrespfeiler von {partner} ({partnerPillar})",
       "crossPartner": "🧬 Tagespfeiler von {partner} ({partnerPillar}) × Jahrespfeiler von {self} ({selfPillar})",
@@ -22237,7 +22237,8 @@
       "hour": "Zwei Laternen vor dem Morgenlicht ferner Berge",
       "past-resonance": "Zwei Laternen treiben auf einem Teich aufeinander zu",
       "past-growth": "Eine Brücke verbindet zwei Ufer mit blühenden Bäumen",
-      "past-knot": "Ein lockerer Seidenknoten neben einer Lotusblüte"
+      "past-knot": "Ein lockerer Seidenknoten neben einer Lotusblüte",
+      "past-ferry": "Vom Boot aus hebt jemand eine Laterne zur Person am Ufer"
     },
     "relationship": {
       "title": "Wo sich eure beiden Geburtsbilder begegnen",
@@ -22302,6 +22303,19 @@
       "candidates": "Kandidaten: {elements}",
       "unresolved": "Kein einzelnes nützliches Element bestätigt",
       "note": "Nützliche Elemente werden als Kandidaten und nicht als feste Antworten gezeigt; was sich nicht beurteilen lässt, bleibt zurückgestellt. Der Kompatibilitätswert wird separat aus der Anzahl der Elemente berechnet."
+    },
+    "entry": {
+      "title": "Saju für zwei",
+      "love": "Entdeckt euren Kontaktrhythmus und wie ihr nach einem Streit wieder zueinanderfindet.",
+      "business": "Entdeckt, wie ihr Aufgaben teilt und gemeinsam entscheidet.",
+      "friend": "Findet heraus, wie viel Kontakt und Freiraum euch beiden guttut.",
+      "preview": "Berichtsinhalt ansehen"
+    },
+    "reading": {
+      "contents": "Inhalt der Deutung",
+      "say": "Ein Satz zum Ausprobieren",
+      "strength": "Was euch verbindet",
+      "adjust": "Wo Abstimmung hilft"
     }
   },
   "honeyUI": {

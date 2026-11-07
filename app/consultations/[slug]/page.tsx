@@ -5,10 +5,11 @@ import {RECORD_SERVICES} from '@/lib/records/service-registry';
 import {PriceBadge} from '@/app/components/PriceBadge';
 import {consultationStories,storyBenefits} from '../stories';
 import {storyMasters,storyOutcomes} from '../story-masters';
-import {storyDialogue} from '../story-dialogue';
-import {storyPreludes} from '../story-preludes';
+import CutReader,{type WebtoonCut} from '@/app/components/webtoon/CutReader';
+import {consultationWebtoons} from '@/lib/brand/consultation-webtoons.mjs';
 import styles from './story.module.css';
 type Props={params:Promise<{slug:string}>};
+const webtoons=consultationWebtoons as Record<string,{title:string;ending:{action:string;href:string};cuts:WebtoonCut[]}>;
 export function generateStaticParams(){return Object.keys(consultationStories).map(slug=>({slug}));}
 export async function generateMetadata({params}:Props):Promise<Metadata>{
  const {slug}=await params;const service=RECORD_SERVICES.find(item=>item.id===slug),story=consultationStories[slug];
@@ -16,21 +17,20 @@ export async function generateMetadata({params}:Props):Promise<Metadata>{
  return {title:`${service.name} · 상담 이야기`,description:story.basis,robots:{index:false,follow:false},alternates:{canonical:`/consultations/${slug}/`}};
 }
 export default async function ConsultationStory({params}:Props){
- const {slug}=await params,story=consultationStories[slug],service=RECORD_SERVICES.find(item=>item.id===slug);
- if(!story||!service)notFound();
+ const {slug}=await params,story=consultationStories[slug],service=RECORD_SERVICES.find(item=>item.id===slug),webtoon=webtoons[slug];
+ if(!story||!service||!webtoon)notFound();
  return <main className={styles.page} lang="ko" data-cd-no-trans>
   <link rel="stylesheet" href="/styles/service-intro-fonts.css"/>
   <nav className={styles.nav}><a href="/consultations/">상담의 정원</a><a href={service.href}>이야기 건너뛰기</a></nav>
   <header className={styles.cover}>
-   <h1>{service.name}</h1><p className={styles.lead}>{story.lead}</p>
+   <h1>{webtoon.title}</h1><p className={styles.lead}>{story.lead}</p>
    <ul className={styles.benefits} aria-label="이 상담에서 얻는 것">{storyBenefits[slug].map(benefit=><li key={benefit}>{benefit}</li>)}</ul>
    <div className={styles.actions}><a href="#story" className={styles.storyLink}>웹툰으로 알아보기 ↓</a><a href={service.href} className={styles.startLink}>상담 시작하기 →</a></div>
   </header>
   <section id="story" className={styles.story} aria-label={`${service.name} 도입 웹툰`}>
-   <p className={styles.storyHint}>아래로 펼쳐 읽어보세요 · 도입 이야기 예시</p>
-   <Image unoptimized src={`/images/consultation-webtoons/${slug}.webp`} alt={story.voices} width={724} height={2172} className={styles.webtoon} loading="eager"/>
-   <details className={styles.transcript}><summary>웹툰 대사를 글로 읽기</summary><p>{storyDialogue[slug]}</p></details>
-   <aside className={styles.scene}><h2>{storyPreludes[slug][0]}</h2>{storyPreludes[slug].slice(1).map(line=><p key={line}>{line}</p>)}</aside>
+   <p className={styles.storyHint}>아래로 펼쳐 읽어보세요 · 도입 이야기 예시 · {webtoon.cuts.length}컷</p>
+   <CutReader cuts={webtoon.cuts}/>
+   <p className={styles.ending}><span>오늘 해 볼 한 가지</span><a href={service.href}>{webtoon.ending.action} →</a></p>
   </section>
   <section className={styles.reading} aria-label="이야기에서 상담으로">
    {(storyMasters[slug]||[]).map(master=><div key={master.name} className={styles.master}><Image unoptimized src={master.avatar} width={72} height={72} alt=""/><div><h2>{master.name}</h2><p>{master.role}</p><p className={styles.voice}>{master.line}</p></div></div>)}

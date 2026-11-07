@@ -22067,8 +22067,8 @@
       "A": "✨ Pertemuan takdir",
       "B": "😊 Hubungan yang terjalin",
       "C": "🙂 Hubungan biasa",
-      "D": "⚠️ Hubungan karma",
-      "F": "🌧️ Hubungan penuh cabaran"
+      "D": "Mencari rentak hidup bersama",
+      "F": "Memahami sempadan satu sama lain"
     },
     "gradeBadge": "Gred {grade}",
     "titleLine": "{type} — {self} × {partner}",
@@ -22168,14 +22168,14 @@
     },
     "past": {
       "title": "🔮 Tafsiran hubungan kehidupan lampau",
-      "subtitle": "KEHIDUPAN LAMPAU · Perbandingan tiang hari × tahun",
+      "subtitle": "Kisah simbolik tentang hubungan anda",
       "grade": {
         "S": "🌟 Gred S · Bintang kembar kehidupan lampau",
         "A": "✨ Gred A · Pertemuan takdir yang terasa dikenali",
         "B": "🌱 Gred B · Hubungan yang berputik semula",
         "C": "⚪ Gred C · Hubungan baharu pada lembaran kosong",
-        "D": "⚠️ Gred D · Simpulan karma untuk dileraikan",
-        "F": "🌀 Gred F · Belajar daripada kesukaran yang diwarisi"
+        "D": "D · Simpulan yang dileraikan perlahan",
+        "F": "F · Simpulan yang membuka dua laluan"
       },
       "crossSelf": "🧬 Tiang hari {self} ({selfPillar}) × tiang tahun {partner} ({partnerPillar})",
       "crossPartner": "🧬 Tiang hari {partner} ({partnerPillar}) × tiang tahun {self} ({selfPillar})",
@@ -22237,7 +22237,8 @@
       "hour": "Dua tanglung menghadap fajar di pergunungan jauh",
       "past-resonance": "Dua tanglung menghampiri satu sama lain di kolam",
       "past-growth": "Jambatan menghubungkan dua tebing berpohon bunga",
-      "past-knot": "Simpulan sutera longgar di sisi teratai"
+      "past-knot": "Simpulan sutera longgar di sisi teratai",
+      "past-ferry": "Seseorang di atas perahu mengangkat tanglung ke arah orang di tebing"
     },
     "relationship": {
       "title": "Pertemuan dua carta kelahiran",
@@ -22302,6 +22303,19 @@
       "candidates": "Calon pelengkap {elements}",
       "unresolved": "Tiada satu unsur berguna yang disahkan",
       "note": "Unsur berguna ditunjukkan sebagai calon, bukan jawapan muktamad, dan perkara yang tidak dapat dinilai ditangguhkan. Skor keserasian dikira secara berasingan berdasarkan bilangan setiap unsur."
+    },
+    "entry": {
+      "title": "Keserasian Saju untuk berdua",
+      "love": "Kenali rentak berhubung dan cara berbaik selepas berselisih.",
+      "business": "Lihat cara anda berkongsi tugas dan membuat keputusan bersama.",
+      "friend": "Kenali kekerapan berhubung dan ruang peribadi yang sesuai untuk anda berdua.",
+      "preview": "Lihat kandungan laporan"
+    },
+    "reading": {
+      "contents": "Kandungan bacaan",
+      "say": "Kata yang boleh dicuba",
+      "strength": "Titik keserasian",
+      "adjust": "Perkara untuk diselaraskan"
     }
   },
   "honeyUI": {

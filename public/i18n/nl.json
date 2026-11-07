@@ -22067,8 +22067,8 @@
       "A": "✨ Voorbestemde ontmoeting",
       "B": "😊 Verbonden relatie",
       "C": "🙂 Gewone verbinding",
-      "D": "⚠️ Karmische verbinding",
-      "F": "🌧️ Uitdagende verbinding"
+      "D": "Samen een dagelijks ritme vinden",
+      "F": "Elkaars grenzen leren kennen"
     },
     "gradeBadge": "Niveau {grade}",
     "titleLine": "{type} — {self} × {partner}",
@@ -22168,14 +22168,14 @@
     },
     "past": {
       "title": "🔮 Duiding van een band uit een vorig leven",
-      "subtitle": "VORIGE LEVENS · Vergelijking dag- en jaarpijler",
+      "subtitle": "Een symbolisch verhaal over jullie band",
       "grade": {
         "S": "🌟 Niveau S · Tweelingsterren uit een vorig leven",
         "A": "✨ Niveau A · Een voorbestemd déjà vu",
         "B": "🌱 Niveau B · Een band die opnieuw ontkiemt",
         "C": "⚪ Niveau C · Een band op een blanco blad",
-        "D": "⚠️ Niveau D · Een karmische knoop om te ontwarren",
-        "F": "🌀 Niveau F · Leren van overgeërfde moeilijkheden"
+        "D": "D · Een knoop die langzaam loskomt",
+        "F": "F · Een knoop met ruimte voor twee wegen"
       },
       "crossSelf": "🧬 Dagpijler van {self} ({selfPillar}) × jaarpijler van {partner} ({partnerPillar})",
       "crossPartner": "🧬 Dagpijler van {partner} ({partnerPillar}) × jaarpijler van {self} ({selfPillar})",
@@ -22237,7 +22237,8 @@
       "hour": "Twee lantaarns gericht op de ochtend boven verre bergen",
       "past-resonance": "Twee lantaarns drijven naar elkaar op een vijver",
       "past-growth": "Een brug tussen twee oevers met bloeiende bomen",
-      "past-knot": "Een losse zijden knoop naast een lotus"
+      "past-knot": "Een losse zijden knoop naast een lotus",
+      "past-ferry": "Iemand op de veerboot heft een lantaarn naar de persoon op de oever"
     },
     "relationship": {
       "title": "Waar jullie twee geboorteprofielen elkaar raken",
@@ -22302,6 +22303,19 @@
       "candidates": "Kandidaten: {elements}",
       "unresolved": "Geen enkel nuttig element bevestigd",
       "note": "Nuttige elementen worden als kandidaten getoond en niet als vaste antwoorden; wat niet te beoordelen is, blijft aangehouden. De compatibiliteitsscore wordt apart berekend uit het aantal elementen."
+    },
+    "entry": {
+      "title": "Saju voor twee",
+      "love": "Ontdek jullie contactritme en hoe jullie na ruzie weer toenadering zoeken.",
+      "business": "Ontdek hoe jullie taken verdelen en samen beslissingen nemen.",
+      "friend": "Ontdek hoeveel contact en ruimte jullie allebei prettig vinden.",
+      "preview": "Bekijk de inhoud"
+    },
+    "reading": {
+      "contents": "Inhoud van de duiding",
+      "say": "Iets om te zeggen",
+      "strength": "Wat jullie verbindt",
+      "adjust": "Waar afstemming helpt"
     }
   },
   "honeyUI": {

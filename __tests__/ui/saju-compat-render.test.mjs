@@ -174,3 +174,30 @@ test('non-English compatibility dictionaries contain authored prose rather than 
     }
   }
 });
+
+test('첫 화면은 저장 문장을 한 번만 쓰고 구버전 전생에 새 삽화를 붙이지 않는다', async () => {
+  const { buildSajuCompatPrompt } = await import('../../worker/lib/saju-compat-prompts.js');
+  const pair = samplePairs(19, 80).find(([a, b]) =>
+    requestBody(a, b).facts.pastLife.cross.filter(row => row.gan === 'he' || row.ji === 'he').length === 1);
+  const snap = snapshotOf(...pair, 'love');
+  snap.narrative.overview = '관계의 요약입니다. 함께 읽을 두 번째 문장입니다.';
+  snap.narrative.prescription.conflictRoutine = '“조금 쉬고 다시 이야기할까요?” 시간을 정해 보세요.';
+  const input = normalizeSajuCompatInput(requestBody(...pair));
+  const original = JSON.stringify(snap);
+  const html = renderSajuCompat(snap);
+  for (const line of ['관계의 요약입니다.', '함께 읽을 두 번째 문장입니다.', '조금 쉬고 다시 이야기할까요?', '시간을 정해 보세요.']) assert.equal(html.split(line).length, 2);
+  assert.ok(html.indexOf('조금 쉬고') < html.indexOf('compat-love-depth'));
+  assert.match(html, /past-ferry.webp/);
+  assert.match(buildSajuCompatPrompt('pastLife', input), /나루에서 한 사람이 신호/);
+  for (const promptVersion of ['saju-compat-basic-p1', 'saju-compat-basic-p2']) {
+    const archived = renderSajuCompat({ ...snap, promptVersion }, { archive: true });
+    assert.doesNotMatch(archived, /past-ferry.webp/);
+    assert.match(archived, /aria-controls="compat-archive-past"/);
+    assert.doesNotMatch(buildSajuCompatPrompt('pastLife', { ...input, promptVersion }), /나루에서 한 사람이 신호/);
+  }
+  for (const type of ['business','friend']) {
+    const other = renderSajuCompat({ ...snap, facts: { ...snap.facts, type } });
+    assert.doesNotMatch(other, /past-ferry.webp|aria-controls="compat-reading-love"/);
+  }
+  assert.equal(JSON.stringify(snap), original);
+});

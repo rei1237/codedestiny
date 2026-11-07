@@ -218,7 +218,7 @@
       if (mine !== run) return;
       var view = kit.flow.classifySajuCompatArchiveReply(reply, 'detail');
       if (view.state === 'detail') {
-        var html = kit.render.renderSajuCompat(view.result, { t: t, selfName: '' });
+        var html = kit.render.renderSajuCompat(view.result, { t: t, selfName: '', archive: true });
         if (!html) { showMessage('unreadable', { back: true }); return; }
         setBody('<div class="cd-compat-archive__detail-head"><button type="button" class="cd-compat-archive__btn cd-compat-archive__btn--ghost" data-cd-compat-back data-cd-compat-focus="' + esc(resultId) + '">'
           + esc(t('sajuCompat.archive.back')) + '</button></div><p class="cd-compat-archive__note">' + esc(t('sajuCompat.archive.detailNote')) + '</p>' + html);

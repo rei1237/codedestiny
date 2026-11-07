@@ -33,6 +33,7 @@ button.trigger[aria-haspopup="dialog"] {
 .panel b {display:block; font-size:.82rem; color:var(--hm-gold-ink)}
 .bubble,.guest,.tag {background:var(--cd-surface); border:1px solid var(--hm-gold-line)}
 .bubble {justify-self:start; border-radius:.15rem 1rem 1rem 1rem}
+.bubble[data-cat] {justify-self:end; border-radius:1rem .15rem 1rem 1rem}
 .guest {justify-self:end; border-radius:1rem .15rem 1rem 1rem}
 .tag {justify-self:center; padding:.2rem .7rem; font-family:var(--font-serif)}
 .panel a {display:inline-flex; gap:.3em; align-items:center; min-height:48px; text-decoration:underline}
