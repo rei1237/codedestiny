@@ -77,6 +77,12 @@ test('library distinguishes life-fortune and life-book purchase titles',async()=
  try{assert.match(document.body.textContent,/인생의 책/);assert.match(document.body.textContent,/인생 총운/);}finally{await view.close();history.replaceState({},'', '/');}
 });
 
+test('library titles sukuyo, maya, neo, and tea purchases by their sale names',async()=>{
+ history.replaceState({},'', '/library');const base={status:'PURCHASED',state:'UNASSIGNED',createdAt:'2026-01-01'};
+ const view=await mount(true,'',{api:async()=>({purchases:[{...base,orderId:'sukuyo',nativeService:'sukuyo',serviceId:'yeongnyangi',featureKey:'sukuyo-compatibility-ai'},{...base,orderId:'maya',nativeService:'maya',serviceId:'yeongnyangi',featureKey:'maya-prompt-generator'},{...base,orderId:'neo',nativeService:'neo',serviceId:'neo',featureKey:'neo-operation-room-consultation'},{...base,orderId:'tea',nativeService:'tea',serviceId:'yeoni',featureKey:'fortune-tea-house-love'}],nextCursor:null})});
+ try{const text=document.body.textContent;for(const title of ['숙요점 궁합 전문가 상담','마야점 프롬프트','네오의 팩폭 전략실','운명의 찻집'])assert.ok(text.includes(title),title);assert.doesNotMatch(text,/영냥이 · |구매한 상담/);}finally{await view.close();history.replaceState({},'', '/');}
+});
+
 test('background session expiry hides an opened private result and requires login',async()=>{
  history.replaceState({},'', '/result?id=result-1');const view=await mount(true,'',{api:async()=>({id:'result-1',state:'COMPLETED',chapters:[{title:'결과',summary:'이전 계정의 결과'}],manifest:[{title:'결과'}],recovery:{savedChapters:1,totalChapters:1,canRetryNow:false,reviewRequired:false}})});
  try{assert.match(document.body.textContent,/이전 계정의 결과/);await React.act(async()=>globalThis.__homeRecovery.invalidate());assert.doesNotMatch(document.body.textContent,/이전 계정의 결과/);assert.match(document.body.textContent,/로그인/);}

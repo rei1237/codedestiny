@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-11-08
-next: 먼저 "후속 과제 — 보관함 구매 제목"을 처리한 뒤, 남은 미이식·부분 구현 서비스와 공식 기기·콘솔 차단 항목을 이어 간다.
+next: 보관함 구매 제목 후속 과제는 완료. 남은 미이식·부분 구현 서비스와 공식 기기·콘솔 차단 항목을 이어 가고, 차단 0건이 되면 "론칭 지시 프롬프트"로 제출 직전까지 진행한다.
 ---
 
 # 앱인토스 출시 인수인계 — Astra
@@ -69,6 +69,29 @@ Code Destiny의 앱인토스 출시 범위 전체를 구현하고 공식 테스�
 2. `p.nativeService==='pet'?…` 체인에 네 분기를 추가하고, 찻집은 featureKey 기준 제목을 둔다.
 3. [apps/toss/test/automatic-recovery-home.test.mjs](../../apps/toss/test/automatic-recovery-home.test.mjs) 74행 "library distinguishes life-fortune and life-book purchase titles"와 같은 방식으로 네 서비스 제목 테스트를 추가한다.
 4. 토스 앱 테스트·타입 검사·`check:fast` → 커밋 → main 반영(아래 "작업 위치와 안전한 통합") → 해당 SHA의 PR CI 확인.
+
+결과 (2026-11-08, 완료): 이름은 서버 판매 카탈로그 `nativeTeaCatalog()`([worker/toss/native-tea.js](../../worker/toss/native-tea.js) 28행)를 정본으로 따랐다 — 구매 화면에서 본 이름과 같아야 하고, 기존 보관함 분기(점성술 전문가 상담 등)도 이미 이 카탈로그를 따른다. 숙요 "숙요점 궁합 전문가 상담", 마야 "마야점 프롬프트", 네오 "네오의 팩폭 전략실", 찻집 "운명의 찻집". 찻집은 `native-consultation.js`가 `fortune-tea-house-*` 키만 허용하고 카탈로그도 키별 이름이 없으므로 featureKey별 제목을 두지 않았다. `automatic-recovery-home.test.mjs`에 네 서비스 제목 테스트 추가. 토스 앱 1,389개·타입 검사 통과. 콘솔 상품명을 등록할 때 이 네 이름과 맞춘다(다르게 등록하면 카탈로그·보관함을 같이 바꾼다).
+
+## 론칭 지시 프롬프트 (Codex용)
+
+차단 항목이 모두 해소된 뒤 Codex에 아래를 그대로 붙여 넣는다. 제출 버튼은 Codex가 보고한 뒤 사용자가 명시적으로 승인해야만 누른다.
+
+```text
+앱인토스 론칭(심사 제출)을 진행해.
+
+작업 위치: D:\Development\code-destiny\.codex-worktrees\toss-release-20261103-231835 (브랜치 wt/toss-release-20261103-231835, 새 브랜치·PR 금지)
+먼저 읽을 것: AGENTS.md, CLAUDE.md, docs/handoff/2026-11-07-astra-handoff.md, docs/toss/2026-11-04-review-readiness.md("공식 기준별 미완료 체크리스트"), docs/toss/2026-10-28-launch-plan.md("출시까지의 순서와 통과 증거").
+
+1. 상태 확인: git status --short, git fetch origin, git log -1, npm run launch:status --prefix apps/toss. 남은 이식·부분 구현·미승인 SKU·release 설정 false·14개 차단 범주 중 하나라도 남아 있으면 제출하지 말고, 남은 항목과 근거만 보고하고 멈춰.
+2. 검증: 토스 앱 전체 테스트(npm test --prefix apps/toss), 타입 검사(npm run typecheck --prefix apps/toss), npm run check:fast, 커밋된 트리에서 npm run check:pre-push. 공식 지원 방식으로 만든 .ait로 npm run verify:release-bundle --prefix apps/toss 통과. 실패는 원인을 고치고 통과라고 적지 마.
+3. 통합: 다른 세션의 미커밋 작업을 보존한 채 검증된 커밋을 main에 반영하고 git push origin main. 최종 SHA의 CI required·Paid Flow Gates·Secret Scan 결과를 확인해. reset·stash·checkout으로 남의 작업을 지우지 마.
+4. 콘솔 확인(ego-browser, 기존 TaskSpace 하나만): 상품(SKU) 목록·금액이 서버 가격 레지스트리와 일치하는지, 로그인·mTLS, 아이콘·썸네일·스크린샷, 개인정보 고지, 연령, 심사 자료. 로그인·OTP·QR은 내가 직접 처리하니 그때 멈추고 요청해. 반려동물 3,000원/5,000원 불일치처럼 미확정 금액은 임의로 정하지 마.
+5. 공식 기기·샌드박스: 찻집 뒤로가기, 연이 편지 상담, 대표 상담, 모든 유료 경로의 결제·결과·이어보기·보관함·복구를 샌드박스 결제로 확인하고 증거(스크린샷·주문번호)를 남겨. 실제 과금은 내 별도 확인 없이 금지.
+6. 제출 직전 보고: 앱·버전, 포함·제외 서비스, SKU와 승인 상태, 테스트 결과, main SHA와 CI, 심사 자료, 남은 위험, 제출의 외부 효과를 한국어로 보고하고 내 명시적 "제출 승인"을 기다려. 승인 전에는 제출 버튼을 누르지 마.
+7. 승인 후 제출: 콘솔에서 접수 상태·시각·접수 번호를 확인해 인수인계 문서에 기록하고 커밋·push해.
+
+금지: 실 LLM 호출, 실결제, 운영 DB 쓰기, 운영 배포 승격(별도 1회 승인 필요), 가격·이용권 구조 변경, 확인 안 된 혜택·환불·개인정보 문구 작성, 비밀값 출력.
+```
 
 ## 브라우저와 UI 작업
 
