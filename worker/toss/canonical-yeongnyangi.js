@@ -59,7 +59,7 @@ export async function canonicalLibraryPage(rows,read,verify) {
     return saved;
   },undefined,undefined,verify);
   if(page.purchases.some(row=>row.state==='READ_FAILED'))throw new TossError('RECORDS_UNAVAILABLE',503);
-  return {fortunes:page.purchases.filter(row=>row.requestId&&row.state!=='REFUNDED').map(row=>({
+  return {fortunes:page.purchases.filter(row=>row.requestId&&!['REFUNDED','ACCESS_REVIEW'].includes(row.state)).map(row=>({
     id:row.requestId,product:snapshots.get(row.requestId)?.product||resolveStoredProduct(row.productId),
     state:row.state,paid:row.status!=='REFUNDED'&&row.state!=='READ_FAILED',createdAt:row.createdAt,
     locale:snapshots.get(row.requestId)?.locale||'ko',

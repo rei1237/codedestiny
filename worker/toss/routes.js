@@ -10,7 +10,7 @@ import {purchaseStore,recordTossRefund} from './purchases.js';
 import {ProfileCard,PaidExecutionRecord} from '../lib/models.js';
 import {incrementRateLimit} from '../lib/rate-limit.js';
 import {resolveStoredProduct} from '../yeongnyangi/payments/catalog.ts';
-import {consultationService,consultationSelection,requestMatchesService,requestMatchesPurchase} from './services.js';
+import {consultationService,consultationSelection,requestMatchesService,requestMatchesPurchase,tossFortuneAccessIssue} from './services.js';
 import {LIBRARY_PAGE_SIZE,libraryFilter,libraryPage} from './library.js';
 import {questionDecision,questionTopic,assertQuestionOrder} from '../yeongnyangi/fortune/ask/question-policy.ts';
 import {prepareFortune,presentFortune,drawTarotSpread,experienceCheckFortune} from '../yeongnyangi/service.ts';
@@ -333,8 +333,22 @@ export async function handleTossRoutes(request,env) {
     const canonicalDraw=path.match(/^\/canonical\/yeongnyangi\/requests\/([a-f0-9]{64})\/tarot-draw$/);
     if(canonicalDraw&&request.method==='POST'){
       const row=await readRequest(env,auth.userId,canonicalDraw[1]);
-      if(!requestMatchesService(row,canonicalSale(row.productId)))throw new TossError('REQUEST_NOT_FOUND',404);
-      return reply(await drawCanonicalFortune(env,auth,canonicalDraw[1],await bodyOf(request)));
+      const issue=tossFortuneAccessIssue(row);if(issue)throw new TossError(issue,409);
+      const funded=Boolean(row.accessMethod||row.paymentId||row.paymentClaimOrderId);
+      let purchase;
+      if(funded){
+        purchase=await TossPurchase.findOne({identityId:auth._id,ownerId:auth.ownerId,requestId:canonicalDraw[1],environment:auth.environment}).lean();
+        if(!purchase||!requestMatchesPurchase(row,purchase))throw new TossError('RESULT_NOT_FOUND',404);
+        await verifyLibraryOrder(env,auth,purchase);
+      }else if(!['CREATED','AWAITING_DRAW'].includes(row.state)||!requestMatchesService(row,canonicalSale(row.productId)))throw new TossError('RESULT_NOT_FOUND',404);
+      const drawn=await drawCanonicalFortune(env,auth,canonicalDraw[1],await bodyOf(request));
+      const drawIssue=tossFortuneAccessIssue(drawn.fortune);if(drawIssue)throw new TossError(drawIssue,409);
+      if(!funded&&(drawn.fortune?.paid!==false||!['CREATED','AWAITING_DRAW'].includes(drawn.fortune?.state)||!Array.isArray(drawn.fortune?.chapters)||drawn.fortune.chapters.length))throw new TossError('RESULT_NOT_FOUND',404);
+      const current=await readRequest(env,auth.userId,canonicalDraw[1]);
+      const currentIssue=tossFortuneAccessIssue(current);if(currentIssue)throw new TossError(currentIssue,409);
+      if(funded){if(!requestMatchesPurchase(current,purchase))throw new TossError('RESULT_NOT_FOUND',404);await verifyLibraryOrder(env,auth,purchase);}
+      else if(current.accessMethod||current.paymentId||current.paymentClaimOrderId||!['CREATED','AWAITING_DRAW'].includes(current.state))throw new TossError('RESULT_NOT_FOUND',404);
+      return reply(drawn);
     }
     if(path==='/session'&&request.method==='GET')return reply({authenticated:true,environment:auth.environment});
     if(path==='/logout'&&request.method==='POST') {await TossSession.deleteOne({_id:auth.sessionId});return reply({ok:true});}
@@ -483,12 +497,14 @@ export async function handleTossRoutes(request,env) {
       if(order.sku!==purchase.sku||order.orderId!==purchase._id)throw new TossError('ORDER_MISMATCH',403);
       if(order.status==='REFUNDED'){await recordTossRefund(auth,order);throw new TossError('ORDER_REFUNDED',409);}
       if(!['PURCHASED','PAYMENT_COMPLETED'].includes(order.status))throw new TossError('ORDER_NOT_PAID',409);
+      const assertDeliverable=row=>{const issue=tossFortuneAccessIssue(row);if(issue)throw new TossError(issue,409);return row;};
+      assertDeliverable(owned);
       if(canonical&&resultMatch[2]==='/resume'){
         // Keep the original held-chapter recovery and queue acknowledgement. The
         // Toss grant must already fund this row; never fall back to web payment.
         if(owned.accessMethod!=='TOSS_IAP')throw new TossError('RESULT_NOT_FOUND',404);
         const {retryFortune}=await import('../yeongnyangi/retry.js');
-        const row=await retryFortune(env,auth.userId,resultMatch[1]);
+        const row=assertDeliverable(await retryFortune(env,auth.userId,resultMatch[1]));
         return reply({fortune:presentFortune(row)},row.state==='COMPLETED'?200:202);
       }
       if(resultMatch[2]==='/follow-up'){
@@ -498,15 +514,15 @@ export async function handleTossRoutes(request,env) {
         const input=await bodyOf(request);
         if(!input||typeof input!=='object'||Array.isArray(input))throw new TossError('FOLLOWUP_INPUT_INVALID',400);
         const {submitQuestionSkyFollowup}=await import('../yeongnyangi/service.ts');
-        try{return reply({fortune:presentFortune(await submitQuestionSkyFollowup(env,auth.userId,resultMatch[1],input.question))},202);}
+        try{return reply({fortune:presentFortune(assertDeliverable(await submitQuestionSkyFollowup(env,auth.userId,resultMatch[1],input.question)))},202);}
         catch(error){const known={FOLLOWUP_INPUT_INVALID:400,FOLLOWUP_NOT_AVAILABLE:409,FOLLOWUP_ALREADY_USED:409};if(Object.hasOwn(known,error?.code))throw new TossError(error.code,known[error.code]);throw error;}
       }
       if(resultMatch[2]==='/conversation'){
         await limit(env,auth._id,'followup',4);
-        const fortune=presentFortune(await questionConversation(env,auth.userId,resultMatch[1],await bodyOf(request)));
+        const fortune=presentFortune(assertDeliverable(await questionConversation(env,auth.userId,resultMatch[1],await bodyOf(request))));
         return reply(canonical?{fortune}:{...fortune,serviceId:consultationService(purchase).id});
       }
-      const row=resultMatch[2]?await resumeRequest(env,auth.userId,resultMatch[1]):await readRequest(env,auth.userId,resultMatch[1]);
+      const row=assertDeliverable(resultMatch[2]?await resumeRequest(env,auth.userId,resultMatch[1]):await readRequest(env,auth.userId,resultMatch[1]));
       if(resultMatch[2])await enqueueConsultation(env,row);
       return reply(canonical?{fortune:presentFortune(row)}:{...presentFortune(row),serviceId:consultationService(purchase).id});
     }

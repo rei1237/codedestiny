@@ -4,11 +4,12 @@ import assert from 'node:assert/strict';
 import {build} from 'esbuild';
 import {createRequire} from 'node:module';
 import path from 'node:path';
+import {getBillingFeaturePricing} from '../../../worker/lib/billing-feature-registry.js';
 const require=createRequire(import.meta.url),Module=require('node:module');
 const calls={profiles:[],prepared:[],followups:0};
 const auth={_id:'identity',ownerId:'owner',userId:'owner',userKey:'123',environment:'SANDBOX'};
 const mocks={
- tarotProducts:[],grants:[],deliveries:0,dailyCalls:[],nativeLove:[],nativeAstrology:[],nativeVedic:[],nativeZiwei:[],nativeNewYear:[],nativeKarma:[],nativeMaya:[],nativeSukuyo:[],nativeSukuyoRecovery:[],libraryRows:[],
+ approvedProducts:[],tarotProducts:[],grants:[],deliveries:0,dailyCalls:[],nativeLove:[],nativeAstrology:[],nativeVedic:[],nativeZiwei:[],nativeNewYear:[],nativeKarma:[],nativeMaya:[],nativeSukuyo:[],nativeSukuyoRecovery:[],libraryRows:[],
  auth:async()=>auth,profile:async(...args)=>calls.profiles.push(args),
  product:sku=>({productId:sku.includes(':')?sku.split(':')[1]:sku,serviceId:sku.includes(':')?sku.split(':')[0]:'yeongnyangi',sku,approvedPriceKRW:1,approved:true}),
  prepare:async(_env,user,body,options)=>{calls.prepared.push({user,body,options});return {_id:'a'.repeat(64),productId:body.productId,amountKRW:1,snapshot:{manifest:[{id:'part',title:'answer',ordinal:0}]}};},
@@ -37,7 +38,7 @@ const stubMap={
  'worker/yeongnyangi/fortune/question-sky.ts':"export const resolveCurrentLocation=x=>({latitude:x.latitude,longitude:x.longitude,timezone:'Asia/Seoul'});",
  'worker/yeongnyangi/retry.js':"export const retryFortune=(...args)=>globalThis.__tossRouteMocks.retry(...args);",
  'worker/toss/session.js':"import {TossError} from './policy.js';export const requireTossSession=async()=>{if(globalThis.__tossRouteMocks.denyAuth)throw new TossError('LOGIN_REQUIRED',401);return globalThis.__tossRouteMocks.auth();};export const createTossSession=()=>{};export const invalidateIdentity=()=>{};export const disconnectIdentity=()=>{};",
- 'worker/toss/catalog.js':"import {TossError} from './policy.js';export const APPROVED_TOSS_PRODUCTS=[];export const assertUniqueApprovedSaleSkus=()=>{if(globalThis.__tossRouteMocks.skuConflict)throw new TossError('TOSS_PRODUCT_NOT_APPROVED',503);};export const APPROVED_TOSS_NATIVE_PRODUCTS=[];export const APPROVED_TOSS_TAROT_LIBRARY_PRODUCTS=globalThis.__tossRouteMocks.tarotProducts;export const approvedProduct=(...args)=>globalThis.__tossRouteMocks.product(...args);",
+ 'worker/toss/catalog.js':"import {TossError} from './policy.js';export const APPROVED_TOSS_PRODUCTS=globalThis.__tossRouteMocks.approvedProducts;export const assertUniqueApprovedSaleSkus=()=>{if(globalThis.__tossRouteMocks.skuConflict)throw new TossError('TOSS_PRODUCT_NOT_APPROVED',503);};export const APPROVED_TOSS_NATIVE_PRODUCTS=[];export const APPROVED_TOSS_TAROT_LIBRARY_PRODUCTS=globalThis.__tossRouteMocks.tarotProducts;export const approvedProduct=(...args)=>globalThis.__tossRouteMocks.product(...args);",
  'worker/toss/models.js':"export const TossPurchase={findOne:(...args)=>globalThis.__tossRouteMocks.purchase(...args),find:()=>({sort:()=>({limit:()=>({lean:async()=>globalThis.__tossRouteMocks.libraryRows})})})};export const TossSession={};",
  'worker/toss/partner.js':"export const lookupOrder=(...args)=>globalThis.__tossRouteMocks.lookupOrder(...args);",
  'worker/toss/tarot-library.js':"export const tarotLibraryProduct=x=>x;export const tarotLibraryFlow=()=>{};export const tarotLibraryResult=()=>{};export const attachTarotLibraryInput=()=>{};export const grantTarotLibraryOrder=async args=>{globalThis.__tossRouteMocks.grants.push(args);return {orderId:args.order.orderId,durable:true,entitlement:'granted'};};export const deliverTarotLibraryOrder=()=>{globalThis.__tossRouteMocks.deliveries++;throw Error('grant must never generate')};",
@@ -347,6 +348,51 @@ for(const kind of ['consultation','tarot'])test('stored '+kind+' purchase restor
 test('Toss sky followup checks the owned paid order before reusing the original one-question flow',async()=>{const prev={purchase:mocks.purchase,lookupOrder:mocks.lookupOrder,read:mocks.read,skyFollowup:mocks.skyFollowup};const id='a'.repeat(64),orderId='01900000-1111-7111-8111-000000000042',owned={_id:id,paymentClaimOrderId:orderId,amountKRW:3000,productId:'saju_mackerel',accessMethod:'TOSS_IAP'},order={orderId,sku:'sku',status:'PURCHASED'};let called=0;mocks.read=async()=>owned;mocks.lookupOrder=async()=>order;mocks.skyFollowup=async(_env,user,requestId,question)=>{called++;assert.equal(user,auth.userId);assert.equal(requestId,id);assert.equal(question,'이 관계에서 내가 조심할 점은 무엇인가요?');return {state:'PAID'};};try{mocks.purchase=()=>({lean:async()=>null});assert.equal((await request({question:'x'},'/canonical/yeongnyangi/requests/'+id+'/follow-up')).status,404);assert.equal(called,0);mocks.purchase=()=>({lean:async()=>({_id:orderId,requestId:id,approvedPriceKRW:3000,sku:'sku',serviceId:'yeongnyangi',productId:'saju_mackerel'})});order.status='REFUNDED';assert.equal((await request({question:'x'},'/canonical/yeongnyangi/requests/'+id+'/follow-up')).status,409);assert.equal(called,0);order.status='PURCHASED';assert.equal((await request({question:'이 관계에서 내가 조심할 점은 무엇인가요?'},'/canonical/yeongnyangi/requests/'+id+'/follow-up')).status,202);assert.equal(called,1);assert.equal((await request({question:'x'},'/results/'+id+'/follow-up')).status,404);assert.equal(called,1);mocks.skyFollowup=async()=>{throw Object.assign(new Error('private'),{code:'FOLLOWUP_ALREADY_USED',status:409});};const used=await request({question:'x'},'/canonical/yeongnyangi/requests/'+id+'/follow-up');assert.equal(used.status,409);assert.equal((await used.json()).error,'FOLLOWUP_ALREADY_USED');}finally{Object.assign(mocks,prev);}});
 
 test('both Toss purchase libraries verify partner orders before exposing a result',async()=>{const previous={read:mocks.read,lookupOrder:mocks.lookupOrder};const orderId='01900000-1111-7111-8111-000000000042',id='a'.repeat(64),row={_id:orderId,identityId:auth._id,ownerId:auth.ownerId,environment:auth.environment,sku:'sku',productId:'saju_mackerel',serviceId:'yeongnyangi',requestId:id,approvedPriceKRW:3000,tarotFlowId:'',status:'PURCHASED',grantedAt:new Date()};mocks.libraryRows=[row];mocks.read=async()=>({_id:id,paymentClaimOrderId:orderId,accessMethod:'TOSS_IAP',amountKRW:3000,productId:'saju_mackerel',state:'COMPLETED',snapshot:{manifest:[],product:{id:'saju_mackerel'}},chapters:[]});const get=path=>handleTossRoutes(new Request('https://code-destiny.com/api/toss'+path,{headers:{Origin:'https://ai-saju-studio.private-apps.tossmini.com'}}),{TOSS_RELEASE_READY:'true'});try{for(const status of ['PURCHASED','REFUNDED','PAYMENT_PENDING']){mocks.lookupOrder=async()=>({orderId,sku:'sku',status});const response=await get('/library');assert.equal(response.status,200);const item=(await response.json()).purchases[0];assert.equal(item.state,status==='PURCHASED'?'COMPLETED':status==='REFUNDED'?'REFUNDED':'READ_FAILED');const canonical=await get('/canonical/yeongnyangi/requests');if(status==='PAYMENT_PENDING'){assert.equal(canonical.status,503);}else{assert.equal(canonical.status,200);const fortunes=(await canonical.json()).fortunes;if(status==='REFUNDED')assert.deepEqual(fortunes,[]);else assert.equal(fortunes[0].state,item.state);}}mocks.lookupOrder=async()=>({orderId,sku:'wrong',status:'PURCHASED'});assert.equal((await get('/library')).status,403);assert.equal((await get('/canonical/yeongnyangi/requests')).status,403);}finally{mocks.libraryRows=[];Object.assign(mocks,previous);}});
+
+test('inactive or refund-pending owned results never appear as readable or resumable',async()=>{
+ const previous={purchase:mocks.purchase,read:mocks.read,lookupOrder:mocks.lookupOrder,retry:mocks.retry};
+ const orderId='01900000-1111-7111-8111-000000000042',id='a'.repeat(64),purchase={_id:orderId,identityId:auth._id,ownerId:auth.ownerId,environment:auth.environment,sku:'sku',productId:'saju_mackerel',serviceId:'yeongnyangi',requestId:id,approvedPriceKRW:3000,tarotFlowId:'',status:'PURCHASED',grantedAt:new Date()};
+ const saved={_id:id,paymentClaimOrderId:orderId,accessMethod:'TOSS_IAP',amountKRW:3000,productId:purchase.productId,state:'COMPLETED',snapshot:{manifest:[],product:{id:purchase.productId},analysis:{consultation:{question:'비공개 질문'}}},chapters:[{summary:'비공개 결과'}]};let retries=0;
+ const get=path=>handleTossRoutes(new Request('https://code-destiny.com/api/toss'+path,{headers:{Origin:'https://ai-saju-studio.private-apps.tossmini.com'}}),{TOSS_RELEASE_READY:'true'});
+ try{
+  mocks.libraryRows=[purchase];mocks.purchase=()=>({lean:async()=>purchase});mocks.lookupOrder=async()=>({orderId,sku:'sku',status:'PURCHASED'});mocks.read=async()=>saved;mocks.retry=async()=>{retries++;return saved;};
+  for(const change of [{state:'REFUNDED'},{generationCheckpoint:{deliveryRefund:{status:'pending'}}},{errorCode:'PAYMENT_NOT_ACTIVE'}]){
+   Object.assign(saved,change);
+   for(const path of ['/results/'+id,'/canonical/yeongnyangi/requests/'+id]){const response=await get(path);assert.equal(response.status,409);assert.doesNotMatch(await response.text(),/비공개 결과/);}
+   assert.equal((await request({},'/canonical/yeongnyangi/requests/'+id+'/generate')).status,409);
+   const library=await get('/library');assert.equal((await library.json()).purchases[0].state,change.state==='REFUNDED'?'REFUNDED':'ACCESS_REVIEW');
+   assert.deepEqual((await (await get('/canonical/yeongnyangi/requests')).json()).fortunes,[]);
+   assert.deepEqual((await (await get('/canonical/records?group=all')).json()).items,[]);
+   delete saved.errorCode;delete saved.generationCheckpoint;saved.state='COMPLETED';
+  }
+  assert.equal(retries,0);assert.equal((await get('/results/'+id)).status,200);
+  let reads=0;mocks.read=async()=>++reads===1?saved:{...saved,errorCode:'PAYMENT_NOT_ACTIVE'};
+  const changed=await get('/results/'+id);assert.equal(changed.status,409);assert.doesNotMatch(await changed.text(),/비공개 결과/);
+ }finally{mocks.libraryRows=[];Object.assign(mocks,previous);}
+});
+
+test('repeating a paid tarot draw verifies the matching live purchase before returning saved content',async()=>{
+ const previous={purchase:mocks.purchase,read:mocks.read,lookupOrder:mocks.lookupOrder,draw:mocks.draw,product:mocks.product};
+ const id='a'.repeat(64),orderId='01900000-1111-7111-8111-000000000042',price=getBillingFeaturePricing({featureKey:'yeongnyangi-tarot-mackerel'}).pricing.amountKRW;
+ const sale={sku:'mock-tarot',productId:'tarot_mackerel',serviceId:'yeongnyangi',approvedPriceKRW:price};
+ const purchase={_id:orderId,identityId:auth._id,ownerId:auth.ownerId,environment:auth.environment,requestId:id,...sale};
+ const row={_id:id,productId:sale.productId,amountKRW:price,accessMethod:'TOSS_IAP',paymentClaimOrderId:orderId,state:'COMPLETED',snapshot:{tarotDraw:{picks:[1]}},chapters:[{summary:'비공개 결과'}]};let draws=0,status='PURCHASED';
+ try{
+  mocks.approvedProducts.push(sale);mocks.product=()=>sale;mocks.read=async()=>row;mocks.lookupOrder=async()=>({orderId,sku:sale.sku,status});mocks.draw=async()=>{draws++;return row;};mocks.purchase=()=>({lean:async()=>null});
+  const draw=()=>request({},'/canonical/yeongnyangi/requests/'+id+'/tarot-draw');
+  assert.equal((await draw()).status,404);assert.equal(draws,0);
+  mocks.purchase=()=>({lean:async()=>purchase});status='REFUNDED';assert.equal((await draw()).status,409);assert.equal(draws,0);
+  status='PURCHASED';row.errorCode='PAYMENT_NOT_ACTIVE';assert.equal((await draw()).status,409);assert.equal(draws,0);
+  delete row.errorCode;assert.equal((await draw()).status,200);assert.equal(draws,1);
+  mocks.approvedProducts.length=0;mocks.product=()=>{throw new Error('retired SKU must not be consulted');};assert.equal((await draw()).status,200);assert.equal(draws,2);
+  mocks.draw=async()=>{draws++;status='REFUNDED';return row;};assert.equal((await draw()).status,409);assert.equal(draws,3);
+  // The normal, unpaid draw remains available before any purchase exists.
+  mocks.approvedProducts.push(sale);mocks.product=()=>sale;mocks.draw=async()=>{draws++;return row;};row.state='AWAITING_DRAW';row.accessMethod=null;row.paymentClaimOrderId=null;row.paid=false;row.chapters=[];mocks.purchase=()=>({lean:async()=>null});assert.equal((await draw()).status,200);assert.equal(draws,4);
+  row.state='COMPLETED';assert.equal((await draw()).status,404);assert.equal(draws,4);
+  row.state='AWAITING_DRAW';mocks.draw=async()=>{draws++;return {...row,paid:true,state:'COMPLETED'};};assert.equal((await draw()).status,404);assert.equal(draws,5);
+  mocks.draw=async()=>{draws++;return {...row,chapters:[{summary:'미승인 결과'}]};};const leaked=await draw();assert.equal(leaked.status,404);assert.doesNotMatch(await leaked.text(),/미승인 결과/);
+ }finally{mocks.approvedProducts.length=0;Object.assign(mocks,previous);}
+});
 
 test('canonical records expose only owner-bound, verified direct result links',async()=>{const before={read:mocks.read,lookupOrder:mocks.lookupOrder},orderId='01900000-1111-7111-8111-000000000042',id='a'.repeat(64),row={_id:orderId,identityId:auth._id,ownerId:auth.ownerId,environment:auth.environment,sku:'sku',productId:'saju_mackerel',serviceId:'yeongnyangi',requestId:id,approvedPriceKRW:3000,tarotFlowId:'',status:'PURCHASED',grantedAt:new Date()};mocks.libraryRows=[row];mocks.read=async()=>({_id:id,paymentClaimOrderId:orderId,accessMethod:'TOSS_IAP',amountKRW:3000,productId:row.productId,state:'COMPLETED',snapshot:{manifest:[],analysis:{consultation:{question:'검증된 질문'}}},chapters:[]});const get=()=>handleTossRoutes(new Request('https://code-destiny.com/api/toss/canonical/records?group=all',{headers:{Origin:'https://ai-saju-studio.private-apps.tossmini.com'}}),{TOSS_RELEASE_READY:'true'});try{mocks.lookupOrder=async()=>({orderId,sku:'sku',status:'PURCHASED'});let response=await get();assert.equal(response.status,200);assert.equal((await response.json()).items[0].href,'/yeongnyangi/result/?id='+id);mocks.lookupOrder=async()=>({orderId,sku:'sku',status:'REFUNDED'});response=await get();assert.equal((await response.json()).items.length,0);mocks.lookupOrder=async()=>({orderId,sku:'sku',status:'PAYMENT_PENDING'});response=await get();assert.equal(response.status,503);mocks.lookupOrder=async()=>({orderId,sku:'wrong',status:'PURCHASED'});response=await get();assert.equal(response.status,403);}finally{mocks.libraryRows=[];Object.assign(mocks,before);}});
 

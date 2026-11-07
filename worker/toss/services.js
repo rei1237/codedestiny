@@ -1,5 +1,6 @@
 import {TossError} from './policy.js';
 import {isChatFeatureKey} from '../../lib/fortune/chat-products.js';
+import {deliveryRefundPending} from '../yeongnyangi/terminal-refund-policy.js';
 
 // Service ownership is server selected, never an arbitrary persona from the client.
 export const TOSS_CONSULTATION_SERVICES=Object.freeze({
@@ -29,4 +30,10 @@ export function requestMatchesPurchase(row,purchase) {
     &&String(row.paymentClaimOrderId||'')===String(purchase._id||'')
     &&String(row._id||'')===String(purchase.requestId||'')
     &&Number.isInteger(purchase.approvedPriceKRW)&&row.amountKRW===purchase.approvedPriceKRW;
+}
+// The paid access method is historical and may outlive its delivery rights.
+export function tossFortuneAccessIssue(row) {
+  if(row?.state==='REFUNDED')return 'ORDER_REFUNDED';
+  if(deliveryRefundPending(row)||row?.recovery?.refundPending||row?.errorCode==='PAYMENT_NOT_ACTIVE'||row?.errorCode==='DELIVERY_REFUND_PENDING')return 'PAYMENT_REVIEW_REQUIRED';
+  return '';
 }

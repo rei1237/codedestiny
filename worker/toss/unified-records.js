@@ -18,7 +18,7 @@ export async function unifiedRecordsPage(rows,read,readTarot,readNative,verify,{
  if(page.purchases.some(row=>row.state==='READ_FAILED'))throw new TossError('RECORDS_UNAVAILABLE',503);
  const needle=text(query).toLocaleLowerCase('ko');
  const items=page.purchases.flatMap(row=>{
-  if(row.state==='REFUNDED'||row.status==='REFUNDED'||row.state==='UNASSIGNED'||!row.requestId)return [];
+  if(['REFUNDED','ACCESS_REVIEW','UNASSIGNED'].includes(row.state)||row.status==='REFUNDED'||!row.requestId)return [];
   const groupName=groupOf(row);if(group!=='all'&&group!==groupName)return [];if(source&&row.nativeService!==source)return [];
   const original=snapshots.get(row.requestId),name=row.nativeService?nativeName(row):LABELS[row.serviceId]||'상담';
   const question=text(row.question||original?.snapshot?.analysis?.consultation?.question),title=question||name;

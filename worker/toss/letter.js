@@ -6,12 +6,13 @@ import {chatPaymentRequestId,isChatFeatureKey} from '../yeongnyangi/access-metho
 import {TossPurchase} from './models.js';
 import {lookupOrder} from './partner.js';
 import {recordTossRefund} from './purchases.js';
-import {requestMatchesService} from './services.js';
+import {requestMatchesService,tossFortuneAccessIssue} from './services.js';
 import {readRequest} from '../yeongnyangi/repository.js';
 import {readAndContinueFortune} from '../yeongnyangi/delivery.js';
 import {checkOrder} from './policy.js';
 
 const DOMAINS=new Set(['saju','ziwei','sukuyo','vedic','astrology','tarot']);
+function assertLetterDeliverable(row){const issue=tossFortuneAccessIssue(row);if(issue)throw new TossError(issue,409);}
 // The original letter room uses its own base product, not a different question tier.
 // This returns no sale unless the exact Toss SKU and original registry price are approved.
 export function approvedLetterSale(domain,approved=APPROVED_TOSS_PRODUCTS){
@@ -28,6 +29,7 @@ export async function prepareTossLetter(env,auth,body,approved=APPROVED_TOSS_PRO
  const sale=approvedLetterSale(body.domain,approved);
  const row=await prepareFortune(env,auth.userId,body,{persona:'yeoni'});
  if(!/^[a-f0-9]{64}$/.test(String(row?._id||''))||row.productId!==sale.productId||row.amountKRW!==sale.approvedPriceKRW||row.persona!=='yeoni')throw new TossError('TOSS_PRODUCT_NOT_APPROVED',503);
+ assertLetterDeliverable(row);
  if(!['CREATED','AWAITING_DRAW'].includes(row.state)||row.accessMethod||row.paymentId||row.paymentClaimOrderId)return readTossLetter(env,auth,String(row._id),{requirePaid:true,approved});
  return {ok:true,consultation:{...presentFortune(row),persona:'yeoni',paidFeatureKey:row.featureKey,paymentRequestId:chatPaymentRequestId(String(row._id)),tossSku:sale.sku,perUseSource:row.perUseSource||''}};
 }
@@ -59,6 +61,7 @@ export async function recoverableLetterOrder(env,auth,orderId){
  if(purchase.requestId){
   const row=await readRequest(env,auth.userId,purchase.requestId);
   if(!requestMatchesService(row,purchase)||row.accessMethod!=='TOSS_IAP'||row.paymentClaimOrderId!==orderId||row.amountKRW!==purchase.approvedPriceKRW)throw new TossError('RESULT_NOT_FOUND',404);
+  assertLetterDeliverable(row);
   return {ok:true,order:{orderId,status:'ASSIGNED',requestId:purchase.requestId}};
  }
  const product=resolveStoredProduct(purchase.productId);
@@ -70,6 +73,7 @@ export async function readRecoveringTossLetter(env,auth,orderId,id){
  if(typeof id!=='string'||!/^[a-f0-9]{64}$/.test(id))throw new TossError('RESULT_NOT_FOUND',404);
  const row=await readRequest(env,auth.userId,id);
  if(!row||row.persona!=='yeoni'||row.snapshot?.persona!=='yeoni'||!isChatFeatureKey(row.featureKey)||row.productId!==purchase.productId||row.amountKRW!==purchase.approvedPriceKRW||row.state!=='CREATED'||row.accessMethod||row.paymentId||row.paymentClaimOrderId)throw new TossError('REQUEST_NOT_FOUND',404);
+ assertLetterDeliverable(row);
  return {ok:true,consultation:{...presentFortune(row),persona:'yeoni',paidFeatureKey:row.featureKey,paymentRequestId:chatPaymentRequestId(id),tossSku:purchase.sku,perUseSource:''}};
 }
 export async function prepareRecoveredTossLetter(env,auth,orderId,body){
@@ -79,6 +83,7 @@ export async function prepareRecoveredTossLetter(env,auth,orderId,body){
  const row=await prepareFortune(env,auth.userId,body,{persona:'yeoni'});
  if(!/^[a-f0-9]{64}$/.test(String(row?._id||''))||row.persona!=='yeoni'||row.productId!==purchase.productId||row.amountKRW!==purchase.approvedPriceKRW)throw new TossError('ORDER_PRODUCT_MISMATCH',409);
  if(row.state!=='CREATED'||row.accessMethod||row.paymentId||row.paymentClaimOrderId)throw new TossError('REQUEST_ALREADY_FUNDED',409);
+ assertLetterDeliverable(row);
  return {ok:true,consultation:{...presentFortune(row),persona:'yeoni',paidFeatureKey:row.featureKey,paymentRequestId:chatPaymentRequestId(String(row._id)),tossSku:purchase.sku,perUseSource:''}};
 }
 
@@ -88,6 +93,7 @@ export async function readTossLetter(env,auth,id,{requirePaid=false,approved=APP
  if(typeof id!=='string'||!/^[a-f0-9]{64}$/.test(id))throw new TossError('RESULT_NOT_FOUND',404);
  const row=await readRequest(env,auth.userId,id);
  if(!row||row.persona!=='yeoni'||row.snapshot?.persona!=='yeoni'||!isChatFeatureKey(row.featureKey)||!/^chat_(saju|ziwei|sukuyo|vedic|astrology|tarot)$/.test(row.productId))throw new TossError('RESULT_NOT_FOUND',404);
+ assertLetterDeliverable(row);
  const purchase=await TossPurchase.findOne({identityId:auth._id,ownerId:auth.ownerId,environment:auth.environment,requestId:id,serviceId:'yeoni'}).lean();
  if(!purchase){
   if(requirePaid||!['CREATED','AWAITING_DRAW'].includes(row.state)||row.accessMethod||row.paymentId||row.paymentClaimOrderId)throw new TossError('RESULT_NOT_FOUND',404);
@@ -104,7 +110,9 @@ export async function readTossLetter(env,auth,id,{requirePaid=false,approved=APP
  if(order.status==='REFUNDED'){await recordTossRefund(auth,order);throw new TossError('ORDER_REFUNDED',409);}
  checkOrder(order,{orderId:purchase._id,sku:purchase.sku});
  const current=await readAndContinueFortune(env,auth.userId,id);
- if(current?.state==='REFUNDED')throw new TossError('ORDER_REFUNDED',409);
+ assertLetterDeliverable(current);
  if(!requestMatchesService(current,purchase)||current.accessMethod!=='TOSS_IAP'||current.paymentClaimOrderId!==purchase._id||current.amountKRW!==purchase.approvedPriceKRW)throw new TossError('RESULT_NOT_FOUND',404);
+ const verified=await verifiedLetterOrder(env,auth,purchase._id);
+ if(verified.requestId!==purchase.requestId||verified.productId!==purchase.productId||verified.approvedPriceKRW!==purchase.approvedPriceKRW||verified.sku!==purchase.sku)throw new TossError('RESULT_NOT_FOUND',404);
  return {ok:true,consultation:{...presentFortune(current),persona:'yeoni',paidFeatureKey:current.featureKey,paymentRequestId:chatPaymentRequestId(id),perUseSource:current.perUseSource||''}};
 }

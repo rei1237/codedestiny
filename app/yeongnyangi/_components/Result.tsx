@@ -113,7 +113,7 @@ export default function Result({paymentSurface}:{paymentSurface?:"toss"}={}){
  function hideDeniedTossResult(e:unknown){
   if(paymentSurface !== 'toss')return false;
   if(!(e instanceof FortuneApiError)){if(mounted.current){setRow(null);setError('구매 상태를 확인할 수 없어요. 다시 결제하지 말고 주문 내역을 확인해 주세요.');}return true;}
-  const orderUnverified=e.status===0||[402,404,408,429].includes(e.status)||e.status>=500||['ORDER_REFUNDED','ORDER_NOT_PAID','INVALID_RESPONSE','RECOVERY_ID_MISMATCH'].includes(e.code);
+  const orderUnverified=e.status===0||[402,404,408,429].includes(e.status)||e.status>=500||['ORDER_REFUNDED','ORDER_NOT_PAID','PAYMENT_REVIEW_REQUIRED','INVALID_RESPONSE','RECOVERY_ID_MISMATCH'].includes(e.code);
   if(![401,403].includes(e.status)&&!orderUnverified)return false;
   if(!mounted.current)return true;
   setRow(null);setError(e.status===401?'기록과 구매를 확인하려면 토스 로그인이 필요해요.':e.code==='ORDER_REFUNDED'?'환불된 주문이에요. 주문 내역을 확인해 주세요.':orderUnverified?'구매 상태를 확인할 수 없어요. 다시 결제하지 말고 주문 내역을 확인해 주세요.':'구매 내역에 접근할 권한을 확인할 수 없어요. 구매한 계정과 주문 내역을 확인해 주세요.');return true;
@@ -151,7 +151,7 @@ export default function Result({paymentSurface}:{paymentSurface?:"toss"}={}){
      // 기다려도 바뀌지 않는 답(가격 변경 등)만 안내한다.
      try{fortune=sameRequest((await fortuneApi<{fortune:FortuneRecord}>(`requests/${id}/activate`,{})).fortune,id);}
      catch(e){
-      if(e instanceof FortuneApiError&&(e.status===401||(paymentSurface==='toss'&&e.status===403)||e.code==='RECOVERY_ID_MISMATCH'))throw e;
+      if(e instanceof FortuneApiError&&(e.status===401||(paymentSurface==='toss'&&(e.status===403||['ORDER_REFUNDED','ORDER_NOT_PAID','PAYMENT_REVIEW_REQUIRED'].includes(e.code)))||e.code==='RECOVERY_ID_MISMATCH'))throw e;
       if(e instanceof FortuneApiError&&e.status!==402&&!e.retryable&&e.code!=='PAYMENT_ATTACH_CONFLICT')notice=fortune.locale&&fortune.locale!=='ko'?resultStateCopy(fortune.locale).paymentRequired:friendlyErrorMessage(e,resultStateCopy().paymentRequired);
      }
     }

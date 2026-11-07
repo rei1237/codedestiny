@@ -1,5 +1,5 @@
 import {TossError,validateOrderId} from './policy.js';
-import {consultationSelection,requestMatchesPurchase} from './services.js';
+import {consultationSelection,requestMatchesPurchase,tossFortuneAccessIssue} from './services.js';
 export const LIBRARY_PAGE_SIZE=20;
 function preserveAuthorizationError(error){
   if(error?.status===401||error?.status===403)throw error;
@@ -40,7 +40,11 @@ export async function libraryPage(rows,read,readTarot=async()=>null,readNative=a
     if(row.requestId){
       try{
         const saved=await read(row.requestId);
-        if(saved&&requestMatchesPurchase(saved,row)){result=saved;state=saved.state;}
+        if(saved&&requestMatchesPurchase(saved,row)){
+          const issue=tossFortuneAccessIssue(saved);
+          if(issue)state=issue==='ORDER_REFUNDED'?'REFUNDED':'ACCESS_REVIEW';
+          else {result=saved;state=saved.state;}
+        }
       }catch(error){preserveAuthorizationError(error);/* Keep the verified purchase visible; a read failure is never a fresh entitlement. */}
     }
     if(row.status==='REFUNDED')state='REFUNDED';
