@@ -1,197 +1,54 @@
-# 🔧 `scripts/` — 빌드 & 배포 자동화
+# `scripts/` 색인
 
-> 이 폴더는 **프로젝트 빌드, 배포, 동기화를 자동화하는 Node.js 스크립트**를 포함합니다.
+빌드, 공개 미러 동기화, 사이트맵, 검증 게이트, 데이터 생성, DB 마이그레이션을 맡는 Node 스크립트 모음이다. 대부분은 `package.json`의 npm 명령, `.github/workflows/`, `scripts/check-changed.mjs`가 부른다. 어디서도 부르지 않는 일회성·브라우저 QA 스크립트는 2026-11-08 정리에서 지웠다. 같은 정리에서 지운 페이지와 301 목록은 [docs/seo/2026-11-08-legacy-cleanup-redirects.md](../docs/seo/2026-11-08-legacy-cleanup-redirects.md)에 있다.
 
----
+## 먼저 쓰는 명령
 
-## 📂 **구조**
+| 명령 | 하는 일 |
+|---|---|
+| `node scripts/check-changed.mjs --base=origin/main --committed-head` | 바뀐 파일에 맞는 검증 묶음을 고른다. 결제는 `npm run check:payment` |
+| `npm run check:pre-push` | 홈 서비스 레지스트리, 공개 미러, 사이트맵 드리프트, llms.txt, SEO 엔티티, 저장소 위생 |
+| `npm run sync:public` | 루트 정적 셸(`index.html`, `js/`, `css/`)을 `public/`로 복사하고 캐시 키를 다시 붙인다. 미러가 낡았다는 실패는 이것을 돌리고 결과를 커밋한다 |
+| `npm run sitemap:generate` | `sitemap*.xml`과 `config/sitemap-lastmod.json` 원장을 다시 만든다. 드리프트 실패는 이것을 돌리고 같은 커밋에 담는다 |
+| `npm run audit:payment-p0-inventory` | `docs/payments/payment-p0-inventory.json`을 다시 만든다 |
+| `npm run smoke:core` | 결제 모드·접근 상태 핵심 Jest |
 
-```
-verify-runtime-cache-sync.mjs          → ✅ 런타임 캐시 검증
-sync-legacy-static-to-public.mjs       → 🔄 index.html 동기화
+## 파일 이름 규칙
 
-... (package.json의 "scripts" 섹션에서 호출됨)
-```
+맨 위 폴더의 파일은 접두사로 역할을 나눈다(2026-11-08 기준 624개).
 
----
+| 접두사 | 수 | 역할 |
+|---|---|---|
+| `verify-` | 354 | 통과/실패로 끝나는 검증 게이트. 영역은 이름 둘째 마디로 안다(`verify-payment-*`, `verify-ziwei-*`, `verify-mobile-*` …) |
+| `build-` | 28 | 데이터·자산·번들 생성 |
+| `audit-` | 24 | 현황을 세어 보고서나 원장을 쓴다 |
+| `measure-` | 22 | 성능·크기 측정 |
+| `i18n-` | 14 | 다국어 사전 점검과 생성 |
+| `report-` | 13 | 운영 데이터 보고서 |
+| `sync-`, `generate-` | 16 | 생성 사본 동기화, 사이트맵·llms.txt 생성 |
+| `migrate-`, `seed-`, `recover-` | 17 | 데이터 이전·초기값·복구. 운영 DB를 건드리므로 실행 전 문서를 읽는다 |
 
-## 🎯 **핵심 스크립트**
+## 하위 폴더
 
-### **1. Runtime Cache 검증**
-```bash
-npm run verify-runtime-cache-sync
-```
+| 폴더 | 내용 |
+|---|---|
+| `lib/` | 여러 스크립트가 같이 쓰는 모듈(캐시 키, 결제 증거, 사이트맵 규칙 등) |
+| `migrations/` | 날짜가 붙은 DB 인덱스·스키마 마이그레이션. 직접 실행하지 않는다 |
+| `seo/` | 크롤러 경계·운세 날짜 계약 같은 SEO 계약 테스트와 엣지 점검 |
+| `design/` | 홈·히어로·융합 도감 같은 디자인 산출물 생성기 |
+| `fixtures/` | 검증기가 읽는 고정 입력과 기준값 |
+| `naming/` | 작명 데이터 추출·생성 |
+| `og/` | OG 카드 렌더와 캐시 키 |
+| `qa/` | 영냥이 표본 재확인·결제 점검 |
+| `dev/` | 인수인계 문서 생성, 스테이징 감시 |
+| `git/` | 캐시 키 병합 드라이버 |
+| `data/`, `idol-chemi/` | 폰트 목록, 레거시 프리셋 내보내기 |
 
-**역할**:
-- `js/core/index-inline-runtime.js`와 `public/js/core/index-inline-runtime.js` 동기화 확인
-- 해시 비교로 파일 일치 여부 검증
-- 불일치 시 동기화 경고
+## 새 스크립트를 둘 때
 
-**실행 시기**: 배포 전 최종 검증
+- 게이트는 `verify-<영역>-<대상>.mjs`로 맨 위에 둔다. CI·결제 게이트가 `scripts/verify-*.mjs` 글롭과 고정 경로로 부르므로 기존 검증기를 하위 폴더로 옮기지 않는다.
+- 여러 스크립트가 쓰는 함수는 `lib/`에 둔다.
+- 한 번 돌리고 끝나는 확인은 저장소에 넣지 않고 작업 폴더에서 돌린다. 넣는다면 npm 명령이나 `check-changed` 프로필에 연결한다. 어디서도 부르지 않는 스크립트는 다음 정리 때 지운다.
+- 저장소 루트를 `path.resolve(dirname, '..')`로 계산하는 스크립트가 많다. 하위 폴더에 둘 때는 깊이를 맞춘다.
 
-### **2. 정적 파일 동기화**
-```bash
-npm run sync-legacy-static-to-public
-```
-
-**역할**:
-- `root/index.html` → `public/static/index.html` 복사
-- 레거시 와 배포 버전 일치성 유지
-- 다국어 파일도 자동 동기화
-
-**실행 시기**: 빌드 파이프라인 중간
-
----
-
-## 🚀 **npm scripts (package.json)**
-
-```json
-"scripts": {
-  "build": "next build",              // Next.js 빌드
-  "build:cf": "npm run build && ...", // Cloudflare 배포 빌드
-  "dev": "next dev",                  // 로컬 개발 서버
-  "verify-runtime-cache-sync": "node scripts/verify-runtime-cache-sync.mjs",
-  "sync-legacy-static-to-public": "node scripts/sync-legacy-static-to-public.mjs"
-}
-```
-
----
-
-## 🔄 **자동화 흐름**
-
-```
-git push
-   ↓
-[Cloudflare CI]
-   ↓
-npm run build
-   ├─ Next.js 컴파일
-   ├─ TypeScript 타입 검사
-   └─ 정적 파일 생성
-   ↓
-scripts/sync-legacy-static-to-public.mjs
-   ├─ root/index.html → public/ 복사
-   └─ 다국어 파일 동기화
-   ↓
-npm run verify-runtime-cache-sync
-   ├─ 파일 해시 비교
-   └─ 일치 확인
-   ↓
-배포 완료 (code-destiny-web.pages.dev)
-```
-
----
-
-## ⚙️ **수동 실행 명령어**
-
-```bash
-# 빌드 (로컬)
-npm run build
-
-# 캐시 동기화 검증
-npm run verify-runtime-cache-sync
-
-# 레거시 파일 동기화 (수동)
-npm run sync-legacy-static-to-public
-
-# 전체 배포 빌드 (Cloudflare)
-npm run build:cf
-```
-
----
-
-## 🛠️ **개발 중 체크리스트**
-
-```
-[ ] 파일 수정 (js/, public/, app/ 등)
-[ ] npm run build (로컬 검증)
-[ ] npm run verify-runtime-cache-sync (동기화 확인)
-[ ] git status (변경사항 확인)
-[ ] git add -- [파일] (선택적 스테이징)
-[ ] git commit -m "feat/fix: [설명]"
-[ ] git push origin main (배포 트리거)
-```
-
----
-
-## 📌 **주의사항**
-
-### **⚠️ 수동 동기화 필수**
-```
-root/index.html 수정 시:
-→ npm run sync-legacy-static-to-public 실행
-   또는 Cloudflare CI가 자동 실행
-```
-
-### **⚠️ 파일 불일치 감지**
-```
-npm run verify-runtime-cache-sync에서 경고 시:
-→ 해시 불일치 (파일이 다름)
-→ 동기화 스크립트 재실행
-```
-
-### **⚠️ 배포 시간**
-```
-git push → Cloudflare CI 시작
-└─ 빌드: ~2-3분
-└─ 배포: ~1-2분
-└─ 총 소요: ~5분 내
-```
-
----
-
-## 🚀 **빠른 시작**
-
-### **새 기능 배포**
-```bash
-# 1. 파일 수정
-vi app/new-feature/page.tsx
-
-# 2. 빌드 검증
-npm run build
-
-# 3. 커밋
-git add -- app/new-feature/page.tsx
-git commit -m "feat: new feature"
-
-# 4. 배포
-git push origin main
-
-# 5. 결과 확인
-# → https://code-destiny-web.pages.dev 확인 (1-5분 후)
-```
-
-### **긴급 수정**
-```bash
-# 1. 파일 수정 (예: 텍스트)
-vi public/index.html
-
-# 2. 동기화 확인
-npm run verify-runtime-cache-sync
-
-# 3. 빠른 배포
-git add -- public/index.html
-git commit -m "fix: text update"
-git push origin main
-```
-
----
-
-## 📊 **배포 환경 변수**
-
-```bash
-# Cloudflare Pages 환경에서 자동 설정됨
-CI=true
-BRANCH=main
-DEPLOYMENT_ID=[auto-generated]
-```
-
----
-
-## 🎯 **다음 단계**
-
-- 로컬에서 `npm run build` 후 오류 없는지 확인
-- `npm run verify-runtime-cache-sync`로 파일 동기화 검증
-- `git push` 후 5분 내 배포 완료 대기
-
-📖 **더 자세히**: [docs/DEPLOYMENT_AND_INFRA.md](../docs/DEPLOYMENT_AND_INFRA.md)
+배포·CI 계약은 [docs/context/delivery-and-ci.md](../docs/context/delivery-and-ci.md), 로컬 명령은 [docs/dev-environment-baseline.md](../docs/dev-environment-baseline.md)에 있다.
