@@ -120,8 +120,8 @@ export function readMusicManifest(source, policy) {
   vm.runInNewContext(output, {
     exports, URLSearchParams,
     require(name) {
-      if (name === '@/lib/music-access-policy') return policy;
-      if (name === '@/lib/r2-public-url') return { buildMusicPublicUrl: key => '/inventory-only/' + encodeURIComponent(key) };
+      if (name === '@/lib/music-access-policy' || name === '../../../lib/music-access-policy') return policy;
+      if (name === '@/lib/r2-public-url' || name === '../../../lib/r2-public-url') return { buildMusicPublicUrl: key => '/inventory-only/' + encodeURIComponent(key) };
       throw new Error(`Unreviewed manifest dependency: ${name}`);
     },
   }, { timeout: 1500, filename: 'musicManifest.ts' });
