@@ -7,12 +7,12 @@ import {createRequire} from 'node:module';
 import path from 'node:path';
 const require=createRequire(new URL('../package.json',import.meta.url)),Module=require('node:module');
 const dom=new JSDOM('<div id="root"></div>',{url:'http://localhost/'});
-globalThis.window=dom.window;globalThis.document=dom.window.document;globalThis.IS_REACT_ACT_ENVIRONMENT=true;
+globalThis.window=dom.window;globalThis.document=dom.window.document;globalThis.IS_REACT_ACT_ENVIRONMENT=true;globalThis.__tarotScope={revision:0,listeners:new Set()};
 const React=require('react'),{createRoot}=require('react-dom/client');
 const bundle=await build({entryPoints:[path.resolve(import.meta.dirname,'../src/TarotLibrary.tsx')],bundle:true,write:false,format:'cjs',platform:'node',jsx:'automatic',external:['react','react/jsx-runtime'],plugins:[{name:'ui-boundaries',setup(b){
  b.onResolve({filter:/^(\.\/platform|\.\/TarotResultActions|@toss\/tds-mobile)$/},args=>({path:args.path,namespace:'mock'}));
  b.onLoad({filter:/.*/,namespace:'mock'},args=>({contents:args.path==='./platform'?`
-  export const paymentRequiresReview=()=>false;export const tarotLibraryProducts=async()=>{throw Error('recovery must not load a new sale')};
+  export const getTossSessionRevision=()=>globalThis.__tarotScope.revision,onTossSessionRevisionChanged=listener=>{globalThis.__tarotScope.listeners.add(listener);return ()=>globalThis.__tarotScope.listeners.delete(listener);};export const paymentRequiresReview=()=>false;export const tarotLibraryProducts=async()=>{throw Error('recovery must not load a new sale')};
   export const api=(...args)=>globalThis.tarotRecoveryUi.api(...args);
   export const purchaseTarotLibrary=()=>{throw Error('recovery must not open another purchase')};
  `:args.path==='./TarotResultActions'?'export default ()=>null;':`
@@ -111,10 +111,14 @@ test('a guest question remains intact when the user logs in',async()=>{
  try{
   await React.act(async()=>document.querySelector('.tarot-library-item').click());
   const field=document.querySelector('textarea');await React.act(async()=>{Object.getOwnPropertyDescriptor(dom.window.HTMLTextAreaElement.prototype,'value').set.call(field,'지금 나에게 필요한 방향은?');field.dispatchEvent(new dom.window.Event('input',{bubbles:true}));});
-  await view.setAuth(true);assert.equal(document.querySelector('textarea').value,'지금 나에게 필요한 방향은?');
+  await React.act(async()=>{globalThis.__tarotScope.revision++;for(const listener of [...globalThis.__tarotScope.listeners])listener();});await view.setAuth(true);assert.equal(document.querySelector('textarea').value,'지금 나에게 필요한 방향은?');
  }finally{view.close();}
 });
 
 test('session expiry clears old result but keeps the direct order for a newly verified login',async()=>{globalThis.__tarotClosed=0;const view=await mount(()=>({flowId:result.flowId,state:'completed',result,canRetryNow:false}));try{assert.match(document.body.textContent,/완료된 원문/);await view.setAuth(false);assert.doesNotMatch(document.body.textContent,/완료된 원문/);assert.equal(globalThis.__tarotClosed,0);await view.setAuth(true);assert.equal(view.calls.length,2);assert.match(document.body.textContent,/완료된 원문/);}finally{view.close();}});
 
 test('a different account cannot reuse the previous account result after login',async()=>{let calls=0;const errors=[];const view=await mount(()=>++calls===1?{flowId:result.flowId,state:'completed',result,canRetryNow:false}:Promise.reject(Object.assign(new Error('denied'),{status:403,code:'ACCESS_DENIED'})),error=>errors.push(error));try{assert.match(document.body.textContent,/완료된 원문/);await view.setAuth(false);assert.doesNotMatch(document.body.textContent,/완료된 원문/);await view.setAuth(true);assert.doesNotMatch(document.body.textContent,/완료된 원문|추가 결제 없이 이어서 생성/);assert.equal(errors.at(-1).status,403);}finally{view.close();}});
+
+test('credential replacement hides the prior paid result and rechecks the original order',async()=>{const errors=[],start=globalThis.__tarotScope.revision;const view=await mount(()=>globalThis.__tarotScope.revision===start?{flowId:result.flowId,state:'completed',result,canRetryNow:false}:Promise.reject(Object.assign(new Error('denied'),{status:403,code:'ACCESS_DENIED'})),error=>errors.push(error));try{assert.match(document.body.textContent,/완료된 원문/);await React.act(async()=>{globalThis.__tarotScope.revision++;for(const listener of [...globalThis.__tarotScope.listeners])listener();});assert.doesNotMatch(document.body.textContent,/완료된 원문|추가 결제 없이 이어서 생성/);assert.equal(view.calls.length,2);assert.equal(errors.at(-1)?.status,403);}finally{await view.close();}});
+
+test('a late result from the previous credential never overwrites the new denial',async()=>{let resolve;const errors=[],start=globalThis.__tarotScope.revision;const view=await mount(()=>globalThis.__tarotScope.revision===start?new Promise(done=>{resolve=done}):Promise.reject(Object.assign(new Error('denied'),{status:403,code:'ACCESS_DENIED'})),error=>errors.push(error));try{assert.equal(typeof resolve,'function');await React.act(async()=>{globalThis.__tarotScope.revision++;for(const listener of [...globalThis.__tarotScope.listeners])listener();});await React.act(async()=>resolve({flowId:result.flowId,state:'completed',result,canRetryNow:false}));assert.doesNotMatch(document.body.textContent,/완료된 원문|추가 결제 없이 이어서 생성/);assert.equal(errors.at(-1)?.status,403);}finally{await view.close();}});

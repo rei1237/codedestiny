@@ -150,10 +150,17 @@ function requireProductListSupport(){
   let supported=false;try{supported=IAP.getProductItemList.isSupported();}catch(error){if(authorizationStatus(error)||sdkVersionError(error))throw error;/* Unsupported bridge versions fail closed. */}
   if(!supported)throw new ApiError('IAP_NOT_SUPPORTED');
 }
+async function scopedProductCatalog<T>(path:string){
+  const requestToken=token,requestEpoch=sessionEpoch,requestAttempt=loginAttempt;
+  const current=()=>token===requestToken&&sessionEpoch===requestEpoch&&loginAttempt===requestAttempt;
+  let apiFailure:unknown;
+  try{const result=await Promise.all([api<T>(path).catch(error=>{apiFailure=error;throw error;}),Promise.resolve().then(()=>IAP.getProductItemList())]);if(!current())throw new ApiError('SESSION_CHANGED','',409);return result;}
+  catch(error){const invalidatedByRequest=error===apiFailure&&error instanceof ApiError&&error.status===401&&requestToken!==null&&token===null&&sessionEpoch===requestEpoch+1&&loginAttempt===requestAttempt;if(!current()&&!invalidatedByRequest)throw new ApiError('SESSION_CHANGED','',409);throw error;}
+}
 export async function saleProducts():Promise<SaleProduct[]>{
   if(!SERVICE_AVAILABLE||!isToss())return [];
   requireProductListSupport();
-  const [catalog,items]=await Promise.all([api<{products:CatalogProduct[]}>('/catalog'),IAP.getProductItemList()]);
+  const [catalog,items]=await scopedProductCatalog<{products:CatalogProduct[]}>('/catalog');
   return catalog.products.flatMap(p=>{
     const item=items?.products.find(i=>i.sku===p.sku&&i.type==='CONSUMABLE');
     return item&&p.available?[{...p,displayAmount:item.displayAmount}]:[];
@@ -162,7 +169,7 @@ export async function saleProducts():Promise<SaleProduct[]>{
 export async function nativeSaleProducts():Promise<NativeSaleProduct[]>{
   if(!SERVICE_AVAILABLE||!isToss())return [];
   requireProductListSupport();
-  const [catalog,items]=await Promise.all([api<{products:Omit<NativeSaleProduct,'displayAmount'>[]}>('/native/catalog'),IAP.getProductItemList()]);
+  const [catalog,items]=await scopedProductCatalog<{products:Omit<NativeSaleProduct,'displayAmount'>[]}>('/native/catalog');
   return catalog.products.flatMap(product=>{
     const item=items?.products.find(row=>row.sku===product.sku&&row.type==='CONSUMABLE');
     return item&&product.available?[{...product,displayAmount:item.displayAmount}]:[];
@@ -172,7 +179,7 @@ export type TarotLibraryProduct={id:string;name:string;sku:string;featureKey:str
 export async function tarotLibraryProducts():Promise<TarotLibraryProduct[]>{
   if(!SERVICE_AVAILABLE||!isToss())return [];
   requireProductListSupport();
-  const [catalog,items]=await Promise.all([api<{flows:Omit<TarotLibraryProduct,'displayAmount'>[]}>('/tarot-library/catalog'),IAP.getProductItemList()]);
+  const [catalog,items]=await scopedProductCatalog<{flows:Omit<TarotLibraryProduct,'displayAmount'>[]}>('/tarot-library/catalog');
   return catalog.flows.flatMap(flow=>{const item=items?.products.find(entry=>entry.sku===flow.sku&&entry.type==='CONSUMABLE');return item?[{...flow,displayAmount:item.displayAmount}]:[];});
 }
 type Receipt={orderId:string;requestId:string|null;entitlement:string;durable:boolean};
