@@ -3,7 +3,7 @@
   "note": "사이트맵 lastmod 원장. scripts/lib/sitemap-lastmod.mjs 가 라우트별 소스 서명을 계산해 다시 쓴다. 손으로 고치지 말고 npm run sitemap:generate 로 갱신할 것.",
   "routes": {
     "/": {
-      "signature": "4e6b961287cf67df",
+      "signature": "34cb358c28f82426",
       "lastmod": "2026-11-07"
     },
     "/about/": {
@@ -579,7 +579,7 @@
       "lastmod": "2026-11-01"
     },
     "/en/yeongnyangi/": {
-      "signature": "f6fbd87d91d65623",
+      "signature": "5cd6dc18dfb80ed4",
       "lastmod": "2026-11-07"
     },
     "/en/ziwei/": {
@@ -591,7 +591,7 @@
       "lastmod": "2026-11-05"
     },
     "/fortune-tea-house/": {
-      "signature": "efd2fc12a834fd54",
+      "signature": "9eb945bf20f498f0",
       "lastmod": "2026-11-07"
     },
     "/fortune/": {
@@ -1055,8 +1055,8 @@
       "lastmod": "2026-11-07"
     },
     "/ggulggul/": {
-      "signature": "5a7ca0adf5c9325e",
-      "lastmod": "2026-11-06"
+      "signature": "33dd857673c1e502",
+      "lastmod": "2026-11-07"
     },
     "/guides/": {
       "signature": "ae4edd7a2553ea70",
@@ -1635,7 +1635,7 @@
       "lastmod": "2026-11-01"
     },
     "/ja/yeongnyangi/": {
-      "signature": "f6fbd87d91d65623",
+      "signature": "5cd6dc18dfb80ed4",
       "lastmod": "2026-11-07"
     },
     "/ja/ziwei/": {
@@ -2399,7 +2399,7 @@
       "lastmod": "2026-11-06"
     },
     "/yeongnyangi/": {
-      "signature": "29d6d53808434d44",
+      "signature": "e7b66c9eb7d1d3ed",
       "lastmod": "2026-11-07"
     },
     "/yeongnyangi/1000-won-fortune/": {
@@ -2879,7 +2879,7 @@
       "lastmod": "2026-11-01"
     },
     "/zh-tw/yeongnyangi/": {
-      "signature": "f6fbd87d91d65623",
+      "signature": "5cd6dc18dfb80ed4",
       "lastmod": "2026-11-07"
     },
     "/zh-tw/ziwei/": {
@@ -3387,7 +3387,7 @@
       "lastmod": "2026-11-01"
     },
     "/zh/yeongnyangi/": {
-      "signature": "f6fbd87d91d65623",
+      "signature": "5cd6dc18dfb80ed4",
       "lastmod": "2026-11-07"
     },
     "/zh/ziwei/": {
