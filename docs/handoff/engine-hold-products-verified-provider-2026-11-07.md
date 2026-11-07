@@ -1,5 +1,5 @@
 ---
-status: ready
+status: active
 updated: 2026-11-07
 next: "1단계 — 숙요 provider가 검증 구간 밖·경계 입력을 503 대신 기존 계산으로 넘기게 고치고, 실제 고객 출생 연대 표본 테스트를 통과시킨 뒤 SUKUYO_IMD_NEW_ORDERS_V1을 운영에서 다시 켠다"
 ---
