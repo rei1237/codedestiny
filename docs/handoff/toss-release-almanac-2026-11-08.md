@@ -9,7 +9,7 @@ next: "지정 워크트리에서 원격 main과 인수인계 커밋이 같은지
 ## 첫 행동
 
 1. 작업 위치는 `D:\Development\code-destiny\.codex-worktrees\toss-release-20261103-231835`, 브랜치는 `wt/toss-release-20261103-231835`다. 새 브랜치나 PR을 만들지 않는다. `git status --short -b`, `git fetch origin`, `git rev-parse HEAD origin/main`, `npm run launch:status --prefix apps/toss`로 수치와 SHA를 다시 확인한다. 다른 세션의 작업이 반영돼 SHA가 바뀌었으면 해당 커밋들과의 선후 관계를 먼저 확인한다.
-2. 이 문서를 추가한 커밋은 `git log -1 --format=%H -- docs/handoff/toss-release-almanac-20261108.md`로 식별한다. 그 SHA에 대해 `gh run list --commit <SHA> --branch main`으로 CI required(워크플로 PR CI), Paid Flow Gates, Secret Scan을 구분한다. Linux 아티팩트는 full_ci와 toss_artifact가 모두 true인 pr-ci.yml 수동 실행의 **Verify portable Toss bundle** 단계와 `toss-preview-<SHA>` 아티팩트로 판정한다. 실행 중/미실행은 통과가 아니다. 이 문서 자체는 승인 증거가 아니다.
+2. 이 문서를 추가한 커밋은 `git log -1 --format=%H -- docs/handoff/toss-release-almanac-2026-11-08.md`로 식별한다. 그 SHA에 대해 `gh run list --commit <SHA> --branch main`으로 CI required(워크플로 PR CI), Paid Flow Gates, Secret Scan을 구분한다. Linux 아티팩트는 full_ci와 toss_artifact가 모두 true인 pr-ci.yml 수동 실행의 **Verify portable Toss bundle** 단계와 `toss-preview-<SHA>` 아티팩트로 판정한다. 실행 중/미실행은 통과가 아니다. 이 문서 자체는 승인 증거가 아니다.
 3. 토스의 답변을 기다리는 동안 서버 원장에 나온 기존 구매 권리를 보존하는 범위에서 이식을 진행한다. 다음 후보는 사주 묶음 중 직업 성향: `app/saju/career-style/CareerStyleClient.tsx` → `worker/routes/career-style.js` → `worker/lib/career-style-access.js`. 인증된 계정의 출생 프로필과 기존 묶음/과거 구매 권리를 mock으로 분리해 검증한다. 미승인 결제창은 열지 않는다.
 
 ## 지금 상태
