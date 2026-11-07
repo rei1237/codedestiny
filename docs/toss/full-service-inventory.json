@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "b1648115e9f270299aedbfd8b9243c47de3f16ee",
+  "sourceCommit": "5a93cb4896a7ccca488730dd181eddedbcba5c47",
   "scope": "Source discovery plus explicitly verified aliases; not a count of implemented services. Unmapped contracts are blocking work, not exclusions.",
   "sourceCounts": {
     "home": 63,
@@ -36,8 +36,8 @@
         "library": "not-verified",
         "device": "not-tested",
         "canonicalId": "animal-destiny",
-        "candidateStatus": "requires-full-flow-port-and-verification",
-        "canonicalRoute": null
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/saju/animal-destiny"
       }
     },
     {
@@ -61,8 +61,8 @@
         "library": "not-verified",
         "device": "not-tested",
         "canonicalId": "animal-destiny",
-        "candidateStatus": "requires-full-flow-port-and-verification",
-        "canonicalRoute": null
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/saju/animal-destiny"
       }
     },
     {
@@ -3013,12 +3013,12 @@
         "js/core/service-registry.js:animal-destiny-unlock",
         "index.html:animal-guardian-unlock.inlineAliases"
       ],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/saju/animal-destiny",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null,
+      "inputContract": "Domestic birth, solar/lunar/leap date and optional birth time using canonical natal pillars; no account/profile write.",
+      "resultRenderer": "apps/toss/src/AnimalDestiny.tsx",
+      "storageContract": "Public day animal, pillar stages and twelve names only, in memory; paid bundle ownership, detailed report, sharing, library and device parity pending.",
       "webEntitlement": {
         "featureKey": "animal-destiny-unlock",
         "bundleKey": "saju_lifetime_bundle",
