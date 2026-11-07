@@ -1,5 +1,5 @@
 import {FloralInputWelcome} from './Brand';
-import {useState,type FormEvent} from 'react';
+import {useEffect,useRef,useState,type FormEvent} from 'react';
 import {Button} from './Button';
 import {BirthFields,emptyBirth,birthPayload} from './BirthFields';
 import {api} from './platform';
@@ -25,17 +25,19 @@ export function FlowerResults({result}:{result:FlowerResponse}){
     </article>;
   })}</div>;
 }
-export default function FlowerReading({loggedIn,onLogin,onError}:{loggedIn:boolean;onLogin:()=>void;onError:(error:unknown)=>void}){
+export default function FlowerReading({loggedIn,onLogin,onError,request=api}:{loggedIn:boolean;onLogin:()=>void;onError:(error:unknown)=>void;request?:typeof api}){
   const [birth,setBirth]=useState(emptyBirth),[busy,setBusy]=useState(false),[result,setResult]=useState<FlowerResponse|null>(null);
-  async function submit(event:FormEvent){event.preventDefault();if(!loggedIn){onLogin();return;}if(busy)return;
-    setBusy(true);setResult(null);
-    try{setResult(await api<FlowerResponse>('/flower/match',{birth:birthPayload(birth)}));}catch(error){onError(error);}finally{setBusy(false);}
+  const epoch=useRef(0),pending=useRef(false);
+  useEffect(()=>{epoch.current++;pending.current=false;setBirth(emptyBirth());setResult(null);setBusy(false);return()=>{epoch.current++;};},[loggedIn]);
+  async function submit(event:FormEvent){event.preventDefault();if(!loggedIn){onLogin();return;}if(pending.current)return;
+    const current=++epoch.current;pending.current=true;setBusy(true);setResult(null);
+    try{const next=await request<FlowerResponse>('/flower/match',{birth:birthPayload(birth)});if(current===epoch.current)setResult(next);}catch(error){if(current===epoch.current)onError(error);}finally{if(current===epoch.current){pending.current=false;setBusy(false);}}
   }
   return <section className="flower-reading"><p className="eyebrow">운명의 꽃</p><h1>당신의 결을 닮은<br/>꽃 한 송이</h1>
     <p>사주와 별자리, 자미두수와 숙요가 비추는 서로 다른 꽃의 이야기를 만나보세요.</p>
     <p className="muted">로그인 후 이용할 수 있어요. 이 꽃 결과는 보관함에 저장되지 않아요.</p>
-    {loggedIn?<form className="form floral-form" onSubmit={submit}><FloralInputWelcome/><BirthFields value={birth} onChange={value=>{setBirth(value);setResult(null);}} title="꽃을 살펴볼 출생정보"/>
+    {loggedIn?<form className="form floral-form" onSubmit={submit}><FloralInputWelcome/><BirthFields value={birth} onChange={value=>{setBirth(value);setResult(null);}} title="꽃을 살펴볼 출생정보" disabled={busy}/>
       <Button type="submit" display="block" loading={busy}>{loggedIn?'나의 꽃 살펴보기':'토스 로그인하고 살펴보기'}</Button>
-    </form>:<Button display="block" onClick={onLogin}>토스 로그인하고 살펴보기</Button>}{busy&&<p role="status">입력한 정보로 각 체계의 꽃을 계산하고 있어요.</p>}{result&&<FlowerResults result={result}/>}
+    </form>:<Button display="block" onClick={onLogin}>토스 로그인하고 살펴보기</Button>}{loggedIn&&busy&&<p role="status">입력한 정보로 각 체계의 꽃을 계산하고 있어요.</p>}{loggedIn&&result&&<FlowerResults result={result}/>}
   </section>;
 }
