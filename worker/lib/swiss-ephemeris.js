@@ -982,7 +982,7 @@ export async function getSwissWesternChart(env, payload, options = {}) {
   // requesting Regiomontanus must never silently receive another house system.
   const regiomontanus = options.houseSystem === "regiomontanus";
   if (regiomontanus && Math.abs(input.lat) >= 66) throw toStatusError(400, "HOUSE_SYSTEM_UNAVAILABLE");
-  const external = regiomontanus ? null : await getExternalWesternChart(env, input, options);
+  const external = regiomontanus || options.localOnly === true ? null : await getExternalWesternChart(env, input, options);
   if (external) {
     return external;
   }
@@ -1084,7 +1084,7 @@ export async function getSwissVedicPlanets(env, payload, options = {}) {
   const input = normalizeChartInput(payload);
   validateChartInput(input);
 
-  const external = await getExternalVedicPlanets(env, input);
+  const external = options.localOnly === true ? null : await getExternalVedicPlanets(env, input);
   if (external) {
     return external;
   }

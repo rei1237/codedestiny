@@ -4,6 +4,7 @@ import vm from 'node:vm';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {execFileSync} from 'node:child_process';
+import {SAJU_BUNDLE_ALIAS_MEMBER_KEYS,SAJU_BUNDLE_SALE_CLOSED_KEYS,SAJU_BUNDLE_FEATURE_KEY} from '../../worker/lib/saju-bundle-policy.js';
 import {loadTsModule} from '../../scripts/lib/load-ts-module.mjs';
 import {extractObjectLiteral} from '../../scripts/lib/feature-marketing-extract.mjs';
 import {TOSS_TAROT_LIBRARY_FLOWS} from '../../lib/tarot/toss-library-flows.mjs';
@@ -83,6 +84,10 @@ const localEvidence={
  maya:{tossRoute:'/maya/',status:'local-partial',inputContract:'worker/toss/maya-contract.js',resultRenderer:'apps/toss/service/TossMayaPrompt.tsx + src/components/maya/MayaCalendarView.tsx',storageContract:'owner-scoped prepared input, paid prompt and explicit unassigned-order recovery; production index and approved SKU pending',verification:'mock purchase, account/refund checks and draft recovery; source UI 3000 KRW conflicts with server registry 5000 KRW, actual SKU price, external-AI prompt policy and official device not verified'},
  novel:{tossRoute:'/novel',status:'local-partial',inputContract:'Korean transcript; original manifest, cast and ending choices',resultRenderer:'apps/toss/src/NovelReader.tsx',storageContract:'in-screen reading position only; persistent bookmark, visual/audio and device parity pending'},
  'famous-saju':{tossRoute:'/insights/famous-saju',status:'local-partial',inputContract:'published profile search by name, alias or field',resultRenderer:'apps/toss/src/FamousSaju.tsx',storageContract:'public articles only; historical archive, detail deep links and device parity pending'},
+ music:{tossRoute:'/music',status:'local-partial',inputContract:'stream list projected from original track manifest and free_full policy only',resultRenderer:'apps/toss/src/MusicShelf.tsx',storageContract:'stream only; paid downloads, library and device audio parity pending'},
+ astrology:{tossRoute:'/astrology',status:'local-partial',inputContract:'authenticated birth input; precise Swiss tropical/Placidus chart',resultRenderer:'apps/toss/src/BasicSkyChart.tsx',storageContract:'result in memory only; guest/web profiles, wheel, original unlocks and device parity pending'},
+ vedic:{tossRoute:'/vedic',status:'local-partial',inputContract:'authenticated birth input; precise Swiss sidereal/Lahiri chart',resultRenderer:'apps/toss/src/BasicSkyChart.tsx',storageContract:'result in memory only; guest/web profiles, full chart and device parity pending'},
+ nakshatra:{publicSubflows:['/nakshatra/codex','/nakshatra/codex/[0..26]'],verification:'Public atlas only; paid personal reading has no Toss order flow. Remains on remainingPorts.'},
  saju:{tossRoute:'/saju/basic/play',status:'local-partial',inputContract:'shared natal engine; Korean city, solar/lunar/leap and unknown hour',resultRenderer:'apps/toss/src/BasicSajuReading.tsx',storageContract:'memory-only free basic chart; web result and device parity pending'},
  manse:{tossRoute:'/manse',status:'local-partial',inputContract:'worker/toss/manse.js (canonical screen saju engine)',resultRenderer:'apps/toss/src/ManseReading.tsx',storageContract:'screen-only; web-profile-history-parity-pending'},
  sukuyo:{tossRoute:'/sukuyo',status:'local-partial',inputContract:'worker/toss/sukuyo-basic.js + canonical Sukuyo domain and free dashboard',resultRenderer:'apps/toss/src/SukuyoBasic.tsx',storageContract:'screen-only; no result storage or cross-device recovery',verification:'local offline canonical calculation plus 27 synthetic lunar sectors, home/direct route, native-back and session-isolation checks; original annual flow, relationship tools, paid nature/compatibility rights, editorial review and official device remain incomplete'},
@@ -112,6 +117,22 @@ for(const [id,entry,source] of [
 ]){
  if(!fs.readFileSync(path.join(root,'index.html'),'utf8').includes(`href="${entry}"`))throw new Error('Missing tarot entry: '+entry);
  groups.set(id,{id,discoveryIds:[],evidence:[{source:'index.html:tarotCollection',entry,implementation:source}],status:'not-ported',tossRoute:null,sku:null,inputContract:null,resultRenderer:null,storageContract:null});
+}
+// A web section can remain a separate port even when it shares a purchase with other sections.
+for(const group of groups.values()){
+ const manifestPath='content/product-details/'+group.id+'/manifest.json';
+ const manifest=fs.existsSync(path.join(root,manifestPath))?JSON.parse(fs.readFileSync(path.join(root,manifestPath),'utf8')):null;
+ const match=[manifest?.featureKey,...group.evidence.map(e=>e.featureKey)].find(key=>SAJU_BUNDLE_ALIAS_MEMBER_KEYS.includes(key));
+ if(!match)continue;
+ group.webEntitlement={featureKey:match,bundleKey:SAJU_BUNDLE_FEATURE_KEY,birthScoped:true,
+   individualSaleClosed:SAJU_BUNDLE_SALE_CLOSED_KEYS.includes(match),
+   source:'worker/lib/saju-bundle-policy.js',...(manifest?.featureKey===match?{contentSource:manifestPath}:{})};
+}
+const house=groups.get('secret-house');
+if(house?.webEntitlement?.featureKey==='rpt_secretHouseEntryCard'&&dashboard.includes('/secret-house_real.html')){
+ const shell=fs.readFileSync(path.join(root,'secret-house_real.html'),'utf8');
+ if(!shell.includes("HOUSE_ENDPOINT='/api/saju/section'")||!shell.includes("HOUSE_FEATURE='rpt_secretHouseEntryCard'"))throw new Error('Secret House access evidence changed');
+ house.aliasEvidence.push('js/core/saju/reportDashboard.js -> /secret-house_real.html -> POST /api/saju/section (rpt_secretHouseEntryCard)');
 }
 for(const [id,fields] of Object.entries(localEvidence))if(groups.has(id))Object.assign(groups.get(id),fields);
 for(const flow of TOSS_TAROT_LIBRARY_FLOWS){

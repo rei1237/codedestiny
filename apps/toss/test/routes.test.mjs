@@ -36,6 +36,7 @@ const stubMap={
  'worker/toss/native-neo.js':"export const prepareNativeNeo=()=>{};export const handleNativeNeo=()=>{};export const nativeNeoLibraryItem=()=>{};",
  'worker/toss/native-tea.js':"export const nativeTeaCatalog=()=>[];export const prepareNativeTea=()=>{throw Error('not used')};export const readNativeTeaIntent=()=>{};export const handleNativeTea=()=>{};export const approvedNativeTeaProduct=()=>{};",
  'worker/routes/profile.js':"export const normalizeIncomingProfile=x=>x;export const validateRequiredBirth=x=>({ok:!!x?.birth,birth:x?.birth});export const toClientProfile=x=>x;",
+ 'worker/toss/basic-sky-chart.js':"export const basicSkyChart=async system=>{globalThis.__tossRouteMocks.chartSystems.push(system);return {system};};",
  'worker/toss/manse.js':"export const calculateTossManse=async()=>({stored:false});",
  'worker/yeongnyangi/fortune/question-sky.ts':"export const resolveCurrentLocation=x=>({latitude:x.latitude,longitude:x.longitude,timezone:'Asia/Seoul'});",
  'worker/yeongnyangi/retry.js':"export const retryFortune=(...args)=>globalThis.__tossRouteMocks.retry(...args);",
@@ -300,6 +301,20 @@ test('manse requires release readiness and account, never creates a profile or p
  const response=await request({birth},'/manse/calculate');
  assert.equal(response.status,200);assert.deepEqual(await response.json(),{stored:false});
  assert.equal(calls.profiles.length,0);assert.equal(calls.prepared.length,0);
+});
+
+test('basic sky chart routes share the release, session and rate gates without preparing purchases or writing profiles',async()=>{
+ mocks.chartSystems=[];
+ for(const system of ['astrology','vedic']){
+   const path='/charts/'+system;
+   assert.equal((await request({birth},path,{})).status,503);
+   mocks.denyAuth=true;
+   try{assert.equal((await request({birth},path)).status,401);}finally{mocks.denyAuth=false;}
+   assert.equal((await request({birth},path)).status,200);
+   assert.equal(calls.profiles.length+calls.prepared.length,0);
+ }
+ assert.deepEqual(mocks.chartSystems,['astrology','vedic']);
+ assert.ok(mocks.limits.some(x=>x.endpoint==='toss:basic-sky-chart'));
 });
 
 test('basic Sukuyo requires release and login without creating profiles or orders',async()=>{

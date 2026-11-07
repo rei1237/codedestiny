@@ -19,6 +19,13 @@ export function createOfflineFixtureApi(storage){
   if(path==='/session'&&method==='GET')return respond({authenticated:true,environment:'SANDBOX'});
   // This fixed chart is synthetic and never uses the submitted birth data.
   // The offline shell labels all of its output as test-only.
+  if((path==='/charts/astrology'||path==='/charts/vedic')&&method==='POST'){
+   const body=await request.json();
+   const system=path.endsWith('/vedic')?'vedic':'astrology';
+   if(body?.birth?.date?.timeUnknown)return respond({error:'BIRTH_TIME_REQUIRED'},400);
+   const names=system==='vedic'?['태양','달','화성','수성','목성','금성','토성','라후','케투']:['태양','달','수성','금성','화성','목성','토성','천왕성','해왕성','명왕성'];
+   return respond({system,ascendant:'양자리',positions:names.map((name,i)=>({name,sign:'양자리',house:i+1})),...(system==='vedic'?{mansion:{name:'아슈위니',pada:1}}:{})});
+  }
   if(path==='/human-design/chart'&&method==='POST')return respond(chartFixture());
   if(path==='/canonical/auth/me'&&method==='GET')return respond({ok:true,authenticated:true,user:{id:'offline-test-user',name:'테스트 사용자',role:'user'}});
   if(path==='/native/catalog'&&method==='GET')return respond({products:[product,sukuyoProduct,relationshipProduct]});

@@ -1,4 +1,4 @@
-import {useEffect,useLayoutEffect,useRef,useState,type FormEvent} from 'react';
+import {useEffect,useLayoutEffect,useRef,useState,type ReactNode,type FormEvent} from 'react';
 import {BirthFields,birthPayload,emptyBirth} from './BirthFields';
 import {Button} from './Button';
 import {api} from './platform';
@@ -19,7 +19,7 @@ function validResult(value:SukuyoResult){return value?.stored===false&&typeof va
  &&typeof value.reading.dailyPrescription?.moon?.label==='string'&&typeof value.reading.dailyPrescription.moon.desc==='string'
  &&typeof value.reading.dailyPrescription.message==='string'&&typeof value.reading.dailyPrescription.action==='string'
  &&typeof value.reading.guardian?.name==='string'&&typeof value.reading.guardian.mantra==='string';}
-export function SukuyoBasicResult({result}:{result:SukuyoResult}){
+export function SukuyoBasicResult({result,onOpenAtlas}:{result:SukuyoResult;onOpenAtlas?:()=>void}){
  const {canonical,reading}=result;
  return <section className="sukuyo-basic-result" aria-live="polite">
   <img className="sukuyo-master-art" src="/images/master-profiles/hanbi-sukuyo-reading.webp" width="1200" height="800" loading="lazy" alt="달빛 아래 책을 펼쳐 본명숙을 읽는 서한비"/>
@@ -31,18 +31,20 @@ export function SukuyoBasicResult({result}:{result:SukuyoResult}){
   <section className="paper"><h2>오늘의 참고 리듬</h2><h3>{reading.dailyPrescription.moon.label}</h3><p>{reading.dailyPrescription.moon.desc}</p><p>{reading.dailyPrescription.message}</p><p>{reading.dailyPrescription.action}</p><p className="muted">상징적인 참고 흐름이에요. 중요한 결정에는 현실의 상황도 함께 살펴보세요.</p></section>
   <section><h2>관계를 살펴보는 여섯 가지 관점</h2>{reading.relationMiniMap.map((item,i)=><details className="paper" key={i}><summary>{item.label} · {item.han}</summary><p>{item.essence}</p><p>{item.light}</p><p>{item.shadow}</p><p>{item.guide}</p></details>)}</section>
   <section className="paper"><h2>{reading.guardian.name}의 메시지</h2><p>{reading.guardian.mantra}</p></section>
+  {onOpenAtlas&&<Button variant="weak" onClick={onOpenAtlas}>27수 별자리 도감 보기</Button>}
   <details><summary>계산 기준과 한계</summary>{result.limitations.map((line,i)=><p key={i}>{line}</p>)}<p>본명숙은 항성 달 황경을 27구간으로 나누어 계산해요. 해석은 미래를 보장하지 않아요.</p><p>계산 버전: {result.engineVersion}</p></details>
   <p className="muted">이 결과는 현재 화면에서만 확인할 수 있으며 보관함에 저장되지 않아요.</p>
  </section>;
 }
-type Props={loggedIn:boolean;onLogin:()=>void;onError:(error:unknown)=>void;request?:typeof api};
+type Props={loggedIn:boolean;onLogin:()=>void;onError:(error:unknown)=>void;request?:typeof api;renderAtlas?:(index:number|null,onOpen:(index:number|null)=>void)=>ReactNode};
 export default function SukuyoBasic(props:Props){return <TossSessionScope><SukuyoBasicContent {...props}/></TossSessionScope>;}
-function SukuyoBasicContent({loggedIn,onLogin,onError,request=api}:Props){
+function SukuyoBasicContent({loggedIn,onLogin,onError,request=api,renderAtlas}:Props){
+ const [atlas,setAtlas]=useState<number|null|undefined>(undefined);
  const [birth,setBirth]=useState(emptyBirth),[busy,setBusy]=useState(false),[result,setResult]=useState<SukuyoResult|null>(null),[issue,setIssue]=useState('');
  const epoch=useRef(0),pending=useRef(false);
  useLayoutEffect(()=>()=>{epoch.current++;},[]);
- useEffect(()=>{epoch.current++;pending.current=false;setBirth(emptyBirth());setResult(null);setIssue('');setBusy(false);},[loggedIn]);
- useEffect(()=>{const back=(event:Event)=>{if(result){event.preventDefault();setResult(null);setIssue('');}};window.addEventListener('code-destiny:toss-back',back);return()=>window.removeEventListener('code-destiny:toss-back',back);},[result]);
+ useEffect(()=>{epoch.current++;pending.current=false;setAtlas(undefined);setBirth(emptyBirth());setResult(null);setIssue('');setBusy(false);},[loggedIn]);
+ useEffect(()=>{const back=(event:Event)=>{if(loggedIn&&result){event.preventDefault();if(atlas!==undefined){setAtlas(atlas===null?undefined:null);return;}setResult(null);setIssue('');}};window.addEventListener('code-destiny:toss-back',back);return()=>window.removeEventListener('code-destiny:toss-back',back);},[loggedIn,result,atlas]);
  async function submit(event:FormEvent){event.preventDefault();if(!loggedIn){onLogin();return;}if(pending.current)return;
   if(birth.unknown){setIssue('본명숙을 정확히 살펴보려면 태어난 시각이 필요해요.');return;}
   const current=++epoch.current;pending.current=true;setBusy(true);setResult(null);setIssue('');
@@ -54,9 +56,10 @@ function SukuyoBasicContent({loggedIn,onLogin,onError,request=api}:Props){
    else setIssue('숙요 계산을 마치지 못했어요. 입력을 확인하고 다시 시도해 주세요.');}}
   finally{if(current===epoch.current){pending.current=false;setBusy(false);}}
  }
+ if(loggedIn&&result&&renderAtlas&&atlas!==undefined)return <section>{renderAtlas(atlas,setAtlas)}<Button display="block" variant="weak" onClick={()=>setAtlas(undefined)}>내 본명숙으로 돌아가기</Button></section>;
  return <section><h1>달이 머문 자리, 나의 숙요점</h1><p>태어난 순간의 달이 비추는 기질과 관계의 리듬을 살펴봐요.</p>
   <p className="muted">로그인 후 이용할 수 있어요. 현재 결과는 보관함에 저장되지 않으며 화면을 나가면 사라져요.</p>
   {loggedIn?<form className="form" onSubmit={submit}><BirthFields title="본명숙을 살펴볼 출생정보" value={birth} onChange={value=>{epoch.current++;setBirth(value);setResult(null);setIssue('');}} disabled={busy}/><Button type="submit" display="block" loading={busy}>{issue?'다시 계산하기':'본명숙 살펴보기'}</Button></form>:<Button display="block" onClick={onLogin}>토스 로그인하고 살펴보기</Button>}
-  {loggedIn&&busy&&<p role="status">태어난 날의 숙을 읽고 있어요.</p>}{issue&&<p role="alert">{issue}</p>}{loggedIn&&result&&<SukuyoBasicResult result={result}/>}
+  {loggedIn&&busy&&<p role="status">태어난 날의 숙을 읽고 있어요.</p>}{issue&&<p role="alert">{issue}</p>}{loggedIn&&result&&<SukuyoBasicResult result={result} onOpenAtlas={renderAtlas?()=>setAtlas(null):undefined}/>}
  </section>;
 }

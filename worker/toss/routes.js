@@ -392,6 +392,11 @@ export async function handleTossRoutes(request,env) {
       if(path==='/daily/reading'&&request.method==='GET')return reply(await daily.getFreeReading(env,auth.userId,url.searchParams.get('category')));
       throw new TossError('NOT_FOUND',404);
     }
+    if((path==='/charts/astrology'||path==='/charts/vedic')&&request.method==='POST'){
+      await limit(env,auth._id,'basic-sky-chart',6);
+      const {basicSkyChart}=await import('./basic-sky-chart.js');
+      return reply(await basicSkyChart(path.slice('/charts/'.length),await bodyOf(request),env,{requestUrl:'https://code-destiny.com/api/toss/charts'}));
+    }
     if(path==='/manse/calculate'&&request.method==='POST') {
       await limit(env,auth._id,'manse',6);
       const [{calculateTossManse},{domains}]=await Promise.all([import('./manse.js'),import('../yeongnyangi/fortune/index.ts')]);

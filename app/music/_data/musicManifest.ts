@@ -1,5 +1,5 @@
-import { buildMusicPublicUrl } from "@/lib/r2-public-url";
-import { getMusicTrackAccessPolicy } from "@/lib/music-access-policy";
+import { buildMusicPublicUrl } from "../../../lib/r2-public-url";
+import { getMusicTrackAccessPolicy } from "../../../lib/music-access-policy";
 
 // 잠금곡은 공개 CDN URL을 노출하지 않고, 서버가 바이트를 제한하는 미리듣기 프록시를 사용한다.
 function buildMusicPreviewApiUrl(audioSourceKey: string, featureKey?: string) {

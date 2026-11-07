@@ -43,3 +43,16 @@ test('an empty free dashboard is treated as an unavailable result',async()=>{
  try{await React.act(async()=>root.render(React.createElement(Screen,{loggedIn:true,onLogin:()=>{},onError:()=>assert.fail(),request})));await React.act(async()=>fill());await React.act(async()=>submit());assert.match(document.body.textContent,/계산을 마치지 못했어요/);assert.doesNotMatch(document.body.textContent,/본명숙은 필/);}
  finally{await React.act(()=>root.unmount());}
 });
+test('open the public atlas and return to the same private result without recomputing it',async()=>{
+ const root=createRoot(document.getElementById('root'));let calls=0;
+ const request=async()=>{calls++;return sample;};
+ const renderAtlas=(index,open)=>React.createElement('button',{onClick:()=>open(5)},index===null?'도감 목록':'도감 상세');
+ const click=t=>React.act(()=>Array.from(document.querySelectorAll('button')).find(b=>b.textContent===t).click());
+ const back=()=>React.act(()=>assert.equal(window.dispatchEvent(new window.Event('code-destiny:toss-back',{cancelable:true})),false));
+ try{
+  await React.act(()=>root.render(React.createElement(Screen,{loggedIn:true,request,renderAtlas,onLogin:()=>{},onError:()=>assert.fail()})));
+  await React.act(async()=>fill());await React.act(async()=>submit());await click('27수 별자리 도감 보기');await click('도감 목록');
+  await back();assert.match(document.body.textContent,/도감 목록/);await back();
+  assert.match(document.body.textContent,/당신의 본명숙은/);assert.equal(calls,1);
+ }finally{await React.act(()=>root.unmount());}
+});

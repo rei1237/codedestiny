@@ -21,7 +21,7 @@ const bundle=await build({
   loader:{'.css':'empty'},plugins:[...extraPlugins,{name:'test-toss-bridges',setup(builder){
     builder.onResolve({filter:/^(\.\/platform|@toss\/tds-mobile)$/},args=>({namespace:'test',path:args.path}));
     builder.onLoad({filter:/.*/,namespace:'test'},({path:id})=>{
-      if(id==='./platform')return {contents:'export const getTossSessionRevision=()=>window.testSessionEpoch||0; export const onTossSessionRevisionChanged=fn=>{window.addEventListener("session",fn);return ()=>window.removeEventListener("session",fn)};'};
+      if(id==='./platform')return {contents:'export const api=()=>{throw Error("Unexpected chart request")}; export const getTossSessionRevision=()=>window.testSessionEpoch||0; export const onTossSessionRevisionChanged=fn=>{window.addEventListener("session",fn);return ()=>window.removeEventListener("session",fn)};'};
       return {contents:`import React from 'react';
         export const Button=({children,display,variant,loading,...props})=>React.createElement('button',props,children);
         export const TextField=({label,labelOption,variant,...props})=>React.createElement('input',props);`};
