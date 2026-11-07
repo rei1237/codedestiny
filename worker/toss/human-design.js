@@ -16,6 +16,8 @@ export async function calculateTossHumanDesign(body,env,calculate=calculateHuman
     if(date.getUTCFullYear()!==year||date.getUTCMonth()!==month-1||date.getUTCDate()!==day)throw new TossError('BIRTH_INVALID',400);
   }
   const input={birthDate:birth.birthDate,birthTime:birth.birthTime,timezone:birth.timezone.trim(),calendar:birth.calendar};
+  const fixedOffset=/^(?:UTC|GMT)?\s*[+-](\d{1,2})(?::?(\d{2}))?$/i.exec(input.timezone);
+  if(fixedOffset){const hours=Number(fixedOffset[1]),minutes=Number(fixedOffset[2]||0);if(hours>14||minutes>59||hours===14&&minutes!==0)throw new TossError('BIRTH_INVALID',400);}
   try{resolveBirthMoment(input);}catch{throw new TossError('BIRTH_INVALID',400);}
   let chart;
   try{chart=await calculate(env,input,{requestUrl:'https://code-destiny.com/api/toss/human-design/chart'});}

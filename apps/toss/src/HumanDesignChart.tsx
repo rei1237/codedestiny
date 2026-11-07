@@ -15,7 +15,7 @@ function validChart(chart:HdChart){
   &&Array.isArray(chart.layers?.personality)&&chart.layers.personality.length===13&&Array.isArray(chart.layers?.design)&&chart.layers.design.length===13
   &&Array.isArray(chart.channels)&&chart.channels.every(c=>c&&typeof c.channelId==='string'&&typeof c.centerA==='string'&&typeof c.centerB==='string')
   &&Array.isArray(chart.definedCenters)&&Array.isArray(chart.undefinedCenters)&&Array.isArray(chart.activeGates)
-  &&chart.type in TYPE_COPY&&chart.authority in AUTHORITY_COPY&&chart.strategy in STRATEGY_COPY&&chart.definition in DEFINITION_COPY&&typeof chart.profile==='string';
+  &&Object.hasOwn(TYPE_COPY,chart.type)&&Object.hasOwn(AUTHORITY_COPY,chart.authority)&&Object.hasOwn(STRATEGY_COPY,chart.strategy)&&Object.hasOwn(DEFINITION_COPY,chart.definition)&&typeof chart.profile==='string';
 }
 type Props={loggedIn:boolean;onLogin:()=>void;onError:(error:unknown)=>void;request?:typeof api};
 export default function HumanDesignChart(props:Props){return <TossSessionScope><HumanDesignChartContent {...props}/></TossSessionScope>;}

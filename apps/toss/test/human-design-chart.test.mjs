@@ -22,10 +22,11 @@ test('lunar and leap-lunar dates use the original conversion',async()=>{
   }
 });
 test('invalid dates, times, zones and nonexistent leap months never reach the engine',async()=>{
-  for(const invalid of [{birthDate:'2021-02-29'},{birthTime:'24:00'},{timezone:'Invalid/Zone'},{birthDate:'2021-04-01',calendar:'lunar-leap'},{calendar:'unknown'}]){
+  for(const invalid of [{birthDate:'2021-02-29'},{birthTime:'24:00'},{timezone:'Invalid/Zone'},{timezone:'UTC+99:99'},{timezone:'UTC+09:60'},{timezone:'UTC+14:01'},{birthDate:'2021-04-01',calendar:'lunar-leap'},{calendar:'unknown'}]){
     let calls=0;await assert.rejects(calculateTossHumanDesign({birth:{...birth,...invalid}},env,()=>{calls++;}),error=>error.code==='BIRTH_INVALID');assert.equal(calls,0);
   }
 });
+test('valid fixed timezones and IANA zones remain usable',async()=>{for(const timezone of ['UTC+09:00','+05:30','UTC+14:00','Asia/Seoul']){const result=await calculateTossHumanDesign({birth:{...birth,timezone}},env);assert.equal(result.stored,false);}});
 test('engine permissions stay distinct and broken output is rejected',async()=>{
   await assert.rejects(calculateTossHumanDesign({birth},env,async()=>{throw {status:403,code:'ACCESS_DENIED'};}),error=>error.status===403&&error.code==='ACCESS_DENIED');
   await assert.rejects(calculateTossHumanDesign({birth},env,async()=>({})),error=>error.status===503&&error.code==='HUMAN_DESIGN_UNAVAILABLE');
