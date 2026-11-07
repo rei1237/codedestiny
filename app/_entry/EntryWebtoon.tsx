@@ -72,8 +72,8 @@ function Lines({ cutId, lines }: { cutId: string; lines: EntryCut['lines'] }) {
 }
 
 function CutPicture({ image, first }: { image: NonNullable<EntryCut['image']>; first: boolean }) {
-  // React 18은 fetchPriority 카멜 표기를 모르므로 소문자 속성으로 내보낸다.
-  const priority = first ? { fetchpriority: 'high' } : { loading: 'lazy' as const };
+  // Next 앱 라우터의 React 19는 카멜 fetchPriority 를 쓴다(소문자 fetchpriority 는 개발 경고). 첫 그림만 eager+high, 나머지는 lazy.
+  const priority = first ? { fetchPriority: 'high' as const } : { loading: 'lazy' as const };
   return <picture className={styles.picture}>
     <source type="image/avif" srcSet={`${image.src}-640.avif 640w, ${image.src}-1080.avif 1080w`} sizes={SIZES} />
     {/* eslint-disable-next-line @next/next/no-img-element */}

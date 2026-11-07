@@ -81,11 +81,12 @@ test('entry webtoon: 후기 영역에 네오 1:1 상담·강의 이용자 후기
   assert.equal((region.match(/<article/g) || []).length, 3, '카카오 후기 3장');
 });
 
-test('entry webtoon: 첫 그림만 fetchpriority=high, 나머지는 lazy', async () => {
+test('entry webtoon: 첫 그림만 fetchPriority=high, 나머지는 lazy', async () => {
   const html = await renderEntry();
   const imgs = html.match(/<img\b[^>]*>/g) || [];
   assert.ok(imgs.length >= 15, `img ${imgs.length}`);
-  assert.match(imgs[0], /fetchpriority="high"/);
+  // 속성을 카멜 fetchPriority 로 바꿨다(React 19 개발 경고 제거). 서버 HTML 은 대소문자 무관이라 /i 로 본다.
+  assert.match(imgs[0], /fetchpriority="high"/i);
   assert.doesNotMatch(imgs[0], /loading="lazy"/);
   for (const img of imgs.slice(1)) {
     assert.match(img, /loading="lazy"/, img);

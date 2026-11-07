@@ -1,6 +1,7 @@
 import HomeQuestionGuide from './components/HomeQuestionGuide';
 import HomeInstallEntry from './components/HomeInstallEntry';
 import StoryDiscovery from './consultations/StoryDiscovery';
+import EntryWebtoon from "@/app/_entry/EntryWebtoon";
 import Link from 'next/link';
 import { publicSeoPages, siteSeo } from "../lib/seo/siteSeo";
 import { buildServiceJsonLd, buildWebPageJsonLd, buildAuthorPersonJsonLd } from "../lib/structured-data";
@@ -20,13 +21,14 @@ import "./yeongnyangi/yehwa-night.generated.css";
 import styles from "./home-main.module.css";
 import { IS_APP_BUILD } from "../lib/app-build-target";
 
+// 웹 `/` 의 <main> 은 진입 웹툰(app/_entry)이다(2026-11-08). 앱 빌드(IS_APP_BUILD)는 아래 서비스 선택 카드를 그대로 쓴다.
 // `/` 는 꿀꿀 운세의 공식 대표 홈이다(2026-10-15). 상담 앱 입구는 /ggulggul/ 이고,
 // 기능 쿼리가 붙은 `/` 요청은 워커가 앱으로 보낸다(public/_worker.js 루트 분기).
 // 두 서비스 선택은 이 화면에서, 상담 탐색과 이용 안내는 각 서비스 홈에서 제공한다.
 const { service, characters } = BRAND_FACTS;
 const YEONGNYANGI = characters.find((character) => character.key === "yeongnyangi");
-const HOME_TITLE = "꿀꿀 운세 · 운세보는 영냥이 | 서비스 선택";
-const HOME_DESCRIPTION = "꽃돼지 연이와 영냥이를 만나는 꿀꿀 운세. 사주·타로와 주제별 운세를 웹에서 살펴보고, Android 앱은 Google Play에서 설치하세요.";
+const HOME_TITLE = brandCopy("homeSearchTitle");
+const HOME_DESCRIPTION = "연이와 네오의 웹툰으로 운세 상담이 어떻게 시작되는지 읽어 보세요. 연애·재회·재물·직장·올해 고민을 고르면 그 고민에 맞춰 무료 만세력이 열리고, 더 보고 싶을 때만 이어서 상담을 고를 수 있어요.";
 // summary_large_image 카드라 1200×630 공유 이미지를 쓴다. 정적 홈 셸(index.html)과 같은 그림이다.
 const HOME_IMAGE = siteSeo.defaultOgImage;
 const ART = "/images/home/illustrated";
@@ -100,6 +102,7 @@ export default function HomePage() {
       </header>
 
       <main className={styles.stage}>
+        {!IS_APP_BUILD ? <EntryWebtoon /> : <>
         {IS_APP_BUILD ? <div className={styles.head}>
           <h1 id="homeCardTitle" className={styles.title}><NativeHomeText>꿀꿀 운세에서 어떤 운세를 만나볼까요?</NativeHomeText></h1>
           <p className={styles.lead}><NativeHomeText>마음이 향하는 상담 공간을 골라보세요.</NativeHomeText></p>
@@ -132,6 +135,7 @@ export default function HomePage() {
         {!IS_APP_BUILD && <StoryDiscovery />}
         <HomeDailyEntry />
         {!IS_APP_BUILD && <HomeInstallEntry />}
+        </>}
       </main>
 
       {!IS_APP_BUILD && <MobileHomeNav/>}
