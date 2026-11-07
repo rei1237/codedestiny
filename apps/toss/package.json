@@ -8,6 +8,7 @@
     "dev:offline": "node --require=../../scripts/lib/mock-network-guard.cjs ./node_modules/vite/bin/vite.js --config test/offline/vite.config.ts --mode toss-offline",
     "typecheck": "tsc --noEmit",
     "build": "tsc --noEmit && vite build && ait build && node scripts/check-bundle-size.mjs",
+    "verify:release-bundle": "node scripts/check-bundle-size.mjs --require-portable",
     "test": "node --test test/*.test.mjs",
     "launch:status": "node scripts/launch-status.mjs"
   },
