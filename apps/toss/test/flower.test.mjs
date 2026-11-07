@@ -31,6 +31,14 @@ test('all four flower systems calculate with the existing offline engines',async
   const result=await matchTossFlowers({birth},{},domains);
   for(const [source,value] of Object.entries(result.sources))assert.equal(value.state,'ready',source+': '+value.code);
 });
+test('sukuyo flower passes the runtime environment through the canonical engine contract',async()=>{
+  const runtimeEnv={testMarker:'offline'},engine=domains.sukuyo;let received;
+  const observed={...engine,calculate:(input,options)=>{received=options;return engine.calculate(input,options);}};
+  const result=await matchTossFlowers({birth,sources:['sukuyo']},runtimeEnv,{...domains,sukuyo:observed});
+  assert.equal(received?.runtimeEnv,runtimeEnv);
+  assert.equal(result.sources.sukuyo.state,'ready');
+  assert.doesNotMatch(JSON.stringify(result),/offline/);
+});
 test('unknown birth time is not replaced with noon or a fabricated flower',async()=>{
   const unknown={...birth,date:{...birth.date,timeUnknown:true,hour:null,minute:null}};
   assert.equal(flowerBirthInput(unknown).personA.birthTime,undefined);
