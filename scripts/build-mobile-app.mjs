@@ -268,6 +268,38 @@ export async function removeUnusedBrandSources(referenced, dist = DIST) {
   return removed;
 }
 
+// 앱이 쓰지 않는 것으로 하나씩 확인한 이미지 묶음(2026-11-08, 출시 번들 텍스트와 소스 git grep).
+// 파일명만으로 일괄 판정하면 `${name}-v1.webp` 같은 조립 경로(네오 스프라이트·숲 조각·보고서 인쇄본·
+// 수호신·HEAVEN LIGHT v72 컷 등)를 놓치므로, 조립 경로가 없음을 확인한 묶음만 여기에 적는다.
+// 원본은 public 에 남는다(생성 스크립트는 public 을 읽는다). 이름이 번들 어디든 나오면 남긴다.
+export const APP_VERIFIED_DEAD_IMAGES = [
+  [/^fuctionassets\/다마고치 에셋\//, "다마고치 화면은 리다이렉트 스텁만 남음"],
+  [/^images\/brand\/(?:moonlight-garden-(?:adaptive|icon)-source\.png|moonlight-garden-splash-\d+\.(?:webp|avif)|yeongnyangi-yeoni-cameo\.png|[a-z-]+-loading-v\d+-source\.webp|yeoni-yeongnyangi-loading-v2-\d+\.(?:webp|avif))$/, "아이콘·스플래시 생성 원본과 은퇴한 로딩 그림"],
+  [/^assets\/yeongnyangi\/companion\/[a-z-]+-original\.png$/, "잠금화면 동행 그림의 webp 이전 원본"],
+  [/^assets\/yeongnyangi\/service-packs\/[a-z]+-gift-set-v1\.webp$/, "선물 세트 그림은 v2만 사용"],
+  [/^assets\/yeongnyangi\/mv\/heaven-light-(?:v[456]-ch\d-320|(?:v5-)?poster-\d+)\.webp$/, "HEAVEN LIGHT는 v7 포스터·v72 컷만 사용"],
+  [/^assets\/yeongnyangi\/hat\/[a-z-]+-v1\.webp$/, "모자 기숙사는 아이콘 엠블럼과 spirit-hat-v2만 사용"],
+  [/^images\/destiny-island\/gate-hero-(?:mobile|desktop)(?:-v2)?\.webp$/, "운명섬 첫 그림 교체 전 사본"],
+  [/^images\/destiny-bias\/stage\/idol-[fm]\d\.webp$/, "최애 무대는 배경 그림만 사용"],
+  [/^assets\/sharing\/[a-z]+-letter-v1\.jpg$/, "OG 카드는 웹 서버가 사이트에서 직접 가져감"],
+  [/^assets\/threads\//, "스레드 게시 이미지는 워커가 사이트 URL로 게시"],
+  [/^(?:assets\/mascot\/moonstone-lotus-v2(?:-480)?\.(?:png|webp)|images\/consultation\/seo-hanbi-tiger-v1-\d+\.webp|icons\/code-destiny-moonlight-pass\.webp|icons\/neo-mode-icon\.png|assets\/yeongnyangi\/payment-alliance\/moonlight-fish-ticket-shop-v1\.webp|assets\/yeongnyangi\/detail\/01-consultation-intro\.webp)$/, "참조가 없는 단일 그림"],
+];
+
+export async function removeVerifiedDeadImages(referenced, dist = DIST) {
+  const images = await walk(dist, (file) => /\.(?:png|webp|avif|jpe?g|gif)$/i.test(file));
+  const removed = [];
+  for (const file of images) {
+    const relative = path.relative(dist, file).replace(/\\/g, "/");
+    const rule = APP_VERIFIED_DEAD_IMAGES.find(([pattern]) => pattern.test(relative));
+    if (!rule || referenced.has(path.basename(file))) continue;
+    const { size } = await fs.stat(file);
+    await fs.rm(file, { force: true });
+    removed.push({ path: relative, bytes: size, reason: rule[1] });
+  }
+  return removed;
+}
+
 // ── 앱 전용: 이미지 축소 ─────────────────────────────────────────────────────
 // 일반 이미지는 1080px로 제한한다. 상세 소개 그림은 원래 해상도를 유지한다.
 // 2026-08-29 실측(`unzip -v` 로 압축 크기 집계):
@@ -1011,6 +1043,8 @@ async function main() {
   console.log(`  ✅ 기능 소개 그림 한 장으로: ${introductions.removed.length}개 제외 (${(introductions.removed.reduce((bytes, item) => bytes + item.bytes, 0) / 1048576).toFixed(1)} MB), 남긴 그림 ${new Set(introductions.aliases.values()).size}장`);
   const removedSources = await removeUnusedBrandSources(referenced);
   console.log(`  ✅ 미사용 브랜드 원본 사본 제외: ${removedSources.length}개 (${(removedSources.reduce((bytes, item) => bytes + item.bytes, 0) / 1048576).toFixed(1)} MB)`);
+  const removedDead = await removeVerifiedDeadImages(referenced);
+  console.log(`  ✅ 확인된 미사용 이미지 묶음 제외: ${removedDead.length}개 (${(removedDead.reduce((bytes, item) => bytes + item.bytes, 0) / 1048576).toFixed(1)} MB)`);
   const removedPngs = await removeDeadPngOriginals(referenced);
   const freedMB = removedPngs.reduce((sum, item) => sum + item.bytes, 0) / 1048576;
   console.log(`  ✅ 죽은 PNG 원본 제거: ${removedPngs.length}개 (${freedMB.toFixed(1)} MB)`);

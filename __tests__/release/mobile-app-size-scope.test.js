@@ -111,3 +111,19 @@ test('each feature ships one introduction image plus one list thumbnail and ever
   assert.equal(table.trim().split('\n').length, aliases.size);
   for (const target of new Set(aliases.values())) await fs.access(path.join(dist, target));
 });
+
+test('verified dead image families leave the app, but assembled names and referenced files stay', async t => {
+  const { removeVerifiedDeadImages } = await import('../../scripts/build-mobile-app.mjs');
+  const dist = await fs.mkdtemp(path.join(os.tmpdir(), 'cd-dead-'));
+  t.after(() => fs.rm(dist, { recursive: true, force: true }));
+  const files = [
+    'fuctionassets/다마고치 에셋/달 컨셉/달 컨셉 쥐.webp', 'assets/yeongnyangi/hat/moon-library-v1.webp', 'assets/yeongnyangi/mv/heaven-light-v5-ch1-320.webp',
+    'assets/yeongnyangi/mv/heaven-light-v72-ch1-320.webp', 'assets/yeongnyangi/mv/heaven-light-v7-poster-960.webp', 'assets/sharing/neo-letter-v1.webp',
+    'assets/yeongnyangi/report-art/cover-print.webp', 'images/destiny-island/guardians/career-v1.webp', 'assets/yeongnyangi/service-packs/tuna-gift-set-v1.webp',
+  ];
+  for (const rel of files) { await fs.mkdir(path.dirname(path.join(dist, rel)), { recursive: true }); await fs.writeFile(path.join(dist, rel), 'x'); }
+  const removed = (await removeVerifiedDeadImages(new Set(['tuna-gift-set-v1.webp']), dist)).map(item => item.path).sort();
+  assert.deepEqual(removed, ['assets/yeongnyangi/hat/moon-library-v1.webp', 'assets/yeongnyangi/mv/heaven-light-v5-ch1-320.webp', 'fuctionassets/다마고치 에셋/달 컨셉/달 컨셉 쥐.webp']);
+  const art = await fs.readFile(path.join(__dirname, '../../app/yeongnyangi/_components/HeavenLightCinema.tsx'), 'utf8');
+  assert.match(art, /heaven-light-v72-ch\$\{index\+1\}-320\.webp/, 'cinema must still read v72 chapter art the rule keeps');
+});
