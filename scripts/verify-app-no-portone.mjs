@@ -538,7 +538,8 @@ if (DIST) {
       [YEONGNYANGI_HOME_PATH, "영냥이 앱 첫 화면"],
       [LEGACY_SHELL_PATH, "꿀꿀운세(기존 연이/네오 셸)"],
       [path.join("saju", "index.html"), "/saju (앱 탭 — /insights 링크 있던 곳)"],
-      [path.join("en", "today", "index.html"), "/en/today (로케일 페이지 — /en/insights 링크 있던 곳)"],
+      // 앱은 한국어 페이지만 싣는다(로케일 미러는 웹으로 연다).
+      [path.join("today", "index.html"), "/today (오늘 운세 — /insights 링크 있던 곳)"],
     ];
 
     for (const [relPath, label] of pagesToCheck) {
