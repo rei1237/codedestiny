@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "f5e7aeb308bd6b7619a149d2811a49bdde93dc86",
+  "sourceCommit": "e5b5cbbfae617d9d0c805e9805ddaa88f7bbfbb3",
   "scope": "Source discovery plus explicitly verified aliases; not a count of implemented services. Unmapped contracts are blocking work, not exclusions.",
   "sourceCounts": {
     "home": 63,
@@ -4860,7 +4860,7 @@
       "sku": null,
       "inputContract": "lib/fpti/fpti-adapter.ts",
       "resultRenderer": "apps/toss/service/TossFpti.tsx",
-      "storageContract": "local screen only; saved profile entitlement and permanent premium report not ported",
+      "storageContract": "same-tab owner-scoped free result only; profile entitlement and permanent premium report not ported",
       "verification": "mock UI and original calculation only; free-screen parity, approved permanent rights and official device pending"
     },
     {
