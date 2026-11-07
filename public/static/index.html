@@ -19568,6 +19568,8 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
       <!-- 이용자 후기 — 기존 리뷰 시스템(/api/reviews) 런타임 연동. 승인된 후기만 노출되며,
            데이터가 없거나 조회 실패 시 섹션은 hidden 으로 남는다(오늘의 운세 허브와 동일한 패턴). -->
       <!-- reviews moved intact into #cdHomeFunnel at build time. -->
+      <!-- 후기가 MIN_TO_SHOW(3)건 미만이면 후기 자리에 결과 예시를 보여 준다. 정본은 lib/marketing/result-samples.json 의 연애 비책이며, 어긋나면 __tests__/ui/refund-line.test.mjs 가 막는다. 예시는 후기가 아니다. -->
+      <script type="application/json" id="cdReviewsExample">{"label":"결과 예시","title":"연애 비책","question":"고백할까, 조금 더 기다릴까?","excerpt":"관계의 불확실성을 해소하고 다음 단계로 나아가기 위해 당신의 솔직한 마음을 표현할 때입니다.","href":"/love-secret-ai/","cta":"연애 비책 상담 알아보기","note":"가상 프로필로 생성한 AI 상담 결과의 일부예요. 실제 고객 후기가 아니며, 질문과 선택한 상품에 따라 결과가 달라져요."}</script>
       <script data-marker="cd-reviews-v20260819">
         (function () {
           var section = document.getElementById('cdReviews');
@@ -19642,9 +19644,27 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
              시간에 걸쳐 늘기 때문에 노출도 자연스럽게 점진적으로 증가한다. */
           var MIN_TO_SHOW = 3;
           var HOME_CAP = 6;
+          var titleEl = document.getElementById('cdReviewsTitle');
+          var reviewsTitle = titleEl ? titleEl.textContent : '';
+          var example = null;
+          try { example = JSON.parse(document.getElementById('cdReviewsExample').textContent); } catch (_e) { example = null; }
+          /* 3건 미만이면 후기가 적다는 사실 대신 결과 예시를 보여 준다. 예시는 후기가 아니므로 제목도 '결과 예시'로 바꾸고
+             후기 요약·카드·평점 구조화 데이터는 만들지 않는다. 예시 데이터가 없으면 예전처럼 섹션째 숨긴다. */
+          function renderExample(){
+            if(!example || !example.excerpt) return false;
+            if(titleEl) titleEl.textContent = example.label;
+            summaryEl.hidden = true;
+            grid.innerHTML = '<article class="cd-result-example" data-cd-result-example>'
+              + '<p class="cd-result-example__title">'+ esc(example.title) +' · '+ esc(example.question) +'</p>'
+              + '<p class="cd-result-example__body">'+ esc(example.excerpt) +'</p>'
+              + '<div class="cd-result-example__foot"><span class="cd-result-example__note">'+ esc(example.note) +'</span>'
+              + '<a class="cd-result-example__link" href="'+ esc(example.href) +'">'+ esc(example.cta) +'</a></div>'
+              + '</article>';
+            return true;
+          }
           function show(items, sum){
-            /* 3건 미만이면 빈 안내도 그리지 않고 섹션째 숨긴다 — 0건이라는 사실을 홈에 드러내지 않는다. */
-            if(!items || items.length < MIN_TO_SHOW){ section.hidden = true; return false; }
+            if(!items || items.length < MIN_TO_SHOW){ section.hidden = !renderExample(); return false; }
+            if(titleEl) titleEl.textContent = reviewsTitle;
             section.hidden = false;
             renderSummary(sum);
             renderList(items.slice(0, HOME_CAP));

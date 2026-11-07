@@ -54,6 +54,7 @@ import {
   markPaidAttemptGenerationStarted,
 } from "@/app/_lib/paid-attempt-session";
 import { detectLocale } from "@/lib/i18n/dictionary";
+import { REFUND_LINE, REFUND_POLICY_HREF } from "@/lib/marketing/home-concerns.mjs";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 
 type AccessType = "pass" | "paid" | "subscription" | "admin";
@@ -118,6 +119,8 @@ type LoveSecretClientCopy = {
   noPartnerInfoSummary: string;
   promiseCardHeading: string;
   promiseCardFooter: string;
+  /** 한국어 정책 문구라 한국어 카피에만 둔다. */
+  promiseCardRefund?: string;
   generatingCardHeading: string;
   generatingCardSubtext: string;
   heroTitle: string;
@@ -351,6 +354,7 @@ const LOVE_SECRET_CLIENT_COPY: Partial<Record<LoadingLocale, LoveSecretClientCop
     birthTimeMissing: "출생시간 미입력",
     noPartnerInfoSummary: "상대방 정보 없이 내 연애 흐름 중심",
     promiseCardHeading: "상담에서 읽어 드리는 것",
+    promiseCardRefund: REFUND_LINE,
     promiseCardFooter: "계산된 명식과 일진 안에서만 해석합니다. 근거 없는 단정이나 지어낸 날짜는 쓰지 않습니다.",
     generatingCardHeading: "마음의 온도를 읽는 중입니다",
     generatingCardSubtext: "완료된 부분부터 저장하며 나머지 상담을 이어서 작성하고 있어요.",
@@ -2821,6 +2825,11 @@ function LoveSecretPromiseCard() {
       <p className="mt-5 border-t border-[var(--ls-line)] pt-4 text-sm leading-6 text-[var(--ls-text-muted)]">
         {copy.promiseCardFooter}
       </p>
+      {copy.promiseCardRefund && (
+        <p className="mt-3 text-sm leading-6 text-[var(--ls-text-muted)]">
+          {copy.promiseCardRefund} <a className="underline" href={REFUND_POLICY_HREF}>환불 기준</a>
+        </p>
+      )}
     </section>
   );
 }
