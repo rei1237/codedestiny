@@ -73,7 +73,7 @@ test('연애 비책 약속 카드 하단과 결과 화면이 환불 한 줄과 �
 
   const result = read('app/love-secret-ai/result/LoveSecretAiResultClient.tsx');
   assert.match(result, /import ReviewRewardBanner from "@\/app\/components\/ReviewRewardBanner"/);
-  assert.match(result, /\{isShareReady && <ReviewRewardBanner afterResult locale=\{[^}]+\}\s*\/>\}/);
+  assert.match(result, /\{paymentSurface !== "toss" && isShareReady && <ReviewRewardBanner afterResult locale=\{[^}]+\}\s*\/>\}/);
 });
 
 // --- 홈 후기 → 결과 예시 대체 -------------------------------------------------
