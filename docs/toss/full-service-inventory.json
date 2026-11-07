@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "43d30d0b32ddd0568c75195d738dffd73ef32f3e",
+  "sourceCommit": "0f60e2d83894330952466a36833fb614b91cb3dd",
   "scope": "Source discovery plus explicitly verified aliases; not a count of implemented services. Unmapped contracts are blocking work, not exclusions.",
   "sourceCounts": {
     "home": 63,
@@ -4790,13 +4790,13 @@
           "accessEvidence": "independent paid report"
         }
       ],
-      "status": "not-ported",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/relationship-boundary-test/",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null,
-      "verification": "separate from relationship-boundaries (villain blacklist); purchase, stored results, policy and Toss flow unverified"
+      "inputContract": "worker/routes/relationship-boundary-test.js:nativeRelationshipContract + worker/toss/native-relationship.js",
+      "resultRenderer": "apps/toss/service/TossRelationship.tsx + app/relationship-boundary-test/RelationshipReportParts.tsx",
+      "storageContract": "owner-scoped Toss intent and relationship report, paid-order check before results and resume; production index and approved SKU pending",
+      "verification": "local mock checkout, price changes, account and refund boundaries, partial result, recovery and native back; order buyer binding, order-ID-less checkout uncertainty, generation failure handling, policy and official device remain unverified"
     },
     {
       "id": "royal-tea-oracle",

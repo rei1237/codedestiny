@@ -9,6 +9,7 @@ export function createOfflineFixtureApi(storage){
  const letterProduct={id:'yeoni:chat_saju',name:'테스트 연이 상담',sku:'mock-yeoni',approvedPriceKRW:1,available:true,chapters:1};
  const product={id:'native:maya:maya-prompt-generator',name:'테스트 상품',sku:'mock-maya',featureKey:'maya-prompt-generator',approvedPriceKRW:1,available:true};
  const sukuyoProduct={id:'native:sukuyo:sukuyo-compatibility-ai',name:'테스트 숙요 상담',sku:'mock-sukuyo',featureKey:'sukuyo-compatibility-ai',approvedPriceKRW:1,available:true};
+ const relationshipProduct={id:'native:relationship:relationship-boundary-test',name:'테스트 관계 상담',sku:'mock-relationship',featureKey:'relationship-boundary-test',approvedPriceKRW:1,available:true};
  const respond=(value,status=200)=>Response.json(value,{status});
  const denied=()=>respond({error:'LOGIN_REQUIRED'},401);
  async function handle(request){
@@ -20,10 +21,27 @@ export function createOfflineFixtureApi(storage){
   // The offline shell labels all of its output as test-only.
   if(path==='/human-design/chart'&&method==='POST')return respond(chartFixture());
   if(path==='/canonical/auth/me'&&method==='GET')return respond({ok:true,authenticated:true,user:{id:'offline-test-user',name:'테스트 사용자',role:'user'}});
-  if(path==='/native/catalog'&&method==='GET')return respond({products:[product,sukuyoProduct]});
+  if(path==='/native/catalog'&&method==='GET')return respond({products:[product,sukuyoProduct,relationshipProduct]});
   if(path==='/catalog'&&method==='GET')return respond({products:[letterProduct]});
   if(path==='/canonical/yeongnyangi/profiles'&&method==='GET')return respond({ok:true,profiles:[{id:'mock-profile',profileId:'mock-profile',name:'테스트 프로필',gender:'F',birthDate:'1990-01-01',timeUnknown:true,calendarType:'solar',birth:{year:1990,month:1,day:1,timeUnknown:true,calType:'solar'}}],currentId:'mock-profile'});
   if(path==='/canonical/profile'&&method==='GET')return respond({ok:true,profiles:[]});
+  if(path==='/native/relationship/prepare'&&method==='POST'){
+   const body=await request.json();if(!body.input?.idempotencyKey||!body.input?.targetInfo||body.orderId)return respond({error:'MOCK_UNSUPPORTED'},400);
+   const previous=[...state.intents.values()].find(row=>row.service==='relationship'&&row.input.idempotencyKey===body.input.idempotencyKey);
+   if(previous&&JSON.stringify(previous.input)!==JSON.stringify(body.input))return respond({error:'REQUEST_INPUT_MISMATCH'},409);
+   const id=previous?.id||(++state.sequence).toString(16).padStart(64,'0'),intent=previous||{id,service:'relationship',sku:relationshipProduct.sku,amountKRW:1,paid:false,orderId:null,input:body.input};state.intents.set(id,intent);save();return respond(intent);
+  }
+  if(path==='/canonical/relationship-boundary-test/result'&&method==='GET'){
+   const id=url.searchParams.get('sessionId');if(!id)return respond({reason:'RESULT_NOT_FOUND'},404);
+   const intent=[...state.intents.values()].find(row=>row.service==='relationship'&&('toss_'+row.id===id||row.result?.sessionId===id));
+   if(!intent?.paid)return respond({reason:'RESULT_NOT_FOUND'},404);
+   return intent.result?respond(intent.result):respond({ok:true,sessionId:id,status:'delivery_pending',retryable:true,resumeBody:{resumeSessionId:id}},202);
+  }
+  if(path==='/canonical/relationship-boundary-test/generate'&&method==='POST'){
+   const {resumeSessionId}=await request.json(),intent=[...state.intents.values()].find(row=>row.service==='relationship'&&('toss_'+row.id===resumeSessionId||row.result?.sessionId===resumeSessionId));
+   if(!intent?.paid)return respond({reason:'PAYMENT_REQUIRED'},402);
+   intent.result={ok:true,sessionId:'rbt_'+intent.id.slice(-32),status:'completed',mode:'target',grade:'low',score:20,character:{title:'테스트 상담',caption:'실제 해석이 아닙니다.'},scoreFactors:['테스트 전용 예시'],summary:'실제 상담 결과가 아닙니다.',sections:Array.from({length:5},(_,i)=>({title:'테스트 '+(i+1),body:'[테스트 전용 예시] 실제 상담 결과가 아닙니다.'})),finalMessage:'이 내용은 테스트용입니다.'};save();return respond(intent.result);
+  }
   if(path==='/canonical/sukuyo-compatibility-ai/result'&&method==='GET'){
    const id=url.searchParams.get('id');if(!id)return respond({ok:true,consultations:[],pendingSessionId:''});
    if(/^toss_[a-f0-9]{64}$/.test(id)){const intent=state.intents.get(id.slice(5));if(!intent?.paid||intent.service!=='sukuyo')return respond({error:'RESULT_NOT_FOUND'},404);if(intent.result?.status==='generation_failed')return respond({ok:true,status:'generation_failed',sessionId:intent.result.id,idempotencyKey:intent.input.idempotencyKey,retryable:(intent.retryCount||0)<2});return intent.result?respond({ok:true,consultation:intent.result}):respond({ok:true,status:'partial',sessionId:id,idempotencyKey:intent.input.idempotencyKey},202);}
@@ -75,7 +93,7 @@ export function createOfflineFixtureApi(storage){
    const id=(++state.sequence).toString(16).padStart(64,'0');const intent={id,sku:product.sku,amountKRW:product.approvedPriceKRW,paid:false,orderId:null,input:body.input};state.intents.set(id,intent);save();return respond(intent);
   }
   if(path==='/orders/grant'&&method==='POST'){
-   const body=await request.json(),letter=body.sku===letterProduct.sku?state.letters.get(body.requestId):null,intent=[product.sku,sukuyoProduct.sku].includes(body.sku)?state.intents.get(body.requestId):letter;if(!intent||intent.sku&&intent.sku!==body.sku||typeof body.orderId!=='string')return respond({error:'ORDER_MISMATCH'},403);
+   const body=await request.json(),letter=body.sku===letterProduct.sku?state.letters.get(body.requestId):null,intent=[product.sku,sukuyoProduct.sku,relationshipProduct.sku].includes(body.sku)?state.intents.get(body.requestId):letter;if(!intent||intent.sku&&intent.sku!==body.sku||typeof body.orderId!=='string')return respond({error:'ORDER_MISMATCH'},403);
    const prior=state.orders.get(body.orderId);if(prior&&prior!==intent.id||intent.orderId&&intent.orderId!==body.orderId)return respond({error:'ORDER_ALREADY_ASSIGNED'},409);
    state.orders.set(body.orderId,intent.id);intent.orderId=body.orderId;intent.paid=true;if(letter){letter.state='COMPLETED';letter.chapters=[{id:'test',title:'테스트 상담',summary:'[테스트 전용 예시] 실제 상담 결과가 아닙니다.',analysis:[],questionAnswers:[]}];letter.recovery={canRetryNow:false,savedChapters:1,totalChapters:1};}save();return respond({orderId:body.orderId,requestId:intent.id,entitlement:'granted',durable:true});
   }

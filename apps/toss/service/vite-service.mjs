@@ -102,10 +102,14 @@ export default function serviceCompat(){
    // Otherwise dead catalog entries and navigation URLs copy whole art archives.
    for(const entry of Object.values(bundle)){
     const source=entry.type==='chunk'?entry.code:entry.fileName.endsWith('.css')?String(entry.source):'';
+    if(source.includes('/fuctionassets/saju-relationship-temptation-768.webp'))references.add('/fuctionassets/saju-relationship-temptation-768.webp');
     for(const match of source.matchAll(asset)){const ref=match[1];if(isTea640Reference(ref)){tea640=true;continue;}if(ref.startsWith('/images/service-introductions/yeongnyangi-${')&&isYeongnyangi640Reference(source.slice(match.index+match[0].indexOf(ref),match.index+512))){yeongnyangi640=true;continue;}const prefix=ref.split('${')[0];if(prefix.length>8&&prefix!=='/neo-operation-room/')references.add(prefix);}
    }
    if(tea640)for(const file of await readdir(resolve(publicRoot,'images/service-introductions')))if(/^tea-.+-640\.webp$/.test(file))references.add('/images/service-introductions/'+file);
    if(yeongnyangi640)for(const file of await readdir(resolve(publicRoot,'images/service-introductions')))if(/^yeongnyangi-.+-640\.webp$/.test(file))references.add('/images/service-introductions/'+file);
+   // The relationship report uses five scene records from the shared web
+   // compatibility registry; the other compatibility flows are not in this shell.
+   if(references.delete('/images/compat-story/'))for(const id of ['love','month','past-knot','day','hour'])references.add('/images/compat-story/'+id+'.webp');
    const artwork=JSON.parse(await readFile(resolve(publicRoot,'../lib/marketing/service-introduction-art.json'),'utf8'));
    const samples=JSON.parse(await readFile(resolve(publicRoot,'../lib/marketing/result-samples.json'),'utf8'));
    for(const ref of responsiveIntroductionArt(artwork,samples))references.add(ref);
