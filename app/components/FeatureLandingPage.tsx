@@ -534,6 +534,13 @@ function resolveFeatureBasePath(pathname: string) {
   return basePath.replace(/\/+$/, "");
 }
 
+// On-screen images use the same-origin path: identical on the web, and the app reads its bundled copy
+// instead of fetching code-destiny.com (which fails offline). Share and meta tags keep the absolute URL.
+// /og/ is web-only (build-mobile-app.mjs WEB_ONLY_ARTIFACTS), so it stays absolute.
+function toSameOriginAsset(src: string) {
+  return src.replace(/^https:\/\/code-destiny\.com(?=\/(?!og\/))/, "");
+}
+
 function hasKoreanText(value?: string) {
   return /[가-힣]/.test(String(value || ""));
 }
@@ -846,7 +853,7 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
             position:"relative", height:"220px",
           }}>
             <img
-              src={activeService.ogImage}
+              src={toSameOriginAsset(activeService.ogImage)}
               alt={title}
               loading="eager"
               decoding="async"
@@ -1030,7 +1037,7 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
             }}
           >
             <img
-              src="https://code-destiny.com/icons/app-logo-512.webp"
+              src="/icons/app-logo-512.webp"
               alt=""
               width={28} height={28}
               style={{ flexShrink:0, width:28, height:28, borderRadius:"50%", objectFit:"cover", display:"block" }}
