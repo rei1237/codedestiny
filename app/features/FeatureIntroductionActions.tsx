@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { useServerPrice } from "@/app/hooks/useServerPrice";
+import { REFUND_LINE, REFUND_POLICY_HREF } from "@/lib/marketing/home-concerns.mjs";
 import { revealCraftedTranscript, type VisualDetail } from "@/js/feature-detail-panels.mjs";
 
 export default function FeatureIntroductionActions({ detail }: { detail: Pick<VisualDetail, "featureKey" | "featureKeyTo" | "priceFrom" | "accessType" | "href" | "ctaLabel"> }) {
@@ -37,6 +38,7 @@ export default function FeatureIntroductionActions({ detail }: { detail: Pick<Vi
   return <>
     <section ref={bottom} aria-label="기능 시작하기" className="featureIntroductionActions fortuneAction">
       <p role="status">{label}</p><a href={detail.href}>{detail.ctaLabel}</a>
+      {detail.accessType !== "free" && <p className="fortuneAction__refund">{REFUND_LINE} <a href={REFUND_POLICY_HREF}>환불 기준</a></p>}
     </section>
     <div className="fortuneSticky fortuneAction" hidden={!sticky}><div><p>{label}</p><a href={detail.href}>{detail.ctaLabel}</a></div></div>
   </>;

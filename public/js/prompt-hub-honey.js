@@ -333,7 +333,7 @@
     var widget = document.querySelector('[data-cd-honey-widget]');
     if (widget) {
       widget.querySelector('[data-cd-honey-attend]').addEventListener('click', function () {
-        if (state?.guest) root.location.assign('/login/?next=' + encodeURIComponent('/'));
+        if (state?.guest) { if (typeof root.__cdGateLogin === 'function') root.__cdGateLogin('honey_attend'); else root.location.assign('/login/?next=' + encodeURIComponent(root.location.pathname + root.location.search)); }
         else void refresh(true);
       });
       widget.querySelector('[data-cd-honey-retry]').addEventListener('click', function () { void refresh(false); });

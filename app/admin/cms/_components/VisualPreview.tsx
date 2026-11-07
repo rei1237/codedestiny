@@ -13,9 +13,12 @@ type Choice = VisualField & { owner: string; label?: string };
 type PreviewEntry = { key: string; label: string; fields: Fields; base?: Fields };
 type Binding = { node: Text | HTMLImageElement; fields: Choice[]; original: string };
 const normalize = (text: string) => text.replace(/\s+/g, " ").trim();
+// Stable defaults: a fresh `[]` per render would retrigger the selection effect and clear the chosen text.
+const EMPTY_ENTRIES: readonly PreviewEntry[] = [];
+const EMPTY_PATH: readonly string[] = [];
 const fieldId = (field: Choice) => JSON.stringify([field.owner, ...field.path]);
 
-export default function VisualPreview({ ns, entryKey, base, value, onChange, entries = [], selectedPath = [], onSelectEntry, onPendingChange, disabled = false }: {
+export default function VisualPreview({ ns, entryKey, base, value, onChange, entries = EMPTY_ENTRIES as PreviewEntry[], selectedPath = EMPTY_PATH as string[], onSelectEntry, onPendingChange, disabled = false }: {
   ns: string; entryKey: string; base: Fields; value: Fields; onChange: (next: Fields) => void;
   onPendingChange?: (pending: boolean) => void;
   entries?: PreviewEntry[]; selectedPath?: string[]; onSelectEntry?: (key: string, path: string[]) => void; disabled?: boolean;

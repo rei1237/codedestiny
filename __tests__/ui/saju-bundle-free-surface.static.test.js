@@ -141,6 +141,7 @@ function offerWindow({ profileId = '', unlocked = false } = {}) {
   w.cdBirthScopeCurrentProfileId = () => profileId;
   w.isTileKeyUnlocked = (key) => unlocked && key === BUNDLE;
   w.eval(read('js/core/saju/bundle-offer.js'));
+  w.eval(read('js/core/saju/concern-offers.generated.js'));
   return w;
 }
 

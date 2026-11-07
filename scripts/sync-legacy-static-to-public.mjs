@@ -2,6 +2,7 @@ import { brandCopy } from '../lib/seo/brand-copy.mjs';
 import { BRAND_FACTS } from '../lib/brand/brand-facts.mjs';
 import { localizeHubLinks } from '../lib/i18n/localized-hub-links.mjs';
 import { syncSajuReadingPrices } from './lib/sync-saju-reading-prices.mjs';
+import { applyHomeCopy } from './apply-home-copy.mjs';
 import './sync-flower-price-copy.mjs';
 /**
  * Copies root static assets → public/ (Cloudflare / static hosting).
@@ -1382,6 +1383,9 @@ sanitizePublicGoogleFontReferences(publicDir);
 
 // Generate policy documents after root assets are mirrored so their compiled stylesheet is not overwritten.
 await import("./design/build-static-policy-pages.mjs");
+
+// CMS home-copy(꿀꿀 홈 히어로·무료 결과 고민 제안)의 발행 문구를 public/ 셸에만 입힌다. 루트 index.html 과 build-home-funnel --check 대상은 그대로다.
+applyHomeCopy();
 
 // 🔴 반드시 마지막이다 — 위의 캐시키 재작성·폰트 정리가 사본 내용을 바꾸므로,
 //    그전에 돌면 방금 어긋난 파일을 "미러 아님"으로 잘못 판정한다.

@@ -1,5 +1,6 @@
 import { renderConsultationSampleGuide } from './consultation-sample-guide.mjs';
 import { renderBasicFortuneDetail } from './basic-fortune-detail.mjs';
+import { renderRefundNoticeHtml } from './refund-notice.mjs';
 /** The static popup and React pages render the same escaped, display-only panels. */
 const escape = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
 const safeImage = value => {
@@ -185,7 +186,7 @@ export function renderFeatureDetailPanels(detail, { headingLevel = 3, conversion
   const questions = [...new Set((journey.questions || []).filter(Boolean))];
   const hook = detail.headline || questions[0];
   const prompt = conversionPrompt ? '<button type="button" class="featureDetailConversion" data-feature-conversion-request>가격·이용 방법 확인하기</button>' : '';
-  const heroActionHtml = startPriceLabel !== undefined && /^\/(?!\/)/.test(detail.href || '') ? `<div class="fortuneAction"><p>${escape(startPriceLabel)}</p><a href="${escape(detail.href)}">${escape(detail.ctaLabel)}</a></div>` : '';
+  const heroActionHtml = startPriceLabel !== undefined && /^\/(?!\/)/.test(detail.href || '') ? `<div class="fortuneAction"><p>${escape(startPriceLabel)}</p><a href="${escape(detail.href)}">${escape(detail.ctaLabel)}</a>${detail.accessType === 'free' ? '' : renderRefundNoticeHtml(escape)}</div>` : '';
   const method = detail.method ? `<section class="featureDetailPanel fortuneMethod"><${heading}>${escape(detail.method.title)}</${heading}><p>${escape(detail.method.text)}</p>${detail.method.inputs?.length ? `<ul class="fortuneEvidence">${detail.method.inputs.map(value => `<li>${escape(value)}</li>`).join('')}</ul>` : ''}</section>` : '';
   const questionList = questions.length ? `<section class="featureDetailPanel fortuneQuestions"><${heading}>이런 고민을 하고 있다면</${heading}><ul class="featureDetailQuestions">${questions.slice(0, 3).map(question => `<li>${escape(question)}</li>`).join('')}</ul></section>` : '';
   const benefits = detail.benefits?.length ? `<section class="featureDetailPanel fortuneBenefits"><${heading}>이 운세에서 알 수 있어요</${heading}><ul>${detail.benefits.slice(0, 6).map(item => `<li>${escape(item)}</li>`).join('')}</ul></section>` : '';

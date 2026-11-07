@@ -54,6 +54,7 @@ import {
   markPaidAttemptGenerationStarted,
 } from "@/app/_lib/paid-attempt-session";
 import { detectLocale } from "@/lib/i18n/dictionary";
+import { REFUND_LINE, REFUND_POLICY_HREF } from "@/lib/marketing/home-concerns.mjs";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 
 type AccessType = "pass" | "paid" | "subscription" | "admin";
@@ -118,6 +119,8 @@ type LoveSecretClientCopy = {
   noPartnerInfoSummary: string;
   promiseCardHeading: string;
   promiseCardFooter: string;
+  /** 한국어 정책 문구라 한국어 카피에만 둔다. */
+  promiseCardRefund?: string;
   generatingCardHeading: string;
   generatingCardSubtext: string;
   heroTitle: string;
@@ -243,6 +246,7 @@ const LOVE_SECRET_CLIENT_EN: LoveSecretClientCopy = {
   noPartnerInfoSummary: "Focused on my love flow, without partner information",
   promiseCardHeading: "What This Reading Covers",
   promiseCardFooter: "Interpreted only from your calculated chart and day pillars. No baseless claims or invented dates.",
+  promiseCardRefund: "", // 환불 문구는 한국어 정책이라 영어 기본 카피에는 비워 둔다(빈 값이면 줄을 그리지 않는다).
   generatingCardHeading: "Reading the Temperature of Your Heart",
   generatingCardSubtext: "Each finished section is saved as the rest of your reading is prepared.",
   heroTitle: "Love Strategy AI",
@@ -351,6 +355,7 @@ const LOVE_SECRET_CLIENT_COPY: Partial<Record<LoadingLocale, LoveSecretClientCop
     birthTimeMissing: "출생시간 미입력",
     noPartnerInfoSummary: "상대방 정보 없이 내 연애 흐름 중심",
     promiseCardHeading: "상담에서 읽어 드리는 것",
+    promiseCardRefund: REFUND_LINE,
     promiseCardFooter: "계산된 명식과 일진 안에서만 해석합니다. 근거 없는 단정이나 지어낸 날짜는 쓰지 않습니다.",
     generatingCardHeading: "마음의 온도를 읽는 중입니다",
     generatingCardSubtext: "완료된 부분부터 저장하며 나머지 상담을 이어서 작성하고 있어요.",
@@ -460,6 +465,7 @@ const LOVE_SECRET_CLIENT_COPY: Partial<Record<LoadingLocale, LoveSecretClientCop
     noPartnerInfoSummary: "相手の情報なしで私の恋愛の流れを中心に",
     promiseCardHeading: "相談で読み解く内容",
     promiseCardFooter: "計算された命式と日辰の範囲内でのみ解釈します。根拠のない断定や作られた日付は使いません。",
+    promiseCardRefund: "",
     generatingCardHeading: "心の温度を読み取っています",
     generatingCardSubtext: "完成した部分から保存し、残りの鑑定を続けて作成しています。",
     heroTitle: "恋愛秘策AI",
@@ -567,6 +573,7 @@ const LOVE_SECRET_CLIENT_COPY: Partial<Record<LoadingLocale, LoveSecretClientCop
     noPartnerInfoSummary: "无对方信息，以我的恋爱走势为中心",
     promiseCardHeading: "咨询将为您解读的内容",
     promiseCardFooter: "仅在推算出的命盘与日辰范围内进行解读，不使用无依据的断言或虚构的日期。",
+    promiseCardRefund: "",
     generatingCardHeading: "正在解读您的心意温度",
     generatingCardSubtext: "已完成的部分会先保存，其余解读将继续生成。",
     heroTitle: "恋爱秘诀AI",
@@ -674,6 +681,7 @@ const LOVE_SECRET_CLIENT_COPY: Partial<Record<LoadingLocale, LoveSecretClientCop
     noPartnerInfoSummary: "無對方資訊，以我的戀愛走勢為中心",
     promiseCardHeading: "諮詢將為您解讀的內容",
     promiseCardFooter: "僅在推算出的命盤與日辰範圍內進行解讀，不使用無依據的斷言或虛構的日期。",
+    promiseCardRefund: "",
     generatingCardHeading: "正在解讀您的心意溫度",
     generatingCardSubtext: "已完成的部分會先儲存，其餘解讀將繼續生成。",
     heroTitle: "戀愛秘訣AI",
@@ -2845,6 +2853,11 @@ function LoveSecretPromiseCard() {
       <p className="mt-5 border-t border-[var(--ls-line)] pt-4 text-sm leading-6 text-[var(--ls-text-muted)]">
         {copy.promiseCardFooter}
       </p>
+      {copy.promiseCardRefund && (
+        <p className="mt-3 text-sm leading-6 text-[var(--ls-text-muted)]">
+          {copy.promiseCardRefund} <a className="underline" href={REFUND_POLICY_HREF}>환불 기준</a>
+        </p>
+      )}
     </section>
   );
 }

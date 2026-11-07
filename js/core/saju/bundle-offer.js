@@ -1,5 +1,6 @@
 /* 사주 전체 풀이 평생 소장(saju_lifetime_bundle) 안내.
-   포함 항목 목록·예시·29,000원·영구 소장 설명·결제 버튼을 한 곳에서 보여 준다.
+   포함 항목 목록·예시·가격·영구 소장 설명·결제 버튼을 한 곳에서 보여 준다.
+   가격은 js/core/saju/concern-offers.generated.js(CdConcernOffers.bundle.priceLabel, 정본 worker/lib/paid-feature-registry.js)에서만 읽는다.
    - open({source}): 안내를 연다. 저장 프로필이 없으면 프로필 저장 안내를 먼저 보여 준다.
    - isOpen(): 묶음이 해금됐는지(= isTileKeyUnlocked('saju_lifetime_bundle')).
    - renderInline(host): 결과 화면의 한 줄 성향 아래에 붙는 짧은 안내 카드.
@@ -9,7 +10,15 @@
   'use strict';
 
   var BUNDLE_KEY = 'saju_lifetime_bundle';
-  var PRICE_LABEL = '29,000원';
+  // 생성 파일은 이 파일 뒤에 실린다. 그려질 때 읽고, 없으면 가격 줄만 뺀다.
+  function priceLabel() {
+    try {
+      var bundle = root.CdConcernOffers && root.CdConcernOffers.bundle;
+      return bundle && typeof bundle.priceLabel === 'string' ? bundle.priceLabel : '';
+    } catch (_e) {
+      return '';
+    }
+  }
   var COIN_COST = 290;
   var OVERLAY_ID = 'cdBundleOffer';
   var INLINE_ATTR = 'data-cd-bundle-inline';
@@ -106,7 +115,7 @@
   function payButtonHtml() {
     return '<button type="button" class="cd-bundle-offer__pay" data-action="unlockPremiumFeature"'
       + ' data-unlock-key="' + BUNDLE_KEY + '" data-unlock-cost="' + COIN_COST + '">'
-      + esc(t('saju.bundle.pay', PRICE_LABEL + '으로 영구 소장하기')) + '</button>';
+      + esc(t('saju.bundle.pay', priceLabel() ? priceLabel() + '으로 영구 소장하기' : '영구 소장하기')) + '</button>';
   }
 
   function saveButtonHtml() {
@@ -124,7 +133,7 @@
     return '<div class="cd-bundle-offer__panel" role="dialog" aria-modal="true" aria-labelledby="cdBundleOfferTitle">'
       + '<button type="button" class="cd-bundle-offer__close" data-cd-bundle-close aria-label="' + esc(t('saju.bundle.close', '닫기')) + '">×</button>'
       + '<h3 id="cdBundleOfferTitle" class="cd-bundle-offer__title">' + esc(t('saju.bundle.title', '사주 전체 풀이 평생 소장')) + '</h3>'
-      + '<p class="cd-bundle-offer__price"><strong>' + PRICE_LABEL + '</strong> · ' + esc(t('saju.bundle.once', '한 번 결제로 영구 소장')) + '</p>'
+      + '<p class="cd-bundle-offer__price">' + (priceLabel() ? '<strong>' + esc(priceLabel()) + '</strong> · ' : '') + esc(t('saju.bundle.once', '한 번 결제로 영구 소장')) + '</p>'
       + '<ul class="cd-bundle-offer__list">' + items + '</ul>'
       + '<p class="cd-bundle-offer__sample">' + esc(t('saju.bundle.sample', SAMPLE)) + '</p>'
       + '<p class="cd-bundle-offer__own">' + esc(t('saju.bundle.own', '구매한 생년월일의 사주에 영구히 붙고, 이용 기간이나 다시 결제할 일이 없어요. 상담·궁합 상담처럼 그때그때 만드는 콘텐츠는 묶음에 포함되지 않아요.')) + '</p>'
@@ -247,8 +256,8 @@
       card.setAttribute(INLINE_ATTR, '1');
       host.appendChild(card);
     }
-    card.innerHTML = '<h3 class="cd-bundle-inline__title">' + esc(t('saju.bundle.inlineTitle', '내 사주를 끝까지 읽어 보고 싶다면')) + '</h3>'
-      + '<p class="cd-bundle-inline__desc">' + esc(t('saju.bundle.inlineDesc', '원국 해석, 대운, 오늘의 운세와 재미 콘텐츠까지 한 번 결제로 영구히 열려요.')) + ' (' + PRICE_LABEL + ')</p>'
+    card.innerHTML = '<h3 class="cd-bundle-inline__title">' + esc(t('saju.bundle.inlineTitle', '고민 하나를 넘어 내 사주 전체를 읽고 싶다면')) + '</h3>'
+      + '<p class="cd-bundle-inline__desc">' + esc(t('saju.bundle.inlineDesc', '그 고민이 내 사주 어디에서 오는지 원국 해석과 대운으로 이어 읽을 수 있어요. 오늘의 운세와 재미 콘텐츠까지 한 번 결제로 영구히 열려요.')) + (priceLabel() ? ' (' + esc(priceLabel()) + ')' : '') + '</p>'
       + '<button type="button" class="cd-bundle-offer__more" data-cd-bundle-open>' + esc(t('saju.bundle.inlineCta', '묶음 자세히 보기')) + '</button>';
     var more = card.querySelector('[data-cd-bundle-open]');
     if (more && !more._cdBundleBound) {
@@ -328,10 +337,9 @@
     return !!key && Object.prototype.hasOwnProperty.call(SALE_CLOSED_KEYS, key);
   }
 
-  root.CdSajuBundleOffer = {
+  var api = {
     BUNDLE_KEY: BUNDLE_KEY,
     isSaleClosedKey: isSaleClosedKey,
-    PRICE_LABEL: PRICE_LABEL,
     open: open,
     close: close,
     isOpen: isOpen,
@@ -344,4 +352,7 @@
     removeInline: removeInline,
     handleBillingError: handleBillingError
   };
+  // 예전 이름. reading-personas.js 등이 읽는다. 값은 생성 파일에서 그때그때 읽는다.
+  Object.defineProperty(api, 'PRICE_LABEL', { enumerable: true, get: priceLabel });
+  root.CdSajuBundleOffer = api;
 })(typeof window !== 'undefined' ? window : globalThis);

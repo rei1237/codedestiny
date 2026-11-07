@@ -7,6 +7,7 @@ import {spawnSync} from 'node:child_process';
 import {createRequire} from 'node:module';
 import {chromium} from 'playwright';
 import assert from 'node:assert/strict';
+import {homeCopyDefaults} from '../lib/cms/home-copy.mjs';
 const root=process.cwd(),out=resolve(root,'.tmp/cms-static-preview');
 mkdirSync(out,{recursive:true});
 const require=createRequire(import.meta.url);
@@ -15,8 +16,9 @@ import VisualPreview from './app/admin/cms/_components/VisualPreview';
 import{dailyProseDefaults}from'./lib/fortune/daily-cms.mjs';
 import{hatPersonalityDefaults}from'./lib/yeongnyangi/hat-personality';
 import{staticCopyRecord}from'./lib/cms/static-copy.mjs';
-const daily={record:dailyProseDefaults().love},hat={record:staticCopyRecord(hatPersonalityDefaults['moon-library'])};
-function App(){const[mode,setMode]=useState(false);const[value,setValue]=useState(daily);return <main style={{maxWidth:1100,margin:'auto',padding:16}}><button onClick={()=>{setMode(true);setValue(hat)}}>모자 해설 보기</button><VisualPreview key={String(mode)} ns={mode?'hat-reading':'daily-fortune'} entryKey={mode?'moon-library':'love'} base={mode?hat:daily} value={value} onChange={setValue}/><output className="sr-only" aria-label="저장할 문구">{JSON.stringify(value)}</output></main>}createRoot(document.getElementById('root')).render(<App/>);`,resolveDir:root,loader:'tsx'},bundle:true,platform:'browser',format:'iife',jsx:'automatic',outfile:resolve(out,'app.js'),define:{'process.env':'{}','process.env.NEXT_PUBLIC_EFFECTIVE_API_BASE_URL':'"http://127.0.0.1"','process.env.NODE_ENV':'"production"'}});
+import{homeCopyDefaults}from'./lib/cms/home-copy.mjs';
+const daily={record:dailyProseDefaults().love},hat={record:staticCopyRecord(hatPersonalityDefaults['moon-library'])},site={record:Object.fromEntries(Object.entries(homeCopyDefaults()['entry-webtoon']).map(([key,text])=>[key,{text}]))};
+function App(){const[mode,setMode]=useState(false);const[web,setWeb]=useState(false);const[value,setValue]=useState(daily);return <main style={{maxWidth:1100,margin:'auto',padding:16}}><button onClick={()=>{setMode(true);setValue(hat)}}>모자 해설 보기</button><button onClick={()=>{setWeb(true);setValue(site)}}>첫 화면 웹툰 보기</button><VisualPreview key={String(mode)+String(web)} ns={web?'home-copy':mode?'hat-reading':'daily-fortune'} entryKey={web?'entry-webtoon':mode?'moon-library':'love'} base={web?site:mode?hat:daily} value={value} onChange={setValue}/><output className="sr-only" aria-label="저장할 문구">{JSON.stringify(value)}</output></main>}createRoot(document.getElementById('root')).render(<App/>);`,resolveDir:root,loader:'tsx'},bundle:true,platform:'browser',format:'iife',jsx:'automatic',outfile:resolve(out,'app.js'),define:{'process.env':'{}','process.env.NEXT_PUBLIC_EFFECTIVE_API_BASE_URL':'"http://127.0.0.1"','process.env.NODE_ENV':'"production"'}});
 writeFileSync(resolve(out,'input.css'),'@tailwind base;@tailwind components;@tailwind utilities;');
 const css=spawnSync(process.execPath,[require.resolve('tailwindcss/lib/cli.js'),'-i',resolve(out,'input.css'),'-o',resolve(out,'style.css'),'--content','./app/admin/cms/_components/VisualPreview.tsx'],{stdio:'pipe',windowsHide:true});
 assert.equal(css.status,0,css.stderr?.toString());
@@ -27,7 +29,11 @@ const origin=`http://127.0.0.1:${server.address().port}`;
 const browser=await chromium.launch();
 try{
  const page=await browser.newPage({viewport:{width:1280,height:1000}});const errors=[];page.on('pageerror',e=>{errors.push(e.message);console.error(e.message)});
- await page.route('**/*',route=>new URL(route.request().url()).origin===origin?route.continue():route.abort());
+ // `/` 미리보기 iframe 자리에는 웹툰 대사 문장을 그대로 담은 정적 페이지를 낸다(실제 `/` 교체는 Task 5, 렌더 연결은 home-copy-cms.test.mjs 가 본다).
+ const webtoonLines=Object.values(homeCopyDefaults()['entry-webtoon']);
+ await page.route('**/*',route=>{const req=route.request();if(new URL(req.url()).origin!==origin)return route.abort();
+  if(req.isNavigationRequest()&&req.frame()!==page.mainFrame())return route.fulfill({contentType:'text/html; charset=utf-8',body:'<!doctype html><html lang="ko"><meta charset="utf-8"><body><main>'+webtoonLines.map(text=>'<p>'+text+'</p>').join('')+'</main></body></html>'});
+  return route.continue();});
  await page.goto(origin);
  const sentences=page.locator('[aria-label="전체 결과 문장"]');
  await sentences.getByRole('button').first().waitFor();
@@ -38,7 +44,7 @@ try{
  await page.getByRole('button',{name:'초안에 적용',exact:true}).click();
  assert.match(await page.getByLabel('저장할 문구').innerText(),/서로의 이야기를 천천히 들어 보세요/);
  await page.getByRole('textbox',{name:'결과 문장 검색'}).fill('');
- await sentences.getByRole('button',{name:'서로의 이야기를 천천히 들어 보세요.',exact:true}).waitFor();
+ await sentences.getByText('서로의 이야기를 천천히 들어 보세요.',{exact:true}).waitFor();
  mkdirSync(resolve(root,'test-results/cms-static-preview'),{recursive:true});
  await page.screenshot({path:resolve(root,'test-results/cms-static-preview/desktop.png')});
  await page.setViewportSize({width:390,height:844});
@@ -50,6 +56,12 @@ try{
  await page.getByRole('textbox',{name:'선택한 문구'}).fill('한 장씩 읽어 보렴.');
  await page.getByRole('button',{name:'초안에 적용',exact:true}).click();
  assert.match(await page.getByLabel('저장할 문구').innerText(),/한 장씩 읽어 보렴/);
+ await page.getByRole('button',{name:'첫 화면 웹툰 보기',exact:true}).click();
+ await page.frameLocator('iframe[title="콘텐츠 실제 화면 미리보기"]').getByText('한번 상상해 볼까요?',{exact:true}).click();
+ assert.equal(await page.getByRole('textbox',{name:'선택한 문구'}).inputValue(),'한번 상상해 볼까요?');
+ await page.getByRole('textbox',{name:'선택한 문구'}).fill('잠깐, 상상해 볼까요?');
+ await page.getByRole('button',{name:'초안에 적용',exact:true}).click();
+ assert.equal(JSON.parse(await page.getByLabel('저장할 문구').innerText()).record['line:imagine-night:0'].text,'잠깐, 상상해 볼까요?');
  assert.deepEqual(errors,[]);
- console.log('PASS static editor: search, click, nested dialogue edit, draft output, mobile overflow');
+ console.log('PASS static editor: search, click, nested dialogue edit, draft output, mobile overflow, / webtoon line click -> edited preview');
 }finally{await browser.close();await new Promise(done=>server.close(done));}

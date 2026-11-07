@@ -39,6 +39,7 @@ import theme from "../love-secret-theme.module.css";
 import styles from "./LoveSecretAiResultClient.module.css";
 import LoveSecretChecklist, { type ActionSecret } from "./LoveSecretChecklist";
 import PremiumResultShare from "@/components/fortune/PremiumResultShare";
+import ReviewRewardBanner from "@/app/components/ReviewRewardBanner";
 import { groupLoveSections, resolveLoveSpeaker, type LoveCardVariant, type LoveSectionGroup, type LoveSpeaker } from "./love-secret-sections";
 import LoveSecretResultSection, { LoveSpeakerChip } from "./LoveReadingChapter";
 import { ANSWER_FIRST_LAYOUT_V1 } from "@/lib/result-layout";
@@ -1168,6 +1169,7 @@ export default function LoveSecretAiResultClient({ paymentSurface }: { paymentSu
             </section>
           )}
         </>}
+        {paymentSurface !== "toss" && isShareReady && <ReviewRewardBanner afterResult locale={getCurrentLoadingLocale() === "ko" ? "ko" : "en"} />}
         {paymentSurface !== "toss" && isShareReady && consultationKey && (
           <PremiumResultShare
             kind="letter"

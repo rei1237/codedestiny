@@ -10,8 +10,8 @@ const registry = read("js/core/service-registry.js");
 const template = read("templates/home-funnel.html");
 
 // 2026-10-23 강약: 대표 상담 덱 → 초융합 시그니처 띠 → 무료로 먼저(여섯 장) → 꿀방울 출석 → 1:1 상담(연이·네오) → 질문 카테고리 → 이용권 → 모든 운세 버튼 → 작은 운세 모음 → 뮤직비디오 → 달빛 이야기.
-// Approved 2026-11-03 refinement keeps pass comparison immediately after concern discovery.
-const flow = ['{{yehwaHome}}', 'class="cd-help-entry"', 'id="cdhMoonlightMv"', 'id="cdhFusionSignatureSlot"', 'id="cdhNeoLetterSlot"', 'id="cdhFeatured"', 'id="cdhQuickSlot"', 'data-cd-honey-widget', 'class="cdh-all-cta"', 'id="cdhLightFortunes"', 'class="cdh-story"'];
+// 2026-11-07 구매 순서: 히어로 → 결과 예시 → 대표 상담 → 초융합 → 이용권 → 무료로 먼저 → 영냥이·네오 → MV → 도움말 → 모든 운세.
+const flow = ['{{yehwaHome}}', 'id="cdhProof"', 'id="cdhFeatured"', 'id="cdhFusionSignatureSlot"', '{{passSlot}}', 'id="cdhQuickSlot"', 'data-cd-honey-widget', 'id="cdhNeoLetterSlot"', 'id="cdhMoonlightMv"', 'class="cd-help-entry"', 'class="cdh-all-cta"', 'id="cdhLightFortunes"', 'class="cdh-story"'];
 for (let i = 1; i < flow.length; i += 1) {
   const prev = template.indexOf(flow[i - 1]);
   const next = template.indexOf(flow[i]);
@@ -76,7 +76,9 @@ assert.ok(homeDocument.querySelector('.cdh-story .cdh-story__card--music[href="/
 assert.equal(homeDocument.querySelectorAll('#cdhMoonlightMv').length, 1);
 assert.doesNotMatch(template, /음악으로 쉬어가기/);
 assert.ok(signatureSection, '대표 운명 상담 섹션을 찾지 못했습니다');
-assert.match(signatureSection, /class="cd-sig__samples-link" href="\/consultation-samples\/"/, 'representative consultations expose the complete sample guide');
+// 2026-11-07 결과 예시 링크는 대표 상담 바로 앞(#cdhProof)으로 옮겼다.
+assert.match(homeDocument.querySelector('#cdhProof')?.outerHTML || '', /class="cd-sig__samples-link" href="\/consultation-samples\/"/, 'representative consultations expose the complete sample guide');
+assert.ok(homeDocument.querySelector('#cdhProof').compareDocumentPosition(homeDocument.querySelector('#cdSignatureConsult')) & 4, '결과 예시는 대표 상담 앞에 둡니다');
 assert.deepEqual(
   [...signatureSection.matchAll(/data-cd-service-id="([^"]+)"/g)].map((match) => match[1]),
   ['fortune-tea-house', 'life-book-ai', 'new-year-ai', 'love-secret-ai', 'neo-operation-room', 'master-love-codex'],

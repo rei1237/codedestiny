@@ -1,5 +1,5 @@
 // Local-only visual and interaction verification for the simplified home (2026-10-17 "직관성").
-// 홈 흐름: 짧은 히어로(골드 Brand CTA) → 대표 상담 덱 Ⅰ–Ⅵ(2열/3열 격자) → 초융합 띠 → 무료로 먼저(6장) → 꿀방울 출석 → 1:1 상담(연이·네오) → 이용권 → 뮤직비디오 → "모든 운세 보기" 버튼 → 달빛 이야기(노벨·음악 카드) → 푸터.
+// 홈 흐름(2026-11-07 구매 순서): 히어로(고민 칩 5개 + 무료 CTA 하나) → 결과 예시 → 대표 상담 덱 → 초융합 띠 → 이용권 → 무료로 먼저(6장) → 꿀방울 → 1:1 상담 → 뮤직비디오 → 도움말 → "모든 운세 보기" 버튼 → 달빛 이야기 → 푸터.
 const { chromium } = require('playwright');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -33,9 +33,9 @@ async function assertEssentials(page, label) {
     await page.evaluate(() => scrollTo(0, 0));
   }
   const essentials = [
-    ['concern selection', page.viewportSize().width < 700 ? '.yh-find > summary' : '.yh-choices'],
+    ['concern selection', '[data-concern-picker]'],
     ['signature deck', '#cdSignatureConsult'],
-    ['sample guide', '#cdSignatureConsult .cd-sig__samples-link[href="/consultation-samples/"]'],
+    ['sample guide', '#cdhProof .cd-sig__samples-link[href="/consultation-samples/"]'],
     ['free first', '#cdQuickServices'],
     ['pass', '#cdhPass .pb__cta'],
     ['light fortune banner', '#cdhPass .pb__banner'],
@@ -96,15 +96,15 @@ async function assertEssentials(page, label) {
       await page.waitForTimeout(250);
       await assertEssentials(page, `${width}px first visit`);
 
-      // 강약: 대표 상담 → 초융합 시그니처 → 무료로 먼저 → 꿀방울 → 1:1 상담 → 영냥이 배너 → 질문 카테고리 → 이용권 → 뮤직비디오 → 모든 운세 버튼 → 링크 → 달빛 이야기. DOM 순서와 화면 순서가 같다.
+      // 구매 순서: 히어로 고민 칩 → 링크 → 결과 예시 → 대표 상담 → 초융합 → 이용권 → 무료로 먼저 → 영냥이 → 뮤직비디오 → 도움말 → 달빛 이야기. DOM 순서와 화면 순서가 같다.
       const order = await page.evaluate(() => {
-        const nodes = ['.yh-hero', '.yh-find', '.yh-links', '#cdhPass', '.cd-help-entry', '#cdhMoonlightMv', '#cdhFusionSignature', '#cdhYeongnyangiSlot', '#cdSignatureConsult', '#cdQuickServices', '.cdh-story'].map(selector => document.querySelector(selector));
+        const nodes = ['.yh-hero', '[data-concern-picker]', '.yh-links', '#cdhProof', '#cdSignatureConsult', '#cdhFusionSignature', '#cdhPass', '#cdQuickServices', '#cdhYeongnyangiSlot', '#cdhMoonlightMv', '.cd-help-entry', '.cdh-story'].map(selector => document.querySelector(selector));
         return {
           dom: nodes.every((node, index) => index === 0 || Boolean(nodes[index - 1].compareDocumentPosition(node) & Node.DOCUMENT_POSITION_FOLLOWING)),
           visual: nodes.map((node) => node.getBoundingClientRect().top + scrollY),
         };
       });
-      assert.ok(order.dom, `${width}px home flow keeps signature → fusion → free → honey → consult → questions → pass → MV → all fortunes → links → story in DOM`);
+      assert.ok(order.dom, `${width}px home flow keeps concerns → links → proof → signature → fusion → pass → free → consult → MV → help → story in DOM`);
       assert.ok(order.visual.every((top, index) => index === 0 || top > order.visual[index - 1]), `${width}px home flow keeps the same visual order (${order.visual.map(Math.round).join(' < ')})`);
 
       // 걷어낸 블록은 홈 마크업에 다시 생기지 않는다. 기능 페이지와 URL은 그대로다.
@@ -116,8 +116,8 @@ async function assertEssentials(page, label) {
         assert.equal(await page.locator(selector).isVisible(), false, `${width}px ${selector} stays off the home screen`);
       }
 
-      assert.match(await page.locator(width < 700 ? '#cdhTitle' : '#yhDesktopTitle').innerText(), width < 700 ? /어떤 운세/ : /어떤 이야기/, 'hero introduces the first choice');
-      assert.equal(await page.locator('[data-yh-concern]').count(), 5, 'five concern groups');
+      assert.match(await page.locator('#yhDesktopTitle').innerText(), /어떤 고민/, 'hero introduces the first choice');
+      assert.equal(await page.locator('[data-concern-picker] [data-concern]').count(), 5, 'five concern chips');
       assert.equal(await page.locator('.cdh-all-cta__btn').count(), 1, 'full catalog remains available');
       assert.equal(await page.locator('#cdQuickServices .cdh-free-card').count(), 6, `${width}px free first offers the six methods`);
       assert.equal(await page.locator('#cdQuickServices .cdh-free-card').first().getAttribute('data-cdh-free'), '', `${width}px the first free card opens the one-step saju`);

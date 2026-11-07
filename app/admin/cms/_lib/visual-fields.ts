@@ -36,6 +36,7 @@ export function previewPath(ns: string, key: string): string {
   if (ns === "feature-copy") return key.startsWith("fortune-tea-house:") ? "/fortune-tea-house/" : "/fortune-chat/";
   if (ns === "saju-animal") return "/saju/animal-destiny/";
   if (ns === "saju-guardian") return "/saju-guardian/";
+  if (ns === "home-copy" && key === "entry-webtoon") return "/";
   return "/ggulggul/";
 }
 

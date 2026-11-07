@@ -1944,7 +1944,8 @@
       "sampleConsult": "Contoh konsultasi Yeongnyangi",
       "allLead": "Choose a system directly, or start with the concern closest to you.",
       "moreContent": "More readings and stories",
-      "moreContentNote": "Explore special readings, public analysis records and daily fortunes in one place."
+      "moreContentNote": "Explore special readings, public analysis records and daily fortunes in one place.",
+      "passFrom": "Pas dari KRW {amount}"
     },
     "yeongnyangiEntry": {
       "badge": "Konsultasi soalan bersama Yeongnyangi",
@@ -2394,7 +2395,11 @@
       "codexDescription": "Explore your relationship patterns individually or compare two people’s differences.",
       "sibylName": "Sibyl Annual Preparation Report",
       "sibylDescription": "Periods to watch, preparation by area, and practical next steps.",
-      "rangePrice": "KRW {from}–{to}"
+      "rangePrice": "KRW {from}–{to}",
+      "trustLine": "Pakar saju berpengalaman 10 tahun · Mula secara percuma",
+      "neoIntro": "Tentang pakar Park Byeong-ha (Neo)",
+      "paidNote": "Perundingan berbayar. Anda boleh semak harga dan contoh keputusan dahulu.",
+      "freeStart": "Mula kalendar Manse percuma"
     },
     "cro": {
       "love": "Cinta · Kembali bersama",
@@ -2526,6 +2531,13 @@
     "mobileEntry": {
       "menu": "Menu",
       "find": "Cari mengikut persoalan"
+    },
+    "concernChips": {
+      "love": "Cinta",
+      "reunion": "Bersatu semula",
+      "money": "Wang",
+      "job": "Tukar kerja",
+      "year": "Tahun ini"
     }
   },
   "terms": {

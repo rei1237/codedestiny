@@ -1,4 +1,7 @@
 // UI-tour state is deliberately independent of profile onboarding and rewards.
+// lib/marketing/home-concerns.mjs HOME_CONCERNS 의 id와 같다. 목록 밖 값은 무시한다.
+const CONCERN_IDS = new Set(['love', 'reunion', 'money', 'job', 'year']);
+const FREE_ENTRY = '/ggulggul/?action=cdOneStepFreeSajuEntry';
 export function mountYehwaHome(root) {
   if (!root || root.dataset.yhMounted) return () => {};
   root.dataset.yhMounted = 'true';
@@ -6,24 +9,21 @@ export function mountYehwaHome(root) {
   const guide = root.querySelector('[data-yh-guide]');
   const start = root.querySelector('[data-yh-start]');
   const desktop = root.ownerDocument.defaultView.matchMedia('(min-width:700px)');
-  const concerns = root.querySelector('.yh-find');
   const menu = root.closest('#cdHomeFunnel')?.querySelector('.yh-menu');
   const shell = root.closest('#cdHomeFunnel');
   const secondary = shell?.querySelectorAll('.yh-secondary') || [];
   function revealFragment() {
     const target = root.ownerDocument.getElementById(location.hash.slice(1));
-    const fold = target?.closest('.yh-secondary,.yh-find');
+    const fold = target?.closest('.yh-secondary');
     if (fold && !fold.open) {
       fold.open = true;
       target.scrollIntoView({block:'start'});
     }
   }
   function adaptLayout() {
-    concerns.open = desktop.matches || location.hash === '#homeConcerns';
     secondary.forEach(fold => { fold.open = desktop.matches; });
     revealFragment();
     if (menu) menu.open = desktop.matches;
-    if (desktop.matches && root.querySelector('#yhResults').hidden) root.querySelector('[data-yh-concern]').click();
   }
   let step = 0;
   const lines = [
@@ -38,7 +38,7 @@ export function mountYehwaHome(root) {
   }
   function show() {
     root.querySelectorAll('[data-yh-highlight]').forEach(node => node.removeAttribute('data-yh-highlight'));
-    const target = step === 1 ? root.querySelector('.yh-card-list:not([hidden]) .yh-card') : root.querySelector(`[data-yh-target="${step}"]`);
+    const target = root.querySelector(`[data-yh-target="${step}"]`);
     if (!target || target.hidden) { close(); return; }
     target.setAttribute('data-yh-highlight', '');
     target.after(guide);
@@ -72,15 +72,18 @@ export function mountYehwaHome(root) {
     }
     const button = event.target.closest('button');
     if (!button || !root.contains(button)) return;
-    if (button.hasAttribute('data-yh-concern')) {
-      const value = button.dataset.yhConcern;
-      root.querySelector('#yhResults').hidden = false;
-      root.querySelectorAll('[data-yh-concern]').forEach(node=>node.setAttribute('aria-pressed', String(node === button)));
-      root.querySelectorAll('[data-yh-group]').forEach(node=>{node.hidden=node.dataset.yhGroup !== value;});
-      root.querySelector('[data-yh-selection]').textContent = button.textContent.replace('✓','').trim();
-      if (!guide.hidden) show();
+    if (button.hasAttribute('data-concern')) {
+      const id = button.dataset.concern;
+      const href = button.dataset.concernHref || '';
+      const cta = root.querySelector('[data-concern-cta]');
+      if (!CONCERN_IDS.has(id) || !cta || !href.startsWith(FREE_ENTRY)) return;
+      root.querySelectorAll('[data-concern-picker] [data-concern]').forEach(node => node.setAttribute('aria-pressed', String(node === button)));
+      cta.setAttribute('href', href);
+      // 저장소가 막혀도(사생활 보호 모드 등) 주소 교체는 이미 끝났다.
+      try { root.ownerDocument.defaultView.sessionStorage.setItem('cd:home-concern', id); } catch {}
+      // 계측 실패는 칩 동작에 영향을 주지 않는다. 허용 목록 id 만 보낸다.
+      try { root.ownerDocument.defaultView.cdTrack?.('home_concern_select', { concern: id, surface: 'ggulggul_home' }); } catch {}
     } else if (button.hasAttribute('data-yh-start')) {
-      if (root.querySelector('#yhResults').hidden) root.querySelector('[data-yh-concern]').click();
       step = 0;
       show();
     }

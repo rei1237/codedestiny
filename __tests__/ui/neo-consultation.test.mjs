@@ -317,7 +317,8 @@ test('네오 편지 안내는 상담 장면과 서버 가격·답변 기한을 �
   // 2026-10-17: '네오에게 물어봐' 편지 블록이 홈 1:1 상담 줄(연이 상담 옆)로 돌아왔다.
   assert.equal(template.split('{{neoEmailConsultation}}').length - 1, 1);
   assert.ok(template.indexOf('id="cdhFusionSignatureSlot"') < template.indexOf('{{neoEmailConsultation}}'));
-  assert.ok(template.indexOf('{{neoEmailConsultation}}') < template.indexOf('id="cdhSignatureSlot"'));
+  // 2026-11-07 구매 순서: 대표 상담 슬롯이 1:1 상담 줄보다 위로 올라왔다(templates/home-funnel.html).
+  assert.ok(template.indexOf('id="cdhSignatureSlot"') < template.indexOf('{{neoEmailConsultation}}'));
 });
 
 test('동시에 결제 준비를 요청해도 같은 견적의 결제는 한 건이며 재시도로 복구한다', async () => {

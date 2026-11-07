@@ -1607,6 +1607,45 @@ function __cdIsTileLockUnlocked(actionEl, lockKey) {
   return false;
 }
 
+// 로그인 게이트 공통 진입: 홈 루트 대신 상품·고민(action, concern)이 담긴 현재 경로로 돌아오게 한다.
+// 홈에서 잠긴 타일을 누르면 주소에 ?action= 이 없으므로, 누른 타일의 action 과 고른 고민을 주소에 실어 보낸다.
+// action 은 로드 시 ?action= 디스패처(__cdRouteActionAllowList)가 받는 값만 싣는다(인자는 그쪽이 읽지 않는다).
+var __CD_GATE_CONCERN_IDS = { love: true, reunion: true, money: true, job: true, year: true };
+function __cdBuildGateNextPath(actionEl) {
+  var pathname = window.location.pathname || '/';
+  var search = window.location.search || '';
+  var params = new URLSearchParams(search);
+  if (params.get('action')) return pathname + search;
+  var action = actionEl && actionEl.getAttribute ? String(actionEl.getAttribute('data-action') || '').trim() : '';
+  var allow = typeof __cdRouteActionAllowList === 'object' && __cdRouteActionAllowList;
+  if (!/^[A-Za-z][A-Za-z0-9_]*$/.test(action) || !allow || allow[action] !== true || !Object.prototype.hasOwnProperty.call(allow, action)) {
+    return pathname + search;
+  }
+  var concern = String(params.get('concern') || '').trim();
+  if (!__CD_GATE_CONCERN_IDS[concern] || !Object.prototype.hasOwnProperty.call(__CD_GATE_CONCERN_IDS, concern)) {
+    concern = '';
+    try { concern = String(window.sessionStorage.getItem('cd:home-concern') || '').trim(); } catch (_) {}
+    if (!__CD_GATE_CONCERN_IDS[concern] || !Object.prototype.hasOwnProperty.call(__CD_GATE_CONCERN_IDS, concern)) concern = '';
+  }
+  params.delete('concern');
+  params.set('action', action);
+  if (concern) params.set('concern', concern);
+  return pathname + '?' + params.toString();
+}
+function __cdGateLogin(reason, actionEl) {
+  var path = __cdBuildGateNextPath(actionEl);
+  try {
+    if (typeof window.__cdResolveLoginNextPath === 'function') path = window.__cdResolveLoginNextPath(path, reason) || path;
+  } catch (_) {}
+  if (typeof window.__cdOpenLoginRequiredModal === 'function') {
+    window.__cdOpenLoginRequiredModal({ nextPath: path, reason: reason });
+    return false;
+  }
+  window.location.assign('/login/?next=' + encodeURIComponent(path));
+  return false;
+}
+window.__cdGateLogin = __cdGateLogin;
+
 function __cdRequireTileLockGate(actionEl) {
   if (!actionEl) return true;
   if (actionEl.getAttribute('data-pvw-bypass')) return true;
@@ -1615,9 +1654,7 @@ function __cdRequireTileLockGate(actionEl) {
   if (!lockKey || lockCost <= 0) return true;
 
   if (!__cdHasAuthToken()) {
-    if (window.confirm(_indexRuntimeText("indexRuntime.confirm.001"))) {
-      window.location.href = '/login?next=%2F';
-    }
+    __cdGateLogin('tile_lock', actionEl);
     return false;
   }
 
@@ -2290,7 +2327,7 @@ function __cdEnsureSajuCoreLoaded() {
     '/js/core/saju/natal-core.generated.js?v=build-38051d7297a0',
     '/js/core/kasi-calendar-service.js?v=build-99c5568a4710',
     '/js/compat-llm-prompts.js?v=build-f4b380e036d0',
-    '/js/saju-engine.js?v=build-703ec1c971ab',
+    '/js/saju-engine.js?v=build-7d1edb31fca8',
       '/js/core/saju/extremeTResult.js?v=build-5f0576c62518',
       /* 숙요 정본(Swiss 항성 달 황경). quantum.js 의 calcSukuyoData 가 이것 없이는 수(宿)를 내지 않는다. */
       '/js/core/sukuyo-astronomy.js?v=build-5198c8e4c8b2',
@@ -3644,9 +3681,7 @@ function __cdBindAnimalTotemTileDirect() {
         }
         // ⚠️ 미로그인 상태: _cdCoinGatePerUse 미정의
         if (!__cdHasAuthToken()) {
-          if (window.confirm(_indexRuntimeText("indexRuntime.confirm.002"))) {
-            window.location.href = '/login?next=%2F';
-          }
+          __cdGateLogin('coin_gate');
           return;
         }
         // 로그인 상태인데 _cdCoinGatePerUse가 없으면 오류로 간주
@@ -7719,9 +7754,7 @@ function _dfRequirePaidSourceUnlock(source) {
   }
 
   if (!__cdHasAuthToken()) {
-    if (window.confirm(_indexRuntimeText("indexRuntime.confirm.003"))) {
-      window.location.href = '/login?next=%2F';
-    }
+    __cdGateLogin('flower_atelier');
     return false;
   }
 
@@ -9049,7 +9082,7 @@ function __cdEnsureSukuyoZiweiCoreLoaded() {
     /* 원국 판정 정본(전역 SajuNatalCore). saju-engine 의 detectJong 이 이것 없이는 던진다. */
     '/js/core/saju/natal-core.generated.js?v=build-38051d7297a0',
     '/js/compat-llm-prompts.js?v=build-f4b380e036d0',
-      '/js/saju-engine.js?v=build-703ec1c971ab',
+      '/js/saju-engine.js?v=build-7d1edb31fca8',
       '/js/core/sukuyo-astronomy.js?v=build-5198c8e4c8b2',
       '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-224c68bbb168'
   ];

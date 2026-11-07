@@ -249,6 +249,16 @@ const loaders: Record<string, Loader> = {
     ];
   },
 
+  "home-copy": async () => {
+    const { homeCopyDefaults } = await import("@/lib/cms/home-copy.mjs");
+    const defaults = homeCopyDefaults();
+    return [
+      asRecordEntry("entry-webtoon", "첫 화면 웹툰", "/ · 컷별 대사", defaults["entry-webtoon"]),
+      asRecordEntry("ggulggul-hero", "꿀꿀 홈 히어로", "/ggulggul/ · 제목·버튼·안내", defaults["ggulggul-hero"]),
+      asRecordEntry("concern-offer", "무료 결과 고민 제안", "/ggulggul/ · {label} {stem} 자리는 그대로 두세요", defaults["concern-offer"]),
+    ];
+  },
+
   "page-copy": async () => {
     const { ABOUT_PAGE_TEXT_TRANSLATIONS } = await import("@/app/_content/about-copy");
     return [asRecordEntry("about", "서비스 소개", "/about", ABOUT_PAGE_TEXT_TRANSLATIONS.ko)];

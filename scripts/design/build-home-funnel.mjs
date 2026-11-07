@@ -13,6 +13,9 @@ import { renderConsultationMethodGuide } from '../../lib/brand/consultation-meth
 
 import { brandCopy } from '../../lib/seo/brand-copy.mjs';
 import { renderYehwaHome } from '../../lib/marketing/yehwa-home.mjs';
+import { HOME_CONCERNS, freeEntryHref, REFUND_LINE, REFUND_POLICY_HREF } from '../../lib/marketing/home-concerns.mjs';
+import featureVisualDetails from '../../lib/marketing/feature-visual-details.generated.json' with { type: 'json' };
+import { loadTsModule } from '../lib/load-ts-module.mjs';
 
 const original = readFileSync('index.html', 'utf8');
 const vars = {mvSrc720:moonlightVideo.src720,mvSrc1080:moonlightVideo.src1080,mvCaptions:moonlightVideo.captions};
@@ -287,7 +290,6 @@ vars.signature = `<section data-cd-funnel-section="signature_consult" class="cd-
   <div class="cd-sig__viewport" id="cdSigViewport" tabindex="0" aria-label="대표 상담 카드"><div class="cd-sig__grid" id="cdSigGrid">${introCardMarkup}${[...signatureProducts].sort((a,b)=>['fortune-tea-house','life-book-ai','new-year-ai','love-secret-ai','neo-operation-room','master-love-codex'].indexOf(a.id)-['fortune-tea-house','life-book-ai','new-year-ai','love-secret-ai','neo-operation-room','master-love-codex'].indexOf(b.id)).map((product, index) => `<article class="cd-story-entry"><a class="cd-sig-card cd-sig-card--${product.className}" data-cd-service-id="${product.id}" data-cd-popup-copy="${escapeAttribute(product.popupCopy)}" href="${product.href}" aria-label="${product.title} — ${product.cta}" data-pvw-paid="true"${product.priceSuffix === '부터' ? ' data-price-from="true"' : ''}><span class="cd-yehwa-seal" aria-hidden="true"></span><span class="cd-sig-card__top"><span class="cd-sig-card__numeral" aria-hidden="true">${TAROT_NUMERALS[index]}</span></span><span class="cd-sig-card__media"><img class="cd-sig-card__img" width="1200" height="675" loading="lazy" decoding="async" src="${product.image}"${product.imageSrcset ? ` srcset="${product.imageSrcset}"` : ''} sizes="(max-width: 699px) 82vw, (max-width: 1023px) 45vw, 360px" alt="${product.imageAlt}"></span><span class="cd-sig-card__body">${signatureMaster(product.master)}<span class="cd-sig-card__title">${product.title}</span><span class="cd-sig-card__q">${product.question}</span><span class="cd-sig-card__desc">${storyBenefits[storySlugByProduct[product.id]].join(' · ')}</span><span class="cd-sig-card__price" data-cd-play-price data-cd-play-feature="${product.featureKey}"${product.priceSuffix ? ' data-cd-play-kind="from"' : ''}>${signaturePrice(product.featureKey, product.priceSuffix)}</span><span class="cd-sig-card__cta"><span>${product.cta}</span> <i aria-hidden="true">→</i></span></span></a></article>`).join('')}</div></div>
   <div class="cd-sig__controls" hidden aria-label="상담 카드 이동"><div class="cd-choice__dots" data-sig-dots aria-label="상담 카드 위치"></div><div class="cd-choice__arrows"><button type="button" data-sig-prev aria-controls="cdSigViewport" aria-label="이전 상담"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m6-6-6 6 6 6"/></svg></button><span data-sig-position aria-live="off"></span><button type="button" data-sig-next aria-controls="cdSigViewport" aria-label="다음 상담"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button><button type="button" class="cd-sig__pause" data-sig-pause aria-pressed="false" aria-label="상담 카드 넘김 멈추기"><svg class="cd-choice__pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6v12m6-12v12"/></svg><svg class="cd-choice__play" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 6 10 6-10 6Z"/></svg></button></div></div>
   <details class="cd-choice__concerns yh-secondary" id="cdhQuestionSlot"><summary data-cd-trans="home.concernPick.title">지금 가장 궁금한 건 무엇인가요?</summary>${vars.questionCategories}</details>
-  <a class="cd-sig__samples-link" href="/consultation-samples/"><svg class="cd-choice__moon" viewBox="0 0 64 64" aria-hidden="true"><circle class="cd-choice__moon-orbit" cx="31" cy="32" r="29"/><path class="cd-choice__moon-crescent" d="M36 9a24 24 0 1 0 20 35A27 27 0 0 1 36 9Z"/><path class="cd-choice__moon-star" d="m48 10 1.7 5.3L55 17l-5.3 1.7L48 24l-1.7-5.3L41 17l5.3-1.7Z"/><path class="cd-choice__moon-star cd-choice__moon-star--small" d="m54 29 1 3 3 1-3 1-1 3-1-3-3-1 3-1Z"/><path class="cd-choice__moon-orbit" d="M17 50c8 6 19 7 28 2"/><circle cx="37" cy="29" r=".8" fill="currentColor" stroke="none"/></svg><span class="cd-choice__samples-label"><span>상담별 구성과</span> <strong>예시 보기</strong></span><svg class="cd-choice__cta-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg></a>
 </section>`;
 
 // Mark the new comparison copy through the existing native locale contract.
@@ -359,10 +361,46 @@ vars.pass = '<link rel="stylesheet" href="/styles/pass-benefits.css?v=build-0000
   <a class="cdh-pass__btn" href="/points/?source=flower-membership" data-cd-trans="home.gardenCopy.passCta">나에게 맞는 이용권 확인하기</a>
 </section>`;
 const template = readFileSync('templates/home-funnel.html', 'utf8');
-// Keep the existing pass renderer between concern results and records/navigation.
+// 결과 예시 — 대표 상담보다 먼저 본다(구매 순서: 예시 → 상담 → 이용권).
+vars.proof = `<a class="cd-sig__samples-link" href="/consultation-samples/"><svg class="cd-choice__moon" viewBox="0 0 64 64" aria-hidden="true"><circle class="cd-choice__moon-orbit" cx="31" cy="32" r="29"/><path class="cd-choice__moon-crescent" d="M36 9a24 24 0 1 0 20 35A27 27 0 0 1 36 9Z"/><path class="cd-choice__moon-star" d="m48 10 1.7 5.3L55 17l-5.3 1.7L48 24l-1.7-5.3L41 17l5.3-1.7Z"/><path class="cd-choice__moon-star cd-choice__moon-star--small" d="m54 29 1 3 3 1-3 1-1 3-1-3-3-1 3-1Z"/><path class="cd-choice__moon-orbit" d="M17 50c8 6 19 7 28 2"/><circle cx="37" cy="29" r=".8" fill="currentColor" stroke="none"/></svg><span class="cd-choice__samples-label"><span>상담별 구성과</span> <strong>예시 보기</strong></span><svg class="cd-choice__cta-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg></a>`;
+vars.passSlot = '<div class="cdh-slot cdh-slot--pass" id="cdhPass"><div id="cdhPassSlot">' + vars.pass + '</div></div>';
+// 비로그인 헤더의 재화 표시. 금액은 현재 이용권 정책의 최저가다.
+const passFloor = Math.min(...Object.values(CURRENT_PASS_PLANS).map(plan => plan.wonPrice));
+if (!Number.isSafeInteger(passFloor) || passFloor <= 0) throw new Error('Missing pass floor price');
+vars.passFrom = '<span class="cdh-pass-link__guest" data-cd-trans="home.simple.passFrom" data-cd-vars=\'{"amount":"' + passFloor.toLocaleString('en-US') + '"}\'>이용권 ' + passFloor.toLocaleString('ko-KR') + '원부터</span>';
+
+// 첫 화면 고민 칩과 무료 결과 화면이 함께 읽는 가격. 금액은 worker/lib/paid-feature-registry.js 에서만 읽는다.
+const verifiedFeatureSlugs = new Map(featureVisualDetails.index.filter(entry => entry.verification === 'verified').map(entry => [entry.featureKey, entry.slug]));
+const concernOffers = Object.fromEntries(HOME_CONCERNS.map(concern => {
+  const amountKRW = FEATURE_KEY_PRICE_TABLE[concern.featureKey]?.amountKRW;
+  if (!Number.isSafeInteger(amountKRW) || amountKRW <= 0) throw new Error('Missing concern price: ' + concern.featureKey);
+  const slug = verifiedFeatureSlugs.get(concern.featureKey);
+  if (!slug) throw new Error('Missing /features/ detail page for concern: ' + concern.featureKey);
+  return [concern.id, { featureKey: concern.featureKey, label: concern.label, amountKRW, priceLabel: amountKRW.toLocaleString('ko-KR') + '원', href: '/features/' + slug + '/', sajuField: concern.sajuField }];
+}));
+const bundleAmount = UNLOCK_PRODUCT_BY_FEATURE_KEY.saju_lifetime_bundle?.amountKRW;
+if (!Number.isSafeInteger(bundleAmount) || bundleAmount <= 0) throw new Error('Missing saju_lifetime_bundle price');
+const concernOffersPath = 'js/core/saju/concern-offers.generated.js';
+const concernOffersSource = `// Generated by scripts/design/build-home-funnel.mjs from worker/lib/paid-feature-registry.js. 직접 고치지 않는다.
+(function (root) {
+  'use strict';
+  var data = ${JSON.stringify({ concerns: concernOffers, bundle: { featureKey: 'saju_lifetime_bundle', amountKRW: bundleAmount, priceLabel: bundleAmount.toLocaleString('ko-KR') + '원' }, refund: { line: REFUND_LINE, href: REFUND_POLICY_HREF } }, null, 2).replace(/\n/g, '\n  ')};
+  Object.keys(data.concerns).forEach(function (id) { Object.freeze(data.concerns[id]); });
+  Object.freeze(data.concerns);
+  Object.freeze(data.bundle);
+  Object.freeze(data.refund);
+  root.CdConcernOffers = Object.freeze(data);
+})(typeof window !== 'undefined' ? window : globalThis);
+`;
+const founder = loadTsModule('lib/brand/founder.ts').founder;
+const [, careerLine, scholarName] = founder.byline.match(/^(\d+년 경력 명리학자) (\S+?)가 /) || [];
+if (!careerLine) throw new Error('founder.byline must start with the career line and name');
 vars.yehwaHome = renderYehwaHome(registryWindow.__cdServiceRegistry, {
+  hero: {
+    concerns: HOME_CONCERNS.map(concern => ({ id: concern.id, label: concern.label, priceLabel: concernOffers[concern.id].amountKRW.toLocaleString('ko-KR') + '원', href: freeEntryHref(concern.id, 'ggulggul_hero') })),
+    ctaHref: freeEntryHref(null, 'ggulggul_hero'), careerLine, scholarName,
+  },
   installHtml: "<aside class=\"cd-home-install-entry\" data-pwa-install-entry hidden aria-label=\"홈 화면에 추가\" lang=\"ko\" data-cd-no-trans><img src=\"/icons/moonlight-garden-v1-192.png\" width=\"48\" height=\"48\" alt=\"\" loading=\"lazy\"><div><strong>다음에도 바로 찾아오세요</strong><p>홈 화면의 아이콘으로 꿀꿀 운세를 열어요.</p></div><button type=\"button\" data-pwa-install>홈 화면에 추가하기</button></aside>",
-  passHtml: '<div class="cdh-slot cdh-slot--pass" id="cdhPass"><div id="cdhPassSlot">' + vars.pass + '</div></div>',
 });
 let homeHtml = template.replace(/\{\{(\w+)\}\}/g, (_token, key) => {
   if (!(key in vars)) throw new Error(`Unknown home funnel template token: ${key}`);
@@ -459,10 +497,20 @@ updated = updated.replace(/<title>[^<]*<\/title>/, '<title>' + homeSearchTitle +
   .replace(/("@type": "WebPage",[\s\S]*?"name": )"[^"]*"/, (_, prefix) => prefix + JSON.stringify(homeSearchTitle));
 if (!updated.includes('<meta name="keywords"')) updated = updated.replace('<meta name="description"', '<meta name="keywords" content="꿀꿀 운세, 사주, 자미두수, 베다점, 숙요점, 타로, 휴먼 디자인, MBTI">\n<meta name="description"');
 
+// 무료 결과 화면(같은 셸)이 고민 가격을 읽는다. bundle-offer.js 바로 뒤에 둔다.
+if (!updated.includes('src="/js/core/saju/concern-offers.generated.js')) {
+  updated = updated.replace(/(<script defer src="\/js\/core\/saju\/bundle-offer\.js(?:\?v=[^"]*)?"><\/script>)/, '$1\n<script defer src="/js/core/saju/concern-offers.generated.js?v=build-000000000000"></script>');
+  if (!updated.includes('src="/js/core/saju/concern-offers.generated.js')) throw new Error('bundle-offer.js script tag not found');
+}
+
 if (process.argv.includes('--check')) {
   if (original !== updated) throw new Error('Home funnel needs regeneration');
+  let currentOffers = '';
+  try { currentOffers = readFileSync(concernOffersPath, 'utf8').replace(/\r\n/g, '\n'); } catch {}
+  if (currentOffers !== concernOffersSource) throw new Error('Concern offers need regeneration: ' + concernOffersPath);
   console.log('[home-funnel] current');
 } else {
   writeFileSync('index.html', updated);
+  writeFileSync(concernOffersPath, concernOffersSource);
   console.log('[home-funnel] assembled from existing sections; no runtime DOM reflow');
 }

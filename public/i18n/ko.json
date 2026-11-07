@@ -1,14 +1,14 @@
 {
   "saju": {
     "bundle": {
-      "inlineTitle": "내 사주를 더 깊이 읽고 싶다면",
+      "inlineTitle": "고민 하나를 넘어 내 사주 전체를 읽고 싶다면",
       "lottoSavedTitle": "저장한 달빛 럭키 리추얼 리포트",
       "lottoSavedDesc": "이 기기에 저장한 구매 리포트를 다시 읽을 수 있어요.",
       "lottoSavedOpen": "리포트 열기",
       "title": "사주 전체 풀이 평생 소장",
       "once": "한 번 결제로 영구 소장",
       "inlineCta": "묶음 자세히 보기",
-      "inlineDesc": "원국 해석, 대운, 오늘의 운세와 재미 콘텐츠까지 한 번 결제로 영구히 열려요.",
+      "inlineDesc": "그 고민이 내 사주 어디에서 오는지 원국 해석과 대운으로 이어 읽을 수 있어요. 오늘의 운세와 재미 콘텐츠까지 한 번 결제로 영구히 열려요.",
       "close": "닫기",
       "pay": "단건 결제로 열기",
       "saveProfile": "이 출생 정보를 프로필로 저장하기",
@@ -1793,7 +1793,8 @@
       "sampleConsult": "영냥이 상담 결과 예시",
       "allLead": "운세 체계로 바로 고르거나, 지금 마음에 가까운 고민으로 찾아보세요.",
       "moreContent": "더 많은 운세와 콘텐츠",
-      "moreContentNote": "특별한 리딩과 공개 분석 기록, 오늘의 운세를 한곳에서 살펴보세요."
+      "moreContentNote": "특별한 리딩과 공개 분석 기록, 오늘의 운세를 한곳에서 살펴보세요.",
+      "passFrom": "이용권 {amount}원부터"
     },
     "yeongnyangiEntry": {
       "badge": "영냥이의 질문 상담",
@@ -2243,7 +2244,11 @@
       "codexDescription": "나의 연애 패턴은 개인판으로, 두 사람의 차이는 궁합판으로 읽어요",
       "sibylName": "시빌라 연간 대비 리포트",
       "sibylDescription": "주의 시기·분야별 대비·현실적인 개운 행동",
-      "rangePrice": "{from}원~{to}원"
+      "rangePrice": "{from}원~{to}원",
+      "trustLine": "10년 경력 명리학자 · 무료 시작 가능",
+      "neoIntro": "명리학자 박병하(네오) 소개",
+      "paidNote": "상담은 유료예요. 가격과 결과 예시는 먼저 확인할 수 있어요.",
+      "freeStart": "무료 만세력 시작하기"
     },
     "cro": {
       "love": "연애·재회",
@@ -2375,6 +2380,13 @@
     "mobileEntry": {
       "menu": "메뉴",
       "find": "고민으로 찾기"
+    },
+    "concernChips": {
+      "love": "연애",
+      "reunion": "재회",
+      "money": "돈",
+      "job": "이직",
+      "year": "올해 흐름"
     }
   },
   "footer": {

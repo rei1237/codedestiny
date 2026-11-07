@@ -1683,3 +1683,7 @@ html.neo-mode #cdHomeFunnel .cdh-scene-art #honeypigLogo{box-shadow:none!importa
 .cd-home-install-entry button:focus-visible,.cd-expert-stories a:focus-visible,#cdHomeFunnel .cd-story-entry__link:focus-visible{outline:3px solid var(--cdh-accent);outline-offset:4px}
 .cd-expert-stories{margin:40px 0;color:var(--cdh-ink)}.cd-expert-stories h2{font:700 26px/1.5 var(--font-serif)}.cd-expert-stories>div{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}.cd-expert-stories article{padding:20px 0;border-bottom:1px solid var(--cdh-line)}.cd-expert-stories h3{font:700 20px/1.5 var(--font-serif);margin:0 0 8px}.cd-expert-stories p{font-size:14px;line-height:1.8;word-break:keep-all}.cd-expert-stories nav{display:flex;flex-wrap:wrap;gap:0 20px}.cd-expert-stories a{display:inline-flex;align-items:center;min-height:48px;color:var(--cdh-accent);font-size:14px;font-weight:700;text-underline-offset:5px}
 @media(max-width:599px){.cd-home-install-entry{flex-wrap:wrap}.cd-home-install-entry>div{flex:1}.cd-home-install-entry button{width:100%;margin:0}.cd-expert-stories>div{grid-template-columns:1fr;gap:0}}
+/* 2026-11-07 구매 순서 재배치: 결과 예시·MV·도움말이 흐름 안으로 들어왔다. 헤더 이용권 링크는 비로그인에 최저가, 로그인에 내 이용권. */
+#cdHomeFunnel .cdh-flow>:is(.cdh-mv,.cd-help-entry,.cdh-proof){margin-block:0}
+#cdHomeFunnel .cdh-proof{display:flex;justify-content:center}
+#cdHomeFunnel .cdh-nav:has(#cdhAccountBtn[data-auth="member"]) .cdh-pass-link__guest,#cdHomeFunnel .cdh-nav:has(#cdhAccountBtn:not([data-auth="member"])) .cdh-pass-link__member{display:none}

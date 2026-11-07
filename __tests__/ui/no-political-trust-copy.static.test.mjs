@@ -16,6 +16,8 @@ const ALLOWED = {
   'app/yeongnyangi/_original/home-data.ts': { count: 14, reason: '2026-10-05 승인: 원문에 연결된 대통령 기록과 공개 반응, 사실과 구분한 프롤로그' },
   'app/components/FounderTrust.tsx': { count: 1, reason: '2026-10-05 승인: 원문에 연결된 대통령 기록과 공개 반응, 사실과 구분한 프롤로그' },
   'app/components/TrustStories.tsx': { count: 4, reason: '2026-10-05 승인: 원문에 연결된 대통령 기록과 공개 반응, 사실과 구분한 프롤로그' },
+  'app/_entry/EntryWebtoon.tsx': { count: 1, reason: '2026-11-07 사용자 요청: 진입 웹툰 — 승인 기록을 trust-stories.mjs에서 읽는 식별자 1건, 새 문구 없음' },
+  'app/_entry/ReviewCards.tsx': { count: 1, reason: '2026-11-07 사용자 요청: 진입 웹툰 — 공개 반응을 trust-stories.mjs에서 읽는 식별자 1건, 새 문구 없음' },
   'lib/brand/trust-stories.mjs': { count: 26, reason: '2026-10-05 승인: 원문에 연결된 대통령 기록과 공개 반응, 사실과 구분한 프롤로그' },
   'lib/brand/differentiation-faqs.mjs': { count: 7, reason: '2026-10-22 사용자 요청: 차별점 FAQ에 대통령 공개 기록 제작자 소개. 주석 1건 포함, 적중률·보장 표현 제외. 2026-10-31 사용자 요청: "잘 맞나요?" 문항이 공개 기록 이름 1건을 가리킴' },
   'app/faq/page.js': { count: 1, reason: '2026-10-22 사용자 요청: 차별점 FAQ가 가리키는 공개 분석 기록 칩 1건' },

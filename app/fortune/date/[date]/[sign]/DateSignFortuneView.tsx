@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { brandCopy } from "@/lib/seo/brand-copy.mjs";
 import type { DateSignViewModel } from "@/lib/fortune/build-view";
+import ConcernBridge from "@/app/fortune/_components/ConcernBridge";
 
 const CARD = "rounded-2xl border border-[#f4bed1]/70 bg-white/85 p-5 dark:border-[rgba(244,190,209,0.30)] dark:bg-[#2e0a20]/60";
 const MUTED = "text-[#70445c] dark:text-[rgba(255,214,232,0.86)]";
@@ -129,6 +130,8 @@ export default function DateSignFortuneView({ vm, faqs }: { vm: DateSignViewMode
             <p className="mt-3 break-keep text-sm leading-7">{vm.relation.detail}</p>
           </section>
         ) : null}
+
+        <ConcernBridge from="fortune_bridge" />
 
         <section className="mt-8" aria-labelledby="more-date-heading">
           <h2 id="more-date-heading">다른 기간의 {profile.nameKo} 운세</h2>
