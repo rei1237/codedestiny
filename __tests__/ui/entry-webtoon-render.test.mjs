@@ -68,7 +68,7 @@ test('entry webtoon: 기록 두 건은 날짜·원문 링크·한계 고지를, 
   for (const needle of ['2024-05-12', '2024-05-27', '/223444062729', '/223459696339', trustStoriesCopy.fine, trustStoriesCopy.reactionsNote]) {
     assert.ok(html.includes(needle), needle);
   }
-  assert.equal((html.match(/시기에 관한 기록이며 모든 과정의 일치를 뜻하지 않아요/g) || []).length, 2);
+  assert.equal(html.split(trustStoriesCopy.recordLimit).length - 1, 2, '기록 한계 고지(trust-stories.mjs)');
   assert.match(html, /1회 30만원/, '1:1 상담 이력 금액(founder.ts)');
 });
 

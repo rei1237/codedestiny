@@ -3,9 +3,6 @@ import styles from './entry-webtoon.module.css';
 
 type PublicRecord = { date: string; title: string; url: string; quote: string; after: string };
 
-// 기록은 시기를 짚은 문장이지 과정 전체의 일치가 아니다(설계: "모든 과정의 일치를 뜻하지 않아요").
-const LIMIT = '시기에 관한 기록이며 모든 과정의 일치를 뜻하지 않아요';
-
 /** 네오가 남긴 공개 기록 한 건. 문장·사건은 lib/brand/trust-stories.mjs 원문 그대로 출력만 한다. */
 export default function RecordCard({ record }: { record: PublicRecord }) {
   return <article className={styles.record} lang="ko">
@@ -19,6 +16,6 @@ export default function RecordCard({ record }: { record: PublicRecord }) {
       <p className={styles.recordAfterLabel}>{trustStoriesCopy.after}</p>
       <p>{record.after}</p>
     </div>
-    <p className={styles.recordLimit}>{LIMIT}</p>
+    <p className={styles.recordLimit}>{trustStoriesCopy.recordLimit}</p>
   </article>;
 }

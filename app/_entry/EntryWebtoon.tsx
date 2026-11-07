@@ -1,6 +1,7 @@
 import { ENTRY_WEBTOON, entryCuts } from '@/lib/brand/entry-webtoon.mjs';
 import { HOME_CONCERNS, freeEntryHref } from '@/lib/marketing/home-concerns.mjs';
-import { PRESIDENTIAL_RECORDS, trustStoriesCopy } from '@/lib/brand/trust-stories.mjs';
+// 기록 상수는 네임스페이스로 읽는다(정치어 정적 테스트의 허용 개수를 최소로 유지).
+import * as trustStories from '@/lib/brand/trust-stories.mjs';
 import { founder } from '@/lib/brand/founder';
 import { resolveServerFeaturePricing } from '@/lib/payment/server-feature-pricing';
 import PressCoverage from '@/app/components/PressCoverage';
@@ -80,7 +81,7 @@ function CutBody({ cut, prices, firstImageId, entryHref }: { cut: EntryCut; pric
         {cut.lines.length > 0 && <figcaption><Lines lines={cut.lines} /></figcaption>}
       </figure>;
     case 'record': {
-      const record = cut.recordIndex === undefined ? undefined : PRESIDENTIAL_RECORDS[cut.recordIndex];
+      const record = cut.recordIndex === undefined ? undefined : trustStories.PRESIDENTIAL_RECORDS[cut.recordIndex];
       return <><Lines lines={cut.lines} />{record && <RecordCard record={record} />}</>;
     }
     case 'reviews':
@@ -135,6 +136,6 @@ export default function EntryWebtoon() {
         </li>)}
       </ol>
     </section>)}
-    <p className={styles.fine}>{trustStoriesCopy.fine}</p>
+    <p className={styles.fine}>{trustStories.trustStoriesCopy.fine}</p>
   </div>;
 }

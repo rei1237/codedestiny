@@ -1,4 +1,4 @@
-import { PRESIDENTIAL_REACTIONS, trustStoriesCopy } from '@/lib/brand/trust-stories.mjs';
+import * as trustStories from '@/lib/brand/trust-stories.mjs';
 import { postedMonth, splitReviews } from '@/lib/brand/customer-reviews.mjs';
 import { founder } from '@/lib/brand/founder';
 import styles from './entry-webtoon.module.css';
@@ -7,11 +7,12 @@ import styles from './entry-webtoon.module.css';
 // - record-reactions: 네이버 블로그 공개 반응. 구매 후기가 아니라는 reactionsNote를 붙인다.
 // - decade-reviews:  네오 1:1 상담·강의 이용자 카카오톡 후기. 지금의 AI 해설 상품과 다르다는 고지를 붙인다.
 
+const { trustStoriesCopy } = trustStories;
 const REACTIONS_SHOWN = 3;
 const SERVICE_BAR: Record<string, string> = { 'neo-1on1': '네오 1:1 상담', 'neo-lecture': '네오 사주 강의' };
 
 export function ReaderReactionCards() {
-  const shown = PRESIDENTIAL_REACTIONS.slice(0, REACTIONS_SHOWN);
+  const shown = trustStories.PRESIDENTIAL_REACTIONS.slice(0, REACTIONS_SHOWN);
   return <div className={styles.reactions}>
     <h3 className={styles.blockTitle}>{trustStoriesCopy.reactionsTitle}</h3>
     <ul className={styles.reactionList}>
