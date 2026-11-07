@@ -24,6 +24,7 @@ import { buildPeriodFaqs } from "@/lib/fortune/period-faqs";
 import { markerAttrs } from "@/lib/fortune/i18n-marker";
 import { fortuneLocaleSegment, FORTUNE_COPY, getLocalizedPeriodReading, langBoxText, getLocalizedProfile, periodLabel as localizedPeriodLabel, sajuInsightText, type FortuneLocale } from "@/lib/fortune/localization";
 import YeoniPortrait, { moodForScore } from "../YeoniPortrait";
+import ConcernBridge from "../../_components/ConcernBridge";
 import { tomorrowReadingCopy } from "@/lib/i18n/fortune-hub-copy.mjs";
 import { TOMORROW_PREPARATION_DETAILS } from "@/lib/i18n/search-reading-paths.mjs";
 import tomorrowStyles from "../tomorrow.module.css";
@@ -513,6 +514,9 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
             locale={locale}
           />
         </section>
+
+        {/* 고민 다리 — 고민 칩과 /ggulggul/ 진입은 한국어 전용이라 ko 에서만 그린다 */}
+        {locale === "ko" && <ConcernBridge from="fortune_bridge" />}
 
         {/* 더 깊이 */}
         <section aria-labelledby="deeper-heading" className="mt-12">
