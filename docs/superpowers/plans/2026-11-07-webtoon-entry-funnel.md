@@ -13,7 +13,7 @@
 ## Global Constraints
 
 - 결제 동결: `app/_lib/billing-client.ts`, `app/hooks/useCoinGate.ts`, `lib/payment/portone.ts` 전체와 `index.html`의 `_cdChooseServicePaymentMode`·`_cdRunDirectKrwCheckout`·`_cdOpenPaidServiceGate`, `js/destiny-profile.js`의 `_dpRenderStandalonePaymentChoice`는 수정 금지. 커밋마다 `node scripts/verify-payment-freeze.mjs`.
-- 가격 숫자는 `worker/lib/paid-feature-registry.js`에서만 읽는다. 코드·템플릿에 `5,000원`·`29,000원`·`30만원 외` 숫자를 새로 하드코딩하지 않는다(1:1 상담 "1회 30만원"은 과거 이력 문구라 예외, `founder.ts`에서 읽는다).
+- 가격 숫자는 `worker/lib/paid-feature-registry.js`에서만 읽는다. 코드·템플릿에 `5,000원`·`29,000원`·`14,900원` 같은 판매가를 새로 하드코딩하지 않는다. 1:1 상담 "1회 30만원"은 판매가가 아닌 이력 문구라 예외이며 `founder.ts`에서 읽는다.
 - 사주는 29,000원 묶음(`unlock.saju_lifetime_bundle`)으로만 판다. 사주 단품·균일가 제안 금지.
 - 금지 표현: "적중", "1위", "최고", "100%", 누적 고객 수, 경쟁사 비하, 2024-05-12 기록을 "1년 전", 2024-05-27 글의 "혁명" 방식이 실제와 같았다는 확대, 단정 예언, 공포 조장, 결제 압박, 사용자를 돼지라 부르기.
 - 신뢰 문구는 `lib/brand/trust-stories.mjs`·`lib/seo/public-record-copy.mjs`·`lib/brand/founder.ts`·`lib/brand/customer-reviews.mjs`의 승인 문구를 import해서 쓴다. 새로 쓰지 않는다.
@@ -31,6 +31,10 @@
 5. **sessionStorage 접근 실패**(사파리 사생활 보호): `cd:home-concern` 읽기/쓰기가 throw해도 CTA 이동과 고민 답 렌더가 계속된다. → Task 4, Task 10 테스트.
 
 ---
+
+## 실행 순서
+
+1 → 2 → 3(사용자 승인) → 4 → 5(사용자 확인) → 7 → 8 → 9 → 6 → 10 → 11 → 12 → 13. Task 6은 Task 7·9의 문구를 CMS 기본값으로 옮기므로 Task 9 뒤에 한다. Task 3 승인을 기다리는 동안 Task 7·8을 먼저 해도 된다.
 
 ## 파일 지도
 
@@ -92,6 +96,8 @@
   export function normalizeConcern(value: unknown): HomeConcernId | null  // 허용 목록 밖이면 null
   export function freeEntryHref(concern: string|null, from: string): string
     // '/ggulggul/?action=cdOneStepFreeSajuEntry&from=<from>' + (concern ? '&concern=<id>' : '')
+  export const REFUND_LINE = '생성에 실패하면 자동 환불돼요'
+  export const REFUND_POLICY_HREF: string   // 기존 환불 정책 경로를 찾아 넣는다
   ```
 - Produces (`entry-webtoon.mjs`):
   ```js
@@ -221,7 +227,7 @@
 
 **Interfaces:**
 - Produces: ns `home-copy`, `channel:"build"`, entries `{ key:"entry-webtoon", label:"첫 화면 웹툰", hint:"/" }`, `{ key:"ggulggul-hero", label:"꿀꿀 홈 히어로", hint:"/ggulggul/" }`, `{ key:"concern-offer", label:"무료 결과 고민 제안", hint:"/ggulggul/" }`. 웹툰 대사 필드 이름은 `line:<cutId>:<index>`(내 판단). `previewPath('home-copy','entry-webtoon') === '/'`, 나머지 key는 `/ggulggul/`.
-- `export function homeCopyDefaults(): Record<string, Record<string,string>>` (`lib/cms/home-copy.mjs`) — Task 2 대본과 Task 7·9 문구에서 만든다.
+- `export function homeCopyDefaults(): Record<string, Record<string,string>>` (`lib/cms/home-copy.mjs`) — Task 2 대본, Task 7 히어로 문구, Task 9 제안 문구에서 만든다. 그래서 이 태스크는 Task 9 뒤에 실행한다(아래 실행 순서).
 
 - [ ] **Step 1: 실패 테스트 작성** — `home-copy-cms.test.mjs`: registry에 `home-copy` 가 있고 entries 3개, `previewPath` 값, `homeCopyDefaults()['entry-webtoon']` 키 수 = 웹툰 전체 대사 수, `cms.generated.json` 에 `home-copy.entry-webtoon.line:imagine-night:0` 오버라이드를 넣고 렌더하면 그 문구가 나온다. `test-cms-static-preview.mjs` 에 "`/` 대사 클릭 → 수정값 미리보기" 케이스 추가.
 - [ ] **Step 2: 실패 확인.**
@@ -319,7 +325,7 @@
 
 **Interfaces:**
 - Consumes: `app/components/ReviewRewardBanner.tsx`, `lib/marketing/result-samples.json`.
-- Produces: 문구 상수 `REFUND_LINE = '생성에 실패하면 자동 환불돼요'` + 환불 정책 링크(기존 정책 경로)를 `lib/marketing/home-concerns.mjs` 에서 export해 Task 4·9와 공유한다.
+- Consumes: Task 2 `REFUND_LINE`, `REFUND_POLICY_HREF`.
 
 - [ ] **Step 1: 실패 테스트 작성** — 상세 패널 HTML과 `FeatureIntroductionActions` 렌더에 `REFUND_LINE` 과 정책 링크 존재, 연애 비책 결과 클라이언트가 `ReviewRewardBanner` 를 렌더, 후기 2건 픽스처에서 홈 후기 영역 대신 "결과 예시" 블록 표시.
 - [ ] **Step 2: 실패 확인.**
