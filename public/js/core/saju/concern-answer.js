@@ -3,7 +3,9 @@
    - resolveConcern(): 주소 ?concern= → sessionStorage 'cd:home-concern' 순. 허용 목록(생성 파일의 고민 5개) 밖이면 null.
    - buildAnswer(concern, {ygd, yEv, gaeun}): 올해 흐름 라벨 · 고민 분야 첫 문장 · 연결 문장 3줄. 고민이 없으면 lifestyle 기준 일반 답.
    - render(host, ctx): host 를 채우고 #sajuBundleOffer 를 맨 끝으로 옮긴다. 묶음 안내 내용은 bundle-offer.js 가 그린다.
-   가격·분야·환불 한 줄은 js/core/saju/concern-offers.generated.js(정본 lib/marketing/home-concerns.mjs,
+   문구는 아래 COPY 가 기본값이고(정본 lib/cms/home-copy.mjs 의 concern-offer 와 테스트가 대조), 관리자 수정값은
+   scripts/apply-home-copy.mjs 가 셸에 싣는 <script type="application/json" id="cdConcernCopy"> 로만 들어온다. {label} {stem} 은 런타임이 채운다.
+   번역된 로케일은 번역을 우선한다. 가격·분야·환불 한 줄은 js/core/saju/concern-offers.generated.js(정본 lib/marketing/home-concerns.mjs,
    worker/lib/paid-feature-registry.js)에서만 읽는다. 단건 카드는 상세 페이지로 가는 링크일 뿐 결제를 직접 부르지 않는다. */
 (function (root) {
   'use strict';
@@ -11,6 +13,41 @@
   var STORAGE_KEY = 'cd:home-concern';
   var GENERAL_FIELD = 'lifestyle';
   var BUNDLE_HOST_ID = 'sajuBundleOffer';
+  var COPY_SCRIPT_ID = 'cdConcernCopy';
+
+  var COPY = {
+    'flow-with-stem': "올해 들어오는 {stem} 기운을 내 사주와 맞춰 보면 '{label}' 쪽으로 읽혀요.",
+    'flow': "올해 기운을 내 사주와 맞춰 보면 '{label}' 쪽으로 읽혀요.",
+    'flow-plain': '올해 기운을 내 사주와 차분히 맞춰 봤어요.',
+    'field-plain': '서두르기보다 지금 할 수 있는 작은 일부터 살펴보세요.',
+    'bridge': '{label} 고민을 한 번 더 자세히 짚어 보고 싶다면 아래 풀이가 이어서 도와줄 수 있어요.',
+    'bridge-plain': '더 궁금한 고민이 있다면 아래에서 이어서 읽어 볼 수 있어요.',
+    'answer-title': '{label} 고민에 대한 짧은 답',
+    'answer-title-plain': '올해 흐름에 대한 짧은 답',
+    'offer-title': '{label} 고민만 자세히 보기',
+    'offer-cta': '풀이 내용 먼저 보기'
+  };
+
+  // 관리자 수정값. COPY 에 없는 키·문자열이 아닌 값·빈 값은 버리고, JSON 이 깨지면 기본 문구를 쓴다.
+  function readOverrides() {
+    var out = {};
+    try {
+      var node = root.document && root.document.getElementById(COPY_SCRIPT_ID);
+      var parsed = node ? JSON.parse(node.textContent || '{}') : null;
+      if (parsed && typeof parsed === 'object') {
+        Object.keys(parsed).forEach(function (key) {
+          if (Object.prototype.hasOwnProperty.call(COPY, key) && typeof parsed[key] === 'string' && parsed[key].trim()) out[key] = parsed[key];
+        });
+      }
+    } catch (_e) { /* 깨진 JSON: 기본 문구 */ }
+    return out;
+  }
+
+  function copy(key, vars) {
+    var overrides = readOverrides();
+    var template = Object.prototype.hasOwnProperty.call(overrides, key) ? overrides[key] : COPY[key];
+    return String(template).replace(/\{(label|stem)\}/g, function (_m, name) { return vars && vars[name] != null ? String(vars[name]) : ''; });
+  }
 
   function t(key, fallback, vars) {
     try {
@@ -74,13 +111,13 @@
     var stem = context.ygd && context.ygd.n && context.ygd.n !== '?' ? String(context.ygd.n) : '';
     var first = label
       ? (stem
-        ? t('saju.concernAnswer.flowWithStem', '올해 들어오는 ' + stem + ' 기운을 내 사주와 맞춰 보면 \'' + label + '\' 쪽으로 읽혀요.', { stem: stem, label: label })
-        : t('saju.concernAnswer.flow', '올해 기운을 내 사주와 맞춰 보면 \'' + label + '\' 쪽으로 읽혀요.', { label: label }))
-      : t('saju.concernAnswer.flowPlain', '올해 기운을 내 사주와 차분히 맞춰 봤어요.');
-    var second = firstSentence(context.gaeun && context.gaeun[field]) || t('saju.concernAnswer.fieldPlain', '서두르기보다 지금 할 수 있는 작은 일부터 살펴보세요.');
+        ? t('saju.concernAnswer.flowWithStem', copy('flow-with-stem', { stem: stem, label: label }), { stem: stem, label: label })
+        : t('saju.concernAnswer.flow', copy('flow', { label: label }), { label: label }))
+      : t('saju.concernAnswer.flowPlain', copy('flow-plain'));
+    var second = firstSentence(context.gaeun && context.gaeun[field]) || t('saju.concernAnswer.fieldPlain', copy('field-plain'));
     var third = item
-      ? t('saju.concernAnswer.bridge', item.label + ' 고민을 한 번 더 자세히 짚어 보고 싶다면 아래 풀이가 이어서 도와줄 수 있어요.', { label: item.label })
-      : t('saju.concernAnswer.bridgePlain', '더 궁금한 고민이 있다면 아래에서 이어서 읽어 볼 수 있어요.');
+      ? t('saju.concernAnswer.bridge', copy('bridge', { label: item.label }), { label: item.label })
+      : t('saju.concernAnswer.bridgePlain', copy('bridge-plain'));
     return { lines: [first, second, third] };
   }
 
@@ -106,8 +143,8 @@
     var data = offers();
     var item = concern && data ? data.concerns[concern] : null;
     var title = item
-      ? t('saju.concernAnswer.title', item.label + ' 고민에 대한 짧은 답', { label: item.label })
-      : t('saju.concernAnswer.titlePlain', '올해 흐름에 대한 짧은 답');
+      ? t('saju.concernAnswer.title', copy('answer-title', { label: item.label }), { label: item.label })
+      : t('saju.concernAnswer.titlePlain', copy('answer-title-plain'));
     return '<h3 class="concern-answer__title">' + esc(title) + '</h3>'
       + answer.lines.map(function (line) { return '<p class="concern-answer__line">' + esc(line) + '</p>'; }).join('');
   }
@@ -118,9 +155,9 @@
       ? '<p class="concern-offer__refund">' + esc(t('saju.concernOffer.refund', refund.line))
         + (refund.href ? ' <a href="' + esc(refund.href) + '">' + esc(t('saju.concernOffer.refundLink', '환불 기준')) + '</a>' : '') + '</p>'
       : '';
-    return '<h3 class="concern-offer__title">' + esc(t('saju.concernOffer.title', item.label + ' 고민만 자세히 보기', { label: item.label })) + '</h3>'
+    return '<h3 class="concern-offer__title">' + esc(t('saju.concernOffer.title', copy('offer-title', { label: item.label }), { label: item.label })) + '</h3>'
       + price
-      + '<a class="concern-offer__cta" href="' + esc(item.href) + '">' + esc(t('saju.concernOffer.cta', '풀이 내용 먼저 보기')) + '</a>'
+      + '<a class="concern-offer__cta" href="' + esc(item.href) + '">' + esc(t('saju.concernOffer.cta', copy('offer-cta'))) + '</a>'
       + refundHtml;
   }
 
@@ -158,6 +195,7 @@
   root.CdConcernAnswer = {
     resolveConcern: resolveConcern,
     buildAnswer: buildAnswer,
-    render: render
+    render: render,
+    COPY: COPY
   };
 })(typeof window !== 'undefined' ? window : globalThis);

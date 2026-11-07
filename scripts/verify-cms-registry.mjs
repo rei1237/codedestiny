@@ -160,6 +160,16 @@ function collectConsumedNamespaces() {
 const PIPELINE_CONSUMED = new Set(["light-novel", "famous-saju", "feature-detail", "daily-fortune"]);
 
 const consumedNamespaces = collectConsumedNamespaces();
+
+/* home-copy 는 세 묶음이 서로 다른 길로 소비된다. 첫 화면 웹툰만 cmsRecordFlat 호출로 잡히므로(위 검사),
+   나머지 둘이 의존하는 적용 스크립트가 sync 단계에 연결돼 있는지도 확인한다. 연결이 끊기면 히어로·고민 제안은 유령 항목이 된다.
+     ggulggul-hero · concern-offer -> scripts/apply-home-copy.mjs (sync-legacy-static-to-public.mjs 마지막 단계) */
+if (CMS_NAMESPACES.some((entry) => entry.ns === "home-copy")) {
+  const sync = readFileSync(resolve(rootDir, "scripts/sync-legacy-static-to-public.mjs"), "utf8");
+  if (!sync.includes("apply-home-copy.mjs") || !sync.includes("applyHomeCopy();")) {
+    problems.push("home-copy: sync-legacy-static-to-public.mjs 가 scripts/apply-home-copy.mjs 를 부르지 않습니다. 꿀꿀 홈 히어로·고민 제안 수정값이 반영되지 않습니다.");
+  }
+}
 for (const entry of CMS_NAMESPACES) {
   if (consumedNamespaces.has(entry.ns) || PIPELINE_CONSUMED.has(entry.ns)) continue;
   problems.push(

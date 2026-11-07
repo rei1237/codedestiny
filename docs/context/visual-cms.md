@@ -21,6 +21,7 @@
 - 영냥이 모자: 6개 기숙사별 첫인상·성향·관계·일·비밀 쪽지·선물·선택 대사 66개. 배정 계산과 분기는 유지한다.
 - **전체 문장 보기**: 현재 화면에서 나오지 않은 결과 문장도 검색해 클릭하고 편집한다. 날짜별 운세와 영냥이 모자는 이 보기로 시작하며 **실제 페이지 보기**로 전환할 수 있다. 기존 정적 해설 표에도 같은 보기를 제공한다.
 
+- 첫 화면 문구(`home-copy`, build 채널): **첫 화면 웹툰**은 `/`의 컷별 대사(`line:<컷>:<순번>` 27줄)를 `/` 미리보기에서 눌러 고친다. **꿀꿀 홈 히어로**는 제목·무료 시작 버튼·유료 안내 한 줄, **무료 결과 고민 제안**은 고민 답 제목·연결 문장·제안 제목·버튼 문구를 고친다. 정적 셸의 `data-cms="home-copy:ggulggul-hero:<필드>"` 요소와 무료 결과 화면은 `sync:public` 마지막에 도는 `scripts/apply-home-copy.mjs`가 `public/` 산출물에만 반영한다(루트 `index.html`과 `build-home-funnel --check` 대상은 건드리지 않는다). 고민 제안의 `{label}`·`{stem}` 자리, 가격, 환불 한 줄, 링크, 기록·후기 원문은 편집 대상이 아니다. 빈 값·금칙어·목록에 없는 키는 무시하고 기본 문장을 쓴다. 번역된 언어에는 번역이 우선한다.
 - 서비스 상세페이지: `feature-visual-details.generated.json`의 verified 항목 전체. 소개, 목차, 해설, 질문, 이미지. 가격·이용 조건·링크·상품 키·면책 안내는 제외한다.
 - 라이트 노벨: 화별 제목·부제·대사. `/stories/<화>/` 텍스트 리더로 확인한다. 발행본은 같은 정본에서 텍스트 리더와 삽화 플레이어를 함께 생성한다. 화자·분기·대사 개수와 순서는 바꾸지 않는다.
 - 서비스 소개, FAQ, 찻집·전략실 문구: 기존 CMS 연결 항목.
@@ -45,6 +46,7 @@
 - `node --test __tests__/ui/cms-visual-editor.test.mjs`
 - `node --test __tests__/ui/cms-static-results.test.mjs`
 - `node scripts/test-cms-static-preview.mjs` — 실제 편집 컴포넌트·관리자 스타일, 로컬 대역만 사용하는 PC/모바일 검사
+- `node --test __tests__/ui/home-copy-cms.test.mjs` — 첫 화면 웹툰 렌더, 꿀꿀 홈 히어로 적용, 고민 제안 문구 대조
 - `npm run verify:cms-registry`
 - mock 개발 서버에서 `node scripts/test-cms-visual-editor.mjs`
 - `npm run check:fast`

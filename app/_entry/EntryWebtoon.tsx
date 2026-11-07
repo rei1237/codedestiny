@@ -1,4 +1,6 @@
 import { ENTRY_WEBTOON, entryCuts } from '@/lib/brand/entry-webtoon.mjs';
+import { cmsRecordFlat } from '@/lib/cms/build-text';
+import { homeCopyDefaults } from '@/lib/cms/home-copy.mjs';
 import { HOME_CONCERNS, freeEntryHref } from '@/lib/marketing/home-concerns.mjs';
 // 기록 상수는 네임스페이스로 읽는다(정치어 정적 테스트의 허용 개수를 최소로 유지).
 import * as trustStories from '@/lib/brand/trust-stories.mjs';
@@ -51,14 +53,20 @@ export function buildOfferPrices(): OfferPrices {
   };
 }
 
-function Lines({ lines }: { lines: EntryCut['lines'] }) {
+// 관리자(CMS ns home-copy · entry-webtoon)가 고친 대사. 필드 이름은 line:<cutId>:<index>, 비었거나 목록에 없는 키는 대본 원문.
+const WEBTOON_COPY = cmsRecordFlat('home-copy', 'entry-webtoon', homeCopyDefaults()['entry-webtoon']);
+
+function Lines({ cutId, lines }: { cutId: string; lines: EntryCut['lines'] }) {
   if (!lines.length) return null;
   return <div className={styles.lines}>
-    {lines.map((line, index) => line.speaker === 'caption'
-      ? <p key={index} className={`${styles.line} ${styles.caption}`}>{line.text}</p>
-      : <p key={index} className={`${styles.line} ${styles.bubble} ${styles[line.speaker]}`} data-speaker={line.speaker}>
-          <span className={styles.speaker}>{SPEAKER[line.speaker]}</span>{line.text}
-        </p>)}
+    {lines.map((line, index) => {
+      const text = WEBTOON_COPY[`line:${cutId}:${index}`] ?? line.text;
+      return line.speaker === 'caption'
+        ? <p key={index} className={`${styles.line} ${styles.caption}`}>{text}</p>
+        : <p key={index} className={`${styles.line} ${styles.bubble} ${styles[line.speaker]}`} data-speaker={line.speaker}>
+            <span className={styles.speaker}>{SPEAKER[line.speaker]}</span>{text}
+          </p>;
+    })}
   </div>;
 }
 
@@ -78,24 +86,24 @@ function CutBody({ cut, prices, firstImageId, entryHref }: { cut: EntryCut; pric
     case 'image':
       return <figure className={styles.figure}>
         {cut.image && <CutPicture image={cut.image} first={cut.id === firstImageId} />}
-        {cut.lines.length > 0 && <figcaption><Lines lines={cut.lines} /></figcaption>}
+        {cut.lines.length > 0 && <figcaption><Lines cutId={cut.id} lines={cut.lines} /></figcaption>}
       </figure>;
     case 'record': {
       const record = cut.recordIndex === undefined ? undefined : trustStories.PRESIDENTIAL_RECORDS[cut.recordIndex];
-      return <><Lines lines={cut.lines} />{record && <RecordCard record={record} />}</>;
+      return <><Lines cutId={cut.id} lines={cut.lines} />{record && <RecordCard record={record} />}</>;
     }
     case 'reviews':
-      return <><Lines lines={cut.lines} />
+      return <><Lines cutId={cut.id} lines={cut.lines} />
         {cut.id === 'record-reactions' ? <ReaderReactionCards /> : <CustomerReviewCards />}</>;
     case 'press':
-      return <><Lines lines={cut.lines} /><div className={styles.press}><PressCoverage /></div></>;
+      return <><Lines cutId={cut.id} lines={cut.lines} /><div className={styles.press}><PressCoverage /></div></>;
     case 'concern':
-      return <><Lines lines={cut.lines} /><ConcernPicker concerns={HOME_CONCERNS} ctaHrefBase={FROM} /></>;
+      return <><Lines cutId={cut.id} lines={cut.lines} /><ConcernPicker concerns={HOME_CONCERNS} ctaHrefBase={FROM} /></>;
     case 'offer':
-      return <><Lines lines={cut.lines} /><OfferCard cutId={cut.id} prices={prices} /></>;
+      return <><Lines cutId={cut.id} lines={cut.lines} /><OfferCard cutId={cut.id} prices={prices} /></>;
     case 'cta':
       return <div className={styles.invite}>
-        <Lines lines={cut.lines} />
+        <Lines cutId={cut.id} lines={cut.lines} />
         <a data-entry-cta="" data-position="invite" className={styles.ctaButton} href={entryHref}>
           {ENTRY_WEBTOON.ctaLabel}<span aria-hidden="true"> →</span>
         </a>
@@ -104,7 +112,7 @@ function CutBody({ cut, prices, firstImageId, entryHref }: { cut: EntryCut; pric
         </nav>
       </div>;
     default:
-      return <Lines lines={cut.lines} />;
+      return <Lines cutId={cut.id} lines={cut.lines} />;
   }
 }
 
