@@ -1,6 +1,9 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
+import {createRequire} from 'node:module';
+import path from 'node:path';
+import {build} from 'esbuild';
 import {brandCopy} from '../../lib/seo/brand-copy.mjs';
 
 // `/` 교체(Task 5)의 정적 검사. 웹 빌드는 진입 웹툰, 앱 빌드(IS_APP_BUILD)는 기존 서비스 선택 카드를 그대로 둔다.
@@ -57,4 +60,44 @@ test('EntryWebtoon: 첫 그림은 fetchPriority(카멜) high, 소문자 fetchpri
   // React 19(Next 앱 라우터)는 소문자 fetchpriority 를 모르는 DOM 속성으로 경고한다.
   assert.match(source, /fetchPriority:\s*'high'/);
   assert.doesNotMatch(source, /fetchpriority:/);
+});
+
+// 웹 `/` 의 페이지 안 링크(헤더 "상담 추천" 등)가 실제 렌더에 대응하는 id 를 가져야 한다(죽은 앵커 방지).
+const require = createRequire(import.meta.url), Module = require('node:module');
+const cssModules = {name: 'css-module-names', setup(builder) {
+  builder.onLoad({filter: /\.module\.css$/}, () => ({contents: 'export default new Proxy({}, {get: (_, key) => String(key)});', loader: 'js'}));
+}};
+const nextImage = {name: 'next-image-adapter', setup(builder) {
+  builder.onResolve({filter: /^next\/image$/}, () => ({path: 'next-image', namespace: 'next-image'}));
+  builder.onLoad({filter: /.*/, namespace: 'next-image'}, () => ({contents: "import React from 'react';export default function Image(props){return React.createElement('img',props);}", loader: 'js', resolveDir: process.cwd()}));
+}};
+async function renderWebEntry() {
+  const bundle = await build({
+    stdin: {contents: "export {default} from './app/_entry/EntryWebtoon';", resolveDir: process.cwd(), loader: 'tsx'},
+    bundle: true, platform: 'node', format: 'cjs', write: false, jsx: 'automatic', loader: {'.css': 'empty'},
+    external: ['react', 'react/jsx-runtime', 'react-dom'], plugins: [cssModules, nextImage],
+  });
+  const loaded = new Module(path.resolve('entry-webtoon-root-render.cjs'));
+  loaded.paths = Module._nodeModulePaths(process.cwd());
+  loaded._compile(bundle.outputFiles[0].text, loaded.id);
+  const React = require('react'), {renderToStaticMarkup} = require('react-dom/server');
+  return renderToStaticMarkup(React.createElement(loaded.exports.default));
+}
+
+test('웹 /: 웹툰 H1 은 id=homeCardTitle 을 가진다(레거시 /#homeCardTitle 앵커가 페이지 안에 남는다)', async () => {
+  const html = await renderWebEntry();
+  assert.match(html, /<h1[^>]*\sid="homeCardTitle"/);
+});
+
+test('웹 /: 헤더의 페이지 안 링크(href="#...")는 모두 웹 렌더에 같은 id 가 있다', async () => {
+  const html = await renderWebEntry();
+  const header = page.match(/<header className=\{styles\.brandRow\}>[\s\S]*?<\/header>/)[0];
+  const webLinks = [...header.matchAll(/!IS_APP_BUILD && <a href="#([^"]+)"/g)].map(match => match[1]);
+  assert.ok(webLinks.length >= 1, '웹 헤더에 페이지 안 링크가 있어야 한다');
+  for (const id of webLinks) assert.ok(html.includes(`id="${id}"`), `#${id} 대응 id 없음`);
+  assert.ok(webLinks.includes('entry-question'), '상담 추천은 고민 고르기 장으로 간다');
+});
+
+test('웹 /: MobileHomeNav 는 웹 분기에 없다(고정 CTA 가 대신한다)', () => {
+  assert.doesNotMatch(page, /MobileHomeNav/);
 });

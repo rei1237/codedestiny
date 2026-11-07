@@ -131,7 +131,7 @@ export default function EntryWebtoon() {
     <header className={styles.hero}>
       <a className={styles.skip} data-entry-skip="" href="#entry-invite">{ENTRY_WEBTOON.skipLabel}</a>
       <p className={styles.kicker}>{ENTRY_WEBTOON.title}</p>
-      <h1 className={styles.title}>{ENTRY_WEBTOON.h1}</h1>
+      <h1 id="homeCardTitle" className={styles.title}>{ENTRY_WEBTOON.h1}</h1>
       <p className={styles.byline}>{founder.byline}</p>
       <a data-entry-cta="" data-position="hero" className={styles.ctaButton} href={entryHref}>
         {ENTRY_WEBTOON.ctaLabel}<span aria-hidden="true"> →</span>

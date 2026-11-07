@@ -12,7 +12,6 @@ import { FOOTER_BYLINE, FOOTER_LINKS, FOOTER_NOTICE, FOOTER_TRUST_LINKS } from "
 import { BUSINESS_IDENTITY } from "../lib/site-policy-config";
 import LegacyHomeEntry from "./components/LegacyHomeEntry";
 import { HOME_QUICK_LINKS } from "../lib/seo/home-discovery.mjs";
-import MobileHomeNav from './components/MobileHomeNav';
 import HomeCardDeck from "./components/HomeCardDeck";
 import HomeDailyEntry from "./components/HomeDailyEntry";
 import { NativeHomeRoot, NativeHomeNav, NativeHomeText, NativeHomeCardLink, NativeHomeDictionaryText } from "./components/NativeHomeCopy";
@@ -98,7 +97,7 @@ export default function HomePage() {
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img className={styles.brandMark} src="/fuctionassets/%EC%97%B0%EC%9D%B4.webp" width={96} height={96} alt="" decoding="async" />
         <span className={styles.wordmark}>{IS_APP_BUILD ? service.name : "코드 데스티니"}</span>
-        {!IS_APP_BUILD && <a href="#homeCardTitle">상담 추천</a>}
+        {!IS_APP_BUILD && <a href="#entry-question">상담 추천</a>}
       </header>
 
       <main className={styles.stage}>
@@ -138,7 +137,6 @@ export default function HomePage() {
         </>}
       </main>
 
-      {!IS_APP_BUILD && <MobileHomeNav/>}
       <footer className={styles.footer}>
         <div className={styles.footerGroups}>
           {!IS_APP_BUILD && <nav className={styles.entryHelp} aria-label="주요 운세 바로가기">

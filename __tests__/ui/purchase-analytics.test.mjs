@@ -204,6 +204,12 @@ test('test or unknown server channels never become purchase events', async()=>{
   assert.equal(w.dataLayer.filter(row=>row[1]==='purchase').length,0);
   dom.window.close();
 });
+test('page_location keeps the entry_webtoon public campaign code',()=>{
+  // R14: / 진입 웹툰 캠페인 코드는 공개 허용 목록에 있어 page_location 에 남는다(다른 쿼리는 버린다).
+  const dom=boot('https://code-destiny.com/?utm_source=threads&utm_medium=social&utm_campaign=entry_webtoon&token=private'),w=dom.window;
+  assert.equal(w.dataLayer.find(row=>row[0]==='config')[2].page_location,'https://code-destiny.com/?utm_source=threads&utm_medium=social&utm_campaign=entry_webtoon');
+  dom.window.close();
+});
 test('page_location keeps campaign parameters and drops every other query value',()=>{
   const dom=boot('https://code-destiny.com/landing/?utm_source=threads&token=private&utm_medium=social&utm_campaign=s1_launch'),w=dom.window;
   const expected='https://code-destiny.com/landing/?utm_source=threads&utm_medium=social&utm_campaign=s1_launch';

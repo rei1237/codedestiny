@@ -137,7 +137,7 @@
     var publicFields = {
       utm_source:/^(naver|google|naver_blog|youtube|tiktok|x|threads|kakao|email|copy|native|image|share|facebook|instagram|line|twitter)$/,
       utm_medium:/^(cpc|social|organic_social|channel|email|newsletter|share|organic|referral)$/,
-      utm_campaign:/^(s1_launch|public_share|yeongnyangi_result|yeongnyangi_daily|insight_ggulggul|insight_yeongnyangi|yeoni-weekly|neo-depth|yeongnyangi-ask|autumn-pause|welcome|crm-[a-z0-9][a-z0-9-]{2,79}|email-weekly-[0-9]{4}-[0-9]{2}-[0-9]{2}|threads_[0-9]{8}_(saju|ziwei|vedic|numerology)|threads_queue_t[0-9]{2}_v1|growth_20261012|growth_20261021)$/,
+      utm_campaign:/^(s1_launch|public_share|yeongnyangi_result|yeongnyangi_daily|insight_ggulggul|insight_yeongnyangi|yeoni-weekly|neo-depth|yeongnyangi-ask|autumn-pause|welcome|crm-[a-z0-9][a-z0-9-]{2,79}|email-weekly-[0-9]{4}-[0-9]{2}-[0-9]{2}|threads_[0-9]{8}_(saju|ziwei|vedic|numerology)|threads_queue_t[0-9]{2}_v1|growth_20261012|growth_20261021|entry_webtoon)$/,
       utm_content:/^((W[0-9]{2}-)?[A-Z][A-Z0-9-]{1,10}_(ko|en|ja)|(yeoni-weekly|neo-depth|yeongnyangi-ask|autumn-pause|welcome)(-wideimage-v1)?)$/
     };
     Object.keys(publicFields).forEach(function (key) {
