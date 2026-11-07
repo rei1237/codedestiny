@@ -202,8 +202,10 @@ async function main() {
 
       await page.goto(`${origin}/fortune-tea-house/`, { waitUntil: "domcontentloaded" });
       try {
-        await page.waitForSelector('[class*="landingActions"] button', { timeout: 30000 });
-        await page.click('[class*="landingActions"] button');
+        // 랜딩 첫 버튼(처음 오셨나요/이어 보기)이 입장 스토리를 연다. 예전 landingActions 묶음은 tea-house-home 의 hero 로 옮겨졌다.
+        const startStory = '[class*="tea-house-home_heroCopy"] [class*="tea-house-home_actions"] > button[class*="tea-house-home_primary"]';
+        await page.waitForSelector(startStory, { timeout: 30000 });
+        await page.click(startStory);
         await page.waitForSelector("section[data-entry-stage]", { timeout: 30000 });
       } catch (error) {
         failures.push(`${where}: 입장 스토리에 도달하지 못했다 — ${error.message}`);
