@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "d36c7c7b90329047d287719ffe02be6f6821bfce",
+  "sourceCommit": "dd70c8e1e5d8a9c7d2f07fc6944678cc068d6200",
   "scope": "Source discovery plus explicitly verified aliases; not a count of implemented services. Unmapped contracts are blocking work, not exclusions.",
   "sourceCounts": {
     "home": 63,
@@ -768,8 +768,8 @@
         "library": "not-verified",
         "device": "not-tested",
         "canonicalId": "human-design",
-        "candidateStatus": "requires-full-flow-port-and-verification",
-        "canonicalRoute": null
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/human-design"
       }
     },
     {
@@ -3640,12 +3640,13 @@
         }
       ],
       "aliasEvidence": [],
-      "status": "requires-full-flow-port-and-verification",
-      "tossRoute": null,
+      "status": "local-partial",
+      "tossRoute": "/human-design",
       "sku": null,
-      "inputContract": null,
-      "resultRenderer": null,
-      "storageContract": null
+      "inputContract": "worker/toss/human-design.js + original human-design ephemeris",
+      "resultRenderer": "apps/toss/src/HumanDesignChart.tsx + original interactive BodyGraph and DetailSheet",
+      "storageContract": "screen-only free chart; no saved result or cross-device recovery",
+      "verification": "offline mock and local Swiss ephemeris (one independently recorded 26-activation chart), original graph, calendar, auth, session and back checks; full free-screen parity, production astronomy configuration, previously paid guides, premium report and official device remain unverified"
     },
     {
       "id": "ifa-oracle",
