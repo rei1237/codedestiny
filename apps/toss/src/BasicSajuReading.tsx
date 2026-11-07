@@ -1,3 +1,4 @@
+import PillarAlmanac from './PillarAlmanac';
 import {useEffect,useRef,useState,type FormEvent} from 'react';
 import {calculateNatalSaju} from '@/lib/korean-calendar/natal.js';
 import {branchIndexOf,formatPillar,stemIndexOf} from '@/lib/korean-calendar/labels.js';
@@ -45,12 +46,8 @@ function Reading(){
     <form className="form" onSubmit={submit}><BirthFields title="명식을 세울 출생정보" showGender={false} value={birth} onChange={value=>{setBirth(value);setError('');}}/>
     {error&&<p role="alert">{error}</p>}<Button type="submit" display="block">나의 명식 보기</Button></form></section>;
   return <section className="manse-result"><h1 ref={title} tabIndex={-1}>나의 기본 사주</h1>
-    <p>일간은 태어난 날의 첫 글자예요. 다른 기둥의 첫 글자가 일간과 맺는 관계를 십성으로 표시했어요.</p>
-    <dl className="manse-pillars">{chart.rows.map(row=><div key={row.key}><dt>{labels[row.key]}</dt><dd>
-      <strong>{row.korean||'미상'}</strong><span>{[row.hanja,row.relation].filter(Boolean).join(' · ')}</span></dd></div>)}</dl>
-    {birth.unknown&&<p className="notice">태어난 시각을 몰라 시주는 비워 두었어요. 절기가 바뀌는 날에는 정오 기준으로 본 연주와 월주가 실제와 다를 수 있어요.</p>}
-    <h2>나의 오행 분포</h2><p>명식에 드러난 글자만 센 수예요. 개수만으로 기질이나 운의 강약을 정하지 않아요.</p>
-    <dl className="daily-basis">{Object.entries(chart.elements).map(([key,count])=><div key={key}><dt>{key}</dt><dd>{count}</dd></div>)}</dl>
+    <PillarAlmanac pillars={chart.rows.map(r=>({key:r.key,ganji:r.hanja,tenGod:r.relation}))} counts={chart.elements} basis="surface"
+      unknownNote={birth.unknown?'태어난 시각을 몰라 시주는 비워 두었어요. 절기가 바뀌는 날에는 정오 기준으로 본 연주와 월주가 실제와 다를 수 있어요.':undefined}/>
     <Button variant="weak" display="block" onClick={()=>setChart(null)}>출생정보 다시 보기</Button>
   </section>;
 }
