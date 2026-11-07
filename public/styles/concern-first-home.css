@@ -209,7 +209,7 @@ html.cdh-input-open body .cdh-input-return:focus-visible{outline:3px solid var(-
 #cdHomeFunnel.cdh--focused .cd-choice .cd-concern__q-badge{color:#e5c8ce}
 #cdHomeFunnel.cdh--focused .cd-choice :is(.cd-concern__q-price,.cd-concern__q-go,.cd-concern__q-alt,.cd-concern__actions a){color:#e7cb85}
 /* Moonlight invitation: illuminated crescent, quiet foil edge, readable night surface. */
-#cdHomeFunnel.cdh--focused .cd-choice .cd-sig__samples-link{
+#cdHomeFunnel.cdh--focused :is(.cd-choice,.cdh-proof) .cd-sig__samples-link{
  --moon-surface:#291a31;--moon-ink:#fff4de;--moon-accent:#e9cc98;
  position:relative;isolation:isolate;display:grid;grid-template-columns:84px minmax(0,1fr) 36px;align-items:center;gap:24px;
  width:min(100%,600px);margin:28px auto 0;padding:26px 32px;min-height:144px;overflow:hidden;
@@ -218,11 +218,11 @@ html.cdh-input-open body .cdh-input-return:focus-visible{outline:3px solid var(-
  font:600 20px/1.5 var(--cdh-serif);word-break:keep-all;text-align:left;text-decoration:none;
  transition:border-color 180ms ease-out,box-shadow 180ms ease-out;
 }
-#cdHomeFunnel.cdh--focused .cd-choice .cd-sig__samples-link::before{
+#cdHomeFunnel.cdh--focused :is(.cd-choice,.cdh-proof) .cd-sig__samples-link::before{
  content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;
  background:linear-gradient(105deg,transparent 36%,#ffebbc0a 47%,#fff4de14 50%,#ffebbc08 53%,transparent 64%);transform:translateX(-115%);
 }
-#cdHomeFunnel.cdh--focused .cd-choice .cd-sig__samples-link::after{
+#cdHomeFunnel.cdh--focused :is(.cd-choice,.cdh-proof) .cd-sig__samples-link::after{
  content:'';position:absolute;inset:auto 22px 0;height:1px;pointer-events:none;
  background:linear-gradient(90deg,transparent,#f6dfac,transparent);opacity:.7;
 }
@@ -238,14 +238,14 @@ html.cdh-input-open body .cdh-input-return:focus-visible{outline:3px solid var(-
 #cdHomeFunnel.cdh--focused .cd-choice .cd-concern__actions a{position:relative;display:flex;align-items:center;justify-content:center;gap:10px;min-height:58px;padding:14px 20px;border:1px solid #ad8b60;border-radius:14px;background:linear-gradient(110deg,#452237,#341629);color:#f6e7d0;font:500 14px/1.5 var(--font-body);word-break:keep-all;text-align:center;box-shadow:0 6px 14px -12px #170a12;transition:border-color 180ms ease-out,background-color 180ms ease-out}
 #cdHomeFunnel.cdh--focused .cd-choice .cd-concern__actions .cd-concern__ask{border-color:#c4a273;background:linear-gradient(110deg,#593345,#402033)}.cd-choice .cd-concern__actions em{font-style:normal;white-space:nowrap}
 .cd-choice__action-moon{flex:none;width:22px;height:22px;fill:none;stroke:var(--cdh-gold);stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;transition:transform 220ms ease-out}
-#cdHomeFunnel.cdh--focused .cd-choice .cd-sig__samples-link:active{background:var(--moon-surface);border-color:#fff0ce}
+#cdHomeFunnel.cdh--focused :is(.cd-choice,.cdh-proof) .cd-sig__samples-link:active{background:var(--moon-surface);border-color:#fff0ce}
 @media(max-width:760px){
- #cdHomeFunnel.cdh--focused .cd-choice .cd-sig__samples-link{grid-template-columns:52px minmax(0,1fr) 26px;gap:10px;min-height:132px;padding:22px 14px;border-radius:18px}
+ #cdHomeFunnel.cdh--focused :is(.cd-choice,.cdh-proof) .cd-sig__samples-link{grid-template-columns:52px minmax(0,1fr) 26px;gap:10px;min-height:132px;padding:22px 14px;border-radius:18px}
  .cd-choice__moon{width:58px;height:58px;margin-left:-3px}.cd-choice__samples-label>span{font-size:13px}.cd-choice__samples-label>strong{font-size:23px}
  .cd-choice__cta-arrow{width:26px;height:26px;padding:5px}#cdHomeFunnel.cdh--focused .cd-choice .cd-concern__actions a{padding-inline:12px}
 }
 @media(max-width:360px){
- #cdHomeFunnel.cdh--focused .cd-choice .cd-sig__samples-link{grid-template-columns:44px minmax(0,1fr) 24px;gap:8px}
+ #cdHomeFunnel.cdh--focused :is(.cd-choice,.cdh-proof) .cd-sig__samples-link{grid-template-columns:44px minmax(0,1fr) 24px;gap:8px}
  .cd-choice__moon{width:48px;height:48px;margin-left:-2px}.cd-choice__cta-arrow{width:24px;height:24px;padding:4px}
 }
 /* Short, viewport-triggered moonlight scenes. Never obscure content or run an ambient loop. */
@@ -266,10 +266,10 @@ html.cdh-input-open body .cdh-input-return:focus-visible{outline:3px solid var(-
 }
 @media(hover:hover){
  #cdHomeFunnel.cdh--focused .cd-choice .cd-concern__actions a:hover{background:#533044;border-color:#e7cb85}
- #cdHomeFunnel.cdh--focused .cd-choice .cd-sig__samples-link:hover{border-color:#f8dfae;box-shadow:0 16px 32px -18px #120b19,inset 0 1px 0 #f4dfb560;transform:none}
+ #cdHomeFunnel.cdh--focused :is(.cd-choice,.cdh-proof) .cd-sig__samples-link:hover{border-color:#f8dfae;box-shadow:0 16px 32px -18px #120b19,inset 0 1px 0 #f4dfb560;transform:none}
 }
 @media(hover:hover) and (prefers-reduced-motion:no-preference){
- #cdHomeFunnel.cdh--focused .cd-choice .cd-sig__samples-link:hover::before{animation:cdhMoonSweepHover 1.3s ease-out both}
+ #cdHomeFunnel.cdh--focused :is(.cd-choice,.cdh-proof) .cd-sig__samples-link:hover::before{animation:cdhMoonSweepHover 1.3s ease-out both}
  #cdHomeFunnel .cd-sig__samples-link:is(:hover,:focus-visible) .cd-choice__cta-arrow{transform:translateX(3px);background:#f4dfb214}
  #cdHomeFunnel .cd-concern__actions a:hover .cd-choice__action-moon{transform:rotate(-12deg)}
  #cdHomeFunnel .cd-choice :is(.cd-sig-card,.cd-concern__card):hover img{transform:scale(1.035)}

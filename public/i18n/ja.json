@@ -1944,7 +1944,8 @@
       "sampleConsult": "ヨンニャンイ相談の結果例",
       "allLead": "占術から直接選ぶか、今の悩みに近いテーマから探せます。",
       "moreContent": "もっと多くの占いとコンテンツ",
-      "moreContentNote": "特別なリーディング、公開分析記録、今日の運勢をまとめて見られます。"
+      "moreContentNote": "特別なリーディング、公開分析記録、今日の運勢をまとめて見られます。",
+      "passFrom": "利用券 {amount} KRWから"
     },
     "yeongnyangiEntry": {
       "badge": "ヨンニャンイの質問相談",
@@ -2394,7 +2395,11 @@
       "codexDescription": "個人版で恋愛の傾向を、相性版で二人の違いを読み解きます。",
       "sibylName": "シビラ年間備えレポート",
       "sibylDescription": "注意する時期・分野別の備え・現実的な行動。",
-      "rangePrice": "{from}～{to}ウォン"
+      "rangePrice": "{from}～{to}ウォン",
+      "trustLine": "経験10年の命理学者 · 無料で始められます",
+      "neoIntro": "命理学者 パク・ビョンハ（ネオ）の紹介",
+      "paidNote": "相談は有料です。料金と結果の例は先に確認できます。",
+      "freeStart": "無料の萬歳暦を始める"
     },
     "cro": {
       "love": "恋愛・復縁",
@@ -2526,6 +2531,13 @@
     "mobileEntry": {
       "menu": "メニュー",
       "find": "悩みから探す"
+    },
+    "concernChips": {
+      "love": "恋愛",
+      "reunion": "復縁",
+      "money": "お金",
+      "job": "転職",
+      "year": "今年の流れ"
     }
   },
   "terms": {

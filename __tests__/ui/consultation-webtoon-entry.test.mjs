@@ -31,7 +31,8 @@ test('all 13 stories retain an existing service, art, three benefits and a dedic
       assert.equal(link.previousElementSibling.getAttribute('href'), service.href, id);
     }
   }
-  assert.equal(dom.window.document.querySelectorAll('[data-yh-group="love"] .yh-story-link').length, 3);
+  // 2026-11-07 고민 칩 단일화로 홈의 고민별 카드(웹툰 링크 포함)는 빠졌다. 웹툰 목록은 /#homeStoryTitle 로 간다.
+  assert.equal(dom.window.document.querySelectorAll('.yh-story-link').length, 0);
   assert.ok(dom.window.document.querySelector('a[href="/#homeStoryTitle"]'));
   assert.equal(dom.window.document.querySelectorAll('#cdSigGrid .cd-sig-card[data-cd-service-id][data-cd-popup-copy]').length,6);
   assert.equal(dom.window.document.querySelectorAll('a a').length,0);

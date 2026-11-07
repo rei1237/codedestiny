@@ -1944,7 +1944,8 @@
       "sampleConsult": "靈喵諮詢結果範例",
       "allLead": "可直接選擇占卜體系，也可從當下最貼近的煩惱開始。",
       "moreContent": "更多運勢與內容",
-      "moreContentNote": "集中查看特別解讀、公開分析記錄與今日運勢。"
+      "moreContentNote": "集中查看特別解讀、公開分析記錄與今日運勢。",
+      "passFrom": "通行證 {amount}韓元起"
     },
     "yeongnyangiEntry": {
       "badge": "靈喵的問題諮詢",
@@ -2394,7 +2395,11 @@
       "codexDescription": "個人版探索戀愛模式，合盤版理解兩人的差異。",
       "sibylName": "西比拉年度準備報告",
       "sibylDescription": "關注時期、分領域準備和實際行動。",
-      "rangePrice": "{from}–{to}韓元"
+      "rangePrice": "{from}–{to}韓元",
+      "trustLine": "10年經驗的命理學者 · 可免費開始",
+      "neoIntro": "命理學者朴炳夏（Neo）介紹",
+      "paidNote": "諮詢為付費服務。可以先查看價格和結果範例。",
+      "freeStart": "開始免費萬歲曆"
     },
     "cro": {
       "love": "戀愛·復合",
@@ -2526,6 +2531,13 @@
     "mobileEntry": {
       "menu": "選單",
       "find": "依煩惱尋找"
+    },
+    "concernChips": {
+      "love": "戀愛",
+      "reunion": "復合",
+      "money": "金錢",
+      "job": "轉職",
+      "year": "今年運勢"
     }
   },
   "terms": {

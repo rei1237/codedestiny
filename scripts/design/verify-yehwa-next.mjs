@@ -20,8 +20,8 @@ try {
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
   await page.locator('.yh-art img').evaluate(image=>image.decode());
   await page.screenshot({path:`${out}/home-${width}.png`});
-  await page.locator('[data-yh-concern=work]').click();
-  assert.equal(await page.locator('[data-yh-concern=work]').getAttribute('aria-pressed'),'true');
+  await page.locator('[data-concern-picker] [data-concern=job]').click();
+  assert.equal(await page.locator('[data-concern-picker] [data-concern=job]').getAttribute('aria-pressed'),'true');
   await page.locator('[data-yh-start]').click();
   await page.locator('[data-yh-next]').click();
   assert.equal(await page.locator('.yh-portrait img').evaluate(image=>image.getBoundingClientRect().width/image.parentElement.getBoundingClientRect().width),4);

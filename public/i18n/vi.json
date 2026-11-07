@@ -1944,7 +1944,8 @@
       "sampleConsult": "Mẫu kết quả tư vấn Yeongnyangi",
       "allLead": "Choose a system directly, or start with the concern closest to you.",
       "moreContent": "More readings and stories",
-      "moreContentNote": "Explore special readings, public analysis records and daily fortunes in one place."
+      "moreContentNote": "Explore special readings, public analysis records and daily fortunes in one place.",
+      "passFrom": "Gói từ KRW {amount}"
     },
     "yeongnyangiEntry": {
       "badge": "Tu van cau hoi cung Yeongnyangi",
@@ -2394,7 +2395,11 @@
       "codexDescription": "Explore your relationship patterns individually or compare two people’s differences.",
       "sibylName": "Sibyl Annual Preparation Report",
       "sibylDescription": "Periods to watch, preparation by area, and practical next steps.",
-      "rangePrice": "KRW {from}–{to}"
+      "rangePrice": "KRW {from}–{to}",
+      "trustLine": "Chuyên gia mệnh lý 10 năm kinh nghiệm · Bắt đầu miễn phí",
+      "neoIntro": "Giới thiệu chuyên gia Park Byeong-ha (Neo)",
+      "paidNote": "Tư vấn có tính phí. Bạn có thể xem giá và kết quả mẫu trước.",
+      "freeStart": "Bắt đầu lịch vạn tuế miễn phí"
     },
     "cro": {
       "love": "Tình yêu · Tái hợp",
@@ -2526,6 +2531,13 @@
     "mobileEntry": {
       "menu": "Menu",
       "find": "Tìm theo điều băn khoăn"
+    },
+    "concernChips": {
+      "love": "Tình yêu",
+      "reunion": "Quay lại",
+      "money": "Tiền bạc",
+      "job": "Đổi việc",
+      "year": "Vận năm nay"
     }
   },
   "terms": {

@@ -1944,7 +1944,8 @@
       "sampleConsult": "Ejemplo de consulta de Yeongnyangi",
       "allLead": "Elige un sistema o empieza por la inquietud que más te importa.",
       "moreContent": "Más lecturas y contenidos",
-      "moreContentNote": "Explora lecturas especiales, análisis públicos y el horóscopo diario."
+      "moreContentNote": "Explora lecturas especiales, análisis públicos y el horóscopo diario.",
+      "passFrom": "Pases desde KRW {amount}"
     },
     "yeongnyangiEntry": {
       "badge": "Consulta de preguntas con Yeongnyangi",
@@ -2394,7 +2395,11 @@
       "codexDescription": "Explore your relationship patterns individually or compare two people’s differences.",
       "sibylName": "Sibyl Annual Preparation Report",
       "sibylDescription": "Periods to watch, preparation by area, and practical next steps.",
-      "rangePrice": "KRW {from}–{to}"
+      "rangePrice": "KRW {from}–{to}",
+      "trustLine": "Experto en saju con 10 años de experiencia · Empieza gratis",
+      "neoIntro": "Sobre el experto Park Byeong-ha (Neo)",
+      "paidNote": "Las consultas son de pago. Puedes ver los precios y ejemplos de resultados antes.",
+      "freeStart": "Empezar el calendario Manse gratis"
     },
     "cro": {
       "love": "Amor y reconciliación",
@@ -2526,6 +2531,13 @@
     "mobileEntry": {
       "menu": "Menú",
       "find": "Buscar por inquietud"
+    },
+    "concernChips": {
+      "love": "Amor",
+      "reunion": "Reencuentro",
+      "money": "Dinero",
+      "job": "Cambio de trabajo",
+      "year": "Este año"
     }
   },
   "terms": {

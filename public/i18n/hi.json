@@ -1944,7 +1944,8 @@
       "sampleConsult": "योंगन्यांगी परामर्श नमूना",
       "allLead": "Choose a system directly, or start with the concern closest to you.",
       "moreContent": "More readings and stories",
-      "moreContentNote": "Explore special readings, public analysis records and daily fortunes in one place."
+      "moreContentNote": "Explore special readings, public analysis records and daily fortunes in one place.",
+      "passFrom": "पास KRW {amount} से"
     },
     "yeongnyangiEntry": {
       "badge": "योंगन्यांगी प्रश्न परामर्श",
@@ -2394,7 +2395,11 @@
       "codexDescription": "Explore your relationship patterns individually or compare two people’s differences.",
       "sibylName": "Sibyl Annual Preparation Report",
       "sibylDescription": "Periods to watch, preparation by area, and practical next steps.",
-      "rangePrice": "KRW {from}–{to}"
+      "rangePrice": "KRW {from}–{to}",
+      "trustLine": "10 वर्षों के अनुभव वाले साजू विद्वान · मुफ़्त में शुरू करें",
+      "neoIntro": "साजू विद्वान पार्क ब्योंग-हा (नियो) का परिचय",
+      "paidNote": "परामर्श सशुल्क है। आप पहले कीमत और नमूना परिणाम देख सकते हैं।",
+      "freeStart": "मुफ़्त मानसे कैलेंडर शुरू करें"
     },
     "cro": {
       "love": "प्रेम · पुनर्मिलन",
@@ -2526,6 +2531,13 @@
     "mobileEntry": {
       "menu": "मेन्यू",
       "find": "चिंता के अनुसार खोजें"
+    },
+    "concernChips": {
+      "love": "प्रेम",
+      "reunion": "फिर से मिलना",
+      "money": "धन",
+      "job": "नौकरी बदलना",
+      "year": "इस साल का रुख"
     }
   },
   "terms": {

@@ -1944,7 +1944,8 @@
       "sampleConsult": "Voorbeeld van een Yeongnyangi-consult",
       "allLead": "Kies een systeem of begin bij je belangrijkste vraag.",
       "moreContent": "Meer lezingen en verhalen",
-      "moreContentNote": "Bekijk bijzondere lezingen, openbare analyses en dagelijkse voorspellingen."
+      "moreContentNote": "Bekijk bijzondere lezingen, openbare analyses en dagelijkse voorspellingen.",
+      "passFrom": "Passes vanaf KRW {amount}"
     },
     "yeongnyangiEntry": {
       "badge": "Vraagconsult met Yeongnyangi",
@@ -2394,7 +2395,11 @@
       "codexDescription": "Explore your relationship patterns individually or compare two people’s differences.",
       "sibylName": "Sibyl Annual Preparation Report",
       "sibylDescription": "Periods to watch, preparation by area, and practical next steps.",
-      "rangePrice": "KRW {from}–{to}"
+      "rangePrice": "KRW {from}–{to}",
+      "trustLine": "Saju-kenner met 10 jaar ervaring · Gratis beginnen",
+      "neoIntro": "Over Park Byeong-ha (Neo)",
+      "paidNote": "Consulten zijn betaald. Je kunt prijzen en voorbeeldresultaten eerst bekijken.",
+      "freeStart": "Gratis Manse-kalender starten"
     },
     "cro": {
       "love": "Liefde & hereniging",
@@ -2526,6 +2531,13 @@
     "mobileEntry": {
       "menu": "Menu",
       "find": "Zoek op vraag"
+    },
+    "concernChips": {
+      "love": "Liefde",
+      "reunion": "Terugkeer",
+      "money": "Geld",
+      "job": "Van baan wisselen",
+      "year": "Dit jaar"
     }
   },
   "terms": {

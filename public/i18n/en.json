@@ -1944,7 +1944,8 @@
       "sampleConsult": "Yeongnyangi reading sample",
       "allLead": "Choose a system directly, or start with the concern closest to you.",
       "moreContent": "More readings and stories",
-      "moreContentNote": "Explore special readings, public analysis records and daily fortunes in one place."
+      "moreContentNote": "Explore special readings, public analysis records and daily fortunes in one place.",
+      "passFrom": "Passes from KRW {amount}"
     },
     "yeongnyangiEntry": {
       "badge": "Yeongnyangi question reading",
@@ -2394,7 +2395,11 @@
       "codexDescription": "Explore your relationship patterns individually or compare two people’s differences.",
       "sibylName": "Sibyl Annual Preparation Report",
       "sibylDescription": "Periods to watch, preparation by area, and practical next steps.",
-      "rangePrice": "KRW {from}–{to}"
+      "rangePrice": "KRW {from}–{to}",
+      "trustLine": "Saju scholar with 10 years of experience · Free to start",
+      "neoIntro": "About saju scholar Park Byeong-ha (Neo)",
+      "paidNote": "Readings are paid. You can check prices and sample results first.",
+      "freeStart": "Start the free Manse calendar"
     },
     "cro": {
       "love": "Love & reunion",
@@ -2526,6 +2531,13 @@
     "mobileEntry": {
       "menu": "Menu",
       "find": "Find by concern"
+    },
+    "concernChips": {
+      "love": "Love",
+      "reunion": "Reunion",
+      "money": "Money",
+      "job": "Job change",
+      "year": "This year"
     }
   },
   "terms": {
