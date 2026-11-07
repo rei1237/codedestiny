@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-08
-next: "추가 개선 계획 A단계(앱 미사용 이미지·로케일·날짜 라우트 제외, 폰트·LCP·prefetch) 진행"
+next: "final6 빌드(88c8d17dc 포함) 뒤 /oracle/hwatu-life/·/tarot/love/ 히어로 이미지 재확인, 그다음 사용자 승인 받아 push·내부 테스트 트랙"
 ---
 
 # Android 앱 용량·속도·홈 화면 위젯 (wt/android-size-widget-20261107-021350)
@@ -55,3 +55,19 @@ next: "추가 개선 계획 A단계(앱 미사용 이미지·로케일·날짜 �
 - 손님 영냥이 진입 API: geo → `/api/auth/me` 1회 → restore-credential/challenge. refresh·로그아웃 방송 없음.
 - 스크립트·결과: scratchpad measure/qa-final4.mjs·qa-final4b.mjs, output\android-size-widget-20261107\widget-qa\qa-final4*.json, f4-*.png
 - 기존 문제(이번 변경과 무관, 11-07 스크린샷에도 있음): `/ggulggul/`의 "어떤 운세를 볼까요?" 제목과 격자가 화면 왼쪽 끝에 붙고 오른쪽 카드가 잘림.
+
+## final5 (2026-11-08, 기준 커밋 679d9c3e1)
+추가 개선 계획 A단계 커밋: 02f700000(검증된 죽은 이미지 묶음 제외), 00309f1e3(fortune/date는 웹에서만), 6fb484d68(앱은 한국어 페이지만, 언어 선택 숨김), 9acee48c9(영냥이 타로 webp만), 8175b4d6f(타로 jpeg→webp), d8238ca72(홈 idle 때 영냥이 prefetch), 679d9c3e1(PortOne 가드 검증 경로 /today).
+
+| 항목 | 기준 | final4 | final5 |
+|---|---|---|---|
+| AAB | 482,830,397 | 283,330,476 | 233,027,011 |
+| 예상 다운로드(get-size) | 478,418,868 | 279,620,527 | 230,003,720 (기준 대비 -52%) |
+
+속도(final4·final5 9회 교차 중앙값, ms. ab45/summary.txt): launchTotal 1294→1098, 홈 FCP 1117→939, 홈 LCP 1757→1672, 영냥이 탭→화면 586→494. 홈 long task는 2→4로 늘었지만 탭→화면이 92ms 빨라져 prefetch(d8238ca72)는 유지한다.
+
+실기기 확인(benchmark 패키지, output\android-size-widget-20261107\widget-qa\final5, qa-final5.json·qa-links.json):
+- 깨진 이미지 0: /mini-games/, /neo-operation-room/, /yeongnyangi/, /stories/, /world/, /fortune-tea-house/, /codedestiny-novel.html, /fortune/, /ggulggul/. 실패한 리소스 요청 0.
+- /oracle/hwatu-life/, /tarot/love/: 히어로(fuctionassets/*.webp)와 만세력 카드 로고가 https://code-destiny.com 절대 주소라 benchmark CSP(img-src 'self')에 막혔다. 실제 앱에서는 네트워크로 받아 오고 오프라인이면 깨진다. 88c8d17dc에서 화면용 이미지를 같은 출처 경로로 바꿨다(공유·메타는 절대 주소 유지, 앱에 없는 /og/ 제외). final6 빌드에서 확인해야 한다.
+- 로케일·날짜 링크: /today, /insights/sukuyo-basics, /insights/ziwei-basics, /oracle/hwatu, /oracle/juyuk, /ggulggul 실제 DOM에 남은 로케일·fortune/date 링크 0(app-payment-guard가 실행 중에 지운다). /en/ 링크를 눌러도 홈으로 돌아오고 막다른 화면이 없다. /ja/tokushoho/는 앱에 남아 열린다.
+- tsc에서 9acee48c9의 TarotCardArt.tsx IS_APP_BUILD import 누락을 찾아 3d9a9c4e4에서 고쳤다. next.config의 ignoreBuildErrors 때문에 빌드는 통과했었다.
