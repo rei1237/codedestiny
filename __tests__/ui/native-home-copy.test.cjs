@@ -78,7 +78,8 @@ test('home sets prefetch on the existing Link boundary without a client wrapper'
     if ((ts.isJsxOpeningElement(node) || ts.isJsxSelfClosingElement(node)) && node.tagName.getText(tree) === 'Link') {
       links++;
       const prefetch = node.attributes.properties.find(p => ts.isJsxAttribute(p) && p.name.getText(tree) === 'prefetch');
-      assert.equal(prefetch?.initializer?.expression?.getText(tree), 'IS_APP_BUILD ? false : undefined');
+      // 앱은 어느 링크도 미리 받지 않는다. 웹 전용 '운세 바로가기'(ff4a59aba)는 7개 경로를 웹에서도 일부러 미리 받지 않아 false 다.
+      assert.ok(['IS_APP_BUILD ? false : undefined', 'false'].includes(prefetch?.initializer?.expression?.getText(tree)), 'app build must never prefetch');
     }
     ts.forEachChild(node, visit);
   };
