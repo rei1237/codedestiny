@@ -27,6 +27,27 @@ test('purchase fixes the input and uses only the matching approved SKU price bef
  await React.act(async()=>{[...document.querySelectorAll('button')].find(b=>b.textContent.includes('단건 결제로')).click();await new Promise(resolve=>setTimeout(resolve,0));});
  assert.equal(ui.calls[0][1].input.year,2024);assert.equal(ui.calls[0][1].input.day,29);assert.equal(location.search,`?intentId=${id}`);assert.match(document.body.textContent,/구매한 프롬프트/);
  }finally{await ctx.close();}});
+test('a price change during Maya order preparation requires a new selection before checkout',async()=>{
+ const {getBillingFeaturePricing}=await import('../../../worker/lib/billing-feature-registry.js');
+ const otherAmount=getBillingFeaturePricing({featureKey:'life-book-ai-consultation'}).pricing.amountKRW;
+ assert.notEqual(otherAmount,sale.approvedPriceKRW);
+ const displayAmount=otherAmount.toLocaleString('ko-KR')+'원';
+ const ctx=await setup('http://localhost/maya/',()=>{ui.products=[sale];});
+ let purchases=0;
+ try{
+  ui.purchase=()=>{purchases++;throw Error('unexpected purchase');};
+  ui.read=async path=>{
+   assert.equal(path,'/native/maya/prepare');
+   ui.products=[{...sale,approvedPriceKRW:otherAmount,displayAmount}];
+   return {id,sku:sale.sku,amountKRW:sale.approvedPriceKRW,paid:false};
+  };
+  await React.act(async()=>{[...document.querySelectorAll('button')].find(b=>b.textContent.includes('단건 결제로')).click();});
+  assert.equal(purchases,0);
+  assert.equal(location.search,'');
+  assert.ok(document.body.textContent.includes(displayAmount));
+  assert.match(document.querySelector('[role=alert]').textContent,/금액을 다시 확인/);
+ }finally{await ctx.close();}
+});
 test('a denied restored order never displays an old result or a continuation button',async()=>{const ctx=await setup();try{
  history.replaceState({},'',`/maya/?intentId=${id}`);ui.read=async(path)=>{ui.calls.push([path]);throw Object.assign(new Error('denied'),{status:403,code:'LOGIN_REQUIRED'});};ui.owner='other';await ctx.render();
  assert.match(document.body.textContent,/접근할 권한/);assert.doesNotMatch(document.body.textContent,/이어서 만들기/);assert.equal(document.querySelector('textarea[readonly]'),null);
