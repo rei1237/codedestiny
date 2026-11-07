@@ -587,4 +587,22 @@ for(const name of ['saleProducts','nativeSaleProducts','tarotLibraryProducts'])t
 
 test('synchronous SDK product denial stays distinct while the catalog request settles',async()=>{const fixture=await adapter(true,true),previous=globalThis.fetch,failure={status:403,code:'ACCESS_DENIED'};fixture.state.productSyncFailure=failure;globalThis.fetch=async()=>Response.json({products:[],flows:[]});try{await assert.rejects(fixture.tarotLibraryProducts(),error=>error===failure);await tick();}finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}});
 
-test('current account product lookup retains approved SKU and SDK display price',async()=>{const fixture=await adapter(true,true),previous=globalThis.fetch;fixture.state.productListRows=[{sku:'mock-sku',type:'CONSUMABLE',displayAmount:'모의 표시 가격'},{sku:'wrong-type',type:'SUBSCRIPTION',displayAmount:'제외'}];globalThis.fetch=async url=>{const pathname=new URL(url).pathname;if(pathname.endsWith('/tarot-library/catalog'))return Response.json({flows:[{id:'tarot-mindscan',name:'모의 리딩',sku:'mock-sku',featureKey:'tarot-mindscan',approvedPriceKRW:1234},{id:'hidden',sku:'wrong-type'}]});return Response.json({products:[{id:'mock',name:'모의 상품',sku:'mock-sku',featureKey:'mock',approvedPriceKRW:1234,chapters:1,available:true},{id:'hidden',sku:'wrong-type',available:true}]});};try{for(const name of ['saleProducts','nativeSaleProducts','tarotLibraryProducts']){const products=await fixture[name]();assert.equal(products.length,1);assert.equal(products[0].sku,'mock-sku');assert.equal(products[0].approvedPriceKRW,1234);assert.equal(products[0].displayAmount,'모의 표시 가격');}}finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}});
+test('new sales across the three catalogs require an unambiguous SKU and the approved won price',async()=>{
+ const fixture=await adapter(true,true),previous=globalThis.fetch;
+ const rows=[
+  ['won','1,234원'],['symbol','₩1,234'],['iso','KRW\u00a01234'],
+  ['changed','1,235원'],['foreign','$1,234'],['unknown','모의 표시 가격'],
+  ['no-currency','1234'],['invalid-grouping','12,34원'],['mixed','할인가 1,234원'],
+  ['duplicate','1,234원'],['duplicate','1,235원'],['subscription','1,234원']
+ ];
+ fixture.state.productListRows=rows.map(([sku,displayAmount])=>({sku,displayAmount,type:sku==='subscription'?'SUBSCRIPTION':'CONSUMABLE'}));
+ const products=[...new Set(rows.map(([sku])=>sku))].map(sku=>({id:sku,sku,featureKey:sku,available:true,approvedPriceKRW:1234}));
+ globalThis.fetch=async()=>Response.json({products,flows:products});
+ try{
+  for(const read of [fixture.saleProducts,fixture.nativeSaleProducts,fixture.tarotLibraryProducts]){
+   const result=await read();
+   assert.deepEqual(result.map(row=>[row.sku,row.displayAmount]),rows.slice(0,3));
+   assert.ok(result.every(row=>row.approvedPriceKRW===1234));
+  }
+ }finally{globalThis.fetch=previous;delete globalThis.tossRecoveryTest;}
+});

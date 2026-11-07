@@ -178,13 +178,32 @@ async function scopedProductCatalog<T>(path:string){
   try{const result=await Promise.all([api<T>(path).catch(error=>{apiFailure=error;throw error;}),Promise.resolve().then(()=>IAP.getProductItemList())]);if(!current())throw new ApiError('SESSION_CHANGED','',409);return result;}
   catch(error){const invalidatedByRequest=error===apiFailure&&error instanceof ApiError&&error.status===401&&requestToken!==null&&token===null&&sessionEpoch===requestEpoch+1&&loginAttempt===requestAttempt;if(!current()&&!invalidatedByRequest)throw new ApiError('SESSION_CHANGED','',409);throw error;}
 }
+type SdkCatalog = Awaited<ReturnType<typeof IAP.getProductItemList>>;
+
+function approvedDisplayPrice(catalog:SdkCatalog|undefined, product:{sku:string;approvedPriceKRW:number}):string|null{
+  const {sku,approvedPriceKRW}=product;
+  if(!sku||!Number.isSafeInteger(approvedPriceKRW)||approvedPriceKRW<=0)return null;
+  const matches=catalog?.products.filter(row=>row.sku===sku);
+  if(matches?.length!==1||matches[0].type!=='CONSUMABLE')return null;
+  const display=matches[0].displayAmount;
+  if(typeof display!=='string')return null;
+  // The SDK exposes a localized label only. Require an explicit won currency
+  // and the exact approved amount, and keep the original label for display.
+  const label=display.trim().replace(/[\u00a0\u202f]/g,' ');
+  const amounts=[String(approvedPriceKRW),approvedPriceKRW.toLocaleString('ko-KR')];
+  for(const amount of amounts){
+    if([amount+'원',amount+' 원','₩'+amount,'₩ '+amount,'KRW '+amount,amount+' KRW'].includes(label))return display;
+  }
+  return null;
+}
+
 export async function saleProducts():Promise<SaleProduct[]>{
   if(!SERVICE_AVAILABLE||!isToss())return [];
   requireProductListSupport();
   const [catalog,items]=await scopedProductCatalog<{products:CatalogProduct[]}>('/catalog');
   return catalog.products.flatMap(p=>{
-    const item=items?.products.find(i=>i.sku===p.sku&&i.type==='CONSUMABLE');
-    return item&&p.available?[{...p,displayAmount:item.displayAmount}]:[];
+    const displayAmount=approvedDisplayPrice(items,p);
+    return displayAmount&&p.available?[{...p,displayAmount}]:[];
   });
 }
 export async function nativeSaleProducts():Promise<NativeSaleProduct[]>{
@@ -192,8 +211,8 @@ export async function nativeSaleProducts():Promise<NativeSaleProduct[]>{
   requireProductListSupport();
   const [catalog,items]=await scopedProductCatalog<{products:Omit<NativeSaleProduct,'displayAmount'>[]}>('/native/catalog');
   return catalog.products.flatMap(product=>{
-    const item=items?.products.find(row=>row.sku===product.sku&&row.type==='CONSUMABLE');
-    return item&&product.available?[{...product,displayAmount:item.displayAmount}]:[];
+    const displayAmount=approvedDisplayPrice(items,product);
+    return displayAmount&&product.available?[{...product,displayAmount}]:[];
   });
 }
 export type TarotLibraryProduct={id:string;name:string;sku:string;featureKey:string;approvedPriceKRW:number;displayAmount:string};
@@ -201,7 +220,10 @@ export async function tarotLibraryProducts():Promise<TarotLibraryProduct[]>{
   if(!SERVICE_AVAILABLE||!isToss())return [];
   requireProductListSupport();
   const [catalog,items]=await scopedProductCatalog<{flows:Omit<TarotLibraryProduct,'displayAmount'>[]}>('/tarot-library/catalog');
-  return catalog.flows.flatMap(flow=>{const item=items?.products.find(entry=>entry.sku===flow.sku&&entry.type==='CONSUMABLE');return item?[{...flow,displayAmount:item.displayAmount}]:[];});
+  return catalog.flows.flatMap(flow=>{
+    const displayAmount=approvedDisplayPrice(items,flow);
+    return displayAmount?[{...flow,displayAmount}]:[];
+  });
 }
 type Receipt={orderId:string;requestId:string|null;entitlement:string;durable:boolean};
 const validReceipt=(r:Receipt,id:string)=>r.orderId===id&&r.entitlement==='granted'&&r.durable===true;
