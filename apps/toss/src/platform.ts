@@ -5,6 +5,7 @@ const API='https://code-destiny.com/api/toss';
 let token:string|null=null;
 let sessionEpoch=0;
 export function getTossSessionRevision(){return sessionEpoch;}
+export function hasTossSession(){return token!==null;}
 const sessionRevisionListeners=new Set<()=>void>();
 export function onTossSessionRevisionChanged(listener:()=>void){sessionRevisionListeners.add(listener);return ()=>sessionRevisionListeners.delete(listener);}
 function advanceSessionRevision(){const revision=++sessionEpoch;for(const listener of [...sessionRevisionListeners]){if(sessionEpoch!==revision)break;if(!sessionRevisionListeners.has(listener))continue;try{listener();}catch{/* A UI observer cannot change the authentication result. */}}return revision;}
