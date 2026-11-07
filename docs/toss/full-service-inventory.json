@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "0f60e2d83894330952466a36833fb614b91cb3dd",
+  "sourceCommit": "eeedb182ef1aa7fa9c31960452478c8ed7e77c06",
   "scope": "Source discovery plus explicitly verified aliases; not a count of implemented services. Unmapped contracts are blocking work, not exclusions.",
   "sourceCounts": {
     "home": 63,
@@ -4638,7 +4638,8 @@
       "sku": null,
       "inputContract": null,
       "resultRenderer": null,
-      "storageContract": null
+      "storageContract": null,
+      "verification": "original free catalog and blueprint are available behind Toss authentication; Toss screen, saved pets and both paid report flows are not ported. Original screen displays 3000 KRW for each paid feature, while the server registry specifies 5000 KRW; resolve the actual existing price before SKU registration."
     },
     {
       "id": "physiognomy",

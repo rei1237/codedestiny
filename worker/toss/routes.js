@@ -391,6 +391,15 @@ export async function handleTossRoutes(request,env) {
       const {calculateTossHumanDesign}=await import('./human-design.js');
       return reply(await calculateTossHumanDesign(await bodyOf(request),env));
     }
+    if(path==='/pet-saju/catalog'&&request.method==='GET') {
+      const {tossPetCatalog}=await import('./pet-saju.js');
+      return reply(tossPetCatalog());
+    }
+    if(path==='/pet-saju/blueprint'&&request.method==='POST') {
+      await limit(env,auth._id,'pet-saju-blueprint',6);
+      const {calculateTossPet}=await import('./pet-saju.js');
+      return reply(calculateTossPet(await bodyOf(request)));
+    }
     if(path==='/flower/match'&&request.method==='POST') {
       await limit(env,auth._id,'flower',6);
       const [{matchTossFlowers},{domains}]=await Promise.all([import('./flower.js'),import('../yeongnyangi/fortune/index.ts')]);

@@ -55,6 +55,7 @@ for(const [id,entry,api] of [['pet-saju','pet-saju.html','/api/pet-saju/blueprin
  if(!fs.readFileSync(path.join(root,entry),'utf8').includes(api))throw new Error('Missing calculation API: '+api);
  groups.set(id,{id,discoveryIds:[],evidence:[{source:'index.html',entry:'/'+entry,api}],status:'not-ported',tossRoute:null,sku:null,inputContract:null,resultRenderer:null,storageContract:null});
 }
+groups.get('pet-saju').verification='original free catalog and blueprint are available behind Toss authentication; Toss screen, saved pets and both paid report flows are not ported. Original screen displays 3000 KRW for each paid feature, while the server registry specifies 5000 KRW; resolve the actual existing price before SKU registration.';
 // The Saju result dashboard has an independently billed consultation that is
 // absent from all three registries. It is not the villain blacklist.
 const dashboard=fs.readFileSync(path.join(root,'js/core/saju/reportDashboard.js'),'utf8');
