@@ -12,6 +12,7 @@ import { CustomerReviewCards, ReaderReactionCards } from './ReviewCards';
 import OfferCard from './OfferChapters';
 import ConcernPicker from './ConcernPicker';
 import StickyCta from './StickyCta';
+import EntryTracker from './EntryTracker';
 import '../../styles/fonts-serif.css';
 import styles from './entry-webtoon.module.css';
 
@@ -125,9 +126,10 @@ export default function EntryWebtoon() {
   const watchId = `entry-cut-${images[1]?.id ?? images[0]?.id ?? ''}`;
 
   return <div className={styles.page} data-entry-webtoon="">
+    <EntryTracker />
     <StickyCta label={ENTRY_WEBTOON.stickyLabel} href={entryHref} watchId={watchId} />
     <header className={styles.hero}>
-      <a className={styles.skip} href="#entry-invite">{ENTRY_WEBTOON.skipLabel}</a>
+      <a className={styles.skip} data-entry-skip="" href="#entry-invite">{ENTRY_WEBTOON.skipLabel}</a>
       <p className={styles.kicker}>{ENTRY_WEBTOON.title}</p>
       <h1 className={styles.title}>{ENTRY_WEBTOON.h1}</h1>
       <p className={styles.byline}>{founder.byline}</p>

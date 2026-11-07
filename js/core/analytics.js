@@ -186,6 +186,38 @@
       return saved && saved.until > Date.now() && allowed.test(saved.value) ? saved.value : '';
     } catch (_) { return ''; }
   }
+  // 진입 위치(from)는 허용 목록 3개만 같은 세션에 남기고, 분석 동의가 있을 때만 쓴다.
+  // 결제 파일은 건드리지 않고, begin_checkout 에 이 값을 얹는 일은 아래 cdTrack 이 맡는다.
+  var ENTRY_FROM = /^(entry_webtoon|ggulggul_hero|fortune_bridge)$/;
+  function entryFrom() {
+    try {
+      if (analyticsStorageState() !== 'granted') { global.sessionStorage.removeItem('cd:entry:from'); return ''; }
+      var current = new URLSearchParams(global.location.search).get('from');
+      if (ENTRY_FROM.test(current || '')) global.sessionStorage.setItem('cd:entry:from', current);
+      var saved = global.sessionStorage.getItem('cd:entry:from') || '';
+      return ENTRY_FROM.test(saved) ? saved : '';
+    } catch (_) { return ''; }
+  }
+  // 진입 웹툰·고민 동선 이벤트: 허용 목록 값만 통과한다. 자유 문구·위조 값은 이벤트째 버리고 그 밖의 필드는 복사하지 않는다.
+  var CONCERN_IDS = ['love', 'reunion', 'money', 'job', 'year'];
+  var CONCERN_OR_NONE = CONCERN_IDS.concat('none');
+  var FEATURE_KEY = /^[a-z0-9][a-z0-9_-]{0,99}$/;
+  function pick(value, allowed) { return allowed.indexOf(value) >= 0 ? value : null; }
+  var CONCERN_EVENT_PARAMS = {
+    entry_webtoon_view: function () { return {}; },
+    entry_webtoon_progress: function (p) { var v = pick(p.percent, [25, 50, 75, 100]); return v === null ? null : {percent: v}; },
+    entry_webtoon_cta_click: function (p) {
+      var c = pick(p.concern, CONCERN_OR_NONE), pos = pick(p.position, ['hero', 'sticky', 'invite', 'skip']);
+      return c && pos ? {concern: c, position: pos} : null;
+    },
+    home_concern_select: function (p) {
+      var c = pick(p.concern, CONCERN_IDS), surface = pick(p.surface, ['entry_webtoon', 'ggulggul_home', 'fortune_bridge']);
+      return c && surface ? {concern: c, surface: surface} : null;
+    },
+    concern_answer_view: function (p) { var c = pick(p.concern, CONCERN_OR_NONE); return c ? {concern: c} : null; },
+    concern_offer_view: function (p) { return typeof p.feature_key === 'string' && FEATURE_KEY.test(p.feature_key) ? {feature_key: p.feature_key} : null; },
+    concern_offer_click: function (p) { return typeof p.feature_key === 'string' && FEATURE_KEY.test(p.feature_key) ? {feature_key: p.feature_key} : null; }
+  };
   // AI attribution is a small label from exact hosts or ChatGPT's exact UTM, never the referrer text.
   // Direct, same-host, lookalike and search traffic stays unclassified.
   function aiSourceLabel() {
@@ -274,6 +306,7 @@
       attribution.content ? {campaign_content:attribution.content} : {},
       attribution.keyword ? {campaign_term:attribution.keyword} : {});
   }
+  entryFrom(); // 진입 주소의 from 은 첫 이벤트를 기다리지 않고 방문 시작에 세션에 남긴다.
   global.cdTrack = function cdTrack(eventName, params) {
     if (!eventName) return false;
     try {
@@ -284,6 +317,10 @@
       if (eventName === 'sign_up') {
         if (['password','social'].indexOf(safeParams.method) < 0) return false;
         safeParams = {method:safeParams.method};
+      }
+      if (Object.prototype.hasOwnProperty.call(CONCERN_EVENT_PARAMS, eventName)) {
+        safeParams = CONCERN_EVENT_PARAMS[eventName](safeParams);
+        if (!safeParams) return false;
       }
       var crmId = crmCampaign();
       if (crmId) safeParams.crm_campaign = crmId;
@@ -302,9 +339,14 @@
       global.gtag("event", String(eventName), safeParams);
       // Existing web checkout funnel fires once immediately before opening PG.
       // Do not derive KRW from legacy credit units or count a modal view as checkout.
-      if (eventName === 'checkout_pg_opened') global.cdTrack('begin_checkout', {
-        currency:'KRW',items:/^[a-zA-Z0-9_-]{1,100}$/.test(safeParams.feature_key || '') ? [{item_id:safeParams.feature_key,quantity:1}] : []
-      });
+      if (eventName === 'checkout_pg_opened') {
+        var beginParams = {
+          currency:'KRW',items:/^[a-zA-Z0-9_-]{1,100}$/.test(safeParams.feature_key || '') ? [{item_id:safeParams.feature_key,quantity:1}] : []
+        };
+        var entry = entryFrom();
+        if (entry) beginParams.from = entry;
+        global.cdTrack('begin_checkout', beginParams);
+      }
       return true;
     } catch (_sendError) {
       /* Failed queue insertion must not consume the purchase dedupe key. */
@@ -655,6 +697,7 @@
     syncNaverConsent();
     persistObservedPurchases();
     growthAttribution();
+    entryFrom();
     try {
       global.gtag("consent", "update", { analytics_storage: analyticsStorageState() });
     } catch (_consentError) {

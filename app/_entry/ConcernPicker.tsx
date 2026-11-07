@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { freeEntryHref, type HOME_CONCERNS } from '@/lib/marketing/home-concerns.mjs';
+import { trackEvent } from '@/lib/analytics';
 import styles from './entry-webtoon.module.css';
 
 const STORAGE_KEY = 'cd:home-concern';
@@ -20,6 +21,11 @@ export default function ConcernPicker({ concerns, ctaHrefBase }: { concerns: typ
       window.sessionStorage.setItem(STORAGE_KEY, id);
     } catch {
       // 저장소를 못 써도 CTA 주소에 concern이 이미 실렸으니 그대로 진행한다.
+    }
+    try {
+      trackEvent('home_concern_select', { concern: id, surface: 'entry_webtoon' });
+    } catch {
+      // 계측 실패는 칩 동작에 영향을 주지 않는다.
     }
   };
   const picked = concerns.find(concern => concern.id === selected);

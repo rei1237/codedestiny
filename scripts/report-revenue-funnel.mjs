@@ -124,8 +124,14 @@ try{
       excluded:{...excluded,adminAccounts:admins.size},
     };
   }
+  // Entry-webtoon / concern funnel (2026-11-07). These are GA4 client events (consent-gated), so this DB report cannot count them;
+  // the list only fixes the step order so the GA4 exploration and the ledger numbers above are read side by side.
+  // Contract: docs/marketing/cro-event-contract-20261103.md. begin_checkout.from carries entry_webtoon | ggulggul_hero | fortune_bridge.
+  report.ga4ClientFunnel={source:'GA4 (not queried here)',steps:['entry_webtoon_view','entry_webtoon_progress','entry_webtoon_cta_click','home_concern_select','concern_answer_view','concern_offer_view','concern_offer_click','begin_checkout'],
+    ledgerStepsInThisReport:['payment_verified']};
   report.limitations=[
     'Visits/landing views are not in the DB: GA4 and Cloudflare Web Analytics hold them (not accessed here).',
+    'ga4ClientFunnel lists GA4-only steps (entry webtoon to concern offer to begin_checkout); they are consent-gated and not counted by this report.',
     'checkout_funnel_events is a floor (beacon loss, 90-day TTL). checkout_pg_opened exists only since 2026-08-15.',
     'payments.failed/cancelled include owner test attempts made from non-admin accounts; admin role is the only automated exclusion.',
     'createdToPaid includes the time a customer spends in the PG window; it is not server latency.',

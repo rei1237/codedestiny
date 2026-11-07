@@ -59,6 +59,11 @@
     return fallback;
   }
 
+  // 계측은 화면과 이동을 깨뜨리지 않는다. 허용 목록 id·상품 키만 보내고(최종 검증은 analytics.js cdTrack), 예외는 삼킨다.
+  function track(name, params) {
+    try { if (typeof root.cdTrack === 'function') root.cdTrack(name, params); } catch (_e) { /* 계측 실패는 무시 */ }
+  }
+
   function esc(value) {
     return String(value == null ? '' : value)
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
@@ -175,6 +180,7 @@
     host.insertBefore(answer, host.firstChild);
 
     var offer = host.querySelector(':scope > .concern-offer');
+    var offerShown = false;
     if (item && item.href) {
       if (!offer) offer = doc.createElement('section');
       offer.className = 'concern-offer';
@@ -182,6 +188,10 @@
       offer.setAttribute('data-concern', concern);
       offer.innerHTML = offerHtml(item, data.refund);
       host.insertBefore(offer, answer.nextSibling);
+      offerShown = true;
+      // 카드는 평범한 <a> 이다. 클릭을 세기만 하고 이동은 막지 않는다.
+      var cta = offer.querySelector('.concern-offer__cta');
+      if (cta) cta.addEventListener('click', function () { track('concern_offer_click', { feature_key: item.featureKey }); });
     } else if (offer && offer.parentNode) {
       offer.parentNode.removeChild(offer);
     }
@@ -190,6 +200,8 @@
     var bundleHost = doc.getElementById(BUNDLE_HOST_ID);
     if (bundleHost) host.appendChild(bundleHost);
     host.hidden = false;
+    track('concern_answer_view', { concern: concern || 'none' });
+    if (offerShown) track('concern_offer_view', { feature_key: item.featureKey });
   }
 
   root.CdConcernAnswer = {

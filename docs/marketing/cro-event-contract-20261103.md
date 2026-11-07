@@ -15,10 +15,17 @@
 | `sign_up` | `app/components/auth/AuthShell.tsx`의 register/oauth-complete 성공 후 기존 `signup`을 전송 시 정규화 | `method: password | social`만 유지; 공통 공개 캠페인 귀속 가능 | 응답 성공 호출당 1회. 기존 `signup`도 함께 보내지 않는다. 로그인·가입 페이지 조회로 추정하지 않는다. |
 | `free_saju_completed` | `js/saju-engine.js` 실제 사주 계산 완료 | 기존 `signed_in` boolean | 계산 완료 횟수. `free_saju_started`와 같은 경로만 분모로 사용. 전체 무료 서비스 완료율이 아니다. |
 | `free_result_view` | 영냥이 `FreeFortune.tsx` 결과 Reading 렌더 | 공개 category/surface/kind/version | 무료 결과 열람이며 신규 생성 완료와 동일하지 않다. 다시 렌더될 수 있어 유일 결과 수로 해석하지 않는다. |
-| `begin_checkout` | checkout_pg_opened 변환 또는 `PointsClient.tsx`의 PG 호출 직전 | KRW·공개 상품 ID; Points는 검증된 주문 금액 | 결제 시도. 단건 공통 변환은 금액을 모르면 생략하며 코인 환산하지 않는다. 구매 전환율은 동일 세션 범위의 구매 / 결제 시작으로 산출. |
+| `begin_checkout` | checkout_pg_opened 변환 또는 `PointsClient.tsx`의 PG 호출 직전 | KRW·공개 상품 ID; Points는 검증된 주문 금액 | 결제 시도. 진입 주소의 `from`(entry_webtoon·ggulggul_hero·fortune_bridge 중 하나)이 같은 세션에 남아 있고 분석 동의가 있으면 `from` 파라미터로 함께 보낸다(없으면 생략). 단건 공통 변환은 금액을 모르면 생략하며 코인 환산하지 않는다. 구매 전환율은 동일 세션 범위의 구매 / 결제 시작으로 산출. |
 | `purchase` | `cdTrackConfirmedPurchase`, 성공 서버 영수증 + LIVE + 양수 금액 | 기존 transaction_id/value/KRW/items; 프로필·상담 내용 없음 | 동일 주문 메모리 + 동의 시 브라우저 localStorage 가드. 실패·TEST·0원 제외. 교차 기기·저장소 삭제의 정확히 1회 보장 아님. 매출은 서버/PG 대사 필요. |
 | `fortune_result_view` | 영냥이 `Result.tsx` → trackFortuneView | 상품 ID, complete/partial, direct/library, browser_render | 문서 안에서 결과·완료 상태별 1회. GA 보고서에서 result_view 의미로 매핑하고 동일 별칭 이벤트를 추가하지 않는다. 꿀꿀의 모든 기존 결과 열람을 포괄하지 않는다. |
 | `consultation_completed` | 기존 완료 판정 함수 및 영냥이 delivery | 공개 상품 ID·관측 종류·버전 | 서버 응답을 브라우저가 관측한 완료. 결과 열람과 구분한다. |
+| `entry_webtoon_view` | `app/_entry/EntryTracker.tsx` (진입 웹툰 `/` 마운트) | 파라미터 없음. 진입 웹툰 노출 | 페이지 조회당 1회. 방문자 수가 아니라 웹툰 화면 열람 횟수. |
+| `entry_webtoon_progress` | 같은 파일, 스크롤 위치 | `percent`: 25·50·75·100 중 하나 | 페이지 조회당 각 구간 1회. 100은 문서 끝까지 내려간 경우만. 위조 값은 `cdTrack`이 버린다. |
+| `entry_webtoon_cta_click` | 같은 파일, 히어로·고정 바·초대 CTA와 건너뛰기 링크 클릭 | `concern`: 허용 고민 5개 id 또는 `none`, `position`: hero·sticky·invite·skip | 클릭당 1회. 이동은 막지 않는다. 노출 분모는 entry_webtoon_view. |
+| `home_concern_select` | `app/_entry/ConcernPicker.tsx`(entry_webtoon), `js/core/yehwa-home.mjs`(ggulggul_home), `app/fortune/_components/ConcernBridge.tsx`(fortune_bridge) | `concern`: 허용 고민 5개 id, `surface`: entry_webtoon·ggulggul_home·fortune_bridge | 고민 칩 선택당 1회. 허용 목록 밖 고민은 발화하지 않는다. surface별로 나눠 본다. |
+| `concern_answer_view` | `js/core/saju/concern-answer.js`의 `render` | `concern`: 허용 고민 5개 id 또는 `none`(일반 답) | 무료 만세력 결과에 고민 답을 그릴 때마다 1회. 결과를 다시 계산하면 다시 기록. |
+| `concern_offer_view` | 같은 파일, 단건 제안 카드 렌더 | `feature_key`: 레지스트리 상품 키 | 카드가 실제 그려질 때만. 고민이 없거나 카드가 없으면 발화하지 않는다. |
+| `concern_offer_click` | 같은 파일, 카드 링크 클릭 | `feature_key` | 클릭당 1회. 링크는 평범한 `<a>`이며 이동은 막지 않는다. 구매 전환이 아니다. |
 
 `add_payment_info`는 검증 가능한 독립 결제정보 제출 단계가 확인되지 않아 새로 만들지 않았다. PG 창 열림을 해당 이벤트로 중복 집계하지 않는다.
 

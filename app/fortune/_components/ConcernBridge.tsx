@@ -1,5 +1,6 @@
 'use client';
 
+import { trackEvent } from '@/lib/analytics';
 import { HOME_CONCERNS, freeEntryHref } from '@/lib/marketing/home-concerns.mjs';
 
 const STORAGE_KEY = 'cd:home-concern';
@@ -15,6 +16,11 @@ export default function ConcernBridge({ from }: { from: string }) {
       window.sessionStorage.setItem(STORAGE_KEY, id);
     } catch {
       // 저장소를 못 써도 주소에 concern이 실려 있으니 그대로 이동한다.
+    }
+    try {
+      trackEvent('home_concern_select', { concern: id, surface: 'fortune_bridge' });
+    } catch {
+      // 계측 실패는 이동에 영향을 주지 않는다.
     }
   };
   return <section aria-labelledby="concern-bridge-heading" className="mt-12">

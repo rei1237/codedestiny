@@ -717,4 +717,101 @@ const eventNames = (calls) => events(calls).map((c) => c[1]);
   assert.match(body, /cdTrack\('question_select', \{[^}]*question_id: picked/, "질문 타일 선택에서 question_select(question_id) 발화가 사라졌다");
 }
 
-console.log("[verify-analytics-events] 통과 — consent 순서·상태 3종 · share_receive · retention_visit · cross_sell_click · 검색 CTA primary/related/directory/next_step 공개값·단일 발화 · 실제 카탈로그 계측 · 깨진 ID no-op · page_view 단일 발화 · useAnalytics 훅 계약 · home_section_click 위임 · 영냥이 포털 클릭/도착 · 홈 셸 표식 · 앱 라우터 크로스셀 면 분류 · 배너 앱 억제");
+/* ⑭ 진입 웹툰·고민 동선 이벤트(2026-11-07): 계약 문서 · 발화 지점 · 파라미터 허용 목록 · begin_checkout.from */
+{
+  const CONTRACT = fs.readFileSync(path.join(ROOT, "docs/marketing/cro-event-contract-20261103.md"), "utf8");
+  const SITES = [
+    ["entry_webtoon_view", "app/_entry/EntryTracker.tsx"],
+    ["entry_webtoon_progress", "app/_entry/EntryTracker.tsx"],
+    ["entry_webtoon_cta_click", "app/_entry/EntryTracker.tsx"],
+    ["home_concern_select", "app/_entry/ConcernPicker.tsx"],
+    ["home_concern_select", "js/core/yehwa-home.mjs"],
+    ["home_concern_select", "app/fortune/_components/ConcernBridge.tsx"],
+    ["concern_answer_view", "js/core/saju/concern-answer.js"],
+    ["concern_offer_view", "js/core/saju/concern-answer.js"],
+    ["concern_offer_click", "js/core/saju/concern-answer.js"],
+  ];
+  const NEW_EVENTS = [...new Set(SITES.map(([name]) => name))];
+  for (const name of NEW_EVENTS) {
+    assert.ok(CONTRACT.includes("`" + name + "`"), name + " 이 CRO 이벤트 계약 문서에 없다");
+  }
+  assert.match(CONTRACT, /begin_checkout.*`from`/, "계약 문서의 begin_checkout 행에 from 설명이 없다");
+  for (const [name, file] of SITES) {
+    const text = fs.readFileSync(path.join(ROOT, file), "utf8");
+    assert.match(text, new RegExp("(?:cdTrack|trackEvent|track)(?:\\?\\.)?\\(\\s*[\"']" + name + "[\"']"), file + " 에 " + name + " 발화가 없다");
+  }
+
+  // 매출 퍼널 보고서가 새 단계를 순서대로 알린다(보고서 자체는 DB 를 읽으므로 여기서는 소스만 본다).
+  const REPORT = fs.readFileSync(path.join(ROOT, "scripts/report-revenue-funnel.mjs"), "utf8");
+  for (const name of [...NEW_EVENTS, "begin_checkout"]) assert.ok(REPORT.includes("'" + name + "'"), "report-revenue-funnel.mjs 의 ga4ClientFunnel 에 " + name + " 이 없다");
+
+  // 고민 id 허용 목록은 정본(HOME_CONCERNS)과 같아야 한다 — 한쪽만 늘면 조용히 이벤트가 버려진다.
+  const { HOME_CONCERNS: CONCERNS } = await import("../lib/marketing/home-concerns.mjs");
+  for (const concern of CONCERNS) {
+    assert.ok(ANALYTICS_SOURCE.includes("'" + concern.id + "'") || ANALYTICS_SOURCE.includes('"' + concern.id + '"'), "analytics.js 허용 목록에 " + concern.id + " 가 없다");
+  }
+
+  const sent = (window, name) => (window.dataLayer || []).map((e) => Array.from(e)).filter((c) => c[0] === "event" && c[1] === name);
+  const { window } = boot({ consent: "accepted" });
+  const ok = [
+    ["entry_webtoon_view", {}],
+    ["entry_webtoon_progress", { percent: 25 }],
+    ["entry_webtoon_progress", { percent: 100 }],
+    ["entry_webtoon_cta_click", { concern: "love", position: "sticky" }],
+    ["entry_webtoon_cta_click", { concern: "none", position: "skip" }],
+    ["home_concern_select", { concern: "reunion", surface: "entry_webtoon" }],
+    ["home_concern_select", { concern: "year", surface: "ggulggul_home" }],
+    ["home_concern_select", { concern: "job", surface: "fortune_bridge" }],
+    ["concern_answer_view", { concern: "money" }],
+    ["concern_answer_view", { concern: "none" }],
+    ["concern_offer_view", { feature_key: "tarot-year-fortune" }],
+    ["concern_offer_click", { feature_key: "tarot-ijik" }],
+  ];
+  for (const [name, params] of ok) assert.equal(window.cdTrack(name, params), true, name + " " + JSON.stringify(params) + " 가 거부됐다");
+  assert.equal(sent(window, "entry_webtoon_progress").length, 2);
+  assert.equal(sent(window, "entry_webtoon_progress")[0][2].percent, 25);
+
+  // 자유 문구·위조 값·PII 는 보내지 않는다(false 반환, dataLayer 에 이벤트 없음).
+  const before = (window.dataLayer || []).length;
+  const bad = [
+    ["entry_webtoon_progress", { percent: 30 }],
+    ["entry_webtoon_progress", { percent: "25; drop" }],
+    ["entry_webtoon_cta_click", { concern: "<script>", position: "sticky" }],
+    ["entry_webtoon_cta_click", { concern: "love", position: "elsewhere" }],
+    ["home_concern_select", { concern: "foo", surface: "entry_webtoon" }],
+    ["home_concern_select", { concern: "love", surface: "person@example.com" }],
+    ["concern_answer_view", { concern: "01012345678" }],
+    ["concern_offer_view", { feature_key: "내 생년월일 19900101" }],
+    ["concern_offer_click", { feature_key: "" }],
+  ];
+  for (const [name, params] of bad) assert.equal(window.cdTrack(name, params), false, name + " " + JSON.stringify(params) + " 가 통과했다");
+  assert.equal((window.dataLayer || []).length, before, "거부된 값이 dataLayer 에 들어갔다");
+
+  // 허용 목록에 없는 추가 필드(이메일 등)는 복사하지 않는다.
+  const extra = boot({ consent: "accepted" });
+  extra.window.cdTrack("concern_offer_view", { feature_key: "tarot-ijik", email: "person@example.com", question: "private" });
+  const extraParams = sent(extra.window, "concern_offer_view")[0][2];
+  assert.equal(extraParams.email, undefined);
+  assert.equal(extraParams.question, undefined);
+
+  // begin_checkout.from: 진입 주소의 from 허용 목록만, 동의가 있을 때만 세션에 남는다.
+  const beginFrom = (opts, then) => {
+    const { window: w } = boot(opts);
+    if (then) then(w);
+    w.cdTrack("checkout_pg_opened", { feature_key: "tarot-ijik" });
+    return sent(w, "begin_checkout")[0][2];
+  };
+  assert.equal(beginFrom({ consent: "accepted", url: "https://code-destiny.com/ggulggul/?from=entry_webtoon&concern=love" }).from, "entry_webtoon");
+  assert.equal(beginFrom({ consent: "accepted", url: "https://code-destiny.com/ggulggul/?from=ggulggul_hero" }).from, "ggulggul_hero");
+  assert.equal(beginFrom({ consent: "accepted", url: "https://code-destiny.com/ggulggul/?from=fortune_bridge" }).from, "fortune_bridge");
+  assert.equal(beginFrom({ consent: "accepted", url: "https://code-destiny.com/ggulggul/?from=person%40example.com" }).from, undefined, "허용 목록 밖 from 이 실렸다");
+  assert.equal(beginFrom({ consent: "accepted", url: "https://code-destiny.com/ggulggul/" }).from, undefined, "from 이 없는 방문에 from 이 실렸다");
+  assert.equal(beginFrom({ consent: "denied", url: "https://code-destiny.com/ggulggul/?from=entry_webtoon" }).from, undefined, "동의 거부 상태에서 from 이 실렸다");
+  // 진입 주소 다음 이동(from 없는 주소)에서도 같은 세션이면 이어진다.
+  {
+    const { window: first } = boot({ consent: "accepted", url: "https://code-destiny.com/ggulggul/?from=entry_webtoon" });
+    assert.equal(first.sessionStorage.getItem("cd:entry:from"), "entry_webtoon");
+  }
+}
+
+console.log("[verify-analytics-events] 통과 — consent 순서·상태 3종 · share_receive · retention_visit · cross_sell_click · 검색 CTA primary/related/directory/next_step 공개값·단일 발화 · 실제 카탈로그 계측 · 깨진 ID no-op · page_view 단일 발화 · useAnalytics 훅 계약 · home_section_click 위임 · 영냥이 포털 클릭/도착 · 홈 셸 표식 · 앱 라우터 크로스셀 면 분류 · 배너 앱 억제 · 진입 웹툰·고민 동선 이벤트 계약/허용 목록/begin_checkout.from");

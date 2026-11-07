@@ -81,6 +81,8 @@ export function mountYehwaHome(root) {
       cta.setAttribute('href', href);
       // 저장소가 막혀도(사생활 보호 모드 등) 주소 교체는 이미 끝났다.
       try { root.ownerDocument.defaultView.sessionStorage.setItem('cd:home-concern', id); } catch {}
+      // 계측 실패는 칩 동작에 영향을 주지 않는다. 허용 목록 id 만 보낸다.
+      try { root.ownerDocument.defaultView.cdTrack?.('home_concern_select', { concern: id, surface: 'ggulggul_home' }); } catch {}
     } else if (button.hasAttribute('data-yh-start')) {
       step = 0;
       show();
