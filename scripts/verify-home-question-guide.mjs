@@ -8,6 +8,8 @@ async function imageMetrics(locator) {
  const result=await locator.evaluate(async image=>{
    // Bring lazy images into range before decode. decode() alone does not start every lazy request.
    image.scrollIntoView({block:'center',behavior:'instant'});
+   // A lazy image still waiting for its request rejects decode(); wait for its load first.
+   if(!image.complete) await new Promise((resolve,reject)=>{image.addEventListener('load',resolve,{once:true});image.addEventListener('error',()=>reject(new Error('image failed: '+image.src)),{once:true});});
    await image.decode();
    const source=await createImageBitmap(await fetch(image.currentSrc).then(response=>response.blob()));
    const {width:sourceWidth,height:sourceHeight}=source;

@@ -20,6 +20,10 @@ try {
   await context.route('**/*', route => {
     const url = new URL(route.request().url());
     if (url.origin !== base) return route.abort();
+    // 공개 카탈로그(로그인 불필요): 실제 응답 모양 그대로 — 분야별 상품과 서버 지급 규칙.
+    if(url.pathname==='/api/honey/catalog')return route.fulfill({json:{ok:true,otherUses:[],attendance:{attendanceEvery:1,streakEvery:5,streakBonus:4,promptCost:1},
+      products:[['astro_basic_deep_pack','점성술 기본 심층 해석','점성술'],['astro_stellar_career_room','일과 역할','점성술'],['ziwei_twelve_palaces','자미두수 12궁 해설','자미두수'],['sukuyo-nature-deep-dive','숙요 본성 심화','숙요'],['vedic_basic_reading','베다 기본 해석','베다']]
+        .map(([productId,title,group])=>({productId,featureKey:productId,title,group,honeyCost:30}))}});
     if(signedIn && url.pathname==='/api/rpg/character-preview'){
       const second=route.request().postDataJSON().birthDate==='1991-02-03';
       const character=second?{id:'animal-dog',name:'강아지',ganji:'갑술',element:'목'}:{id:'animal-rabbit',name:'토끼',ganji:'을묘',element:'목'};
@@ -73,11 +77,20 @@ try {
   assert.equal(goToLogin.searchParams.get('next'),'/#daily-home-title');
   await card.getByText('프로필 카드 예시',{exact:true}).waitFor();
   await card.getByRole('heading',{name:`${Number(month.slice(5))}월 출석 도장`}).waitFor();
-  await card.getByRole('link',{name:'로그인하고 출석 도장 찍기'}).waitFor();
+  const invite=card.getByRole('complementary',{name:/들를 때마다 꿀방울이 쌓이는/});
+  await invite.getByText('출석 도장 한 번에 꿀방울 1개',{exact:true}).waitFor();
+  await invite.getByText('5일 이어 오면 보너스 4방울',{exact:true}).waitFor();
+  await invite.getByText('꿀방울 54개',{exact:true}).waitFor();
+  const join=invite.getByRole('link',{name:'가입하고 첫 꿀방울 받기'});
+  assert.equal(new URL(await join.getAttribute('href'),base).searchParams.get('next'),'/#daily-home-title');
+  assert.equal(await join.evaluate(el=>getComputedStyle(el).color),'rgb(42, 22, 6)','꿀빛 가입 버튼 글자는 짙은 색(홈 링크 색에 덮이지 않음)');
+  const uses=card.getByRole('region',{name:'꿀방울은 이렇게 써요'});
+  assert.deepEqual(await uses.locator('li strong').allTextContents(),['점성술 기본 심층 해석','자미두수 12궁 해설','숙요 본성 심화','베다 기본 해석'],'사용처는 분야마다 하나씩');
+  assert.equal(await card.locator('details').count(),0,'꿀방울 안내는 접어 두지 않는다');
   await card.getByRole('button',{name:'이 퀘스트 받기',exact:true}).waitFor();
   await card.screenshot({path:`${out}/guest-390.png`});
   await guestCreate.click();await page.waitForURL(u=>u.pathname==='/login/');
-  console.log('PASS guest sees example card, month calendar, quests and sign-in with the card return URL');
+  console.log('PASS guest sees example card, month calendar, sign-up benefits from server rules, honey uses, quests and sign-in with the card return URL');
 
   signedIn=true;
   await context.addInitScript(user=>{

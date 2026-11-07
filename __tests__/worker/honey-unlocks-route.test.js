@@ -3,7 +3,7 @@ const auth = jest.fn(), spend = jest.fn(), security = jest.fn(), purge = jest.fn
 jest.unstable_mockModule('../../worker/lib/auth.js', () => ({ requireUserFromRequest: auth }));
 jest.unstable_mockModule('../../worker/lib/db.js', () => ({ connectDb: async () => {} }));
 jest.unstable_mockModule('../../worker/lib/security/index.js', () => ({ enforceSensitiveEndpointSecurity: security }));
-jest.unstable_mockModule('../../worker/lib/honey-wallet.js', () => ({ PROMPT_HUB_HONEY_COST: 1 }));
+jest.unstable_mockModule('../../worker/lib/honey-wallet.js', () => ({ PROMPT_HUB_HONEY_COST: 1, HONEY_ATTENDANCE_EVERY: 1, HONEY_STREAK_EVERY: 5, HONEY_STREAK_BONUS: 4 }));
 jest.unstable_mockModule('../../worker/lib/honey-unlocks.js', () => ({ spendHoneyUnlock: spend }));
 jest.unstable_mockModule('../../worker/lib/content-unlocks.js', () => ({ getUnlockedContentSnapshot: async () => ({ featureKeys: [] }) }));
 jest.unstable_mockModule('../../worker/lib/credential-scoped-cache.js', () => ({ CREDENTIAL_CACHE_PREFIXES: ['access-state'], purgeCredentialCache: purge }));
@@ -22,6 +22,7 @@ test('public catalog exposes eligible Ggulggul prices without unrelated spending
   }
   expect(data.products.find(row => row.productId === 'ziwei_decade_luck')).toMatchObject({ cashPriceKRW: 5000, honeyCost: 30 });
   expect(data.otherUses).toEqual([]);
+  expect(data.attendance).toEqual({ attendanceEvery: 1, streakEvery: 5, streakBonus: 4, promptCost: 1 });
   expect(response.headers.get('Cache-Control')).toContain('no-store');
 });
 test('only authenticated owner and three allowed input fields reach the atomic service', async () => {

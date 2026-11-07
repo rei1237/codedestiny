@@ -93,3 +93,30 @@ export function cheerLine(ymd, state) {
   const dayNumber = parsed ? Math.floor(parsed.date.getTime() / DAY_MS) : 0;
   return lines[dayNumber % lines.length];
 }
+
+function positiveInt(value) {
+  return Number.isFinite(value) && value > 0 ? Math.floor(value) : 0;
+}
+
+/**
+ * 서버 지급 규칙(출석 N번마다 1방울, 연속 M일째마다 보너스)으로 `days`일을 하루도 빠짐없이 이었을 때 받는 꿀방울 합.
+ * 규칙이 깨져 있으면 null — 화면은 숫자를 지어내지 않고 문장을 숨긴다.
+ */
+export function streakRunReward(days, rules) {
+  const run = positiveInt(days), every = positiveInt(rules?.attendanceEvery), streakEvery = positiveInt(rules?.streakEvery);
+  const bonus = Number.isFinite(rules?.streakBonus) && rules.streakBonus >= 0 ? Math.floor(rules.streakBonus) : -1;
+  if (!run || !every || !streakEvery || bonus < 0) return null;
+  return Math.floor(run / every) + Math.floor(run / streakEvery) * bonus;
+}
+
+/** 꿀방울 사용처 미리보기: 카탈로그 순서대로 분야(group)마다 하나씩, 최대 `limit`개. 모양이 깨진 항목은 뺀다. */
+export function pickHoneyUses(products, limit = 4) {
+  const seen = new Set(), picked = [];
+  for (const item of Array.isArray(products) ? products : []) {
+    if (picked.length >= limit) break;
+    if (!item || typeof item.title !== "string" || typeof item.group !== "string" || !positiveInt(item.honeyCost) || seen.has(item.group)) continue;
+    seen.add(item.group);
+    picked.push(item);
+  }
+  return picked;
+}

@@ -3,8 +3,8 @@
   "note": "사이트맵 lastmod 원장. scripts/lib/sitemap-lastmod.mjs 가 라우트별 소스 서명을 계산해 다시 쓴다. 손으로 고치지 말고 npm run sitemap:generate 로 갱신할 것.",
   "routes": {
     "/": {
-      "signature": "e93766afb3656807",
-      "lastmod": "2026-11-06"
+      "signature": "4e6b961287cf67df",
+      "lastmod": "2026-11-07"
     },
     "/about/": {
       "signature": "b4a2bbc048b6e146",

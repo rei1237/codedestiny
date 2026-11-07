@@ -7,7 +7,9 @@ import {
   journeyStepsDone,
   monthCalendar,
   msUntilKstMidnight,
+  pickHoneyUses,
   streakGaugeCount,
+  streakRunReward,
 } from "../../app/components/daily-card/daily-progress.mjs";
 
 test("깨진 실천 기록은 무시하고 모양이 맞는 항목만 찾는다", () => {
@@ -65,4 +67,21 @@ test("영냥이 한마디는 같은 날 같은 상태면 같고, 말투를 지�
     for (let day = 1; day <= 7; day += 1) assert.ok(cheerLine(`2026-11-0${day}`, state).length > 0);
   }
   assert.ok(cheerLine("", "done").length > 0);
+});
+
+test("연속 출석 보상 합은 서버 규칙(하루 1방울 + 주기마다 보너스)만으로 계산하고, 규칙이 깨지면 숫자를 내지 않는다", () => {
+  const rules = { attendanceEvery: 1, streakEvery: 5, streakBonus: 4 };
+  assert.equal(streakRunReward(4, rules), 4);
+  assert.equal(streakRunReward(5, rules), 9);
+  assert.equal(streakRunReward(30, rules), 54);
+  assert.equal(streakRunReward(30, { ...rules, attendanceEvery: 2 }), 39);
+  for (const broken of [null, {}, { ...rules, streakEvery: 0 }, { ...rules, streakBonus: Number.NaN }]) assert.equal(streakRunReward(30, broken), null);
+  assert.equal(streakRunReward(0, rules), null);
+});
+
+test("꿀방울 사용처는 카탈로그 순서대로 분야마다 하나씩, 깨진 항목 없이 최대 4개다", () => {
+  const row = (productId, group, honeyCost = 30) => ({ productId, title: productId, group, honeyCost });
+  const picked = pickHoneyUses([row("a", "점성술"), row("b", "점성술"), null, row("c", "자미두수", 0), row("d", "자미두수"), row("e", "숙요"), row("f", "베다"), row("g", "작명")]);
+  assert.deepEqual(picked.map(item => item.productId), ["a", "d", "e", "f"]);
+  assert.deepEqual(pickHoneyUses(undefined), []);
 });

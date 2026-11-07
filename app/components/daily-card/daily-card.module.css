@@ -1,43 +1,57 @@
 /*
- * 내 캐릭터 출석부. 게임 카드처럼 테마와 상관없이 같은 자두빛 카드에 꿀빛 도장을 쓴다.
+ * 내 캐릭터 출석부. 달빛 예화(연이 Dark 딥 플럼) 카드 — 테마와 상관없이 같은 표면에 꿀빛 도장을 쓴다.
+ * 초승달·꽃가지 띠(.crest)와 맺음 가지(.sprig)는 ServiceIntroSection.module.css 의 것을 그대로 쓰고, 여기서는 --si-* 색만 준다.
+ * 🔴 마스크 경로를 손으로 쓰지 않는다(scripts/design/gen-yehwa-motifs.mjs 산출물). 장식은 위·아래 여백 띠에만 둔다.
  * 한 줄 기록 종이(`--dc-paper*`)는 다이어리 부품(diary.module.css `.recordEmbedded`)도 읽는다.
  */
 .card {
-  --dc-card: #2f1d33;
-  --dc-card-2: #432a47;
-  --dc-panel: #3b2540;
-  --dc-rule: #5e4162;
-  --dc-ink: #fff5e6;
-  --dc-muted: #e2cfd9;
-  --dc-gold: #ebcd91;
+  --dc-card: #24081a;
+  --dc-card-2: #3a0e28;
+  --dc-panel: #33102a;
+  --dc-rule: #6a3a58;
+  --dc-line: var(--cd-yehwa-line, #c9a46a);
+  --dc-ink: #fff1f7;
+  --dc-muted: #f0d6e3;
+  --dc-gold: #e8c98f;
   --dc-honey: #f4b942;
   --dc-honey-deep: #c9821b;
   --dc-on-honey: #2a1606;
-  --dc-paper: #fbf4e4;
+  --dc-paper: var(--cd-yehwa-ivory, #fdf6f0);
   --dc-paper-ink: #2c2420;
   --dc-paper-muted: #5f5249;
-  --dc-paper-line: #e3d4b6;
+  --dc-paper-line: #ead9bf;
+  --si-ink: var(--cd-yehwa-line-2, #d4af7a);
+  --si-moon-hi: #fffaf3;
+  --si-moon-mid: #fdf6f0;
+  --si-moon-lo: #e6cfa6;
+  position: relative;
+  isolation: isolate;
   box-sizing: border-box;
   display: grid;
   gap: 14px;
   width: min(100%, 720px);
   margin-inline: auto;
-  padding: clamp(16px, 4vw, 24px);
-  border: 1px solid var(--dc-rule);
+  padding: 58px clamp(16px, 4vw, 24px) 64px;
+  border: 1px solid color-mix(in srgb, var(--dc-line) 55%, transparent);
   border-radius: 28px;
-  background: radial-gradient(120% 70% at 100% 0%, var(--dc-card-2), var(--dc-card) 62%);
-  box-shadow: 0 18px 40px -24px var(--dc-card);
+  background:
+    radial-gradient(120% 46% at 50% 0%, rgba(174, 45, 104, .3), transparent 64%),
+    linear-gradient(180deg, var(--dc-card-2), var(--dc-card) 58%);
+  box-shadow: inset 0 1px 0 rgba(255, 241, 247, .08), 0 22px 44px -28px rgba(22, 2, 13, .7);
   color: var(--dc-ink);
   font-family: var(--font-body);
 }
+/* 이중 테 — 안쪽 가는 금선 한 줄 */
+.card::before { content: ""; position: absolute; inset: 6px; z-index: -1; border: 1px solid color-mix(in srgb, var(--dc-line) 22%, transparent); border-radius: 22px; pointer-events: none; }
 .card * { box-sizing: border-box; }
 .card p { margin: 0; }
 .card :where(button, a, summary, input):focus-visible { outline: 3px solid var(--dc-honey); outline-offset: 3px; }
 .card .paper :where(button, a, input):focus-visible { outline-color: var(--dc-paper-ink); }
 
-.head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.card .head h2 { margin: 0; color: var(--dc-gold); font-family: var(--font-serif); font-size: clamp(1.375rem, 5.4vw, 1.875rem); line-height: 1.25; letter-spacing: -.01em; }
-.today { flex: none; padding: 6px 12px; border: 1px solid var(--dc-gold); border-radius: 999px; color: var(--dc-gold); font-size: .8125rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.head { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; padding-bottom: 12px; border-bottom: 1px solid color-mix(in srgb, var(--dc-line) 30%, transparent); }
+.eyebrow { margin: 0 0 2px; color: var(--dc-gold); font-size: .75rem; font-weight: 700; letter-spacing: .08em; }
+.card .head h2 { margin: 0; color: var(--dc-ink); font-family: var(--font-serif); font-size: clamp(1.375rem, 5.4vw, 1.875rem); line-height: 1.25; letter-spacing: -.01em; }
+.today { flex: none; padding: 6px 12px; border: 1px solid color-mix(in srgb, var(--dc-gold) 70%, transparent); border-radius: 999px; color: var(--dc-gold); font-size: .8125rem; font-weight: 700; font-variant-numeric: tabular-nums; }
 .today b { color: var(--dc-honey); font-size: 1rem; }
 
 /* 내 캐릭터 */
@@ -63,7 +77,7 @@
 .cardEditor button { justify-self: start; min-height: 44px; padding: 8px 14px; border: 0; border-radius: 12px; background: var(--dc-panel); color: var(--dc-gold); font: inherit; font-weight: 700; cursor: pointer; }
 
 /* 꿀단지와 연속 출석 */
-.honey { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid var(--dc-rule); border-radius: 18px; background: var(--dc-panel); }
+.honey { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid color-mix(in srgb, var(--dc-line) 34%, transparent); border-radius: 18px; background: var(--dc-panel); }
 .jar { display: flex; align-items: center; gap: 8px; color: var(--dc-muted); font-size: .75rem; }
 .jar img { flex: none; width: 48px; height: 48px; object-fit: contain; }
 .jar strong { display: block; color: var(--dc-ink); font-size: 1.125rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
@@ -80,7 +94,8 @@
 .gauge li[data-just-filled] { animation: dcPop .7s ease-out both; }
 
 /* 이번 달 출석 달력 */
-.calendar { display: grid; gap: 6px; padding: 14px; border-radius: 18px; background: var(--dc-paper); color: var(--dc-paper-ink); }
+/* 달빛 메모 종이: 불투명 아이보리 + 금빛 이중 가는 테 */
+.calendar { display: grid; gap: 6px; padding: 16px; border-radius: 18px; background: var(--dc-paper); color: var(--dc-paper-ink); box-shadow: inset 0 0 0 1px var(--dc-line), inset 0 0 0 4px var(--dc-paper), inset 0 0 0 5px color-mix(in srgb, var(--dc-line) 45%, transparent); }
 .calendarHead { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
 .card .calendarHead h3 { margin: 0; color: var(--dc-paper-ink); font-family: var(--font-serif); font-size: 1.0625rem; }
 .calendarHead small { color: var(--dc-paper-muted); font-size: .8125rem; font-variant-numeric: tabular-nums; }
@@ -102,7 +117,7 @@
 .attend { display: grid; gap: 8px; }
 .cheer { display: flex; gap: 8px; align-items: baseline; color: var(--dc-muted); font-size: .9375rem; line-height: 1.5; }
 .cheer b { flex: none; color: var(--dc-gold); font-size: .8125rem; }
-.stampButton { display: inline-flex; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: 56px; padding: 10px 18px; border: 0; border-radius: 18px; background: linear-gradient(180deg, var(--dc-honey), var(--dc-honey-deep)); box-shadow: 0 4px 0 #8a5510, 0 10px 18px -10px var(--dc-honey); color: var(--dc-on-honey); font: 800 1.0625rem/1.3 var(--font-body); text-decoration: none; cursor: pointer; transition: transform .12s ease, box-shadow .12s ease; }
+.stampButton { display: inline-flex; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: 56px; padding: 10px 18px; border: 0; border-radius: 18px; background: linear-gradient(180deg, var(--dc-honey), var(--dc-honey-deep)); box-shadow: 0 4px 0 #8a5510, 0 10px 18px -10px var(--dc-honey); color: var(--dc-on-honey); font: 800 1rem/1.3 var(--font-body); text-decoration: none; cursor: pointer; transition: transform .12s ease, box-shadow .12s ease; }
 .stampButton img { width: 28px; height: 28px; object-fit: contain; }
 .stampButton:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 #8a5510; }
 .stampButton:disabled { cursor: default; }
@@ -114,7 +129,7 @@
 .quests { display: grid; gap: 8px; }
 .card .quests h3 { margin: 0; color: var(--dc-gold); font-family: var(--font-serif); font-size: 1.0625rem; }
 .quests ol { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
-.quest { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; padding: 14px; border: 1px solid var(--dc-rule); border-radius: 18px; background: var(--dc-panel); }
+.quest { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; padding: 14px; border: 1px solid color-mix(in srgb, var(--dc-line) 26%, transparent); border-radius: 18px; background: var(--dc-panel); }
 .quest[data-done] { border-color: var(--dc-gold); }
 .check { display: grid; place-items: center; width: 26px; height: 26px; margin-top: 2px; border: 2px solid var(--dc-rule); border-radius: 8px; }
 .quest[data-done] .check { border-color: var(--dc-honey); background: var(--dc-honey); }
@@ -136,24 +151,50 @@
 .card .paper p { color: var(--dc-paper-muted); font-size: .8125rem; line-height: 1.6; }
 .paper > a { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; color: var(--dc-paper-ink); font-size: .875rem; font-weight: 700; text-underline-offset: 3px; }
 
-/* 꿀방울 안내 */
-.rewards { padding: 0 14px; border-radius: 14px; background: var(--dc-panel); }
-.rewards summary { display: flex; align-items: center; min-height: 44px; cursor: pointer; font-size: .8125rem; font-weight: 700; }
-.rewards summary::after { content: "+"; margin-left: auto; font-size: 1.125rem; }
-.rewards[open] summary::after { content: "−"; }
-.rewards p, .rewards li { color: var(--dc-muted); font-size: .8125rem; line-height: 1.6; }
-.rewards strong { font-size: .8125rem; }
-.rewards ul { margin: 6px 0 10px; padding: 0; list-style: none; }
-.rewards li { display: flex; justify-content: space-between; gap: 12px; }
-.rewards a { display: inline-flex; align-items: center; min-height: 44px; color: var(--dc-honey); font-size: .8125rem; font-weight: 700; text-underline-offset: 3px; }
+/* 비회원 가입 권유 — 카드 안에서 가장 밝은 한 장. 주 행동은 꿀빛 버튼 하나뿐이다. */
+.invite { position: relative; display: grid; gap: 12px; padding: 20px 16px 16px; border-radius: 20px; background: linear-gradient(180deg, color-mix(in srgb, var(--dc-honey) 16%, var(--dc-panel)), var(--dc-panel)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--dc-line) 70%, transparent), inset 0 0 0 5px var(--dc-panel), inset 0 0 0 6px color-mix(in srgb, var(--dc-line) 28%, transparent); text-align: left; }
+.invite .eyebrow { color: var(--dc-honey); }
+.card .invite h3 { margin: 0; color: var(--dc-ink); font: 700 clamp(1.1875rem, 5vw, 1.375rem)/1.4 var(--font-serif); letter-spacing: -.01em; }
+.perks { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.perks li { display: grid; grid-template-columns: 36px minmax(0, 1fr); align-items: start; gap: 10px; }
+.perks li > img { width: 34px; height: 34px; object-fit: contain; }
+.perks li > div { display: grid; gap: 2px; min-width: 0; }
+.perks strong { color: var(--dc-ink); font-size: .9375rem; line-height: 1.45; }
+.perks small { color: var(--dc-muted); font-size: .8125rem; line-height: 1.55; }
+.perkMark { justify-self: center; width: 18px; height: 18px; margin-top: 3px; background: var(--dc-gold); -webkit-mask: var(--si-mask-sparkle) center / 100% 100% no-repeat; mask: var(--si-mask-sparkle) center / 100% 100% no-repeat; }
+.forecast { display: grid; justify-items: center; gap: 2px; padding: 12px; border-radius: 14px; background: var(--dc-paper); color: var(--dc-paper-ink); text-align: center; box-shadow: inset 0 0 0 1px var(--dc-line); }
+.forecast span { color: var(--dc-paper-muted); font-size: .8125rem; }
+.forecast b { font: 700 1.375rem/1.3 var(--font-serif); color: #8a4f0c; font-variant-numeric: tabular-nums; }
+.forecast small { color: var(--dc-paper-muted); font-size: .75rem; }
+.joinButton { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 56px; padding: 10px 14px; word-break: keep-all; text-wrap: balance; text-align: center; border-radius: 18px; background: linear-gradient(180deg, var(--dc-honey), var(--dc-honey-deep)); box-shadow: 0 4px 0 #8a5510, 0 10px 18px -10px var(--dc-honey); color: var(--dc-on-honey); font: 800 1rem/1.3 var(--font-body); text-decoration: none; transition: transform .12s ease, box-shadow .12s ease; }
+/* 홈 본문 링크 색(:where(a) inherit)보다 뒤에 오므로 카드 범위로 올려 짙은 글자를 지킨다 */
+.card .joinButton { color: var(--dc-on-honey); }
+.joinButton img { flex: none; width: 24px; height: 24px; object-fit: contain; }
+.joinButton:active { transform: translateY(3px); box-shadow: 0 1px 0 #8a5510; }
+.joinNote { color: var(--dc-muted); font-size: .75rem; line-height: 1.5; text-align: center; }
+
+/* 꿀방울 사용처 — 접지 않고 보여 준다 */
+.uses { display: grid; gap: 10px; padding: 16px; border-radius: 18px; background: var(--dc-panel); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--dc-line) 34%, transparent); }
+.usesHead { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 10px; }
+.card .usesHead h3 { margin: 0; color: var(--dc-gold); font-family: var(--font-serif); font-size: 1.0625rem; }
+.usesHead small { color: var(--dc-muted); font-size: .75rem; }
+.uses ul { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 0; padding: 0; list-style: none; }
+.uses li { display: grid; gap: 2px; padding: 10px 12px; border-radius: 14px; background: var(--dc-card); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--dc-line) 22%, transparent); }
+.uses li span { color: var(--dc-gold); font-size: .6875rem; font-weight: 700; }
+.uses li strong { color: var(--dc-ink); font-size: .875rem; line-height: 1.4; overflow-wrap: anywhere; }
+.uses li b { display: inline-flex; align-items: center; gap: 4px; color: var(--dc-honey); font-size: .9375rem; font-variant-numeric: tabular-nums; }
+.uses li b img { width: 18px; height: 18px; object-fit: contain; }
+.uses > p { color: var(--dc-muted); font-size: .8125rem; line-height: 1.6; }
+.uses > a { display: inline-flex; align-items: center; gap: 6px; justify-self: start; min-height: 44px; color: var(--dc-honey); font-size: .875rem; font-weight: 700; text-underline-offset: 3px; }
 
 @keyframes dcStamp { 0% { transform: rotate(-24deg) scale(2.2); opacity: 0; } 55% { transform: rotate(-6deg) scale(.88); opacity: 1; } 100% { transform: rotate(-8deg) scale(1); opacity: 1; } }
 @keyframes dcPop { 0% { transform: scale(.6); } 60% { transform: scale(1.15); } 100% { transform: none; } }
 
 @media (max-width: 380px) {
   .honey { grid-template-columns: minmax(0, 1fr); }
+  .uses ul { grid-template-columns: minmax(0, 1fr); }
 }
 @media (prefers-reduced-motion: reduce) {
   .days li[data-just-stamped] > i, .gauge li[data-just-filled] { animation: none; }
-  .xpFill, .stampButton { transition: none; }
+  .xpFill, .stampButton, .joinButton { transition: none; }
 }

@@ -16,7 +16,7 @@ import { authFetch } from "@/app/_lib/auth-client";
 import { hasClientAuthHint } from "@/app/_lib/user-session-cache";
 import { trackEvent } from "@/lib/analytics";
 import { awardRpg } from "@/app/destiny-compass/_lib/rpg-bridge";
-import { QUEST_ID_PREFIX, entryHasRecord, findQuestTodo, journeyStepsDone, msUntilKstMidnight } from "./daily-progress.mjs";
+import { QUEST_ID_PREFIX, entryHasRecord, findQuestTodo, journeyStepsDone, msUntilKstMidnight, pickHoneyUses } from "./daily-progress.mjs";
 
 type CardPortrait = { id: string; name: string; animal: string; ganji: string; element: string; equipped: boolean };
 
@@ -39,11 +39,11 @@ async function readPortrait(profile: DestinyProfileCard): Promise<CardPortrait> 
 
 export type JourneyHoney = { balance: number; attended: boolean; streak: number; nextBonusIn: number; streakEvery: number; streakBonus: number; attendanceEvery: number; promptCost: number; day?: string; monthDays?: { day: string; bonus?: boolean }[]; awarded?: boolean; rewarded?: number; bonus?: number };
 export type JourneyProgress = { currentLevel: number; currentLevelExp: number; nextLevelExp: number };
-export type JourneyProduct = { productId: string; title: string; honeyCost: number };
+export type JourneyProduct = { productId: string; title: string; group: string; honeyCost: number };
+export type HoneyRules = { attendanceEvery: number; streakEvery: number; streakBonus: number; promptCost: number };
 export type JourneyStatus = "loading" | "guest" | "ready" | "error";
 export type JourneySurface = "home" | "diary";
 
-const HONEY_USE_PRODUCT_IDS = ["rpt_specialCharmCard", "rpt_skillTreeCard", "section_summary"];
 const LAST_VISIT_KEY = "cd.daily-home.last-visit";
 const WALK_COMPLETED_KEY = "cd.daily-home.walk-completed";
 
@@ -58,6 +58,7 @@ export function useDailyJourney({ surface, enabled }: { surface: JourneySurface;
   const [honey, setHoney] = useState<JourneyHoney | null>(null);
   const [progress, setProgress] = useState<JourneyProgress | null | undefined>(undefined);
   const [products, setProducts] = useState<JourneyProduct[]>([]);
+  const [catalogRules, setCatalogRules] = useState<HoneyRules | null>(null);
   const [profile, setProfile] = useState<DestinyProfileCard | null>(null);
   const [profileStatus, setProfileStatus] = useState<"loading" | "ready" | "error">("loading");
   const [profileRevision, setProfileRevision] = useState(0);
@@ -144,7 +145,9 @@ export function useDailyJourney({ surface, enabled }: { surface: JourneySurface;
     if (!enabled) return;
     void loadHoney();
     void fetch(getApiUrl("/api/honey/catalog"), { cache: "no-store" }).then(response => response.ok ? response.json() : null).then(data => {
-      if (Array.isArray(data?.products)) setProducts(data.products.filter((item: JourneyProduct) => HONEY_USE_PRODUCT_IDS.includes(item.productId)));
+      // 사용처는 공개 카탈로그(로그인 불필요)에서 분야별로 고른다. 지급 규칙도 같은 응답의 서버 상수다.
+      if (Array.isArray(data?.products)) setProducts(pickHoneyUses(data.products));
+      if (data?.attendance) setCatalogRules(data.attendance);
     }).catch(() => {});
   }, [enabled, loadHoney]);
   useEffect(() => {
@@ -224,7 +227,9 @@ export function useDailyJourney({ surface, enabled }: { surface: JourneySurface;
     }
   }
 
-  return { surface, hydrated, ymd, entry, status, honey, progress, products, profile, profileStatus, portrait, portraitFailed, busy, message, quest, picked, savedAction, attended, questDone, hasRecord, stepsDone, attend, retry, selectQuest, rerollQuest, toggleQuest };
+  // 로그인하면 출석 응답의 규칙이, 비회원이면 카탈로그의 규칙이 쓰인다(둘 다 같은 서버 상수).
+  const rules: HoneyRules | null = honey ? { attendanceEvery: honey.attendanceEvery, streakEvery: honey.streakEvery, streakBonus: honey.streakBonus, promptCost: honey.promptCost } : catalogRules;
+  return { surface, hydrated, ymd, entry, status, honey, rules, progress, products, profile, profileStatus, portrait, portraitFailed, busy, message, quest, picked, savedAction, attended, questDone, hasRecord, stepsDone, attend, retry, selectQuest, rerollQuest, toggleQuest };
 }
 
 export type DailyJourney = ReturnType<typeof useDailyJourney>;

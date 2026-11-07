@@ -9,8 +9,10 @@ import { invalidateProfileCache } from "@/app/_lib/user-session-cache";
 import DiaryMoodPicker from "@/app/diary/_components/DiaryMoodPicker";
 import DiaryRecordCard from "@/app/diary/_components/DiaryRecordCard";
 import { DIARY_SAVE_FAILED_TEXT, useDiarySaveFailed } from "@/app/diary/_components/DiaryStoreProvider";
-import { DAILY_CARD_TITLE, WEEKDAY_LABELS, cheerLine, monthCalendar, streakGaugeCount } from "./daily-progress.mjs";
-import { useDailyJourney, type DailyJourney, type JourneyHoney, type JourneySurface } from "./useDailyJourney";
+import { DAILY_CARD_TITLE, WEEKDAY_LABELS, cheerLine, monthCalendar, streakGaugeCount, streakRunReward } from "./daily-progress.mjs";
+import { useDailyJourney, type DailyJourney, type HoneyRules, type JourneyHoney, type JourneySurface } from "./useDailyJourney";
+import yehwa from "../ServiceIntroSection.module.css";
+import masks from "../service-intro/yehwaIntroMasks.generated.module.css";
 import styles from "./daily-card.module.css";
 
 export const CARD_MANAGE_HREF = "/ggulggul/?action=dpOpenList";
@@ -118,8 +120,8 @@ function ProfileHeader({ journey }: { journey: DailyJourney }) {
 
 /** 꿀단지 잔액과 연속 출석 게이지. 마지막 칸이 보너스 꿀단지다. 숫자는 전부 서버 값이다. */
 function HoneyStatus({ journey }: { journey: DailyJourney }) {
-  const { honey, status } = journey;
-  const total = honey ? Math.min(Math.max(1, honey.streakEvery), MAX_GAUGE) : 5;
+  const { honey, status, rules } = journey;
+  const total = Math.min(Math.max(1, rules?.streakEvery || 5), MAX_GAUGE);
   const filled = honey ? streakGaugeCount(honey.streak, honey.streakEvery, honey.attended) : 0;
   return <div className={styles.honey}>
     <div className={styles.jar}>
@@ -132,11 +134,11 @@ function HoneyStatus({ journey }: { journey: DailyJourney }) {
           const isJar = index === total - 1;
           return <li key={index} data-filled={index < filled || undefined} data-jar={isJar || undefined}
             data-just-filled={(honey?.awarded && index === filled - 1) || undefined}>
-            {isJar ? <><HoneyIcon size={26} jar /><small>+{honey?.streakBonus ?? 4}</small></> : <span aria-hidden="true" />}
+            {isJar ? <><HoneyIcon size={26} jar />{rules && <small>+{rules.streakBonus}</small>}</> : <span aria-hidden="true" />}
           </li>;
         })}
       </ol>
-      <small>{honey ? (filled >= total && honey.attended ? `${honey.streakEvery}일 연속 달성! 보너스 ${honey.streakBonus}방울` : `연속 ${honey.streak}일 · 보너스까지 ${honey.nextBonusIn}일`) : `${total}일 연속 출석하면 보너스 꿀방울`}</small>
+      <small>{honey ? (filled >= total && honey.attended ? `${honey.streakEvery}일 연속 달성! 보너스 ${honey.streakBonus}방울` : `연속 ${honey.streak}일 · 보너스까지 ${honey.nextBonusIn}일`) : rules ? `${rules.streakEvery}일 연속 출석하면 보너스 ${rules.streakBonus}방울` : "연속 출석하면 보너스 꿀방울"}</small>
     </div>
   </div>;
 }
@@ -213,6 +215,54 @@ function TodayQuests({ journey }: { journey: DailyJourney }) {
   </div>;
 }
 
+/** 출석 한 번·연속 보너스를 서버 규칙 그대로 한 문장으로. 규칙을 못 받았으면 숫자 없이 말한다. */
+function attendLine(rules: HoneyRules | null) {
+  if (!rules) return "출석 도장 한 번마다 꿀방울";
+  return rules.attendanceEvery === 1 ? `출석 도장 한 번에 꿀방울 1개` : `출석 ${rules.attendanceEvery}번마다 꿀방울 1개`;
+}
+
+/** 비회원 가입 권유. 혜택 숫자는 공개 카탈로그의 지급 규칙(서버 상수)으로만 계산한다 — 가입 보상·현금 가치는 약속하지 않는다. */
+function GuestInvite({ journey }: { journey: DailyJourney }) {
+  const { rules, products, surface } = journey;
+  // 연속 주기를 채운 날 하루치 = 평소 1방울 + 보너스. 출석 N번마다 1방울 규칙이면 하루치가 날마다 달라 말하지 않는다.
+  const streakDay = rules && rules.attendanceEvery === 1 ? 1 + rules.streakBonus : null;
+  const month = streakRunReward(30, rules);
+  const cheapest = products.reduce<number | null>((min, item) => (min === null || item.honeyCost < min ? item.honeyCost : min), null);
+  return <aside className={styles.invite} aria-labelledby="daily-invite-title">
+    <p className={styles.eyebrow}>가입하면 생기는 것</p>
+    <h3 id="daily-invite-title">들를 때마다 꿀방울이 쌓이는<br />나만의 출석부</h3>
+    <ul className={styles.perks}>
+      <li><HoneyIcon size={34} /><div><strong>{attendLine(rules)}</strong><small>하루 한 번, 이 달력에 내 도장이 남아요.</small></div></li>
+      <li><HoneyIcon size={34} jar /><div><strong>{rules ? `${rules.streakEvery}일 이어 오면 보너스 ${rules.streakBonus}방울` : "닷새 이어 오면 보너스 꿀단지"}</strong>
+        <small>{rules && streakDay ? `${rules.streakEvery}일째 되는 날은 그날만 꿀방울 ${streakDay}개.` : "연속 출석이 이어질수록 꿀단지가 채워져요."}</small></div></li>
+      <li><span className={styles.perkMark} aria-hidden="true" /><div><strong>내 캐릭터 카드와 레벨</strong><small>고른 정령과 일주 동물이 카드 캐릭터가 되고, 출석과 퀘스트로 경험치가 올라요.</small></div></li>
+      <li><span className={styles.perkMark} aria-hidden="true" /><div><strong>모은 꿀방울로 운세 열기</strong><small>{products.length ? `${products.map(item => item.title).slice(0, 2).join("·")} 같은 상세 해석을 꿀방울로 열 수 있어요.` : "꿀꿀 운세의 지정된 상세 해석을 꿀방울로 열 수 있어요."}</small></div></li>
+    </ul>
+    {month !== null && <p className={styles.forecast}><span>30일을 빠짐없이 이으면</span><b>꿀방울 {month}개</b>{cheapest !== null && month >= cheapest && <small>{cheapest}방울 해석 하나를 열고도 남아요</small>}</p>}
+    <a className={styles.joinButton} href={loginHref(surface)} onClick={() => trackEvent("daily_home_card_login", { surface, from: "invite" })}>
+      <HoneyIcon size={28} />가입하고 첫 꿀방울 받기<ArrowRight size={18} aria-hidden="true" />
+    </a>
+    <small className={styles.joinNote}>이미 회원이라면 같은 버튼으로 로그인해 오늘 도장을 찍어요.</small>
+  </aside>;
+}
+
+/** 꿀방울 사용처. 접어 두지 않고 상품 이름과 필요 방울 수를 공개 카탈로그 그대로 보여 준다. */
+function HoneyUses({ journey }: { journey: DailyJourney }) {
+  const { products, rules } = journey;
+  return <section className={styles.uses} aria-labelledby="daily-uses-title">
+    <div className={styles.usesHead}>
+      <h3 id="daily-uses-title">꿀방울은 이렇게 써요</h3>
+      {rules && <small>운세 프롬프트 1회 · {rules.promptCost}방울</small>}
+    </div>
+    {products.length > 0 && <ul>{products.map(item => <li key={item.productId}>
+      <span>{item.group}</span><strong>{item.title}</strong><b><HoneyIcon size={18} />{item.honeyCost}</b>
+    </li>)}</ul>}
+    <p>하루 한 번 출석하면 꿀방울을 받아요. 하루를 놓치면 연속 출석은 다시 시작해요. 작은 실천과 한 줄 기록에는 꿀방울이 지급되지 않아요. 사용 가능한 상품과 필요 방울 수는 각 상품에서 확인해 주세요.</p>
+    {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+    <a href="/ggulggul/?action=cdOpenAllFortunes">꿀꿀 운세 전체 보기 <ArrowRight size={15} aria-hidden="true" /></a>
+  </section>;
+}
+
 /**
  * 내 캐릭터 출석부: 프로필 카드·꿀단지·출석 달력·오늘의 퀘스트를 한 장에 둔다(팝업 없음).
  * 🔴 출석·꿀방울·경험치 규칙은 서버(`/api/honey/attendance`, `/api/rpg/*`)에만 있다.
@@ -247,11 +297,16 @@ export default function DailyCard({ surface }: { surface: JourneySurface }) {
     return () => window.removeEventListener("hashchange", fromLogin);
   }, [surface]);
 
-  const { honey, status, busy, message, stepsDone, hydrated, ymd, products } = journey;
+  const { honey, status, busy, message, stepsDone, hydrated, ymd } = journey;
   const cheer = cheerLine(ymd, stepsDone >= 3 ? "done" : journey.attended ? "stamped" : "ready");
-  return <section id={surface === "home" ? "homeDailyCard" : undefined} ref={sectionRef} className={styles.card} aria-labelledby="daily-home-title" data-daily-card={surface}>
+  // 달빛 예화(연이 Dark) 카드 표면: 위 초승달·꽃가지 띠와 아래 맺음 가지는 기능 소개 카드의 생성 마스크를 그대로 쓴다.
+  return <section id={surface === "home" ? "homeDailyCard" : undefined} ref={sectionRef} className={`${styles.card} ${masks.masks}`} aria-labelledby="daily-home-title" data-daily-card={surface}>
+    <span className={yehwa.crest} aria-hidden="true"><span className={yehwa.halo}><span className={yehwa.moon} /></span></span>
     <header className={styles.head}>
-      <h2 id="daily-home-title">{DAILY_CARD_TITLE}</h2>
+      <div>
+        <p className={styles.eyebrow}>매일 한 번 · 꿀방울 도장</p>
+        <h2 id="daily-home-title">{DAILY_CARD_TITLE}</h2>
+      </div>
       <span className={styles.today} aria-label={`오늘 도장 ${hydrated ? stepsDone : 0}개 중 3개`}>오늘 도장 <b>{hydrated ? stepsDone : 0}</b>/3</span>
     </header>
     <ProfileHeader journey={journey} />
@@ -264,7 +319,7 @@ export default function DailyCard({ surface }: { surface: JourneySurface }) {
             <HoneyIcon size={28} />{busy ? "도장 찍는 중" : honey.attended ? "오늘 출석 도장 완료" : "출석 도장 찍기"}
           </button>
         : status === "guest"
-          ? <Link className={styles.stampButton} href={loginHref(surface)}><HoneyIcon size={28} />로그인하고 출석 도장 찍기</Link>
+          ? <GuestInvite journey={journey} />
           : status === "error"
             ? <button type="button" className={styles.stampButton} onClick={journey.retry}>다시 확인하기</button>
             : <p className={styles.note} role="status">출석 정보 확인 중</p>}
@@ -272,13 +327,7 @@ export default function DailyCard({ surface }: { surface: JourneySurface }) {
       {saveFailed && <p className={styles.notice} role="status">{DIARY_SAVE_FAILED_TEXT}</p>}
     </div>
     <TodayQuests journey={journey} />
-    <details className={styles.rewards}>
-      <summary>꿀방울은 어디에 쓰나요?</summary>
-      <p>하루 한 번 출석하면 꿀방울을 받아요. 하루를 놓치면 연속 출석은 다시 시작해요. 작은 실천과 한 줄 기록에는 꿀방울이 지급되지 않아요.</p>
-      {products.length > 0 && <><strong>이런 곳에서 사용할 수 있어요</strong><ul>{products.map(item => <li key={item.productId}>{item.title} <b>{item.honeyCost}방울</b></li>)}</ul></>}
-      <p>{honey && <>운세 프롬프트 1회에는 {honey.promptCost}방울이 필요해요. </>}사용 가능한 상품과 필요 방울 수는 각 상품에서 확인해 주세요.</p>
-      {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-      <a href="/ggulggul/?action=cdOpenAllFortunes">꿀꿀 운세 살펴보기</a>
-    </details>
+    <HoneyUses journey={journey} />
+    <span className={yehwa.sprig} aria-hidden="true" />
   </section>;
 }
