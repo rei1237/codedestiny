@@ -176,6 +176,11 @@ function readMobileAppRefreshToken() {
   }
 }
 
+// 앱에 남은 로그인 흔적(리프레시 토큰). 접근 토큰·사용자 정보가 지워진 뒤에도 갱신할 수 있게 함께 본다.
+export function hasMobileAppRefreshToken() {
+  return Boolean(readMobileAppRefreshToken());
+}
+
 // 서버는 회전할 때마다 새 리프레시 토큰을 준다. 앱에서 이걸 갱신하지 않으면 다음 갱신이
 // 이미 회전된 토큰을 보내 재사용 탐지에 걸리고 전 세션이 폐기된다.
 export function persistMobileAppRefreshToken(refreshToken: string) {

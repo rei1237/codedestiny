@@ -1,7 +1,8 @@
 "use client";
 import Image from "next/image";
 import {useState,useEffect,useCallback} from 'react';
-import {authFetch,logoutWithServer} from '@/app/_lib/auth-client';
+import {authFetch,hasMobileAppRefreshToken,logoutWithServer} from '@/app/_lib/auth-client';
+import {hasClientAuthHint} from '@/app/_lib/user-session-cache';
 import {loginHref} from './service-links';
 import {useReadingLanguage} from '../_lib/use-reading-language';
 import {accountLocaleCopy} from '../_lib/account-locale-copy';
@@ -13,7 +14,8 @@ export default function SessionControls({compact=false,onLogin}:{compact?:boolea
  const {siteLocale}=useReadingLanguage(),copy=accountLocaleCopy[siteLocale],input=consultationInputCopy(siteLocale),chrome=chromeCopy(siteLocale);
  const [status,setStatus]=useState(0),[name,setName]=useState(''),[open,setOpen]=useState(false),[error,setError]=useState('');
  const refresh=useCallback(async()=>{
-  try{const response=await authFetch('/api/auth/me');const data=await response.json();
+  // 로그인 흔적이 전혀 없는 손님은 401 뒤 갱신(2회)·로그아웃 방송까지 가지 않고 바로 손님으로 본다.
+  try{const response=await authFetch('/api/auth/me',{},{retryOn401:hasClientAuthHint()||hasMobileAppRefreshToken()});const data=await response.json();
    if(response.status===401||data.authenticated===false){setStatus(401);return;}
    if(!response.ok||!data.user)throw new Error('session unavailable');
    setName(data.user.name||data.user.displayName||'');setStatus(200);
