@@ -30,6 +30,12 @@ async function verifyLibraryOrder(env,auth,purchase){
 }
 
 async function readNativeLibraryItem(env,auth,row){
+  // The pet result screen and library route must ship together; never offer a
+  // link that cannot yet reopen the purchased result.
+  if(row.nativeService==='pet'){
+    await verifyLibraryOrder(env,auth,row);
+    return {state:'ACCESS_REVIEW'};
+  }
   return row.nativeService==='relationship'?(await import('./native-relationship.js')).nativeRelationshipLibraryItem(env,auth,row):row.nativeService==='sukuyo'?(await import('./native-sukuyo.js')).nativeSukuyoLibraryItem(env,auth,row):row.nativeService==='maya'?(await import('./native-maya.js')).nativeMayaLibraryItem(env,auth,row):row.nativeService==='karma'?(await import('./native-karma.js')).nativeKarmaLibraryItem(env,auth,row):row.nativeService==='new-year'?(await import('./native-new-year.js')).nativeNewYearLibraryItem(env,auth,row):row.nativeService==='ziwei'?(await import('./native-ziwei.js')).nativeZiweiLibraryItem(env,auth,row):row.nativeService==='vedic'?(await import('./native-vedic.js')).nativeVedicLibraryItem(env,auth,row):row.nativeService==='astrology'?(await import('./native-astrology.js')).nativeAstrologyLibraryItem(env,auth,row):row.nativeService==='love-secret'?(await import('./native-love-secret.js')).nativeLoveSecretLibraryItem(env,auth,row):row.nativeService==='life-book'?(await import('./native-life-book.js')).nativeLifeBookLibraryItem(env,auth,row):row.nativeService==='fusion'?(await import('./native-fusion.js')).nativeFusionLibraryItem(env,auth,row):row.nativeService==='neo'?(await import('./native-neo.js')).nativeNeoLibraryItem(env,auth,row):(await import('./native-tea.js')).nativeTeaLibraryItem(env,auth,row);
 }
 
@@ -181,6 +187,22 @@ export async function handleTossRoutes(request,env) {
       const input=await bodyOf(request);
       return reply(await prepareNativeRelationship(env,auth,input.input,input.orderId));
     }
+    if(path==='/native/pet/prepare'&&request.method==='POST'){
+      await limit(env,auth._id,'native-pet-prepare',6);
+      const {prepareNativePet}=await import('./native-pet-paid.js');
+      const input=await bodyOf(request);
+      return reply(await prepareNativePet(env,auth,input.input,input.orderId));
+    }
+    const petResult=path.match(/^\/native\/pet\/intents\/([a-f0-9]{64})\/(result|generate)$/);
+    if(petResult&&request.method===(petResult[2]==='generate'?'POST':'GET')){
+      if(petResult[2]==='generate'){
+        await limit(env,auth._id,'native-pet-generate',30);
+        const input=await bodyOf(request);
+        if(!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).length)throw new TossError('PET_INPUT_INVALID',400);
+      }
+      const {readNativePet}=await import('./native-pet-paid.js');
+      return forwardServiceResponse(await readNativePet(env,auth,petResult[1],{generate:petResult[2]==='generate'}),headers);
+    }
     if(path.startsWith('/canonical/relationship-boundary-test/')&&['GET','POST'].includes(request.method)){
       if(request.method==='POST')await limit(env,auth._id,'native-relationship',30);
       const {handleNativeRelationship}=await import('./native-relationship.js');
@@ -297,7 +319,7 @@ export async function handleTossRoutes(request,env) {
       const {readNativeMaya}=await import('./native-maya.js');
       return reply(await readNativeMaya(env,auth,mayaResult[1],{generate:true}));
     }
-    const nativeIntent=path.match(/^\/native\/(tea|neo|fusion|life-book|love-secret|astrology|vedic|ziwei|new-year|karma|maya|sukuyo|relationship)\/intents\/([a-f0-9]{64})$/);
+    const nativeIntent=path.match(/^\/native\/(tea|neo|fusion|life-book|love-secret|astrology|vedic|ziwei|new-year|karma|maya|sukuyo|relationship|pet)\/intents\/([a-f0-9]{64})$/);
     if(nativeIntent&&request.method==='GET'){
       const {readNativeTeaIntent}=await import('./native-tea.js');
       return reply(await readNativeTeaIntent(env,auth,nativeIntent[2],nativeIntent[1]));
