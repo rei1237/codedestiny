@@ -188,7 +188,14 @@ test('첫 화면은 저장 문장을 한 번만 쓰고 구버전 전생에 새 �
   for (const line of ['관계의 요약입니다.', '함께 읽을 두 번째 문장입니다.', '조금 쉬고 다시 이야기할까요?', '시간을 정해 보세요.']) assert.equal(html.split(line).length, 2);
   assert.ok(html.indexOf('조금 쉬고') < html.indexOf('compat-love-depth'));
   assert.match(html, /past-ferry.webp/);
-  assert.match(buildSajuCompatPrompt('pastLife', input), /나루에서 한 사람이 신호/);
+  const prompt = buildSajuCompatPrompt('pastLife', input);
+  assert.match(prompt, /서로에게 어떤 사람이었을지/);
+  assert.match(prompt, /직업·신분·계급·호칭을 직접 붙이거나 정체를 밝히지/);
+  assert.match(prompt, /뱃전의 사람이 등불을 들고 나루에 선 사람이/);
+  const p3 = { ...input, promptVersion: 'saju-compat-basic-p3' };
+  assert.match(renderSajuCompat({ ...snap, promptVersion: p3.promptVersion }, { archive: true }), /past-ferry.webp/);
+  assert.match(buildSajuCompatPrompt('pastLife', p3), /나루에서 한 사람이 신호/);
+  assert.doesNotMatch(buildSajuCompatPrompt('pastLife', p3), /서로에게 어떤 사람이었을지/);
   for (const promptVersion of ['saju-compat-basic-p1', 'saju-compat-basic-p2']) {
     const archived = renderSajuCompat({ ...snap, promptVersion }, { archive: true });
     assert.doesNotMatch(archived, /past-ferry.webp/);
