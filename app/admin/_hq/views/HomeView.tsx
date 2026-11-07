@@ -1,6 +1,6 @@
 "use client";
 
-// 별빛 운영본부 · 운영 홈. 보여 주기만 하는 화면 — 데이터는 /admin(실제 API)과 /admin/hq-demo(픽스처)가 넣는다.
+// 별빛 운영본부 · 운영 홈. 보여 주기만 하는 화면 — 데이터는 /admin(실제 API)이 넣는다.
 
 import Link from "next/link";
 import { useState } from "react";

@@ -87,7 +87,6 @@ const staticTargets = [
   "royal-tea-oracle.html",
   "emoi_omikuji_v2.html",
   "blood-type-app.html",
-  "tadagochi.html",
   "myungwun_final.html",
   "AnalysisEngine.js",
   "PhysiognomyUI.js",
@@ -1159,8 +1158,6 @@ if (existsSync(publicIndex) || existsSync(rootIndexPath)) {
   writeFileSyncWithRetry(resolve(flowerDir, "index.html"), Buffer.from(flowerHtml, "utf8"));
   const staticDir = resolve(publicDir, "static");
   mkdirSync(staticDir, { recursive: true });
-  // Existing standalone alias must receive the same payment runtime cache pins.
-  cpSyncWithRetry(resolve(publicDir, "geomancy-oracle-v4.html"), resolve(staticDir, "geomancy-oracle-v4.html"), { force: true });
   writeFileSyncWithRetry(resolve(staticDir, "index.html"), indexBuf);
   console.log("[sync-legacy-static-to-public] Copied index.html -> public/static/index.html (SPA shell; avoids [adminHash] collision).");
 

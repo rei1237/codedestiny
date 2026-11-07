@@ -216,14 +216,10 @@ const xRobotsNoindexHeaderPatterns = [
   "/premium/*",
   "/premium-reports",
   "/premium-reports/*",
-  "/saju-picture",
-  "/saju-picture/*",
   "/404",
   "/500",
   "/blog",
   "/blog/*",
-  "/famous",
-  "/famous/*",
   // `/fortune` 은 2026-08-17 에 이 목록에서 뺐다 — 얇은 셸이던 시절의 판정이었고, 지금은
   // 사이트맵에 self-canonical 로 들어가는 색인 대상이다(_headers 의 같은 자리 주석 참고).
   "/fortune/sikojen-povailu",
@@ -247,9 +243,6 @@ const xRobotsNoindexHeaderPatterns = [
   "/emoi_omikuji_v2.html",
   "/fortune-teller-fish.html",
   "/geomancy-oracle-v4.html",
-  // 2026-08-27 추가 — 같은 셸의 `/static/` 사본. 루트 사본만 막혀 있었고 이쪽은
-  // canonical·robots meta 없이 열려 있었다(out/ 전수 실측).
-  "/static/geomancy-oracle-v4.html",
   "/ifa-oracle.html",
   "/ifa-oracle-about.html",
   "/neville-meditation.html",

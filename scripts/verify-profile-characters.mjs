@@ -48,8 +48,9 @@ assert.equal(retryCalls, 2, 'a rejected preview is evicted so fallback can recov
 assert.equal(recovered.character.id, 'animal-pig');
 const css = await readFile(new URL('styles/profile-characters.css', root), 'utf8');
 assert.match(css, /prefers-reduced-motion/); assert.match(css, /step-end/);
-const legacy = await readFile(new URL('tadagochi.html', root), 'utf8');
-assert.match(legacy, /\/ggulggul\/#dpMasterCard/); assert.doesNotMatch(legacy, /api\/user\/tamagotchi/);
+// The retired tamagotchi stub file is gone; the edge worker 301s /tadagochi to the master card.
+const edge = await readFile(new URL('public/_worker.js', root), 'utf8');
+assert.match(edge, /\/tadagochi[\s\S]{0,160}\/ggulggul\/#dpMasterCard/);
 const userRoute = await readFile(new URL('worker/routes/user.js', root), 'utf8');
 assert.doesNotMatch(userRoute, /tamagotchi/i);
 if (!process.argv.includes('--skip-assets')) {

@@ -9,7 +9,7 @@
 - 숙요점: `/sukuyo`, `/sukuyo/compatibility`, `/sukuyo/calendar`, `/oracle/sukuyo`, `/sukyo`
 - 점성술/베다: `/astrology`, `/astrology/cosmic`, `/astrology/guide`, `/vedic`, `/vedic/jyotish`, `/vedic/guide`
 - 타로: `/tarot`, `/tarot/mingri`, `/tarot/mingri/play`, `/tarot/love`, `/tarot/reunion`, `/tarot/mindscan`, `/tarot/healing`, `/tarot/prompt-maker`
-- 오라클/기타: `/oracle/rune`, `/oracle/royal-tea`, `/oracle/ifa`, `/oracle/hwatu-life`, `/oracle/sikojen-povailu`, `/maya`, `/palm-reading`, `/physiognomy`, `/dream`, `/fpti`
+- 오라클/기타: `/oracle/rune`, `/oracle/royal-tea`, `/oracle/ifa`, `/oracle/hwatu-life`, `/oracle/sikojen-povailu`, `/maya`, `/palm-reading`, `/physiognomy`, `/dream`, `/saju-fpti`
 - SEO/정책: `/about`, `/faq`, `/methodology`, `/privacy-policy`, `/terms-of-service`, `/disclaimer`, `/advertising-policy`, `/editorial-policy`, `/contact`
 - 로케일: `/en`, `/ja`, `/zh`, `[locale]` 하위 일부 route
 

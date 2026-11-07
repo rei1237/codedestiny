@@ -142,7 +142,7 @@ function NavLink({ item, active, collapsed }: { item: AdminNavItem; active: bool
 }
 
 // 운영본부 신규 화면만 셸이 여백을 준다. 기존 관리 화면은 각자 여백·전폭 레이아웃을 가지므로 건드리지 않는다.
-const HQ_PADDED_ROUTES = new Set(["/admin", "/admin/threads", "/admin/wordpress", "/admin/quests", "/admin/growth", "/admin/connections", "/admin/manage", "/admin/hq-demo"]);
+const HQ_PADDED_ROUTES = new Set(["/admin", "/admin/threads", "/admin/wordpress", "/admin/quests", "/admin/growth", "/admin/connections", "/admin/manage"]);
 
 function ShellFrame({ pathname, children }: { pathname: string; children: React.ReactNode }) {
   const { mode, localClassic, serverDisabled, setLocalClassic } = useAdminUiMode();
@@ -303,7 +303,7 @@ function ShellFrame({ pathname, children }: { pathname: string; children: React.
         </nav>
 
         <div className={`min-w-0${HQ_PADDED_ROUTES.has(pathname) ? " px-4 pt-4 lg:px-6 lg:pt-6" : ""}${hq ? " pb-[calc(64px+env(safe-area-inset-bottom))] lg:pb-0" : ""}`}>
-          {hq && pathname !== "/admin" && pathname !== "/admin/hq-demo" ? (
+          {hq && pathname !== "/admin" ? (
             <div className={HQ_PADDED_ROUTES.has(pathname) ? "" : "px-4 pt-4 lg:px-6 lg:pt-6"}><AdminTaskReminder /></div>
           ) : null}
           {children}

@@ -100,7 +100,6 @@ const noindexPathPrefixes = [
   "/pdf",
   "/premium",
   "/premium-reports",
-  "/saju-picture",
   // 2026-08-24: 이 목록에서 5개를 뺐다 — /saju/destiny-bias · /saju/love-simulation ·
   // /saju-guardian · /tarot/healing · /neo-operation-room. 얇아서 뺐던 것이 맞지만 얇았던
   // 이유는 본문이 없어서가 아니라 **본문이 클라이언트 JS 안에만 있어서**였다. page.tsx 에
@@ -116,7 +115,6 @@ const noindexPathPrefixes = [
   "/oracle/juyuk",
   "/oracle/hwatu",
   "/blog",
-  "/famous",
   "/fortune/sikojen-povailu",
   // AdSense "가치 없는 콘텐츠" 거절 대응 — 얇은 목록형·스텁 22개(2026-08-17 out/ 실측).
   // lib/seo/siteSeo.ts 의 noindexPathPrefixes 와 짝이다. 한쪽만 고치면
@@ -255,7 +253,6 @@ const coreRoutes = [
   { path: "/oracle/hwatu-life", changefreq: "weekly", priority: 0.88 },
   { path: "/animal/mbti", changefreq: "weekly", priority: 0.87 },
   { path: "/oracle/sikojen-povailu", changefreq: "weekly", priority: 0.87 },
-  { path: "/saju-picture", changefreq: "weekly", priority: 0.86 },
   { path: "/fortune-tea-house", changefreq: "weekly", priority: 0.86 },
   // 🔴 `/fortune` 은 정적 셸(fortune/index.html)이라 App Router 라우트 발견에 안 잡힌다.
   // 2026-08-17 이전에는 사이트맵에 없었을 뿐 아니라 `_headers` 에서 `noindex, nofollow` 였다

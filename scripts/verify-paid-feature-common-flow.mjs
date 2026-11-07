@@ -114,7 +114,6 @@ const generatedStaticPages = [
   "public/tarot-ijik.html",
   "public/vedic-astrology.html",
   "public/yoga-guru.html",
-  "public/static/geomancy-oracle-v4.html",
 ];
 for (const rel of generatedStaticPages) {
   const page = fs.readFileSync(path.join(root, rel), "utf8");

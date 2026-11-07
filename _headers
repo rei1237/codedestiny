@@ -80,28 +80,15 @@
 # `/premium*` 이 `/premium-reports` 계열까지 덮으므로 별도 규칙은 두지 않는다(규칙 100개 예산).
 /premium*
   X-Robots-Tag: noindex, nofollow
-/saju-picture*
-  X-Robots-Tag: noindex, nofollow
 /404
   X-Robots-Tag: noindex, nofollow
 /500
   X-Robots-Tag: noindex, nofollow
 # /blog 은 2026-08-14 에 은퇴했다(전편 /insights 정본으로 301, public/_redirects 참고).
 # 규칙은 지운 게 아니라 남긴다 — verify:adsense-readiness 가 /blog·/blog/* 커버를 요구하고,
-# blog-style.css 는 /famous 가 계속 쓴다. nofollow → follow: 301 응답에서 링크 신호를
+# nofollow → follow: 301 응답에서 링크 신호를
 # 끊으면 통합의 목적(자산을 /insights 로 모으기)을 스스로 막는다(위 셸 사본과 같은 이유).
 /blog*
-  X-Robots-Tag: noindex, follow
-# 🔴 `/famous*` 로 합치지 말 것 — `/famous-saju/**` 를 삼켜 그 301 응답에 nofollow 가 붙고,
-#    그러면 `/insights/famous-saju/` 로 가는 회수 경로가 링크 신호를 잃는다.
-# 🔴 nofollow → follow (2026-08-28). /famous/ 는 301 스텁이 아니라 살아 있는 200 페이지이고,
-#    고유 렌더 텍스트가 8,821자다(/insights/famous-saju/ 와 토큰 중복 7.3% — 사본이 아니다).
-#    거기서 /insights/ 로 링크를 거는데 nofollow 가 그 신호를 끊고 있었다. 위 /blog 주석과
-#    같은 논리이고, /fortune 도 2026-08-17 에 같은 이유로 풀었다. 색인은 계속 막는다 —
-#    AdSense 거절 사유가 목록형 얇은 콘텐츠였고 /insights/famous-saju/ 와 키워드가 겹친다.
-/famous
-  X-Robots-Tag: noindex, follow
-/famous/*
   X-Robots-Tag: noindex, follow
 # 🔴 `/fortune` 의 noindex 는 2026-08-17 에 풀었다. 규칙이 붙던 시점의 그 페이지는 렌더 텍스트
 # 531자짜리 빈 허브였지만, 지금은 scripts/build-fortune-hub-shell.mjs 가 sign-profiles 에서
@@ -157,15 +144,6 @@
 /neville-meditation*
   X-Robots-Tag: noindex, nofollow
 /geomancy-oracle-v4*
-  X-Robots-Tag: noindex, nofollow
-# `/static/` 아래에 같은 레거시 셸의 **두 번째 사본**이 있다(public/static/geomancy-oracle-v4.html).
-# 위 규칙은 경로 선두에 앵커되므로 그 사본을 못 덮는다 — 루트 사본만 색인이 막히고
-# `/static/` 사본은 canonical·robots meta 가 하나도 없이 열려 있었다(2026-08-27 out/ 실측).
-# 🔴 `/static*` 블록에 noindex 를 넣어 해결하지 말 것. 그 블록은 홈 셸 사본
-#    `/static/index.html` 까지 덮는데, 그 문서는 canonical 로 홈을 가리킨다.
-#    noindex + 타 URL canonical 조합은 noindex 가 canonical 목적지(= 홈)로 옮겨붙을 수 있어
-#    Google 이 권하지 않는 조합이다. 그래서 사본 하나만 정확히 집는다(규칙 +1).
-/static/geomancy-oracle-v4*
   X-Robots-Tag: noindex, nofollow
 /yoga-guru*
   X-Robots-Tag: noindex, nofollow

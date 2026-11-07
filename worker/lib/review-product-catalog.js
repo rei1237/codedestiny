@@ -322,7 +322,7 @@ export const REVIEW_PRODUCTS = Object.freeze([
     productId: "personality-report",
     name: "성향 리포트",
     summary: "FPTI·테토에겐·시빌라 등 성향 정밀 리포트",
-    href: "/fpti",
+    href: "/saju-fpti",
     featureKeys: Object.freeze([
       "premium-fpti-report",
       "tetogen_deep_report",

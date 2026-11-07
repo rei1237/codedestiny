@@ -414,12 +414,10 @@ export const noindexPathPrefixes = [
   // 🔴 /saju-fpti 는 여기 없다. 2026-08-28 에 색인으로 되돌리면서(generate-sitemap.mjs 의
   //    coreRoutes 주석) 사이트맵·_headers·page metadata 는 index 가 됐는데 이 목록만 남아
   //    ShareWidget 이 사라져 있었다(2026-09-05 SEO 진단 F-07). 다시 넣지 말 것.
-  "/saju-picture",
   "/oracle/juyuk",
   "/oracle/hwatu",
 
   "/blog",
-  "/famous",
   "/fortune/sikojen-povailu",
   // AdSense 가 "가치 없는 콘텐츠"로 거절한 뒤 실측(out/, 2026-08-17)해 뺀 얇은 목록형·스텁 라우트.
   // 고유본문(8-gram shingle 로 공통 크롬 제거) 기준: guides 카테고리 272~558자,

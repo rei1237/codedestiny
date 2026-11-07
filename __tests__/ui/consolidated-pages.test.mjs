@@ -40,6 +40,15 @@ test('consolidation cannot swallow payment, saved results, child routes or sitem
 
 const assets = { ASSETS: { fetch: async () => new Response('<html>public fixture</html>', { headers: { 'Content-Type': 'text/html' } }) } };
 
+test('the removed /static/ geomancy copy redirects once to the live shell and keeps its query', async () => {
+  for (const input of ['/static/geomancy-oracle-v4.html', '/static/geomancy-oracle-v4', '/static/geomancy-oracle-v4/']) {
+    const response = await worker.fetch(new Request('https://code-destiny.com' + input + '?lang=ja'), assets, {});
+    assert.equal(response.status, 301, input);
+    assert.equal(response.headers.get('location'), 'https://code-destiny.com/geomancy-oracle-v4?lang=ja', input);
+  }
+  assert.ok(fs.existsSync(path.join(root, 'geomancy-oracle-v4.html')));
+});
+
 test('public content versions collapse once without changing meaningful query bytes', async () => {
   for (const [input, expected] of [
     ['/?v=old', '/'],

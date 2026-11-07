@@ -6,6 +6,8 @@
  */
 
 // Retired presentation pages: exact paths only; paid/result routes are never matched.
+// The table stays pure JSON (tests parse it). Entries from /fpti on were retired in the
+// 2026-11-08 legacy cleanup (docs/seo/2026-11-08-legacy-cleanup-redirects.md).
 const CONSOLIDATED_PAGE_REDIRECTS = {
   "/recommendations": "/",
   "/recommendations/books": "/",
@@ -31,7 +33,16 @@ const CONSOLIDATED_PAGE_REDIRECTS = {
   "/astrology/cosmic": "/astrology/",
   "/contact-us": "/contact/",
   "/privacy-policy": "/privacy/",
-  "/terms-of-service": "/terms/"
+  "/terms-of-service": "/terms/",
+  "/fpti": "/saju-fpti/",
+  "/saju-picture": "/saju-guardian/",
+  "/famous": "/insights/famous-saju/",
+  "/fortune/sikojen-povailu": "/oracle/sikojen-povailu/",
+  "/dev-status": "/",
+  "/neo-war-room/asset-demo": "/neo-operation-room/",
+  "/fortune-tea-house/tarot-debug": "/fortune-tea-house/",
+  "/fortune-tea-house/tea-cup-debug": "/fortune-tea-house/",
+  "/fortune-tea-house/ten-god-debug": "/fortune-tea-house/"
 };
 
 const DEFAULT_API_WORKER_ORIGIN = "https://code-destiny-web.bulegyung.workers.dev";
@@ -749,6 +760,11 @@ export default {
     }
     if (/^\/tadagochi(?:\.html)?\/?$/.test(url.pathname)) {
       return Response.redirect(new URL('/ggulggul/#dpMasterCard', url), 301);
+    }
+    // /static/ 아래 두 번째 사본은 지웠다 — 원본 셸 하나로 모은다(질의는 그대로 넘긴다).
+    if (/^\/static\/geomancy-oracle-v4(?:\.html)?\/?$/.test(url.pathname)) {
+      url.pathname = '/geomancy-oracle-v4';
+      return new Response(null, { status: 301, headers: { Location: url.toString(), 'Cache-Control': 'no-store' } });
     }
     const consolidatedPath = url.pathname.replace(/\/$/, '');
     const consolidatedTarget = Object.hasOwn(CONSOLIDATED_PAGE_REDIRECTS, consolidatedPath) ? CONSOLIDATED_PAGE_REDIRECTS[consolidatedPath] : null;
