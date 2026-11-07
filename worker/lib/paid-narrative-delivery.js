@@ -87,11 +87,22 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
   if (resumeId != null && (typeof resumeId !== "string" || !/^[a-zA-Z0-9:_-]{8,120}$/.test(resumeId))) return json({ ok: false, reason: "INVALID_RESULT_ID" }, { status: 422 });
   if (request.method !== "GET" && !resumeId && (typeof body.requestId !== "string" || body.requestId.length < 8 || body.requestId.length > 180)) return json({ ok: false, reason: "REQUEST_ID_REQUIRED" }, { status: 422 });
   const executionKey = resumeId || (request.method === "GET" ? "" : paidNarrativeExecutionKey(userId, featureKey, body.requestId));
+  const nativeOrigin = generationOrigin === 'toss';
+  const sourcePath = 'metadata.paidNarrative.input.accessSource';
+  // Older expert follow-ups seeded the trusted consultation itself. Other
+  // adapters may seed arbitrary user input, so that input is not proof of origin.
+  const nativeSources = [{ 'metadata.tossPaidNarrative': true }, { reportType: 'expertFollowUp', [sourcePath]: 'toss' }];
+  const nativeRecord = row => row?.metadata?.tossPaidNarrative === true || (row?.reportType === 'expertFollowUp' && row?.metadata?.paidNarrative?.input?.accessSource === 'toss');
   // A paid-intent record shares the collection but never carries paidNarrative.
-  let doc = await find(env, { userId, featureKey, "metadata.paidNarrative": { $exists: true }, ...(executionKey ? { executionKey } : { status: "pending" }) });
+  const lookup = { userId, featureKey, "metadata.paidNarrative": { $exists: true }, ...(executionKey ? { executionKey } : { status: "pending" }) };
+  let doc = await find(env, nativeOrigin && !executionKey ? { ...lookup, $or: nativeSources } : lookup);
+  if (!executionKey && !nativeOrigin && generationOrigin !== 'server' && nativeRecord(doc)) doc = await find(env, { ...lookup, $nor: nativeSources });
   if (!doc && (request.method === "GET" || resumeId)) return json({ ok: false, reason: "RESULT_NOT_FOUND" }, { status: 404 });
+  const sourceDenied = row => Boolean(row && (nativeOrigin ? !nativeRecord(row) : generationOrigin !== 'server' && nativeRecord(row)));
+  if (sourceDenied(doc)) return json({ ok: false, reason: "RESULT_NOT_FOUND" }, { status: 404 });
+  if (nativeOrigin && typeof verify !== 'function') throw Object.assign(new Error('TOSS_AUTHORITY_REQUIRED'), { code: 'TOSS_AUTHORITY_REQUIRED' });
   const verifyNativeRecovery = async () => {
-    if (generationOrigin !== 'server' || doc?.metadata?.paidNarrative?.input?.accessSource !== 'toss') return;
+    if (generationOrigin !== 'server' || !nativeRecord(doc)) return;
     if (!verifyRecovery) throw Object.assign(new Error('TOSS_RECOVERY_UNAVAILABLE'), { code: 'TOSS_RECOVERY_UNAVAILABLE' });
     await verifyRecovery(doc);
   };
@@ -100,30 +111,42 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
   // A record the intent task created stores its server proof of this exact
   // purchase, and its body predates the checkout evidence the route verifier
   // reads. revoked() below still blocks a refunded or cancelled payment.
-  if (!doc?.metadata?.paidNarrativeProof) await verify(original);
+  if (nativeOrigin) await verify(original, doc);
+  else if (!doc?.metadata?.paidNarrativeProof) await verify(original);
   if (await revoked(env, doc || { userId, executionKey }, featureKey, original)) return json({ ok: false, retryable: false, reason: "PAYMENT_REVOKED" }, { status: 403 });
   if (doc && !resumeId && request.method !== "GET" && paidNarrativeInputHash(body) !== paidNarrativeInputHash(original)) return json({ ok: false, reason: "INPUT_MISMATCH" }, { status: 409 });
-  if (doc?.premiumStatus === "completed" || doc?.metadata?.paidNarrative?.exhaustionClaimed || request.method === "GET") return respond(doc, render, false, measureBody);
+  const deliver = async (busy = false) => {
+    if (nativeOrigin) await verify(original, doc);
+    await verifyNativeRecovery();
+    if ((nativeOrigin || nativeRecord(doc)) && await revoked(env, doc, featureKey, original)) return json({ ok: false, retryable: false, reason: "PAYMENT_REVOKED" }, { status: 403 });
+    return respond(doc, render, busy, measureBody);
+  };
+  if (doc?.premiumStatus === "completed" || doc?.metadata?.paidNarrative?.exhaustionClaimed || request.method === "GET") return deliver();
   const now = new Date(), token = randomUUID();
   const lock = { token, until: new Date(now.getTime() + 120000) };
-  if (doc?.lock?.token && new Date(doc.lock.until) > now) return respond(doc, render, true, measureBody);
+  if (doc?.lock?.token && new Date(doc.lock.until) > now) return deliver(true);
   if (!doc) {
-    const seeded = await seed(original);
-    const insert = paidNarrativeInsert({ userId, executionKey, featureKey, reportType, original, seeded, locale: getAmbientAiLocale() || "ko", lock, now, timeoutAt: new Date(now.getTime() + 600000) });
+    const baseSeed = await seed(original);
+    const seeded = nativeOrigin ? { ...baseSeed, input: { ...baseSeed.input, accessSource: 'toss' } } : baseSeed;
+    const insert = paidNarrativeInsert({ userId, executionKey, featureKey, reportType, original, seeded, locale: getAmbientAiLocale() || "ko", lock, now, timeoutAt: new Date(now.getTime() + 600000), ...(nativeOrigin ? { metadata: { tossPaidNarrative: true } } : {}) });
     try {
       const inserted = await withMongoRetry(env, () => ServiceExecutionTransaction.findOneAndUpdate({ userId, executionKey }, { $setOnInsert: insert }, { upsert: true, returnDocument: "after" }).lean(), { retries: 0 });
       if (!inserted) throw failure(executionKey);
       doc = await find(env, { userId, executionKey });
       if (!doc?.metadata?.paidNarrative) throw failure(executionKey);
     } catch { throw failure(executionKey); }
+    if (sourceDenied(doc)) return json({ ok: false, reason: "RESULT_NOT_FOUND" }, { status: 404 });
+    if (nativeOrigin) {
+      if (paidNarrativeInputHash(doc.metadata.paidNarrative.body) !== paidNarrativeInputHash(original)) return json({ ok: false, reason: "INPUT_MISMATCH" }, { status: 409 });
+    }
   } else {
     try {
       const claim = await withMongoRetry(env, () => ServiceExecutionTransaction.findOneAndUpdate({ userId, executionKey, status: "pending", "lock.token": doc.lock?.token ?? null }, { $set: { lock } }, { returnDocument: "after" }).lean(), { retries: 0 });
-      if (!claim) return respond(doc, render, true, measureBody);
+      if (!claim) return deliver(true);
       doc = claim;
     } catch { throw failure(executionKey); }
   }
-  if (doc.lock.token !== token) return respond(doc, render, true, measureBody);
+  if (doc.lock.token !== token) return deliver(true);
   const filter = { userId, executionKey, status: "pending", "lock.token": token };
   let state = doc.metadata.paidNarrative;
   // With repairShortParts a short complete answer is a draft for the part's second (repair)
@@ -136,6 +159,7 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
     paidNarrativeRecovery: savedOnly ? { ...doc.metadata.paidNarrativeRecovery, reviewRequired: true, code: "DELIVERY_REVIEW_REQUIRED" } : null },
     timeoutAt: new Date(Date.now() + 600000) }); };
   try {
+    if (nativeOrigin) await verify(original, doc);
     for (const task of state.tasks) {
       const draft = state.drafts?.[task.id] || (!state.parts[task.id] && recoverSavedPart?.(task, state));
       if (!state.parts[task.id] && draft) {
@@ -213,7 +237,7 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
     })));
     const rejected = calls.find(call => call.status === "rejected"); if (rejected) throw rejected.reason;
     if (!ready(state, measureBody)) {
-      if (!savedOnly && limited(state) && onExhausted && Object.keys(state.parts).length === 0) {
+      if (!savedOnly && limited(state) && onExhausted && !nativeRecord(doc) && Object.keys(state.parts).length === 0) {
         // Persist a single refund claim before any external side effect. An
         // uncertain refund response is for reconciliation, never another refund.
         state = { ...state, exhaustionClaimed: true };
@@ -222,14 +246,15 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
         state = { ...state, failureResult };
         await persist();
       }
-      return respond(doc, render, false, measureBody);
+      return await deliver();
     }
     doc = await save(env, filter, { metadata: { ...doc.metadata, result: render(state) }, premiumStatus: "generating" });
+    if (nativeOrigin) await verify(original, doc);
     await verifyNativeRecovery();
     if (await revoked(env, doc, featureKey, original)) return json({ ok: false, retryable: false, reason: "PAYMENT_REVOKED" }, { status: 403 });
     doc = await save(env, filter, { status: "success", premiumStatus: "completed", deliveryStatus: "delivered", completedAt: new Date(),
       ...(savedOnly ? { metadata: { ...doc.metadata, paidNarrativeRecovery: null } } : {}) });
-    return respond(doc, render, false, measureBody);
+    return await deliver();
   } finally {
     await withMongoRetry(env, () => ServiceExecutionTransaction.updateOne({ userId, executionKey, "lock.token": token }, { $set: { "lock.token": "", "lock.until": null } }), { retries: 0 }).catch(() => {});
   }

@@ -56,6 +56,7 @@ export async function recoverSavedExpertFollowUps({ auth, consultation, featureK
 // A repeated question on the same purchased report reuses its saved answer.
 // The original report remains authoritative; no new purchase is made here.
 export async function deliverExpertFollowUp({ request, env, auth, consultation, message, featureKey, model, generate, render, verifyAccess }) {
+  if (consultation.accessSource === 'toss' && typeof verifyAccess !== 'function') return json({ ok: false, reason: 'RESULT_NOT_FOUND' }, { status: 404 });
   const receipt = createHash('sha256').update(JSON.stringify([featureKey, consultation.id, message])).digest('hex');
   const filter = { id: consultation.id, userId: String(auth.userId), status: 'completed' };
   const verify = async () => {
@@ -65,8 +66,11 @@ export async function deliverExpertFollowUp({ request, env, auth, consultation, 
   };
   try {
     await verify();
-    const response = await runPaidNarrativeDelivery(request, env, auth, { requestId: 'follow-up:' + receipt, sessionId: consultation.id, message }, expertFollowUpNarrativeAdapter({ featureKey, verify, consultation, generate })
-    );
+    const adapter = expertFollowUpNarrativeAdapter({ featureKey, verify, consultation, generate });
+    // Only the trusted native route supplies both the saved source and its
+    // order verifier; request data alone cannot choose a payment authority.
+    if (consultation.accessSource === 'toss' && verifyAccess) adapter.generationOrigin = 'toss';
+    const response = await runPaidNarrativeDelivery(request, env, auth, { requestId: 'follow-up:' + receipt, sessionId: consultation.id, message }, adapter);
     const result = await response.json();
     if (response.status !== 200 || !result.saved) return json({ ...result, ok: false }, { status: response.status });
     await verify();

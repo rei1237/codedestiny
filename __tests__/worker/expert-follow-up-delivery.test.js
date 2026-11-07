@@ -92,6 +92,27 @@ test('a revoked result reload does not attach the saved follow-up answer', async
   expect(provider).toHaveBeenCalledTimes(1);
 });
 test('revoked purchase cannot generate or reopen a follow-up', async () => { await start(); revoked = true; expect((await start()).status).toBe(403); expect(provider).toHaveBeenCalledTimes(1); });
+test('a verified Toss follow-up reuses its own saved answer and rejects a later revoked order', async () => {
+  report.accessSource = 'toss';
+  const verifyAccess = jest.fn(async () => {});
+  expect((await start({ verifyAccess })).status).toBe(200);
+  expect(docs[0].metadata.paidNarrative.input.accessSource).toBe('toss');
+  // Earlier native follow-ups predate the dedicated metadata marker.
+  delete docs[0].metadata.tossPaidNarrative;
+  expect((await start({ verifyAccess })).status).toBe(200);
+  expect(provider).toHaveBeenCalledTimes(1);
+  verifyAccess.mockImplementation(async () => { throw Object.assign(new Error('ORDER_REFUNDED'), { status: 403, code: 'ORDER_REFUNDED' }); });
+  const response = await start({ verifyAccess });
+  expect(response.status).toBe(403);
+  expect((await response.json()).reason).toBe('ORDER_REFUNDED');
+  expect(provider).toHaveBeenCalledTimes(1);
+});
+test('a Toss follow-up without its native order verifier cannot generate or create a record', async () => {
+  report.accessSource = 'toss';
+  expect((await start()).status).toBe(404);
+  expect(provider).not.toHaveBeenCalled();
+  expect(docs).toHaveLength(0);
+});
 test.each([[401, 'SESSION_EXPIRED'], [403, 'PURCHASE_REVOKED']])('native access denial %s is preserved before generation', async (status, code) => {
   const verifyAccess = async () => { throw Object.assign(new Error(code), { status, code }); };
   const response = await start({ verifyAccess });
@@ -155,7 +176,7 @@ test('server resumes the original follow-up budget and GET attaches once without
 test('server recovery of a native follow-up fails closed without order verification', async () => {
   report.accessSource = 'toss';
   provider.mockImplementationOnce(async () => null);
-  expect((await start()).status).toBe(202);
+  expect((await start({ verifyAccess: async () => {} })).status).toBe(202);
   const { expertFollowUpNarrativeAdapter } = await import('../../worker/lib/expert-follow-up-delivery.js');
   const { resumePaidNarrativeOnServer } = await import('../../worker/lib/paid-narrative-delivery.js');
   const adapter = expertFollowUpNarrativeAdapter({ featureKey: 'karma-destiny-ai-consultation', generate: provider });
@@ -164,13 +185,13 @@ test('server recovery of a native follow-up fails closed without order verificat
   expect(docs[0].premiumStatus).not.toBe('completed');
   const verifyRecovery = jest.fn(async () => {});
   expect((await resumePaidNarrativeOnServer({}, docs[0], { ...adapter, verifyRecovery })).status).toBe(200);
-  expect(verifyRecovery).toHaveBeenCalledTimes(2);
+  expect(verifyRecovery).toHaveBeenCalledTimes(3);
 });
 
 test('server recovery does not complete if native access is revoked during generation', async () => {
   report.accessSource = 'toss';
   provider.mockImplementationOnce(async () => null);
-  expect((await start()).status).toBe(202);
+  expect((await start({ verifyAccess: async () => {} })).status).toBe(202);
   const { expertFollowUpNarrativeAdapter } = await import('../../worker/lib/expert-follow-up-delivery.js');
   const { resumePaidNarrativeOnServer } = await import('../../worker/lib/paid-narrative-delivery.js');
   const adapter = expertFollowUpNarrativeAdapter({ featureKey: 'karma-destiny-ai-consultation', generate: provider });
