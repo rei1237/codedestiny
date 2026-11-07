@@ -149,6 +149,24 @@ export function dayBranchOf(ilchin: string): string | null {
   return branch && BRANCH_KO[branch] ? branch : null;
 }
 
+const STEM_KO: Record<string, string> = {
+  甲: "갑", 乙: "을", 丙: "병", 丁: "정", 戊: "무",
+  己: "기", 庚: "경", 辛: "신", 壬: "임", 癸: "계",
+};
+
+/** 천간·지지 한 글자의 한글 독음. 표에 없으면 null. */
+export function hanjaKo(char: string): string | null {
+  return STEM_KO[char] || BRANCH_KO[char] || null;
+}
+
+/** 일진 간지 "丙戌" → "병술(丙戌)". 읽을 수 없는 글자가 있으면 원문을 돌려준다. */
+export function ganjiKo(ilchin: string): string {
+  const raw = String(ilchin || "").trim();
+  const chars = Array.from(raw);
+  const ko = chars.map(hanjaKo);
+  return chars.length > 0 && ko.every(Boolean) ? `${ko.join("")}(${raw})` : raw;
+}
+
 export function animalDayRelation(animalId: string, ilchin: string): DayRelation | null {
   const own = BRANCH_BY_ANIMAL[animalId];
   const day = dayBranchOf(ilchin);

@@ -9,7 +9,7 @@
 import type { WebtoonCut, WebtoonLine } from "@/app/components/webtoon/CutReader";
 import { dailyTarotReading } from "@/lib/tarot/yeongnyangi-daily-card";
 import type { DailySignEntry } from "./daily-data";
-import { dayStemOf, elementOfStem, sunSignIdOf, type DayRelation } from "./day-relation";
+import { branchOfAnimal, dayBranchOf, dayStemOf, elementOfStem, ganjiKo, hanjaKo, sunSignIdOf, type DayRelation } from "./day-relation";
 import type { ScoreAxis } from "./fortune-score";
 import { getSignProfile, zodiacNameKoFromEn, type SignProfile } from "./sign-profiles";
 import { resolveSlotArt, type DailyWebtoonSlot } from "./daily-webtoon-slots";
@@ -59,7 +59,7 @@ const NEO_KIND_LINE: Record<DayRelation["kind"], string> = {
   trine: "같은 판에 서는 기운이라, 혼자 끌기보다 역할부터 맞춰.",
   clash: "부딪히는 기운이니까, 감정 실린 결정은 하루 미뤄.",
   same: "같은 기운이 겹쳐서 힘이 세. 대신 과속은 조심해.",
-  neutral: "크게 당기지도 밀지도 않는 날이야. 준비한 순서가 하루를 정해.",
+  neutral: "그렇다고 조용한 날이라고 단정하진 마. 육합 같은 다른 관계는 점수 근거에서 따로 봐.",
 };
 
 const STEM_LINE: Record<string, string> = {
@@ -89,17 +89,62 @@ const say = (speaker: string, ...parts: Array<string | false | null | undefined>
   text: parts.filter(Boolean).join(" "),
 });
 
+const BRANCH_ORDER = "子丑寅卯辰巳午未申酉戌亥";
+const ELEMENT_HANJA: Record<string, string> = { 목: "木", 화: "火", 토: "土", 금: "金", 수: "水" };
+
+/** 십성 이름 → 대사에 붙는 풀이. 표에 없으면 산출 근거의 풀이를 그대로 쓴다. */
+const TEN_GOD_PHRASE: Record<string, string> = {
+  인성: "나를 돕는 기운",
+  비겁: "나와 같은 기운",
+  재성: "내가 다루는 기운",
+  식상: "밖으로 나가는 기운",
+  관성: "나를 누르는 기운",
+};
+
+/** 배지를 낭독하지 않고, 띠와 그날 지지의 관계를 말로 풀어 쓴다. */
+function relationSentence(input: DailyWebtoonInput, relation: DayRelation): string {
+  const name = input.profile.nameKo;
+  const own = branchOfAnimal(input.profile.id);
+  const day = dayBranchOf(input.sky.ilchin);
+  const withName = josa(name, "과", "와");
+  const tail = relation.badge.split("· ")[1]?.trim() || relation.badge;
+  if (relation.kind === "same") return `${withName} 같은 지지가 겹치는 비화(比和)의 날이야.`;
+  if (relation.kind === "clash") {
+    // 충 이름은 지지 순서로 부른다(巳亥沖을 해사충이라 하지 않는다).
+    const pair = own && day ? [own, day].sort((a, b) => BRANCH_ORDER.indexOf(a) - BRANCH_ORDER.indexOf(b)) : [];
+    const ko = pair.map(hanjaKo);
+    const clash = pair.length === 2 && ko.every(Boolean) ? `${ko.join("")}충(${pair.join("")}沖)` : tail;
+    return `${withName} 정면으로 부딪히는 ${josa(clash, "이", "가")} 든 날이야.`;
+  }
+  if (relation.kind === "trine") return `${withName} ${tail} 삼합 그룹으로 이어지는 날이야.`;
+  const dayKo = day && hanjaKo(day);
+  return dayKo
+    ? `${dayKo}(${day})의 날이라 ${withName}는 삼합도 충도 아니야.`
+    : `${withName}는 삼합도 충도 아닌 날이야.`;
+}
+
+/** "화(丙) → 수 · 재성 — 내가 다루는 기운" → 말로 풀어 쓴 문장. 형식이 다르면 원문. */
+function elementSentence(value: string, name: string): string {
+  const hit = value.match(/^(.)\((.)\)\s*→\s*(.)\s*·\s*([^—]+?)\s*—\s*(.+)$/);
+  const stemKo = hit && hanjaKo(hit[2]);
+  if (!hit || !stemKo || !ELEMENT_HANJA[hit[1]] || !ELEMENT_HANJA[hit[3]]) return `천간 쪽은 ${value}.`;
+  const [, dayEl, stem, ownEl, god, gloss] = hit;
+  const phrase = TEN_GOD_PHRASE[god] || gloss.trim();
+  return `천간 ${josa(`${stemKo}(${stem})`, "은", "는")} ${josa(`${dayEl}(${ELEMENT_HANJA[dayEl]})`, "이라", "라")}, ${ownEl}(${ELEMENT_HANJA[ownEl]})인 ${name}에겐 ${god}, 곧 ${phrase}이야.`;
+}
+
 function sajuLine(input: DailyWebtoonInput, dayWord: string): WebtoonLine {
   const { profile, relation, basis, sky } = input;
   const name = profile.nameKo;
+  const day = `${dayWord} 일진은 ${ganjiKo(sky.ilchin)}일이야.`;
   if (profile.kind === "animal") {
     const element = basis.find((row) => row.label === "오행 생극");
     return say(
       "네오",
-      `${dayWord} 일진은 ${sky.ilchin}.`,
-      relation && `${name} 쪽에서 보면 「${relation.badge}」.`,
+      day,
+      relation && relationSentence(input, relation),
       relation && NEO_KIND_LINE[relation.kind],
-      element && `천간 쪽은 ${element.value}.`,
+      element && elementSentence(String(element.value), name),
     );
   }
   // 별자리에는 지지가 없다 — 띠 관계(합·충)를 빌려 오지 않고 천간 오행만 짚는다.
@@ -107,7 +152,7 @@ function sajuLine(input: DailyWebtoonInput, dayWord: string): WebtoonLine {
   const element = stem ? elementOfStem(stem) : null;
   return say(
     "네오",
-    `${dayWord} 일진은 ${sky.ilchin}. 별자리엔 지지가 없으니, ${name}에겐 사주 쪽에서 하루의 큰 날씨만 짚을게.`,
+    `${day} 별자리엔 지지가 없으니, ${name}에겐 사주 쪽에서 하루의 큰 날씨만 짚을게.`,
     element && STEM_LINE[element],
   );
 }

@@ -55,8 +55,9 @@ test('every system cut carries its own speaker and real value', () => {
   const vm = input('pig');
   const toon = buildDailyWebtoon(vm);
   const bySpeaker = (name) => toon.cuts.find((cut) => speakers(cut)[0] === name);
-  assert.match(text(bySpeaker('네오')), new RegExp(vm.relation.badge.replace(/[()]/g, '\\$&')));
-  assert.match(text(bySpeaker('네오')), /丙戌/);
+  assert.match(text(bySpeaker('네오')), /병술\(丙戌\)일/);
+  assert.match(text(bySpeaker('네오')), /술\(戌\)의 날이라 돼지띠와는 삼합도 충도 아니야/);
+  assert.match(text(bySpeaker('네오')), /천간 병\(丙\)은 화\(火\)라, 수\(水\)인 돼지띠에겐 재성, 곧 내가 다루는 기운이야/);
   assert.match(text(bySpeaker('윤달')), /전갈자리/);
   assert.match(text(bySpeaker('윤달')), /신월/);
   const card = dailyTarotReading('2026-11-08', 'fortune-sign:pig');
@@ -73,6 +74,30 @@ test('zodiac pages never borrow animal branch relations in the saju cut', () => 
     assert.ok(!/삼합|충|비화/.test(text(neo)), `${id}: ${text(neo)}`);
     assert.match(text(neo), new RegExp(getSignProfile(id).nameKo));
   }
+});
+
+test('Neo reads the day in hangul and never recites badges or basis arrows', () => {
+  const STEMS = '甲乙丙丁戊己庚辛壬癸';
+  const BRANCHES = '子丑寅卯辰巳午未申酉戌亥';
+  const animals = ['rat', 'ox', 'tiger', 'rabbit', 'dragon', 'snake', 'horse', 'goat', 'monkey', 'rooster', 'dog', 'pig'];
+  const kinds = new Set();
+  for (const id of [...animals, 'aries', 'leo']) {
+    for (let day = 0; day < 30; day += 1) {
+      const ilchin = STEMS[day % 10] + BRANCHES[day % 12];
+      const dateKey = `2026-11-${String(day + 1).padStart(2, '0')}`;
+      const vm = input(id, dateKey, ilchin);
+      if (vm.relation) kinds.add(vm.relation.kind);
+      const neo = text(buildDailyWebtoon(vm).cuts.find((cut) => speakers(cut)[0] === '네오'));
+      assert.match(neo, /일진은 [가-힣]{2}\([^)]{2}\)일이야/, `${id} ${ilchin}: ${neo}`);
+      assert.ok(!/[「」→]/.test(neo), `${id} ${ilchin}: ${neo}`);
+    }
+  }
+  assert.deepEqual([...kinds].sort(), ['clash', 'neutral', 'same', 'trine']);
+});
+
+test('clash names follow branch order', () => {
+  const neo = text(buildDailyWebtoon(input('pig', '2026-11-08', '乙巳')).cuts.find((cut) => speakers(cut)[0] === '네오'));
+  assert.match(neo, /사해충\(巳亥沖\)이 든 날이야/);
 });
 
 test('missing relation or element basis still yields seven cuts', () => {
