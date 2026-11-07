@@ -143,7 +143,21 @@ export async function unlinkCurrentSession(){
   if(token!==null||sessionEpoch!==cleared||loginAttempt!==unlinkAttempt+1)throw new ApiError('SESSION_CHANGED','',409);
   return result;
 }
-export async function logout(){const logoutEpoch=sessionEpoch,logoutAttempt=++loginAttempt;try{await api('/logout',{});}finally{if(sessionEpoch!==logoutEpoch||loginAttempt!==logoutAttempt)throw new ApiError('SESSION_CHANGED','',409);const cleared=await clearSession(false);if(token!==null||sessionEpoch!==cleared||loginAttempt!==logoutAttempt)throw new ApiError('SESSION_CHANGED','',409);}}
+export async function logout(){
+  const logoutEpoch=sessionEpoch,logoutAttempt=++loginAttempt;let invalidatedByRequest=false;
+  try{await api('/logout',{});}
+  catch(error){invalidatedByRequest=error instanceof ApiError&&(error.status===401||error.status===403)&&token===null&&sessionEpoch===logoutEpoch+1&&loginAttempt===logoutAttempt;throw error;}
+  finally{
+    // api() already cleared this exact session on 401. Preserve its error,
+    // including a permission denial from session storage cleanup;
+    // a concurrent login or any other session change still wins instead.
+    if(!(invalidatedByRequest&&token===null&&sessionEpoch===logoutEpoch+1&&loginAttempt===logoutAttempt)){
+      if(sessionEpoch!==logoutEpoch||loginAttempt!==logoutAttempt)throw new ApiError('SESSION_CHANGED','',409);
+      const cleared=await clearSession(false);
+      if(token!==null||sessionEpoch!==cleared||loginAttempt!==logoutAttempt)throw new ApiError('SESSION_CHANGED','',409);
+    }
+  }
+}
 export type CatalogProduct={id:string;name:string;sku:string;approvedPriceKRW:number;chapters:number;available:boolean};
 export type SaleProduct=CatalogProduct&{displayAmount:string};
 export type NativeSaleProduct=Omit<CatalogProduct,'chapters'>&{featureKey:string;displayAmount:string};

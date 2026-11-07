@@ -25,7 +25,7 @@ const bundle=await build({
     b.onResolve({filter:/.*/},a=>a.kind==='entry-point'?null:/^react(?:\/jsx-runtime)?$/.test(a.path)?{path:a.path,external:true}:{path:a.path,namespace:'mock'});
     b.onLoad({filter:/.*/,namespace:'mock'},({path:p})=>({contents:
       p==='./release'?'export const SERVICE_AVAILABLE=true;':
-      p==='@apps-in-toss/web-framework'?`const supported=fn=>Object.assign(fn,{isSupported:()=>true});export const Environment={environment:'sandbox'},isMinVersionSupported=()=>true,TossAuth={login:async()=>({authorizationCode:'mock',referrer:'SANDBOX'})},Storage={getItem:async()=>globalThis.__nativeIntegration.stored,setItem:async(_key,value)=>{globalThis.__nativeIntegration.stored=value},removeItem:async()=>{globalThis.__nativeIntegration.stored=null}},Share={},IAP={getProductItemList:supported(async()=>({products:[]})),getPendingOrders:supported(async()=>({orders:[]})),completeProductGrant:supported(async()=>true)},SafeArea={get:()=>({bottom:0}),subscribe:()=>()=>{}},Screen={close:()=>{}},graniteEvent={addEventListener:()=>()=>{}};`:
+      p==='@apps-in-toss/web-framework'?`const supported=fn=>Object.assign(fn,{isSupported:()=>true});export const Environment={environment:'sandbox'},isMinVersionSupported=()=>true,TossAuth={login:async()=>({authorizationCode:'mock',referrer:'SANDBOX'})},Storage={getItem:async()=>globalThis.__nativeIntegration.stored,setItem:async(_key,value)=>{globalThis.__nativeIntegration.stored=value},removeItem:async()=>{if(globalThis.__nativeIntegration.removeError)throw globalThis.__nativeIntegration.removeError;globalThis.__nativeIntegration.stored=null}},Share={},IAP={getProductItemList:supported(async()=>({products:[]})),getPendingOrders:supported(async()=>({orders:[]})),completeProductGrant:supported(async()=>true)},SafeArea={get:()=>({bottom:0}),subscribe:()=>()=>{}},Screen={close:()=>{}},graniteEvent={addEventListener:()=>()=>{}};`:
       p==='./content'?`export const readings=[{id:'saju_mackerel',domain:'saju',serviceId:'yeongnyangi'}],errors={REQUEST_FAILED:'오류',SESSION_EXPIRED:'로그인 시간이 만료되었어요.'},questions=[],birthSystems=[],consultationServices=[],selectionFor=()=>'';`:
       p.includes('question-policy')?`export const QUESTION_POLICY_VERSION='test',questionTopics=[],recommendQuestion=()=>({missing:[],unsupported:false,fish:'mackerel'});`:
       p.includes('yeongnyangi-spread-catalog')?`export const yeongnyangiSpreads=[{id:'test'}];`:
@@ -50,7 +50,7 @@ async function mount(readResult){
     const pathname=new URL(url).pathname.replace('/api/toss',''),authorization=options.headers?.Authorization;
     if(pathname==='/login')return Response.json({token:'account-b'});
     if(pathname==='/session')return Response.json({authenticated:true});
-    if(pathname==='/logout')return Response.json({error:'REQUEST_FAILED'},{status:503});
+    if(pathname==='/logout')return globalThis.__nativeIntegration.logoutResponse?.()??Response.json({error:'REQUEST_FAILED'},{status:503});
     if(pathname==='/catalog')return Response.json({products:[]});
     if(pathname==='/tarot-library/catalog')return Response.json({flows:[]});
     if(pathname==='/events')return Response.json({});
@@ -96,4 +96,58 @@ test('a failed logout cannot leave the app displaying an authenticated session',
     assert.ok([...document.querySelectorAll('button')].some(button=>button.textContent==='토스 로그인'));
     assert.ok(![...document.querySelectorAll('button')].some(button=>button.textContent==='로그아웃'));
   }finally{await view.close();history.replaceState({},'','/result?id=result-1');}
+});
+
+test('a denied logout preserves permission guidance after clearing the local token',async()=>{
+  history.replaceState({},'','/settings');
+  const view=await mount(()=>{throw new Error('unexpected result request');});
+  try{
+    globalThis.__nativeIntegration.logoutResponse=()=>Response.json({error:'ACCESS_DENIED'},{status:403});
+    const logout=[...document.querySelectorAll('button')].find(button=>button.textContent==='로그아웃');
+    assert.ok(logout);await React.act(async()=>logout.click());
+    assert.equal(platform.hasTossSession(),false);
+    assert.match(document.body.textContent,/접근 권한을 확인할 수 없어요/);
+    assert.ok([...document.querySelectorAll('button')].some(button=>button.textContent==='토스 로그인'));
+  }finally{await view.close();history.replaceState({},'','/result?id=result-1');}
+});
+
+for(const status of [401,403])test(`a late ${status} logout cannot replace a newly authenticated session`,async()=>{
+  history.replaceState({},'','/settings');let finish;
+  const view=await mount(()=>{throw new Error('unexpected result request');});
+  try{
+    globalThis.__nativeIntegration.logoutResponse=()=>new Promise(resolve=>{finish=resolve;});
+    const logout=[...document.querySelectorAll('button')].find(button=>button.textContent==='로그아웃');
+    assert.ok(logout);await React.act(async()=>logout.click());assert.equal(typeof finish,'function');
+    await React.act(async()=>platform.login());
+    await React.act(async()=>finish(Response.json({error:status===401?'SESSION_EXPIRED':'ACCESS_DENIED'},{status})));
+    assert.equal(platform.hasTossSession(),true);
+    assert.doesNotMatch(document.body.textContent,/접근 권한을 확인할 수 없어요|로그인 시간이 만료/);
+    assert.ok([...document.querySelectorAll('button')].some(button=>button.textContent==='로그아웃'));
+  }finally{await view.close();history.replaceState({},'','/result?id=result-1');}
+});
+
+test('an expired logout session asks the user to log in again',async()=>{
+  history.replaceState({},'','/settings');
+  const view=await mount(()=>{throw new Error('unexpected result request');});
+  try{
+    globalThis.__nativeIntegration.logoutResponse=()=>Response.json({error:'SESSION_EXPIRED'},{status:401});
+    const logout=[...document.querySelectorAll('button')].find(button=>button.textContent==='로그아웃');
+    assert.ok(logout);await React.act(async()=>logout.click());
+    assert.equal(platform.hasTossSession(),false);
+    assert.match(document.body.textContent,/로그인 시간이 만료/);
+    assert.ok([...document.querySelectorAll('button')].some(button=>button.textContent==='토스 로그인'));
+  }finally{await view.close();history.replaceState({},'','/result?id=result-1');}
+});
+
+test('a denied session cleanup remains a permission error after an expired logout',async()=>{
+  history.replaceState({},'','/settings');
+  const view=await mount(()=>{throw new Error('unexpected result request');});
+  try{
+    globalThis.__nativeIntegration.logoutResponse=()=>Response.json({error:'SESSION_EXPIRED'},{status:401});
+    globalThis.__nativeIntegration.removeError={status:403,code:'ACCESS_DENIED'};
+    const logout=[...document.querySelectorAll('button')].find(button=>button.textContent==='로그아웃');
+    assert.ok(logout);await React.act(async()=>logout.click());
+    assert.equal(platform.hasTossSession(),false);
+    assert.match(document.body.textContent,/접근 권한을 확인할 수 없어요/);
+  }finally{delete globalThis.__nativeIntegration.removeError;await view.close();history.replaceState({},'','/result?id=result-1');}
 });
