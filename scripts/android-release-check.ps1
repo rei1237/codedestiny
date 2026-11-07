@@ -107,8 +107,11 @@ if ($androidSdk) {
 
 if (Test-Path $localProperties) {
     Write-Ok "local.properties found"
+} elseif ($env:ANDROID_HOME -or $env:ANDROID_SDK_ROOT) {
+    # Gradle reads the SDK from ANDROID_HOME/ANDROID_SDK_ROOT when local.properties is absent (fresh worktrees never have it).
+    Write-Ok "local.properties not needed (SDK from ANDROID_HOME/ANDROID_SDK_ROOT)"
 } else {
-    Write-WarnLine "local.properties not found. Create apps/mobile/android/local.properties with sdk.dir."
+    Write-WarnLine "local.properties not found. Create apps/mobile/android/local.properties with sdk.dir, or set ANDROID_HOME."
 }
 
 if (Test-Path $signingProperties) {
@@ -128,6 +131,9 @@ if (Test-Path (Join-Path $androidDir "gradlew.bat")) {
 $googleServicesJson = Join-Path $androidDir "app/google-services.json"
 if (Test-Path $googleServicesJson) {
     Write-Ok "google-services.json found (FCM push notifications enabled)"
+} elseif (-not (Select-String -Path (Join-Path $root "apps/mobile/package.json") -Pattern "@capacitor/push-notifications" -Quiet)) {
+    # The google-services hook in app/build.gradle is Capacitor template boilerplate; the app ships no push plugin.
+    Write-Ok "google-services.json not needed (no push notification plugin installed)"
 } else {
     Write-WarnLine "google-services.json not found. Build still works; FCM push notifications stay disabled until this file is added."
 }
