@@ -15,6 +15,9 @@ export function createOfflineFixtureApi(storage){
  async function handle(request){
   const url=new URL(request.url),path=url.pathname.slice('/api/toss'.length),method=request.method;
   if(path==='/login'&&method==='POST'){state.loggedIn=true;save();return respond({token:'local-mock-token'});}
+  // Public product lists mirror worker/toss/routes.js; private requests below still require the mock session.
+  if(path==='/catalog'&&method==='GET')return respond({products:[letterProduct]});
+  if(path==='/tarot-library/catalog'&&method==='GET')return respond({flows:[]});
   if(!state.loggedIn||request.headers.get('Authorization')!=='Bearer local-mock-token')return denied();
   if(path==='/session'&&method==='GET')return respond({authenticated:true,environment:'SANDBOX'});
   // This fixed chart is synthetic and never uses the submitted birth data.
@@ -29,7 +32,6 @@ export function createOfflineFixtureApi(storage){
   if(path==='/human-design/chart'&&method==='POST')return respond(chartFixture());
   if(path==='/canonical/auth/me'&&method==='GET')return respond({ok:true,authenticated:true,user:{id:'offline-test-user',name:'테스트 사용자',role:'user'}});
   if(path==='/native/catalog'&&method==='GET')return respond({products:[product,sukuyoProduct,relationshipProduct]});
-  if(path==='/catalog'&&method==='GET')return respond({products:[letterProduct]});
   if(path==='/canonical/yeongnyangi/profiles'&&method==='GET')return respond({ok:true,profiles:[{id:'mock-profile',profileId:'mock-profile',name:'테스트 프로필',gender:'F',birthDate:'1990-01-01',timeUnknown:true,calendarType:'solar',birth:{year:1990,month:1,day:1,timeUnknown:true,calType:'solar'}}],currentId:'mock-profile'});
   if(path==='/canonical/profile'&&method==='GET')return respond({ok:true,profiles:[]});
   if(path==='/native/relationship/prepare'&&method==='POST'){
