@@ -64,6 +64,24 @@ export async function readNativePet(env,auth,id,{generate=false}={}){
       verify:(original,stored)=>authorizedIntent(env,auth,id,original,stored)});
 }
 
+const KINDS=Object.freeze({'pet-saju-ai-consultation':'report','pet-compatibility-ai':'compat'});
+
+// A library link is offered only after the same owner, order and saved input
+// are verified; an order without an intent asks for the pet input again.
+export async function nativePetLibraryItem(env,auth,purchase){
+  if(!purchase||purchase.identityId!==auth._id||String(purchase.ownerId)!==String(auth.ownerId)||purchase.environment!==auth.environment||purchase.nativeService!==SERVICE||!Object.hasOwn(KINDS,purchase.featureKey))throw new TossError('RESULT_NOT_FOUND',404);
+  if(purchase.status==='REFUNDED')throw new TossError('ORDER_REFUNDED',409);
+  if(!purchase.requestId)return {state:'UNASSIGNED',href:'/pet-saju/?kind='+KINDS[purchase.featureKey]+'&orderId='+encodeURIComponent(purchase._id)};
+  if(!idPattern.test(purchase.requestId))throw new TossError('RESULT_NOT_FOUND',404);
+  const row=await withMongoRetry(env,()=>TossNativeConsultation.findOne({_id:purchase.requestId,...ownerFilter(auth),orderId:purchase._id}).lean());
+  if(!row||row.featureKey!==purchase.featureKey)throw new TossError('RESULT_NOT_FOUND',404);
+  const expected=paidNarrativeExecutionKey(String(auth.userId),row.featureKey,row.requestId);
+  const doc=await withMongoRetry(env,()=>ServiceExecutionTransaction.findOne({userId:auth.userId,featureKey:row.featureKey,executionKey:expected}).lean());
+  await authorizedIntent(env,auth,row._id,doc?.metadata?.paidNarrative?.body,doc||undefined);
+  const state=doc?.premiumStatus==='completed'?'COMPLETED':doc?.metadata?.paidNarrative?.exhaustionClaimed?'GENERATION_FAILED':'PENDING';
+  return {state,resultId:row.resultId,href:'/pet-saju/?intentId='+encodeURIComponent(row._id)};
+}
+
 // Scheduled continuation uses the original intent and the active identity;
 // neither a client-supplied order nor an old web proof is sufficient.
 export async function verifyNativePetRecovery(env,doc){

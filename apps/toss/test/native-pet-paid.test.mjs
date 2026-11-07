@@ -65,3 +65,17 @@ test('a saved result with another intent or modified input cannot be reopened',a
 test('preparing the same request after midnight preserves the previously frozen date',async()=>{
  await reset();const result=await api.prepareNativePet({},auth,input);assert.equal(result.input.date,'2026-11-06');assert.equal(result.contract.inputHash,state.row.inputHash);assert.equal(result.service,'pet');
 });
+
+test('library item reopens only the verified order and asks for pet input when unassigned',async()=>{
+ await reset();const purchase={_id:'order',identityId:auth._id,ownerId:auth.ownerId,environment:auth.environment,nativeService:'pet',featureKey:'pet-saju-ai-consultation',requestId:id,status:'PURCHASED'};
+ let item=await api.nativePetLibraryItem({},auth,purchase);assert.equal(item.state,'PENDING');assert.equal(item.href,'/pet-saju/?intentId='+id);assert.equal(state.generated,0);
+ await api.readNativePet({},auth,id,{generate:true});state.doc.premiumStatus='completed';
+ item=await api.nativePetLibraryItem({},auth,purchase);assert.equal(item.state,'COMPLETED');
+ assert.deepEqual(await api.nativePetLibraryItem({},auth,{...purchase,requestId:null,featureKey:'pet-compatibility-ai'}),{state:'UNASSIGNED',href:'/pet-saju/?kind=compat&orderId=order'});
+ await assert.rejects(api.nativePetLibraryItem({},auth,{...purchase,_id:'other'}),error=>error.code==='RESULT_NOT_FOUND');
+ await assert.rejects(api.nativePetLibraryItem({},auth,{...purchase,featureKey:'pet-compatibility-ai'}),error=>error.code==='RESULT_NOT_FOUND');
+ await assert.rejects(api.nativePetLibraryItem({},{...auth,ownerId:'other'},purchase),error=>error.code==='RESULT_NOT_FOUND');
+ await assert.rejects(api.nativePetLibraryItem({},auth,{...purchase,status:'REFUNDED'}),error=>error.code==='ORDER_REFUNDED');
+ state.doc.metadata.paidNarrative.body.pet.name='수정된 이름';await assert.rejects(api.nativePetLibraryItem({},auth,purchase),error=>error.code==='REQUEST_INPUT_MISMATCH');
+ state.doc.metadata.paidNarrative.body.pet.name=pet.name;state.denied={code:'ORDER_REFUNDED',status:409};await assert.rejects(api.nativePetLibraryItem({},auth,purchase),error=>error.code==='ORDER_REFUNDED');
+});

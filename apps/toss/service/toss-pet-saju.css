@@ -10,3 +10,12 @@
 .pet-result>section{padding:20px;margin:16px 0;border:1px solid #eddee4;border-radius:20px;background:#fff}.pet-result-hero{display:flex;align-items:center;gap:16px;padding:20px;border-radius:22px;background:#f9edf0}.pet-result-hero .pet-portrait{width:96px}.pet-result-hero h2{margin:0}.pet-result-hero p{margin:3px 0}.pet-result-hero strong{font-size:.9rem;color:#80516e}.pet-tree{display:block;width:min(100%,280px);margin:auto}.pet-meter{display:grid;grid-template-columns:minmax(55px,auto) 1fr 3em;align-items:center;gap:10px;margin:10px 0;font-size:.88rem}.pet-track{display:block;height:9px;border-radius:99px;background:#f0e3e9;overflow:hidden}.pet-track i{display:block;height:100%;border-radius:inherit;background:#bd809b}.pet-pillars{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;text-align:center}.pet-pillars div{padding:10px 2px;background:#fbf3f5;border-radius:12px}.pet-pillars dd{margin:0;font-weight:700}.pet-result article h4{margin:14px 0 2px}.pet-result article p{margin:0}.pet-result article span{color:#a8782f}.pet-saved>div{display:flex;gap:8px;margin:8px 0}.pet-saved button{min-height:48px;border:1px solid #e2d1d9;border-radius:14px;background:white;color:inherit;padding:10px}.pet-saved button:first-child{flex:1;text-align:left;display:flex;justify-content:space-between;gap:8px}.pet-saved span{color:#705d6c;font-size:.86rem}
 @media (min-width:560px){.pet-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .pet-tree .tree__svg{display:block;width:100%;height:auto}
+.pet-paid,.pet-paid-offers{display:grid;gap:12px;margin-top:20px}
+.pet-paid-offer{display:grid;gap:10px;padding:18px;border-radius:18px;background:#fffaf6;border:1px solid rgba(121,80,111,.18)}
+.pet-paid-offer h2,.pet-paid-offers h3{margin:0;color:#4d3453}
+.pet-paid-note{font-size:13px;color:#6b5a68}
+.pet-paid-score strong{font-size:28px;color:#79506f}
+.pet-paid-pair{display:grid;grid-template-columns:1fr 1fr;gap:12px;text-align:center}
+.pet-paid-pair>div{display:grid;gap:4px;justify-items:center}
+.pet-rank{display:grid;gap:10px;padding-left:20px;margin:0}
+.pet-rank p{margin:2px 0}

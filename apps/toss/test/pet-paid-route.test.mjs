@@ -39,12 +39,12 @@ test('pet routes occur after the release and authenticated session checks',()=>{
  const release=source.indexOf("if(env.TOSS_RELEASE_READY!=='true')"),session=source.indexOf('await requireTossSession(request,env)'),pet=source.indexOf("if(path==='/native/pet/prepare'");
  assert.ok(release>=0&&session>release&&pet>session);
 });
-test('until its result screen exists, a verified pet purchase has no continuation link',async()=>{
+test('a pet library row is delegated to the verified pet library item',async()=>{
  const node=find(tree,item=>ts.isFunctionDeclaration(item)&&item.name?.getText(tree)==='readNativeLibraryItem');assert.ok(node);
- let verified=0;const context={verifyLibraryOrder:async(_env,user,row)=>{assert.equal(user,auth);assert.equal(row.nativeService,'pet');verified++;}};
- vm.runInNewContext(node.getText(tree),context);
- const value=await context.readNativeLibraryItem({},auth,{nativeService:'pet'});
- assert.equal(value.state,'ACCESS_REVIEW');assert.equal(value.href,undefined);assert.equal(verified,1);
+ const calls=[],context={getPet:async()=>({nativePetLibraryItem:async(_env,user,row)=>{calls.push([user,row]);return {state:'PENDING',href:'/pet-saju/?intentId='+id};}})};
+ vm.runInNewContext(node.getText(tree).replace("await import('./native-pet-paid.js')",'await getPet()'),context);
+ const row={nativeService:'pet'},value=await context.readNativeLibraryItem({},auth,row);
+ assert.deepEqual(value,{state:'PENDING',href:'/pet-saju/?intentId='+id});assert.deepEqual(calls,[[auth,row]]);
 });
 test('native intent and purchase schemas both accept the pet service',()=>{
  for(const model of [TossNativeConsultation,TossPurchase])assert.ok(model.schema.path('nativeService').enumValues.includes('pet'));
