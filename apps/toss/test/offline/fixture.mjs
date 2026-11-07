@@ -1,4 +1,7 @@
 // Explicitly synthetic, local-only fixture for the official SDK devtools.
+import {assembleChart} from '../../../../lib/human-design/chart.js';
+import {DIRECT_PLANETS} from '../../../../lib/human-design/planets.js';
+const chartFixture=()=>{const longitudes=shift=>Object.fromEntries(DIRECT_PLANETS.map((planet,index)=>[planet,(index*29+shift)%360]));return {stored:false,chart:assembleChart({personalityLongitudes:longitudes(12),designLongitudes:longitudes(284)})};};
 export function createOfflineFixtureApi(storage){
  let saved;try{saved=JSON.parse(storage?.getItem('toss-offline-fixture')||'null');}catch{saved=null;}
  const state={loggedIn:saved?.loggedIn===true,intents:new Map(saved?.intents||[]),letters:new Map(saved?.letters||[]),orders:new Map(saved?.orders||[]),testOrderSkus:new Map(saved?.testOrderSkus||[]),sequence:Number.isSafeInteger(saved?.sequence)?saved.sequence:0};
@@ -13,6 +16,9 @@ export function createOfflineFixtureApi(storage){
   if(path==='/login'&&method==='POST'){state.loggedIn=true;save();return respond({token:'local-mock-token'});}
   if(!state.loggedIn||request.headers.get('Authorization')!=='Bearer local-mock-token')return denied();
   if(path==='/session'&&method==='GET')return respond({authenticated:true,environment:'SANDBOX'});
+  // This fixed chart is synthetic and never uses the submitted birth data.
+  // The offline shell labels all of its output as test-only.
+  if(path==='/human-design/chart'&&method==='POST')return respond(chartFixture());
   if(path==='/canonical/auth/me'&&method==='GET')return respond({ok:true,authenticated:true,user:{id:'offline-test-user',name:'테스트 사용자',role:'user'}});
   if(path==='/native/catalog'&&method==='GET')return respond({products:[product,sukuyoProduct]});
   if(path==='/catalog'&&method==='GET')return respond({products:[letterProduct]});
