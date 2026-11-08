@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-08
-next: 6c-4 — pet-saju-ai(공용 paid-narrative-delivery.js) 202 멈춤 수정(공용 엔진 사용처를 먼저 grep, 동작 변경은 옵션으로 pet에만). 그다음 6c-5~6c-7, 끝나면 6d
+next: 6c-5 — sibyl / sibyl-annual 장 단위 재시도와 분량 경고화(통과한 장은 남기고 실패한 장만 다시 만든다). 그다음 6c-6~6c-7, 끝나면 6d
 ---
 
 # 3만원 이상 유료 LLM — 상품별 챕터·분량·PDF·전달 개선 인수인계
@@ -211,7 +211,16 @@ next: 6c-4 — pet-saju-ai(공용 paid-narrative-delivery.js) 202 멈춤 수정(
       - 테스트: 하네스가 env를 받게 했다(기본 `V1_ENV={SAJU_AI_DELIVERY_V2_ENABLED:"false"}`라 기존 1판 테스트 본문은 그대로). names에 새 헬퍼 4개, constants에 `SAJU_AI_DELIVERY_PLAN_VERSION`을 넣었다. 2판 테스트 8개: 판 고정·스위치·1판 기록 유지, 1·2판 프롬프트 sha256 동일, 무효 묶음 202, 한 묶음 끝내 무효 → 나머지 계속·최선 글 배달·무환불(호출 6회), 전부 짧음 → 초안 배달(호출 10회), 빈 글 → 2번째 실패에만 환불, 품질 실패 → 1회 리셋 후 경고와 배달(호출 7회), 1판 품질 실패는 여전히 503.
       - 검증: saju-*·fortune.*·환불·상태 관련 jest 1,279개 통과, `npx tsc --noEmit` 통과. 실호출·운영 DB 없음.
       - 남은 위험: 전부 짧거나 구조가 깨진 초안도 소진되면 그대로 배달된다(사용자 지시 "분량 부족으로 전달 실패 없음" 우선). 결과 화면이 `qualityWarning`을 쓰지는 않는다(로그·저장용). 1판 기록의 202 무한 반복은 1판이라 그대로다.
-  - [ ] 6c-4. pet-saju-ai(공용 `paid-narrative-delivery.js`)의 202 멈춤을 고친다. 공용 엔진을 쓰는 다른 서비스를 먼저 grep하고, 동작이 바뀌면 옵션으로 pet에만 켠다.
+  - [x] 6c-4. pet-saju-ai(공용 `paid-narrative-delivery.js`)의 202 멈춤을 고친다. 공용 엔진을 쓰는 다른 서비스를 먼저 grep하고, 동작이 바뀌면 옵션으로 pet에만 켠다.
+    - 결과(2026-11-08): `dcea6806f` 배달 2판.
+      - 공용 엔진 사용처(grep): 라우트 animal-totem·dream·oracle·pet-saju-ai·saju-compat-basic·yoga-guru, lib expert-follow-up·feature-question·guardian-paid·love-tarot·mindscan·tarot-oracle 배달, paid-narrative-intent·paid-narrative-recovery-task(크론), toss native-pet-paid. 스크립트 verify-llm-generation-resilience·verify-paid-gate-ui-regression.
+      - 엔진 옵션 `deliveryV2`(기본 false)는 `petNarrativeAdapter`만 켠다. 2판은 옵션 **그리고** 기록 `metadata.paidNarrative.deliveryPlanVersion===2`일 때만 돈다. 옵션 없는 어댑터는 seed에 판이 있어도 1판이다(테스트).
+      - 판 고정: `seedPetNarrative(kind, original, env)`가 스위치가 켜졌을 때 `deliveryPlanVersion:2`를 붙인다. 라우트·toss·intent 세 seed 경로 모두 env를 넘긴다. `paidNarrativeInsert`는 이 필드를 evidenceHash 계산에서 빼므로 hash와 프롬프트 바이트가 1판과 같다(sha256 테스트). 끄는 스위치 `PET_SAJU_DELIVERY_V2_ENABLED=false`. 기존 기록은 1판으로 끝난다.
+      - 2판 동작: 2회 실패한 파트가 나머지를 멈추지 않는다(시도 <2인 파트 먼저, 그다음 빈 파트를 4회까지). 마지막 시도(시도>=2)는 후보·다듬은 본문·초안 중 가장 긴 산문을 받는다(반복 문장은 이미 덜어 냄, 완결 검사·반복 구절 검사로 버리지 않음). 분량은 치명이 아니다: 목표(minChars)의 0.75 floor 미만일 때만 초안으로 두고 수리 1회, 기록당 `lengthRepairs` 3회까지.
+      - 파트를 빼지 않는다: Toss 클라이언트(`TossPetSaju.tsx` paidResult)가 coach·care·verdict·routine 빈 글을 거절하므로, 글이 전혀 없는 파트는 4회 시도 뒤 다른 파트가 다 저장된 다음에만 검토(202 reviewRequired)로 둔다. 환불 훅은 2판에서도 본문이 완전히 비었을 때만이다(pet 라우트는 원래 onExhausted가 없다).
+      - 테스트: `__tests__/worker/pet-paid-delivery.test.js` 하네스가 env를 받는다(기본 `{}` = 2판). 2판 테스트 10개 추가(판 고정·hash/프롬프트 동일, 1판 멈춤 유지, 실패 파트 4회 뒤 완료, 빈 파트 검토 시점, 반복 글 구제, 짧은 완결 문장 배달, floor 미만만 수리 3회, floor 이상 무수리, 빈 본문만 환불, 옵션 없는 어댑터 1판). 기존 "Toss exhaustion" 테스트는 2판 예산에 맞춰 attempts를 4로 둔다.
+      - 검증: 엔진 사용처 jest 20개 스위트 648개 통과, `apps/toss/test/native-pet-paid.test.mjs` 6개, verify-paid-gate-ui-regression·verify-llm-generation-resilience·verify-cron-mongo-op-coverage 통과, `npx tsc --noEmit` 통과. 실호출·운영 DB 없음.
+      - 남은 위험: 공급자가 한 파트에 4번 다 빈 응답을 주면 그 기록은 여전히 검토로 멈춘다(지어낸 대체문을 넣지 않기 위해). 1판 기록의 영구 202는 그대로다. 짧거나 반복이 남은 글도 마지막 시도면 배달된다. 분량 수리는 파트마다 호출 1회가 더 든다(기록당 최대 3회).
   - [ ] 6c-5. sibyl / sibyl-annual: 장 단위 재시도와 분량 경고화.
   - [ ] 6c-6. ziwei-island-ai 옛 기록: 코드로 `llmMeta.parts` 구제 경로만 넣는다. 운영 DB 조회는 사용자 승인 대기다.
   - [ ] 6c-7. `ALLOW_DEV_SERVER_DURING_BUILD=1 npm run build`. 빌드가 바꾼 sitemap·shell 파일은 되돌린다. 그다음 6c를 체크하고 `next`를 6d로 둔다.
