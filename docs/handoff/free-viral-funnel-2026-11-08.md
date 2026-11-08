@@ -1,7 +1,7 @@
 ---
-status: active
+status: done
 updated: 2026-11-08
-next: "6단계 — 전체 검증(check:fast·sitemap --check·브라우저 390px)"
+next: "없음 — push·main 머지·배포는 사용자 승인 대기, 후속 절은 사용자 결정 거리"
 ---
 
 # 무료 바이럴 퍼널 (초간단 무료 사주 + 운명의 꽃·최애 운명 무료 개방)
@@ -39,7 +39,7 @@ next: "6단계 — 전체 검증(check:fast·sitemap --check·브라우저 390px
 - [x] 3b. 최애 상세 리포트 재결제 위험: 결제 뒤 새로고침·재방문 때 같은 최애·생일로 다시 돈을 받는지 확인(`ensurePaidAccess`/`useCoinGate` 가 서버 권한을 보는지). 이전(3단계 전)에도 같았는지 비교. 새로 생긴 위험이면 고친다(결제 뒤 전달이 최우선).
 - [x] 4. `/saju/free` 초간단 무료 사주(폼·70/30·블러·공유 미션·PNG 카드·SEO·사이트맵)
 - [x] 5. 문서: 공유 미션 예외 기록, 이 문서 status 정리
-- [ ] 6. 전체 검증(타입·린트·테스트·사이트맵 --check·브라우저 390px)
+- [x] 6. 전체 검증(타입·린트·테스트·사이트맵 --check·브라우저 390px)
 
 ## 2b 설계(완료, 커밋 `2131ba7b9`)
 - 사실: `POST /api/destiny-flower/match` 는 2단계 전에도 requireAuth 뿐이고 해금 검사가 없었다 → 로그인 사용자에게 4갈래 전체가 이미 내려갔다(게이트는 클라이언트뿐). 2단계로 비로그인까지 넓어졌다.
@@ -89,6 +89,15 @@ next: "6단계 — 전체 검증(check:fast·sitemap --check·브라우저 390px
 - 5단계(2026-11-08, 문서만)
   - `docs/purchase-journey/IMPLEMENTATION.md:71` 에 예외 1건 기록(`/saju/free` 인라인 공유 미션 → 글자 키워드, 코인·금전 없음, 카카오 무조건, 팝업 없음, 사용자 결정 2026-11-08).
   - `docs/design/mobile-feature-registry.md` 꽃 아틀리에(낡은 "전체 해금 10,000원")·최애운명(낡은 "무료") 행을 무료/유료 분할로 고침.
+- 6단계(2026-11-08, 고침 커밋 `dcdd2f7cc`·`39e9d03bd`·`b085344bf`)
+  - 브라우저: 로컬 mock dev(127.0.0.1:26144), Playwright 390px. 꽃 API 는 mock 에 없어(501) `page.route` 로 실제 `worker/routes/destiny-flower.js` 핸들러(Node, Mongo 없음 → rate limit Map 폴백)에 넘겼다.
+  - `/saju/free`: 제출→결과 189~437ms(dev), 기둥 戊辰 甲午 己未 癸酉(1993-07-12 09:30), 카드 뒤집기 rotateY→none·opacity 1, 가로 스크롤 없음(390), 블러 CTA 3개 이동 주소 맞음, X·스레드 intent(UTM 채널별), 링크 복사, X 클릭 뒤 키워드 해제·sessionStorage 1, PNG `free-manse-card.png` 1080×1350, 라이트·다크·neo 대비 OK, pageerror 0.
+  - 고친 것(이 브랜치가 만든 결함): ① ViralShareBar 이미지 저장이 `fetch(dataUrl)` 로 CSP(connect-src 에 data: 없음, 운영도 같음)에 막혀 늘 실패 → atob Blob. ② 저장 버튼 대비 2.3 → 6.6. ③ `.cd-guide p·h3`(0,1,1)가 `/saju/free` 모듈·Tailwind 클래스를 이겨 미션 패널 글자 대비 1.1~1.4·공유 PNG 글자 축소·블러 게이트 CTA 잘림 → `.root` 접두로 특이성 올림, 게이트 흐린 영역 min-height 23rem.
+  - `/saju/destiny-bias/`(비로그인): 슬롯 공개 → "바로 결과 보기" → 결과·포토카드, 그동안 결제·인증 API 호출 없음(/api/recommendations 만). "상세 리포트 열기 · 5,000원" → auth/me·payments/config 뒤 공용 결제 시트("최애운명 상세 케미 리포트 5,000원"). 상세 섹션은 해금 전 안 보임. ViralShareBar X·스레드·링크(UTM `share_bar`) OK. 라이트 `cd-*` 버튼이 어두운 화면 위 밝은 알약으로 보인다 — 읽히지만 톤이 다름(후속).
+  - 꽃 스튜디오(셸, 비로그인): `openDestinyFlowerStudio('saju')` → "운명의 꽃 연동하기" → `POST /api/destiny-flower/match` 200, `atelierUnlocked:false`, sources 는 `saju` 하나(4갈래 요청해도), saju 키는 profile(일간·계절)·flower·flower_data(라벨 5개)·saju_verdict·share_hook·fallback_logic 뿐 — 후보·이야기·정원사·색 처방 없음. `#dfViralShare`(X·스레드·링크·이미지)·`#dfAtelierLock`("상세 해금 · 5,000원") 보임, 가로 스크롤 없음.
+  - 명령: `NODE_OPTIONS=--experimental-vm-modules node scripts/check-changed.mjs --profile=fast --skip-build --base=1a9f0fb18` EXIT=0(sitemap-drift OK 1061, typecheck, lint, test:node 4680/4680, paid-gate PASS, jest 455 suites·7704 tests). `node scripts/generate-sitemap.mjs --check` OK(1061). 집중 `node --test __tests__/ui/free-saju-landing.test.mjs` 통과. ※ 트리가 깨끗하면 check-changed 는 "검사할 변경 없음"으로 끝난다 → `--base=1a9f0fb18` 필요.
+  - 스크린샷: `D:\Development\Temp\claude\ec29f026d20d029c\9f3ab53a-2850-4b68-967e-01c1bdf39494\scratchpad\verify\`(세션 임시 폴더).
+  - 확인 못 한 것: 실제 워커·Mongo·로그인·결제 완료 흐름(구매자 `atelierUnlocked:true`, 최애 결제 뒤 resume), 카카오, 실기기(iOS Safari·안드로이드·Play 앱), 운영 빌드 속도, 스레드 글쓰기 실제 게시(로그인 화면으로 넘어감).
 
 ## 함정(4단계에서 발견)
 - 🔴 생년월일 `type="date"` 금지: `__tests__/ui/typed-birth-input.test.js:356` 가 app 전체에서 birth/생년월일/생일 문맥의 `type="date"` 를 잡는다. `birthDateTextInputProps`(`lib/birthDateInputProps.ts`)를 쓴다. 단 그 헬퍼의 onBlur 정규화는 양력 실재 날짜만 통과시켜 음력 2월 30일 같은 날을 지운다 → `lib/free-saju/birth-date.ts` 로 달력 종류별 정규화를 덮어썼다.
@@ -135,3 +144,8 @@ next: "6단계 — 전체 검증(check:fast·sitemap --check·브라우저 390px
 - 4단계: `lib/saju/saju-service-catalog.mjs:34` 의 무료 항목은 "무료 만세력"(href `/?action=cdOneStepFreeSajuEntry`, registry 'saju'·온보딩·ActivationGuide 에 묶임). "무료 사주 풀이"라는 항목은 없다. 권고: 그 항목은 그대로 두고, `/saju/free` 는 카탈로그에 별도 항목으로 더하거나 SEO 쪽 링크로만 잇는다 — 사용자 결정.
 - 4단계: `PremiumBlurGate` 에 하드코딩 hex·👑/🔐 기본 아이콘·reduced-motion 을 무시하는 무한 애니메이션이 남아 있다(이번엔 선택 props 만 추가).
 - 4단계: 성별은 입력만 받고 계산에 쓰지 않는다(대운 방향이 필요해질 때 사용). 페이지는 한국어 전용(번역 없음). ImmersiveRelatedLinks·ROUTE_DATES 등 다른 연결 목록에는 등록하지 않았다. 390px 브라우저 확인은 6단계.
+- 6단계: `/saju/free` 링크 복사는 UTM 없이 맨 주소(`/saju/free/`)를 복사한다(X·스레드는 UTM 있음, 최애는 `buildInviteUrl` 이라 UTM 있음). 링크 유입 측정이 필요하면 `withShareUtm(url,'link')` 적용 — 결정 필요.
+- 6단계: `app/saju/animal-destiny/hooks/useAnimalCardExport.ts:114` 도 `fetch(dataUrl)` 를 쓴다 — 같은 CSP 로 운영에서 이미지 저장이 막힐 가능성(기존 코드, 이번 범위 밖).
+- 6단계: 다른 `.cd-guide` 페이지의 모듈 CSS 도 `p`·`h3` 글자색·크기가 같은 방식으로 덮일 수 있다(전역 `styles/globals.css` `.cd-guide p/h3`).
+- 6단계: 꽃 "나의 개화 기록" 안내 문구가 비로그인·사주만 열린 상태에서도 "모든 꽃이 개화되었습니다"라고 쓴다(기존 문구).
+- 6단계: localhost 에서 assets.code-destiny.com 폰트가 CORS 로 안 받아진다(dev 전용 소음).
