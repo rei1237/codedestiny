@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-11-09
-next: "AI 호출 목록 4곳 갱신·후속 push 승인 회신 확인. 승인 시 준비 JSON을 적용·mock 검증·별도 커밋 후 pre-push→main 전달. 22c7575f9/6e9c8314c 로컬 완료. Space65 원자료 후속은 신규 round188부터. 공식 CI·fresh 산출물·④⑤ 운영 승인과 관찰은 남음."
+next: "승인된 AI 호출 목록 갱신 b58fcf669와 최종 기록 pre-push→main push. 다음 작업을 진행한 뒤 최종 CI를1회 확인. Space65 후속 원자료는 신규 round188부터. fresh 산출물·④⑤ 운영 승인·관찰은 남음."
 ---
 
 # SEO 아키텍처 재구축
@@ -22,6 +22,8 @@ next: "AI 호출 목록 4곳 갱신·후속 push 승인 회신 확인. 승인 �
 
 ### 2026-11-09 내일 본문 차별화·번역 후속, CI 추가 범위 회신 대기
 
+- **추가 범위 승인 완료(2026-11-09)**: 사용자 원문 “호출 목록 갱신과 후속 push 승인”. 아래 회신 대기 기록을 대체한다. 준비 JSON을 적용했고 b58fcf669에서 호출 목록3파일의4곳만 추가했다(시빌1·숙요1·자미두수2, 실행 코드 변경 없음). audit --check 68파일/170근거 통과, browser 계약 통과, fake transport provider 계약12locale 통과. 실 LLM/실 네트워크/실결제/운영DB 호출 없음.
+- 승인 직후 origin/main이1b08d236bc3c4ae06be918900d92891ea995e4c5로 전진했다. clean 상태에서 rebase했고 충돌은 `config/sitemap-lastmod.json`뿐이라 HEAD 원장을 시작점으로 공식 생성기를 다시 실행했다. source 코드 충돌/삭제 없음. 옛→새 SHA: 준비22c7575f9→f8cb032cd, 번역6e9c8314c→9de7b61e5, 기록92e78d804→11495fe0c, CI기록008654a39→44f11f6ac。main의 타이포그래피/현지화 링크 변경을 보존했다. rebase 뒤 대상25/25와typecheck 통과. 현재 최종 기록 뒤 pre-push를 실행하고 승인된 main 전달을 진행한다.
 - 최종1회 확인에서 **main81390e622의 본 PR CI42523534646 성공**. 별도 AI Locale Gate42523534632의 호출 목록 누락 실패는 그대로 남아 있어 후속 push는 추가 범위 승인 전 보류한다. 로컬 준비/번역/기록은92e78d8047055cfa0ac62f7342a72f5aed73201f까지 커밋했고 그 트리 pre-push 통과, 작업 트리 clean이었다. 이 최신 CI 기록을 추가한 뒤에는 실제 push 직전에 pre-push를 다시 실행한다.
 - main 전달: 관계 문구2d9042d91·기록81390e622f2e689f3e50e54fc6666d3f71eaee90은 pre-push 후 전달했다. 운영 Pages/Worker는 이번 승격 패킷 준비를 위한 일회성 읽기에서 모두72fed768472e292055df9c29a5bec27ee9e0e934였다. source별 기준을 혼동하지 않는다.
 - **main의 별도 AI Locale Gate 실패**: run42523534632。기존 main의 시빌(f5d5f771e)·숙요(8138cac0b)·자미두수(a0d9b364d) 작업에 추가된 호출4곳이 `config/ai-locale-call-inventory.json`에 없다. SEO가 LLM 호출을 추가한 것은 아니다. 기존4ee CI가 성공했어도 새 gate 실행 결과를 숨기지 않는다. PR CI42523534646은 마지막 확인 때 진행 중이었다. 다음 push/최종 보고 전1회 결과 확인하고 반복 폴링하지 않는다.
